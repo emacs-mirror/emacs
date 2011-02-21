@@ -63,9 +63,6 @@ MAKESHELL=/xyzzy/command
 # Generate a full pathname of the top-level installation directory
 top_srcdir := $(subst \,/,$(shell cd))
 
-# Find out which version of Emacs this is.
-version := ${shell sed -n -e '/^static const char emacs_version/s/^[^"]*\("[^"]*"\).*/\1/p' src/emacs.c}
-
 # Q: Do we need to bootstrap?
 # A: Only if we find admin/admin.el, i.e. we are building out of 
 #    a VCS-checkout (not a release) and src/b-emacs.exe does not exist.
@@ -82,11 +79,16 @@ endif
 # compiled lisp files are part of the distribution.  (If we are
 # bootstrapping, the src target will run Make in `lisp' as well.)
 # leim is not included because it is part of the src target.
-all:	lib-src src emacs misc lispref lispintro
+all:	lib lib-src src emacs misc lispref lispintro
 
-lib-src: FRC
+lib: FRC
+	cd lib
+	$(MAKE) top_srcdir=${top_srcdir} all
+	cd ..
+
+lib-src: lib FRC
 	cd lib-src
-	$(MAKE) top_srcdir=${top_srcdir} version=${version}
+	$(MAKE) top_srcdir=${top_srcdir} all
 	cd ..
 
 # Pass to src/Makefile.in an additional BOOTSTRAPEMACS variable which
@@ -98,9 +100,9 @@ lib-src: FRC
 # file src/foo.c forces dumping a new bootstrap-emacs, then re-byte-compiling
 # all preloaded elisp files, and only then dump the actual src/emacs, which
 # is not wrong, but is overkill in 99.99% of the cases.
-src: FRC
+src: lib lib-src FRC
 	cd src
-	$(MAKE) top_srcdir=${top_srcdir} BOOTSTRAPEMACS="${boot}"
+	$(MAKE) top_srcdir=${top_srcdir} BOOTSTRAPEMACS="${boot}" all
 	djecho -s '/-geometry/s,^.*,set environment HOME $(top_srcdir),' \
 	          '/environment *TERM/s/^.*/set environment TERM internal/' \
 	       >gdb.sed
@@ -168,6 +170,9 @@ check:
 	@echo "We don't have any tests for GNU Emacs yet."
 
 clean mostlyclean:
+	cd lib
+	$(MAKE) $(MFLAGS) $@
+	cd ..
 	cd lib-src
 	$(MAKE) $(MFLAGS) $@
 	cd ..
@@ -199,6 +204,9 @@ distclean maintainer-clean: FRC
 	$(MAKE) $(MFLAGS) $@
 	if exist bootlisp rm -f bootlisp
 	cd ..
+	cd lib
+	$(MAKE) $(MFLAGS) $@
+	cd ..
 	cd lib-src
 	$(MAKE) $(MFLAGS) $@
 	cd ..
@@ -226,6 +234,9 @@ distclean maintainer-clean: FRC
 
 extraclean:
 	cd src
+	$(MAKE) $(MFLAGS) $@
+	cd ..
+	cd lib
 	$(MAKE) $(MFLAGS) $@
 	cd ..
 	cd lib-src
@@ -257,6 +268,9 @@ extraclean:
 .PHONY: bootstrap
 
 bootstrap-clean: FRC
+	cd lib
+	$(MAKE) $(MFLAGS) $@
+	cd ..
 	cd src
 	$(MAKE) $(MFLAGS) $@
 	cd ..

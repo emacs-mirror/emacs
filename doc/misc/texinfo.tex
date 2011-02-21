@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2011-02-07.16}
+\def\texinfoversion{2011-02-14.11}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -158,6 +158,7 @@
 \def\spaceisspace{\catcode`\ =\spacecat}
 
 % sometimes characters are active, so we need control sequences.
+\chardef\ampChar   = `\&
 \chardef\colonChar = `\:
 \chardef\commaChar = `\,
 \chardef\dashChar  = `\-
@@ -547,7 +548,7 @@
 }
 \def\inenvironment#1{%
   \ifx#1\empty
-    out of any environment%
+    outside of any environment%
   \else
     in environment \expandafter\string#1%
   \fi
@@ -2491,22 +2492,8 @@ end
     \codex
   }
 }
-% Handle @url similarly to \code, but allows line breaks after .#?/ (only).
-{
-  \catcode`\.=\active \catcode`\#=\active
-  \catcode`\?=\active \catcode`\/=\active
-  %
-  \global\def\urefcode{\begingroup
-    \setupmarkupstyle{code}%
-    \catcode\dotChar=\active   \catcode\hashChar=\active
-    \catcode\questChar=\active \catcode\slashChar=\active
-    \let.\urefcodedot
-    \let#\urefcodehash
-    \let?\urefcodequestion
-    \let/\urefcodeslash
-    \codex
-  }
-}
+
+\def\codex #1{\tclose{#1}\endgroup}
 
 \def\realdash{-}
 \def\codedash{-\discretionary{}{}{}}
@@ -2521,25 +2508,6 @@ end
              \discretionary{}{}{}}%
             {\_}%
 }
-% we put a little stretch before and after the breakable chars, to help
-% line breaking of long url's.  The unequal skips make look better in
-% cmtt at least, especially for dots.
-\def\urefprestretch{\nobreak \hskip0pt plus.13em }
-\def\urefpoststretch{\allowbreak \hskip0pt plus.1em }
-\def\urefcodedot{\urefprestretch .\urefpoststretch}
-\def\urefcodehash{\urefprestretch \#\urefpoststretch}
-\def\urefcodequestion{\urefprestretch ?\urefpoststretch}
-\def\urefcodeslash{\futurelet\next\urefcodeslashfinish}
-{
-  \catcode`\/=\active
-  \global\def\urefcodeslashfinish{%
-    \urefprestretch \slashChar
-    % Allow line break only after the final / in a sequence of
-    % slashes, to avoid line break between the slashes in http://.
-    \ifx\next/\else \urefpoststretch \fi
-  }
-}
-\def\codex #1{\tclose{#1}\endgroup}
 
 % An additional complication: the above will allow breaks after, e.g.,
 % each of the four underscores in __typeof__.  This is undesirable in
@@ -2563,6 +2531,152 @@ end
   \fi\fi
 }
 
+% @uref (abbreviation for `urlref') takes an optional (comma-separated)
+% second argument specifying the text to display and an optional third
+% arg as text to display instead of (rather than in addition to) the url
+% itself.  First (mandatory) arg is the url.
+% (This \urefnobreak definition isn't used now, leaving it for a while
+% for comparison.)
+\def\urefnobreak#1{\dourefnobreak #1,,,\finish}
+\def\dourefnobreak#1,#2,#3,#4\finish{\begingroup
+  \unsepspaces
+  \pdfurl{#1}%
+  \setbox0 = \hbox{\ignorespaces #3}%
+  \ifdim\wd0 > 0pt
+    \unhbox0 % third arg given, show only that
+  \else
+    \setbox0 = \hbox{\ignorespaces #2}%
+    \ifdim\wd0 > 0pt
+      \ifpdf
+        \unhbox0             % PDF: 2nd arg given, show only it
+      \else
+        \unhbox0\ (\code{#1})% DVI: 2nd arg given, show both it and url
+      \fi
+    \else
+      \code{#1}% only url given, so show it
+    \fi
+  \fi
+  \endlink
+\endgroup}
+
+% This \urefbreak definition is the active one.
+\def\urefbreak{\begingroup \urefcatcodes \dourefbreak}
+\let\uref=\urefbreak
+\def\dourefbreak#1{\urefbreakfinish #1,,,\finish}
+\def\urefbreakfinish#1,#2,#3,#4\finish{% doesn't work in @example
+  \unsepspaces
+  \pdfurl{#1}%
+  \setbox0 = \hbox{\ignorespaces #3}%
+  \ifdim\wd0 > 0pt
+    \unhbox0 % third arg given, show only that
+  \else
+    \setbox0 = \hbox{\ignorespaces #2}%
+    \ifdim\wd0 > 0pt
+      \ifpdf
+        \unhbox0             % PDF: 2nd arg given, show only it
+      \else
+        \unhbox0\ (\urefcode{#1})% DVI: 2nd arg given, show both it and url
+      \fi
+    \else
+      \urefcode{#1}% only url given, so show it
+    \fi
+  \fi
+  \endlink
+\endgroup}
+
+% Allow line breaks around only a few characters (only).
+\def\urefcatcodes{%
+  \catcode\ampChar=\active   \catcode\dotChar=\active
+  \catcode\hashChar=\active  \catcode\questChar=\active
+  \catcode\slashChar=\active
+}
+{
+  \urefcatcodes
+  %
+  \global\def\urefcode{\begingroup
+    \setupmarkupstyle{code}%
+    \urefcatcodes
+    \let&\urefcodeamp
+    \let.\urefcodedot
+    \let#\urefcodehash
+    \let?\urefcodequest
+    \let/\urefcodeslash
+    \codex
+  }
+  %
+  % By default, they are just regular characters.
+  \global\def&{\normalamp}
+  \global\def.{\normaldot}
+  \global\def#{\normalhash}
+  \global\def?{\normalquest}
+  \global\def/{\normalslash}
+}
+
+% we put a little stretch before and after the breakable chars, to help
+% line breaking of long url's.  The unequal skips make look better in
+% cmtt at least, especially for dots.
+\def\urefprestretch{\urefprebreak \hskip0pt plus.13em }
+\def\urefpoststretch{\urefpostbreak \hskip0pt plus.1em }
+%
+\def\urefcodeamp{\urefprestretch \&\urefpoststretch}
+\def\urefcodedot{\urefprestretch .\urefpoststretch}
+\def\urefcodehash{\urefprestretch \#\urefpoststretch}
+\def\urefcodequest{\urefprestretch ?\urefpoststretch}
+\def\urefcodeslash{\futurelet\next\urefcodeslashfinish}
+{
+  \catcode`\/=\active
+  \global\def\urefcodeslashfinish{%
+    \urefprestretch \slashChar
+    % Allow line break only after the final / in a sequence of
+    % slashes, to avoid line break between the slashes in http://.
+    \ifx\next/\else \urefpoststretch \fi
+  }
+}
+
+% One more complication: by default we'll break after the special
+% characters, but some people like to break before the special chars, so
+% allow that.  Also allow no breaking at all, for manual control.
+% 
+\parseargdef\urefbreakstyle{%
+  \def\txiarg{#1}%
+  \ifx\txiarg\wordnone
+    \def\urefprebreak{\nobreak}\def\urefpostbreak{\nobreak}
+  \else\ifx\txiarg\wordbefore
+    \def\urefprebreak{\allowbreak}\def\urefpostbreak{\nobreak}
+  \else\ifx\txiarg\wordafter
+    \def\urefprebreak{\nobreak}\def\urefpostbreak{\allowbreak}
+  \else
+    \errhelp = \EMsimple
+    \errmessage{Unknown @urefbreakstyle setting `\txiarg'}%
+  \fi\fi\fi
+}
+\def\wordafter{after}
+\def\wordbefore{before}
+\def\wordnone{none}
+
+\urefbreakstyle after
+
+% @url synonym for @uref, since that's how everyone uses it.
+%
+\let\url=\uref
+
+% rms does not like angle brackets --karl, 17may97.
+% So now @email is just like @uref, unless we are pdf.
+%
+%\def\email#1{\angleleft{\tt #1}\angleright}
+\ifpdf
+  \def\email#1{\doemail#1,,\finish}
+  \def\doemail#1,#2,#3\finish{\begingroup
+    \unsepspaces
+    \pdfurl{mailto:#1}%
+    \setbox0 = \hbox{\ignorespaces #2}%
+    \ifdim\wd0>0pt\unhbox0\else\code{#1}\fi
+    \endlink
+  \endgroup}
+\else
+  \let\email=\uref
+\fi
+
 % @kbd is like @code, except that if the argument is just one @key command,
 % then @kbd has no effect.
 \def\kbd#1{{\setupmarkupstyle{kbd}\def\look{#1}\expandafter\kbdfoo\look??\par}}
@@ -2580,7 +2694,7 @@ end
     \gdef\kbdexamplefont{\tt}\gdef\kbdfont{\tt}%
   \else
     \errhelp = \EMsimple
-    \errmessage{Unknown @kbdinputstyle option `\txiarg'}%
+    \errmessage{Unknown @kbdinputstyle setting `\txiarg'}%
   \fi\fi\fi
 }
 \def\worddistinct{distinct}
@@ -2607,79 +2721,6 @@ end
 % @clickstyle @arrow   (by default)
 \parseargdef\clickstyle{\def\click{#1}}
 \def\click{\arrow}
-
-% @uref (abbreviation for `urlref') takes an optional (comma-separated)
-% second argument specifying the text to display and an optional third
-% arg as text to display instead of (rather than in addition to) the url
-% itself.  First (mandatory) arg is the url.  Perhaps eventually put in
-% a hypertex \special here.
-%
-\def\uref#1{\douref #1,,,\finish}
-\def\douref#1,#2,#3,#4\finish{\begingroup
-  \unsepspaces
-  \pdfurl{#1}%
-  \setbox0 = \hbox{\ignorespaces #3}%
-  \ifdim\wd0 > 0pt
-    \unhbox0 % third arg given, show only that
-  \else
-    \setbox0 = \hbox{\ignorespaces #2}%
-    \ifdim\wd0 > 0pt
-      \ifpdf
-        \unhbox0             % PDF: 2nd arg given, show only it
-      \else
-        \unhbox0\ (\code{#1})% DVI: 2nd arg given, show both it and url
-      \fi
-    \else
-      \code{#1}% only url given, so show it
-    \fi
-  \fi
-  \endlink
-\endgroup}
-
-\def\nouref#1,#2,#3,#4\finish{\begingroup  % doesn't work in @example
-  \unsepspaces
-  \pdfurl{#1}%
-  \setbox0 = \hbox{\ignorespaces #3}%
-  \ifdim\wd0 > 0pt
-    \unhbox0 % third arg given, show only that
-  \else
-    \setbox0 = \hbox{\ignorespaces #2}%
-    \ifdim\wd0 > 0pt
-      \ifpdf
-        \unhbox0             % PDF: 2nd arg given, show only it
-      \else
-        % \empty at the end of \scantokens arg gets rid of
-        % trailing newline (and ultimate spurious whitespace).
-        \unhbox0\ (\urefcode{\scantokens{#1\empty}})% DVI: 2nd arg given,
-                                                    % show both it and url
-      \fi
-    \else
-      \urefcode{\scantokens{#1\empty}}% only url given, so show it
-    \fi
-  \fi
-  \endlink
-\endgroup}
-
-% @url synonym for @uref, since that's how everyone uses it.
-%
-\let\url=\uref
-
-% rms does not like angle brackets --karl, 17may97.
-% So now @email is just like @uref, unless we are pdf.
-%
-%\def\email#1{\angleleft{\tt #1}\angleright}
-\ifpdf
-  \def\email#1{\doemail#1,,\finish}
-  \def\doemail#1,#2,#3\finish{\begingroup
-    \unsepspaces
-    \pdfurl{mailto:#1}%
-    \setbox0 = \hbox{\ignorespaces #2}%
-    \ifdim\wd0>0pt\unhbox0\else\code{#1}\fi
-    \endlink
-  \endgroup}
-\else
-  \let\email=\uref
-\fi
 
 % Typeset a dimension, e.g., `in' or `pt'.  The only reason for the
 % argument is to make the input look right: @dmn{pt} instead of @dmn{}pt.
@@ -5677,6 +5718,8 @@ end
 %
 \def\sectionheading#1#2#3#4{%
   {%
+    \checkenv{}% should not be in an environment.
+    %
     % Switch to the right set of fonts.
     \csname #2fonts\endcsname \rmisbold
     %
@@ -9305,24 +9348,15 @@ directory should work if nowhere else does.}
 \catcode`\^^? = 14
 
 % Define macros to output various characters with catcode for normal text.
-\catcode`\"=\other
-\catcode`\~=\other
-\catcode`\^=\other
-\catcode`\_=\other
-\catcode`\|=\other
-\catcode`\<=\other
-\catcode`\>=\other
-\catcode`\+=\other
-\catcode`\$=\other
-\def\normaldoublequote{"}
-\def\normaltilde{~}
-\def\normalcaret{^}
-\def\normalunderscore{_}
-\def\normalverticalbar{|}
-\def\normalless{<}
-\def\normalgreater{>}
-\def\normalplus{+}
-\def\normaldollar{$}%$ font-lock fix
+\catcode`\"=\other \def\normaldoublequote{"}
+\catcode`\$=\other \def\normaldollar{$}%$ font-lock fix
+\catcode`\+=\other \def\normalplus{+}
+\catcode`\<=\other \def\normalless{<}
+\catcode`\>=\other \def\normalgreater{>}
+\catcode`\^=\other \def\normalcaret{^}
+\catcode`\_=\other \def\normalunderscore{_}
+\catcode`\|=\other \def\normalverticalbar{|}
+\catcode`\~=\other \def\normaltilde{~}
 
 % This macro is used to make a character print one way in \tt
 % (where it can probably be output as-is), and another way in other fonts,
@@ -9415,16 +9449,16 @@ directory should work if nowhere else does.}
 % the literal character `\'.
 %
 @def@normalturnoffactive{%
-  @let\=@normalbackslash
   @let"=@normaldoublequote
-  @let~=@normaltilde
+  @let$=@normaldollar %$ font-lock fix
+  @let+=@normalplus
+  @let<=@normalless
+  @let>=@normalgreater
+  @let\=@normalbackslash
   @let^=@normalcaret
   @let_=@normalunderscore
   @let|=@normalverticalbar
-  @let<=@normalless
-  @let>=@normalgreater
-  @let+=@normalplus
-  @let$=@normaldollar %$ font-lock fix
+  @let~=@normaltilde
   @markupsetuplqdefault
   @markupsetuprqdefault
   @unsepspaces
@@ -9456,10 +9490,16 @@ directory should work if nowhere else does.}
 % Say @foo, not \foo, in error messages.
 @escapechar = `@@
 
+% These (along with & and #) are made active for url-breaking, so need
+% active definitions as the normal characters.
+@def@normaldot{.}
+@def@normalquest{?}
+@def@normalslash{/}
+
 % These look ok in all fonts, so just make them not special.
-@catcode`@& = @other
-@catcode`@# = @other
-@catcode`@% = @other
+@catcode`@& = @other @def@normalamp{&}
+@catcode`@# = @other @def@normalhash{#}
+@catcode`@% = @other @def@normalpercent{%}
 
 @c Finally, make ` and ' active, so that txicodequoteundirected and
 @c txicodequotebacktick work right in, e.g., @w{@code{`foo'}}.  If we

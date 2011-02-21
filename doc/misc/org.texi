@@ -286,7 +286,7 @@ license to the document, as described in section 6 of the license.
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs editing modes
 @direntry
 * Org Mode: (org).      Outline-based notes management and organizer
 @end direntry

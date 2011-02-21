@@ -73,6 +73,15 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #define HAVE_INVERSE_HYPERBOLIC
 #define FLOAT_CHECK_DOMAIN
 
+/* Start of gnulib-related stuff  */
+
+/* lib/ftoastr.c wants strtold, but DJGPP only has _strtold.  DJGPP >
+   2.03 has it, but it also has _strtold as a stub that jumps to
+   strtold, so use _strtold in all versions.  */
+#define strtold _strtold
+
+/* End of gnulib-related stuff.  */
+
 /* When $TERM is "internal" then this is substituted:  */
 #define INTERNAL_TERMINAL "pc|bios|IBM PC with color display:\
 :co#80:li#25:Co#16:pa#256:km:ms:cm=<CM>:cl=<CL>:ce=<CE>:\
@@ -92,7 +101,7 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 
 
 /* Mode line description of a buffer's type.  */
-#define MODE_LINE_BINARY_TEXT(buf) (NILP(buf->buffer_file_type) ? "T" : "B")
+#define MODE_LINE_BINARY_TEXT(buf) (NILP(B_(buf,buffer_file_type)) ? "T" : "B")
 
 /* We have (the code to control) a mouse.  */
 #define HAVE_MOUSE

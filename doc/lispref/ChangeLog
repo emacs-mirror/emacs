@@ -1,3 +1,23 @@
+2011-02-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* elisp.texi: Sync @dircategory with ../../info/dir.
+
+	* files.texi (Visiting Functions): Document find-file-literally,
+	both the command and the variable.
+
+	* variables.texi (Creating Buffer-Local): Explain the meaning of
+	permanent local variables.
+
+	* files.texi (Visiting Functions): Document find-file-literally,
+	both the command and the variable.
+
+	* variables.texi (Creating Buffer-Local): Explain the meaning of
+	permanent local variables.
+
+2011-02-19  Glenn Morris  <rgm@gnu.org>
+
+	* keymaps.texi (Remapping Commands): Mention how to undo it.
+
 2011-02-09  Reuben Thomas  <rrt@sc3d.org>
 
 	* loading.texi (Hooks for Loading): Remove unnecessary advice

@@ -31,9 +31,9 @@ INSTALLDIR=.
 s|\([ 	]\)echo|\1djecho|g
 /^	@true *$/d
 
-/RUN-EMACS *=/,/^$/c\
+/RUN_EMACS *=/,/^$/c\
 export EMACSLOADPATH=${buildlisppath}\
-RUN-EMACS = ${BUILT-EMACS} -batch --no-site-file
+RUN_EMACS = ${BUILT_EMACS} -batch --no-site-file
 
 /^	cd ../c\
 	${MAKE} -C ../src ${MFLAGS} emacs

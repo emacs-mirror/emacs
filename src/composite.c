@@ -796,7 +796,7 @@ fill_gstring_header (Lisp_Object header, Lisp_Object start, Lisp_Object end, Lis
 
   if (NILP (string))
     {
-      if (NILP (current_buffer->enable_multibyte_characters))
+      if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
 	error ("Attempt to shape unibyte text");
       validate_region (&start, &end);
       from = XFASTINT (start);
@@ -1028,7 +1028,7 @@ composition_compute_stop_pos (struct composition_it *cmp_it, EMACS_INT charpos, 
       cmp_it->stop_pos = endpos = start;
       cmp_it->ch = -1;
     }
-  if (NILP (current_buffer->enable_multibyte_characters)
+  if (NILP (BVAR (current_buffer, enable_multibyte_characters))
       || NILP (Vauto_composition_mode))
     return;
   if (bytepos < 0)
@@ -1674,7 +1674,7 @@ composition_adjust_point (EMACS_INT last_pt, EMACS_INT new_pt)
       return new_pt;
     }
 
-  if (NILP (current_buffer->enable_multibyte_characters)
+  if (NILP (BVAR (current_buffer, enable_multibyte_characters))
       || NILP (Vauto_composition_mode))
     return new_pt;
 
@@ -1851,7 +1851,7 @@ See `find-composition' for more details.  */)
 
   if (!find_composition (from, to, &start, &end, &prop, string))
     {
-      if (!NILP (current_buffer->enable_multibyte_characters)
+      if (!NILP (BVAR (current_buffer, enable_multibyte_characters))
 	  && ! NILP (Vauto_composition_mode)
 	  && find_automatic_composition (from, to, &start, &end, &gstring,
 					 string))

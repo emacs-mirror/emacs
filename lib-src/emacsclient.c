@@ -1708,10 +1708,21 @@ main (int argc, char **argv)
   fsync (1);
 
   /* Now, wait for an answer and print any messages.  */
-  while (exit_status == EXIT_SUCCESS
-	 && (rl = recv (emacs_socket, string, BUFSIZ, 0)) > 0)
+  while (exit_status == EXIT_SUCCESS)
     {
       char *p;
+      do
+        {
+          errno = 0;
+          rl = recv (emacs_socket, string, BUFSIZ, 0);
+        }
+      /* If we receive a signal (e.g. SIGWINCH, which we pass
+	 through to Emacs), on some OSes we get EINTR and must retry. */
+      while (rl < 0 && errno == EINTR);
+
+      if (rl <= 0)
+        break;
+      
       string[rl] = '\0';
 
       p = string + strlen (string) - 1;

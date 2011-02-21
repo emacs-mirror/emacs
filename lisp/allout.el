@@ -6,7 +6,7 @@
 ;; Maintainer: Ken Manheimer <ken dot manheimer at gmail dot com>
 ;; Created: Dec 1991 -- first release to usenet
 ;; Version: 2.3
-;; Keywords: outlines wp languages
+;; Keywords: outlines, wp, languages, PGP, GnuPG
 ;; Website: http://myriadicity.net/Sundry/EmacsAllout
 
 ;; This file is part of GNU Emacs.
@@ -39,11 +39,9 @@
 ;;    emacs local file variables need to be enabled when the
 ;;    file was visited -- see `enable-local-variables'.)
 ;;  - Configurable per-file initial exposure settings
-;;  - Symmetric-key and key-pair topic encryption, plus symmetric passphrase
-;;    mnemonic support, with verification against an established passphrase
-;;    (using a stashed encrypted dummy string) and user-supplied hint
-;;    maintenance.  Encryption is via the Emacs 'epg' library.  See
-;;    allout-toggle-current-subtree-encryption docstring.
+;;  - Symmetric-key and key-pair topic encryption.  Encryption is via the
+;;    Emacs 'epg' library.  See allout-toggle-current-subtree-encryption
+;;    docstring.
 ;;  - Automatic topic-number maintenance
 ;;  - "Hot-spot" operation, for single-keystroke maneuvering and
 ;;    exposure control (see the allout-mode docstring)
@@ -59,8 +57,8 @@
 ;; See the `allout-mode' function's docstring for an introduction to the
 ;; mode.
 ;;
-;; The latest development version and helpful notes are available at
-;; http://myriadicity.net/Sundry/EmacsAllout .
+;; Directions to the latest development version and helpful notes are
+;; available at http://myriadicity.net/Sundry/EmacsAllout .
 ;;
 ;; The outline menubar additions provide quick reference to many of the
 ;; features.  See the docstring of the variables `allout-layout' and
@@ -76,7 +74,7 @@
 
 ;;; Code:
 
-;;;_* Dependency autoloads
+;;;_* Dependency loads
 (require 'overlay)
 (eval-when-compile
   ;; Most of the requires here are for stuff covered by autoloads, which
@@ -94,7 +92,9 @@
 
 ;;;_ > defgroup allout, allout-keybindings
 (defgroup allout nil
-  "Extensive outline mode for use alone and with other modes."
+  "Extensive outline minor-mode, for use stand-alone and with other modes.
+
+See Allout Auto Activation for automatic activation."
   :prefix "allout-"
   :group 'outlines)
 (defgroup allout-keybindings nil
@@ -308,9 +308,7 @@ performing auto-layout is asked of the user each time.
 With value \"activate\", only auto-mode-activation is enabled.
 Auto-layout is not.
 
-With value nil, neither auto-mode-activation nor auto-layout are
-enabled, and allout auto-activation processing is removed from
-file visiting activities."
+With value nil, inhibit any automatic allout-mode activation."
   :set 'allout-auto-activation-helper
   :type '(choice (const :tag "On" t)
                 (const :tag "Ask about layout" "ask")
@@ -752,8 +750,10 @@ Set this var to the bullet you want to use for file cross-references."
 ;;;###autoload
 (put 'allout-presentation-padding 'safe-local-variable 'integerp)
 
-;;;_  = allout-abbreviate-flattened-numbering
-(defcustom allout-abbreviate-flattened-numbering nil
+;;;_  = allout-flattened-numbering-abbreviation
+(define-obsolete-variable-alias 'allout-abbreviate-flattened-numbering
+  'allout-flattened-numbering-abbreviation "24.0")
+(defcustom allout-flattened-numbering-abbreviation nil
   "If non-nil, `allout-flatten-exposed-to-buffer' abbreviates topic
 numbers to minimal amount with some context.  Otherwise, entire
 numbers are always used."
@@ -1553,6 +1553,7 @@ See `allout-encryption-ciphertext-rejection-regexps' for rejection reasons.")
 ;;;_   > allout-mode-p ()
 ;; Must define this macro above any uses, or byte compilation will lack
 ;; proper def, if file isn't loaded -- eg, during emacs build!
+;;;###autoload
 (defmacro allout-mode-p ()
   "Return t if `allout-mode' is active in current buffer."
   'allout-mode)
@@ -5410,7 +5411,7 @@ header and body.  The elements of that list are:
 				      bullet)))
 		     (cond ((listp format)
 			    (list depth
-				  (if allout-abbreviate-flattened-numbering
+				  (if allout-flattened-numbering-abbreviation
 				      (allout-stringify-flat-index format
 								    gone-out)
 				      (allout-stringify-flat-index-plain
@@ -6054,7 +6055,7 @@ signal."
     (with-temp-buffer
       (insert text)
       ;; convey the text characteristics of the original buffer:
-      (allout-set-buffer-multibyte multibyte)
+      (set-buffer-multibyte multibyte)
       (when encoding
         (set-buffer-file-coding-system encoding)
         (if (not decrypt)
@@ -6085,9 +6086,14 @@ signal."
 
     (setq result-text
           (if decrypt
-              (epg-decrypt-string epg-context
-                                  (encode-coding-string massaged-text
-                                                        (or encoding 'utf-8)))
+              (condition-case err
+                  (epg-decrypt-string epg-context
+                                      (encode-coding-string massaged-text
+                                                            (or encoding 'utf-8)))
+                (epg-error
+                 (signal 'egp-error
+                         (cons (concat (cadr err) " - gpg version problem?")
+                               (cddr err)))))
             (replace-regexp-in-string "\n$" ""
              (epg-encrypt-string epg-context
                                  (encode-coding-string massaged-text
@@ -6673,14 +6679,6 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
     'previous-single-property-change)
   ;; No docstring because xemacs defalias doesn't support it.
   )
-;;;_   > allout-set-buffer-multibyte
-(if (fboundp 'set-buffer-multibyte)
-    (defalias 'allout-set-buffer-multibyte 'set-buffer-multibyte)
-  (with-no-warnings
-    ;; this definition is used only in older or alternative emacs, where
-    ;; the setting is our only recourse.
-    (defun allout-set-buffer-multibyte (is-multibyte)
-      (set enable-multibyte-characters is-multibyte))))
 ;;;_   > allout-select-safe-coding-system
 (defalias 'allout-select-safe-coding-system
   (if (fboundp 'select-safe-coding-system)

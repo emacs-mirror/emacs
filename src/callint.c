@@ -149,12 +149,12 @@ static void
 check_mark (int for_region)
 {
   Lisp_Object tem;
-  tem = Fmarker_buffer (current_buffer->mark);
+  tem = Fmarker_buffer (BVAR (current_buffer, mark));
   if (NILP (tem) || (XBUFFER (tem) != current_buffer))
     error (for_region ? "The mark is not set now, so there is no region"
 	   : "The mark is not set now");
   if (!NILP (Vtransient_mark_mode) && NILP (Vmark_even_if_inactive)
-      && NILP (current_buffer->mark_active))
+      && NILP (BVAR (current_buffer, mark_active)))
     xsignal0 (Qmark_inactive);
 }
 
@@ -280,7 +280,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
   save_this_command = Vthis_command;
   save_this_original_command = Vthis_original_command;
   save_real_this_command = real_this_command;
-  save_last_command = current_kboard->Vlast_command;
+  save_last_command = KVAR (current_kboard, Vlast_command);
 
   if (NILP (keys))
     keys = this_command_keys, key_count = this_command_key_count;
@@ -363,7 +363,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
       Vthis_command = save_this_command;
       Vthis_original_command = save_this_original_command;
       real_this_command= save_real_this_command;
-      current_kboard->Vlast_command = save_last_command;
+      KVAR (current_kboard, Vlast_command) = save_last_command;
 
       temporarily_switch_to_single_kboard (NULL);
       return unbind_to (speccount, apply1 (function, specs));
@@ -385,7 +385,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
       else if (*string == '*')
 	{
 	  string++;
-	  if (!NILP (current_buffer->read_only))
+	  if (!NILP (BVAR (current_buffer, read_only)))
 	    {
 	      if (!NILP (record_flag))
 		{
@@ -543,7 +543,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
 	case 'D':		/* Directory name. */
 	  args[i] = Fread_file_name (callint_message, Qnil,
-				     current_buffer->directory, Qlambda, Qnil,
+				     BVAR (current_buffer, directory), Qlambda, Qnil,
 				     Qfile_directory_p);
 	  break;
 
@@ -661,7 +661,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	case 'm':		/* Value of mark.  Does not do I/O.  */
 	  check_mark (0);
 	  /* visargs[i] = Qnil; */
-	  args[i] = current_buffer->mark;
+	  args[i] = BVAR (current_buffer, mark);
 	  varies[i] = 2;
 	  break;
 
@@ -717,11 +717,11 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  check_mark (1);
 	  set_marker_both (point_marker, Qnil, PT, PT_BYTE);
 	  /* visargs[i+1] = Qnil; */
-	  foo = marker_position (current_buffer->mark);
+	  foo = marker_position (BVAR (current_buffer, mark));
 	  /* visargs[i] = Qnil; */
-	  args[i] = PT < foo ? point_marker : current_buffer->mark;
+	  args[i] = PT < foo ? point_marker : BVAR (current_buffer, mark);
 	  varies[i] = 3;
-	  args[++i] = PT > foo ? point_marker : current_buffer->mark;
+	  args[++i] = PT > foo ? point_marker : BVAR (current_buffer, mark);
 	  varies[i] = 4;
 	  break;
 
@@ -832,7 +832,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
   Vthis_command = save_this_command;
   Vthis_original_command = save_this_original_command;
   real_this_command= save_real_this_command;
-  current_kboard->Vlast_command = save_last_command;
+  KVAR (current_kboard, Vlast_command) = save_last_command;
 
   {
     Lisp_Object val;

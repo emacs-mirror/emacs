@@ -71,7 +71,7 @@ DEFUN ("current-case-table", Fcurrent_case_table, Scurrent_case_table, 0, 0, 0,
        doc: /* Return the case table of the current buffer.  */)
   (void)
 {
-  return current_buffer->downcase_table;
+  return BVAR (current_buffer, downcase_table);
 }
 
 DEFUN ("standard-case-table", Fstandard_case_table, Sstandard_case_table, 0, 0, 0,
@@ -160,10 +160,10 @@ set_case_table (Lisp_Object table, int standard)
     }
   else
     {
-      current_buffer->downcase_table = table;
-      current_buffer->upcase_table = up;
-      current_buffer->case_canon_table = canon;
-      current_buffer->case_eqv_table = eqv;
+      BVAR (current_buffer, downcase_table) = table;
+      BVAR (current_buffer, upcase_table) = up;
+      BVAR (current_buffer, case_canon_table) = canon;
+      BVAR (current_buffer, case_eqv_table) = eqv;
     }
 
   return table;

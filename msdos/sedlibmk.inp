@@ -1,0 +1,312 @@
+# -sedlibmk.inp-----------------------------------------------------------
+# Configuration script for lib/Makefile under DJGPP v2.x
+# ----------------------------------------------------------------------
+#
+# Copyright (C) 2011  Free Software Foundation, Inc.
+#
+# This file is part of GNU Emacs.
+#
+# This file is free software; as a special exception, the author gives
+# unlimited permission to copy and/or distribute it, with or without
+# modifications, as long as this notice is preserved.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# ----------------------------------------------------------------------
+#
+# Replace @..@ constants.
+/^\# @configure_input@/s!@configure_input@!lib/Makefile.  Generated from Makefile.in by config.bat!
+/^@SET_MAKE@$/s/@SET_MAKE@//
+/^VPATH *=/s/@[^@\n]*@/./
+s/@PACKAGE@/emacs/
+/^am__cd *=/c\
+am__cd = cd
+/^ALLOCA *=/s/@[^@\n]*@//
+/^ALSA_CFLAGS *=/s/@[^@\n]*@//
+/^ALSA_LIBS *=/s/@[^@\n]*@//
+/^AWK *=/s/@[^@\n]*@/gawk/
+/^CANNOT_DUMP *=/s/@[^@\n]*@/no/
+/^CC *=/s/@[^@\n]*@/gcc/
+/^CPP *=/s/@[^@\n]*@/gcc -e/
+/^CPPFLAGS *=/s/@[^@\n]*@//
+/^CCDEPMODE *=/s/@[^@\n]*@/depmode=gcc3/
+/^CFLAGS *=/s/@[^@\n]*@/-g -O2/
+/^CYGPATH_W *=/s/@[^@\n]*@//
+/^CYGWIN_OBJ *=/s/@[^@\n]*@//
+/^C_SWITCH_MACHINE *=/s/@C_SWITCH_MACHINE@//
+/^C_SWITCH_SYSTEM *=/s/@C_SWITCH_SYSTEM@//
+/^C_SWITCH_X_SYSTEM *=/s/@C_SWITCH_X_SYSTEM@//
+/^C_SWITCH_X_SITE *=/s/@C_SWITCH_X_SITE@//
+/^C_WARNINGS_SWITCH *=/s/@C_WARNINGS_SWITCH@//
+/^DEFS *=/s/@[^@\n]*@/-DHAVE_CONFIG_H/
+/^DEPDIR *=/s/@[^@\n]*@/deps/
+/^DEPFLAGS *=/s/@[^@\n]*@/-MMD -MF ${DEPDIR}\/$*.d/
+/^ECHO_N *=/s/@[^@\n]*@/-n/
+/^EXEEXT *=/s/@[^@\n]*@/.exe/
+/^GETOPT_H *=/s/@[^@\n]*@/getopt.h/
+#
+# Some GNULIB_* are replaced with zero even though DJGPP does not have
+# these features.  That's because the gnulib replacements cannot
+# possibly work for DJGPP, so we prefer to fail the link than have a
+# subtly botched executable.
+/^GNULIB_ATOLL *=/s/@GNULIB_ATOLL@/1/
+/^GNULIB_CALLOC_POSIX *=/s/@GNULIB_CALLOC_POSIX@/0/
+/^GNULIB_CANONICALIZE_FILE_NAME *=/s/@GNULIB_CANONICALIZE_FILE_NAME@/0/
+/^GNULIB_CHOWN *=/s/@GNULIB_CHOWN@/0/
+/^GNULIB_CLOSE *=/s/@GNULIB_CLOSE@/0/
+/^GNULIB_DUP2 *=/s/@GNULIB_DUP2@/0/
+/^GNULIB_DUP3 *=/s/@GNULIB_DUP3@/1/
+/^GNULIB_ENVIRON *=/s/@GNULIB_ENVIRON@/0/
+/^GNULIB_EUIDACCESS *=/s/@GNULIB_EUIDACCESS@/0/
+/^GNULIB_FACCESSAT *=/s/@GNULIB_FACCESSAT@/0/
+/^GNULIB_FCHDIR *=/s/@GNULIB_FCHDIR@/0/
+/^GNULIB_FCHOWNAT *=/s/@GNULIB_FCHOWNAT@/0/
+/^GNULIB_FSYNC *=/s/@GNULIB_FSYNC@/0/
+/^GNULIB_FTRUNCATE *=/s/@GNULIB_FTRUNCATE@/0/
+/^GNULIB_GETCWD *=/s/@GNULIB_GETCWD@/0/
+/^GNULIB_GETDOMAINNAME *=/s/@GNULIB_GETDOMAINNAME@/0/
+/^GNULIB_GETDTABLESIZE *=/s/@GNULIB_GETDTABLESIZE@/0/
+/^GNULIB_GETGROUPS *=/s/@GNULIB_GETGROUPS@/0/
+/^GNULIB_GETHOSTNAME *=/s/@GNULIB_GETHOSTNAME@/0/
+/^GNULIB_GETLOADAVG *=/s/@GNULIB_GETLOADAVG@/1/
+/^GNULIB_GETLOGIN *=/s/@GNULIB_GETLOGIN@/0/
+/^GNULIB_GETLOGIN_R *=/s/@GNULIB_GETLOGIN_R@/0/
+/^GNULIB_GETPAGESIZE *=/s/@GNULIB_GETPAGESIZE@/0/
+/^GNULIB_GETSUBOPT *=/s/@GNULIB_GETSUBOPT@/0/
+/^GNULIB_GETUSERSHELL *=/s/@GNULIB_GETUSERSHELL@/0/
+/^GNULIB_GRANTPT *=/s/@GNULIB_GRANTPT@/0/
+/^GNULIB_LCHOWN *=/s/@GNULIB_LCHOWN@/0/
+/^GNULIB_LINK *=/s/@GNULIB_LINK@/0/
+/^GNULIB_LINKAT *=/s/@GNULIB_LINKAT@/0/
+/^GNULIB_LSEEK *=/s/@GNULIB_LSEEK@/0/
+/^GNULIB_MALLOC_POSIX *=/s/@GNULIB_MALLOC_POSIX@/0/
+/^GNULIB_MKDTEMP *=/s/@GNULIB_MKDTEMP@/0/
+/^GNULIB_MKOSTEMP *=/s/@GNULIB_MKOSTEMP@/0/
+/^GNULIB_MKOSTEMPS *=/s/@GNULIB_MKOSTEMPS@/0/
+/^GNULIB_MKSTEMP *=/s/@GNULIB_MKSTEMP@/0/
+/^GNULIB_MKSTEMPS *=/s/@GNULIB_MKSTEMPS@/0/
+/^GNULIB_MKTIME *=/s/@GNULIB_MKTIME@/0/
+/^GNULIB_NANOSLEEP *=/s/@GNULIB_NANOSLEEP@/0/
+/^GNULIB_PIPE *=/s/@GNULIB_PIPE@/0/
+/^GNULIB_PIPE2 *=/s/@GNULIB_PIPE2@/0/
+/^GNULIB_PREAD *=/s/@GNULIB_PREAD@/0/
+/^GNULIB_PTSNAME *=/s/@GNULIB_PTSNAME@/0/
+/^GNULIB_PUTENV *=/s/@GNULIB_PUTENV@/0/
+/^GNULIB_PWRITE *=/s/@GNULIB_PWRITE@/0/
+/^GNULIB_RANDOM_R *=/s/@GNULIB_RANDOM_R@/0/
+/^GNULIB_READLINK *=/s/@GNULIB_READLINK@/0/
+/^GNULIB_READLINKAT *=/s/@GNULIB_READLINKAT@/0/
+/^GNULIB_REALLOC_POSIX *=/s/@GNULIB_REALLOC_POSIX@/0/
+/^GNULIB_REALPATH *=/s/@GNULIB_REALPATH@/0/
+/^GNULIB_RMDIR *=/s/@GNULIB_RMDIR@/0/
+/^GNULIB_RPMATCH *=/s/@GNULIB_RPMATCH@/0/
+/^GNULIB_SETENV *=/s/@GNULIB_SETENV@/0/
+/^GNULIB_SLEEP *=/s/@GNULIB_SLEEP@/0/
+/^GNULIB_STRPTIME *=/s/@GNULIB_STRPTIME@/0/
+/^GNULIB_STRTOD *=/s/@GNULIB_STRTOD@/0/
+/^GNULIB_STRTOLL *=/s/@GNULIB_STRTOLL@/0/
+/^GNULIB_STRTOULL *=/s/@GNULIB_STRTOULL@/0/
+/^GNULIB_SYMLINK *=/s/@GNULIB_SYMLINK@/0/
+/^GNULIB_SYMLINKAT *=/s/@GNULIB_SYMLINKAT@/0/
+/^GNULIB_SYSTEM_POSIX *=/s/@GNULIB_SYSTEM_POSIX@/0/
+/^GNULIB_TIMEGM *=/s/@GNULIB_TIMEGM@/0/
+/^GNULIB_TIME_R *=/s/@GNULIB_TIME_R@/1/
+/^GNULIB_TTYNAME_R *=/s/@GNULIB_TTYNAME_R@/0/
+/^GNULIB_UNISTD_H_GETOPT *=/s/@GNULIB_UNISTD_H_GETOPT@/1/
+/^GNULIB_UNISTD_H_SIGPIPE *=/s/@GNULIB_UNISTD_H_SIGPIPE@/0/
+/^GNULIB_UNLINK *=/s/@GNULIB_UNLINK@/0/
+/^GNULIB_UNLINKAT *=/s/@GNULIB_UNLINKAT@/0/
+/^GNULIB_UNLOCKPT *=/s/@GNULIB_UNLOCKPT@/0/
+/^GNULIB_UNSETENV *=/s/@GNULIB_UNSETENV@/1/
+/^GNULIB_USLEEP *=/s/@GNULIB_USLEEP@/0/
+/^GNULIB_WRITE *=/s/@GNULIB_WRITE@/0/
+/^GNULIB__EXIT *=/s/@GNULIB__EXIT@/0/
+/^HAVE_ATOLL *=/s/@HAVE_ATOLL@/0/
+/^HAVE_CANONICALIZE_FILE_NAME *=/s/@HAVE_CANONICALIZE_FILE_NAME@/0/
+/^HAVE_CHOWN *=/s/@HAVE_CHOWN@/1/
+/^HAVE_DECL_ENVIRON *=/s/@HAVE_DECL_ENVIRON@/1/
+/^HAVE_DECL_FCHDIR *=/s/@HAVE_DECL_FCHDIR@/0/
+/^HAVE_DECL_GETDOMAINNAME *=/s/@HAVE_DECL_GETDOMAINNAME@/0/
+/^HAVE_DECL_GETLOADAVG *=/s/@HAVE_DECL_GETLOADAVG@/0/
+/^HAVE_DECL_GETLOGIN_R *=/s/@HAVE_DECL_GETLOGIN_R@/0/
+/^HAVE_DECL_GETPAGESIZE *=/s/@HAVE_DECL_GETPAGESIZE@/1/
+/^HAVE_DECL_GETUSERSHELL *=/s/@HAVE_DECL_GETUSERSHELL@/0/
+/^HAVE_DECL_LOCALTIME_R *=/s/@HAVE_DECL_LOCALTIME_R@/0/
+/^HAVE_DECL_SETENV *=/s/@HAVE_DECL_SETENV@/1/
+/^HAVE_DECL_TTYNAME_R *=/s/@HAVE_DECL_TTYNAME_R@/0/
+/^HAVE_DECL_UNSETENV *=/s/@HAVE_DECL_UNSETENV@/0/
+/^HAVE_DUP2 *=/s/@HAVE_DUP2@/1/
+/^HAVE_DUP3 *=/s/@HAVE_DUP3@/0/
+/^HAVE_EUIDACCESS *=/s/@HAVE_EUIDACCESS@/0/
+/^HAVE_FACCESSAT *=/s/@HAVE_FACCESSAT@/0/
+/^HAVE_FCHDIR *=/s/@HAVE_FCHDIR@/0/
+/^HAVE_FCHOWNAT *=/s/@HAVE_FCHOWNAT@/0/
+/^HAVE_FSYNC *=/s/@HAVE_FSYNC@/1/
+/^HAVE_FTRUNCATE *=/s/@HAVE_FTRUNCATE@/1/
+/^HAVE_GETDTABLESIZE *=/s/@HAVE_GETDTABLESIZE@/0/
+/^HAVE_GETGROUPS *=/s/@HAVE_GETGROUPS@/0/
+/^HAVE_GETHOSTNAME *=/s/@HAVE_GETHOSTNAME@/1/
+/^HAVE_GETLOGIN *=/s/@HAVE_GETLOGIN@/1/
+/^HAVE_GETOPT_H *=/s/@HAVE_GETOPT_H@/0/
+/^HAVE_GETPAGESIZE *=/s/@HAVE_GETPAGESIZE@/1/
+/^HAVE_GETSUBOPT *=/s/@HAVE_GETSUBOPT@/0/
+/^HAVE_GRANTPT *=/s/@HAVE_GRANTPT@/0/
+/^HAVE_LCHOWN *=/s/@HAVE_LCHOWN@/0/
+/^HAVE_LINK *=/s/@HAVE_LINK@/1/
+/^HAVE_LINKAT *=/s/@HAVE_LINKAT@/0/
+/^HAVE_MAKEINFO *=/s/@HAVE_MAKEINFO@/yes/
+/^HAVE_MKDTEMP *=/s/@HAVE_MKDTEMP@/0/
+/^HAVE_MKOSTEMP *=/s/@HAVE_MKOSTEMP@/0/
+/^HAVE_MKOSTEMPS *=/s/@HAVE_MKOSTEMPS@/0/
+/^HAVE_MKSTEMP *=/s/@HAVE_MKSTEMP@/1/
+/^HAVE_MKSTEMPS *=/s/@HAVE_MKSTEMPS@/0/
+/^HAVE_NANOSLEEP *=/s/@HAVE_NANOSLEEP@/0/
+/^HAVE_OS_H *=/s/@HAVE_OS_H@/0/
+/^HAVE_PIPE *=/s/@HAVE_PIPE@/0/
+/^HAVE_PIPE2 *=/s/@HAVE_PIPE2@/0/
+/^HAVE_PREAD *=/s/@HAVE_PREAD@/0/
+/^HAVE_PTSNAME *=/s/@HAVE_PTSNAME@/0/
+/^HAVE_PWRITE *=/s/@HAVE_PWRITE@/0/
+/^HAVE_RANDOM_H *=/s/@HAVE_RANDOM_H@/1/
+/^HAVE_RANDOM_R *=/s/@HAVE_RANDOM_R@/0/
+/^HAVE_READLINK *=/s/@HAVE_READLINK@/0/
+/^HAVE_READLINKAT *=/s/@HAVE_READLINKAT@/0/
+/^HAVE_REALPATH *=/s/@HAVE_REALPATH@/0/
+/^HAVE_RPMATCH *=/s/@HAVE_RPMATCH@/0/
+/^HAVE_SETENV *=/s/@HAVE_SETENV@/1/
+/^HAVE_SLEEP *=/s/@HAVE_SLEEP@/1/
+/^HAVE_STRPTIME *=/s/@HAVE_STRPTIME@/0/
+/^HAVE_STRTOD *=/s/@HAVE_STRTOD@/1/
+/^HAVE_STRTOLL *=/s/@HAVE_STRTOLL@/1/
+/^HAVE_STRTOULL *=/s/@HAVE_STRTOULL@/1/
+/^HAVE_STRUCT_RANDOM_DATA *=/s/@HAVE_STRUCT_RANDOM_DATA@/0/
+/^HAVE_SYMLINK *=/s/@HAVE_SYMLINK@/1/
+/^HAVE_SYMLINKAT *=/s/@HAVE_SYMLINKAT@/0/
+/^HAVE_SYS_LOADAVG_H *=/s/@HAVE_SYS_LOADAVG_H@/0/
+/^HAVE_SYS_PARAM_H *=/s/@HAVE_SYS_PARAM_H@/1/
+/^HAVE_TIMEGM *=/s/@HAVE_TIMEGM@/0/
+/^HAVE_UNISTD_H *=/s/@HAVE_UNISTD_H@/1/
+/^HAVE_UNLINKAT *=/s/@HAVE_UNLINKAT@/0/
+/^HAVE_UNLOCKPT *=/s/@HAVE_UNLOCKPT@/0/
+/^HAVE_USLEEP *=/s/@HAVE_USLEEP@/1/
+/^HAVE_WCHAR_T *=/s/@HAVE_WCHAR_T@/1/
+/^HAVE_XSERVER *=/s/@HAVE_XSERVER@/0/
+/^HAVE__BOOL *=/s/@HAVE__BOOL@/1/
+/^HAVE__EXIT *=/s/@HAVE__EXIT@/1/
+/^INCLUDE_NEXT *=/s/@INCLUDE_NEXT@/include_next/
+/^INCLUDE_NEXT_AS_FIRST_DIRECTIVE *=/s/@[^@\n]*@/include_next/
+/^LDFLAGS *=/s/@[^@\n]*@//
+/^LD_FIRSTFLAG *=/s/@[^@\n]*@//
+/^LIBS *=/s/@[^@\n]*@//
+/^MAKEINFO *=/s/@MAKEINFO@/makeinfo/
+/^NEXT_AS_FIRST_DIRECTIVE_GETOPT_H *=/s/@[^@\n]*@/<getopt.h>/
+/^NEXT_AS_FIRST_DIRECTIVE_STDDEF_H *=/s/@[^@\n]*@//
+/^NEXT_AS_FIRST_DIRECTIVE_STDLIB_H *=/s/@[^@\n]*@/<stdlib.h>/
+/^NEXT_AS_FIRST_DIRECTIVE_TIME_H *=/s/@[^@\n]*@/<time.h>/
+/^NEXT_AS_FIRST_DIRECTIVE_UNISTD_H *=/s/@[^@\n]*@/<unistd.h>/
+/^NEXT_GETOPT_H *=/s/@[^@\n]*@/<getopt.h>/
+/^NEXT_STDDEF_H *=/s/@[^@\n]*@//
+/^NEXT_STDLIB_H *=/s/@[^@\n]*@/<stdlib.h>/
+/^NEXT_TIME_H *=/s/@[^@\n]*@/<time.h>/
+/^NEXT_UNISTD_H *=/s/@[^@\n]*@/<unistd.h>/
+/^OBJEXT *=/s/@[^@\n]*@/o/
+/^PRAGMA_COLUMNS *=/s/@[^@\n]*@//
+/^PRAGMA_SYSTEM_HEADER *=/s/@[^@\n]*@/\\\#pragma GCC system_header/
+/^PTHREAD_H_DEFINES_STRUCT_TIMESPEC *=/s/@[^@\n]*@/0/
+/^RANLIB *=/s/@[^@\n]*@/ranlib/
+/^REPLACE_CALLOC *=/s/@REPLACE_CALLOC@/0/
+/^REPLACE_CANONICALIZE_FILE_NAME *=/s/@REPLACE_CANONICALIZE_FILE_NAME@/0/
+/^REPLACE_CHOWN *=/s/@REPLACE_CHOWN@/0/
+/^REPLACE_CLOSE *=/s/@REPLACE_CLOSE@/0/
+/^REPLACE_DUP *=/s/@REPLACE_DUP@/0/
+/^REPLACE_DUP2 *=/s/@REPLACE_DUP2@/0/
+/^REPLACE_FCHOWNAT *=/s/@REPLACE_FCHOWNAT@/0/
+/^REPLACE_GETCWD *=/s/@REPLACE_GETCWD@/0/
+/^REPLACE_GETDOMAINNAME *=/s/@REPLACE_GETDOMAINNAME@/0/
+/^REPLACE_GETGROUPS *=/s/@REPLACE_GETGROUPS@/0/
+/^REPLACE_GETLOGIN_R *=/s/@REPLACE_GETLOGIN_R@/0/
+/^REPLACE_GETPAGESIZE *=/s/@REPLACE_GETPAGESIZE@/0/
+/^REPLACE_LCHOWN *=/s/@REPLACE_LCHOWN@/0/
+/^REPLACE_LINK *=/s/@REPLACE_LINK@/0/
+/^REPLACE_LINKAT *=/s/@REPLACE_LINKAT@/0/
+/^REPLACE_LOCALTIME_R *=/s/@REPLACE_LOCALTIME_R@/0/
+/^REPLACE_LSEEK *=/s/@REPLACE_LSEEK@/0/
+/^REPLACE_MALLOC *=/s/@REPLACE_MALLOC@/0/
+/^REPLACE_MKSTEMP *=/s/@REPLACE_MKSTEMP@/0/
+/^REPLACE_MKTIME *=/s/@REPLACE_MKTIME@/0/
+/^REPLACE_NANOSLEEP *=/s/@REPLACE_NANOSLEEP@/0/
+/^REPLACE_NULL *=/s/@REPLACE_NULL@/0/
+/^REPLACE_PREAD *=/s/@REPLACE_PREAD@/0/
+/^REPLACE_PUTENV *=/s/@REPLACE_PUTENV@/0/
+/^REPLACE_PWRITE *=/s/@REPLACE_PWRITE@/0/
+/^REPLACE_READLINK *=/s/@REPLACE_READLINK@/0/
+/^REPLACE_REALLOC *=/s/@REPLACE_REALLOC@/0/
+/^REPLACE_REALPATH *=/s/@REPLACE_REALPATH@/0/
+/^REPLACE_RMDIR *=/s/@REPLACE_RMDIR@/0/
+/^REPLACE_SETENV *=/s/@REPLACE_SETENV@/0/
+/^REPLACE_SLEEP *=/s/@REPLACE_SLEEP@/0/
+/^REPLACE_STRTOD *=/s/@REPLACE_STRTOD@/0/
+/^REPLACE_SYMLINK *=/s/@REPLACE_SYMLINK@/0/
+/^REPLACE_TIMEGM *=/s/@REPLACE_TIMEGM@/0/
+/^REPLACE_TTYNAME_R *=/s/@REPLACE_TTYNAME_R@/0/
+/^REPLACE_UNLINK *=/s/@REPLACE_UNLINK@/0/
+/^REPLACE_UNLINKAT *=/s/@REPLACE_UNLINKAT@/0/
+/^REPLACE_UNSETENV *=/s/@REPLACE_UNSETENV@/0/
+/^REPLACE_USLEEP *=/s/@REPLACE_USLEEP@/0/
+/^REPLACE_WRITE *=/s/@REPLACE_WRITE@/0/
+/^STDBOOL_H *=/s/@[^@\n]*@//
+/^STDDEF_H *=/s/@[^@\n]*@//
+/^SYS_TIME_H_DEFINES_STRUCT_TIMESPEC *=/s/@[^@\n]*@/0/
+/^TIME_H_DEFINES_STRUCT_TIMESPEC *=/s/@[^@\n]*@/0/
+/^UNISTD_H_HAVE_WINSOCK2_H *=/s/@[^@\n]*@/0/
+/^UNISTD_H_HAVE_WINSOCK2_H_AND_USE_SOCKETS *=/s/@[^@\n]*@/0/
+/^gl_LIBOBJS *=/s/@[^@\n]*@/getopt.o getopt1.o strftime.o time_r.o getloadavg.o/
+/^srcdir *=/s/@[^@\n]*@/./
+/^top_srcdir *=/s/@[^@\n]*@/../
+/^top_builddir *=/s/@[^@\n]*@/../
+s/@PRAGMA_SYSTEM_HEADER@/\#pragma GCC system_header/
+s/@PRAGMA_COLUMNS@//
+#
+# Delete the recipes we don't want to get in our way.
+/^\$(srcdir)\/Makefile\.in:/,/^[ 	][ 	]*\$(AUTOMAKE)/d
+/^Makefile:/,/^[ 	][ 	]*esac/d
+/^\$(top_srcdir)\/configure:/,/^\$(ACLOCAL_M4)/d
+#
+# Fix the include-dependency lines
+s/^@AMDEP_TRUE@//
+s/^@AMDEP_FALSE@/\#/
+s/@am__include@/include/
+s/@am__quote@//g
+s/^@am__fastdepCC_TRUE@//
+s/^@am__fastdepCC_FALSE/\#/
+#
+# Fix the *-clean rules, to not use a Unixy `test' command.  Empty
+# lists are replaced with a dummy file, to avoid an error message from
+# "rm -f" with no arguments.
+/^CONFIG_CLEAN_FILES *= *$/c\
+CONFIG_CLEAN_FILES = xyzzy
+/^CONFIG_CLEAN_VPATH_FILES *= *$/c\
+CONFIG_CLEAN_VPATH_FILES = xyzzy
+s/^	-*test -z.*|| rm/	 -rm/
+s/@echo /@djecho/
+#
+# Fix the recipes for header files
+/^arg-nonnull\.h:/,/^[ 	][ 	]*mv /c\
+arg-nonnull.h: $(top_srcdir)/./arg-nonnull.h\
+	sed -n -e '/GL_ARG_NONNULL/,$$p' < $(top_srcdir)/./arg-nonnull.h > $@
+/^cxxdefs\.h:/,/^[ 	][ 	]*mv /c\
+cxxdefs.h: $(top_srcdir)/./cxxdefs.h\
+	sed -n -e '/_GL_CXXDEFS/,$$p' < $(top_srcdir)/./cxxdefs.h > $@
+s/^	[ 	]*{ echo \(.*\); \\/	 djecho \1 > $@-t/
+s/^	[ 	]*{ echo \(.*\) && \\/	 djecho \1 > $@-t/
+s/ \&\& \\ *$//
+s/\.in-h\;  *\\$/.in-h >> $@-t/
+/^	[ 	]*} /d
+/^stdlib\.h:/,/^	[ 	]*mv /{
+  s/'\; \\ *$/' >> $@-t/
+}
+/^unistd\.h:/,/^	[ 	]*mv /{
+  s/'\; \\ *$/' >> $@-t/
+}

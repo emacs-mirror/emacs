@@ -196,14 +196,15 @@ Pick your favourite shortcuts:
 
   (interactive "P")
   (switch-to-buffer "*Solitaire*")
-  (setq buffer-read-only t)
-  (setq solitaire-stones 32)
-  (solitaire-insert-board)
-  (solitaire-build-modeline)
-  (goto-char (point-max))
-  (setq solitaire-center (search-backward "."))
-  (setq buffer-undo-list (list (point)))
-  (solitaire-mode))
+  (let ((inhibit-read-only t))
+    (solitaire-mode)
+    (setq buffer-read-only t)
+    (setq solitaire-stones 32)
+    (solitaire-insert-board)
+    (solitaire-build-modeline)
+    (goto-char (point-max))
+    (setq solitaire-center (search-backward "."))
+    (setq buffer-undo-list (list (point)))))
 
 (defun solitaire-build-modeline ()
   (setq mode-line-format

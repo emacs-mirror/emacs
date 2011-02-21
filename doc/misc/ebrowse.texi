@@ -26,7 +26,7 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs misc features
 @direntry
 * Ebrowse: (ebrowse).           A C++ class browser for Emacs.
 @end direntry
@@ -46,6 +46,7 @@ developing GNU and promoting software freedom.''
 
 @ifnottex
 @node Top, Overview, (dir), (dir)
+@top Ebrowse
 
 You can browse C++ class hierarchies from within Emacs by using
 Ebrowse.

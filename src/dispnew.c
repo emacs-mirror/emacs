@@ -6129,7 +6129,7 @@ pass nil for VARIABLE.  */)
     {
       buf = XCDR (XCAR (tail));
       /* Ignore buffers that aren't included in buffer lists.  */
-      if (SREF (XBUFFER (buf)->name, 0) == ' ')
+      if (SREF (BVAR (XBUFFER (buf), name), 0) == ' ')
 	continue;
       if (vecp == end)
 	goto changed;
@@ -6137,7 +6137,7 @@ pass nil for VARIABLE.  */)
 	goto changed;
       if (vecp == end)
 	goto changed;
-      if (!EQ (*vecp++, XBUFFER (buf)->read_only))
+      if (!EQ (*vecp++, BVAR (XBUFFER (buf), read_only)))
 	goto changed;
       if (vecp == end)
 	goto changed;
@@ -6184,10 +6184,10 @@ pass nil for VARIABLE.  */)
     {
       buf = XCDR (XCAR (tail));
       /* Ignore buffers that aren't included in buffer lists.  */
-      if (SREF (XBUFFER (buf)->name, 0) == ' ')
+      if (SREF (BVAR (XBUFFER (buf), name), 0) == ' ')
 	continue;
       *vecp++ = buf;
-      *vecp++ = XBUFFER (buf)->read_only;
+      *vecp++ = BVAR (XBUFFER (buf), read_only);
       *vecp++ = Fbuffer_modified_p (buf);
     }
   /* Fill up the vector with lambdas (always at least one).  */

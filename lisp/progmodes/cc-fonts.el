@@ -1082,7 +1082,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	     (boundp 'parse-sexp-lookup-properties))))
 
       ;; Below we fontify a whole declaration even when it crosses the limit,
-      ;; to avoid gaps when lazy-lock fontifies the file a screenful at a
+      ;; to avoid gaps when jit/lazy-lock fontifies the file a block at a
       ;; time.  That is however annoying during editing, e.g. the following is
       ;; a common situation while the first line is being written:
       ;;
@@ -1094,9 +1094,9 @@ casts and declarations are fontified.  Used on level 2 and higher."
       ;; "some_other_variable" as an identifier, and the latter will not
       ;; correct itself until the second line is changed.  To avoid that we
       ;; narrow to the limit if the region to fontify is a single line.
-      (narrow-to-region
-       (point-min)
-       (if (<= limit (c-point 'bonl))
+      (if (<= limit (c-point 'bonl))
+	  (narrow-to-region
+	   (point-min)
 	   (save-excursion
 	     ;; Narrow after any operator chars following the limit though,
 	     ;; since those characters can be useful in recognizing a
@@ -1104,8 +1104,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	     ;; after the header).
 	     (goto-char limit)
 	     (skip-chars-forward c-nonsymbol-chars)
-	     (point))
-	 limit))
+	     (point))))
 
       (c-find-decl-spots
        limit

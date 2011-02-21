@@ -1,3 +1,119 @@
+2011-02-21  Christoph Scholtes  <cschol2112@gmail.com>
+
+	* lib/makefile.w32-in: ($(BLD)/md5.$(O)): Added dependency on
+	$(EMACS_ROOT)/nt/inc/stdint.h.
+
+2011-02-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* lib/makefile.w32-in ($(BLD)/filemode.$(O)): Move from
+	src/makefile.w32-in and adapt.  Depend on stamp_BLD.
+	(GNULIBOBJS): Add $(BLD)/filemode.$(O).
+
+2011-02-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Import filemode module from gnulib.
+	* .bzrignore: Add lib/sys/.
+	* Makefile.in (GNULIB_MODULES): Add filemode.
+	* lib/Makefile.am (MOSTLYCLEANDIRS): New macro.
+	* lib/filemode.c: Renamed from src/filemode.c and regenerated
+	from gnulib.  This adds support for some more file types, e.g.,
+	Cray DMF migrated files.
+	* lisp/emacs-lisp/find-gc.el (find-gc-source-files): Remove filemode.c.
+	* lib/filemode.h, lib/sys_stat.in.h, m4/filemode.m4, m4/st_dm_mode.m4:
+	* m4/sys_stat_h.m4: New files, generated from gnulib.
+	* aclocal.m4, configure, lib/Makefile.in, lib/gnulib.mk, m4/gl-comp.m4:
+	Regenerate.
+
+2011-02-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* lib/makefile.w32-in ($(BLD)/md5.$(O)): Don't depend on
+	$(EMACS_ROOT)/nt/inc/sys/stat.h.
+
+2011-02-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.in (C_WARNINGS_SWITCH): Do not prepend -Wno-pointer-sign.
+	This undoes the 2006-01-02 change.  The -Wno-pointer-sign option
+	is no longer needed, due to the recent SSDATA and related changes.
+	Perhaps -Wno-pointer-sign should also be removed from
+	nextstep/Cocoa/Emacs.xcodeproj/project.pbxproj but I have no easy
+	way to test this so I left it alone.
+	* configure: Regenerate.
+
+2011-02-20  Christoph Scholtes <cschol2112@gmail.com>
+
+	* lib/makefile.w32-in ($(BLD)/md5.$(O)): New recipe, moved from
+	src/makefile.w32-in.
+
+2011-02-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Import crypto/md5 and stdint modules from gnulib.
+	* aclocal.m4, configure, lib/Makefile.in, lib/gnulib.mk, m4/gl-comp.m4:
+	Regenerate.
+	* lib/md5.c, lib/md5.h: Rename from src/md5.h and lib/md5.h.
+	Import the new versions from gnulib; they assume a C99-style
+	<stdint.h>, supplied by the stdint module.
+	* lib/stdint.in.h, m4/longlong.m4, m4/stdint.m4, m4/md5.m4: New files,
+	imported from gnulib.
+	* Makefile.in (MAKEFILE_MODULES): Add crypto/md5.
+	* admin/notes/copyright: Remove src/md5.c and src/md5.h as
+	special cases.
+
+2011-02-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* .bzrignore: Ignore cxxdefs.h and lib/*.in-h files.
+	Add lib/deps/.
+
+	* config.bat: Configure in `lib'.
+	Generate *.Po files in lib/deps.
+
+2011-02-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Import IRIX 6.5 getloadavg fixes from gnulib.
+	* configure, lib/getloadavg.c, m4/getloadavg.m4: Regenerate.
+
+2011-02-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Import getloadavg module from gnulib.
+	* .bzrignore: Add lib/stdlib.h.
+	* Makefile.in (GNULIB_MODULES): Add getloadavg.
+	* admin/notes/copyright: Remove src/getloadavg.c as a special case.
+	* configure.in (LIBS_SYSTEM): Omit -lkstat on sol2*; gnulib does this.
+	(AC_CONFIG_LIBOBJ_DIR, AC_FUNC_GETLOADAVG, GETLOADAVG_FILES):
+	Remove; gnulib does this now.
+	* lib/getloadavg.c: Rename from src/getloadavg.c, and sync
+	from gnulib.  This adds support for several other systems, such
+	as Tru64 4.0D, QNX, AIX perfstat, etc.  It also fixes a potential
+	buffer overrun on Linux hosts under very high load, and on hosts
+	that maintain a channel to the load average file it makes sure
+	the file descriptor is close-on-exec (on hosts that support this)
+	and is not stdin, stdout, or stderr.
+	* lib/stdlib.in.h, m4/getloadavg.m4, m4/stdlib_h.m4: New files,
+	from gnulib.
+	* aclocal.m4, configure, lib/Makefile.in, lib/gnulib.mk, m4/gl-comp.m4:
+	* src/config.in: Regenerate.
+
+2011-02-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib.
+
+	* install-sh: Update to scriptversion 2011-01-19.21.
+
+	2011-02-13  Bruno Haible  <bruno@clisp.org>
+
+	Consistent macro naming for macros that use GCC __attribute__.
+	* lib/ignore-value.h (_GL_ATTRIBUTE_DEPRECATED): Renamed from
+	ATTRIBUTE_DEPRECATED.
+
+	2011-02-12  Bruno Haible  <bruno@clisp.org>
+
+	setlocale: Prefer gnulib's override over libintl's override.
+	* lib/gettext.h (setlocale): Redefine to rpl_setlocale if
+	GNULIB_defined_setlocale is set.
+
+2011-02-13  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Exclude generated file src/globals.h.
+
 2011-02-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* arg-nonnull.h, c++defs.h, warn-on-use.h: Fix licenses.

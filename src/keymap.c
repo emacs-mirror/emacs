@@ -1565,8 +1565,8 @@ like in the respective argument of `key-binding'. */)
 
   if (!NILP (olp))
     {
-      if (!NILP (current_kboard->Voverriding_terminal_local_map))
-	keymaps = Fcons (current_kboard->Voverriding_terminal_local_map, keymaps);
+      if (!NILP (KVAR (current_kboard, Voverriding_terminal_local_map)))
+	keymaps = Fcons (KVAR (current_kboard, Voverriding_terminal_local_map), keymaps);
       /* The doc said that overriding-terminal-local-map should
 	 override overriding-local-map.  The code used them both,
 	 but it seems clearer to use just one.  rms, jan 2005.  */
@@ -1745,9 +1745,9 @@ specified buffer position instead of point are used.
 	}
     }
 
-  if (! NILP (current_kboard->Voverriding_terminal_local_map))
+  if (! NILP (KVAR (current_kboard, Voverriding_terminal_local_map)))
     {
-      value = Flookup_key (current_kboard->Voverriding_terminal_local_map,
+      value = Flookup_key (KVAR (current_kboard, Voverriding_terminal_local_map),
 			   key, accept_default);
       if (! NILP (value) && !INTEGERP (value))
 	goto done;
@@ -1883,7 +1883,7 @@ bindings; see the description of `lookup-key' for more details about this.  */)
   (Lisp_Object keys, Lisp_Object accept_default)
 {
   register Lisp_Object map;
-  map = current_buffer->keymap;
+  map = BVAR (current_buffer, keymap);
   if (NILP (map))
     return Qnil;
   return Flookup_key (map, keys, accept_default);
@@ -1988,7 +1988,7 @@ If KEYMAP is nil, that means no local keymap.  */)
   if (!NILP (keymap))
     keymap = get_keymap (keymap, 1, 1);
 
-  current_buffer->keymap = keymap;
+  BVAR (current_buffer, keymap) = keymap;
 
   return Qnil;
 }
@@ -1998,7 +1998,7 @@ DEFUN ("current-local-map", Fcurrent_local_map, Scurrent_local_map, 0, 0, 0,
 Normally the local keymap is set by the major mode with `use-local-map'.  */)
   (void)
 {
-  return current_buffer->keymap;
+  return BVAR (current_buffer, keymap);
 }
 
 DEFUN ("current-global-map", Fcurrent_global_map, Scurrent_global_map, 0, 0, 0,
@@ -2379,7 +2379,7 @@ push_key_description (register unsigned int c, register char *p, int force_multi
       *p++ = 'C';
     }
   else if (c < 128
-	   || (NILP (current_buffer->enable_multibyte_characters)
+	   || (NILP (BVAR (current_buffer, enable_multibyte_characters))
 	       && SINGLE_BYTE_CHAR_P (c)
 	       && !force_multibyte))
     {
@@ -2388,7 +2388,7 @@ push_key_description (register unsigned int c, register char *p, int force_multi
   else
     {
       /* Now we are sure that C is a valid character code.  */
-      if (NILP (current_buffer->enable_multibyte_characters)
+      if (NILP (BVAR (current_buffer, enable_multibyte_characters))
 	  && ! force_multibyte)
 	*p++ = multibyte_char_to_unibyte (c, Qnil);
       else
@@ -2941,11 +2941,11 @@ You type        Translation\n\
   outbuf = Fcurrent_buffer ();
 
   /* Report on alternates for keys.  */
-  if (STRINGP (current_kboard->Vkeyboard_translate_table) && !NILP (prefix))
+  if (STRINGP (KVAR (current_kboard, Vkeyboard_translate_table)) && !NILP (prefix))
     {
       int c;
-      const unsigned char *translate = SDATA (current_kboard->Vkeyboard_translate_table);
-      int translate_len = SCHARS (current_kboard->Vkeyboard_translate_table);
+      const unsigned char *translate = SDATA (KVAR (current_kboard, Vkeyboard_translate_table));
+      int translate_len = SCHARS (KVAR (current_kboard, Vkeyboard_translate_table));
 
       for (c = 0; c < translate_len; c++)
 	if (translate[c] != c)
@@ -2968,7 +2968,7 @@ You type        Translation\n\
 	    insert ("\n", 1);
 
 	    /* Insert calls signal_after_change which may GC. */
-	    translate = SDATA (current_kboard->Vkeyboard_translate_table);
+	    translate = SDATA (KVAR (current_kboard, Vkeyboard_translate_table));
 	  }
 
       insert ("\n", 1);
@@ -2981,8 +2981,8 @@ You type        Translation\n\
 
   /* Print the (major mode) local map.  */
   start1 = Qnil;
-  if (!NILP (current_kboard->Voverriding_terminal_local_map))
-    start1 = current_kboard->Voverriding_terminal_local_map;
+  if (!NILP (KVAR (current_kboard, Voverriding_terminal_local_map)))
+    start1 = KVAR (current_kboard, Voverriding_terminal_local_map);
   else if (!NILP (Voverriding_local_map))
     start1 = Voverriding_local_map;
 
@@ -3048,7 +3048,7 @@ You type        Translation\n\
 			      XBUFFER (buffer), Qlocal_map);
       if (!NILP (start1))
 	{
-	  if (EQ (start1, XBUFFER (buffer)->keymap))
+	  if (EQ (start1, BVAR (XBUFFER (buffer), keymap)))
 	    describe_map_tree (start1, 1, shadow, prefix,
 			       "\f\nMajor Mode Bindings", nomenu, 0, 0, 0);
 	  else
@@ -3064,13 +3064,13 @@ You type        Translation\n\
 		     "\f\nGlobal Bindings", nomenu, 0, 1, 0);
 
   /* Print the function-key-map translations under this prefix.  */
-  if (!NILP (current_kboard->Vlocal_function_key_map))
-    describe_map_tree (current_kboard->Vlocal_function_key_map, 0, Qnil, prefix,
+  if (!NILP (KVAR (current_kboard, Vlocal_function_key_map)))
+    describe_map_tree (KVAR (current_kboard, Vlocal_function_key_map), 0, Qnil, prefix,
 		       "\f\nFunction key map translations", nomenu, 1, 0, 0);
 
   /* Print the input-decode-map translations under this prefix.  */
-  if (!NILP (current_kboard->Vinput_decode_map))
-    describe_map_tree (current_kboard->Vinput_decode_map, 0, Qnil, prefix,
+  if (!NILP (KVAR (current_kboard, Vinput_decode_map)))
+    describe_map_tree (KVAR (current_kboard, Vinput_decode_map), 0, Qnil, prefix,
 		       "\f\nInput decoding map translations", nomenu, 1, 0, 0);
 
   UNGCPRO;

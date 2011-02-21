@@ -32,7 +32,7 @@ developing GNU and promoting software freedom.''
 
 @c      @smallbook
 
-@dircategory Emacs
+@dircategory Emacs network features
 @direntry
 * SC: (sc).                     Supercite lets you cite parts of messages
                                   you're replying to, in flexible ways.
@@ -53,6 +53,7 @@ developing GNU and promoting software freedom.''
 
 @ifnottex
 @node Top, Introduction, (dir), (dir)
+@top Supercite
 @comment  node-name,  next,  previous,  up
 
 @insertcopying 
@@ -751,8 +752,6 @@ interface specifications, or if you are writing or maintaining an MUA,
 @cindex .emacs file
 @findex sc-cite-original
 @findex cite-original (sc-)
-@findex sc-submit-bug-report
-@findex submit-bug-report (sc-)
 The first thing that everyone should do, regardless of the MUA you are
 using is to set up Emacs so it will load Supercite at the appropriate
 time.  This happens automatically if Supercite is distributed with your

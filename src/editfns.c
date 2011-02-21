@@ -306,10 +306,10 @@ region_limit (int beginningp)
 
   if (!NILP (Vtransient_mark_mode)
       && NILP (Vmark_even_if_inactive)
-      && NILP (current_buffer->mark_active))
+      && NILP (BVAR (current_buffer, mark_active)))
     xsignal0 (Qmark_inactive);
 
-  m = Fmarker_position (current_buffer->mark);
+  m = Fmarker_position (BVAR (current_buffer, mark));
   if (NILP (m))
     error ("The mark is not set now, so there is no region");
 
@@ -338,7 +338,7 @@ Watch out!  Moving this marker changes the mark position.
 If you set the marker not to point anywhere, the buffer will have no mark.  */)
   (void)
 {
-  return current_buffer->mark;
+  return BVAR (current_buffer, mark);
 }
 
 
@@ -866,9 +866,9 @@ save_excursion_save (void)
 		 == current_buffer);
 
   return Fcons (Fpoint_marker (),
-		Fcons (Fcopy_marker (current_buffer->mark, Qnil),
+		Fcons (Fcopy_marker (BVAR (current_buffer, mark), Qnil),
 		       Fcons (visible ? Qt : Qnil,
-			      Fcons (current_buffer->mark_active,
+			      Fcons (BVAR (current_buffer, mark_active),
 				     selected_window))));
 }
 
@@ -900,8 +900,8 @@ save_excursion_restore (Lisp_Object info)
   /* Mark marker.  */
   info = XCDR (info);
   tem = XCAR (info);
-  omark = Fmarker_position (current_buffer->mark);
-  Fset_marker (current_buffer->mark, tem, Fcurrent_buffer ());
+  omark = Fmarker_position (BVAR (current_buffer, mark));
+  Fset_marker (BVAR (current_buffer, mark), tem, Fcurrent_buffer ());
   nmark = Fmarker_position (tem);
   unchain_marker (XMARKER (tem));
 
@@ -922,14 +922,14 @@ save_excursion_restore (Lisp_Object info)
   /* Mark active */
   info = XCDR (info);
   tem = XCAR (info);
-  tem1 = current_buffer->mark_active;
-  current_buffer->mark_active = tem;
+  tem1 = BVAR (current_buffer, mark_active);
+  BVAR (current_buffer, mark_active) = tem;
 
   if (!NILP (Vrun_hooks))
     {
       /* If mark is active now, and either was not active
 	 or was at a different place, run the activate hook.  */
-      if (! NILP (current_buffer->mark_active))
+      if (! NILP (BVAR (current_buffer, mark_active)))
 	{
 	  if (! EQ (omark, nmark))
 	    call1 (Vrun_hooks, intern ("activate-mark-hook"));
@@ -1114,7 +1114,7 @@ At the beginning of the buffer or accessible region, return 0.  */)
   Lisp_Object temp;
   if (PT <= BEGV)
     XSETFASTINT (temp, 0);
-  else if (!NILP (current_buffer->enable_multibyte_characters))
+  else if (!NILP (BVAR (current_buffer, enable_multibyte_characters)))
     {
       EMACS_INT pos = PT_BYTE;
       DEC_POS (pos);
@@ -1228,7 +1228,7 @@ If POS is out of range, the value is nil.  */)
       pos_byte = CHAR_TO_BYTE (XINT (pos));
     }
 
-  if (!NILP (current_buffer->enable_multibyte_characters))
+  if (!NILP (BVAR (current_buffer, enable_multibyte_characters)))
     {
       DEC_POS (pos_byte);
       XSETFASTINT (val, FETCH_CHAR (pos_byte));
@@ -2135,7 +2135,7 @@ general_insert_function (void (*insert_func)
 	  unsigned char str[MAX_MULTIBYTE_LENGTH];
 	  int len;
 
-	  if (!NILP (current_buffer->enable_multibyte_characters))
+	  if (!NILP (BVAR (current_buffer, enable_multibyte_characters)))
 	    len = CHAR_STRING (XFASTINT (val), str);
 	  else
 	    {
@@ -2267,7 +2267,7 @@ from adjoining text, if those properties are sticky.  */)
   CHECK_NUMBER (character);
   CHECK_NUMBER (count);
 
-  if (!NILP (current_buffer->enable_multibyte_characters))
+  if (!NILP (BVAR (current_buffer, enable_multibyte_characters)))
     len = CHAR_STRING (XFASTINT (character), str);
   else
     str[0] = XFASTINT (character), len = 1;
@@ -2316,7 +2316,7 @@ from adjoining text, if those properties are sticky.  */)
   if (XINT (byte) < 0 || XINT (byte) > 255)
     args_out_of_range_3 (byte, make_number (0), make_number (255));
   if (XINT (byte) >= 128
-      && ! NILP (current_buffer->enable_multibyte_characters))
+      && ! NILP (BVAR (current_buffer, enable_multibyte_characters)))
     XSETFASTINT (byte, BYTE8_TO_CHAR (XINT (byte)));
   return Finsert_char (byte, count, inherit);
 }
@@ -2370,7 +2370,7 @@ make_buffer_string_both (EMACS_INT start, EMACS_INT start_byte,
   if (start < GPT && GPT < end)
     move_gap (start);
 
-  if (! NILP (current_buffer->enable_multibyte_characters))
+  if (! NILP (BVAR (current_buffer, enable_multibyte_characters)))
     result = make_uninit_multibyte_string (end - start, end_byte - start_byte);
   else
     result = make_uninit_string (end - start);
@@ -2485,7 +2485,7 @@ They default to the values of (point-min) and (point-max) in BUFFER.  */)
   if (NILP (buf))
     nsberror (buffer);
   bp = XBUFFER (buf);
-  if (NILP (bp->name))
+  if (NILP (BVAR (bp, name)))
     error ("Selecting deleted buffer");
 
   if (NILP (start))
@@ -2533,8 +2533,8 @@ determines whether case is significant or ignored.  */)
   register EMACS_INT begp1, endp1, begp2, endp2, temp;
   register struct buffer *bp1, *bp2;
   register Lisp_Object trt
-    = (!NILP (current_buffer->case_fold_search)
-       ? current_buffer->case_canon_table : Qnil);
+    = (!NILP (BVAR (current_buffer, case_fold_search))
+       ? BVAR (current_buffer, case_canon_table) : Qnil);
   EMACS_INT chars = 0;
   EMACS_INT i1, i2, i1_byte, i2_byte;
 
@@ -2549,7 +2549,7 @@ determines whether case is significant or ignored.  */)
       if (NILP (buf1))
 	nsberror (buffer1);
       bp1 = XBUFFER (buf1);
-      if (NILP (bp1->name))
+      if (NILP (BVAR (bp1, name)))
 	error ("Selecting deleted buffer");
     }
 
@@ -2587,7 +2587,7 @@ determines whether case is significant or ignored.  */)
       if (NILP (buf2))
 	nsberror (buffer2);
       bp2 = XBUFFER (buf2);
-      if (NILP (bp2->name))
+      if (NILP (BVAR (bp2, name)))
 	error ("Selecting deleted buffer");
     }
 
@@ -2627,7 +2627,7 @@ determines whether case is significant or ignored.  */)
 
       QUIT;
 
-      if (! NILP (bp1->enable_multibyte_characters))
+      if (! NILP (BVAR (bp1, enable_multibyte_characters)))
 	{
 	  c1 = BUF_FETCH_MULTIBYTE_CHAR (bp1, i1_byte);
 	  BUF_INC_POS (bp1, i1_byte);
@@ -2640,7 +2640,7 @@ determines whether case is significant or ignored.  */)
 	  i1++;
 	}
 
-      if (! NILP (bp2->enable_multibyte_characters))
+      if (! NILP (BVAR (bp2, enable_multibyte_characters)))
 	{
 	  c2 = BUF_FETCH_MULTIBYTE_CHAR (bp2, i2_byte);
 	  BUF_INC_POS (bp2, i2_byte);
@@ -2680,13 +2680,13 @@ determines whether case is significant or ignored.  */)
 static Lisp_Object
 subst_char_in_region_unwind (Lisp_Object arg)
 {
-  return current_buffer->undo_list = arg;
+  return BVAR (current_buffer, undo_list) = arg;
 }
 
 static Lisp_Object
 subst_char_in_region_unwind_1 (Lisp_Object arg)
 {
-  return current_buffer->filename = arg;
+  return BVAR (current_buffer, filename) = arg;
 }
 
 DEFUN ("subst-char-in-region", Fsubst_char_in_region,
@@ -2712,7 +2712,7 @@ Both characters must have the same length of multi-byte form.  */)
 #define COMBINING_BOTH (COMBINING_BEFORE | COMBINING_AFTER)
   int maybe_byte_combining = COMBINING_NO;
   EMACS_INT last_changed = 0;
-  int multibyte_p = !NILP (current_buffer->enable_multibyte_characters);
+  int multibyte_p = !NILP (BVAR (current_buffer, enable_multibyte_characters));
 
  restart:
 
@@ -2756,12 +2756,12 @@ Both characters must have the same length of multi-byte form.  */)
   if (!changed && !NILP (noundo))
     {
       record_unwind_protect (subst_char_in_region_unwind,
-			     current_buffer->undo_list);
-      current_buffer->undo_list = Qt;
+			     BVAR (current_buffer, undo_list));
+      BVAR (current_buffer, undo_list) = Qt;
       /* Don't do file-locking.  */
       record_unwind_protect (subst_char_in_region_unwind_1,
-			     current_buffer->filename);
-      current_buffer->filename = Qnil;
+			     BVAR (current_buffer, filename));
+      BVAR (current_buffer, filename) = Qnil;
     }
 
   if (pos_byte < GPT_BYTE)
@@ -2824,7 +2824,7 @@ Both characters must have the same length of multi-byte form.  */)
 
 	      struct gcpro gcpro1;
 
-	      tem = current_buffer->undo_list;
+	      tem = BVAR (current_buffer, undo_list);
 	      GCPRO1 (tem);
 
 	      /* Make a multibyte string containing this single character.  */
@@ -2843,7 +2843,7 @@ Both characters must have the same length of multi-byte form.  */)
 		INC_POS (pos_byte_next);
 
 	      if (! NILP (noundo))
-		current_buffer->undo_list = tem;
+		BVAR (current_buffer, undo_list) = tem;
 
 	      UNGCPRO;
 	    }
@@ -2945,7 +2945,7 @@ It returns the number of characters changed.  */)
   int cnt;			/* Number of changes made. */
   EMACS_INT size;		/* Size of translate table. */
   EMACS_INT pos, pos_byte, end_pos;
-  int multibyte = !NILP (current_buffer->enable_multibyte_characters);
+  int multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
   int string_multibyte;
   Lisp_Object val;
 
@@ -3206,7 +3206,7 @@ save_restriction_restore (Lisp_Object data)
 			? XMARKER (XCAR (data))->buffer
 			: XBUFFER (data));
 
-  if (buf && buf != current_buffer && !NILP (buf->pt_marker))
+  if (buf && buf != current_buffer && !NILP (BVAR (buf, pt_marker)))
     { /* If `buf' uses markers to keep track of PT, BEGV, and ZV (as
 	 is the case if it is or has an indirect buffer), then make
 	 sure it is current before we update BEGV, so
@@ -4136,20 +4136,20 @@ Case is ignored if `case-fold-search' is non-nil in the current buffer.  */)
 
   if (XINT (c1) == XINT (c2))
     return Qt;
-  if (NILP (current_buffer->case_fold_search))
+  if (NILP (BVAR (current_buffer, case_fold_search)))
     return Qnil;
 
   /* Do these in separate statements,
      then compare the variables.
      because of the way DOWNCASE uses temp variables.  */
   i1 = XFASTINT (c1);
-  if (NILP (current_buffer->enable_multibyte_characters)
+  if (NILP (BVAR (current_buffer, enable_multibyte_characters))
       && ! ASCII_CHAR_P (i1))
     {
       MAKE_CHAR_MULTIBYTE (i1);
     }
   i2 = XFASTINT (c2);
-  if (NILP (current_buffer->enable_multibyte_characters)
+  if (NILP (BVAR (current_buffer, enable_multibyte_characters))
       && ! ASCII_CHAR_P (i2))
     {
       MAKE_CHAR_MULTIBYTE (i2);

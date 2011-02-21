@@ -1,3 +1,574 @@
+2011-02-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(BLD)/filemode.$(O)): Move recipe to
+	lib/makefilw.w32-in.
+	($(BLD)/dired.$(O)): Depend on $(EMACS_ROOT)/lib/filemode.h.
+	(GLOBAL_SOURCES): Remove filemode.c.
+	(OBJ1): Remove $(BLD)/filemode.$(O).
+
+2011-02-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Import filemode module from gnulib.
+	* Makefile.in (base_obj): Remove filemode.o, as it's now in ../lib.
+	* deps.mk (dired.o): Depend on ../lib/filemode.h, too.
+	(filemode.o): Remove; this is now in ../lib.
+	* dired.c: Include <filemode.h>.
+	(filemodestring): Remove now-redundant decl.
+	* config.in: Regenerate.
+
+2011-02-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(BLD)/fns.$(O)): Depend on
+	$(EMACS_ROOT)/lib/md5.h and on stamp_BLD.
+
+2011-02-20  Christoph Scholtes <cschol2112@gmail.com>
+
+	* makefile.w32-in: Remove md5.$(O).
+	($(BLD)/md5.$(O)): Remove prerequisites, moved to
+	lib/makefile.w32-in.
+
+2011-02-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Import crypto/md5 and stdint modules from gnulib.
+	* Makefile.in (base_obj): Remove md5.o, since this file
+	is in lib now.
+	* config.in: Regenerate.
+	* md5.h, md5.h: Move to ../lib.
+	* deps.mk (md5.o): Remove.
+	(fns.o): Depend on ../lib/md5.h, not md5.h.
+
+2011-02-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* termcap.c (tputs): Don't declare baud_rate.
+
+	* s/msdos.h (strtold): Define to _strtold.
+
+2011-02-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* process.c (Fstart_process, Fmake_serial_process)
+	(Fmake_network_process, server_accept_connection):
+	Use empty_unibyte_string.
+
+	* alloc.c (make_unibyte_string): Don't SET_UNIBYTE redundantly.
+
+	* lread.c (Qdir_ok): New constant.
+	(syms_of_lread): Initialize it.
+	(openp): Don't ignore directories if the predicate returns dir-ok.
+
+2011-02-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (display_line): Fix the change made for bug#7939.
+
+	* terminal.c (create_terminal): Use default-keyboard-coding-system
+	and default-terminal-coding-system to initialize coding systems of
+	the new terminal.  (Bug#7840)
+
+2011-02-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h (BYTE_MARK_STACK): New macro.
+	(mark_byte_stack): Only declare if BYTE_MARK_STACK is set.
+
+	* bytecode.c (BYTE_MAINTAIN_TOP): New macros.
+	(struct byte_stack): Only define `top' and `bottom' if used.
+	(mark_byte_stack): Only define if used.
+	(BEFORE_POTENTIAL_GC, AFTER_POTENTIAL_GC): Nullify if BYTE_MAINTAIN_TOP
+	is not set.
+	(Fbyte_code): Don't set `bottom' unless BYTE_MAINTAIN_TOP is set.
+
+	* term.c (OUTPUT_IF): Use OUTPUT.
+
+	* alloc.c (Fgarbage_collect): When using stack scanning, don't
+	redundantly scan byte-code stacks, catchlist, and handlerlist.
+
+2011-02-17  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m (Fx_create_frame, ns_set_name_as_filename)
+	(Fns_read_file_name): Replace B_ with BVAR.
+
+	* nsterm.m (ns_term_init): Use KVAR.
+
+2011-02-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.c (internal_terminal_init): Use KVAR.
+
+	* w32fns.c (Fx_create_frame): Use KVAR.
+
+	* w32term.c (w32_create_terminal): Use KVAR.
+
+	* s/ms-w32.h (MODE_LINE_BINARY_TEXT): Remove.
+	(getloadavg): Declare prototype which was removed from lisp.h.
+
+	* xdisp.c (decode_mode_spec): Don't use MODE_LINE_BINARY_TEXT.
+
+	* fileio.c (Finsert_file_contents, Fwrite_region):
+	Remove references to buffer_file_type.
+	(syms_of_fileio): Don't intern and staticpro
+	find-buffer-file-type.
+
+	* callproc.c (syms_of_callproc): Remove references to
+	buffer_file_type.
+
+	* buffer.c (reset_buffer_local_variables): Don't set
+	buffer_file_type.
+	(init_buffer_once): Likewise.
+	(syms_of_buffer): Don't define buffer-file-type.
+
+	* buffer.h (struct buffer): Remove buffer_file_type.
+
+2011-02-16  Tom Tromey  <tromey@parfait>
+
+	* callint.c (Fcall_interactively): Update for change to field names.
+	* doc.c (Fsubstitute_command_keys): Update for change to field names.
+	* cmds.c (Fself_insert_command): Update for change to field names.
+	* keymap.c (Fcurrent_active_maps, Fkey_binding)
+	(Fdescribe_buffer_bindings): Update for change to field names.
+	* macros.c (Fstart_kbd_macro, end_kbd_macro, Fend_kbd_macro)
+	(store_kbd_macro_char, Fcall_last_kbd_macro, Fexecute_kbd_macro):
+	Update for change to field names.
+	* keyboard.c (echo_char, echo_dash, echo_now, cancel_echoing)
+	(echo_length, echo_truncate, cmd_error, command_loop_1)
+	(read_char, kbd_buffer_store_event_hold, make_lispy_event)
+	(menu_bar_items, tool_bar_items, read_char_minibuf_menu_prompt)
+	(read_key_sequence, Fcommand_execute, Fexecute_extended_command)
+	(Fdiscard_input, init_kboard, init_keyboard, mark_kboards):
+	Update for change to field names.
+	* xfns.c (Fx_create_frame): Update for change to field names.
+	* xterm.c (x_connection_closed, x_term_init): Update for change to
+	field names.
+	* term.c (term_get_fkeys_1, CONDITIONAL_REASSIGN, init_tty):
+	Update for change to field names.
+	* window.c (window_scroll_pixel_based, window_scroll_line_based):
+	Update for change to field names.
+	* frame.c (make_frame_without_minibuffer, Fhandle_switch_frame)
+	(delete_frame): Update for change to field names.
+	* lisp.h (DEFVAR_KBOARD): Update for change to field names.
+	* keyboard.h (struct kboard): Rename all Lisp_Object fields.
+	(KBOARD_INTERNAL_FIELD, KVAR): New macros.
+
+2011-02-16  Tom Tromey  <tromey@redhat.com>
+
+	* lisp.h (DEFVAR_BUFFER_DEFAULTS): Use BVAR.
+
+2011-02-16  Tom Tromey  <tromey@parfait>
+
+	* xfns.c (x_create_tip_frame, Fx_show_tip): Replace B_ with BVAR.
+	* xfaces.c (compute_char_face): Replace B_ with BVAR.
+	* xdisp.c (pos_visible_p, init_iterator, reseat_1)
+	(message_dolog, update_echo_area, ensure_echo_area_buffers)
+	(with_echo_area_buffer, setup_echo_area_for_printing)
+	(set_message_1, update_menu_bar, update_tool_bar)
+	(text_outside_line_unchanged_p, redisplay_internal)
+	(try_scrolling, try_cursor_movement, redisplay_window)
+	(try_window_reusing_current_matrix, row_containing_pos)
+	(try_window_id, get_overlay_arrow_glyph_row, display_line)
+	(Fcurrent_bidi_paragraph_direction, display_mode_lines)
+	(decode_mode_spec_coding, decode_mode_spec, display_count_lines)
+	(get_window_cursor_type, note_mouse_highlight): Replace B_ with
+	BVAR.
+	* window.c (window_display_table, unshow_buffer, window_loop)
+	(window_min_size_2, set_window_buffer, Fset_window_buffer)
+	(select_window, Fforce_window_update, temp_output_buffer_show)
+	(Fset_window_configuration, save_window_save): Replace B_ with
+	BVAR.
+	* w32fns.c (x_create_tip_frame, Fx_show_tip, Fw32_shell_execute):
+	Replace B_ with BVAR.
+	* undo.c (record_point, record_insert, record_delete)
+	(record_marker_adjustment, record_first_change)
+	(record_property_change, Fundo_boundary, truncate_undo_list)
+	(Fprimitive_undo): Replace B_ with BVAR.
+	* syntax.h (Vstandard_syntax_table, CURRENT_SYNTAX_TABLE)
+	(SETUP_BUFFER_SYNTAX_TABLE): Replace B_ with BVAR.
+	* syntax.c (update_syntax_table, dec_bytepos, Fsyntax_table)
+	(Fset_syntax_table, Fmodify_syntax_entry, skip_chars)
+	(skip_syntaxes, scan_lists): Replace B_ with BVAR.
+	* search.c (compile_pattern_1, compile_pattern, looking_at_1)
+	(string_match_1, fast_looking_at, newline_cache_on_off)
+	(search_command, search_buffer, simple_search, boyer_moore)
+	(Freplace_match): Replace B_ with BVAR.
+	* process.c (get_process, list_processes_1, Fstart_process)
+	(Fmake_serial_process, Fmake_network_process)
+	(read_process_output, send_process, exec_sentinel)
+	(status_notify, setup_process_coding_systems): Replace B_ with
+	BVAR.
+	* print.c (PRINTDECLARE, PRINTPREPARE, PRINTFINISH, printchar)
+	(strout, print_string, temp_output_buffer_setup, print_object):
+	Replace B_ with BVAR.
+	* msdos.c (IT_frame_up_to_date): Replace B_ with BVAR.
+	* minibuf.c (read_minibuf, get_minibuffer, Fread_buffer):
+	Replace B_ with BVAR.
+	* marker.c (Fmarker_buffer, Fset_marker, set_marker_restricted)
+	(set_marker_both, set_marker_restricted_both, unchain_marker):
+	Replace B_ with BVAR.
+	* lread.c (readchar, unreadchar, openp, readevalloop)
+	(Feval_buffer, Feval_region): Replace B_ with BVAR.
+	* lisp.h (DOWNCASE_TABLE, UPCASE_TABLE): Replace B_ with BVAR.
+	* keymap.c (Flocal_key_binding, Fuse_local_map)
+	(Fcurrent_local_map, push_key_description)
+	(Fdescribe_buffer_bindings): Replace B_ with BVAR.
+	* keyboard.c (command_loop_1, read_char_minibuf_menu_prompt)
+	(read_key_sequence): Replace B_ with BVAR.
+	* intervals.h (TEXT_PROP_MEANS_INVISIBLE): Replace B_ with BVAR.
+	* intervals.c (set_point_both, get_local_map): Replace B_ with
+	BVAR.
+	* insdel.c (check_markers, insert_char, insert_1_both)
+	(insert_from_string_1, insert_from_gap, insert_from_buffer_1)
+	(adjust_after_replace, replace_range, del_range_2)
+	(modify_region, prepare_to_modify_buffer)
+	(Fcombine_after_change_execute): Replace B_ with BVAR.
+	* indent.c (buffer_display_table, recompute_width_table)
+	(width_run_cache_on_off, current_column, scan_for_column)
+	(Findent_to, position_indentation, compute_motion, vmotion):
+	Replace B_ with BVAR.
+	* fringe.c (get_logical_cursor_bitmap)
+	(get_logical_fringe_bitmap, update_window_fringes): Replace B_
+	with BVAR.
+	* frame.c (make_frame_visible_1): Replace B_ with BVAR.
+	* font.c (font_at): Replace B_ with BVAR.
+	* fns.c (Fbase64_encode_region, Fbase64_decode_region, Fmd5):
+	Replace B_ with BVAR.
+	* filelock.c (unlock_all_files, Flock_buffer, Funlock_buffer)
+	(unlock_buffer): Replace B_ with BVAR.
+	* fileio.c (Fexpand_file_name, Ffile_directory_p)
+	(Ffile_regular_p, Ffile_selinux_context)
+	(Fset_file_selinux_context, Ffile_modes, Fset_file_modes)
+	(Fset_file_times, Ffile_newer_than_file_p, decide_coding_unwind)
+	(Finsert_file_contents, choose_write_coding_system)
+	(Fwrite_region, build_annotations, Fverify_visited_file_modtime)
+	(Fset_visited_file_modtime, auto_save_error, auto_save_1)
+	(Fdo_auto_save, Fset_buffer_auto_saved): Replace B_ with BVAR.
+	* editfns.c (region_limit, Fmark_marker, save_excursion_save)
+	(save_excursion_restore, Fprevious_char, Fchar_before)
+	(general_insert_function, Finsert_char, Finsert_byte)
+	(make_buffer_string_both, Finsert_buffer_substring)
+	(Fcompare_buffer_substrings, subst_char_in_region_unwind)
+	(subst_char_in_region_unwind_1, Fsubst_char_in_region)
+	(Ftranslate_region_internal, save_restriction_restore)
+	(Fchar_equal): Replace B_ with BVAR.
+	* dispnew.c (Fframe_or_buffer_changed_p): Replace B_ with BVAR.
+	* dispextern.h (WINDOW_WANTS_MODELINE_P)
+	(WINDOW_WANTS_HEADER_LINE_P): Replace B_ with BVAR.
+	* dired.c (directory_files_internal): Replace B_ with BVAR.
+	* data.c (swap_in_symval_forwarding, set_internal)
+	(Fmake_local_variable, Fkill_local_variable, Flocal_variable_p):
+	Replace B_ with BVAR.
+	* composite.c (fill_gstring_header)
+	(composition_compute_stop_pos, composition_adjust_point)
+	(Ffind_composition_internal): Replace B_ with BVAR.
+	* coding.c (decode_coding, encode_coding)
+	(make_conversion_work_buffer, decode_coding_gap)
+	(decode_coding_object, encode_coding_object)
+	(Fdetect_coding_region, Ffind_coding_systems_region_internal)
+	(Funencodable_char_position, Fcheck_coding_systems_region):
+	Replace B_ with BVAR.
+	* cmds.c (Fself_insert_command, internal_self_insert): Replace B_
+	with BVAR.
+	* charset.c (Ffind_charset_region): Replace B_ with BVAR.
+	* character.h (FETCH_CHAR_ADVANCE, INC_BOTH, DEC_BOTH)
+	(ASCII_CHAR_WIDTH): Replace B_ with BVAR.
+	* character.c (chars_in_text, Fget_byte): Replace B_ with BVAR.
+	* category.h (Vstandard_category_table): Replace B_ with BVAR.
+	* category.c (check_category_table, Fcategory_table)
+	(Fset_category_table, char_category_set): Replace B_ with BVAR.
+	* casetab.c (Fcurrent_case_table, set_case_table): Replace B_ with
+	BVAR.
+	* casefiddle.c (casify_object, casify_region): Replace B_ with
+	BVAR.
+	* callproc.c (Fcall_process, Fcall_process_region): Replace B_
+	with BVAR.
+	* callint.c (check_mark, Fcall_interactively): Replace B_ with
+	BVAR.
+	* bytecode.c (Fbyte_code): Replace B_ with BVAR.
+	* buffer.h (FETCH_CHAR, FETCH_CHAR_AS_MULTIBYTE, BVAR): Replace B_
+	with BVAR.
+	* buffer.c (Fbuffer_live_p, Fget_file_buffer)
+	(get_truename_buffer, Fget_buffer_create)
+	(clone_per_buffer_values, Fmake_indirect_buffer, reset_buffer)
+	(reset_buffer_local_variables, Fbuffer_name, Fbuffer_file_name)
+	(Fbuffer_local_value, buffer_lisp_local_variables)
+	(Fset_buffer_modified_p, Frestore_buffer_modified_p)
+	(Frename_buffer, Fother_buffer, Fbuffer_enable_undo)
+	(Fkill_buffer, Fset_buffer_major_mode, set_buffer_internal_1)
+	(set_buffer_temp, Fset_buffer, set_buffer_if_live)
+	(Fbarf_if_buffer_read_only, Fbury_buffer, Ferase_buffer)
+	(Fbuffer_swap_text, swapfield_, Fbuffer_swap_text)
+	(Fset_buffer_multibyte, swap_out_buffer_local_variables)
+	(record_overlay_string, overlay_strings, init_buffer_once)
+	(init_buffer, syms_of_buffer): Replace B_ with BVAR.
+
+2011-02-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (redisplay_internal): Resynchronize `w' if the selected
+	window is changed inside calls to do_pending_window_change.
+	(Bug#8020)
+
+2011-02-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove no-longer needed getloadavg symbols.
+	* m/alpha.h (LOAD_AVE_TYPE, LOAD_AVE_CVT): Remove.
+	* m/amdx86-64.h (LOAD_AVE_TYPE, LOAD_AVE_CVT): Remove.
+	* m/ia64.h (LOAD_AVE_TYPE, LOAD_AVE_CVT): Remove.
+	* m/ibms390.h (LOAD_AVE_TYPE, LOAD_AVE_CVT): Remove.
+	* m/macppc.h (LOAD_AVE_TYPE, LOAD_AVE_CVT): Remove.
+	* m/sparc.h (LOAD_AVE_TYPE, LOAD_AVE_CVT): Remove.
+	* m/template.h (LOAD_AVE_TYPE, LOAD_AVE_CVT): Remove.
+	* m/vax.h (LOAD_AVE_TYPE, LOAD_AVE_CVT): Remove.
+	* s/aix4-2.h (KERNEL_FILE, LDAV_SYMBOL): Remove.
+	* s/bsd-common.h (KERNEL_FILE, LDAV_SYMBOL): Remove #undef.
+	* s/hpux10-20.h (KERNEL_FILE, LOAD_AVE_TYPE, LOAD_AVE_CVT):
+	(LDAV_SYMBOL): Remove.
+	* s/unixware.h (LOAD_AVE_TYPE, LOAD_AVE_CVT, FSCALE): Remove.
+	* s/usg5-4-common.h (KERNEL_FILE, LDAV_SYMBOL): Remove.
+
+	Import getloadavg module from gnulib.
+	* deps.mk (getloadavg.o): Remove; gnulib now does this.
+	* lisp.h (getloadavg) [!defined HAVE_GETLOADAVG]: Remove; gnulib
+	now does this.
+	* src/s/freebsd.h (HAVE_GETLOADAVG): Remove; gnulib now does this.
+	* src/s/netbsd.h (HAVE_GETLOADAVG): Likewise.
+	* config.in: Regenerate.
+
+2011-02-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* nsfns.m (ns_set_name_as_filename, Fns_read_file_name): Use B_.
+
+2011-02-14  Michael Welsh Duggan  <md5i@md5i.com>
+
+	* print.c (float_to_string): Ensure that a decimal point is
+	printed if using dtoastr (Bug#8033).
+
+2011-02-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.c (IT_frame_up_to_date):
+	* s/msdos.h (MODE_LINE_BINARY_TEXT): Use B_ for the MS-DOS build.
+
+	* dired.c (directory_files_internal):
+	* fileio.c (Finsert_file_contents):
+	* insdel.c (prepare_to_modify_buffer):
+	* xdisp.c (pos_visible_p):
+	* s/ms-w32.h (MODE_LINE_BINARY_TEXT):
+	* w32fns.c (Fw32_shell_execute, Fx_show_tip, x_create_tip_frame):
+	Use B_ for the MS-Windows build.
+
+2011-02-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xrdb.c (x_load_resources): For LUCID and XFT, don't put a
+	resource that specifies helvetica for menus and dialogs.
+
+	* xmenu.c (apply_systemfont_to_dialog): Apply to *dialog.font.
+	(apply_systemfont_to_menu): Set resources *menubar*font and
+	*popup*font.  Remove defflt.
+	(set_frame_menubar, create_and_show_popup_menu):
+	Call apply_systemfont_to_menu before lw_create_widget.
+
+2011-02-14  Tom Tromey  <tromey@redhat.com>
+
+	* buffer.c (init_buffer_once, syms_of_buffer): Use B_ in DOS_NT case.
+
+	* keyboard.h: Remove obsolete comment.
+
+2011-02-14  Tom Tromey  <tromey@parfait>
+
+	* composite.c (fill_gstring_header)
+	(composition_compute_stop_pos, composition_adjust_point)
+	(Ffind_composition_internal): Use B_.
+	* intervals.c (set_point_both, get_local_map): Use B_.
+	* callproc.c (Fcall_process, Fcall_process_region): Use B_.
+	* process.c (get_process, list_processes_1, Fstart_process)
+	(Fmake_serial_process, Fmake_network_process)
+	(read_process_output, send_process, exec_sentinel)
+	(status_notify, setup_process_coding_systems): Use B_.
+	* bytecode.c (Fbyte_code): Use B_.
+	* syntax.c (update_syntax_table, dec_bytepos, Fsyntax_table)
+	(Fset_syntax_table, Fmodify_syntax_entry, skip_chars)
+	(skip_syntaxes, scan_lists): Use B_.
+	* lread.c (readchar, unreadchar, openp, readevalloop)
+	(Feval_buffer, Feval_region): Use B_.
+	* print.c (printchar, strout, print_string, PRINTDECLARE)
+	(PRINTPREPARE, PRINTFINISH, temp_output_buffer_setup)
+	(print_object): Use B_.
+	* font.c (font_at): Use B_.
+	* fns.c (Fbase64_encode_region, Fbase64_decode_region, Fmd5):
+	Use B_.
+	* callint.c (check_mark, Fcall_interactively): Use B_.
+	* editfns.c (region_limit, Fmark_marker, save_excursion_save)
+	(save_excursion_restore, Fprevious_char, Fchar_before)
+	(general_insert_function, Finsert_char, Finsert_byte)
+	(make_buffer_string_both, Finsert_buffer_substring)
+	(Fcompare_buffer_substrings, subst_char_in_region_unwind)
+	(subst_char_in_region_unwind_1, Fsubst_char_in_region)
+	(Ftranslate_region_internal, save_restriction_restore)
+	(Fchar_equal): Use B_.
+	* data.c (swap_in_symval_forwarding, set_internal)
+	(Fmake_local_variable, Fkill_local_variable, Flocal_variable_p):
+	Use B_.
+	* undo.c (record_point, record_insert, record_delete)
+	(record_marker_adjustment, record_first_change)
+	(record_property_change, Fundo_boundary, truncate_undo_list)
+	(Fprimitive_undo): Use B_.
+	* search.c (compile_pattern_1, compile_pattern, looking_at_1)
+	(string_match_1, fast_looking_at, newline_cache_on_off)
+	(search_command, search_buffer, simple_search, boyer_moore)
+	(Freplace_match): Use B_.
+	* indent.c (buffer_display_table, recompute_width_table)
+	(width_run_cache_on_off, current_column, scan_for_column)
+	(Findent_to, position_indentation, compute_motion, vmotion):
+	Use B_.
+	* casefiddle.c (casify_object, casify_region): Use B_.
+	* casetab.c (Fcurrent_case_table, set_case_table): Use B_.
+	* cmds.c (Fself_insert_command, internal_self_insert): Use B_.
+	* fileio.c (Fexpand_file_name, Ffile_directory_p)
+	(Ffile_regular_p, Ffile_selinux_context)
+	(Fset_file_selinux_context, Ffile_modes, Fset_file_modes)
+	(Fset_file_times, Ffile_newer_than_file_p, decide_coding_unwind)
+	(Finsert_file_contents, choose_write_coding_system)
+	(Fwrite_region, build_annotations, Fverify_visited_file_modtime)
+	(Fset_visited_file_modtime, auto_save_error, auto_save_1)
+	(Fdo_auto_save, Fset_buffer_auto_saved): Use B_.
+	* minibuf.c (read_minibuf, get_minibuffer, Fread_buffer): Use B_.
+	* marker.c (Fmarker_buffer, Fset_marker, set_marker_restricted)
+	(set_marker_both, set_marker_restricted_both, unchain_marker):
+	Use B_.
+	* insdel.c (check_markers, insert_char, insert_1_both)
+	(insert_from_string_1, insert_from_gap, insert_from_buffer_1)
+	(adjust_after_replace, replace_range, del_range_2)
+	(modify_region, prepare_to_modify_buffer)
+	(Fcombine_after_change_execute): Use B_.
+	* filelock.c (unlock_all_files, Flock_buffer, Funlock_buffer)
+	(unlock_buffer): Use B_.
+	* keymap.c (Flocal_key_binding, Fuse_local_map)
+	(Fcurrent_local_map, push_key_description)
+	(Fdescribe_buffer_bindings): Use B_.
+	* keyboard.c (command_loop_1, read_char_minibuf_menu_prompt)
+	(read_key_sequence): Use B_.
+	* fringe.c (get_logical_cursor_bitmap)
+	(get_logical_fringe_bitmap, update_window_fringes): Use B_.
+	* xfns.c (x_create_tip_frame, Fx_show_tip): Use B_.
+	* xfaces.c (compute_char_face): Use B_.
+	* character.c (chars_in_text, Fget_byte): Use B_.
+	* category.c (check_category_table, Fcategory_table)
+	(Fset_category_table, char_category_set): Use B_.
+	* coding.c (decode_coding, encode_coding)
+	(make_conversion_work_buffer, decode_coding_gap)
+	(decode_coding_object, encode_coding_object)
+	(Fdetect_coding_region, Ffind_coding_systems_region_internal)
+	(Funencodable_char_position, Fcheck_coding_systems_region):
+	Use B_.
+	* charset.c (Ffind_charset_region): Use B_.
+	* window.c (window_display_table, unshow_buffer, window_loop)
+	(window_min_size_2, set_window_buffer, Fset_window_buffer)
+	(select_window, Fforce_window_update, temp_output_buffer_show)
+	(Fset_window_configuration, save_window_save): Use B_.
+	* xdisp.c (pos_visible_p, init_iterator, reseat_1)
+	(message_dolog, update_echo_area, ensure_echo_area_buffers)
+	(with_echo_area_buffer, setup_echo_area_for_printing)
+	(set_message_1, update_menu_bar, update_tool_bar)
+	(text_outside_line_unchanged_p, redisplay_internal)
+	(try_scrolling, try_cursor_movement, redisplay_window)
+	(try_window_reusing_current_matrix, row_containing_pos)
+	(try_window_id, get_overlay_arrow_glyph_row, display_line)
+	(Fcurrent_bidi_paragraph_direction, display_mode_lines)
+	(decode_mode_spec_coding, decode_mode_spec, display_count_lines)
+	(get_window_cursor_type, note_mouse_highlight): Use B_.
+	* frame.c (make_frame_visible_1): Use B_.
+	* dispnew.c (Fframe_or_buffer_changed_p): Use B_.
+	* dispextern.h (WINDOW_WANTS_HEADER_LINE_P)
+	(WINDOW_WANTS_MODELINE_P): Use B_.
+	* syntax.h (Vstandard_syntax_table): Update.
+	(CURRENT_SYNTAX_TABLE, SETUP_BUFFER_SYNTAX_TABLE): Use B_.
+	* intervals.h (TEXT_PROP_MEANS_INVISIBLE): Update.
+	(TEXT_PROP_MEANS_INVISIBLE): Use B_.
+	* character.h (FETCH_CHAR_ADVANCE): Update.
+	(INC_BOTH, ASCII_CHAR_WIDTH, DEC_BOTH): Use B_.
+	* category.h (Vstandard_category_table): Update.
+	* lisp.h (DEFVAR_BUFFER_DEFAULTS): Update for change to field
+	names.
+	(DOWNCASE_TABLE, UPCASE_TABLE): Use B_.
+	* buffer.c (swapfield_): New macro.
+	(Fbuffer_swap_text): Use swapfield_ where appropriate.
+	(Fbuffer_live_p, Fget_file_buffer, get_truename_buffer)
+	(Fget_buffer_create, clone_per_buffer_values)
+	(Fmake_indirect_buffer, reset_buffer)
+	(reset_buffer_local_variables, Fbuffer_name, Fbuffer_file_name)
+	(Fbuffer_local_value, buffer_lisp_local_variables)
+	(Fset_buffer_modified_p, Frestore_buffer_modified_p)
+	(Frename_buffer, Fother_buffer, Fbuffer_enable_undo)
+	(Fkill_buffer, Fset_buffer_major_mode, set_buffer_internal_1)
+	(set_buffer_temp, Fset_buffer, set_buffer_if_live)
+	(Fbarf_if_buffer_read_only, Fbury_buffer, Ferase_buffer)
+	(Fbuffer_swap_text, Fset_buffer_multibyte)
+	(swap_out_buffer_local_variables, record_overlay_string)
+	(overlay_strings, init_buffer_once, init_buffer, syms_of_buffer):
+	Use B_.
+	* buffer.h (struct buffer): Rename all Lisp_Object fields.
+	(BUFFER_INTERNAL_FIELD, B_): New macro.
+	(FETCH_CHAR, FETCH_CHAR_AS_MULTIBYTE): Use B_.
+
+2011-02-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_tool_bar_menu_proxy): Handle case when tool bar label
+	is null.
+
+2011-02-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* callproc.c (Fcall_process):
+	* process.c (create_process): Replace Gtk with GConf in SIGPIPE
+	comment.
+
+2011-02-12  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (select_window): Check inhibit_point_swap argument when
+	deciding whether to return immediately.
+
+2011-02-12  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (setFrame, initFrame): Make sure pixel_height doesn't become
+	zero (Bug#7348).
+
+2011-02-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* config.in (TERMINFO): New definition.
+
+	* s/netbsd.h: Use it to choose between terminfo and termcap
+	(Bug#7642).
+
+2011-02-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* md5.c (md5_process_bytes): Use sizeof, not __alignof__.
+	The difference doesn't matter here, in practice, and sizeof is
+	more portable to non-GCC compilers.  Also, this makes the code
+	match the already-existing comment.
+
+2011-02-12  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* process.c (create_process): Reset SIGPIPE handler in the child.
+	* callproc.c (Fcall_process): Likewise.  (Bug#5238)
+
+2011-02-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c <this_line_min_pos>: New variable.
+	(move_it_in_display_line_to): Record in this_line_min_pos the
+	smallest position iterated across.
+	(display_line): Use this_line_min_pos to record the smallest
+	position in the line even if it is not displayed due to
+	hscrolling.  (Bug#7939)
+
+2011-02-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to Sun C 5.11, which has __attribute__ ((__aligned (N))).
+	* md5.h (ATTRIBUTE_ALIGNED): New macro.
+	(struct md5_ctx): Use it.
+
+	Port to Solaris 10, which doesn't support FC_HINT_STYLE.
+	* xftfont.c (FC_HINT_STYLE): #define to "hintstyle" if not
+	defined.
+	* xsettings.c (parse_settings, apply_xft_settings): Don't assume
+	FC_HINT_STYLE is supported.
+
+2011-02-11  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_set_frame_alpha): Access data before it is free:d.
+	Make sure we don't do x_catch_errors twice.
+
 2011-02-10  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (really-lwlib): Depend on globals.h, for parallel builds.
@@ -112,8 +683,8 @@
 	callers changed.
 	* editfns.c (general_insert_function): Change signature to
 	match changes to insert functions' signatures.
-	* keymap.c (map_keymap_char_table_item, map_keymap_internal): Use
-	explicit cast when converting between void * and function pointer
+	* keymap.c (map_keymap_char_table_item, map_keymap_internal):
+	Use explicit cast when converting between void * and function pointer
 	types, as C89 requires this.
 
 2011-02-05  Paul Eggert  <eggert@cs.ucla.edu>
@@ -233,7 +804,7 @@
 2011-02-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	format-time-string now supports subsecond time stamp resolution
-	* editfns.c (emacs_nmemftime): Renamed from emacs_memftimeu,
+	* editfns.c (emacs_nmemftime): Rename from emacs_memftimeu,
 	for consistency with its new argument and with gnulib nstrftime.
 	All callers changed.  New argument NS.
 	(Fformat_time_string): Check that the time argument's microseconds
@@ -563,11 +1134,11 @@
 	(history_delete_duplicates, inhibit_x_resources)
 	(last_nonmenu_event, load_in_progress, max_specpdl_size)
 	(minibuffer_auto_raise, print_escape_newlines, scroll_margin)
-	(use_dialog_box, use_file_dialog): Remove declaration.  Include
-	globals.h.
+	(use_dialog_box, use_file_dialog): Remove declaration.
+	Include globals.h.
 	* keymap.h (Voverriding_local_map)
-	(Voverriding_local_map_menu_flag, meta_prefix_char): Remove
-	declaration.
+	(Voverriding_local_map_menu_flag, meta_prefix_char):
+	Remove declaration.
 	* keyboard.h (Vdouble_click_time, Vfunction_key_map)
 	(Vinput_method_function, Vkey_translation_map)
 	(Vlucid_menu_bar_dirty_flag, Vthis_original_command)
@@ -585,16 +1156,16 @@
 	(focus_follows_mouse): Remove declaration.
 	* fontset.h (Valternate_fontname_alist, Vfontset_alias_alist)
 	(Vignore_relative_composition, Votf_script_alist)
-	(Vuse_default_ascent, Vvertical_centering_font_regexp): Remove
-	declaration.
+	(Vuse_default_ascent, Vvertical_centering_font_regexp):
+	Remove declaration.
 	* font.h (Vfont_log): Remove declaration.
 	* dosfns.h (Vdos_display_scancodes, Vdos_version)
 	(Vdos_windows_version, dos_codepage, dos_country_code)
 	(dos_decimal_point, dos_hyper_key, dos_keyboard_layout)
-	(dos_keypad_mode, dos_super_key, dos_timezone_offset): Remove
-	declaration.
-	* disptab.h (Vglyph_table, Vstandard_display_table): Remove
-	declaration.
+	(dos_keypad_mode, dos_super_key, dos_timezone_offset):
+	Remove declaration.
+	* disptab.h (Vglyph_table, Vstandard_display_table):
+	Remove declaration.
 	* dispextern.h (Vface_remapping_alist, Vglyphless_char_display)
 	(Vmouse_autoselect_window, Voverflow_newline_into_fringe)
 	(Vshow_trailing_whitespace, Vtool_bar_button_margin)
@@ -622,10 +1193,10 @@
 	(Vselect_safe_coding_system_function)
 	(Vtranslation_table_for_input, coding_system_require_warning)
 	(eol_mnemonic_dos, eol_mnemonic_mac, eol_mnemonic_undecided)
-	(eol_mnemonic_unix, inherit_process_coding_system): Remove
-	declaration.
-	* charset.h (Vcharset_list, Vcurrent_iso639_language): Remove
-	declaration.
+	(eol_mnemonic_unix, inherit_process_coding_system):
+	Remove declaration.
+	* charset.h (Vcharset_list, Vcurrent_iso639_language):
+	Remove declaration.
 	* character.h (Vauto_fill_chars, Vchar_direction_table)
 	(Vchar_script_table, Vchar_width_table, Vprintable_chars)
 	(Vscript_representative_chars, Vtranslation_table_vector)
@@ -740,8 +1311,8 @@
 	(w32_strict_fontnames, w32_strict_painting): Remove.
 	(Vhourglass_delay, Vmenu_bar_mode, Vtool_bar_mode)
 	(Vw32_recognize_altgr, Vwindow_system_version)
-	(w32_num_mouse_buttons, w32_use_visible_system_caret): Remove
-	declaration.
+	(w32_num_mouse_buttons, w32_use_visible_system_caret):
+	Remove declaration.
 	* w32console.c (syms_of_ntterm): Update.
 	(w32_use_full_screen_buffer): Remove.
 	(Vtty_defined_color_alist): Remove declaration.
@@ -1572,7 +2143,7 @@
 
 	* gtkutil.c (menubar_map_cb): New function (Bug#7425).
 	(xg_update_frame_menubar): Connect signal map to menubar_map_cb.
-	Use 23 as menubar height if 0. (Bug#7425).
+	Use 23 as menubar height if 0.  (Bug#7425).
 
 2010-11-26  Eli Zaretskii  <eliz@gnu.org>
 
@@ -2579,7 +3150,7 @@
 	is more portable.
 
 	* keyboard.c (gobble_input): Move call of xd_read_queued_messages ...
-	(kbd_buffer_get_event): ... here. This is needed for cygwin, which
+	(kbd_buffer_get_event): ... here.  This is needed for cygwin, which
 	has not defined SIGIO.
 
 2010-10-08  Chong Yidong  <cyd@stupidchicken.com>

@@ -1908,7 +1908,7 @@ extern void defvar_kboard (struct Lisp_Kboard_Objfwd *, const char *, int);
 #define DEFVAR_BUFFER_DEFAULTS(lname, vname, doc)		\
   do {								\
     static struct Lisp_Objfwd o_fwd;				\
-    defvar_lisp_nopro (&o_fwd, lname, &buffer_defaults.vname);	\
+    defvar_lisp_nopro (&o_fwd, lname, &BVAR (&buffer_defaults, vname));	\
   } while (0)
 
 #define DEFVAR_KBOARD(lname, vname, doc)			\
@@ -1916,7 +1916,7 @@ extern void defvar_kboard (struct Lisp_Kboard_Objfwd *, const char *, int);
     static struct Lisp_Kboard_Objfwd ko_fwd;			\
     defvar_kboard (&ko_fwd,					\
 		   lname,					\
-		   (int)((char *)(&current_kboard->vname)	\
+		   (int)((char *)(&current_kboard->vname ## _)	\
 			 - (char *)current_kboard));		\
   } while (0)
 
@@ -2073,11 +2073,11 @@ extern Lisp_Object case_temp2;
 
 /* Current buffer's map from characters to lower-case characters.  */
 
-#define DOWNCASE_TABLE current_buffer->downcase_table
+#define DOWNCASE_TABLE BVAR (current_buffer, downcase_table)
 
 /* Current buffer's map from characters to upper-case characters.  */
 
-#define UPCASE_TABLE current_buffer->upcase_table
+#define UPCASE_TABLE BVAR (current_buffer, upcase_table)
 
 /* Downcase a character, or make no change if that cannot be done.  */
 
@@ -2170,6 +2170,11 @@ struct gcpro
 #ifndef GC_MARK_STACK
 #define GC_MARK_STACK GC_USE_GCPROS_AS_BEFORE
 #endif
+
+/* Whether we do the stack marking manually.  */
+#define BYTE_MARK_STACK !(GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS		\
+			  || GC_MARK_STACK == GC_MARK_STACK_CHECK_GCPROS)
+
 
 #if GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS
 
@@ -3282,7 +3287,9 @@ extern Lisp_Object Qbytecode;
 EXFUN (Fbyte_code, MANY);
 extern void syms_of_bytecode (void);
 extern struct byte_stack *byte_stack_list;
+#ifdef BYTE_MARK_STACK
 extern void mark_byte_stack (void);
+#endif
 extern void unmark_byte_stack (void);
 extern Lisp_Object exec_byte_code (Lisp_Object, Lisp_Object, Lisp_Object,
 				   Lisp_Object, int, Lisp_Object *);
@@ -3437,11 +3444,6 @@ extern Lisp_Object Vface_alternative_font_registry_alist;
 EXFUN (Fclear_face_cache, 1);
 EXFUN (Fx_load_color_file, 1);
 extern void syms_of_xfaces (void);
-
-#ifndef HAVE_GETLOADAVG
-/* Defined in getloadavg.c */
-extern int getloadavg (double *, int);
-#endif
 
 #ifdef HAVE_X_WINDOWS
 /* Defined in xfns.c */

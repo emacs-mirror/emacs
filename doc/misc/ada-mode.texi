@@ -19,7 +19,7 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs editing modes
 @direntry
 * Ada mode: (ada-mode).         Emacs mode for editing and compiling Ada code.
 @end direntry
@@ -39,6 +39,7 @@ developing GNU and promoting software freedom.''
 @contents
 
 @node Top, Overview, (dir), (dir)
+@top Ada Mode
 
 @ifnottex
 @insertcopying

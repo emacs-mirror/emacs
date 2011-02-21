@@ -1,3 +1,16 @@
+2011-02-21  Christoph Scholtes  <cschol2112@gmail.com>
+
+	* inc/stdint.h: New file, to support compilation with tool chains
+	that do not have stdint.h (e.g. MSVC).
+
+2011-02-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/stat.h (S_ISUID, S_ISGID, S_ISVTX, S_IRGRP, S_IROTH)
+	(S_IWGRP, S_IWOTH, S_IXGRP, S_IXOTH, S_ISSOCK, S_ISLNK, S_ISCTG)
+	(S_ISDOOR, S_ISMPB, S_ISMPC, S_ISNWK, S_ISPORT, S_ISWHT)
+	(S_TYPEISMQ, S_TYPEISSEM, S_TYPEISSHM, S_TYPEISTMO): Define.
+	(lstat): Define to stat.
+
 2011-02-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (bootstrap-nmake, bootstrap-gmake): Make the

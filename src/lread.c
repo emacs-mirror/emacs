@@ -212,7 +212,7 @@ readchar (Lisp_Object readcharfun, int *multibyte)
       if (pt_byte >= BUF_ZV_BYTE (inbuffer))
 	return -1;
 
-      if (! NILP (inbuffer->enable_multibyte_characters))
+      if (! NILP (BVAR (inbuffer, enable_multibyte_characters)))
 	{
 	  /* Fetch the character code from the buffer.  */
 	  unsigned char *p = BUF_BYTE_ADDRESS (inbuffer, pt_byte);
@@ -241,7 +241,7 @@ readchar (Lisp_Object readcharfun, int *multibyte)
       if (bytepos >= BUF_ZV_BYTE (inbuffer))
 	return -1;
 
-      if (! NILP (inbuffer->enable_multibyte_characters))
+      if (! NILP (BVAR (inbuffer, enable_multibyte_characters)))
 	{
 	  /* Fetch the character code from the buffer.  */
 	  unsigned char *p = BUF_BYTE_ADDRESS (inbuffer, bytepos);
@@ -373,7 +373,7 @@ unreadchar (Lisp_Object readcharfun, int c)
       EMACS_INT bytepos = BUF_PT_BYTE (b);
 
       BUF_PT (b)--;
-      if (! NILP (b->enable_multibyte_characters))
+      if (! NILP (BVAR (b, enable_multibyte_characters)))
 	BUF_DEC_POS (b, bytepos);
       else
 	bytepos--;
@@ -386,7 +386,7 @@ unreadchar (Lisp_Object readcharfun, int c)
       EMACS_INT bytepos = XMARKER (readcharfun)->bytepos;
 
       XMARKER (readcharfun)->charpos--;
-      if (! NILP (b->enable_multibyte_characters))
+      if (! NILP (BVAR (b, enable_multibyte_characters)))
 	BUF_DEC_POS (b, bytepos);
       else
 	bytepos--;
@@ -1375,7 +1375,9 @@ If SUFFIXES is non-nil, it should be a list of suffixes to append to
 file name when searching.
 If non-nil, PREDICATE is used instead of `file-readable-p'.
 PREDICATE can also be an integer to pass to the access(2) function,
-in which case file-name-handlers are ignored.  */)
+in which case file-name-handlers are ignored.
+This function will normally skip directories, so if you want it to find
+directories, make sure the PREDICATE function returns `dir-ok' for them.  */)
   (Lisp_Object filename, Lisp_Object path, Lisp_Object suffixes, Lisp_Object predicate)
 {
   Lisp_Object file;
@@ -1385,6 +1387,7 @@ in which case file-name-handlers are ignored.  */)
   return file;
 }
 
+static Lisp_Object Qdir_ok;
 
 /* Search for a file whose name is STR, looking in directories
    in the Lisp list PATH, and trying suffixes from SUFFIX.
@@ -1447,7 +1450,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *sto
 	/* Of course, this could conceivably lose if luser sets
 	   default-directory to be something non-absolute... */
 	{
-	  filename = Fexpand_file_name (filename, current_buffer->directory);
+	  filename = Fexpand_file_name (filename, BVAR (current_buffer, directory));
 	  if (!complete_filename_p (filename))
 	    /* Give up on this path element! */
 	    continue;
@@ -1502,9 +1505,12 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *sto
 	      if (NILP (predicate))
 		exists = !NILP (Ffile_readable_p (string));
 	      else
-		exists = !NILP (call1 (predicate, string));
-	      if (exists && !NILP (Ffile_directory_p (string)))
-		exists = 0;
+		{
+		  Lisp_Object tmp = call1 (predicate, string);
+		  exists = !NILP (tmp)
+		    && (EQ (tmp, Qdir_ok)
+			|| !NILP (Ffile_directory_p (string)));
+		}
 
 	      if (exists)
 		{
@@ -1714,7 +1720,7 @@ readevalloop (Lisp_Object readcharfun,
     {
       int count1 = SPECPDL_INDEX ();
 
-      if (b != 0 && NILP (b->name))
+      if (b != 0 && NILP (BVAR (b, name)))
 	error ("Reading from killed buffer");
 
       if (!NILP (start))
@@ -1854,7 +1860,7 @@ This function preserves the position of point.  */)
     tem = printflag;
 
   if (NILP (filename))
-    filename = XBUFFER (buf)->filename;
+    filename = BVAR (XBUFFER (buf), filename);
 
   specbind (Qeval_buffer_list, Fcons (buf, Veval_buffer_list));
   specbind (Qstandard_output, tem);
@@ -1897,7 +1903,7 @@ This function does not move point.  */)
   specbind (Qeval_buffer_list, Fcons (cbuf, Veval_buffer_list));
 
   /* readevalloop calls functions which check the type of start and end.  */
-  readevalloop (cbuf, 0, XBUFFER (cbuf)->filename,
+  readevalloop (cbuf, 0, BVAR (XBUFFER (cbuf), filename),
 		!NILP (printflag), Qnil, read_function,
 		start, end);
 
@@ -4542,6 +4548,9 @@ This variable is automatically set from the file variables of an interpreted
   Qfile_truename = intern_c_string ("file-truename");
   staticpro (&Qfile_truename) ;
 
+  Qdir_ok = intern_c_string ("dir-ok");
+  staticpro (&Qdir_ok);
+  
   Qdo_after_load_evaluation = intern_c_string ("do-after-load-evaluation");
   staticpro (&Qdo_after_load_evaluation) ;
 

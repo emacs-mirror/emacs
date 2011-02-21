@@ -61,6 +61,8 @@ extern struct direct *readdir (DIR *);
 
 #endif /* HAVE_DIRENT_H */
 
+#include <filemode.h>
+
 #ifdef MSDOS
 #define DIRENTRY_NONEMPTY(p) ((p)->d_name[0] != 0)
 #else
@@ -81,9 +83,6 @@ extern struct direct *readdir (DIR *);
 extern struct re_pattern_buffer *compile_pattern (Lisp_Object,
 						  struct re_registers *,
 						  Lisp_Object, int, int);
-
-/* From filemode.c.  Can't go in Lisp.h because of `stat'.  */
-extern void filemodestring (struct stat *, char *);
 
 /* if system does not have symbolic links, it does not have lstat.
    In that case, use ordinary stat instead.  */
@@ -158,7 +157,7 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full, Lisp_Object m
 # ifdef WINDOWSNT
       /* Windows users want case-insensitive wildcards.  */
       bufp = compile_pattern (match, 0,
-			      buffer_defaults.case_canon_table, 0, 1);
+			      BVAR (&buffer_defaults, case_canon_table), 0, 1);
 # else	/* !WINDOWSNT */
       bufp = compile_pattern (match, 0, Qnil, 0, 1);
 # endif	 /* !WINDOWSNT */

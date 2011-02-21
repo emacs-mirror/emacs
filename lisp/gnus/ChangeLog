@@ -1,3 +1,224 @@
+2011-02-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* shr-color.el (shr-color->hexadecimal): Use renamed function names
+	color-rgb-to-hex, color-name-to-rgb, color-srgb-to-lab, and
+	color-lab-to-srgb.
+
+2011-02-21  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nntp.el (nntp-finish-retrieve-group-infos): Add a kludge to use the
+	given method as in the group name if we're using an extended method.
+	(nntp-finish-retrieve-group-infos): Wait for the end of the LIST ACTIVE
+	command, if we're using that, instead of waiting for the beginning.
+
+	* gnus-start.el (gnus-get-unread-articles): Extend the methods so that
+	we're sure to get unique server names, and we don't output two async
+	commands in the same buffer.  This fixes an NNTP hang for some users.
+
+2011-02-21  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-summary-next-article): Add a kludge to reselect the
+	summary buffer before reading going to the next buffer.  This avoids
+	putting the point in the group buffer if you `C-g' the command.
+
+	* auth-source.el (auth-source-netrc-parse): Add an in-memory netrc
+	cache (for now) to make ~/.authinfo.gpg files usable.
+
+	* nnfolder.el (copyright-update): Define for the compiler.
+
+	* auth-source.el (auth-source-search): Fix unbound variable.
+
+2011-02-19  Glenn Morris  <rgm@gnu.org>
+
+	* gnus.el (gnus-meta): Doc fix.
+
+2011-02-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nnfolder.el (nnfolder-save-buffer): Don't let-bind copyright-update,
+	in case it's not yet loaded.
+
+2011-02-20  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-wait-for-response): Ensure that we get the entire
+	line we're waiting for.
+
+2011-02-19  Darren Hoo  <darren.hoo@gmail.com>  (tiny change)
+
+	* gnus-art.el (gnus-article-next-page-1): Because customized mode-line
+	face with line-width greater than zero will cause RET in gnus summary
+	buffer to scroll down article page-wise because auto vscroll happens,
+	it should be temporalily disabled when doing a scroll-up.
+
+2011-02-19  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-parse-copied-articles): Allow for "<foo> OK"
+	outputs from the server.
+
+2011-02-18  Antoine Levitt  <antoine.levitt@gmail.com>  (tiny change)
+
+	* gnus-art.el (gnus-article-prepare): Run gnus-article-prepare-hook
+	later so that bbdb can hook in easier.
+
+2011-02-18  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* auth-source.el (auth-source-search): Don't try to create credentials
+	if the caller doesn't want that.
+	(auth-source-search): If we don't find a match, don't bug out on
+	non-bound variables.
+	(auth-source-search): Only ask a single backend to create the
+	credentials.
+
+	* nnimap.el (nnimap-log-command): Add a newline to the inhibited
+	logging.
+	(nnimap-credentials): Protect against auth-source-search returning nil.
+	(nnimap-request-list): Protect against not being able to open the
+	server.
+
+2011-02-17  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* auth-source.el (auth-source-search): Do a two-phase search, one with
+	no :create to get the responses from all backends.
+
+	* nnimap.el (nnimap-open-connection-1): Delete duplicate server names
+	when getting credentials.
+
+	* gnus-util.el (gnus-delete-duplicates): New function.
+
+2011-02-17  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* nnimap.el (nnimap-credentials): Instead of picking the first port as
+	a creation default, pass the whole port list down.  It will be
+	completed.
+
+	* auth-source.el (auth-source-search): Updated docs to talk about
+	multiple creation choices.
+	(auth-source-netrc-create): Accept a list as a value (from the search
+	parameters) and do completion on that list.  Keep a separate netrc line
+	with the password obscured for showing the user.
+
+	* nnimap.el (nnimap-open-connection-1): Make the `nnimap-address' the
+	first choice to `auth-source-search' so it will be used for entry
+	creation instead of the server's Gnus-specific name.
+	(nnimap-credentials): Rely on the auth-source library to select which
+	port is actually wanted in the new netrc entry, so don't override
+	`auth-source-creation-defaults'.
+
+	* auth-source.el (auth-source-netrc-parse): Use :port instead of
+	:protocol and accept a missing user, host, or port as a wildcard match.
+	(auth-source-debug): Default to off.
+
+	(auth-source-netrc-search, auth-source-netrc-create)
+	(auth-source-secrets-search, auth-source-secrets-create)
+	(auth-source-user-or-password, auth-source-backend, auth-sources)
+	(auth-source-backend-parse-parameters, auth-source-search): Use :port
+	instead of :protocol.
+
+	* nnimap.el (nnimap-credentials): Pass a port default to
+	`auth-source-search' in case an entry needs to be created.
+	(nnimap-open-connection-1): Use :port instead of :protocol.
+
+2011-02-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* auth-source.el (auth-source-secrets-search): Use mm-delete-duplicates
+	instead of delete-dups that is not available in XEmacs 21.4.
+
+2011-02-16  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-propagate-marks): Change default to t again, since
+	nil means that nnimap doesn't get updated.
+
+2011-02-16  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-netrc-create): Return a synthetic search
+	result when the user doesn't want to write to the file.
+	(auth-source-netrc-search): Expect a synthetic result and proceed
+	accordingly.
+	(auth-source-cache-expiry): New variable to override
+	`password-cache-expiry'.
+	(auth-source-remember): Use it.
+
+	* nnimap.el (nnimap-credentials): Remove the `inhibit-create'
+	parameter.  Create entry if necessary by using :create t.
+	(nnimap-open-connection-1): Don't pass `inhibit-create'.
+
+2011-02-15  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-debug): Enable by default and don't
+	mention the obsolete `auth-source-hide-passwords'.
+	(auth-source-do-warn): New function to debug unconditionally.
+	(auth-source-do-debug): Use it.
+	(auth-source-backend-parse): Use it for invalid `auth-sources' entries
+	and for Secrets API entries when the secrets.el library is not
+	available.
+
+2011-02-14  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-propagate-marks): Default to nil.
+	(gnus-summary-exit): Kill the correct article buffer on exit from a
+	`C-d' group.
+
+	* gnus-start.el (gnus-use-backend-marks): Removed, since it duplicates
+	gnus-propagate-marks.
+
+	* gnus-sum.el (gnus-summary-exit-no-update): Restore the group conf
+	before killing the buffers so that a non-full window conf gets handled
+	correctly.
+	(gnus-summary-exit): Ditto.
+	(gnus-summary-read-group-1): Ditto.
+
+	* nntp.el (nntp-retrieve-group-data-early): Reinstate the two-part
+	async code again so that we can debug it properly.
+
+	* message.el (message-reply): Take an optional switch-buffer parameter
+	so that Gnus window confs are respected better.
+
+2011-02-14  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-backend-parse-parameters): Don't rely on
+	`plist-get' to accept non-list parameters (XEmacs issue).  Fix
+	docstring.
+	(auth-source-secrets-search): Use `delete-dups', `append mapcar', and
+	`butlast' instead of `remove-duplicates', `mapcan', and `subseq'.
+	(auth-sources, auth-source-backend-parse, auth-source-secrets-search):
+	Login collection is "Login" and not "login".
+
+2011-02-14  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (article-update-date-lapsed): Don't bug out when updating
+	multiple headers.
+
+	* nnimap.el (nnimap-inhibit-logging): New variable.
+	(nnimap-log-command): Don't log login commands.
+
+	* auth-source.el (auth-source-netrc-search): The asserts seem to want
+	to have more parameters.
+
+	* nnimap.el (nnimap-send-command): Mark the command time for each
+	command, so that we don't get NOOPs stepping on our toes.
+
+	* gnus-art.el (article-date-ut): Get the date from the Date header on
+	`t'.
+
+2011-02-14  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* auth-source.el (auth-source-search): Use copy-sequence instead of
+	the cl.el copy-list.
+
+2011-02-13  Adam Sjøgren  <asjo@koldfront.dk>
+
+	* gnus-delay.el (gnus-delay-article) Fix number of seconds per day.
+	Improve prompt.
+
+2011-02-13  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (gnus-article-mode-line-format): Remove the article
+	washing status from the default format.  It isn't very informative.
+
+2011-02-13  Tassilo Horn  <tassilo@member.fsf.org>  (tiny change)
+
+	* nnimap.el (nnimap-request-accept-article, nnimap-process-quirk): Fix
+	Gcc processing on imap.
+
 2011-02-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* message.el (message-bury): Don't pop up a new window when selected
@@ -6,6 +227,30 @@
 2011-02-10  Antoine Levitt  <antoine.levitt@gmail.com>  (tiny change)
 
 	* gnus-sum.el (gnus-summary-save-parts): Use read-directory-name.
+
+2011-02-10  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* sieve-manage.el: Autoload `auth-source-search'.
+	(sieve-sasl-auth): Use it.
+
+2011-02-09  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* nnimap.el: Autoload `auth-source-forget+'.
+	(nnimap-open-connection-1): Use it if the connection fails.
+
+	* auth-source.el: Require `password-cache'.
+	(auth-source-hide-passwords, auth-source-cache): Remove and mark
+	obsolete.
+	(auth-source-magic): Marker for `password-cache' keys.
+	(auth-source-do-cache): Update docstring.
+	(auth-source-search): Use and check cache.
+	(auth-source-forget-all-cached, auth-source-remember)
+	(auth-source-recall, auth-source-forget, auth-source-forget+)
+	(auth-source-specmatchp): Caching support functions.
+	(auth-source-forget-user-or-password, auth-source-forget-all-cached):
+	Remove and obsolete.
+	(auth-source-user-or-password): Remove caching to further discourage
+	using it.  Always hide passwords.
 
 2011-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
 
@@ -17,12 +262,35 @@
 	* message.el (message-options): Make message-options really buffer
 	local.
 
+2011-02-08  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* mail-source.el: Autoload `auth-source-search'.
+	(mail-source-keyword-map): Note order matters.
+	(mail-source-set-1): Get all the mail-source source values and
+	defaults and search auth-source on those if needed.  This can all
+	probably be simplified.
+
+	* nnimap.el: Autoload `auth-source-search'.
+	(nnimap-credentials): Use it.
+	(nnimap-open-connection-1): Ask for the virtual server and physical
+	address in one shot.
+
+	* nntp.el: Autoload `auth-source-search'.
+	(nntp-send-authinfo): Use it.  Note TODO.
+
 2011-02-08  Julien Danjou  <julien@danjou.info>
 
 	* shr.el (shr-tag-body): Add support for text attribute in body
 	markups.
 
 	* message.el (message-options): Make message-options a local variable.
+
+2011-02-07  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-secrets-search)
+	(auth-source-user-or-password): Use `append' instead of `nconc'.
+	(auth-source-user-or-password): Build return list better and protect
+	against nil :secret.
 
 2011-02-07  Lars Ingebrigtsen  <larsi@gnus.org>
 
@@ -35,6 +303,13 @@
 	(nnimap-update-info): Fix macrology bug-out.
 	(nnimap-update-info): Simplify split history test.
 
+2011-02-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* auth-source.el (top): Require 'eieio unconditionally.  Autoload
+	`secrets-get-attributes' instead of `secrets-get-attribute'.
+	(auth-source-secrets-search): Limit search when `max' is greater than
+	number of results.
+
 2011-02-06  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* nntp.el (nntp-finish-retrieve-group-infos): Protect against the first
@@ -42,10 +317,57 @@
 
 	* proto-stream.el (open-protocol-stream): Document the return value.
 
+2011-02-06  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-secrets-search): Add examples.
+
 2011-02-06  Julien Danjou  <julien@danjou.info>
 
 	* message.el (message-setup-1): Handle message-generate-headers-first
 	set to t.
+
+2011-02-06  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-sources): Allow for simpler defaults for Secrets
+	API with a string "secrets:collection-name" and with 'default.
+	(auth-source-backend-parse): Parse "secrets:collection-name" and
+	'default.  Recurse on parses instead of repeating code.  Use the
+	Secrets API is the source is not nil and 'ignore otherwise.  Emit a
+	message when ignoring a source.
+	(auth-source-search): List ignored search keys at the top level.
+	(auth-source-netrc-create): Use `case' instead of `cond'.
+	(auth-source-secrets-search): Created with TODOs.
+	(auth-source-secrets-create): Created with TODOs.
+	(auth-source-retrieve, auth-source-create, auth-source-delete)
+	(auth-source-protocol-defaults, auth-source-user-or-password-imap)
+	(auth-source-user-or-password-pop3, auth-source-user-or-password-ssh)
+	(auth-source-user-or-password-sftp)
+	(auth-source-user-or-password-smtp): Removed.
+	(auth-source-user-or-password): Deprecated and modified to be a wrapper
+	around `auth-source-search'.  Not tested thoroughly.
+
+2011-02-04  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el: Bring in assoc and eioeio libraries.
+	(secrets-enabled): New variable to track the status of the Secrets API.
+	(auth-source-backend): New EIOEIO class to represent a backend.
+	(auth-source-creation-defaults): New variable to set prompt defaults
+	during token creation (see the `auth-source-search' docstring for
+	details).
+	(auth-sources): Simplify to allow a simple string as a netrc backend
+	spec.
+	(auth-source-backend-parse): Parse a backend from an `auth-sources' spec.
+	(auth-source-backend-parse-parameters): Fill in the backend parameters.
+	(auth-source-search): Main auth-source API entry point.
+	(auth-source-delete): Wrapper around `auth-source-search' for deletion.
+	(auth-source-search-collection): Helper function for searching.
+	(auth-source-netrc-parse, auth-source-netrc-normalize)
+	(auth-source-netrc-search, auth-source-netrc-create): Netrc backend.
+	Supports search, create, and delete.
+	(auth-source-secrets-search, auth-source-secrets-create): Secrets API
+	backend stubs.
+	(auth-source-user-or-password): Call `auth-source-search' but it's not
+	ready yet.
 
 2011-02-04  Lars Ingebrigtsen  <larsi@gnus.org>
 

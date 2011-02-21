@@ -78,7 +78,7 @@ void
 check_markers (void)
 {
   register struct Lisp_Marker *tail;
-  int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
+  int multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
 
   for (tail = BUF_MARKERS (current_buffer); tail; tail = tail->next)
     {
@@ -703,7 +703,7 @@ insert_char (int c)
   unsigned char str[MAX_MULTIBYTE_LENGTH];
   int len;
 
-  if (! NILP (current_buffer->enable_multibyte_characters))
+  if (! NILP (BVAR (current_buffer, enable_multibyte_characters)))
     len = CHAR_STRING (c, str);
   else
     {
@@ -891,7 +891,7 @@ insert_1_both (const char *string,
   if (nchars == 0)
     return;
 
-  if (NILP (current_buffer->enable_multibyte_characters))
+  if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
     nchars = nbytes;
 
   if (prepare)
@@ -1011,7 +1011,7 @@ insert_from_string_1 (Lisp_Object string, EMACS_INT pos, EMACS_INT pos_byte,
   /* Make OUTGOING_NBYTES describe the text
      as it will be inserted in this buffer.  */
 
-  if (NILP (current_buffer->enable_multibyte_characters))
+  if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
     outgoing_nbytes = nchars;
   else if (! STRING_MULTIBYTE (string))
     outgoing_nbytes
@@ -1034,7 +1034,7 @@ insert_from_string_1 (Lisp_Object string, EMACS_INT pos, EMACS_INT pos_byte,
      between single-byte and multibyte.  */
   copy_text (SDATA (string) + pos_byte, GPT_ADDR, nbytes,
 	     STRING_MULTIBYTE (string),
-	     ! NILP (current_buffer->enable_multibyte_characters));
+	     ! NILP (BVAR (current_buffer, enable_multibyte_characters)));
 
 #ifdef BYTE_COMBINING_DEBUG
   /* We have copied text into the gap, but we have not altered
@@ -1094,7 +1094,7 @@ insert_from_string_1 (Lisp_Object string, EMACS_INT pos, EMACS_INT pos_byte,
 void
 insert_from_gap (EMACS_INT nchars, EMACS_INT nbytes)
 {
-  if (NILP (current_buffer->enable_multibyte_characters))
+  if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
     nchars = nbytes;
 
   record_insert (GPT, nchars);
@@ -1162,9 +1162,9 @@ insert_from_buffer_1 (struct buffer *buf,
   /* Make OUTGOING_NBYTES describe the text
      as it will be inserted in this buffer.  */
 
-  if (NILP (current_buffer->enable_multibyte_characters))
+  if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
     outgoing_nbytes = nchars;
-  else if (NILP (buf->enable_multibyte_characters))
+  else if (NILP (BVAR (buf, enable_multibyte_characters)))
     {
       EMACS_INT outgoing_before_gap = 0;
       EMACS_INT outgoing_after_gap = 0;
@@ -1215,8 +1215,8 @@ insert_from_buffer_1 (struct buffer *buf,
       chunk_expanded
 	= copy_text (BUF_BYTE_ADDRESS (buf, from_byte),
 		     GPT_ADDR, chunk,
-		     ! NILP (buf->enable_multibyte_characters),
-		     ! NILP (current_buffer->enable_multibyte_characters));
+		     ! NILP (BVAR (buf, enable_multibyte_characters)),
+		     ! NILP (BVAR (current_buffer, enable_multibyte_characters)));
     }
   else
     chunk_expanded = chunk = 0;
@@ -1224,8 +1224,8 @@ insert_from_buffer_1 (struct buffer *buf,
   if (chunk < incoming_nbytes)
     copy_text (BUF_BYTE_ADDRESS (buf, from_byte + chunk),
 	       GPT_ADDR + chunk_expanded, incoming_nbytes - chunk,
-	       ! NILP (buf->enable_multibyte_characters),
-	       ! NILP (current_buffer->enable_multibyte_characters));
+	       ! NILP (BVAR (buf, enable_multibyte_characters)),
+	       ! NILP (BVAR (current_buffer, enable_multibyte_characters)));
 
 #ifdef BYTE_COMBINING_DEBUG
   /* We have copied text into the gap, but we have not altered
@@ -1320,7 +1320,7 @@ adjust_after_replace (EMACS_INT from, EMACS_INT from_byte,
     adjust_markers_for_insert (from, from_byte,
 			       from + len, from_byte + len_byte, 0);
 
-  if (! EQ (current_buffer->undo_list, Qt))
+  if (! EQ (BVAR (current_buffer, undo_list), Qt))
     {
       if (nchars_del > 0)
 	record_delete (from, prev_text);
@@ -1481,7 +1481,7 @@ replace_range (EMACS_INT from, EMACS_INT to, Lisp_Object new,
   /* Make OUTGOING_INSBYTES describe the text
      as it will be inserted in this buffer.  */
 
-  if (NILP (current_buffer->enable_multibyte_characters))
+  if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
     outgoing_insbytes = inschars;
   else if (! STRING_MULTIBYTE (new))
     outgoing_insbytes
@@ -1503,7 +1503,7 @@ replace_range (EMACS_INT from, EMACS_INT to, Lisp_Object new,
   /* Even if we don't record for undo, we must keep the original text
      because we may have to recover it because of inappropriate byte
      combining.  */
-  if (! EQ (current_buffer->undo_list, Qt))
+  if (! EQ (BVAR (current_buffer, undo_list), Qt))
     deletion = make_buffer_string_both (from, from_byte, to, to_byte, 1);
 
   GAP_SIZE += nbytes_del;
@@ -1530,7 +1530,7 @@ replace_range (EMACS_INT from, EMACS_INT to, Lisp_Object new,
      between single-byte and multibyte.  */
   copy_text (SDATA (new), GPT_ADDR, insbytes,
 	     STRING_MULTIBYTE (new),
-	     ! NILP (current_buffer->enable_multibyte_characters));
+	     ! NILP (BVAR (current_buffer, enable_multibyte_characters)));
 
 #ifdef BYTE_COMBINING_DEBUG
   /* We have copied text into the gap, but we have not marked
@@ -1543,7 +1543,7 @@ replace_range (EMACS_INT from, EMACS_INT to, Lisp_Object new,
     abort ();
 #endif
 
-  if (! EQ (current_buffer->undo_list, Qt))
+  if (! EQ (BVAR (current_buffer, undo_list), Qt))
     {
       /* Record the insertion first, so that when we undo,
 	 the deletion will be undone first.  Thus, undo
@@ -1886,7 +1886,7 @@ del_range_2 (EMACS_INT from, EMACS_INT from_byte,
     abort ();
 #endif
 
-  if (ret_string || ! EQ (current_buffer->undo_list, Qt))
+  if (ret_string || ! EQ (BVAR (current_buffer, undo_list), Qt))
     deletion = make_buffer_string_both (from, from_byte, to, to_byte, 1);
   else
     deletion = Qnil;
@@ -1897,7 +1897,7 @@ del_range_2 (EMACS_INT from, EMACS_INT from_byte,
      so that undo handles this after reinserting the text.  */
   adjust_markers_for_delete (from, from_byte, to, to_byte);
 
-  if (! EQ (current_buffer->undo_list, Qt))
+  if (! EQ (BVAR (current_buffer, undo_list), Qt))
     record_delete (from, deletion);
   MODIFF++;
   CHARS_MODIFF = MODIFF;
@@ -1968,7 +1968,7 @@ modify_region (struct buffer *buffer, EMACS_INT start, EMACS_INT end,
   if (! preserve_chars_modiff)
     CHARS_MODIFF = MODIFF;
 
-  buffer->point_before_scroll = Qnil;
+  BVAR (buffer, point_before_scroll) = Qnil;
 
   if (buffer != old_buffer)
     set_buffer_internal (old_buffer);
@@ -1990,7 +1990,7 @@ prepare_to_modify_buffer (EMACS_INT start, EMACS_INT end,
 {
   struct buffer *base_buffer;
 
-  if (!NILP (current_buffer->read_only))
+  if (!NILP (BVAR (current_buffer, read_only)))
     Fbarf_if_buffer_read_only ();
 
   /* Let redisplay consider other windows than selected_window
@@ -2022,32 +2022,32 @@ prepare_to_modify_buffer (EMACS_INT start, EMACS_INT end,
     base_buffer = current_buffer;
 
 #ifdef CLASH_DETECTION
-  if (!NILP (base_buffer->file_truename)
+  if (!NILP (BVAR (base_buffer, file_truename))
       /* Make binding buffer-file-name to nil effective.  */
-      && !NILP (base_buffer->filename)
+      && !NILP (BVAR (base_buffer, filename))
       && SAVE_MODIFF >= MODIFF)
-    lock_file (base_buffer->file_truename);
+    lock_file (BVAR (base_buffer, file_truename));
 #else
   /* At least warn if this file has changed on disk since it was visited.  */
-  if (!NILP (base_buffer->filename)
+  if (!NILP (BVAR (base_buffer, filename))
       && SAVE_MODIFF >= MODIFF
       && NILP (Fverify_visited_file_modtime (Fcurrent_buffer ()))
-      && !NILP (Ffile_exists_p (base_buffer->filename)))
+      && !NILP (Ffile_exists_p (BVAR (base_buffer, filename))))
     call1 (intern ("ask-user-about-supersession-threat"),
-	   base_buffer->filename);
+	   BVAR (base_buffer,filename));
 #endif /* not CLASH_DETECTION */
 
   /* If `select-active-regions' is non-nil, save the region text.  */
-  if (!NILP (current_buffer->mark_active)
+  if (!NILP (BVAR (current_buffer, mark_active))
       && !inhibit_modification_hooks
-      && XMARKER (current_buffer->mark)->buffer
+      && XMARKER (BVAR (current_buffer, mark))->buffer
       && NILP (Vsaved_region_selection)
       && (EQ (Vselect_active_regions, Qonly)
 	  ? EQ (CAR_SAFE (Vtransient_mark_mode), Qonly)
 	  : (!NILP (Vselect_active_regions)
 	     && !NILP (Vtransient_mark_mode))))
     {
-      EMACS_INT b = XMARKER (current_buffer->mark)->charpos;
+      EMACS_INT b = XMARKER (BVAR (current_buffer, mark))->charpos;
       EMACS_INT e = PT;
       if (b < e)
 	Vsaved_region_selection = make_buffer_string (b, e, 0);
@@ -2290,7 +2290,7 @@ DEFUN ("combine-after-change-execute", Fcombine_after_change_execute,
      non-nil, and insertion calls a file handler (e.g. through
      lock_file) which scribbles into a temp file -- cyd  */
   if (!BUFFERP (combine_after_change_buffer)
-      || NILP (XBUFFER (combine_after_change_buffer)->name))
+      || NILP (BVAR (XBUFFER (combine_after_change_buffer), name)))
     {
       combine_after_change_list = Qnil;
       return Qnil;

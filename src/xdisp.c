@@ -444,6 +444,12 @@ static int this_line_pixel_height;
 
 static int this_line_start_x;
 
+/* The smallest character position seen by move_it_* functions as they
+   move across display lines.  Used to set MATRIX_ROW_START_CHARPOS of
+   hscrolled lines, see display_line.  */
+
+static struct text_pos this_line_min_pos;
+
 /* Buffer that this_line_.* variables are referring to.  */
 
 static struct buffer *this_line_buffer;
@@ -1204,12 +1210,12 @@ pos_visible_p (struct window *w, EMACS_INT charpos, int *x, int *y,
   if (WINDOW_WANTS_MODELINE_P (w))
     current_mode_line_height
       = display_mode_line (w, CURRENT_MODE_LINE_FACE_ID (w),
-			   current_buffer->mode_line_format);
+			   BVAR (current_buffer, mode_line_format));
 
   if (WINDOW_WANTS_HEADER_LINE_P (w))
     current_header_line_height
       = display_mode_line (w, HEADER_LINE_FACE_ID,
-			       current_buffer->header_line_format);
+			       BVAR (current_buffer, header_line_format));
 
   start_display (&it, w, top);
   move_it_to (&it, charpos, -1, it.last_visible_y-1, -1,
@@ -2399,10 +2405,10 @@ init_iterator (struct it *it, struct window *w,
   if (base_face_id == DEFAULT_FACE_ID
       && FRAME_WINDOW_P (it->f))
     {
-      if (NATNUMP (current_buffer->extra_line_spacing))
-	it->extra_line_spacing = XFASTINT (current_buffer->extra_line_spacing);
-      else if (FLOATP (current_buffer->extra_line_spacing))
-	it->extra_line_spacing = (XFLOAT_DATA (current_buffer->extra_line_spacing)
+      if (NATNUMP (BVAR (current_buffer, extra_line_spacing)))
+	it->extra_line_spacing = XFASTINT (BVAR (current_buffer, extra_line_spacing));
+      else if (FLOATP (BVAR (current_buffer, extra_line_spacing)))
+	it->extra_line_spacing = (XFLOAT_DATA (BVAR (current_buffer, extra_line_spacing))
 				  * FRAME_LINE_HEIGHT (it->f));
       else if (it->f->extra_line_spacing > 0)
 	it->extra_line_spacing = it->f->extra_line_spacing;
@@ -2425,36 +2431,36 @@ init_iterator (struct it *it, struct window *w,
   it->override_ascent = -1;
 
   /* Are control characters displayed as `^C'?  */
-  it->ctl_arrow_p = !NILP (current_buffer->ctl_arrow);
+  it->ctl_arrow_p = !NILP (BVAR (current_buffer, ctl_arrow));
 
   /* -1 means everything between a CR and the following line end
      is invisible.  >0 means lines indented more than this value are
      invisible.  */
-  it->selective = (INTEGERP (current_buffer->selective_display)
-		   ? XFASTINT (current_buffer->selective_display)
-		   : (!NILP (current_buffer->selective_display)
+  it->selective = (INTEGERP (BVAR (current_buffer, selective_display))
+		   ? XFASTINT (BVAR (current_buffer, selective_display))
+		   : (!NILP (BVAR (current_buffer, selective_display))
 		      ? -1 : 0));
   it->selective_display_ellipsis_p
-    = !NILP (current_buffer->selective_display_ellipses);
+    = !NILP (BVAR (current_buffer, selective_display_ellipses));
 
   /* Display table to use.  */
   it->dp = window_display_table (w);
 
   /* Are multibyte characters enabled in current_buffer?  */
-  it->multibyte_p = !NILP (current_buffer->enable_multibyte_characters);
+  it->multibyte_p = !NILP (BVAR (current_buffer, enable_multibyte_characters));
 
   /* Do we need to reorder bidirectional text?  Not if this is a
      unibyte buffer: by definition, none of the single-byte characters
      are strong R2L, so no reordering is needed.  And bidi.c doesn't
      support unibyte buffers anyway.  */
   it->bidi_p
-    = !NILP (current_buffer->bidi_display_reordering) && it->multibyte_p;
+    = !NILP (BVAR (current_buffer, bidi_display_reordering)) && it->multibyte_p;
 
   /* Non-zero if we should highlight the region.  */
   highlight_region_p
     = (!NILP (Vtransient_mark_mode)
-       && !NILP (current_buffer->mark_active)
-       && XMARKER (current_buffer->mark)->buffer != 0);
+       && !NILP (BVAR (current_buffer, mark_active))
+       && XMARKER (BVAR (current_buffer, mark))->buffer != 0);
 
   /* Set IT->region_beg_charpos and IT->region_end_charpos to the
      start and end of a visible region in window IT->w.  Set both to
@@ -2471,7 +2477,7 @@ init_iterator (struct it *it, struct window *w,
 	      && WINDOWP (minibuf_selected_window)
 	      && w == XWINDOW (minibuf_selected_window))))
     {
-      EMACS_INT charpos = marker_position (current_buffer->mark);
+      EMACS_INT charpos = marker_position (BVAR (current_buffer, mark));
       it->region_beg_charpos = min (PT, charpos);
       it->region_end_charpos = max (PT, charpos);
     }
@@ -2488,7 +2494,7 @@ init_iterator (struct it *it, struct window *w,
     it->redisplay_end_trigger_charpos = XINT (w->redisplay_end_trigger);
 
   /* Correct bogus values of tab_width.  */
-  it->tab_width = XINT (current_buffer->tab_width);
+  it->tab_width = XINT (BVAR (current_buffer, tab_width));
   if (it->tab_width <= 0 || it->tab_width > 1000)
     it->tab_width = 8;
 
@@ -2502,8 +2508,8 @@ init_iterator (struct it *it, struct window *w,
 		  && (WINDOW_TOTAL_COLS (it->w)
 		      < XINT (Vtruncate_partial_width_windows))))))
     it->line_wrap = TRUNCATE;
-  else if (NILP (current_buffer->truncate_lines))
-    it->line_wrap = NILP (current_buffer->word_wrap)
+  else if (NILP (BVAR (current_buffer, truncate_lines)))
+    it->line_wrap = NILP (BVAR (current_buffer, word_wrap))
       ? WINDOW_WRAP : WORD_WRAP;
   else
     it->line_wrap = TRUNCATE;
@@ -2605,9 +2611,9 @@ init_iterator (struct it *it, struct window *w,
     {
       /* Note the paragraph direction that this buffer wants to
 	 use.  */
-      if (EQ (current_buffer->bidi_paragraph_direction, Qleft_to_right))
+      if (EQ (BVAR (current_buffer, bidi_paragraph_direction), Qleft_to_right))
 	it->paragraph_embedding = L2R;
-      else if (EQ (current_buffer->bidi_paragraph_direction, Qright_to_left))
+      else if (EQ (BVAR (current_buffer, bidi_paragraph_direction), Qright_to_left))
 	it->paragraph_embedding = R2L;
       else
 	it->paragraph_embedding = NEUTRAL_DIR;
@@ -5405,7 +5411,7 @@ reseat_1 (struct it *it, struct text_pos pos, int set_stop_p)
   it->method = GET_FROM_BUFFER;
   it->object = it->w->buffer;
   it->area = TEXT_AREA;
-  it->multibyte_p = !NILP (current_buffer->enable_multibyte_characters);
+  it->multibyte_p = !NILP (BVAR (current_buffer, enable_multibyte_characters));
   it->sp = 0;
   it->string_from_display_prop_p = 0;
   it->face_before_selective_p = 0;
@@ -6909,6 +6915,9 @@ move_it_in_display_line_to (struct it *it,
       && it->current_y < it->last_visible_y)
     handle_line_prefix (it);
 
+  if (IT_CHARPOS (*it) < CHARPOS (this_line_min_pos))
+    SET_TEXT_POS (this_line_min_pos, IT_CHARPOS (*it), IT_BYTEPOS (*it));
+
   while (1)
     {
       int x, i, ascent = 0, descent = 0;
@@ -7013,6 +7022,9 @@ move_it_in_display_line_to (struct it *it,
       if (it->area != TEXT_AREA)
 	{
 	  set_iterator_to_next (it, 1);
+	  if (IT_CHARPOS (*it) < CHARPOS (this_line_min_pos))
+	    SET_TEXT_POS (this_line_min_pos,
+			  IT_CHARPOS (*it), IT_BYTEPOS (*it));
 	  continue;
 	}
 
@@ -7121,6 +7133,9 @@ move_it_in_display_line_to (struct it *it,
 			    }
 
 			  set_iterator_to_next (it, 1);
+			  if (IT_CHARPOS (*it) < CHARPOS (this_line_min_pos))
+			    SET_TEXT_POS (this_line_min_pos,
+					  IT_CHARPOS (*it), IT_BYTEPOS (*it));
 			  /* On graphical terminals, newlines may
 			     "overflow" into the fringe if
 			     overflow-newline-into-fringe is non-nil.
@@ -7219,6 +7234,8 @@ move_it_in_display_line_to (struct it *it,
       /* The current display element has been consumed.  Advance
 	 to the next.  */
       set_iterator_to_next (it, 1);
+      if (IT_CHARPOS (*it) < CHARPOS (this_line_min_pos))
+	SET_TEXT_POS (this_line_min_pos, IT_CHARPOS (*it), IT_BYTEPOS (*it));
 
       /* Stop if lines are truncated and IT's current x-position is
 	 past the right edge of the window now.  */
@@ -7902,7 +7919,7 @@ message_dolog (const char *m, EMACS_INT nbytes, int nlflag, int multibyte)
       old_deactivate_mark = Vdeactivate_mark;
       oldbuf = current_buffer;
       Fset_buffer (Fget_buffer_create (Vmessages_buffer_name));
-      current_buffer->undo_list = Qt;
+      BVAR (current_buffer, undo_list) = Qt;
 
       oldpoint = message_dolog_marker1;
       set_marker_restricted (oldpoint, make_number (PT), Qnil);
@@ -7926,7 +7943,7 @@ message_dolog (const char *m, EMACS_INT nbytes, int nlflag, int multibyte)
       /* Insert the string--maybe converting multibyte to single byte
 	 or vice versa, so that all the text fits the buffer.  */
       if (multibyte
-	  && NILP (current_buffer->enable_multibyte_characters))
+	  && NILP (BVAR (current_buffer, enable_multibyte_characters)))
 	{
 	  EMACS_INT i;
 	  int c, char_bytes;
@@ -7944,7 +7961,7 @@ message_dolog (const char *m, EMACS_INT nbytes, int nlflag, int multibyte)
 	    }
 	}
       else if (! multibyte
-	       && ! NILP (current_buffer->enable_multibyte_characters))
+	       && ! NILP (BVAR (current_buffer, enable_multibyte_characters)))
 	{
 	  EMACS_INT i;
 	  int c, char_bytes;
@@ -8443,7 +8460,7 @@ update_echo_area (void)
       Lisp_Object string;
       string = Fcurrent_message ();
       message3 (string, SBYTES (string),
-		!NILP (current_buffer->enable_multibyte_characters));
+		!NILP (BVAR (current_buffer, enable_multibyte_characters)));
     }
 }
 
@@ -8458,7 +8475,7 @@ ensure_echo_area_buffers (void)
 
   for (i = 0; i < 2; ++i)
     if (!BUFFERP (echo_buffer[i])
-	|| NILP (XBUFFER (echo_buffer[i])->name))
+	|| NILP (BVAR (XBUFFER (echo_buffer[i]), name)))
       {
 	char name[30];
 	Lisp_Object old_buffer;
@@ -8467,7 +8484,7 @@ ensure_echo_area_buffers (void)
 	old_buffer = echo_buffer[i];
 	sprintf (name, " *Echo Area %d*", i);
 	echo_buffer[i] = Fget_buffer_create (build_string (name));
-	XBUFFER (echo_buffer[i])->truncate_lines = Qnil;
+	BVAR (XBUFFER (echo_buffer[i]), truncate_lines) = Qnil;
 	/* to force word wrap in echo area -
 	   it was decided to postpone this*/
 	/* XBUFFER (echo_buffer[i])->word_wrap = Qt; */
@@ -8560,8 +8577,8 @@ with_echo_area_buffer (struct window *w, int which,
       set_marker_both (w->pointm, buffer, BEG, BEG_BYTE);
     }
 
-  current_buffer->undo_list = Qt;
-  current_buffer->read_only = Qnil;
+  BVAR (current_buffer, undo_list) = Qt;
+  BVAR (current_buffer, read_only) = Qnil;
   specbind (Qinhibit_read_only, Qt);
   specbind (Qinhibit_modification_hooks, Qt);
 
@@ -8674,7 +8691,7 @@ setup_echo_area_for_printing (int multibyte_p)
 
       /* Switch to that buffer and clear it.  */
       set_buffer_internal (XBUFFER (echo_area_buffer[0]));
-      current_buffer->truncate_lines = Qnil;
+      BVAR (current_buffer, truncate_lines) = Qnil;
 
       if (Z > BEG)
 	{
@@ -8688,7 +8705,7 @@ setup_echo_area_for_printing (int multibyte_p)
 
       /* Set up the buffer for the multibyteness we need.  */
       if (multibyte_p
-	  != !NILP (current_buffer->enable_multibyte_characters))
+	  != !NILP (BVAR (current_buffer, enable_multibyte_characters)))
 	Fset_buffer_multibyte (multibyte_p ? Qt : Qnil);
 
       /* Raise the frame containing the echo area.  */
@@ -8717,7 +8734,7 @@ setup_echo_area_for_printing (int multibyte_p)
 	{
 	  /* Someone switched buffers between print requests.  */
 	  set_buffer_internal (XBUFFER (echo_area_buffer[0]));
-	  current_buffer->truncate_lines = Qnil;
+	  BVAR (current_buffer, truncate_lines) = Qnil;
 	}
     }
 }
@@ -9160,12 +9177,12 @@ set_message_1 (EMACS_INT a1, Lisp_Object a2, EMACS_INT nbytes, EMACS_INT multiby
 
   /* Change multibyteness of the echo buffer appropriately.  */
   if (message_enable_multibyte
-      != !NILP (current_buffer->enable_multibyte_characters))
+      != !NILP (BVAR (current_buffer, enable_multibyte_characters)))
     Fset_buffer_multibyte (message_enable_multibyte ? Qt : Qnil);
 
-  current_buffer->truncate_lines = message_truncate_lines ? Qt : Qnil;
-  if (!NILP (current_buffer->bidi_display_reordering))
-    current_buffer->bidi_paragraph_direction = Qleft_to_right;
+  BVAR (current_buffer, truncate_lines) = message_truncate_lines ? Qt : Qnil;
+  if (!NILP (BVAR (current_buffer, bidi_display_reordering)))
+    BVAR (current_buffer, bidi_paragraph_direction) = Qleft_to_right;
 
   /* Insert new message at BEG.  */
   TEMP_SET_PT_BOTH (BEG, BEG_BYTE);
@@ -9188,7 +9205,7 @@ set_message_1 (EMACS_INT a1, Lisp_Object a2, EMACS_INT nbytes, EMACS_INT multiby
       if (nbytes == 0)
 	nbytes = strlen (s);
 
-      if (multibyte_p && NILP (current_buffer->enable_multibyte_characters))
+      if (multibyte_p && NILP (BVAR (current_buffer, enable_multibyte_characters)))
 	{
 	  /* Convert from multi-byte to single-byte.  */
 	  EMACS_INT i;
@@ -9206,7 +9223,7 @@ set_message_1 (EMACS_INT a1, Lisp_Object a2, EMACS_INT nbytes, EMACS_INT multiby
 	    }
 	}
       else if (!multibyte_p
-	       && !NILP (current_buffer->enable_multibyte_characters))
+	       && !NILP (BVAR (current_buffer, enable_multibyte_characters)))
 	{
 	  /* Convert from single-byte to multi-byte.  */
 	  EMACS_INT i;
@@ -9791,7 +9808,7 @@ update_menu_bar (struct frame *f, int save_match_data, int hooks_run)
 	       < BUF_MODIFF (XBUFFER (w->buffer)))
 	      != !NILP (w->last_had_star))
 	  || ((!NILP (Vtransient_mark_mode)
-	       && !NILP (XBUFFER (w->buffer)->mark_active))
+	       && !NILP (BVAR (XBUFFER (w->buffer), mark_active)))
 	      != !NILP (w->region_showing)))
 	{
 	  struct buffer *prev = current_buffer;
@@ -9989,7 +10006,7 @@ update_tool_bar (struct frame *f, int save_match_data)
 	       < BUF_MODIFF (XBUFFER (w->buffer)))
 	      != !NILP (w->last_had_star))
 	  || ((!NILP (Vtransient_mark_mode)
-	       && !NILP (XBUFFER (w->buffer)->mark_active))
+	       && !NILP (BVAR (XBUFFER (w->buffer), mark_active)))
 	      != !NILP (w->region_showing)))
 	{
 	  struct buffer *prev = current_buffer;
@@ -11080,8 +11097,8 @@ text_outside_line_unchanged_p (struct window *w,
       /* If selective display, can't optimize if changes start at the
 	 beginning of the line.  */
       if (unchanged_p
-	  && INTEGERP (current_buffer->selective_display)
-	  && XINT (current_buffer->selective_display) > 0
+	  && INTEGERP (BVAR (current_buffer, selective_display))
+	  && XINT (BVAR (current_buffer, selective_display)) > 0
 	  && (BEG_UNCHANGED < start || GPT <= start))
 	unchanged_p = 0;
 
@@ -11109,8 +11126,8 @@ text_outside_line_unchanged_p (struct window *w,
 	 require to redisplay the whole paragraph.  It might be worthwhile
 	 to find the paragraph limits and widen the range of redisplayed
 	 lines to that, but for now just give up this optimization.  */
-      if (!NILP (XBUFFER (w->buffer)->bidi_display_reordering)
-	  && NILP (XBUFFER (w->buffer)->bidi_paragraph_direction))
+      if (!NILP (BVAR (XBUFFER (w->buffer), bidi_display_reordering))
+	  && NILP (BVAR (XBUFFER (w->buffer), bidi_paragraph_direction)))
 	unchanged_p = 0;
     }
 
@@ -11402,6 +11419,7 @@ static void
 redisplay_internal (int preserve_echo_area)
 {
   struct window *w = XWINDOW (selected_window);
+  struct window *sw;
   struct frame *f;
   int pause;
   int must_finish = 0;
@@ -11462,6 +11480,9 @@ redisplay_internal (int preserve_echo_area)
   }
 
  retry:
+  /* Remember the currently selected window.  */
+  sw = w;
+
   if (!EQ (old_frame, selected_frame)
       && FRAME_LIVE_P (XFRAME (old_frame)))
     /* When running redisplay, we play a bit fast-and-loose and allow e.g.
@@ -11528,6 +11549,14 @@ redisplay_internal (int preserve_echo_area)
 
   /* Notice any pending interrupt request to change frame size.  */
   do_pending_window_change (1);
+
+  /* do_pending_window_change could change the selected_window due to
+     frame resizing which makes the selected window too small.  */
+  if (WINDOWP (selected_window) && (w = XWINDOW (selected_window)) != sw)
+    {
+      sw = w;
+      reconsider_clip_changes (w, current_buffer);
+    }
 
   /* Clear frames marked as garbaged.  */
   if (frame_garbaged)
@@ -11645,11 +11674,11 @@ redisplay_internal (int preserve_echo_area)
      the whole window.  The assignment to this_line_start_pos prevents
      the optimization directly below this if-statement.  */
   if (((!NILP (Vtransient_mark_mode)
-	&& !NILP (XBUFFER (w->buffer)->mark_active))
+	&& !NILP (BVAR (XBUFFER (w->buffer), mark_active)))
        != !NILP (w->region_showing))
       || (!NILP (w->region_showing)
 	  && !EQ (w->region_showing,
-		  Fmarker_position (XBUFFER (w->buffer)->mark))))
+		  Fmarker_position (BVAR (XBUFFER (w->buffer), mark)))))
     CHARPOS (this_line_start_pos) = 0;
 
   /* Optimize the case that only the line containing the cursor in the
@@ -11798,6 +11827,10 @@ redisplay_internal (int preserve_echo_area)
 	  if (!must_finish)
 	    {
 	      do_pending_window_change (1);
+	      /* If selected_window changed, redisplay again.  */
+	      if (WINDOWP (selected_window)
+		  && (w = XWINDOW (selected_window)) != sw)
+		goto retry;
 
 	      /* We used to always goto end_of_redisplay here, but this
 		 isn't enough if we have a blinking cursor.  */
@@ -11809,8 +11842,8 @@ redisplay_internal (int preserve_echo_area)
       /* If highlighting the region, or if the cursor is in the echo area,
 	 then we can't just move the cursor.  */
       else if (! (!NILP (Vtransient_mark_mode)
-		  && !NILP (current_buffer->mark_active))
-	       && (EQ (selected_window, current_buffer->last_selected_window)
+		  && !NILP (BVAR (current_buffer, mark_active)))
+	       && (EQ (selected_window, BVAR (current_buffer, last_selected_window))
 		   || highlight_nonselected_windows)
 	       && NILP (w->region_showing)
 	       && NILP (Vshow_trailing_whitespace)
@@ -12092,8 +12125,9 @@ redisplay_internal (int preserve_echo_area)
   do_pending_window_change (1);
 
   /* If we just did a pending size change, or have additional
-     visible frames, redisplay again.  */
-  if (windows_or_buffers_changed && !pause)
+     visible frames, or selected_window changed, redisplay again.  */
+  if ((windows_or_buffers_changed && !pause)
+      || (WINDOWP (selected_window) && (w = XWINDOW (selected_window)) != sw))
     goto retry;
 
   /* Clear the face and image caches.
@@ -13016,8 +13050,8 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
     scroll_max = (max (scroll_step,
 		       max (arg_scroll_conservatively, temp_scroll_step))
 		  * FRAME_LINE_HEIGHT (f));
-  else if (NUMBERP (current_buffer->scroll_down_aggressively)
-	   || NUMBERP (current_buffer->scroll_up_aggressively))
+  else if (NUMBERP (BVAR (current_buffer, scroll_down_aggressively))
+	   || NUMBERP (BVAR (current_buffer, scroll_up_aggressively)))
     /* We're trying to scroll because of aggressive scrolling but no
        scroll_step is set.  Choose an arbitrary one.  */
     scroll_max = 10 * FRAME_LINE_HEIGHT (f);
@@ -13082,7 +13116,7 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 	amount_to_scroll = scroll_max;
       else
 	{
-	  aggressive = current_buffer->scroll_up_aggressively;
+	  aggressive = BVAR (current_buffer, scroll_up_aggressively);
 	  height = WINDOW_BOX_TEXT_HEIGHT (w);
 	  if (NUMBERP (aggressive))
 	    {
@@ -13165,7 +13199,7 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 	    amount_to_scroll = scroll_max;
 	  else
 	    {
-	      aggressive = current_buffer->scroll_down_aggressively;
+	      aggressive = BVAR (current_buffer, scroll_down_aggressively);
 	      height = WINDOW_BOX_TEXT_HEIGHT (w);
 	      if (NUMBERP (aggressive))
 		{
@@ -13346,7 +13380,7 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
          region exists, cursor movement has to do more than just
          set the cursor.  */
       && !(!NILP (Vtransient_mark_mode)
-	   && !NILP (current_buffer->mark_active))
+	   && !NILP (BVAR (current_buffer, mark_active)))
       && NILP (w->region_showing)
       && NILP (Vshow_trailing_whitespace)
       /* Right after splitting windows, last_point may be nil.  */
@@ -13501,7 +13535,7 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
 	      must_scroll = 1;
 	    }
 	  else if (rc != CURSOR_MOVEMENT_SUCCESS
-		   && !NILP (XBUFFER (w->buffer)->bidi_display_reordering))
+		   && !NILP (BVAR (XBUFFER (w->buffer), bidi_display_reordering)))
 	    {
 	      /* If rows are bidi-reordered and point moved, back up
 		 until we find a row that does not belong to a
@@ -13559,7 +13593,7 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
 	  else if (scroll_p)
 	    rc = CURSOR_MOVEMENT_MUST_SCROLL;
 	  else if (rc != CURSOR_MOVEMENT_SUCCESS
-		   && !NILP (XBUFFER (w->buffer)->bidi_display_reordering))
+		   && !NILP (BVAR (XBUFFER (w->buffer), bidi_display_reordering)))
 	    {
 	      /* With bidi-reordered rows, there could be more than
 		 one candidate row whose start and end positions
@@ -13859,7 +13893,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
       struct Lisp_Char_Table *disptab = buffer_display_table ();
 
       if (! disptab_matches_widthtab (disptab,
-                                      XVECTOR (current_buffer->width_table)))
+                                      XVECTOR (BVAR (current_buffer, width_table))))
         {
           invalidate_region_cache (current_buffer,
                                    current_buffer->width_run_cache,
@@ -13981,7 +14015,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	  /* If we are highlighting the region, then we just changed
 	     the region, so redisplay to show it.  */
 	  if (!NILP (Vtransient_mark_mode)
-	      && !NILP (current_buffer->mark_active))
+	      && !NILP (BVAR (current_buffer, mark_active)))
 	    {
 	      clear_glyph_matrix (w->desired_matrix);
 	      if (!try_window (window, startp, 0))
@@ -14144,8 +14178,8 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
   if ((scroll_conservatively
        || emacs_scroll_step
        || temp_scroll_step
-       || NUMBERP (current_buffer->scroll_up_aggressively)
-       || NUMBERP (current_buffer->scroll_down_aggressively))
+       || NUMBERP (BVAR (current_buffer, scroll_up_aggressively))
+       || NUMBERP (BVAR (current_buffer, scroll_down_aggressively)))
       && !current_buffer->clip_changed
       && CHARPOS (startp) >= BEGV
       && CHARPOS (startp) <= ZV)
@@ -14588,7 +14622,7 @@ try_window_reusing_current_matrix (struct window *w)
 
   /* Can't do this if region may have changed.  */
   if ((!NILP (Vtransient_mark_mode)
-       && !NILP (current_buffer->mark_active))
+       && !NILP (BVAR (current_buffer, mark_active)))
       || !NILP (w->region_showing)
       || !NILP (Vshow_trailing_whitespace))
     return 0;
@@ -14931,7 +14965,7 @@ try_window_reusing_current_matrix (struct window *w)
 
 	      /* Can't use this optimization with bidi-reordered glyph
 		 rows, unless cursor is already at point. */
-	      if (!NILP (XBUFFER (w->buffer)->bidi_display_reordering))
+	      if (!NILP (BVAR (XBUFFER (w->buffer), bidi_display_reordering)))
 		{
 		  if (!(w->cursor.hpos >= 0
 			&& w->cursor.hpos < row->used[TEXT_AREA]
@@ -15245,7 +15279,7 @@ row_containing_pos (struct window *w, EMACS_INT charpos,
 	{
 	  struct glyph *g;
 
-	  if (NILP (XBUFFER (w->buffer)->bidi_display_reordering)
+	  if (NILP (BVAR (XBUFFER (w->buffer), bidi_display_reordering))
 	      || (!best_row && !row->continued_p))
 	    return row;
 	  /* In bidi-reordered rows, there could be several rows
@@ -15392,7 +15426,7 @@ try_window_id (struct window *w)
   /* Can't use this if highlighting a region because a cursor movement
      will do more than just set the cursor.  */
   if (!NILP (Vtransient_mark_mode)
-      && !NILP (current_buffer->mark_active))
+      && !NILP (BVAR (current_buffer, mark_active)))
     GIVE_UP (9);
 
   /* Likewise if highlighting trailing whitespace.  */
@@ -15412,7 +15446,7 @@ try_window_id (struct window *w)
      wrapped line can change the wrap position, altering the line
      above it.  It might be worthwhile to handle this more
      intelligently, but for now just redisplay from scratch.  */
-  if (!NILP (XBUFFER (w->buffer)->word_wrap))
+  if (!NILP (BVAR (XBUFFER (w->buffer), word_wrap)))
     GIVE_UP (21);
 
   /* Under bidi reordering, adding or deleting a character in the
@@ -15423,8 +15457,8 @@ try_window_id (struct window *w)
      to find the paragraph limits and widen the range of redisplayed
      lines to that, but for now just give up this optimization and
      redisplay from scratch.  */
-  if (!NILP (XBUFFER (w->buffer)->bidi_display_reordering)
-      && NILP (XBUFFER (w->buffer)->bidi_paragraph_direction))
+  if (!NILP (BVAR (XBUFFER (w->buffer), bidi_display_reordering))
+      && NILP (BVAR (XBUFFER (w->buffer), bidi_paragraph_direction)))
     GIVE_UP (22);
 
   /* Make sure beg_unchanged and end_unchanged are up to date.  Do it
@@ -16395,7 +16429,7 @@ get_overlay_arrow_glyph_row (struct window *w, Lisp_Object overlay_arrow_string)
   it.glyph_row->used[TEXT_AREA] = 0;
   SET_TEXT_POS (it.position, 0, 0);
 
-  multibyte_p = !NILP (buffer->enable_multibyte_characters);
+  multibyte_p = !NILP (BVAR (buffer, enable_multibyte_characters));
   p = arrow_string;
   while (p < arrow_end)
     {
@@ -17139,17 +17173,14 @@ find_row_edges (struct it *it, struct glyph_row *row,
   if (min_pos <= ZV)
     SET_TEXT_POS (row->minpos, min_pos, min_bpos);
   else
-    {
-      /* We didn't find _any_ valid buffer positions in any of the
-	 glyphs, so we must trust the iterator's computed
-	 positions.  */
+    /* We didn't find _any_ valid buffer positions in any of the
+       glyphs, so we must trust the iterator's computed positions.  */
       row->minpos = row->start.pos;
+  if (max_pos <= 0)
+    {
       max_pos = CHARPOS (it->current.pos);
       max_bpos = BYTEPOS (it->current.pos);
     }
-
-  if (!max_pos)
-    abort ();
 
   /* Here are the various use-cases for ending the row, and the
      corresponding values for ROW->maxpos:
@@ -17263,8 +17294,18 @@ display_line (struct it *it)
      if the first glyph is partially visible or if we hit a line end.  */
   if (it->current_x < it->first_visible_x)
     {
+      this_line_min_pos = row->start.pos;
       move_it_in_display_line_to (it, ZV, it->first_visible_x,
 				  MOVE_TO_POS | MOVE_TO_X);
+      /* Record the smallest positions seen while we moved over
+	 display elements that are not visible.  This is needed by
+	 redisplay_internal for optimizing the case where the cursor
+	 stays inside the same line.  The rest of this function only
+	 considers positions that are actually displayed, so
+	 RECORD_MAX_MIN_POS will not otherwise record positions that
+	 are hscrolled to the left of the left edge of the window.  */
+      min_pos = CHARPOS (this_line_min_pos);
+      min_bpos = BYTEPOS (this_line_min_pos);
     }
   else
     {
@@ -17323,7 +17364,7 @@ display_line (struct it *it)
 	      row->glyphs[TEXT_AREA]->charpos = -1;
 	      row->displays_text_p = 0;
 
-	      if (!NILP (XBUFFER (it->w->buffer)->indicate_empty_lines)
+	      if (!NILP (BVAR (XBUFFER (it->w->buffer), indicate_empty_lines))
 		  && (!MINI_WINDOW_P (it->w)
 		      || (minibuf_level && EQ (it->window, minibuf_window))))
 		row->indicate_empty_line_p = 1;
@@ -17901,10 +17942,10 @@ See also `bidi-paragraph-direction'.  */)
       old = current_buffer;
     }
 
-  if (NILP (buf->bidi_display_reordering))
+  if (NILP (BVAR (buf, bidi_display_reordering)))
     return Qleft_to_right;
-  else if (!NILP (buf->bidi_paragraph_direction))
-    return buf->bidi_paragraph_direction;
+  else if (!NILP (BVAR (buf, bidi_paragraph_direction)))
+    return BVAR (buf, bidi_paragraph_direction);
   else
     {
       /* Determine the direction from buffer text.  We could try to
@@ -18163,14 +18204,14 @@ display_mode_lines (struct window *w)
 
       /* Select mode line face based on the real selected window.  */
       display_mode_line (w, CURRENT_MODE_LINE_FACE_ID_3 (sel_w, sel_w, w),
-			 current_buffer->mode_line_format);
+			 BVAR (current_buffer, mode_line_format));
       ++n;
     }
 
   if (WINDOW_WANTS_HEADER_LINE_P (w))
     {
       display_mode_line (w, HEADER_LINE_FACE_ID,
-			 current_buffer->header_line_format);
+			 BVAR (current_buffer, header_line_format));
       ++n;
     }
 
@@ -19105,7 +19146,7 @@ static char *
 decode_mode_spec_coding (Lisp_Object coding_system, register char *buf, int eol_flag)
 {
   Lisp_Object val;
-  int multibyte = !NILP (current_buffer->enable_multibyte_characters);
+  int multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
   const unsigned char *eol_str;
   int eol_str_len;
   /* The EOL conversion we are using.  */
@@ -19201,7 +19242,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
   switch (c)
     {
     case '*':
-      if (!NILP (b->read_only))
+      if (!NILP (BVAR (b, read_only)))
 	return "%";
       if (BUF_MODIFF (b) > BUF_SAVE_MODIFF (b))
 	return "*";
@@ -19211,7 +19252,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
       /* This differs from %* only for a modified read-only buffer.  */
       if (BUF_MODIFF (b) > BUF_SAVE_MODIFF (b))
 	return "*";
-      if (!NILP (b->read_only))
+      if (!NILP (BVAR (b, read_only)))
 	return "%";
       return "-";
 
@@ -19273,7 +19314,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
       }
 
     case 'b':
-      obj = b->name;
+      obj = BVAR (b, name);
       break;
 
     case 'c':
@@ -19313,7 +19354,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
       return "Emacs";
 
     case 'f':
-      obj = b->filename;
+      obj = BVAR (b, filename);
       break;
 
     case 'i':
@@ -19449,7 +19490,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
       break;
 
     case 'm':
-      obj = b->mode_name;
+      obj = BVAR (b, mode_name);
       break;
 
     case 'n':
@@ -19534,7 +19575,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
       {
 	int count = inhibit_garbage_collection ();
 	Lisp_Object val = call1 (intern ("file-remote-p"),
-				 current_buffer->directory);
+				 BVAR (current_buffer, directory));
 	unbind_to (count, Qnil);
 
 	if (NILP (val))
@@ -19544,11 +19585,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
       }
 
     case 't':			/* indicate TEXT or BINARY */
-#ifdef MODE_LINE_BINARY_TEXT
-      return MODE_LINE_BINARY_TEXT (b);
-#else
       return "T";
-#endif
 
     case 'z':
       /* coding-system (not including end-of-line format) */
@@ -19569,7 +19606,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 					 (FRAME_TERMINAL_CODING (f)->id),
 					 p, 0);
 	  }
-	p = decode_mode_spec_coding (b->buffer_file_coding_system,
+	p = decode_mode_spec_coding (BVAR (b, buffer_file_coding_system),
 				     p, eol_flag);
 
 #if 0 /* This proves to be annoying; I think we can do without.  -- rms.  */
@@ -19619,8 +19656,8 @@ display_count_lines (EMACS_INT start, EMACS_INT start_byte,
 
   /* If we are not in selective display mode,
      check only for newlines.  */
-  int selective_display = (!NILP (current_buffer->selective_display)
-			   && !INTEGERP (current_buffer->selective_display));
+  int selective_display = (!NILP (BVAR (current_buffer, selective_display))
+			   && !INTEGERP (BVAR (current_buffer, selective_display)));
 
   if (count > 0)
     {
@@ -23267,13 +23304,13 @@ get_window_cursor_type (struct window *w, struct glyph *glyph, int *width,
     {
       if (w == XWINDOW (echo_area_window))
 	{
-	  if (EQ (b->cursor_type, Qt) || NILP (b->cursor_type))
+	  if (EQ (BVAR (b, cursor_type), Qt) || NILP (BVAR (b, cursor_type)))
 	    {
 	      *width = FRAME_CURSOR_WIDTH (f);
 	      return FRAME_DESIRED_CURSOR (f);
 	    }
 	  else
-	    return get_specified_cursor_type (b->cursor_type, width);
+	    return get_specified_cursor_type (BVAR (b, cursor_type), width);
 	}
 
       *active_cursor = 0;
@@ -23293,23 +23330,23 @@ get_window_cursor_type (struct window *w, struct glyph *glyph, int *width,
     }
 
   /* Never display a cursor in a window in which cursor-type is nil.  */
-  if (NILP (b->cursor_type))
+  if (NILP (BVAR (b, cursor_type)))
     return NO_CURSOR;
 
   /* Get the normal cursor type for this window.  */
-  if (EQ (b->cursor_type, Qt))
+  if (EQ (BVAR (b, cursor_type), Qt))
     {
       cursor_type = FRAME_DESIRED_CURSOR (f);
       *width = FRAME_CURSOR_WIDTH (f);
     }
   else
-    cursor_type = get_specified_cursor_type (b->cursor_type, width);
+    cursor_type = get_specified_cursor_type (BVAR (b, cursor_type), width);
 
   /* Use cursor-in-non-selected-windows instead
      for non-selected window or frame.  */
   if (non_selected)
     {
-      alt_cursor = b->cursor_in_non_selected_windows;
+      alt_cursor = BVAR (b, cursor_in_non_selected_windows);
       if (!EQ (Qt, alt_cursor))
 	return get_specified_cursor_type (alt_cursor, width);
       /* t means modify the normal cursor type.  */
@@ -23356,7 +23393,7 @@ get_window_cursor_type (struct window *w, struct glyph *glyph, int *width,
   /* Cursor is blinked off, so determine how to "toggle" it.  */
 
   /* First look for an entry matching the buffer's cursor-type in blink-cursor-alist.  */
-  if ((alt_cursor = Fassoc (b->cursor_type, Vblink_cursor_alist), !NILP (alt_cursor)))
+  if ((alt_cursor = Fassoc (BVAR (b, cursor_type), Vblink_cursor_alist), !NILP (alt_cursor)))
     return get_specified_cursor_type (XCDR (alt_cursor), width);
 
   /* Then see if frame has specified a specific blink off cursor type.  */
@@ -25472,11 +25509,11 @@ note_mouse_highlight (struct frame *f, int x, int y)
 		     necessarily display the character whose position
 		     is the smallest.  */
 		  Lisp_Object lim1 =
-		    NILP (XBUFFER (buffer)->bidi_display_reordering)
+		    NILP (BVAR (XBUFFER (buffer), bidi_display_reordering))
 		    ? Fmarker_position (w->start)
 		    : Qnil;
 		  Lisp_Object lim2 =
-		    NILP (XBUFFER (buffer)->bidi_display_reordering)
+		    NILP (BVAR (XBUFFER (buffer), bidi_display_reordering))
 		    ? make_number (BUF_Z (XBUFFER (buffer))
 				   - XFASTINT (w->window_end_pos))
 		    : Qnil;

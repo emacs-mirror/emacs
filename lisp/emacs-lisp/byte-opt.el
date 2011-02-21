@@ -1307,17 +1307,17 @@
 (defconst byte-constref-ops
   '(byte-constant byte-constant2 byte-varref byte-varset byte-varbind))
 
+;; Used and set dynamically in byte-decompile-bytecode-1.
+(defvar bytedecomp-op)
+(defvar bytedecomp-ptr)
+(defvar bytedecomp-bytes)
+
 ;; This function extracts the bitfields from variable-length opcodes.
 ;; Originally defined in disass.el (which no longer uses it.)
-
 (defun disassemble-offset ()
   "Don't call this!"
   ;; fetch and return the offset for the current opcode.
   ;; return nil if this opcode has no offset
-  ;; Used and set dynamically in byte-decompile-bytecode-1.
-  (defvar bytedecomp-op)
-  (defvar bytedecomp-ptr)
-  (defvar bytedecomp-bytes)
   (cond ((< bytedecomp-op byte-nth)
 	 (let ((tem (logand bytedecomp-op 7)))
 	   (setq bytedecomp-op (logand bytedecomp-op 248))

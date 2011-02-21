@@ -246,7 +246,7 @@
 ;; [C-d] Moves (i.e. deletes and inserts) a single character to the
 ;;       global mark.
 ;; [backspace] deletes the character before the global mark, while
-;; [delete] deltes the character after the global mark.
+;; [delete] deletes the character after the global mark.
 
 ;; [S-C-space] Jumps to and cancels the global mark.
 ;; [C-u S-C-space] Cancels the global mark (stays in current buffer).
@@ -1517,6 +1517,9 @@ If ARG is the atom `-', scroll upward by nearly full screen."
    c-down-conditional-with-else c-up-conditional-with-else
    c-beginning-of-statement c-end-of-statement))
   (put cmd 'CUA 'move))
+
+;; Only called if pc-selection-mode is t, which means pc-select is loaded.
+(declare-function pc-selection-mode "pc-select" (&optional arg))
 
 ;; State prior to enabling cua-mode
 ;; Value is a list with the following elements:

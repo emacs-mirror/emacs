@@ -23,7 +23,7 @@ files.  You first mark certain files in order to operate on all of
 them with one command.
 
   The Dired-X package provides various extra features for Dired mode.
-@xref{Top, Dired-X,,dired-x, Dired Extra Version 2 User's Manual}.
+@xref{Top, Dired-X,,dired-x, Dired Extra User's Manual}.
 
   You can also view a list of files in a directory with @kbd{C-x C-d}
 (@code{list-directory}).  Unlike Dired, this command does not allow

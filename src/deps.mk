@@ -9,17 +9,17 @@
 ## it under the terms of the GNU General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-## 
+##
 ## GNU Emacs is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU General Public License for more details.
-## 
+##
 ## You should have received a copy of the GNU General Public License
 ## along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ## Commentary:
-## 
+##
 ## This file is inserted in src/Makefile if AUTO_DEPEND=no.
 ## It defines static dependencies between the various source files.
 
@@ -73,7 +73,7 @@ pre-crt0.o: pre-crt0.c
 dbusbind.o: dbusbind.c termhooks.h frame.h keyboard.h lisp.h $(config_h)
 dired.o: dired.c commands.h buffer.h lisp.h $(config_h) character.h charset.h \
    coding.h regex.h systime.h blockinput.h atimer.h composite.h \
-   ../lib/unistd.h globals.h
+   ../lib/filemode.h ../lib/unistd.h globals.h
 dispnew.o: dispnew.c systime.h commands.h process.h frame.h coding.h \
    window.h buffer.h termchar.h termopts.h termhooks.h cm.h \
    disptab.h indent.h $(INTERVALS_H) nsgui.h ../lib/unistd.h \
@@ -98,7 +98,6 @@ fileio.o: fileio.c window.h buffer.h systime.h $(INTERVALS_H) character.h \
    commands.h globals.h ../lib/unistd.h
 filelock.o: filelock.c buffer.h character.h coding.h systime.h composite.h \
    ../lib/unistd.h lisp.h globals.h $(config_h)
-filemode.o: filemode.c $(config_h)
 font.o: font.c dispextern.h frame.h window.h ccl.h character.h charset.h \
    font.h lisp.h globals.h $(config_h) buffer.h composite.h fontset.h \
    xterm.h nsgui.h msdos.h
@@ -115,7 +114,6 @@ fringe.o: fringe.c dispextern.h nsgui.h frame.h window.h buffer.h termhooks.h \
 ftfont.o: ftfont.c dispextern.h frame.h character.h charset.h composite.h \
    font.h lisp.h $(config_h) blockinput.h atimer.h systime.h coding.h \
    fontset.h ccl.h ftfont.h globals.h
-getloadavg.o: getloadavg.c $(config_h)
 gnutls.o: gnutls.c gnutls.h process.h ../lib/unistd.h \
    lisp.h globals.h $(config_h)
 gtkutil.o: gtkutil.c gtkutil.h xterm.h lisp.h frame.h lisp.h $(config_h) \
@@ -145,7 +143,6 @@ gmalloc.o: gmalloc.c $(config_h)
 ralloc.o: ralloc.c lisp.h $(config_h)
 vm-limit.o: vm-limit.c mem-limits.h lisp.h globals.h $(config_h)
 marker.o: marker.c buffer.h character.h lisp.h globals.h $(config_h)
-md5.o: md5.c md5.h $(config_h)
 minibuf.o: minibuf.c syntax.h frame.h window.h keyboard.h systime.h \
    buffer.h commands.h character.h msdos.h $(INTERVALS_H) keymap.h \
    termhooks.h lisp.h globals.h $(config_h) coding.h
@@ -284,7 +281,7 @@ eval.o: eval.c commands.h keyboard.h blockinput.h atimer.h systime.h frame.h \
    msdos.h
 floatfns.o: floatfns.c syssignal.h lisp.h globals.h $(config_h)
 fns.o: fns.c commands.h lisp.h $(config_h) frame.h buffer.h character.h \
-   keyboard.h keymap.h window.h $(INTERVALS_H) coding.h md5.h \
+   keyboard.h keymap.h window.h $(INTERVALS_H) coding.h ../lib/md5.h \
    blockinput.h atimer.h systime.h xterm.h ../lib/unistd.h globals.h
 print.o: print.c process.h frame.h window.h buffer.h keyboard.h character.h \
    lisp.h globals.h $(config_h) termchar.h $(INTERVALS_H) msdos.h termhooks.h \

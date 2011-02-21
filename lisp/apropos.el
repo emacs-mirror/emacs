@@ -972,8 +972,10 @@ If non-nil TEXT is a string that will be printed as a heading."
     (with-output-to-temp-buffer "*Apropos*"
       (let ((p apropos-accumulator)
 	    (old-buffer (current-buffer))
+	    (inhibit-read-only t)
 	    symbol item)
 	(set-buffer standard-output)
+	(apropos-mode)
 	(if (display-mouse-p)
 	    (insert
 	     "If moving the mouse over text changes the text's color, "
@@ -1064,8 +1066,7 @@ If non-nil TEXT is a string that will be printed as a heading."
 	  (apropos-print-doc 5 'apropos-widget t)
 	  (apropos-print-doc 4 'apropos-plist nil))
         (set (make-local-variable 'truncate-partial-width-windows) t)
-        (set (make-local-variable 'truncate-lines) t)
-        (apropos-mode))))
+        (set (make-local-variable 'truncate-lines) t))))
   (prog1 apropos-accumulator
     (setq apropos-accumulator ())))	; permit gc
 

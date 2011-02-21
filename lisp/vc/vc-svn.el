@@ -117,17 +117,13 @@ If you want to force an empty list of arguments, use t."
 ;;;###autoload                                (getenv "SVN_ASP_DOT_NET_HACK"))
 ;;;###autoload                           "_svn")
 ;;;###autoload                          (t ".svn"))))
-;;;###autoload     (when (file-readable-p (expand-file-name
-;;;###autoload                             (concat admin-dir "/entries")
-;;;###autoload                             (file-name-directory f)))
+;;;###autoload     (when (vc-find-root f admin-dir)
 ;;;###autoload       (load "vc-svn")
 ;;;###autoload       (vc-svn-registered f))))
 
 (defun vc-svn-registered (file)
   "Check if FILE is SVN registered."
-  (when (file-readable-p (expand-file-name (concat vc-svn-admin-directory
-						   "/entries")
-					   (file-name-directory file)))
+  (when (vc-svn-root file)
     (with-temp-buffer
       (cd (file-name-directory file))
       (let* (process-file-side-effects
@@ -275,14 +271,12 @@ Passes either `vc-svn-register-switches' or `vc-register-switches'
 to the SVN command."
   (apply 'vc-svn-command nil 0 files "add" (vc-switches 'SVN 'register)))
 
-(defun vc-svn-responsible-p (file)
-  "Return non-nil if SVN thinks it is responsible for FILE."
-  (file-directory-p (expand-file-name vc-svn-admin-directory
-				      (if (file-directory-p file)
-					  file
-					(file-name-directory file)))))
+(defun vc-svn-root (file)
+  (vc-find-root file vc-svn-admin-directory))
 
-(defalias 'vc-svn-could-register 'vc-svn-responsible-p
+(defalias 'vc-svn-responsible-p 'vc-svn-root)
+
+(defalias 'vc-svn-could-register 'vc-svn-root
   "Return non-nil if FILE could be registered in SVN.
 This is only possible if SVN is responsible for FILE's directory.")
 
@@ -594,20 +588,10 @@ and that it passes `vc-svn-global-switches' to it before FLAGS."
 
 (defun vc-svn-repository-hostname (dirname)
   (with-temp-buffer
-    (let ((coding-system-for-read
-	   (or file-name-coding-system
-	       default-file-name-coding-system)))
-      (vc-insert-file (expand-file-name (concat vc-svn-admin-directory
-						"/entries")
-					dirname)))
+    (let (process-file-side-effects)
+      (vc-svn-command t t dirname "info" "--xml"))
     (goto-char (point-min))
-    (when (re-search-forward
-	   ;; Old `svn' used name="svn:this_dir", newer use just name="".
-	   (concat "name=\"\\(?:svn:this_dir\\)?\"[\n\t ]*"
-		   "\\(?:[-a-z]+=\"[^\"]*\"[\n\t ]*\\)*?"
-		   "url=\"\\(?1:[^\"]+\\)\""
-                   ;; Yet newer ones don't use XML any more.
-                   "\\|^\ndir\n[0-9]+\n\\(?1:.*\\)") nil t)
+    (when (re-search-forward "<url>\\(.*\\)</url>" nil t)
       ;; This is not a hostname but a URL.  This may actually be considered
       ;; as a feature since it allows vc-svn-stay-local to specify different
       ;; behavior for different modules on the same server.

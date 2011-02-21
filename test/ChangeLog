@@ -1,3 +1,13 @@
+2011-02-20  Ulf Jasper  <ulf.jasper@web.de>
+
+	* automated/icalendar-tests.el: Move from icalendar-testsuite.el;
+	convert to ERT format.
+
+2011-02-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* automated/bytecomp-tests.el: Move from bytecomp-testsuite.el;
+	convert to ERT format.
+
 2011-02-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* indent/shell.sh:

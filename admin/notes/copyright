@@ -557,7 +557,7 @@ Note: erring on the side of caution, I also added notices to some
 files I thought might be considered non-trivial (if one includes
 comment) in s/:
   aix4-1.h hpux10.h irix6-0.h irix6-5.h
-  ptx4.h sol2.h 
+  ptx4.h sol2.h
 
 (everything with > 30 non-blank lines, which at least is _some_ kind of
 system)
@@ -631,10 +631,7 @@ alone (may import them from Gnulib again). These are:
     warn-on-use.h
     lib/*.[ch]
     lib/gnulib.mk
-    src/getloadavg.c
     src/gmalloc.c
-    src/md5.c
-    src/md5.h
     src/termcap.c
     src/tparam.c
 

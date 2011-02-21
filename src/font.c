@@ -3637,7 +3637,7 @@ font_at (int c, EMACS_INT pos, struct face *face, struct window *w,
   Lisp_Object font_object;
 
   multibyte = (NILP (string)
-	       ? ! NILP (current_buffer->enable_multibyte_characters)
+	       ? ! NILP (BVAR (current_buffer, enable_multibyte_characters))
 	       : STRING_MULTIBYTE (string));
   if (c < 0)
     {

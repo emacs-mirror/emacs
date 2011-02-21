@@ -181,8 +181,6 @@ struct sigaction {
 #define HAVE_MENUS 1
 #endif
 
-#define MODE_LINE_BINARY_TEXT(_b_) (NILP ((_b_)->buffer_file_type) ? "T" : "B")
-
 /* Get some redefinitions in place.  */
 
 #ifdef emacs
@@ -347,6 +345,8 @@ extern char *get_emacs_configuration_options (void);
 #define sys_nerr _sys_nerr
 #endif
 #include <string.h>
+
+extern int getloadavg (double *, int);
 
 /* We need a little extra space, see ../../lisp/loadup.el.  */
 #define SYSTEM_PURESIZE_EXTRA 50000

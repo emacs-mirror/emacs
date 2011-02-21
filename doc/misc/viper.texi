@@ -23,7 +23,7 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs misc features
 @direntry
 * VIPER: (viper).               The newest Emacs VI-emulation mode.
                                   (also, A VI Plan for Emacs Rescue

@@ -1957,7 +1957,7 @@ both ends."
                          ((equal char ?\C-g)
                           (keyboard-quit))
                          ((member char '(?o ?O))
-                          ;; Select a differnt macro
+                          ;; Select a different macro
                           (let* ((nc (reftex-index-select-phrases-macro 2))
                                  (macro-data
                                   (cdr (assoc nc reftex-index-phrases-macro-data)))

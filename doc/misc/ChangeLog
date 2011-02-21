@@ -1,3 +1,128 @@
+2011-02-20  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Window Layout): Document layout names.
+
+2011-02-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* ada-mode.texi: Sync @dircategory with ../../info/dir.
+	* auth.texi: Sync @dircategory with ../../info/dir.
+	* autotype.texi: Sync @dircategory with ../../info/dir.
+	* calc.texi: Sync @dircategory with ../../info/dir.
+	* cc-mode.texi: Sync @dircategory with ../../info/dir.
+	* cl.texi: Sync @dircategory with ../../info/dir.
+	* dbus.texi: Sync @dircategory with ../../info/dir.
+	* dired-x.texi: Sync @dircategory with ../../info/dir.
+	* ebrowse.texi: Sync @dircategory with ../../info/dir.
+	* ede.texi: Sync @dircategory with ../../info/dir.
+	* ediff.texi: Sync @dircategory with ../../info/dir.
+	* edt.texi: Sync @dircategory with ../../info/dir.
+	* eieio.texi: Sync @dircategory with ../../info/dir.
+	* emacs-mime.texi: Sync @dircategory with ../../info/dir.
+	* epa.texi: Sync @dircategory with ../../info/dir.
+	* erc.texi: Sync @dircategory with ../../info/dir.
+	* eshell.texi: Sync @dircategory with ../../info/dir.
+	* eudc.texi: Sync @dircategory with ../../info/dir.
+	* flymake.texi: Sync @dircategory with ../../info/dir.
+	* forms.texi: Sync @dircategory with ../../info/dir.
+	* gnus.texi: Sync @dircategory with ../../info/dir.
+	* idlwave.texi: Sync @dircategory with ../../info/dir.
+	* mairix-el.texi: Sync @dircategory with ../../info/dir.
+	* message.texi: Sync @dircategory with ../../info/dir.
+	* mh-e.texi: Sync @dircategory with ../../info/dir.
+	* newsticker.texi: Sync @dircategory with ../../info/dir.
+	* nxml-mode.texi: Sync @dircategory with ../../info/dir.
+	* org.texi: Sync @dircategory with ../../info/dir.
+	* pcl-cvs.texi: Sync @dircategory with ../../info/dir.
+	* pgg.texi: Sync @dircategory with ../../info/dir.
+	* rcirc.texi: Sync @dircategory with ../../info/dir.
+	* reftex.texi: Sync @dircategory with ../../info/dir.
+	* remember.texi: Sync @dircategory with ../../info/dir.
+	* sasl.texi: Sync @dircategory with ../../info/dir.
+	* sc.texi: Sync @dircategory with ../../info/dir.
+	* semantic.texi: Sync @dircategory with ../../info/dir.
+	* ses.texi: Sync @dircategory with ../../info/dir.
+	* sieve.texi: Sync @dircategory with ../../info/dir.
+	* smtpmail.texi: Sync @dircategory with ../../info/dir.
+	* speedbar.texi: Sync @dircategory with ../../info/dir.
+	* trampver.texi [emacs]: Set emacsname to "Emacs".
+	* tramp.texi: Sync @dircategory with ../../info/dir.
+	* url.texi: Sync @dircategory with ../../info/dir.
+	* vip.texi: Sync @dircategory with ../../info/dir.
+	* viper.texi: Sync @dircategory with ../../info/dir.
+	* widget.texi: Sync @dircategory with ../../info/dir.
+	* woman.texi: Sync @dircategory with ../../info/dir.
+
+2011-02-19  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.texi (Technical Details): No longer redefines dired-add-entry,
+	dired-initial-position, dired-clean-up-after-deletion,
+	dired-read-shell-command, or dired-find-buffer-nocreate.
+
+2011-02-18  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.texi (Optional Installation File At Point): Simplify.
+
+2011-02-17  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth.texi (Help for users): Use :port instead of :protocol for all
+	auth-source docs.
+	(GnuPG and EasyPG Assistant Configuration): Mention the default now is
+	to have two files in `auth-sources'.
+
+2011-02-16  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.texi: Use emacsver.texi to get Emacs version.
+	* Makefile.in ($(infodir)/dired-x, dired-x.dvi, dired-x.pdf):
+	Depend on emacsver.texi.
+
+	* dired-x.texi: Drop meaningless version number.
+	(Introduction): Remove old info.
+	(Optional Installation Dired Jump): Autoload from dired-x.
+	Remove incorrect info about loaddefs.el.
+	(Bugs): Just refer to M-x report-emacs-bug.
+
+	* dired-x.texi (Multiple Dired Directories): Update for rename of
+	default-directory-alist.
+	(Miscellaneous Commands): No longer mention very old VM version 4.
+
+2011-02-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib.
+	* texinfo.tex: Update to version 2011-02-14.11.
+
+2011-02-14  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth.texi (Help for users):
+	Login collection is "Login" and not "login".
+
+2011-02-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (History): Remove IMAP support.
+	(External methods, Frequently Asked Questions): Remove `imap' and
+	`imaps' methods.
+	(Password handling): Remove IMAP entries for ~/.authinfo.gpg.
+
+	* trampver.texi: Remove default value of `emacsimap'.
+
+2011-02-13  Glenn Morris  <rgm@gnu.org>
+
+	* ada-mode.texi, dired-x.texi, ebrowse.texi, ediff.texi, eudc.texi:
+	* idlwave.texi, reftex.texi, sc.texi, speedbar.texi: Add @top.
+
+2011-02-12  Glenn Morris  <rgm@gnu.org>
+
+	* sc.texi (Getting Connected): Remove old index entries.
+
+2011-02-12  Ulrich Mueller  <ulm@gentoo.org>
+
+	* url.texi: Remove duplicate @dircategory (Bug#7942).
+
+2011-02-11  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth.texi (Overview, Help for users, Help for developers):
+	Update docs.
+	(Help for users): Talk about spaces.
+
 2011-02-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* texinfo.tex: Update to version 2011-02-07.16.

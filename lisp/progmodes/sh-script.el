@@ -969,7 +969,8 @@ Point is at the beginning of the next line."
 (defun sh-syntax-propertize-here-doc (end)
   (let ((ppss (syntax-ppss)))
     (when (eq t (nth 3 ppss))
-      (let ((key (get-text-property (nth 8 ppss) 'sh-here-doc-marker)))
+      (let ((key (get-text-property (nth 8 ppss) 'sh-here-doc-marker))
+            (case-fold-search nil))
         (when (re-search-forward
                (concat "^\\([ \t]*\\)" (regexp-quote key) "\\(\n\\)")
                end 'move)

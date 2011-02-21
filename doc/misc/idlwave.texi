@@ -38,7 +38,7 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs editing modes
 @direntry
 * IDLWAVE: (idlwave).           Major mode and shell for IDL files.
 @end direntry
@@ -57,6 +57,7 @@ developing GNU and promoting software freedom.''
 
 @ifnottex
 @node Top, Introduction, (dir), (dir)
+@top IDLWAVE
 
 IDLWAVE is a package which supports editing source code written in the
 Interactive Data Language (IDL), and running IDL as an inferior shell.

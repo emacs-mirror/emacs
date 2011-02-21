@@ -59,11 +59,11 @@ typedef struct _XlwMenu_part
   XFontSetExtents *font_extents;
 #endif
 #ifdef HAVE_XFT
-  String        faceName;
   int           default_face;
   XftFont*      xft_font;
   XftColor      xft_fg, xft_bg, xft_disabled_fg;
 #endif
+  String	fontName;
   XFontStruct*	font;
   Pixel		foreground;
   Pixel		disabled_foreground;

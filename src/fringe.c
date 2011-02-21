@@ -660,7 +660,7 @@ get_logical_cursor_bitmap (struct window *w, Lisp_Object cursor)
 {
   Lisp_Object cmap, bm = Qnil;
 
-  if ((cmap = XBUFFER (w->buffer)->fringe_cursor_alist), !NILP (cmap))
+  if ((cmap = BVAR (XBUFFER (w->buffer), fringe_cursor_alist)), !NILP (cmap))
     {
       bm = Fassq (cursor, cmap);
       if (CONSP (bm))
@@ -670,9 +670,9 @@ get_logical_cursor_bitmap (struct window *w, Lisp_Object cursor)
 	  return lookup_fringe_bitmap (bm);
 	}
     }
-  if (EQ (cmap, buffer_defaults.fringe_cursor_alist))
+  if (EQ (cmap, BVAR (&buffer_defaults, fringe_cursor_alist)))
     return NO_FRINGE_BITMAP;
-  bm = Fassq (cursor, buffer_defaults.fringe_cursor_alist);
+  bm = Fassq (cursor, BVAR (&buffer_defaults, fringe_cursor_alist));
   if (!CONSP (bm) || ((bm = XCDR (bm)), NILP (bm)))
     return NO_FRINGE_BITMAP;
   return lookup_fringe_bitmap (bm);
@@ -697,7 +697,7 @@ get_logical_fringe_bitmap (struct window *w, Lisp_Object bitmap, int right_p, in
      If partial, lookup partial bitmap in default value if not found here.
      If not partial, or no partial spec is present, use non-partial bitmap.  */
 
-  if ((cmap = XBUFFER (w->buffer)->fringe_indicator_alist), !NILP (cmap))
+  if ((cmap = BVAR (XBUFFER (w->buffer), fringe_indicator_alist)), !NILP (cmap))
     {
       bm1 = Fassq (bitmap, cmap);
       if (CONSP (bm1))
@@ -731,10 +731,10 @@ get_logical_fringe_bitmap (struct window *w, Lisp_Object bitmap, int right_p, in
 	}
     }
 
-  if (!EQ (cmap, buffer_defaults.fringe_indicator_alist)
-      && !NILP (buffer_defaults.fringe_indicator_alist))
+  if (!EQ (cmap, BVAR (&buffer_defaults, fringe_indicator_alist))
+      && !NILP (BVAR (&buffer_defaults, fringe_indicator_alist)))
     {
-      bm2 = Fassq (bitmap, buffer_defaults.fringe_indicator_alist);
+      bm2 = Fassq (bitmap, BVAR (&buffer_defaults, fringe_indicator_alist));
       if (CONSP (bm2))
 	{
 	  if ((bm2 = XCDR (bm2)), !NILP (bm2))
@@ -919,7 +919,7 @@ update_window_fringes (struct window *w, int keep_current_p)
     return 0;
 
   if (!MINI_WINDOW_P (w)
-      && (ind = XBUFFER (w->buffer)->indicate_buffer_boundaries, !NILP (ind)))
+      && (ind = BVAR (XBUFFER (w->buffer), indicate_buffer_boundaries), !NILP (ind)))
     {
       if (EQ (ind, Qleft) || EQ (ind, Qright))
 	boundary_top = boundary_bot = arrow_top = arrow_bot = ind;
@@ -988,7 +988,7 @@ update_window_fringes (struct window *w, int keep_current_p)
 	}
     }
 
-  empty_pos = XBUFFER (w->buffer)->indicate_empty_lines;
+  empty_pos = BVAR (XBUFFER (w->buffer), indicate_empty_lines);
   if (!NILP (empty_pos) && !EQ (empty_pos, Qright))
     empty_pos = WINDOW_LEFT_FRINGE_WIDTH (w) == 0 ? Qright : Qleft;
 

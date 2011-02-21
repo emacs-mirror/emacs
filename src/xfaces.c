@@ -5970,7 +5970,7 @@ compute_char_face (struct frame *f, int ch, Lisp_Object prop)
 {
   int face_id;
 
-  if (NILP (current_buffer->enable_multibyte_characters))
+  if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
     ch = 0;
 
   if (NILP (prop))

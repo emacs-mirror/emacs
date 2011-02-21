@@ -187,7 +187,9 @@ are both lists of revnos, in oldest-first order."
           (cond
            ((member file '("configure" "lisp/ldefs-boot.el"
                            "lisp/emacs-lisp/cl-loaddefs.el"))
-            (call-process "bzr" nil t nil "revert" file)
+            ;; We are in the file's buffer, so names are relative.
+            (call-process "bzr" nil t nil "revert"
+                          (file-name-nondirectory file))
             (revert-buffer nil 'noconfirm))
            (t
             (goto-char (point-max))

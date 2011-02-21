@@ -28,7 +28,7 @@ and modified without restriction.
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs network features
 @direntry
 * ERC: (erc).                   Powerful and extensible IRC client for Emacs.
 @end direntry

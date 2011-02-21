@@ -61,11 +61,6 @@
 ;; With a prefix argument, `edit-kbd-macro' will format the
 ;; macro in a more concise way that omits the comments.
 
-;; This package requires GNU Emacs 19 or later, and daveg's CL
-;; package 2.02 or later.  (CL 2.02 comes standard starting with
-;; Emacs 19.18.)  This package does not work with Emacs 18 or
-;; Lucid Emacs.
-
 ;;; Code:
 
 (eval-when-compile
@@ -75,10 +70,11 @@
 
 ;;; The user-level commands for editing macros.
 
-;;;###autoload
-(defvar edmacro-eight-bits nil
-  "*Non-nil if `edit-kbd-macro' should leave 8-bit characters intact.
-Default nil means to write characters above \\177 in octal notation.")
+(defcustom edmacro-eight-bits nil
+  "Non-nil if `edit-kbd-macro' should leave 8-bit characters intact.
+Default nil means to write characters above \\177 in octal notation."
+  :type 'boolean
+  :group 'kmacro)
 
 (defvar edmacro-mode-map
   (let ((map (make-sparse-keymap)))

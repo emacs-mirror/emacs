@@ -30,12 +30,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    It sets the Lisp variable system-type.  */
 #define SYSTEM_TYPE "usg-unix-v"
 
-/* The file containing the kernel's symbol table is called /unix.  */
-#define KERNEL_FILE "/unix"
-
-/* The kernel symbol where the load average is found is named avenrun.  */
-#define LDAV_SYMBOL "avenrun"
-
 /* setjmp and longjmp can safely replace _setjmp and _longjmp,
    but they will run slower.  */
 #define _setjmp setjmp
@@ -105,4 +99,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* This definition was suggested for next release.  So give it a try.  */
 #define HAVE_SOCKETS
-

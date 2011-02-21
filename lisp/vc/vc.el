@@ -2014,22 +2014,20 @@ Not all VC backends support short logs!")
     (goto-char (point-max))
     (lexical-let ((working-revision working-revision)
 		  (limit limit))
-      (widget-create 'push-button
-		     :notify (lambda (&rest ignore)
-			       (vc-print-log-internal
-				log-view-vc-backend log-view-vc-fileset
-				working-revision nil (* 2 limit)))
-		     :help-echo "Show the log again, and double the number of log entries shown"
-		     "Show 2X entries")
-      (widget-insert "    ")
-      (widget-create 'push-button
-		     :notify (lambda (&rest ignore)
-			       (vc-print-log-internal
-				log-view-vc-backend log-view-vc-fileset
-				working-revision nil nil))
-		     :help-echo "Show the log again, showing all entries"
-		     "Show unlimited entries"))
-    (widget-setup)))
+      (insert "\n")
+      (insert-text-button "Show 2X entries"
+			  'action (lambda (&rest ignore)
+				    (vc-print-log-internal
+				     log-view-vc-backend log-view-vc-fileset
+				     working-revision nil (* 2 limit)))
+			  'help-echo "Show the log again, and double the number of log entries shown")
+      (insert "    ")
+      (insert-text-button "Show unlimited entries"
+			  'action (lambda (&rest ignore)
+				    (vc-print-log-internal
+				     log-view-vc-backend log-view-vc-fileset
+				     working-revision nil nil))
+			  'help-echo "Show the log again, including all entries"))))
 
 (defun vc-print-log-internal (backend files working-revision
                                       &optional is-start-revision limit)
@@ -2615,9 +2613,6 @@ log entries should be gathered."
   (let ((index (string-match "\\.[0-9]+\\'" rev)))
     (when index
       (substring rev 0 index))))
-
-(define-obsolete-function-alias
-  'vc-default-previous-version 'vc-default-previous-revision "23.1")
 
 (defun vc-default-responsible-p (backend file)
   "Indicate whether BACKEND is reponsible for FILE.

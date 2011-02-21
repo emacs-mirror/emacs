@@ -187,17 +187,20 @@ xftfont_fix_match (FcPattern *pat, FcPattern *match)
   double dpi;
 
   FcPatternGetBool (pat, FC_ANTIALIAS, 0, &b);
-  if (! b) 
+  if (! b)
     {
       FcPatternDel (match, FC_ANTIALIAS);
       FcPatternAddBool (match, FC_ANTIALIAS, FcFalse);
     }
   FcPatternGetBool (pat, FC_HINTING, 0, &b);
-  if (! b) 
+  if (! b)
     {
       FcPatternDel (match, FC_HINTING);
       FcPatternAddBool (match, FC_HINTING, FcFalse);
     }
+#ifndef FC_HINT_STYLE
+# define FC_HINT_STYLE "hintstyle"
+#endif
   if (FcResultMatch == FcPatternGetInteger (pat, FC_HINT_STYLE, 0, &i))
     {
       FcPatternDel (match, FC_HINT_STYLE);
@@ -781,4 +784,3 @@ syms_of_xftfont (void)
 
   register_font_driver (&xftfont_driver, NULL);
 }
-

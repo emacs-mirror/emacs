@@ -1,3 +1,7 @@
+2011-02-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs-lisp-intro.texi: Sync @dircategory with ../../info/dir.
+
 2011-01-23  Werner Lemberg  <wl@gnu.org>
 
 	* Makefile.in (MAKEINFO): Now controlled by `configure'.
