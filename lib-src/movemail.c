@@ -80,13 +80,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef access
 #endif /* MSDOS */
 
-#ifndef DIRECTORY_SEP
-#define DIRECTORY_SEP '/'
-#endif
-#ifndef IS_DIRECTORY_SEP
-#define IS_DIRECTORY_SEP(_c_) ((_c_) == DIRECTORY_SEP)
-#endif
-
 #ifdef WINDOWSNT
 #include "ntlib.h"
 #undef access
@@ -670,7 +663,6 @@ xmalloc (unsigned int size)
 
 #define NOTOK (-1)
 #define OK 0
-#define DONE 1
 
 static char Errmsg[200];	/* POP errors, at least, can exceed
 				   the original length of 80.  */
@@ -854,13 +846,6 @@ pop_retr (popserver server, int msgno, FILE *arg)
 
   return (OK);
 }
-
-/* Do this as a macro instead of using strcmp to save on execution time. */
-#define IS_FROM_LINE(a) ((a[0] == 'F') \
-			 && (a[1] == 'r') \
-			 && (a[2] == 'o') \
-			 && (a[3] == 'm') \
-			 && (a[4] == ' '))
 
 static int
 mbx_write (char *line, int len, FILE *mbf)

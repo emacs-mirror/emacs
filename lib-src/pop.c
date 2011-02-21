@@ -67,7 +67,6 @@ extern struct servent *hes_getservbyname (/* char *, char * */);
 #include <stdio.h>
 #ifdef STDC_HEADERS
 #include <string.h>
-#define index strchr
 #endif
 #include <unistd.h>
 
@@ -122,9 +121,9 @@ static char *find_crlf (char *, int);
 				   to be bigger than the original
 				   value of 80 */
 #define POP_PORT 110
-#define KPOP_PORT 1109
 #define POP_SERVICE "pop3"	/* we don't want the POP2 port! */
 #ifdef KERBEROS
+#define KPOP_PORT 1109
 #define KPOP_SERVICE "kpop"	/* never used: look for 20060515 to see why */
 #endif
 
