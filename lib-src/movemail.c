@@ -672,11 +672,6 @@ xmalloc (unsigned int size)
 #define OK 0
 #define DONE 1
 
-static char *progname;
-static FILE *sfi;
-static FILE *sfo;
-static char ibuffer[BUFSIZ];
-static char obuffer[BUFSIZ];
 static char Errmsg[200];	/* POP errors, at least, can exceed
 				   the original length of 80.  */
 
