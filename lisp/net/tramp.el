@@ -1574,8 +1574,12 @@ special handling of `substitute-in-file-name'."
     (let ((props (tramp-compat-funcall
 		  'overlay-properties (symbol-value 'rfn-eshadow-overlay))))
       (while props
-	(tramp-compat-funcall
-	 'overlay-put tramp-rfn-eshadow-overlay (pop props) (pop props))))))
+ 	;; The `field' property prevents correct minibuffer
+ 	;; completion; we exclude it.
+ 	(if (not (eq (car props) 'field))
+ 	    (tramp-compat-funcall
+ 	     'overlay-put tramp-rfn-eshadow-overlay (pop props) (pop props))
+ 	  (pop props) (pop props))))))
 
 (when (boundp 'rfn-eshadow-setup-minibuffer-hook)
   (add-hook 'rfn-eshadow-setup-minibuffer-hook
