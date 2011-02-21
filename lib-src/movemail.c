@@ -723,7 +723,18 @@ popmail (char *mailbox, char *outfile, int preserve, char *password, int reverse
       error ("Error in open: %s, %s", strerror (errno), outfile);
       return EXIT_FAILURE;
     }
-  fchown (mbfi, getuid (), -1);
+
+  if (fchown (mbfi, getuid (), -1) != 0)
+    {
+      int fchown_errno = errno;
+      struct stat st;
+      if (fstat (mbfi, &st) != 0 || st.st_uid != getuid ())
+	{
+	  pop_close (server);
+	  error ("Error in fchown: %s, %s", strerror (fchown_errno), outfile);
+	  return EXIT_FAILURE;
+	}
+    }
 
   if ((mbf = fdopen (mbfi, "wb")) == NULL)
     {

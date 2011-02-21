@@ -1,5 +1,8 @@
 2011-02-21  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* movemail.c (popmail): Report fchown failure instead of ignoring it.
+	But if the file already has the right ownership, don't worry about it.
+
 	* make-docfile.c (input_buffer): Rename variables to avoid shadowing.
 
 	* movemail.c (main, pop_retr): Rename locals to avoid shadowing.
