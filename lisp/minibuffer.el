@@ -1,4 +1,4 @@
-;;; minibuffer.el --- Minibuffer completion functions
+;;; minibuffer.el --- Minibuffer completion functions -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2008-2011  Free Software Foundation, Inc.
 
@@ -133,8 +133,8 @@ the closest directory separators."
   "Apply FUN to each element of XS in turn.
 Return the first non-nil returned value.
 Like CL's `some'."
-  (lexical-let ((firsterror nil)
-		res)
+  (let ((firsterror nil)
+        res)
     (while (and (not res) xs)
       (condition-case err
           (setq res (funcall fun (pop xs)))
@@ -171,12 +171,11 @@ FUN will be called in the buffer from which the minibuffer was entered.
 The result of the `completion-table-dynamic' form is a function
 that can be used as the COLLECTION argument to `try-completion' and
 `all-completions'.  See Info node `(elisp)Programmed Completion'."
-  (lexical-let ((fun fun))
-    (lambda (string pred action)
-      (with-current-buffer (let ((win (minibuffer-selected-window)))
-                             (if (window-live-p win) (window-buffer win)
-                               (current-buffer)))
-        (complete-with-action action (funcall fun string) string pred)))))
+  (lambda (string pred action)
+    (with-current-buffer (let ((win (minibuffer-selected-window)))
+                           (if (window-live-p win) (window-buffer win)
+                             (current-buffer)))
+      (complete-with-action action (funcall fun string) string pred))))
 
 (defmacro lazy-completion-table (var fun)
   "Initialize variable VAR as a lazy completion table.
@@ -201,19 +200,18 @@ You should give VAR a non-nil `risky-local-variable' property."
   ;; Notice that `pred' may not be a function in some abusive cases.
   (when (functionp pred)
     (setq pred
-          (lexical-let ((pred pred))
-            ;; Predicates are called differently depending on the nature of
-            ;; the completion table :-(
-            (cond
-             ((vectorp table)           ;Obarray.
-              (lambda (sym) (funcall pred (concat prefix (symbol-name sym)))))
-             ((hash-table-p table)
-              (lambda (s v) (funcall pred (concat prefix s))))
-             ((functionp table)
-              (lambda (s) (funcall pred (concat prefix s))))
-             (t                         ;Lists and alists.
-              (lambda (s)
-                (funcall pred (concat prefix (if (consp s) (car s) s)))))))))
+          ;; Predicates are called differently depending on the nature of
+          ;; the completion table :-(
+          (cond
+           ((vectorp table)             ;Obarray.
+            (lambda (sym) (funcall pred (concat prefix (symbol-name sym)))))
+           ((hash-table-p table)
+            (lambda (s v) (funcall pred (concat prefix s))))
+           ((functionp table)
+            (lambda (s) (funcall pred (concat prefix s))))
+           (t                           ;Lists and alists.
+            (lambda (s)
+              (funcall pred (concat prefix (if (consp s) (car s) s))))))))
   (if (eq (car-safe action) 'boundaries)
       (let* ((len (length prefix))
              (bound (completion-boundaries string table pred (cdr action))))
@@ -288,11 +286,10 @@ Note: TABLE needs to be a proper completion table which obeys predicates."
    (t
     (or (complete-with-action action table string
                               (if (null pred2) pred1
-                                (lexical-let ((pred1 pred2) (pred2 pred2))
-                                  (lambda (x)
-                                    ;; Call `pred1' first, so that `pred2'
-                                    ;; really can't tell that `x' is in table.
-                                    (if (funcall pred1 x) (funcall pred2 x))))))
+                                (lambda (x)
+                                  ;; Call `pred1' first, so that `pred2'
+                                  ;; really can't tell that `x' is in table.
+                                  (if (funcall pred1 x) (funcall pred2 x)))))
         ;; If completion failed and we're not applying pred1 strictly, try
         ;; again without pred1.
         (and (not strict)
@@ -302,11 +299,10 @@ Note: TABLE needs to be a proper completion table which obeys predicates."
   "Create a completion table that tries each table in TABLES in turn."
   ;; FIXME: the boundaries may come from TABLE1 even when the completion list
   ;; is returned by TABLE2 (because TABLE1 returned an empty list).
-  (lexical-let ((tables tables))
-    (lambda (string pred action)
-      (completion--some (lambda (table)
-                          (complete-with-action action table string pred))
-                        tables))))
+  (lambda (string pred action)
+    (completion--some (lambda (table)
+                        (complete-with-action action table string pred))
+                      tables)))
 
 ;; (defmacro complete-in-turn (a b) `(completion-table-in-turn ,a ,b))
 ;; (defmacro dynamic-completion-table (fun) `(completion-table-dynamic ,fun))
@@ -548,16 +544,15 @@ E = after completion we now have an Exact match.
  101  5 ??? impossible
  110  6 some completion happened
  111  7 completed to an exact completion"
-  (lexical-let*
-      ((beg (field-beginning))
-       (end (field-end))
-       (string (buffer-substring beg end))
-       (comp (funcall (or try-completion-function
-			  'completion-try-completion)
-		      string
-		      minibuffer-completion-table
-		      minibuffer-completion-predicate
-		      (- (point) beg))))
+  (let* ((beg (field-beginning))
+         (end (field-end))
+         (string (buffer-substring beg end))
+         (comp (funcall (or try-completion-function
+                            'completion-try-completion)
+                        string
+                        minibuffer-completion-table
+                        minibuffer-completion-predicate
+                        (- (point) beg))))
     (cond
      ((null comp)
       (minibuffer-hide-completions)
@@ -572,13 +567,12 @@ E = after completion we now have an Exact match.
       ;; `completed' should be t if some completion was done, which doesn't
       ;; include simply changing the case of the entered string.  However,
       ;; for appearance, the string is rewritten if the case changes.
-      (lexical-let*
-	  ((comp-pos (cdr comp))
-	   (completion (car comp))
-	   (completed (not (eq t (compare-strings completion nil nil
-						  string nil nil t))))
-	   (unchanged (eq t (compare-strings completion nil nil
-					     string nil nil nil))))
+      (let* ((comp-pos (cdr comp))
+             (completion (car comp))
+             (completed (not (eq t (compare-strings completion nil nil
+                                                    string nil nil t))))
+             (unchanged (eq t (compare-strings completion nil nil
+                                               string nil nil nil))))
         (if unchanged
 	    (goto-char end)
           ;; Insert in minibuffer the chars we got.
@@ -759,8 +753,8 @@ If `minibuffer-completion-confirm' is `confirm-after-completion',
  `minibuffer-confirm-exit-commands', and accept the input
  otherwise."
   (interactive)
-  (lexical-let ((beg (field-beginning))
-		(end (field-end)))
+  (let ((beg (field-beginning))
+        (end (field-end)))
     (cond
      ;; Allow user to specify null string
      ((= beg end) (exit-minibuffer))
@@ -1137,14 +1131,14 @@ variables.")
   "Display a list of possible completions of the current minibuffer contents."
   (interactive)
   (message "Making completion list...")
-  (lexical-let* ((start (field-beginning))
-                 (end (field-end))
-		 (string (field-string))
-		 (completions (completion-all-completions
-			       string
-			       minibuffer-completion-table
-			       minibuffer-completion-predicate
-			       (- (point) (field-beginning)))))
+  (let* ((start (field-beginning))
+         (end (field-end))
+         (string (field-string))
+         (completions (completion-all-completions
+                       string
+                       minibuffer-completion-table
+                       minibuffer-completion-predicate
+                       (- (point) (field-beginning)))))
     (message nil)
     (if (and completions
              (or (consp (cdr completions))
@@ -1619,8 +1613,8 @@ and `read-file-name-function'."
                     ;; just use `default-directory', but in order to avoid
                     ;; changing `default-directory' in the current buffer,
                     ;; we don't let-bind it.
-                    (lexical-let ((dir (file-name-as-directory
-                                        (expand-file-name dir))))
+                    (let ((dir (file-name-as-directory
+                                (expand-file-name dir))))
                       (minibuffer-with-setup-hook
                           (lambda ()
 			    (setq default-directory dir)
@@ -1719,7 +1713,7 @@ and `read-file-name-function'."
   "Perform completion on all buffers excluding BUFFER.
 BUFFER nil or omitted means use the current buffer.
 Like `internal-complete-buffer', but removes BUFFER from the completion list."
-  (lexical-let ((except (if (stringp buffer) buffer (buffer-name buffer))))
+  (let ((except (if (stringp buffer) buffer (buffer-name buffer))))
     (apply-partially 'completion-table-with-predicate
 		     'internal-complete-buffer
 		     (lambda (name)
@@ -1791,10 +1785,9 @@ Return the new suffix."
             (substring afterpoint 0 (cdr bounds)))))
 
 (defun completion-basic-try-completion (string table pred point)
-  (lexical-let*
-      ((beforepoint (substring string 0 point))
-       (afterpoint (substring string point))
-       (bounds (completion-boundaries beforepoint table pred afterpoint)))
+  (let* ((beforepoint (substring string 0 point))
+         (afterpoint (substring string point))
+         (bounds (completion-boundaries beforepoint table pred afterpoint)))
     (if (zerop (cdr bounds))
         ;; `try-completion' may return a subtly different result
         ;; than `all+merge', so try to use it whenever possible.
@@ -1805,30 +1798,28 @@ Return the new suffix."
              (concat completion
                      (completion--merge-suffix completion point afterpoint))
              (length completion))))
-      (lexical-let*
-	  ((suffix (substring afterpoint (cdr bounds)))
-	   (prefix (substring beforepoint 0 (car bounds)))
-	   (pattern (delete
-		     "" (list (substring beforepoint (car bounds))
-			      'point
-			      (substring afterpoint 0 (cdr bounds)))))
-	   (all (completion-pcm--all-completions prefix pattern table pred)))
+      (let* ((suffix (substring afterpoint (cdr bounds)))
+             (prefix (substring beforepoint 0 (car bounds)))
+             (pattern (delete
+                       "" (list (substring beforepoint (car bounds))
+                                'point
+                                (substring afterpoint 0 (cdr bounds)))))
+             (all (completion-pcm--all-completions prefix pattern table pred)))
         (if minibuffer-completing-file-name
             (setq all (completion-pcm--filename-try-filter all)))
         (completion-pcm--merge-try pattern all prefix suffix)))))
 
 (defun completion-basic-all-completions (string table pred point)
-  (lexical-let*
-      ((beforepoint (substring string 0 point))
-       (afterpoint (substring string point))
-       (bounds (completion-boundaries beforepoint table pred afterpoint))
-       (suffix (substring afterpoint (cdr bounds)))
-       (prefix (substring beforepoint 0 (car bounds)))
-       (pattern (delete
-		 "" (list (substring beforepoint (car bounds))
-			  'point
-			  (substring afterpoint 0 (cdr bounds)))))
-       (all (completion-pcm--all-completions prefix pattern table pred)))
+  (let* ((beforepoint (substring string 0 point))
+         (afterpoint (substring string point))
+         (bounds (completion-boundaries beforepoint table pred afterpoint))
+         (suffix (substring afterpoint (cdr bounds)))
+         (prefix (substring beforepoint 0 (car bounds)))
+         (pattern (delete
+                   "" (list (substring beforepoint (car bounds))
+                            'point
+                            (substring afterpoint 0 (cdr bounds)))))
+         (all (completion-pcm--all-completions prefix pattern table pred)))
     (completion-hilit-commonality all point (car bounds))))
 
 ;;; Partial-completion-mode style completion.
@@ -1991,13 +1982,12 @@ POINT is a position inside STRING.
 FILTER is a function applied to the return value, that can be used, e.g. to
 filter out additional entries (because TABLE migth not obey PRED)."
   (unless filter (setq filter 'identity))
-  (lexical-let*
-      ((beforepoint (substring string 0 point))
-       (afterpoint (substring string point))
-       (bounds (completion-boundaries beforepoint table pred afterpoint))
-       (prefix (substring beforepoint 0 (car bounds)))
-       (suffix (substring afterpoint (cdr bounds)))
-       firsterror)
+  (let* ((beforepoint (substring string 0 point))
+         (afterpoint (substring string point))
+         (bounds (completion-boundaries beforepoint table pred afterpoint))
+         (prefix (substring beforepoint 0 (car bounds)))
+         (suffix (substring afterpoint (cdr bounds)))
+         firsterror)
     (setq string (substring string (car bounds) (+ point (cdr bounds))))
     (let* ((relpoint (- point (car bounds)))
            (pattern (completion-pcm--string->pattern string relpoint))

@@ -186,8 +186,10 @@
 (eval-when-compile (require 'cl))
 
 (defun byte-compile-log-lap-1 (format &rest args)
-;;   (if (aref byte-code-vector 0)
-;;       (error "The old version of the disassembler is loaded.  Reload new-bytecomp as well"))
+  ;; Newer byte codes for stack-ref make the slot 0 non-nil again.
+  ;; But the "old disassembler" is *really* ancient by now.
+  ;; (if (aref byte-code-vector 0)
+  ;;     (error "The old version of the disassembler is loaded.  Reload new-bytecomp as well"))
   (byte-compile-log-1
    (apply 'format format
      (let (c a)
@@ -1512,50 +1514,12 @@
 ;; The variable `byte-boolean-vars' is now primitive and updated
 ;; automatically by DEFVAR_BOOL.
 
-(defmacro byte-opt-update-stack-params (stack-adjust stack-depth lap0 rest lap)
-  "...macro used by byte-optimize-lapcode..."
-  `(progn
-     (byte-compile-log-lap "Before %s  [depth = %s]" ,lap0 ,stack-depth)
-     (cond ((eq (car ,lap0) 'TAG)
-	    ;; A tag can encode the expected stack depth.
-	    (when (cddr ,lap0)
-	      ;; First, check to see if our notion of the current stack
-	      ;; depth agrees with this tag.  We don't check at the
-	      ;; beginning of the function, because the presence of
-	      ;; lexical arguments means the first tag will have a
-	      ;; non-zero offset.
-	      (when (and (not (eq ,rest ,lap)) ; not at first insn
-			 ,stack-depth	; not just after a goto
-			 (not (= (cddr ,lap0) ,stack-depth)))
-		(error "Compiler error: optimizer is confused about %s:
-  %s != %s at lapcode %s" ',stack-depth (cddr ,lap0) ,stack-depth ,lap0))
-	      ;; Now set out current depth from this tag
-	      (setq ,stack-depth (cddr ,lap0)))
-	    (setq ,stack-adjust 0))
-	   ((memq (car ,lap0) '(byte-goto byte-return))
-	    ;; These insns leave us in an unknown state
-	    (setq ,stack-adjust nil))
-	   ((car ,lap0)
-	    ;; Not a no-op, set ,stack-adjust for lap0.  ,stack-adjust will
-	    ;; be added to ,stack-depth at the end of the loop, so any code
-	    ;; that modifies the instruction sequence must adjust this too.
-	    (setq ,stack-adjust
-		  (byte-compile-stack-adjustment (car ,lap0) (cdr ,lap0)))))
-     (byte-compile-log-lap "Before %s  [depth => %s, adj = %s]" ,lap0 ,stack-depth ,stack-adjust)
-     ))
-
 (defun byte-optimize-lapcode (lap &optional for-effect)
   "Simple peephole optimizer.  LAP is both modified and returned.
 If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
   (let (lap0
 	lap1
 	lap2
-	stack-adjust
-	stack-depth
-	(initial-stack-depth
-	 (if (and lap (eq (car (car lap)) 'TAG))
-	     (cdr (cdr (car lap)))
-	   0))
 	(keep-going 'first-time)
 	(add-depth 0)
 	rest tmp tmp2 tmp3
@@ -1566,14 +1530,11 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
       (or (eq keep-going 'first-time)
 	  (byte-compile-log-lap "  ---- next pass"))
       (setq rest lap
-	    stack-depth initial-stack-depth
 	    keep-going nil)
       (while rest
 	(setq lap0 (car rest)
 	      lap1 (nth 1 rest)
 	      lap2 (nth 2 rest))
-
-	(byte-opt-update-stack-params stack-adjust stack-depth lap0 rest lap)
 
 	;; You may notice that sequences like "dup varset discard" are
 	;; optimized but sequences like "dup varset TAG1: discard" are not.
@@ -1588,22 +1549,22 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	      ((and (eq 'byte-discard (car lap1))
 		    (memq (car lap0) side-effect-free))
 	       (setq keep-going t)
+	       (setq tmp (aref byte-stack+-info (symbol-value (car lap0))))
 	       (setq rest (cdr rest))
-	       (cond ((= stack-adjust 1)
+	       (cond ((= tmp 1)
 		      (byte-compile-log-lap
  		       "  %s discard\t-->\t<deleted>" lap0)
 		      (setq lap (delq lap0 (delq lap1 lap))))
-		     ((= stack-adjust 0)
+		     ((= tmp 0)
 		      (byte-compile-log-lap
 		       "  %s discard\t-->\t<deleted> discard" lap0)
 		      (setq lap (delq lap0 lap)))
-		     ((= stack-adjust -1)
+		     ((= tmp -1)
 		      (byte-compile-log-lap
 		       "  %s discard\t-->\tdiscard discard" lap0)
 		      (setcar lap0 'byte-discard)
 		      (setcdr lap0 0))
-		     ((error "Optimizer error: too much on the stack")))
-	       (setq stack-adjust (1- stack-adjust)))
+		     ((error "Optimizer error: too much on the stack"))))
 	      ;;
 	      ;; goto*-X X:  -->  X:
 	      ;;
@@ -1673,8 +1634,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
                                        byte-stack-set)))
 	       (byte-compile-log-lap "  dup %s discard\t-->\t%s" lap1 lap1)
 	       (setq keep-going t
-		     rest (cdr rest)
-		     stack-adjust -1)
+		     rest (cdr rest))
                (if (eq 'byte-stack-set (car lap1)) (decf (cdr lap1)))
 	       (setq lap (delq lap0 (delq lap2 lap))))
 	      ;;
@@ -1697,8 +1657,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 				'byte-goto-if-not-nil
 				'byte-goto-if-nil))
 	       (setq lap (delq lap0 lap))
-	       (setq keep-going t
-		     stack-adjust 0))
+	       (setq keep-going t))
 	      ;;
 	      ;; goto-X-if-nil     goto-Y X:  -->  goto-Y-if-non-nil X:
 	      ;; goto-X-if-non-nil goto-Y X:  -->  goto-Y-if-nil     X:
@@ -1714,8 +1673,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 		 (byte-compile-log-lap "  %s %s %s:\t-->\t%s %s:"
 				       lap0 lap1 lap2
 				       (cons inverse (cdr lap1)) lap2)
-		 (setq lap (delq lap0 lap)
-		       stack-adjust 0)
+		 (setq lap (delq lap0 lap))
 		 (setcar lap1 inverse)
 		 (setq keep-going t)))
 	      ;;
@@ -1738,8 +1696,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 		      (when (memq (car lap1) byte-goto-always-pop-ops)
 			(setq lap (delq lap0 lap)))
 		      (setcar lap1 'byte-goto)))
-	       (setq keep-going t
-		     stack-adjust 0))
+	       (setq keep-going t))
 	      ;;
 	      ;; varref-X varref-X  -->  varref-X dup
 	      ;; varref-X [dup ...] varref-X  -->  varref-X [dup ...] dup
@@ -1772,8 +1729,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	       (setq keep-going t)
 	       (setcar (car tmp) 'byte-dup)
 	       (setcdr (car tmp) 0)
-	       (setq rest tmp
-		     stack-adjust (+ 2 tmp2)))
+	       (setq rest tmp))
 	      ;;
 	      ;; TAG1: TAG2: --> TAG1: <deleted>
 	      ;; (and other references to TAG2 are replaced with TAG1)
@@ -1840,8 +1796,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	       (byte-compile-log-lap "  %s %s\t-->\t%s %s" lap0 lap1 lap1 lap0)
 	       (setcar rest lap1)
 	       (setcar (cdr rest) lap0)
-	       (setq keep-going t
-		     stack-adjust 0))
+	       (setq keep-going t))
 	      ;;
 	      ;; varbind-X unbind-N         -->  discard unbind-(N-1)
 	      ;; save-excursion unbind-N    -->  unbind-(N-1)
@@ -1943,8 +1898,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 					    (cdr tmp))))
 		      (setcdr lap1 (car (cdr tmp)))
 		      (setq lap (delq lap0 lap))))
-	       (setq keep-going t
-		     stack-adjust 0))
+	       (setq keep-going t))
 	      ;;
 	      ;; X: varref-Y    ...     varset-Y goto-X  -->
 	      ;; X: varref-Y Z: ... dup varset-Y goto-Z
@@ -1960,12 +1914,9 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 		    (eq (car lap2) 'byte-goto)
 		    (not (memq (cdr lap2) rest)) ;Backwards jump
 		    (eq (car (car (setq tmp (cdr (memq (cdr lap2) lap)))))
-			(if (eq (car lap1) 'byte-varset) 'byte-varref
-                          ;; 'byte-stack-ref
-                          ))
+			'byte-varref)
 		    (eq (cdr (car tmp)) (cdr lap1))
-		    (not (and (eq (car lap1) 'byte-varref)
-			      (memq (car (cdr lap1)) byte-boolean-vars))))
+		    (not (memq (car (cdr lap1)) byte-boolean-vars)))
 	       ;;(byte-compile-log-lap "  Pulled %s to end of loop" (car tmp))
 	       (let ((newtag (byte-compile-make-tag)))
 		 (byte-compile-log-lap
@@ -2022,15 +1973,10 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 					   byte-goto-if-not-nil
 					   byte-goto byte-goto))))
 	       )
-	       (setq keep-going t
-		     stack-adjust (and (not (eq (car lap0) 'byte-goto)) -1)))
+	       (setq keep-going t))
 	      )
-
-	(setq stack-depth 
-	      (and stack-depth stack-adjust (+ stack-depth stack-adjust)))
 	(setq rest (cdr rest)))
       )
-
     ;; Cleanup stage:
     ;; Rebuild byte-compile-constants / byte-compile-variables.
     ;; Simple optimizations that would inhibit other optimizations if they
@@ -2038,13 +1984,11 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
     ;; need to do more than once.
     (setq byte-compile-constants nil
 	  byte-compile-variables nil)
-    (setq rest lap
-	  stack-depth initial-stack-depth)
+    (setq rest lap)
     (byte-compile-log-lap "  ---- final pass")
     (while rest
       (setq lap0 (car rest)
 	    lap1 (nth 1 rest))
-      (byte-opt-update-stack-params stack-adjust stack-depth lap0 rest lap)
       (if (memq (car lap0) byte-constref-ops)
 	  (if (or (eq (car lap0) 'byte-constant)
 		  (eq (car lap0) 'byte-constant2))
@@ -2127,7 +2071,6 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
                        'byte-discardN))
              (setcdr lap1 (1+ tmp3))
 	     (setcdr (cdr rest) tmp)
-	     (setq stack-adjust 0)
 	     (byte-compile-log-lap "  %s [discard/discardN]...\t-->\t%s"
 	        		   lap0 lap1))
 
@@ -2148,8 +2091,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 		 (if (eq (car lap1) 'byte-discard) 1 (cdr lap1))))
 	     (setcdr lap1 (+ (if (eq (car lap0) 'byte-discard) 1 (cdr lap0))
 			     (if (eq (car lap1) 'byte-discard) 1 (cdr lap1))))
-	     (setcar lap1 'byte-discardN)
-	     (setq stack-adjust 0))
+	     (setcar lap1 'byte-discardN))
 
 	    ;;
 	    ;; discardN-preserve-tos-X discardN-preserve-tos-Y  -->
@@ -2159,7 +2101,6 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 		  (eq (car lap1) 'byte-discardN-preserve-tos))
 	     (setq lap (delq lap0 lap))
 	     (setcdr lap1 (+ (cdr lap0) (cdr lap1)))
-	     (setq stack-adjust 0)
 	     (byte-compile-log-lap "  %s %s\t-->\t%s" lap0 lap1 (car rest)))
 
 	    ;;
@@ -2174,14 +2115,9 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	     ;; The byte-code interpreter will pop the stack for us, so
 	     ;; we can just leave stuff on it.
 	     (setq lap (delq lap0 lap))
-	     (setq stack-adjust 0)
 	     (byte-compile-log-lap "  %s %s\t-->\t%s" lap0 lap1 lap1))
             )
-
-      (setq stack-depth 
-	    (and stack-depth stack-adjust (+ stack-depth stack-adjust)))
       (setq rest (cdr rest)))
-
     (setq byte-compile-maxdepth (+ byte-compile-maxdepth add-depth)))
   lap)
 

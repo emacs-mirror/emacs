@@ -771,10 +771,11 @@ This also does some trivial optimizations to make the form prettier."
 		      (sublis sub (nreverse decls))
 		      (list
 		       (list* 'list '(quote apply)
-			      (list 'function
-				    (list* 'lambda
-					   (append new (cadadr form))
-					   (sublis sub body)))
+			      (list 'quote
+                                    (list 'function
+                                          (list* 'lambda
+                                                 (append new (cadadr form))
+                                                 (sublis sub body))))
 			      (nconc (mapcar (function
 					      (lambda (x)
 						(list 'list '(quote quote) x)))
