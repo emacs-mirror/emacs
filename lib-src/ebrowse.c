@@ -41,12 +41,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define streq(X, Y) (*(X) == *(Y) && strcmp ((X) + 1, (Y) + 1) == 0)
 
-/* The ubiquitous `max' and `min' macros.  */
-
-#ifndef max
-#define max(X, Y)	((X) > (Y) ? (X) : (Y))
-#define min(X, Y)	((X) < (Y) ? (X) : (Y))
-#endif
+#include <min-max.h>
 
 /* Files are read in chunks of this number of bytes.  */
 

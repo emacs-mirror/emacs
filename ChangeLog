@@ -1,3 +1,7 @@
+2011-02-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lib/min-max.h: New file, for "min" and "max".
+
 2011-02-20  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Import filemode module from gnulib.

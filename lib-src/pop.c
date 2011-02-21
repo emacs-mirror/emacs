@@ -90,6 +90,8 @@ extern struct servent *hes_getservbyname (/* char *, char * */);
 # endif
 #endif /* KERBEROS */
 
+#include <min-max.h>
+
 #ifdef KERBEROS
 #ifndef KERBEROS5
 extern int krb_sendauth (/* long, int, KTEXT, char *, char *, char *,
@@ -129,10 +131,6 @@ static char *find_crlf (char *, int);
 
 char pop_error[ERROR_MAX];
 int pop_debug = 0;
-
-#ifndef min
-#define min(a,b) (((a) < (b)) ? (a) : (b))
-#endif
 
 /*
  * Function: pop_open (char *host, char *username, char *password,
