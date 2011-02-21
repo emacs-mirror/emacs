@@ -34,8 +34,6 @@ static char string2[] = ".\n\
 This file is read by the `test-distribution' program.\n\
 If you change it, you will make that program fail.\n";
 
-static char buf[300];
-
 /* Like `read' but keeps trying until it gets SIZE bytes or reaches eof.  */
 static int
 cool_read (int fd, char *buf, size_t size)
@@ -57,6 +55,7 @@ int
 main (int argc, char **argv)
 {
   int fd;
+  char buf[300];
 
   if (argc != 2)
     {

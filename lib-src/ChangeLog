@@ -4,6 +4,7 @@
 	But if the file already has the right ownership, don't worry about it.
 
 	* make-docfile.c (input_buffer): Rename variables to avoid shadowing.
+	* test-distrib.c (buf): Make this local, to avoid shadowing.
 
 	* movemail.c (main, pop_retr): Rename locals to avoid shadowing.
 	(progname, sfi, sfo, ibuffer, obuffer): Remove unused vars.
