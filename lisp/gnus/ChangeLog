@@ -1,3 +1,9 @@
+2011-02-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* shr-color.el (shr-color->hexadecimal): Use renamed function names
+	color-rgb-to-hex, color-name-to-rgb, color-srgb-to-lab, and
+	color-lab-to-srgb.
+
 2011-02-19  Glenn Morris  <rgm@gnu.org>
 
 	* gnus.el (gnus-meta): Doc fix.

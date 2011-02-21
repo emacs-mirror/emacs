@@ -1,3 +1,31 @@
+2011-02-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* color.el (color-name-to-rgb): Rename from color-rgb->normalize.
+	Autoload.  Add optional arg FRAME, and pass it to color-values.
+	(color-complement): Caller changed.  Doc fix.
+	(color-gradient): Rewrite for better clarity and efficiency.
+
+	* faces.el (color-values): Use cond for clarity.  Doc fix.
+
+	* facemenu.el (color-rgb-to-hsv): Deleted; use the version in
+	color.el instead.
+	(list-colors-sort-key, list-colors-print): Use
+	color-normalized-values.
+
+2011-02-20  Drew Adams  <drew.adams@oracle.com>
+
+	* color.el: First part of merge from hexrgb.el.
+	(color-rgb-to-hex): Rename from color-rgb->hex.
+	(color-rgb-to-hsv): Rename from color-rgb->hsv.  Force hue and
+	saturation to zero if the value is too small.
+	(color-rgb-to-hsl): Rename from color-rgb->hsl.
+	(color-srgb-to-xyz): Rename from color-srgb->xyz.  Doc fix.
+	(color-xyz-to-srgb): Rename from color-xyz->srgb.  Doc fix.
+	(color-xyz-to-lab): Rename from color-xyz->lab.  Doc fix.
+	(color-lab-to-xyz): Rename from color-lab->xyz.  Doc fix.
+	(color-lab-to-srgb): Rename from color-lab->srgb.  Doc fix.
+	(color-cie-de2000): Doc fix.
+
 2011-02-20  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-cmds.el (c-beginning-of-statement): Avoid loop in
