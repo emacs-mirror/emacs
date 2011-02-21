@@ -1,3 +1,12 @@
+2011-02-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Declare file-scope functions and variables static if not exported.
+	This is more consistent, and is nicer with gcc -Wstrict-prototypes.
+	* ebrowse.c, emacsclient.c, fakemail.c, make-docfile.c, movemail.c:
+	* profile.c, test-distrib.c, update-game-score.c:
+	Declare non-'main' functions and variables to be static.
+	* ebrowse.c: Omit redundant function prototypes.
+
 2011-02-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (obj): Remove md5.o.

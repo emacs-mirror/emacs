@@ -198,7 +198,7 @@ xrealloc (long int *ptr, int size)
 
 /* Initialize a linebuffer for use */
 
-void
+static void
 init_linebuffer (struct linebuffer *linebuffer)
 {
   linebuffer->size = INITIAL_LINE_SIZE;
@@ -208,7 +208,7 @@ init_linebuffer (struct linebuffer *linebuffer)
 /* Read a line of text from `stream' into `linebuffer'.
    Return the length of the line.  */
 
-long
+static long
 readline (struct linebuffer *linebuffer, FILE *stream)
 {
   char *buffer = linebuffer->buffer;
@@ -243,7 +243,7 @@ readline (struct linebuffer *linebuffer, FILE *stream)
 
    If there is no keyword, return NULL and don't alter *REST.  */
 
-char *
+static char *
 get_keyword (register char *field, char **rest)
 {
   static char keyword[KEYWORD_SIZE];
@@ -268,7 +268,7 @@ get_keyword (register char *field, char **rest)
 
 /* Nonzero if the string FIELD starts with a colon-terminated keyword.  */
 
-boolean
+static boolean
 has_keyword (char *field)
 {
   char *ignored;
@@ -285,7 +285,7 @@ has_keyword (char *field)
    We don't pay attention to overflowing WHERE;
    the caller has to make it big enough.  */
 
-char *
+static char *
 add_field (line_list the_list, register char *field, register char *where)
 {
   register char c;
@@ -341,7 +341,7 @@ add_field (line_list the_list, register char *field, register char *where)
   return where;
 }
 
-line_list
+static line_list
 make_file_preface (void)
 {
   char *the_string, *temp;
@@ -385,7 +385,7 @@ make_file_preface (void)
   return result;
 }
 
-void
+static void
 write_line_list (register line_list the_list, FILE *the_stream)
 {
   for ( ;
@@ -398,7 +398,7 @@ write_line_list (register line_list the_list, FILE *the_stream)
   return;
 }
 
-int
+static int
 close_the_streams (void)
 {
   register stream_list rem;
@@ -411,7 +411,7 @@ close_the_streams (void)
   return (no_problems ? EXIT_SUCCESS : EXIT_FAILURE);
 }
 
-void
+static void
 add_a_stream (FILE *the_stream, int (*closing_action) (FILE *))
 {
   stream_list old = the_streams;
@@ -422,7 +422,7 @@ add_a_stream (FILE *the_stream, int (*closing_action) (FILE *))
   return;
 }
 
-int
+static int
 my_fclose (FILE *the_file)
 {
   putc ('\n', the_file);
@@ -430,7 +430,7 @@ my_fclose (FILE *the_file)
   return fclose (the_file);
 }
 
-boolean
+static boolean
 open_a_file (char *name)
 {
   FILE *the_stream = fopen (name, "a");
@@ -445,7 +445,7 @@ open_a_file (char *name)
   return false;
 }
 
-void
+static void
 put_string (char *s)
 {
   register stream_list rem;
@@ -456,7 +456,7 @@ put_string (char *s)
   return;
 }
 
-void
+static void
 put_line (const char *string)
 {
   register stream_list rem;
@@ -516,7 +516,7 @@ put_line (const char *string)
    the header name), and THE_LIST holds the continuation lines if any.
    Call open_a_file for each file.  */
 
-void
+static void
 setup_files (register line_list the_list, register char *field)
 {
   register char *start;
@@ -552,7 +552,7 @@ setup_files (register line_list the_list, register char *field)
 /* Compute the total size of all recipient names stored in THE_HEADER.
    The result says how big to make the buffer to pass to parse_header.  */
 
-int
+static int
 args_size (header the_header)
 {
   register header old = the_header;
@@ -583,7 +583,7 @@ args_size (header the_header)
 
    Also, if the header has any FCC fields, call setup_files for each one.  */
 
-void
+static void
 parse_header (header the_header, register char *where)
 {
   register header old = the_header;
@@ -615,7 +615,7 @@ parse_header (header the_header, register char *where)
    one for each line in that field.
    Continuation lines are grouped in the headers they continue.  */
 
-header
+static header
 read_header (void)
 {
   register header the_header = ((header) NULL);
@@ -669,7 +669,7 @@ read_header (void)
   return the_header->next;
 }
 
-void
+static void
 write_header (header the_header)
 {
   register header old = the_header;

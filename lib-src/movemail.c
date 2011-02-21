@@ -161,7 +161,7 @@ static int mbx_delimit_end (FILE *mbf);
 #endif
 
 /* Nonzero means this is name of a lock file to delete on fatal error.  */
-char *delete_lockname;
+static char *delete_lockname;
 
 int
 main (int argc, char **argv)
@@ -672,12 +672,12 @@ xmalloc (unsigned int size)
 #define OK 0
 #define DONE 1
 
-char *progname;
-FILE *sfi;
-FILE *sfo;
-char ibuffer[BUFSIZ];
-char obuffer[BUFSIZ];
-char Errmsg[200];		/* POP errors, at least, can exceed
+static char *progname;
+static FILE *sfi;
+static FILE *sfo;
+static char ibuffer[BUFSIZ];
+static char obuffer[BUFSIZ];
+static char Errmsg[200];	/* POP errors, at least, can exceed
 				   the original length of 80.  */
 
 /*
