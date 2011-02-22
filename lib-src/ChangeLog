@@ -1,3 +1,7 @@
+2011-02-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (obj): Remove filemode.o.
+
 2011-02-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	New file "lib/min-max.h".
@@ -68,7 +72,7 @@
 
 2011-02-05  Paul Eggert  <eggert@cs.ucla.edu>
 
-	* emacsclient.c: conform to C89 pointer rules
+	* emacsclient.c: Conform to C89 pointer rules.
 	(file_name_absolute_p): Accept const char *, not const unsigned
 	char *, to satisfy C89 rules.
 
@@ -226,7 +230,7 @@
 	* test-distrib.c (cool_read):
 	* movemail.c (main, concat):
 	* make-docfile.c (scan_file, write_c_args):
-	* emacsclient.c	(get_server_config): Fix -Wconversion warning.
+	* emacsclient.c (get_server_config): Fix -Wconversion warning.
 	(egetenv): Move conditional definition earlier.
 	(progname): Use const.
 	* sorted-doc.c (xstrdup): Use const.
