@@ -1,3 +1,22 @@
+2011-02-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume S_ISLNK etc. work, since gnulib supports this.
+	* config.in: Regenerate.
+	* dired.c (lstat): Remove.
+	(file_name_completion): Assume S_ISDIR works.
+	(file_name_completion_stat): Assume S_ISLNK works.
+	Do not bother calling stat unless lstat says it's a symlink.
+	* fileio.c (S_ISLNK, S_ISFIFO, S_ISREG, lstat): Remove.
+	(Fcopy_file): Assume S_ISREG and S_ISLNK work.
+	(check_writable, Ffile_writable_p, Fset_file_times):
+	Assume S_ISDIR works.
+	(Ffile_readable_p): Use S_IFIFO, not S_ISFIFO, to guess whether
+	fifos exist.
+	(Ffile_regular_p, Finsert_file_contents): Assumes S_ISREG works.
+	* filelock.c (S_ISLNK): Remove.
+	* lread.c (openp): Assume S_ISDIR works.
+	* xrdb.c (S_ISDIR): Remove.
+
 2011-02-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in ($(BLD)/filemode.$(O)): Move recipe to

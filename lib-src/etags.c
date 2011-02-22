@@ -190,10 +190,6 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 # define assert(x) ((void) 0)
 #endif
 
-#if !defined (S_ISREG) && defined (S_IFREG)
-# define S_ISREG(m)	(((m) & S_IFMT) == S_IFREG)
-#endif
-
 #ifdef NO_LONG_OPTIONS		/* define this if you don't have GNU getopt */
 # define NO_LONG_OPTIONS TRUE
 # define getopt_long(argc,argv,optstr,lopts,lind) getopt (argc, argv, optstr)
@@ -5327,7 +5323,7 @@ prolog_skip_comment (linebuffer *plb, FILE *inf)
  */
 static int
 prolog_pr (char *s, char *last)
-             
+
                 		/* Name of last clause. */
 {
   int pos;
@@ -5484,7 +5480,7 @@ Erlang_functions (FILE *inf)
  */
 static int
 erlang_func (char *s, char *last)
-             
+
                 		/* Name of last clause. */
 {
   int pos;

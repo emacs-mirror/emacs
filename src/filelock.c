@@ -51,10 +51,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <utmp.h>
 #endif
 
-#if !defined (S_ISLNK) && defined (S_IFLNK)
-#define S_ISLNK(m) (((m) & S_IFMT) == S_IFLNK)
-#endif
-
 /* A file whose last-modified time is just after the most recent boot.
    Define this to be NULL to disable checking for this file.  */
 #ifndef BOOT_TIME_FILE

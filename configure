@@ -2963,6 +2963,7 @@ as_fn_append ac_func_list " tzset"
 as_fn_append ac_header_list " sys/stat.h"
 as_fn_append ac_header_list " sys/time.h"
 as_fn_append ac_func_list " localtime_r"
+as_fn_append ac_func_list " lstat"
 # Check that the precious variables saved in the cache have kept the same
 # value.
 ac_cache_corrupted=false
@@ -17208,6 +17209,23 @@ $as_echo "$gl_cv_next_unistd_h" >&6; }
   LIBGNU_LIBDEPS="$gl_libdeps"
 
   LIBGNU_LTLIBDEPS="$gl_ltlibdeps"
+
+
+
+# Emacs does not care about lstat's behavior on files whose names end in
+# trailing slashes, so it does not use the gnulib lstat module.
+# However, Emacs does want the "#define lstat stat" in sys/stat.h
+# when lstat does not exist, so it pretends to use the lstat module
+# even though it implements only the lstat-checking part of that module.
+
+
+
+test $ac_cv_func_lstat = yes || HAVE_LSTAT=0
+
+
+
+  GNULIB_LSTAT=1
+
 
 
 
