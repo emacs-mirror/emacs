@@ -1,3 +1,8 @@
+2011-02-22  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmail.el (rmail-start-mail): Decode "encoded-words" of
+	header components.
+
 2011-02-19  Kenichi Handa  <handa@m17n.org>
 
 	* mail/rmailmm.el (rmail-mime-find-header-encoding): Be sure to
