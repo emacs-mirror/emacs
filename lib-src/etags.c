@@ -239,7 +239,6 @@ If you want regular expression support, you should delete this notice and
 #define ISLOWER(c)	islower (CHAR(c))
 
 #define lowcase(c)	tolower (CHAR(c))
-#define upcase(c)	toupper (CHAR(c))
 
 
 /*
@@ -6638,7 +6637,7 @@ filename_is_absolute (char *fn)
 	  );
 }
 
-/* Upcase DOS drive letter and collapse separators into single slashes.
+/* Downcase DOS drive letter and collapse separators into single slashes.
    Works in place. */
 static void
 canonicalize_filename (register char *fn)
@@ -6648,8 +6647,8 @@ canonicalize_filename (register char *fn)
 
 #ifdef DOS_NT
   /* Canonicalize drive letter case.  */
-  if (fn[0] != '\0' && fn[1] == ':' && ISLOWER (fn[0]))
-    fn[0] = upcase (fn[0]);
+  if (fn[0] != '\0' && fn[1] == ':' && ISUPPER (fn[0]))
+    fn[0] = downcase (fn[0]);
 
   sep = '\\';
 #endif
