@@ -1,3 +1,7 @@
+2011-02-21  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Article Date): Clarify gnus-article-update-date-headers.
+
 2011-02-20  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi (Window Layout): Document layout names.

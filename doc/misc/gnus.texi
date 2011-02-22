@@ -9502,8 +9502,11 @@ Say how much time has elapsed between the article was posted and now
 Date: 6 weeks, 4 days, 1 hour, 3 minutes, 8 seconds ago
 @end example
 
-This line is updated continually by default.  If you wish to switch
-that off, say:
+This line is updated continually by default.  The frequency (in
+seconds) is controlled by the @code{gnus-article-update-date-headers}
+variable.
+
+If you wish to switch updating off, say:
 
 @vindex gnus-article-update-date-headers
 @lisp

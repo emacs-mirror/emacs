@@ -9525,8 +9525,7 @@ C-u g', show the raw article."
    ((not arg)
     ;; Select the article the normal way.
     (gnus-summary-select-article nil 'force))
-   ((or (equal arg '(16))
-	(eq arg t))
+   ((equal arg '(16))
     ;; C-u C-u g
     (let ((gnus-inhibit-article-treatments t))
       (gnus-summary-select-article nil 'force)))

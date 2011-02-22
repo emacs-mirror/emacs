@@ -1,3 +1,32 @@
+2011-02-22  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-msg.el (gnus-inews-add-send-actions): Restore the winconf name
+	after exit.
+
+	* gnus-sum.el (gnus-summary-show-article): When called with t as the
+	value, show the raw article.
+
+2011-02-21  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-open-connection-1): Revert last change, since
+	auth-source now accepts numbers.
+
+	* auth-source.el (auth-source-netrc-parse): Accept a number as the port
+	spec, too.
+	(auth-source-ensure-strings): New function.
+
+	* gnus-art.el (gnus-article-update-date-headers): Doc fix.
+	(gnus-article-setup-buffer): Always restart the date timer so that user
+	changes to the frequency is respected.
+
+	* nnimap.el (nnimap-open-connection-1): auth-source expects strings as
+	port numbers, so make sure it gets that if nnimap-server-port is
+	explicit.
+
+2011-02-21  Simon Josefsson  <simon@josefsson.org>
+
+	* nnimap.el (nnimap-inbox): Doc fix.
+
 2011-02-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* shr-color.el (shr-color->hexadecimal): Use renamed function names
