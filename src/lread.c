@@ -1384,7 +1384,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *sto
 		  Lisp_Object tmp = call1 (predicate, string);
 		  exists = !NILP (tmp)
 		    && (EQ (tmp, Qdir_ok)
-			|| !NILP (Ffile_directory_p (string)));
+			|| NILP (Ffile_directory_p (string)));
 		}
 
 	      if (exists)

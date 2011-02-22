@@ -1,8 +1,11 @@
+2011-02-22  Wolfgang Jenkner  <wjenkner@inode.at>  (tiny change)
+
+	* lread.c (openp): Correct Boolean typo in last commit.
+
 2011-02-22  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* nsterm.m (EmacsView-keyDown:): Don't pass shift-only-modified
-	key to emacs, treat as unmodified (go to input manager
-	processing).
+	key to Emacs, treat as unmodified (go to input manager processing).
 
 2011-02-22  Paul Eggert  <eggert@cs.ucla.edu>
 
