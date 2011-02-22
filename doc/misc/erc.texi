@@ -28,7 +28,7 @@ and modified without restriction.
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs network features
 @direntry
 * ERC: (erc).                   Powerful and extensible IRC client for Emacs.
 @end direntry
@@ -36,7 +36,7 @@ and modified without restriction.
 @titlepage
 @title ERC manual
 @subtitle a full-featured IRC client
-@subtitle for GNU Emacs and XEmacs
+@subtitle for Emacs and XEmacs
 
 @c The following two commands
 @c start the copyright page.

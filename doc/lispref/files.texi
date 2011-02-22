@@ -114,6 +114,26 @@ When @code{find-file} is called interactively, it prompts for
 @var{filename} in the minibuffer.
 @end deffn
 
+@deffn Command find-file-literally filename
+This command visits @var{filename}, like @code{find-file} does, but it
+does not perform any format conversions (@pxref{Format Conversion}),
+character code conversions (@pxref{Coding Systems}), or end-of-line
+conversions (@pxref{Coding System Basics, End of line conversion}).
+The buffer visiting the file is made unibyte, and its major mode is
+Fundamental mode, regardless of the file name.  File local variable
+specifications  in the file (@pxref{File Local Variables}) are
+ignored, and automatic decompression and adding a newline at the end
+of the file due to @code{require-final-newline} (@pxref{Saving
+Buffers, require-final-newline}) are also disabled.
+
+Note that if Emacs already has a buffer visiting the same file
+non-literally, it will not visit the same file literally, but instead
+just switch to the existing buffer.  If you want to be sure of
+accessing a file's contents literally, you should create a temporary
+buffer and then read the file contents into it using
+@code{insert-file-contents-literally} (@pxref{Reading from Files}).
+@end deffn
+
 @defun find-file-noselect filename &optional nowarn rawfile wildcards
 This function is the guts of all the file-visiting functions.  It
 returns a buffer visiting the file @var{filename}.  You may make the
@@ -223,6 +243,16 @@ already set up.
 
 This is not a normal hook because the values of the functions are
 used, and in many cases only some of the functions are called.
+@end defvar
+
+@defvar find-file-literally
+This buffer-local variable, if set to a non-@code{nil} value, makes
+@code{save-buffer} behave as if the buffer were visiting its file
+literally, i.e. without conversions of any kind.  The command
+@code{find-file-literally} sets this variable's local value, but other
+equivalent functions and commands can do that as well, e.g.@: to avoid
+automatic addition of a newline at the end of the file.  This variable
+us permanent local, so it is unaffected by changes of major modes.
 @end defvar
 
 @node Subroutines of Visiting

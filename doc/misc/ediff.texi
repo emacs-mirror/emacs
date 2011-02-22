@@ -42,7 +42,7 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs misc features
 @direntry
 * Ediff: (ediff).       A visual interface for comparing and merging programs.
 @end direntry
