@@ -2661,6 +2661,15 @@ gl_ASSERT_NO_GNULIB_POSIXCHECK
 gl_ASSERT_NO_GNULIB_TESTS
 gl_INIT
 
+# Emacs does not care about lstat's behavior on files whose names end in
+# trailing slashes, so it does not use the gnulib lstat module.
+# However, Emacs does want the "#define lstat stat" in sys/stat.h
+# when lstat does not exist, so it pretends to use the lstat module
+# even though it implements only the lstat-checking part of that module.
+AC_CHECK_FUNCS_ONCE([lstat])
+test $ac_cv_func_lstat = yes || HAVE_LSTAT=0
+gl_SYS_STAT_MODULE_INDICATOR([lstat])
+
 # UNIX98 PTYs.
 AC_CHECK_FUNCS(grantpt)
 

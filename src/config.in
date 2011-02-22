@@ -465,6 +465,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `lrand48' function. */
 #undef HAVE_LRAND48
 
+/* Define to 1 if you have the `lstat' function. */
+#undef HAVE_LSTAT
+
 /* Define to 1 if using libm17n-flt. */
 #undef HAVE_M17N_FLT
 

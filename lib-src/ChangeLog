@@ -1,3 +1,8 @@
+2011-02-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume S_ISLNK etc. work, since gnulib supports this.
+	* etags.c (S_ISREG): Remove.
+
 2011-02-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (obj): Remove filemode.o.

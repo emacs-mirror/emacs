@@ -84,13 +84,6 @@ extern struct re_pattern_buffer *compile_pattern (Lisp_Object,
 						  struct re_registers *,
 						  Lisp_Object, int, int);
 
-/* if system does not have symbolic links, it does not have lstat.
-   In that case, use ordinary stat instead.  */
-
-#ifndef S_IFLNK
-#define lstat stat
-#endif
-
 Lisp_Object Qdirectory_files;
 Lisp_Object Qdirectory_files_and_attributes;
 Lisp_Object Qfile_name_completion;
@@ -539,7 +532,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
       if (file_name_completion_stat (encoded_dir, dp, &st) < 0)
 	continue;
 
-      directoryp = ((st.st_mode & S_IFMT) == S_IFDIR);
+      directoryp = S_ISDIR (st.st_mode);
       tem = Qnil;
       /* If all_flag is set, always include all.
 	 It would not actually be helpful to the user to ignore any possible
@@ -843,20 +836,16 @@ file_name_completion_stat (Lisp_Object dirname, DIRENTRY *dp, struct stat *st_ad
   memcpy (fullname + pos, dp->d_name, len);
   fullname[pos + len] = 0;
 
-#ifdef S_IFLNK
   /* We want to return success if a link points to a nonexistent file,
      but we want to return the status for what the link points to,
      in case it is a directory.  */
   value = lstat (fullname, st_addr);
-  stat (fullname, st_addr);
-  return value;
-#else
-  value = stat (fullname, st_addr);
+  if (value == 0 && S_ISLNK (st_addr->st_mode))
+    stat (fullname, st_addr);
 #ifdef MSDOS
   _djstat_flags = save_djstat_flags;
 #endif /* MSDOS */
   return value;
-#endif /* S_IFLNK */
 }
 
 Lisp_Object
