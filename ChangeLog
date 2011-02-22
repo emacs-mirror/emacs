@@ -1,3 +1,7 @@
+2011-02-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lib/min-max.h: New file, for "min" and "max".
+
 2011-02-21  Christoph Scholtes  <cschol2112@gmail.com>
 
 	* lib/makefile.w32-in: ($(BLD)/md5.$(O)): Added dependency on

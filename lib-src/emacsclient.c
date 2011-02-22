@@ -150,8 +150,8 @@ const char *server_file = NULL;
 /* PID of the Emacs server process.  */
 int emacs_pid = 0;
 
-void print_help_and_exit (void) NO_RETURN;
-void fail (void) NO_RETURN;
+static void print_help_and_exit (void) NO_RETURN;
+static void fail (void) NO_RETURN;
 
 
 struct option longopts[] =
@@ -178,7 +178,7 @@ struct option longopts[] =
 
 /* Like malloc but get fatal error if memory is exhausted.  */
 
-long *
+static long *
 xmalloc (unsigned int size)
 {
   long *result = (long *) malloc (size);
@@ -192,7 +192,7 @@ xmalloc (unsigned int size)
 
 /* Like strdup but get a fatal error if memory is exhausted. */
 
-char *
+static char *
 xstrdup (const char *s)
 {
   char *result = strdup (s);
@@ -473,7 +473,7 @@ ttyname (int fd)
 
 /* Display a normal or error message.
    On Windows, use a message box if compiled as a Windows app.  */
-void
+static void
 message (int is_error, const char *message, ...)
 {
   char msg[2048];
@@ -504,7 +504,7 @@ message (int is_error, const char *message, ...)
 /* Decode the options from argv and argc.
    The global variable `optind' will say how many arguments we used up.  */
 
-void
+static void
 decode_options (int argc, char **argv)
 {
   alternate_editor = egetenv ("ALTERNATE_EDITOR");
@@ -630,7 +630,7 @@ an empty string");
 }
 
 
-void
+static void
 print_help_and_exit (void)
 {
   /* Spaces and tabs are significant in this message; they're chosen so the
@@ -675,7 +675,7 @@ Report bugs with M-x report-emacs-bug.\n", progname);
   defined-- exit with an errorcode.
   Uses argv, but gets it from the global variable main_argv.
 */
-void
+static void
 fail (void)
 {
   if (alternate_editor)
@@ -718,7 +718,7 @@ HSOCKET emacs_socket = 0;
 
 /* On Windows, the socket library was historically separate from the standard
    C library, so errors are handled differently.  */
-void
+static void
 sock_err_message (const char *function_name)
 {
 #ifdef WINDOWSNT
@@ -742,7 +742,7 @@ sock_err_message (const char *function_name)
    - the data ends in "\n", or
    - the buffer is full (but this shouldn't happen)
    Otherwise, we just accumulate it.  */
-void
+static void
 send_to_emacs (HSOCKET s, const char *data)
 {
   while (data)
@@ -781,7 +781,7 @@ send_to_emacs (HSOCKET s, const char *data)
    return value never contains a space.
 
    Does not change the string.  Outputs the result to S.  */
-void
+static void
 quote_argument (HSOCKET s, const char *str)
 {
   char *copy = (char *) xmalloc (strlen (str) * 2 + 1);
@@ -822,7 +822,7 @@ quote_argument (HSOCKET s, const char *str)
 /* The inverse of quote_argument.  Removes quoting in string STR by
    modifying the string in place.   Returns STR. */
 
-char *
+static char *
 unquote_argument (char *str)
 {
   char *p, *q;
@@ -853,7 +853,7 @@ unquote_argument (char *str)
 }
 
 
-int
+static int
 file_name_absolute_p (const char *filename)
 {
   /* Sanity check, it shouldn't happen.  */
@@ -907,7 +907,7 @@ initialize_sockets (void)
  * Read the information needed to set up a TCP comm channel with
  * the Emacs server: host, port, and authentication string.
  */
-int
+static int
 get_server_config (struct sockaddr_in *server, char *authentication)
 {
   char dotted[32];
@@ -965,7 +965,7 @@ get_server_config (struct sockaddr_in *server, char *authentication)
   return TRUE;
 }
 
-HSOCKET
+static HSOCKET
 set_tcp_socket (void)
 {
   HSOCKET s;
@@ -1024,7 +1024,7 @@ strprefix (const char *prefix, const char *string)
    and the name in TTY_NAME, and return 1.  Otherwise, fail if NOABORT
    is zero, or return 0 if NOABORT is non-zero.  */
 
-int
+static int
 find_tty (char **tty_type, char **tty_name, int noabort)
 {
   char *type = egetenv ("TERM");
@@ -1097,7 +1097,7 @@ socket_status (char *socket_name)
 /* A signal handler that passes the signal to the Emacs process.
    Useful for SIGWINCH.  */
 
-SIGTYPE
+static SIGTYPE
 pass_signal_to_emacs (int signalnum)
 {
   int old_errno = errno;
@@ -1112,7 +1112,7 @@ pass_signal_to_emacs (int signalnum)
 /* Signal handler for SIGCONT; notify the Emacs process that it can
    now resume our tty frame.  */
 
-SIGTYPE
+static SIGTYPE
 handle_sigcont (int signalnum)
 {
   int old_errno = errno;
@@ -1138,7 +1138,7 @@ handle_sigcont (int signalnum)
    reality, we may get a SIGTSTP on C-z.  Handling this signal and
    notifying Emacs about it should get things under control again. */
 
-SIGTYPE
+static SIGTYPE
 handle_sigtstp (int signalnum)
 {
   int old_errno = errno;
@@ -1162,7 +1162,7 @@ handle_sigtstp (int signalnum)
 
 /* Set up signal handlers before opening a frame on the current tty.  */
 
-void
+static void
 init_signals (void)
 {
   /* Set up signal handlers. */
@@ -1182,7 +1182,7 @@ init_signals (void)
 }
 
 
-HSOCKET
+static HSOCKET
 set_local_socket (void)
 {
   HSOCKET s;
@@ -1331,7 +1331,7 @@ To start the server in Emacs, type \"M-x server-start\".\n",
 }
 #endif /* ! NO_SOCKETS_IN_FILE_SYSTEM */
 
-HSOCKET
+static HSOCKET
 set_socket (int no_exit_if_error)
 {
   HSOCKET s;
@@ -1447,7 +1447,7 @@ w32_give_focus (void)
 
 /* Start the emacs daemon and try to connect to it.  */
 
-void
+static void
 start_daemon_and_retry_set_socket (void)
 {
 #ifndef WINDOWSNT
@@ -1722,7 +1722,7 @@ main (int argc, char **argv)
 
       if (rl <= 0)
         break;
-      
+
       string[rl] = '\0';
 
       p = string + strlen (string) - 1;
