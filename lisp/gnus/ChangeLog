@@ -1,3 +1,7 @@
+2011-02-22  Sam Steingold  <sds@gnu.org>
+
+	* gnus-msg.el (gnus-setup-message): Also bind `winconf-name'.
+
 2011-02-22  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-msg.el (gnus-inews-add-send-actions): Restore the winconf name

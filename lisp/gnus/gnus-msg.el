@@ -383,6 +383,7 @@ Thank you for your help in stamping out bugs.
 (defvar gnus-article-reply nil)
 (defmacro gnus-setup-message (config &rest forms)
   (let ((winconf (make-symbol "gnus-setup-message-winconf"))
+        (winconf-name (make-symbol "gnus-setup-message-winconf"))
 	(buffer (make-symbol "gnus-setup-message-buffer"))
 	(article (make-symbol "gnus-setup-message-article"))
 	(yanked (make-symbol "gnus-setup-yanked-articles"))
