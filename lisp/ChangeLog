@@ -1,3 +1,8 @@
+2011-02-22  Seppo Sade <sepposade1@gmail.com>  (tiny change)
+
+	* eshell/esh-ext.el (eshell-external-command): Do not restrict
+	remote check to "ftp".  (Bug#8089)
+
 2011-02-21  Alan Mackenzie  <acm@muc.de>
 
 	Fix bug #7930.
