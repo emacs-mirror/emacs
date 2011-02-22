@@ -1,3 +1,8 @@
+2011-02-21  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmail.el (rmail-start-mail): Decode "encoded-words" of
+	header components.
+
 2011-02-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* pgg-gpg.el (pgg-gpg-process-region): Bind
