@@ -2117,7 +2117,7 @@ and overlay is highlighted between MK and END-MK."
 	  ;; Temporarily select msg-buffer-window to make sure it's not
 	  ;; reused by `display-buffer'.
 	  (with-selected-window msg-buffer-window
-	    (display-buffer mk-buffer 'same-frame-other-window))))
+	    (display-buffer-same-frame-other-window mk-buffer))))
     ;; Now select mk-buffer-window.
     (select-window mk-buffer-window)
     (unless (eq (goto-char mk) (point))
@@ -2225,7 +2225,7 @@ attempts to find a file whose name is produced by (format FMT FILENAME)."
 	(compilation-set-window
 	 ;; Apparently the window should be made on the same frame.  If
 	 ;; it should be made in another window but the selected one
-	 ;; call display-buffer-same-frame-other-window.
+	 ;; replace same-frame by t.
 	 (display-buffer-same-frame (marker-buffer marker)) marker)
 	(let* ((name (read-file-name
 		      (format "Find this %s in (default %s): "

@@ -159,7 +159,7 @@ Lisp_Object Qget_file_buffer;
 
 Lisp_Object Qoverlayp;
 
-Lisp_Object Qpriority, Qevaporate, Qbefore_string, Qafter_string;
+Lisp_Object Qpriority, Qclone_number, Qevaporate, Qbefore_string, Qafter_string;
 
 Lisp_Object Qmodification_hooks;
 Lisp_Object Qinsert_in_front_hooks;
@@ -2873,10 +2873,13 @@ sort_overlays (Lisp_Object *overlay_vec, int noverlays, struct window *w)
 	     overlays that are limited to some other window.  */
 	  if (w)
 	    {
-	      Lisp_Object window;
+	      Lisp_Object window, clone_number;
 
 	      window = Foverlay_get (overlay, Qwindow);
-	      if (WINDOWP (window) && XWINDOW (window) != w)
+	      clone_number = Foverlay_get (overlay, Qclone_number);
+	      if (WINDOWP (window) && XWINDOW (window) != w
+		  && (! NUMBERP (clone_number)
+		      || XFASTINT (clone_number) != XFASTINT (w->clone_number)))
 		continue;
 	    }
 
@@ -3001,7 +3004,7 @@ record_overlay_string (struct sortstrlist *ssl, Lisp_Object str, Lisp_Object str
 EMACS_INT
 overlay_strings (EMACS_INT pos, struct window *w, unsigned char **pstr)
 {
-  Lisp_Object overlay, window, str;
+  Lisp_Object overlay, window, clone_number, str;
   struct Lisp_Overlay *ov;
   EMACS_INT startpos, endpos;
   int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
@@ -3020,8 +3023,12 @@ overlay_strings (EMACS_INT pos, struct window *w, unsigned char **pstr)
       if (endpos != pos && startpos != pos)
 	continue;
       window = Foverlay_get (overlay, Qwindow);
-      if (WINDOWP (window) && XWINDOW (window) != w)
+      clone_number = Foverlay_get (overlay, Qclone_number);
+      if (WINDOWP (window) && XWINDOW (window) != w
+	  && (! NUMBERP (clone_number)
+	      || XFASTINT (clone_number) != XFASTINT (w->clone_number)))
 	continue;
+
       if (startpos == pos
 	  && (str = Foverlay_get (overlay, Qbefore_string), STRINGP (str)))
 	record_overlay_string (&overlay_heads, str,
@@ -3048,8 +3055,12 @@ overlay_strings (EMACS_INT pos, struct window *w, unsigned char **pstr)
       if (endpos != pos && startpos != pos)
 	continue;
       window = Foverlay_get (overlay, Qwindow);
-      if (WINDOWP (window) && XWINDOW (window) != w)
+      clone_number = Foverlay_get (overlay, Qclone_number);
+      if (WINDOWP (window) && XWINDOW (window) != w
+	  && (! NUMBERP (clone_number)
+	      || XFASTINT (clone_number) != XFASTINT (w->clone_number)))
 	continue;
+
       if (startpos == pos
 	  && (str = Foverlay_get (overlay, Qbefore_string), STRINGP (str)))
 	record_overlay_string (&overlay_heads, str,
@@ -5206,6 +5217,8 @@ syms_of_buffer (void)
   staticpro (&Qget_file_buffer);
   Qpriority = intern_c_string ("priority");
   staticpro (&Qpriority);
+  Qclone_number = intern_c_string ("clone-number");
+  staticpro (&Qclone_number);
   Qbefore_string = intern_c_string ("before-string");
   staticpro (&Qbefore_string);
   Qafter_string = intern_c_string ("after-string");

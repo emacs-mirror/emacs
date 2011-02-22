@@ -1,3 +1,69 @@
+2011-02-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* progmodes/compile.el (compilation-goto-locus): Call
+	display-buffer-same-frame-other-window.
+
+	* window.el (window-atom-check-1): Fix handling of case where
+	only one atomic window was left.
+	(window-sizable-p): Fix doc-string.
+	(window-size-fixed-p): Move after window-size-firxed-1.
+	(split-window): Make sure that the new window gets any odd line
+	since this was the Emacs 23 behavior.
+	(window-list-no-nils, window-state-get-1, window-state-get)
+	(window-state-put-1, window-state-put-2, window-state-put): New
+	functions.
+	(window-state-ignored-parameters, window-state-put-list): New
+	variables.
+	(display-buffer-alist): Fix doc-string.
+	(display-buffer-even-sizes): Rename to
+	display-buffer-even-window-sizes.
+	(display-buffer-reuse-window): Call
+	display-buffer-even-window-sizes.
+	(display-buffer-pop-up-window): Don't pass specifiers to side
+	window function. 
+	(display-buffer-same-window, display-buffer-same-frame)
+	(display-buffer-other-window)
+	(display-buffer-same-frame-other-window)
+	(pop-to-buffer-same-frame)
+	(pop-to-buffer-same-frame-other-window): Make these interactive.
+	(display-buffer-alist-add, display-buffer-alist-set): New
+	functions.
+
+2011-01-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-pop-up-frame): Fix typo.  Pass
+	pop-up-frame-alist to pop-up-frame-function only if the latter
+	is a symbol.
+
+2011-01-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.el (pop-up-frame-alist, pop-up-frame-function)
+	(special-display-frame-alist, special-display-popup-frame): Move
+	to window.el.
+
+	* window.el (display-buffer-alist): Remove some specifiers from
+	default value.  Fix some typos.
+	(pop-up-frame-alist, pop-up-frame-function)
+	(special-display-frame-alist, special-display-popup-frame): Move
+	here from frame.el.  Disable byte compiler obsolete warnings.
+	(special-display-p, same-window-p): Restore Emacs 23 definitions
+	with obsolete warnings for byte compiler disabled.
+
+2011-01-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (delete-other-windows): Mention return value in
+	doc-string.
+	(display-buffer-method-specifiers): Remove variable.
+	(display-buffer-alist): Add fun-with-args specifier.
+	(display-buffer-even-sizes): Simplify code.
+	(display-buffer): Handle fun-with-args specifier.
+	(mouse-autoselect-window-select): Replace condition-case by
+	ignore-errors.
+
+2011-01-17  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-even-sizes): Fix typo.
+
 2011-01-14  Martin Rudalics  <rudalics@gmx.at>
 
 	* simple.el (compose-mail-other-frame): Fix typo introduced in

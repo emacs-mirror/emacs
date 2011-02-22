@@ -351,25 +351,18 @@ selected windows appears and to which many commands apply.  */)
 
 int window_select_count;
 
-/* Note that selected_window can be nil when this is called from
-   Fset_window_configuration.  */
-DEFUN ("select-window", Fselect_window, Sselect_window, 1, 2, 0,
-       doc: /* Select WINDOW.  Most editing will apply to WINDOW's buffer.
-Also make WINDOW's buffer current and make WINDOW the frame's selected
-window.  Return WINDOW.
-
-Optional second arg NORECORD non-nil means do not put this buffer at the
-front of the buffer list and do not make this window the most recently
-selected one.
-
-Note that the main editor command loop sets the current buffer to the
-buffer of the selected window before each command.  */)
-  (register Lisp_Object window, Lisp_Object norecord)
+/* If select_window is called with inhibit_point_swap non-zero it will
+   not store point of the old selected window's buffer back into that
+   window's pointm slot.  This is needed by Fset_window_configuration to
+   avoid that the display routine is called with selected_window set to
+   Qnil causing a subsequent crash.  */
+static Lisp_Object
+select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
 {
   register struct window *w;
   register struct window *ow;
   struct frame *sf;
-  int not_selected_before = !EQ (window, selected_window);
+  int not_selected_before = !EQ (window, selected_window) || inhibit_point_swap;
 
   CHECK_LIVE_WINDOW (window);
 
@@ -394,11 +387,11 @@ buffer of the selected window before each command.  */)
       else
 	sf->selected_window = window;
 
-      /* Store the current buffer's actual point into the
-	 old selected window.  It belongs to that window,
-	 and when the window is not selected, must be in the window.  */
-      if (!NILP (selected_window))
+      if (!inhibit_point_swap)
 	{
+	  /* Store the current buffer's actual point into the old
+	     selected window.  It belongs to that window, and when the
+	     window is not selected, must be in the window.  */
 	  ow = XWINDOW (selected_window);
 	  if (! NILP (ow->buffer))
 	    set_marker_both (ow->pointm, ow->buffer,
@@ -440,7 +433,34 @@ buffer of the selected window before each command.  */)
 
   return window;
 }
+
+
+/* Note that selected_window can be nil when this is called from
+   Fset_window_configuration.  */
+DEFUN ("select-window", Fselect_window, Sselect_window, 1, 2, 0,
+       doc: /* Select WINDOW.  Most editing will apply to WINDOW's buffer.
+Also make WINDOW's buffer current and make WINDOW the frame's selected
+window.  Return WINDOW.
+
+Optional second arg NORECORD non-nil means do not put this buffer at the
+front of the buffer list and do not make this window the most recently
+selected one.
+
+Note that the main editor command loop sets the current buffer to the
+buffer of the selected window before each command.  */)
+  (register Lisp_Object window, Lisp_Object norecord)
+{
+  return select_window (window, norecord, 0);
+}
 
+DEFUN ("window-clone-number", Fwindow_clone_number, Swindow_clone_number, 0, 1, 0,
+       doc: /* Return WINDOW's clone number.
+WINDOW can be any window and defaults to the selected one.  */)
+     (Lisp_Object window)
+{
+  return decode_any_window (window)->clone_number;
+}
+
 DEFUN ("window-buffer", Fwindow_buffer, Swindow_buffer, 0, 1, 0,
        doc: /* Return the buffer that WINDOW is displaying.
 WINDOW can be any window and defaults to the selected one.
@@ -493,6 +513,33 @@ Return nil if WINDOW has no left sibling.  */)
   (Lisp_Object window)
 {
   return decode_any_window (window)->prev;
+}
+
+DEFUN ("window-nested", Fwindow_nested, Swindow_nested, 0, 1, 0,
+       doc: /* Return non-nil when WINDOW is nested.
+WINDOW can be any window and defaults to the selected one.
+
+Subwindows of a nested are never \(re-)combined with the window's
+siblings.  */)
+  (Lisp_Object window)
+{
+  return decode_any_window (window)->nested;
+}
+
+DEFUN ("set-window-nested", Fset_window_nested, Sset_window_nested, 2, 2, 0,
+       doc: /* Set nesting of WINDOW to STATUS.
+WINDOW must be an internal window.  Return STATUS.
+
+When a window is nested its subwindows are never recombined with the
+window's siblings.  */)
+  (Lisp_Object window, Lisp_Object status)
+{
+  register struct window *w = decode_any_window (window);
+
+  if (! NILP (w->buffer))
+    w->nested = status;
+
+  return w->nested;
 }
 
 DEFUN ("window-use-time", Fwindow_use_time, Swindow_use_time, 0, 1, 0,
@@ -1874,7 +1921,7 @@ recombine_windows (Lisp_Object window)
 
   w = XWINDOW (window);
   parent = w->parent;
-  if (NILP (w->inhibit_recombine) && !NILP (parent))
+  if (NILP (w->nested) && !NILP (parent))
     {
       p = XWINDOW (parent);
       if (((!NILP (p->vchild) && !NILP (w->vchild))
@@ -1934,7 +1981,6 @@ recombine_windows (Lisp_Object window)
 	}
     }
 }
-
 
 /* If WINDOW can be deleted, delete it.  */
 Lisp_Object
@@ -2361,9 +2407,9 @@ be listed first but no error is signalled.  */)
 enum window_loop
 {
   WINDOW_LOOP_UNUSED,
-  GET_BUFFER_WINDOW,		/* Arg is buffer */
+  GET_BUFFER_WINDOW,		    /* Arg is buffer */
   REPLACE_BUFFER_IN_WINDOWS_SAFELY, /* Arg is buffer */
-  REDISPLAY_BUFFER_WINDOWS,	/* Arg is buffer */
+  REDISPLAY_BUFFER_WINDOWS,	    /* Arg is buffer */
   CHECK_ALL_WINDOWS
 };
 
@@ -2897,7 +2943,7 @@ run_window_configuration_change_hook (struct frame *f)
   if (SELECTED_FRAME () != f)
     {
       record_unwind_protect (select_frame_norecord, Fselected_frame ());
-      Fselect_frame (frame, Qt);
+      select_frame_norecord (frame);
     }
 
   /* Use the right buffer.  Matters when running the local hooks.  */
@@ -3042,6 +3088,18 @@ set_window_buffer (Lisp_Object window, Lisp_Object buffer, int run_hooks_p, int 
     }
 
   unbind_to (count, Qnil);
+}
+
+DEFUN ("set-window-clone-number", Fset_window_clone_number, Sset_window_clone_number, 2, 2, 0,
+       doc: /* Set WINDOW's clone number to CLONE-NUMBER.
+WINDOW can be any window and defaults to the selected one.  */)
+     (Lisp_Object window, Lisp_Object clone_number)
+{
+  register struct window *w = decode_any_window (window);
+
+  CHECK_NUMBER (clone_number);
+  w->clone_number = clone_number;
+  return w->clone_number;
 }
 
 DEFUN ("set-window-buffer", Fset_window_buffer, Sset_window_buffer, 2, 3, 0,
@@ -3231,6 +3289,7 @@ make_parent_window (Lisp_Object window, int horflag)
 
   ++sequence_number;
   XSETFASTINT (p->sequence_number, sequence_number);
+  XSETFASTINT (p->clone_number, sequence_number);
 
   replace_window (window, parent, 1);
 
@@ -3274,6 +3333,7 @@ make_window (void)
   XSETFASTINT (w->use_time, 0);
   ++sequence_number;
   XSETFASTINT (w->sequence_number, sequence_number);
+  XSETFASTINT (w->clone_number, sequence_number);
   w->temslot = w->last_modified = w->last_overlay_modified = Qnil;
   XSETFASTINT (w->last_point, 0);
   w->last_had_star = w->vertical_scroll_bar = Qnil;
@@ -3289,7 +3349,7 @@ make_window (void)
   w->start_at_line_beg = w->display_table = w->dedicated = Qnil;
   w->base_line_number = w->base_line_pos = w->region_showing = Qnil;
   w->column_number_displayed = w->redisplay_end_trigger = Qnil;
-  w->inhibit_recombine = w->window_parameters = Qnil;
+  w->nested = w->window_parameters = Qnil;
   w->prev_buffers = w->next_buffers = Qnil;
   /* Initialize non-Lisp data.  */
   w->desired_matrix = w->current_matrix = 0;
@@ -3541,7 +3601,7 @@ be applied on the Elisp level.  */)
   r = XWINDOW (FRAME_ROOT_WINDOW (f));
 
   if (!resize_window_check (r, horflag)
-      || ! EQ (r->new_total, horflag ? r->total_cols : r->total_lines))
+      || ! EQ (r->new_total, (horflag ? r->total_cols : r->total_lines)))
     return Qnil;
 
   BLOCK_INPUT;
@@ -3752,7 +3812,7 @@ divder column.  */)
       p = XWINDOW (o->parent);
       if (EQ (Vwindow_splits, Qnest))
 	/* Make sure that parent is not recombined.  */
-	p->inhibit_recombine = Qt;
+	p->nested = Qt;
       /* These get applied below.  */
       p->new_total = horflag ? o->total_cols : o->total_lines;
       p->new_normal = new_normal;
@@ -3911,7 +3971,7 @@ when WINDOW is the only window on its frame.  */)
     }
 
   if (resize_window_check (r, horflag)
-      && EQ (r->new_total, horflag ? r->total_cols : r->total_lines))
+      && EQ (r->new_total, (horflag ? r->total_cols : r->total_lines)))
     /* We can delete WINDOW now.  */
     {
       /* Block input.  */
@@ -5184,7 +5244,6 @@ and redisplay normally--don't erase and redraw the frame.  */)
   return Qnil;
 }
 
-
 DEFUN ("window-text-height", Fwindow_text_height, Swindow_text_height,
        0, 1, 0,
        doc: /* Return the height in lines of the text display area of WINDOW.
@@ -5308,7 +5367,7 @@ struct saved_window
   EMACS_UINT size;
   struct Lisp_Vector *next_from_Lisp_Vector_struct;
 
-  Lisp_Object window;
+  Lisp_Object window, clone_number;
   Lisp_Object buffer, start, pointm, mark;
   Lisp_Object left_col, top_line, total_cols, total_lines;
   Lisp_Object normal_cols, normal_lines;
@@ -5319,7 +5378,7 @@ struct saved_window
   Lisp_Object left_margin_cols, right_margin_cols;
   Lisp_Object left_fringe_width, right_fringe_width, fringes_outside_margins;
   Lisp_Object scroll_bar_width, vertical_scroll_bar_type, dedicated;
-  Lisp_Object inhibit_recombine;
+  Lisp_Object nested;
   Lisp_Object window_parameters;
 };
 
@@ -5528,6 +5587,7 @@ the return value is nil.  Otherwise the value is t.  */)
 		}
 	    }
 
+	  w->clone_number = p->clone_number;
 	  /* If we squirreled away the buffer in the window's height,
 	     restore it now.  */
 	  if (BUFFERP (w->total_lines))
@@ -5549,7 +5609,7 @@ the return value is nil.  Otherwise the value is t.  */)
 	  w->scroll_bar_width = p->scroll_bar_width;
 	  w->vertical_scroll_bar_type = p->vertical_scroll_bar_type;
 	  w->dedicated = p->dedicated;
-	  w->inhibit_recombine = p->inhibit_recombine;
+	  w->nested = p->nested;
 	  w->window_parameters = p->window_parameters;
 	  XSETFASTINT (w->last_modified, 0);
 	  XSETFASTINT (w->last_overlay_modified, 0);
@@ -5585,7 +5645,7 @@ the return value is nil.  Otherwise the value is t.  */)
 	      set_marker_restricted (w->pointm, make_number (0), w->buffer);
 	      w->start_at_line_beg = Qt;
 	      if (!NILP (w->dedicated))
-		/* Record this window as window as dead.  */
+		/* Record this window as dead.  */
 		dead_windows = Fcons (window, dead_windows);
 	      /* Make sure window is no more dedicated.  */
 	      w->dedicated = Qnil;
@@ -5607,11 +5667,6 @@ the return value is nil.  Otherwise the value is t.  */)
 	}
 
       FRAME_ROOT_WINDOW (f) = data->root_window;
-      /* Prevent "swapping out point" in the old selected window
-	 using the buffer that has been restored into it.
-	 We already swapped out point that from that window's old buffer.  */
-      selected_window = Qnil;
-
       /* Arrange *not* to restore point in the buffer that was
 	 current when the window configuration was saved.  */
       if (EQ (XWINDOW (data->current_window)->buffer, new_current_buffer))
@@ -5619,7 +5674,11 @@ the return value is nil.  Otherwise the value is t.  */)
 			       make_number (old_point),
 			       XWINDOW (data->current_window)->buffer);
 
-      Fselect_window (data->current_window, Qnil);
+      /* In the following call to `select-window, prevent "swapping out
+	 point" in the old selected window using the buffer that has
+	 been restored into it.  We already swapped out that point from
+	 that window's old buffer.  */
+      select_window (data->current_window, Qnil, 1);
       XBUFFER (XWINDOW (selected_window)->buffer)->last_selected_window
 	= selected_window;
 
@@ -5803,6 +5862,7 @@ save_window_save (Lisp_Object window, struct Lisp_Vector *vector, int i)
 
       XSETFASTINT (w->temslot, i); i++;
       p->window = window;
+      p->clone_number = w->clone_number;
       p->buffer = w->buffer;
       p->left_col = w->left_col;
       p->top_line = w->top_line;
@@ -5821,7 +5881,7 @@ save_window_save (Lisp_Object window, struct Lisp_Vector *vector, int i)
       p->scroll_bar_width = w->scroll_bar_width;
       p->vertical_scroll_bar_type = w->vertical_scroll_bar_type;
       p->dedicated = w->dedicated;
-      p->inhibit_recombine = w->inhibit_recombine;
+      p->nested = w->nested;
       p->window_parameters = w->window_parameters;
       if (!NILP (w->buffer))
 	{
@@ -6305,8 +6365,7 @@ freeze_window_starts (struct frame *f, int freeze_p)
    and the like.
 
    This ignores a couple of things like the dedicatedness status of
-   window, inhibit_recombine and the like.  This might have to be
-   fixed.  */
+   window, nested and the like.  This might have to be fixed.  */
 
 int
 compare_window_configurations (Lisp_Object configuration1, Lisp_Object configuration2, int ignore_positions)
@@ -6601,12 +6660,15 @@ small or of fixed size.  */);
   defsubr (&Sset_frame_selected_window);
   defsubr (&Spos_visible_in_window_p);
   defsubr (&Swindow_line_height);
+  defsubr (&Swindow_clone_number);
   defsubr (&Swindow_buffer);
   defsubr (&Swindow_parent);
   defsubr (&Swindow_vchild);
   defsubr (&Swindow_hchild);
   defsubr (&Swindow_next);
   defsubr (&Swindow_prev);
+  defsubr (&Swindow_nested);
+  defsubr (&Sset_window_nested);
   defsubr (&Swindow_use_time);
   defsubr (&Swindow_top_line);
   defsubr (&Swindow_left_column);
@@ -6646,6 +6708,7 @@ small or of fixed size.  */);
   defsubr (&Sdelete_window_internal);
   defsubr (&Sresize_mini_window_internal);
   defsubr (&Sset_window_buffer);
+  defsubr (&Sset_window_clone_number);
   defsubr (&Srun_window_configuration_change_hook);
   defsubr (&Sselect_window);
   defsubr (&Sforce_window_update);

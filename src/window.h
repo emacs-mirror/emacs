@@ -110,7 +110,7 @@ struct window
        unless the window is dead.  */
     Lisp_Object hchild, vchild;
 
-    /* The window this one is a child of. */
+    /* The window this one is a child of.  */
     Lisp_Object parent;
 
     /* The upper left corner coordinates of this window, as integers
@@ -162,20 +162,26 @@ struct window
        the user has set, by set-window-hscroll for example.  */
     Lisp_Object min_hscroll;
 
-    /* Number saying how recently window was selected */
+    /* Number saying how recently window was selected.  */
     Lisp_Object use_time;
 
-    /* Unique number of window assigned when it was created */
+    /* Unique number of window assigned when it was created.  */
     Lisp_Object sequence_number;
 
-    /* No permanent meaning; used by save-window-excursion's bookkeeping */
+    /* Sequence number of window this window was cloned from.  Identic
+       to sequence number if window was not cloned.  */
+    Lisp_Object clone_number;
+
+    /* No permanent meaning; used by save-window-excursion's
+       bookkeeping.  */
     Lisp_Object temslot;
 
-    /* text.modified of displayed buffer as of last time display completed */
+    /* text.modified of displayed buffer as of last time display
+       completed.  */
     Lisp_Object last_modified;
     /* BUF_OVERLAY_MODIFIED of displayed buffer as of last complete update.  */
     Lisp_Object last_overlay_modified;
-    /* Value of point at that time */
+    /* Value of point at that time.  */
     Lisp_Object last_point;
     /* Non-nil if the buffer was "modified" when the window
        was last updated.  */
@@ -259,8 +265,8 @@ struct window
        must run the redisplay-end-trigger-hook.  */
     Lisp_Object redisplay_end_trigger;
 
-    /* Non-nil means window must not be recombined.  */
-    Lisp_Object inhibit_recombine;
+    /* Non-nil means this window's subwindows are never recombined.  */
+    Lisp_Object nested;
 
     /* Alist of <buffer, window-start, window-point> triples listing
        buffers previously shown in this window.  */

@@ -1,3 +1,36 @@
+2011-02-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.h (w): New slot clone_number.  Rename
+	"inhibit_recombine" slot to "nested".
+
+	* window.c (Fwindow_clone_number, Fwindow_nested)
+	(Fset_window_nested, Fset_window_clone_number): New functions.
+	(recombine_windows): Write "nested" isntead of
+	"inhibit_recombine".
+	(make_parent_window): Set clone_number.
+	(make_window): Set clone_number.  Write "nested" instead of
+	"inhibit_recombine".
+	(Fsplit_window_internal): Write "nested" instead of
+	"inhibit_recombine".
+	(Fresize_window_apply, Fdelete_window_internal): Add parens in
+	EQ test.
+	(saved_window): Add clone_number and write "nested" instead of
+	"inhibit_recombine".
+	(Fset_window_configuration, save_window_save): Set clone_number
+	and write "nested" instead of "inhibit_recombine".
+	(syms_of_window): Add Swindow_clone_number, Swindow_nested,
+	Sset_window_nested and Sset_window_clone_number.
+
+	* buffer.c (sort_overlays, overlay_strings): When an overlay has
+	the same clone-number property as the associated window don't
+	skip it even if the window properties are different.
+	(syms_of_buffer): Intern new Lisp_object Qclone_number.
+
+2011-01-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (run_window_configuration_change_hook): Call
+	select_frame_norecord instead of Fselect_frame.
+
 2011-01-11  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* image.c (imagemagick_load_image, Finit_image_library): Free
