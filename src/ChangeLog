@@ -1,3 +1,7 @@
+2011-02-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* dired.c (Ffile_attributes): Simplify and avoid #ifdef.
+
 2011-02-22  Wolfgang Jenkner  <wjenkner@inode.at>  (tiny change)
 
 	* lread.c (openp): Correct Boolean typo in last commit.

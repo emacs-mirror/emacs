@@ -963,17 +963,8 @@ so last access time will always be midnight of that day.  */)
   if (lstat (SSDATA (encoded), &s) < 0)
     return Qnil;
 
-  switch (s.st_mode & S_IFMT)
-    {
-    default:
-      values[0] = Qnil; break;
-    case S_IFDIR:
-      values[0] = Qt; break;
-#ifdef S_IFLNK
-    case S_IFLNK:
-      values[0] = Ffile_symlink_p (filename); break;
-#endif
-    }
+  values[0] = (S_ISLNK (s.st_mode) ? Ffile_symlink_p (filename)
+	       : S_ISDIR (s.st_mode) ? Qt : Qnil);
   values[1] = make_number (s.st_nlink);
 
   if (!(NILP (id_format) || EQ (id_format, Qinteger)))
