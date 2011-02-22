@@ -4,6 +4,7 @@
 	* ebrowse.c (min, max): Define them by including <min-max.h>
 	instead of defining it ourselves.
 	* pop.c (min): Likewise.
+	* Makefile.in (ebrowse${EXEEXT}, pop.o): Depend on min-max.h.
 
 	* movemail.c (popmail): Report fchown failure instead of ignoring it.
 	But if the file already has the right ownership, don't worry about it.
