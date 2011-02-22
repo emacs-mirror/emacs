@@ -262,6 +262,13 @@ main (int argc, char **argv)
   if (! spool_name)
 #endif
     {
+      #ifndef DIRECTORY_SEP
+       #define DIRECTORY_SEP '/'
+      #endif
+      #ifndef IS_DIRECTORY_SEP
+       #define IS_DIRECTORY_SEP(_c_) ((_c_) == DIRECTORY_SEP)
+      #endif
+
       /* Use a lock file named after our first argument with .lock appended:
 	 If it exists, the mail file is locked.  */
       /* Note: this locking mechanism is *required* by the mailer
@@ -862,6 +869,12 @@ static int
 mbx_write (char *line, int len, FILE *mbf)
 {
 #ifdef MOVEMAIL_QUOTE_POP_FROM_LINES
+  /* Do this as a macro instead of using strcmp to save on execution time. */
+  # define IS_FROM_LINE(a) ((a[0] == 'F')	\
+			    && (a[1] == 'r')	\
+			    && (a[2] == 'o')	\
+			    && (a[3] == 'm')	\
+			    && (a[4] == ' '))
   if (IS_FROM_LINE (line))
     {
       if (fputc ('>', mbf) == EOF)

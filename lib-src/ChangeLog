@@ -14,8 +14,9 @@
 
 	* movemail.c (main, pop_retr): Rename locals to avoid shadowing.
 	(progname, sfi, sfo, ibuffer, obuffer): Remove unused vars.
-	(DIRECTORY_SEP, IS_DIRECTORY_SEP, DONE, IS_FROM_LINE):
-	Remove unused macros.
+	(DONE): Remove unused macro.
+	(DIRECTORY_SEP, IS_DIRECTORY_SEP, IS_FROM_LINE):
+	Define these macros only in the contexts that need them.
 	* pop.c (index): Remove unused macro.
 	(KPOP_PORT): Define only if KERBEROS is defined.
 
