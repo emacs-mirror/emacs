@@ -476,7 +476,8 @@ suitable file is found, return nil."
       (let* ((advertised (gethash def advertised-signature-table t))
 	     (arglist (if (listp advertised)
 			  advertised (help-function-arglist def)))
-	     (doc (documentation function))
+	     (doc (condition-case err (documentation function)
+                    (error (format "No Doc! %S" err))))
 	     (usage (help-split-fundoc doc function)))
 	(with-current-buffer standard-output
 	  ;; If definition is a keymap, skip arglist note.

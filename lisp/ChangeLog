@@ -1,3 +1,8 @@
+2011-02-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* help-fns.el (describe-function-1): Don't signal an error just because
+	the DOC file disappeared.
+
 2011-02-22  Seppo Sade <sepposade1@gmail.com>  (tiny change)
 
 	* eshell/esh-ext.el (eshell-external-command): Do not restrict
@@ -29,10 +34,10 @@
 
 	* faces.el (color-values): Use cond for clarity.  Doc fix.
 
-	* facemenu.el (color-rgb-to-hsv): Deleted; use the version in
+	* facemenu.el (color-rgb-to-hsv): Delete; use the version in
 	color.el instead.
-	(list-colors-sort-key, list-colors-print): Use
-	color-normalized-values.
+	(list-colors-sort-key, list-colors-print):
+	Use color-normalized-values.
 
 2011-02-20  Drew Adams  <drew.adams@oracle.com>
 
@@ -82,8 +87,8 @@
 	(vc-bzr-error-regex-alist): New var.
 	(vc-bzr-merge-branch): Use it to highlight the pull/merge buffer.
 
-	* vc/vc-dispatcher.el (vc-do-async-command): Bind
-	inhibit-read-only to t.
+	* vc/vc-dispatcher.el (vc-do-async-command):
+	Bind inhibit-read-only to t.
 
 	* progmodes/compile.el (compilation--flush-directory-cache):
 	Handle the case where cdr of compilation--flush-directory-cache
@@ -147,8 +152,8 @@
 	* apropos.el (apropos-print): Call apropos-mode before setting up
 	buffer variables.  Use inhibit-read-only.
 
-	* emacs-lisp/package.el (package--list-packages): Call
-	package-menu-mode before setting up buffer variables.
+	* emacs-lisp/package.el (package--list-packages):
+	Call package-menu-mode before setting up buffer variables.
 
 	* play/solitaire.el (solitaire): Call solitaire-mode before
 	setting up buffer variables.  Use inhibit-read-only.
@@ -8520,7 +8525,7 @@
 	(sql-interactive-mode-menu): Add "Save Connection" item.
 	(sql-add-product): Fix menu item.
 	(sql-get-product-feature): Improved error handling.
-	(sql--alt-buffer-part, sql--alt-if-not-empty): Removed.
+	(sql--alt-buffer-part, sql--alt-if-not-empty): Remove.
 	(sql-make-alternate-buffer-name): Simplified.
 	(sql-product-interactive): Handle missing product.
 	(sql-connect): Support string keys, minor improvements.
@@ -8915,7 +8920,7 @@
 	(delete-backward-char): Implement in Lisp.
 	(delete-forward-char): New command.
 
-	* mouse.el (mouse-region-delete-keys): Deleted.
+	* mouse.el (mouse-region-delete-keys): Delete.
 	(mouse-show-mark): Simplify.
 
 	* bindings.el (global-map): Bind delete and DEL, the former to
@@ -13224,7 +13229,7 @@
 	(ada-goto-label-re): New; matches goto labels.
 	(ada-block-label-re): New; matches block labels.
 	(ada-label-re): New; matches both.
-	(ada-named-block-re): Deleted; callers changed to use
+	(ada-named-block-re): Delete; callers changed to use
 	`ada-block-label-re' instead.
 	(ada-get-current-indent, ada-get-indent-noindent, ada-get-indent-loop):
 	Use `ada-block-label-re'.
@@ -20844,7 +20849,7 @@
 	(def-gdb-memory-format, def-gdb-memory-unit): Update memory buffer
 	after changing settings.
 	(gdb-invalidate-disassembly): Update when first shown.
-	(gdb-edit-locals-value): Fixed.
+	(gdb-edit-locals-value): Fix.
 	(gdb-registers-handler-custom): Print registers in right order and
 	allow changing register values (only for current thread yet).
 	(gdb-breakpoints-mode-map): Don't assume threads buffer is present.
@@ -20895,7 +20900,7 @@
 
 2009-08-06  Dmitry Dzhus  <dima@sphinx.net.ru>
 
-	* progmodes/gdb-mi.el (gdb-var-create-regexp): Removed.
+	* progmodes/gdb-mi.el (gdb-var-create-regexp): Remove.
 	(gdb-var-create-handler): Rewritten using JSON parser.
 	(gdb-propertize-header): Move earlier.
 	(gdb-set-header): Remove to avoid duplication.
