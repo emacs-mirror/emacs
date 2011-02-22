@@ -1,5 +1,16 @@
 2011-02-22  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Work around some portability problems with symlinks.
+	* Makefile.in (GNULIB_MODULES): Add lstat, readlink, symlink.
+	* configure.in (lstat, HAVE_LSTAT): Remove special hack.
+	* lib/lstat.c, lib/readlink.c, lib/stat.c, lib/symlink.c:
+	* m4/dos.m4, m4/lstat.m4, m4/readlink.m4, m4/stat.m4, m4/symlink.m4:
+	New files, automatically generated from gnulib.
+	* aclocal.m4, configure, lib/Makefile.in, lib/gnulib.mk:
+	* lib/stdlib.in.h, m4/gl-comp.m4, m4/stdlib_h.m4: Regenerate.
+
+2011-02-22  Paul Eggert  <eggert@cs.ucla.edu>
+
 	Assume S_ISLNK etc. work, since gnulib supports this.
 	* Makefile.in (GNULIB_MODULES): Add sys_stat.
 	* configure.in: Check for lstat and set HAVE_LSTAT=0 if not.

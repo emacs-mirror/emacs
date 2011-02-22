@@ -72,6 +72,19 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Enable expensive run-time checking of data types? */
 #undef ENABLE_CHECKING
 
+/* Define on systems for which file names may have a so-called `drive letter'
+   prefix, define this to compute the length of that prefix, including the
+   colon. */
+#undef FILE_SYSTEM_ACCEPTS_DRIVE_LETTER_PREFIX
+
+/* Define if the backslash character may also serve as a file name component
+   separator. */
+#undef FILE_SYSTEM_BACKSLASH_IS_FILE_NAME_SEPARATOR
+
+/* Define if a drive letter prefix denotes a relative path if it is not
+   followed by a file name component separator. */
+#undef FILE_SYSTEM_DRIVE_PREFIX_CAN_BE_RELATIVE
+
 /* Define this to check for errors in cons list. */
 #undef GC_CHECK_CONS_LIST
 
@@ -576,6 +589,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `random' function. */
 #undef HAVE_RANDOM
 
+/* Define to 1 if you have the `readlink' function. */
+#undef HAVE_READLINK
+
 /* Define to 1 if you have the `recvfrom' function. */
 #undef HAVE_RECVFROM
 
@@ -695,6 +711,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define if struct stat has an st_dm_mode member. */
 #undef HAVE_ST_DM_MODE
+
+/* Define to 1 if you have the `symlink' function. */
+#undef HAVE_SYMLINK
 
 /* Define to 1 if you have the `sync' function. */
 #undef HAVE_SYNC
@@ -888,6 +907,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to support using a Hesiod database to find the POP server. */
 #undef HESIOD
 
+#if FILE_SYSTEM_BACKSLASH_IS_FILE_NAME_SEPARATOR
+# define ISSLASH(C) ((C) == '/' || (C) == '\\')
+#else
+# define ISSLASH(C) ((C) == '/')
+#endif
+
 /* Define to support Kerberos-authenticated POP mail retrieval. */
 #undef KERBEROS
 
@@ -896,6 +921,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if localtime caches TZ. */
 #undef LOCALTIME_CACHE
+
+/* Define to 1 if `lstat' dereferences a symlink specified with a trailing
+   slash. */
+#undef LSTAT_FOLLOWS_SLASHED_SYMLINK
 
 /* String giving fallback POP mail host. */
 #undef MAILHOST
@@ -968,9 +997,20 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    'ptrdiff_t'. */
 #undef PTRDIFF_T_SUFFIX
 
+/* Define to 1 if readlink fails to recognize a trailing slash. */
+#undef READLINK_TRAILING_SLASH_BUG
+
 /* Define REL_ALLOC if you want to use the relocating allocator for buffer
    space. */
 #undef REL_ALLOC
+
+/* Define to 1 if stat needs help when passed a directory name with a trailing
+   slash */
+#undef REPLACE_FUNC_STAT_DIR
+
+/* Define to 1 if stat needs help when passed a file name with a trailing
+   slash */
+#undef REPLACE_FUNC_STAT_FILE
 
 /* Define as the return type of signal handlers (`int' or `void'). */
 #undef RETSIGTYPE

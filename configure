@@ -679,38 +679,6 @@ NEXT_AS_FIRST_DIRECTIVE_TIME_H
 NEXT_TIME_H
 NEXT_AS_FIRST_DIRECTIVE_SYS_STAT_H
 NEXT_SYS_STAT_H
-REPLACE_UTIMENSAT
-REPLACE_STAT
-REPLACE_MKNOD
-REPLACE_MKFIFO
-REPLACE_MKDIR
-REPLACE_LSTAT
-REPLACE_FUTIMENS
-REPLACE_FSTATAT
-REPLACE_FSTAT
-HAVE_UTIMENSAT
-HAVE_MKNODAT
-HAVE_MKNOD
-HAVE_MKFIFOAT
-HAVE_MKFIFO
-HAVE_MKDIRAT
-HAVE_LSTAT
-HAVE_LCHMOD
-HAVE_FUTIMENS
-HAVE_FSTATAT
-HAVE_FCHMODAT
-GNULIB_UTIMENSAT
-GNULIB_STAT
-GNULIB_MKNODAT
-GNULIB_MKNOD
-GNULIB_MKFIFOAT
-GNULIB_MKFIFO
-GNULIB_MKDIRAT
-GNULIB_LSTAT
-GNULIB_LCHMOD
-GNULIB_FUTIMENS
-GNULIB_FSTATAT
-GNULIB_FCHMODAT
 NEXT_AS_FIRST_DIRECTIVE_STDLIB_H
 NEXT_STDLIB_H
 STDINT_H
@@ -758,6 +726,38 @@ GNULIB_TIMEGM
 GNULIB_STRPTIME
 GNULIB_NANOSLEEP
 GNULIB_MKTIME
+REPLACE_UTIMENSAT
+REPLACE_STAT
+REPLACE_MKNOD
+REPLACE_MKFIFO
+REPLACE_MKDIR
+REPLACE_LSTAT
+REPLACE_FUTIMENS
+REPLACE_FSTATAT
+REPLACE_FSTAT
+HAVE_UTIMENSAT
+HAVE_MKNODAT
+HAVE_MKNOD
+HAVE_MKFIFOAT
+HAVE_MKFIFO
+HAVE_MKDIRAT
+HAVE_LSTAT
+HAVE_LCHMOD
+HAVE_FUTIMENS
+HAVE_FSTATAT
+HAVE_FCHMODAT
+GNULIB_UTIMENSAT
+GNULIB_STAT
+GNULIB_MKNODAT
+GNULIB_MKNOD
+GNULIB_MKFIFOAT
+GNULIB_MKFIFO
+GNULIB_MKDIRAT
+GNULIB_LSTAT
+GNULIB_LCHMOD
+GNULIB_FUTIMENS
+GNULIB_FSTATAT
+GNULIB_FCHMODAT
 LTLIBINTL
 LIBINTL
 GETOPT_H
@@ -874,6 +874,7 @@ GNULIB_DUP2
 GNULIB_CLOSE
 GNULIB_CHOWN
 GETLOADAVG_LIBS
+REPLACE_WCTOMB
 REPLACE_UNSETENV
 REPLACE_STRTOD
 REPLACE_SETENV
@@ -881,6 +882,7 @@ REPLACE_REALPATH
 REPLACE_REALLOC
 REPLACE_PUTENV
 REPLACE_MKSTEMP
+REPLACE_MBTOWC
 REPLACE_MALLOC
 REPLACE_CANONICALIZE_FILE_NAME
 REPLACE_CALLOC
@@ -909,6 +911,7 @@ HAVE_DECL_GETLOADAVG
 HAVE_CANONICALIZE_FILE_NAME
 HAVE_ATOLL
 HAVE__EXIT
+GNULIB_WCTOMB
 GNULIB_UNSETENV
 GNULIB_UNLOCKPT
 GNULIB_SYSTEM_POSIX
@@ -927,6 +930,7 @@ GNULIB_MKSTEMP
 GNULIB_MKOSTEMPS
 GNULIB_MKOSTEMP
 GNULIB_MKDTEMP
+GNULIB_MBTOWC
 GNULIB_MALLOC_POSIX
 GNULIB_GRANTPT
 GNULIB_GETSUBOPT
@@ -2956,14 +2960,16 @@ as_fn_append ac_header_list " unistd.h"
 as_fn_append ac_header_list " sys/param.h"
 gl_getopt_required=GNU
 as_fn_append ac_header_list " getopt.h"
+as_fn_append ac_func_list " lstat"
 as_fn_append ac_func_list " alarm"
+as_fn_append ac_func_list " readlink"
 as_fn_append ac_header_list " wchar.h"
 as_fn_append ac_header_list " stdint.h"
 as_fn_append ac_func_list " tzset"
+as_fn_append ac_func_list " symlink"
 as_fn_append ac_header_list " sys/stat.h"
 as_fn_append ac_header_list " sys/time.h"
 as_fn_append ac_func_list " localtime_r"
-as_fn_append ac_func_list " lstat"
 # Check that the precious variables saved in the cache have kept the same
 # value.
 ac_cache_corrupted=false
@@ -6133,13 +6139,17 @@ $as_echo "$ac_cv_safe_to_define___extensions__" >&6; }
   # Code from module ignore-value:
   # Code from module include_next:
   # Code from module intprops:
+  # Code from module lstat:
   # Code from module mktime:
   # Code from module multiarch:
+  # Code from module readlink:
+  # Code from module stat:
   # Code from module stdbool:
   # Code from module stddef:
   # Code from module stdint:
   # Code from module stdlib:
   # Code from module strftime:
+  # Code from module symlink:
   # Code from module sys_stat:
   # Code from module time:
   # Code from module time_r:
@@ -13780,6 +13790,7 @@ _ACEOF
   GNULIB_GETSUBOPT=0;
   GNULIB_GRANTPT=0;
   GNULIB_MALLOC_POSIX=0;
+  GNULIB_MBTOWC=0;
   GNULIB_MKDTEMP=0;
   GNULIB_MKOSTEMP=0;
   GNULIB_MKOSTEMPS=0;
@@ -13798,6 +13809,7 @@ _ACEOF
   GNULIB_SYSTEM_POSIX=0;
   GNULIB_UNLOCKPT=0;
   GNULIB_UNSETENV=0;
+  GNULIB_WCTOMB=0;
     HAVE__EXIT=1;
   HAVE_ATOLL=1;
   HAVE_CANONICALIZE_FILE_NAME=1;
@@ -13826,6 +13838,7 @@ _ACEOF
   REPLACE_CALLOC=0;
   REPLACE_CANONICALIZE_FILE_NAME=0;
   REPLACE_MALLOC=0;
+  REPLACE_MBTOWC=0;
   REPLACE_MKSTEMP=0;
   REPLACE_PUTENV=0;
   REPLACE_REALLOC=0;
@@ -13833,6 +13846,7 @@ _ACEOF
   REPLACE_SETENV=0;
   REPLACE_STRTOD=0;
   REPLACE_UNSETENV=0;
+  REPLACE_WCTOMB=0;
 
 
   GNULIB_CHOWN=0;
@@ -14492,19 +14506,38 @@ fi
 
 
 
-  GNULIB_MKTIME=0;
-  GNULIB_NANOSLEEP=0;
-  GNULIB_STRPTIME=0;
-  GNULIB_TIMEGM=0;
-  GNULIB_TIME_R=0;
-    HAVE_DECL_LOCALTIME_R=1;
-  HAVE_NANOSLEEP=1;
-  HAVE_STRPTIME=1;
-  HAVE_TIMEGM=1;
-        REPLACE_LOCALTIME_R=GNULIB_PORTCHECK;
-  REPLACE_MKTIME=GNULIB_PORTCHECK;
-  REPLACE_NANOSLEEP=GNULIB_PORTCHECK;
-  REPLACE_TIMEGM=GNULIB_PORTCHECK;
+     GNULIB_FCHMODAT=0;
+  GNULIB_FSTATAT=0;
+  GNULIB_FUTIMENS=0;
+  GNULIB_LCHMOD=0;
+  GNULIB_LSTAT=0;
+  GNULIB_MKDIRAT=0;
+  GNULIB_MKFIFO=0;
+  GNULIB_MKFIFOAT=0;
+  GNULIB_MKNOD=0;
+  GNULIB_MKNODAT=0;
+  GNULIB_STAT=0;
+  GNULIB_UTIMENSAT=0;
+    HAVE_FCHMODAT=1;
+  HAVE_FSTATAT=1;
+  HAVE_FUTIMENS=1;
+  HAVE_LCHMOD=1;
+  HAVE_LSTAT=1;
+  HAVE_MKDIRAT=1;
+  HAVE_MKFIFO=1;
+  HAVE_MKFIFOAT=1;
+  HAVE_MKNOD=1;
+  HAVE_MKNODAT=1;
+  HAVE_UTIMENSAT=1;
+  REPLACE_FSTAT=0;
+  REPLACE_FSTATAT=0;
+  REPLACE_FUTIMENS=0;
+  REPLACE_LSTAT=0;
+  REPLACE_MKDIR=0;
+  REPLACE_MKFIFO=0;
+  REPLACE_MKNOD=0;
+  REPLACE_STAT=0;
+  REPLACE_UTIMENSAT=0;
 
 
 
@@ -14520,6 +14553,93 @@ _ACEOF
 
 fi
 done
+
+
+
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether lstat correctly handles trailing slash" >&5
+$as_echo_n "checking whether lstat correctly handles trailing slash... " >&6; }
+if ${ac_cv_func_lstat_dereferences_slashed_symlink+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  rm -f conftest.sym conftest.file
+     echo >conftest.file
+     if test "$as_ln_s" = "ln -s" && ln -s conftest.file conftest.sym; then
+       if test "$cross_compiling" = yes; then :
+  # When cross-compiling, be pessimistic so we will end up using the
+          # replacement version of lstat that checks for trailing slashes and
+          # calls lstat a second time when necessary.
+          ac_cv_func_lstat_dereferences_slashed_symlink=no
+
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+$ac_includes_default
+int
+main ()
+{
+struct stat sbuf;
+              /* Linux will dereference the symlink and fail, as required by
+                 POSIX.  That is better in the sense that it means we will not
+                 have to compile and use the lstat wrapper.  */
+              return lstat ("conftest.sym/", &sbuf) == 0;
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  ac_cv_func_lstat_dereferences_slashed_symlink=yes
+else
+  ac_cv_func_lstat_dereferences_slashed_symlink=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+     else
+       # If the 'ln -s' command failed, then we probably don't even
+       # have an lstat function.
+       ac_cv_func_lstat_dereferences_slashed_symlink=no
+     fi
+     rm -f conftest.sym conftest.file
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_func_lstat_dereferences_slashed_symlink" >&5
+$as_echo "$ac_cv_func_lstat_dereferences_slashed_symlink" >&6; }
+  test $ac_cv_func_lstat_dereferences_slashed_symlink = yes &&
+
+cat >>confdefs.h <<_ACEOF
+#define LSTAT_FOLLOWS_SLASHED_SYMLINK 1
+_ACEOF
+
+  if test "x$ac_cv_func_lstat_dereferences_slashed_symlink" = xno; then
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS lstat.$ac_objext"
+
+  fi
+
+
+  GNULIB_MKTIME=0;
+  GNULIB_NANOSLEEP=0;
+  GNULIB_STRPTIME=0;
+  GNULIB_TIMEGM=0;
+  GNULIB_TIME_R=0;
+    HAVE_DECL_LOCALTIME_R=1;
+  HAVE_NANOSLEEP=1;
+  HAVE_STRPTIME=1;
+  HAVE_TIMEGM=1;
+        REPLACE_LOCALTIME_R=GNULIB_PORTCHECK;
+  REPLACE_MKTIME=GNULIB_PORTCHECK;
+  REPLACE_NANOSLEEP=GNULIB_PORTCHECK;
+  REPLACE_TIMEGM=GNULIB_PORTCHECK;
 
 
 
@@ -14563,6 +14683,104 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
   else
     APPLE_UNIVERSAL_BUILD=0
   fi
+
+
+
+
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether system is Windows or MSDOS" >&5
+$as_echo_n "checking whether system is Windows or MSDOS... " >&6; }
+if ${ac_cv_win_or_dos+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+#if !defined _WIN32 && !defined __WIN32__ && !defined __MSDOS__ && !defined __CYGWIN__
+neither MSDOS nor Windows
+#endif
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  ac_cv_win_or_dos=yes
+else
+  ac_cv_win_or_dos=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_win_or_dos" >&5
+$as_echo "$ac_cv_win_or_dos" >&6; }
+
+    if test x"$ac_cv_win_or_dos" = xyes; then
+      ac_fs_accepts_drive_letter_prefix=1
+      ac_fs_backslash_is_file_name_separator=1
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether drive letter can start relative path" >&5
+$as_echo_n "checking whether drive letter can start relative path... " >&6; }
+if ${ac_cv_drive_letter_can_be_relative+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+
+          cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+#if defined __CYGWIN__
+drive letters are always absolute
+#endif
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  ac_cv_drive_letter_can_be_relative=yes
+else
+  ac_cv_drive_letter_can_be_relative=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_drive_letter_can_be_relative" >&5
+$as_echo "$ac_cv_drive_letter_can_be_relative" >&6; }
+      if test x"$ac_cv_drive_letter_can_be_relative" = xyes; then
+        ac_fs_drive_letter_can_be_relative=1
+      else
+        ac_fs_drive_letter_can_be_relative=0
+      fi
+    else
+      ac_fs_accepts_drive_letter_prefix=0
+      ac_fs_backslash_is_file_name_separator=0
+      ac_fs_drive_letter_can_be_relative=0
+    fi
+
+
+cat >>confdefs.h <<_ACEOF
+#define FILE_SYSTEM_ACCEPTS_DRIVE_LETTER_PREFIX $ac_fs_accepts_drive_letter_prefix
+_ACEOF
+
+
+
+
+
+cat >>confdefs.h <<_ACEOF
+#define FILE_SYSTEM_BACKSLASH_IS_FILE_NAME_SEPARATOR $ac_fs_backslash_is_file_name_separator
+_ACEOF
+
+
+
+cat >>confdefs.h <<_ACEOF
+#define FILE_SYSTEM_DRIVE_PREFIX_CAN_BE_RELATIVE $ac_fs_drive_letter_can_be_relative
+_ACEOF
 
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for stdbool.h that conforms to C99" >&5
@@ -14824,38 +15042,6 @@ fi
 
 
 
-     GNULIB_FCHMODAT=0;
-  GNULIB_FSTATAT=0;
-  GNULIB_FUTIMENS=0;
-  GNULIB_LCHMOD=0;
-  GNULIB_LSTAT=0;
-  GNULIB_MKDIRAT=0;
-  GNULIB_MKFIFO=0;
-  GNULIB_MKFIFOAT=0;
-  GNULIB_MKNOD=0;
-  GNULIB_MKNODAT=0;
-  GNULIB_STAT=0;
-  GNULIB_UTIMENSAT=0;
-    HAVE_FCHMODAT=1;
-  HAVE_FSTATAT=1;
-  HAVE_FUTIMENS=1;
-  HAVE_LCHMOD=1;
-  HAVE_LSTAT=1;
-  HAVE_MKDIRAT=1;
-  HAVE_MKFIFO=1;
-  HAVE_MKFIFOAT=1;
-  HAVE_MKNOD=1;
-  HAVE_MKNODAT=1;
-  HAVE_UTIMENSAT=1;
-  REPLACE_FSTAT=0;
-  REPLACE_FSTATAT=0;
-  REPLACE_FUTIMENS=0;
-  REPLACE_LSTAT=0;
-  REPLACE_MKDIR=0;
-  REPLACE_MKFIFO=0;
-  REPLACE_MKNOD=0;
-  REPLACE_STAT=0;
-  REPLACE_UTIMENSAT=0;
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether stat file-mode macros are broken" >&5
 $as_echo_n "checking whether stat file-mode macros are broken... " >&6; }
@@ -15768,6 +15954,28 @@ fi
 
   # Code from module include_next:
   # Code from module intprops:
+  # Code from module lstat:
+
+
+
+  if test $ac_cv_func_lstat = yes; then
+
+    if test $ac_cv_func_lstat_dereferences_slashed_symlink = no; then
+            REPLACE_LSTAT=1
+    fi
+    # Prerequisites of lib/lstat.c.
+
+  else
+    HAVE_LSTAT=0
+  fi
+
+
+
+
+  GNULIB_LSTAT=1
+
+
+
   # Code from module mktime:
 
 
@@ -16024,6 +16232,247 @@ fi
 
 
   # Code from module multiarch:
+
+  # Code from module readlink:
+
+
+
+  if test $ac_cv_func_readlink = no; then
+    HAVE_READLINK=0
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS readlink.$ac_objext"
+
+
+  :
+
+  else
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether readlink signature is correct" >&5
+$as_echo_n "checking whether readlink signature is correct... " >&6; }
+if ${gl_cv_decl_readlink_works+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <unistd.h>
+      /* Cause compilation failure if original declaration has wrong type.  */
+      ssize_t readlink (const char *, char *, size_t);
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gl_cv_decl_readlink_works=yes
+else
+  gl_cv_decl_readlink_works=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_decl_readlink_works" >&5
+$as_echo "$gl_cv_decl_readlink_works" >&6; }
+            { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether readlink handles trailing slash correctly" >&5
+$as_echo_n "checking whether readlink handles trailing slash correctly... " >&6; }
+if ${gl_cv_func_readlink_works+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  # We have readlink, so assume ln -s works.
+       ln -s conftest.no-such conftest.link
+       ln -s conftest.link conftest.lnk2
+       if test "$cross_compiling" = yes; then :
+  gl_cv_func_readlink_works="guessing no"
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <unistd.h>
+
+int
+main ()
+{
+char buf[20];
+      return readlink ("conftest.lnk2/", buf, sizeof buf) != -1;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  gl_cv_func_readlink_works=yes
+else
+  gl_cv_func_readlink_works=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+      rm -f conftest.link conftest.lnk2
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_readlink_works" >&5
+$as_echo "$gl_cv_func_readlink_works" >&6; }
+    if test "$gl_cv_func_readlink_works" != yes; then
+
+$as_echo "#define READLINK_TRAILING_SLASH_BUG 1" >>confdefs.h
+
+      REPLACE_READLINK=1
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS readlink.$ac_objext"
+
+    elif test "$gl_cv_decl_readlink_works" != yes; then
+      REPLACE_READLINK=1
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS readlink.$ac_objext"
+
+    fi
+  fi
+
+
+
+
+  GNULIB_READLINK=1
+
+
+
+  # Code from module stat:
+
+
+
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether stat handles trailing slashes on directories" >&5
+$as_echo_n "checking whether stat handles trailing slashes on directories... " >&6; }
+if ${gl_cv_func_stat_dir_slash+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test "$cross_compiling" = yes; then :
+  case $host_os in
+            mingw*) gl_cv_func_stat_dir_slash="guessing no";;
+            *) gl_cv_func_stat_dir_slash="guessing yes";;
+          esac
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <sys/stat.h>
+
+int
+main ()
+{
+struct stat st; return stat (".", &st) != stat ("./", &st);
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  gl_cv_func_stat_dir_slash=yes
+else
+  gl_cv_func_stat_dir_slash=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_stat_dir_slash" >&5
+$as_echo "$gl_cv_func_stat_dir_slash" >&6; }
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether stat handles trailing slashes on files" >&5
+$as_echo_n "checking whether stat handles trailing slashes on files... " >&6; }
+if ${gl_cv_func_stat_file_slash+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  touch conftest.tmp
+       # Assume that if we have lstat, we can also check symlinks.
+       if test $ac_cv_func_lstat = yes; then
+         ln -s conftest.tmp conftest.lnk
+       fi
+       if test "$cross_compiling" = yes; then :
+  gl_cv_func_stat_file_slash="guessing no"
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <sys/stat.h>
+
+int
+main ()
+{
+int result = 0;
+      struct stat st;
+      if (!stat ("conftest.tmp/", &st))
+        result |= 1;
+#if HAVE_LSTAT
+      if (!stat ("conftest.lnk/", &st))
+        result |= 2;
+#endif
+      return result;
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  gl_cv_func_stat_file_slash=yes
+else
+  gl_cv_func_stat_file_slash=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+       rm -f conftest.tmp conftest.lnk
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_stat_file_slash" >&5
+$as_echo "$gl_cv_func_stat_file_slash" >&6; }
+  case $gl_cv_func_stat_dir_slash in
+    *no) REPLACE_STAT=1
+
+$as_echo "#define REPLACE_FUNC_STAT_DIR 1" >>confdefs.h
+;;
+  esac
+  case $gl_cv_func_stat_file_slash in
+    *no) REPLACE_STAT=1
+
+$as_echo "#define REPLACE_FUNC_STAT_FILE 1" >>confdefs.h
+;;
+  esac
+  if test $REPLACE_STAT = 1; then
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS stat.$ac_objext"
+
+
+  fi
+
+
+
+
+  GNULIB_STAT=1
+
+
 
   # Code from module stdbool:
 
@@ -16929,6 +17378,86 @@ $as_echo "#define my_strftime nstrftime" >>confdefs.h
 
 
 
+  # Code from module symlink:
+
+
+
+        if test $ac_cv_func_symlink = no; then
+    HAVE_SYMLINK=0
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS symlink.$ac_objext"
+
+  else
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether symlink handles trailing slash correctly" >&5
+$as_echo_n "checking whether symlink handles trailing slash correctly... " >&6; }
+if ${gl_cv_func_symlink_works+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test "$cross_compiling" = yes; then :
+  gl_cv_func_symlink_works="guessing no"
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <unistd.h>
+
+int
+main ()
+{
+int result = 0;
+             if (!symlink ("a", "conftest.link/"))
+               result |= 1;
+             if (symlink ("conftest.f", "conftest.lnk2"))
+               result |= 2;
+             else if (!symlink ("a", "conftest.lnk2/"))
+               result |= 4;
+             return result;
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  gl_cv_func_symlink_works=yes
+else
+  gl_cv_func_symlink_works=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+      rm -f conftest.f conftest.link conftest.lnk2
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_symlink_works" >&5
+$as_echo "$gl_cv_func_symlink_works" >&6; }
+    if test "$gl_cv_func_symlink_works" != yes; then
+      REPLACE_SYMLINK=1
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS symlink.$ac_objext"
+
+    fi
+  fi
+
+
+
+
+  GNULIB_SYMLINK=1
+
+
+
   # Code from module sys_stat:
 
 
@@ -17209,23 +17738,6 @@ $as_echo "$gl_cv_next_unistd_h" >&6; }
   LIBGNU_LIBDEPS="$gl_libdeps"
 
   LIBGNU_LTLIBDEPS="$gl_ltlibdeps"
-
-
-
-# Emacs does not care about lstat's behavior on files whose names end in
-# trailing slashes, so it does not use the gnulib lstat module.
-# However, Emacs does want the "#define lstat stat" in sys/stat.h
-# when lstat does not exist, so it pretends to use the lstat module
-# even though it implements only the lstat-checking part of that module.
-
-
-
-test $ac_cv_func_lstat = yes || HAVE_LSTAT=0
-
-
-
-  GNULIB_LSTAT=1
-
 
 
 
