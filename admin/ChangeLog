@@ -1,3 +1,7 @@
+2011-02-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* notes/bugtracker (bugtracker_debbugs_url): Fix typo.
+
 2011-01-03  Glenn Morris  <rgm@gnu.org>
 
 	* admin.el (set-copyright): Also handle \year in refcards/*.tex.
