@@ -1,5 +1,7 @@
 2011-02-22  Eli Zaretskii  <eliz@gnu.org>
 
+	* etags.c (canonicalize_filename, ISUPPER): Fix last change.
+
 	* makefile.w32-in ($(BLD)/ebrowse.$(O), $(BLD)/pop.$(O)): Depend
 	on ../lib/min-max.h.
 

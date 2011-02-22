@@ -236,6 +236,7 @@ If you want regular expression support, you should delete this notice and
 #define ISALNUM(c)	isalnum (CHAR(c))
 #define ISALPHA(c)	isalpha (CHAR(c))
 #define ISDIGIT(c)	isdigit (CHAR(c))
+#define ISUPPER(c)	isupper (CHAR(c))
 #define ISLOWER(c)	islower (CHAR(c))
 
 #define lowcase(c)	tolower (CHAR(c))
@@ -6648,7 +6649,7 @@ canonicalize_filename (register char *fn)
 #ifdef DOS_NT
   /* Canonicalize drive letter case.  */
   if (fn[0] != '\0' && fn[1] == ':' && ISUPPER (fn[0]))
-    fn[0] = downcase (fn[0]);
+    fn[0] = lowcase (fn[0]);
 
   sep = '\\';
 #endif
