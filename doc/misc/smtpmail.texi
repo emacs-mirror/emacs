@@ -20,7 +20,7 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs lisp libraries
 @direntry
 * SMTP: (smtpmail).             Emacs library for sending mail via SMTP.
 @end direntry

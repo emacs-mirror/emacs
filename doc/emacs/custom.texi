@@ -771,7 +771,7 @@ using the help command @kbd{C-h v} (@code{describe-variable}).
 most interesting variables for a non-programmer user are those meant
 for users to change---these are called @dfn{user options}.  @xref{Easy
 Customization}, for information about using the Customize facility to
-set user options.  In the following sections, we describe will other
+set user options.  In the following sections, we will describe other
 aspects of Emacs variables, such as how to set them outside Customize.
 
   Emacs Lisp allows any variable (with a few exceptions) to have any

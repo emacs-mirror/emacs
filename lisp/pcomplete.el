@@ -1113,7 +1113,7 @@ generate the completions list.  This means that the hook
 (defmacro pcomplete-here* (&optional form stub form-only)
   "An alternate form which does not participate in argument paring."
   (declare (debug t))
-  `(pcomplete-here (lambda () ,form) ,stub t ,form-only))
+  `(pcomplete-here ,form ,stub t ,form-only))
 
 ;; display support
 

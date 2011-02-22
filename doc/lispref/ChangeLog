@@ -1,3 +1,22 @@
+2011-02-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* elisp.texi: Sync @dircategory with ../../info/dir.
+
+	* files.texi (Visiting Functions): Document find-file-literally,
+	both the command and the variable.
+
+	* variables.texi (Creating Buffer-Local): Explain the meaning of
+	permanent local variables.
+
+2011-02-18  Glenn Morris  <rgm@gnu.org>
+
+	* keymaps.texi (Remapping Commands): Mention how to undo it.
+
+2011-02-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* commands.texi (Accessing Mouse): Note that a header line is not
+	included in the row of posn-col-row.
+
 2011-01-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* vol1.texi (Top):

@@ -149,7 +149,8 @@ way."
 		(set-visited-file-modtime))))
       (if (and local-copy
 	       (file-exists-p local-copy))
-	  (delete-file local-copy)))
+	  (let ((delete-by-moving-to-trash nil))
+	    (delete-file local-copy))))
     (list file length)))
 (put 'insert-file-contents 'epa-file 'epa-file-insert-file-contents)
 

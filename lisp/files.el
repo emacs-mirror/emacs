@@ -2008,7 +2008,8 @@ Don't call it from programs!  Use `insert-file-contents-literally' instead.
 
 (defvar find-file-literally nil
   "Non-nil if this buffer was made by `find-file-literally' or equivalent.
-This is a permanent local.")
+This has the `permanent-local' property, which takes effect if you
+make the variable buffer-local.")
 (put 'find-file-literally 'permanent-local t)
 
 (defun find-file-literally (filename)
@@ -4725,8 +4726,6 @@ If RECURSIVE is non-nil, all files in DIRECTORY are deleted as well."
 
 (defun copy-directory (directory newname &optional keep-time parents)
   "Copy DIRECTORY to NEWNAME.  Both args must be strings.
-If NEWNAME names an existing directory, copy DIRECTORY as subdirectory there.
-
 This function always sets the file modes of the output files to match
 the corresponding input file.
 
@@ -4756,35 +4755,22 @@ this happens by default."
       ;; Compute target name.
       (setq directory (directory-file-name (expand-file-name directory))
 	    newname   (directory-file-name (expand-file-name newname)))
-
-      (if (not (file-directory-p newname))
-	  ;; If NEWNAME is not an existing directory, create it; that
-	  ;; is where we will copy the files of DIRECTORY.
-	  (make-directory newname parents)
-	;; If NEWNAME is an existing directory, we will copy into
-	;; NEWNAME/[DIRECTORY-BASENAME].
-	(setq newname (expand-file-name
-		       (file-name-nondirectory
-			(directory-file-name directory))
-		       newname))
-	(and (file-exists-p newname)
-	     (not (file-directory-p newname))
-	     (error "Cannot overwrite non-directory %s with a directory"
-		    newname))
-	(make-directory newname t))
+      (if (not (file-directory-p newname)) (make-directory newname parents))
 
       ;; Copy recursively.
-      (dolist (file
-	       ;; We do not want to copy "." and "..".
-	       (directory-files directory 'full
-				directory-files-no-dot-files-regexp))
-	(if (file-directory-p file)
-	    (copy-directory file newname keep-time parents)
-	  (let ((target (expand-file-name (file-name-nondirectory file) newname))
-		(attrs (file-attributes file)))
-	    (if (stringp (car attrs)) ; Symbolic link
-		(make-symbolic-link (car attrs) target t)
-	      (copy-file file target t keep-time)))))
+      (mapc
+       (lambda (file)
+	 (let ((target (expand-file-name
+			(file-name-nondirectory file) newname))
+	       (attrs (file-attributes file)))
+	   (cond ((file-directory-p file)
+		  (copy-directory file target keep-time parents))
+		 ((stringp (car attrs)) ; Symbolic link
+		  (make-symbolic-link (car attrs) target t))
+		 (t
+		  (copy-file file target t keep-time)))))
+       ;; We do not want to copy "." and "..".
+       (directory-files	directory 'full directory-files-no-dot-files-regexp))
 
       ;; Set directory attributes.
       (set-file-modes newname (file-modes directory))

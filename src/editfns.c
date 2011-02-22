@@ -3347,6 +3347,9 @@ save_restriction_restore (data)
 	}
     }
 
+  /* Changing the buffer bounds invalidates any recorded current column.  */
+  invalidate_current_column ();
+
   if (cur)
     set_buffer_internal (cur);
 

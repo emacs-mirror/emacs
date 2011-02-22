@@ -108,7 +108,8 @@ Bourne shell or its equivalent \(not tcsh) is needed for \"2>\"."
       (if (and process (eq 'run (process-status process)))
 	  (interrupt-process process))
       (condition-case nil
-	  (delete-file errors-file-name)
+	  (let ((delete-by-moving-to-trash nil))
+	    (delete-file errors-file-name))
 	(file-error nil)))))
 
 (defun pgg-pgp-lookup-key (string &optional type)
@@ -215,8 +216,11 @@ passphrase cache or user."
 	  (setq args (concat args " " (shell-quote-argument signature)))))
     (setq args (concat args " " (shell-quote-argument orig-file)))
     (pgg-pgp-process-region (point)(point) nil pgg-pgp-program args)
-    (delete-file orig-file)
-    (if signature (delete-file signature))
+    (let ((delete-by-moving-to-trash nil))
+      (delete-file orig-file))
+    (if signature
+	(let ((delete-by-moving-to-trash nil))
+	  (delete-file signature)))
     (pgg-process-when-success
       (goto-char (point-min))
       (let ((case-fold-search t))
@@ -248,7 +252,8 @@ passphrase cache or user."
     (let ((coding-system-for-write 'raw-text-dos))
       (write-region start end key-file))
     (pgg-pgp-process-region start end nil pgg-pgp-program args)
-    (delete-file key-file)
+    (let ((delete-by-moving-to-trash nil))
+      (delete-file key-file))
     (pgg-process-when-success nil)))
 
 (provide 'pgg-pgp)

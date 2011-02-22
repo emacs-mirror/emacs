@@ -1215,7 +1215,8 @@ This function is for internal use only."
   "Delete the output file of CONTEXT."
   (if (and (epg-context-output-file context)
 	   (file-exists-p (epg-context-output-file context)))
-      (delete-file (epg-context-output-file context))))
+      (let ((delete-by-moving-to-trash nil))
+	(delete-file (epg-context-output-file context)))))
 
 (eval-and-compile
   (if (fboundp 'decode-coding-string)
@@ -1560,14 +1561,14 @@ This function is for internal use only."
 
 (defun epg--status-KEYEXPIRED (context string)
   (epg-context-set-result-for
-   context 'error
+   context 'key
    (cons (list 'key-expired (cons 'expiration-time
 				  (epg--time-from-seconds string)))
 	 (epg-context-result-for context 'error))))
 
 (defun epg--status-KEYREVOKED (context string)
   (epg-context-set-result-for
-   context 'error
+   context 'key
    (cons '(key-revoked)
 	 (epg-context-result-for context 'error))))
 
@@ -1904,7 +1905,8 @@ You can then use `write-region' to write new data into the file."
 	  ;; Cleanup the tempfile.
 	  (and tempfile
 	       (file-exists-p tempfile)
-	       (delete-file tempfile))
+	       (let ((delete-by-moving-to-trash nil))
+		 (delete-file tempfile)))
 	  ;; Cleanup the tempdir.
 	  (and tempdir
 	       (file-directory-p tempdir)
@@ -2004,7 +2006,8 @@ If PLAIN is nil, it returns the result as a string."
 	  (epg-read-output context))
       (epg-delete-output-file context)
       (if (file-exists-p input-file)
-	  (delete-file input-file))
+	  (let ((delete-by-moving-to-trash nil))
+	    (delete-file input-file)))
       (epg-reset context))))
 
 (defun epg-start-verify (context signature &optional signed-text)
@@ -2101,7 +2104,8 @@ successful verification."
       (epg-delete-output-file context)
       (if (and input-file
 	       (file-exists-p input-file))
-	  (delete-file input-file))
+	  (let ((delete-by-moving-to-trash nil))
+	    (delete-file input-file)))
       (epg-reset context))))
 
 (defun epg-start-sign (context plain &optional mode)
@@ -2208,7 +2212,8 @@ Otherwise, it makes a cleartext signature."
 	  (epg-read-output context))
       (epg-delete-output-file context)
       (if input-file
-	  (delete-file input-file))
+	  (let ((delete-by-moving-to-trash nil))
+	    (delete-file input-file)))
       (epg-reset context))))
 
 (defun epg-start-encrypt (context plain recipients
@@ -2328,7 +2333,8 @@ If RECIPIENTS is nil, it performs symmetric encryption."
 	  (epg-read-output context))
       (epg-delete-output-file context)
       (if input-file
-	  (delete-file input-file))
+	  (let ((delete-by-moving-to-trash nil))
+	    (delete-file input-file)))
       (epg-reset context))))
 
 (defun epg-start-export-keys (context keys)

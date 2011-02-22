@@ -11261,6 +11261,7 @@ redisplay_internal (preserve_echo_area)
      int preserve_echo_area;
 {
   struct window *w = XWINDOW (selected_window);
+  struct window *sw;
   struct frame *f;
   int pause;
   int must_finish = 0;
@@ -11331,6 +11332,9 @@ redisplay_internal (preserve_echo_area)
   }
 
  retry:
+  /* Remember the currently selected window.  */
+  sw = w;
+
   if (!EQ (old_frame, selected_frame)
       && FRAME_LIVE_P (XFRAME (old_frame)))
     /* When running redisplay, we play a bit fast-and-loose and allow e.g.
@@ -11395,6 +11399,14 @@ redisplay_internal (preserve_echo_area)
 
   /* Notice any pending interrupt request to change frame size.  */
   do_pending_window_change (1);
+
+  /* do_pending_window_change could change the selected_window due to
+     frame resizing which makes the selected window too small.  */
+  if (WINDOWP (selected_window) && (w = XWINDOW (selected_window)) != sw)
+    {
+      sw = w;
+      reconsider_clip_changes (w, current_buffer);
+    }
 
   /* Clear frames marked as garbaged.  */
   if (frame_garbaged)
@@ -11665,6 +11677,10 @@ redisplay_internal (preserve_echo_area)
 	  if (!must_finish)
 	    {
 	      do_pending_window_change (1);
+	      /* If selected_window changed, redisplay again.  */
+	      if (WINDOWP (selected_window)
+		  && (w = XWINDOW (selected_window)) != sw)
+		goto retry;
 
 	      /* We used to always goto end_of_redisplay here, but this
 		 isn't enough if we have a blinking cursor.  */
@@ -11959,8 +11975,9 @@ redisplay_internal (preserve_echo_area)
   do_pending_window_change (1);
 
   /* If we just did a pending size change, or have additional
-     visible frames, redisplay again.  */
-  if (windows_or_buffers_changed && !pause)
+     visible frames, or selected_window changed, redisplay again.  */
+  if ((windows_or_buffers_changed && !pause)
+      || (WINDOWP (selected_window) && (w = XWINDOW (selected_window)) != sw))
     goto retry;
 
   /* Clear the face cache eventually.  */

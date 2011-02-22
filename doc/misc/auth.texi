@@ -29,7 +29,7 @@ license to the document, as described in section 6 of the license.
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs lisp libraries
 @direntry
 * Auth-source: (auth).          The Emacs auth-source library.
 @end direntry
@@ -214,7 +214,7 @@ string or a @code{nil} object.  Currently only the modes ``login'' and
 
 @var{port} contains the protocol name (e.g. ``imap'') or
 a port number.  It must be a string, corresponding to the port in the
-users' netrc files.
+user's netrc files.
 
 @example
 ;; IMAP example

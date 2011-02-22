@@ -1,3 +1,7 @@
+2011-02-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs-lisp-intro.texi: Sync @dircategory with ../../info/dir.
+
 2010-09-21  Glenn Morris  <rgm@gnu.org>
 
 	* cons-1.eps, cons-2.eps, cons-2a.eps, cons-3.eps, cons-4.eps:

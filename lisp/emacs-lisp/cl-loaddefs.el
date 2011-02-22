@@ -282,7 +282,7 @@ Not documented
 ;;;;;;  flet progv psetq do-all-symbols do-symbols dotimes dolist
 ;;;;;;  do* do loop return-from return block etypecase typecase ecase
 ;;;;;;  case load-time-value eval-when destructuring-bind function*
-;;;;;;  defmacro* defun* gentemp gensym) "cl-macs" "cl-macs.el" "fd4df570f1dcbf83cde740819ae3734a")
+;;;;;;  defmacro* defun* gentemp gensym) "cl-macs" "cl-macs.el" "75e86ac663887b54bf1778f2dd028463")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'gensym "cl-macs" "\
@@ -389,7 +389,7 @@ This is equivalent to `(return-from nil RESULT)'.
 
 (autoload 'return-from "cl-macs" "\
 Return from the block named NAME.
-This jump out to the innermost enclosing `(block NAME ...)' form,
+This jumps out to the innermost enclosing `(block NAME ...)' form,
 returning RESULT from that form (or nil if RESULT is omitted).
 This is compatible with Common Lisp, but note that `defun' and
 `defmacro' do not create implicit blocks as they do in Common Lisp.
@@ -759,7 +759,7 @@ surrounded by (block NAME ...).
 ;;;;;;  find nsubstitute-if-not nsubstitute-if nsubstitute substitute-if-not
 ;;;;;;  substitute-if substitute delete-duplicates remove-duplicates
 ;;;;;;  delete-if-not delete-if delete* remove-if-not remove-if remove*
-;;;;;;  replace fill reduce) "cl-seq" "cl-seq.el" "ac5c427e92a38c5a2149acaa013caad9")
+;;;;;;  replace fill reduce) "cl-seq" "cl-seq.el" "50667ae0688aa15dad8a585096e7144f")
 ;;; Generated autoloads from cl-seq.el
 
 (autoload 'reduce "cl-seq" "\
@@ -1085,7 +1085,7 @@ Keywords supported:  :key
 
 (autoload 'union "cl-seq" "\
 Combine LIST1 and LIST2 using a set-union operation.
-The result list contains all items that appear in either LIST1 or LIST2.
+The resulting list contains all items that appear in either LIST1 or LIST2.
 This is a non-destructive function; it makes a copy of the data if necessary
 to avoid corrupting the original LIST1 and LIST2.
 
@@ -1095,7 +1095,7 @@ Keywords supported:  :test :test-not :key
 
 (autoload 'nunion "cl-seq" "\
 Combine LIST1 and LIST2 using a set-union operation.
-The result list contains all items that appear in either LIST1 or LIST2.
+The resulting list contains all items that appear in either LIST1 or LIST2.
 This is a destructive function; it reuses the storage of LIST1 and LIST2
 whenever possible.
 
@@ -1105,7 +1105,7 @@ Keywords supported:  :test :test-not :key
 
 (autoload 'intersection "cl-seq" "\
 Combine LIST1 and LIST2 using a set-intersection operation.
-The result list contains all items that appear in both LIST1 and LIST2.
+The resulting list contains all items that appear in both LIST1 and LIST2.
 This is a non-destructive function; it makes a copy of the data if necessary
 to avoid corrupting the original LIST1 and LIST2.
 
@@ -1115,7 +1115,7 @@ Keywords supported:  :test :test-not :key
 
 (autoload 'nintersection "cl-seq" "\
 Combine LIST1 and LIST2 using a set-intersection operation.
-The result list contains all items that appear in both LIST1 and LIST2.
+The resulting list contains all items that appear in both LIST1 and LIST2.
 This is a destructive function; it reuses the storage of LIST1 and LIST2
 whenever possible.
 
@@ -1125,7 +1125,7 @@ Keywords supported:  :test :test-not :key
 
 (autoload 'set-difference "cl-seq" "\
 Combine LIST1 and LIST2 using a set-difference operation.
-The result list contains all items that appear in LIST1 but not LIST2.
+The resulting list contains all items that appear in LIST1 but not LIST2.
 This is a non-destructive function; it makes a copy of the data if necessary
 to avoid corrupting the original LIST1 and LIST2.
 
@@ -1135,7 +1135,7 @@ Keywords supported:  :test :test-not :key
 
 (autoload 'nset-difference "cl-seq" "\
 Combine LIST1 and LIST2 using a set-difference operation.
-The result list contains all items that appear in LIST1 but not LIST2.
+The resulting list contains all items that appear in LIST1 but not LIST2.
 This is a destructive function; it reuses the storage of LIST1 and LIST2
 whenever possible.
 
@@ -1145,7 +1145,7 @@ Keywords supported:  :test :test-not :key
 
 (autoload 'set-exclusive-or "cl-seq" "\
 Combine LIST1 and LIST2 using a set-exclusive-or operation.
-The result list contains all items that appear in exactly one of LIST1, LIST2.
+The resulting list contains all items appearing in exactly one of LIST1, LIST2.
 This is a non-destructive function; it makes a copy of the data if necessary
 to avoid corrupting the original LIST1 and LIST2.
 
@@ -1155,7 +1155,7 @@ Keywords supported:  :test :test-not :key
 
 (autoload 'nset-exclusive-or "cl-seq" "\
 Combine LIST1 and LIST2 using a set-exclusive-or operation.
-The result list contains all items that appear in exactly one of LIST1, LIST2.
+The resulting list contains all items appearing in exactly one of LIST1, LIST2.
 This is a destructive function; it reuses the storage of LIST1 and LIST2
 whenever possible.
 

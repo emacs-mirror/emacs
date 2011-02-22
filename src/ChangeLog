@@ -1,3 +1,39 @@
+2011-02-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Makefile.in (prefix-args${EXEEXT}): Compile with ALL_CFLAGS.
+
+2011-02-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (redisplay_internal): Resynchronize `w' if the selected
+	window is changed inside calls to do_pending_window_change.
+	(Bug#8020)
+
+2011-02-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* terminal.c (create_terminal): Use default-keyboard-coding-system
+	and default-terminal-coding-system to initialize coding systems of
+	the new terminal.  (Bug#7840)
+
+2011-02-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (select_window): Check inhibit_point_swap argument when
+	deciding whether to return immediately.
+
+2011-02-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (setFrame, initFrame): Make sure pixel_height doesn't become
+	zero (Bug#7348).
+
+2011-02-03  Glenn Morris  <rgm@gnu.org>
+
+	* xfaces.c (Finternal_set_lisp_face_attribute):
+	Try to clarify some error messages.  (Bug#2659)
+
+2011-02-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* editfns.c (save_restriction_restore): Don't forget to invalidate the
+	current_column cache (bug#7946).
+
 2011-02-02  Kenichi Handa  <handa@m17n.org>
 
 	* ftfont.c (ftfont_open): Use FC_DUAL only when it is defined.
@@ -94,7 +130,7 @@
 	(x_set_title): Remove commet about EXPLICIT.  Call ns_set_name_internal.
 	(ns_set_name_as_filename): Encode name with ENCODE_UTF_8.
 	Always use buffer name for title and buffer filename only for
-	RepresentedFilename. Handle bad UTF-8 in buffer name (Bug#7517).
+	RepresentedFilename.  Handle bad UTF-8 in buffer name (Bug#7517).
 
 2011-01-03  Eli Zaretskii  <eliz@gnu.org>
 
@@ -244,7 +280,7 @@
 
 	* gtkutil.c (menubar_map_cb): New function (Bug#7425).
 	(xg_update_frame_menubar): Connect signal map to menubar_map_cb.
-	Use 23 as menubar height if 0. (Bug#7425).
+	Use 23 as menubar height if 0.  (Bug#7425).
 
 2010-11-14  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -468,7 +504,7 @@
 	is more portable.
 
 	* keyboard.c (gobble_input): Move call of xd_read_queued_messages ...
-	(kbd_buffer_get_event): ... here. This is needed for cygwin, which
+	(kbd_buffer_get_event): ... here.  This is needed for cygwin, which
 	has not defined SIGIO.
 
 2010-09-27  Michael Albinus  <michael.albinus@gmx.de>
@@ -665,7 +701,7 @@
 	* nsterm.m (ns_draw_fringe_bitmap): Likewise.
 
 	* fringe.c (draw_fringe_bitmap_1): Don't clip bitmap here.
-	Take account of	bitmap offset.
+	Take account of bitmap offset.
 	(draw_window_fringes): Take account of window vscroll.
 	(update_window_fringes): Likewise.  Extend top-aligned top indicator
 	or bottom-aligned bottom indicator to adjacent rows if it doesn't fit

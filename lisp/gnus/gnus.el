@@ -275,7 +275,7 @@
 
 (defgroup gnus-meta nil
   "Meta variables controlling major portions of Gnus.
-In general, modifying these variables does not take affect until Gnus
+In general, modifying these variables does not take effect until Gnus
 is restarted, and sometimes reloaded."
   :group 'gnus)
 

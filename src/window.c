@@ -3607,7 +3607,7 @@ select_window (window, norecord, inhibit_point_swap)
       XSETFASTINT (w->use_time, window_select_count);
     }
 
-  if (EQ (window, selected_window))
+  if (EQ (window, selected_window) && !inhibit_point_swap)
     return window;
 
   sf = SELECTED_FRAME ();

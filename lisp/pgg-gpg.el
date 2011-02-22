@@ -130,7 +130,8 @@
       (if (and process (eq 'run (process-status process)))
 	  (interrupt-process process))
       (if (file-exists-p output-file-name)
-	  (delete-file output-file-name))
+	  (let ((delete-by-moving-to-trash nil))
+	    (delete-file output-file-name)))
       (set-default-file-modes orig-mode))))
 
 (defun pgg-gpg-possibly-cache-passphrase (passphrase &optional key notruncate)
