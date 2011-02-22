@@ -381,6 +381,13 @@ $(BLD)/ctags.$(O) : \
 	$(SRC)/ntlib.h \
 	$(EMACS_ROOT)/lib/getopt.h
 
+$(BLD)/ebrowse.$(O) : \
+	$(SRC)/ebrowse.c \
+	$(EMACS_ROOT)/lib/min-max.h \
+	$(EMACS_ROOT)/src/s/ms-w32.h \
+	$(EMACS_ROOT)/src/m/intel386.h \
+	$(EMACS_ROOT)/lib-src/../src/config.h
+
 $(BLD)/emacsclient.$(O) : \
 	$(SRC)/emacsclient.c \
 	$(EMACS_ROOT)/nt/inc/sys/stat.h \
@@ -447,6 +454,7 @@ $(BLD)/ntlib.$(O) : \
 $(BLD)/pop.$(O) : \
 	$(SRC)/pop.c \
 	$(SRC)/pop.h \
+	$(EMACS_ROOT)/lib/min-max.h \
 	$(SRC)/ntlib.h
 
 $(BLD)/profile.$(O) : \
