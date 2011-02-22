@@ -3449,6 +3449,16 @@ does not pop any summary buffer."
 	(setq yank-action (list 'insert-buffer replybuffer)))
     (setq others (cons (cons "cc" cc) others))
     (setq others (cons (cons "in-reply-to" in-reply-to) others))
+    (setq others
+	  (mapcar #'(lambda (elt)
+		      (cons (car elt) (if (stringp (cdr elt))
+					  (rfc2047-decode-string (cdr elt)))))
+		  others))
+    (if (stringp to) (setq to (rfc2047-decode-string to)))
+    (if (stringp in-reply-to)
+	(setq in-reply-to (rfc2047-decode-string in-reply-to)))
+    (if (stringp cc) (setq cc (rfc2047-decode-string cc)))
+    (if (stringp subject) (setq subject (rfc2047-decode-string subject)))
     (if same-window
 	(compose-mail to subject others
 		      noerase nil
