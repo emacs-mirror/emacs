@@ -8,6 +8,12 @@
 
 	* Makefile.in (prefix-args${EXEEXT}): Compile with ALL_CFLAGS.
 
+2011-02-17  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_open_entity): Be sure to set scaled_pixel_size.
+	(font_find_for_lface): Check if attrs[LFACE_HEIGHT_INDEX] is
+	integer.
+
 2011-02-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (redisplay_internal): Resynchronize `w' if the selected
