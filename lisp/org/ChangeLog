@@ -1,3 +1,9 @@
+2011-02-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* org-table.el (org-table-current-line-types)
+	(org-table-current-begin-line, org-table-current-begin-pos):
+	Fix typos in docstrings.
+
 2010-10-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* org-exp.el (org-export-visible): Fix typo in docstring.

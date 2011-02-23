@@ -305,11 +305,11 @@ outside the table.")
   "Alist with locations of named fields.")
 
 (defvar org-table-current-line-types nil
-  "Table row types, non-nil only for the duration of a comand.")
+  "Table row types, non-nil only for the duration of a command.")
 (defvar org-table-current-begin-line nil
-  "Table begin line, non-nil only for the duration of a comand.")
+  "Table begin line, non-nil only for the duration of a command.")
 (defvar org-table-current-begin-pos nil
-  "Table begin position, non-nil only for the duration of a comand.")
+  "Table begin position, non-nil only for the duration of a command.")
 (defvar org-table-dlines nil
   "Vector of data line line numbers in the current table.")
 (defvar org-table-hlines nil
