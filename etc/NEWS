@@ -424,10 +424,6 @@ The standard directory local variables feature replaces it.
 
 ** SQL Mode enhancements.
 
-*** Several variables have been marked as safe local variables.  The
-variables `sql-product', `sql-user', `sql-server', `sql-database' and
-`sql-port' can now be safely used as local variables.
-
 *** `sql-dialect' is a synonym for `sql-product'.
 
 *** Added ability to login with a port on MySQL and Postgres.
