@@ -157,7 +157,7 @@ The iCalendar standard requires that all entries have a unique identifier.
 Org will create these identifiers as needed.  When this variable is non-nil,
 the created UIDs will be stored in the ID property of the entry.  Then the
 next time this entry is exported, it will be exported with the same UID,
-superceding the previous form of it.  This is essential for
+superseding the previous form of it.  This is essential for
 synchronization services.
 This variable is not turned on by default because we want to avoid creating
 a property drawer in every entry if people are only playing with this feature,

@@ -1787,7 +1787,7 @@ If NLAST is a number, only the NLAST fields will actually be summed."
   "Return the formula active for the current field.
 Assumes that specials are in place.
 If KEY is given, return the key to this formula.
-Otherwise return the formula preceeded with \"=\" or \":=\"."
+Otherwise return the formula preceded with \"=\" or \":=\"."
   (let* ((name (car (rassoc (list (org-current-line)
 				  (org-table-current-column))
 			    org-table-named-field-locations)))

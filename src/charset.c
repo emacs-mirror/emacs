@@ -438,7 +438,7 @@ load_charset_map (charset, entries, n_entries, control_flag)
 
 
 /* Read a hexadecimal number (preceded by "0x") from the file FP while
-   paying attention to comment charcter '#'.  */
+   paying attention to comment character '#'.  */
 
 static INLINE unsigned
 read_hex (fp, eof)
