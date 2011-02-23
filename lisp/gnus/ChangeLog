@@ -1,3 +1,8 @@
+2011-02-23  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-netrc-create): Use `read-char' instead of
+	`read-char-choice' for backwards compatibility.
+
 2011-02-23  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-start.el (gnus-dribble-read-file): Set

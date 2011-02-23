@@ -1011,13 +1011,12 @@ See `auth-source-search' for details on SPEC."
       (goto-char (point-max))
 
       ;; ask AFTER we've successfully opened the file
-      (let (done k)
+      (let ((prompt (format "Add to file %s? %s: "
+                            file
+                            "(y)es/(n)o but use it/(e)dit line/(s)kip file"))
+            done k)
         (while (not done)
-          (setq k (read-char-choice
-                   (format "Add to file %s? %s: "
-                           file
-                           "(y)es/(n)o but use it/(e)dit line/(s)kip file")
-                   '(?y ?n ?e ?s)))
+          (setq k (read-char prompt))
           (case k
             (?y (setq done t))
             (?n (setq add ""
