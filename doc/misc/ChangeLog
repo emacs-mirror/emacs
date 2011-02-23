@@ -19,6 +19,11 @@
 	(Local Variables): Say this is obsolete.  Fix description of
 	dired-enable-local-variables possible values.
 
+2011-02-22  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth.texi (Help for users): Mention ~/.netrc is also searched by
+	default now.
+
 2011-02-21  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi (Article Date): Clarify gnus-article-update-date-headers.

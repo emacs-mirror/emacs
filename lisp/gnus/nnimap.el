@@ -1151,6 +1151,7 @@ textual parts.")
 	  (setf (nnimap-examined nnimap-object) group)
 	  (if (and qresyncp
 		   uidvalidity
+		   active
 		   modseq)
 	      (push
 	       (list (nnimap-send-command "EXAMINE %S (%s (%s %s))"
