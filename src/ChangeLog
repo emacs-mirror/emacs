@@ -1,3 +1,13 @@
+2011-02-23  Ben Key  <bkey76@gmail.com>  (tiny change)
+
+	* nsterm.m (ns_draw_window_cursor): Obey the cursor_width argument
+	directly, for bar cursors.
+
+2011-02-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (set_frame_cursor_types): Don't write an undefined value
+	into the frame's cursor_width.
+
 2011-02-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* print.c (print_object): Never print old-style backquotes.
