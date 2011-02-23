@@ -1,5 +1,12 @@
 2011-02-23  Glenn Morris  <rgm@gnu.org>
 
+	* dired.el (dired-mode): Call hack-dir-local-variables-non-file-buffer.
+	* dired-x.el (dired-omit-mode): Safe if boolean.
+	(dired-enable-local-variables): Fix doc and custom type.
+	(dired-enable-local-variables, dired-local-variables-file)
+	(dired-hack-local-variables): Make obsolete.
+	(dired-omit-here-always): Use dir-locals.el instead.
+
 	* files.el (safe-local-eval-forms): Add the write-file-hooks version.
 
 2011-02-22  Stefan Monnier  <monnier@iro.umontreal.ca>

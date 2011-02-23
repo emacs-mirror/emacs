@@ -1,3 +1,11 @@
+2011-02-23  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.texi (Features): Don't advertise obsolete local variables.
+	Simplify layout.
+	(Omitting Variables): Update local variables example.
+	(Local Variables): Say this is obsolete.  Fix description of
+	dired-enable-local-variables possible values.
+
 2011-02-21  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi (Article Date): Clarify gnus-article-update-date-headers.
