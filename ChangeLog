@@ -6271,7 +6271,7 @@
 
 	* Makefile.in (lib-src/Makefile, src/Makefile, oldXMenu/Makefile):
 	Depend on vpath.sed.
-	Replace sed comand for VPATH with @vpath_sed@.
+	Replace sed command for VPATH with @vpath_sed@.
 
 	* configure.in: Substitute variable `vpath_sed'.
 	If not in $srcdir and $srcdir is configured,
