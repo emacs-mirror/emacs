@@ -1,3 +1,11 @@
+2011-02-23  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmailmm.el (rmail-mime-process-multipart): Do not signal an
+	error when a multipart boundary in the nested multipart is found.
+
+	* mail/rmail.el (rmail-start-mail): Decode "encoded-words" of
+	header components.
+
 2011-02-23  Glenn Morris  <rgm@gnu.org>
 
 	* dired.el (dired-mode): Call hack-dir-local-variables-non-file-buffer.

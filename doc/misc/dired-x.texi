@@ -152,10 +152,10 @@ Commands using file marking
 @noindent
 @file{dired-x.el} binds some functions to keys in Dired Mode (@pxref{Key
 Index}) and also binds @kbd{C-x C-j} and @kbd{C-x 4 C-j} @emph{globally} to
-@code{dired-jump} (@pxref{Miscellaneous Commands}).  It may also bind @kbd{C-x
-C-f} and @kbd{C-x 4 C-f} to @code{dired-x-find-file} and
-@code{dired-x-find-file-other-window}, respectively (@pxref{Find File At
-Point}).
+@code{dired-jump} (@pxref{Miscellaneous Commands}).  Optionally, it
+also binds @kbd{C-x C-f} and @kbd{C-x 4 C-f} to
+@code{dired-x-find-file} and @code{dired-x-find-file-other-window},
+respectively (@pxref{Find File At Point}).
 
 @node Technical Details, , Features, Introduction
 @section Technical Details
@@ -514,7 +514,7 @@ omitted automatically
 @noindent
 You can set @code{dired-local-variables-file} to @code{nil} to suppress this.
 The value of @code{dired-enable-local-variables} controls if and how these
-local variables are read.  This variable exists so that if may override the
+local variables are read.  This variable exists so that it may override the
 default value of @code{enable-local-variables}.
 
 @noindent

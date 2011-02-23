@@ -853,28 +853,33 @@ The other arguments are the same as `rmail-mime-multipart-handler'."
 	    ((looking-at "[ \t]*\n")
 	     (setq next (copy-marker (match-end 0) t)))
 	    (t
-	     (rmail-mm-get-boundary-error-message
-	      "Malformed boundary" content-type content-disposition
-	      content-transfer-encoding)))
+	     ;; The original code signalled an error as below, but
+	     ;; this line may be a boundary of nested multipart.  So,
+	     ;; we just set `next' to nil to skip this line
+	     ;; (rmail-mm-get-boundary-error-message
+	     ;;  "Malformed boundary" content-type content-disposition
+	     ;;  content-transfer-encoding)
+	     (setq next nil)))
 
-      (setq index (1+ index))
-      ;; Handle the part.
-      (if parse-tag
+      (when next
+	(setq index (1+ index))
+	;; Handle the part.
+	(if parse-tag
+	    (save-restriction
+	      (narrow-to-region beg end)
+	      (let ((child (rmail-mime-process
+			    nil (format "%s/%d" parse-tag index)
+			    content-type content-disposition)))
+		;; Display a tagline.
+		(aset (aref (rmail-mime-entity-display child) 1) 1
+		      (aset (rmail-mime-entity-tagline child) 2 t))
+		(push child entities)))
+
+	  (delete-region end next)
 	  (save-restriction
 	    (narrow-to-region beg end)
-	    (let ((child (rmail-mime-process
-			  nil (format "%s/%d" parse-tag index)
-			  content-type content-disposition)))
-	      ;; Display a tagline.
-	      (aset (aref (rmail-mime-entity-display child) 1) 1
-		    (aset (rmail-mime-entity-tagline child) 2 t))
-	      (push child entities)))
-
-	(delete-region end next)
-	(save-restriction
-	  (narrow-to-region beg end)
-	  (rmail-mime-show)))
-      (goto-char (setq beg next)))
+	    (rmail-mime-show)))
+	(goto-char (setq beg next))))
 
     (when parse-tag
       (setq entities (nreverse entities))

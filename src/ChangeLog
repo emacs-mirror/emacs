@@ -1,3 +1,8 @@
+2011-02-23  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_open_entity): Be sure to set scaled_pixel_size.
+	(font_find_for_lface): Check if attrs[LFACE_HEIGHT_INDEX] is integer.
+
 2011-02-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* dired.c (Ffile_attributes): Simplify and avoid #ifdef.

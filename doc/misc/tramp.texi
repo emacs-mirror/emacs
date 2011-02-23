@@ -369,13 +369,12 @@ behind the scenes when you open a file with @value{tramp}.
 @cindex obtaining Tramp
 
 @value{tramp} is freely available on the Internet and the latest
-release may be downloaded from
-@uref{ftp://ftp.gnu.org/gnu/tramp/}.  This release includes the full
-documentation and code for @value{tramp}, suitable for installation.
-But GNU Emacs (22 or later) includes @value{tramp} already, and there
-is a @value{tramp} package for XEmacs, as well.  So maybe it is easier
-to just use those.  But if you want the bleeding edge, read
-on@dots{...}
+release may be downloaded from @uref{ftp://ftp.gnu.org/gnu/tramp/}.
+This release includes the full documentation and code for
+@value{tramp}, suitable for installation.  But Emacs (22 or later)
+includes @value{tramp} already, and there is a @value{tramp} package
+for XEmacs, as well.  So maybe it is easier to just use those.  But if
+you want the bleeding edge, read on@dots{...}
 
 For the especially brave, @value{tramp} is available from CVS.  The CVS
 version is the latest version of the code and may contain incomplete
@@ -445,10 +444,10 @@ GVFS integration started in February 2009.
 @end ifset
 
 In December 2001, @value{tramp} has been added to the XEmacs package
-repository.  Being part of the GNU Emacs repository happened in June
-2002, the first release including @value{tramp} was GNU Emacs 22.1.
+repository.  Being part of the Emacs repository happened in June 2002,
+the first release including @value{tramp} was Emacs 22.1.
 
-@value{tramp} is also a GNU/Linux Debian package since February 2001.
+@value{tramp} is also a Debian GNU/Linux package since February 2001.
 
 
 @c Installation chapter is necessary only in case of standalone
@@ -1704,9 +1703,10 @@ By default, this is set to a reasonable set of defaults for most
 machines.  The symbol @code{tramp-default-remote-path} is a place
 holder, it is replaced by the list of directories received via the
 command @command{getconf PATH} on your remote machine.  For example,
-on GNU Debian this is @file{/bin:/usr/bin}, whereas on Solaris this is
-@file{/usr/xpg4/bin:/usr/ccs/bin:/usr/bin:/opt/SUNWspro/bin}.  It is
-recommended to apply this symbol on top of @code{tramp-remote-path}.
+on Debian GNU/Linux this is @file{/bin:/usr/bin}, whereas on Solaris
+this is @file{/usr/xpg4/bin:/usr/ccs/bin:/usr/bin:/opt/SUNWspro/bin}.
+It is recommended to apply this symbol on top of
+@code{tramp-remote-path}.
 
 It is possible, however, that your local (or remote ;) system
 administrator has put the tools you want in some obscure local
@@ -2740,8 +2740,8 @@ There is also a Savannah project page.
 @item
 Which systems does it work on?
 
-The package has been used successfully on GNU Emacs 22, GNU Emacs 23,
-XEmacs 21 (starting with 21.4), and SXEmacs 22.
+The package has been used successfully on Emacs 22, Emacs 23, XEmacs
+21 (starting with 21.4), and SXEmacs 22.
 
 The package was intended to work on Unix, and it really expects a
 Unix-like system on the remote end (except the @option{smb} method),
@@ -3583,9 +3583,9 @@ printed and deleted.
 But I have decided that this is too fragile to reliably work, so on some
 systems you'll have to do without the uuencode methods.
 
-@item The @value{tramp} filename syntax differs between GNU Emacs and XEmacs.
+@item The @value{tramp} filename syntax differs between Emacs and XEmacs.
 
-The GNU Emacs maintainers wish to use a unified filename syntax for
+The Emacs maintainers wish to use a unified filename syntax for
 Ange-FTP and @value{tramp} so that users don't have to learn a new
 syntax.  It is sufficient to learn some extensions to the old syntax.
 
