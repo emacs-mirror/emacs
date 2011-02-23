@@ -20006,7 +20006,7 @@
 
 	* w32reg.c (w32_get_rdb_resource): New function.
 	(x_get_string_resource): Use it, so resources passed with -xrm
-	supercede the ones in the registry.
+	supersede the ones in the registry.
 
 2003-03-04  Jan Djärv  <jan.h.d@swipnet.se>
 

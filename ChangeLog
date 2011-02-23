@@ -7612,7 +7612,7 @@
 	there, and then copy it in, to make sure we get a real file.
 
 	* make-dist: Don't try to distribute *.defns files any more.  The
-	only such file was for simula.el, which has been superceded by a
+	only such file was for simula.el, which has been superseded by a
 	version which doesn't have a separate .defns file.
 
 1992-05-28  Ken Raeburn  (Raeburn@Cygnus.COM)
