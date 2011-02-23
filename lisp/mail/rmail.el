@@ -514,7 +514,7 @@ FIELD is the plain text name of a field in the message, such as
 \"subject\" or \"from\".  A FIELD of \"to\" will automatically include
 all text from the \"cc\" field as well.
 
-REGEXP is an expression to match in the preceeding specified FIELD.
+REGEXP is an expression to match in the preceding specified FIELD.
 FIELD/REGEXP pairs continue in the list.
 
 examples:

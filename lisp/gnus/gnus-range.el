@@ -87,10 +87,10 @@ Both ranges must be in ascending order."
                ;; All done with range2
                (setq r nil))
               ((< max1 min2)
-               ;; No overlap: range1 preceeds range2
+               ;; No overlap: range1 precedes range2
                (pop r))
               ((< max2 min1)
-               ;; No overlap: range2 preceeds range1
+               ;; No overlap: range2 precedes range1
                (pop range2))
               ((and (<= min2 min1) (<= max1 max2))
                ;; Complete overlap: range1 removed
@@ -187,7 +187,7 @@ LIST1 and LIST2 have to be sorted over <."
 RANGE1 and RANGE2 have to be sorted over <."
   (let* (out
          (min1 (car range1))
-         (max1 (if (numberp min1) 
+         (max1 (if (numberp min1)
                    (if (numberp (cdr range1))
                        (prog1 (cdr range1)
                          (setq range1 nil)) min1)
@@ -196,17 +196,17 @@ RANGE1 and RANGE2 have to be sorted over <."
          (min2 (car range2))
          (max2 (if (numberp min2)
                    (if (numberp (cdr range2))
-                       (prog1 (cdr range2) 
-                         (setq range2 nil)) min2) 
+                       (prog1 (cdr range2)
+                         (setq range2 nil)) min2)
                  (prog1 (cdr min2)
                    (setq min2 (car min2))))))
     (setq range1 (cdr range1)
           range2 (cdr range2))
     (while (and min1 min2)
-      (cond ((< max1 min2)              ; range1 preceeds range2
+      (cond ((< max1 min2)              ; range1 precedes range2
              (setq range1 (cdr range1)
                    min1 nil))
-            ((< max2 min1)              ; range2 preceeds range1
+            ((< max2 min1)              ; range2 precedes range1
              (setq range2 (cdr range2)
                    min2 nil))
             (t                     ; some sort of overlap is occurring
