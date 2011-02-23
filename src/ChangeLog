@@ -1,3 +1,8 @@
+2011-02-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* print.c (print_object): Never print old-style backquotes.
+	Obey escapeflag for hash tables as well.
+
 2011-02-23  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_open_entity): Be sure to set scaled_pixel_size.
