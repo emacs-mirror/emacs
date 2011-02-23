@@ -1,5 +1,7 @@
 2011-02-23  Glenn Morris  <rgm@gnu.org>
 
+	* dbus.texi (Type Conversion): Grammar fix.
+
 	* dired-x.texi (Features, Local Variables): Fix typos.
 	(Features): Minor rephrasing.
 
