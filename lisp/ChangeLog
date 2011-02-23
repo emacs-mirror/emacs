@@ -1,3 +1,7 @@
+2011-02-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-disable-print-circle): Obsolete.
+
 2011-02-23  Kenichi Handa  <handa@m17n.org>
 
 	* mail/rmailmm.el (rmail-mime-process-multipart): Do not signal an
@@ -9055,7 +9059,7 @@
 	* htmlfontify.el (hfy-face-attr-for-class): Use append instead
 	of nconc to avoid pure storage error (Bug#6239).
 
-2010-06-27  Christoph  <cschol2112@googlemail.com>  (tiny change)
+2010-06-27  Christoph Scholtes  <cschol2112@googlemail.com>
 
 	* bookmark.el (bookmark-bmenu-2-window, bookmark-bmenu-other-window)
 	(bookmark-bmenu-other-window-with-mouse): Remove unnecessary
@@ -11238,7 +11242,7 @@
 
 	* ido.el (ido-file-internal): Fix 2009-12-02 change.
 
-2010-04-19  Christoph  <cschol2112@googlemail.com>  (tiny change)
+2010-04-19  Christoph Scholtes  <cschol2112@googlemail.com>
 
 	* progmodes/grep.el (grep-compute-defaults): Fix handling of host
 	default settings (Bug#5928).
