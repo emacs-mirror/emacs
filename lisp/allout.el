@@ -255,7 +255,7 @@ prevails."
 
 This is in contrast to the majority of allout-mode bindings on
 `allout-prefixed-bindings', whose bindings are created with a
-preceeding command key.
+preceding command key.
 
 Use vector format for the keys:
   - put literal keys after a '?' question mark, eg: '?a', '?.'
