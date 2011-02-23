@@ -330,7 +330,7 @@ prompts for a number to count from and for a format string.
 ** The Landmark game is now invoked with `landmark', not `lm'.
 
 ** Prolog mode has been completely revamped, with lots of additional
-functionality such as more intelligent indentation, electricty, support for
+functionality such as more intelligent indentation, electricity, support for
 more variants, including Mercury, and a lot more.
 
 ** shell-mode can track your cwd by reading it from your prompt.
@@ -532,7 +532,7 @@ objects shown and the details available are product specific.
 **** List all objects.
 Using `M-x sql-list-all', `C-c C-l a' or selecting "SQL->List all
 objects" will list all the objects in the database.  At a minimum it
-lists the tables and views in the database.  Preceeding the command by
+lists the tables and views in the database.  Preceding the command by
 universal argument may provide additional details or extend the
 listing to include other schemas objects.  The list will appear in a
 separate window in view-mode.
@@ -540,7 +540,7 @@ separate window in view-mode.
 **** List Table details.
 Using `M-x sql-list-table', `C-c C-l t' or selecting "SQL->List Table
 details" will ask for the name of a database table or view and display
-the list of columns in the relation.  Preceeding the comand with the
+the list of columns in the relation.  Preceding the command with the
 universal argument may provide additional details about each column.
 The list will appear in a separate window in view-mode.
 
@@ -555,7 +555,7 @@ In general, the SQL*Plus option SCAN should always be set OFF under
 SQL interactive mode and this option used in its place.
 
 *** SQL interactive mode will replace tabs with spaces.
-This prevents the comand interpretter for MySQL and Postgres from
+This prevents the command interpreter for MySQL and Postgres from
 listing object name completions when being sent text via
 `sql-send-*' functions.
 
@@ -564,7 +564,7 @@ listing object name completions when being sent text via
 ** sregex.el is now obsolete, since rx.el is a strict superset.
 
 ** s-region.el and pc-select are now declared obsolete,
-superceded by shift-select-mode enabled by default in 23.1.
+superseded by shift-select-mode enabled by default in 23.1.
 ** pc-mode.el is also declared obsolete.
 ** gdb-mi
 
@@ -802,10 +802,9 @@ displayed with a "spinning bar".
 runtime checks.
 
 ** New configure.bat option --distfiles to specify files to be
-   included in binary distribution
+included in binary distribution
 
-** New make target `dist' to create binary disttribution for Windows
-   platform
+** New make target `dist' to create binary distribution for MS Windows
 
 
 ----------------------------------------------------------------------
