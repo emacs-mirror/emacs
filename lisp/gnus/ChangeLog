@@ -1,7 +1,18 @@
+2011-02-23  Julien Danjou  <julien@danjou.info>
+
+	* gnus-art.el (article-make-date-line): Ignore errors if time is
+	invalid and not convertible.
+	(article-make-date-line): Only add lapsed time if time is not nil.
+
 2011-02-23  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* auth-source.el (auth-source-netrc-create): Use `read-char' instead of
 	`read-char-choice' for backwards compatibility.
+	(auth-source-netrc-element-or-first): New function to DTRT for
+	parameter extraction.
+	(auth-source-netrc-create): Use it and fix multiple parameter print
+	bug.  Use the default passed from above (given-default) or the
+	built-in (user-login-name for :user).
 
 2011-02-23  Lars Ingebrigtsen  <larsi@gnus.org>
 

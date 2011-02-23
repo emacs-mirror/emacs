@@ -3463,7 +3463,7 @@ possible values."
 			     combined-lapsed))
     (error "Unknown conversion type: %s" type))
   (condition-case ()
-      (let ((time (date-to-time date)))
+      (let ((time (ignore-errors (date-to-time date))))
 	(cond
 	 ;; Convert to the local timezone.
 	 ((eq type 'local)
@@ -3515,6 +3515,7 @@ possible values."
 		(segments 3)
 		lapsed-string)
 	    (while (and
+                    time
 		    (setq lapsed-string
 			  (concat " (" (article-lapsed-string time segments) ")"))
 		    (> (+ (length date-string)
