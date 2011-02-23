@@ -77,7 +77,7 @@
 (autoload 'netrc-machine "netrc")
 (autoload 'netrc-get "netrc")
 (autoload 'password-read "password-cache")
-(autoload 'auth-source-user-or-password "auth-source")
+(autoload 'auth-source-search "auth-source")
 
 ;;;
 (defgroup smtpmail nil
@@ -538,10 +538,14 @@ The list is in preference order.")
 (defun smtpmail-try-auth-methods (process supported-extensions host port)
   (let* ((mechs (cdr-safe (assoc 'auth supported-extensions)))
 	 (mech (car (smtpmail-intersection mechs smtpmail-auth-supported)))
-	 (auth-user (auth-source-user-or-password
-		     "login" host (or port "smtp")))
-	 (auth-pass (auth-source-user-or-password
-		     "password" host (or port "smtp")))
+         (auth-info (auth-source-search :max 1
+                                        :host host
+                                        :port (or port "smtp")))
+         (auth-user (plist-get (nth 0 auth-info) :user))
+         (auth-pass (plist-get (nth 0 auth-info) :secret))
+         (auth-pass (if (functionp auth-pass)
+                        (funcall auth-pass)
+                      auth-pass))
 	 (cred (if (and auth-user auth-pass) ; try user-auth-* before netrc-*
 		   (list host port auth-user auth-pass)
 		 ;; else, if auth-source didn't return them...

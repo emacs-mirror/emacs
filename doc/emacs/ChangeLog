@@ -1,3 +1,12 @@
+2011-02-19  Glenn Morris  <rgm@gnu.org>
+
+	* dired.texi (Dired): Dired-X version number was dropped.
+
+2011-02-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xresources.texi (X Resources): Remove *faceName and replace it with
+	*font for Lucid.
+
 2011-02-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* rmail.texi (Rmail Display): Document Rmail MIME support more

@@ -238,44 +238,46 @@ a library is being loaded.")
 (make-variable-buffer-local 'hi-lock-file-patterns)
 (put 'hi-lock-file-patterns 'permanent-local t)
 
-(defvar hi-lock-menu (make-sparse-keymap "Hi Lock")
+(defvar hi-lock-menu
+  (let ((map (make-sparse-keymap "Hi Lock")))
+    (define-key-after map [highlight-regexp]
+      '(menu-item "Highlight Regexp..." highlight-regexp
+        :help "Highlight text matching PATTERN (a regexp)."))
+
+    (define-key-after map [highlight-phrase]
+      '(menu-item "Highlight Phrase..." highlight-phrase
+        :help "Highlight text matching PATTERN (a regexp processed to match phrases)."))
+
+    (define-key-after map [highlight-lines-matching-regexp]
+      '(menu-item "Highlight Lines..." highlight-lines-matching-regexp
+        :help "Highlight lines containing match of PATTERN (a regexp)."))
+
+    (define-key-after map [unhighlight-regexp]
+      '(menu-item "Remove Highlighting..." unhighlight-regexp
+        :help "Remove previously entered highlighting pattern."
+        :enable hi-lock-interactive-patterns))
+
+    (define-key-after map [hi-lock-write-interactive-patterns]
+      '(menu-item "Patterns to Buffer" hi-lock-write-interactive-patterns
+        :help "Insert interactively added REGEXPs into buffer at point."
+        :enable hi-lock-interactive-patterns))
+
+    (define-key-after map [hi-lock-find-patterns]
+      '(menu-item "Patterns from Buffer" hi-lock-find-patterns
+        :help "Use patterns (if any) near top of buffer."))
+    map)
   "Menu for hi-lock mode.")
 
-(define-key-after hi-lock-menu [highlight-regexp]
-  '(menu-item "Highlight Regexp..." highlight-regexp
-              :help "Highlight text matching PATTERN (a regexp)."))
-
-(define-key-after hi-lock-menu [highlight-phrase]
-  '(menu-item "Highlight Phrase..." highlight-phrase
-              :help "Highlight text matching PATTERN (a regexp processed to match phrases)."))
-
-(define-key-after hi-lock-menu [highlight-lines-matching-regexp]
-  '(menu-item "Highlight Lines..." highlight-lines-matching-regexp
-              :help "Highlight lines containing match of PATTERN (a regexp)."))
-
-(define-key-after hi-lock-menu [unhighlight-regexp]
-  '(menu-item "Remove Highlighting..." unhighlight-regexp
-              :help "Remove previously entered highlighting pattern."
-              :enable hi-lock-interactive-patterns))
-
-(define-key-after hi-lock-menu [hi-lock-write-interactive-patterns]
-  '(menu-item "Patterns to Buffer" hi-lock-write-interactive-patterns
-              :help "Insert interactively added REGEXPs into buffer at point."
-              :enable hi-lock-interactive-patterns))
-
-(define-key-after hi-lock-menu [hi-lock-find-patterns]
-  '(menu-item "Patterns from Buffer" hi-lock-find-patterns
-              :help "Use patterns (if any) near top of buffer."))
-
-(defvar hi-lock-map (make-sparse-keymap "Hi Lock")
+(defvar hi-lock-map
+  (let ((map (make-sparse-keymap "Hi Lock")))
+    (define-key map "\C-xwi" 'hi-lock-find-patterns)
+    (define-key map "\C-xwl" 'highlight-lines-matching-regexp)
+    (define-key map "\C-xwp" 'highlight-phrase)
+    (define-key map "\C-xwh" 'highlight-regexp)
+    (define-key map "\C-xwr" 'unhighlight-regexp)
+    (define-key map "\C-xwb" 'hi-lock-write-interactive-patterns)
+    map)
   "Key map for hi-lock.")
-
-(define-key hi-lock-map "\C-xwi" 'hi-lock-find-patterns)
-(define-key hi-lock-map "\C-xwl" 'highlight-lines-matching-regexp)
-(define-key hi-lock-map "\C-xwp" 'highlight-phrase)
-(define-key hi-lock-map "\C-xwh" 'highlight-regexp)
-(define-key hi-lock-map "\C-xwr" 'unhighlight-regexp)
-(define-key hi-lock-map "\C-xwb" 'hi-lock-write-interactive-patterns)
 
 ;; Visible Functions
 

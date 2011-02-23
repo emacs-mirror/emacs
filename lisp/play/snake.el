@@ -174,21 +174,22 @@ and then start moving it leftwards.")
 ;; ;;;;;;;;;;;;; keymaps ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defvar snake-mode-map
-  (make-sparse-keymap 'snake-mode-map))
+  (let ((map (make-sparse-keymap 'snake-mode-map)))
 
-(define-key snake-mode-map "n"		'snake-start-game)
-(define-key snake-mode-map "q"		'snake-end-game)
-(define-key snake-mode-map "p"		'snake-pause-game)
+    (define-key map "n"		'snake-start-game)
+    (define-key map "q"		'snake-end-game)
+    (define-key map "p"		'snake-pause-game)
 
-(define-key snake-mode-map [left]	'snake-move-left)
-(define-key snake-mode-map [right]	'snake-move-right)
-(define-key snake-mode-map [up]		'snake-move-up)
-(define-key snake-mode-map [down]	'snake-move-down)
+    (define-key map [left]	'snake-move-left)
+    (define-key map [right]	'snake-move-right)
+    (define-key map [up]		'snake-move-up)
+    (define-key map [down]	'snake-move-down)
+    map))
 
 (defvar snake-null-map
-  (make-sparse-keymap 'snake-null-map))
-
-(define-key snake-null-map "n"		'snake-start-game)
+  (let ((map (make-sparse-keymap 'snake-null-map)))
+    (define-key map "n"		'snake-start-game)
+    map))
 
 ;; ;;;;;;;;;;;;;;;; game functions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

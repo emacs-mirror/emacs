@@ -277,7 +277,7 @@ update_syntax_table (EMACS_INT charpos, int count, int init,
       else
 	{
 	  gl_state.use_global = 0;
-	  gl_state.current_syntax_table = current_buffer->syntax_table;
+	  gl_state.current_syntax_table = BVAR (current_buffer, syntax_table);
 	}
     }
 
@@ -363,7 +363,7 @@ char_quoted (EMACS_INT charpos, EMACS_INT bytepos)
 static INLINE EMACS_INT
 dec_bytepos (EMACS_INT bytepos)
 {
-  if (NILP (current_buffer->enable_multibyte_characters))
+  if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
     return bytepos - 1;
 
   DEC_POS (bytepos);
@@ -779,7 +779,7 @@ DEFUN ("syntax-table", Fsyntax_table, Ssyntax_table, 0, 0, 0,
 This is the one specified by the current buffer.  */)
   (void)
 {
-  return current_buffer->syntax_table;
+  return BVAR (current_buffer, syntax_table);
 }
 
 DEFUN ("standard-syntax-table", Fstandard_syntax_table,
@@ -824,7 +824,7 @@ One argument, a syntax table.  */)
 {
   int idx;
   check_syntax_table (table);
-  current_buffer->syntax_table = table;
+  BVAR (current_buffer, syntax_table) = table;
   /* Indicate that this buffer now has a specified syntax table.  */
   idx = PER_BUFFER_VAR_IDX (syntax_table);
   SET_PER_BUFFER_VALUE_P (current_buffer, idx, 1);
@@ -1035,7 +1035,7 @@ usage: (modify-syntax-entry CHAR NEWENTRY &optional SYNTAX-TABLE)  */)
     CHECK_CHARACTER (c);
 
   if (NILP (syntax_table))
-    syntax_table = current_buffer->syntax_table;
+    syntax_table = BVAR (current_buffer, syntax_table);
   else
     check_syntax_table (syntax_table);
 
@@ -1450,7 +1450,7 @@ skip_chars (int forwardp, Lisp_Object string, Lisp_Object lim, int handle_iso_cl
   if (XINT (lim) < BEGV)
     XSETFASTINT (lim, BEGV);
 
-  multibyte = (!NILP (current_buffer->enable_multibyte_characters)
+  multibyte = (!NILP (BVAR (current_buffer, enable_multibyte_characters))
 	       && (XINT (lim) - PT != CHAR_TO_BYTE (XINT (lim)) - PT_BYTE));
   string_multibyte = SBYTES (string) > SCHARS (string);
 
@@ -1936,7 +1936,7 @@ skip_syntaxes (int forwardp, Lisp_Object string, Lisp_Object lim)
   if (forwardp ? (PT >= XFASTINT (lim)) : (PT <= XFASTINT (lim)))
     return make_number (0);
 
-  multibyte = (!NILP (current_buffer->enable_multibyte_characters)
+  multibyte = (!NILP (BVAR (current_buffer, enable_multibyte_characters))
 	       && (XINT (lim) - PT != CHAR_TO_BYTE (XINT (lim)) - PT_BYTE));
 
   memset (fastmap, 0, sizeof fastmap);
@@ -2703,7 +2703,7 @@ scan_lists (register EMACS_INT from, EMACS_INT count, EMACS_INT depth, int sexpf
 	      while (from > stop)
 		{
 		  temp_pos = from_byte;
-		  if (! NILP (current_buffer->enable_multibyte_characters))
+		  if (! NILP (BVAR (current_buffer, enable_multibyte_characters)))
 		    DEC_POS (temp_pos);
 		  else
 		    temp_pos--;

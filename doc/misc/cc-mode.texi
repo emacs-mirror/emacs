@@ -177,7 +177,7 @@ developing GNU and promoting software freedom.''
 
 @comment Info directory entry for use by install-info. The indentation
 @comment here is by request from the FSF folks.
-@dircategory Emacs
+@dircategory Emacs editing modes
 @direntry
 * CC Mode: (ccmode).            Emacs mode for editing C, C++, Objective-C,
                                 Java, Pike, AWK, and CORBA IDL code.

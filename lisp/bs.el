@@ -42,14 +42,10 @@
 
 ;;; Quick Installation und Customization:
 
-;; Use
+;; To display the bs menu, do
 ;;   M-x bs-show
-;; for buffer selection or optional bind a key to main function `bs-show'
-;;   (global-set-key "\C-x\C-b" 'bs-show)    ;; or another key
-;;
-;; For customization use
-;; M-x bs-customize
-
+;; To customize its behavior, do
+;;   M-x bs-customize
 
 ;;; More Commentary:
 

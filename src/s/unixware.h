@@ -49,14 +49,4 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
     pty_name[sizeof(pty_name) - 1] = 0;		\
   }
 
-/* Data type of load average, as read out of kmem.  */
-#define LOAD_AVE_TYPE long
-
-/* Convert that into an integer that is 100 for a load average of 1.0  */
-/* This is totally uncalibrated. */
-#define LOAD_AVE_CVT(x) ((int) (((double) (x)) * 100.0 / FSCALE))
-#define FSCALE 256.0
-
-
 #define	PENDING_OUTPUT_COUNT(FILE) ((FILE)->__ptr - (FILE)->__base)
-

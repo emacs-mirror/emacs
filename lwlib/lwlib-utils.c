@@ -1,4 +1,5 @@
 /* Defines some widget utility functions.
+
 Copyright (C) 1992 Lucid, Inc.
 Copyright (C) 1994, 2001-2011 Free Software Foundation, Inc.
 
@@ -23,15 +24,8 @@ Boston, MA 02110-1301, USA.  */
 #include <config.h>
 #endif
 
-/* Definitions of these in config.h can cause
-   declaration conflicts later on between declarations for index
-   and declarations for strchr.  This file doesn't use
-   index and rindex, so cancel them.  */
-#undef index
-#undef rindex
-
 #include <setjmp.h>
-#include "../src/lisp.h"
+#include <lisp.h>
 
 #include <X11/Xatom.h>
 #include <X11/IntrinsicP.h>
@@ -173,4 +167,3 @@ XtSafelyDestroyWidget (Widget widget)
   abort ();
 #endif
 }
-

@@ -55,7 +55,7 @@ Public License.''
 @end copying
 
 @c Info Directory Entry
-@dircategory Emacs
+@dircategory Emacs network features
 @direntry
 * MH-E: (mh-e).                 Emacs interface to the MH mail system.
 @end direntry
@@ -211,9 +211,9 @@ However, MH-E was the tip of the iceberg, and I discovered more and
 more niceties about GNU Emacs and MH@. Now I'm fully hooked on both of
 them.
 
-The MH-E package is distributed with GNU Emacs@footnote{Version
-@value{VERSION} of MH-E appeared in GNU Emacs 23.1. It is supported
-in GNU Emacs 21 and 22, as well as XEmacs 21 (except for versions
+The MH-E package is distributed with Emacs@footnote{Version
+@value{VERSION} of MH-E appeared in Emacs 23.1. It is supported
+in Emacs 21 and 22, as well as XEmacs 21 (except for versions
 21.5.9-21.5.16). It is compatible with MH versions 6.8.4 and higher,
 all versions of nmh, and GNU mailutils 1.0 and higher.}, so you
 shouldn't have to do anything special to use it. Gnus is also

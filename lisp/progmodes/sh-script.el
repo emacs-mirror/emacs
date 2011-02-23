@@ -948,12 +948,12 @@ Point is at the beginning of the next line."
     ;; We're looking at <<STRING, so we add "^STRING$" to the syntactic
     ;; font-lock keywords to detect the end of this here document.
     (let ((str (replace-regexp-in-string "['\"]" "" string))
-          (ppss (save-excursion (syntax-ppss (1- (point))))))
+          (ppss (save-excursion (syntax-ppss eol))))
       (if (nth 4 ppss)
           ;; The \n not only starts the heredoc but also closes a comment.
           ;; Let's close the comment just before the \n.
-          (put-text-property (1- (point)) (point) 'syntax-table '(12))) ;">"
-      (if (or (nth 5 ppss) (> (count-lines start (point)) 1))
+          (put-text-property (1- eol) eol 'syntax-table '(12))) ;">"
+      (if (or (nth 5 ppss) (> (count-lines start eol) 1))
           ;; If the sh-escaped-line-re part of sh-here-doc-open-re has matched
           ;; several lines, make sure we refontify them together.
           ;; Furthermore, if (nth 5 ppss) is non-nil (i.e. the \n is
@@ -961,7 +961,7 @@ Point is at the beginning of the next line."
           ;; Don't bother fixing it now, but place a multiline property so
           ;; that when jit-lock-context-* refontifies the rest of the
           ;; buffer, it also refontifies the current line with it.
-          (put-text-property start (point) 'syntax-multiline t))
+          (put-text-property start (1+ eol) 'syntax-multiline t))
       (put-text-property eol (1+ eol) 'sh-here-doc-marker str)
       (prog1 sh-here-doc-syntax
         (goto-char (+ 2 start))))))
@@ -969,7 +969,8 @@ Point is at the beginning of the next line."
 (defun sh-syntax-propertize-here-doc (end)
   (let ((ppss (syntax-ppss)))
     (when (eq t (nth 3 ppss))
-      (let ((key (get-text-property (nth 8 ppss) 'sh-here-doc-marker)))
+      (let ((key (get-text-property (nth 8 ppss) 'sh-here-doc-marker))
+            (case-fold-search nil))
         (when (re-search-forward
                (concat "^\\([ \t]*\\)" (regexp-quote key) "\\(\n\\)")
                end 'move)
@@ -1083,33 +1084,33 @@ subshells can nest."
 (defun sh-syntax-propertize-function (start end)
   (goto-char start)
   (sh-syntax-propertize-here-doc end)
-               (funcall
-                (syntax-propertize-rules
+  (funcall
+   (syntax-propertize-rules
     (sh-here-doc-open-re
      (2 (sh-font-lock-open-heredoc
          (match-beginning 0) (match-string 1) (match-beginning 2))))
     ("\\s|" (0 (prog1 nil (sh-syntax-propertize-here-doc end))))
-                 ;; A `#' begins a comment when it is unquoted and at the
-                 ;; beginning of a word.  In the shell, words are separated by
-                 ;; metacharacters.  The list of special chars is taken from
-                 ;; the single-unix spec of the shell command language (under
-                 ;; `quoting') but with `$' removed.
-                 ("[^|&;<>()`\\\"' \t\n]\\(#+\\)" (1 "_"))
-                 ;; In a '...' the backslash is not escaping.
-                 ("\\(\\\\\\)'" (1 (sh-font-lock-backslash-quote)))
-                 ;; Make sure $@ and $? are correctly recognized as sexps.
-                 ("\\$\\([?@]\\)" (1 "_"))
-                 ;; Distinguish the special close-paren in `case'.
-                 (")" (0 (sh-font-lock-paren (match-beginning 0))))
-                 ;; Highlight (possibly nested) subshells inside "" quoted
-                 ;; regions correctly.
+    ;; A `#' begins a comment when it is unquoted and at the
+    ;; beginning of a word.  In the shell, words are separated by
+    ;; metacharacters.  The list of special chars is taken from
+    ;; the single-unix spec of the shell command language (under
+    ;; `quoting') but with `$' removed.
+    ("[^|&;<>()`\\\"' \t\n]\\(#+\\)" (1 "_"))
+    ;; In a '...' the backslash is not escaping.
+    ("\\(\\\\\\)'" (1 (sh-font-lock-backslash-quote)))
+    ;; Make sure $@ and $? are correctly recognized as sexps.
+    ("\\$\\([?@]\\)" (1 "_"))
+    ;; Distinguish the special close-paren in `case'.
+    (")" (0 (sh-font-lock-paren (match-beginning 0))))
+    ;; Highlight (possibly nested) subshells inside "" quoted
+    ;; regions correctly.
     ("\"\\(?:\\(?:[^\\\"]\\|\\)*?[^\\]\\(?:\\\\\\\\\\)*\\)??\\(\\$(\\|`\\)"
-                  (1 (ignore
-                      ;; Save excursion because we want to also apply other
-                      ;; syntax-propertize rules within the affected region.
+     (1 (ignore
+         ;; Save excursion because we want to also apply other
+         ;; syntax-propertize rules within the affected region.
          (if (nth 8 (syntax-ppss))
              (goto-char (1+ (match-beginning 0)))
-                      (save-excursion
+           (save-excursion
              (sh-font-lock-quoted-subshell end)))))))
    (point) end))
 

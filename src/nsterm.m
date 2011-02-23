@@ -3762,7 +3762,7 @@ ns_term_init (Lisp_Object display_name)
 
   terminal->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
   init_kboard (terminal->kboard);
-  terminal->kboard->Vwindow_system = Qns;
+  KVAR (terminal->kboard, Vwindow_system) = Qns;
   terminal->kboard->next_kboard = all_kboards;
   all_kboards = terminal->kboard;
   /* Don't let the initial kboard remain current longer than necessary.
@@ -4542,6 +4542,7 @@ ns_term_shutdown (int sig)
 
       /* if it was a function key or had modifiers, pass it directly to emacs */
       if (fnKeysym || (emacs_event->modifiers
+                       && (emacs_event->modifiers != shift_modifier)
                        && [[theEvent charactersIgnoringModifiers] length] > 0))
 /*[[theEvent characters] length] */
         {
@@ -5783,6 +5784,7 @@ ns_term_shutdown (int sig)
   win = nwin;
   condemned = NO;
   pixel_height = NSHeight (r);
+  if (pixel_height == 0) pixel_height = 1;
   min_portion = 20 / pixel_height;
 
   frame = XFRAME (XWINDOW (win)->frame);
@@ -5812,6 +5814,7 @@ ns_term_shutdown (int sig)
   NSTRACE (EmacsScroller_setFrame);
 /*  BLOCK_INPUT; */
   pixel_height = NSHeight (newRect);
+  if (pixel_height == 0) pixel_height = 1;
   min_portion = 20 / pixel_height;
   [super setFrame: newRect];
   [self display];

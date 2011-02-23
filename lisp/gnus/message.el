@@ -1814,6 +1814,7 @@ You must have the \"hashcash\" binary installed, see `hashcash-path'."
 
 (defvar	message-options nil
   "Some saved answers when sending message.")
+(make-variable-buffer-local 'message-options)
 
 (defvar message-send-mail-real-function nil
   "Internal send mail function.")
@@ -4010,11 +4011,11 @@ Instead, just auto-save the buffer and then bury it."
 
 (defun message-bury (buffer)
   "Bury this mail BUFFER."
-  (let ((newbuf (other-buffer buffer)))
-    (bury-buffer buffer)
-    (if message-return-action
-	(apply (car message-return-action) (cdr message-return-action))
-      (switch-to-buffer newbuf))))
+  (if message-return-action
+      (progn
+        (bury-buffer buffer)
+        (apply (car message-return-action) (cdr message-return-action)))
+    (with-current-buffer buffer (bury-buffer))))
 
 (defun message-send (&optional arg)
   "Send the message in the current buffer.
@@ -6778,7 +6779,7 @@ Useful functions to put in this list include:
   subject)
 
 ;;;###autoload
-(defun message-reply (&optional to-address wide)
+(defun message-reply (&optional to-address wide switch-function)
   "Start editing a reply to the article in the current buffer."
   (interactive)
   (require 'gnus-sum)			; for gnus-list-identifiers
@@ -6821,7 +6822,8 @@ Useful functions to put in this list include:
       (message-pop-to-buffer
        (message-buffer-name
 	(if wide "wide reply" "reply") from
-	(if wide to-address nil))))
+	(if wide to-address nil))
+       switch-function))
 
     (setq message-reply-headers
 	  (vector 0 subject from date message-id references 0 0 ""))

@@ -236,9 +236,9 @@ struct interval
    and 2 if it is invisible but with an ellipsis.  */
 
 #define TEXT_PROP_MEANS_INVISIBLE(prop)				\
-  (EQ (current_buffer->invisibility_spec, Qt)			\
+  (EQ (BVAR (current_buffer, invisibility_spec), Qt)			\
    ? !NILP (prop)						\
-   : invisible_p (prop, current_buffer->invisibility_spec))
+   : invisible_p (prop, BVAR (current_buffer, invisibility_spec)))
 
 /* Declared in alloc.c */
 

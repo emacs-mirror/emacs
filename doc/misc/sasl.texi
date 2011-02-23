@@ -33,7 +33,7 @@ license to the document, as described in section 6 of the license.
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs network features
 @direntry
 * SASL: (sasl).                 The Emacs SASL library.
 @end direntry

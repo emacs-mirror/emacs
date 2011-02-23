@@ -6,7 +6,7 @@
 ;; Maintainer: Ken Manheimer <ken dot manheimer at gmail dot com>
 ;; Created: Dec 1991 -- first release to usenet
 ;; Version: 2.3
-;; Keywords: outlines wp languages
+;; Keywords: outlines, wp, languages, PGP, GnuPG
 ;; Website: http://myriadicity.net/Sundry/EmacsAllout
 
 ;; This file is part of GNU Emacs.
@@ -39,11 +39,9 @@
 ;;    emacs local file variables need to be enabled when the
 ;;    file was visited -- see `enable-local-variables'.)
 ;;  - Configurable per-file initial exposure settings
-;;  - Symmetric-key and key-pair topic encryption, plus symmetric passphrase
-;;    mnemonic support, with verification against an established passphrase
-;;    (using a stashed encrypted dummy string) and user-supplied hint
-;;    maintenance.  Encryption is via the Emacs 'epg' library.  See
-;;    allout-toggle-current-subtree-encryption docstring.
+;;  - Symmetric-key and key-pair topic encryption.  Encryption is via the
+;;    Emacs 'epg' library.  See allout-toggle-current-subtree-encryption
+;;    docstring.
 ;;  - Automatic topic-number maintenance
 ;;  - "Hot-spot" operation, for single-keystroke maneuvering and
 ;;    exposure control (see the allout-mode docstring)
@@ -59,27 +57,24 @@
 ;; See the `allout-mode' function's docstring for an introduction to the
 ;; mode.
 ;;
-;; The latest development version and helpful notes are available at
-;; http://myriadicity.net/Sundry/EmacsAllout .
+;; Directions to the latest development version and helpful notes are
+;; available at http://myriadicity.net/Sundry/EmacsAllout .
 ;;
-;; The outline menubar additions provide quick reference to many of
-;; the features, and see the docstring of the variable `allout-init'
-;; for instructions on priming your Emacs session for automatic
-;; activation of allout-mode.
-;;
-;; See the docstring of the variables `allout-layout' and
+;; The outline menubar additions provide quick reference to many of the
+;; features.  See the docstring of the variables `allout-layout' and
 ;; `allout-auto-activation' for details on automatic activation of
-;; `allout-mode' as a minor mode.  (It has changed since allout
-;; 3.x, for those of you that depend on the old method.)
+;; `allout-mode' as a minor mode.  (`allout-init' is deprecated in favor of
+;; a purely customization-based method.)
 ;;
 ;; Note -- the lines beginning with `;;;_' are outline topic headers.
-;;        Just `ESC-x eval-buffer' to give it a whirl.
+;;        Customize `allout-auto-activation' to enable, then revisit this
+;;        buffer to give it a whirl.
 
 ;; ken manheimer (ken dot manheimer at gmail dot com)
 
 ;;; Code:
 
-;;;_* Dependency autoloads
+;;;_* Dependency loads
 (require 'overlay)
 (eval-when-compile
   ;; Most of the requires here are for stuff covered by autoloads, which
@@ -97,7 +92,9 @@
 
 ;;;_ > defgroup allout, allout-keybindings
 (defgroup allout nil
-  "Extensive outline mode for use alone and with other modes."
+  "Extensive outline minor-mode, for use stand-alone and with other modes.
+
+See Allout Auto Activation for automatic activation."
   :prefix "allout-"
   :group 'outlines)
 (defgroup allout-keybindings nil
@@ -271,35 +268,54 @@ See the existing keys for examples."
   :set 'allout-compose-and-institute-keymap
   )
 
+;;;_  > allout-auto-activation-helper (var value)
+;;;###autoload
+(defun allout-auto-activation-helper (var value)
+  "Institute `allout-auto-activation'.
+
+Intended to be used as the `allout-auto-activation' :set function."
+  (set-default var value)
+  (allout-setup))
+;;;_  > allout-setup ()
+;;;###autoload
+(defun allout-setup ()
+  "Do fundamental emacs session for allout auto-activation.
+
+Establishes allout processing as part of visiting a file if
+`allout-auto-activation' is non-nil, or removes it otherwise.
+
+The proper way to use this is through customizing the setting of
+`allout-auto-activation'."
+  (if (not allout-auto-activation)
+      (remove-hook 'find-file-hook 'allout-find-file-hook)
+      (add-hook 'find-file-hook 'allout-find-file-hook)))
 ;;;_  = allout-auto-activation
+;;;###autoload
 (defcustom allout-auto-activation nil
-  "Regulates auto-activation modality of allout outlines -- see `allout-init'.
+  "Configure allout outline mode auto-activation.
 
-Setq-default by `allout-init' to regulate whether or not allout
-outline mode is automatically activated when the buffer-specific
-variable `allout-layout' is non-nil, and whether or not the layout
-dictated by `allout-layout' should be imposed on mode activation.
+Control whether and how allout outline mode is automatically
+activated when files are visited with non-nil buffer-specific
+file variable `allout-layout'.
 
-With value t, auto-mode-activation and auto-layout are enabled.
-\(This also depends on `allout-find-file-hook' being installed in
-`find-file-hook', which is also done by `allout-init'.)
+When allout-auto-activation is \"On\" \(t), allout mode is
+activated in buffers with non-nil `allout-layout', and the
+specified layout is applied.
 
-With value `ask', auto-mode-activation is enabled, and endorsement for
+With value \"ask\", auto-mode-activation is enabled, and endorsement for
 performing auto-layout is asked of the user each time.
 
-With value `activate', only auto-mode-activation is enabled,
-auto-layout is not.
+With value \"activate\", only auto-mode-activation is enabled.
+Auto-layout is not.
 
-With value nil, neither auto-mode-activation nor auto-layout are
-enabled.
-
-See the docstring for `allout-init' for the proper interface to
-this variable."
+With value nil, inhibit any automatic allout-mode activation."
+  :set 'allout-auto-activation-helper
   :type '(choice (const :tag "On" t)
                 (const :tag "Ask about layout" "ask")
                 (const :tag "Mode only" "activate")
                 (const :tag "Off" nil))
   :group 'allout)
+(allout-setup)
 ;;;_  = allout-default-layout
 (defcustom allout-default-layout '(-2 : 0)
   "Default allout outline layout specification.
@@ -311,7 +327,7 @@ layout specifications.
 A list value specifies a default layout for the current buffer,
 to be applied upon activation of `allout-mode'.  Any non-nil
 value will automatically trigger `allout-mode', provided
-`allout-init' has been called to enable this behavior.
+`allout-auto-activation' has been customized to enable it.
 
 The types of elements in the layout specification are:
 
@@ -734,8 +750,10 @@ Set this var to the bullet you want to use for file cross-references."
 ;;;###autoload
 (put 'allout-presentation-padding 'safe-local-variable 'integerp)
 
-;;;_  = allout-abbreviate-flattened-numbering
-(defcustom allout-abbreviate-flattened-numbering nil
+;;;_  = allout-flattened-numbering-abbreviation
+(define-obsolete-variable-alias 'allout-abbreviate-flattened-numbering
+  'allout-flattened-numbering-abbreviation "24.0")
+(defcustom allout-flattened-numbering-abbreviation nil
   "If non-nil, `allout-flatten-exposed-to-buffer' abbreviates topic
 numbers to minimal amount with some context.  Otherwise, entire
 numbers are always used."
@@ -890,10 +908,10 @@ For details, see `allout-toggle-current-subtree-encryption's docstring."
 (defvar allout-layout nil            ; LEAVE GLOBAL VALUE NIL -- see docstring.
   "Buffer-specific setting for allout layout.
 
-In buffers where this is non-nil (and if `allout-init' has been run, to
-enable this behavior), `allout-mode' will be automatically activated.  The
-layout dictated by the value will be used to set the initial exposure when
-`allout-mode' is activated.
+In buffers where this is non-nil \(and if `allout-auto-activation'
+has been customized to enable this behavior), `allout-mode' will be
+automatically activated.  The layout dictated by the value will be used to
+set the initial exposure when `allout-mode' is activated.
 
 \*You should not setq-default this variable non-nil unless you want every
 visited file to be treated as an allout file.*
@@ -906,9 +924,9 @@ example, the following lines at the bottom of an Emacs Lisp file:
 ;;;End:
 
 dictate activation of `allout-mode' mode when the file is visited
-\(presuming allout-init was already run), followed by the
-equivalent of `(allout-expose-topic 0 : -1 -1 0)'.  (This is
-the layout used for the allout.el source file.)
+\(presuming proper `allout-auto-activation' customization),
+followed by the equivalent of `(allout-expose-topic 0 : -1 -1 0)'.
+\(This is the layout used for the allout.el source file.)
 
 `allout-default-layout' describes the specification format.
 `allout-layout' can additionally have the value `t', in which
@@ -1441,9 +1459,7 @@ This hook might be invoked multiple times by a single command.")
 (defvar allout-after-copy-or-kill-hook nil
   "*Hook that's run after copying outline text.
 
-Functions on the hook should take two arguments:
-
-  START, END -- integers indicating the span containing the copied text.")
+Functions on the hook should not take any arguments.")
 ;;;_   = allout-outside-normal-auto-fill-function
 (defvar allout-outside-normal-auto-fill-function nil
   "Value of normal-auto-fill-function outside of allout mode.
@@ -1537,6 +1553,7 @@ See `allout-encryption-ciphertext-rejection-regexps' for rejection reasons.")
 ;;;_   > allout-mode-p ()
 ;; Must define this macro above any uses, or byte compilation will lack
 ;; proper def, if file isn't loaded -- eg, during emacs build!
+;;;###autoload
 (defmacro allout-mode-p ()
   "Return t if `allout-mode' is active in current buffer."
   'allout-mode)
@@ -1621,84 +1638,19 @@ non-nil in a lasting way.")
   "If t, `allout-mode's last deactivation was deliberate.
 So `allout-post-command-business' should not reactivate it...")
 (make-variable-buffer-local 'allout-explicitly-deactivated)
-;;;_  > allout-init (&optional mode)
-(defun allout-init (&optional mode)
-  "Prime `allout-mode' to enable/disable auto-activation, wrt `allout-layout'.
+;;;_  > allout-init (mode)
+(defun allout-init (mode)
+  "DEPRECATED - configure allout activation by customizing
+`allout-auto-activation'.  This function remains around, limited
+from what it did before, for backwards compatability.
 
-MODE is one of the following symbols:
+MODE is the activation mode - see `allout-auto-activation' for
+valid values."
 
- - nil (or no argument) deactivate auto-activation/layout;
- - `activate', enable auto-activation only;
- - `ask', enable auto-activation, and enable auto-layout but with
-   confirmation for layout operation solicited from user each time;
- - `report', just report and return the current auto-activation state;
- - anything else (eg, t) for auto-activation and auto-layout, without
-   any confirmation check.
-
-Use this function to setup your Emacs session for automatic activation
-of allout outline mode, contingent to the buffer-specific setting of
-the `allout-layout' variable.  (See `allout-layout' and
-`allout-expose-topic' docstrings for more details on auto layout).
-
-`allout-init' works by setting up (or removing) the `allout-mode'
-find-file-hook, and giving `allout-auto-activation' a suitable
-setting.
-
-To prime your Emacs session for full auto-outline operation, include
-the following two lines in your Emacs init file:
-
-\(require 'allout)
-\(allout-init t)"
-
-  (interactive)
-  (if (allout-called-interactively-p)
-      (progn
-	(setq mode
-	      (completing-read
-	       (concat "Select outline auto setup mode "
-		       "(empty for report, ? for options) ")
-	       '(("nil")("full")("activate")("deactivate")
-		 ("ask") ("report") (""))
-	       nil
-	       t))
-	(if (string= mode "")
-	    (setq mode 'report)
-	  (setq mode (intern-soft mode)))))
-  (let
-      ;; convenience aliases, for consistent ref to respective vars:
-      ((hook 'allout-find-file-hook)
-       (find-file-hook-var-name (if (boundp 'find-file-hook)
-                                    'find-file-hook
-                                  'find-file-hooks))
-       (curr-mode 'allout-auto-activation))
-
-    (cond ((not mode)
-	   (set find-file-hook-var-name
-                (delq hook (symbol-value find-file-hook-var-name)))
-	   (if (allout-called-interactively-p)
-	       (message "Allout outline mode auto-activation inhibited.")))
-	  ((eq mode 'report)
-	   (if (not (memq hook (symbol-value find-file-hook-var-name)))
-	       (allout-init nil)
-	     ;; Just punt and use the reports from each of the modes:
-	     (allout-init (symbol-value curr-mode))))
-	  (t (add-hook find-file-hook-var-name hook)
-	     (set curr-mode		; `set', not `setq'!
-		  (cond ((eq mode 'activate)
-			 (message
-			  "Outline mode auto-activation enabled.")
-			 'activate)
-			((eq mode 'report)
-			 ;; Return the current mode setting:
-			 (allout-init mode))
-			((eq mode 'ask)
-			 (message
-			  (concat "Outline mode auto-activation and "
-				  "-layout (upon confirmation) enabled."))
-			 'ask)
-			((message
-			  "Outline mode auto-activation and -layout enabled.")
-			 'full)))))))
+  (custom-set-variables (list 'allout-auto-activation (format "%s" mode)))
+  (format "%s" mode))
+(make-obsolete 'allout-init
+               "customize 'allout-auto-activation' instead." "23.3")
 ;;;_  > allout-setup-menubar ()
 (defun allout-setup-menubar ()
   "Populate the current buffer's menubar with `allout-mode' stuff."
@@ -1764,9 +1716,8 @@ and many other features.
 Below is a description of the key bindings, and then description
 of special `allout-mode' features and terminology.  See also the
 outline menubar additions for quick reference to many of the
-features, and see the docstring of the function `allout-init' for
-instructions on priming your emacs session for automatic
-activation of `allout-mode'.
+features.  Customize `allout-auto-activation' to prepare your
+emacs session for automatic activation of `allout-mode'.
 
 The bindings are those listed in `allout-prefixed-keybindings'
 and `allout-unprefixed-keybindings'.  We recommend customizing
@@ -1850,7 +1801,8 @@ M-x outlineify-sticky       Activate outline mode for current buffer,
                             Like above 'copy-exposed', but convert topic
                             prefixes to section.subsection... numeric
                             format.
-\\[eval-expression] (allout-init t) Setup Emacs session for outline mode
+\\[customize-variable] allout-auto-activation
+                            Prepare Emacs session for allout outline mode
                             auto-activation.
 
                   Topic Encryption
@@ -2092,8 +2044,8 @@ OPEN:	A TOPIC that is not CLOSED, though its OFFSPRING or BODY may be."
       (when (and allout-layout
                  allout-auto-activation
                  use-layout
-                 (and (not (eq allout-auto-activation 'activate))
-                      (if (eq allout-auto-activation 'ask)
+                 (and (not (string= allout-auto-activation "activate"))
+                      (if (string= allout-auto-activation "ask")
                           (if (y-or-n-p (format "Expose %s with layout '%s'? "
                                                 (buffer-name)
                                                 use-layout))
@@ -3448,7 +3400,7 @@ Returns the qualifying command, if any, else nil."
 (defun allout-find-file-hook ()
   "Activate `allout-mode' on non-nil `allout-auto-activation', `allout-layout'.
 
-See `allout-init' for setup instructions."
+See `allout-auto-activation' for setup instructions."
   (if (and allout-auto-activation
 	   (not (allout-mode-p))
 	   allout-layout)
@@ -4394,7 +4346,7 @@ subtopics into siblings of the item."
           (if (and (not beg-hidden) (not end-hidden))
               (allout-unprotected (kill-line arg))
             (kill-line arg))
-        (run-hook-with-args 'allout-after-copy-or-kill-hook beg end)
+        (run-hooks 'allout-after-copy-or-kill-hook)
         (allout-deannotate-hidden beg end)
 
         (if allout-numbered-bullet
@@ -4446,7 +4398,7 @@ Topic exposure is marked with text-properties, to be used by
     (unwind-protect                     ; for possible barf-if-buffer-read-only.
         (allout-unprotected (kill-region beg end))
       (allout-deannotate-hidden beg end)
-      (run-hook-with-args 'allout-after-copy-or-kill-hook beg end)
+      (run-hooks 'allout-after-copy-or-kill-hook)
 
       (save-excursion
         (allout-renumber-to-depth depth))
@@ -4503,7 +4455,8 @@ Topic exposure is marked with text-properties, to be used by
   (allout-unprotected
    (let ((inhibit-read-only t)
          (buffer-undo-list t))
-     (remove-text-properties begin end '(allout-was-hidden t)))))
+     (remove-text-properties begin (min end (point-max))
+                             '(allout-was-hidden t)))))
 ;;;_    > allout-hide-by-annotation (begin end)
 (defun allout-hide-by-annotation (begin end)
   "Translate text properties indicating exposure status into actual exposure."
@@ -5458,7 +5411,7 @@ header and body.  The elements of that list are:
 				      bullet)))
 		     (cond ((listp format)
 			    (list depth
-				  (if allout-abbreviate-flattened-numbering
+				  (if allout-flattened-numbering-abbreviation
 				      (allout-stringify-flat-index format
 								    gone-out)
 				      (allout-stringify-flat-index-plain
@@ -6102,7 +6055,7 @@ signal."
     (with-temp-buffer
       (insert text)
       ;; convey the text characteristics of the original buffer:
-      (allout-set-buffer-multibyte multibyte)
+      (set-buffer-multibyte multibyte)
       (when encoding
         (set-buffer-file-coding-system encoding)
         (if (not decrypt)
@@ -6133,9 +6086,14 @@ signal."
 
     (setq result-text
           (if decrypt
-              (epg-decrypt-string epg-context
-                                  (encode-coding-string massaged-text
-                                                        (or encoding 'utf-8)))
+              (condition-case err
+                  (epg-decrypt-string epg-context
+                                      (encode-coding-string massaged-text
+                                                            (or encoding 'utf-8)))
+                (epg-error
+                 (signal 'egp-error
+                         (cons (concat (cadr err) " - gpg version problem?")
+                               (cddr err)))))
             (replace-regexp-in-string "\n$" ""
              (epg-encrypt-string epg-context
                                  (encode-coding-string massaged-text
@@ -6312,8 +6270,8 @@ save.  See `allout-encrypt-unencrypted-on-saves' for more info."
 (defun outlineify-sticky (&optional arg)
   "Activate outline mode and establish file var so it is started subsequently.
 
-See doc-string for `allout-layout' and `allout-init' for details on
-setup for auto-startup."
+See `allout-layout' and customization of `allout-auto-activation'
+for details on preparing emacs for automatic allout activation."
 
   (interactive "P")
 
@@ -6721,14 +6679,6 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
     'previous-single-property-change)
   ;; No docstring because xemacs defalias doesn't support it.
   )
-;;;_   > allout-set-buffer-multibyte
-(if (fboundp 'set-buffer-multibyte)
-    (defalias 'allout-set-buffer-multibyte 'set-buffer-multibyte)
-  (with-no-warnings
-    ;; this definition is used only in older or alternative emacs, where
-    ;; the setting is our only recourse.
-    (defun allout-set-buffer-multibyte (is-multibyte)
-      (set enable-multibyte-characters is-multibyte))))
 ;;;_   > allout-select-safe-coding-system
 (defalias 'allout-select-safe-coding-system
   (if (fboundp 'select-safe-coding-system)

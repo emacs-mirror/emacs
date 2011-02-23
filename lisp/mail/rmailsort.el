@@ -87,7 +87,7 @@ If prefix argument REVERSE is non-nil, sorts in reverse order."
   "Sort messages of current Rmail buffer by other correspondent.
 This uses either the \"From\", \"Sender\", \"To\", or
 \"Apparently-To\" header, downcased.  Uses the first header not
-excluded by `rmail-dont-reply-to-names'.  If prefix argument
+excluded by `mail-dont-reply-to-names'.  If prefix argument
 REVERSE is non-nil, sorts in reverse order."
   (interactive "P")
   (rmail-sort-messages reverse
@@ -98,13 +98,12 @@ REVERSE is non-nil, sorts in reverse order."
 			   '("From" "Sender" "To" "Apparently-To"))))))
 
 (defun rmail-select-correspondent (msg fields)
-  "Find the first header not excluded by `rmail-dont-reply-to-names'.
+  "Find the first header not excluded by `mail-dont-reply-to-names'.
 MSG is a message number.  FIELDS is a list of header names."
   (let ((ans ""))
     (while (and fields (string= ans ""))
       (setq ans
-	    ;; NB despite the name, this lives in mail-utils.el.
-	    (rmail-dont-reply-to
+	    (mail-dont-reply-to
 	     (mail-strip-quoted-names
 	      (or (rmail-get-header (car fields) msg) ""))))
       (setq fields (cdr fields)))

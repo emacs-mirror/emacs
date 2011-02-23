@@ -395,8 +395,13 @@ automatically sets a found version (if none is explicitly specified).
 *** To assign or reassign a bug to a package or list of packages:
 reassign 1234 emacs
 
+Note that reassigning clears the list of found versions, even if the
+new packages includes the original one.
+
 ** To remove spam from the tracker, move it to the `spam' pseudo-package:
 reassign 123 spam
+
+(Should not be necessary any more, now that the input is moderated.)
 
 ** To change the title of a bug:
 retitle 123 Some New Title
@@ -484,7 +489,7 @@ Here "{id}" is a literal string, a placeholder that will be replaced
 by the bug number you specify after `--fixes debbugs:' in the bzr
 command line (123 in the example above).
 
-In the bazaar.conf file, this setting should go into the [DEFAULTS]
+In the bazaar.conf file, this setting should go into the [DEFAULT]
 section.
 
 In the locations.conf file, it should go into the branch-specific

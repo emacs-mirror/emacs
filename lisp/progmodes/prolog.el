@@ -5,8 +5,9 @@
 
 ;; Authors: Emil Åström <emil_astrom(at)hotmail(dot)com>
 ;;          Milan Zamazal <pdm(at)freesoft(dot)cz>
-;;          Stefan Bruda <stefan(at)bruda(dot)ca>  (current maintainer)
+;;          Stefan Bruda <stefan(at)bruda(dot)ca>
 ;;          * See below for more details
+;; Maintainer: Stefan Bruda <stefan(at)bruda(dot)ca>
 ;; Keywords: prolog major mode sicstus swi mercury
 
 (defvar prolog-mode-version "1.22"
@@ -279,7 +280,6 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'compile)
   (require 'font-lock)
   ;; We need imenu everywhere because of the predicate index!
   (require 'imenu)
@@ -1125,6 +1125,8 @@ Actually this is just customized `prolog-mode'."
         (comint-send-string proc (string last-command-event))
       (call-interactively 'self-insert-command))))
 
+(declare-function 'compilation-shell-minor-mode "compile" (&optional arg))
+(defvar compilation-error-regexp-alist)
 
 (define-derived-mode prolog-inferior-mode comint-mode "Inferior Prolog"
   "Major mode for interacting with an inferior Prolog process.
@@ -1155,6 +1157,7 @@ imitating normal Unix input editing.
 
 To find out what version of Prolog mode you are running, enter
 `\\[prolog-mode-version]'."
+  (require 'compile)
   (setq comint-input-filter 'prolog-input-filter)
   (setq mode-line-process '(": %s"))
   (prolog-mode-variables)
@@ -1277,6 +1280,10 @@ the variable `prolog-prompt-regexp'."
 ;;------------------------------------------------------------
 ;; Old consulting and compiling functions
 ;;------------------------------------------------------------
+
+(declare-function compilation-forget-errors "compile" ())
+(declare-function compilation-fake-loc "compile"
+                  (marker file &optional line col))
 
 (defun prolog-old-process-region (compilep start end)
   "Process the region limited by START and END positions.
@@ -1479,6 +1486,8 @@ Used for temporary files.")
 (defvar prolog-consult-compile-real-file nil
   "The file name of the buffer to compile/consult.")
 
+(defvar compilation-parse-errors-function)
+
 (defun prolog-consult-compile (compilep file &optional first-line)
   "Consult/compile FILE.
 If COMPILEP is non-nil, perform compilation, otherwise perform CONSULTING.
@@ -1539,6 +1548,8 @@ This function must be called from the source code buffer."
                   "\nCompilation finished.\n"
                 "\nConsulted.\n"))
       (set-process-filter process old-filter))))
+
+(defvar compilation-error-list)
 
 (defun prolog-parse-sicstus-compilation-errors (limit)
   "Parse the prolog compilation buffer for errors.

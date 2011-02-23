@@ -40,7 +40,7 @@
 
 (eval-when-compile (require 'cl))
 
-(autoload 'auth-source-user-or-password "auth-source")
+(autoload 'auth-source-search "auth-source")
 
 (defgroup nntp nil
   "NNTP access for Gnus."
@@ -808,16 +808,17 @@ command whose response triggered the error."
 		      (progn
 			(goto-char last-point)
 			;; Count replies.
-			(while (re-search-forward "^[0-9]" nil t)
+			(while (re-search-forward
+				(if nntp-server-list-active-group
+				    "^[.]"
+				  "^[0-9]")
+				nil t)
 			  (incf received))
 			(setq last-point (point))
 			(< received count)))
 	    (nntp-accept-response))
 	  ;; We now have all the entries.  Remove CRs.
-	  (goto-char (point-min))
-	  (while (search-forward "\r" nil t)
-	    (replace-match "" t t))
-
+	  (nnheader-strip-cr)
 	  (if (not nntp-server-list-active-group)
 	      (progn
 		(nntp-copy-to-buffer nntp-server-buffer
@@ -830,7 +831,14 @@ command whose response triggered the error."
 	      (delete-region (match-beginning 0)
 			     (progn (forward-line 1) (point))))
 	    (nntp-copy-to-buffer nntp-server-buffer (point-min) (point-max))
-	    (gnus-active-to-gnus-format method gnus-active-hashtb nil t)))))))
+	    (with-current-buffer nntp-server-buffer
+	      (gnus-active-to-gnus-format
+	       ;; Kludge to use the extended method name if you have
+	       ;; an extended one.
+	       (if (consp (gnus-info-method (car infos)))
+		   (gnus-info-method (car infos))
+		 method)
+	       gnus-active-hashtb nil t))))))))
 
 (deffoo nntp-retrieve-groups (groups &optional server)
   "Retrieve group info on GROUPS."
@@ -1231,10 +1239,16 @@ If SEND-IF-FORCE, only send authinfo to the server if the
   (let* ((list (netrc-parse nntp-authinfo-file))
 	 (alist (netrc-machine list nntp-address "nntp"))
 	 (force (or (netrc-get alist "force") nntp-authinfo-force))
-	 (auth-info
-	  (auth-source-user-or-password '("login" "password") nntp-address "nntp"))
-	 (auth-user (nth 0 auth-info))
-	 (auth-passwd (nth 1 auth-info))
+         (auth-info
+          (nth 0 (auth-source-search :max 1
+                                     ;; TODO: allow the virtual server name too
+                                     :host nntp-address
+                                     :port '("119" "nntp"))))
+         (auth-user (plist-get auth-info :user))
+         (auth-passwd (plist-get auth-info :secret))
+         (auth-passwd (if (functionp auth-passwd)
+                          (funcall auth-passwd)
+                        auth-passwd))
 	 (user (or
 		;; this is preferred to netrc-*
 		auth-user

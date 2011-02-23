@@ -605,8 +605,8 @@ ns_set_name_as_filename (struct frame *f)
 
   BLOCK_INPUT;
   pool = [[NSAutoreleasePool alloc] init];
-  filename = XBUFFER (buf)->filename;
-  name = XBUFFER (buf)->name;
+  filename = BVAR (XBUFFER (buf), filename);
+  name = BVAR (XBUFFER (buf), name);
 
   if (NILP (name))
     {
@@ -1329,9 +1329,9 @@ be shared by the new frame.  */)
     }
 
   if (FRAME_HAS_MINIBUF_P (f)
-      && (!FRAMEP (kb->Vdefault_minibuffer_frame)
-          || !FRAME_LIVE_P (XFRAME (kb->Vdefault_minibuffer_frame))))
-    kb->Vdefault_minibuffer_frame = frame;
+      && (!FRAMEP (KVAR (kb, Vdefault_minibuffer_frame))
+          || !FRAME_LIVE_P (XFRAME (KVAR (kb, Vdefault_minibuffer_frame)))))
+    KVAR (kb, Vdefault_minibuffer_frame) = frame;
 
   /* All remaining specified parameters, which have not been "used"
      by x_get_arg and friends, now go in the misc. alist of the frame.  */
@@ -1428,7 +1428,7 @@ Optional arg INIT, if non-nil, provides a default file name to use.  */)
   NSString *promptS = NILP (prompt) || !STRINGP (prompt) ? nil :
     [NSString stringWithUTF8String: SDATA (prompt)];
   NSString *dirS = NILP (dir) || !STRINGP (dir) ?
-    [NSString stringWithUTF8String: SDATA (current_buffer->directory)] :
+    [NSString stringWithUTF8String: SDATA (BVAR (current_buffer, directory))] :
     [NSString stringWithUTF8String: SDATA (dir)];
   NSString *initS = NILP (init) || !STRINGP (init) ? nil :
     [NSString stringWithUTF8String: SDATA (init)];

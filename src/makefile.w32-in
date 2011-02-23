@@ -72,7 +72,6 @@ OBJ1 =  $(BLD)/alloc.$(O)		\
 	$(BLD)/eval.$(O)		\
 	$(BLD)/fileio.$(O)		\
 	$(BLD)/filelock.$(O)		\
-	$(BLD)/filemode.$(O)		\
 	$(BLD)/fns.$(O)			\
 	$(BLD)/indent.$(O)		\
 	$(BLD)/insdel.$(O)		\
@@ -81,7 +80,6 @@ OBJ1 =  $(BLD)/alloc.$(O)		\
 	$(BLD)/lread.$(O)		\
 	$(BLD)/macros.$(O)		\
 	$(BLD)/marker.$(O)		\
-	$(BLD)/md5.$(O)                 \
 	$(BLD)/minibuf.$(O)		\
 	$(BLD)/w32.$(O)			\
 	$(BLD)/w32heap.$(O)		\
@@ -203,6 +201,38 @@ make-buildobj-SH:
 	echo $(OBJ2)                   '\' >> buildobj.h
 	echo '$(DQUOTE)'                   >> buildobj.h
 
+GLOBAL_SOURCES =   dosfns.c msdos.c \
+	xterm.c xfns.c xmenu.c xselect.c xrdb.c xsmfns.c fringe.c image.c \
+	fontset.c menu.c dbusbind.c \
+	w32.c w32console.c w32fns.c w32heap.c w32inevt.c \
+	w32menu.c w32proc.c w32reg.c w32select.c w32term.c w32xfns.c \
+	font.c w32font.c w32uniscribe.c \
+	dispnew.c frame.c scroll.c xdisp.c window.c bidi.c \
+	charset.c coding.c category.c ccl.c character.c chartab.c \
+	cm.c term.c terminal.c xfaces.c \
+	emacs.c keyboard.c macros.c keymap.c sysdep.c \
+	buffer.c filelock.c insdel.c marker.c \
+	minibuf.c fileio.c dired.c \
+	cmds.c casetab.c casefiddle.c indent.c search.c regex.c undo.c \
+	alloc.c data.c doc.c editfns.c callint.c \
+	eval.c floatfns.c fns.c print.c lread.c \
+	syntax.c bytecode.c \
+	process.c callproc.c unexw32.c \
+	region-cache.c sound.c atimer.c \
+	doprnt.c intervals.c textprop.c composite.c
+SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
+  xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o dbusbind.o
+obj = $(GLOBAL_SOURCES:.c=.o)
+
+globals.h: gl-stamp
+
+gl-stamp: ../lib-src/$(BLD)/make-docfile.exe $(GLOBAL_SOURCES)
+	- $(DEL) gl-tmp
+	"../lib-src/$(BLD)/make-docfile" -d . -g $(SOME_MACHINE_OBJECTS) $(obj) > gl-tmp
+	cmd /c "fc /b gl-tmp globals.h >nul 2>&1 || $(CP) gl-tmp globals.h"
+	- $(DEL) gl-tmp
+	echo timestamp > $@
+
 bootstrap: bootstrap-emacs
 
 #
@@ -279,7 +309,7 @@ clean:
 	- $(DEL) "s/*.h~" "m/*.h~"
 	- $(DEL) $(COMPILER_TEMP_FILES)
 	- $(DEL_TREE) $(OBJDIR)
-	- $(DEL) stamp_BLD
+	- $(DEL) stamp_BLD gl-stamp globals.h
 	- $(DEL) buildobj.h
 
 distclean:	cleanall
@@ -632,6 +662,7 @@ $(BLD)/dired.$(O) : \
 	$(SRC)/coding.h \
 	$(SRC)/commands.h \
 	$(SRC)/composite.h \
+	$(EMACS_ROOT)/lib/filemode.h \
 	$(SRC)/ndir.h \
 	$(SRC)/regex.h \
 	$(SRC)/systime.h
@@ -790,10 +821,6 @@ $(BLD)/filelock.$(O) : \
 	$(SRC)/composite.h \
 	$(SRC)/systime.h
 
-$(BLD)/filemode.$(O) : \
-	$(SRC)/filemode.c \
-	$(CONFIG_H)
-
 $(BLD)/firstfile.$(O) : \
 	$(SRC)/firstfile.c \
 	$(CONFIG_H)
@@ -811,6 +838,7 @@ $(BLD)/fns.$(O) : \
 	$(EMACS_ROOT)/nt/inc/nl_types.h \
 	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
+	$(EMACS_ROOT)/lib/md5.h \
 	$(LISP_H) \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
@@ -824,7 +852,6 @@ $(BLD)/fns.$(O) : \
 	$(SRC)/intervals.h \
 	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \
-	$(SRC)/md5.h \
 	$(SRC)/systime.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
@@ -1102,11 +1129,6 @@ $(BLD)/marker.$(O) : \
 	$(LISP_H) \
 	$(SRC)/buffer.h \
 	$(SRC)/character.h
-
-$(BLD)/md5.$(O) : \
-	$(SRC)/md5.c \
-	$(CONFIG_H) \
-	$(SRC)/md5.h
 
 $(BLD)/menu.$(O) : \
 	$(SRC)/menu.c \

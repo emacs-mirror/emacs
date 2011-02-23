@@ -1359,8 +1359,8 @@ window_display_table (struct window *w)
     {
       struct buffer *b = XBUFFER (w->buffer);
 
-      if (DISP_TABLE_P (b->display_table))
-	dp = XCHAR_TABLE (b->display_table);
+      if (DISP_TABLE_P (BVAR (b, display_table)))
+	dp = XCHAR_TABLE (BVAR (b, display_table));
       else if (DISP_TABLE_P (Vstandard_display_table))
 	dp = XCHAR_TABLE (Vstandard_display_table);
     }
@@ -1414,9 +1414,9 @@ unshow_buffer (register struct window *w)
      So don't clobber point in that buffer.  */
   if (! EQ (buf, XWINDOW (selected_window)->buffer)
       /* This line helps to fix Horsley's testbug.el bug.  */
-      && !(WINDOWP (b->last_selected_window)
-	   && w != XWINDOW (b->last_selected_window)
-	   && EQ (buf, XWINDOW (b->last_selected_window)->buffer)))
+      && !(WINDOWP (BVAR (b, last_selected_window))
+	   && w != XWINDOW (BVAR (b, last_selected_window))
+	   && EQ (buf, XWINDOW (BVAR (b, last_selected_window))->buffer)))
     temp_set_point_both (b,
 			 clip_to_bounds (BUF_BEGV (b),
 					 XMARKER (w->pointm)->charpos,
@@ -1425,9 +1425,9 @@ unshow_buffer (register struct window *w)
 					 marker_byte_position (w->pointm),
 					 BUF_ZV_BYTE (b)));
 
-  if (WINDOWP (b->last_selected_window)
-      && w == XWINDOW (b->last_selected_window))
-    b->last_selected_window = Qnil;
+  if (WINDOWP (BVAR (b, last_selected_window))
+      && w == XWINDOW (BVAR (b, last_selected_window)))
+    BVAR (b, last_selected_window) = Qnil;
 }
 
 /* Put replacement into the window structure in place of old. */
@@ -2325,7 +2325,7 @@ window_loop (enum window_loop type, Lisp_Object obj, int mini, Lisp_Object frame
 	    /* Check for a window that has a killed buffer.  */
 	  case CHECK_ALL_WINDOWS:
 	    if (! NILP (w->buffer)
-		&& NILP (XBUFFER (w->buffer)->name))
+		&& NILP (BVAR (XBUFFER (w->buffer), name)))
 	      abort ();
 	    break;
 
@@ -2729,7 +2729,7 @@ window_min_size_2 (struct window *w, int width_p, int safe_p)
     {
       int safe_size = (MIN_SAFE_WINDOW_HEIGHT
 		       + ((BUFFERP (w->buffer)
-			   && !NILP (XBUFFER (w->buffer)->mode_line_format))
+			   && !NILP (BVAR (XBUFFER (w->buffer), mode_line_format)))
 			  ? 1 : 0));
 
       return safe_p ? safe_size : max (window_min_height, safe_size);
@@ -3360,15 +3360,15 @@ set_window_buffer (Lisp_Object window, Lisp_Object buffer, int run_hooks_p, int 
   w->buffer = buffer;
 
   if (EQ (window, selected_window))
-    b->last_selected_window = window;
+    BVAR (b, last_selected_window) = window;
 
   /* Let redisplay errors through.  */
   b->display_error_modiff = 0;
 
   /* Update time stamps of buffer display.  */
-  if (INTEGERP (b->display_count))
-    XSETINT (b->display_count, XINT (b->display_count) + 1);
-  b->display_time = Fcurrent_time ();
+  if (INTEGERP (BVAR (b, display_count)))
+    XSETINT (BVAR (b, display_count), XINT (BVAR (b, display_count)) + 1);
+  BVAR (b, display_time) = Fcurrent_time ();
 
   XSETFASTINT (w->window_end_pos, 0);
   XSETFASTINT (w->window_end_vpos, 0);
@@ -3421,18 +3421,18 @@ set_window_buffer (Lisp_Object window, Lisp_Object buffer, int run_hooks_p, int 
       w->left_margin_cols = w->right_margin_cols = Qnil;
 
       Fset_window_fringes (window,
-			   b->left_fringe_width, b->right_fringe_width,
-			   b->fringes_outside_margins);
+			   BVAR (b, left_fringe_width), BVAR (b, right_fringe_width),
+			   BVAR (b, fringes_outside_margins));
 
       Fset_window_scroll_bars (window,
-			       b->scroll_bar_width,
-			       b->vertical_scroll_bar_type, Qnil);
+			       BVAR (b, scroll_bar_width),
+			       BVAR (b, vertical_scroll_bar_type), Qnil);
 
       w->left_margin_cols = save_left;
       w->right_margin_cols = save_right;
 
       Fset_window_margins (window,
-			   b->left_margin_cols, b->right_margin_cols);
+			   BVAR (b, left_margin_cols), BVAR (b, right_margin_cols));
     }
 
   if (run_hooks_p)
@@ -3469,7 +3469,7 @@ This function runs `window-scroll-functions' before running
   XSETWINDOW (window, w);
   buffer = Fget_buffer (buffer_or_name);
   CHECK_BUFFER (buffer);
-  if (NILP (XBUFFER (buffer)->name))
+  if (NILP (BVAR (XBUFFER (buffer), name)))
     error ("Attempt to display deleted buffer");
 
   tem = w->buffer;
@@ -3481,7 +3481,7 @@ This function runs `window-scroll-functions' before running
       if (EQ (tem, buffer))
 	return Qnil;
       else if (EQ (w->dedicated, Qt))
-	error ("Window is dedicated to `%s'", SDATA (XBUFFER (tem)->name));
+	error ("Window is dedicated to `%s'", SDATA (BVAR (XBUFFER (tem), name)));
       else
 	w->dedicated = Qnil;
 
@@ -3517,7 +3517,7 @@ select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
       record_buffer (w->buffer);
     }
 
-  if (EQ (window, selected_window))
+  if (EQ (window, selected_window) && !inhibit_point_swap)
     return window;
 
   sf = SELECTED_FRAME ();
@@ -3552,7 +3552,7 @@ select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
 
   Fset_buffer (w->buffer);
 
-  XBUFFER (w->buffer)->last_selected_window = window;
+  BVAR (XBUFFER (w->buffer), last_selected_window) = window;
 
   /* Go to the point recorded in the window.
      This is important when the buffer is in more
@@ -3640,7 +3640,7 @@ displaying that buffer.  */)
 
   if (STRINGP (object))
     object = Fget_buffer (object);
-  if (BUFFERP (object) && !NILP (XBUFFER (object)->name))
+  if (BUFFERP (object) && !NILP (BVAR (XBUFFER (object), name)))
     {
       /* Walk all windows looking for buffer, and force update
 	 of each of those windows.  */
@@ -3663,7 +3663,7 @@ temp_output_buffer_show (register Lisp_Object buf)
   register Lisp_Object window;
   register struct window *w;
 
-  XBUFFER (buf)->directory = current_buffer->directory;
+  BVAR (XBUFFER (buf), directory) = BVAR (current_buffer, directory);
 
   Fset_buffer (buf);
   BUF_SAVE_MODIFF (XBUFFER (buf)) = MODIFF;
@@ -4834,8 +4834,8 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
 	 possibility of point becoming "stuck" on a tall line when
 	 scrolling by one line.  */
       if (window_scroll_pixel_based_preserve_y < 0
-	  || !SYMBOLP (current_kboard->Vlast_command)
-	  || NILP (Fget (current_kboard->Vlast_command, Qscroll_command)))
+	  || !SYMBOLP (KVAR (current_kboard, Vlast_command))
+	  || NILP (Fget (KVAR (current_kboard, Vlast_command), Qscroll_command)))
 	{
 	  start_display (&it, w, start);
 	  move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
@@ -5091,8 +5091,8 @@ window_scroll_line_based (Lisp_Object window, int n, int whole, int noerror)
   if (!NILP (Vscroll_preserve_screen_position))
     {
       if (window_scroll_preserve_vpos <= 0
-	  || !SYMBOLP (current_kboard->Vlast_command)
-	  || NILP (Fget (current_kboard->Vlast_command, Qscroll_command)))
+	  || !SYMBOLP (KVAR (current_kboard, Vlast_command))
+	  || NILP (Fget (KVAR (current_kboard, Vlast_command), Qscroll_command)))
 	{
 	  struct position posit
 	    = *compute_motion (startpos, 0, 0, 0,
@@ -5878,7 +5878,7 @@ the return value is nil.  Otherwise the value is t.  */)
   saved_windows = XVECTOR (data->saved_windows);
 
   new_current_buffer = data->current_buffer;
-  if (NILP (XBUFFER (new_current_buffer)->name))
+  if (NILP (BVAR (XBUFFER (new_current_buffer), name)))
     new_current_buffer = Qnil;
   else
     {
@@ -6063,14 +6063,14 @@ the return value is nil.  Otherwise the value is t.  */)
 	    w->buffer = p->buffer;
 	  else
 	    {
-	      if (!NILP (XBUFFER (p->buffer)->name))
+	      if (!NILP (BVAR (XBUFFER (p->buffer), name)))
 		/* If saved buffer is alive, install it.  */
 		{
 		  w->buffer = p->buffer;
 		  w->start_at_line_beg = p->start_at_line_beg;
 		  set_marker_restricted (w->start, p->start, w->buffer);
 		  set_marker_restricted (w->pointm, p->pointm, w->buffer);
-		  Fset_marker (XBUFFER (w->buffer)->mark,
+		  Fset_marker (BVAR (XBUFFER (w->buffer), mark),
 			       p->mark, w->buffer);
 
 		  /* As documented in Fcurrent_window_configuration, don't
@@ -6080,7 +6080,7 @@ the return value is nil.  Otherwise the value is t.  */)
 		      && XBUFFER (p->buffer) == current_buffer)
 		    Fgoto_char (w->pointm);
 		}
-	      else if (NILP (w->buffer) || NILP (XBUFFER (w->buffer)->name))
+	      else if (NILP (w->buffer) || NILP (BVAR (XBUFFER (w->buffer), name)))
 		/* Else unless window has a live buffer, get one.  */
 		{
 		  w->buffer = Fcdr (Fcar (Vbuffer_alist));
@@ -6121,7 +6121,7 @@ the return value is nil.  Otherwise the value is t.  */)
 	 has been restored into it.  We already swapped out that point
 	 from that window's old buffer.  */
       select_window (data->current_window, Qnil, 1);
-      XBUFFER (XWINDOW (selected_window)->buffer)->last_selected_window
+      BVAR (XBUFFER (XWINDOW (selected_window)->buffer), last_selected_window)
 	= selected_window;
 
       if (NILP (data->focus_frame)
@@ -6322,7 +6322,7 @@ save_window_save (Lisp_Object window, struct Lisp_Vector *vector, int i)
 	  p->start = Fcopy_marker (w->start, Qnil);
 	  p->start_at_line_beg = w->start_at_line_beg;
 
-	  tem = XBUFFER (w->buffer)->mark;
+	  tem = BVAR (XBUFFER (w->buffer), mark);
 	  p->mark = Fcopy_marker (tem, Qnil);
 	}
       else

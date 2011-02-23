@@ -38,7 +38,7 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs editing modes
 @direntry
 * IDLWAVE: (idlwave).           Major mode and shell for IDL files.
 @end direntry
@@ -57,6 +57,7 @@ developing GNU and promoting software freedom.''
 
 @ifnottex
 @node Top, Introduction, (dir), (dir)
+@top IDLWAVE
 
 IDLWAVE is a package which supports editing source code written in the
 Interactive Data Language (IDL), and running IDL as an inferior shell.
@@ -4274,7 +4275,7 @@ browse-url-browser-function} or similar when attempting to load IDLWAVE
 under XEmacs.}
 
 You don't have the @samp{browse-url} (or other required) XEmacs package.
-Unlike GNU Emacs, XEmacs distributes many packages separately from the
+Unlike Emacs, XEmacs distributes many packages separately from the
 main program.  IDLWAVE is actually among these, but is not always the
 most up to date.  When installing IDLWAVE as an XEmacs package, it
 should prompt you for required additional packages.  When installing it

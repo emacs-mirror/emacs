@@ -3394,7 +3394,7 @@ go to the end of the last sexp, or if that is the same point, then step."
   ;; Return the function symbol, or nil if not instrumented.
   (let ((func-marker (get func 'edebug)))
     (cond
-     ((markerp func-marker)
+     ((and (markerp func-marker) (marker-buffer func-marker))
       ;; It is uninstrumented, so instrument it.
       (with-current-buffer (marker-buffer func-marker)
 	(goto-char func-marker)

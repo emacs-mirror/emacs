@@ -719,7 +719,7 @@ get_process (register Lisp_Object name)
     {
       proc = Fget_buffer_process (obj);
       if (NILP (proc))
-	error ("Buffer %s has no process", SDATA (XBUFFER (obj)->name));
+	error ("Buffer %s has no process", SDATA (BVAR (XBUFFER (obj), name)));
     }
   else
     {
@@ -1283,12 +1283,12 @@ list_processes_1 (Lisp_Object query_only)
 	w_proc = i;
       if (!NILP (p->buffer))
 	{
-	  if (NILP (XBUFFER (p->buffer)->name))
+	  if (NILP (BVAR (XBUFFER (p->buffer), name)))
 	    {
 	      if (w_buffer < 8)
 		w_buffer = 8;  /* (Killed) */
 	    }
-	  else if ((i = SCHARS (XBUFFER (p->buffer)->name), (i > w_buffer)))
+	  else if ((i = SCHARS (BVAR (XBUFFER (p->buffer), name)), (i > w_buffer)))
 	    w_buffer = i;
 	}
       if (STRINGP (p->tty_name)
@@ -1312,9 +1312,9 @@ list_processes_1 (Lisp_Object query_only)
   XSETFASTINT (minspace, 1);
 
   set_buffer_internal (XBUFFER (Vstandard_output));
-  current_buffer->undo_list = Qt;
+  BVAR (current_buffer, undo_list) = Qt;
 
-  current_buffer->truncate_lines = Qt;
+  BVAR (current_buffer, truncate_lines) = Qt;
 
   write_string ("Proc", -1);
   Findent_to (i_status, minspace); write_string ("Status", -1);
@@ -1397,10 +1397,10 @@ list_processes_1 (Lisp_Object query_only)
       Findent_to (i_buffer, minspace);
       if (NILP (p->buffer))
 	insert_string ("(none)");
-      else if (NILP (XBUFFER (p->buffer)->name))
+      else if (NILP (BVAR (XBUFFER (p->buffer), name)))
 	insert_string ("(Killed)");
       else
-	Finsert (1, &XBUFFER (p->buffer)->name);
+	Finsert (1, &BVAR (XBUFFER (p->buffer), name));
 
       if (!NILP (i_tty))
 	{
@@ -1548,7 +1548,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
   {
     struct gcpro gcpro1, gcpro2;
 
-    current_dir = current_buffer->directory;
+    current_dir = BVAR (current_buffer, directory);
 
     GCPRO2 (buffer, current_dir);
 
@@ -1560,7 +1560,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
     current_dir = expand_and_dir_to_file (current_dir, Qnil);
     if (NILP (Ffile_accessible_directory_p (current_dir)))
       report_file_error ("Setting current directory",
-			 Fcons (current_buffer->directory, Qnil));
+			 Fcons (BVAR (current_buffer, directory), Qnil));
 
     UNGCPRO;
   }
@@ -1660,9 +1660,9 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
   }
 
 
-  XPROCESS (proc)->decoding_buf = make_uninit_string (0);
+  XPROCESS (proc)->decoding_buf = empty_unibyte_string;
   XPROCESS (proc)->decoding_carryover = 0;
-  XPROCESS (proc)->encoding_buf = make_uninit_string (0);
+  XPROCESS (proc)->encoding_buf = empty_unibyte_string;
 
   XPROCESS (proc)->inherit_coding_system_flag
     = !(NILP (buffer) || !inherit_process_coding_system);
@@ -1786,6 +1786,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   sigset_t blocked;
   struct sigaction sigint_action;
   struct sigaction sigquit_action;
+  struct sigaction sigpipe_action;
 #ifdef AIX
   struct sigaction sighup_action;
 #endif
@@ -1898,6 +1899,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
      and record the current handlers so they can be restored later.  */
   sigaddset (&blocked, SIGINT );  sigaction (SIGINT , 0, &sigint_action );
   sigaddset (&blocked, SIGQUIT);  sigaction (SIGQUIT, 0, &sigquit_action);
+  sigaddset (&blocked, SIGPIPE);  sigaction (SIGPIPE, 0, &sigpipe_action);
 #ifdef AIX
   sigaddset (&blocked, SIGHUP );  sigaction (SIGHUP , 0, &sighup_action );
 #endif
@@ -2054,6 +2056,9 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 
 	signal (SIGINT, SIG_DFL);
 	signal (SIGQUIT, SIG_DFL);
+	/* GConf causes us to ignore SIGPIPE, make sure it is restored
+	   in the child.  */
+	signal (SIGPIPE, SIG_DFL);
 
 	/* Stop blocking signals in the child.  */
 	sigprocmask (SIG_SETMASK, &procmask, 0);
@@ -2142,6 +2147,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   /* Restore the parent's signal handlers.  */
   sigaction (SIGINT, &sigint_action, 0);
   sigaction (SIGQUIT, &sigquit_action, 0);
+  sigaction (SIGPIPE, &sigpipe_action, 0);
 #ifdef AIX
   sigaction (SIGHUP, &sighup_action, 0);
 #endif
@@ -2892,8 +2898,8 @@ usage:  (make-serial-process &rest ARGS)  */)
     }
   else if (!NILP (Vcoding_system_for_read))
     val = Vcoding_system_for_read;
-  else if ((!NILP (buffer) && NILP (XBUFFER (buffer)->enable_multibyte_characters))
-	   || (NILP (buffer) && NILP (buffer_defaults.enable_multibyte_characters)))
+  else if ((!NILP (buffer) && NILP (BVAR (XBUFFER (buffer), enable_multibyte_characters)))
+	   || (NILP (buffer) && NILP (BVAR (&buffer_defaults, enable_multibyte_characters))))
     val = Qnil;
   p->decode_coding_system = val;
 
@@ -2906,15 +2912,15 @@ usage:  (make-serial-process &rest ARGS)  */)
     }
   else if (!NILP (Vcoding_system_for_write))
     val = Vcoding_system_for_write;
-  else if ((!NILP (buffer) && NILP (XBUFFER (buffer)->enable_multibyte_characters))
-	   || (NILP (buffer) && NILP (buffer_defaults.enable_multibyte_characters)))
+  else if ((!NILP (buffer) && NILP (BVAR (XBUFFER (buffer), enable_multibyte_characters)))
+	   || (NILP (buffer) && NILP (BVAR (&buffer_defaults, enable_multibyte_characters))))
     val = Qnil;
   p->encode_coding_system = val;
 
   setup_process_coding_systems (proc);
-  p->decoding_buf = make_uninit_string (0);
+  p->decoding_buf = empty_unibyte_string;
   p->decoding_carryover = 0;
-  p->encoding_buf = make_uninit_string (0);
+  p->encoding_buf = empty_unibyte_string;
   p->inherit_coding_system_flag
     = !(!NILP (tem) || NILP (buffer) || !inherit_process_coding_system);
 
@@ -3717,8 +3723,8 @@ usage: (make-network-process &rest ARGS)  */)
       }
     else if (!NILP (Vcoding_system_for_read))
       val = Vcoding_system_for_read;
-    else if ((!NILP (buffer) && NILP (XBUFFER (buffer)->enable_multibyte_characters))
-	     || (NILP (buffer) && NILP (buffer_defaults.enable_multibyte_characters)))
+    else if ((!NILP (buffer) && NILP (BVAR (XBUFFER (buffer), enable_multibyte_characters)))
+	     || (NILP (buffer) && NILP (BVAR (&buffer_defaults, enable_multibyte_characters))))
       /* We dare not decode end-of-line format by setting VAL to
 	 Qraw_text, because the existing Emacs Lisp libraries
 	 assume that they receive bare code including a sequene of
@@ -3753,7 +3759,7 @@ usage: (make-network-process &rest ARGS)  */)
       }
     else if (!NILP (Vcoding_system_for_write))
       val = Vcoding_system_for_write;
-    else if (NILP (current_buffer->enable_multibyte_characters))
+    else if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
       val = Qnil;
     else
       {
@@ -3781,9 +3787,9 @@ usage: (make-network-process &rest ARGS)  */)
   }
   setup_process_coding_systems (proc);
 
-  p->decoding_buf = make_uninit_string (0);
+  p->decoding_buf = empty_unibyte_string;
   p->decoding_carryover = 0;
-  p->encoding_buf = make_uninit_string (0);
+  p->encoding_buf = empty_unibyte_string;
 
   p->inherit_coding_system_flag
     = !(!NILP (tem) || NILP (buffer) || !inherit_process_coding_system);
@@ -4358,9 +4364,9 @@ server_accept_connection (Lisp_Object server, int channel)
   p->encode_coding_system = ps->encode_coding_system;
   setup_process_coding_systems (proc);
 
-  p->decoding_buf = make_uninit_string (0);
+  p->decoding_buf = empty_unibyte_string;
   p->decoding_carryover = 0;
-  p->encoding_buf = make_uninit_string (0);
+  p->encoding_buf = empty_unibyte_string;
 
   p->inherit_coding_system_flag
     = (NILP (buffer) ? 0 : ps->inherit_coding_system_flag);
@@ -5262,7 +5268,7 @@ read_process_output (Lisp_Object proc, register int channel)
       /* No need to gcpro these, because all we do with them later
 	 is test them for EQness, and none of them should be a string.  */
       XSETBUFFER (obuffer, current_buffer);
-      okeymap = current_buffer->keymap;
+      okeymap = BVAR (current_buffer, keymap);
 
       /* We inhibit quit here instead of just catching it so that
 	 hitting ^G when a filter happens to be running won't screw
@@ -5353,7 +5359,7 @@ read_process_output (Lisp_Object proc, register int channel)
     }
 
   /* If no filter, write into buffer if it isn't dead.  */
-  else if (!NILP (p->buffer) && !NILP (XBUFFER (p->buffer)->name))
+  else if (!NILP (p->buffer) && !NILP (BVAR (XBUFFER (p->buffer), name)))
     {
       Lisp_Object old_read_only;
       EMACS_INT old_begv, old_zv;
@@ -5366,13 +5372,13 @@ read_process_output (Lisp_Object proc, register int channel)
       Fset_buffer (p->buffer);
       opoint = PT;
       opoint_byte = PT_BYTE;
-      old_read_only = current_buffer->read_only;
+      old_read_only = BVAR (current_buffer, read_only);
       old_begv = BEGV;
       old_zv = ZV;
       old_begv_byte = BEGV_BYTE;
       old_zv_byte = ZV_BYTE;
 
-      current_buffer->read_only = Qnil;
+      BVAR (current_buffer, read_only) = Qnil;
 
       /* Insert new output into buffer
 	 at the current end-of-output marker,
@@ -5417,7 +5423,7 @@ read_process_output (Lisp_Object proc, register int channel)
 	  p->decoding_carryover = coding->carryover_bytes;
 	}
       /* Adjust the multibyteness of TEXT to that of the buffer.  */
-      if (NILP (current_buffer->enable_multibyte_characters)
+      if (NILP (BVAR (current_buffer, enable_multibyte_characters))
 	  != ! STRING_MULTIBYTE (text))
 	text = (STRING_MULTIBYTE (text)
 		? Fstring_as_unibyte (text)
@@ -5461,7 +5467,7 @@ read_process_output (Lisp_Object proc, register int channel)
 	Fnarrow_to_region (make_number (old_begv), make_number (old_zv));
 
 
-      current_buffer->read_only = old_read_only;
+      BVAR (current_buffer, read_only) = old_read_only;
       SET_PT_BOTH (opoint, opoint_byte);
     }
   /* Handling the process output should not deactivate the mark.  */
@@ -5519,7 +5525,7 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
 
   if ((STRINGP (object) && STRING_MULTIBYTE (object))
       || (BUFFERP (object)
-	  && !NILP (XBUFFER (object)->enable_multibyte_characters))
+	  && !NILP (BVAR (XBUFFER (object), enable_multibyte_characters)))
       || EQ (object, Qt))
     {
       p->encode_coding_system
@@ -6558,7 +6564,7 @@ exec_sentinel (Lisp_Object proc, Lisp_Object reason)
      is test them for EQness, and none of them should be a string.  */
   odeactivate = Vdeactivate_mark;
   XSETBUFFER (obuffer, current_buffer);
-  okeymap = current_buffer->keymap;
+  okeymap = BVAR (current_buffer, keymap);
 
   /* There's no good reason to let sentinels change the current
      buffer, and many callers of accept-process-output, sit-for, and
@@ -6708,7 +6714,7 @@ status_notify (struct Lisp_Process *deleting_process)
 
 	      /* Avoid error if buffer is deleted
 		 (probably that's why the process is dead, too) */
-	      if (NILP (XBUFFER (buffer)->name))
+	      if (NILP (BVAR (XBUFFER (buffer), name)))
 		continue;
 	      Fset_buffer (buffer);
 
@@ -6725,13 +6731,13 @@ status_notify (struct Lisp_Process *deleting_process)
 	      before = PT;
 	      before_byte = PT_BYTE;
 
-	      tem = current_buffer->read_only;
-	      current_buffer->read_only = Qnil;
+	      tem = BVAR (current_buffer, read_only);
+	      BVAR (current_buffer, read_only) = Qnil;
 	      insert_string ("\nProcess ");
 	      Finsert (1, &p->name);
 	      insert_string (" ");
 	      Finsert (1, &msg);
-	      current_buffer->read_only = tem;
+	      BVAR (current_buffer, read_only) = tem;
 	      set_marker_both (p->mark, p->buffer, PT, PT_BYTE);
 
 	      if (opoint >= before)
@@ -7130,7 +7136,7 @@ setup_process_coding_systems (Lisp_Object process)
     ;
   else if (BUFFERP (p->buffer))
     {
-      if (NILP (XBUFFER (p->buffer)->enable_multibyte_characters))
+      if (NILP (BVAR (XBUFFER (p->buffer), enable_multibyte_characters)))
 	coding_system = raw_text_coding_system (coding_system);
     }
   setup_coding_system (coding_system, proc_decode_coding_system[inch]);

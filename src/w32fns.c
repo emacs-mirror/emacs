@@ -4348,9 +4348,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
   /* Initialize `default-minibuffer-frame' in case this is the first
      frame on this terminal.  */
   if (FRAME_HAS_MINIBUF_P (f)
-      && (!FRAMEP (kb->Vdefault_minibuffer_frame)
-          || !FRAME_LIVE_P (XFRAME (kb->Vdefault_minibuffer_frame))))
-    kb->Vdefault_minibuffer_frame = frame;
+      && (!FRAMEP (KVAR (kb, Vdefault_minibuffer_frame))
+          || !FRAME_LIVE_P (XFRAME (KVAR (kb, Vdefault_minibuffer_frame)))))
+    KVAR (kb, Vdefault_minibuffer_frame) = frame;
 
   /* All remaining specified parameters, which have not been "used"
      by x_get_arg and friends, now go in the misc. alist of the frame.  */
@@ -5225,7 +5225,7 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
   Fset_window_buffer (FRAME_ROOT_WINDOW (f), buffer, Qnil);
   old_buffer = current_buffer;
   set_buffer_internal_1 (XBUFFER (buffer));
-  current_buffer->truncate_lines = Qnil;
+  BVAR (current_buffer, truncate_lines) = Qnil;
   specbind (Qinhibit_read_only, Qt);
   specbind (Qinhibit_modification_hooks, Qt);
   Ferase_buffer ();
@@ -5655,7 +5655,7 @@ Text larger than the specified size is clipped.  */)
   /* Display the tooltip text in a temporary buffer.  */
   old_buffer = current_buffer;
   set_buffer_internal_1 (XBUFFER (XWINDOW (FRAME_ROOT_WINDOW (f))->buffer));
-  current_buffer->truncate_lines = Qnil;
+  BVAR (current_buffer, truncate_lines) = Qnil;
   clear_glyph_matrix (w->desired_matrix);
   clear_glyph_matrix (w->current_matrix);
   SET_TEXT_POS (pos, BEGV, BEGV_BYTE);
@@ -6162,7 +6162,7 @@ an integer representing a ShowWindow flag:
   CHECK_STRING (document);
 
   /* Encode filename, current directory and parameters.  */
-  current_dir = ENCODE_FILE (current_buffer->directory);
+  current_dir = ENCODE_FILE (BVAR (current_buffer, directory));
   document = ENCODE_FILE (document);
   if (STRINGP (parameters))
     parameters = ENCODE_SYSTEM (parameters);

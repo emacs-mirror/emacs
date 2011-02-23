@@ -77,6 +77,10 @@ Root must be the root of an Emacs source tree."
 		       (rx (and bol "#" (0+ blank) "define" (1+ blank)
 				"VERSION" (1+ blank)
 				(submatch (1+ (in "0-9."))))))
+  (set-version-in-file root "msdos/sed2v2.inp" version
+		       (rx (and bol "/^#undef " (1+ not-newline)
+				"define VERSION" (1+ space)
+				(submatch (1+ (in "0-9."))))))
   (set-version-in-file root "nt/makefile.w32-in" version
 		       (rx (and "VERSION" (0+ space) "=" (0+ space)
 				(submatch (1+ (in "0-9."))))))

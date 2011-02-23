@@ -1009,7 +1009,7 @@ swap_in_symval_forwarding (struct Lisp_Symbol *symbol, struct Lisp_Buffer_Local_
 	  }
 	else
 	  {
-	    tem1 = assq_no_quit (var, current_buffer->local_var_alist);
+	    tem1 = assq_no_quit (var, BVAR (current_buffer, local_var_alist));
 	    XSETBUFFER (blv->where, current_buffer);
 	  }
       }
@@ -1178,7 +1178,7 @@ set_internal (register Lisp_Object symbol, register Lisp_Object newval, register
 	    tem1 = Fassq (symbol,
 			  (blv->frame_local
 			   ? XFRAME (where)->param_alist
-			   : XBUFFER (where)->local_var_alist));
+			   : BVAR (XBUFFER (where), local_var_alist)));
 	    blv->where = where;
 	    blv->found = 1;
 
@@ -1209,8 +1209,8 @@ set_internal (register Lisp_Object symbol, register Lisp_Object newval, register
 		       bindings, not for frame-local bindings.  */
 		    eassert (!blv->frame_local);
 		    tem1 = Fcons (symbol, XCDR (blv->defcell));
-		    XBUFFER (where)->local_var_alist
-		      = Fcons (tem1, XBUFFER (where)->local_var_alist);
+		    BVAR (XBUFFER (where), local_var_alist)
+		      = Fcons (tem1, BVAR (XBUFFER (where), local_var_alist));
 		  }
 	      }
 
@@ -1632,13 +1632,13 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
 	if (let_shadows_global_binding_p (symbol))
 	  message ("Making %s local to %s while let-bound!",
 		   SDATA (SYMBOL_NAME (variable)),
-		   SDATA (current_buffer->name));
+		   SDATA (BVAR (current_buffer, name)));
       }
     }
 
   /* Make sure this buffer has its own value of symbol.  */
   XSETSYMBOL (variable, sym);	/* Update in case of aliasing.  */
-  tem = Fassq (variable, current_buffer->local_var_alist);
+  tem = Fassq (variable, BVAR (current_buffer, local_var_alist));
   if (NILP (tem))
     {
       if (let_shadows_buffer_binding_p (sym))
@@ -1650,9 +1650,9 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
 	 default value.  */
       find_symbol_value (variable);
 
-      current_buffer->local_var_alist
+      BVAR (current_buffer, local_var_alist)
         = Fcons (Fcons (variable, XCDR (blv->defcell)),
-		 current_buffer->local_var_alist);
+		 BVAR (current_buffer, local_var_alist));
 
       /* Make sure symbol does not think it is set up for this buffer;
 	 force it to look once again for this buffer's value.  */
@@ -1718,10 +1718,10 @@ From now on the default value will apply in this buffer.  Return VARIABLE.  */)
 
   /* Get rid of this buffer's alist element, if any.  */
   XSETSYMBOL (variable, sym);	/* Propagate variable indirection.  */
-  tem = Fassq (variable, current_buffer->local_var_alist);
+  tem = Fassq (variable, BVAR (current_buffer, local_var_alist));
   if (!NILP (tem))
-    current_buffer->local_var_alist
-      = Fdelq (tem, current_buffer->local_var_alist);
+    BVAR (current_buffer, local_var_alist)
+      = Fdelq (tem, BVAR (current_buffer, local_var_alist));
 
   /* If the symbol is set up with the current buffer's binding
      loaded, recompute its value.  We have to do it now, or else
@@ -1848,7 +1848,7 @@ BUFFER defaults to the current buffer.  */)
 	XSETBUFFER (tmp, buf);
 	XSETSYMBOL (variable, sym); /* Update in case of aliasing.  */
 
-	for (tail = buf->local_var_alist; CONSP (tail); tail = XCDR (tail))
+	for (tail = BVAR (buf, local_var_alist); CONSP (tail); tail = XCDR (tail))
 	  {
 	    elt = XCAR (tail);
 	    if (EQ (variable, XCAR (elt)))

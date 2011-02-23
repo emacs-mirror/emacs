@@ -219,22 +219,23 @@ support."
 
 ;; Define the key bindings for the Help application
 
-(defvar idlwave-help-mode-map (make-sparse-keymap)
+(defvar idlwave-help-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "q" 'idlwave-help-quit)
+    (define-key map "w" 'widen)
+    (define-key map "\C-m" (lambda (arg)
+                             (interactive "p")
+                             (scroll-up arg)))
+    (define-key map " " 'scroll-up)
+    (define-key map [delete] 'scroll-down)
+    (define-key map "h" 'idlwave-help-find-header)
+    (define-key map "H" 'idlwave-help-find-first-header)
+    (define-key map "." 'idlwave-help-toggle-header-match-and-def)
+    (define-key map "F" 'idlwave-help-fontify)
+    (define-key map "\M-?" 'idlwave-help-return-to-calling-frame)
+    (define-key map "x" 'idlwave-help-return-to-calling-frame)
+    map)
   "The keymap used in `idlwave-help-mode'.")
-
-(define-key idlwave-help-mode-map "q" 'idlwave-help-quit)
-(define-key idlwave-help-mode-map "w" 'widen)
-(define-key idlwave-help-mode-map "\C-m" (lambda (arg)
-					   (interactive "p")
-					   (scroll-up arg)))
-(define-key idlwave-help-mode-map " " 'scroll-up)
-(define-key idlwave-help-mode-map [delete] 'scroll-down)
-(define-key idlwave-help-mode-map "h" 'idlwave-help-find-header)
-(define-key idlwave-help-mode-map "H" 'idlwave-help-find-first-header)
-(define-key idlwave-help-mode-map "." 'idlwave-help-toggle-header-match-and-def)
-(define-key idlwave-help-mode-map "F" 'idlwave-help-fontify)
-(define-key idlwave-help-mode-map "\M-?" 'idlwave-help-return-to-calling-frame)
-(define-key idlwave-help-mode-map "x" 'idlwave-help-return-to-calling-frame)
 
 ;; Define the menu for the Help application
 

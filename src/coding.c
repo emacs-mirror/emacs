@@ -7038,8 +7038,8 @@ decode_coding (struct coding_system *coding)
 	set_buffer_internal (XBUFFER (coding->dst_object));
       if (GPT != PT)
 	move_gap_both (PT, PT_BYTE);
-      undo_list = current_buffer->undo_list;
-      current_buffer->undo_list = Qt;
+      undo_list = BVAR (current_buffer, undo_list);
+      BVAR (current_buffer, undo_list) = Qt;
     }
 
   coding->consumed = coding->consumed_char = 0;
@@ -7136,7 +7136,7 @@ decode_coding (struct coding_system *coding)
     decode_eol (coding);
   if (BUFFERP (coding->dst_object))
     {
-      current_buffer->undo_list = undo_list;
+      BVAR (current_buffer, undo_list) = undo_list;
       record_insert (coding->dst_pos, coding->produced_char);
     }
   return coding->result;
@@ -7433,7 +7433,7 @@ encode_coding (struct coding_system *coding)
     {
       set_buffer_internal (XBUFFER (coding->dst_object));
       coding->dst_multibyte
-	= ! NILP (current_buffer->enable_multibyte_characters);
+	= ! NILP (BVAR (current_buffer, enable_multibyte_characters));
     }
 
   coding->consumed = coding->consumed_char = 0;
@@ -7504,8 +7504,8 @@ make_conversion_work_buffer (int multibyte)
      doesn't compile new regexps.  */
   Fset (Fmake_local_variable (Qinhibit_modification_hooks), Qt);
   Ferase_buffer ();
-  current_buffer->undo_list = Qt;
-  current_buffer->enable_multibyte_characters = multibyte ? Qt : Qnil;
+  BVAR (current_buffer, undo_list) = Qt;
+  BVAR (current_buffer, enable_multibyte_characters) = multibyte ? Qt : Qnil;
   set_buffer_internal (current);
   return workbuf;
 }
@@ -7562,7 +7562,7 @@ decode_coding_gap (struct coding_system *coding,
   coding->dst_object = coding->src_object;
   coding->dst_pos = PT;
   coding->dst_pos_byte = PT_BYTE;
-  coding->dst_multibyte = ! NILP (current_buffer->enable_multibyte_characters);
+  coding->dst_multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
 
   if (CODING_REQUIRE_DETECTION (coding))
     detect_coding (coding);
@@ -7728,7 +7728,7 @@ decode_coding_object (struct coding_system *coding,
       coding->dst_pos = BUF_PT (XBUFFER (dst_object));
       coding->dst_pos_byte = BUF_PT_BYTE (XBUFFER (dst_object));
       coding->dst_multibyte
-	= ! NILP (XBUFFER (dst_object)->enable_multibyte_characters);
+	= ! NILP (BVAR (XBUFFER (dst_object), enable_multibyte_characters));
     }
   else
     {
@@ -7798,7 +7798,7 @@ decode_coding_object (struct coding_system *coding,
 	TEMP_SET_PT_BOTH (saved_pt, saved_pt_byte);
       else if (saved_pt < from + chars)
 	TEMP_SET_PT_BOTH (from, from_byte);
-      else if (! NILP (current_buffer->enable_multibyte_characters))
+      else if (! NILP (BVAR (current_buffer, enable_multibyte_characters)))
 	TEMP_SET_PT_BOTH (saved_pt + (coding->produced_char - chars),
 			  saved_pt_byte + (coding->produced - bytes));
       else
@@ -7822,7 +7822,7 @@ decode_coding_object (struct coding_system *coding,
 		  {
 		    tail->bytepos = from_byte + coding->produced;
 		    tail->charpos
-		      = (NILP (current_buffer->enable_multibyte_characters)
+		      = (NILP (BVAR (current_buffer, enable_multibyte_characters))
 			 ? tail->bytepos : from + coding->produced_char);
 		  }
 	      }
@@ -7960,7 +7960,7 @@ encode_coding_object (struct coding_system *coding,
 	  set_buffer_temp (current);
 	}
       coding->dst_multibyte
-	= ! NILP (XBUFFER (dst_object)->enable_multibyte_characters);
+	= ! NILP (BVAR (XBUFFER (dst_object), enable_multibyte_characters));
     }
   else if (EQ (dst_object, Qt))
     {
@@ -8003,7 +8003,7 @@ encode_coding_object (struct coding_system *coding,
 	TEMP_SET_PT_BOTH (saved_pt, saved_pt_byte);
       else if (saved_pt < from + chars)
 	TEMP_SET_PT_BOTH (from, from_byte);
-      else if (! NILP (current_buffer->enable_multibyte_characters))
+      else if (! NILP (BVAR (current_buffer, enable_multibyte_characters)))
 	TEMP_SET_PT_BOTH (saved_pt + (coding->produced_char - chars),
 			  saved_pt_byte + (coding->produced - bytes));
       else
@@ -8027,7 +8027,7 @@ encode_coding_object (struct coding_system *coding,
 		  {
 		    tail->bytepos = from_byte + coding->produced;
 		    tail->charpos
-		      = (NILP (current_buffer->enable_multibyte_characters)
+		      = (NILP (BVAR (current_buffer, enable_multibyte_characters))
 			 ? tail->bytepos : from + coding->produced_char);
 		  }
 	      }
@@ -8481,8 +8481,8 @@ highest priority.  */)
   return detect_coding_system (BYTE_POS_ADDR (from_byte),
 			       to - from, to_byte - from_byte,
 			       !NILP (highest),
-			       !NILP (current_buffer
-				      ->enable_multibyte_characters),
+			       !NILP (BVAR (current_buffer
+				      , enable_multibyte_characters)),
 			       Qnil);
 }
 
@@ -8564,7 +8564,7 @@ DEFUN ("find-coding-systems-region-internal",
       CHECK_NUMBER_COERCE_MARKER (end);
       if (XINT (start) < BEG || XINT (end) > Z || XINT (start) > XINT (end))
 	args_out_of_range (start, end);
-      if (NILP (current_buffer->enable_multibyte_characters))
+      if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
 	return Qt;
       start_byte = CHAR_TO_BYTE (XINT (start));
       end_byte = CHAR_TO_BYTE (XINT (end));
@@ -8698,7 +8698,7 @@ to the string.  */)
       validate_region (&start, &end);
       from = XINT (start);
       to = XINT (end);
-      if (NILP (current_buffer->enable_multibyte_characters)
+      if (NILP (BVAR (current_buffer, enable_multibyte_characters))
 	  || (ascii_compatible
 	      && (to - from) == (CHAR_TO_BYTE (to) - (CHAR_TO_BYTE (from)))))
 	return Qnil;
@@ -8814,7 +8814,7 @@ is nil.  */)
       CHECK_NUMBER_COERCE_MARKER (end);
       if (XINT (start) < BEG || XINT (end) > Z || XINT (start) > XINT (end))
 	args_out_of_range (start, end);
-      if (NILP (current_buffer->enable_multibyte_characters))
+      if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
 	return Qnil;
       start_byte = CHAR_TO_BYTE (XINT (start));
       end_byte = CHAR_TO_BYTE (XINT (end));

@@ -58,10 +58,6 @@ Boston, MA 02110-1301, USA.  */
 #define XtCResizeToPreferred "ResizeToPreferred"
 #define XtNallowResize "allowResize"
 #define XtCAllowResize "AllowResize"
-#define XtNfaceName "faceName"
-#define XtCFaceName "FaceName"
-#define XtNdefaultFace "defaultFace"
-#define XtCDefaultFace "DefaultFace"
 
 /* Motif-compatible resource names */
 #define XmNshadowThickness	"shadowThickness"

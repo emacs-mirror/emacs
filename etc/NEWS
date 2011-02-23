@@ -137,9 +137,8 @@ theme when Emacs is built with GTK.
 off by customizing x-gtk-use-system-tooltips.
 
 ** Lucid menus and dialogs can display antialiased fonts if Emacs is built
-with Xft.  To change font, use X resource faceName, for example:
-Emacs.pane.menubar.faceName:  Courier-12
-Set faceName to none and use font to use the old X fonts.
+with Xft.  To change font, use the X resource font, for example:
+Emacs.pane.menubar.font:  Courier-12
 
 +++
 ** Enhanced support for characters that have no glyphs in available fonts
@@ -331,7 +330,7 @@ prompts for a number to count from and for a format string.
 ** The Landmark game is now invoked with `landmark', not `lm'.
 
 ** Prolog mode has been completely revamped, with lots of additional
-functionality such as more intelligent indentation, electricty, support for
+functionality such as more intelligent indentation, electricity, support for
 more variants, including Mercury, and a lot more.
 
 ** shell-mode can track your cwd by reading it from your prompt.
@@ -347,6 +346,12 @@ Just set shell-dir-cookie-re to an appropriate regexp.
 
 ** browse-url has gotten a new variable that is used for mailto: URLs,
    `browse-url-mailto-function', which defaults to `browse-url-mail'.
+
+** Directory local variables can apply to file-less buffers, in certain modes
+(eg dired, vc-dir, log-edit).  For example, adding
+"(diff-mode . ((mode . whitespace)))" to your .dir-locals.el file,
+will turn on `whitespace-mode' for *vc-diff* buffers.  Modes should
+call `hack-dir-local-variables-non-file-buffer' to support this.
 
 ** ERC changes
 
@@ -413,15 +418,11 @@ choose a color via list-colors-display.
 *** dired-jump and dired-jump-other-window called with a prefix argument
 read a file name from the minibuffer instead of using buffer-file-name.
 
-** Directory local variables can apply to file-less buffers.
-For example, adding "(diff-mode . ((mode . whitespace)))" to your
-.dir-locals.el file, will turn on `whitespace-mode' for *vc-diff* buffers.
++++
+*** The `dired local variables' feature provided by Dired-x is obsolete.
+The standard directory local variables feature replaces it.
 
 ** SQL Mode enhancements.
-
-*** Several variables have been marked as safe local variables.  The
-variables `sql-product', `sql-user', `sql-server', `sql-database' and
-`sql-port' can now be safely used as local variables.
 
 *** `sql-dialect' is a synonym for `sql-product'.
 
@@ -531,7 +532,7 @@ objects shown and the details available are product specific.
 **** List all objects.
 Using `M-x sql-list-all', `C-c C-l a' or selecting "SQL->List all
 objects" will list all the objects in the database.  At a minimum it
-lists the tables and views in the database.  Preceeding the command by
+lists the tables and views in the database.  Preceding the command by
 universal argument may provide additional details or extend the
 listing to include other schemas objects.  The list will appear in a
 separate window in view-mode.
@@ -539,7 +540,7 @@ separate window in view-mode.
 **** List Table details.
 Using `M-x sql-list-table', `C-c C-l t' or selecting "SQL->List Table
 details" will ask for the name of a database table or view and display
-the list of columns in the relation.  Preceeding the comand with the
+the list of columns in the relation.  Preceding the command with the
 universal argument may provide additional details about each column.
 The list will appear in a separate window in view-mode.
 
@@ -554,7 +555,7 @@ In general, the SQL*Plus option SCAN should always be set OFF under
 SQL interactive mode and this option used in its place.
 
 *** SQL interactive mode will replace tabs with spaces.
-This prevents the comand interpretter for MySQL and Postgres from
+This prevents the command interpreter for MySQL and Postgres from
 listing object name completions when being sent text via
 `sql-send-*' functions.
 
@@ -562,9 +563,9 @@ listing object name completions when being sent text via
 
 ** sregex.el is now obsolete, since rx.el is a strict superset.
 
-** s-region.el is now declared obsolete, superceded by shift-select-mode
-enabled by default in 23.1.
-
+** s-region.el and pc-select are now declared obsolete,
+superseded by shift-select-mode enabled by default in 23.1.
+** pc-mode.el is also declared obsolete.
 ** gdb-mi
 
 *** GDB User Interface migrated to GDB Machine Interface and now
@@ -588,7 +589,7 @@ on a D-Bus without simultaneously registering a property or a method.
 *** There exists a new inline access method "ksu" (kerberized su).
 
 *** The following access methods are discontinued: "ssh1_old",
-"ssh2_old", "scp1_old", "scp2_old" and "fish".
+"ssh2_old", "scp1_old", "scp2_old", "imap", "imaps" and "fish".
 
 ** VC and related modes
 
@@ -606,7 +607,17 @@ The vc-merge command now runs a "merge" operation, if it is supported.
 This merges another branch into the current one.  This command prompts
 the user for specifics, e.g. a merge source.
 
-**** Currently supported by Bzr, Git, and Mercurial.
+**** Currently supported for Bzr, Git, and Mercurial.
+
+*** Log entries in some Log View buffers can be toggled to display a
+longer description by typing RET (log-view-toggle-entry-display).
+In the Log View buffers made by `C-x v L' (vc-print-root-log), you can
+use this to display the full log entry for the revision at point.
+
+**** Currently supported for Bzr, Git, and Mercurial.
+
+**** Packages using Log View mode can enable this functionality by
+binding `log-view-expanded-log-entry-function' to a suitable function.
 
 ** Miscellaneous
 
@@ -630,8 +641,16 @@ secrets.
 ** notifications.el provides an implementation of the Desktop
 Notifications API.  It requires D-Bus for communication.
 
+** soap-client.el supports access to SOAP web services from Emacs.
+soap-inspect.el is an interactive inspector for SOAP WSDL structures.
+
 
 * Incompatible Lisp Changes in Emacs 24.1
+
+** `copy-directory' now copies the source directory as a subdirectory
+of the target directory, if the latter is an existing directory.  The
+new optional arg COPY-CONTENTS, if non-nil, makes the function copy
+the contents directly into a pre-existing target directory.
 
 ** `compose-mail' now accepts an optional 8th arg, RETURN-ACTION, and
 passes it to the mail user agent function.  This argument specifies an
@@ -783,10 +802,9 @@ displayed with a "spinning bar".
 runtime checks.
 
 ** New configure.bat option --distfiles to specify files to be
-   included in binary distribution
+included in binary distribution
 
-** New make target `dist' to create binary disttribution for Windows
-   platform
+** New make target `dist' to create binary distribution for MS Windows
 
 
 ----------------------------------------------------------------------

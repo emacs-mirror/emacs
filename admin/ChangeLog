@@ -1,3 +1,21 @@
+2011-02-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* notes/bugtracker (bugtracker_debbugs_url): Fix typo.
+
+2011-02-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* admin.el (set-version): Add msdos/sed2v2.inp.
+
+2011-02-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove no-longer needed getloadavg symbols.
+	* CPP-DEFINES (LOAD_AVE_CVT, LOAD_AVE_TYPE, FSCALE, KERNEL_FILE):
+	(LDAV_SYMBOL): Remove.
+
+2011-02-12  Glenn Morris  <rgm@gnu.org>
+
+	* bzrmerge.el (bzrmerge-resolve): Fix bzr revert call.
+
 2011-02-05  Glenn Morris  <rgm@gnu.org>
 
 	* bzrmerge.el (bzrmerge-warning-buffer): New constant.

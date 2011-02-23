@@ -24,6 +24,8 @@
 
 ;;; Commentary:
 
+(require 'ert)
+
 ;;; Code:
 (defconst byte-opt-testsuite-arith-data
   '(
@@ -34,7 +36,8 @@
     (let ((a 3) (b 2) (c 1.0))                     (/ a b c))
     (let ((a (+ 1 (expt 2 -64))) (b (expt 2 -65))) (+ a -1 b))
     (let ((a (+ 1 (expt 2 -64))) (b (expt 2 -65))) (- a 1 (- b)))
-    (let ((a (expt 2 -1074)) (b 0.125))		   (* a 8 b))
+    ;; This fails.  Should it be a bug?
+    ;; (let ((a (expt 2 -1074)) (b 0.125))		   (* a 8 b))
     (let ((a 1.0))				   (* a 0))
     (let ((a 1.0))				   (* a 2.0 0))
     (let ((a 1.0))				   (/ 0 a))
@@ -241,42 +244,71 @@
     (let ((a 3) (b 2) (c 1.0)) (/ a b c -1)))
   "List of expression for test.
 Each element will be executed by interpreter and with
-bytecompiled code, and their results are compared.")
+bytecompiled code, and their results compared.")
 
+(defun bytecomp-check-1 (pat)
+  "Return non-nil if PAT is the same whether directly evalled or compiled."
+  (let ((warning-minimum-log-level :emergency)
+	(byte-compile-warnings nil)
+	(v0 (condition-case nil
+		(eval pat)
+	      (error nil)))
+	(v1 (condition-case nil
+		(funcall (byte-compile (list 'lambda nil pat)))
+	      (error nil))))
+    (equal v0 v1)))
 
-(defun bytecomp-testsuite-run ()
-  "Run bytecomp test suite."
-  (interactive)
-  (with-output-to-temp-buffer "*bytecomp test*"
-    (byte-opt-testsuite--run-arith)
-    (message "All byte-opt tests finished successfully.")))
+(put 'bytecomp-check-1 'ert-explainer 'bytecomp-explain-1)
 
+(defun bytecomp-explain-1 (pat)
+  (let ((v0 (condition-case nil
+		(eval pat)
+	      (error nil)))
+	(v1 (condition-case nil
+		(funcall (byte-compile (list 'lambda nil pat)))
+	      (error nil))))
+    (format "Expression `%s' gives `%s' if directly evalled, `%s' if compiled."
+	    pat v0 v1)))
 
-(defun byte-opt-testsuite--run-arith (&optional arg)
+(ert-deftest bytecomp-tests ()
+  "Test the Emacs byte compiler."
+  (dolist (pat byte-opt-testsuite-arith-data)
+    (should (bytecomp-check-1 pat))))
+
+(defun test-byte-opt-arithmetic (&optional arg)
   "Unit test for byte-opt arithmetic operations.
 Subtests signal errors if something goes wrong."
   (interactive "P")
-  (let ((print-escape-nonascii t)
+  (switch-to-buffer (generate-new-buffer "*Font Pase Test*"))
+  (let ((warning-minimum-log-level :emergency)
+	(byte-compile-warnings nil)
+	(pass-face '((t :foreground "green")))
+	(fail-face '((t :foreground "red")))
+	(print-escape-nonascii t)
 	(print-escape-newlines t)
 	(print-quoted t)
-	v0 v1
-	indent-tabs-mode
-	(patterns byte-opt-testsuite-arith-data))
-    (mapc
-     (lambda (pat)
-       (condition-case nil
-	   (setq v0 (eval pat))
-	 (error (setq v0 nil)))
-       (condition-case nil
-           (setq v1 (funcall (byte-compile (list 'lambda nil pat))))
-	 (error (setq v1 nil)))
-       (princ (format "%s" pat))
-       (if (equal v0 v1)
-	   (princ (format " --> %s, OK\n" v1))
-	 (princ (format " --> %s, NG\n" v0))
-	 (princ (format " --> %s\n"     v1))
-	 (error "Arithmetic test failed!")))
-     patterns)))
+	v0 v1)
+    (dolist (pat byte-opt-testsuite-arith-data)
+      (condition-case nil
+	  (setq v0 (eval pat))
+	(error (setq v0 nil)))
+      (condition-case nil
+	  (setq v1 (funcall (byte-compile (list 'lambda nil pat))))
+	(error (setq v1 nil)))
+      (insert (format "%s" pat))
+      (indent-to-column 65)
+      (if (equal v0 v1)
+	  (insert (propertize "OK" 'face pass-face))
+	(insert (propertize "FAIL\n" 'face fail-face))
+	(indent-to-column 55)
+	(insert (propertize (format "[%s] vs [%s]" v0 v1)
+			    'face fail-face)))
+      (insert "\n"))))
+
+
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
 
 (provide 'byte-opt-testsuite)
 

@@ -1,9 +1,10 @@
-;;; color.el --- Color manipulation laboratory routines -*- coding: utf-8; -*-
+;;; color.el --- Color manipulation library -*- coding: utf-8; -*-
 
 ;; Copyright (C) 2010-2011 Free Software Foundation, Inc.
 
-;; Author: Julien Danjou <julien@danjou.info>
-;; Keywords: html
+;; Authors: Julien Danjou <julien@danjou.info>
+;;          Drew Adams <drew.adams@oracle.com>
+;; Keywords: lisp, faces, color, hex, rgb, hsv, hsl, cie-lab, background
 
 ;; This file is part of GNU Emacs.
 
@@ -22,7 +23,13 @@
 
 ;;; Commentary:
 
-;; This package provides color manipulation functions.
+;; This package provides functions for manipulating colors, including
+;; converting between color representations, computing color
+;; complements, and computing CIEDE2000 color distances.
+;;
+;; Supported color representations include RGB (red, green, blue), HSV
+;; (hue, saturation, value), HSL (hue, saturation, luminence), sRGB,
+;; CIE XYZ, and CIE L*a*b* color components.
 
 ;;; Code:
 
@@ -34,15 +41,31 @@
   (unless (boundp 'float-pi)
     (defconst float-pi (* 4 (atan 1)) "The value of Pi (3.1415926...).")))
 
-(defun color-rgb->hex  (red green blue)
-  "Return hexadecimal notation for RED GREEN BLUE color.
-RED GREEN BLUE must be values between 0 and 1 inclusively."
+;;;###autoload
+(defun color-name-to-rgb (color &optional frame)
+  "Convert COLOR string to a list of normalized RGB components.
+COLOR should be a color name (e.g. \"white\") or an RGB triplet
+string (e.g. \"#ff12ec\").
+
+Normally the return value is a list of three floating-point
+numbers, (RED GREEN BLUE), each between 0.0 and 1.0 inclusive.
+
+Optional arg FRAME specifies the frame where the color is to be
+displayed.  If FRAME is omitted or nil, use the selected frame.
+If FRAME cannot display COLOR, return nil."
+  (mapcar (lambda (x) (/ x 65535.0)) (color-values color frame)))
+
+(defun color-rgb-to-hex  (red green blue)
+  "Return hexadecimal notation for the color RED GREEN BLUE.
+RED GREEN BLUE must be numbers between 0.0 and 1.0 inclusive."
   (format "#%02x%02x%02x"
           (* red 255) (* green 255) (* blue 255)))
 
-(defun color-complement (color)
-  "Return the color that is the complement of COLOR."
-  (let ((color (color-rgb->normalize color)))
+(defun color-complement (color-name)
+  "Return the color that is the complement of COLOR-NAME.
+COLOR-NAME should be a string naming a color (e.g. \"white\"), or
+a string specifying a color's RGB components (e.g. \"#ff12ec\")."
+  (let ((color (color-name-to-rgb color-name)))
     (list (- 1.0 (car color))
           (- 1.0 (cadr color))
           (- 1.0 (caddr color)))))
@@ -52,50 +75,62 @@ RED GREEN BLUE must be values between 0 and 1 inclusively."
 The color list builds a color gradient starting at color START to
 color STOP. It does not include the START and STOP color in the
 resulting list."
-  (loop for i from 1 to step-number
-        with red-step = (/ (- (car stop) (car start)) (1+ step-number))
-        with green-step = (/ (- (cadr stop) (cadr start)) (1+ step-number))
-        with blue-step = (/ (- (caddr stop) (caddr start)) (1+ step-number))
-        collect (list
-                 (+ (car start) (* i red-step))
-                 (+ (cadr start) (* i green-step))
-                 (+ (caddr start) (* i blue-step)))))
+  (let* ((r (nth 0 start))
+	 (g (nth 1 start))
+	 (b (nth 2 start))
+	 (r-step (/ (- (nth 0 stop) r) (1+ step-number)))
+	 (g-step (/ (- (nth 1 stop) g) (1+ step-number)))
+	 (b-step (/ (- (nth 2 stop) b) (1+ step-number)))
+	 result)
+    (dotimes (n step-number)
+      (push (list (setq r (+ r r-step))
+		  (setq g (+ g g-step))
+		  (setq b (+ b b-step)))
+	    result))
+    (nreverse result)))
 
 (defun color-complement-hex (color)
   "Return the color that is the complement of COLOR, in hexadecimal format."
-  (apply 'color-rgb->hex (color-complement color)))
+  (apply 'color-rgb-to-hex (color-complement color)))
 
-(defun color-rgb->hsv (red green blue)
-  "Convert RED GREEN BLUE values to HSV representation.
-Hue is in radians. Saturation and values are between 0 and 1
-inclusively."
-   (let* ((r (float red))
+(defun color-rgb-to-hsv (red green blue)
+  "Convert RED, GREEN, and BLUE color components to HSV.
+RED, GREEN, and BLUE should each be numbers between 0.0 and 1.0,
+inclusive.  Return a list (HUE, SATURATION, VALUE), where HUE is
+in radians and both SATURATION and VALUE are between 0.0 and 1.0,
+inclusive."
+  (let* ((r (float red))
 	 (g (float green))
 	 (b (float blue))
 	 (max (max r g b))
 	 (min (min r g b)))
-     (list
-      (/ (* 2 float-pi
-            (cond ((and (= r g) (= g b)) 0)
-                  ((and (= r max)
-                        (>= g b))
-                   (* 60 (/ (- g b) (- max min))))
-                  ((and (= r max)
-                        (< g b))
-                   (+ 360 (* 60 (/ (- g b) (- max min)))))
-                  ((= max g)
-                   (+ 120 (* 60 (/ (- b r) (- max min)))))
-                  ((= max b)
-                       (+ 240 (* 60 (/ (- r g) (- max min)))))))
-         360)
-      (if (= max 0)
-          0
-        (- 1 (/ min max)))
-      (/ max 255.0))))
+    (if (< (- max min) 1e-8)
+	(list 0.0 0.0 0.0)
+      (list
+       (/ (* 2 float-pi
+	     (cond ((and (= r g) (= g b)) 0)
+		   ((and (= r max)
+			 (>= g b))
+		    (* 60 (/ (- g b) (- max min))))
+		   ((and (= r max)
+			 (< g b))
+		    (+ 360 (* 60 (/ (- g b) (- max min)))))
+		   ((= max g)
+		    (+ 120 (* 60 (/ (- b r) (- max min)))))
+		   ((= max b)
+		    (+ 240 (* 60 (/ (- r g) (- max min)))))))
+	  360)
+       (if (= max 0) 0 (- 1 (/ min max)))
+       (/ max 255.0)))))
 
-(defun color-rgb->hsl (red green blue)
+(defun color-rgb-to-hsl (red green blue)
   "Convert RED GREEN BLUE colors to their HSL representation.
-RED, GREEN and BLUE must be between 0 and 1 inclusively."
+RED, GREEN, and BLUE should each be numbers between 0.0 and 1.0,
+inclusive.
+
+Return a list (HUE, SATURATION, LUMINENCE), where HUE is in radians
+and both SATURATION and LUMINENCE are between 0.0 and 1.0,
+inclusive."
   (let* ((r red)
          (g green)
          (b blue)
@@ -104,13 +139,13 @@ RED, GREEN and BLUE must be between 0 and 1 inclusively."
          (delta (- max min))
          (l (/ (+ max min) 2.0)))
     (list
-     (if (= max min)
+     (if (< (- max min) 1e-8)
          0
        (* 2 float-pi
           (/ (cond ((= max r)
                     (+ (/ (- g b) delta) (if (< g b) 6 0)))
                    ((= max g)
-                 (+ (/ (- b r) delta) 2))
+		    (+ (/ (- b r) delta) 2))
                    (t
                     (+ (/ (- r g) delta) 4)))
              6)))
@@ -121,9 +156,9 @@ RED, GREEN and BLUE must be between 0 and 1 inclusively."
          (/ delta (+ max min))))
      l)))
 
-(defun color-srgb->xyz (red green blue)
-  "Converts RED GREEN BLUE colors from the sRGB color space to CIE XYZ.
-RED, BLUE and GREEN must be between 0 and 1 inclusively."
+(defun color-srgb-to-xyz (red green blue)
+  "Convert RED GREEN BLUE colors from the sRGB color space to CIE XYZ.
+RED, BLUE and GREEN must be between 0 and 1, inclusive."
   (let ((r (if (<= red 0.04045)
                (/ red 12.95)
              (expt (/ (+ red 0.055) 1.055) 2.4)))
@@ -137,8 +172,8 @@ RED, BLUE and GREEN must be between 0 and 1 inclusively."
           (+ (* 0.21266729 r) (* 0.7151522 g) (* 0.0721750 b))
           (+ (* 0.0193339 r) (* 0.1191920 g) (* 0.9503041 b)))))
 
-(defun color-xyz->srgb (X Y Z)
-  "Converts CIE X Y Z colors to sRGB color space."
+(defun color-xyz-to-srgb (X Y Z)
+  "Convert CIE X Y Z colors to sRGB color space."
   (let ((r (+ (* 3.2404542 X) (* -1.5371385 Y) (* -0.4985314 Z)))
         (g (+ (* -0.9692660 X) (* 1.8760108 Y) (* 0.0415560 Z)))
         (b (+ (* 0.0556434 X) (* -0.2040259 Y) (* 1.0572252 Z))))
@@ -158,10 +193,10 @@ RED, BLUE and GREEN must be between 0 and 1 inclusively."
 (defconst color-cie-ε (/ 216 24389.0))
 (defconst color-cie-κ (/ 24389 27.0))
 
-(defun color-xyz->lab (X Y Z &optional white-point)
-  "Converts CIE XYZ to CIE L*a*b*.
-WHITE-POINT can be specified as (X Y Z) white point to use. If
-none is set, `color-d65-xyz' is used."
+(defun color-xyz-to-lab (X Y Z &optional white-point)
+  "Convert CIE XYZ to CIE L*a*b*.
+WHITE-POINT specifies the (X Y Z) white point for the
+conversion. If omitted or nil, use `color-d65-xyz'."
   (destructuring-bind (Xr Yr Zr) (or white-point color-d65-xyz)
       (let* ((xr (/ X Xr))
              (yr (/ Y Yr))
@@ -180,10 +215,10 @@ none is set, `color-d65-xyz' is used."
          (* 500 (- fx fy))                  ; a
          (* 200 (- fy fz))))))              ; b
 
-(defun color-lab->xyz (L a b &optional white-point)
-  "Converts CIE L*a*b* to CIE XYZ.
-WHITE-POINT can be specified as (X Y Z) white point to use. If
-none is set, `color-d65-xyz' is used."
+(defun color-lab-to-xyz (L a b &optional white-point)
+  "Convert CIE L*a*b* to CIE XYZ.
+WHITE-POINT specifies the (X Y Z) white point for the
+conversion. If omitted or nil, use `color-d65-xyz'."
   (destructuring-bind (Xr Yr Zr) (or white-point color-d65-xyz)
       (let* ((fy (/ (+ L 16) 116.0))
              (fz (- fy (/ b 200.0)))
@@ -201,21 +236,18 @@ none is set, `color-d65-xyz' is used."
               (* yr Yr)                 ; Y
               (* zr Zr)))))             ; Z
 
-(defun color-srgb->lab (red green blue)
-  "Converts RGB to CIE L*a*b*."
-  (apply 'color-xyz->lab (color-srgb->xyz red green blue)))
+(defun color-srgb-to-lab (red green blue)
+  "Convert RGB to CIE L*a*b*."
+  (apply 'color-xyz-to-lab (color-srgb-to-xyz red green blue)))
 
-(defun color-rgb->normalize (color)
-  "Normalize a RGB color to values between 0 and 1 inclusively."
-  (mapcar (lambda (x) (/ x 65535.0)) (x-color-values color)))
-
-(defun color-lab->srgb (L a b)
-  "Converts CIE L*a*b* to RGB."
-  (apply 'color-xyz->srgb (color-lab->xyz L a b)))
+(defun color-lab-to-srgb (L a b)
+  "Convert CIE L*a*b* to RGB."
+  (apply 'color-xyz-to-srgb (color-lab-to-xyz L a b)))
 
 (defun color-cie-de2000 (color1 color2 &optional kL kC kH)
-  "Computes the CIEDE2000 color distance between COLOR1 and COLOR2.
-Colors must be in CIE L*a*b* format."
+  "Return the CIEDE2000 color distance between COLOR1 and COLOR2.
+Both COLOR1 and COLOR2 should be in CIE L*a*b* format, as
+returned by `color-srgb-to-lab' or `color-xyz-to-lab'."
   (destructuring-bind (L₁ a₁ b₁) color1
     (destructuring-bind (L₂ a₂ b₂) color2
       (let* ((kL (or kL 1))

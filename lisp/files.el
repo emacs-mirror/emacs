@@ -681,26 +681,37 @@ that list of directories (separated by occurrences of
 `path-separator') when resolving a relative directory name.
 The path separator is colon in GNU and GNU-like systems."
   (interactive
-   (list (read-directory-name "Change default directory: "
-			 default-directory default-directory
-			 (and (member cd-path '(nil ("./")))
-			      (null (getenv "CDPATH"))))))
-  (if (file-name-absolute-p dir)
-      (cd-absolute (expand-file-name dir))
-    (if (null cd-path)
-	(let ((trypath (parse-colon-path (getenv "CDPATH"))))
-	  (setq cd-path (or trypath (list "./")))))
-    (if (not (catch 'found
-	       (mapc
-		(function (lambda (x)
-			    (let ((f (expand-file-name (concat x dir))))
-			      (if (file-directory-p f)
-				  (progn
-				    (cd-absolute f)
-				    (throw 'found t))))))
-		cd-path)
-	       nil))
-	(error "No such directory found via CDPATH environment variable"))))
+   (list
+    ;; FIXME: There's a subtle bug in the completion below.  Seems linked
+    ;; to a fundamental difficulty of implementing `predicate' correctly.
+    ;; The manifestation is that TAB may list non-directories in the case where
+    ;; those files also correspond to valid directories (if your cd-path is (A/
+    ;; B/) and you have A/a a file and B/a a directory, then both `a' and `a/'
+    ;; will be listed as valid completions).
+    ;; This is because `a' (listed because of A/a) is indeed a valid choice
+    ;; (which will lead to the use of B/a).
+    (minibuffer-with-setup-hook
+        (lambda ()
+          (setq minibuffer-completion-table
+                (apply-partially #'locate-file-completion-table
+                                 cd-path nil))
+          (setq minibuffer-completion-predicate
+                (lambda (dir)
+                  (locate-file dir cd-path nil
+                               (lambda (f) (and (file-directory-p f) 'dir-ok))))))
+      (unless cd-path
+        (setq cd-path (or (parse-colon-path (getenv "CDPATH"))
+                          (list "./"))))
+      (read-directory-name "Change default directory: "
+                           default-directory default-directory
+                           t))))
+  (unless cd-path
+    (setq cd-path (or (parse-colon-path (getenv "CDPATH"))
+                      (list "./"))))
+  (cd-absolute
+   (or (locate-file dir cd-path nil
+                    (lambda (f) (and (file-directory-p f) 'dir-ok)))
+       (error "No such directory found via CDPATH environment variable"))))
 
 (defun load-file (file)
   "Load the Lisp file named FILE."
@@ -720,9 +731,12 @@ If SUFFIXES is non-nil, it should be a list of suffixes to append to
 file name when searching.  If SUFFIXES is nil, it is equivalent to '(\"\").
 Use '(\"/\") to disable PATH search, but still try the suffixes in SUFFIXES.
 If non-nil, PREDICATE is used instead of `file-readable-p'.
+
+This function will normally skip directories, so if you want it to find
+directories, make sure the PREDICATE function returns `dir-ok' for them.
+
 PREDICATE can also be an integer to pass to the `access' system call,
 in which case file-name handlers are ignored.  This usage is deprecated.
-
 For compatibility, PREDICATE can also be one of the symbols
 `executable', `readable', `writable', or `exists', or a list of
 one or more of those symbols."
@@ -2058,7 +2072,8 @@ Don't call it from programs!  Use `insert-file-contents-literally' instead.
 
 (defvar find-file-literally nil
   "Non-nil if this buffer was made by `find-file-literally' or equivalent.
-This is a permanent local.")
+This has the `permanent-local' property, which takes effect if you
+make the variable buffer-local.")
 (put 'find-file-literally 'permanent-local t)
 
 (defun find-file-literally (filename)
@@ -2791,7 +2806,9 @@ symbol and VAL is a value that is considered safe."
   :type 'alist)
 
 (defcustom safe-local-eval-forms
-  '((add-hook 'write-file-functions 'time-stamp)
+  ;; This should be here at least as long as Emacs supports write-file-hooks.
+  '((add-hook 'write-file-hooks 'time-stamp)
+    (add-hook 'write-file-functions 'time-stamp)
     (add-hook 'before-save-hook 'time-stamp))
   "Expressions that are considered safe in an `eval:' local variable.
 Add expressions to this list if you want Emacs to evaluate them, when
@@ -2799,7 +2816,7 @@ they appear in an `eval' local variable specification, without first
 asking you for confirmation."
   :risky t
   :group 'find-file
-  :version "22.2"
+  :version "24.1"			; added write-file-hooks
   :type '(repeat sexp))
 
 ;; Risky local variables:
@@ -4309,7 +4326,11 @@ Before and after saving the buffer, this function runs
     ;; In an indirect buffer, save its base buffer instead.
     (if (buffer-base-buffer)
 	(set-buffer (buffer-base-buffer)))
-    (if (buffer-modified-p)
+    (if (or (buffer-modified-p)
+	    ;; handle the case when no modification has been made but
+	    ;; the file disappeared since visited
+	    (and buffer-file-name
+		 (not (file-exists-p buffer-file-name))))
 	(let ((recent-save (recent-auto-save-p))
 	      setmodes)
 	  ;; If buffer has no file name, ask user for one.
@@ -4822,10 +4843,8 @@ given.  With a prefix argument, TRASH is nil."
 		 directory 'full directory-files-no-dot-files-regexp)))
       (delete-directory-internal directory)))))
 
-(defun copy-directory (directory newname &optional keep-time parents)
+(defun copy-directory (directory newname &optional keep-time parents copy-contents)
   "Copy DIRECTORY to NEWNAME.  Both args must be strings.
-If NEWNAME names an existing directory, copy DIRECTORY as subdirectory there.
-
 This function always sets the file modes of the output files to match
 the corresponding input file.
 
@@ -4836,7 +4855,12 @@ A prefix arg makes KEEP-TIME non-nil.
 
 Noninteractively, the last argument PARENTS says whether to
 create parent directories if they don't exist.  Interactively,
-this happens by default."
+this happens by default.
+
+If NEWNAME names an existing directory, copy DIRECTORY as a
+subdirectory there.  However, if called from Lisp with a non-nil
+optional argument COPY-CONTENTS, copy the contents of DIRECTORY
+directly into NEWNAME instead."
   (interactive
    (let ((dir (read-directory-name
 	       "Copy directory: " default-directory default-directory t nil)))
@@ -4844,7 +4868,7 @@ this happens by default."
 	   (read-file-name
 	    (format "Copy directory %s to: " dir)
 	    default-directory default-directory nil nil)
-	   current-prefix-arg t)))
+	   current-prefix-arg t nil)))
   ;; If default-directory is a remote directory, make sure we find its
   ;; copy-directory handler.
   (let ((handler (or (find-file-name-handler directory 'copy-directory)
@@ -4856,21 +4880,22 @@ this happens by default."
       (setq directory (directory-file-name (expand-file-name directory))
 	    newname   (directory-file-name (expand-file-name newname)))
 
-      (if (not (file-directory-p newname))
-	  ;; If NEWNAME is not an existing directory, create it; that
-	  ;; is where we will copy the files of DIRECTORY.
-	  (make-directory newname parents)
-	;; If NEWNAME is an existing directory, we will copy into
-	;; NEWNAME/[DIRECTORY-BASENAME].
-	(setq newname (expand-file-name
-		       (file-name-nondirectory
-			(directory-file-name directory))
-		       newname))
-	(and (file-exists-p newname)
-	     (not (file-directory-p newname))
-	     (error "Cannot overwrite non-directory %s with a directory"
-		    newname))
-	(make-directory newname t))
+      (cond ((not (file-directory-p newname))
+	     ;; If NEWNAME is not an existing directory, create it;
+	     ;; that is where we will copy the files of DIRECTORY.
+	     (make-directory newname parents))
+	    ;; If NEWNAME is an existing directory and COPY-CONTENTS
+	    ;; is nil, copy into NEWNAME/[DIRECTORY-BASENAME].
+	    ((not copy-contents)
+	     (setq newname (expand-file-name
+			    (file-name-nondirectory
+			     (directory-file-name directory))
+			    newname))
+	     (and (file-exists-p newname)
+		  (not (file-directory-p newname))
+		  (error "Cannot overwrite non-directory %s with a directory"
+			 newname))
+	     (make-directory newname t)))
 
       ;; Copy recursively.
       (dolist (file

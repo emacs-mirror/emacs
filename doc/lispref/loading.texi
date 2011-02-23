@@ -1000,10 +1000,6 @@ it immediately---there is no need to wait until the library is loaded.
 If you need to call functions defined by that library, you should load
 the library, preferably with @code{require} (@pxref{Named Features}).
 
-But it is OK to use @code{eval-after-load} in your personal
-customizations if you don't feel that they must meet the design
-standards for programs meant for wider use.
-
 @defvar after-load-alist
 This variable stores an alist built by @code{eval-after-load},
 containing the expressions to evaluate when certain libraries are

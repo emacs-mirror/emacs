@@ -1508,6 +1508,12 @@ does not have the effect of remapping @code{kill-line} into
 if an ordinary binding specifies @code{my-kill-line}, this keymap will
 remap it to @code{my-other-kill-line}.
 
+To undo the remapping of a command, remap it to @code{nil}; e.g.
+
+@smallexample
+(define-key my-mode-map [remap kill-line] nil)
+@end smallexample
+
 @defun command-remapping command &optional position keymaps
 This function returns the remapping for @var{command} (a symbol),
 given the current active keymaps.  If @var{command} is not remapped

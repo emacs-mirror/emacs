@@ -488,17 +488,16 @@ x_set_frame_alpha (struct frame *f)
 
     if (rc == Success && actual != None)
       {
+        unsigned long value = *(unsigned long *)data;
 	XFree ((void *) data);
-	if (*(unsigned long *)data == opac)
+	if (value == opac)
 	  {
 	    x_uncatch_errors ();
 	    return;
 	  }
       }
-    x_uncatch_errors ();
   }
 
-  x_catch_errors (dpy);
   XChangeProperty (dpy, win, dpyinfo->Xatom_net_wm_window_opacity,
 		   XA_CARDINAL, 32, PropModeReplace,
 		   (unsigned char *) &opac, 1L);
@@ -7728,7 +7727,7 @@ x_connection_closed (Display *dpy, const char *error_message)
       {
 	/* Set this to t so that delete_frame won't get confused
 	   trying to find a replacement.  */
-	FRAME_KBOARD (XFRAME (frame))->Vdefault_minibuffer_frame = Qt;
+	KVAR (FRAME_KBOARD (XFRAME (frame)), Vdefault_minibuffer_frame) = Qt;
 	delete_frame (frame, Qnoelisp);
       }
 
@@ -9967,7 +9966,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       {
 	terminal->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
 	init_kboard (terminal->kboard);
-	terminal->kboard->Vwindow_system = Qx;
+	KVAR (terminal->kboard, Vwindow_system) = Qx;
 
 	/* Add the keyboard to the list before running Lisp code (via
            Qvendor_specific_keysyms below), since these are not traced
@@ -9989,7 +9988,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 	    /* Temporarily hide the partially initialized terminal.  */
 	    terminal_list = terminal->next_terminal;
 	    UNBLOCK_INPUT;
-	    terminal->kboard->Vsystem_key_alist
+	    KVAR (terminal->kboard, Vsystem_key_alist)
 	      = call1 (Qvendor_specific_keysyms,
 		       vendor ? build_string (vendor) : empty_unibyte_string);
 	    BLOCK_INPUT;

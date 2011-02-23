@@ -216,7 +216,7 @@
 
 @c ----------------------------------------------------
 
-@dircategory Emacs
+@dircategory GNU Emacs Lisp
 @direntry
 * Emacs Lisp Intro: (eintr).
                           A simple introduction to Emacs Lisp programming.

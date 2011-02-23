@@ -2301,7 +2301,6 @@ make_unibyte_string (const char *contents, EMACS_INT length)
   register Lisp_Object val;
   val = make_uninit_string (length);
   memcpy (SDATA (val), contents, length);
-  STRING_SET_UNIBYTE (val);
   return val;
 }
 
@@ -3886,7 +3885,7 @@ live_buffer_p (struct mem_node *m, void *p)
      must not have been killed.  */
   return (m->type == MEM_TYPE_BUFFER
 	  && p == m->start
-	  && !NILP (((struct buffer *) p)->name));
+	  && !NILP (((struct buffer *) p)->BUFFER_INTERNAL_FIELD (name)));
 }
 
 #endif /* GC_MARK_STACK || defined GC_MALLOC_CHECK */
@@ -4842,8 +4841,6 @@ returns nil, because real GC can't be done.  */)
   (void)
 {
   register struct specbinding *bind;
-  struct catchtag *catch;
-  struct handler *handler;
   char stack_top_variable;
   register int i;
   int message_p;
@@ -4872,11 +4869,11 @@ returns nil, because real GC can't be done.  */)
 	   turned off in that buffer.  Calling truncate_undo_list on
 	   Qt tends to return NULL, which effectively turns undo back on.
 	   So don't call truncate_undo_list if undo_list is Qt.  */
-	if (! NILP (nextb->name) && ! EQ (nextb->undo_list, Qt))
+	if (! NILP (nextb->BUFFER_INTERNAL_FIELD (name)) && ! EQ (nextb->BUFFER_INTERNAL_FIELD (undo_list), Qt))
 	  truncate_undo_list (nextb);
 
 	/* Shrink buffer gaps, but skip indirect and dead buffers.  */
-	if (nextb->base_buffer == 0 && !NILP (nextb->name)
+	if (nextb->base_buffer == 0 && !NILP (nextb->BUFFER_INTERNAL_FIELD (name))
 	    && ! nextb->text->inhibit_shrinking)
 	  {
 	    /* If a buffer's gap size is more than 10% of the buffer
@@ -4972,9 +4969,11 @@ returns nil, because real GC can't be done.  */)
       for (i = 0; i < tail->nvars; i++)
 	mark_object (tail->var[i]);
   }
-#endif
-
   mark_byte_stack ();
+  {
+    struct catchtag *catch;
+    struct handler *handler;
+
   for (catch = catchlist; catch; catch = catch->next)
     {
       mark_object (catch->tag);
@@ -4985,7 +4984,9 @@ returns nil, because real GC can't be done.  */)
       mark_object (handler->handler);
       mark_object (handler->var);
     }
+  }
   mark_backtrace ();
+#endif
 
 #ifdef HAVE_WINDOW_SYSTEM
   mark_fringe_data ();
@@ -5009,10 +5010,10 @@ returns nil, because real GC can't be done.  */)
 	   turned off in that buffer.  Calling truncate_undo_list on
 	   Qt tends to return NULL, which effectively turns undo back on.
 	   So don't call truncate_undo_list if undo_list is Qt.  */
-	if (! EQ (nextb->undo_list, Qt))
+	if (! EQ (nextb->BUFFER_INTERNAL_FIELD (undo_list), Qt))
 	  {
 	    Lisp_Object tail, prev;
-	    tail = nextb->undo_list;
+	    tail = nextb->BUFFER_INTERNAL_FIELD (undo_list);
 	    prev = Qnil;
 	    while (CONSP (tail))
 	      {
@@ -5021,7 +5022,7 @@ returns nil, because real GC can't be done.  */)
 		    && !XMARKER (XCAR (XCAR (tail)))->gcmarkbit)
 		  {
 		    if (NILP (prev))
-		      nextb->undo_list = tail = XCDR (tail);
+		      nextb->BUFFER_INTERNAL_FIELD (undo_list) = tail = XCDR (tail);
 		    else
 		      {
 			tail = XCDR (tail);
@@ -5037,7 +5038,7 @@ returns nil, because real GC can't be done.  */)
 	  }
 	/* Now that we have stripped the elements that need not be in the
 	   undo_list any more, we can finally mark the list.  */
-	mark_object (nextb->undo_list);
+	mark_object (nextb->BUFFER_INTERNAL_FIELD (undo_list));
 
 	nextb = nextb->next;
       }
@@ -5595,7 +5596,7 @@ mark_buffer (Lisp_Object buf)
 
   /* buffer-local Lisp variables start at `undo_list',
      tho only the ones from `name' on are GC'd normally.  */
-  for (ptr = &buffer->name;
+  for (ptr = &buffer->BUFFER_INTERNAL_FIELD (name);
        (char *)ptr < (char *)buffer + sizeof (struct buffer);
        ptr++)
     mark_object (*ptr);

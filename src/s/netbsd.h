@@ -21,8 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Get most of the stuff from bsd-common.  */
 #include "bsd-common.h"
 
-#define HAVE_GETLOADAVG 1
-
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_p - (FILE)->_bf._base)
 
 #define DEFAULT_SOUND_DEVICE "/dev/audio"
@@ -43,4 +41,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Use the GC_MAKE_GCPROS_NOOPS (see lisp.h) method.  */
 #define GC_MARK_STACK	GC_MAKE_GCPROS_NOOPS
-

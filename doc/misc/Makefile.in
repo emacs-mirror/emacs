@@ -287,12 +287,12 @@ dbus.pdf: ${srcdir}/dbus.texi
 	$(ENVADD) $(TEXI2PDF) $<
 
 dired-x : $(infodir)/dired-x
-$(infodir)/dired-x: dired-x.texi
+$(infodir)/dired-x: dired-x.texi $(emacsdir)/emacsver.texi
 	$(mkinfodir)
 	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) $<
-dired-x.dvi: ${srcdir}/dired-x.texi
+dired-x.dvi: ${srcdir}/dired-x.texi $(emacsdir)/emacsver.texi
 	$(ENVADD) $(TEXI2DVI) $<
-dired-x.pdf: ${srcdir}/dired-x.texi
+dired-x.pdf: ${srcdir}/dired-x.texi $(emacsdir)/emacsver.texi
 	$(ENVADD) $(TEXI2PDF) $<
 
 ebrowse : $(infodir)/ebrowse

@@ -22,7 +22,7 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs misc features
 @direntry
 * EDT: (edt).                   An Emacs emulation of the EDT editor.
 @end direntry
@@ -87,7 +87,7 @@ informing you that the emulation has been enabled: ``Default EDT keymap
 active''.
 
    You can have the EDT Emulation start up automatically, each time you
-initiate a GNU Emacs session, by adding the following line to your
+initiate an Emacs session, by adding the following line to your
 @file{.emacs} file:
 
 @example
@@ -218,7 +218,7 @@ user quits without saving those buffers.
 
 @item
 Emulate EDT Keypad Mode commands closely so that current EDT users will
-find that it easy and comfortable to use GNU Emacs with a small learning
+find that it easy and comfortable to use Emacs with a small learning
 curve.
 
 @item
@@ -237,7 +237,7 @@ Provide an easy way to restore @strong{all} original Emacs key bindings,
 just as they existed before the EDT emulation was first invoked.
 
 @item
-Support GNU Emacs 19 and higher.  XEmacs 19, and above, is also supported.
+Support Emacs and XEmacs 19 and higher.
 
 @item
 Supports highlighting of marked text within the EDT emulation on all
@@ -285,13 +285,13 @@ apply to you.
 @node Starting emulation
 @chapter How to Get Started
 
-Start up GNU Emacs and enter @kbd{M-x edt-emulation-on} to begin the
+Start up Emacs and enter @kbd{M-x edt-emulation-on} to begin the
 emulation.  After initialization is complete, the following message will
 appear below the status line informing you that the emulation has been
 enabled: ``Default EDT keymap active''.
 
 You can have the EDT Emulation start up automatically, each time you
-initiate a GNU Emacs session, by adding the following line to your
+initiate an Emacs session, by adding the following line to your
 @file{.emacs} file:
 
 @example
@@ -306,7 +306,7 @@ in the EDT Default Mode).
 It is easy to customize key bindings in the EDT Emulation
 (@pxref{Customizing}).  Customizations are placed in a file called
 @file{edt-user.el}.  The Emacs @file{etc/} directory contains an
-example.  If @file{edt-user.el} is found in your GNU Emacs load path
+example.  If @file{edt-user.el} is found in your Emacs load path
 during EDT Emulation initialization, then the following message will
 appear below the status line indicating that the emulation has been
 enabled, enhanced by your own customizations: ``User EDT custom keymap
@@ -321,8 +321,8 @@ restores the original key bindings in effect just prior to invoking the
 emulation.
 
 Emacs binds keys to @acronym{ASCII} control characters and so does the
-real EDT.  Where EDT key bindings and GNU Emacs key bindings conflict,
-the default GNU Emacs key bindings are retained by the EDT emulation by
+real EDT.  Where EDT key bindings and Emacs key bindings conflict,
+the default Emacs key bindings are retained by the EDT emulation by
 default.  If you are a diehard EDT user you may not like this.  The
 @ref{Control keys} section explains how to change this so that the EDT
 bindings to @acronym{ASCII} control characters override the default
@@ -364,7 +364,7 @@ older SunOS release configured with a Sun Type 5 keyboard:
 @example
 ! File:  .xmodmaprc
 !
-! Set up Sun Type 5 keypad for use with the GNU Emacs EDT Emulation
+! Set up Sun Type 5 keypad for use with the Emacs EDT Emulation
 !
 keycode  53 = KP_Divide
 keycode  54 = KP_Multiply
@@ -436,7 +436,7 @@ things up nicely.
 @example
 ! File:  .xmodmaprc
 !
-! Set up PC keypad under GNU/Linux for the GNU Emacs EDT Emulation
+! Set up PC keypad under GNU/Linux for the Emacs EDT Emulation
 !
 clear  mod2
 keycode  77 = F12
@@ -518,7 +518,7 @@ assign Num_Lock back to mod2.
 @example
 ! File:  .xmodmaprc
 !
-! Set up PC keypad under GNU/Linux for the GNU Emacs EDT Emulation
+! Set up PC keypad under GNU/Linux for the Emacs EDT Emulation
 !
 clear  mod2
 keycode  77 = F12
@@ -541,7 +541,7 @@ In general, you will find that this emulation of EDT replicates most,
 but not all, of EDT's most used Keypad Mode editing functions and
 behavior.  It is not perfect, but most EDT users who have tried the
 emulation agree that it is quite good enough to make it easy for
-die-hard EDT users to move over to using GNU Emacs.
+die-hard EDT users to move over to using Emacs.
 
 Here's a list of the most important differences between EDT and this GNU
 Emacs EDT Emulation.  The list is short but you must be aware of these
@@ -783,7 +783,7 @@ terminals on the same system, you need not look at @file{edt-user.el2}.
 @end ignore
 
 First, you need to have your own private lisp directory, say
-@file{~/lisp}, and you should add it to the GNU Emacs load path.
+@file{~/lisp}, and you should add it to the Emacs load path.
 
 @strong{Please note:} A few sites have different load-path requirements,
 so the above directions may need some modification if your site has such
@@ -898,8 +898,8 @@ Here are some examples:
 @node Control keys
 @section Enabling EDT Control Key Sequence Bindings
 
-Where EDT key bindings and GNU Emacs key bindings conflict, the default
-GNU Emacs key bindings are retained by default.  Some diehard EDT users
+Where EDT key bindings and Emacs key bindings conflict, the default
+Emacs key bindings are retained by default.  Some diehard EDT users
 may not like this.  So, if the variable
 @code{edt-use-EDT-control-key-bindings} is set to true in a user's
 @file{.emacs} file, then the default EDT Emulation mode will enable most

@@ -428,20 +428,20 @@ make_frame_without_minibuffer (register Lisp_Object mini_window, KBOARD *kb, Lis
   if (NILP (mini_window))
     {
       /* Use default-minibuffer-frame if possible.  */
-      if (!FRAMEP (kb->Vdefault_minibuffer_frame)
-	  || ! FRAME_LIVE_P (XFRAME (kb->Vdefault_minibuffer_frame)))
+      if (!FRAMEP (KVAR (kb, Vdefault_minibuffer_frame))
+	  || ! FRAME_LIVE_P (XFRAME (KVAR (kb, Vdefault_minibuffer_frame))))
 	{
           Lisp_Object frame_dummy;
 
           XSETFRAME (frame_dummy, f);
           GCPRO1 (frame_dummy);
 	  /* If there's no minibuffer frame to use, create one.  */
-	  kb->Vdefault_minibuffer_frame =
+	  KVAR (kb, Vdefault_minibuffer_frame) =
 	    call1 (intern ("make-initial-minibuffer-frame"), display);
           UNGCPRO;
 	}
 
-      mini_window = XFRAME (kb->Vdefault_minibuffer_frame)->minibuffer_window;
+      mini_window = XFRAME (KVAR (kb, Vdefault_minibuffer_frame))->minibuffer_window;
     }
 
   f->minibuffer_window = mini_window;
@@ -889,7 +889,7 @@ to that frame.  */)
   (Lisp_Object event)
 {
   /* Preserve prefix arg that the command loop just cleared.  */
-  current_kboard->Vprefix_arg = Vcurrent_prefix_arg;
+  KVAR (current_kboard, Vprefix_arg) = Vcurrent_prefix_arg;
   call1 (Vrun_hooks, Qmouse_leave_buffer_hook);
   return do_switch_frame (event, 0, 0, Qnil);
 }
@@ -1526,7 +1526,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
   /* If we've deleted this keyboard's default_minibuffer_frame, try to
      find another one.  Prefer minibuffer-only frames, but also notice
      frames with other windows.  */
-  if (kb != NULL && EQ (frame, kb->Vdefault_minibuffer_frame))
+  if (kb != NULL && EQ (frame, KVAR (kb, Vdefault_minibuffer_frame)))
     {
       Lisp_Object frames;
 
@@ -1575,11 +1575,11 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 	  if (NILP (frame_with_minibuf))
 	    abort ();
 
-	  kb->Vdefault_minibuffer_frame = frame_with_minibuf;
+	  KVAR (kb, Vdefault_minibuffer_frame) = frame_with_minibuf;
 	}
       else
 	/* No frames left on this kboard--say no minibuffer either.  */
-	kb->Vdefault_minibuffer_frame = Qnil;
+	KVAR (kb, Vdefault_minibuffer_frame) = Qnil;
     }
 
   /* Cause frame titles to update--necessary if we now have just one frame.  */
@@ -1817,7 +1817,7 @@ make_frame_visible_1 (Lisp_Object window)
       w = XWINDOW (window);
 
       if (!NILP (w->buffer))
-	XBUFFER (w->buffer)->display_time = Fcurrent_time ();
+	BVAR (XBUFFER (w->buffer), display_time) = Fcurrent_time ();
 
       if (!NILP (w->vchild))
 	make_frame_visible_1 (w->vchild);

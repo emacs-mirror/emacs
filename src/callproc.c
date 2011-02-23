@@ -74,10 +74,6 @@ extern char **environ;
 /* Pattern used by call-process-region to make temp files.  */
 static Lisp_Object Vtemp_file_name_pattern;
 
-#ifdef DOS_NT
-Lisp_Object Qbuffer_file_type;
-#endif /* DOS_NT */
-
 /* True if we are about to fork off a synchronous process or if we
    are waiting for it.  */
 int synch_process_alive;
@@ -265,7 +261,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
   if (nargs >= 2 && ! NILP (args[1]))
     {
-      infile = Fexpand_file_name (args[1], current_buffer->directory);
+      infile = Fexpand_file_name (args[1], BVAR (current_buffer, directory));
       CHECK_STRING (infile);
     }
   else
@@ -322,7 +318,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   {
     struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
-    current_dir = current_buffer->directory;
+    current_dir = BVAR (current_buffer, directory);
 
     GCPRO4 (infile, buffer, current_dir, error_file);
 
@@ -336,7 +332,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
     if (NILP (Ffile_accessible_directory_p (current_dir)))
       report_file_error ("Setting current directory",
-			 Fcons (current_buffer->directory, Qnil));
+			 Fcons (BVAR (current_buffer, directory), Qnil));
 
     if (STRING_MULTIBYTE (infile))
       infile = ENCODE_FILE (infile);
@@ -445,6 +441,11 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     register char **save_environ = environ;
     register int fd1 = fd[1];
     int fd_error = fd1;
+#ifdef HAVE_WORKING_VFORK
+    sigset_t procmask;
+    sigset_t blocked;
+    struct sigaction sigpipe_action;
+#endif
 
 #if 0  /* Some systems don't have sigblock.  */
     mask = sigblock (sigmask (SIGCHLD));
@@ -525,6 +526,18 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     pid = child_setup (filefd, fd1, fd_error, (char **) new_argv,
 		       0, current_dir);
 #else  /* not WINDOWSNT */
+
+#ifdef HAVE_WORKING_VFORK
+    /* On many hosts (e.g. Solaris 2.4), if a vforked child calls `signal',
+       this sets the parent's signal handlers as well as the child's.
+       So delay all interrupts whose handlers the child might munge,
+       and record the current handlers so they can be restored later.  */
+    sigemptyset (&blocked);
+    sigaddset (&blocked, SIGPIPE);
+    sigaction (SIGPIPE, 0, &sigpipe_action);
+    sigprocmask (SIG_BLOCK, &blocked, &procmask);
+#endif
+
     BLOCK_INPUT;
 
     pid = vfork ();
@@ -541,11 +554,26 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 #else
         setpgrp (pid, pid);
 #endif /* USG */
+
+	/* GConf causes us to ignore SIGPIPE, make sure it is restored
+	   in the child.  */
+	//signal (SIGPIPE, SIG_DFL);
+#ifdef HAVE_WORKING_VFORK
+	sigprocmask (SIG_SETMASK, &procmask, 0);
+#endif
+
 	child_setup (filefd, fd1, fd_error, (char **) new_argv,
 		     0, current_dir);
       }
 
     UNBLOCK_INPUT;
+
+#ifdef HAVE_WORKING_VFORK
+    /* Restore the signal state.  */
+    sigaction (SIGPIPE, &sigpipe_action, 0);
+    sigprocmask (SIG_SETMASK, &procmask, 0);
+#endif
+
 #endif /* not WINDOWSNT */
 
     /* The MSDOS case did this already.  */
@@ -631,7 +659,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
       /* In unibyte mode, character code conversion should not take
 	 place but EOL conversion should.  So, setup raw-text or one
 	 of the subsidiary according to the information just setup.  */
-      if (NILP (current_buffer->enable_multibyte_characters)
+      if (NILP (BVAR (current_buffer, enable_multibyte_characters))
 	  && !NILP (val))
 	val = raw_text_coding_system (val);
       setup_coding_system (val, &process_coding);
@@ -681,7 +709,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
 	if (!NILP (buffer))
 	  {
-	    if (NILP (current_buffer->enable_multibyte_characters)
+	    if (NILP (BVAR (current_buffer, enable_multibyte_characters))
 		&& ! CODING_MAY_REQUIRE_DECODING (&process_coding))
 	      insert_1_both (buf, nread, nread, 0, 1, 0);
 	    else
@@ -894,7 +922,7 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
   /* Decide coding-system of the contents of the temporary file.  */
   if (!NILP (Vcoding_system_for_write))
     val = Vcoding_system_for_write;
-  else if (NILP (current_buffer->enable_multibyte_characters))
+  else if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
     val = Qraw_text;
   else
     {
@@ -1503,11 +1531,6 @@ set_initial_environment (void)
 void
 syms_of_callproc (void)
 {
-#ifdef DOS_NT
-  Qbuffer_file_type = intern_c_string ("buffer-file-type");
-  staticpro (&Qbuffer_file_type);
-#endif /* DOS_NT */
-
 #ifndef DOS_NT
   Vtemp_file_name_pattern = build_string ("emacsXXXXXX");
 #elif defined (WINDOWSNT)

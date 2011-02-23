@@ -871,6 +871,15 @@ Bind `print-quoted' and `print-readably' to t, and `print-length' and
   (when (file-exists-p file)
     (delete-file file)))
 
+(defun gnus-delete-duplicates (list)
+  "Remove duplicate entries from LIST."
+  (let ((result nil))
+    (while list
+      (unless (member (car list) result)
+	(push (car list) result))
+      (pop list))
+    (nreverse result)))
+
 (defun gnus-delete-directory (directory)
   "Delete files in DIRECTORY.  Subdirectories remain.
 If there's no subdirectory, delete DIRECTORY as well."

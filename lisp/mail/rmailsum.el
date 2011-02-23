@@ -64,7 +64,196 @@ Setting this option to nil might speed up the generation of summaries."
   "Overlay used to highlight the current message in the Rmail summary.")
 (put 'rmail-summary-overlay 'permanent-local t)
 
-(defvar rmail-summary-mode-map nil
+(defvar rmail-summary-mode-map
+  (let ((map (make-keymap)))
+    (suppress-keymap map)
+    (define-key map [mouse-2] 'rmail-summary-mouse-goto-message)
+    (define-key map "a"      'rmail-summary-add-label)
+    (define-key map "b"      'rmail-summary-bury)
+    (define-key map "c"      'rmail-summary-continue)
+    (define-key map "d"      'rmail-summary-delete-forward)
+    (define-key map "\C-d"   'rmail-summary-delete-backward)
+    (define-key map "e"      'rmail-summary-edit-current-message)
+    (define-key map "f"      'rmail-summary-forward)
+    (define-key map "g"      'rmail-summary-get-new-mail)
+    (define-key map "h"      'rmail-summary)
+    (define-key map "i"      'rmail-summary-input)
+    (define-key map "j"      'rmail-summary-goto-msg)
+    (define-key map "\C-m"   'rmail-summary-goto-msg)
+    (define-key map "k"      'rmail-summary-kill-label)
+    (define-key map "l"      'rmail-summary-by-labels)
+    (define-key map "\e\C-h" 'rmail-summary)
+    (define-key map "\e\C-l" 'rmail-summary-by-labels)
+    (define-key map "\e\C-r" 'rmail-summary-by-recipients)
+    (define-key map "\e\C-s" 'rmail-summary-by-regexp)
+    ;; `f' for "from".
+    (define-key map "\e\C-f" 'rmail-summary-by-senders)
+    (define-key map "\e\C-t" 'rmail-summary-by-topic)
+    (define-key map "m"      'rmail-summary-mail)
+    (define-key map "\M-m"   'rmail-summary-retry-failure)
+    (define-key map "n"      'rmail-summary-next-msg)
+    (define-key map "\en"    'rmail-summary-next-all)
+    (define-key map "\e\C-n" 'rmail-summary-next-labeled-message)
+    (define-key map "o"      'rmail-summary-output)
+    (define-key map "\C-o"   'rmail-summary-output-as-seen)
+    (define-key map "p"      'rmail-summary-previous-msg)
+    (define-key map "\ep"    'rmail-summary-previous-all)
+    (define-key map "\e\C-p" 'rmail-summary-previous-labeled-message)
+    (define-key map "q"      'rmail-summary-quit)
+    (define-key map "Q"      'rmail-summary-wipe)
+    (define-key map "r"      'rmail-summary-reply)
+    (define-key map "s"      'rmail-summary-expunge-and-save)
+    ;; See rms's comment in rmail.el
+    ;; (define-key map "\er"    'rmail-summary-search-backward)
+    (define-key map "\es"    'rmail-summary-search)
+    (define-key map "t"      'rmail-summary-toggle-header)
+    (define-key map "u"      'rmail-summary-undelete)
+    (define-key map "\M-u"   'rmail-summary-undelete-many)
+    (define-key map "x"      'rmail-summary-expunge)
+    (define-key map "w"      'rmail-summary-output-body)
+    (define-key map "v"      'rmail-mime)
+    (define-key map "."      'rmail-summary-beginning-of-message)
+    (define-key map "/"      'rmail-summary-end-of-message)
+    (define-key map "<"      'rmail-summary-first-message)
+    (define-key map ">"      'rmail-summary-last-message)
+    (define-key map " "      'rmail-summary-scroll-msg-up)
+    (define-key map "\177"   'rmail-summary-scroll-msg-down)
+    (define-key map "?"      'describe-mode)
+    (define-key map "\C-c\C-n" 'rmail-summary-next-same-subject)
+    (define-key map "\C-c\C-p" 'rmail-summary-previous-same-subject)
+    (define-key map "\C-c\C-s\C-d" 'rmail-summary-sort-by-date)
+    (define-key map "\C-c\C-s\C-s" 'rmail-summary-sort-by-subject)
+    (define-key map "\C-c\C-s\C-a" 'rmail-summary-sort-by-author)
+    (define-key map "\C-c\C-s\C-r" 'rmail-summary-sort-by-recipient)
+    (define-key map "\C-c\C-s\C-c" 'rmail-summary-sort-by-correspondent)
+    (define-key map "\C-c\C-s\C-l" 'rmail-summary-sort-by-lines)
+    (define-key map "\C-c\C-s\C-k" 'rmail-summary-sort-by-labels)
+    (define-key map "\C-x\C-s" 'rmail-summary-save-buffer)
+
+    ;; Menu bar bindings.
+
+    (define-key map [menu-bar] (make-sparse-keymap))
+
+    (define-key map [menu-bar classify]
+      (cons "Classify" (make-sparse-keymap "Classify")))
+
+    (define-key map [menu-bar classify output-menu]
+      '("Output (Rmail Menu)..." . rmail-summary-output-menu))
+
+    (define-key map [menu-bar classify input-menu]
+      '("Input Rmail File (menu)..." . rmail-input-menu))
+
+    (define-key map [menu-bar classify input-menu]
+      '(nil))
+
+    (define-key map [menu-bar classify output-menu]
+      '(nil))
+
+    (define-key map [menu-bar classify output-body]
+      '("Output body..." . rmail-summary-output-body))
+
+    (define-key map [menu-bar classify output-inbox]
+      '("Output..." . rmail-summary-output))
+
+    (define-key map [menu-bar classify output]
+      '("Output as seen..." . rmail-summary-output-as-seen))
+
+    (define-key map [menu-bar classify kill-label]
+      '("Kill Label..." . rmail-summary-kill-label))
+
+    (define-key map [menu-bar classify add-label]
+      '("Add Label..." . rmail-summary-add-label))
+
+    (define-key map [menu-bar summary]
+      (cons "Summary" (make-sparse-keymap "Summary")))
+
+    (define-key map [menu-bar summary senders]
+      '("By Senders..." . rmail-summary-by-senders))
+
+    (define-key map [menu-bar summary labels]
+      '("By Labels..." . rmail-summary-by-labels))
+
+    (define-key map [menu-bar summary recipients]
+      '("By Recipients..." . rmail-summary-by-recipients))
+
+    (define-key map [menu-bar summary topic]
+      '("By Topic..." . rmail-summary-by-topic))
+
+    (define-key map [menu-bar summary regexp]
+      '("By Regexp..." . rmail-summary-by-regexp))
+
+    (define-key map [menu-bar summary all]
+      '("All" . rmail-summary))
+
+    (define-key map [menu-bar mail]
+      (cons "Mail" (make-sparse-keymap "Mail")))
+
+    (define-key map [menu-bar mail rmail-summary-get-new-mail]
+      '("Get New Mail" . rmail-summary-get-new-mail))
+
+    (define-key map [menu-bar mail lambda]
+      '("----"))
+
+    (define-key map [menu-bar mail continue]
+      '("Continue" . rmail-summary-continue))
+
+    (define-key map [menu-bar mail resend]
+      '("Re-send..." . rmail-summary-resend))
+
+    (define-key map [menu-bar mail forward]
+      '("Forward" . rmail-summary-forward))
+
+    (define-key map [menu-bar mail retry]
+      '("Retry" . rmail-summary-retry-failure))
+
+    (define-key map [menu-bar mail reply]
+      '("Reply" . rmail-summary-reply))
+
+    (define-key map [menu-bar mail mail]
+      '("Mail" . rmail-summary-mail))
+
+    (define-key map [menu-bar delete]
+      (cons "Delete" (make-sparse-keymap "Delete")))
+
+    (define-key map [menu-bar delete expunge/save]
+      '("Expunge/Save" . rmail-summary-expunge-and-save))
+
+    (define-key map [menu-bar delete expunge]
+      '("Expunge" . rmail-summary-expunge))
+
+    (define-key map [menu-bar delete undelete]
+      '("Undelete" . rmail-summary-undelete))
+
+    (define-key map [menu-bar delete delete]
+      '("Delete" . rmail-summary-delete-forward))
+
+    (define-key map [menu-bar move]
+      (cons "Move" (make-sparse-keymap "Move")))
+
+    (define-key map [menu-bar move search-back]
+      '("Search Back..." . rmail-summary-search-backward))
+
+    (define-key map [menu-bar move search]
+      '("Search..." . rmail-summary-search))
+
+    (define-key map [menu-bar move previous]
+      '("Previous Nondeleted" . rmail-summary-previous-msg))
+
+    (define-key map [menu-bar move next]
+      '("Next Nondeleted" . rmail-summary-next-msg))
+
+    (define-key map [menu-bar move last]
+      '("Last" . rmail-summary-last-message))
+
+    (define-key map [menu-bar move first]
+      '("First" . rmail-summary-first-message))
+
+    (define-key map [menu-bar move previous]
+      '("Previous" . rmail-summary-previous-all))
+
+    (define-key map [menu-bar move next]
+      '("Next" . rmail-summary-next-all))
+    map)
   "Keymap used in Rmail summary mode.")
 
 ;; Entry points for making a summary buffer.
@@ -990,207 +1179,6 @@ Search, the `unseen' attribute is restored.")
     (save-excursion
       (switch-to-buffer rmail-buffer)
       (save-buffer))))
-
-
-(if rmail-summary-mode-map
-    nil
-  (setq rmail-summary-mode-map (make-keymap))
-  (suppress-keymap rmail-summary-mode-map)
-
-  (define-key rmail-summary-mode-map [mouse-2] 'rmail-summary-mouse-goto-message)
-  (define-key rmail-summary-mode-map "a"      'rmail-summary-add-label)
-  (define-key rmail-summary-mode-map "b"      'rmail-summary-bury)
-  (define-key rmail-summary-mode-map "c"      'rmail-summary-continue)
-  (define-key rmail-summary-mode-map "d"      'rmail-summary-delete-forward)
-  (define-key rmail-summary-mode-map "\C-d"   'rmail-summary-delete-backward)
-  (define-key rmail-summary-mode-map "e"      'rmail-summary-edit-current-message)
-  (define-key rmail-summary-mode-map "f"      'rmail-summary-forward)
-  (define-key rmail-summary-mode-map "g"      'rmail-summary-get-new-mail)
-  (define-key rmail-summary-mode-map "h"      'rmail-summary)
-  (define-key rmail-summary-mode-map "i"      'rmail-summary-input)
-  (define-key rmail-summary-mode-map "j"      'rmail-summary-goto-msg)
-  (define-key rmail-summary-mode-map "\C-m"   'rmail-summary-goto-msg)
-  (define-key rmail-summary-mode-map "k"      'rmail-summary-kill-label)
-  (define-key rmail-summary-mode-map "l"      'rmail-summary-by-labels)
-  (define-key rmail-summary-mode-map "\e\C-h" 'rmail-summary)
-  (define-key rmail-summary-mode-map "\e\C-l" 'rmail-summary-by-labels)
-  (define-key rmail-summary-mode-map "\e\C-r" 'rmail-summary-by-recipients)
-  (define-key rmail-summary-mode-map "\e\C-s" 'rmail-summary-by-regexp)
-  ;; `f' for "from".
-  (define-key rmail-summary-mode-map "\e\C-f" 'rmail-summary-by-senders)
-  (define-key rmail-summary-mode-map "\e\C-t" 'rmail-summary-by-topic)
-  (define-key rmail-summary-mode-map "m"      'rmail-summary-mail)
-  (define-key rmail-summary-mode-map "\M-m"   'rmail-summary-retry-failure)
-  (define-key rmail-summary-mode-map "n"      'rmail-summary-next-msg)
-  (define-key rmail-summary-mode-map "\en"    'rmail-summary-next-all)
-  (define-key rmail-summary-mode-map "\e\C-n" 'rmail-summary-next-labeled-message)
-  (define-key rmail-summary-mode-map "o"      'rmail-summary-output)
-  (define-key rmail-summary-mode-map "\C-o"   'rmail-summary-output-as-seen)
-  (define-key rmail-summary-mode-map "p"      'rmail-summary-previous-msg)
-  (define-key rmail-summary-mode-map "\ep"    'rmail-summary-previous-all)
-  (define-key rmail-summary-mode-map "\e\C-p" 'rmail-summary-previous-labeled-message)
-  (define-key rmail-summary-mode-map "q"      'rmail-summary-quit)
-  (define-key rmail-summary-mode-map "Q"      'rmail-summary-wipe)
-  (define-key rmail-summary-mode-map "r"      'rmail-summary-reply)
-  (define-key rmail-summary-mode-map "s"      'rmail-summary-expunge-and-save)
-  ;; See rms's comment in rmail.el
-;;;  (define-key rmail-summary-mode-map "\er"    'rmail-summary-search-backward)
-  (define-key rmail-summary-mode-map "\es"    'rmail-summary-search)
-  (define-key rmail-summary-mode-map "t"      'rmail-summary-toggle-header)
-  (define-key rmail-summary-mode-map "u"      'rmail-summary-undelete)
-  (define-key rmail-summary-mode-map "\M-u"   'rmail-summary-undelete-many)
-  (define-key rmail-summary-mode-map "x"      'rmail-summary-expunge)
-  (define-key rmail-summary-mode-map "w"      'rmail-summary-output-body)
-  (define-key rmail-summary-mode-map "v"      'rmail-mime)
-  (define-key rmail-summary-mode-map "."      'rmail-summary-beginning-of-message)
-  (define-key rmail-summary-mode-map "/"      'rmail-summary-end-of-message)
-  (define-key rmail-summary-mode-map "<"      'rmail-summary-first-message)
-  (define-key rmail-summary-mode-map ">"      'rmail-summary-last-message)
-  (define-key rmail-summary-mode-map " "      'rmail-summary-scroll-msg-up)
-  (define-key rmail-summary-mode-map "\177"   'rmail-summary-scroll-msg-down)
-  (define-key rmail-summary-mode-map "?"      'describe-mode)
-  (define-key rmail-summary-mode-map "\C-c\C-n" 'rmail-summary-next-same-subject)
-  (define-key rmail-summary-mode-map "\C-c\C-p" 'rmail-summary-previous-same-subject)
-  (define-key rmail-summary-mode-map "\C-c\C-s\C-d"
-    'rmail-summary-sort-by-date)
-  (define-key rmail-summary-mode-map "\C-c\C-s\C-s"
-    'rmail-summary-sort-by-subject)
-  (define-key rmail-summary-mode-map "\C-c\C-s\C-a"
-    'rmail-summary-sort-by-author)
-  (define-key rmail-summary-mode-map "\C-c\C-s\C-r"
-    'rmail-summary-sort-by-recipient)
-  (define-key rmail-summary-mode-map "\C-c\C-s\C-c"
-    'rmail-summary-sort-by-correspondent)
-  (define-key rmail-summary-mode-map "\C-c\C-s\C-l"
-    'rmail-summary-sort-by-lines)
-  (define-key rmail-summary-mode-map "\C-c\C-s\C-k"
-    'rmail-summary-sort-by-labels)
-  (define-key rmail-summary-mode-map "\C-x\C-s" 'rmail-summary-save-buffer)
-  )
-
-;;; Menu bar bindings.
-
-(define-key rmail-summary-mode-map [menu-bar] (make-sparse-keymap))
-
-(define-key rmail-summary-mode-map [menu-bar classify]
-  (cons "Classify" (make-sparse-keymap "Classify")))
-
-(define-key rmail-summary-mode-map [menu-bar classify output-menu]
-  '("Output (Rmail Menu)..." . rmail-summary-output-menu))
-
-(define-key rmail-summary-mode-map [menu-bar classify input-menu]
-  '("Input Rmail File (menu)..." . rmail-input-menu))
-
-(define-key rmail-summary-mode-map [menu-bar classify input-menu]
-  '(nil))
-
-(define-key rmail-summary-mode-map [menu-bar classify output-menu]
-  '(nil))
-
-(define-key rmail-summary-mode-map [menu-bar classify output-body]
-  '("Output body..." . rmail-summary-output-body))
-
-(define-key rmail-summary-mode-map [menu-bar classify output-inbox]
-  '("Output..." . rmail-summary-output))
-
-(define-key rmail-summary-mode-map [menu-bar classify output]
-  '("Output as seen..." . rmail-summary-output-as-seen))
-
-(define-key rmail-summary-mode-map [menu-bar classify kill-label]
-  '("Kill Label..." . rmail-summary-kill-label))
-
-(define-key rmail-summary-mode-map [menu-bar classify add-label]
-  '("Add Label..." . rmail-summary-add-label))
-
-(define-key rmail-summary-mode-map [menu-bar summary]
-  (cons "Summary" (make-sparse-keymap "Summary")))
-
-(define-key rmail-summary-mode-map [menu-bar summary senders]
-  '("By Senders..." . rmail-summary-by-senders))
-
-(define-key rmail-summary-mode-map [menu-bar summary labels]
-  '("By Labels..." . rmail-summary-by-labels))
-
-(define-key rmail-summary-mode-map [menu-bar summary recipients]
-  '("By Recipients..." . rmail-summary-by-recipients))
-
-(define-key rmail-summary-mode-map [menu-bar summary topic]
-  '("By Topic..." . rmail-summary-by-topic))
-
-(define-key rmail-summary-mode-map [menu-bar summary regexp]
-  '("By Regexp..." . rmail-summary-by-regexp))
-
-(define-key rmail-summary-mode-map [menu-bar summary all]
-  '("All" . rmail-summary))
-
-(define-key rmail-summary-mode-map [menu-bar mail]
-  (cons "Mail" (make-sparse-keymap "Mail")))
-
-(define-key rmail-summary-mode-map [menu-bar mail rmail-summary-get-new-mail]
-  '("Get New Mail" . rmail-summary-get-new-mail))
-
-(define-key rmail-summary-mode-map [menu-bar mail lambda]
-  '("----"))
-
-(define-key rmail-summary-mode-map [menu-bar mail continue]
-  '("Continue" . rmail-summary-continue))
-
-(define-key rmail-summary-mode-map [menu-bar mail resend]
-  '("Re-send..." . rmail-summary-resend))
-
-(define-key rmail-summary-mode-map [menu-bar mail forward]
-  '("Forward" . rmail-summary-forward))
-
-(define-key rmail-summary-mode-map [menu-bar mail retry]
-  '("Retry" . rmail-summary-retry-failure))
-
-(define-key rmail-summary-mode-map [menu-bar mail reply]
-  '("Reply" . rmail-summary-reply))
-
-(define-key rmail-summary-mode-map [menu-bar mail mail]
-  '("Mail" . rmail-summary-mail))
-
-(define-key rmail-summary-mode-map [menu-bar delete]
-  (cons "Delete" (make-sparse-keymap "Delete")))
-
-(define-key rmail-summary-mode-map [menu-bar delete expunge/save]
-  '("Expunge/Save" . rmail-summary-expunge-and-save))
-
-(define-key rmail-summary-mode-map [menu-bar delete expunge]
-  '("Expunge" . rmail-summary-expunge))
-
-(define-key rmail-summary-mode-map [menu-bar delete undelete]
-  '("Undelete" . rmail-summary-undelete))
-
-(define-key rmail-summary-mode-map [menu-bar delete delete]
-  '("Delete" . rmail-summary-delete-forward))
-
-(define-key rmail-summary-mode-map [menu-bar move]
-  (cons "Move" (make-sparse-keymap "Move")))
-
-(define-key rmail-summary-mode-map [menu-bar move search-back]
-  '("Search Back..." . rmail-summary-search-backward))
-
-(define-key rmail-summary-mode-map [menu-bar move search]
-  '("Search..." . rmail-summary-search))
-
-(define-key rmail-summary-mode-map [menu-bar move previous]
-  '("Previous Nondeleted" . rmail-summary-previous-msg))
-
-(define-key rmail-summary-mode-map [menu-bar move next]
-  '("Next Nondeleted" . rmail-summary-next-msg))
-
-(define-key rmail-summary-mode-map [menu-bar move last]
-  '("Last" . rmail-summary-last-message))
-
-(define-key rmail-summary-mode-map [menu-bar move first]
-  '("First" . rmail-summary-first-message))
-
-(define-key rmail-summary-mode-map [menu-bar move previous]
-  '("Previous" . rmail-summary-previous-all))
-
-(define-key rmail-summary-mode-map [menu-bar move next]
-  '("Next" . rmail-summary-next-all))
 
 (defun rmail-summary-mouse-goto-message (event)
   "Select the message whose summary line you click on."
@@ -1808,7 +1796,7 @@ If prefix argument REVERSE is non-nil, sorts in reverse order."
   "Sort messages of current Rmail summary by other correspondent.
 This uses either the \"From\", \"Sender\", \"To\", or
 \"Apparently-To\" header, downcased.  Uses the first header not
-excluded by `rmail-dont-reply-to-names'.  If prefix argument
+excluded by `mail-dont-reply-to-names'.  If prefix argument
 REVERSE is non-nil, sorts in reverse order."
   (interactive "P")
   (rmail-sort-from-summary (function rmail-sort-by-correspondent) reverse))

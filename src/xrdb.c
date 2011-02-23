@@ -38,10 +38,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #include <sys/stat.h>
 
-#if !defined(S_ISDIR) && defined(S_IFDIR)
-#define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
-#endif
-
 #include "lisp.h"
 
 #ifdef USE_MOTIF
@@ -546,12 +542,14 @@ x_load_resources (Display *display, const char *xrm_string,
 
 #else /* not USE_MOTIF */
 
-  sprintf (line, "Emacs.dialog*.font: %s", helv);
-  XrmPutLineResource (&rdb, line);
   sprintf (line, "Emacs.dialog*.background: grey75");
+  XrmPutLineResource (&rdb, line);
+#if !defined (HAVE_XFT) || !defined (USE_LUCID)
+  sprintf (line, "Emacs.dialog*.font: %s", helv);
   XrmPutLineResource (&rdb, line);
   sprintf (line, "*XlwMenu*font: %s", helv);
   XrmPutLineResource (&rdb, line);
+#endif
   sprintf (line, "*XlwMenu*background: grey75");
   XrmPutLineResource (&rdb, line);
   sprintf (line, "Emacs*verticalScrollBar.background: grey75");
@@ -762,4 +760,3 @@ main (argc, argv)
   XCloseDisplay (display);
 }
 #endif /* TESTRM */
-

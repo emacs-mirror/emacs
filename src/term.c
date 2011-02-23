@@ -112,10 +112,7 @@ static void vfatal (const char *str, va_list ap) NO_RETURN;
 #define OUTPUT_IF(tty, a)                                               \
   do {                                                                  \
     if (a)                                                              \
-      emacs_tputs ((tty), a,                                            \
-                   (int) (FRAME_LINES (XFRAME (selected_frame))         \
-                          - curY (tty) ),                               \
-                   cmputc);                                             \
+      OUTPUT (tty, a);							\
   } while (0)
 
 #define OUTPUT1_IF(tty, a) do { if (a) emacs_tputs ((tty), a, 1, cmputc); } while (0)
@@ -1350,14 +1347,14 @@ term_get_fkeys_1 (void)
   KBOARD *kboard = term_get_fkeys_kboard;
 
   /* This can happen if CANNOT_DUMP or with strange options.  */
-  if (!KEYMAPP (kboard->Vinput_decode_map))
-    kboard->Vinput_decode_map = Fmake_sparse_keymap (Qnil);
+  if (!KEYMAPP (KVAR (kboard, Vinput_decode_map)))
+    KVAR (kboard, Vinput_decode_map) = Fmake_sparse_keymap (Qnil);
 
   for (i = 0; i < (sizeof (keys)/sizeof (keys[0])); i++)
     {
       char *sequence = tgetstr (keys[i].cap, address);
       if (sequence)
-	Fdefine_key (kboard->Vinput_decode_map, build_string (sequence),
+	Fdefine_key (KVAR (kboard, Vinput_decode_map), build_string (sequence),
 		     Fmake_vector (make_number (1),
 				   intern (keys[i].name)));
     }
@@ -1377,13 +1374,13 @@ term_get_fkeys_1 (void)
 	if (k0)
 	  /* Define f0 first, so that f10 takes precedence in case the
 	     key sequences happens to be the same.  */
-	  Fdefine_key (kboard->Vinput_decode_map, build_string (k0),
+	  Fdefine_key (KVAR (kboard, Vinput_decode_map), build_string (k0),
 		       Fmake_vector (make_number (1), intern ("f0")));
-	Fdefine_key (kboard->Vinput_decode_map, build_string (k_semi),
+	Fdefine_key (KVAR (kboard, Vinput_decode_map), build_string (k_semi),
 		     Fmake_vector (make_number (1), intern ("f10")));
       }
     else if (k0)
-      Fdefine_key (kboard->Vinput_decode_map, build_string (k0),
+      Fdefine_key (KVAR (kboard, Vinput_decode_map), build_string (k0),
 		   Fmake_vector (make_number (1), intern (k0_name)));
   }
 
@@ -1406,7 +1403,7 @@ term_get_fkeys_1 (void)
 	  if (sequence)
 	    {
 	      sprintf (fkey, "f%d", i);
-	      Fdefine_key (kboard->Vinput_decode_map, build_string (sequence),
+	      Fdefine_key (KVAR (kboard, Vinput_decode_map), build_string (sequence),
 			   Fmake_vector (make_number (1),
 					 intern (fkey)));
 	    }
@@ -1423,7 +1420,7 @@ term_get_fkeys_1 (void)
 	{								\
 	  char *sequence = tgetstr (cap2, address);			\
 	  if (sequence)                                                 \
-	    Fdefine_key (kboard->Vinput_decode_map, build_string (sequence), \
+	    Fdefine_key (KVAR (kboard, Vinput_decode_map), build_string (sequence), \
 			 Fmake_vector (make_number (1),                 \
 				       intern (sym)));                  \
 	}
@@ -3418,7 +3415,7 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
 
   terminal->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
   init_kboard (terminal->kboard);
-  terminal->kboard->Vwindow_system = Qnil;
+  KVAR (terminal->kboard, Vwindow_system) = Qnil;
   terminal->kboard->next_kboard = all_kboards;
   all_kboards = terminal->kboard;
   terminal->kboard->reference_count++;

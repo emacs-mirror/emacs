@@ -39,15 +39,15 @@ casify_object (enum case_action flag, Lisp_Object obj)
   register int inword = flag == CASE_DOWN;
 
   /* If the case table is flagged as modified, rescan it.  */
-  if (NILP (XCHAR_TABLE (current_buffer->downcase_table)->extras[1]))
-    Fset_case_table (current_buffer->downcase_table);
+  if (NILP (XCHAR_TABLE (BVAR (current_buffer, downcase_table))->extras[1]))
+    Fset_case_table (BVAR (current_buffer, downcase_table));
 
   if (INTEGERP (obj))
     {
       int flagbits = (CHAR_ALT | CHAR_SUPER | CHAR_HYPER
 		      | CHAR_SHIFT | CHAR_CTL | CHAR_META);
       int flags = XINT (obj) & flagbits;
-      int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
+      int multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
 
       /* If the character has higher bits set
 	 above the flags, return it unchanged.
@@ -198,7 +198,7 @@ casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
 {
   register int c;
   register int inword = flag == CASE_DOWN;
-  register int multibyte = !NILP (current_buffer->enable_multibyte_characters);
+  register int multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
   EMACS_INT start, end;
   EMACS_INT start_byte, end_byte;
   EMACS_INT first = -1, last;	/* Position of first and last changes.  */
@@ -210,8 +210,8 @@ casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
     return;
 
   /* If the case table is flagged as modified, rescan it.  */
-  if (NILP (XCHAR_TABLE (current_buffer->downcase_table)->extras[1]))
-    Fset_case_table (current_buffer->downcase_table);
+  if (NILP (XCHAR_TABLE (BVAR (current_buffer, downcase_table))->extras[1]))
+    Fset_case_table (BVAR (current_buffer, downcase_table));
 
   validate_region (&b, &e);
   start = XFASTINT (b);

@@ -683,7 +683,7 @@ beginning of a line."
   :type 'regexp
   :group 'gnus-article-various)
 
-(defcustom gnus-article-mode-line-format "Gnus: %g [%w] %S%m"
+(defcustom gnus-article-mode-line-format "Gnus: %g %S%m"
   "*The format specification for the article mode line.
 See `gnus-summary-mode-line-format' for a closer description.
 
@@ -691,6 +691,7 @@ The following additional specs are available:
 
 %w  The article washing status.
 %m  The number of MIME parts in the article."
+  :version "24.1"
   :type 'string
   :group 'gnus-article-various)
 
@@ -1039,7 +1040,7 @@ Some of these headers are updated automatically.  See
 	  (item :tag "User-defined" :value 'user-defined)))
 
 (defcustom gnus-article-update-date-headers 1
-  "How often to update the date header.
+  "A number that says how often to update the date header (in seconds).
 If nil, don't update it at all."
   :version "24.1"
   :group 'gnus-article-headers
@@ -3403,6 +3404,7 @@ possible values."
 	 (inhibit-read-only t)
 	 (inhibit-point-motion-hooks t)
 	 (first t)
+	 (visible-date (mail-fetch-field "Date"))
 	 pos date bface eface)
     (save-excursion
       (save-restriction
@@ -3426,6 +3428,9 @@ possible values."
 	    (delete-region (point-at-bol) (progn
 					    (gnus-article-forward-header)
 					    (point))))
+	  (when (and (not date)
+		     visible-date)
+	    (setq date visible-date))
 	  (when date
 	    (article-transform-date date type bface eface)))))))
 
@@ -3636,10 +3641,11 @@ function and want to see what the date was before converting."
 		 (let ((type (get-text-property (match-beginning 0)
 						'gnus-date-type)))
 		   (when (memq type '(lapsed combined-lapsed user-format))
-		     (unless (= window-start
-				(save-excursion
-				  (forward-line 1)
-				  (point)))
+		     (when (and window-start
+				(not (= window-start
+					(save-excursion
+					  (forward-line 1)
+					  (point)))))
 		       (setq window-start nil))
 		     (save-excursion
 		       (article-date-ut type t (match-beginning 0)))
@@ -4499,13 +4505,10 @@ commands:
 	(setq gnus-summary-buffer
 	      (gnus-summary-buffer-name gnus-newsgroup-name))
 	(gnus-summary-set-local-parameters gnus-newsgroup-name)
-	(cond
-	 ((and gnus-article-update-date-headers
-	       (not article-lapsed-timer))
+	(when article-lapsed-timer
+	  (gnus-stop-date-timer))
+	(when gnus-article-update-date-headers
 	  (gnus-start-date-timer gnus-article-update-date-headers))
-	 ((and (not gnus-article-update-date-headers)
-	       article-lapsed-timer)
-	  (gnus-stop-date-timer)))
 	(current-buffer)))))
 
 ;; Set article window start at LINE, where LINE is the number of lines
@@ -4631,6 +4634,7 @@ If ALL-HEADERS is non-nil, no headers are hidden."
 	      (forward-line -1))
 	    (set-window-point (get-buffer-window (current-buffer)) (point))
 	    (gnus-configure-windows 'article)
+	    (gnus-run-hooks 'gnus-article-prepare-hook)
 	    t))))))
 
 ;;;###autoload
@@ -4648,8 +4652,7 @@ If ALL-HEADERS is non-nil, no headers are hidden."
 	  gnus-article-image-alist nil)
     (gnus-run-hooks 'gnus-tmp-internal-hook)
     (when gnus-display-mime-function
-      (funcall gnus-display-mime-function))
-    (gnus-run-hooks 'gnus-article-prepare-hook)))
+      (funcall gnus-display-mime-function))))
 
 ;;;
 ;;; Gnus Sticky Article Mode
@@ -6316,7 +6319,8 @@ specifies."
 
 (defun gnus-article-next-page-1 (lines)
   (condition-case ()
-      (let ((scroll-in-place nil))
+      (let ((scroll-in-place nil)
+	    (auto-window-vscroll nil))
 	(scroll-up lines))
     (end-of-buffer
      ;; Long lines may cause an end-of-buffer error.

@@ -21,7 +21,7 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs lisp libraries
 @direntry
 * CL: (cl).                     Partial Common Lisp support for Emacs Lisp.
 @end direntry

@@ -1,4 +1,5 @@
 /* A general interface to the widgets of different toolkits.
+
 Copyright (C) 1992, 1993 Lucid, Inc.
 Copyright (C) 1994-1996, 1999-2011  Free Software Foundation, Inc.
 
@@ -24,7 +25,7 @@ Boston, MA 02110-1301, USA.  */
 #endif
 
 #include <setjmp.h>
-#include "../src/lisp.h"
+#include <lisp.h>
 
 #include <sys/types.h>
 #include <stdio.h>
@@ -1418,4 +1419,3 @@ lw_separator_p (const char *label, enum menu_separator *type, int motif_p)
 
   return separator_p;
 }
-

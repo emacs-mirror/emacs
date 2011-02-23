@@ -24,7 +24,7 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs lisp libraries
 @direntry
 * Widget: (widget).             The "widget" package used by the Emacs
                                   Customization facility.

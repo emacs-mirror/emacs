@@ -689,6 +689,8 @@ Return point, or nil if original point was not in a block."
         (point)
       ;; look backward for the start of a block that contains the cursor
       (while (and (re-search-backward hs-block-start-regexp nil t)
+		  (save-match-data
+		    (not (nth 4 (syntax-ppss)))) ; not inside comments
                   (not (setq done
                              (< here (save-excursion
                                        (hs-forward-sexp (match-data t) 1)
@@ -711,10 +713,12 @@ Return point, or nil if original point was not in a block."
            (forward-comment (buffer-size))
            (and (< (point) maxp)
                 (re-search-forward hs-block-start-regexp maxp t)))
-    (if (> arg 1)
-        (hs-hide-level-recursive (1- arg) minp maxp)
-      (goto-char (match-beginning hs-block-start-mdata-select))
-      (hs-hide-block-at-point t)))
+    (when (save-match-data
+	    (not (nth 4 (syntax-ppss)))) ; not inside comments
+      (if (> arg 1)
+	  (hs-hide-level-recursive (1- arg) minp maxp)
+	(goto-char (match-beginning hs-block-start-mdata-select))
+	(hs-hide-block-at-point t))))
   (goto-char maxp))
 
 (defmacro hs-life-goes-on (&rest body)

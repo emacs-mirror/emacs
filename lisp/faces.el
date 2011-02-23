@@ -1577,13 +1577,25 @@ Optional parameter FRAME is the frame whose definition of FACE
 is used.  If nil or omitted, use the selected frame."
   (unless frame
     (setq frame (selected-frame)))
-  (let ((list face-attribute-name-alist)
-	(match t))
+  (let* ((list face-attribute-name-alist)
+	 (match t)
+	 (bold (and (plist-member attrs :bold)
+		    (not (plist-member attrs :weight))))
+	 (italic (and (plist-member attrs :italic)
+		      (not (plist-member attrs :slant))))
+	 (plist (if (or bold italic)
+		    (copy-sequence attrs)
+		  attrs)))
+    ;; Handle the Emacs 20 :bold and :italic properties.
+    (if bold
+	(plist-put plist :weight (if bold 'bold 'normal)))
+    (if italic
+	(plist-put plist :slant (if italic 'italic 'normal)))
     (while (and match list)
       (let* ((attr (caar list))
 	     (specified-value
-	      (if (plist-member attrs attr)
-		  (plist-get attrs attr)
+	      (if (plist-member plist attr)
+		  (plist-get plist attr)
 		'unspecified))
 	     (value-now (face-attribute face attr frame)))
 	(setq match (equal specified-value value-now))
@@ -1641,18 +1653,28 @@ If COLOR is the symbol `unspecified' or one of the strings
 
 (defun color-values (color &optional frame)
   "Return a description of the color named COLOR on frame FRAME.
-The value is a list of integer RGB values--(RED GREEN BLUE).
-These values appear to range from 0 to 65280 or 65535, depending
-on the system; white is \(65280 65280 65280\) or \(65535 65535 65535\).
+COLOR should be a string naming a color (e.g. \"white\"), or a
+string specifying a color's RGB components (e.g. \"#ff12ec\").
+
+Return a list of three integers, (RED GREEN BLUE), each between 0
+and either 65280 or 65535 (the maximum depends on the system).
+Use `color-name-to-rgb' if you want RGB floating-point values
+normalized to 1.0.
+
 If FRAME is omitted or nil, use the selected frame.
 If FRAME cannot display COLOR, the value is nil.
-If COLOR is the symbol `unspecified' or one of the strings
-\"unspecified-fg\" or \"unspecified-bg\", the value is nil."
-  (if (member color '(unspecified "unspecified-fg" "unspecified-bg"))
-      nil
-    (if (memq (framep (or frame (selected-frame))) '(x w32 ns))
-	(xw-color-values color frame)
-      (tty-color-values color frame))))
+
+COLOR can also be the symbol `unspecified' or one of the strings
+\"unspecified-fg\" or \"unspecified-bg\", in which case the
+return value is nil."
+  (cond
+   ((member color '(unspecified "unspecified-fg" "unspecified-bg"))
+    nil)
+   ((memq (framep (or frame (selected-frame))) '(x w32 ns))
+    (xw-color-values color frame))
+   (t
+    (tty-color-values color frame))))
+
 (defalias 'x-color-values 'color-values)
 
 (declare-function xw-display-color-p "xfns.c" (&optional terminal))

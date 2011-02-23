@@ -439,7 +439,7 @@ Returns nil if MARKER points into a dead buffer.  */)
 	 does not preserve the buffer from being GC'd (it's weak), so
 	 markers have to be unlinked from their buffer as soon as the buffer
 	 is killed.  */
-      eassert (!NILP (XBUFFER (buf)->name));
+      eassert (!NILP (BVAR (XBUFFER (buf), name)));
       return buf;
     }
   return Qnil;
@@ -488,7 +488,7 @@ Returns MARKER.  */)
       CHECK_BUFFER (buffer);
       b = XBUFFER (buffer);
       /* If buffer is dead, set marker to point nowhere.  */
-      if (EQ (b->name, Qnil))
+      if (EQ (BVAR (b, name), Qnil))
 	{
 	  unchain_marker (m);
 	  return marker;
@@ -563,7 +563,7 @@ set_marker_restricted (Lisp_Object marker, Lisp_Object pos, Lisp_Object buffer)
       CHECK_BUFFER (buffer);
       b = XBUFFER (buffer);
       /* If buffer is dead, set marker to point nowhere.  */
-      if (EQ (b->name, Qnil))
+      if (EQ (BVAR (b, name), Qnil))
 	{
 	  unchain_marker (m);
 	  return marker;
@@ -628,7 +628,7 @@ set_marker_both (Lisp_Object marker, Lisp_Object buffer, EMACS_INT charpos, EMAC
       CHECK_BUFFER (buffer);
       b = XBUFFER (buffer);
       /* If buffer is dead, set marker to point nowhere.  */
-      if (EQ (b->name, Qnil))
+      if (EQ (BVAR (b, name), Qnil))
 	{
 	  unchain_marker (m);
 	  return marker;
@@ -676,7 +676,7 @@ set_marker_restricted_both (Lisp_Object marker, Lisp_Object buffer, EMACS_INT ch
       CHECK_BUFFER (buffer);
       b = XBUFFER (buffer);
       /* If buffer is dead, set marker to point nowhere.  */
-      if (EQ (b->name, Qnil))
+      if (EQ (BVAR (b, name), Qnil))
 	{
 	  unchain_marker (m);
 	  return marker;
@@ -731,7 +731,7 @@ unchain_marker (register struct Lisp_Marker *marker)
   if (b == 0)
     return;
 
-  if (EQ (b->name, Qnil))
+  if (EQ (BVAR (b, name), Qnil))
     abort ();
 
   marker->buffer = 0;

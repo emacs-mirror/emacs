@@ -20,7 +20,7 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs misc features
 @direntry
 * Speedbar: (speedbar).         File/Tag summarizing utility.
 @end direntry
@@ -40,6 +40,7 @@ developing GNU and promoting software freedom.''
 
 @node Top, , , (dir)Top
 @comment  node-name,  next,  previous,  up
+@top Speedbar
 
 Speedbar is a program for Emacs which can be used to summarize
 information related to the current buffer.  Its original inspiration

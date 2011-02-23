@@ -1,4 +1,5 @@
 /* The lwlib interface to Athena widgets.
+
 Copyright (C) 1993 Chuck Thompson <cthomp@cs.uiuc.edu>
 Copyright (C) 1994, 2001-2011 Free Software Foundation, Inc.
 
@@ -27,7 +28,7 @@ Boston, MA 02110-1301, USA.  */
 #include <setjmp.h>
 #include <ctype.h>
 
-#include "../src/lisp.h"
+#include <lisp.h>
 
 #include "lwlib-Xaw.h"
 
@@ -576,13 +577,20 @@ make_dialog (char* name,
     if (w) 
       {
         XtResource rec[] = 
-          { { "faceName", "FaceName", XtRString, sizeof(String), 0, XtRString,
-              (XtPointer)"Sans-14" }};
-        char *faceName;
-        XtVaGetSubresources (dialog, &faceName, "Dialog", "dialog",
+          { { "font", "Font", XtRString, sizeof(String), 0, XtRString,
+              (XtPointer)"Sans-10" }};
+        char *fontName = NULL;
+        XtVaGetSubresources (dialog, &fontName, "Dialog", "dialog",
                              rec, 1, (String)NULL);
-        if (strcmp ("none", faceName) != 0)
-          xft_font = openFont (dialog, faceName);
+        if (fontName)
+          {
+            XFontStruct *xfn = XLoadQueryFont (XtDisplay (dialog), fontName);
+            if (!xfn)
+              xft_font = openFont (dialog, fontName);
+            else
+              XFreeFont (XtDisplay (dialog), xfn);
+          }
+        
         if (xft_font) 
           {
             instance->nr_xft_data = left_buttons + right_buttons + 1;
@@ -833,4 +841,3 @@ xaw_creation_table [] =
   {"main",			xaw_create_main},
   {NULL, NULL}
 };
-

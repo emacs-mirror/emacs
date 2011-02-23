@@ -847,28 +847,47 @@ periodically reverts at specified time intervals."
   ;; killed buffer, it is removed from this list.
   "Alist of expanded directories and their associated dired buffers.")
 
+(defvar dired-find-subdir)
+
+;; FIXME add a doc-string, and document dired-x extensions.
 (defun dired-find-buffer-nocreate (dirname &optional mode)
   ;; This differs from dired-buffers-for-dir in that it does not consider
   ;; subdirs of default-directory and searches for the first match only.
   ;; Also, the major mode must be MODE.
-  (setq dirname (expand-file-name dirname))
-  (let (found (blist dired-buffers))    ; was (buffer-list)
-    (or mode (setq mode 'dired-mode))
-    (while blist
-      (if (null (buffer-name (cdr (car blist))))
-	  (setq blist (cdr blist))
-	(with-current-buffer (cdr (car blist))
-	  (if (and (eq major-mode mode)
-		   dired-directory  ;; nil during find-alternate-file
-		   (equal dirname
-			  (expand-file-name
-			   (if (consp dired-directory)
-			       (car dired-directory)
-			     dired-directory))))
-	      (setq found (cdr (car blist))
-		    blist nil)
-	    (setq blist (cdr blist))))))
-    found))
+  (if (and (featurep 'dired-x)
+           dired-find-subdir
+           ;; Don't try to find a wildcard as a subdirectory.
+	   (string-equal dirname (file-name-directory dirname)))
+      (let* ((cur-buf (current-buffer))
+	     (buffers (nreverse
+		       (dired-buffers-for-dir (expand-file-name dirname))))
+	     (cur-buf-matches (and (memq cur-buf buffers)
+				   ;; Wildcards must match, too:
+				   (equal dired-directory dirname))))
+	;; We don't want to switch to the same buffer---
+	(setq buffers (delq cur-buf buffers))
+	(or (car (sort buffers #'dired-buffer-more-recently-used-p))
+	    ;; ---unless it's the only possibility:
+	    (and cur-buf-matches cur-buf)))
+    ;; No dired-x, or dired-find-subdir nil.
+    (setq dirname (expand-file-name dirname))
+    (let (found (blist dired-buffers))    ; was (buffer-list)
+      (or mode (setq mode 'dired-mode))
+      (while blist
+        (if (null (buffer-name (cdr (car blist))))
+            (setq blist (cdr blist))
+          (with-current-buffer (cdr (car blist))
+            (if (and (eq major-mode mode)
+                     dired-directory  ;; nil during find-alternate-file
+                     (equal dirname
+                            (expand-file-name
+                             (if (consp dired-directory)
+                                 (car dired-directory)
+                               dired-directory))))
+                (setq found (cdr (car blist))
+                      blist nil)
+              (setq blist (cdr blist))))))
+      found)))
 
 
 ;; Read in a new dired buffer
@@ -1841,6 +1860,7 @@ Keybindings:
   (set (make-local-variable 'desktop-save-buffer)
        'dired-desktop-buffer-misc-data)
   (setq dired-switches-alist nil)
+  (hack-dir-local-variables-non-file-buffer) ; before sorting
   (dired-sort-other dired-actual-switches t)
   (when (featurep 'dnd)
     (set (make-local-variable 'dnd-protocol-alist)
@@ -2544,11 +2564,15 @@ instead of `dired-actual-switches'."
 	 ;; return value of point (i.e., FOUND):
 	 (goto-char found))))
 
+(defvar dired-find-subdir)
+
+;; FIXME document whatever dired-x is doing.
 (defun dired-initial-position (dirname)
-  ;; Where point should go in a new listing of DIRNAME.
-  ;; Point assumed at beginning of new subdir line.
-  ;; You may redefine this function as you wish, e.g. like in dired-x.el.
+  "Where point should go in a new listing of DIRNAME.
+Point assumed at beginning of new subdir line."
   (end-of-line)
+  (and (featurep 'dired-x) dired-find-subdir
+       (dired-goto-subdir dirname))
   (if dired-trivial-filenames (dired-goto-next-nontrivial-file)))
 
 ;; These are hooks which make tree dired work.
@@ -2745,12 +2769,32 @@ non-empty directories is allowed."
 			  (save-excursion (forward-line 1) (point))))))
   (dired-clean-up-after-deletion file))
 
-;; This is a separate function for the sake of dired-x.el.
+(defvar dired-clean-up-buffers-too)
+
 (defun dired-clean-up-after-deletion (fn)
-  ;; Clean up after a deleted file or directory FN.
+  "Clean up after a deleted file or directory FN.
+Removes any expanded subdirectory of deleted directory.
+If `dired-x' is loaded and `dired-clean-up-buffers-too' is non-nil,
+also offers to kill buffers visiting deleted files and directories."
   (save-excursion (and (cdr dired-subdir-alist)
 		       (dired-goto-subdir fn)
-		       (dired-kill-subdir))))
+		       (dired-kill-subdir)))
+  ;; Offer to kill buffer of deleted file FN.
+  (when (and (featurep 'dired-x) dired-clean-up-buffers-too)
+    (let ((buf (get-file-buffer fn)))
+      (and buf
+           (funcall #'y-or-n-p
+                    (format "Kill buffer of %s, too? "
+                            (file-name-nondirectory fn)))
+           (kill-buffer buf)))
+    (let ((buf-list (dired-buffers-for-dir (expand-file-name fn))))
+      (and buf-list
+           (y-or-n-p (format "Kill dired buffer%s of %s, too? "
+                             (dired-plural-s (length buf-list))
+                             (file-name-nondirectory fn)))
+           (dolist (buf buf-list)
+             (kill-buffer buf))))))
+
 
 ;; Confirmation
 
@@ -3570,7 +3614,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
 ;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
 ;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "9f5fc434fa6c2607b6e66060862c9caf")
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "9d6333fab9c0f1b49e0bf2a536b8f245")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\
@@ -4029,7 +4073,7 @@ true then the type of the file linked to by FILE is printed instead.
 ;;;***
 
 ;;;### (autoloads (dired-do-relsymlink dired-jump) "dired-x" "dired-x.el"
-;;;;;;  "fbac6ae123aaa2b2e9df8bb2cde61ceb")
+;;;;;;  "515e1dbc42acebd9a0175c4209b6673c")
 ;;; Generated autoloads from dired-x.el
 
 (autoload 'dired-jump "dired-x" "\

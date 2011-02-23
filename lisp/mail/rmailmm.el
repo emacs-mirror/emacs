@@ -472,10 +472,11 @@ See `rmail-mime-entity' for the detail."
 HEADER is a header component of a MIME-entity object (see
 `rmail-mime-entity')."
   (with-temp-buffer
-    (let ((last-coding-system-used nil))
+    (let ((buf (current-buffer)))
       (with-current-buffer rmail-mime-mbox-buffer
-	(let ((rmail-buffer rmail-mime-mbox-buffer)
-	      (rmail-view-buffer rmail-mime-view-buffer))
+	(let ((last-coding-system-used nil)
+	      (rmail-buffer rmail-mime-mbox-buffer)
+	      (rmail-view-buffer buf))
 	  (save-excursion
 	    (goto-char (aref header 0))
 	    (rmail-copy-headers (point) (aref header 1)))))
@@ -514,7 +515,9 @@ HEADER is a header component of a MIME-entity object (see
 	      ((string= transfer-encoding "quoted-printable")
 	       (quoted-printable-decode-region pos (point))))))
     (decode-coding-region pos (point) coding-system)
-    (if (or (not rmail-mime-coding-system) (consp rmail-mime-coding-system))
+    (if (and
+	 (or (not rmail-mime-coding-system) (consp rmail-mime-coding-system))
+	 (not (eq (coding-system-base coding-system) 'us-ascii)))
 	(setq rmail-mime-coding-system coding-system))
     (or (bolp) (insert "\n"))))
 
@@ -850,28 +853,33 @@ The other arguments are the same as `rmail-mime-multipart-handler'."
 	    ((looking-at "[ \t]*\n")
 	     (setq next (copy-marker (match-end 0) t)))
 	    (t
-	     (rmail-mm-get-boundary-error-message
-	      "Malformed boundary" content-type content-disposition
-	      content-transfer-encoding)))
+	     ;; The original code signalled an error as below, but
+	     ;; this line may be a boundary of nested multipart.  So,
+	     ;; we just set `next' to nil to skip this line
+	     ;; (rmail-mm-get-boundary-error-message
+	     ;;  "Malformed boundary" content-type content-disposition
+	     ;;  content-transfer-encoding)
+	     (setq next nil)))
 
-      (setq index (1+ index))
-      ;; Handle the part.
-      (if parse-tag
+      (when next
+	(setq index (1+ index))
+	;; Handle the part.
+	(if parse-tag
+	    (save-restriction
+	      (narrow-to-region beg end)
+	      (let ((child (rmail-mime-process
+			    nil (format "%s/%d" parse-tag index)
+			    content-type content-disposition)))
+		;; Display a tagline.
+		(aset (aref (rmail-mime-entity-display child) 1) 1
+		      (aset (rmail-mime-entity-tagline child) 2 t))
+		(push child entities)))
+
+	  (delete-region end next)
 	  (save-restriction
 	    (narrow-to-region beg end)
-	    (let ((child (rmail-mime-process
-			  nil (format "%s/%d" parse-tag index)
-			  content-type content-disposition)))
-	      ;; Display a tagline.
-	      (aset (aref (rmail-mime-entity-display child) 1) 1
-		    (aset (rmail-mime-entity-tagline child) 2 t))
-	      (push child entities)))
-
-	(delete-region end next)
-	(save-restriction
-	  (narrow-to-region beg end)
-	  (rmail-mime-show)))
-      (goto-char (setq beg next)))
+	    (rmail-mime-show)))
+	(goto-char (setq beg next))))
 
     (when parse-tag
       (setq entities (nreverse entities))
@@ -1302,7 +1310,10 @@ attachments as specfied by `rmail-mime-attachment-dirs-alist'."
 		      (rmail-mime-find-header-encoding
 		       (rmail-mime-entity-header entity)))))
 	  (set-buffer-file-coding-system
-	   (coding-system-base rmail-mime-coding-system) t t))
+	   (if rmail-mime-coding-system
+	       (coding-system-base rmail-mime-coding-system)
+	     'undecided)
+	   t t))
       ;; Decoding failed.  ENTITY is an error message.  Insert the
       ;; original message body as is, and show warning.
       (let ((region (with-current-buffer rmail-mime-mbox-buffer

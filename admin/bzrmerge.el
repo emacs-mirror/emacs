@@ -187,7 +187,9 @@ are both lists of revnos, in oldest-first order."
           (cond
            ((member file '("configure" "lisp/ldefs-boot.el"
                            "lisp/emacs-lisp/cl-loaddefs.el"))
-            (call-process "bzr" nil t nil "revert" file)
+            ;; We are in the file's buffer, so names are relative.
+            (call-process "bzr" nil t nil "revert"
+                          (file-name-nondirectory file))
             (revert-buffer nil 'noconfirm))
            (t
             (goto-char (point-max))
@@ -268,6 +270,9 @@ Does not make other difference."
           (sit-for 1)
           ;; (debug 'after-merge)
           ;; Check the conflicts.
+          ;; FIXME if using the helpful bzr changelog_merge plugin,
+          ;; there are normally no conflicts in ChangeLogs.
+          ;; But we still want the dates fixing, like bzrmerge-resolve does.
           (let ((conflicted nil)
                 (files ()))
             (goto-char (point-min))

@@ -18,13 +18,11 @@
 # ----------------------------------------------------------------------
 /^srcdir *=/s/@[^@\n]*@/./
 /^VPATH *=/s/@[^@\n]*@/./
-/^ENVADD/c\
+/^MAKEINFO *=/s/@[^@\n]*@/makeinfo/
+/^ENVADD/,/^$/c\
 ENVADD =\
 export TEXINPUTS := $(srcdir)";"$(TEXINPUTS)\
-export MAKEINFO := $(MAKEINFO) -I$(srcdir)
-/^texinputdir/c\
-texinputdir =\
-export texinputdir := $(srcdir)";"$(TEXINPUTS)
+export MAKEINFO := $(MAKEINFO) $(MAKEINFO_OPTS)
 /^SHELL *=/s/^/# /
 /^elisp.dvi:/,/^$/ {
   /^	 *if \[ *\a${permuted_index}/,/^	 *fi *$/c\

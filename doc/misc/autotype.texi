@@ -26,7 +26,7 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs misc features
 @direntry
 * Autotype: (autotype).         Convenient features for text that you
                                   enter frequently in Emacs.

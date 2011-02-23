@@ -24,7 +24,7 @@ extern void update_syntax_table (EMACS_INT, int, int, Lisp_Object);
 
 /* The standard syntax table is stored where it will automatically
    be used in all new buffers.  */
-#define Vstandard_syntax_table buffer_defaults.syntax_table
+#define Vstandard_syntax_table BVAR (&buffer_defaults, syntax_table)
 
 /* A syntax table is a chartable whose elements are cons cells
    (CODE+FLAGS . MATCHING-CHAR).  MATCHING-CHAR can be nil if the char
@@ -79,7 +79,7 @@ enum syntaxcode
 #  define CURRENT_SYNTAX_TABLE gl_state.current_syntax_table
 #else
 #  define SYNTAX_ENTRY SYNTAX_ENTRY_INT
-#  define CURRENT_SYNTAX_TABLE current_buffer->syntax_table
+#  define CURRENT_SYNTAX_TABLE BVAR (current_buffer, syntax_table)
 #endif
 
 #define SYNTAX_ENTRY_INT(c) CHAR_TABLE_REF (CURRENT_SYNTAX_TABLE, (c))
@@ -204,7 +204,7 @@ extern char syntax_code_spec[16];
 do									\
   {									\
     gl_state.use_global = 0;						\
-    gl_state.current_syntax_table = current_buffer->syntax_table;	\
+    gl_state.current_syntax_table = BVAR (current_buffer, syntax_table);	\
   } while (0)
 
 /* This macro should be called with FROM at the start of forward

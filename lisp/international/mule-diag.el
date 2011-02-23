@@ -1056,7 +1056,10 @@ installed LEIM (Libraries of Emacs Input Methods).")
 			 (if (and (consp title) (stringp (car title)))
 			     (car title)
 			   title))
-		       (nth 4 elt)))))))
+		       ;; If the doc is multi-line, indent all
+		       ;; non-blank lines. (Bug#8066)
+		       (replace-regexp-in-string "\n\\(.\\)" "\n    \\1"
+						 (or (nth 4 elt) ""))))))))
 
 ;;; DIAGNOSIS
 

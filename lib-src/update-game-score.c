@@ -57,7 +57,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 extern char *optarg;
 extern int optind, opterr;
 
-int usage (int err) NO_RETURN;
+static int usage (int err) NO_RETURN;
 
 #define MAX_ATTEMPTS 5
 #define MAX_SCORES 200
@@ -68,7 +68,7 @@ int usage (int err) NO_RETURN;
 #define difftime(t1, t0) (double)((t1) - (t0))
 #endif
 
-int
+static int
 usage (int err)
 {
   fprintf (stdout, "Usage: update-game-score [-m MAX ] [ -r ] game/scorefile SCORE DATA\n");
@@ -80,8 +80,8 @@ usage (int err)
   exit (err);
 }
 
-int lock_file (const char *filename, void **state);
-int unlock_file (const char *filename, void *state);
+static int lock_file (const char *filename, void **state);
+static int unlock_file (const char *filename, void *state);
 
 struct score_entry
 {
@@ -90,24 +90,24 @@ struct score_entry
   char *data;
 };
 
-int read_scores (const char *filename, struct score_entry **scores,
-                 int *count);
-int push_score (struct score_entry **scores, int *count,
-                int newscore, char *username, char *newdata);
-void sort_scores (struct score_entry *scores, int count, int reverse);
-int write_scores (const char *filename, const struct score_entry *scores,
-                  int count);
+static int read_scores (const char *filename, struct score_entry **scores,
+			int *count);
+static int push_score (struct score_entry **scores, int *count,
+		       int newscore, char *username, char *newdata);
+static void sort_scores (struct score_entry *scores, int count, int reverse);
+static int write_scores (const char *filename,
+			 const struct score_entry *scores, int count);
 
-void lose (const char *msg) NO_RETURN;
+static void lose (const char *msg) NO_RETURN;
 
-void
+static void
 lose (const char *msg)
 {
   fprintf (stderr, "%s\n", msg);
   exit (EXIT_FAILURE);
 }
 
-void lose_syserr (const char *msg) NO_RETURN;
+static void lose_syserr (const char *msg) NO_RETURN;
 
 /* Taken from sysdep.c.  */
 #ifndef HAVE_STRERROR
@@ -126,14 +126,14 @@ strerror (errnum)
 #endif /* not WINDOWSNT */
 #endif /* ! HAVE_STRERROR */
 
-void
+static void
 lose_syserr (const char *msg)
 {
   fprintf (stderr, "%s: %s\n", msg, strerror (errno));
   exit (EXIT_FAILURE);
 }
 
-char *
+static char *
 get_user_id (void)
 {
   char *name;
@@ -154,7 +154,7 @@ get_user_id (void)
   return buf->pw_name;
 }
 
-const char *
+static const char *
 get_prefix (int running_suid, const char *user_prefix)
 {
   if (!running_suid && user_prefix == NULL)
@@ -258,7 +258,7 @@ main (int argc, char **argv)
   exit (EXIT_SUCCESS);
 }
 
-int
+static int
 read_score (FILE *f, struct score_entry *score)
 {
   int c;
@@ -342,7 +342,7 @@ read_score (FILE *f, struct score_entry *score)
   return 0;
 }
 
-int
+static int
 read_scores (const char *filename, struct score_entry **scores, int *count)
 {
   int readval, scorecount, cursize;
@@ -375,7 +375,7 @@ read_scores (const char *filename, struct score_entry **scores, int *count)
   return 0;
 }
 
-int
+static int
 score_compare (const void *a, const void *b)
 {
   const struct score_entry *sa = (const struct score_entry *) a;
@@ -383,7 +383,7 @@ score_compare (const void *a, const void *b)
   return (sb->score > sa->score) - (sb->score < sa->score);
 }
 
-int
+static int
 score_compare_reverse (const void *a, const void *b)
 {
   const struct score_entry *sa = (const struct score_entry *) a;
@@ -407,14 +407,14 @@ push_score (struct score_entry **scores, int *count, int newscore, char *usernam
   return 0;
 }
 
-void
+static void
 sort_scores (struct score_entry *scores, int count, int reverse)
 {
   qsort (scores, count, sizeof (struct score_entry),
 	reverse ? score_compare_reverse : score_compare);
 }
 
-int
+static int
 write_scores (const char *filename, const struct score_entry *scores, int count)
 {
   FILE *f;
@@ -443,7 +443,7 @@ write_scores (const char *filename, const struct score_entry *scores, int count)
   return 0;
 }
 
-int
+static int
 lock_file (const char *filename, void **state)
 {
   int fd;
@@ -484,7 +484,7 @@ lock_file (const char *filename, void **state)
   return 0;
 }
 
-int
+static int
 unlock_file (const char *filename, void *state)
 {
   char *lockpath = (char *) state;
