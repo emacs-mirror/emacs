@@ -117,7 +117,10 @@ entries have been included or whitespace between entries needs fixing).
 bzrmerge tries to fix up the dates to today's date, but it only does
 this where there are conflicts.  If you used the changelog_merge plugin,
 there won't be any conflicts, and (at time of writing) you will need
-to adjust dates by hand.
+to adjust dates by hand.  In any case, if someone made multiple
+ChangeLog entries on different days in the branch, you may wish to
+collapse them all to a single entry for that author in the trunk
+(because in the trunk they all appear under the same date).
 
 Notes:
 
