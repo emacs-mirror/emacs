@@ -1,3 +1,7 @@
+2011-02-23  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (safe-local-eval-forms): Add the write-file-hooks version.
+
 2011-02-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* help-fns.el (describe-function-1): Don't signal an error just because
