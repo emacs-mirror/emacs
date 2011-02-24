@@ -1,3 +1,8 @@
+2011-02-24  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* auth-source.el (auth-source-netrc-create): Use `read-char' with no
+	argument that XEmacs doesn't support.
+
 2011-02-23  Julien Danjou  <julien@danjou.info>
 
 	* gnus-art.el (article-make-date-line): Ignore errors if time is

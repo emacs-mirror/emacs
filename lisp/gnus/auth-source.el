@@ -1031,7 +1031,8 @@ See `auth-source-search' for details on SPEC."
                             "(y)es/(n)o but use it/(e)dit line/(s)kip file"))
             done k)
         (while (not done)
-          (setq k (read-char prompt))
+	  (message "%s" prompt)
+          (setq k (read-char))
           (case k
             (?y (setq done t))
             (?n (setq add ""
