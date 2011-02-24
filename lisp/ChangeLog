@@ -1,5 +1,8 @@
 2011-02-24  Glenn Morris  <rgm@gnu.org>
 
+	* files.el (hack-dir-local-variables): Fix setting of `dir-name'.
+	(hack-local-variables-confirm, hack-local-variables-filter): Doc fix.
+
 	* files.el (dir-locals-find-file): Doc fix.
 	Fix the check for cache elements that have no associated file,
 	and the mtime check for those that do.

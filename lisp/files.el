@@ -2919,8 +2919,8 @@ variable to set.")
 ALL-VARS is the list of all variables to be set up.
 UNSAFE-VARS is the list of those that aren't marked as safe or risky.
 RISKY-VARS is the list of those that are marked as risky.
-DIR-NAME is a directory name if these settings come from
-directory-local variables, or nil otherwise."
+If these settings come from directory-local variables, then
+DIR-NAME is the name of the associated directory.  Otherwise it is nil."
   (if noninteractive
       nil
     (save-window-excursion
@@ -3062,8 +3062,8 @@ VARIABLES is the alist of variable-value settings.  This alist is
  `enable-local-eval', `enable-local-variables', and (if necessary)
  user interaction.  The results are added to
  `file-local-variables-alist', without applying them.
-DIR-NAME is a directory name if these settings come from
- directory-local variables, or nil otherwise."
+If these settings come from directory-local variables, then
+DIR-NAME is the name of the associated directory.  Otherwise it is nil."
   ;; Find those variables that we may want to save to
   ;; `safe-local-variable-values'.
   (let (all-vars risky-vars unsafe-vars)
@@ -3547,11 +3547,8 @@ and `file-local-variables-alist', without applying them."
 	  (dir-name nil))
       (cond
        ((stringp variables-file)
-	;; FIXME seems like the wrong dir-name.
-	(setq dir-name (if (buffer-file-name)
-                           (file-name-directory (buffer-file-name))
-                         default-directory))
-	(setq class (dir-locals-read-from-file variables-file)))
+	(setq dir-name (file-name-directory variables-file)
+	      class (dir-locals-read-from-file variables-file)))
        ((consp variables-file)
 	(setq dir-name (nth 0 variables-file))
 	(setq class (nth 1 variables-file))))
