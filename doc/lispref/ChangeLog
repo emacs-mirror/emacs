@@ -1,3 +1,21 @@
+2011-02-24  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Window Configurations): Fix typo.
+
+2011-02-23  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Windows and Frames): Provide example of
+	combinations.
+	(Resizing Windows): Rewrite description of
+	adjust-window-trailing-edge.
+	(Splitting Windows): Provide examples how splitting affects
+	internal windows.  Rewrite description of window-splits.
+	(Deleting Windows): Rewrite description of delete-windows-on.
+	(Displaying Buffers): Describe fun-with-args specifier.
+	Describe display-buffer-alist-set.
+	(Window Configurations): Describe window-state-get and
+	window-state-put.
+
 2011-01-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* loading.texi (Hooks for Loading): Adjust doc of eval-after-load.

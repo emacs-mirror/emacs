@@ -232,26 +232,67 @@ not have child windows.
 The children of any parent window form either a vertical or a horizontal
 combination of windows.  A @dfn{vertical combination} is a set of
 windows arranged one above each other.  A @dfn{horizontal combination}
-is a set of windows arranged side by side.  For any parent window, the
-first child window can be retrieved by the functions given next.
+is a set of windows arranged side by side.  Consider the frame shown
+below (for simplicity we assume that the frame does not contain a
+minibuffer):
+
+@smallexample
+@group
+     ______________________________________
+    | ______  ____________________________ |
+    ||      || __________________________ ||
+    ||      ||| ___________  ___________ |||
+    ||      ||||           ||           ||||
+    ||      ||||           ||           ||||
+    ||      ||||_____W6____||_____W7____||||
+    ||      |||____________W4____________|||
+    ||      || __________________________ ||
+    ||      |||                          |||
+    ||      |||____________W5____________|||
+    ||__W2__||_____________W3_____________ |
+    |__________________W1__________________|
+
+@end group
+@end smallexample
+
+The root window of the frame is @code{W1}---a horizontal combination of
+the leaf window @code{W2} and @code{W3}.  Hence @code{(window-parent
+W1)} is @code{nil} while @code{(window-parent W2)} and
+@code{(window-parent W3)} both evaluate to (the window object
+representing) @code{W1}.
+
+   The internal window @code{W3} is a vertical combination of @code{W4}
+and the leaf window @code{W5}.  The internal window @code{W4} is a
+horizontal combination of the leaf windows @code{W6} and @code{W7}.  The
+windows you actually see on your screen are @code{W2}, @code{W5},
+@code{W6} and @code{W7}.
+
+   For any parent window, the first child window can be retrieved by the
+functions given next.
 
 @defun window-vchild &optional window
 This function returns @var{window}'s first vertical child window.  The
 optional argument @var{window} can be an arbitrary window and defaults
 to the selected one.  The return value is @code{nil} if @var{window} is
-a leaf window or its children form a horizontal combination.
+a leaf window or its children form a horizontal combination.  In the
+example above @code{(window-vchild W3)} is @code{W4} while
+@code{(window-vchild W4)} is @code{nil}.
 @end defun
 
 @defun window-hchild &optional window
 This function returns @var{window}'s first horizontal child window.  The
 optional argument @var{window} can be an arbitrary window and defaults
 to the selected one.  The return value is @code{nil} if @var{window} is
-a leaf window or its children form a vertical combination.
+a leaf window or its children form a vertical combination.  In the
+example above @code{(window-hchild W4)} is @code{W6} while
+@code{(window-vchild W3)} is @code{nil}.
 @end defun
 
 @defun window-child window
 This function return @var{window}'s first child window.  The return
-value is @code{nil} if @var{window} is a leaf window.
+value is @code{nil} if @var{window} is a leaf window.  In the example
+above @code{(window-child W3)} is @code{W4} while @code{(window-vchild
+W4)} is @code{W6}.
 @end defun
 
 The following function is useful to determine whether a window is part
@@ -267,6 +308,10 @@ If the optional argument @var{horizontal} is non-@code{nil}, this means
 to return non-@code{nil} if and only if @var{window} is horizontally
 combined.  The actual return value is the first horizontal child of
 window.
+
+In our canonical example @code{(window-iso-combined-p W5)} and
+@code{(window-iso-combined-p W6 t)} both evaluate to @code{t} while
+@code{(window-iso-combined-p W6)} is @code{nil}.
 @end defun
 
 @cindex sibling window
@@ -281,7 +326,9 @@ This function returns @var{window}'s right sibling.  The optional
 argument @var{window} can be an arbitrary window and defaults to the
 selected window.  It returns @code{nil} if @var{window} has no right
 sibling.  Applying this function recursively will eventually get you to
-the last child of @var{window}'s parent.
+the last child of @var{window}'s parent.  In our example
+@code{(window-next W2)} is @code{W3} while @code{(window-next W3)} is
+@code{nil}.
 @end defun
 
 @defun window-prev &optional window
@@ -289,7 +336,9 @@ This function returns @var{window}'s left sibling.  The optional
 argument @var{window} can be an arbitrary window and defaults to the
 selected window.  It returns @code{nil} if @var{window} has no left
 sibling.  Applying this function recursively will eventually get you to
-the first child of @var{window}'s parent.
+the first child of @var{window}'s parent.  In our example
+@code{(window-prev W3)} is @code{W2} and @code{(window-prev W2)} is
+@code{nil}.
 @end defun
 
 The functions @code{window-next} and @code{window-prev} should not be
@@ -302,11 +351,13 @@ Ordering}.
 function can be used.
 
 @defun frame-first-window &optional frame-or-window
-This function returns the window at the upper left corner of the frame
-specified by @var{frame-or-window}.  The argument @var{frame-or-window}
-must denote a window or a live frame and defaults to the selected frame.
-If @var{frame-or-window} specifies a window, this function returns the
-first window on that window's frame.
+This function returns the live window at the upper left corner of the
+frame specified by @var{frame-or-window}.  The argument
+@var{frame-or-window} must denote a window or a live frame and defaults
+to the selected frame.  If @var{frame-or-window} specifies a window,
+this function returns the first window on that window's frame.  Under
+the assumption that the frame from our canonical example is selected
+@code{(frame-first-window)} returns @code{W2}.
 @end defun
 
 You can get the window tree of a frame with the following function.
@@ -638,6 +689,7 @@ If this function returns @code{nil}, this does not necessarily mean that
 @code{window-resizable} (@pxref{Resizing Windows}) can tell that.
 @end defun
 
+
 @node Resizing Windows
 @section Resizing Windows
 @cindex window resizing
@@ -771,10 +823,10 @@ column narrower.
 @end deffn
 
 @defun adjust-window-trailing-edge window delta &optional horizontal
-Move @var{window}'s bottom edge by @var{delta} lines.  Optional
-argument @var{horizontal} non-@code{nil} means move @var{window}'s
-right edge by @var{delta} columns.  @var{window} defaults to the
-selected window.
+This function moves @var{window}'s bottom edge by @var{delta} lines.
+Optional argument @var{horizontal} non-@code{nil} means to move
+@var{window}'s right edge by @var{delta} columns.  The argument
+@var{window} defaults to the selected window.
 
 If the edge can't be moved by @var{delta} lines, move it as far as
 possible in the desired direction.
@@ -933,17 +985,17 @@ lines high by 80 columns wide; then it splits the window.
 
 @smallexample
 @group
-(setq w1 (selected-window))
+(setq W1 (selected-window))
      @result{} #<window 8 on windows.texi>
-(setq w2 (split-window w1 15))
+(setq W2 (split-window W1 15))
      @result{} #<window 28 on windows.texi>
 @end group
 @group
-(window-top-line w1)
+(window-top-line W1)
      @result{} 0
-(window-total-size w1)
+(window-total-size W1)
      @result{} 15
-(window-top-line w2)
+(window-top-line W2)
      @result{} 15
 @end group
 @end smallexample
@@ -954,10 +1006,10 @@ The screen looks like this:
 @group
          __________
         |          |  line 0
-        |    w1    |
+        |    W1    |
         |__________|
         |          |  line 15
-        |    w2    |
+        |    W2    |
         |__________|
                       line 50
  column 0   column 80
@@ -968,15 +1020,15 @@ Next, split the top window horizontally:
 
 @smallexample
 @group
-(setq w3 (split-window w1 35 t))
+(setq W3 (split-window W1 35 t))
      @result{} #<window 32 on windows.texi>
 @end group
 @group
-(window-left-column w1)
+(window-left-column W1)
      @result{} 0
-(window-total-size w1 t)
+(window-total-size W1 t)
      @result{} 35
-(window-left-column w3)
+(window-left-column W3)
      @result{} 35
 @end group
 @end smallexample
@@ -989,10 +1041,10 @@ Now the screen looks like this:
      column 35
          __________
         |    |     |  line 0
-        | w1 |  w3 |
+        | W1 |  W3 |
         |____|_____|
         |          |  line 15
-        |    w2    |
+        |    W2    |
         |__________|
                       line 50
  column 0   column 80
@@ -1004,6 +1056,227 @@ with a scroll bar (@pxref{Scroll Bars}), or with @samp{|} characters.  The
 display table can specify alternative border characters; see @ref{Display
 Tables}.
 
+Below we describe how @code{split-window} can be used to create the
+window configuration from our earlier example (@pxref{Windows and
+Frames}) and how internal windows are created for this purpose.  We
+start with a frame containing one leaf window @code{W2} (in the
+following scenarios window names are assigned in an arbitrary manner in
+order to match the names of the example).
+@smallexample
+@group
+     ______________________________________
+    |                                      |
+    |                                      |
+    |                                      |
+    |                                      |
+    |                                      |
+    |                                      |
+    |                                      |
+    |                                      |
+    |                                      |
+    |                                      |
+    |                                      |
+    |                                      |
+    |__________________W2__________________|
+
+@end group
+@end smallexample
+
+Evaluating the form @code{(split-window W2 8 t)} creates a new internal
+window @code{W1} with two children---@code{W2} (the window we've split)
+and a new leaf window @code{W6}:
+@smallexample
+@group
+     ______________________________________
+    | ______  ____________________________ |
+    ||      ||                            ||
+    ||      ||                            ||
+    ||      ||                            ||
+    ||      ||                            ||
+    ||      ||                            ||
+    ||      ||                            ||
+    ||      ||                            ||
+    ||      ||                            ||
+    ||      ||                            ||
+    ||      ||                            ||
+    ||__W2__||_____________W6_____________ |
+    |__________________W1__________________|
+
+@end group
+@end smallexample
+
+Evaluating now @code{(split-window W6 -3)} creates another internal
+window @code{W3} with two children---@code{W6} and a new leaf window
+@code{W5}.  This leaves us with a vertically combined window @code{W3}
+embedded in the horizontally combined window @code{W1}:
+@smallexample
+@group
+     ______________________________________
+    | ______  ____________________________ |
+    ||      || __________________________ ||
+    ||      |||                          |||
+    ||      |||                          |||
+    ||      |||                          |||
+    ||      |||                          |||
+    ||      |||                          |||
+    ||      |||____________W6____________|||
+    ||      || __________________________ ||
+    ||      |||                          |||
+    ||      |||____________W5____________|||
+    ||__W2__||_____________W3_____________ |
+    |__________________W1__________________|
+
+@end group
+@end smallexample
+
+Finally, evaluating @code{(split-window W6 nil t)} should get us the
+desired configuration as depicted below.
+@smallexample
+@group
+     ______________________________________
+    | ______  ____________________________ |
+    ||      || __________________________ ||
+    ||      ||| ___________  ___________ |||
+    ||      ||||           ||           ||||
+    ||      ||||           ||           ||||
+    ||      ||||_____W6____||_____W7____||||
+    ||      |||____________W4____________|||
+    ||      || __________________________ ||
+    ||      |||                          |||
+    ||      |||____________W5____________|||
+    ||__W2__||_____________W3_____________ |
+    |__________________W1__________________|
+
+@end group
+@end smallexample
+
+The scenario sketched above is the standard way to obtain the desired
+configuration.  In Emacs 23 it was also the only way to do that since
+Emacs 23 did't allow splitting internal windows.
+
+With Emacs 24 you can also proceed as follows: Split an initial window
+@code{W6} by evaluating @code{(split-window W6 -3)} to produce the
+following vertical combination:
+@smallexample
+@group
+     ______________________________________
+    | ____________________________________ |
+    ||                                    ||
+    ||                                    ||
+    ||                                    ||
+    ||                                    ||
+    ||                                    ||
+    ||                                    ||
+    ||                                    ||
+    ||_________________W6_________________||
+    | ____________________________________ |
+    ||                                    ||
+    ||_________________W5_________________||
+    |__________________W3__________________|
+
+@end group
+@end smallexample
+
+Evaluating now @code{(split-window (window-parent W6) -8 'left)} or,
+equivalently, @code{(split-window W3 -8 'left)} should produce the
+familiar configuration
+@smallexample
+@group
+     ______________________________________
+    | ______  ____________________________ |
+    ||      || __________________________ ||
+    ||      |||                          |||
+    ||      |||                          |||
+    ||      |||                          |||
+    ||      |||                          |||
+    ||      |||                          |||
+    ||      |||____________W6____________|||
+    ||      || __________________________ ||
+    ||      |||                          |||
+    ||      |||____________W5____________|||
+    ||__W2__||_____________W3_____________ |
+    |__________________W1__________________|
+
+@end group
+@end smallexample
+
+from where we can continue as described in the previous scenario.
+
+   Another strategy starts with splitting an inital window @code{W6} by
+evaluating @code{(split-window W6 nil nil t)} with the following result:
+@smallexample
+@group
+     ______________________________________
+    | _________________  _________________ |
+    ||                 ||                 ||
+    ||                 ||                 ||
+    ||                 ||                 ||
+    ||                 ||                 ||
+    ||                 ||                 ||
+    ||                 ||                 ||
+    ||                 ||                 ||
+    ||                 ||                 ||
+    ||                 ||                 ||
+    ||                 ||                 ||
+    ||________W6_______||________W7_______||
+    |__________________W4__________________|
+
+@end group
+@end smallexample
+
+Evaluating now @code{(split-window W4 -3)} or @code{(split-window
+(window-parent W6) -3)} should get us a configuration as shown next.
+@smallexample
+@group
+     ______________________________________
+    | ____________________________________ |
+    || ________________  ________________ ||
+    |||                ||                |||
+    |||                ||                |||
+    |||                ||                |||
+    |||                ||                |||
+    |||                ||                |||
+    |||_______W6_______||________W7______|||
+    ||_________________W4_________________||
+    | ____________________________________ |
+    ||                                    ||
+    ||_________________W5_________________||
+    |__________________W3__________________|
+
+@end group
+@end smallexample
+
+The desired configuration can be now obtained by evaluating
+@code{(split-window W3 -8 'left)} or, equivalently, @code{(split-window
+(window-parent W5) -8 'left)}.
+
+   For a final approach let's start with the configuration of two live
+windows @code{W6} and @code{W7} shown above.  If we now evaluate
+@code{(split-window W4 -8 'left)} or @code{(split-window (window-parent
+W6) -8 'left)} we get the following configuration.
+@smallexample
+@group
+     ______________________________________
+    | ______  ____________________________ |
+    ||      || ____________  ____________ ||
+    ||      |||            ||            |||
+    ||      |||            ||            |||
+    ||      |||            ||            |||
+    ||      |||            ||            |||
+    ||      |||            ||            |||
+    ||      |||            ||            |||
+    ||      |||            ||            |||
+    ||      |||______W6____||______W7____|||
+    ||__W2__||_____________W4_____________||
+    |__________________W1__________________|
+
+@end group
+@end smallexample
+
+Evaluating now @code{(split-window W4 -3)} or, for example,
+@code{(split-window (window-parent W6) -3)} should produce the desired
+configuration.
+
   The following option affects the behavior of a number of functions
 operating on a window that is part of a window combination, see
 @ref{Windows and Frames}.
@@ -1012,28 +1285,30 @@ operating on a window that is part of a window combination, see
 If this variable is @code{nil}, @code{split-window} creates a new parent
 window if and only if either @var{window} has no parent window or
 @var{window} shall be split in another direction than the combination
-@var{window} is part of.  @code{resize-window} preferably resizes
-@var{window}'s right sibling.  @code{delete-window} preferably returns
-space to @var{window}'s left sibling.
+@var{window} is part of.  Moreover, @code{resize-window} tries to resize
+@var{window}'s right sibling first and @code{delete-window} preferably
+returns space to @var{window}'s left sibling.
 
    If this variable equals @code{nest}, @code{split-window} always
 creates a new parent window.  As a consequence, any frame's window tree
 is a binary tree and every window has at most one (left or right)
-sibling.  @code{resize-window} preferably resizes @var{window}'s
-sibling.  @code{delete-window} preferably returns space to
-@var{window}'s sibling.  Functions creating atomic or view windows bind
-this variable temporarily to @code{nest} in order to make sure that
-subwindows of the same type are glued together.
+sibling.  Also, @code{resize-window} preferably resizes @var{window}'s
+sibling and @code{delete-window} preferably returns space to
+@var{window}'s sibling.  Functions that create atomic windows
+(@pxref{Atomic Windows}) bind this variable temporarily to @code{nest}
+in order to make sure that subwindows stay glued together.
 
    If this variable equals @code{resize}, @code{split-window} tries to
-resize all windows belnging to the same combination as @var{window} to
+resize all windows belonging to the same combination as @var{window} to
 accomodate the new window.  Hence, the new window can be also created if
-@var{window} is otherwise too small to be split.  Resizing or deleting
-any window of a combination tries to distribute space proportionally
-among all other windows of the combination.
+@var{window} is too small to be split.  Resizing or deleting any window
+of a combination tries to distribute space proportionally among all
+other windows of the combination.
 
-   Application programs should never rebind this variable to any value
-but @code{nest}.
+   As a rule, application should not bind this variable to any value but
+@code{nest}.  Occasionally, it might make sense to bind this variable to
+@code{resize}, for example, when showing a large number of buffers
+simultaneously on the same frame.
 @end defopt
 
 @deffn Command split-window-vertically &optional size
@@ -1141,9 +1416,9 @@ does nothing.  The optional argument @var{buffer-or-name} may be a
 buffer or the name of an existing buffer and defaults to the current
 buffer.  Invoking this command on a minibuffer signals an error.
 
-@code{delete-windows-on} operates by calling @code{delete-window} for
-each window showing @var{buffer-or-name}.  If a frame has several
-windows showing different buffers, then those showing
+The function @code{delete-windows-on} operates by calling
+@code{delete-window} for each window showing @var{buffer-or-name}.  If a
+frame has several windows showing different buffers, then those showing
 @var{buffer-or-name} are removed, and the other windows expand to fill
 the space.  If all windows in some frame are showing
 @var{buffer-or-name} (including the case where there is only one
@@ -1894,9 +2169,8 @@ the new window shall appear and can be one of @code{below},
 @code{right}, @code{above}, or @code{left} with the obvious meanings.
 If the @sc{cdr} is @code{nil}, the window is split in a fashion suitable
 for its current dimensions.  If the @sc{cdr} specifies a function, that
-function is called with two arguments - the window to split and a list
-of display specifiers.  The function is supposed to split that window
-and return the new window.
+function is called with one argument---the window that shall be split.
+The function is supposed to split that window and return the new window.
 
 The function @code{display-buffer} scans these tuples until it can
 either produce a suitable window or fails.  The default value for
@@ -2043,6 +2317,24 @@ specifiers @code{reuse-window-dedicated},
 @code{pop-up-window-set-height} and @code{pop-up-window-set-width}
 described above can be used.
 
+A list whose @sc{car} is the symbol @code{fun-with-args} specifies that
+the buffer shall be displayed by the function that appears as second
+element of that list.  The third element is a list of arguments that are
+passed as second argument to that function---the first argument is the
+buffer that shall be displayed.  The function is not passed any
+specifiers.
+
+The function shoul choose or create a window, display the specified
+buffer in it, and return the window.  It is also responsible for giving
+the variable @code{display-buffer-window} a meaningful value, see below
+for an explanation.  Moreover, the function should set up the
+@code{quit-restore} window parameter which is required for proper
+functioning of the command @code{quit-restore-window}, see below.
+
+It's hardly a good idea to call @code{display-buffer} within the body of
+the function specified here since this may lead to infinite recursion.
+
+@cindex macro specifier
 Instead of writing method specifiers it's often more convenient to use a
 predefined macro specifier.  The following macro specifiers are
 provided:
@@ -2110,14 +2402,8 @@ which are used by the customization interface and are ignored by
 
 @example
  ((reuse-window nil same visible)
-  (pop-up-window
-   (largest)
-   (lru))
+  (pop-up-window (largest) (lru))
   (pop-up-frame)
-  (pop-up-frame-alist
-   (height . 24)
-   (width . 80)
-   (unsplittable . t))
   (reuse-window nil other visible)
   (reuse-window-even-sizes . t))
 @end example
@@ -2126,18 +2412,19 @@ It means to proceed as follows:
 
 @itemize @bullet
 @item
-First try reusing a window showing the buffer on the selected frame
-(provided it's visible).  If a window above or below the selected window
-is reused, the heights of those windows are evened out.
+First try reusing a window showing the buffer on some visible frame.  If
+a window above or below the selected window is reused, the sizes of
+those windows are evened out.
 
 @item
 Next try to pop up a window on the selected frame by splitting either
 the largest or the least recently used window in a system dependent way.
 
 @item
-Try to pop up a new frame.  The default function to pop up a new frame
-(@code{make-frame}) is given three parameters: A height of 24 lines, a
-width of 80 columns, and a non-@code{nil} unsplittable property.
+Try to pop up a new frame using the default function @code{make-frame}.
+
+@item
+Try to reuse a window showing some other buffer on a visible frame.
 @end itemize
 
 If these specifiers fail to produce a suitable window,
@@ -2145,9 +2432,9 @@ If these specifiers fail to produce a suitable window,
 necessarily observe the value of @code{display-buffer-alist}.
 
 An application calling @code{display-buffer} can, in some cases, replace
-static references to windows or buffers within display specifiers by
-dynamic references to objects like windows or buffers.  In particular
-the following are possible:
+fixed references to windows or buffers within display specifiers by
+references to Lisp objects like windows or buffers.  In particular the
+following are possible:
 
 @itemize @bullet
 @item
@@ -2161,7 +2448,7 @@ window can be used as first element.
 
 In order to understand how @code{display-buffer} combines the values of
 @code{display-buffer-alist} with the @var{specifiers} argument suppose
-the following element
+the following item
 
 @example
 (((name . "*text*"))
@@ -2212,9 +2499,8 @@ affect the work of @code{display-buffer}.
 Displaying a buffer on a new or other frame will always raise that frame
 and give it input focus.  This contrasts with the behavior of
 @code{display-buffer} up to Emacs 22.  While not raising the frame seems
-like a worthwhile scope in this case, it has not been pursued any longer
-due to possible bad interaction with window managers on various
-platforms.
+like the correct behavior, it is presently not done due to possible bad
+interaction with window managers on various platforms.
 
 @item
 The customization interface does not allow to assign every conceivable
@@ -2222,8 +2508,10 @@ value to the option @code{display-buffer-alist}.  You have to set these
 by hand to achieve more exotic behavior.
 @end itemize
 
-   Next we describe how to transcribe the buffer display options of
-Emacs 23 with @code{display-buffer-alist}.
+   Next we describe how to manually transcribe the buffer display
+options of Emacs 23 with @code{display-buffer-alist}.  For a mechanized
+way to do this see the command @code{display-buffer-alist-set} descibed
+below.
 
 @itemize @bullet
 @item
@@ -2302,6 +2590,53 @@ within the body of the function specified here, it's a good idea to bind
 @code{display-buffer-function} to @code{nil} around each such call to
 avoid running into an infinite recursion.
 @end defopt
+
+Above we described how to manually obtain the settings of
+@code{display-buffer-alist} from Emacs 23 buffer display options.  The
+function described next should do this automatically.
+
+@defun display-buffer-alist-set &optional no-custom add
+This fucntion sets @code{display-buffer-alist} from Emacs 23 buffer
+display options.  The optional argument @var{no-custom} @code{nil} means
+to apply the function @code{customize-set-variable} to set the value of
+@code{display-buffer-alist}.  If @var{no-custom} is non-@code{nil}, this
+means to use @code{setq} instead.
+
+The optional argument @var{add} @code{nil} means to replace the actual
+value of @code{display-buffer-alist} with the value calculated here.  If
+@var{add} is non-@code{nil}, this means to prepend the value calculated
+here to the current value of @code{display-buffer-alist}.
+@end defun
+
+Applications setting or binding Emacs 23 buffer display options will
+usually fail to achieve the desired effect if they do not set the
+@var{specifiers} argument of @code{display-buffer} accordingly.  Binding
+or setting @code{display-buffer-function} to the function sketched below
+can bypass this problem until the @var{specifiers} argument has been
+rewritten.
+
+@example
+(defun my-display-buffer (buffer specifiers)
+  "Run `display-buffer' with Emacs 23 buffer display options."
+  (let (display-buffer-alist display-buffer-function)
+    (display-buffer-alist-set t)
+    (display-buffer buffer)))
+@end example
+
+The function @code{my-display-buffer} applies
+@code{display-buffer-alist-set} to a locally bound, pristine copy of
+@code{display-buffer-alist} and calls @code{display-buffer} without any
+specifiers.  Note the local binding of @code{display-buffer-function}
+which avoids that @code{display-buffer} calls @code{my-display-buffer}
+recursively.
+
+   In this context note that the purpose of the buffer display options
+of Emacs 23 was to give users an instrument to control the behavior of
+how buffers are displayed.  Setting or binding such an option within an
+application did constitutes bad programming practice just like setting
+or binding @code{display-buffer-alist} would.  Applications are supposed
+to @emph{exclusively} use the @var{specifiers} argument in order to
+affect the behavior of @code{display-buffer}.
 
 The function @code{display-buffer} tries hard to find a new window for
 displaying the buffer and fails (that is, returns @code{nil}) only in
@@ -3678,6 +4013,47 @@ This function returns the frame for which the window configuration
 sense, but are not implemented because we did not need them.  See the
 file @file{winner.el} for some more operations on windows
 configurations.
+
+  The objects returned by @code{current-window-configuration} die
+together with the Emacs process.  In order to store a window
+configuration on disk and read it back in another Emacs session the
+following two functions can be used.
+
+@defun window-state-get &optional window markers
+This function returns the state of @var{window} as a Lisp object.  The
+argument @var{window} can be any window and defaults to the root window
+of the selected frame.
+
+The optional argument @var{markers} non-@code{nil} means to use markers
+for sampling positions like @code{window-point} or @code{window-start}.
+This argument should be non-@code{nil} only if the value is used for
+putting the state back in the same session since markers slow down
+processing.
+
+The return value can be used as argument for @code{window-state-put},
+see below, to put the state recorded here into an arbitrary window.  The
+value can be also stored on disk and read back in a new session.
+@end defun
+
+The value returned by @code{window-state-get} can be converted by using
+one of the functions defined by Desktop Save Mode (@pxref{Desktop Save
+Mode}) to an object that can be written to a file.  Such objects can be
+read back and converted to a Lisp object representing the state of the
+window.  That Lisp object can be used as argument for the following
+function in order to restore the state window in anothe window.
+
+@defun window-state-put state &optional window ignore
+This function puts the window state @var{state} into @var{window}.  The
+argument @var{state} should be the state of a window returned by an
+earlier invocation of @code{window-state-get}, see above.  The optional
+argument @var{window} must specify a live window and defaults to the
+selected one.
+
+The optional argument @var{ignore} non-@code{nil} means to ignore
+minimum window sizes and fixed size restrictions.  If @var{ignore}
+equals @code{safe}, this means subwindows can get as small as
+@code{window-safe-min-height} and @code{window-safe-min-width}.
+@end defun
 
 
 @node Window Parameters
