@@ -1,5 +1,8 @@
 2011-02-24  Glenn Morris  <rgm@gnu.org>
 
+	* files-x.el (modify-dir-local-variable): Handle dir-locals from
+	the cache, and from non-file sources.
+
 	* help-fns.el (describe-variable): Return consistent results when a
 	dir-local from a file came from the cache or did not.  (Bug#8095)
 	If a dir-local has no associated file, say it came from a "directory".

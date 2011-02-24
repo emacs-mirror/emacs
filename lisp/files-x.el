@@ -360,18 +360,28 @@ from the MODE alist ignoring the input argument VALUE."
   (catch 'exit
     (unless enable-local-variables
       (throw 'exit (message "Directory-local variables are disabled")))
-
     (let ((variables-file (or (and (buffer-file-name)
 				   (not (file-remote-p (buffer-file-name)))
 				   (dir-locals-find-file (buffer-file-name)))
 			      dir-locals-file))
 	  variables)
-
+      (if (consp variables-file)	; result from cache
+	  ;; If cache element has an mtime, assume it came from a file.
+	  ;; Otherwise, assume it was set directly.
+	  (setq variables-file (if (nth 2 variables-file)
+				   (expand-file-name dir-locals-file
+						     (car variables-file))
+				 (cadr variables-file))))
+      ;; I can't be bothered to handle this case right now.
+      ;; Dir locals were set directly from a class.  You need to
+      ;; directly modify the class in dir-locals-class-alist.
+      (and variables-file (not (stringp variables-file))
+	   (throw 'exit (message "Directory locals were not set from a file")))
       ;; Don't create ".dir-locals.el" for the deletion operation.
-      (when (and (eq op 'delete)
-		 (not (file-exists-p variables-file)))
-	(throw 'exit (message "File .dir-locals.el not found")))
-
+      (and (eq op 'delete)
+	   (or (not variables-file)
+	       (not (file-exists-p variables-file)))
+	   (throw 'exit (message "No .dir-locals.el file was found")))
       (let ((auto-insert nil))
 	(find-file variables-file))
       (widen)
