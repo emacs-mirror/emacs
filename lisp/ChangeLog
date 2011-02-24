@@ -1,3 +1,9 @@
+2011-02-24  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/autoload.el (autoload-save-buffers)
+	(autoload-find-destination, update-directory-autoloads):
+	Avoid prompts when updating autoloads.
+
 2011-02-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el (byte-compile-disable-print-circle): Obsolete.
