@@ -3347,11 +3347,11 @@ Each element in this list has the form (DIR CLASS MTIME).
 DIR is the name of the directory.
 CLASS is the name of a variable class (a symbol).
 MTIME is the recorded modification time of the directory-local
- variables file associated with this entry.  This time is a list
- of two integers (the same format as `file-attributes'), and is
- used to test whether the cache entry is still valid.
- Alternatively, MTIME can be nil, which means the entry is always
- considered valid.")
+variables file associated with this entry.  This time is a list
+of two integers (the same format as `file-attributes'), and is
+used to test whether the cache entry is still valid.
+Alternatively, MTIME can be nil, which means the entry is always
+considered valid.")
 
 (defsubst dir-locals-get-class-variables (class)
   "Return the variable list for CLASS."
@@ -3460,13 +3460,20 @@ across different environments and users.")
 (defun dir-locals-find-file (file)
   "Find the directory-local variables for FILE.
 This searches upward in the directory tree from FILE.
-If the directory root of FILE has been registered in
- `dir-locals-directory-cache' and the directory-local variables
- file has not been modified, return the matching entry in
- `dir-locals-directory-cache'.
-Otherwise, if a directory-local variables file is found, return
- the file name.
-Otherwise, return nil."
+It stops at the first directory that has been registered in
+`dir-locals-directory-cache' or contains a `dir-locals-file'.
+If it finds an entry in the cache, it checks that it is valid.
+A cache entry with no modification time element (normally, one that
+has been assigned directly using `dir-locals-set-directory-class', not
+set from a file) is always valid.
+A cache entry based on a `dir-locals-file' is valid if the modification
+time stored in the cache matches the current file modification time.
+If not, the cache entry is cleared so that the file will be re-read.
+
+This function returns either nil (no directory local variables found),
+or the matching entry from `dir-locals-directory-cache' (a list),
+or the full path to the `dir-locals-file' (a string) in the case
+of no valid cache entry."
   (setq file (expand-file-name file))
   (let* ((dir-locals-file-name
 	  (if (eq system-type 'ms-dos)
@@ -3475,8 +3482,8 @@ Otherwise, return nil."
 	 (locals-file (locate-dominating-file file dir-locals-file-name))
 	 (dir-elt nil))
     ;; `locate-dominating-file' may have abbreviated the name.
-    (when locals-file
-      (setq locals-file (expand-file-name dir-locals-file-name locals-file)))
+    (if locals-file
+	(setq locals-file (expand-file-name dir-locals-file-name locals-file)))
     ;; Find the best cached value in `dir-locals-directory-cache'.
     (dolist (elt dir-locals-directory-cache)
       (when (and (eq t (compare-strings file nil (length (car elt))
@@ -3485,23 +3492,32 @@ Otherwise, return nil."
 					      '(windows-nt cygwin ms-dos))))
 		 (> (length (car elt)) (length (car dir-elt))))
 	(setq dir-elt elt)))
-    (let ((use-cache (and dir-elt
-			  (or (null locals-file)
-			      (<= (length (file-name-directory locals-file))
-				  (length (car dir-elt)))))))
-      (if use-cache
-	  ;; Check the validity of the cache.
-	  (if (and (file-readable-p (car dir-elt))
-		   (or (null  (nth 2 dir-elt))
+    (if (and dir-elt
+	     (or (null locals-file)
+		 (<= (length (file-name-directory locals-file))
+		     (length (car dir-elt)))))
+	;; Found a potential cache entry.  Check validity.
+	;; A cache entry with no MTIME is assumed to always be valid
+	;; (ie, set directly, not from a dir-locals file).
+	;; Note, we don't bother to check that there is a matching class
+	;; element in dir-locals-class-alist, since that's done by
+	;; dir-locals-set-directory-class.
+	(if (or (null (nth 2 dir-elt))
+		(let ((cached-file (expand-file-name dir-locals-file-name
+						     (car dir-elt))))
+		  (and (file-readable-p cached-file)
 		       (equal (nth 2 dir-elt)
-			      (nth 5 (file-attributes (car dir-elt))))))
-	      ;; This cache entry is OK.
-	      dir-elt
-	    ;; This cache entry is invalid; clear it.
-	    (setq dir-locals-directory-cache
-		  (delq dir-elt dir-locals-directory-cache))
-	    locals-file)
-	locals-file))))
+			      (nth 5 (file-attributes cached-file))))))
+	    ;; This cache entry is OK.
+	    dir-elt
+	  ;; This cache entry is invalid; clear it.
+	  (setq dir-locals-directory-cache
+		(delq dir-elt dir-locals-directory-cache))
+	  ;; Return the first existing dir-locals file.  Might be the same
+	  ;; as dir-elt's, might not (eg latter might have been deleted).
+	  locals-file)
+      ;; No cache entry.
+      locals-file)))
 
 (defun dir-locals-read-from-file (file)
   "Load a variables FILE and register a new class and instance.
@@ -3531,6 +3547,7 @@ and `file-local-variables-alist', without applying them."
 	  (dir-name nil))
       (cond
        ((stringp variables-file)
+	;; FIXME seems like the wrong dir-name.
 	(setq dir-name (if (buffer-file-name)
                            (file-name-directory (buffer-file-name))
                          default-directory))

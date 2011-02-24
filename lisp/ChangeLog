@@ -1,5 +1,9 @@
 2011-02-24  Glenn Morris  <rgm@gnu.org>
 
+	* files.el (dir-locals-find-file): Doc fix.
+	Fix the check for cache elements that have no associated file,
+	and the mtime check for those that do.
+
 	* dired-x.el (dired-hack-local-variables):
 	Handle interrupts during hacking local variables.  (Bug#5216)
 
