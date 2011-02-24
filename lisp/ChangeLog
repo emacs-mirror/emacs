@@ -1,5 +1,8 @@
 2011-02-24  Glenn Morris  <rgm@gnu.org>
 
+	* dired-x.el (dired-hack-local-variables):
+	Handle interrupts during hacking local variables.  (Bug#5216)
+
 	* emacs-lisp/autoload.el (autoload-save-buffers)
 	(autoload-find-destination, update-directory-autoloads):
 	Avoid prompts when updating autoloads.
