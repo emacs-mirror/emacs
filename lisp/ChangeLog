@@ -1,11 +1,15 @@
 2011-02-24  Glenn Morris  <rgm@gnu.org>
 
+	* help-fns.el (describe-variable): Return consistent results when a
+	dir-local from a file came from the cache or did not.  (Bug#8095)
+	If a dir-local has no associated file, say it came from a "directory".
+
 	* files.el (hack-dir-local-variables): Fix setting of `dir-name'.
 	(hack-local-variables-confirm, hack-local-variables-filter): Doc fix.
 
 	* files.el (dir-locals-find-file): Doc fix.
 	Fix the check for cache elements that have no associated file,
-	and the mtime check for those that do.
+	and the mtime check for those that do.  (Bug#8095)
 
 	* dired-x.el (dired-hack-local-variables):
 	Handle interrupts during hacking local variables.  (Bug#5216)
