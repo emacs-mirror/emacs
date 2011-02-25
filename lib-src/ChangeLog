@@ -3,6 +3,8 @@
 	* make-docfile.c (write_globals): Change char * to char const *
 	to avoid a GCC "assignment discards qualifiers" diagnostic
 	in some configurations.
+	(scan_c_file): Refactor local variable decls to make their scope
+	more accurate and to avoid a GCC -Wuninitialized diagnostic.
 
 2011-02-22  Eli Zaretskii  <eliz@gnu.org>
 
