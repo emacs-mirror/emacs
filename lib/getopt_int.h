@@ -108,7 +108,7 @@ struct _getopt_data
 #if defined _LIBC && defined USE_NONOPTION_FLAGS
   int __nonoption_flags_max_len;
   int __nonoption_flags_len;
-# endif
+#endif
 };
 
 /* The initializer is necessary to set OPTIND and OPTERR to their

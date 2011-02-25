@@ -19761,7 +19761,15 @@ test "${exec_prefix}" != NONE &&
 
 ac_config_files="$ac_config_files Makefile lib/Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile leim/Makefile test/automated/Makefile"
 
-ac_config_commands="$ac_config_commands default"
+
+ac_config_commands="$ac_config_commands mkdirs"
+
+
+ac_config_commands="$ac_config_commands epaths"
+
+
+ac_config_commands="$ac_config_commands gdbinit"
+
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -20546,7 +20554,9 @@ do
     "lisp/Makefile") CONFIG_FILES="$CONFIG_FILES lisp/Makefile" ;;
     "leim/Makefile") CONFIG_FILES="$CONFIG_FILES leim/Makefile" ;;
     "test/automated/Makefile") CONFIG_FILES="$CONFIG_FILES test/automated/Makefile" ;;
-    "default") CONFIG_COMMANDS="$CONFIG_COMMANDS default" ;;
+    "mkdirs") CONFIG_COMMANDS="$CONFIG_COMMANDS mkdirs" ;;
+    "epaths") CONFIG_COMMANDS="$CONFIG_COMMANDS epaths" ;;
+    "gdbinit") CONFIG_COMMANDS="$CONFIG_COMMANDS gdbinit" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
@@ -21276,21 +21286,20 @@ $as_echo X"$file" |
   done
 }
  ;;
-    "default":C)
-
-### Make the necessary directories, if they don't exist.
+    "mkdirs":C)
 for dir in etc lisp ; do
   test -d ${dir} || mkdir ${dir}
 done
-
+ ;;
+    "epaths":C)
 echo creating src/epaths.h
 ${MAKE-make} epaths-force
-
+ ;;
+    "gdbinit":C)
 if test ! -f src/.gdbinit && test -f $srcdir/src/.gdbinit; then
   echo creating src/.gdbinit
   echo source $srcdir/src/.gdbinit > src/.gdbinit
 fi
-
  ;;
 
   esac
@@ -21329,4 +21338,5 @@ if test -n "$ac_unrecognized_opts" && test "$enable_option_checking" != no; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: unrecognized options: $ac_unrecognized_opts" >&5
 $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
+
 
