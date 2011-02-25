@@ -1,6 +1,11 @@
 2011-02-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* emacsclient.c (main): Avoid dangling 'if'.
+	(xstrdup): Remove; no longer needed.
+	(get_current_dir_name, w32_getenv, get_server_config, find_tty):
+	(set_local_socket, main):
+	Use const char *, not char *, for pointers that are not assigned
+	through.
 
 	* emacsclient.c: Redo local variables to avoid shadowing problems.
 	(message, socket_status, start_daemon_and_retry_set_socket):

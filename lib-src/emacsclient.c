@@ -190,20 +190,6 @@ xmalloc (unsigned int size)
   return result;
 }
 
-/* Like strdup but get a fatal error if memory is exhausted. */
-
-static char *
-xstrdup (const char *s)
-{
-  char *result = strdup (s);
-  if (result == NULL)
-    {
-      perror ("strdup");
-      exit (EXIT_FAILURE);
-    }
-  return result;
-}
-
 /* From sysdep.c */
 #if !defined (HAVE_GET_CURRENT_DIR_NAME) || defined (BROKEN_GET_CURRENT_DIR_NAME)
 
@@ -233,7 +219,7 @@ char*
 get_current_dir_name (void)
 {
   char *buf;
-  char *pwd;
+  const char *pwd;
   struct stat dotstat, pwdstat;
   /* If PWD is accurate, use it instead of calling getwd.  PWD is
      sometimes a nicer name, and using it may avoid a fatal error if a
@@ -353,7 +339,7 @@ w32_getenv (char *envvar)
     {
       /* "w32console" is what Emacs on Windows uses for tty-type under -nw.  */
       if (strcmp (envvar, "TERM") == 0)
-	return xstrdup ("w32console");
+	return "w32console";
       /* Found neither in the environment nor in the registry.  */
       return NULL;
     }
@@ -918,7 +904,7 @@ get_server_config (struct sockaddr_in *server, char *authentication)
     config = fopen (server_file, "rb");
   else
     {
-      char *home = egetenv ("HOME");
+      const char *home = egetenv ("HOME");
 
       if (home)
         {
@@ -1025,10 +1011,10 @@ strprefix (const char *prefix, const char *string)
    is zero, or return 0 if NOABORT is non-zero.  */
 
 static int
-find_tty (char **tty_type, char **tty_name, int noabort)
+find_tty (const char **tty_type, const char **tty_name, int noabort)
 {
-  char *type = egetenv ("TERM");
-  char *name = ttyname (fileno (stdout));
+  const char *type = egetenv ("TERM");
+  const char *name = ttyname (fileno (stdout));
 
   if (!name)
     {
@@ -1260,10 +1246,10 @@ set_local_socket (void)
 	   associated with the name.  This is reminiscent of the logic
 	   that init_editfns uses to set the global Vuser_full_name.  */
 
-	char *user_name = (char *) egetenv ("LOGNAME");
+	const char *user_name = egetenv ("LOGNAME");
 
 	if (!user_name)
-	  user_name = (char *) egetenv ("USER");
+	  user_name = egetenv ("USER");
 
 	if (user_name)
 	  {
@@ -1615,7 +1601,7 @@ main (int argc, char **argv)
      frame is available.  */
   if (tty || (current_frame && !eval))
     {
-      char *tty_type, *tty_name;
+      const char *tty_type, *tty_name;
 
       if (find_tty (&tty_type, &tty_name, !tty))
 	{
