@@ -474,13 +474,13 @@ ttyname (int fd)
 /* Display a normal or error message.
    On Windows, use a message box if compiled as a Windows app.  */
 static void
-message (int is_error, const char *message, ...)
+message (int is_error, const char *format, ...)
 {
   char msg[2048];
   va_list args;
 
-  va_start (args, message);
-  vsprintf (msg, message, args);
+  va_start (args, format);
+  vsprintf (msg, format, args);
   va_end (args);
 
 #ifdef WINDOWSNT
@@ -1080,11 +1080,11 @@ find_tty (char **tty_type, char **tty_name, int noabort)
    0 - success: none of the above */
 
 static int
-socket_status (char *socket_name)
+socket_status (char *name)
 {
   struct stat statbfr;
 
-  if (stat (socket_name, &statbfr) == -1)
+  if (stat (name, &statbfr) == -1)
     return 2;
 
   if (statbfr.st_uid != geteuid ())
@@ -1483,8 +1483,8 @@ start_daemon_and_retry_set_socket (void)
   else
     {
       char emacs[] = "emacs";
-      char daemon[] = "--daemon";
-      char *d_argv[] = {emacs, daemon, 0 };
+      char daemon_option[] = "--daemon";
+      char *d_argv[] = {emacs, daemon_option, 0 };
       if (socket_name != NULL)
 	{
 	  /* Pass  --daemon=socket_name as argument.  */
@@ -1504,7 +1504,7 @@ start_daemon_and_retry_set_socket (void)
 int
 main (int argc, char **argv)
 {
-  int i, rl, needlf = 0;
+  int rl, needlf = 0;
   char *cwd, *str;
   char string[BUFSIZ+1];
   int null_socket_name, null_server_file, start_daemon_if_needed;
@@ -1635,6 +1635,7 @@ main (int argc, char **argv)
 
   if ((argc - optind > 0))
     {
+      int i;
       for (i = optind; i < argc; i++)
 	{
 

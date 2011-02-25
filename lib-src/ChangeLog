@@ -1,5 +1,10 @@
 2011-02-25  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* emacsclient.c: Redo local variables to avoid shadowing problems.
+	(message, socket_status, start_daemon_and_retry_set_socket):
+	Rename locals.
+	(main): Move decl of "i".
+
 	* etags.c (ISUPPER): Move to inside the only #ifdef where it's used.
 	This avoids an unused-macro warning with some GCC settings.
 
