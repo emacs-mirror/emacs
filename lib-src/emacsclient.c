@@ -1543,21 +1543,21 @@ main (int argc, char **argv)
       null_server_file = (server_file == NULL);
     }
 
-  if ((emacs_socket = set_socket (alternate_editor
-				  || start_daemon_if_needed)) == INVALID_SOCKET)
-    if (start_daemon_if_needed)
-      {
-	/* Reset socket_name and server_file if they were NULL
-	   before the set_socket call.  */
-	if (null_socket_name)
-	  socket_name = NULL;
-	if (null_server_file)
-	  server_file = NULL;
+  emacs_socket = set_socket (alternate_editor || start_daemon_if_needed);
+  if (emacs_socket == INVALID_SOCKET)
+    {
+      if (! start_daemon_if_needed)
+	fail ();
 
-	start_daemon_and_retry_set_socket ();
-      }
-    else
-      fail ();
+      /* Reset socket_name and server_file if they were NULL
+	 before the set_socket call.  */
+      if (null_socket_name)
+	socket_name = NULL;
+      if (null_server_file)
+	server_file = NULL;
+
+      start_daemon_and_retry_set_socket ();
+    }
 
   cwd = get_current_dir_name ();
   if (cwd == 0)
