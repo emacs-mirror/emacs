@@ -83,7 +83,9 @@ BIG_STACK_OPTS = --eval "(setq max-lisp-eval-depth $(BIG_STACK_DEPTH))"
 COMPILE_FIRST = \
 	$(lisp)/emacs-lisp/bytecomp.elc \
 	$(lisp)/emacs-lisp/byte-opt.elc \
+	$(lisp)/emacs-lisp/pcase.elc \
 	$(lisp)/emacs-lisp/macroexp.elc \
+	$(lisp)/emacs-lisp/cconv.elc \
 	$(lisp)/emacs-lisp/autoload.elc
 
 # The actual Emacs command run in the targets below.
@@ -203,7 +205,7 @@ compile-onefile:
 	@echo Compiling $(THEFILE)
 	@# Use byte-compile-refresh-preloaded to try and work around some of
 	@# the most common bootstrapping problems.
-	@$(emacs) -l bytecomp.el -f byte-compile-refresh-preloaded \
+	$(emacs) -l bytecomp.el -f byte-compile-refresh-preloaded \
 		$(BIG_STACK_OPTS) $(BYTE_COMPILE_EXTRA_FLAGS) \
 		-f batch-byte-compile $(THEFILE)
 
@@ -220,7 +222,7 @@ compile-onefile:
 # cannot have prerequisites.
 .el.elc:
 	@echo Compiling $<
-	@$(emacs) $(BIG_STACK_OPTS) $(BYTE_COMPILE_EXTRA_FLAGS) \
+	$(emacs) $(BIG_STACK_OPTS) $(BYTE_COMPILE_EXTRA_FLAGS) \
 		-f batch-byte-compile $<
 
 .PHONY: compile-first compile-main compile compile-always

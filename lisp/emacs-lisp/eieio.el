@@ -45,8 +45,7 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl)
-  (require 'eieio-comp))
+  (require 'cl))
 
 (defvar eieio-version "1.3"
   "Current version of EIEIO.")
@@ -123,6 +122,7 @@ execute a `call-next-method'.  DO NOT SET THIS YOURSELF!")
 ;; while it is being built itself.
 (defvar eieio-default-superclass nil)
 
+;; FIXME: The constants below should have a `eieio-' prefix added!!
 (defconst class-symbol 1 "Class's symbol (self-referencing.).")
 (defconst class-parent 2 "Class parent slot.")
 (defconst class-children 3 "Class children class slot.")
@@ -181,10 +181,6 @@ Stored outright without modifications or stripping.")
 	(t key) ;; already generic.. maybe.
 	))
 
-;; How to specialty compile stuff.
-(autoload 'eieio-byte-compile-file-form-defmethod "eieio-comp"
-  "This function is used to byte compile methods in a nice way.")
-(put 'defmethod 'byte-hunk-handler 'eieio-byte-compile-file-form-defmethod)
 
 ;;; Important macros used in eieio.
 ;;
@@ -1293,9 +1289,35 @@ Summary:
                      ((typearg class-name) arg2 &optional opt &rest rest)
     \"doc-string\"
      body)"
-  `(eieio-defmethod (quote ,method) (quote ,args)))
+  (let* ((key (cond ((or (eq ':BEFORE (car args))
+                         (eq ':before (car args)))
+                     (setq args (cdr args))
+                     :before)
+                    ((or (eq ':AFTER (car args))
+                         (eq ':after (car args)))
+                     (setq args (cdr args))
+                     :after)
+                    ((or (eq ':PRIMARY (car args))
+                         (eq ':primary (car args)))
+                     (setq args (cdr args))
+                     :primary)
+                    ((or (eq ':STATIC (car args))
+                         (eq ':static (car args)))
+                     (setq args (cdr args))
+                     :static)
+                    (t nil)))
+	 (params (car args))
+	 (lamparams
+          (mapcar (lambda (param) (if (listp param) (car param) param))
+                  params))
+	 (arg1 (car params))
+	 (class (if (listp arg1) (nth 1 arg1) nil)))
+    `(eieio-defmethod ',method
+                      '(,@(if key (list key))
+                        ,params)
+                      (lambda ,lamparams ,@(cdr args)))))
 
-(defun eieio-defmethod (method args)
+(defun eieio-defmethod (method args &optional code)
   "Work part of the `defmethod' macro defining METHOD with ARGS."
   (let ((key nil) (body nil) (firstarg nil) (argfix nil) (argclass nil) loopa)
     ;; find optional keys
@@ -1349,10 +1371,7 @@ Summary:
       ;; generics are higher
       (setq key (eieio-specialized-key-to-generic-key key)))
     ;; Put this lambda into the symbol so we can find it
-    (if (byte-code-function-p (car-safe body))
-	(eieiomt-add method (car-safe body) key argclass)
-      (eieiomt-add method (append (list 'lambda (reverse argfix)) body)
-		   key argclass))
+    (eieiomt-add method code key argclass)
     )
 
   (when eieio-optimize-primary-methods-flag

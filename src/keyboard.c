@@ -10179,7 +10179,7 @@ a special event, so ignore the prefix argument and don't clear it.  */)
       return Fexecute_kbd_macro (final, prefixarg, Qnil);
     }
 
-  if (CONSP (final) || SUBRP (final) || FUNVECP (final))
+  if (CONSP (final) || SUBRP (final) || COMPILEDP (final))
     /* Don't call Fcall_interactively directly because we want to make
        sure the backtrace has an entry for `call-interactively'.
        For the same reason, pass `cmd' rather than `final'.  */

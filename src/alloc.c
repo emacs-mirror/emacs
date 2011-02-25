@@ -2924,37 +2924,6 @@ See also the function `vector'.  */)
 }
 
 
-/* Return a new `function vector' containing KIND as the first element,
-   followed by NUM_NIL_SLOTS nil elements, and further elements copied from
-   the vector PARAMS of length NUM_PARAMS (so the total length of the
-   resulting vector is 1 + NUM_NIL_SLOTS + NUM_PARAMS).
-
-   If NUM_PARAMS is zero, then PARAMS may be NULL.
-
-   A `function vector', a.k.a. `funvec', is a funcallable vector in Emacs Lisp.
-   See the function `funvec' for more detail.  */
-
-Lisp_Object
-make_funvec (Lisp_Object kind, int num_nil_slots, int num_params,
-	     Lisp_Object *params)
-{
-  int param_index;
-  Lisp_Object funvec;
-
-  funvec = Fmake_vector (make_number (1 + num_nil_slots + num_params), Qnil);
-
-  ASET (funvec, 0, kind);
-
-  for (param_index = 0; param_index < num_params; param_index++)
-    ASET (funvec, 1 + num_nil_slots + param_index, params[param_index]);
-
-  XSETPVECTYPE (XVECTOR (funvec), PVEC_FUNVEC);
-  XSETFUNVEC (funvec, XVECTOR (funvec));
-
-  return funvec;
-}
-
-
 DEFUN ("vector", Fvector, Svector, 0, MANY, 0,
        doc: /* Return a newly created vector with specified arguments as elements.
 Any number of arguments, even zero arguments, are allowed.
@@ -2974,27 +2943,6 @@ usage: (vector &rest OBJECTS)  */)
 }
 
 
-DEFUN ("funvec", Ffunvec, Sfunvec, 1, MANY, 0,
-       doc: /* Return a newly created `function vector' of type KIND.
-A `function vector', a.k.a. `funvec', is a funcallable vector in Emacs Lisp.
-KIND indicates the kind of funvec, and determines its behavior when called.
-The meaning of the remaining arguments depends on KIND.  Currently
-implemented values of KIND, and their meaning, are:
-
-   A list  -- A byte-compiled function.  See `make-byte-code' for the usual
-              way to create byte-compiled functions.
-
-   `curry' -- A curried function.  Remaining arguments are a function to
-              call, and arguments to prepend to user arguments at the
-              time of the call; see the `curry' function.
-
-usage: (funvec KIND &rest PARAMS)  */)
-     (int nargs, Lisp_Object *args)
-{
-  return make_funvec (args[0], 0, nargs - 1, args + 1);
-}
-
-
 DEFUN ("make-byte-code", Fmake_byte_code, Smake_byte_code, 4, MANY, 0,
        doc: /* Create a byte-code object with specified arguments as elements.
 The arguments should be the arglist, bytecode-string, constant vector,
@@ -3007,10 +2955,6 @@ usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INT
   register Lisp_Object len, val;
   register int index;
   register struct Lisp_Vector *p;
-
-  /* Make sure the arg-list is really a list, as that's what's used to
-     distinguish a byte-compiled object from other funvecs.  */
-  CHECK_LIST (args[0]);
 
   XSETFASTINT (len, nargs);
   if (!NILP (Vpurify_flag))
@@ -3033,8 +2977,8 @@ usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INT
 	args[index] = Fpurecopy (args[index]);
       p->contents[index] = args[index];
     }
-  XSETPVECTYPE (p, PVEC_FUNVEC);
-  XSETFUNVEC (val, p);
+  XSETPVECTYPE (p, PVEC_COMPILED);
+  XSETCOMPILED (val, p);
   return val;
 }
 
@@ -4817,7 +4761,7 @@ Does not copy symbols.  Copies strings without text properties.  */)
     obj = make_pure_string (SSDATA (obj), SCHARS (obj),
 			    SBYTES (obj),
 			    STRING_MULTIBYTE (obj));
-  else if (FUNVECP (obj) || VECTORP (obj))
+  else if (COMPILEDP (obj) || VECTORP (obj))
     {
       register struct Lisp_Vector *vec;
       register EMACS_INT i;
@@ -4829,10 +4773,10 @@ Does not copy symbols.  Copies strings without text properties.  */)
       vec = XVECTOR (make_pure_vector (size));
       for (i = 0; i < size; i++)
 	vec->contents[i] = Fpurecopy (XVECTOR (obj)->contents[i]);
-      if (FUNVECP (obj))
+      if (COMPILEDP (obj))
 	{
-	  XSETPVECTYPE (vec, PVEC_FUNVEC);
-	  XSETFUNVEC (obj, vec);
+	  XSETPVECTYPE (vec, PVEC_COMPILED);
+	  XSETCOMPILED (obj, vec);
 	}
       else
 	XSETVECTOR (obj, vec);
@@ -5418,7 +5362,7 @@ mark_object (Lisp_Object arg)
 	}
       else if (SUBRP (obj))
 	break;
-      else if (FUNVECP (obj) && FUNVEC_COMPILED_P (obj))
+      else if (COMPILEDP (obj))
 	/* We could treat this just like a vector, but it is better to
 	   save the COMPILED_CONSTANTS element for last and avoid
 	   recursion there.  */
@@ -6320,7 +6264,6 @@ The time is in seconds as a floating point value.  */);
   defsubr (&Scons);
   defsubr (&Slist);
   defsubr (&Svector);
-  defsubr (&Sfunvec);
   defsubr (&Smake_byte_code);
   defsubr (&Smake_list);
   defsubr (&Smake_vector);

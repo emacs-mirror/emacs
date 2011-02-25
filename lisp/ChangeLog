@@ -1,3 +1,46 @@
+2011-02-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-lapcode): Handle new form of
+	`byte-constant'.
+	(byte-compile-close-variables, displaying-byte-compile-warnings):
+	Add edebug spec.
+	(byte-compile-toplevel-file-form): New fun, split out of
+	byte-compile-file-form.
+	(byte-compile-from-buffer): Use it to avoid applying cconv
+	multiple times.
+	(byte-compile): Only strip `function' if it's present.
+	(byte-compile-lambda): Add `reserved-csts' argument.
+	Use new lexenv arg of byte-compile-top-level.
+	(byte-compile-reserved-constants): New var.
+	(byte-compile-constants-vector): Obey it.
+	(byte-compile-constants-vector): Handle new `byte-constant' form.
+	(byte-compile-top-level): Add args `lexenv' and `reserved-csts'.
+	(byte-compile-form): Don't check callargs here.
+	(byte-compile-normal-call): Do it here instead.
+	(byte-compile-push-unknown-constant)
+	(byte-compile-resolve-unknown-constant): Remove, unused.
+	(byte-compile-make-closure): Use `make-byte-code' rather than `curry',
+	putting the environment into the "constant" pool.
+	(byte-compile-get-closed-var): Use special byte-constant.
+	* emacs-lisp/byte-opt.el (byte-optimize-form-code-walker): Handle new
+	intermediate special form `internal-make-vector'.
+	(byte-optimize-lapcode): Handle new form of `byte-constant'.
+	* help-fns.el (describe-function-1): Don't handle funvecs.
+	* emacs-lisp/macroexp.el (macroexpand-all-1): Only convert quote to
+	function if the content is a lambda expression, not if it's a closure.
+	* emacs-lisp/eieio-come.el: Remove.
+	* emacs-lisp/eieio.el: Don't require eieio-comp.
+	(defmethod): Do a bit more work to find the body and wrap it into
+	a function before passing it to eieio-defmethod.
+	(eieio-defmethod): New arg `code' for it.
+	* emacs-lisp/debug.el (debugger-setup-buffer): Don't hide things in
+	debugger backtrace.
+	* emacs-lisp/cl-extra.el (cl-macroexpand-all): Use backquotes, and be
+	more careful when quoting a function value.
+	* emacs-lisp/cconv.el (cconv-freevars): Accept defvar/defconst.
+	(cconv-closure-convert-rec): Catch stray `internal-make-closure'.
+	* Makefile.in (COMPILE_FIRST): Compile pcase and cconv early.
+
 2011-02-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cconv.el (cconv-closure-convert-rec): Let the byte

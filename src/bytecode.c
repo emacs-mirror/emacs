@@ -51,7 +51,7 @@ by Hallvard:
  *
  * define BYTE_CODE_METER to enable generation of a byte-op usage histogram.
  */
-/* #define BYTE_CODE_SAFE  1 */
+/* #define BYTE_CODE_SAFE */
 /* #define BYTE_CODE_METER */
 
 
@@ -1720,8 +1720,13 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  break;
 #endif
 
+	case 0:
+	  /* Actually this is Bstack_ref with offset 0, but we use Bdup
+	     for that instead.  */
+	  /* case Bstack_ref: */
+	  abort ();
+
 	  /* Handy byte-codes for lexical binding.  */
-	  /* case Bstack_ref: */  /* Use `dup' instead.  */
 	case Bstack_ref+1:
 	case Bstack_ref+2:
 	case Bstack_ref+3:

@@ -1155,7 +1155,7 @@ print_preprocess (Lisp_Object obj)
 
  loop:
   if (STRINGP (obj) || CONSP (obj) || VECTORP (obj)
-      || FUNVECP (obj) || CHAR_TABLE_P (obj) || SUB_CHAR_TABLE_P (obj)
+      || COMPILEDP (obj) || CHAR_TABLE_P (obj) || SUB_CHAR_TABLE_P (obj)
       || HASH_TABLE_P (obj)
       || (! NILP (Vprint_gensym)
 	  && SYMBOLP (obj)
@@ -1337,7 +1337,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 
   /* Detect circularities and truncate them.  */
   if (STRINGP (obj) || CONSP (obj) || VECTORP (obj)
-      || FUNVECP (obj) || CHAR_TABLE_P (obj) || SUB_CHAR_TABLE_P (obj)
+      || COMPILEDP (obj) || CHAR_TABLE_P (obj) || SUB_CHAR_TABLE_P (obj)
       || HASH_TABLE_P (obj)
       || (! NILP (Vprint_gensym)
 	  && SYMBOLP (obj)
@@ -1960,7 +1960,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
       else
 	{
 	  EMACS_INT size = XVECTOR (obj)->size;
-	  if (FUNVECP (obj))
+	  if (COMPILEDP (obj))
 	    {
 	      PRINTCHAR ('#');
 	      size &= PSEUDOVECTOR_SIZE_MASK;

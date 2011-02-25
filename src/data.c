@@ -84,7 +84,7 @@ static Lisp_Object Qsymbol, Qstring, Qcons, Qmarker, Qoverlay;
 Lisp_Object Qwindow;
 static Lisp_Object Qfloat, Qwindow_configuration;
 Lisp_Object Qprocess;
-static Lisp_Object Qcompiled_function, Qfunction_vector, Qbuffer, Qframe, Qvector;
+static Lisp_Object Qcompiled_function, Qbuffer, Qframe, Qvector;
 static Lisp_Object Qchar_table, Qbool_vector, Qhash_table;
 static Lisp_Object Qsubrp, Qmany, Qunevalled;
 Lisp_Object Qfont_spec, Qfont_entity, Qfont_object;
@@ -194,11 +194,8 @@ for example, (type-of 1) returns `integer'.  */)
 	return Qwindow;
       if (SUBRP (object))
 	return Qsubr;
-      if (FUNVECP (object))
-	if (FUNVEC_COMPILED_P (object))
-	  return Qcompiled_function;
-	else
-	  return Qfunction_vector;
+      if (COMPILEDP (object))
+	return Qcompiled_function;
       if (BUFFERP (object))
 	return Qbuffer;
       if (CHAR_TABLE_P (object))
@@ -395,13 +392,6 @@ DEFUN ("byte-code-function-p", Fbyte_code_function_p, Sbyte_code_function_p,
   if (COMPILEDP (object))
     return Qt;
   return Qnil;
-}
-
-DEFUN ("funvecp", Ffunvecp, Sfunvecp, 1, 1, 0,
-       doc: /* Return t if OBJECT is a `function vector' object.  */)
-     (Lisp_Object object)
-{
-  return FUNVECP (object) ? Qt : Qnil;
 }
 
 DEFUN ("char-or-string-p", Fchar_or_string_p, Schar_or_string_p, 1, 1, 0,
@@ -2113,9 +2103,9 @@ or a byte-code object.  IDX starts at 0.  */)
     {
       int size = 0;
       if (VECTORP (array))
-	size = ASIZE (array);
-      else if (FUNVECP (array))
-	size = FUNVEC_SIZE (array);
+	size = XVECTOR (array)->size;
+      else if (COMPILEDP (array))
+	size = XVECTOR (array)->size & PSEUDOVECTOR_SIZE_MASK;
       else
 	wrong_type_argument (Qarrayp, array);
 
@@ -3180,7 +3170,6 @@ syms_of_data (void)
   Qwindow = intern_c_string ("window");
   /* Qsubr = intern_c_string ("subr"); */
   Qcompiled_function = intern_c_string ("compiled-function");
-  Qfunction_vector = intern_c_string ("function-vector");
   Qbuffer = intern_c_string ("buffer");
   Qframe = intern_c_string ("frame");
   Qvector = intern_c_string ("vector");
@@ -3206,7 +3195,6 @@ syms_of_data (void)
   staticpro (&Qwindow);
   /* staticpro (&Qsubr); */
   staticpro (&Qcompiled_function);
-  staticpro (&Qfunction_vector);
   staticpro (&Qbuffer);
   staticpro (&Qframe);
   staticpro (&Qvector);
@@ -3243,7 +3231,6 @@ syms_of_data (void)
   defsubr (&Smarkerp);
   defsubr (&Ssubrp);
   defsubr (&Sbyte_code_function_p);
-  defsubr (&Sfunvecp);
   defsubr (&Schar_or_string_p);
   defsubr (&Scar);
   defsubr (&Scdr);

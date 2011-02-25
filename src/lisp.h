@@ -349,7 +349,7 @@ enum pvec_type
   PVEC_NORMAL_VECTOR = 0,
   PVEC_PROCESS = 0x200,
   PVEC_FRAME = 0x400,
-  PVEC_FUNVEC = 0x800,
+  PVEC_COMPILED = 0x800,
   PVEC_WINDOW = 0x1000,
   PVEC_WINDOW_CONFIGURATION = 0x2000,
   PVEC_SUBR = 0x4000,
@@ -607,7 +607,7 @@ extern Lisp_Object make_number (EMACS_INT);
 #define XSETWINDOW(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_WINDOW))
 #define XSETTERMINAL(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_TERMINAL))
 #define XSETSUBR(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_SUBR))
-#define XSETFUNVEC(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_FUNVEC))
+#define XSETCOMPILED(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_COMPILED))
 #define XSETBUFFER(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_BUFFER))
 #define XSETCHAR_TABLE(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_CHAR_TABLE))
 #define XSETBOOL_VECTOR(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_BOOL_VECTOR))
@@ -622,9 +622,6 @@ extern Lisp_Object make_number (EMACS_INT);
   (eassert ((IDX) == (IDX)),				\
    eassert ((IDX) >= 0 && (IDX) < ASIZE (ARRAY)),	\
    AREF ((ARRAY), (IDX)) = (VAL))
-
-/* Return the size of the psuedo-vector object FUNVEC.  */
-#define FUNVEC_SIZE(funvec)	(ASIZE (funvec) & PSEUDOVECTOR_SIZE_MASK)
 
 /* Convenience macros for dealing with Lisp strings.  */
 
@@ -1474,7 +1471,7 @@ struct Lisp_Float
 typedef unsigned char UCHAR;
 #endif
 
-/* Meanings of slots in a byte-compiled function vector:  */
+/* Meanings of slots in a Lisp_Compiled:  */
 
 #define COMPILED_ARGLIST 0
 #define COMPILED_BYTECODE 1
@@ -1483,24 +1480,6 @@ typedef unsigned char UCHAR;
 #define COMPILED_DOC_STRING 4
 #define COMPILED_INTERACTIVE 5
 #define COMPILED_PUSH_ARGS 6
-
-/* Return non-zero if TAG, the first element from a funvec object, refers
-   to a byte-code object.  Byte-code objects are distinguished from other
-   `funvec' objects by having a (possibly empty) list as their first
-   element -- other funvec types use a non-nil symbol there.  */
-#define FUNVEC_COMPILED_TAG_P(tag)					      \
-  (NILP (tag) || CONSP (tag))
-
-/* Return non-zero if FUNVEC, which should be a `funvec' object, is a
-   byte-compiled function. Byte-compiled function are funvecs with the
-   arglist as the first element (other funvec types will have a symbol
-   identifying the type as the first object).  */
-#define FUNVEC_COMPILED_P(funvec)					      \
-  (FUNVEC_SIZE (funvec) > 0 && FUNVEC_COMPILED_TAG_P (AREF (funvec, 0)))
-
-/* Return non-zero if OBJ is byte-compile function.  */
-#define COMPILEDP(obj)							      \
-  (FUNVECP (obj) && FUNVEC_COMPILED_P (obj))
 
 /* Flag bits in a character.  These also get used in termhooks.h.
    Richard Stallman <rms@gnu.ai.mit.edu> thinks that MULE
@@ -1657,7 +1636,7 @@ typedef struct {
 #define WINDOWP(x) PSEUDOVECTORP (x, PVEC_WINDOW)
 #define TERMINALP(x) PSEUDOVECTORP (x, PVEC_TERMINAL)
 #define SUBRP(x) PSEUDOVECTORP (x, PVEC_SUBR)
-#define FUNVECP(x) PSEUDOVECTORP (x, PVEC_FUNVEC)
+#define COMPILEDP(x) PSEUDOVECTORP (x, PVEC_COMPILED)
 #define BUFFERP(x) PSEUDOVECTORP (x, PVEC_BUFFER)
 #define CHAR_TABLE_P(x) PSEUDOVECTORP (x, PVEC_CHAR_TABLE)
 #define SUB_CHAR_TABLE_P(x) PSEUDOVECTORP (x, PVEC_SUB_CHAR_TABLE)
@@ -1851,7 +1830,7 @@ typedef struct {
 #define FUNCTIONP(OBJ)					\
      ((CONSP (OBJ) && EQ (XCAR (OBJ), Qlambda))		\
       || (SYMBOLP (OBJ) && !NILP (Ffboundp (OBJ)))	\
-      || FUNVECP (OBJ)					\
+      || COMPILEDP (OBJ)				\
       || SUBRP (OBJ))
 
 /* defsubr (Sname);
@@ -2725,7 +2704,6 @@ EXFUN (Fmake_list, 2);
 extern Lisp_Object allocate_misc (void);
 EXFUN (Fmake_vector, 2);
 EXFUN (Fvector, MANY);
-EXFUN (Ffunvec, MANY);
 EXFUN (Fmake_symbol, 1);
 EXFUN (Fmake_marker, 0);
 EXFUN (Fmake_string, 2);
@@ -2745,7 +2723,6 @@ extern Lisp_Object make_pure_c_string (const char *data);
 extern Lisp_Object pure_cons (Lisp_Object, Lisp_Object);
 extern Lisp_Object make_pure_vector (EMACS_INT);
 EXFUN (Fgarbage_collect, 0);
-extern Lisp_Object make_funvec (Lisp_Object, int, int, Lisp_Object *);
 EXFUN (Fmake_byte_code, MANY);
 EXFUN (Fmake_bool_vector, 2);
 extern Lisp_Object Qchar_table_extra_slots;

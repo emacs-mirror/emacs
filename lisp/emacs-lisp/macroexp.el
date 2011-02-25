@@ -153,13 +153,14 @@ Assumes the caller has bound `macroexpand-all-environment'."
       ;; here, so that any code that cares about the difference will
       ;; see the same transformation.
       ;; First arg is a function:
-      (`(,(and fun (or `apply `mapcar `mapatoms `mapconcat `mapc)) ',f . ,args)
+      (`(,(and fun (or `apply `mapcar `mapatoms `mapconcat `mapc))
+         ',(and f `(lambda . ,_)) . ,args)
        ;; We don't use `maybe-cons' since there's clearly a change.
        (cons fun
              (cons (macroexpand-all-1 (list 'function f))
                    (macroexpand-all-forms args))))
       ;; Second arg is a function:
-      (`(,(and fun (or `sort)) ,arg1 ',f . ,args)
+      (`(,(and fun (or `sort)) ,arg1 ',(and f `(lambda . ,_)) . ,args)
        ;; We don't use `maybe-cons' since there's clearly a change.
        (cons fun
              (cons (macroexpand-all-1 arg1)

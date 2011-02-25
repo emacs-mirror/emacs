@@ -1,3 +1,23 @@
+2011-02-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Qcurry): Remove.
+	(funcall_funvec): Remove.
+	(funcall_lambda): Move new byte-code handling to reduce impact.
+	Treat all args as lexical in the case of lexbind.
+	(Fcurry): Remove.
+	* data.c (Qfunction_vector): Remove.
+	(Ffunvecp): Remove.
+	* lread.c (read1): Revert to calling make_byte_code here.
+	(read_vector): Don't call make_byte_code any more.
+	* lisp.h (enum pvec_type): Rename back to PVEC_COMPILED.
+	(XSETCOMPILED): Rename back from XSETFUNVEC.
+	(FUNVEC_SIZE): Remove.
+	(FUNVEC_COMPILED_TAG_P, FUNVEC_COMPILED_P): Remove.
+	(COMPILEDP): Rename back from FUNVECP.
+	* fns.c (Felt): Remove unexplained FUNVEC check.
+	* doc.c (Fdocumentation): Don't handle funvec.
+	* alloc.c (make_funvec, Ffunvec): Remove.
+
 2011-02-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* bytecode.c (exec_byte_code): Change stack_ref and stack_set to use
@@ -112,6 +132,42 @@
 	(Fcurry): Remove function.
 
 	Merge funvec patch.
+
+2004-05-20  Miles Bader  <miles@gnu.org>
+
+	* lisp.h: Declare make_funvec and Ffunvec.
+	(enum pvec_type): Rename `PVEC_COMPILED' to `PVEC_FUNVEC'.
+	(XSETFUNVEC): Rename from `XSETCOMPILED'.
+	(FUNVEC_SIZE, FUNVEC_COMPILED_TAG_P, FUNVEC_COMPILED_P): New macros.
+	(COMPILEDP): Define in terms of funvec macros.
+	(FUNVECP, GC_FUNVECP): Rename from `COMPILEDP' & `GC_COMPILEDP'.
+	(FUNCTIONP): Use FUNVECP instead of COMPILEDP.
+	* alloc.c (make_funvec, funvec): New functions.
+	(Fmake_byte_code): Make sure the first element is a list.
+
+	* eval.c (Qcurry): New variable.
+	(funcall_funvec, Fcurry): New functions.
+	(syms_of_eval): Initialize them.
+	(funcall_lambda): Handle non-bytecode funvec objects by calling
+	funcall_funvec.
+	(Ffuncall, Feval): Use FUNVECP insetad of COMPILEDP.
+	* lread.c (read1): Return result of read_vector for `#[' syntax
+	directly; read_vector now does any extra work required.
+	(read_vector): Handle both funvec and byte-code objects, converting the
+	type as necessary.  `bytecodeflag' argument is now called
+	`read_funvec'.
+	* data.c (Ffunvecp): New function.
+	* doc.c (Fdocumentation): Return nil for unknown funvecs.
+	* fns.c (mapcar1, Felt, concat): Allow funvecs.
+
+	* eval.c (Ffunctionp): Use `funvec' operators instead of `compiled'
+	operators.
+	* alloc.c (Fmake_byte_code, Fpurecopy, mark_object): Likewise.
+	* keyboard.c (Fcommand_execute): Likewise.
+	* image.c (parse_image_spec): Likewise.
+	* fns.c (Flength, concat, internal_equal): Likewise.
+	* data.c (Faref, Ftype_of): Likewise.
+	* print.c (print_preprocess, print_object): Likewise.
 
 2004-04-10  Miles Bader  <miles@gnu.org>
 

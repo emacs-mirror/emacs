@@ -60,7 +60,6 @@ Lisp_Object Qinhibit_quit;
 Lisp_Object Qand_rest, Qand_optional;
 Lisp_Object Qdebug_on_error;
 Lisp_Object Qdeclare;
-Lisp_Object Qcurry;
 Lisp_Object Qinternal_interpreter_environment, Qclosure;
 
 Lisp_Object Qdebug;
@@ -2405,7 +2404,7 @@ eval_sub (Lisp_Object form)
 	    }
 	}
     }
-  else if (FUNVECP (fun))
+  else if (COMPILEDP (fun))
     val = apply_lambda (fun, original_args);
   else
     {
@@ -2890,7 +2889,7 @@ DEFUN ("functionp", Ffunctionp, Sfunctionp, 1, 1, 0,
 
   if (SUBRP (object))
     return (XSUBR (object)->max_args != UNEVALLED) ? Qt : Qnil;
-  else if (FUNVECP (object))
+  else if (COMPILEDP (object))
     return Qt;
   else if (CONSP (object))
     {
@@ -3034,7 +3033,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 	    }
 	}
     }
-  else if (FUNVECP (fun))
+  else if (COMPILEDP (fun))
     val = funcall_lambda (fun, numargs, args + 1);
   else
     {
@@ -3107,54 +3106,6 @@ apply_lambda (Lisp_Object fun, Lisp_Object args)
   return tem;
 }
 
-
-/* Call a non-bytecode funvec object FUN, on the argments in ARGS (of
-   length NARGS).  */
-
-static Lisp_Object
-funcall_funvec (Lisp_Object fun, int nargs, Lisp_Object *args)
-{
-  int size = FUNVEC_SIZE (fun);
-  Lisp_Object tag = (size > 0 ? AREF (fun, 0) : Qnil);
-
-  if (EQ (tag, Qcurry))
-    {
-      /* A curried function is a way to attach arguments to a another
-	 function. The first element of the vector is the identifier
-	 `curry', the second is the wrapped function, and remaining
-	 elements are the attached arguments.  */
-      int num_curried_args = size - 2;
-      /* Offset of the curried and user args in the final arglist.  Curried
-	 args are first in the new arg vector, after the function.  User
-	 args follow.  */
-      int curried_args_offs = 1;
-      int user_args_offs = curried_args_offs + num_curried_args;
-      /* The curried function and arguments.  */
-      Lisp_Object *curry_params = XVECTOR (fun)->contents + 1;
-      /* The arguments in the curry vector.  */
-      Lisp_Object *curried_args = curry_params + 1;
-      /* The number of arguments with which we'll call funcall, and the
-	 arguments themselves.  */
-      int num_funcall_args = 1 + num_curried_args + nargs;
-      Lisp_Object *funcall_args
-	= (Lisp_Object *) alloca (num_funcall_args * sizeof (Lisp_Object));
-
-      /* First comes the real function.  */
-      funcall_args[0] = curry_params[0];
-
-      /* Then the arguments in the appropriate order.  */
-      memcpy (funcall_args + curried_args_offs, curried_args,
-	      num_curried_args * sizeof (Lisp_Object));
-      memcpy (funcall_args + user_args_offs, args,
-	      nargs * sizeof (Lisp_Object));
-
-      return Ffuncall (num_funcall_args, funcall_args);
-    }
-  else
-    xsignal1 (Qinvalid_function, fun);
-}
-
-
 /* Apply a Lisp function FUN to the NARGS evaluated arguments in ARG_VECTOR
    and return the result of evaluation.
    FUN must be either a lambda-expression or a compiled-code object.  */
@@ -3166,34 +3117,6 @@ funcall_lambda (Lisp_Object fun, int nargs,
   Lisp_Object val, syms_left, next, lexenv;
   int count = SPECPDL_INDEX ();
   int i, optional, rest;
-
-  if (COMPILEDP (fun)
-      && FUNVEC_SIZE (fun) > COMPILED_PUSH_ARGS
-      && ! NILP (XVECTOR (fun)->contents[COMPILED_PUSH_ARGS]))
-    /* A byte-code object with a non-nil `push args' slot means we
-       shouldn't bind any arguments, instead just call the byte-code
-       interpreter directly; it will push arguments as necessary.
-
-       Byte-code objects with either a non-existant, or a nil value for
-       the `push args' slot (the default), have dynamically-bound
-       arguments, and use the argument-binding code below instead (as do
-       all interpreted functions, even lexically bound ones).  */
-    {
-      /* If we have not actually read the bytecode string
-	 and constants vector yet, fetch them from the file.  */
-      if (CONSP (AREF (fun, COMPILED_BYTECODE)))
-	Ffetch_bytecode (fun);
-      return exec_byte_code (AREF (fun, COMPILED_BYTECODE),
-			     AREF (fun, COMPILED_CONSTANTS),
-			     AREF (fun, COMPILED_STACK_DEPTH),
-			     AREF (fun, COMPILED_ARGLIST),
-			     nargs, arg_vector);
-    }
-
-  if (FUNVECP (fun) && !FUNVEC_COMPILED_P (fun))
-    /* Byte-compiled functions are handled directly below, but we
-       call other funvec types via funcall_funvec.  */
-    return funcall_funvec (fun, nargs, arg_vector);
 
   if (CONSP (fun))
     {
@@ -3213,6 +3136,27 @@ funcall_lambda (Lisp_Object fun, int nargs,
     }
   else if (COMPILEDP (fun))
     {
+      if ((ASIZE (fun) & PSEUDOVECTOR_SIZE_MASK) > COMPILED_PUSH_ARGS
+	  && ! NILP (XVECTOR (fun)->contents[COMPILED_PUSH_ARGS]))
+	/* A byte-code object with a non-nil `push args' slot means we
+	   shouldn't bind any arguments, instead just call the byte-code
+	   interpreter directly; it will push arguments as necessary.
+
+	   Byte-code objects with either a non-existant, or a nil value for
+	   the `push args' slot (the default), have dynamically-bound
+	   arguments, and use the argument-binding code below instead (as do
+	   all interpreted functions, even lexically bound ones).  */
+	{
+	  /* If we have not actually read the bytecode string
+	     and constants vector yet, fetch them from the file.  */
+	  if (CONSP (AREF (fun, COMPILED_BYTECODE)))
+	    Ffetch_bytecode (fun);
+	  return exec_byte_code (AREF (fun, COMPILED_BYTECODE),
+				 AREF (fun, COMPILED_CONSTANTS),
+				 AREF (fun, COMPILED_STACK_DEPTH),
+				 AREF (fun, COMPILED_ARGLIST),
+				 nargs, arg_vector);
+	}
       syms_left = AREF (fun, COMPILED_ARGLIST);
       lexenv = Qnil;
     }
@@ -3248,11 +3192,7 @@ funcall_lambda (Lisp_Object fun, int nargs,
 	    val = Qnil;
 	    
 	  /* Bind the argument.  */
-	  if (!NILP (lexenv) && SYMBOLP (next)
-	      /* FIXME: there's no good reason to allow dynamic-scoping
-		 on function arguments, other than consistency with let.  */
-	      && !XSYMBOL (next)->declared_special
-	      && NILP (Fmemq (next, Vinternal_interpreter_environment)))
+	  if (!NILP (lexenv) && SYMBOLP (next))
 	    /* Lexically bind NEXT by adding it to the lexenv alist.  */
 	    lexenv = Fcons (Fcons (next, val), lexenv);
 	  else
@@ -3532,24 +3472,6 @@ context where binding is lexical by default.  */)
 
 
 
-DEFUN ("curry", Fcurry, Scurry, 1, MANY, 0,
-       doc: /* Return FUN curried with ARGS.
-The result is a function-like object that will append any arguments it
-is called with to ARGS, and call FUN with the resulting list of arguments.
-
-For instance:
-  (funcall (curry '+ 3 4 5) 2) is the same as (funcall '+ 3 4 5 2)
-and:
-  (mapcar (curry 'concat "The ") '("a" "b" "c"))
-  => ("The a" "The b" "The c")
-
-usage: (curry FUN &rest ARGS)  */)
-     (int nargs, Lisp_Object *args)
-{
-  return make_funvec (Qcurry, 0, nargs, args);
-}
-
-
 DEFUN ("backtrace-debug", Fbacktrace_debug, Sbacktrace_debug, 2, 2, 0,
        doc: /* Set the debug-on-exit flag of eval frame LEVEL levels down to FLAG.
 The debugger is entered when that frame exits, if the flag is non-nil.  */)
@@ -3764,9 +3686,6 @@ before making `inhibit-quit' nil.  */);
   Qclosure = intern_c_string ("closure");
   staticpro (&Qclosure);
 
-  Qcurry = intern_c_string ("curry");
-  staticpro (&Qcurry);
-
   Qdebug = intern_c_string ("debug");
   staticpro (&Qdebug);
 
@@ -3901,11 +3820,9 @@ alist of active lexical bindings.  */);
   defsubr (&Srun_hook_with_args_until_success);
   defsubr (&Srun_hook_with_args_until_failure);
   defsubr (&Sfetch_bytecode);
-  defsubr (&Scurry);
   defsubr (&Sbacktrace_debug);
   defsubr (&Sbacktrace);
   defsubr (&Sbacktrace_frame);
-  defsubr (&Scurry);
   defsubr (&Sspecial_variable_p);
   defsubr (&Sfunctionp);
 }

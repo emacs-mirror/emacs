@@ -127,8 +127,8 @@ To get the number of bytes, use `string-bytes'.  */)
     XSETFASTINT (val, MAX_CHAR);
   else if (BOOL_VECTOR_P (sequence))
     XSETFASTINT (val, XBOOL_VECTOR (sequence)->size);
-  else if (FUNVECP (sequence))
-    XSETFASTINT (val, FUNVEC_SIZE (sequence));
+  else if (COMPILEDP (sequence))
+    XSETFASTINT (val, ASIZE (sequence) & PSEUDOVECTOR_SIZE_MASK);
   else if (CONSP (sequence))
     {
       i = 0;
@@ -488,7 +488,7 @@ concat (int nargs, Lisp_Object *args, enum Lisp_Type target_type, int last_speci
     {
       this = args[argnum];
       if (!(CONSP (this) || NILP (this) || VECTORP (this) || STRINGP (this)
-	    || FUNVECP (this) || BOOL_VECTOR_P (this)))
+	    || COMPILEDP (this) || BOOL_VECTOR_P (this)))
 	wrong_type_argument (Qsequencep, this);
     }
 
@@ -512,7 +512,7 @@ concat (int nargs, Lisp_Object *args, enum Lisp_Type target_type, int last_speci
 	  Lisp_Object ch;
 	  EMACS_INT this_len_byte;
 
-	  if (VECTORP (this) || FUNVECP (this))
+	  if (VECTORP (this) || COMPILEDP (this))
 	    for (i = 0; i < len; i++)
 	      {
 		ch = AREF (this, i);
@@ -1311,9 +1311,7 @@ DEFUN ("elt", Felt, Selt, 2, 2, 0,
     return Fcar (Fnthcdr (n, sequence));
 
   /* Faref signals a "not array" error, so check here.  */
-  if (! FUNVECP (sequence))
-    CHECK_ARRAY (sequence, Qsequencep);
-
+  CHECK_ARRAY (sequence, Qsequencep);
   return Faref (sequence, n);
 }
 
@@ -2092,14 +2090,13 @@ internal_equal (register Lisp_Object o1, register Lisp_Object o2, int depth, int
 	if (WINDOW_CONFIGURATIONP (o1))
 	  return compare_window_configurations (o1, o2, 0);
 
-	/* Aside from them, only true vectors, char-tables, function vectors,
-	   and fonts (font-spec, font-entity, font-ojbect) are sensible to
-	   compare, so eliminate the others now.  */
+	/* Aside from them, only true vectors, char-tables, compiled
+	   functions, and fonts (font-spec, font-entity, font-ojbect)
+	   are sensible to compare, so eliminate the others now.  */
 	if (size & PSEUDOVECTOR_FLAG)
 	  {
-	    if (!(size & (PVEC_FUNVEC
-			  | PVEC_CHAR_TABLE | PVEC_SUB_CHAR_TABLE
-			  | PVEC_FONT)))
+	    if (!(size & (PVEC_COMPILED
+			  | PVEC_CHAR_TABLE | PVEC_SUB_CHAR_TABLE | PVEC_FONT)))
 	      return 0;
 	    size &= PSEUDOVECTOR_SIZE_MASK;
 	  }
@@ -2302,7 +2299,7 @@ mapcar1 (EMACS_INT leni, Lisp_Object *vals, Lisp_Object fn, Lisp_Object seq)
     1) lists are not relocated and 2) the list is marked via `seq' so will not
     be freed */
 
-  if (VECTORP (seq) || FUNVECP (seq))
+  if (VECTORP (seq) || COMPILEDP (seq))
     {
       for (i = 0; i < leni; i++)
 	{

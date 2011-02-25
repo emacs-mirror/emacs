@@ -47,19 +47,14 @@
 ;; (lambda (v1 ...) ... fv1 fv2 ...) => (lambda (v1 ... fv1 fv2 ) ... fv1 fv2 .)
 ;; if the function is suitable for lambda lifting (if all calls are known)
 ;;
-;; (lambda (v1 ...) ... fv ...)  =>
-;; (curry (lambda (env v1 ...) ... env ...) env)
-;; if the function has only 1 free variable
-;;
-;; and finally
-;; (lambda (v1 ...) ... fv1 fv2 ...)  =>
-;; (curry (lambda (env v1 ..) .. (aref env 0) (aref env 1) ..) (vector fv1 fv2))
-;; if the function has 2 or more free variables.
+;; (lambda (v0 ...) ... fv0 .. fv1 ...)  =>
+;; (internal-make-closure (v0 ...) (fv1 ...)
+;;   ... (internal-get-closed-var 0) ...  (internal-get-closed-var 1) ...)
 ;;
 ;; If the function has no free variables, we don't do anything.
 ;;
 ;; If a variable is mutated (updated by setq), and it is used in a closure
-;; we wrap it's definition with list: (list val) and we also replace
+;; we wrap its definition with list: (list val) and we also replace
 ;; var => (car var) wherever this variable is used, and also
 ;; (setq var value) => (setcar var value) where it is updated.
 ;;
@@ -71,15 +66,12 @@
 ;;; Code:
 
 ;;; TODO:
+;; - pay attention to `interactive': its arg is run in an empty env.
 ;; - canonize code in macro-expand so we don't have to handle (let (var) body)
 ;;   and other oddities.
 ;; - Change new byte-code representation, so it directly gives the
 ;;   number of mandatory and optional arguments as well as whether or
 ;;   not there's a &rest arg.
-;; - Use abstract `make-closure' and `closure-ref' expressions, which bytecomp
-;;   should turn into building corresponding byte-code function.
-;; - don't use `curry', instead build a new compiled-byte-code object
-;;   (merge the closure env into the static constants pool).
 ;; - warn about unused lexical vars.
 ;; - clean up cconv-closure-convert-rec, especially the `let' binding part.
 ;; - new byte codes for unwind-protect, catch, and condition-case so that
@@ -184,8 +176,8 @@ Returns a list of free variables."
      ;; We call cconv-freevars only for functions(lambdas)
      ;; defun, defconst, defvar are not allowed to be inside
      ;; a function (lambda).
-     ;; FIXME: should be a byte-compile-report-error!
-     (error "Invalid form: %s inside a function" sym))
+     ;; (error "Invalid form: %s inside a function" sym)
+     (cconv-freevars `(progn ,@(cddr form)) fvrs))
 
     (`(,_ . ,body-forms)    ; First element is (like) a function.
      (dolist (exp body-forms)
@@ -537,6 +529,9 @@ Returns a form where all lambdas don't have any free variables."
          `(internal-make-closure
            ,vars ,envector . ,body-forms-new)))))
 
+    (`(internal-make-closure . ,_)
+     (error "Internal byte-compiler error: cconv called twice"))
+
     (`(function . ,_) form)             ; Same as quote.
 
 					;defconst, defvar
@@ -599,20 +594,18 @@ Returns a form where all lambdas don't have any free variables."
 
 					;condition-case
     (`(condition-case ,var ,protected-form . ,handlers)
-     (let ((handlers-new '())
-           (newform (cconv-closure-convert-rec
+     (let ((newform (cconv-closure-convert-rec
                      `(function (lambda () ,protected-form))
                      emvrs fvrs envs lmenvs)))
        (setq fvrs (remq var fvrs))
-       (dolist (handler handlers)
-         (push (list (car handler)
-                     (cconv-closure-convert-rec
-                      `(function (lambda (,(or var cconv--dummy-var))
-                                   ,@(cdr handler)))
-                      emvrs fvrs envs lmenvs))
-               handlers-new))
        `(condition-case :fun-body ,newform
-          ,@(nreverse handlers-new))))
+	  ,@(mapcar (lambda (handler)
+                      (list (car handler)
+                            (cconv-closure-convert-rec
+                             (let ((arg (or var cconv--dummy-var)))
+                               `(function (lambda (,arg) ,@(cdr handler))))
+                             emvrs fvrs envs lmenvs)))
+                    handlers))))
 
     (`(,(and head (or `catch `unwind-protect)) ,form . ,body)
      `(,head ,(cconv-closure-convert-rec form emvrs fvrs envs lmenvs)

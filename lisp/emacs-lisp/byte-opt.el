@@ -531,7 +531,11 @@
 	   ;; However, don't actually bother calling `ignore'.
 	   `(prog1 nil . ,(mapcar 'byte-optimize-form (cdr form))))
 
+          ((eq fn 'internal-make-closure)
+           form)
+          
 	  ((not (symbolp fn))
+           (debug)
 	   (byte-compile-warn "`%s' is a malformed function"
 			      (prin1-to-string fn))
 	   form)
@@ -1472,7 +1476,8 @@
     byte-cdr-safe byte-cons byte-list1 byte-list2 byte-point byte-point-max
     byte-point-min byte-following-char byte-preceding-char
     byte-current-column byte-eolp byte-eobp byte-bolp byte-bobp
-    byte-current-buffer byte-stack-ref))
+    byte-current-buffer byte-stack-ref ;; byte-closed-var
+    ))
 
 (defconst byte-compile-side-effect-free-ops
   (nconc
@@ -1680,11 +1685,18 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	      ;; const goto-if-* --> whatever
 	      ;;
 	      ((and (eq 'byte-constant (car lap0))
-		    (memq (car lap1) byte-conditional-ops))
+		    (memq (car lap1) byte-conditional-ops)
+                    ;; If the `byte-constant's cdr is not a cons cell, it has
+                    ;; to be an index into the constant pool); even though
+                    ;; it'll be a constant, that constant is not known yet
+                    ;; (it's typically a free variable of a closure, so will
+                    ;; only be known when the closure will be built at
+                    ;; run-time).
+                    (consp (cdr lap0)))
 	       (cond ((if (or (eq (car lap1) 'byte-goto-if-nil)
-			      (eq (car lap1) 'byte-goto-if-nil-else-pop))
-			  (car (cdr lap0))
-			(not (car (cdr lap0))))
+                              (eq (car lap1) 'byte-goto-if-nil-else-pop))
+                          (car (cdr lap0))
+                        (not (car (cdr lap0))))
 		      (byte-compile-log-lap "  %s %s\t-->\t<deleted>"
 					    lap0 lap1)
 		      (setq rest (cdr rest)
@@ -1696,11 +1708,11 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 		      (when (memq (car lap1) byte-goto-always-pop-ops)
 			(setq lap (delq lap0 lap)))
 		      (setcar lap1 'byte-goto)))
-	       (setq keep-going t))
+               (setq keep-going t))
 	      ;;
 	      ;; varref-X varref-X  -->  varref-X dup
 	      ;; varref-X [dup ...] varref-X  -->  varref-X [dup ...] dup
-	      ;; stackref-X [dup ...] stackref-X+N  -->  stackref-X [dup ...] dup
+	      ;; stackref-X [dup ...] stackref-X+N --> stackref-X [dup ...] dup
 	      ;; We don't optimize the const-X variations on this here,
 	      ;; because that would inhibit some goto optimizations; we
 	      ;; optimize the const-X case after all other optimizations.
@@ -1877,18 +1889,21 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 			    (cons 'byte-discard byte-conditional-ops)))
 		    (not (eq lap1 (car tmp))))
 	       (setq tmp2 (car tmp))
-	       (cond ((memq (car tmp2)
-			    (if (null (car (cdr lap0)))
-				'(byte-goto-if-nil byte-goto-if-nil-else-pop)
-			      '(byte-goto-if-not-nil
-				byte-goto-if-not-nil-else-pop)))
+	       (cond ((when (consp (cdr lap0))
+		        (memq (car tmp2)
+			      (if (null (car (cdr lap0)))
+				  '(byte-goto-if-nil byte-goto-if-nil-else-pop)
+				'(byte-goto-if-not-nil
+				  byte-goto-if-not-nil-else-pop))))
 		      (byte-compile-log-lap "  %s goto [%s]\t-->\t%s %s"
 					    lap0 tmp2 lap0 tmp2)
 		      (setcar lap1 (car tmp2))
 		      (setcdr lap1 (cdr tmp2))
 		      ;; Let next step fix the (const,goto-if*) sequence.
-		      (setq rest (cons nil rest)))
-		     (t
+		      (setq rest (cons nil rest))
+		      (setq keep-going t))
+		     ((or (consp (cdr lap0))
+			  (eq (car tmp2) 'byte-discard))
 		      ;; Jump one step further
 		      (byte-compile-log-lap
 		       "  %s goto [%s]\t-->\t<deleted> goto <skip>"
@@ -1897,8 +1912,8 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 			  (setcdr tmp (cons (byte-compile-make-tag)
 					    (cdr tmp))))
 		      (setcdr lap1 (car (cdr tmp)))
-		      (setq lap (delq lap0 lap))))
-	       (setq keep-going t))
+		      (setq lap (delq lap0 lap))
+		      (setq keep-going t))))
 	      ;;
 	      ;; X: varref-Y    ...     varset-Y goto-X  -->
 	      ;; X: varref-Y Z: ... dup varset-Y goto-Z
