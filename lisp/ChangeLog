@@ -1,3 +1,13 @@
+2011-02-25  Jambunathan K  <kjambunathan@gmail.com>
+
+	* emacs-lisp/package-x.el (package--archive-contents-from-url)
+	(package--archive-contents-from-file): New functions.
+	(package-update-news-on-upload): New var.
+	(package-upload-buffer-internal): Extract archive-contents from
+	package-archive-upload-base if it is not found at archive-url.
+	Obey package-update-news-on-upload.
+	(package-upload-buffer, package-upload-file): Doc fix.
+
 2011-02-24  Glenn Morris  <rgm@gnu.org>
 
 	* files-x.el (modify-dir-local-variable): Handle dir-locals from
