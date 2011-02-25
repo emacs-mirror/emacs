@@ -1,3 +1,36 @@
+2011-02-25  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-save-behavior): New variable to replace
+	`auth-source-never-create'.
+	(auth-source-netrc-create): Use it.
+	(auth-source-never-save): Remove.
+
+2011-02-25  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-stream): Doc fix.
+	(nnimap-open-connection-1): Reverse the order of the ports to that the
+	prompted-for port is first.
+
+	* gnus-start.el (gnus-get-unread-articles): Don't clobber the async
+	retrieval by the no-group selection.
+
+	* gnus-demon.el (gnus-demon-init): run-with-timer should be called with
+	numerical parameters.
+
+2011-02-24  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-creation-prompts): New variable to manage
+	creation-time prompts.
+	(auth-source-search): Document it.
+	(auth-source-format-prompt): Add utility function.
+	(auth-source-netrc-create): Don't default the user name to
+	user-login-name.  Use `auth-source-creation-prompts' and some default
+	prompts for user, host, port, and password (the default generic prompt
+	remains ugly).
+	(auth-source-never-save): Add customizable option to never save info.
+	(auth-source-netrc-create): Use it and improve save prompts.  Fix help
+	mode excursion.
+
 2011-02-24  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* auth-source.el (auth-source-netrc-create): Use `read-char' with no

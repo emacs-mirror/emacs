@@ -137,7 +137,20 @@ let-binding."
 (defvar auth-source-creation-defaults nil
   "Defaults for creating token values.  Usually let-bound.")
 
+(defvar auth-source-creation-prompts nil
+  "Default prompts for token values.  Usually let-bound.")
+
 (make-obsolete 'auth-source-hide-passwords nil "Emacs 24.1")
+
+(defcustom auth-source-save-behavior 'ask
+  "If set, auth-source will respect it for save behavior."
+  :group 'auth-source
+  :version "23.2" ;; No Gnus
+  :type `(choice
+          :tag "auth-source new token save behavior"
+          (const :tag "Always save" t)
+          (const :tag "Never save" nil)
+          (const :tag "Ask" ask)))
 
 (defvar auth-source-magic "auth-source-magic ")
 
@@ -435,12 +448,18 @@ parameter, that parameter will be required in the resulting
 token.  The value for that parameter will be obtained from the
 search parameters or from user input.  If any queries are needed,
 the alist `auth-source-creation-defaults' will be checked for the
-default prompt.
+default value.  If the user, host, or port are missing, the alist
+`auth-source-creation-prompts' will be used to look up the
+prompts IN THAT ORDER (so the 'user prompt will be queried first,
+then 'host, then 'port, and finally 'secret).  Each prompt string
+can use %u, %h, and %p to show the user, host, and port.
 
 Here's an example:
 
 \(let ((auth-source-creation-defaults '((user . \"defaultUser\")
-                                        (A    . \"default A\"))))
+                                        (A    . \"default A\")))
+       (auth-source-creation-prompts
+        '((password . \"Enter IMAP password for %h:%p: \"))))
   (auth-source-search :host '(\"nonesuch\" \"twosuch\") :type 'netrc :max 1
                       :P \"pppp\" :Q \"qqqq\"
                       :create '(A B Q)))
@@ -452,12 +471,11 @@ which says:
 
  Create a new entry if you found none.  The netrc backend will
  automatically require host, user, and port.  The host will be
- 'nonesuch' and Q will be 'qqqq'.  We prompt for A with default
- 'default A', for B and port with default nil, and for the
- user with default 'defaultUser'.  We will not prompt for Q.  The
- resulting token will have keys user, host, port, A, B, and Q.
- It will not have P with any value, even though P is used in the
- search to find only entries that have P set to 'pppp'.\"
+ 'nonesuch' and Q will be 'qqqq'.  We prompt for the password
+ with the shown prompt.  We will not prompt for Q.  The resulting
+ token will have keys user, host, port, A, B, and Q.  It will not
+ have P with any value, even though P is used in the search to
+ find only entries that have P set to 'pppp'.\"
 
 When multiple values are specified in the search parameter, the
 user is prompted for which one.  So :host (X Y Z) would ask the
@@ -903,6 +921,17 @@ See `auth-source-search' for details on SPEC."
       (nth 0 v)
     v))
 
+;; (auth-source-format-prompt "test %u %h %p" '((?u "user") (?h "host")))
+
+(defun auth-source-format-prompt (prompt alist)
+  "Format PROMPT using %x (for any character x) specifiers in ALIST."
+  (dolist (cell alist)
+    (let ((c (nth 0 cell))
+          (v (nth 1 cell)))
+      (when (and c v)
+        (setq prompt (replace-regexp-in-string (format "%%%c" c) v prompt)))))
+  prompt)
+
 ;;; (auth-source-search :host "nonesuch" :type 'netrc :max 1 :create t)
 ;;; (auth-source-search :host "nonesuch" :type 'netrc :max 1 :create t :create-extra-keys '((A "default A") (B)))
 
@@ -954,31 +983,50 @@ See `auth-source-search' for details on SPEC."
              ;; the default supplementals are simple: for the user,
              ;; try (user-login-name), otherwise take given-default
              (default (cond
-                       ((and (not given-default) (eq r 'user))
-                        (user-login-name))
-                       (t given-default))))
+                       ;; don't default the user name
+                       ;; ((and (not given-default) (eq r 'user))
+                       ;;  (user-login-name))
+                       (t given-default)))
+             (printable-defaults (list
+                                  (cons 'user
+                                        (or
+                                         (auth-source-netrc-element-or-first
+                                          (aget valist 'user))
+                                         (plist-get artificial :user)
+                                         "[any user]"))
+                                  (cons 'host
+                                        (or
+                                         (auth-source-netrc-element-or-first
+                                          (aget valist 'host))
+                                         (plist-get artificial :host)
+                                         "[any host]"))
+                                  (cons 'port
+                                        (or
+                                         (auth-source-netrc-element-or-first
+                                          (aget valist 'port))
+                                         (plist-get artificial :port)
+                                         "[any port]"))))
+             (prompt (or (aget auth-source-creation-prompts r)
+                         (case r
+                           ('secret "%p password for user %u, host %h: ")
+                           ('user "%p user name: ")
+                           ('host "%p host name for user %u: ")
+                           ('port "%p port for user %u and host %h: "))
+                         (format "Enter %s (%%u@%%h:%%p): " r)))
+             (prompt (auth-source-format-prompt
+                      prompt
+                      `((?u ,(aget printable-defaults 'user))
+                        (?h ,(aget printable-defaults 'host))
+                        (?p ,(aget printable-defaults 'port))))))
 
         ;; store the data, prompting for the password if needed
         (setq data
               (cond
                ((and (null data) (eq r 'secret))
                 ;; special case prompt for passwords
-                (read-passwd (format "Password for %s@%s:%s: "
-                                     (or
-                                      (auth-source-netrc-element-or-first
-                                       (aget valist 'user))
-                                      (plist-get artificial :user)
-                                      "[any user]")
-                                     (or
-                                      (auth-source-netrc-element-or-first
-                                       (aget valist 'host))
-                                      (plist-get artificial :host)
-                                      "[any host]")
-                                     (or
-                                      (auth-source-netrc-element-or-first
-                                       (aget valist 'port))
-                                      (plist-get artificial :port)
-                                      "[any port]"))))
+                (read-passwd prompt))
+               ((null data)
+                (read-string prompt default))
                (t (or data default))))
 
         (when data
@@ -1026,21 +1074,41 @@ See `auth-source-search' for details on SPEC."
       (goto-char (point-max))
 
       ;; ask AFTER we've successfully opened the file
-      (let ((prompt (format "Add to file %s? %s: "
+      (let ((prompt (format "Save auth info to file %s? %s: "
                             file
-                            "(y)es/(n)o but use it/(e)dit line/(s)kip file"))
-            done k)
+                            "y/n/N/e/?"))
+            (done (not (eq auth-source-save-behavior 'ask)))
+            (bufname "*auth-source Help*")
+            k)
         (while (not done)
-	  (message "%s" prompt)
+          (message "%s" prompt)
           (setq k (read-char))
           (case k
             (?y (setq done t))
+            (?? (save-excursion
+                  (with-output-to-temp-buffer bufname
+                    (princ
+                     (concat "(y)es, save\n"
+                             "(n)o but use the info\n"
+                             "(N)o and don't ask to save again\n"
+                             "(e)dit the line\n"
+                             "(?) for help as you can see.\n"))
+                  (set-buffer standard-output)
+                  (help-mode))))
             (?n (setq add ""
                       done t))
-            (?s (setq add ""
-                      done 'skip))
+            (?N (setq add ""
+                      done t
+                      auth-source-save-behavior nil))
             (?e (setq add (read-string "Line to add: " add)))
             (t nil)))
+
+        (when (get-buffer-window bufname)
+          (delete-window (get-buffer-window bufname)))
+
+        ;; make sure the info is not saved
+        (when (null auth-source-save-behavior)
+          (setq add ""))
 
         (when (< 0 (length add))
           (progn

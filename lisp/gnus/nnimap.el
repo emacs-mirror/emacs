@@ -62,8 +62,9 @@ it will default to `imap'.")
 
 (defvoo nnimap-stream 'undecided
   "How nnimap will talk to the IMAP server.
-Values are `ssl', `network', `starttls' or `shell'.
-The default is to try `ssl' first, and then `network'.")
+Values are `ssl', `network', `network-only, `starttls' or
+`shell'.  The default is to try `ssl' first, and then
+`network'.")
 
 (defvoo nnimap-shell-program (if (boundp 'imap-shell-program)
 				 (if (listp imap-shell-program)
@@ -337,7 +338,7 @@ textual parts.")
 		  (eq nnimap-stream 'starttls))
 	      (nnheader-message 7 "Opening connection to %s..."
 				nnimap-address)
-	      '("143" "imap"))
+	      '("imap" "143"))
 	     ((eq nnimap-stream 'shell)
 	      (nnheader-message 7 "Opening connection to %s via shell..."
 				nnimap-address)
@@ -345,16 +346,16 @@ textual parts.")
 	     ((memq nnimap-stream '(ssl tls))
 	      (nnheader-message 7 "Opening connection to %s via tls..."
 				nnimap-address)
-	      '("143" "993" "imap" "imaps"))
+	      '("imaps" "imap" "993" "143"))
 	     (t
 	      (error "Unknown stream type: %s" nnimap-stream))))
 	   (proto-stream-always-use-starttls t)
            login-result credentials)
       (when nnimap-server-port
-	(setq ports (append ports (list nnimap-server-port))))
+	(push nnimap-server-port ports))
       (destructuring-bind (stream greeting capabilities stream-type)
 	  (open-protocol-stream
-	   "*nnimap*" (current-buffer) nnimap-address (car (last ports))
+	   "*nnimap*" (current-buffer) nnimap-address (car ports)
 	   :type nnimap-stream
 	   :shell-command nnimap-shell-program
 	   :capability-command "1 CAPABILITY\r\n"
