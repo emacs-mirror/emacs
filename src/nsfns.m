@@ -1,6 +1,7 @@
 /* Functions for the NeXT/Open/GNUstep and MacOSX window system.
-   Copyright (C) 1989, 1992, 1993, 1994, 2005, 2006, 2008, 2009, 2010, 2011
-     Free Software Foundation, Inc.
+
+Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2011
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -81,24 +82,13 @@ extern Lisp_Object Qunderline, Qundefined;
 extern Lisp_Object Qheight, Qminibuffer, Qname, Qonly, Qwidth;
 extern Lisp_Object Qunsplittable, Qmenu_bar_lines, Qbuffer_predicate, Qtitle;
 extern Lisp_Object Qnone;
-extern Lisp_Object Vframe_title_format, Vicon_title_format;
 
-/* The below are defined in frame.c.  */
-
-extern Lisp_Object Vmenu_bar_mode, Vtool_bar_mode;
 
 Lisp_Object Qbuffered;
 Lisp_Object Qfontsize;
 
 /* hack for OS X file panels */
 char panelOK = 0;
-
-/* Alist of elements (REGEXP . IMAGE) for images of icons associated
-   to frames.*/
-static Lisp_Object Vns_icon_type_alist;
-
-/* Toolkit version support. */
-static Lisp_Object Vns_version_string;
 
 EmacsTooltip *ns_tooltip;
 
@@ -615,8 +605,8 @@ ns_set_name_as_filename (struct frame *f)
 
   BLOCK_INPUT;
   pool = [[NSAutoreleasePool alloc] init];
-  filename = XBUFFER (buf)->filename;
-  name = XBUFFER (buf)->name;
+  filename = BVAR (XBUFFER (buf), filename);
+  name = BVAR (XBUFFER (buf), name);
 
   if (NILP (name))
     {
@@ -1339,9 +1329,9 @@ be shared by the new frame.  */)
     }
 
   if (FRAME_HAS_MINIBUF_P (f)
-      && (!FRAMEP (kb->Vdefault_minibuffer_frame)
-          || !FRAME_LIVE_P (XFRAME (kb->Vdefault_minibuffer_frame))))
-    kb->Vdefault_minibuffer_frame = frame;
+      && (!FRAMEP (KVAR (kb, Vdefault_minibuffer_frame))
+          || !FRAME_LIVE_P (XFRAME (KVAR (kb, Vdefault_minibuffer_frame)))))
+    KVAR (kb, Vdefault_minibuffer_frame) = frame;
 
   /* All remaining specified parameters, which have not been "used"
      by x_get_arg and friends, now go in the misc. alist of the frame.  */
@@ -1438,7 +1428,7 @@ Optional arg INIT, if non-nil, provides a default file name to use.  */)
   NSString *promptS = NILP (prompt) || !STRINGP (prompt) ? nil :
     [NSString stringWithUTF8String: SDATA (prompt)];
   NSString *dirS = NILP (dir) || !STRINGP (dir) ?
-    [NSString stringWithUTF8String: SDATA (current_buffer->directory)] :
+    [NSString stringWithUTF8String: SDATA (BVAR (current_buffer, directory))] :
     [NSString stringWithUTF8String: SDATA (dir)];
   NSString *initS = NILP (init) || !STRINGP (init) ? nil :
     [NSString stringWithUTF8String: SDATA (init)];
@@ -2592,7 +2582,7 @@ syms_of_nsfns (void)
   Qfontsize = intern_c_string ("fontsize");
   staticpro (&Qfontsize);
 
-  DEFVAR_LISP ("ns-icon-type-alist", &Vns_icon_type_alist,
+  DEFVAR_LISP ("ns-icon-type-alist", Vns_icon_type_alist,
                doc: /* Alist of elements (REGEXP . IMAGE) for images of icons associated to frames.
 If the title of a frame matches REGEXP, then IMAGE.tiff is
 selected as the image of the icon representing the frame when it's
@@ -2613,7 +2603,7 @@ When you miniaturize a Group, Summary or Article frame, Gnus.tiff will
 be used as the image of the icon representing the frame.  */);
   Vns_icon_type_alist = Fcons (Qt, Qnil);
 
-  DEFVAR_LISP ("ns-version-string", &Vns_version_string,
+  DEFVAR_LISP ("ns-version-string", Vns_version_string,
                doc: /* Toolkit version for NS Windowing.  */);
   Vns_version_string = ns_appkit_version_str ();
 

@@ -1,8 +1,6 @@
 ;;; comint.el --- general command interpreter in a window stuff
 
-;; Copyright (C) 1988, 1990, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1990, 1992-2011  Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;;	Simon Marshall <simon@gnu.org>
@@ -607,8 +605,9 @@ mode, Shell mode, etc.  This can be done by setting the hooks
 and `comint-get-old-input' to appropriate functions, and the variable
 `comint-prompt-regexp' to the appropriate regular expression.
 
-An input history is maintained of size `comint-input-ring-size', and
-can be accessed with the commands \\[comint-next-input], \\[comint-previous-input], and \\[comint-dynamic-list-input-ring].
+The mode maintains an input history of size `comint-input-ring-size'.
+You can access this with the commands \\[comint-next-input],
+\\[comint-previous-input], and \\[comint-dynamic-list-input-ring].
 Input ring history expansion can be achieved with the commands
 \\[comint-replace-by-expanded-history] or \\[comint-magic-space].
 Input ring expansion is controlled by the variable `comint-input-autoexpand',
@@ -918,41 +917,36 @@ See also `comint-input-ignoredups' and `comint-write-input-ring'."
 	     (message "Cannot read history file %s"
 		      comint-input-ring-file-name)))
 	(t
-	 (let* ((history-buf (get-buffer-create " *temp*"))
-		(file comint-input-ring-file-name)
+	 (let* ((file comint-input-ring-file-name)
 		(count 0)
 		(size comint-input-ring-size)
 		(ring (make-ring size)))
-	   (unwind-protect
-	       (with-current-buffer history-buf
-		 (widen)
-		 (erase-buffer)
-		 (insert-file-contents file)
-		 ;; Save restriction in case file is already visited...
-		 ;; Watch for those date stamps in history files!
-		 (goto-char (point-max))
-		 (let (start end history)
-		   (while (and (< count size)
-			       (re-search-backward comint-input-ring-separator
-                                                   nil t)
-			       (setq end (match-beginning 0)))
-		     (setq start
-                           (if (re-search-backward comint-input-ring-separator
-                                                   nil t)
-                               (match-end 0)
-                             (point-min)))
-		     (setq history (buffer-substring start end))
-		     (goto-char start)
-		     (if (and (not (string-match comint-input-history-ignore
-                                                 history))
-			      (or (null comint-input-ignoredups)
-				  (ring-empty-p ring)
-				  (not (string-equal (ring-ref ring 0)
-                                                     history))))
-			 (progn
-			   (ring-insert-at-beginning ring history)
-			   (setq count (1+ count)))))))
-	     (kill-buffer history-buf))
+	   (with-temp-buffer
+             (insert-file-contents file)
+             ;; Save restriction in case file is already visited...
+             ;; Watch for those date stamps in history files!
+             (goto-char (point-max))
+             (let (start end history)
+               (while (and (< count size)
+                           (re-search-backward comint-input-ring-separator
+                                               nil t)
+                           (setq end (match-beginning 0)))
+                 (setq start
+                       (if (re-search-backward comint-input-ring-separator
+                                               nil t)
+                           (match-end 0)
+                         (point-min)))
+                 (setq history (buffer-substring start end))
+                 (goto-char start)
+                 (if (and (not (string-match comint-input-history-ignore
+                                             history))
+                          (or (null comint-input-ignoredups)
+                              (ring-empty-p ring)
+                              (not (string-equal (ring-ref ring 0)
+                                                 history))))
+                     (progn
+                       (ring-insert-at-beginning ring history)
+                       (setq count (1+ count)))))))
 	   (setq comint-input-ring ring
 		 comint-input-ring-index nil)))))
 
@@ -1299,7 +1293,9 @@ than the logical beginning of line."
 		   (message "Relative reference exceeds input history size"))))
 	      ((or (looking-at "!!?:?\\([0-9^$*-]+\\)") (looking-at "!!"))
 	       ;; Just a number of args from the previous input line.
-	       (replace-match (comint-previous-input-string 0) t t)
+	       (replace-match (comint-args (comint-previous-input-string 0)
+					   (match-beginning 1) (match-end 1))
+			      t t)
 	       (message "History item: previous"))
 	      ((looking-at
 		"!\\??\\({\\(.+\\)}\\|\\(\\sw+\\)\\)\\(:?[0-9^$*-]+\\)?")

@@ -1,7 +1,6 @@
 ;;; inf-lisp.el --- an inferior-lisp mode
 
-;; Copyright (C) 1988, 1993, 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-;; Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1993-1994, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;; Keywords: processes, lisp
@@ -650,5 +649,4 @@ See variable `lisp-describe-sym-command'."
 
 (provide 'inf-lisp)
 
-;; arch-tag: 5b74abc3-a085-4b91-8ab8-8da6899d3b92
 ;;; inf-lisp.el ends here

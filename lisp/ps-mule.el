@@ -1,7 +1,6 @@
 ;;; ps-mule.el --- provide multi-byte character facility to ps-print
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;;	Kenichi Handa <handa@m17n.org> (multi-byte characters)
@@ -89,8 +88,7 @@
 
 ;;; Code:
 
-(eval-and-compile
-  (require 'ps-print))
+(require 'ps-print)
 
 
 ;;;###autoload
@@ -1211,5 +1209,4 @@ V%s 0 /%s-latin1 /%s Latin1Encoding put\n"
 ;; generated-autoload-file: "ps-print.el"
 ;; End:
 
-;; arch-tag: bca017b2-66a7-4e59-8584-103e749eadbe
 ;;; ps-mule.el ends here

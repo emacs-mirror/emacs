@@ -1,7 +1,6 @@
 ;;; tramp.el --- Transparent Remote Access, Multiple Protocol
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
 
 ;; Author: Kai Großjohann <kai.grossjohann@gmx.net>
 ;;         Michael Albinus <michael.albinus@gmx.de>
@@ -291,10 +290,14 @@ shouldn't return t when it isn't."
   ;; password caching.  "scpc" is chosen if we detect that the user is
   ;; running OpenSSH 4.0 or newer.
   (cond
-   ;; PuTTY is installed.
-   ((executable-find "pscp")
+   ;; PuTTY is installed.  We don't take it, if it is installed on a
+   ;; non-windows system, or pscp from the pssh (parallel ssh) package
+   ;; is found.
+   ((and (eq system-type 'windows-nt)
+	 (executable-find "pscp"))
     (if	(or (fboundp 'password-read)
 	    (fboundp 'auth-source-user-or-password)
+	    (fboundp 'auth-source-search)
 	    ;; Pageant is running.
 	    (tramp-compat-process-running-p "Pageant"))
 	"pscp"
@@ -305,6 +308,7 @@ shouldn't return t when it isn't."
      ((tramp-detect-ssh-controlmaster) "scpc")
      ((or (fboundp 'password-read)
 	  (fboundp 'auth-source-user-or-password)
+	  (fboundp 'auth-source-search)
 	  ;; ssh-agent is running.
 	  (getenv "SSH_AUTH_SOCK")
 	  (getenv "SSH_AGENT_PID"))
@@ -658,12 +662,12 @@ Should always start with \"^\". Derived from `tramp-prefix-format'.")
 	((equal tramp-syntax 'sep) "/")
 	((equal tramp-syntax 'url) "://")
 	(t (error "Wrong `tramp-syntax' defined")))
-  "*String matching delimeter between method and user or host names.
+  "*String matching delimiter between method and user or host names.
 Used in `tramp-make-tramp-file-name'.")
 
 (defconst tramp-postfix-method-regexp
   (regexp-quote tramp-postfix-method-format)
-  "*Regexp matching delimeter between method and user or host names.
+  "*Regexp matching delimiter between method and user or host names.
 Derived from `tramp-postfix-method-format'.")
 
 (defconst tramp-user-regexp "[^:/ \t]+"
@@ -671,12 +675,12 @@ Derived from `tramp-postfix-method-format'.")
 
 ;;;###tramp-autoload
 (defconst tramp-prefix-domain-format "%"
-  "*String matching delimeter between user and domain names.")
+  "*String matching delimiter between user and domain names.")
 
 ;;;###tramp-autoload
 (defconst tramp-prefix-domain-regexp
   (regexp-quote tramp-prefix-domain-format)
-  "*Regexp matching delimeter between user and domain names.
+  "*Regexp matching delimiter between user and domain names.
 Derived from `tramp-prefix-domain-format'.")
 
 (defconst tramp-domain-regexp "[-a-zA-Z0-9_.]+"
@@ -689,12 +693,12 @@ Derived from `tramp-prefix-domain-format'.")
   "*Regexp matching user names with domain names.")
 
 (defconst tramp-postfix-user-format "@"
-  "*String matching delimeter between user and host names.
+  "*String matching delimiter between user and host names.
 Used in `tramp-make-tramp-file-name'.")
 
 (defconst tramp-postfix-user-regexp
   (regexp-quote tramp-postfix-user-format)
-  "*Regexp matching delimeter between user and host names.
+  "*Regexp matching delimiter between user and host names.
 Derived from `tramp-postfix-user-format'.")
 
 (defconst tramp-host-regexp "[a-zA-Z0-9_.-]+"
@@ -738,11 +742,11 @@ Derived from `tramp-postfix-ipv6-format'.")
 	((equal tramp-syntax 'sep) "#")
 	((equal tramp-syntax 'url) ":")
 	(t (error "Wrong `tramp-syntax' defined")))
-  "*String matching delimeter between host names and port numbers.")
+  "*String matching delimiter between host names and port numbers.")
 
 (defconst tramp-prefix-port-regexp
   (regexp-quote tramp-prefix-port-format)
-  "*Regexp matching delimeter between host names and port numbers.
+  "*Regexp matching delimiter between host names and port numbers.
 Derived from `tramp-prefix-port-format'.")
 
 (defconst tramp-port-regexp "[0-9]+"
@@ -759,12 +763,12 @@ Derived from `tramp-prefix-port-format'.")
 	((equal tramp-syntax 'sep) "]")
 	((equal tramp-syntax 'url) "")
 	(t (error "Wrong `tramp-syntax' defined")))
-  "*String matching delimeter between host names and localnames.
+  "*String matching delimiter between host names and localnames.
 Used in `tramp-make-tramp-file-name'.")
 
 (defconst tramp-postfix-host-regexp
   (regexp-quote tramp-postfix-host-format)
-  "*Regexp matching delimeter between host names and localnames.
+  "*Regexp matching delimiter between host names and localnames.
 Derived from `tramp-postfix-host-format'.")
 
 (defconst tramp-localname-regexp ".*$"
@@ -1290,7 +1294,8 @@ ARGS to actually emit the message (if applicable)."
       (let ((now (current-time)))
         (insert (format-time-string "%T." now))
         (insert (format "%06d " (nth 2 now))))
-      ;; Calling function.
+      ;; Calling Tramp function.  We suppress compat and trace
+      ;; functions from being displayed.
       (let ((btn 1) btf fn)
 	(while (not fn)
 	  (setq btf (nth 1 (backtrace-frame btn)))
@@ -1298,10 +1303,23 @@ ARGS to actually emit the message (if applicable)."
 	      (setq fn "")
 	    (when (symbolp btf)
 	      (setq fn (symbol-name btf))
-	      (unless (and (string-match "^tramp" fn)
-			   (not (string-match
-				 "^tramp\\(-debug\\)?\\(-message\\|-error\\|-compat\\(-funcall\\|-with-temp-message\\)\\)$"
-				 fn)))
+	      (unless
+		  (and
+		   (string-match "^tramp" fn)
+		   (not
+		    (string-match
+		     (concat
+		      "^"
+		      (regexp-opt
+		       '("tramp-compat-funcall"
+			 "tramp-compat-with-temp-message"
+			 "tramp-debug-message"
+			 "tramp-error"
+			 "tramp-error-with-buffer"
+			 "tramp-message")
+		       t)
+		      "$")
+		     fn)))
 		(setq fn nil)))
 	    (setq btn (1+ btn))))
 	;; The following code inserts filename and line number.
@@ -1845,7 +1863,7 @@ Falls back to normal file name handler if no Tramp file name handler exists."
 		(condition-case err
 		    (apply foreign operation args)
 
-		  ;; Trace, that somebody has interrupted the operation.
+		  ;; Trace that somebody has interrupted the operation.
 		  (quit
 		   (let (tramp-message-show-message)
 		     (tramp-message
@@ -2303,7 +2321,7 @@ remote host and localname (filename on remote host)."
 	(vector method user host localname)))))
 
 ;; This function returns all possible method completions, adding the
-;; trailing method delimeter.
+;; trailing method delimiter.
 (defun tramp-get-completion-methods (partial-method)
   "Returns all method completions for PARTIAL-METHOD."
   (mapcar
@@ -2921,7 +2939,7 @@ User is always nil."
 (defun tramp-handle-substitute-in-file-name (filename)
   "Like `substitute-in-file-name' for Tramp files.
 \"//\" and \"/~\" substitute only in the local filename part.
-If the URL Tramp syntax is chosen, \"//\" as method delimeter and \"/~\" at
+If the URL Tramp syntax is chosen, \"//\" as method delimiter and \"/~\" at
 beginning of local filename are not substituted."
   ;; First, we must replace environment variables.
   (setq filename (tramp-replace-environment-variables filename))
@@ -3503,17 +3521,32 @@ Invokes `password-read' if available, `read-passwd' else."
 	  (or prompt
 	      (with-current-buffer (process-buffer proc)
 		(tramp-check-for-regexp proc tramp-password-prompt-regexp)
-		(format "%s for %s " (capitalize (match-string 1)) key)))))
+		(format "%s for %s " (capitalize (match-string 1)) key))))
+         auth-info auth-passwd)
     (with-parsed-tramp-file-name key nil
       (prog1
 	  (or
-	   ;; See if auth-sources contains something useful, if it's bound.
+	   ;; See if auth-sources contains something useful, if it's
+	   ;; bound.  `auth-source-user-or-password' is an obsoleted
+	   ;; function, it has been replaced by `auth-source-search'.
 	   (and (boundp 'auth-sources)
 		(tramp-get-connection-property v "first-password-request" nil)
 		;; Try with Tramp's current method.
-		(tramp-compat-funcall
-		 'auth-source-user-or-password
-		 "password" tramp-current-host tramp-current-method))
+                (if (fboundp 'auth-source-search)
+		    (setq auth-info
+                            (tramp-compat-funcall
+                             'auth-source-search
+                             :max 1
+                             :user (or tramp-current-user t)
+                             :host tramp-current-host
+                             :port tramp-current-method)
+			    auth-passwd (plist-get (nth 0 auth-info) :secret)
+			    auth-passwd (if (functionp auth-passwd)
+                                            (funcall auth-passwd)
+                                          auth-passwd))
+                  (tramp-compat-funcall
+                   'auth-source-user-or-password
+                   "password" tramp-current-host tramp-current-method)))
 	   ;; Try the password cache.
 	   (when (functionp 'password-read)
 	     (unless (tramp-get-connection-property

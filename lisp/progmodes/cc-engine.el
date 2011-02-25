@@ -1,8 +1,6 @@
 ;;; cc-engine.el --- core syntax guessing engine for CC mode
 
-;; Copyright (C) 1985, 1987, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2011  Free Software Foundation, Inc.
 
 ;; Authors:    2001- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -5446,9 +5444,11 @@ comment at the start of cc-engine.el for more info."
 	    (goto-char start)
 	    nil))
 
-      (forward-char)
+      (forward-char) ; Forward over the opening '<'.
 
       (unless (looking-at c-<-op-cont-regexp)
+	;; go forward one non-alphanumeric character (group) per iteration of
+	;; this loop.
 	(while (and
 		(progn
 		  (c-forward-syntactic-ws)
@@ -5477,7 +5477,7 @@ comment at the start of cc-engine.el for more info."
 			    (c-forward-type)
 			    (c-forward-syntactic-ws))))))
 
-		  (setq pos (point))
+		  (setq pos (point))    ; e.g. first token inside the '<'
 
 		  ;; Note: These regexps exploit the match order in \| so
 		  ;; that "<>" is matched by "<" rather than "[^>:-]>".
@@ -5513,37 +5513,35 @@ comment at the start of cc-engine.el for more info."
 		  ;; Either an operator starting with '<' or a nested arglist.
 		  (setq pos (point))
 		  (let (id-start id-end subres keyword-match)
-		    (if (if (looking-at c-<-op-cont-regexp)
-			    (setq tmp (match-end 0))
-			  (setq tmp pos)
-			  (backward-char)
-			  (not
-			   (and
-
-			    (save-excursion
-			      ;; There's always an identifier before an angle
-			      ;; bracket arglist, or a keyword in
-			      ;; `c-<>-type-kwds' or `c-<>-arglist-kwds'.
-			      (c-backward-syntactic-ws)
-			      (setq id-end (point))
-			      (c-simple-skip-symbol-backward)
-			      (when (or (setq keyword-match
-					      (looking-at c-opt-<>-sexp-key))
-					(not (looking-at c-keywords-regexp)))
-				(setq id-start (point))))
-
-			    (setq subres
-				  (let ((c-promote-possible-types t)
-					(c-record-found-types t))
-				    (c-forward-<>-arglist-recur
-				     (and keyword-match
-					  (c-keyword-member
-					   (c-keyword-sym (match-string 1))
-					   'c-<>-type-kwds)))))
-			    )))
-
-			;; It was not an angle bracket arglist.
-			(goto-char tmp)
+                  (cond
+		     ;; The '<' begins a multi-char operator.
+		     ((looking-at c-<-op-cont-regexp)
+		      (setq tmp (match-end 0))
+		      (goto-char (match-end 0)))
+		     ;; We're at a nested <.....>
+		     ((progn
+			(setq tmp pos)
+			(backward-char) ; to the '<'
+			(and
+			 (save-excursion
+			   ;; There's always an identifier before an angle
+			   ;; bracket arglist, or a keyword in `c-<>-type-kwds'
+			   ;; or `c-<>-arglist-kwds'.
+			   (c-backward-syntactic-ws)
+			   (setq id-end (point))
+			   (c-simple-skip-symbol-backward)
+			   (when (or (setq keyword-match
+					   (looking-at c-opt-<>-sexp-key))
+				     (not (looking-at c-keywords-regexp)))
+			     (setq id-start (point))))
+			 (setq subres
+			       (let ((c-promote-possible-types t)
+				     (c-record-found-types t))
+				 (c-forward-<>-arglist-recur
+				  (and keyword-match
+				       (c-keyword-member
+					(c-keyword-sym (match-string 1))
+					'c-<>-type-kwds)))))))
 
 		      ;; It was an angle bracket arglist.
 		      (setq c-record-found-types subres)
@@ -5558,8 +5556,13 @@ comment at the start of cc-engine.el for more info."
 				   (c-forward-syntactic-ws)
 				   (looking-at c-opt-identifier-concat-key)))
 			    (c-record-ref-id (cons id-start id-end))
-			  (c-record-type-id (cons id-start id-end))))))
-		  t)
+                        (c-record-type-id (cons id-start id-end)))))
+
+                   ;; At a "less than" operator.
+                   (t
+                    (forward-char)
+                    )))
+                t)                    ; carry on looping.
 
 		 ((and (not c-restricted-<>-arglists)
 		       (or (and (eq (char-before) ?&)
@@ -10337,5 +10340,4 @@ Cannot combine absolute offsets %S and %S in `add' method"
 
 (cc-provide 'cc-engine)
 
-;; arch-tag: 149add18-4673-4da5-ac47-6805e4eae089
 ;;; cc-engine.el ends here

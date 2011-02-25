@@ -1,7 +1,6 @@
 ;;; emacsbug.el --- command to report Emacs bugs to appropriate mailing list
 
-;; Copyright (C) 1985, 1994, 1997, 1998, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
+;; Copyright (C) 1985, 1994, 1997-1998, 2000-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
@@ -32,6 +31,8 @@
 ;; Emacs then paste it into your normal mail client.
 
 ;;; Code:
+
+(require 'url-util)
 
 (defgroup emacsbug nil
   "Sending Emacs bug reports."
@@ -78,6 +79,12 @@ Used for querying duplicates and linking to existing bugs.")
 (declare-function message-sort-headers "message" ())
 (defvar message-strip-special-text-properties)
 
+(defun report-emacs-bug-can-use-osx-open ()
+  "Check if OSX open can be used to insert bug report into mailer"
+  (and (featurep 'ns)
+       (equal (executable-find "open") "/usr/bin/open")
+       (memq system-type '(darwin))))
+
 (defun report-emacs-bug-can-use-xdg-email ()
   "Check if xdg-email can be used, i.e. we are on Gnome, KDE or xfce4."
   (and (getenv "DISPLAY")
@@ -117,10 +124,15 @@ Used for querying duplicates and linking to existing bugs.")
 		   (if (> (point-max) (point))
 		       (buffer-substring-no-properties (point) (point-max))))))
       (if (and to subject body)
-	  (start-process "xdg-email" nil "xdg-email"
-			 "--subject" subject
-			 "--body" body
-			 (concat "mailto:" to))
+	  (if (report-emacs-bug-can-use-osx-open)
+	      (start-process "/usr/bin/open" nil "open"
+			     (concat "mailto:" to 
+				     "?subject=" (url-hexify-string subject)
+				     "&body=" (url-hexify-string body)))
+	    (start-process "xdg-email" nil "xdg-email"
+			   "--subject" subject
+			   "--body" body
+			   (concat "mailto:" to)))
 	(error "Subject, To or body not found")))))
 
 ;;;###autoload
@@ -142,7 +154,8 @@ Prompts for bug subject.  Leaves you in a mail buffer."
         (prompt-properties '(field emacsbug-prompt
                                    intangible but-helpful
                                    rear-nonsticky t))
-	(can-xdg-email (report-emacs-bug-can-use-xdg-email))
+	(can-insert-mail (or (report-emacs-bug-can-use-xdg-email)
+			     (report-emacs-bug-can-use-osx-open)))
         user-point message-end-point)
     (setq message-end-point
 	  (with-current-buffer (get-buffer-create "*Messages*")
@@ -276,7 +289,7 @@ usually do not have translators to read other languages for them.\n\n")
     ;; This is so the user has to type something in order to send easily.
     (use-local-map (nconc (make-sparse-keymap) (current-local-map)))
     (define-key (current-local-map) "\C-c\C-i" 'report-emacs-bug-info)
-    (if can-xdg-email
+    (if can-insert-mail
 	(define-key (current-local-map) "\C-cm"
 	  'report-emacs-bug-insert-to-mailer))
     (setq report-emacs-bug-send-command (get mail-user-agent 'sendfunc)
@@ -293,7 +306,7 @@ usually do not have translators to read other languages for them.\n\n")
                             report-emacs-bug-send-command))))
 	(princ (substitute-command-keys
 		"  Type \\[kill-buffer] RET to cancel (don't send it).\n"))
-	(if can-xdg-email
+	(if can-insert-mail
 	    (princ (substitute-command-keys
 		    "  Type \\[report-emacs-bug-insert-to-mailer] to insert text to you preferred mail program.\n")))
 	(terpri)
@@ -327,18 +340,6 @@ usually do not have translators to read other languages for them.\n\n")
          (string-equal (buffer-substring-no-properties (point-min) (point))
                        report-emacs-bug-orig-text)
          (error "No text entered in bug report"))
-    ;; Check the buffer contents and reject non-English letters.
-    ;; FIXME message-mode probably does this anyway.
-    (goto-char (point-min))
-    (skip-chars-forward "\0-\177")
-    (unless (eobp)
-      (if (or report-emacs-bug-no-confirmation
-              (y-or-n-p "Convert non-ASCII letters to hexadecimal? "))
-          (while (progn (skip-chars-forward "\0-\177")
-                        (not (eobp)))
-            (let ((ch (following-char)))
-              (delete-char 1)
-              (insert (format "=%02x" ch))))))
 
     ;; The last warning for novice users.
     (unless (or report-emacs-bug-no-confirmation

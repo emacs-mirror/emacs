@@ -1,7 +1,6 @@
 ;;; rect.el --- rectangle functions for GNU Emacs
 
-;; Copyright (C) 1985, 1999, 2000, 2001, 2002, 2003, 2004
-;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1999-2011 Free Software Foundation, Inc.
 
 ;; Maintainer: Didier Verna <didier@xemacs.org>
 ;; Keywords: internal
@@ -412,5 +411,4 @@ with a prefix argument, prompt for START-AT and FORMAT."
 
 (provide 'rect)
 
-;; arch-tag: 178847b3-1f50-4b03-83de-a6e911cc1d16
 ;;; rect.el ends here

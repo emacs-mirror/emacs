@@ -1,8 +1,7 @@
 # src/Makefile for GNU Emacs.
 
-# Copyright (C) 1985, 1987, 1988, 1993, 1994, 1995, 1999, 2000, 2001, 2002,
-#               2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-#               Free Software Foundation, Inc.
+# Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2011
+#   Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -47,6 +46,7 @@ version = @version@
 LIBOBJS = @LIBOBJS@
 
 lispsource = $(srcdir)/../lisp
+lib = ../lib
 libsrc = ../lib-src
 etc = ../etc
 oldXMenudir = ../oldXMenu
@@ -106,7 +106,7 @@ LD_SWITCH_SYSTEM=@LD_SWITCH_SYSTEM@
 
 ## This holds any special options for linking temacs only (ie, not
 ## used by configure).  Not used elsewhere because it sometimes
-## contains options that have to do with using Emacs's crt0, 
+## contains options that have to do with using Emacs's crt0,
 ## which are only good with temacs.
 LD_SWITCH_SYSTEM_TEMACS=@LD_SWITCH_SYSTEM_TEMACS@
 
@@ -190,7 +190,7 @@ OLDXMENU=@OLDXMENU@
 ## If HAVE_X11 && !USE_GTK, $(OLDXMENU) ../src/$(OLDXMENU); else empty.
 ## We use stamp-xmenu with these two deps to both ensure that lwlib
 ## gets remade based on its dependencies in its own makefile,
-## and remake temacs if lwlib gets changed by this. 
+## and remake temacs if lwlib gets changed by this.
 OLDXMENU_DEPS=@OLDXMENU_DEPS@
 
 ## If !HAVE_X11 && HAVE_X_WINDOWS, -lXMenu (this case no longer possible).
@@ -241,12 +241,13 @@ MSDOS_SUPPORT_REAL = $(lispsource)/ls-lisp.elc $(lispsource)/disp-table.elc \
  $(lispsource)/dos-fns.elc $(lispsource)/dos-w32.elc $(lispsource)/dos-vars.elc \
  $(lispsource)/term/internal.elc $(lispsource)/term/pc-win.elc
 ## $MSDOS_SUPPORT_REAL if MSDOS.
-MSDOS_SUPPORT = 
+MSDOS_SUPPORT =
 
 ns_appdir=@ns_appdir@
 ns_appbindir=@ns_appbindir@
 ns_appsrc=@ns_appsrc@
 NS_OBJ=@NS_OBJ@
+NS_OBJC_OBJ=@NS_OBJC_OBJ@
 NS_SUPPORT=@NS_SUPPORT@
 ## Only set if NS_IMPL_GNUSTEP.
 GNU_OBJC_CFLAGS=@GNU_OBJC_CFLAGS@
@@ -320,6 +321,7 @@ MKDEPDIR=@MKDEPDIR@
 ##
 ## FIXME? MYCPPFLAGS only referenced in etc/DEBUG.
 ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I$(srcdir) \
+  -I$(lib) -I$(srcdir)/../lib \
   $(C_SWITCH_MACHINE) $(C_SWITCH_SYSTEM) $(C_SWITCH_X_SITE) \
   $(C_SWITCH_X_SYSTEM) $(CFLAGS_SOUND) $(RSVG_CFLAGS) $(IMAGEMAGICK_CFLAGS) \
   $(LIBXML2_CFLAGS) $(DBUS_CFLAGS) \
@@ -340,7 +342,7 @@ ALL_OBJC_CFLAGS=$(ALL_CFLAGS) $(GNU_OBJC_CFLAGS)
 
 ## lastfile must follow all files whose initialized data areas should
 ## be dumped as pure by dump-emacs.
-obj=    dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
+base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	charset.o coding.o category.o ccl.o character.o chartab.o bidi.o \
 	cm.o term.o terminal.o xfaces.o $(XOBJ) $(GTK_OBJ) $(DBUS_OBJ) \
 	emacs.o keyboard.o macros.o keymap.o sysdep.o \
@@ -352,8 +354,9 @@ obj=    dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	syntax.o $(UNEXEC_OBJ) bytecode.o \
 	process.o gnutls.o callproc.o \
 	region-cache.o sound.o atimer.o \
-	doprnt.o strftime.o intervals.o textprop.o composite.o md5.o xml.o \
+	doprnt.o intervals.o textprop.o composite.o xml.o \
 	$(MSDOS_OBJ) $(MSDOS_X_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_OBJ)
+obj = $(base_obj) $(NS_OBJC_OBJ)
 
 ## Object files used on some machine or other.
 ## These go in the DOC file on all machines in case they are needed.
@@ -644,15 +647,29 @@ $(libsrc)/make-docfile$(EXEEXT):
 buildobj.h: Makefile
 	echo "#define BUILDOBJ \"$(obj) $(otherobj) " "\"" > buildobj.h
 
+globals.h: gl-stamp; @true
 
-temacs$(EXEEXT): $(START_FILES) stamp-oldxmenu $(obj) $(otherobj)
+GLOBAL_SOURCES = $(base_obj:.o=.c) $(NS_OBJC_OBJ:.o=.m)
+
+gl-stamp: $(libsrc)/make-docfile$(EXEEXT) $(GLOBAL_SOURCES)
+	@rm -f gl-tmp
+	$(libsrc)/make-docfile -d $(srcdir) -g $(SOME_MACHINE_OBJECTS) $(obj) > gl-tmp
+	$(srcdir)/../move-if-change gl-tmp globals.h
+	echo timestamp > $@
+
+$(obj) $(otherobj): globals.h
+
+$(lib)/libgnu.a: $(config_h)
+	cd $(lib) && $(MAKE) libgnu.a
+
+temacs$(EXEEXT): $(START_FILES) stamp-oldxmenu $(obj) $(otherobj) $(lib)/libgnu.a
 	$(CC) $(LD_FIRSTFLAG) $(ALL_CFLAGS) $(TEMACS_LDFLAGS) $(TEMACS_LDFLAGS2) \
-	  -o temacs $(START_FILES) $(obj) $(otherobj) $(LIBES)
+	  -o temacs $(START_FILES) $(obj) $(otherobj) $(lib)/libgnu.a $(LIBES)
 
 ## The following oldxmenu-related rules are only (possibly) used if
 ## HAVE_X11 && !USE_GTK, but there is no harm in always defining them
 ## (provided we take a little care that OLDXMENU is never empty).
-really-lwlib:
+really-lwlib: globals.h
 	cd $(lwlibdir); $(MAKE) $(MFLAGS) \
     CC='$(CC)' CFLAGS='$(CFLAGS)' MAKE='$(MAKE)'
 	@true  # make -t should not create really-lwlib.
@@ -696,6 +713,7 @@ mostlyclean:
 	rm -f ../etc/DOC
 	rm -f bootstrap-emacs$(EXEEXT) emacs-$(version)$(EXEEXT)
 	rm -f buildobj.h
+	rm -f globals.h gl-stamp
 clean: mostlyclean
 	rm -f emacs-*.*.*$(EXEEXT) emacs$(EXEEXT)
 	-rm -rf $(DEPDIR)

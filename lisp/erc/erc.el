@@ -1,7 +1,6 @@
 ;; erc.el --- An Emacs Internet Relay Chat client
 
-;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2011 Free Software Foundation, Inc.
 
 ;; Author: Alexander L. Belikoff (alexander@belikoff.net)
 ;; Contributors: Sergey Berezin (sergey.berezin@cs.cmu.edu),
@@ -6529,4 +6528,3 @@ Otherwise, connect to HOST:PORT as USER and /join CHANNEL."
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: d19587f6-627e-48c1-8d86-58595fa3eca3

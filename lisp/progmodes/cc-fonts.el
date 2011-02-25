@@ -1,6 +1,6 @@
 ;;; cc-fonts.el --- font lock support for CC Mode
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2011 Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             2002- Martin Stjernholm
@@ -1082,7 +1082,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	     (boundp 'parse-sexp-lookup-properties))))
 
       ;; Below we fontify a whole declaration even when it crosses the limit,
-      ;; to avoid gaps when lazy-lock fontifies the file a screenful at a
+      ;; to avoid gaps when jit/lazy-lock fontifies the file a block at a
       ;; time.  That is however annoying during editing, e.g. the following is
       ;; a common situation while the first line is being written:
       ;;
@@ -1094,9 +1094,9 @@ casts and declarations are fontified.  Used on level 2 and higher."
       ;; "some_other_variable" as an identifier, and the latter will not
       ;; correct itself until the second line is changed.  To avoid that we
       ;; narrow to the limit if the region to fontify is a single line.
-      (narrow-to-region
-       (point-min)
-       (if (<= limit (c-point 'bonl))
+      (if (<= limit (c-point 'bonl))
+	  (narrow-to-region
+	   (point-min)
 	   (save-excursion
 	     ;; Narrow after any operator chars following the limit though,
 	     ;; since those characters can be useful in recognizing a
@@ -1104,8 +1104,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	     ;; after the header).
 	     (goto-char limit)
 	     (skip-chars-forward c-nonsymbol-chars)
-	     (point))
-	 limit))
+	     (point))))
 
       (c-find-decl-spots
        limit
@@ -2460,5 +2459,4 @@ need for `pike-font-lock-extra-types'.")
 ;; 2006-07-10:  awk-font-lock-keywords has been moved back to cc-awk.el.
 (cc-provide 'cc-fonts)
 
-;; arch-tag: 2f65f405-735f-4da5-8d4b-b957844c5203
 ;;; cc-fonts.el ends here

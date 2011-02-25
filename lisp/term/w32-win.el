@@ -1,7 +1,6 @@
 ;;; w32-win.el --- parse switches controlling interface with W32 window system
 
-;; Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallo
 ;; Keywords: terminals
@@ -187,6 +186,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   (error "Suspending an Emacs running under W32 makes no sense"))
 
 (defvar dynamic-library-alist)
+(defvar libpng-version)                 ; image.c #ifdef HAVE_NTGUI
 
 ;;; Set default known names for external libraries
 (setq dynamic-library-alist

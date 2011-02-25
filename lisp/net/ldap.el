@@ -1,7 +1,6 @@
 ;;; ldap.el --- client interface to LDAP for Emacs
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011  Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;; Maintainer: FSF
@@ -557,7 +556,8 @@ an alist of attribute/value pairs."
 	       (not (equal "" sizelimit)))
 	  (setq arglist (nconc arglist (list (format "-z%s" sizelimit)))))
       (apply #'call-process ldap-ldapsearch-prog
-	     nil buf nil
+	     ;; Ignore stderr, which can corrupt results
+	     nil (list buf nil) nil
 	     (append arglist ldap-ldapsearch-args filter))
       (insert "\n")
       (goto-char (point-min))

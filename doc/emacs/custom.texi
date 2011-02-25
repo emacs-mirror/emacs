@@ -1,6 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Customization, Quitting, Amusements, Top
@@ -771,7 +770,7 @@ using the help command @kbd{C-h v} (@code{describe-variable}).
 most interesting variables for a non-programmer user are those meant
 for users to change---these are called @dfn{user options}.  @xref{Easy
 Customization}, for information about using the Customize facility to
-set user options.  In the following sections, we describe will other
+set user options.  In the following sections, we will describe other
 aspects of Emacs variables, such as how to set them outside Customize.
 
   Emacs Lisp allows any variable (with a few exceptions) to have any
@@ -2605,7 +2604,3 @@ stop working.  It is therefore advisable to use one and only one
 coding system, for your init file as well as the files you edit.  For
 example, don't mix the @samp{latin-1} and @samp{latin-9} coding
 systems.
-
-@ignore
-   arch-tag: c68abddb-4410-4fb5-925f-63394e971d93
-@end ignore

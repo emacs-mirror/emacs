@@ -1,7 +1,7 @@
 /* Interface of a lightweight menubar widget.
+
+Copyright (C) 2002-2011  Free Software Foundation, Inc.
 Copyright (C) 1992 Lucid, Inc.
-Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-  Free Software Foundation, Inc.
 
 This file is part of the Lucid Widget Library.
 
@@ -58,10 +58,6 @@ Boston, MA 02110-1301, USA.  */
 #define XtCResizeToPreferred "ResizeToPreferred"
 #define XtNallowResize "allowResize"
 #define XtCAllowResize "AllowResize"
-#define XtNfaceName "faceName"
-#define XtCFaceName "FaceName"
-#define XtNdefaultFace "defaultFace"
-#define XtCDefaultFace "DefaultFace"
 
 /* Motif-compatible resource names */
 #define XmNshadowThickness	"shadowThickness"
@@ -86,5 +82,3 @@ extern void xlwmenu_redisplay (Widget);
 
 #endif /* _XlwMenu_h */
 
-/* arch-tag: 0c019735-d61b-4080-be85-4fdd6e50ae07
-   (do not change this comment) */

@@ -1,6 +1,5 @@
 /* Code for doing intervals.
-   Copyright (C) 1993, 1994, 1995, 1997, 1998, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+   Copyright (C) 1993-1995, 1997-1998, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1979,7 +1978,7 @@ set_point_both (EMACS_INT charpos, EMACS_INT bytepos)
   int have_overlays;
   EMACS_INT original_position;
 
-  current_buffer->point_before_scroll = Qnil;
+  BVAR (current_buffer, point_before_scroll) = Qnil;
 
   if (charpos == PT)
     return;
@@ -2343,7 +2342,7 @@ get_local_map (register EMACS_INT position, register struct buffer *buffer,
   if (EQ (type, Qkeymap))
     return Qnil;
   else
-    return buffer->keymap;
+    return BVAR (buffer, keymap);
 }
 
 /* Produce an interval tree reflecting the intervals in
@@ -2565,5 +2564,3 @@ set_intervals_multibyte (int multi_flag)
 			       BEG, BEG_BYTE, Z, Z_BYTE);
 }
 
-/* arch-tag: 3d402b60-083c-4271-b4a3-ebd9a74bfe27
-   (do not change this comment) */

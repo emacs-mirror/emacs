@@ -1,7 +1,6 @@
 ;;; mm-view.el --- functions for viewing MIME objects
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -631,6 +630,18 @@
 
 (defun mm-display-dns-inline (handle)
   (mm-display-inline-fontify handle 'dns-mode))
+
+(defun mm-display-org-inline (handle)
+  "Show an Org mode text from HANDLE inline."
+  (mm-display-inline-fontify handle 'org-mode))
+
+(defun mm-display-shell-script-inline (handle)
+  "Show a shell script from HANDLE inline."
+  (mm-display-inline-fontify handle 'shell-script-mode))
+
+(defun mm-display-javascript-inline (handle)
+  "Show JavsScript code from HANDLE inline."
+  (mm-display-inline-fontify handle 'javascript-mode))
 
 ;;      id-signedData OBJECT IDENTIFIER ::= { iso(1) member-body(2)
 ;;          us(840) rsadsi(113549) pkcs(1) pkcs7(7) 2 }

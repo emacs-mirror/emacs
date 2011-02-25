@@ -1,6 +1,5 @@
 # Maintenance productions for the Lisp directory
-# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-#   2009, 2010, 2011  Free Software Foundation, Inc.
+# Copyright (C) 2000-2011  Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -148,7 +147,8 @@ finder-data: doit
 autoloads: $(LOADDEFS) doit
 	chmod +w $(lisp)/ps-print.el $(lisp)/emulation/tpu-edt.el \
 	  $(lisp)/emacs-lisp/cl-loaddefs.el $(lisp)/mail/rmail.el \
-	  $(lisp)/dired.el $(lisp)/ibuffer.el $(lisp)/htmlfontify.el
+	  $(lisp)/dired.el $(lisp)/ibuffer.el $(lisp)/htmlfontify.el \
+	  $(lisp)/emacs-lisp/eieio.el
 	cd $(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
 	$(emacs) -l autoload --eval '(setq generated-autoload-file "$(lisp)/loaddefs.el")' -f batch-update-autoloads $$wins
@@ -330,16 +330,16 @@ $(MH_E_DIR)/mh-loaddefs.el: $(MH_E_SRC)
 	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(MH_E_DIR)
 
-# Update TRAMP internal autoloads. Maybe we could move trmp*.el into
+# Update TRAMP internal autoloads. Maybe we could move tramp*.el into
 # an own subdirectory. OTOH, it does not hurt to keep them in
 # lisp/net.
 TRAMP_DIR = $(lisp)/net
 TRAMP_SRC = $(TRAMP_DIR)/tramp.el  $(TRAMP_DIR)/tramp-cache.el  \
 	$(TRAMP_DIR)/tramp-cmds.el $(TRAMP_DIR)/tramp-compat.el \
 	$(TRAMP_DIR)/tramp-ftp.el  $(TRAMP_DIR)/tramp-gvfs.el   \
-	$(TRAMP_DIR)/tramp-gw.el   $(TRAMP_DIR)/tramp-imap.el   \
-	$(TRAMP_DIR)/tramp-sh.el   $(TRAMP_DIR)/tramp-smb.el    \
-	$(TRAMP_DIR)/tramp-uu.el   $(TRAMP_DIR)/trampver.el
+	$(TRAMP_DIR)/tramp-gw.el   $(TRAMP_DIR)/tramp-sh.el	\
+	$(TRAMP_DIR)/tramp-smb.el  $(TRAMP_DIR)/tramp-uu.el     \
+	$(TRAMP_DIR)/trampver.el
 
 $(TRAMP_DIR)/tramp-loaddefs.el: $(TRAMP_SRC)
 	$(emacs) -l autoload \

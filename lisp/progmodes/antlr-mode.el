@@ -1,7 +1,6 @@
 ;;; antlr-mode.el --- major mode for ANTLR grammar files
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: Christoph.Wedler@sap.com
 ;; Keywords: languages, ANTLR, code generator
@@ -2182,36 +2181,32 @@ grammar file in which CLASS is defined and EVOCAB is the name of the
 export vocabulary specified in that file."
   (let ((grammar (directory-files dirname t "\\.g\\'")))
     (when grammar
-      (let ((temp-buffer (get-buffer-create
-			  (generate-new-buffer-name " *temp*")))
-	    (antlr-imenu-name nil)		; dynamic-let: no imenu
-	    (expanded-regexp (concat (format (regexp-quote
-					      (cadr antlr-special-file-formats))
-					     ".+")
-				     "\\'"))
+      (let ((antlr-imenu-name nil)		; dynamic-let: no imenu
+	    (expanded-regexp
+             (concat (format (regexp-quote
+                              (cadr antlr-special-file-formats))
+                             ".+")
+                     "\\'"))
 	    classes dependencies)
-	(unwind-protect
-	    (with-current-buffer temp-buffer
-	      (widen)			; just in case...
-	      (dolist (file grammar)
-		(when (and (file-regular-p file)
-			   (null (string-match expanded-regexp file)))
-		  (insert-file-contents file t nil nil t)
-		  (normal-mode t)	; necessary for major-mode, syntax
+        (with-temp-buffer
+          (dolist (file grammar)
+            (when (and (file-regular-p file)
+                       (null (string-match expanded-regexp file)))
+              (insert-file-contents file t nil nil t)
+              (normal-mode t)           ; necessary for major-mode, syntax
 					; table and `antlr-language'
-		  (when (derived-mode-p 'antlr-mode)
-		    (let* ((file-deps (antlr-file-dependencies))
-			   (file (car file-deps)))
-		      (when file-deps
-			(dolist (class-def (caadr file-deps))
-			  (let ((file-evocab (cons file (cdr class-def)))
-				(class-spec (assoc (car class-def) classes)))
-			    (if class-spec
-				(nconc (cdr class-spec) (list file-evocab))
-			      (push (list (car class-def) file-evocab)
-				    classes))))
-			(push file-deps dependencies)))))))
-	  (kill-buffer temp-buffer))
+              (when (derived-mode-p 'antlr-mode)
+                (let* ((file-deps (antlr-file-dependencies))
+                       (file (car file-deps)))
+                  (when file-deps
+                    (dolist (class-def (caadr file-deps))
+                      (let ((file-evocab (cons file (cdr class-def)))
+                            (class-spec (assoc (car class-def) classes)))
+                        (if class-spec
+                            (nconc (cdr class-spec) (list file-evocab))
+                          (push (list (car class-def) file-evocab)
+                                classes))))
+                    (push file-deps dependencies)))))))
 	(cons (nreverse classes) (nreverse dependencies))))))
 
 
@@ -2667,5 +2662,4 @@ Used in `antlr-mode'.  Also a useful function in `java-mode-hook'."
 
 ;;; Local IspellPersDict: .ispell_antlr
 
-;; arch-tag: 5de2be79-3d13-4560-8fbc-f7d0234dcb5c
 ;;; antlr-mode.el ends here

@@ -1,6 +1,6 @@
 ;;; gdb-mi.el --- User Interface for running GDB
 
-;; Copyright (C) 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Nick Roberts <nickrob@gnu.org>
 ;; Maintainer: FSF
@@ -2347,7 +2347,8 @@ HANDLER-NAME handler uses customization of CUSTOM-DEFUN. See
 	    (bindat-get-field breakpoint 'what)
 	  (or pending at
 	      (concat "in "
-		      (propertize func 'font-lock-face font-lock-function-name-face)
+		      (propertize (or func "unknown")
+                                  'font-lock-face font-lock-function-name-face)
 		      (gdb-frame-location breakpoint)))))
        ;; Add clickable properties only for breakpoints with file:line
        ;; information
@@ -2982,24 +2983,26 @@ DOC is an optional documentation string."
     map)
   "Keymap to select format in the header line.")
 
-(defvar gdb-memory-format-menu (make-sparse-keymap "Format")
-  "Menu of display formats in the header line.")
+(defvar gdb-memory-format-menu
+  (let ((map (make-sparse-keymap "Format")))
 
-(define-key gdb-memory-format-menu [binary]
-  '(menu-item "Binary" gdb-memory-format-binary
-	      :button (:radio . (equal gdb-memory-format "t"))))
-(define-key gdb-memory-format-menu [octal]
-  '(menu-item "Octal" gdb-memory-format-octal
-	      :button (:radio . (equal gdb-memory-format "o"))))
-(define-key gdb-memory-format-menu [unsigned]
-  '(menu-item "Unsigned Decimal" gdb-memory-format-unsigned
-	      :button (:radio . (equal gdb-memory-format "u"))))
-(define-key gdb-memory-format-menu [signed]
-  '(menu-item "Signed Decimal" gdb-memory-format-signed
-	      :button (:radio . (equal gdb-memory-format "d"))))
-(define-key gdb-memory-format-menu [hexadecimal]
-  '(menu-item "Hexadecimal" gdb-memory-format-hexadecimal
-	      :button (:radio . (equal gdb-memory-format "x"))))
+    (define-key map [binary]
+      '(menu-item "Binary" gdb-memory-format-binary
+        :button (:radio . (equal gdb-memory-format "t"))))
+    (define-key map [octal]
+      '(menu-item "Octal" gdb-memory-format-octal
+        :button (:radio . (equal gdb-memory-format "o"))))
+    (define-key map [unsigned]
+      '(menu-item "Unsigned Decimal" gdb-memory-format-unsigned
+        :button (:radio . (equal gdb-memory-format "u"))))
+    (define-key map [signed]
+      '(menu-item "Signed Decimal" gdb-memory-format-signed
+        :button (:radio . (equal gdb-memory-format "d"))))
+    (define-key map [hexadecimal]
+      '(menu-item "Hexadecimal" gdb-memory-format-hexadecimal
+        :button (:radio . (equal gdb-memory-format "x"))))
+    map)
+  "Menu of display formats in the header line.")
 
 (defun gdb-memory-format-menu (event)
   (interactive "@e")
@@ -3060,21 +3063,22 @@ DOC is an optional documentation string."
     map)
   "Keymap to select units in the header line.")
 
-(defvar gdb-memory-unit-menu (make-sparse-keymap "Unit")
+(defvar gdb-memory-unit-menu
+  (let ((map (make-sparse-keymap "Unit")))
+    (define-key map [giantwords]
+      '(menu-item "Giant words" gdb-memory-unit-giant
+        :button (:radio . (equal gdb-memory-unit 8))))
+    (define-key map [words]
+      '(menu-item "Words" gdb-memory-unit-word
+        :button (:radio . (equal gdb-memory-unit 4))))
+    (define-key map [halfwords]
+      '(menu-item "Halfwords" gdb-memory-unit-halfword
+        :button (:radio . (equal gdb-memory-unit 2))))
+    (define-key map [bytes]
+      '(menu-item "Bytes" gdb-memory-unit-byte
+        :button (:radio . (equal gdb-memory-unit 1))))
+    map)
   "Menu of units in the header line.")
-
-(define-key gdb-memory-unit-menu [giantwords]
-  '(menu-item "Giant words" gdb-memory-unit-giant
-	      :button (:radio . (equal gdb-memory-unit 8))))
-(define-key gdb-memory-unit-menu [words]
-  '(menu-item "Words" gdb-memory-unit-word
-	      :button (:radio . (equal gdb-memory-unit 4))))
-(define-key gdb-memory-unit-menu [halfwords]
-  '(menu-item "Halfwords" gdb-memory-unit-halfword
-	      :button (:radio . (equal gdb-memory-unit 2))))
-(define-key gdb-memory-unit-menu [bytes]
-  '(menu-item "Bytes" gdb-memory-unit-byte
-	      :button (:radio . (equal gdb-memory-unit 1))))
 
 (defun gdb-memory-unit-menu (event)
   (interactive "@e")

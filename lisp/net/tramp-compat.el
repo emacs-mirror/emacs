@@ -1,6 +1,6 @@
 ;;; tramp-compat.el --- Tramp compatibility functions
 
-;; Copyright (C) 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -156,7 +156,7 @@
 	   'set-file-times filename time)))))
 
   ;; We currently use "[" and "]" in the filename format for IPv6
-  ;; hosts of GNU Emacs.  This means, that Emacs wants to expand
+  ;; hosts of GNU Emacs.  This means that Emacs wants to expand
   ;; wildcards if `find-file-wildcards' is non-nil, and then barfs
   ;; because no expansion could be found.  We detect this situation
   ;; and do something really awful: we have `file-expand-wildcards'

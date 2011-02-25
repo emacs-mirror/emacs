@@ -1,7 +1,6 @@
 ;;; conf-mode.el --- Simple major mode for editing conf/ini/properties files
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Keywords: conf ini windows java
@@ -621,5 +620,4 @@ For details see `conf-mode'.  Example:
 
 (provide 'conf-mode)
 
-;; arch-tag: 0a3805b2-0371-4d3a-8498-8897116b2356
 ;;; conf-mode.el ends here

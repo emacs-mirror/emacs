@@ -1,6 +1,5 @@
 /* Definitions and headers for communication on the Microsoft W32 API.
-   Copyright (C) 1995, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1995, 2001-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -60,12 +59,6 @@ struct w32_bitmap_record
   /* Record some info about this pixmap.  */
   int height, width, depth;
 };
-
-/* Palette book-keeping stuff for mapping requested colors into the
-   system palette.  Keep a ref-counted list of requested colors and
-   regenerate the app palette whenever the requested list changes. */
-
-extern Lisp_Object Vw32_enable_palette;
 
 struct w32_palette_entry {
   struct w32_palette_entry * next;
@@ -193,9 +186,6 @@ extern struct w32_display_info one_w32_display_info;
    NAME is the name of the frame.
    FONT-LIST-CACHE records previous values returned by x-list-fonts.  */
 extern Lisp_Object w32_display_name_list;
-
-/* Regexp matching a font name whose width is the same as `PIXEL_SIZE'.  */
-extern Lisp_Object Vx_pixel_size_width_font_regexp;
 
 extern struct frame *x_window_to_frame (struct w32_display_info *, HWND);
 
@@ -707,5 +697,3 @@ typedef BOOL (WINAPI * AppendMenuW_Proc) (
     IN UINT_PTR,
     IN LPCWSTR);
 
-/* arch-tag: f201d05a-1240-4fc5-8ea4-ca24d4ee5671
-   (do not change this comment) */

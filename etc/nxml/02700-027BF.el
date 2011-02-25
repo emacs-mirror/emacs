@@ -175,4 +175,3 @@
     ("OPEN-OUTLINED RIGHTWARDS ARROW" #x27BE)
     ))
 
-;; arch-tag: 183adc05-e931-4f1b-8a89-abd760a8fcd5

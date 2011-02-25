@@ -8,5 +8,4 @@
   (define-key input-decode-map "\e[23~" [f11]) ;Probably redundant.
   (define-key local-function-key-map [f11] [?\e]))
 
-;; arch-tag: d9f88e9c-02dc-49ff-871c-a415f08e4eb7
 ;;; vt240.el ends here

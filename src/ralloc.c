@@ -1,6 +1,5 @@
 /* Block-relocating memory allocator.
-   Copyright (C) 1993, 1995, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+   Copyright (C) 1993, 1995, 2000-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -30,9 +29,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "lisp.h"		/* Needed for VALBITS.  */
 #include "blockinput.h"
 
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 typedef POINTER_TYPE *POINTER;
 typedef size_t SIZE;
@@ -651,7 +648,7 @@ resize_bloc (bloc_ptr bloc, SIZE size)
       else
 	{
 	  memmove (bloc->new_data, bloc->data, old_size);
-	  memset (bloc->new_data + old_size, 0, size - old_size);
+	  memset ((char *) bloc->new_data + old_size, 0, size - old_size);
 	  *bloc->variable = bloc->data = bloc->new_data;
 	}
     }
@@ -1262,6 +1259,3 @@ r_alloc_init (void)
 
   use_relocatable_buffers = 1;
 }
-
-/* arch-tag: 6a524a15-faff-44c8-95d4-a5da6f55110f
-   (do not change this comment) */

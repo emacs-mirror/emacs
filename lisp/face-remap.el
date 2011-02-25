@@ -1,6 +1,6 @@
 ;;; face-remap.el --- Functions for managing `face-remapping-alist'
 ;;
-;; Copyright (C) 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: faces, face remapping, display, user commands
@@ -423,5 +423,4 @@ Besides the choice of face, it is the same as `buffer-face-mode'."
 
 (provide 'face-remap)
 
-;; arch-tag: 5c5f034b-8d58-4967-82bd-d61fd364e686
 ;;; face-remap.el ends here

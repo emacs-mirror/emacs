@@ -1,6 +1,6 @@
 ;;; gravatar.el --- Get Gravatars
 
-;; Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2011 Free Software Foundation, Inc.
 
 ;; Author: Julien Danjou <julien@danjou.info>
 ;; Keywords: news
@@ -108,9 +108,15 @@ If no image available, return 'error."
 You can provide a list of argument to pass to CB in CBARGS."
   (let ((url (gravatar-build-url mail-address)))
     (if (gravatar-cache-expired url)
-        (url-retrieve url
-                      'gravatar-retrieved
-                      (list cb (when cbargs cbargs)))
+	(let ((args (list url
+			  'gravatar-retrieved
+			  (list cb (when cbargs cbargs)))))
+	  (when (> (length (if (featurep 'xemacs)
+			       (cdr (split-string (function-arglist 'url-retrieve)))
+			     (help-function-arglist 'url-retrieve)))
+		   4)
+	    (setq args (nconc args (list t))))
+	  (apply #'url-retrieve args))
       (apply cb
                (with-temp-buffer
                  (mm-disable-multibyte)

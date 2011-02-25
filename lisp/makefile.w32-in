@@ -1,6 +1,5 @@
 # -*- Makefile -*- for GNU Emacs on the Microsoft W32 API.
-# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-#   2009, 2010, 2011  Free Software Foundation, Inc.
+# Copyright (C) 2000-2011  Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -444,9 +443,9 @@ $(lisp)/mh-e/mh-loaddefs.el: $(MH_E_SRC)
 TRAMP_SRC = $(lisp)/net/tramp.el  $(lisp)/net/tramp-cache.el  \
 	$(lisp)/net/tramp-cmds.el $(lisp)/net/tramp-compat.el \
 	$(lisp)/net/tramp-ftp.el  $(lisp)/net/tramp-gvfs.el   \
-	$(lisp)/net/tramp-gw.el   $(lisp)/net/tramp-imap.el   \
-	$(lisp)/net/tramp-sh.el   $(lisp)/net/tramp-smb.el    \
-	$(lisp)/net/tramp-uu.el   $(lisp)/net/trampver.el
+	$(lisp)/net/tramp-gw.el   $(lisp)/net/tramp-sh.el     \
+	$(lisp)/net/tramp-smb.el  $(lisp)/net/tramp-uu.el     \
+	$(lisp)/net/trampver.el
 
 $(lisp)/net/tramp-loaddefs.el: $(TRAMP_SRC)
 	"$(EMACS)" $(EMACSOPT) \

@@ -1,7 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2011
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/frames
@@ -1744,9 +1743,13 @@ without actually displaying or popping up the menu.
 The argument @var{menu} says what to display in the menu.  It can be a
 keymap or a list of keymaps (@pxref{Menu Keymaps}).  In this case, the
 return value is the list of events corresponding to the user's choice.
-(This list has more than one element if the choice occurred in a
-submenu.)  Note that @code{x-popup-menu} does not actually execute the
-command bound to that sequence of events.
+This list has more than one element if the choice occurred in a
+submenu.  (Note that @code{x-popup-menu} does not actually execute the
+command bound to that sequence of events.)  On toolkits that support
+menu titles, the title is taken from the prompt string of @var{menu}
+if @var{menu} is a keymap, or from the prompt string of the first
+keymap in @var{menu} if it is a list of keymaps (@pxref{Defining
+Menus}).
 
 Alternatively, @var{menu} can have the following form:
 
@@ -2430,7 +2433,3 @@ The functions @code{x-pixel-width} and @code{x-pixel-height} return the
 width and height of an X Window frame, measured in pixels.
 @end ignore
 
-
-@ignore
-   arch-tag: 94977df6-3dca-4730-b57b-c6329e9282ba
-@end ignore

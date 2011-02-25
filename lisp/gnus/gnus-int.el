@@ -1,7 +1,6 @@
 ;;; gnus-int.el --- backend interface functions for Gnus
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004
-;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -639,8 +638,7 @@ If GROUP is nil, all groups on GNUS-COMMAND-METHOD are scanned."
   (when (gnus-check-backend-function
 	 'request-marks (car gnus-command-method))
     (let ((group (gnus-info-group info)))
-      (and (funcall (gnus-get-function gnus-command-method
-				       'request-update-info)
+      (and (funcall (gnus-get-function gnus-command-method 'request-marks)
 		    (gnus-group-real-name group)
 		    info (nth 1 gnus-command-method))
 	   ;; If the minimum article number is greater than 1, then all

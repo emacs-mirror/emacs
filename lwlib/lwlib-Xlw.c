@@ -1,7 +1,7 @@
 /* The lwlib interface to "xlwmenu" menus.
-   Copyright (C) 1992 Lucid, Inc.
-   Copyright (C) 1994, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-     2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+
+Copyright (C) 1992 Lucid, Inc.
+Copyright (C) 1994, 2000-2011 Free Software Foundation, Inc.
 
 This file is part of the Lucid Widget Library.
 
@@ -25,7 +25,7 @@ Boston, MA 02110-1301, USA.  */
 #endif
 
 #include <setjmp.h>
-#include "lisp.h"
+#include <lisp.h>
 
 #include "lwlib-Xlw.h"
 #include <X11/StringDefs.h>
@@ -273,6 +273,3 @@ xlw_destroy_instance (widget_instance *instance)
   if (instance->widget)
     XtDestroyWidget (instance->widget);
 }
-
-/* arch-tag: 541e3912-477d-406e-9bf2-dbf2b7ff8c3b
-   (do not change this comment) */

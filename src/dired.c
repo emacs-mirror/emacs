@@ -1,6 +1,5 @@
 /* Lisp functions for making directory listings.
-   Copyright (C) 1985, 1986, 1993, 1994, 1999, 2000, 2001, 2002, 2003,
-                 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1985-1986, 1993-1994, 1999-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -31,10 +30,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <grp.h>
 
 #include <errno.h>
-
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 /* The d_nameln member of a struct dirent includes the '\0' character
    on some systems, but not on others.  What's worse, you can't tell
@@ -96,9 +92,6 @@ extern void filemodestring (struct stat *, char *);
 #define lstat stat
 #endif
 
-extern Lisp_Object Vw32_get_true_file_attributes;
-
-Lisp_Object Vcompletion_ignored_extensions;
 Lisp_Object Qdirectory_files;
 Lisp_Object Qdirectory_files_and_attributes;
 Lisp_Object Qfile_name_completion;
@@ -106,7 +99,7 @@ Lisp_Object Qfile_name_all_completions;
 Lisp_Object Qfile_attributes;
 Lisp_Object Qfile_attributes_lessp;
 
-static int scmp (const unsigned char *, const unsigned char *, int);
+static int scmp (const char *, const char *, int);
 
 #ifdef WINDOWSNT
 Lisp_Object
@@ -165,7 +158,7 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full, Lisp_Object m
 # ifdef WINDOWSNT
       /* Windows users want case-insensitive wildcards.  */
       bufp = compile_pattern (match, 0,
-			      buffer_defaults.case_canon_table, 0, 1);
+			      BVAR (&buffer_defaults, case_canon_table), 0, 1);
 # else	/* !WINDOWSNT */
       bufp = compile_pattern (match, 0, Qnil, 0, 1);
 # endif	 /* !WINDOWSNT */
@@ -183,7 +176,7 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full, Lisp_Object m
      which might compile a new regexp until we're done with the loop!  */
 
   BLOCK_INPUT;
-  d = opendir (SDATA (dirfilename));
+  d = opendir (SSDATA (dirfilename));
   UNBLOCK_INPUT;
   if (d == NULL)
     report_file_error ("Opening directory", Fcons (directory, Qnil));
@@ -265,7 +258,7 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full, Lisp_Object m
 	  QUIT;
 
 	  if (NILP (match)
-	      || (0 <= re_search (bufp, SDATA (name), len, 0, len, 0)))
+	      || (0 <= re_search (bufp, SSDATA (name), len, 0, len, 0)))
 	    wanted = 1;
 
 	  immediate_quit = 0;
@@ -505,7 +498,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
   encoded_dir = ENCODE_FILE (dirname);
 
   BLOCK_INPUT;
-  d = opendir (SDATA (Fdirectory_file_name (encoded_dir)));
+  d = opendir (SSDATA (Fdirectory_file_name (encoded_dir)));
   UNBLOCK_INPUT;
   if (!d)
     report_file_error ("Opening directory", Fcons (dirname, Qnil));
@@ -540,7 +533,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
       QUIT;
       if (! DIRENTRY_NONEMPTY (dp)
 	  || len < SCHARS (encoded_file)
-	  || 0 <= scmp (dp->d_name, SDATA (encoded_file),
+	  || 0 <= scmp (dp->d_name, SSDATA (encoded_file),
 			SCHARS (encoded_file)))
 	continue;
 
@@ -565,7 +558,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
 	      && matchcount > 1
 	      && !includeall /* This match may allow includeall to 0.  */
 	      && len >= bestmatchsize
-	      && 0 > scmp (dp->d_name, SDATA (bestmatch), bestmatchsize))
+	      && 0 > scmp (dp->d_name, SSDATA (bestmatch), bestmatchsize))
 	    continue;
 #endif
 
@@ -585,7 +578,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
 		     CONSP (tem); tem = XCDR (tem))
 		  {
 		    int elt_len;
-		    unsigned char *p1;
+		    char *p1;
 
 		    elt = XCAR (tem);
 		    if (!STRINGP (elt))
@@ -596,7 +589,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
 		    elt_len = SCHARS (elt) - 1; /* -1 for trailing / */
 		    if (elt_len <= 0)
 		      continue;
-		    p1 = SDATA (elt);
+		    p1 = SSDATA (elt);
 		    if (p1[elt_len] != '/')
 		      continue;
 		    skip = len - elt_len;
@@ -626,7 +619,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
 		    if (skip < 0) continue;
 
 		    if (0 <= scmp (dp->d_name + skip,
-				   SDATA (elt),
+				   SSDATA (elt),
 				   SCHARS (elt)))
 		      continue;
 		    break;
@@ -803,13 +796,15 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
    else number of chars that match at the beginning.  */
 
 static int
-scmp (const unsigned char *s1, const unsigned char *s2, int len)
+scmp (const char *s1, const char *s2, int len)
 {
   register int l = len;
 
   if (completion_ignore_case)
     {
-      while (l && DOWNCASE (*s1++) == DOWNCASE (*s2++))
+      while (l
+	     && (DOWNCASE ((unsigned char) *s1++)
+		 == DOWNCASE ((unsigned char) *s2++)))
 	l--;
     }
   else
@@ -977,7 +972,7 @@ so last access time will always be midnight of that day.  */)
   encoded = ENCODE_FILE (filename);
   UNGCPRO;
 
-  if (lstat (SDATA (encoded), &s) < 0)
+  if (lstat (SSDATA (encoded), &s) < 0)
     return Qnil;
 
   switch (s.st_mode & S_IFMT)
@@ -1098,7 +1093,7 @@ syms_of_dired (void)
   defsubr (&Sfile_attributes);
   defsubr (&Sfile_attributes_lessp);
 
-  DEFVAR_LISP ("completion-ignored-extensions", &Vcompletion_ignored_extensions,
+  DEFVAR_LISP ("completion-ignored-extensions", Vcompletion_ignored_extensions,
 	       doc: /* Completion ignores file names ending in any string in this list.
 It does not ignore them if all possible completions end in one of
 these strings or when displaying a list of completions.
@@ -1106,6 +1101,3 @@ It ignores directory names if they match any string in this list which
 ends in a slash.  */);
   Vcompletion_ignored_extensions = Qnil;
 }
-
-/* arch-tag: 1ac8deca-4d8f-4d41-ade9-089154d98c03
-   (do not change this comment) */

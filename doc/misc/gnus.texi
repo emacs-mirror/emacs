@@ -1,5 +1,7 @@
 \input texinfo
 
+@include gnus-overrides.texi
+
 @setfilename ../../info/gnus
 @settitle Gnus Manual
 @syncodeindex fn cp
@@ -9,8 +11,7 @@
 @documentencoding ISO-8859-1
 
 @copying
-Copyright @copyright{} 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+Copyright @copyright{} 1995-2011 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -320,7 +321,7 @@ developing GNU and promoting software freedom.''
 @end iflatex
 @end iftex
 
-@dircategory Emacs
+@dircategory Emacs network features
 @direntry
 * Gnus: (gnus).                 The newsreader Gnus.
 @end direntry
@@ -330,7 +331,12 @@ developing GNU and promoting software freedom.''
 
 
 @titlepage
+@ifset WEBHACKDEVEL
+@title Gnus Manual (DEVELOPMENT VERSION)
+@end ifset
+@ifclear WEBHACKDEVEL
 @title Gnus Manual
+@end ifclear
 
 @author by Lars Magne Ingebrigtsen
 @page
@@ -704,6 +710,7 @@ Other Sources
 * Anything Groups::             Dired?  Who needs dired?
 * Document Groups::             Single files can be the basis of a group.
 * Mail-To-News Gateways::       Posting articles via mail-to-news gateways.
+* The Empty Backend::           The backend that never has any news.
 
 Document Groups
 
@@ -4941,7 +4948,7 @@ Download mark.
 Desired cursor position (instead of after first colon).
 @item &user-date;
 Age sensitive date format.  Various date format is defined in
-@code{gnus-user-date-format-alist}.
+@code{gnus-summary-user-date-format-alist}.
 @item u
 User defined specifier.  The next character in the format string should
 be a letter.  Gnus will call the function
@@ -9492,26 +9499,18 @@ Say how much time has elapsed between the article was posted and now
 (@code{gnus-article-date-lapsed}).  It looks something like:
 
 @example
-X-Sent: 6 weeks, 4 days, 1 hour, 3 minutes, 8 seconds ago
+Date: 6 weeks, 4 days, 1 hour, 3 minutes, 8 seconds ago
 @end example
 
-@vindex gnus-article-date-lapsed-new-header
-The value of @code{gnus-article-date-lapsed-new-header} determines
-whether this header will just be added below the old Date one, or will
-replace it.
+This line is updated continually by default.  If you wish to switch
+that off, say:
 
-An advantage of using Gnus to read mail is that it converts simple bugs
-into wonderful absurdities.
-
-If you want to have this line updated continually, you can put
-
+@vindex gnus-article-update-date-headers
 @lisp
-(gnus-start-date-timer)
+(setq gnus-article-update-date-headers nil)
 @end lisp
 
-in your @file{~/.gnus.el} file, or you can run it off of some hook.  If
-you want to stop the timer, you can use the @code{gnus-stop-date-timer}
-command.
+in your @file{~/.gnus.el} file.
 
 @item W T o
 @kindex W T o (Summary)
@@ -11877,13 +11876,7 @@ controlling variable is a predicate list, as described above.
 @vindex gnus-treat-strip-trailing-blank-lines
 @vindex gnus-treat-unsplit-urls
 @vindex gnus-treat-wash-html
-@vindex gnus-treat-date-english
-@vindex gnus-treat-date-iso8601
-@vindex gnus-treat-date-lapsed
-@vindex gnus-treat-date-local
-@vindex gnus-treat-date-original
-@vindex gnus-treat-date-user-defined
-@vindex gnus-treat-date-ut
+@vindex gnus-treat-date
 @vindex gnus-treat-from-picon
 @vindex gnus-treat-mail-picon
 @vindex gnus-treat-newsgroups-picon
@@ -11938,13 +11931,39 @@ possible but those listed are probably sufficient for most people.
 
 @xref{Article Washing}.
 
-@item gnus-treat-date-english (head)
-@item gnus-treat-date-iso8601 (head)
-@item gnus-treat-date-lapsed (head)
-@item gnus-treat-date-local (head)
-@item gnus-treat-date-original (head)
-@item gnus-treat-date-user-defined (head)
-@item gnus-treat-date-ut (head)
+@item gnus-treat-date (head)
+
+This will transform/add date headers according to the
+@code{gnus-article-date-headers} variable.  This is a list of Date
+headers to display.  The formats available are:
+
+@table @code
+@item ut
+Universal time, aka GMT, aka ZULU.
+
+@item local
+The user's local time zone.
+
+@item english
+A semi-readable English sentence.
+
+@item lapsed
+The time elapsed since the message was posted.
+
+@item combined-lapsed
+Both the original date header and a (shortened) elapsed time.
+
+@item original
+The original date header.
+
+@item iso8601
+ISO8601 format, i.e., ``2010-11-23T22:05:21''.
+
+@item user-defined
+A format done according to the @code{gnus-article-time-format}
+variable.
+
+@end table
 
 @xref{Article Date}.
 
@@ -14242,6 +14261,18 @@ articles that have these flags won't be considered when splitting.
 The default is @samp{(%Deleted %Seen)}.
 
 @end table
+
+Here's a complete example @code{nnimap} backend with a client-side
+``fancy'' splitting method:
+
+@example
+(nnimap "imap.example.com"
+        (nnimap-inbox "INBOX")
+        (nnimap-split-methods
+         (| ("MailScanner-SpamCheck" "spam" "spam.detected")
+            (to "foo@@bar.com" "foo")
+            "undecided")))
+@end example
 
 
 @node Getting Mail
@@ -17127,6 +17158,7 @@ newsgroups.
 * Anything Groups::             Dired?  Who needs dired?
 * Document Groups::             Single files can be the basis of a group.
 * Mail-To-News Gateways::       Posting articles via mail-to-news gateways.
+* The Empty Backend::           The backend that never has any news.
 @end menu
 
 
@@ -17573,6 +17605,22 @@ So, to use this, simply say something like:
 (setq gnus-post-method '(nngateway "GATEWAY.ADDRESS"))
 @end lisp
 
+
+@node The Empty Backend
+@subsection The Empty Backend
+@cindex nnnil
+
+@code{nnnil} is a backend that can be used as a placeholder if you
+have to specify a backend somewhere, but don't really want to.  The
+classical example is if you don't want to have a primary select
+methods, but want to only use secondary ones:
+
+@lisp
+(setq gnus-select-method '(nnnil ""))
+(setq gnus-secondary-select-methods
+      '((nnimap "foo")
+        (nnml "")))
+@end lisp
 
 
 @node Combined Groups
@@ -22774,6 +22822,81 @@ If you're using tree displays (@pxref{Tree Display}), and the tree
 window is displayed vertically next to another window, you may also want
 to fiddle with @code{gnus-tree-minimize-window} to avoid having the
 windows resized.
+
+@subsection Window Configuration Names
+
+Here's a list of most of the currently known window configurations,
+and when they're used:
+
+@itemize @code
+@item group
+The group buffer.
+
+@item summary
+Entering a group and showing only the summary.
+
+@item article
+Selecting an article.
+
+@item server
+The server buffer.
+
+@item browse
+Browsing groups from the server buffer.
+
+@item message
+Composing a (new) message.
+
+@item only-article
+Showing only the article buffer.
+
+@item edit-article
+Editing an article.
+
+@item edit-form
+Editing group parameters and the like.
+
+@item edit-score
+Editing a server definition.
+
+@item post
+Composing a news message.
+
+@item reply
+Replying or following up an article without yanking the text.
+
+@item forward
+Forwarding a message.
+
+@item reply-yank
+Replying or following up an article with yanking the text.
+
+@item mail-bound
+Bouncing a message.
+
+@item pipe
+Sending an article to an external process.
+
+@item bug
+Sending a bug report.
+
+@item score-trace
+Displaying the score trace.
+
+@item score-words
+Displaying the score words.
+
+@item split-trace
+Displaying the split trace.
+
+@item compose-bounce
+Composing a bounce message.
+
+@item mml-preview
+Previewing a @acronym{MIME} part.
+
+@end itemize
+
 
 @subsection Example Window Configurations
 

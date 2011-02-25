@@ -1,7 +1,6 @@
 /* test-distrib.c --- testing distribution of nonprinting chars
 
-Copyright (C) 1987, 1993, 1994, 1995, 1999, 2001, 2002, 2003, 2004, 2005,
-              2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+Copyright (C) 1987, 1993-1995, 1999, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -22,10 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <stdio.h>
 #include <fcntl.h>
-
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 /* Break string in two parts to avoid buggy C compilers that ignore characters
    after nulls in strings.  */
@@ -88,7 +84,5 @@ have been corrupted in the files of Emacs, and it will not work.\n",
   return EXIT_SUCCESS;
 }
 
-/* arch-tag: 3a89005d-df98-4c32-aa9f-33570e16a26a
-   (do not change this comment) */
 
 /* test-distrib.c ends here */

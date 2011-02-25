@@ -1,7 +1,6 @@
 /* System description file for MS-DOS
 
-Copyright (C) 1993, 1996, 1997, 2001, 2002, 2003, 2004, 2005, 2006,
-                 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+Copyright (C) 1993, 1996-1997, 2001-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -74,6 +73,15 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #define HAVE_INVERSE_HYPERBOLIC
 #define FLOAT_CHECK_DOMAIN
 
+/* Start of gnulib-related stuff  */
+
+/* lib/ftoastr.c wants strtold, but DJGPP only has _strtold.  DJGPP >
+   2.03 has it, but it also has _strtold as a stub that jumps to
+   strtold, so use _strtold in all versions.  */
+#define strtold _strtold
+
+/* End of gnulib-related stuff.  */
+
 /* When $TERM is "internal" then this is substituted:  */
 #define INTERNAL_TERMINAL "pc|bios|IBM PC with color display:\
 :co#80:li#25:Co#16:pa#256:km:ms:cm=<CM>:cl=<CL>:ce=<CE>:\
@@ -93,7 +101,7 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 
 
 /* Mode line description of a buffer's type.  */
-#define MODE_LINE_BINARY_TEXT(buf) (NILP(buf->buffer_file_type) ? "T" : "B")
+#define MODE_LINE_BINARY_TEXT(buf) (NILP(B_(buf,buffer_file_type)) ? "T" : "B")
 
 /* We have (the code to control) a mouse.  */
 #define HAVE_MOUSE
@@ -125,5 +133,3 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #define GC_SETJMP_WORKS 1
 #define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
 
-/* arch-tag: d184f860-815d-4ff4-8187-d05c0f3c37d0
-   (do not change this comment) */

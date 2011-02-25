@@ -1,6 +1,5 @@
 /* Execution of byte code produced by bytecomp.el.
-   Copyright (C) 1985, 1986, 1987, 1988, 1993, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1985-1988, 1993, 2000-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -58,9 +57,7 @@ by Hallvard:
 
 #ifdef BYTE_CODE_METER
 
-Lisp_Object Vbyte_code_meter, Qbyte_code_meter;
-int byte_metering_on;
-
+Lisp_Object Qbyte_code_meter;
 #define METER_2(code1, code2) \
   XFASTINT (XVECTOR (XVECTOR (Vbyte_code_meter)->contents[(code1)]) \
 	    ->contents[(code2)])
@@ -232,6 +229,8 @@ Lisp_Object Qbytecode;
 #define Bconstant 0300
 #define CONSTANTLIM 0100
 
+/* Whether to maintain a `top' and `bottom' field in the stack frame.  */
+#define BYTE_MAINTAIN_TOP (BYTE_CODE_SAFE || BYTE_MARK_STACK)
 
 /* Structure describing a value stack used during byte-code execution
    in Fbyte_code.  */
@@ -244,7 +243,9 @@ struct byte_stack
 
   /* Top and bottom of stack.  The bottom points to an area of memory
      allocated with alloca in Fbyte_code.  */
+#if BYTE_MAINTAIN_TOP
   Lisp_Object *top, *bottom;
+#endif
 
   /* The string containing the byte-code, and its current address.
      Storing this here protects it from GC because mark_byte_stack
@@ -271,6 +272,7 @@ struct byte_stack *byte_stack_list;
 
 /* Mark objects on byte_stack_list.  Called during GC.  */
 
+#if BYTE_MARK_STACK
 void
 mark_byte_stack (void)
 {
@@ -295,7 +297,7 @@ mark_byte_stack (void)
       mark_object (stack->constants);
     }
 }
-
+#endif
 
 /* Unmark objects in the stacks on byte_stack_list.  Relocate program
    counters.  Called when GC has completed.  */
@@ -349,8 +351,13 @@ unmark_byte_stack (void)
 /* Actions that must be performed before and after calling a function
    that might GC.  */
 
+#if !BYTE_MAINTAIN_TOP
+#define BEFORE_POTENTIAL_GC()	((void)0)
+#define AFTER_POTENTIAL_GC()	((void)0)
+#else
 #define BEFORE_POTENTIAL_GC()	stack.top = top
 #define AFTER_POTENTIAL_GC()	stack.top = NULL
+#endif
 
 /* Garbage collect if we have consed enough since the last time.
    We do this at every branch, to avoid loops that never GC.  */
@@ -450,10 +457,13 @@ If the third argument is incorrect, Emacs may crash.  */)
   stack.byte_string = bytestr;
   stack.pc = stack.byte_string_start = SDATA (bytestr);
   stack.constants = vector;
-  stack.bottom = (Lisp_Object *) alloca (XFASTINT (maxdepth)
+  top = (Lisp_Object *) alloca (XFASTINT (maxdepth)
                                          * sizeof (Lisp_Object));
-  top = stack.bottom - 1;
+#if BYTE_MAINTAIN_TOP
+  stack.bottom = top;
   stack.top = NULL;
+#endif
+  top -= 1;
   stack.next = byte_stack_list;
   byte_stack_list = &stack;
 
@@ -874,7 +884,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 	case Btemp_output_buffer_setup:
 	  BEFORE_POTENTIAL_GC ();
 	  CHECK_STRING (TOP);
-	  temp_output_buffer_setup (SDATA (TOP));
+	  temp_output_buffer_setup (SSDATA (TOP));
 	  AFTER_POTENTIAL_GC ();
 	  TOP = Vstandard_output;
 	  break;
@@ -1401,7 +1411,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 	    CHECK_CHARACTER (TOP);
 	    AFTER_POTENTIAL_GC ();
 	    c = XFASTINT (TOP);
-	    if (NILP (current_buffer->enable_multibyte_characters))
+	    if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
 	      MAKE_CHAR_MULTIBYTE (c);
 	    XSETFASTINT (TOP, syntax_code_spec[(int) SYNTAX (c)]);
 	  }
@@ -1686,7 +1696,7 @@ syms_of_bytecode (void)
 
 #ifdef BYTE_CODE_METER
 
-  DEFVAR_LISP ("byte-code-meter", &Vbyte_code_meter,
+  DEFVAR_LISP ("byte-code-meter", Vbyte_code_meter,
 	       doc: /* A vector of vectors which holds a histogram of byte-code usage.
 \(aref (aref byte-code-meter 0) CODE) indicates how many times the byte
 opcode CODE has been executed.
@@ -1694,7 +1704,7 @@ opcode CODE has been executed.
 indicates how many times the byte opcodes CODE1 and CODE2 have been
 executed in succession.  */);
 
-  DEFVAR_BOOL ("byte-metering-on", &byte_metering_on,
+  DEFVAR_BOOL ("byte-metering-on", byte_metering_on,
 	       doc: /* If non-nil, keep profiling information on byte code usage.
 The variable byte-code-meter indicates how often each byte opcode is used.
 If a symbol has a property named `byte-code-meter' whose value is an
@@ -1712,6 +1722,3 @@ integer, it is incremented each time that symbol's function is called.  */);
   }
 #endif
 }
-
-/* arch-tag: b9803b6f-1ed6-4190-8adf-33fd3a9d10e9
-   (do not change this comment) */

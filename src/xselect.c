@@ -1,6 +1,5 @@
 /* X Selection processing for Emacs.
-   Copyright (C) 1993, 1994, 1995, 1996, 1997, 2000, 2001, 2002, 2003,
-                 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1993-1997, 2000-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -27,9 +26,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif
-#ifdef HAVE_UNISTD_H
+
 #include <unistd.h>
-#endif
 
 #include "lisp.h"
 #include "xterm.h"	/* for all of the X includes */
@@ -112,8 +110,6 @@ Lisp_Object QUTF8_STRING;	/* This is a type of selection.  */
 
 Lisp_Object Qcompound_text_with_extensions;
 
-static Lisp_Object Vx_lost_selection_functions;
-static Lisp_Object Vx_sent_selection_functions;
 static Lisp_Object Qforeign_selection;
 
 /* If this is a smaller number than the max-request-size of the display,
@@ -143,17 +139,6 @@ extern unsigned long last_event_timestamp;
    The only (eq) parts of this list that are visible from Lisp are the
     selection-values.  */
 static Lisp_Object Vselection_alist;
-
-/* This is an alist whose CARs are selection-types (whose names are the same
-   as the names of X Atoms) and whose CDRs are the names of Lisp functions to
-   call to convert the given Emacs selection value to a string representing
-   the given selection type.  This is for Lisp-level extension of the emacs
-   selection handling.  */
-static Lisp_Object Vselection_converter_alist;
-
-/* If the selection owner takes too long to reply to a selection request,
-   we give up on it.  This is in milliseconds (0 = no timeout.)  */
-static EMACS_INT x_selection_timeout;
 
 
 
@@ -263,9 +248,9 @@ symbol_to_x_atom (struct x_display_info *dpyinfo, Display *display, Lisp_Object 
   if (EQ (sym, QNULL))	    return dpyinfo->Xatom_NULL;
   if (!SYMBOLP (sym)) abort ();
 
-  TRACE1 (" XInternAtom %s", (char *) SDATA (SYMBOL_NAME (sym)));
+  TRACE1 (" XInternAtom %s", SSDATA (SYMBOL_NAME (sym)));
   BLOCK_INPUT;
-  val = XInternAtom (display, (char *) SDATA (SYMBOL_NAME (sym)), False);
+  val = XInternAtom (display, SSDATA (SYMBOL_NAME (sym)), False);
   UNBLOCK_INPUT;
   return val;
 }
@@ -2283,7 +2268,7 @@ x_fill_property_data (Display *dpy, Lisp_Object data, void *ret, int format)
       else if (STRINGP (o))
         {
           BLOCK_INPUT;
-          val = (long) XInternAtom (dpy, (char *) SDATA (o), False);
+          val = (long) XInternAtom (dpy, SSDATA (o), False);
           UNBLOCK_INPUT;
         }
       else
@@ -2420,7 +2405,7 @@ FRAME is on.  If FRAME is nil, the selected frame is used.  */)
   else if (STRINGP (atom))
     {
       BLOCK_INPUT;
-      x_atom = XInternAtom (FRAME_X_DISPLAY (f), (char *) SDATA (atom), False);
+      x_atom = XInternAtom (FRAME_X_DISPLAY (f), SSDATA (atom), False);
       UNBLOCK_INPUT;
     }
   else
@@ -2531,7 +2516,7 @@ are ignored.  */)
   CHECK_STRING (message_type);
   x_send_client_event(display, dest, from,
                       XInternAtom (dpyinfo->display,
-                                   SDATA (message_type),
+                                   SSDATA (message_type),
                                    False),
                       format, values);
 
@@ -2567,9 +2552,9 @@ x_send_client_event (Lisp_Object display, Lisp_Object dest, Lisp_Object from, At
     }
   else if (STRINGP (dest))
     {
-      if (strcmp (SDATA (dest), "PointerWindow") == 0)
+      if (strcmp (SSDATA (dest), "PointerWindow") == 0)
         wdest = PointerWindow;
-      else if (strcmp (SDATA (dest), "InputFocus") == 0)
+      else if (strcmp (SSDATA (dest), "InputFocus") == 0)
         wdest = InputFocus;
       else
         error ("DEST as a string must be one of PointerWindow or InputFocus");
@@ -2647,7 +2632,7 @@ syms_of_xselect (void)
   Vselection_alist = Qnil;
   staticpro (&Vselection_alist);
 
-  DEFVAR_LISP ("selection-converter-alist", &Vselection_converter_alist,
+  DEFVAR_LISP ("selection-converter-alist", Vselection_converter_alist,
 	       doc: /* An alist associating X Windows selection-types with functions.
 These functions are called to convert the selection, with three args:
 the name of the selection (typically `PRIMARY', `SECONDARY', or `CLIPBOARD');
@@ -2662,7 +2647,7 @@ means that a side-effect was executed,
 and there is no meaningful selection value.  */);
   Vselection_converter_alist = Qnil;
 
-  DEFVAR_LISP ("x-lost-selection-functions", &Vx_lost_selection_functions,
+  DEFVAR_LISP ("x-lost-selection-functions", Vx_lost_selection_functions,
 	       doc: /* A list of functions to be called when Emacs loses an X selection.
 \(This happens when some other X client makes its own selection
 or when a Lisp program explicitly clears the selection.)
@@ -2670,7 +2655,7 @@ The functions are called with one argument, the selection type
 \(a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD').  */);
   Vx_lost_selection_functions = Qnil;
 
-  DEFVAR_LISP ("x-sent-selection-functions", &Vx_sent_selection_functions,
+  DEFVAR_LISP ("x-sent-selection-functions", Vx_sent_selection_functions,
 	       doc: /* A list of functions to be called when Emacs answers a selection request.
 The functions are called with four arguments:
   - the selection name (typically `PRIMARY', `SECONDARY', or `CLIPBOARD');
@@ -2684,7 +2669,7 @@ This hook doesn't let you change the behavior of Emacs's selection replies,
 it merely informs you that they have happened.  */);
   Vx_sent_selection_functions = Qnil;
 
-  DEFVAR_INT ("x-selection-timeout", &x_selection_timeout,
+  DEFVAR_INT ("x-selection-timeout", x_selection_timeout,
 	      doc: /* Number of milliseconds to wait for a selection reply.
 If the selection owner doesn't reply in this time, we give up.
 A value of 0 means wait as long as necessary.  This is initialized from the
@@ -2714,6 +2699,3 @@ A value of 0 means wait as long as necessary.  This is initialized from the
   Qforeign_selection = intern_c_string ("foreign-selection");
   staticpro (&Qforeign_selection);
 }
-
-/* arch-tag: 7c293b0f-9918-4f69-8ac7-03e142307236
-   (do not change this comment) */

@@ -1,6 +1,6 @@
 ;;; image-mode.el --- support for visiting image files
 ;;
-;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2011 Free Software Foundation, Inc.
 ;;
 ;; Author: Richard Stallman <rms@gnu.org>
 ;; Keywords: multimedia
@@ -118,13 +118,16 @@ A winprops object has the shape (WINDOW . ALIST)."
 (declare-function image-size "image.c" (spec &optional pixels frame))
 
 (defun image-display-size (spec &optional pixels frame)
-  "Wrapper around `image-size', to handle slice display properties.
-If SPEC is an image display property, call `image-size' with the
-given arguments.
-If SPEC is a list of properties containing `image' and `slice'
-properties, calculate the display size from the slice property.
-If SPEC contains `image' but not `slice', call `image-size' with
-the specified image."
+  "Wrapper around `image-size', handling slice display properties.
+Like `image-size', the return value is (WIDTH . HEIGHT).
+WIDTH and HEIGHT are in canonical character units if PIXELS is
+nil, and in pixel units if PIXELS is non-nil.
+
+If SPEC is an image display property, this function is equivalent
+to `image-size'.  If SPEC is a list of properties containing
+`image' and `slice' properties, return the display size taking
+the slice property into account.  If the list contains `image'
+but not `slice', return the `image-size' of the specified image."
   (if (eq (car spec) 'image)
       (image-size spec pixels frame)
     (let ((image (assoc 'image spec))
@@ -302,8 +305,7 @@ This variable is used to display the current image type in the mode line.")
 
 (defvar image-mode-map
   (let ((map (make-sparse-keymap)))
-    (suppress-keymap map)
-    (define-key map "q"         'quit-window)
+    (set-keymap-parent map special-mode-map)
     (define-key map "\C-c\C-c" 'image-toggle-display)
     (define-key map (kbd "SPC")       'image-scroll-up)
     (define-key map (kbd "DEL")       'image-scroll-down)
@@ -382,7 +384,6 @@ to toggle between display as an image and display as text."
      (funcall
       (if (called-interactively-p 'any) 'error 'message)
       "Cannot display image: %s" (cdr err)))))
-
 ;;;###autoload
 (define-minor-mode image-minor-mode
   "Toggle Image minor mode.
@@ -504,6 +505,11 @@ was inserted."
     ;; This just makes the arrow displayed in the right fringe
     ;; area look correct when the image is wider than the window.
     (setq truncate-lines t)
+    ;; Disable adding a newline at the end of the image file when it
+    ;; is written with, e.g., C-x C-w.
+    (if (coding-system-equal (coding-system-base buffer-file-coding-system)
+			     'no-conversion)
+	(set (make-local-variable 'find-file-literally) t))
     ;; Allow navigation of large images
     (set (make-local-variable 'auto-hscroll-mode) nil)
     (setq image-type type)
@@ -628,5 +634,4 @@ indicates a scaling factor. nil indicates scale to 100%. "
 
 (provide 'image-mode)
 
-;; arch-tag: b5b2b7e6-26a7-4b79-96e3-1546b5c4c6cb
 ;;; image-mode.el ends here

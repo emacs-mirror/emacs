@@ -1,7 +1,6 @@
 ;;; diff.el --- run `diff' in compilation-mode
 
-;; Copyright (C) 1992, 1994, 1996, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1996, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Frank Bresz
 ;; (according to authors.el)
@@ -60,7 +59,9 @@
 (defun diff-sentinel (code &optional old-temp-file new-temp-file)
   "Code run when the diff process exits.
 CODE is the exit code of the process.  It should be 0 only if no diffs
-were found."
+were found.
+If optional args OLD-TEMP-FILE and/or NEW-TEMP-FILE are non-nil,
+delete the temporary files so named."
   (if old-temp-file (delete-file old-temp-file))
   (if new-temp-file (delete-file new-temp-file))
   (save-excursion

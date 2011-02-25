@@ -17,4 +17,3 @@
     ("VARIATION SELECTOR-16" #xFE0F)
     ))
 
-;; arch-tag: 591c3457-10c0-4036-8bfb-6cccd23f44dd

@@ -1,6 +1,6 @@
 ;;; ert.el --- Emacs Lisp Regression Testing
 
-;; Copyright (C) 2007, 2008, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2008, 2010-2011 Free Software Foundation, Inc.
 
 ;; Author: Christian Ohler <ohler@gnu.org>
 ;; Keywords: lisp, tools
@@ -1874,7 +1874,6 @@ BUFFER-NAME, if non-nil, is the buffer name to use."
   (unless buffer-name (setq buffer-name "*ert*"))
   (let ((buffer (get-buffer-create buffer-name)))
     (with-current-buffer buffer
-      (setq buffer-read-only t)
       (let ((inhibit-read-only t))
         (buffer-disable-undo)
         (erase-buffer)
@@ -1997,19 +1996,12 @@ and how to display message."
 ;;; Simple view mode for auxiliary information like stack traces or
 ;;; messages.  Mainly binds "q" for quit.
 
-(define-derived-mode ert-simple-view-mode fundamental-mode "ERT-View"
+(define-derived-mode ert-simple-view-mode special-mode "ERT-View"
   "Major mode for viewing auxiliary information in ERT.")
-
-(loop for (key binding) in
-      '(("q" quit-window)
-        )
-      do
-      (define-key ert-simple-view-mode-map key binding))
-
 
 ;;; Commands and button actions for the results buffer.
 
-(define-derived-mode ert-results-mode fundamental-mode "ERT-Results"
+(define-derived-mode ert-results-mode special-mode "ERT-Results"
   "Major mode for viewing results of ERT test runs.")
 
 (loop for (key binding) in
@@ -2017,7 +2009,6 @@ and how to display message."
         ("\t" forward-button)
         ([backtab] backward-button)
         ("j" ert-results-jump-between-summary-and-result)
-        ("q" quit-window)
         ("L" ert-results-toggle-printer-limits-for-test-at-point)
         ("n" ert-results-next-test)
         ("p" ert-results-previous-test)
@@ -2349,7 +2340,6 @@ To be used in the ERT results buffer."
        (let ((backtrace (ert-test-result-with-condition-backtrace result))
              (buffer (get-buffer-create "*ERT Backtrace*")))
          (pop-to-buffer buffer)
-         (setq buffer-read-only t)
          (let ((inhibit-read-only t))
            (buffer-disable-undo)
            (erase-buffer)
@@ -2375,7 +2365,6 @@ To be used in the ERT results buffer."
          (result (aref (ert--stats-test-results stats) pos)))
     (let ((buffer (get-buffer-create "*ERT Messages*")))
       (pop-to-buffer buffer)
-      (setq buffer-read-only t)
       (let ((inhibit-read-only t))
         (buffer-disable-undo)
         (erase-buffer)
@@ -2397,7 +2386,6 @@ To be used in the ERT results buffer."
          (result (aref (ert--stats-test-results stats) pos)))
     (let ((buffer (get-buffer-create "*ERT list of should forms*")))
       (pop-to-buffer buffer)
-      (setq buffer-read-only t)
       (let ((inhibit-read-only t))
         (buffer-disable-undo)
         (erase-buffer)
@@ -2451,7 +2439,6 @@ To be used in the ERT results buffer."
     (setq data (sort data (lambda (a b)
                             (> (second a) (second b)))))
     (pop-to-buffer buffer)
-    (setq buffer-read-only t)
     (let ((inhibit-read-only t))
       (buffer-disable-undo)
       (erase-buffer)

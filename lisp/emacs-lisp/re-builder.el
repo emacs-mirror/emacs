@@ -1,7 +1,6 @@
 ;;; re-builder.el --- building Regexps with visual feedback
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
 
 ;; Author: Detlev Zundel <dzu@gnu.org>
 ;; Keywords: matching, lisp, tools
@@ -243,7 +242,9 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
 		  :help "Quit the RE Builder mode"))
     (define-key menu-map [rt]
       '(menu-item "Case sensitive" reb-toggle-case
-		  :button (:toggle . case-fold-search)
+		  :button (:toggle . (with-current-buffer
+					 reb-target-buffer
+				       (null case-fold-search)))
 		  :help "Toggle case sensitivity of searches for RE Builder target buffer"))
     (define-key menu-map [rb]
       '(menu-item "Change target buffer..." reb-change-target-buffer
@@ -274,6 +275,13 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
   (set (make-local-variable 'blink-matching-paren) nil)
   (reb-mode-common))
 
+(defvar reb-lisp-mode-map
+  (let ((map (make-sparse-keymap)))
+    ;; Use the same "\C-c" keymap as `reb-mode' and use font-locking from
+    ;; `emacs-lisp-mode'
+    (define-key map "\C-c" (lookup-key reb-mode-map "\C-c"))
+    map))
+
 (define-derived-mode reb-lisp-mode
   emacs-lisp-mode "RE Builder Lisp"
   "Major mode for interactively building symbolic Regular Expressions."
@@ -281,11 +289,6 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
   (cond	((memq reb-re-syntax '(sregex rx)) ; rx-to-string is autoloaded
 	 (require 'rx)))                   ; require rx anyway
   (reb-mode-common))
-
-;; Use the same "\C-c" keymap as `reb-mode' and use font-locking from
-;; `emacs-lisp-mode'
-(define-key reb-lisp-mode-map "\C-c"
-  (lookup-key reb-mode-map "\C-c"))
 
 (defvar reb-subexp-mode-map
   (let ((m (make-keymap)))
@@ -713,5 +716,4 @@ If SUBEXP is non-nil mark only the corresponding sub-expressions."
 
 (provide 're-builder)
 
-;; arch-tag: 5c5515ac-4085-4524-a421-033f44f032e7
 ;;; re-builder.el ends here

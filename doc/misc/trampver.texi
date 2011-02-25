@@ -2,14 +2,13 @@
 @c texi/trampver.texi.  Generated from trampver.texi.in by configure.
 
 @c This is part of the Emacs manual.
-@c Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-@c   2010, 2011 Free Software Foundation, Inc.
+@c Copyright (C) 2003-2011 Free Software Foundation, Inc.
 @c See file doclicense.texi for copying conditions.
 
 @c In the Tramp CVS, the version number is auto-frobbed from
 @c configure.ac, so you should edit that file and run
 @c "autoconf && ./configure" to change the version number.
-@set trampver 2.2.0
+@set trampver 2.2.1-pre
 
 @c Other flags from configuration
 @set instprefix /usr/local
@@ -29,11 +28,6 @@
 @set emacsgw
 @end ifclear
 
-@c Whether or not describe IMAP support.
-@ifclear noemacsimap
-@set emacsimap
-@end ifclear
-
 @c Some flags which make the text independent on the (X)Emacs flavor.
 @c "emacs" resp "xemacs" are set in the Makefile.  Default is "emacs".
 @ifclear emacs
@@ -44,7 +38,7 @@
 
 @c Emacs values.
 @ifset emacs
-@set emacsname          GNU Emacs
+@set emacsname          Emacs
 @set emacsdir           emacs
 @set ftppackagename     Ange-FTP
 @set prefix             /

@@ -1,6 +1,6 @@
 ;;; package.el --- Simple package system for Emacs
 
-;; Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;; Created: 10 Mar 2007
@@ -577,23 +577,22 @@ Otherwise it uses an external `tar' program.
       (let ((load-path (cons pkg-dir load-path)))
 	(byte-recompile-directory pkg-dir 0 t)))))
 
-(defun package--write-file-no-coding (file-name excl)
+(defun package--write-file-no-coding (file-name)
   (let ((buffer-file-coding-system 'no-conversion))
-    (write-region (point-min) (point-max) file-name nil nil nil excl)))
+    (write-region (point-min) (point-max) file-name)))
 
 (defun package-unpack-single (file-name version desc requires)
   "Install the contents of the current buffer as a package."
   ;; Special case "package".
   (if (string= file-name "package")
       (package--write-file-no-coding
-       (expand-file-name (concat file-name ".el") package-user-dir)
-       nil)
+       (expand-file-name (concat file-name ".el") package-user-dir))
     (let* ((pkg-dir  (expand-file-name (concat file-name "-" version)
 				       package-user-dir))
 	   (el-file  (expand-file-name (concat file-name ".el") pkg-dir))
 	   (pkg-file (expand-file-name (concat file-name "-pkg.el") pkg-dir)))
       (make-directory pkg-dir t)
-      (package--write-file-no-coding el-file 'excl)
+      (package--write-file-no-coding el-file)
       (let ((print-level nil)
 	    (print-length nil))
 	(write-region
@@ -1213,18 +1212,16 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
 ;;;; Package menu mode.
 
 (defvar package-menu-mode-map
-  (let ((map (make-keymap))
+  (let ((map (copy-keymap special-mode-map))
 	(menu-map (make-sparse-keymap "Package")))
     (set-keymap-parent map button-buffer-map)
     (define-key map "\C-m" 'package-menu-describe-package)
-    (define-key map "q" 'quit-window)
     (define-key map "n" 'next-line)
     (define-key map "p" 'previous-line)
     (define-key map "u" 'package-menu-mark-unmark)
     (define-key map "\177" 'package-menu-backup-unmark)
     (define-key map "d" 'package-menu-mark-delete)
     (define-key map "i" 'package-menu-mark-install)
-    (define-key map "g" 'revert-buffer)
     (define-key map "r" 'package-menu-refresh)
     (define-key map "~" 'package-menu-mark-obsolete-for-deletion)
     (define-key map "x" 'package-menu-execute)
@@ -1290,15 +1287,11 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
 
 (put 'package-menu-mode 'mode-class 'special)
 
-(defun package-menu-mode ()
+(define-derived-mode package-menu-mode special-mode "Package Menu"
   "Major mode for browsing a list of packages.
 Letters do not insert themselves; instead, they are commands.
 \\<package-menu-mode-map>
 \\{package-menu-mode-map}"
-  (kill-all-local-variables)
-  (use-local-map package-menu-mode-map)
-  (setq major-mode 'package-menu-mode)
-  (setq mode-name "Package Menu")
   (setq truncate-lines t)
   (setq buffer-read-only t)
   (set (make-local-variable 'revert-buffer-function) 'package-menu-revert)
@@ -1326,8 +1319,7 @@ Letters do not insert themselves; instead, they are commands.
 	   (20 . "Version")
 	   (32 . "Status")
 	   (43 . "Description"))
-	 ""))
-  (run-mode-hooks 'package-menu-mode-hook))
+	 "")))
 
 (defun package-menu-refresh ()
   "Download the Emacs Lisp package archive.

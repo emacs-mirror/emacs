@@ -1,7 +1,6 @@
 ;;; url-auth.el --- Uniform Resource Locator authorization modules
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2011  Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -25,7 +24,7 @@
 (require 'url-vars)
 (require 'url-parse)
 (autoload 'url-warn "url")
-(autoload 'auth-source-user-or-password "auth-source")
+(autoload 'auth-source-search "auth-source")
 
 (defsubst url-auth-user-prompt (url realm)
   "String to usefully prompt for a username."
@@ -82,11 +81,11 @@ instead of the filename inheritance method."
     (cond
      ((and prompt (not byserv))
       (setq user (or
-		  (auth-source-user-or-password "login" server type)
+		  (url-do-auth-source-search server type :user)
 		  (read-string (url-auth-user-prompt url realm)
 			       (or user (user-real-login-name))))
 	    pass (or
-		  (auth-source-user-or-password "password" server type)
+		  (url-do-auth-source-search server type :secret)
 		  (read-passwd "Password: " nil (or pass ""))))
       (set url-basic-auth-storage
 	   (cons (list server
@@ -111,11 +110,11 @@ instead of the filename inheritance method."
       (if (or (and (not retval) prompt) overwrite)
 	  (progn
 	    (setq user (or
-			(auth-source-user-or-password "login" server type)
+			(url-do-auth-source-search server type :user)
 			(read-string (url-auth-user-prompt url realm)
 				     (user-real-login-name)))
 		  pass (or
-			(auth-source-user-or-password "password" server type)
+			(url-do-auth-source-search server type :secret)
 			(read-passwd "Password: "))
 		  retval (base64-encode-string (format "%s:%s" user pass))
 		  byserv (assoc server (symbol-value url-basic-auth-storage)))
@@ -174,11 +173,11 @@ instead of hostname:portnum."
 	(cond
 	 ((and prompt (not byserv))
 	  (setq user (or
-		      (auth-source-user-or-password "login" server type)
+		      (url-do-auth-source-search server type :user)
 		      (read-string (url-auth-user-prompt url realm)
 				   (user-real-login-name)))
 		pass (or
-		      (auth-source-user-or-password "password" server type)
+		      (url-do-auth-source-search server type :secret)
 		      (read-passwd "Password: "))
 		url-digest-auth-storage
 		(cons (list server
@@ -205,11 +204,11 @@ instead of hostname:portnum."
 	  (if overwrite
 	      (if (and (not retval) prompt)
 		  (setq user (or
-			      (auth-source-user-or-password "login" server type)
+			      (url-do-auth-source-search server type :user)
 			      (read-string (url-auth-user-prompt url realm)
 					   (user-real-login-name)))
 			pass (or
-			      (auth-source-user-or-password "password" server type)
+			      (url-do-auth-source-search server type :secret)
 			      (read-passwd "Password: "))
 			retval (setq retval
 				     (cons user
@@ -244,6 +243,13 @@ instead of hostname:portnum."
 (defvar url-registered-auth-schemes nil
   "A list of the registered authorization schemes and various and sundry
 information associated with them.")
+
+(defun url-do-auth-source-search (server type parameter)
+  (let* ((auth-info (auth-source-search :max 1 :host server :port type))
+         (auth-info (nth 0 auth-info))
+         (token (plist-get auth-info parameter))
+         (token (if (functionp token) (funcall token) token)))
+    token))
 
 ;;;###autoload
 (defun url-get-authentication (url realm type prompt &optional args)
@@ -345,5 +351,4 @@ RATING   a rating between 1 and 10 of the strength of the authentication.
 
 (provide 'url-auth)
 
-;; arch-tag: 04058625-616d-44e4-9dbf-4b46b00b2a91
 ;;; url-auth.el ends here

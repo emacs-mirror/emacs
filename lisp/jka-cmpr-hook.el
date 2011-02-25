@@ -1,7 +1,7 @@
 ;;; jka-cmpr-hook.el --- preloaded code to enable jka-compr.el
 
-;; Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 1997, 1999-2000, 2002-2011
+;;   Free Software Foundation, Inc.
 
 ;; Author: jka@ece.cmu.edu (Jay K. Adams)
 ;; Maintainer: FSF
@@ -365,5 +365,4 @@ Return the new status of auto compression (non-nil means on)."
 
 (provide 'jka-cmpr-hook)
 
-;; arch-tag: 4bd73429-f400-45fe-a065-270a113e31a8
 ;;; jka-cmpr-hook.el ends here

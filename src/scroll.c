@@ -1,6 +1,7 @@
-/* Calculate what line insertion or deletion to do, and do it,
-   Copyright (C) 1985, 1986, 1990, 1993, 1994, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+/* Calculate what line insertion or deletion to do, and do it
+
+Copyright (C) 1985-1986, 1990, 1993-1994, 2001-2011
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1035,5 +1036,3 @@ do_line_insertion_deletion_costs (FRAME_PTR frame,
 		 coefficient);
 }
 
-/* arch-tag: cdb7149c-48e7-4793-a948-2786c8e45485
-   (do not change this comment) */

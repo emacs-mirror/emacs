@@ -1,7 +1,6 @@
 ;;; spam.el --- Identifying spam
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2002-2011  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Maintainer: Ted Zlatanov <tzz@lifelogs.com>
@@ -2726,9 +2725,8 @@ With a non-nil REMOVE, remove the ADDRESSES."
               (with-current-buffer summary-buffer-name
                 (setq article-string (spam-get-article-as-string article)))
               (when (stringp article-string)
-                (insert "From \n") ; mbox separator (sa-learn only checks the
-                                   ; first five chars, so we can get away with
-                                   ; a bogus line))
+                ;; mbox separator
+                (insert (concat "From nobody " (current-time-string) "\n"))
                 (insert article-string)
                 (insert "\n"))))
           ;; call sa-learn on all messages at the same time

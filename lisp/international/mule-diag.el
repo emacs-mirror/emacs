@@ -1,7 +1,6 @@
 ;;; mule-diag.el --- show diagnosis of multilingual environment (Mule)
 
-;; Copyright (C) 1997, 1998, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2011  Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -1057,7 +1056,10 @@ installed LEIM (Libraries of Emacs Input Methods).")
 			 (if (and (consp title) (stringp (car title)))
 			     (car title)
 			   title))
-		       (nth 4 elt)))))))
+		       ;; If the doc is multi-line, indent all
+		       ;; non-blank lines. (Bug#8066)
+		       (replace-regexp-in-string "\n\\(.\\)" "\n    \\1"
+						 (or (nth 4 elt) ""))))))))
 
 ;;; DIAGNOSIS
 
@@ -1168,5 +1170,4 @@ The default is 20.  If LIMIT is negative, do not limit the listing."
 
 (provide 'mule-diag)
 
-;; arch-tag: cd3b607c-2893-45a0-a4fa-a6535754dbee
 ;;; mule-diag.el ends here

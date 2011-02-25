@@ -1,6 +1,5 @@
 /* GNU Emacs routines to deal with syntax tables; also word and list parsing.
-   Copyright (C) 1985, 1987, 1993, 1994, 1995, 1997, 1998, 1999, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+   Copyright (C) 1985, 1987, 1993-1995, 1997-1999, 2001-2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -98,22 +97,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 Lisp_Object Qsyntax_table_p, Qsyntax_table, Qscan_error;
 
-int words_include_escapes;
-int parse_sexp_lookup_properties;
-
-/* Nonzero means `scan-sexps' treat all multibyte characters as symbol.  */
-int multibyte_syntax_as_symbol;
-
 /* Used as a temporary in SYNTAX_ENTRY and other macros in syntax.h,
    if not compiled with GCC.  No need to mark it, since it is used
    only very temporarily.  */
 Lisp_Object syntax_temp;
-
-/* Non-zero means an open parenthesis in column 0 is always considered
-   to be the start of a defun.  Zero means an open parenthesis in
-   column 0 has no special meaning.  */
-
-int open_paren_in_column_0_is_defun_start;
 
 /* This is the internal form of the parse state used in parse-partial-sexp.  */
 
@@ -290,7 +277,7 @@ update_syntax_table (EMACS_INT charpos, int count, int init,
       else
 	{
 	  gl_state.use_global = 0;
-	  gl_state.current_syntax_table = current_buffer->syntax_table;
+	  gl_state.current_syntax_table = BVAR (current_buffer, syntax_table);
 	}
     }
 
@@ -376,7 +363,7 @@ char_quoted (EMACS_INT charpos, EMACS_INT bytepos)
 static INLINE EMACS_INT
 dec_bytepos (EMACS_INT bytepos)
 {
-  if (NILP (current_buffer->enable_multibyte_characters))
+  if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
     return bytepos - 1;
 
   DEC_POS (bytepos);
@@ -792,7 +779,7 @@ DEFUN ("syntax-table", Fsyntax_table, Ssyntax_table, 0, 0, 0,
 This is the one specified by the current buffer.  */)
   (void)
 {
-  return current_buffer->syntax_table;
+  return BVAR (current_buffer, syntax_table);
 }
 
 DEFUN ("standard-syntax-table", Fstandard_syntax_table,
@@ -837,7 +824,7 @@ One argument, a syntax table.  */)
 {
   int idx;
   check_syntax_table (table);
-  current_buffer->syntax_table = table;
+  BVAR (current_buffer, syntax_table) = table;
   /* Indicate that this buffer now has a specified syntax table.  */
   idx = PER_BUFFER_VAR_IDX (syntax_table);
   SET_PER_BUFFER_VALUE_P (current_buffer, idx, 1);
@@ -1048,7 +1035,7 @@ usage: (modify-syntax-entry CHAR NEWENTRY &optional SYNTAX-TABLE)  */)
     CHECK_CHARACTER (c);
 
   if (NILP (syntax_table))
-    syntax_table = current_buffer->syntax_table;
+    syntax_table = BVAR (current_buffer, syntax_table);
   else
     check_syntax_table (syntax_table);
 
@@ -1220,12 +1207,6 @@ DEFUN ("internal-describe-syntax-value", Finternal_describe_syntax_value,
   return syntax;
 }
 
-int parse_sexp_ignore_comments;
-
-/* Char-table of functions that find the next or previous word
-   boundary.  */
-Lisp_Object Vfind_word_boundary_function_table;
-
 /* Return the position across COUNT words from FROM.
    If that many words cannot be found before the end of the buffer, return 0.
    COUNT negative means scan backward and stop at word beginning.  */
@@ -1469,7 +1450,7 @@ skip_chars (int forwardp, Lisp_Object string, Lisp_Object lim, int handle_iso_cl
   if (XINT (lim) < BEGV)
     XSETFASTINT (lim, BEGV);
 
-  multibyte = (!NILP (current_buffer->enable_multibyte_characters)
+  multibyte = (!NILP (BVAR (current_buffer, enable_multibyte_characters))
 	       && (XINT (lim) - PT != CHAR_TO_BYTE (XINT (lim)) - PT_BYTE));
   string_multibyte = SBYTES (string) > SCHARS (string);
 
@@ -1955,7 +1936,7 @@ skip_syntaxes (int forwardp, Lisp_Object string, Lisp_Object lim)
   if (forwardp ? (PT >= XFASTINT (lim)) : (PT <= XFASTINT (lim)))
     return make_number (0);
 
-  multibyte = (!NILP (current_buffer->enable_multibyte_characters)
+  multibyte = (!NILP (BVAR (current_buffer, enable_multibyte_characters))
 	       && (XINT (lim) - PT != CHAR_TO_BYTE (XINT (lim)) - PT_BYTE));
 
   memset (fastmap, 0, sizeof fastmap);
@@ -2722,7 +2703,7 @@ scan_lists (register EMACS_INT from, EMACS_INT count, EMACS_INT depth, int sexpf
 	      while (from > stop)
 		{
 		  temp_pos = from_byte;
-		  if (! NILP (current_buffer->enable_multibyte_characters))
+		  if (! NILP (BVAR (current_buffer, enable_multibyte_characters)))
 		    DEC_POS (temp_pos);
 		  else
 		    temp_pos--;
@@ -3482,31 +3463,31 @@ syms_of_syntax (void)
   Fput (Qscan_error, Qerror_message,
 	make_pure_c_string ("Scan error"));
 
-  DEFVAR_BOOL ("parse-sexp-ignore-comments", &parse_sexp_ignore_comments,
+  DEFVAR_BOOL ("parse-sexp-ignore-comments", parse_sexp_ignore_comments,
 	       doc: /* Non-nil means `forward-sexp', etc., should treat comments as whitespace.  */);
 
-  DEFVAR_BOOL ("parse-sexp-lookup-properties", &parse_sexp_lookup_properties,
+  DEFVAR_BOOL ("parse-sexp-lookup-properties", parse_sexp_lookup_properties,
 	       doc: /* Non-nil means `forward-sexp', etc., obey `syntax-table' property.
 Otherwise, that text property is simply ignored.
 See the info node `(elisp)Syntax Properties' for a description of the
 `syntax-table' property.  */);
 
   words_include_escapes = 0;
-  DEFVAR_BOOL ("words-include-escapes", &words_include_escapes,
+  DEFVAR_BOOL ("words-include-escapes", words_include_escapes,
 	       doc: /* Non-nil means `forward-word', etc., should treat escape chars part of words.  */);
 
-  DEFVAR_BOOL ("multibyte-syntax-as-symbol", &multibyte_syntax_as_symbol,
+  DEFVAR_BOOL ("multibyte-syntax-as-symbol", multibyte_syntax_as_symbol,
 	       doc: /* Non-nil means `scan-sexps' treats all multibyte characters as symbol.  */);
   multibyte_syntax_as_symbol = 0;
 
   DEFVAR_BOOL ("open-paren-in-column-0-is-defun-start",
-	       &open_paren_in_column_0_is_defun_start,
+	       open_paren_in_column_0_is_defun_start,
 	       doc: /* *Non-nil means an open paren in column 0 denotes the start of a defun.  */);
   open_paren_in_column_0_is_defun_start = 1;
 
 
   DEFVAR_LISP ("find-word-boundary-function-table",
-	       &Vfind_word_boundary_function_table,
+	       Vfind_word_boundary_function_table,
 	       doc: /*
 Char table of functions to search for the word boundary.
 Each function is called with two arguments; POS and LIMIT.
@@ -3548,5 +3529,3 @@ In both cases, LIMIT bounds the search. */);
   defsubr (&Sparse_partial_sexp);
 }
 
-/* arch-tag: 3e297b9f-088e-4b64-8f4c-fb0b3443e412
-   (do not change this comment) */

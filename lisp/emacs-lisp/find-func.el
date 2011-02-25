@@ -1,7 +1,6 @@
 ;;; find-func.el --- find the definition of the Emacs Lisp function near point
 
-;; Copyright (C) 1997, 1999, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Jens Petersen <petersen@kurims.kyoto-u.ac.jp>
 ;; Maintainer: petersen@kurims.kyoto-u.ac.jp
@@ -563,5 +562,4 @@ Set mark before moving, if the buffer already existed."
 
 (provide 'find-func)
 
-;; arch-tag: 43ecd81c-74dc-4d9a-8f63-a61e55670d64
 ;;; find-func.el ends here

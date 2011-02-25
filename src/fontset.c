@@ -1,13 +1,13 @@
 /* Fontset handler.
-   Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-     Free Software Foundation, Inc.
-   Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-     2005, 2006, 2007, 2008, 2009, 2010, 2011
-     National Institute of Advanced Industrial Science and Technology (AIST)
-     Registration Number H14PRO021
-   Copyright (C) 2003, 2006
-     National Institute of Advanced Industrial Science and Technology (AIST)
-     Registration Number H13PRO009
+
+Copyright (C) 2001-2011  Free Software Foundation, Inc.
+Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+  2005, 2006, 2007, 2008, 2009, 2010, 2011
+  National Institute of Advanced Industrial Science and Technology (AIST)
+  Registration Number H14PRO021
+Copyright (C) 2003, 2006
+  National Institute of Advanced Industrial Science and Technology (AIST)
+  Registration Number H13PRO009
 
 This file is part of GNU Emacs.
 
@@ -190,14 +190,6 @@ static int next_fontset_id;
 /* The default fontset.  This gives default FAMILY and REGISTRY of
    font for each character.  */
 static Lisp_Object Vdefault_fontset;
-
-Lisp_Object Vfont_encoding_charset_alist;
-Lisp_Object Vuse_default_ascent;
-Lisp_Object Vignore_relative_composition;
-Lisp_Object Valternate_fontname_alist;
-Lisp_Object Vfontset_alias_alist;
-Lisp_Object Vvertical_centering_font_regexp;
-Lisp_Object Votf_script_alist;
 
 /* Check if any window system is used now.  */
 void (*check_window_system_func) (void);
@@ -849,12 +841,12 @@ free_realized_fontset (FRAME_PTR f, Lisp_Object fontset)
 {
   Lisp_Object tail;
 
-  return;
-  for (tail = FONTSET_OBJLIST (fontset); CONSP (tail); tail = XCDR (tail))
-    {
-      xassert (FONT_OBJECT_P (XCAR (tail)));
-      font_close_object (f, XCAR (tail));
-    }
+  if (0)
+    for (tail = FONTSET_OBJLIST (fontset); CONSP (tail); tail = XCDR (tail))
+      {
+	xassert (FONT_OBJECT_P (XCAR (tail)));
+	font_close_object (f, XCAR (tail));
+      }
 }
 
 /* Free fontset of FACE defined on frame F.  Called from
@@ -1057,7 +1049,7 @@ make_fontset_for_ascii_face (FRAME_PTR f, int base_fontset_id, struct face *face
    the corresponding regular expression.  */
 static Lisp_Object Vcached_fontset_data;
 
-#define CACHED_FONTSET_NAME ((char *) SDATA (XCAR (Vcached_fontset_data)))
+#define CACHED_FONTSET_NAME SSDATA (XCAR (Vcached_fontset_data))
 #define CACHED_FONTSET_REGEX (XCDR (Vcached_fontset_data))
 
 /* If fontset name PATTERN contains any wild card, return regular
@@ -1066,13 +1058,13 @@ static Lisp_Object Vcached_fontset_data;
 static Lisp_Object
 fontset_pattern_regexp (Lisp_Object pattern)
 {
-  if (!strchr ((char *) SDATA (pattern), '*')
-      && !strchr ((char *) SDATA (pattern), '?'))
+  if (!strchr (SSDATA (pattern), '*')
+      && !strchr (SSDATA (pattern), '?'))
     /* PATTERN does not contain any wild cards.  */
     return Qnil;
 
   if (!CONSP (Vcached_fontset_data)
-      || strcmp ((char *) SDATA (pattern), CACHED_FONTSET_NAME))
+      || strcmp (SSDATA (pattern), CACHED_FONTSET_NAME))
     {
       /* We must at first update the cached data.  */
       unsigned char *regex, *p0, *p1;
@@ -1123,7 +1115,7 @@ fontset_pattern_regexp (Lisp_Object pattern)
       *p1++ = '$';
       *p1++ = 0;
 
-      Vcached_fontset_data = Fcons (build_string ((char *) SDATA (pattern)),
+      Vcached_fontset_data = Fcons (build_string (SSDATA (pattern)),
 				    build_string ((char *) regex));
     }
 
@@ -1174,7 +1166,7 @@ fs_query_fontset (Lisp_Object name, int name_pattern)
       this_name = FONTSET_NAME (fontset);
       if (name_pattern == 1
 	  ? fast_string_match_ignore_case (name, this_name) >= 0
-	  : !xstrcasecmp (SDATA (name), SDATA (this_name)))
+	  : !xstrcasecmp (SSDATA (name), SSDATA (this_name)))
 	return i;
     }
   return -1;
@@ -1233,7 +1225,7 @@ list_fontsets (FRAME_PTR f, Lisp_Object pattern, int size)
 
       if (STRINGP (regexp)
 	  ? (fast_string_match (regexp, name) < 0)
-	  : strcmp ((char *) SDATA (pattern), (char *) SDATA (name)))
+	  : strcmp (SSDATA (pattern), SSDATA (name)))
 	continue;
 
       val = Fcons (Fcopy_sequence (FONTSET_NAME (fontset)), val);
@@ -1659,10 +1651,10 @@ FONT-SPEC is a vector, a cons, or a string.  See the documentation of
       char xlfd[256];
       int len;
 
-      if (font_parse_xlfd ((char *) SDATA (name), font_spec) < 0)
+      if (font_parse_xlfd (SSDATA (name), font_spec) < 0)
 	error ("Fontset name must be in XLFD format");
       short_name = AREF (font_spec, FONT_REGISTRY_INDEX);
-      if (strncmp ((char *) SDATA (SYMBOL_NAME (short_name)), "fontset-", 8)
+      if (strncmp (SSDATA (SYMBOL_NAME (short_name)), "fontset-", 8)
 	  || SBYTES (SYMBOL_NAME (short_name)) < 9)
 	error ("Registry field of fontset name must be \"fontset-*\"");
       Vfontset_alias_alist = Fcons (Fcons (name, SYMBOL_NAME (short_name)),
@@ -2199,7 +2191,7 @@ syms_of_fontset (void)
   auto_fontset_alist = Qnil;
   staticpro (&auto_fontset_alist);
 
-  DEFVAR_LISP ("font-encoding-charset-alist", &Vfont_encoding_charset_alist,
+  DEFVAR_LISP ("font-encoding-charset-alist", Vfont_encoding_charset_alist,
 	       doc: /*
 Alist of charsets vs the charsets to determine the preferred font encoding.
 Each element looks like (CHARSET . ENCODING-CHARSET),
@@ -2210,7 +2202,7 @@ When a text has a property `charset' and the value is CHARSET, a font
 whose encoding corresponds to ENCODING-CHARSET is preferred.  */);
   Vfont_encoding_charset_alist = Qnil;
 
-  DEFVAR_LISP ("use-default-ascent", &Vuse_default_ascent,
+  DEFVAR_LISP ("use-default-ascent", Vuse_default_ascent,
 	       doc: /*
 Char table of characters whose ascent values should be ignored.
 If an entry for a character is non-nil, the ascent value of the glyph
@@ -2220,7 +2212,7 @@ This affects how a composite character which contains
 such a character is displayed on screen.  */);
   Vuse_default_ascent = Qnil;
 
-  DEFVAR_LISP ("ignore-relative-composition", &Vignore_relative_composition,
+  DEFVAR_LISP ("ignore-relative-composition", Vignore_relative_composition,
 	       doc: /*
 Char table of characters which are not composed relatively.
 If an entry for a character is non-nil, a composition sequence
@@ -2229,26 +2221,26 @@ the glyph of that character is put without considering
 an ascent and descent value of a previous character.  */);
   Vignore_relative_composition = Qnil;
 
-  DEFVAR_LISP ("alternate-fontname-alist", &Valternate_fontname_alist,
+  DEFVAR_LISP ("alternate-fontname-alist", Valternate_fontname_alist,
 	       doc: /* Alist of fontname vs list of the alternate fontnames.
 When a specified font name is not found, the corresponding
 alternate fontnames (if any) are tried instead.  */);
   Valternate_fontname_alist = Qnil;
 
-  DEFVAR_LISP ("fontset-alias-alist", &Vfontset_alias_alist,
+  DEFVAR_LISP ("fontset-alias-alist", Vfontset_alias_alist,
 	       doc: /* Alist of fontset names vs the aliases.  */);
   Vfontset_alias_alist = Fcons (Fcons (FONTSET_NAME (Vdefault_fontset),
 				       make_pure_c_string ("fontset-default")),
 				Qnil);
 
   DEFVAR_LISP ("vertical-centering-font-regexp",
-	       &Vvertical_centering_font_regexp,
+	       Vvertical_centering_font_regexp,
 	       doc: /* *Regexp matching font names that require vertical centering on display.
 When a character is displayed with such fonts, the character is displayed
 at the vertical center of lines.  */);
   Vvertical_centering_font_regexp = Qnil;
 
-  DEFVAR_LISP ("otf-script-alist", &Votf_script_alist,
+  DEFVAR_LISP ("otf-script-alist", Votf_script_alist,
 	       doc: /* Alist of OpenType script tags vs the corresponding script names.  */);
   Votf_script_alist = Qnil;
 
@@ -2263,6 +2255,3 @@ at the vertical center of lines.  */);
   defsubr (&Sfontset_list_all);
 #endif
 }
-
-/* arch-tag: ea861585-2f5f-4e5b-9849-d04a9c3a3537
-   (do not change this comment) */

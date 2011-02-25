@@ -1,7 +1,6 @@
 ;;; m4-mode.el --- m4 code editing commands for Emacs
 
-;; Copyright (C) 1996, 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-;; Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Andrew Csillag <drew_csillag@geocities.com>
 ;; Maintainer: Andrew Csillag <drew_csillag@geocities.com>
@@ -172,5 +171,4 @@
 ;;;		  "m4_syscmd" "m4_sysval" "m4_traceoff" "m4_traceon" "m4_translit"
 ;;;		  "m4_m4_undefine" "m4_undivert"))
 
-;; arch-tag: 87811d86-94c1-474b-9666-587f6da74af1
 ;;; m4-mode.el ends here

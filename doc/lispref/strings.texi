@@ -1,7 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2011
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/strings
@@ -1142,7 +1141,3 @@ This function makes @var{char} case-invariant, with syntax
 This command displays a description of the contents of the current
 buffer's case table.
 @end deffn
-
-@ignore
-   arch-tag: 700b8e95-7aa5-4b52-9eb3-8f2e1ea152b4
-@end ignore

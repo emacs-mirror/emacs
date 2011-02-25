@@ -1,7 +1,5 @@
 /* Evaluator for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-                 Free Software Foundation, Inc.
+   Copyright (C) 1985-1987, 1993-1995, 1999-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -58,7 +56,7 @@ int gcpro_level;
 #endif
 
 Lisp_Object Qautoload, Qmacro, Qexit, Qinteractive, Qcommandp, Qdefun;
-Lisp_Object Qinhibit_quit, Vinhibit_quit, Vquit_flag;
+Lisp_Object Qinhibit_quit;
 Lisp_Object Qand_rest, Qand_optional;
 Lisp_Object Qdebug_on_error;
 Lisp_Object Qdeclare;
@@ -89,55 +87,9 @@ struct specbinding *specpdl;
 
 struct specbinding *specpdl_ptr;
 
-/* Maximum size allowed for specpdl allocation */
-
-EMACS_INT max_specpdl_size;
-
 /* Depth in Lisp evaluations and function calls.  */
 
 EMACS_INT lisp_eval_depth;
-
-/* Maximum allowed depth in Lisp evaluations and function calls.  */
-
-EMACS_INT max_lisp_eval_depth;
-
-/* Nonzero means enter debugger before next function call */
-
-int debug_on_next_call;
-
-/* Non-zero means debugger may continue.  This is zero when the
-   debugger is called during redisplay, where it might not be safe to
-   continue the interrupted redisplay. */
-
-int debugger_may_continue;
-
-/* List of conditions (non-nil atom means all) which cause a backtrace
-   if an error is handled by the command loop's error handler.  */
-
-Lisp_Object Vstack_trace_on_error;
-
-/* List of conditions (non-nil atom means all) which enter the debugger
-   if an error is handled by the command loop's error handler.  */
-
-Lisp_Object Vdebug_on_error;
-
-/* List of conditions and regexps specifying error messages which
-   do not enter the debugger even if Vdebug_on_error says they should.  */
-
-Lisp_Object Vdebug_ignored_errors;
-
-/* Non-nil means call the debugger even if the error will be handled.  */
-
-Lisp_Object Vdebug_on_signal;
-
-/* Hook for edebug to use.  */
-
-Lisp_Object Vsignal_hook_function;
-
-/* Nonzero means enter debugger if a quit signal
-   is handled by the command loop's error handler. */
-
-int debug_on_quit;
 
 /* The value of num_nonmacro_input_events as of the last time we
    started to enter the debugger.  If we decide to enter the debugger
@@ -147,8 +99,6 @@ int debug_on_quit;
    invocations.  */
 
 int when_entered_debugger;
-
-Lisp_Object Vdebugger;
 
 /* The function from which the last `signal' was called.  Set in
    Fsignal.  */
@@ -160,10 +110,6 @@ Lisp_Object Vsignaling_function;
    which is unsafe because the interpreter isn't reentrant.  */
 
 int handling_signal;
-
-/* Function to process declarations in defmacro forms.  */
-
-Lisp_Object Vmacro_declaration_function;
 
 static Lisp_Object funcall_lambda (Lisp_Object, int, Lisp_Object*);
 static void unwind_to_catch (struct catchtag *, Lisp_Object) NO_RETURN;
@@ -1611,6 +1557,8 @@ internal_condition_case_n (Lisp_Object (*bfun) (int, Lisp_Object*),
 
 static Lisp_Object find_handler_clause (Lisp_Object, Lisp_Object,
 					Lisp_Object, Lisp_Object);
+static int maybe_call_debugger (Lisp_Object conditions, Lisp_Object sig,
+				Lisp_Object data);
 
 DEFUN ("signal", Fsignal, Ssignal, 2, 2, 0,
        doc: /* Signal an error.  Args are ERROR-SYMBOL and associated DATA.
@@ -1631,21 +1579,18 @@ See also the function `condition-case'.  */)
   /* When memory is full, ERROR-SYMBOL is nil,
      and DATA is (REAL-ERROR-SYMBOL . REAL-DATA).
      That is a special case--don't do this in other situations.  */
-  register struct handler *allhandlers = handlerlist;
   Lisp_Object conditions;
   Lisp_Object string;
-  Lisp_Object real_error_symbol;
+  Lisp_Object real_error_symbol
+    = (NILP (error_symbol) ? Fcar (data) : error_symbol);
+  register Lisp_Object clause = Qnil;
+  struct handler *h;
   struct backtrace *bp;
 
   immediate_quit = handling_signal = 0;
   abort_on_gc = 0;
   if (gc_in_progress || waiting_for_input)
     abort ();
-
-  if (NILP (error_symbol))
-    real_error_symbol = Fcar (data);
-  else
-    real_error_symbol = error_symbol;
 
 #if 0 /* rms: I don't know why this was here,
 	 but it is surely wrong for an error that is handled.  */
@@ -1685,49 +1630,49 @@ See also the function `condition-case'.  */)
 	Vsignaling_function = *bp->function;
     }
 
-  for (; handlerlist; handlerlist = handlerlist->next)
+  for (h = handlerlist; h; h = h->next)
     {
-      register Lisp_Object clause;
-
-      clause = find_handler_clause (handlerlist->handler, conditions,
+      clause = find_handler_clause (h->handler, conditions,
 				    error_symbol, data);
-
-      if (EQ (clause, Qlambda))
-	{
-	  /* We can't return values to code which signaled an error, but we
-	     can continue code which has signaled a quit.  */
-	  if (EQ (real_error_symbol, Qquit))
-	    return Qnil;
-	  else
-	    error ("Cannot return from the debugger in an error");
-	}
-
       if (!NILP (clause))
-	{
-	  Lisp_Object unwind_data;
-	  struct handler *h = handlerlist;
-
-	  handlerlist = allhandlers;
-
-	  if (NILP (error_symbol))
-	    unwind_data = data;
-	  else
-	    unwind_data = Fcons (error_symbol, data);
-	  h->chosen_clause = clause;
-	  unwind_to_catch (h->tag, unwind_data);
-	}
+	break;
     }
+	  
+  if (/* Don't run the debugger for a memory-full error.
+	 (There is no room in memory to do that!) */
+      !NILP (error_symbol)
+      && (!NILP (Vdebug_on_signal)
+	  /* If no handler is present now, try to run the debugger.  */
+	  || NILP (clause)
+	  /* Special handler that means "print a message and run debugger
+	     if requested".  */
+	  || EQ (h->handler, Qerror)))
+    {
+      int debugger_called
+	= maybe_call_debugger (conditions, error_symbol, data);
+      /* We can't return values to code which signaled an error, but we
+	 can continue code which has signaled a quit.  */
+      if (debugger_called && EQ (real_error_symbol, Qquit))
+	return Qnil;
+    }      
 
-  handlerlist = allhandlers;
-  /* If no handler is present now, try to run the debugger,
-     and if that fails, throw to top level.  */
-  find_handler_clause (Qerror, conditions, error_symbol, data);
-  if (catchlist != 0)
-    Fthrow (Qtop_level, Qt);
+  if (!NILP (clause))
+    {
+      Lisp_Object unwind_data
+	= (NILP (error_symbol) ? data : Fcons (error_symbol, data));
+      
+      h->chosen_clause = clause;
+      unwind_to_catch (h->tag, unwind_data);
+    }
+  else
+    {
+      if (catchlist != 0)
+	Fthrow (Qtop_level, Qt);
+    }
 
   if (! NILP (error_symbol))
     data = Fcons (error_symbol, data);
-
+      
   string = Ferror_message_string (data);
   fatal ("%s", SDATA (string), 0);
 }
@@ -1902,63 +1847,24 @@ find_handler_clause (Lisp_Object handlers, Lisp_Object conditions,
 		     Lisp_Object sig, Lisp_Object data)
 {
   register Lisp_Object h;
-  register Lisp_Object tem;
-  int debugger_called = 0;
-  int debugger_considered = 0;
 
   /* t is used by handlers for all conditions, set up by C code.  */
   if (EQ (handlers, Qt))
     return Qt;
 
-  /* Don't run the debugger for a memory-full error.
-     (There is no room in memory to do that!)  */
-  if (NILP (sig))
-    debugger_considered = 1;
-
   /* error is used similarly, but means print an error message
      and run the debugger if that is enabled.  */
-  if (EQ (handlers, Qerror)
-      || !NILP (Vdebug_on_signal)) /* This says call debugger even if
-				      there is a handler.  */
+  if (EQ (handlers, Qerror))
+    return Qt;
+
+  for (h = handlers; CONSP (h); h = XCDR (h))
     {
-      if (!NILP (sig) && wants_debugger (Vstack_trace_on_error, conditions))
-	{
-	  max_lisp_eval_depth += 15;
-	  max_specpdl_size++;
-	  if (noninteractive)
-	    Fbacktrace ();
-	  else
-	    internal_with_output_to_temp_buffer
-	      ("*Backtrace*",
-	       (Lisp_Object (*) (Lisp_Object)) Fbacktrace,
-	       Qnil);
-	  max_specpdl_size--;
-	  max_lisp_eval_depth -= 15;
-	}
+      Lisp_Object handler = XCAR (h);
+      Lisp_Object condit, tem;
 
-      if (!debugger_considered)
-	{
-	  debugger_considered = 1;
-	  debugger_called = maybe_call_debugger (conditions, sig, data);
-	}
-
-      /* If there is no handler, return saying whether we ran the debugger.  */
-      if (EQ (handlers, Qerror))
-	{
-	  if (debugger_called)
-	    return Qlambda;
-	  return Qt;
-	}
-    }
-
-  for (h = handlers; CONSP (h); h = Fcdr (h))
-    {
-      Lisp_Object handler, condit;
-
-      handler = Fcar (h);
       if (!CONSP (handler))
 	continue;
-      condit = Fcar (handler);
+      condit = XCAR (handler);
       /* Handle a single condition name in handler HANDLER.  */
       if (SYMBOLP (condit))
 	{
@@ -1972,15 +1878,9 @@ find_handler_clause (Lisp_Object handlers, Lisp_Object conditions,
 	  Lisp_Object tail;
 	  for (tail = condit; CONSP (tail); tail = XCDR (tail))
 	    {
-	      tem = Fmemq (Fcar (tail), conditions);
+	      tem = Fmemq (XCAR (tail), conditions);
 	      if (!NILP (tem))
-		{
-		  /* This handler is going to apply.
-		     Does it allow the debugger to run first?  */
-		  if (! debugger_considered && !NILP (Fmemq (Qdebug, condit)))
-		    maybe_call_debugger (conditions, sig, data);
-		  return handler;
-		}
+		return handler;
 	    }
 	}
     }
@@ -1997,7 +1897,6 @@ verror (const char *m, va_list ap)
   EMACS_INT size = 200;
   int mlen;
   char *buffer = buf;
-  char *args[3];
   int allocated = 0;
   Lisp_Object string;
 
@@ -3505,7 +3404,7 @@ mark_backtrace (void)
 void
 syms_of_eval (void)
 {
-  DEFVAR_INT ("max-specpdl-size", &max_specpdl_size,
+  DEFVAR_INT ("max-specpdl-size", max_specpdl_size,
 	      doc: /* *Limit on number of Lisp variable bindings and `unwind-protect's.
 If Lisp code tries to increase the total number past this amount,
 an error is signaled.
@@ -3513,7 +3412,7 @@ You can safely use a value considerably larger than the default value,
 if that proves inconveniently small.  However, if you increase it too far,
 Emacs could run out of memory trying to make the stack bigger.  */);
 
-  DEFVAR_INT ("max-lisp-eval-depth", &max_lisp_eval_depth,
+  DEFVAR_INT ("max-lisp-eval-depth", max_lisp_eval_depth,
 	      doc: /* *Limit on depth in `eval', `apply' and `funcall' before error.
 
 This limit serves to catch infinite recursions for you before they cause
@@ -3522,7 +3421,7 @@ You can safely make it considerably larger than its default value,
 if that proves inconveniently small.  However, if you increase it too far,
 Emacs could overflow the real C stack, and crash.  */);
 
-  DEFVAR_LISP ("quit-flag", &Vquit_flag,
+  DEFVAR_LISP ("quit-flag", Vquit_flag,
 	       doc: /* Non-nil causes `eval' to abort, unless `inhibit-quit' is non-nil.
 If the value is t, that means do an ordinary quit.
 If the value equals `throw-on-input', that means quit by throwing
@@ -3531,7 +3430,7 @@ Typing C-g sets `quit-flag' to t, regardless of `inhibit-quit',
 but `inhibit-quit' non-nil prevents anything from taking notice of that.  */);
   Vquit_flag = Qnil;
 
-  DEFVAR_LISP ("inhibit-quit", &Vinhibit_quit,
+  DEFVAR_LISP ("inhibit-quit", Vinhibit_quit,
 	       doc: /* Non-nil inhibits C-g quitting from happening immediately.
 Note that `quit-flag' will still be set by typing C-g,
 so a quit will be signaled as soon as `inhibit-quit' is nil.
@@ -3577,15 +3476,7 @@ before making `inhibit-quit' nil.  */);
   Qdebug = intern_c_string ("debug");
   staticpro (&Qdebug);
 
-  DEFVAR_LISP ("stack-trace-on-error", &Vstack_trace_on_error,
-	       doc: /* *Non-nil means errors display a backtrace buffer.
-More precisely, this happens for any error that is handled
-by the editor command loop.
-If the value is a list, an error only means to display a backtrace
-if one of its condition symbols appears in the list.  */);
-  Vstack_trace_on_error = Qnil;
-
-  DEFVAR_LISP ("debug-on-error", &Vdebug_on_error,
+  DEFVAR_LISP ("debug-on-error", Vdebug_on_error,
 	       doc: /* *Non-nil means enter debugger if an error is signaled.
 Does not apply to errors handled by `condition-case' or those
 matched by `debug-ignored-errors'.
@@ -3597,7 +3488,7 @@ The command `toggle-debug-on-error' toggles this.
 See also the variable `debug-on-quit'.  */);
   Vdebug_on_error = Qnil;
 
-  DEFVAR_LISP ("debug-ignored-errors", &Vdebug_ignored_errors,
+  DEFVAR_LISP ("debug-ignored-errors", Vdebug_ignored_errors,
     doc: /* *List of errors for which the debugger should not be called.
 Each element may be a condition-name or a regexp that matches error messages.
 If any element applies to a given error, that error skips the debugger
@@ -3606,21 +3497,21 @@ This overrides the variable `debug-on-error'.
 It does not apply to errors handled by `condition-case'.  */);
   Vdebug_ignored_errors = Qnil;
 
-  DEFVAR_BOOL ("debug-on-quit", &debug_on_quit,
+  DEFVAR_BOOL ("debug-on-quit", debug_on_quit,
     doc: /* *Non-nil means enter debugger if quit is signaled (C-g, for example).
 Does not apply if quit is handled by a `condition-case'.  */);
   debug_on_quit = 0;
 
-  DEFVAR_BOOL ("debug-on-next-call", &debug_on_next_call,
+  DEFVAR_BOOL ("debug-on-next-call", debug_on_next_call,
 	       doc: /* Non-nil means enter debugger before next `eval', `apply' or `funcall'.  */);
 
-  DEFVAR_BOOL ("debugger-may-continue", &debugger_may_continue,
+  DEFVAR_BOOL ("debugger-may-continue", debugger_may_continue,
 	       doc: /* Non-nil means debugger may continue execution.
 This is nil when the debugger is called under circumstances where it
 might not be safe to continue.  */);
   debugger_may_continue = 1;
 
-  DEFVAR_LISP ("debugger", &Vdebugger,
+  DEFVAR_LISP ("debugger", Vdebugger,
 	       doc: /* Function to call to invoke debugger.
 If due to frame exit, args are `exit' and the value being returned;
  this function's value will be returned instead of that.
@@ -3629,19 +3520,19 @@ If due to `apply' or `funcall' entry, one arg, `lambda'.
 If due to `eval' entry, one arg, t.  */);
   Vdebugger = Qnil;
 
-  DEFVAR_LISP ("signal-hook-function", &Vsignal_hook_function,
+  DEFVAR_LISP ("signal-hook-function", Vsignal_hook_function,
 	       doc: /* If non-nil, this is a function for `signal' to call.
 It receives the same arguments that `signal' was given.
 The Edebug package uses this to regain control.  */);
   Vsignal_hook_function = Qnil;
 
-  DEFVAR_LISP ("debug-on-signal", &Vdebug_on_signal,
+  DEFVAR_LISP ("debug-on-signal", Vdebug_on_signal,
 	       doc: /* *Non-nil means call the debugger regardless of condition handlers.
 Note that `debug-on-error', `debug-on-quit' and friends
 still determine whether to handle the particular condition.  */);
   Vdebug_on_signal = Qnil;
 
-  DEFVAR_LISP ("macro-declaration-function", &Vmacro_declaration_function,
+  DEFVAR_LISP ("macro-declaration-function", Vmacro_declaration_function,
 	       doc: /* Function to process declarations in a macro definition.
 The function will be called with two args MACRO and DECL.
 MACRO is the name of the macro being defined.
@@ -3699,5 +3590,3 @@ The value the function returns is not used.  */);
   defsubr (&Sbacktrace_frame);
 }
 
-/* arch-tag: 014a07aa-33ab-4a8f-a3d2-ee8a4a9ff7fb
-   (do not change this comment) */

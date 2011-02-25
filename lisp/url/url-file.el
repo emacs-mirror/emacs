@@ -1,7 +1,6 @@
 ;;; url-file.el --- File retrieval code
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2011  Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -241,5 +240,4 @@ to them."
 
 (provide 'url-file)
 
-;; arch-tag: 010e914a-7313-494b-8a8c-6495a862157d
 ;;; url-file.el ends here

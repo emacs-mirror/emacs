@@ -14,8 +14,7 @@
 This document describes Supercite, an Emacs package for citing and
 attributing replies to mail and news messages.
 
-Copyright @copyright{} 1993, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+Copyright @copyright{} 1993, 2001-2011 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -33,7 +32,7 @@ developing GNU and promoting software freedom.''
 
 @c      @smallbook
 
-@dircategory Emacs
+@dircategory Emacs network features
 @direntry
 * SC: (sc).                     Supercite lets you cite parts of messages
                                   you're replying to, in flexible ways.
@@ -54,6 +53,7 @@ developing GNU and promoting software freedom.''
 
 @ifnottex
 @node Top, Introduction, (dir), (dir)
+@top Supercite
 @comment  node-name,  next,  previous,  up
 
 @insertcopying 
@@ -752,8 +752,6 @@ interface specifications, or if you are writing or maintaining an MUA,
 @cindex .emacs file
 @findex sc-cite-original
 @findex cite-original (sc-)
-@findex sc-submit-bug-report
-@findex submit-bug-report (sc-)
 The first thing that everyone should do, regardless of the MUA you are
 using is to set up Emacs so it will load Supercite at the appropriate
 time.  This happens automatically if Supercite is distributed with your
@@ -1941,7 +1939,3 @@ its @var{variable} name.
 @end iftex
 @printindex vr
 @bye
-
-@ignore
-   arch-tag: 0521847a-4680-44b6-ae6e-13ce20e18436
-@end ignore

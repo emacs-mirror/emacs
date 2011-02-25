@@ -1,7 +1,6 @@
 ;;; easymenu.el --- support the easymenu interface for defining a menu
 
-;; Copyright (C) 1994, 1996, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1996, 1998-2011 Free Software Foundation, Inc.
 
 ;; Keywords: emulations
 ;; Author: Richard Stallman <rms@gnu.org>
@@ -676,5 +675,4 @@ In some cases we use that to select between the local and global maps."
 
 (provide 'easymenu)
 
-;; arch-tag: 2a04020d-90d2-476d-a7c6-71e072007a4a
 ;;; easymenu.el ends here

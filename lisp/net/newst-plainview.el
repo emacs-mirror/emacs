@@ -1,7 +1,6 @@
 ;;; newst-plainview.el --- Single buffer frontend for newsticker.
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2003-2011  Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-plainview.el
@@ -379,6 +378,107 @@ images."
 ;;; Newsticker mode
 ;; ======================================================================
 
+
+;; newsticker menu
+(defvar newsticker-menu
+  (let ((map (make-sparse-keymap "Newsticker")))
+
+    (define-key map [newsticker-browse-url]
+      '("Browse URL for item at point" . newsticker-browse-url))
+    (define-key map [newsticker-separator-1]
+      '("--"))
+    (define-key map [newsticker-buffer-update]
+      '("Update buffer" . newsticker-buffer-update))
+    (define-key map [newsticker-separator-2]
+      '("--"))
+    (define-key map [newsticker-get-all-news]
+      '("Get news from all feeds" . newsticker-get-all-news))
+    (define-key map [newsticker-get-news-at-point]
+      '("Get news from feed at point" . newsticker-get-news-at-point))
+    (define-key map [newsticker-separator-3]
+      '("--"))
+    (define-key map [newsticker-mark-all-items-as-read]
+      '("Mark all items as read" . newsticker-mark-all-items-as-read))
+    (define-key map [newsticker-mark-all-items-at-point-as-read]
+      '("Mark all items in feed at point as read" .
+        newsticker-mark-all-items-at-point-as-read))
+    (define-key map [newsticker-mark-item-at-point-as-read]
+      '("Mark item at point as read" .
+        newsticker-mark-item-at-point-as-read))
+    (define-key map [newsticker-mark-item-at-point-as-immortal]
+      '("Toggle immortality for item at point" .
+        newsticker-mark-item-at-point-as-immortal))
+    (define-key map [newsticker-separator-4]
+      '("--"))
+    (define-key map [newsticker-toggle-auto-narrow-to-item]
+      '("Narrow to single item" . newsticker-toggle-auto-narrow-to-item))
+    (define-key map [newsticker-toggle-auto-narrow-to-feed]
+      '("Narrow to single news feed" . newsticker-toggle-auto-narrow-to-feed))
+    (define-key map [newsticker-hide-old-items]
+      '("Hide old items" . newsticker-hide-old-items))
+    (define-key map [newsticker-show-old-items]
+      '("Show old items" . newsticker-show-old-items))
+    (define-key map [newsticker-next-item]
+      '("Go to next item" . newsticker-next-item))
+    (define-key map [newsticker-previous-item]
+      '("Go to previous item" . newsticker-previous-item))
+    map))
+
+(defvar newsticker-mode-map
+  (let ((map (make-keymap)))
+    (define-key map "sO" 'newsticker-show-old-items)
+    (define-key map "hO" 'newsticker-hide-old-items)
+    (define-key map "sa" 'newsticker-show-all-desc)
+    (define-key map "ha" 'newsticker-hide-all-desc)
+    (define-key map "sf" 'newsticker-show-feed-desc)
+    (define-key map "hf" 'newsticker-hide-feed-desc)
+    (define-key map "so" 'newsticker-show-old-item-desc)
+    (define-key map "ho" 'newsticker-hide-old-item-desc)
+    (define-key map "sn" 'newsticker-show-new-item-desc)
+    (define-key map "hn" 'newsticker-hide-new-item-desc)
+    (define-key map "se" 'newsticker-show-entry)
+    (define-key map "he" 'newsticker-hide-entry)
+    (define-key map "sx" 'newsticker-show-extra)
+    (define-key map "hx" 'newsticker-hide-extra)
+
+    (define-key map " "  'scroll-up)
+    (define-key map "q"  'newsticker-close-buffer)
+    (define-key map "p"  'newsticker-previous-item)
+    (define-key map "P"  'newsticker-previous-new-item)
+    (define-key map "F"  'newsticker-previous-feed)
+    (define-key map "\t" 'newsticker-next-item)
+    (define-key map "n"  'newsticker-next-item)
+    (define-key map "N"  'newsticker-next-new-item)
+    (define-key map "f"  'newsticker-next-feed)
+    (define-key map "M"  'newsticker-mark-all-items-as-read)
+    (define-key map "m"
+      'newsticker-mark-all-items-at-point-as-read-and-redraw)
+    (define-key map "o"
+      'newsticker-mark-item-at-point-as-read)
+    (define-key map "O"
+      'newsticker-mark-all-items-at-point-as-read)
+    (define-key map "G"  'newsticker-get-all-news)
+    (define-key map "g"  'newsticker-get-news-at-point)
+    (define-key map "u"  'newsticker-buffer-update)
+    (define-key map "U"  'newsticker-buffer-force-update)
+    (define-key map "a"  'newsticker-add-url)
+
+    (define-key map "i"
+      'newsticker-mark-item-at-point-as-immortal)
+
+    (define-key map "xf"
+      'newsticker-toggle-auto-narrow-to-feed)
+    (define-key map "xi"
+      'newsticker-toggle-auto-narrow-to-item)
+
+    ;; Bind menu to mouse.
+    (define-key map [down-mouse-3] newsticker-menu)
+    ;; Put menu in menu-bar.
+    (define-key map [menu-bar Newsticker]
+      (cons "Newsticker" newsticker-menu))
+
+    map))
+
 (define-derived-mode newsticker-mode fundamental-mode
   "NewsTicker"
   "Viewing news feeds in Emacs."
@@ -415,114 +515,16 @@ images."
     (add-to-invisibility-spec 'extra))
   (newsticker--buffer-set-uptodate nil))
 
-;; refine its mode-map
-(define-key newsticker-mode-map "sO" 'newsticker-show-old-items)
-(define-key newsticker-mode-map "hO" 'newsticker-hide-old-items)
-(define-key newsticker-mode-map "sa" 'newsticker-show-all-desc)
-(define-key newsticker-mode-map "ha" 'newsticker-hide-all-desc)
-(define-key newsticker-mode-map "sf" 'newsticker-show-feed-desc)
-(define-key newsticker-mode-map "hf" 'newsticker-hide-feed-desc)
-(define-key newsticker-mode-map "so" 'newsticker-show-old-item-desc)
-(define-key newsticker-mode-map "ho" 'newsticker-hide-old-item-desc)
-(define-key newsticker-mode-map "sn" 'newsticker-show-new-item-desc)
-(define-key newsticker-mode-map "hn" 'newsticker-hide-new-item-desc)
-(define-key newsticker-mode-map "se" 'newsticker-show-entry)
-(define-key newsticker-mode-map "he" 'newsticker-hide-entry)
-(define-key newsticker-mode-map "sx" 'newsticker-show-extra)
-(define-key newsticker-mode-map "hx" 'newsticker-hide-extra)
-
-(define-key newsticker-mode-map " "  'scroll-up)
-(define-key newsticker-mode-map "q"  'newsticker-close-buffer)
-(define-key newsticker-mode-map "p"  'newsticker-previous-item)
-(define-key newsticker-mode-map "P"  'newsticker-previous-new-item)
-(define-key newsticker-mode-map "F"  'newsticker-previous-feed)
-(define-key newsticker-mode-map "\t" 'newsticker-next-item)
-(define-key newsticker-mode-map "n"  'newsticker-next-item)
-(define-key newsticker-mode-map "N"  'newsticker-next-new-item)
-(define-key newsticker-mode-map "f"  'newsticker-next-feed)
-(define-key newsticker-mode-map "M"  'newsticker-mark-all-items-as-read)
-(define-key newsticker-mode-map "m"
-  'newsticker-mark-all-items-at-point-as-read-and-redraw)
-(define-key newsticker-mode-map "o"
-  'newsticker-mark-item-at-point-as-read)
-(define-key newsticker-mode-map "O"
-  'newsticker-mark-all-items-at-point-as-read)
-(define-key newsticker-mode-map "G"  'newsticker-get-all-news)
-(define-key newsticker-mode-map "g"  'newsticker-get-news-at-point)
-(define-key newsticker-mode-map "u"  'newsticker-buffer-update)
-(define-key newsticker-mode-map "U"  'newsticker-buffer-force-update)
-(define-key newsticker-mode-map "a"  'newsticker-add-url)
-
-(define-key newsticker-mode-map "i"
-  'newsticker-mark-item-at-point-as-immortal)
-
-(define-key newsticker-mode-map "xf"
-  'newsticker-toggle-auto-narrow-to-feed)
-(define-key newsticker-mode-map "xi"
-  'newsticker-toggle-auto-narrow-to-item)
-
 ;; maps for the clickable portions
-(defvar newsticker--url-keymap (make-sparse-keymap)
+(defvar newsticker--url-keymap
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mouse-1] 'newsticker-mouse-browse-url)
+    (define-key map [mouse-2] 'newsticker-mouse-browse-url)
+    (define-key map "\n" 'newsticker-browse-url)
+    (define-key map "\C-m" 'newsticker-browse-url)
+    (define-key map [(control return)] 'newsticker-handle-url)
+    map)
   "Key map for click-able headings in the newsticker buffer.")
-(define-key newsticker--url-keymap [mouse-1]
-  'newsticker-mouse-browse-url)
-(define-key newsticker--url-keymap [mouse-2]
-  'newsticker-mouse-browse-url)
-(define-key newsticker--url-keymap "\n"
-  'newsticker-browse-url)
-(define-key newsticker--url-keymap "\C-m"
-  'newsticker-browse-url)
-(define-key newsticker--url-keymap [(control return)]
-  'newsticker-handle-url)
-
-;; newsticker menu
-(defvar newsticker-menu (make-sparse-keymap "Newsticker"))
-
-(define-key newsticker-menu [newsticker-browse-url]
-  '("Browse URL for item at point" . newsticker-browse-url))
-(define-key newsticker-menu [newsticker-separator-1]
-  '("--"))
-(define-key newsticker-menu [newsticker-buffer-update]
-  '("Update buffer" . newsticker-buffer-update))
-(define-key newsticker-menu [newsticker-separator-2]
-  '("--"))
-(define-key newsticker-menu [newsticker-get-all-news]
-  '("Get news from all feeds" . newsticker-get-all-news))
-(define-key newsticker-menu [newsticker-get-news-at-point]
-  '("Get news from feed at point" . newsticker-get-news-at-point))
-(define-key newsticker-menu [newsticker-separator-3]
-  '("--"))
-(define-key newsticker-menu [newsticker-mark-all-items-as-read]
-  '("Mark all items as read" . newsticker-mark-all-items-as-read))
-(define-key newsticker-menu [newsticker-mark-all-items-at-point-as-read]
-  '("Mark all items in feed at point as read" .
-    newsticker-mark-all-items-at-point-as-read))
-(define-key newsticker-menu [newsticker-mark-item-at-point-as-read]
-  '("Mark item at point as read" .
-    newsticker-mark-item-at-point-as-read))
-(define-key newsticker-menu [newsticker-mark-item-at-point-as-immortal]
-  '("Toggle immortality for item at point" .
-    newsticker-mark-item-at-point-as-immortal))
-(define-key newsticker-menu [newsticker-separator-4]
-  '("--"))
-(define-key newsticker-menu [newsticker-toggle-auto-narrow-to-item]
-  '("Narrow to single item" . newsticker-toggle-auto-narrow-to-item))
-(define-key newsticker-menu [newsticker-toggle-auto-narrow-to-feed]
-  '("Narrow to single news feed" . newsticker-toggle-auto-narrow-to-feed))
-(define-key newsticker-menu [newsticker-hide-old-items]
-  '("Hide old items" . newsticker-hide-old-items))
-(define-key newsticker-menu [newsticker-show-old-items]
-  '("Show old items" . newsticker-show-old-items))
-(define-key newsticker-menu [newsticker-next-item]
-  '("Go to next item" . newsticker-next-item))
-(define-key newsticker-menu [newsticker-previous-item]
-  '("Go to previous item" . newsticker-previous-item))
-
-;; bind menu to mouse
-(define-key newsticker-mode-map [down-mouse-3] newsticker-menu)
-;; Put menu in menu-bar
-(define-key newsticker-mode-map [menu-bar Newsticker]
-  (cons "Newsticker" newsticker-menu))
 
 
 ;; ======================================================================
@@ -1800,5 +1802,4 @@ Take care: end of item is at the end of its last line!"
 
 (provide 'newst-plainview)
 
-;; arch-tag: 4e48b683-d48b-48dd-a13e-fe45baf41184
 ;;; newst-plainview.el ends here

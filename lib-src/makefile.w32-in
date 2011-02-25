@@ -1,6 +1,5 @@
 #  -*- Makefile -*- for GNU Emacs on the Microsoft W32 API.
-# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-#   2009, 2010, 2011 Free Software Foundation, Inc.
+# Copyright (C) 2000-2011 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -22,11 +21,9 @@ ALL = make-docfile hexl ctags etags movemail ebrowse emacsclient
 
 .PHONY: $(ALL)
 
-VERSION		= 24.0.50
-
 LOCAL_FLAGS	= -DWINDOWSNT -DDOS_NT -DSTDC_HEADERS=1 -DNO_LDAV=1 \
-		  -DNO_ARCHIVES=1 -DHAVE_CONFIG_H=1 -I../nt/inc \
-		  -I../src
+		  -DNO_ARCHIVES=1 -DHAVE_CONFIG_H=1 -I../lib \
+		  -I../nt/inc -I../src
 
 LIBS 		= $(BASE_LIBS) $(ADVAPI32)
 
@@ -51,22 +48,19 @@ emacsclient:	stamp_BLD $(BLD)/emacsclient.exe $(BLD)/emacsclientw.exe
 test-distrib:	stamp_BLD $(BLD)/test-distrib.exe
 	"$(BLD)/test-distrib.exe" "$(SRC)/testfile"
 
-GETOPTOBJS = $(BLD)/getopt.$(O) $(BLD)/getopt1.$(O)
-GETOPTDEPS = $(GETOPTOBJS) getopt.h
 MOVEMAILOBJS =  $(BLD)/movemail.$(O) \
 		$(BLD)/pop.$(O) \
-		$(BLD)/ntlib.$(O) \
-		$(GETOPTOBJS)
+		../lib/$(BLD)/libgnu.$(A) \
+		$(BLD)/ntlib.$(O)
 
-$(BLD)/movemail.exe:	$(MOVEMAILOBJS) getopt.h
+$(BLD)/movemail.exe:	$(MOVEMAILOBJS) ../lib/getopt.h
 # put wsock32.lib before $(LIBS) to ensure we don't link to ws2_32.lib
 		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(MOVEMAILOBJS) $(WSOCK32) $(LIBS)
 
-ECLIENT_CFLAGS = -DHAVE_GETCWD -DHAVE_STRERROR -DVERSION="\"$(VERSION)\""
+ECLIENT_CFLAGS = -DHAVE_GETCWD -DHAVE_STRERROR
 ECLIENTOBJS =	$(BLD)/emacsclient.$(O) \
-		$(BLD)/getopt.$(O) \
-		$(BLD)/getopt1.$(O) \
-		$(BLD)/ntlib.$(O)
+		$(BLD)/ntlib.$(O) \
+		../lib/$(BLD)/libgnu.$(A)
 CLIENTRES =	../nt/$(BLD)/emacsclient.res
 
 $(CLIENTRES):	../nt/emacsclient.rc
@@ -81,14 +75,11 @@ $(BLD)/emacsclientw.exe:	$(ECLIENTOBJS) $(CLIENTRES)
 # put wsock32.lib before $(LIBS) to ensure we don't link to ws2_32.lib
 		$(LINK) $(LINK_OUT)$@ $(CLIENTRES) -mwindows $(LINK_FLAGS) $(ECLIENTOBJS) $(WSOCK32) $(USER32) $(COMCTL32) $(LIBS)
 
-# emacsclient.$(O) depends on makefile.w32-in because makefile.w32-in
-# can be edited to define VERSION string, which is part of ECLIENT_CFLAGS.
-$(BLD)/emacsclient.$(O):	emacsclient.c makefile.w32-in
+$(BLD)/emacsclient.$(O):	emacsclient.c
 		$(CC) $(CFLAGS) $(ECLIENT_CFLAGS) $(CC_OUT)$@ emacsclient.c
 
 ETAGSOBJ      = $(BLD)/etags.$(O) \
-		$(BLD)/getopt.$(O) \
-		$(BLD)/getopt1.$(O) \
+		../lib/$(BLD)/libgnu.$(A) \
 		$(BLD)/ntlib.$(O) \
 		$(BLD)/regex.$(O)
 
@@ -97,8 +88,7 @@ $(BLD)/etags.exe: 	$(ETAGSOBJ)
 
 
 EBROWSEOBJ    = $(BLD)/ebrowse.$(O) \
-		$(BLD)/getopt.$(O) \
-		$(BLD)/getopt1.$(O) \
+		../lib/$(BLD)/libgnu.$(A) \
 		$(BLD)/ntlib.$(O)
 
 $(BLD)/ebrowse.exe:     $(EBROWSEOBJ)
@@ -108,13 +98,12 @@ $(BLD)/regex.$(O): ../src/regex.c ../src/regex.h ../src/config.h
 		$(CC)  $(CFLAGS) -DCONFIG_BROKETS -DINHIBIT_STRING_HEADER \
 		../src/regex.c $(CC_OUT)$@
 
-ETAGS_CFLAGS  = -DHAVE_GETCWD
+ETAGS_CFLAGS  = -DHAVE_GETCWD -DEMACS_NAME="\"GNU Emacs\""
 $(BLD)/etags.$(O): etags.c
 		$(CC) $(CFLAGS) $(ETAGS_CFLAGS) $(CC_OUT)$@ etags.c
 
 CTAGSOBJ      = $(BLD)/ctags.$(O) \
-		$(BLD)/getopt.$(O) \
-		$(BLD)/getopt1.$(O) \
+		../lib/$(BLD)/libgnu.$(A) \
 		$(BLD)/ntlib.$(O) \
 		$(BLD)/regex.$(O)
 
@@ -125,7 +114,7 @@ ctags.c:	etags.c
 		- $(DEL) ctags.c
 		$(CP) etags.c ctags.c
 
-CTAGS_CFLAGS  = -DCTAGS $(ETAGS_CFLAGS)
+CTAGS_CFLAGS  = -DCTAGS $(ETAGS_CFLAGS) -DEMACS_NAME="\"GNU Emacs\""
 $(BLD)/ctags.$(O): ctags.c
 		$(CC) $(CFLAGS) $(CTAGS_CFLAGS) $(CC_OUT)$@ ctags.c
 
@@ -153,7 +142,7 @@ obj =   dosfns.o msdos.o \
 	syntax.o bytecode.o \
 	process.o callproc.o unexw32.o \
 	region-cache.o sound.o atimer.o \
-	doprnt.o strftime.o intervals.o textprop.o composite.o md5.o
+	doprnt.o intervals.o textprop.o composite.o
 
 #
 # These are the lisp files that are loaded up in loadup.el
@@ -341,7 +330,6 @@ install:	$(INSTALL_FILES)
 clean:
 		- $(DEL) DOC* $(COMPILER_TEMP_FILES)
 		- $(DEL) ctags.c
-		- $(DEL) getopt.h
 		- $(DEL_TREE) $(OBJDIR)
 		- $(DEL) stamp_BLD
 		- $(DEL) echolisp.tmp
@@ -365,9 +353,6 @@ cleanall:	clean
 			$(DEL) $@
 			echo $(CONFIG_H) has changed.  Re-run configure.bat.
 			exit -1
-
-getopt.h:		getopt_.h
-			$(CP) $(ALL_DEPS) $@
 
 ### TAGS ###
 
@@ -393,7 +378,7 @@ $(BLD)/ctags.$(O) : \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/lib-src/../src/config.h \
 	$(SRC)/ntlib.h \
-	$(SRC)/getopt.h
+	$(EMACS_ROOT)/lib/getopt.h
 
 $(BLD)/emacsclient.$(O) : \
 	$(SRC)/emacsclient.c \
@@ -408,7 +393,7 @@ $(BLD)/etags.$(O) : \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/lib-src/../src/config.h \
 	$(SRC)/ntlib.h \
-	$(SRC)/getopt.h
+	$(EMACS_ROOT)/lib/getopt.h
 
 $(BLD)/fakemail.$(O) : \
 	$(SRC)/fakemail.c \
@@ -424,21 +409,6 @@ $(BLD)/getdate.$(O) : \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h \
 	$(MSTOOLS_SYS)/types.h
-
-$(BLD)/getopt.$(O) : \
-	$(SRC)/getopt.c \
-	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/m/intel386.h \
-	$(EMACS_ROOT)/src/config.h \
-	$(SRC)/ntlib.h \
-	$(SRC)/getopt.h
-
-$(BLD)/getopt1.$(O) : \
-	$(SRC)/getopt1.c \
-	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/m/intel386.h \
-	$(EMACS_ROOT)/src/config.h \
-	$(SRC)/getopt.h
 
 $(BLD)/hexl.$(O) : \
 	$(SRC)/hexl.c
@@ -501,7 +471,7 @@ $(BLD)/timer.$(O) : \
 #
 $(BLD)/make-docfile.$(O) $(BLD)/hexl.$(O) $(BLD)/fakemail.$(O): stamp_BLD
 
-$(BLD)/test-distrib.$(O) $(GETOPTOBJS) $(MOVEMAILOBJS): stamp_BLD
+$(BLD)/test-distrib.$(O) $(MOVEMAILOBJS): stamp_BLD
 
 $(BLD)/emacsclient.$(O) $(BLD)/etags.$(O) $(BLD)/regex.$(O): stamp_BLD
 

@@ -1,7 +1,6 @@
 /* Definitions file for GNU Emacs running on AT&T's System V Release 4
 
-Copyright (C) 1987, 1990, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+Copyright (C) 1987, 1990, 1999-2011  Free Software Foundation, Inc.
 
 Written by James Van Artsdalen of Dell Computer Corp. james@bigtex.cactus.org.
 Subsequently improved for Dell 2.2 by Eric S. Raymond <esr@snark.thyrsus.com>.
@@ -30,12 +29,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* SYSTEM_TYPE should indicate the kind of system you are using.
    It sets the Lisp variable system-type.  */
 #define SYSTEM_TYPE "usg-unix-v"
-
-/* The file containing the kernel's symbol table is called /unix.  */
-#define KERNEL_FILE "/unix"
-
-/* The kernel symbol where the load average is found is named avenrun.  */
-#define LDAV_SYMBOL "avenrun"
 
 /* setjmp and longjmp can safely replace _setjmp and _longjmp,
    but they will run slower.  */
@@ -106,6 +99,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* This definition was suggested for next release.  So give it a try.  */
 #define HAVE_SOCKETS
-
-/* arch-tag: 1a0ed909-5faa-434b-b7c3-9d86c63d53a6
-   (do not change this comment) */

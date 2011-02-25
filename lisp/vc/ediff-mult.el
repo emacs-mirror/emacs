@@ -1,7 +1,6 @@
 ;;; ediff-mult.el --- support for multi-file/multi-buffer processing in Ediff
 
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2011 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -307,7 +306,7 @@ buffers."
   (nth 3 elt))
 (defsubst ediff-get-session-objC (elt)
   (nth 4 elt))
-;; Take the "name" component of the object into acount. ObjA/C/B is of the form
+;; Take the "name" component of the object into account. ObjA/C/B is of the form
 ;; (name . equality-indicator)
 (defsubst ediff-get-session-objA-name (elt)
   (car (nth 2 elt)))
@@ -2474,5 +2473,4 @@ for operation, or simply indicate which are equal files.  If it is nil, then
 ;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;; End:
 
-;; arch-tag: c8a76898-f96f-4d9c-be9d-129134017188
 ;;; ediff-mult.el ends here

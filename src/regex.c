@@ -2,9 +2,7 @@
    0.12.  (Implements POSIX draft P1003.2/D11.2, except for some of the
    internationalization features.)
 
-   Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-                 Free Software Foundation, Inc.
+   Copyright (C) 1993-2011  Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -196,9 +194,7 @@
    even if config.h says that we can.  */
 # undef REL_ALLOC
 
-# ifdef HAVE_UNISTD_H
-#  include <unistd.h>
-# endif
+# include <unistd.h>
 
 /* When used in Emacs's lib-src, we need xmalloc and xrealloc. */
 
@@ -2122,7 +2118,7 @@ struct range_table_work_area
 re_wctype_t
 re_wctype (const re_char *str)
 {
-  const char *string = str;
+  const char *string = (const char *) str;
   if      (STREQ (string, "alnum"))	return RECC_ALNUM;
   else if (STREQ (string, "alpha"))	return RECC_ALPHA;
   else if (STREQ (string, "word"))	return RECC_WORD;
@@ -2704,7 +2700,7 @@ regex_compile (const re_char *pattern, size_t size, reg_syntax_t syntax, struct 
 	    main_pend = pend;
 	    main_pattern = pattern;
 	    p = pattern = whitespace_regexp;
-	    pend = p + strlen (p);
+	    pend = p + strlen ((const char *) p);
 	    break;
 	  }
 
@@ -3999,7 +3995,6 @@ analyse_first (const re_char *p, const re_char *pend, char *fastmap, const int m
 	{
 	case succeed:
 	  return 1;
-	  continue;
 
 	case duplicate:
 	  /* If the first character has to match a backreference, that means
@@ -6735,4 +6730,3 @@ regfree (regex_t *preg)
 WEAK_ALIAS (__regfree, regfree)
 
 #endif /* not emacs  */
-

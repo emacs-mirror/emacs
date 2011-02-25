@@ -1,7 +1,6 @@
 ;;; grep.el --- run Grep as inferior of Emacs, parse match messages
 
-;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+;; Copyright (C) 1985-1987, 1993-1999, 2001-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
@@ -342,7 +341,7 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
 
 ;;;###autoload
 (defconst grep-regexp-alist
-  '(("^\\(.+?\\)\\(:[ \t]*\\)\\([0-9]+\\)\\2"
+  '(("^\\(.+?\\)\\(:[ \t]*\\)\\([1-9][0-9]*\\)\\2"
      1 3)
     ;; Rule to match column numbers is commented out since no known grep
     ;; produces them
@@ -385,22 +384,22 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
 
 (defvar grep-mode-font-lock-keywords
    '(;; Command output lines.
-     ("^\\([A-Za-z_0-9/\.+-]+\\)[ \t]*:" 1 font-lock-function-name-face)
      (": \\(.+\\): \\(?:Permission denied\\|No such \\(?:file or directory\\|device or address\\)\\)$"
       1 grep-error-face)
      ;; remove match from grep-regexp-alist before fontifying
      ("^Grep[/a-zA-z]* started.*"
-      (0 '(face nil message nil help-echo nil mouse-face nil) t))
+      (0 '(face nil compilation-message nil help-echo nil mouse-face nil) t))
      ("^Grep[/a-zA-z]* finished \\(?:(\\(matches found\\))\\|with \\(no matches found\\)\\).*"
-      (0 '(face nil message nil help-echo nil mouse-face nil) t)
+      (0 '(face nil compilation-message nil help-echo nil mouse-face nil) t)
       (1 compilation-info-face nil t)
       (2 compilation-warning-face nil t))
      ("^Grep[/a-zA-z]* \\(exited abnormally\\|interrupt\\|killed\\|terminated\\)\\(?:.*with code \\([0-9]+\\)\\)?.*"
-      (0 '(face nil message nil help-echo nil mouse-face nil) t)
+      (0 '(face nil compilation-message nil help-echo nil mouse-face nil) t)
       (1 grep-error-face)
       (2 grep-error-face nil t))
      ("^.+?-[0-9]+-.*\n" (0 grep-context-face))
-     ;; Highlight grep matches and delete markers
+     ;; Highlight grep matches and delete markers.
+     ;; FIXME: Modifying the buffer text from font-lock is a bad idea!
      ("\\(\033\\[01;31m\\)\\(.*?\\)\\(\033\\[[0-9]*m\\)"
       ;; Refontification does not work after the markers have been
       ;; deleted.  So we use the font-lock-face property here as Font
@@ -410,12 +409,14 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
        (progn
 	 ;; Delete markers with `replace-match' because it updates
 	 ;; the match-data, whereas `delete-region' would render it obsolete.
+	 (syntax-ppss-flush-cache (match-beginning 0))
 	 (replace-match "" t t nil 3)
 	 (replace-match "" t t nil 1))))
-     ("\\(\033\\[[0-9;]*[mK]\\)"
+     ("\033\\[[0-9;]*[mK]"
       ;; Delete all remaining escape sequences
       ((lambda (bound))
-       (replace-match "" t t nil 1))))
+       (syntax-ppss-flush-cache (match-beginning 0))
+       (replace-match "" t t))))
    "Additional things to highlight in grep output.
 This gets tacked on the end of the generated expressions.")
 
@@ -565,7 +566,10 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
 	(unless grep-find-command
 	  (setq grep-find-command
 		(cond ((eq grep-find-use-xargs 'gnu)
-		       (format "%s . -type f -print0 | %s -0 -e %s"
+		       ;; Windows shells need the program file name
+		       ;; after the pipe symbol be quoted if they use
+		       ;; forward slashes as directory separators.
+		       (format "%s . -type f -print0 | \"%s\" -0 -e %s"
 			       find-program xargs-program grep-command))
 		      ((eq grep-find-use-xargs 'exec)
 		       (let ((cmd0 (format "%s . -type f -exec %s"
@@ -576,21 +580,21 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
 				  (shell-quote-argument ";"))
 			  (1+ (length cmd0)))))
 		      (t
-		       (format "%s . -type f -print | %s %s"
+		       (format "%s . -type f -print | \"%s\" %s"
 			       find-program xargs-program grep-command)))))
 	(unless grep-find-template
 	  (setq grep-find-template
 		(let ((gcmd (format "%s <C> %s <R>"
 				    grep-program grep-options)))
 		  (cond ((eq grep-find-use-xargs 'gnu)
-			 (format "%s . <X> -type f <F> -print0 | %s -0 -e %s"
+			 (format "%s . <X> -type f <F> -print0 | \"%s\" -0 -e %s"
 				 find-program xargs-program gcmd))
 			((eq grep-find-use-xargs 'exec)
 			 (format "%s . <X> -type f <F> -exec %s {} %s %s"
 				 find-program gcmd null-device
 				 (shell-quote-argument ";")))
 			(t
-			 (format "%s . <X> -type f <F> -print | %s %s"
+			 (format "%s . <X> -type f <F> -print | \"%s\" %s"
 				 find-program xargs-program gcmd))))))))
     (when (eq grep-highlight-matches 'auto-detect)
       (setq grep-highlight-matches
@@ -1046,5 +1050,4 @@ file name to `*.gz', and sets `grep-highlight-matches' to `always'."
 
 (provide 'grep)
 
-;; arch-tag: 5a5b9169-a79d-4f38-9c38-f69615f39c4d
 ;;; grep.el ends here

@@ -1,6 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 1999, 2000,
-@c   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2011
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Files, Buffers, Keyboard Macros, Top
@@ -568,10 +567,10 @@ another from the newly saved contents if you save again.
 appending @samp{~} to the file name being edited; thus, the backup
 file for @file{eval.c} would be @file{eval.c~}.
 
-  If access control stops Emacs from writing backup files under the usual
-names, it writes the backup file as @file{%backup%~} in your home
-directory.  Only one such file can exist, so only the most recently
-made such backup is available.
+  If access control stops Emacs from writing backup files under the
+usual names, it writes the backup file as @file{~/.emacs.d/%backup%~}.
+Only one such file can exist, so only the most recently made such
+backup is available.
 
   Emacs can also make @dfn{numbered backup files}.  Numbered backup
 file names contain @samp{.~}, the number, and another @samp{~} after
@@ -1160,7 +1159,6 @@ links point to directories.
 
 @vindex find-file-existing-other-name
 @vindex find-file-suppress-same-file-warnings
-
   Normally, if you visit a file which Emacs is already visiting under
 a different name, Emacs displays a message in the echo area and uses
 the existing buffer visiting that file.  This can happen on systems
@@ -1181,6 +1179,28 @@ then the file name recorded for a buffer is the file's @dfn{truename}
 (made by replacing all symbolic links with their target names), rather
 than the name you specify.  Setting @code{find-file-visit-truename} also
 implies the effect of @code{find-file-existing-other-name}.
+
+@cindex directory name abbreviation
+@vindex directory-abbrev-alist
+  Sometimes, a directory is ordinarily accessed through a symbolic
+link, and you may want Emacs to preferentially show its ``linked''
+name.  To do this, customize @code{directory-abbrev-alist}.  Each
+element in this list should have the form @code{(@var{from}
+. @var{to})}, which means to replace @var{from} with @var{to} whenever
+@var{from} appears in a directory name.  The @var{from} string is a
+regular expression (@pxref{Regexps}).  It is matched against directory
+names anchored at the first character, and should start with @samp{\`}
+(to support directory names with embedded newlines, which would defeat
+@samp{^}).  The @var{to} string should be an ordinary absolute
+directory name pointing to the same directory.  Do not use @samp{~} to
+stand for a home directory in the @var{to} string; Emacs performs
+these substitutions separately.  Here's an example, from a system on
+which @file{/home/fsf} is normally accessed through a symbolic link
+named @file{/fsf}:
+
+@example
+(("\\`/home/fsf" . "/fsf"))
+@end example
 
 @node Directories
 @section File Directories
@@ -1974,7 +1994,3 @@ menu, where each existing fileset is represented by a submenu.
 Control} to describe sets of files to be treated as a group for
 purposes of version control operations.  Those filesets are unnamed
 and do not persist across Emacs sessions.
-
-@ignore
-   arch-tag: 768d32cb-e15a-4cc1-b7bf-62c00ee12250
-@end ignore

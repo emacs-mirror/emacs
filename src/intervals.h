@@ -1,6 +1,5 @@
 /* Definitions and global variables for intervals.
-   Copyright (C) 1993, 1994, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+   Copyright (C) 1993-1994, 2000-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -237,9 +236,9 @@ struct interval
    and 2 if it is invisible but with an ellipsis.  */
 
 #define TEXT_PROP_MEANS_INVISIBLE(prop)				\
-  (EQ (current_buffer->invisibility_spec, Qt)			\
+  (EQ (BVAR (current_buffer, invisibility_spec), Qt)			\
    ? !NILP (prop)						\
-   : invisible_p (prop, current_buffer->invisibility_spec))
+   : invisible_p (prop, BVAR (current_buffer, invisibility_spec)))
 
 /* Declared in alloc.c */
 
@@ -304,11 +303,6 @@ extern Lisp_Object Qkeymap;
 extern Lisp_Object Qforeground, Qbackground, Qfont, Qunderline, Qstipple;
 extern Lisp_Object Qinvisible, Qintangible, Qread_only;
 
-extern Lisp_Object Vinhibit_point_motion_hooks;
-extern Lisp_Object Vdefault_text_properties;
-extern Lisp_Object Vchar_property_alias_alist;
-extern Lisp_Object Vtext_property_default_nonsticky;
-
 /* Sticky properties */
 extern Lisp_Object Qfront_sticky, Qrear_nonsticky;
 
@@ -346,5 +340,3 @@ extern void syms_of_textprop (void);
 
 #include "composite.h"
 
-/* arch-tag: f0bc16c0-b084-498d-9de4-21cc8f077795
-   (do not change this comment) */

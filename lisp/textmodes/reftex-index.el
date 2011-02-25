@@ -1,7 +1,6 @@
 ;;; reftex-index.el --- index support with RefTeX
 
-;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2011 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -1958,7 +1957,7 @@ both ends."
                          ((equal char ?\C-g)
                           (keyboard-quit))
                          ((member char '(?o ?O))
-                          ;; Select a differnt macro
+                          ;; Select a different macro
                           (let* ((nc (reftex-index-select-phrases-macro 2))
                                  (macro-data
                                   (cdr (assoc nc reftex-index-phrases-macro-data)))

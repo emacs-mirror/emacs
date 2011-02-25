@@ -1,7 +1,6 @@
 /* GNU Emacs site configuration template file.  -*- C -*-
 
-Copyright (C) 1988, 1993, 1994, 2001, 2002, 2003, 2004, 2005, 2006,
-     2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+Copyright (C) 1988, 1993-1994, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -225,7 +224,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef HAVE_SETSID
 #undef HAVE_FPATHCONF
 #undef HAVE_SELECT
-#undef HAVE_MKTIME
 #undef HAVE_EUIDACCESS
 #undef HAVE_GETPAGESIZE
 #undef HAVE_GET_CURRENT_DIR_NAME
@@ -274,9 +272,75 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `getopt_long_only' function. */
 #undef HAVE_GETOPT_LONG_ONLY
 
+/* Preprocessor macros needed for gnulib imports.  */
+
+/* Define to 1 if GCC-style __attribute__ ((__aligned__ (expr))) works. */
+#ifdef __GNUC__
+#define HAVE_ATTRIBUTE_ALIGNED 1
+#else
+#undef HAVE_ATTRIBUTE_ALIGNED
+#endif
+
+/* Define to 1 if strtold conforms to C99. */
+#ifdef __GNUC__
+#define HAVE_C99_STRTOLD 1
+#else
+#undef HAVE_C99_STRTOLD
+#endif
+
+/* Define to 1 if you have the declaration of `getenv', and to 0 if you don't.
+   */
+#define HAVE_DECL_GETENV 1
+
+/* Define to 1 if you have the declaration of `localtime_r', and to 0 if you
+   don't. */
+#undef HAVE_DECL_LOCALTIME_R
+
+/* Define to 1 if you have the `localtime_r' function. */
+#undef HAVE_LOCALTIME_R
+
+/* Define if you have the 'wchar_t' type. */
+#define HAVE_WCHAR_T 1
+
+/* Name of package */
+#define PACKAGE "emacs"
+
+/* Version number of package */
+#define VERSION "24.0.50"
+
+/* Define to `__inline__' or `__inline' if that's what the C compiler
+   calls it, or to nothing if 'inline' is not supported under any name.  */
+#ifndef __cplusplus
+#undef inline
+#endif
+
+/* Define to the equivalent of the C99 'restrict' keyword, or to
+   nothing if this is not supported.  Do not define if restrict is
+   supported directly.  */
+#ifdef __GNUC__
+# define restrict __restrict__
+#else
+# define restrict
+#endif
+
+/* Define as a marker that can be attached to declarations that might not
+    be used.  This helps to reduce warnings, such as from
+    GCC -Wunused-parameter.  */
+#if __GNUC__ >= 3 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 7)
+# define _GL_UNUSED __attribute__ ((__unused__))
+#else
+# define _GL_UNUSED
+#endif
+/* The name _UNUSED_PARAMETER_ is an earlier spelling, although the name
+   is a misnomer outside of parameter lists.  */
+#define _UNUSED_PARAMETER_ _GL_UNUSED
+
+/* End of gnulib-related stuff.  */
+
 /* If using GNU, then support inline function declarations. */
 #ifdef __GNUC__
 #define INLINE __inline__
+#define inline __inline__
 #else
 #define INLINE
 #endif
@@ -343,11 +407,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define RE_TRANSLATE_TYPE Lisp_Object
 #define RE_TRANSLATE(TBL, C) CHAR_TABLE_TRANSLATE (TBL, C)
 #define RE_TRANSLATE_P(TBL) (XFASTINT (TBL) != 0)
-#endif
-
-/* Avoid link-time collision with system mktime if we will use our own.  */
-#if ! HAVE_MKTIME || BROKEN_MKTIME
-#define mktime emacs_mktime
 #endif
 
 #define my_strftime nstrftime   /* for strftime.c */
@@ -422,5 +481,3 @@ void w32_abort (void) NO_RETURN;
 /* Make a leaner executable.  */
 #define WIN32_LEAN_AND_MEAN 1
 
-/* arch-tag: df720992-aa5a-499a-882d-958dc5eeb5e9
-   (do not change this comment) */

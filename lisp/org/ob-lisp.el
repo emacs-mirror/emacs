@@ -1,6 +1,6 @@
 ;;; ob-lisp.el --- org-babel functions for Common Lisp
 
-;; Copyright (C) 2010 Free Software Foundation
+;; Copyright (C) 2010-2011 Free Software Foundation
 
 ;; Author: David T. O'Toole <dto@gnu.org>, Eric Schulte
 ;; Keywords: literate programming, reproducible research, lisp
@@ -108,6 +108,5 @@ then create.  Return the initialized session."
 
 (provide 'ob-lisp)
 
-;; arch-tag: 18086168-009f-4947-bbb5-3532375d851d
 
 ;;; ob-lisp.el ends here

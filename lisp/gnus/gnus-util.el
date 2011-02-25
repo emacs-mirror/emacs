@@ -1,7 +1,6 @@
 ;;; gnus-util.el --- utility functions for Gnus
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -38,6 +37,8 @@
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (eval-when-compile
   (require 'cl))
+
+(require 'time-date)
 
 (defcustom gnus-completing-read-function 'gnus-emacs-completing-read
   "Function use to do completing read."
@@ -332,10 +333,11 @@ Symbols are also allowed; their print names are used instead."
 	(and (= (car fdate) (car date))
 	     (> (nth 1 fdate) (nth 1 date))))))
 
+;; Every version of Emacs Gnus supports has built-in float-time.
+;; The featurep test silences an irritating compiler warning.
 (eval-and-compile
   (if (or (featurep 'emacs)
-	  (and (fboundp 'float-time)
-	       (subrp (symbol-function 'float-time))))
+	  (fboundp 'float-time))
       (defalias 'gnus-float-time 'float-time)
     (defun gnus-float-time (&optional time)
       "Convert time value TIME to a floating point number.
@@ -474,51 +476,6 @@ Cache the result as a text property stored in DATE."
 	     ;; and store it back in the string.
 	     (put-text-property 0 1 'gnus-time time d)
 	     time)))))
-
-(defvar gnus-user-date-format-alist
-  '(((gnus-seconds-today) . "%k:%M")
-    (604800 . "%a %k:%M")                   ;;that's one week
-    ((gnus-seconds-month) . "%a %d")
-    ((gnus-seconds-year) . "%b %d")
-    (t . "%b %d '%y"))                      ;;this one is used when no
-					    ;;other does match
-  "Specifies date format depending on age of article.
-This is an alist of items (AGE . FORMAT).  AGE can be a number (of
-seconds) or a Lisp expression evaluating to a number.  When the age of
-the article is less than this number, then use `format-time-string'
-with the corresponding FORMAT for displaying the date of the article.
-If AGE is not a number or a Lisp expression evaluating to a
-non-number, then the corresponding FORMAT is used as a default value.
-
-Note that the list is processed from the beginning, so it should be
-sorted by ascending AGE.  Also note that items following the first
-non-number AGE will be ignored.
-
-You can use the functions `gnus-seconds-today', `gnus-seconds-month'
-and `gnus-seconds-year' in the AGE spec.  They return the number of
-seconds passed since the start of today, of this month, of this year,
-respectively.")
-
-(defun gnus-user-date (messy-date)
-  "Format the messy-date according to gnus-user-date-format-alist.
-Returns \"  ?  \" if there's bad input or if another error occurs.
-Input should look like this: \"Sun, 14 Oct 2001 13:34:39 +0200\"."
-  (condition-case ()
-      (let* ((messy-date (gnus-float-time (gnus-date-get-time messy-date)))
-	     (now (gnus-float-time))
-	     ;;If we don't find something suitable we'll use this one
-	     (my-format "%b %d '%y"))
-	(let* ((difference (- now messy-date))
-	       (templist gnus-user-date-format-alist)
-	       (top (eval (caar templist))))
-	  (while (if (numberp top) (< top difference) (not top))
-	    (progn
-	      (setq templist (cdr templist))
-	      (setq top (eval (caar templist)))))
-	  (if (stringp (cdr (car templist)))
-	      (setq my-format (cdr (car templist)))))
-	(format-time-string (eval my-format) (seconds-to-time messy-date)))
-    (error "  ?   ")))
 
 (defun gnus-dd-mmm (messy-date)
   "Return a string like DD-MMM from a big messy string."
@@ -913,6 +870,15 @@ Bind `print-quoted' and `print-readably' to t, and `print-length' and
   "Delete FILE if it exists."
   (when (file-exists-p file)
     (delete-file file)))
+
+(defun gnus-delete-duplicates (list)
+  "Remove duplicate entries from LIST."
+  (let ((result nil))
+    (while list
+      (unless (member (car list) result)
+	(push (car list) result))
+      (pop list))
+    (nreverse result)))
 
 (defun gnus-delete-directory (directory)
   "Delete files in DIRECTORY.  Subdirectories remain.

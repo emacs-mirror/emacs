@@ -11,9 +11,7 @@
 This is the @value{EDITION} edition of the @cite{GNU Emacs Manual},@*
 updated for Emacs version @value{EMACSVER}.
 
-Copyright @copyright{} 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997,
-1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-2010, 2011  Free Software Foundation, Inc.
+Copyright @copyright{} 1985-1987, 1993-2011  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1395,15 +1393,15 @@ Miller, Lawrence Mitchell, Richard Mlynarik, Gerd Moellmann, Stefan
 Monnier, Morioka Tomohiko, Keith Moore, Jan Moringen, Glenn Morris,
 Diane Murray, Sen Nagata, Erik Naggum, Thomas Neumann, Thien-Thi Nguyen,
 Mike Newton, Jurgen Nickelsen, Dan Nicolaescu, Hrvoje Niksic, Jeff
-Norden, Andrew Norman, Alexandre Oliva, Bob Olson, Michael Olson,
-Takaaki Ota, Pieter E.@: J.@: Pareit, Ross Patterson, David Pearson,
-Jeff Peck, Damon Anton Permezel, Tom Perrine, William M.@: Perry, Per
-Persson, Jens Petersen, Daniel Pfeiffer, Richard L.@: Pieri, Fred
-Pierresteguy, Christian Plaunt, David Ponce, Francesco A.@: Potorti,
-Michael D. Prange, Mukesh Prasad, Ken Raeburn, Marko Rahamaa, Ashwin
-Ram, Eric S. Raymond, Paul Reilly, Edward M. Reingold, Alex Rezinsky,
-Rob Riepel, David Reitter, Adrian Robert, Nick Roberts, Roland B.@:
-Roberts, John Robinson, Danny Roozendaal, Sebastian Rose, William
+Norden, Andrew Norman, Christian Ohler, Alexandre Oliva, Bob Olson,
+Michael Olson, Takaaki Ota, Pieter E.@: J.@: Pareit, Ross Patterson,
+David Pearson, Jeff Peck, Damon Anton Permezel, Tom Perrine, William
+M.@: Perry, Per Persson, Jens Petersen, Daniel Pfeiffer, Richard L.@:
+Pieri, Fred Pierresteguy, Christian Plaunt, David Ponce, Francesco A.@:
+Potorti, Michael D. Prange, Mukesh Prasad, Ken Raeburn, Marko Rahamaa,
+Ashwin Ram, Eric S. Raymond, Paul Reilly, Edward M. Reingold, Alex
+Rezinsky, Rob Riepel, David Reitter, Adrian Robert, Nick Roberts, Roland
+B.@: Roberts, John Robinson, Danny Roozendaal, Sebastian Rose, William
 Rosenblatt, Guillermo J.@: Rozas, Martin Rudalics, Ivar Rummelhoff,
 Jason Rumney, Wolfgang Rupprecht, Kevin Ryde, James B. Salem, Masahiko
 Sato, Jorgen Schaefer, Holger Schauer, William Schelter, Ralph

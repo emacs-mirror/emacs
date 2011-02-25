@@ -1,7 +1,6 @@
 ;;; arc-mode.el --- simple editing of archives
 
-;; Copyright (C) 1995, 1997, 1998, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997-1998, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@gnu.org>
 ;; Keywords: files archives msdog editing major-mode
@@ -340,7 +339,7 @@ be added."
 (defvar archive-local-name nil "Name of local copy of remote archive.")
 (defvar archive-mode-map
   (let ((map (make-keymap)))
-    (suppress-keymap map)
+    (set-keymap-parent map special-mode-map)
     (define-key map " " 'archive-next-line)
     (define-key map "a" 'archive-alternate-display)
     ;;(define-key map "c" 'archive-copy)
@@ -349,15 +348,12 @@ be added."
     (define-key map "e" 'archive-extract)
     (define-key map "f" 'archive-extract)
     (define-key map "\C-m" 'archive-extract)
-    (define-key map "g" 'revert-buffer)
-    (define-key map "h" 'describe-mode)
     (define-key map "m" 'archive-mark)
     (define-key map "n" 'archive-next-line)
     (define-key map "\C-n" 'archive-next-line)
     (define-key map [down] 'archive-next-line)
     (define-key map "o" 'archive-extract-other-window)
     (define-key map "p" 'archive-previous-line)
-    (define-key map "q" 'quit-window)
     (define-key map "\C-p" 'archive-previous-line)
     (define-key map [up] 'archive-previous-line)
     (define-key map "r" 'archive-rename-entry)

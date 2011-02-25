@@ -1,7 +1,6 @@
 /* s/ file for netbsd system.
 
-   Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-                 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+Copyright (C) 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -21,8 +20,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Get most of the stuff from bsd-common.  */
 #include "bsd-common.h"
-
-#define HAVE_GETLOADAVG 1
 
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_p - (FILE)->_bf._base)
 
@@ -44,6 +41,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Use the GC_MAKE_GCPROS_NOOPS (see lisp.h) method.  */
 #define GC_MARK_STACK	GC_MAKE_GCPROS_NOOPS
-
-/* arch-tag: e80f364a-04e9-4faf-93cb-f36a0fe95c81
-   (do not change this comment) */

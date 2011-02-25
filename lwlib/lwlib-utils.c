@@ -1,7 +1,7 @@
 /* Defines some widget utility functions.
+
 Copyright (C) 1992 Lucid, Inc.
-Copyright (C) 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-  2010, 2011 Free Software Foundation, Inc.
+Copyright (C) 1994, 2001-2011 Free Software Foundation, Inc.
 
 This file is part of the Lucid Widget Library.
 
@@ -24,15 +24,8 @@ Boston, MA 02110-1301, USA.  */
 #include <config.h>
 #endif
 
-/* Definitions of these in config.h can cause
-   declaration conflicts later on between declarations for index
-   and declarations for strchr.  This file doesn't use
-   index and rindex, so cancel them.  */
-#undef index
-#undef rindex
-
 #include <setjmp.h>
-#include "../src/lisp.h"
+#include <lisp.h>
 
 #include <X11/Xatom.h>
 #include <X11/IntrinsicP.h>
@@ -75,7 +68,7 @@ XtApplyToWidgets (Widget w, XtApplyToWidgetsProc proc, XtPointer arg)
 	 the procedure might add/delete elements, which would lose badly.
 	 */
       int nkids = cw->composite.num_children;
-      Widget *kids = (Widget *) malloc (sizeof (Widget) * nkids);
+      Widget *kids = (Widget *) xmalloc (sizeof (Widget) * nkids);
       int i;
       memcpy ((char *) kids, (char *) cw->composite.children,
 	      sizeof (Widget) * nkids);
@@ -174,6 +167,3 @@ XtSafelyDestroyWidget (Widget widget)
   abort ();
 #endif
 }
-
-/* arch-tag: f21f0a1f-2a4e-44e1-8715-7f234fe2d159
-   (do not change this comment) */

@@ -1,5 +1,5 @@
 ;;; epa-file.el --- the EasyPG Assistant, transparent file encryption
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2011 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
@@ -298,5 +298,4 @@ If no one is selected, symmetric encryption will be performed.  "))))
 
 (provide 'epa-file)
 
-;; arch-tag: 5715152f-0eb1-4dbc-9008-07098775314d
 ;;; epa-file.el ends here

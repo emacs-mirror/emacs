@@ -1,13 +1,16 @@
 \input texinfo                  @c -*-texinfo-*-
+
+@include gnus-overrides.texi
+
 @setfilename ../../info/auth
 @settitle Emacs auth-source Library @value{VERSION}
 
-@set VERSION 0.2
+@set VERSION 0.3
 
 @copying
 This file describes the Emacs auth-source library.
 
-Copyright @copyright{} 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+Copyright @copyright{} 2008-2011 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -29,13 +32,18 @@ license to the document, as described in section 6 of the license.
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs lisp libraries
 @direntry
 * Auth-source: (auth).          The Emacs auth-source library.
 @end direntry
 
 @titlepage
+@ifset WEBHACKDEVEL
+@title Emacs auth-source Library (DEVELOPMENT VERSION)
+@end ifset
+@ifclear WEBHACKDEVEL
 @title Emacs auth-source Library
+@end ifclear
 @author by Ted Zlatanov
 @page
 @vskip 0pt plus 1filll
@@ -70,15 +78,19 @@ It is a way for multiple applications to share a single configuration
 @chapter Overview
 
 The auth-source library is simply a way for Emacs and Gnus, among
-others, to answer the old burning question ``I have a server name and
-a port, what are my user name and password?''
+others, to answer the old burning question ``What are my user name and
+password?''
 
-The auth-source library actually supports more than just the user name
-(known as the login) or the password, but only those two are in use
-today in Emacs or Gnus.  Similarly, the auth-source library supports
-multiple storage formats, currently either the classic ``netrc''
-format, examples of which you can see later in this document, or the
-Secret Service API.
+(This is different from the old question about burning ``Where is the
+fire extinguisher, please?''.)
+
+The auth-source library supports more than just the user name or the
+password (known as the secret).
+
+Similarly, the auth-source library supports multiple storage backend,
+currently either the classic ``netrc'' backend, examples of which you
+can see later in this document, or the Secret Service API.  This is
+done with EIEIO-based backends and you can write your own if you want.
 
 @node Help for users
 @chapter Help for users
@@ -88,25 +100,40 @@ Secret Service API.
 machine @var{mymachine} login @var{myloginname} password @var{mypassword} port @var{myport}
 @end example
 
-The machine is the server (either a DNS name or an IP address).
+The @code{machine} is the server (either a DNS name or an IP address).
+It's known as @var{:host} in @code{auth-source-search} queries.  You
+can also use @code{host}.
 
-The port is optional.  If it's missing, auth-source will assume any
-port is OK.  Actually the port is a protocol name or a port number so
-you can have separate entries for port @var{143} and for protocol
-@var{imap} if you fancy that.  Anyway, you can just omit the port if
-you don't need it.
+The @code{port} is the connection port or protocol.  It's known as
+@var{:port} in @code{auth-source-search} queries.
 
-The login and password are simply your login credentials to the server.
+The @code{user} is the user name.  It's known as @var{:user} in
+@code{auth-source-search} queries.  You can also use @code{login} and
+@code{account}.
+
+Spaces are always OK as far as auth-source is concerned (but other
+programs may not like them).  Just put the data in quotes, escaping
+quotes as you'd expect with @code{\}.
+
+All these are optional.  You could just say (but we don't recommend
+it, we're just showing that it's possible)
+
+@example
+password @var{mypassword}
+@end example
+
+to use the same password everywhere.  Again, @emph{DO NOT DO THIS} or
+you will be pwned as the kids say.
 
 ``Netrc'' files are usually called @code{.authinfo} or @code{.netrc};
 nowadays @code{.authinfo} seems to be more popular and the auth-source
 library encourages this confusion by making it the default, as you'll
 see later.
 
-If you have problems with the port, set @code{auth-source-debug} to
-@code{t} and see what port the library is checking in the
-@code{*Messages*} buffer.  Ditto for any other problems, your first
-step is always to see what's being checked.  The second step, of
+If you have problems with the search, set @code{auth-source-debug} to
+@code{t} and see what host, port, and user the library is checking in
+the @code{*Messages*} buffer.  Ditto for any other problems, your
+first step is always to see what's being checked.  The second step, of
 course, is to write a blog entry about it and wait for the answer in
 the comments.
 
@@ -127,16 +154,15 @@ particular host and protocol.  While you can get fancy, the default
 and simplest configuration is:
 
 @lisp
-;;; old default: required :host and :protocol, not needed anymore
-(setq auth-sources '((:source "~/.authinfo.gpg" :host t :protocol t)))
+;;; old default: required :host and :port, not needed anymore
+(setq auth-sources '((:source "~/.authinfo.gpg" :host t :port t)))
 ;;; mostly equivalent (see below about fallbacks) but shorter:
 (setq auth-sources '((:source "~/.authinfo.gpg")))
+;;; even shorter and the @emph{default}:
+(setq auth-sources '("~/.authinfo.gpg" "~/.authinfo"))
+;;; use the Secrets API @var{Login} collection (@pxref{Secret Service API})
+(setq auth-sources '("secrets:Login"))
 @end lisp
-
-This says ``for any host and any protocol, use just that one file.''
-Sweet simplicity.  In fact, the latter is already the default, so
-unless you want to move your netrc file, it will just work if you have
-that file.  Make sure it exists.
 
 By adding multiple entries to @code{auth-sources} with a particular
 host or protocol, you can have specific netrc files for that host or
@@ -144,43 +170,24 @@ protocol.  Usually this is unnecessary but may make sense if you have
 shared netrc files or some other unusual setup (90% of Emacs users
 have unusual setups and the remaining 10% are @emph{really} unusual).
 
-Here's an example that uses the Secret Service API for all lookups,
-using the default collection:
-
-@lisp
-(setq auth-sources '((:source (:secrets default))))
-@end lisp
-
-And here's a mixed example, using two sources:
+Here's a mixed example using two sources:
 
 @lisp
 (setq auth-sources '((:source (:secrets default) :host "myserver" :user "joe")
-                     (:source "~/.authinfo.gpg")))
+                     "~/.authinfo.gpg"))
 @end lisp
-
-The best match is determined by order (starts from the bottom) only
-for the first pass, where things are checked exactly.  In the example
-above, the first pass would find a single match for host
-@code{myserver}.  The netrc choice would fail because it matches any
-host and protocol implicitly (as a @emph{fallback}).  A specified
-value of @code{:host t} in @code{auth-sources} is considered a match
-on the first pass, unlike a missing @code{:host}.
-
-Now if you look for host @code{missing}, it won't match either source
-explicitly.  The second pass (the @emph{fallback} pass) will look at
-all the implicit matches and collect them.  They will be scored and
-returned sorted by score.  The score is based on the number of
-explicit parameters that matched. See the @code{auth-pick} function
-for details.
 
 @end defvar
 
 If you don't customize @code{auth-sources}, you'll have to live with
 the defaults: any host and any port are looked up in the netrc
 file @code{~/.authinfo.gpg}, which is a GnuPG encrypted file
-(@pxref{GnuPG and EasyPG Assistant Configuration}).
+(@pxref{GnuPG and EasyPG Assistant Configuration}).  
 
-The simplest working netrc line example is one without a port.
+If that fails, the unencrypted netrc file @code{~/.authinfo} will
+be used.
+
+The typical netrc line example is without a port.
 
 @example
 machine YOURMACHINE login YOU password YOURPASSWORD
@@ -225,42 +232,29 @@ TODO: how does it work generally, how does secrets.el work, some examples.
 @node Help for developers
 @chapter Help for developers
 
-The auth-source library only has one function for external use.
+The auth-source library only has a few functions for external use.
 
-@defun auth-source-user-or-password mode host port &optional username
+@defun auth-source-search SPEC
 
-Retrieve appropriate authentication tokens, determined by @var{mode},
-for host @var{host} and @var{port}.  If @var{username} is provided it
-will also be checked.  If @code{auth-source-debug} is t, debugging
-messages will be printed.  Set @code{auth-source-debug} to a function
-to use that function for logging.  The parameters passed will be the
-same that the @code{message} function takes, that is, a string
-formatting spec and optional parameters.
+TODO: how to include docstring?
 
-If @var{mode} is a list of strings, the function will return a list of
-strings or @code{nil} objects (thus you can avoid parsing the netrc
-file or checking the Secret Service API more than once).  If it's a
-string, the function will return a string or a @code{nil} object.
-Currently only the modes ``login'' and ``password'' are recognized but
-more may be added in the future.
+@end defun
 
-@var{host} is a string containing the host name.
+@defun auth-source-delete SPEC
 
-@var{port} contains the protocol name (e.g. ``imap'') or
-a port number.  It must be a string, corresponding to the port in the
-users' netrc files.
+TODO: how to include docstring?
 
-@var{username} contains the user name (e.g. ``joe'') as a string.
+@end defun
 
-@example
-;; IMAP example
-(setq auth (auth-source-user-or-password
-            '("login" "password")
-            "anyhostnamehere"
-            "imap"))
-(nth 0 auth) ; the login name
-(nth 1 auth) ; the password
-@end example
+@defun auth-source-forget SPEC
+
+TODO: how to include docstring?
+
+@end defun
+
+@defun auth-source-forget+ SPEC
+
+TODO: how to include docstring?
 
 @end defun
 
@@ -268,7 +262,9 @@ users' netrc files.
 @appendix GnuPG and EasyPG Assistant Configuration
 
 If you don't customize @code{auth-sources}, the auth-source library
-reads @code{~/.authinfo.gpg}, which is a GnuPG encrypted file.
+reads @code{~/.authinfo.gpg}, which is a GnuPG encrypted file.  Then
+it will check @code{~/.authinfo} but it's not recommended to use such
+an unencrypted file.
 
 In Emacs 23 or later there is an option @code{auto-encryption-mode} to
 automatically decrypt @code{*.gpg} files.  It is enabled by default.

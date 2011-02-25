@@ -92,9 +92,6 @@ struct ccl_spec {
 
 #define CODING_SPEC_CCL_PROGRAM(coding) ((coding)->spec.ccl.ccl)
 
-/* Alist of fontname patterns vs corresponding CCL program.  */
-extern Lisp_Object Vfont_ccl_encoder_alist;
-
 /* Setup fields of the structure pointed by CCL appropriately for the
    execution of ccl program CCL_PROG (symbol or vector).  */
 extern int setup_ccl_program (struct ccl_program *, Lisp_Object);
@@ -124,5 +121,3 @@ EXFUN (Fccl_program_p, 1);
 
 #endif /* EMACS_CCL_H */
 
-/* arch-tag: 14681df7-876d-43de-bc71-6b78e23a4e3c
-   (do not change this comment) */

@@ -1,7 +1,7 @@
 ;;; dired-aux.el --- less commonly used parts of dired
 
-;; Copyright (C) 1985, 1986, 1992, 1994, 1998, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1992, 1994, 1998, 2000-2011
+;;   Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>.
 ;; Maintainer: FSF
@@ -509,18 +509,22 @@ to the end of the list of defaults just after the default value."
 
 ;; This is an extra function so that you can redefine it, e.g., to use gmhist.
 (defun dired-read-shell-command (prompt arg files)
-  "Read a dired shell command prompting with PROMPT (using `read-shell-command').
-ARG is the prefix arg and may be used to indicate in the prompt which
-FILES are affected."
+  "Read a dired shell command prompting with PROMPT.
+Passes the prefix argument ARG to `dired-mark-prompt', so that it
+can be used in the prompt to indicate which FILES are affected.
+Normally reads the command with `read-shell-command', but if the
+`dired-x' packages is loaded, uses `dired-guess-shell-command' to offer
+a smarter default choice of shell command."
   (minibuffer-with-setup-hook
       (lambda ()
 	(set (make-local-variable 'minibuffer-default-add-function)
 	     'minibuffer-default-add-dired-shell-commands))
-    (dired-mark-pop-up
-     nil 'shell files
-     #'read-shell-command
-     (format prompt (dired-mark-prompt arg files))
-     nil nil)))
+    (setq prompt (format prompt (dired-mark-prompt arg files)))
+    (if (featurep 'dired-x)
+	(dired-mark-pop-up nil 'shell files
+			   #'dired-guess-shell-command prompt files)
+      (dired-mark-pop-up nil 'shell files
+			 #'read-shell-command prompt nil nil))))
 
 ;;;###autoload
 (defun dired-do-async-shell-command (command &optional arg file-list)
@@ -820,8 +824,8 @@ Otherwise, the rule is a compression rule, and compression is done with gzip.")
 	       (let ((out-name (concat file ".gz")))
 		 (and (or (not (file-exists-p out-name))
 			  (y-or-n-p
-			   "File %s already exists.  Really compress? "
-			   out-name))
+			   (format "File %s already exists.  Really compress? "
+				   out-name)))
 		      (not (dired-check-process (concat "Compressing " file)
 						"gzip" "-f" file))
 		      (or (file-exists-p out-name)
@@ -1039,92 +1043,124 @@ See Info node `(emacs)Subdir switches' for more details."
    (file-name-directory filename) (file-name-nondirectory filename)
    (function dired-add-entry) filename marker-char))
 
+(defvar dired-omit-mode)
+(declare-function dired-omit-regexp "dired-x" ())
+(defvar dired-omit-localp)
+
 (defun dired-add-entry (filename &optional marker-char relative)
-  ;; Add a new entry for FILENAME, optionally marking it
-  ;; with MARKER-CHAR (a character, else dired-marker-char is used).
-  ;; Note that this adds the entry `out of order' if files sorted by
-  ;; time, etc.
-  ;; At least this version inserts in the right subdirectory (if present).
-  ;; And it skips "." or ".." (see `dired-trivial-filenames').
-  ;; Hidden subdirs are exposed if a file is added there.
-  (setq filename (directory-file-name filename))
-  ;; Entry is always for files, even if they happen to also be directories
-  (let* ((opoint (point))
-	 (cur-dir (dired-current-directory))
-	 (orig-file-name filename)
-	 (directory (if relative cur-dir (file-name-directory filename)))
-	 reason)
-    (setq filename
-	  (if relative
-	      (file-relative-name filename directory)
-	    (file-name-nondirectory filename))
-	  reason
-	  (catch 'not-found
-	    (if (string= directory cur-dir)
-		(progn
-		  (skip-chars-forward "^\r\n")
-		  (if (eq (following-char) ?\r)
-		      (dired-unhide-subdir))
-		  ;; We are already where we should be, except when
-		  ;; point is before the subdir line or its total line.
-		  (let ((p (dired-after-subdir-garbage cur-dir)))
-		    (if (< (point) p)
-			(goto-char p))))
-	      ;; else try to find correct place to insert
-	      (if (dired-goto-subdir directory)
-		  (progn ;; unhide if necessary
-		    (if (looking-at "\r") ;; point is at end of subdir line
-			(dired-unhide-subdir))
-		    ;; found - skip subdir and `total' line
-		    ;; and uninteresting files like . and ..
-		    ;; This better not moves into the next subdir!
-		    (dired-goto-next-nontrivial-file))
-		;; not found
-		(throw 'not-found "Subdir not found")))
-	    (let (buffer-read-only opoint)
-	      (beginning-of-line)
-	      (setq opoint (point))
-	      ;; Don't expand `.'.  Show just the file name within directory.
-	      (let ((default-directory directory))
-		(dired-insert-directory directory
-					(concat dired-actual-switches " -d")
-					(list filename)))
-              (goto-char opoint)
-	      ;; Put in desired marker char.
-	      (when marker-char
-		(let ((dired-marker-char
-		       (if (integerp marker-char) marker-char dired-marker-char)))
-		  (dired-mark nil)))
-	      ;; Compensate for a bug in ange-ftp.
-	      ;; It inserts the file's absolute name, rather than
-	      ;; the relative one.  That may be hard to fix since it
-	      ;; is probably controlled by something in ftp.
-	      (goto-char opoint)
-	      (let ((inserted-name (dired-get-filename 'verbatim)))
-		(if (file-name-directory inserted-name)
-		    (let (props)
-		      (end-of-line)
-		      (forward-char (- (length inserted-name)))
-		      (setq props (text-properties-at (point)))
-		      (delete-char (length inserted-name))
-		      (let ((pt (point)))
-			(insert filename)
-			(set-text-properties pt (point) props))
-		      (forward-char 1))
-		  (forward-line 1)))
-	      (forward-line -1)
-	      (if dired-after-readin-hook ;; the subdir-alist is not affected...
-		  (save-excursion ;; ...so we can run it right now:
-		    (save-restriction
-		      (beginning-of-line)
-		      (narrow-to-region (point) (line-beginning-position 2))
-		      (run-hooks 'dired-after-readin-hook))))
-	      (dired-move-to-filename))
-	    ;; return nil if all went well
-	    nil))
-    (if reason	; don't move away on failure
-	(goto-char opoint))
-    (not reason))) ; return t on success, nil else
+  "Add a new dired entry for FILENAME.
+Optionally mark it with MARKER-CHAR (a character, else uses
+`dired-marker-char').  Note that this adds the entry `out of order'
+if files are sorted by time, etc.
+Skips files that match `dired-trivial-filenames'.
+Exposes hidden subdirectories if a file is added there.
+
+If `dired-x' is loaded and `dired-omit-mode' is enabled, skips
+files matching `dired-omit-regexp'."
+  (if (or (not (featurep 'dired-x))
+	  (not dired-omit-mode)
+	  ;; Avoid calling ls for files that are going to be omitted anyway.
+	  (let ((omit-re (dired-omit-regexp)))
+	    (or (string= omit-re "")
+		(not (string-match omit-re
+				   (cond
+				    ((eq 'no-dir dired-omit-localp)
+				     filename)
+				    ((eq t dired-omit-localp)
+				     (dired-make-relative filename))
+				    (t
+				     (dired-make-absolute
+				      filename
+				      (file-name-directory filename)))))))))
+      ;; Do it!
+      (progn
+	(setq filename (directory-file-name filename))
+	;; Entry is always for files, even if they happen to also be directories
+	(let* ((opoint (point))
+	       (cur-dir (dired-current-directory))
+	       (orig-file-name filename)
+	       (directory (if relative cur-dir (file-name-directory filename)))
+	       reason)
+	  (setq filename
+		(if relative
+		    (file-relative-name filename directory)
+		  (file-name-nondirectory filename))
+		reason
+		(catch 'not-found
+		  (if (string= directory cur-dir)
+		      (progn
+			(skip-chars-forward "^\r\n")
+			(if (eq (following-char) ?\r)
+			    (dired-unhide-subdir))
+			;; We are already where we should be, except when
+			;; point is before the subdir line or its total line.
+			(let ((p (dired-after-subdir-garbage cur-dir)))
+			  (if (< (point) p)
+			      (goto-char p))))
+		    ;; else try to find correct place to insert
+		    (if (dired-goto-subdir directory)
+			(progn ;; unhide if necessary
+			  (if (looking-at "\r")
+			      ;; Point is at end of subdir line.
+			      (dired-unhide-subdir))
+			  ;; found - skip subdir and `total' line
+			  ;; and uninteresting files like . and ..
+			  ;; This better not move into the next subdir!
+			  (dired-goto-next-nontrivial-file))
+		      ;; not found
+		      (throw 'not-found "Subdir not found")))
+		  (let (buffer-read-only opoint)
+		    (beginning-of-line)
+		    (setq opoint (point))
+		    ;; Don't expand `.'.
+		    ;; Show just the file name within directory.
+		    (let ((default-directory directory))
+		      (dired-insert-directory
+		       directory
+		       (concat dired-actual-switches " -d")
+		       (list filename)))
+		    (goto-char opoint)
+		    ;; Put in desired marker char.
+		    (when marker-char
+		      (let ((dired-marker-char
+			     (if (integerp marker-char) marker-char
+			       dired-marker-char)))
+			(dired-mark nil)))
+		    ;; Compensate for a bug in ange-ftp.
+		    ;; It inserts the file's absolute name, rather than
+		    ;; the relative one.  That may be hard to fix since it
+		    ;; is probably controlled by something in ftp.
+		    (goto-char opoint)
+		    (let ((inserted-name (dired-get-filename 'verbatim)))
+		      (if (file-name-directory inserted-name)
+			  (let (props)
+			    (end-of-line)
+			    (forward-char (- (length inserted-name)))
+			    (setq props (text-properties-at (point)))
+			    (delete-char (length inserted-name))
+			    (let ((pt (point)))
+			      (insert filename)
+			      (set-text-properties pt (point) props))
+			    (forward-char 1))
+			(forward-line 1)))
+		    (forward-line -1)
+		    (if dired-after-readin-hook
+			;; The subdir-alist is not affected...
+			(save-excursion ; ...so we can run it right now:
+			  (save-restriction
+			    (beginning-of-line)
+			    (narrow-to-region (point)
+					      (line-beginning-position 2))
+			    (run-hooks 'dired-after-readin-hook))))
+		    (dired-move-to-filename))
+		  ;; return nil if all went well
+		  nil))
+	  (if reason	; don't move away on failure
+	      (goto-char opoint))
+	  (not reason))) ; return t on success, nil else
+    ;; Don't do it (dired-omit-mode).
+    ;; Return t for success (perhaps we should return file-exists-p).
+    t))
 
 (defun dired-after-subdir-garbage (dir)
   ;; Return pos of first file line of DIR, skipping header and total
@@ -1383,6 +1419,10 @@ ESC or `q' to not overwrite any of the remaining files,
                   (cond  ((integerp marker-char) marker-char)
                          (marker-char (dired-file-marker from)) ; slow
                          (t nil))))
+	    (when (and (file-directory-p from)
+		       (file-directory-p to)
+		       (eq file-creator 'dired-copy-file))
+	      (setq to (file-name-directory to)))
             (condition-case err
                 (progn
                   (funcall file-creator from to dired-overwrite-confirmed)

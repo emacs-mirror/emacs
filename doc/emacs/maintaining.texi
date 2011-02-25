@@ -1,6 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 1999, 2000,
-@c   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2011
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Maintaining, Abbrevs, Building, Top
@@ -908,6 +907,14 @@ Display revision control state and change history
 @item C-x v L
 Display the change history for the current repository
 (@code{vc-print-root-log}).
+
+@item C-x v I
+Display the changes that will be received with a pull operation
+(@code{vc-log-incoming}).
+
+@item C-x v O
+Display the changes that will be sent by the next push operation
+(@code{vc-log-outgoing}).
 @end table
 
 @kindex C-x v l
@@ -928,6 +935,19 @@ You can call this command from a Dired buffer (@pxref{Dired}).
 version-controlled directory tree as a whole.  With a prefix argument,
 the command prompts for the maximum number of revisions to display.
 RCS, SCCS, and CVS do not support this feature.
+
+  On a distributed version control system, the @kbd{C-x v I}
+(@code{vc-log-incoming}) command displays a log buffer showing the
+changes that will be applied, the next time you run the version
+control system's ``pull'' command to get new revisions from another
+repository.  This other repository is the default one from which
+changes are pulled, as defined by the version control system; with a
+prefix argument, @code{vc-log-incoming} prompts for a specific
+repository from which changes would be pulled, and lists the changes
+accordingly.  Similarly, @kbd{C-x v O} (@code{vc-log-outgoing}) shows
+the changes that will be sent to another repository, the next time you
+run the ``push'' command; with a prefix argument, it prompts for a
+specific repository to which changes would be pushed.
 
   In the @samp{*vc-change-log*} buffer, you can use the following keys
 to move between the logs of revisions and of files, to view past
@@ -1382,11 +1402,17 @@ master file revision with user B's changes in it is 1.11.
 @end group
 @end smallexample
 
-@cindex vc-resolve-conflicts
+@findex vc-resolve-conflicts
   Then you can resolve the conflicts by editing the file manually.  Or
 you can type @code{M-x vc-resolve-conflicts} after visiting the file.
 This starts an Ediff session, as described above.  Don't forget to
 commit the merged version afterwards.
+
+@findex vc-find-conflicted-file
+  If there is more than one conflicted file in a merge, type @kbd{M-x
+vc-find-conflicted-file} after resolving the conflicts in each file.
+This command visits the next conflicted file, and moves point to the
+first conflict marker in that file.
 
 @node Multi-User Branching
 @subsubsection Multi-User Branching

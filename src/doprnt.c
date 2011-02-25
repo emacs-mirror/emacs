@@ -1,8 +1,7 @@
 /* Output like sprintf to a buffer of specified size.
    Also takes args differently: pass one pointer to an array of strings
    in addition to the format string which is separate.
-   Copyright (C) 1985, 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+   Copyright (C) 1985, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -29,9 +28,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <float.h>
 #endif
 
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 #include "lisp.h"
 
@@ -74,11 +71,11 @@ doprnt (char *buffer, register int bufsize, const char *format,
   char *big_buffer = 0;
 
   register int tem;
-  unsigned char *string;
+  char *string;
   char fixed_buffer[20];	/* Default buffer for small formatting. */
   char *fmtcpy;
   int minlen;
-  unsigned char charbuf[MAX_MULTIBYTE_LENGTH + 1];	/* Used for %c.  */
+  char charbuf[MAX_MULTIBYTE_LENGTH + 1];	/* Used for %c.  */
 
   if (format_end == 0)
     format_end = format + strlen (format);
@@ -100,7 +97,7 @@ doprnt (char *buffer, register int bufsize, const char *format,
 
 	  fmt++;
 	  /* Copy this one %-spec into fmtcpy.  */
-	  string = (unsigned char *) fmtcpy;
+	  string = fmtcpy;
 	  *string++ = '%';
 	  while (1)
 	    {
@@ -169,7 +166,7 @@ doprnt (char *buffer, register int bufsize, const char *format,
 		abort ();
 	      sprintf (sprintf_buffer, fmtcpy, va_arg(ap, char *));
 	      /* Now copy into final output, truncating as nec.  */
-	      string = (unsigned char *) sprintf_buffer;
+	      string = sprintf_buffer;
 	      goto doit;
 
 	    case 'f':
@@ -179,7 +176,7 @@ doprnt (char *buffer, register int bufsize, const char *format,
 		double d = va_arg(ap, double);
 		sprintf (sprintf_buffer, fmtcpy, d);
 		/* Now copy into final output, truncating as nec.  */
-		string = (unsigned char *) sprintf_buffer;
+		string = sprintf_buffer;
 		goto doit;
 	      }
 
@@ -188,7 +185,7 @@ doprnt (char *buffer, register int bufsize, const char *format,
 	    case 's':
 	      if (fmtcpy[1] != 's')
 		minlen = atoi (&fmtcpy[1]);
-	      string = va_arg(ap, unsigned char *);
+	      string = va_arg (ap, char *);
 	      tem = strlen (string);
 	      width = strwidth (string, tem);
 	      goto doit1;
@@ -245,7 +242,7 @@ doprnt (char *buffer, register int bufsize, const char *format,
 		   both are passed the same way, otherwise we'll need
 		   to rewrite callers.  */
 		EMACS_INT chr = va_arg(ap, EMACS_INT);
-		tem = CHAR_STRING ((int) chr, charbuf);
+		tem = CHAR_STRING ((int) chr, (unsigned char *) charbuf);
 		string = charbuf;
 		string[tem] = 0;
 		width = strwidth (string, tem);
@@ -280,6 +277,3 @@ doprnt (char *buffer, register int bufsize, const char *format,
   *bufptr = 0;		/* Make sure our string end with a '\0' */
   return bufptr - buffer;
 }
-
-/* arch-tag: aa0ab528-7c5f-4c73-894c-aa2526a1efb3
-   (do not change this comment) */

@@ -1,6 +1,5 @@
 /* Primitive operations on Lisp data types for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985, 1986, 1988, 1993, 1994, 1995, 1997, 1998, 1999, 2000,
-                 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+   Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -93,8 +92,6 @@ Lisp_Object Qfont_spec, Qfont_entity, Qfont_object;
 Lisp_Object Qinteractive_form;
 
 static void swap_in_symval_forwarding (struct Lisp_Symbol *, struct Lisp_Buffer_Local_Value *);
-
-Lisp_Object Vmost_positive_fixnum, Vmost_negative_fixnum;
 
 
 void
@@ -1012,7 +1009,7 @@ swap_in_symval_forwarding (struct Lisp_Symbol *symbol, struct Lisp_Buffer_Local_
 	  }
 	else
 	  {
-	    tem1 = assq_no_quit (var, current_buffer->local_var_alist);
+	    tem1 = assq_no_quit (var, BVAR (current_buffer, local_var_alist));
 	    XSETBUFFER (blv->where, current_buffer);
 	  }
       }
@@ -1181,7 +1178,7 @@ set_internal (register Lisp_Object symbol, register Lisp_Object newval, register
 	    tem1 = Fassq (symbol,
 			  (blv->frame_local
 			   ? XFRAME (where)->param_alist
-			   : XBUFFER (where)->local_var_alist));
+			   : BVAR (XBUFFER (where), local_var_alist)));
 	    blv->where = where;
 	    blv->found = 1;
 
@@ -1212,8 +1209,8 @@ set_internal (register Lisp_Object symbol, register Lisp_Object newval, register
 		       bindings, not for frame-local bindings.  */
 		    eassert (!blv->frame_local);
 		    tem1 = Fcons (symbol, XCDR (blv->defcell));
-		    XBUFFER (where)->local_var_alist
-		      = Fcons (tem1, XBUFFER (where)->local_var_alist);
+		    BVAR (XBUFFER (where), local_var_alist)
+		      = Fcons (tem1, BVAR (XBUFFER (where), local_var_alist));
 		  }
 	      }
 
@@ -1635,13 +1632,13 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
 	if (let_shadows_global_binding_p (symbol))
 	  message ("Making %s local to %s while let-bound!",
 		   SDATA (SYMBOL_NAME (variable)),
-		   SDATA (current_buffer->name));
+		   SDATA (BVAR (current_buffer, name)));
       }
     }
 
   /* Make sure this buffer has its own value of symbol.  */
   XSETSYMBOL (variable, sym);	/* Update in case of aliasing.  */
-  tem = Fassq (variable, current_buffer->local_var_alist);
+  tem = Fassq (variable, BVAR (current_buffer, local_var_alist));
   if (NILP (tem))
     {
       if (let_shadows_buffer_binding_p (sym))
@@ -1653,9 +1650,9 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
 	 default value.  */
       find_symbol_value (variable);
 
-      current_buffer->local_var_alist
+      BVAR (current_buffer, local_var_alist)
         = Fcons (Fcons (variable, XCDR (blv->defcell)),
-		 current_buffer->local_var_alist);
+		 BVAR (current_buffer, local_var_alist));
 
       /* Make sure symbol does not think it is set up for this buffer;
 	 force it to look once again for this buffer's value.  */
@@ -1721,10 +1718,10 @@ From now on the default value will apply in this buffer.  Return VARIABLE.  */)
 
   /* Get rid of this buffer's alist element, if any.  */
   XSETSYMBOL (variable, sym);	/* Propagate variable indirection.  */
-  tem = Fassq (variable, current_buffer->local_var_alist);
+  tem = Fassq (variable, BVAR (current_buffer, local_var_alist));
   if (!NILP (tem))
-    current_buffer->local_var_alist
-      = Fdelq (tem, current_buffer->local_var_alist);
+    BVAR (current_buffer, local_var_alist)
+      = Fdelq (tem, BVAR (current_buffer, local_var_alist));
 
   /* If the symbol is set up with the current buffer's binding
      loaded, recompute its value.  We have to do it now, or else
@@ -1851,7 +1848,7 @@ BUFFER defaults to the current buffer.  */)
 	XSETBUFFER (tmp, buf);
 	XSETSYMBOL (variable, sym); /* Update in case of aliasing.  */
 
-	for (tail = buf->local_var_alist; CONSP (tail); tail = XCDR (tail))
+	for (tail = BVAR (buf, local_var_alist); CONSP (tail); tail = XCDR (tail))
 	  {
 	    elt = XCAR (tail);
 	    if (EQ (variable, XCAR (elt)))
@@ -2375,7 +2372,7 @@ NUMBER may be an integer or a floating point number.  */)
 
   if (FLOATP (number))
     {
-      char pigbuf[350];	/* see comments in float_to_string */
+      char pigbuf[FLOAT_TO_STRING_BUFSIZE];
 
       float_to_string (pigbuf, XFLOAT_DATA (number));
       return build_string (pigbuf);
@@ -2420,7 +2417,7 @@ present, base 10 is used.  BASE must be between 2 and 16 (inclusive).
 If the base used is not 10, STRING is always parsed as integer.  */)
   (register Lisp_Object string, Lisp_Object base)
 {
-  register unsigned char *p;
+  register char *p;
   register int b;
   int sign = 1;
   Lisp_Object val;
@@ -2439,7 +2436,7 @@ If the base used is not 10, STRING is always parsed as integer.  */)
 
   /* Skip any whitespace at the front of the number.  Some versions of
      atoi do this anyway, so we might as well make Emacs lisp consistent.  */
-  p = SDATA (string);
+  p = SSDATA (string);
   while (*p == ' ' || *p == '\t')
     p++;
 
@@ -3300,12 +3297,12 @@ syms_of_data (void)
 
   XSYMBOL (Qwholenump)->function = XSYMBOL (Qnatnump)->function;
 
-  DEFVAR_LISP ("most-positive-fixnum", &Vmost_positive_fixnum,
+  DEFVAR_LISP ("most-positive-fixnum", Vmost_positive_fixnum,
 	       doc: /* The largest value that is representable in a Lisp integer.  */);
   Vmost_positive_fixnum = make_number (MOST_POSITIVE_FIXNUM);
   XSYMBOL (intern_c_string ("most-positive-fixnum"))->constant = 1;
 
-  DEFVAR_LISP ("most-negative-fixnum", &Vmost_negative_fixnum,
+  DEFVAR_LISP ("most-negative-fixnum", Vmost_negative_fixnum,
 	       doc: /* The smallest value that is representable in a Lisp integer.  */);
   Vmost_negative_fixnum = make_number (MOST_NEGATIVE_FIXNUM);
   XSYMBOL (intern_c_string ("most-negative-fixnum"))->constant = 1;
@@ -3337,6 +3334,3 @@ init_data (void)
   signal (SIGEMT, arith_error);
 #endif /* uts */
 }
-
-/* arch-tag: 25879798-b84d-479a-9c89-7d148e2109f7
-   (do not change this comment) */

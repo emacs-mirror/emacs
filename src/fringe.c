@@ -1,7 +1,5 @@
 /* Fringe handling (split from xdisp.c).
-   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1997,
-                 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+   Copyright (C) 1985-1988, 1993-1995, 1997-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -31,19 +29,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termhooks.h"
 
 #ifdef HAVE_WINDOW_SYSTEM
-
-/* Non-nil means that newline may flow into the right fringe.  */
-
-Lisp_Object Voverflow_newline_into_fringe;
-
-/* List of known fringe bitmap symbols.
-
-   The fringe bitmap number is stored in the `fringe' property on
-   those symbols.  Names for the built-in bitmaps are installed by
-   loading fringe.el.
- */
-
-Lisp_Object Vfringe_bitmaps;
 
 /* Fringe bitmaps are represented in three different ways:
 
@@ -675,7 +660,7 @@ get_logical_cursor_bitmap (struct window *w, Lisp_Object cursor)
 {
   Lisp_Object cmap, bm = Qnil;
 
-  if ((cmap = XBUFFER (w->buffer)->fringe_cursor_alist), !NILP (cmap))
+  if ((cmap = BVAR (XBUFFER (w->buffer), fringe_cursor_alist)), !NILP (cmap))
     {
       bm = Fassq (cursor, cmap);
       if (CONSP (bm))
@@ -685,9 +670,9 @@ get_logical_cursor_bitmap (struct window *w, Lisp_Object cursor)
 	  return lookup_fringe_bitmap (bm);
 	}
     }
-  if (EQ (cmap, buffer_defaults.fringe_cursor_alist))
+  if (EQ (cmap, BVAR (&buffer_defaults, fringe_cursor_alist)))
     return NO_FRINGE_BITMAP;
-  bm = Fassq (cursor, buffer_defaults.fringe_cursor_alist);
+  bm = Fassq (cursor, BVAR (&buffer_defaults, fringe_cursor_alist));
   if (!CONSP (bm) || ((bm = XCDR (bm)), NILP (bm)))
     return NO_FRINGE_BITMAP;
   return lookup_fringe_bitmap (bm);
@@ -712,7 +697,7 @@ get_logical_fringe_bitmap (struct window *w, Lisp_Object bitmap, int right_p, in
      If partial, lookup partial bitmap in default value if not found here.
      If not partial, or no partial spec is present, use non-partial bitmap.  */
 
-  if ((cmap = XBUFFER (w->buffer)->fringe_indicator_alist), !NILP (cmap))
+  if ((cmap = BVAR (XBUFFER (w->buffer), fringe_indicator_alist)), !NILP (cmap))
     {
       bm1 = Fassq (bitmap, cmap);
       if (CONSP (bm1))
@@ -746,10 +731,10 @@ get_logical_fringe_bitmap (struct window *w, Lisp_Object bitmap, int right_p, in
 	}
     }
 
-  if (!EQ (cmap, buffer_defaults.fringe_indicator_alist)
-      && !NILP (buffer_defaults.fringe_indicator_alist))
+  if (!EQ (cmap, BVAR (&buffer_defaults, fringe_indicator_alist))
+      && !NILP (BVAR (&buffer_defaults, fringe_indicator_alist)))
     {
-      bm2 = Fassq (bitmap, buffer_defaults.fringe_indicator_alist);
+      bm2 = Fassq (bitmap, BVAR (&buffer_defaults, fringe_indicator_alist));
       if (CONSP (bm2))
 	{
 	  if ((bm2 = XCDR (bm2)), !NILP (bm2))
@@ -934,7 +919,7 @@ update_window_fringes (struct window *w, int keep_current_p)
     return 0;
 
   if (!MINI_WINDOW_P (w)
-      && (ind = XBUFFER (w->buffer)->indicate_buffer_boundaries, !NILP (ind)))
+      && (ind = BVAR (XBUFFER (w->buffer), indicate_buffer_boundaries), !NILP (ind)))
     {
       if (EQ (ind, Qleft) || EQ (ind, Qright))
 	boundary_top = boundary_bot = arrow_top = arrow_bot = ind;
@@ -1003,7 +988,7 @@ update_window_fringes (struct window *w, int keep_current_p)
 	}
     }
 
-  empty_pos = XBUFFER (w->buffer)->indicate_empty_lines;
+  empty_pos = BVAR (XBUFFER (w->buffer), indicate_empty_lines);
   if (!NILP (empty_pos) && !EQ (empty_pos, Qright))
     empty_pos = WINDOW_LEFT_FRINGE_WIDTH (w) == 0 ? Qright : Qleft;
 
@@ -1756,7 +1741,7 @@ syms_of_fringe (void)
   defsubr (&Sfringe_bitmaps_at_pos);
   defsubr (&Sset_fringe_bitmap_face);
 
-  DEFVAR_LISP ("overflow-newline-into-fringe", &Voverflow_newline_into_fringe,
+  DEFVAR_LISP ("overflow-newline-into-fringe", Voverflow_newline_into_fringe,
     doc: /* *Non-nil means that newline may flow into the right fringe.
 This means that display lines which are exactly as wide as the window
 (not counting the final newline) will only occupy one screen line, by
@@ -1765,7 +1750,7 @@ is at the final newline, the cursor is shown in the right fringe.
 If nil, also continue lines which are exactly as wide as the window.  */);
   Voverflow_newline_into_fringe = Qt;
 
-  DEFVAR_LISP ("fringe-bitmaps", &Vfringe_bitmaps,
+  DEFVAR_LISP ("fringe-bitmaps", Vfringe_bitmaps,
     doc: /* List of fringe bitmap symbols.  */);
   Vfringe_bitmaps = Qnil;
 }
@@ -1847,5 +1832,3 @@ w32_reset_fringes (void)
 
 #endif /* HAVE_WINDOW_SYSTEM */
 
-/* arch-tag: 04596920-43eb-473d-b319-82712338162d
-   (do not change this comment) */

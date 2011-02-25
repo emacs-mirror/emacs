@@ -1,7 +1,7 @@
 ;;; time.el --- display time, load and mail indicator in mode line of Emacs -*-coding: utf-8 -*-
 
-;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1996, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1993-1994, 1996, 2000-2011
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -576,5 +576,4 @@ For example, the Unix uptime command format is \"%D, %z%2h:%.2m\"."
 
 (provide 'time)
 
-;; arch-tag: b9c1623f-b5cb-48e4-b650-482a4d23c5a6
 ;;; time.el ends here

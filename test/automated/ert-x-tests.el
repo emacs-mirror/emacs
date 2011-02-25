@@ -1,6 +1,6 @@
 ;;; ert-x-tests.el --- Tests for ert-x.el
 
-;; Copyright (C) 2008, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2010-2011 Free Software Foundation, Inc.
 
 ;; Author: Phil Hagelberg
 ;; Author: Christian Ohler <ohler@gnu.org>

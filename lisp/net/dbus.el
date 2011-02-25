@@ -1,6 +1,6 @@
 ;;; dbus.el --- Elisp bindings for D-Bus.
 
-;; Copyright (C) 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, hardware
@@ -506,13 +506,14 @@ well formed."
 
 ;;; D-Bus registered names.
 
-(defun dbus-list-activatable-names ()
+(defun dbus-list-activatable-names (&optional bus)
   "Return the D-Bus service names which can be activated as list.
-The result is a list of strings, which is `nil' when there are no
-activatable service names at all."
+If BUS is left nil, `:system' is assumed.  The result is a list
+of strings, which is `nil' when there are no activatable service
+names at all."
   (dbus-ignore-errors
     (dbus-call-method
-     :system dbus-service-dbus
+     (or bus :system) dbus-service-dbus
      dbus-path-dbus dbus-interface-dbus "ListActivatableNames")))
 
 (defun dbus-list-names (bus)

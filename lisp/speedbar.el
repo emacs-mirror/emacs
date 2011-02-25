@@ -1,8 +1,6 @@
 ;;; speedbar --- quick access to files and tags in a frame
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1996-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: file, tags, tools
@@ -616,8 +614,11 @@ state data."
   :group 'speedbar
   :type 'hook)
 
-(defvar speedbar-ignored-modes '(fundamental-mode)
-  "*List of major modes which speedbar will not switch directories for.")
+(defcustom speedbar-ignored-modes '(fundamental-mode)
+  "List of major modes which speedbar will not switch directories for."
+  :group 'speedbar
+  :type '(choice (const nil)
+		 (repeat :tag "List of modes" (symbol :tag "Major mode"))))
 
 (defun speedbar-extension-list-to-regex (extlist)
   "Takes EXTLIST, a list of extensions and transforms it into regexp.
@@ -671,7 +672,7 @@ directories here; see `vc-directory-exclusion-list'."
   :group 'speedbar
   :type 'string)
 
-(defvar speedbar-file-unshown-regexp
+(defcustom speedbar-file-unshown-regexp
   (let ((nstr "") (noext completion-ignored-extensions))
     (while noext
       (setq nstr (concat nstr (regexp-quote (car noext)) "\\'"
@@ -679,8 +680,10 @@ directories here; see `vc-directory-exclusion-list'."
 	    noext (cdr noext)))
     ;;               backup      refdir      lockfile
     (concat nstr "\\|#[^#]+#$\\|\\.\\.?\\'\\|\\.#"))
-  "*Regexp matching files we don't want displayed in a speedbar buffer.
-It is generated from the variable `completion-ignored-extensions'.")
+  "Regexp matching files we don't want displayed in a speedbar buffer.
+It is generated from the variable `completion-ignored-extensions'."
+  :group 'speedbar
+  :type 'string)
 
 (defvar speedbar-file-regexp nil
   "Regular expression matching files we know how to expand.
@@ -757,14 +760,17 @@ DIRECTORY-EXPRESSION to `speedbar-ignored-directory-expressions'."
 	  speedbar-ignored-directory-regexp (speedbar-extension-list-to-regex
 					speedbar-ignored-directory-expressions)))
 
-(defvar speedbar-update-flag dframe-have-timer-flag
-  "*Non-nil means to automatically update the display.
+(defcustom speedbar-update-flag dframe-have-timer-flag
+  "Non-nil means to automatically update the display.
 When this is nil then speedbar will not follow the attached frame's directory.
-When speedbar is active, use:
-
-\\<speedbar-key-map> `\\[speedbar-toggle-updates]'
-
-to toggle this value.")
+If you want to change this while speedbar is active, either use
+\\[customize] or call \\<speedbar-key-map> `\\[speedbar-toggle-updates]'."
+  :group 'speedbar
+  :initialize 'custom-initialize-default
+  :set (lambda (sym val)
+	 (set sym val)
+	 (speedbar-toggle-updates))
+  :type 'boolean)
 
 (defvar speedbar-update-flag-disable nil
   "Permanently disable changing of the update flag.")
@@ -3645,17 +3651,20 @@ to be at the beginning of a line in the etags buffer.
 
 This variable is ignored if `speedbar-use-imenu-flag' is non-nil.")
 
-(defvar speedbar-fetch-etags-command "etags"
-  "*Command used to create an etags file.
+(defcustom speedbar-fetch-etags-command "etags"
+  "Command used to create an etags file.
+This variable is ignored if `speedbar-use-imenu-flag' is t."
+  :group 'speedbar
+  :type 'string)
 
-This variable is ignored if `speedbar-use-imenu-flag' is t.")
-
-(defvar speedbar-fetch-etags-arguments '("-D" "-I" "-o" "-")
-  "*List of arguments to use with `speedbar-fetch-etags-command'.
+(defcustom speedbar-fetch-etags-arguments '("-D" "-I" "-o" "-")
+  "List of arguments to use with `speedbar-fetch-etags-command'.
 This creates an etags output buffer.  Use `speedbar-toggle-etags' to
 modify this list conveniently.
-
-This variable is ignored if `speedbar-use-imenu-flag' is t.")
+This variable is ignored if `speedbar-use-imenu-flag' is t."
+  :group 'speedbar
+  :type '(choice (const nil)
+		 (repeat :tag "List of arguments" string)))
 
 (defun speedbar-toggle-etags (flag)
   "Toggle FLAG in `speedbar-fetch-etags-arguments'.

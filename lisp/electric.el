@@ -1,7 +1,6 @@
 ;;; electric.el --- window maker and Command loop for `electric' modes
 
-;; Copyright (C) 1985, 1986, 1995, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1995, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
@@ -220,7 +219,8 @@ Returns nil when we can't find this char."
         (let ((before (copy-marker (1- pos) t)))
           (save-excursion
             (unless (memq indent-line-function
-                          '(indent-relative indent-relative-maybe))
+                          '(indent-relative indent-to-left-margin
+                            indent-relative-maybe))
               ;; Don't reindent the previous line if the indentation function
               ;; is not a real one.
               (goto-char before)
@@ -234,7 +234,8 @@ Returns nil when we can't find this char."
             ;; Remove the trailing whitespace after indentation because
             ;; indentation may (re)introduce the whitespace.
             (delete-horizontal-space t))))
-      (indent-according-to-mode))))
+      (unless (memq indent-line-function '(indent-to-left-margin))
+        (indent-according-to-mode)))))
 
 ;;;###autoload
 (define-minor-mode electric-indent-mode
@@ -382,5 +383,4 @@ one of those symbols.")
 
 (provide 'electric)
 
-;; arch-tag: dae045eb-dc2d-4fb7-9f27-9cc2ce277be8
 ;;; electric.el ends here

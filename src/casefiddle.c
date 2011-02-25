@@ -1,6 +1,6 @@
 /* GNU Emacs case conversion functions.
-   Copyright (C) 1985, 1994, 1997, 1998, 1999, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+
+Copyright (C) 1985, 1994, 1997-1999, 2001-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -39,15 +39,15 @@ casify_object (enum case_action flag, Lisp_Object obj)
   register int inword = flag == CASE_DOWN;
 
   /* If the case table is flagged as modified, rescan it.  */
-  if (NILP (XCHAR_TABLE (current_buffer->downcase_table)->extras[1]))
-    Fset_case_table (current_buffer->downcase_table);
+  if (NILP (XCHAR_TABLE (BVAR (current_buffer, downcase_table))->extras[1]))
+    Fset_case_table (BVAR (current_buffer, downcase_table));
 
   if (INTEGERP (obj))
     {
       int flagbits = (CHAR_ALT | CHAR_SUPER | CHAR_HYPER
 		      | CHAR_SHIFT | CHAR_CTL | CHAR_META);
       int flags = XINT (obj) & flagbits;
-      int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
+      int multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
 
       /* If the character has higher bits set
 	 above the flags, return it unchanged.
@@ -142,7 +142,7 @@ casify_object (enum case_action flag, Lisp_Object obj)
 	  o += CHAR_STRING (c, o);
 	}
       eassert (o - dst <= o_size);
-      obj = make_multibyte_string (dst, size, o - dst);
+      obj = make_multibyte_string ((char *) dst, size, o - dst);
       SAFE_FREE ();
       return obj;
     }
@@ -198,7 +198,7 @@ casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
 {
   register int c;
   register int inword = flag == CASE_DOWN;
-  register int multibyte = !NILP (current_buffer->enable_multibyte_characters);
+  register int multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
   EMACS_INT start, end;
   EMACS_INT start_byte, end_byte;
   EMACS_INT first = -1, last;	/* Position of first and last changes.  */
@@ -210,8 +210,8 @@ casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
     return;
 
   /* If the case table is flagged as modified, rescan it.  */
-  if (NILP (XCHAR_TABLE (current_buffer->downcase_table)->extras[1]))
-    Fset_case_table (current_buffer->downcase_table);
+  if (NILP (XCHAR_TABLE (BVAR (current_buffer, downcase_table))->extras[1]))
+    Fset_case_table (BVAR (current_buffer, downcase_table));
 
   validate_region (&b, &e);
   start = XFASTINT (b);
@@ -279,7 +279,7 @@ casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
 		     keeping text properties the same.  */
 		  replace_range_2 (start, start_byte,
 				   start + 1, start_byte + len,
-				   str, 1, tolen,
+				   (char *) str, 1, tolen,
 				   0);
 		  len = tolen;
 		}
@@ -442,6 +442,3 @@ keys_of_casefiddle (void)
   initial_define_key (meta_map, 'l', "downcase-word");
   initial_define_key (meta_map, 'c', "capitalize-word");
 }
-
-/* arch-tag: 60a73c66-5489-47e7-a81f-cead4057c526
-   (do not change this comment) */

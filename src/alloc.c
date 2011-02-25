@@ -1,6 +1,5 @@
 /* Storage allocation and gc for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985, 1986, 1988, 1993, 1994, 1995, 1997, 1998, 1999,
-      2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+   Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2011
       Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -59,9 +58,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef GC_MALLOC_CHECK
 #endif
 
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#else
+#ifndef HAVE_UNISTD_H
 extern POINTER_TYPE *sbrk ();
 #endif
 
@@ -162,30 +160,16 @@ static __malloc_size_t bytes_used_when_full;
 #define GC_STRING_BYTES(S)	(STRING_BYTES (S))
 #define GC_STRING_CHARS(S)	((S)->size & ~ARRAY_MARK_FLAG)
 
+/* Global variables.  */
+struct emacs_globals globals;
+
 /* Number of bytes of consing done since the last gc.  */
 
 int consing_since_gc;
 
-/* Count the amount of consing of various sorts of space.  */
-
-EMACS_INT cons_cells_consed;
-EMACS_INT floats_consed;
-EMACS_INT vector_cells_consed;
-EMACS_INT symbols_consed;
-EMACS_INT string_chars_consed;
-EMACS_INT misc_objects_consed;
-EMACS_INT intervals_consed;
-EMACS_INT strings_consed;
-
-/* Minimum number of bytes of consing since GC before next GC. */
-
-EMACS_INT gc_cons_threshold;
-
 /* Similar minimum, computed from Vgc_cons_percentage.  */
 
 EMACS_INT gc_relative_threshold;
-
-static Lisp_Object Vgc_cons_percentage;
 
 /* Minimum number of bytes of consing since GC before next GC,
    when memory is full.  */
@@ -201,10 +185,6 @@ int gc_in_progress;
    no GC will happen, so as to verify that assumption.  */
 
 int abort_on_gc;
-
-/* Nonzero means display messages at beginning and end of GC.  */
-
-int garbage_collection_messages;
 
 /* Number of live and free conses etc.  */
 
@@ -225,14 +205,6 @@ static char *spare_memory[7];
 /* Number of extra blocks malloc should get when it needs more core.  */
 
 static int malloc_hysteresis;
-
-/* Non-nil means defun should do purecopy on the function definition.  */
-
-Lisp_Object Vpurify_flag;
-
-/* Non-nil means we are handling a memory-full error.  */
-
-Lisp_Object Vmemory_full;
 
 /* Initialize it to a nonzero value to force it into data space
    (rather than bss space).  That way unexec will remap it into text
@@ -261,10 +233,6 @@ static size_t pure_bytes_used_before_overflow;
       && ((PNTR_COMPARISON_TYPE) (P)				\
 	  >= (PNTR_COMPARISON_TYPE) purebeg))
 
-/* Total number of bytes allocated in pure storage. */
-
-EMACS_INT pure_bytes_used;
-
 /* Index in pure at which next pure Lisp object will be allocated.. */
 
 static EMACS_INT pure_bytes_used_lisp;
@@ -277,10 +245,6 @@ static EMACS_INT pure_bytes_used_non_lisp;
    displayed.  */
 
 const char *pending_malloc_warning;
-
-/* Pre-computed signal argument for use when memory is exhausted.  */
-
-Lisp_Object Vmemory_signal_data;
 
 /* Maximum amount of C stack to save when a GC happens.  */
 
@@ -302,10 +266,7 @@ Lisp_Object Qgc_cons_threshold, Qchar_table_extra_slots;
 
 /* Hook run after GC has finished.  */
 
-Lisp_Object Vpost_gc_hook, Qpost_gc_hook;
-
-Lisp_Object Vgc_elapsed;	/* accumulated elapsed time in GC  */
-EMACS_INT gcs_done;		/* accumulated GCs  */
+Lisp_Object Qpost_gc_hook;
 
 static void mark_buffer (Lisp_Object);
 static void mark_terminals (void);
@@ -2320,7 +2281,8 @@ make_string (const char *contents, EMACS_INT nbytes)
   register Lisp_Object val;
   EMACS_INT nchars, multibyte_nbytes;
 
-  parse_str_as_multibyte (contents, nbytes, &nchars, &multibyte_nbytes);
+  parse_str_as_multibyte ((const unsigned char *) contents, nbytes,
+			  &nchars, &multibyte_nbytes);
   if (nbytes == nchars || nbytes != multibyte_nbytes)
     /* CONTENTS contains no multibyte sequences or contains an invalid
        multibyte sequence.  We must make unibyte string.  */
@@ -2339,7 +2301,6 @@ make_unibyte_string (const char *contents, EMACS_INT length)
   register Lisp_Object val;
   val = make_uninit_string (length);
   memcpy (SDATA (val), contents, length);
-  STRING_SET_UNIBYTE (val);
   return val;
 }
 
@@ -2388,7 +2349,8 @@ make_specified_string (const char *contents,
   if (nchars < 0)
     {
       if (multibyte)
-	nchars = multibyte_chars_in_text (contents, nbytes);
+	nchars = multibyte_chars_in_text ((const unsigned char *) contents,
+					  nbytes);
       else
 	nchars = nbytes;
     }
@@ -3923,7 +3885,7 @@ live_buffer_p (struct mem_node *m, void *p)
      must not have been killed.  */
   return (m->type == MEM_TYPE_BUFFER
 	  && p == m->start
-	  && !NILP (((struct buffer *) p)->name));
+	  && !NILP (((struct buffer *) p)->BUFFER_INTERNAL_FIELD (name)));
 }
 
 #endif /* GC_MARK_STACK || defined GC_MALLOC_CHECK */
@@ -4689,7 +4651,7 @@ make_pure_string (const char *data,
   struct Lisp_String *s;
 
   s = (struct Lisp_String *) pure_alloc (sizeof *s, Lisp_String);
-  s->data = find_string_data_in_pure (data, nbytes);
+  s->data = (unsigned char *) find_string_data_in_pure (data, nbytes);
   if (s->data == NULL)
     {
       s->data = (unsigned char *) pure_alloc (nbytes + 1, -1);
@@ -4795,7 +4757,7 @@ Does not copy symbols.  Copies strings without text properties.  */)
   else if (FLOATP (obj))
     obj = make_pure_float (XFLOAT_DATA (obj));
   else if (STRINGP (obj))
-    obj = make_pure_string (SDATA (obj), SCHARS (obj),
+    obj = make_pure_string (SSDATA (obj), SCHARS (obj),
 			    SBYTES (obj),
 			    STRING_MULTIBYTE (obj));
   else if (COMPILEDP (obj) || VECTORP (obj))
@@ -4879,8 +4841,6 @@ returns nil, because real GC can't be done.  */)
   (void)
 {
   register struct specbinding *bind;
-  struct catchtag *catch;
-  struct handler *handler;
   char stack_top_variable;
   register int i;
   int message_p;
@@ -4909,11 +4869,11 @@ returns nil, because real GC can't be done.  */)
 	   turned off in that buffer.  Calling truncate_undo_list on
 	   Qt tends to return NULL, which effectively turns undo back on.
 	   So don't call truncate_undo_list if undo_list is Qt.  */
-	if (! NILP (nextb->name) && ! EQ (nextb->undo_list, Qt))
+	if (! NILP (nextb->BUFFER_INTERNAL_FIELD (name)) && ! EQ (nextb->BUFFER_INTERNAL_FIELD (undo_list), Qt))
 	  truncate_undo_list (nextb);
 
 	/* Shrink buffer gaps, but skip indirect and dead buffers.  */
-	if (nextb->base_buffer == 0 && !NILP (nextb->name)
+	if (nextb->base_buffer == 0 && !NILP (nextb->BUFFER_INTERNAL_FIELD (name))
 	    && ! nextb->text->inhibit_shrinking)
 	  {
 	    /* If a buffer's gap size is more than 10% of the buffer
@@ -5009,9 +4969,11 @@ returns nil, because real GC can't be done.  */)
       for (i = 0; i < tail->nvars; i++)
 	mark_object (tail->var[i]);
   }
-#endif
-
   mark_byte_stack ();
+  {
+    struct catchtag *catch;
+    struct handler *handler;
+
   for (catch = catchlist; catch; catch = catch->next)
     {
       mark_object (catch->tag);
@@ -5022,7 +4984,9 @@ returns nil, because real GC can't be done.  */)
       mark_object (handler->handler);
       mark_object (handler->var);
     }
+  }
   mark_backtrace ();
+#endif
 
 #ifdef HAVE_WINDOW_SYSTEM
   mark_fringe_data ();
@@ -5046,10 +5010,10 @@ returns nil, because real GC can't be done.  */)
 	   turned off in that buffer.  Calling truncate_undo_list on
 	   Qt tends to return NULL, which effectively turns undo back on.
 	   So don't call truncate_undo_list if undo_list is Qt.  */
-	if (! EQ (nextb->undo_list, Qt))
+	if (! EQ (nextb->BUFFER_INTERNAL_FIELD (undo_list), Qt))
 	  {
 	    Lisp_Object tail, prev;
-	    tail = nextb->undo_list;
+	    tail = nextb->BUFFER_INTERNAL_FIELD (undo_list);
 	    prev = Qnil;
 	    while (CONSP (tail))
 	      {
@@ -5058,7 +5022,7 @@ returns nil, because real GC can't be done.  */)
 		    && !XMARKER (XCAR (XCAR (tail)))->gcmarkbit)
 		  {
 		    if (NILP (prev))
-		      nextb->undo_list = tail = XCDR (tail);
+		      nextb->BUFFER_INTERNAL_FIELD (undo_list) = tail = XCDR (tail);
 		    else
 		      {
 			tail = XCDR (tail);
@@ -5074,7 +5038,7 @@ returns nil, because real GC can't be done.  */)
 	  }
 	/* Now that we have stripped the elements that need not be in the
 	   undo_list any more, we can finally mark the list.  */
-	mark_object (nextb->undo_list);
+	mark_object (nextb->BUFFER_INTERNAL_FIELD (undo_list));
 
 	nextb = nextb->next;
       }
@@ -5632,7 +5596,7 @@ mark_buffer (Lisp_Object buf)
 
   /* buffer-local Lisp variables start at `undo_list',
      tho only the ones from `name' on are GC'd normally.  */
-  for (ptr = &buffer->name;
+  for (ptr = &buffer->BUFFER_INTERNAL_FIELD (name);
        (char *)ptr < (char *)buffer + sizeof (struct buffer);
        ptr++)
     mark_object (*ptr);
@@ -6211,7 +6175,7 @@ init_alloc (void)
 void
 syms_of_alloc (void)
 {
-  DEFVAR_INT ("gc-cons-threshold", &gc_cons_threshold,
+  DEFVAR_INT ("gc-cons-threshold", gc_cons_threshold,
 	      doc: /* *Number of bytes of consing between garbage collections.
 Garbage collection can happen automatically once this many bytes have been
 allocated since the last garbage collection.  All data types count.
@@ -6222,57 +6186,57 @@ By binding this temporarily to a large number, you can effectively
 prevent garbage collection during a part of the program.
 See also `gc-cons-percentage'.  */);
 
-  DEFVAR_LISP ("gc-cons-percentage", &Vgc_cons_percentage,
+  DEFVAR_LISP ("gc-cons-percentage", Vgc_cons_percentage,
 	       doc: /* *Portion of the heap used for allocation.
 Garbage collection can happen automatically once this portion of the heap
 has been allocated since the last garbage collection.
 If this portion is smaller than `gc-cons-threshold', this is ignored.  */);
   Vgc_cons_percentage = make_float (0.1);
 
-  DEFVAR_INT ("pure-bytes-used", &pure_bytes_used,
+  DEFVAR_INT ("pure-bytes-used", pure_bytes_used,
 	      doc: /* Number of bytes of sharable Lisp data allocated so far.  */);
 
-  DEFVAR_INT ("cons-cells-consed", &cons_cells_consed,
+  DEFVAR_INT ("cons-cells-consed", cons_cells_consed,
 	      doc: /* Number of cons cells that have been consed so far.  */);
 
-  DEFVAR_INT ("floats-consed", &floats_consed,
+  DEFVAR_INT ("floats-consed", floats_consed,
 	      doc: /* Number of floats that have been consed so far.  */);
 
-  DEFVAR_INT ("vector-cells-consed", &vector_cells_consed,
+  DEFVAR_INT ("vector-cells-consed", vector_cells_consed,
 	      doc: /* Number of vector cells that have been consed so far.  */);
 
-  DEFVAR_INT ("symbols-consed", &symbols_consed,
+  DEFVAR_INT ("symbols-consed", symbols_consed,
 	      doc: /* Number of symbols that have been consed so far.  */);
 
-  DEFVAR_INT ("string-chars-consed", &string_chars_consed,
+  DEFVAR_INT ("string-chars-consed", string_chars_consed,
 	      doc: /* Number of string characters that have been consed so far.  */);
 
-  DEFVAR_INT ("misc-objects-consed", &misc_objects_consed,
+  DEFVAR_INT ("misc-objects-consed", misc_objects_consed,
 	      doc: /* Number of miscellaneous objects that have been consed so far.  */);
 
-  DEFVAR_INT ("intervals-consed", &intervals_consed,
+  DEFVAR_INT ("intervals-consed", intervals_consed,
 	      doc: /* Number of intervals that have been consed so far.  */);
 
-  DEFVAR_INT ("strings-consed", &strings_consed,
+  DEFVAR_INT ("strings-consed", strings_consed,
 	      doc: /* Number of strings that have been consed so far.  */);
 
-  DEFVAR_LISP ("purify-flag", &Vpurify_flag,
+  DEFVAR_LISP ("purify-flag", Vpurify_flag,
 	       doc: /* Non-nil means loading Lisp code in order to dump an executable.
 This means that certain objects should be allocated in shared (pure) space.
 It can also be set to a hash-table, in which case this table is used to
 do hash-consing of the objects allocated to pure space.  */);
 
-  DEFVAR_BOOL ("garbage-collection-messages", &garbage_collection_messages,
+  DEFVAR_BOOL ("garbage-collection-messages", garbage_collection_messages,
 	       doc: /* Non-nil means display messages at start and end of garbage collection.  */);
   garbage_collection_messages = 0;
 
-  DEFVAR_LISP ("post-gc-hook", &Vpost_gc_hook,
+  DEFVAR_LISP ("post-gc-hook", Vpost_gc_hook,
 	       doc: /* Hook run after garbage collection has finished.  */);
   Vpost_gc_hook = Qnil;
   Qpost_gc_hook = intern_c_string ("post-gc-hook");
   staticpro (&Qpost_gc_hook);
 
-  DEFVAR_LISP ("memory-signal-data", &Vmemory_signal_data,
+  DEFVAR_LISP ("memory-signal-data", Vmemory_signal_data,
 	       doc: /* Precomputed `signal' argument for memory-full error.  */);
   /* We build this in advance because if we wait until we need it, we might
      not be able to allocate the memory to hold it.  */
@@ -6280,7 +6244,7 @@ do hash-consing of the objects allocated to pure space.  */);
     = pure_cons (Qerror,
 		 pure_cons (make_pure_c_string ("Memory exhausted--use M-x save-some-buffers then exit and restart Emacs"), Qnil));
 
-  DEFVAR_LISP ("memory-full", &Vmemory_full,
+  DEFVAR_LISP ("memory-full", Vmemory_full,
 	       doc: /* Non-nil means Emacs cannot get much more Lisp memory.  */);
   Vmemory_full = Qnil;
 
@@ -6290,10 +6254,10 @@ do hash-consing of the objects allocated to pure space.  */);
   staticpro (&Qchar_table_extra_slots);
   Qchar_table_extra_slots = intern_c_string ("char-table-extra-slots");
 
-  DEFVAR_LISP ("gc-elapsed", &Vgc_elapsed,
+  DEFVAR_LISP ("gc-elapsed", Vgc_elapsed,
 	       doc: /* Accumulated time elapsed in garbage collections.
 The time is in seconds as a floating point value.  */);
-  DEFVAR_INT ("gcs-done", &gcs_done,
+  DEFVAR_INT ("gcs-done", gcs_done,
 	      doc: /* Accumulated number of garbage collections done.  */);
 
   defsubr (&Scons);
@@ -6315,6 +6279,3 @@ The time is in seconds as a floating point value.  */);
   defsubr (&Sgc_status);
 #endif
 }
-
-/* arch-tag: 6695ca10-e3c5-4c2c-8bc3-ed26a7dda857
-   (do not change this comment) */

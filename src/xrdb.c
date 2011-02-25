@@ -1,6 +1,5 @@
 /* Deal with the X Resource Manager.
-   Copyright (C) 1990, 1993, 1994, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1990, 1993-1994, 2000-2011 Free Software Foundation, Inc.
 
 Author: Joseph Arceneaux
 Created: 4/90
@@ -22,10 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
-
 #include <errno.h>
 #include <epaths.h>
 
@@ -550,12 +546,14 @@ x_load_resources (Display *display, const char *xrm_string,
 
 #else /* not USE_MOTIF */
 
-  sprintf (line, "Emacs.dialog*.font: %s", helv);
-  XrmPutLineResource (&rdb, line);
   sprintf (line, "Emacs.dialog*.background: grey75");
+  XrmPutLineResource (&rdb, line);
+#if !defined (HAVE_XFT) || !defined (USE_LUCID)
+  sprintf (line, "Emacs.dialog*.font: %s", helv);
   XrmPutLineResource (&rdb, line);
   sprintf (line, "*XlwMenu*font: %s", helv);
   XrmPutLineResource (&rdb, line);
+#endif
   sprintf (line, "*XlwMenu*background: grey75");
   XrmPutLineResource (&rdb, line);
   sprintf (line, "Emacs*verticalScrollBar.background: grey75");
@@ -767,5 +765,3 @@ main (argc, argv)
 }
 #endif /* TESTRM */
 
-/* arch-tag: 37e6fbab-ed05-4363-9e76-6c4109ed511f
-   (do not change this comment) */

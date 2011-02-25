@@ -1,6 +1,6 @@
 ;;; vc-mtn.el --- VC backend for Monotone
 
-;; Copyright (C) 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: vc
@@ -341,5 +341,4 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 
 (provide 'vc-mtn)
 
-;; arch-tag: 2b89ffbc-cbb8-405a-9080-2eafd4becb70
 ;;; vc-mtn.el ends here

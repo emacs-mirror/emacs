@@ -266,5 +266,3 @@ char *XMenuError(void);
 #endif
 /* Don't add after this point. */
 
-/* arch-tag: 7e57b5ac-9355-4057-9385-afbe6912d60f
-   (do not change this comment) */

@@ -2,8 +2,7 @@
 # Configuration script for src/Makefile under DJGPP v2.x
 # ----------------------------------------------------------------------
 #
-# Copyright (C) 1996, 1997, 1999, 2000, 2001, 2002, 2003, 2004,
-#   2005, 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+# Copyright (C) 1996-1997, 1999-2011  Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -36,7 +35,7 @@ s/\.h\.in/.h-in/
 /^LIBES *=/,/^ *$/ {
   s/@[^@\n]*@//g
 }
-/^LIBOBJS *=/s/@[^@\n]*@/getloadavg.o/
+/^LIBOBJS *=/s/@[^@\n]*@//
 /^C_SWITCH_MACHINE *=/s/@C_SWITCH_MACHINE@//
 /^C_SWITCH_SYSTEM *=/s/@C_SWITCH_SYSTEM@//
 /^C_SWITCH_X_SYSTEM *=/s/@C_SWITCH_X_SYSTEM@//
@@ -99,6 +98,7 @@ s/\.h\.in/.h-in/
 /^ns_appbindir *=/s/@ns_appbindir@//
 /^ns_appsrc *=/s/@ns_appsrc@//
 /^NS_OBJ *=/s/@NS_OBJ@//
+/^NS_OBJC_OBJ *=/s/@NS_OBJC_OBJ@//
 /^NS_SUPPORT *=/s/@NS_SUPPORT@//
 /^GNU_OBJC_CFLAGS*=/s/@GNU_OBJC_CFLAGS@//
 /^LIBRESOLV *=/s/@LIBRESOLV@//
@@ -131,7 +131,8 @@ s/\.h\.in/.h-in/
 /^M_FILE *=/s!@M_FILE@!$(srcdir)/m/intel386.h!
 /^S_FILE *=/s!@S_FILE@!$(srcdir)/s/msdos.h!
 /^@SET_MAKE@$/s/@SET_MAKE@//
-/^.\$(libsrc)\/make-docfile.*>/s!make-docfile!make-docfile -o ../etc/DOC!
+/^.\$(libsrc)\/make-docfile.*>.*\/DOC/s!make-docfile!make-docfile -o ../etc/DOC!
+/^.\$(libsrc)\/make-docfile.*>.*gl-tmp/s!make-docfile!make-docfile -o gl-tmp!
 /^.\$(libsrc)\/make-doc/s!>.*$!!
 /^[ 	]*$/d
 /^	if test -f/,/^	fi$/c\
@@ -146,6 +147,13 @@ s/\.h\.in/.h-in/
 	stubedit emacs.exe minstack=2048k
 s/ || exit 1\; \\$//
 s/ || true\; \\$//
+s/ @true *$/ @rem/
+s/^	[^ 	]*move-if-change /	update /
+/^	echo[ 	][ 	]*timestamp/s/echo /djecho /
+/^	.*djecho timestamp/a\
+	@rm -f gl-tmp
+/^	cd \$(lib) && \$(MAKE)/c\
+	$(MAKE) $(MFLAGS) -C $(lib) libgnu.a
 /^RUN_TEMACS *=/s|`/bin/pwd`|.|
 /^	 *@\$(MKDEPDIR) *$/d
 /^	mv \.\/\.gdbinit/d
@@ -177,5 +185,11 @@ s/echo.*buildobj.lst/dj&/
 /^	@\{0,1\}cd ..\/lisp;.*[^\]$/s|$|\; cd ../src|
 /^	 *THEFILE=/s|$|\; cd ../src|
 /^	echo.* buildobj.h/s|echo |djecho |
-
-# arch-tag: c7e3aacb-4162-460e-99f9-4252bca68d2c
+# Make the GCC command line fit one screen line
+/^[ 	][ 	]*\$(C_SWITCH_X_SYSTEM)/d
+/^[ 	][ 	]*\$(GCONF_CFLAGS)/d
+/^[ 	][ 	]*\$(LIBGNUTLS_CFLAGS)/d
+s/\$(LIBOTF_CFLAGS) \$(M17N_FLT_CFLAGS) \$(DEPFLAGS) //
+s/ \$(C_SWITCH_X_SITE)//
+s/ \$(DBUS_CFLAGS)//
+s| -I\$(srcdir)/../lib||

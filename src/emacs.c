@@ -1,7 +1,6 @@
 /* Fully extensible Emacs, running on Unix, intended for GNU.
 
-Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 1998, 1999,
-  2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+Copyright (C) 1985-1987, 1993-1995, 1997-1999, 2001-2011
   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -28,10 +27,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/types.h>
 #include <sys/file.h>
 #include <setjmp.h>
-
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 #ifdef WINDOWSNT
 #include <fcntl.h>
@@ -92,9 +88,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #endif
 
-/* If you change the following line, remember to update
-   msdos/mainmake.v2 which gleans the Emacs version from it!  */
-static const char emacs_version[] = "24.0.50";
+static const char emacs_version[] = VERSION;
 static const char emacs_copyright[] = "Copyright (C) 2011 Free Software Foundation, Inc.";
 
 /* Make these values available in GDB, which doesn't see macros.  */
@@ -122,31 +116,8 @@ EMACS_INT gdb_array_mark_flag EXTERNALLY_VISIBLE = ARRAY_MARK_FLAG;
    least one symbol with that type, and then xbacktrace could fail.  */
 enum pvec_type gdb_pvec_type EXTERNALLY_VISIBLE = PVEC_TYPE_MASK;
 
-/* Command line args from shell, as list of strings.  */
-Lisp_Object Vcommand_line_args;
-
-/* The name under which Emacs was invoked, with any leading directory
-   names discarded.  */
-Lisp_Object Vinvocation_name;
-
-/* The directory name from which Emacs was invoked.  */
-Lisp_Object Vinvocation_directory;
-
-/* The directory name in which to find subdirs such as lisp and etc.
-   nil means get them only from PATH_LOADSEARCH.  */
-Lisp_Object Vinstallation_directory;
-
-/* The values of `current-time' before and after Emacs initialization.  */
-Lisp_Object Vbefore_init_time, Vafter_init_time;
-
-/* Hook run by `kill-emacs' before it does really anything.  */
-Lisp_Object Vkill_emacs_hook;
-
 /* Empty lisp strings.  To avoid having to build any others.  */
 Lisp_Object empty_unibyte_string, empty_multibyte_string;
-
-/* Search path separator.  */
-Lisp_Object Vpath_separator;
 
 /* Set nonzero after Emacs has started up the first time.
   Prevents reinitialization of the Lisp world and keymaps
@@ -166,32 +137,9 @@ extern int malloc_set_state (void*);
 int malloc_using_checking;
 #endif
 
-/* Variable whose value is symbol giving operating system type.  */
-Lisp_Object Vsystem_type;
-
-/* Variable whose value is string giving configuration built for.  */
-Lisp_Object Vsystem_configuration;
-
-/* Variable whose value is string giving configuration options,
-   for use when reporting bugs.  */
-Lisp_Object Vsystem_configuration_options;
-
 Lisp_Object Qfile_name_handler_alist;
 
 Lisp_Object Qrisky_local_variable;
-
-/* Current and previous system locales for messages and time.  */
-Lisp_Object Vsystem_messages_locale;
-Lisp_Object Vprevious_system_messages_locale;
-Lisp_Object Vsystem_time_locale;
-Lisp_Object Vprevious_system_time_locale;
-
-/* Copyright and version info.  The version number may be updated by
-   Lisp code.  */
-Lisp_Object Vemacs_copyright, Vemacs_version;
-
-/* Alist of external libraries and files implementing them.  */
-Lisp_Object Vdynamic_library_alist;
 
 /* If non-zero, emacs should not attempt to use a window-specific code,
    but instead should use the virtual terminal under which it was started.  */
@@ -223,15 +171,6 @@ static unsigned long heap_bss_diff;
 /* Nonzero means running Emacs without interactive terminal.  */
 
 int noninteractive;
-
-/* Value of Lisp variable `noninteractive'.
-   Normally same as C variable `noninteractive'
-   but nothing terrible happens if user sets this one.  */
-
-int noninteractive1;
-
-/* Nonzero means Emacs was run in --quick mode.  */
-int inhibit_x_resources;
 
 /* Nonzero means remove site-lisp directories from load-path.  */
 int no_site_lisp;
@@ -814,8 +753,8 @@ main (int argc, char **argv)
 	    }
 	  else
 	    {
-	      version = SDATA (tem);
-	      copyright = SDATA (tem2);
+	      version = SSDATA (tem);
+	      copyright = SSDATA (tem2);
 	    }
 	}
       else
@@ -970,13 +909,12 @@ main (int argc, char **argv)
 	  emacs_close (0);
 	  emacs_close (1);
 	  result = emacs_open (term, O_RDWR, 0);
-	  if (result < 0)
+	  if (result < 0 || dup (0) < 0)
 	    {
 	      char *errstring = strerror (errno);
 	      fprintf (stderr, "%s: %s: %s\n", argv[0], term, errstring);
 	      exit (1);
 	    }
-	  dup (0);
 	  if (! isatty (0))
 	    {
 	      fprintf (stderr, "%s: %s: not a tty\n", argv[0], term);
@@ -1358,6 +1296,8 @@ main (int argc, char **argv)
 #ifdef NS_IMPL_COCOA
       if (skip_args < argc)
         {
+	  /* FIXME: Do the right thing if getenv returns NULL, or if
+	     chdir fails.  */
           if (!strncmp(argv[skip_args], "-psn", 4))
             {
               skip_args += 1;
@@ -2048,7 +1988,7 @@ all of which are called before Emacs is actually killed.  */)
      kill it because we are exiting Emacs deliberately (not crashing).
      Do it after shut_down_emacs, which does an auto-save.  */
   if (STRINGP (Vauto_save_list_file_name))
-    unlink (SDATA (Vauto_save_list_file_name));
+    unlink (SSDATA (Vauto_save_list_file_name));
 
   exit (INTEGERP (arg) ? XINT (arg) : EXIT_SUCCESS);
 }
@@ -2229,7 +2169,7 @@ You must run Emacs in batch mode in order to dump it.  */)
 #ifdef USE_MMAP_FOR_BUFFERS
   mmap_set_vars (0);
 #endif
-  unexec (SDATA (filename), !NILP (symfile) ? SDATA (symfile) : 0);
+  unexec (SSDATA (filename), !NILP (symfile) ? SSDATA (symfile) : 0);
 #ifdef USE_MMAP_FOR_BUFFERS
   mmap_set_vars (1);
 #endif
@@ -2263,7 +2203,7 @@ synchronize_locale (int category, Lisp_Object *plocale, Lisp_Object desired_loca
     {
       *plocale = desired_locale;
       setlocale (category, (STRINGP (desired_locale)
-			    ? (char *) SDATA (desired_locale)
+			    ? SSDATA (desired_locale)
 			    : ""));
     }
 }
@@ -2423,11 +2363,11 @@ syms_of_emacs (void)
   defsubr (&Sdaemonp);
   defsubr (&Sdaemon_initialized);
 
-  DEFVAR_LISP ("command-line-args", &Vcommand_line_args,
+  DEFVAR_LISP ("command-line-args", Vcommand_line_args,
 	       doc: /* Args passed by shell to Emacs, as a list of strings.
 Many arguments are deleted from the list as they are processed.  */);
 
-  DEFVAR_LISP ("system-type", &Vsystem_type,
+  DEFVAR_LISP ("system-type", Vsystem_type,
 	       doc: /* The value is a symbol indicating the type of operating system you are using.
 Special values:
   `gnu'          compiled for a GNU Hurd system.
@@ -2442,20 +2382,20 @@ hpux, irix, usg-unix-v) indicates some sort of Unix system.  */);
   Vsystem_type = intern_c_string (SYSTEM_TYPE);
   /* Above values are from SYSTEM_TYPE in src/s/*.h.  */
 
-  DEFVAR_LISP ("system-configuration", &Vsystem_configuration,
+  DEFVAR_LISP ("system-configuration", Vsystem_configuration,
 	       doc: /* Value is string indicating configuration Emacs was built for.
 On MS-Windows, the value reflects the OS flavor and version on which
 Emacs is running.  */);
   Vsystem_configuration = build_string (EMACS_CONFIGURATION);
 
-  DEFVAR_LISP ("system-configuration-options", &Vsystem_configuration_options,
+  DEFVAR_LISP ("system-configuration-options", Vsystem_configuration_options,
 	       doc: /* String containing the configuration options Emacs was built with.  */);
   Vsystem_configuration_options = build_string (EMACS_CONFIG_OPTIONS);
 
-  DEFVAR_BOOL ("noninteractive", &noninteractive1,
+  DEFVAR_BOOL ("noninteractive", noninteractive1,
 	       doc: /* Non-nil means Emacs is running without interactive terminal.  */);
 
-  DEFVAR_LISP ("kill-emacs-hook", &Vkill_emacs_hook,
+  DEFVAR_LISP ("kill-emacs-hook", Vkill_emacs_hook,
 	       doc: /* Hook to be run when `kill-emacs' is called.
 Since `kill-emacs' may be invoked when the terminal is disconnected (or
 in other similar situations), functions placed on this hook should not
@@ -2466,7 +2406,7 @@ Before Emacs 24.1, the hook was not run in batch mode, i.e., if
 `noninteractive' was non-nil.  */);
   Vkill_emacs_hook = Qnil;
 
-  DEFVAR_LISP ("path-separator", &Vpath_separator,
+  DEFVAR_LISP ("path-separator", Vpath_separator,
 	       doc: /* String containing the character that separates directories in
 search paths, such as PATH and other similar environment variables.  */);
   {
@@ -2474,60 +2414,60 @@ search paths, such as PATH and other similar environment variables.  */);
     Vpath_separator = make_string (&c, 1);
   }
 
-  DEFVAR_LISP ("invocation-name", &Vinvocation_name,
+  DEFVAR_LISP ("invocation-name", Vinvocation_name,
 	       doc: /* The program name that was used to run Emacs.
 Any directory names are omitted.  */);
 
-  DEFVAR_LISP ("invocation-directory", &Vinvocation_directory,
+  DEFVAR_LISP ("invocation-directory", Vinvocation_directory,
 	       doc: /* The directory in which the Emacs executable was found, to run it.
 The value is nil if that directory's name is not known.  */);
 
-  DEFVAR_LISP ("installation-directory", &Vinstallation_directory,
+  DEFVAR_LISP ("installation-directory", Vinstallation_directory,
 	       doc: /* A directory within which to look for the `lib-src' and `etc' directories.
 This is non-nil when we can't find those directories in their standard
 installed locations, but we can find them near where the Emacs executable
 was found.  */);
   Vinstallation_directory = Qnil;
 
-  DEFVAR_LISP ("system-messages-locale", &Vsystem_messages_locale,
+  DEFVAR_LISP ("system-messages-locale", Vsystem_messages_locale,
 	       doc: /* System locale for messages.  */);
   Vsystem_messages_locale = Qnil;
 
   DEFVAR_LISP ("previous-system-messages-locale",
-	       &Vprevious_system_messages_locale,
+	       Vprevious_system_messages_locale,
 	       doc: /* Most recently used system locale for messages.  */);
   Vprevious_system_messages_locale = Qnil;
 
-  DEFVAR_LISP ("system-time-locale", &Vsystem_time_locale,
+  DEFVAR_LISP ("system-time-locale", Vsystem_time_locale,
 	       doc: /* System locale for time.  */);
   Vsystem_time_locale = Qnil;
 
-  DEFVAR_LISP ("previous-system-time-locale", &Vprevious_system_time_locale,
+  DEFVAR_LISP ("previous-system-time-locale", Vprevious_system_time_locale,
 	       doc: /* Most recently used system locale for time.  */);
   Vprevious_system_time_locale = Qnil;
 
-  DEFVAR_LISP ("before-init-time", &Vbefore_init_time,
+  DEFVAR_LISP ("before-init-time", Vbefore_init_time,
 	       doc: /* Value of `current-time' before Emacs begins initialization.  */);
   Vbefore_init_time = Qnil;
 
-  DEFVAR_LISP ("after-init-time", &Vafter_init_time,
+  DEFVAR_LISP ("after-init-time", Vafter_init_time,
 	       doc: /* Value of `current-time' after loading the init files.
 This is nil during initialization.  */);
   Vafter_init_time = Qnil;
 
-  DEFVAR_BOOL ("inhibit-x-resources", &inhibit_x_resources,
+  DEFVAR_BOOL ("inhibit-x-resources", inhibit_x_resources,
 	       doc: /* If non-nil, X resources, Windows Registry settings, and NS defaults are not used.  */);
   inhibit_x_resources = 0;
 
-  DEFVAR_LISP ("emacs-copyright", &Vemacs_copyright,
+  DEFVAR_LISP ("emacs-copyright", Vemacs_copyright,
 	       doc: /* Short copyright string for this version of Emacs.  */);
   Vemacs_copyright = build_string (emacs_copyright);
 
-  DEFVAR_LISP ("emacs-version", &Vemacs_version,
+  DEFVAR_LISP ("emacs-version", Vemacs_version,
 	       doc: /* Version numbers of this version of Emacs.  */);
   Vemacs_version = build_string (emacs_version);
 
-  DEFVAR_LISP ("dynamic-library-alist", &Vdynamic_library_alist,
+  DEFVAR_LISP ("dynamic-library-alist", Vdynamic_library_alist,
     doc: /* Alist of dynamic libraries vs external files implementing them.
 Each element is a list (LIBRARY FILE...), where the car is a symbol
 representing a supported external library, and the rest are strings giving
@@ -2548,4 +2488,3 @@ libraries; only those already known by Emacs will be loaded.  */);
   /* Make sure IS_DAEMON starts up as false.  */
   daemon_pipe[1] = 0;
 }
-

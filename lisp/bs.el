@@ -1,7 +1,6 @@
 ;;; bs.el --- menu for selecting and displaying buffers
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011  Free Software Foundation, Inc.
 ;; Author: Olaf Sylvester <Olaf.Sylvester@netsurf.de>
 ;; Maintainer: Olaf Sylvester <Olaf.Sylvester@netsurf.de>
 ;; Keywords: convenience
@@ -43,14 +42,10 @@
 
 ;;; Quick Installation und Customization:
 
-;; Use
+;; To display the bs menu, do
 ;;   M-x bs-show
-;; for buffer selection or optional bind a key to main function `bs-show'
-;;   (global-set-key "\C-x\C-b" 'bs-show)    ;; or another key
-;;
-;; For customization use
-;; M-x bs-customize
-
+;; To customize its behavior, do
+;;   M-x bs-customize
 
 ;;; More Commentary:
 
@@ -1486,5 +1481,4 @@ name of buffer configuration."
 ;; Now provide feature bs
 (provide 'bs)
 
-;; arch-tag: c0d9ab34-bf06-4368-ae9d-af88878e6802
 ;;; bs.el ends here

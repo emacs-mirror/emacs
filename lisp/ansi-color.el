@@ -1,7 +1,6 @@
 ;;; ansi-color.el --- translate ANSI escape sequences into faces
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Alex Schroeder <alex@gnu.org>
@@ -594,5 +593,4 @@ ESCAPE-SEQ is a SGR control sequences such as \\033[34m.  The parameter
 
 (provide 'ansi-color)
 
-;; arch-tag: 00726118-9432-44fd-b72d-d2af7591c99c
 ;;; ansi-color.el ends here

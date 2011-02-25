@@ -1,5 +1,5 @@
 /* Font backend for the Microsoft W32 API.
-   Copyright (C) 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2007-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -99,9 +99,6 @@ static Lisp_Object Qw32_charset_baltic, Qw32_charset_russian;
 static Lisp_Object Qw32_charset_arabic, Qw32_charset_greek;
 static Lisp_Object Qw32_charset_hebrew, Qw32_charset_vietnamese;
 static Lisp_Object Qw32_charset_thai, Qw32_charset_johab, Qw32_charset_mac;
-
-/* Associative list linking character set strings to Windows codepages. */
-static Lisp_Object Vw32_charset_info_alist;
 
 /* Font spacing symbols - defined in font.c.  */
 extern Lisp_Object Qc, Qp, Qm;
@@ -2535,7 +2532,7 @@ syms_of_w32font (void)
 
   /* W32 font encodings.  */
   DEFVAR_LISP ("w32-charset-info-alist",
-               &Vw32_charset_info_alist,
+               Vw32_charset_info_alist,
                doc: /* Alist linking Emacs character sets to Windows fonts and codepages.
 Each entry should be of the form:
 
@@ -2584,5 +2581,3 @@ versions of Windows) characters.  */);
   register_font_driver (&w32font_driver, NULL);
 }
 
-/* arch-tag: 65b8a3cd-46aa-4c0d-a1f3-99e75b9c07ee
-   (do not change this comment) */

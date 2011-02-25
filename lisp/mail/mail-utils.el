@@ -1,7 +1,6 @@
 ;;; mail-utils.el --- utility functions used both by rmail and rnews
 
-;; Copyright (C) 1985, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2001-2011  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail, news
@@ -34,6 +33,17 @@
 Otherwise, (the default) use a smaller, somewhat faster, and
 often correct parser."
   :type 'boolean
+  :group 'mail)
+
+;;;###autoload
+(defcustom mail-dont-reply-to-names nil
+  "Regexp specifying addresses to prune from a reply message.
+If this is nil, it is set the first time you compose a reply, to
+a value which excludes your own email address.
+
+Matching addresses are excluded from the CC field in replies, and
+also the To field, unless this would leave an empty To field."
+  :type '(choice regexp (const :tag "Your Name" nil))
   :group 'mail)
 
 ;; Returns t if file FILE is an Rmail file.
@@ -214,36 +224,31 @@ Return a modified address list."
                                        nil 'literal address 2)))
         address))))
 
-;; The following piece of ugliness is legacy code.  The name was an
-;; unfortunate choice --- a flagrant violation of the Emacs Lisp
-;; coding conventions.  `mail-dont-reply-to' would have been
-;; infinitely better.  Also, `rmail-dont-reply-to-names' might have
-;; been better named `mail-dont-reply-to-names' and sourced from this
-;; file instead of in rmail.el.  Yuck.  -pmr
-(defun rmail-dont-reply-to (destinations)
+(defun mail-dont-reply-to (destinations)
   "Prune addresses from DESTINATIONS, a list of recipient addresses.
-All addresses matching `rmail-dont-reply-to-names' are removed from
-the comma-separated list.  The pruned list is returned."
+Remove all addresses matching `mail-dont-reply-to-names' from the
+comma-separated list, and return the pruned list."
   ;; FIXME this (setting a user option the first time a command is used)
   ;; is somewhat strange.  Normally one would never set the option,
   ;; but instead fall back to the default so long as it was nil.
   ;; Or just set the default directly in the defcustom.
-  (if (null rmail-dont-reply-to-names)
-      (setq rmail-dont-reply-to-names
-	    (concat (if rmail-default-dont-reply-to-names
-			(concat rmail-default-dont-reply-to-names "\\|")
-                      "")
-                    (if (and user-mail-address
-                             (not (equal user-mail-address user-login-name)))
-			;; Anchor the login name and email address so
-			;; that we don't match substrings: if the
-			;; login name is "foo", we shouldn't match
-			;; "barfoo@baz.com".
-                        (concat "\\`"
-				(regexp-quote user-mail-address)
-				"\\'\\|")
-                      "")
-                    (concat "\\`" (regexp-quote user-login-name) "@"))))
+  (if (null mail-dont-reply-to-names)
+      (setq mail-dont-reply-to-names
+	    (concat
+	     ;; `rmail-default-dont-reply-to-names' is obsolete.
+	     (if rmail-default-dont-reply-to-names
+		 (concat rmail-default-dont-reply-to-names "\\|")
+	       "")
+	     (if (and user-mail-address
+		      (not (equal user-mail-address user-login-name)))
+		 ;; Anchor the login name and email address so that we
+		 ;; don't match substrings: if the login name is
+		 ;; "foo", we shouldn't match "barfoo@baz.com".
+		 (concat "\\`"
+			 (regexp-quote user-mail-address)
+			 "\\'\\|")
+	       "")
+	     (concat "\\`" (regexp-quote user-login-name) "@"))))
   ;; Split up DESTINATIONS and match each element separately.
   (let ((start-pos 0) (cur-pos 0)
 	(case-fold-search t))
@@ -263,7 +268,7 @@ the comma-separated list.  The pruned list is returned."
 	      (setq cur-pos start-pos)))
 	(let* ((address (substring destinations start-pos cur-pos))
 	       (naked-address (mail-strip-quoted-names address)))
-	  (if (string-match rmail-dont-reply-to-names naked-address)
+	  (if (string-match mail-dont-reply-to-names naked-address)
 	      (setq destinations (concat (substring destinations 0 start-pos)
 				    (and cur-pos (substring destinations
 							    (1+ cur-pos))))
@@ -278,6 +283,9 @@ the comma-separated list.  The pruned list is returned."
   (if (string-match "\\(\\s \\|,\\)*" destinations)
       (substring destinations (match-end 0))
     destinations))
+
+;; Legacy name
+(define-obsolete-function-alias 'rmail-dont-reply-to 'mail-dont-reply-to "24.1")
 
 
 ;;;###autoload

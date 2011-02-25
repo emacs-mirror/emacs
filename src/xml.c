@@ -1,5 +1,5 @@
 /* Interface to libxml2.
-   Copyright (C) 2010 Free Software Foundation, Inc.
+   Copyright (C) 2010-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -32,7 +32,7 @@ Lisp_Object make_dom (xmlNode *node)
 {
   if (node->type == XML_ELEMENT_NODE)
     {
-      Lisp_Object result = Fcons (intern (node->name), Qnil);
+      Lisp_Object result = Fcons (intern ((char *) node->name), Qnil);
       xmlNode *child;
       xmlAttr *property;
       Lisp_Object plist = Qnil;
@@ -44,8 +44,9 @@ Lisp_Object make_dom (xmlNode *node)
 	  if (property->children &&
 	      property->children->content)
 	    {
-	      plist = Fcons (Fcons (intern (property->name),
-				    build_string (property->children->content)),
+	      char *content = (char *) property->children->content;
+	      plist = Fcons (Fcons (intern ((char *) property->name),
+				    build_string (content)),
 			     plist);
 	    }
 	  property = property->next;
@@ -65,7 +66,7 @@ Lisp_Object make_dom (xmlNode *node)
   else if (node->type == XML_TEXT_NODE || node->type == XML_CDATA_SECTION_NODE)
     {
       if (node->content)
-	return build_string (node->content);
+	return build_string ((char *) node->content);
       else
 	return Qnil;
     }
@@ -96,19 +97,19 @@ parse_region (Lisp_Object start, Lisp_Object end, Lisp_Object base_url, int html
   if (! NILP (base_url))
     {
       CHECK_STRING (base_url);
-      burl = SDATA (base_url);
+      burl = SSDATA (base_url);
     }
 
   bytes = CHAR_TO_BYTE (iend) - CHAR_TO_BYTE (istart);
 
   if (htmlp)
-    doc = htmlReadMemory (BYTE_POS_ADDR (CHAR_TO_BYTE (istart)),
+    doc = htmlReadMemory ((char *) BYTE_POS_ADDR (CHAR_TO_BYTE (istart)),
 			  bytes, burl, "utf-8",
 			  HTML_PARSE_RECOVER|HTML_PARSE_NONET|
 			  HTML_PARSE_NOWARNING|HTML_PARSE_NOERROR|
 			  HTML_PARSE_NOBLANKS);
   else
-    doc = xmlReadMemory (BYTE_POS_ADDR (CHAR_TO_BYTE (istart)),
+    doc = xmlReadMemory ((char *) BYTE_POS_ADDR (CHAR_TO_BYTE (istart)),
 			 bytes, burl, "utf-8",
 			 XML_PARSE_NONET|XML_PARSE_NOWARNING|
 			 XML_PARSE_NOERROR);

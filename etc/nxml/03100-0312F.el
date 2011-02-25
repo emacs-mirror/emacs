@@ -41,4 +41,3 @@
     ("BOPOMOFO LETTER GN" #x312C)
     ))
 
-;; arch-tag: 0aeb6bb4-ac93-4014-a836-eb793636a168

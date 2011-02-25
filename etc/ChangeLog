@@ -1,3 +1,58 @@
+2011-02-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* themes/tango-dark-theme.el: Tweak background on low-color
+	terminals.
+
+2011-02-17  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* etc/images/icons/allout-widgets/dark-bg,
+	etc/images/icons/allout-widgets/light-bg,
+	encrypted-locked.{xpm,png}, unlocked-encrypted.{xpm,png}:
+	Reorganize icon directories and files to reconcile against windows
+	short-filename clashes.
+
+2011-02-16  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* etc/images/icons/allout-widgets-dark-bg,
+	etc/images/icons/allout-widgets-light-bg: Icons for new
+	allout-widgets.el.
+
+	* etc/images/icons/README: Include coypright and GPL 3 license for
+	new icons.
+
+2011-02-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Add soap-client.el and soap-inspect.el.
+
+2011-02-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Tramp methods "imap" and "imaps" are discontinued.
+
+2011-02-12  Drew Adams  <drew.adams@oracle.com>
+
+	* themes/light-blue-theme.el: New file.
+
+2011-02-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	format-time-string now supports subsecond time stamp resolution
+	* NEWS: Document this.
+
+2011-01-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Redo spelling of Makefile variables to conform to POSIX.
+	POSIX does not allow "-" in Makefile variable names.
+	Reported by Bruno Haible in
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-01/msg00990.html>.
+	* refcards/Makefile (DIRED_REFCARDS_PDF): Renamed from
+	DIRED-REFCARDS_PDF.
+	(MISC_REFCARDS_PDF): Renamed from MISC-REFCARDS_PDF.
+	(SURVIVAL_CARDS_PDF): Renamed from SURVIVAL-CARDS_PDF.
+	(VIPER_CARDS_PDF): Renamed from VIPER-CARDS_PDF.
+
+2011-01-18  Glenn Morris  <rgm@gnu.org>
+
+	* PROBLEMS: Add note about svn+ssh.  (Bug#7791)
+
 2011-01-14  Glenn Morris  <rgm@gnu.org>
 
 	* refcards/calccard.tex, refcards/cs-dired-ref.tex:
@@ -361,7 +416,7 @@
 	* srecode/doc-default.srt (section-comment, function-comment)
 	(variable-same-line-comment, group-comment-start, group-comment-end):
 	* srecode/doc-java.srt (function-comment, variable-same-line-comment)
-	(group-comment-start, gropu-comment-end):
+	(group-comment-start, group-comment-end):
 	Fix typos in template docstrings.
 
 2010-01-14  Kenichi Handa  <handa@m17n.org>
@@ -5190,9 +5245,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,
-    2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-    Free Software Foundation, Inc.
+  Copyright (C) 1993-1999, 2001-2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

@@ -1,6 +1,6 @@
 /* 16-bit Windows Selection processing for emacs on MS-Windows
-   Copyright (C) 1996, 1997, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+
+Copyright (C) 1996-1997, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -67,13 +67,6 @@ unsigned close_clipboard (void);
 unsigned clipboard_compact (unsigned);
 
 Lisp_Object QCLIPBOARD, QPRIMARY;
-
-/* Coding system for communicating with other Windows programs via the
-   clipboard.  */
-static Lisp_Object Vselection_coding_system;
-
-/* Coding system for the next communicating with other Windows programs.  */
-static Lisp_Object Vnext_selection_coding_system;
 
 /* The segment address and the size of the buffer in low
    memory used to move data between us and WinOldAp module.  */
@@ -692,7 +685,7 @@ syms_of_win16select (void)
   defsubr (&Sw16_get_clipboard_data);
   defsubr (&Sx_selection_exists_p);
 
-  DEFVAR_LISP ("selection-coding-system", &Vselection_coding_system,
+  DEFVAR_LISP ("selection-coding-system", Vselection_coding_system,
 	       doc: /* Coding system for communicating with other programs.
 
 For MS-Windows and MS-DOS:
@@ -724,7 +717,7 @@ to control which data-type to request for receiving text.
 The default value is nil.  */);
   Vselection_coding_system = intern ("iso-latin-1-dos");
 
-  DEFVAR_LISP ("next-selection-coding-system", &Vnext_selection_coding_system,
+  DEFVAR_LISP ("next-selection-coding-system", Vnext_selection_coding_system,
 	       doc: /* Coding system for the next communication with other programs.
 Usually, `selection-coding-system' is used for communicating with
 other programs (X Windows clients or MS Windows programs).  But, if this

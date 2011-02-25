@@ -1,7 +1,6 @@
 ;;; org-clock.el --- The time clocking code for Org-mode
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -2493,7 +2492,6 @@ The details of what will be saved are regulated by the variable
 
 (provide 'org-clock)
 
-;; arch-tag: 7b42c5d4-9b36-48be-97c0-66a869daed4c
 
 ;;; org-clock.el ends here
 

@@ -1,6 +1,6 @@
 /* machine description file for Iris-4D machines.  Use with s/irix*.h.
-   Copyright (C) 1987, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-                 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+
+Copyright (C) 1987, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -24,5 +24,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define DATA_START 0x10000000
 #define DATA_SEG_BITS	0x10000000
 
-/* arch-tag: fff5e139-9ae0-465d-afec-837c41ea0aa6
-   (do not change this comment) */

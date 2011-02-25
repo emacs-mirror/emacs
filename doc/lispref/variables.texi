@@ -1,8 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2000,
-@c   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-2011  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/variables
 @node Variables, Functions, Control Structures, Top
@@ -1409,6 +1407,8 @@ subsequent major mode.  @xref{Hooks}.
 @cindex permanent local variable
 A buffer-local variable is @dfn{permanent} if the variable name (a
 symbol) has a @code{permanent-local} property that is non-@code{nil}.
+Such variables are unaffected by @code{kill-all-local-variables}, and
+their local bindings are therefore not cleared by changing major modes.
 Permanent locals are appropriate for data pertaining to where the file
 came from or how to save it, rather than with how to edit the contents.
 
@@ -1929,7 +1929,3 @@ Attempting to assign them any other value will result in an error:
 (setq window-min-height 5.0)
 @error{} Wrong type argument: integerp, 5.0
 @end example
-
-@ignore
-   arch-tag: 5ff62c44-2b51-47bb-99d4-fea5aeec5d3e
-@end ignore

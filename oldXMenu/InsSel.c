@@ -115,5 +115,3 @@ XMenuInsertSelection(register XMenu *menu, register int p_num, register int s_nu
     return(s_num);
 }
 
-/* arch-tag: 8398626f-81cb-4e13-8ebc-aac1b9237663
-   (do not change this comment) */

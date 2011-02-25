@@ -1,6 +1,6 @@
 ;;; gnus-gravatar.el --- Gnus Gravatar support
 
-;; Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2011 Free Software Foundation, Inc.
 
 ;; Author: Julien Danjou <julien@danjou.info>
 ;; Keywords: news
@@ -80,37 +80,44 @@ If nil, default to `gravatar-size'."
   "Insert GRAVATAR for ADDRESS in HEADER in current article buffer.
 Set image category to CATEGORY."
   (unless (eq gravatar 'error)
-    (gnus-with-article-headers
-      ;; The buffer can be gone at this time
-      (when (buffer-live-p (current-buffer))
-        (gnus-article-goto-header header)
-        (mail-header-narrow-to-field)
-        (let ((real-name (car address))
-              (mail-address (cadr address)))
-          (when (if real-name
-		    (re-search-forward
-		     (concat (gnus-replace-in-string
-			      (regexp-quote real-name) "[\t ]+" "[\t\n ]+")
-			     "\\|"
-			     (regexp-quote mail-address))
-		     nil t)
-		  (search-forward mail-address nil t))
-	    (goto-char (1- (match-beginning 0)))
-            ;; If we're on the " quoting the name, go backward
-            (when (looking-at "[\"<]")
-              (goto-char (1- (point))))
-            ;; Do not do anything if there's already a gravatar. This can
-            ;; happens if the buffer has been regenerated in the mean time, for
-            ;; example we were fetching someaddress, and then we change to
-            ;; another mail with the same someaddress.
-            (unless (memq 'gnus-gravatar (text-properties-at (point)))
-              (let ((point (point)))
-                (unless (featurep 'xemacs)
-                  (setq gravatar (append gravatar gnus-gravatar-properties)))
-                (gnus-put-image gravatar nil category)
-                (put-text-property point (point) 'gnus-gravatar address)
-                (gnus-add-wash-type category)
-                (gnus-add-image category gravatar)))))))))
+    (with-current-buffer gnus-article-buffer
+      (let ((mark (point-marker))
+	    (inhibit-read-only t)
+	    (inhibit-point-motion-hooks t)
+	    (case-fold-search t))
+	(save-restriction
+	  (article-narrow-to-head)
+	  ;; The buffer can be gone at this time
+	  (when (buffer-live-p (current-buffer))
+	    (gnus-article-goto-header header)
+	    (mail-header-narrow-to-field)
+	    (let ((real-name (car address))
+		  (mail-address (cadr address)))
+	      (when (if real-name
+			(re-search-forward
+			 (concat (gnus-replace-in-string
+				  (regexp-quote real-name) "[\t ]+" "[\t\n ]+")
+				 "\\|"
+				 (regexp-quote mail-address))
+			 nil t)
+		      (search-forward mail-address nil t))
+		(goto-char (1- (match-beginning 0)))
+		;; If we're on the " quoting the name, go backward
+		(when (looking-at "[\"<]")
+		  (goto-char (1- (point))))
+		;; Do not do anything if there's already a gravatar. This can
+		;; happens if the buffer has been regenerated in the mean time, for
+		;; example we were fetching someaddress, and then we change to
+		;; another mail with the same someaddress.
+		(unless (memq 'gnus-gravatar (text-properties-at (point)))
+		  (let ((point (point)))
+		    (unless (featurep 'xemacs)
+		      (setq gravatar (append gravatar gnus-gravatar-properties)))
+		    (gnus-put-image gravatar (buffer-substring (point) (1+ point)) category)
+		    (put-text-property point (point) 'gnus-gravatar address)
+		    (gnus-add-wash-type category)
+		    (gnus-add-image category gravatar)))))))
+	(goto-char (marker-position mark))))))
 
 ;;;###autoload
 (defun gnus-treat-from-gravatar (&optional force)

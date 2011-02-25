@@ -1,6 +1,5 @@
 /* Process support for GNU Emacs on the Microsoft W32 API.
-   Copyright (C) 1992, 1995, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-		 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+   Copyright (C) 1992, 1995, 1999-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -68,47 +67,6 @@ extern BOOL WINAPI IsValidLocale (LCID, DWORD);
 	    + ((DWORD)(var) - (section)->VirtualAddress)		\
 	    + (filedata).file_base))
 
-/* Control whether spawnve quotes arguments as necessary to ensure
-   correct parsing by child process.  Because not all uses of spawnve
-   are careful about constructing argv arrays, we make this behavior
-   conditional (off by default). */
-Lisp_Object Vw32_quote_process_args;
-
-/* Control whether create_child causes the process' window to be
-   hidden.  The default is nil. */
-Lisp_Object Vw32_start_process_show_window;
-
-/* Control whether create_child causes the process to inherit Emacs'
-   console window, or be given a new one of its own.  The default is
-   nil, to allow multiple DOS programs to run on Win95.  Having separate
-   consoles also allows Emacs to cleanly terminate process groups.  */
-Lisp_Object Vw32_start_process_share_console;
-
-/* Control whether create_child cause the process to inherit Emacs'
-   error mode setting.  The default is t, to minimize the possibility of
-   subprocesses blocking when accessing unmounted drives.  */
-Lisp_Object Vw32_start_process_inherit_error_mode;
-
-/* Time to sleep before reading from a subprocess output pipe - this
-   avoids the inefficiency of frequently reading small amounts of data.
-   This is primarily necessary for handling DOS processes on Windows 95,
-   but is useful for W32 processes on both Windows 95 and NT as well.  */
-int w32_pipe_read_delay;
-
-/* Control conversion of upper case file names to lower case.
-   nil means no, t means yes. */
-Lisp_Object Vw32_downcase_file_names;
-
-/* Control whether stat() attempts to generate fake but hopefully
-   "accurate" inode values, by hashing the absolute truenames of files.
-   This should detect aliasing between long and short names, but still
-   allows the possibility of hash collisions.  */
-Lisp_Object Vw32_generate_fake_inodes;
-
-/* Control whether stat() attempts to determine file type and link count
-   exactly, at the expense of slower operation.  Since true hard links
-   are supported on NTFS volumes, this is only relevant on NT.  */
-Lisp_Object Vw32_get_true_file_attributes;
 extern Lisp_Object Qlocal;
 
 Lisp_Object Qhigh, Qlow;
@@ -1707,8 +1665,6 @@ extern HANDLE winsock_lib;
 extern BOOL term_winsock (void);
 extern BOOL init_winsock (int load_now);
 
-extern Lisp_Object Vsystem_name;
-
 DEFUN ("w32-has-winsock", Fw32_has_winsock, Sw32_has_winsock, 0, 1, 0,
        doc: /* Test for presence of the Windows socket library `winsock'.
 Returns non-nil if winsock support is present, nil otherwise.
@@ -2284,7 +2240,7 @@ syms_of_ntproc (void)
   defsubr (&Sw32_get_keyboard_layout);
   defsubr (&Sw32_set_keyboard_layout);
 
-  DEFVAR_LISP ("w32-quote-process-args", &Vw32_quote_process_args,
+  DEFVAR_LISP ("w32-quote-process-args", Vw32_quote_process_args,
 	       doc: /* Non-nil enables quoting of process arguments to ensure correct parsing.
 Because Windows does not directly pass argv arrays to child processes,
 programs have to reconstruct the argv array by parsing the command
@@ -2297,14 +2253,14 @@ will be chosen based on the type of the program.  */);
   Vw32_quote_process_args = Qt;
 
   DEFVAR_LISP ("w32-start-process-show-window",
-	       &Vw32_start_process_show_window,
+	       Vw32_start_process_show_window,
 	       doc: /* When nil, new child processes hide their windows.
 When non-nil, they show their window in the method of their choice.
 This variable doesn't affect GUI applications, which will never be hidden.  */);
   Vw32_start_process_show_window = Qnil;
 
   DEFVAR_LISP ("w32-start-process-share-console",
-	       &Vw32_start_process_share_console,
+	       Vw32_start_process_share_console,
 	       doc: /* When nil, new child processes are given a new console.
 When non-nil, they share the Emacs console; this has the limitation of
 allowing only one DOS subprocess to run at a time (whether started directly
@@ -2314,13 +2270,13 @@ otherwise respond to interrupts from Emacs.  */);
   Vw32_start_process_share_console = Qnil;
 
   DEFVAR_LISP ("w32-start-process-inherit-error-mode",
-	       &Vw32_start_process_inherit_error_mode,
+	       Vw32_start_process_inherit_error_mode,
 	       doc: /* When nil, new child processes revert to the default error mode.
 When non-nil, they inherit their error mode setting from Emacs, which stops
 them blocking when trying to access unmounted drives etc.  */);
   Vw32_start_process_inherit_error_mode = Qt;
 
-  DEFVAR_INT ("w32-pipe-read-delay", &w32_pipe_read_delay,
+  DEFVAR_INT ("w32-pipe-read-delay", w32_pipe_read_delay,
 	      doc: /* Forced delay before reading subprocess output.
 This is done to improve the buffering of subprocess output, by
 avoiding the inefficiency of frequently reading small amounts of data.
@@ -2331,7 +2287,7 @@ of time slices to wait (effectively boosting the priority of the child
 process temporarily).  A value of zero disables waiting entirely.  */);
   w32_pipe_read_delay = 50;
 
-  DEFVAR_LISP ("w32-downcase-file-names", &Vw32_downcase_file_names,
+  DEFVAR_LISP ("w32-downcase-file-names", Vw32_downcase_file_names,
 	       doc: /* Non-nil means convert all-upper case file names to lower case.
 This applies when performing completions and file name expansion.
 Note that the value of this setting also affects remote file names,
@@ -2340,7 +2296,7 @@ filesystems via ange-ftp.  */);
   Vw32_downcase_file_names = Qnil;
 
 #if 0
-  DEFVAR_LISP ("w32-generate-fake-inodes", &Vw32_generate_fake_inodes,
+  DEFVAR_LISP ("w32-generate-fake-inodes", Vw32_generate_fake_inodes,
 	       doc: /* Non-nil means attempt to fake realistic inode values.
 This works by hashing the truename of files, and should detect
 aliasing between long and short (8.3 DOS) names, but can have
@@ -2349,7 +2305,7 @@ the truename of a file can be slow.  */);
   Vw32_generate_fake_inodes = Qnil;
 #endif
 
-  DEFVAR_LISP ("w32-get-true-file-attributes", &Vw32_get_true_file_attributes,
+  DEFVAR_LISP ("w32-get-true-file-attributes", Vw32_get_true_file_attributes,
 	       doc: /* Non-nil means determine accurate file attributes in `file-attributes'.
 This option controls whether to issue additional system calls to determine
 accurate link counts, file type, and ownership information.  It is more

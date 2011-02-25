@@ -1,7 +1,6 @@
 ;;; tramp-cache.el --- file information caching for Tramp
 
-;; Copyright (C) 2000, 2005, 2006, 2007, 2008, 2009,
-;;   2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2005-2011 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pittman <daniel@inanna.danann.net>
 ;;         Michael Albinus <michael.albinus@gmx.de>
@@ -34,7 +33,7 @@
 ;; - localname is NIL.  This are reusable properties.  Examples:
 ;;   "remote-shell" identifies the POSIX shell to be called on the
 ;;   remote host, or "perl" is the command to be called on the remote
-;;   host, when starting a Perl script.  These properties are saved in
+;;   host when starting a Perl script.  These properties are saved in
 ;;   the file `tramp-persistency-file-name'.
 ;;
 ;; - localname is a string.  This are temporary properties, which are

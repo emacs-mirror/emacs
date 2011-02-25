@@ -1,7 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2011
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/numbers
@@ -1217,7 +1216,3 @@ On some machines, any integer representable in Lisp may be the result
 of @code{random}.  On other machines, the result can never be larger
 than a certain maximum or less than a certain (negative) minimum.
 @end defun
-
-@ignore
-   arch-tag: 574e8dd2-d513-4616-9844-c9a27869782e
-@end ignore

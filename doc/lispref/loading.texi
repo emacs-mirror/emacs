@@ -1,7 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2011
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/loading
@@ -361,6 +360,31 @@ When @code{locate-library} is called from a program, it returns the file
 name as a string.  When the user runs @code{locate-library}
 interactively, the argument @var{interactive-call} is @code{t}, and this
 tells @code{locate-library} to display the file name in the echo area.
+@end deffn
+
+@cindex shadowed Lisp files
+@deffn Command list-load-path-shadows &optional stringp
+This command shows a list of @dfn{shadowed} Emacs Lisp files.  A
+shadowed file is one that will not normally be loaded, despite being
+in a directory on @code{load-path}, due to the existence of another
+similarly-named file in a directory earlier on @code{load-path}.
+
+For instance, suppose @code{load-path} is set to
+
+@smallexample
+  ("/opt/emacs/site-lisp" "/usr/share/emacs/23.3/lisp")
+@end smallexample
+
+@noindent
+and that both these directories contain a file named @file{foo.el}.
+Then @code{(require 'foo)} never loads the file in the second
+directory.  Such a situation might indicate a problem in the way Emacs
+was installed.
+
+When called from Lisp, this function prints a message listing the
+shadowed files, instead of displaying them in a buffer.  If the
+optional argument @code{stringp} is non-@code{nil}, it instead returns
+the shadowed files as a string.
 @end deffn
 
 @node Loading Non-ASCII
@@ -976,10 +1000,6 @@ it immediately---there is no need to wait until the library is loaded.
 If you need to call functions defined by that library, you should load
 the library, preferably with @code{require} (@pxref{Named Features}).
 
-But it is OK to use @code{eval-after-load} in your personal
-customizations if you don't feel that they must meet the design
-standards for programs meant for wider use.
-
 @defvar after-load-alist
 This variable stores an alist built by @code{eval-after-load},
 containing the expressions to evaluate when certain libraries are
@@ -994,7 +1014,3 @@ symbol, and the value is a list of forms.  The forms are evaluated
 when the key matches the absolute true name or feature name of the
 library being loaded.
 @end defvar
-
-@ignore
-   arch-tag: df731f89-0900-4389-a436-9105241b6f7a
-@end ignore

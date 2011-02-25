@@ -1,7 +1,6 @@
 ;;; autorevert.el --- revert buffers when files on disk change
 
-;; Copyright (C) 1997, 1998, 1999, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1999, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Anders Lindgren <andersl@andersl.com>
 ;; Keywords: convenience
@@ -117,12 +116,12 @@ Global Auto-Revert Mode applies to all buffers."
 ;;; What's this?: ;; Autoload for the benefit of `make-mode-line-mouse-sensitive'.
 ;;; What's this?: ;;;###autoload
 (defvar auto-revert-mode nil
-  "*Non-nil when Auto-Revert Mode is active.
+  "Non-nil when Auto-Revert Mode is active.
 Never set this variable directly, use the command `auto-revert-mode' instead.")
 (put 'auto-revert-mode 'permanent-local t)
 
 (defvar auto-revert-tail-mode nil
-  "*Non-nil when Auto-Revert Tail Mode is active.
+  "Non-nil when Auto-Revert Tail Mode is active.
 Never set this variable directly, use the command
 `auto-revert-tail-mode' instead.")
 (put 'auto-revert-tail-mode 'permanent-local t)
@@ -255,8 +254,7 @@ buffers.  CPU usage depends on the version control system."
   :version "22.1")
 
 (defvar global-auto-revert-ignore-buffer nil
-  "*When non-nil, Global Auto-Revert Mode will not revert this buffer.
-
+  "When non-nil, Global Auto-Revert Mode will not revert this buffer.
 This variable becomes buffer local when set in any fashion.")
 (make-variable-buffer-local 'global-auto-revert-ignore-buffer)
 
@@ -576,5 +574,4 @@ the timer when no buffers need to be checked."
 
 (run-hooks 'auto-revert-load-hook)
 
-;; arch-tag: f6bcb07b-4841-477e-9e44-b18678e58876
 ;;; autorevert.el ends here

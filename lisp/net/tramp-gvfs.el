@@ -1,6 +1,6 @@
 ;;; tramp-gvfs.el --- Tramp access functions for GVFS daemon
 
-;; Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -1212,14 +1212,14 @@ connection if a previous connection has died for some reason."
 	;; Enable auth-sorce and password-cache.
 	(tramp-set-connection-property vec "first-password-request" t)
 
-	;; There will be a callback of "askPassword", when a password is
+	;; There will be a callback of "askPassword" when a password is
 	;; needed.
 	(dbus-register-method
 	 :session dbus-service-emacs object-path
 	 tramp-gvfs-interface-mountoperation "askPassword"
 	 'tramp-gvfs-handler-askpassword)
 
-	;; There could be a callback of "askQuestion", when adding fingerprint.
+	;; There could be a callback of "askQuestion" when adding fingerprint.
 	(dbus-register-method
 	 :session dbus-service-emacs object-path
 	 tramp-gvfs-interface-mountoperation "askQuestion"
@@ -1426,7 +1426,7 @@ They are retrieved from the hal daemon."
 ;;; TODO:
 
 ;; * Host name completion via smb-server or smb-network.
-;; * Check, how two shares of the same SMB server can be mounted in
+;; * Check how two shares of the same SMB server can be mounted in
 ;;   parallel.
 ;; * Apply SDP on bluetooth devices, in order to filter out obex
 ;;   capability.

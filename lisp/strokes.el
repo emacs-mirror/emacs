@@ -1,7 +1,6 @@
 ;;; strokes.el --- control Emacs through mouse strokes
 
-;; Copyright (C) 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: David Bakhash <cadet@alum.mit.edu>
 ;; Maintainer: FSF
@@ -719,6 +718,14 @@ Returns the corresponding match as (COMMAND . SCORE)."
 	  nil))
     nil))
 
+(defsubst strokes-fill-current-buffer-with-whitespace ()
+  "Erase the contents of the current buffer and fill it with whitespace."
+  (erase-buffer)
+  (loop repeat (frame-height) do
+	(insert-char ?\s (1- (frame-width)))
+	(newline))
+  (goto-char (point-min)))
+
 ;;;###autoload
 (defun strokes-read-stroke (&optional prompt event)
   "Read a simple stroke (interactively) and return the stroke.
@@ -736,6 +743,11 @@ Optional EVENT is acceptable as the starting event of the stroke."
 	  ;; display the stroke as it's being read
 	  (save-window-excursion
 	    (set-window-configuration strokes-window-configuration)
+	    ;; The frame has been resized, so we need to refill the
+	    ;; strokes buffer so that the strokes canvas is the whole
+	    ;; visible buffer.
+	    (unless (> 1 (abs (- (line-end-position) (window-width))))
+	      (strokes-fill-current-buffer-with-whitespace))
 	    (when prompt
 	      (message "%s" prompt)
 	      (setq event (read-event))
@@ -1000,7 +1012,7 @@ If you'd like to create graphical files with strokes, you'll have to
 be running a version of Emacs with XPM support.  You use the binding
 to `strokes-compose-complex-stroke' to start drawing your strokes.
 These are just complex strokes, and thus continue drawing with mouse-1
-or mouse-2 and end with mouse-3.  Then the stroke image gets inserted
+or mouse-2 and   end with mouse-3.  Then the stroke image gets inserted
 into the buffer.  You treat it somewhat like any other character,
 which you can copy, paste, delete, move, etc.  When all is done, you
 may want to send the file, or save it.  This is done with
@@ -1030,15 +1042,7 @@ o Strokes are a bit computer-dependent in that they depend somewhat on
     (help-mode)
     (help-print-return-message)))
 
-(defalias 'strokes-report-bug 'report-emacs-bug)
-
-(defsubst strokes-fill-current-buffer-with-whitespace ()
-  "Erase the contents of the current buffer and fill it with whitespace."
-  (erase-buffer)
-  (loop repeat (frame-height) do
-	(insert-char ?\s (1- (frame-width)))
-	(newline))
-  (goto-char (point-min)))
+(define-obsolete-function-alias 'strokes-report-bug 'report-emacs-bug "24.1")
 
 (defun strokes-window-configuration-changed-p ()
   "Non-nil if the `strokes-window-configuration' frame properties changed.
@@ -1749,5 +1753,4 @@ Store XPM in buffer BUFNAME if supplied \(default is ` *strokes-xpm*'\)"
 (run-hooks 'strokes-load-hook)
 (provide 'strokes)
 
-;; arch-tag: 8377f60e-43fb-467a-bbcd-2774f91f833e
 ;;; strokes.el ends here

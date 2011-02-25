@@ -1,7 +1,6 @@
 ;;; apropos.el --- apropos commands for users and programmers
 
-;; Copyright (C) 1989, 1994, 1995, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1994-1995, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Joe Wells <jbw@bigbird.bu.edu>
 ;;	Daniel Pfeiffer <occitan@esperanto.org> (rewrite)
@@ -122,15 +121,12 @@ If value is `verbose', the computed score is shown for each match."
 		 (const :tag "show scores" verbose)))
 
 (defvar apropos-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map button-buffer-map)
+  (let ((map (copy-keymap button-buffer-map)))
+    (set-keymap-parent map special-mode-map)
     ;; Use `apropos-follow' instead of just using the button
     ;; definition of RET, so that users can use it anywhere in an
     ;; apropos item, not just on top of a button.
     (define-key map "\C-m" 'apropos-follow)
-    (define-key map " "    'scroll-up)
-    (define-key map "\177" 'scroll-down)
-    (define-key map "q"    'quit-window)
     map)
   "Keymap used in Apropos mode.")
 
@@ -411,7 +407,7 @@ This requires that at least 2 keywords (unless only one was given)."
   "Return t if DOC is really matched by the current keywords."
   (apropos-true-hit doc apropos-all-words))
 
-(define-derived-mode apropos-mode fundamental-mode "Apropos"
+(define-derived-mode apropos-mode special-mode "Apropos"
   "Major mode for following hyperlinks in output of apropos commands.
 
 \\{apropos-mode-map}")
@@ -971,6 +967,7 @@ If non-nil TEXT is a string that will be printed as a heading."
     (with-help-window "*Apropos*"
       (let ((p apropos-accumulator)
 	    (old-buffer (current-buffer))
+	    (inhibit-read-only t)
 	    symbol item)
 	(set-buffer standard-output)
 	(apropos-mode)
@@ -1064,8 +1061,7 @@ If non-nil TEXT is a string that will be printed as a heading."
 	  (apropos-print-doc 5 'apropos-widget t)
 	  (apropos-print-doc 4 'apropos-plist nil))
         (set (make-local-variable 'truncate-partial-width-windows) t)
-        (set (make-local-variable 'truncate-lines) t)
-	(setq buffer-read-only t))))
+        (set (make-local-variable 'truncate-lines) t))))
   (prog1 apropos-accumulator
     (setq apropos-accumulator ())))	; permit gc
 
@@ -1132,5 +1128,4 @@ If non-nil TEXT is a string that will be printed as a heading."
 
 (provide 'apropos)
 
-;; arch-tag: d56fa2ac-e56b-4ce3-84ff-852f9c0dc66e
 ;;; apropos.el ends here

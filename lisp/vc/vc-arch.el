@@ -1,7 +1,6 @@
 ;;; vc-arch.el --- VC backend for the Arch version-control system
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Stefan Monnier <monnier@gnu.org>
@@ -638,5 +637,4 @@ CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
 
 (provide 'vc-arch)
 
-;; arch-tag: a35c7c1c-5237-429d-88ef-3d718fd2e704
 ;;; vc-arch.el ends here

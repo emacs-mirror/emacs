@@ -1,13 +1,11 @@
-Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-  Free Software Foundation, Inc.
+Copyright (C) 2001-2011  Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
 This directory contains Calc, an advanced desk calculator for GNU
 Emacs.
 
-"Calc"  Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004, 
-   2005, 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+"Calc"  Copyright (C) 1990-1993, 2001-2011  Free Software Foundation, Inc.
 
 Written by:
 	Dave Gillespie
@@ -73,6 +71,8 @@ Summary of changes to "Calc"
 ------- -- ------- --  ----
 
 Emacs 24.1
+
+* Support for logarithmic units added.
 
 * Calc no longer uses the tex prefix for TeX specific unit 
 names when using TeX or LaTeX mode.

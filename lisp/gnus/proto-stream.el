@@ -1,6 +1,6 @@
 ;;; proto-stream.el --- negotiating TLS, STARTTLS and other connections
 
-;; Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: network
@@ -94,7 +94,15 @@ query server for capabilities.  For instance, for IMAP this is
 :starttls-function -- a function that takes one parameter, which
 is the response to the capaibility command.  It should return nil
 if it turns out that the server doesn't support STARTTLS, or the
-command to switch on STARTTLS otherwise."
+command to switch on STARTTLS otherwise.
+
+The return value from this function is a four-element list, where
+the first element is the stream (if connection was successful);
+the second element is the \"greeting\", i. e., the string the
+server sent over on initial contact; the third element is the
+capability string; and the fourth element is either `network' or
+`tls', depending on whether the connection ended up being
+encrypted or not."
   (let ((type (or (cadr (memq :type parameters)) 'network)))
     (cond
      ((eq type 'starttls)
@@ -105,13 +113,15 @@ command to switch on STARTTLS otherwise."
 	   (funcall (intern (format "proto-stream-open-%s" type) obarray)
 		    name buffer host service parameters)))
       (if (null open-result)
-	  (list nil nil nil)
-	(destructuring-bind (stream greeting capabilities) open-result
+	  (list nil nil nil type)
+	(let ((stream (car open-result)))
 	  (list (and stream
 		     (memq (process-status stream)
 			   '(open run))
 		     stream)
-		greeting capabilities))))))
+		(nth 1 open-result)
+		(nth 2 open-result)
+		(nth 3 open-result)))))))
 
 (defun proto-stream-open-network-only (name buffer host service parameters)
   (let ((start (with-current-buffer buffer (point)))
@@ -119,7 +129,8 @@ command to switch on STARTTLS otherwise."
     (list stream
 	  (proto-stream-get-response
 	   stream start (proto-stream-eoc parameters))
-	  nil)))
+	  nil
+	  'network)))
 
 (defun proto-stream-open-network (name buffer host service parameters)
   (let* ((start (with-current-buffer buffer (point)))
@@ -130,7 +141,7 @@ command to switch on STARTTLS otherwise."
 	 (greeting (proto-stream-get-response stream start eoc))
 	 success)
     (if (not capability-command)
-	(list stream greeting nil)
+	(list stream greeting nil 'network)
       (let* ((capabilities
 	      (proto-stream-command stream capability-command eoc))
 	     (starttls-command
@@ -148,7 +159,7 @@ command to switch on STARTTLS otherwise."
 		(delete-process stream)
 		nil)
 	    ;; Otherwise, just return this plain network connection.
-	    (list stream greeting capabilities)))
+	    (list stream greeting capabilities 'network)))
 	 ;; We have some kind of STARTTLS support, so we try to
 	 ;; upgrade the connection opportunistically.
 	 ((or (fboundp 'open-gnutls-stream)
@@ -176,7 +187,7 @@ command to switch on STARTTLS otherwise."
 		    (progn
 		      (delete-process stream)
 		      nil)
-		  (list stream greeting capabilities)))
+		  (list stream greeting capabilities 'network)))
 	    ;; The server said it was OK to start doing STARTTLS negotiations.
 	    (if (fboundp 'open-gnutls-stream)
 		(gnutls-negotiate stream nil)
@@ -193,7 +204,7 @@ command to switch on STARTTLS otherwise."
 	    ;; Re-get the capabilities, since they may have changed
 	    ;; after switching to TLS.
 	    (list stream greeting
-		  (proto-stream-command stream capability-command eoc))))
+		  (proto-stream-command stream capability-command eoc) 'tls)))
 	 ;; We don't have STARTTLS support available, but the caller
 	 ;; requested a STARTTLS connection, so we give up.
 	 ((eq (cadr (memq :type parameters)) 'starttls)
@@ -201,7 +212,7 @@ command to switch on STARTTLS otherwise."
 	  nil)
 	 ;; Fall back on using a plain network stream.
 	 (t
-	  (list stream greeting capabilities)))))))
+	  (list stream greeting capabilities 'network)))))))
 
 (defun proto-stream-command (stream command eoc)
   (let ((start (with-current-buffer (process-buffer stream) (point-max))))
@@ -242,7 +253,7 @@ command to switch on STARTTLS otherwise."
 	  (when (re-search-forward (proto-stream-eoc parameters) nil t)
 	    (goto-char (match-beginning 0))
 	    (delete-region (point-min) (line-beginning-position))))
-	(proto-stream-capability-open start stream parameters)))))
+	(proto-stream-capability-open start stream parameters 'tls)))))
 
 (defun proto-stream-open-shell (name buffer host service parameters)
   (proto-stream-capability-open
@@ -255,16 +266,17 @@ command to switch on STARTTLS otherwise."
 		     (format-spec-make
 		      ?s host
 		      ?p service))))
-   parameters))
+   parameters 'network))
 
-(defun proto-stream-capability-open (start stream parameters)
+(defun proto-stream-capability-open (start stream parameters stream-type)
   (let ((capability-command (cadr (memq :capability-command parameters)))
 	(greeting (proto-stream-get-response
 		   stream start (proto-stream-eoc parameters))))
     (list stream greeting
 	  (and capability-command
 	       (proto-stream-command
-		stream capability-command (proto-stream-eoc parameters))))))
+		stream capability-command (proto-stream-eoc parameters)))
+	  stream-type)))
 
 (defun proto-stream-eoc (parameters)
   (or (cadr (memq :end-of-command parameters))

@@ -1,7 +1,5 @@
 /* Updating of data structures for redisplay.
-   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995,
-                 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-                 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1985-1988, 1993-1995, 1997-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -23,10 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 #include <ctype.h>
 #include <setjmp.h>
-
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 #include "lisp.h"
 #include "termchar.h"
@@ -173,12 +168,6 @@ static void adjust_frame_glyphs_for_window_redisplay (struct frame *);
 static void adjust_frame_glyphs_for_frame_redisplay (struct frame *);
 
 
-/* Non-zero means don't pause redisplay for pending input.  (This is
-   for debugging and for a future implementation of EDT-like
-   scrolling.  */
-
-int redisplay_dont_pause;
-
 /* Define PERIODIC_PREEMPTION_CHECKING to 1, if micro-second timers
    are supported, so we can check for input during redisplay at
    regular intervals.  */
@@ -189,10 +178,6 @@ int redisplay_dont_pause;
 #endif
 
 #if PERIODIC_PREEMPTION_CHECKING
-
-/* If a number (float), check for user input every N seconds.  */
-
-Lisp_Object Vredisplay_preemption_period;
 
 /* Redisplay preemption timers.  */
 
@@ -209,49 +194,6 @@ int frame_garbaged;
 /* Nonzero means last display completed.  Zero means it was preempted.  */
 
 int display_completed;
-
-/* Lisp variable visible-bell; enables use of screen-flash instead of
-   audible bell.  */
-
-int visible_bell;
-
-/* Invert the color of the whole frame, at a low level.  */
-
-int inverse_video;
-
-/* Line speed of the terminal.  */
-
-EMACS_INT baud_rate;
-
-/* Either nil or a symbol naming the window system under which Emacs
-   creates the first frame.  */
-
-Lisp_Object Vinitial_window_system;
-
-/* Version number of X windows: 10, 11 or nil.  */
-
-Lisp_Object Vwindow_system_version;
-
-/* Vector of glyph definitions.  Indexed by glyph number, the contents
-   are a string which is how to output the glyph.
-
-   If Vglyph_table is nil, a glyph is output by using its low 8 bits
-   as a character code.
-
-   This is an obsolete feature that is no longer used.  The variable
-   is retained for compatibility.  */
-
-Lisp_Object Vglyph_table;
-
-/* Display table to use for vectors that don't specify their own.  */
-
-Lisp_Object Vstandard_display_table;
-
-/* Nonzero means reading single-character input with prompt so put
-   cursor on mini-buffer after the prompt.  Positive means at end of
-   text in echo area; negative means at beginning of line.  */
-
-int cursor_in_echo_area;
 
 Lisp_Object Qdisplay_table, Qredisplay_dont_pause;
 
@@ -368,7 +310,7 @@ add_window_display_history (struct window *w, char *msg, int paused_p)
 	   w,
 	   ((BUFFERP (w->buffer)
 	     && STRINGP (XBUFFER (w->buffer)->name))
-	    ? (char *) SDATA (XBUFFER (w->buffer)->name)
+	    ? SSDATA (XBUFFER (w->buffer)->name)
 	    : "???"),
 	   paused_p ? " ***paused***" : "");
   strcat (buf, msg);
@@ -5888,7 +5830,7 @@ FILE = nil means just close any termscript file currently open.  */)
   if (! NILP (file))
     {
       file = Fexpand_file_name (file, Qnil);
-      tty->termscript = fopen (SDATA (file), "w");
+      tty->termscript = fopen (SSDATA (file), "w");
       if (tty->termscript == 0)
 	report_file_error ("Opening termscript", Fcons (file, Qnil));
     }
@@ -6168,7 +6110,7 @@ pass nil for VARIABLE.  */)
     {
       buf = XCDR (XCAR (tail));
       /* Ignore buffers that aren't included in buffer lists.  */
-      if (SREF (XBUFFER (buf)->name, 0) == ' ')
+      if (SREF (BVAR (XBUFFER (buf), name), 0) == ' ')
 	continue;
       if (vecp == end)
 	goto changed;
@@ -6176,7 +6118,7 @@ pass nil for VARIABLE.  */)
 	goto changed;
       if (vecp == end)
 	goto changed;
-      if (!EQ (*vecp++, XBUFFER (buf)->read_only))
+      if (!EQ (*vecp++, BVAR (XBUFFER (buf), read_only)))
 	goto changed;
       if (vecp == end)
 	goto changed;
@@ -6223,10 +6165,10 @@ pass nil for VARIABLE.  */)
     {
       buf = XCDR (XCAR (tail));
       /* Ignore buffers that aren't included in buffer lists.  */
-      if (SREF (XBUFFER (buf)->name, 0) == ' ')
+      if (SREF (BVAR (XBUFFER (buf), name), 0) == ' ')
 	continue;
       *vecp++ = buf;
-      *vecp++ = XBUFFER (buf)->read_only;
+      *vecp++ = BVAR (XBUFFER (buf), read_only);
       *vecp++ = Fbuffer_modified_p (buf);
     }
   /* Fill up the vector with lambdas (always at least one).  */
@@ -6540,27 +6482,27 @@ syms_of_display (void)
   Qredisplay_dont_pause = intern_c_string ("redisplay-dont-pause");
   staticpro (&Qredisplay_dont_pause);
 
-  DEFVAR_INT ("baud-rate", &baud_rate,
+  DEFVAR_INT ("baud-rate", baud_rate,
 	      doc: /* *The output baud rate of the terminal.
 On most systems, changing this value will affect the amount of padding
 and the other strategic decisions made during redisplay.  */);
 
-  DEFVAR_BOOL ("inverse-video", &inverse_video,
+  DEFVAR_BOOL ("inverse-video", inverse_video,
 	       doc: /* *Non-nil means invert the entire frame display.
 This means everything is in inverse video which otherwise would not be.  */);
 
-  DEFVAR_BOOL ("visible-bell", &visible_bell,
+  DEFVAR_BOOL ("visible-bell", visible_bell,
 	       doc: /* *Non-nil means try to flash the frame to represent a bell.
 
 See also `ring-bell-function'.  */);
 
-  DEFVAR_BOOL ("no-redraw-on-reenter", &no_redraw_on_reenter,
+  DEFVAR_BOOL ("no-redraw-on-reenter", no_redraw_on_reenter,
 	       doc: /* *Non-nil means no need to redraw entire frame after suspending.
 A non-nil value is useful if the terminal can automatically preserve
 Emacs's frame display when you reenter Emacs.
 It is up to you to set this variable if your terminal can do that.  */);
 
-  DEFVAR_LISP ("initial-window-system", &Vinitial_window_system,
+  DEFVAR_LISP ("initial-window-system", Vinitial_window_system,
 	       doc: /* Name of the window system that Emacs uses for the first frame.
 The value is a symbol:
  nil for a termcap frame (a character-only terminal),
@@ -6586,14 +6528,14 @@ Use of this variable as a boolean is deprecated.  Instead,
 use `display-graphic-p' or any of the other `display-*-p'
 predicates which report frame's specific UI-related capabilities.  */);
 
-  DEFVAR_LISP ("window-system-version", &Vwindow_system_version,
+  DEFVAR_LISP ("window-system-version", Vwindow_system_version,
 	       doc: /* The version number of the window system in use.
 For X windows, this is 11.  */);
 
-  DEFVAR_BOOL ("cursor-in-echo-area", &cursor_in_echo_area,
+  DEFVAR_BOOL ("cursor-in-echo-area", cursor_in_echo_area,
 	       doc: /* Non-nil means put cursor in minibuffer, at end of any message there.  */);
 
-  DEFVAR_LISP ("glyph-table", &Vglyph_table,
+  DEFVAR_LISP ("glyph-table", Vglyph_table,
 	       doc: /* Table defining how to output a glyph code to the frame.
 If not nil, this is a vector indexed by glyph code to define the glyph.
 Each element can be:
@@ -6604,17 +6546,17 @@ Each element can be:
     while outputting it.  */);
   Vglyph_table = Qnil;
 
-  DEFVAR_LISP ("standard-display-table", &Vstandard_display_table,
+  DEFVAR_LISP ("standard-display-table", Vstandard_display_table,
 	       doc: /* Display table to use for buffers that specify none.
 See `buffer-display-table' for more information.  */);
   Vstandard_display_table = Qnil;
 
-  DEFVAR_BOOL ("redisplay-dont-pause", &redisplay_dont_pause,
+  DEFVAR_BOOL ("redisplay-dont-pause", redisplay_dont_pause,
 	       doc: /* *Non-nil means update isn't paused when input is detected.  */);
   redisplay_dont_pause = 0;
 
 #if PERIODIC_PREEMPTION_CHECKING
-  DEFVAR_LISP ("redisplay-preemption-period", &Vredisplay_preemption_period,
+  DEFVAR_LISP ("redisplay-preemption-period", Vredisplay_preemption_period,
 	       doc: /* *The period in seconds between checking for input during redisplay.
 If input is detected, redisplay is pre-empted, and the input is processed.
 If nil, never pre-empt redisplay.  */);
@@ -6629,6 +6571,3 @@ If nil, never pre-empt redisplay.  */);
       Vwindow_system_version = Qnil;
     }
 }
-
-/* arch-tag: 8d812b1f-04a2-4195-a9c4-381f8457a413
-   (do not change this comment) */

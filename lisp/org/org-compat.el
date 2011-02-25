@@ -1,7 +1,6 @@
 ;;; org-compat.el --- Compatibility code for Org-mode
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -426,6 +425,5 @@ With two arguments, return floor and remainder of their quotient."
 
 (provide 'org-compat)
 
-;; arch-tag: a0a0579f-e68c-4bdf-9e55-93768b846bbe
 
 ;;; org-compat.el ends here

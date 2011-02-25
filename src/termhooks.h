@@ -1,6 +1,6 @@
 /* Parameters and display hooks for terminal devices.
-   Copyright (C) 1985, 1986, 1993, 1994, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+
+Copyright (C) 1985-1986, 1993-1994, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -658,5 +658,3 @@ extern struct terminal *initial_terminal;
 extern void close_gpm (int gpm_fd);
 #endif
 
-/* arch-tag: 33a00ecc-52b5-4186-a410-8801ac9f087d
-   (do not change this comment) */

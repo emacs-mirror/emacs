@@ -1,7 +1,6 @@
 ;;; smerge-mode.el --- Minor mode to resolve diff3 conflicts
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: vc, tools, revision control, merge, diff3, cvs, conflict
@@ -1300,5 +1299,4 @@ If no conflict maker is found, turn off `smerge-mode'."
 
 (provide 'smerge-mode)
 
-;; arch-tag: 605c8d1e-e43d-4943-a6f3-1bcc4333e690
 ;;; smerge-mode.el ends here

@@ -1,6 +1,5 @@
 /* Define frame-object for GNU Emacs.
-   Copyright (C) 1993, 1994, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1993-1994, 1999-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -36,11 +35,6 @@ extern int frame_garbaged;
    print.  */
 
 extern int message_buf_print;
-
-/* Nonzero means window system changes focus when moving the
-   mouse.  */
-
-extern int focus_follows_mouse;
 
 
 /* The structure representing a frame.  */
@@ -862,11 +856,6 @@ extern void frame_make_pointer_visible (void);
 extern Lisp_Object delete_frame (Lisp_Object, Lisp_Object);
 
 extern Lisp_Object Vframe_list;
-extern Lisp_Object Vdefault_frame_alist;
-
-extern Lisp_Object Vterminal_frame;
-
-extern Lisp_Object Vmouse_highlight;
 
 /* The currently selected frame.  */
 
@@ -1108,12 +1097,6 @@ extern void x_wm_set_icon_position (struct frame *, int, int);
 
 extern Lisp_Object x_new_font (struct frame *, Lisp_Object, int);
 
-/* These are in frame.c  */
-
-extern Lisp_Object Vx_resource_name;
-extern Lisp_Object Vx_resource_class;
-extern Lisp_Object Vmenu_bar_mode, Vtool_bar_mode;
-
 
 extern Lisp_Object Qface_set_after_frame_default;
 
@@ -1145,7 +1128,6 @@ extern Lisp_Object x_icon_type (struct frame *);
 
 extern int x_figure_window_size (struct frame *, Lisp_Object, int);
 
-extern Lisp_Object Vframe_alpha_lower_limit;
 extern void x_set_alpha (struct frame *, Lisp_Object, Lisp_Object);
 
 extern void validate_x_resource_name (void);
@@ -1163,5 +1145,3 @@ extern void set_frame_menubar (FRAME_PTR, int, int);
 
 #endif /* not EMACS_FRAME_H */
 
-/* arch-tag: 0df048ee-e6bf-4f48-bd56-e3cd055dd8c4
-   (do not change this comment) */

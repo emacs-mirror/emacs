@@ -25,4 +25,3 @@
     ("BOPOMOFO FINAL LETTER H" #x31B7)
     ))
 
-;; arch-tag: 1821baca-d463-4e8e-bf3d-97a35af58fd4

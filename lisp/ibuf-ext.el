@@ -1,7 +1,6 @@
 ;;; ibuf-ext.el --- extensions for ibuffer
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Maintainer: John Paul Wallington <jpw@gnu.org>
@@ -772,7 +771,8 @@ The value from `ibuffer-saved-filter-groups' is used."
 (defun ibuffer-filter-disable ()
   "Disable all filters currently in effect in this buffer."
   (interactive)
-  (setq ibuffer-filtering-qualifiers nil)
+  (setq ibuffer-filtering-qualifiers nil
+	ibuffer-filter-groups nil)
   (let ((buf (ibuffer-current-buffer)))
     (ibuffer-update nil t)
     (when buf

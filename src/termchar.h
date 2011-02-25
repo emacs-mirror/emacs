@@ -1,6 +1,5 @@
 /* Flags and parameters describing terminal's characteristics.
-   Copyright (C) 1985, 1986, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+   Copyright (C) 1985-1986, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -212,5 +211,3 @@ extern struct tty_display_info *tty_list;
 
 #define CURTTY() FRAME_TTY (SELECTED_FRAME())
 
-/* arch-tag: bf9f0d49-842b-42fb-9348-ec8759b27193
-   (do not change this comment) */

@@ -1,6 +1,6 @@
 ;;; wheatgrass-theme.el --- custom theme for faces
 
-;; Copyright (C) 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2011 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -20,42 +20,50 @@
 ;;; Code:
 
 (deftheme wheatgrass
-  "Theme for basic, Font Lock, Isearch, Gnus, and Message faces.
-The default face is wheat on a black background.  Other faces
-are in shades of green, brown, and blue.")
+  "A high-contrast theme with a black background.
+Basic, Font Lock, Isearch, Gnus, and Message faces are included.
+The default face foreground is wheat, with other faces in shades
+of green, brown, and blue.")
 
-(custom-theme-set-faces
- 'wheatgrass
- '(default ((t (:foreground "wheat" :background "black"))))
- '(cursor ((t (:foreground "black" :background "thistle"))))
- '(highlight ((t (:foreground "white" :background "dark green"))))
- '(region ((t (:foreground "white" :background "dark green"))))
- '(font-lock-builtin-face ((t (:foreground "LightSteelBlue"))))
- '(font-lock-comment-face ((t (:foreground "SpringGreen3"))))
- '(font-lock-constant-face ((t (:foreground "turquoise"))))
- '(font-lock-function-name-face ((t (:foreground "pale green"))))
- '(font-lock-keyword-face ((t (:foreground "white"))))
- '(font-lock-string-face ((t (:foreground "dark khaki"))))
- '(font-lock-type-face ((t (:foreground "aquamarine"))))
- '(font-lock-variable-name-face ((t (:foreground "yellow green"))))
- '(font-lock-warning-face ((t (:foreground "salmon1"))))
- '(button ((t (:underline t :foreground "cyan"))))
- '(link ((t (:underline t :foreground "cyan"))))
- '(link-visited ((t (:underline t :foreground "dark cyan"))))
- '(isearch ((t (:foreground "white" :background "dark goldenrod"))))
- '(lazy-highlight ((t (:background "gray25"))))
- '(gnus-header-content ((t (:weight normal :foreground "yellow green"))))
- '(gnus-header-from ((t (:foreground "pale green"))))
- '(gnus-header-subject ((t (:foreground "pale turquoise"))))
- '(gnus-header-name ((t (:foreground "dark sea green"))))
- '(gnus-header-newsgroups ((t (:foreground "dark khaki"))))
- '(message-header-name ((t (:foreground "dark turquoise"))))
- '(message-header-cc ((t (:foreground "yellow green"))))
- '(message-header-other ((t (:foreground "dark khaki"))))
- '(message-header-subject ((t (:foreground "pale turquoise"))))
- '(message-header-to ((t (:foreground "pale green"))))
- '(message-cited-text ((t (:foreground "SpringGreen3"))))
- '(message-separator ((t (:foreground "deep sky blue")))))
+(let ((class '((class color) (min-colors 89))))
+  (custom-theme-set-faces
+   'wheatgrass
+   `(default ((,class (:foreground "wheat" :background "black"))))
+   `(cursor ((,class (:foreground "black" :background "thistle"))))
+   ;; Highlighting faces
+   `(highlight ((,class (:foreground "white" :background "dark green"))))
+   `(region ((,class (:foreground "white" :background "dark green"))))
+   `(secondary-selection ((,class (:background "dark slate gray"))))
+   `(isearch ((,class (:foreground "white" :background "dark goldenrod"))))
+   `(lazy-highlight ((,class (:background "gray25"))))
+   ;; Font lock faces
+   `(font-lock-builtin-face ((,class (:foreground "LightSteelBlue"))))
+   `(font-lock-comment-face ((,class (:foreground "SpringGreen3"))))
+   `(font-lock-constant-face ((,class (:foreground "turquoise"))))
+   `(font-lock-function-name-face ((,class (:foreground "pale green"))))
+   `(font-lock-keyword-face ((,class (:foreground "white"))))
+   `(font-lock-string-face ((,class (:foreground "dark khaki"))))
+   `(font-lock-type-face ((,class (:foreground "aquamarine"))))
+   `(font-lock-variable-name-face ((,class (:foreground "yellow green"))))
+   `(font-lock-warning-face ((,class (:foreground "salmon1"))))
+   ;; Button and link faces
+   `(button ((,class (:underline t :foreground "cyan"))))
+   `(link ((,class (:underline t :foreground "cyan"))))
+   `(link-visited ((,class (:underline t :foreground "dark cyan"))))
+   ;; Gnus faces
+   `(gnus-header-content ((,class (:weight normal :foreground "yellow green"))))
+   `(gnus-header-from ((,class (:foreground "pale green"))))
+   `(gnus-header-subject ((,class (:foreground "pale turquoise"))))
+   `(gnus-header-name ((,class (:foreground "dark sea green"))))
+   `(gnus-header-newsgroups ((,class (:foreground "dark khaki"))))
+   ;; Message faces
+   `(message-header-name ((,class (:foreground "dark turquoise"))))
+   `(message-header-cc ((,class (:foreground "yellow green"))))
+   `(message-header-other ((,class (:foreground "dark khaki"))))
+   `(message-header-subject ((,class (:foreground "pale turquoise"))))
+   `(message-header-to ((,class (:foreground "pale green"))))
+   `(message-cited-text ((,class (:foreground "SpringGreen3"))))
+   `(message-separator ((,class (:foreground "deep sky blue"))))))
 
 (provide-theme 'wheatgrass)
 

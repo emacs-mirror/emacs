@@ -67,6 +67,7 @@ Emacs misc features
                                   merging programs.
 * EDT: (edt).                   An Emacs emulation of the EDT editor.
 * EIEIO: (eieio).               An object system for Emacs Lisp.
+* ERT: (ert).                   Emacs Lisp regression testing tool.
 * Eshell: (eshell).             A command shell implemented in Emacs Lisp.
 * Flymake: (flymake).           A universal on-the-fly syntax checker.
 * Forms: (forms).               Emacs package for editing data bases

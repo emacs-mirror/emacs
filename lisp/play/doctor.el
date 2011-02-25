@@ -1,7 +1,7 @@
 ;;; doctor.el --- psychological help for frustrated users
 
-;; Copyright (C) 1985, 1987, 1994, 1996, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1994, 1996, 2000-2011
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: games
@@ -141,7 +141,7 @@ reads the sentence before point, and prints the Doctor's answer."
   (turn-on-auto-fill)
   (doctor-type '(i am the psychotherapist \.
 		 (doc$ doctor--please) (doc$ doctor--describe) your (doc$ doctor--problems) \.
-		 each time you are finished talking, type \R\E\T twice \.))
+		 each time you are finished talking\, type \R\E\T twice \.))
   (insert "\n"))
 
 (defun make-doctor-variables ()

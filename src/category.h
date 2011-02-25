@@ -91,7 +91,7 @@ extern Lisp_Object _temp_category_set;
 
 /* The standard category table is stored where it will automatically
    be used in all new buffers.  */
-#define Vstandard_category_table buffer_defaults.category_table
+#define Vstandard_category_table BVAR (&buffer_defaults, category_table)
 
 /* Return the category set of character C in the current category table.  */
 #define CATEGORY_SET(c) char_category_set (c)
@@ -116,5 +116,3 @@ extern Lisp_Object _temp_category_set;
 extern int word_boundary_p (int, int);
 extern void set_category_set (Lisp_Object, Lisp_Object, Lisp_Object);
 
-/* arch-tag: 309dfe83-c3e2-4d22-8e81-faae5aece0ff
-   (do not change this comment) */

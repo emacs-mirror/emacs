@@ -1,7 +1,6 @@
 ;;; gnus-sum.el --- summary mode commands for Gnus
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -360,7 +359,7 @@ first subject), `unread' (place point on the subject line of the first
 unread article), `best' (place point on the subject line of the
 higest-scored article), `unseen' (place point on the subject line of
 the first unseen article), `unseen-or-unread' (place point on the subject
-line of the first unseen article or, if all article have been seen, on the
+line of the first unseen article or, if all articles have been seen, on the
 subject line of the first unread article), or a function to be called to
 place point on some subject line."
   :version "24.1"
@@ -1236,8 +1235,9 @@ For example: ((1 . cn-gb-2312) (2 . big5))."
   :group 'gnus-summary-marks)
 
 (defcustom gnus-propagate-marks t
-  "If non-nil, do not propagate marks to the backends."
-  :version "23.1" ;; No Gnus
+  "If non-nil, Gnus will store and retrieve marks from the backends.
+This means that marks will be stored both in .newsrc.eld and in
+the backend, and will slow operation down somewhat."
   :type 'boolean
   :group 'gnus-summary-marks)
 
@@ -3853,6 +3853,56 @@ This function is intended to be used in
 	  ((< c (* 1000 10000)) (format "%1.1fM" (/ c (* 1024.0 1024))))
 	  (t (format "%dM" (/ c (* 1024.0 1024)))))))
 
+(defcustom gnus-summary-user-date-format-alist
+  '(((gnus-seconds-today) . "Today, %H:%M")
+    ((+ 86400 (gnus-seconds-today)) . "Yesterday, %H:%M")
+    (604800 . "%A %H:%M")               ; That's one week
+    ((gnus-seconds-month) . "%A %d")
+    ((gnus-seconds-year) . "%B %d")
+    (t . "%b %d %Y"))                   ; This one is used when no other
+                                        ; does match
+  "Specifies date format depending on age of article.
+This is an alist of items (AGE . FORMAT).  AGE can be a number (of
+seconds) or a Lisp expression evaluating to a number.  When the age of
+the article is less than this number, then use `format-time-string'
+with the corresponding FORMAT for displaying the date of the article.
+If AGE is not a number or a Lisp expression evaluating to a
+non-number, then the corresponding FORMAT is used as a default value.
+
+Note that the list is processed from the beginning, so it should be
+sorted by ascending AGE.  Also note that items following the first
+non-number AGE will be ignored.
+
+You can use the functions `gnus-seconds-today', `gnus-seconds-month'
+and `gnus-seconds-year' in the AGE spec.  They return the number of
+seconds passed since the start of today, of this month, of this year,
+respectively."
+  :version "24.1"
+  :group 'gnus-summary-format
+  :type '(alist :key-type sexp :value-type string))
+(make-obsolete-variable 'gnus-user-date-format-alist
+                        'gnus-summary-user-date-format-alist "24.1")
+
+(defun gnus-user-date (messy-date)
+  "Format the messy-date according to `gnus-summary-user-date-format-alist'.
+Returns \"  ?  \" if there's bad input or if another error occurs.
+Input should look like this: \"Sun, 14 Oct 2001 13:34:39 +0200\"."
+  (condition-case ()
+      (let* ((messy-date (gnus-float-time (gnus-date-get-time messy-date)))
+	     (now (gnus-float-time))
+	     ;;If we don't find something suitable we'll use this one
+	     (my-format "%b %d '%y"))
+	(let* ((difference (- now messy-date))
+	       (templist gnus-summary-user-date-format-alist)
+	       (top (eval (caar templist))))
+	  (while (if (numberp top) (< top difference) (not top))
+	    (progn
+	      (setq templist (cdr templist))
+	      (setq top (eval (caar templist)))))
+	  (if (stringp (cdr (car templist)))
+	      (setq my-format (cdr (car templist)))))
+	(format-time-string (eval my-format) (seconds-to-time messy-date)))
+    (error "  ?   ")))
 
 (defun gnus-summary-set-local-parameters (group)
   "Go through the local params of GROUP and set all variable specs in that list."
@@ -3940,11 +3990,9 @@ If NO-DISPLAY, don't generate a summary buffer."
 	      (gnus-group-jump-to-group group)
 	      (gnus-group-next-unread-group 1))
 	  (gnus-handle-ephemeral-exit quit-config)))
-      (let ((grpinfo (gnus-get-info group)))
-	(if (null (gnus-info-read grpinfo))
-	    (gnus-message 3 "Group %s contains no messages"
-			  (gnus-group-decoded-name group))
-	  (gnus-message 3 "Can't select group")))
+      (if (null (gnus-list-of-unread-articles group))
+	  (gnus-message 3 "Group %s contains no messages" group)
+	(gnus-message 3 "Can't select group"))
       nil)
      ;; The user did a `C-g' while prompting for number of articles,
      ;; so we exit this group.
@@ -4020,6 +4068,7 @@ If NO-DISPLAY, don't generate a summary buffer."
 	;; gnus-summary-prepare-hook since kill processing may not
 	;; work with hidden articles.
 	(gnus-summary-maybe-hide-threads)
+	(gnus-configure-windows 'summary)
 	(when kill-buffer
 	  (gnus-kill-or-deaden-summary kill-buffer))
 	(gnus-summary-auto-select-subject)
@@ -4029,7 +4078,6 @@ If NO-DISPLAY, don't generate a summary buffer."
 		 gnus-newsgroup-unreads
 		 gnus-auto-select-first)
 	    (progn
-	      (gnus-configure-windows 'summary)
 	      (let ((art (gnus-summary-article-number)))
 		(unless (and (not gnus-plugged)
 			     (or (memq art gnus-newsgroup-undownloaded)
@@ -5545,7 +5593,8 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 	     (mm-decode-coding-string group charset)
 	     (mm-decode-coding-string (gnus-status-message group) charset)))
 
-    (when gnus-agent
+    (when (and gnus-agent
+	       (gnus-active group))
       (gnus-agent-possibly-alter-active group (gnus-active group) info)
 
       (setq gnus-summary-use-undownloaded-faces
@@ -7120,6 +7169,7 @@ If FORCE (the prefix), also save the .newsrc file(s)."
   (let* ((group gnus-newsgroup-name)
 	 (quit-config (gnus-group-quit-config gnus-newsgroup-name))
 	 (gnus-group-is-exiting-p t)
+	 (article-buffer gnus-article-buffer)
 	 (mode major-mode)
 	 (group-point nil)
 	 (buf (current-buffer)))
@@ -7172,16 +7222,6 @@ If FORCE (the prefix), also save the .newsrc file(s)."
 	(when (eq mode 'gnus-summary-mode)
 	  (gnus-kill-buffer buf)))
 
-      ;; If we have several article buffers, we kill them at exit.
-      (unless gnus-single-article-buffer
-	(when (gnus-buffer-live-p gnus-article-buffer)
-	  (with-current-buffer gnus-article-buffer
-	    ;; Don't kill sticky article buffers
-	    (unless (eq major-mode 'gnus-sticky-article-mode)
-	      (gnus-kill-buffer gnus-article-buffer)
-	      (setq gnus-article-current nil))))
-	(gnus-kill-buffer gnus-original-article-buffer))
-
       (setq gnus-current-select-method gnus-select-method)
       (set-buffer gnus-group-buffer)
       (if quit-config
@@ -7193,6 +7233,17 @@ If FORCE (the prefix), also save the .newsrc file(s)."
 	  (if win (set-window-point win (point))))
 	(unless leave-hidden
 	  (gnus-configure-windows 'group 'force)))
+
+      ;; If we have several article buffers, we kill them at exit.
+      (unless gnus-single-article-buffer
+	(when (gnus-buffer-live-p article-buffer)
+	  (with-current-buffer article-buffer
+	    ;; Don't kill sticky article buffers
+	    (unless (eq major-mode 'gnus-sticky-article-mode)
+	      (gnus-kill-buffer article-buffer)
+	      (setq gnus-article-current nil))))
+	(gnus-kill-buffer gnus-original-article-buffer))
+
       ;; Clear the current group name.
       (unless quit-config
 	(setq gnus-newsgroup-name nil)))))
@@ -7221,6 +7272,8 @@ If FORCE (the prefix), also save the .newsrc file(s)."
 	(gnus-kill-buffer gnus-article-buffer)
 	(gnus-kill-buffer gnus-original-article-buffer)
 	(setq gnus-article-current nil))
+      ;; Return to the group buffer.
+      (gnus-configure-windows 'group 'force)
       (if (not gnus-kill-summary-on-exit)
 	  (gnus-deaden-summary)
 	(gnus-close-group group)
@@ -7232,8 +7285,6 @@ If FORCE (the prefix), also save the .newsrc file(s)."
       (gnus-async-prefetch-remove-group group)
       (when (get-buffer gnus-article-buffer)
 	(bury-buffer gnus-article-buffer))
-      ;; Return to the group buffer.
-      (gnus-configure-windows 'group 'force)
       ;; Clear the current group name.
       (setq gnus-newsgroup-name nil)
       (unless (gnus-ephemeral-group-p group)
@@ -7683,6 +7734,7 @@ If BACKWARD, the previous article is selected instead of the next."
 	  (point
 	   (with-current-buffer gnus-group-buffer
 	     (point)))
+	  (current-summary (current-buffer))
 	  (group
 	   (if (eq gnus-keep-same-level 'best)
 	       (gnus-summary-best-group gnus-newsgroup-name)
@@ -7707,6 +7759,10 @@ If BACKWARD, the previous article is selected instead of the next."
 	  (gnus-summary-next-group nil group backward)))
        (t
 	(when (gnus-key-press-event-p last-input-event)
+	  ;; Somehow or other, we may now have selected a different
+	  ;; window.  Make point go back to the summary buffer.
+	  (when (eq current-summary (current-buffer))
+	    (select-window (get-buffer-window current-summary)))
 	  (gnus-summary-walk-group-buffer
 	   gnus-newsgroup-name cmd unread backward point))))))))
 
@@ -9836,7 +9892,8 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 	    (unless (member to-group to-groups)
 	      (push to-group to-groups))
 
-	    (unless (memq article gnus-newsgroup-unreads)
+	    (when (and (not (memq article gnus-newsgroup-unreads))
+		       (cdr art-group))
 	      (push 'read to-marks)
 	      (gnus-info-set-read
 	       info (gnus-add-to-range (gnus-info-read info)
@@ -9853,14 +9910,16 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 
 	      ;; Enter the article into the cache in the new group,
 	      ;; if that is required.
-	      (when gnus-use-cache
+	      (when (and to-article
+			 gnus-use-cache)
 		(gnus-cache-possibly-enter-article
 		 to-group to-article
 		 (memq article gnus-newsgroup-marked)
 		 (memq article gnus-newsgroup-dormant)
 		 (memq article gnus-newsgroup-unreads)))
 
-	      (when gnus-preserve-marks
+	      (when (and gnus-preserve-marks
+			 to-article)
 		;; Copy any marks over to the new group.
 		(when (and (equal to-group gnus-newsgroup-name)
 			   (not (memq article gnus-newsgroup-unreads)))
@@ -12036,9 +12095,9 @@ If REVERSE, save parts that do not match TYPE."
 			  gnus-summary-save-parts-default-mime)
 		      'gnus-summary-save-parts-type-history)
 	 (setq gnus-summary-save-parts-last-directory
-	       (read-file-name "Save to directory: "
-			       gnus-summary-save-parts-last-directory
-			       nil t))
+	       (read-directory-name "Save to directory: "
+                                    gnus-summary-save-parts-last-directory
+                                    nil t))
 	 current-prefix-arg))
   (gnus-summary-iterate n
     (let ((gnus-display-mime-function nil)

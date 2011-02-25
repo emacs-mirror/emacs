@@ -1,8 +1,7 @@
 ;;; nntp.el --- nntp access for Gnus
 
-;; Copyright (C) 1987, 1988, 1989, 1990, 1992, 1993,
-;;   1994, 1995, 1996, 1997, 1998, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1987-1990, 1992-1998, 2000-2011
+;;   Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -41,7 +40,7 @@
 
 (eval-when-compile (require 'cl))
 
-(autoload 'auth-source-user-or-password "auth-source")
+(autoload 'auth-source-search "auth-source")
 
 (defgroup nntp nil
   "NNTP access for Gnus."
@@ -775,6 +774,72 @@ command whose response triggered the error."
 	 (nntp-copy-to-buffer nntp-server-buffer (point-min) (point-max))
          'headers)))))
 
+(deffoo nntp-retrieve-group-data-early (server infos)
+  "Retrieve group info on INFOS."
+  (nntp-with-open-group nil server
+    (when (nntp-find-connection-buffer nntp-server-buffer)
+      ;; The first time this is run, this variable is `try'.  So we
+      ;; try.
+      (when (eq nntp-server-list-active-group 'try)
+	(nntp-try-list-active
+	 (gnus-group-real-name (gnus-info-group (car infos)))))
+      (with-current-buffer (nntp-find-connection-buffer nntp-server-buffer)
+	(erase-buffer)
+	(let ((nntp-inhibit-erase t)
+	      (command (if nntp-server-list-active-group
+			   "LIST ACTIVE" "GROUP")))
+	  (dolist (info infos)
+	    (nntp-send-command
+	     nil command (gnus-group-real-name (gnus-info-group info)))))
+	(length infos)))))
+
+(deffoo nntp-finish-retrieve-group-infos (server infos count)
+  (nntp-with-open-group nil server
+    (let ((buf (nntp-find-connection-buffer nntp-server-buffer))
+	  (method (gnus-find-method-for-group
+		   (gnus-info-group (car infos))
+		   (car infos)))
+	  (received 0)
+	  (last-point 1))
+      (when (and buf
+		 count)
+	(with-current-buffer buf
+	  (while (and (gnus-buffer-live-p buf)
+		      (progn
+			(goto-char last-point)
+			;; Count replies.
+			(while (re-search-forward
+				(if nntp-server-list-active-group
+				    "^[.]"
+				  "^[0-9]")
+				nil t)
+			  (incf received))
+			(setq last-point (point))
+			(< received count)))
+	    (nntp-accept-response))
+	  ;; We now have all the entries.  Remove CRs.
+	  (nnheader-strip-cr)
+	  (if (not nntp-server-list-active-group)
+	      (progn
+		(nntp-copy-to-buffer nntp-server-buffer
+				     (point-min) (point-max))
+		(gnus-groups-to-gnus-format method gnus-active-hashtb t))
+	    ;; We have read active entries, so we just delete the
+	    ;; superfluous gunk.
+	    (goto-char (point-min))
+	    (while (re-search-forward "^[.2-5]" nil t)
+	      (delete-region (match-beginning 0)
+			     (progn (forward-line 1) (point))))
+	    (nntp-copy-to-buffer nntp-server-buffer (point-min) (point-max))
+	    (with-current-buffer nntp-server-buffer
+	      (gnus-active-to-gnus-format
+	       ;; Kludge to use the extended method name if you have
+	       ;; an extended one.
+	       (if (consp (gnus-info-method (car infos)))
+		   (gnus-info-method (car infos))
+		 method)
+	       gnus-active-hashtb nil t))))))))
+
 (deffoo nntp-retrieve-groups (groups &optional server)
   "Retrieve group info on GROUPS."
   (nntp-with-open-group
@@ -1174,10 +1239,16 @@ If SEND-IF-FORCE, only send authinfo to the server if the
   (let* ((list (netrc-parse nntp-authinfo-file))
 	 (alist (netrc-machine list nntp-address "nntp"))
 	 (force (or (netrc-get alist "force") nntp-authinfo-force))
-	 (auth-info
-	  (auth-source-user-or-password '("login" "password") nntp-address "nntp"))
-	 (auth-user (nth 0 auth-info))
-	 (auth-passwd (nth 1 auth-info))
+         (auth-info
+          (nth 0 (auth-source-search :max 1
+                                     ;; TODO: allow the virtual server name too
+                                     :host nntp-address
+                                     :port '("119" "nntp"))))
+         (auth-user (plist-get auth-info :user))
+         (auth-passwd (plist-get auth-info :secret))
+         (auth-passwd (if (functionp auth-passwd)
+                          (funcall auth-passwd)
+                        auth-passwd))
 	 (user (or
 		;; this is preferred to netrc-*
 		auth-user

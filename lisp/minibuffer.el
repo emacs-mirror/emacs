@@ -1,6 +1,6 @@
 ;;; minibuffer.el --- Minibuffer completion functions
 
-;; Copyright (C) 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Package: emacs
@@ -195,6 +195,10 @@ You should give VAR a non-nil `risky-local-variable' property."
         (when (functionp ,var)
           (setq ,var (,fun)))
         ,var))))
+
+(defun completion-table-case-fold (table string pred action)
+  (let ((completion-ignore-case t))
+    (complete-with-action action table string pred)))
 
 (defun completion-table-with-context (prefix table string pred action)
   ;; TODO: add `suffix' maybe?
@@ -2315,5 +2319,4 @@ filter out additional entries (because TABLE migth not obey PRED)."
 
 (provide 'minibuffer)
 
-;; arch-tag: ef8a0a15-1080-4790-a754-04017c02f08f
 ;;; minibuffer.el ends here

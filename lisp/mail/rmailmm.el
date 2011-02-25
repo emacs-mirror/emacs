@@ -1,6 +1,6 @@
 ;;; rmailmm.el --- MIME decoding and display stuff for RMAIL
 
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 2006-2011  Free Software Foundation, Inc.
 
 ;; Author: Alexander Pohoyda
 ;;	Alex Schroeder
@@ -274,11 +274,11 @@ It is called with one argument ENTITY."
   "Return a vector describing the displayed region of a MIME-entity at POS.
 Optional 2nd argument ENTITY is the MIME-entity at POS.
 The value is a vector [ INDEX HEADER TAGLINE BODY END], where
+  INDEX: index into the returned vector indicating where POS is (1..3).
   HEADER: the position of the beginning of a header
   TAGLINE: the position of the beginning of a tagline
   BODY: the position of the beginning of a body
-  END: the position of the end of the entity.
-  INDEX: index into the returned vector indicating where POS is."
+  END: the position of the end of the entity."
   (save-excursion
     (or entity
 	(setq entity (get-text-property pos 'rmail-mime-entity)))
@@ -319,74 +319,32 @@ The value is a vector [ INDEX HEADER TAGLINE BODY END], where
 	  (setq end body-beg))
 	(vector index beg tagline-beg body-beg end)))))
 
-(defun rmail-mime-next-item ()
-  "Move point to the next displayed item of the current MIME entity.
-A MIME entity has three items; header, tagline, and body.
-If we are in the last item of the entity, move point to the first
-item of the next entity.  If we reach the end of buffer, move
-point to the first item of the first entity (i.e. the beginning
-of buffer)."
-  (interactive)
-  (if (rmail-mime-message-p)
-      (let* ((segment (rmail-mime-entity-segment (point)))
-	     (next-pos (aref segment (1+ (aref segment 0))))
-	     (button (next-button (point))))
-	(goto-char (if (and button (< (button-start button) next-pos))
-		       (button-start button)
-		     next-pos))
-	(if (eobp)
-	    (goto-char (point-min))))))
-
-(defun rmail-mime-previous-item ()
-  "Move point to the previous displayed item of the current MIME message.
-A MIME entity has three items; header, tagline, and body.
-If we are at the beginning of the first item of the entity, move
-point to the last item of the previous entity.  If we reach the
-beginning of buffer, move point to the last item of the last
-entity."
-  (interactive)
-  (when (rmail-mime-message-p)
-    (if (bobp)
-	(goto-char (point-max)))
-    (let* ((segment (rmail-mime-entity-segment (1- (point))))
-	   (prev-pos (aref segment (aref segment 0)))
-	   (button (previous-button (point))))
-      (goto-char (if (and button (> (button-start button) prev-pos))
-		     (button-start button)
-		   prev-pos)))))
-
 (defun rmail-mime-shown-mode (entity)
   "Make MIME-entity ENTITY displayed by the default way."
   (let ((new (aref (rmail-mime-entity-display entity) 1)))
     (aset new 0 (aref (rmail-mime-entity-header entity) 2))
     (aset new 1 (aref (rmail-mime-entity-tagline entity) 2))
-    (aset new 2 (aref (rmail-mime-entity-body entity) 2))))
-
-(defun rmail-mime-hidden-mode (entity top)
-  "Make MIME-entity ENTITY displayed in the hidden mode.
-If TOP is non-nil, display ENTITY only by the tagline.
-Otherwise, don't display ENTITY."
-  (if top
-      (let ((new (aref (rmail-mime-entity-display entity) 1)))
-	(aset new 0 nil)
-	(aset new 1 top)
-	(aset new 2 nil)
-	(aset (rmail-mime-entity-body entity) 2 nil))
-    (let ((current (aref (rmail-mime-entity-display entity) 0)))
-      (aset current 0 nil)
-      (aset current 1 nil)
-      (aset current 2 nil)))
+    (aset new 2 (aref (rmail-mime-entity-body entity) 2)))
   (dolist (child (rmail-mime-entity-children entity))
-    (rmail-mime-hidden-mode child nil)))
+    (rmail-mime-shown-mode child)))
+
+(defun rmail-mime-hidden-mode (entity)
+  "Make MIME-entity ENTITY displayed in the hidden mode."
+  (let ((new (aref (rmail-mime-entity-display entity) 1)))
+    (aset new 0 nil)
+    (aset new 1 t)
+    (aset new 2 nil))
+  (dolist (child (rmail-mime-entity-children entity))
+    (rmail-mime-hidden-mode child)))
 
 (defun rmail-mime-raw-mode (entity)
   "Make MIME-entity ENTITY displayed in the raw mode."
   (let ((new (aref (rmail-mime-entity-display entity) 1)))
     (aset new 0 'raw)
     (aset new 1 nil)
-    (aset new 2 'raw)
-    (dolist (child (rmail-mime-entity-children entity))
-      (rmail-mime-hidden-mode child nil))))
+    (aset new 2 'raw))
+  (dolist (child (rmail-mime-entity-children entity))
+    (rmail-mime-raw-mode child)))
 
 (defun rmail-mime-toggle-raw (entity)
   "Toggle on and off the raw display mode of MIME-entity ENTITY."
@@ -407,7 +365,7 @@ Otherwise, don't display ENTITY."
 	(restore-buffer-modified-p modified)))))
 
 (defun rmail-mime-toggle-hidden ()
-  "Toggle on and off the hidden display mode of MIME-entity ENTITY."
+  "Hide or show the body of MIME-entity at point."
   (interactive)
   (when (rmail-mime-message-p)
     (let* ((rmail-mime-mbox-buffer rmail-view-buffer)
@@ -420,18 +378,19 @@ Otherwise, don't display ENTITY."
 	  ;; Enter the hidden mode.
 	  (progn
 	    ;; If point is in the body part, move it to the tagline
-	    ;; (or the header if headline is not displayed).
+	    ;; (or the header if tagline is not displayed).
 	    (if (= (aref segment 0) 3)
 		(goto-char (aref segment 2)))
-	    (rmail-mime-hidden-mode entity t)
+	    (rmail-mime-hidden-mode entity)
 	    ;; If the current entity is the topmost one, display the
 	    ;; header.
 	    (if (and rmail-mime-mbox-buffer (= (aref segment 1) (point-min)))
 		(let ((new (aref (rmail-mime-entity-display entity) 1)))
 		  (aset new 0 t))))
 	;; Enter the shown mode.
-	(aset (rmail-mime-entity-body entity) 2 t)
-	(rmail-mime-shown-mode entity))
+	(rmail-mime-shown-mode entity)
+	;; Force this body shown.
+	(aset (aref (rmail-mime-entity-display entity) 1) 2 t))
       (let ((inhibit-read-only t)
 	    (modified (buffer-modified-p))
 	    (rmail-mime-mbox-buffer rmail-view-buffer)
@@ -441,8 +400,8 @@ Otherwise, don't display ENTITY."
 	  (rmail-mime-insert entity)
 	  (restore-buffer-modified-p modified))))))
 
-(define-key rmail-mode-map "\t" 'rmail-mime-next-item)
-(define-key rmail-mode-map [backtab] 'rmail-mime-previous-item)
+(define-key rmail-mode-map "\t" 'forward-button)
+(define-key rmail-mode-map [backtab] 'backward-button)
 (define-key rmail-mode-map "\r" 'rmail-mime-toggle-hidden)
 
 ;;; Handlers
@@ -454,13 +413,37 @@ to the tag line."
   (insert "[")
   (let ((tag (aref (rmail-mime-entity-tagline entity) 0)))
     (if (> (length tag) 0) (insert (substring tag 1) ":")))
-  (insert (car (rmail-mime-entity-type entity)))
+  (insert (car (rmail-mime-entity-type entity)) " ")
+  (insert-button (let ((new (aref (rmail-mime-entity-display entity) 1)))
+		   (if (aref new 2) "Hide" "Show"))
+		 :type 'rmail-mime-toggle
+		 'help-echo "mouse-2, RET: Toggle show/hide")
   (dolist (item item-list)
     (when item
       (if (stringp item)
 	  (insert item)
 	(apply 'insert-button item))))
   (insert "]\n"))
+
+(defun rmail-mime-update-tagline (entity)
+  "Update the current tag line for MIME-entity ENTITY."
+  (let ((inhibit-read-only t)
+	(modified (buffer-modified-p))
+	;; If we are going to show the body, the new button label is
+	;; "Hide".  Otherwise, it's "Show".
+	(label (if (aref (aref (rmail-mime-entity-display entity) 1) 2) "Hide"
+		 "Show"))
+	(button (next-button (point))))
+    ;; Go to the second character of the button "Show" or "Hide".
+    (goto-char (1+ (button-start button)))
+    (setq button (button-at (point)))
+    (save-excursion
+      (insert label)
+      (delete-region (point) (button-end button)))
+    (delete-region (button-start button) (point))
+    (put-text-property (point) (button-end button) 'rmail-mime-entity entity)
+    (restore-buffer-modified-p modified)
+    (forward-line 1)))
 
 (defun rmail-mime-insert-header (header)
   "Decode and insert a MIME-entity header HEADER in the current buffer.
@@ -478,11 +461,27 @@ See `rmail-mime-entity' for the detail."
 	    (rmail-copy-headers (point) (aref header 1)))))
       (rfc2047-decode-region pos (point))
       (if (and last-coding-system-used (not rmail-mime-coding-system))
-	  (setq rmail-mime-coding-system last-coding-system-used))
+	  (setq rmail-mime-coding-system (cons last-coding-system-used nil)))
       (goto-char (point-min))
       (rmail-highlight-headers)
       (goto-char (point-max))
       (insert "\n"))))
+
+(defun rmail-mime-find-header-encoding (header)
+  "Retun the last coding system used to decode HEADER.
+HEADER is a header component of a MIME-entity object (see
+`rmail-mime-entity')."
+  (with-temp-buffer
+    (let ((buf (current-buffer)))
+      (with-current-buffer rmail-mime-mbox-buffer
+	(let ((last-coding-system-used nil)
+	      (rmail-buffer rmail-mime-mbox-buffer)
+	      (rmail-view-buffer buf))
+	  (save-excursion
+	    (goto-char (aref header 0))
+	    (rmail-copy-headers (point) (aref header 1)))))
+      (rfc2047-decode-region (point-min) (point-max))
+      last-coding-system-used)))
 
 (defun rmail-mime-text-handler (content-type
 				content-disposition
@@ -516,7 +515,9 @@ See `rmail-mime-entity' for the detail."
 	      ((string= transfer-encoding "quoted-printable")
 	       (quoted-printable-decode-region pos (point))))))
     (decode-coding-region pos (point) coding-system)
-    (or rmail-mime-coding-system
+    (if (and
+	 (or (not rmail-mime-coding-system) (consp rmail-mime-coding-system))
+	 (not (eq (coding-system-base coding-system) 'us-ascii)))
 	(setq rmail-mime-coding-system coding-system))
     (or (bolp) (insert "\n"))))
 
@@ -544,7 +545,10 @@ See `rmail-mime-entity' for the detail."
 	  (rmail-mime-insert-header header)))
     ;; tagline
     (if (eq (aref current 1) (aref new 1))
-	(forward-char (- (aref segment 3) (aref segment 2)))
+	(if (or (not (aref current 1))
+		(eq (aref current 2) (aref new 2)))
+	    (forward-char (- (aref segment 3) (aref segment 2)))
+	  (rmail-mime-update-tagline entity))
       (if (aref current 1)
 	  (delete-char (- (aref segment 3) (aref segment 2))))
       (if (aref new 1)
@@ -599,13 +603,13 @@ MIME-Version: 1.0
     (insert-image (create-image data (cdr bulk-data) t))
     (insert "\n")))
 
-(defun rmail-mime-image (button)
-  "Display the image associated with BUTTON."
+(defun rmail-mime-toggle-button (button)
+  "Hide or show the body of the MIME-entity associated with BUTTON."
   (save-excursion
-    (goto-char (button-end button))
+    (goto-char (button-start button))
     (rmail-mime-toggle-hidden)))
 
-(define-button-type 'rmail-mime-image 'action 'rmail-mime-image)
+(define-button-type 'rmail-mime-toggle 'action 'rmail-mime-toggle-button)
 
 
 (defun rmail-mime-bulk-handler (content-type
@@ -628,7 +632,7 @@ directly."
 	(size (cdr (assq 'size (cdr (rmail-mime-entity-disposition entity)))))
 	(bulk-data (aref (rmail-mime-entity-tagline entity) 1))
 	(body (rmail-mime-entity-body entity))
-	size type to-show)
+	type to-show)
     (cond (size
 	   (setq size (string-to-number size)))
 	  ((stringp (aref body 0))
@@ -662,7 +666,6 @@ directly."
 
 (defun rmail-mime-insert-bulk (entity)
   "Presentation handler for an attachment MIME entity."
-  ;; Find the default directory for this media type.
   (let* ((content-type (rmail-mime-entity-type entity))
 	 (content-disposition (rmail-mime-entity-disposition entity))
 	 (current (aref (rmail-mime-entity-display entity) 0))
@@ -671,6 +674,7 @@ directly."
 	 (tagline (rmail-mime-entity-tagline entity))
 	 (bulk-data (aref tagline 1))
 	 (body (rmail-mime-entity-body entity))
+	 ;; Find the default directory for this media type.
 	 (directory (catch 'directory
 		      (dolist (entry rmail-mime-attachment-dirs-alist)
 			(when (string-match (car entry) (car content-type))
@@ -711,13 +715,16 @@ directly."
 
     ;; tagline
     (if (eq (aref current 1) (aref new 1))
-	(forward-char (- (aref segment 3) (aref segment 2)))
+	(if (or (not (aref current 1))
+		(eq (aref current 2) (aref new 2)))
+	    (forward-char (- (aref segment 3) (aref segment 2)))
+	  (rmail-mime-update-tagline entity))
       (if (aref current 1)
 	  (delete-char (- (aref segment 3) (aref segment 2))))
       (if (aref new 1)
 	  (rmail-mime-insert-tagline
 	   entity
-	   " file:"
+	   " Save:"
 	   (list filename
 		 :type 'rmail-mime-save
 		 'help-echo "mouse-2, RET: Save attachment"
@@ -725,14 +732,17 @@ directly."
 		 'directory (file-name-as-directory directory)
 		 'data data)
 	   (format " (%.0f%s)" size (car units))
-	   (if (cdr bulk-data)
-	       " ")
-	   (if (cdr bulk-data)
-	       (list "Toggle show/hide"
-		     :type 'rmail-mime-image
-		     'help-echo "mouse-2, RET: Toggle show/hide"
-		     'image-type (cdr bulk-data)
-		     'image-data data)))))
+	   ;; We don't need this button because the "type" string of a
+	   ;; tagline is the button to do this.
+	   ;; (if (cdr bulk-data)
+	   ;;     " ")
+	   ;; (if (cdr bulk-data)
+	   ;;     (list "Toggle show/hide"
+	   ;; 	     :type 'rmail-mime-image
+	   ;; 	     'help-echo "mouse-2, RET: Toggle show/hide"
+	   ;; 	     'image-type (cdr bulk-data)
+	   ;; 	     'image-data data))
+	   )))
     ;; body
     (if (eq (aref current 2) (aref new 2))
 	(forward-char (- (aref segment 4) (aref segment 3)))
@@ -742,7 +752,11 @@ directly."
 	  (cond ((eq (cdr bulk-data) 'text)
 		 (rmail-mime-insert-decoded-text entity))
 		((cdr bulk-data)
-		 (rmail-mime-insert-image entity)))))
+		 (rmail-mime-insert-image entity))
+		(t
+		 ;; As we don't know how to display the body, just
+		 ;; insert it as a text.
+		 (rmail-mime-insert-decoded-text entity)))))
     (put-text-property beg (point) 'rmail-mime-entity entity)))
 
 (defun test-rmail-mime-bulk-handler ()
@@ -820,7 +834,9 @@ The other arguments are the same as `rmail-mime-multipart-handler'."
     (cond ((string-match "mixed" subtype)
 	   (setq content-type '("text/plain")))
 	  ((string-match "digest" subtype)
-	   (setq content-type '("message/rfc822"))))
+	   (setq content-type '("message/rfc822")))
+	  (t
+	   (setq content-type nil)))
 
     ;; Loop over all body parts, where beg points at the beginning of
     ;; the part and end points at the end of the part.  next points at
@@ -877,8 +893,9 @@ The other arguments are the same as `rmail-mime-multipart-handler'."
 			(setq second child)))))
 	    (or best (not second) (setq best second))
 	    (dolist (child entities)
-	      (or (eq best child)
-		  (rmail-mime-hidden-mode child t)))))
+	      (unless (eq best child)
+		(aset (rmail-mime-entity-body child) 2 nil)
+		(rmail-mime-hidden-mode child)))))
       entities)))
 
 (defun test-rmail-mime-multipart-handler ()
@@ -930,21 +947,23 @@ This is the epilogue.  It is also to be ignored."))
 	  (rmail-mime-insert-header header)))
     ;; tagline
     (if (eq (aref current 1) (aref new 1))
-	(forward-char (- (aref segment 3) (aref segment 2)))
+	(if (or (not (aref current 1))
+		(eq (aref current 2) (aref new 2)))
+	    (forward-char (- (aref segment 3) (aref segment 2)))
+	  (rmail-mime-update-tagline entity))
       (if (aref current 1)
 	  (delete-char (- (aref segment 3) (aref segment 2))))
       (if (aref new 1)
 	  (rmail-mime-insert-tagline entity)))
 
     (put-text-property beg (point) 'rmail-mime-entity entity)
+
     ;; body
     (if (eq (aref current 2) (aref new 2))
 	(forward-char (- (aref segment 4) (aref segment 3)))
-      (if (aref current 2)
-	  (delete-char (- (aref segment 4) (aref segment 3))))
-      (if (aref new 2)
-	  (dolist (child (rmail-mime-entity-children entity))
-	    (rmail-mime-insert child))))))
+      (dolist (child (rmail-mime-entity-children entity))
+	(rmail-mime-insert child)))
+    entity))
 
 ;;; Main code
 
@@ -1005,7 +1024,16 @@ The parsed header value:
     ;; Everything else is an attachment.
     (rmail-mime-bulk-handler content-type
 		       content-disposition
-		       content-transfer-encoding)))
+		       content-transfer-encoding))
+  (save-restriction
+    (widen)
+    (let ((entity (get-text-property (1- (point)) 'rmail-mime-entity))
+	  current new)
+      (when entity
+	(setq current (aref (rmail-mime-entity-display entity) 0)
+	      new (aref (rmail-mime-entity-display entity) 1))
+	(dotimes (i 3)
+	  (aset current i (aref new i)))))))
 
 (defun rmail-mime-show (&optional show-headers)
   "Handle the current buffer as a MIME message.
@@ -1050,7 +1078,8 @@ modified."
 	(setq content-transfer-encoding (downcase content-transfer-encoding)))
     (setq content-type
 	  (if content-type
-	      (mail-header-parse-content-type content-type)
+	      (or (mail-header-parse-content-type content-type)
+		  '("text/plain"))
 	    (or default-content-type '("text/plain"))))
     (setq content-disposition
 	  (if content-disposition
@@ -1178,13 +1207,20 @@ available."
 	(if (aref current 1)
 	    (delete-char (- (aref segment 3) (aref segment 2))))
 	;; body
-	(if (eq (aref current 2) (aref new 2))
-	    (forward-char (- (aref segment 4) (aref segment 3)))
-	  (if (aref current 2)
-	      (delete-char (- (aref segment 4) (aref segment 3))))
-	  (insert-buffer-substring rmail-mime-mbox-buffer
-				   (aref body 0) (aref body 1)))
-	(put-text-property beg (point) 'rmail-mime-entity entity)))
+	(let ((children (rmail-mime-entity-children entity)))
+	  (if children
+	      (progn
+		(put-text-property beg (point) 'rmail-mime-entity entity)
+		(dolist (child children)
+		  (rmail-mime-insert child)))
+	    (if (eq (aref current 2) (aref new 2))
+		(forward-char (- (aref segment 4) (aref segment 3)))
+	      (if (aref current 2)
+		(delete-char (- (aref segment 4) (aref segment 3))))
+	      (insert-buffer-substring rmail-mime-mbox-buffer
+				       (aref body 0) (aref body 1))
+	      (or (bolp) (insert "\n")))
+	    (put-text-property beg (point) 'rmail-mime-entity entity)))))
     (dotimes (i 3)
       (aset current i (aref new i)))))
 
@@ -1212,17 +1248,18 @@ displays text and multipart messages, and offers to download
 attachments as specfied by `rmail-mime-attachment-dirs-alist'."
   (interactive "P")
   (if rmail-enable-mime
-      (if (rmail-mime-message-p)
-	  (let ((rmail-mime-mbox-buffer rmail-view-buffer)
-		(rmail-mime-view-buffer rmail-buffer)
-		(entity (get-text-property (point) 'rmail-mime-entity)))
-	    (if arg
-		(if entity
-		    (rmail-mime-toggle-raw entity))
-	      (goto-char (point-min))
-	      (rmail-mime-toggle-raw
-	       (get-text-property (point) 'rmail-mime-entity))))
-	(message "Not a MIME message"))
+      (with-current-buffer rmail-buffer
+	(if (rmail-mime-message-p)
+	    (let ((rmail-mime-mbox-buffer rmail-view-buffer)
+		  (rmail-mime-view-buffer rmail-buffer)
+		  (entity (get-text-property (point) 'rmail-mime-entity)))
+	      (if arg
+		  (if entity
+		      (rmail-mime-toggle-raw entity))
+		(goto-char (point-min))
+		(rmail-mime-toggle-raw
+		 (get-text-property (point) 'rmail-mime-entity))))
+	  (message "Not a MIME message")))
     (let* ((data (rmail-apply-in-message rmail-current-message 'buffer-string))
 	   (buf (get-buffer-create "*RMAIL*"))
 	   (rmail-mime-mbox-buffer rmail-view-buffer)
@@ -1256,8 +1293,22 @@ attachments as specfied by `rmail-mime-attachment-dirs-alist'."
 	(with-current-buffer rmail-mime-view-buffer
 	  (erase-buffer)
 	  (rmail-mime-insert entity)
-	  (if rmail-mime-coding-system
-	      (set-buffer-file-coding-system rmail-mime-coding-system t t)))
+	  (if (consp rmail-mime-coding-system)
+	      ;; Decoding is done by rfc2047-decode-region only for a
+	      ;; header.  But, as the used coding system may have been
+	      ;; overriden by mm-charset-override-alist, we can't
+	      ;; trust (car rmail-mime-coding-system).  So, here we
+	      ;; try the decoding again with mm-charset-override-alist
+	      ;; bound to nil.
+	      (let ((mm-charset-override-alist nil))
+		(setq rmail-mime-coding-system
+		      (rmail-mime-find-header-encoding
+		       (rmail-mime-entity-header entity)))))
+	  (set-buffer-file-coding-system
+	   (if rmail-mime-coding-system
+	       (coding-system-base rmail-mime-coding-system)
+	     'undecided)
+	   t t))
       ;; Decoding failed.  ENTITY is an error message.  Insert the
       ;; original message body as is, and show warning.
       (let ((region (with-current-buffer rmail-mime-mbox-buffer
@@ -1340,5 +1391,4 @@ attachments as specfied by `rmail-mime-attachment-dirs-alist'."
 ;; generated-autoload-file: "rmail.el"
 ;; End:
 
-;; arch-tag: 3f2c5e5d-1aef-4512-bc20-fd737c9d5dd9
 ;;; rmailmm.el ends here

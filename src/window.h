@@ -1,6 +1,5 @@
 /* Window definitions for GNU Emacs.
-   Copyright (C) 1985, 1986, 1993, 1995, 1997, 1998, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+   Copyright (C) 1985-1986, 1993, 1995, 1997-2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -809,20 +808,6 @@ extern Lisp_Object minibuf_window;
 
 extern Lisp_Object minibuf_selected_window;
 
-/* Non-nil => window to for C-M-v to scroll when the minibuffer is
-   selected.  */
-
-extern Lisp_Object Vminibuf_scroll_window;
-
-/* Nil or a symbol naming the window system under which emacs is
-   running ('x is the only current possibility) */
-
-extern Lisp_Object Vinitial_window_system;
-
-/* Version number of X windows: 10, 11 or nil.  */
-
-extern Lisp_Object Vwindow_system_version;
-
 /* Window that the mouse is over (nil if no mouse support).  */
 
 extern Lisp_Object Vmouse_window;
@@ -949,5 +934,3 @@ extern void keys_of_window (void);
 
 #endif /* not WINDOW_H_INCLUDED */
 
-/* arch-tag: d4a6942f-e433-4ffe-ac10-2c3574f28577
-   (do not change this comment) */

@@ -1,5 +1,5 @@
 /* xftfont.c -- XFT font driver.
-   Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2006-2011 Free Software Foundation, Inc.
    Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
@@ -187,17 +187,20 @@ xftfont_fix_match (FcPattern *pat, FcPattern *match)
   double dpi;
 
   FcPatternGetBool (pat, FC_ANTIALIAS, 0, &b);
-  if (! b) 
+  if (! b)
     {
       FcPatternDel (match, FC_ANTIALIAS);
       FcPatternAddBool (match, FC_ANTIALIAS, FcFalse);
     }
   FcPatternGetBool (pat, FC_HINTING, 0, &b);
-  if (! b) 
+  if (! b)
     {
       FcPatternDel (match, FC_HINTING);
       FcPatternAddBool (match, FC_HINTING, FcFalse);
     }
+#ifndef FC_HINT_STYLE
+# define FC_HINT_STYLE "hintstyle"
+#endif
   if (FcResultMatch == FcPatternGetInteger (pat, FC_HINT_STYLE, 0, &i))
     {
       FcPatternDel (match, FC_HINT_STYLE);
@@ -411,7 +414,11 @@ xftfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
 	ascii_printable[i] = ' ' + i;
     }
   BLOCK_INPUT;
-  if (spacing != FC_PROPORTIONAL && spacing != FC_DUAL)
+  if (spacing != FC_PROPORTIONAL
+#ifdef FC_DUAL
+      && spacing != FC_DUAL
+#endif	/* FC_DUAL */
+      )
     {
       font->min_width = font->average_width = font->space_width
 	= xftfont->max_advance_width;
@@ -777,6 +784,3 @@ syms_of_xftfont (void)
 
   register_font_driver (&xftfont_driver, NULL);
 }
-
-/* arch-tag: 64ec61bf-7c8e-4fe6-b953-c6a85d5e1605
-   (do not change this comment) */

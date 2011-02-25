@@ -1,6 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Text, Programs, Indentation, Top
@@ -2925,7 +2924,3 @@ then inserts the generated table in the proper syntax into the
 destination buffer.  The default destination buffer is
 @code{table.@var{lang}}, where @var{lang} is the language you
 specified.
-
-@ignore
-   arch-tag: 8db54ed8-2036-49ca-b0df-23811d03dc70
-@end ignore

@@ -25,8 +25,7 @@
 This file documents Ediff, a comprehensive visual interface to Unix diff
 and patch utilities.
 
-Copyright @copyright{} 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+Copyright @copyright{} 1995-2011 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -42,7 +41,7 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs misc features
 @direntry
 * Ediff: (ediff).       A visual interface for comparing and merging programs.
 @end direntry
@@ -64,6 +63,7 @@ developing GNU and promoting software freedom.''
 @contents
 
 @node Top, Introduction, (dir), (dir)
+@top Ediff
 
 @insertcopying
 
@@ -2541,4 +2541,3 @@ Eli Zaretskii (eliz at is.elta.co.il)
 @printindex cp
 
 @bye
-

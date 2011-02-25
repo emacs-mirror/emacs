@@ -1166,4 +1166,3 @@
     ("YI SYLLABLE YYR" #xA48C)
     ))
 
-;; arch-tag: 4c900a8b-cd84-4c41-86f4-dcb47efac01b

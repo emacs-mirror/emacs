@@ -1,7 +1,6 @@
 ;;; em-hist.el --- history list management
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -998,5 +997,4 @@ If N is negative, search backwards for the -Nth previous match."
 ;; generated-autoload-file: "esh-groups.el"
 ;; End:
 
-;; arch-tag: 1a847333-f864-4b96-9acd-b549d620b6c6
 ;;; em-hist.el ends here

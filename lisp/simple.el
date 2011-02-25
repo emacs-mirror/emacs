@@ -1,8 +1,6 @@
 ;;; simple.el --- basic editing commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1993-2011  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -252,8 +250,8 @@ runs `next-error-hook' with `run-hooks', and stays with that buffer
 until you use it in some other buffer which uses Compilation mode
 or Compilation Minor mode.
 
-See variables `compilation-parse-errors-function' and
-\`compilation-error-regexp-alist' for customization ideas."
+To control which errors are matched, customize the variable
+`compilation-error-regexp-alist'."
   (interactive "P")
   (if (consp arg) (setq reset t arg nil))
   (when (setq next-error-last-buffer (next-error-find-buffer))
@@ -359,9 +357,11 @@ Other major modes are defined by comparison with this one."
     (define-key map " " 'scroll-up)
     (define-key map "\C-?" 'scroll-down)
     (define-key map "?" 'describe-mode)
+    (define-key map "h" 'describe-mode)
     (define-key map ">" 'end-of-buffer)
     (define-key map "<" 'beginning-of-buffer)
     (define-key map "g" 'revert-buffer)
+    (define-key map "z" 'kill-this-buffer)
     map))
 
 (put 'special-mode 'mode-class 'special)
@@ -560,22 +560,30 @@ On nonblank line, delete any immediately following blank lines."
     (if (looking-at "^[ \t]*\n\\'")
 	(delete-region (point) (point-max)))))
 
-(defun delete-trailing-whitespace ()
+(defun delete-trailing-whitespace (&optional start end)
   "Delete all the trailing whitespace across the current buffer.
 All whitespace after the last non-whitespace character in a line is deleted.
 This respects narrowing, created by \\[narrow-to-region] and friends.
-A formfeed is not considered whitespace by this function."
-  (interactive "*")
+A formfeed is not considered whitespace by this function.
+If the region is active, only delete whitespace within the region."
+  (interactive (progn
+                 (barf-if-buffer-read-only)
+                 (if (use-region-p)
+                     (list (region-beginning) (region-end))
+                   (list nil nil))))
   (save-match-data
     (save-excursion
-      (goto-char (point-min))
-      (while (re-search-forward "\\s-$" nil t)
-	(skip-syntax-backward "-" (save-excursion (forward-line 0) (point)))
-	;; Don't delete formfeeds, even if they are considered whitespace.
-	(save-match-data
-	  (if (looking-at ".*\f")
-	      (goto-char (match-end 0))))
-	(delete-region (point) (match-end 0))))))
+      (let ((end-marker (copy-marker (or end (point-max))))
+            (start (or start (point-min))))
+        (goto-char start)
+        (while (re-search-forward "\\s-$" end-marker t)
+          (skip-syntax-backward "-" (save-excursion (forward-line 0) (point)))
+          ;; Don't delete formfeeds, even if they are considered whitespace.
+          (save-match-data
+            (if (looking-at ".*\f")
+                (goto-char (match-end 0))))
+          (delete-region (point) (match-end 0)))
+        (set-marker end-marker nil)))))
 
 (defun newline-and-indent ()
   "Insert a newline, then indent according to major mode.
@@ -716,7 +724,7 @@ If N is negative, delete newlines as well."
         (n (abs n)))
     (skip-chars-backward skip-characters)
     (constrain-to-field nil orig-pos)
-    (dotimes (i (or n 1))
+    (dotimes (i n)
       (if (= (following-char) ?\s)
 	  (forward-char 1)
 	(insert ?\s)))
@@ -1088,8 +1096,6 @@ in *Help* buffer.  See also the command `describe-char'."
   (define-key m "\M-\t" 'lisp-complete-symbol)
   (set-keymap-parent m minibuffer-local-map)
   (setq read-expression-map m))
-
-(defvar read-expression-history nil)
 
 (defvar minibuffer-completing-symbol nil
   "Non-nil means completing a Lisp symbol in the minibuffer.")
@@ -4170,9 +4176,11 @@ Outline mode sets this."
   "When non-nil, `line-move' moves point by visual lines.
 This movement is based on where the cursor is displayed on the
 screen, instead of relying on buffer contents alone.  It takes
-into account variable-width characters and line continuation."
+into account variable-width characters and line continuation.
+If nil, `line-move' moves point by logical lines."
   :type 'boolean
-  :group 'editing-basics)
+  :group 'editing-basics
+  :version "23.1")
 
 ;; Returns non-nil if partial move was done.
 (defun line-move-partial (arg noerror to-end)
@@ -5051,12 +5059,10 @@ If optional arg REALLY-WORD is non-nil, it finds just a word."
 		 regexp)
   :group 'fill)
 
-;; This function is used as the auto-fill-function of a buffer
-;; when Auto-Fill mode is enabled.
-;; It returns t if it really did any work.
-;; (Actually some major modes use a different auto-fill function,
-;; but this one is the default one.)
 (defun do-auto-fill ()
+  "The default value for `normal-auto-fill-function'.
+This is the default auto-fill function, some major modes use a different one.
+Returns t if it really did any work."
   (let (fc justify give-up
 	   (fill-prefix fill-prefix))
     (if (or (not (setq justify (current-justification)))
@@ -5664,7 +5670,10 @@ appears to have customizations applying to the old default,
   :group 'mail)
 
 (defun rfc822-goto-eoh ()
-  ;; Go to header delimiter line in a mail message, following RFC822 rules
+  "If the buffer starts with a mail header, move point to the header's end.
+Otherwise, moves to `point-min'.
+The end of the header is the start of the next line, if there is one,
+else the end of the last line.  This function obeys RFC822."
   (goto-char (point-min))
   (when (re-search-forward
 	 "^\\([:\n]\\|[^: \t\n]+[ \t\n]\\)" nil 'move)
@@ -5840,6 +5849,7 @@ With a prefix argument, set VARIABLE to VALUE buffer-locally."
     (define-key map [left] 'previous-completion)
     (define-key map [right] 'next-completion)
     (define-key map "q" 'quit-window)
+    (define-key map "z" 'kill-this-buffer)
     map)
   "Local map for completion list buffers.")
 

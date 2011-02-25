@@ -1,6 +1,5 @@
 /* GNU Emacs routines to deal with case tables.
-   Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-                 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+   Copyright (C) 1993-1994, 2001-2011  Free Software Foundation, Inc.
 
 Author: Howard Gayle
 
@@ -72,7 +71,7 @@ DEFUN ("current-case-table", Fcurrent_case_table, Scurrent_case_table, 0, 0, 0,
        doc: /* Return the case table of the current buffer.  */)
   (void)
 {
-  return current_buffer->downcase_table;
+  return BVAR (current_buffer, downcase_table);
 }
 
 DEFUN ("standard-case-table", Fstandard_case_table, Sstandard_case_table, 0, 0, 0,
@@ -161,10 +160,10 @@ set_case_table (Lisp_Object table, int standard)
     }
   else
     {
-      current_buffer->downcase_table = table;
-      current_buffer->upcase_table = up;
-      current_buffer->case_canon_table = canon;
-      current_buffer->case_eqv_table = eqv;
+      BVAR (current_buffer, downcase_table) = table;
+      BVAR (current_buffer, upcase_table) = up;
+      BVAR (current_buffer, case_canon_table) = canon;
+      BVAR (current_buffer, case_eqv_table) = eqv;
     }
 
   return table;
@@ -304,5 +303,3 @@ syms_of_casetab (void)
   defsubr (&Sset_standard_case_table);
 }
 
-/* arch-tag: e06388ad-99fe-40ec-ba67-9d010fcc4916
-   (do not change this comment) */

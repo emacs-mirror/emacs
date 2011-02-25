@@ -1,13 +1,13 @@
 /* GNU Emacs routines to deal with category tables.
-   Copyright (C) 1998, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-     Free Software Foundation, Inc.
-   Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-     2005, 2006, 2007, 2008, 2009, 2010, 2011
-     National Institute of Advanced Industrial Science and Technology (AIST)
-     Registration Number H14PRO021
-   Copyright (C) 2003
-     National Institute of Advanced Industrial Science and Technology (AIST)
-     Registration Number H13PRO009
+
+Copyright (C) 1998, 2001-2011  Free Software Foundation, Inc.
+Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+  2005, 2006, 2007, 2008, 2009, 2010, 2011
+  National Institute of Advanced Industrial Science and Technology (AIST)
+  Registration Number H14PRO021
+Copyright (C) 2003
+  National Institute of Advanced Industrial Science and Technology (AIST)
+  Registration Number H13PRO009
 
 This file is part of GNU Emacs.
 
@@ -49,9 +49,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 static int category_table_version;
 
 Lisp_Object Qcategory_table, Qcategoryp, Qcategorysetp, Qcategory_table_p;
-
-/* Variables to determine word boundary.  */
-Lisp_Object Vword_combining_categories, Vword_separating_categories;
 
 /* Temporary internal variable used in macro CHAR_HAS_CATEGORY.  */
 Lisp_Object _temp_category_set;
@@ -193,7 +190,7 @@ Lisp_Object
 check_category_table (Lisp_Object table)
 {
   if (NILP (table))
-    return current_buffer->category_table;
+    return BVAR (current_buffer, category_table);
   CHECK_TYPE (!NILP (Fcategory_table_p (table)), Qcategory_table_p, table);
   return table;
 }
@@ -203,7 +200,7 @@ DEFUN ("category-table", Fcategory_table, Scategory_table, 0, 0, 0,
 This is the one specified by the current buffer.  */)
   (void)
 {
-  return current_buffer->category_table;
+  return BVAR (current_buffer, category_table);
 }
 
 DEFUN ("standard-category-table", Fstandard_category_table,
@@ -284,7 +281,7 @@ Return TABLE.  */)
 {
   int idx;
   table = check_category_table (table);
-  current_buffer->category_table = table;
+  BVAR (current_buffer, category_table) = table;
   /* Indicate that this buffer now has a specified category table.  */
   idx = PER_BUFFER_VAR_IDX (category_table);
   SET_PER_BUFFER_VALUE_P (current_buffer, idx, 1);
@@ -295,7 +292,7 @@ Return TABLE.  */)
 Lisp_Object
 char_category_set (int c)
 {
-  return CHAR_TABLE_REF (current_buffer->category_table, c);
+  return CHAR_TABLE_REF (BVAR (current_buffer, category_table), c);
 }
 
 DEFUN ("char-category-set", Fchar_category_set, Schar_category_set, 1, 1, 0,
@@ -481,7 +478,7 @@ syms_of_category (void)
   Qcategory_table_p = intern_c_string ("category-table-p");
   staticpro (&Qcategory_table_p);
 
-  DEFVAR_LISP ("word-combining-categories", &Vword_combining_categories,
+  DEFVAR_LISP ("word-combining-categories", Vword_combining_categories,
 	       doc: /* List of pair (cons) of categories to determine word boundary.
 
 Emacs treats a sequence of word constituent characters as a single
@@ -519,7 +516,7 @@ the element `(?H . ?K) should be in this list.  */);
 
   Vword_combining_categories = Qnil;
 
-  DEFVAR_LISP ("word-separating-categories", &Vword_separating_categories,
+  DEFVAR_LISP ("word-separating-categories", Vword_separating_categories,
 	       doc: /* List of pair (cons) of categories to determine word boundary.
 See the documentation of the variable `word-combining-categories'.  */);
 
@@ -542,5 +539,3 @@ See the documentation of the variable `word-combining-categories'.  */);
   category_table_version = 0;
 }
 
-/* arch-tag: 74ebf524-121b-4d9c-bd68-07f8d708b211
-   (do not change this comment) */

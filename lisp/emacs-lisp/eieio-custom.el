@@ -1,7 +1,6 @@
 ;;; eieio-custom.el -- eieio object customization
 
-;; Copyright (C) 1999, 2000, 2001, 2005, 2007, 2008, 2009, 2010, 2011
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1999-2001, 2005, 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.2
@@ -327,6 +326,7 @@ User made commands should also call this method when applying changes.
 Argument OBJ is the object that has been customized."
   nil)
 
+;;;###autoload
 (defun customize-object (obj &optional group)
   "Customize OBJ in a custom buffer.
 Optional argument GROUP is the sub-group of slots to display."
@@ -461,5 +461,8 @@ Return the symbol for the group, or nil"
 
 (provide 'eieio-custom)
 
-;; arch-tag: bc122762-a771-48d5-891b-7835b16dd924
+;; Local variables:
+;; generated-autoload-file: "eieio.el"
+;; End:
+
 ;;; eieio-custom.el ends here

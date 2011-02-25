@@ -2,7 +2,8 @@
 rem   ----------------------------------------------------------------------
 rem   Configuration script for MSDOS
 rem   Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002, 2003
-rem   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+rem   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation,
+rem   Inc.
 
 rem   This file is part of GNU Emacs.
 
@@ -273,6 +274,25 @@ Rem supports long file names but DJGPP does not
 for %%d in (emacs lispref lispintro lispintr misc) do sed -f ../msdos/sed6.inp < %%d\Makefile.in > %%d\Makefile
 cd ..
 rem   ----------------------------------------------------------------------
+Echo Configuring the lib directory...
+If Exist c++defs.h update c++defs.h cxxdefs.h
+cd lib
+Rem Rename files like djtar on plain DOS filesystem would.
+If Exist c++defs.h update c++defs.h cxxdefs.h
+If Exist getopt.in.h update getopt.in.h getopt.in-h
+If Exist stddef.in.h update stddef.in.h  stddef.in-h
+If Exist stdbool.in.h update stdbool.in.h stdbool.in-h
+If Exist stdlib.in.h update stdlib.in.h stdlib.in-h
+If Exist time.in.h update time.in.h time.in-h
+If Exist unistd.in.h update unistd.in.h unistd.in-h
+sed -f ../msdos/sedlibcf.inp < Makefile.in > makefile.tmp
+sed -f ../msdos/sedlibmk.inp < makefile.tmp > Makefile
+rm -f makefile.tmp
+If Not Exist deps\stamp mkdir deps
+If Not Exist deps\stamp for %%f in (*.c) do @call ..\msdos\depfiles.bat %%f
+If Not Exist deps\stamp echo deps-stamp > deps\stamp
+cd ..
+rem   ----------------------------------------------------------------------
 Echo Configuring the lisp directory...
 cd lisp
 If Exist gnus\.dir-locals.el update gnus/.dir-locals.el gnus/_dir-locals.el
@@ -316,6 +336,3 @@ set djgpp_ver=
 set sys_malloc=
 set libxml=
 
-goto skipArchTag
-   arch-tag: 2d2fed23-4dc6-4006-a2e4-49daf0031f33
-:skipArchTag

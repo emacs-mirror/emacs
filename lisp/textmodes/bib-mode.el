@@ -1,7 +1,6 @@
 ;;; bib-mode.el --- major mode for editing bib files
 
-;; Copyright (C) 1989, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 1989, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Henry Kautz
 ;; (according to authors.el)
@@ -48,11 +47,14 @@
    :type 'file
    :group 'bib)
 
-(defvar bib-mode-map (copy-keymap text-mode-map))
-(define-key bib-mode-map "\C-M" 'return-key-bib)
-(define-key bib-mode-map "\C-c\C-u" 'unread-bib)
-(define-key bib-mode-map "\C-c\C-@" 'mark-bib)
-(define-key bib-mode-map "\e`" 'abbrev-mode)
+(defvar bib-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map text-mode-map)
+    (define-key map "\C-M" 'return-key-bib)
+    (define-key map "\C-c\C-u" 'unread-bib)
+    (define-key map "\C-c\C-@" 'mark-bib)
+    (define-key map "\e`" 'abbrev-mode)
+    map))
 
 (defun addbib ()
    "Set up editor to add to troff bibliography file specified
@@ -236,5 +238,4 @@ named by variable `unread-bib-file'."
 
 (provide 'bib-mode)
 
-;; arch-tag: e3a97958-3c2c-487f-9557-fafc3c98452d
 ;;; bib-mode.el ends here

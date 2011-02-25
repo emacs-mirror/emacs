@@ -1,6 +1,6 @@
 ;;; ob-scheme.el --- org-babel functions for Scheme
 
-;; Copyright (C) 2010 Free Software Foundation
+;; Copyright (C) 2010-2011 Free Software Foundation
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research, scheme
@@ -134,6 +134,5 @@ then create.  Return the initialized session."
 
 (provide 'ob-scheme)
 
-;; arch-tag: 6b2fe76f-4b25-4e87-ad1c-225b2f282a71
 
 ;;; ob-scheme.el ends here

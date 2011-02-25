@@ -1,7 +1,6 @@
 ;;; url-http.el --- HTTP retrieval routines
 
-;; Copyright (C) 1999, 2001, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001, 2004-2011  Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: comm, data, processes
@@ -1035,10 +1034,11 @@ the end of the document."
 		    url-http-response-status))
   (url-http-debug "url-http-wait-for-headers-change-function (%s)"
 		  (buffer-name))
-  (when (not (bobp))
-    (let ((end-of-headers nil)
-	  (old-http nil)
-	  (content-length nil))
+  (let ((end-of-headers nil)
+	(old-http nil)
+	(process-buffer (current-buffer))
+	(content-length nil))
+    (when (not (bobp))
       (goto-char (point-min))
       (if (and (looking-at ".*\n")	; have one line at least
 	       (not (looking-at "^HTTP/[1-9]\\.[0-9]")))
@@ -1152,8 +1152,9 @@ the end of the document."
 		'url-http-simple-after-change-function)))))
     ;; We are still at the beginning of the buffer... must just be
     ;; waiting for a response.
-    (url-http-debug "Spinning waiting for headers..."))
-  (goto-char (point-max)))
+    (url-http-debug "Spinning waiting for headers...")
+    (when (eq process-buffer (current-buffer))
+      (goto-char (point-max)))))
 
 ;;;###autoload
 (defun url-http (url callback cbargs)
@@ -1453,5 +1454,4 @@ p3p
 
 (provide 'url-http)
 
-;; arch-tag: ba7c59ae-c0f4-4a31-9617-d85f221732ee
 ;;; url-http.el ends here

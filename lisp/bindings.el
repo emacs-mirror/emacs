@@ -1,7 +1,6 @@
 ;;; bindings.el --- define standard key bindings and some variables
 
-;; Copyright (C) 1985, 1986, 1987, 1992, 1993, 1994, 1995, 1996, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+;; Copyright (C) 1985-1987, 1992-1996, 1999-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -1209,5 +1208,4 @@ if `inhibit-field-text-motion' is non-nil."
 ;; no-update-autoloads: t
 ;; End:
 
-;; arch-tag: 23b5c7e6-e47b-49ed-8c6c-ed213c5fffe0
 ;;; bindings.el ends here

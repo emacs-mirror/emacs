@@ -1,7 +1,6 @@
 ;;; calculator.el --- a [not so] simple calculator for Emacs
 
-;; Copyright (C) 1998, 2000, 2001, 2002, 2003, 2004,  2005, 2006, 2007,
-;;   2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2011 Free Software Foundation, Inc.
 
 ;; Author: Eli Barzilay <eli@barzilay.org>
 ;; Keywords: tools, convenience
@@ -1824,5 +1823,4 @@ To use this, apply a binary operator (evaluate it), then call this."
 
 (provide 'calculator)
 
-;; arch-tag: a1b9766c-af8a-4a74-b466-65ad8eeb0c73
 ;;; calculator.el ends here

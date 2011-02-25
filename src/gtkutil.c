@@ -1,6 +1,6 @@
 /* Functions for creating and updating GTK widgets.
-   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-     Free Software Foundation, Inc.
+
+Copyright (C) 2003-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -45,9 +45,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define FRAME_TOTAL_PIXEL_WIDTH(f) \
   (FRAME_PIXEL_WIDTH (f) + FRAME_TOOLBAR_WIDTH (f))
-
-/* Avoid "differ in sign" warnings */
-#define SSDATA(x)  ((char *) SDATA (x))
 
 #ifndef HAVE_GTK_WIDGET_SET_HAS_WINDOW
 #define gtk_widget_set_has_window(w, b) \
@@ -1536,7 +1533,6 @@ int
 xg_uses_old_file_dialog (void)
 {
 #ifdef HAVE_GTK_FILE_SELECTION_NEW
-  extern int x_gtk_use_old_file_dialog;
   return x_gtk_use_old_file_dialog;
 #else
   return 0;
@@ -1577,8 +1573,6 @@ xg_toggle_visibility_cb (GtkWidget *widget, gpointer data)
 static void
 xg_toggle_notify_cb (GObject *gobject, GParamSpec *arg1, gpointer user_data)
 {
-  extern int x_gtk_show_hidden_files;
-
   if (strcmp (arg1->name, "show-hidden") == 0)
     {
       GtkWidget *wtoggle = GTK_WIDGET (user_data);
@@ -1626,9 +1620,6 @@ xg_get_file_with_chooser (FRAME_PTR f,
   GtkFileChooserAction action = (mustmatch_p ?
                                  GTK_FILE_CHOOSER_ACTION_OPEN :
                                  GTK_FILE_CHOOSER_ACTION_SAVE);
-  extern int x_gtk_show_hidden_files;
-  extern int x_gtk_file_dialog_help_text;
-
 
   if (only_dir_p)
     action = GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER;
@@ -3686,7 +3677,7 @@ xg_tool_bar_menu_proxy (GtkToolItem *toolitem, gpointer user_data)
   GtkLabel *wlbl = GTK_LABEL (xg_get_tool_bar_widgets (vb, &c1));
   GtkImage *wimage = GTK_IMAGE (c1);
   GtkWidget *wmenuitem = gtk_image_menu_item_new_with_label
-    (gtk_label_get_text (wlbl));
+    (wlbl ? gtk_label_get_text (wlbl) : "");
   GtkWidget *wmenuimage;
 
 
@@ -3794,7 +3785,6 @@ xg_tool_bar_detach_callback (GtkHandleBox *wbox,
                              gpointer client_data)
 {
   FRAME_PTR f = (FRAME_PTR) client_data;
-  extern int x_gtk_whole_detached_tool_bar;
 
   g_object_set (G_OBJECT (w), "show-arrow", !x_gtk_whole_detached_tool_bar,
 		NULL);
@@ -4572,6 +4562,3 @@ xg_initialize (void)
 }
 
 #endif /* USE_GTK */
-
-/* arch-tag: fe7104da-bc1e-4aba-9bd1-f349c528f7e3
-   (do not change this comment) */

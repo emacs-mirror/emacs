@@ -1,6 +1,6 @@
 ;;; mairix.el --- Mairix interface for Emacs
 
-;; Copyright (C) 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011  Free Software Foundation, Inc.
 
 ;; Author: David Engster <dengste@eml.cc>
 ;; Keywords: mail searching
@@ -946,4 +946,3 @@ Use cursor keys or C-n,C-p to select next/previous search.\n\n")
 
 ;;; mairix.el ends here
 
-;; arch-tag: 787ab678-fcd5-4c50-9295-01c2ee5124a6

@@ -17,4 +17,3 @@
     ("LONG RIGHTWARDS SQUIGGLE ARROW" #x27FF)
     ))
 
-;; arch-tag: 64623112-13d2-4bd6-8768-5508e3a7f8a9

@@ -1,6 +1,5 @@
 /* Header for fontset handler.
-   Copyright (C) 1998, 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+   Copyright (C) 1998, 2001-2011  Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -45,13 +44,6 @@ EXFUN (Fquery_fontset, 2);
 extern Lisp_Object list_fontsets (struct frame *, Lisp_Object, int);
 
 extern Lisp_Object Qlatin;
-extern Lisp_Object Vuse_default_ascent;
-extern Lisp_Object Vignore_relative_composition;
-extern Lisp_Object Valternate_fontname_alist;
-extern Lisp_Object Vfontset_alias_alist;
-extern Lisp_Object Vvertical_centering_font_regexp;
-extern Lisp_Object Votf_script_alist;
-
 extern Lisp_Object fontset_name (int);
 extern Lisp_Object fontset_ascii (int);
 
@@ -60,5 +52,3 @@ extern int face_for_font (struct frame *, Lisp_Object, struct face *);
 
 #endif /* EMACS_FONTSET_H */
 
-/* arch-tag: c27cef7b-3cab-488a-8398-7a4daa96bb77
-   (do not change this comment) */

@@ -417,7 +417,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   do    							\
     {								\
       CHARIDX++;						\
-      if (!NILP (current_buffer->enable_multibyte_characters))	\
+      if (!NILP (BVAR (current_buffer, enable_multibyte_characters)))	\
 	{							\
 	  unsigned char *ptr = BYTE_POS_ADDR (BYTEIDX);		\
 	  int len;						\
@@ -484,7 +484,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   do								\
     {								\
       (charpos)++;						\
-      if (NILP (current_buffer->enable_multibyte_characters))	\
+      if (NILP (BVAR (current_buffer, enable_multibyte_characters)))	\
 	(bytepos)++;						\
       else							\
 	INC_POS ((bytepos));					\
@@ -498,7 +498,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   do								\
     {								\
       (charpos)--;						\
-      if (NILP (current_buffer->enable_multibyte_characters))	\
+      if (NILP (BVAR (current_buffer, enable_multibyte_characters)))	\
 	(bytepos)--;						\
       else							\
 	DEC_POS ((bytepos));					\
@@ -561,11 +561,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define ASCII_CHAR_WIDTH(c)						\
   (c < 0x20								\
    ? (c == '\t'								\
-      ? XFASTINT (current_buffer->tab_width)				\
-      : (c == '\n' ? 0 : (NILP (current_buffer->ctl_arrow) ? 4 : 2)))	\
+      ? XFASTINT (BVAR (current_buffer, tab_width))				\
+      : (c == '\n' ? 0 : (NILP (BVAR (current_buffer, ctl_arrow)) ? 4 : 2)))	\
    : (c < 0x7f								\
       ? 1								\
-      : ((NILP (current_buffer->ctl_arrow) ? 4 : 2))))
+      : ((NILP (BVAR (current_buffer, ctl_arrow)) ? 4 : 2))))
 
 /* Return the width of character C.  The width is measured by how many
    columns C will occupy on the screen when displayed in the current
@@ -612,37 +612,21 @@ extern EMACS_INT str_to_multibyte (unsigned char *, EMACS_INT, EMACS_INT);
 extern EMACS_INT str_as_unibyte (unsigned char *, EMACS_INT);
 extern EMACS_INT str_to_unibyte (const unsigned char *, unsigned char *,
                                  EMACS_INT, int);
-extern EMACS_INT strwidth (const unsigned char *, EMACS_INT);
+extern EMACS_INT strwidth (const char *, EMACS_INT);
 extern EMACS_INT c_string_width (const unsigned char *, EMACS_INT, int,
 				 EMACS_INT *, EMACS_INT *);
 extern EMACS_INT lisp_string_width (Lisp_Object, int,
 				    EMACS_INT *, EMACS_INT *);
 
-extern Lisp_Object Vprintable_chars;
-
 extern Lisp_Object Qcharacterp, Qauto_fill_chars;
-extern Lisp_Object Vtranslation_table_vector;
-extern Lisp_Object Vchar_width_table;
-extern Lisp_Object Vchar_direction_table;
 extern Lisp_Object Vchar_unify_table;
-extern Lisp_Object Vunicode_category_table;
-
 extern Lisp_Object string_escape_byte8 (Lisp_Object);
 
 /* Return a translation table of id number ID.  */
 #define GET_TRANSLATION_TABLE(id) \
   (XCDR(XVECTOR(Vtranslation_table_vector)->contents[(id)]))
 
-/* A char-table for characters which may invoke auto-filling.  */
-extern Lisp_Object Vauto_fill_chars;
-
-extern Lisp_Object Vchar_script_table;
-extern Lisp_Object Vscript_representative_chars;
-
 #define DEFSYM(sym, name)	\
   do { (sym) = intern_c_string ((name)); staticpro (&(sym)); } while (0)
 
 #endif /* EMACS_CHARACTER_H */
-
-/* arch-tag: 4ef86004-2eff-4073-8cea-cfcbcf7188ac
-   (do not change this comment) */

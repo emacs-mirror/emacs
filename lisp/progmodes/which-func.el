@@ -1,7 +1,6 @@
 ;;; which-func.el --- print current function in mode line
 
-;; Copyright (C) 1994, 1997, 1998, 2001, 2002, 2003, 2004, 2005, 2006
-;;   2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1997-1998, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author:   Alex Rezinsky <alexr@msil.sps.mot.com>
 ;;           (doesn't seem to be responsive any more)
@@ -332,5 +331,4 @@ If no function name is found, return nil."
 
 (provide 'which-func)
 
-;; arch-tag: fa8a55c7-bfe3-4ffc-95ab-01bf21796827
 ;;; which-func.el ends here

@@ -1,7 +1,6 @@
 ;;; easy-mmode.el --- easy definition for major and minor modes
 
-;; Copyright (C) 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Georges Brun-Cottan <Georges.Brun-Cottan@inria.fr>
 ;; Maintainer: Stefan Monnier <monnier@gnu.org>
@@ -94,8 +93,9 @@ Optional INIT-VALUE is the initial value of the mode's variable.
 Optional LIGHTER is displayed in the modeline when the mode is on.
 Optional KEYMAP is the default keymap bound to the mode keymap.
   If non-nil, it should be a variable name (whose value is a keymap),
-  a keymap, or a list of arguments for `easy-mmode-define-keymap'.
-  If KEYMAP is a keymap or list, this also defines the variable MODE-map.
+  or an expression that returns either a keymap or a list of
+  arguments for `easy-mmode-define-keymap'.  If KEYMAP is not a symbol,
+  this also defines the variable MODE-map.
 
 BODY contains code to execute each time the mode is enabled or disabled.
   It is executed after toggling the mode, and before running MODE-hook.
@@ -274,7 +274,7 @@ With zero or negative ARG turn mode off.
 	     (let ((m ,keymap))
 	       (cond ((keymapp m) m)
 		     ((listp m) (easy-mmode-define-keymap m))
-		     (t (error "Invalid keymap %S" ,keymap))))
+		     (t (error "Invalid keymap %S" m))))
 	     ,(format "Keymap for `%s'." mode-name)))
 
        ,(if (not (symbolp mode))

@@ -1,6 +1,6 @@
 ;;; erc-backend.el --- Backend network communication for ERC
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2011 Free Software Foundation, Inc.
 
 ;; Filename: erc-backend.el
 ;; Author: Lawrence Mitchell <wence@gmx.li>
@@ -1994,4 +1994,3 @@ See `erc-display-error-notice'." nil
 ;; indent-tabs-mode: nil
 ;; End:
 
-;; arch-tag: a64e6bb7-a780-4efd-8f98-083b18c7c84a

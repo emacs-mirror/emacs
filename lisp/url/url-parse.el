@@ -1,7 +1,6 @@
 ;;; url-parse.el --- Uniform Resource Locator parser
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2011 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -179,22 +178,26 @@ TYPE USER PASSWORD HOST PORTSPEC FILENAME TARGET ATTRIBUTES FULLNESS."
   `(let* ((urlobj (url-generic-parse-url url))
           (bit (funcall ,method urlobj))
           (methods (list 'url-recreate-url
-                         'url-host)))
+                         'url-host))
+          auth-info)
      (while (and (not bit) (> (length methods) 0))
-       (setq bit
-             (auth-source-user-or-password
-              ,lookfor (funcall (pop methods) urlobj) (url-type urlobj))))
+       (setq auth-info (auth-source-search
+                        :max 1
+                        :host (funcall (pop methods) urlobj)
+                        :port (url-type urlobj)))
+       (setq bit (plist-get (nth 0 auth-info) ,lookfor))
+       (when (functionp bit)
+         (setq bit (funcall bit))))
      bit))
 
 (defun url-user-for-url (url)
   "Attempt to use .authinfo to find a user for this URL."
-  (url-bit-for-url 'url-user "login" url))
+  (url-bit-for-url 'url-user :user url))
 
 (defun url-password-for-url (url)
   "Attempt to use .authinfo to find a password for this URL."
-  (url-bit-for-url 'url-password "password" url))
+  (url-bit-for-url 'url-password :secret url))
 
 (provide 'url-parse)
 
-;; arch-tag: f338325f-71ab-4bee-93cc-78fb9a03d403
 ;;; url-parse.el ends here

@@ -1,7 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001, 2002,
-@c   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2011
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/commands
@@ -1928,10 +1927,17 @@ into frame-relative coordinates:
 @end defun
 
 @defun posn-col-row position
-Return the row and column (in units of the frame's default character
-height and width) of @var{position}, as a cons cell @code{(@var{col} .
-@var{row})}.  These are computed from the @var{x} and @var{y} values
-actually found in @var{position}.
+This function returns a cons cell @code{(@var{col} .  @var{row})},
+containing the estimated column and row corresponding to buffer
+position @var{position}.  The return value is given in units of the
+frame's default character width and height, as computed from the
+@var{x} and @var{y} values corresponding to @var{position}.  (So, if
+the actual characters have non-default sizes, the actual row and
+column may differ from these computed values.)
+
+Note that @var{row} is counted from the top of the text area.  If the
+window possesses a header line (@pxref{Header Lines}), it is
+@emph{not} counted as the first line.
 @end defun
 
 @defun posn-actual-col-row position
@@ -3386,7 +3392,3 @@ This normal hook (@pxref{Standard Hooks}) is run when a keyboard
 macro terminates, regardless of what caused it to terminate (reaching
 the macro end or an error which ended the macro prematurely).
 @end defvar
-
-@ignore
-   arch-tag: e34944ad-7d5c-4980-be00-36a5fe54d4b1
-@end ignore

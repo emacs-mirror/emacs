@@ -1,8 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1998, 1999, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990-1994, 1998-2011  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/keymaps
 @node Keymaps, Modes, Command Loop, Top
@@ -1510,6 +1508,12 @@ does not have the effect of remapping @code{kill-line} into
 if an ordinary binding specifies @code{my-kill-line}, this keymap will
 remap it to @code{my-other-kill-line}.
 
+To undo the remapping of a command, remap it to @code{nil}; e.g.
+
+@smallexample
+(define-key my-mode-map [remap kill-line] nil)
+@end smallexample
+
 @defun command-remapping command &optional position keymaps
 This function returns the remapping for @var{command} (a symbol),
 given the current active keymaps.  If @var{command} is not remapped
@@ -1974,6 +1978,7 @@ feature.
 @cindex defining menus
 @cindex menu prompt string
 @cindex prompt string (of menu)
+@cindex menu item
 
 A keymap acts as a menu if it has an @dfn{overall prompt string},
 which is a string that appears as an element of the keymap.
@@ -2075,6 +2080,7 @@ of menus in advance.  To force recalculation of the menu bar, call
 @node Extended Menu Items
 @subsubsection Extended Menu Items
 @kindex menu-item
+@cindex extended menu item
 
   An extended-format menu item is a more flexible and also cleaner
 alternative to the simple format.  You define an event type with a
@@ -2796,7 +2802,3 @@ menu of Shell mode, after the item @code{break}:
   [work] '("Work" . work-command) 'break)
 @end example
 @end defun
-
-@ignore
-   arch-tag: cfb87287-9364-4e46-9e93-6c2f7f6ae794
-@end ignore

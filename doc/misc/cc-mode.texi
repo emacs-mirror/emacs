@@ -159,9 +159,7 @@ CC Mode
 @copying
 This manual is for CC Mode in Emacs.
 
-Copyright @copyright{} 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-Free Software Foundation, Inc.
+Copyright @copyright{} 1995-2011  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -179,7 +177,7 @@ developing GNU and promoting software freedom.''
 
 @comment Info directory entry for use by install-info. The indentation
 @comment here is by request from the FSF folks.
-@dircategory Emacs
+@dircategory Emacs editing modes
 @direntry
 * CC Mode: (ccmode).            Emacs mode for editing C, C++, Objective-C,
                                 Java, Pike, AWK, and CORBA IDL code.
@@ -7014,4 +7012,3 @@ Since most @ccmode{} variables are prepended with the string
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 @bye
-

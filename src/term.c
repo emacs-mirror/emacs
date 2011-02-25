@@ -1,6 +1,5 @@
 /* Terminal control module for terminals described by TERMCAP
-   Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1998, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+   Copyright (C) 1985-1987, 1993-1995, 1998, 2000-2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -25,11 +24,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <ctype.h>
 #include <errno.h>
 #include <sys/file.h>
-
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
-
 #include <signal.h>
 #include <stdarg.h>
 #include <setjmp.h>
@@ -117,34 +112,15 @@ static void vfatal (const char *str, va_list ap) NO_RETURN;
 #define OUTPUT_IF(tty, a)                                               \
   do {                                                                  \
     if (a)                                                              \
-      emacs_tputs ((tty), a,                                            \
-                   (int) (FRAME_LINES (XFRAME (selected_frame))         \
-                          - curY (tty) ),                               \
-                   cmputc);                                             \
+      OUTPUT (tty, a);							\
   } while (0)
 
 #define OUTPUT1_IF(tty, a) do { if (a) emacs_tputs ((tty), a, 1, cmputc); } while (0)
 
-/* If true, use "vs", otherwise use "ve" to make the cursor visible.  */
-
-static int visible_cursor;
-
 /* Display space properties */
-
-/* Functions to call after suspending a tty. */
-Lisp_Object Vsuspend_tty_functions;
-
-/* Functions to call after resuming a tty. */
-Lisp_Object Vresume_tty_functions;
 
 /* Chain of all tty device parameters. */
 struct tty_display_info *tty_list;
-
-/* Nonzero means no need to redraw the entire frame on resuming a
-   suspended Emacs.  This is useful on terminals with multiple
-   pages, where one page is used for Emacs and another for all
-   else. */
-int no_redraw_on_reenter;
 
 /* Meaning of bits in no_color_video.  Each bit set means that the
    corresponding attribute cannot be combined with colors.  */
@@ -175,10 +151,6 @@ int max_frame_lines;
 /* Non-zero if we have dropped our controlling tty and therefore
    should not open a frame on stdout. */
 static int no_controlling_tty;
-
-/* Provided for lisp packages.  */
-
-static int system_uses_terminfo;
 
 
 
@@ -1375,14 +1347,14 @@ term_get_fkeys_1 (void)
   KBOARD *kboard = term_get_fkeys_kboard;
 
   /* This can happen if CANNOT_DUMP or with strange options.  */
-  if (!KEYMAPP (kboard->Vinput_decode_map))
-    kboard->Vinput_decode_map = Fmake_sparse_keymap (Qnil);
+  if (!KEYMAPP (KVAR (kboard, Vinput_decode_map)))
+    KVAR (kboard, Vinput_decode_map) = Fmake_sparse_keymap (Qnil);
 
   for (i = 0; i < (sizeof (keys)/sizeof (keys[0])); i++)
     {
       char *sequence = tgetstr (keys[i].cap, address);
       if (sequence)
-	Fdefine_key (kboard->Vinput_decode_map, build_string (sequence),
+	Fdefine_key (KVAR (kboard, Vinput_decode_map), build_string (sequence),
 		     Fmake_vector (make_number (1),
 				   intern (keys[i].name)));
     }
@@ -1402,13 +1374,13 @@ term_get_fkeys_1 (void)
 	if (k0)
 	  /* Define f0 first, so that f10 takes precedence in case the
 	     key sequences happens to be the same.  */
-	  Fdefine_key (kboard->Vinput_decode_map, build_string (k0),
+	  Fdefine_key (KVAR (kboard, Vinput_decode_map), build_string (k0),
 		       Fmake_vector (make_number (1), intern ("f0")));
-	Fdefine_key (kboard->Vinput_decode_map, build_string (k_semi),
+	Fdefine_key (KVAR (kboard, Vinput_decode_map), build_string (k_semi),
 		     Fmake_vector (make_number (1), intern ("f10")));
       }
     else if (k0)
-      Fdefine_key (kboard->Vinput_decode_map, build_string (k0),
+      Fdefine_key (KVAR (kboard, Vinput_decode_map), build_string (k0),
 		   Fmake_vector (make_number (1), intern (k0_name)));
   }
 
@@ -1431,7 +1403,7 @@ term_get_fkeys_1 (void)
 	  if (sequence)
 	    {
 	      sprintf (fkey, "f%d", i);
-	      Fdefine_key (kboard->Vinput_decode_map, build_string (sequence),
+	      Fdefine_key (KVAR (kboard, Vinput_decode_map), build_string (sequence),
 			   Fmake_vector (make_number (1),
 					 intern (fkey)));
 	    }
@@ -1448,7 +1420,7 @@ term_get_fkeys_1 (void)
 	{								\
 	  char *sequence = tgetstr (cap2, address);			\
 	  if (sequence)                                                 \
-	    Fdefine_key (kboard->Vinput_decode_map, build_string (sequence), \
+	    Fdefine_key (KVAR (kboard, Vinput_decode_map), build_string (sequence), \
 			 Fmake_vector (make_number (1),                 \
 				       intern (sym)));                  \
 	}
@@ -1973,7 +1945,7 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
 	  if (! STRINGP (acronym) && CHAR_TABLE_P (Vglyphless_char_display))
 	    acronym = CHAR_TABLE_REF (Vglyphless_char_display, it->c);
 	  buf[0] = '[';
-	  str = STRINGP (acronym) ? (char *) SDATA (acronym) : "";
+	  str = STRINGP (acronym) ? SSDATA (acronym) : "";
 	  for (len = 0; len < 6 && str[len] && ASCII_BYTE_P (str[len]); len++)
 	    buf[1 + len] = str[len];
 	  buf[1 + len] = ']';
@@ -3181,7 +3153,7 @@ init_tty (const char *name, const char *terminal_type, int must_succeed)
   tty->mouse_highlight.mouse_face_window = Qnil;
 #endif
 
-  
+
 #ifndef DOS_NT
   set_tty_hooks (terminal);
 
@@ -3443,7 +3415,7 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
 
   terminal->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
   init_kboard (terminal->kboard);
-  terminal->kboard->Vwindow_system = Qnil;
+  KVAR (terminal->kboard, Vwindow_system) = Qnil;
   terminal->kboard->next_kboard = all_kboards;
   all_kboards = terminal->kboard;
   terminal->kboard->reference_count++;
@@ -3774,7 +3746,7 @@ mark_ttys (void)
 void
 syms_of_term (void)
 {
-  DEFVAR_BOOL ("system-uses-terminfo", &system_uses_terminfo,
+  DEFVAR_BOOL ("system-uses-terminfo", system_uses_terminfo,
     doc: /* Non-nil means the system uses terminfo rather than termcap.
 This variable can be used by terminal emulator packages.  */);
 #ifdef TERMINFO
@@ -3783,20 +3755,20 @@ This variable can be used by terminal emulator packages.  */);
   system_uses_terminfo = 0;
 #endif
 
-  DEFVAR_LISP ("suspend-tty-functions", &Vsuspend_tty_functions,
+  DEFVAR_LISP ("suspend-tty-functions", Vsuspend_tty_functions,
     doc: /* Functions to be run after suspending a tty.
 The functions are run with one argument, the terminal object to be suspended.
 See `suspend-tty'.  */);
   Vsuspend_tty_functions = Qnil;
 
 
-  DEFVAR_LISP ("resume-tty-functions", &Vresume_tty_functions,
+  DEFVAR_LISP ("resume-tty-functions", Vresume_tty_functions,
     doc: /* Functions to be run after resuming a tty.
 The functions are run with one argument, the terminal object that was revived.
 See `resume-tty'.  */);
   Vresume_tty_functions = Qnil;
 
-  DEFVAR_BOOL ("visible-cursor", &visible_cursor,
+  DEFVAR_BOOL ("visible-cursor", visible_cursor,
 	       doc: /* Non-nil means to make the cursor very visible.
 This only has an effect when running in a text terminal.
 What means \"very visible\" is up to your terminal.  It may make the cursor
@@ -3824,4 +3796,3 @@ bigger, or it may make it blink, or it may do nothing at all.  */);
   encode_terminal_src = NULL;
   encode_terminal_dst = NULL;
 }
-

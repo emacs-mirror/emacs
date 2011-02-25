@@ -1,3 +1,87 @@
+2011-02-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* admin.el (set-version): Add msdos/sed2v2.inp.
+
+2011-02-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove no-longer needed getloadavg symbols.
+	* CPP-DEFINES (LOAD_AVE_CVT, LOAD_AVE_TYPE, FSCALE, KERNEL_FILE):
+	(LDAV_SYMBOL): Remove.
+
+2011-02-12  Glenn Morris  <rgm@gnu.org>
+
+	* bzrmerge.el (bzrmerge-resolve): Fix bzr revert call.
+
+2011-02-05  Glenn Morris  <rgm@gnu.org>
+
+	* bzrmerge.el (bzrmerge-warning-buffer): New constant.
+	(bzrmerge-apply): Use it.
+	(bzrmerge): Kill any old warning buffer first.
+
+2011-02-03  Glenn Morris  <rgm@gnu.org>
+
+	* bzrmerge.el (bzrmerge-buffer): New constant.
+	(bzrmerge-merges, bzrmerge-missing, bzrmerge-apply): Use it.
+	(bzrmerge-missing): If nothing to do, return nil not (nil).
+	(bzrmerge-apply): Remove odd character from message.
+	(bzrmerge): Give status messages.
+
+2011-01-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* admin.el (set-version): Remove lib-src/makefile.w32-in.
+	Add nt/config.nt.
+
+2011-01-31  Paul Eggert  <eggert@cs.ucla.edu>
+
+	src/emacs.c now gets version number from configure.in
+	* admin.el (set-version): Don't update src/emacs.c.
+	* quick-install-emacs (VERSION): Get it from configure.in, not from
+	src/emacs.c.
+
+2011-01-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	strftime: import from gnulib
+	* notes/copyright: strftime.c moved from src to lib.
+
+2011-01-25  Glenn Morris  <rgm@gnu.org>
+
+	* bzrmerge.el (bzrmerge-skip-regexp): New variable.
+	(bzrmerge-missing): Use it.
+
+2011-01-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* make-tarball.txt: Suggest 'autoreconf -I m4 --force'
+	rather than doing rm and autoconf by hand.  See
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-01/msg00673.html>.
+
+2011-01-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* notes/bzr (Installing changes from gnulib): New section.
+	Need for this suggested by Stefan Monnier.
+
+2011-01-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bzrmerge.el (bzrmerge-apply): Warn the user when the tree might be in
+	an inconsistent state.
+
+2011-01-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Update copyright notes to match recent gnulib-related changes.
+	* notes/copyright: Add aclocal.m4, m4/*.m4, lib/Makefile.in,
+	arg-nonnull.h, c++defs.h, compile, depcomp, missing,
+	warn-on-use.h, lib/*.[ch], lib/gnulib.mk.  Remove src/mktime.c,
+	lib-src/getopt1.c, lib-src/getopt_int.h (files are now in lib and
+	are subsumed by the lib/*.[ch] rule).  Remove m4/getopt.m4 (now
+	subsumed by m4/*.m4 rule).  config.guess, config.sub, and
+	doc/man/texinfo.tex are now copied in from gnulib.
+
+2011-01-15  Glenn Morris  <rgm@gnu.org>
+
+	* charsets/cp51932.awk, charsets/eucjp-ms.awk: No longer print arch-tag.
+
+	* bzrmerge.el (bzrmerge-missing): Add another skip indicator.
+	(bzrmerge-resolve): Also ignore cl-loaddefs.el.
+
 2011-01-14  Glenn Morris  <rgm@gnu.org>
 
 	* admin.el (set-copyright): Also handle \year in refcards/*.tex.
@@ -1000,8 +1084,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-    2010, 2011  Free Software Foundation, Inc.
+  Copyright (C) 2001-2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

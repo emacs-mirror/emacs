@@ -1,6 +1,7 @@
 /* machine description file for the IA-64 architecture.
-   Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-                 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+
+Copyright (C) 2000-2011  Free Software Foundation, Inc.
+
      Contributed by David Mosberger <davidm@hpl.hp.com>
 
 This file is part of GNU Emacs.
@@ -29,12 +30,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define EMACS_INT		long
 #define EMACS_UINT		unsigned long
 
-/* Data type of load average, as read out of kmem.  */
-#define LOAD_AVE_TYPE		long
-
-/* Convert that into an integer that is 100 for a load average of 1.0  */
-#define LOAD_AVE_CVT(x) (int) (((double) (x)) * 100.0 / FSCALE)
-
 #ifdef REL_ALLOC
 #ifndef _MALLOC_INTERNAL
 /* "char *" because ralloc.c defines it that way.  gmalloc.c thinks it
@@ -44,6 +39,3 @@ extern char *r_alloc (), *r_re_alloc ();
 extern void r_alloc_free ();
 #endif /* not _MALLOC_INTERNAL */
 #endif /* REL_ALLOC */
-
-/* arch-tag: 9b8e9fb2-2e49-4c22-b68f-11a488e77c66
-   (do not change this comment) */

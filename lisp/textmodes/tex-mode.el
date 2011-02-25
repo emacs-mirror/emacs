@@ -1,7 +1,6 @@
 ;;; tex-mode.el --- TeX, LaTeX, and SliTeX mode commands -*- coding: utf-8 -*-
 
-;; Copyright (C) 1985, 1986, 1989, 1992, 1994, 1995, 1996, 1997, 1998
-;;   1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+;; Copyright (C) 1985-1986, 1989, 1992, 1994-1999, 2001-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -791,20 +790,23 @@ Not smaller than the value set by `tex-suscript-height-minimum'."
 (defun tex-font-lock-verb (start delim)
   "Place syntax table properties on the \verb construct.
 START is the position of the \\ and DELIM is the delimiter char."
-    ;; Do nothing if the \verb construct is itself inside a comment or
-    ;; verbatim env.
+  ;; Do nothing if the \verb construct is itself inside a comment or
+  ;; verbatim env.
   (unless (nth 8 (save-excursion (syntax-ppss start)))
-      ;; Let's find the end and mark it.
-    ;; This may span more than a single line, but we don't bother
-    ;; placing a syntax-multiline property since such multiline verbs aren't
-    ;; valid anyway.
-    (skip-chars-forward (string ?^ delim))
-        (unless (eobp)
-      (when (eq (char-syntax (preceding-char)) ?/)
-        (put-text-property (1- (point)) (point)
-                           'syntax-table (string-to-syntax ".")))
-      (put-text-property (point) (1+ (point))
-                         'syntax-table (string-to-syntax "\"")))))
+    ;; Let's find the end and mark it.
+    (let ((afterdelim (point)))
+      (skip-chars-forward (string ?^ delim) (line-end-position))
+      (if (eolp)
+          ;; "LaTeX Error: \verb ended by end of line."
+          ;; Remove the syntax-table property we've just put on the
+          ;; start-delimiter, so it doesn't spill over subsequent lines.
+          (put-text-property (1- afterdelim) afterdelim
+                             'syntax-table nil)
+        (when (eq (char-syntax (preceding-char)) ?/)
+          (put-text-property (1- (point)) (point)
+                             'syntax-table (string-to-syntax ".")))
+        (put-text-property (point) (1+ (point))
+                           'syntax-table (string-to-syntax "\""))))))
 
 ;; Use string syntax but math face for $...$.
 (defun tex-font-lock-syntactic-face-function (state)
@@ -1810,11 +1812,70 @@ Mark is left at original location."
 ;; Why use a shell instead of running TeX directly?  Because if TeX
 ;; gets stuck, the user can switch to the shell window and type at it.
 
+(defvar tex-error-parse-syntax-table
+  (let ((st (make-syntax-table)))
+    (modify-syntax-entry ?\( "()" st)
+    (modify-syntax-entry ?\) ")(" st)
+    (modify-syntax-entry ?\\ "\\" st)
+    (modify-syntax-entry ?\{ "_" st)
+    (modify-syntax-entry ?\} "_" st)
+    (modify-syntax-entry ?\[ "_" st)
+    (modify-syntax-entry ?\] "_" st)
+    ;; Single quotations may appear in errors
+    (modify-syntax-entry ?\" "_" st)
+    st)
+  "Syntax-table used while parsing TeX error messages.")
+
+(defun tex-old-error-file-name ()
+  ;; This is unreliable, partly because we don't try very hard, and
+  ;; partly because TeX's output format is eminently ambiguous and unfriendly
+  ;; to automation.
+  (save-excursion
+    (save-match-data
+      (with-syntax-table tex-error-parse-syntax-table
+        (beginning-of-line)
+        (backward-up-list 1)
+        (skip-syntax-forward "(_")
+        (while (not (let ((try-filename (thing-at-point 'filename)))
+                      (and try-filename
+                           (not (string= "" try-filename))
+                           (file-readable-p try-filename))))
+          (skip-syntax-backward "(_")
+          (backward-up-list 1)
+          (skip-syntax-forward "(_"))
+        (thing-at-point 'filename)))))
+
+(defconst tex-error-regexp-alist
+  ;; First alternative handles the newer --file-line-error style:
+  ;; ./test2.tex:14: Too many }'s.
+  '(gnu
+    ;; Second handles the old-style, which spans two lines but doesn't include
+    ;; any file info:
+    ;; ! Too many }'s.
+    ;; l.396 toto}
+    ("^l\\.\\([1-9][0-9]*\\) \\(?:\\.\\.\\.\\)?\\(.*\\)$"
+     tex-old-error-file-name 1 nil nil nil
+     ;; Since there's no filename to highlight, let's highlight the message.
+     (2 compilation-error-face))
+    ;; A few common warning messages.
+    ("^\\(?:Und\\|Ov\\)erfull \\\\[hv]box .* at lines? \\(\\([1-9][0-9]*\\)\\(?:--\\([1-9][0-9]*\\)\\)?\\)$"
+     tex-old-error-file-name (2 . 3) nil 1 nil
+     (1 compilation-warning-face))
+    ("^(Font) *\\([^ \n].* on input line \\([1-9][0-9]*\\)\\)\\.$"
+     tex-old-error-file-name 2 nil 1 1
+     (2 compilation-warning-face))
+    ;; Included files get output as (<file> ...).
+    ;; FIXME: there tend to be a crapload of them at the beginning of the
+    ;; output which aren't that interesting.  Maybe we should filter out
+    ;; all the file name that start with /usr/share?
+    ;; ("(\\.?/\\([^() \n]+\\)" 1 nil nil 0)
+    ))
+
 ;; The utility functions:
 
 (define-derived-mode tex-shell shell-mode "TeX-Shell"
-  (set (make-local-variable 'compilation-parse-errors-function)
-       'tex-compilation-parse-errors)
+  (set (make-local-variable 'compilation-error-regexp-alist)
+       tex-error-regexp-alist)
   (compilation-shell-minor-mode t))
 
 ;;;###autoload
@@ -2312,113 +2373,6 @@ Only applies the FSPEC to the args part of FORMAT."
   (tex-display-shell)
   (setq tex-last-buffer-texed (current-buffer)))
 
-(defvar tex-error-parse-syntax-table
-  (let ((st (make-syntax-table)))
-    (modify-syntax-entry ?\( "()" st)
-    (modify-syntax-entry ?\) ")(" st)
-    (modify-syntax-entry ?\\ "\\" st)
-    (modify-syntax-entry ?\{ "_" st)
-    (modify-syntax-entry ?\} "_" st)
-    (modify-syntax-entry ?\[ "_" st)
-    (modify-syntax-entry ?\] "_" st)
-    ;; Single quotations may appear in errors
-    (modify-syntax-entry ?\" "_" st)
-    st)
-  "Syntax-table used while parsing TeX error messages.")
-
-(defun tex-compilation-parse-errors (limit-search find-at-least)
-  "Parse the current buffer as TeX error messages.
-See the variable `compilation-parse-errors-function' for the interface it uses.
-
-This function parses only the last TeX compilation.
-It works on TeX compilations only.  It is necessary for that purpose,
-since TeX does not put file names and line numbers on the same line as
-for the error messages."
-  (require 'thingatpt)
-  (setq compilation-error-list nil)
-  (let ((default-directory		; Perhaps dir has changed meanwhile.
-	  (file-name-directory (buffer-file-name tex-last-buffer-texed)))
-	found-desired (num-errors-found 0)
-	last-filename last-linenum last-position
-	begin-of-error end-of-error errfilename)
-    ;; Don't reparse messages already seen at last parse.
-    (goto-char compilation-parsing-end)
-    ;; Parse messages.
-    (while (and (not (or found-desired (eobp)))
-		;; First alternative handles the newer --file-line-error style:
-		;; ./test2.tex:14: Too many }'s.
-		;; Second handles the old-style:
-		;; ! Too many }'s.
-		(prog1 (re-search-forward
-			"^\\(?:\\([^:\n]+\\):[[:digit:]]+:\\|!\\) " nil 'move)
-		  (setq begin-of-error (match-beginning 0)
-			end-of-error (match-end 0)
-			errfilename (match-string 1)))
-		(re-search-forward
-		 "^l\\.\\([0-9]+\\) \\(\\.\\.\\.\\)?\\(.*\\)$" nil 'move))
-      (let* ((this-error (copy-marker begin-of-error))
-	     (linenum (string-to-number (match-string 1)))
-	     (error-text (regexp-quote (match-string 3)))
-	     try-filename
-	     (filename
-	      ;; Prefer --file-liner-error filename if we have it.
-	      (or errfilename
-		  (save-excursion
-		    (with-syntax-table tex-error-parse-syntax-table
-		      (backward-up-list 1)
-		      (skip-syntax-forward "(_")
-		      (while (not
-			      (and (setq try-filename (thing-at-point
-						       'filename))
-				   (not (string= "" try-filename))
-				   (file-readable-p try-filename)))
-			(skip-syntax-backward "(_")
-			(backward-up-list 1)
-			(skip-syntax-forward "(_"))
-		      (thing-at-point 'filename)))))
-	     (new-file
-	      (or (null last-filename)
-		  (not (string-equal last-filename filename))))
-	     (error-location
-	      (with-current-buffer
-		  (if (equal filename (concat tex-zap-file ".tex"))
-		      tex-last-buffer-texed
-		    (find-file-noselect filename))
-		(save-excursion
-		  (if new-file
-		      (progn
-			(goto-char (point-min))
-			(forward-line (1- linenum))
-			(setq last-position nil))
-		    (goto-char last-position)
-		    (forward-line (- linenum last-linenum)))
-		  ;; first try a forward search for the error text,
-		  ;; then a backward search limited by the last error.
-		  (let ((starting-point (point)))
-		    (or (re-search-forward error-text nil t)
-			(re-search-backward error-text last-position t)
-			(goto-char starting-point)))
-		  (point-marker)))))
-	(goto-char this-error)
-	(if (and compilation-error-list
-		 (or (and find-at-least
-			  (>= num-errors-found
-			      find-at-least))
-		     (and limit-search
-			  (>= end-of-error limit-search)))
-		 new-file)
-	    (setq found-desired t)
-	  (setq num-errors-found (1+ num-errors-found)
-		last-filename filename
-		last-linenum linenum
-		last-position error-location
-		compilation-error-list	; Add the new error
-		(cons (cons this-error error-location)
-		      compilation-error-list))
-	  (goto-char end-of-error)))))
-  (set-marker compilation-parsing-end (point))
-  (setq compilation-error-list (nreverse compilation-error-list)))
-
 ;;; The commands:
 
 (defun tex-region (beg end)
@@ -2915,5 +2869,4 @@ There might be text before point."
 
 (provide 'tex-mode)
 
-;; arch-tag: c0a680b1-63aa-4547-84b9-4193c29c0080
 ;;; tex-mode.el ends here

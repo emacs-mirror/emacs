@@ -1,6 +1,6 @@
 ;;; org-feed.el --- Add RSS feed items to Org files
 ;;
-;; Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -674,5 +674,4 @@ formatted as a string, not the original XML data."
 
 (provide 'org-feed)
 
-;; arch-tag: 0929b557-9bc4-47f4-9633-30a12dbb5ae2
 ;;; org-feed.el ends here

@@ -1,3 +1,70 @@
+2011-02-19  Glenn Morris  <rgm@gnu.org>
+
+	* dired.texi (Dired): Dired-X version number was dropped.
+
+2011-02-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xresources.texi (X Resources): Remove *faceName and replace it with
+	*font for Lucid.
+
+2011-02-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* rmail.texi (Rmail Display): Document Rmail MIME support more
+	accurately.
+
+	* maintaining.texi (VC Change Log): Document vc-log-incoming and
+	vc-log-outgoing.
+	(Merging): Document vc-find-conflicted-file.
+
+2011-02-05  Glenn Morris  <rgm@gnu.org>
+
+	* custom.texi (Variables): Fix typo.
+
+2011-01-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* search.texi (Regexps): Copyedits.  Mention character classes
+	(Bug#7809).
+
+	* files.texi (File Aliases): Restore explanatory text from Eli
+	Zaretskii, accidentally removed in 2011-01-08 commit.
+
+2011-01-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (MAKEINFO): Remove options, leave only program name.
+	(MAKEINFO_OPTS): New variable.
+	(ENVADD, $(infodir)/emacs): Use $(MAKEINFO_OPTS).
+	(emacs.html): New target.
+	(clean): Remove emacs.html.
+
+2011-01-23  Werner Lemberg  <wl@gnu.org>
+
+	* Makefile.in (MAKEINFO): Now controlled by `configure'.
+	(MAKEINFO_OPTS): New variable.  Use it where appropriate.
+	(ENVADD): Updated.
+
+2011-01-18  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi, emacs.texi (Acknowledgments): Update for ERT addition.
+
+	* ack.texi (Acknowledgments): Remove mention of replaced prolog.el.
+
+2011-01-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* building.texi (Compilation): Improve instructions for running two
+	compilations (Bug#7573).
+
+	* files.texi (Backup Names): Document the new location of the
+	last-resort backup file.
+
+	* files.texi (File Aliases): Move directory-abbrev-alist doc from Lisp
+	manual.  Explain why directory-abbrev-alist elements should be anchored
+	(Bug#7777).
+
+2011-01-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (Windows Startup): Correct inaccurate description of
+	differences between emacsclient.exe and emacsclientw.exe.
+
 2011-01-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* rmail.texi (Rmail Display): Edit for grammar and conciseness.
@@ -7539,9 +7606,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,
-    2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-    Free Software Foundation, Inc.
+  Copyright (C) 1993-1999, 2001-2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

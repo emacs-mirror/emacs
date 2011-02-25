@@ -1,6 +1,6 @@
 ;;; nnimap.el --- IMAP interface for Gnus
 
-;; Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;         Simon Josefsson <simon@josefsson.org>
@@ -47,8 +47,8 @@
 (require 'nnmail)
 (require 'proto-stream)
 
-(autoload 'auth-source-forget-user-or-password "auth-source")
-(autoload 'auth-source-user-or-password "auth-source")
+(autoload 'auth-source-forget+ "auth-source")
+(autoload 'auth-source-search "auth-source")
 
 (nnoo-declare nnimap)
 
@@ -124,7 +124,7 @@ textual parts.")
 
 (defstruct nnimap
   group process commands capabilities select-result newlinep server
-  last-command-time greeting examined)
+  last-command-time greeting examined stream-type)
 
 (defvar nnimap-object nil)
 
@@ -141,6 +141,8 @@ textual parts.")
 
 (defvar nnimap-quirks
   '(("QRESYNC" "Zimbra" "QRESYNC ")))
+
+(defvar nnimap-inhibit-logging nil)
 
 (defun nnimap-buffer ()
   (nnimap-find-process-buffer nntp-server-buffer))
@@ -274,19 +276,18 @@ textual parts.")
     (push (current-buffer) nnimap-process-buffers)
     (current-buffer)))
 
-(defun nnimap-credentials (address ports &optional inhibit-create)
-  (let (port credentials)
-    ;; Request the credentials from all ports, but only query on the
-    ;; last port if all the previous ones have failed.
-    (while (and (null credentials)
-		(setq port (pop ports)))
-      (setq credentials
-	    (auth-source-user-or-password
-	     '("login" "password") address port nil
-	     (if inhibit-create
-		 nil
-	       (null ports)))))
-    credentials))
+(defun nnimap-credentials (address ports)
+  (let ((found (nth 0 (auth-source-search :max 1
+					  :host address
+					  :port ports
+					  :create t))))
+    (if found
+        (list (plist-get found :user)
+	      (let ((secret (plist-get found :secret)))
+		(if (functionp secret)
+		    (funcall secret)
+		  secret)))
+      nil)))
 
 (defun nnimap-keepalive ()
   (let ((now (current-time)))
@@ -350,7 +351,7 @@ textual parts.")
            login-result credentials)
       (when nnimap-server-port
 	(setq ports (append ports (list nnimap-server-port))))
-      (destructuring-bind (stream greeting capabilities)
+      (destructuring-bind (stream greeting capabilities stream-type)
 	  (open-protocol-stream
 	   "*nnimap*" (current-buffer) nnimap-address (car (last ports))
 	   :type nnimap-stream
@@ -362,6 +363,7 @@ textual parts.")
 	     (when (gnus-string-match-p "STARTTLS" capabilities)
 	       "1 STARTTLS\r\n")))
 	(setf (nnimap-process nnimap-object) stream)
+	(setf (nnimap-stream-type nnimap-object) stream-type)
 	(if (not stream)
 	    (progn
 	      (nnheader-report 'nnimap "Unable to contact %s:%s via %s"
@@ -380,26 +382,25 @@ textual parts.")
 			     (if (eq nnimap-authenticator 'anonymous)
 				 (list "anonymous"
 				       (message-make-address))
-			       (or
-				;; First look for the credentials based
-				;; on the virtual server name.
-				(nnimap-credentials
-				 (nnoo-current-server 'nnimap) ports t)
-				;; Then look them up based on the
-				;; physical address.
-				(nnimap-credentials nnimap-address ports)))))
+                               ;; Look for the credentials based on
+                               ;; the virtual server name and the address
+                               (nnimap-credentials
+				(gnus-delete-duplicates
+				 (list
+				  nnimap-address
+				  (nnoo-current-server 'nnimap)))
+                                ports))))
 		  (setq nnimap-object nil)
-		(setq login-result
-		      (nnimap-login (car credentials) (cadr credentials)))
+		(let ((nnimap-inhibit-logging t))
+		  (setq login-result
+			(nnimap-login (car credentials) (cadr credentials))))
 		(unless (car login-result)
 		  ;; If the login failed, then forget the credentials
 		  ;; that are now possibly cached.
 		  (dolist (host (list (nnoo-current-server 'nnimap)
 				      nnimap-address))
 		    (dolist (port ports)
-		      (dolist (element '("login" "password"))
-			(auth-source-forget-user-or-password
-			 element host port))))
+                      (auth-source-forget+ :host host :port port)))
 		  (delete-process (nnimap-process nnimap-object))
 		  (setq nnimap-object nil))))
 	    (when nnimap-object
@@ -411,6 +412,12 @@ textual parts.")
 
 (defun nnimap-login (user password)
   (cond
+   ;; Prefer plain LOGIN if it's enabled (since it requires fewer
+   ;; round trips than CRAM-MD5, and it's less likely to be buggy),
+   ;; and we're using an encrypted connection.
+   ((and (not (nnimap-capability "LOGINDISABLED"))
+	 (eq (nnimap-stream-type nnimap-object) 'tls))
+    (nnimap-command "LOGIN %S %S" user password))
    ((nnimap-capability "AUTH=CRAM-MD5")
     (erase-buffer)
     (let ((sequence (nnimap-send-command "AUTHENTICATE CRAM-MD5"))
@@ -512,15 +519,17 @@ textual parts.")
     (with-current-buffer (nnimap-buffer)
       (when (stringp article)
 	(setq article (nnimap-find-article-by-message-id group article)))
-      (nnimap-get-whole-article
-       article (format "UID FETCH %%d %s"
-		       (nnimap-header-parameters)))
-      (let ((buffer (current-buffer)))
-	(with-current-buffer (or to-buffer nntp-server-buffer)
-	  (erase-buffer)
-	  (insert-buffer-substring buffer)
-	  (nnheader-ms-strip-cr)
-	  (cons group article))))))
+      (if (null article)
+	  nil
+	(nnimap-get-whole-article
+	 article (format "UID FETCH %%d %s"
+			 (nnimap-header-parameters)))
+	(let ((buffer (current-buffer)))
+	  (with-current-buffer (or to-buffer nntp-server-buffer)
+	    (erase-buffer)
+	    (insert-buffer-substring buffer)
+	    (nnheader-ms-strip-cr)
+	    (cons group article)))))))
 
 (defun nnimap-get-whole-article (article &optional command)
   (let ((result
@@ -960,30 +969,60 @@ textual parts.")
       (nnimap-add-cr)
       (setq message (buffer-substring-no-properties (point-min) (point-max)))
       (with-current-buffer (nnimap-buffer)
-	;; If we have this group open read-only, then unselect it
-	;; before appending to it.
-	(when (equal (nnimap-examined nnimap-object) group)
-	  (nnimap-unselect-group))
-	(erase-buffer)
-	(setq sequence (nnimap-send-command
-			"APPEND %S {%d}" (utf7-encode group t)
-			(length message)))
-	(unless nnimap-streaming
-	  (nnimap-wait-for-connection "^[+]"))
-	(process-send-string (get-buffer-process (current-buffer)) message)
-	(process-send-string (get-buffer-process (current-buffer))
-			     (if (nnimap-newlinep nnimap-object)
-				 "\n"
-			       "\r\n"))
-	(let ((result (nnimap-get-response sequence)))
-	  (if (not (car result))
-	      (progn
-		(nnheader-message 7 "%s" (nnheader-get-report-string 'nnimap))
-		nil)
-	    (cons group
-		  (or (nnimap-find-uid-response "APPENDUID" (car result))
-		      (nnimap-find-article-by-message-id
-		       group message-id)))))))))
+	(when (setq message (or (nnimap-process-quirk "OK Gimap " 'append message)
+				message))
+	  ;; If we have this group open read-only, then unselect it
+	  ;; before appending to it.
+	  (when (equal (nnimap-examined nnimap-object) group)
+	    (nnimap-unselect-group))
+	  (erase-buffer)
+	  (setq sequence (nnimap-send-command
+			  "APPEND %S {%d}" (utf7-encode group t)
+			  (length message)))
+	  (unless nnimap-streaming
+	    (nnimap-wait-for-connection "^[+]"))
+	  (process-send-string (get-buffer-process (current-buffer)) message)
+	  (process-send-string (get-buffer-process (current-buffer))
+			       (if (nnimap-newlinep nnimap-object)
+				   "\n"
+				 "\r\n"))
+	  (let ((result (nnimap-get-response sequence)))
+	    (if (not (nnimap-ok-p result))
+		(progn
+		  (nnheader-report 'nnimap "%s" result)
+		  nil)
+	      (cons group
+		    (or (nnimap-find-uid-response "APPENDUID" (car result))
+			(nnimap-find-article-by-message-id
+			 group message-id))))))))))
+
+(defun nnimap-process-quirk (greeting-match type data)
+  (when (and (nnimap-greeting nnimap-object)
+	     (string-match greeting-match (nnimap-greeting nnimap-object))
+	     (eq type 'append)
+	     (string-match "\000" data))
+    (let ((choice (gnus-multiple-choice
+		   "Message contains NUL characters.  Delete, continue, abort? "
+		   '((?d "Delete NUL characters")
+		     (?c "Try to APPEND the message as is")
+		     (?a "Abort")))))
+      (cond
+       ((eq choice ?a)
+	(nnheader-report 'nnimap "Aborted APPEND due to NUL characters"))
+       ((eq choice ?c)
+	data)
+       (t
+	(with-temp-buffer
+	  (insert data)
+	  (goto-char (point-min))
+	  (while (search-forward "\000" nil t)
+	    (replace-match "" t t))
+	  (buffer-string)))))))
+
+(defun nnimap-ok-p (value)
+  (and (consp value)
+       (consp (car value))
+       (equal (caar value) "OK")))
 
 (defun nnimap-find-uid-response (name list)
   (let ((result (car (last (nnimap-find-response-element name list)))))
@@ -1036,60 +1075,62 @@ textual parts.")
     (nreverse groups)))
 
 (deffoo nnimap-request-list (&optional server)
-  (nnimap-possibly-change-group nil server)
-  (with-current-buffer nntp-server-buffer
-    (erase-buffer)
-    (let ((groups
-	   (with-current-buffer (nnimap-buffer)
-	     (nnimap-get-groups)))
-	  sequences responses)
-      (when groups
-	(with-current-buffer (nnimap-buffer)
-	  (setf (nnimap-group nnimap-object) nil)
-	  (dolist (group groups)
-	    (setf (nnimap-examined nnimap-object) group)
-	    (push (list (nnimap-send-command "EXAMINE %S" (utf7-encode group t))
-			group)
-		  sequences))
-	  (nnimap-wait-for-response (caar sequences))
-	  (setq responses
-		(nnimap-get-responses (mapcar #'car sequences))))
-	(dolist (response responses)
-	  (let* ((sequence (car response))
-		 (response (cadr response))
-		 (group (cadr (assoc sequence sequences))))
-	    (when (and group
-		       (equal (caar response) "OK"))
-	      (let ((uidnext (nnimap-find-parameter "UIDNEXT" response))
-		    highest exists)
-		(dolist (elem response)
-		  (when (equal (cadr elem) "EXISTS")
-		    (setq exists (string-to-number (car elem)))))
-		(when uidnext
-		  (setq highest (1- (string-to-number (car uidnext)))))
-		(cond
-		 ((null highest)
-		  (insert (format "%S 0 1 y\n" (utf7-decode group t))))
-		 ((zerop exists)
-		  ;; Empty group.
-		  (insert (format "%S %d %d y\n"
-				  (utf7-decode group t) highest (1+ highest))))
-		 (t
-		  ;; Return the widest possible range.
-		  (insert (format "%S %d 1 y\n" (utf7-decode group t)
-				  (or highest exists)))))))))
-	t))))
+  (when (nnimap-possibly-change-group nil server)
+    (with-current-buffer nntp-server-buffer
+      (erase-buffer)
+      (let ((groups
+	     (with-current-buffer (nnimap-buffer)
+	       (nnimap-get-groups)))
+	    sequences responses)
+	(when groups
+	  (with-current-buffer (nnimap-buffer)
+	    (setf (nnimap-group nnimap-object) nil)
+	    (dolist (group groups)
+	      (setf (nnimap-examined nnimap-object) group)
+	      (push (list (nnimap-send-command "EXAMINE %S"
+					       (utf7-encode group t))
+			  group)
+		    sequences))
+	    (nnimap-wait-for-response (caar sequences))
+	    (setq responses
+		  (nnimap-get-responses (mapcar #'car sequences))))
+	  (dolist (response responses)
+	    (let* ((sequence (car response))
+		   (response (cadr response))
+		   (group (cadr (assoc sequence sequences))))
+	      (when (and group
+			 (equal (caar response) "OK"))
+		(let ((uidnext (nnimap-find-parameter "UIDNEXT" response))
+		      highest exists)
+		  (dolist (elem response)
+		    (when (equal (cadr elem) "EXISTS")
+		      (setq exists (string-to-number (car elem)))))
+		  (when uidnext
+		    (setq highest (1- (string-to-number (car uidnext)))))
+		  (cond
+		   ((null highest)
+		    (insert (format "%S 0 1 y\n" (utf7-decode group t))))
+		   ((zerop exists)
+		    ;; Empty group.
+		    (insert (format "%S %d %d y\n"
+				    (utf7-decode group t)
+				    highest (1+ highest))))
+		   (t
+		    ;; Return the widest possible range.
+		    (insert (format "%S %d 1 y\n" (utf7-decode group t)
+				    (or highest exists)))))))))
+	  t)))))
 
 (deffoo nnimap-request-newgroups (date &optional server)
-  (nnimap-possibly-change-group nil server)
-  (with-current-buffer nntp-server-buffer
-    (erase-buffer)
-    (dolist (group (with-current-buffer (nnimap-buffer)
-		     (nnimap-get-groups)))
-      (unless (assoc group nnimap-current-infos)
-	;; Insert dummy numbers here -- they don't matter.
-	(insert (format "%S 0 1 y\n" group))))
-    t))
+  (when (nnimap-possibly-change-group nil server)
+    (with-current-buffer nntp-server-buffer
+      (erase-buffer)
+      (dolist (group (with-current-buffer (nnimap-buffer)
+		       (nnimap-get-groups)))
+	(unless (assoc group nnimap-current-infos)
+	  ;; Insert dummy numbers here -- they don't matter.
+	  (insert (format "%S 0 1 y\n" group))))
+      t)))
 
 (deffoo nnimap-retrieve-group-data-early (server infos)
   (when (nnimap-possibly-change-group nil server)
@@ -1235,10 +1276,9 @@ textual parts.")
 			      (t
 			       ;; No articles and no uidnext.
 			       nil)))
-	  (gnus-set-active
-	   group
-	   (cons (car active)
-		 (or high (1- uidnext)))))
+	  (gnus-set-active group
+			   (cons (car active)
+				 (or high (1- uidnext)))))
 	;; See whether this is a read-only group.
 	(unless (eq permanent-flags 'not-scanned)
 	  (gnus-group-set-parameter
@@ -1302,6 +1342,14 @@ textual parts.")
 		    (when new-marks
 		      (push (cons (car type) new-marks) marks)))))
 	      (gnus-info-set-marks info marks t))))
+	;; Tell Gnus whether there are any \Recent messages in any of
+	;; the groups.
+	(let ((recent (cdr (assoc '%Recent flags))))
+	  (when (and active
+		     recent
+		     (> (car (last recent)) (cdr active)))
+	    (push (list (cons (gnus-group-real-name group) 0))
+		  nnmail-split-history)))
 	;; Note the active level for the next run-through.
 	(gnus-group-set-parameter info 'active (gnus-active group))
 	(gnus-group-set-parameter info 'uidvalidity uidvalidity)
@@ -1464,6 +1512,9 @@ textual parts.")
   (setq nnimap-status-string "Read-only server")
   nil)
 
+(declare-function gnus-fetch-headers "gnus-sum"
+		  (articles &optional limit force-new dependencies))
+
 (deffoo nnimap-request-thread (header)
   (let* ((id (mail-header-id header))
 	 (refs (split-string
@@ -1519,6 +1570,7 @@ textual parts.")
 (defvar nnimap-sequence 0)
 
 (defun nnimap-send-command (&rest args)
+  (setf (nnimap-last-command-time nnimap-object) (current-time))
   (process-send-string
    (get-buffer-process (current-buffer))
    (nnimap-log-command
@@ -1537,12 +1589,14 @@ textual parts.")
 (defun nnimap-log-command (command)
   (with-current-buffer (get-buffer-create "*imap log*")
     (goto-char (point-max))
-    (insert (format-time-string "%H:%M:%S") " " command))
+    (insert (format-time-string "%H:%M:%S") " "
+	    (if nnimap-inhibit-logging
+		"(inhibited)\n"
+	      command)))
   command)
 
 (defun nnimap-command (&rest args)
   (erase-buffer)
-  (setf (nnimap-last-command-time nnimap-object) (current-time))
   (let* ((sequence (apply #'nnimap-send-command args))
 	 (response (nnimap-get-response sequence)))
     (if (equal (caar response) "OK")
@@ -1580,17 +1634,14 @@ textual parts.")
 	  (goto-char (point-max))
 	  (while (and (setq openp (memq (process-status process)
 					'(open run)))
-		      (not (re-search-backward
-			    (format "^%d .*\n" sequence)
-			    (if nnimap-streaming
-				(max (point-min)
-				     (min
-				      (- (point) 500)
-				      (save-excursion
-					(forward-line -3)
-					(point))))
-			      (point-min))
-			    t)))
+		      (progn
+			;; Skip past any "*" lines that the server has
+			;; output.
+			(while (and (not (bobp))
+				    (progn
+				      (forward-line -1)
+				      (looking-at "\\*"))))
+			(not (looking-at (format "%d .*\n" sequence)))))
 	    (when messagep
 	      (nnheader-message 7 "nnimap read %dk" (/ (buffer-size) 1000)))
 	    (nnheader-accept-process-output process)
@@ -1772,7 +1823,7 @@ textual parts.")
 (defun nnimap-parse-copied-articles (sequences)
   (let (sequence copied range)
     (goto-char (point-min))
-    (while (re-search-forward "^\\([0-9]+\\) OK " nil t)
+    (while (re-search-forward "^\\([0-9]+\\) OK\\b" nil t)
       (setq sequence (string-to-number (match-string 1)))
       (when (setq range (cadr (assq sequence sequences)))
 	(push (gnus-uncompress-range range) copied)))

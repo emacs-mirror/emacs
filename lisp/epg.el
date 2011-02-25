@@ -1,6 +1,5 @@
 ;;; epg.el --- the EasyPG Library
-;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2000, 2002-2011 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
@@ -1562,14 +1561,14 @@ This function is for internal use only."
 
 (defun epg--status-KEYEXPIRED (context string)
   (epg-context-set-result-for
-   context 'error
+   context 'key
    (cons (list 'key-expired (cons 'expiration-time
 				  (epg--time-from-seconds string)))
 	 (epg-context-result-for context 'error))))
 
 (defun epg--status-KEYREVOKED (context string)
   (epg-context-set-result-for
-   context 'error
+   context 'key
    (cons '(key-revoked)
 	 (epg-context-result-for context 'error))))
 
@@ -2650,5 +2649,4 @@ Type names are resolved using `epg-dn-type-alist'."
 
 (provide 'epg)
 
-;; arch-tag: de8f0acc-1bcf-4c14-a09e-bfffe1b579b7
 ;;; epg.el ends here

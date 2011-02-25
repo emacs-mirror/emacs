@@ -1,5 +1,5 @@
 /* Definitions and headers for communication with NeXT/Open/GNUstep API.
-   Copyright (C) 1989, 1993, 2005, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1989, 1993, 2005, 2008-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -66,6 +66,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    int rows, cols;
    int scrollbarsNeedingUpdate;
    EmacsToolbar *toolbar;
+   NSRect ns_userRect;
    }
 
 /* AppKit-side interface */
@@ -565,6 +566,12 @@ struct ns_output
 
   /* This is the Emacs structure for the NS display this frame is on.  */
   struct ns_display_info *display_info;
+
+  /* Non-zero if we want to constrain the frame to the screen.  */
+  int dont_constrain;
+
+  /* Non-zero if we are zooming (maximizing) the frame.  */
+  int zooming;
 };
 
 /* this dummy decl needed to support TTYs */
@@ -812,5 +819,3 @@ extern char gnustep_base_version[];  /* version tracking */
 
 #endif	/* HAVE_NS */
 
-/* arch-tag: 0a28b142-4ac1-4a81-a243-abcd82d9c4e5
-   (do not change this comment) */

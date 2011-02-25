@@ -1,7 +1,6 @@
 ;;; repeat.el --- convenient way to repeat the previous command
 
-;; Copyright (C) 1998, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Will Mengarini <seldon@eskimo.com>
 ;; Created: Mo 02 Mar 98
@@ -392,5 +391,4 @@ recently executed command not bound to an input event\"."
 
 (provide 'repeat)
 
-;; arch-tag: cd569600-a1ad-4fa7-9062-bb91dfeaf1db
 ;;; repeat.el ends here

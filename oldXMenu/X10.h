@@ -76,5 +76,3 @@ char *XLookUpAssoc(Display *dpy, XAssocTable *table, XID x_id);
 
 #endif /* _X10_H_ */
 
-/* arch-tag: b0b749fb-757b-470b-b405-af7d033a5aad
-   (do not change this comment) */

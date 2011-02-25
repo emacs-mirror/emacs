@@ -1,5 +1,5 @@
 /* NeXT/Open/GNUstep / MacOSX communication module.
-   Copyright (C) 1989, 1993, 1994, 2005, 2006, 2008, 2009, 2010, 2011
+   Copyright (C) 1989, 1993-1994, 2005-2006, 2008-2011
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -135,48 +135,9 @@ static unsigned convert_ns_to_X_keysym[] =
 };
 
 
-/* Lisp communications */
-Lisp_Object ns_input_file, ns_input_font, ns_input_fontsize, ns_input_line;
-Lisp_Object ns_input_color, ns_input_text, ns_working_text;
-Lisp_Object ns_input_spi_name, ns_input_spi_arg;
-Lisp_Object Vx_toolkit_scroll_bars;
 static Lisp_Object Qmodifier_value;
 Lisp_Object Qalt, Qcontrol, Qhyper, Qmeta, Qsuper, Qnone;
 extern Lisp_Object Qcursor_color, Qcursor_type, Qns, Qleft;
-
-/* Specifies which emacs modifier should be generated when NS receives
-   the Alternate modifier.  May be Qnone or any of the modifier lisp symbols. */
-Lisp_Object ns_alternate_modifier;
-
-/* Specifies which emacs modifier should be generated when NS receives
-   the right Alternate modifier.  Has same values as ns_alternate_modifier plus
-   the value Qleft which means whatever value ns_alternate_modifier has.  */
-Lisp_Object ns_right_alternate_modifier;
-
-/* Specifies which emacs modifier should be generated when NS receives
-   the Command modifier.  May be any of the modifier lisp symbols. */
-Lisp_Object ns_command_modifier;
-
-/* Specifies which emacs modifier should be generated when NS receives
-   the right Command modifier.  Has same values as ns_command_modifier plus
-   the value Qleft which means whatever value ns_command_modifier has.  */
-Lisp_Object ns_right_command_modifier;
-
-/* Specifies which emacs modifier should be generated when NS receives
-   the Control modifier.  May be any of the modifier lisp symbols. */
-Lisp_Object ns_control_modifier;
-
-/* Specifies which emacs modifier should be generated when NS receives
-   the right Control modifier.  Has same values as ns_control_modifier plus
-   the value Qleft which means whatever value ns_control_modifier has.  */
-Lisp_Object ns_right_control_modifier;
-
-/* Specifies which emacs modifier should be generated when NS receives
-   the Function modifier (laptops).  May be any of the modifier lisp symbols. */
-Lisp_Object ns_function_modifier;
-
-/* Control via default 'GSFontAntiAlias' on OS X and GNUstep. */
-Lisp_Object ns_antialias_text;
 
 /* On OS X picks up the default NSGlobalDomain AppleAntiAliasingThreshold,
    the maximum font size to NOT antialias.  On GNUstep there is currently
@@ -185,9 +146,6 @@ float ns_antialias_threshold;
 
 /* Used to pick up AppleHighlightColor on OS X */
 NSString *ns_selection_color;
-
-/* Confirm on exit. */
-Lisp_Object ns_confirm_quit;
 
 NSArray *ns_send_types =0, *ns_return_types =0, *ns_drag_types =0;
 NSString *ns_app_name = @"Emacs";  /* default changed later */
@@ -303,8 +261,6 @@ static void ns_condemn_scroll_bars (struct frame *f);
 static void ns_judge_scroll_bars (struct frame *f);
 void x_set_frame_alpha (struct frame *f);
 
-/* unused variables needed for compatibility reasons */
-int x_use_underline_position_properties, x_underline_at_descent_line;
 /* FIXME: figure out what to do with underline_minimum_offset. */
 
 
@@ -1097,8 +1053,10 @@ x_set_offset (struct frame *f, int xoff, int yoff, int change_grav)
      External: Position the window
    -------------------------------------------------------------------------- */
 {
-  NSScreen *screen;
   NSView *view = FRAME_NS_VIEW (f);
+  NSArray *screens = [NSScreen screens];
+  NSScreen *fscreen = [screens objectAtIndex: 0];
+  NSScreen *screen = [[view window] screen];
 
   NSTRACE (x_set_offset);
 
@@ -1107,14 +1065,14 @@ x_set_offset (struct frame *f, int xoff, int yoff, int change_grav)
   f->left_pos = xoff;
   f->top_pos = yoff;
 
-  if (view != nil && (screen = [[view window] screen]))
+  if (view != nil && screen && fscreen)
     {
       f->left_pos = f->size_hint_flags & XNegative
         ? [screen visibleFrame].size.width + f->left_pos - FRAME_PIXEL_WIDTH (f)
         : f->left_pos;
       /* We use visibleFrame here to take menu bar into account.
-	 Ideally we should also adjust left/top with visibleFrame.offset.  */
-	 
+	 Ideally we should also adjust left/top with visibleFrame.origin.  */
+      
       f->top_pos = f->size_hint_flags & YNegative
         ? ([screen visibleFrame].size.height + f->top_pos
            - FRAME_PIXEL_HEIGHT (f) - FRAME_NS_TITLEBAR_HEIGHT (f)
@@ -1124,9 +1082,12 @@ x_set_offset (struct frame *f, int xoff, int yoff, int change_grav)
       if (f->left_pos < 100)
         f->left_pos = 100;  /* don't overlap menu */
 #endif
+      /* Constrain the setFrameTopLeftPoint so we don't move behind the
+         menu bar.  */
+      f->output_data.ns->dont_constrain = 0;
       [[view window] setFrameTopLeftPoint:
                        NSMakePoint (SCREENMAXBOUND (f->left_pos),
-                                    SCREENMAXBOUND ([screen frame].size.height
+                                    SCREENMAXBOUND ([fscreen frame].size.height
                                                     - NS_TOP_POS (f)))];
       f->size_hint_flags &= ~(XNegative|YNegative);
     }
@@ -1140,13 +1101,12 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
 /* --------------------------------------------------------------------------
      Adjust window pixel size based on given character grid size
      Impl is a bit more complex than other terms, need to do some
-     internal clipping and also pay attention to screen constraints.
+     internal clipping.
    -------------------------------------------------------------------------- */
 {
   EmacsView *view = FRAME_NS_VIEW (f);
   EmacsToolbar *toolbar = [view toolbar];
   NSWindow *window = [view window];
-  NSScreen *screen = [window screen];
   NSRect wr = [window frame];
   int tb = FRAME_EXTERNAL_TOOL_BAR (f);
   int pixelwidth, pixelheight;
@@ -1197,31 +1157,13 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
   wr.size.height = pixelheight + FRAME_NS_TITLEBAR_HEIGHT (f) 
                   + FRAME_TOOLBAR_HEIGHT (f);
 
-  /* constrain to screen if we can */
-  if (screen)
-    {
-      NSSize sz = [screen visibleFrame].size;
-      NSSize ez = { wr.size.width - sz.width, wr.size.height - sz.height };
-      if (ez.width > 0)
-        {
-          int cr = ez.width / FRAME_COLUMN_WIDTH (f) + 1;
-          cols -= cr;
-          oldCols = cols;
-          wr.size.width -= cr * FRAME_COLUMN_WIDTH (f);
-          pixelwidth -= cr * FRAME_COLUMN_WIDTH (f);
-        }
-      if (ez.height > 0)
-        {
-          int rr = ez.height / FRAME_LINE_HEIGHT (f) + 1;
-          rows -= rr;
-          oldRows = rows;
-          wr.size.height -= rr * FRAME_LINE_HEIGHT (f);
-          pixelheight -= rr * FRAME_LINE_HEIGHT (f);
-        }
-      wr.origin.x = f->left_pos;
-      wr.origin.y = [screen frame].size.height - NS_TOP_POS (f)
-        - wr.size.height;
-    }
+  /* Do not try to constrain to this screen.  We may have multiple
+     screens, and want Emacs to span those.  Constraining to screen
+     prevents that, and that is not nice to the user.  */
+ if (f->output_data.ns->zooming)
+   f->output_data.ns->zooming = 0;
+ else
+   wr.origin.y += FRAME_PIXEL_HEIGHT (f) - pixelheight;
 
   [view setRows: rows andColumns: cols];
   [window setFrame: wr display: YES];
@@ -3820,7 +3762,7 @@ ns_term_init (Lisp_Object display_name)
 
   terminal->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
   init_kboard (terminal->kboard);
-  terminal->kboard->Vwindow_system = Qns;
+  KVAR (terminal->kboard, Vwindow_system) = Qns;
   terminal->kboard->next_kboard = all_kboards;
   all_kboards = terminal->kboard;
   /* Don't let the initial kboard remain current longer than necessary.
@@ -3980,7 +3922,6 @@ ns_term_init (Lisp_Object display_name)
 }
 
 
-extern Lisp_Object Vauto_save_list_file_name;
 void
 ns_term_shutdown (int sig)
 {
@@ -4433,6 +4374,7 @@ ns_term_shutdown (int sig)
   int flags;
   static NSMutableArray *nsEvArray;
   static BOOL firstTime = YES;
+  int left_is_none;
 
   NSTRACE (keyDown);
 
@@ -4556,10 +4498,14 @@ ns_term_shutdown (int sig)
           emacs_event->modifiers |=
             parse_solitary_modifier (ns_function_modifier);
 
+      left_is_none = NILP (ns_alternate_modifier)
+        || EQ (ns_alternate_modifier, Qnone);
+
       if ((flags & NSRightAlternateKeyMask) == NSRightAlternateKeyMask)
         {
           if ((NILP (ns_right_alternate_modifier)
-               || EQ (ns_right_alternate_modifier, Qnone))
+               || EQ (ns_right_alternate_modifier, Qnone)
+               || (EQ (ns_right_alternate_modifier, Qleft) && left_is_none))
               && !fnKeysym)
             {   /* accept pre-interp alt comb */
               if ([[theEvent characters] length] > 0)
@@ -4577,9 +4523,7 @@ ns_term_shutdown (int sig)
 
       if ((flags & NSLeftAlternateKeyMask) == NSLeftAlternateKeyMask) /* default = meta */
         {
-          if ((NILP (ns_alternate_modifier)
-               || EQ (ns_alternate_modifier, Qnone))
-              && !fnKeysym)
+          if (left_is_none && !fnKeysym)
             {   /* accept pre-interp alt comb */
               if ([[theEvent characters] length] > 0)
                 code = [[theEvent characters] characterAtIndex: 0];
@@ -5029,7 +4973,6 @@ ns_term_shutdown (int sig)
 #endif
   if (cols < MINWIDTH)
     cols = MINWIDTH;
-  frameSize.width = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (emacsframe, cols);
 
   rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (emacsframe, frameSize.height
 #ifdef NS_IMPL_GNUSTEP
@@ -5041,9 +4984,6 @@ ns_term_shutdown (int sig)
 #endif
   if (rows < MINHEIGHT)
     rows = MINHEIGHT;
-  frameSize.height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (emacsframe, rows)
-                       + FRAME_NS_TITLEBAR_HEIGHT (emacsframe)
-                       + FRAME_TOOLBAR_HEIGHT (emacsframe);
 #ifdef NS_IMPL_COCOA
   {
     /* this sets window title to have size in it; the wm does this under GS */
@@ -5111,7 +5051,7 @@ ns_term_shutdown (int sig)
      a "windowDidResize" which calls x_set_window_size).  */
 #ifndef NS_IMPL_GNUSTEP
   if (cols > 0 && rows > 0)
-     x_set_window_size (emacsframe, 0, cols, rows);
+    x_set_window_size (emacsframe, 0, cols, rows);
 #endif
 
   ns_send_appdefined (-1);
@@ -5204,6 +5144,7 @@ ns_term_shutdown (int sig)
 
 /*fprintf (stderr,"init with %d, %d\n",f->text_cols, f->text_lines); */
 
+  ns_userRect = NSMakeRect (0, 0, 0, 0);
   r = NSMakeRect (0, 0, FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, f->text_cols),
                  FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, f->text_lines));
   [self initWithFrame: r];
@@ -5290,7 +5231,8 @@ ns_term_shutdown (int sig)
 {
   NSWindow *win = [self window];
   NSRect r = [win frame];
-  NSScreen *screen = [win screen];
+  NSArray *screens = [NSScreen screens];
+  NSScreen *screen = [screens objectAtIndex: 0];
 
   NSTRACE (windowDidMove);
 
@@ -5310,10 +5252,7 @@ ns_term_shutdown (int sig)
    location so set_window_size moves the frame. */
 - (BOOL)windowShouldZoom: (NSWindow *)sender toFrame: (NSRect)newFrame
 {
-  NSTRACE (windowShouldZoom);
-  emacsframe->left_pos = (int)newFrame.origin.x;
-  emacsframe->top_pos = [[sender screen] frame].size.height
-                            - (newFrame.origin.y+newFrame.size.height);
+  emacsframe->output_data.ns->zooming = 1;
   return YES;
 }
 
@@ -5325,7 +5264,6 @@ ns_term_shutdown (int sig)
                         defaultFrame:(NSRect)defaultFrame
 {
   NSRect result = [sender frame];
-  static NSRect ns_userRect = { 0, 0, 0, 0 };
 
   NSTRACE (windowWillUseStandardFrame);
 
@@ -5343,7 +5281,11 @@ ns_term_shutdown (int sig)
           > FRAME_COLUMN_WIDTH (emacsframe))
         result = defaultFrame;  /* second click */
       else
-        result = ns_userRect.size.height ? ns_userRect : result;  /* restore */
+        {
+          /* restore */
+          result = ns_userRect.size.height ? ns_userRect : result;
+          ns_userRect = NSMakeRect (0, 0, 0, 0);
+        }
     }
 
   [self windowWillResize: sender toSize: result.size];
@@ -5728,6 +5670,21 @@ ns_term_shutdown (int sig)
 
 @implementation EmacsWindow
 
+/* If we have multiple monitors, one above the other, we don't want to
+   restrict the height to just one monitor.  So we override this.  */
+- (NSRect)constrainFrameRect:(NSRect)frameRect toScreen:(NSScreen *)screen
+{
+  /* When making the frame visible for the first time, we want to
+     constrain.  Other times not.  */
+  struct frame *f = ((EmacsView *)[self delegate])->emacsframe;
+  if (f->output_data.ns->dont_constrain)
+    return frameRect;
+
+  f->output_data.ns->dont_constrain = 1;
+  return [super constrainFrameRect:frameRect toScreen:screen];
+}
+
+
 /* called only on resize clicks by special case in EmacsApp-sendEvent */
 - (void)mouseDown: (NSEvent *)theEvent
 {
@@ -5773,12 +5730,9 @@ ns_term_shutdown (int sig)
         return;
 
       vettedSize = [[self delegate] windowWillResize: self toSize: size];
-      if (vettedSize.width != size.width || vettedSize.height != size.height)
-        {
-          [[NSNotificationCenter defaultCenter]
+      [[NSNotificationCenter defaultCenter]
             postNotificationName: NSWindowDidResizeNotification
                           object: self];
-        }
     }
   else
     [super mouseDragged: theEvent];
@@ -5829,6 +5783,7 @@ ns_term_shutdown (int sig)
   win = nwin;
   condemned = NO;
   pixel_height = NSHeight (r);
+  if (pixel_height == 0) pixel_height = 1;
   min_portion = 20 / pixel_height;
 
   frame = XFRAME (XWINDOW (win)->frame);
@@ -5858,6 +5813,7 @@ ns_term_shutdown (int sig)
   NSTRACE (EmacsScroller_setFrame);
 /*  BLOCK_INPUT; */
   pixel_height = NSHeight (newRect);
+  if (pixel_height == 0) pixel_height = 1;
   min_portion = 20 / pixel_height;
   [super setFrame: newRect];
   [self display];
@@ -6295,50 +6251,50 @@ syms_of_nsterm (void)
   Fput (Qsuper, Qmodifier_value, make_number (super_modifier));
   Fput (Qcontrol, Qmodifier_value, make_number (ctrl_modifier));
 
-  DEFVAR_LISP ("ns-input-file", &ns_input_file,
+  DEFVAR_LISP ("ns-input-file", ns_input_file,
               "The file specified in the last NS event.");
   ns_input_file =Qnil;
 
-  DEFVAR_LISP ("ns-input-text", &ns_input_text,
+  DEFVAR_LISP ("ns-input-text", ns_input_text,
               "The data received in the last NS text drag event.");
   ns_input_text =Qnil;
 
-  DEFVAR_LISP ("ns-working-text", &ns_working_text,
+  DEFVAR_LISP ("ns-working-text", ns_working_text,
               "String for visualizing working composition sequence.");
   ns_working_text =Qnil;
 
-  DEFVAR_LISP ("ns-input-font", &ns_input_font,
+  DEFVAR_LISP ("ns-input-font", ns_input_font,
               "The font specified in the last NS event.");
   ns_input_font =Qnil;
 
-  DEFVAR_LISP ("ns-input-fontsize", &ns_input_fontsize,
+  DEFVAR_LISP ("ns-input-fontsize", ns_input_fontsize,
               "The fontsize specified in the last NS event.");
   ns_input_fontsize =Qnil;
 
-  DEFVAR_LISP ("ns-input-line", &ns_input_line,
+  DEFVAR_LISP ("ns-input-line", ns_input_line,
                "The line specified in the last NS event.");
   ns_input_line =Qnil;
 
-  DEFVAR_LISP ("ns-input-color", &ns_input_color,
+  DEFVAR_LISP ("ns-input-color", ns_input_color,
                "The color specified in the last NS event.");
   ns_input_color =Qnil;
 
-  DEFVAR_LISP ("ns-input-spi-name", &ns_input_spi_name,
+  DEFVAR_LISP ("ns-input-spi-name", ns_input_spi_name,
                "The service name specified in the last NS event.");
   ns_input_spi_name =Qnil;
 
-  DEFVAR_LISP ("ns-input-spi-arg", &ns_input_spi_arg,
+  DEFVAR_LISP ("ns-input-spi-arg", ns_input_spi_arg,
                "The service argument specified in the last NS event.");
   ns_input_spi_arg =Qnil;
 
-  DEFVAR_LISP ("ns-alternate-modifier", &ns_alternate_modifier,
+  DEFVAR_LISP ("ns-alternate-modifier", ns_alternate_modifier,
                "This variable describes the behavior of the alternate or option key.\n\
 Set to control, meta, alt, super, or hyper means it is taken to be that key.\n\
 Set to none means that the alternate / option key is not interpreted by Emacs\n\
 at all, allowing it to be used at a lower level for accented character entry.");
   ns_alternate_modifier = Qmeta;
 
-  DEFVAR_LISP ("ns-right-alternate-modifier", &ns_right_alternate_modifier,
+  DEFVAR_LISP ("ns-right-alternate-modifier", ns_right_alternate_modifier,
                "This variable describes the behavior of the right alternate or option key.\n\
 Set to control, meta, alt, super, or hyper means it is taken to be that key.\n\
 Set to left means be the same key as `ns-alternate-modifier'.\n\
@@ -6346,12 +6302,12 @@ Set to none means that the alternate / option key is not interpreted by Emacs\n\
 at all, allowing it to be used at a lower level for accented character entry.");
   ns_right_alternate_modifier = Qleft;
 
-  DEFVAR_LISP ("ns-command-modifier", &ns_command_modifier,
+  DEFVAR_LISP ("ns-command-modifier", ns_command_modifier,
                "This variable describes the behavior of the command key.\n\
 Set to control, meta, alt, super, or hyper means it is taken to be that key.");
   ns_command_modifier = Qsuper;
 
-  DEFVAR_LISP ("ns-right-command-modifier", &ns_right_command_modifier,
+  DEFVAR_LISP ("ns-right-command-modifier", ns_right_command_modifier,
                "This variable describes the behavior of the right command key.\n\
 Set to control, meta, alt, super, or hyper means it is taken to be that key.\n\
 Set to left means be the same key as `ns-command-modifier'.\n\
@@ -6359,12 +6315,12 @@ Set to none means that the command / option key is not interpreted by Emacs\n\
 at all, allowing it to be used at a lower level for accented character entry.");
   ns_right_command_modifier = Qleft;
 
-  DEFVAR_LISP ("ns-control-modifier", &ns_control_modifier,
+  DEFVAR_LISP ("ns-control-modifier", ns_control_modifier,
                "This variable describes the behavior of the control key.\n\
 Set to control, meta, alt, super, or hyper means it is taken to be that key.");
   ns_control_modifier = Qcontrol;
 
-  DEFVAR_LISP ("ns-right-control-modifier", &ns_right_control_modifier,
+  DEFVAR_LISP ("ns-right-control-modifier", ns_right_control_modifier,
                "This variable describes the behavior of the right control key.\n\
 Set to control, meta, alt, super, or hyper means it is taken to be that key.\n\
 Set to left means be the same key as `ns-control-modifier'.\n\
@@ -6372,18 +6328,18 @@ Set to none means that the control / option key is not interpreted by Emacs\n\
 at all, allowing it to be used at a lower level for accented character entry.");
   ns_right_control_modifier = Qleft;
 
-  DEFVAR_LISP ("ns-function-modifier", &ns_function_modifier,
+  DEFVAR_LISP ("ns-function-modifier", ns_function_modifier,
                "This variable describes the behavior of the function key (on laptops).\n\
 Set to control, meta, alt, super, or hyper means it is taken to be that key.\n\
 Set to none means that the function key is not interpreted by Emacs at all,\n\
 allowing it to be used at a lower level for accented character entry.");
   ns_function_modifier = Qnone;
 
-  DEFVAR_LISP ("ns-antialias-text", &ns_antialias_text,
+  DEFVAR_LISP ("ns-antialias-text", ns_antialias_text,
                "Non-nil (the default) means to render text antialiased. Only has an effect on OS X Panther and above.");
   ns_antialias_text = Qt;
 
-  DEFVAR_LISP ("ns-confirm-quit", &ns_confirm_quit,
+  DEFVAR_LISP ("ns-confirm-quit", ns_confirm_quit,
                "Whether to confirm application quit using dialog.");
   ns_confirm_quit = Qnil;
 
@@ -6394,7 +6350,7 @@ allowing it to be used at a lower level for accented character entry.");
   last_mouse_motion_frame = Qnil;
 
   /* TODO: move to common code */
-  DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
+  DEFVAR_LISP ("x-toolkit-scroll-bars", Vx_toolkit_scroll_bars,
 	       doc: /* If not nil, Emacs uses toolkit scroll bars.  */);
 #ifdef USE_TOOLKIT_SCROLL_BARS
   Vx_toolkit_scroll_bars = Qt;
@@ -6405,7 +6361,7 @@ allowing it to be used at a lower level for accented character entry.");
   /* these are unsupported but we need the declarations to avoid whining
      messages from cus-start.el */
   DEFVAR_BOOL ("x-use-underline-position-properties",
-	       &x_use_underline_position_properties,
+	       x_use_underline_position_properties,
      doc: /* NOT SUPPORTED UNDER NS.
 *Non-nil means make use of UNDERLINE_POSITION font properties.
 A value of nil means ignore them.  If you encounter fonts with bogus
@@ -6416,7 +6372,7 @@ NOTE: Not supported on Mac yet.  */);
   x_use_underline_position_properties = 0;
 
   DEFVAR_BOOL ("x-underline-at-descent-line",
-	       &x_underline_at_descent_line,
+	       x_underline_at_descent_line,
      doc: /* NOT SUPPORTED UNDER NS.
 *Non-nil means to draw the underline at the same place as the descent line.
 A value of nil means to draw the underline according to the value of the
@@ -6429,4 +6385,3 @@ baseline level.  The default value is nil.  */);
 }
 
 
-// arch-tag: 6eaa8f7d-a69b-4e1c-b43d-ab31defbe0d2

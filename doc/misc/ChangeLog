@@ -1,3 +1,271 @@
+2011-02-20  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Window Layout): Document layout names.
+
+2011-02-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* ada-mode.texi: Sync @dircategory with ../../info/dir.
+	* auth.texi: Sync @dircategory with ../../info/dir.
+	* autotype.texi: Sync @dircategory with ../../info/dir.
+	* calc.texi: Sync @dircategory with ../../info/dir.
+	* cc-mode.texi: Sync @dircategory with ../../info/dir.
+	* cl.texi: Sync @dircategory with ../../info/dir.
+	* dbus.texi: Sync @dircategory with ../../info/dir.
+	* dired-x.texi: Sync @dircategory with ../../info/dir.
+	* ebrowse.texi: Sync @dircategory with ../../info/dir.
+	* ede.texi: Sync @dircategory with ../../info/dir.
+	* ediff.texi: Sync @dircategory with ../../info/dir.
+	* edt.texi: Sync @dircategory with ../../info/dir.
+	* eieio.texi: Sync @dircategory with ../../info/dir.
+	* emacs-mime.texi: Sync @dircategory with ../../info/dir.
+	* epa.texi: Sync @dircategory with ../../info/dir.
+	* erc.texi: Sync @dircategory with ../../info/dir.
+	* eshell.texi: Sync @dircategory with ../../info/dir.
+	* eudc.texi: Sync @dircategory with ../../info/dir.
+	* flymake.texi: Sync @dircategory with ../../info/dir.
+	* forms.texi: Sync @dircategory with ../../info/dir.
+	* gnus.texi: Sync @dircategory with ../../info/dir.
+	* idlwave.texi: Sync @dircategory with ../../info/dir.
+	* mairix-el.texi: Sync @dircategory with ../../info/dir.
+	* message.texi: Sync @dircategory with ../../info/dir.
+	* mh-e.texi: Sync @dircategory with ../../info/dir.
+	* newsticker.texi: Sync @dircategory with ../../info/dir.
+	* nxml-mode.texi: Sync @dircategory with ../../info/dir.
+	* org.texi: Sync @dircategory with ../../info/dir.
+	* pcl-cvs.texi: Sync @dircategory with ../../info/dir.
+	* pgg.texi: Sync @dircategory with ../../info/dir.
+	* rcirc.texi: Sync @dircategory with ../../info/dir.
+	* reftex.texi: Sync @dircategory with ../../info/dir.
+	* remember.texi: Sync @dircategory with ../../info/dir.
+	* sasl.texi: Sync @dircategory with ../../info/dir.
+	* sc.texi: Sync @dircategory with ../../info/dir.
+	* semantic.texi: Sync @dircategory with ../../info/dir.
+	* ses.texi: Sync @dircategory with ../../info/dir.
+	* sieve.texi: Sync @dircategory with ../../info/dir.
+	* smtpmail.texi: Sync @dircategory with ../../info/dir.
+	* speedbar.texi: Sync @dircategory with ../../info/dir.
+	* trampver.texi [emacs]: Set emacsname to "Emacs".
+	* tramp.texi: Sync @dircategory with ../../info/dir.
+	* url.texi: Sync @dircategory with ../../info/dir.
+	* vip.texi: Sync @dircategory with ../../info/dir.
+	* viper.texi: Sync @dircategory with ../../info/dir.
+	* widget.texi: Sync @dircategory with ../../info/dir.
+	* woman.texi: Sync @dircategory with ../../info/dir.
+
+2011-02-19  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.texi (Technical Details): No longer redefines dired-add-entry,
+	dired-initial-position, dired-clean-up-after-deletion,
+	dired-read-shell-command, or dired-find-buffer-nocreate.
+
+2011-02-18  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.texi (Optional Installation File At Point): Simplify.
+
+2011-02-17  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth.texi (Help for users): Use :port instead of :protocol for all
+	auth-source docs.
+	(GnuPG and EasyPG Assistant Configuration): Mention the default now is
+	to have two files in `auth-sources'.
+
+2011-02-16  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.texi: Use emacsver.texi to get Emacs version.
+	* Makefile.in ($(infodir)/dired-x, dired-x.dvi, dired-x.pdf):
+	Depend on emacsver.texi.
+
+	* dired-x.texi: Drop meaningless version number.
+	(Introduction): Remove old info.
+	(Optional Installation Dired Jump): Autoload from dired-x.
+	Remove incorrect info about loaddefs.el.
+	(Bugs): Just refer to M-x report-emacs-bug.
+
+	* dired-x.texi (Multiple Dired Directories): Update for rename of
+	default-directory-alist.
+	(Miscellaneous Commands): No longer mention very old VM version 4.
+
+2011-02-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib.
+	* texinfo.tex: Update to version 2011-02-14.11.
+
+2011-02-14  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth.texi (Help for users):
+	Login collection is "Login" and not "login".
+
+2011-02-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (History): Remove IMAP support.
+	(External methods, Frequently Asked Questions): Remove `imap' and
+	`imaps' methods.
+	(Password handling): Remove IMAP entries for ~/.authinfo.gpg.
+
+	* trampver.texi: Remove default value of `emacsimap'.
+
+2011-02-13  Glenn Morris  <rgm@gnu.org>
+
+	* ada-mode.texi, dired-x.texi, ebrowse.texi, ediff.texi, eudc.texi:
+	* idlwave.texi, reftex.texi, sc.texi, speedbar.texi: Add @top.
+
+2011-02-12  Glenn Morris  <rgm@gnu.org>
+
+	* sc.texi (Getting Connected): Remove old index entries.
+
+2011-02-12  Ulrich Mueller  <ulm@gentoo.org>
+
+	* url.texi: Remove duplicate @dircategory (Bug#7942).
+
+2011-02-11  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth.texi (Overview, Help for users, Help for developers):
+	Update docs.
+	(Help for users): Talk about spaces.
+
+2011-02-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* texinfo.tex: Update to version 2011-02-07.16.
+
+2011-02-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Bus names): Adapt descriptions for
+	dbus-list-activatable-names and dbus-list-known-names.
+
+2011-02-07  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Logarithmic Units): New section.
+
+2011-02-05  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-overrides.texi: Renamed from overrides.texi and all the relevant
+	manuals use it now.
+
+	* Makefile.in (nowebhack): Fixed to use -D flag instead of overrides.
+
+2011-02-05  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* overrides.texi: Remove.
+
+	* sieve.texi, sasl.texi, pgg.texi, message.texi, gnus.texi:
+	* emacs-mime.texi, auth.texi, Makefile.in: Revert last changes.
+
+2011-02-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Frequently Asked Questions): Mention problems with
+	WinSSHD.
+
+	* trampver.texi: Update release number.
+
+2011-02-05  Era Eriksson  <era+tramp@iki.fi>  (tiny change)
+
+	* tramp.texi:
+	Replace "delimet" with "delimit" globally.
+	Replace "explicite" with "explicit" globally.
+	Replace "instead of" with "instead" where there was nothing after "of".
+	Audit use of comma before interrogative pronoun, "that", or "which".
+	Minor word order, spelling, wording changes.
+
+2011-02-04  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* overrides.texi: New file to set or clear WEBHACKDEVEL.
+
+	* sieve.texi: Use WEBHACKDEVEL.
+
+	* sasl.texi: Use WEBHACKDEVEL.
+
+	* pgg.texi: Use WEBHACKDEVEL.
+
+	* message.texi: Use WEBHACKDEVEL.
+
+	* gnus.texi: Use WEBHACKDEVEL.
+
+	* emacs-mime.texi: Use WEBHACKDEVEL.
+
+	* auth.texi: Use WEBHACKDEVEL.
+
+	* Makefile.in (webhack, nowebhack): Hacks to produce for-the-web
+	manuals.
+
+2011-02-04  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi: Add DEVEL header (suggested by Andreas Schwab).
+
+2011-02-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* texinfo.tex: Update to version 2011-02-01.10 from gnulib,
+	which in turn is copied from ftp://tug.org/tex/.
+
+2011-02-03  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi (Contacting the FSF): Mainly just refer to the web-site.
+	(Binding combinations of modifiers and function keys):
+	Let's assume people reading this are not using Emacs 18.
+
+2011-02-03  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Article Date): Remove mention of gnus-stop-date-timer,
+	since it's run automatically.
+
+2011-02-01  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Customizing Articles): Fix typo.
+
+2011-01-31  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Customizing Articles): Document the new way of customizing
+	the date headers(s).
+
+2011-01-30  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Client-Side IMAP Splitting): Add a complete nnimap fancy
+	splitting example.
+
+2011-01-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (MAKEINFO): Remove options, leave only program name.
+	(MAKEINFO_OPTS): New variable.
+	(ENVADD, $(infodir)/emacs): Use $(MAKEINFO_OPTS).
+	($(infodir)/info, $(infodir)/ccmode, $(infodir)/ada-mode)
+	($(infodir)/pcl-cvs, $(infodir)/eshell, $(infodir)/cl)
+	($(infodir)/dbus, $(infodir)/dired-x, $(infodir)/ediff)
+	($(infodir)/flymake, $(infodir)/forms, $(infodir)/gnus)
+	($(infodir)/message, $(infodir)/emacs-mime, $(infodir)/sieve)
+	($(infodir)/pgg, $(infodir)/mh-e, $(infodir)/reftex)
+	($(infodir)/remember, $(infodir)/sasl, $(infodir)/sc)
+	($(infodir)/vip, $(infodir)/viper, $(infodir)/widget)
+	($(infodir)/efaq, $(infodir)/autotype, $(infodir)/calc)
+	($(infodir)/idlwave, $(infodir)/eudc, $(infodir)/ebrowse)
+	($(infodir)/woman, $(infodir)/speedbar, $(infodir)/tramp)
+	($(infodir)/ses, $(infodir)/smtpmail, $(infodir)/org)
+	($(infodir)/url, $(infodir)/newsticker, $(infodir)/nxml-mode)
+	($(infodir)/rcirc, $(infodir)/erc, $(infodir)/ert)
+	($(infodir)/epa, $(infodir)/mairix-el, $(infodir)/auth)
+	($(infodir)/eieio, $(infodir)/ede, $(infodir)/semantic)
+	($(infodir)/edt): Use $(MAKEINFO_OPTS).
+
+2011-01-26  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Article Date): Document gnus-article-update-lapsed-header.
+
+2011-01-24  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* message.texi (IDNA): Explain what it is.
+
+2011-01-24  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (The Empty Backend): Document nnnil (bug #7653).
+
+2011-01-23  Werner Lemberg  <wl@gnu.org>
+
+	* Makefile.in (MAKEINFO): Now controlled by `configure'.
+	(MAKEINFO_OPTS): New variable.  Use it where appropriate.
+	(ENVADD): Updated.
+
+2011-01-18  Glenn Morris  <rgm@gnu.org>
+
+	* ert.texi: Relicense under GFDL 1.3+, and standardize license notice.
+
 2011-01-14  Eduard Wiebe  <usenet@pusto.de>
 
 	* nxml-mode.texi (Introduction): Fix file name typos.
@@ -7549,9 +7817,7 @@
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,
-    2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-    Free Software Foundation, Inc.
+  Copyright (C) 1993-1999, 2001-2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

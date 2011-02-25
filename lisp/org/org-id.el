@@ -1,6 +1,6 @@
 ;;; org-id.el --- Global identifiers for Org-mode entries
 ;;
-;; Copyright (C) 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -642,6 +642,5 @@ optional argument MARKERP, return the position as a new marker."
 
 ;;; org-id.el ends here
 
-;; arch-tag: e5abaca4-e16f-4b25-832a-540cfb63a712
 
 

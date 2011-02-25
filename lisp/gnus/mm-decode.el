@@ -1,7 +1,6 @@
 ;;; mm-decode.el --- Functions for decoding MIME things
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -224,20 +223,17 @@ before the external MIME handler is invoked."
     ("text/plain" mm-inline-text identity)
     ("text/enriched" mm-inline-text identity)
     ("text/richtext" mm-inline-text identity)
-    ("text/x-patch" mm-display-patch-inline
-     (lambda (handle)
-       ;; If the diff-mode.el package is installed, the function is
-       ;; autoloaded.  Checking (locate-library "diff-mode") would be trying
-       ;; to cater to broken installations.  OTOH checking the function
-       ;; makes it possible to install another package which provides an
-       ;; alternative implementation of diff-mode.  --Stef
-       (fboundp 'diff-mode)))
+    ("text/x-patch" mm-display-patch-inline identity)
     ;; In case mime.types uses x-diff (as does Debian's mime-support-3.40).
-    ("text/x-diff" mm-display-patch-inline
-     (lambda (handle) (fboundp 'diff-mode)))
+    ("text/x-diff" mm-display-patch-inline identity)
     ("application/emacs-lisp" mm-display-elisp-inline identity)
     ("application/x-emacs-lisp" mm-display-elisp-inline identity)
+    ("application/x-shellscript" mm-display-shell-script-inline identity)
+    ("application/x-sh" mm-display-shell-script-inline identity)
+    ("text/x-sh" mm-display-shell-script-inline identity)
+    ("application/javascript" mm-display-javascript-inline identity)
     ("text/dns" mm-display-dns-inline identity)
+    ("text/x-org" mm-display-org-inline identity)
     ("text/html"
      mm-inline-text-html
      (lambda (handle)
@@ -313,7 +309,8 @@ when selecting a different article."
     "application/pkcs7-signature" "application/x-pkcs7-mime"
     "application/pkcs7-mime"
     ;; Mutt still uses this even though it has already been withdrawn.
-    "application/pgp\\'")
+    "application/pgp\\'"
+     "text/x-org")
   "A list of MIME types to be displayed automatically."
   :type '(repeat regexp)
   :group 'mime-display)
@@ -1374,9 +1371,10 @@ Use CMD as the process."
 	(setq handles (nconc (delete handle handles) (list handle))))))
   ;; Remove empty parts.
   (dolist (handle (copy-sequence handles))
-    (unless (with-current-buffer (mm-handle-buffer handle)
-	      (goto-char (point-min))
-	      (re-search-forward "[^ \t\n]" nil t))
+    (when (and (bufferp (mm-handle-buffer handle))
+	       (not (with-current-buffer (mm-handle-buffer handle)
+		      (goto-char (point-min))
+		      (re-search-forward "[^ \t\n]" nil t))))
       (setq handles (nconc (delete handle handles) (list handle)))))
   (mapcar #'mm-handle-media-type handles))
 

@@ -1,6 +1,5 @@
 /* Interfaces to system-dependent kernel and library entries.
-   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+   Copyright (C) 1985-1988, 1993-1995, 1999-2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -30,9 +29,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_LIMITS_H
 #include <limits.h>
 #endif /* HAVE_LIMITS_H */
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
+
+#include <ignore-value.h>
 
 #include "lisp.h"
 #include "sysselect.h"
@@ -266,7 +265,7 @@ void
 init_baud_rate (int fd)
 {
   int emacs_ospeed;
- 
+
   if (noninteractive)
     emacs_ospeed = 0;
   else
@@ -549,8 +548,13 @@ sys_subshell (void)
 	sh = "sh";
 
       /* Use our buffer's default directory for the subshell.  */
-      if (str)
-	chdir ((char *) str);
+      if (str && chdir ((char *) str) != 0)
+	{
+#ifndef DOS_NT
+	  ignore_value (write (1, "Can't chdir\n", 12));
+	  _exit (1);
+#endif
+	}
 
       close_process_descs ();	/* Close Emacs's pipes/ptys */
 
@@ -568,7 +572,7 @@ sys_subshell (void)
 	    setenv ("PWD", str, 1);
 	  }
 	st = system (sh);
-	chdir (oldwd);
+	chdir (oldwd);	/* FIXME: Do the right thing on chdir failure.  */
 	if (epwd)
 	  putenv (old_pwd);	/* restore previous value */
       }
@@ -576,12 +580,12 @@ sys_subshell (void)
 #ifdef  WINDOWSNT
       /* Waits for process completion */
       pid = _spawnlp (_P_WAIT, sh, sh, NULL);
-      chdir (oldwd);
+      chdir (oldwd);	/* FIXME: Do the right thing on chdir failure.  */
       if (pid == -1)
 	write (1, "Can't execute subshell", 22);
 #else   /* not WINDOWSNT */
       execlp (sh, sh, (char *) 0);
-      write (1, "Can't execute subshell", 22);
+      ignore_value (write (1, "Can't execute subshell", 22));
       _exit (1);
 #endif  /* not WINDOWSNT */
 #endif /* not MSDOS */
@@ -1307,11 +1311,6 @@ setup_pty (int fd)
 }
 #endif /* HAVE_PTYS */
 
-/* init_system_name sets up the string for the Lisp function
-   system-name to return. */
-
-extern Lisp_Object Vsystem_name;
-
 #ifdef HAVE_SOCKETS
 #include <sys/socket.h>
 #include <netdb.h>
@@ -3066,4 +3065,3 @@ system_process_attributes (Lisp_Object pid)
 }
 
 #endif	/* !defined (WINDOWSNT) */
-

@@ -1,5 +1,5 @@
 /* Elisp bindings for D-Bus.
-   Copyright (C) 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2007-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -74,15 +74,6 @@ Lisp_Object QCdbus_type_unix_fd;
 #endif
 Lisp_Object QCdbus_type_array, QCdbus_type_variant;
 Lisp_Object QCdbus_type_struct, QCdbus_type_dict_entry;
-
-/* Registered buses.  */
-Lisp_Object Vdbus_registered_buses;
-
-/* Hash table which keeps function definitions.  */
-Lisp_Object Vdbus_registered_objects_table;
-
-/* Whether to debug D-Bus.  */
-Lisp_Object Vdbus_debug;
 
 /* Whether we are reading a D-Bus event.  */
 int xd_in_read_queued_messages = 0;
@@ -2301,12 +2292,12 @@ syms_of_dbusbind (void)
   staticpro (&QCdbus_type_dict_entry);
 
   DEFVAR_LISP ("dbus-registered-buses",
-	       &Vdbus_registered_buses,
+	       Vdbus_registered_buses,
     doc: /* List of D-Bus buses we are polling for messages.  */);
   Vdbus_registered_buses = Qnil;
 
   DEFVAR_LISP ("dbus-registered-objects-table",
-	       &Vdbus_registered_objects_table,
+	       Vdbus_registered_objects_table,
     doc: /* Hash table of registered functions for D-Bus.
 
 There are two different uses of the hash table: for accessing
@@ -2343,7 +2334,7 @@ be called when the D-Bus reply message arrives.  */);
     Vdbus_registered_objects_table = Fmake_hash_table (2, args);
   }
 
-  DEFVAR_LISP ("dbus-debug", &Vdbus_debug,
+  DEFVAR_LISP ("dbus-debug", Vdbus_debug,
     doc: /* If non-nil, debug messages of D-Bus bindings are raised.  */);
 #ifdef DBUS_DEBUG
   Vdbus_debug = Qt;
@@ -2360,5 +2351,3 @@ be called when the D-Bus reply message arrives.  */);
 
 #endif /* HAVE_DBUS */
 
-/* arch-tag: 0e828477-b571-4fe4-b559-5c9211bc14b8
-   (do not change this comment) */

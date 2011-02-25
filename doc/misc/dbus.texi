@@ -9,8 +9,7 @@
 @syncodeindex fn cp
 
 @copying
-Copyright @copyright{} 2007, 2008, 2009, 2010,
-2011 Free Software Foundation, Inc.
+Copyright @copyright{} 2007-2011 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -26,7 +25,7 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs lisp libraries
 @direntry
 * D-Bus: (dbus).                Using D-Bus in Emacs.
 @end direntry
@@ -133,14 +132,24 @@ There are several basic functions which inspect the buses for
 registered names.  Internally they use the basic interface
 @samp{org.freedesktop.DBus}, which is supported by all objects of a bus.
 
-@defun dbus-list-activatable-names
-This function returns the D-Bus service names, which can be activated.
-An activatable service is described in a service registration file.
-Under GNU/Linux, such files are located at
-@file{/usr/share/dbus-1/services/}.
+@defun dbus-list-activatable-names &optional bus
+This function returns the D-Bus service names, which can be activated
+for @var{bus}.  It must be either the symbol @code{:system} (the
+default) or the symbol @code{:session}.  An activatable service is
+described in a service registration file.  Under GNU/Linux, such files
+are located at @file{/usr/share/dbus-1/system-services/} (for the
+@code{:system} bus) or @file{/usr/share/dbus-1/services/}.  An
+activatable service is not necessarily registered at @var{bus} at already.
 
 The result is a list of strings, which is @code{nil} when there are no
-activatable service names at all.
+activatable service names at all.  Example:
+
+@lisp
+;; Check, whether the document viewer can be accessed via D-Bus.
+(member "org.gnome.evince.Daemon"
+        (dbus-list-activatable-names :session))
+@end lisp
+
 @end defun
 
 @defun dbus-list-names bus
@@ -155,7 +164,7 @@ strings like @samp{org.freedesktop.DBus}.  Names starting with
 @end defun
 
 @defun dbus-list-known-names bus
-Retrieves all services which correspond to a known name in @var{bus}.
+Retrieves all registered services which correspond to a known name in @var{bus}.
 A service has a known name if it doesn't start with @samp{:}.  The
 result is a list of strings, which is @code{nil} when there are no
 known names at all.
@@ -1840,7 +1849,3 @@ whether a given D-Bus error is related to them.
 @include doclicense.texi
 
 @bye
-
-@ignore
-   arch-tag: 2eeec19d-0caf-44e0-a193-329d7f9951d8
-@end ignore

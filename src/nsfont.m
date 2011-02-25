@@ -1,6 +1,6 @@
 /* Font back-end driver for the NeXT/Open/GNUstep and MacOSX window system.
    See font.h
-   Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2006-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -48,10 +48,8 @@ Author: Adrian Robert (arobert@cogsci.ucsd.edu)
 
 extern Lisp_Object Qns;
 extern Lisp_Object Qnormal, Qbold, Qitalic, Qcondensed, Qexpanded;
-static Lisp_Object Vns_reg_to_script;
 static Lisp_Object Qapple, Qroman, Qmedium;
 extern Lisp_Object Qappend;
-extern Lisp_Object ns_antialias_text;
 extern float ns_antialias_threshold;
 extern int ns_tmp_flags;
 extern struct nsfont_info *ns_tmp_font;
@@ -811,6 +809,14 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
     const char *fontName = [[nsfont fontName] UTF8String];
     int len = strlen (fontName);
 
+    /* The values specified by fonts are not always exact. For
+     * example, a 6x8 font could specify that the descender is
+     * -2.00000405... (represented by 0xc000000220000000).  Without
+     * adjustment, the code below would round the descender to -3,
+     * resulting in a font that would be one pixel higher than
+     * intended. */
+    CGFloat adjusted_descender = [sfont descender] + 0.0001;
+
 #ifdef NS_IMPL_GNUSTEP
     font_info->nsfont = sfont;
 #else
@@ -832,7 +838,7 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
 
     brect =  [sfont boundingRectForFont];
     full_height = brect.size.height;
-    min_height = [sfont ascender] - [sfont descender];
+    min_height = [sfont ascender] - adjusted_descender;
     hd = full_height - min_height;
 
     /* standard height, similar to Carbon. Emacs.app: was 0.5 by default. */
@@ -847,10 +853,10 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
     /* max bounds */
     font_info->max_bounds.ascent =
       lrint (hshrink * [sfont ascender] + expand * hd/2);
-    /* [sfont descender] is usually negative.  Use floor to avoid
+    /* Descender is usually negative.  Use floor to avoid
        clipping descenders. */
     font_info->max_bounds.descent =
-      -lrint (floor(hshrink* [sfont descender] - expand*hd/2));
+      -lrint (floor(hshrink* adjusted_descender - expand*hd/2));
     font_info->height =
       font_info->max_bounds.ascent + font_info->max_bounds.descent;
     font_info->max_bounds.width = lrint (font_info->width);
@@ -886,7 +892,7 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
 
     /* set up metrics portion of font struct */
     font->ascent = lrint([sfont ascender]);
-    font->descent = -lrint(floor([sfont descender]));
+    font->descent = -lrint(floor(adjusted_descender));
     font->min_width = ns_char_width(sfont, '|');
     font->space_width = lrint (ns_char_width (sfont, ' '));
     font->average_width = lrint (font_info->width);
@@ -1517,8 +1523,7 @@ syms_of_nsfont (void)
   DEFSYM (Qapple, "apple");
   DEFSYM (Qroman, "roman");
   DEFSYM (Qmedium, "medium");
-  DEFVAR_LISP ("ns-reg-to-script", &Vns_reg_to_script,
+  DEFVAR_LISP ("ns-reg-to-script", Vns_reg_to_script,
                doc: /* Internal use: maps font registry to unicode script. */);
 }
 
-// arch-tag: d6c3c6f0-62de-4978-8b1e-b7966fe02cae

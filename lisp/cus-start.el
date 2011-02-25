@@ -1,7 +1,6 @@
 ;;; cus-start.el --- define customization properties of builtins
 ;;
-;; Copyright (C) 1997, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999-2011  Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: internal
@@ -167,12 +166,6 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (max-mini-window-height limits
 				     (choice (const :tag "quarter screen" nil)
 					     number) "23.1")
-	     (stack-trace-on-error debug
-				   (choice (const :tag "off")
-					   (repeat :menu-tag "When"
-						   :value (nil)
-						   (symbol :format "%v"))
-					   (const :tag "always" t)))
 	     (debug-on-error debug
 			     (choice (const :tag "off")
 				     (repeat :menu-tag "When"

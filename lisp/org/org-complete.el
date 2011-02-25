@@ -1,7 +1,6 @@
 ;;; org-complete.el --- In-buffer completion code
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;;         John Wiegley <johnw at gnu dot org>
@@ -274,6 +273,5 @@ Complete a language in the first field, the header arguments and switches."
 
 (provide 'org-complete)
 
-;; arch-tag: 
 
 ;;; org-complete.el ends here

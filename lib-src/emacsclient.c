@@ -1,6 +1,5 @@
 /* Client process that communicates with GNU Emacs acting as server.
-   Copyright (C) 1986, 1987, 1994, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1986-1987, 1994, 1999-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -74,10 +73,8 @@ char *w32_getenv (char *);
 #include <stdarg.h>
 #include <ctype.h>
 #include <stdio.h>
-#include "getopt.h"
-#ifdef HAVE_UNISTD_H
-# include <unistd.h>
-#endif
+#include <getopt.h>
+#include <unistd.h>
 
 #include <pwd.h>
 #include <sys/stat.h>
@@ -857,7 +854,7 @@ unquote_argument (char *str)
 
 
 int
-file_name_absolute_p (const unsigned char *filename)
+file_name_absolute_p (const char *filename)
 {
   /* Sanity check, it shouldn't happen.  */
   if (! filename) return FALSE;
@@ -870,7 +867,7 @@ file_name_absolute_p (const unsigned char *filename)
 
 #ifdef WINDOWSNT
   /* X:\xxx is always absolute.  */
-  if (isalpha (filename[0])
+  if (isalpha ((unsigned char) filename[0])
       && filename[1] == ':' && (filename[2] == '\\' || filename[2] == '/'))
     return TRUE;
 
@@ -1711,10 +1708,21 @@ main (int argc, char **argv)
   fsync (1);
 
   /* Now, wait for an answer and print any messages.  */
-  while (exit_status == EXIT_SUCCESS
-	 && (rl = recv (emacs_socket, string, BUFSIZ, 0)) > 0)
+  while (exit_status == EXIT_SUCCESS)
     {
       char *p;
+      do
+        {
+          errno = 0;
+          rl = recv (emacs_socket, string, BUFSIZ, 0);
+        }
+      /* If we receive a signal (e.g. SIGWINCH, which we pass
+	 through to Emacs), on some OSes we get EINTR and must retry. */
+      while (rl < 0 && errno == EINTR);
+
+      if (rl <= 0)
+        break;
+      
       string[rl] = '\0';
 
       p = string + strlen (string) - 1;
@@ -1804,7 +1812,5 @@ strerror (errnum)
 
 #endif /* ! HAVE_STRERROR */
 
-/* arch-tag: f39bb9c4-73eb-477e-896d-50832e2ca9a7
-   (do not change this comment) */
 
 /* emacsclient.c ends here */

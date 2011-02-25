@@ -1,7 +1,6 @@
 ;;; message.el --- composing mail and news messages
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: mail, news
@@ -129,6 +128,17 @@
   "Function called to rename the buffer after sending it."
   :group 'message-buffers
   :type '(choice function (const nil)))
+
+(defcustom message-cite-style nil
+  "The overall style to be used when yanking cited text.
+Values are either `traditional' (cited text first),
+`top-post' (cited text at the bottom), or nil (don't override the
+individual message variables)."
+  :version "24.1"
+  :group 'message-various
+  :type '(choice (const :tag "None" :value nil)
+		 (const :tag "Traditional" :value traditional)
+		 (const :tag "Top-post" :value top-post)))
 
 (defcustom message-fcc-handler-function 'message-output
   "*A function called to save outgoing articles.
@@ -870,11 +880,7 @@ variable isn't used."
   ;; create a dependence to `gnus.el'.
   :type 'sexp)
 
-;; FIXME: This should be a temporary workaround until someone implements a
-;; proper solution.  If a crash happens while replying, the auto-save file
-;; will *not* have a `References:' header if `message-generate-headers-first'
-;; is nil.  See: http://article.gmane.org/gmane.emacs.gnus.general/51138
-(defcustom message-generate-headers-first '(references)
+(defcustom message-generate-headers-first nil
   "Which headers should be generated before starting to compose a message.
 If t, generate all required headers.  This can also be a list of headers to
 generate.  The variables `message-required-news-headers' and
@@ -886,7 +892,6 @@ will not have a visible effect for those headers."
   :group 'message-headers
   :link '(custom-manual "(message)Message Headers")
   :type '(choice (const :tag "None" nil)
-		 (const :tag "References" '(references))
 		 (const :tag "All" t)
 		 (repeat (sexp :tag "Header"))))
 
@@ -1184,14 +1189,11 @@ called and its result is inserted."
   (if (and (string-match "sparc-sun-sunos\\(\\'\\|[^5]\\)"
 			 system-configuration)
 	   (file-readable-p "/etc/sendmail.cf")
-	   (let ((buffer (get-buffer-create " *temp*")))
-	     (unwind-protect
-		 (with-current-buffer buffer
-		   (insert-file-contents "/etc/sendmail.cf")
-		   (goto-char (point-min))
-		   (let ((case-fold-search nil))
-		     (re-search-forward "^OR\\>" nil t)))
-	       (kill-buffer buffer))))
+	   (with-temp-buffer
+             (insert-file-contents "/etc/sendmail.cf")
+             (goto-char (point-min))
+             (let ((case-fold-search nil))
+               (re-search-forward "^OR\\>" nil t))))
       ;; According to RFC822, "The field-name must be composed of printable
       ;; ASCII characters (i. e., characters that have decimal values between
       ;; 33 and 126, except colon)", i. e., any chars except ctl chars,
@@ -1812,6 +1814,7 @@ You must have the \"hashcash\" binary installed, see `hashcash-path'."
 
 (defvar	message-options nil
   "Some saved answers when sending message.")
+(make-variable-buffer-local 'message-options)
 
 (defvar message-send-mail-real-function nil
   "Internal send mail function.")
@@ -2773,7 +2776,7 @@ message composition doesn't break too bad."
   :link '(custom-manual "(message)Various Message Variables")
   :type 'boolean)
 
-(defconst message-forbidden-properties
+(defvar message-forbidden-properties
   ;; No reason this should be clutter up customize.  We make it a
   ;; property list (rather than a list of property symbols), to be
   ;; directly useful for `remove-text-properties'.
@@ -4008,11 +4011,11 @@ Instead, just auto-save the buffer and then bury it."
 
 (defun message-bury (buffer)
   "Bury this mail BUFFER."
-  (let ((newbuf (other-buffer buffer)))
-    (bury-buffer buffer)
-    (if message-return-action
-	(apply (car message-return-action) (cdr message-return-action))
-      (switch-to-buffer newbuf))))
+  (if message-return-action
+      (progn
+        (bury-buffer buffer)
+        (apply (car message-return-action) (cdr message-return-action)))
+    (with-current-buffer buffer (bury-buffer))))
 
 (defun message-send (&optional arg)
   "Send the message in the current buffer.
@@ -4131,7 +4134,6 @@ not have PROP."
     (nreverse regions)))
 
 (defcustom message-bogus-addresses
-  ;; '("noreply" "nospam" "invalid")
   '("noreply" "nospam" "invalid" "@@" "[^[:ascii:]].*@" "[ \t]")
   "List of regexps of potentially bogus mail addresses.
 See `message-check-recipients' how to setup checking.
@@ -4297,7 +4299,17 @@ This function could be useful in `message-setup-hook'."
 	    (and bog
 		 (not (y-or-n-p
 		       (format
-			"Address `%s' might be bogus.  Continue? " bog)))
+			"Address `%s'%s might be bogus.  Continue? "
+			bog
+			;; If the encoded version of the email address
+			;; is different from the unencoded version,
+			;; then we likely have invisible characters or
+			;; the like.  Display the encoded version,
+			;; too.
+			(let ((encoded (rfc2047-encode-string bog)))
+			  (if (string= encoded bog)
+			      ""
+			    (format " (%s)" encoded))))))
 		 (error "Bogus address"))))))))
 
 (custom-add-option 'message-setup-hook 'message-check-recipients)
@@ -4340,7 +4352,7 @@ This function could be useful in `message-setup-hook'."
 	(tembuf (message-generate-new-buffer-clone-locals " message temp"))
 	(curbuf (current-buffer))
 	(id (message-make-message-id)) (n 1)
-	plist total  header required-mail-headers)
+        plist total header)
     (while (not (eobp))
       (if (< (point-max) (+ p message-send-mail-partially-limit))
 	  (goto-char (point-max))
@@ -4672,6 +4684,8 @@ to find out how to use this."
     ;; should never happen
     (t   (error "qmail-inject reported unknown failure"))))
 
+(defvar mh-previous-window-config)
+
 (defun message-send-mail-with-mh ()
   "Send the prepared message buffer with mh."
   (let ((mh-previous-window-config nil)
@@ -4892,8 +4906,7 @@ Otherwise, generate and save a value for `canlock-password' first."
        t))
    ;; Check long header lines.
    (message-check 'long-header-lines
-     (let ((start (point))
-	   (header nil)
+     (let ((header nil)
 	   (length 0)
 	   found)
        (while (and (not found)
@@ -4902,7 +4915,6 @@ Otherwise, generate and save a value for `canlock-password' first."
 	     (setq found t
 		   length (- (point) (match-beginning 0)))
 	   (setq header (match-string-no-properties 1)))
-	 (setq start (match-beginning 0))
 	 (forward-line 1))
        (if found
 	   (y-or-n-p (format "Your %s header is too long (%d).  Really post? "
@@ -5745,7 +5757,7 @@ subscribed address (and not the additional To and Cc header contents)."
 (defun message-idna-to-ascii-rhs-1 (header)
   "Interactively potentially IDNA encode domain names in HEADER."
   (let ((field (message-fetch-field header))
-	rhs ace  address)
+        ace)
     (when field
       (dolist (rhs
 	       (mm-delete-duplicates
@@ -5793,6 +5805,21 @@ See `message-idna-encode'."
 	(message-idna-to-ascii-rhs-1 "Mail-Reply-To")
 	(message-idna-to-ascii-rhs-1 "Mail-Followup-To")
 	(message-idna-to-ascii-rhs-1 "Cc")))))
+
+(defvar Date)
+(defvar Message-ID)
+(defvar Organization)
+(defvar From)
+(defvar Path)
+(defvar Subject)
+(defvar Newsgroups)
+(defvar In-Reply-To)
+(defvar References)
+(defvar To)
+(defvar Distribution)
+(defvar Lines)
+(defvar User-Agent)
+(defvar Expires)
 
 (defun message-generate-headers (headers)
   "Prepare article HEADERS.
@@ -6385,30 +6412,35 @@ are not included."
          (funcall message-default-headers)
        message-default-headers))
     (or (bolp) (insert ?\n)))
-  (insert mail-header-separator "\n")
+  (insert (concat mail-header-separator "\n"))
   (forward-line -1)
-  (when (message-news-p)
-    (when message-default-news-headers
-      (insert message-default-news-headers)
-      (or (bolp) (insert ?\n)))
-    (when message-generate-headers-first
+  ;; If a crash happens while replying, the auto-save file would *not* have a
+  ;; `References:' header if `message-generate-headers-first' was nil.
+  ;; Therefore, always generate it first.
+  (let ((message-generate-headers-first
+         (if (eq message-generate-headers-first t)
+             t
+           (append message-generate-headers-first '(References)))))
+    (when (message-news-p)
+      (when message-default-news-headers
+        (insert message-default-news-headers)
+        (or (bolp) (insert ?\n)))
       (message-generate-headers
        (message-headers-to-generate
-	(append message-required-news-headers
-		message-required-headers)
-	message-generate-headers-first
-	'(Lines Subject)))))
-  (when (message-mail-p)
-    (when message-default-mail-headers
-      (insert message-default-mail-headers)
-      (or (bolp) (insert ?\n)))
-    (when message-generate-headers-first
+        (append message-required-news-headers
+                message-required-headers)
+        message-generate-headers-first
+        '(Lines Subject))))
+    (when (message-mail-p)
+      (when message-default-mail-headers
+        (insert message-default-mail-headers)
+        (or (bolp) (insert ?\n)))
       (message-generate-headers
        (message-headers-to-generate
-	(append message-required-mail-headers
-		message-required-headers)
-	message-generate-headers-first
-	'(Lines Subject)))))
+        (append message-required-mail-headers
+                message-required-headers)
+        message-generate-headers-first
+        '(Lines Subject)))))
   (run-hooks 'message-signature-setup-hook)
   (message-insert-signature)
   (save-restriction
@@ -6512,11 +6544,15 @@ is a function used to switch to and display the mail buffer."
     (message-setup
      (nconc
       `((To . ,(or to "")) (Subject . ,(or subject "")))
-      (when other-headers other-headers))
+      ;; C-h f compose-mail says that headers should be specified as
+      ;; (string . value); however all the rest of message expects
+      ;; headers to be symbols, not strings (eg message-header-format-alist).
+      ;; http://lists.gnu.org/archive/html/emacs-devel/2011-01/msg00337.html
+      ;; We need to convert any string input, eg from rmail-start-mail.
+      (dolist (h other-headers other-headers)
+ 	(if (stringp (car h)) (setcar h (intern (capitalize (car h)))))))
      yank-action send-actions continue switch-function
-     return-action)
-    ;; FIXME: Should return nil if failure.
-    t))
+     return-action)))
 
 ;;;###autoload
 (defun message-news (&optional newsgroups subject)
@@ -6743,12 +6779,12 @@ Useful functions to put in this list include:
   subject)
 
 ;;;###autoload
-(defun message-reply (&optional to-address wide)
+(defun message-reply (&optional to-address wide switch-function)
   "Start editing a reply to the article in the current buffer."
   (interactive)
   (require 'gnus-sum)			; for gnus-list-identifiers
   (let ((cur (current-buffer))
-	from subject date reply-to to cc
+	from subject date
 	references message-id follow-to
 	(inhibit-point-motion-hooks t)
 	(message-this-is-mail t)
@@ -6786,7 +6822,8 @@ Useful functions to put in this list include:
       (message-pop-to-buffer
        (message-buffer-name
 	(if wide "wide reply" "reply") from
-	(if wide to-address nil))))
+	(if wide to-address nil))
+       switch-function))
 
     (setq message-reply-headers
 	  (vector 0 subject from date message-id references 0 0 ""))
@@ -7269,11 +7306,9 @@ Optional DIGEST will use digest to forward."
 (defun message-forward-make-body-digest-plain (forward-buffer)
   (insert
    "\n-------------------- Start of forwarded message --------------------\n")
-  (let ((b (point)) e)
-    (mml-insert-buffer forward-buffer)
-    (setq e (point))
-    (insert
-     "\n-------------------- End of forwarded message --------------------\n")))
+  (mml-insert-buffer forward-buffer)
+  (insert
+   "\n-------------------- End of forwarded message --------------------\n"))
 
 (defun message-forward-make-body-digest-mime (forward-buffer)
   (insert "\n<#multipart type=digest>\n")
@@ -7393,6 +7428,8 @@ is for the internal use."
   (setq rmail-insert-mime-forwarded-message-function
 	'message-forward-rmail-make-body))
 
+(defvar message-inhibit-body-encoding nil)
+
 ;;;###autoload
 (defun message-resend (address)
   "Resend the current article to ADDRESS."
@@ -7405,7 +7442,8 @@ is for the internal use."
       ;; We first set up a normal mail buffer.
       (unless (message-mail-user-agent)
 	(set-buffer (get-buffer-create " *message resend*"))
-	(erase-buffer))
+	(let ((inhibit-read-only t))
+	  (erase-buffer)))
       (let ((message-this-is-mail t)
 	    message-generate-hashcash
 	    message-setup-hook)
@@ -7422,7 +7460,8 @@ is for the internal use."
 	(insert "Resent-"))
       (widen)
       (forward-line)
-      (delete-region (point) (point-max))
+      (let ((inhibit-read-only t))
+	(delete-region (point) (point-max)))
       (setq beg (point))
       ;; Insert the message to be resent.
       (insert-buffer-substring cur)
@@ -7763,6 +7802,8 @@ those headers."
                    (lookup-key global-map "\t")
                    'indent-relative)))))
 
+(defvar mail-abbrev-mode-regexp)
+
 (defun message-completion-function ()
   (let ((alist message-completion-alist))
     (while (and alist
@@ -7840,7 +7881,12 @@ those headers."
 	 (eudc-expand-inline))
 	((and (memq 'bbdb message-expand-name-databases)
 	      (fboundp 'bbdb-complete-name))
-	 (bbdb-complete-name))
+         (let ((starttick (buffer-modified-tick)))
+           (or (bbdb-complete-name)
+               ;; Apparently, bbdb-complete-name can return nil even when
+               ;; completion took place.  So let's double check the buffer was
+               ;; not modified.
+               (/= starttick (buffer-modified-tick)))))
 	(t
 	 (expand-abbrev))))
 
@@ -7900,8 +7946,6 @@ regexp VARSTR."
 ;;;
 ;;; MIME functions
 ;;;
-
-(defvar message-inhibit-body-encoding nil)
 
 (defun message-encode-message-body ()
   (unless message-inhibit-body-encoding

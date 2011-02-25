@@ -54,4 +54,3 @@
     (map-charset-chars 'func (cdr elt))
     (write-file (car elt))))
 
-;;; arch-tag: 515989d7-2e2d-41cc-9163-05ad472fede4

@@ -265,8 +265,7 @@
 @copying
 This manual is for Org version @value{VERSION}.
 
-Copyright @copyright{} 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-Free Software Foundation, Inc.
+Copyright @copyright{} 2004-2011  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -287,7 +286,7 @@ license to the document, as described in section 6 of the license.
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs editing modes
 @direntry
 * Org Mode: (org).      Outline-based notes management and organizer
 @end direntry
@@ -14758,10 +14757,6 @@ org-customize @key{RET}} and then click yourself through the tree.
 @printindex vr
 
 @bye
-
-@ignore
-        arch-tag: 7893d1Fe-cc57-4d13-b5e5-f494a1CBC7ac
-@end ignore
 
 @c Local variables:
 @c fill-column: 77

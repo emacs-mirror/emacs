@@ -1,7 +1,6 @@
 ;;; rmail.el --- main code of "RMAIL" mail reader for Emacs
 
-;; Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1996, 1997, 1998,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+;; Copyright (C) 1985-1988, 1993-1998, 2000-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -192,7 +191,7 @@ please report it with \\[report-emacs-bug].")
   :group 'rmail-retrieve
   :type '(repeat (directory)))
 
-(declare-function rmail-dont-reply-to "mail-utils" (destinations))
+(declare-function mail-dont-reply-to "mail-utils" (destinations))
 (declare-function rmail-update-summary "rmailsum" (&rest ignore))
 
 (defun rmail-probe (prog)
@@ -284,26 +283,16 @@ Setting this variable has an effect only before reading a mail."
   :version "21.1")
 
 ;;;###autoload
-(defcustom rmail-dont-reply-to-names nil
-  "A regexp specifying addresses to prune from a reply message.
-If this is nil, it is set the first time you compose a reply, to
-a value which excludes your own email address, plus whatever is
-specified by `rmail-default-dont-reply-to-names'.
-
-Matching addresses are excluded from the CC field in replies, and
-also the To field, unless this would leave an empty To field."
-  :type '(choice regexp (const :tag "Your Name" nil))
-  :group 'rmail-reply)
+(defvaralias 'rmail-dont-reply-to-names 'mail-dont-reply-to-names)
 
 ;;;###autoload
-(defvar rmail-default-dont-reply-to-names (purecopy "\\`info-")
-  "Regexp specifying part of the default value of `rmail-dont-reply-to-names'.
-This is used when the user does not set `rmail-dont-reply-to-names'
-explicitly.  (The other part of the default value is the user's
-email address and name.)  It is useful to set this variable in
-the site customization file.  The default value is conventionally
-used for large mailing lists to broadcast announcements.")
-;; Is it really useful to set this site-wide?
+(defvar rmail-default-dont-reply-to-names nil
+  "Regexp specifying part of the default value of `mail-dont-reply-to-names'.
+This is used when the user does not set `mail-dont-reply-to-names'
+explicitly.")
+;;;###autoload
+(make-obsolete-variable 'rmail-default-dont-reply-to-names
+                        'mail-dont-reply-to-names "24.1")
 
 ;;;###autoload
 (defcustom rmail-ignored-headers
@@ -3579,15 +3568,14 @@ use \\[mail-yank-original] to yank the original message into it."
      ;; Remove unwanted names from reply-to, since Mail-Followup-To
      ;; header causes all the names in it to wind up in reply-to, not
      ;; in cc.  But if what's left is an empty list, use the original.
-     (let* ((reply-to-list (rmail-dont-reply-to reply-to)))
+     (let* ((reply-to-list (mail-dont-reply-to reply-to)))
        (if (string= reply-to-list "") reply-to reply-to-list))
      subject
      (rmail-make-in-reply-to-field from date message-id)
      (if just-sender
 	 nil
-       ;; mail-strip-quoted-names is NOT necessary for rmail-dont-reply-to
-       ;; to do its job.
-       (let* ((cc-list (rmail-dont-reply-to
+       ;; `mail-dont-reply-to' doesn't need `mail-strip-quoted-names'.
+       (let* ((cc-list (mail-dont-reply-to
 			(mail-strip-quoted-names
 			 (if (null cc) to (concat to ", " cc))))))
 	 (if (string= cc-list "") nil cc-list)))
@@ -4263,7 +4251,7 @@ encoded string (and the same mask) will decode the string."
 ;;; Start of automatically extracted autoloads.
 
 ;;;### (autoloads (rmail-edit-current-message) "rmailedit" "rmailedit.el"
-;;;;;;  "bdbcacaef237aab5ca6c8653dc52a044")
+;;;;;;  "090ad9432c3bf9a6098bb9c3d7c71baf")
 ;;; Generated autoloads from rmailedit.el
 
 (autoload 'rmail-edit-current-message "rmailedit" "\
@@ -4275,7 +4263,7 @@ Edit the contents of this message.
 
 ;;;### (autoloads (rmail-next-labeled-message rmail-previous-labeled-message
 ;;;;;;  rmail-read-label rmail-kill-label rmail-add-label) "rmailkwd"
-;;;;;;  "rmailkwd.el" "46ac83afa76e3aa88eacf73237bd703e")
+;;;;;;  "rmailkwd.el" "08c288c88cfe7be50830122c064e3884")
 ;;; Generated autoloads from rmailkwd.el
 
 (autoload 'rmail-add-label "rmailkwd" "\
@@ -4318,7 +4306,7 @@ With prefix argument N moves forward N messages with these labels.
 
 ;;;***
 
-;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "724fa72db9b6c804f7f69ad1da83fd39")
+;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "04902da045706fb7f2b0915529ed161b")
 ;;; Generated autoloads from rmailmm.el
 
 (autoload 'rmail-mime "rmailmm" "\
@@ -4344,7 +4332,7 @@ attachments as specfied by `rmail-mime-attachment-dirs-alist'.
 ;;;***
 
 ;;;### (autoloads (set-rmail-inbox-list) "rmailmsc" "rmailmsc.el"
-;;;;;;  "fd5e2a8dc4f74ea2275525d7a2766bea")
+;;;;;;  "ca19b2f8a3e8aa01aa75ca7413f8a5ef")
 ;;; Generated autoloads from rmailmsc.el
 
 (autoload 'set-rmail-inbox-list "rmailmsc" "\
@@ -4360,7 +4348,7 @@ This applies only to the current session.
 
 ;;;### (autoloads (rmail-sort-by-labels rmail-sort-by-lines rmail-sort-by-correspondent
 ;;;;;;  rmail-sort-by-recipient rmail-sort-by-author rmail-sort-by-subject
-;;;;;;  rmail-sort-by-date) "rmailsort" "rmailsort.el" "446f2e852393e72030b85a1a9230c7ac")
+;;;;;;  rmail-sort-by-date) "rmailsort" "rmailsort.el" "ad1c98fe868c0e5804cf945d6c980d0b")
 ;;; Generated autoloads from rmailsort.el
 
 (autoload 'rmail-sort-by-date "rmailsort" "\
@@ -4394,7 +4382,7 @@ If prefix argument REVERSE is non-nil, sorts in reverse order.
 Sort messages of current Rmail buffer by other correspondent.
 This uses either the \"From\", \"Sender\", \"To\", or
 \"Apparently-To\" header, downcased.  Uses the first header not
-excluded by `rmail-dont-reply-to-names'.  If prefix argument
+excluded by `mail-dont-reply-to-names'.  If prefix argument
 REVERSE is non-nil, sorts in reverse order.
 
 \(fn REVERSE)" t nil)
@@ -4419,7 +4407,7 @@ If prefix argument REVERSE is non-nil, sorts in reverse order.
 
 ;;;### (autoloads (rmail-summary-by-senders rmail-summary-by-topic
 ;;;;;;  rmail-summary-by-regexp rmail-summary-by-recipients rmail-summary-by-labels
-;;;;;;  rmail-summary) "rmailsum" "rmailsum.el" "267d6f740d6697a631dacbd86f583374")
+;;;;;;  rmail-summary) "rmailsum" "rmailsum.el" "3817e21639db697abe5832d3223ecfc2")
 ;;; Generated autoloads from rmailsum.el
 
 (autoload 'rmail-summary "rmailsum" "\
@@ -4467,7 +4455,7 @@ SENDERS is a string of regexps separated by commas.
 ;;;***
 
 ;;;### (autoloads (unforward-rmail-message undigestify-rmail-message)
-;;;;;;  "undigest" "undigest.el" "2869c38a0051d0acab1a5968627fa57d")
+;;;;;;  "undigest" "undigest.el" "41e6a48ea63224385c447a944528feb6")
 ;;; Generated autoloads from undigest.el
 
 (autoload 'undigestify-rmail-message "undigest" "\

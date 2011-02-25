@@ -1,13 +1,12 @@
 ;;; allout.el --- extensive outline mode for use alone and with other modes
 
-;; Copyright (C) 1992, 1993, 1994, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 1992-1994, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <ken dot manheimer at gmail dot com>
 ;; Maintainer: Ken Manheimer <ken dot manheimer at gmail dot com>
 ;; Created: Dec 1991 -- first release to usenet
 ;; Version: 2.3
-;; Keywords: outlines wp languages
+;; Keywords: outlines, wp, languages, PGP, GnuPG
 ;; Website: http://myriadicity.net/Sundry/EmacsAllout
 
 ;; This file is part of GNU Emacs.
@@ -40,11 +39,9 @@
 ;;    emacs local file variables need to be enabled when the
 ;;    file was visited -- see `enable-local-variables'.)
 ;;  - Configurable per-file initial exposure settings
-;;  - Symmetric-key and key-pair topic encryption, plus symmetric passphrase
-;;    mnemonic support, with verification against an established passphrase
-;;    (using a stashed encrypted dummy string) and user-supplied hint
-;;    maintenance.  Encryption is via the Emacs 'epg' library.  See
-;;    allout-toggle-current-subtree-encryption docstring.
+;;  - Symmetric-key and key-pair topic encryption.  Encryption is via the
+;;    Emacs 'epg' library.  See allout-toggle-current-subtree-encryption
+;;    docstring.
 ;;  - Automatic topic-number maintenance
 ;;  - "Hot-spot" operation, for single-keystroke maneuvering and
 ;;    exposure control (see the allout-mode docstring)
@@ -60,27 +57,24 @@
 ;; See the `allout-mode' function's docstring for an introduction to the
 ;; mode.
 ;;
-;; The latest development version and helpful notes are available at
-;; http://myriadicity.net/Sundry/EmacsAllout .
+;; Directions to the latest development version and helpful notes are
+;; available at http://myriadicity.net/Sundry/EmacsAllout .
 ;;
-;; The outline menubar additions provide quick reference to many of
-;; the features, and see the docstring of the variable `allout-init'
-;; for instructions on priming your Emacs session for automatic
-;; activation of allout-mode.
-;;
-;; See the docstring of the variables `allout-layout' and
+;; The outline menubar additions provide quick reference to many of the
+;; features.  See the docstring of the variables `allout-layout' and
 ;; `allout-auto-activation' for details on automatic activation of
-;; `allout-mode' as a minor mode.  (It has changed since allout
-;; 3.x, for those of you that depend on the old method.)
+;; `allout-mode' as a minor mode.  (`allout-init' is deprecated in favor of
+;; a purely customization-based method.)
 ;;
 ;; Note -- the lines beginning with `;;;_' are outline topic headers.
-;;        Just `ESC-x eval-buffer' to give it a whirl.
+;;        Customize `allout-auto-activation' to enable, then revisit this
+;;        buffer to give it a whirl.
 
 ;; ken manheimer (ken dot manheimer at gmail dot com)
 
 ;;; Code:
 
-;;;_* Dependency autoloads
+;;;_* Dependency loads
 (require 'overlay)
 (eval-when-compile
   ;; Most of the requires here are for stuff covered by autoloads, which
@@ -98,7 +92,9 @@
 
 ;;;_ > defgroup allout, allout-keybindings
 (defgroup allout nil
-  "Extensive outline mode for use alone and with other modes."
+  "Extensive outline minor-mode, for use stand-alone and with other modes.
+
+See Allout Auto Activation for automatic activation."
   :prefix "allout-"
   :group 'outlines)
 (defgroup allout-keybindings nil
@@ -108,23 +104,39 @@
 ;;;_ + Layout, Mode, and Topic Header Configuration
 
 (defvar allout-command-prefix)          ; defined below
-(defvar allout-mode-map)
 
 ;;;_  > allout-keybindings incidentals:
-;;;_   > allout-bind-keys &optional varname value
-(defun allout-bind-keys (&optional varname value)
-  "Rebuild the `allout-mode-map' according to the keybinding specs.
+;;;_   : internal key binding stuff - in this section for load-order.
+;;;_    = allout-mode-map
+(defvar allout-mode-map 'allout-mode-map
+  "Keybindings place-holder for (allout) outline minor mode.
 
-Useful standalone, to init the map, or in customizing the
+Do NOT set the value of this variable.  Instead, customize
+`allout-command-prefix', `allout-prefixed-keybindings', and
+`allout-unprefixed-keybindings'.")
+;;;_    = allout-mode-map-value
+(defvar allout-mode-map-value nil
+  "Keymap for allout outline minor mode.
+
+Do NOT set the value of this variable.  Instead, customize
+`allout-command-prefix', `allout-prefixed-keybindings', and
+`allout-unprefixed-keybindings'.")
+;;;_    = make allout-mode-map-value an alias for allout-mode-map:
+;; this needs to be revised when the value is changed, sigh.
+(defalias 'allout-mode-map allout-mode-map-value)
+;;;_   > allout-compose-and-institute-keymap (&optional varname value)
+(defun allout-compose-and-institute-keymap (&optional varname value)
+  "Create the allout keymap according to the keybinding specs, and set it.
+
+Useful standalone or to effect customizations of the
 respective allout-mode keybinding variables, `allout-command-prefix',
 `allout-prefixed-keybindings', and `allout-unprefixed-keybindings'"
   ;; Set the customization variable, if any:
   (when varname
     (set-default varname value))
-  (let ((map (make-sparse-keymap))
-        key)
+  (let ((map (make-sparse-keymap)))
     (when (boundp 'allout-prefixed-keybindings)
-      ;; Be tolerant of the moments when the variables are first being defined.
+      ;; tolerate first definitions of the variables:
       (dolist (entry allout-prefixed-keybindings)
         (define-key map
           ;; XXX vector vs non-vector key descriptions?
@@ -134,9 +146,34 @@ respective allout-mode keybinding variables, `allout-command-prefix',
     (when (boundp 'allout-unprefixed-keybindings)
       (dolist (entry allout-unprefixed-keybindings)
         (define-key map (car (read-from-string (car entry))) (cadr entry))))
-    (setq allout-mode-map map)
-    map
-    ))
+    (substitute-key-definition 'beginning-of-line 'allout-beginning-of-line
+                               map global-map)
+    (substitute-key-definition 'move-beginning-of-line 'allout-beginning-of-line
+                               map global-map)
+    (substitute-key-definition 'end-of-line 'allout-end-of-line
+                               map global-map)
+    (substitute-key-definition 'move-end-of-line 'allout-end-of-line
+                               map global-map)
+    (allout-institute-keymap map)))
+;;;_  > allout-institute-keymap (map)
+(defun allout-institute-keymap (map)
+  "Associate allout-mode bindings with allout as a minor mode."
+  ;; Architecture:
+  ;; allout-mode-map var is a keymap by virtue of being a defalias for
+  ;; allout-mode-map-value, which has the actual keymap value.
+  ;; allout-mode-map's symbol value is just 'allout-mode-map, so it can be
+  ;; used in minor-mode-map-alist to indirect to the actual
+  ;; allout-mode-map-var value, which can be adjusted and reassigned.
+
+  ;; allout-mode-map-value for keymap reference in various places:
+  (setq allout-mode-map-value map)
+  ;; the function value keymap of allout-mode-map is used in
+  ;; minor-mode-map-alist - update it:
+  (fset allout-mode-map allout-mode-map-value))
+;;;_  * intialize the mode map:
+;; ensure that allout-mode-map has some setting even if allout-mode hasn't
+;; been invoked:
+(allout-compose-and-institute-keymap)
 ;;;_   = allout-command-prefix
 (defcustom allout-command-prefix "\C-c "
   "Key sequence to be used as prefix for outline mode command key bindings.
@@ -145,7 +182,7 @@ Default is '\C-c<space>'; just '\C-c' is more short-and-sweet, if you're
 willing to let allout use a bunch of \C-c keybindings."
   :type 'string
   :group 'allout-keybindings
-  :set 'allout-bind-keys)
+  :set 'allout-compose-and-institute-keymap)
 ;;;_   = allout-keybindings-binding
 (define-widget 'allout-keybindings-binding 'lazy
   "Structure of allout keybindings customization items."
@@ -157,16 +194,16 @@ willing to let allout use a bunch of \C-c keybindings."
 (defcustom allout-prefixed-keybindings
   '(("[(control ?n)]" allout-next-visible-heading)
     ("[(control ?p)]" allout-previous-visible-heading)
-;;    ("[(control ?u)]" allout-up-current-level)
+    ("[(control ?u)]" allout-up-current-level)
     ("[(control ?f)]" allout-forward-current-level)
     ("[(control ?b)]" allout-backward-current-level)
     ("[(control ?a)]" allout-beginning-of-current-entry)
     ("[(control ?e)]" allout-end-of-entry)
     ("[(control ?i)]" allout-show-children)
-    ("[(control ?i)]" allout-show-children)
     ("[(control ?s)]" allout-show-current-subtree)
     ("[(control ?t)]" allout-toggle-current-subtree-exposure)
-    ("[(control ?h)]" allout-hide-current-subtree)
+;; Let user customize if they want to preempt describe-prefix-bindings ^h use.
+;;    ("[(control ?h)]" allout-hide-current-subtree)
     ("[?h]" allout-hide-current-subtree)
     ("[(control ?o)]" allout-show-current-entry)
     ("[?!]" allout-show-all)
@@ -179,9 +216,9 @@ willing to let allout use a bunch of \C-c keybindings."
     ("[?<]" allout-shift-out)
     ("[(control ?m)]" allout-rebullet-topic)
     ("[?*]" allout-rebullet-current-heading)
-    ("[?']" allout-number-siblings)
+    ("[?#]" allout-number-siblings)
     ("[(control ?k)]" allout-kill-topic)
-    ("[??]" allout-copy-topic-as-kill)
+    ("[(meta ?k)]" allout-copy-topic-as-kill)
     ("[?@]" allout-resolve-xref)
     ("[?=?c]" allout-copy-exposed-to-buffer)
     ("[?=?i]" allout-indented-exposed-to-buffer)
@@ -205,14 +242,14 @@ multiple functions will not work - the last binding for a key
 prevails."
   :type 'allout-keybindings-binding
   :group 'allout-keybindings
-  :set 'allout-bind-keys
+  :set 'allout-compose-and-institute-keymap
  )
 ;;;_   = allout-unprefixed-keybindings
 (defcustom allout-unprefixed-keybindings
   '(("[(control ?k)]" allout-kill-line)
-    ("[??(meta ?k)]" allout-copy-line-as-kill)
+    ("[(meta ?k)]" allout-copy-line-as-kill)
     ("[(control ?y)]" allout-yank)
-    ("[??(meta ?y)]" allout-yank-pop)
+    ("[(meta ?y)]" allout-yank-pop)
     )
   "Allout-mode functions bound to keys without any added prefix.
 
@@ -228,97 +265,57 @@ Use vector format for the keys:
 See the existing keys for examples."
   :type 'allout-keybindings-binding
   :group 'allout-keybindings
-  :set 'allout-bind-keys
+  :set 'allout-compose-and-institute-keymap
   )
 
-;;;_  = allout-preempt-trailing-ctrl-h
-(defcustom allout-preempt-trailing-ctrl-h nil
-  "Use <prefix>-\C-h, instead of leaving it for describe-prefix-bindings?"
-  :type 'boolean
-  :group 'allout)
+;;;_  > allout-auto-activation-helper (var value)
+;;;###autoload
+(defun allout-auto-activation-helper (var value)
+  "Institute `allout-auto-activation'.
 
-;;;_  = allout-keybindings-list
-;;; You have to reactivate allout-mode to change this var's current setting.
-(defvar allout-keybindings-list ()
-  "*List of `allout-mode' key / function bindings, for `allout-mode-map'.
-String or vector key will be prefaced with `allout-command-prefix',
-unless optional third, non-nil element is present.")
-(setq allout-keybindings-list
-      '(
-                                        ; Motion commands:
-        ("\C-n" allout-next-visible-heading)
-        ("\C-p" allout-previous-visible-heading)
-        ("\C-u" allout-up-current-level)
-        ("\C-f" allout-forward-current-level)
-        ("\C-b" allout-backward-current-level)
-        ("\C-a" allout-beginning-of-current-entry)
-        ("\C-e" allout-end-of-entry)
-                                        ; Exposure commands:
-        ([(control i)] allout-show-children) ; xemacs translates "\C-i" to tab
-        ("\C-i" allout-show-children)   ; but we still need this for hotspot
-        ("\C-s" allout-show-current-subtree)
-        ;; binding to \C-h is included if allout-preempt-trailing-ctrl-h,
-        ;; so user controls whether or not to preempt the conventional ^H
-        ;; binding to help-command.
-        ("\C-h" allout-hide-current-subtree)
-        ("\C-t" allout-toggle-current-subtree-exposure)
-        ("h" allout-hide-current-subtree)
-        ("\C-o" allout-show-current-entry)
-        ("!" allout-show-all)
-        ("x" allout-toggle-current-subtree-encryption)
-                                        ; Alteration commands:
-        (" " allout-open-sibtopic)
-        ("." allout-open-subtopic)
-        ("," allout-open-supertopic)
-        ("'" allout-shift-in)
-        (">" allout-shift-in)
-        ("<" allout-shift-out)
-        ("\C-m" allout-rebullet-topic)
-        ("*" allout-rebullet-current-heading)
-        ("#" allout-number-siblings)
-        ("\C-k" allout-kill-line t)
-        ([?\M-k] allout-copy-line-as-kill t)
-        ("\C-y" allout-yank t)
-        ([?\M-y] allout-yank-pop t)
-        ("\C-k" allout-kill-topic)
-        ([?\M-k] allout-copy-topic-as-kill)
-                                        ; Miscellaneous commands:
-	;([?\C-\ ] allout-mark-topic)
-        ("@" allout-resolve-xref)
-        ("=c" allout-copy-exposed-to-buffer)
-        ("=i" allout-indented-exposed-to-buffer)
-	("=t" allout-latexify-exposed)
-	("=p" allout-flatten-exposed-to-buffer)))
+Intended to be used as the `allout-auto-activation' :set function."
+  (set-default var value)
+  (allout-setup))
+;;;_  > allout-setup ()
+;;;###autoload
+(defun allout-setup ()
+  "Do fundamental emacs session for allout auto-activation.
 
+Establishes allout processing as part of visiting a file if
+`allout-auto-activation' is non-nil, or removes it otherwise.
+
+The proper way to use this is through customizing the setting of
+`allout-auto-activation'."
+  (if (not allout-auto-activation)
+      (remove-hook 'find-file-hook 'allout-find-file-hook)
+      (add-hook 'find-file-hook 'allout-find-file-hook)))
 ;;;_  = allout-auto-activation
+;;;###autoload
 (defcustom allout-auto-activation nil
-  "Regulates auto-activation modality of allout outlines -- see `allout-init'.
+  "Configure allout outline mode auto-activation.
 
-Setq-default by `allout-init' to regulate whether or not allout
-outline mode is automatically activated when the buffer-specific
-variable `allout-layout' is non-nil, and whether or not the layout
-dictated by `allout-layout' should be imposed on mode activation.
+Control whether and how allout outline mode is automatically
+activated when files are visited with non-nil buffer-specific
+file variable `allout-layout'.
 
-With value t, auto-mode-activation and auto-layout are enabled.
-\(This also depends on `allout-find-file-hook' being installed in
-`find-file-hook', which is also done by `allout-init'.)
+When allout-auto-activation is \"On\" \(t), allout mode is
+activated in buffers with non-nil `allout-layout', and the
+specified layout is applied.
 
-With value `ask', auto-mode-activation is enabled, and endorsement for
+With value \"ask\", auto-mode-activation is enabled, and endorsement for
 performing auto-layout is asked of the user each time.
 
-With value `activate', only auto-mode-activation is enabled,
-auto-layout is not.
+With value \"activate\", only auto-mode-activation is enabled.
+Auto-layout is not.
 
-With value nil, neither auto-mode-activation nor auto-layout are
-enabled.
-
-See the docstring for `allout-init' for the proper interface to
-this variable."
+With value nil, inhibit any automatic allout-mode activation."
+  :set 'allout-auto-activation-helper
   :type '(choice (const :tag "On" t)
                 (const :tag "Ask about layout" "ask")
                 (const :tag "Mode only" "activate")
                 (const :tag "Off" nil))
   :group 'allout)
+(allout-setup)
 ;;;_  = allout-default-layout
 (defcustom allout-default-layout '(-2 : 0)
   "Default allout outline layout specification.
@@ -330,7 +327,7 @@ layout specifications.
 A list value specifies a default layout for the current buffer,
 to be applied upon activation of `allout-mode'.  Any non-nil
 value will automatically trigger `allout-mode', provided
-`allout-init' has been called to enable this behavior.
+`allout-auto-activation' has been customized to enable it.
 
 The types of elements in the layout specification are:
 
@@ -753,8 +750,10 @@ Set this var to the bullet you want to use for file cross-references."
 ;;;###autoload
 (put 'allout-presentation-padding 'safe-local-variable 'integerp)
 
-;;;_  = allout-abbreviate-flattened-numbering
-(defcustom allout-abbreviate-flattened-numbering nil
+;;;_  = allout-flattened-numbering-abbreviation
+(define-obsolete-variable-alias 'allout-abbreviate-flattened-numbering
+  'allout-flattened-numbering-abbreviation "24.0")
+(defcustom allout-flattened-numbering-abbreviation nil
   "If non-nil, `allout-flatten-exposed-to-buffer' abbreviates topic
 numbers to minimal amount with some context.  Otherwise, entire
 numbers are always used."
@@ -909,10 +908,10 @@ For details, see `allout-toggle-current-subtree-encryption's docstring."
 (defvar allout-layout nil            ; LEAVE GLOBAL VALUE NIL -- see docstring.
   "Buffer-specific setting for allout layout.
 
-In buffers where this is non-nil (and if `allout-init' has been run, to
-enable this behavior), `allout-mode' will be automatically activated.  The
-layout dictated by the value will be used to set the initial exposure when
-`allout-mode' is activated.
+In buffers where this is non-nil \(and if `allout-auto-activation'
+has been customized to enable this behavior), `allout-mode' will be
+automatically activated.  The layout dictated by the value will be used to
+set the initial exposure when `allout-mode' is activated.
 
 \*You should not setq-default this variable non-nil unless you want every
 visited file to be treated as an allout file.*
@@ -925,9 +924,9 @@ example, the following lines at the bottom of an Emacs Lisp file:
 ;;;End:
 
 dictate activation of `allout-mode' mode when the file is visited
-\(presuming allout-init was already run), followed by the
-equivalent of `(allout-expose-topic 0 : -1 -1 0)'.  (This is
-the layout used for the allout.el source file.)
+\(presuming proper `allout-auto-activation' customization),
+followed by the equivalent of `(allout-expose-topic 0 : -1 -1 0)'.
+\(This is the layout used for the allout.el source file.)
 
 `allout-default-layout' describes the specification format.
 `allout-layout' can additionally have the value `t', in which
@@ -1239,36 +1238,6 @@ Also refresh various data structures that hinge on the regexp."
                             "[^" allout-primary-bullet "]"))
                   "\\)"
                   ))))
-;;;_  : Key bindings
-;;;_   = allout-mode-map
-(defvar allout-mode-map nil "Keybindings for (allout) outline minor mode.")
-;;;_   > produce-allout-mode-map (keymap-alist &optional base-map)
-(defun produce-allout-mode-map (keymap-list &optional base-map)
-  "Produce keymap for use as `allout-mode-map', from KEYMAP-LIST.
-
-Built on top of optional BASE-MAP, or empty sparse map if none specified.
-See doc string for `allout-keybindings-list' for format of binding list."
-  (let ((map (or base-map (make-sparse-keymap)))
-	(pref (list allout-command-prefix)))
-    (mapc (function
-	     (lambda (cell)
-	       (let ((add-pref (null (cdr (cdr cell))))
-		     (key-suff (list (car cell))))
-		 (apply 'define-key
-			(list map
-			      (apply 'vconcat (if add-pref
-						 (append pref key-suff)
-					       key-suff))
-			      (car (cdr cell)))))))
-	    keymap-list)
-    map))
-;;;_   > allout-mode-map-adjustments (base-map)
-(defun allout-mode-map-adjustments (base-map)
-  "Do conditional additions to specified base-map, like inclusion of \\C-h."
-  (if allout-preempt-trailing-ctrl-h
-      (cons '("\C-h" allout-hide-current-subtree) base-map)
-    base-map)
-  )
 ;;;_  : Menu bar
 (defvar allout-mode-exposure-menu)
 (defvar allout-mode-editing-menu)
@@ -1277,7 +1246,7 @@ See doc string for `allout-keybindings-list' for format of binding list."
 (defun produce-allout-mode-menubar-entries ()
   (require 'easymenu)
   (easy-menu-define allout-mode-exposure-menu
-		    allout-mode-map
+		    allout-mode-map-value
 		    "Allout outline exposure menu."
 		    '("Exposure"
 		      ["Show Entry" allout-show-current-entry t]
@@ -1288,7 +1257,7 @@ See doc string for `allout-keybindings-list' for format of binding list."
 		      "----"
 		      ["Show All" allout-show-all t]))
   (easy-menu-define allout-mode-editing-menu
-		    allout-mode-map
+		    allout-mode-map-value
 		    "Allout outline editing menu."
 		    '("Headings"
 		      ["Open Sibling" allout-open-sibtopic t]
@@ -1305,7 +1274,7 @@ See doc string for `allout-keybindings-list' for format of binding list."
                        allout-toggle-current-subtree-encryption
                        (> (allout-current-depth) 1)]))
   (easy-menu-define allout-mode-navigation-menu
-		    allout-mode-map
+		    allout-mode-map-value
 		    "Allout outline navigation menu."
 		    '("Navigation"
 		      ["Next Visible Heading" allout-next-visible-heading t]
@@ -1322,7 +1291,7 @@ See doc string for `allout-keybindings-list' for format of binding list."
 		      ["End of Entry" allout-end-of-entry t]
 		      ["End of Subtree" allout-end-of-current-subtree t]))
   (easy-menu-define allout-mode-misc-menu
-		    allout-mode-map
+		    allout-mode-map-value
 		    "Allout outlines miscellaneous bindings."
 		    '("Misc"
 		      ["Version" allout-version t]
@@ -1459,9 +1428,6 @@ Functions on the hook should take two arguments:
  - NEW-START -- integer indicating position of start of the first new item.
  - NEW-END -- integer indicating position of end of the last new item.
 
-Some edits that introduce new items may missed by this hook:
-specifically edits that native allout routines do not control.
-
 This hook might be invoked multiple times by a single command.")
 ;;;_   = allout-structure-deleted-hook
 (defvar allout-structure-deleted-hook nil
@@ -1489,6 +1455,11 @@ Some edits that shift items can be missed by this hook: specifically edits
 that native allout routines do not control.
 
 This hook might be invoked multiple times by a single command.")
+;;;_   = allout-after-copy-or-kill-hook
+(defvar allout-after-copy-or-kill-hook nil
+  "*Hook that's run after copying outline text.
+
+Functions on the hook should not take any arguments.")
 ;;;_   = allout-outside-normal-auto-fill-function
 (defvar allout-outside-normal-auto-fill-function nil
   "Value of normal-auto-fill-function outside of allout mode.
@@ -1582,6 +1553,7 @@ See `allout-encryption-ciphertext-rejection-regexps' for rejection reasons.")
 ;;;_   > allout-mode-p ()
 ;; Must define this macro above any uses, or byte compilation will lack
 ;; proper def, if file isn't loaded -- eg, during emacs build!
+;;;###autoload
 (defmacro allout-mode-p ()
   "Return t if `allout-mode' is active in current buffer."
   'allout-mode)
@@ -1666,84 +1638,19 @@ non-nil in a lasting way.")
   "If t, `allout-mode's last deactivation was deliberate.
 So `allout-post-command-business' should not reactivate it...")
 (make-variable-buffer-local 'allout-explicitly-deactivated)
-;;;_  > allout-init (&optional mode)
-(defun allout-init (&optional mode)
-  "Prime `allout-mode' to enable/disable auto-activation, wrt `allout-layout'.
+;;;_  > allout-init (mode)
+(defun allout-init (mode)
+  "DEPRECATED - configure allout activation by customizing
+`allout-auto-activation'.  This function remains around, limited
+from what it did before, for backwards compatability.
 
-MODE is one of the following symbols:
+MODE is the activation mode - see `allout-auto-activation' for
+valid values."
 
- - nil (or no argument) deactivate auto-activation/layout;
- - `activate', enable auto-activation only;
- - `ask', enable auto-activation, and enable auto-layout but with
-   confirmation for layout operation solicited from user each time;
- - `report', just report and return the current auto-activation state;
- - anything else (eg, t) for auto-activation and auto-layout, without
-   any confirmation check.
-
-Use this function to setup your Emacs session for automatic activation
-of allout outline mode, contingent to the buffer-specific setting of
-the `allout-layout' variable.  (See `allout-layout' and
-`allout-expose-topic' docstrings for more details on auto layout).
-
-`allout-init' works by setting up (or removing) the `allout-mode'
-find-file-hook, and giving `allout-auto-activation' a suitable
-setting.
-
-To prime your Emacs session for full auto-outline operation, include
-the following two lines in your Emacs init file:
-
-\(require 'allout)
-\(allout-init t)"
-
-  (interactive)
-  (if (allout-called-interactively-p)
-      (progn
-	(setq mode
-	      (completing-read
-	       (concat "Select outline auto setup mode "
-		       "(empty for report, ? for options) ")
-	       '(("nil")("full")("activate")("deactivate")
-		 ("ask") ("report") (""))
-	       nil
-	       t))
-	(if (string= mode "")
-	    (setq mode 'report)
-	  (setq mode (intern-soft mode)))))
-  (let
-      ;; convenience aliases, for consistent ref to respective vars:
-      ((hook 'allout-find-file-hook)
-       (find-file-hook-var-name (if (boundp 'find-file-hook)
-                                    'find-file-hook
-                                  'find-file-hooks))
-       (curr-mode 'allout-auto-activation))
-
-    (cond ((not mode)
-	   (set find-file-hook-var-name
-                (delq hook (symbol-value find-file-hook-var-name)))
-	   (if (allout-called-interactively-p)
-	       (message "Allout outline mode auto-activation inhibited.")))
-	  ((eq mode 'report)
-	   (if (not (memq hook (symbol-value find-file-hook-var-name)))
-	       (allout-init nil)
-	     ;; Just punt and use the reports from each of the modes:
-	     (allout-init (symbol-value curr-mode))))
-	  (t (add-hook find-file-hook-var-name hook)
-	     (set curr-mode		; `set', not `setq'!
-		  (cond ((eq mode 'activate)
-			 (message
-			  "Outline mode auto-activation enabled.")
-			 'activate)
-			((eq mode 'report)
-			 ;; Return the current mode setting:
-			 (allout-init mode))
-			((eq mode 'ask)
-			 (message
-			  (concat "Outline mode auto-activation and "
-				  "-layout (upon confirmation) enabled."))
-			 'ask)
-			((message
-			  "Outline mode auto-activation and -layout enabled.")
-			 'full)))))))
+  (custom-set-variables (list 'allout-auto-activation (format "%s" mode)))
+  (format "%s" mode))
+(make-obsolete 'allout-init
+               "customize 'allout-auto-activation' instead." "23.3")
 ;;;_  > allout-setup-menubar ()
 (defun allout-setup-menubar ()
   "Populate the current buffer's menubar with `allout-mode' stuff."
@@ -1776,18 +1683,15 @@ the following two lines in your Emacs init file:
          '(allout-overlay-insert-in-front-handler)))
   (put 'allout-exposure-category 'modification-hooks
        '(allout-overlay-interior-modification-handler)))
-;;;_  > allout-mode (&optional force)
+;;;_  > define-minor-mode allout-mode
 ;;;_   : Defun:
 ;;;###autoload
-(defun allout-mode (&optional force)
+(define-minor-mode allout-mode
 ;;;_    . Doc string:
   "Toggle minor mode for controlling exposure and editing of text outlines.
-\\<allout-mode-map>
+\\<allout-mode-map-value>
 
 Allout outline mode always runs as a minor mode.
-
-Optional FORCE non-nil, or command with no universal argument,
-means force activation.
 
 Allout outline mode provides extensive outline oriented
 formatting and manipulation.  It enables structural editing of
@@ -1812,18 +1716,19 @@ and many other features.
 Below is a description of the key bindings, and then description
 of special `allout-mode' features and terminology.  See also the
 outline menubar additions for quick reference to many of the
-features, and see the docstring of the function `allout-init' for
-instructions on priming your emacs session for automatic
-activation of `allout-mode'.
+features.  Customize `allout-auto-activation' to prepare your
+emacs session for automatic activation of `allout-mode'.
 
-The bindings are dictated by the customizable `allout-keybindings-list'
-variable.  We recommend customizing `allout-command-prefix' to use just
-`\\C-c' as the command prefix, if the allout bindings don't conflict with
-any personal bindings you have on \\C-c.  In any case, outline structure
-navigation and authoring is simplified by positioning the cursor on an
-item's bullet character, the \"hot-spot\" -- then you can invoke allout
-commands with just the un-prefixed, un-control-shifted command letters.
-This is described further in the HOT-SPOT Operation section.
+The bindings are those listed in `allout-prefixed-keybindings'
+and `allout-unprefixed-keybindings'.  We recommend customizing
+`allout-command-prefix' to use just `\\C-c' as the command
+prefix, if the allout bindings don't conflict with any personal
+bindings you have on \\C-c.  In any case, outline structure
+navigation and authoring is simplified by positioning the cursor
+on an item's bullet character, the \"hot-spot\" -- then you can
+invoke allout commands with just the un-prefixed,
+un-control-shifted command letters.  This is described further in
+the HOT-SPOT Operation section.
 
         Exposure Control:
         ----------------
@@ -1896,7 +1801,8 @@ M-x outlineify-sticky       Activate outline mode for current buffer,
                             Like above 'copy-exposed', but convert topic
                             prefixes to section.subsection... numeric
                             format.
-\\[eval-expression] (allout-init t) Setup Emacs session for outline mode
+\\[customize-variable] allout-auto-activation
+                            Prepare Emacs session for allout outline mode
                             auto-activation.
 
                   Topic Encryption
@@ -1961,6 +1867,7 @@ without changes to the allout core.  Here are key ones:
 `allout-structure-added-hook'
 `allout-structure-deleted-hook'
 `allout-structure-shifted-hook'
+`allout-after-copy-or-kill-hook'
 
                             Terminology
 
@@ -2043,7 +1950,8 @@ CONCEALED:
 CLOSED: A TOPIC whose immediate OFFSPRING and body-text is CONCEALED.
 OPEN:	A TOPIC that is not CLOSED, though its OFFSPRING or BODY may be."
 ;;;_    . Code
-  (interactive "P")
+  :lighter " Allout"
+  :keymap 'allout-mode-map
 
   (let ((write-file-hook-var-name (cond ((boundp 'write-file-functions)
                                          'write-file-functions)
@@ -2054,7 +1962,7 @@ OPEN:	A TOPIC that is not CLOSED, though its OFFSPRING or BODY may be."
                         allout-layout
                       allout-default-layout)))
 
-    (if (and (allout-mode-p) (not force))
+    (if (not (allout-mode-p))
         (progn
           ;; Deactivation:
 
@@ -2069,18 +1977,14 @@ OPEN:	A TOPIC that is not CLOSED, though its OFFSPRING or BODY may be."
           (remove-hook 'post-command-hook 'allout-post-command-business t)
           (remove-hook 'before-change-functions 'allout-before-change-handler t)
           (remove-hook 'isearch-mode-end-hook 'allout-isearch-end-handler t)
-          (remove-hook write-file-hook-var-name 'allout-write-file-hook-handler
-                       t)
+          (remove-hook write-file-hook-var-name
+                       'allout-write-file-hook-handler t)
           (remove-hook 'auto-save-hook 'allout-auto-save-hook-handler t)
 
           (remove-overlays (point-min) (point-max)
-                           'category 'allout-exposure-category)
+                           'category 'allout-exposure-category))
 
-          (setq allout-mode nil)
-          (run-hooks 'allout-mode-deactivate-hook)
-          (run-hooks 'allout-mode-off-hook))
-
-      ;; Activation:
+      ;; Activating:
       (if allout-old-style-prefixes
           ;; Inhibit all the fancy formatting:
           (allout-add-resumptions '(allout-primary-bullet "*")))
@@ -2098,16 +2002,8 @@ OPEN:	A TOPIC that is not CLOSED, though its OFFSPRING or BODY may be."
                                 allout-bob-regexp
                                 extend))
 
-      ;; Produce map from current version of allout-keybindings-list:
-      (allout-setup-mode-map)
+      (allout-compose-and-institute-keymap)
       (produce-allout-mode-menubar-entries)
-
-      ;; Include on minor-mode-map-alist, if not already there:
-      (if (not (member '(allout-mode . allout-mode-map)
-                       minor-mode-map-alist))
-          (setq minor-mode-map-alist
-                (cons '(allout-mode . allout-mode-map)
-                      minor-mode-map-alist)))
 
       (add-to-invisibility-spec '(allout . t))
 
@@ -2142,20 +2038,14 @@ OPEN:	A TOPIC that is not CLOSED, though its OFFSPRING or BODY may be."
           ;; allout-auto-fill will use the stashed values and so forth.
           (allout-add-resumptions '(auto-fill-function allout-auto-fill)))
 
-      (or (assq 'allout-mode minor-mode-alist)
-	  (setq minor-mode-alist
-	       (cons '(allout-mode " Allout") minor-mode-alist)))
-
       (allout-setup-menubar)
-      (setq allout-mode t)
-      (run-hooks 'allout-mode-hook)
 
       ;; Do auto layout if warranted:
       (when (and allout-layout
                  allout-auto-activation
                  use-layout
-                 (and (not (eq allout-auto-activation 'activate))
-                      (if (eq allout-auto-activation 'ask)
+                 (and (not (string= allout-auto-activation "activate"))
+                      (if (string= allout-auto-activation "ask")
                           (if (y-or-n-p (format "Expose %s with layout '%s'? "
                                                 (buffer-name)
                                                 use-layout))
@@ -2182,36 +2072,6 @@ OPEN:	A TOPIC that is not CLOSED, though its OFFSPRING or BODY may be."
   )  					; define-minor-mode
 ;;;_  > allout-minor-mode alias
 (defalias 'allout-minor-mode 'allout-mode)
-;;;_  > allout-setup-mode-map ())
-(defun allout-setup-mode-map ()
-  "Establish allout-mode bindings."
-  (setq-default allout-mode-map
-                (produce-allout-mode-map
-                 (allout-mode-map-adjustments allout-keybindings-list)))
-  (setq allout-mode-map
-        (produce-allout-mode-map
-         (allout-mode-map-adjustments allout-keybindings-list)))
-  (substitute-key-definition 'beginning-of-line
-                             'allout-beginning-of-line
-                             allout-mode-map global-map)
-  (substitute-key-definition 'move-beginning-of-line
-                             'allout-beginning-of-line
-                             allout-mode-map global-map)
-  (substitute-key-definition 'end-of-line
-                             'allout-end-of-line
-                             allout-mode-map global-map)
-  (substitute-key-definition 'move-end-of-line
-                             'allout-end-of-line
-                             allout-mode-map global-map)
-  (fset 'allout-mode-map allout-mode-map))
-
-;; ensure that allout-mode-map has some setting even if allout-mode hasn't
-;; been invoked:
-(allout-setup-mode-map)
-
-;;;_  > allout-minor-mode
-(defalias 'allout-minor-mode 'allout-mode)
-
 ;;;_  > allout-unload-function
 (defun allout-unload-function ()
   "Unload the allout outline library."
@@ -2287,8 +2147,8 @@ internal functions use this feature cohesively bunch changes."
 
 See `allout-overlay-interior-modification-handler' for details."
 
-  (if (and (allout-mode-p) undo-in-progress (allout-hidden-p))
-      (allout-show-to-offshoot))
+  (when (and (allout-mode-p) undo-in-progress (allout-hidden-p))
+    (allout-show-children))
 
   ;; allout-overlay-interior-modification-handler on an overlay handles
   ;; this in other emacs, via `allout-exposure-category's 'modification-hooks.
@@ -3425,7 +3285,7 @@ When set, tells post-processing to reposition on topic bullet, and
 then unset it.  Set by `allout-pre-command-business' when implementing
 hot-spot operation, where literal characters typed over a topic bullet
 are mapped to the command of the corresponding control-key on the
-`allout-mode-map'.")
+`allout-mode-map-value'.")
 (make-variable-buffer-local 'allout-post-goto-bullet)
 ;;;_   = allout-command-counter
 (defvar allout-command-counter 0
@@ -3464,11 +3324,12 @@ coordinating with allout activity.")
 Among other things, implements special behavior when the cursor is on the
 topic bullet character.
 
-When the cursor is on the bullet character, self-insert characters are
-reinterpreted as the corresponding control-character in the
-`allout-mode-map'.  The `allout-mode' `post-command-hook' insures that
-the cursor which has moved as a result of such reinterpretation is
-positioned on the bullet character of the destination topic.
+When the cursor is on the bullet character, self-insert
+characters are reinterpreted as the corresponding
+control-character in the `allout-mode-map-value'.  The
+`allout-mode' `post-command-hook' insures that the cursor which
+has moved as a result of such reinterpretation is positioned on
+the bullet character of the destination topic.
 
 The upshot is that you can get easy, single (ie, unmodified) key
 outline maneuvering operations by positioning the cursor on the bullet
@@ -3495,9 +3356,6 @@ this-command accordingly.
 Returns the qualifying command, if any, else nil."
   (interactive)
   (let* ((modified (event-modifiers last-command-event))
-         (key-string (if (numberp last-command-event)
-                         (char-to-string
-                          (event-basic-type last-command-event))))
          (key-num (cond ((numberp last-command-event) last-command-event)
                         ;; for XEmacs character type:
                         ((and (fboundp 'characterp)
@@ -3514,16 +3372,18 @@ Returns the qualifying command, if any, else nil."
            (not modified)
            (<= 33 key-num)
            (setq mapped-binding
-                 (or (and (assoc key-string allout-keybindings-list)
-                          ;; translate literal membership on list:
-                          (cadr (assoc key-string allout-keybindings-list)))
-                     ;; translate as a keybinding:
-                     (key-binding (vconcat allout-command-prefix
-                                           (vector
-                                            (if (and (<= 97 key-num) ; "a"
-                                                     (>= 122 key-num)) ; "z"
-                                                (- key-num 96) key-num)))
-                                  t))))
+                 (or
+                  ;; try control-modified versions of keys:
+                  (key-binding (vconcat allout-command-prefix
+                                        (vector
+                                         (if (and (<= 97 key-num) ; "a"
+                                                  (>= 122 key-num)) ; "z"
+                                             (- key-num 96) key-num)))
+                               t)
+                  ;; try non-modified versions of keys:
+                  (key-binding (vconcat allout-command-prefix
+                                        (vector key-num))
+                               t))))
           ;; Qualified as an allout command -- do hot-spot operation.
           (setq allout-post-goto-bullet t)
         ;; accept-defaults nil, or else we get allout-item-icon-key-handler.
@@ -3540,7 +3400,7 @@ Returns the qualifying command, if any, else nil."
 (defun allout-find-file-hook ()
   "Activate `allout-mode' on non-nil `allout-auto-activation', `allout-layout'.
 
-See `allout-init' for setup instructions."
+See `allout-auto-activation' for setup instructions."
   (if (and allout-auto-activation
 	   (not (allout-mode-p))
 	   allout-layout)
@@ -4482,17 +4342,19 @@ subtopics into siblings of the item."
            (depth (allout-depth)))
 
       (allout-annotate-hidden beg end)
-      (if (and (not beg-hidden) (not end-hidden))
-          (allout-unprotected (kill-line arg))
-        (kill-line arg))
-      (allout-deannotate-hidden beg end)
+      (unwind-protect
+          (if (and (not beg-hidden) (not end-hidden))
+              (allout-unprotected (kill-line arg))
+            (kill-line arg))
+        (run-hooks 'allout-after-copy-or-kill-hook)
+        (allout-deannotate-hidden beg end)
 
-      (if allout-numbered-bullet
-          (save-excursion               ; Renumber subsequent topics if needed:
-            (if (not (save-match-data (looking-at allout-regexp)))
-                (allout-next-heading))
-            (allout-renumber-to-depth depth)))
-      (run-hook-with-args 'allout-structure-deleted-hook depth (point)))))
+        (if allout-numbered-bullet
+            (save-excursion         ; Renumber subsequent topics if needed:
+              (if (not (save-match-data (looking-at allout-regexp)))
+                  (allout-next-heading))
+              (allout-renumber-to-depth depth)))
+        (run-hook-with-args 'allout-structure-deleted-hook depth (point))))))
 ;;;_    > allout-copy-line-as-kill ()
 (defun allout-copy-line-as-kill ()
   "Like allout-kill-topic, but save to kill ring instead of deleting."
@@ -4533,15 +4395,14 @@ Topic exposure is marked with text-properties, to be used by
 	    (forward-char 1)))
 
     (allout-annotate-hidden beg (setq end (point)))
-    (unwind-protect
+    (unwind-protect                     ; for possible barf-if-buffer-read-only.
         (allout-unprotected (kill-region beg end))
-      (if buffer-read-only
-          ;; eg, during copy-as-kill.
-          (allout-deannotate-hidden beg end)))
+      (allout-deannotate-hidden beg end)
+      (run-hooks 'allout-after-copy-or-kill-hook)
 
-    (save-excursion
-      (allout-renumber-to-depth depth))
-    (run-hook-with-args 'allout-structure-deleted-hook depth (point))))
+      (save-excursion
+        (allout-renumber-to-depth depth))
+      (run-hook-with-args 'allout-structure-deleted-hook depth (point)))))
 ;;;_    > allout-copy-topic-as-kill ()
 (defun allout-copy-topic-as-kill ()
   "Like `allout-kill-topic', but save to kill ring instead of deleting."
@@ -4594,8 +4455,8 @@ Topic exposure is marked with text-properties, to be used by
   (allout-unprotected
    (let ((inhibit-read-only t)
          (buffer-undo-list t))
-     ;(remove-text-properties begin end '(allout-was-hidden t))
-     )))
+     (remove-text-properties begin (min end (point-max))
+                             '(allout-was-hidden t)))))
 ;;;_    > allout-hide-by-annotation (begin end)
 (defun allout-hide-by-annotation (begin end)
   "Translate text properties indicating exposure status into actual exposure."
@@ -5506,8 +5367,10 @@ header and body.  The elements of that list are:
       ;; Goto initial topic, and register preceeding stuff, if any:
       (if (> (allout-goto-prefix-doublechecked) start)
 	  ;; First topic follows beginning point -- register preliminary stuff:
-	  (setq result (list (list 0 "" nil
-				   (buffer-substring start (1- (point)))))))
+	  (setq result
+                (list (list 0 "" nil
+                            (buffer-substring-no-properties start
+                                                            (1- (point)))))))
       (while (and (not done)
 		  (not (eobp))		; Loop until we've covered the region.
 		  (not (> (point) end)))
@@ -5526,7 +5389,7 @@ header and body.  The elements of that list are:
 	(setq strings nil)
 	(while (> next (point))		; Get all the exposed text in
 	  (setq strings
-		(cons (buffer-substring
+		(cons (buffer-substring-no-properties
 		       beg
 					;To hidden text or end of line:
 		       (progn
@@ -5548,7 +5411,7 @@ header and body.  The elements of that list are:
 				      bullet)))
 		     (cond ((listp format)
 			    (list depth
-				  (if allout-abbreviate-flattened-numbering
+				  (if allout-flattened-numbering-abbreviation
 				      (allout-stringify-flat-index format
 								    gone-out)
 				      (allout-stringify-flat-index-plain
@@ -6192,7 +6055,7 @@ signal."
     (with-temp-buffer
       (insert text)
       ;; convey the text characteristics of the original buffer:
-      (allout-set-buffer-multibyte multibyte)
+      (set-buffer-multibyte multibyte)
       (when encoding
         (set-buffer-file-coding-system encoding)
         (if (not decrypt)
@@ -6223,9 +6086,14 @@ signal."
 
     (setq result-text
           (if decrypt
-              (epg-decrypt-string epg-context
-                                  (encode-coding-string massaged-text
-                                                        (or encoding 'utf-8)))
+              (condition-case err
+                  (epg-decrypt-string epg-context
+                                      (encode-coding-string massaged-text
+                                                            (or encoding 'utf-8)))
+                (epg-error
+                 (signal 'egp-error
+                         (cons (concat (cadr err) " - gpg version problem?")
+                               (cddr err)))))
             (replace-regexp-in-string "\n$" ""
              (epg-encrypt-string epg-context
                                  (encode-coding-string massaged-text
@@ -6402,8 +6270,8 @@ save.  See `allout-encrypt-unencrypted-on-saves' for more info."
 (defun outlineify-sticky (&optional arg)
   "Activate outline mode and establish file var so it is started subsequently.
 
-See doc-string for `allout-layout' and `allout-init' for details on
-setup for auto-startup."
+See `allout-layout' and customization of `allout-auto-activation'
+for details on preparing emacs for automatic allout activation."
 
   (interactive "P")
 
@@ -6811,14 +6679,6 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
     'previous-single-property-change)
   ;; No docstring because xemacs defalias doesn't support it.
   )
-;;;_   > allout-set-buffer-multibyte
-(if (fboundp 'set-buffer-multibyte)
-    (defalias 'allout-set-buffer-multibyte 'set-buffer-multibyte)
-  (with-no-warnings
-    ;; this definition is used only in older or alternative emacs, where
-    ;; the setting is our only recourse.
-    (defun allout-set-buffer-multibyte (is-multibyte)
-      (set enable-multibyte-characters is-multibyte))))
 ;;;_   > allout-select-safe-coding-system
 (defalias 'allout-select-safe-coding-system
   (if (fboundp 'select-safe-coding-system)

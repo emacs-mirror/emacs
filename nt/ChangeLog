@@ -1,3 +1,39 @@
+2011-02-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (bootstrap-nmake, bootstrap-gmake): Make the
+	"make-docfile" target in lib-src, before bootstrapping the src
+	directory.  Needed since building in src needs to run make-docfile
+	to produce globals.h.
+
+2011-02-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (inline) [__GNUC__]: Define (for gnulib).
+
+2011-01-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (VERSION): Uncomment definition.
+	(restrict): Define.
+
+	* inc/stdbool.h: New file.
+
+2011-01-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (all-other-dirs-nmake, all-other-dirs-gmake)
+	(bootstrap-nmake, bootstrap-gmake, bootstrap-clean-nmake)
+	(bootstrap-clean-gmake, clean-other-dirs-nmake)
+	(clean-other-dirs-gmake, cleanall-other-dirs-nmake)
+	(cleanall-other-dirs-gmake, distclean-other-dirs-nmake)
+	(distclean-other-dirs-gmake, maintainer-clean-other-dirs-nmake)
+	(maintainer-clean-other-dirs-gmake): Recurse into ../lib as well.
+	(bootstrap-nmake, bootstrap-gmake): Fix the bootstrap.
+
+	* configure.bat: Create lib/makefile.
+
+	* config.nt (HAVE_MKTIME, BROKEN_MKTIME): Remove.
+	(HAVE_ATTRIBUTE_ALIGNED, HAVE_C99_STRTOLD, HAVE_DECL_GETENV)
+	(HAVE_DECL_LOCALTIME_R, HAVE_WCHAR_T, PACKAGE, VERSION, inline)
+	(_GL_UNUSED, _UNUSED_PARAMETER_): Add definitions, for gnulib.
+
 2011-01-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.nt (HAVE___BUILTIN_UNWIND_INIT) [GCC >= 2.8]: Define.
@@ -1920,8 +1956,7 @@
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2001, 2002, 2003, 2004,
-       2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+  Copyright (C) 1995-1999, 2001-2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -1938,4 +1973,3 @@
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-;;; arch-tag: b3d2c29c-04a0-45d0-b52d-57354711c414

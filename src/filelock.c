@@ -1,6 +1,5 @@
 /* Lock files for editing.
-   Copyright (C) 1985, 1986, 1987, 1993, 1994, 1996, 1998, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+   Copyright (C) 1985-1987, 1993-1994, 1996, 1998-2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -32,10 +31,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <sys/file.h>
 #include <fcntl.h>
-
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 #ifdef __FreeBSD__
 #include <sys/sysctl.h>
@@ -48,10 +44,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "character.h"
 #include "coding.h"
 #include "systime.h"
-
-/* The directory for writing temporary files.  */
-
-Lisp_Object Vtemporary_file_directory;
 
 #ifdef CLASH_DETECTION
 
@@ -222,9 +214,9 @@ get_boot_time (void)
 
       if (! NILP (filename))
 	{
-	  get_boot_time_1 (SDATA (filename), 1);
+	  get_boot_time_1 (SSDATA (filename), 1);
 	  if (delete_flag)
-	    unlink (SDATA (filename));
+	    unlink (SSDATA (filename));
 	}
     }
 
@@ -323,7 +315,7 @@ fill_in_lock_file_name (register char *lockfile, register Lisp_Object fn)
   struct stat st;
   int count = 0;
 
-  strcpy (lockfile, SDATA (fn));
+  strcpy (lockfile, SSDATA (fn));
 
   /* Shift the nondirectory part of the file name (including the null)
      right two characters.  Here is one of the places where we'd have to
@@ -365,11 +357,11 @@ lock_file_1 (char *lfname, int force)
   boot_time = get_boot_time ();
 
   if (STRINGP (Fuser_login_name (Qnil)))
-    user_name = (char *)SDATA (Fuser_login_name (Qnil));
+    user_name = SSDATA (Fuser_login_name (Qnil));
   else
     user_name = "";
   if (STRINGP (Fsystem_name ()))
-    host_name = (char *)SDATA (Fsystem_name ());
+    host_name = SSDATA (Fsystem_name ());
   else
     host_name = "";
   lock_info_str = (char *)alloca (strlen (user_name) + strlen (host_name)
@@ -483,7 +475,7 @@ current_lock_owner (lock_info_type *owner, char *lfname)
 
   /* On current host?  */
   if (STRINGP (Fsystem_name ())
-      && strcmp (owner->host, SDATA (Fsystem_name ())) == 0)
+      && strcmp (owner->host, SSDATA (Fsystem_name ())) == 0)
     {
       if (owner->pid == getpid ())
         ret = 2; /* We own it.  */
@@ -645,9 +637,9 @@ unlock_all_files (void)
   for (tail = Vbuffer_alist; CONSP (tail); tail = XCDR (tail))
     {
       b = XBUFFER (XCDR (XCAR (tail)));
-      if (STRINGP (b->file_truename) && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b))
+      if (STRINGP (BVAR (b, file_truename)) && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b))
 	{
-	  unlock_file(b->file_truename);
+	  unlock_file(BVAR (b, file_truename));
 	}
     }
 }
@@ -660,7 +652,7 @@ or else nothing is done if current buffer isn't visiting a file.  */)
   (Lisp_Object file)
 {
   if (NILP (file))
-    file = current_buffer->file_truename;
+    file = BVAR (current_buffer, file_truename);
   else
     CHECK_STRING (file);
   if (SAVE_MODIFF < MODIFF
@@ -677,8 +669,8 @@ should not be locked in that case.  */)
   (void)
 {
   if (SAVE_MODIFF < MODIFF
-      && STRINGP (current_buffer->file_truename))
-    unlock_file (current_buffer->file_truename);
+      && STRINGP (BVAR (current_buffer, file_truename)))
+    unlock_file (BVAR (current_buffer, file_truename));
   return Qnil;
 }
 
@@ -688,8 +680,8 @@ void
 unlock_buffer (struct buffer *buffer)
 {
   if (BUF_SAVE_MODIFF (buffer) < BUF_MODIFF (buffer)
-      && STRINGP (buffer->file_truename))
-    unlock_file (buffer->file_truename);
+      && STRINGP (BVAR (buffer, file_truename)))
+    unlock_file (BVAR (buffer, file_truename));
 }
 
 DEFUN ("file-locked-p", Ffile_locked_p, Sfile_locked_p, 1, 1, 0,
@@ -735,7 +727,7 @@ init_filelock (void)
 void
 syms_of_filelock (void)
 {
-  DEFVAR_LISP ("temporary-file-directory", &Vtemporary_file_directory,
+  DEFVAR_LISP ("temporary-file-directory", Vtemporary_file_directory,
 	       doc: /* The directory for writing temporary files.  */);
   Vtemporary_file_directory = Qnil;
 
@@ -745,6 +737,3 @@ syms_of_filelock (void)
   defsubr (&Sfile_locked_p);
 #endif
 }
-
-/* arch-tag: e062676d-50b2-4be0-ab96-197c81b181a1
-   (do not change this comment) */

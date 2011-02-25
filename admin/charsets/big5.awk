@@ -70,4 +70,3 @@ function decode_big5(big5) {
 }
 
 
-# arch-tag: 36f08d21-0d24-4b67-852d-a9a51299586d

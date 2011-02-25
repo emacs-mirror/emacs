@@ -1,7 +1,6 @@
 ;;; mm-uu.el --- Return uu stuff as mm handles
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: postscript uudecode binhex shar forward gnatsweb pgp
@@ -159,6 +158,12 @@ This can be either \"inline\" or \"attachment\".")
      mm-uu-diff-extract
      nil
      mm-uu-diff-test)
+    (git-format-patch
+     "^diff --git "
+     "^-- "
+     mm-uu-diff-extract
+     nil
+     mm-uu-diff-test)
     (message-marks
      ;; Text enclosed with tags similar to `message-mark-insert-begin' and
      ;; `message-mark-insert-end'.  Don't use those variables to avoid
@@ -186,7 +191,15 @@ This can be either \"inline\" or \"attachment\".")
      "^\\\\end{document}"
      mm-uu-latex-extract
      nil
-     mm-uu-latex-test))
+     mm-uu-latex-test)
+    (org-src-code-block
+     "^[ \t]*#\\+begin_"
+     "^[ \t]*#\\+end_"
+     mm-uu-org-src-code-block-extract)
+    (org-meta-line
+     "^[ \t]*#\\+[[:alpha:]]+: "
+     "$"
+     mm-uu-org-src-code-block-extract))
   "A list of specifications for non-MIME attachments.
 Each element consist of the following entries: label,
 start-regexp, end-regexp, extract-function, test-function.
@@ -382,6 +395,10 @@ apply the face `mm-uu-extract'."
 		  nil nil
 		  (list mm-dissect-disposition
 			(cons 'filename file-name))))
+
+(defun mm-uu-org-src-code-block-extract ()
+  (mm-make-handle (mm-uu-copy-to-buffer start-point end-point)
+                  '("text/x-org")))
 
 (defvar gnus-newsgroup-name)
 

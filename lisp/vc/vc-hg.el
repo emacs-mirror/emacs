@@ -1,6 +1,6 @@
 ;;; vc-hg.el --- VC backend for the mercurial version control system
 
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2011 Free Software Foundation, Inc.
 
 ;; Author: Ivan Kanis
 ;; Keywords: vc tools
@@ -138,8 +138,28 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   "Name of the Mercurial executable (excluding any arguments)."
   :type 'string
   :group 'vc)
+
+(defcustom vc-hg-root-log-format
+  '("{rev}:{tags}: {author|person} {date|shortdate} {desc|firstline}\\n"
+    "^\\([0-9]+\\):\\([^:]*\\): \\(.*?\\)[ \t]+\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\)"
+    ((1 'log-view-message-face)
+     (2 'change-log-list)
+     (3 'change-log-name)
+     (4 'change-log-date)))
+  "Mercurial log template for `vc-print-root-log'.
+This should be a list (TEMPLATE REGEXP KEYWORDS), where TEMPLATE
+is the \"--template\" argument string to pass to Mercurial,
+REGEXP is a regular expression matching the resulting Mercurial
+output, and KEYWORDS is a list of `font-lock-keywords' for
+highlighting the Log View buffer."
+  :type '(list string string (repeat sexp))
+  :group 'vc
+  :version "24.1")
+
 
 ;;; Properties of the backend
+
+(defvar vc-hg-history nil)
 
 (defun vc-hg-revision-granularity () 'repository)
 (defun vc-hg-checkout-model (files) 'implicit)
@@ -264,13 +284,14 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 	     (nconc
 	      (when start-revision (list (format "-r%s:" start-revision)))
 	      (when limit (list "-l" (format "%s" limit)))
-	      (when shortlog (list "--style" "compact"))
+	      (when shortlog (list "--template" (car vc-hg-root-log-format)))
 	      vc-hg-log-switches)))))
 
 (defvar log-view-message-re)
 (defvar log-view-file-re)
 (defvar log-view-font-lock-keywords)
 (defvar log-view-per-file-logs)
+(defvar log-view-expanded-log-entry-function)
 
 (define-derived-mode vc-hg-log-view-mode log-view-mode "Hg-Log-View"
   (require 'add-log) ;; we need the add-log faces
@@ -278,33 +299,34 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   (set (make-local-variable 'log-view-per-file-logs) nil)
   (set (make-local-variable 'log-view-message-re)
        (if (eq vc-log-view-type 'short)
-           "^\\([0-9]+\\)\\(\\[.*\\]\\)? +\\([0-9a-z]\\{12\\}\\) +\\(\\(?:[0-9]+\\)-\\(?:[0-9]+\\)-\\(?:[0-9]+\\) \\(?:[0-9]+\\):\\(?:[0-9]+\\) \\(?:[-+0-9]+\\)\\) +\\(.*\\)$"
+	   (cadr vc-hg-root-log-format)
          "^changeset:[ \t]*\\([0-9]+\\):\\(.+\\)"))
+  ;; Allow expanding short log entries
+  (when (eq vc-log-view-type 'short)
+    (setq truncate-lines t)
+    (set (make-local-variable 'log-view-expanded-log-entry-function)
+	 'vc-hg-expanded-log-entry))
   (set (make-local-variable 'log-view-font-lock-keywords)
        (if (eq vc-log-view-type 'short)
-           (append `((,log-view-message-re
-                      (1 'log-view-message-face)
-                      (2 'highlight nil lax)
-                      (3 'log-view-message-face)
-                      (4 'change-log-date)
-                      (5 'change-log-name))))
-       (append
-        log-view-font-lock-keywords
-        '(
-          ;; Handle the case:
-          ;; user: FirstName LastName <foo@bar>
-          ("^user:[ \t]+\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]"
-           (1 'change-log-name)
-           (2 'change-log-email))
-          ;; Handle the cases:
-          ;; user: foo@bar
-          ;; and
-          ;; user: foo
-          ("^user:[ \t]+\\([A-Za-z0-9_.+-]+\\(?:@[A-Za-z0-9_.-]+\\)?\\)"
-           (1 'change-log-email))
-          ("^date: \\(.+\\)" (1 'change-log-date))
-	  ("^tag: +\\([^ ]+\\)$" (1 'highlight))
-	  ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message)))))))
+	   (list (cons (nth 1 vc-hg-root-log-format)
+		       (nth 2 vc-hg-root-log-format)))
+	 (append
+	  log-view-font-lock-keywords
+	  '(
+	    ;; Handle the case:
+	    ;; user: FirstName LastName <foo@bar>
+	    ("^user:[ \t]+\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]"
+	     (1 'change-log-name)
+	     (2 'change-log-email))
+	    ;; Handle the cases:
+	    ;; user: foo@bar
+	    ;; and
+	    ;; user: foo
+	    ("^user:[ \t]+\\([A-Za-z0-9_.+-]+\\(?:@[A-Za-z0-9_.-]+\\)?\\)"
+	     (1 'change-log-email))
+	    ("^date: \\(.+\\)" (1 'change-log-date))
+	    ("^tag: +\\([^ ]+\\)$" (1 'highlight))
+	    ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message)))))))
 
 (defun vc-hg-diff (files &optional oldvers newvers buffer)
   "Get a difference report using hg between two revisions of FILES."
@@ -321,6 +343,16 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
               (if newvers
                   (list "-r" oldvers "-r" newvers)
                 (list "-r" oldvers)))))))
+
+(defun vc-hg-expanded-log-entry (revision)
+  (with-temp-buffer
+    (vc-hg-command t nil nil "log" "-r" revision)
+    (goto-char (point-min))
+    (unless (eobp)
+      ;; Indent the expanded log entry.
+      (indent-region (point-min) (point-max) 2)
+      (goto-char (point-max))
+      (buffer-string))))
 
 (defun vc-hg-revision-table (files)
   (let ((default-directory (file-name-directory (car files))))
@@ -607,23 +639,61 @@ REV is the revision to check out into WORKFILE."
                       (mapcar (lambda (arg) (list "-r" arg)) marked-list)))
       (error "No log entries selected for push"))))
 
-(defun vc-hg-pull ()
-  (interactive)
-  (let ((marked-list (log-view-get-marked)))
-    (if marked-list
-        (apply #'vc-hg-command
-               nil 0 nil
-               "pull"
-               (apply 'nconc
-                      (mapcar (lambda (arg) (list "-r" arg)) marked-list)))
-      (error "No log entries selected for pull"))))
+(defun vc-hg-pull (prompt)
+  "Issue a Mercurial pull command.
+If called interactively with a set of marked Log View buffers,
+call \"hg pull -r REVS\" to pull in the specified revisions REVS.
+
+With a prefix argument or if PROMPT is non-nil, prompt for a
+specific Mercurial pull command.  The default is \"hg pull -u\",
+which fetches changesets from the default remote repository and
+then attempts to update the working directory."
+  (interactive "P")
+  (let (marked-list)
+    ;; The `vc-hg-pull' command existed before the `pull' VC action
+    ;; was implemented.  Keep it for backward compatibility.
+    (if (and (called-interactively-p 'interactive)
+	     (setq marked-list (log-view-get-marked)))
+	(apply #'vc-hg-command
+	       nil 0 nil
+	       "pull"
+	       (apply 'nconc
+		      (mapcar (lambda (arg) (list "-r" arg))
+			      marked-list)))
+      (let* ((root (vc-hg-root default-directory))
+	     (buffer (format "*vc-hg : %s*" (expand-file-name root)))
+	     (command "pull")
+	     (hg-program "hg")
+	     ;; Fixme: before updating the working copy to the latest
+	     ;; state, should check if it's visiting an old revision.
+	     (args '("-u")))
+	;; If necessary, prompt for the exact command.
+	(when prompt
+	  (setq args (split-string
+		      (read-shell-command "Run Hg (like this): " "hg pull -u"
+					  'vc-hg-history)
+		      " " t))
+	  (setq hg-program (car  args)
+		command    (cadr args)
+		args       (cddr args)))
+	(apply 'vc-do-async-command buffer root hg-program
+	       command args)
+	(vc-set-async-update buffer)))))
+
+(defun vc-hg-merge-branch ()
+  "Merge incoming changes into the current working directory.
+This runs the command \"hg merge\"."
+  (let* ((root (vc-hg-root default-directory))
+	 (buffer (format "*vc-hg : %s*" (expand-file-name root))))
+    (apply 'vc-do-async-command buffer root "hg" '("merge"))
+    (vc-set-async-update buffer)))
 
 ;;; Internal functions
 
 (defun vc-hg-command (buffer okstatus file-or-list &rest flags)
   "A wrapper around `vc-do-command' for use in vc-hg.el.
-The difference to vc-do-command is that this function always invokes `hg',
-and that it passes `vc-hg-global-switches' to it before FLAGS."
+This function differs from vc-do-command in that it invokes
+`vc-hg-program', and passes `vc-hg-global-switches' to it before FLAGS."
   (apply 'vc-do-command (or buffer "*vc*") okstatus vc-hg-program file-or-list
          (if (stringp vc-hg-global-switches)
              (cons vc-hg-global-switches flags)
@@ -635,5 +705,4 @@ and that it passes `vc-hg-global-switches' to it before FLAGS."
 
 (provide 'vc-hg)
 
-;; arch-tag: bd094dc5-715a-434f-a331-37b9fb7cd954
 ;;; vc-hg.el ends here

@@ -113,4 +113,3 @@
     ("LEFT RIGHT OPEN-HEADED ARROW" #x21FF)
     ))
 
-;; arch-tag: de5679de-82b6-4d64-9b7c-79c35e12521d

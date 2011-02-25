@@ -44,8 +44,7 @@
 This is edition @value{VERSION} of the GNU Emacs Lisp Reference Manual,@*
 corresponding to Emacs version @value{EMACSVER}.
 
-Copyright @copyright{} 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1998,
-1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011  Free Software
+Copyright @copyright{} 1990-1996, 1998-2011  Free Software
 Foundation, Inc.
 
 @quotation
@@ -63,7 +62,7 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory GNU Emacs Lisp
 @direntry
 * Elisp: (elisp).       The Emacs Lisp Reference Manual.
 @end direntry
@@ -1331,9 +1330,8 @@ The @code{display} Property
 * Replacing Specs::         Display specs that replace the text.
 * Specified Space::         Displaying one space with a specified width.
 * Pixel Specification::     Specifying space width or height in pixels.
-* Other Display Specs::     Displaying an image; magnifying text; moving it
-                              up or down on the page; adjusting the width
-                              of spaces within text.
+* Other Display Specs::     Displaying an image; adjusting the height,
+                              spacing, and other properties of text.
 * Display Margins::         Displaying text or images to the side of
                               the main text.
 

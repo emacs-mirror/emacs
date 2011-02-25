@@ -42,5 +42,3 @@ XMenuSetPane(register XMenu *menu, register int p_num, register int active)
     return(p_num);
 }
 
-/* arch-tag: 90bc8d90-031d-41a2-a2c6-04bf94efbc90
-   (do not change this comment) */

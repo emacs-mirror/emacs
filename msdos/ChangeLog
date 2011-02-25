@@ -1,3 +1,50 @@
+2011-02-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* depfiles.bat: New file.
+
+	* sedlibmk.inp: New file.
+
+	* sedlibcf.inp: New file.
+
+	* sedleim.inp (RUN_EMACS): Rename from RUN-EMACS.
+	(BUILT_EMACS): Rename from BUILT-EMACS.
+
+	* sed6.inp (MAKEINFO): Edit to "makeinfo".
+	(ENVADD): Adjust to MAKEINFO_OPTS.
+	(texinputdir): Don't edit.
+
+	* sed3v2.inp (-DVERSION): Edit out.
+	(LOADLIBES): Don't edit to empty.
+
+	* sed2v2.inp: Remove workaround for the "#if ! HAVE_MKTIME ||
+	BROKEN_MKTIME" stuff -- it's no longer in src/config.in.
+	(HAVE_ATTRIBUTE_ALIGNED, HAVE_C99_STRTOLD, HAVE_DECL_GETENV)
+	(HAVE__BOOL): Edit to 1.
+	(VERSION, inline, restrict): Edit for DJGPP.
+	(my_strftime): Edit to nstrftime.
+
+	* sed1v2.inp (NS_OBJC_OBJ): Edit to empty.
+	(@true): Edit to "@rem".
+	(move-if-change): Edit to "update".
+	(echo): Edit to "djecho".
+	(cd $(lib) && ...): Edit to "$(MAKE) -C ...".
+	(LIBOBJS): Edit to empty.
+	($(libsrc)/make-docfile): Two new edits, one each for every
+	invocation of make-docfile.
+	(move-if-change): Fix edit.
+	Remove some unused switches from $(ALL_CFLAGS), to make the GCC
+	command line shorter.
+
+	* mainmake.v2 (version): Remove, no longer needed (config.in
+	defines VERSION).
+	(all): Add lib.
+	(lib): New target and recipe.
+	(lib-src): Depend on lib.
+	(src): Depend on lib and lib-src.
+	(clean, mostlyclean, distclean, maintainer-clean, extraclean)
+	(bootstrap-clean): Recurse into lib.
+	(lib, lib-src, src): Specify "all" as an explicit target.
+
 2011-01-08  Glenn Morris  <rgm@gnu.org>
 
 	* sedleim.inp (RUN-EMACS): -batch implies --no-init-file.
@@ -1090,8 +1137,7 @@
 ;; coding: utf-8
 ;; End:
 
-    Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002, 2003,
-       2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+  Copyright (C) 1994-1999, 2001-2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

@@ -1,7 +1,6 @@
 ;;; log-edit.el --- Major mode for editing CVS commit messages
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: pcl-cvs cvs commit log vc
@@ -622,14 +621,18 @@ regardless of user name or time."
           (delete-region start end)
           (rfc822-goto-eoh)
           (insert "Fixes: " fixes "\n" (if (looking-at "\n") "" "\n")))))
-    (goto-char (point-min))
-    (when (and log-edit-strip-single-file-name (looking-at "\\*\\s-+"))
-      (forward-line 1)
-      (when (not (re-search-forward "^\\*\\s-+" nil t))
-        (goto-char (point-min))
-        (skip-chars-forward "^():")
-        (skip-chars-forward ": ")
-        (delete-region (point-min) (point))))))
+    (and log-edit-strip-single-file-name
+         (progn (rfc822-goto-eoh)
+                (if (looking-at "\n") (forward-char 1))
+                (looking-at "\\*\\s-+"))
+         (let ((start (point)))
+           (forward-line 1)
+           (when (not (re-search-forward "^\\*\\s-+" nil t))
+             (goto-char start)
+             (skip-chars-forward "^():")
+             (skip-chars-forward ": ")
+             (delete-region start (point)))))
+    (goto-char (point-min))))
 
 ;;;;
 ;;;; functions for getting commit message from ChangeLog a file...
@@ -875,5 +878,4 @@ anyway and put back as the first line of MSG."
 
 (provide 'log-edit)
 
-;; arch-tag: 8089b39c-983b-4e83-93cd-ed0a64c7fdcc
 ;;; log-edit.el ends here

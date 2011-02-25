@@ -1,8 +1,6 @@
 ;;; isearch.el --- incremental search minor mode
 
-;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1999, 2000, 2001,
-;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1992-1997, 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 ;; Maintainer: FSF
@@ -1244,9 +1242,9 @@ Use `isearch-exit' to quit without signaling."
   (interactive)
 ;;  (ding)  signal instead below, if quitting
   (discard-input)
-  (if isearch-success
-      ;; If search is successful, move back to starting point
-      ;; and really do quit.
+  (if (and isearch-success (not isearch-error))
+      ;; If search is successful and has no incomplete regexp,
+      ;; move back to starting point and really do quit.
       (progn
         (setq isearch-success nil)
         (isearch-cancel))
@@ -2767,5 +2765,4 @@ CASE-FOLD non-nil means the search was case-insensitive."
   (isearch-search)
   (isearch-update))
 
-;; arch-tag: 74850515-f7d8-43a6-8a2c-ca90a4c1e675
 ;;; isearch.el ends here

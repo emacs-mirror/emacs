@@ -2,9 +2,7 @@
 # DIST: make most of the changes to this file you might want, so try
 # DIST: that first.
 
-# Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-#   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-#   Free Software Foundation, Inc.
+# Copyright (C) 1992-2011  Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -260,14 +258,14 @@ EMACSFULL = `echo emacs-${version}${EXEEXT} | sed '$(TRANSFORM)'`
 # Subdirectories to make recursively.  `lisp' is not included
 # because the compiled lisp files are part of the distribution.
 # leim is not included because it needs special handling.
-# 
+#
 # Actually, we now include `lisp' as well, since the compiled files
 # are not included any more in case of bootstrap or in case Emacs was
 # checked out from a VCS.
-SUBDIR = lib-src src lisp
+SUBDIR = lib lib-src src lisp
 
 # The subdir makefiles created by config.status.
-SUBDIR_MAKEFILES = lib-src/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispref/Makefile doc/lispintro/Makefile src/Makefile oldXMenu/Makefile lwlib/Makefile leim/Makefile lisp/Makefile test/automated/Makefile
+SUBDIR_MAKEFILES = lib/Makefile lib-src/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispref/Makefile doc/lispintro/Makefile src/Makefile oldXMenu/Makefile lwlib/Makefile leim/Makefile lisp/Makefile test/automated/Makefile
 
 # Subdirectories to install, and where they'll go.
 # lib-src's makefile knows how to install it, so we don't do that here.
@@ -300,8 +298,7 @@ epaths-force: FRC
 	  -e 's;\(#.*PATH_BITMAPS\).*$$;\1 "${bitmapdir}";'		\
 	  -e 's;\(#.*PATH_X_DEFAULTS\).*$$;\1 "${x_default_search_path}";' \
 	  -e 's;\(#.*PATH_GAME\).*$$;\1 "${gamedir}";' \
-	  -e 's;\(#.*PATH_DOC\).*$$;\1 "${docdir}";' \
-	  -e 's;/[*] *arch-tag:.*;/*;') &&		\
+	  -e 's;\(#.*PATH_DOC\).*$$;\1 "${docdir}";') &&		\
 	${srcdir}/move-if-change epaths.h.$$$$ src/epaths.h
 
 # For parallel make, src should be built before leim.
@@ -313,6 +310,8 @@ leim:   src Makefile FRC
 	  CC='${CC}' CFLAGS='${CFLAGS}' CPPFLAGS='${CPPFLAGS}' \
 	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}')
 
+lib-src src: lib
+
 src:	lib-src FRC
 
 .RECURSIVE: ${SUBDIR} leim
@@ -320,8 +319,40 @@ src:	lib-src FRC
 # We need to build `emacs' in `src' to compile the *.elc files in `lisp'.
 lisp: src
 
+# Maintainers can put a copy of gnulib into $(gnulib_srcdir).
+gnulib_srcdir = ../gnulib
+$(gnulib_srcdir):
+	git clone git://git.savannah.gnu.org/gnulib.git $@
+
+# A shorter name that satisfies MS-DOS 8+3 constraints.
+DOS_gnulib_comp.m4 = gl-comp.m4
+
+# Update modules from gnulib, for maintainers, who should have it in
+# $(gnulib_srcdir) (relative to $(srcdir) and should have build tools
+# as per $(gnulib_srcdir)/DEPENDENCIES.
+GNULIB_MODULES = \
+  crypto/md5 dtoastr getloadavg getopt-gnu ignore-value mktime strftime
+GNULIB_TOOL_FLAGS = \
+ --import --no-changelog --no-vc-files --makefile-name=gnulib.mk
+sync-from-gnulib: $(gnulib_srcdir)
+	-cd $(srcdir)/m4 && cp $(DOS_gnulib_comp.m4) gnulib-comp.m4
+	cd $(srcdir) && \
+	  $(gnulib_srcdir)/gnulib-tool $(GNULIB_TOOL_FLAGS) $(GNULIB_MODULES)
+	cd $(srcdir)/m4 && rm gnulib-cache.m4 warn-on-use.m4
+	cd $(srcdir)/m4 && mv gnulib-comp.m4 $(DOS_gnulib_comp.m4)
+	cp $(gnulib_srcdir)/build-aux/texinfo.tex $(srcdir)/doc/misc
+	cp \
+	  $(gnulib_srcdir)/build-aux/config.sub \
+	  $(gnulib_srcdir)/build-aux/config.guess \
+	  $(gnulib_srcdir)/build-aux/install-sh \
+	  $(gnulib_srcdir)/build-aux/mkinstalldirs \
+	  $(gnulib_srcdir)/build-aux/move-if-change \
+	  $(srcdir)
+	cd $(srcdir) && autoreconf -I m4
+.PHONY: sync-from-gnulib
+
 # These targets should be "${SUBDIR} without `src'".
-lib-src lisp: Makefile FRC
+lib lib-src lisp: Makefile FRC
 	cd $@; $(MAKE) all $(MFLAGS)                           \
 	  CC='${CC}' CFLAGS='${CFLAGS}' CPPFLAGS='${CPPFLAGS}' \
 	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}'
@@ -360,6 +391,7 @@ blessmail: Makefile src FRC
 Makefile: config.status $(srcdir)/src/config.in \
           $(srcdir)/Makefile.in \
           $(srcdir)/src/Makefile.in \
+          $(srcdir)/lib/Makefile.in \
           $(srcdir)/lib-src/Makefile.in \
           $(srcdir)/doc/emacs/Makefile.in \
           $(srcdir)/doc/misc/Makefile.in \
@@ -375,10 +407,20 @@ Makefile: config.status $(srcdir)/src/config.in \
 config.status: ${srcdir}/configure ${srcdir}/lisp/version.el
 	./config.status --recheck
 
-AUTOCONF_INPUTS = @MAINT@ $(srcdir)/configure.in $(srcdir)/m4/getopt.m4
+AUTOCONF_INPUTS = @MAINT@ $(srcdir)/configure.in $(srcdir)/aclocal.m4
 
 $(srcdir)/configure: $(AUTOCONF_INPUTS)
 	cd ${srcdir} && autoconf
+
+ACLOCAL_INPUTS = @MAINT@ $(srcdir)/m4/$(DOS_gnulib_comp.m4)
+$(srcdir)/aclocal.m4: $(ACLOCAL_INPUTS)
+	cd $(srcdir) && aclocal -I m4
+
+AUTOMAKE_INPUTS = @MAINT@ $(srcdir)/aclocal.m4 $(srcdir)/lib/Makefile.am
+$(srcdir)/lib/Makefile.in: $(AUTOMAKE_INPUTS)
+	cd $(srcdir) && automake --gnu -a -c lib/Makefile
+am--refresh: $(srcdir)/aclocal.m4 $(srcdir)/configure $(srcdir)/src/config.in
+.PHONY: am--refresh
 
 $(srcdir)/src/config.in: $(srcdir)/src/stamp-h.in
 	@ # Usually, there's no need to rebuild src/config.in just
@@ -711,6 +753,7 @@ mostlyclean: FRC
 	(cd src;      $(MAKE) $(MFLAGS) mostlyclean)
 	(cd oldXMenu; $(MAKE) $(MFLAGS) mostlyclean)
 	(cd lwlib;    $(MAKE) $(MFLAGS) mostlyclean)
+	(cd lib;      $(MAKE) $(MFLAGS) mostlyclean)
 	(cd lib-src;  $(MAKE) $(MFLAGS) mostlyclean)
 	-(cd doc/emacs &&   $(MAKE) $(MFLAGS) mostlyclean)
 	-(cd doc/misc &&   $(MAKE) $(MFLAGS) mostlyclean)
@@ -730,6 +773,7 @@ clean: FRC
 	(cd src;      $(MAKE) $(MFLAGS) clean)
 	(cd oldXMenu; $(MAKE) $(MFLAGS) clean)
 	(cd lwlib;    $(MAKE) $(MFLAGS) clean)
+	(cd lib;      $(MAKE) $(MFLAGS) clean)
 	(cd lib-src;  $(MAKE) $(MFLAGS) clean)
 	-(cd doc/emacs &&   $(MAKE) $(MFLAGS) clean)
 	-(cd doc/misc &&   $(MAKE) $(MFLAGS) clean)
@@ -749,11 +793,12 @@ top_bootclean=\
 ###      distribution.
 top_distclean=\
 	${top_bootclean}; \
-	rm -f config.status Makefile ${SUBDIR_MAKEFILES}
+	rm -f config.status Makefile stamp-h1 ${SUBDIR_MAKEFILES}
 distclean: FRC
 	(cd src;      $(MAKE) $(MFLAGS) distclean)
 	(cd oldXMenu; $(MAKE) $(MFLAGS) distclean)
 	(cd lwlib;    $(MAKE) $(MFLAGS) distclean)
+	(cd lib;      $(MAKE) $(MFLAGS) distclean)
 	(cd lib-src;  $(MAKE) $(MFLAGS) distclean)
 	(cd doc/emacs &&    $(MAKE) $(MFLAGS) distclean)
 	(cd doc/misc &&    $(MAKE) $(MFLAGS) distclean)
@@ -770,6 +815,7 @@ bootstrap-clean: FRC
 	(cd src;      $(MAKE) $(MFLAGS) bootstrap-clean)
 	(cd oldXMenu; $(MAKE) $(MFLAGS) maintainer-clean)
 	(cd lwlib;    $(MAKE) $(MFLAGS) maintainer-clean)
+	(cd lib;      $(MAKE) $(MFLAGS) maintainer-clean)
 	(cd lib-src;  $(MAKE) $(MFLAGS) maintainer-clean)
 	-(cd doc/emacs &&   $(MAKE) $(MFLAGS) maintainer-clean)
 	-(cd doc/misc &&   $(MAKE) $(MFLAGS) maintainer-clean)
@@ -790,10 +836,13 @@ bootstrap-clean: FRC
 ###      Makefile.  More generally, `make maintainer-clean' should not delete
 ###      anything that needs to exist in order to run `configure' and then
 ###      begin to build the program.
+top_maintainer_clean=\
+	${top_distclean}; \
+	rm -fr autom4te.cache
 maintainer-clean: bootstrap-clean FRC
 	(cd src;      $(MAKE) $(MFLAGS) maintainer-clean)
 	(cd lisp;     $(MAKE) $(MFLAGS) maintainer-clean)
-	${top_distclean}
+	${top_maintainer_clean}
 
 ### This doesn't actually appear in the coding standards, but Karl
 ### says GCC supports it, and that's where the configuration part of
@@ -801,13 +850,13 @@ maintainer-clean: bootstrap-clean FRC
 ### it deletes backup and autosave files too.
 extraclean:
 	for i in ${SUBDIR} leim; do (cd $$i; $(MAKE) $(MFLAGS) extraclean); done
-	${top_distclean}
+	${top_maintainer_clean}
 	-rm -f config-tmp-*
 	-rm -f *~ \#*
 
 # The src subdir knows how to do the right thing
 # even when the build directory and source dir are different.
-TAGS tags: lib-src src
+TAGS tags: lib lib-src src
 	cd src; $(MAKE) tags
 
 check:
@@ -818,7 +867,7 @@ dist:
 
 .PHONY: info dvi dist check html
 
-info-real: 
+info-real:
 	(cd doc/emacs; $(MAKE) $(MFLAGS) info)
 	(cd doc/misc; $(MAKE) $(MFLAGS) info)
 	(cd doc/lispref; $(MAKE) $(MFLAGS) info)

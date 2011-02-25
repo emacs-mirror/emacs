@@ -1,6 +1,6 @@
 /* System description file for hpux version 10.20.
-   Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-     2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+
+Copyright (C) 1999, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -47,9 +47,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    a file that someone else has modified in his Emacs.  */
 #define CLASH_DETECTION
 
-/* The symbol in the kernel where the load average is found
-   depends on the cpu type, so we let the m- files define LDAV_SYMBOL.  */
-
 /* Special hacks needed to make Emacs run on this system.  */
 
 /* In hpux, the symbol SIGIO is defined, but the feature
@@ -91,9 +88,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef random
 #undef HAVE_RANDOM
 
-/* AlainF 20-Jul-1996 says this is right.  */
-#define KERNEL_FILE "/stand/vmunix"
-
 
 /* Rainer Malzbender <rainer@displaytech.com> says definining
    HAVE_XRMSETDATABASE allows Emacs to compile on HP-UX 10.20 using GCC.  */
@@ -119,20 +113,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define DATA_SEG_BITS 0x40000000
 
 #define DATA_START    0x40000000
-
-/* Data type of load average, as read out of kmem.  */
-#define LOAD_AVE_TYPE double
-
-/* Convert that into an integer that is 100 for a load average of 1.0  */
-#define LOAD_AVE_CVT(x) ((int) (x * 100.0))
-
-/* The kernel symbol where the load average is found is named _avenrun.
-   At this time there are two major flavors of hp-ux (there is the s800
-   and s300 (s200) flavors).  The differences are thusly moved to the
-   corresponding machine description file.  */
-
-/* No underscore please.  */
-#define LDAV_SYMBOL "avenrun"
-
-/* arch-tag: 8d8dcbf1-ca9b-48a1-94be-b750de18a5c6
-   (do not change this comment) */

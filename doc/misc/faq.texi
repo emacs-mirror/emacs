@@ -11,8 +11,7 @@
 @c appreciate a notice if you do).
 
 @copying
-Copyright @copyright{} 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-2009, 2010, 2011 Free Software Foundation, Inc.@*
+Copyright @copyright{} 2001-2011 Free Software Foundation, Inc.@*
 Copyright @copyright{} 1994, 1995, 1996, 1997, 1998, 1999, 2000
 Reuven M. Lerner@*
 Copyright @copyright{} 1992, 1993 Steven Byrnes@*
@@ -503,36 +502,13 @@ contain information in either the message header
 unsubscribe.
 
 @node Contacting the FSF
-@section  What is the current address of the FSF?
-@cindex Snail mail address of the FSF
-@cindex Postal address of the FSF
+@section  How do I contact the FSF?
 @cindex Contracting the FSF
 @cindex Free Software Foundation, contacting
 
 For up-to-date information, see
 @uref{http://www.fsf.org/about/contact.html, the FSF contact web-page}.
-
-@table @asis
-
-@item E-mail
-info@@fsf.org
-
-@item Telephone
-+1-617-542-5942
-
-@item Fax
-+1-617-542-2652
-
-@item World Wide Web
-@uref{http://www.fsf.org/}
-
-@item Postal address
-Free Software Foundation@*
-51 Franklin Street, Fifth Floor@*
-Boston, MA 02110-1301@*
-USA@*
-
-@end table
+You can send general correspondence to @email{info@@fsf.org}.
 
 @cindex Ordering GNU software
 For details on how to order items directly from the FSF, see the
@@ -3896,9 +3872,9 @@ command.
 @cindex Function keys and modifiers
 @cindex Binding modifiers and function keys
 
-With Emacs 19 and later, you can represent modified function keys in
-vector format by adding prefixes to the function key symbol.  For
-example (from the Emacs documentation):
+You can represent modified function keys in vector format by adding
+prefixes to the function key symbol.  For example (from the Emacs
+documentation):
 
 @lisp
 (global-set-key [?\C-x right] 'forward-page)

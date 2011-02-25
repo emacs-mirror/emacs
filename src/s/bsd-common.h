@@ -1,6 +1,6 @@
 /* Definitions file for GNU Emacs running on bsd 4.3
-   Copyright (C) 1985, 1986, 2001, 2002, 2003, 2004, 2005, 2006,
-                 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+
+Copyright (C) 1985-1986, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -37,10 +37,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define TABDLY OXTABS
 #define TAB3 OXTABS
 
-/* These aren't needed, since we have getloadavg.  */
-#undef KERNEL_FILE
-#undef LDAV_SYMBOL
-
 #define NO_TERMIO
 
 /* If the system's imake configuration file defines `NeedWidePrototypes'
@@ -72,14 +68,5 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    a file that someone else has modified in his Emacs.  */
 #define CLASH_DETECTION
 
-/* The file containing the kernel's symbol table is called /vmunix.  */
-#define KERNEL_FILE "/vmunix"
-
-/* The kernel symbol where the load average is found is named _avenrun.  */
-#define LDAV_SYMBOL "_avenrun"
-
 /* Send signals to subprocesses by "typing" special chars at them.  */
 #define SIGNALS_VIA_CHARACTERS
-
-/* arch-tag: 0c367245-bde3-492e-9029-3ff6898beb95
-   (do not change this comment) */

@@ -1,7 +1,6 @@
 ;;; shell.el --- specialized comint.el for running the shell
 
-;; Copyright (C) 1988, 1993, 1994, 1995, 1996, 1997, 2000, 2001,
-;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1993-1997, 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;;	Simon Marshall <simon@gnu.org>
@@ -152,12 +151,14 @@ This is a fine thing to set in your `.emacs' file."
   :type '(repeat (string :tag "Suffix"))
   :group 'shell)
 
-(defvar shell-delimiter-argument-list '(?\| ?& ?< ?> ?\( ?\) ?\;)
+(defcustom shell-delimiter-argument-list nil ; '(?\| ?& ?< ?> ?\( ?\) ?\;)
   "List of characters to recognize as separate arguments.
 This variable is used to initialize `comint-delimiter-argument-list' in the
-shell buffer.  The value may depend on the operating system or shell.
-
-This is a fine thing to set in your `.emacs' file.")
+shell buffer.  The value may depend on the operating system or shell."
+  :type '(choice (const nil)
+		 (repeat :tag "List of characters" character))
+  :version "24.1"			; changed to nil (bug#8027)
+  :group 'shell)
 
 (defvar shell-file-name-chars
   (if (memq system-type '(ms-dos windows-nt cygwin))

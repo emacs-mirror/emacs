@@ -1,7 +1,5 @@
 /* Manipulation of keymaps
-   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995,
-                 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 1985-1988, 1993-1995, 1998-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -51,49 +49,16 @@ Lisp_Object meta_map;		/* The keymap used for globally bound
 Lisp_Object control_x_map;	/* The keymap used for globally bound
 				   C-x-prefixed default commands */
 
-/* was MinibufLocalMap */
-Lisp_Object Vminibuffer_local_map;
 				/* The keymap used by the minibuf for local
 				   bindings when spaces are allowed in the
 				   minibuf */
 
-/* was MinibufLocalNSMap */
-Lisp_Object Vminibuffer_local_ns_map;
 				/* The keymap used by the minibuf for local
 				   bindings when spaces are not encouraged
 				   in the minibuf */
 
 /* keymap used for minibuffers when doing completion */
-/* was MinibufLocalCompletionMap */
-Lisp_Object Vminibuffer_local_completion_map;
-
-/* keymap used for minibuffers when doing completion in filenames */
-Lisp_Object Vminibuffer_local_filename_completion_map;
-
-/* keymap used for minibuffers when doing completion in filenames
-   with require-match*/
-Lisp_Object Vminibuffer_local_filename_must_match_map;
-
 /* keymap used for minibuffers when doing completion and require a match */
-/* was MinibufLocalMustMatchMap */
-Lisp_Object Vminibuffer_local_must_match_map;
-
-/* Alist of minor mode variables and keymaps.  */
-Lisp_Object Vminor_mode_map_alist;
-
-/* Alist of major-mode-specific overrides for
-   minor mode variables and keymaps.  */
-Lisp_Object Vminor_mode_overriding_map_alist;
-
-/* List of emulation mode keymap alists.  */
-Lisp_Object Vemulation_mode_map_alists;
-
-/* A list of all commands given new bindings since a certain time
-   when nil was stored here.
-   This is used to speed up recomputation of menu key equivalents
-   when Emacs starts up.   t means don't record anything here.  */
-Lisp_Object Vdefine_key_rebound_commands;
-
 Lisp_Object Qkeymapp, Qkeymap, Qnon_ascii, Qmenu_item, Qremap;
 Lisp_Object QCadvertised_binding;
 
@@ -619,7 +584,8 @@ map_keymap_char_table_item (Lisp_Object args, Lisp_Object key, Lisp_Object val)
 {
   if (!NILP (val))
     {
-      map_keymap_function_t fun = XSAVE_VALUE (XCAR (args))->pointer;
+      map_keymap_function_t fun =
+	(map_keymap_function_t) XSAVE_VALUE (XCAR (args))->pointer;
       args = XCDR (args);
       /* If the key is a range, make a copy since map_char_table modifies
 	 it in place.  */
@@ -664,7 +630,7 @@ map_keymap_internal (Lisp_Object map,
       else if (CHAR_TABLE_P (binding))
 	{
 	  map_char_table (map_keymap_char_table_item, Qnil, binding,
-			  Fcons (make_save_value (fun, 0),
+			  Fcons (make_save_value ((void *) fun, 0),
 				 Fcons (make_save_value (data, 0),
 					args)));
 	}
@@ -1599,8 +1565,8 @@ like in the respective argument of `key-binding'. */)
 
   if (!NILP (olp))
     {
-      if (!NILP (current_kboard->Voverriding_terminal_local_map))
-	keymaps = Fcons (current_kboard->Voverriding_terminal_local_map, keymaps);
+      if (!NILP (KVAR (current_kboard, Voverriding_terminal_local_map)))
+	keymaps = Fcons (KVAR (current_kboard, Voverriding_terminal_local_map), keymaps);
       /* The doc said that overriding-terminal-local-map should
 	 override overriding-local-map.  The code used them both,
 	 but it seems clearer to use just one.  rms, jan 2005.  */
@@ -1779,9 +1745,9 @@ specified buffer position instead of point are used.
 	}
     }
 
-  if (! NILP (current_kboard->Voverriding_terminal_local_map))
+  if (! NILP (KVAR (current_kboard, Voverriding_terminal_local_map)))
     {
-      value = Flookup_key (current_kboard->Voverriding_terminal_local_map,
+      value = Flookup_key (KVAR (current_kboard, Voverriding_terminal_local_map),
 			   key, accept_default);
       if (! NILP (value) && !INTEGERP (value))
 	goto done;
@@ -1917,7 +1883,7 @@ bindings; see the description of `lookup-key' for more details about this.  */)
   (Lisp_Object keys, Lisp_Object accept_default)
 {
   register Lisp_Object map;
-  map = current_buffer->keymap;
+  map = BVAR (current_buffer, keymap);
   if (NILP (map))
     return Qnil;
   return Flookup_key (map, keys, accept_default);
@@ -2022,7 +1988,7 @@ If KEYMAP is nil, that means no local keymap.  */)
   if (!NILP (keymap))
     keymap = get_keymap (keymap, 1, 1);
 
-  current_buffer->keymap = keymap;
+  BVAR (current_buffer, keymap) = keymap;
 
   return Qnil;
 }
@@ -2032,7 +1998,7 @@ DEFUN ("current-local-map", Fcurrent_local_map, Scurrent_local_map, 0, 0, 0,
 Normally the local keymap is set by the major mode with `use-local-map'.  */)
   (void)
 {
-  return current_buffer->keymap;
+  return BVAR (current_buffer, keymap);
 }
 
 DEFUN ("current-global-map", Fcurrent_global_map, Scurrent_global_map, 0, 0, 0,
@@ -2413,7 +2379,7 @@ push_key_description (register unsigned int c, register char *p, int force_multi
       *p++ = 'C';
     }
   else if (c < 128
-	   || (NILP (current_buffer->enable_multibyte_characters)
+	   || (NILP (BVAR (current_buffer, enable_multibyte_characters))
 	       && SINGLE_BYTE_CHAR_P (c)
 	       && !force_multibyte))
     {
@@ -2422,7 +2388,7 @@ push_key_description (register unsigned int c, register char *p, int force_multi
   else
     {
       /* Now we are sure that C is a valid character code.  */
-      if (NILP (current_buffer->enable_multibyte_characters)
+      if (NILP (BVAR (current_buffer, enable_multibyte_characters))
 	  && ! force_multibyte)
 	*p++ = multibyte_char_to_unibyte (c, Qnil);
       else
@@ -2509,7 +2475,7 @@ See Info node `(elisp)Describing Characters' for examples.  */)
   (Lisp_Object character)
 {
   /* Currently MAX_MULTIBYTE_LENGTH is 4 (< 6).  */
-  unsigned char str[6];
+  char str[6];
   int c;
 
   CHECK_NUMBER (character);
@@ -2517,7 +2483,7 @@ See Info node `(elisp)Describing Characters' for examples.  */)
   c = XINT (character);
   if (!ASCII_CHAR_P (c))
     {
-      int len = CHAR_STRING (c, str);
+      int len = CHAR_STRING (c, (unsigned char *) str);
 
       return make_multibyte_string (str, 1, len);
     }
@@ -2709,8 +2675,6 @@ where_is_internal (Lisp_Object definition, Lisp_Object keymaps,
   else
     return data.sequences;
 }
-
-static Lisp_Object Vwhere_is_preferred_modifier;
 
 /* This function can GC if Flookup_key autoloads any keymaps.  */
 
@@ -2977,11 +2941,11 @@ You type        Translation\n\
   outbuf = Fcurrent_buffer ();
 
   /* Report on alternates for keys.  */
-  if (STRINGP (current_kboard->Vkeyboard_translate_table) && !NILP (prefix))
+  if (STRINGP (KVAR (current_kboard, Vkeyboard_translate_table)) && !NILP (prefix))
     {
       int c;
-      const unsigned char *translate = SDATA (current_kboard->Vkeyboard_translate_table);
-      int translate_len = SCHARS (current_kboard->Vkeyboard_translate_table);
+      const unsigned char *translate = SDATA (KVAR (current_kboard, Vkeyboard_translate_table));
+      int translate_len = SCHARS (KVAR (current_kboard, Vkeyboard_translate_table));
 
       for (c = 0; c < translate_len; c++)
 	if (translate[c] != c)
@@ -3004,7 +2968,7 @@ You type        Translation\n\
 	    insert ("\n", 1);
 
 	    /* Insert calls signal_after_change which may GC. */
-	    translate = SDATA (current_kboard->Vkeyboard_translate_table);
+	    translate = SDATA (KVAR (current_kboard, Vkeyboard_translate_table));
 	  }
 
       insert ("\n", 1);
@@ -3017,8 +2981,8 @@ You type        Translation\n\
 
   /* Print the (major mode) local map.  */
   start1 = Qnil;
-  if (!NILP (current_kboard->Voverriding_terminal_local_map))
-    start1 = current_kboard->Voverriding_terminal_local_map;
+  if (!NILP (KVAR (current_kboard, Voverriding_terminal_local_map)))
+    start1 = KVAR (current_kboard, Voverriding_terminal_local_map);
   else if (!NILP (Voverriding_local_map))
     start1 = Voverriding_local_map;
 
@@ -3084,7 +3048,7 @@ You type        Translation\n\
 			      XBUFFER (buffer), Qlocal_map);
       if (!NILP (start1))
 	{
-	  if (EQ (start1, XBUFFER (buffer)->keymap))
+	  if (EQ (start1, BVAR (XBUFFER (buffer), keymap)))
 	    describe_map_tree (start1, 1, shadow, prefix,
 			       "\f\nMajor Mode Bindings", nomenu, 0, 0, 0);
 	  else
@@ -3100,13 +3064,13 @@ You type        Translation\n\
 		     "\f\nGlobal Bindings", nomenu, 0, 1, 0);
 
   /* Print the function-key-map translations under this prefix.  */
-  if (!NILP (current_kboard->Vlocal_function_key_map))
-    describe_map_tree (current_kboard->Vlocal_function_key_map, 0, Qnil, prefix,
+  if (!NILP (KVAR (current_kboard, Vlocal_function_key_map)))
+    describe_map_tree (KVAR (current_kboard, Vlocal_function_key_map), 0, Qnil, prefix,
 		       "\f\nFunction key map translations", nomenu, 1, 0, 0);
 
   /* Print the input-decode-map translations under this prefix.  */
-  if (!NILP (current_kboard->Vinput_decode_map))
-    describe_map_tree (current_kboard->Vinput_decode_map, 0, Qnil, prefix,
+  if (!NILP (KVAR (current_kboard, Vinput_decode_map)))
+    describe_map_tree (KVAR (current_kboard, Vinput_decode_map), 0, Qnil, prefix,
 		       "\f\nInput decoding map translations", nomenu, 1, 0, 0);
 
   UNGCPRO;
@@ -3857,48 +3821,48 @@ syms_of_keymap (void)
 					 Qnil)))));
   staticpro (&exclude_keys);
 
-  DEFVAR_LISP ("define-key-rebound-commands", &Vdefine_key_rebound_commands,
+  DEFVAR_LISP ("define-key-rebound-commands", Vdefine_key_rebound_commands,
 	       doc: /* List of commands given new key bindings recently.
 This is used for internal purposes during Emacs startup;
 don't alter it yourself.  */);
   Vdefine_key_rebound_commands = Qt;
 
-  DEFVAR_LISP ("minibuffer-local-map", &Vminibuffer_local_map,
+  DEFVAR_LISP ("minibuffer-local-map", Vminibuffer_local_map,
 	       doc: /* Default keymap to use when reading from the minibuffer.  */);
   Vminibuffer_local_map = Fmake_sparse_keymap (Qnil);
 
-  DEFVAR_LISP ("minibuffer-local-ns-map", &Vminibuffer_local_ns_map,
+  DEFVAR_LISP ("minibuffer-local-ns-map", Vminibuffer_local_ns_map,
 	       doc: /* Local keymap for the minibuffer when spaces are not allowed.  */);
   Vminibuffer_local_ns_map = Fmake_sparse_keymap (Qnil);
   Fset_keymap_parent (Vminibuffer_local_ns_map, Vminibuffer_local_map);
 
-  DEFVAR_LISP ("minibuffer-local-completion-map", &Vminibuffer_local_completion_map,
+  DEFVAR_LISP ("minibuffer-local-completion-map", Vminibuffer_local_completion_map,
 	       doc: /* Local keymap for minibuffer input with completion.  */);
   Vminibuffer_local_completion_map = Fmake_sparse_keymap (Qnil);
   Fset_keymap_parent (Vminibuffer_local_completion_map, Vminibuffer_local_map);
 
   DEFVAR_LISP ("minibuffer-local-filename-completion-map",
-	       &Vminibuffer_local_filename_completion_map,
+	       Vminibuffer_local_filename_completion_map,
 	       doc: /* Local keymap for minibuffer input with completion for filenames.  */);
   Vminibuffer_local_filename_completion_map = Fmake_sparse_keymap (Qnil);
   Fset_keymap_parent (Vminibuffer_local_filename_completion_map,
 		      Vminibuffer_local_completion_map);
 
 
-  DEFVAR_LISP ("minibuffer-local-must-match-map", &Vminibuffer_local_must_match_map,
+  DEFVAR_LISP ("minibuffer-local-must-match-map", Vminibuffer_local_must_match_map,
 	       doc: /* Local keymap for minibuffer input with completion, for exact match.  */);
   Vminibuffer_local_must_match_map = Fmake_sparse_keymap (Qnil);
   Fset_keymap_parent (Vminibuffer_local_must_match_map,
 		      Vminibuffer_local_completion_map);
 
   DEFVAR_LISP ("minibuffer-local-filename-must-match-map",
-	       &Vminibuffer_local_filename_must_match_map,
+	       Vminibuffer_local_filename_must_match_map,
 	       doc: /* Local keymap for minibuffer input with completion for filenames with exact match.  */);
   Vminibuffer_local_filename_must_match_map = Fmake_sparse_keymap (Qnil);
   Fset_keymap_parent (Vminibuffer_local_filename_must_match_map,
 		      Vminibuffer_local_must_match_map);
 
-  DEFVAR_LISP ("minor-mode-map-alist", &Vminor_mode_map_alist,
+  DEFVAR_LISP ("minor-mode-map-alist", Vminor_mode_map_alist,
 	       doc: /* Alist of keymaps to use for minor modes.
 Each element looks like (VARIABLE . KEYMAP); KEYMAP is used to read
 key sequences and look up bindings if VARIABLE's value is non-nil.
@@ -3906,14 +3870,14 @@ If two active keymaps bind the same key, the keymap appearing earlier
 in the list takes precedence.  */);
   Vminor_mode_map_alist = Qnil;
 
-  DEFVAR_LISP ("minor-mode-overriding-map-alist", &Vminor_mode_overriding_map_alist,
+  DEFVAR_LISP ("minor-mode-overriding-map-alist", Vminor_mode_overriding_map_alist,
 	       doc: /* Alist of keymaps to use for minor modes, in current major mode.
 This variable is an alist just like `minor-mode-map-alist', and it is
 used the same way (and before `minor-mode-map-alist'); however,
 it is provided for major modes to bind locally.  */);
   Vminor_mode_overriding_map_alist = Qnil;
 
-  DEFVAR_LISP ("emulation-mode-map-alists", &Vemulation_mode_map_alists,
+  DEFVAR_LISP ("emulation-mode-map-alists", Vemulation_mode_map_alists,
 	       doc: /* List of keymap alists to use for emulations modes.
 It is intended for modes or packages using multiple minor-mode keymaps.
 Each element is a keymap alist just like `minor-mode-map-alist', or a
@@ -3922,7 +3886,7 @@ the same way.  The "active" keymaps in each alist are used before
 `minor-mode-map-alist' and `minor-mode-overriding-map-alist'.  */);
   Vemulation_mode_map_alists = Qnil;
 
-  DEFVAR_LISP ("where-is-preferred-modifier", &Vwhere_is_preferred_modifier,
+  DEFVAR_LISP ("where-is-preferred-modifier", Vwhere_is_preferred_modifier,
 	       doc: /* Preferred modifier to use for `where-is'.
 When a single binding is requested, `where-is' will return one that
 uses this modifier if possible.  If nil, or if no such binding exists,
@@ -4012,6 +3976,3 @@ keys_of_keymap (void)
   initial_define_key (global_map, 033, "ESC-prefix");
   initial_define_key (global_map, Ctl ('X'), "Control-X-prefix");
 }
-
-/* arch-tag: 6dd15c26-7cf1-41c4-b904-f42f7ddda463
-   (do not change this comment) */

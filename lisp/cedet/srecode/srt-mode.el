@@ -1,6 +1,6 @@
 ;;; srecode/srt-mode.el --- Major mode for writing screcode macros
 
-;; Copyright (C) 2005, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2007-2011 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -740,5 +740,4 @@ When optional BUFFER is provided, search that buffer."
 ;; generated-autoload-load-name: "srecode/srt-mode"
 ;; End:
 
-;; arch-tag: 9c613c25-d885-417a-8f0d-1824b26b22a5
 ;;; srecode/srt-mode.el ends here

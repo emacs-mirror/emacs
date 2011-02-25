@@ -320,5 +320,3 @@ display_header (hdr, auxhdr)
 }
 #endif /* DEBUG */
 
-/* arch-tag: d55a09ac-9427-4ec4-8496-cb9d7710774f
-   (do not change this comment) */

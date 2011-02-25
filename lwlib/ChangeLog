@@ -1,3 +1,77 @@
+2011-02-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xlwmenu.h: Remove Xt[CN]faceName and Xt[NC]defaultFace.
+
+	* xlwmenuP.h (_XlwMenu_part): Remove faceName.  Add fontName.
+
+	* xlwmenu.c (xlwmenu_default_font): Remove, does not work for
+	multi-display.
+	(xlwMenuResources): Remove XtNfaceName and XtNdefaultFace.
+	Make XtNFont a String resource.
+	(make_windows_if_needed): Call XFlush so later changes are seen by the
+	X server.
+	(remap_menubar): Use XtMoveWidget and then
+	XtResizeWidget/XtResizeWindow after XtPopup.  Works better with
+	Compiz.
+	(make_drawing_gcs): Check if mw->menu.font is set.
+	(getDefaultXftFont): New function.
+	(openXftFont): faceName is now fontName.  Try XLoadQueryFont first
+	and then XftFontOpenName.
+	(XlwMenuInitialize): Initialize mw->menu.font with XLoadQueryFont.
+	(XlwMenuClassInitialize): Remove initialization of
+	xlwmenu_default_font.
+	(fontname_changed): Renamed from facename_changed.
+	(XlwMenuSetValues): Use facename_changed.
+
+	* lwlib-Xaw.c (make_dialog): Use *font even for Xft fonts.  Try
+	XLoadQueryFont first and then Xft fonts.
+
+2011-02-13  Glenn Morris  <rgm@gnu.org>
+
+	* lwlib-utils.c (index, rindex): Don't undef (neither used in lwlib/,
+	nor set in config.h).
+
+2011-02-11  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (USE_X_TOOLKIT, RM, TOOLKIT_DEFINES): Remove.
+	(ALL_CFLAGS): Remove -I.
+	(config_h, lisp_h, src_h): New variables.
+	(globals_h): Rename from $globals.
+	($(globals_h)): Check cd exit status.
+	(lwlib.o): Remove special rule.
+	(lwlib-utils.o, lwlib.o, lwlib-Xlw.o, lwlib-Xaw.o, lwlib-Xm.o)
+	(xlwmenu.o): Add lisp.h and config.h to prereqs.
+	(lwlib-utils.o): Add lwlib.h to prereqs.
+	(lwlib.o): Add lwlib-utils.h and lwlib-Xm.h to prereqs.
+	(lwlib-Xlw.o): Add xlwmenu.h to prereqs.
+	(xlwmenu.o): Add ../src/xterm.h to prereqs.
+	(mostlyclean): Forget about "core" files.
+
+2011-02-10  Glenn Morris  <rgm@gnu.org>
+
+	* lwlib-Xaw.c, lwlib-Xlw.c, lwlib-Xm.c, lwlib-utils.c, lwlib.c:
+	* xlwmenu.c: Standardize on <> for includes from the ../src directory.
+
+2011-02-09  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (@SET_MAKE@): New, set by configure.
+	(globals): New variable and rule.
+	(lwlib-utils.o, lwlib.o, lwlib-Xlw.o, lwlib-Xaw.o, lwlib-Xm.o)
+	(xlwmenu.o): Add dependency on src/globals.h.
+
+2011-01-31  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* lwlib-Xm.c (make_destroyed_instance):
+	* lwlib-utils.c (XtApplyToWidgets):
+	* lwlib.c (safe_strdup, malloc_widget_value)
+	(allocate_widget_info, allocate_widget_instance): Use xmalloc
+	instead of malloc.
+
+2011-01-25  Werner Meisner  <weme24@gmx.net>
+
+	* lwlib-Xm.c (xm_update_menu): Avoid a NULL pointer dereference
+	(Bug#7690).
+
 2010-09-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Use const for some pointer arguments.
@@ -1640,11 +1714,9 @@
 
 ;; Local Variables:
 ;; coding: utf-8
-;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2001, 2002, 2003, 2004,
-	2005, 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+  Copyright (C) 1995-1999, 2001-2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -1660,5 +1732,3 @@
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
-;;; arch-tag: 0cd8ab87-d764-40d9-b86d-d00c71887a9e

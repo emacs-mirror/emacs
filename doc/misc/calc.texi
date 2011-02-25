@@ -94,8 +94,7 @@ This file documents Calc, the GNU Emacs calculator, included with
 GNU Emacs @value{EMACSVER}.
 @end ifnotinfo
 
-Copyright @copyright{} 1990, 1991, 2001, 2002, 2003, 2004,
-2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+Copyright @copyright{} 1990-1991, 2001-2011 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -112,7 +111,7 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs misc features
 @direntry
 * Calc: (calc).                 Advanced desk calculator and mathematical tool.
 @end direntry
@@ -27676,6 +27675,7 @@ begin with the @kbd{u} prefix key.
 * The Units Table::
 * Predefined Units::
 * User-Defined Units::
+* Logarithmic Units::
 @end menu
 
 @node Basic Operations on Units, The Units Table, Units, Units
@@ -28037,7 +28037,7 @@ really is unitless.)
 
 @c Describe angular units, luminosity vs. steradians problem.
 
-@node User-Defined Units,  , Predefined Units, Units
+@node User-Defined Units, Logarithmic Units, Predefined Units, Units
 @section User-Defined Units
 
 @noindent
@@ -28120,6 +28120,248 @@ units will still be available in subsequent Emacs sessions.  If there
 was already a set of user-defined units in your Calc init file, it
 is replaced by the new set.  (@xref{General Mode Commands}, for a way to
 tell Calc to use a different file for the Calc init file.)
+
+@node Logarithmic Units,  , User-Defined Units, Units
+@section Logarithmic Units
+
+The units @code{dB} (decibels) and @code{Np} (nepers) are logarithmic
+units which are typically manipulated differently than standard units.
+Calc provides commands to work with these logarithmic units.
+
+Decibels and nepers are used to measure power quantities as well as 
+field quantities (quantities whose squares are proportional to power).
+The decibel and neper values of a quantity are relative to
+a reference quantity; for example, the decibel value of a sound
+pressure level of 
+@infoline @math{60 uPa}
+@texline @math{60 \mu{\rm Pa}}
+relative to 
+@infoline @math{20 uPa}
+@texline @math{20 \mu{\rm Pa}}
+(the threshhold of human hearing) is 
+@infoline @math{20 log10(60 uPa/ 20 uPa) dB = 20 log10(3) dB},
+@texline  @math{20 \log_{10}(60 \mu{\rm Pa}/20 \mu{\rm Pa}) {\rm dB} = 20 \log_{10}(3) {\rm dB}},
+which is about 
+@infoline @math{9.54 dB}.
+@texline @math{9.54 {\rm dB}}.
+Note that in taking the ratio, the original units cancel and so these
+logarithmic units are dimensionless. 
+
+@vindex calc-logunits-power-reference
+@vindex calc-logunits-field-reference
+The Calc commands for the logarithmic units assume that power quantities
+are being used unless the @kbd{H} prefix is used, in which case they assume that 
+field quantities are being used.  For power quantities, Calc uses 
+@infoline @math{1 mW} 
+@texline @math{1 {\rm mW}}
+as the default reference quantity; this default can be changed by changing 
+the value of the customizable variable
+@code{calc-logunits-power-reference} (@pxref{Customizing Calc}).
+For field quantities, Calc uses 
+@infoline @math{20 uPa} 
+@texline @math{20 \mu{\rm Pa}}
+as the default reference quantity; this is the value used in acoustics
+which is where decibels are commonly encountered.  This default can be
+changed by changing the value of the customizable variable
+@code{calc-logunits-field-reference} (@pxref{Customizing Calc}).  A
+non-default reference quantity will be read from the stack if the
+capital @kbd{O} prefix is used.
+
+The decibel level of a power 
+@infoline @math{P1},
+@texline @math{P_1},
+relative to a reference power 
+@infoline @math{P0},
+@texline @math{P_0},
+is defined to be
+@infoline @math{10 log10(P1/P0) dB}.
+@texline @math{10 \log_{10}(P_{1}/P_{0}) {\rm dB}}.
+(The factor of 10 is because a decibel, as its name implies, is
+one-tenth of a bel. The bel, named after Alexander Graham Bell, was
+considered to be too large of a unit and was effectively replaced by
+the decibel.)  If @math{F} is a field quantity with power
+@math{P=k F^2}, then a reference quantity of 
+@infoline @math{F0}
+@texline @math{F_0}
+would correspond to a power of 
+@infoline @math{P0=k F0^2}.
+@texline @math{P_{0}=kF_{0}^2}.
+If
+@infoline @math{P1=k F1^2},
+@texline @math{P_{1}=kF_{1}^2},
+then
+
+@ifnottex
+@example 
+10 log10(P1/P0) = 10 log10(F1^2/F0^2) = 20 log10(F1/F0).
+@end example
+@end ifnottex
+@tex
+$$ 10 \log_{10}(P_1/P_0) = 10 \log_{10}(F_1^2/F_0^2) = 20
+\log_{10}(F_1/F_0)$$
+@end tex
+
+@noindent
+In order to get the same decibel level regardless of whether a field
+quantity or the corresponding power quantity is used,  the decibel
+level of a field quantity 
+@infoline @math{F1},
+@texline @math{F_1}, 
+relative to a reference 
+@infoline @math{F0},
+@texline @math{F_0}, 
+is defined as
+@infoline @math{20 log10(F1/F0) dB}.
+@texline @math{20 \log_{10}(F_{1}/F_{0}) {\rm dB}}.
+
+Nepers (named after John Napier, who is credited with inventing the
+logarithm) are similar to bels except they use natural logarithms instead
+of common logarithms.  The neper level of a power 
+@infoline @math{P1},
+@texline @math{P_1},
+relative to a reference power 
+@infoline @math{P0},
+@texline @math{P_0},
+is
+@infoline @math{(1/2) ln(P1/P0) Np}.
+@texline @math{(1/2) \ln(P_1/P_0) {\rm Np}}.
+The neper level of a field 
+@infoline @math{F1},
+@texline @math{F_1},
+relative to a reference field
+@infoline @math{F0},
+@texline @math{F_0},
+is
+@infoline @math{ln(F1/F0) Np}.
+@texline @math{\ln(F_1/F_0) {\rm Np}}.
+
+@kindex l q
+@pindex calc-logunits-quantity
+@tindex powerquant
+@tindex fieldquant
+The @kbd{l q} (@code{calc-logunits-quantity}) [@code{powerquant}]
+command computes the power quantity corresponding to a given number of
+logarithmic units. With the capital @kbd{O} prefix, @kbd{O l q}, the
+reference level will be read from the top of the stack. (In an
+algebraic formula, @code{powerquant} can be given an optional second
+argument which will be used for the reference level.) For example, 
+@code{20 dB @key{RET} l q} will return @code{100 mW}; 
+@code{20 dB @key{RET} 4 W @key{RET} O l q} will return @code{400 W}.   
+The @kbd{H l q} [@code{fieldquant}] command behaves like @kbd{l q} but
+computes field quantities instead of power quantities.
+
+@kindex l d
+@pindex calc-logunits-dblevel
+@tindex dbpowerlevel
+@tindex dbfieldlevel
+@kindex l n
+@pindex calc-logunits-nplevel
+@tindex nppowerlevel
+@tindex npfieldlevel
+The @kbd{l d} (@code{calc-logunits-dblevel}) [@code{dbpowerlevel}]
+command will compute the decibel level of a power quantity using the
+default reference level; @kbd{H l d} [@code{dbfieldlevel}] will
+compute the decibel level of a field quantity.  The commands @kbd{l n} 
+(@code{calc-logunits-nplevel}) [@code{nppowerlevel}] and @kbd{H l n} 
+[@code{npfieldlevel}] will similarly compute neper levels.  With the
+capital @kbd{O} prefix these commands will read a reference level
+from the stack; in an algebraic formula the reference level can be
+given as an optional second argument.
+
+@kindex l +
+@pindex calc-logunits-add
+@tindex lupoweradd
+@tindex lufieldadd
+@kindex l -
+@pindex calc-logunits-sub
+@tindex lupowersub
+@tindex lufieldsub
+@kindex l *
+@pindex calc-logunits-mul
+@tindex lupowermul
+@tindex lufieldmul
+@kindex l /
+@pindex calc-logunits-div
+@tindex lupowerdiv
+@tindex lufielddiv
+The sum of two power or field quantities doesn't correspond to the sum
+of the corresponding decibel or neper levels.  If the powers
+corresponding to decibel levels 
+@infoline @math{D1} 
+@texline @math{D_1} 
+and 
+@infoline @math{D2} 
+@texline @math{D_2} 
+are added, the corresponding decibel level ``sum'' will be 
+
+@ifnottex
+@example
+  10 log10(10^(D1/10) + 10^(D2/10)) dB.
+@end example
+@end ifnottex
+@tex
+$$ 10 \log_{10}(10^{D_1/10} + 10^{D_2/10}) {\rm dB}.$$
+@end tex
+
+@noindent
+When field quantities are combined, it often means the 
+corresponding powers are added and so the above formula might be used.  
+In acoustics, for example, the decibel sound pressure level is defined
+using the field formula but the sound pressure levels are combined
+as the sound power levels, and so the above formula should be used.  If 
+two field quantities themselves are added, the new decibel level will be 
+
+
+@ifnottex
+@example
+  20 log10(10^(D1/20) + 10^(D2/20)) dB.
+@end example
+@end ifnottex
+@tex
+$$ 20 \log_{10}(10^{D_1/20} + 10^{D_2/20}) {\rm dB}.$$
+@end tex
+
+@noindent
+If the power corresponding to @math{D} dB is multiplied by a number @math{N},
+then the corresponding decibel level will be
+
+@ifnottex
+@example
+  D + 10 log10(N) dB,
+@end example
+@end ifnottex
+@tex
+$$ D + 10 \log_{10}(N) {\rm dB},$$
+@end tex
+
+@noindent
+if a field quantity is multiplied by @math{N} the corresponding decibel level
+will be 
+
+@ifnottex
+@example
+  D + 20 log10(N) dB.
+@end example
+@end ifnottex
+@tex
+$$ D + 20 \log_{10}(N) {\rm dB}.$$
+@end tex
+
+@noindent
+There are similar formulas for combining nepers.  
+The @kbd{l +} (@code{calc-logunits-add}) [@code{lupoweradd}] command
+will ``add'' two logarithmic unit power levels this way; with the
+@kbd{H} prefix, @kbd{H l +} [@code{lufieldadd}] will add logarithmic
+unit field levels.  Similarly, logarithmic units can be
+``subtracted'' with @kbd{l -} (@code{calc-logunits-sub}) 
+[@code{lupowersub}] or @kbd{H l -} [@code{lufieldsub}]. 
+The @kbd{l *} (@code{calc-logunits-mul}) [@code{lupowermul}] 
+and @kbd{H l *} [@code{lufieldmul}] commands will ``multiply''
+a logarithmic unit by a number; the @kbd{l /}
+(@code{calc-logunits-divide})  [@code{lupowerdiv}] and  
+@kbd{H l /} [@code{lufielddiv}] commands will ``divide'' a
+logarithmic unit by a number. Note that the reference quantities don't
+play a role in this arithmetic. 
 
 @node Store and Recall, Graphics, Units, Top
 @chapter Storing and Recalling
@@ -35226,6 +35468,19 @@ should also be added to @code{calc-embedded-announce-formula-alist}
 and @code{calc-embedded-open-close-plain-alist}.
 @end defvar
 
+@defvar  calc-logunits-power-reference
+@defvarx calc-logunits-field-reference
+See @ref{Logarithmic Units}.@*
+The variables @code{calc-logunits-power-reference} and
+@code{calc-logunits-field-reference} are unit expressions (written as
+strings) which Calc will use as reference quantities for logarithmic
+units.
+
+The default value of @code{calc-logunits-power-reference} is @code{"mW"}
+and the default value of @code{calc-logunits-field-reference} is
+@code{"20 uPa"}.  
+@end defvar
+
 @defvar calc-highlight-selections-with-faces
 @defvarx calc-selected-face
 @defvarx calc-nonselected-face
@@ -35872,6 +36127,28 @@ keystrokes are not listed in this summary.
 @r{    m x@:    I k P   @:             @:        @:ltpp@:(x,m)}
 @r{    v x@:      k T   @:             @:        @:utpt@:(x,v)}
 @r{    v x@:    I k T   @:             @:        @:ltpt@:(x,v)}
+
+@c
+@r{    a b@:      l +   @:             @:     2  @:lupoweradd@:(a,b)}
+@r{    a b@:    H l +   @:             @:     2  @:lufieldadd@:(a,b)}
+@r{    a b@:      l -   @:             @:     2  @:lupowersub@:(a,b)}
+@r{    a b@:    H l -   @:             @:     2  @:lufieldsub@:(a,b)}
+@r{    a b@:      l *   @:             @:     2  @:lupowermul@:(a,b)}
+@r{    a b@:    H l *   @:             @:     2  @:lufieldmul@:(a,b)}
+@r{    a b@:      l /   @:             @:     2  @:lupowerdiv@:(a,b)}
+@r{    a b@:    H l /   @:             @:     2  @:lufielddiv@:(a,b)}
+@r{      a@:      l d   @:             @:     1  @:dbpowerlevel@:(a)}
+@r{    a b@:    O l d   @:             @:     2  @:dbpowerlevel@:(a,b)}
+@r{      a@:    H l d   @:             @:     1  @:dbfieldlevel@:(a)}
+@r{    a b@:  O H l d   @:             @:     2  @:dbfieldlevel@:(a,b)}
+@r{      a@:      l n   @:             @:     1  @:nppowerlevel@:(a)}
+@r{    a b@:    O l n   @:             @:     2  @:nppowerlevel@:(a,b)}
+@r{      a@:    H l n   @:             @:     1  @:npfieldlevel@:(a)}
+@r{    a b@:  O H l n   @:             @:     2  @:npfieldlevel@:(a,b)}
+@r{      a@:      l q   @:             @:     1  @:powerquant@:(a)}
+@r{    a b@:    O l q   @:             @:     2  @:powerquant@:(a,b)}
+@r{      a@:    H l q   @:             @:     1  @:fieldquant@:(a)}
+@r{    a b@:  O H l q   @:             @:     2  @:fieldquant@:(a,b)}
 
 @c
 @r{       @:      m a   @:             @: 12,13  @:calc-algebraic-mode@:}
@@ -36596,4 +36873,3 @@ the corresponding full Lisp name is derived by adding a prefix of
 @printindex fn
 
 @bye
-

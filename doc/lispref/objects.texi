@@ -1,7 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2011
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/objects
@@ -2106,7 +2105,3 @@ that for two strings to be equal, they have the same text properties.
 @end group
 @end example
 @end defun
-
-@ignore
-   arch-tag: 9711a66e-4749-4265-9e8c-972d55b67096
-@end ignore

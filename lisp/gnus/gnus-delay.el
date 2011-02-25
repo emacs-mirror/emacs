@@ -1,7 +1,6 @@
 ;;; gnus-delay.el --- Delayed posting of articles
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Kai Groﬂjohann <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 ;; Keywords: mail, news, extensions
@@ -79,7 +78,7 @@ DELAY is a string, giving the length of the time.  Possible values are:
   time, then the deadline is tomorrow, else today."
   (interactive
    (list (read-string
-	  "Target date (YYYY-MM-DD) or length of delay (units in [mhdwMY]): "
+	  "Target date (YYYY-MM-DD), time (hh:mm), or length of delay (units in [mhdwMY]): "
 	  gnus-delay-default-delay)))
   (let (num unit days year month day hour minute deadline)
     (cond ((string-match
@@ -106,7 +105,7 @@ DELAY is a string, giving the length of the time.  Possible values are:
 						  (append deadline nil))))
 	   ;; If this time has passed already, add a day.
 	   (when (< deadline (gnus-float-time))
-	     (setq deadline (+ 3600 deadline))) ;3600 secs/day
+	     (setq deadline (+ 86400 deadline))) ; 86400 secs/day
 	   ;; Convert seconds to date header.
 	   (setq deadline (message-make-date
 			   (seconds-to-time deadline))))

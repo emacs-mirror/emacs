@@ -1,7 +1,6 @@
 ;;; log-view.el --- Major mode for browsing RCS/CVS/SCCS log output
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: rcs, sccs, cvs, log, vc, tools
@@ -126,9 +125,13 @@
 (require 'wid-edit)
 
 (easy-mmode-defmap log-view-mode-map
-  '(("z" . kill-this-buffer)
+  '(
+    ;; FIXME: (copy-keymap special-mode-map) instead
+    ("z" . kill-this-buffer)
     ("q" . quit-window)
     ("g" . revert-buffer)
+    ("\C-m" . log-view-toggle-entry-display)
+
     ("m" . log-view-toggle-mark-entry)
     ("e" . log-view-modify-change-comment)
     ("d" . log-view-diff)
@@ -145,7 +148,6 @@
     ("\M-n" . log-view-file-next)
     ("\M-p" . log-view-file-prev))
   "Log-View's keymap."
-  :inherit widget-keymap
   :group 'log-view)
 
 (easy-menu-define log-view-mode-menu log-view-mode-map
@@ -166,6 +168,8 @@
      :help "Annotate the version at point"]
     ["Modify Log Comment" log-view-modify-change-comment
      :help "Edit the change comment displayed at point"]
+    ["Toggle Details at Point" log-view-toggle-entry-display
+     :active log-view-expanded-log-entry-function]
     "-----"
     ["Next Log Entry"  log-view-msg-next
      :help "Go to the next count'th log message"]
@@ -178,6 +182,12 @@
 
 (defvar log-view-mode-hook nil
   "Hook run at the end of `log-view-mode'.")
+
+(defvar log-view-expanded-log-entry-function nil
+  "Function returning the detailed description of a Log View entry.
+It is called by the command `log-view-toggle-entry-display' with
+one arg, the revision tag (a string), and should return a string.
+If it is nil, `log-view-toggle-entry-display' does nothing.")
 
 (defface log-view-file
   '((((class color) (background light))
@@ -298,15 +308,36 @@ The match group number 1 should match the revision number itself.")
 	(when cvsdir (setq dir (expand-file-name cvsdir dir))))
       (expand-file-name file dir))))
 
-(defun log-view-current-tag (&optional where)
-  (save-excursion
-    (when where (goto-char where))
-    (forward-line 1)
-    (let ((pt (point)))
-      (when (re-search-backward log-view-message-re nil t)
-	(let ((rev (match-string-no-properties 1)))
-	  (unless (re-search-forward log-view-file-re pt t)
-	    rev))))))
+(defun log-view-current-entry (&optional pos move)
+  "Return the position and revision tag of the Log View entry at POS.
+This is a list (BEG TAG), where BEG is a buffer position and TAG
+is a string.  If POS is nil or omitted, it defaults to point.
+If there is no entry at POS, return nil.
+
+If optional arg MOVE is non-nil, move point to BEG if found.
+Otherwise, don't move point."
+  (let ((looping t)
+	result)
+    (save-excursion
+      (when pos (goto-char pos))
+      (forward-line 1)
+      (while looping
+	(setq pos (re-search-backward log-view-message-re nil 'move)
+	      looping (and pos (log-view-inside-comment-p (point)))))
+      (when pos
+	(setq result
+	      (list pos (match-string-no-properties 1)))))
+    (and move result (goto-char pos))
+    result))
+
+(defun log-view-inside-comment-p (pos)
+  "Return non-nil if POS lies inside an expanded log entry."
+  (eq (get-text-property pos 'log-view-comment) t))
+
+(defun log-view-current-tag (&optional pos)
+  "Return the revision tag (a string) of the Log View entry at POS.
+if POS is omitted or nil, it defaults to point."
+  (cadr (log-view-current-entry pos)))
 
 (defun log-view-toggle-mark-entry ()
   "Toggle the marked state for the log entry at point.
@@ -316,29 +347,24 @@ entries are denoted by changing their background color.
 log entries."
   (interactive)
   (save-excursion
-    (forward-line 1)
-    (let ((pt (point)))
-      (when (re-search-backward log-view-message-re nil t)
-	(let ((beg (match-beginning 0))
-	      end ov ovlist found tag)
-	  (unless (re-search-forward log-view-file-re pt t)
-	    ;; Look to see if the current entry is marked.
-	    (setq found (get-char-property (point) 'log-view-self))
-	    (if found
-		(delete-overlay found)
-	      ;; Create an overlay that covers this entry and change
-	      ;; its color.
-	      (setq tag (log-view-current-tag (point)))
-	      (forward-line 1)
-	      (setq end
-		    (if (re-search-forward log-view-message-re nil t)
-			(match-beginning 0)
-		      (point-max)))
-	      (setq ov (make-overlay beg end))
-	      (overlay-put ov 'face 'log-view-file)
-	      ;; This is used to check if the overlay is present.
-	      (overlay-put ov 'log-view-self ov)
-	      (overlay-put ov 'log-view-marked tag))))))))
+    (let* ((entry (log-view-current-entry nil t))
+	   (beg (car entry))
+	   found)
+      (when entry
+	;; Look to see if the current entry is marked.
+	(setq found (get-char-property beg 'log-view-self))
+	(if found
+	    (delete-overlay found)
+	  ;; Create an overlay covering this entry and change its color.
+	  (let* ((end (if (get-text-property beg 'log-view-entry-expanded)
+			  (next-single-property-change beg 'log-view-comment)
+			(log-view-end-of-defun)
+			(point)))
+		 (ov (make-overlay beg end)))
+	    (overlay-put ov 'face 'log-view-file)
+	    ;; This is used to check if the overlay is present.
+	    (overlay-put ov 'log-view-self ov)
+	    (overlay-put ov 'log-view-marked (nth 1 entry))))))))
 
 (defun log-view-get-marked ()
   "Return the list of tags for the marked log entries."
@@ -351,50 +377,74 @@ log entries."
 	  (setq pos (overlay-end ov))))
       marked-list)))
 
-(defun log-view-beginning-of-defun ()
-  ;; This assumes that a log entry starts with a line matching
-  ;; `log-view-message-re'.  Modes that derive from `log-view-mode'
-  ;; for which this assumption is not valid will have to provide
-  ;; another implementation of this function.  `log-view-msg-prev'
-  ;; does a similar job to this function, we can't use it here
-  ;; directly because it prints messages that are not appropriate in
-  ;; this context and it does not move to the beginning of the buffer
-  ;; when the point is before the first log entry.
+(defun log-view-toggle-entry-display ()
+  (interactive)
+  ;; Don't do anything unless `log-view-expanded-log-entry-function'
+  ;; is defined in this mode.
+  (when (functionp log-view-expanded-log-entry-function)
+    (let* ((opoint (point))
+	   (entry (log-view-current-entry nil t))
+	   (beg (car entry))
+	   (buffer-read-only nil))
+      (when entry
+	(if (get-text-property beg 'log-view-entry-expanded)
+	    ;; If the entry is expanded, collapse it.
+	    (let ((pos (next-single-property-change beg 'log-view-comment)))
+	      (unless (and pos (log-view-inside-comment-p pos))
+		(error "Broken markup in `log-view-toggle-entry-display'"))
+	      (delete-region pos
+			     (next-single-property-change pos 'log-view-comment))
+	      (put-text-property beg (1+ beg) 'log-view-entry-expanded nil)
+	      (if (< opoint pos)
+		  (goto-char opoint)))
+	  ;; Otherwise, expand the entry.
+	  (let ((long-entry (funcall log-view-expanded-log-entry-function
+				     (nth 1 entry))))
+	    (when long-entry
+	      (put-text-property beg (1+ beg) 'log-view-entry-expanded t)
+	      (log-view-end-of-defun)
+	      (setq beg (point))
+	      (insert long-entry "\n")
+	      (add-text-properties
+	       beg (point)
+	       '(font-lock-face font-lock-comment-face log-view-comment t))
+	      (goto-char opoint))))))))
 
-  ;; `log-view-beginning-of-defun' and `log-view-end-of-defun' have
-  ;; been checked to work with logs produced by RCS, CVS, git,
-  ;; mercurial and subversion.
+(defun log-view-beginning-of-defun (&optional arg)
+  "Move backward to the beginning of a Log View entry.
+With ARG, do it that many times.  Negative ARG means move forward
+to the beginning of the ARGth following entry.
 
-  (re-search-backward log-view-message-re nil 'move))
+This is Log View mode's default `beginning-of-defun-function'.
+It assumes that a log entry starts with a line matching
+`log-view-message-re'."
+  (if (or (null arg) (zerop arg))
+      (setq arg 1))
+  (if (< arg 0)
+      (dotimes (n (- arg))
+	(log-view-end-of-defun))
+    (catch 'beginning-of-buffer
+      (dotimes (n arg)
+	(or (log-view-current-entry nil t)
+	    (throw 'beginning-of-buffer nil)))
+      (point))))
 
 (defun log-view-end-of-defun ()
-  ;; The idea in this function is to search for the beginning of the
-  ;; next log entry using `log-view-message-re' and then go back one
-  ;; line when finding it.  Modes that derive from `log-view-mode' for
-  ;; which this assumption is not valid will have to provide another
-  ;; implementation of this function.
-
-  ;; Look back and if there is no entry there it means we are before
-  ;; the first log entry, so go forward until finding one.
-  (unless (save-excursion (re-search-backward log-view-message-re nil t))
-    (re-search-forward log-view-message-re nil t))
-
-  ;; In case we are at the end of log entry going forward a line will
-  ;; make us find the next entry when searching. If we are inside of
-  ;; an entry going forward a line will still keep the point inside
-  ;; the same entry.
-  (forward-line 1)
-
-  ;; In case we are at the beginning of an entry, move past it.
-  (when (looking-at log-view-message-re)
-    (goto-char (match-end 0))
-    (forward-line 1))
-
-  ;; Search for the start of the next log entry.  Go to the end of the
-  ;; buffer if we could not find a next entry.
-  (when (re-search-forward log-view-message-re nil 'move)
-    (goto-char (match-beginning 0))
-    (forward-line -1)))
+  "Move forward to the next Log View entry."
+  (let ((looping t))
+    (if (looking-at log-view-message-re)
+	(goto-char (match-end 0)))
+    (while looping
+      (cond
+       ((re-search-forward log-view-message-re nil 'move)
+	(unless (log-view-inside-comment-p (point))
+	  (setq looping nil)
+	  (goto-char (match-beginning 0))))
+       ;; Don't advance past the end buttons inserted by
+       ;; `vc-print-log-setup-buttons'.
+       ((looking-back "Show 2X entries    Show unlimited entries")
+	(setq looping nil)
+	(forward-line -1))))))
 
 (defvar cvs-minor-current-files)
 (defvar cvs-branch-prefix)
@@ -542,5 +592,4 @@ the changes that affected other files than the currently considered file(s)."
 
 (provide 'log-view)
 
-;; arch-tag: 0d64220b-ce7e-4f62-9c2a-6b04c2f81f4f
 ;;; log-view.el ends here

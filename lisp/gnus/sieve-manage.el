@@ -1,7 +1,6 @@
 ;;; sieve-manage.el --- Implementation of the managesive protocol in elisp
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 
@@ -84,7 +83,7 @@
   (require 'starttls))
 (autoload 'sasl-find-mechanism "sasl")
 (autoload 'starttls-open-stream "starttls")
-(autoload 'auth-source-user-or-password "auth-source")
+(autoload 'auth-source-search "auth-source")
 
 ;; User customizable variables:
 
@@ -274,16 +273,20 @@ Valid states are `closed', `initial', `nonauth', and `auth'.")
   "Login to server using the SASL MECH method."
   (message "sieve: Authenticating using %s..." mech)
   (with-current-buffer buffer
-    (let* ((user-password (auth-source-user-or-password
-                           '("login" "password")
-                           sieve-manage-server
-                           "sieve" nil t))
+    (let* ((auth-info (auth-source-search :host sieve-manage-server
+                                          :port "sieve"
+                                          :max 1))
+           (user-name (plist-get (nth 0 auth-info) :user))
+           (user-password (plist-get (nth 0 auth-info) :secret))
+           (user-password (if (functionp user-password)
+                              (funcall user-password)
+                            user-password))
            (client (sasl-make-client (sasl-find-mechanism (list mech))
-                                     (car user-password) "sieve" sieve-manage-server))
+                                     user-name "sieve" sieve-manage-server))
            (sasl-read-passphrase
             ;; We *need* to copy the password, because sasl will modify it
             ;; somehow.
-            `(lambda (prompt) ,(copy-sequence (cadr user-password))))
+            `(lambda (prompt) ,(copy-sequence user-password)))
            (step (sasl-next-step client nil))
            (tag (sieve-manage-send
                  (concat

@@ -1,3 +1,23 @@
+2011-02-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc-list.el (erc-list-menu-mode-map): Move initialization
+	into declaration.
+
+2011-02-07  Julien Danjou  <julien@danjou.info>
+
+	* erc-track.el (erc-window-configuration-change): New function.
+	This will allow to track buffer visibility when a command is
+	finished to executed.  Idea stolen from rcirc.
+	(track): Put erc-window-configuration-change in
+	window-configuration-change-hook.
+	(erc-modified-channels-update): Remove
+	erc-modified-channels-update from post-command-hook after update.
+
+2011-01-31  Antoine Levitt  <antoine.levitt@gmail.com>  (tiny change)
+
+	* erc-track.el (track): Don't reset erc-modified-channels-object
+	each time erc-track-mode is activated.
+
 2010-11-19  Martin Rudalics  <rudalics@gmx.at>
 
 	* erc-speedbar.el (erc-speedbar-goto-buffer): Use
@@ -136,7 +156,7 @@
 
 See ChangeLog.08 for earlier changes.
 
-    Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
+	Copyright (C) 2009-2011 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -158,4 +178,3 @@ See ChangeLog.08 for earlier changes.
 ;; add-log-time-zone-rule: t
 ;; End:
 
-;; arch-tag: d4703244-4a8d-49b1-ab34-ad0d56600ef8

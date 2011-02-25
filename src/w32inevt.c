@@ -1,6 +1,5 @@
 /* Input event support for Emacs on the Microsoft W32 API.
-   Copyright (C) 1992, 1993, 1995, 2001, 2002, 2003, 2004, 2005, 2006,
-                 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+   Copyright (C) 1992-1993, 1995, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -51,25 +50,8 @@ static DWORD movement_time;
 /* from keyboard.c */
 extern void reinvoke_input_signal (void);
 
-/* from w32console.c */
-extern int w32_use_full_screen_buffer;
-
-/* from w32fns.c */
-extern Lisp_Object Vw32_alt_is_meta;
 extern unsigned int map_keypad_keys (unsigned int, unsigned int);
 
-/* from w32term */
-extern Lisp_Object Vw32_capslock_is_shiftlock;
-extern Lisp_Object Vw32_enable_caps_lock;
-extern Lisp_Object Vw32_enable_num_lock;
-extern Lisp_Object Vw32_recognize_altgr;
-extern Lisp_Object Vw32_pass_lwindow_to_system;
-extern Lisp_Object Vw32_pass_rwindow_to_system;
-extern Lisp_Object Vw32_phantom_key_code;
-extern Lisp_Object Vw32_lwindow_modifier;
-extern Lisp_Object Vw32_rwindow_modifier;
-extern Lisp_Object Vw32_apps_modifier;
-extern Lisp_Object Vw32_scroll_lock_modifier;
 extern unsigned int w32_key_to_modifier (int key);
 
 /* Event queue */

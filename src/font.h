@@ -1,5 +1,5 @@
 /* font.h -- Interface definition for font handling.
-   Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2006-2011 Free Software Foundation, Inc.
    Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
@@ -849,7 +849,6 @@ extern void syms_of_nsfont (void);
 
 extern Lisp_Object QCfoundry;
 
-extern Lisp_Object Vfont_log;
 extern void font_add_log (const char *, Lisp_Object, Lisp_Object);
 extern void font_deferred_log (const char *, Lisp_Object, Lisp_Object);
 
@@ -873,5 +872,3 @@ extern void font_deferred_log (const char *, Lisp_Object, Lisp_Object);
 
 #endif	/* not EMACS_FONT_H */
 
-/* arch-tag: 3b7260c3-5bec-4d6b-a0db-95c1b431b1a2
-   (do not change this comment) */

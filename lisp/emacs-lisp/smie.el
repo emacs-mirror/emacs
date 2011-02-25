@@ -1,6 +1,6 @@
 ;;; smie.el --- Simple Minded Indentation Engine
 
-;; Copyright (C) 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 2010-2011  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: languages, lisp, internal, parsing, indentation
@@ -915,7 +915,7 @@ This uses SMIE's tables and is expected to be placed on `post-self-insert-hook'.
                      ;; anything else than this trigger char, lest we'd blink
                      ;; both when inserting the trigger char and when
                      ;; inserting a subsequent trigger char like SPC.
-                     (or (eq (point) pos)
+                     (or (eq (char-before) last-command-event)
                          (not (memq (char-before)
                                     smie-blink-matching-triggers)))
                      (or smie-blink-matching-inners
@@ -998,7 +998,10 @@ the beginning of a line."
           (unless (numberp (cadr (assoc tok smie-grammar)))
             (goto-char pos))
           (setq smie--parent
-                (smie-backward-sexp 'halfsexp))))))
+                (or (smie-backward-sexp 'halfsexp)
+                    (let (res)
+                      (while (null (setq res (smie-backward-sexp))))
+                      (list nil (point) (nth 2 res)))))))))
 
 (defun smie-rule-parent-p (&rest parents)
   "Return non-nil if the current token's parent is among PARENTS.
@@ -1403,6 +1406,10 @@ should not be computed on the basis of the following token."
   (and (nth 4 (syntax-ppss))
        'noindent))
 
+(defun smie-indent-inside-string ()
+  (and (nth 3 (syntax-ppss))
+       'noindent))
+
 (defun smie-indent-after-keyword ()
   ;; Indentation right after a special keyword.
   (save-excursion
@@ -1476,8 +1483,9 @@ should not be computed on the basis of the following token."
 
 (defvar smie-indent-functions
   '(smie-indent-fixindent smie-indent-bob smie-indent-close
-                          smie-indent-comment smie-indent-comment-continue smie-indent-comment-close
-                          smie-indent-comment-inside smie-indent-keyword smie-indent-after-keyword
+    smie-indent-comment smie-indent-comment-continue smie-indent-comment-close
+    smie-indent-comment-inside smie-indent-inside-string
+    smie-indent-keyword smie-indent-after-keyword
                           smie-indent-exps)
   "Functions to compute the indentation.
 Each function is called with no argument, shouldn't move point, and should

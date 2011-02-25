@@ -1,7 +1,6 @@
 ;;; dnd.el --- drag and drop support.  -*- coding: utf-8 -*-
 
-;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2005-2011  Free Software Foundation, Inc.
 
 ;; Author: Jan Djärv <jan.h.d@swipnet.se>
 ;; Maintainer: FSF
@@ -227,5 +226,4 @@ TEXT is the text as a string, WINDOW is the window where the drop happened."
 
 (provide 'dnd)
 
-;; arch-tag: 0472f6a5-2e8f-4304-9e44-1a0877c771b7
 ;;; dnd.el ends here

@@ -1,7 +1,6 @@
 ;;; gnus-win.el --- window configuration functions for Gnus
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -38,9 +37,6 @@
   "*If non-nil, use the entire Emacs screen."
   :group 'gnus-windows
   :type 'boolean)
-
-(defvar gnus-window-configuration nil
-  "Obsolete variable.  See `gnus-buffer-configuration'.")
 
 (defcustom gnus-window-min-width 2
   "*Minimum width of Gnus buffers."
@@ -221,12 +217,6 @@ See the Gnus manual for an explanation of the syntax used.")
       (ignore-errors
 	(delete-frame (car gnus-created-frames))))
     (pop gnus-created-frames)))
-
-(defun gnus-window-configuration-element (list)
-  (while (and list
-	      (not (assq (car list) gnus-window-configuration)))
-    (pop list))
-  (cadr (assq (car list) gnus-window-configuration)))
 
 ;;;###autoload
 (defun gnus-add-configuration (conf)
@@ -447,11 +437,7 @@ should have point."
 	type buffer win buf)
     (while (and (setq split (pop stack))
 		all-visible)
-      ;; Be backwards compatible.
-      (when (vectorp split)
-	(setq split (append split nil)))
-      (when (or (consp (car split))
-		(vectorp (car split)))
+      (when (consp (car split))
 	(push 1.0 split)
 	(push 'vertical split))
       ;; The SPLIT might be something that is to be evaled to
@@ -483,6 +469,7 @@ should have point."
       all-visible)))
 
 (defun gnus-window-top-edge (&optional window)
+  "Return the top coordinate of WINDOW."
   (nth 1 (window-edges window)))
 
 (defun gnus-remove-some-windows ()

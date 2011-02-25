@@ -1,7 +1,6 @@
 ;;; landmark.el --- neural-network robot that learns landmarks
 
-;; Copyright (C) 1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Terrence Brannon (was: <brannon@rana.usc.edu>)
 ;; Created: December 16, 1996 - first release to usenet
@@ -10,7 +9,7 @@
 ;;;_* Usage
 ;;; Just type
 ;;;   M-x eval-buffer
-;;;   M-x lm-test-run
+;;;   M-x landmark-test-run
 
 
 ;; This file is part of GNU Emacs.
@@ -30,7 +29,7 @@
 
 
 ;;; Commentary:
-;; Lm is a relatively non-participatory game in which a robot
+;; Landmark is a relatively non-participatory game in which a robot
 ;; attempts to maneuver towards a tree at the center of the window
 ;; based on unique olfactory cues from each of the 4 directions. If
 ;; the smell of the tree increases, then the weights in the robot's
@@ -53,7 +52,7 @@
 ;; a single move, one moves east,west and south, then both east and
 ;; west will be improved when they shouldn't
 
-;; Many thanks to Yuri Pryadkin (yuri@rana.usc.edu) for this
+;; Many thanks to Yuri Pryadkin <yuri@rana.usc.edu> for this
 ;; concise problem description.
 
 ;;;_* Require
@@ -63,9 +62,9 @@
 
 ;;; Code:
 
-(defgroup lm nil
+(defgroup landmark nil
   "Neural-network robot that learns landmarks."
-  :prefix "lm-"
+  :prefix "landmark-"
   :group 'games)
 
 ;;;_ +  THE BOARD.
@@ -75,199 +74,199 @@
 ;; containing padding squares (coded with -1). These squares allow us to
 ;; detect when we are trying to move out of the board.  We denote a square by
 ;; its (X,Y) coords, or by the INDEX corresponding to them in the vector.  The
-;; leftmost topmost square has coords (1,1) and index lm-board-width + 2.
+;; leftmost topmost square has coords (1,1) and index landmark-board-width + 2.
 ;; Similarly, vectors between squares may be given by two DX, DY coords or by
 ;; one DEPL (the difference between indexes).
 
-(defvar lm-board-width nil
-  "Number of columns on the Lm board.")
-(defvar lm-board-height nil
-  "Number of lines on the Lm board.")
+(defvar landmark-board-width nil
+  "Number of columns on the Landmark board.")
+(defvar landmark-board-height nil
+  "Number of lines on the Landmark board.")
 
-(defvar lm-board nil
-  "Vector recording the actual state of the Lm board.")
+(defvar landmark-board nil
+  "Vector recording the actual state of the Landmark board.")
 
-(defvar lm-vector-length nil
-  "Length of lm-board vector.")
+(defvar landmark-vector-length nil
+  "Length of landmark-board vector.")
 
-(defvar lm-draw-limit nil
+(defvar landmark-draw-limit nil
   ;; This is usually set to 70% of the number of squares.
   "After how many moves will Emacs offer a draw?")
 
-(defvar lm-cx 0
+(defvar landmark-cx 0
   "This is the x coordinate of the center of the board.")
 
-(defvar lm-cy 0
+(defvar landmark-cy 0
   "This is the y coordinate of the center of the board.")
 
-(defvar lm-m 0
+(defvar landmark-m 0
   "This is the x dimension of the playing board.")
 
-(defvar lm-n 0
+(defvar landmark-n 0
   "This is the y dimension of the playing board.")
 
 
-(defun lm-xy-to-index (x y)
+(defun landmark-xy-to-index (x y)
   "Translate X, Y cartesian coords into the corresponding board index."
-  (+ (* y lm-board-width) x y))
+  (+ (* y landmark-board-width) x y))
 
-(defun lm-index-to-x (index)
+(defun landmark-index-to-x (index)
   "Return corresponding x-coord of board INDEX."
-  (% index (1+ lm-board-width)))
+  (% index (1+ landmark-board-width)))
 
-(defun lm-index-to-y (index)
+(defun landmark-index-to-y (index)
   "Return corresponding y-coord of board INDEX."
-  (/ index (1+ lm-board-width)))
+  (/ index (1+ landmark-board-width)))
 
-(defun lm-init-board ()
-  "Create the lm-board vector and fill it with initial values."
-  (setq lm-board (make-vector lm-vector-length 0))
+(defun landmark-init-board ()
+  "Create the landmark-board vector and fill it with initial values."
+  (setq landmark-board (make-vector landmark-vector-length 0))
   ;; Every square is 0 (i.e. empty) except padding squares:
-  (let ((i 0) (ii (1- lm-vector-length)))
-    (while (<= i lm-board-width)	; The squares in [0..width] and in
-      (aset lm-board i  -1)		;    [length - width - 1..length - 1]
-      (aset lm-board ii -1)		;    are padding squares.
+  (let ((i 0) (ii (1- landmark-vector-length)))
+    (while (<= i landmark-board-width)	; The squares in [0..width] and in
+      (aset landmark-board i  -1)		;    [length - width - 1..length - 1]
+      (aset landmark-board ii -1)		;    are padding squares.
       (setq i  (1+ i)
 	    ii (1- ii))))
   (let ((i 0))
-    (while (< i lm-vector-length)
-      (aset lm-board i -1)		; and also all k*(width+1)
-      (setq i (+ i lm-board-width 1)))))
+    (while (< i landmark-vector-length)
+      (aset landmark-board i -1)		; and also all k*(width+1)
+      (setq i (+ i landmark-board-width 1)))))
 
 ;;;_ +  DISPLAYING THE BOARD.
 
 ;; You may change these values if you have a small screen or if the squares
 ;; look rectangular, but spacings SHOULD be at least 2 (MUST BE at least 1).
 
-(defconst lm-square-width 2
-  "*Horizontal spacing between squares on the Lm board.")
+(defconst landmark-square-width 2
+  "*Horizontal spacing between squares on the Landmark board.")
 
-(defconst lm-square-height 1
-  "*Vertical spacing between squares on the Lm board.")
+(defconst landmark-square-height 1
+  "*Vertical spacing between squares on the Landmark board.")
 
-(defconst lm-x-offset 3
-  "*Number of columns between the Lm board and the side of the window.")
+(defconst landmark-x-offset 3
+  "*Number of columns between the Landmark board and the side of the window.")
 
-(defconst lm-y-offset 1
-  "*Number of lines between the Lm board and the top of the window.")
+(defconst landmark-y-offset 1
+  "*Number of lines between the Landmark board and the top of the window.")
 
 
-;;;_ +  LM MODE AND KEYMAP.
+;;;_ +  LANDMARK MODE AND KEYMAP.
 
-(defcustom lm-mode-hook nil
-  "If non-nil, its value is called on entry to Lm mode."
+(defcustom landmark-mode-hook nil
+  "If non-nil, its value is called on entry to Landmark mode."
   :type 'hook
-  :group 'lm)
+  :group 'landmark)
 
-(defvar lm-mode-map
+(defvar landmark-mode-map
   (let ((map (make-sparse-keymap)))
     ;; Key bindings for cursor motion.
-    (define-key map "y" 'lm-move-nw)		; y
-    (define-key map "u" 'lm-move-ne)		; u
-    (define-key map "b" 'lm-move-sw)		; b
-    (define-key map "n" 'lm-move-se)		; n
+    (define-key map "y" 'landmark-move-nw)		; y
+    (define-key map "u" 'landmark-move-ne)		; u
+    (define-key map "b" 'landmark-move-sw)		; b
+    (define-key map "n" 'landmark-move-se)		; n
     (define-key map "h" 'backward-char)		; h
     (define-key map "l" 'forward-char)		; l
-    (define-key map "j" 'lm-move-down)		; j
-    (define-key map "k" 'lm-move-up)		; k
+    (define-key map "j" 'landmark-move-down)		; j
+    (define-key map "k" 'landmark-move-up)		; k
 
-    (define-key map [kp-7] 'lm-move-nw)
-    (define-key map [kp-9] 'lm-move-ne)
-    (define-key map [kp-1] 'lm-move-sw)
-    (define-key map [kp-3] 'lm-move-se)
+    (define-key map [kp-7] 'landmark-move-nw)
+    (define-key map [kp-9] 'landmark-move-ne)
+    (define-key map [kp-1] 'landmark-move-sw)
+    (define-key map [kp-3] 'landmark-move-se)
     (define-key map [kp-4] 'backward-char)
     (define-key map [kp-6] 'forward-char)
-    (define-key map [kp-2] 'lm-move-down)
-    (define-key map [kp-8] 'lm-move-up)
+    (define-key map [kp-2] 'landmark-move-down)
+    (define-key map [kp-8] 'landmark-move-up)
 
-    (define-key map "\C-n" 'lm-move-down)		; C-n
-    (define-key map "\C-p" 'lm-move-up)		; C-p
+    (define-key map "\C-n" 'landmark-move-down)		; C-n
+    (define-key map "\C-p" 'landmark-move-up)		; C-p
 
     ;; Key bindings for entering Human moves.
-    (define-key map "X" 'lm-human-plays)		; X
-    (define-key map "x" 'lm-human-plays)		; x
+    (define-key map "X" 'landmark-human-plays)		; X
+    (define-key map "x" 'landmark-human-plays)		; x
 
-    (define-key map " " 'lm-start-robot)		; SPC
-    (define-key map [down-mouse-1] 'lm-start-robot)
-    (define-key map [drag-mouse-1] 'lm-click)
-    (define-key map [mouse-1] 'lm-click)
-    (define-key map [down-mouse-2] 'lm-click)
-    (define-key map [mouse-2] 'lm-mouse-play)
-    (define-key map [drag-mouse-2] 'lm-mouse-play)
+    (define-key map " " 'landmark-start-robot)		; SPC
+    (define-key map [down-mouse-1] 'landmark-start-robot)
+    (define-key map [drag-mouse-1] 'landmark-click)
+    (define-key map [mouse-1] 'landmark-click)
+    (define-key map [down-mouse-2] 'landmark-click)
+    (define-key map [mouse-2] 'landmark-mouse-play)
+    (define-key map [drag-mouse-2] 'landmark-mouse-play)
 
-    (define-key map [remap previous-line] 'lm-move-up)
-    (define-key map [remap next-line] 'lm-move-down)
-    (define-key map [remap beginning-of-line] 'lm-beginning-of-line)
-    (define-key map [remap end-of-line] 'lm-end-of-line)
-    (define-key map [remap undo] 'lm-human-takes-back)
-    (define-key map [remap advertised-undo] 'lm-human-takes-back)
+    (define-key map [remap previous-line] 'landmark-move-up)
+    (define-key map [remap next-line] 'landmark-move-down)
+    (define-key map [remap beginning-of-line] 'landmark-beginning-of-line)
+    (define-key map [remap end-of-line] 'landmark-end-of-line)
+    (define-key map [remap undo] 'landmark-human-takes-back)
+    (define-key map [remap advertised-undo] 'landmark-human-takes-back)
     map)
-  "Local keymap to use in Lm mode.")
+  "Local keymap to use in Landmark mode.")
 
 
 
-(defvar lm-emacs-won ()
+(defvar landmark-emacs-won ()
   "*For making font-lock use the winner's face for the line.")
 
-(defface lm-font-lock-face-O '((((class color)) :foreground "red")
+(defface landmark-font-lock-face-O '((((class color)) :foreground "red")
 			       (t :weight bold))
   "Face to use for Emacs' O."
   :version "22.1"
-  :group 'lm)
+  :group 'landmark)
 
-(defface lm-font-lock-face-X '((((class color)) :foreground "green")
+(defface landmark-font-lock-face-X '((((class color)) :foreground "green")
 			       (t :weight bold))
   "Face to use for your X."
   :version "22.1"
-  :group 'lm)
+  :group 'landmark)
 
-(defvar lm-font-lock-keywords
-  '(("O" . 'lm-font-lock-face-O)
-    ("X" . 'lm-font-lock-face-X)
-    ("[-|/\\]" 0 (if lm-emacs-won
-		     'lm-font-lock-face-O
-		   'lm-font-lock-face-X)))
-  "*Font lock rules for Lm.")
+(defvar landmark-font-lock-keywords
+  '(("O" . 'landmark-font-lock-face-O)
+    ("X" . 'landmark-font-lock-face-X)
+    ("[-|/\\]" 0 (if landmark-emacs-won
+		     'landmark-font-lock-face-O
+		   'landmark-font-lock-face-X)))
+  "*Font lock rules for Landmark.")
 
-(put 'lm-mode 'front-sticky
-     (put 'lm-mode 'rear-nonsticky '(intangible)))
-(put 'lm-mode 'intangible 1)
+(put 'landmark-mode 'front-sticky
+     (put 'landmark-mode 'rear-nonsticky '(intangible)))
+(put 'landmark-mode 'intangible 1)
 ;; This one is for when they set view-read-only to t: Landmark cannot
 ;; allow View Mode to be activated in its buffer.
-(put 'lm-mode 'mode-class 'special)
+(put 'landmark-mode 'mode-class 'special)
 
-(defun lm-mode ()
-  "Major mode for playing Lm against Emacs.
+(defun landmark-mode ()
+  "Major mode for playing Landmark against Emacs.
 You and Emacs play in turn by marking a free square.  You mark it with X
 and Emacs marks it with O.  The winner is the first to get five contiguous
 marks horizontally, vertically or in diagonal.
 
-You play by moving the cursor over the square you choose and hitting \\[lm-human-plays].
+You play by moving the cursor over the square you choose and hitting \\[landmark-human-plays].
 
 Other useful commands:
-\\{lm-mode-map}
-Entry to this mode calls the value of `lm-mode-hook' if that value
+\\{landmark-mode-map}
+Entry to this mode calls the value of `landmark-mode-hook' if that value
 is non-nil.  One interesting value is `turn-on-font-lock'."
   (interactive)
   (kill-all-local-variables)
-  (setq major-mode 'lm-mode
-	mode-name "Lm")
-  (lm-display-statistics)
-  (use-local-map lm-mode-map)
+  (setq major-mode 'landmark-mode
+	mode-name "Landmark")
+  (landmark-display-statistics)
+  (use-local-map landmark-mode-map)
   (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(lm-font-lock-keywords t)
+  (setq font-lock-defaults '(landmark-font-lock-keywords t)
 	buffer-read-only t)
-  (run-mode-hooks 'lm-mode-hook))
+  (run-mode-hooks 'landmark-mode-hook))
 
 
 ;;;_ +  THE SCORE TABLE.
 
 
 ;; Every (free) square has a score associated to it, recorded in the
-;; LM-SCORE-TABLE vector. The program always plays in the square having
+;; LANDMARK-SCORE-TABLE vector. The program always plays in the square having
 ;; the highest score.
 
-(defvar lm-score-table nil
+(defvar landmark-score-table nil
   "Vector recording the actual score of the free squares.")
 
 
@@ -294,7 +293,7 @@ is non-nil.  One interesting value is `turn-on-font-lock'."
 ;; the qtuples.
 ;;
 ;; This algorithm is rather simple but anyway it gives a not so dumb level of
-;; play. It easily extends to "n-dimensional Lm", where a win should not
+;; play. It easily extends to "n-dimensional Landmark", where a win should not
 ;; be obtained with as few as 5 contiguous marks: 6 or 7 (depending on n !)
 ;; should be preferred.
 
@@ -303,9 +302,9 @@ is non-nil.  One interesting value is `turn-on-font-lock'."
 ;; these values will change (hopefully improve) the strength of the program
 ;; and may change its style (rather aggressive here).
 
-(defconst lm-nil-score	  7  "Score of an empty qtuple.")
+(defconst landmark-nil-score	  7  "Score of an empty qtuple.")
 
-(defconst lm-score-trans-table
+(defconst landmark-score-trans-table
   (let ((Xscore		15)  ; Score of a qtuple containing one X.
         (XXscore       400)  ; Score of a qtuple containing two X's.
         (XXXscore     1800)  ; Score of a qtuple containing three X's.
@@ -338,7 +337,7 @@ is non-nil.  One interesting value is `turn-on-font-lock'."
     ;; As we chose values 0, 1 and 6 to denote empty, X and O squares,
     ;; the contents of a qtuple are uniquely determined by the sum of
     ;; its elements and we just have to set up a translation table.
-    (vector lm-nil-score Xscore XXscore XXXscore XXXXscore 0
+    (vector landmark-nil-score Xscore XXscore XXXscore XXXXscore 0
             Oscore       0	0	0	 0	   0
             OOscore      0	0	0	 0	   0
             OOOscore     0	0	0	 0	   0
@@ -354,16 +353,16 @@ is non-nil.  One interesting value is `turn-on-font-lock'."
 ;; qtuple. We may use these considerations to detect when a given move is
 ;; winning or losing.
 
-(defconst lm-winning-threshold
-  (aref lm-score-trans-table (+ 6 6 6 6)) ;; OOOOscore
+(defconst landmark-winning-threshold
+  (aref landmark-score-trans-table (+ 6 6 6 6)) ;; OOOOscore
   "Threshold score beyond which an Emacs move is winning.")
 
-(defconst lm-losing-threshold
-  (aref lm-score-trans-table (+ 1 1 1 1)) ;; XXXXscore
+(defconst landmark-losing-threshold
+  (aref landmark-score-trans-table (+ 1 1 1 1)) ;; XXXXscore
   "Threshold score beyond which a human move is winning.")
 
 
-(defun lm-strongest-square ()
+(defun landmark-strongest-square ()
   "Compute index of free square with highest score, or nil if none."
   ;; We just have to loop other all squares. However there are two problems:
   ;; 1/ The SCORE-TABLE only gives correct scores to free squares. To speed
@@ -372,23 +371,23 @@ is non-nil.  One interesting value is `turn-on-font-lock'."
   ;; 2/ We want to choose randomly between equally good moves.
   (let ((score-max 0)
 	(count	   0)			; Number of equally good moves
-	(square	   (lm-xy-to-index 1 1)) ; First square
-	(end	   (lm-xy-to-index lm-board-width lm-board-height))
+	(square	   (landmark-xy-to-index 1 1)) ; First square
+	(end	   (landmark-xy-to-index landmark-board-width landmark-board-height))
 	best-square score)
     (while (<= square end)
       (cond
        ;; If score is lower (i.e. most of the time), skip to next:
-       ((< (aref lm-score-table square) score-max))
+       ((< (aref landmark-score-table square) score-max))
        ;; If score is better, beware of non free squares:
-       ((> (setq score (aref lm-score-table square)) score-max)
-	(if (zerop (aref lm-board square)) ; is it free ?
+       ((> (setq score (aref landmark-score-table square)) score-max)
+	(if (zerop (aref landmark-board square)) ; is it free ?
 	    (setq count 1		       ; yes: take it !
 		  best-square square
 		  score-max   score)
-	    (aset lm-score-table square -1))) ; no: kill it !
+	    (aset landmark-score-table square -1))) ; no: kill it !
        ;; If score is equally good, choose randomly. But first check freeness:
-       ((not (zerop (aref lm-board square)))
-	(aset lm-score-table square -1))
+       ((not (zerop (aref landmark-board square)))
+	(aset landmark-score-table square -1))
        ((zerop (random (setq count (1+ count))))
 	(setq best-square square
 	      score-max	  score)))
@@ -407,28 +406,28 @@ is non-nil.  One interesting value is `turn-on-font-lock'."
 ;; Also, as it is likely that successive games will be played on a board with
 ;; same size, it is a good idea to save the initial SCORE-TABLE configuration.
 
-(defvar lm-saved-score-table nil
+(defvar landmark-saved-score-table nil
   "Recorded initial value of previous score table.")
 
-(defvar lm-saved-board-width nil
+(defvar landmark-saved-board-width nil
   "Recorded value of previous board width.")
 
-(defvar lm-saved-board-height nil
+(defvar landmark-saved-board-height nil
   "Recorded value of previous board height.")
 
 
-(defun lm-init-score-table ()
+(defun landmark-init-score-table ()
   "Create the score table vector and fill it with initial values."
-  (if (and lm-saved-score-table	; Has it been stored last time ?
-	   (= lm-board-width  lm-saved-board-width)
-	   (= lm-board-height lm-saved-board-height))
-      (setq lm-score-table (copy-sequence lm-saved-score-table))
+  (if (and landmark-saved-score-table	; Has it been stored last time ?
+	   (= landmark-board-width  landmark-saved-board-width)
+	   (= landmark-board-height landmark-saved-board-height))
+      (setq landmark-score-table (copy-sequence landmark-saved-score-table))
       ;; No, compute it:
-      (setq lm-score-table
-	    (make-vector lm-vector-length (* 20 lm-nil-score)))
+      (setq landmark-score-table
+	    (make-vector landmark-vector-length (* 20 landmark-nil-score)))
       (let (i j maxi maxj maxi2 maxj2)
-	(setq maxi  (/ (1+ lm-board-width) 2)
-	      maxj  (/ (1+ lm-board-height) 2)
+	(setq maxi  (/ (1+ landmark-board-width) 2)
+	      maxj  (/ (1+ landmark-board-height) 2)
 	      maxi2 (min 4 maxi)
 	      maxj2 (min 4 maxj))
 	;; We took symmetry into account and could use it more if the board
@@ -440,43 +439,43 @@ is non-nil.  One interesting value is `turn-on-font-lock'."
 	(while (<= i maxi2)
 	  (setq j 1)
 	  (while (<= j maxj)
-	    (lm-init-square-score i j)
+	    (landmark-init-square-score i j)
 	    (setq j (1+ j)))
 	  (setq i (1+ i)))
 	(while (<= i maxi)
 	  (setq j 1)
 	  (while (<= j maxj2)
-	    (lm-init-square-score i j)
+	    (landmark-init-square-score i j)
 	    (setq j (1+ j)))
 	  (setq i (1+ i))))
-      (setq lm-saved-score-table  (copy-sequence lm-score-table)
-	    lm-saved-board-width  lm-board-width
-	    lm-saved-board-height lm-board-height)))
+      (setq landmark-saved-score-table  (copy-sequence landmark-score-table)
+	    landmark-saved-board-width  landmark-board-width
+	    landmark-saved-board-height landmark-board-height)))
 
-(defun lm-nb-qtuples (i j)
+(defun landmark-nb-qtuples (i j)
   "Return the number of qtuples containing square I,J."
   ;; This function is complicated because we have to deal
   ;; with ugly cases like 3 by 6 boards, but it works.
   ;; If you have a simpler (and correct) solution, send it to me. Thanks !
   (let ((left  (min 4 (1- i)))
-	(right (min 4 (- lm-board-width i)))
+	(right (min 4 (- landmark-board-width i)))
 	(up    (min 4 (1- j)))
-	(down  (min 4 (- lm-board-height j))))
+	(down  (min 4 (- landmark-board-height j))))
     (+ -12
        (min (max (+ left right) 3) 8)
        (min (max (+ up down) 3) 8)
        (min (max (+ (min left up) (min right down)) 3) 8)
        (min (max (+ (min right up) (min left down)) 3) 8))))
 
-(defun lm-init-square-score (i j)
+(defun landmark-init-square-score (i j)
   "Give initial score to square I,J and to its mirror images."
-  (let ((ii (1+ (- lm-board-width i)))
-	(jj (1+ (- lm-board-height j)))
-	(sc (* (lm-nb-qtuples i j) (aref lm-score-trans-table 0))))
-    (aset lm-score-table (lm-xy-to-index i  j)	sc)
-    (aset lm-score-table (lm-xy-to-index ii j)	sc)
-    (aset lm-score-table (lm-xy-to-index i  jj) sc)
-    (aset lm-score-table (lm-xy-to-index ii jj) sc)))
+  (let ((ii (1+ (- landmark-board-width i)))
+	(jj (1+ (- landmark-board-height j)))
+	(sc (* (landmark-nb-qtuples i j) (aref landmark-score-trans-table 0))))
+    (aset landmark-score-table (landmark-xy-to-index i  j)	sc)
+    (aset landmark-score-table (landmark-xy-to-index ii j)	sc)
+    (aset landmark-score-table (landmark-xy-to-index i  jj) sc)
+    (aset landmark-score-table (landmark-xy-to-index ii jj) sc)))
 ;;;_  - MAINTAINING THE SCORE TABLE.
 
 
@@ -486,7 +485,7 @@ is non-nil.  One interesting value is `turn-on-font-lock'."
 ;; SCORE-TABLE after each move. Updating needs not modify more than 36
 ;; squares: it is done in constant time.
 
-(defun lm-update-score-table (square dval)
+(defun landmark-update-score-table (square dval)
   "Update score table after SQUARE received a DVAL increment."
   ;; The board has already been updated when this function is called.
   ;; Updating scores is done by looking for qtuples boundaries in all four
@@ -494,25 +493,25 @@ is non-nil.  One interesting value is `turn-on-font-lock'."
   ;; Finally all squares received the right increment, and then are up to
   ;; date, except possibly for SQUARE itself if we are taking a move back for
   ;; its score had been set to -1 at the time.
-  (let* ((x    (lm-index-to-x square))
-	 (y    (lm-index-to-y square))
+  (let* ((x    (landmark-index-to-x square))
+	 (y    (landmark-index-to-y square))
 	 (imin (max -4 (- 1 x)))
 	 (jmin (max -4 (- 1 y)))
-	 (imax (min 0 (- lm-board-width x 4)))
-	 (jmax (min 0 (- lm-board-height y 4))))
-    (lm-update-score-in-direction imin imax
+	 (imax (min 0 (- landmark-board-width x 4)))
+	 (jmax (min 0 (- landmark-board-height y 4))))
+    (landmark-update-score-in-direction imin imax
 				      square 1 0 dval)
-    (lm-update-score-in-direction jmin jmax
+    (landmark-update-score-in-direction jmin jmax
 				      square 0 1 dval)
-    (lm-update-score-in-direction (max imin jmin) (min imax jmax)
+    (landmark-update-score-in-direction (max imin jmin) (min imax jmax)
 				      square 1 1 dval)
-    (lm-update-score-in-direction (max (- 1 y) -4
-					   (- x lm-board-width))
+    (landmark-update-score-in-direction (max (- 1 y) -4
+					   (- x landmark-board-width))
 				      (min 0 (- x 5)
-					   (- lm-board-height y 4))
+					   (- landmark-board-height y 4))
 				      square -1 1 dval)))
 
-(defun lm-update-score-in-direction (left right square dx dy dval)
+(defun landmark-update-score-in-direction (left right square dx dy dval)
   "Update scores for all squares in the qtuples in range.
 That is, those between the LEFTth square and the RIGHTth after SQUARE,
 along the DX, DY direction, considering that DVAL has been added on SQUARE."
@@ -523,7 +522,7 @@ along the DX, DY direction, considering that DVAL has been added on SQUARE."
    ((> left right))			; Quit
    (t					; Else ..
     (let (depl square0 square1 square2 count delta)
-      (setq depl    (lm-xy-to-index dx dy)
+      (setq depl    (landmark-xy-to-index dx dy)
 	    square0 (+ square (* left depl))
 	    square1 (+ square (* right depl))
 	    square2 (+ square0 (* 4 depl)))
@@ -531,25 +530,25 @@ along the DX, DY direction, considering that DVAL has been added on SQUARE."
       (setq square square0
 	    count  0)
       (while (<= square square2)
-	(setq count  (+ count (aref lm-board square))
+	(setq count  (+ count (aref landmark-board square))
 	      square (+ square depl)))
       (while (<= square0 square1)
 	;; Update the squares of the qtuple beginning in SQUARE0 and ending
 	;; in SQUARE2.
-	(setq delta (- (aref lm-score-trans-table count)
-		       (aref lm-score-trans-table (- count dval))))
+	(setq delta (- (aref landmark-score-trans-table count)
+		       (aref landmark-score-trans-table (- count dval))))
 	(cond ((not (zerop delta))	; or else nothing to update
 	       (setq square square0)
 	       (while (<= square square2)
-		 (if (zerop (aref lm-board square)) ; only for free squares
-		     (aset lm-score-table square
-			   (+ (aref lm-score-table square) delta)))
+		 (if (zerop (aref landmark-board square)) ; only for free squares
+		     (aset landmark-score-table square
+			   (+ (aref landmark-score-table square) delta)))
 		 (setq square (+ square depl)))))
 	;; Then shift the qtuple one square along DEPL, this only requires
 	;; modifying SQUARE0 and SQUARE2.
 	(setq square2 (+ square2 depl)
-	      count   (+ count (- (aref lm-board square0))
-			 (aref lm-board square2))
+	      count   (+ count (- (aref landmark-board square0))
+			 (aref landmark-board square2))
 	      square0 (+ square0 depl)))))))
 
 ;;;
@@ -561,328 +560,328 @@ along the DX, DY direction, considering that DVAL has been added on SQUARE."
 ;; (anti-updating the score table) and to compute the table from scratch in
 ;; case of an interruption.
 
-(defvar lm-game-in-progress nil
+(defvar landmark-game-in-progress nil
   "Non-nil if a game is in progress.")
 
-(defvar lm-game-history nil
+(defvar landmark-game-history nil
   "A record of all moves that have been played during current game.")
 
-(defvar lm-number-of-moves nil
+(defvar landmark-number-of-moves nil
   "Number of moves already played in current game.")
 
-(defvar lm-number-of-human-moves nil
+(defvar landmark-number-of-human-moves nil
   "Number of moves already played by human in current game.")
 
-(defvar lm-emacs-played-first nil
+(defvar landmark-emacs-played-first nil
   "Non-nil if Emacs played first.")
 
-(defvar lm-human-took-back nil
+(defvar landmark-human-took-back nil
   "Non-nil if Human took back a move during the game.")
 
-(defvar lm-human-refused-draw nil
+(defvar landmark-human-refused-draw nil
   "Non-nil if Human refused Emacs offer of a draw.")
 
-(defvar lm-emacs-is-computing nil
+(defvar landmark-emacs-is-computing nil
   ;; This is used to detect interruptions. Hopefully, it should not be needed.
   "Non-nil if Emacs is in the middle of a computation.")
 
 
-(defun lm-start-game (n m)
+(defun landmark-start-game (n m)
   "Initialize a new game on an N by M board."
-  (setq lm-emacs-is-computing t)	; Raise flag
-  (setq lm-game-in-progress t)
-  (setq lm-board-width   n
-	lm-board-height  m
-	lm-vector-length (1+ (* (+ m 2) (1+ n)))
-	lm-draw-limit    (/ (* 7 n m) 10))
-  (setq lm-emacs-won	         nil
-	lm-game-history	         nil
-	lm-number-of-moves	 0
-	lm-number-of-human-moves 0
-	lm-emacs-played-first    nil
-	lm-human-took-back	 nil
-	lm-human-refused-draw    nil)
-  (lm-init-display n m)		; Display first: the rest takes time
-  (lm-init-score-table)		; INIT-BOARD requires that the score
-  (lm-init-board)			;   table be already created.
-  (setq lm-emacs-is-computing nil))
+  (setq landmark-emacs-is-computing t)	; Raise flag
+  (setq landmark-game-in-progress t)
+  (setq landmark-board-width   n
+	landmark-board-height  m
+	landmark-vector-length (1+ (* (+ m 2) (1+ n)))
+	landmark-draw-limit    (/ (* 7 n m) 10))
+  (setq landmark-emacs-won	         nil
+	landmark-game-history	         nil
+	landmark-number-of-moves	 0
+	landmark-number-of-human-moves 0
+	landmark-emacs-played-first    nil
+	landmark-human-took-back	 nil
+	landmark-human-refused-draw    nil)
+  (landmark-init-display n m)		; Display first: the rest takes time
+  (landmark-init-score-table)		; INIT-BOARD requires that the score
+  (landmark-init-board)			;   table be already created.
+  (setq landmark-emacs-is-computing nil))
 
-(defun lm-play-move (square val &optional dont-update-score)
+(defun landmark-play-move (square val &optional dont-update-score)
   "Go to SQUARE, play VAL and update everything."
-  (setq lm-emacs-is-computing t)	; Raise flag
+  (setq landmark-emacs-is-computing t)	; Raise flag
   (cond ((= 1 val)			; a Human move
-	 (setq lm-number-of-human-moves (1+ lm-number-of-human-moves)))
-	((zerop lm-number-of-moves)	; an Emacs move. Is it first ?
-	 (setq lm-emacs-played-first t)))
-  (setq lm-game-history
-	(cons (cons square (aref lm-score-table square))
-	      lm-game-history)
-	lm-number-of-moves (1+ lm-number-of-moves))
-  (lm-plot-square square val)
-  (aset lm-board square val)	; *BEFORE* UPDATE-SCORE !
+	 (setq landmark-number-of-human-moves (1+ landmark-number-of-human-moves)))
+	((zerop landmark-number-of-moves)	; an Emacs move. Is it first ?
+	 (setq landmark-emacs-played-first t)))
+  (setq landmark-game-history
+	(cons (cons square (aref landmark-score-table square))
+	      landmark-game-history)
+	landmark-number-of-moves (1+ landmark-number-of-moves))
+  (landmark-plot-square square val)
+  (aset landmark-board square val)	; *BEFORE* UPDATE-SCORE !
   (if dont-update-score nil
-      (lm-update-score-table square val) ; previous val was 0: dval = val
-      (aset lm-score-table square -1))
-  (setq lm-emacs-is-computing nil))
+      (landmark-update-score-table square val) ; previous val was 0: dval = val
+      (aset landmark-score-table square -1))
+  (setq landmark-emacs-is-computing nil))
 
-(defun lm-take-back ()
+(defun landmark-take-back ()
   "Take back last move and update everything."
-  (setq lm-emacs-is-computing t)
-  (let* ((last-move (car lm-game-history))
+  (setq landmark-emacs-is-computing t)
+  (let* ((last-move (car landmark-game-history))
 	 (square (car last-move))
-	 (oldval (aref lm-board square)))
+	 (oldval (aref landmark-board square)))
     (if (= 1 oldval)
-	(setq lm-number-of-human-moves (1- lm-number-of-human-moves)))
-    (setq lm-game-history	 (cdr lm-game-history)
-	  lm-number-of-moves (1- lm-number-of-moves))
-    (lm-plot-square square 0)
-    (aset lm-board square 0)	; *BEFORE* UPDATE-SCORE !
-    (lm-update-score-table square (- oldval))
-    (aset lm-score-table square (cdr last-move)))
-  (setq lm-emacs-is-computing nil))
+	(setq landmark-number-of-human-moves (1- landmark-number-of-human-moves)))
+    (setq landmark-game-history	 (cdr landmark-game-history)
+	  landmark-number-of-moves (1- landmark-number-of-moves))
+    (landmark-plot-square square 0)
+    (aset landmark-board square 0)	; *BEFORE* UPDATE-SCORE !
+    (landmark-update-score-table square (- oldval))
+    (aset landmark-score-table square (cdr last-move)))
+  (setq landmark-emacs-is-computing nil))
 
 
 ;;;_ +  SESSION CONTROL.
 
-(defvar lm-number-of-trials 0
+(defvar landmark-number-of-trials 0
   "The number of times that landmark has been run.")
 
-(defvar lm-sum-of-moves 0
+(defvar landmark-sum-of-moves 0
   "The total number of moves made in all games.")
 
-(defvar lm-number-of-emacs-wins 0
+(defvar landmark-number-of-emacs-wins 0
   "Number of games Emacs won in this session.")
 
-(defvar lm-number-of-human-wins 0
+(defvar landmark-number-of-human-wins 0
   "Number of games you won in this session.")
 
-(defvar lm-number-of-draws 0
+(defvar landmark-number-of-draws 0
   "Number of games already drawn in this session.")
 
 
-(defun lm-terminate-game (result)
+(defun landmark-terminate-game (result)
   "Terminate the current game with RESULT."
-  (setq lm-number-of-trials (1+ lm-number-of-trials))
-  (setq lm-sum-of-moves (+ lm-sum-of-moves lm-number-of-moves))
+  (setq landmark-number-of-trials (1+ landmark-number-of-trials))
+  (setq landmark-sum-of-moves (+ landmark-sum-of-moves landmark-number-of-moves))
   (if (eq result 'crash-game)
       (message
        "Sorry, I have been interrupted and cannot resume that game..."))
-  (lm-display-statistics)
+  (landmark-display-statistics)
   ;;(ding)
-  (setq lm-game-in-progress nil))
+  (setq landmark-game-in-progress nil))
 
-(defun lm-crash-game ()
+(defun landmark-crash-game ()
   "What to do when Emacs detects it has been interrupted."
-  (setq lm-emacs-is-computing nil)
-  (lm-terminate-game 'crash-game)
+  (setq landmark-emacs-is-computing nil)
+  (landmark-terminate-game 'crash-game)
   (sit-for 4)				; Let's see the message
-  (lm-prompt-for-other-game))
+  (landmark-prompt-for-other-game))
 
 
 ;;;_ +  INTERACTIVE COMMANDS.
 
-(defun lm-emacs-plays ()
+(defun landmark-emacs-plays ()
   "Compute Emacs next move and play it."
   (interactive)
-  (lm-switch-to-window)
+  (landmark-switch-to-window)
   (cond
-   (lm-emacs-is-computing
-    (lm-crash-game))
-   ((not lm-game-in-progress)
-    (lm-prompt-for-other-game))
+   (landmark-emacs-is-computing
+    (landmark-crash-game))
+   ((not landmark-game-in-progress)
+    (landmark-prompt-for-other-game))
    (t
     (message "Let me think...")
     (let (square score)
-      (setq square (lm-strongest-square))
+      (setq square (landmark-strongest-square))
       (cond ((null square)
-	     (lm-terminate-game 'nobody-won))
+	     (landmark-terminate-game 'nobody-won))
 	    (t
-	     (setq score (aref lm-score-table square))
-	     (lm-play-move square 6)
-	     (cond ((>= score lm-winning-threshold)
-		    (setq lm-emacs-won t) ; for font-lock
-		    (lm-find-filled-qtuple square 6)
-		    (lm-terminate-game 'emacs-won))
+	     (setq score (aref landmark-score-table square))
+	     (landmark-play-move square 6)
+	     (cond ((>= score landmark-winning-threshold)
+		    (setq landmark-emacs-won t) ; for font-lock
+		    (landmark-find-filled-qtuple square 6)
+		    (landmark-terminate-game 'emacs-won))
 		   ((zerop score)
-		    (lm-terminate-game 'nobody-won))
-		   ((and (> lm-number-of-moves lm-draw-limit)
-			 (not lm-human-refused-draw)
-			 (lm-offer-a-draw))
-		    (lm-terminate-game 'draw-agreed))
+		    (landmark-terminate-game 'nobody-won))
+		   ((and (> landmark-number-of-moves landmark-draw-limit)
+			 (not landmark-human-refused-draw)
+			 (landmark-offer-a-draw))
+		    (landmark-terminate-game 'draw-agreed))
 		   (t
-		    (lm-prompt-for-move)))))))))
+		    (landmark-prompt-for-move)))))))))
 
 ;; For small square dimensions this is approximate, since though measured in
 ;; pixels, event's (X . Y) is a character's top-left corner.
-(defun lm-click (click)
+(defun landmark-click (click)
   "Position at the square where you click."
   (interactive "e")
   (and (windowp (posn-window (setq click (event-end click))))
        (numberp (posn-point click))
        (select-window (posn-window click))
        (setq click (posn-col-row click))
-       (lm-goto-xy
+       (landmark-goto-xy
 	(min (max (/ (+ (- (car click)
-			   lm-x-offset
+			   landmark-x-offset
 			   1)
 			(window-hscroll)
-			lm-square-width
-			(% lm-square-width 2)
-			(/ lm-square-width 2))
-		     lm-square-width)
+			landmark-square-width
+			(% landmark-square-width 2)
+			(/ landmark-square-width 2))
+		     landmark-square-width)
 		  1)
-	     lm-board-width)
+	     landmark-board-width)
 	(min (max (/ (+ (- (cdr click)
-			   lm-y-offset
+			   landmark-y-offset
 			   1)
 			(let ((inhibit-point-motion-hooks t))
 			  (count-lines 1 (window-start)))
-			lm-square-height
-			(% lm-square-height 2)
-			(/ lm-square-height 2))
-		     lm-square-height)
+			landmark-square-height
+			(% landmark-square-height 2)
+			(/ landmark-square-height 2))
+		     landmark-square-height)
 		  1)
-	     lm-board-height))))
+	     landmark-board-height))))
 
-(defun lm-mouse-play (click)
+(defun landmark-mouse-play (click)
   "Play at the square where you click."
   (interactive "e")
-  (if (lm-click click)
-      (lm-human-plays)))
+  (if (landmark-click click)
+      (landmark-human-plays)))
 
-(defun lm-human-plays ()
-  "Signal to the Lm program that you have played.
+(defun landmark-human-plays ()
+  "Signal to the Landmark program that you have played.
 You must have put the cursor on the square where you want to play.
 If the game is finished, this command requests for another game."
   (interactive)
-  (lm-switch-to-window)
+  (landmark-switch-to-window)
   (cond
-   (lm-emacs-is-computing
-    (lm-crash-game))
-   ((not lm-game-in-progress)
-    (lm-prompt-for-other-game))
+   (landmark-emacs-is-computing
+    (landmark-crash-game))
+   ((not landmark-game-in-progress)
+    (landmark-prompt-for-other-game))
    (t
     (let (square score)
-      (setq square (lm-point-square))
+      (setq square (landmark-point-square))
       (cond ((null square)
 	     (error "Your point is not on a square. Retry!"))
-	    ((not (zerop (aref lm-board square)))
+	    ((not (zerop (aref landmark-board square)))
 	     (error "Your point is not on a free square. Retry!"))
 	    (t
-	     (setq score (aref lm-score-table square))
-	     (lm-play-move square 1)
-	     (cond ((and (>= score lm-losing-threshold)
+	     (setq score (aref landmark-score-table square))
+	     (landmark-play-move square 1)
+	     (cond ((and (>= score landmark-losing-threshold)
 			 ;; Just testing SCORE > THRESHOLD is not enough for
 			 ;; detecting wins, it just gives an indication that
-			 ;; we confirm with LM-FIND-FILLED-QTUPLE.
-			 (lm-find-filled-qtuple square 1))
-		    (lm-terminate-game 'human-won))
+			 ;; we confirm with LANDMARK-FIND-FILLED-QTUPLE.
+			 (landmark-find-filled-qtuple square 1))
+		    (landmark-terminate-game 'human-won))
 		   (t
-		    (lm-emacs-plays)))))))))
+		    (landmark-emacs-plays)))))))))
 
-(defun lm-human-takes-back ()
-  "Signal to the Lm program that you wish to take back your last move."
+(defun landmark-human-takes-back ()
+  "Signal to the Landmark program that you wish to take back your last move."
   (interactive)
-  (lm-switch-to-window)
+  (landmark-switch-to-window)
   (cond
-   (lm-emacs-is-computing
-    (lm-crash-game))
-   ((not lm-game-in-progress)
+   (landmark-emacs-is-computing
+    (landmark-crash-game))
+   ((not landmark-game-in-progress)
     (message "Too late for taking back...")
     (sit-for 4)
-    (lm-prompt-for-other-game))
-   ((zerop lm-number-of-human-moves)
+    (landmark-prompt-for-other-game))
+   ((zerop landmark-number-of-human-moves)
     (message "You have not played yet... Your move?"))
    (t
     (message "One moment, please...")
     ;; It is possible for the user to let Emacs play several consecutive
     ;; moves, so that the best way to know when to stop taking back moves is
     ;; to count the number of human moves:
-    (setq lm-human-took-back t)
-    (let ((number lm-number-of-human-moves))
-      (while (= number lm-number-of-human-moves)
-	(lm-take-back)))
-    (lm-prompt-for-move))))
+    (setq landmark-human-took-back t)
+    (let ((number landmark-number-of-human-moves))
+      (while (= number landmark-number-of-human-moves)
+	(landmark-take-back)))
+    (landmark-prompt-for-move))))
 
-(defun lm-human-resigns ()
-  "Signal to the Lm program that you may want to resign."
+(defun landmark-human-resigns ()
+  "Signal to the Landmark program that you may want to resign."
   (interactive)
-  (lm-switch-to-window)
+  (landmark-switch-to-window)
   (cond
-   (lm-emacs-is-computing
-    (lm-crash-game))
-   ((not lm-game-in-progress)
+   (landmark-emacs-is-computing
+    (landmark-crash-game))
+   ((not landmark-game-in-progress)
     (message "There is no game in progress"))
    ((y-or-n-p "You mean, you resign? ")
-    (lm-terminate-game 'human-resigned))
+    (landmark-terminate-game 'human-resigned))
    ((y-or-n-p "You mean, we continue? ")
-    (lm-prompt-for-move))
+    (landmark-prompt-for-move))
    (t
-    (lm-terminate-game 'human-resigned)))) ; OK. Accept it
+    (landmark-terminate-game 'human-resigned)))) ; OK. Accept it
 
 ;;;_ + PROMPTING THE HUMAN PLAYER.
 
-(defun lm-prompt-for-move ()
+(defun landmark-prompt-for-move ()
   "Display a message asking for Human's move."
-  (message (if (zerop lm-number-of-human-moves)
+  (message (if (zerop landmark-number-of-human-moves)
 	       "Your move? (move to a free square and hit X, RET ...)"
 	       "Your move?")))
 
-(defun lm-prompt-for-other-game ()
+(defun landmark-prompt-for-other-game ()
   "Ask for another game, and start it."
   (if (y-or-n-p "Another game? ")
       (if (y-or-n-p "Retain learned weights ")
-	  (lm 2)
-	(lm 1))
+	  (landmark 2)
+	(landmark 1))
     (message "Chicken!")))
 
-(defun lm-offer-a-draw ()
+(defun landmark-offer-a-draw ()
   "Offer a draw and return t if Human accepted it."
   (or (y-or-n-p "I offer you a draw. Do you accept it? ")
-      (not (setq lm-human-refused-draw t))))
+      (not (setq landmark-human-refused-draw t))))
 
 
-(defun lm-max-width ()
+(defun landmark-max-width ()
   "Largest possible board width for the current window."
   (1+ (/ (- (window-width (selected-window))
-	    lm-x-offset lm-x-offset 1)
-	 lm-square-width)))
+	    landmark-x-offset landmark-x-offset 1)
+	 landmark-square-width)))
 
-(defun lm-max-height ()
+(defun landmark-max-height ()
   "Largest possible board height for the current window."
   (1+ (/ (- (window-height (selected-window))
-	    lm-y-offset lm-y-offset 2)
+	    landmark-y-offset landmark-y-offset 2)
 	 ;; 2 instead of 1 because WINDOW-HEIGHT includes the mode line !
-	 lm-square-height)))
+	 landmark-square-height)))
 
-(defun lm-point-y ()
+(defun landmark-point-y ()
   "Return the board row where point is."
   (let ((inhibit-point-motion-hooks t))
-    (1+ (/ (- (count-lines 1 (point)) lm-y-offset (if (bolp) 0 1))
-	   lm-square-height))))
+    (1+ (/ (- (count-lines 1 (point)) landmark-y-offset (if (bolp) 0 1))
+	   landmark-square-height))))
 
-(defun lm-point-square ()
+(defun landmark-point-square ()
   "Return the index of the square point is on."
   (let ((inhibit-point-motion-hooks t))
-    (lm-xy-to-index (1+ (/ (- (current-column) lm-x-offset)
-			       lm-square-width))
-			(lm-point-y))))
+    (landmark-xy-to-index (1+ (/ (- (current-column) landmark-x-offset)
+			       landmark-square-width))
+			(landmark-point-y))))
 
-(defun lm-goto-square (index)
+(defun landmark-goto-square (index)
   "Move point to square number INDEX."
-  (lm-goto-xy (lm-index-to-x index) (lm-index-to-y index)))
+  (landmark-goto-xy (landmark-index-to-x index) (landmark-index-to-y index)))
 
-(defun lm-goto-xy (x y)
+(defun landmark-goto-xy (x y)
   "Move point to square at X, Y coords."
   (let ((inhibit-point-motion-hooks t))
     (goto-char (point-min))
-    (forward-line (+ lm-y-offset (* lm-square-height (1- y)))))
-  (move-to-column (+ lm-x-offset (* lm-square-width (1- x)))))
+    (forward-line (+ landmark-y-offset (* landmark-square-height (1- y)))))
+  (move-to-column (+ landmark-x-offset (* landmark-square-width (1- x)))))
 
-(defun lm-plot-square (square value)
+(defun landmark-plot-square (square value)
   "Draw 'X', 'O' or '.' on SQUARE depending on VALUE, leave point there."
   (or (= value 1)
-      (lm-goto-square square))
+      (landmark-goto-square square))
   (let ((inhibit-read-only t)
 	(inhibit-point-motion-hooks t))
     (insert-and-inherit (cond ((= value 1) ?.)
@@ -901,8 +900,8 @@ mouse-1: get robot moving, mouse-2: play on this square")))
     (backward-char 1))
   (sit-for 0))	; Display NOW
 
-(defun lm-init-display (n m)
-  "Display an N by M Lm board."
+(defun landmark-init-display (n m)
+  "Display an N by M Landmark board."
   (buffer-disable-undo (current-buffer))
   (let ((inhibit-read-only t)
 	(point 1) opoint
@@ -910,17 +909,17 @@ mouse-1: get robot moving, mouse-2: play on this square")))
 	(i m) j x)
     ;; Try to minimize number of chars (because of text properties)
     (setq tab-width
-	  (if (zerop (% lm-x-offset lm-square-width))
-	      lm-square-width
-	    (max (/ (+ (% lm-x-offset lm-square-width)
-		       lm-square-width 1) 2) 2)))
+	  (if (zerop (% landmark-x-offset landmark-square-width))
+	      landmark-square-width
+	    (max (/ (+ (% landmark-x-offset landmark-square-width)
+		       landmark-square-width 1) 2) 2)))
     (erase-buffer)
-    (newline lm-y-offset)
+    (newline landmark-y-offset)
     (while (progn
 	     (setq j n
-		   x (- lm-x-offset lm-square-width))
+		   x (- landmark-x-offset landmark-square-width))
 	     (while (>= (setq j (1- j)) 0)
-	       (insert-char ?\t (/ (- (setq x (+ x lm-square-width))
+	       (insert-char ?\t (/ (- (setq x (+ x landmark-square-width))
 				      (current-column))
 				   tab-width))
 	       (insert-char ?  (- x (current-column)))
@@ -941,7 +940,7 @@ mouse-1: get robot moving, mouse-2: play on this square")))
 	     (> (setq i (1- i)) 0))
       (if (= i (1- m))
 	  (setq opoint point))
-      (insert-char ?\n lm-square-height))
+      (insert-char ?\n landmark-square-height))
     (or (eq (char-after 1) ?.)
 	(put-text-property 1 2 'point-entered
 			   (lambda (x y) (if (bobp) (forward-char)))))
@@ -949,32 +948,32 @@ mouse-1: get robot moving, mouse-2: play on this square")))
 	(put-text-property point (point) 'intangible 2))
     (put-text-property point (point) 'point-entered
 		       (lambda (x y) (if (eobp) (backward-char))))
-    (put-text-property (point-min) (point) 'category 'lm-mode))
-  (lm-goto-xy (/ (1+ n) 2) (/ (1+ m) 2)) ; center of the board
+    (put-text-property (point-min) (point) 'category 'landmark-mode))
+  (landmark-goto-xy (/ (1+ n) 2) (/ (1+ m) 2)) ; center of the board
   (sit-for 0))				; Display NOW
 
-(defun lm-display-statistics ()
+(defun landmark-display-statistics ()
   "Obnoxiously display some statistics about previous games in mode line."
   ;; We store this string in the mode-line-process local variable.
   ;; This is certainly not the cleanest way out ...
   (setq mode-line-process
 	(format ": Trials: %d, Avg#Moves: %d"
-		lm-number-of-trials
-		(if (zerop lm-number-of-trials)
+		landmark-number-of-trials
+		(if (zerop landmark-number-of-trials)
 		    0
-		  (/ lm-sum-of-moves lm-number-of-trials))))
+		  (/ landmark-sum-of-moves landmark-number-of-trials))))
   (force-mode-line-update))
 
-(defun lm-switch-to-window ()
-  "Find or create the Lm buffer, and display it."
+(defun landmark-switch-to-window ()
+  "Find or create the Landmark buffer, and display it."
   (interactive)
-  (let ((buff (get-buffer "*Lm*")))
+  (let ((buff (get-buffer "*Landmark*")))
     (if buff				; Buffer exists:
 	(switch-to-buffer buff)		;   no problem.
-      (if lm-game-in-progress
-	  (lm-crash-game))		;   buffer has been killed or something
-      (switch-to-buffer "*Lm*")	; Anyway, start anew.
-      (lm-mode))))
+      (if landmark-game-in-progress
+	  (landmark-crash-game))		;   buffer has been killed or something
+      (switch-to-buffer "*Landmark*")	; Anyway, start anew.
+      (landmark-mode))))
 
 
 ;;;_ + CROSSING WINNING QTUPLES.
@@ -984,61 +983,61 @@ mouse-1: get robot moving, mouse-2: play on this square")))
 ;; squares ! It only knows the square where the last move has been played and
 ;; who won. The solution is to scan the board along all four directions.
 
-(defun lm-find-filled-qtuple (square value)
+(defun landmark-find-filled-qtuple (square value)
   "Return t if SQUARE belongs to a qtuple filled with VALUEs."
-  (or (lm-check-filled-qtuple square value 1 0)
-      (lm-check-filled-qtuple square value 0 1)
-      (lm-check-filled-qtuple square value 1 1)
-      (lm-check-filled-qtuple square value -1 1)))
+  (or (landmark-check-filled-qtuple square value 1 0)
+      (landmark-check-filled-qtuple square value 0 1)
+      (landmark-check-filled-qtuple square value 1 1)
+      (landmark-check-filled-qtuple square value -1 1)))
 
-(defun lm-check-filled-qtuple (square value dx dy)
+(defun landmark-check-filled-qtuple (square value dx dy)
   "Return t if SQUARE belongs to a qtuple filled with VALUEs along DX, DY."
   (let ((a 0) (b 0)
 	(left square) (right square)
-	(depl (lm-xy-to-index dx dy)))
+	(depl (landmark-xy-to-index dx dy)))
     (while (and (> a -4)		; stretch tuple left
-		(= value (aref lm-board (setq left (- left depl)))))
+		(= value (aref landmark-board (setq left (- left depl)))))
       (setq a (1- a)))
     (while (and (< b (+ a 4))		; stretch tuple right
-		(= value (aref lm-board (setq right (+ right depl)))))
+		(= value (aref landmark-board (setq right (+ right depl)))))
       (setq b (1+ b)))
     (cond ((= b (+ a 4))		; tuple length = 5 ?
-	   (lm-cross-qtuple (+ square (* a depl)) (+ square (* b depl))
+	   (landmark-cross-qtuple (+ square (* a depl)) (+ square (* b depl))
 				dx dy)
 	   t))))
 
-(defun lm-cross-qtuple (square1 square2 dx dy)
+(defun landmark-cross-qtuple (square1 square2 dx dy)
   "Cross every square between SQUARE1 and SQUARE2 in the DX, DY direction."
   (save-excursion			; Not moving point from last square
-    (let ((depl (lm-xy-to-index dx dy))
+    (let ((depl (landmark-xy-to-index dx dy))
 	  (inhibit-read-only t)
 	  (inhibit-point-motion-hooks t))
       ;; WARNING: this function assumes DEPL > 0 and SQUARE2 > SQUARE1
       (while (/= square1 square2)
-	(lm-goto-square square1)
+	(landmark-goto-square square1)
 	(setq square1 (+ square1 depl))
 	(cond
 	  ((= dy 0)			; Horizontal
 	   (forward-char 1)
-	   (insert-char ?- (1- lm-square-width) t)
+	   (insert-char ?- (1- landmark-square-width) t)
 	   (delete-region (point) (progn
 				    (skip-chars-forward " \t")
 				    (point))))
 	  ((= dx 0)			; Vertical
-	   (let ((lm-n 1)
+	   (let ((landmark-n 1)
 		 (column (current-column)))
-	     (while (< lm-n lm-square-height)
-	       (setq lm-n (1+ lm-n))
+	     (while (< landmark-n landmark-square-height)
+	       (setq landmark-n (1+ landmark-n))
 	       (forward-line 1)
 	       (indent-to column)
 	       (insert-and-inherit ?|))))
 	  ((= dx -1)			; 1st Diagonal
-	   (indent-to (prog1 (- (current-column) (/ lm-square-width 2))
-			(forward-line (/ lm-square-height 2))))
+	   (indent-to (prog1 (- (current-column) (/ landmark-square-width 2))
+			(forward-line (/ landmark-square-height 2))))
 	   (insert-and-inherit ?/))
 	  (t				; 2nd Diagonal
-	   (indent-to (prog1 (+ (current-column) (/ lm-square-width 2))
-			(forward-line (/ lm-square-height 2))))
+	   (indent-to (prog1 (+ (current-column) (/ landmark-square-width 2))
+			(forward-line (/ landmark-square-height 2))))
 	   (insert-and-inherit ?\\))))))
   (sit-for 0))				; Display NOW
 
@@ -1046,301 +1045,301 @@ mouse-1: get robot moving, mouse-2: play on this square")))
 ;;;_ + CURSOR MOTION.
 
 ;; previous-line and next-line don't work right with intangible newlines
-(defun lm-move-down ()
-  "Move point down one row on the Lm board."
+(defun landmark-move-down ()
+  "Move point down one row on the Landmark board."
   (interactive)
-  (if (< (lm-point-y) lm-board-height)
-      (forward-line 1)));;; lm-square-height)))
+  (if (< (landmark-point-y) landmark-board-height)
+      (forward-line 1)));;; landmark-square-height)))
 
-(defun lm-move-up ()
-  "Move point up one row on the Lm board."
+(defun landmark-move-up ()
+  "Move point up one row on the Landmark board."
   (interactive)
-  (if (> (lm-point-y) 1)
-      (forward-line (- lm-square-height))))
+  (if (> (landmark-point-y) 1)
+      (forward-line (- landmark-square-height))))
 
-(defun lm-move-ne ()
-  "Move point North East on the Lm board."
+(defun landmark-move-ne ()
+  "Move point North East on the Landmark board."
   (interactive)
-  (lm-move-up)
+  (landmark-move-up)
   (forward-char))
 
-(defun lm-move-se ()
-  "Move point South East on the Lm board."
+(defun landmark-move-se ()
+  "Move point South East on the Landmark board."
   (interactive)
-  (lm-move-down)
+  (landmark-move-down)
   (forward-char))
 
-(defun lm-move-nw ()
-  "Move point North West on the Lm board."
+(defun landmark-move-nw ()
+  "Move point North West on the Landmark board."
   (interactive)
-  (lm-move-up)
+  (landmark-move-up)
   (backward-char))
 
-(defun lm-move-sw ()
-  "Move point South West on the Lm board."
+(defun landmark-move-sw ()
+  "Move point South West on the Landmark board."
   (interactive)
-  (lm-move-down)
+  (landmark-move-down)
   (backward-char))
 
-(defun lm-beginning-of-line ()
-  "Move point to first square on the Lm board row."
+(defun landmark-beginning-of-line ()
+  "Move point to first square on the Landmark board row."
   (interactive)
-  (move-to-column lm-x-offset))
+  (move-to-column landmark-x-offset))
 
-(defun lm-end-of-line ()
-  "Move point to last square on the Lm board row."
+(defun landmark-end-of-line ()
+  "Move point to last square on the Landmark board row."
   (interactive)
-  (move-to-column (+ lm-x-offset
-		     (* lm-square-width (1- lm-board-width)))))
+  (move-to-column (+ landmark-x-offset
+		     (* landmark-square-width (1- landmark-board-width)))))
 
 
 ;;;_ + Simulation variables
 
-;;;_  - lm-nvar
-(defvar lm-nvar 0.0075
+;;;_  - landmark-nvar
+(defvar landmark-nvar 0.0075
   "Not used.
 Affects a noise generator which was used in an earlier incarnation of
 this program to add a random element to the way moves were made.")
 ;;;_  - lists of cardinal directions
 ;;;_   :
-(defvar lm-ns '(lm-n lm-s)
+(defvar landmark-ns '(landmark-n landmark-s)
   "Used when doing something relative to the north and south axes.")
-(defvar lm-ew '(lm-e lm-w)
+(defvar landmark-ew '(landmark-e landmark-w)
   "Used when doing something relative to the east and west axes.")
-(defvar lm-directions '(lm-n lm-s lm-e lm-w)
+(defvar landmark-directions '(landmark-n landmark-s landmark-e landmark-w)
   "The cardinal directions.")
-(defvar lm-8-directions
-  '((lm-n) (lm-n lm-w) (lm-w) (lm-s lm-w)
-    (lm-s) (lm-s lm-e) (lm-e) (lm-n lm-e))
+(defvar landmark-8-directions
+  '((landmark-n) (landmark-n landmark-w) (landmark-w) (landmark-s landmark-w)
+    (landmark-s) (landmark-s landmark-e) (landmark-e) (landmark-n landmark-e))
   "The full 8 possible directions.")
 
-(defvar lm-number-of-moves
+(defvar landmark-number-of-moves
   "The number of moves made by the robot so far.")
 
 
 ;;;_* Terry's mods to create lm.el
 
-;;;(setq lm-debug nil)
-(defvar lm-debug nil
+;;;(setq landmark-debug nil)
+(defvar landmark-debug nil
   "If non-nil, debugging is printed.")
-(defcustom lm-one-moment-please nil
+(defcustom landmark-one-moment-please nil
   "If non-nil, print \"One moment please\" when a new board is generated.
 The drawback of this is you don't see how many moves the last run took
 because it is overwritten by \"One moment please\"."
   :type 'boolean
-  :group 'lm)
-(defcustom lm-output-moves t
+  :group 'landmark)
+(defcustom landmark-output-moves t
   "If non-nil, output number of moves so far on a move-by-move basis."
   :type 'boolean
-  :group 'lm)
+  :group 'landmark)
 
 
-(defun lm-weights-debug ()
-  (if lm-debug
-      (progn (lm-print-wts) (lm-blackbox) (lm-print-y-s-noise)
-	     (lm-print-smell))))
+(defun landmark-weights-debug ()
+  (if landmark-debug
+      (progn (landmark-print-wts) (landmark-blackbox) (landmark-print-y-s-noise)
+	     (landmark-print-smell))))
 
 ;;;_  - Printing various things
-(defun lm-print-distance-int (direction)
+(defun landmark-print-distance-int (direction)
   (interactive)
   (insert (format "%S %S " direction  (get direction 'distance))))
 
 
-(defun lm-print-distance ()
-  (insert (format "tree: %S \n" (calc-distance-of-robot-from 'lm-tree)))
-  (mapc 'lm-print-distance-int lm-directions))
+(defun landmark-print-distance ()
+  (insert (format "tree: %S \n" (calc-distance-of-robot-from 'landmark-tree)))
+  (mapc 'landmark-print-distance-int landmark-directions))
 
 
-;;(setq direction 'lm-n)
-;;(get 'lm-n 'lm-s)
-(defun lm-nslify-wts-int (direction)
+;;(setq direction 'landmark-n)
+;;(get 'landmark-n 'landmark-s)
+(defun landmark-nslify-wts-int (direction)
   (mapcar (lambda (target-direction)
 	     (get direction target-direction))
-	  lm-directions))
+	  landmark-directions))
 
 
-(defun lm-nslify-wts ()
+(defun landmark-nslify-wts ()
   (interactive)
-  (let ((l (apply 'append (mapcar 'lm-nslify-wts-int lm-directions))))
+  (let ((l (apply 'append (mapcar 'landmark-nslify-wts-int landmark-directions))))
     (insert (format "set data_value WTS \n %s \n" l))
     (insert (format "/* max: %S min: %S */"
 		  (eval (cons 'max l)) (eval (cons 'min l))))))
 
-(defun lm-print-wts-int (direction)
+(defun landmark-print-wts-int (direction)
   (mapc (lambda (target-direction)
 	     (insert (format "%S %S %S "
 			      direction
 			      target-direction
 			     (get direction target-direction))))
-	  lm-directions)
+	  landmark-directions)
   (insert "\n"))
 
-(defun lm-print-wts ()
+(defun landmark-print-wts ()
   (interactive)
-  (with-current-buffer "*lm-wts*"
+  (with-current-buffer "*landmark-wts*"
     (insert "==============================\n")
-    (mapc 'lm-print-wts-int lm-directions)))
+    (mapc 'landmark-print-wts-int landmark-directions)))
 
-(defun lm-print-moves (moves)
+(defun landmark-print-moves (moves)
   (interactive)
-  (with-current-buffer "*lm-moves*"
+  (with-current-buffer "*landmark-moves*"
     (insert (format "%S\n" moves))))
 
 
-(defun lm-print-y-s-noise-int (direction)
-  (insert (format "%S:lm-y %S, s %S, noise %S \n"
+(defun landmark-print-y-s-noise-int (direction)
+  (insert (format "%S:landmark-y %S, s %S, noise %S \n"
 		    (symbol-name direction)
 		    (get direction 'y_t)
 		    (get direction 's)
 		    (get direction 'noise)
 		    )))
 
-(defun lm-print-y-s-noise ()
+(defun landmark-print-y-s-noise ()
   (interactive)
-  (with-current-buffer "*lm-y,s,noise*"
+  (with-current-buffer "*landmark-y,s,noise*"
     (insert "==============================\n")
-    (mapc 'lm-print-y-s-noise-int lm-directions)))
+    (mapc 'landmark-print-y-s-noise-int landmark-directions)))
 
-(defun lm-print-smell-int (direction)
+(defun landmark-print-smell-int (direction)
   (insert (format "%S: smell: %S \n"
 		    (symbol-name direction)
 		    (get direction 'smell))))
 
-(defun lm-print-smell ()
+(defun landmark-print-smell ()
   (interactive)
-  (with-current-buffer "*lm-smell*"
+  (with-current-buffer "*landmark-smell*"
     (insert "==============================\n")
     (insert (format "tree: %S \n" (get 'z 't)))
-    (mapc 'lm-print-smell-int lm-directions)))
+    (mapc 'landmark-print-smell-int landmark-directions)))
 
-(defun lm-print-w0-int (direction)
+(defun landmark-print-w0-int (direction)
   (insert (format "%S: w0: %S \n"
 		    (symbol-name direction)
 		    (get direction 'w0))))
 
-(defun lm-print-w0 ()
+(defun landmark-print-w0 ()
   (interactive)
-  (with-current-buffer "*lm-w0*"
+  (with-current-buffer "*landmark-w0*"
     (insert "==============================\n")
-    (mapc 'lm-print-w0-int lm-directions)))
+    (mapc 'landmark-print-w0-int landmark-directions)))
 
-(defun lm-blackbox ()
-  (with-current-buffer "*lm-blackbox*"
+(defun landmark-blackbox ()
+  (with-current-buffer "*landmark-blackbox*"
     (insert "==============================\n")
     (insert "I smell: ")
     (mapc (lambda (direction)
 	       (if (> (get direction 'smell) 0)
 		   (insert (format "%S " direction))))
-	    lm-directions)
+	    landmark-directions)
     (insert "\n")
 
     (insert "I move: ")
     (mapc (lambda (direction)
 	       (if (> (get direction 'y_t) 0)
 		   (insert (format "%S " direction))))
-	    lm-directions)
+	    landmark-directions)
     (insert "\n")
-    (lm-print-wts-blackbox)
+    (landmark-print-wts-blackbox)
     (insert (format "z_t-z_t-1: %S" (- (get 'z 't) (get 'z 't-1))))
-    (lm-print-distance)
+    (landmark-print-distance)
     (insert "\n")))
 
-(defun lm-print-wts-blackbox ()
+(defun landmark-print-wts-blackbox ()
   (interactive)
-  (mapc 'lm-print-wts-int lm-directions))
+  (mapc 'landmark-print-wts-int landmark-directions))
 
 ;;;_  - learning parameters
-(defcustom lm-bound 0.005
+(defcustom landmark-bound 0.005
   "The maximum that w0j may be."
   :type 'number
-  :group 'lm)
-(defcustom lm-c 1.0
+  :group 'landmark)
+(defcustom landmark-c 1.0
   "A factor applied to modulate the increase in wij.
-Used in the function lm-update-normal-weights."
+Used in the function landmark-update-normal-weights."
   :type 'number
-  :group 'lm)
-(defcustom lm-c-naught 0.5
+  :group 'landmark)
+(defcustom landmark-c-naught 0.5
   "A factor applied to modulate the increase in w0j.
-Used in the function lm-update-naught-weights."
+Used in the function landmark-update-naught-weights."
   :type 'number
-  :group 'lm)
-(defvar lm-initial-w0 0.0)
-(defvar lm-initial-wij 0.0)
-(defcustom lm-no-payoff 0
+  :group 'landmark)
+(defvar landmark-initial-w0 0.0)
+(defvar landmark-initial-wij 0.0)
+(defcustom landmark-no-payoff 0
   "The amount of simulation cycles that have occurred with no movement.
 Used to move the robot when he is stuck in a rut for some reason."
   :type 'integer
-  :group 'lm)
-(defcustom lm-max-stall-time 2
+  :group 'landmark)
+(defcustom landmark-max-stall-time 2
   "The maximum number of cycles that the robot can remain stuck in a place.
-After this limit is reached, lm-random-move is called to push him out of it."
+After this limit is reached, landmark-random-move is called to push him out of it."
   :type 'integer
-  :group 'lm)
+  :group 'landmark)
 
 
 ;;;_ + Randomizing functions
-;;;_  - lm-flip-a-coin ()
-(defun lm-flip-a-coin ()
+;;;_  - landmark-flip-a-coin ()
+(defun landmark-flip-a-coin ()
   (if (> (random 5000) 2500)
       -1
     1))
-;;;_   : lm-very-small-random-number ()
-;(defun lm-very-small-random-number ()
+;;;_   : landmark-very-small-random-number ()
+;(defun landmark-very-small-random-number ()
 ;  (/
 ;   (* (/ (random 900000) 900000.0) .0001)))
-;;;_   : lm-randomize-weights-for (direction)
-(defun lm-randomize-weights-for (direction)
+;;;_   : landmark-randomize-weights-for (direction)
+(defun landmark-randomize-weights-for (direction)
   (mapc (lambda (target-direction)
 	     (put direction
 		  target-direction
-		  (* (lm-flip-a-coin) (/  (random 10000) 10000.0))))
-	  lm-directions))
-;;;_   : lm-noise ()
-(defun lm-noise ()
-  (* (- (/ (random 30001) 15000.0) 1) lm-nvar))
+		  (* (landmark-flip-a-coin) (/  (random 10000) 10000.0))))
+	  landmark-directions))
+;;;_   : landmark-noise ()
+(defun landmark-noise ()
+  (* (- (/ (random 30001) 15000.0) 1) landmark-nvar))
 
-;;;_   : lm-fix-weights-for (direction)
-(defun lm-fix-weights-for (direction)
+;;;_   : landmark-fix-weights-for (direction)
+(defun landmark-fix-weights-for (direction)
   (mapc (lambda (target-direction)
 	     (put direction
 		  target-direction
-		  lm-initial-wij))
-	  lm-directions))
+		  landmark-initial-wij))
+	  landmark-directions))
 
 
 ;;;_ + Plotting functions
-;;;_  - lm-plot-internal (sym)
-(defun lm-plot-internal (sym)
-  (lm-plot-square (lm-xy-to-index
+;;;_  - landmark-plot-internal (sym)
+(defun landmark-plot-internal (sym)
+  (landmark-plot-square (landmark-xy-to-index
 		   (get sym 'x)
 		   (get sym 'y))
 		   (get sym 'sym)))
-;;;_  - lm-plot-landmarks ()
-(defun lm-plot-landmarks ()
-  (setq lm-cx (/ lm-board-width  2))
-  (setq lm-cy (/ lm-board-height 2))
+;;;_  - landmark-plot-landmarks ()
+(defun landmark-plot-landmarks ()
+  (setq landmark-cx (/ landmark-board-width  2))
+  (setq landmark-cy (/ landmark-board-height 2))
 
-  (put 'lm-n    'x lm-cx)
-  (put 'lm-n    'y 1)
-  (put 'lm-n    'sym 2)
+  (put 'landmark-n    'x landmark-cx)
+  (put 'landmark-n    'y 1)
+  (put 'landmark-n    'sym 2)
 
-  (put 'lm-tree 'x lm-cx)
-  (put 'lm-tree 'y lm-cy)
-  (put 'lm-tree 'sym 6)
+  (put 'landmark-tree 'x landmark-cx)
+  (put 'landmark-tree 'y landmark-cy)
+  (put 'landmark-tree 'sym 6)
 
-  (put 'lm-s    'x lm-cx)
-  (put 'lm-s    'y lm-board-height)
-  (put 'lm-s    'sym 3)
+  (put 'landmark-s    'x landmark-cx)
+  (put 'landmark-s    'y landmark-board-height)
+  (put 'landmark-s    'sym 3)
 
-  (put 'lm-w    'x 1)
-  (put 'lm-w    'y (/ lm-board-height 2))
-  (put 'lm-w    'sym 5)
+  (put 'landmark-w    'x 1)
+  (put 'landmark-w    'y (/ landmark-board-height 2))
+  (put 'landmark-w    'sym 5)
 
-  (put 'lm-e    'x lm-board-width)
-  (put 'lm-e    'y (/ lm-board-height 2))
-  (put 'lm-e    'sym 4)
+  (put 'landmark-e    'x landmark-board-width)
+  (put 'landmark-e    'y (/ landmark-board-height 2))
+  (put 'landmark-e    'sym 4)
 
-  (mapc 'lm-plot-internal '(lm-n lm-s lm-e lm-w lm-tree)))
+  (mapc 'landmark-plot-internal '(landmark-n landmark-s landmark-e landmark-w landmark-tree)))
 
 
 
@@ -1357,9 +1356,9 @@ After this limit is reached, lm-random-move is called to push him out of it."
 (defun calc-distance-of-robot-from (direction)
   (put direction 'distance
        (distance (get direction 'x)
-		 (lm-index-to-x (lm-point-square))
+		 (landmark-index-to-x (landmark-point-square))
 		 (get direction 'y)
-		 (lm-index-to-y (lm-point-square)))))
+		 (landmark-index-to-y (landmark-point-square)))))
 
 ;;;_  - calc-smell-internal (sym)
 (defun calc-smell-internal (sym)
@@ -1371,269 +1370,259 @@ After this limit is reached, lm-random-move is called to push him out of it."
 
 
 ;;;_ + Learning (neural) functions
-(defun lm-f (x)
+(defun landmark-f (x)
   (cond
-   ((> x lm-bound) lm-bound)
+   ((> x landmark-bound) landmark-bound)
    ((< x 0.0) 0.0)
    (t x)))
 
-(defun lm-y (direction)
-  (let ((noise (put direction 'noise (lm-noise))))
+(defun landmark-y (direction)
+  (let ((noise (put direction 'noise (landmark-noise))))
     (put direction 'y_t
 	 (if (> (get direction 's) 0.0)
 	     1.0
 	   0.0))))
 
-(defun lm-update-normal-weights (direction)
+(defun landmark-update-normal-weights (direction)
   (mapc (lambda (target-direction)
 	     (put direction target-direction
 		  (+
 		   (get direction target-direction)
-		   (* lm-c
+		   (* landmark-c
 		      (- (get 'z 't) (get 'z 't-1))
 		      (get target-direction 'y_t)
 		      (get direction 'smell)))))
-	  lm-directions))
+	  landmark-directions))
 
-(defun lm-update-naught-weights (direction)
+(defun landmark-update-naught-weights (direction)
   (mapc (lambda (target-direction)
 	     (put direction 'w0
-		  (lm-f
+		  (landmark-f
 		   (+
 		    (get direction 'w0)
-		    (* lm-c-naught
+		    (* landmark-c-naught
 		       (- (get 'z 't) (get 'z 't-1))
 		       (get direction 'y_t))))))
-	  lm-directions))
+	  landmark-directions))
 
 
 ;;;_ + Statistics gathering and creating functions
 
-(defun lm-calc-current-smells ()
+(defun landmark-calc-current-smells ()
   (mapc (lambda (direction)
 	     (put direction 'smell (calc-smell-internal direction)))
-	  lm-directions))
+	  landmark-directions))
 
-(defun lm-calc-payoff ()
+(defun landmark-calc-payoff ()
   (put 'z 't-1 (get 'z 't))
-  (put 'z 't (calc-smell-internal 'lm-tree))
+  (put 'z 't (calc-smell-internal 'landmark-tree))
   (if (= (- (get 'z 't) (get 'z 't-1)) 0.0)
-      (incf lm-no-payoff)
-    (setf lm-no-payoff 0)))
+      (incf landmark-no-payoff)
+    (setf landmark-no-payoff 0)))
 
-(defun lm-store-old-y_t ()
+(defun landmark-store-old-y_t ()
   (mapc (lambda (direction)
 	     (put direction 'y_t-1 (get direction 'y_t)))
-	  lm-directions))
+	  landmark-directions))
 
 
 ;;;_ + Functions to move robot
 
-(defun lm-confidence-for (target-direction)
+(defun landmark-confidence-for (target-direction)
   (apply '+
 	 (get target-direction 'w0)
 	 (mapcar (lambda (direction)
 		   (*
 		    (get direction target-direction)
 		    (get direction 'smell)))
-		 lm-directions)))
+		 landmark-directions)))
 
 
-(defun lm-calc-confidences ()
+(defun landmark-calc-confidences ()
   (mapc (lambda (direction)
-	     (put direction 's (lm-confidence-for direction)))
-	     lm-directions))
+	     (put direction 's (landmark-confidence-for direction)))
+	     landmark-directions))
 
-(defun lm-move ()
-  (if (and (= (get 'lm-n 'y_t) 1.0) (= (get 'lm-s 'y_t) 1.0))
+(defun landmark-move ()
+  (if (and (= (get 'landmark-n 'y_t) 1.0) (= (get 'landmark-s 'y_t) 1.0))
       (progn
-	(mapc (lambda (dir) (put dir 'y_t 0)) lm-ns)
-	(if lm-debug
+	(mapc (lambda (dir) (put dir 'y_t 0)) landmark-ns)
+	(if landmark-debug
 	    (message "n-s normalization."))))
-  (if (and (= (get 'lm-w 'y_t) 1.0) (= (get 'lm-e 'y_t) 1.0))
+  (if (and (= (get 'landmark-w 'y_t) 1.0) (= (get 'landmark-e 'y_t) 1.0))
       (progn
-	(mapc (lambda (dir) (put dir 'y_t 0)) lm-ew)
-	(if lm-debug
+	(mapc (lambda (dir) (put dir 'y_t 0)) landmark-ew)
+	(if landmark-debug
 	    (message "e-w normalization"))))
 
   (mapc (lambda (pair)
 	     (if (> (get (car pair) 'y_t) 0)
 		 (funcall (car (cdr pair)))))
 	  '(
-	    (lm-n lm-move-up)
-	    (lm-s lm-move-down)
-	    (lm-e forward-char)
-	    (lm-w backward-char)))
-  (lm-plot-square (lm-point-square) 1)
-  (incf lm-number-of-moves)
-  (if lm-output-moves
-      (message "Moves made: %d" lm-number-of-moves)))
+	    (landmark-n landmark-move-up)
+	    (landmark-s landmark-move-down)
+	    (landmark-e forward-char)
+	    (landmark-w backward-char)))
+  (landmark-plot-square (landmark-point-square) 1)
+  (incf landmark-number-of-moves)
+  (if landmark-output-moves
+      (message "Moves made: %d" landmark-number-of-moves)))
 
 
-(defun lm-random-move ()
+(defun landmark-random-move ()
   (mapc
    (lambda (direction) (put direction 'y_t 0))
-   lm-directions)
-  (dolist (direction (nth (random 8) lm-8-directions))
+   landmark-directions)
+  (dolist (direction (nth (random 8) landmark-8-directions))
     (put direction 'y_t 1.0))
-  (lm-move))
+  (landmark-move))
 
-(defun lm-amble-robot ()
+(defun landmark-amble-robot ()
   (interactive)
-  (while (> (calc-distance-of-robot-from 'lm-tree) 0)
+  (while (> (calc-distance-of-robot-from 'landmark-tree) 0)
 
-    (lm-store-old-y_t)
-    (lm-calc-current-smells)
+    (landmark-store-old-y_t)
+    (landmark-calc-current-smells)
 
-    (if (> lm-no-payoff lm-max-stall-time)
-	(lm-random-move)
+    (if (> landmark-no-payoff landmark-max-stall-time)
+	(landmark-random-move)
       (progn
-	(lm-calc-confidences)
-	(mapc 'lm-y lm-directions)
-	(lm-move)))
+	(landmark-calc-confidences)
+	(mapc 'landmark-y landmark-directions)
+	(landmark-move)))
 
-    (lm-calc-payoff)
+    (landmark-calc-payoff)
 
-    (mapc 'lm-update-normal-weights lm-directions)
-    (mapc 'lm-update-naught-weights lm-directions)
-    (if lm-debug
-	(lm-weights-debug)))
-  (lm-terminate-game nil))
+    (mapc 'landmark-update-normal-weights landmark-directions)
+    (mapc 'landmark-update-naught-weights landmark-directions)
+    (if landmark-debug
+	(landmark-weights-debug)))
+  (landmark-terminate-game nil))
 
 
-;;;_  - lm-start-robot ()
-(defun lm-start-robot ()
-  "Signal to the Lm program that you have played.
+;;;_  - landmark-start-robot ()
+(defun landmark-start-robot ()
+  "Signal to the Landmark program that you have played.
 You must have put the cursor on the square where you want to play.
 If the game is finished, this command requests for another game."
   (interactive)
-  (lm-switch-to-window)
+  (landmark-switch-to-window)
   (cond
-   (lm-emacs-is-computing
-    (lm-crash-game))
-   ((not lm-game-in-progress)
-    (lm-prompt-for-other-game))
+   (landmark-emacs-is-computing
+    (landmark-crash-game))
+   ((not landmark-game-in-progress)
+    (landmark-prompt-for-other-game))
    (t
     (let (square score)
-      (setq square (lm-point-square))
+      (setq square (landmark-point-square))
       (cond ((null square)
 	     (error "Your point is not on a square. Retry!"))
-	    ((not (zerop (aref lm-board square)))
+	    ((not (zerop (aref landmark-board square)))
 	     (error "Your point is not on a free square. Retry!"))
 	    (t
 	     (progn
-	       (lm-plot-square square 1)
+	       (landmark-plot-square square 1)
 
-	       (lm-store-old-y_t)
-	       (lm-calc-current-smells)
-	       (put 'z 't (calc-smell-internal 'lm-tree))
+	       (landmark-store-old-y_t)
+	       (landmark-calc-current-smells)
+	       (put 'z 't (calc-smell-internal 'landmark-tree))
 
-	       (lm-random-move)
+	       (landmark-random-move)
 
-	       (lm-calc-payoff)
+	       (landmark-calc-payoff)
 
-	       (mapc 'lm-update-normal-weights lm-directions)
-	       (mapc 'lm-update-naught-weights lm-directions)
-	       (lm-amble-robot)
+	       (mapc 'landmark-update-normal-weights landmark-directions)
+	       (mapc 'landmark-update-naught-weights landmark-directions)
+	       (landmark-amble-robot)
 	       )))))))
 
 
 ;;;_ + Misc functions
-;;;_  - lm-init (auto-start save-weights)
-(defvar lm-tree-r "")
+;;;_  - landmark-init (auto-start save-weights)
+(defvar landmark-tree-r "")
 
-(defun lm-init (auto-start save-weights)
+(defun landmark-init (auto-start save-weights)
 
-  (setq lm-number-of-moves 0)
+  (setq landmark-number-of-moves 0)
 
-  (lm-plot-landmarks)
+  (landmark-plot-landmarks)
 
-  (if lm-debug
+  (if landmark-debug
       (save-current-buffer
-        (set-buffer (get-buffer-create "*lm-w0*"))
+        (set-buffer (get-buffer-create "*landmark-w0*"))
         (erase-buffer)
-        (set-buffer (get-buffer-create "*lm-moves*"))
-        (set-buffer (get-buffer-create "*lm-wts*"))
+        (set-buffer (get-buffer-create "*landmark-moves*"))
+        (set-buffer (get-buffer-create "*landmark-wts*"))
         (erase-buffer)
-        (set-buffer (get-buffer-create "*lm-y,s,noise*"))
+        (set-buffer (get-buffer-create "*landmark-y,s,noise*"))
         (erase-buffer)
-        (set-buffer (get-buffer-create "*lm-smell*"))
+        (set-buffer (get-buffer-create "*landmark-smell*"))
         (erase-buffer)
-        (set-buffer (get-buffer-create "*lm-blackbox*"))
+        (set-buffer (get-buffer-create "*landmark-blackbox*"))
         (erase-buffer)
-        (set-buffer (get-buffer-create "*lm-distance*"))
+        (set-buffer (get-buffer-create "*landmark-distance*"))
         (erase-buffer)))
 
 
-  (lm-set-landmark-signal-strengths)
+  (landmark-set-landmark-signal-strengths)
 
-  (dolist (direction lm-directions)
+  (dolist (direction landmark-directions)
     (put direction 'y_t 0.0))
 
   (if (not save-weights)
       (progn
-	(mapc 'lm-fix-weights-for lm-directions)
-	(dolist (direction lm-directions)
-          (put direction 'w0 lm-initial-w0)))
+	(mapc 'landmark-fix-weights-for landmark-directions)
+	(dolist (direction landmark-directions)
+          (put direction 'w0 landmark-initial-w0)))
     (message "Weights preserved for this run."))
 
   (if auto-start
       (progn
-	(lm-goto-xy (1+ (random lm-board-width)) (1+ (random lm-board-height)))
-	(lm-start-robot))))
+	(landmark-goto-xy (1+ (random landmark-board-width)) (1+ (random landmark-board-height)))
+	(landmark-start-robot))))
 
 
 ;;;_  - something which doesn't work
 ; no-a-worka!!
-;(defum lm-sum-list (list)
+;(defum landmark-sum-list (list)
 ;  (if (> (length list) 0)
-;      (+ (car list) (lm-sum-list (cdr list)))
+;      (+ (car list) (landmark-sum-list (cdr list)))
 ;    0))
 ; this a worka!
 ; (eval  (cons '+ list))
-;;;_  - lm-set-landmark-signal-strengths ()
+;;;_  - landmark-set-landmark-signal-strengths ()
 ;;; on a screen higher than wide, I noticed that the robot would amble
-;;; left and right and not move forward. examining *lm-blackbox*
+;;; left and right and not move forward. examining *landmark-blackbox*
 ;;; revealed that there was no scent from the north and south
 ;;; landmarks, hence, they need less factoring down of the effect of
 ;;; distance on scent.
 
-(defun lm-set-landmark-signal-strengths ()
-
-  (setq lm-tree-r       (* (sqrt (+ (square lm-cx) (square lm-cy))) 1.5))
-
+(defun landmark-set-landmark-signal-strengths ()
+  (setq landmark-tree-r (* (sqrt (+ (square landmark-cx) (square landmark-cy))) 1.5))
   (mapc (lambda (direction)
-	     (put direction 'r (* lm-cx 1.1)))
-	lm-ew)
+	     (put direction 'r (* landmark-cx 1.1)))
+	landmark-ew)
   (mapc (lambda (direction)
-	     (put direction 'r (* lm-cy 1.1)))
-	lm-ns)
-  (put 'lm-tree 'r lm-tree-r))
+	     (put direction 'r (* landmark-cy 1.1)))
+	landmark-ns)
+  (put 'landmark-tree 'r landmark-tree-r))
 
 
-;;;_ + lm-test-run ()
+;;;_ + landmark-test-run ()
 
 ;;;###autoload
-(defalias 'landmark-repeat 'lm-test-run)
+(defalias 'landmark-repeat 'landmark-test-run)
 ;;;###autoload
-(defun lm-test-run ()
-  "Run 100 Lm games, each time saving the weights from the previous game."
+(defun landmark-test-run ()
+  "Run 100 Landmark games, each time saving the weights from the previous game."
   (interactive)
-
-  (lm 1)
-
+  (landmark 1)
   (dotimes (scratch-var 100)
-
-    (lm 2)))
-
-
-;;;_ + lm: The function you invoke to play
+    (landmark 2)))
 
 ;;;###autoload
-(defalias 'landmark 'lm)
-;;;###autoload
-(defun lm (parg)
-  "Start or resume an Lm game.
+(defun landmark (parg)
+  "Start or resume an Landmark game.
 If a game is in progress, this command allows you to resume it.
 Here is the relation between prefix args and game options:
 
@@ -1644,37 +1633,37 @@ none / 1   | yes                   | no
        3   | no                    | yes
        4   | no                    | no
 
-You start by moving to a square and typing \\[lm-start-robot],
+You start by moving to a square and typing \\[landmark-start-robot],
 if you did not use a prefix arg to ask for automatic start.
 Use \\[describe-mode] for more info."
   (interactive "p")
 
-  (setf lm-n nil lm-m nil)
-  (lm-switch-to-window)
+  (setf landmark-n nil landmark-m nil)
+  (landmark-switch-to-window)
   (cond
-   (lm-emacs-is-computing
-    (lm-crash-game))
-   ((or (not lm-game-in-progress)
-	(<= lm-number-of-moves 2))
-    (let ((max-width (lm-max-width))
-	  (max-height (lm-max-height)))
-      (or lm-n (setq lm-n max-width))
-      (or lm-m (setq lm-m max-height))
-      (cond ((< lm-n 1)
+   (landmark-emacs-is-computing
+    (landmark-crash-game))
+   ((or (not landmark-game-in-progress)
+	(<= landmark-number-of-moves 2))
+    (let ((max-width (landmark-max-width))
+	  (max-height (landmark-max-height)))
+      (or landmark-n (setq landmark-n max-width))
+      (or landmark-m (setq landmark-m max-height))
+      (cond ((< landmark-n 1)
 	     (error "I need at least 1 column"))
-	    ((< lm-m 1)
+	    ((< landmark-m 1)
 	     (error "I need at least 1 row"))
-	    ((> lm-n max-width)
-	     (error "I cannot display %d columns in that window" lm-n)))
-      (if (and (> lm-m max-height)
-	       (not (eq lm-m lm-saved-board-height))
+	    ((> landmark-n max-width)
+	     (error "I cannot display %d columns in that window" landmark-n)))
+      (if (and (> landmark-m max-height)
+	       (not (eq landmark-m landmark-saved-board-height))
 	       ;; Use EQ because SAVED-BOARD-HEIGHT may be nil
-	       (not (y-or-n-p (format "Do you really want %d rows? " lm-m))))
-	  (setq lm-m max-height)))
-    (if lm-one-moment-please
+	       (not (y-or-n-p (format "Do you really want %d rows? " landmark-m))))
+	  (setq landmark-m max-height)))
+    (if landmark-one-moment-please
 	(message "One moment, please..."))
-    (lm-start-game lm-n lm-m)
-    (eval (cons 'lm-init
+    (landmark-start-game landmark-n landmark-m)
+    (eval (cons 'landmark-init
 		(cond
 		 ((= parg 1)  '(t nil))
 		 ((= parg 2)  '(t t))

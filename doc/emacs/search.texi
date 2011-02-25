@@ -1,6 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001, 2002,
-@c   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Search, Fixit, Display, Top
@@ -546,21 +545,20 @@ Search}.
 @cindex syntax of regexps
 
   This manual describes regular expression features that users
-typically want to use.  There are additional features that are
-mainly used in Lisp programs; see @ref{Regular Expressions,,,
-elisp, The Emacs Lisp Reference Manual}.
+typically use.  @xref{Regular Expressions,,, elisp, The Emacs Lisp
+Reference Manual}, for additional features used mainly in Lisp
+programs.
 
   Regular expressions have a syntax in which a few characters are
 special constructs and the rest are @dfn{ordinary}.  An ordinary
-character is a simple regular expression which matches that same
-character and nothing else.  The special characters are @samp{$},
-@samp{^}, @samp{.}, @samp{*}, @samp{+}, @samp{?}, @samp{[}, and
-@samp{\}.  The character @samp{]} is special if it ends a character
-alternative (see later).  The character @samp{-} is special inside a
-character alternative.  Any other character appearing in a regular
-expression is ordinary, unless a @samp{\} precedes it.  (When you use
-regular expressions in a Lisp program, each @samp{\} must be doubled,
-see the example near the end of this section.)
+character matches that same character and nothing else.  The special
+characters are @samp{$^.*+?[\}.  The character @samp{]} is special if
+it ends a character alternative (see later).  The character @samp{-}
+is special inside a character alternative.  Any other character
+appearing in a regular expression is ordinary, unless a @samp{\}
+precedes it.  (When you use regular expressions in a Lisp program,
+each @samp{\} must be doubled, see the example near the end of this
+section.)
 
   For example, @samp{f} is not a special character, so it is ordinary, and
 therefore @samp{f} is a regular expression that matches the string
@@ -570,28 +568,27 @@ only @samp{o}.  (When case distinctions are being ignored, these regexps
 also match @samp{F} and @samp{O}, but we consider this a generalization
 of ``the same string,'' rather than an exception.)
 
-  Any two regular expressions @var{a} and @var{b} can be concatenated.  The
-result is a regular expression which matches a string if @var{a} matches
-some amount of the beginning of that string and @var{b} matches the rest of
-the string.@refill
-
-  As a simple example, we can concatenate the regular expressions @samp{f}
-and @samp{o} to get the regular expression @samp{fo}, which matches only
-the string @samp{fo}.  Still trivial.  To do something nontrivial, you
-need to use one of the special characters.  Here is a list of them.
+  Any two regular expressions @var{a} and @var{b} can be concatenated.
+The result is a regular expression which matches a string if @var{a}
+matches some amount of the beginning of that string and @var{b}
+matches the rest of the string.  For example, concatenating the
+regular expressions @samp{f} and @samp{o} gives the regular expression
+@samp{fo}, which matches only the string @samp{fo}.  Still trivial.
+To do something nontrivial, you need to use one of the special
+characters.  Here is a list of them.
 
 @table @asis
 @item @kbd{.}@: @r{(Period)}
-is a special character that matches any single character except a newline.
-Using concatenation, we can make regular expressions like @samp{a.b}, which
-matches any three-character string that begins with @samp{a} and ends with
-@samp{b}.@refill
+is a special character that matches any single character except a
+newline.  For example, the regular expressions @samp{a.b} matches any
+three-character string that begins with @samp{a} and ends with
+@samp{b}.
 
 @item @kbd{*}
 is not a construct by itself; it is a postfix operator that means to
-match the preceding regular expression repetitively as many times as
-possible.  Thus, @samp{o*} matches any number of @samp{o}s (including no
-@samp{o}s).
+match the preceding regular expression repetitively any number of
+times, as many times as possible.  Thus, @samp{o*} matches any number
+of @samp{o}s, including no @samp{o}s.
 
 @samp{*} always applies to the @emph{smallest} possible preceding
 expression.  Thus, @samp{fo*} has a repeating @samp{o}, not a repeating
@@ -610,22 +607,21 @@ With this choice, the rest of the regexp matches successfully.@refill
 
 @item @kbd{+}
 is a postfix operator, similar to @samp{*} except that it must match
-the preceding expression at least once.  So, for example, @samp{ca+r}
-matches the strings @samp{car} and @samp{caaaar} but not the string
-@samp{cr}, whereas @samp{ca*r} matches all three strings.
+the preceding expression at least once.  Thus, @samp{ca+r} matches the
+strings @samp{car} and @samp{caaaar} but not the string @samp{cr},
+whereas @samp{ca*r} matches all three strings.
 
 @item @kbd{?}
-is a postfix operator, similar to @samp{*} except that it can match the
-preceding expression either once or not at all.  For example,
-@samp{ca?r} matches @samp{car} or @samp{cr}; nothing else.
+is a postfix operator, similar to @samp{*} except that it can match
+the preceding expression either once or not at all.  Thus, @samp{ca?r}
+matches @samp{car} or @samp{cr}, and nothing else.
 
 @item @kbd{*?}, @kbd{+?}, @kbd{??}
 @cindex non-greedy regexp matching
-are non-greedy variants of the operators above.  The normal operators
-@samp{*}, @samp{+}, @samp{?} are @dfn{greedy} in that they match as
-much as they can, as long as the overall regexp can still match.  With
-a following @samp{?}, they are non-greedy: they will match as little
-as possible.
+are non-@dfn{greedy} variants of the operators above.  The normal
+operators @samp{*}, @samp{+}, @samp{?} match as much as they can, as
+long as the overall regexp can still match.  With a following
+@samp{?}, they will match as little as possible.
 
 Thus, both @samp{ab*} and @samp{ab*?} can match the string @samp{a}
 and the string @samp{abbbb}; but if you try to match them both against
@@ -641,29 +637,30 @@ a newline, it matches the whole string.  Since it @emph{can} match
 starting at the first @samp{a}, it does.
 
 @item @kbd{\@{@var{n}\@}}
-is a postfix operator that specifies repetition @var{n} times---that
-is, the preceding regular expression must match exactly @var{n} times
-in a row.  For example, @samp{x\@{4\@}} matches the string @samp{xxxx}
-and nothing else.
+is a postfix operator specifying @var{n} repetitions---that is, the
+preceding regular expression must match exactly @var{n} times in a
+row.  For example, @samp{x\@{4\@}} matches the string @samp{xxxx} and
+nothing else.
 
 @item @kbd{\@{@var{n},@var{m}\@}}
-is a postfix operator that specifies repetition between @var{n} and
-@var{m} times---that is, the preceding regular expression must match
-at least @var{n} times, but no more than @var{m} times.  If @var{m} is
+is a postfix operator specifying between @var{n} and @var{m}
+repetitions---that is, the preceding regular expression must match at
+least @var{n} times, but no more than @var{m} times.  If @var{m} is
 omitted, then there is no upper limit, but the preceding regular
 expression must match at least @var{n} times.@* @samp{\@{0,1\@}} is
 equivalent to @samp{?}. @* @samp{\@{0,\@}} is equivalent to
 @samp{*}. @* @samp{\@{1,\@}} is equivalent to @samp{+}.
 
 @item @kbd{[ @dots{} ]}
-is a @dfn{character set}, which begins with @samp{[} and is terminated
-by @samp{]}.  In the simplest case, the characters between the two
-brackets are what this set can match.
+is a @dfn{character set}, beginning with @samp{[} and terminated by
+@samp{]}.
 
-Thus, @samp{[ad]} matches either one @samp{a} or one @samp{d}, and
-@samp{[ad]*} matches any string composed of just @samp{a}s and @samp{d}s
-(including the empty string), from which it follows that @samp{c[ad]*r}
-matches @samp{cr}, @samp{car}, @samp{cdr}, @samp{caddaar}, etc.
+In the simplest case, the characters between the two brackets are what
+this set can match.  Thus, @samp{[ad]} matches either one @samp{a} or
+one @samp{d}, and @samp{[ad]*} matches any string composed of just
+@samp{a}s and @samp{d}s (including the empty string).  It follows that
+@samp{c[ad]*r} matches @samp{cr}, @samp{car}, @samp{cdr},
+@samp{caddaar}, etc.
 
 You can also include character ranges in a character set, by writing the
 starting and ending characters with a @samp{-} between them.  Thus,
@@ -672,9 +669,12 @@ intermixed freely with individual characters, as in @samp{[a-z$%.]},
 which matches any lower-case @acronym{ASCII} letter or @samp{$}, @samp{%} or
 period.
 
-Note that the usual regexp special characters are not special inside a
-character set.  A completely different set of special characters exists
-inside character sets: @samp{]}, @samp{-} and @samp{^}.
+You can also include certain special @dfn{character classes} in a
+character set.  A @samp{[:} and balancing @samp{:]} enclose a
+character class inside a character alternative.  For instance,
+@samp{[[:alnum:]]} matches any letter or digit.  @xref{Char Classes,,,
+elisp, The Emacs Lisp Reference Manual}, for a list of character
+classes.
 
 To include a @samp{]} in a character set, you must make it the first
 character.  For example, @samp{[]a]} matches @samp{]} or @samp{a}.  To
@@ -1378,7 +1378,3 @@ it never deletes lines that are only partially contained in the region
 
 If a match is split across lines, this command keeps all those lines.
 @end table
-
-@ignore
-   arch-tag: fd9d8e77-66af-491c-b212-d80999613e3e
-@end ignore

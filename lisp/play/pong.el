@@ -1,7 +1,6 @@
 ;;; pong.el --- classical implementation of pong
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: Benjamin Drieu <bdrieu@april.org>
 ;; Keywords: games
@@ -191,21 +190,23 @@
 ;;; Initialize maps
 
 (defvar pong-mode-map
-  (make-sparse-keymap 'pong-mode-map) "Modemap for pong-mode.")
+  (let ((map (make-sparse-keymap 'pong-mode-map)))
+    (define-key map [left]	 'pong-move-left)
+    (define-key map [right] 	 'pong-move-right)
+    (define-key map [up]		 'pong-move-up)
+    (define-key map [down]	 'pong-move-down)
+    (define-key map pong-left-key  'pong-move-left)
+    (define-key map pong-right-key 'pong-move-right)
+    (define-key map pong-up-key	 'pong-move-up)
+    (define-key map pong-down-key  'pong-move-down)
+    (define-key map pong-quit-key  'pong-quit)
+    (define-key map pong-pause-key 'pong-pause)
+    map)
+  "Modemap for pong-mode.")
 
 (defvar pong-null-map
   (make-sparse-keymap 'pong-null-map) "Null map for pong-mode.")
 
-(define-key pong-mode-map [left]	 'pong-move-left)
-(define-key pong-mode-map [right] 	 'pong-move-right)
-(define-key pong-mode-map [up]		 'pong-move-up)
-(define-key pong-mode-map [down]	 'pong-move-down)
-(define-key pong-mode-map pong-left-key  'pong-move-left)
-(define-key pong-mode-map pong-right-key 'pong-move-right)
-(define-key pong-mode-map pong-up-key	 'pong-move-up)
-(define-key pong-mode-map pong-down-key  'pong-move-down)
-(define-key pong-mode-map pong-quit-key  'pong-quit)
-(define-key pong-mode-map pong-pause-key 'pong-pause)
 
 
 ;;; Fun stuff -- The code
@@ -458,5 +459,4 @@ pong-mode keybindings:\\<pong-mode-map>
 
 (provide 'pong)
 
-;; arch-tag: 1fdf0fc5-13e2-4de4-aae4-09bdd5af99f3
 ;;; pong.el ends here

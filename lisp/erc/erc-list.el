@@ -1,6 +1,6 @@
 ;;; erc-list.el --- /list support for ERC
 
-;; Copyright (C) 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;; Version: 0.1
@@ -119,24 +119,21 @@
 
 (defvar erc-list-menu-mode-map
   (let ((map (make-keymap)))
-    (suppress-keymap map)
+    (set-keymap-parent map special-mode-map)
     (define-key map "k" 'erc-list-kill)
     (define-key map "j" 'erc-list-join)
     (define-key map "g" 'erc-list-revert)
     (define-key map "n" 'next-line)
     (define-key map "p" 'previous-line)
-    (define-key map "q" 'quit-window)
     map)
   "Local keymap for `erc-list-mode' buffers.")
 
-(defvar erc-list-menu-sort-button-map nil
-  "Local keymap for ERC list menu mode sorting buttons.")
-
-(unless erc-list-menu-sort-button-map
+(defvar erc-list-menu-sort-button-map
   (let ((map (make-sparse-keymap)))
     (define-key map [header-line mouse-1] 'erc-list-menu-sort-by-column)
     (define-key map [follow-link] 'mouse-face)
-    (setq erc-list-menu-sort-button-map map)))
+    map)
+  "Local keymap for ERC list menu mode sorting buttons.")
 
 ;; Helper function that makes a buttonized column header.
 (defun erc-list-button (title column)
@@ -146,7 +143,7 @@
 		  'mouse-face 'highlight
 		  'keymap erc-list-menu-sort-button-map))
 
-(define-derived-mode erc-list-menu-mode nil "ERC-List"
+(define-derived-mode erc-list-menu-mode special-mode "ERC-List"
   "Major mode for editing a list of irc channels."
   (setq header-line-format
 	(concat
@@ -223,4 +220,3 @@ to RFC and send the LIST header (#321) at start of list transmission."
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: 99c5f9cb-6bac-4224-86bf-e394768cd1d0

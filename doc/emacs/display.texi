@@ -1,6 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
 @c   Free Software Foundation, Inc.
 
 @c See file emacs.texi for copying conditions.
@@ -1401,7 +1400,3 @@ page for other output.  On such terminals, you might want to set the variable
 @code{no-redraw-on-reenter} non-@code{nil}; this tells Emacs to
 assume, when resumed, that the screen page it is using still contains
 what Emacs last wrote there.
-
-@ignore
-   arch-tag: 2219f910-2ff0-4521-b059-1bd231a536c4
-@end ignore

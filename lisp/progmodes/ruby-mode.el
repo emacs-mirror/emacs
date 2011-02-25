@@ -1,8 +1,6 @@
 ;;; ruby-mode.el --- Major mode for editing Ruby files
 
-;; Copyright (C) 1994, 1995, 1996 1997, 1998, 1999, 2000, 2001,
-;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1994-2011  Free Software Foundation, Inc.
 
 ;; Authors: Yukihiro Matsumoto
 ;;	Nobuyoshi Nakada
@@ -153,6 +151,7 @@ This should only be called after matching against `ruby-here-doc-beg-re'."
     (define-key map (kbd "C-M-h") 'backward-kill-word)
     (define-key map (kbd "C-j")   'reindent-then-newline-and-indent)
     (define-key map (kbd "C-m")   'newline)
+    (define-key map (kbd "C-c C-c") 'comment-region)
     map)
   "Keymap used in Ruby mode.")
 
@@ -319,7 +318,7 @@ Also ignores spaces after parenthesis when 'space."
                             (cdr (assq coding-system ruby-encoding-map)))
                        coding-system))
                 "ascii-8bit"))
-        (if (looking-at "^#![^\n]*ruby") (beginning-of-line 2))
+        (if (looking-at "^#!") (beginning-of-line 2))
         (cond ((looking-at "\\s *#.*-\*-\\s *\\(en\\)?coding\\s *:\\s *\\([-a-z0-9_]*\\)\\s *\\(;\\|-\*-\\)")
                (unless (string= (match-string 2) coding-system)
                  (goto-char (match-beginning 2))
@@ -927,6 +926,7 @@ With ARG, do it many times.  Negative ARG means move backward."
       (condition-case nil
           (while (> i 0)
             (skip-syntax-forward " ")
+	    (if (looking-at ",\\s *") (goto-char (match-end 0)))
             (cond ((looking-at "\\?\\(\\\\[CM]-\\)*\\\\?\\S ")
                    (goto-char (match-end 0)))
                   ((progn
@@ -1121,16 +1121,15 @@ See `add-log-current-defun-function'."
          (syntax-propertize-rules
           ;; #{ }, #$hoge, #@foo are not comments
           ("\\(#\\)[{$@]" (1 "."))
-          ;; the last $', $", $` in the respective string is not variable
-          ;; the last ?', ?", ?` in the respective string is not ascii code
-          ("\\(^\\|[\[ \t\n<+\(,=]\\)\\(['\"`]\\)\\(\\\\.\\|\\2\\|[^'\"`\n\\\\]\\)*?\\\\?[?$]\\(\\2\\)"
-           (2 "\"")
-           (4 "\""))
           ;; $' $" $` .... are variables
           ;; ?' ?" ?` are ascii codes
-          ("\\(^\\|[^\\\\]\\)\\(\\\\\\\\\\)*[?$]\\([#\"'`]\\)" (3 "."))
+          ("\\([?$]\\)[#\"'`]"
+           (1 (unless (save-excursion
+                        ;; Not within a string.
+                        (nth 3 (syntax-ppss (match-beginning 0))))
+                (string-to-syntax "\\"))))
           ;; regexps
-          ("\\(^\\|[=(,~?:;<>]\\|\\(^\\|\\s \\)\\(if\\|elsif\\|unless\\|while\\|until\\|when\\|and\\|or\\|&&\\|||\\)\\|g?sub!?\\|scan\\|split!?\\)\\s *\\(/\\)[^/\n\\\\]*\\(\\\\.[^/\n\\\\]*\\)*\\(/\\)"
+          ("\\(^\\|[[=(,~?:;<>]\\|\\(^\\|\\s \\)\\(if\\|elsif\\|unless\\|while\\|until\\|when\\|and\\|or\\|&&\\|||\\)\\|g?sub!?\\|scan\\|split!?\\)\\s *\\(/\\)[^/\n\\\\]*\\(\\\\.[^/\n\\\\]*\\)*\\(/\\)"
            (4 "\"/")
            (6 "\"/"))
           ("^=en\\(d\\)\\_>" (1 "!"))
@@ -1180,56 +1179,59 @@ It's useful in that it divides up the match string so that
     "Return a regexp to find the beginning of a heredoc.
 
 This should only be called after matching against `ruby-here-doc-end-re'."
-    (let ((contents (regexp-quote (match-string 2))))
+    (let ((contents (concat
+                     (regexp-quote (concat (match-string 2) (match-string 3)))
+                     (if (string= (match-string 3) "_") "\\B" "\\b"))))
       (concat "<<"
               (let ((match (match-string 1)))
                 (if (and match (> (length match) 0))
-                    (concat "\\(?:-\\([\"']?\\)\\|\\([\"']\\)" match "\\)"
-                            contents "\\b\\(\\1\\|\\2\\)")
-                  (concat "-?\\([\"']\\|\\)" contents "\\b\\1"))))))
+                    (concat "\\(?:-\\([\"']?\\)\\|\\([\"']\\)"
+                            (match-string 1) "\\)"
+                            contents "\\(\\1\\|\\2\\)")
+                  (concat "-?\\([\"']\\|\\)" contents "\\1"))))))
 
   (defconst ruby-font-lock-syntactic-keywords
     `( ;; #{ }, #$hoge, #@foo are not comments
-      ("\\(#\\)[{$@]" 1 (1 . nil))
-      ;; the last $', $", $` in the respective string is not variable
-      ;; the last ?', ?", ?` in the respective string is not ascii code
-      ("\\(^\\|[\[ \t\n<+\(,=]\\)\\(['\"`]\\)\\(\\\\.\\|\\2\\|[^'\"`\n\\\\]\\)*?\\\\?[?$]\\(\\2\\)"
-       (2 (7 . nil))
-       (4 (7 . nil)))
-      ;; $' $" $` .... are variables
-      ;; ?' ?" ?` are ascii codes
-      ("\\(^\\|[^\\\\]\\)\\(\\\\\\\\\\)*[?$]\\([#\"'`]\\)" 3 (1 . nil))
-      ;; regexps
-      ("\\(^\\|[=(,~?:;<>]\\|\\(^\\|\\s \\)\\(if\\|elsif\\|unless\\|while\\|until\\|when\\|and\\|or\\|&&\\|||\\)\\|g?sub!?\\|scan\\|split!?\\)\\s *\\(/\\)[^/\n\\\\]*\\(\\\\.[^/\n\\\\]*\\)*\\(/\\)"
-       (4 (7 . ?/))
-       (6 (7 . ?/)))
-      ("^=en\\(d\\)\\_>" 1 "!")
-      ("^\\(=\\)begin\\_>" 1 (ruby-comment-beg-syntax))
-      ;; Currently, the following case is highlighted incorrectly:
-      ;;
-      ;;   <<FOO
-      ;;   FOO
-      ;;   <<BAR
-      ;;   <<BAZ
-      ;;   BAZ
-      ;;   BAR
-      ;;
-      ;; This is because all here-doc beginnings are highlighted before any endings,
-      ;; so although <<BAR is properly marked as a beginning, when we get to <<BAZ
-      ;; it thinks <<BAR is part of a string so it's marked as well.
-      ;;
-      ;; This may be fixable by modifying ruby-in-here-doc-p to use
-      ;; ruby-in-non-here-doc-string-p rather than syntax-ppss-context,
-      ;; but I don't want to try that until we've got unit tests set up
-      ;; to make sure I don't break anything else.
-      (,(concat ruby-here-doc-beg-re ".*\\(\n\\)")
-       ,(+ 1 (regexp-opt-depth ruby-here-doc-beg-re))
-       (ruby-here-doc-beg-syntax))
-      (,ruby-here-doc-end-re 3 (ruby-here-doc-end-syntax)))
-    "Syntactic keywords for Ruby mode.  See `font-lock-syntactic-keywords'.")
+    ("\\(#\\)[{$@]" 1 (1 . nil))
+    ;; the last $', $", $` in the respective string is not variable
+    ;; the last ?', ?", ?` in the respective string is not ascii code
+    ("\\(^\\|[\[ \t\n<+\(,=]\\)\\(['\"`]\\)\\(\\\\.\\|\\2\\|[^'\"`\n\\\\]\\)*?\\\\?[?$]\\(\\2\\)"
+     (2 (7 . nil))
+     (4 (7 . nil)))
+    ;; $' $" $` .... are variables
+    ;; ?' ?" ?` are ascii codes
+    ("\\(^\\|[^\\\\]\\)\\(\\\\\\\\\\)*[?$]\\([#\"'`]\\)" 3 (1 . nil))
+    ;; regexps
+    ("\\(^\\|[[=(,~?:;<>]\\|\\(^\\|\\s \\)\\(if\\|elsif\\|unless\\|while\\|until\\|when\\|and\\|or\\|&&\\|||\\)\\|g?sub!?\\|scan\\|split!?\\)\\s *\\(/\\)[^/\n\\\\]*\\(\\\\.[^/\n\\\\]*\\)*\\(/\\)"
+     (4 (7 . ?/))
+     (6 (7 . ?/)))
+    ("^=en\\(d\\)\\_>" 1 "!")
+    ("^\\(=\\)begin\\_>" 1 (ruby-comment-beg-syntax))
+    ;; Currently, the following case is highlighted incorrectly:
+    ;;
+    ;;   <<FOO
+    ;;   FOO
+    ;;   <<BAR
+    ;;   <<BAZ
+    ;;   BAZ
+    ;;   BAR
+    ;;
+    ;; This is because all here-doc beginnings are highlighted before any endings,
+    ;; so although <<BAR is properly marked as a beginning, when we get to <<BAZ
+    ;; it thinks <<BAR is part of a string so it's marked as well.
+    ;;
+    ;; This may be fixable by modifying ruby-in-here-doc-p to use
+    ;; ruby-in-non-here-doc-string-p rather than syntax-ppss-context,
+    ;; but I don't want to try that until we've got unit tests set up
+    ;; to make sure I don't break anything else.
+    (,(concat ruby-here-doc-beg-re ".*\\(\n\\)")
+     ,(+ 1 (regexp-opt-depth ruby-here-doc-beg-re))
+     (ruby-here-doc-beg-syntax))
+    (,ruby-here-doc-end-re 3 (ruby-here-doc-end-syntax)))
+  "Syntactic keywords for Ruby mode.  See `font-lock-syntactic-keywords'.")
 
   (defun ruby-comment-beg-syntax ()
-    "Return the syntax cell for a the first character of a =begin.
+  "Return the syntax cell for a the first character of a =begin.
 See the definition of `ruby-font-lock-syntactic-keywords'.
 
 This returns a comment-delimiter cell as long as the =begin
@@ -1421,6 +1423,7 @@ See `font-lock-syntax-table'.")
    ;; symbols
    '("\\(^\\|[^:]\\)\\(:\\([-+~]@?\\|[/%&|^`]\\|\\*\\*?\\|<\\(<\\|=>?\\)?\\|>[>=]?\\|===?\\|=~\\|![~=]?\\|\\[\\]=?\\|\\(\\w\\|_\\)+\\([!?=]\\|\\b_*\\)\\|#{[^}\n\\\\]*\\(\\\\.[^}\n\\\\]*\\)*}\\)\\)"
      2 font-lock-reference-face)
+   '("\\(^\\s *\\|[\[\{\(,]\\s *\\|\\sw\\s +\\)\\(\\(\\sw\\|_\\)+\\):[^:]" 2 font-lock-reference-face)
    ;; expression expansion
    '("#\\({[^}\n\\\\]*\\(\\\\.[^}\n\\\\]*\\)*}\\|\\(\\$\\|@\\|@@\\)\\(\\w\\|_\\)+\\)"
      0 font-lock-variable-name-face t)

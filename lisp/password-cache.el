@@ -1,7 +1,6 @@
 ;;; password-cache.el --- Read passwords, possibly using a password cache.
 
-;; Copyright (C) 1999, 2000, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1999-2000, 2003-2011  Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Created: 2003-12-21
@@ -112,9 +111,10 @@ that a password is invalid, so that `password-read' query the
 user again."
   (let ((password (symbol-value (intern-soft key password-data))))
     (when password
-      (if (fboundp 'clear-string)
-	  (clear-string password)
-	(fillarray password ?_))
+      (when (stringp password)
+        (if (fboundp 'clear-string)
+            (clear-string password)
+          (fillarray password ?_)))
       (unintern key password-data))))
 
 (defun password-cache-add (key password)

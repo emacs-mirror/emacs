@@ -1,8 +1,7 @@
 ;;; eieio.el --- Enhanced Implementation of Emacs Interpreted Objects
 ;;;              or maybe Eric's Implementation of Emacs Intrepreted Objects
 
-;; Copyright (C) 1995, 1996, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 1998-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 1.3
@@ -2944,17 +2943,66 @@ Optional argument NOESCAPE is passed to `prin1-to-string' when appropriate."
 ;;; Autoloading some external symbols, and hooking into the help system
 ;;
 
-(autoload 'eieio-help-mode-augmentation-maybee "eieio-opt" "For buffers thrown into help mode, augment for EIEIO.")
-(autoload 'eieio-browse "eieio-opt" "Create an object browser window." t)
-(autoload 'eieio-describe-class "eieio-opt" "Describe CLASS defined by a string or symbol" t)
-(autoload 'eieio-describe-constructor "eieio-opt" "Describe the constructor function FCN." t)
-(autoload 'describe-class "eieio-opt" "Describe CLASS defined by a string or symbol." t)
-(autoload 'eieio-describe-generic "eieio-opt" "Describe GENERIC defined by a string or symbol." t)
-(autoload 'describe-generic "eieio-opt" "Describe GENERIC defined by a string or symbol." t)
+
+;;; Start of automatically extracted autoloads.
+
+;;;### (autoloads (customize-object) "eieio-custom" "eieio-custom.el"
+;;;;;;  "cf1bd64c76a6e6406545e8c5a5530d43")
+;;; Generated autoloads from eieio-custom.el
 
-(autoload 'customize-object "eieio-custom" "Create a custom buffer editing OBJ.")
+(autoload 'customize-object "eieio-custom" "\
+Customize OBJ in a custom buffer.
+Optional argument GROUP is the sub-group of slots to display.
+
+\(fn OBJ &optional GROUP)" nil nil)
+
+;;;***
+
+;;;### (autoloads (eieio-help-mode-augmentation-maybee eieio-describe-generic
+;;;;;;  eieio-describe-constructor eieio-describe-class eieio-browse)
+;;;;;;  "eieio-opt" "eieio-opt.el" "1bed0a56310f402683419139ebc18d7f")
+;;; Generated autoloads from eieio-opt.el
+
+(autoload 'eieio-browse "eieio-opt" "\
+Create an object browser window to show all objects.
+If optional ROOT-CLASS, then start with that, otherwise start with
+variable `eieio-default-superclass'.
+
+\(fn &optional ROOT-CLASS)" t nil)
+
+(defalias 'describe-class 'eieio-describe-class)
+
+(autoload 'eieio-describe-class "eieio-opt" "\
+Describe a CLASS defined by a string or symbol.
+If CLASS is actually an object, then also display current values of that object.
+Optional HEADERFCN should be called to insert a few bits of info first.
+
+\(fn CLASS &optional HEADERFCN)" t nil)
+
+(autoload 'eieio-describe-constructor "eieio-opt" "\
+Describe the constructor function FCN.
+Uses `eieio-describe-class' to describe the class being constructed.
+
+\(fn FCN)" t nil)
+
+(defalias 'describe-generic 'eieio-describe-generic)
+
+(autoload 'eieio-describe-generic "eieio-opt" "\
+Describe the generic function GENERIC.
+Also extracts information about all methods specific to this generic.
+
+\(fn GENERIC)" t nil)
+
+(autoload 'eieio-help-mode-augmentation-maybee "eieio-opt" "\
+For buffers thrown into help mode, augment for EIEIO.
+Arguments UNUSED are not used.
+
+\(fn &rest UNUSED)" nil nil)
+
+;;;***
+
+;;; End of automatically extracted autoloads.
 
 (provide 'eieio)
 
-;; arch-tag: c1aeab9c-2938-41a3-842b-1a38bd26e9f2
 ;;; eieio ends here

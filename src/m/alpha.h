@@ -1,7 +1,6 @@
 /* Machine description file for the alpha chip.
 
-Copyright (C) 1994, 1997, 1999, 2001, 2002, 2003, 2004, 2005, 2006,
-                 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+Copyright (C) 1994, 1997, 1999, 2001-2011  Free Software Foundation, Inc.
 
 Author: Rainer Schoepf
 (according to authors.el)
@@ -30,12 +29,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* __alpha defined automatically */
 
 
-/* Data type of load average, as read out of kmem.  */
-#define LOAD_AVE_TYPE long
-
-/* Convert that into an integer that is 100 for a load average of 1.0  */
-#define LOAD_AVE_CVT(x) (int) (((double) (x)) * 100.0 / FSCALE)
-
 #ifdef __ELF__
 
 #if !defined(GNU_LINUX) && !defined(__NetBSD__)
@@ -58,6 +51,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    Define DBL_MIN_REPLACEMENT to be the next value larger than DBL_MIN:
    this avoids the assembler bug.  */
 #define DBL_MIN_REPLACEMENT 2.2250738585072019e-308
-
-/* arch-tag: 978cb578-1e25-4a60-819b-adae0972aa78
-   (do not change this comment) */

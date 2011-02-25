@@ -1,7 +1,6 @@
 ;;; avoid.el --- make mouse pointer stay out of the way of editing
 
-;; Copyright (C) 1993, 1994, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2000-2011 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: mouse
@@ -409,5 +408,4 @@ definition of \"random distance\".)"
 (if mouse-avoidance-mode
     (mouse-avoidance-mode mouse-avoidance-mode))
 
-;; arch-tag: 64ad4ef8-a870-4183-8d96-3aa93b7a6800
 ;;; avoid.el ends here

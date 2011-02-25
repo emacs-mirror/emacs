@@ -22,9 +22,7 @@ Boston, MA 02110-1301, USA.  */
 #include <setjmp.h>
 #include <sys/file.h>
 #include <fcntl.h>
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 #include "lisp.h"
 
@@ -270,7 +268,6 @@ tputs (register char *str, int nlines, register int (*outfun) (/* ??? */))
   register int padcount = 0;
   register int speed;
 
-  extern EMACS_INT baud_rate;
   speed = baud_rate;
   /* For quite high speeds, convert to the smaller
      units to avoid overflow.  */
@@ -715,5 +712,3 @@ tprint (cap)
 
 #endif /* TEST */
 
-/* arch-tag: c2e8d427-2271-4fac-95fe-411857238b80
-   (do not change this comment) */

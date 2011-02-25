@@ -4,8 +4,7 @@
 @syncodeindex fn cp
 
 @copying
-Copyright @copyright{} 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+Copyright @copyright{} 1999-2011  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -21,7 +20,7 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs misc features
 @direntry
 * Speedbar: (speedbar).         File/Tag summarizing utility.
 @end direntry
@@ -41,6 +40,7 @@ developing GNU and promoting software freedom.''
 
 @node Top, , , (dir)Top
 @comment  node-name,  next,  previous,  up
+@top Speedbar
 
 Speedbar is a program for Emacs which can be used to summarize
 information related to the current buffer.  Its original inspiration
@@ -1253,7 +1253,3 @@ Two good values are @code{nil} and @code{statictag}.
 @bye
 @c  LocalWords:  speedbar's xref slowbar kbd subsubsection
 @c  LocalWords:  keybindings
-
-@ignore
-   arch-tag: e1fc85f0-1eeb-489f-a8d4-a2bfe711fa02
-@end ignore

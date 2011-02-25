@@ -1,7 +1,6 @@
 ;;; org-remember.el --- Fast note taking in Org-mode
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -215,7 +214,11 @@ The remember buffer is still current when this hook runs."
   :group 'org-remember
   :type 'hook)
 
-(defvar org-remember-mode-map (make-sparse-keymap)
+(defvar org-remember-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-c\C-c" 'org-remember-finalize)
+    (define-key map "\C-c\C-k" 'org-remember-kill)
+    map)
   "Keymap for `org-remember-mode', a minor mode.
 Use this map to set additional keybindings for when Org-mode is used
 for a Remember buffer.")
@@ -225,8 +228,6 @@ for a Remember buffer.")
 (define-minor-mode org-remember-mode
   "Minor mode for special key bindings in a remember buffer."
   nil " Rem" org-remember-mode-map)
-(define-key org-remember-mode-map "\C-c\C-c" 'org-remember-finalize)
-(define-key org-remember-mode-map "\C-c\C-k" 'org-remember-kill)
 
 (defcustom org-remember-clock-out-on-exit 'query
   "Non-nil means stop the clock when exiting a clocking remember buffer.
@@ -1148,7 +1149,6 @@ See also the variable `org-reverse-note-order'."
 
 (provide 'org-remember)
 
-;; arch-tag: 497f30d0-4bc3-4097-8622-2d27ac5f2698
 
 ;;; org-remember.el ends here
 

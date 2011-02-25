@@ -1,7 +1,6 @@
 ;;; elint.el --- Lint Emacs Lisp
 
-;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Peter Liljenberg <petli@lysator.liu.se>
 ;; Created: May 1997
@@ -123,7 +122,6 @@ are as follows, and suppress messages about the indicated features:
   ;; FIXME I don't see why they shouldn't just get doc-strings.
   '(vc-mode local-write-file-hooks activate-menubar-hook buffer-name-history
 	    coding-system-history extended-command-history
-	    kbd-macro-termination-hook read-expression-history
 	    yes-or-no-p-history)
   "Standard variables, excluding `elint-builtin-variables'.
 These are variables that we cannot detect automatically for some reason.")

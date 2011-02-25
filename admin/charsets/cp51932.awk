@@ -52,8 +52,4 @@ END {
   print "	      (setcar x (cdr x)) (setcdr x tmp)))";
   print "	map)";
   print "  (define-translation-table 'cp51932-encode map))";
-  print "";
-  print ";; arch-tag: d21c06e5-a548-4dda-8802-c2922ff19da3";
 }
-
-# arch-tag: bbae996b-2d1c-4e85-bb55-ac30146d7504

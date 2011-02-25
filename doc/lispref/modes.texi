@@ -1,7 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2011  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/modes
 @node Modes, Documentation, Keymaps, Top
@@ -414,6 +413,31 @@ for the @var{system-flag} argument to @code{define-abbrev}.
 The mode should specify how to do highlighting for Font Lock mode, by
 setting up a buffer-local value for the variable
 @code{font-lock-defaults} (@pxref{Font Lock Mode}).
+
+@item
+Each face that the mode defines should, if possible, inherit from an
+existing Emacs face.  This reduces the chance of conflicting with a
+user's face customizations.  Useful faces include:
+
+@table @asis
+@item @code{highlight}
+for stretches of text that should temporarily stand out.
+
+@item @code{match}
+for text matching a search command.
+
+@item @code{link} and @code{link-visited}
+for clickable text buttons that send the user to a different buffer or
+``location''.
+
+@item @code{button}
+for clickable text buttons that perform other actions.
+
+@item @asis{Font Lock faces}
+for other kinds of syntactic highlighting, if highlighting is not
+handled by Font Lock mode or some Font Lock faces are not in use.
+@xref{Faces for Font Lock}, for how to assign Font Lock faces.
+@end table
 
 @item
 The mode should specify how Imenu should find the definitions or
@@ -2880,73 +2904,79 @@ the normal Font Lock machinery, it should not set the variable
 @cindex faces for font lock
 @cindex font lock faces
 
-  You can make Font Lock mode use any face, but several faces are
-defined specifically for Font Lock mode.  Each of these symbols is both
-a face name, and a variable whose default value is the symbol itself.
-Thus, the default value of @code{font-lock-comment-face} is
-@code{font-lock-comment-face}.  This means you can write
-@code{font-lock-comment-face} in a context such as
-@code{font-lock-keywords} where a face-name-valued expression is used.
+  Font Lock mode can highlight using any face, but Emacs defines several
+faces specifically for syntactic highlighting.  These @dfn{Font Lock
+faces} are listed below.  They can also be used by major modes for
+syntactic highlighting outside of Font Lock mode (@pxref{Major Mode
+Conventions}).
+
+  Each of these symbols is both a face name, and a variable whose
+default value is the symbol itself.  Thus, the default value of
+@code{font-lock-comment-face} is @code{font-lock-comment-face}.
+
+  The faces are listed with descriptions of their typical usage, and in
+order of greater to lesser ``prominence''.  If a mode's syntactic
+categories do not fit well with the usage descriptions, the faces can be
+assigned using the ordering as a guide.
 
 @table @code
-@item font-lock-comment-face
-@vindex font-lock-comment-face
-Used (typically) for comments.
-
-@item font-lock-comment-delimiter-face
-@vindex font-lock-comment-delimiter-face
-Used (typically) for comments delimiters.
-
-@item font-lock-doc-face
-@vindex font-lock-doc-face
-Used (typically) for documentation strings in the code.
-
-@item font-lock-string-face
-@vindex font-lock-string-face
-Used (typically) for string constants.
-
-@item font-lock-keyword-face
-@vindex font-lock-keyword-face
-Used (typically) for keywords---names that have special syntactic
-significance, like @code{for} and @code{if} in C.
-
-@item font-lock-builtin-face
-@vindex font-lock-builtin-face
-Used (typically) for built-in function names.
+@item font-lock-warning-face
+@vindex font-lock-warning-face
+for a construct that is peculiar, or that greatly changes the meaning of
+other text, like @samp{;;;###autoload} in Emacs Lisp and @samp{#error}
+in C.
 
 @item font-lock-function-name-face
 @vindex font-lock-function-name-face
-Used (typically) for the name of a function being defined or declared,
-in a function definition or declaration.
+for the name of a function being defined or declared.
 
 @item font-lock-variable-name-face
 @vindex font-lock-variable-name-face
-Used (typically) for the name of a variable being defined or declared,
-in a variable definition or declaration.
+for the name of a variable being defined or declared.
+
+@item font-lock-keyword-face
+@vindex font-lock-keyword-face
+for a keyword with special syntactic significance, like @samp{for} and
+@samp{if} in C.
+
+@item font-lock-comment-face
+@vindex font-lock-comment-face
+for comments.
+
+@item font-lock-comment-delimiter-face
+@vindex font-lock-comment-delimiter-face
+for comments delimiters, like @samp{/*} and @samp{*/} in C.  On most
+terminals, this inherits from @code{font-lock-comment-face}.
 
 @item font-lock-type-face
 @vindex font-lock-type-face
-Used (typically) for names of user-defined data types,
-where they are defined and where they are used.
+for the names of user-defined data types.
 
 @item font-lock-constant-face
 @vindex font-lock-constant-face
-Used (typically) for constant names.
+for the names of constants, like @samp{NULL} in C.
+
+@item font-lock-builtin-face
+@vindex font-lock-builtin-face
+for the names of built-in functions.
 
 @item font-lock-preprocessor-face
 @vindex font-lock-preprocessor-face
-Used (typically) for preprocessor commands.
+for preprocessor commands.  This inherits, by default, from
+@code{font-lock-builtin-face}.
+
+@item font-lock-string-face
+@vindex font-lock-string-face
+for string constants.
+
+@item font-lock-doc-face
+@vindex font-lock-doc-face
+for documentation strings in the code.  This inherits, by default, from
+@code{font-lock-string-face}.
 
 @item font-lock-negation-char-face
 @vindex font-lock-negation-char-face
-Used (typically) for easily-overlooked negation characters.
-
-@item font-lock-warning-face
-@vindex font-lock-warning-face
-Used (typically) for constructs that are peculiar, or that greatly
-change the meaning of other text.  For example, this is used for
-@samp{;;;###autoload} cookies in Emacs Lisp, and for @code{#error}
-directives in C.
+for easily-overlooked negation characters.
 @end table
 
 @node Syntactic Font Lock

@@ -1,8 +1,6 @@
 /* System description header for FreeBSD systems.
 
-Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-                 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-                 Free Software Foundation, Inc.
+Copyright (C) 1994-2011  Free Software Foundation, Inc.
 
 Author: Shawn M. Carey
 (according to authors.el)
@@ -26,8 +24,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "bsd-common.h"
 
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_p - (FILE)->_bf._base)
-
-#define HAVE_GETLOADAVG 1
 
 /* This silences a few compilation warnings.  */
 #undef BSD_SYSTEM
@@ -65,6 +61,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Use the GC_MAKE_GCPROS_NOOPS (see lisp.h) method for marking the stack.  */
 #define GC_MARK_STACK 	GC_MAKE_GCPROS_NOOPS
-
-/* arch-tag: 426529ca-b7c4-448f-b10a-d4dcdc9c78eb
-   (do not change this comment) */

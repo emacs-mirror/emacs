@@ -1,7 +1,6 @@
 /* MS-DOS specific C utilities.          -*- coding: raw-text -*-
-   Copyright (C) 1993, 1994, 1995, 1996, 1997, 1999, 2000, 2001, 2002,
-                 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-                 Free Software Foundation, Inc.
+
+Copyright (C) 1993-1997, 1999-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -404,9 +403,6 @@ static unsigned long screen_old_address = 0;
 /* Segment and offset of the virtual screen.  If 0, DOS/V is NOT loaded.  */
 static unsigned short screen_virtual_segment = 0;
 static unsigned short screen_virtual_offset = 0;
-/* A flag to control how to display unibyte 8-bit characters.  */
-extern int unibyte_display_via_language_environment;
-
 extern Lisp_Object Qcursor_type;
 extern Lisp_Object Qbar, Qhbar;
 
@@ -846,7 +842,6 @@ IT_set_face (int face)
    accomodate the screen attribute byte.  */
 #define MAX_SCREEN_BUF 160*2
 
-Lisp_Object Vdos_unsupported_char_glyph;
 extern unsigned char *encode_terminal_code (struct glyph *, int,
 					    struct coding_system *);
 static void
@@ -1322,12 +1317,12 @@ IT_frame_up_to_date (struct frame *f)
     {
       struct buffer *b = XBUFFER (sw->buffer);
 
-      if (EQ (b->cursor_type, Qt))
+      if (EQ (BVAR (b,cursor_type), Qt))
 	new_cursor = frame_desired_cursor;
-      else if (NILP (b->cursor_type)) /* nil means no cursor */
+      else if (NILP (BVAR (b, cursor_type))) /* nil means no cursor */
 	new_cursor = Fcons (Qbar, make_number (0));
       else
-	new_cursor = b->cursor_type;
+	new_cursor = BVAR (b, cursor_type);
     }
 
   IT_set_cursor_type (f, new_cursor);
@@ -1798,7 +1793,7 @@ internal_terminal_init (void)
     }
 
   tty = FRAME_TTY (sf);
-  current_kboard->Vwindow_system = Qpc;
+  KVAR (current_kboard, Vwindow_system) = Qpc;
   sf->output_method = output_msdos_raw;
   if (init_needed)
     {
@@ -4226,7 +4221,7 @@ syms_of_msdos (void)
   Qreverse = intern_c_string ("reverse");
   staticpro (&Qreverse);
 
-  DEFVAR_LISP ("dos-unsupported-char-glyph", &Vdos_unsupported_char_glyph,
+  DEFVAR_LISP ("dos-unsupported-char-glyph", Vdos_unsupported_char_glyph,
 	       doc: /* *Glyph to display instead of chars not supported by current codepage.
 This variable is used only by MS-DOS terminals.  */);
   Vdos_unsupported_char_glyph = make_number ('\177');
@@ -4242,5 +4237,3 @@ This variable is used only by MS-DOS terminals.  */);
 
 #endif /* MSDOS */
 
-/* arch-tag: db404e92-52a5-475f-9eb2-1cb78dd05f30
-   (do not change this comment) */

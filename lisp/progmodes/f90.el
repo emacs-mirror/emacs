@@ -1,7 +1,6 @@
 ;;; f90.el --- Fortran-90 mode (free format)
 
-;; Copyright (C) 1995, 1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 1995-1997, 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Torbj\"orn Einarsson <Torbjorn.Einarsson@era.ericsson.se>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -2199,6 +2198,16 @@ CHANGE-WORD should be one of 'upcase-word, 'downcase-word, 'capitalize-word."
   (save-excursion
     (nth 1 (f90-beginning-of-subprogram))))
 
+(defun f90-find-tag-default ()
+  "Function to use for `find-tag-default-function' property in F90 mode."
+  (let ((tag (find-tag-default)))
+    (or (and tag
+             ;; See bug#7919. TODO I imagine there are other cases...?
+             (string-match "%\\(.+\\)" tag)
+             (match-string-no-properties 1 tag))
+        tag)))
+
+(put 'f90-mode 'find-tag-default-function 'f90-find-tag-default)
 
 (defun f90-backslash-not-special (&optional all)
   "Make the backslash character (\\) be non-special in the current buffer.
@@ -2214,5 +2223,4 @@ escape character."
 
 (provide 'f90)
 
-;; arch-tag: fceac97c-c147-44bd-aec0-172d4b560ef8
 ;;; f90.el ends here

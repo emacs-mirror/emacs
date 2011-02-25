@@ -1,6 +1,5 @@
 /* Header for charset handler.
-   Copyright (C) 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2001-2011 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -251,13 +250,10 @@ extern Lisp_Object Vcharset_non_preferred_head;
 /* Incremented everytime we change the priority of charsets.  */
 extern unsigned short charset_ordered_list_tick;
 
-extern Lisp_Object Vcharset_list;
 extern Lisp_Object Viso_2022_charset_list;
 extern Lisp_Object Vemacs_mule_charset_list;
 
 extern int emacs_mule_charset[256];
-
-extern Lisp_Object Vcurrent_iso639_language;
 
 /* Macros to access information about charset.  */
 
@@ -546,5 +542,3 @@ extern void map_charset_chars (void (*) (Lisp_Object, Lisp_Object),
 
 #endif /* EMACS_CHARSET_H */
 
-/* arch-tag: 3b96db55-4961-481d-ac3e-219f46a2b3aa
-   (do not change this comment) */

@@ -1,6 +1,6 @@
 ;;; pcase.el --- ML-style pattern-matching macro for Elisp
 
-;; Copyright (C) 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2010-2011  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: 
@@ -61,6 +61,8 @@ UPatterns can take the following forms:
   `QPAT		matches if the QPattern QPAT matches.
   (pred PRED)	matches if PRED applied to the object returns non-nil.
   (guard BOOLEXP)	matches if BOOLEXP evaluates to non-nil.
+If a SYMBOL is used twice in the same pattern (i.e. the pattern is
+\"non-linear\"), then the second occurrence is turned into an `eq'uality test.
 
 QPatterns can take the following forms:
   (QPAT1 . QPAT2)	matches if QPAT1 matches the car and QPAT2 the cdr.
@@ -457,7 +459,12 @@ and otherwise defers to REST which is a list of branches of the form
                      (pcase--u1 matches code vars then-rest)
                      (pcase--u else-rest))))
        ((symbolp upat)
-        (pcase--u1 matches code (cons (cons upat sym) vars) rest))
+        (if (not (assq upat vars))
+            (pcase--u1 matches code (cons (cons upat sym) vars) rest)
+          ;; Non-linear pattern.  Turn it into an `eq' test.
+          (pcase--u1 (cons `(match ,sym . (pred (eq ,(cdr (assq upat vars)))))
+                           matches)
+                     code vars rest)))
        ((eq (car-safe upat) '\`)
         (pcase--q1 sym (cadr upat) matches code vars rest))
        ((eq (car-safe upat) 'or)

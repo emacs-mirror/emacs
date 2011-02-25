@@ -1,6 +1,7 @@
 /* Declarations having to do with GNU Emacs syntax tables.
-   Copyright (C) 1985, 1993, 1994, 1997, 1998, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+
+Copyright (C) 1985, 1993-1994, 1997-1998, 2001-2011
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -23,7 +24,7 @@ extern void update_syntax_table (EMACS_INT, int, int, Lisp_Object);
 
 /* The standard syntax table is stored where it will automatically
    be used in all new buffers.  */
-#define Vstandard_syntax_table buffer_defaults.syntax_table
+#define Vstandard_syntax_table BVAR (&buffer_defaults, syntax_table)
 
 /* A syntax table is a chartable whose elements are cons cells
    (CODE+FLAGS . MATCHING-CHAR).  MATCHING-CHAR can be nil if the char
@@ -78,7 +79,7 @@ enum syntaxcode
 #  define CURRENT_SYNTAX_TABLE gl_state.current_syntax_table
 #else
 #  define SYNTAX_ENTRY SYNTAX_ENTRY_INT
-#  define CURRENT_SYNTAX_TABLE current_buffer->syntax_table
+#  define CURRENT_SYNTAX_TABLE BVAR (current_buffer, syntax_table)
 #endif
 
 #define SYNTAX_ENTRY_INT(c) CHAR_TABLE_REF (CURRENT_SYNTAX_TABLE, (c))
@@ -203,7 +204,7 @@ extern char syntax_code_spec[16];
 do									\
   {									\
     gl_state.use_global = 0;						\
-    gl_state.current_syntax_table = current_buffer->syntax_table;	\
+    gl_state.current_syntax_table = BVAR (current_buffer, syntax_table);	\
   } while (0)
 
 /* This macro should be called with FROM at the start of forward
@@ -298,9 +299,5 @@ struct gl_state_s
 };
 
 extern struct gl_state_s gl_state;
-extern int parse_sexp_lookup_properties;
-
 extern EMACS_INT scan_words (EMACS_INT, EMACS_INT);
 
-/* arch-tag: 28833cca-cd73-4741-8c85-a3111166a0e0
-   (do not change this comment) */

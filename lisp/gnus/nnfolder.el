@@ -1,7 +1,6 @@
 ;;; nnfolder.el --- mail folder access for Gnus
 
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2011 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org> (adding MARKS)
 ;;      ShengHuo Zhu <zsh@cs.rochester.edu> (adding NOV)
@@ -488,8 +487,8 @@ the group.  Then the marks file will be regenerated properly by Gnus.")
       (nnfolder-save-buffer)
       (nnfolder-adjust-min-active newsgroup)
       (nnfolder-save-active nnfolder-group-alist nnfolder-active-file)
-      (gnus-sorted-difference articles (nreverse deleted-articles)))
-    (nnfolder-save-all-buffers)))
+      (nnfolder-save-all-buffers)
+      (gnus-sorted-difference articles (nreverse deleted-articles)))))
 
 (deffoo nnfolder-request-move-article (article group server accept-form
 					       &optional last move-is-internal)
@@ -1084,6 +1083,8 @@ This command does not work if you use short group names."
 	 (or nnfolder-nov-directory nnfolder-directory)))
     (concat (nnfolder-group-pathname group) nnfolder-nov-file-suffix)))
 
+(defvar copyright-update)
+
 (defun nnfolder-save-buffer ()
   "Save the buffer."
   (when (buffer-modified-p)
@@ -1091,8 +1092,8 @@ This command does not work if you use short group names."
     (gnus-make-directory (file-name-directory (buffer-file-name)))
     (let ((coding-system-for-write
 	   (or nnfolder-file-coding-system-for-write
-	       nnfolder-file-coding-system))
-	  (copyright-update nil))
+	       nnfolder-file-coding-system)))
+      (set (make-local-variable 'copyright-update) nil)
       (save-buffer)))
   (unless (or gnus-nov-is-evil nnfolder-nov-is-evil)
     (nnfolder-save-nov)))

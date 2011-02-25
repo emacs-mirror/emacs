@@ -1,7 +1,6 @@
 ;;; subr.el --- basic lisp subroutines for Emacs
 
-;; Copyright (C) 1985, 1986, 1992, 1994, 1995, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+;; Copyright (C) 1985-1986, 1992, 1994-1995, 1999-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -853,24 +852,37 @@ in the current Emacs session, then this function may return nil."
 
 (defsubst event-start (event)
   "Return the starting position of EVENT.
-If EVENT is a mouse or key press or a mouse click, this returns the location
-of the event.
-If EVENT is a drag, this returns the drag's starting position.
-The return value is of the form
+EVENT should be a click, drag, or key press event.
+If it is a key press event, the return value has the form
+    (WINDOW POS (0 . 0) 0)
+If it is a click or drag event, it has the form
    (WINDOW AREA-OR-POS (X . Y) TIMESTAMP OBJECT POS (COL . ROW)
     IMAGE (DX . DY) (WIDTH . HEIGHT))
-The `posn-' functions access elements of such lists."
+The `posn-' functions access elements of such lists.
+For more information, see Info node `(elisp)Click Events'.
+
+If EVENT is a mouse or key press or a mouse click, this is the
+position of the event.  If EVENT is a drag, this is the starting
+position of the drag."
   (if (consp event) (nth 1 event)
     (list (selected-window) (point) '(0 . 0) 0)))
 
 (defsubst event-end (event)
   "Return the ending location of EVENT.
 EVENT should be a click, drag, or key press event.
-If EVENT is a click event, this function is the same as `event-start'.
-The return value is of the form
+If EVENT is a key press event, the return value has the form
+    (WINDOW POS (0 . 0) 0)
+If EVENT is a click event, this function is the same as
+`event-start'.  For click and drag events, the return value has
+the form
    (WINDOW AREA-OR-POS (X . Y) TIMESTAMP OBJECT POS (COL . ROW)
     IMAGE (DX . DY) (WIDTH . HEIGHT))
-The `posn-' functions access elements of such lists."
+The `posn-' functions access elements of such lists.
+For more information, see Info node `(elisp)Click Events'.
+
+If EVENT is a mouse or key press or a mouse click, this is the
+position of the event.  If EVENT is a drag, this is the starting
+position of the drag."
   (if (consp event) (nth (if (consp (nth 2 event)) 2 1) event)
     (list (selected-window) (point) '(0 . 0) 0)))
 
@@ -2054,12 +2066,10 @@ floating point support."
 	    nil))))))
 (set-advertised-calling-convention 'sit-for '(seconds &optional nodisp) "22.1")
 
-(defun y-or-n-p (prompt &rest args)
+(defun y-or-n-p (prompt)
   "Ask user a \"y or n\" question.  Return t if answer is \"y\".
-The string to display to ask the question is obtained by
-formatting the string PROMPT with arguments ARGS (see `format').
-The result should end in a space; `y-or-n-p' adds \"(y or n) \"
-to it.
+PROMPT is the string to display to ask the question.  It should
+end in a space; `y-or-n-p' adds \"(y or n) \" to it.
 
 No confirmation of the answer is requested; a single character is enough.
 Also accepts Space to mean yes, or Delete to mean no.  \(Actually, it uses
@@ -2078,7 +2088,7 @@ is nil and `use-dialog-box' is non-nil."
              use-dialog-box)
         (setq answer
               (x-popup-dialog t `(,prompt ("yes" . act) ("No" . skip))))
-      (setq prompt (concat (apply 'format prompt args)
+      (setq prompt (concat prompt
                            (if (eq ?\s (aref prompt (1- (length prompt))))
                                "" " ")
                            "(y or n) "))
@@ -2364,11 +2374,16 @@ directory if it does not exist."
        ;; unless we're in batch mode or dumping Emacs
        (or noninteractive
 	   purify-flag
-	   (file-accessible-directory-p (directory-file-name user-emacs-directory))
-	   (make-directory user-emacs-directory))
+	   (file-accessible-directory-p
+	    (directory-file-name user-emacs-directory))
+	   (let ((umask (default-file-modes)))
+	     (unwind-protect
+		 (progn
+		   (set-default-file-modes ?\700)
+		   (make-directory user-emacs-directory))
+	       (set-default-file-modes umask))))
        (abbreviate-file-name
         (expand-file-name new-name user-emacs-directory))))))
-
 
 ;;;; Misc. useful functions.
 
@@ -2445,13 +2460,8 @@ Note: :data and :device are currently not supported on Windows."
         "''"
       ;; Quote everything except POSIX filename characters.
       ;; This should be safe enough even for really weird shells.
-      (let ((result "") (start 0) end)
-        (while (string-match "[^-0-9a-zA-Z_./]" argument start)
-          (setq end (match-beginning 0)
-                result (concat result (substring argument start end)
-                               "\\" (substring argument end (1+ end)))
-                start (1+ end)))
-        (concat result (substring argument start))))))
+      (replace-regexp-in-string "\n" "'\n'"
+       (replace-regexp-in-string "[^-0-9a-zA-Z_./\n]" "\\\\\\&" argument)))))
 
 (defun string-or-null-p (object)
   "Return t if OBJECT is a string or nil.

@@ -1,5 +1,5 @@
 /* ftfont.c -- FreeType font driver.
-   Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2006-2011 Free Software Foundation, Inc.
    Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
@@ -392,7 +392,7 @@ ftfont_lookup_cache (Lisp_Object key, enum ftfont_cache_for cache_for)
   if (cache_for == FTFONT_CACHE_FOR_FACE
       ? ! cache_data->ft_face : ! cache_data->fc_charset)
     {
-      char *filename = (char *) SDATA (XCAR (key));
+      char *filename = SSDATA (XCAR (key));
       int index = XINT (XCDR (key));
 
       if (cache_for == FTFONT_CACHE_FOR_FACE)
@@ -555,7 +555,7 @@ ftfont_get_cache (FRAME_PTR f)
 static int
 ftfont_get_charset (Lisp_Object registry)
 {
-  char *str = (char *) SDATA (SYMBOL_NAME (registry));
+  char *str = SSDATA (SYMBOL_NAME (registry));
   char *re = alloca (SBYTES (SYMBOL_NAME (registry)) * 2 + 1);
   Lisp_Object regexp;
   int i, j;
@@ -749,7 +749,10 @@ ftfont_spec_pattern (Lisp_Object spec, char *otlayout, struct OpenTypeSpec **ots
 
       key = XCAR (XCAR (extra)), val = XCDR (XCAR (extra));
       if (EQ (key, QCdpi))
-	dpi = XINT (val);
+	{
+	  if (INTEGERP (val))
+	    dpi = XINT (val);
+	}
       else if (EQ (key, QClang))
 	{
 	  if (! langset)
@@ -769,12 +772,15 @@ ftfont_spec_pattern (Lisp_Object spec, char *otlayout, struct OpenTypeSpec **ots
 	}
       else if (EQ (key, QCotf))
 	{
-	  *otspec = ftfont_get_open_type_spec (val);
-	  if (! *otspec)
-	    return NULL;
-	  strcat (otlayout, "otlayout:");
-	  OTF_TAG_STR ((*otspec)->script_tag, otlayout + 9);
-	  script = (*otspec)->script;
+	  if (CONSP (val))
+	    {
+	      *otspec = ftfont_get_open_type_spec (val);
+	      if (! *otspec)
+		return NULL;
+	      strcat (otlayout, "otlayout:");
+	      OTF_TAG_STR ((*otspec)->script_tag, otlayout + 9);
+	      script = (*otspec)->script;
+	    }
 	}
       else if (EQ (key, QCscript))
 	script = val;
@@ -1016,12 +1022,12 @@ ftfont_list (Lisp_Object frame, Lisp_Object spec)
 
 	  if (! NILP (adstyle)
 	      && (NILP (this_adstyle)
-		  || xstrcasecmp (SDATA (SYMBOL_NAME (adstyle)),
-				  SDATA (SYMBOL_NAME (this_adstyle))) != 0))
+		  || xstrcasecmp (SSDATA (SYMBOL_NAME (adstyle)),
+				  SSDATA (SYMBOL_NAME (this_adstyle))) != 0))
 	    continue;
 	  if (langname
 	      && ! NILP (this_adstyle)
-	      && xstrcasecmp (langname, SDATA (SYMBOL_NAME (this_adstyle))))
+	      && xstrcasecmp (langname, SSDATA (SYMBOL_NAME (this_adstyle))))
 	    continue;
 	}
       entity = ftfont_pattern_entity (fontset->fonts[i],
@@ -1234,7 +1240,11 @@ ftfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
     spacing = XINT (AREF (entity, FONT_SPACING_INDEX));
   else
     spacing = FC_PROPORTIONAL;
-  if (spacing != FC_PROPORTIONAL && spacing != FC_DUAL)
+  if (spacing != FC_PROPORTIONAL
+#ifdef FC_DUAL
+      && spacing != FC_DUAL
+#endif	/* FC_DUAL */
+      )
     font->min_width = font->average_width = font->space_width
       = (scalable ? ft_face->max_advance_width * size / upEM
 	 : ft_face->size->metrics.max_advance >> 6);
@@ -2453,7 +2463,7 @@ ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
       flt_font_ft.flt_font.family = Mnil;
     else
       flt_font_ft.flt_font.family
-	= msymbol ((char *) SDATA (Fdowncase (SYMBOL_NAME (family))));
+	= msymbol (SSDATA (Fdowncase (SYMBOL_NAME (family))));
   }
   flt_font_ft.flt_font.x_ppem = ft_face->size->metrics.x_ppem;
   flt_font_ft.flt_font.y_ppem = ft_face->size->metrics.y_ppem;
@@ -2675,6 +2685,3 @@ syms_of_ftfont (void)
   ftfont_driver.type = Qfreetype;
   register_font_driver (&ftfont_driver, NULL);
 }
-
-/* arch-tag: 7cfa432c-33a6-4988-83d2-a82ed8604aca
-   (do not change this comment) */

@@ -1,3 +1,8 @@
+2011-02-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* org-remember.el (org-remember-mode-map):
+	* org-src.el (org-src-mode-map): Move initialization into declaration.
+
 2011-01-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* org-remember.el (org-remember-mode):
@@ -12883,7 +12888,7 @@
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2008, 2009, 2010, 2011  Free Software Foundation, Inc.
+	Copyright (C) 2008-2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -12900,4 +12905,3 @@
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-;; arch-tag: a9bdcf06-7c2d-4b5a-bf7a-c5e7b706f67c

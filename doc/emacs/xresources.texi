@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1987, 1993, 1994, 1995, 1997, 2001, 2002, 2003,
-@c   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+@c Copyright (C) 1987, 1993-1995, 1997, 2001-2011
+@c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node X Resources, Antinews, Emacs Invocation, Top
 @appendix X Options and Resources
@@ -428,29 +428,20 @@ and has its own resources.  The resource specifications start with
 @end iftex
 
 @example
-Emacs.pane.menubar.faceName:  Courier-12
+Emacs.pane.menubar.font:  Courier-12
 @end example
 
 @noindent
-To specify a font, use fontconfig font names as values to the @code{faceName}
-resource.
-
-If Emacs is not built with the Xft library, Lucid menus and dialogs
-can only display old style fonts.  If Emacs is built with Xft and you
-prefer the old fonts, you have to specify @samp{none} to
-@code{faceName}:
-
-@example
-Emacs.pane.menubar.faceName:    none
-Emacs.pane.dialog.faceName:     none
-@end example
-
-@noindent
-To specify a non-Xft font, use @code{font}.  For example:
+To specify a font, use fontconfig font names as values to the @code{font}
+resource, or old style names:
 
 @example
 Emacs.pane.menubar.font: lucidasanstypewriter-10
 @end example
+
+@noindent
+Emacs first tries to open the font as an old style font, and if that fails
+as an fontconfig font.  In rare cases, Emacs might do the wrong thing.
 
 @noindent
 The Lucid menus can display multilingual text in your locale with old style
@@ -480,7 +471,7 @@ Emacs.menu*.font:       8x16
 For dialog boxes, use @samp{dialog*}:
 
 @example
-Emacs.dialog*.faceName: Sans-12
+Emacs.dialog*.font: Sans-12
 @end example
 
 @noindent
@@ -495,8 +486,6 @@ approach should work on both kinds of systems.
   Here is a list of the specific resources for menu bars and pop-up menus:
 
 @table @code
-@item faceName
-Xft font for menu item text.
 @item font
 Font for menu item text.
 @item fontSet
@@ -1219,7 +1208,3 @@ family.  It corresponds to the fifth part of an X font name.  It is one of
 @noindent
 @var{size} is a decimal number that describes the font size in points.
 @end ifnottex
-
-@ignore
-   arch-tag: 9b6ff773-48b6-41f6-b2f9-f114b8bdd97f
-@end ignore

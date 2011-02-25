@@ -1,8 +1,6 @@
 ;;; server.el --- Lisp code for GNU Emacs running as server process
 
-;; Copyright (C) 1986, 1987, 1992, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1986-1987, 1992, 1994-2011  Free Software Foundation, Inc.
 
 ;; Author: William Sommerfeld <wesommer@athena.mit.edu>
 ;; Maintainer: FSF
@@ -939,126 +937,122 @@ The following commands are accepted by the client:
 		tty-type   ; string.
 		files
 		filepos
-		command-line-args-left
-		arg)
+		args-left)
 	    ;; Remove this line from STRING.
 	    (setq string (substring string (match-end 0)))
-	    (setq command-line-args-left
+	    (setq args-left
 		  (mapcar 'server-unquote-arg (split-string request " " t)))
-	    (while (setq arg (pop command-line-args-left))
-		(cond
-		 ;; -version CLIENT-VERSION: obsolete at birth.
-		 ((and (equal "-version" arg) command-line-args-left)
-		  (pop command-line-args-left))
+	    (while args-left
+              (pcase (pop args-left)
+                ;; -version CLIENT-VERSION: obsolete at birth.
+                (`"-version" (pop args-left))
 
-		 ;; -nowait:  Emacsclient won't wait for a result.
-		 ((equal "-nowait" arg) (setq nowait t))
+                ;; -nowait:  Emacsclient won't wait for a result.
+                (`"-nowait" (setq nowait t))
 
-		 ;; -current-frame:  Don't create frames.
-		 ((equal "-current-frame" arg) (setq use-current-frame t))
+                ;; -current-frame:  Don't create frames.
+                (`"-current-frame" (setq use-current-frame t))
 
-		 ;; -display DISPLAY:
-		 ;; Open X frames on the given display instead of the default.
-		 ((and (equal "-display" arg) command-line-args-left)
-		  (setq display (pop command-line-args-left))
-                  (if (zerop (length display)) (setq display nil)))
+                ;; -display DISPLAY:
+                ;; Open X frames on the given display instead of the default.
+                (`"-display"
+                 (setq display (pop args-left))
+                 (if (zerop (length display)) (setq display nil)))
 
-		 ;; -parent-id ID:
-		 ;; Open X frame within window ID, via XEmbed.
-		 ((and (equal "-parent-id" arg) command-line-args-left)
-		  (setq parent-id (pop command-line-args-left))
-                  (if (zerop (length parent-id)) (setq parent-id nil)))
+                ;; -parent-id ID:
+                ;; Open X frame within window ID, via XEmbed.
+                (`"-parent-id"
+                 (setq parent-id (pop args-left))
+                 (if (zerop (length parent-id)) (setq parent-id nil)))
 
-		 ;; -window-system:  Open a new X frame.
-		 ((equal "-window-system" arg)
-                  (setq dontkill t)
-                  (setq tty-name 'window-system))
+                ;; -window-system:  Open a new X frame.
+                (`"-window-system"
+                 (setq dontkill t)
+                 (setq tty-name 'window-system))
 
-		 ;; -resume:  Resume a suspended tty frame.
-		 ((equal "-resume" arg)
-		  (lexical-let ((terminal (process-get proc 'terminal)))
-		    (setq dontkill t)
-                    (push (lambda ()
-                            (when (eq (terminal-live-p terminal) t)
-                              (resume-tty terminal)))
-                          commands)))
+                ;; -resume:  Resume a suspended tty frame.
+                (`"-resume"
+                 (lexical-let ((terminal (process-get proc 'terminal)))
+                   (setq dontkill t)
+                   (push (lambda ()
+                           (when (eq (terminal-live-p terminal) t)
+                             (resume-tty terminal)))
+                         commands)))
 
-		 ;; -suspend:  Suspend the client's frame.  (In case we
-		 ;; get out of sync, and a C-z sends a SIGTSTP to
-		 ;; emacsclient.)
-		 ((equal "-suspend" arg)
-		  (lexical-let ((terminal (process-get proc 'terminal)))
-		    (setq dontkill t)
-                    (push (lambda ()
-                            (when (eq (terminal-live-p terminal) t)
-                              (suspend-tty terminal)))
-                          commands)))
+                ;; -suspend:  Suspend the client's frame.  (In case we
+                ;; get out of sync, and a C-z sends a SIGTSTP to
+                ;; emacsclient.)
+                (`"-suspend"
+                 (lexical-let ((terminal (process-get proc 'terminal)))
+                   (setq dontkill t)
+                   (push (lambda ()
+                           (when (eq (terminal-live-p terminal) t)
+                             (suspend-tty terminal)))
+                         commands)))
 
-		 ;; -ignore COMMENT:  Noop; useful for debugging emacsclient.
-		 ;; (The given comment appears in the server log.)
-		 ((and (equal "-ignore" arg) command-line-args-left
-		  (setq dontkill t)
-		  (pop command-line-args-left)))
+                ;; -ignore COMMENT:  Noop; useful for debugging emacsclient.
+                ;; (The given comment appears in the server log.)
+                (`"-ignore"
+                 (setq dontkill t)
+                 (pop args-left))
 
-		 ;; -tty DEVICE-NAME TYPE:  Open a new tty frame at the client.
-		 ((and (equal "-tty" arg)
-                       (cdr command-line-args-left))
-                  (setq tty-name (pop command-line-args-left)
-			tty-type (pop command-line-args-left)
-			dontkill (or dontkill
-				     (not use-current-frame))))
+                ;; -tty DEVICE-NAME TYPE:  Open a new tty frame at the client.
+                (`"-tty"
+                 (setq tty-name (pop args-left)
+                       tty-type (pop args-left)
+                       dontkill (or dontkill
+                                    (not use-current-frame))))
 
-		 ;; -position LINE[:COLUMN]:  Set point to the given
-		 ;;  position in the next file.
-		 ((and (equal "-position" arg)
-		       command-line-args-left
-                       (string-match "\\+\\([0-9]+\\)\\(?::\\([0-9]+\\)\\)?"
-                                     (car command-line-args-left)))
-		  (setq arg (pop command-line-args-left))
-		  (setq filepos
-                        (cons (string-to-number (match-string 1 arg))
-                              (string-to-number (or (match-string 2 arg) "")))))
+                ;; -position LINE[:COLUMN]:  Set point to the given
+                ;;  position in the next file.
+                (`"-position"
+                 (if (not (string-match "\\+\\([0-9]+\\)\\(?::\\([0-9]+\\)\\)?"
+                                        (car args-left)))
+                     (error "Invalid -position command in client args"))
+                 (let ((arg (pop args-left)))
+                   (setq filepos
+                         (cons (string-to-number (match-string 1 arg))
+                               (string-to-number (or (match-string 2 arg)
+                                                     ""))))))
 
-		 ;; -file FILENAME:  Load the given file.
-		 ((and (equal "-file" arg)
-		       command-line-args-left)
-		  (let ((file (pop command-line-args-left)))
-		    (if coding-system
-			(setq file (decode-coding-string file coding-system)))
-                    (setq file (expand-file-name file dir))
-		    (push (cons file filepos) files)
-		    (server-log (format "New file: %s %s"
-                                        file (or filepos "")) proc))
-		  (setq filepos nil))
+                ;; -file FILENAME:  Load the given file.
+                (`"-file"
+                 (let ((file (pop args-left)))
+                   (if coding-system
+                       (setq file (decode-coding-string file coding-system)))
+                   (setq file (expand-file-name file dir))
+                   (push (cons file filepos) files)
+                   (server-log (format "New file: %s %s"
+                                       file (or filepos "")) proc))
+                 (setq filepos nil))
 
-		 ;; -eval EXPR:  Evaluate a Lisp expression.
-		 ((and (equal "-eval" arg)
-                       command-line-args-left)
-		  (if use-current-frame
-		      (setq use-current-frame 'always))
-		  (lexical-let ((expr (pop command-line-args-left)))
-		    (if coding-system
-			(setq expr (decode-coding-string expr coding-system)))
-                    (push (lambda () (server-eval-and-print expr proc))
-                          commands)
-		    (setq filepos nil)))
+                ;; -eval EXPR:  Evaluate a Lisp expression.
+                (`"-eval"
+                 (if use-current-frame
+                     (setq use-current-frame 'always))
+                 (lexical-let ((expr (pop args-left)))
+                   (if coding-system
+                       (setq expr (decode-coding-string expr coding-system)))
+                   (push (lambda () (server-eval-and-print expr proc))
+                         commands)
+                   (setq filepos nil)))
 
-		 ;; -env NAME=VALUE:  An environment variable.
-		 ((and (equal "-env" arg) command-line-args-left)
-		  (let ((var (pop command-line-args-left)))
-		    ;; XXX Variables should be encoded as in getenv/setenv.
-                    (process-put proc 'env
-                                 (cons var (process-get proc 'env)))))
+                ;; -env NAME=VALUE:  An environment variable.
+                (`"-env"
+                 (let ((var (pop args-left)))
+                   ;; XXX Variables should be encoded as in getenv/setenv.
+                   (process-put proc 'env
+                                (cons var (process-get proc 'env)))))
 
-		 ;; -dir DIRNAME:  The cwd of the emacsclient process.
-		 ((and (equal "-dir" arg) command-line-args-left)
-		  (setq dir (pop command-line-args-left))
-		  (if coding-system
-		      (setq dir (decode-coding-string dir coding-system)))
-		  (setq dir (command-line-normalize-file-name dir)))
+                ;; -dir DIRNAME:  The cwd of the emacsclient process.
+                (`"-dir"
+                 (setq dir (pop args-left))
+                 (if coding-system
+                     (setq dir (decode-coding-string dir coding-system)))
+                 (setq dir (command-line-normalize-file-name dir)))
 
-		 ;; Unknown command.
-		 (t (error "Unknown command: %s" arg))))
+                ;; Unknown command.
+                (arg (error "Unknown command: %s" arg))))
 
 	    (setq frame
 		  (cond

@@ -1,7 +1,6 @@
 ;;; cus-theme.el -- custom theme creation user interface
 ;;
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2011 Free Software Foundation, Inc.
 ;;
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: FSF
@@ -622,7 +621,9 @@ Theme files are named *-theme.el in `"))
   (let ((this-theme (widget-get widget :theme-name)))
     (if (widget-value widget)
 	;; Disable the theme.
-	(disable-theme this-theme)
+	(progn
+	  (disable-theme this-theme)
+	  (widget-toggle-action widget event))
       ;; Enable the theme.
       (unless custom-theme-allow-multiple-selections
 	;; If only one theme is allowed, disable all other themes and
@@ -635,12 +636,11 @@ Theme files are named *-theme.el in `"))
 	  (unless (eq (car theme) this-theme)
 	    (widget-value-set (cdr theme) nil)
 	    (widget-apply (cdr theme) :notify (cdr theme) event))))
-      (load-theme this-theme)))
-  ;; Mark `custom-enabled-themes' as "set for current session".
-  (put 'custom-enabled-themes 'customized-value
-       (list (custom-quote custom-enabled-themes)))
-  ;; Check/uncheck the widget.
-  (widget-toggle-action widget event))
+      (when (load-theme this-theme)
+	(widget-toggle-action widget event)))
+    ;; Mark `custom-enabled-themes' as "set for current session".
+    (put 'custom-enabled-themes 'customized-value
+	 (list (custom-quote custom-enabled-themes)))))
 
 (defun custom-describe-theme ()
   "Describe the Custom theme on the current line."
@@ -663,5 +663,4 @@ Theme files are named *-theme.el in `"))
   (widget-toggle-action widget event)
   (setq custom-theme-allow-multiple-selections (widget-value widget)))
 
-;; arch-tag: cd6919bc-63af-410e-bae2-b6702e762344
 ;;; cus-theme.el ends here
