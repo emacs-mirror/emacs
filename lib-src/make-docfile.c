@@ -617,7 +617,7 @@ write_globals (void)
   qsort (globals, num_globals, sizeof (struct global), compare_globals);
   for (i = 0; i < num_globals; ++i)
     {
-      char *type;
+      char const *type;
 
       switch (globals[i].type)
 	{

@@ -1,3 +1,9 @@
+2011-02-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* make-docfile.c (write_globals): Change char * to char const *
+	to avoid a GCC "assignment discards qualifiers" diagnostic
+	in some configurations.
+
 2011-02-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* etags.c (canonicalize_filename, ISUPPER): Fix last change.
