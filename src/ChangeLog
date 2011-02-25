@@ -1,6 +1,9 @@
 2011-02-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Simplify symlink portability workaround.
+	* fileio.c (Fmake_symbolic_link): Treat ENOSYS specially, and
+	generate a special message for it.  Suggested by Eli Zaretskii in
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-02/msg00995.html>.
 	* config.in: Regenerate.
 
 	* dired.c (Ffile_attributes): Increase size of modes from 10 to 12

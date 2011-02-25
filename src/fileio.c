@@ -2325,6 +2325,12 @@ This happens for interactive use with M-x.  */)
 	      return Qnil;
 	    }
 	}
+      if (errno == ENOSYS)
+	{
+	  UNGCPRO;
+	  xsignal1 (Qfile_error,
+		    build_string ("Symbolic links are not supported"));
+	}
 
       report_file_error ("Making symbolic link", list2 (filename, linkname));
     }
