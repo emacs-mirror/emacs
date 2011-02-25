@@ -325,7 +325,7 @@ etags${EXEEXT}: ${srcdir}/etags.c $(REGEXPDEPS) ../src/config.h
 	  -DVERSION="\"${version}\"" ${srcdir}/etags.c \
 	  $(REGEXPOBJ) $(LOADLIBES) -o etags
 
-ebrowse${EXEEXT}: ${srcdir}/ebrowse.c ../src/config.h
+ebrowse${EXEEXT}: ${srcdir}/ebrowse.c ${srcdir}/../lib/min-max.h ../src/config.h
 	$(CC) ${ALL_CFLAGS} -DVERSION="\"${version}\"" \
 	  ${srcdir}/ebrowse.c $(LOADLIBES) -o ebrowse
 
@@ -350,7 +350,7 @@ movemail${EXEEXT}: movemail.o pop.o
 movemail.o: ${srcdir}/movemail.c ../src/config.h
 	$(CC) -c ${CPP_CFLAGS} ${MOVE_FLAGS} ${srcdir}/movemail.c
 
-pop.o: ${srcdir}/pop.c  ../src/config.h
+pop.o: ${srcdir}/pop.c ${srcdir}/../lib/min-max.h ../src/config.h
 	$(CC) -c ${CPP_CFLAGS} ${MOVE_FLAGS} ${srcdir}/pop.c
 
 fakemail${EXEEXT}: ${srcdir}/fakemail.c ../src/config.h

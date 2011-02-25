@@ -23252,7 +23252,7 @@ get_specified_cursor_type (Lisp_Object arg, int *width)
 void
 set_frame_cursor_types (struct frame *f, Lisp_Object arg)
 {
-  int width;
+  int width = 1;
   Lisp_Object tem;
 
   FRAME_DESIRED_CURSOR (f) = get_specified_cursor_type (arg, &width);

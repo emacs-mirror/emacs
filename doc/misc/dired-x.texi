@@ -129,48 +129,33 @@ original @file{dired-x.el}).
 @section Features
 @cindex Features
 
-Some features provided by Dired Extra
+Some features provided by Dired Extra:
 
 @enumerate
 @item
-Omitting uninteresting files from Dired listing.
-@itemize @bullet
-@xref{Omitting Files in Dired}.
-@end itemize
+Omitting uninteresting files from Dired listing
+(@pxref{Omitting Files in Dired}).
 @item
-Local variables for Dired directories.
-@itemize @bullet
-@xref{Local Variables}.
-@end itemize
+Guessing shell commands in Dired buffers
+(@pxref{Shell Command Guessing}).
 @item
-Guessing shell commands in Dired buffers.
-@itemize @bullet
-@xref{Shell Command Guessing}.
-@end itemize
-@item
-Running Dired command in non-Dired buffers.
-@itemize @bullet
-@xref{Virtual Dired}.
-@end itemize
+Running Dired command in non-Dired buffers
+(@pxref{Virtual Dired}).
 @item
 Finding a file mentioned in a buffer
-@itemize @bullet
-@xref{Find File At Point}.
-@end itemize
+(@pxref{Find File At Point}).
 @item
-Commands using file marking.
-@itemize @bullet
-@xref{Advanced Mark Commands}.
-@end itemize
+Commands using file marking
+(@pxref{Advanced Mark Commands}).
 @end enumerate
 
 @noindent
 @file{dired-x.el} binds some functions to keys in Dired Mode (@pxref{Key
 Index}) and also binds @kbd{C-x C-j} and @kbd{C-x 4 C-j} @emph{globally} to
-@code{dired-jump} (@pxref{Miscellaneous Commands}).  It may also bind @kbd{C-x
-C-f} and @kbd{C-x 4 C-f} to @code{dired-x-find-file} and
-@code{dired-x-find-file-other-window}, respectively (@pxref{Find File At
-Point}).
+@code{dired-jump} (@pxref{Miscellaneous Commands}).  Optionally, it
+also binds @kbd{C-x C-f} and @kbd{C-x 4 C-f} to
+@code{dired-x-find-file} and @code{dired-x-find-file-other-window},
+respectively (@pxref{Find File At Point}).
 
 @node Technical Details, , Features, Introduction
 @section Technical Details
@@ -351,27 +336,25 @@ inside your @code{dired-mode-hook} to have omitting initially turned on in
 @emph{every} Dired buffer (@pxref{Installation}).  You can then use @kbd{M-o} to
 unomit in that buffer.
 
-To enable omitting automatically only in certain directories one can use Dired
-Local Variables and put
+To enable omitting automatically only in certain directories you can add
+a directory local setting
+(@pxref{Directory Variables,,,emacs,The Gnu Emacs manual}) for Dired mode
 
 @example
-Local Variables:
-dired-omit-mode: t
-End:
+((dired-mode . ((dired-omit-mode . t))))
 @end example
 
 @noindent
-into a file @file{.dired} (the default value of
-@code{dired-local-variables-file}) in that directory (@pxref{Local Variables}).
+to a @file{.dir-locals.el} file in that directory.
 
 @table @code
 @findex dired-omit-here-always
 @item dired-omit-here-always
 
 This is an interactive function that creates a local variables file exactly
-like the example above (if it does not already exist) in the file
-@code{dired-local-variables-file} in the current directory and then refreshes
-the directory listing (@pxref{Local Variables}).
+like the example above (if it does not already exist) in the
+@code{dir-locals-file} file in the current directory and then refreshes
+the directory listing.
 @end table
 
 @vindex dired-omit-files
@@ -490,7 +473,6 @@ Loading @file{dired-x.el} will install Dired Omit by putting
 call @code{dired-extra-startup}, which in turn calls @code{dired-omit-startup}
 in your @code{dired-mode-hook}.
 
-@c FIXME does the standard dir-locals mechanism obsolete this?
 @node Local Variables, Shell Command Guessing, Omitting Files in Dired, Top
 @chapter Local Variables for Dired Directories
 
@@ -498,10 +480,15 @@ in your @code{dired-mode-hook}.
 @vindex dired-local-variables-file
 @vindex dired-enable-local-variables
 @noindent
-When Dired visits a directory, it looks for a file whose name is the value of
-variable @code{dired-local-variables-file} (default: @file{.dired}).  If such
-a file is found, Dired will temporarily insert it into the Dired buffer and
-run @code{hack-local-variables}.
+This Dired-X feature is obsolete as of Emacs 24.1.  The standard Emacs
+directory local variables mechanism (@pxref{Directory
+Variables,,,emacs,The Gnu Emacs manual}) replaces it.  For an example of
+the new mechanims, @pxref{Omitting Variables}.
+
+When Dired visits a directory, it looks for a file whose name is the
+value of variable @code{dired-local-variables-file} (default: @file{.dired}).
+If such a file is found, Dired will temporarily insert it into the Dired
+buffer and run @code{hack-local-variables}.
 
 @noindent
 For example, if the user puts
@@ -527,7 +514,7 @@ omitted automatically
 @noindent
 You can set @code{dired-local-variables-file} to @code{nil} to suppress this.
 The value of @code{dired-enable-local-variables} controls if and how these
-local variables are read.  This variable exists so that if may override the
+local variables are read.  This variable exists so that it may override the
 default value of @code{enable-local-variables}.
 
 @noindent
@@ -551,12 +538,10 @@ into the Dired buffer and run @code{hack-local-variables}.
 @item dired-enable-local-variables
 Default: @code{t}
 
-Controls the use of local-variables lists in Dired.  The value can be @code{t},
-@code{nil}, or something else.  A value of @code{t} means local-variables
-lists are obeyed in the @code{dired-local-variables-file}; @code{nil} means
-they are ignored; anything else means query.  This variable temporarily
-overrides the value of @code{enable-local-variables} when the Dired Local
-Variables are hacked.
+Controls the use of local-variables lists in Dired.  This variable
+temporarily overrides the value of @code{enable-local-variables} when
+the Dired Local Variables are hacked.  It takes the same values as that
+variable.  A value of @code{nil} means to ignore any Dired Local Variables.
 @end table
 
 @node Shell Command Guessing, Virtual Dired, Local Variables, Top

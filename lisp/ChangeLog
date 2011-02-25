@@ -1,3 +1,49 @@
+2011-02-24  Glenn Morris  <rgm@gnu.org>
+
+	* files-x.el (modify-dir-local-variable): Handle dir-locals from
+	the cache, and from non-file sources.
+
+	* help-fns.el (describe-variable): Return consistent results when a
+	dir-local from a file came from the cache or did not.  (Bug#8095)
+	If a dir-local has no associated file, say it came from a "directory".
+
+	* files.el (hack-dir-local-variables): Fix setting of `dir-name'.
+	(hack-local-variables-confirm, hack-local-variables-filter): Doc fix.
+
+	* files.el (dir-locals-find-file): Doc fix.
+	Fix the check for cache elements that have no associated file,
+	and the mtime check for those that do.  (Bug#8095)
+
+	* dired-x.el (dired-hack-local-variables):
+	Handle interrupts during hacking local variables.  (Bug#5216)
+
+	* emacs-lisp/autoload.el (autoload-save-buffers)
+	(autoload-find-destination, update-directory-autoloads):
+	Avoid prompts when updating autoloads.
+
+2011-02-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-disable-print-circle): Obsolete.
+
+2011-02-23  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmailmm.el (rmail-mime-process-multipart): Do not signal an
+	error when a multipart boundary in the nested multipart is found.
+
+	* mail/rmail.el (rmail-start-mail): Decode "encoded-words" of
+	header components.
+
+2011-02-23  Glenn Morris  <rgm@gnu.org>
+
+	* dired.el (dired-mode): Call hack-dir-local-variables-non-file-buffer.
+	* dired-x.el (dired-omit-mode): Safe if boolean.
+	(dired-enable-local-variables): Fix doc and custom type.
+	(dired-enable-local-variables, dired-local-variables-file)
+	(dired-hack-local-variables): Make obsolete.
+	(dired-omit-here-always): Use dir-locals.el instead.
+
+	* files.el (safe-local-eval-forms): Add the write-file-hooks version.
+
 2011-02-22  Martin Rudalics  <rudalics@gmx.at>
 
 	* progmodes/compile.el (compilation-goto-locus): Call
@@ -29,6 +75,29 @@
 	(display-buffer-alist-add, display-buffer-alist-set): New
 	functions.
 
+2011-02-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* help-fns.el (describe-function-1): Don't signal an error just because
+	the DOC file disappeared.
+
+2011-02-22  Seppo Sade <sepposade1@gmail.com>  (tiny change)
+
+	* eshell/esh-ext.el (eshell-external-command): Do not restrict
+	remote check to "ftp".  (Bug#8089)
+
+2011-02-21  Alan Mackenzie  <acm@muc.de>
+
+	Fix bug #7930.
+	* progmodes/cc-engine.el (c-state-literal-at): Prevent positions
+	in macros finding their way into c-state-nonlit-pos-cache.
+	Strengthen the comments.
+	(c-state-dump): New commented out diagnostic routine.
+
+2011-02-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-rfn-eshadow-setup-minibuffer): Do not use
+	`field' property of `rfn-eshadow-overlay'.
+
 2011-02-21  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* net/netrc.el (netrc-parse): Comment fix.
@@ -42,10 +111,10 @@
 
 	* faces.el (color-values): Use cond for clarity.  Doc fix.
 
-	* facemenu.el (color-rgb-to-hsv): Deleted; use the version in
+	* facemenu.el (color-rgb-to-hsv): Delete; use the version in
 	color.el instead.
-	(list-colors-sort-key, list-colors-print): Use
-	color-normalized-values.
+	(list-colors-sort-key, list-colors-print):
+	Use color-normalized-values.
 
 2011-02-20  Drew Adams  <drew.adams@oracle.com>
 
@@ -95,8 +164,8 @@
 	(vc-bzr-error-regex-alist): New var.
 	(vc-bzr-merge-branch): Use it to highlight the pull/merge buffer.
 
-	* vc/vc-dispatcher.el (vc-do-async-command): Bind
-	inhibit-read-only to t.
+	* vc/vc-dispatcher.el (vc-do-async-command):
+	Bind inhibit-read-only to t.
 
 	* progmodes/compile.el (compilation--flush-directory-cache):
 	Handle the case where cdr of compilation--flush-directory-cache
@@ -160,8 +229,8 @@
 	* apropos.el (apropos-print): Call apropos-mode before setting up
 	buffer variables.  Use inhibit-read-only.
 
-	* emacs-lisp/package.el (package--list-packages): Call
-	package-menu-mode before setting up buffer variables.
+	* emacs-lisp/package.el (package--list-packages):
+	Call package-menu-mode before setting up buffer variables.
 
 	* play/solitaire.el (solitaire): Call solitaire-mode before
 	setting up buffer variables.  Use inhibit-read-only.
@@ -295,7 +364,7 @@
 
 2011-02-16  Alex Harsanyi  <AlexHarsanyi@gmail.com>
 
-	* soap-client.el (soap-well-known-xmlns, soap-local-xmlns)
+	* net/soap-client.el (soap-well-known-xmlns, soap-local-xmlns)
 	(soap-default-xmlns, soap-target-xmlns, soap-multi-refs)
 	(soap-decoded-multi-refs, soap-current-wsdl)
 	(soap-encoded-namespaces): Rename CL-style *...* variables.
@@ -9171,7 +9240,7 @@
 	(sql-interactive-mode-menu): Add "Save Connection" item.
 	(sql-add-product): Fix menu item.
 	(sql-get-product-feature): Improved error handling.
-	(sql--alt-buffer-part, sql--alt-if-not-empty): Removed.
+	(sql--alt-buffer-part, sql--alt-if-not-empty): Remove.
 	(sql-make-alternate-buffer-name): Simplified.
 	(sql-product-interactive): Handle missing product.
 	(sql-connect): Support string keys, minor improvements.
@@ -9570,7 +9639,7 @@
 	(delete-backward-char): Implement in Lisp.
 	(delete-forward-char): New command.
 
-	* mouse.el (mouse-region-delete-keys): Deleted.
+	* mouse.el (mouse-region-delete-keys): Delete.
 	(mouse-show-mark): Simplify.
 
 	* bindings.el (global-map): Bind delete and DEL, the former to
@@ -9837,7 +9906,7 @@
 	* htmlfontify.el (hfy-face-attr-for-class): Use append instead
 	of nconc to avoid pure storage error (Bug#6239).
 
-2010-06-27  Christoph  <cschol2112@googlemail.com>  (tiny change)
+2010-06-27  Christoph Scholtes  <cschol2112@googlemail.com>
 
 	* bookmark.el (bookmark-bmenu-2-window, bookmark-bmenu-other-window)
 	(bookmark-bmenu-other-window-with-mouse): Remove unnecessary
@@ -12020,7 +12089,7 @@
 
 	* ido.el (ido-file-internal): Fix 2009-12-02 change.
 
-2010-04-19  Christoph  <cschol2112@googlemail.com>  (tiny change)
+2010-04-19  Christoph Scholtes  <cschol2112@googlemail.com>
 
 	* progmodes/grep.el (grep-compute-defaults): Fix handling of host
 	default settings (Bug#5928).
@@ -14030,7 +14099,7 @@
 	(ada-goto-label-re): New; matches goto labels.
 	(ada-block-label-re): New; matches block labels.
 	(ada-label-re): New; matches both.
-	(ada-named-block-re): Deleted; callers changed to use
+	(ada-named-block-re): Delete; callers changed to use
 	`ada-block-label-re' instead.
 	(ada-get-current-indent, ada-get-indent-noindent, ada-get-indent-loop):
 	Use `ada-block-label-re'.
@@ -21650,7 +21719,7 @@
 	(def-gdb-memory-format, def-gdb-memory-unit): Update memory buffer
 	after changing settings.
 	(gdb-invalidate-disassembly): Update when first shown.
-	(gdb-edit-locals-value): Fixed.
+	(gdb-edit-locals-value): Fix.
 	(gdb-registers-handler-custom): Print registers in right order and
 	allow changing register values (only for current thread yet).
 	(gdb-breakpoints-mode-map): Don't assume threads buffer is present.
@@ -21701,7 +21770,7 @@
 
 2009-08-06  Dmitry Dzhus  <dima@sphinx.net.ru>
 
-	* progmodes/gdb-mi.el (gdb-var-create-regexp): Removed.
+	* progmodes/gdb-mi.el (gdb-var-create-regexp): Remove.
 	(gdb-var-create-handler): Rewritten using JSON parser.
 	(gdb-propertize-header): Move earlier.
 	(gdb-set-header): Remove to avoid duplication.

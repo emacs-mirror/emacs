@@ -1520,7 +1520,7 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
   bidi_check_type (bidi_it->type);
 
   /* For L1 below, we need to know, for each WS character, whether
-     it belongs to a sequence of WS characters preceeding a newline
+     it belongs to a sequence of WS characters preceding a newline
      or a TAB or a paragraph separator.  */
   if (bidi_it->orig_type == NEUTRAL_WS
       && bidi_it->next_for_ws.type == UNKNOWN_BT)

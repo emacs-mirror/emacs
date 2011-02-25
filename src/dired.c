@@ -61,6 +61,8 @@ extern struct direct *readdir (DIR *);
 
 #endif /* HAVE_DIRENT_H */
 
+#include <filemode.h>
+
 #ifdef MSDOS
 #define DIRENTRY_NONEMPTY(p) ((p)->d_name[0] != 0)
 #else
@@ -81,16 +83,6 @@ extern struct direct *readdir (DIR *);
 extern struct re_pattern_buffer *compile_pattern (Lisp_Object,
 						  struct re_registers *,
 						  Lisp_Object, int, int);
-
-/* From filemode.c.  Can't go in Lisp.h because of `stat'.  */
-extern void filemodestring (struct stat *, char *);
-
-/* if system does not have symbolic links, it does not have lstat.
-   In that case, use ordinary stat instead.  */
-
-#ifndef S_IFLNK
-#define lstat stat
-#endif
 
 Lisp_Object Qdirectory_files;
 Lisp_Object Qdirectory_files_and_attributes;
@@ -540,7 +532,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
       if (file_name_completion_stat (encoded_dir, dp, &st) < 0)
 	continue;
 
-      directoryp = ((st.st_mode & S_IFMT) == S_IFDIR);
+      directoryp = S_ISDIR (st.st_mode);
       tem = Qnil;
       /* If all_flag is set, always include all.
 	 It would not actually be helpful to the user to ignore any possible
@@ -844,20 +836,16 @@ file_name_completion_stat (Lisp_Object dirname, DIRENTRY *dp, struct stat *st_ad
   memcpy (fullname + pos, dp->d_name, len);
   fullname[pos + len] = 0;
 
-#ifdef S_IFLNK
   /* We want to return success if a link points to a nonexistent file,
      but we want to return the status for what the link points to,
      in case it is a directory.  */
   value = lstat (fullname, st_addr);
-  stat (fullname, st_addr);
-  return value;
-#else
-  value = stat (fullname, st_addr);
+  if (value == 0 && S_ISLNK (st_addr->st_mode))
+    stat (fullname, st_addr);
 #ifdef MSDOS
   _djstat_flags = save_djstat_flags;
 #endif /* MSDOS */
   return value;
-#endif /* S_IFLNK */
 }
 
 Lisp_Object
@@ -949,7 +937,7 @@ so last access time will always be midnight of that day.  */)
   Lisp_Object dirname;
   struct stat sdir;
 #endif /* BSD4_2 */
-  char modes[10];
+  char modes[12];
   Lisp_Object handler;
   struct gcpro gcpro1;
   char *uname = NULL, *gname = NULL;
@@ -975,17 +963,8 @@ so last access time will always be midnight of that day.  */)
   if (lstat (SSDATA (encoded), &s) < 0)
     return Qnil;
 
-  switch (s.st_mode & S_IFMT)
-    {
-    default:
-      values[0] = Qnil; break;
-    case S_IFDIR:
-      values[0] = Qt; break;
-#ifdef S_IFLNK
-    case S_IFLNK:
-      values[0] = Ffile_symlink_p (filename); break;
-#endif
-    }
+  values[0] = (S_ISLNK (s.st_mode) ? Ffile_symlink_p (filename)
+	       : S_ISDIR (s.st_mode) ? Qt : Qnil);
   values[1] = make_number (s.st_nlink);
 
   if (!(NILP (id_format) || EQ (id_format, Qinteger)))

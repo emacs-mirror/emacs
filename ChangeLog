@@ -1,3 +1,52 @@
+2011-02-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure, lib/Makefile.in, lib/getopt_int.h, lib/gnulib.mk:
+	* lib/stdlib.in.h, m4/stdlib_h.m4: Regenerate to incorporate
+	recent changes to configure.in and to gnulib.
+
+2011-02-24  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Replace obsolete AC_OUTPUT() with AC_CONFIG_FILES(),
+	AC_CONFIG_COMMANDS(), and AC_OUTPUT sans arguments.
+
+2011-02-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume S_ISLNK etc. work, since gnulib supports this.
+	* Makefile.in (GNULIB_MODULES): Add sys_stat.
+	* configure.in: Check for lstat and set HAVE_LSTAT=0 if not.
+	Pretend to be using the gnulib lstat module for benefit of sys/stat.h.
+	* configure, lib/Makefile.in, lib/gnulib.mk: Regenerate.
+
+2011-02-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lib/min-max.h: New file, for "min" and "max".
+
+2011-02-21  Christoph Scholtes  <cschol2112@gmail.com>
+
+	* lib/makefile.w32-in: ($(BLD)/md5.$(O)): Added dependency on
+	$(EMACS_ROOT)/nt/inc/stdint.h.
+
+2011-02-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* lib/makefile.w32-in ($(BLD)/filemode.$(O)): Move from
+	src/makefile.w32-in and adapt.  Depend on stamp_BLD.
+	(GNULIBOBJS): Add $(BLD)/filemode.$(O).
+
+2011-02-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Import filemode module from gnulib.
+	* .bzrignore: Add lib/sys/.
+	* Makefile.in (GNULIB_MODULES): Add filemode.
+	* lib/Makefile.am (MOSTLYCLEANDIRS): New macro.
+	* lib/filemode.c: Renamed from src/filemode.c and regenerated
+	from gnulib.  This adds support for some more file types, e.g.,
+	Cray DMF migrated files.
+	* lisp/emacs-lisp/find-gc.el (find-gc-source-files): Remove filemode.c.
+	* lib/filemode.h, lib/sys_stat.in.h, m4/filemode.m4, m4/st_dm_mode.m4:
+	* m4/sys_stat_h.m4: New files, generated from gnulib.
+	* aclocal.m4, configure, lib/Makefile.in, lib/gnulib.mk, m4/gl-comp.m4:
+	Regenerate.
+
 2011-02-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* lib/makefile.w32-in ($(BLD)/md5.$(O)): Don't depend on

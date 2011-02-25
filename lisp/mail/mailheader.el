@@ -101,7 +101,7 @@ value."
 		(cons (cdr header) (funcall (cdr rule) (cdr header))))))))
   headers)
 
-;; Advertized part of the interface; see mail-header, mail-header-set.
+;; Advertised part of the interface; see mail-header, mail-header-set.
 (defvar headers)
 
 (defsubst mail-header (header &optional header-alist)

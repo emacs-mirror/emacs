@@ -3853,7 +3853,7 @@ This function is intended to be used in
 	  ((< c (* 1000 10000)) (format "%1.1fM" (/ c (* 1024.0 1024))))
 	  (t (format "%dM" (/ c (* 1024.0 1024)))))))
 
-(defcustom gnus-summary-user-date-format-alist
+(defcustom gnus-user-date-format-alist
   '(((gnus-seconds-today) . "Today, %H:%M")
     ((+ 86400 (gnus-seconds-today)) . "Yesterday, %H:%M")
     (604800 . "%A %H:%M")               ; That's one week
@@ -3880,11 +3880,9 @@ respectively."
   :version "24.1"
   :group 'gnus-summary-format
   :type '(alist :key-type sexp :value-type string))
-(make-obsolete-variable 'gnus-user-date-format-alist
-                        'gnus-summary-user-date-format-alist "24.1")
 
 (defun gnus-user-date (messy-date)
-  "Format the messy-date according to `gnus-summary-user-date-format-alist'.
+  "Format the messy-date according to `gnus-user-date-format-alist'.
 Returns \"  ?  \" if there's bad input or if another error occurs.
 Input should look like this: \"Sun, 14 Oct 2001 13:34:39 +0200\"."
   (condition-case ()
@@ -3893,7 +3891,7 @@ Input should look like this: \"Sun, 14 Oct 2001 13:34:39 +0200\"."
 	     ;;If we don't find something suitable we'll use this one
 	     (my-format "%b %d '%y"))
 	(let* ((difference (- now messy-date))
-	       (templist gnus-summary-user-date-format-alist)
+	       (templist gnus-user-date-format-alist)
 	       (top (eval (caar templist))))
 	  (while (if (numberp top) (< top difference) (not top))
 	    (progn
@@ -9525,8 +9523,7 @@ C-u g', show the raw article."
    ((not arg)
     ;; Select the article the normal way.
     (gnus-summary-select-article nil 'force))
-   ((or (equal arg '(16))
-	(eq arg t))
+   ((equal arg '(16))
     ;; C-u C-u g
     (let ((gnus-inhibit-article-treatments t))
       (gnus-summary-select-article nil 'force)))

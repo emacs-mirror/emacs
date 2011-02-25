@@ -1,3 +1,102 @@
+2011-02-24  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* auth-source.el (auth-source-netrc-create): Use `read-char' with no
+	argument that XEmacs doesn't support.
+
+2011-02-23  Julien Danjou  <julien@danjou.info>
+
+	* gnus-art.el (article-make-date-line): Ignore errors if time is
+	invalid and not convertible.
+	(article-make-date-line): Only add lapsed time if time is not nil.
+
+2011-02-23  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-netrc-create): Use `read-char' instead of
+	`read-char-choice' for backwards compatibility.
+	(auth-source-netrc-element-or-first): New function to DTRT for
+	parameter extraction.
+	(auth-source-netrc-create): Use it and fix multiple parameter print
+	bug.  Use the default passed from above (given-default) or the
+	built-in (user-login-name for :user).
+
+2011-02-23  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-dribble-read-file): Set
+	buffer-save-without-query, since we always want to save the dribble
+	file, probably.
+
+	* nnmail.el (nnmail-article-group): Allow a final "" split to work on
+	nnimap.
+
+	* gnus-sum.el (gnus-user-date-format-alist): Renamed back again from
+	-summary- since it's a user-visible variable.
+
+	* nnimap.el (nnimap-retrieve-group-data-early): Don't do QRESYNC the
+	first time you use the new Gnus.
+
+2011-02-22  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el: Don't load netrc.el.
+	(auth-sources): Search ~/.netrc as well by default.
+	(auth-source-debug): Add 'trivia option for extra output.
+	(auth-source-do-trivia): Use it.
+	(auth-source-search): Simplify logic to use
+	`auth-source-search-backends'.  Use `auth-source-do-trivia' where
+	appropriate.  Don't keep a running count at this level.  Layer :create
+	and :delete options appropriately on the first and second passes.
+	Don't track the backend with the search results.
+	(auth-source-search-backends): New function to search a list of
+	backends for a processed spec.
+	(auth-source-netrc-parse): Cache all netrc files, making
+	auth-source-netrc-cache an alist keyed by the file name and using the
+	file mtime as the caching criterion.  Keep the obfuscated data secret
+	with a lexical bind.
+	(auth-source-netrc-search): Don't calculate the length of the results
+	unnecessarily.
+	(auth-source-search-backends): Fix bug.
+	(auth-source-netrc-create): Rework prompts.
+
+2011-02-22  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-imap-search-arguments,nnir-imap-default-search-key):
+	Lower case names of search constraints.
+	(nnir-run-query): Cache and reuse search constraints for all imap
+	servers.
+
+2011-02-22  Sam Steingold  <sds@gnu.org>
+
+	* gnus-msg.el (gnus-setup-message): Also bind `winconf-name'.
+
+2011-02-22  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-msg.el (gnus-inews-add-send-actions): Restore the winconf name
+	after exit.
+	(gnus-setup-message): Define missing variable from last checkin.
+
+	* gnus-sum.el (gnus-summary-show-article): When called with t as the
+	value, show the raw article.
+
+2011-02-21  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-open-connection-1): Revert last change, since
+	auth-source now accepts numbers.
+
+	* auth-source.el (auth-source-netrc-parse): Accept a number as the port
+	spec, too.
+	(auth-source-ensure-strings): New function.
+
+	* gnus-art.el (gnus-article-update-date-headers): Doc fix.
+	(gnus-article-setup-buffer): Always restart the date timer so that user
+	changes to the frequency is respected.
+
+	* nnimap.el (nnimap-open-connection-1): auth-source expects strings as
+	port numbers, so make sure it gets that if nnimap-server-port is
+	explicit.
+
+2011-02-21  Simon Josefsson  <simon@josefsson.org>
+
+	* nnimap.el (nnimap-inbox): Doc fix.
+
 2011-02-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* shr-color.el (shr-color->hexadecimal): Use renamed function names

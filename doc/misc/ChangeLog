@@ -1,3 +1,33 @@
+2011-02-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi: Use consistently "Emacs" (instead of "GNU Emacs") and
+	"Debian GNU/Linux".
+
+	* trampver.texi [xemacs]: Set emacsothername to "Emacs".
+
+2011-02-23  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.texi (Features): Minor rephrasing.
+	(Local Variables): Fix typos.
+
+	* edt.texi, erc.texi, gnus.texi, idlwave.texi, mh-e.texi:
+	Standardize some Emacs/XEmacs terminology.
+
+	* dired-x.texi (Features): Don't advertise obsolete local variables.
+	Simplify layout.
+	(Omitting Variables): Update local variables example.
+	(Local Variables): Say this is obsolete.  Fix description of
+	dired-enable-local-variables possible values.
+
+2011-02-22  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth.texi (Help for users): Mention ~/.netrc is also searched by
+	default now.
+
+2011-02-21  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Article Date): Clarify gnus-article-update-date-headers.
+
 2011-02-20  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi (Window Layout): Document layout names.

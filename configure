@@ -677,6 +677,40 @@ SYS_TIME_H_DEFINES_STRUCT_TIMESPEC
 TIME_H_DEFINES_STRUCT_TIMESPEC
 NEXT_AS_FIRST_DIRECTIVE_TIME_H
 NEXT_TIME_H
+NEXT_AS_FIRST_DIRECTIVE_SYS_STAT_H
+NEXT_SYS_STAT_H
+REPLACE_UTIMENSAT
+REPLACE_STAT
+REPLACE_MKNOD
+REPLACE_MKFIFO
+REPLACE_MKDIR
+REPLACE_LSTAT
+REPLACE_FUTIMENS
+REPLACE_FSTATAT
+REPLACE_FSTAT
+HAVE_UTIMENSAT
+HAVE_MKNODAT
+HAVE_MKNOD
+HAVE_MKFIFOAT
+HAVE_MKFIFO
+HAVE_MKDIRAT
+HAVE_LSTAT
+HAVE_LCHMOD
+HAVE_FUTIMENS
+HAVE_FSTATAT
+HAVE_FCHMODAT
+GNULIB_UTIMENSAT
+GNULIB_STAT
+GNULIB_MKNODAT
+GNULIB_MKNOD
+GNULIB_MKFIFOAT
+GNULIB_MKFIFO
+GNULIB_MKDIRAT
+GNULIB_LSTAT
+GNULIB_LCHMOD
+GNULIB_FUTIMENS
+GNULIB_FSTATAT
+GNULIB_FCHMODAT
 NEXT_AS_FIRST_DIRECTIVE_STDLIB_H
 NEXT_STDLIB_H
 STDINT_H
@@ -840,6 +874,7 @@ GNULIB_DUP2
 GNULIB_CLOSE
 GNULIB_CHOWN
 GETLOADAVG_LIBS
+REPLACE_WCTOMB
 REPLACE_UNSETENV
 REPLACE_STRTOD
 REPLACE_SETENV
@@ -847,6 +882,7 @@ REPLACE_REALPATH
 REPLACE_REALLOC
 REPLACE_PUTENV
 REPLACE_MKSTEMP
+REPLACE_MBTOWC
 REPLACE_MALLOC
 REPLACE_CANONICALIZE_FILE_NAME
 REPLACE_CALLOC
@@ -875,6 +911,7 @@ HAVE_DECL_GETLOADAVG
 HAVE_CANONICALIZE_FILE_NAME
 HAVE_ATOLL
 HAVE__EXIT
+GNULIB_WCTOMB
 GNULIB_UNSETENV
 GNULIB_UNLOCKPT
 GNULIB_SYSTEM_POSIX
@@ -893,6 +930,7 @@ GNULIB_MKSTEMP
 GNULIB_MKOSTEMPS
 GNULIB_MKOSTEMP
 GNULIB_MKDTEMP
+GNULIB_MBTOWC
 GNULIB_MALLOC_POSIX
 GNULIB_GRANTPT
 GNULIB_GETSUBOPT
@@ -2926,8 +2964,10 @@ as_fn_append ac_func_list " alarm"
 as_fn_append ac_header_list " wchar.h"
 as_fn_append ac_header_list " stdint.h"
 as_fn_append ac_func_list " tzset"
+as_fn_append ac_header_list " sys/stat.h"
 as_fn_append ac_header_list " sys/time.h"
 as_fn_append ac_func_list " localtime_r"
+as_fn_append ac_func_list " lstat"
 # Check that the precious variables saved in the cache have kept the same
 # value.
 ac_cache_corrupted=false
@@ -6089,6 +6129,7 @@ $as_echo "$ac_cv_safe_to_define___extensions__" >&6; }
   # Code from module dtoastr:
   # Code from module extensions:
 
+  # Code from module filemode:
   # Code from module getloadavg:
   # Code from module getopt-gnu:
   # Code from module getopt-posix:
@@ -6103,6 +6144,7 @@ $as_echo "$ac_cv_safe_to_define___extensions__" >&6; }
   # Code from module stdint:
   # Code from module stdlib:
   # Code from module strftime:
+  # Code from module sys_stat:
   # Code from module time:
   # Code from module time_r:
   # Code from module unistd:
@@ -13687,6 +13729,52 @@ $as_echo "#define HAVE_C99_STRTOLD 1" >>confdefs.h
 
   fi
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for st_dm_mode in struct stat" >&5
+$as_echo_n "checking for st_dm_mode in struct stat... " >&6; }
+if ${ac_cv_struct_st_dm_mode+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <sys/types.h>
+#include <sys/stat.h>
+int
+main ()
+{
+struct stat s; s.st_dm_mode;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  ac_cv_struct_st_dm_mode=yes
+else
+  ac_cv_struct_st_dm_mode=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_struct_st_dm_mode" >&5
+$as_echo "$ac_cv_struct_st_dm_mode" >&6; }
+
+  if test $ac_cv_struct_st_dm_mode = yes; then
+
+$as_echo "#define HAVE_ST_DM_MODE 1" >>confdefs.h
+
+  fi
+
+
+ac_fn_c_check_decl "$LINENO" "strmode" "ac_cv_have_decl_strmode" "$ac_includes_default"
+if test "x$ac_cv_have_decl_strmode" = xyes; then :
+  ac_have_decl=1
+else
+  ac_have_decl=0
+fi
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_STRMODE $ac_have_decl
+_ACEOF
+
 
   GNULIB__EXIT=0;
   GNULIB_ATOLL=0;
@@ -13696,6 +13784,7 @@ $as_echo "#define HAVE_C99_STRTOLD 1" >>confdefs.h
   GNULIB_GETSUBOPT=0;
   GNULIB_GRANTPT=0;
   GNULIB_MALLOC_POSIX=0;
+  GNULIB_MBTOWC=0;
   GNULIB_MKDTEMP=0;
   GNULIB_MKOSTEMP=0;
   GNULIB_MKOSTEMPS=0;
@@ -13714,6 +13803,7 @@ $as_echo "#define HAVE_C99_STRTOLD 1" >>confdefs.h
   GNULIB_SYSTEM_POSIX=0;
   GNULIB_UNLOCKPT=0;
   GNULIB_UNSETENV=0;
+  GNULIB_WCTOMB=0;
     HAVE__EXIT=1;
   HAVE_ATOLL=1;
   HAVE_CANONICALIZE_FILE_NAME=1;
@@ -13742,6 +13832,7 @@ $as_echo "#define HAVE_C99_STRTOLD 1" >>confdefs.h
   REPLACE_CALLOC=0;
   REPLACE_CANONICALIZE_FILE_NAME=0;
   REPLACE_MALLOC=0;
+  REPLACE_MBTOWC=0;
   REPLACE_MKSTEMP=0;
   REPLACE_PUTENV=0;
   REPLACE_REALLOC=0;
@@ -13749,6 +13840,7 @@ $as_echo "#define HAVE_C99_STRTOLD 1" >>confdefs.h
   REPLACE_SETENV=0;
   REPLACE_STRTOD=0;
   REPLACE_UNSETENV=0;
+  REPLACE_WCTOMB=0;
 
 
   GNULIB_CHOWN=0;
@@ -14739,6 +14831,84 @@ fi
 
 
 
+
+     GNULIB_FCHMODAT=0;
+  GNULIB_FSTATAT=0;
+  GNULIB_FUTIMENS=0;
+  GNULIB_LCHMOD=0;
+  GNULIB_LSTAT=0;
+  GNULIB_MKDIRAT=0;
+  GNULIB_MKFIFO=0;
+  GNULIB_MKFIFOAT=0;
+  GNULIB_MKNOD=0;
+  GNULIB_MKNODAT=0;
+  GNULIB_STAT=0;
+  GNULIB_UTIMENSAT=0;
+    HAVE_FCHMODAT=1;
+  HAVE_FSTATAT=1;
+  HAVE_FUTIMENS=1;
+  HAVE_LCHMOD=1;
+  HAVE_LSTAT=1;
+  HAVE_MKDIRAT=1;
+  HAVE_MKFIFO=1;
+  HAVE_MKFIFOAT=1;
+  HAVE_MKNOD=1;
+  HAVE_MKNODAT=1;
+  HAVE_UTIMENSAT=1;
+  REPLACE_FSTAT=0;
+  REPLACE_FSTATAT=0;
+  REPLACE_FUTIMENS=0;
+  REPLACE_LSTAT=0;
+  REPLACE_MKDIR=0;
+  REPLACE_MKFIFO=0;
+  REPLACE_MKNOD=0;
+  REPLACE_STAT=0;
+  REPLACE_UTIMENSAT=0;
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether stat file-mode macros are broken" >&5
+$as_echo_n "checking whether stat file-mode macros are broken... " >&6; }
+if ${ac_cv_header_stat_broken+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <sys/types.h>
+#include <sys/stat.h>
+
+#if defined S_ISBLK && defined S_IFDIR
+extern char c1[S_ISBLK (S_IFDIR) ? -1 : 1];
+#endif
+
+#if defined S_ISBLK && defined S_IFCHR
+extern char c2[S_ISBLK (S_IFCHR) ? -1 : 1];
+#endif
+
+#if defined S_ISLNK && defined S_IFREG
+extern char c3[S_ISLNK (S_IFREG) ? -1 : 1];
+#endif
+
+#if defined S_ISSOCK && defined S_IFREG
+extern char c4[S_ISSOCK (S_IFREG) ? -1 : 1];
+#endif
+
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  ac_cv_header_stat_broken=no
+else
+  ac_cv_header_stat_broken=yes
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_header_stat_broken" >&5
+$as_echo "$ac_cv_header_stat_broken" >&6; }
+if test $ac_cv_header_stat_broken = yes; then
+
+$as_echo "#define STAT_MACROS_BROKEN 1" >>confdefs.h
+
+fi
+
+
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for C/C++ restrict keyword" >&5
 $as_echo_n "checking for C/C++ restrict keyword... " >&6; }
 if ${ac_cv_c_restrict+:} false; then :
@@ -15002,6 +15172,21 @@ fi
   # Code from module dtoastr:
 
   # Code from module extensions:
+  # Code from module filemode:
+
+
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS filemode.$ac_objext"
+
+
+
   # Code from module getloadavg:
 
 
@@ -16752,6 +16937,90 @@ $as_echo "#define my_strftime nstrftime" >>confdefs.h
 
 
 
+  # Code from module sys_stat:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+     if test $gl_cv_have_include_next = yes; then
+       gl_cv_next_sys_stat_h='<'sys/stat.h'>'
+     else
+       { $as_echo "$as_me:${as_lineno-$LINENO}: checking absolute name of <sys/stat.h>" >&5
+$as_echo_n "checking absolute name of <sys/stat.h>... " >&6; }
+if ${gl_cv_next_sys_stat_h+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+
+             if test $ac_cv_header_sys_stat_h = yes; then
+
+
+               cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <sys/stat.h>
+
+_ACEOF
+                                                                                                                        case "$host_os" in
+                 aix*) gl_absname_cpp="$ac_cpp -C" ;;
+                 *)    gl_absname_cpp="$ac_cpp" ;;
+               esac
+                                                            gl_cv_next_sys_stat_h='"'`(eval "$gl_absname_cpp conftest.$ac_ext") 2>&5 |
+                  sed -n '\#/sys/stat.h#{
+                    s#.*"\(.*/sys/stat.h\)".*#\1#
+                    s#^/[^/]#//&#
+                    p
+                    q
+                  }'`'"'
+          else
+               gl_cv_next_sys_stat_h='<'sys/stat.h'>'
+             fi
+
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_next_sys_stat_h" >&5
+$as_echo "$gl_cv_next_sys_stat_h" >&6; }
+     fi
+     NEXT_SYS_STAT_H=$gl_cv_next_sys_stat_h
+
+     if test $gl_cv_have_include_next = yes || test $gl_cv_have_include_next = buggy; then
+       # INCLUDE_NEXT_AS_FIRST_DIRECTIVE='include_next'
+       gl_next_as_first_directive='<'sys/stat.h'>'
+     else
+       # INCLUDE_NEXT_AS_FIRST_DIRECTIVE='include'
+       gl_next_as_first_directive=$gl_cv_next_sys_stat_h
+     fi
+     NEXT_AS_FIRST_DIRECTIVE_SYS_STAT_H=$gl_next_as_first_directive
+
+
+
+
+
+      ac_fn_c_check_type "$LINENO" "nlink_t" "ac_cv_type_nlink_t" "#include <sys/types.h>
+     #include <sys/stat.h>
+"
+if test "x$ac_cv_type_nlink_t" = xyes; then :
+
+else
+
+$as_echo "#define nlink_t int" >>confdefs.h
+
+fi
+
+
+
+
+
   # Code from module time:
 
 
@@ -16948,6 +17217,23 @@ $as_echo "$gl_cv_next_unistd_h" >&6; }
   LIBGNU_LIBDEPS="$gl_libdeps"
 
   LIBGNU_LTLIBDEPS="$gl_ltlibdeps"
+
+
+
+# Emacs does not care about lstat's behavior on files whose names end in
+# trailing slashes, so it does not use the gnulib lstat module.
+# However, Emacs does want the "#define lstat stat" in sys/stat.h
+# when lstat does not exist, so it pretends to use the lstat module
+# even though it implements only the lstat-checking part of that module.
+
+
+
+test $ac_cv_func_lstat = yes || HAVE_LSTAT=0
+
+
+
+  GNULIB_LSTAT=1
+
 
 
 
@@ -18971,7 +19257,15 @@ test "${exec_prefix}" != NONE &&
 
 ac_config_files="$ac_config_files Makefile lib/Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile leim/Makefile test/automated/Makefile"
 
-ac_config_commands="$ac_config_commands default"
+
+ac_config_commands="$ac_config_commands mkdirs"
+
+
+ac_config_commands="$ac_config_commands epaths"
+
+
+ac_config_commands="$ac_config_commands gdbinit"
+
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -19756,7 +20050,9 @@ do
     "lisp/Makefile") CONFIG_FILES="$CONFIG_FILES lisp/Makefile" ;;
     "leim/Makefile") CONFIG_FILES="$CONFIG_FILES leim/Makefile" ;;
     "test/automated/Makefile") CONFIG_FILES="$CONFIG_FILES test/automated/Makefile" ;;
-    "default") CONFIG_COMMANDS="$CONFIG_COMMANDS default" ;;
+    "mkdirs") CONFIG_COMMANDS="$CONFIG_COMMANDS mkdirs" ;;
+    "epaths") CONFIG_COMMANDS="$CONFIG_COMMANDS epaths" ;;
+    "gdbinit") CONFIG_COMMANDS="$CONFIG_COMMANDS gdbinit" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
@@ -20486,21 +20782,20 @@ $as_echo X"$file" |
   done
 }
  ;;
-    "default":C)
-
-### Make the necessary directories, if they don't exist.
+    "mkdirs":C)
 for dir in etc lisp ; do
   test -d ${dir} || mkdir ${dir}
 done
-
+ ;;
+    "epaths":C)
 echo creating src/epaths.h
 ${MAKE-make} epaths-force
-
+ ;;
+    "gdbinit":C)
 if test ! -f src/.gdbinit && test -f $srcdir/src/.gdbinit; then
   echo creating src/.gdbinit
   echo source $srcdir/src/.gdbinit > src/.gdbinit
 fi
-
  ;;
 
   esac
@@ -20539,4 +20834,5 @@ if test -n "$ac_unrecognized_opts" && test "$enable_option_checking" != no; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: unrecognized options: $ac_unrecognized_opts" >&5
 $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
+
 

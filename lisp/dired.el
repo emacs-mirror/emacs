@@ -1860,6 +1860,7 @@ Keybindings:
   (set (make-local-variable 'desktop-save-buffer)
        'dired-desktop-buffer-misc-data)
   (setq dired-switches-alist nil)
+  (hack-dir-local-variables-non-file-buffer) ; before sorting
   (dired-sort-other dired-actual-switches t)
   (when (featurep 'dnd)
     (set (make-local-variable 'dnd-protocol-alist)
@@ -4060,7 +4061,7 @@ true then the type of the file linked to by FILE is printed instead.
 ;;;***
 
 ;;;### (autoloads (dired-do-relsymlink dired-jump) "dired-x" "dired-x.el"
-;;;;;;  "86d436093caa9ae80f7b73915c6a4b4c")
+;;;;;;  "c24f202ea049990539accfd4c2c73fe9")
 ;;; Generated autoloads from dired-x.el
 
 (autoload 'dired-jump "dired-x" "\

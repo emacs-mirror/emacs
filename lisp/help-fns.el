@@ -476,7 +476,8 @@ suitable file is found, return nil."
       (let* ((advertised (gethash def advertised-signature-table t))
 	     (arglist (if (listp advertised)
 			  advertised (help-function-arglist def)))
-	     (doc (documentation function))
+	     (doc (condition-case err (documentation function)
+                    (error (format "No Doc! %S" err))))
 	     (usage (help-split-fundoc doc function)))
 	(with-current-buffer standard-output
 	  ;; If definition is a keymap, skip arglist note.
@@ -747,15 +748,21 @@ it is displayed along with the global value."
 		(setq extra-line t)
 		(if (member (cons variable val) dir-local-variables-alist)
 		    (let ((file (and (buffer-file-name)
-				     (not (file-remote-p (buffer-file-name)))
-				     (dir-locals-find-file (buffer-file-name)))))
+                                      (not (file-remote-p (buffer-file-name)))
+                                      (dir-locals-find-file
+                                       (buffer-file-name))))
+                          (type "file"))
 		      (princ "  This variable is a directory local variable")
 		      (when file
-			(princ (concat "\n  from the file \""
-				       (if (consp file)
-					   (car file)
-					 file)
-				       "\"")))
+                        (if (consp file) ; result from cache
+                            ;; If the cache element has an mtime, we
+                            ;; assume it came from a file.
+                            (if (nth 2 file)
+                                (setq file (expand-file-name
+                                            dir-locals-file (car file)))
+                              ;; Otherwise, assume it was set directly.
+                              (setq type "directory")))
+			(princ (format "\n  from the %s \"%s\"" type file)))
 		      (princ ".\n"))
 		  (princ "  This variable is a file local variable.\n")))
 

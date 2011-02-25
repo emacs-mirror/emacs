@@ -72,7 +72,6 @@ OBJ1 =  $(BLD)/alloc.$(O)		\
 	$(BLD)/eval.$(O)		\
 	$(BLD)/fileio.$(O)		\
 	$(BLD)/filelock.$(O)		\
-	$(BLD)/filemode.$(O)		\
 	$(BLD)/fns.$(O)			\
 	$(BLD)/indent.$(O)		\
 	$(BLD)/insdel.$(O)		\
@@ -213,7 +212,7 @@ GLOBAL_SOURCES =   dosfns.c msdos.c \
 	cm.c term.c terminal.c xfaces.c \
 	emacs.c keyboard.c macros.c keymap.c sysdep.c \
 	buffer.c filelock.c insdel.c marker.c \
-	minibuf.c fileio.c dired.c filemode.c \
+	minibuf.c fileio.c dired.c \
 	cmds.c casetab.c casefiddle.c indent.c search.c regex.c undo.c \
 	alloc.c data.c doc.c editfns.c callint.c \
 	eval.c floatfns.c fns.c print.c lread.c \
@@ -663,6 +662,7 @@ $(BLD)/dired.$(O) : \
 	$(SRC)/coding.h \
 	$(SRC)/commands.h \
 	$(SRC)/composite.h \
+	$(EMACS_ROOT)/lib/filemode.h \
 	$(SRC)/ndir.h \
 	$(SRC)/regex.h \
 	$(SRC)/systime.h
@@ -820,10 +820,6 @@ $(BLD)/filelock.$(O) : \
 	$(SRC)/coding.h \
 	$(SRC)/composite.h \
 	$(SRC)/systime.h
-
-$(BLD)/filemode.$(O) : \
-	$(SRC)/filemode.c \
-	$(CONFIG_H)
 
 $(BLD)/firstfile.$(O) : \
 	$(SRC)/firstfile.c \

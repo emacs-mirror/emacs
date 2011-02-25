@@ -1384,7 +1384,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *sto
 		  Lisp_Object tmp = call1 (predicate, string);
 		  exists = !NILP (tmp)
 		    && (EQ (tmp, Qdir_ok)
-			|| !NILP (Ffile_directory_p (string)));
+			|| NILP (Ffile_directory_p (string)));
 		}
 
 	      if (exists)
@@ -1402,8 +1402,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *sto
 
 	      encoded_fn = ENCODE_FILE (string);
 	      pfn = SSDATA (encoded_fn);
-	      exists = (stat (pfn, &st) >= 0
-			&& (st.st_mode & S_IFMT) != S_IFDIR);
+	      exists = (stat (pfn, &st) == 0 && ! S_ISDIR (st.st_mode));
 	      if (exists)
 		{
 		  /* Check that we can access or open it.  */
@@ -4385,7 +4384,7 @@ to load.  See also `load-dangerous-libraries'.  */);
 
   Qdir_ok = intern_c_string ("dir-ok");
   staticpro (&Qdir_ok);
-  
+
   Qdo_after_load_evaluation = intern_c_string ("do-after-load-evaluation");
   staticpro (&Qdo_after_load_evaluation) ;
 

@@ -331,7 +331,8 @@ DOS_gnulib_comp.m4 = gl-comp.m4
 # $(gnulib_srcdir) (relative to $(srcdir) and should have build tools
 # as per $(gnulib_srcdir)/DEPENDENCIES.
 GNULIB_MODULES = \
-  crypto/md5 dtoastr getloadavg getopt-gnu ignore-value mktime strftime
+  crypto/md5 dtoastr filemode getloadavg getopt-gnu \
+  ignore-value mktime strftime sys_stat
 GNULIB_TOOL_FLAGS = \
  --import --no-changelog --no-vc-files --makefile-name=gnulib.mk
 sync-from-gnulib: $(gnulib_srcdir)

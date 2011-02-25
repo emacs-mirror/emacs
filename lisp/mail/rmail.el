@@ -3443,6 +3443,16 @@ does not pop any summary buffer."
 	(setq yank-action (list 'insert-buffer replybuffer)))
     (push (cons "cc" cc) other-headers)
     (push (cons "in-reply-to" in-reply-to) other-headers)
+    (setq other-headers
+	  (mapcar #'(lambda (elt)
+		      (cons (car elt) (if (stringp (cdr elt))
+					  (rfc2047-decode-string (cdr elt)))))
+		  other-headers))
+    (if (stringp to) (setq to (rfc2047-decode-string to)))
+    (if (stringp in-reply-to)
+	(setq in-reply-to (rfc2047-decode-string in-reply-to)))
+    (if (stringp cc) (setq cc (rfc2047-decode-string cc)))
+    (if (stringp subject) (setq subject (rfc2047-decode-string subject)))
     (prog1
 	(compose-mail to subject other-headers noerase
 		      switch-function yank-action sendactions
@@ -3450,7 +3460,7 @@ does not pop any summary buffer."
       (if (eq switch-function 'switch-to-buffer-other-frame)
 	  ;; This is not a standard frame parameter; nothing except
 	  ;; sendmail.el looks at it.
-	  (modify-frame-parameters (selected-frame)
+	    (modify-frame-parameters (selected-frame)
 				   '((mail-dedicated-frame . t)))))))
 
 (defun rmail-mail-return ()
@@ -4306,7 +4316,7 @@ With prefix argument N moves forward N messages with these labels.
 
 ;;;***
 
-;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "04902da045706fb7f2b0915529ed161b")
+;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "c530622b53038152ca84f2ec9313bd7a")
 ;;; Generated autoloads from rmailmm.el
 
 (autoload 'rmail-mime "rmailmm" "\

@@ -1,3 +1,29 @@
+2011-02-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* dired.c (Ffile_attributes): Increase size of modes from 10 to 12
+	as per recent filemodestring API change.  Reported by Jonas Öster in
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-02/msg01069.html>.
+
+2011-02-23  Ben Key  <bkey76@gmail.com>  (tiny change)
+
+	* nsterm.m (ns_draw_window_cursor): Obey the cursor_width argument
+	directly, for bar cursors.
+
+2011-02-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (set_frame_cursor_types): Don't write an undefined value
+	into the frame's cursor_width.
+
+2011-02-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* print.c (print_object): Never print old-style backquotes.
+	Obey escapeflag for hash tables as well.
+
+2011-02-23  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_open_entity): Be sure to set scaled_pixel_size.
+	(font_find_for_lface): Check if attrs[LFACE_HEIGHT_INDEX] is integer.
+
 2011-02-22  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.h (w): New slot clone_number.  Rename
@@ -26,12 +52,62 @@
 	skip it even if the window properties are different.
 	(syms_of_buffer): Intern new Lisp_object Qclone_number.
 
+2011-02-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* dired.c (Ffile_attributes): Simplify and avoid #ifdef.
+
+2011-02-22  Wolfgang Jenkner  <wjenkner@inode.at>  (tiny change)
+
+	* lread.c (openp): Correct Boolean typo in last commit.
+
+2011-02-22  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.m (EmacsView-keyDown:): Don't pass shift-only-modified
+	key to Emacs, treat as unmodified (go to input manager processing).
+
+2011-02-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume S_ISLNK etc. work, since gnulib supports this.
+	* config.in: Regenerate.
+	* dired.c (lstat): Remove.
+	(file_name_completion): Assume S_ISDIR works.
+	(file_name_completion_stat): Assume S_ISLNK works.
+	Do not bother calling stat unless lstat says it's a symlink.
+	* fileio.c (S_ISLNK, S_ISFIFO, S_ISREG, lstat): Remove.
+	(Fcopy_file): Assume S_ISREG and S_ISLNK work.
+	(check_writable, Ffile_writable_p, Fset_file_times):
+	Assume S_ISDIR works.
+	(Ffile_readable_p): Use S_IFIFO, not S_ISFIFO, to guess whether
+	fifos exist.
+	(Ffile_regular_p, Finsert_file_contents): Assume S_ISREG works.
+	* filelock.c (S_ISLNK): Remove.
+	* lread.c (openp): Assume S_ISDIR works.
+	* xrdb.c (S_ISDIR): Remove.
+
+2011-02-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(BLD)/filemode.$(O)): Move recipe to
+	lib/makefile.w32-in.
+	($(BLD)/dired.$(O)): Depend on $(EMACS_ROOT)/lib/filemode.h.
+	(GLOBAL_SOURCES): Remove filemode.c.
+	(OBJ1): Remove $(BLD)/filemode.$(O).
+
+2011-02-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Import filemode module from gnulib.
+	* Makefile.in (base_obj): Remove filemode.o, as it's now in ../lib.
+	* deps.mk (dired.o): Depend on ../lib/filemode.h, too.
+	(filemode.o): Remove; this is now in ../lib.
+	* dired.c: Include <filemode.h>.
+	(filemodestring): Remove now-redundant decl.
+	* config.in: Regenerate.
+
 2011-02-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in ($(BLD)/fns.$(O)): Depend on
 	$(EMACS_ROOT)/lib/md5.h and on stamp_BLD.
 
-2011-02-20  Christoph Scholtes <cschol2112@gmail.com>
+2011-02-20  Christoph Scholtes  <cschol2112@gmail.com>
 
 	* makefile.w32-in: Remove md5.$(O).
 	($(BLD)/md5.$(O)): Remove prerequisites, moved to
@@ -735,14 +811,14 @@
 	to const char *, since they're usually low-level C strings, and
 	this stays compatible with C89 pointer rules.  All callers changed.
 
-	* charset.c: conform to C89 pointer rules
+	* charset.c: Conform to C89 pointer rules.
 	(define_charset_internal): Switch between char * and unsigned char *.
 
-	* xmenu.c: conform to C89 const rules
+	* xmenu.c: Conform to C89 const rules.
 	(xmenu_show, xdialog_show): Declare local var as char *, not
 	const char *, to stay compatible with C89 const rules.
 
-	* xdisp.c: conform to C89 pointer rules
+	* xdisp.c: Conform to C89 pointer rules.
 	(store_mode_line_noprop, display_string, reseat_to_string):
 	(c_string_pos, number_of_chars, message_dolog):
 	(message_log_check_duplicate, set_message_1, store_mode_line_noprop):
@@ -750,7 +826,7 @@
 	Switch between char * and unsigned char * to stay compatible wth
 	C89 pointer rules.
 
-	* regex.c: conform to C89 pointer rules
+	* regex.c: Conform to C89 pointer rules.
 	(re_wctype): Add cast, as C89 does not allow assigning between
 	char * and unsigned char *.
 	(regex_compile): Likewise.
@@ -907,10 +983,10 @@
 	(ns_string_to_pasteboard_internal): Use initWithBytesNoCopy
 	instead of stringWithUTF8String  (Bug#7934).
 
-2011-01-29  Anders Lindgren  <andlind@gmail.com> (tiny change)
+2011-01-29  Anders Lindgren  <andlind@gmail.com>  (tiny change)
 
-        * nsfont.m (nsfont_open): Ensure that fonts with inexact
-        descenders would not become one pixel too tall (Bug#7887).
+	* nsfont.m (nsfont_open): Ensure that fonts with inexact
+	descenders would not become one pixel too tall (Bug#7887).
 
 2011-01-28  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -1080,7 +1156,6 @@
 	f_Vns_version_string, f_Vns_sent_selection_hooks,
 	f_Vns_lost_selection_hooks, f_Vselection_alist, f_Vns_reg_to_script
 	and corresponding defines.
-
 
 2011-01-19  Sam Steingold  <sds@gnu.org>
 
@@ -2191,10 +2266,10 @@
 	* nsmenu.m: Use #include <config.h> instead of "config.h".
 
 	* term.c (Qglyphless_char,last_glyphless_glyph_frame)
-	(last_glyphless_glyph_face_id. last_glyphless_glyph_merged_face_id):
+	(last_glyphless_glyph_face_id, last_glyphless_glyph_merged_face_id):
 	Move declarations ...
 	* lisp.h (Qglyphless_char,last_glyphless_glyph_frame)
-	(last_glyphless_glyph_face_id. last_glyphless_glyph_merged_face_id):
+	(last_glyphless_glyph_face_id, last_glyphless_glyph_merged_face_id):
 	... here.
 
 	* emacs.c (gdb_use_union, gdb_valbits,gdb_gctypebits)
@@ -2298,7 +2373,7 @@
 	(Qonly): Remove declarations.
 	* lisp.h (pending_malloc_warning, Vsaved_region_selection)
 	(Vselect_active_regions):
-	* keyboard.h (timers_run):  Add declarations.
+	* keyboard.h (timers_run): Add declarations.
 
 	* strftime.c (my_strftime_gmtime_r, my_strftime_localtime_r)
 	(tm_diff): Convert definitions to standard C.
@@ -2432,7 +2507,7 @@
 
 2010-11-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* keyboard.c (modify_event_symbol) : Add const to array elements of
+	* keyboard.c (modify_event_symbol): Add const to array elements of
 	arg NAME_TABLE.
 	(lispy_accent_keys, lispy_function_keys, lispy_multimedia_keys)
 	(lispy_kana_keys, iso_lispy_function_keys, lispy_wheel_names)
@@ -2529,7 +2604,6 @@
 	(x_ewmh_activate_frame): Ditto.
 	(x_set_sticky): Pass atoms to set_wm_state.
 	(do_ewmh_fullscreen): Ditto.
-
 
 	* xterm.h (x_display_info): Add Xatom_net_supported,
 	Xatom_net_supporting_wm_check, Xatom_net_active_window,
@@ -2745,10 +2819,9 @@
 	* coding.c (coding-category-list): Refer to set-coding-system-priority
 	instead of the obsolete set-coding-priority in the doc string.
 
-
 2010-11-04  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
-	* nsfont.m (nsfont_draw):  Correct previous patch to return
+	* nsfont.m (nsfont_draw): Correct previous patch to return
 	correct value.
 	* nsimage.m (EmacsImage-setXBMColor:): Correct previous patch:
 	don't change the method signature, change the return.
@@ -4614,7 +4687,7 @@
 
 2010-08-16  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* nsselect.m: include keyboard.h for QPRIMARY, remove its
+	* nsselect.m: Include keyboard.h for QPRIMARY, remove its
 	declaration (Bug#6863).
 	(syms_of_nsselect): Don't intern QPRIMARY.
 
@@ -4675,7 +4748,7 @@
 	* w32menu.c (simple_dialog_show): Use unicode message box if available.
 	(MessageBoxW_Proc): New function typedef.
 	(unicode-message-box): New function pointer.
-	(globals_of_w32menu): Import it from user32.dll. (Bug#5629)
+	(globals_of_w32menu): Import it from user32.dll.  (Bug#5629)
 
 2010-08-13  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -8347,7 +8420,7 @@
 
 2010-04-30  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* xsettings.c: include limits.h and update file comment.
+	* xsettings.c: Include limits.h and update file comment.
 
 2010-04-30  Glenn Morris  <rgm@gnu.org>
 
@@ -9124,7 +9197,7 @@
 	* menu.c (digest_single_submenu): If USE_LUCID and HAVE_XFT, encode
 	menu items in UTF-8.
 
-	* xmenu.c: include xsettings.h and xlwmenu.h if USE_LUCID.
+	* xmenu.c: Include xsettings.h and xlwmenu.h if USE_LUCID.
 	(apply_systemfont_to_menu): New function.
 	(set_frame_menubar, create_and_show_popup_menu):
 	Call apply_systemfont_to_menu.
@@ -9423,7 +9496,7 @@
 	rather than appending it.
 	(handle_stop_backwards): New function.
 	(reseat_1, pop_it, push_it): Set prev_stop and base_level_stop.
-	(reseat): call handle_stop_backwards to recompute prev_stop and
+	(reseat): Call handle_stop_backwards to recompute prev_stop and
 	base_level_stop for the new position.
 	(handle_invisible_prop): Under bidi iteration, skip invisible text
 	using bidi_get_next_char_visually.  If we are `reseat'ed, init the

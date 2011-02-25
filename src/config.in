@@ -152,6 +152,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    don't. */
 #undef HAVE_DECL_LOCALTIME_R
 
+/* Define to 1 if you have the declaration of `strmode', and to 0 if you
+   don't. */
+#undef HAVE_DECL_STRMODE
+
 /* Define to 1 if you have the declaration of `sys_siglist', and to 0 if you
    don't. */
 #undef HAVE_DECL_SYS_SIGLIST
@@ -461,6 +465,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `lrand48' function. */
 #undef HAVE_LRAND48
 
+/* Define to 1 if you have the `lstat' function. */
+#undef HAVE_LSTAT
+
 /* Define to 1 if using libm17n-flt. */
 #undef HAVE_M17N_FLT
 
@@ -685,6 +692,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if `struct utimbuf' is declared by <utime.h>. */
 #undef HAVE_STRUCT_UTIMBUF
+
+/* Define if struct stat has an st_dm_mode member. */
+#undef HAVE_ST_DM_MODE
 
 /* Define to 1 if you have the `sync' function. */
 #undef HAVE_SYNC
@@ -981,6 +991,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 	STACK_DIRECTION = 0 => direction of growth unknown */
 #undef STACK_DIRECTION
 
+/* Define to 1 if the `S_IS*' macros in <sys/stat.h> do not work properly. */
+#undef STAT_MACROS_BROKEN
+
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
@@ -1148,6 +1161,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to the name of the strftime replacement function. */
 #undef my_strftime
+
+/* Define to the type of st_nlink in struct stat, or a supertype. */
+#undef nlink_t
 
 /* Define to `int' if <sys/types.h> does not define. */
 #undef pid_t

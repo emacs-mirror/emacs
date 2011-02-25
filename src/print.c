@@ -1685,26 +1685,6 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	{
 	  PRINTCHAR ('(');
 
-	  /* If the first element is a backquote form,
-	     print it old-style so it won't be misunderstood.  */
-	  if (print_quoted && CONSP (XCAR (obj))
-	      && CONSP (XCDR (XCAR (obj)))
-	      && NILP (XCDR (XCDR (XCAR (obj))))
-	      && EQ (XCAR (XCAR (obj)), Qbackquote))
-	    {
-	      Lisp_Object tem;
-	      tem = XCAR (obj);
-	      PRINTCHAR ('(');
-
-	      print_object (Qbackquote, printcharfun, 0);
-	      PRINTCHAR (' ');
-
-	      print_object (XCAR (XCDR (tem)), printcharfun, 0);
-	      PRINTCHAR (')');
-
-	      obj = XCDR (obj);
-	    }
-
 	  {
 	    EMACS_INT print_length;
 	    int i;
@@ -1908,25 +1888,25 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	  if (!NILP (h->test))
 	    {
 	      strout (" test ", -1, -1, printcharfun, 0);
-	      print_object (h->test, printcharfun, 0);
+	      print_object (h->test, printcharfun, escapeflag);
 	    }
 
 	  if (!NILP (h->weak))
 	    {
 	      strout (" weakness ", -1, -1, printcharfun, 0);
-	      print_object (h->weak, printcharfun, 0);
+	      print_object (h->weak, printcharfun, escapeflag);
 	    }
 
 	  if (!NILP (h->rehash_size))
 	    {
 	      strout (" rehash-size ", -1, -1, printcharfun, 0);
-	      print_object (h->rehash_size, printcharfun, 0);
+	      print_object (h->rehash_size, printcharfun, escapeflag);
 	    }
 
 	  if (!NILP (h->rehash_threshold))
 	    {
 	      strout (" rehash-threshold ", -1, -1, printcharfun, 0);
-	      print_object (h->rehash_threshold, printcharfun, 0);
+	      print_object (h->rehash_threshold, printcharfun, escapeflag);
 	    }
 
 	  strout (" data ", -1, -1, printcharfun, 0);
@@ -1945,9 +1925,9 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	    if (!NILP (HASH_HASH (h, i)))
 	      {
 		if (i) PRINTCHAR (' ');
-		print_object (HASH_KEY (h, i), printcharfun, 1);
+		print_object (HASH_KEY (h, i), printcharfun, escapeflag);
 		PRINTCHAR (' ');
-		print_object (HASH_VALUE (h, i), printcharfun, 1);
+		print_object (HASH_VALUE (h, i), printcharfun, escapeflag);
 	      }
 
 	  if (size < real_size)

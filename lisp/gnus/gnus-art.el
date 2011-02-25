@@ -1040,7 +1040,7 @@ Some of these headers are updated automatically.  See
 	  (item :tag "User-defined" :value 'user-defined)))
 
 (defcustom gnus-article-update-date-headers 1
-  "How often to update the date header.
+  "A number that says how often to update the date header (in seconds).
 If nil, don't update it at all."
   :version "24.1"
   :group 'gnus-article-headers
@@ -3463,7 +3463,7 @@ possible values."
 			     combined-lapsed))
     (error "Unknown conversion type: %s" type))
   (condition-case ()
-      (let ((time (date-to-time date)))
+      (let ((time (ignore-errors (date-to-time date))))
 	(cond
 	 ;; Convert to the local timezone.
 	 ((eq type 'local)
@@ -3515,6 +3515,7 @@ possible values."
 		(segments 3)
 		lapsed-string)
 	    (while (and
+                    time
 		    (setq lapsed-string
 			  (concat " (" (article-lapsed-string time segments) ")"))
 		    (> (+ (length date-string)
@@ -4505,13 +4506,10 @@ commands:
 	(setq gnus-summary-buffer
 	      (gnus-summary-buffer-name gnus-newsgroup-name))
 	(gnus-summary-set-local-parameters gnus-newsgroup-name)
-	(cond
-	 ((and gnus-article-update-date-headers
-	       (not article-lapsed-timer))
+	(when article-lapsed-timer
+	  (gnus-stop-date-timer))
+	(when gnus-article-update-date-headers
 	  (gnus-start-date-timer gnus-article-update-date-headers))
-	 ((and (not gnus-article-update-date-headers)
-	       article-lapsed-timer)
-	  (gnus-stop-date-timer)))
 	(current-buffer)))))
 
 ;; Set article window start at LINE, where LINE is the number of lines

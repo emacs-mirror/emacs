@@ -864,6 +864,7 @@ prompt the user for the name of an NNTP server to use."
 			       (gnus-get-buffer-create
 				(file-name-nondirectory dribble-file)))
       (set (make-local-variable 'file-precious-flag) t)
+      (setq buffer-save-without-query t)
       (erase-buffer)
       (setq buffer-file-name dribble-file)
       (auto-save-mode t)
@@ -1717,8 +1718,8 @@ If SCAN, request a scan of that group as well."
 			  gnus-secondary-select-methods))
       (when (and (not (assoc method type-cache))
 		 (gnus-check-backend-function 'request-list (car method)))
-       (with-current-buffer nntp-server-buffer
-         (gnus-read-active-file-1 method nil))))
+	(with-current-buffer nntp-server-buffer
+	  (gnus-read-active-file-1 method nil))))
 
     ;; Do the rest of the retrieval.
     (dolist (elem type-cache)

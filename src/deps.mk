@@ -73,7 +73,7 @@ pre-crt0.o: pre-crt0.c
 dbusbind.o: dbusbind.c termhooks.h frame.h keyboard.h lisp.h $(config_h)
 dired.o: dired.c commands.h buffer.h lisp.h $(config_h) character.h charset.h \
    coding.h regex.h systime.h blockinput.h atimer.h composite.h \
-   ../lib/unistd.h globals.h
+   ../lib/filemode.h ../lib/unistd.h globals.h
 dispnew.o: dispnew.c systime.h commands.h process.h frame.h coding.h \
    window.h buffer.h termchar.h termopts.h termhooks.h cm.h \
    disptab.h indent.h $(INTERVALS_H) nsgui.h ../lib/unistd.h \
@@ -98,7 +98,6 @@ fileio.o: fileio.c window.h buffer.h systime.h $(INTERVALS_H) character.h \
    commands.h globals.h ../lib/unistd.h
 filelock.o: filelock.c buffer.h character.h coding.h systime.h composite.h \
    ../lib/unistd.h lisp.h globals.h $(config_h)
-filemode.o: filemode.c $(config_h)
 font.o: font.c dispextern.h frame.h window.h ccl.h character.h charset.h \
    font.h lisp.h globals.h $(config_h) buffer.h composite.h fontset.h \
    xterm.h nsgui.h msdos.h

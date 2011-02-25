@@ -1072,7 +1072,7 @@ x_set_offset (struct frame *f, int xoff, int yoff, int change_grav)
         : f->left_pos;
       /* We use visibleFrame here to take menu bar into account.
 	 Ideally we should also adjust left/top with visibleFrame.origin.  */
-      
+
       f->top_pos = f->size_hint_flags & YNegative
         ? ([screen visibleFrame].size.height + f->top_pos
            - FRAME_PIXEL_HEIGHT (f) - FRAME_NS_TITLEBAR_HEIGHT (f)
@@ -1154,7 +1154,7 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
     FRAME_TOOLBAR_HEIGHT (f) = 0;
 
   wr.size.width = pixelwidth + f->border_width;
-  wr.size.height = pixelheight + FRAME_NS_TITLEBAR_HEIGHT (f) 
+  wr.size.height = pixelheight + FRAME_NS_TITLEBAR_HEIGHT (f)
                   + FRAME_TOOLBAR_HEIGHT (f);
 
   /* Do not try to constrain to this screen.  We may have multiple
@@ -2230,11 +2230,8 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
                        int x, int y, int cursor_type, int cursor_width,
                        int on_p, int active_p)
 /* --------------------------------------------------------------------------
-     External call (RIF): draw cursor
-     (modeled after x_draw_window_cursor
-     FIXME: cursor_width is effectively bogus -- it sometimes gets set
-     in xdisp.c set_frame_cursor_types, sometimes left uninitialized;
-     DON'T USE IT (no other terms do)
+     External call (RIF): draw cursor.
+     Note that CURSOR_WIDTH is meaningful only for (h)bar cursors.
    -------------------------------------------------------------------------- */
 {
   NSRect r, s;
@@ -2251,7 +2248,6 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
      and mini-buffer.  */
 
   NSTRACE (dumpcursor);
-//fprintf(stderr, "drawcursor (%d,%d) activep = %d\tonp = %d\tc_type = %d\twidth = %d\n",x,y, active_p,on_p,cursor_type,cursor_width);
 
   if (!on_p)
     return;
@@ -2276,7 +2272,21 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
       return;
     }
 
+  /* We draw the cursor (with NSRectFill), then draw the glyph on top
+     (other terminals do it the other way round).  We must set
+     w->phys_cursor_width to the cursor width.  For bar cursors, that
+     is CURSOR_WIDTH; for box cursors, it is the glyph width.  */
   get_phys_cursor_geometry (w, glyph_row, phys_cursor_glyph, &fx, &fy, &h);
+
+  /* The above get_phys_cursor_geometry call set w->phys_cursor_width
+     to the glyph width; replace with CURSOR_WIDTH for bar cursors. */
+  if (cursor_type == BAR_CURSOR || cursor_type == HBAR_CURSOR)
+    {
+      if (cursor_width < 0)
+	cursor_width = FRAME_CURSOR_WIDTH (f);
+      cursor_width = min (cursor_width, 1);
+      w->phys_cursor_width = cursor_width;
+    }
 
   r.origin.x = fx, r.origin.y = fy;
   r.size.height = h;
@@ -2285,7 +2295,7 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   /* FIXME: if we overwrite the internal border area, it does not get erased;
      fix by truncating cursor, but better would be to erase properly */
   overspill = r.origin.x + r.size.width -
-    WINDOW_TEXT_TO_FRAME_PIXEL_X (w, WINDOW_BOX_RIGHT_EDGE_X (w) 
+    WINDOW_TEXT_TO_FRAME_PIXEL_X (w, WINDOW_BOX_RIGHT_EDGE_X (w)
       - WINDOW_TOTAL_FRINGE_WIDTH (w) - FRAME_INTERNAL_BORDER_WIDTH (f));
   if (overspill > 0)
     r.size.width -= overspill;
@@ -2335,8 +2345,6 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
       break;
     case BAR_CURSOR:
       s = r;
-      s.size.width = min (cursor_width, 2); //FIXME(see above)
-
       /* If the character under cursor is R2L, draw the bar cursor
          on the right of its glyph, rather than on the left.  */
       cursor_glyph = get_phys_cursor_glyph (w);
@@ -2984,7 +2992,7 @@ ns_draw_glyph_string (struct glyph_string *s)
           NS_FACE_BACKGROUND (s->face) = NS_FACE_FOREGROUND (s->face);
           NS_FACE_FOREGROUND (s->face) = tmp;
         }
-                    
+
       ns_tmp_font->font.driver->draw
         (s, 0, s->nchars, s->x, s->y,
          (ns_tmp_flags == NS_DUMPGLYPH_NORMAL && !s->background_filled_p)
@@ -3010,9 +3018,9 @@ ns_draw_glyph_string (struct glyph_string *s)
       else
         ns_maybe_dumpglyphs_background
           (s, s->first_glyph->type == COMPOSITE_GLYPH);
-      /* ... */ 
+      /* ... */
       /* Not yet implemented.  */
-      /* ... */ 
+      /* ... */
       ns_unfocus (s->f);
       break;
 
@@ -3785,7 +3793,7 @@ ns_term_init (Lisp_Object display_name)
   strncpy (terminal->name, SDATA (display_name), SBYTES (display_name));
   terminal->name[SBYTES (display_name)] = 0;
 
-  UNBLOCK_INPUT; 
+  UNBLOCK_INPUT;
 
   if (!inhibit_x_resources)
     {
@@ -3802,7 +3810,7 @@ ns_term_init (Lisp_Object display_name)
 			 stringForKey: @"AppleHighlightColor"];
   if (ns_selection_color == nil)
     ns_selection_color = NS_SELECTION_COLOR_DEFAULT;
-  
+
   {
     NSColorList *cl = [NSColorList colorListNamed: @"Emacs"];
 
@@ -3898,7 +3906,7 @@ ns_term_init (Lisp_Object display_name)
                    keyEquivalent: @"q"
                          atIndex: 9];
 
-    item = [mainMenu insertItemWithTitle: ns_app_name                       
+    item = [mainMenu insertItemWithTitle: ns_app_name
                                   action: @selector (menuDown:)
                            keyEquivalent: @""
                                  atIndex: 0];
@@ -4103,7 +4111,7 @@ ns_term_shutdown (int sig)
         -appShouldTerminate
           Cancel -> Nothing else
           Accept ->
-	  
+
 	  -terminate
 	  KEY_NS_POWER_OFF, (save-buffers-kill-emacs)
 	  ns_term_shutdown()
@@ -4113,10 +4121,10 @@ ns_term_shutdown (int sig)
 - (void) terminate: (id)sender
 {
   struct frame *emacsframe = SELECTED_FRAME ();
-  
+
   if (!emacs_event)
     return;
-  
+
   emacs_event->kind = NS_NONKEY_EVENT;
   emacs_event->code = KEY_NS_POWER_OFF;
   emacs_event->arg = Qt; /* mark as non-key event */
@@ -4418,7 +4426,7 @@ ns_term_shutdown (int sig)
       code = ([[theEvent charactersIgnoringModifiers] length] == 0) ?
         0 : [[theEvent charactersIgnoringModifiers] characterAtIndex: 0];
       /* (Carbon way: [theEvent keyCode]) */
-      
+
       /* is it a "function key"? */
       fnKeysym = ns_convert_key (code);
       if (fnKeysym)
@@ -4542,6 +4550,7 @@ ns_term_shutdown (int sig)
 
       /* if it was a function key or had modifiers, pass it directly to emacs */
       if (fnKeysym || (emacs_event->modifiers
+                       && (emacs_event->modifiers != shift_modifier)
                        && [[theEvent charactersIgnoringModifiers] length] > 0))
 /*[[theEvent characters] length] */
         {
@@ -5445,7 +5454,7 @@ ns_term_shutdown (int sig)
 
   /*
     drawRect: may be called (at least in OS X 10.5) for invisible
-    views as well for some reason.  Thus, do not infer visibility 
+    views as well for some reason.  Thus, do not infer visibility
     here.
 
     emacsframe->async_visible = 1;

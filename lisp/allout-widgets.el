@@ -2013,7 +2013,7 @@ Optional FORCE means force reassignment of the region property."
   ;; item body), to bias the registered values.
   ;;
   ;; This is not necessary/useful when the item is being decorated, because
-  ;; that always must be preceeded by a fresh item parse.
+  ;; that always must be preceded by a fresh item parse.
 
   (if (not (eq field :body-end))
       (widget-get item-widget :from)

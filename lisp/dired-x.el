@@ -145,6 +145,8 @@ See Info node `(dired-x) Omitting Variables' for more information."
       (let ((dired-omit-size-limit nil)) (dired-omit-expunge))
     (revert-buffer)))
 
+(put 'dired-omit-mode 'safe-local-variable 'booleanp)
+
 ;; For backward compatibility
 (define-obsolete-variable-alias 'dired-omit-files-p 'dired-omit-mode "22.1")
 
@@ -185,14 +187,18 @@ If nil, there is no maximum size."
 
 (defcustom dired-enable-local-variables t
   "Control use of local-variables lists in Dired.
-The value can be t, nil or something else.
-A value of t means local-variables lists are obeyed;
-nil means they are ignored; anything else means query.
-
 This temporarily overrides the value of `enable-local-variables' when
 listing a directory.  See also `dired-local-variables-file'."
-  :type 'boolean
+  :risky t
+  :type '(choice (const :tag "Query Unsafe" t)
+		 (const :tag "Safe Only" :safe)
+		 (const :tag "Do all" :all)
+		 (const :tag "Ignore" nil)
+		 (other :tag "Query" other))
   :group 'dired-x)
+
+(make-obsolete-variable 'dired-enable-local-variables
+                        "use a standard `dir-locals-file' instead." "24.1")
 
 (defcustom dired-guess-shell-gnutar
   (catch 'found
@@ -723,26 +729,25 @@ Knows about the special cases in variable `dired-default-directory-alist'."
 
 ;;; LOCAL VARIABLES FOR DIRED BUFFERS.
 
-;; Brief Description:
-;;;
+;; Brief Description  (This feature is obsolete as of Emacs 24.1)
+;;
 ;; * `dired-extra-startup' is part of the `dired-mode-hook'.
-;;;
+;;
 ;; * `dired-extra-startup' calls `dired-hack-local-variables'
-;;;
+;;
 ;; * `dired-hack-local-variables' checks the value of
-;;;   `dired-local-variables-file'
-;;;
+;;   `dired-local-variables-file'
+;;
 ;; * Check if `dired-local-variables-file' is a non-nil string and is a
-;;;   filename found in the directory of the Dired Buffer being created.
-;;;
+;;   filename found in the directory of the Dired Buffer being created.
+;;
 ;; * If `dired-local-variables-file' satisfies the above, then temporarily
-;;;   include it in the Dired Buffer at the bottom.
-;;;
+;;   include it in the Dired Buffer at the bottom.
+;;
 ;; * Set `enable-local-variables' temporarily to the user variable
-;;;   `dired-enable-local-variables' and run `hack-local-variables' on the
-;;;   Dired Buffer.
+;;   `dired-enable-local-variables' and run `hack-local-variables' on the
+;;   Dired Buffer.
 
-;; FIXME do standard dir-locals obsolete this?
 (defcustom dired-local-variables-file (convert-standard-filename ".dired")
   "Filename, as string, containing local dired buffer variables to be hacked.
 If this file found in current directory, then it will be inserted into dired
@@ -751,6 +756,8 @@ buffer and `hack-local-variables' will be run.  See Info node
 See also `dired-enable-local-variables'."
   :type 'file
   :group 'dired)
+
+(make-obsolete-variable 'dired-local-variables-file 'dir-locals-file "24.1")
 
 (defun dired-hack-local-variables ()
   "Evaluate local variables in `dired-local-variables-file' for dired buffer."
@@ -767,29 +774,37 @@ See also `dired-enable-local-variables'."
            (insert "\^L\n")
            (insert-file-contents dired-local-variables-file))
          ;; Hack 'em.
-         (let ((buffer-file-name dired-local-variables-file))
-           (hack-local-variables))
+         (unwind-protect
+             (let ((buffer-file-name dired-local-variables-file))
+               (hack-local-variables))
+           ;; Delete this stuff: `eobp' is used to find last subdir by dired.el.
+           (delete-region opoint (point-max)))
          ;; Make sure that the modeline shows the proper information.
-         (dired-sort-set-modeline)
-         ;; Delete this stuff: `eobp' is used to find last subdir by dired.el.
-         (delete-region opoint (point-max)))))
+         (dired-sort-set-modeline))))
 
+(make-obsolete 'dired-hack-local-variables
+               'hack-dir-local-variables-non-file-buffer "24.1")
+
+;; Not sure this is worth having a dedicated command for...
 (defun dired-omit-here-always ()
-  "Create `dired-local-variables-file' for omitting and reverts directory.
-Sets `dired-omit-mode' to t in a local variables file that is readable by
-dired."
+  "Create `dir-locals-file' setting `dired-omit-mode' to t in `dired-mode'.
+If in a Dired buffer, reverts it."
   (interactive)
   (if (file-exists-p dired-local-variables-file)
-      (message "File `./%s' already exists." dired-local-variables-file)
-    ;; Create `dired-local-variables-file'.
-    (with-current-buffer (get-buffer-create " *dot-dired*")
-      (erase-buffer)
-      (insert "Local Variables:\ndired-omit-mode: t\nEnd:\n")
-      (write-file dired-local-variables-file)
-      (kill-buffer))
+      (error "Old-style dired-local-variables-file `./%s' found;
+replace it with a dir-locals-file `./%s'"
+             dired-local-variables-file
+             dir-locals-file))
+  (if (file-exists-p dir-locals-file)
+      (message "File `./%s' already exists." dir-locals-file)
+    (with-temp-buffer
+      (insert "((dired-mode . ((dired-omit-mode . t))))\n")
+      (write-file dir-locals-file))
     ;; Run extra-hooks and revert directory.
-    (dired-extra-startup)
-    (dired-revert)))
+    (when (derived-mode-p 'dired-mode)
+      (hack-dir-local-variables-non-file-buffer)
+      (dired-extra-startup)
+      (dired-revert))))
 
 
 ;;; GUESS SHELL COMMAND.

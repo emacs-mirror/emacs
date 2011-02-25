@@ -135,7 +135,7 @@ obj =   dosfns.o msdos.o \
 	cm.o term.o terminal.o xfaces.o \
 	emacs.o keyboard.o macros.o keymap.o sysdep.o \
 	buffer.o filelock.o insdel.o marker.o \
-	minibuf.o fileio.o dired.o filemode.o \
+	minibuf.o fileio.o dired.o \
 	cmds.o casetab.o casefiddle.o indent.o search.o regex.o undo.o \
 	alloc.o data.o doc.o editfns.o callint.o \
 	eval.o floatfns.o fns.o print.o lread.o \
@@ -374,14 +374,23 @@ $(BLD)/alloca.$(O) : \
 $(BLD)/ctags.$(O) : \
 	$(SRC)/ctags.c \
 	$(EMACS_ROOT)/nt/inc/sys/param.h \
+	$(EMACS_ROOT)/nt/inc/sys/stat.h \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/lib-src/../src/config.h \
 	$(SRC)/ntlib.h \
 	$(EMACS_ROOT)/lib/getopt.h
 
+$(BLD)/ebrowse.$(O) : \
+	$(SRC)/ebrowse.c \
+	$(EMACS_ROOT)/lib/min-max.h \
+	$(EMACS_ROOT)/src/s/ms-w32.h \
+	$(EMACS_ROOT)/src/m/intel386.h \
+	$(EMACS_ROOT)/lib-src/../src/config.h
+
 $(BLD)/emacsclient.$(O) : \
 	$(SRC)/emacsclient.c \
+	$(EMACS_ROOT)/nt/inc/sys/stat.h \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/lib-src/../src/config.h
@@ -389,6 +398,7 @@ $(BLD)/emacsclient.$(O) : \
 $(BLD)/etags.$(O) : \
 	$(SRC)/etags.c \
 	$(EMACS_ROOT)/nt/inc/sys/param.h \
+	$(EMACS_ROOT)/nt/inc/sys/stat.h \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/lib-src/../src/config.h \
@@ -429,6 +439,7 @@ $(BLD)/movemail.$(O) : \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/lib-src/../src/config.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
+	$(EMACS_ROOT)/nt/inc/sys/stat.h \
 	$(EMACS_ROOT)/lib-src/../src/syswait.h \
 	$(EMACS_ROOT)/nt/inc/pwd.h \
 	$(SRC)/ntlib.h
@@ -437,11 +448,13 @@ $(BLD)/movemail.$(O) : \
 $(BLD)/ntlib.$(O) : \
 	$(SRC)/ntlib.c \
 	$(SRC)/ntlib.h \
+	$(EMACS_ROOT)/nt/inc/sys/stat.h \
 	$(EMACS_ROOT)/nt/inc/pwd.h
 
 $(BLD)/pop.$(O) : \
 	$(SRC)/pop.c \
 	$(SRC)/pop.h \
+	$(EMACS_ROOT)/lib/min-max.h \
 	$(SRC)/ntlib.h
 
 $(BLD)/profile.$(O) : \

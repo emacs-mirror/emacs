@@ -1,3 +1,68 @@
+2011-02-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* etags.c (canonicalize_filename, ISUPPER): Fix last change.
+
+	* makefile.w32-in ($(BLD)/ebrowse.$(O), $(BLD)/pop.$(O)): Depend
+	on ../lib/min-max.h.
+
+2011-02-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	etags: Downcase drive letters, for consistency with Emacs proper.
+	* etags.c (upcase): Remove; no longer used.
+	(canonicalize_filename): Downcase drive letters.
+
+	Assume S_ISLNK etc. work, since gnulib supports this.
+	* etags.c (S_ISREG): Remove.
+
+2011-02-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume S_ISLNK etc. work, since gnulib supports this.
+	* etags.c (S_ISREG): Remove.
+
+2011-02-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (obj): Remove filemode.o.
+
+2011-02-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	New file "lib/min-max.h".
+	* ebrowse.c (min, max): Define them by including <min-max.h>
+	instead of defining it ourselves.
+	* pop.c (min): Likewise.
+	* Makefile.in (ebrowse${EXEEXT}, pop.o): Depend on min-max.h.
+
+	* movemail.c (popmail): Report fchown failure instead of ignoring it.
+	But if the file already has the right ownership, don't worry about it.
+
+	* make-docfile.c (input_buffer): Rename variables to avoid shadowing.
+	* test-distrib.c (buf): Make this local, to avoid shadowing.
+
+	* movemail.c (main, pop_retr): Rename locals to avoid shadowing.
+	(progname, sfi, sfo, ibuffer, obuffer): Remove unused vars.
+	(DONE): Remove unused macro.
+	(DIRECTORY_SEP, IS_DIRECTORY_SEP, IS_FROM_LINE):
+	Define these macros only in the contexts that need them.
+	* pop.c (index): Remove unused macro.
+	(KPOP_PORT): Define only if KERBEROS is defined.
+
+	Declare file-scope functions and variables static if not exported.
+	This is more consistent, and is nicer with gcc -Wstrict-prototypes.
+	* ebrowse.c, emacsclient.c, fakemail.c, make-docfile.c, movemail.c:
+	* profile.c, test-distrib.c, update-game-score.c:
+	Declare non-'main' functions and variables to be static.
+	* ebrowse.c: Omit redundant function prototypes.
+
+2011-02-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(BLD)/ctags.$(O), $(BLD)/emacsclient.$(O))
+	($(BLD)/etags.$(O), $(BLD)/movemail.$(O), $(BLD)/ntlib.$(O)):
+	Depend on $(EMACS_ROOT)/nt/inc/sys/stat.h.
+
+2011-02-21  Ben Key  <bkey76@gmail.com>  (tiny change)
+
+	* make-docfile.c (scan_c_file): Adapt DEFVAR_PER_BUFFER case to
+	the new BVAR macro.
+
 2011-02-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (obj): Remove md5.o.
@@ -28,7 +93,7 @@
 
 2011-02-05  Paul Eggert  <eggert@cs.ucla.edu>
 
-	* emacsclient.c: conform to C89 pointer rules
+	* emacsclient.c: Conform to C89 pointer rules.
 	(file_name_absolute_p): Accept const char *, not const unsigned
 	char *, to satisfy C89 rules.
 
@@ -186,7 +251,7 @@
 	* test-distrib.c (cool_read):
 	* movemail.c (main, concat):
 	* make-docfile.c (scan_file, write_c_args):
-	* emacsclient.c	(get_server_config): Fix -Wconversion warning.
+	* emacsclient.c (get_server_config): Fix -Wconversion warning.
 	(egetenv): Move conditional definition earlier.
 	(progname): Use const.
 	* sorted-doc.c (xstrdup): Use const.
@@ -546,7 +611,7 @@
 	autoconf, not cpp.
 	(ALL_CFLAGS): Use them as make variables.
 
-2010-04-07  Christoph  <cschol2112@googlemail.com>  (tiny change)
+2010-04-07  Christoph Scholtes  <cschol2112@googlemail.com>
 
 	* makefile.w32-in (OTHER_PLATFORM_SUPPORT): Use parenthesis
 	for macros for nmake compatibility.

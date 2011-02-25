@@ -1,4 +1,4 @@
-;;; mailclient.el --- mail sending via system's mail client.  -*- byte-compile-dynamic: t -*-
+;;; mailclient.el --- mail sending via system's mail client.
 
 ;; Copyright (C) 2005-2011 Free Software Foundation
 

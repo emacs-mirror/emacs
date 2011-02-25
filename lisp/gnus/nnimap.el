@@ -72,14 +72,15 @@ The default is to try `ssl' first, and then `network'.")
 			       "ssh %s imapd"))
 
 (defvoo nnimap-inbox nil
-  "The mail box where incoming mail arrives and should be split out of.")
+  "The mail box where incoming mail arrives and should be split out of.
+For example, \"INBOX\".")
 
 (defvoo nnimap-split-methods nil
   "How mail is split.
-Uses the same syntax as nnmail-split-methods")
+Uses the same syntax as `nnmail-split-methods'.")
 
 (defvoo nnimap-split-fancy nil
-  "Uses the same syntax as nnmail-split-fancy.")
+  "Uses the same syntax as `nnmail-split-fancy'.")
 
 (defvoo nnimap-unsplittable-articles '(%Deleted %Seen)
   "Articles with the flags in the list will not be considered when splitting.")
@@ -1150,6 +1151,7 @@ textual parts.")
 	  (setf (nnimap-examined nnimap-object) group)
 	  (if (and qresyncp
 		   uidvalidity
+		   active
 		   modseq)
 	      (push
 	       (list (nnimap-send-command "EXAMINE %S (%s (%s %s))"
