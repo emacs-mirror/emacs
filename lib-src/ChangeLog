@@ -1,5 +1,8 @@
 2011-02-25  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* etags.c (ISUPPER): Move to inside the only #ifdef where it's used.
+	This avoids an unused-macro warning with some GCC settings.
+
 	* make-docfile.c (write_globals): Change char * to char const *
 	to avoid a GCC "assignment discards qualifiers" diagnostic
 	in some configurations.
