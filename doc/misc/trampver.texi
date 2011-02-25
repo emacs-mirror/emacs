@@ -63,7 +63,7 @@
 @set postfixhop         /
 @set ipv6prefix
 @set ipv6postfix
-@set emacsothername     GNU Emacs
+@set emacsothername     Emacs
 @set emacsotherdir      emacs
 @set emacsotherfilename tramp-emacs.html
 @end ifset

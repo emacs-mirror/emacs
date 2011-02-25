@@ -1,3 +1,49 @@
+2011-02-24  Glenn Morris  <rgm@gnu.org>
+
+	* files-x.el (modify-dir-local-variable): Handle dir-locals from
+	the cache, and from non-file sources.
+
+	* help-fns.el (describe-variable): Return consistent results when a
+	dir-local from a file came from the cache or did not.  (Bug#8095)
+	If a dir-local has no associated file, say it came from a "directory".
+
+	* files.el (hack-dir-local-variables): Fix setting of `dir-name'.
+	(hack-local-variables-confirm, hack-local-variables-filter): Doc fix.
+
+	* files.el (dir-locals-find-file): Doc fix.
+	Fix the check for cache elements that have no associated file,
+	and the mtime check for those that do.  (Bug#8095)
+
+	* dired-x.el (dired-hack-local-variables):
+	Handle interrupts during hacking local variables.  (Bug#5216)
+
+	* emacs-lisp/autoload.el (autoload-save-buffers)
+	(autoload-find-destination, update-directory-autoloads):
+	Avoid prompts when updating autoloads.
+
+2011-02-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-disable-print-circle): Obsolete.
+
+2011-02-23  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmailmm.el (rmail-mime-process-multipart): Do not signal an
+	error when a multipart boundary in the nested multipart is found.
+
+	* mail/rmail.el (rmail-start-mail): Decode "encoded-words" of
+	header components.
+
+2011-02-23  Glenn Morris  <rgm@gnu.org>
+
+	* dired.el (dired-mode): Call hack-dir-local-variables-non-file-buffer.
+	* dired-x.el (dired-omit-mode): Safe if boolean.
+	(dired-enable-local-variables): Fix doc and custom type.
+	(dired-enable-local-variables, dired-local-variables-file)
+	(dired-hack-local-variables): Make obsolete.
+	(dired-omit-here-always): Use dir-locals.el instead.
+
+	* files.el (safe-local-eval-forms): Add the write-file-hooks version.
+
 2011-02-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* help-fns.el (describe-function-1): Don't signal an error just because
@@ -9036,7 +9082,7 @@
 	* htmlfontify.el (hfy-face-attr-for-class): Use append instead
 	of nconc to avoid pure storage error (Bug#6239).
 
-2010-06-27  Christoph  <cschol2112@googlemail.com>  (tiny change)
+2010-06-27  Christoph Scholtes  <cschol2112@googlemail.com>
 
 	* bookmark.el (bookmark-bmenu-2-window, bookmark-bmenu-other-window)
 	(bookmark-bmenu-other-window-with-mouse): Remove unnecessary
@@ -11219,7 +11265,7 @@
 
 	* ido.el (ido-file-internal): Fix 2009-12-02 change.
 
-2010-04-19  Christoph  <cschol2112@googlemail.com>  (tiny change)
+2010-04-19  Christoph Scholtes  <cschol2112@googlemail.com>
 
 	* progmodes/grep.el (grep-compute-defaults): Fix handling of host
 	default settings (Bug#5928).

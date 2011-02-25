@@ -1,3 +1,29 @@
+2011-02-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* dired.c (Ffile_attributes): Increase size of modes from 10 to 12
+	as per recent filemodestring API change.  Reported by Jonas Öster in
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-02/msg01069.html>.
+
+2011-02-23  Ben Key  <bkey76@gmail.com>  (tiny change)
+
+	* nsterm.m (ns_draw_window_cursor): Obey the cursor_width argument
+	directly, for bar cursors.
+
+2011-02-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (set_frame_cursor_types): Don't write an undefined value
+	into the frame's cursor_width.
+
+2011-02-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* print.c (print_object): Never print old-style backquotes.
+	Obey escapeflag for hash tables as well.
+
+2011-02-23  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_open_entity): Be sure to set scaled_pixel_size.
+	(font_find_for_lface): Check if attrs[LFACE_HEIGHT_INDEX] is integer.
+
 2011-02-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Work around some portability problems with symlinks.

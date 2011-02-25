@@ -383,6 +383,7 @@ Thank you for your help in stamping out bugs.
 (defvar gnus-article-reply nil)
 (defmacro gnus-setup-message (config &rest forms)
   (let ((winconf (make-symbol "gnus-setup-message-winconf"))
+	(winconf-name (make-symbol "gnus-setup-message-winconf-name"))
 	(buffer (make-symbol "gnus-setup-message-buffer"))
 	(article (make-symbol "gnus-setup-message-article"))
 	(yanked (make-symbol "gnus-setup-yanked-articles"))
@@ -433,7 +434,7 @@ Thank you for your help in stamping out bugs.
 	   (progn
 	     ,@forms)
 	 (gnus-inews-add-send-actions ,winconf ,buffer ,article ,config
-				      ,yanked ,winconf-name)
+				      ,yanked ',winconf-name)
 	 (setq gnus-message-buffer (current-buffer))
 	 (set (make-local-variable 'gnus-message-group-art)
 	      (cons ,group ,article))
@@ -541,7 +542,7 @@ Gcc: header for archiving purposes."
 	   (gnus-post-method arg ,gnus-newsgroup-name)))
   (message-add-action
    `(progn
-      (setq gnus-current-window-configuration ,winconf-name)
+      (setq gnus-current-window-configuration ',winconf-name)
       (when (gnus-buffer-exists-p ,buffer)
 	(set-window-configuration ,winconf)))
    'exit 'postpone 'kill)

@@ -937,7 +937,7 @@ so last access time will always be midnight of that day.  */)
   Lisp_Object dirname;
   struct stat sdir;
 #endif /* BSD4_2 */
-  char modes[10];
+  char modes[12];
   Lisp_Object handler;
   struct gcpro gcpro1;
   char *uname = NULL, *gname = NULL;

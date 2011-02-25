@@ -127,8 +127,8 @@ you will be pwned as the kids say.
 
 ``Netrc'' files are usually called @code{.authinfo} or @code{.netrc};
 nowadays @code{.authinfo} seems to be more popular and the auth-source
-library encourages this confusion by making it the default, as you'll
-see later.
+library encourages this confusion by accepting both, as you'll see
+later.
 
 If you have problems with the search, set @code{auth-source-debug} to
 @code{t} and see what host, port, and user the library is checking in
@@ -159,7 +159,7 @@ and simplest configuration is:
 ;;; mostly equivalent (see below about fallbacks) but shorter:
 (setq auth-sources '((:source "~/.authinfo.gpg")))
 ;;; even shorter and the @emph{default}:
-(setq auth-sources '("~/.authinfo.gpg" "~/.authinfo"))
+(setq auth-sources '("~/.authinfo.gpg" "~/.authinfo" "~/.netrc"))
 ;;; use the Secrets API @var{Login} collection (@pxref{Secret Service API})
 (setq auth-sources '("secrets:Login"))
 @end lisp
@@ -184,8 +184,8 @@ the defaults: any host and any port are looked up in the netrc
 file @code{~/.authinfo.gpg}, which is a GnuPG encrypted file
 (@pxref{GnuPG and EasyPG Assistant Configuration}).  
 
-If that fails, the unencrypted netrc file @code{~/.authinfo} will
-be used.
+If that fails, the unencrypted netrc files @code{~/.authinfo} and
+@code{~/.netrc} will be used.
 
 The typical netrc line example is without a port.
 

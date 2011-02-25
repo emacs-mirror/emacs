@@ -1215,7 +1215,8 @@ FUNC will be called with the group name to determine the article number."
 	      ;; This is the final group, which is used as a
 	      ;; catch-all.
 	      (when (and (not group-art)
-			 (not nnmail-inhibit-default-split-group))
+			 (or (equal "" (nth 1 method))
+			     (not nnmail-inhibit-default-split-group)))
 		(setq group-art
 		      (list (cons (car method)
 				  (funcall func (car method))))))))

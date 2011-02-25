@@ -611,7 +611,7 @@
 	autoconf, not cpp.
 	(ALL_CFLAGS): Use them as make variables.
 
-2010-04-07  Christoph  <cschol2112@googlemail.com>  (tiny change)
+2010-04-07  Christoph Scholtes  <cschol2112@googlemail.com>
 
 	* makefile.w32-in (OTHER_PLATFORM_SUPPORT): Use parenthesis
 	for macros for nmake compatibility.

@@ -270,6 +270,9 @@ Does not make other difference."
           (sit-for 1)
           ;; (debug 'after-merge)
           ;; Check the conflicts.
+          ;; FIXME if using the helpful bzr changelog_merge plugin,
+          ;; there are normally no conflicts in ChangeLogs.
+          ;; But we still want the dates fixing, like bzrmerge-resolve does.
           (let ((conflicted nil)
                 (files ()))
             (goto-char (point-min))
