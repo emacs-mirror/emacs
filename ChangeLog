@@ -1,3 +1,8 @@
+2011-02-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure, lib/Makefile.in, lib/getopt_int.h, lib/gnulib.mk:
+	* lib/stdlib.in.h, m4/stdlib_h.m4: Regenerate.
+
 2011-02-24  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in: Replace obsolete AC_OUTPUT() with AC_CONFIG_FILES(),

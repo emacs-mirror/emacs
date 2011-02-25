@@ -267,6 +267,7 @@ stdlib.h: stdlib.in.h $(CXXDEFS_H) $(ARG_NONNULL_H) $(WARN_ON_USE_H)
 	      -e 's|@''GNULIB_GETSUBOPT''@|$(GNULIB_GETSUBOPT)|g' \
 	      -e 's|@''GNULIB_GRANTPT''@|$(GNULIB_GRANTPT)|g' \
 	      -e 's|@''GNULIB_MALLOC_POSIX''@|$(GNULIB_MALLOC_POSIX)|g' \
+	      -e 's|@''GNULIB_MBTOWC''@|$(GNULIB_MBTOWC)|g' \
 	      -e 's|@''GNULIB_MKDTEMP''@|$(GNULIB_MKDTEMP)|g' \
 	      -e 's|@''GNULIB_MKOSTEMP''@|$(GNULIB_MKOSTEMP)|g' \
 	      -e 's|@''GNULIB_MKOSTEMPS''@|$(GNULIB_MKOSTEMPS)|g' \
@@ -285,6 +286,7 @@ stdlib.h: stdlib.in.h $(CXXDEFS_H) $(ARG_NONNULL_H) $(WARN_ON_USE_H)
 	      -e 's|@''GNULIB_SYSTEM_POSIX''@|$(GNULIB_SYSTEM_POSIX)|g' \
 	      -e 's|@''GNULIB_UNLOCKPT''@|$(GNULIB_UNLOCKPT)|g' \
 	      -e 's|@''GNULIB_UNSETENV''@|$(GNULIB_UNSETENV)|g' \
+	      -e 's|@''GNULIB_WCTOMB''@|$(GNULIB_WCTOMB)|g' \
 	      < $(srcdir)/stdlib.in.h | \
 	  sed -e 's|@''HAVE__EXIT''@|$(HAVE__EXIT)|g' \
 	      -e 's|@''HAVE_ATOLL''@|$(HAVE_ATOLL)|g' \
@@ -313,6 +315,7 @@ stdlib.h: stdlib.in.h $(CXXDEFS_H) $(ARG_NONNULL_H) $(WARN_ON_USE_H)
 	      -e 's|@''REPLACE_CALLOC''@|$(REPLACE_CALLOC)|g' \
 	      -e 's|@''REPLACE_CANONICALIZE_FILE_NAME''@|$(REPLACE_CANONICALIZE_FILE_NAME)|g' \
 	      -e 's|@''REPLACE_MALLOC''@|$(REPLACE_MALLOC)|g' \
+	      -e 's|@''REPLACE_MBTOWC''@|$(REPLACE_MBTOWC)|g' \
 	      -e 's|@''REPLACE_MKSTEMP''@|$(REPLACE_MKSTEMP)|g' \
 	      -e 's|@''REPLACE_PUTENV''@|$(REPLACE_PUTENV)|g' \
 	      -e 's|@''REPLACE_REALLOC''@|$(REPLACE_REALLOC)|g' \
@@ -320,6 +323,7 @@ stdlib.h: stdlib.in.h $(CXXDEFS_H) $(ARG_NONNULL_H) $(WARN_ON_USE_H)
 	      -e 's|@''REPLACE_SETENV''@|$(REPLACE_SETENV)|g' \
 	      -e 's|@''REPLACE_STRTOD''@|$(REPLACE_STRTOD)|g' \
 	      -e 's|@''REPLACE_UNSETENV''@|$(REPLACE_UNSETENV)|g' \
+	      -e 's|@''REPLACE_WCTOMB''@|$(REPLACE_WCTOMB)|g' \
 	      -e '/definitions of _GL_FUNCDECL_RPL/r $(CXXDEFS_H)' \
 	      -e '/definition of _GL_ARG_NONNULL/r $(ARG_NONNULL_H)' \
 	      -e '/definition of _GL_WARN_ON_USE/r $(WARN_ON_USE_H)'; \
