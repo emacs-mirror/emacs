@@ -1,7 +1,8 @@
 2011-02-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure, lib/Makefile.in, lib/getopt_int.h, lib/gnulib.mk:
-	* lib/stdlib.in.h, m4/stdlib_h.m4: Regenerate.
+	* lib/stdlib.in.h, m4/stdlib_h.m4: Regenerate to incorporate
+	recent changes to configure.in and to gnulib.
 
 2011-02-24  Glenn Morris  <rgm@gnu.org>
 
