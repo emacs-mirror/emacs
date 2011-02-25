@@ -524,10 +524,13 @@ must call it to obtain the actual value."
          (keys (loop for i below (length spec) by 2
                      unless (memq (nth i spec) ignored-keys)
                      collect (nth i spec)))
+         (cached (auth-source-remembered-p spec))
+         ;; note that we may have cached results but found is still nil
+         ;; (there were no results from the search)
          (found (auth-source-recall spec))
          filtered-backends accessor-key backend)
 
-    (if (and found auth-source-do-cache)
+    (if (and cached auth-source-do-cache)
         (auth-source-do-debug
          "auth-source-search: found %d CACHED results matching %S"
          (length found) spec)
@@ -580,7 +583,8 @@ must call it to obtain the actual value."
          "auth-source-search: CREATED %d results (max %d) matching %S"
          (length found) max spec))
 
-      (when (and found auth-source-do-cache)
+      ;; note we remember the lack of result too, if it's applicable
+      (when auth-source-do-cache
         (auth-source-remember spec found)))
 
       found))
@@ -654,6 +658,11 @@ Returns the deleted entries."
   (password-read-from-cache
    (concat auth-source-magic (format "%S" spec))))
 
+(defun auth-source-remembered-p (spec)
+  "Check if SPEC is remembered."
+  (password-in-cache-p
+   (concat auth-source-magic (format "%S" spec))))
+
 (defun auth-source-forget (spec)
   "Forget any cached data matching SPEC exactly.
 
@@ -664,7 +673,10 @@ Returns t or nil for forgotten or not found."
 ;;; (loop for sym being the symbols of password-data when (string-match (concat "^" auth-source-magic) (symbol-name sym)) collect (symbol-name sym))
 
 ;;; (auth-source-remember '(:host "wedd") '(4 5 6))
+;;; (auth-source-remembered-p '(:host "wedd"))
 ;;; (auth-source-remember '(:host "xedd") '(1 2 3))
+;;; (auth-source-remembered-p '(:host "xedd"))
+;;; (auth-source-remembered-p '(:host "zedd"))
 ;;; (auth-source-recall '(:host "xedd"))
 ;;; (auth-source-recall '(:host t))
 ;;; (auth-source-forget+ :host t)

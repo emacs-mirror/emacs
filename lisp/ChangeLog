@@ -1,3 +1,8 @@
+2011-02-25  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* password-cache.el (password-in-cache-p): Convenience function to
+	check if a key is in the cache, even if the value is nil.
+
 2011-02-25  Jambunathan K  <kjambunathan@gmail.com>
 
 	* emacs-lisp/package-x.el (package--archive-contents-from-url)

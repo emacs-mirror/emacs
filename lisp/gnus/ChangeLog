@@ -1,5 +1,7 @@
 2011-02-25  Teodor Zlatanov  <tzz@lifelogs.com>
 
+	* auth-source.el (auth-source-search): Cache empty result sets.
+
 	* auth-source.el (auth-source-save-behavior): New variable to replace
 	`auth-source-never-create'.
 	(auth-source-netrc-create): Use it.
