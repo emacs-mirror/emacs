@@ -72,19 +72,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Enable expensive run-time checking of data types? */
 #undef ENABLE_CHECKING
 
-/* Define on systems for which file names may have a so-called `drive letter'
-   prefix, define this to compute the length of that prefix, including the
-   colon. */
-#undef FILE_SYSTEM_ACCEPTS_DRIVE_LETTER_PREFIX
-
-/* Define if the backslash character may also serve as a file name component
-   separator. */
-#undef FILE_SYSTEM_BACKSLASH_IS_FILE_NAME_SEPARATOR
-
-/* Define if a drive letter prefix denotes a relative path if it is not
-   followed by a file name component separator. */
-#undef FILE_SYSTEM_DRIVE_PREFIX_CAN_BE_RELATIVE
-
 /* Define this to check for errors in cons list. */
 #undef GC_CHECK_CONS_LIST
 
@@ -906,12 +893,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to support using a Hesiod database to find the POP server. */
 #undef HESIOD
-
-#if FILE_SYSTEM_BACKSLASH_IS_FILE_NAME_SEPARATOR
-# define ISSLASH(C) ((C) == '/' || (C) == '\\')
-#else
-# define ISSLASH(C) ((C) == '/')
-#endif
 
 /* Define to support Kerberos-authenticated POP mail retrieval. */
 #undef KERBEROS

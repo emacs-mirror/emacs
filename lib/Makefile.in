@@ -50,10 +50,10 @@ DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 subdir = lib
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/00gnulib.m4 \
-	$(top_srcdir)/m4/c-strtod.m4 $(top_srcdir)/m4/dos.m4 \
-	$(top_srcdir)/m4/extensions.m4 $(top_srcdir)/m4/filemode.m4 \
-	$(top_srcdir)/m4/getloadavg.m4 $(top_srcdir)/m4/getopt.m4 \
-	$(top_srcdir)/m4/gl-comp.m4 $(top_srcdir)/m4/gnulib-common.m4 \
+	$(top_srcdir)/m4/c-strtod.m4 $(top_srcdir)/m4/extensions.m4 \
+	$(top_srcdir)/m4/filemode.m4 $(top_srcdir)/m4/getloadavg.m4 \
+	$(top_srcdir)/m4/getopt.m4 $(top_srcdir)/m4/gl-comp.m4 \
+	$(top_srcdir)/m4/gnulib-common.m4 \
 	$(top_srcdir)/m4/include_next.m4 $(top_srcdir)/m4/longlong.m4 \
 	$(top_srcdir)/m4/lstat.m4 $(top_srcdir)/m4/md5.m4 \
 	$(top_srcdir)/m4/mktime.m4 $(top_srcdir)/m4/multiarch.m4 \
@@ -604,12 +604,12 @@ BUILT_SOURCES = arg-nonnull.h c++defs.h $(GETOPT_H) $(STDBOOL_H) \
 	$(STDDEF_H) $(STDINT_H) stdlib.h sys/stat.h time.h unistd.h \
 	warn-on-use.h
 EXTRA_DIST = $(top_srcdir)/./arg-nonnull.h $(top_srcdir)/./c++defs.h \
-	md5.c md5.h ftoastr.c ftoastr.h filemode.c filemode.h \
-	getloadavg.c getopt.c getopt.in.h getopt1.c getopt_int.h \
-	intprops.h lstat.c mktime-internal.h mktime.c readlink.c \
-	stat.c stdbool.in.h stddef.in.h stdint.in.h stdlib.in.h \
-	strftime.c strftime.h symlink.c sys_stat.in.h time.in.h \
-	time_r.c unistd.in.h $(top_srcdir)/./warn-on-use.h
+	md5.c md5.h dosname.h ftoastr.c ftoastr.h filemode.c \
+	filemode.h getloadavg.c getopt.c getopt.in.h getopt1.c \
+	getopt_int.h intprops.h lstat.c mktime-internal.h mktime.c \
+	readlink.c stat.c stdbool.in.h stddef.in.h stdint.in.h \
+	stdlib.in.h strftime.c strftime.h symlink.c sys_stat.in.h \
+	time.in.h time_r.c unistd.in.h $(top_srcdir)/./warn-on-use.h
 MOSTLYCLEANDIRS = sys
 MOSTLYCLEANFILES = core *.stackdump arg-nonnull.h arg-nonnull.h-t \
 	c++defs.h c++defs.h-t getopt.h getopt.h-t stdbool.h \

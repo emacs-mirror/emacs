@@ -6128,6 +6128,7 @@ $as_echo "$ac_cv_safe_to_define___extensions__" >&6; }
   # Code from module arg-nonnull:
   # Code from module c++defs:
   # Code from module crypto/md5:
+  # Code from module dosname:
   # Code from module dtoastr:
   # Code from module extensions:
 
@@ -14687,102 +14688,6 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 
 
-
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether system is Windows or MSDOS" >&5
-$as_echo_n "checking whether system is Windows or MSDOS... " >&6; }
-if ${ac_cv_win_or_dos+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-
-        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main ()
-{
-
-#if !defined _WIN32 && !defined __WIN32__ && !defined __MSDOS__ && !defined __CYGWIN__
-neither MSDOS nor Windows
-#endif
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  ac_cv_win_or_dos=yes
-else
-  ac_cv_win_or_dos=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_win_or_dos" >&5
-$as_echo "$ac_cv_win_or_dos" >&6; }
-
-    if test x"$ac_cv_win_or_dos" = xyes; then
-      ac_fs_accepts_drive_letter_prefix=1
-      ac_fs_backslash_is_file_name_separator=1
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether drive letter can start relative path" >&5
-$as_echo_n "checking whether drive letter can start relative path... " >&6; }
-if ${ac_cv_drive_letter_can_be_relative+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-
-          cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main ()
-{
-
-#if defined __CYGWIN__
-drive letters are always absolute
-#endif
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  ac_cv_drive_letter_can_be_relative=yes
-else
-  ac_cv_drive_letter_can_be_relative=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_drive_letter_can_be_relative" >&5
-$as_echo "$ac_cv_drive_letter_can_be_relative" >&6; }
-      if test x"$ac_cv_drive_letter_can_be_relative" = xyes; then
-        ac_fs_drive_letter_can_be_relative=1
-      else
-        ac_fs_drive_letter_can_be_relative=0
-      fi
-    else
-      ac_fs_accepts_drive_letter_prefix=0
-      ac_fs_backslash_is_file_name_separator=0
-      ac_fs_drive_letter_can_be_relative=0
-    fi
-
-
-cat >>confdefs.h <<_ACEOF
-#define FILE_SYSTEM_ACCEPTS_DRIVE_LETTER_PREFIX $ac_fs_accepts_drive_letter_prefix
-_ACEOF
-
-
-
-
-
-cat >>confdefs.h <<_ACEOF
-#define FILE_SYSTEM_BACKSLASH_IS_FILE_NAME_SEPARATOR $ac_fs_backslash_is_file_name_separator
-_ACEOF
-
-
-
-cat >>confdefs.h <<_ACEOF
-#define FILE_SYSTEM_DRIVE_PREFIX_CAN_BE_RELATIVE $ac_fs_drive_letter_can_be_relative
-_ACEOF
-
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for stdbool.h that conforms to C99" >&5
 $as_echo_n "checking for stdbool.h that conforms to C99... " >&6; }
 if ${ac_cv_header_stdbool_h+:} false; then :
@@ -15347,6 +15252,7 @@ fi
 
   :
 
+  # Code from module dosname:
   # Code from module dtoastr:
 
   # Code from module extensions:
@@ -16355,7 +16261,6 @@ $as_echo "#define READLINK_TRAILING_SLASH_BUG 1" >>confdefs.h
 
 
   # Code from module stat:
-
 
 
 

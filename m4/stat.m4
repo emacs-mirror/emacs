@@ -1,4 +1,4 @@
-# serial 6
+# serial 7
 
 # Copyright (C) 2009-2011 Free Software Foundation, Inc.
 #
@@ -9,7 +9,6 @@
 AC_DEFUN([gl_FUNC_STAT],
 [
   AC_REQUIRE([AC_CANONICAL_HOST]) dnl for cross-compiles
-  AC_REQUIRE([gl_AC_DOS])
   AC_REQUIRE([gl_SYS_STAT_H_DEFAULTS])
   AC_CHECK_FUNCS_ONCE([lstat])
   dnl mingw is the only known platform where stat(".") and stat("./") differ

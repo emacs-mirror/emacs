@@ -37,6 +37,7 @@ orig_stat (const char *filename, struct stat *buf)
 #include <limits.h>
 #include <stdbool.h>
 #include <string.h>
+#include "dosname.h"
 
 /* Store information about NAME into ST.  Work around bugs with
    trailing slashes.  Mingw has other bugs (such as st_ino always

@@ -1,5 +1,11 @@
 2011-02-25  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Simplify symlink portability workaround.
+	* m4/dos.m4: Remove.
+	* aclocal.m4, configure, lib/Makefile.in, lib/gnulib.mk, lib/stat.c:
+	* m4/gl-comp.m4, m4/stat.m4, src/config.in: Regenerate from gnulib.
+	* lib/dosname.h: New file, regenerated from gnulib.
+
 	* configure, lib/Makefile.in, lib/getopt_int.h, lib/gnulib.mk:
 	* lib/stdlib.in.h, m4/stdlib_h.m4: Regenerate.
 

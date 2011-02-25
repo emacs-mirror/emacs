@@ -78,6 +78,13 @@ EXTRA_libgnu_a_SOURCES += md5.c
 
 ## end   gnulib module crypto/md5
 
+## begin gnulib module dosname
+
+
+EXTRA_DIST += dosname.h
+
+## end   gnulib module dosname
+
 ## begin gnulib module dtoastr
 
 libgnu_a_SOURCES += dtoastr.c

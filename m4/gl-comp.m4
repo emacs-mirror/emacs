@@ -29,6 +29,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module arg-nonnull:
   # Code from module c++defs:
   # Code from module crypto/md5:
+  # Code from module dosname:
   # Code from module dtoastr:
   # Code from module extensions:
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
@@ -78,6 +79,7 @@ AC_DEFUN([gl_INIT],
   # Code from module c++defs:
   # Code from module crypto/md5:
   gl_MD5
+  # Code from module dosname:
   # Code from module dtoastr:
   AC_REQUIRE([gl_C99_STRTOLD])
   # Code from module extensions:
@@ -279,6 +281,7 @@ AC_DEFUN([gl_FILE_LIST], [
   build-aux/arg-nonnull.h
   build-aux/c++defs.h
   build-aux/warn-on-use.h
+  lib/dosname.h
   lib/dtoastr.c
   lib/filemode.c
   lib/filemode.h
@@ -312,7 +315,6 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/unistd.in.h
   m4/00gnulib.m4
   m4/c-strtod.m4
-  m4/dos.m4
   m4/extensions.m4
   m4/filemode.m4
   m4/getloadavg.m4
