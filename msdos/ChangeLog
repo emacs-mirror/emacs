@@ -1,3 +1,8 @@
+2011-02-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* depfiles.bat: Create a dummy .Po file only if a file by the same
+	name does not already exist in the deps/ subdirectory.
+
 2011-02-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* depfiles.bat: New file.
