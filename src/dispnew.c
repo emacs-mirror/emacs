@@ -2197,8 +2197,6 @@ adjust_frame_glyphs_for_frame_redisplay (struct frame *f)
 static void
 adjust_frame_glyphs_for_window_redisplay (struct frame *f)
 {
-  struct window *w;
-
   xassert (FRAME_WINDOW_P (f) && FRAME_LIVE_P (f));
 
   /* Allocate/reallocate window matrices.  */
@@ -2210,6 +2208,7 @@ adjust_frame_glyphs_for_window_redisplay (struct frame *f)
 #if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
   {
     /* Allocate a dummy window if not already done.  */
+    struct window *w;
     if (NILP (f->menu_bar_window))
       {
 	f->menu_bar_window = make_window ();
@@ -2232,23 +2231,26 @@ adjust_frame_glyphs_for_window_redisplay (struct frame *f)
 #endif /* HAVE_X_WINDOWS */
 
 #ifndef USE_GTK
-  /* Allocate/ reallocate matrices of the tool bar window.  If we
-     don't have a tool bar window yet, make one.  */
-  if (NILP (f->tool_bar_window))
-    {
-      f->tool_bar_window = make_window ();
+  {
+    /* Allocate/ reallocate matrices of the tool bar window.  If we
+       don't have a tool bar window yet, make one.  */
+    struct window *w;
+    if (NILP (f->tool_bar_window))
+      {
+	f->tool_bar_window = make_window ();
+	w = XWINDOW (f->tool_bar_window);
+	XSETFRAME (w->frame, f);
+	w->pseudo_window_p = 1;
+      }
+    else
       w = XWINDOW (f->tool_bar_window);
-      XSETFRAME (w->frame, f);
-      w->pseudo_window_p = 1;
-    }
-  else
-    w = XWINDOW (f->tool_bar_window);
 
-  XSETFASTINT (w->top_line, FRAME_MENU_BAR_LINES (f));
-  XSETFASTINT (w->left_col, 0);
-  XSETFASTINT (w->total_lines, FRAME_TOOL_BAR_LINES (f));
-  XSETFASTINT (w->total_cols, FRAME_TOTAL_COLS (f));
-  allocate_matrices_for_window_redisplay (w);
+    XSETFASTINT (w->top_line, FRAME_MENU_BAR_LINES (f));
+    XSETFASTINT (w->left_col, 0);
+    XSETFASTINT (w->total_lines, FRAME_TOOL_BAR_LINES (f));
+    XSETFASTINT (w->total_cols, FRAME_TOTAL_COLS (f));
+    allocate_matrices_for_window_redisplay (w);
+  }
 #endif
 }
 

@@ -8,6 +8,10 @@
 	only use is in a comment.  Maybe both the comment and the "#if 0"
 	stuff should be removed?
 
+	* dispnew.c: Fix problem uncovered by gcc -Wunused-variable.
+	(adjust_frame_glyphs_for_window_redisplay): Make 'w' local to the
+	contexts that actually need it.
+
 2011-02-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* s/msdos.h (HAVE_LSTAT): Define for DJGPP >= 2.04.
