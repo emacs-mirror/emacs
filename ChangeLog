@@ -1,5 +1,7 @@
 2011-02-26  Eli Zaretskii  <eliz@gnu.org>
 
+	* .bzrignore: Ignore new lib/*.in-h files.
+
 	* config.bat: Rename stdint.in.h and sys_stat.in.h.  Call
 	depfiles.bat even if lib/deps already exist.
 
