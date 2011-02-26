@@ -1,3 +1,8 @@
+2011-02-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* s/msdos.h (HAVE_LSTAT): Define for DJGPP >= 2.04.
+	(lstat): Define for DJGPP < 2.04.
+
 2011-02-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* dired.c (Ffile_attributes): Increase size of modes from 10 to 12
