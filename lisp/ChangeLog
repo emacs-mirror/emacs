@@ -1,5 +1,8 @@
 2011-02-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/cconv.el (cconv-closure-convert-rec): Fix last change for
+	λ-lift candidates that end up not λ-lifted.
+
 	* emacs-lisp/cconv.el: Compute freevars in cconv-analyse.
 	(cconv-mutated, cconv-captured): Remove.
 	(cconv-captured+mutated, cconv-lambda-candidates): Don't give them

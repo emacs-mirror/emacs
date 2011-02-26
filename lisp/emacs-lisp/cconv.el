@@ -1,4 +1,4 @@
-;;; cconv.el --- Closure conversion for statically scoped Emacs lisp. -*- lexical-binding: t -*-
+;;; cconv.el --- Closure conversion for statically scoped Emacs lisp. -*- lexical-binding: t; coding: utf-8 -*-
 
 ;; Copyright (C) 2011  Free Software Foundation, Inc.
 
@@ -261,7 +261,8 @@ Returns a form where all lambdas don't have any free variables."
                                 (eq (car (cadr value)) 'lambda)))
                    (assert (equal (cddr (cadr value))
                                   (caar cconv-freevars-alist)))
-                   (let* ((fv (cdr (pop cconv-freevars-alist)))
+		   ;; Peek at the freevars to decide whether to λ-lift.
+                   (let* ((fv (cdr (car cconv-freevars-alist)))
                           (funargs (cadr (cadr value)))
                           (funcvars (append fv funargs))
                           (funcbodies (cddadr value)) ; function bodies
@@ -269,10 +270,14 @@ Returns a form where all lambdas don't have any free variables."
 					; lambda lifting condition
                      (if (or (not fv) (< cconv-liftwhen (length funcvars)))
 					; do not lift
-                         (cconv-closure-convert-rec
-                          value emvrs fvrs envs lmenvs)
+			 (cconv-closure-convert-rec
+			  value emvrs fvrs envs lmenvs)
 					; lift
                        (progn
+			 (setq cconv-freevars-alist
+			       ;; Now that we know we'll λ-lift, consume the
+			       ;; freevar data.
+			       (cdr cconv-freevars-alist))
                          (dolist (elm2 funcbodies)
                            (push        ; convert function bodies
                             (cconv-closure-convert-rec
