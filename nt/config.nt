@@ -411,6 +411,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define my_strftime nstrftime   /* for strftime.c */
 
+/* Define to the type of st_nlink in struct stat, or a supertype. */
+#define nlink_t short
+
 #ifndef WINDOWSNT
 /* Some of the files of Emacs which are intended for use with other
    programs assume that if you have a config.h file, you must declare
