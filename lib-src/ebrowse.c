@@ -77,7 +77,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define TREE_HEADER_STRUCT	"[ebrowse-hs "
 #define TREE_STRUCT		"[ebrowse-ts "
 #define MEMBER_STRUCT		"[ebrowse-ms "
-#define BROWSE_STRUCT		"[ebrowse-bs "
 #define CLASS_STRUCT		"[ebrowse-cs "
 
 /* The name of the symbol table entry for global functions, variables,
