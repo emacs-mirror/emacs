@@ -53,7 +53,7 @@ am__cd = cd
 /^BITSIZEOF_SIZE_T *=/s/@BITSIZEOF_SIZE_T@/32/
 /^BITSIZEOF_WCHAR_T *=/s/@BITSIZEOF_WCHAR_T@/16/
 /^BITSIZEOF_WINT_T *=/s/@BITSIZEOF_WINT_T@/32/
-
+/^APPLE_UNIVERSAL_BUILD *=/s/@APPLE_UNIVERSAL_BUILD@/0/
 #
 # Some GNULIB_* are replaced with zero even though DJGPP does not have
 # these features.  That's because the gnulib replacements cannot
@@ -273,6 +273,7 @@ am__cd = cd
 /^REPLACE_DUP *=/s/@REPLACE_DUP@/0/
 /^REPLACE_DUP2 *=/s/@REPLACE_DUP2@/0/
 /^REPLACE_FCHOWNAT *=/s/@REPLACE_FCHOWNAT@/0/
+/^REPLACE_FSTAT *=/s/@REPLACE_FSTAT@/0/
 /^REPLACE_GETCWD *=/s/@REPLACE_GETCWD@/0/
 /^REPLACE_GETDOMAINNAME *=/s/@REPLACE_GETDOMAINNAME@/0/
 /^REPLACE_GETGROUPS *=/s/@REPLACE_GETGROUPS@/0/
@@ -325,7 +326,7 @@ am__cd = cd
 /^UNISTD_H_HAVE_WINSOCK2_H_AND_USE_SOCKETS *=/s/@[^@\n]*@/0/
 /^WCHAR_T_SUFFIX *=/s/@WCHAR_T_SUFFIX@/h/
 /^WINT_T_SUFFIX *=/s/@WINT_T_SUFFIX@//
-/^gl_LIBOBJS *=/s/@[^@\n]*@/getopt.o getopt1.o strftime.o time_r.o getloadavg.o/
+/^gl_LIBOBJS *=/s/@[^@\n]*@/getopt.o getopt1.o strftime.o time_r.o getloadavg.o md5.o filemode.o/
 /^srcdir *=/s/@[^@\n]*@/./
 /^top_srcdir *=/s/@[^@\n]*@/../
 /^top_builddir *=/s/@[^@\n]*@/../
