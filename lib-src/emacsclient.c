@@ -293,6 +293,20 @@ get_current_dir_name (void)
 
 #ifdef WINDOWSNT
 
+/* Like strdup but get a fatal error if memory is exhausted. */
+
+char *
+xstrdup (const char *s)
+{
+  char *result = strdup (s);
+  if (result == NULL)
+    {
+      perror ("strdup");
+      exit (EXIT_FAILURE);
+    }
+  return result;
+}
+
 #define REG_ROOT "SOFTWARE\\GNU\\Emacs"
 
 /* Retrieve an environment variable from the Emacs subkeys of the registry.
@@ -328,9 +342,11 @@ w32_get_resource (HKEY predefined, char *key, LPDWORD type)
 /*
   getenv wrapper for Windows
 
-  This is needed to duplicate Emacs's behavior, which is to look for environment
-  variables in the registry if they don't appear in the environment.
-*/
+  Value is allocated on the heap, and can be free'd.
+
+  This is needed to duplicate Emacs's behavior, which is to look for
+  environment variables in the registry if they don't appear in the
+  environment.  */
 char *
 w32_getenv (char *envvar)
 {
@@ -338,15 +354,16 @@ w32_getenv (char *envvar)
   DWORD dwType;
 
   if (value = getenv (envvar))
-    /* Found in the environment.  */
-    return value;
+    /* Found in the environment.  strdup it, because values returned
+       by getenv cannot be free'd.  */
+    return xstrdup (value);
 
   if (! (value = w32_get_resource (HKEY_CURRENT_USER, envvar, &dwType)) &&
       ! (value = w32_get_resource (HKEY_LOCAL_MACHINE, envvar, &dwType)))
     {
       /* "w32console" is what Emacs on Windows uses for tty-type under -nw.  */
       if (strcmp (envvar, "TERM") == 0)
-	return "w32console";
+	return xstrdup ("w32console");
       /* Found neither in the environment nor in the registry.  */
       return NULL;
     }
