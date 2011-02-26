@@ -2063,11 +2063,11 @@ re_init_scanner (void)
 }
 
 
-/* Insert a keyword NAME with token value TK into the keyword hash
+/* Insert a keyword NAME with token value TKV into the keyword hash
    table.  */
 
 static void
-insert_keyword (const char *name, int tk)
+insert_keyword (const char *name, int tkv)
 {
   const char *s;
   unsigned h = 0;
@@ -2078,7 +2078,7 @@ insert_keyword (const char *name, int tk)
 
   h %= KEYWORD_TABLE_SIZE;
   k->name = name;
-  k->tk = tk;
+  k->tk = tkv;
   k->next = keyword_table[h];
   keyword_table[h] = k;
 }
