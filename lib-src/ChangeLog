@@ -1,3 +1,9 @@
+2011-02-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* ebrowse.c (putstr): Rename from PUTSTR and turn into a function.
+	All callers changed.  This is cleaner, and avoids GCC warnings about
+	passing NULL to fputs.
+
 2011-02-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* emacsclient.c (main): Avoid dangling 'if'.
