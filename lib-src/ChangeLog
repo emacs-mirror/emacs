@@ -1,5 +1,7 @@
 2011-02-26  Eli Zaretskii  <eliz@gnu.org>
 
+	* Makefile.in (fakemail${EXEEXT}): Depend on lib/ignore-value.h.
+
 	* emacsclient.c (xstrdup) [WINDOWSNT]: Function added back.
 	(w32_getenv): Use xstrdup to return all values in malloc'ed
 	storage.
