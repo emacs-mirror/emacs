@@ -1,5 +1,9 @@
 2011-02-26  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* ebrowse.c (parse_qualified_param_ident_or_type): Make it clear
+	to reader (and to the compiler) that the loop always executes at
+	least once.  This prevents a warning with recent GCC.
+
 	* fakemail.c: Include <ignore-value.h>.
 	(put_line): Explicitly ignore fwrite return value, for benefit of
 	recent glibc + gcc.

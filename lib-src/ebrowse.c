@@ -2952,7 +2952,9 @@ parse_qualified_param_ident_or_type (char **last_id)
   static char *id = NULL;
   static int id_size = 0;
 
-  while (LOOKING_AT (IDENT))
+  assert (LOOKING_AT (IDENT));
+
+  do
     {
       int len = strlen (yytext) + 1;
       if (len > id_size)
@@ -2975,6 +2977,7 @@ parse_qualified_param_ident_or_type (char **last_id)
       else
 	break;
     }
+  while (LOOKING_AT (IDENT));
 }
 
 
