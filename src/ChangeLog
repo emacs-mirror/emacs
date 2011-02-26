@@ -1,3 +1,13 @@
+2011-02-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* dispnew.c: Fix problems uncovered by gcc -Wstrict-prototypes.
+	(copy_glyph_row_contents): Remove; not used.
+	(frame_row_to_window, check_current_matrix_flags):
+	(window_change_signal): Now static, since they're not used elsewhere.
+	(check_current_matrix_flags): Surround with "#if 0", since its
+	only use is in a comment.  Maybe both the comment and the "#if 0"
+	stuff should be removed?
+
 2011-02-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* s/msdos.h (HAVE_LSTAT): Define for DJGPP >= 2.04.

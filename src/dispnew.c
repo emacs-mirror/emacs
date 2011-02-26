@@ -1129,32 +1129,6 @@ copy_row_except_pointers (struct glyph_row *to, struct glyph_row *from)
 }
 
 
-/* Copy contents of glyph row FROM to glyph row TO.  Glyph pointers in
-   TO and FROM are left unchanged.  Glyph contents are copied from the
-   glyph memory of FROM to the glyph memory of TO.  Increment buffer
-   positions in row TO by DELTA/ DELTA_BYTES.  */
-
-void
-copy_glyph_row_contents (struct glyph_row *to, struct glyph_row *from,
-			 EMACS_INT delta, EMACS_INT delta_bytes)
-{
-  int area;
-
-  /* This is like a structure assignment TO = FROM, except that
-     glyph pointers in the rows are left unchanged.  */
-  copy_row_except_pointers (to, from);
-
-  /* Copy glyphs from FROM to TO.  */
-  for (area = 0; area < LAST_AREA; ++area)
-    if (from->used[area])
-      memcpy (to->glyphs[area], from->glyphs[area],
-	      from->used[area] * sizeof (struct glyph));
-
-  /* Increment buffer positions in TO by DELTA.  */
-  increment_row_positions (to, delta, delta_bytes);
-}
-
-
 /* Assign glyph row FROM to glyph row TO.  This works like a structure
    assignment TO = FROM, except that glyph pointers are not copied but
    exchanged between TO and FROM.  Pointers must be exchanged to avoid
@@ -2924,7 +2898,7 @@ sync_window_with_frame_matrix_rows (struct window *w)
 /* Return the window in the window tree rooted in W containing frame
    row ROW.  Value is null if none is found.  */
 
-struct window *
+static struct window *
 frame_row_to_window (struct window *w, int row)
 {
   struct window *found = NULL;
@@ -3562,12 +3536,12 @@ redraw_overlapping_rows (struct window *w, int yb)
 #endif /* HAVE_WINDOW_SYSTEM */
 
 
-#ifdef GLYPH_DEBUG
+#if defined GLYPH_DEBUG && 0
 
 /* Check that no row in the current matrix of window W is enabled
    which is below what's displayed in the window.  */
 
-void
+static void
 check_current_matrix_flags (struct window *w)
 {
   int last_seen_p = 0;
@@ -5594,7 +5568,7 @@ marginal_area_string (struct window *w, enum window_part part,
 
 #ifdef SIGWINCH
 
-SIGTYPE
+static SIGTYPE
 window_change_signal (int signalnum) /* If we don't have an argument, */
                    		/* some compilers complain in signal calls.  */
 {
