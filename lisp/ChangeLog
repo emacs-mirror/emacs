@@ -1,3 +1,9 @@
+2011-02-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/assoc.el: Remove misleading `sort' (bug#8126).
+	(aput, adelete, amake): Replace `eval' -> `symbol-value'.
+	Suggested by Michael Heerdegen <michael_heerdegen@web.de>.
+
 2011-02-25  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* password-cache.el (password-in-cache-p): Convenience function to
