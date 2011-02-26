@@ -1,5 +1,13 @@
 2011-02-26  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* fakemail.c: Include <ignore-value.h>.
+	(put_line): Explicitly ignore fwrite return value, for benefit of
+	recent glibc + gcc.
+	(close_the_streams): Diagnose output errors instead of merely
+	exiting with nonzero status.
+	(my_fclose, main): Diagnose input errors, and exit with nonzero status.
+	Formerly, input errors were silently ignored.
+
 	* ebrowse.c (putstr): Rename from PUTSTR and turn into a function.
 	All callers changed.  This is cleaner, and avoids GCC warnings about
 	passing NULL to fputs.
