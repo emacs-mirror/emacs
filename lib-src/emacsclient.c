@@ -112,6 +112,13 @@ char *(getcwd) (char *, size_t);
 /* Additional space when allocating buffers for filenames, etc.  */
 #define EXTRA_SPACE 100
 
+/* Use this to suppress gcc's `...may be used before initialized' warnings. */
+#ifdef lint
+# define IF_LINT(Code) Code
+#else
+# define IF_LINT(Code) /* empty */
+#endif
+
 
 /* Name used to invoke this program.  */
 const char *progname;
@@ -1191,7 +1198,7 @@ set_local_socket (void)
     int default_sock = !socket_name;
     int saved_errno = 0;
     const char *server_name = "server";
-    const char *tmpdir;
+    const char *tmpdir IF_LINT ( = NULL);
 
     if (socket_name && !strchr (socket_name, '/')
 	&& !strchr (socket_name, '\\'))
@@ -1493,7 +1500,9 @@ main (int argc, char **argv)
   int rl, needlf = 0;
   char *cwd, *str;
   char string[BUFSIZ+1];
-  int null_socket_name, null_server_file, start_daemon_if_needed;
+  int null_socket_name IF_LINT ( = 0);
+  int null_server_file IF_LINT ( = 0);
+  int start_daemon_if_needed;
   int exit_status = EXIT_SUCCESS;
 
   main_argv = argv;
