@@ -74,7 +74,7 @@ AUTOGENEL = loaddefs.el \
 # During bootstrapping the byte-compiler is run interpreted when compiling
 # itself, and uses more stack than usual.
 #
-BIG_STACK_DEPTH = 1000
+BIG_STACK_DEPTH = 1200
 BIG_STACK_OPTS = --eval "(setq max-lisp-eval-depth $(BIG_STACK_DEPTH))"
 
 # Files to compile before others during a bootstrap.  This is done to
@@ -205,8 +205,8 @@ compile-onefile:
 	@echo Compiling $(THEFILE)
 	@# Use byte-compile-refresh-preloaded to try and work around some of
 	@# the most common bootstrapping problems.
-	$(emacs) -l bytecomp.el -f byte-compile-refresh-preloaded \
-		$(BIG_STACK_OPTS) $(BYTE_COMPILE_EXTRA_FLAGS) \
+	@$(emacs) $(BIG_STACK_OPTS) -l bytecomp $(BYTE_COMPILE_EXTRA_FLAGS) \
+		-f byte-compile-refresh-preloaded \
 		-f batch-byte-compile $(THEFILE)
 
 # Files MUST be compiled one by one. If we compile several files in a
@@ -222,7 +222,7 @@ compile-onefile:
 # cannot have prerequisites.
 .el.elc:
 	@echo Compiling $<
-	$(emacs) $(BIG_STACK_OPTS) $(BYTE_COMPILE_EXTRA_FLAGS) \
+	@$(emacs) $(BIG_STACK_OPTS) $(BYTE_COMPILE_EXTRA_FLAGS) \
 		-f batch-byte-compile $<
 
 .PHONY: compile-first compile-main compile compile-always

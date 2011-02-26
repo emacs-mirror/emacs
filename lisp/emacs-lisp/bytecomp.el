@@ -424,6 +424,7 @@ This list lives partly on the stack.")
   '(
 ;;     (byte-compiler-options . (lambda (&rest forms)
 ;; 			       (apply 'byte-compiler-options-handler forms)))
+    (declare-function . byte-compile-macroexpand-declare-function)
     (eval-when-compile . (lambda (&rest body)
 			   (list
 			    'quote
@@ -1140,13 +1141,6 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
   (byte-compile-log-warning
    (error-message-string error-info)
    nil :error))
-
-;;; Used by make-obsolete.
-(defun byte-compile-obsolete (form)
-  (byte-compile-set-symbol-position (car form))
-  (byte-compile-warn-obsolete (car form))
-  (funcall (or (cadr (get (car form) 'byte-obsolete-info)) ; handler
-	       'byte-compile-normal-call) form))
 
 ;;; sanity-checking arglists
 
@@ -1328,7 +1322,8 @@ extra args."
 ;; Warn if the function or macro is being redefined with a different
 ;; number of arguments.
 (defun byte-compile-arglist-warn (form macrop)
-  (let ((old (byte-compile-fdefinition (nth 1 form) macrop)))
+  (let* ((name (nth 1 form))
+         (old (byte-compile-fdefinition name macrop)))
     (if (and old (not (eq old t)))
 	(progn
 	  (and (eq 'macro (car-safe old))
@@ -1342,36 +1337,39 @@ extra args."
                          (t '(&rest def)))))
 		(sig2 (byte-compile-arglist-signature (nth 2 form))))
 	    (unless (byte-compile-arglist-signatures-congruent-p sig1 sig2)
-	      (byte-compile-set-symbol-position (nth 1 form))
+	      (byte-compile-set-symbol-position name)
 	      (byte-compile-warn
 	       "%s %s used to take %s %s, now takes %s"
 	       (if (eq (car form) 'defun) "function" "macro")
-	       (nth 1 form)
+	       name
 	       (byte-compile-arglist-signature-string sig1)
 	       (if (equal sig1 '(1 . 1)) "argument" "arguments")
 	       (byte-compile-arglist-signature-string sig2)))))
       ;; This is the first definition.  See if previous calls are compatible.
-      (let ((calls (assq (nth 1 form) byte-compile-unresolved-functions))
+      (let ((calls (assq name byte-compile-unresolved-functions))
 	    nums sig min max)
-	(if calls
-	    (progn
-	      (setq sig (byte-compile-arglist-signature (nth 2 form))
-		    nums (sort (copy-sequence (cdr calls)) (function <))
-		    min (car nums)
-		    max (car (nreverse nums)))
-	      (when (or (< min (car sig))
-		      (and (cdr sig) (> max (cdr sig))))
-		(byte-compile-set-symbol-position (nth 1 form))
-		(byte-compile-warn
-		 "%s being defined to take %s%s, but was previously called with %s"
-		 (nth 1 form)
-		 (byte-compile-arglist-signature-string sig)
-		 (if (equal sig '(1 . 1)) " arg" " args")
-		 (byte-compile-arglist-signature-string (cons min max))))
+	(when calls
+          (when (and (symbolp name)
+                     (eq (get name 'byte-optimizer)
+                         'byte-compile-inline-expand))
+            (byte-compile-warn "defsubst `%s' was used before it was defined"
+		       name))
+          (setq sig (byte-compile-arglist-signature (nth 2 form))
+                nums (sort (copy-sequence (cdr calls)) (function <))
+                min (car nums)
+                max (car (nreverse nums)))
+          (when (or (< min (car sig))
+                    (and (cdr sig) (> max (cdr sig))))
+            (byte-compile-set-symbol-position name)
+            (byte-compile-warn
+             "%s being defined to take %s%s, but was previously called with %s"
+             name
+             (byte-compile-arglist-signature-string sig)
+             (if (equal sig '(1 . 1)) " arg" " args")
+             (byte-compile-arglist-signature-string (cons min max))))
 
-	      (setq byte-compile-unresolved-functions
-		    (delq calls byte-compile-unresolved-functions)))))
-      )))
+          (setq byte-compile-unresolved-functions
+                (delq calls byte-compile-unresolved-functions)))))))
 
 (defvar byte-compile-cl-functions nil
   "List of functions defined in CL.")
@@ -1470,7 +1468,7 @@ symbol itself."
       (if any-value
 	  (or (memq symbol byte-compile-const-variables)
 	      ;; FIXME: We should provide a less intrusive way to find out
-	      ;; is a variable is "constant".
+	      ;; if a variable is "constant".
 	      (and (boundp symbol)
 		   (condition-case nil
 		       (progn (set symbol (symbol-value symbol)) nil)
@@ -2198,9 +2196,8 @@ list that represents a doc string reference.
 ;; byte-hunk-handlers can call this.
 (defun byte-compile-file-form (form)
   (let (bytecomp-handler)
-    (cond ((not (consp form))
-	   (byte-compile-keep-pending form))
-	  ((and (symbolp (car form))
+    (cond ((and (consp form)
+                (symbolp (car form))
 		(setq bytecomp-handler (get (car form) 'byte-hunk-handler)))
 	   (cond ((setq form (funcall bytecomp-handler form))
 		  (byte-compile-flush-pending)
@@ -2211,16 +2208,6 @@ list that represents a doc string reference.
 ;; Functions and variables with doc strings must be output separately,
 ;; so make-docfile can recognise them.  Most other things can be output
 ;; as byte-code.
-
-(put 'defsubst 'byte-hunk-handler 'byte-compile-file-form-defsubst)
-(defun byte-compile-file-form-defsubst (form)
-  (when (assq (nth 1 form) byte-compile-unresolved-functions)
-    (setq byte-compile-current-form (nth 1 form))
-    (byte-compile-warn "defsubst `%s' was used before it was defined"
-		       (nth 1 form)))
-  (byte-compile-file-form form)
-  ;; Return nil so the form is not output twice.
-  nil)
 
 (put 'autoload 'byte-hunk-handler 'byte-compile-file-form-autoload)
 (defun byte-compile-file-form-autoload (form)
@@ -2914,7 +2901,6 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 
 ;; Given BYTECOMP-BODY, compile it and return a new body.
 (defun byte-compile-top-level-body (bytecomp-body &optional for-effect)
-  ;; FIXME: lexbind.  Check all callers!
   (setq bytecomp-body
 	(byte-compile-top-level (cons 'progn bytecomp-body) for-effect t))
   (cond ((eq (car-safe bytecomp-body) 'progn)
@@ -2922,20 +2908,18 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	(bytecomp-body
 	 (list bytecomp-body))))
 
-;; FIXME: Like defsubst's, this hunk-handler won't be called any more
-;; because the macro is expanded away before we see it.
-(put 'declare-function 'byte-hunk-handler 'byte-compile-declare-function)
-(defun byte-compile-declare-function (form)
-  (push (cons (nth 1 form)
-              (if (and (> (length form) 3)
-                       (listp (nth 3 form)))
-                  (list 'declared (nth 3 form))
+;; Special macro-expander used during byte-compilation.
+(defun byte-compile-macroexpand-declare-function (fn file &rest args)
+  (push (cons fn
+              (if (and (consp args) (listp (car args)))
+                  (list 'declared (car args))
                 t))                     ; arglist not specified
         byte-compile-function-environment)
   ;; We are stating that it _will_ be defined at runtime.
   (setq byte-compile-noruntime-functions
-        (delq (nth 1 form) byte-compile-noruntime-functions))
-  nil)
+        (delq fn byte-compile-noruntime-functions))
+  ;; Delegate the rest to the normal macro definition.
+  (macroexpand `(declare-function ,fn ,file ,@args)))
 
 
 ;; This is the recursive entry point for compiling each subform of an
@@ -3005,6 +2989,8 @@ That command is designed for interactive use only" bytecomp-fn))
               '(custom-declare-group custom-declare-variable
                                      custom-declare-face))
         (byte-compile-nogroup-warn form))
+    (when (get (car form) 'byte-obsolete-info)
+      (byte-compile-warn-obsolete (car form)))
     (byte-compile-callargs-warn form))
   (if byte-compile-generate-call-tree
       (byte-compile-annotate-call-tree form))
@@ -3562,7 +3548,6 @@ discarding."
 (byte-defop-compiler-1 setq)
 (byte-defop-compiler-1 setq-default)
 (byte-defop-compiler-1 quote)
-(byte-defop-compiler-1 quote-form)
 
 (defun byte-compile-setq (form)
   (let ((bytecomp-args (cdr form)))
@@ -3606,10 +3591,6 @@ discarding."
 
 (defun byte-compile-quote (form)
   (byte-compile-constant (car (cdr form))))
-
-(defun byte-compile-quote-form (form)
-  (byte-compile-constant (byte-compile-top-level (nth 1 form))))
-
 
 ;;; control structures
 
@@ -3845,6 +3826,7 @@ Return the offset in the form (VAR . OFFSET)."
         (byte-compile-push-constant nil)))))
 
 (defun byte-compile-not-lexical-var-p (var)
+  ;; FIXME: this doesn't catch defcustoms!
   (or (not (symbolp var))
       (special-variable-p var)
       (memq var byte-compile-bound-variables)
@@ -4097,15 +4079,16 @@ binding slots have been popped."
 
 (defun byte-compile-defmacro (form)
   ;; This is not used for file-level defmacros with doc strings.
-  ;; FIXME handle decls, use defalias?
-  (let ((decls (byte-compile-defmacro-declaration form))
-	(code (byte-compile-lambda (cdr (cdr form)) t))
-	(for-effect nil))
-    (byte-compile-push-constant (nth 1 form))
-    (byte-compile-push-constant (cons 'macro code))
-    (byte-compile-out 'byte-fset)
-    (byte-compile-discard))
-  (byte-compile-constant (nth 1 form)))
+  (byte-compile-body-do-effect
+   (let ((decls (byte-compile-defmacro-declaration form))
+         (code (byte-compile-byte-code-maker
+                (byte-compile-lambda (cdr (cdr form)) t))))
+     `((defalias ',(nth 1 form)
+         ,(if (eq (car-safe code) 'make-byte-code)
+              `(cons 'macro ,code)
+            `'(macro . ,(eval code))))
+       ,@decls
+       ',(nth 1 form)))))
 
 (defun byte-compile-defvar (form)
   ;; This is not used for file-level defvar/consts with doc strings.
@@ -4153,7 +4136,7 @@ binding slots have been popped."
 	      `(if (not (default-boundp ',var)) (setq-default ,var ,value))))
 	(when (eq fun 'defconst)
 	  ;; This will signal an appropriate error at runtime.
-	  `(eval ',form)))              ;FIXME: lexbind
+	  `(eval ',form)))
       `',var))))
 
 (defun byte-compile-autoload (form)

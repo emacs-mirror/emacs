@@ -1,4 +1,4 @@
-;;; macroexp.el --- Additional macro-expansion support
+;;; macroexp.el --- Additional macro-expansion support -*- lexical-binding: t -*-
 ;;
 ;; Copyright (C) 2004-2011 Free Software Foundation, Inc.
 ;;
@@ -108,7 +108,14 @@ Assumes the caller has bound `macroexpand-all-environment'."
       (macroexpand (macroexpand-all-forms form 1)
 		   macroexpand-all-environment)
     ;; Normal form; get its expansion, and then expand arguments.
-    (setq form (macroexpand form macroexpand-all-environment))
+    (let ((new-form (macroexpand form macroexpand-all-environment)))
+      (when (and (not (eq form new-form)) ;It was a macro call.
+                 (car-safe form)
+                 (symbolp (car form))
+                 (get (car form) 'byte-obsolete-info)
+                 (fboundp 'byte-compile-warn-obsolete))
+        (byte-compile-warn-obsolete (car form)))
+      (setq form new-form))
     (pcase form
       (`(cond . ,clauses)
        (maybe-cons 'cond (macroexpand-all-clauses clauses) form))

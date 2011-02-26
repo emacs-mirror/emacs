@@ -51,7 +51,7 @@ by Hallvard:
  *
  * define BYTE_CODE_METER to enable generation of a byte-op usage histogram.
  */
-/* #define BYTE_CODE_SAFE */
+#define BYTE_CODE_SAFE 1
 /* #define BYTE_CODE_METER */
 
 

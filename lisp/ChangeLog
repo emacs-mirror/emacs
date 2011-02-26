@@ -1,3 +1,36 @@
+2011-02-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cconv.el: Compute freevars in cconv-analyse.
+	(cconv-mutated, cconv-captured): Remove.
+	(cconv-captured+mutated, cconv-lambda-candidates): Don't give them
+	a global value.
+	(cconv-freevars-alist): New var.
+	(cconv-freevars): Remove.
+	(cconv--lookup-let): Remove.
+	(cconv-closure-convert-function): Extract from cconv-closure-convert-rec.
+	(cconv-closure-convert-rec): Adjust to above changes.
+	(fboundp): New function.
+	(cconv-analyse-function, form): Rewrite.
+	* emacs-lisp/bytecomp.el (byte-compile-initial-macro-environment):
+	Handle declare-function here.
+	(byte-compile-obsolete): Remove.
+	(byte-compile-arglist-warn): Check late defsubst here.
+	(byte-compile-file-form): Simplify.
+	(byte-compile-file-form-defsubst): Remove.
+	(byte-compile-macroexpand-declare-function): Rename from
+	byte-compile-declare-function, turn it into a macro-expander.
+	(byte-compile-normal-call): Check obsolescence.
+	(byte-compile-quote-form): Remove.
+	(byte-compile-defmacro): Revert to trunk's definition which seems to
+	work just as well and handles `declare'.
+	* emacs-lisp/byte-run.el (make-obsolete): Don't modify byte-compile.
+	* Makefile.in (BIG_STACK_DEPTH): Increase to 1200.
+	(compile-onefile): Pass $(BIG_STACK_OPTS) before "-l bytecomp".
+	* emacs-lisp/macroexp.el: Use lexbind.
+	(macroexpand-all-1): Check macro obsolescence.
+	* vc/diff-mode.el: Use lexbind.
+	* follow.el (follow-calc-win-end): Simplify.
+
 2011-02-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el (byte-compile-lapcode): Handle new form of

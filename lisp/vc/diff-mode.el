@@ -1,4 +1,4 @@
-;;; diff-mode.el --- a mode for viewing/editing context diffs
+;;; diff-mode.el --- a mode for viewing/editing context diffs -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1998-2011  Free Software Foundation, Inc.
 
@@ -1278,7 +1278,7 @@ a diff with \\[diff-reverse-direction].
     (add-hook 'after-change-functions 'diff-after-change-function nil t)
     (add-hook 'post-command-hook 'diff-post-command-hook nil t))
   ;; Neat trick from Dave Love to add more bindings in read-only mode:
-  (lexical-let ((ro-bind (cons 'buffer-read-only diff-mode-shared-map)))
+  (let ((ro-bind (cons 'buffer-read-only diff-mode-shared-map)))
     (add-to-list 'minor-mode-overriding-map-alist ro-bind)
     ;; Turn off this little trick in case the buffer is put in view-mode.
     (add-hook 'view-mode-hook
