@@ -1,3 +1,7 @@
+2011-02-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-import-other-newsrc-file): New function.
+
 2011-02-25  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* auth-source.el (auth-source-search): Cache empty result sets.
