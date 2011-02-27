@@ -3990,7 +3990,7 @@ update_text_area (struct window *w, int vpos)
 	{
 	  /* Otherwise clear to the end of the old row.  Everything
 	     after that position should be clear already.  */
-	  int x;
+	  int xlim;
 
 	  if (i >= desired_row->used[TEXT_AREA])
 	    rif->cursor_to (vpos, i, desired_row->y,
@@ -4007,11 +4007,11 @@ update_text_area (struct window *w, int vpos)
 		  : (w->phys_cursor.hpos >= desired_row->used[TEXT_AREA])))
 	    {
 	      w->phys_cursor_on_p = 0;
-	      x = -1;
+	      xlim = -1;
 	    }
 	  else
-	    x = current_row->pixel_width;
-	  rif->clear_end_of_line (x);
+	    xlim = current_row->pixel_width;
+	  rif->clear_end_of_line (xlim);
 	  changed_p = 1;
 	}
     }
@@ -4467,7 +4467,7 @@ scrolling_window (struct window *w, int header_line_p)
 	&& old_lines[i]->old_uses == 1
         && old_lines[i]->new_uses == 1)
       {
-	int j, k;
+	int p, q;
 	int new_line = old_lines[i]->new_line_number;
 	struct run *run = run_pool + run_idx++;
 
@@ -4480,33 +4480,33 @@ scrolling_window (struct window *w, int header_line_p)
 	run->height = MATRIX_ROW (current_matrix, i)->height;
 
 	/* Extend backward.  */
-	j = i - 1;
-	k = new_line - 1;
-	while (j > first_old
-	       && k > first_new
-	       && old_lines[j] == new_lines[k])
+	p = i - 1;
+	q = new_line - 1;
+	while (p > first_old
+	       && q > first_new
+	       && old_lines[p] == new_lines[q])
 	  {
-	    int h = MATRIX_ROW (current_matrix, j)->height;
+	    int h = MATRIX_ROW (current_matrix, p)->height;
 	    --run->current_vpos;
 	    --run->desired_vpos;
 	    ++run->nrows;
 	    run->height += h;
 	    run->desired_y -= h;
 	    run->current_y -= h;
-	    --j, --k;
+	    --p, --q;
 	  }
 
 	/* Extend forward.  */
-	j = i + 1;
-	k = new_line + 1;
-	while (j < last_old
-	       && k < last_new
-	       && old_lines[j] == new_lines[k])
+	p = i + 1;
+	q = new_line + 1;
+	while (p < last_old
+	       && q < last_new
+	       && old_lines[p] == new_lines[q])
 	  {
-	    int h = MATRIX_ROW (current_matrix, j)->height;
+	    int h = MATRIX_ROW (current_matrix, p)->height;
 	    ++run->nrows;
 	    run->height += h;
-	    ++j, ++k;
+	    ++p, ++q;
 	  }
 
 	/* Insert run into list of all runs.  Order runs by copied
@@ -4514,11 +4514,11 @@ scrolling_window (struct window *w, int header_line_p)
 	   be copied because they are already in place.  This is done
 	   because we can avoid calling update_window_line in this
 	   case.  */
-	for (j = 0; j < nruns && runs[j]->height > run->height; ++j)
+	for (p = 0; p < nruns && runs[p]->height > run->height; ++p)
 	  ;
-	for (k = nruns; k > j; --k)
-	  runs[k] = runs[k - 1];
-	runs[j] = run;
+	for (q = nruns; q > p; --q)
+	  runs[q] = runs[q - 1];
+	runs[p] = run;
 	++nruns;
 
 	i += run->nrows;
@@ -4615,7 +4615,7 @@ update_frame_1 (struct frame *f, int force_p, int inhibit_id_p)
   struct glyph_matrix *current_matrix = f->current_matrix;
   struct glyph_matrix *desired_matrix = f->desired_matrix;
   int i;
-  int pause;
+  int pause_p;
   int preempt_count = baud_rate / 2400 + 1;
 
   xassert (current_matrix && desired_matrix);
@@ -4629,7 +4629,7 @@ update_frame_1 (struct frame *f, int force_p, int inhibit_id_p)
 #if !PERIODIC_PREEMPTION_CHECKING
   if (!force_p && detect_input_pending_ignore_squeezables ())
     {
-      pause = 1;
+      pause_p = 1;
       goto do_pause;
     }
 #endif
@@ -4709,10 +4709,10 @@ update_frame_1 (struct frame *f, int force_p, int inhibit_id_p)
 	}
     }
 
-  pause = (i < FRAME_LINES (f) - 1) ? i : 0;
+  pause_p = (i < FRAME_LINES (f) - 1) ? i : 0;
 
   /* Now just clean up termcap drivers and set cursor, etc.  */
-  if (!pause)
+  if (!pause_p)
     {
       if ((cursor_in_echo_area
 	   /* If we are showing a message instead of the mini-buffer,
@@ -4813,7 +4813,7 @@ update_frame_1 (struct frame *f, int force_p, int inhibit_id_p)
 #endif
 
   clear_desired_matrices (f);
-  return pause;
+  return pause_p;
 }
 
 

@@ -1,3 +1,8 @@
+2011-02-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* dispnew.c: Rename locals to avoid shadowing.
+	(update_text_area, scrolling_window, update_frame_1): Rename locals.
+
 2011-02-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* dispnew.c: Fix problems uncovered by gcc -Wstrict-prototypes.
