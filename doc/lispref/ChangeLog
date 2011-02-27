@@ -1,3 +1,8 @@
+2011-02-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuf.texi (Minibuffer History): Clarify discussion of
+	minibuffer history lists (Bug#8085).
+
 2011-02-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* elisp.texi: Sync @dircategory with ../../info/dir.
