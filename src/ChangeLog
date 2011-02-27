@@ -1,5 +1,7 @@
 2011-02-27  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* frame.c (x_set_screen_gamma): Rename local to avoid shadowing.
+
 	* frame.h: Avoid gcc -Wmissing-prototypes diagnostics.
 	(set_menu_bar_lines, x_get_resource_string): New decls.
 	* msdos.c (set_menu_bar_lines): Omit decl.
