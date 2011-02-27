@@ -3922,6 +3922,18 @@ croak (char *badfunc)
  */
 int setpgrp (void) {return 0; }
 int setpriority (int x, int y, int z) { return 0; }
+
+#if __DJGPP__ == 2 && __DJGPP_MINOR__ < 4
+ssize_t
+readlink (const char *name, char *dummy1, size_t dummy2)
+{
+  /* `access' is much faster than `stat' on MS-DOS.  */
+  if (access (name, F_OK) == 0)
+    errno = EINVAL;
+  return -1;
+}
+#endif
+
 
 #if __DJGPP__ == 2 && __DJGPP_MINOR__ < 2
 

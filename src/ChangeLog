@@ -1,3 +1,9 @@
+2011-02-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.c (readlink) [DJGPP < 2.04]: New stub function.
+
+	* msdos.h: (readlink) [DJGPP < 2.04]: Declare prototype.
+
 2011-02-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* s/msdos.h (HAVE_LSTAT): Define for DJGPP >= 2.04.
