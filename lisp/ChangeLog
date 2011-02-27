@@ -1,3 +1,7 @@
+2011-02-27  Prestoo Ten  <prestooten@gmail.com>
+
+	* term/screen.el: New file (Bug#2650).
+
 2011-02-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/pcase.el (pcase--if): Try to invert test to reduce depth.
