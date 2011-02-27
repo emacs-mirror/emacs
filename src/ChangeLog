@@ -1,3 +1,7 @@
+2011-02-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (symlink, readlink): New stub functions.
+
 2011-02-27  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* scroll.c (CHECK_BOUNDS): #define only if GLYPH_DEBUG.
