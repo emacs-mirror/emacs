@@ -841,6 +841,7 @@ extern Lisp_Object Qnoelisp;
 
 extern struct frame *last_nonminibuf_frame;
 
+extern void set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
 extern struct frame *make_initial_frame (void);
 extern struct frame *make_terminal_frame (struct terminal *);
 extern struct frame *make_frame (int);
@@ -1131,12 +1132,16 @@ extern int x_figure_window_size (struct frame *, Lisp_Object, int);
 extern void x_set_alpha (struct frame *, Lisp_Object, Lisp_Object);
 
 extern void validate_x_resource_name (void);
-                                           
+
 extern Lisp_Object display_x_get_resource (Display_Info *,
 					   Lisp_Object attribute,
 					   Lisp_Object class,
 					   Lisp_Object component,
 					   Lisp_Object subclass);
+
+#if defined HAVE_X_WINDOWS && !defined USE_X_TOOLKIT
+extern char *x_get_resource_string (const char *, const char *);
+#endif
 
 /* In xmenu.c */
 extern void set_frame_menubar (FRAME_PTR, int, int);
@@ -1144,4 +1149,3 @@ extern void set_frame_menubar (FRAME_PTR, int, int);
 #endif /* HAVE_WINDOW_SYSTEM */
 
 #endif /* not EMACS_FRAME_H */
-

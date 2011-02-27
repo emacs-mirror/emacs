@@ -1389,8 +1389,6 @@ IT_delete_glyphs (struct frame *f, int n)
 void
 x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
-  extern void set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
-
   set_menu_bar_lines (f, value, oldval);
 }
 
@@ -4236,4 +4234,3 @@ This variable is used only by MS-DOS terminals.  */);
 }
 
 #endif /* MSDOS */
-

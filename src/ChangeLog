@@ -1,3 +1,36 @@
+2011-02-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* scroll.c (CHECK_BOUNDS): #define only if GLYPH_DEBUG.
+	This avoids a gcc warning in some configurations.
+
+	* frame.c (x_set_screen_gamma): Rename local to avoid shadowing.
+
+	* frame.h: Avoid gcc -Wmissing-prototypes diagnostics.
+	(set_menu_bar_lines, x_get_resource_string): New decls.
+	* msdos.c (set_menu_bar_lines): Omit decl.
+
+	* dispextern.h (struct glyph): Make u.img_id int, not unsigned.
+	It's always given int values and used as an int.  This suppresses
+	a gcc "comparison of unsigned expression >= 0" warning in some
+	configurations.
+
+	* dispnew.c: Rename locals to avoid shadowing.
+	(update_text_area, scrolling_window, update_frame_1): Rename locals.
+
+2011-02-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* dispnew.c: Fix problems uncovered by gcc -Wstrict-prototypes.
+	(copy_glyph_row_contents): Remove; not used.
+	(frame_row_to_window, check_current_matrix_flags):
+	(window_change_signal): Now static, since they're not used elsewhere.
+	(check_current_matrix_flags): Surround with "#if 0", since its
+	only use is in a comment.  Maybe both the comment and the "#if 0"
+	stuff should be removed?
+
+	* dispnew.c: Fix problem uncovered by gcc -Wunused-variable.
+	(adjust_frame_glyphs_for_window_redisplay): Make 'w' local to the
+	contexts that actually need it.
+
 2011-02-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* s/msdos.h (HAVE_LSTAT): Define for DJGPP >= 2.04.
