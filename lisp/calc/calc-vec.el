@@ -759,6 +759,7 @@
 	  (math-reject-arg n "*Index out of range")))))
 
 (defun calcFunc-subscr (mat n &optional m)
+  (if (eq (car-safe mat) 'var) nil)
   (setq mat (calcFunc-mrow mat n))
   (if m
       (if (math-num-integerp n)

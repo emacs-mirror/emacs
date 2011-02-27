@@ -1061,7 +1061,7 @@ calc-full-help calc-g-prefix-help calc-help-prefix
 calc-hyperbolic-prefix-help calc-inv-hyp-prefix-help calc-option-prefix-help
 calc-inverse-prefix-help calc-j-prefix-help calc-k-prefix-help
 calc-m-prefix-help calc-r-prefix-help calc-s-prefix-help
-calc-t-prefix-help calc-u-prefix-help calc-ul-prefix-help
+calc-t-prefix-help calc-u-prefix-help calc-l-prefix-help
 calc-v-prefix-help)
 
  ("calc-incom" calc-begin-complex calc-begin-vector calc-comma

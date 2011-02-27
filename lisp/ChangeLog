@@ -1,3 +1,14 @@
+2011-02-27  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-ext.el (calc-init-extensions):
+	Autoload `calc-l-prefix-help' instead of `calc-ul-prefix-help'.
+
+	* calc/calc-math.el (calcFunc-log10): Don't signal an error in
+	symbolic mode.
+
+	* calc/calc-vec.el (calcFunc-subscr): Return nil if the first
+	argument is a variable.
+
 2011-02-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/assoc.el: Remove misleading `sort' (bug#8126).
