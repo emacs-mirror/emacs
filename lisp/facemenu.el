@@ -562,17 +562,23 @@ You can change the color sort order by customizing `list-colors-sort'."
       (let ((lc (nthcdr (1- (display-color-cells)) list)))
 	(if lc
 	    (setcdr lc nil)))))
-  (let ((buf (get-buffer-create "*Colors*")))
-    (with-current-buffer buf
+  (unless buffer-name
+    (setq buffer-name "*Colors*"))
+  (with-help-window buffer-name
+    (with-current-buffer standard-output
       (erase-buffer)
-      (setq truncate-lines t)
-      ;; Display buffer before generating content to allow
-      ;; `list-colors-print' to get the right window-width.
+      (setq truncate-lines t)))
+  (let ((buf (get-buffer buffer-name))
+	(inhibit-read-only t))
+    ;; Display buffer before generating content, to allow
+    ;; `list-colors-print' to get the right window-width.
+    (with-selected-window (or (get-buffer-window buf t) (selected-window))
+      (with-current-buffer buf
+	(list-colors-print list callback)
+	(set-buffer-modified-p nil)))
+    (when callback
       (pop-to-buffer buf)
-      (list-colors-print list callback)
-      (set-buffer-modified-p nil)))
-  (if callback
-      (message "Click on a color to select it.")))
+      (message "Click on a color to select it."))))
 
 (defun list-colors-print (list &optional callback)
   (let ((callback-fn
