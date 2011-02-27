@@ -262,7 +262,8 @@ do_scrolling (struct frame *frame, struct glyph_matrix *current_matrix, struct m
   for (k = 0; k < window_size; ++k)
     copy_from[k] = -1;
 
-#define CHECK_BOUNDS							\
+#if GLYPH_DEBUG
+# define CHECK_BOUNDS							\
   do									\
     {									\
       int k;								\
@@ -271,6 +272,7 @@ do_scrolling (struct frame *frame, struct glyph_matrix *current_matrix, struct m
 		 || (copy_from[k] >= 0 && copy_from[k] < window_size));	\
     }									\
   while (0);
+#endif
 
   /* When j is advanced, this corresponds to deleted lines.
      When i is advanced, this corresponds to inserted lines.  */
@@ -1035,4 +1037,3 @@ do_line_insertion_deletion_costs (FRAME_PTR frame,
 		 FRAME_DELETE_COST (frame), FRAME_DELETEN_COST (frame),
 		 coefficient);
 }
-
