@@ -2208,15 +2208,23 @@ store_frame_param (struct frame *f, Lisp_Object prop, Lisp_Object val)
   register Lisp_Object old_alist_elt;
 
   /* The buffer-list parameters are stored in a special place and not
-     in the alist.  */
+     in the alist.  All buffers must be live.  */
   if (EQ (prop, Qbuffer_list))
     {
-      f->buffer_list = val;
+      Lisp_Object list = Qnil;
+      for (; CONSP (val); val = XCDR (val))
+	if (!NILP (Fbuffer_live_p (XCAR (val))))
+	  list = Fcons (XCAR (val), list);
+      f->buffer_list = Fnreverse (list);
       return;
     }
   if (EQ (prop, Qburied_buffer_list))
     {
-      f->buried_buffer_list = val;
+      Lisp_Object list = Qnil;
+      for (; CONSP (val); val = XCDR (val))
+	if (!NILP (Fbuffer_live_p (XCAR (val))))
+	  list = Fcons (XCAR (val), list);
+      f->buried_buffer_list = Fnreverse (list);
       return;
     }
 

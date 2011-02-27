@@ -1,3 +1,9 @@
+2011-02-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (store_frame_param): Don't store value directly in
+	buffer_list and buried_buffer_list; copy the list and remove dead
+	buffers (Bug#7898).
+
 2011-02-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdos.c (readlink) [DJGPP < 2.04]: New stub function.
