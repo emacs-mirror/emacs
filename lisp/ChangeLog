@@ -1,3 +1,13 @@
+2011-02-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/pcase.el (pcase--if): Try to invert test to reduce depth.
+	(pcase-mutually-exclusive-predicates): New var.
+	(pcase--split-consp, pcase--split-pred): Use it.
+	(pcase--split-equal, pcase--split-member): When splitting against
+	a pure predicate, run it to know the outcome.
+	(pcase--u1): Mark vars that are actually used.
+	(pcase--q1): Avoid introducing unused vars.
+
 2011-02-27  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-ext.el (calc-init-extensions):
