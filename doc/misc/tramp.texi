@@ -2740,8 +2740,8 @@ There is also a Savannah project page.
 @item
 Which systems does it work on?
 
-The package has been used successfully on Emacs 22, Emacs 23, XEmacs
-21 (starting with 21.4), and SXEmacs 22.
+The package has been used successfully on Emacs 22, Emacs 23, Emacs
+24, XEmacs 21 (starting with 21.4), and SXEmacs 22.
 
 The package was intended to work on Unix, and it really expects a
 Unix-like system on the remote end (except the @option{smb} method),
