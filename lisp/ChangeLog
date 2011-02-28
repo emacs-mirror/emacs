@@ -1,3 +1,8 @@
+2011-02-28  Stephen Berman  <stephen.berman@gmx.net>
+
+	* dired-aux.el (dired-update-file-line):
+	Fix 2010-11-09 change.  (Bug#8131)
+
 2011-02-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* international/mule-cmds.el (set-default-coding-systems): Use the
