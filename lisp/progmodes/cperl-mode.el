@@ -2769,7 +2769,7 @@ Will not look before LIM."
 		  (goto-char (cperl-beginning-of-property p look-prop))
 		  (beginning-of-line)
 		  (setq pre-indent-point (point)))))
-	  (goto-char pre-indent-point)	; Orig line skipping preceeding pod/etc
+	  (goto-char pre-indent-point)	; Orig line skipping preceding pod/etc
 	  (let* ((case-fold-search nil)
 		 (s-s (cperl-get-state (car parse-data) (nth 1 parse-data)))
 		 (start (or (nth 2 parse-data) ; last complete sexp terminated
@@ -2796,8 +2796,8 @@ Will not look before LIM."
 			  (cperl-1+ char-after-pos) 'indentable)
 			 p (1+ (cperl-beginning-of-property
 				(point) 'indentable))
-			 is-block	; misused for: preceeding line in REx
-			 (save-excursion ; Find preceeding line
+			 is-block	; misused for: preceding line in REx
+			 (save-excursion ; Find preceding line
 			   (cperl-backward-to-noncomment p)
 			   (beginning-of-line)
 			   (if (<= (point) p)
@@ -2813,10 +2813,10 @@ Will not look before LIM."
 			 prop (parse-partial-sexp p char-after-pos))
 		   (cond ((not delim)	; End the REx, ignore is-block
 			  (vector 'indentable 'terminator p is-block))
-			 (is-block	; Indent w.r.t. preceeding line
+			 (is-block	; Indent w.r.t. preceding line
 			  (vector 'indentable 'cont-line char-after-pos
 				  is-block char-after p))
-			 (t		; No preceeding line...
+			 (t		; No preceding line...
 			  (vector 'indentable 'first-line p))))
 		  ((get-text-property char-after-pos 'REx-part2)
 		   (vector 'REx-part2 (point)))
@@ -2897,7 +2897,7 @@ Will not look before LIM."
 			 (cperl-backward-to-start-of-continued-exp containing-sexp))
 		     (beginning-of-line)
 		     (cperl-backward-to-noncomment containing-sexp))
-		   ;; Now we get non-label preceeding the indent point
+		   ;; Now we get non-label preceding the indent point
 		   (if (not (or (eq (1- (point)) containing-sexp)
 				(memq (preceding-char)
 				      (append (if is-block " ;{" " ,;{") '(nil)))
@@ -4835,7 +4835,7 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 ;;; Moreover, one takes positive approach (looks for else,grep etc)
 ;;; another negative (looks for bless,tr etc)
 (defun cperl-after-block-p (lim &optional pre-block)
-  "Return true if the preceeding } (if PRE-BLOCK, following {) delimits a block.
+  "Return true if the preceding } (if PRE-BLOCK, following {) delimits a block.
 Would not look before LIM.  Assumes that LIM is a good place to begin a
 statement.  The kind of block we treat here is one after which a new
 statement would start; thus the block in ${func()} does not count."
@@ -4864,7 +4864,7 @@ statement would start; thus the block in ${func()} does not count."
 			       (progn
 				 (forward-sexp -1)
 				 (looking-at "sub[ \t\n\f#]"))))))
-		;; What preceeds is not word...  XXXX Last statement in sub???
+		;; What precedes is not word...  XXXX Last statement in sub???
 		(cperl-after-expr-p lim))))
       (error nil))))
 

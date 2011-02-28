@@ -1,3 +1,9 @@
+2011-02-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/mule-cmds.el (set-default-coding-systems): Use the
+	-unix variant of encoding in default-keyboard-coding-system.
+	(Bug#8122)
+
 2011-02-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* facemenu.el (list-colors-display): Use with-help-window (Bug#8048).
@@ -4670,7 +4676,7 @@
 
 2010-10-24  Michael McNamara  <mac@mail.brushroad.com>
 
-	* verilog-mode.el (verilog-directive-re): Make this variable
+	* progmodes/verilog-mode.el (verilog-directive-re): Make this variable
 	auto-built for efficiency of execution and updating.
 	(verilog-extended-complete-re): Support 'pure' fucntion & task
 	declarations (these have no bodies).
@@ -4704,7 +4710,7 @@
 
 2010-10-24  Wilson Snyder  <wsnyder@wsnyder.org>
 
-	* verilog-mode.el (verilog-auto-inst, verilog-gate-ios)
+	* progmodes/verilog-mode.el (verilog-auto-inst, verilog-gate-ios)
 	(verilog-gate-keywords, verilog-read-sub-decls)
 	(verilog-read-sub-decls-gate, verilog-read-sub-decls-gate-ios)
 	(verilog-read-sub-decls-line, verilog-read-sub-decls-sig): Support

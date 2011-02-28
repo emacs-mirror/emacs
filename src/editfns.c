@@ -3523,7 +3523,7 @@ usage: (format STRING &rest OBJECTS)  */)
   int maybe_combine_byte;
   char *this_format;
   /* Precision for each spec, or -1, a flag value meaning no precision
-     was given in that spec.  Element 0, corresonding to the format
+     was given in that spec.  Element 0, corresponding to the format
      string itself, will not be used.  Element NARGS, corresponding to
      no argument, *will* be assigned to in the case that a `%' and `.'
      occur after the final format specifier.  */

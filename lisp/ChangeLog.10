@@ -20591,7 +20591,7 @@
 
 	* viper-cmd.el (viper-change-state): Got rid of make-local-hook.
 	(viper-special-read-and-insert-char): Make C-m work right in the r
-	comand.
+	command.
 	(viper-buffer-search-enable): Fixed format string.
 
 	* viper-ex.el (ex-token-alist): Use ex-set-visited-file-name

@@ -1757,12 +1757,19 @@ recursively by following the above rules; @var{list} should be of one
 of the two forms accepted by this function in @var{variables}.
 @end defun
 
-@defun dir-locals-set-directory-class directory class
+@defun dir-locals-set-directory-class directory class &optional mtime
 This function assigns @var{class} to all the files in @code{directory}
 and its subdirectories.  Thereafter, all the variable settings
 specified for @var{class} will be applied to any visited file in
 @var{directory} and its children.  @var{class} must have been already
-defined by @code{dir-locals-set-class-variables}
+defined by @code{dir-locals-set-class-variables}.
+
+Emacs uses this function internally when it loads directory variables
+from a @code{.dir-locals.el} file.  In that case, the optional
+argument @var{mtime} holds the file modification time (as returned by
+@code{file-attributes}).  Emacs uses this time to check stored
+local variables are still valid.  If you are assigning a class
+directly, not via a file, this argument should be @code{nil}.
 @end defun
 
 @defvar dir-locals-class-alist
@@ -1772,8 +1779,9 @@ settings.  It is updated by @code{dir-locals-set-class-variables}.
 
 @defvar dir-locals-directory-cache
 This alist holds directory names, their assigned class names, and
-modification times of the associated directory local variables file.
-It is updated by @code{dir-locals-set-directory-class}.
+modification times of the associated directory local variables file
+(if there is one).  The function @code{dir-locals-set-directory-class}
+updates this list.
 @end defvar
 
 @node Frame-Local Variables

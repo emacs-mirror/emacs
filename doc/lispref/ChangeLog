@@ -1,3 +1,8 @@
+2011-02-28  Glenn Morris  <rgm@gnu.org>
+
+	* variables.texi (Directory Local Variables): Mention the optional
+	mtime argument of dir-locals-set-directory-class.  (Bug#3577)
+
 2011-02-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* minibuf.texi (Minibuffer History): Clarify discussion of
