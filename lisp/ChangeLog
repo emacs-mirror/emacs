@@ -1522,8 +1522,7 @@
 	(allout-command-prefix) (allout-prefixed-keybindings)
 	(allout-unprefixed-keybindings):
 	Use allout-compose-and-institute-keymap to process the bindings.
-	(allout-unprefixed-keybindings): Remove extraneous '?' question
-	marks.
+	(allout-unprefixed-keybindings): Remove extraneous '?' question marks.
 	(allout-prefixed-keybindings): Elide binding to (prefixed) \C-h -
 	user can customize if they want to use that binding.
 	Bind allout-copy-topic-as-kill to (prefixed) \M-k.
@@ -1532,14 +1531,12 @@
 	(allout-hotspot-key-handler): Remove attempt to resolve the key
 	through the literal key-string lookup on allout-keybindings-list.
 	That probably hasn't worked for a Long Time, and removal of
-	allout-keybindings-list further simplifies the keybindings
-	situation.
+	allout-keybindings-list further simplifies the keybindings situation.
 	(allout-pre-command-business): Use allout-mode-map-value instead
 	of allout-mode-map.
 	(allout-preempt-trailing-ctrl-h): Remove.  The user can customize
 	the bindings if they want to use a keybinding having a trailing
-	\C-h.  No deprecation needed since this feature was never in a
-	release.
+	\C-h.  No deprecation needed since this feature was never in a release.
 	(allout-keybindings-list): Remove.  It's not been useful for a
 	while.  (See allout-hotspot-key-handler changes, above.)
 	(produce-allout-mode-map): Remove.  Consolidate into
@@ -2721,7 +2718,7 @@
 	this original name from `bookmark-name-from-record' reverting part
 	of rev 102609 / kfogel@red-bean.com-20101208080927-5j9jqnb2xvcw4ogm.
 	As Drew Adams pointed out, there was no reason to cause churn for
-	third-party callers.
+	third-party callers.  (Bug#7609)
 
 2010-12-12  Alan Mackenzie  <acm@muc.de>
 
