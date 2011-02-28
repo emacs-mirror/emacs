@@ -8,7 +8,7 @@
 
 	* facemenu.el (list-colors-display): Use with-help-window (Bug#8048).
 
-2011-02-27  Prestoo Ten  <prestooten@gmail.com>
+2011-02-27  Prestoo Ten  <prestooten@gmail.com>  (tiny change)
 
 	* term/screen.el: New file (Bug#2650).
 
