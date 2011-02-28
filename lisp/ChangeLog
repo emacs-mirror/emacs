@@ -1,3 +1,8 @@
+2011-02-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/pcase.el (pcase, pcase--u1, pcase--q1):
+	Fix typos in docstrings.
+
 2011-02-28  Stephen Berman  <stephen.berman@gmx.net>
 
 	* dired-aux.el (dired-update-file-line):

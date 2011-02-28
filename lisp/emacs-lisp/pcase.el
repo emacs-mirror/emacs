@@ -3,7 +3,7 @@
 ;; Copyright (C) 2010-2011  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
-;; Keywords: 
+;; Keywords:
 
 ;; This file is part of GNU Emacs.
 
@@ -75,12 +75,12 @@ If a SYMBOL is used twice in the same pattern (i.e. the pattern is
 QPatterns can take the following forms:
   (QPAT1 . QPAT2)	matches if QPAT1 matches the car and QPAT2 the cdr.
   ,UPAT			matches if the UPattern UPAT matches.
-  STRING			matches if the object is `equal' to STRING.
+  STRING		matches if the object is `equal' to STRING.
   ATOM			matches if the object is `eq' to ATOM.
 QPatterns for vectors are not implemented yet.
 
 PRED can take the form
-  FUNCTION	in which case it gets called with one argument.
+  FUNCTION	     in which case it gets called with one argument.
   (FUN ARG1 .. ARGN) in which case it gets called with N+1 arguments.
 A PRED of the form FUNCTION is equivalent to one of the form (FUNCTION).
 PRED patterns can refer to variables bound earlier in the pattern.
@@ -439,7 +439,7 @@ MATCH is the pattern that needs to be matched, of the form:
 ;; bootstrapping problems.
 (defun pcase--u1 (matches code vars rest)
   "Return code that runs CODE (with VARS) if MATCHES match.
-and otherwise defers to REST which is a list of branches of the form
+Otherwise, it defers to REST which is a list of branches of the form
 \(ELSE-MATCH ELSE-CODE . ELSE-VARS)."
   ;; Depending on the order in which we choose to check each of the MATCHES,
   ;; the resulting tree may be smaller or bigger.  So in general, we'd want
@@ -591,7 +591,7 @@ and otherwise defers to REST which is a list of branches of the form
 
 (defun pcase--q1 (sym qpat matches code vars rest)
   "Return code that runs CODE if SYM matches QPAT and if MATCHES match.
-and if not, defers to REST which is a list of branches of the form
+Otherwise, it defers to REST which is a list of branches of the form
 \(OTHER_MATCH OTHER-CODE . OTHER-VARS)."
   (cond
    ((eq (car-safe qpat) '\,) (error "Can't use `,UPATTERN"))
