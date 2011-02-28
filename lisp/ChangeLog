@@ -1,3 +1,8 @@
+2011-02-28  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* ido.el (ido-everywhere): Doc fix.
+	(ido-mode): Doc fix.
+
 2011-02-28  Glenn Morris  <rgm@gnu.org>
 
 	* dired-x.el (dired-guess-shell-alist-default): Use \\', not $.
