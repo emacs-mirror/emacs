@@ -1,3 +1,7 @@
+2011-02-28  Antoine Levitt  <antoine.levitt@gmail.com>  (tiny change)
+
+	* dired-x.el (dired-guess-shell-alist-default): Add rar and 7z.
+
 2011-02-28  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/pcase.el (pcase, pcase--u1, pcase--q1):

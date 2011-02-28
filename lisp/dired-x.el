@@ -988,6 +988,8 @@ replace it with a dir-locals-file `./%s'"
    '("\\.lzh$" "lharc x")
    '("\\.arc$" "arc x")
    '("\\.shar$" "unshar")
+   '("\\.rar$" "unrar x")
+   '("\\.7z$" "7z x")
 
    ;; Compression.
    (list "\\.g?z$" '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q")))
