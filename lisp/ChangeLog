@@ -1,3 +1,7 @@
+2011-02-28  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.el (dired-guess-shell-alist-default): Use \\', not $.
+
 2011-02-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-cmds.el (tramp-append-tramp-buffers): Dump load-path
