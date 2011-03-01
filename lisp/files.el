@@ -3394,8 +3394,19 @@ Return the new variables list."
                                  (cdr entry) root variables))))
              ((or (not key)
                   (derived-mode-p key))
-              (setq variables (dir-locals-collect-mode-variables
-                               (cdr entry) variables))))))
+              (let* ((alist (cdr entry))
+                     (subdirs (assq 'subdirs alist)))
+                (if (or (not subdirs)
+                        (progn
+                          (setq alist (delq subdirs alist))
+                          (cdr-safe subdirs))
+                        ;; TODO someone might want to extent this to allow
+                        ;; integer values for subdir, where N means
+                        ;; variables apply to this directory and N levels
+                        ;; below it (0 == nil).
+                        (equal root default-directory))
+                    (setq variables (dir-locals-collect-mode-variables
+                                     alist variables))))))))
       (error
        ;; The file's content might be invalid (e.g. have a merge conflict), but
        ;; that shouldn't prevent the user from opening the file.

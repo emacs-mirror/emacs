@@ -786,6 +786,7 @@ See also `dired-enable-local-variables'."
                'hack-dir-local-variables-non-file-buffer "24.1")
 
 ;; Not sure this is worth having a dedicated command for...
+;; See the more general features in files-x.el.
 (defun dired-omit-here-always ()
   "Create `dir-locals-file' setting `dired-omit-mode' to t in `dired-mode'.
 If in a Dired buffer, reverts it."
@@ -798,7 +799,9 @@ replace it with a dir-locals-file `./%s'"
   (if (file-exists-p dir-locals-file)
       (message "File `./%s' already exists." dir-locals-file)
     (with-temp-buffer
-      (insert "((dired-mode . ((dired-omit-mode . t))))\n")
+      (insert "\
+\((dired-mode . ((subdirs . nil)
+                (dired-omit-mode . t))))\n")
       (write-file dir-locals-file))
     ;; Run extra-hooks and revert directory.
     (when (derived-mode-p 'dired-mode)

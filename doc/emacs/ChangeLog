@@ -1,3 +1,8 @@
+2011-03-01  Glenn Morris  <rgm@gnu.org>
+
+	* custom.texi (Directory Variables):
+	Give an example of excluding subdirectories.
+
 2011-02-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* search.texi (Regexp Search): Move index entries about regexps to the

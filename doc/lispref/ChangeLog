@@ -1,3 +1,8 @@
+2011-03-01  Glenn Morris  <rgm@gnu.org>
+
+	* variables.texi (Directory Local Variables):
+	Mention `(subdirs . nil)' alist element.
+
 2011-02-28  Glenn Morris  <rgm@gnu.org>
 
 	* variables.texi (Directory Local Variables): Mention the optional
