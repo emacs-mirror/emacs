@@ -792,22 +792,19 @@ from the cursor position."
 (define-obsolete-function-alias 'list-yahrzeit-dates
   'calendar-hebrew-list-yahrzeits "23.1")
 
-(defun hebrew-calendar-birthday (birth-date year)
-  "Absolute date of the anniversary of Hebrew BIRTH-DATE in Hebrew YEAR."
-  (let* ((birth-day (extract-calendar-day birth-date))
-         (birth-month (extract-calendar-month birth-date))
-         (birth-year (extract-calendar-year birth-date)))
-    (if ; It's Adar in a normal Hebrew year or Adar II
-        ; in a Hebrew leap year,
-        (= birth-month (hebrew-calendar-last-month-of-year birth-year))
-        ;; Then use the same day in last month of Hebrew year.
-      (calendar-absolute-from-hebrew
-       (list (hebrew-calendar-last-month-of-year year) birth-day year))
+(defun calendar-hebrew-birthday (date year)
+  "Absolute date of the anniversary of Hebrew birth DATE, in Hebrew YEAR."
+  (let ((b-day (calendar-extract-day date))
+        (b-month (calendar-extract-month date))
+        (b-year (calendar-extract-year date)))
+    ;; If it's Adar in a normal Hebrew year or Adar II in a Hebrew leap year...
+    (if (= b-month (calendar-hebrew-last-month-of-year b-year))
+        ;; ...then use the same day in last month of Hebrew year.
+        (calendar-hebrew-to-absolute
+         (list (calendar-hebrew-last-month-of-year year) b-day year))
       ;; Else use the normal anniversary of the birth date,
-      ;; or the corresponding day in years without that date
-      (+ (calendar-absolute-from-hebrew
-          (list birth-month 1 year))
-         birth-day -1))))
+      ;; or the corresponding day in years without that date.
+      (+ (calendar-hebrew-to-absolute (list b-month 1 year)) b-day -1))))
 
 (defvar date)
 
@@ -817,39 +814,35 @@ from the cursor position."
   "Hebrew calendar equivalent of date diary entry."
   (format "Hebrew date (until sunset): %s" (calendar-hebrew-date-string date)))
 
-(defun diary-hebrew-birthday
-  (birth-month birth-day birth-year &optional after-sunset)
-  "Hebrew birthday diary entry--entry applies if date is birthdate or the day
-before.  Parameters are BIRTH-MONTH, BIRTH-DAY, BIRTH-YEAR; the diary entry is
-assumed to be the name of the person.  Date of birth is on the *civil*
-calendar; although the date of birth is specified by the civil calendar, the
-proper Hebrew calendar birthday is determined.  NOTE: If the birth occurred
-after local sunset on the given civil date, the following civil date
-corresponds to the Hebrew birthday--the optional parameter AFTER-SUNSET does
-this correction when t.  If `european-calendar-style' is t, the order of the
-parameters is changed to BIRTH-DAY, BIRTH-MONTH, BIRTH-YEAR."
+(defvar entry)
+
+;;;###diary-autoload
+(defun diary-hebrew-birthday (month day year &optional after-sunset)
+  "Hebrew birthday diary entry.
+Entry applies if date is birthdate (MONTH DAY YEAR), or the day before.
+The order of the input parameters changes according to
+`calendar-date-style' (e.g. to DAY MONTH YEAR in the European style).
+
+Assumes the associated diary entry is the name of the person.
+
+Although the date of birth is specified by the *civil* calendar,
+this function determines the proper Hebrew calendar birthday.
+If the optional argument AFTER-SUNSET is non-nil, this means the
+birth occurred after local sunset on the given civil date.
+In this case, the following civil date corresponds to the Hebrew birthday."
   (let* ((h-date (calendar-hebrew-from-absolute
                   (+ (calendar-absolute-from-gregorian
-                      (if european-calendar-style
-                          (list birth-day birth-month birth-year)
-                        (list birth-month birth-day birth-year)))
+                      (diary-make-date month day year))
                      (if after-sunset 1 0))))
-         (h-month (extract-calendar-month h-date))
-         (h-day (extract-calendar-day h-date))
-         (h-year (extract-calendar-year h-date))
-         (d (calendar-absolute-from-gregorian date))
-         (h-yr (extract-calendar-year (calendar-hebrew-from-absolute d)))
-         (age (- h-yr h-year))
-         (b-date (hebrew-calendar-birthday h-date h-yr)))
-    (if (and (> age 0) (or (= b-date d) (= b-date (1+ d))))
-        (format "%s's %d%s Hebrew birthday%s"
-                entry
-                age
-                (cond ((= (% age 10) 1) "st")
-                      ((= (% age 10) 2) "nd")
-                      ((= (% age 10) 3) "rd")
-                      (t "th"))
-                (if (= b-date d) "" " (evening)")))))
+         (h-year (calendar-extract-year h-date))     ; birth-day
+         (d (calendar-absolute-from-gregorian date)) ; today
+         (h-yr (calendar-extract-year (calendar-hebrew-from-absolute d)))
+         (age (- h-yr h-year))          ; current H year - birth H-year
+         (b-date (calendar-hebrew-birthday h-date h-yr)))
+    (and (> age 0) (memq b-date (list d (1+ d)))
+         (format "%s's %d%s Hebrew birthday%s" entry age
+                 (diary-ordinal-suffix age)
+                 (if (= b-date d) "" " (evening)")))))
 
 ;;;###diary-autoload
 (defun diary-hebrew-omer (&optional mark)
@@ -879,8 +872,6 @@ use when highlighting the day in the calendar."
                                           day (if (= day 1) "" "s"))))))))))
 ;;;###diary-autoload
 (define-obsolete-function-alias 'diary-omer 'diary-hebrew-omer "23.1")
-
-(defvar entry)
 
 (autoload 'diary-make-date "diary-lib")
 

@@ -391,6 +391,8 @@ You can get a comparable behavior with:
 
 ** Calendar, Diary, and Appt
 
+*** New function `diary-hebrew-birthday'.
+
 ---
 *** The obsolete (since Emacs 22.1) method of enabling the appt package
 by adding appt-make-list to diary-hook has been removed.  Use appt-activate.

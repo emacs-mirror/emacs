@@ -1,3 +1,8 @@
+2011-03-01  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-hebrew.el (calendar-hebrew-birthday, diary-hebrew-date):
+	Rename and rework functions added in previous change.
+
 2011-03-01  Ed Reingold  <reingold@emr.cs.iit.edu>
 
 	* calendar/cal-hebrew.el (hebrew-calendar-birthday)
