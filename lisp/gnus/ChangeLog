@@ -1,3 +1,9 @@
+2011-03-01  Julien Danjou  <julien@danjou.info>
+
+	* gnus-art.el (list-identifier): Add list-identifier as a parameter
+	group.
+	(article-hide-list-identifiers): Use list-identifier group parameter.
+
 2011-02-28  Julien Danjou  <julien@danjou.info>
 
 	* sieve.el (sieve-buffer-script-name): New local variable to store
