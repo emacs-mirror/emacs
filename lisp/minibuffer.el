@@ -210,7 +210,7 @@ You should give VAR a non-nil `risky-local-variable' property."
            ((vectorp table)             ;Obarray.
             (lambda (sym) (funcall pred (concat prefix (symbol-name sym)))))
            ((hash-table-p table)
-            (lambda (s v) (funcall pred (concat prefix s))))
+            (lambda (s _v) (funcall pred (concat prefix s))))
            ((functionp table)
             (lambda (s) (funcall pred (concat prefix s))))
            (t                           ;Lists and alists.
@@ -681,7 +681,7 @@ scroll the window of possible completions."
                t)
         (t     t)))))
 
-(defun completion--flush-all-sorted-completions (&rest ignore)
+(defun completion--flush-all-sorted-completions (&rest _ignore)
   (setq completion-cycling nil)
   (setq completion-all-sorted-completions nil))
 
@@ -1313,7 +1313,7 @@ The completion method is determined by `completion-at-point-functions'."
   (concat "\\(?:^\\|[^$]\\(?:\\$\\$\\)*\\)"
           "$\\([[:alnum:]_]*\\|{\\([^}]*\\)\\)\\'"))
 
-(defun completion--embedded-envvar-table (string pred action)
+(defun completion--embedded-envvar-table (string _pred action)
   "Completion table for envvars embedded in a string.
 The envvar syntax (and escaping) rules followed by this table are the
 same as `substitute-in-file-name'."
@@ -1726,13 +1726,13 @@ Like `internal-complete-buffer', but removes BUFFER from the completion list."
 
 ;;; Old-style completion, used in Emacs-21 and Emacs-22.
 
-(defun completion-emacs21-try-completion (string table pred point)
+(defun completion-emacs21-try-completion (string table pred _point)
   (let ((completion (try-completion string table pred)))
     (if (stringp completion)
         (cons completion (length completion))
       completion)))
 
-(defun completion-emacs21-all-completions (string table pred point)
+(defun completion-emacs21-all-completions (string table pred _point)
   (completion-hilit-commonality
    (all-completions string table pred)
    (length string)
@@ -1817,7 +1817,7 @@ Return the new suffix."
   (let* ((beforepoint (substring string 0 point))
          (afterpoint (substring string point))
          (bounds (completion-boundaries beforepoint table pred afterpoint))
-         (suffix (substring afterpoint (cdr bounds)))
+         ;; (suffix (substring afterpoint (cdr bounds)))
          (prefix (substring beforepoint 0 (car bounds)))
          (pattern (delete
                    "" (list (substring beforepoint (car bounds))
@@ -2006,7 +2006,7 @@ filter out additional entries (because TABLE migth not obey PRED)."
         ;; The prefix has no completions at all, so we should try and fix
         ;; that first.
         (let ((substring (substring prefix 0 -1)))
-          (destructuring-bind (subpat suball subprefix subsuffix)
+          (destructuring-bind (subpat suball subprefix _subsuffix)
               (completion-pcm--find-all-completions
                substring table pred (length substring) filter)
             (let ((sep (aref prefix (1- (length prefix))))
@@ -2071,7 +2071,7 @@ filter out additional entries (because TABLE migth not obey PRED)."
         (list pattern all prefix suffix)))))
 
 (defun completion-pcm-all-completions (string table pred point)
-  (destructuring-bind (pattern all &optional prefix suffix)
+  (destructuring-bind (pattern all &optional prefix _suffix)
       (completion-pcm--find-all-completions string table pred point)
     (when all
       (nconc (completion-pcm--hilit-commonality pattern all)
@@ -2246,14 +2246,14 @@ filter out additional entries (because TABLE migth not obey PRED)."
     (list all pattern prefix suffix (car bounds))))
 
 (defun completion-substring-try-completion (string table pred point)
-  (destructuring-bind (all pattern prefix suffix carbounds)
+  (destructuring-bind (all pattern prefix suffix _carbounds)
       (completion-substring--all-completions string table pred point)
     (if minibuffer-completing-file-name
         (setq all (completion-pcm--filename-try-filter all)))
     (completion-pcm--merge-try pattern all prefix suffix)))
 
 (defun completion-substring-all-completions (string table pred point)
-  (destructuring-bind (all pattern prefix suffix carbounds)
+  (destructuring-bind (all pattern prefix _suffix _carbounds)
       (completion-substring--all-completions string table pred point)
     (when all
       (nconc (completion-pcm--hilit-commonality pattern all)
@@ -2290,12 +2290,12 @@ filter out additional entries (because TABLE migth not obey PRED)."
             (concat (substring str 0 (car bounds))
                     (mapconcat 'string (substring str (car bounds)) sep))))))))
 
-(defun completion-initials-all-completions (string table pred point)
+(defun completion-initials-all-completions (string table pred _point)
   (let ((newstr (completion-initials-expand string table pred)))
     (when newstr
       (completion-pcm-all-completions newstr table pred (length newstr)))))
 
-(defun completion-initials-try-completion (string table pred point)
+(defun completion-initials-try-completion (string table pred _point)
   (let ((newstr (completion-initials-expand string table pred)))
     (when newstr
       (completion-pcm-try-completion newstr table pred (length newstr)))))

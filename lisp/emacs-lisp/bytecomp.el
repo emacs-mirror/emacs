@@ -2563,6 +2563,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
    ;; b-c-lambda didn't produce a compiled-function, so it's either a trivial
    ;; function, or this is Emacs 18, or generate-emacs19-bytecodes is off.
    ((let (tmp)
+      ;; FIXME: can this happen?
       (if (and (setq tmp (assq 'byte-code (cdr-safe (cdr fun))))
 	       (null (cdr (memq tmp fun))))
 	  ;; Generate a make-byte-code call.
@@ -2587,7 +2588,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	(list 'quote fun))))))
 
 ;; Turn a function into an ordinary lambda.  Needed for v18 files.
-(defun byte-compile-byte-code-unmake (function)
+(defun byte-compile-byte-code-unmake (function) ;FIXME: what is it?
   (if (consp function)
       function;;It already is a lambda.
     (setq function (append function nil)) ; turn it into a list
@@ -2685,16 +2686,19 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	     ;; compile it, because `call-interactively' looks at the
 	     ;; args of `list'.  Actually, compile it to get warnings,
 	     ;; but don't use the result.
-	     (let ((form (nth 1 bytecomp-int)))
+	     (let* ((form (nth 1 bytecomp-int))
+                    (newform (byte-compile-top-level form)))
 	       (while (memq (car-safe form) '(let let* progn save-excursion))
 		 (while (consp (cdr form))
 		   (setq form (cdr form)))
 		 (setq form (car form)))
-	       (if (eq (car-safe form) 'list)
-		   (byte-compile-top-level (nth 1 bytecomp-int))
-		 (setq bytecomp-int (list 'interactive
-                                          (byte-compile-top-level
-                                           (nth 1 bytecomp-int)))))))
+	       (if (and (eq (car-safe form) 'list)
+                        ;; The spec is evaled in callint.c in dynamic-scoping
+                        ;; mode, so just leaving the form unchanged would mean
+                        ;; it won't be eval'd in the right mode.
+                        (not lexical-binding))
+		   nil
+		 (setq bytecomp-int `(interactive ,newform)))))
 	    ((cdr bytecomp-int)
 	     (byte-compile-warn "malformed interactive spec: %s"
 				(prin1-to-string bytecomp-int)))))
@@ -3826,7 +3830,6 @@ Return the offset in the form (VAR . OFFSET)."
         (byte-compile-push-constant nil)))))
 
 (defun byte-compile-not-lexical-var-p (var)
-  ;; FIXME: this doesn't catch defcustoms!
   (or (not (symbolp var))
       (special-variable-p var)
       (memq var byte-compile-bound-variables)
@@ -4560,7 +4563,14 @@ Use with caution."
         (setq f (car f))
         (if (string-match "elc\\'" f) (setq f (substring f 0 -1)))
         (when (and (file-readable-p f)
-                   (file-newer-than-file-p f emacs-file))
+                   (file-newer-than-file-p f emacs-file)
+                   ;; Don't reload the source version of the files below
+                   ;; because that causes subsequent byte-compilation to
+                   ;; be a lot slower and need a higher max-lisp-eval-depth,
+                   ;; so it can cause recompilation to fail.
+                   (not (member (file-name-nondirectory f)
+                                '("pcase.el" "bytecomp.el" "macroexp.el"
+                                  "cconv.el" "byte-opt.el"))))
           (message "Reloading stale %s" (file-name-nondirectory f))
           (condition-case nil
               (load f 'noerror nil 'nosuffix)

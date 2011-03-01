@@ -357,14 +357,14 @@ which will be concatenated with proper quoting before passing them to MPD."
                         (mapconcat 'mpc--proc-quote-string cmd " "))
                       "\n")))
       (if callback
-          (let ((buf (current-buffer)))
+          ;; (let ((buf (current-buffer)))
             (process-put proc 'callback
                          callback
                          ;; (lambda ()
                          ;;   (funcall callback
                          ;;            (prog1 (current-buffer)
-                         ;;              (set-buffer buf))))
-                         ))
+                         ;;              (set-buffer buf)))))
+                         )
         ;; If `callback' is nil, we're executing synchronously.
         (process-put proc 'callback 'ignore)
         ;; This returns the process's buffer.
@@ -600,7 +600,7 @@ The songs are returned as alists."
                (cond
                 ((eq tag 'Playlist)
                  ;; Special case for pseudo-tag playlist.
-                 (let ((l (condition-case err
+                 (let ((l (condition-case nil
                               (mpc-proc-buf-to-alists
                                (mpc-proc-cmd (list "listplaylistinfo" value)))
                             (mpc-proc-error
@@ -633,7 +633,7 @@ The songs are returned as alists."
                    (mpc-union (mpc-cmd-find tag1 value)
                               (mpc-cmd-find tag2 value))))
                 (t
-                 (condition-case err
+                 (condition-case nil
                      (mpc-proc-buf-to-alists
                       (mpc-proc-cmd (list "find" (symbol-name tag) value)))
                    (mpc-proc-error
@@ -935,7 +935,7 @@ If PLAYLIST is t or nil or missing, use the main playlist."
 
 (defun mpc-tempfiles-clean ()
   (let ((live ()))
-    (maphash (lambda (k v) (push v live)) mpc-tempfiles-reftable)
+    (maphash (lambda (_k v) (push v live)) mpc-tempfiles-reftable)
     (dolist (f mpc-tempfiles)
       (unless (member f live) (ignore-errors (delete-file f))))
     (setq mpc-tempfiles live)))
@@ -1159,7 +1159,7 @@ If PLAYLIST is t or nil or missing, use the main playlist."
         (mpc-status-mode))
       (mpc-proc-buffer (mpc-proc) 'status buf))
     (if (null songs-win) (pop-to-buffer buf)
-      (let ((win (split-window songs-win 20 t)))
+      (let ((_win (split-window songs-win 20 t)))
         (set-window-dedicated-p songs-win nil)
         (set-window-buffer songs-win buf)
         (set-window-dedicated-p songs-win 'soft)))))
@@ -2385,15 +2385,13 @@ This is used so that they can be compared with `eq', which is needed for
       (mpc--faster-stop)
     (mpc-status-refresh) (mpc-proc-sync)
     (let* (songid       ;The ID of the currently ffwd/rewinding song.
-           songnb       ;The position of that song in the playlist.
            songduration ;The duration of that song.
            songtime     ;The time of the song last time we ran.
            oldtime      ;The timeoftheday last time we ran.
            prevsongid)  ;The song we're in the process leaving.
       (let ((fun
              (lambda ()
-               (let ((newsongid (cdr (assq 'songid mpc-status)))
-                     (newsongnb (cdr (assq 'song mpc-status))))
+               (let ((newsongid (cdr (assq 'songid mpc-status))))
 
                  (if (and (equal prevsongid newsongid)
                           (not (equal prevsongid songid)))
@@ -2444,8 +2442,7 @@ This is used so that they can be compared with `eq', which is needed for
                            (mpc-proc-cmd
                             (list "seekid" songid songtime)
                             'mpc-status-refresh)
-                         (mpc-proc-error (mpc-status-refresh)))))))
-                 (setq songnb newsongnb)))))
+                         (mpc-proc-error (mpc-status-refresh)))))))))))
         (setq mpc--faster-toggle-forward (> step 0))
         (funcall fun)                   ;Initialize values.
         (setq mpc--faster-toggle-timer

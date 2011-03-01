@@ -222,6 +222,9 @@ compile-onefile:
 # cannot have prerequisites.
 .el.elc:
 	@echo Compiling $<
+	@# The BIG_STACK_OPTS are only needed to byte-compile the byte-compiler
+	@# files, which is normally done in compile-first, but may also be
+	@# recompiled via this rule.
 	@$(emacs) $(BIG_STACK_OPTS) $(BYTE_COMPILE_EXTRA_FLAGS) \
 		-f batch-byte-compile $<
 

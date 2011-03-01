@@ -55,11 +55,9 @@ Otherwise, if symbol has a `saved-value' property, it will evaluate
 the car of that and use it as the default binding for symbol.
 Otherwise, VALUE will be evaluated and used as the default binding for
 symbol."
-  (unless (default-boundp symbol)
-    ;; Use the saved value if it exists, otherwise the standard setting.
-    (set-default symbol (eval (if (get symbol 'saved-value)
-                                  (car (get symbol 'saved-value))
-                                value)))))
+  (eval `(defvar ,symbol ,(if (get symbol 'saved-value)
+                              (car (get symbol 'saved-value))
+                            value))))
 
 (defun custom-initialize-set (symbol value)
   "Initialize SYMBOL based on VALUE.
@@ -81,15 +79,15 @@ The value is either the symbol's current value
  \(as obtained using the `:get' function), if any,
 or the value in the symbol's `saved-value' property if any,
 or (last of all) VALUE."
-    (funcall (or (get symbol 'custom-set) 'set-default)
-	     symbol
-	     (cond ((default-boundp symbol)
-		    (funcall (or (get symbol 'custom-get) 'default-value)
-			     symbol))
-		   ((get symbol 'saved-value)
-		    (eval (car (get symbol 'saved-value))))
-		   (t
-		    (eval value)))))
+  (funcall (or (get symbol 'custom-set) 'set-default)
+           symbol
+           (cond ((default-boundp symbol)
+                  (funcall (or (get symbol 'custom-get) 'default-value)
+                           symbol))
+                 ((get symbol 'saved-value)
+                  (eval (car (get symbol 'saved-value))))
+                 (t
+                  (eval value)))))
 
 (defun custom-initialize-changed (symbol value)
   "Initialize SYMBOL with VALUE.
@@ -142,10 +140,8 @@ set to nil, as the value is no longer rogue."
   ;; Maybe this option was rogue in an earlier version.  It no longer is.
   (when (get symbol 'force-value)
     (put symbol 'force-value nil))
-  (when doc
-    (if (keywordp doc)
-	(error "Doc string is missing")
-      (put symbol 'variable-documentation doc)))
+  (if (keywordp doc)
+      (error "Doc string is missing"))
   (let ((initialize 'custom-initialize-reset)
 	(requests nil))
     (unless (memq :group args)
@@ -189,6 +185,13 @@ set to nil, as the value is no longer rogue."
     ;; Do the actual initialization.
     (unless custom-dont-initialize
       (funcall initialize symbol default)))
+  ;; Use defvar to set the docstring as well as the special-variable-p flag.
+  ;; FIXME: We should reproduce more of `defvar's behavior, such as the warning
+  ;; when the var is currently let-bound.
+  (if (not (default-boundp symbol))
+      ;; Don't use defvar to avoid setting a default-value when undesired.
+      (when doc (put symbol 'variable-documentation doc))
+    (eval `(defvar ,symbol nil ,@(when doc (list doc)))))
   (push symbol current-load-list)
   (run-hooks 'custom-define-hook)
   symbol)

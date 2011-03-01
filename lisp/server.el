@@ -418,10 +418,11 @@ If CLIENT is non-nil, add a description of it to the logged message."
       (server-delete-client proc 'noframe)))) ; Let delete-frame delete the frame later.
 
 (defun server-handle-suspend-tty (terminal)
-  "Notify the emacsclient process to suspend itself when its tty device is suspended."
+  "Notify the client process that its tty device is suspended."
   (dolist (proc (server-clients-with 'terminal terminal))
-    (server-log (format "server-handle-suspend-tty, terminal %s" terminal) proc)
-    (condition-case err
+    (server-log (format "server-handle-suspend-tty, terminal %s" terminal)
+                proc)
+    (condition-case nil
 	(server-send-string proc "-suspend \n")
       (file-error                       ;The pipe/socket was closed.
        (ignore-errors (server-delete-client proc))))))
@@ -1207,7 +1208,10 @@ so don't mark these buffers specially, just visit them normally."
       (process-put proc 'buffers
                    (nconc (process-get proc 'buffers) client-record)))
     client-record))
-
+
+(defvar server-kill-buffer-running nil
+  "Non-nil while `server-kill-buffer' or `server-buffer-done' is running.")
+
 (defun server-buffer-done (buffer &optional for-killing)
   "Mark BUFFER as \"done\" for its client(s).
 This buries the buffer, then returns a list of the form (NEXT-BUFFER KILLED).
@@ -1328,9 +1332,6 @@ specifically for the clients and did not exist before their request for it."
 						proc 'buffers)))
 	    (setq live-client t))))
       (yes-or-no-p "This Emacs session has clients; exit anyway? ")))
-
-(defvar server-kill-buffer-running nil
-  "Non-nil while `server-kill-buffer' or `server-buffer-done' is running.")
 
 (defun server-kill-buffer ()
   "Remove the current buffer from its clients' buffer list.

@@ -466,7 +466,8 @@ Functions
 * Declaring Functions::     Telling the compiler that a function is defined.
 * Function Safety::         Determining whether a function is safe to call.
 * Related Topics::          Cross-references to specific Lisp primitives
-                              that have a special bearing on how functions work.
+                              that have a special bearing on how
+                              functions work.
 
 Lambda Expressions
 

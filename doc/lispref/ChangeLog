@@ -1,3 +1,9 @@
+2011-03-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* variables.texi (Scope): Mention the availability of lexical scoping.
+	(Lexical Binding): New node.
+	* eval.texi (Eval): Add `eval's new `lexical' arg.
+
 2011-02-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vol2.texi (Top):

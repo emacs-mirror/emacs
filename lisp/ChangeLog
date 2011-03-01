@@ -1,3 +1,24 @@
+2011-03-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cconv.el (cconv-liftwhen): Increase threshold.
+	(cconv-closure-convert-rec): Convert interactive spec in empty lexenv.
+	(cconv-analyse-use): Improve unused vars warnings.
+	(cconv-analyse-form): Analyze interactive spec in empty lexenv.
+	* emacs-lisp/bytecomp.el (byte-compile-lambda): Always byte-compile
+	the interactive spec in lexical-binding mode.
+	(byte-compile-refresh-preloaded): Don't reload byte-compiler files.
+	* custom.el (custom-initialize-default): Use defvar.
+	(custom-declare-variable): Set the special-variable-p flag.
+	* help-fns.el (help-make-usage): Drop leading underscores.
+	* dired.el (dired-revert, dired-make-relative): Mark unused args.
+	(dired-unmark-all-files): Remove unused var `query'.
+	(dired-overwrite-confirmed): Declare.
+	(dired-restore-desktop-buffer): Don't use dynamically scoped arg names.
+	* mpc.el: Mark unused args.
+	(mpc--faster-toggle): Remove unused var `songnb'.
+	* server.el (server-kill-buffer-running): Move before first use.
+	* minibuffer.el: Mark unused args.
+
 2011-02-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cconv.el (cconv-closure-convert-rec): Fix last change for
@@ -334,6 +355,15 @@
 	instead of `vector' to create compiled closures.
 
 	Merge funvec patch.
+
+2004-05-20  Miles Bader  <miles@gnu.org>
+
+	* subr.el (functionp): Use `funvecp' instead of
+	`byte-compiled-function-p'.
+	* help-fns.el (describe-function-1): Describe curried functions
+	and other funvecs as such.
+	(help-highlight-arguments): Only format things that look like a
+	function.
 
 2004-04-29  Miles Bader  <miles@gnu.org>
 

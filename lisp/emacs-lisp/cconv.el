@@ -65,21 +65,54 @@
 ;;
 ;;; Code:
 
-;;; TODO:
-;; - pay attention to `interactive': its arg is run in an empty env.
+;; TODO:
 ;; - canonize code in macro-expand so we don't have to handle (let (var) body)
 ;;   and other oddities.
 ;; - Change new byte-code representation, so it directly gives the
 ;;   number of mandatory and optional arguments as well as whether or
 ;;   not there's a &rest arg.
-;; - warn about unused lexical vars.
 ;; - clean up cconv-closure-convert-rec, especially the `let' binding part.
 ;; - new byte codes for unwind-protect, catch, and condition-case so that
 ;;   closures aren't needed at all.
+;; - a reference to a var that is known statically to always hold a constant
+;;   should be turned into a byte-constant rather than a byte-stack-ref.
+;;   Hmm... right, that's called constant propagation and could be done here
+;;   But when that constant is a function, we have to be careful to make sure
+;;   the bytecomp only compiles it once.
+;; - Since we know here when a variable is not mutated, we could pass that
+;;   info to the byte-compiler, e.g. by using a new `immutable-let'.
+;; - add tail-calls to bytecode.c and the bytecompiler.
+
+;; (defmacro dlet (binders &rest body)
+;;   ;; Works in both lexical and non-lexical mode.
+;;   `(progn
+;;      ,@(mapcar (lambda (binder)
+;;                  `(defvar ,(if (consp binder) (car binder) binder)))
+;;                binders)
+;;      (let ,binders ,@body)))
+
+;; (defmacro llet (binders &rest body)
+;;   ;; Only works in lexical-binding mode.
+;;   `(funcall
+;;     (lambda ,(mapcar (lambda (binder) (if (consp binder) (car binder) binder))
+;;                 binders)
+;;       ,@body)
+;;     ,@(mapcar (lambda (binder) (if (consp binder) (cadr binder)))
+;;               binders)))
+
+;; (defmacro letrec (binders &rest body)
+;;   ;; Only useful in lexical-binding mode.
+;;   ;; As a special-form, we could implement it more efficiently (and cleanly,
+;;   ;; making the vars actually unbound during evaluation of the binders).
+;;   `(let ,(mapcar (lambda (binder) (if (consp binder) (car binder) binder))
+;;                  binders)
+;;      ,@(delq nil (mapcar (lambda (binder) (if (consp binder) `(setq ,@binder)))
+;;                          binders))
+;;      ,@body))
 
 (eval-when-compile (require 'cl))
 
-(defconst cconv-liftwhen 3
+(defconst cconv-liftwhen 6
   "Try to do lambda lifting if the number of arguments + free variables
 is less than this number.")
 ;; List of all the variables that are both captured by a closure
@@ -212,13 +245,13 @@ Returns a form where all lambdas don't have any free variables."
   ;; This function actually rewrites the tree.
   "Eliminates all free variables of all lambdas in given forms.
 Arguments:
--- FORM is a piece of Elisp code after macroexpansion.
--- LMENVS is a list of environments used for lambda-lifting.  Initially empty.
--- EMVRS is a list that contains mutated variables that are visible
+- FORM is a piece of Elisp code after macroexpansion.
+- LMENVS is a list of environments used for lambda-lifting.  Initially empty.
+- EMVRS is a list that contains mutated variables that are visible
 within current environment.
--- ENVS is an environment(list of free variables) of current closure.
+- ENVS is an environment(list of free variables) of current closure.
 Initially empty.
--- FVRS is a list of variables to substitute in each context.
+- FVRS is a list of variables to substitute in each context.
 Initially empty.
 
 Returns a form where all lambdas don't have any free variables."
@@ -270,10 +303,17 @@ Returns a form where all lambdas don't have any free variables."
 					; lambda lifting condition
                      (if (or (not fv) (< cconv-liftwhen (length funcvars)))
 					; do not lift
-			 (cconv-closure-convert-rec
-			  value emvrs fvrs envs lmenvs)
+                         (progn
+                           ;; (byte-compile-log-warning
+                           ;;  (format "Not λ-lifting `%S': %d > %d"
+                           ;;          var (length funcvars) cconv-liftwhen))
+
+                           (cconv-closure-convert-rec
+                            value emvrs fvrs envs lmenvs))
 					; lift
                        (progn
+                         ;; (byte-compile-log-warning
+                         ;;  (format "λ-lifting `%S'" var))
 			 (setq cconv-freevars-alist
 			       ;; Now that we know we'll λ-lift, consume the
 			       ;; freevar data.
@@ -579,6 +619,12 @@ Returns a form where all lambdas don't have any free variables."
                    cdr-new))
            `(,callsym . ,(reverse cdr-new))))))
 
+    (`(interactive . ,forms)
+     `(interactive
+       ,@(mapcar (lambda (form)
+                   (cconv-closure-convert-rec form nil nil nil nil))
+                 forms)))
+    
     (`(,func . ,body-forms)    ; first element is function or whatever
                                ; function-like forms are:
                                ; or, and, if, progn, prog1, prog2,
@@ -608,23 +654,34 @@ Returns a form where all lambdas don't have any free variables."
   ;; Only used to test the code in non-lexbind Emacs.
   (defalias 'byte-compile-not-lexical-var-p 'boundp))
 
-(defun cconv-analyse-use (vardata form)
+(defun cconv-analyse-use (vardata form varkind)
+  "Analyse the use of a variable.
+VARDATA should be (BINDER READ MUTATED CAPTURED CALLED).
+VARKIND is the name of the kind of variable.
+FORM is the parent form that binds this var."
   ;; use = `(,binder ,read ,mutated ,captured ,called)
   (pcase vardata
-    (`(,binder nil ,_ ,_ nil)
-     ;; FIXME: Don't warn about unused fun-args.
-     ;; FIXME: Don't warn about uninterned vars or _ vars.
-     ;; FIXME: This gives warnings in the wrong order and with wrong line
-     ;; number and without function name info.
-     (byte-compile-log-warning (format "Unused variable %S" (car binder))))
+    (`(,_ nil nil nil nil) nil)
+    (`((,(and (pred (lambda (var) (eq ?_ (aref (symbol-name var) 0)))) var) . ,_)
+       ,_ ,_ ,_ ,_)
+     (byte-compile-log-warning (format "%s `%S' not left unused" varkind var)))
+    ((or `(,_ ,_ ,_ ,_ ,_) dontcare) nil))
+  (pcase vardata
+    (`((,var . ,_) nil ,_ ,_ nil)
+     ;; FIXME: This gives warnings in the wrong order, with imprecise line
+     ;; numbers and without function name info.
+     (unless (or ;; Uninterned symbols typically come from macro-expansion, so
+              ;; it is often non-trivial for the programmer to avoid such
+              ;; unused vars.
+              (not (intern-soft var))
+              (eq ?_ (aref (symbol-name var) 0)))
+       (byte-compile-log-warning (format "Unused lexical %s `%S'"
+                                         varkind var))))
     ;; If it's unused, there's no point converting it into a cons-cell, even if
-    ;; it's captures and mutated.
+    ;; it's captured and mutated.
     (`(,binder ,_ t t ,_)
      (push (cons binder form) cconv-captured+mutated))
     (`(,(and binder `(,_ (function (lambda . ,_)))) nil nil nil t)
-     ;; This is very rare in typical Elisp code.  It's probably not really
-     ;; worth the trouble to try and use lambda-lifting in Elisp, but
-     ;; since we coded it up, we might as well use it.
      (push (cons binder form) cconv-lambda-candidates))
     (`(,_ ,_ ,_ ,_ ,_) nil)
     (dontcare)))
@@ -654,7 +711,7 @@ Returns a form where all lambdas don't have any free variables."
       (cconv-analyse-form form newenv))
     ;; Summarize resulting data about arguments.
     (dolist (vardata newvars)
-      (cconv-analyse-use vardata parentform))
+      (cconv-analyse-use vardata parentform "argument"))
     ;; Transfer uses collected in `envcopy' (via `newenv') back to `env';
     ;; and compute free variables.
     (while env
@@ -673,8 +730,8 @@ Returns a form where all lambdas don't have any free variables."
 (defun cconv-analyse-form (form env)
   "Find mutated variables and variables captured by closure.
 Analyse lambdas if they are suitable for lambda lifting.
--- FORM is a piece of Elisp code after macroexpansion.
--- ENV is an alist mapping each enclosing lexical variable to its info.
+- FORM is a piece of Elisp code after macroexpansion.
+- ENV is an alist mapping each enclosing lexical variable to its info.
    I.e. each element has the form (VAR . (READ MUTATED CAPTURED CALLED)).
 This function does not return anything but instead fills the
 `cconv-captured+mutated' and `cconv-lambda-candidates' variables
@@ -707,7 +764,7 @@ and updates the data stored in ENV."
          (cconv-analyse-form form env))
 
        (dolist (vardata newvars)
-         (cconv-analyse-use vardata form))))
+         (cconv-analyse-use vardata form "variable"))))
 
 					; defun special form
     (`(,(or `defun `defmacro) ,func ,vrs . ,body-forms)
@@ -736,8 +793,7 @@ and updates the data stored in ENV."
 
     (`(cond . ,cond-forms)              ; cond special form
      (dolist (forms cond-forms)
-       (dolist (form forms)
-         (cconv-analyse-form form env))))
+       (dolist (form forms) (cconv-analyse-form form env))))
 
     (`(quote . ,_) nil)                 ; quote form
     (`(function . ,_) nil)              ; same as quote
@@ -773,12 +829,18 @@ and updates the data stored in ENV."
        (if fdata
            (setf (nth 4 fdata) t)
          (cconv-analyse-form fun env)))
-     (dolist (form args)
-       (cconv-analyse-form form env)))
+     (dolist (form args) (cconv-analyse-form form env)))
 
+    (`(interactive . ,forms)
+     ;; These appear within the function body but they don't have access
+     ;; to the function's arguments.
+     ;; We could extend this to allow interactive specs to refer to
+     ;; variables in the function's enclosing environment, but it doesn't
+     ;; seem worth the trouble.
+     (dolist (form forms) (cconv-analyse-form form nil)))
+    
     (`(,_ . ,body-forms)    ; First element is a function or whatever.
-     (dolist (form body-forms)
-       (cconv-analyse-form form env)))
+     (dolist (form body-forms) (cconv-analyse-form form env)))
 
     ((pred symbolp)
      (let ((dv (assq form env)))        ; dv = declared and visible

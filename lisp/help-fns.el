@@ -119,8 +119,11 @@ ARGLIST can also be t or a string of the form \"(FUN ARG1 ARG2 ...)\"."
 				(cdr arg))
 			arg)
 		    (let ((name (symbol-name arg)))
-		      (if (string-match "\\`&" name) arg
-			(intern (upcase name))))))
+		      (cond
+                       ((string-match "\\`&" name) arg)
+                       ((string-match "\\`_" name)
+                        (intern (upcase (substring name 1))))
+                       (t (intern (upcase name)))))))
 		arglist)))
 
 ;; Could be this, if we make symbol-file do the work below.

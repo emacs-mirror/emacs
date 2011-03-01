@@ -431,7 +431,7 @@ and otherwise defers to REST which is a list of branches of the form
                            rest)))))))
    ((eq 'match (caar matches))
     (let* ((popmatches (pop matches))
-           (op (car popmatches))       (cdrpopmatches (cdr popmatches))
+           (_op (car popmatches))      (cdrpopmatches (cdr popmatches))
            (sym (car cdrpopmatches))
            (upat (cdr cdrpopmatches)))
       (cond
@@ -520,7 +520,7 @@ and otherwise defers to REST which is a list of branches of the form
         (pcase--u1 `((match ,sym . ,(cadr upat)))
                    ;; FIXME: This codegen is not careful to share its
                    ;; code if used several times: code blow up is likely.
-                   (lambda (vars)
+                   (lambda (_vars)
                      ;; `vars' will likely contain bindings which are
                      ;; not always available in other paths to
                      ;; `rest', so there' no point trying to pass
