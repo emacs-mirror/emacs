@@ -1,3 +1,7 @@
+2011-02-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
 2011-01-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* configure.in: Test existence of xaw3d library, not just the

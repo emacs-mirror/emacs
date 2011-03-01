@@ -1,3 +1,7 @@
+2011-02-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
 2011-02-22  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_open_entity): Be sure to set scaled_pixel_size.

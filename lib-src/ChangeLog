@@ -1,3 +1,7 @@
+2011-02-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
 2011-02-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (ETAGS_CFLAGS, CTAGS_CFLAGS): Add

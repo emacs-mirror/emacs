@@ -1,3 +1,7 @@
+2011-02-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
 2010-11-01  Elias Pipping  <pipping.elias@googlemail.com>  (tiny change)
 
 	Make Emacs compile with clang (bug#7309).

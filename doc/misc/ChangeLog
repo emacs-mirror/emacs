@@ -1,3 +1,7 @@
+2011-02-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
 2011-02-23  Glenn Morris  <rgm@gnu.org>
 
 	* dbus.texi (Type Conversion): Grammar fix.
