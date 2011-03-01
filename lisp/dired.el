@@ -249,6 +249,9 @@ Local to each dired buffer.  May be a list, in which case the car is the
 directory name and the cdr is the list of files to mention.
 The directory name must be absolute, but need not be fully expanded.")
 
+(defun dired-safe-switches-p (switches)
+  (string-match "\\`[- [:alnum:]]+\\'" switches))
+
 (defvar dired-actual-switches nil
   "The value of `dired-listing-switches' used to make this buffer's text.")
 

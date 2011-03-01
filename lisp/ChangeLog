@@ -1,3 +1,7 @@
+2011-03-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dired.el (dired-safe-switches-p): New function.
+
 2011-03-01  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (dir-locals-collect-variables):
