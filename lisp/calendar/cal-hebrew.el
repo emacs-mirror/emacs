@@ -815,6 +815,7 @@ from the cursor position."
   (format "Hebrew date (until sunset): %s" (calendar-hebrew-date-string date)))
 
 (defvar entry)
+(declare-function diary-ordinal-suffix "diary-lib" (n))
 
 ;;;###diary-autoload
 (defun diary-hebrew-birthday (month day year &optional after-sunset)
