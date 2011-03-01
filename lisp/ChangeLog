@@ -1,3 +1,7 @@
+2011-03-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/cl-macs.el (lexical-let*): Fix argument name in docstring.
+
 2011-03-01  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/cal-hebrew.el (calendar-hebrew-birthday, diary-hebrew-date):
