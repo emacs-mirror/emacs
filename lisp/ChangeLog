@@ -1,3 +1,8 @@
+2011-03-01  Glenn Morris  <rgm@gnu.org>
+
+	* dired.el (dired-safe-switches-p): Beef it up.
+	(dired-actual-switches): Use it for the safe-local prop.  (Bug#3230)
+
 2011-03-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* dired.el (dired-safe-switches-p): New function.

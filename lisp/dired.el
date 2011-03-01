@@ -249,11 +249,18 @@ Local to each dired buffer.  May be a list, in which case the car is the
 directory name and the cdr is the list of files to mention.
 The directory name must be absolute, but need not be fully expanded.")
 
+;; Beware of "-l;reboot" etc.  See bug#3230.
 (defun dired-safe-switches-p (switches)
-  (string-match "\\`[- [:alnum:]]+\\'" switches))
+  "Return non-nil if string SWITCHES does not look risky for dired."
+  (or (not switches)
+      (and (stringp switches)
+           (< (length switches) 100)    ; arbitrary
+           (string-match "\\` *-[- [:alnum:]]+\\'" switches))))
 
 (defvar dired-actual-switches nil
   "The value of `dired-listing-switches' used to make this buffer's text.")
+
+(put 'dired-actual-switches 'safe-local-variable 'dired-safe-switches-p)
 
 (defvar dired-re-inode-size "[0-9 \t]*"
   "Regexp for optional initial inode and file size as made by `ls -i -s'.")
@@ -3617,7 +3624,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
 ;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
 ;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "9d6333fab9c0f1b49e0bf2a536b8f245")
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "154cdfbf451aedec60c5012b625ff329")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\
@@ -4076,7 +4083,7 @@ true then the type of the file linked to by FILE is printed instead.
 ;;;***
 
 ;;;### (autoloads (dired-do-relsymlink dired-jump) "dired-x" "dired-x.el"
-;;;;;;  "c24f202ea049990539accfd4c2c73fe9")
+;;;;;;  "3b8851132739ab3f9054bf639873c53e")
 ;;; Generated autoloads from dired-x.el
 
 (autoload 'dired-jump "dired-x" "\
