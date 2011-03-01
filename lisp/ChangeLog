@@ -7410,48 +7410,6 @@
 
 	* whitespace.el (whitespace-style): Adjust type declaration.
 
-2010-08-26  Magnus Henoch  <magnus.henoch@gmail.com>
-
-	* net/tramp-gvfs.el (tramp-gvfs-handle-copy-file): Do not pass
-	empty argument to gvfs-copy.
-
-2010-08-26  Chong Yidong  <cyd@stupidchicken.com>
-
-	* net/tramp-compat.el (tramp-compat-delete-file): Rewrite to
-	handle new TRASH arg of `delete-file'.
-
-2010-08-26  Christian Lynbech  <christian.lynbech@tieto.com>  (tiny change)
-
-	* net/tramp.el (tramp-handle-insert-directory): Don't use
-	`forward-word', its default syntax could be changed.
-
-2010-08-26  Toru TSUNEYOSHI  <t_tuneyosi@hotmail.com>
-            Michael Albinus  <michael.albinus@gmx.de>
-
-	Implement compression for inline methods.
-
-	* net/tramp.el (tramp-inline-compress-start-size): New defcustom.
-	(tramp-copy-size-limit): Allow also nil.
-	(tramp-inline-compress-commands): New defconst.
-	(tramp-find-inline-compress, tramp-get-inline-compress)
-	(tramp-get-inline-coding): New defuns.
-	(tramp-get-remote-coding, tramp-get-local-coding): Remove,
-	replaced by `tramp-get-inline-coding'.
-	(tramp-handle-file-local-copy, tramp-handle-write-region)
-	(tramp-method-out-of-band-p): Use `tramp-get-inline-coding'.
-
-2010-08-26  Noah Lavine  <noah549@gmail.com>  (tiny change)
-
-	Detect ssh 'ControlMaster' argument automatically in some cases.
-
-	* net/tramp.el (tramp-detect-ssh-controlmaster): New defun.
-	(tramp-default-method): Use it.
-
-2010-08-26  Karel Klíč  <kklic@redhat.com>
-
-	* net/tramp.el (tramp-file-name-for-operation):
-	Add file-selinux-context.
-
 2010-08-26  Łukasz Stelmach  <lukasz.stelmach@iem.pw.edu.pl>  (tiny change)
 
 	* play/cookie1.el (read-cookie): Fix off-by-one error (bug#6921).
