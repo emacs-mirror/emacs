@@ -1,3 +1,8 @@
+2011-03-01  Ed Reingold  <reingold@emr.cs.iit.edu>
+
+	* calendar/cal-hebrew.el (hebrew-calendar-birthday)
+	(diary-hebrew-birthday): New functions.
+
 2011-03-01  Glenn Morris  <rgm@gnu.org>
 
 	* dired.el (dired-safe-switches-p): Beef it up.
