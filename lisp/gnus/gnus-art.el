@@ -1725,9 +1725,10 @@ Initialized from `text-mode-syntax-table.")
 (put 'gnus-with-article-headers 'edebug-form-spec '(body))
 
 (defmacro gnus-with-article-buffer (&rest forms)
-  `(with-current-buffer gnus-article-buffer
-     (let ((inhibit-read-only t))
-       ,@forms)))
+  `(when (buffer-live-p gnus-article-buffer)
+     (with-current-buffer gnus-article-buffer
+       (let ((inhibit-read-only t))
+         ,@forms))))
 
 (put 'gnus-with-article-buffer 'lisp-indent-function 0)
 (put 'gnus-with-article-buffer 'edebug-form-spec '(body))

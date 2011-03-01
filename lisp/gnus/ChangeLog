@@ -1,3 +1,19 @@
+2011-02-28  Julien Danjou  <julien@danjou.info>
+
+	* sieve.el (sieve-buffer-script-name): New local variable to store
+	sieve script name.
+	(sieve-edit-script): Store sieve script name.
+	(sieve-upload): Use sieve script name when uploading.
+	(sieve-upload): Use substitute-command-keys.
+	(sieve-edit-script): Use substitute-command-keys.
+	(sieve-refresh-scriptlist): Use substitute-command-keys.
+	(sieve-manage-mode-map): Define keymap properly.
+	(sieve-manage-mode): Do not set mode name manually, change mode-name to
+	(sieve-refresh-scriptlist): Use substitute-command-keys."Sieve-manage".
+	Remove commented code about cvs.
+	(sieve-manage-quit): New function.
+	(sieve-manage-mode-map): Bind 'q' to sieve-manage-quit.
+
 2011-02-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-group.el (gnus-import-other-newsrc-file): New function.
@@ -22,6 +38,13 @@
 
 	* gnus-demon.el (gnus-demon-init): run-with-timer should be called with
 	numerical parameters.
+
+2011-02-25  Julien Danjou  <julien@danjou.info>
+
+	* gnus-gravatar.el: Use gnus-with-article-buffer.
+
+	* gnus-art.el (gnus-with-article-buffer): Check that the
+	gnus-article-buffer is alive.
 
 2011-02-24  Teodor Zlatanov  <tzz@lifelogs.com>
 
