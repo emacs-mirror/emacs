@@ -3400,7 +3400,7 @@ Return the new variables list."
                         (progn
                           (setq alist (delq subdirs alist))
                           (cdr-safe subdirs))
-                        ;; TODO someone might want to extent this to allow
+                        ;; TODO someone might want to extend this to allow
                         ;; integer values for subdir, where N means
                         ;; variables apply to this directory and N levels
                         ;; below it (0 == nil).
