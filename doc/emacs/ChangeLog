@@ -1,3 +1,10 @@
+2011-03-01  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* maintaining.texi (Format of ChangeLog): Add reference to
+	add-log-full-name.
+	(Change Log Commands): Add documentation for combining multiple
+	symbols in one change.
+
 2011-03-01  Glenn Morris  <rgm@gnu.org>
 
 	* custom.texi (Directory Variables):
