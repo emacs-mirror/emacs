@@ -436,6 +436,7 @@ move to its line in dired."
                 (dired-omit-mode)
                 (dired-goto-file file)))))))
 
+;;;###autoload
 (defun dired-jump-other-window (&optional file-name)
   "Like \\[dired-jump] (`dired-jump') but in other window."
   (interactive
@@ -704,12 +705,15 @@ Also useful for `auto-mode-alist' like this:
                       (dired-current-directory)
                     default-directory)))
   "Alist of major modes and their opinion on `default-directory'.
-This is given as a Lisp expression to evaluate.  A resulting value of
-nil is ignored in favor of `default-directory'.")
+Each element has the form (MAJOR . EXPRESSION).
+The function `dired-default-directory' evaluates EXPRESSION to
+determine a default directory.")
+
+(put 'dired-default-directory-alist 'risky-local-variable t) ; gets eval'd
 
 (defun dired-default-directory ()
-  "Usage like variable `default-directory'.
-Knows about the special cases in variable `dired-default-directory-alist'."
+  "Return the `dired-default-directory-alist' entry for the current major-mode.
+If none, return `default-directory'."
   (or (eval (cdr (assq major-mode dired-default-directory-alist)))
       default-directory))
 

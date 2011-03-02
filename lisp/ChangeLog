@@ -1,5 +1,9 @@
 2011-03-02  Glenn Morris  <rgm@gnu.org>
 
+	* dired-x.el (dired-jump-other-window): Add autoload.
+	(dired-default-directory-alist, dired-default-directory): Doc fixes.
+	(dired-default-directory-alist): Mark as risky.
+
 	* dired-x.el (dired-omit-here-always): Make it obsolete.
 
 2011-03-02  Chong Yidong  <cyd@stupidchicken.com>
