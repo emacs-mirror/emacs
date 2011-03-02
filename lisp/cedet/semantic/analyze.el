@@ -100,7 +100,7 @@ Usually bound to the dimension of a single symbol or command.")
 	   :type list
 	   :documentation "List of tags defining local text.
 This can be nil, or a list where the last element can be a string
-representing text that may be incomplete.  Preceeding elements
+representing text that may be incomplete.  Preceding elements
 must be semantic tags representing variables or functions
 called in a dereference sequence.")
    (prefixclass :initarg :prefixclass

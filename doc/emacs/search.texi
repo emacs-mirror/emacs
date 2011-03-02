@@ -468,8 +468,8 @@ apply to the lazy highlight, which always matches whole words.
 
 @node Regexp Search
 @section Regular Expression Search
-@cindex regular expression
-@cindex regexp
+@cindex regexp search
+@cindex search for a regular expression
 
   A @dfn{regular expression} (or @dfn{regexp} for short) is a pattern
 that denotes a class of alternative strings to match.  GNU Emacs
@@ -543,6 +543,8 @@ Search}.
 @node Regexps
 @section Syntax of Regular Expressions
 @cindex syntax of regexps
+@cindex regular expression
+@cindex regexp
 
   This manual describes regular expression features that users
 typically use.  @xref{Regular Expressions,,, elisp, The Emacs Lisp

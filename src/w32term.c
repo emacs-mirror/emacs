@@ -5941,7 +5941,7 @@ w32_initialize_display_info (Lisp_Object display_name)
 
 }
 
-/* Create an xrdb-style database of resources to supercede registry settings.
+/* Create an xrdb-style database of resources to supersede registry settings.
    The database is just a concatenation of C strings, finished by an additional
    \0.  The strings are submitted to some basic normalization, so
 

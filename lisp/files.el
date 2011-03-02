@@ -3394,8 +3394,19 @@ Return the new variables list."
                                  (cdr entry) root variables))))
              ((or (not key)
                   (derived-mode-p key))
-              (setq variables (dir-locals-collect-mode-variables
-                               (cdr entry) variables))))))
+              (let* ((alist (cdr entry))
+                     (subdirs (assq 'subdirs alist)))
+                (if (or (not subdirs)
+                        (progn
+                          (setq alist (delq subdirs alist))
+                          (cdr-safe subdirs))
+                        ;; TODO someone might want to extend this to allow
+                        ;; integer values for subdir, where N means
+                        ;; variables apply to this directory and N levels
+                        ;; below it (0 == nil).
+                        (equal root default-directory))
+                    (setq variables (dir-locals-collect-mode-variables
+                                     alist variables))))))))
       (error
        ;; The file's content might be invalid (e.g. have a merge conflict), but
        ;; that shouldn't prevent the user from opening the file.
@@ -5837,6 +5848,9 @@ normally equivalent short `-D' option is just passed on to
 				  (file-name-directory file)
 				(file-name-directory (expand-file-name file))))
 			    (pattern (file-name-nondirectory file)))
+			;; NB since switches is passed to the shell, be
+			;; careful of malicious values, eg "-l;reboot".
+			;; See eg dired-safe-switches-p.
 			(call-process
 			 shell-file-name nil t nil
 			 "-c"

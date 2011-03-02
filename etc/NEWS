@@ -353,6 +353,11 @@ Just set shell-dir-cookie-re to an appropriate regexp.
 will turn on `whitespace-mode' for *vc-diff* buffers.  Modes should
 call `hack-dir-local-variables-non-file-buffer' to support this.
 
++++
+** You can prevent directory local variables from applying to subdirectories.
+Add an element (subdirs . nil) to the alist portion of any variables
+settings to indicate said section should not be applied to subdirectories.
+
 ** ERC changes
 
 *** New vars `erc-autojoin-timing' and `erc-autojoin-delay'.
@@ -385,6 +390,8 @@ You can get a comparable behavior with:
 ** server can listen on a specific port using the server-port option.
 
 ** Calendar, Diary, and Appt
+
+*** New function `diary-hebrew-birthday'.
 
 ---
 *** The obsolete (since Emacs 22.1) method of enabling the appt package

@@ -1486,6 +1486,10 @@ changed.
 non-@code{nil}, @kbd{C-x 4 a} adds to any existing item for the file
 rather than starting a new item.
 
+You can combine multiple changes of the same nature.  If you don't
+enter any text after the initial @kbd{C-x 4 a}, any subsequent
+@kbd{C-x 4 a} adds another symbol to the change.
+
 @vindex add-log-always-start-new-record
   If @code{add-log-always-start-new-record} is non-@code{nil},
 @kbd{C-x 4 a} always makes a new entry, even if the last entry
@@ -1535,13 +1539,14 @@ insert a VC log entry into a Change Log buffer by typing @kbd{C-x v a}
 @node Format of ChangeLog
 @subsection Format of ChangeLog
 
-  A change log entry starts with a header line that contains the current
-date, your name, and your email address (taken from the variable
-@code{add-log-mailing-address}).  Aside from these header lines, every
-line in the change log starts with a space or a tab.  The bulk of the
-entry consists of @dfn{items}, each of which starts with a line starting
-with whitespace and a star.  Here are two entries, both dated in May
-1993, with two items and one item respectively.
+  A change log entry starts with a header line that contains the
+current date, your name (taken from the variable
+@code{add-log-full-name}), and your email address (taken from the
+variable @code{add-log-mailing-address}).  Aside from these header
+lines, every line in the change log starts with a space or a tab.  The
+bulk of the entry consists of @dfn{items}, each of which starts with a
+line starting with whitespace and a star.  Here are two entries, both
+dated in May 1993, with two items and one item respectively.
 
 @iftex
 @medbreak

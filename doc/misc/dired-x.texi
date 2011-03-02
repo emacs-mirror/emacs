@@ -345,17 +345,8 @@ a directory local setting
 @end example
 
 @noindent
-to a @file{.dir-locals.el} file in that directory.
-
-@table @code
-@findex dired-omit-here-always
-@item dired-omit-here-always
-
-This is an interactive function that creates a local variables file exactly
-like the example above (if it does not already exist) in the
-@code{dir-locals-file} file in the current directory and then refreshes
-the directory listing.
-@end table
+to a @file{.dir-locals.el} file in that directory.  You can use the
+command @code{add-dir-local-variable} to do this.
 
 @vindex dired-omit-files
 @item dired-omit-files

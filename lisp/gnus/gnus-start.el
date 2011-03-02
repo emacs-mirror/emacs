@@ -1513,7 +1513,7 @@ If SCAN, request a scan of that group as well."
 	   (num 0))
 
       ;; These checks are present in gnus-activate-group but skipped
-      ;; due to setting dont-check in the preceeding call.
+      ;; due to setting dont-check in the preceding call.
 
       ;; If a cache is present, we may have to alter the active info.
       (when (and gnus-use-cache info)
@@ -1887,7 +1887,7 @@ If SCAN, request a scan of that group as well."
                             ;; OK - I'm done
                             (setq articles nil))
                            ((< range article)
-                            ;; this range preceeds the article. Leave the range unmodified.
+                            ;; this range precedes the article. Leave the range unmodified.
                             (pop ranges)
                             ranges)
                            ((= range article)
@@ -1910,11 +1910,11 @@ If SCAN, request a scan of that group as well."
                             (setcar ranges min)
                             ranges)
                            ((< max article)
-                            ;; this range preceeds the article. Leave the range unmodified.
+                            ;; this range precedes the article. Leave the range unmodified.
                             (pop ranges)
                             ranges)
                            ((< article min)
-                            ;; this article preceeds the range.  Return null to move to the
+                            ;; this article precedes the range.  Return null to move to the
                             ;; next article
                             nil)
                            (t

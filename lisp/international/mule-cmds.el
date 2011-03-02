@@ -366,7 +366,9 @@ This also sets the following values:
 		 (coding-system-get coding-system 'ascii-compatible-p)))
 	(setq default-file-name-coding-system coding-system)))
   (setq default-terminal-coding-system coding-system)
-  (setq default-keyboard-coding-system coding-system)
+  ;; Prevent default-terminal-coding-system from converting ^M to ^J.
+  (setq default-keyboard-coding-system
+	(coding-system-change-eol-conversion coding-system 'unix))
   ;; Preserve eol-type from existing default-process-coding-systems.
   ;; On non-unix-like systems in particular, these may have been set
   ;; carefully by the user, or by the startup code, to deal with the

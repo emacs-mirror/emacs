@@ -1025,9 +1025,9 @@ See Info node `(emacs)Subdir switches' for more details."
   ;; Keeps any marks that may be present in column one (doing this
   ;; here is faster than with dired-add-entry's optional arg).
   ;; Does not update other dired buffers.  Use dired-relist-entry for that.
-  (let ((char (following-char))
-	(opoint (line-beginning-position))
-	(buffer-read-only))
+  (let* ((opoint (line-beginning-position))
+	 (char (char-after opoint))
+	 (buffer-read-only))
     (delete-region opoint (progn (forward-line 1) (point)))
     (if file
 	(progn
