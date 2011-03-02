@@ -1,3 +1,7 @@
+2011-03-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* texinfo.tex: Update to version 2011-02-24.09.
+
 2011-03-02  Glenn Morris  <rgm@gnu.org>
 
 	* dired-x.texi (Omitting Variables): Refer to add-dir-local-variable
