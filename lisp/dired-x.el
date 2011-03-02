@@ -956,7 +956,6 @@ replace it with a dir-locals-file `./%s'"
    ;; FIXME "man ./" does not work with dired-do-shell-command,
    ;; because there seems to be no way for us to modify the filename,
    ;; only the command.  Hmph.  `dired-man' works though.
-   ;; `dired-man'  does
    (list "\\.\\(?:[0-9]\\|man\\)\\'" '(let ((loc (Man-support-local-filenames)))
                                         (cond ((eq loc 'man-db) "man -l")
                                               ((eq loc 'man) "man ./")
