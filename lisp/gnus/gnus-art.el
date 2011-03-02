@@ -1743,7 +1743,7 @@ Initialized from `text-mode-syntax-table.")
 (put 'gnus-with-article-headers 'edebug-form-spec '(body))
 
 (defmacro gnus-with-article-buffer (&rest forms)
-  `(when (buffer-live-p gnus-article-buffer)
+  `(when (buffer-live-p (get-buffer gnus-article-buffer))
      (with-current-buffer gnus-article-buffer
        (let ((inhibit-read-only t))
          ,@forms))))

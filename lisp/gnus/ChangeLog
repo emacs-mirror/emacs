@@ -1,3 +1,7 @@
+2011-03-02  Julien Danjou  <julien@danjou.info>
+
+	* gnus-art.el (gnus-with-article-buffer): Fix buffer live check.
+
 2011-03-01  Julien Danjou  <julien@danjou.info>
 
 	* gnus-art.el (list-identifier): Add list-identifier as a parameter
