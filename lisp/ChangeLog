@@ -1,5 +1,9 @@
 2011-03-02  Glenn Morris  <rgm@gnu.org>
 
+	* man.el (Man-support-local-filenames): Also handle Red Hat's man.
+	* dired-x.el (Man-support-local-filenames): Autoload it.
+	(dired-guess-shell-alist-default): Also handle Red Hat's man.
+
 	* dired-x.el (dired-default-directory-alist, dired-default-directory):
 	Mark as obsolete.
 	(dired-smart-shell-command): Just call dired-current-directory.
