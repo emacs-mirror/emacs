@@ -1559,6 +1559,20 @@ If EXPR is nil, return nil."
 (defvar math-logunits '((var dB var-dB)
                         (var Np var-Np)))
 
+(defun math-conditional-apply (fn &rest args)
+  "Evaluate f(args) unless in symbolic mode.
+In symbolic mode, return the list (fn args)."
+  (if calc-symbolic-mode
+      (cons fn args)
+    (apply fn args)))
+
+(defun math-conditional-pow (a b)
+  "Evaluate a^b unless in symbolic mode.
+In symbolic mode, return the list (^ a b)."
+  (if calc-symbolic-mode
+      (list '^ a b)
+    (math-pow a b)))
+
 (defun math-extract-logunits (expr)
   (if (memq (car-safe expr) '(* /))
       (cons (car expr)
@@ -1585,24 +1599,24 @@ If EXPR is nil, return nil."
              (if (equal aunit '(var dB var-dB))
                  (let ((coef (if power 10 20)))
                    (math-mul coef
-                             (calcFunc-log10
+                             (math-conditional-apply 'calcFunc-log10
                               (if neg
                                   (math-sub
-                                   (math-pow 10 (math-div acoeff coef))
-                                   (math-pow 10 (math-div bcoeff coef)))
+                                   (math-conditional-pow 10 (math-div acoeff coef))
+                                   (math-conditional-pow 10 (math-div bcoeff coef)))
                                 (math-add
-                                 (math-pow 10 (math-div acoeff coef))
-                                 (math-pow 10 (math-div bcoeff coef)))))))
+                                 (math-conditional-pow 10 (math-div acoeff coef))
+                                 (math-conditional-pow 10 (math-div bcoeff coef)))))))
                (let ((coef (if power 2 1)))
                  (math-div
-                  (calcFunc-ln
+                  (math-conditional-apply 'calcFunc-ln
                    (if neg
                        (math-sub
-                        (calcFunc-exp (math-mul coef acoeff))
-                        (calcFunc-exp (math-mul coef bcoeff)))
+                        (math-conditional-apply 'calcFunc-exp (math-mul coef acoeff))
+                        (math-conditional-apply 'calcFunc-exp (math-mul coef bcoeff)))
                      (math-add
-                      (calcFunc-exp (math-mul coef acoeff))
-                      (calcFunc-exp (math-mul coef bcoeff)))))
+                      (math-conditional-apply 'calcFunc-exp (math-mul coef acoeff))
+                      (math-conditional-apply 'calcFunc-exp (math-mul coef bcoeff)))))
                   coef)))
              units)))))))
 
@@ -1666,14 +1680,14 @@ If EXPR is nil, return nil."
             (math-add
              coef 
              (math-mul (if power 10 20)
-                       (calcFunc-log10 number)))
+                       (math-conditional-apply 'calcFunc-log10 number)))
             units)))
          (t
           (math-simplify
            (math-mul
             (math-add
              coef 
-             (math-div (calcFunc-ln number) (if power 2 1)))
+             (math-div (math-conditional-apply 'calcFunc-ln number) (if power 2 1)))
             units))))
       (calc-record-why "*Improper units" nil))))
 
@@ -1692,14 +1706,14 @@ If EXPR is nil, return nil."
               (math-sub
                coef 
                (math-mul (if power 10 20)
-                         (calcFunc-log10 b)))
+                         (math-conditional-apply 'calcFunc-log10 b)))
               units)))
          (t
           (math-simplify
            (math-mul
             (math-sub
              coef 
-             (math-div (calcFunc-ln b) (if power 2 1)))
+             (math-div (math-conditional-apply 'calcFunc-ln b) (if power 2 1)))
             units)))))))))
 
 (defun calcFunc-lufieldtimes (a b)
@@ -1747,14 +1761,14 @@ If EXPR is nil, return nil."
          (if (equal lunit '(var dB var-dB))
              (math-mul 
               ref
-              (math-pow 
+              (math-conditional-pow 
                10
                (math-div
                 coeff
                 (if power 10 20))))
            (math-mul 
             ref
-            (calcFunc-exp
+            (math-conditional-apply 'calcFunc-exp
              (if power 
                  (math-mul 2 coeff)
                coeff))))
@@ -1787,15 +1801,16 @@ If EXPR is nil, return nil."
 (defun math-logunits-level (val ref db power)
   "Compute the value of VAL in decibels or nepers."
       (let* ((ratio (math-simplify-units (math-div val ref)))
+             (ratiou (math-simplify-units (math-remove-units ratio)))
              (units (math-simplify (math-extract-units ratio))))
         (math-mul
          (if db
              (math-mul
               (math-mul (if power 10 20)
-                        (calcFunc-log10 ratio))
+                        (math-conditional-apply 'calcFunc-log10 ratiou))
               '(var dB var-dB))
            (math-mul
-            (math-div (calcFunc-ln ratio) (if power 2 1))
+            (math-div (math-conditional-apply 'calcFunc-ln ratiou) (if power 2 1))
             '(var Np var-Np)))
          units)))
 

@@ -785,7 +785,7 @@ See also `dired-enable-local-variables'."
 (make-obsolete 'dired-hack-local-variables
                'hack-dir-local-variables-non-file-buffer "24.1")
 
-;; Not sure this is worth having a dedicated command for...
+;; Does not seem worth a dedicated command.
 ;; See the more general features in files-x.el.
 (defun dired-omit-here-always ()
   "Create `dir-locals-file' setting `dired-omit-mode' to t in `dired-mode'.
@@ -808,6 +808,8 @@ replace it with a dir-locals-file `./%s'"
       (hack-dir-local-variables-non-file-buffer)
       (dired-extra-startup)
       (dired-revert))))
+
+(make-obsolete 'dired-omit-here-always 'add-dir-local-variable "24.1")
 
 
 ;;; GUESS SHELL COMMAND.

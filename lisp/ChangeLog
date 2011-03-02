@@ -1,3 +1,27 @@
+2011-03-02  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.el (dired-omit-here-always): Make it obsolete.
+
+2011-03-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textmodes/artist.el (artist-curr-go): Default to pen-line.
+	(artist-select-op-pen-line): New function.
+	(artist-menu-map): New variable.
+	(artist-mode-map): Add a menu to the menu-bar.
+
+2011-03-02  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-math.el (calcFunc-log10): Check for symbolic mode
+	when evaluating.
+
+	* calc/calc-units.el (math-conditional-apply, math-conditional-pow):
+	New function.
+	(math-logunits-add, math-logunits-mul, math-logunits-divide):
+	(math-logunits-quant, math-logunits-level):
+	Use `math-conditional-apply' and `math-conditional-pow' to evaluate
+	functions.
+	(math-logunits-level): Extract units from ratio.
+
 2011-03-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/cl-macs.el (lexical-let*): Fix argument name in docstring.
