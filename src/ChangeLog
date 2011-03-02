@@ -1,3 +1,16 @@
+2011-03-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Work around some portability problems with symlinks.
+
+	* fileio.c (Fmake_symbolic_link): Treat ENOSYS specially, and
+	generate a special message for it.  Suggested by Eli Zaretskii in
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-02/msg00995.html>.
+	(Frename_file, Fmake_symbolic_link, Ffile_symlink_p):
+	Simplify the code by assuming that the readlink and symlink calls
+	exist, even if they always fail on this host.
+	(Ffile_readable_p): Likewise, for fifos.
+	* config.in: Regenerate.
+
 2011-02-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frame.c (store_frame_param): Don't store value directly in

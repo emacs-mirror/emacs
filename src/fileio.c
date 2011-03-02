@@ -2178,14 +2178,11 @@ This is what happens in interactive use with M-x.  */)
       if (errno == EXDEV)
 	{
           int count;
-#ifdef S_IFLNK
           symlink_target = Ffile_symlink_p (file);
           if (! NILP (symlink_target))
             Fmake_symbolic_link (symlink_target, newname,
                                  NILP (ok_if_already_exists) ? Qnil : Qt);
-          else
-#endif
-	  if (!NILP (Ffile_directory_p (file)))
+	  else if (!NILP (Ffile_directory_p (file)))
 	    call4 (Qcopy_directory, file, newname, Qt, Qnil);
 	  else
 	    /* We have already prompted if it was an integer, so don't
@@ -2197,11 +2194,7 @@ This is what happens in interactive use with M-x.  */)
 	  count = SPECPDL_INDEX ();
 	  specbind (Qdelete_by_moving_to_trash, Qnil);
 
-	  if (!NILP (Ffile_directory_p (file))
-#ifdef S_IFLNK
-	      && NILP (symlink_target)
-#endif
-	      )
+	  if (!NILP (Ffile_directory_p (file)) && NILP (symlink_target))
 	    call2 (Qdelete_directory, file, Qt);
 	  else
 	    Fdelete_file (file, Qnil);
@@ -2311,7 +2304,6 @@ This happens for interactive use with M-x.  */)
     RETURN_UNGCPRO (call4 (handler, Qmake_symbolic_link, filename,
 			   linkname, ok_if_already_exists));
 
-#ifdef S_IFLNK
   encoded_filename = ENCODE_FILE (filename);
   encoded_linkname = ENCODE_FILE (linkname);
 
@@ -2333,17 +2325,17 @@ This happens for interactive use with M-x.  */)
 	      return Qnil;
 	    }
 	}
+      if (errno == ENOSYS)
+	{
+	  UNGCPRO;
+	  xsignal1 (Qfile_error,
+		    build_string ("Symbolic links are not supported"));
+	}
 
       report_file_error ("Making symbolic link", list2 (filename, linkname));
     }
   UNGCPRO;
   return Qnil;
-
-#else
-  UNGCPRO;
-  xsignal1 (Qfile_error, build_string ("Symbolic links are not supported"));
-
-#endif /* S_IFLNK */
 }
 
 
@@ -2482,7 +2474,7 @@ See also `file-exists-p' and `file-attributes'.  */)
   return Qnil;
 #else /* not DOS_NT and not macintosh */
   flags = O_RDONLY;
-#if defined (S_IFIFO) && defined (O_NONBLOCK)
+#ifdef O_NONBLOCK
   /* Opening a fifo without O_NONBLOCK can wait.
      We don't want to wait.  But we don't want to mess wth O_NONBLOCK
      except in the case of a fifo, on a system which handles it.  */
@@ -2584,6 +2576,10 @@ points to a nonexistent file.  */)
   (Lisp_Object filename)
 {
   Lisp_Object handler;
+  char *buf;
+  int bufsize;
+  int valsize;
+  Lisp_Object val;
 
   CHECK_STRING (filename);
   filename = Fexpand_file_name (filename, Qnil);
@@ -2593,13 +2589,6 @@ points to a nonexistent file.  */)
   handler = Ffind_file_name_handler (filename, Qfile_symlink_p);
   if (!NILP (handler))
     return call2 (handler, Qfile_symlink_p, filename);
-
-#ifdef S_IFLNK
-  {
-  char *buf;
-  int bufsize;
-  int valsize;
-  Lisp_Object val;
 
   filename = ENCODE_FILE (filename);
 
@@ -2635,10 +2624,6 @@ points to a nonexistent file.  */)
   xfree (buf);
   val = DECODE_FILE (val);
   return val;
-  }
-#else /* not S_IFLNK */
-  return Qnil;
-#endif /* not S_IFLNK */
 }
 
 DEFUN ("file-directory-p", Ffile_directory_p, Sfile_directory_p, 1, 1, 0,
