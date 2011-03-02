@@ -1,5 +1,9 @@
 2011-03-02  Glenn Morris  <rgm@gnu.org>
 
+	* dired-x.el (dired-default-directory-alist, dired-default-directory):
+	Mark as obsolete.
+	(dired-smart-shell-command): Just call dired-current-directory.
+
 	* dired-x.el (dired-jump-other-window): Add autoload.
 	(dired-default-directory-alist, dired-default-directory): Doc fixes.
 	(dired-default-directory-alist): Mark as risky.

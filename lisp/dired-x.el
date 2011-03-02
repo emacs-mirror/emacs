@@ -710,12 +710,20 @@ The function `dired-default-directory' evaluates EXPRESSION to
 determine a default directory.")
 
 (put 'dired-default-directory-alist 'risky-local-variable t) ; gets eval'd
+(make-obsolete-variable 'dired-default-directory-alist
+                        "this feature is due to be removed." "24.1")
 
 (defun dired-default-directory ()
   "Return the `dired-default-directory-alist' entry for the current major-mode.
 If none, return `default-directory'."
   (or (eval (cdr (assq major-mode dired-default-directory-alist)))
       default-directory))
+
+;; It looks like this was intended to be something of a "general" feature,
+;; but it only ever seems to have been used in dired-smart-shell-command,
+;; and does not seem worth keeping around (?).
+(make-obsolete 'dired-default-directory
+               "this feature is due to be removed." "24.1")
 
 (defun dired-smart-shell-command (command &optional output-buffer error-buffer)
   "Like function `shell-command', but in the current Virtual Dired directory."
@@ -727,7 +735,9 @@ If none, return `default-directory'."
 			 ((eq major-mode 'dired-mode) (dired-get-filename t t))))
     current-prefix-arg
     shell-command-default-error-buffer))
-  (let ((default-directory (dired-default-directory)))
+  (let ((default-directory (if (eq major-mode 'dired-mode)
+                               (dired-current-directory)
+                             default-directory)))
     (shell-command command output-buffer error-buffer)))
 
 
