@@ -40,6 +40,9 @@
 (defvar package-archive-upload-base nil
   "Base location for uploading to package archive.")
 
+(defvar package-update-news-on-upload nil
+  "Whether package upload should also update NEWS and RSS feeds.")
+
 (defun package--encode (string)
   "Encode a string by replacing some characters with XML entities."
   ;; We need a special case for translating "&" to "&amp;".
@@ -86,6 +89,36 @@
 	(unless old-buffer
 	  (kill-buffer (current-buffer)))))))
 
+(defun package--archive-contents-from-url (archive-url)
+  "Parse archive-contents file at ARCHIVE-URL.
+Return the file contents, as a string, or nil if unsuccessful."
+  (ignore-errors
+    (when archive-url
+      (let* ((buffer (url-retrieve-synchronously
+		      (concat archive-url "archive-contents"))))
+	(set-buffer buffer)
+	(package-handle-response)
+	(re-search-forward "^$" nil 'move)
+	(forward-char)
+	(delete-region (point-min) (point))
+	(prog1 (package-read-from-string
+		(buffer-substring-no-properties (point-min) (point-max)))
+	  (kill-buffer buffer))))))
+
+(defun package--archive-contents-from-file (file)
+  "Parse the given archive-contents file."
+  (if (not (file-exists-p file))
+      ;; no existing archive-contents, possibly a new ELPA repo.
+      (list package-archive-version)
+    (let ((dont-kill (find-buffer-visiting file)))
+      (with-current-buffer (let ((find-file-visit-truename t))
+			     (find-file-noselect file))
+	(prog1
+	    (package-read-from-string
+	     (buffer-substring-no-properties (point-min) (point-max)))
+	  (unless dont-kill
+	    (kill-buffer (current-buffer))))))))
+
 (defun package-maint-add-news-item (title description archive-url)
   "Add a news item to the ELPA web pages.
 TITLE is the title of the news item.
@@ -111,11 +144,20 @@ PKG-INFO is the package info, see `package-buffer-info'.
 EXTENSION is the file extension, a string.  It can be either
 \"el\" or \"tar\".
 
+The variable `package-archive-upload-base' specifies the upload
+destination.  If this is nil, signal an error.
+
 Optional arg ARCHIVE-URL is the URL of the destination archive.
-If nil, the \"gnu\" archive is used."
-  (unless archive-url
-    (or (setq archive-url (cdr (assoc "gnu" package-archives)))
-	(error "No destination URL")))
+If it is non-nil, compute the new \"archive-contents\" file
+starting from the existing \"archive-contents\" at that URL.  In
+addition, if `package-update-news-on-upload' is non-nil, call
+`package--update-news' to add a news item at that URL.
+
+If ARCHIVE-URL is nil, compute the new \"archive-contents\" file
+from the \"archive-contents\" at `package-archive-upload-base',
+if it exists."
+  (unless package-archive-upload-base
+    (error "No destination specified in `package-archive-upload-base'"))
   (save-excursion
     (save-restriction
       (let* ((file-type (cond
@@ -131,21 +173,14 @@ If nil, the \"gnu\" archive is used."
 	     (pkg-version (aref pkg-info 3))
 	     (commentary (aref pkg-info 4))
 	     (split-version (version-to-list pkg-version))
-	     (pkg-buffer (current-buffer))
+	     (pkg-buffer (current-buffer)))
 
-	     ;; Download latest archive-contents.
-	     (buffer (url-retrieve-synchronously
-		      (concat archive-url "archive-contents"))))
-
-	;; Parse archive-contents.
-	(set-buffer buffer)
-	(package-handle-response)
-	(re-search-forward "^$" nil 'move)
-	(forward-char)
-	(delete-region (point-min) (point))
-	(let ((contents (package-read-from-string
-			 (buffer-substring-no-properties (point-min)
-							 (point-max))))
+	;; Get archive-contents from ARCHIVE-URL if it's non-nil, or
+	;; from `package-archive-upload-base' otherwise.
+	(let ((contents (or (package--archive-contents-from-url archive-url)
+			    (package--archive-contents-from-file
+			     (concat package-archive-upload-base
+				     "archive-contents"))))
 	      (new-desc (vector split-version requires desc file-type)))
 	  (if (> (car contents) package-archive-version)
 	      (error "Unrecognized archive version %d" (car contents)))
@@ -176,7 +211,6 @@ If nil, the \"gnu\" archive is used."
 				  (symbol-name pkg-name) "-readme.txt")))
 
 	  (set-buffer pkg-buffer)
-	  (kill-buffer buffer)
 	  (write-region (point-min) (point-max)
 			(concat package-archive-upload-base
 				file-name "-" pkg-version
@@ -184,8 +218,10 @@ If nil, the \"gnu\" archive is used."
 			nil nil nil 'excl)
 
 	  ;; Write a news entry.
-	  (package--update-news (concat file-name "." extension)
-				pkg-version desc archive-url)
+	  (and package-update-news-on-upload
+	       archive-url
+	       (package--update-news (concat file-name "." extension)
+				     pkg-version desc archive-url))
 
 	  ;; special-case "package": write a second copy so that the
 	  ;; installer can easily find the latest version.
@@ -196,7 +232,9 @@ If nil, the \"gnu\" archive is used."
 			    nil nil nil 'ask)))))))
 
 (defun package-upload-buffer ()
-  "Upload a single .el file to ELPA from the current buffer."
+  "Upload the current buffer as a single-file Emacs Lisp package.
+The variable `package-archive-upload-base' specifies the upload
+destination."
   (interactive)
   (save-excursion
     (save-restriction
@@ -205,6 +243,13 @@ If nil, the \"gnu\" archive is used."
 	(package-upload-buffer-internal pkg-info "el")))))
 
 (defun package-upload-file (file)
+  "Upload the Emacs Lisp package FILE to the package archive.
+Interactively, prompt for FILE.  The package is considered a
+single-file package if FILE ends in \".el\", and a multi-file
+package if FILE ends in \".tar\".
+
+The variable `package-archive-upload-base' specifies the upload
+destination."
   (interactive "fPackage file name: ")
   (with-temp-buffer
     (insert-file-contents-literally file)

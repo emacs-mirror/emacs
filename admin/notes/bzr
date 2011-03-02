@@ -81,6 +81,8 @@ this in the same commit as making new entries.  Using this plugin
 will merge ALL changed entries (including older ones) to the top of
 the destination file.
 
+Maybe the default Emacs behavior without this plugin is better, I dunno.
+
 1) Get clean, up-to-date copies of the emacs-23 and trunk branches.
 Check for any uncommitted changes with bzr status.
 

@@ -503,7 +503,7 @@ FIELD is the plain text name of a field in the message, such as
 \"subject\" or \"from\".  A FIELD of \"to\" will automatically include
 all text from the \"cc\" field as well.
 
-REGEXP is an expression to match in the preceeding specified FIELD.
+REGEXP is an expression to match in the preceding specified FIELD.
 FIELD/REGEXP pairs continue in the list.
 
 examples:
@@ -4316,7 +4316,7 @@ With prefix argument N moves forward N messages with these labels.
 
 ;;;***
 
-;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "04902da045706fb7f2b0915529ed161b")
+;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "c530622b53038152ca84f2ec9313bd7a")
 ;;; Generated autoloads from rmailmm.el
 
 (autoload 'rmail-mime "rmailmm" "\

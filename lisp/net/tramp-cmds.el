@@ -281,6 +281,12 @@ buffer in your bug report.
 	(insert ")\n"))
       (insert-buffer-substring elbuf)))
 
+  ;; Dump load-path shadows.
+  (insert "\nload-path shadows:\n==================\n")
+  (ignore-errors
+    (mapc (lambda (x) (when (string-match "tramp" x) (insert x "\n")))
+	  (split-string (list-load-path-shadows t) "\n")))
+
   ;; Append buffers only when we are in message mode.
   (when (and
 	 (eq major-mode 'message-mode)

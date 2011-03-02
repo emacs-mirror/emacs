@@ -1672,7 +1672,7 @@ password contained in '~/.nntp-authinfo'."
 
         ;; Some nntp servers seem to have an extension to the XOVER
         ;; extension.  On these servers, requesting an article range
-        ;; preceeding the active range does not return an error as
+        ;; preceding the active range does not return an error as
         ;; specified in the RFC.  What we instead get is the NOV entry
         ;; for the first available article.  Obviously, a client can
         ;; use that entry to avoid making unnecessary requests.  The

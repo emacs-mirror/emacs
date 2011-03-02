@@ -112,6 +112,13 @@ char *(getcwd) (char *, size_t);
 /* Additional space when allocating buffers for filenames, etc.  */
 #define EXTRA_SPACE 100
 
+/* Use this to suppress gcc's `...may be used before initialized' warnings. */
+#ifdef lint
+# define IF_LINT(Code) Code
+#else
+# define IF_LINT(Code) /* empty */
+#endif
+
 
 /* Name used to invoke this program.  */
 const char *progname;
@@ -190,20 +197,6 @@ xmalloc (unsigned int size)
   return result;
 }
 
-/* Like strdup but get a fatal error if memory is exhausted. */
-
-static char *
-xstrdup (const char *s)
-{
-  char *result = strdup (s);
-  if (result == NULL)
-    {
-      perror ("strdup");
-      exit (EXIT_FAILURE);
-    }
-  return result;
-}
-
 /* From sysdep.c */
 #if !defined (HAVE_GET_CURRENT_DIR_NAME) || defined (BROKEN_GET_CURRENT_DIR_NAME)
 
@@ -233,7 +226,7 @@ char*
 get_current_dir_name (void)
 {
   char *buf;
-  char *pwd;
+  const char *pwd;
   struct stat dotstat, pwdstat;
   /* If PWD is accurate, use it instead of calling getwd.  PWD is
      sometimes a nicer name, and using it may avoid a fatal error if a
@@ -300,6 +293,20 @@ get_current_dir_name (void)
 
 #ifdef WINDOWSNT
 
+/* Like strdup but get a fatal error if memory is exhausted. */
+
+char *
+xstrdup (const char *s)
+{
+  char *result = strdup (s);
+  if (result == NULL)
+    {
+      perror ("strdup");
+      exit (EXIT_FAILURE);
+    }
+  return result;
+}
+
 #define REG_ROOT "SOFTWARE\\GNU\\Emacs"
 
 /* Retrieve an environment variable from the Emacs subkeys of the registry.
@@ -335,9 +342,11 @@ w32_get_resource (HKEY predefined, char *key, LPDWORD type)
 /*
   getenv wrapper for Windows
 
-  This is needed to duplicate Emacs's behavior, which is to look for environment
-  variables in the registry if they don't appear in the environment.
-*/
+  Value is allocated on the heap, and can be free'd.
+
+  This is needed to duplicate Emacs's behavior, which is to look for
+  environment variables in the registry if they don't appear in the
+  environment.  */
 char *
 w32_getenv (char *envvar)
 {
@@ -345,8 +354,9 @@ w32_getenv (char *envvar)
   DWORD dwType;
 
   if (value = getenv (envvar))
-    /* Found in the environment.  */
-    return value;
+    /* Found in the environment.  strdup it, because values returned
+       by getenv cannot be free'd.  */
+    return xstrdup (value);
 
   if (! (value = w32_get_resource (HKEY_CURRENT_USER, envvar, &dwType)) &&
       ! (value = w32_get_resource (HKEY_LOCAL_MACHINE, envvar, &dwType)))
@@ -474,13 +484,13 @@ ttyname (int fd)
 /* Display a normal or error message.
    On Windows, use a message box if compiled as a Windows app.  */
 static void
-message (int is_error, const char *message, ...)
+message (int is_error, const char *format, ...)
 {
   char msg[2048];
   va_list args;
 
-  va_start (args, message);
-  vsprintf (msg, message, args);
+  va_start (args, format);
+  vsprintf (msg, format, args);
   va_end (args);
 
 #ifdef WINDOWSNT
@@ -918,7 +928,7 @@ get_server_config (struct sockaddr_in *server, char *authentication)
     config = fopen (server_file, "rb");
   else
     {
-      char *home = egetenv ("HOME");
+      const char *home = egetenv ("HOME");
 
       if (home)
         {
@@ -1025,10 +1035,10 @@ strprefix (const char *prefix, const char *string)
    is zero, or return 0 if NOABORT is non-zero.  */
 
 static int
-find_tty (char **tty_type, char **tty_name, int noabort)
+find_tty (const char **tty_type, const char **tty_name, int noabort)
 {
-  char *type = egetenv ("TERM");
-  char *name = ttyname (fileno (stdout));
+  const char *type = egetenv ("TERM");
+  const char *name = ttyname (fileno (stdout));
 
   if (!name)
     {
@@ -1080,11 +1090,11 @@ find_tty (char **tty_type, char **tty_name, int noabort)
    0 - success: none of the above */
 
 static int
-socket_status (char *socket_name)
+socket_status (char *name)
 {
   struct stat statbfr;
 
-  if (stat (socket_name, &statbfr) == -1)
+  if (stat (name, &statbfr) == -1)
     return 2;
 
   if (statbfr.st_uid != geteuid ())
@@ -1205,7 +1215,7 @@ set_local_socket (void)
     int default_sock = !socket_name;
     int saved_errno = 0;
     const char *server_name = "server";
-    const char *tmpdir;
+    const char *tmpdir IF_LINT ( = NULL);
 
     if (socket_name && !strchr (socket_name, '/')
 	&& !strchr (socket_name, '\\'))
@@ -1260,10 +1270,10 @@ set_local_socket (void)
 	   associated with the name.  This is reminiscent of the logic
 	   that init_editfns uses to set the global Vuser_full_name.  */
 
-	char *user_name = (char *) egetenv ("LOGNAME");
+	const char *user_name = egetenv ("LOGNAME");
 
 	if (!user_name)
-	  user_name = (char *) egetenv ("USER");
+	  user_name = egetenv ("USER");
 
 	if (user_name)
 	  {
@@ -1483,8 +1493,8 @@ start_daemon_and_retry_set_socket (void)
   else
     {
       char emacs[] = "emacs";
-      char daemon[] = "--daemon";
-      char *d_argv[] = {emacs, daemon, 0 };
+      char daemon_option[] = "--daemon";
+      char *d_argv[] = {emacs, daemon_option, 0 };
       if (socket_name != NULL)
 	{
 	  /* Pass  --daemon=socket_name as argument.  */
@@ -1504,10 +1514,12 @@ start_daemon_and_retry_set_socket (void)
 int
 main (int argc, char **argv)
 {
-  int i, rl, needlf = 0;
+  int rl, needlf = 0;
   char *cwd, *str;
   char string[BUFSIZ+1];
-  int null_socket_name, null_server_file, start_daemon_if_needed;
+  int null_socket_name IF_LINT ( = 0);
+  int null_server_file IF_LINT ( = 0);
+  int start_daemon_if_needed;
   int exit_status = EXIT_SUCCESS;
 
   main_argv = argv;
@@ -1543,21 +1555,21 @@ main (int argc, char **argv)
       null_server_file = (server_file == NULL);
     }
 
-  if ((emacs_socket = set_socket (alternate_editor
-				  || start_daemon_if_needed)) == INVALID_SOCKET)
-    if (start_daemon_if_needed)
-      {
-	/* Reset socket_name and server_file if they were NULL
-	   before the set_socket call.  */
-	if (null_socket_name)
-	  socket_name = NULL;
-	if (null_server_file)
-	  server_file = NULL;
+  emacs_socket = set_socket (alternate_editor || start_daemon_if_needed);
+  if (emacs_socket == INVALID_SOCKET)
+    {
+      if (! start_daemon_if_needed)
+	fail ();
 
-	start_daemon_and_retry_set_socket ();
-      }
-    else
-      fail ();
+      /* Reset socket_name and server_file if they were NULL
+	 before the set_socket call.  */
+      if (null_socket_name)
+	socket_name = NULL;
+      if (null_server_file)
+	server_file = NULL;
+
+      start_daemon_and_retry_set_socket ();
+    }
 
   cwd = get_current_dir_name ();
   if (cwd == 0)
@@ -1615,7 +1627,7 @@ main (int argc, char **argv)
      frame is available.  */
   if (tty || (current_frame && !eval))
     {
-      char *tty_type, *tty_name;
+      const char *tty_type, *tty_name;
 
       if (find_tty (&tty_type, &tty_name, !tty))
 	{
@@ -1635,6 +1647,7 @@ main (int argc, char **argv)
 
   if ((argc - optind > 0))
     {
+      int i;
       for (i = optind; i < argc; i++)
 	{
 

@@ -2756,7 +2756,7 @@ remapped command in the returned list.  */)
       && !NILP (firstonly)
       && !NILP (tem = Fget (definition, QCadvertised_binding)))
     {
-      /* We have a list of advertized bindings.  */
+      /* We have a list of advertised bindings.  */
       while (CONSP (tem))
 	if (EQ (shadow_lookup (keymaps, XCAR (tem), Qnil, 0), definition))
 	  return XCAR (tem);

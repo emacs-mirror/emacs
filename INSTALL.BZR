@@ -9,6 +9,10 @@ before bootstrapping:
 
   $ ./configure
 
+(Normally there is no need to run `autoconf' etc.  If you do need it,
+the relevant command is `autoreconf -I m4'.  Be aware that this will
+likely lead to conflicts next time you update from Bazaar.)
+
 Some of the files that are included in the Emacs tarball, such as
 byte-compiled Lisp files, are not stored in Bazaar.  Therefore, to
 build from Bazaar you must run "make bootstrap" instead of just "make":

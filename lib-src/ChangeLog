@@ -1,3 +1,57 @@
+2011-02-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (fakemail${EXEEXT}): Depend on lib/ignore-value.h.
+
+	* emacsclient.c (xstrdup) [WINDOWSNT]: Function added back.
+	(w32_getenv): Use xstrdup to return all values in malloc'ed
+	storage.
+
+2011-02-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* ebrowse.c (parse_qualified_param_ident_or_type): Make it clear
+	to reader (and to the compiler) that the loop always executes at
+	least once.  This prevents a warning with recent GCC.
+	(BROWSE_STRUCT): Remove unused macro.
+
+	* fakemail.c: Include <ignore-value.h>.
+	(put_line): Explicitly ignore fwrite return value, for benefit of
+	recent glibc + gcc.
+	(close_the_streams): Diagnose output errors instead of merely
+	exiting with nonzero status.
+	(my_fclose, main): Diagnose input errors, and exit with nonzero status.
+	Formerly, input errors were silently ignored.
+
+	* ebrowse.c (putstr): Rename from PUTSTR and turn into a function.
+	All callers changed.  This is cleaner, and avoids GCC warnings about
+	passing NULL to fputs.
+	(insert_keyword): Rename parameter to avoid shadowing diagnostic.
+
+2011-02-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* emacsclient.c (main): Avoid dangling 'if'.
+	(xstrdup): Remove; no longer needed.
+	(get_current_dir_name, w32_getenv, get_server_config, find_tty):
+	(set_local_socket, main):
+	Use const char *, not char *, for pointers that are not assigned
+	through.
+	(IF_LINT): New macro.
+	(set_local_socket, main): Use it to suppress warnings with
+	GCC -Wuninitialized.
+
+	* emacsclient.c: Redo local variables to avoid shadowing problems.
+	(message, socket_status, start_daemon_and_retry_set_socket):
+	Rename locals.
+	(main): Move decl of "i".
+
+	* etags.c (ISUPPER): Move to inside the only #ifdef where it's used.
+	This avoids an unused-macro warning with some GCC settings.
+
+	* make-docfile.c (write_globals): Change char * to char const *
+	to avoid a GCC "assignment discards qualifiers" diagnostic
+	in some configurations.
+	(scan_c_file): Refactor local variable decls to make their scope
+	more accurate and to avoid a GCC -Wuninitialized diagnostic.
+
 2011-02-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* etags.c (canonicalize_filename, ISUPPER): Fix last change.

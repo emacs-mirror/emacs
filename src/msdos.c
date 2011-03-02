@@ -1389,8 +1389,6 @@ IT_delete_glyphs (struct frame *f, int n)
 void
 x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
-  extern void set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
-
   set_menu_bar_lines (f, value, oldval);
 }
 
@@ -3922,6 +3920,18 @@ croak (char *badfunc)
  */
 int setpgrp (void) {return 0; }
 int setpriority (int x, int y, int z) { return 0; }
+
+#if __DJGPP__ == 2 && __DJGPP_MINOR__ < 4
+ssize_t
+readlink (const char *name, char *dummy1, size_t dummy2)
+{
+  /* `access' is much faster than `stat' on MS-DOS.  */
+  if (access (name, F_OK) == 0)
+    errno = EINVAL;
+  return -1;
+}
+#endif
+
 
 #if __DJGPP__ == 2 && __DJGPP_MINOR__ < 2
 
@@ -4236,4 +4246,3 @@ This variable is used only by MS-DOS terminals.  */);
 }
 
 #endif /* MSDOS */
-

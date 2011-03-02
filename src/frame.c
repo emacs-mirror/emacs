@@ -2208,15 +2208,23 @@ store_frame_param (struct frame *f, Lisp_Object prop, Lisp_Object val)
   register Lisp_Object old_alist_elt;
 
   /* The buffer-list parameters are stored in a special place and not
-     in the alist.  */
+     in the alist.  All buffers must be live.  */
   if (EQ (prop, Qbuffer_list))
     {
-      f->buffer_list = val;
+      Lisp_Object list = Qnil;
+      for (; CONSP (val); val = XCDR (val))
+	if (!NILP (Fbuffer_live_p (XCAR (val))))
+	  list = Fcons (XCAR (val), list);
+      f->buffer_list = Fnreverse (list);
       return;
     }
   if (EQ (prop, Qburied_buffer_list))
     {
-      f->buried_buffer_list = val;
+      Lisp_Object list = Qnil;
+      for (; CONSP (val); val = XCDR (val))
+	if (!NILP (Fbuffer_live_p (XCAR (val))))
+	  list = Fcons (XCAR (val), list);
+      f->buried_buffer_list = Fnreverse (list);
       return;
     }
 
@@ -3275,12 +3283,12 @@ x_set_screen_gamma (struct frame *f, Lisp_Object new_value, Lisp_Object old_valu
   bgcolor = Fassq (Qbackground_color, f->param_alist);
   if (CONSP (bgcolor) && (bgcolor = XCDR (bgcolor), STRINGP (bgcolor)))
     {
-      Lisp_Object index = Fget (Qbackground_color, Qx_frame_parameter);
-      if (NATNUMP (index)
-	  && (XFASTINT (index)
+      Lisp_Object parm_index = Fget (Qbackground_color, Qx_frame_parameter);
+      if (NATNUMP (parm_index)
+	  && (XFASTINT (parm_index)
 	      < sizeof (frame_parms)/sizeof (frame_parms[0]))
-	  && FRAME_RIF (f)->frame_parm_handlers[XFASTINT (index)])
-	  (*FRAME_RIF (f)->frame_parm_handlers[XFASTINT (index)])
+	  && FRAME_RIF (f)->frame_parm_handlers[XFASTINT (parm_index)])
+	  (*FRAME_RIF (f)->frame_parm_handlers[XFASTINT (parm_index)])
 	    (f, bgcolor, Qnil);
     }
 

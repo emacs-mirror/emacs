@@ -39,7 +39,7 @@
 ;; This was `cyrillic-jcuken'.  Alexander Mikhailian
 ;; <mikhailian@altern.org> says:  "cyrillic-jcuken" is actually
 ;; russian.  It is ok but a bit outdated.  This layout has been used
-;; in typewriters for ages but it has been superceeded on desktops by
+;; in typewriters for ages but it has been superseded on desktops by
 ;; a variation of this layout, implemented in M$ Windows software.
 ;; The Windows layout is greatly preferred because of the comma and
 ;; period being placed more conviniently and, of course, because of

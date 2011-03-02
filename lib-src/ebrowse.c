@@ -77,7 +77,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define TREE_HEADER_STRUCT	"[ebrowse-hs "
 #define TREE_STRUCT		"[ebrowse-ts "
 #define MEMBER_STRUCT		"[ebrowse-ms "
-#define BROWSE_STRUCT		"[ebrowse-bs "
 #define CLASS_STRUCT		"[ebrowse-cs "
 
 /* The name of the symbol table entry for global functions, variables,
@@ -1108,22 +1107,23 @@ leave_namespace (void)
 /* Write string S to the output file FP in a Lisp-readable form.
    If S is null, write out `()'.  */
 
-#define PUTSTR(s, fp)				\
-  do {						\
-    if (!s)					\
-      {						\
-        putc ('(', fp);				\
-        putc (')', fp);				\
-        putc (' ', fp);				\
-      }						\
-    else					\
-      {						\
-        putc ('"', fp);				\
-        fputs (s, fp);				\
-        putc ('"', fp);				\
-        putc (' ', fp);				\
-      }						\
-   } while (0)
+static inline void
+putstr (const char *s, FILE *fp)
+{
+  if (!s)
+    {
+      putc ('(', fp);
+      putc (')', fp);
+      putc (' ', fp);
+    }
+  else
+    {
+      putc ('"', fp);
+      fputs (s, fp);
+      putc ('"', fp);
+      putc (' ', fp);
+    }
+}
 
 /* A dynamically allocated buffer for constructing a scope name.  */
 
@@ -1216,16 +1216,16 @@ dump_members (FILE *fp, struct member *m)
   for (n = 0; m; m = m->next, ++n)
     {
       fputs (MEMBER_STRUCT, fp);
-      PUTSTR (m->name, fp);
-      PUTSTR (NULL, fp);		/* FIXME? scope for globals */
+      putstr (m->name, fp);
+      putstr (NULL, fp);		/* FIXME? scope for globals */
       fprintf (fp, "%u ", (unsigned) m->flags);
-      PUTSTR (m->filename, fp);
-      PUTSTR (m->regexp, fp);
+      putstr (m->filename, fp);
+      putstr (m->regexp, fp);
       fprintf (fp, "%u ", (unsigned) m->pos);
       fprintf (fp, "%u ", (unsigned) m->vis);
       putc (' ', fp);
-      PUTSTR (m->def_filename, fp);
-      PUTSTR (m->def_regexp, fp);
+      putstr (m->def_filename, fp);
+      putstr (m->def_regexp, fp);
       fprintf (fp, "%u", (unsigned) m->def_pos);
       putc (']', fp);
       putc ('\n', fp);
@@ -1243,20 +1243,20 @@ static void
 dump_sym (FILE *fp, struct sym *root)
 {
   fputs (CLASS_STRUCT, fp);
-  PUTSTR (root->name, fp);
+  putstr (root->name, fp);
 
   /* Print scope, if any.  */
   if (root->namesp)
-    PUTSTR (sym_scope (root), fp);
+    putstr (sym_scope (root), fp);
   else
-    PUTSTR (NULL, fp);
+    putstr (NULL, fp);
 
   /* Print flags.  */
   fprintf (fp, "%u", root->flags);
-  PUTSTR (root->filename, fp);
-  PUTSTR (root->regexp, fp);
+  putstr (root->filename, fp);
+  putstr (root->regexp, fp);
   fprintf (fp, "%u", (unsigned) root->pos);
-  PUTSTR (root->sfilename, fp);
+  putstr (root->sfilename, fp);
   putc (']', fp);
   putc ('\n', fp);
 }
@@ -1323,7 +1323,7 @@ dump_roots (FILE *fp)
   if (!f_append)
     {
       fputs (TREE_HEADER_STRUCT, fp);
-      PUTSTR (EBROWSE_FILE_VERSION, fp);
+      putstr (EBROWSE_FILE_VERSION, fp);
 
       putc ('\"', fp);
       if (!f_structs)
@@ -2062,11 +2062,11 @@ re_init_scanner (void)
 }
 
 
-/* Insert a keyword NAME with token value TK into the keyword hash
+/* Insert a keyword NAME with token value TKV into the keyword hash
    table.  */
 
 static void
-insert_keyword (const char *name, int tk)
+insert_keyword (const char *name, int tkv)
 {
   const char *s;
   unsigned h = 0;
@@ -2077,7 +2077,7 @@ insert_keyword (const char *name, int tk)
 
   h %= KEYWORD_TABLE_SIZE;
   k->name = name;
-  k->tk = tk;
+  k->tk = tkv;
   k->next = keyword_table[h];
   keyword_table[h] = k;
 }
@@ -2951,7 +2951,9 @@ parse_qualified_param_ident_or_type (char **last_id)
   static char *id = NULL;
   static int id_size = 0;
 
-  while (LOOKING_AT (IDENT))
+  assert (LOOKING_AT (IDENT));
+
+  do
     {
       int len = strlen (yytext) + 1;
       if (len > id_size)
@@ -2974,6 +2976,7 @@ parse_qualified_param_ident_or_type (char **last_id)
       else
 	break;
     }
+  while (LOOKING_AT (IDENT));
 }
 
 

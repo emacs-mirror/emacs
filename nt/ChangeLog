@@ -1,3 +1,11 @@
+2011-02-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/unistd.h (readlink, symlink): Declare prototypes.
+
+2011-02-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (nlink_t): Define.
+
 2011-02-21  Christoph Scholtes  <cschol2112@gmail.com>
 
 	* inc/stdint.h: New file, to support compilation with tool chains

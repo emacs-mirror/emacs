@@ -3114,6 +3114,10 @@ Return nil if not defined."
 (defmacro gnus-get-info (group)
   `(nth 2 (gnus-gethash ,group gnus-newsrc-hashtb)))
 
+(defun gnus-set-info (group info)
+  (setcar (nthcdr 2 (gnus-gethash group gnus-newsrc-hashtb))
+	  info))
+
 ;;; Load the compatibility functions.
 
 (require 'gnus-ems)

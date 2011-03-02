@@ -426,7 +426,7 @@ See `semantic-edits-change-leaf-tag' for details on parents."
 	    ;; confirmed as the lineage of `overlapped-tags'
 	    ;; which must have a value by now.
 
-	    ;; Loop over the search list to find the preceeding CDR.
+	    ;; Loop over the search list to find the preceding CDR.
 	    ;; Fortunatly, (car overlapped-tags) happens to be
 	    ;; the first tag positionally.
 	    (let ((tokstart (semantic-tag-start (car overlapped-tags))))
@@ -874,7 +874,7 @@ pre-positioned to a convenient location."
 	    ))
       (message "To Remove Middle Tag: (%s)"
 	       (semantic-format-tag-name first)))
-    ;; Find in the cache the preceeding tag
+    ;; Find in the cache the preceding tag
     (while (and cachestart (not (eq first (car (cdr cachestart)))))
       (setq cachestart (cdr cachestart)))
     ;; Find the last tag

@@ -62,6 +62,8 @@ main ()
 
 /* This is to declare cuserid.  */
 #include <unistd.h>
+
+#include <ignore-value.h>
 
 /* Type definitions */
 
@@ -405,8 +407,8 @@ close_the_streams (void)
   for (rem = the_streams;
        rem != ((stream_list) NULL);
        rem = rem->rest_streams)
-    no_problems = (no_problems &&
-		   ((*rem->action) (rem->handle) == 0));
+    if (no_problems && (*rem->action) (rem->handle) != 0)
+      error ("output error", NULL);
   the_streams = ((stream_list) NULL);
   return (no_problems ? EXIT_SUCCESS : EXIT_FAILURE);
 }
@@ -427,6 +429,8 @@ my_fclose (FILE *the_file)
 {
   putc ('\n', the_file);
   fflush (the_file);
+  if (ferror (the_file))
+    return EOF;
   return fclose (the_file);
 }
 
@@ -496,7 +500,7 @@ put_line (const char *string)
 		}
 	    }
 	  /* Output that much, then break the line.  */
-	  fwrite (s, 1, breakpos - s, rem->handle);
+	  ignore_value (fwrite (s, 1, breakpos - s, rem->handle));
 	  column = 8;
 
 	  /* Skip whitespace and prepare to print more addresses.  */
@@ -728,6 +732,9 @@ main (int argc, char **argv)
       buf[size] = '\0';
       put_string (buf);
     }
+
+  if (no_problems && (ferror (stdin) || fclose (stdin) != 0))
+    error ("input error", NULL);
 
   exit (close_the_streams ());
 }

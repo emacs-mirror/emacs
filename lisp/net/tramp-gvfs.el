@@ -142,7 +142,7 @@
       (add-to-list 'tramp-methods (cons elt nil)))))
 
 (defconst tramp-gvfs-path-tramp (concat dbus-path-emacs "/Tramp")
-  "The preceeding object path for own objects.")
+  "The preceding object path for own objects.")
 
 (defconst tramp-gvfs-service-daemon "org.gtk.vfs.Daemon"
   "The well known name of the GVFS daemon.")

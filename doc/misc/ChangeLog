@@ -1,3 +1,12 @@
+2011-02-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Frequently Asked Questions): Add Emacs 24 to
+	supported systems.
+
+2011-02-28  Glenn Morris  <rgm@gnu.org>
+
+	* dbus.texi (Type Conversion): Grammar fix.
+
 2011-02-23  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi: Use consistently "Emacs" (instead of "GNU Emacs") and
