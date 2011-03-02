@@ -4082,8 +4082,8 @@ true then the type of the file linked to by FILE is printed instead.
 
 ;;;***
 
-;;;### (autoloads (dired-do-relsymlink dired-jump) "dired-x" "dired-x.el"
-;;;;;;  "3b8851132739ab3f9054bf639873c53e")
+;;;### (autoloads (dired-do-relsymlink dired-jump-other-window dired-jump)
+;;;;;;  "dired-x" "dired-x.el" "addd55345656d18cfd5251790a655e2c")
 ;;; Generated autoloads from dired-x.el
 
 (autoload 'dired-jump "dired-x" "\
@@ -4097,6 +4097,11 @@ Interactively with prefix argument, read FILE-NAME and
 move to its line in dired.
 
 \(fn &optional OTHER-WINDOW FILE-NAME)" t nil)
+
+(autoload 'dired-jump-other-window "dired-x" "\
+Like \\[dired-jump] (`dired-jump') but in other window.
+
+\(fn &optional FILE-NAME)" t nil)
 
 (autoload 'dired-do-relsymlink "dired-x" "\
 Relative symlink all marked (or next ARG) files into a directory.
