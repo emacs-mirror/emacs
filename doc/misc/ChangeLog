@@ -1,3 +1,8 @@
+2011-03-02  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.texi (Omitting Variables): Refer to add-dir-local-variable
+	instead of the obsoleted dired-omit-here-always.
+
 2011-02-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Frequently Asked Questions): Add Emacs 24 to
