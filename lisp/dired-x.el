@@ -735,9 +735,9 @@ If none, return `default-directory'."
 			 ((eq major-mode 'dired-mode) (dired-get-filename t t))))
     current-prefix-arg
     shell-command-default-error-buffer))
-  (let ((default-directory (if (eq major-mode 'dired-mode)
-                               (dired-current-directory)
-                             default-directory)))
+  (let ((default-directory (or (and (eq major-mode 'dired-mode)
+                                    (dired-current-directory))
+                               default-directory)))
     (shell-command command output-buffer error-buffer)))
 
 
