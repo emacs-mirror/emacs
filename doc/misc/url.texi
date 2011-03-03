@@ -116,7 +116,10 @@ The meaning of the @var{path} component depends on the service.
 @cindex @file{~/.url}
 @cindex configuration files
 The directory in which URL configuration files, the cache etc.,
-reside.  Default @file{~/.url}.
+reside.  The old default was @file{~/.url}, and this directory
+is still used if it exists.  The new default is a @file{url/}
+directory in @code{user-emacs-directory}, which is normally
+@file{~/.emacs.d}.
 @end defvar
 
 @node Parsed URLs

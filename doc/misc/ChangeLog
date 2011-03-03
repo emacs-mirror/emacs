@@ -2,6 +2,7 @@
 
 	* url.texi (Dealing with HTTP documents): Remove reference to
 	function url-decode-text-part; never seems to have existed.  (Bug#6038)
+	(Configuration): Update url-configuration-directory description.
 
 2011-03-02  Glenn Morris  <rgm@gnu.org>
 
