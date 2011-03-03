@@ -1,5 +1,14 @@
 2011-03-03  Christian Ohler  <ohler@gnu.org>
 
+	* emacs-lisp/ert.el (ert--explain-equal): New function.
+	(ert--explain-equal-rec): Renamed from `ert--explain-not-equal'.
+	All callers changed.
+	(ert--explain-equal-including-properties): Renamed from
+	`ert--explain-not-equal-including-properties'.  All callers
+	changed.
+
+2011-03-03  Christian Ohler  <ohler@gnu.org>
+
 	* emacs-lisp/ert.el (ert--stats-set-test-and-result)
 	(ert-char-for-test-result, ert-string-for-test-result)
 	(ert-run-tests-batch, ert--print-test-for-ewoc):
