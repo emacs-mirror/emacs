@@ -1,3 +1,8 @@
+2011-03-03  David Abrahams  <dave@boostpro.com>  (tiny change)
+
+	* vc/ediff-init.el (ediff-use-faces, ediff-highlight-all-diffs):
+	Move ediff-defvar-local calls after defcustoms.  (Bug#1821)
+
 2011-03-03  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (file-truename): Doc fix.  (Bug#2341)

@@ -560,7 +560,6 @@ See the documentation string of `ediff-focus-on-regexp-matches' for details.")
   :group 'ediff)
 
 
-(ediff-defvar-local ediff-use-faces t "")
 (defcustom ediff-use-faces t
   "If t, differences are highlighted using faces, if device supports faces.
 If nil, differences are highlighted using ASCII flags, ediff-before-flag
@@ -568,6 +567,7 @@ and ediff-after-flag.  On a non-window system, differences are always
 highlighted using ASCII flags."
   :type 'boolean
   :group 'ediff-highlighting)
+(ediff-defvar-local ediff-use-faces t "")
 
 ;; this indicates that diff regions are word-size, so fine diffs are
 ;; permanently nixed; used in ediff-windows-wordwise and ediff-regions-wordwise
@@ -604,13 +604,13 @@ meaning of this variable."
   :type 'boolean
   :group 'ediff)
 
-(ediff-defvar-local ediff-highlight-all-diffs t "")
 (defcustom ediff-highlight-all-diffs t
   "If nil, only the selected differences are highlighted.
 Otherwise, all difference regions are highlighted, but the selected region is
 shown in brighter colors."
   :type 'boolean
   :group 'ediff-highlighting)
+(ediff-defvar-local ediff-highlight-all-diffs t "")
 
 
 ;; The suffix of the control buffer name.
