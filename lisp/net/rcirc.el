@@ -2104,7 +2104,8 @@ CHANNELS is a comma- or space-separated string of channel names."
   (let* ((split-channels (split-string channels "[ ,]" t))
          (buffers (mapcar (lambda (ch)
                             (rcirc-get-buffer-create process ch))
-                          split-channels)))
+                          split-channels))
+         (channels (mapconcat 'identity split-channels ",")))
     (rcirc-send-string process (concat "JOIN " channels))
     (when (not (eq (selected-window) (minibuffer-window)))
       (dolist (b buffers) ;; order the new channel buffers in the buffer list
