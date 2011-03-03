@@ -1,3 +1,7 @@
+2011-03-03  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>
+
+	* vc/vc-dir.el (vc-dir-mode-map): Bind vc-dir-find-file to e. (Bug#7349)
+
 2011-03-03  Vagn Johansen  <gonz808@hotmail.com>  (tiny change)
 
 	* vc/vc-svn.el (vc-svn-after-dir-status): Some MS Windows svn client

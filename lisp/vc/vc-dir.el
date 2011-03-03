@@ -265,6 +265,7 @@ See `run-hooks'."
     (define-key map [C-up] 'vc-dir-previous-directory)
     ;; The remainder.
     (define-key map "f" 'vc-dir-find-file)
+    (define-key map "e" 'vc-dir-find-file) ; dired-mode compatibility
     (define-key map "\C-m" 'vc-dir-find-file)
     (define-key map "o" 'vc-dir-find-file-other-window)
     (define-key map "\C-c\C-c" 'vc-dir-kill-dir-status-process)
