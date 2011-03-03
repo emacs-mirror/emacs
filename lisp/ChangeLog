@@ -1,5 +1,8 @@
 2011-03-03  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/grep.el (grep-highlight-matches): Doc fix.
+	(grep-process-setup): No highlighting without font-lock.  (Bug#8084)
+
 	* vc/vc-bzr.el (vc-bzr-state-heuristic): Handle dirstate entries
 	with no parents.  (Bug#8025)
 
