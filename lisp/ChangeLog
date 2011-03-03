@@ -1,3 +1,8 @@
+2011-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-bzr.el (vc-bzr-state-heuristic): Handle dirstate entries
+	with no parents.  (Bug#8025)
+
 2011-03-02  Glenn Morris  <rgm@gnu.org>
 
 	* man.el (Man-support-local-filenames): Also handle Red Hat's man.

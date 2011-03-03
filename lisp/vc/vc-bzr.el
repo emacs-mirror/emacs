@@ -182,10 +182,19 @@ in the repository root directory of FILE."
   ;; format 3' in the first line.
   ;; If the `checkout/dirstate' file cannot be parsed, fall back to
   ;; running `vc-bzr-state'."
+  ;;
+  ;; The format of the dirstate file is explained in bzrlib/dirstate.py
+  ;; in the bzr distribution.  Basically:
+  ;; header-line giving the version of the file format in use.
+  ;; a few lines of stuff
+  ;; entries, one per line, with null-separated fields.  Each line:
+  ;; entry_key = dirname (may be empty), basename, file-id
+  ;; current = common ( = kind, fingerprint, size, executable )
+  ;;           + working ( = packed_stat )
+  ;; parent = common ( as above ) + history ( = rev_id )
+  ;; kinds = (r)elocated, (a)bsent, (d)irectory, (f)ile, (l)ink
   (lexical-let ((root (vc-bzr-root file)))
     (when root    ; Short cut.
-      ;; This looks at internal files.  May break if they change
-      ;; their format.
       (lexical-let ((dirstate (expand-file-name vc-bzr-admin-dirstate root)))
         (condition-case nil
             (with-temp-buffer
@@ -210,13 +219,14 @@ in the repository root directory of FILE."
                                ;; was executable the last time bzr checked?
                                "[^\0]*\0"
                                "[^\0]*\0"       ;?
-                               "\\([^\0]*\\)\0" ;"a/f/d" a=added?
+                               ;; Parent information.  Absent in a new repo.
+                               "\\(?:\\([^\0]*\\)\0" ;"a/f/d" a=added?
                                "\\([^\0]*\\)\0" ;sha1 again?
                                "\\([^\0]*\\)\0" ;size again?
                                ;; y/n.  Whether or not the repo thinks
                                ;; the file should be executable?
                                "\\([^\0]*\\)\0"
-                               "[^\0]*\0" ;last revid?
+                               "[^\0]*\0\\)?" ;last revid?
                                ;; There are more fields when merges are pending.
                                )
                        nil t)
@@ -226,7 +236,10 @@ in the repository root directory of FILE."
                       ;; conflict markers).
                       (cond
                        ((eq (char-after (match-beginning 1)) ?a) 'removed)
-                       ((eq (char-after (match-beginning 4)) ?a) 'added)
+                       ;; If there is no parent, this must be a new repo.
+                       ;; If file is in dirstate, can only be added (b#8025).
+                       ((or (not (match-beginning 4))
+                            (eq (char-after (match-beginning 4)) ?a)) 'added)
                        ((or (and (eq (string-to-number (match-string 3))
                                  (nth 7 (file-attributes file)))
                                  (equal (match-string 5)
