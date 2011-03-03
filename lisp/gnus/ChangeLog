@@ -1,3 +1,13 @@
+2011-03-03  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* nnimap.el (nnimap-parse-flags): Add a workaround for FETCH lines with
+	numbers too big to be `read'.
+
+2011-03-02  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* message.el (message-options): Make buffer-local two ways to attempt
+	to fix a XEmacs bug.
+
 2011-03-02  Julien Danjou  <julien@danjou.info>
 
 	* gnus-art.el (gnus-with-article-buffer): Fix buffer live check.

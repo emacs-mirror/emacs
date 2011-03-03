@@ -1496,10 +1496,22 @@ textual parts.")
 	    (setq start (point))
 	    (goto-char end))
 	  (while (re-search-forward "^\\* [0-9]+ FETCH " start t)
-	    (setq elems (read (current-buffer)))
-	    (push (cons (cadr (memq 'UID elems))
-			(cadr (memq 'FLAGS elems)))
-		  articles))
+	    (let ((p (point)))
+	      ;; FIXME: For FETCH lines like "* 2971 FETCH (FLAGS (%Recent) UID
+	      ;; 12509 MODSEQ (13419098521433281274))" we get an
+	      ;; overflow-error.  The handler simply deletes that large number
+	      ;; and reads again.  But maybe there's a better fix...
+	      (setq elems (condition-case nil (read (current-buffer))
+			    (overflow-error
+			     ;; After an overflow-error, point is just after
+			     ;; the too large number.  So delete it and try
+			     ;; again.
+			     (delete-region (point) (progn (backward-word) (point)))
+			     (goto-char p)
+			     (read (current-buffer)))))
+	      (push (cons (cadr (memq 'UID elems))
+			  (cadr (memq 'FLAGS elems)))
+		    articles)))
 	  (push (nconc (list group uidnext totalp permanent-flags uidvalidity
 			     vanished highestmodseq)
 		       articles)

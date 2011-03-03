@@ -44,6 +44,10 @@
 	* vc/vc-bzr.el (vc-bzr-state-heuristic): Handle dirstate entries
 	with no parents.  (Bug#8025)
 
+2011-03-02  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* password-cache.el (password-in-cache-p): Add autoload.
+
 2011-03-02  Glenn Morris  <rgm@gnu.org>
 
 	* man.el (Man-support-local-filenames): Also handle Red Hat's man.
