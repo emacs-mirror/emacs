@@ -1,3 +1,8 @@
+2011-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* url.texi (Dealing with HTTP documents): Remove reference to
+	function url-decode-text-part; never seems to have existed.  (Bug#6038)
+
 2011-03-02  Glenn Morris  <rgm@gnu.org>
 
 	* dired-x.texi (Multiple Dired Directories): Remove mentions
