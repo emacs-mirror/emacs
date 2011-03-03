@@ -189,7 +189,7 @@ static NSMutableArray *ns_pending_files, *ns_pending_service_names,
   *ns_pending_service_args;
 static BOOL inNsSelect = 0;
 
-/* Convert modifiers in a NeXTSTEP event to emacs style modifiers.  */
+/* Convert modifiers in a NeXTstep event to emacs style modifiers.  */
 #define NS_FUNCTION_KEY_MASK 0x800000
 #define NSLeftControlKeyMask    (0x000001 | NSControlKeyMask)
 #define NSRightControlKeyMask   (0x002000 | NSControlKeyMask)

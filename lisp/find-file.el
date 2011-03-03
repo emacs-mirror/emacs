@@ -183,7 +183,7 @@ To override this, give an argument to `ff-find-other-file'."
 ;;;###autoload
 (defvar ff-special-constructs
   `(
-    ;; C/C++ include, for NeXTSTEP too
+    ;; C/C++ include, for NeXTstep too
     (,(purecopy "^\#\\s *\\(include\\|import\\)\\s +[<\"]\\(.*\\)[>\"]") .
      (lambda ()
        (buffer-substring (match-beginning 2) (match-end 2))))

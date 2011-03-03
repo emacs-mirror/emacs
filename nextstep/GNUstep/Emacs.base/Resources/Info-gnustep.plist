@@ -7,8 +7,8 @@
 	"Adrian Robert (GNUstep)",
 	"Christophe de Dinechin (MacOS X)",
 	"Scott Bender (OpenStep)",
-	"Christian Limpach (NeXTStep)",
-	"Carl Edman (NeXTStep)",
+	"Christian Limpach (NeXTstep)",
+	"Carl Edman (NeXTstep)",
 	"..see etc/NEXTSTEP"
     );
     Copyright = "Copyright (C) 2011 Free Software Foundation, Inc.";
