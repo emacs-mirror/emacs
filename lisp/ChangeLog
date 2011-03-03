@@ -1,3 +1,7 @@
+2011-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (file-truename): Doc fix.  (Bug#2341)
+
 2011-03-03  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>
 
 	* vc/vc-dir.el (vc-dir-mode-map): Bind vc-dir-find-file to e. (Bug#7349)
