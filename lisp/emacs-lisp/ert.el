@@ -1244,12 +1244,14 @@ Also changes the counters in STATS to match."
                    (ert-test-passed (incf (ert--stats-passed-expected stats) d))
                    (ert-test-failed (incf (ert--stats-failed-expected stats) d))
                    (null)
-                   (ert-test-aborted-with-non-local-exit))
+                   (ert-test-aborted-with-non-local-exit)
+                   (ert-test-quit))
                (etypecase (aref results pos)
                  (ert-test-passed (incf (ert--stats-passed-unexpected stats) d))
                  (ert-test-failed (incf (ert--stats-failed-unexpected stats) d))
                  (null)
-                 (ert-test-aborted-with-non-local-exit)))))
+                 (ert-test-aborted-with-non-local-exit)
+                 (ert-test-quit)))))
       ;; Adjust counters to remove the result that is currently in stats.
       (update -1)
       ;; Put new test and result into stats.
@@ -1342,7 +1344,8 @@ EXPECTEDP specifies whether the result was expected."
              (ert-test-passed ".P")
              (ert-test-failed "fF")
              (null "--")
-             (ert-test-aborted-with-non-local-exit "aA"))))
+             (ert-test-aborted-with-non-local-exit "aA")
+             (ert-test-quit "qQ"))))
     (elt s (if expectedp 0 1))))
 
 (defun ert-string-for-test-result (result expectedp)
@@ -1353,7 +1356,8 @@ EXPECTEDP specifies whether the result was expected."
              (ert-test-passed '("passed" "PASSED"))
              (ert-test-failed '("failed" "FAILED"))
              (null '("unknown" "UNKNOWN"))
-             (ert-test-aborted-with-non-local-exit '("aborted" "ABORTED")))))
+             (ert-test-aborted-with-non-local-exit '("aborted" "ABORTED"))
+             (ert-test-quit '("quit" "QUIT")))))
     (elt s (if expectedp 0 1))))
 
 (defun ert--pp-with-indentation-and-newline (object)
@@ -1478,7 +1482,9 @@ Returns the stats object."
                  (message "%s" (buffer-string))))
               (ert-test-aborted-with-non-local-exit
                (message "Test %S aborted with non-local exit"
-                        (ert-test-name test)))))
+                        (ert-test-name test)))
+              (ert-test-quit
+               (message "Quit during %S" (ert-test-name test)))))
           (let* ((max (prin1-to-string (length (ert--stats-tests stats))))
                  (format-string (concat "%9s  %"
                                         (prin1-to-string (length max))
@@ -1853,7 +1859,9 @@ non-nil, returns the face for expected results.."
                      (ert-test-result-with-condition-condition result))
                     (ert--make-xrefs-region begin (point)))))
                (ert-test-aborted-with-non-local-exit
-                (insert "    aborted\n")))
+                (insert "    aborted\n"))
+               (ert-test-quit
+                (insert "    quit\n")))
              (insert "\n")))))
   nil)
 

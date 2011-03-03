@@ -1,3 +1,10 @@
+2011-03-03  Christian Ohler  <ohler@gnu.org>
+
+	* emacs-lisp/ert.el (ert--stats-set-test-and-result)
+	(ert-char-for-test-result, ert-string-for-test-result)
+	(ert-run-tests-batch, ert--print-test-for-ewoc):
+	Handle `ert-test-quit'.
+
 2011-03-03  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>
 
 	* vc/vc-dir.el (vc-dir-mode-map): Bind vc-dir-find-file to e. (Bug#7349)
