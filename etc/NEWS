@@ -67,11 +67,11 @@ from load-path.  -Q now implies this.
 
 ** emacsclient changes
 
-+++
 *** New emacsclient argument --parent-id ID can be used to open a
 client frame in parent X window ID, via XEmbed.  This works like the
 --parent-id argument to Emacs.
 
++++
 *** New emacsclient argument -q/--quiet suppresses some status messages.
 
 *** If emacsclient shuts down as a result of Emacs signalling an
