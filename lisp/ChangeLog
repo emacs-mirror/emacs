@@ -1,5 +1,9 @@
 2011-03-03  Glenn Morris  <rgm@gnu.org>
 
+	* mail/sendmail.el (mail-mode-map): Remove mail-sent-via.
+	(mail-mode): Remove mail-sent-via from the doc.
+	(mail-sent-via): Make it obsolete.  (Bug#1776)
+
 	* progmodes/grep.el (grep-highlight-matches): Doc fix.
 	(grep-process-setup): No highlighting without font-lock.  (Bug#8084)
 
