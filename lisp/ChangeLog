@@ -1,3 +1,8 @@
+2011-03-03  Vagn Johansen  <gonz808@hotmail.com>  (tiny change)
+
+	* vc/vc-svn.el (vc-svn-after-dir-status): Some MS Windows svn client
+	programs output backslashes.  (Bug#7663)
+
 2011-03-03  Glenn Morris  <rgm@gnu.org>
 
 	* mail/sendmail.el (mail-mode-map): Remove mail-sent-via.
