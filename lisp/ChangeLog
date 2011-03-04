@@ -1,3 +1,8 @@
+2011-03-04  Zachary Kanfer  <zkanfer@gmail.com>
+
+	* cus-edit.el (custom-buffer-create-internal):
+	Split search string before passing it to `customize-apropos' (bug#8136).
+
 2011-03-04  Drew Adams  <drew.adams@oracle.com>
 
 	* image-dired.el (image-dired-cmd-read-exif-data-options):

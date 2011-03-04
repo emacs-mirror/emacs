@@ -1599,7 +1599,7 @@ Otherwise use brackets."
 	       'editable-field
 	       :size 40 :help-echo echo
 	       :action `(lambda (widget &optional event)
-			  (customize-apropos (widget-value widget))))))
+			  (customize-apropos (split-string (widget-value widget)))))))
 	(widget-insert " ")
 	(widget-create-child-and-convert
 	 search-widget 'push-button
