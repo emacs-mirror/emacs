@@ -1,3 +1,8 @@
+2011-03-04  Daiki Ueno  <ueno@unixuser.org>
+
+	* message.el (message-options): Revert the change that's a workaround
+	for XEmacs buffer-local issue.
+
 2011-03-03  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* nnimap.el (nnimap-parse-flags): Add a workaround for FETCH lines with
