@@ -960,7 +960,10 @@ If EXPR is nil, return nil."
 	  (if (eq base 'pi)
 	      (math-pi)
 	    expr)))
-    (if (Math-primp expr)
+    (if (or
+         (Math-primp expr)
+         (and (eq (car-safe expr) 'calcFunc-subscr)
+              (eq (car-safe (nth 1 expr)) 'var)))
 	expr
       (cons (car expr)
 	    (mapcar 'math-to-standard-rec (cdr expr))))))

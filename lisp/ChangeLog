@@ -1,3 +1,8 @@
+2011-03-04  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-units.el (math-to-standard-rec): Don't treat subscripted
+	variables as units.
+
 2011-03-04  Bob Rogers  <rogers@rgrjr.dyndns.org>
 
 	* emacs-lisp/ewoc.el (ewoc-goto-next): Give a more explicit error
