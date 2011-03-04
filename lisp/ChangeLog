@@ -1,5 +1,8 @@
 2011-03-04  Glenn Morris  <rgm@gnu.org>
 
+	* outline.el (outline-regexp): No longer allow nil.
+	(outline-heading-end-regexp): Add safety predicate.  (Bug#7619)
+
 	* net/browse-url.el (browse-url):
 	Handle deleted default-directory.  (Bug#6077)
 
