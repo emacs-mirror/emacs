@@ -1,3 +1,8 @@
+2011-03-04  Drew Adams  <drew.adams@oracle.com>
+
+	* image-dired.el (image-dired-cmd-read-exif-data-options):
+	Fix typo in docstring (bug#8156).
+
 2011-03-03  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
 
 	* net/rcirc.el (rcirc-cmd-join): Accept comma-separated input.
