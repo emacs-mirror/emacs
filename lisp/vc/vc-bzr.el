@@ -879,38 +879,40 @@ stream.  Standard error output is discarded."
 	(result nil))
       (goto-char (point-min))
       (while (not (eobp))
-	(setq status-str
-	      (buffer-substring-no-properties (point) (+ (point) 3)))
-	(setq translated (cdr (assoc status-str translation)))
-	(cond
-	 ((eq translated 'conflict)
-	  ;; For conflicts the file appears twice in the listing: once
-	  ;; with the M flag and once with the C flag, so take care
-	  ;; not to add it twice to `result'.  Ugly.
-	  (let* ((file
-		  (buffer-substring-no-properties
-		   ;;For files with conflicts the format is:
-		   ;;C   Text conflict in FILENAME
-		   ;; Bah.
-		   (+ (point) 21) (line-end-position)))
-		 (entry (assoc file result)))
-	    (when entry
-	      (setf (nth 1 entry) 'conflict))))
-	 ((eq translated 'renamed)
-	  (re-search-forward "R[ M]  \\(.*\\) => \\(.*\\)$" (line-end-position) t)
-	  (let ((new-name (file-relative-name (match-string 2) relative-dir))
-		(old-name (file-relative-name (match-string 1) relative-dir)))
-	    (push (list new-name 'edited
-		      (vc-bzr-create-extra-fileinfo old-name)) result)))
-	 ;; do nothing for non existent files
-	 ((eq translated 'not-found))
-	 (t
-	  (push (list (file-relative-name
-		       (buffer-substring-no-properties
-			(+ (point) 4)
-			(line-end-position)) relative-dir)
-		      translated) result)))
-	(forward-line))
+        ;; Bzr 2.3.0 added this if there are shelves.  (Bug#8170)
+        (unless (looking-at "[1-9]+ shel\\(f\\|ves\\) exists?\\.")
+          (setq status-str
+                (buffer-substring-no-properties (point) (+ (point) 3)))
+          (setq translated (cdr (assoc status-str translation)))
+          (cond
+           ((eq translated 'conflict)
+            ;; For conflicts the file appears twice in the listing: once
+            ;; with the M flag and once with the C flag, so take care
+            ;; not to add it twice to `result'.  Ugly.
+            (let* ((file
+                    (buffer-substring-no-properties
+                     ;;For files with conflicts the format is:
+                     ;;C   Text conflict in FILENAME
+                     ;; Bah.
+                     (+ (point) 21) (line-end-position)))
+                   (entry (assoc file result)))
+              (when entry
+                (setf (nth 1 entry) 'conflict))))
+           ((eq translated 'renamed)
+            (re-search-forward "R[ M]  \\(.*\\) => \\(.*\\)$" (line-end-position) t)
+            (let ((new-name (file-relative-name (match-string 2) relative-dir))
+                  (old-name (file-relative-name (match-string 1) relative-dir)))
+              (push (list new-name 'edited
+                          (vc-bzr-create-extra-fileinfo old-name)) result)))
+           ;; do nothing for non existent files
+           ((eq translated 'not-found))
+           (t
+            (push (list (file-relative-name
+                         (buffer-substring-no-properties
+                          (+ (point) 4)
+                          (line-end-position)) relative-dir)
+                        translated) result))))
+        (forward-line))
       (funcall update-function result)))
 
 (defun vc-bzr-dir-status (dir update-function)
