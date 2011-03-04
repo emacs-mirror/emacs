@@ -1,3 +1,8 @@
+2011-03-04  Bob Rogers  <rogers@rgrjr.dyndns.org>
+
+	* emacs-lisp/ewoc.el (ewoc-goto-next): Give a more explicit error
+	if there is no node.  (Bug#3261)
+
 2011-03-04  Leo  <sdl.web@gmail.com>
 
 	* time.el (display-time-world-list): Fix typo.  (Bug#7571)
