@@ -3218,7 +3218,7 @@ Treats actions as defuns."
   t)
 
 ;;;###autoload
-(define-derived-mode gdb-script-mode nil "GDB-Script"
+(define-derived-mode gdb-script-mode prog-mode "GDB-Script"
   "Major mode for editing GDB scripts."
   (set (make-local-variable 'comment-start) "#")
   (set (make-local-variable 'comment-start-skip) "#+\\s-*")
