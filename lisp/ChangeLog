@@ -1,5 +1,8 @@
 2011-03-04  Glenn Morris  <rgm@gnu.org>
 
+	* net/browse-url.el (browse-url):
+	Handle deleted default-directory.  (Bug#6077)
+
 	* recentf.el (recentf-include-p): In case of a buggy predicate,
 	err on the side of including, not excluding.  (Bug#5843)
 
