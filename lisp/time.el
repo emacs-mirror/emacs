@@ -157,7 +157,7 @@ LABEL is a string to display as the label of that TIMEZONE's time."
   ;; Determine if zoneinfo style timezones are supported by testing that
   ;; America/New York and Europe/London return different timezones.
   (let (gmt nyt)
-    (set-time-zone-rule "America/New York")
+    (set-time-zone-rule "America/New_York")
     (setq nyt (format-time-string "%z"))
     (set-time-zone-rule "Europe/London")
     (setq gmt (format-time-string "%z"))
