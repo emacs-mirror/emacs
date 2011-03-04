@@ -10,6 +10,8 @@
 
 2011-03-04  Leo  <sdl.web@gmail.com>
 
+	* vc/diff-mode.el (diff-mode): Fix whitespace-style.  (Bug#8139)
+
 	* time.el (display-time-world-list): Fix typo.  (Bug#7571)
 
 2011-03-04  Zachary Kanfer  <zkanfer@gmail.com>  (tiny change)
