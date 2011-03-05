@@ -1,5 +1,8 @@
 2011-03-05  Glenn Morris  <rgm@gnu.org>
 
+	* eshell/esh-module.el (eshell-module-unload-hook)
+	(eshell-modules-list): Remove leading * from defcustom docs.
+
 	* eshell/esh-util.el (eshell-for): Make it obsolete.
 	* eshell/em-alias.el (eshell/alias, eshell-alias-completions):
 	* eshell/em-dirs.el (eshell-save-some-last-dir):

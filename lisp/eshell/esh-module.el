@@ -43,7 +43,7 @@ customizing the variable `eshell-modules-list'."
 
 (defcustom eshell-module-unload-hook
   '(eshell-unload-extension-modules)
-  "*A hook run when `eshell-module' is unloaded."
+  "A hook run when `eshell-module' is unloaded."
   :type 'hook
   :group 'eshell-module)
 
@@ -61,7 +61,7 @@ customizing the variable `eshell-modules-list'."
     eshell-script
     eshell-term
     eshell-unix)
-  "*A list of optional add-on modules to be loaded by Eshell.
+  "A list of optional add-on modules to be loaded by Eshell.
 Changes will only take effect in future Eshell buffers."
   :type (append
 	 (list 'set ':tag "Supported modules")
