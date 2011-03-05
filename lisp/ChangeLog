@@ -1,3 +1,8 @@
+2011-03-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* help-mode.el (help-buffer): If we are to return the current
+	buffer, signal an error if it's not in Help mode (Bug#8147).
+
 2011-03-05  Reuben Thomas  <rrt@sc3d.org>
 
 	* files.el (file-name-version-regexp): Handle backup files of the

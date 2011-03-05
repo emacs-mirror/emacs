@@ -409,13 +409,16 @@ restore it properly when going back."
 (defun help-buffer ()
   "Return the name of a buffer for inserting help.
 If `help-xref-following' is non-nil, this is the name of the
-current buffer.
-Otherwise, it is *Help*; if no buffer with that name currently
-exists, it is created."
+current buffer.  Signal an error if this buffer is not derived
+from `help-mode'.
+Otherwise, return \"*Help*\", creating a buffer with that name if
+it does not already exist."
   (buffer-name				;for with-output-to-temp-buffer
-   (if help-xref-following
-       (current-buffer)
-     (get-buffer-create "*Help*"))))
+   (if (not help-xref-following)
+       (get-buffer-create "*Help*")
+     (unless (derived-mode-p 'help-mode)
+       (error "Current buffer is not in Help mode"))
+     (current-buffer))))
 
 (defvar help-xref-override-view-map
   (let ((map (make-sparse-keymap)))
