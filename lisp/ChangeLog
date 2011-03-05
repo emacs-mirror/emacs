@@ -1,3 +1,8 @@
+2011-03-05  Reuben Thomas  <rrt@sc3d.org>
+
+	* files.el (file-name-version-regexp): Handle backup files of the
+	form `foo.js.~HEAD~1~' (Bug#8159).
+
 2011-03-05  Glenn Morris  <rgm@gnu.org>
 
 	* eshell/esh-var.el: Don't require esh-test when compiling.
