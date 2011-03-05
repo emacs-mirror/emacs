@@ -305,7 +305,7 @@
 	* net/tramp-cmds.el (tramp-append-tramp-buffers): Dump load-path
 	shadows.
 
-2011-02-28  Antoine Levitt  <antoine.levitt@gmail.com>  (tiny change)
+2011-02-28  Antoine Levitt  <antoine.levitt@gmail.com>
 
 	* dired-x.el (dired-guess-shell-alist-default): Add rar and 7z.
 
@@ -8143,7 +8143,7 @@
 	* progmodes/octave-mod.el (octave-mode): Set comment-add.
 	(octave-mode-map): Use comment-dwim (bug#6829).
 
-2010-08-12  Antoine Levitt  <antoine.levitt@gmail.com>  (tiny change)
+2010-08-12  Antoine Levitt  <antoine.levitt@gmail.com>
 
 	* cus-edit.el (custom-save-variables, custom-save-faces): Fix up
 	indentation of inserted comment.
