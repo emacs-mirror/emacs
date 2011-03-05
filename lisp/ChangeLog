@@ -1,3 +1,10 @@
+2011-03-05  Alex Harsanyi  <AlexHarsanyi@gmail.com>
+
+	* net/soap-client.el (soap-namespace-put-link): Check if the target
+	name is fully qualified -- use only the name part.
+	(soap-parse-complex-type, soap-parse-sequence): Recognize xsd:all
+	types, treated the same as xsd:sequence.  (Bug#8166)
+
 2011-03-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* files.el (find-file-noselect): Don't ask about re-visiting
