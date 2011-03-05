@@ -1,3 +1,8 @@
+2011-03-05  David Engster  <deng@randomsample.de>
+
+	* files.el (save-some-buffers): Report the names of buffers saved
+	automatically due to buffer-save-without-query (Bug#8134).
+
 2011-03-05  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
 
 	* net/rcirc.el: Add QuakeNet authentication support.
