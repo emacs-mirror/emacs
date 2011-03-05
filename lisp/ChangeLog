@@ -1,3 +1,10 @@
+2011-03-05  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/esh-var.el: Don't require esh-test when compiling.
+	* eshell/em-banner.el, eshell/esh-cmd.el, eshell/esh-mode.el:
+	* eshell/esh-var.el, eshell/eshell.el: Move tests to esh-test.
+	* eshell/esh-test.el: Move to ../../test/eshell.el
+
 2011-03-05  David Engster  <deng@randomsample.de>
 
 	* files.el (save-some-buffers): Report the names of buffers saved

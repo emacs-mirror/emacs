@@ -320,18 +320,6 @@ otherwise t.")
     (add-hook 'pcomplete-try-first-hook
 	      'eshell-complete-lisp-symbols nil t)))
 
-(eshell-deftest var last-result-var
-  "\"last result\" variable"
-  (eshell-command-result-p "+ 1 2; + $$ 2" "3\n5\n"))
-
-(eshell-deftest var last-result-var2
-  "\"last result\" variable"
-  (eshell-command-result-p "+ 1 2; + $$ $$" "3\n6\n"))
-
-(eshell-deftest var last-arg-var
-  "\"last arg\" variable"
-  (eshell-command-result-p "+ 1 2; + $_ 4" "3\n6\n"))
-
 (defun eshell-complete-lisp-symbols ()
   "If there is a user reference, complete it."
   (let ((arg (pcomplete-actual-arg)))
@@ -441,31 +429,11 @@ hooks should be run before and after the command."
 	   (eq (caar terms) 'eshell-command-to-value))
       (car (cdar terms))))
 
-(eshell-deftest cmd lisp-command
-  "Evaluate Lisp command"
-  (eshell-command-result-p "(+ 1 2)" "3"))
-
-(eshell-deftest cmd lisp-command-args
-  "Evaluate Lisp command (ignore args)"
-  (eshell-command-result-p "(+ 1 2) 3" "3"))
-
 (defun eshell-rewrite-initial-subcommand (terms)
   "Rewrite a subcommand in initial position, such as '{+ 1 2}'."
   (if (and (listp (car terms))
 	   (eq (caar terms) 'eshell-as-subcommand))
       (car terms)))
-
-(eshell-deftest cmd subcommand
-  "Run subcommand"
-  (eshell-command-result-p "{+ 1 2}" "3\n"))
-
-(eshell-deftest cmd subcommand-args
-  "Run subcommand (ignore args)"
-  (eshell-command-result-p "{+ 1 2} 3" "3\n"))
-
-(eshell-deftest cmd subcommand-lisp
-  "Run subcommand + Lisp form"
-  (eshell-command-result-p "{(+ 1 2)}" "3\n"))
 
 (defun eshell-rewrite-named-command (terms)
   "If no other rewriting rule transforms TERMS, assume a named command."
@@ -477,10 +445,6 @@ hooks should be run before and after the command."
     (if args
 	(list sym cmd (append (list 'list) (cdr terms)))
       (list sym cmd))))
-
-(eshell-deftest cmd named-command
-  "Execute named command"
-  (eshell-command-result-p "+ 1 2" "3\n"))
 
 (defvar eshell-command-body)
 (defvar eshell-test-body)

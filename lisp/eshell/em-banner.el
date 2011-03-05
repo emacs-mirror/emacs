@@ -82,14 +82,6 @@ This can be any sexp, and should end with at least two newlines."
       (assert msg)
       (eshell-interactive-print msg))))
 
-(eshell-deftest banner banner-displayed
-  "Startup banner is displayed at point-min"
-  (assert eshell-banner-message)
-  (let ((msg (eval eshell-banner-message)))
-    (assert msg)
-    (goto-char (point-min))
-    (looking-at msg)))
-
 (provide 'em-banner)
 
 ;; Local Variables:

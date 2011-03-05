@@ -447,19 +447,6 @@ and the hook `eshell-exit-hook'."
 
 (put 'eshell-mode 'mode-class 'special)
 
-(eshell-deftest mode major-mode
-  "Major mode is correct"
-  (eq major-mode 'eshell-mode))
-
-(eshell-deftest mode eshell-mode-variable
-  "`eshell-mode' is true"
-  (eq eshell-mode t))
-
-(eshell-deftest var window-height
-  "LINES equals window height"
-  (let ((eshell-stringify-t t))
-    (eshell-command-result-p "= $LINES (window-height)" "t\n")))
-
 (defun eshell-command-started ()
   "Indicate in the modeline that a command has started."
   (setq eshell-command-running-string "**")
@@ -469,13 +456,6 @@ and the hook `eshell-exit-hook'."
   "Indicate in the modeline that a command has finished."
   (setq eshell-command-running-string "--")
   (force-mode-line-update))
-
-(eshell-deftest mode command-running-p
-  "Modeline shows no command running"
-  (or (featurep 'xemacs)
-      (not eshell-status-in-modeline)
-      (and (memq 'eshell-command-running-string mode-line-format)
-	   (equal eshell-command-running-string "--"))))
 
 ;;; Internal Functions:
 
@@ -545,20 +525,6 @@ and the hook `eshell-exit-hook'."
     (if (and (eq func 'forward-char)
 	     (= (1+ pos) limit))
 	(forward-char 1))))
-
-(eshell-deftest arg forward-arg
-  "Move across command arguments"
-  (eshell-insert-command "echo $(+ 1 (- 4 3)) \"alpha beta\" file" 'ignore)
-  (let ((here (point)) begin valid)
-    (eshell-bol)
-    (setq begin (point))
-    (eshell-forward-argument 4)
-    (setq valid (= here (point)))
-    (eshell-backward-argument 4)
-    (prog1
-	(and valid (= begin (point)))
-      (eshell-bol)
-      (delete-region (point) (point-max)))))
 
 (defun eshell-forward-argument (&optional arg)
   "Move forward ARG arguments."
@@ -659,17 +625,6 @@ waiting for input."
   (interactive "P")
   (eshell-send-input use-region t))
 
-(eshell-deftest mode queue-input
-  "Queue command input"
-  (eshell-insert-command "sleep 2")
-  (eshell-insert-command "echo alpha" 'eshell-queue-input)
-  (let ((count 10))
-    (while (and eshell-current-command
-		(> count 0))
-      (sit-for 1 0)
-      (setq count (1- count))))
-  (eshell-match-result "alpha\n"))
-
 (defun eshell-send-input (&optional use-region queue-p no-newline)
   "Send the input received to Eshell for parsing and processing.
 After `eshell-last-output-end', sends all text from that marker to
@@ -747,20 +702,6 @@ newline."
 		(concat (error-message-string err) "\n"))
 	       (run-hooks 'eshell-post-command-hook)
 	       (insert-and-inherit input)))))))))
-
-; (eshell-deftest proc send-to-subprocess
-;   "Send input to a subprocess"
-;   ;; jww (1999-12-06): what about when bc is unavailable?
-;   (if (not (eshell-search-path "bc"))
-;       t
-;     (eshell-insert-command "bc")
-;     (eshell-insert-command "1 + 2")
-;     (sit-for 1 0)
-;     (forward-line -1)
-;     (prog1
-; 	(looking-at "3\n")
-;       (eshell-insert-command "quit")
-;       (sit-for 1 0))))
 
 (defsubst eshell-kill-new ()
   "Add the last input text to the kill ring."
@@ -907,14 +848,6 @@ Does not delete the prompt."
     (insert "*** output flushed ***\n")
     (delete-region (point) (eshell-end-of-output))))
 
-(eshell-deftest io flush-output
-  "Flush previous output"
-  (eshell-insert-command "echo alpha")
-  (eshell-kill-output)
-  (and (eshell-match-result (regexp-quote "*** output flushed ***\n"))
-       (forward-line)
-       (= (point) eshell-last-output-start)))
-
 (defun eshell-show-output (&optional arg)
   "Display start of this batch of interpreter output at top of window.
 Sets mark to the value of point when this command is run.
@@ -974,12 +907,6 @@ When run interactively, widen the buffer first."
   (let ((input (eshell-get-old-input)))
     (goto-char eshell-last-output-end)
     (insert-and-inherit input)))
-
-(eshell-deftest mode run-old-command
-  "Re-run an old command"
-  (eshell-insert-command "echo alpha")
-  (goto-char eshell-last-input-start)
-  (string= (eshell-get-old-input) "echo alpha"))
 
 (defun eshell/exit ()
   "Leave or kill the Eshell buffer, depending on `eshell-kill-on-exit'."

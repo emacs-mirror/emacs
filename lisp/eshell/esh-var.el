@@ -109,7 +109,6 @@
 
 (eval-when-compile
   (require 'pcomplete)
-  (require 'esh-test)
   (require 'esh-util)
   (require 'esh-opt)
   (require 'esh-mode))
@@ -476,30 +475,6 @@ Possible options are:
 	(goto-char (match-end 0))))
      (t
       (error "Invalid variable reference")))))
-
-(eshell-deftest var interp-cmd
-  "Interpolate command result"
-  (eshell-command-result-p "+ ${+ 1 2} 3" "6\n"))
-
-(eshell-deftest var interp-lisp
-  "Interpolate Lisp form evalution"
-  (eshell-command-result-p "+ $(+ 1 2) 3" "6\n"))
-
-(eshell-deftest var interp-concat
-  "Interpolate and concat command"
-  (eshell-command-result-p "+ ${+ 1 2}3 3" "36\n"))
-
-(eshell-deftest var interp-concat-lisp
-  "Interpolate and concat Lisp form"
-  (eshell-command-result-p "+ $(+ 1 2)3 3" "36\n"))
-
-(eshell-deftest var interp-concat2
-  "Interpolate and concat two commands"
-  (eshell-command-result-p "+ ${+ 1 2}${+ 1 2} 3" "36\n"))
-
-(eshell-deftest var interp-concat-lisp2
-  "Interpolate and concat two Lisp forms"
-  (eshell-command-result-p "+ $(+ 1 2)$(+ 1 2) 3" "36\n"))
 
 (defun eshell-parse-indices ()
   "Parse and return a list of list of indices."

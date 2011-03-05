@@ -147,18 +147,6 @@ function `string-to-number'."
 
 (put 'eshell-condition-case 'lisp-indent-function 2)
 
-(defmacro eshell-deftest (module name label &rest forms)
-  (if (and (fboundp 'cl-compiling-file) (cl-compiling-file))
-      nil
-    (let ((fsym (intern (concat "eshell-test--" (symbol-name name)))))
-      `(eval-when-compile
-	 (ignore
-	  (defun ,fsym () ,label
-	    (eshell-run-test (quote ,module) (quote ,fsym) ,label
-			     (quote (progn ,@forms)))))))))
-
-(put 'eshell-deftest 'lisp-indent-function 2)
-
 (defun eshell-find-delimiter
   (open close &optional bound reverse-p backslash-p)
   "From point, find the CLOSE delimiter corresponding to OPEN.
