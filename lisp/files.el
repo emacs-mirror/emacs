@@ -4831,7 +4831,7 @@ given.  With a prefix argument, TRASH is nil."
    (let* ((trashing (and delete-by-moving-to-trash
 			 (null current-prefix-arg)))
 	  (dir (expand-file-name
-		(read-file-name
+		(read-directory-name
 		 (if trashing
 		     "Move directory to trash: "
 		   "Delete directory: ")
@@ -4899,7 +4899,7 @@ directly into NEWNAME instead."
    (let ((dir (read-directory-name
 	       "Copy directory: " default-directory default-directory t nil)))
      (list dir
-	   (read-file-name
+	   (read-directory-name
 	    (format "Copy directory %s to: " dir)
 	    default-directory default-directory nil nil)
 	   current-prefix-arg t nil)))
@@ -5598,7 +5598,7 @@ Prefix arg (second arg if noninteractive) means supply -l switch to `ls'.
 Actions controlled by variables `list-directory-brief-switches'
 and `list-directory-verbose-switches'."
   (interactive (let ((pfx current-prefix-arg))
-		 (list (read-file-name (if pfx "List directory (verbose): "
+		 (list (read-directory-name (if pfx "List directory (verbose): "
 					 "List directory (brief): ")
 				       nil default-directory nil)
 		       pfx)))

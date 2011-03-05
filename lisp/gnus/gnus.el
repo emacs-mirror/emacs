@@ -3268,7 +3268,7 @@ g -- Group name."
 	((= c ?d)
 	 (point))
 	((= c ?D)
-	 (read-file-name prompt nil default-directory 'lambda))
+	 (read-directory-name prompt nil default-directory 'lambda))
 	((= c ?f)
 	 (read-file-name prompt nil nil 'lambda))
 	((= c ?F)

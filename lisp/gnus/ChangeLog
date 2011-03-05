@@ -1,3 +1,15 @@
+2011-03-05  Antoine Levitt  <antoine.levitt@gmail.com>
+
+	* gnus.el (gnus-interactive): Use read-directory-name.
+
+	* gnus-uu.el (gnus-uu-decode-uu-and-save)
+	(gnus-uu-decode-unshar-and-save, gnus-uu-decode-save)
+	(gnus-uu-decode-binhex, gnus-uu-decode-yenc)
+	(gnus-uu-decode-save-view, gnus-uu-decode-postscript-and-save):
+	Likewise.
+
+	* gnus-group.el (gnus-group-make-directory-group): Likewise.
+
 2011-03-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-sum.el (gnus-update-read-articles): Fix typo.

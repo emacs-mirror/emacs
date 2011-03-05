@@ -1954,7 +1954,7 @@ checked out in that new branch."
 	  ;; For VC's that do not work at file level, it's pointless
 	  ;; to ask for a directory, branches are created at repository level.
 	  default-directory
-	(read-file-name "Directory: " default-directory default-directory t))
+	(read-directory-name "Directory: " default-directory default-directory t))
       (read-string (if current-prefix-arg "New branch name: " "New tag name: "))
       current-prefix-arg)))
   (message "Making %s... " (if branchp "branch" "tag"))
@@ -1980,7 +1980,7 @@ allowed and simply skipped)."
 	  ;; For VC's that do not work at file level, it's pointless
 	  ;; to ask for a directory, branches are created at repository level.
 	  default-directory
-	(read-file-name "Directory: " default-directory default-directory t))
+	(read-directory-name "Directory: " default-directory default-directory t))
       (read-string "Tag name to retrieve (default latest revisions): "))))
   (let ((update (yes-or-no-p "Update any affected buffers? "))
 	(msg (if (or (not name) (string= name ""))

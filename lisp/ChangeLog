@@ -1,3 +1,21 @@
+2011-03-05  Antoine Levitt  <antoine.levitt@gmail.com>
+
+	* files.el (delete-directory, copy-directory, list-directory): Use
+	read-directory-name.
+
+	* find-file.el (ff-find-the-other-file):
+	* net/ange-ftp.el (ange-ftp-make-directory):
+	* printing.el (pr-interactive-dir):
+	* progmodes/ada-prj.el (ada-prj-load-directory):
+	* progmodes/ebnf2ps.el (ebnf-print-directory)
+	(ebnf-spool-directory, ebnf-eps-directory)
+	(ebnf-syntax-directory):
+	* shell.el (shell):
+	* speedbar.el (speedbar-create-directory):
+	* vc/emerge.el (emerge-merge-directories):
+	* vc/vc-dir.el (vc-dir):
+	* vc/vc.el (vc-create-tag, vc-retrieve-tag): Likewise.
+
 2011-03-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* help-mode.el (help-buffer): If we are to return the current

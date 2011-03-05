@@ -286,7 +286,7 @@ to \"Directory\", and then enter the name of the directory for
 storing the content of these messages."
   (interactive (list (let ((udir (or mh-store-default-directory
                                      default-directory)))
-                       (read-file-name "Store message in directory: "
+                       (read-directory-name "Store message in directory: "
                                        udir udir nil))))
   (let ((msg-file-to-store (mh-msg-filename (mh-get-msg-num t))))
     (with-current-buffer (get-buffer-create mh-temp-buffer)
@@ -300,7 +300,7 @@ storing the content of these messages."
 See `mh-store-msg' for a description of DIRECTORY."
   (interactive (list (let ((udir (or mh-store-default-directory
                                      default-directory)))
-                       (read-file-name "Store buffer in directory: "
+                       (read-directory-name "Store buffer in directory: "
                                        udir udir nil))))
   (let ((store-directory (expand-file-name directory))
         (sh-start (save-excursion

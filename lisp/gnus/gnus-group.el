@@ -3102,7 +3102,7 @@ The user will be prompted for a directory.  The contents of this
 directory will be used as a newsgroup.  The directory should contain
 mail messages or news articles in files that have numeric names."
   (interactive
-   (list (read-file-name "Create group from directory: ")))
+   (list (read-directory-name "Create group from directory: ")))
   (unless (file-exists-p dir)
     (error "No such directory"))
   (unless (file-directory-p dir)

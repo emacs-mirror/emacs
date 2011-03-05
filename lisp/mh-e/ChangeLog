@@ -1,3 +1,8 @@
+2011-03-05  Antoine Levitt  <antoine.levitt@gmail.com>
+
+	* mh-funcs.el (mh-store-msg, mh-store-buffer):
+	* mh-mime.el (mh-mime-save-parts): Use read-directory-name.
+
 2011-01-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mh-comp.el (mh-user-agent-compose): New arg RETURN-ACTION.

@@ -494,7 +494,7 @@ If optional IN-OTHER-WINDOW is non-nil, find the file in another window."
 
             (setq name
                   (expand-file-name
-                   (read-file-name
+                   (read-directory-name
                     (format "Find or create %s in: " default-name)
                     default-directory default-name nil)))
 

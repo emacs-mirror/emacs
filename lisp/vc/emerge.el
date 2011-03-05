@@ -1271,10 +1271,10 @@ Otherwise, the A or B file present is copied to the output file."
 (defun emerge-merge-directories (a-dir b-dir ancestor-dir output-dir)
   (interactive
    (list
-    (read-file-name "A directory: " nil nil 'confirm)
-    (read-file-name "B directory: " nil nil 'confirm)
-    (read-file-name "Ancestor directory (null for none): " nil nil 'confirm)
-    (read-file-name "Output directory (null for none): " nil nil 'confirm)))
+    (read-directory-name "A directory: " nil nil 'confirm)
+    (read-directory-name "B directory: " nil nil 'confirm)
+    (read-directory-name "Ancestor directory (null for none): " nil nil 'confirm)
+    (read-directory-name "Output directory (null for none): " nil nil 'confirm)))
   ;; Check that we're not on a line
   (if (not (and (bolp) (eolp)))
       (error "There is text on this line"))

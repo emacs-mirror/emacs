@@ -569,9 +569,9 @@ Otherwise, one argument `-i' is passed to the shell.
                ;; of the current-buffer rather than of the *shell* buffer.
 	       (setq default-directory
 		     (expand-file-name
-		      (read-file-name
+		      (read-directory-name
 		       "Default directory: " default-directory default-directory
-		       t nil 'file-directory-p))))))))
+		       t nil))))))))
   (require 'ansi-color)
   (setq buffer (if (or buffer (not (derived-mode-p 'shell-mode))
                        (comint-check-proc (current-buffer)))
