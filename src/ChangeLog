@@ -1,4 +1,4 @@
-2011-03-02  kbrown  <kbrown@cornell.edu>
+2011-03-02  Ken Brown  <kbrown@cornell.edu>
 
 	* sheap.c (STATIC_HEAP_SIZE): Increase to 13MB.
 
