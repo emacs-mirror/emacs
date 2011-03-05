@@ -204,12 +204,14 @@ The ARGUMENTS for each METHOD symbol are:
   `nickserv': NICK PASSWORD [NICKSERV-NICK]
   `chanserv': NICK CHANNEL PASSWORD
   `bitlbee': NICK PASSWORD
+  `quakenet': ACCOUNT PASSWORD
 
 Examples:
  ((\"freenode\" nickserv \"bob\" \"p455w0rd\")
   (\"freenode\" chanserv \"bob\" \"#bobland\" \"passwd99\")
   (\"bitlbee\" bitlbee \"robert\" \"sekrit\")
-  (\"dal.net\" nickserv \"bob\" \"sekrit\" \"NickServ@services.dal.net\"))"
+  (\"dal.net\" nickserv \"bob\" \"sekrit\" \"NickServ@services.dal.net\")
+  (\"quakenet.org\" quakenet \"bobby\" \"sekrit\"))"
   :type '(alist :key-type (string :tag "Server")
 		:value-type (choice (list :tag "NickServ"
 					  (const nickserv)
@@ -223,7 +225,11 @@ Examples:
 				    (list :tag "BitlBee"
 					  (const bitlbee)
 					  (string :tag "Nick")
-					  (string :tag "Password"))))
+					  (string :tag "Password"))
+                                    (list :tag "QuakeNet"
+                                          (const quakenet)
+                                          (string :tag "Account")
+                                          (string :tag "Password"))))
   :group 'rcirc)
 
 (defcustom rcirc-auto-authenticate-flag t
@@ -2506,8 +2512,10 @@ the only argument."
                          (format "You are now identified for \C-b%s\C-b." rcirc-nick)
                          "Password accepted - you are now recognized."
                          )))
-               ;; place for other methods
-               )
+               (and ;; quakenet
+                (string= sender "Q")
+                (string= target rcirc-nick)
+                (string-match message "\\`You are now logged in as .+\\.\\'")))
           (setq rcirc-user-authenticated t)
           (run-hook-with-args 'rcirc-authenticated-hook process)
           (remove-hook 'rcirc-authenticated-hook 'rcirc-join-channels-post-auth t))))))
@@ -2756,26 +2764,33 @@ Passwords are stored in `rcirc-authinfo' (which see)."
 	    (nick (caddr i))
 	    (method (cadr i))
 	    (args (cdddr i)))
-	(when (and (string-match server rcirc-server)
-		   (string-match nick rcirc-nick))
-	  (cond ((equal method 'nickserv)
-		 (rcirc-send-privmsg
-		  process
+	(when (and (string-match server rcirc-server))
+          (if (and (memq method '(nickserv chanserv bitlbee))
+                   (string-match nick rcirc-nick))
+              ;; the following methods rely on the user's nickname.
+              (case method
+                (nickserv
+                 (rcirc-send-privmsg
+                  process
                   (or (cadr args) "NickServ")
-                  (concat "identify " (car args))))
-		((equal method 'chanserv)
-		 (rcirc-send-privmsg
-		  process
+                  (concat "IDENTIFY " (car args))))
+                (chanserv
+                 (rcirc-send-privmsg
+                  process
                   "ChanServ"
-                  (format "identify %s %s" (car args) (cadr args))))
-		((equal method 'bitlbee)
-		 (rcirc-send-privmsg
-		  process
+                  (format "IDENTIFY %s %s" (car args) (cadr args))))
+                (bitlbee
+                 (rcirc-send-privmsg
+                  process
                   "&bitlbee"
-                  (concat "identify " (car args))))
-		(t
-		 (message "No %S authentication method defined"
-			  method))))))))
+                  (concat "IDENTIFY " (car args)))))
+            ;; quakenet authentication doesn't rely on the user's nickname.
+            ;; the variable `nick' here represents the Q account name.
+            (when (eq method 'quakenet)
+              (rcirc-send-privmsg 
+               process
+               "Q@CServe.quakenet.org"
+               (format "AUTH %s %s" nick (car args))))))))))
 
 (defun rcirc-handler-INVITE (process sender args text)
   (rcirc-print process sender "INVITE" nil (mapconcat 'identity args " ") t))

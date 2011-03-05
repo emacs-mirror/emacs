@@ -1,5 +1,11 @@
 2011-03-05  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
 
+	* net/rcirc.el: Add QuakeNet authentication support.
+	(rcirc-authinfo, rcirc-check-auth-status)
+	(rcirc-authenticate): Support QuakeNet.
+
+2011-03-05  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
 	* net/rcirc.el: Add functionality to authenticate before
 	autojoining channels.
 	(rcirc-authenticate-before-join): New option.
