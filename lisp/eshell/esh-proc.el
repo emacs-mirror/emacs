@@ -121,7 +121,7 @@ Runs `eshell-reset-after-proc' and `eshell-kill-hook', passing arguments
 PROC and STATUS to both."
   (or (memq 'eshell-reset-after-proc eshell-kill-hook)
       (eshell-reset-after-proc proc status))
-  (run-hook-with-args eshell-kill-hook proc status))
+  (run-hook-with-args 'eshell-kill-hook proc status))
 
 (defun eshell-proc-initialize ()
   "Initialize the process handling code."
