@@ -1,3 +1,21 @@
+2011-03-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-update-read-articles): Fix typo.
+
+	* gnus.el (gnus-valid-select-methods): Mark nnimap as a backend that
+	really have server-side marks.
+
+	* gnus-sum.el (gnus-propagate-marks): Change default back to nil again,
+	since most backends do not usefully have server-side marks.
+	(gnus-update-read-articles): Propagate marks to all backends that
+	really have server-side marks.
+
+2011-03-05  Antoine Levitt  <antoine.levitt@gmail.com>
+
+	* message.el (message-cite-reply-position, message-cite-style): New
+	variables.
+	(message-yank-original): Use the new citation styles.
+
 2011-03-04  Daiki Ueno  <ueno@unixuser.org>
 
 	* message.el (message-options): Revert the change that's a workaround

@@ -1234,7 +1234,7 @@ For example: ((1 . cn-gb-2312) (2 . big5))."
   :type 'boolean
   :group 'gnus-summary-marks)
 
-(defcustom gnus-propagate-marks t
+(defcustom gnus-propagate-marks nil
   "If non-nil, Gnus will store and retrieve marks from the backends.
 This means that marks will be stored both in .newsrc.eld and in
 the backend, and will slow operation down somewhat."
@@ -12435,7 +12435,10 @@ UNREAD is a sorted list."
 	(save-excursion
 	  (let (setmarkundo)
 	    ;; Propagate the read marks to the backend.
-	    (when (and gnus-propagate-marks
+	    (when (and (or gnus-propagate-marks
+			   (gnus-method-option-p
+			    (gnus-find-method-for-group group)
+			    'server-marks))
 		       (gnus-check-backend-function 'request-set-mark group))
 	      (let ((del (gnus-remove-from-range (gnus-info-read info) read))
 		    (add (gnus-remove-from-range read (gnus-info-read info))))

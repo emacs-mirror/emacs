@@ -129,17 +129,6 @@
   :group 'message-buffers
   :type '(choice function (const nil)))
 
-(defcustom message-cite-style nil
-  "The overall style to be used when yanking cited text.
-Values are either `traditional' (cited text first),
-`top-post' (cited text at the bottom), or nil (don't override the
-individual message variables)."
-  :version "24.1"
-  :group 'message-various
-  :type '(choice (const :tag "None" :value nil)
-		 (const :tag "Traditional" :value traditional)
-		 (const :tag "Top-post" :value top-post)))
-
 (defcustom message-fcc-handler-function 'message-output
   "*A function called to save outgoing articles.
 This function will be called with the name of the file to store the
@@ -1087,6 +1076,71 @@ needed."
   :type 'boolean
   :link '(custom-manual "(message)Insertion Variables")
   :group 'message-insertion)
+
+(defcustom message-cite-reply-position 'traditional
+  "*Where the reply should be positioned.
+If `traditional', reply inline.
+If `above', reply above quoted text.
+If `below', reply below quoted text.
+
+Note: Many newsgroups frown upon nontraditional reply styles. You
+probably want to set this variable only for specific groups,
+e.g. using `gnus-posting-styles':
+
+  (eval (set (make-local-variable 'message-cite-reply-above) 'above))"
+  :type '(choice (const :tag "Reply inline" 'traditional)
+		 (const :tag "Reply above" 'above)
+		 (const :tag "Reply below" 'below))
+  :group 'message-insertion)
+
+(defcustom message-cite-style nil
+  "*The overall style to be used when yanking cited text.
+Value is either `nil' (no variable overrides) or a let-style list
+of pairs (VARIABLE VALUE) that will be bound in
+`message-yank-original' to do the quoting.
+
+Presets to impersonate popular mail agents are found in the
+message-cite-style-* variables.  This variable is intended for
+use in `gnus-posting-styles', such as:
+
+  ((posting-from-work-p) (eval (set (make-local-variable 'message-cite-style) message-cite-style-outlook)))"
+  :version "24.1"
+  :group 'message-insertion
+  :type '(choice (const :tag "Do not override variables" :value nil)
+		 (const :tag "MS Outlook" :value message-cite-style-outlook)
+		 (const :tag "Mozilla Thunderbird" :value message-cite-style-thunderbird)
+		 (const :tag "Gmail" :value message-cite-style-gmail)
+		 (variable :tag "User-specified")))
+
+(defconst message-cite-style-outlook
+  '((message-cite-function  'message-cite-original)
+    (message-citation-line-function  'message-insert-formatted-citation-line)
+    (message-cite-reply-position 'above)
+    (message-yank-prefix  "")
+    (message-yank-cited-prefix  "")
+    (message-yank-empty-prefix  "")
+    (message-citation-line-format  "\n\n-----------------------\nOn %a, %b %d %Y, %N wrote:\n"))
+  "Message citation style used by MS Outlook. Use with message-cite-style.")
+
+(defconst message-cite-style-thunderbird
+  '((message-cite-function  'message-cite-original)
+    (message-citation-line-function  'message-insert-formatted-citation-line)
+    (message-cite-reply-position 'above)
+    (message-yank-prefix  "> ")
+    (message-yank-cited-prefix  ">")
+    (message-yank-empty-prefix  ">")
+    (message-citation-line-format "On %D %R %p, %N wrote:"))
+  "Message citation style used by Mozilla Thunderbird. Use with message-cite-style.")
+
+(defconst message-cite-style-gmail
+  '((message-cite-function  'message-cite-original)
+    (message-citation-line-function  'message-insert-formatted-citation-line)
+    (message-cite-reply-position 'above)
+    (message-yank-prefix  "    ")
+    (message-yank-cited-prefix  "    ")
+    (message-yank-empty-prefix  "    ")
+    (message-citation-line-format "On %e %B %Y %R, %f wrote:\n"))
+  "Message citation style used by Gmail. Use with message-cite-style.")
 
 (defcustom message-distribution-function nil
   "*Function called to return a Distribution header."
@@ -3650,17 +3704,6 @@ To use this automatically, you may add this function to
       (while (re-search-forward citexp nil t)
 	(replace-match (if remove "" "\n"))))))
 
-(defvar message-cite-reply-above nil
-  "If non-nil, start own text above the quote.
-
-Note: Top posting is bad netiquette.  Don't use it unless you
-really must.  You probably want to set variable only for specific
-groups, e.g. using `gnus-posting-styles':
-
-  (eval (set (make-local-variable 'message-cite-reply-above) t))
-
-This variable has no effect in news postings.")
-
 (defun message-yank-original (&optional arg)
   "Insert the message being replied to, if any.
 Puts point before the text and mark after.
@@ -3674,49 +3717,49 @@ prefix, and don't delete any headers."
   (interactive "P")
   (let ((modified (buffer-modified-p))
 	body-text)
-    (when (and message-reply-buffer
-	       message-cite-function)
-      (when message-cite-reply-above
-	(if (and (not (message-news-p))
-		 (or (eq message-cite-reply-above 'is-evil)
-		     (y-or-n-p "\
-Top posting is bad netiquette.  Please don't top post unless you really must.
-Really top post? ")))
+    ;; eval the let forms contained in message-cite-style
+    (eval
+     `(let ,message-cite-style
+	(when (and message-reply-buffer
+		   message-cite-function)
+	  (when (equal message-cite-reply-position 'above)
 	    (save-excursion
 	      (setq body-text
 		    (buffer-substring (message-goto-body)
 				      (point-max)))
-	      (delete-region (message-goto-body) (point-max)))
-	  (set (make-local-variable 'message-cite-reply-above) nil)))
-      (if (bufferp message-reply-buffer)
-	  (delete-windows-on message-reply-buffer t))
-      (push-mark (save-excursion
-		   (cond
-		    ((bufferp message-reply-buffer)
-		     (insert-buffer-substring message-reply-buffer))
-		    ((and (consp message-reply-buffer)
-			  (functionp (car message-reply-buffer)))
-		     (apply (car message-reply-buffer)
-			    (cdr message-reply-buffer))))
-		   (unless (bolp)
-		     (insert ?\n))
-		   (point)))
-      (unless arg
-	(funcall message-cite-function)
-	(unless (eq (char-before (mark t)) ?\n)
-	  (let ((pt (point)))
-	    (goto-char (mark t))
-	    (insert-before-markers ?\n)
-	    (goto-char pt))))
-      (when message-cite-reply-above
-	(message-goto-body)
-	(insert body-text)
-	(insert (if (bolp) "\n" "\n\n"))
-	(message-goto-body))
-      ;; Add a `message-setup-very-last-hook' here?
-      ;; Add `gnus-article-highlight-citation' here?
-      (unless modified
-	(setq message-checksum (message-checksum))))))
+	      (delete-region (message-goto-body) (point-max))))
+	  (if (bufferp message-reply-buffer)
+	      (delete-windows-on message-reply-buffer t))
+	  (push-mark (save-excursion
+		       (cond
+			((bufferp message-reply-buffer)
+			 (insert-buffer-substring message-reply-buffer))
+			((and (consp message-reply-buffer)
+			      (functionp (car message-reply-buffer)))
+			 (apply (car message-reply-buffer)
+				(cdr message-reply-buffer))))
+		       (unless (bolp)
+			 (insert ?\n))
+		       (point)))
+	  (unless arg
+	    (funcall message-cite-function)
+	    (unless (eq (char-before (mark t)) ?\n)
+	      (let ((pt (point)))
+		(goto-char (mark t))
+		(insert-before-markers ?\n)
+		(goto-char pt))))
+	  (case message-cite-reply-position
+	    ('above
+	     (message-goto-body)
+	     (insert body-text)
+	     (insert (if (bolp) "\n" "\n\n"))
+	     (message-goto-body))
+	    ('below
+	     (message-goto-signature)))
+	  ;; Add a `message-setup-very-last-hook' here?
+	  ;; Add `gnus-article-highlight-citation' here?
+	  (unless modified
+	    (setq message-checksum (message-checksum))))))))
 
 (defun message-yank-buffer (buffer)
   "Insert BUFFER into the current buffer and quote it."
