@@ -1,7 +1,8 @@
 2011-03-04  Daiki Ueno  <ueno@unixuser.org>
 
 	* message.el (message-options): Revert the change that's a workaround
-	for XEmacs buffer-local issue.
+	for XEmacs buffer-local issue; don't mark it buffer-local when running
+	under XEmacs.
 
 2011-03-03  Tassilo Horn  <tassilo@member.fsf.org>
 

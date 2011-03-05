@@ -1814,7 +1814,12 @@ You must have the \"hashcash\" binary installed, see `hashcash-path'."
 
 (defvar	message-options nil
   "Some saved answers when sending message.")
-(make-variable-buffer-local 'message-options)
+;; FIXME: On XEmacs this causes problems since let-binding like:
+;; (let ((message-options message-options)) ...)
+;; as in `message-send' and `mml-preview' loses to buffer-local
+;; variable initialization.
+(unless (featurep 'xemacs)
+  (make-variable-buffer-local 'message-options))
 
 (defvar message-send-mail-real-function nil
   "Internal send mail function.")
