@@ -166,9 +166,9 @@
       (insert "Testing Eshell under " (emacs-version))
       (switch-to-buffer test-buffer)
       (delete-other-windows))
-    (eshell-for funcname (sort (all-completions "eshell-test--"
+    (dolist (funcname (sort (all-completions "eshell-test--"
 						obarray 'functionp)
-			       'string-lessp)
+			       'string-lessp))
       (with-current-buffer test-buffer
 	(insert "\n"))
       (funcall (intern-soft funcname)))

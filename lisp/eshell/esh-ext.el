@@ -263,7 +263,7 @@ line of the form #!<interp>."
   (let ((finterp
 	 (catch 'found
 	   (ignore
-	    (eshell-for possible eshell-interpreter-alist
+	    (dolist (possible eshell-interpreter-alist)
 	      (cond
 	       ((functionp (car possible))
 		(and (funcall (car possible) file)

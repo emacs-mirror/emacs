@@ -292,7 +292,7 @@ element, regardless of any text on the command line.  In that case,
 
 (defun eshell-save-some-history ()
   "Save the history for any open Eshell buffers."
-  (eshell-for buf (buffer-list)
+  (dolist (buf (buffer-list))
     (if (buffer-live-p buf)
 	(with-current-buffer buf
 	  (if (and eshell-mode
@@ -730,7 +730,7 @@ matched."
 	  (narrow-to-region here (point))
 	  (goto-char (point-min))
 	  (let ((modifiers (cdr (eshell-parse-modifiers))))
-	    (eshell-for mod modifiers
+	    (dolist (mod modifiers)
 	      (setq hist (funcall mod hist)))
 	    hist))
       (delete-region here (point)))))

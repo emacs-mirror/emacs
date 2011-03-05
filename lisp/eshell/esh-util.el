@@ -296,10 +296,12 @@ Prepend remote identification of `default-directory', if any."
 
 (put 'eshell-for 'lisp-indent-function 2)
 
+(make-obsolete 'eshell-for 'dolist "24.1")
+
 (defun eshell-flatten-list (args)
   "Flatten any lists within ARGS, so that there are no sublists."
   (let ((new-list (list t)))
-    (eshell-for a args
+    (dolist (a args)
       (if (and (listp a)
 	       (listp (cdr a)))
 	  (nconc new-list (eshell-flatten-list a))
@@ -405,7 +407,7 @@ list."
     (unless (listp entries)
       (setq entries (list entries)
 	    listified t))
-    (eshell-for entry entries
+    (dolist (entry entries)
       (unless (and exclude (string-match exclude entry))
 	(setq p predicates valid (null p))
 	(while p

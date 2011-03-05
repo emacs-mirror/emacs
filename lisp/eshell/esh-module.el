@@ -92,7 +92,7 @@ customization group.  Example: `eshell-cmpl' for that module."
 
 (defun eshell-unload-extension-modules ()
   "Unload any memory resident extension modules."
-  (eshell-for module (eshell-subgroups 'eshell-module)
+  (dolist (module (eshell-subgroups 'eshell-module))
     (if (featurep module)
 	(ignore-errors
 	  (message "Unloading %s..." (symbol-name module))

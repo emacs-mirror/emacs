@@ -389,7 +389,7 @@ This is used by `eshell-watch-for-password-prompt'."
   ;; load extension modules into memory.  This will cause any global
   ;; variables they define to be visible, since some of the core
   ;; modules sometimes take advantage of their functionality if used.
-  (eshell-for module eshell-modules-list
+  (dolist (module eshell-modules-list)
     (let ((module-fullname (symbol-name module))
 	  module-shortname)
       (if (string-match "^eshell-\\(.*\\)" module-fullname)
@@ -404,12 +404,12 @@ This is used by `eshell-watch-for-password-prompt'."
     (eshell-make-private-directory eshell-directory-name t))
 
   ;; load core Eshell modules for this session
-  (eshell-for module (eshell-subgroups 'eshell)
+  (dolist (module (eshell-subgroups 'eshell))
     (run-hooks (intern-soft (concat (symbol-name module)
 				    "-load-hook"))))
 
   ;; load extension modules for this session
-  (eshell-for module eshell-modules-list
+  (dolist (module eshell-modules-list)
     (let ((load-hook (intern-soft (concat (symbol-name module)
 					  "-load-hook"))))
       (if (and load-hook (boundp load-hook))

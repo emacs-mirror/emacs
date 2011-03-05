@@ -351,8 +351,7 @@ This function is explicit for adding to `eshell-parse-argument-hook'."
    '((?h "help" nil nil "show this usage screen")
      :external "env"
      :usage "<no arguments>")
-   (eshell-for setting (sort (eshell-environment-variables)
-			     'string-lessp)
+   (dolist (setting (sort (eshell-environment-variables) 'string-lessp))
      (eshell-buffered-print setting "\n"))
    (eshell-flush)))
 
@@ -374,7 +373,7 @@ This function is explicit for adding to `eshell-parse-argument-hook'."
 This involves setting any variable aliases which affect the
 environment, as specified in `eshell-variable-aliases-list'."
   (let ((process-environment (eshell-copy-environment)))
-    (eshell-for var-alias eshell-variable-aliases-list
+    (dolist (var-alias eshell-variable-aliases-list)
       (if (nth 2 var-alias)
 	  (setenv (car var-alias)
 		  (eshell-stringify
@@ -623,7 +622,7 @@ For example, to retrieve the second element of a user's record in
   "Generate list of applicable variables."
   (let ((argname pcomplete-stub)
 	completions)
-    (eshell-for alias eshell-variable-aliases-list
+    (dolist (alias eshell-variable-aliases-list)
       (if (string-match (concat "^" argname) (car alias))
 	  (setq completions (cons (car alias) completions))))
     (sort

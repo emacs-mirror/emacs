@@ -156,7 +156,7 @@ command, which will automatically write them to the file named by
 (defun eshell/alias (&optional alias &rest definition)
   "Define an ALIAS in the user's alias list using DEFINITION."
   (if (not alias)
-      (eshell-for alias eshell-command-aliases-list
+      (dolist (alias eshell-command-aliases-list)
 	(eshell-print (apply 'format "alias %s %s\n" alias)))
     (if (not definition)
 	(setq eshell-command-aliases-list
@@ -238,7 +238,7 @@ command, which will automatically write them to the file named by
   "Find all possible completions for NAME.
 These are all the command aliases which begin with NAME."
   (let (completions)
-    (eshell-for alias eshell-command-aliases-list
+    (dolist (alias eshell-command-aliases-list)
       (if (string-match (concat "^" name) (car alias))
 	  (setq completions (cons (car alias) completions))))
     completions))

@@ -987,7 +987,7 @@ at the moment are:
 	 (not (member name eshell-complex-commands))
 	 (catch 'simple
 	   (progn
-	    (eshell-for pred eshell-complex-commands
+	    (dolist (pred eshell-complex-commands)
 	      (if (and (functionp pred)
 		       (funcall pred name))
 		  (throw 'simple nil)))
@@ -1165,7 +1165,7 @@ be finished later after the completion of an asynchronous subprocess."
 	(if (and (eq (car form) 'let)
 		 (not (eq (car (cadr args)) 'eshell-do-eval)))
 	    (eshell-manipulate "evaluating let args"
-	      (eshell-for letarg (car args)
+	      (dolist (letarg (car args))
 		(if (and (listp letarg)
 			 (not (eq (cadr letarg) 'quote)))
 		    (setcdr letarg
@@ -1241,7 +1241,7 @@ be finished later after the completion of an asynchronous subprocess."
 
 (defun eshell/which (command &rest names)
   "Identify the COMMAND, and where it is located."
-  (eshell-for name (cons command names)
+  (dolist (name (cons command names))
     (let (program alias direct)
       (if (eq (aref name 0) eshell-explicit-command-char)
 	  (setq name (substring name 1)

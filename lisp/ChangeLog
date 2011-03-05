@@ -1,3 +1,26 @@
+2011-03-05  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/esh-util.el (eshell-for): Make it obsolete.
+	* eshell/em-alias.el (eshell/alias, eshell-alias-completions):
+	* eshell/em-dirs.el (eshell-save-some-last-dir):
+	* eshell/em-hist.el (eshell-save-some-history)
+	(eshell-hist-parse-modifier):
+	* eshell/em-ls.el (eshell-ls-dir, eshell-ls-files)
+	(eshell-ls-entries):
+	* eshell/em-unix.el (eshell/cat, eshell/du, eshell/su):
+	* eshell/esh-cmd.el (eshell-invoke-directly, eshell-do-eval)
+	(eshell/which):
+	* eshell/esh-ext.el (eshell-find-interpreter):
+	* eshell/esh-mode.el (eshell-mode):
+	* eshell/esh-module.el (eshell-unload-extension-modules):
+	* eshell/esh-proc.el (eshell-process-interact):
+	* eshell/esh-test.el (eshell-test):
+	* eshell/esh-util.el (eshell-flatten-list, eshell-winnow-list):
+	* eshell/esh-var.el (eshell/env, eshell-environment-variables)
+	(eshell-variables-list):
+	* eshell/eshell.el (eshell-unload-all-modules):
+	Replace eshell-for with dolist.
+
 2011-03-04  Glenn Morris  <rgm@gnu.org>
 
 	* vc/vc-bzr.el (vc-bzr-after-dir-status): Handle bzr 2.3.0.  (Bug#8170)

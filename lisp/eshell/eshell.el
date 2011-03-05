@@ -474,7 +474,7 @@ Emacs."
   ;; if the user set `eshell-prefer-to-shell' to t, but never loaded
   ;; Eshell, then `eshell-subgroups' will be unbound
   (when (fboundp 'eshell-subgroups)
-    (eshell-for module (eshell-subgroups 'eshell)
+    (dolist (module (eshell-subgroups 'eshell))
       ;; this really only unloads as many modules as possible,
       ;; since other `require' references (such as by customizing
       ;; `eshell-prefer-to-shell' to a non-nil value) might make it

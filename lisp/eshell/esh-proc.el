@@ -398,7 +398,7 @@ PROC is the process that's exiting.  STRING is the exit message."
 If ALL is non-nil, background processes will be interacted with as well.
 If QUERY is non-nil, query the user with QUERY before calling FUNC."
   (let (defunct result)
-    (eshell-for entry eshell-process-list
+    (dolist (entry eshell-process-list)
       (if (and (memq (process-status (car entry))
 		    '(run stop open closed))
 	       (or all
@@ -412,7 +412,7 @@ If QUERY is non-nil, query the user with QUERY before calling FUNC."
     ;; clean up the process list; this can get dirty if an error
     ;; occurred that brought the user into the debugger, and then they
     ;; quit, so that the sentinel was never called.
-    (eshell-for d defunct
+    (dolist (d defunct)
       (eshell-remove-process-entry d))
     result))
 

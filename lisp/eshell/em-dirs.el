@@ -233,7 +233,7 @@ Thus, this does not include the current directory.")
 
 (defun eshell-save-some-last-dir ()
   "Save the list-dir-ring for any open Eshell buffers."
-  (eshell-for buf (buffer-list)
+  (dolist (buf (buffer-list))
     (if (buffer-live-p buf)
 	(with-current-buffer buf
 	  (if (and eshell-mode
