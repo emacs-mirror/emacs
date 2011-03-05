@@ -2283,8 +2283,7 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   if (cursor_type == BAR_CURSOR || cursor_type == HBAR_CURSOR)
     {
       if (cursor_width < 0)
-	cursor_width = FRAME_CURSOR_WIDTH (f);
-      cursor_width = min (cursor_width, 1);
+	cursor_width = max (FRAME_CURSOR_WIDTH (f), 1);
       w->phys_cursor_width = cursor_width;
     }
 
