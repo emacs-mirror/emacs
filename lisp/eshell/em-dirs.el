@@ -58,8 +58,9 @@ they lack somewhat in feel from the typical shell equivalents."
 
 ;;; User Variables:
 
-(defcustom eshell-dirs-load-hook '(eshell-dirs-initialize)
+(defcustom eshell-dirs-load-hook nil
   "A hook that gets run when `eshell-dirs' is loaded."
+  :version "24.1"			; removed eshell-dirs-initialize
   :type 'hook
   :group 'eshell-dirs)
 

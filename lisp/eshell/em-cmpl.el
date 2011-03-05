@@ -84,8 +84,9 @@ variable names, arguments, etc."
 
 ;;; User Variables:
 
-(defcustom eshell-cmpl-load-hook '(eshell-cmpl-initialize)
+(defcustom eshell-cmpl-load-hook nil
   "A list of functions to run when `eshell-cmpl' is loaded."
+  :version "24.1"			; removed eshell-cmpl-initialize
   :type 'hook
   :group 'eshell-cmpl)
 

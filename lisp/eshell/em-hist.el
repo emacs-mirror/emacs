@@ -70,8 +70,9 @@
 
 ;;; User Variables:
 
-(defcustom eshell-hist-load-hook '(eshell-hist-initialize)
+(defcustom eshell-hist-load-hook nil
   "A list of functions to call when loading `eshell-hist'."
+  :version "24.1"			; removed eshell-hist-initialize
   :type 'hook
   :group 'eshell-hist)
 

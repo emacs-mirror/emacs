@@ -117,8 +117,9 @@ gained by using this module."
   ;; :link '(custom-manual "(eshell)Auto-correction of bad commands")
   :group 'eshell-alias)
 
-(defcustom eshell-alias-load-hook '(eshell-alias-initialize)
+(defcustom eshell-alias-load-hook nil
   "A hook that gets run when `eshell-alias' is loaded."
+  :version "24.1"			; removed eshell-alias-initialize
   :type 'hook
   :group 'eshell-alias)
 

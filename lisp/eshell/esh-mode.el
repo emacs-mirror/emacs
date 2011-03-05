@@ -89,9 +89,10 @@ That is to say, the first time during an Emacs session."
   :type 'hook
   :group 'eshell-mode)
 
-(defcustom eshell-exit-hook '(eshell-query-kill-processes)
+(defcustom eshell-exit-hook nil
   "A hook that is run whenever `eshell' is exited.
 This hook is only run if exiting actually kills the buffer."
+  :version "24.1"                       ; removed eshell-query-kill-processes
   :type 'hook
   :group 'eshell-mode)
 
@@ -287,6 +288,17 @@ This is used by `eshell-watch-for-password-prompt'."
 
 ;;; User Functions:
 
+(defun eshell-kill-buffer-function ()
+  "Function added to `kill-buffer-hook' in Eshell buffers.
+This runs the function `eshell-kill-processes-on-exit',
+and the hook `eshell-exit-hook'."
+  ;; It's fine to run this unconditionally since it can be customized
+  ;; via the `eshell-kill-processes-on-exit' variable.
+  (and (fboundp 'eshell-query-kill-processes)
+       (not (memq 'eshell-query-kill-processes eshell-exit-hook))
+       (eshell-query-kill-processes))
+  (run-hooks 'eshell-exit-hook))
+
 ;;;###autoload
 (defun eshell-mode ()
   "Emacs shell interactive mode.
@@ -403,17 +415,15 @@ This is used by `eshell-watch-for-password-prompt'."
   (unless (file-exists-p eshell-directory-name)
     (eshell-make-private-directory eshell-directory-name t))
 
-  ;; load core Eshell modules for this session
-  (dolist (module (eshell-subgroups 'eshell))
-    (run-hooks (intern-soft (concat (symbol-name module)
-				    "-load-hook"))))
-
-  ;; load extension modules for this session
-  (dolist (module eshell-modules-list)
-    (let ((load-hook (intern-soft (concat (symbol-name module)
-					  "-load-hook"))))
-      (if (and load-hook (boundp load-hook))
-	  (run-hooks load-hook))))
+  ;; Load core Eshell modules, then extension modules, for this session.
+  (dolist (module (append (eshell-subgroups 'eshell) eshell-modules-list))
+    (let ((load-hook (intern-soft (format "%s-load-hook" module)))
+          (initfunc (intern-soft (format "%s-initialize" module))))
+      (when (and load-hook (boundp load-hook))
+        (if (memq initfunc (symbol-value load-hook)) (setq initfunc nil))
+        (run-hooks load-hook))
+      ;; So we don't need the -initialize functions on the hooks (b#5375).
+      (and initfunc (fboundp initfunc) (funcall initfunc))))
 
   (if eshell-send-direct-to-subprocesses
       (add-hook 'pre-command-hook 'eshell-intercept-commands t t))
@@ -428,10 +438,7 @@ This is used by `eshell-watch-for-password-prompt'."
     (add-hook 'eshell-pre-command-hook 'eshell-command-started nil t)
     (add-hook 'eshell-post-command-hook 'eshell-command-finished nil t))
 
-  (add-hook 'kill-buffer-hook
-	    (function
-	     (lambda ()
-	       (run-hooks 'eshell-exit-hook))) t t)
+  (add-hook 'kill-buffer-hook 'eshell-kill-buffer-function t t)
 
   (if eshell-first-time-p
       (run-hooks 'eshell-first-time-mode-hook))

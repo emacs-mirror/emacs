@@ -1,5 +1,34 @@
 2011-03-05  Glenn Morris  <rgm@gnu.org>
 
+	* eshell/esh-mode.el (eshell-kill-buffer-function): New function.
+	(eshell-mode): Use eshell-kill-buffer-function.
+	Run the -initialize functions independently of the -load-hooks.
+	* eshell/esh-proc.el (eshell-kill-process-function): New function.
+	(eshell-gather-process-output, eshell-sentinel)
+	(eshell-interrupt-process, eshell-kill-process, eshell-quit-process):
+	Use eshell-kill-process-function.
+	* eshell/em-alias.el (eshell-alias-load-hook):
+	* eshell/em-banner.el (eshell-banner-load-hook):
+	* eshell/em-cmpl.el (eshell-cmpl-load-hook):
+	* eshell/em-dirs.el (eshell-dirs-load-hook):
+	* eshell/em-glob.el (eshell-glob-load-hook):
+	* eshell/em-hist.el (eshell-hist-load-hook):
+	* eshell/em-pred.el (eshell-pred-load-hook):
+	* eshell/em-prompt.el (eshell-prompt-load-hook):
+	* eshell/em-rebind.el (eshell-rebind-load-hook):
+	* eshell/em-script.el (eshell-script-load-hook):
+	* eshell/em-smart.el (eshell-smart-load-hook):
+	* eshell/em-term.el (eshell-term-load-hook):
+	* eshell/em-unix.el (eshell-unix-load-hook):
+	* eshell/esh-arg.el (eshell-arg-load-hook):
+	* eshell/esh-cmd.el (eshell-cmd-load-hook):
+	* eshell/esh-ext.el (eshell-ext-load-hook):
+	* eshell/esh-io.el (eshell-io-load-hook):
+	* eshell/esh-mode.el (eshell-exit-hook):
+	* eshell/esh-proc.el (eshell-proc-load-hook, eshell-kill-hook):
+	* eshell/esh-var.el (eshell-var-load-hook):
+	Set default hook values to nil.  (Bug#5375)
+
 	* eshell/esh-module.el (eshell-module-unload-hook)
 	(eshell-modules-list): Remove leading * from defcustom docs.
 

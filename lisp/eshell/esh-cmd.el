@@ -229,8 +229,9 @@ return non-nil if the command is complex."
 
 ;;; User Variables:
 
-(defcustom eshell-cmd-load-hook '(eshell-cmd-initialize)
+(defcustom eshell-cmd-load-hook nil
   "A hook that gets run when `eshell-cmd' is loaded."
+  :version "24.1"		       ; removed eshell-cmd-initialize
   :type 'hook
   :group 'eshell-cmd)
 

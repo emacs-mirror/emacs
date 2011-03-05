@@ -53,8 +53,9 @@ by name)."
   :tag "UNIX commands in Lisp"
   :group 'eshell-module)
 
-(defcustom eshell-unix-load-hook '(eshell-unix-initialize)
+(defcustom eshell-unix-load-hook nil
   "A list of functions to run when `eshell-unix' is loaded."
+  :version "24.1"			; removed eshell-unix-initialize
   :type 'hook
   :group 'eshell-unix)
 

@@ -64,8 +64,9 @@ This can be any sexp, and should end with at least two newlines."
 
 (put 'eshell-banner-message 'risky-local-variable t)
 
-(defcustom eshell-banner-load-hook '(eshell-banner-initialize)
+(defcustom eshell-banner-load-hook nil
   "A list of functions to run when `eshell-banner' is loaded."
+  :version "24.1"                       ; removed eshell-banner-initialize
   :type 'hook
   :group 'eshell-banner)
 

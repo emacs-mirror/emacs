@@ -126,8 +126,9 @@ variable value, a subcommand, or even the result of a Lisp form."
 
 ;;; User Variables:
 
-(defcustom eshell-var-load-hook '(eshell-var-initialize)
+(defcustom eshell-var-load-hook nil
   "A list of functions to call when loading `eshell-var'."
+  :version "24.1"			; removed eshell-var-initialize
   :type 'hook
   :group 'eshell-var)
 
