@@ -285,7 +285,6 @@ Prepend remote identification of `default-directory', if any."
       (setq text (replace-match " " t t text)))
     text))
 
-;; FIXME this is just dolist.
 (defmacro eshell-for (for-var for-list &rest forms)
   "Iterate through a list"
   `(let ((list-iter ,for-list))
