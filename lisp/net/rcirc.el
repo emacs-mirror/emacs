@@ -232,6 +232,13 @@ See also `rcirc-authinfo'."
   :type 'boolean
   :group 'rcirc)
 
+(defcustom rcirc-authenticate-before-join t
+  "*Non-nil means authenticate to services before joining channels.
+Currently only works with NickServ on some networks."
+  :version "24.1"
+  :type 'boolean
+  :group 'rcirc)
+
 (defcustom rcirc-prompt "> "
   "Prompt string to use in IRC buffers.
 
@@ -281,6 +288,9 @@ See `rcirc-dim-nick' face."
 Called with 5 arguments, PROCESS, SENDER, RESPONSE, TARGET and TEXT."
   :type 'hook
   :group 'rcirc)
+
+(defvar rcirc-authenticated-hook nil
+  "Hook run after successfully authenticated.")
 
 (defcustom rcirc-always-use-server-buffer-flag nil
   "Non-nil means messages without a channel target will go to the server buffer."
@@ -524,6 +534,8 @@ If ARG is non-nil, instead prompt for connection parameters."
       (setq rcirc-timeout-timer nil)
       (make-local-variable 'rcirc-user-disconnect)
       (setq rcirc-user-disconnect nil)
+      (make-local-variable 'rcirc-user-authenticated)
+      (setq rcirc-user-authenticated nil)
       (make-local-variable 'rcirc-connecting)
       (setq rcirc-connecting t)
 
@@ -2428,10 +2440,23 @@ keywords when no KEYWORD is given."
     (setq rcirc-server-name sender)
     (setq rcirc-nick (car args))
     (rcirc-update-prompt)
-    (when rcirc-auto-authenticate-flag (rcirc-authenticate))
+    (if rcirc-auto-authenticate-flag
+        (if rcirc-authenticate-before-join
+            (progn
+              (with-rcirc-process-buffer process
+                (add-hook 'rcirc-authenticated-hook 'rcirc-join-channels-post-auth t t))
+              (rcirc-authenticate))
+          (rcirc-authenticate)
+          (rcirc-join-channels process rcirc-startup-channels))
+      (rcirc-join-channels process rcirc-startup-channels))))
+
+(defun rcirc-join-channels-post-auth (process)
+  "Join `rcirc-startup-channels' after authenticating."
+  (with-rcirc-process-buffer process
     (rcirc-join-channels process rcirc-startup-channels)))
 
 (defun rcirc-handler-PRIVMSG (process sender args text)
+  (rcirc-check-auth-status process sender args text)
   (let ((target (if (rcirc-channel-p (car args))
                     (car args)
                   sender))
@@ -2444,6 +2469,7 @@ keywords when no KEYWORD is given."
       (rcirc-put-nick-channel process sender target rcirc-current-line))))
 
 (defun rcirc-handler-NOTICE (process sender args text)
+  (rcirc-check-auth-status process sender args text)
   (let ((target (car args))
         (message (cadr args)))
     (if (string-match "^\C-a\\(.*\\)\C-a$" message)
@@ -2460,6 +2486,31 @@ keywords when no KEYWORD is given."
 			      nil	; server notice
 			    sender)))
                  message t))))
+
+(defun rcirc-check-auth-status (process sender args text)
+  "Check if the user just authenticated.
+If authenticated, runs `rcirc-authenticated-hook' with PROCESS as
+the only argument."
+  (with-rcirc-process-buffer process
+    (when (and (not rcirc-user-authenticated)
+               rcirc-authenticate-before-join
+               rcirc-auto-authenticate-flag)
+      (let ((target (car args))
+            (message (cadr args)))
+        (when (or
+               (and ;; nickserv
+                (string= sender "NickServ")
+                (string= target rcirc-nick)
+                (member message
+                        (list
+                         (format "You are now identified for \C-b%s\C-b." rcirc-nick)
+                         "Password accepted - you are now recognized."
+                         )))
+               ;; place for other methods
+               )
+          (setq rcirc-user-authenticated t)
+          (run-hook-with-args 'rcirc-authenticated-hook process)
+          (remove-hook 'rcirc-authenticated-hook 'rcirc-join-channels-post-auth t))))))
 
 (defun rcirc-handler-WALLOPS (process sender args text)
   (rcirc-print process sender "WALLOPS" sender (car args) t))
