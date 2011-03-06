@@ -282,7 +282,7 @@ Not documented
 ;;;;;;  do-all-symbols do-symbols dotimes dolist do* do loop return-from
 ;;;;;;  return block etypecase typecase ecase case load-time-value
 ;;;;;;  eval-when destructuring-bind function* defmacro* defun* gentemp
-;;;;;;  gensym) "cl-macs" "cl-macs.el" "7602128fa01003de9a8df4c752865300")
+;;;;;;  gensym) "cl-macs" "cl-macs.el" "5bdba3fbbcbfcf57a2c9ca87a6318150")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'gensym "cl-macs" "\
@@ -319,7 +319,7 @@ its argument list allows full Common Lisp conventions.
 \(fn FUNC)" nil (quote macro))
 
 (autoload 'destructuring-bind "cl-macs" "\
-Not documented
+
 
 \(fn ARGS EXPR &rest BODY)" nil (quote macro))
 
@@ -445,7 +445,7 @@ from OBARRAY.
 \(fn (VAR [OBARRAY [RESULT]]) BODY...)" nil (quote macro))
 
 (autoload 'do-all-symbols "cl-macs" "\
-Not documented
+
 
 \(fn SPEC &rest BODY)" nil (quote macro))
 
@@ -505,7 +505,7 @@ lexical closures as in Common Lisp.
 (autoload 'lexical-let* "cl-macs" "\
 Like `let*', but lexically scoped.
 The main visible difference is that lambdas inside BODY, and in
-successive bindings within BINDINGS, will create lexical closures
+successive bindings within VARLIST, will create lexical closures
 as in Common Lisp.  This is similar to the behavior of `let*' in
 Common Lisp.
 
@@ -531,12 +531,12 @@ values.  For compatibility, (values A B C) is a synonym for (list A B C).
 \(fn (SYM...) FORM)" nil (quote macro))
 
 (autoload 'locally "cl-macs" "\
-Not documented
+
 
 \(fn &rest BODY)" nil (quote macro))
 
 (autoload 'declare "cl-macs" "\
-Not documented
+
 
 \(fn &rest SPECS)" nil (quote macro))
 
@@ -596,7 +596,7 @@ before assigning any PLACEs to the corresponding values.
 \(fn PLACE VAL PLACE VAL ...)" nil (quote macro))
 
 (autoload 'cl-do-pop "cl-macs" "\
-Not documented
+
 
 \(fn PLACE)" nil nil)
 
@@ -684,7 +684,7 @@ value, that slot cannot be set via `setf'.
 \(fn NAME SLOTS...)" nil (quote macro))
 
 (autoload 'cl-struct-setf-expander "cl-macs" "\
-Not documented
+
 
 \(fn X NAME ACCESSOR PRED-FORM POS)" nil nil)
 
@@ -730,7 +730,7 @@ and then returning foo.
 \(fn FUNC ARGS &rest BODY)" nil (quote macro))
 
 (autoload 'compiler-macroexpand "cl-macs" "\
-Not documented
+
 
 \(fn FORM)" nil nil)
 

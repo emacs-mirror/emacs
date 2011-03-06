@@ -26,18 +26,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <setjmp.h>
 #include <unistd.h>
 
-#if !defined (S_ISLNK) && defined (S_IFLNK)
-#  define S_ISLNK(m) (((m) & S_IFMT) == S_IFLNK)
-#endif
-
-#if !defined (S_ISFIFO) && defined (S_IFIFO)
-#  define S_ISFIFO(m) (((m) & S_IFMT) == S_IFIFO)
-#endif
-
-#if !defined (S_ISREG) && defined (S_IFREG)
-#  define S_ISREG(m) (((m) & S_IFMT) == S_IFREG)
-#endif
-
 #ifdef HAVE_PWD_H
 #include <pwd.h>
 #endif
@@ -94,10 +82,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #include "commands.h"
-
-#ifndef S_ISLNK
-#  define lstat stat
-#endif
 
 #ifndef FILE_SYSTEM_CASE
 #define FILE_SYSTEM_CASE(filename)  (filename)
@@ -1922,7 +1906,6 @@ on the system, we copy the SELinux context of FILE to NEWNAME.  */)
 			 Fcons (file, Fcons (newname, Qnil)));
     }
 
-#if defined (S_ISREG) && defined (S_ISLNK)
   if (input_file_statable_p)
     {
       if (!(S_ISREG (st.st_mode)) && !(S_ISLNK (st.st_mode)))
@@ -1934,7 +1917,6 @@ on the system, we copy the SELinux context of FILE to NEWNAME.  */)
 	  report_file_error ("Non-regular file", Fcons (file, Qnil));
 	}
     }
-#endif /* S_ISREG && S_ISLNK */
 
 #ifdef MSDOS
   /* System's default file type was set to binary by _fmode in emacs.c.  */
@@ -2196,14 +2178,11 @@ This is what happens in interactive use with M-x.  */)
       if (errno == EXDEV)
 	{
           int count;
-#ifdef S_IFLNK
           symlink_target = Ffile_symlink_p (file);
           if (! NILP (symlink_target))
             Fmake_symbolic_link (symlink_target, newname,
                                  NILP (ok_if_already_exists) ? Qnil : Qt);
-          else
-#endif
-	  if (!NILP (Ffile_directory_p (file)))
+	  else if (!NILP (Ffile_directory_p (file)))
 	    call4 (Qcopy_directory, file, newname, Qt, Qnil);
 	  else
 	    /* We have already prompted if it was an integer, so don't
@@ -2215,11 +2194,7 @@ This is what happens in interactive use with M-x.  */)
 	  count = SPECPDL_INDEX ();
 	  specbind (Qdelete_by_moving_to_trash, Qnil);
 
-	  if (!NILP (Ffile_directory_p (file))
-#ifdef S_IFLNK
-	      && NILP (symlink_target)
-#endif
-	      )
+	  if (!NILP (Ffile_directory_p (file)) && NILP (symlink_target))
 	    call2 (Qdelete_directory, file, Qt);
 	  else
 	    Fdelete_file (file, Qnil);
@@ -2329,7 +2304,6 @@ This happens for interactive use with M-x.  */)
     RETURN_UNGCPRO (call4 (handler, Qmake_symbolic_link, filename,
 			   linkname, ok_if_already_exists));
 
-#ifdef S_IFLNK
   encoded_filename = ENCODE_FILE (filename);
   encoded_linkname = ENCODE_FILE (linkname);
 
@@ -2351,17 +2325,17 @@ This happens for interactive use with M-x.  */)
 	      return Qnil;
 	    }
 	}
+      if (errno == ENOSYS)
+	{
+	  UNGCPRO;
+	  xsignal1 (Qfile_error,
+		    build_string ("Symbolic links are not supported"));
+	}
 
       report_file_error ("Making symbolic link", list2 (filename, linkname));
     }
   UNGCPRO;
   return Qnil;
-
-#else
-  UNGCPRO;
-  xsignal1 (Qfile_error, build_string ("Symbolic links are not supported"));
-
-#endif /* S_IFLNK */
 }
 
 
@@ -2408,7 +2382,7 @@ check_writable (const char *filename)
   struct stat st;
   if (stat (filename, &st) < 0)
     return 0;
-  return (st.st_mode & S_IWRITE || (st.st_mode & S_IFMT) == S_IFDIR);
+  return (st.st_mode & S_IWRITE || S_ISDIR (st.st_mode));
 #else /* not MSDOS */
 #ifdef HAVE_EUIDACCESS
   return (euidaccess (filename, 2) >= 0);
@@ -2500,7 +2474,7 @@ See also `file-exists-p' and `file-attributes'.  */)
   return Qnil;
 #else /* not DOS_NT and not macintosh */
   flags = O_RDONLY;
-#if defined (S_ISFIFO) && defined (O_NONBLOCK)
+#ifdef O_NONBLOCK
   /* Opening a fifo without O_NONBLOCK can wait.
      We don't want to wait.  But we don't want to mess wth O_NONBLOCK
      except in the case of a fifo, on a system which handles it.  */
@@ -2555,7 +2529,7 @@ DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
      should check ACLs though, which do affect this.  */
   if (stat (SDATA (dir), &statbuf) < 0)
     return Qnil;
-  return (statbuf.st_mode & S_IFMT) == S_IFDIR ? Qt : Qnil;
+  return S_ISDIR (statbuf.st_mode) ? Qt : Qnil;
 #else
   return (check_writable (!NILP (dir) ? SSDATA (dir) : "")
 	  ? Qt : Qnil);
@@ -2602,6 +2576,10 @@ points to a nonexistent file.  */)
   (Lisp_Object filename)
 {
   Lisp_Object handler;
+  char *buf;
+  int bufsize;
+  int valsize;
+  Lisp_Object val;
 
   CHECK_STRING (filename);
   filename = Fexpand_file_name (filename, Qnil);
@@ -2611,13 +2589,6 @@ points to a nonexistent file.  */)
   handler = Ffind_file_name_handler (filename, Qfile_symlink_p);
   if (!NILP (handler))
     return call2 (handler, Qfile_symlink_p, filename);
-
-#ifdef S_IFLNK
-  {
-  char *buf;
-  int bufsize;
-  int valsize;
-  Lisp_Object val;
 
   filename = ENCODE_FILE (filename);
 
@@ -2653,10 +2624,6 @@ points to a nonexistent file.  */)
   xfree (buf);
   val = DECODE_FILE (val);
   return val;
-  }
-#else /* not S_IFLNK */
-  return Qnil;
-#endif /* not S_IFLNK */
 }
 
 DEFUN ("file-directory-p", Ffile_directory_p, Sfile_directory_p, 1, 1, 0,
@@ -2681,7 +2648,7 @@ See `file-symlink-p' to distinguish symlinks.  */)
 
   if (stat (SSDATA (absname), &st) < 0)
     return Qnil;
-  return (st.st_mode & S_IFMT) == S_IFDIR ? Qt : Qnil;
+  return S_ISDIR (st.st_mode) ? Qt : Qnil;
 }
 
 DEFUN ("file-accessible-directory-p", Ffile_accessible_directory_p, Sfile_accessible_directory_p, 1, 1, 0,
@@ -2744,12 +2711,12 @@ See `file-symlink-p' to distinguish symlinks.  */)
 
     if (result < 0)
       return Qnil;
-    return (st.st_mode & S_IFMT) == S_IFREG ? Qt : Qnil;
+    return S_ISREG (st.st_mode) ? Qt : Qnil;
   }
 #else
   if (stat (SSDATA (absname), &st) < 0)
     return Qnil;
-  return (st.st_mode & S_IFMT) == S_IFREG ? Qt : Qnil;
+  return S_ISREG (st.st_mode) ? Qt : Qnil;
 #endif
 }
 
@@ -3007,8 +2974,7 @@ Use the current time if TIME is nil.  TIME is in the format of
         struct stat st;
 
         /* Setting times on a directory always fails.  */
-        if (stat (SDATA (encoded_absname), &st) == 0
-            && (st.st_mode & S_IFMT) == S_IFDIR)
+        if (stat (SSDATA (encoded_absname), &st) == 0 && S_ISDIR (st.st_mode))
           return Qnil;
 #endif
         report_file_error ("Setting file times", Fcons (absname, Qnil));
@@ -3267,7 +3233,6 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       goto notfound;
     }
 
-#ifdef S_IFREG
   /* This code will need to be changed in order to work on named
      pipes, and it's probably just not worth it.  So we should at
      least signal an error.  */
@@ -3282,7 +3247,6 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	xsignal2 (Qfile_error,
 		  build_string ("not a regular file"), orig_filename);
     }
-#endif
 
   if (fd < 0)
     if ((fd = emacs_open (SSDATA (filename), O_RDONLY, 0)) < 0)

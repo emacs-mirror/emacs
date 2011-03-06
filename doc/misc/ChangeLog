@@ -1,3 +1,73 @@
+2011-03-06  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Logarithmic Units): Rename calc-logunits-dblevel
+	and calc-logunits-nplevel to calc-dblevel and calc-nplevel,
+	respectively.
+	(Musical Notes): New section.
+	(Customizing Calc): Mention the customizable variable
+	calc-note-threshold.
+
+2011-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* url.texi (Dealing with HTTP documents): Remove reference to
+	function url-decode-text-part; never seems to have existed.  (Bug#6038)
+	(Configuration): Update url-configuration-directory description.
+
+2011-03-02  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.texi (Multiple Dired Directories): Remove mentions
+	of dired-default-directory-alist and dired-default-directory.
+	Move dired-smart-shell-command here...
+	(Miscellaneous Commands): ... from here.
+
+2011-03-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* texinfo.tex: Update to version 2011-02-24.09.
+
+2011-03-02  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.texi (Omitting Variables): Refer to add-dir-local-variable
+	instead of the obsoleted dired-omit-here-always.
+
+2011-02-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Frequently Asked Questions): Add Emacs 24 to
+	supported systems.
+
+2011-02-28  Glenn Morris  <rgm@gnu.org>
+
+	* dbus.texi (Type Conversion): Grammar fix.
+
+2011-02-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi: Use consistently "Emacs" (instead of "GNU Emacs") and
+	"Debian GNU/Linux".
+
+	* trampver.texi [xemacs]: Set emacsothername to "Emacs".
+
+2011-02-23  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.texi (Features): Minor rephrasing.
+	(Local Variables): Fix typos.
+
+	* edt.texi, erc.texi, gnus.texi, idlwave.texi, mh-e.texi:
+	Standardize some Emacs/XEmacs terminology.
+
+	* dired-x.texi (Features): Don't advertise obsolete local variables.
+	Simplify layout.
+	(Omitting Variables): Update local variables example.
+	(Local Variables): Say this is obsolete.  Fix description of
+	dired-enable-local-variables possible values.
+
+2011-02-22  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth.texi (Help for users): Mention ~/.netrc is also searched by
+	default now.
+
+2011-02-21  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Article Date): Clarify gnus-article-update-date-headers.
+
 2011-02-20  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi (Window Layout): Document layout names.

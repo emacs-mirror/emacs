@@ -38,7 +38,7 @@ static char time_string[30];
 
 /* Reset the stopwatch to zero.  */
 
-void
+static void
 reset_watch (void)
 {
   EMACS_GET_TIME (TV1);
@@ -49,7 +49,7 @@ reset_watch (void)
    is returned as a string with the format  <seconds>.<micro-seconds>
    If reset_watch was not called yet, exit.  */
 
-char *
+static char *
 get_time (void)
 {
   if (watch_not_started)

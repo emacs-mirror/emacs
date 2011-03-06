@@ -234,7 +234,7 @@ Use vector format for the keys:
   - put literal keys after a '?' question mark, eg: '?a', '?.'
   - enclose control, shift, or meta-modified keys as sequences within
     parentheses, with the literal key, as above, preceded by the name(s)
-    of the modifers, eg: [(control ?a)]
+    of the modifiers, eg: [(control ?a)]
 See the existing keys for examples.
 
 Functions can be bound to multiple keys, but binding keys to
@@ -255,13 +255,13 @@ prevails."
 
 This is in contrast to the majority of allout-mode bindings on
 `allout-prefixed-bindings', whose bindings are created with a
-preceeding command key.
+preceding command key.
 
 Use vector format for the keys:
   - put literal keys after a '?' question mark, eg: '?a', '?.'
   - enclose control, shift, or meta-modified keys as sequences within
     parentheses, with the literal key, as above, preceded by the name(s)
-    of the modifers, eg: [(control ?a)]
+    of the modifiers, eg: [(control ?a)]
 See the existing keys for examples."
   :type 'allout-keybindings-binding
   :group 'allout-keybindings
@@ -339,7 +339,7 @@ The types of elements in the layout specification are:
          -- positive numbers open to the relative depth indicated by the
             number, but do not force already opened subtopics to be closed.
          -- 0 means to close topic -- hide all subitems.
- :   -- repeat spec -- apply the preceeding element to all siblings at
+ :   -- repeat spec -- apply the preceding element to all siblings at
         current level, *up to* those siblings that would be covered by specs
         following the `:' on the list.  Ie, apply to all topics at level but
         trailing ones accounted for by trailing specs.  (Only the first of
@@ -1642,7 +1642,7 @@ So `allout-post-command-business' should not reactivate it...")
 (defun allout-init (mode)
   "DEPRECATED - configure allout activation by customizing
 `allout-auto-activation'.  This function remains around, limited
-from what it did before, for backwards compatability.
+from what it did before, for backwards compatibility.
 
 MODE is the activation mode - see `allout-auto-activation' for
 valid values."
@@ -3125,7 +3125,7 @@ situation."
                  nil)
         ;; rationale: if any intervening items were at a lower depth, we
         ;; would now be on the first offspring at the target depth -- ie,
-        ;; the preceeding item (per the search direction) must be at a
+        ;; the preceding item (per the search direction) must be at a
         ;; lesser depth.  that's all we need to check.
         (if backward (allout-next-heading) (allout-previous-heading))
         (if (< allout-recent-depth target-depth)
@@ -4246,7 +4246,7 @@ With a negative argument, the item is shifted out using
 
 With an argument greater than one, shift-in the item but not its
 offspring, making the item into a sibling of its former children,
-and a child of sibling that formerly preceeded it.
+and a child of sibling that formerly preceded it.
 
 You are not allowed to shift the first offspring of a topic
 inwards, because that would yield a \"containment
@@ -5364,7 +5364,7 @@ header and body.  The elements of that list are:
 
       (goto-char start)
       (beginning-of-line)
-      ;; Goto initial topic, and register preceeding stuff, if any:
+      ;; Goto initial topic, and register preceding stuff, if any:
       (if (> (allout-goto-prefix-doublechecked) start)
 	  ;; First topic follows beginning point -- register preliminary stuff:
 	  (setq result

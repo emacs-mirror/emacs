@@ -3,7 +3,7 @@
 ;; Copyright (C) 2010-2011  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
-;; Keywords: 
+;; Keywords:
 
 ;; This file is part of GNU Emacs.
 
@@ -32,6 +32,14 @@
 ;;   could be defined this way, as a shorthand for (pred (lambda (_) BOOLEXP)).
 ;;   But better would be if we could define new ways to match by having the
 ;;   extension provide its own `pcase--split-<foo>' thingy.
+;; - provide something like (setq VAR) so a var can be set rather than
+;;   let-bound.
+;; - provide a way to fallthrough to other cases.
+;; - try and be more clever to reduce the size of the decision tree, and
+;;   to reduce the number of leafs that need to be turned into function:
+;;   - first, do the tests shared by all remaining branches (it will have
+;;     to be performed anyway, so better so it first so it's shared).
+;;   - then choose the test that discriminates more (?).
 ;; - ideally we'd want (pcase s ((re RE1) E1) ((re RE2) E2)) to be able to
 ;;   generate a lex-style DFA to decide whether to run E1 or E2.
 
@@ -65,12 +73,12 @@ If a SYMBOL is used twice in the same pattern (i.e. the pattern is
 QPatterns can take the following forms:
   (QPAT1 . QPAT2)	matches if QPAT1 matches the car and QPAT2 the cdr.
   ,UPAT			matches if the UPattern UPAT matches.
-  STRING			matches if the object is `equal' to STRING.
+  STRING		matches if the object is `equal' to STRING.
   ATOM			matches if the object is `eq' to ATOM.
 QPatterns for vectors are not implemented yet.
 
 PRED can take the form
-  FUNCTION	in which case it gets called with one argument.
+  FUNCTION	     in which case it gets called with one argument.
   (FUN ARG1 .. ARGN) in which case it gets called with N+1 arguments.
 A PRED of the form FUNCTION is equivalent to one of the form (FUNCTION).
 PRED patterns can refer to variables bound earlier in the pattern.
@@ -222,6 +230,7 @@ of the form (UPAT EXP)."
 (defun pcase--if (test then else)
   (cond
    ((eq else :pcase--dontcare) then)
+   ((eq then :pcase--dontcare) (debug) else) ;Can/should this ever happen?
    ((eq (car-safe else) 'if)
     (if (equal test (nth 1 else))
         ;; Doing a test a second time: get rid of the redundancy.
@@ -236,6 +245,8 @@ of the form (UPAT EXP)."
     `(cond (,test ,then)
            ;; Doing a test a second time: get rid of the redundancy, as above.
            ,@(remove (assoc test else) (cdr else))))
+   ;; Invert the test if that lets us reduce the depth of the tree.
+   ((memq (car-safe then) '(if cond)) (pcase--if `(not ,test) else then))
    (t `(if ,test ,then ,else))))
 
 (defun pcase--upat (qpattern)
@@ -279,6 +290,22 @@ MATCH is the pattern that needs to be matched, of the form:
 
 (defun pcase--and (match matches)
   (if matches `(and ,match ,@matches) match))
+
+(defconst pcase-mutually-exclusive-predicates
+  '((symbolp . integerp)
+    (symbolp . numberp)
+    (symbolp . consp)
+    (symbolp . arrayp)
+    (symbolp . stringp)
+    (integerp . consp)
+    (integerp . arrayp)
+    (integerp . stringp)
+    (numberp . consp)
+    (numberp . arrayp)
+    (numberp . stringp)
+    (consp . arrayp)
+    (consp . stringp)
+    (arrayp . stringp)))
 
 (defun pcase--split-match (sym splitter match)
   (cond
@@ -340,8 +367,14 @@ MATCH is the pattern that needs to be matched, of the form:
       (cons `(and (match ,syma . ,(pcase--upat (car qpat)))
                   (match ,symd . ,(pcase--upat (cdr qpat))))
             :pcase--fail)))
-   ;; A QPattern but not for a cons, can only go the `else' side.
-   ((eq (car-safe pat) '\`) (cons :pcase--fail nil))))
+   ;; A QPattern but not for a cons, can only go to the `else' side.
+   ((eq (car-safe pat) '\`) (cons :pcase--fail nil))
+   ((and (eq (car-safe pat) 'pred)
+         (or (member (cons 'consp (cadr pat))
+                     pcase-mutually-exclusive-predicates)
+             (member (cons (cadr pat) 'consp)
+                     pcase-mutually-exclusive-predicates)))
+    (cons :pcase--fail nil))))
 
 (defun pcase--split-equal (elem pat)
   (cond
@@ -353,7 +386,12 @@ MATCH is the pattern that needs to be matched, of the form:
          ;; (or (integerp (cadr pat)) (symbolp (cadr pat))
          ;;     (consp (cadr pat)))
          )
-    (cons :pcase--fail nil))))
+    (cons :pcase--fail nil))
+   ((and (eq (car-safe pat) 'pred)
+         (symbolp (cadr pat))
+         (get (cadr pat) 'side-effect-free)
+         (funcall (cadr pat) elem))
+    (cons :pcase--succeed nil))))
 
 (defun pcase--split-member (elems pat)
   ;; Based on pcase--split-equal.
@@ -370,13 +408,39 @@ MATCH is the pattern that needs to be matched, of the form:
          ;; (or (integerp (cadr pat)) (symbolp (cadr pat))
          ;;     (consp (cadr pat)))
          )
-    (cons :pcase--fail nil))))
+    (cons :pcase--fail nil))
+   ((and (eq (car-safe pat) 'pred)
+         (symbolp (cadr pat))
+         (get (cadr pat) 'side-effect-free)
+         (let ((p (cadr pat)) (all t))
+           (dolist (elem elems)
+             (unless (funcall p elem) (setq all nil)))
+           all))
+    (cons :pcase--succeed nil))))
 
 (defun pcase--split-pred (upat pat)
   ;; FIXME: For predicates like (pred (> a)), two such predicates may
   ;; actually refer to different variables `a'.
-  (if (equal upat pat)
-      (cons :pcase--succeed :pcase--fail)))
+  (cond
+   ((equal upat pat) (cons :pcase--succeed :pcase--fail))
+   ((and (eq 'pred (car upat))
+         (eq 'pred (car-safe pat))
+         (or (member (cons (cadr upat) (cadr pat))
+                     pcase-mutually-exclusive-predicates)
+             (member (cons (cadr pat) (cadr upat))
+                     pcase-mutually-exclusive-predicates)))
+    (cons :pcase--fail nil))
+   ;; ((and (eq 'pred (car upat))
+   ;;       (eq '\` (car-safe pat))
+   ;;       (symbolp (cadr upat))
+   ;;       (or (symbolp (cadr pat)) (stringp (cadr pat)) (numberp (cadr pat)))
+   ;;       (get (cadr upat) 'side-effect-free)
+   ;;       (progn (message "Trying predicate %S" (cadr upat))
+   ;;              (ignore-errors
+   ;;                (funcall (cadr upat) (cadr pat)))))
+   ;;  (message "Simplify pred %S against %S" upat pat)
+   ;;  (cons nil :pcase--fail))
+   ))
 
 (defun pcase--fgrep (vars sexp)
   "Check which of the symbols VARS appear in SEXP."
@@ -391,7 +455,7 @@ MATCH is the pattern that needs to be matched, of the form:
 ;; bootstrapping problems.
 (defun pcase--u1 (matches code vars rest)
   "Return code that runs CODE (with VARS) if MATCHES match.
-and otherwise defers to REST which is a list of branches of the form
+Otherwise, it defers to REST which is a list of branches of the form
 \(ELSE-MATCH ELSE-CODE . ELSE-VARS)."
   ;; Depending on the order in which we choose to check each of the MATCHES,
   ;; the resulting tree may be smaller or bigger.  So in general, we'd want
@@ -452,8 +516,9 @@ and otherwise defers to REST which is a list of branches of the form
        ((eq upat 'dontcare) :pcase--dontcare)
        ((functionp upat)  (error "Feature removed, use (pred %s)" upat))
        ((memq (car-safe upat) '(guard pred))
+        (if (eq (car upat) 'pred) (put sym 'pcase-used t))
         (let* ((splitrest
-                (pcase--split-rest
+            (pcase--split-rest
                  sym (apply-partially #'pcase--split-pred upat) rest))
                (then-rest (car splitrest))
                (else-rest (cdr splitrest)))
@@ -480,6 +545,7 @@ and otherwise defers to REST which is a list of branches of the form
                      (pcase--u1 matches code vars then-rest)
                      (pcase--u else-rest))))
        ((symbolp upat)
+        (put sym 'pcase-used t)
         (if (not (assq upat vars))
             (pcase--u1 matches code (cons (cons upat sym) vars) rest)
           ;; Non-linear pattern.  Turn it into an `eq' test.
@@ -487,6 +553,7 @@ and otherwise defers to REST which is a list of branches of the form
                            matches)
                      code vars rest)))
        ((eq (car-safe upat) '\`)
+        (put sym 'pcase-used t)
         (pcase--q1 sym (cadr upat) matches code vars rest))
        ((eq (car-safe upat) 'or)
         (let ((all (> (length (cdr upat)) 1))
@@ -546,7 +613,7 @@ and otherwise defers to REST which is a list of branches of the form
 
 (defun pcase--q1 (sym qpat matches code vars rest)
   "Return code that runs CODE if SYM matches QPAT and if MATCHES match.
-and if not, defers to REST which is a list of branches of the form
+Otherwise, it defers to REST which is a list of branches of the form
 \(OTHER_MATCH OTHER-CODE . OTHER-VARS)."
   (cond
    ((eq (car-safe qpat) '\,) (error "Can't use `,UPATTERN"))
@@ -555,22 +622,28 @@ and if not, defers to REST which is a list of branches of the form
     ;; FIXME.
     (error "Vector QPatterns not implemented yet"))
    ((consp qpat)
-    (let ((syma (make-symbol "xcar"))
-          (symd (make-symbol "xcdr")))
-      (let* ((splitrest (pcase--split-rest
-                         sym
-                         (apply-partially #'pcase--split-consp syma symd)
-                         rest))
-             (then-rest (car splitrest))
-             (else-rest (cdr splitrest)))
-        (pcase--if `(consp ,sym)
-                   `(let ((,syma (car ,sym))
-                          (,symd (cdr ,sym)))
-                      ,(pcase--u1 `((match ,syma . ,(pcase--upat (car qpat)))
-                                    (match ,symd . ,(pcase--upat (cdr qpat)))
-                                    ,@matches)
-                                  code vars then-rest))
-                   (pcase--u else-rest)))))
+    (let* ((syma (make-symbol "xcar"))
+           (symd (make-symbol "xcdr"))
+           (splitrest (pcase--split-rest
+                       sym
+                       (apply-partially #'pcase--split-consp syma symd)
+                       rest))
+           (then-rest (car splitrest))
+           (else-rest (cdr splitrest))
+           (then-body (pcase--u1 `((match ,syma . ,(pcase--upat (car qpat)))
+                                   (match ,symd . ,(pcase--upat (cdr qpat)))
+                                   ,@matches)
+                                 code vars then-rest)))
+      (pcase--if
+       `(consp ,sym)
+       ;; We want to be careful to only add bindings that are used.
+       ;; The byte-compiler could do that for us, but it would have to pay
+       ;; attention to the `consp' test in order to figure out that car/cdr
+       ;; can't signal errors and our byte-compiler is not that clever.
+       `(let (,@(if (get syma 'pcase-used) `((,syma (car ,sym))))
+              ,@(if (get symd 'pcase-used) `((,symd (cdr ,sym)))))
+          ,then-body)
+       (pcase--u else-rest))))
    ((or (integerp qpat) (symbolp qpat) (stringp qpat))
       (let* ((splitrest (pcase--split-rest
                          sym (apply-partially 'pcase--split-equal qpat) rest))

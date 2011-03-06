@@ -1472,8 +1472,8 @@ Removes badly formatted data and ignored directories."
   (add-hook 'choose-completion-string-functions 'ido-choose-completion-string))
 
 (define-minor-mode ido-everywhere
-  "Toggle using ido speed-ups everywhere file and directory names are read.
-With ARG, turn ido speed-up on if arg is positive, off otherwise."
+  "Toggle using ido-mode everywhere file and directory names are read.
+With ARG, turn ido-mode on if arg is positive, off otherwise."
   :global t
   :group 'ido
   (when (get 'ido-everywhere 'file)
@@ -1494,8 +1494,8 @@ With ARG, turn ido speed-up on if arg is positive, off otherwise."
 
 ;;;###autoload
 (defun ido-mode (&optional arg)
-  "Toggle ido speed-ups on or off.
-With ARG, turn ido speed-up on if arg is positive, off otherwise.
+  "Toggle ido mode on or off.
+With ARG, turn ido-mode on if arg is positive, off otherwise.
 Turning on ido-mode will remap (via a minor-mode keymap) the default
 keybindings for the `find-file' and `switch-to-buffer' families of
 commands to the ido versions of these functions.

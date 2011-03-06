@@ -1767,7 +1767,8 @@ directory-local variables.  The name of the file is
 The MS-DOS version of Emacs uses @file{_dir-locals.el} instead, due to
 limitations of the DOS filesystems.
 }.  A file by that name in a directory causes Emacs to apply its
-settings to any file in that directory or any of its subdirectories.
+settings to any file in that directory or any of its subdirectories
+(optionally, you can exclude subdirectories; see below).
 If some of the subdirectories have their own @file{.dir-locals.el}
 files, Emacs uses the settings from the deepest file it finds starting
 from the file's directory and moving up the directory tree.  The file
@@ -1798,7 +1799,10 @@ file's buffer turns on a mode that is derived from @var{major-mode},
 then the all the variables in the associated @var{alist} are applied;
 @var{alist} should be of the form @code{(@var{name} . @var{value})}.
 A special value @code{nil} for @var{major-mode} means the settings are
-applicable to any mode.
+applicable to any mode.  In @var{alist}, you can use a special
+@var{name}: @code{subdirs}.  If the associated value is
+@code{nil}, the alist is only applied to files in the relevant
+directory, not to those in any subdirectories.
 
 With the second form of @var{variables}, if @var{directory} is the
 initial substring of the file's directory, then @var{list} is applied
@@ -1806,12 +1810,19 @@ recursively by following the above rules; @var{list} should be of one
 of the two forms accepted by this function in @var{variables}.
 @end defun
 
-@defun dir-locals-set-directory-class directory class
+@defun dir-locals-set-directory-class directory class &optional mtime
 This function assigns @var{class} to all the files in @code{directory}
 and its subdirectories.  Thereafter, all the variable settings
 specified for @var{class} will be applied to any visited file in
 @var{directory} and its children.  @var{class} must have been already
-defined by @code{dir-locals-set-class-variables}
+defined by @code{dir-locals-set-class-variables}.
+
+Emacs uses this function internally when it loads directory variables
+from a @code{.dir-locals.el} file.  In that case, the optional
+argument @var{mtime} holds the file modification time (as returned by
+@code{file-attributes}).  Emacs uses this time to check stored
+local variables are still valid.  If you are assigning a class
+directly, not via a file, this argument should be @code{nil}.
 @end defun
 
 @defvar dir-locals-class-alist
@@ -1821,8 +1832,9 @@ settings.  It is updated by @code{dir-locals-set-class-variables}.
 
 @defvar dir-locals-directory-cache
 This alist holds directory names, their assigned class names, and
-modification times of the associated directory local variables file.
-It is updated by @code{dir-locals-set-directory-class}.
+modification times of the associated directory local variables file
+(if there is one).  The function @code{dir-locals-set-directory-class}
+updates this list.
 @end defvar
 
 @node Frame-Local Variables

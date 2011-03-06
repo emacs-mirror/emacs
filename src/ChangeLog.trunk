@@ -1,7 +1,193 @@
+2011-03-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	current_column: Now returns EMACS_INT, fixing some iftc
+	that was introduced in the 2002-06-02 change "temporarily"; see
+	<http://lists.gnu.org/archive/html/emacs-devel/2002-06/msg00039.html>.
+	* bytecode.c (Fbyte_code): Don't cast current_column () to int.
+	* cmds.c (internal_self_insert): Likewise.
+	* indent.c (Fcurrent_column): Likewise.
+	* keymap.c (describe_command): Likewise.
+	* minibuf.c (read_minibuf): Likewise.
+	* indent.c (Fcurrent_indentation): Don't cast position_indentation ()
+	to int.
+	* xdisp.c (redisplay_internal, redisplay_window, decode_mode_spec):
+	Likewise.
+	* cmds.c (internal_self_insert): Declare locals to be EMACS_INT,
+	not int or double, if they might contain a column number.
+	* indent.c (current_column, Findent_to, indented_beyond_p):
+	(compute_motion, vmotion): Likewise.
+	* keymap.c (describe_command): Likewise.
+	* xdisp.c (pint2str): Likewise.
+	* indent.c (last_known_column): Now EMACS_INT, not int.
+	* minibuf.c (minibuf_prompt_width): Likewise.
+	* indent.c (current_column, current_column_1, position_indentation):
+	Return EMACS_INT, not double.
+	* lisp.h (current_column): Likewise.
+	* indent.c (indented_beyond_p): Last arg is now EMACS_INT, not double.
+	All callers changed.
+	* lisp.h (indented_beyond_p): Likewise.
+
+	* minibuf.c (minibuf_prompt, minibuf_prompt_width): Move here
+	from xdisp.c, and make static, since these are used only here.
+	* window.h, xdisp.c (minibuf_prompt, minibuf_prompt_width):
+	Remove decls.
+
+	* cmds.c (internal_self_insert): Reindent to match Emacs style.
+	* xdisp.c (redisplay_window): Likewise.
+
+	* xdisp.c: Rename or move local decls to avoid shadowing.
+	(init_iterator, handle_fontified_prop, handle_single_display_spec):
+	(message_dolog, message_with_string, redisplay_internal):
+	(redisplay_window, try_window_reusing_current_matrix, try_window_id):
+	(compute_line_metrics, highlight_trailing_whitespace, cursor_row_p):
+	(display_line, display_string, rows_from_pos_range):
+	(mouse_face_from_buffer_pos, note_mouse_highlight, expose_frame):
+	Rename or move local decls.
+	* xdisp.c (BUILD_GLYPHLESS_GLYPH_STRING): Omit unused local var.
+	(produce_glyphless_glyph): Make a pointer "const"
+	since it might point to immutable storage.
+	(update_window_cursor):  Now static, since it's not used elsewhere.
+	(SKIP_GLYPHS): Removed unused macro.
+
+2011-03-06  Michael Shields  <shields@msrl.com>  (tiny change)
+
+	* window.c (Fnext_window): Doc fix.  (Bug#5567)
+
+2011-03-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsterm.m (ns_draw_window_cursor): Fix typo in 2011-02-23 commit.
+
+2011-03-02  Ken Brown  <kbrown@cornell.edu>
+
+	* sheap.c (STATIC_HEAP_SIZE): Increase to 13MB.
+
+2011-03-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Work around some portability problems with symlinks.
+
+	* fileio.c (Fmake_symbolic_link): Treat ENOSYS specially, and
+	generate a special message for it.  Suggested by Eli Zaretskii in
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-02/msg00995.html>.
+	(Frename_file, Fmake_symbolic_link, Ffile_symlink_p):
+	Simplify the code by assuming that the readlink and symlink calls
+	exist, even if they always fail on this host.
+	(Ffile_readable_p): Likewise, for fifos.
+	* config.in: Regenerate.
+
+2011-02-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (store_frame_param): Don't store value directly in
+	buffer_list and buried_buffer_list; copy the list and remove dead
+	buffers (Bug#7898).
+
+2011-02-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.c (readlink) [DJGPP < 2.04]: New stub function.
+
+	* msdos.h (readlink) [DJGPP < 2.04]: Declare prototype.
+
+	* w32.c (symlink, readlink): New stub functions.
+
+2011-02-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* scroll.c (CHECK_BOUNDS): #define only if GLYPH_DEBUG.
+	This avoids a gcc warning in some configurations.
+
+	* frame.c (x_set_screen_gamma): Rename local to avoid shadowing.
+
+	* frame.h: Avoid gcc -Wmissing-prototypes diagnostics.
+	(set_menu_bar_lines, x_get_resource_string): New decls.
+	* msdos.c (set_menu_bar_lines): Omit decl.
+
+	* dispextern.h (struct glyph): Make u.img_id int, not unsigned.
+	It's always given int values and used as an int.  This suppresses
+	a gcc "comparison of unsigned expression >= 0" warning in some
+	configurations.
+
+	* dispnew.c: Rename locals to avoid shadowing.
+	(update_text_area, scrolling_window, update_frame_1): Rename locals.
+
+2011-02-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* dispnew.c: Fix problems uncovered by gcc -Wstrict-prototypes.
+	(copy_glyph_row_contents): Remove; not used.
+	(frame_row_to_window, check_current_matrix_flags):
+	(window_change_signal): Now static, since they're not used elsewhere.
+	(check_current_matrix_flags): Surround with "#if 0", since its
+	only use is in a comment.  Maybe both the comment and the "#if 0"
+	stuff should be removed?
+
+	* dispnew.c: Fix problem uncovered by gcc -Wunused-variable.
+	(adjust_frame_glyphs_for_window_redisplay): Make 'w' local to the
+	contexts that actually need it.
+
+2011-02-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* s/msdos.h (HAVE_LSTAT): Define for DJGPP >= 2.04.
+	(lstat): Define for DJGPP < 2.04.
+
+2011-02-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* dired.c (Ffile_attributes): Increase size of modes from 10 to 12
+	as per recent filemodestring API change.  Reported by Jonas Öster in
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-02/msg01069.html>.
+
+2011-02-23  Ben Key  <bkey76@gmail.com>  (tiny change)
+
+	* nsterm.m (ns_draw_window_cursor): Obey the cursor_width argument
+	directly, for bar cursors.
+
+2011-02-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (set_frame_cursor_types): Don't write an undefined value
+	into the frame's cursor_width.
+
+2011-02-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* print.c (print_object): Never print old-style backquotes.
+	Obey escapeflag for hash tables as well.
+
+2011-02-23  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_open_entity): Be sure to set scaled_pixel_size.
+	(font_find_for_lface): Check if attrs[LFACE_HEIGHT_INDEX] is integer.
+
+2011-02-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* dired.c (Ffile_attributes): Simplify and avoid #ifdef.
+
+2011-02-22  Wolfgang Jenkner  <wjenkner@inode.at>  (tiny change)
+
+	* lread.c (openp): Correct Boolean typo in last commit.
+
+2011-02-22  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.m (EmacsView-keyDown:): Don't pass shift-only-modified
+	key to Emacs, treat as unmodified (go to input manager processing).
+
+2011-02-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume S_ISLNK etc. work, since gnulib supports this.
+	* config.in: Regenerate.
+	* dired.c (lstat): Remove.
+	(file_name_completion): Assume S_ISDIR works.
+	(file_name_completion_stat): Assume S_ISLNK works.
+	Do not bother calling stat unless lstat says it's a symlink.
+	* fileio.c (S_ISLNK, S_ISFIFO, S_ISREG, lstat): Remove.
+	(Fcopy_file): Assume S_ISREG and S_ISLNK work.
+	(check_writable, Ffile_writable_p, Fset_file_times):
+	Assume S_ISDIR works.
+	(Ffile_readable_p): Use S_IFIFO, not S_ISFIFO, to guess whether
+	fifos exist.
+	(Ffile_regular_p, Finsert_file_contents): Assume S_ISREG works.
+	* filelock.c (S_ISLNK): Remove.
+	* lread.c (openp): Assume S_ISDIR works.
+	* xrdb.c (S_ISDIR): Remove.
+
 2011-02-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in ($(BLD)/filemode.$(O)): Move recipe to
-	lib/makefilw.w32-in.
+	lib/makefile.w32-in.
 	($(BLD)/dired.$(O)): Depend on $(EMACS_ROOT)/lib/filemode.h.
 	(GLOBAL_SOURCES): Remove filemode.c.
 	(OBJ1): Remove $(BLD)/filemode.$(O).
@@ -21,7 +207,7 @@
 	* makefile.w32-in ($(BLD)/fns.$(O)): Depend on
 	$(EMACS_ROOT)/lib/md5.h and on stamp_BLD.
 
-2011-02-20  Christoph Scholtes <cschol2112@gmail.com>
+2011-02-20  Christoph Scholtes  <cschol2112@gmail.com>
 
 	* makefile.w32-in: Remove md5.$(O).
 	($(BLD)/md5.$(O)): Remove prerequisites, moved to
@@ -725,14 +911,14 @@
 	to const char *, since they're usually low-level C strings, and
 	this stays compatible with C89 pointer rules.  All callers changed.
 
-	* charset.c: conform to C89 pointer rules
+	* charset.c: Conform to C89 pointer rules.
 	(define_charset_internal): Switch between char * and unsigned char *.
 
-	* xmenu.c: conform to C89 const rules
+	* xmenu.c: Conform to C89 const rules.
 	(xmenu_show, xdialog_show): Declare local var as char *, not
 	const char *, to stay compatible with C89 const rules.
 
-	* xdisp.c: conform to C89 pointer rules
+	* xdisp.c: Conform to C89 pointer rules.
 	(store_mode_line_noprop, display_string, reseat_to_string):
 	(c_string_pos, number_of_chars, message_dolog):
 	(message_log_check_duplicate, set_message_1, store_mode_line_noprop):
@@ -740,7 +926,7 @@
 	Switch between char * and unsigned char * to stay compatible wth
 	C89 pointer rules.
 
-	* regex.c: conform to C89 pointer rules
+	* regex.c: Conform to C89 pointer rules.
 	(re_wctype): Add cast, as C89 does not allow assigning between
 	char * and unsigned char *.
 	(regex_compile): Likewise.
@@ -897,10 +1083,10 @@
 	(ns_string_to_pasteboard_internal): Use initWithBytesNoCopy
 	instead of stringWithUTF8String  (Bug#7934).
 
-2011-01-29  Anders Lindgren  <andlind@gmail.com> (tiny change)
+2011-01-29  Anders Lindgren  <andlind@gmail.com>  (tiny change)
 
-        * nsfont.m (nsfont_open): Ensure that fonts with inexact
-        descenders would not become one pixel too tall (Bug#7887).
+	* nsfont.m (nsfont_open): Ensure that fonts with inexact
+	descenders would not become one pixel too tall (Bug#7887).
 
 2011-01-28  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -1044,7 +1230,7 @@
 	(x_underline_at_descent_line): Remove declaration.
 	(syms_of_nsterm): Remove & from DEFVAR_LISP and DEFVAR_BOOL.
 
-	* nsselect.m (Vns_sent_selection_hooks, Vns_lost_selection_hooks
+	* nsselect.m (Vns_sent_selection_hooks, Vns_lost_selection_hooks)
 	(Vselection_alist, Vselection_converter_alist): Move to globals.h.
 	(syms_of_nsselect): Remove & from DEFVAR_LISP.
 
@@ -1070,7 +1256,6 @@
 	f_Vns_version_string, f_Vns_sent_selection_hooks,
 	f_Vns_lost_selection_hooks, f_Vselection_alist, f_Vns_reg_to_script
 	and corresponding defines.
-
 
 2011-01-19  Sam Steingold  <sds@gnu.org>
 
@@ -2176,10 +2361,10 @@
 	* nsmenu.m: Use #include <config.h> instead of "config.h".
 
 	* term.c (Qglyphless_char,last_glyphless_glyph_frame)
-	(last_glyphless_glyph_face_id. last_glyphless_glyph_merged_face_id):
+	(last_glyphless_glyph_face_id, last_glyphless_glyph_merged_face_id):
 	Move declarations ...
 	* lisp.h (Qglyphless_char,last_glyphless_glyph_frame)
-	(last_glyphless_glyph_face_id. last_glyphless_glyph_merged_face_id):
+	(last_glyphless_glyph_face_id, last_glyphless_glyph_merged_face_id):
 	... here.
 
 	* emacs.c (gdb_use_union, gdb_valbits,gdb_gctypebits)
@@ -2283,7 +2468,7 @@
 	(Qonly): Remove declarations.
 	* lisp.h (pending_malloc_warning, Vsaved_region_selection)
 	(Vselect_active_regions):
-	* keyboard.h (timers_run):  Add declarations.
+	* keyboard.h (timers_run): Add declarations.
 
 	* strftime.c (my_strftime_gmtime_r, my_strftime_localtime_r)
 	(tm_diff): Convert definitions to standard C.
@@ -2417,7 +2602,7 @@
 
 2010-11-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* keyboard.c (modify_event_symbol) : Add const to array elements of
+	* keyboard.c (modify_event_symbol): Add const to array elements of
 	arg NAME_TABLE.
 	(lispy_accent_keys, lispy_function_keys, lispy_multimedia_keys)
 	(lispy_kana_keys, iso_lispy_function_keys, lispy_wheel_names)
@@ -2507,7 +2692,6 @@
 	(x_ewmh_activate_frame): Ditto.
 	(x_set_sticky): Pass atoms to set_wm_state.
 	(do_ewmh_fullscreen): Ditto.
-
 
 	* xterm.h (x_display_info): Add Xatom_net_supported,
 	Xatom_net_supporting_wm_check, Xatom_net_active_window,
@@ -2712,10 +2896,9 @@
 	* coding.c (coding-category-list): Refer to set-coding-system-priority
 	instead of the obsolete set-coding-priority in the doc string.
 
-
 2010-11-04  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
-	* nsfont.m (nsfont_draw):  Correct previous patch to return
+	* nsfont.m (nsfont_draw): Correct previous patch to return
 	correct value.
 	* nsimage.m (EmacsImage-setXBMColor:): Correct previous patch:
 	don't change the method signature, change the return.
@@ -2764,7 +2947,7 @@
 	(Qglyphless_char_display, Qhexa_code, Qempty_box, Qthin_space)
 	(Qzero_width): New variables.
 	(THIN_SPACE_WIDTH): New macro.
-	(lookup_glyphless_char_display): New funciton.
+	(lookup_glyphless_char_display): New function.
 	(last_glyphless_glyph_frame, last_glyphless_glyph_face_id)
 	(last_glyphless_glyph_merged_face_id): New variables.
 	(get_next_display_element): Check glyphless characters.
@@ -3050,7 +3233,7 @@
 2010-10-12  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (Qleft): Declare.
-	(ns_right_alternate_modifier): New variable
+	(ns_right_alternate_modifier): New variable.
 	(NSRightAlternateKeyMask): New define.
 	(EV_MODIFIERS): Parse NSRightAlternateKeyMask if
 	ns_right_alternate_modifier isn't Qleft.
@@ -3074,7 +3257,7 @@
 	* Makefile.in (temacs): Use $(ALL_CFLAGS) on the link line.
 	(PROFILING_LDFLAGS): Remove, not needed anymore.
 
-	* Makefile.in: Use $(...) everywhere instead of ${...}
+	* Makefile.in: Use $(...) everywhere instead of ${...}.
 	(CRT_DIR): Move near potential user.
 	(START_FILE): Move near CRT_DIR, it might use it.
 
@@ -4574,7 +4757,7 @@
 
 2010-08-16  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* nsselect.m: include keyboard.h for QPRIMARY, remove its
+	* nsselect.m: Include keyboard.h for QPRIMARY, remove its
 	declaration (Bug#6863).
 	(syms_of_nsselect): Don't intern QPRIMARY.
 
@@ -4635,7 +4818,7 @@
 	* w32menu.c (simple_dialog_show): Use unicode message box if available.
 	(MessageBoxW_Proc): New function typedef.
 	(unicode-message-box): New function pointer.
-	(globals_of_w32menu): Import it from user32.dll. (Bug#5629)
+	(globals_of_w32menu): Import it from user32.dll.  (Bug#5629)
 
 2010-08-13  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -6011,7 +6194,7 @@
 
 	* eval.c: Fix indentation problem.
 
-	* keyboard.c: Include "process.h"
+	* keyboard.c: Include "process.h".
 
 	* eval.c: Remove obsolete noinline declaration.
 	* fns.c: Likewise.
@@ -8135,7 +8318,7 @@
 
 2010-04-30  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* xsettings.c: include limits.h and update file comment.
+	* xsettings.c: Include limits.h and update file comment.
 
 2010-04-30  Glenn Morris  <rgm@gnu.org>
 
@@ -8417,7 +8600,7 @@
 	Qtool_bar_style.  Initialize current_tool_bar_style to nil.
 	defsubr Stool_bar_get_system_style.  Fprovide on
 	dynamic-setting.
-	Move misplaced HAVE_GCONF
+	Move misplaced HAVE_GCONF.
 
 	* xsettings.h (Ftool_bar_get_system_style): Declare.
 
@@ -8912,7 +9095,7 @@
 	* menu.c (digest_single_submenu): If USE_LUCID and HAVE_XFT, encode
 	menu items in UTF-8.
 
-	* xmenu.c: include xsettings.h and xlwmenu.h if USE_LUCID.
+	* xmenu.c: Include xsettings.h and xlwmenu.h if USE_LUCID.
 	(apply_systemfont_to_menu): New function.
 	(set_frame_menubar, create_and_show_popup_menu):
 	Call apply_systemfont_to_menu.
@@ -9211,7 +9394,7 @@
 	rather than appending it.
 	(handle_stop_backwards): New function.
 	(reseat_1, pop_it, push_it): Set prev_stop and base_level_stop.
-	(reseat): call handle_stop_backwards to recompute prev_stop and
+	(reseat): Call handle_stop_backwards to recompute prev_stop and
 	base_level_stop for the new position.
 	(handle_invisible_prop): Under bidi iteration, skip invisible text
 	using bidi_get_next_char_visually.  If we are `reseat'ed, init the

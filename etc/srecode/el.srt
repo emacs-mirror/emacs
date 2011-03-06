@@ -261,7 +261,7 @@ template defgroup :indent :blank
 ----
 (defgroup $?MODESYM$-mode nil
   "$MODESYM$ group."
-  :group 'langauges)
+  :group 'languages)
 ----
 bind "g"
 

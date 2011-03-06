@@ -3102,7 +3102,7 @@ The user will be prompted for a directory.  The contents of this
 directory will be used as a newsgroup.  The directory should contain
 mail messages or news articles in files that have numeric names."
   (interactive
-   (list (read-file-name "Create group from directory: ")))
+   (list (read-directory-name "Create group from directory: ")))
   (unless (file-exists-p dir)
     (error "No such directory"))
   (unless (file-directory-p dir)
@@ -4399,6 +4399,21 @@ and the second element is the address."
 
 (defun gnus-group-set-params-info (group params)
   (gnus-group-set-info params group 'params))
+
+;; Ad-hoc function for inserting data from a different newsrc.eld
+;; file.  Use with caution, if at all.
+(defun gnus-import-other-newsrc-file (file)
+  (with-temp-buffer
+    (insert-file file)
+    (let (form)
+      (while (ignore-errors
+	       (setq form (read (current-buffer))))
+	(when (and (consp form)
+		   (eq (cadr form) 'gnus-newsrc-alist))
+	  (let ((infos (cadr (nth 2 form))))
+	    (dolist (info infos)
+	      (when (gnus-get-info (car info))
+		(gnus-set-info (car info) info)))))))))
 
 (defun gnus-add-marked-articles (group type articles &optional info force)
   ;; Add ARTICLES of TYPE to the info of GROUP.

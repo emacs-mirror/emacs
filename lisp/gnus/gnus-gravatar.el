@@ -80,9 +80,8 @@ If nil, default to `gravatar-size'."
   "Insert GRAVATAR for ADDRESS in HEADER in current article buffer.
 Set image category to CATEGORY."
   (unless (eq gravatar 'error)
-    (with-current-buffer gnus-article-buffer
+    (gnus-with-article-buffer
       (let ((mark (point-marker))
-	    (inhibit-read-only t)
 	    (inhibit-point-motion-hooks t)
 	    (case-fold-search t))
 	(save-restriction

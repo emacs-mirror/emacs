@@ -3614,6 +3614,25 @@ utime (const char *name, struct utimbuf *times)
 }
 
 
+/* Symlink-related functions that always fail.  Used in fileio.c to
+   avoid #ifdef's.  */
+int
+symlink (char const *dummy1, char const *dummy2)
+{
+  errno = ENOSYS;
+  return -1;
+}
+
+ssize_t
+readlink (const char *name, char *dummy1, size_t dummy2)
+{
+  /* `access' is much faster than `stat' on MS-Windows.  */
+  if (sys_access (name, 0) == 0)
+    errno = EINVAL;
+  return -1;
+}
+
+
 /* Support for browsing other processes and their attributes.  See
    process.c for the Lisp bindings.  */
 

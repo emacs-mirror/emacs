@@ -1,3 +1,50 @@
+2011-03-06  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (FREETYPE_LIBS): Actually set it to something.
+
+2011-03-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Work around some portability problems with symlinks.
+
+	* Makefile.in (GNULIB_MODULES): Add lstat, readlink, symlink.
+	* configure.in (lstat, HAVE_LSTAT): Remove special hack.
+	* lib/dosname.h, lib/lstat.c, lib/readlink.c, lib/stat.c:
+	* lib/symlink.c, m4/lstat.m4, m4/readlink.m4, m4/stat.m4:
+	* m4/symlink.m4:
+	New files, automatically generated from gnulib.
+	* aclocal.m4, configure, lib/Makefile.in, lib/gnulib.mk:
+	* m4/gl-comp.m4, src/config.in, config.sub: Regenerate.
+
+2011-02-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* .bzrignore: Ignore new lib/*.in-h files.
+
+	* config.bat: Rename stdint.in.h and sys_stat.in.h.  Call
+	depfiles.bat even if lib/deps already exist.
+
+2011-02-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure, lib/Makefile.in, lib/getopt_int.h, lib/gnulib.mk:
+	* lib/stdlib.in.h, m4/stdlib_h.m4: Regenerate to incorporate
+	recent changes to configure.in and to gnulib.
+
+2011-02-24  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Replace obsolete AC_OUTPUT() with AC_CONFIG_FILES(),
+	AC_CONFIG_COMMANDS(), and AC_OUTPUT sans arguments.
+
+2011-02-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume S_ISLNK etc. work, since gnulib supports this.
+	* Makefile.in (GNULIB_MODULES): Add sys_stat.
+	* configure.in: Check for lstat and set HAVE_LSTAT=0 if not.
+	Pretend to be using the gnulib lstat module for benefit of sys/stat.h.
+	* configure, lib/Makefile.in, lib/gnulib.mk: Regenerate.
+
+2011-02-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lib/min-max.h: New file, for "min" and "max".
+
 2011-02-21  Christoph Scholtes  <cschol2112@gmail.com>
 
 	* lib/makefile.w32-in: ($(BLD)/md5.$(O)): Added dependency on
@@ -7604,7 +7651,7 @@
 
 	* Makefile.in (lib-src/Makefile, src/Makefile, oldXMenu/Makefile):
 	Depend on vpath.sed.
-	Replace sed comand for VPATH with @vpath_sed@.
+	Replace sed command for VPATH with @vpath_sed@.
 
 	* configure.in: Substitute variable `vpath_sed'.
 	If not in $srcdir and $srcdir is configured,
@@ -8945,7 +8992,7 @@
 	there, and then copy it in, to make sure we get a real file.
 
 	* make-dist: Don't try to distribute *.defns files any more.  The
-	only such file was for simula.el, which has been superceded by a
+	only such file was for simula.el, which has been superseded by a
 	version which doesn't have a separate .defns file.
 
 1992-05-28  Ken Raeburn  (Raeburn@Cygnus.COM)

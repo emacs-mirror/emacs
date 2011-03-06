@@ -59,8 +59,9 @@ ordinary strings."
 
 ;;; User Variables:
 
-(defcustom eshell-pred-load-hook '(eshell-pred-initialize)
+(defcustom eshell-pred-load-hook nil
   "A list of functions to run when `eshell-pred' is loaded."
+  :version "24.1"			; removed eshell-pred-initialize
   :type 'hook
   :group 'eshell-pred)
 

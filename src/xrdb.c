@@ -38,10 +38,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #include <sys/stat.h>
 
-#if !defined(S_ISDIR) && defined(S_IFDIR)
-#define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
-#endif
-
 #include "lisp.h"
 
 #ifdef USE_MOTIF
@@ -764,4 +760,3 @@ main (argc, argv)
   XCloseDisplay (display);
 }
 #endif /* TESTRM */
-

@@ -190,10 +190,6 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 # define assert(x) ((void) 0)
 #endif
 
-#if !defined (S_ISREG) && defined (S_IFREG)
-# define S_ISREG(m)	(((m) & S_IFMT) == S_IFREG)
-#endif
-
 #ifdef NO_LONG_OPTIONS		/* define this if you don't have GNU getopt */
 # define NO_LONG_OPTIONS TRUE
 # define getopt_long(argc,argv,optstr,lopts,lind) getopt (argc, argv, optstr)
@@ -243,7 +239,6 @@ If you want regular expression support, you should delete this notice and
 #define ISLOWER(c)	islower (CHAR(c))
 
 #define lowcase(c)	tolower (CHAR(c))
-#define upcase(c)	toupper (CHAR(c))
 
 
 /*
@@ -5327,7 +5322,7 @@ prolog_skip_comment (linebuffer *plb, FILE *inf)
  */
 static int
 prolog_pr (char *s, char *last)
-             
+
                 		/* Name of last clause. */
 {
   int pos;
@@ -5484,7 +5479,7 @@ Erlang_functions (FILE *inf)
  */
 static int
 erlang_func (char *s, char *last)
-             
+
                 		/* Name of last clause. */
 {
   int pos;
@@ -6642,7 +6637,7 @@ filename_is_absolute (char *fn)
 	  );
 }
 
-/* Upcase DOS drive letter and collapse separators into single slashes.
+/* Downcase DOS drive letter and collapse separators into single slashes.
    Works in place. */
 static void
 canonicalize_filename (register char *fn)
@@ -6652,8 +6647,9 @@ canonicalize_filename (register char *fn)
 
 #ifdef DOS_NT
   /* Canonicalize drive letter case.  */
-  if (fn[0] != '\0' && fn[1] == ':' && ISLOWER (fn[0]))
-    fn[0] = upcase (fn[0]);
+# define ISUPPER(c)	isupper (CHAR(c))
+  if (fn[0] != '\0' && fn[1] == ':' && ISUPPER (fn[0]))
+    fn[0] = lowcase (fn[0]);
 
   sep = '\\';
 #endif

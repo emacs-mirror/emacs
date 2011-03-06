@@ -1399,6 +1399,7 @@ Preparing Lisp code for distribution
 * Packaging Basics::        The basic concepts of Emacs Lisp packages.
 * Simple Packages::         How to package a single .el file.
 * Multi-file Packages::     How to package multiple files.
+* Package Archives::        Maintaining package archives.
 
 Starting Up Emacs
 

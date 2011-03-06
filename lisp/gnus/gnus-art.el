@@ -1040,7 +1040,7 @@ Some of these headers are updated automatically.  See
 	  (item :tag "User-defined" :value 'user-defined)))
 
 (defcustom gnus-article-update-date-headers 1
-  "How often to update the date header.
+  "A number that says how often to update the date header (in seconds).
 If nil, don't update it at all."
   :version "24.1"
   :group 'gnus-article-headers
@@ -1252,6 +1252,24 @@ predicate.  See Info node `(gnus)Customizing Articles'."
   :group 'gnus-article-treat
   :link '(custom-manual "(gnus)Customizing Articles")
   :type gnus-article-treat-custom)
+
+(gnus-define-group-parameter
+ list-identifier
+ :variable-document
+ "Alist of regexps and correspondent identifiers."
+ :variable-group gnus-article-washing
+ :parameter-type
+ '(choice :tag "Identifier"
+	  :value nil
+	  (symbol :tag "Item in `gnus-list-identifiers'" none)
+	  regexp
+	  (const :tag "None" nil))
+ :parameter-document
+ "If non-nil, specify how to remove `identifiers' from articles' subject.
+
+Any symbol is used to look up a regular expression to match the
+banner in `gnus-list-identifiers'.  A string is used as a regular
+expression to match the identifier directly.")
 
 (make-obsolete-variable 'gnus-treat-strip-pgp nil
 			"Gnus 5.10 (Emacs 22.1)")
@@ -1725,9 +1743,10 @@ Initialized from `text-mode-syntax-table.")
 (put 'gnus-with-article-headers 'edebug-form-spec '(body))
 
 (defmacro gnus-with-article-buffer (&rest forms)
-  `(with-current-buffer gnus-article-buffer
-     (let ((inhibit-read-only t))
-       ,@forms)))
+  `(when (buffer-live-p (get-buffer gnus-article-buffer))
+     (with-current-buffer gnus-article-buffer
+       (let ((inhibit-read-only t))
+         ,@forms))))
 
 (put 'gnus-with-article-buffer 'lisp-indent-function 0)
 (put 'gnus-with-article-buffer 'edebug-form-spec '(body))
@@ -3055,10 +3074,11 @@ images if any to the browser, and deletes them when exiting the group
 The `gnus-list-identifiers' variable specifies what to do."
   (interactive)
   (let ((inhibit-point-motion-hooks t)
-	(regexp (if (consp gnus-list-identifiers)
-		    (mapconcat 'identity gnus-list-identifiers " *\\|")
-		  gnus-list-identifiers))
-	(inhibit-read-only t))
+        (regexp (or (gnus-parameter-list-identifier gnus-newsgroup-name)
+                    (if (consp gnus-list-identifiers)
+                        (mapconcat 'identity gnus-list-identifiers " *\\|")
+                      gnus-list-identifiers)))
+        (inhibit-read-only t))
     (when regexp
       (save-excursion
 	(save-restriction
@@ -3463,7 +3483,7 @@ possible values."
 			     combined-lapsed))
     (error "Unknown conversion type: %s" type))
   (condition-case ()
-      (let ((time (date-to-time date)))
+      (let ((time (ignore-errors (date-to-time date))))
 	(cond
 	 ;; Convert to the local timezone.
 	 ((eq type 'local)
@@ -3515,6 +3535,7 @@ possible values."
 		(segments 3)
 		lapsed-string)
 	    (while (and
+                    time
 		    (setq lapsed-string
 			  (concat " (" (article-lapsed-string time segments) ")"))
 		    (> (+ (length date-string)
@@ -4505,13 +4526,10 @@ commands:
 	(setq gnus-summary-buffer
 	      (gnus-summary-buffer-name gnus-newsgroup-name))
 	(gnus-summary-set-local-parameters gnus-newsgroup-name)
-	(cond
-	 ((and gnus-article-update-date-headers
-	       (not article-lapsed-timer))
+	(when article-lapsed-timer
+	  (gnus-stop-date-timer))
+	(when gnus-article-update-date-headers
 	  (gnus-start-date-timer gnus-article-update-date-headers))
-	 ((and (not gnus-article-update-date-headers)
-	       article-lapsed-timer)
-	  (gnus-stop-date-timer)))
 	(current-buffer)))))
 
 ;; Set article window start at LINE, where LINE is the number of lines

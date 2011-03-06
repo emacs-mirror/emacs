@@ -1,3 +1,7 @@
+2011-02-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* notes/bugtracker (bugtracker_debbugs_url): Fix typo.
+
 2011-02-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* admin.el (set-version): Add msdos/sed2v2.inp.

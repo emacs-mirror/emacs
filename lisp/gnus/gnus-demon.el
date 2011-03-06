@@ -140,7 +140,7 @@ Emacs has been idle for IDLE `gnus-demon-timestep's."
              ;; (func number nil)
              ;; Call every `time'
              ((and (numberp time) (null idle))
-              (run-with-timer t time 'gnus-demon-run-callback func)))))
+              (run-with-timer time time 'gnus-demon-run-callback func)))))
       (when timer
         (add-to-list 'gnus-demon-timers timer)))))
 

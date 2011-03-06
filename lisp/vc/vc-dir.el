@@ -265,6 +265,7 @@ See `run-hooks'."
     (define-key map [C-up] 'vc-dir-previous-directory)
     ;; The remainder.
     (define-key map "f" 'vc-dir-find-file)
+    (define-key map "e" 'vc-dir-find-file) ; dired-mode compatibility
     (define-key map "\C-m" 'vc-dir-find-file)
     (define-key map "o" 'vc-dir-find-file-other-window)
     (define-key map "\C-c\C-c" 'vc-dir-kill-dir-status-process)
@@ -1184,9 +1185,9 @@ These are the commands available for use in the file status buffer:
     ;; therefore it makes sense to always do that.
     ;; Otherwise if you do C-x v d -> C-x C-f -> C-c v d
     ;; you may get a new *vc-dir* buffer, different from the original
-    (file-truename (read-file-name "VC status for directory: "
-                                   default-directory default-directory t
-                                   nil #'file-directory-p))
+    (file-truename (read-directory-name "VC status for directory: "
+					default-directory default-directory t
+					nil))
     (if current-prefix-arg
 	(intern
 	 (completing-read

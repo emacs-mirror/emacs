@@ -567,7 +567,7 @@ on the menu bar.
   "Save RefTeX's parse file for this buffer if the information has changed."
   ;; Save the parsing information if it was modified.
   ;; This function should be installed in `kill-buffer-hook'.
-  ;; We are careful to make sure nothing goes wring in this function.
+  ;; We are careful to make sure nothing goes wrong in this function.
   (when (and (boundp 'reftex-mode)  reftex-mode
              (boundp 'reftex-save-parse-info)  reftex-save-parse-info
              (boundp 'reftex-docstruct-symbol)  reftex-docstruct-symbol
@@ -2397,7 +2397,7 @@ IGNORE-WORDS List of words which should be removed from the string."
   (define-key reftex-mode-map
     reftex-extra-bindings-prefix
     reftex-extra-bindings-map))
-    
+
 
 ;;; =========================================================================
 ;;;
@@ -2568,7 +2568,8 @@ With optional NODE, go directly to that node."
 ;;; Install the kill-buffer and kill-emacs hooks ------------------------------
 
 (add-hook 'kill-buffer-hook 'reftex-kill-buffer-hook)
-(add-hook 'kill-emacs-hook  'reftex-kill-emacs-hook)
+(unless noninteractive
+  (add-hook 'kill-emacs-hook  'reftex-kill-emacs-hook))
 
 ;;; Run Hook ------------------------------------------------------------------
 

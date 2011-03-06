@@ -1,3 +1,530 @@
+2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* isearch.el (isearch-mode-map): Bind C-y to isearch-yank-kill,
+	and move isearch-yank-line to M-s C-e (Bug#8183).
+
+2011-03-06  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-engine.el (c-guess-basic-syntax): Reindent.
+	(c-guess-basic-syntax): Move CASE 19 to a different place,
+	correctly to process template-args-cont lines.
+
+2011-03-06  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-ext.el (calc-init-extensions): Rename
+	calc-logunits-dblevel and calc-logunits-nplevel to calc-dblevel
+	and calc-nplevel, respectively.  Add keybindings for calc-spn,
+	calc-midi and calc-freq.  Add autoloads for calcFunc-spn,
+	calcFunc-midi, calcFunc-freq, calc-spn, calc-midi and calc-freq.
+
+	* calc/calc-units.el (calc-dblevel): Rename from
+	calc-logunits-dblevel.
+	(calc-nplevel): Rename from calc-logunits-nplevel.
+	(math-midi-round, math-freqp, math-midip, math-spnp)
+	(math-spn-to-midi, math-midi-to-spn, math-freq-to-spn)
+	(math-midi-to-freq, math-spn-to-freq, calcFunc-spn, calcFunc-midi)
+	(calcFunc-freq, calc-freq, calc-midi, calc-spn): New functions.
+	(math-notes): New variable.
+
+	* calc/calc.el (calc-note-threshold): New variable.
+
+2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package-archives): Accept either ordinary
+	directory names, in addition to HTTP URLs.
+	(package--with-work-buffer): New macro.   Handle normal directories.
+	(package-handle-response): Don't display the failing buffer.
+	(package-download-single, package-download-tar)
+	(package--download-one-archive): Use package--with-work-buffer.
+	(package-archive-base): Rename from package-archive-url.
+
+2011-03-06  Glenn Morris  <rgm@gnu.org>
+
+	* generic-x.el (generic-unix-modes): Add xmodmap-generic-mode.
+	(xmodmap-generic-mode): Respect generic-extras-enable-list.
+
+2011-03-06  Daniel Clemente  <dcl441-bugs@yahoo.com>  (tiny change)
+
+	* generic-x.el (xmodmap-generic-mode): New.  (Bug#2065)
+
+2011-03-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* allout.el (allout-init, allout-prefixed-keybindings)
+	(allout-unprefixed-keybindings):
+	* progmodes/prolog.el (prolog-find-term):
+	Fix typos in docstrings.
+
+2011-03-06  Nikolaj Schumacher  <me@nschum.de>  (tiny change)
+
+	* emacs-lisp/elp.el (elp-results): Fix off-by-one in header.  (Bug#2746)
+
+2011-03-06  Kevin Ryde  <user42@zip.com.au>
+
+	* textmodes/sgml-mode.el (sgml-fill-nobreak): Give it a doc.  (Bug#5326)
+
+2011-03-06  Michael Shields  <shields@msrl.com>  (tiny change)
+
+	* window.el (one-window-p, walk-windows, display-buffer):
+	Doc fixes.  (Bug#5567)
+
+2011-03-06  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* cus-edit.el (custom-prompt-variable): Use the `custom-get' property
+	of the variable if it exists.
+
+2011-03-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bookmark.el:
+	* desktop.el:
+	* emacs-lock.el:
+	* ps-print.el:
+	* saveplace.el:
+	* net/tramp-cache.el:
+	* obsolete/fast-lock.el:
+	* textmodes/reftex.el:
+	Don't set `kill-emacs-hook' on noninteractive sessions (bug#8137).
+
+2011-03-05  Antoine Levitt  <antoine.levitt@gmail.com>
+
+	* files.el (delete-directory, copy-directory, list-directory):
+	Use read-directory-name.
+
+	* find-file.el (ff-find-the-other-file):
+	* net/ange-ftp.el (ange-ftp-make-directory):
+	* printing.el (pr-interactive-dir):
+	* progmodes/ada-prj.el (ada-prj-load-directory):
+	* progmodes/ebnf2ps.el (ebnf-print-directory)
+	(ebnf-spool-directory, ebnf-eps-directory)
+	(ebnf-syntax-directory):
+	* shell.el (shell):
+	* speedbar.el (speedbar-create-directory):
+	* vc/emerge.el (emerge-merge-directories):
+	* vc/vc-dir.el (vc-dir):
+	* vc/vc.el (vc-create-tag, vc-retrieve-tag): Likewise.
+
+2011-03-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* help-mode.el (help-buffer): If we are to return the current
+	buffer, signal an error if it's not in Help mode (Bug#8147).
+
+2011-03-05  Reuben Thomas  <rrt@sc3d.org>
+
+	* files.el (file-name-version-regexp): Handle backup files of the
+	form `foo.js.~HEAD~1~' (Bug#8159).
+
+2011-03-05  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/esh-var.el: Don't require esh-test when compiling.
+	* eshell/em-banner.el, eshell/esh-cmd.el, eshell/esh-mode.el:
+	* eshell/esh-var.el, eshell/eshell.el: Move tests to esh-test.
+	* eshell/esh-test.el: Move to ../../test/eshell.el.
+
+2011-03-05  David Engster  <deng@randomsample.de>
+
+	* files.el (save-some-buffers): Report the names of buffers saved
+	automatically due to buffer-save-without-query (Bug#8134).
+
+2011-03-05  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
+	* net/rcirc.el: Add QuakeNet authentication support.
+	(rcirc-authinfo, rcirc-check-auth-status)
+	(rcirc-authenticate): Support QuakeNet.
+
+2011-03-05  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
+	* net/rcirc.el: Add functionality to authenticate before
+	autojoining channels.
+	(rcirc-authenticate-before-join): New option.
+	(rcirc-authenticated-hook): New variable.
+	(rcirc-connect): Make local variable rcirc-user-authenticated.
+	(rcirc-handler-001): Respect rcirc-authenticate-before-join.
+	(rcirc-check-auth-status, rcirc-join-channels-post-auth):
+	New functions.
+	(rcirc-handler-PRIVMSG, rcirc-handler-NOTICE):
+	Call rcirc-check-auth-status.
+
+2011-03-05  Alex Harsanyi  <AlexHarsanyi@gmail.com>
+
+	* net/soap-client.el (soap-namespace-put-link): Check if the target
+	name is fully qualified -- use only the name part.
+	(soap-parse-complex-type, soap-parse-sequence): Recognize xsd:all
+	types, treated the same as xsd:sequence.  (Bug#8166)
+
+2011-03-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (find-file-noselect): Don't ask about re-visiting
+	non-literally if the file is already visited in image-mode.
+	(Bug#8177)
+
+2011-03-05  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/esh-mode.el (eshell-kill-buffer-function): New function.
+	(eshell-mode): Use eshell-kill-buffer-function.
+	Run the -initialize functions independently of the -load-hooks.
+	* eshell/esh-proc.el (eshell-kill-process-function): New function.
+	(eshell-gather-process-output, eshell-sentinel)
+	(eshell-interrupt-process, eshell-kill-process, eshell-quit-process):
+	Use eshell-kill-process-function.
+	* eshell/em-alias.el (eshell-alias-load-hook):
+	* eshell/em-banner.el (eshell-banner-load-hook):
+	* eshell/em-cmpl.el (eshell-cmpl-load-hook):
+	* eshell/em-dirs.el (eshell-dirs-load-hook):
+	* eshell/em-glob.el (eshell-glob-load-hook):
+	* eshell/em-hist.el (eshell-hist-load-hook):
+	* eshell/em-pred.el (eshell-pred-load-hook):
+	* eshell/em-prompt.el (eshell-prompt-load-hook):
+	* eshell/em-rebind.el (eshell-rebind-load-hook):
+	* eshell/em-script.el (eshell-script-load-hook):
+	* eshell/em-smart.el (eshell-smart-load-hook):
+	* eshell/em-term.el (eshell-term-load-hook):
+	* eshell/em-unix.el (eshell-unix-load-hook):
+	* eshell/esh-arg.el (eshell-arg-load-hook):
+	* eshell/esh-cmd.el (eshell-cmd-load-hook):
+	* eshell/esh-ext.el (eshell-ext-load-hook):
+	* eshell/esh-io.el (eshell-io-load-hook):
+	* eshell/esh-mode.el (eshell-exit-hook):
+	* eshell/esh-proc.el (eshell-proc-load-hook, eshell-kill-hook):
+	* eshell/esh-var.el (eshell-var-load-hook):
+	Set default hook values to nil.  (Bug#5375)
+
+	* eshell/esh-module.el (eshell-module-unload-hook)
+	(eshell-modules-list): Remove leading * from defcustom docs.
+
+	* eshell/esh-util.el (eshell-for): Make it obsolete.
+	* eshell/em-alias.el (eshell/alias, eshell-alias-completions):
+	* eshell/em-dirs.el (eshell-save-some-last-dir):
+	* eshell/em-hist.el (eshell-save-some-history)
+	(eshell-hist-parse-modifier):
+	* eshell/em-ls.el (eshell-ls-dir, eshell-ls-files)
+	(eshell-ls-entries):
+	* eshell/em-unix.el (eshell/cat, eshell/du, eshell/su):
+	* eshell/esh-cmd.el (eshell-invoke-directly, eshell-do-eval)
+	(eshell/which):
+	* eshell/esh-ext.el (eshell-find-interpreter):
+	* eshell/esh-mode.el (eshell-mode):
+	* eshell/esh-module.el (eshell-unload-extension-modules):
+	* eshell/esh-proc.el (eshell-process-interact):
+	* eshell/esh-test.el (eshell-test):
+	* eshell/esh-util.el (eshell-flatten-list, eshell-winnow-list):
+	* eshell/esh-var.el (eshell/env, eshell-environment-variables)
+	(eshell-variables-list):
+	* eshell/eshell.el (eshell-unload-all-modules):
+	Replace eshell-for with dolist.
+
+2011-03-04  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-bzr.el (vc-bzr-after-dir-status): Handle bzr 2.3.0.  (Bug#8170)
+
+2011-03-04  Tom Tromey  <tromey@redhat.com>
+
+	* progmodes/gud.el (gdb-script-mode): Derive from prog-mode.
+
+2011-03-04  Glenn Morris  <rgm@gnu.org>
+
+	* outline.el (outline-regexp): No longer allow nil.
+	(outline-heading-end-regexp): Add safety predicate.  (Bug#7619)
+
+	* net/browse-url.el (browse-url):
+	Handle deleted default-directory.  (Bug#6077)
+
+	* recentf.el (recentf-include-p): In case of a buggy predicate,
+	err on the side of including, not excluding.  (Bug#5843)
+
+2011-03-04  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-units.el (math-to-standard-rec): Don't treat subscripted
+	variables as units.
+
+2011-03-04  Bob Rogers  <rogers@rgrjr.dyndns.org>
+
+	* emacs-lisp/ewoc.el (ewoc-goto-next): Give a more explicit error
+	if there is no node.  (Bug#3261)
+
+2011-03-04  Leo  <sdl.web@gmail.com>
+
+	* vc/diff-mode.el (diff-mode): Fix whitespace-style.  (Bug#8139)
+
+	* time.el (display-time-world-list): Fix typo.  (Bug#7571)
+
+2011-03-04  Zachary Kanfer  <zkanfer@gmail.com>  (tiny change)
+
+	* cus-edit.el (custom-buffer-create-internal):
+	Split search string before passing it to `customize-apropos' (bug#8136).
+
+2011-03-04  Drew Adams  <drew.adams@oracle.com>
+
+	* image-dired.el (image-dired-cmd-read-exif-data-options):
+	Fix typo in docstring (bug#8156).
+
+2011-03-03  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
+	* net/rcirc.el (rcirc-cmd-join): Accept comma-separated input.
+
+2011-03-03  Christian Ohler  <ohler@gnu.org>
+
+	* emacs-lisp/ert.el (ert--explain-equal): New function.
+	(ert--explain-equal-rec): Renamed from `ert--explain-not-equal'.
+	All callers changed.
+	(ert--explain-equal-including-properties): Renamed from
+	`ert--explain-not-equal-including-properties'.  All callers
+	changed.
+
+2011-03-03  Christian Ohler  <ohler@gnu.org>
+
+	* emacs-lisp/ert.el (ert--stats-set-test-and-result)
+	(ert-char-for-test-result, ert-string-for-test-result)
+	(ert-run-tests-batch, ert--print-test-for-ewoc):
+	Handle `ert-test-quit'.
+
+2011-03-03  David Abrahams  <dave@boostpro.com>  (tiny change)
+
+	* vc/ediff-init.el (ediff-use-faces, ediff-highlight-all-diffs):
+	Move ediff-defvar-local calls after defcustoms.  (Bug#1821)
+
+2011-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (file-truename): Doc fix.  (Bug#2341)
+
+2011-03-03  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>
+
+	* vc/vc-dir.el (vc-dir-mode-map): Bind vc-dir-find-file to e (Bug#7349).
+
+2011-03-03  Vagn Johansen  <gonz808@hotmail.com>  (tiny change)
+
+	* vc/vc-svn.el (vc-svn-after-dir-status): Some MS Windows svn client
+	programs output backslashes.  (Bug#7663)
+
+2011-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* mail/sendmail.el (mail-mode-map): Remove mail-sent-via.
+	(mail-mode): Remove mail-sent-via from the doc.
+	(mail-sent-via): Make it obsolete.  (Bug#1776)
+
+	* progmodes/grep.el (grep-highlight-matches): Doc fix.
+	(grep-process-setup): No highlighting without font-lock.  (Bug#8084)
+
+	* vc/vc-bzr.el (vc-bzr-state-heuristic): Handle dirstate entries
+	with no parents.  (Bug#8025)
+
+2011-03-02  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* password-cache.el (password-in-cache-p): Add autoload.
+
+2011-03-02  Glenn Morris  <rgm@gnu.org>
+
+	* man.el (Man-support-local-filenames): Also handle Red Hat's man.
+	* dired-x.el (Man-support-local-filenames): Autoload it.
+	(dired-guess-shell-alist-default): Also handle Red Hat's man.
+
+	* dired-x.el (dired-default-directory-alist, dired-default-directory):
+	Mark as obsolete.
+	(dired-smart-shell-command): Just call dired-current-directory.
+
+	* dired-x.el (dired-jump-other-window): Add autoload.
+	(dired-default-directory-alist, dired-default-directory): Doc fixes.
+	(dired-default-directory-alist): Mark as risky.
+
+	* dired-x.el (dired-omit-here-always): Make it obsolete.
+
+2011-03-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textmodes/artist.el (artist-curr-go): Default to pen-line.
+	(artist-select-op-pen-line): New function.
+	(artist-menu-map): New variable.
+	(artist-mode-map): Add a menu to the menu-bar.
+
+2011-03-02  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-math.el (calcFunc-log10): Check for symbolic mode
+	when evaluating.
+
+	* calc/calc-units.el (math-conditional-apply, math-conditional-pow):
+	New function.
+	(math-logunits-add, math-logunits-mul, math-logunits-divide):
+	(math-logunits-quant, math-logunits-level):
+	Use `math-conditional-apply' and `math-conditional-pow' to evaluate
+	functions.
+	(math-logunits-level): Extract units from ratio.
+
+2011-03-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/cl-macs.el (lexical-let*): Fix argument name in docstring.
+
+2011-03-01  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-hebrew.el (calendar-hebrew-birthday)
+	(diary-hebrew-birthday): Rename and rework functions added
+	in previous change.
+
+2011-03-01  Ed Reingold  <reingold@emr.cs.iit.edu>
+
+	* calendar/cal-hebrew.el (hebrew-calendar-birthday)
+	(diary-hebrew-birthday): New functions.
+
+2011-03-01  Glenn Morris  <rgm@gnu.org>
+
+	* dired.el (dired-safe-switches-p): Beef it up.
+	(dired-actual-switches): Use it for the safe-local prop.  (Bug#3230)
+
+2011-03-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dired.el (dired-safe-switches-p): New function.
+
+2011-03-01  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (dir-locals-collect-variables):
+	Add the ability to exclude subdirectories.  (Bug#8100)
+
+	* dired-x.el (dired-omit-here-always): Add `(subdirs . nil)' to locals.
+
+2011-02-28  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* ido.el (ido-everywhere): Doc fix.
+	(ido-mode): Doc fix.
+
+2011-02-28  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.el (dired-guess-shell-alist-default): Use \\', not $.
+
+2011-02-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-cmds.el (tramp-append-tramp-buffers): Dump load-path
+	shadows.
+
+2011-02-28  Antoine Levitt  <antoine.levitt@gmail.com>
+
+	* dired-x.el (dired-guess-shell-alist-default): Add rar and 7z.
+
+2011-02-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/pcase.el (pcase, pcase--u1, pcase--q1):
+	Fix typos in docstrings.
+
+2011-02-28  Stephen Berman  <stephen.berman@gmx.net>
+
+	* dired-aux.el (dired-update-file-line):
+	Fix 2010-11-09 change.  (Bug#8131)
+
+2011-02-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/mule-cmds.el (set-default-coding-systems): Use the
+	-unix variant of encoding in default-keyboard-coding-system.
+	(Bug#8122)
+
+2011-02-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* facemenu.el (list-colors-display): Use with-help-window (Bug#8048).
+
+2011-02-27  Prestoo Ten  <prestooten@gmail.com>  (tiny change)
+
+	* term/screen.el: New file (Bug#2650).
+
+2011-02-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/pcase.el (pcase--if): Try to invert test to reduce depth.
+	(pcase-mutually-exclusive-predicates): New var.
+	(pcase--split-consp, pcase--split-pred): Use it.
+	(pcase--split-equal, pcase--split-member): When splitting against
+	a pure predicate, run it to know the outcome.
+	(pcase--u1): Mark vars that are actually used.
+	(pcase--q1): Avoid introducing unused vars.
+
+2011-02-27  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-ext.el (calc-init-extensions):
+	Autoload `calc-l-prefix-help' instead of `calc-ul-prefix-help'.
+
+	* calc/calc-math.el (calcFunc-log10): Don't signal an error in
+	symbolic mode.
+
+	* calc/calc-vec.el (calcFunc-subscr): Return nil if the first
+	argument is a variable.
+
+2011-02-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/assoc.el: Remove misleading `sort' (bug#8126).
+	(aput, adelete, amake): Replace `eval' -> `symbol-value'.
+	Suggested by Michael Heerdegen <michael_heerdegen@web.de>.
+
+2011-02-25  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* password-cache.el (password-in-cache-p): Convenience function to
+	check if a key is in the cache, even if the value is nil.
+
+2011-02-25  Jambunathan K  <kjambunathan@gmail.com>
+
+	* emacs-lisp/package-x.el (package--archive-contents-from-url)
+	(package--archive-contents-from-file): New functions.
+	(package-update-news-on-upload): New var.
+	(package-upload-buffer-internal): Extract archive-contents from
+	package-archive-upload-base if it is not found at archive-url.
+	Obey package-update-news-on-upload.
+	(package-upload-buffer, package-upload-file): Doc fix.
+
+2011-02-24  Glenn Morris  <rgm@gnu.org>
+
+	* files-x.el (modify-dir-local-variable): Handle dir-locals from
+	the cache, and from non-file sources.
+
+	* help-fns.el (describe-variable): Return consistent results when a
+	dir-local from a file came from the cache or did not.  (Bug#8095)
+	If a dir-local has no associated file, say it came from a "directory".
+
+	* files.el (hack-dir-local-variables): Fix setting of `dir-name'.
+	(hack-local-variables-confirm, hack-local-variables-filter): Doc fix.
+
+	* files.el (dir-locals-find-file): Doc fix.
+	Fix the check for cache elements that have no associated file,
+	and the mtime check for those that do.  (Bug#8095)
+
+	* dired-x.el (dired-hack-local-variables):
+	Handle interrupts during hacking local variables.  (Bug#5216)
+
+	* emacs-lisp/autoload.el (autoload-save-buffers)
+	(autoload-find-destination, update-directory-autoloads):
+	Avoid prompts when updating autoloads.
+
+2011-02-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-disable-print-circle): Obsolete.
+
+2011-02-23  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmailmm.el (rmail-mime-process-multipart): Do not signal an
+	error when a multipart boundary in the nested multipart is found.
+
+	* mail/rmail.el (rmail-start-mail): Decode "encoded-words" of
+	header components.
+
+2011-02-23  Glenn Morris  <rgm@gnu.org>
+
+	* dired.el (dired-mode): Call hack-dir-local-variables-non-file-buffer.
+	* dired-x.el (dired-omit-mode): Safe if boolean.
+	(dired-enable-local-variables): Fix doc and custom type.
+	(dired-enable-local-variables, dired-local-variables-file)
+	(dired-hack-local-variables): Make obsolete.
+	(dired-omit-here-always): Use dir-locals.el instead.
+
+	* files.el (safe-local-eval-forms): Add the write-file-hooks version.
+
+2011-02-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* help-fns.el (describe-function-1): Don't signal an error just because
+	the DOC file disappeared.
+
+2011-02-22  Seppo Sade  <sepposade1@gmail.com>  (tiny change)
+
+	* eshell/esh-ext.el (eshell-external-command): Do not restrict
+	remote check to "ftp".  (Bug#8089)
+
+2011-02-21  Alan Mackenzie  <acm@muc.de>
+
+	Fix bug #7930.
+	* progmodes/cc-engine.el (c-state-literal-at): Prevent positions
+	in macros finding their way into c-state-nonlit-pos-cache.
+	Strengthen the comments.
+	(c-state-dump): New commented out diagnostic routine.
+
 2011-02-21  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-rfn-eshadow-setup-minibuffer): Do not use
@@ -16,10 +543,10 @@
 
 	* faces.el (color-values): Use cond for clarity.  Doc fix.
 
-	* facemenu.el (color-rgb-to-hsv): Deleted; use the version in
+	* facemenu.el (color-rgb-to-hsv): Delete; use the version in
 	color.el instead.
-	(list-colors-sort-key, list-colors-print): Use
-	color-normalized-values.
+	(list-colors-sort-key, list-colors-print):
+	Use color-normalized-values.
 
 2011-02-20  Drew Adams  <drew.adams@oracle.com>
 
@@ -48,8 +575,8 @@
 	* autorevert.el (auto-revert-mode, auto-revert-tail-mode)
 	(global-auto-revert-ignore-buffer): Remove leading "*" from docs.
 
-2011-02-19  Dmitry Bolshakov <dmitry.bolshakov@bridge-quest.com>
-            Dima Kogan <dkogan@cds.caltech.edu>  (tiny change)
+2011-02-19  Dmitry Bolshakov  <dmitry.bolshakov@bridge-quest.com>
+            Dima Kogan  <dkogan@cds.caltech.edu>  (tiny change)
 
 	* progmodes/hideshow.el (hs-find-block-beginning)
 	(hs-hide-level-recursive): Ignore comments when parsing braces
@@ -69,8 +596,8 @@
 	(vc-bzr-error-regex-alist): New var.
 	(vc-bzr-merge-branch): Use it to highlight the pull/merge buffer.
 
-	* vc/vc-dispatcher.el (vc-do-async-command): Bind
-	inhibit-read-only to t.
+	* vc/vc-dispatcher.el (vc-do-async-command):
+	Bind inhibit-read-only to t.
 
 	* progmodes/compile.el (compilation--flush-directory-cache):
 	Handle the case where cdr of compilation--flush-directory-cache
@@ -134,8 +661,8 @@
 	* apropos.el (apropos-print): Call apropos-mode before setting up
 	buffer variables.  Use inhibit-read-only.
 
-	* emacs-lisp/package.el (package--list-packages): Call
-	package-menu-mode before setting up buffer variables.
+	* emacs-lisp/package.el (package--list-packages):
+	Call package-menu-mode before setting up buffer variables.
 
 	* play/solitaire.el (solitaire): Call solitaire-mode before
 	setting up buffer variables.  Use inhibit-read-only.
@@ -204,13 +731,13 @@
 
 2011-02-17  Ken Manheimer  <ken.manheimer@gmail.com>
 
-	* lisp/allout-widgets.el: (allout-widgets-icons-light-subdir)
+	* lisp/allout-widgets.el (allout-widgets-icons-light-subdir)
 	(allout-widgets-icons-dark-subdir): Track relocations of icons
 	* lisp/allout.el: Remove commentary about remove encryption
 	passphrase mnemonic support and verification.
-	(allout-encrypt-string): (allout-encrypt-string): Recognize epg
-	failure to decrypt gpg2 armored text using gpg1, and indicate that
-	the gpg version *might* be the problem in the error message.
+	(allout-encrypt-string): Recognize epg failure to decrypt gpg2
+	armored text using gpg1, and indicate that the gpg version *might*
+	be the problem in the error message.
 
 2011-02-17  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
 
@@ -499,7 +1026,7 @@
 
 2011-02-11  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
 
-	* net/rcirc.el (defun-rcirc-join): Accept multiple channels.
+	* net/rcirc.el (rcirc-cmd-join): Accept multiple channels.
 
 2011-02-11  Glenn Morris  <rgm@gnu.org>
 
@@ -542,7 +1069,7 @@
 	* play/pong.el (pong-mode-map):
 	* play/handwrite.el (menu-bar-handwrite-map):
 	* play/gametree.el (gametree-mode-map):
-	* net/rcirc.el (rcirc-mode-map, rcirc-browse-url-map
+	* net/rcirc.el (rcirc-mode-map, rcirc-browse-url-map)
 	(rcirc-multiline-minor-mode-map, rcirc-track-minor-mode-map):
 	* net/newst-plainview.el (newsticker-menu, newsticker-mode-map)
 	(newsticker--url-keymap):
@@ -580,7 +1107,7 @@
 	auto-activation is controlled solely by customization
 	`allout-auto-activation'.
 
-	(allout-auto-activation-helper) (allout-setup): New autoloads
+	(allout-auto-activation-helper, allout-setup): New autoloads
 	implement new custom set procedure for allout-auto-activation.
 	Also, explicitly invoke
 	(allout-setup) after allout-auto-activation is custom-defined, to
@@ -592,7 +1119,7 @@
 	allout-auto-activation, and mark obsolete.
 	(allout-mode): Respect string values for allout-auto-activation.
 	Run allout-after-copy-or-kill-hook without any args.
-	(allout-mode) (allout-layout) (allout-default-layout)
+	(allout-mode, allout-layout, allout-default-layout)
 	(outlineify-sticky): Adjust docstring for new scheme.
 	(allout-after-copy-or-kill-hook): No arguments - hook implementers
 	should concentrate on the kill ring.
@@ -633,7 +1160,7 @@
 	extension-specific processing of killed text.
 	(allout-mode): Include new allout-after-copy-or-kill-hook among
 	mentioned hooks.
-	(allout-kill-line) (allout-kill-topic): Ensure that processing
+	(allout-kill-line, allout-kill-topic): Ensure that processing
 	after kill happens even if barf-if-buffer-read-only is raised.
 	Include new allout-after-copy-or-kill-hook among that subsequent
 	processing.
@@ -655,23 +1182,23 @@
 	* calc/calc.el (calc-logunits-field-reference): Rename from
 	`calc-default-field-reference-level'.
 	(calc-logunits-power-reference): Rename from
-	`calc-default-power-reference-level'
+	`calc-default-power-reference-level'.
 
 	* calc/calc-units.el (math-logunits-quant): Rename from
 	`math-logunits-level'
 	(math-logunits-plus): Rename from math-logcombine.
 	(calcFunc-luplus, calcFunc-luminus calc-luplus, calc-luminus): Remove.
 	(calcFunc-lufieldadd, calcFunc-lupoweradd, calcFunc-lufieldsub)
-	(calcFunc-lufieldsub,calc-logunits-add calc-logunits-sub):
+	(calcFunc-lufieldsub, calc-logunits-add, calc-logunits-sub):
 	New functions.
 	(calcFunc-fieldquant): Rename from `calcFunc-fieldlevel'.
 	(calcFunc-powerquant): Rename from `calcFunc-powerlevel'.
 	(calc-logunits-quantity): Rename from `calc-level'.
 	(calcFunc-dbfieldlevel, calcFunc-dbpowerlevel, calcFunc-npfieldlevel)
-	(calcFunc-nppowerlevel,calc-logunits-dblevel, calc-logunits-nplevel)
+	(calcFunc-nppowerlevel, calc-logunits-dblevel, calc-logunits-nplevel)
 	(math-logunits-mul, calcFunc-lufieldmul, calcFunc-lupowermul)
 	(calc-logunits-mul, math-logunits-divide, calcFunc-lufielddiv)
-	(calcFunc-lupowerdiv,calc-logunits-divide,math-logunits-level):
+	(calcFunc-lupowerdiv, calc-logunits-divide, math-logunits-level):
 	New functions.
 
 	* calc/calc-help.el (calc-u-prefix-help): Remove "L" reference.
@@ -1394,11 +1921,10 @@
 	(allout-institute-keymap): Take over the "setup" part of the former
 	allout-setup-mode-map.  Reassign allout-mode-map-value value and
 	update the defalias.
-	(allout-command-prefix) (allout-prefixed-keybindings)
+	(allout-command-prefix, allout-prefixed-keybindings)
 	(allout-unprefixed-keybindings):
 	Use allout-compose-and-institute-keymap to process the bindings.
-	(allout-unprefixed-keybindings): Remove extraneous '?' question
-	marks.
+	(allout-unprefixed-keybindings): Remove extraneous '?' question marks.
 	(allout-prefixed-keybindings): Elide binding to (prefixed) \C-h -
 	user can customize if they want to use that binding.
 	Bind allout-copy-topic-as-kill to (prefixed) \M-k.
@@ -1407,14 +1933,12 @@
 	(allout-hotspot-key-handler): Remove attempt to resolve the key
 	through the literal key-string lookup on allout-keybindings-list.
 	That probably hasn't worked for a Long Time, and removal of
-	allout-keybindings-list further simplifies the keybindings
-	situation.
+	allout-keybindings-list further simplifies the keybindings situation.
 	(allout-pre-command-business): Use allout-mode-map-value instead
 	of allout-mode-map.
 	(allout-preempt-trailing-ctrl-h): Remove.  The user can customize
 	the bindings if they want to use a keybinding having a trailing
-	\C-h.  No deprecation needed since this feature was never in a
-	release.
+	\C-h.  No deprecation needed since this feature was never in a release.
 	(allout-keybindings-list): Remove.  It's not been useful for a
 	while.  (See allout-hotspot-key-handler changes, above.)
 	(produce-allout-mode-map): Remove.  Consolidate into
@@ -2392,7 +2916,7 @@
 	* loadup.el (symbol-file-load-history-loaded): Remove; unused.
 
 2010-12-15  Jari Aalto  <jari.aalto@cante.net>
-            Scott Evans <gse@antisleep.com>
+            Scott Evans  <gse@antisleep.com>
 
 	* rect.el (rectange--default-line-number-format)
 	(rectangle-number-line-callback): New functions.
@@ -2552,7 +3076,7 @@
 	* dired.el (dired-pop-to-buffer): Bind pop-up-frames to nil
 	(Bug#7533).
 
-2010-12-13  W. Martin Borgert <debacle@debian.org>  (tiny change)
+2010-12-13  W. Martin Borgert  <debacle@debian.org>  (tiny change)
 
 	* files.el (auto-mode-alist): Handle .dbk (DocBook) with xml-mode.
 	(Bug#7491).
@@ -2596,7 +3120,7 @@
 	this original name from `bookmark-name-from-record' reverting part
 	of rev 102609 / kfogel@red-bean.com-20101208080927-5j9jqnb2xvcw4ogm.
 	As Drew Adams pointed out, there was no reason to cause churn for
-	third-party callers.
+	third-party callers.  (Bug#7609)
 
 2010-12-12  Alan Mackenzie  <acm@muc.de>
 
@@ -2942,7 +3466,6 @@
 
 	* net/tramp-cmds.el: Remove solved todo item.
 
-	* net/tramp-efs.el:
 	* net/tramp-ftp.el:
 	* net/tramp-gvfs.el:
 	* net/tramp-gw.el:
@@ -3481,7 +4004,7 @@
 	  describe-prefix-bindings
 	- adapt to new version of called-interactively-p, while
 	  maintaining backwards compatibility with old version
-	- fix hotspot navigation so i works properly with meta-modified keys
+	- fix hotspot navigation so i works properly with meta-modified keys.
 
 	* allout.el (allout-keybindings, allout-bind-keys)
 	(allout-keybindings-binding, allout-prefixed-keybindings)
@@ -3608,7 +4131,7 @@
 2010-11-12  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-log-buffer): New constant.
-	Use it to replace all instances of "*Compile-Log*"
+	Use it to replace all instances of "*Compile-Log*".
 
 2010-11-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -4556,7 +5079,7 @@
 
 2010-10-24  Michael McNamara  <mac@mail.brushroad.com>
 
-	* verilog-mode.el (verilog-directive-re): Make this variable
+	* progmodes/verilog-mode.el (verilog-directive-re): Make this variable
 	auto-built for efficiency of execution and updating.
 	(verilog-extended-complete-re): Support 'pure' fucntion & task
 	declarations (these have no bodies).
@@ -4590,7 +5113,7 @@
 
 2010-10-24  Wilson Snyder  <wsnyder@wsnyder.org>
 
-	* verilog-mode.el (verilog-auto-inst, verilog-gate-ios)
+	* progmodes/verilog-mode.el (verilog-auto-inst, verilog-gate-ios)
 	(verilog-gate-keywords, verilog-read-sub-decls)
 	(verilog-read-sub-decls-gate, verilog-read-sub-decls-gate-ios)
 	(verilog-read-sub-decls-line, verilog-read-sub-decls-sig): Support
@@ -5539,7 +6062,7 @@
 
 2010-10-03  Glenn Morris  <rgm@gnu.org>
 
-	* obsolete/x-menu.el: Remove file, obsolete since 21.1
+	* obsolete/x-menu.el: Remove file, obsolete since 21.1.
 
 	* textmodes/rst.el (rst-font-lock-keywords-function):
 	Drop Emacs 20 code.
@@ -6187,8 +6710,8 @@
 	Use `tramp-compat-funcall'.
 
 	* net/tramp.el (tramp-process-actions):
-	* net/tramp-gvfs.el (tramp-handle-vc-registered):
-	* net/tramp-sh.el (tramp-gvfs-handler-askquestion)
+	* net/tramp-gvfs.el (tramp-gvfs-handler-askquestion):
+	* net/tramp-sh.el (tramp-handle-vc-registered)
 	(tramp-get-remote-stat, tramp-get-remote-readlink):
 	Use `tramp-compat-with-temp-message'.
 
@@ -6253,7 +6776,7 @@
 
 2010-09-14  Sascha Wilde  <wilde@sha-bang.de>
 
-	* vc/vc-hg.el (vc-hg-state,vc-hg-working-revision):
+	* vc/vc-hg.el (vc-hg-state, vc-hg-working-revision):
 	Replace setting HGRCPATH to "" by some less invasive --config options.
 
 2010-09-14  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -7235,48 +7758,6 @@
 
 	* whitespace.el (whitespace-style): Adjust type declaration.
 
-2010-08-26  Magnus Henoch  <magnus.henoch@gmail.com>
-
-	* net/tramp-gvfs.el (tramp-gvfs-handle-copy-file): Do not pass
-	empty argument to gvfs-copy.
-
-2010-08-26  Chong Yidong  <cyd@stupidchicken.com>
-
-	* net/tramp-compat.el (tramp-compat-delete-file): Rewrite to
-	handle new TRASH arg of `delete-file'.
-
-2010-08-26  Christian Lynbech  <christian.lynbech@tieto.com>  (tiny change)
-
-	* net/tramp.el (tramp-handle-insert-directory): Don't use
-	`forward-word', its default syntax could be changed.
-
-2010-08-26  Toru TSUNEYOSHI  <t_tuneyosi@hotmail.com>
-            Michael Albinus  <michael.albinus@gmx.de>
-
-	Implement compression for inline methods.
-
-	* net/tramp.el (tramp-inline-compress-start-size): New defcustom.
-	(tramp-copy-size-limit): Allow also nil.
-	(tramp-inline-compress-commands): New defconst.
-	(tramp-find-inline-compress, tramp-get-inline-compress)
-	(tramp-get-inline-coding): New defuns.
-	(tramp-get-remote-coding, tramp-get-local-coding): Remove,
-	replaced by `tramp-get-inline-coding'.
-	(tramp-handle-file-local-copy, tramp-handle-write-region)
-	(tramp-method-out-of-band-p): Use `tramp-get-inline-coding'.
-
-2010-08-26  Noah Lavine  <noah549@gmail.com>  (tiny change)
-
-	Detect ssh 'ControlMaster' argument automatically in some cases.
-
-	* net/tramp.el (tramp-detect-ssh-controlmaster): New defun.
-	(tramp-default-method): Use it.
-
-2010-08-26  Karel Klíč  <kklic@redhat.com>
-
-	* net/tramp.el (tramp-file-name-for-operation):
-	Add file-selinux-context.
-
 2010-08-26  Łukasz Stelmach  <lukasz.stelmach@iem.pw.edu.pl>  (tiny change)
 
 	* play/cookie1.el (read-cookie): Fix off-by-one error (bug#6921).
@@ -7308,210 +7789,14 @@
 
 	Sync with Tramp 2.1.19.
 
-	* net/tramp-cmds.el (tramp-cleanup-all-connections)
-	(tramp-reporter-dump-variable, tramp-load-report-modules)
-	(tramp-append-tramp-buffers): Use `tramp-compat-funcall'.
-	(tramp-bug): Recommend setting of `tramp-verbose' to 9.
+	* net/tramp-gvfs.el (tramp-gvfs-handle-write-region): Protect
+	deleting tmpfile.
+	(tramp-gvfs-maybe-open-connection): Use `tramp-compat-funcall'.
 
-	* net/tramp-compat.el (top): Do not autoload
-	`tramp-handle-file-remote-p'.  Load tramp-util.el and tramp-vc.el
-	only when `start-file-process' is not bound.
-	(byte-compile-not-obsolete-vars): Define if not bound.
-	(tramp-compat-funcall): New defmacro.
-	(tramp-compat-line-beginning-position)
-	(tramp-compat-line-end-position)
-	(tramp-compat-temporary-file-directory)
-	(tramp-compat-make-temp-file, tramp-compat-file-attributes)
-	(tramp-compat-copy-file, tramp-compat-copy-directory)
-	(tramp-compat-delete-file, tramp-compat-delete-directory)
-	(tramp-compat-number-sequence, tramp-compat-process-running-p):
-	Use it.
-	(tramp-advice-file-expand-wildcards): Do not use
-	`tramp-handle-file-remote-p'.
-	(tramp-compat-make-temp-file): Simplify fallback implementation.
-	(tramp-compat-copy-file): Add PRESERVE-SELINUX-CONTEXT.
-	(tramp-compat-copy-tree): Remove function.
-	(tramp-compat-delete-file): New defun.
-	(tramp-compat-delete-directory): Provide implementation for older
-	Emacsen.
-	(tramp-compat-file-attributes): Handle only
-	`wrong-number-of-arguments' error.
-
-	* net/tramp-fish.el (tramp-fish-handle-copy-file):
-	Add PRESERVE_SELINUX_CONTEXT.
-	(tramp-fish-handle-delete-file): Add TRASH arg.
-	(tramp-fish-handle-directory-files-and-attributes):
-	Do not use `tramp-fish-handle-file-attributes.
-	(tramp-fish-handle-file-local-copy)
-	(tramp-fish-handle-insert-file-contents)
-	(tramp-fish-maybe-open-connection): Use `with-progress-reporter'.
-
-	* net/tramp-gvfs.el (top): Require url-util.
-	(tramp-gvfs-mount-point): Remove.
-	(tramp-gvfs-file-name-handler-alist): Add `file-selinux-context'
-	and `set-file-selinux-context'.
-	(tramp-gvfs-stringify-dbus-message, tramp-gvfs-send-command)
-	(tramp-gvfs-handle-file-selinux-context)
-	(tramp-gvfs-handle-set-file-selinux-context): New defuns.
-	(with-tramp-dbus-call-method): Format trace message.
-	(tramp-gvfs-handle-copy-file): Handle PRESERVE-SELINUX-CONTEXT.
-	(tramp-gvfs-handle-copy-file, tramp-gvfs-handle-rename-file):
-	Implement backup call, when operation on local files fails.
-	Use progress reporter.  Flush properties of changed files.
-	(tramp-gvfs-handle-delete-file): Add TRASH arg.
-	Use `tramp-compat-delete-file'.
-	(tramp-gvfs-handle-expand-file-name): Expand "~/".
-	(tramp-gvfs-handle-make-directory): Make more traces.
-	(tramp-gvfs-handle-write-region): Protect deleting tmpfile.
-	(tramp-gvfs-url-file-name): Hexify file name in url.
-	(tramp-gvfs-fuse-file-name): Take also prefix (like dav shares)
-	into account for the resulting file name.
-	(tramp-gvfs-handler-askquestion): Preserve current message, in
-	order to let progress reporter continue afterwards.  (Bug#6257)
-	Return dummy mountpoint, when the answer is "no".
-	See `tramp-gvfs-maybe-open-connection'.
-	(tramp-gvfs-handler-mounted-unmounted)
-	(tramp-gvfs-connection-mounted-p): Test also for new mountspec
-	attribute "default_location".  Set "prefix" property.
-	Handle default-location.
-	(tramp-gvfs-mount-spec): Return both prefix and mountspec.
-	(tramp-gvfs-maybe-open-connection): Test, whether mountpoint
-	exists.  Raise an error, if not (due to a corresponding answer
-	"no" in interactive questions, for example).
-	Use `tramp-compat-funcall'.
-
-	* net/tramp-imap.el (top): Autoload `epg-make-context'.
-	(tramp-imap-handle-copy-file): Add PRESERVE-SELINUX-CONTEXT.
-	(tramp-imap-do-copy-or-rename-file)
-	(tramp-imap-handle-insert-file-contents)
-	(tramp-imap-handle-file-local-copy): Use `with-progress-reporter'.
-	(tramp-imap-handle-delete-file): Add TRASH arg.
-
-	* net/tramp-smb.el (tramp-smb-handle-copy-file):
-	Add PRESERVE-SELINUX-CONTEXT.
-	(tramp-smb-handle-copy-file)
-	(tramp-smb-handle-file-local-copy, tramp-smb-handle-rename-file)
-	(tramp-smb-handle-write-region, tramp-smb-maybe-open-connection):
-	Use `with-progress-reporter'.
-	(tramp-smb-handle-delete-file): Add TRASH arg.
-
-	* net/tramp.el (tramp-methods): Move hostname to the end in all
-	ssh `tramp-login-args'.  Add `tramp-async-args' attribute where
-	appropriate.
-	(tramp-verbose): Describe verbose level 9.
-	(tramp-completion-function-alist)
-	(tramp-file-name-regexp, tramp-chunksize)
-	(tramp-local-coding-commands, tramp-remote-coding-commands)
-	(with-connection-property, tramp-completion-mode-p)
-	(tramp-action-process-alive, tramp-action-out-of-band)
-	(tramp-check-for-regexp, tramp-file-name-p, tramp-equal-remote)
-	(tramp-exists-file-name-handler): Fix docstring.
-	(tramp-remote-process-environment): Use `format' instead of
-	`concat'.  Protect version string by apostroph.
-	(tramp-shell-prompt-pattern): Do not use a shy group in case of
-	XEmacs.
-	(tramp-file-name-regexp-unified)
-	(tramp-completion-file-name-regexp-unified): On W32 systems, do
-	not regard the volume letter as remote filename.  (Bug#5447)
-	(tramp-perl-file-attributes)
-	(tramp-perl-directory-files-and-attributes): Don't pass "$3".
-	(tramp-vc-registered-read-file-names): Read input as
-	here-document, otherwise the command could exceed maximum length
-	of command line.
-	(tramp-file-name-handler-alist): Add `file-selinux-context' and
-	`set-file-selinux-context'.
-	(tramp-debug-message): Add `tramp-compat-funcall' to ignored
-	backtrace functions.
-	(tramp-error-with-buffer): Don't show the connection buffer when
-	we are in completion mode.
-	(tramp-progress-reporter-update, tramp-remote-selinux-p)
-	(tramp-handle-file-selinux-context)
-	(tramp-handle-set-file-selinux-context, tramp-process-sentinel)
-	(tramp-connectable-p, tramp-open-shell, tramp-get-remote-trash):
-	New defuns.
-	(with-progress-reporter): New defmacro.
-	(tramp-debug-outline-regexp): New defconst.
-	(top, tramp-rfn-eshadow-setup-minibuffer)
-	(tramp-rfn-eshadow-update-overlay, tramp-handle-set-file-times)
-	(tramp-handle-dired-compress-file, tramp-handle-shell-command)
-	(tramp-completion-mode-p, tramp-check-for-regexp)
-	(tramp-open-connection-setup-interactive-shell)
-	(tramp-compute-multi-hops, tramp-read-passwd, tramp-clear-passwd)
-	(tramp-time-diff, tramp-coding-system-change-eol-conversion)
-	(tramp-set-process-query-on-exit-flag, tramp-unload-tramp):
-	Use `tramp-compat-funcall'.
-	(tramp-handle-make-symbolic-link): Flush file properties.
-	(tramp-handle-load, tramp-handle-file-local-copy)
-	(tramp-handle-insert-file-contents, tramp-handle-write-region)
-	(tramp-handle-vc-registered, tramp-maybe-send-script)
-	(tramp-find-shell): Use `with-progress-reporter'.
-	(tramp-do-file-attributes-with-stat): Add space in format string,
-	in order to work around a bug in pdksh.  Reported by Gilles Pion
-	<gpion@lfdj.com>.
-	(tramp-handle-verify-visited-file-modtime): Do not send a command
-	when the connection is not established.
-	(tramp-handle-set-file-times): Simplify the check for utc.
-	(tramp-handle-directory-files-and-attributes)
-	(tramp-get-remote-path): Use `copy-tree'.
-	(tramp-completion-handle-file-name-all-completions): Ensure, that
-	non remote files are still checked.  Oops.
-	(tramp-handle-copy-file, tramp-do-copy-or-rename-file):
-	Handle PRESERVE-SELINUX-CONTEXT.
-	(tramp-do-copy-or-rename-file): Add progress reporter.
-	(tramp-do-copy-or-rename-file-directly): Do not use
-	`tramp-handle-file-remote-p'.
-	(tramp-do-copy-or-rename-file-out-of-band):
-	Use `tramp-compat-delete-directory'.
-	(tramp-do-copy-or-rename-file-out-of-band)
-	(tramp-compute-multi-hops, tramp-maybe-open-connection):
-	Use `format-spec-make'.
-	(tramp-handle-delete-file): Add TRASH arg.
-	(tramp-handle-dired-uncache): Flush directory cache, not only file
-	cache.
-	(tramp-handle-expand-file-name)
+	* net/tramp.el (tramp-handle-expand-file-name)
 	(tramp-completion-handle-file-name-all-completions)
 	(tramp-completion-handle-file-name-completion):
 	Use `tramp-connectable-p'.
-	(tramp-handle-start-file-process): Set connection property "vec".
-	Use it, in order to invalidate file caches.  Check only for
-	`remote-tty' process property.
-	Implement tty setting.  (Bug#4604, Bug#6360)
-	(tramp-file-name-for-operation): Add `call-process-region' and
-	`set-file-selinux-context'.
-	(tramp-find-foreign-file-name-handler)
-	(tramp-advice-make-auto-save-file-name)
-	(tramp-set-auto-save-file-modes): Remove superfluous check for
-	`stringp'.  This is done inside `tramp-tramp-file-p'.
-	(tramp-file-name-handler): Trace 'quit.  Catch the error for some
-	operations when we are in completion mode.  This gives the user
-	the chance to correct the file name in the minibuffer.
-	(tramp-completion-mode-p): Use `non-essential'.
-	(tramp-handle-file-name-all-completions): Backward/ XEmacs
-	compatibility: Use `completion-ignore-case' if
-	`read-file-name-completion-ignore-case' does not exist.
-	(tramp-get-debug-buffer): Use `tramp-debug-outline-regexp'.
-	(tramp-find-shell, tramp-open-connection-setup-interactive-shell):
-	`tramp-open-shell'.
-	(tramp-action-password): Hide password prompt before next run.
-	(tramp-process-actions): Widen connection buffer for the trace.
-	(tramp-open-connection-setup-interactive-shell): Set `remote-tty'
-	process property.  Trace stty settings if `tramp-verbose' >= 9.
-	Apply workaround for IRIX64 bug.  Move argument of last
-	`tramp-send-command' where it belongs to.
-	(tramp-maybe-open-connection): Use `async-args' and `gw-args' in
-	front of `login-args'.
-	(tramp-get-ls-command, tramp-get-ls-command-with-dired): Run tests
-	on "/dev/null" instead of "/".
-	(tramp-get-ls-command-with-dired): Make test for "--dired"
-	stronger.
-	(tramp-set-auto-save-file-modes): Adapt version check.
-	(tramp-set-process-query-on-exit-flag): Fix wrong parentheses.
-	(tramp-handle-process-file): Call the program in a subshell, in
-	order to preserve working directory.
-	(tramp-handle-shell-command): Don't use hard-wired "/bin/sh" but
-	`tramp-remote-sh' from `tramp-methods'.
-	(tramp-get-ls-command): Make test for "--color=never" stronger.
-	(tramp-check-for-regexp): Use (forward-line 1).
 
 	* net/trampver.el: Update release number.
 
@@ -7607,7 +7892,7 @@
 
 	* net/dbus.el: Accept UNIX domain sockets as bus address.
 	(top): Don't initialize `dbus-registered-objects-table' anymore,
-	this is done in dbusbind,c.
+	this is done in dbusbind.c.
 	(dbus-check-event): Adapt test for bus.
 	(dbus-return-values-table, dbus-unregister-service)
 	(dbus-event-bus-name, dbus-introspect, dbus-register-property):
@@ -7944,7 +8229,7 @@
 	* progmodes/octave-mod.el (octave-mode): Set comment-add.
 	(octave-mode-map): Use comment-dwim (bug#6829).
 
-2010-08-12  Antoine Levitt  <antoine.levitt@gmail.com>  (tiny change)
+2010-08-12  Antoine Levitt  <antoine.levitt@gmail.com>
 
 	* cus-edit.el (custom-save-variables, custom-save-faces): Fix up
 	indentation of inserted comment.
@@ -8123,7 +8408,7 @@
 
 2010-08-08  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc/calc.el (calc-trail-mode,calc-refresh): Use `face' property
+	* calc/calc.el (calc-trail-mode, calc-refresh): Use `face' property
 	to italicize headers.
 	(calc-highlight-selections-with-faces): New variable.
 	(calc-selected-face, calc-nonselected-face): New faces.
@@ -8168,7 +8453,7 @@
 
 	* progmodes/cc-cmds.el (c-mask-paragraph, c-fill-paragraph):
 	Fix for the case that a C style comment has its delimiters alone on
-	their respective lines.
+	their respective lines.  (Bug#193)
 
 2010-08-06  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -8507,7 +8792,7 @@
 	(sql-interactive-mode-menu): Add "Save Connection" item.
 	(sql-add-product): Fix menu item.
 	(sql-get-product-feature): Improved error handling.
-	(sql--alt-buffer-part, sql--alt-if-not-empty): Removed.
+	(sql--alt-buffer-part, sql--alt-if-not-empty): Remove.
 	(sql-make-alternate-buffer-name): Simplified.
 	(sql-product-interactive): Handle missing product.
 	(sql-connect): Support string keys, minor improvements.
@@ -8902,7 +9187,7 @@
 	(delete-backward-char): Implement in Lisp.
 	(delete-forward-char): New command.
 
-	* mouse.el (mouse-region-delete-keys): Deleted.
+	* mouse.el (mouse-region-delete-keys): Delete.
 	(mouse-show-mark): Simplify.
 
 	* bindings.el (global-map): Bind delete and DEL, the former to
@@ -9018,7 +9303,7 @@
 	* htmlfontify.el (hfy-face-attr-for-class): Use append instead
 	of nconc to avoid pure storage error (Bug#6239).
 
-2010-06-27  Christoph  <cschol2112@googlemail.com>  (tiny change)
+2010-06-27  Christoph Scholtes  <cschol2112@googlemail.com>
 
 	* bookmark.el (bookmark-bmenu-2-window, bookmark-bmenu-other-window)
 	(bookmark-bmenu-other-window-with-mouse): Remove unnecessary
@@ -9783,9 +10068,8 @@
 	* net/tramp-ftp.el (tramp-ftp-file-name-handler):
 	Use `delete-file' instead of `tramp-compat-delete-file'.
 
-	* net/tramp-gvfs.el (tramp-gvfs-handle-delete-file): Rename arg.
-	(tramp-gvfs-handle-write-region): Use `delete-file' instead of
-	`tramp-compat-delete-file'.
+	* net/tramp-gvfs.el (tramp-gvfs-handle-write-region): Use
+	`delete-file' instead of `tramp-compat-delete-file'.
 
 	* net/tramp-imap.el (tramp-imap-do-copy-or-rename-file):
 	Use `delete-file' instead of `tramp-compat-delete-file'.
@@ -10944,7 +11228,7 @@
 
 	* textmodes/ispell.el (ispell-init-process): Fix personal dictionary
 	condition in default directory check.
-	(ispell-init-process,ispell-kill-ispell,kill-buffer-hook):
+	(ispell-init-process, ispell-kill-ispell, kill-buffer-hook):
 	Kill ispell process when killing its associated buffer.
 
 2010-04-27  Jan Djärv  <jan.h.d@swipnet.se>
@@ -11201,7 +11485,7 @@
 
 	* ido.el (ido-file-internal): Fix 2009-12-02 change.
 
-2010-04-19  Christoph  <cschol2112@googlemail.com>  (tiny change)
+2010-04-19  Christoph Scholtes  <cschol2112@googlemail.com>
 
 	* progmodes/grep.el (grep-compute-defaults): Fix handling of host
 	default settings (Bug#5928).
@@ -13211,7 +13495,7 @@
 	(ada-goto-label-re): New; matches goto labels.
 	(ada-block-label-re): New; matches block labels.
 	(ada-label-re): New; matches both.
-	(ada-named-block-re): Deleted; callers changed to use
+	(ada-named-block-re): Delete; callers changed to use
 	`ada-block-label-re' instead.
 	(ada-get-current-indent, ada-get-indent-noindent, ada-get-indent-loop):
 	Use `ada-block-label-re'.
@@ -15674,7 +15958,7 @@
 	* vc-rcs.el (vc-rcs-print-log):
 	* vc-git.el (vc-git-print-log):
 	* vc-cvs.el (vc-cvs-print-log): Add new optional argument LIMIT,
-	ignore it.  Make the BUFFER argument non-optional
+	ignore it.  Make the BUFFER argument non-optional.
 
 	* bindings.el (mode-line-buffer-identification): Do not purecopy.
 
@@ -20428,12 +20712,12 @@
 2009-08-19  Magnus Henoch  <magnus.henoch@gmail.com>
 
 	* log-edit.el (log-edit-strip-single-file-name): New var.
-	(log-edit-insert-changelog): Use it.  Bug#3571
+	(log-edit-insert-changelog): Use it.  Bug#3571.
 
 2009-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (read-passwd): Use read-key so keypad keys work as well.
-	Bug#3287
+	Bug#3287.
 
 	* help.el (help-print-return-message): Rename from
 	print-help-return-message.
@@ -20831,7 +21115,7 @@
 	(def-gdb-memory-format, def-gdb-memory-unit): Update memory buffer
 	after changing settings.
 	(gdb-invalidate-disassembly): Update when first shown.
-	(gdb-edit-locals-value): Fixed.
+	(gdb-edit-locals-value): Fix.
 	(gdb-registers-handler-custom): Print registers in right order and
 	allow changing register values (only for current thread yet).
 	(gdb-breakpoints-mode-map): Don't assume threads buffer is present.
@@ -20882,7 +21166,7 @@
 
 2009-08-06  Dmitry Dzhus  <dima@sphinx.net.ru>
 
-	* progmodes/gdb-mi.el (gdb-var-create-regexp): Removed.
+	* progmodes/gdb-mi.el (gdb-var-create-regexp): Remove.
 	(gdb-var-create-handler): Rewritten using JSON parser.
 	(gdb-propertize-header): Move earlier.
 	(gdb-set-header): Remove to avoid duplication.
@@ -22197,7 +22481,7 @@
 	or shell command text during AUTO expansion.  Suggested by Tad Truex.
 	(verilog-read-sub-decls-expr, verilog-read-sub-decls-line)
 	(verilog-read-sub-decls-sig, verilog-symbol-detick-text):
-	Fix dotted nets {a.b,c.d} and excaped identifiers being mis-included
+	Fix dotted nets {a.b,c.d} and escaped identifiers being mis-included
 	in AUTOINOUT.  Reported by Matthew Lovell.
 	(verilog-read-always-signals-recurse): Fix AUTORESET "if (a<=b)"
 	causing use of <= assignments.  Reported by Alex Reed.

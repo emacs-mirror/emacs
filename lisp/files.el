@@ -983,7 +983,8 @@ accessible."
       nil)))
 
 (defun file-truename (filename &optional counter prev-dirs)
-  "Return the truename of FILENAME, which should be absolute.
+  "Return the truename of FILENAME.
+If FILENAME is not absolute, first expands it against `default-directory'.
 The truename of a file name is found by chasing symbolic links
 both at the level of the file and at the level of the directories
 containing it, until no links are left at any level.
@@ -1893,8 +1894,8 @@ the various files."
 			   (not nonexistent)
 			   ;; It is confusing to ask whether to visit
 			   ;; non-literally if they have the file in
-			   ;; hexl-mode.
-			   (not (eq major-mode 'hexl-mode)))
+			   ;; hexl-mode or image-mode.
+			   (not (memq major-mode '(hexl-mode image-mode))))
 		  (if (buffer-modified-p)
 		      (if (y-or-n-p
 			   (format
@@ -2806,7 +2807,9 @@ symbol and VAL is a value that is considered safe."
   :type 'alist)
 
 (defcustom safe-local-eval-forms
-  '((add-hook 'write-file-functions 'time-stamp)
+  ;; This should be here at least as long as Emacs supports write-file-hooks.
+  '((add-hook 'write-file-hooks 'time-stamp)
+    (add-hook 'write-file-functions 'time-stamp)
     (add-hook 'before-save-hook 'time-stamp))
   "Expressions that are considered safe in an `eval:' local variable.
 Add expressions to this list if you want Emacs to evaluate them, when
@@ -2814,7 +2817,7 @@ they appear in an `eval' local variable specification, without first
 asking you for confirmation."
   :risky t
   :group 'find-file
-  :version "22.2"
+  :version "24.1"			; added write-file-hooks
   :type '(repeat sexp))
 
 ;; Risky local variables:
@@ -2918,8 +2921,8 @@ variable to set.")
 ALL-VARS is the list of all variables to be set up.
 UNSAFE-VARS is the list of those that aren't marked as safe or risky.
 RISKY-VARS is the list of those that are marked as risky.
-DIR-NAME is a directory name if these settings come from
-directory-local variables, or nil otherwise."
+If these settings come from directory-local variables, then
+DIR-NAME is the name of the associated directory.  Otherwise it is nil."
   (if noninteractive
       nil
     (save-window-excursion
@@ -3061,8 +3064,8 @@ VARIABLES is the alist of variable-value settings.  This alist is
  `enable-local-eval', `enable-local-variables', and (if necessary)
  user interaction.  The results are added to
  `file-local-variables-alist', without applying them.
-DIR-NAME is a directory name if these settings come from
- directory-local variables, or nil otherwise."
+If these settings come from directory-local variables, then
+DIR-NAME is the name of the associated directory.  Otherwise it is nil."
   ;; Find those variables that we may want to save to
   ;; `safe-local-variable-values'.
   (let (all-vars risky-vars unsafe-vars)
@@ -3346,11 +3349,11 @@ Each element in this list has the form (DIR CLASS MTIME).
 DIR is the name of the directory.
 CLASS is the name of a variable class (a symbol).
 MTIME is the recorded modification time of the directory-local
- variables file associated with this entry.  This time is a list
- of two integers (the same format as `file-attributes'), and is
- used to test whether the cache entry is still valid.
- Alternatively, MTIME can be nil, which means the entry is always
- considered valid.")
+variables file associated with this entry.  This time is a list
+of two integers (the same format as `file-attributes'), and is
+used to test whether the cache entry is still valid.
+Alternatively, MTIME can be nil, which means the entry is always
+considered valid.")
 
 (defsubst dir-locals-get-class-variables (class)
   "Return the variable list for CLASS."
@@ -3393,8 +3396,19 @@ Return the new variables list."
                                  (cdr entry) root variables))))
              ((or (not key)
                   (derived-mode-p key))
-              (setq variables (dir-locals-collect-mode-variables
-                               (cdr entry) variables))))))
+              (let* ((alist (cdr entry))
+                     (subdirs (assq 'subdirs alist)))
+                (if (or (not subdirs)
+                        (progn
+                          (setq alist (delq subdirs alist))
+                          (cdr-safe subdirs))
+                        ;; TODO someone might want to extend this to allow
+                        ;; integer values for subdir, where N means
+                        ;; variables apply to this directory and N levels
+                        ;; below it (0 == nil).
+                        (equal root default-directory))
+                    (setq variables (dir-locals-collect-mode-variables
+                                     alist variables))))))))
       (error
        ;; The file's content might be invalid (e.g. have a merge conflict), but
        ;; that shouldn't prevent the user from opening the file.
@@ -3459,13 +3473,20 @@ across different environments and users.")
 (defun dir-locals-find-file (file)
   "Find the directory-local variables for FILE.
 This searches upward in the directory tree from FILE.
-If the directory root of FILE has been registered in
- `dir-locals-directory-cache' and the directory-local variables
- file has not been modified, return the matching entry in
- `dir-locals-directory-cache'.
-Otherwise, if a directory-local variables file is found, return
- the file name.
-Otherwise, return nil."
+It stops at the first directory that has been registered in
+`dir-locals-directory-cache' or contains a `dir-locals-file'.
+If it finds an entry in the cache, it checks that it is valid.
+A cache entry with no modification time element (normally, one that
+has been assigned directly using `dir-locals-set-directory-class', not
+set from a file) is always valid.
+A cache entry based on a `dir-locals-file' is valid if the modification
+time stored in the cache matches the current file modification time.
+If not, the cache entry is cleared so that the file will be re-read.
+
+This function returns either nil (no directory local variables found),
+or the matching entry from `dir-locals-directory-cache' (a list),
+or the full path to the `dir-locals-file' (a string) in the case
+of no valid cache entry."
   (setq file (expand-file-name file))
   (let* ((dir-locals-file-name
 	  (if (eq system-type 'ms-dos)
@@ -3474,8 +3495,8 @@ Otherwise, return nil."
 	 (locals-file (locate-dominating-file file dir-locals-file-name))
 	 (dir-elt nil))
     ;; `locate-dominating-file' may have abbreviated the name.
-    (when locals-file
-      (setq locals-file (expand-file-name dir-locals-file-name locals-file)))
+    (if locals-file
+	(setq locals-file (expand-file-name dir-locals-file-name locals-file)))
     ;; Find the best cached value in `dir-locals-directory-cache'.
     (dolist (elt dir-locals-directory-cache)
       (when (and (eq t (compare-strings file nil (length (car elt))
@@ -3484,23 +3505,32 @@ Otherwise, return nil."
 					      '(windows-nt cygwin ms-dos))))
 		 (> (length (car elt)) (length (car dir-elt))))
 	(setq dir-elt elt)))
-    (let ((use-cache (and dir-elt
-			  (or (null locals-file)
-			      (<= (length (file-name-directory locals-file))
-				  (length (car dir-elt)))))))
-      (if use-cache
-	  ;; Check the validity of the cache.
-	  (if (and (file-readable-p (car dir-elt))
-		   (or (null  (nth 2 dir-elt))
+    (if (and dir-elt
+	     (or (null locals-file)
+		 (<= (length (file-name-directory locals-file))
+		     (length (car dir-elt)))))
+	;; Found a potential cache entry.  Check validity.
+	;; A cache entry with no MTIME is assumed to always be valid
+	;; (ie, set directly, not from a dir-locals file).
+	;; Note, we don't bother to check that there is a matching class
+	;; element in dir-locals-class-alist, since that's done by
+	;; dir-locals-set-directory-class.
+	(if (or (null (nth 2 dir-elt))
+		(let ((cached-file (expand-file-name dir-locals-file-name
+						     (car dir-elt))))
+		  (and (file-readable-p cached-file)
 		       (equal (nth 2 dir-elt)
-			      (nth 5 (file-attributes (car dir-elt))))))
-	      ;; This cache entry is OK.
-	      dir-elt
-	    ;; This cache entry is invalid; clear it.
-	    (setq dir-locals-directory-cache
-		  (delq dir-elt dir-locals-directory-cache))
-	    locals-file)
-	locals-file))))
+			      (nth 5 (file-attributes cached-file))))))
+	    ;; This cache entry is OK.
+	    dir-elt
+	  ;; This cache entry is invalid; clear it.
+	  (setq dir-locals-directory-cache
+		(delq dir-elt dir-locals-directory-cache))
+	  ;; Return the first existing dir-locals file.  Might be the same
+	  ;; as dir-elt's, might not (eg latter might have been deleted).
+	  locals-file)
+      ;; No cache entry.
+      locals-file)))
 
 (defun dir-locals-read-from-file (file)
   "Load a variables FILE and register a new class and instance.
@@ -3530,10 +3560,8 @@ and `file-local-variables-alist', without applying them."
 	  (dir-name nil))
       (cond
        ((stringp variables-file)
-	(setq dir-name (if (buffer-file-name)
-                           (file-name-directory (buffer-file-name))
-                         default-directory))
-	(setq class (dir-locals-read-from-file variables-file)))
+	(setq dir-name (file-name-directory variables-file)
+	      class (dir-locals-read-from-file variables-file)))
        ((consp variables-file)
 	(setq dir-name (nth 0 variables-file))
 	(setq class (nth 1 variables-file))))
@@ -3842,7 +3870,9 @@ BACKUPNAME is the backup file name, which is the old file renamed."
        (set-file-selinux-context to-name context)))
 
 (defvar file-name-version-regexp
-  "\\(?:~\\|\\.~[-[:alnum:]:#@^._]+~\\)"
+  "\\(?:~\\|\\.~[-[:alnum:]:#@^._]+\\(?:~[[:digit:]]+\\)?~\\)"
+  ;; The last ~[[:digit]]+ matches relative versions in git,
+  ;; e.g. `foo.js.~HEAD~1~'.
   "Regular expression matching the backup/version part of a file name.
 Used by `file-name-sans-versions'.")
 
@@ -4582,14 +4612,14 @@ See `save-some-buffers-action-alist' if you want to
 change the additional actions you can take on files."
   (interactive "P")
   (save-window-excursion
-    (let* (queried some-automatic
+    (let* (queried autosaved-buffers
 	   files-done abbrevs-done)
       (dolist (buffer (buffer-list))
 	;; First save any buffers that we're supposed to save unconditionally.
 	;; That way the following code won't ask about them.
 	(with-current-buffer buffer
 	  (when (and buffer-save-without-query (buffer-modified-p))
-	    (setq some-automatic t)
+	    (push (buffer-name) autosaved-buffers)
 	    (save-buffer))))
       ;; Ask about those buffers that merit it,
       ;; and record the number thus saved.
@@ -4635,9 +4665,15 @@ change the additional actions you can take on files."
 	     (setq abbrevs-changed nil)
 	     (setq abbrevs-done t)))
       (or queried (> files-done 0) abbrevs-done
-	  (message (if some-automatic
-		       "(Some special files were saved without asking)"
-		     "(No files need saving)"))))))
+	  (cond
+	   ((null autosaved-buffers)
+	    (message "(No files need saving)"))
+	   ((= (length autosaved-buffers) 1)
+	    (message "(Saved %s)" (car autosaved-buffers)))
+	   (t
+	    (message "(Saved %d files: %s)"
+		     (length autosaved-buffers)
+		     (mapconcat 'identity autosaved-buffers ", "))))))))
 
 (defun not-modified (&optional arg)
   "Mark current buffer as unmodified, not needing to be saved.
@@ -4796,7 +4832,7 @@ given.  With a prefix argument, TRASH is nil."
    (let* ((trashing (and delete-by-moving-to-trash
 			 (null current-prefix-arg)))
 	  (dir (expand-file-name
-		(read-file-name
+		(read-directory-name
 		 (if trashing
 		     "Move directory to trash: "
 		   "Delete directory: ")
@@ -4864,7 +4900,7 @@ directly into NEWNAME instead."
    (let ((dir (read-directory-name
 	       "Copy directory: " default-directory default-directory t nil)))
      (list dir
-	   (read-file-name
+	   (read-directory-name
 	    (format "Copy directory %s to: " dir)
 	    default-directory default-directory nil nil)
 	   current-prefix-arg t nil)))
@@ -5563,7 +5599,7 @@ Prefix arg (second arg if noninteractive) means supply -l switch to `ls'.
 Actions controlled by variables `list-directory-brief-switches'
 and `list-directory-verbose-switches'."
   (interactive (let ((pfx current-prefix-arg))
-		 (list (read-file-name (if pfx "List directory (verbose): "
+		 (list (read-directory-name (if pfx "List directory (verbose): "
 					 "List directory (brief): ")
 				       nil default-directory nil)
 		       pfx)))
@@ -5822,6 +5858,9 @@ normally equivalent short `-D' option is just passed on to
 				  (file-name-directory file)
 				(file-name-directory (expand-file-name file))))
 			    (pattern (file-name-nondirectory file)))
+			;; NB since switches is passed to the shell, be
+			;; careful of malicious values, eg "-l;reboot".
+			;; See eg dired-safe-switches-p.
 			(call-process
 			 shell-file-name nil t nil
 			 "-c"

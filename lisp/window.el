@@ -106,11 +106,12 @@ even if it is active.  Otherwise, the minibuffer is counted
 when it is active.
 
 The optional arg ALL-FRAMES t means count windows on all frames.
-If it is `visible', count windows on all visible frames.
-ALL-FRAMES nil or omitted means count only the selected frame,
-plus the minibuffer it uses (which may be on another frame).
-ALL-FRAMES 0 means count all windows in all visible or iconified frames.
-If ALL-FRAMES is anything else, count only the selected frame."
+If it is `visible', count windows on all visible frames on the
+current terminal.  ALL-FRAMES nil or omitted means count only the
+selected frame, plus the minibuffer it uses (which may be on
+another frame).  ALL-FRAMES 0 means count all windows in all
+visible or iconified frames on the current terminal.  If
+ALL-FRAMES is anything else, count only the selected frame."
   (let ((base-window (selected-window)))
     (if (and nomini (eq base-window (minibuffer-window)))
 	(setq base-window (next-window base-window)))
@@ -169,9 +170,9 @@ ALL-FRAMES nil or omitted means cycle through all windows on the
 ALL-FRAMES t means cycle through all windows on all existing
  frames.
 ALL-FRAMES `visible' means cycle through all windows on all
- visible frames.
+ visible frames on the current terminal.
 ALL-FRAMES 0 means cycle through all windows on all visible and
- iconified frames.
+ iconified frames on the current terminal.
 ALL-FRAMES a frame means cycle through all windows on that frame
  only.
 Anything else means cycle through all windows on the selected
@@ -1067,9 +1068,11 @@ when the specified buffer is already displayed.  If the buffer is
 already displayed in some window on one of these frames simply
 return that window.  Possible values of FRAME are:
 
-`visible' - consider windows on all visible frames.
+`visible' - consider windows on all visible frames on the current
+terminal.
 
-0 - consider windows on all visible or iconified frames.
+0 - consider windows on all visible or iconified frames on the
+current terminal.
 
 t - consider windows on all frames.
 
@@ -1079,7 +1082,7 @@ nil - consider windows on the selected frame \(actually the
 last non-minibuffer frame\) only.  If, however, either
 `display-buffer-reuse-frames' or `pop-up-frames' is non-nil
 \(non-nil and not graphic-only on a text-only terminal),
-consider all visible or iconified frames."
+consider all visible or iconified frames on the current terminal."
   (interactive "BDisplay buffer:\nP")
   (let* ((can-use-selected-window
 	  ;; The selected window is usable unless either NOT-THIS-WINDOW

@@ -465,6 +465,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `lrand48' function. */
 #undef HAVE_LRAND48
 
+/* Define to 1 if you have the `lstat' function. */
+#undef HAVE_LSTAT
+
 /* Define to 1 if using libm17n-flt. */
 #undef HAVE_M17N_FLT
 
@@ -572,6 +575,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `random' function. */
 #undef HAVE_RANDOM
+
+/* Define to 1 if you have the `readlink' function. */
+#undef HAVE_READLINK
 
 /* Define to 1 if you have the `recvfrom' function. */
 #undef HAVE_RECVFROM
@@ -692,6 +698,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define if struct stat has an st_dm_mode member. */
 #undef HAVE_ST_DM_MODE
+
+/* Define to 1 if you have the `symlink' function. */
+#undef HAVE_SYMLINK
 
 /* Define to 1 if you have the `sync' function. */
 #undef HAVE_SYNC
@@ -894,6 +903,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if localtime caches TZ. */
 #undef LOCALTIME_CACHE
 
+/* Define to 1 if `lstat' dereferences a symlink specified with a trailing
+   slash. */
+#undef LSTAT_FOLLOWS_SLASHED_SYMLINK
+
 /* String giving fallback POP mail host. */
 #undef MAILHOST
 
@@ -965,9 +978,20 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    'ptrdiff_t'. */
 #undef PTRDIFF_T_SUFFIX
 
+/* Define to 1 if readlink fails to recognize a trailing slash. */
+#undef READLINK_TRAILING_SLASH_BUG
+
 /* Define REL_ALLOC if you want to use the relocating allocator for buffer
    space. */
 #undef REL_ALLOC
+
+/* Define to 1 if stat needs help when passed a directory name with a trailing
+   slash */
+#undef REPLACE_FUNC_STAT_DIR
+
+/* Define to 1 if stat needs help when passed a file name with a trailing
+   slash */
+#undef REPLACE_FUNC_STAT_FILE
 
 /* Define as the return type of signal handlers (`int' or `void'). */
 #undef RETSIGTYPE

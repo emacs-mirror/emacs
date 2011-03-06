@@ -64,7 +64,7 @@ developing GNU and promoting software freedom.''
 @macro obsolete{old,new}
 @sp 1
 @strong{Compatibility}:
-@code{\new\} introduced in @semantic{} version 2.0 supercedes
+@code{\new\} introduced in @semantic{} version 2.0 supersedes
 @code{\old\} which is now obsolete.
 @end macro
 

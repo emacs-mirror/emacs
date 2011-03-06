@@ -71,8 +71,9 @@ though they were files."
 
 ;;; User Variables:
 
-(defcustom eshell-io-load-hook '(eshell-io-initialize)
+(defcustom eshell-io-load-hook nil
   "A hook that gets run when `eshell-io' is loaded."
+  :version "24.1"			; removed eshell-io-initialize
   :type 'hook
   :group 'eshell-io)
 

@@ -147,18 +147,6 @@ function `string-to-number'."
 
 (put 'eshell-condition-case 'lisp-indent-function 2)
 
-(defmacro eshell-deftest (module name label &rest forms)
-  (if (and (fboundp 'cl-compiling-file) (cl-compiling-file))
-      nil
-    (let ((fsym (intern (concat "eshell-test--" (symbol-name name)))))
-      `(eval-when-compile
-	 (ignore
-	  (defun ,fsym () ,label
-	    (eshell-run-test (quote ,module) (quote ,fsym) ,label
-			     (quote (progn ,@forms)))))))))
-
-(put 'eshell-deftest 'lisp-indent-function 2)
-
 (defun eshell-find-delimiter
   (open close &optional bound reverse-p backslash-p)
   "From point, find the CLOSE delimiter corresponding to OPEN.
@@ -285,7 +273,6 @@ Prepend remote identification of `default-directory', if any."
       (setq text (replace-match " " t t text)))
     text))
 
-;; FIXME this is just dolist.
 (defmacro eshell-for (for-var for-list &rest forms)
   "Iterate through a list"
   `(let ((list-iter ,for-list))
@@ -296,10 +283,12 @@ Prepend remote identification of `default-directory', if any."
 
 (put 'eshell-for 'lisp-indent-function 2)
 
+(make-obsolete 'eshell-for 'dolist "24.1")
+
 (defun eshell-flatten-list (args)
   "Flatten any lists within ARGS, so that there are no sublists."
   (let ((new-list (list t)))
-    (eshell-for a args
+    (dolist (a args)
       (if (and (listp a)
 	       (listp (cdr a)))
 	  (nconc new-list (eshell-flatten-list a))
@@ -405,7 +394,7 @@ list."
     (unless (listp entries)
       (setq entries (list entries)
 	    listified t))
-    (eshell-for entry entries
+    (dolist (entry entries)
       (unless (and exclude (string-match exclude entry))
 	(setq p predicates valid (null p))
 	(while p

@@ -423,12 +423,16 @@
 
   (define-key calc-mode-map "l" nil)
   (define-key calc-mode-map "lq" 'calc-logunits-quantity)
-  (define-key calc-mode-map "ld" 'calc-logunits-dblevel)
-  (define-key calc-mode-map "ln" 'calc-logunits-nplevel)
+  (define-key calc-mode-map "ld" 'calc-dblevel)
+  (define-key calc-mode-map "ln" 'calc-nplevel)
   (define-key calc-mode-map "l+" 'calc-logunits-add)
   (define-key calc-mode-map "l-" 'calc-logunits-sub)
   (define-key calc-mode-map "l*" 'calc-logunits-mul)
   (define-key calc-mode-map "l/" 'calc-logunits-divide)
+  (define-key calc-mode-map "ls" 'calc-spn)
+  (define-key calc-mode-map "lm" 'calc-midi)
+  (define-key calc-mode-map "lf" 'calc-freq)
+  
   (define-key calc-mode-map "l?" 'calc-l-prefix-help)
 
   (define-key calc-mode-map "m" nil)
@@ -944,7 +948,7 @@ calcFunc-lupoweradd calcFunc-lufieldsub calcFunc-lupowersub
 calcFunc-lufieldmul calcFunc-lupowermul calcFunc-lufielddiv
 calcFunc-lupowerdiv calcFunc-fieldquant calcFunc-powerquant
 calcFunc-dbfieldlevel calcFunc-dbpowerlevel calcFunc-npfieldlevel
-calcFunc-nppowerlevel
+calcFunc-nppowerlevel calcFunc-spn calcFunc-midi calcFunc-freq
 math-build-units-table math-build-units-table-buffer
 math-check-unit-name math-convert-temperature math-convert-units
 math-extract-units math-remove-units math-simplify-units
@@ -1061,7 +1065,7 @@ calc-full-help calc-g-prefix-help calc-help-prefix
 calc-hyperbolic-prefix-help calc-inv-hyp-prefix-help calc-option-prefix-help
 calc-inverse-prefix-help calc-j-prefix-help calc-k-prefix-help
 calc-m-prefix-help calc-r-prefix-help calc-s-prefix-help
-calc-t-prefix-help calc-u-prefix-help calc-ul-prefix-help
+calc-t-prefix-help calc-u-prefix-help calc-l-prefix-help
 calc-v-prefix-help)
 
  ("calc-incom" calc-begin-complex calc-begin-vector calc-comma
@@ -1176,9 +1180,10 @@ calc-convert-temperature calc-convert-units calc-define-unit
 calc-enter-units-table calc-explain-units calc-extract-units
 calc-get-unit-definition calc-permanent-units calc-quick-units
 calc-remove-units calc-simplify-units calc-undefine-unit
-calc-view-units-table calc-logunits-quantity calc-logunits-dblevel
-calc-logunits-nplevel calc-logunits-add calc-logunits-sub
-calc-logunits-mul calc-logunits-divide)
+calc-view-units-table calc-logunits-quantity calc-dblevel
+calc-nplevel calc-logunits-add calc-logunits-sub
+calc-logunits-mul calc-logunits-divide calc-spn calc-midi
+calc-freq)
 
  ("calc-vec" calc-arrange-vector calc-build-vector calc-cnorm
 calc-conj-transpose calc-cons calc-cross calc-kron calc-diag

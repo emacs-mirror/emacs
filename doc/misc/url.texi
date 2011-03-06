@@ -116,7 +116,10 @@ The meaning of the @var{path} component depends on the service.
 @cindex @file{~/.url}
 @cindex configuration files
 The directory in which URL configuration files, the cache etc.,
-reside.  Default @file{~/.url}.
+reside.  The old default was @file{~/.url}, and this directory
+is still used if it exists.  The new default is a @file{url/}
+directory in @code{user-emacs-directory}, which is normally
+@file{~/.emacs.d}.
 @end defvar
 
 @node Parsed URLs
@@ -383,20 +386,7 @@ Currently this is just the raw header contents.
 HTTP URLs are retrieved into a buffer containing the HTTP headers
 followed by the body.  Since the headers are quasi-MIME, they may be
 processed using the MIME library.  @xref{Top,, Emacs MIME,
-emacs-mime, The Emacs MIME Manual}.  The URL package provides a
-function to do this in general:
-
-@defun url-decode-text-part handle &optional coding
-This function decodes charset-encoded text in the current buffer.  In
-Emacs, the buffer is expected to be unibyte initially and is set to
-multibyte after decoding.
-HANDLE is the MIME handle of the original part.  CODING is an explicit
-coding to use, overriding what the MIME headers specify.
-The coding system used for the decoding is returned.
-
-Note that this function doesn't deal with @samp{http-equiv} charset
-specifications in HTML @samp{<meta>} elements.
-@end defun
+emacs-mime, The Emacs MIME Manual}.
 
 @node file/ftp
 @section file and ftp

@@ -61,8 +61,9 @@ by zsh for filename generation."
 
 ;;; User Variables:
 
-(defcustom eshell-glob-load-hook '(eshell-glob-initialize)
+(defcustom eshell-glob-load-hook nil
   "A list of functions to run when `eshell-glob' is loaded."
+  :version "24.1"			; removed eshell-glob-initialize
   :type 'hook
   :group 'eshell-glob)
 

@@ -116,10 +116,10 @@ Both ranges must be in ascending order."
                ;; All done with range2
                (setq r nil))
               ((< max1 min2)
-               ;; No overlap: range1 preceeds range2
+               ;; No overlap: range1 precedes range2
                (pop r))
               ((< max2 min1)
-               ;; No overlap: range2 preceeds range1
+               ;; No overlap: range2 precedes range1
                (pop range2))
               ((and (<= min2 min1) (<= max1 max2))
                ;; Complete overlap: range1 removed
@@ -232,10 +232,10 @@ RANGE1 and RANGE2 have to be sorted over <."
     (setq range1 (cdr range1)
           range2 (cdr range2))
     (while (and min1 min2)
-      (cond ((< max1 min2)              ; range1 preceeds range2
+      (cond ((< max1 min2)              ; range1 precedes range2
              (setq range1 (cdr range1)
                    min1 nil))
-            ((< max2 min1)              ; range2 preceeds range1
+            ((< max2 min1)              ; range2 precedes range1
              (setq range2 (cdr range2)
                    min2 nil))
             (t                     ; some sort of overlap is occurring

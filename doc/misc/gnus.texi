@@ -9502,8 +9502,11 @@ Say how much time has elapsed between the article was posted and now
 Date: 6 weeks, 4 days, 1 hour, 3 minutes, 8 seconds ago
 @end example
 
-This line is updated continually by default.  If you wish to switch
-that off, say:
+This line is updated continually by default.  The frequency (in
+seconds) is controlled by the @code{gnus-article-update-date-headers}
+variable.
+
+If you wish to switch updating off, say:
 
 @vindex gnus-article-update-date-headers
 @lisp
@@ -22495,7 +22498,7 @@ variables should be either strings or symbols naming functions that
 return a string.  When the mouse passes over text with this property
 set, a balloon window will appear and display the string.  Please
 refer to @ref{Tooltips, ,Tooltips, emacs, The Emacs Manual},
-(in GNU Emacs) or the doc string of @code{balloon-help-mode} (in
+(in Emacs) or the doc string of @code{balloon-help-mode} (in
 XEmacs) for more information on this.  (For technical reasons, the
 guillemets have been approximated as @samp{<<} and @samp{>>} in this
 paragraph.)
@@ -27763,7 +27766,7 @@ to install Gnus after compiling it, give @file{make.bat} @code{/copy} as
 the second parameter.
 
 @file{make.bat} has been rewritten from scratch, it now features
-automatic recognition of XEmacs and GNU Emacs, generates
+automatic recognition of XEmacs and Emacs, generates
 @file{gnus-load.el}, checks if errors occur while compilation and
 generation of info files and reports them at the end of the build
 process.  It now uses @code{makeinfo} if it is available and falls

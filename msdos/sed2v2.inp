@@ -62,7 +62,18 @@
 /^#undef HAVE_DECL_GETENV/s/^.*$/#define HAVE_DECL_GETENV 1/
 /^#undef SYS_SIGLIST_DECLARED/s/^.*$/#define SYS_SIGLIST_DECLARED 1/
 /^#undef HAVE_DIRENT_H/s/^.*$/#define HAVE_DIRENT_H 1/
+
+/^#undef BITSIZEOF_PTRDIFF_T *$/s/^.*$/#define BITSIZEOF_PTRDIFF_T 32/
+/^#undef BITSIZEOF_SIG_ATOMIC_T *$/s/^.*$/#define BITSIZEOF_SIG_ATOMIC_T 32/
+/^#undef BITSIZEOF_SIZE_T *$/s/^.*$/#define BITSIZEOF_SIZE_T 32/
+/^#undef BITSIZEOF_WCHAR_T *$/s/^.*$/#define BITSIZEOF_WCHAR_T 16/
+/^#undef BITSIZEOF_WINT_T *$/s/^.*$/#define BITSIZEOF_WINT_T 32/
 /^#undef HAVE__BOOL/s/^.*$/#define HAVE__BOOL 1/
+/^#undef HAVE_LONG_LONG_INT *$/s/^.*$/#define HAVE_LONG_LONG_INT 1/
+/^#undef HAVE_SIGNED_SIG_ATOMIC_T *$/s/^.*$/#define HAVE_SIGNED_SIG_ATOMIC_T 1/
+/^#undef HAVE_SIGNED_WINT_T *$/s/^.*$/#define HAVE_SIGNED_WINT_T 1/
+/^#undef HAVE_UNSIGNED_LONG_LONG_INT *$/s/^.*$/#define HAVE_UNSIGNED_LONG_LONG_INT 1/
+/^#under HAVE_WCHAR_H *$/s/^.*$/#define HAVE_WCHAR_H 1/
 /^#undef inline/s/^.*$/#define inline __inline__/
 /^#undef my_strftime/s/^.*$/#define my_strftime nstrftime/
 /^#undef restrict/s/^.*$/#define restrict __restrict/
@@ -77,6 +88,12 @@ s!^#undef config_opsysfile *$!#define config_opsysfile "s/msdos.h"!
 s!^#undef config_machfile *$!#define config_machfile "m/intel386.h"!
 s/^#undef PROTOTYPES *$/#define PROTOTYPES 1/
 s/^#undef POINTER_TYPE *$/#define POINTER_TYPE void/
+/^#undef HAVE_INTTYPES_H/c\
+#if __DJGPP__ > 2 || __DJGPP_MINOR__ > 3\
+#define HAVE_INTTYPES_H 1\
+#else\
+#undef HAVE_INTTYPES_H\
+#endif
 /^#undef HAVE_STDINT_H/c\
 #if __DJGPP__ > 2 || __DJGPP_MINOR__ > 3\
 #define HAVE_STDINT_H 1\

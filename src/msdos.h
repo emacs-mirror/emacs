@@ -40,6 +40,11 @@ void mouse_init (void);
 void mouse_on (void);
 void mouse_off (void);
 void mouse_moveto (int, int);
+
+#if __DJGPP__ == 2 && __DJGPP_MINOR__ < 4
+int readlink (const char *, char *, size_t);
+#endif
+
 
 #ifndef HAVE_X_WINDOWS
 /* Dummy types.  */

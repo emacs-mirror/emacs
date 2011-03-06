@@ -1406,7 +1406,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
-	    XSETFASTINT (v1, (int) current_column ()); /* iftc */
+	    XSETFASTINT (v1, current_column ());
 	    AFTER_POTENTIAL_GC ();
 	    PUSH (v1);
 	    break;

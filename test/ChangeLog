@@ -1,3 +1,12 @@
+2011-03-05  Glenn Morris  <rgm@gnu.org>
+
+	* eshell.el: Move here from lisp/eshell/esh-test.el.
+
+2011-03-03  Christian Ohler  <ohler@gnu.org>
+
+	* automated/ert-tests.el (ert-test-explain-not-equal-keymaps):
+	New test.
+
 2011-02-20  Ulf Jasper  <ulf.jasper@web.de>
 
 	* automated/icalendar-tests.el: Move from icalendar-testsuite.el;

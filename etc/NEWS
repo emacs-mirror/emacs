@@ -71,6 +71,9 @@ from load-path.  -Q now implies this.
 client frame in parent X window ID, via XEmbed.  This works like the
 --parent-id argument to Emacs.
 
++++
+*** New emacsclient argument -q/--quiet suppresses some status messages.
+
 *** If emacsclient shuts down as a result of Emacs signalling an
 error, its exit status is 1.
 
@@ -176,6 +179,8 @@ higher-resolution time stamps.
 and SIGHUP, and upon SIGINT in batch mode.
 
 ** kill-emacs-hook is now also run in batch mode.
+If you have code that adds something to kill-emacs-hook, you should
+consider if it is still appropriate to add it in the noninteractive case.
 
 ** New scrolling commands `scroll-up-command' and `scroll-down-command'
 (bound to C-v/[next] and M-v/[prior]) does not signal errors at top/bottom
@@ -241,6 +246,15 @@ replaced with Lisp commands `doc-file-to-man' and `doc-file-to-info'.
 
 
 * Editing Changes in Emacs 24.1
+
+** Search changes
+
++++
+*** C-y in Isearch is now bound to isearch-yank-kill, instead of
+isearch-yank-line.
+
++++
+*** M-s C-e in Isearch is now bound to isearch-yank-line.
 
 +++
 ** There is a new command `count-words-region', which does what you expect.
@@ -330,7 +344,7 @@ prompts for a number to count from and for a format string.
 ** The Landmark game is now invoked with `landmark', not `lm'.
 
 ** Prolog mode has been completely revamped, with lots of additional
-functionality such as more intelligent indentation, electricty, support for
+functionality such as more intelligent indentation, electricity, support for
 more variants, including Mercury, and a lot more.
 
 ** shell-mode can track your cwd by reading it from your prompt.
@@ -346,6 +360,17 @@ Just set shell-dir-cookie-re to an appropriate regexp.
 
 ** browse-url has gotten a new variable that is used for mailto: URLs,
    `browse-url-mailto-function', which defaults to `browse-url-mail'.
+
+** Directory local variables can apply to file-less buffers, in certain modes
+(eg dired, vc-dir, log-edit).  For example, adding
+"(diff-mode . ((mode . whitespace)))" to your .dir-locals.el file,
+will turn on `whitespace-mode' for *vc-diff* buffers.  Modes should
+call `hack-dir-local-variables-non-file-buffer' to support this.
+
++++
+** You can prevent directory local variables from applying to subdirectories.
+Add an element (subdirs . nil) to the alist portion of any variables
+settings to indicate said section should not be applied to subdirectories.
 
 ** ERC changes
 
@@ -380,6 +405,8 @@ You can get a comparable behavior with:
 
 ** Calendar, Diary, and Appt
 
+*** New function `diary-hebrew-birthday'.
+
 ---
 *** The obsolete (since Emacs 22.1) method of enabling the appt package
 by adding appt-make-list to diary-hook has been removed.  Use appt-activate.
@@ -412,15 +439,11 @@ choose a color via list-colors-display.
 *** dired-jump and dired-jump-other-window called with a prefix argument
 read a file name from the minibuffer instead of using buffer-file-name.
 
-** Directory local variables can apply to file-less buffers.
-For example, adding "(diff-mode . ((mode . whitespace)))" to your
-.dir-locals.el file, will turn on `whitespace-mode' for *vc-diff* buffers.
++++
+*** The `dired local variables' feature provided by Dired-x is obsolete.
+The standard directory local variables feature replaces it.
 
 ** SQL Mode enhancements.
-
-*** Several variables have been marked as safe local variables.  The
-variables `sql-product', `sql-user', `sql-server', `sql-database' and
-`sql-port' can now be safely used as local variables.
 
 *** `sql-dialect' is a synonym for `sql-product'.
 
@@ -530,7 +553,7 @@ objects shown and the details available are product specific.
 **** List all objects.
 Using `M-x sql-list-all', `C-c C-l a' or selecting "SQL->List all
 objects" will list all the objects in the database.  At a minimum it
-lists the tables and views in the database.  Preceeding the command by
+lists the tables and views in the database.  Preceding the command by
 universal argument may provide additional details or extend the
 listing to include other schemas objects.  The list will appear in a
 separate window in view-mode.
@@ -538,7 +561,7 @@ separate window in view-mode.
 **** List Table details.
 Using `M-x sql-list-table', `C-c C-l t' or selecting "SQL->List Table
 details" will ask for the name of a database table or view and display
-the list of columns in the relation.  Preceeding the comand with the
+the list of columns in the relation.  Preceding the command with the
 universal argument may provide additional details about each column.
 The list will appear in a separate window in view-mode.
 
@@ -553,7 +576,7 @@ In general, the SQL*Plus option SCAN should always be set OFF under
 SQL interactive mode and this option used in its place.
 
 *** SQL interactive mode will replace tabs with spaces.
-This prevents the comand interpretter for MySQL and Postgres from
+This prevents the command interpreter for MySQL and Postgres from
 listing object name completions when being sent text via
 `sql-send-*' functions.
 
@@ -562,7 +585,7 @@ listing object name completions when being sent text via
 ** sregex.el is now obsolete, since rx.el is a strict superset.
 
 ** s-region.el and pc-select are now declared obsolete,
-superceded by shift-select-mode enabled by default in 23.1.
+superseded by shift-select-mode enabled by default in 23.1.
 ** pc-mode.el is also declared obsolete.
 ** gdb-mi
 
@@ -642,6 +665,8 @@ Notifications API.  It requires D-Bus for communication.
 ** soap-client.el supports access to SOAP web services from Emacs.
 soap-inspect.el is an interactive inspector for SOAP WSDL structures.
 
+** xmodmap-generic-mode for xmodmap files.
+
 
 * Incompatible Lisp Changes in Emacs 24.1
 
@@ -710,6 +735,7 @@ sc.el, x-menu.el, rnews.el, rnewspost.el
 
 * Lisp changes in Emacs 24.1
 
+** byte-compile-disable-print-circle is obsolete.
 ** Removed the stack-trace-on-error variable.
 Also the debugger can now "continue" from an error, which means it will jump
 to the error handler as if the debugger had not been invoked instead of
@@ -800,10 +826,9 @@ displayed with a "spinning bar".
 runtime checks.
 
 ** New configure.bat option --distfiles to specify files to be
-   included in binary distribution
+included in binary distribution
 
-** New make target `dist' to create binary disttribution for Windows
-   platform
+** New make target `dist' to create binary distribution for MS Windows
 
 
 ----------------------------------------------------------------------

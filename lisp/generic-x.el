@@ -229,7 +229,8 @@ This hook will be installed if the variable
     prototype-generic-mode
     resolve-conf-generic-mode
     samba-generic-mode
-    x-resource-generic-mode)
+    x-resource-generic-mode
+    xmodmap-generic-mode)
   "List of generic modes that are defined by default on Unix.")
 
 (defconst generic-other-modes
@@ -369,6 +370,15 @@ your changes into effect."
   '("\\.Xdefaults\\'" "\\.Xresources\\'" "\\.Xenvironment\\'" "\\.ad\\'")
   nil
   "Generic mode for X Resource configuration files."))
+
+(if (memq 'xmodmap-generic-mode generic-extras-enable-list)
+(define-generic-mode xmodmap-generic-mode
+  '(?!)
+  '("add" "clear" "keycode" "keysym" "remove" "pointer")
+  nil
+  '("[xX]modmap\\(rc\\)?\\'")
+  nil
+  "Simple mode for xmodmap files."))
 
 ;;; Hosts
 (when (memq 'hosts-generic-mode generic-extras-enable-list)

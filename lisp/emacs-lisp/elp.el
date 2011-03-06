@@ -630,7 +630,7 @@ displayed."
                                    'display (list 'space :align-to column)
                                    'face 'fixed-pitch)
                        title)
-                    (setq column (+ column 1
+                    (setq column (+ column 2
                                     (if (= column 0)
                                         elp-field-len
                                       (length title))))))

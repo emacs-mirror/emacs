@@ -431,7 +431,7 @@ struct glyph
     } cmp;
 
     /* Image ID for image glyphs (type == IMAGE_GLYPH).  */
-    unsigned img_id;
+    int img_id;
 
     /* Sub-structure for type == STRETCH_GLYPH.  */
     struct

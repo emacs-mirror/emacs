@@ -4275,7 +4275,7 @@ browse-url-browser-function} or similar when attempting to load IDLWAVE
 under XEmacs.}
 
 You don't have the @samp{browse-url} (or other required) XEmacs package.
-Unlike GNU Emacs, XEmacs distributes many packages separately from the
+Unlike Emacs, XEmacs distributes many packages separately from the
 main program.  IDLWAVE is actually among these, but is not always the
 most up to date.  When installing IDLWAVE as an XEmacs package, it
 should prompt you for required additional packages.  When installing it

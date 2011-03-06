@@ -446,6 +446,11 @@ by displaying the sub-formula in `calc-selected-face'."
   :group 'calc
   :type '(string))
 
+(defcustom calc-note-threshold "1" 
+  "The number of cents that a frequency should be near a note
+to be identified as that note."
+  :type 'string
+  :group 'calc)
 
 (defface calc-nonselected-face
   '((t :inherit shadow       

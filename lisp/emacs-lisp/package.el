@@ -220,10 +220,15 @@ If VERSION is nil, the package is not loaded (it is \"disabled\")."
 (defcustom package-archives '(("gnu" . "http://elpa.gnu.org/packages/"))
   "An alist of archives from which to fetch.
 The default value points to the GNU Emacs package repository.
-Each element has the form (ID . URL), where ID is an identifier
-string for an archive and URL is a http: URL (a string)."
+
+Each element has the form (ID . LOCATION).
+ ID is an archive name, as a string.
+ LOCATION specifies the base location for the archive.
+  If it starts with \"http:\", it is treated as a HTTP URL;
+  otherwise it should be an absolute directory name.
+  (Other types of URL are currently not supported.)"
   :type '(alist :key-type (string :tag "Archive name")
-                :value-type (string :tag "Archive URL"))
+                :value-type (string :tag "URL or directory name"))
   :risky t
   :group 'package
   :version "24.1")
@@ -617,8 +622,36 @@ Otherwise it uses an external `tar' program.
       (let ((load-path (cons pkg-dir load-path)))
 	(byte-recompile-directory pkg-dir 0 t)))))
 
+(defmacro package--with-work-buffer (location file &rest body)
+  "Run BODY in a buffer containing the contents of FILE at LOCATION.
+LOCATION is the base location of a package archive, and should be
+one of the URLs (or file names) specified in `package-archives'.
+FILE is the name of a file relative to that base location.
+
+This macro retrieves FILE from LOCATION into a temporary buffer,
+and evaluates BODY while that buffer is current.  This work
+buffer is killed afterwards.  Return the last value in BODY."
+  `(let* ((http (string-match "\\`http:" ,location))
+	  (buffer
+	   (if http
+	       (url-retrieve-synchronously (concat ,location ,file))
+	     (generate-new-buffer "*package work buffer*"))))
+     (prog1
+	 (with-current-buffer buffer
+	   (if http
+	       (progn (package-handle-response)
+		      (re-search-forward "^$" nil 'move)
+		      (forward-char)
+		      (delete-region (point-min) (point)))
+	     (unless (file-name-absolute-p ,location)
+	       (error "Archive location %s is not an absolute file name"
+		      ,location))
+	     (insert-file-contents (expand-file-name ,file ,location)))
+	   ,@body)
+       (kill-buffer buffer))))
+
 (defun package-handle-response ()
-  "Handle the response from the server.
+  "Handle the response from a `url-retrieve-synchronously' call.
 Parse the HTTP response and throw if an error occurred.
 The url package seems to require extra processing for this.
 This should be called in a `save-excursion', in the download buffer.
@@ -627,7 +660,6 @@ It will move point to somewhere in the headers."
   (require 'url-http)
   (let ((response (url-http-parse-response)))
     (when (or (< response 200) (>= response 300))
-      (display-buffer (current-buffer))
       (error "Error during download request:%s"
 	     (buffer-substring-no-properties (point) (progn
 						       (end-of-line)
@@ -635,28 +667,17 @@ It will move point to somewhere in the headers."
 
 (defun package-download-single (name version desc requires)
   "Download and install a single-file package."
-  (let ((buffer (url-retrieve-synchronously
-		 (concat (package-archive-url name)
-			 (symbol-name name) "-" version ".el"))))
-    (with-current-buffer buffer
-      (package-handle-response)
-      (re-search-forward "^$" nil 'move)
-      (forward-char)
-      (delete-region (point-min) (point))
-      (package-unpack-single (symbol-name name) version desc requires)
-      (kill-buffer buffer))))
+  (let ((location (package-archive-base name))
+	(file (concat (symbol-name name) "-" version ".el")))
+    (package--with-work-buffer location file
+      (package-unpack-single (symbol-name name) version desc requires))))
 
 (defun package-download-tar (name version)
   "Download and install a tar package."
-  (let ((tar-buffer (url-retrieve-synchronously
-		     (concat (package-archive-url name)
-			     (symbol-name name) "-" version ".tar"))))
-    (with-current-buffer tar-buffer
-      (package-handle-response)
-      (re-search-forward "^$" nil 'move)
-      (forward-char)
-      (package-unpack name version)
-      (kill-buffer tar-buffer))))
+  (let ((location (package-archive-base name))
+	(file (concat (symbol-name name) "-" version ".tar")))
+    (package--with-work-buffer location file
+      (package-unpack name version))))
 
 (defun package-installed-p (package &optional min-version)
   "Return true if PACKAGE, of VERSION or newer, is installed.
@@ -987,31 +1008,26 @@ The file can either be a tar file or an Emacs Lisp file."
       (error "Package `%s-%s' is a system package, not deleting"
 	     name version))))
 
-(defun package-archive-url (name)
+(defun package-archive-base (name)
   "Return the archive containing the package NAME."
   (let ((desc (cdr (assq (intern-soft name) package-archive-contents))))
     (cdr (assoc (aref desc (- (length desc) 1)) package-archives))))
 
 (defun package--download-one-archive (archive file)
-  "Download an archive file FILE from ARCHIVE, and cache it locally."
-  (let* ((archive-name (car archive))
-         (archive-url  (cdr archive))
-	 (dir (expand-file-name "archives" package-user-dir))
-	 (dir (expand-file-name archive-name dir))
-         (buffer (url-retrieve-synchronously (concat archive-url file))))
-    (with-current-buffer buffer
-      (package-handle-response)
-      (re-search-forward "^$" nil 'move)
-      (forward-char)
-      (delete-region (point-min) (point))
+  "Retrieve an archive file FILE from ARCHIVE, and cache it.
+ARCHIVE should be a cons cell of the form (NAME . LOCATION),
+similar to an entry in `package-alist'.  Save the cached copy to
+\"archives/NAME/archive-contents\" in `package-user-dir'."
+  (let* ((dir (expand-file-name "archives" package-user-dir))
+	 (dir (expand-file-name (car archive) dir)))
+    (package--with-work-buffer (cdr archive) file
       ;; Read the retrieved buffer to make sure it is valid (e.g. it
       ;; may fetch a URL redirect page).
       (when (listp (read buffer))
 	(make-directory dir t)
 	(setq buffer-file-name (expand-file-name file dir))
 	(let ((version-control 'never))
-	  (save-buffer))))
-    (kill-buffer buffer)))
+	  (save-buffer))))))
 
 (defun package-refresh-contents ()
   "Download the ELPA archive description if needed.
@@ -1176,27 +1192,21 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
 	    (while (re-search-forward "^\\(;+ ?\\)" nil t)
 	      (replace-match ""))))
       (let ((readme (expand-file-name (concat package-name "-readme.txt")
-				      package-user-dir)))
+				      package-user-dir))
+	    readme-string)
 	;; For elpa packages, try downloading the commentary.  If that
 	;; fails, try an existing readme file in `package-user-dir'.
-	(cond ((let ((buffer (ignore-errors
-			       (url-retrieve-synchronously
-				(concat (package-archive-url package)
-					package-name "-readme.txt"))))
-		     response)
-		 (when buffer
-		   (with-current-buffer buffer
-		     (setq response (url-http-parse-response))
-		     (if (or (< response 200) (>= response 300))
-			 (setq response nil)
-		       (setq buffer-file-name
-			     (expand-file-name readme package-user-dir))
-		       (delete-region (point-min) (1+ url-http-end-of-headers))
-		       (save-buffer)))
-		   (when response
-		     (insert-buffer-substring buffer)
-		     (kill-buffer buffer)
-		     t))))
+	(cond ((condition-case nil
+		   (package--with-work-buffer (package-archive-base package)
+					      (concat package-name "-readme.txt")
+		     (setq buffer-file-name
+			   (expand-file-name readme package-user-dir))
+		     (let ((version-control 'never))
+		       (save-buffer))
+		     (setq readme-string (buffer-string))
+		     t)
+		 (error nil))
+	       (insert readme-string))
 	      ((file-readable-p readme)
 	       (insert-file-contents readme)
 	       (goto-char (point-max))))))))

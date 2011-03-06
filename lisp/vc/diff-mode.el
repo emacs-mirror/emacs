@@ -1266,7 +1266,7 @@ a diff with \\[diff-reverse-direction].
 
   ;; Set up `whitespace-mode' so that turning it on will show trailing
   ;; whitespace problems on the modified lines of the diff.
-  (set (make-local-variable 'whitespace-style) '(trailing))
+  (set (make-local-variable 'whitespace-style) '(face trailing))
   (set (make-local-variable 'whitespace-trailing-regexp)
        "^[-\+!<>].*?\\([\t ]+\\)$")
 

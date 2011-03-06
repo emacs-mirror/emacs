@@ -489,7 +489,7 @@ Here "{id}" is a literal string, a placeholder that will be replaced
 by the bug number you specify after `--fixes debbugs:' in the bzr
 command line (123 in the example above).
 
-In the bazaar.conf file, this setting should go into the [DEFAULTS]
+In the bazaar.conf file, this setting should go into the [DEFAULT]
 section.
 
 In the locations.conf file, it should go into the branch-specific

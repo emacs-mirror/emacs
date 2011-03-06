@@ -381,33 +381,37 @@ internal_self_insert (int c, EMACS_INT n)
 	{
 	  EMACS_INT pos = PT;
 	  EMACS_INT pos_byte = PT_BYTE;
+
+	  /* FIXME: Check for integer overflow when calculating
+	     target_clm and actual_clm.  */
+
 	  /* Column the cursor should be placed at after this insertion.
 	     The correct value should be calculated only when necessary.  */
-	  int target_clm = ((int) current_column () /* iftc */
-			    + n * (int) XINT (Fchar_width (make_number (c))));
+	  EMACS_INT target_clm = (current_column ()
+				  + n * XINT (Fchar_width (make_number (c))));
 
-	      /* The actual cursor position after the trial of moving
-		 to column TARGET_CLM.  It is greater than TARGET_CLM
-		 if the TARGET_CLM is middle of multi-column
-		 character.  In that case, the new point is set after
-		 that character.  */
-	      int actual_clm
-		= (int) XFASTINT (Fmove_to_column (make_number (target_clm),
-						   Qnil));
+	  /* The actual cursor position after the trial of moving
+	     to column TARGET_CLM.  It is greater than TARGET_CLM
+	     if the TARGET_CLM is middle of multi-column
+	     character.  In that case, the new point is set after
+	     that character.  */
+	  EMACS_INT actual_clm
+	    = XFASTINT (Fmove_to_column (make_number (target_clm), Qnil));
 
-	      chars_to_delete = PT - pos;
+	  chars_to_delete = PT - pos;
 
-	      if (actual_clm > target_clm)
-	    { /* We will delete too many columns.  Let's fill columns
-		     by spaces so that the remaining text won't move.  */
+	  if (actual_clm > target_clm)
+	    {
+	      /* We will delete too many columns.  Let's fill columns
+		 by spaces so that the remaining text won't move.  */
 	      EMACS_INT actual = PT_BYTE;
 	      DEC_POS (actual);
 	      if (FETCH_CHAR (actual) == '\t')
 		/* Rather than add spaces, let's just keep the tab. */
 		chars_to_delete--;
 	      else
-		  spaces_to_insert = actual_clm - target_clm;
-		}
+		spaces_to_insert = actual_clm - target_clm;
+	    }
 
 	  SET_PT_BOTH (pos, pos_byte);
 	}

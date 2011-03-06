@@ -80,13 +80,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef access
 #endif /* MSDOS */
 
-#ifndef DIRECTORY_SEP
-#define DIRECTORY_SEP '/'
-#endif
-#ifndef IS_DIRECTORY_SEP
-#define IS_DIRECTORY_SEP(_c_) ((_c_) == DIRECTORY_SEP)
-#endif
-
 #ifdef WINDOWSNT
 #include "ntlib.h"
 #undef access
@@ -161,7 +154,7 @@ static int mbx_delimit_end (FILE *mbf);
 #endif
 
 /* Nonzero means this is name of a lock file to delete on fatal error.  */
-char *delete_lockname;
+static char *delete_lockname;
 
 int
 main (int argc, char **argv)
@@ -169,7 +162,7 @@ main (int argc, char **argv)
   char *inname, *outname;
   int indesc, outdesc;
   ssize_t nread;
-  int status;
+  int wait_status;
   int c, preserve_mail = 0;
 
 #ifndef MAIL_USE_SYSTEM_LOCK
@@ -269,6 +262,13 @@ main (int argc, char **argv)
   if (! spool_name)
 #endif
     {
+      #ifndef DIRECTORY_SEP
+       #define DIRECTORY_SEP '/'
+      #endif
+      #ifndef IS_DIRECTORY_SEP
+       #define IS_DIRECTORY_SEP(_c_) ((_c_) == DIRECTORY_SEP)
+      #endif
+
       /* Use a lock file named after our first argument with .lock appended:
 	 If it exists, the mail file is locked.  */
       /* Note: this locking mechanism is *required* by the mailer
@@ -527,11 +527,11 @@ main (int argc, char **argv)
       exit (EXIT_SUCCESS);
     }
 
-  wait (&status);
-  if (!WIFEXITED (status))
+  wait (&wait_status);
+  if (!WIFEXITED (wait_status))
     exit (EXIT_FAILURE);
-  else if (WRETCODE (status) != 0)
-    exit (WRETCODE (status));
+  else if (WRETCODE (wait_status) != 0)
+    exit (WRETCODE (wait_status));
 
 #if !defined (MAIL_USE_MMDF) && !defined (MAIL_USE_SYSTEM_LOCK)
 #ifdef MAIL_USE_MAILLOCK
@@ -670,14 +670,8 @@ xmalloc (unsigned int size)
 
 #define NOTOK (-1)
 #define OK 0
-#define DONE 1
 
-char *progname;
-FILE *sfi;
-FILE *sfo;
-char ibuffer[BUFSIZ];
-char obuffer[BUFSIZ];
-char Errmsg[200];		/* POP errors, at least, can exceed
+static char Errmsg[200];	/* POP errors, at least, can exceed
 				   the original length of 80.  */
 
 /*
@@ -736,7 +730,18 @@ popmail (char *mailbox, char *outfile, int preserve, char *password, int reverse
       error ("Error in open: %s, %s", strerror (errno), outfile);
       return EXIT_FAILURE;
     }
-  fchown (mbfi, getuid (), -1);
+
+  if (fchown (mbfi, getuid (), -1) != 0)
+    {
+      int fchown_errno = errno;
+      struct stat st;
+      if (fstat (mbfi, &st) != 0 || st.st_uid != getuid ())
+	{
+	  pop_close (server);
+	  error ("Error in fchown: %s, %s", strerror (fchown_errno), outfile);
+	  return EXIT_FAILURE;
+	}
+    }
 
   if ((mbf = fdopen (mbfi, "wb")) == NULL)
     {
@@ -828,10 +833,10 @@ pop_retr (popserver server, int msgno, FILE *arg)
 
   if (pop_retrieve_first (server, msgno, &line))
     {
-      char *error = concat ("Error from POP server: ", pop_error, "");
-      strncpy (Errmsg, error, sizeof (Errmsg));
+      char *msg = concat ("Error from POP server: ", pop_error, "");
+      strncpy (Errmsg, msg, sizeof (Errmsg));
       Errmsg[sizeof (Errmsg)-1] = '\0';
-      free(error);
+      free (msg);
       return (NOTOK);
     }
 
@@ -850,27 +855,26 @@ pop_retr (popserver server, int msgno, FILE *arg)
 
   if (ret)
     {
-      char *error = concat ("Error from POP server: ", pop_error, "");
-      strncpy (Errmsg, error, sizeof (Errmsg));
+      char *msg = concat ("Error from POP server: ", pop_error, "");
+      strncpy (Errmsg, msg, sizeof (Errmsg));
       Errmsg[sizeof (Errmsg)-1] = '\0';
-      free(error);
+      free (msg);
       return (NOTOK);
     }
 
   return (OK);
 }
 
-/* Do this as a macro instead of using strcmp to save on execution time. */
-#define IS_FROM_LINE(a) ((a[0] == 'F') \
-			 && (a[1] == 'r') \
-			 && (a[2] == 'o') \
-			 && (a[3] == 'm') \
-			 && (a[4] == ' '))
-
 static int
 mbx_write (char *line, int len, FILE *mbf)
 {
 #ifdef MOVEMAIL_QUOTE_POP_FROM_LINES
+  /* Do this as a macro instead of using strcmp to save on execution time. */
+  # define IS_FROM_LINE(a) ((a[0] == 'F')	\
+			    && (a[1] == 'r')	\
+			    && (a[2] == 'o')	\
+			    && (a[3] == 'm')	\
+			    && (a[4] == ' '))
   if (IS_FROM_LINE (line))
     {
       if (fputc ('>', mbf) == EOF)

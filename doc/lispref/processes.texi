@@ -266,10 +266,9 @@ subprocess by @code{call-process-region} is encoded using a coding
 system, much like text written into a file.  @xref{Coding Systems}.
 
 @defun call-process program &optional infile destination display &rest args
-This function calls @var{program} in a separate process and waits for
-it to finish.
+This function calls @var{program} and waits for it to finish.
 
-The standard input for the process comes from file @var{infile} if
+The standard input for the new process comes from file @var{infile} if
 @var{infile} is not @code{nil}, and from the null device otherwise.
 The argument @var{destination} says where to put the process output.
 Here are the possibilities:
@@ -488,10 +487,10 @@ inputinput@point{}
 @end defun
 
 @defun call-process-shell-command command &optional infile destination display &rest args
-This function executes the shell command @var{command} synchronously
-in a separate process.  The final arguments @var{args} are additional
-arguments to add at the end of @var{command}.  The other arguments
-are handled as in @code{call-process}.
+This function executes the shell command @var{command} synchronously.
+The final arguments @var{args} are additional arguments to add at the
+end of @var{command}.  The other arguments are handled as in
+@code{call-process}.
 @end defun
 
 @defun process-file-shell-command command &optional infile destination display &rest args
@@ -506,12 +505,12 @@ then returns the command's output as a string.
 @end defun
 
 @defun process-lines program &rest args
-This function runs @var{program} in a separate process, waits for it
-to finish, and returns its output as a list of strings.  Each string
-in the list holds a single line of text output by the program; the
-end-of-line characters are stripped from each line.  The arguments
-beyond @var{program}, @var{args}, are strings that specify
-command-line arguments with which to run the program.
+This function runs @var{program}, waits for it to finish, and returns
+its output as a list of strings.  Each string in the list holds a
+single line of text output by the program; the end-of-line characters
+are stripped from each line.  The arguments beyond @var{program},
+@var{args}, are strings that specify command-line arguments with which
+to run the program.
 
 If @var{program} exits with a non-zero exit status, this function
 signals an error.
