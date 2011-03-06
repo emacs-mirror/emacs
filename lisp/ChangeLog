@@ -1,3 +1,8 @@
+2011-03-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/gud.el (gdb-script-syntax-propertize-function):
+	Don't change the syntax of a \n that closes a comment (bug#8169).
+
 2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/package-x.el (package-archive-upload-base): Make it a
@@ -25,8 +30,8 @@
 
 2011-03-06  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc/calc-ext.el (calc-init-extensions): Rename
-	calc-logunits-dblevel and calc-logunits-nplevel to calc-dblevel
+	* calc/calc-ext.el (calc-init-extensions):
+	Rename calc-logunits-dblevel and calc-logunits-nplevel to calc-dblevel
 	and calc-nplevel, respectively.  Add keybindings for calc-spn,
 	calc-midi and calc-freq.  Add autoloads for calcFunc-spn,
 	calcFunc-midi, calcFunc-freq, calc-spn, calc-midi and calc-freq.
