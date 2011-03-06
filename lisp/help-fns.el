@@ -76,15 +76,18 @@ DEF is the function whose usage we're looking for in DOCSTRING."
 		  ;; Replace `fn' with the actual function name.
 		  (if (consp def) "anonymous" def)
 		  (match-string 1 docstring))
-	  (substring docstring 0 (match-beginning 0)))))
+	  (unless (zerop (match-beginning 0))
+            (substring docstring 0 (match-beginning 0))))))
 
+;; FIXME: Move to subr.el?
 (defun help-add-fundoc-usage (docstring arglist)
   "Add the usage info to DOCSTRING.
 If DOCSTRING already has a usage info, then just return it unchanged.
 The usage info is built from ARGLIST.  DOCSTRING can be nil.
 ARGLIST can also be t or a string of the form \"(FUN ARG1 ARG2 ...)\"."
-  (unless (stringp docstring) (setq docstring "Not documented"))
-  (if (or (string-match "\n\n(fn\\(\\( .*\\)?)\\)\\'" docstring) (eq arglist t))
+  (unless (stringp docstring) (setq docstring ""))
+  (if (or (string-match "\n\n(fn\\(\\( .*\\)?)\\)\\'" docstring)
+          (eq arglist t))
       docstring
     (concat docstring
 	    (if (string-match "\n?\n\\'" docstring)
@@ -95,6 +98,7 @@ ARGLIST can also be t or a string of the form \"(FUN ARG1 ARG2 ...)\"."
 		(concat "(fn" (match-string 1 arglist) ")")
 	      (format "%S" (help-make-usage 'fn arglist))))))
 
+;; FIXME: Move to subr.el?
 (defun help-function-arglist (def)
   ;; Handle symbols aliased to other symbols.
   (if (and (symbolp def) (fboundp def)) (setq def (indirect-function def)))
@@ -103,12 +107,28 @@ ARGLIST can also be t or a string of the form \"(FUN ARG1 ARG2 ...)\"."
   ;; and do the same for interpreted closures
   (if (eq (car-safe def) 'closure) (setq def (cddr def)))
   (cond
+   ((and (byte-code-function-p def) (integerp (aref def 0)))
+    (let* ((args-desc (aref def 0))
+           (max (lsh args-desc -8))
+           (min (logand args-desc 127))
+           (rest (logand args-desc 128))
+           (arglist ()))
+      (dotimes (i min)
+        (push (intern (concat "arg" (number-to-string (1+ i)))) arglist))
+      (when (> max min)
+        (push '&optional arglist)
+        (dotimes (i (- max min))
+          (push (intern (concat "arg" (number-to-string (+ 1 i min))))
+                arglist)))
+      (unless (zerop rest) (push '&rest arglist) (push 'rest arglist))
+      (nreverse arglist)))
    ((byte-code-function-p def) (aref def 0))
    ((eq (car-safe def) 'lambda) (nth 1 def))
    ((and (eq (car-safe def) 'autoload) (not (eq (nth 4 def) 'keymap)))
     "[Arg list not available until function definition is loaded.]")
    (t t)))
 
+;; FIXME: Move to subr.el?
 (defun help-make-usage (function arglist)
   (cons (if (symbolp function) function 'anonymous)
 	(mapcar (lambda (arg)

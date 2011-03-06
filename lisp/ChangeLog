@@ -1,3 +1,20 @@
+2011-03-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-arglist-signature):
+	Handle integer arglist descriptor.
+	(byte-compile-make-args-desc): Make integer arglist descriptor.
+	(byte-compile-lambda): Use integer arglist descriptor to mark lexical
+	byte-coded functions instead of an extra slot.
+	* help-fns.el (help-add-fundoc-usage): Don't add a dummy doc.
+	(help-split-fundoc): Return a nil doc if there was no actual doc.
+	(help-function-arglist): Generate an arglist from an integer arg-desc.
+	* emacs-lisp/pcase.el (pcase--memoize): Rename from pcase-memoize;
+	Make only the key weak.
+	(pcase): Change the key used in the memoization table, so it does not
+	always get GC'd away.
+	* emacs-lisp/macroexp.el (macroexpand-all-1): Slight change to the
+	pcase pattern to generate slightly better code.
+
 2011-03-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cconv.el (cconv-liftwhen): Increase threshold.

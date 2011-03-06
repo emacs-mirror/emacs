@@ -33,6 +33,9 @@
 
 ;;; Code:
 
+;; FIXME: Use lexical-binding and get rid of the atrocious "bytecomp-"
+;; variable prefix.
+
 ;; ========================================================================
 ;; Entry points:
 ;;	byte-recompile-directory, byte-compile-file,
@@ -1180,22 +1183,28 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
              (t fn)))))))
 
 (defun byte-compile-arglist-signature (arglist)
-  (let ((args 0)
-	opts
-	restp)
-    (while arglist
-      (cond ((eq (car arglist) '&optional)
-	     (or opts (setq opts 0)))
-	    ((eq (car arglist) '&rest)
-	     (if (cdr arglist)
-		 (setq restp t
-		       arglist nil)))
-	    (t
-	     (if opts
-		 (setq opts (1+ opts))
+  (if (integerp arglist)
+      ;; New style byte-code arglist.
+      (cons (logand arglist 127)             ;Mandatory.
+            (if (zerop (logand arglist 128)) ;No &rest.
+                (lsh arglist -8)))           ;Nonrest.
+    ;; Old style byte-code, or interpreted function.
+    (let ((args 0)
+          opts
+          restp)
+      (while arglist
+        (cond ((eq (car arglist) '&optional)
+               (or opts (setq opts 0)))
+              ((eq (car arglist) '&rest)
+               (if (cdr arglist)
+                   (setq restp t
+                         arglist nil)))
+              (t
+               (if opts
+                   (setq opts (1+ opts))
 		 (setq args (1+ args)))))
-      (setq arglist (cdr arglist)))
-    (cons args (if restp nil (if opts (+ args opts) args)))))
+        (setq arglist (cdr arglist)))
+      (cons args (if restp nil (if opts (+ args opts) args))))))
 
 
 (defun byte-compile-arglist-signatures-congruent-p (old new)
@@ -2645,6 +2654,26 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	;; Return the new lexical environment
 	lexenv))))
 
+(defun byte-compile-make-args-desc (arglist)
+  (let ((mandatory 0)
+        nonrest (rest 0))
+    (while (and arglist (not (memq (car arglist) '(&optional &rest))))
+      (setq mandatory (1+ mandatory))
+      (setq arglist (cdr arglist)))
+    (setq nonrest mandatory)
+    (when (eq (car arglist) '&optional)
+      (setq arglist (cdr arglist))
+      (while (and arglist (not (eq (car arglist) '&rest)))
+        (setq nonrest (1+ nonrest))
+        (setq arglist (cdr arglist))))
+    (when arglist
+      (setq rest 1))
+    (if (> mandatory 127)
+        (byte-compile-report-error "Too many (>127) mandatory arguments")
+      (logior mandatory
+              (lsh nonrest 8)
+              (lsh rest 7)))))
+
 ;; Byte-compile a lambda-expression and return a valid function.
 ;; The value is usually a compiled function but may be the original
 ;; lambda-expression.
@@ -2716,18 +2745,22 @@ If FORM is a lambda or a macro, byte-compile it as a function."
       ;; Build the actual byte-coded function.
       (if (eq 'byte-code (car-safe compiled))
           (apply 'make-byte-code
-                 (append (list bytecomp-arglist)
-                         ;; byte-string, constants-vector, stack depth
-                         (cdr compiled)
-                         ;; optionally, the doc string.
-                         (if (or bytecomp-doc bytecomp-int
-                                 lexical-binding)
-                             (list bytecomp-doc))
-                         ;; optionally, the interactive spec.
-                         (if (or bytecomp-int lexical-binding)
-                             (list (nth 1 bytecomp-int)))
-                         (if lexical-binding
-                             '(t))))
+                 (if lexical-binding
+                     (byte-compile-make-args-desc bytecomp-arglist)
+                   bytecomp-arglist)
+                 (append
+                  ;; byte-string, constants-vector, stack depth
+                  (cdr compiled)
+                  ;; optionally, the doc string.
+                  (cond (lexical-binding
+                         (require 'help-fns)
+                         (list (help-add-fundoc-usage
+                                bytecomp-doc bytecomp-arglist)))
+                        ((or bytecomp-doc bytecomp-int)
+                         (list bytecomp-doc)))
+                  ;; optionally, the interactive spec.
+                  (if bytecomp-int
+                      (list (nth 1 bytecomp-int)))))
 	(setq compiled
 	      (nconc (if bytecomp-int (list bytecomp-int))
 		     (cond ((eq (car-safe compiled) 'progn) (cdr compiled))

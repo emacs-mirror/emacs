@@ -42,7 +42,7 @@
 ;; is in a loop, the repeated macro-expansion becomes terribly costly, so we
 ;; memoize previous macro expansions to try and avoid recomputing them
 ;; over and over again.
-(defconst pcase-memoize (make-hash-table :weakness t :test 'equal))
+(defconst pcase--memoize (make-hash-table :weakness 'key :test 'eq))
 
 (defconst pcase--dontcare-upats '(t _ dontcare))
 
@@ -78,10 +78,21 @@ E.g. you can match pairs where the cdr is larger than the car with a pattern
 like `(,a . ,(pred (< a))) or, with more checks:
 `(,(and a (pred numberp)) . ,(and (pred numberp) (pred (< a))))"
   (declare (indent 1) (debug case))     ;FIXME: edebug `guard' and vars.
-  (or (gethash (cons exp cases) pcase-memoize)
-      (puthash (cons exp cases)
-               (pcase--expand exp cases)
-               pcase-memoize)))
+  ;; We want to use a weak hash table as a cache, but the key will unavoidably
+  ;; be based on `exp' and `cases', yet `cases' is a fresh new list each time
+  ;; we're called so it'll be immediately GC'd.  So we use (car cases) as key
+  ;; which does come straight from the source code and should hence not be GC'd
+  ;; so easily.
+  (let ((data (gethash (car cases) pcase--memoize)))
+    ;; data = (EXP CASES . EXPANSION)
+    (if (and (equal exp (car data)) (equal cases (cadr data)))
+        ;; We have the right expansion.
+        (cddr data)
+      (when data
+        (message "pcase-memoize: equal first branch, yet different"))
+      (let ((expansion (pcase--expand exp cases)))
+        (puthash (car cases) (cons exp (cons cases expansion)) pcase--memoize)
+        expansion))))
 
 ;;;###autoload
 (defmacro pcase-let* (bindings &rest body)
@@ -135,6 +146,8 @@ of the form (UPAT EXP)."
   (and (symbolp upat) (not (memq upat pcase--dontcare-upats))))
 
 (defun pcase--expand (exp cases)
+  ;; (message "pid=%S (pcase--expand %S ...hash=%S)"
+  ;;          (emacs-pid) exp (sxhash cases))
   (let* ((defs (if (symbolp exp) '()
                  (let ((sym (make-symbol "x")))
                    (prog1 `((,sym ,exp)) (setq exp sym)))))

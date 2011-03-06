@@ -502,37 +502,50 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
   stacke = stack.bottom - 1 + XFASTINT (maxdepth);
 #endif
 
-  if (! NILP (args_template))
+  if (INTEGERP (args_template))
+    {
+      int at = XINT (args_template);
+      int rest = at & 128;
+      int mandatory = at & 127;
+      int nonrest = at >> 8;
+      eassert (mandatory <= nonrest);
+      if (nargs <= nonrest)
+	{
+	  int i;
+	  for (i = 0 ; i < nargs; i++, args++)
+	    PUSH (*args);
+	  if (nargs < mandatory)
+	    /* Too few arguments.  */
+	    Fsignal (Qwrong_number_of_arguments,
+		     Fcons (Fcons (make_number (mandatory),
+				   rest ? Qand_rest : make_number (nonrest)),
+			    Fcons (make_number (nargs), Qnil)));
+	  else
+	    {
+	      for (; i < nonrest; i++)
+		PUSH (Qnil);
+	      if (rest)
+		PUSH (Qnil);
+	    }
+	}
+      else if (rest)
+	{
+	  int i;
+	  for (i = 0 ; i < nonrest; i++, args++)
+	    PUSH (*args);
+	  PUSH (Flist (nargs - nonrest, args));
+	}
+      else
+	/* Too many arguments.  */
+	Fsignal (Qwrong_number_of_arguments,
+		 Fcons (Fcons (make_number (mandatory),
+			       make_number (nonrest)),
+			Fcons (make_number (nargs), Qnil)));
+    }
+  else if (! NILP (args_template))
     /* We should push some arguments on the stack.  */
     {
-      Lisp_Object at;
-      int pushed = 0, optional = 0;
-
-      for (at = args_template; CONSP (at); at = XCDR (at))
-	if (EQ (XCAR (at), Qand_optional))
-	  optional = 1;
-	else if (EQ (XCAR (at), Qand_rest))
-	  {
-	    PUSH (pushed < nargs
-		  ? Flist (nargs - pushed, args)
-		  : Qnil);
-	    pushed = nargs;
-	    at = Qnil;
-	    break;
-	  }
-	else if (pushed < nargs)
-	  {
-	    PUSH (*args++);
-	    pushed++;
-	  }
-	else if (optional)
-	  PUSH (Qnil);
-	else
-	  break;
-
-      if (pushed != nargs || !NILP (at))
-	Fsignal (Qwrong_number_of_arguments,
-		 Fcons (args_template, Fcons (make_number (nargs), Qnil)));
+      error ("Unknown args template!");
     }
 
   while (1)

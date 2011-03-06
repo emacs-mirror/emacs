@@ -66,22 +66,21 @@
 ;;; Code:
 
 ;; TODO:
+;; - byte-optimize-form should be applied before cconv.
+;; - maybe unify byte-optimize and compiler-macros.
 ;; - canonize code in macro-expand so we don't have to handle (let (var) body)
 ;;   and other oddities.
-;; - Change new byte-code representation, so it directly gives the
-;;   number of mandatory and optional arguments as well as whether or
-;;   not there's a &rest arg.
 ;; - clean up cconv-closure-convert-rec, especially the `let' binding part.
 ;; - new byte codes for unwind-protect, catch, and condition-case so that
 ;;   closures aren't needed at all.
 ;; - a reference to a var that is known statically to always hold a constant
 ;;   should be turned into a byte-constant rather than a byte-stack-ref.
-;;   Hmm... right, that's called constant propagation and could be done here
-;;   But when that constant is a function, we have to be careful to make sure
+;;   Hmm... right, that's called constant propagation and could be done here,
+;;   but when that constant is a function, we have to be careful to make sure
 ;;   the bytecomp only compiles it once.
 ;; - Since we know here when a variable is not mutated, we could pass that
 ;;   info to the byte-compiler, e.g. by using a new `immutable-let'.
-;; - add tail-calls to bytecode.c and the bytecompiler.
+;; - add tail-calls to bytecode.c and the byte compiler.
 
 ;; (defmacro dlet (binders &rest body)
 ;;   ;; Works in both lexical and non-lexical mode.

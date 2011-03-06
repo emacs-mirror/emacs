@@ -176,10 +176,11 @@ Assumes the caller has bound `macroexpand-all-environment'."
                          (macroexpand-all-forms args)))))
       ;; Macro expand compiler macros.
       ;; FIXME: Don't depend on CL.
-      (`(,(and (pred symbolp) fun
-               (guard (and (eq (get fun 'byte-compile)
-                               'cl-byte-compile-compiler-macro)
-                           (functionp 'compiler-macroexpand))))
+      (`(,(pred (lambda (fun)
+                  (and (symbolp fun)
+                       (eq (get fun 'byte-compile)
+                           'cl-byte-compile-compiler-macro)
+                       (functionp 'compiler-macroexpand))))
          . ,_)
        (let ((newform (compiler-macroexpand form)))
          (if (eq form newform)

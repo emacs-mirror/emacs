@@ -1,3 +1,9 @@
+2011-03-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bytecode.c (exec_byte_code): Remove old lexical binding slot handling
+	and replace it with the a integer args-desc handling.
+	* eval.c (funcall_lambda): Adjust arglist test accordingly.
+
 2011-03-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* callint.c (quotify_arg): Simplify the logic.
