@@ -723,7 +723,7 @@ show_help_event (FRAME_PTR f, xt_or_gtk_widget widget, Lisp_Object help)
    unhighlighting.  */
 
 #ifdef USE_GTK
-void
+static void
 menu_highlight_callback (GtkWidget *widget, gpointer call_data)
 {
   xg_menu_item_cb_data *cb_data;
@@ -742,7 +742,7 @@ menu_highlight_callback (GtkWidget *widget, gpointer call_data)
     show_help_event (cb_data->cl_data->f, widget, help);
 }
 #else
-void
+static void
 menu_highlight_callback (Widget widget, LWLIB_ID id, void *call_data)
 {
   struct frame *f;
