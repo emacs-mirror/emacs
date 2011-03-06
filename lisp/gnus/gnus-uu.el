@@ -393,7 +393,7 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
 	 (if gnus-uu-save-separate-articles
 	     (read-directory-name
 	      "Save articles in dir: " gnus-uu-default-dir gnus-uu-default-dir)
-	   (read-file-name-name
+	   (read-file-name
 	    "Save article in file: " gnus-uu-default-dir gnus-uu-default-dir))))
   (setq gnus-uu-saved-article-name file)
   (gnus-uu-decode-with-method 'gnus-uu-save-article n nil t))
