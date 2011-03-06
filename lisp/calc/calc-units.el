@@ -1869,7 +1869,8 @@ In symbolic mode, return the list (^ a b)."
   (let* ((n (math-round num))
          (diff (math-abs
                 (math-sub num n))))
-    (if (< (math-compare diff (math-read-expr calc-note-threshold)) 0)
+    (if (< (math-compare diff 
+                         (math-div (math-read-expr calc-note-threshold) 100)) 0)
         n
       num)))
 
