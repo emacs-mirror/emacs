@@ -11,6 +11,7 @@
 	* xdisp.c (BUILD_GLYPHLESS_GLYPH_STRING): Omit unused local var.
 	(produce_glyphless_glyph): Make a pointer "const"
 	since it might point to immutable storage.
+	(update_window_cursor):  Now static, since it's not used elsewhere.
 
 2011-03-06  Michael Shields  <shields@msrl.com>  (tiny change)
 

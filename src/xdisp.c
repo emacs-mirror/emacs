@@ -23789,7 +23789,7 @@ display_and_set_cursor (struct window *w, int on,
 /* Switch the display of W's cursor on or off, according to the value
    of ON.  */
 
-void
+static void
 update_window_cursor (struct window *w, int on)
 {
   /* Don't update cursor in windows whose frame is in the process
