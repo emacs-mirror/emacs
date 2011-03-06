@@ -1,3 +1,8 @@
+2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* package.texi: Update index keywords.
+	(Package Archives): New node contents.  Document package-x.el.
+
 2011-03-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (srcs): Add package.texi.
