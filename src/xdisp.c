@@ -17912,16 +17912,13 @@ paragraphs, text begins at the right margin and is read from right to left.
 See also `bidi-paragraph-direction'.  */)
   (Lisp_Object buffer)
 {
-  struct buffer *buf;
-  struct buffer *old;
+  struct buffer *buf = current_buffer;
+  struct buffer *old = buf;
 
-  if (NILP (buffer))
-    buf = current_buffer;
-  else
+  if (! NILP (buffer))
     {
       CHECK_BUFFER (buffer);
       buf = XBUFFER (buffer);
-      old = current_buffer;
     }
 
   if (NILP (BVAR (buf, bidi_display_reordering)))
@@ -17938,8 +17935,7 @@ See also `bidi-paragraph-direction'.  */)
       EMACS_INT bytepos = BUF_PT_BYTE (buf);
       int c;
 
-      if (buf != current_buffer)
-	set_buffer_temp (buf);
+      set_buffer_temp (buf);
       /* bidi_paragraph_init finds the base direction of the paragraph
 	 by searching forward from paragraph start.  We need the base
 	 direction of the current or _previous_ paragraph, so we need
@@ -17967,8 +17963,7 @@ See also `bidi-paragraph-direction'.  */)
       itb.paragraph_dir = NEUTRAL_DIR;
 
       bidi_paragraph_init (NEUTRAL_DIR, &itb, 1);
-      if (buf != current_buffer)
-	set_buffer_temp (old);
+      set_buffer_temp (old);
       switch (itb.paragraph_dir)
 	{
 	case L2R:
