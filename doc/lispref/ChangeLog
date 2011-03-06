@@ -1,3 +1,7 @@
+2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Makefile.in (srcs): Add package.texi.
+
 2011-03-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* processes.texi (Synchronous Processes): Minor clarification
