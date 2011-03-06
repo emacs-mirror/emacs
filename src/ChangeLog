@@ -1,5 +1,10 @@
 2011-03-06  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* minibuf.c (minibuf_prompt, minibuf_prompt_width): Move here
+	from xdisp.c, and make static, since these are used only here.
+	* window.h, xdisp.c (minibuf_prompt, minibuf_prompt_width):
+	Remove decls.
+
 	* cmds.c (internal_self_insert): Reindent to match Emacs style.
 
 	* xdisp.c: Rename or move local decls to avoid shadowing.

@@ -483,15 +483,6 @@ int buffer_shared;
 
 static Lisp_Object default_invis_vector[3];
 
-/* Prompt to display in front of the mini-buffer contents.  */
-
-Lisp_Object minibuf_prompt;
-
-/* Width of current mini-buffer prompt.  Only set after display_line
-   of the line that contains the prompt.  */
-
-int minibuf_prompt_width;
-
 /* This is the window where the echo area message was displayed.  It
    is always a mini-buffer window, but it may not be the same window
    currently active as a mini-buffer.  */

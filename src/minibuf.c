@@ -82,6 +82,15 @@ Lisp_Object Qcase_fold_search;
 
 Lisp_Object Qread_expression_history;
 
+/* Prompt to display in front of the mini-buffer contents.  */
+
+static Lisp_Object minibuf_prompt;
+
+/* Width of current mini-buffer prompt.  Only set after display_line
+   of the line that contains the prompt.  */
+
+static int minibuf_prompt_width;
+
 
 /* Put minibuf on currently selected frame's minibuffer.
    We do this whenever the user starts a new minibuffer
