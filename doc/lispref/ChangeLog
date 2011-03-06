@@ -1,5 +1,11 @@
 2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
+	* package.texi (Packaging, Packaging Basics, Simple Packages)
+	(Multi-file Packages): Expand and clarify.
+	(Package Archives): Temporary placeholder node.
+
+	* elisp.texi (Top): Update node listing.
+
 	* Makefile.in (srcs): Add package.texi.
 
 2011-03-05  Chong Yidong  <cyd@stupidchicken.com>
