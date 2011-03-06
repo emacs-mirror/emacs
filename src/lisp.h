@@ -3524,6 +3524,13 @@ extern void init_system_name (void);
 	     && (circular_list_error ((list)), 1)))	\
 	 : 0)))
 
+/* Use this to suppress gcc's `...may be used before initialized' warnings. */
+#ifdef lint
+# define IF_LINT(Code) Code
+#else
+# define IF_LINT(Code) /* empty */
+#endif
+
 /* The ubiquitous min and max macros.  */
 
 #ifdef max

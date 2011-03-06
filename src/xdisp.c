@@ -17231,14 +17231,16 @@ display_line (struct it *it)
   struct glyph_row *row = it->glyph_row;
   Lisp_Object overlay_arrow_string;
   struct it wrap_it;
-  int may_wrap = 0, wrap_x;
-  int wrap_row_used = -1, wrap_row_ascent, wrap_row_height;
-  int wrap_row_phys_ascent, wrap_row_phys_height;
-  int wrap_row_extra_line_spacing;
-  EMACS_INT wrap_row_min_pos, wrap_row_min_bpos;
-  EMACS_INT wrap_row_max_pos, wrap_row_max_bpos;
+  int may_wrap = 0, wrap_x IF_LINT (= 0);
+  int wrap_row_used = -1;
+  int wrap_row_ascent IF_LINT (= 0), wrap_row_height IF_LINT (= 0);
+  int wrap_row_phys_ascent IF_LINT (= 0), wrap_row_phys_height IF_LINT (= 0);
+  int wrap_row_extra_line_spacing IF_LINT (= 0);
+  EMACS_INT wrap_row_min_pos IF_LINT (= 0), wrap_row_min_bpos IF_LINT (= 0);
+  EMACS_INT wrap_row_max_pos IF_LINT (= 0), wrap_row_max_bpos IF_LINT (= 0);
   int cvpos;
-  EMACS_INT min_pos = ZV + 1, min_bpos, max_pos = 0, max_bpos;
+  EMACS_INT min_pos = ZV + 1, max_pos = 0;
+  EMACS_INT min_bpos IF_LINT (= 0), max_bpos IF_LINT (= 0);
 
   /* We always start displaying at hpos zero even if hscrolled.  */
   xassert (it->hpos == 0 && it->current_x == 0);

@@ -4,6 +4,10 @@
 	Add a FIXME comment, since the code still doesn't look right.
 	(Fcurrent_bidi_paragraph_direction): Simplify slightly; this
 	avoids a gcc -Wuninitialized diagnostic.
+	(display_line): Mark variables that gcc -Wuninitialized cannot
+	deduce are never used uninitialized.
+	* lisp.h (IF_LINT): New macro, copied from ../lib-src/emacsclient.c
+	which in turn is copied from coreutils.
 
 	current_column: Now returns EMACS_INT, fixing some iftc.
 	* bytecode.c (Fbyte_code): Don't cast current_column () to int.
