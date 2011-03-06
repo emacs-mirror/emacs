@@ -1,3 +1,7 @@
+2011-03-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (srcs): Add package.texi.
+
 2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* package.texi (Packaging, Packaging Basics, Simple Packages)
