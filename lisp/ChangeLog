@@ -1,3 +1,14 @@
+2011-03-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bookmark.el:
+	* desktop.el:
+	* emacs-lock.el:
+	* ps-print.el:
+	* saveplace.el:
+	* net/tramp-cache.el:
+	* textmodes/reftex.el:
+	Don't set `kill-emacs-hook' on noninteractive sessions (bug#8137).
+
 2011-03-05  Antoine Levitt  <antoine.levitt@gmail.com>
 
 	* files.el (delete-directory, copy-directory, list-directory): Use

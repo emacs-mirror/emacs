@@ -519,7 +519,8 @@ When CHECK is given, prepare detailed information about duplicate IDs."
     (puthash id (abbreviate-file-name file) org-id-locations)
     (add-to-list 'org-id-files (abbreviate-file-name file))))
 
-(add-hook 'kill-emacs-hook 'org-id-locations-save)
+(unless noninteractive
+  (add-hook 'kill-emacs-hook 'org-id-locations-save))
 
 (defun org-id-hash-to-alist (hash)
   "Turn an org-id hash into an alist, so that it can be written to a file."

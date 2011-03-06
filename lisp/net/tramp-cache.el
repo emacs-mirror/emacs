@@ -353,7 +353,8 @@ KEY identifies the connection, it is either a process or a vector."
 	  (write-region
 	   (point-min) (point-max) tramp-persistency-file-name))))))
 
-(add-hook 'kill-emacs-hook 'tramp-dump-connection-properties)
+(unless noninteractive
+  (add-hook 'kill-emacs-hook 'tramp-dump-connection-properties))
 (add-hook 'tramp-cache-unload-hook
 	  '(lambda ()
 	     (remove-hook 'kill-emacs-hook

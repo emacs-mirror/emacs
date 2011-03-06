@@ -611,7 +611,8 @@ Furthermore, it clears the variables listed in `desktop-globals-to-clear'."
   (delete-other-windows))
 
 ;; ----------------------------------------------------------------------------
-(add-hook 'kill-emacs-hook 'desktop-kill)
+(unless noninteractive
+  (add-hook 'kill-emacs-hook 'desktop-kill))
 
 (defun desktop-kill ()
   "If `desktop-save-mode' is non-nil, do what `desktop-save' says to do.

@@ -300,7 +300,8 @@ may have changed\) back to `save-place-alist'."
 
 (add-hook 'find-file-hook 'save-place-find-file-hook t)
 
-(add-hook 'kill-emacs-hook 'save-place-kill-emacs-hook)
+(unless noninteractive
+  (add-hook 'kill-emacs-hook 'save-place-kill-emacs-hook))
 
 (add-hook 'kill-buffer-hook 'save-place-to-alist)
 

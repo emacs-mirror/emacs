@@ -1,3 +1,7 @@
+2011-03-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* org-id.el: Don't set `kill-emacs-hook' on noninteractive sessions.
+
 2011-02-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* org-remember.el (org-remember-mode-map):

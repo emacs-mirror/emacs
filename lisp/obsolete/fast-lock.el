@@ -840,7 +840,8 @@ See `fast-lock-get-face-properties'."
 
 (add-hook 'after-save-hook 'fast-lock-save-cache-after-save-file)
 (add-hook 'kill-buffer-hook 'fast-lock-save-cache-before-kill-buffer)
-(add-hook 'kill-emacs-hook 'fast-lock-save-caches-before-kill-emacs)
+(unless noninteractive
+  (add-hook 'kill-emacs-hook 'fast-lock-save-caches-before-kill-emacs))
 
 ;;;###autoload
 (when (fboundp 'add-minor-mode)
