@@ -13697,6 +13697,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
   int buffer_unchanged_p = 0;
   int temp_scroll_step = 0;
   int count = SPECPDL_INDEX ();
+  int rc;
   int centering_position = -1;
   int last_line_misfit = 0;
   EMACS_INT beg_unchanged, end_unchanged;
@@ -14008,15 +14009,12 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
   /* Handle case where text has not changed, only point, and it has
      not moved off the frame, and we are not retrying after hscroll.
      (current_matrix_up_to_date_p is nonzero when retrying.)  */
-  if (current_matrix_up_to_date_p)
+  if (current_matrix_up_to_date_p
+      && (rc = try_cursor_movement (window, startp, &temp_scroll_step),
+	  rc != CURSOR_MOVEMENT_CANNOT_BE_USED))
     {
-      int rc = try_cursor_movement (window, startp, &temp_scroll_step);
-
       switch (rc)
 	{
-	case CURSOR_MOVEMENT_CANNOT_BE_USED:
-	  break;
-
 	case CURSOR_MOVEMENT_SUCCESS:
 	  used_current_matrix_p = 1;
 	  goto done;

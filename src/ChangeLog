@@ -1,3 +1,8 @@
+2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (redisplay_window): Revert incorrect logic in 2011-03-06
+	change.
+
 2011-03-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	current_column: Now returns EMACS_INT, fixing some iftc
