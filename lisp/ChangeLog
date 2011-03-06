@@ -1,3 +1,8 @@
+2011-03-06  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* cus-edit.el (custom-prompt-variable): Use the `custom-get' property
+	of the variable if it exists.
+
 2011-03-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* bookmark.el:
