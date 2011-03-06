@@ -12382,18 +12382,6 @@ redisplay_window_1 (Lisp_Object window)
 }
 
 
-/* Increment GLYPH until it reaches END or CONDITION fails while
-   adding (GLYPH)->pixel_width to X. */
-
-#define SKIP_GLYPHS(glyph, end, x, condition)	\
-  do						\
-    {						\
-      (x) += (glyph)->pixel_width;		\
-      ++(glyph);				\
-    }						\
-  while ((glyph) < (end) && (condition))
-
-
 /* Set cursor position of W.  PT is assumed to be displayed in ROW.
    DELTA and DELTA_BYTES are the numbers of characters and bytes by
    which positions recorded in ROW differ from current buffer

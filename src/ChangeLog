@@ -12,6 +12,7 @@
 	(produce_glyphless_glyph): Make a pointer "const"
 	since it might point to immutable storage.
 	(update_window_cursor):  Now static, since it's not used elsewhere.
+	(SKIP_GLYPHS): Removed unused macro.
 
 2011-03-06  Michael Shields  <shields@msrl.com>  (tiny change)
 
