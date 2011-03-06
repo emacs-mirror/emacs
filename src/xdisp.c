@@ -25457,7 +25457,8 @@ note_mouse_highlight (struct frame *f, int x, int y)
 	    {
 	      /* The mouse-highlighting, if any, comes from an overlay
 		 or text property in the buffer.  */
-	      Lisp_Object buffer, cover_string;
+	      Lisp_Object buffer IF_LINT (= Qnil);
+	      Lisp_Object cover_string IF_LINT (= Qnil);
 
 	      if (STRINGP (object))
 		{

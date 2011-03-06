@@ -5,8 +5,8 @@
 	(Fcurrent_bidi_paragraph_direction): Simplify slightly; this
 	avoids a gcc -Wuninitialized diagnostic.
 	(display_line, BUILD_COMPOSITE_GLYPH_STRING, draw_glyphs):
-	Mark variables that gcc -Wuninitialized cannot deduce are never
-	used uninitialized.
+	(note_mouse_highlight): Mark variables that gcc -Wuninitialized
+	does not deduce are never used uninitialized.
 
 	* lisp.h (IF_LINT): New macro, copied from ../lib-src/emacsclient.c
 	which in turn is copied from coreutils.
