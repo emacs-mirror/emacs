@@ -22292,7 +22292,13 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
 	  if (metrics_upper.width >= metrics_lower.width)
 	    lower_xoff = (width - metrics_lower.width) / 2;
 	  else
-	    upper_xoff = (width - metrics_upper.width) / 2;
+	    {
+	      /* FIXME: This code doesn't look right.  It formerly was
+		 missing the "lower_xoff = 0;", which couldn't have
+		 been right since it left lower_xoff uninitialized.  */
+	      lower_xoff = 0;
+	      upper_xoff = (width - metrics_upper.width) / 2;
+	    }
 	}
 
       /* +5 is for horizontal bars of a box plus 1-pixel spaces at

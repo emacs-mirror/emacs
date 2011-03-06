@@ -1,5 +1,8 @@
 2011-03-06  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xdisp.c (produce_glyphless_glyph): Initialize lower_xoff.
+	Add a FIXME comment, since the code still doesn't look right.
+
 	current_column: Now returns EMACS_INT, fixing some iftc.
 	* bytecode.c (Fbyte_code): Don't cast current_column () to int.
 	* cmds.c (internal_self_insert): Likewise.
@@ -10,6 +13,7 @@
 	to int.
 	* xdisp.c (redisplay_internal, redisplay_window, decode_mode_spec):
 	Likewise.
+
 	* cmds.c (internal_self_insert): Declare locals to be EMACS_INT,
 	not int or double, if they might contain a column number.
 	* indent.c (current_column, Findent_to, indented_beyond_p):
