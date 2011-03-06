@@ -1,5 +1,19 @@
 2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
+	* emacs-lisp/package-x.el (package-archive-upload-base): Make it a
+	defcustom.
+	(package--update-file): Doc fix.  Accept relative file names.
+	(package--archive-contents-from-file): Remove the argument, since
+	it's necessarily always "archive-contents".
+	(package-maint-add-news-item): Pass relative file name args to
+	package--update-file.
+	(package-upload-buffer-internal): Prompt for a destination if
+	package-archive-upload-base is invalid.  Create the directory if
+	it does not exist.
+	(package-upload-buffer, package-upload-file): Doc fix.
+
+2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
+
 	* isearch.el (isearch-mode-map): Bind C-y to isearch-yank-kill,
 	and move isearch-yank-line to M-s C-e (Bug#8183).
 
