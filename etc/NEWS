@@ -179,6 +179,8 @@ higher-resolution time stamps.
 and SIGHUP, and upon SIGINT in batch mode.
 
 ** kill-emacs-hook is now also run in batch mode.
+If you have code that adds something to kill-emacs-hook, you should
+consider if it is still appropriate to add it in the noninteractive case.
 
 ** New scrolling commands `scroll-up-command' and `scroll-down-command'
 (bound to C-v/[next] and M-v/[prior]) does not signal errors at top/bottom
