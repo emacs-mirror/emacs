@@ -656,6 +656,8 @@ Notifications API.  It requires D-Bus for communication.
 ** soap-client.el supports access to SOAP web services from Emacs.
 soap-inspect.el is an interactive inspector for SOAP WSDL structures.
 
+** xmodmap-generic-mode for xmodmap files.
+
 
 * Incompatible Lisp Changes in Emacs 24.1
 
