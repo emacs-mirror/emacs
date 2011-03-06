@@ -247,6 +247,15 @@ replaced with Lisp commands `doc-file-to-man' and `doc-file-to-info'.
 
 * Editing Changes in Emacs 24.1
 
+** Search changes
+
++++
+*** C-y in Isearch is now bound to isearch-yank-kill, instead of
+isearch-yank-line.
+
++++
+*** M-s C-e in Isearch is now bound to isearch-yank-line.
+
 +++
 ** There is a new command `count-words-region', which does what you expect.
 
