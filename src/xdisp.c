@@ -21293,7 +21293,8 @@ draw_glyphs (struct window *w, int x, struct glyph_row *row,
     {
       struct glyph_string *h, *t;
       Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
-      int mouse_beg_col, mouse_end_col, check_mouse_face = 0;
+      int mouse_beg_col IF_LINT (= 0), mouse_end_col IF_LINT (= 0);
+      int check_mouse_face = 0;
       int dummy_x = 0;
 
       /* If mouse highlighting is on, we may need to draw adjacent
