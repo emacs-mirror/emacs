@@ -1,6 +1,7 @@
 2011-03-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xmenu.c (menu_highlight_callback): Now static.
+	(set_frame_menubar): Remove unused local.
 
 	* xdisp.c (produce_glyphless_glyph): Initialize lower_xoff.
 	Add a FIXME comment, since the code still doesn't look right.

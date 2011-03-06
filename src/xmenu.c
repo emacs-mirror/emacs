@@ -1175,8 +1175,6 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
     }
   else
     {
-      GtkWidget *wvbox = f->output_data.x->vbox_widget;
-
       menubar_widget
         = xg_create_widget ("menubar", "menubar", f, first_wv,
                             G_CALLBACK (menubar_selection_callback),
