@@ -1,3 +1,13 @@
+2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package-archives): Accept either ordinary
+	directory names, in addition to HTTP URLs.
+	(package--with-work-buffer): New macro.   Handle normal directories.
+	(package-handle-response): Don't display the failing buffer.
+	(package-download-single, package-download-tar)
+	(package--download-one-archive): Use package--with-work-buffer.
+	(package-archive-base): Rename from package-archive-url.
+
 2011-03-06  Glenn Morris  <rgm@gnu.org>
 
 	* generic-x.el (generic-unix-modes): Add xmodmap-generic-mode.
