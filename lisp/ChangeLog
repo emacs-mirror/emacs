@@ -1,3 +1,7 @@
+2011-03-06  Kevin Ryde  <user42@zip.com.au>
+
+	* textmodes/sgml-mode.el (sgml-fill-nobreak): Give it a doc.  (Bug#5326)
+
 2011-03-06  Michael Shields  <shields@msrl.com>  (tiny change)
 
 	* window.el (one-window-p, walk-windows, display-buffer):

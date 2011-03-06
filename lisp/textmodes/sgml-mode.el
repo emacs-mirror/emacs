@@ -427,7 +427,12 @@ a DOCTYPE or an XML declaration."
 		  (format-mode-line mode-name))))))
 
 (defun sgml-fill-nobreak ()
-  ;; Don't break between a tag name and its first argument.
+  "Don't break between a tag name and its first argument.
+This function is designed for use in `fill-nobreak-predicate'.
+
+    <a href=\"some://where\" type=\"text/plain\">
+      ^                   ^
+      | no break here     | but still allowed here"
   (save-excursion
     (skip-chars-backward " \t")
     (and (not (zerop (skip-syntax-backward "w_")))
