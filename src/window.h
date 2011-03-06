@@ -788,14 +788,6 @@ void run_window_configuration_change_hook (struct frame *f);
 void set_window_buffer (Lisp_Object window, Lisp_Object buffer,
                         int run_hooks_p, int keep_margins_p);
 
-/* Prompt to display in front of the minibuffer contents.  */
-
-extern Lisp_Object minibuf_prompt;
-
-/* The visual width of the above.  */
-
-extern int minibuf_prompt_width;
-
 /* This is the window where the echo area message was displayed.  It
    is always a minibuffer window, but it may not be the same window
    currently active as a minibuffer.  */
@@ -878,4 +870,3 @@ extern void keys_of_window (void);
 extern int window_box_text_cols (struct window *w);
 
 #endif /* not WINDOW_H_INCLUDED */
-

@@ -3145,9 +3145,9 @@ extern char *push_key_description (unsigned int, char *, int);
 EXFUN (Fvertical_motion, 2);
 EXFUN (Findent_to, 2);
 EXFUN (Fmove_to_column, 2);
-extern double current_column (void);
+extern EMACS_INT current_column (void);
 extern void invalidate_current_column (void);
-extern int indented_beyond_p (EMACS_INT, EMACS_INT, double);
+extern int indented_beyond_p (EMACS_INT, EMACS_INT, EMACS_INT);
 extern void syms_of_indent (void);
 
 /* Defined in frame.c */

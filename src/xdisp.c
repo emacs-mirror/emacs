@@ -483,15 +483,6 @@ int buffer_shared;
 
 static Lisp_Object default_invis_vector[3];
 
-/* Prompt to display in front of the mini-buffer contents.  */
-
-Lisp_Object minibuf_prompt;
-
-/* Width of current mini-buffer prompt.  Only set after display_line
-   of the line that contains the prompt.  */
-
-int minibuf_prompt_width;
-
 /* This is the window where the echo area message was displayed.  It
    is always a mini-buffer window, but it may not be the same window
    currently active as a mini-buffer.  */
@@ -771,7 +762,7 @@ static Lisp_Object get_it_property (struct it *it, Lisp_Object prop);
 
 static void handle_line_prefix (struct it *);
 
-static void pint2str (char *, int, int);
+static void pint2str (char *, int, EMACS_INT);
 static void pint2hrstr (char *, int, int);
 static struct text_pos run_window_scroll_functions (Lisp_Object,
                                                     struct text_pos);
@@ -11588,8 +11579,7 @@ redisplay_internal (int preserve_echo_area)
       && !(PT == XFASTINT (w->last_point)
 	   && XFASTINT (w->last_modified) >= MODIFF
 	   && XFASTINT (w->last_overlay_modified) >= OVERLAY_MODIFF)
-      && (XFASTINT (w->column_number_displayed)
-          != (int) current_column ()))  /* iftc */
+      && (XFASTINT (w->column_number_displayed) != current_column ()))
     w->update_mode_line = Qt;
 
   unbind_to (count1, Qnil);
@@ -13828,8 +13818,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
       && !(PT == XFASTINT (w->last_point)
 	   && XFASTINT (w->last_modified) >= MODIFF
 	   && XFASTINT (w->last_overlay_modified) >= OVERLAY_MODIFF)
-      && (XFASTINT (w->column_number_displayed)
-          != (int) current_column ()))  /* iftc */
+      && (XFASTINT (w->column_number_displayed) != current_column ()))
     update_mode_line = 1;
 
   /* Count number of windows showing the selected buffer.  An indirect
@@ -14337,11 +14326,10 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
        || INTEGERP (w->base_line_pos)
        /* Column number is displayed and different from the one displayed.  */
        || (!NILP (w->column_number_displayed)
-	   && (XFASTINT (w->column_number_displayed)
-               != (int) current_column ()))) /* iftc */
-       /* This means that the window has a mode line.  */
-       && (WINDOW_WANTS_MODELINE_P (w)
-	   || WINDOW_WANTS_HEADER_LINE_P (w)))
+	   && (XFASTINT (w->column_number_displayed) != current_column ())))
+      /* This means that the window has a mode line.  */
+      && (WINDOW_WANTS_MODELINE_P (w)
+	  || WINDOW_WANTS_HEADER_LINE_P (w)))
     {
       display_mode_lines (w);
 
@@ -18992,7 +18980,7 @@ are the selected window and the WINDOW's buffer).  */)
    the positive integer D to BUF using a minimal field width WIDTH.  */
 
 static void
-pint2str (register char *buf, register int width, register int d)
+pint2str (register char *buf, register int width, register EMACS_INT d)
 {
   register char *p = buf;
 
@@ -19321,7 +19309,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 	return "";
       else
 	{
-	  int col = (int) current_column (); /* iftc */
+	  EMACS_INT col = current_column ();
 	  w->column_number_displayed = make_number (col);
 	  pint2str (decode_mode_spec_buf, field_width, col);
 	  return decode_mode_spec_buf;
