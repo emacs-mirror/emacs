@@ -3219,7 +3219,7 @@ static void
 describe_command (Lisp_Object definition, Lisp_Object args)
 {
   register Lisp_Object tem1;
-  int column = (int) current_column (); /* iftc */
+  EMACS_INT column = current_column ();
   int description_column;
 
   /* If column 16 is no good, go to col 32;

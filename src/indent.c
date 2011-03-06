@@ -45,7 +45,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    Some things in set last_known_column_point to -1
    to mark the memorized value as invalid.  */
 
-static double last_known_column;
+static EMACS_INT last_known_column;
 
 /* Value of point when current_column was called.  */
 
@@ -55,8 +55,8 @@ EMACS_INT last_known_column_point;
 
 static int last_known_column_modified;
 
-static double current_column_1 (void);
-static double position_indentation (int);
+static EMACS_INT current_column_1 (void);
+static EMACS_INT position_indentation (int);
 
 /* Cache of beginning of line found by the last call of
    current_column. */
@@ -309,7 +309,7 @@ Text that has an invisible property is considered as having width 0, unless
   (void)
 {
   Lisp_Object temp;
-  XSETFASTINT (temp, (int) current_column ()); /* iftc */
+  XSETFASTINT (temp, current_column ());
   return temp;
 }
 
@@ -321,15 +321,15 @@ invalidate_current_column (void)
   last_known_column_point = 0;
 }
 
-double
+EMACS_INT
 current_column (void)
 {
-  register int col;
+  register EMACS_INT col;
   register unsigned char *ptr, *stop;
   register int tab_seen;
-  int post_tab;
+  EMACS_INT post_tab;
   register int c;
-  register int tab_width = XINT (BVAR (current_buffer, tab_width));
+  register EMACS_INT tab_width = XINT (BVAR (current_buffer, tab_width));
   int ctl_arrow = !NILP (BVAR (current_buffer, ctl_arrow));
   register struct Lisp_Char_Table *dp = buffer_display_table ();
 
@@ -705,7 +705,7 @@ scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
    This function handles characters that are invisible
    due to text properties or overlays.  */
 
-static double
+static EMACS_INT
 current_column_1 (void)
 {
   EMACS_INT col = MOST_POSITIVE_FIXNUM;
@@ -807,9 +807,9 @@ even if that goes past COLUMN; by default, MINIMUM is zero.
 The return value is COLUMN.  */)
   (Lisp_Object column, Lisp_Object minimum)
 {
-  int mincol;
-  register int fromcol;
-  register int tab_width = XINT (BVAR (current_buffer, tab_width));
+  EMACS_INT mincol;
+  register EMACS_INT fromcol;
+  register EMACS_INT tab_width = XINT (BVAR (current_buffer, tab_width));
 
   CHECK_NUMBER (column);
   if (NILP (minimum))
@@ -849,8 +849,6 @@ The return value is COLUMN.  */)
 }
 
 
-static double position_indentation (int);
-
 DEFUN ("current-indentation", Fcurrent_indentation, Scurrent_indentation,
        0, 0, 0,
        doc: /* Return the indentation of the current line.
@@ -863,12 +861,12 @@ following any initial whitespace.  */)
 
   scan_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, -1, 1);
 
-  XSETFASTINT (val, (int) position_indentation (PT_BYTE)); /* iftc */
+  XSETFASTINT (val, position_indentation (PT_BYTE));
   SET_PT_BOTH (opoint, opoint_byte);
   return val;
 }
 
-static double
+static EMACS_INT
 position_indentation (register int pos_byte)
 {
   register EMACS_INT column = 0;
@@ -958,9 +956,9 @@ position_indentation (register int pos_byte)
    preceding line.  */
 
 int
-indented_beyond_p (EMACS_INT pos, EMACS_INT pos_byte, double column)
+indented_beyond_p (EMACS_INT pos, EMACS_INT pos_byte, EMACS_INT column)
 {
-  double val;
+  EMACS_INT val;
   EMACS_INT opoint = PT, opoint_byte = PT_BYTE;
 
   SET_PT_BOTH (pos, pos_byte);
@@ -969,7 +967,7 @@ indented_beyond_p (EMACS_INT pos, EMACS_INT pos_byte, double column)
 
   val = position_indentation (PT_BYTE);
   SET_PT_BOTH (opoint, opoint_byte);
-  return val >= column;                 /* hmm, float comparison */
+  return val >= column;
 }
 
 DEFUN ("move-to-column", Fmove_to_column, Smove_to_column, 1, 2, "p",
@@ -1126,7 +1124,7 @@ compute_motion (EMACS_INT from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
   register EMACS_INT tab_width = XFASTINT (BVAR (current_buffer, tab_width));
   register int ctl_arrow = !NILP (BVAR (current_buffer, ctl_arrow));
   register struct Lisp_Char_Table *dp = window_display_table (win);
-  int selective
+  EMACS_INT selective
     = (INTEGERP (BVAR (current_buffer, selective_display))
        ? XINT (BVAR (current_buffer, selective_display))
        : !NILP (BVAR (current_buffer, selective_display)) ? -1 : 0);
@@ -1590,8 +1588,7 @@ compute_motion (EMACS_INT from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
 	      else if (c == '\n')
 		{
 		  if (selective > 0
-		      && indented_beyond_p (pos, pos_byte,
-                                            (double) selective)) /* iftc */
+		      && indented_beyond_p (pos, pos_byte, selective))
 		    {
 		      /* If (pos == to), we don't have to take care of
 			 selective display.  */
@@ -1607,7 +1604,7 @@ compute_motion (EMACS_INT from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
 			    }
 			  while (pos < to
 				 && indented_beyond_p (pos, pos_byte,
-                                                       (double) selective)); /* iftc */
+                                                       selective));
 			  /* Allow for the " ..." that is displayed for them. */
 			  if (selective_rlen)
 			    {
@@ -1837,7 +1834,7 @@ vmotion (register EMACS_INT from, register EMACS_INT vtarget, struct window *w)
   register EMACS_INT first;
   EMACS_INT from_byte;
   EMACS_INT lmargin = hscroll > 0 ? 1 - hscroll : 0;
-  int selective
+  EMACS_INT selective
     = (INTEGERP (BVAR (current_buffer, selective_display))
        ? XINT (BVAR (current_buffer, selective_display))
        : !NILP (BVAR (current_buffer, selective_display)) ? -1 : 0);
@@ -1872,7 +1869,7 @@ vmotion (register EMACS_INT from, register EMACS_INT vtarget, struct window *w)
 		 && ((selective > 0
 		      && indented_beyond_p (prevline,
 					    CHAR_TO_BYTE (prevline),
-					    (double) selective)) /* iftc */
+					    selective))
 		     /* Watch out for newlines with `invisible' property.
 			When moving upward, check the newline before.  */
 		     || (propval = Fget_char_property (make_number (prevline - 1),
@@ -1929,7 +1926,7 @@ vmotion (register EMACS_INT from, register EMACS_INT vtarget, struct window *w)
 	     && ((selective > 0
 		  && indented_beyond_p (prevline,
 					CHAR_TO_BYTE (prevline),
-					(double) selective)) /* iftc */
+					selective))
 		 /* Watch out for newlines with `invisible' property.
 		    When moving downward, check the newline after.  */
 		 || (propval = Fget_char_property (make_number (prevline),

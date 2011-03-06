@@ -89,7 +89,7 @@ static Lisp_Object minibuf_prompt;
 /* Width of current mini-buffer prompt.  Only set after display_line
    of the line that contains the prompt.  */
 
-static int minibuf_prompt_width;
+static EMACS_INT minibuf_prompt_width;
 
 
 /* Put minibuf on currently selected frame's minibuffer.
@@ -632,7 +632,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
     unbind_to (count1, Qnil);
   }
 
-  minibuf_prompt_width = (int) current_column (); /* iftc */
+  minibuf_prompt_width = current_column ();
 
   /* Put in the initial input.  */
   if (!NILP (initial))
