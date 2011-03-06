@@ -1,5 +1,7 @@
 2011-03-06  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* cmds.c (internal_self_insert): Reindent to match Emacs style.
+
 	* xdisp.c: Rename or move local decls to avoid shadowing.
 	(init_iterator, handle_fontified_prop, handle_single_display_spec):
 	(message_dolog, message_with_string, redisplay_internal):
