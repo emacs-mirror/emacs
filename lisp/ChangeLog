@@ -1,15 +1,16 @@
 2011-03-06  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-engine.el (c-guess-basic-syntax): Reindent.
+	(c-guess-basic-syntax): Move CASE 19 to a different place,
+	correctly to process template-args-cont lines.
 
 2011-03-06  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc/calc-ext.el (calc-init-extensions):
-	Rename calc-logunits-dblevel and calc-logunits-nplevel to
-	calc-dblevel and calc-nplevel, respectively.
-	Add keybindings for calc-spn, calc-midi and calc-freq.  Add
-	autoloads for calcFunc-spn, calcFunc-midi, calcFunc-freq,
-	calc-spn, calc-midi and calc-freq.
+	* calc/calc-ext.el (calc-init-extensions): Rename
+	calc-logunits-dblevel and calc-logunits-nplevel to calc-dblevel
+	and calc-nplevel, respectively.  Add keybindings for calc-spn,
+	calc-midi and calc-freq.  Add autoloads for calcFunc-spn,
+	calcFunc-midi, calcFunc-freq, calc-spn, calc-midi and calc-freq.
 
 	* calc/calc-units.el (calc-dblevel): Rename from
 	calc-logunits-dblevel.
