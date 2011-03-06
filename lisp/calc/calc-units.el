@@ -1837,7 +1837,7 @@ In symbolic mode, return the list (^ a b)."
     (setq ref (math-read-expr calc-logunits-power-reference)))
   (math-logunits-level val ref nil t))
 
-(defun calc-logunits-dblevel (arg)
+(defun calc-dblevel (arg)
   (interactive "P")
   (calc-slow-wrapper
    (if (calc-is-hyperbolic)
@@ -1848,7 +1848,7 @@ In symbolic mode, return the list (^ a b)."
          (calc-binary-op "ludb" 'calcFunc-dbpowerlevel arg)
        (calc-unary-op "ludb" 'calcFunc-dbpowerlevel arg)))))
 
-(defun calc-logunits-nplevel (arg)
+(defun calc-nplevel (arg)
   (interactive "P")
   (calc-slow-wrapper
    (if (calc-is-hyperbolic)

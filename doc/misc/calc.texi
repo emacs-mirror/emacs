@@ -28251,18 +28251,18 @@ The @kbd{H l q} [@code{fieldquant}] command behaves like @kbd{l q} but
 computes field quantities instead of power quantities.
 
 @kindex l d
-@pindex calc-logunits-dblevel
+@pindex calc-dblevel
 @tindex dbpowerlevel
 @tindex dbfieldlevel
 @kindex l n
-@pindex calc-logunits-nplevel
+@pindex calc-nplevel
 @tindex nppowerlevel
 @tindex npfieldlevel
-The @kbd{l d} (@code{calc-logunits-dblevel}) [@code{dbpowerlevel}]
+The @kbd{l d} (@code{calc-dblevel}) [@code{dbpowerlevel}]
 command will compute the decibel level of a power quantity using the
 default reference level; @kbd{H l d} [@code{dbfieldlevel}] will
 compute the decibel level of a field quantity.  The commands @kbd{l n} 
-(@code{calc-logunits-nplevel}) [@code{nppowerlevel}] and @kbd{H l n} 
+(@code{calc-nplevel}) [@code{nppowerlevel}] and @kbd{H l n} 
 [@code{npfieldlevel}] will similarly compute neper levels.  With the
 capital @kbd{O} prefix these commands will read a reference level
 from the stack; in an algebraic formula the reference level can be

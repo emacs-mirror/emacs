@@ -423,8 +423,8 @@
 
   (define-key calc-mode-map "l" nil)
   (define-key calc-mode-map "lq" 'calc-logunits-quantity)
-  (define-key calc-mode-map "ld" 'calc-logunits-dblevel)
-  (define-key calc-mode-map "ln" 'calc-logunits-nplevel)
+  (define-key calc-mode-map "ld" 'calc-dblevel)
+  (define-key calc-mode-map "ln" 'calc-nplevel)
   (define-key calc-mode-map "l+" 'calc-logunits-add)
   (define-key calc-mode-map "l-" 'calc-logunits-sub)
   (define-key calc-mode-map "l*" 'calc-logunits-mul)
@@ -1176,8 +1176,8 @@ calc-convert-temperature calc-convert-units calc-define-unit
 calc-enter-units-table calc-explain-units calc-extract-units
 calc-get-unit-definition calc-permanent-units calc-quick-units
 calc-remove-units calc-simplify-units calc-undefine-unit
-calc-view-units-table calc-logunits-quantity calc-logunits-dblevel
-calc-logunits-nplevel calc-logunits-add calc-logunits-sub
+calc-view-units-table calc-logunits-quantity calc-dblevel
+calc-nplevel calc-logunits-add calc-logunits-sub
 calc-logunits-mul calc-logunits-divide)
 
  ("calc-vec" calc-arrange-vector calc-build-vector calc-cnorm
