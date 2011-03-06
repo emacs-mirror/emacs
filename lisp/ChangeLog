@@ -3,10 +3,20 @@
 	* calc/calc-ext.el (calc-init-extensions):
 	Rename calc-logunits-dblevel and calc-logunits-nplevel to
 	calc-dblevel and calc-nplevel, respectively.
+	Add keybindings for calc-spn, calc-midi and calc-freq.  Add
+	autoloads for calcFunc-spn, calcFunc-midi, calcFunc-freq,
+	calc-spn, calc-midi and calc-freq.
 
 	* calc/calc-units.el (calc-dblevel): Rename from
 	calc-logunits-dblevel.
 	(calc-nplevel): Rename from calc-logunits-nplevel.
+	(math-midi-round, math-freqp, math-midip, math-spnp)
+	(math-spn-to-midi, math-midi-to-spn, math-freq-to-spn)
+	(math-midi-to-freq, math-spn-to-freq, calcFunc-spn, calcFunc-midi)
+	(calcFunc-freq, calc-freq, calc-midi, calc-spn): New functions.
+	(math-notes): New variable.
+
+	* calc/calc.el (calc-note-threshold): New variable.
 
 2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
 

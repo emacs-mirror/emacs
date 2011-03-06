@@ -3,6 +3,9 @@
 	* calc.texi (Logarithmic Units): Rename calc-logunits-dblevel
 	and calc-logunits-nplevel to calc-dblevel and calc-nplevel,
 	respectively.
+	(Musical Notes): New section.
+	(Customizing Calc): Mention the customizable variable
+	calc-note-threshold.
 
 2011-03-03  Glenn Morris  <rgm@gnu.org>
 

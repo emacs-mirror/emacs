@@ -27676,6 +27676,7 @@ begin with the @kbd{u} prefix key.
 * Predefined Units::
 * User-Defined Units::
 * Logarithmic Units::
+* Musical Notes::
 @end menu
 
 @node Basic Operations on Units, The Units Table, Units, Units
@@ -28121,7 +28122,7 @@ was already a set of user-defined units in your Calc init file, it
 is replaced by the new set.  (@xref{General Mode Commands}, for a way to
 tell Calc to use a different file for the Calc init file.)
 
-@node Logarithmic Units,  , User-Defined Units, Units
+@node Logarithmic Units, Musical Notes, User-Defined Units, Units
 @section Logarithmic Units
 
 The units @code{dB} (decibels) and @code{Np} (nepers) are logarithmic
@@ -28362,6 +28363,76 @@ a logarithmic unit by a number; the @kbd{l /}
 @kbd{H l /} [@code{lufielddiv}] commands will ``divide'' a
 logarithmic unit by a number. Note that the reference quantities don't
 play a role in this arithmetic. 
+
+@node Musical Notes, , Logarithmic Units, Units
+@section Musical Notes
+
+Calc can convert between musical notes and their associated
+frequencies.  Notes can be given using either scientific pitch
+notation or midi numbers.  Since these note systems are basically
+logarithmic scales, Calc uses the @kbd{l} prefix for functions
+operating on notes.
+
+Scientific pitch notation refers to a note by giving a letter
+A through G, possibly followed by a flat or sharp) with a subscript
+indicating an octave number.  Each octave starts with C and ends with
+B and 
+@c increasing each note by a semitone will result
+@c in the sequence @expr{C}, @expr{C} sharp, @expr{D}, @expr{E} flat, @expr{E},
+@c @expr{F}, @expr{F} sharp, @expr{G}, @expr{A} flat, @expr{A}, @expr{B}
+@c flat and @expr{B}.  
+the octave numbered 0 was chosen to correspond to the lowest
+audible frequency.  Using this system, middle C (about 261.625 Hz)
+corresponds to the note @expr{C} in octave 4 and is denoted
+@expr{C_4}.  Any frequency can be described by giving a note plus an
+offset in cents (where a cent is a ratio of frequencies so that a
+semitone consists of 100 cents). 
+
+The midi note number system assigns numbers to notes so that
+@expr{C_(-1)} corresponds to the midi note number 0 and @expr{G_9}
+corresponds to the midi note number 127.   A midi controller can have
+up to 128 keys and each midi note number from  0 to 127 corresponds to
+a possible key. 
+
+@kindex l s
+@pindex calc-spn
+@tindex spn
+The @kbd{l s} (@code{calc-spn}) [@code{spn}] command converts either
+a frequency or a midi number to scientific pitch notation.  For
+example, @code{500 Hz} gets converted to 
+@code{B_4 + 21.3094853649 cents} and @code{84} to @code{C_6}. 
+
+
+@kindex l m
+@pindex calc-midi
+@tindex midi
+The @kbd{l m} (@code{calc-midi}) [@code{midi}] command converts either
+a frequency or a note given in scientific pitch notation to the
+corresponding midi number. For example, @code{C_6} gets converted to 84
+and @code{440 Hz} to 69.
+
+@kindex l f
+@pindex calc-freq
+@tindex freq
+The @kbd{l f} (@code{calc-freq}) [@code{freq}] command converts either
+either a midi number or a note given in scientific pitch notation to
+the corresponding frequency. For example, @code{Asharp_2 + 30 cents}
+gets converted to @code{118.578040134 Hz} and @code{55} to
+@code{195.99771799 Hz}.
+
+Since the frequencies of notes are not usually given exactly (and are
+typically irrational), the customizable variable
+@code{calc-note-threshold} determines how close (in cents) a frequency
+needs to be to a note to be recognized as that note
+(@pxref{Customizing Calc}).  This variable has a default value of
+@code{1}.  For example, middle @var{C} is approximately
+@expr{261.625565302 Hz}; this frequency is often shortened to
+@expr{261.625 Hz}.  Without @code{calc-note-threshold} (or a value of
+@expr{0}), Calc would convert @code{261.625 Hz} to scientific pitch
+notation @code{B_3 + 99.9962592773 cents}; with the default value of
+@code{1}, Calc converts @code{261.625 Hz} to @code{C_4}.
+
+
 
 @node Store and Recall, Graphics, Units, Top
 @chapter Storing and Recalling
@@ -35481,6 +35552,15 @@ and the default value of @code{calc-logunits-field-reference} is
 @code{"20 uPa"}.  
 @end defvar
 
+@defvar calc-note-threshold
+See @ref{Musical Notes}.@*
+The variable @code{calc-note-threshold} is a number (written as a
+string) which determines how close (in cents) a frequency needs to be
+to a note to be recognized as that note.
+
+The default value of @code{calc-note-threshold} is 1.
+@end defvar
+
 @defvar calc-highlight-selections-with-faces
 @defvarx calc-selected-face
 @defvarx calc-nonselected-face
@@ -36129,26 +36209,29 @@ keystrokes are not listed in this summary.
 @r{    v x@:    I k T   @:             @:        @:ltpt@:(x,v)}
 
 @c
-@r{    a b@:      l +   @:             @:     2  @:lupoweradd@:(a,b)}
-@r{    a b@:    H l +   @:             @:     2  @:lufieldadd@:(a,b)}
-@r{    a b@:      l -   @:             @:     2  @:lupowersub@:(a,b)}
-@r{    a b@:    H l -   @:             @:     2  @:lufieldsub@:(a,b)}
-@r{    a b@:      l *   @:             @:     2  @:lupowermul@:(a,b)}
-@r{    a b@:    H l *   @:             @:     2  @:lufieldmul@:(a,b)}
-@r{    a b@:      l /   @:             @:     2  @:lupowerdiv@:(a,b)}
-@r{    a b@:    H l /   @:             @:     2  @:lufielddiv@:(a,b)}
-@r{      a@:      l d   @:             @:     1  @:dbpowerlevel@:(a)}
-@r{    a b@:    O l d   @:             @:     2  @:dbpowerlevel@:(a,b)}
-@r{      a@:    H l d   @:             @:     1  @:dbfieldlevel@:(a)}
-@r{    a b@:  O H l d   @:             @:     2  @:dbfieldlevel@:(a,b)}
-@r{      a@:      l n   @:             @:     1  @:nppowerlevel@:(a)}
-@r{    a b@:    O l n   @:             @:     2  @:nppowerlevel@:(a,b)}
-@r{      a@:    H l n   @:             @:     1  @:npfieldlevel@:(a)}
-@r{    a b@:  O H l n   @:             @:     2  @:npfieldlevel@:(a,b)}
-@r{      a@:      l q   @:             @:     1  @:powerquant@:(a)}
-@r{    a b@:    O l q   @:             @:     2  @:powerquant@:(a,b)}
-@r{      a@:    H l q   @:             @:     1  @:fieldquant@:(a)}
-@r{    a b@:  O H l q   @:             @:     2  @:fieldquant@:(a,b)}
+@r{    a b@:      l +   @:             @:        @:lupoweradd@:(a,b)}
+@r{    a b@:    H l +   @:             @:        @:lufieldadd@:(a,b)}
+@r{    a b@:      l -   @:             @:        @:lupowersub@:(a,b)}
+@r{    a b@:    H l -   @:             @:        @:lufieldsub@:(a,b)}
+@r{    a b@:      l *   @:             @:        @:lupowermul@:(a,b)}
+@r{    a b@:    H l *   @:             @:        @:lufieldmul@:(a,b)}
+@r{    a b@:      l /   @:             @:        @:lupowerdiv@:(a,b)}
+@r{    a b@:    H l /   @:             @:        @:lufielddiv@:(a,b)}
+@r{      a@:      l d   @:             @:        @:dbpowerlevel@:(a)}
+@r{    a b@:    O l d   @:             @:        @:dbpowerlevel@:(a,b)}
+@r{      a@:    H l d   @:             @:        @:dbfieldlevel@:(a)}
+@r{    a b@:  O H l d   @:             @:        @:dbfieldlevel@:(a,b)}
+@r{      a@:      l n   @:             @:        @:nppowerlevel@:(a)}
+@r{    a b@:    O l n   @:             @:        @:nppowerlevel@:(a,b)}
+@r{      a@:    H l n   @:             @:        @:npfieldlevel@:(a)}
+@r{    a b@:  O H l n   @:             @:        @:npfieldlevel@:(a,b)}
+@r{      a@:      l q   @:             @:        @:powerquant@:(a)}
+@r{    a b@:    O l q   @:             @:        @:powerquant@:(a,b)}
+@r{      a@:    H l q   @:             @:        @:fieldquant@:(a)}
+@r{    a b@:  O H l q   @:             @:        @:fieldquant@:(a,b)}
+@r{      a@:      l s   @:             @:        @:spn@:(a)}
+@r{      a@:      l m   @:             @:        @:midi@:(a)}
+@r{      a@:      l f   @:             @:        @:freq@:(a)}
 
 @c
 @r{       @:      m a   @:             @: 12,13  @:calc-algebraic-mode@:}

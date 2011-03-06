@@ -1859,6 +1859,221 @@ In symbolic mode, return the list (^ a b)."
          (calc-binary-op "lunp" 'calcFunc-nppowerlevel arg)
        (calc-unary-op "lunp" 'calcFunc-nppowerlevel arg)))))
 
+;;; Musical notes
+
+
+(defvar calc-note-threshold)
+
+(defun math-midi-round (num)
+  "Round NUM to an integer N if NUM is within calc-note-threshold cents of N."
+  (let* ((n (math-round num))
+         (diff (math-abs
+                (math-sub num n))))
+    (if (< (math-compare diff (math-read-expr calc-note-threshold)) 0)
+        n
+      num)))
+
+(defconst math-notes
+  '(((var C var-C) . 0)
+    ((var Csharp var-Csharp) . 1)
+;    ((var C♯ var-C♯) . 1)
+    ((var Dflat var-Dflat) . 1)
+;    ((var D♭ var-D♭) . 1)
+    ((var D var-D) . 2)
+    ((var Dsharp var-Dsharp) . 3)
+;    ((var D♯ var-D♯) . 3)
+    ((var E var-E) . 4)
+    ((var F var-F) . 5)
+    ((var Fsharp var-Fsharp) . 6)
+;    ((var F♯ var-F♯) . 6)
+    ((var Gflat var-Gflat) . 6)
+;    ((var G♭ var-G♭) . 6)
+    ((var G var-G) . 7)
+    ((var Gsharp var-Gsharp) . 8)
+;    ((var G♯ var-G♯) . 8)
+    ((var A var-A) . 9)
+    ((var Asharp var-Asharp) . 10)
+;    ((var A♯ var-A♯) . 10)
+    ((var Bflat var-Bflat) . 10)
+;    ((var B♭ var-B♭) . 10)
+    ((var B var-B) . 11))
+  "An alist of notes with their number of semitones above C.")
+
+(defun math-freqp (freq)
+  "Non-nil if FREQ is a positive number times the unit Hz.
+If non-nil, return the coefficient of Hz."
+  (let ((freqcoef (math-simplify-units
+                   (math-div freq '(var Hz var-Hz)))))
+    (if (Math-posp freqcoef) freqcoef)))
+
+(defun math-midip (num)
+  "Non-nil if NUM is a possible MIDI note number.
+If non-nil, return NUM."
+  (if (Math-numberp num) num))
+
+(defun math-spnp (spn)
+  "Non-nil if NUM is a scientific pitch note (note + cents).
+If non-nil, return a list consisting of the note and the cents coefficient."
+  (let (note cents rnote rcents)
+    (if (eq (car-safe spn) '+)
+        (setq note (nth 1 spn)
+              cents (nth 2 spn))
+      (setq note spn
+            cents nil))
+    (cond
+     ((and  ;; NOTE is a note, CENTS is nil or cents.
+       (eq (car-safe note) 'calcFunc-subscr)
+       (assoc (nth 1 note) math-notes)
+       (integerp (nth 2 note))
+       (setq rnote note)
+       (or 
+        (not cents)
+        (Math-numberp (setq rcents
+                            (math-simplify 
+                             (math-div cents '(var cents var-cents)))))))
+      (list rnote rcents))
+     ((and  ;; CENTS is a note, NOTE is cents.
+       (eq (car-safe cents) 'calcFunc-subscr)
+       (assoc (nth 1 cents) math-notes)
+       (integerp (nth 2 cents))
+       (setq rnote cents)
+       (or 
+        (not note)
+        (Math-numberp (setq rcents
+                            (math-simplify 
+                             (math-div note '(var cents var-cents)))))))
+      (list rnote rcents)))))
+
+(defun math-freq-to-midi (freq)
+  "Return the midi note number corresponding to FREQ Hz."
+  (let ((midi (math-add
+               69
+               (math-mul
+                12
+                (calcFunc-log
+                 (math-div freq 440)
+                 2)))))
+    (math-midi-round midi)))
+
+(defun math-spn-to-midi (spn)
+  "Return the MIDI number corresponding to SPN."
+  (let* ((note (cdr (assoc (nth 1 (car spn)) math-notes)))
+         (octave (math-add (nth 2 (car spn)) 1))
+         (cents (nth 1 spn))
+         (midi  (math-add
+                 (math-mul 12 octave)
+                 note)))
+    (if cents
+        (math-add midi (math-div cents 100))
+      midi)))
+
+(defun math-midi-to-spn (midi)
+  "Return the scientific pitch notation corresponding to midi number MIDI."
+  (let (midin cents)
+    (if (math-integerp midi)
+        (setq midin midi 
+              cents nil)
+      (setq midin (math-floor midi)
+            cents (math-mul 100 (math-sub midi midin))))
+    (let* ((nr ;; This should be (math-idivmod midin 12), but with
+               ;; better behavior for negative midin.
+            (if (Math-negp midin)
+                (let ((dm (math-idivmod (math-neg midin) 12)))
+                  (if (= (cdr dm) 0)
+                      (cons (math-neg (car dm)) 0)
+                    (cons
+                     (math-sub (math-neg (car dm)) 1)
+                     (math-sub 12 (cdr dm)))))
+              (math-idivmod midin 12)))
+           (n (math-sub (car nr) 1))
+           (note (car (rassoc (cdr nr) math-notes))))
+      (if cents
+          (list '+ (list 'calcFunc-subscr note n) 
+                   (list '* cents '(var cents var-cents)))
+        (list 'calcFunc-subscr note n)))))
+
+(defun math-freq-to-spn (freq)
+  "Return the scientific pitch notation corresponding to FREQ Hz."
+  (math-with-extra-prec 3
+    (math-midi-to-spn (math-freq-to-midi freq))))
+
+(defun math-midi-to-freq (midi)
+  "Return the frequency of the note with midi number MIDI."
+  (list '*
+        (math-mul
+         440
+         (math-pow
+          2
+          (math-div 
+           (math-sub
+            midi
+            69)
+           12)))
+        '(var Hz var-Hz)))
+
+(defun math-spn-to-freq (spn)
+  "Return the frequency of the note with scientific pitch notation SPN."
+  (math-midi-to-freq (math-spn-to-midi spn)))
+
+(defun calcFunc-spn (expr)
+  "Return EXPR written as scientific pitch notation + cents."
+  ;; Get the coeffecient of Hz
+  (let (note)
+    (cond
+     ((setq note (math-freqp expr))
+      (math-freq-to-spn note))
+     ((setq note (math-midip expr))
+      (math-midi-to-spn note))
+     ((math-spnp expr)
+      expr)
+     (t
+      (math-reject-arg expr "*Improper expression")))))
+
+(defun calcFunc-midi (expr)
+  "Return EXPR written as a MIDI number."
+  (let (note)
+    (cond
+     ((setq note (math-freqp expr))
+      (math-freq-to-midi note))
+     ((setq note (math-spnp expr))
+      (math-spn-to-midi note))
+     ((math-midip expr)
+      expr)
+     (t
+      (math-reject-arg expr "*Improper expression")))))
+
+(defun calcFunc-freq (expr)
+  "Return the frequency corresponding to EXPR."
+  (let (note)
+    (cond
+     ((setq note (math-midip expr))
+      (math-midi-to-freq note))
+     ((setq note (math-spnp expr))
+      (math-spn-to-freq note))
+     ((math-freqp expr)
+      expr)
+     (t
+      (math-reject-arg expr "*Improper expression")))))
+
+(defun calc-freq (arg)
+  "Return the frequency corresponding to the expression on the stack."
+  (interactive "P")
+  (calc-slow-wrapper
+   (calc-unary-op "freq" 'calcFunc-freq arg)))
+
+(defun calc-midi (arg)
+  "Return the MIDI number corresponding to the expression on the stack."
+  (interactive "P")
+  (calc-slow-wrapper
+   (calc-unary-op "midi" 'calcFunc-midi arg)))
+
+(defun calc-spn (arg)
+  "Return the scientific pitch notation corresponding to the expression on the stack."
+  (interactive "P")
+  (calc-slow-wrapper
+   (calc-unary-op "spn" 'calcFunc-spn arg)))
+
+
 (provide 'calc-units)
 
 ;; Local variables:
