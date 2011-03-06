@@ -776,7 +776,7 @@ Vi's prefix argument will be used.  Otherwise, the prefix argument passed to
 		  (viper-copy-event (viper-seq-last-elt key))))
 
 	  (if (commandp com)
-	      ;; pretend that current state is the state we excaped to
+	      ;; pretend that current state is the state we escaped to
 	      (let ((viper-current-state state))
 		(setq prefix-arg (or prefix-arg arg))
 		(command-execute com)))

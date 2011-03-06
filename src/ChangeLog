@@ -33,7 +33,7 @@
 
 	* msdos.c (readlink) [DJGPP < 2.04]: New stub function.
 
-	* msdos.h: (readlink) [DJGPP < 2.04]: Declare prototype.
+	* msdos.h (readlink) [DJGPP < 2.04]: Declare prototype.
 
 	* w32.c (symlink, readlink): New stub functions.
 
@@ -1179,7 +1179,7 @@
 	(x_underline_at_descent_line): Remove declaration.
 	(syms_of_nsterm): Remove & from DEFVAR_LISP and DEFVAR_BOOL.
 
-	* nsselect.m (Vns_sent_selection_hooks, Vns_lost_selection_hooks
+	* nsselect.m (Vns_sent_selection_hooks, Vns_lost_selection_hooks)
 	(Vselection_alist, Vselection_converter_alist): Move to globals.h.
 	(syms_of_nsselect): Remove & from DEFVAR_LISP.
 
@@ -2896,7 +2896,7 @@
 	(Qglyphless_char_display, Qhexa_code, Qempty_box, Qthin_space)
 	(Qzero_width): New variables.
 	(THIN_SPACE_WIDTH): New macro.
-	(lookup_glyphless_char_display): New funciton.
+	(lookup_glyphless_char_display): New function.
 	(last_glyphless_glyph_frame, last_glyphless_glyph_face_id)
 	(last_glyphless_glyph_merged_face_id): New variables.
 	(get_next_display_element): Check glyphless characters.
@@ -3182,7 +3182,7 @@
 2010-10-12  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (Qleft): Declare.
-	(ns_right_alternate_modifier): New variable
+	(ns_right_alternate_modifier): New variable.
 	(NSRightAlternateKeyMask): New define.
 	(EV_MODIFIERS): Parse NSRightAlternateKeyMask if
 	ns_right_alternate_modifier isn't Qleft.
@@ -3206,7 +3206,7 @@
 	* Makefile.in (temacs): Use $(ALL_CFLAGS) on the link line.
 	(PROFILING_LDFLAGS): Remove, not needed anymore.
 
-	* Makefile.in: Use $(...) everywhere instead of ${...}
+	* Makefile.in: Use $(...) everywhere instead of ${...}.
 	(CRT_DIR): Move near potential user.
 	(START_FILE): Move near CRT_DIR, it might use it.
 
@@ -6143,7 +6143,7 @@
 
 	* eval.c: Fix indentation problem.
 
-	* keyboard.c: Include "process.h"
+	* keyboard.c: Include "process.h".
 
 	* eval.c: Remove obsolete noinline declaration.
 	* fns.c: Likewise.
@@ -8549,7 +8549,7 @@
 	Qtool_bar_style.  Initialize current_tool_bar_style to nil.
 	defsubr Stool_bar_get_system_style.  Fprovide on
 	dynamic-setting.
-	Move misplaced HAVE_GCONF
+	Move misplaced HAVE_GCONF.
 
 	* xsettings.h (Ftool_bar_get_system_style): Declare.
 

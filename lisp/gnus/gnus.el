@@ -2546,7 +2546,7 @@ a string, be sure to use a valid format, see RFC 2616."
 (defvar gnus-extended-servers nil)
 
 ;; The carpal mode has been removed, but define the variable for
-;; backwards compatability.
+;; backwards compatibility.
 (defvar gnus-carpal nil)
 (make-obsolete-variable 'gnus-carpal nil "Emacs 24.1")
 

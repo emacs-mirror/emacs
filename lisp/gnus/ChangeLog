@@ -837,7 +837,7 @@
 
 	* shr.el: Revert change that made headings use different-sized faces.
 	The Emacs display engine isn't advanced enough that, for instance,
-	tables can comfortably use differntly-sized faces.
+	tables can comfortably use differently-sized faces.
 
 2011-01-25  Lars Ingebrigtsen  <larsi@gnus.org>
 
@@ -1889,7 +1889,7 @@
 
 2010-11-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* shr.el (shr-color-check): Protect against non-existant colour names.
+	* shr.el (shr-color-check): Protect against non-existent colour names.
 
 2010-11-24  Julien Danjou  <julien@danjou.info>
 
@@ -3203,7 +3203,7 @@
 	This makes nnimap work properly on Courier again.
 
 	* gnus.el (gnus-carpal): The carpal mode has been removed, but define
-	the variable for backwards compatability.
+	the variable for backwards compatibility.
 
 	* mm-decode.el (mm-save-part): If given a non-directory result, expand
 	the file name before using to avoid setting mm-default-directory to
