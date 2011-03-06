@@ -3136,8 +3136,8 @@ funcall_lambda (Lisp_Object fun, int nargs,
     }
   else if (COMPILEDP (fun))
     {
-      if ((ASIZE (fun) & PSEUDOVECTOR_SIZE_MASK) > COMPILED_PUSH_ARGS
-	  && ! NILP (XVECTOR (fun)->contents[COMPILED_PUSH_ARGS]))
+      syms_left = AREF (fun, COMPILED_ARGLIST);
+      if (INTEGERP (syms_left))
 	/* A byte-code object with a non-nil `push args' slot means we
 	   shouldn't bind any arguments, instead just call the byte-code
 	   interpreter directly; it will push arguments as necessary.
@@ -3154,10 +3154,9 @@ funcall_lambda (Lisp_Object fun, int nargs,
 	  return exec_byte_code (AREF (fun, COMPILED_BYTECODE),
 				 AREF (fun, COMPILED_CONSTANTS),
 				 AREF (fun, COMPILED_STACK_DEPTH),
-				 AREF (fun, COMPILED_ARGLIST),
+				 syms_left,
 				 nargs, arg_vector);
 	}
-      syms_left = AREF (fun, COMPILED_ARGLIST);
       lexenv = Qnil;
     }
   else
