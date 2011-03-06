@@ -370,6 +370,14 @@ your changes into effect."
   nil
   "Generic mode for X Resource configuration files."))
 
+(define-generic-mode xmodmap-generic-mode
+  '(?!)
+  '("add" "clear" "keycode" "keysym" "remove" "pointer")
+  nil
+  '("[xX]modmap\\(rc\\)?\\'")
+  nil
+  "Simple mode for xmodmap files.")
+
 ;;; Hosts
 (when (memq 'hosts-generic-mode generic-extras-enable-list)
 

@@ -1,3 +1,7 @@
+2011-03-06  Daniel Clemente  <dcl441-bugs@yahoo.com>  (tiny change)
+
+	* generic-x.el (xmodmap-generic-mode): New.  (Bug#2065)
+
 2011-03-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* allout.el (allout-init, allout-prefixed-keybindings)
