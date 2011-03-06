@@ -14330,9 +14330,9 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
        || (!NILP (w->column_number_displayed)
 	   && (XFASTINT (w->column_number_displayed)
                != (int) current_column ()))) /* iftc */
-       /* This means that the window has a mode line.  */
-       && (WINDOW_WANTS_MODELINE_P (w)
-	   || WINDOW_WANTS_HEADER_LINE_P (w)))
+      /* This means that the window has a mode line.  */
+      && (WINDOW_WANTS_MODELINE_P (w)
+	  || WINDOW_WANTS_HEADER_LINE_P (w)))
     {
       display_mode_lines (w);
 

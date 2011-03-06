@@ -6,6 +6,7 @@
 	Remove decls.
 
 	* cmds.c (internal_self_insert): Reindent to match Emacs style.
+	* xdisp.c (redisplay_window): Likewise.
 
 	* xdisp.c: Rename or move local decls to avoid shadowing.
 	(init_iterator, handle_fontified_prop, handle_single_display_spec):
