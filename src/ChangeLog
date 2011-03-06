@@ -1,3 +1,7 @@
+2011-03-06  Michael Shields  <shields@msrl.com>  (tiny change)
+
+	* window.c (Fnext_window): Doc fix.  (Bug#5567)
+
 2011-03-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* nsterm.m (ns_draw_window_cursor): Fix typo in 2011-02-23 commit.

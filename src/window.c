@@ -1769,8 +1769,10 @@ window_list (void)
 
    ALL_FRAMES	t means search all frames,
 		nil means search just current frame,
-		`visible' means search just visible frames,
-		0 means search visible and iconified frames,
+		`visible' means search just visible frames on the
+                current terminal,
+		0 means search visible and iconified frames on the
+                current terminal,
 		a window means search the frame that window belongs to,
 		a frame means consider windows on that frame, only.  */
 
@@ -1836,8 +1838,8 @@ candidate_window_p (Lisp_Object window, Lisp_Object owindow, Lisp_Object minibuf
 
 
 /* Decode arguments as allowed by Fnext_window, Fprevious_window, and
-   Fwindow_list.  See there for the meaning of WINDOW, MINIBUF, and
-   ALL_FRAMES.  */
+   Fwindow_list.  See candidate_window_p for the meaning of WINDOW,
+   MINIBUF, and ALL_FRAMES.  */
 
 static void
 decode_next_window_args (Lisp_Object *window, Lisp_Object *minibuf, Lisp_Object *all_frames)
@@ -1871,12 +1873,6 @@ decode_next_window_args (Lisp_Object *window, Lisp_Object *minibuf, Lisp_Object 
     ;
   else if (!EQ (*all_frames, Qt))
     *all_frames = Qnil;
-
-  /* Now *ALL_FRAMES is t meaning search all frames, nil meaning
-     search just current frame, `visible' meaning search just visible
-     frames, 0 meaning search visible and iconified frames, or a
-     window, meaning search the frame that window belongs to, or a
-     frame, meaning consider windows on that frame, only.  */
 }
 
 
@@ -1974,9 +1970,9 @@ ALL-FRAMES nil or omitted means consider all windows on WINDOW's
  windows on all frames that share that minibuffer too.
 ALL-FRAMES t means consider all windows on all existing frames.
 ALL-FRAMES `visible' means consider all windows on all visible
- frames.
+ frames on the current terminal.
 ALL-FRAMES 0 means consider all windows on all visible and
- iconified frames.
+ iconified frames on the current terminal.
 ALL-FRAMES a frame means consider all windows on that frame only.
 Anything else means consider all windows on WINDOW's frame and no
  others.

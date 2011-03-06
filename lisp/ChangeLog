@@ -1,3 +1,8 @@
+2011-03-06  Michael Shields  <shields@msrl.com>  (tiny change)
+
+	* window.el (one-window-p, walk-windows, display-buffer):
+	Doc fixes.  (Bug#5567)
+
 2011-03-06  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* cus-edit.el (custom-prompt-variable): Use the `custom-get' property
