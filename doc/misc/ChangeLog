@@ -1,3 +1,25 @@
+2011-03-06  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Logarithmic Units): Rename calc-logunits-dblevel
+	and calc-logunits-nplevel to calc-dblevel and calc-nplevel,
+	respectively.
+	(Musical Notes): New section.
+	(Customizing Calc): Mention the customizable variable
+	calc-note-threshold.
+
+2011-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* url.texi (Dealing with HTTP documents): Remove reference to
+	function url-decode-text-part; never seems to have existed.  (Bug#6038)
+	(Configuration): Update url-configuration-directory description.
+
+2011-03-02  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.texi (Multiple Dired Directories): Remove mentions
+	of dired-default-directory-alist and dired-default-directory.
+	Move dired-smart-shell-command here...
+	(Miscellaneous Commands): ... from here.
+
 2011-03-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* texinfo.tex: Update to version 2011-02-24.09.

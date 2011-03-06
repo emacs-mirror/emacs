@@ -411,13 +411,14 @@ That is, if it doesn't match any of the `recentf-exclude' checks."
         (checks recentf-exclude)
         (keepit t))
     (while (and checks keepit)
-      (setq keepit (condition-case nil
-                       (not (if (stringp (car checks))
-                                ;; A regexp
-                                (string-match (car checks) filename)
-                              ;; A predicate
-                              (funcall (car checks) filename)))
-                     (error nil))
+      ;; If there was an error in a predicate, err on the side of
+      ;; keeping the file.  (Bug#5843)
+      (setq keepit (not (ignore-errors
+                          (if (stringp (car checks))
+                              ;; A regexp
+                              (string-match (car checks) filename)
+                            ;; A predicate
+                            (funcall (car checks) filename))))
             checks (cdr checks)))
     keepit))
 

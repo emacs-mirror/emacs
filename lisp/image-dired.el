@@ -384,7 +384,7 @@ Used together with `image-dired-cmd-read-exif-data-program-options'."
   "%p -s -s -s -%t \"%f\""
   "Format of command used to read EXIF data.
 Available options are %p which is replaced by
-`image-dired-cmd-write-exif-data-options', %f which is replaced
+`image-dired-cmd-write-exif-data-program', %f which is replaced
 by the image file name and %t which is replaced by the tag name."
   :type 'string
   :group 'image-dired)

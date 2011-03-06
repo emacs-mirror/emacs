@@ -1,3 +1,10 @@
+2011-03-03  Drake Wilson  <drake@begriffli.ch>  (tiny change)
+
+	* emacsclient.c (longopts): Add quiet.
+	(decode_options): Handle q/quiet.
+	(print_help_and_exit): Add q/quiet.
+	(main): Suppress some messages if quiet option is used.
+
 2011-02-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (fakemail${EXEEXT}): Depend on lib/ignore-value.h.

@@ -1,3 +1,7 @@
+2011-03-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* srecode/el.srt: Fix typo.
+
 2011-02-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* themes/tango-dark-theme.el: Tweak background on low-color
@@ -117,7 +121,7 @@
 
 	* NEWS: Mention new Tramp method "ksu".
 
-2010-12-13  W. Martin Borgert <debacle@debian.org>  (tiny change)
+2010-12-13  W. Martin Borgert  <debacle@debian.org>  (tiny change)
 
 	* schema/schemas.xml: Add DocBook (Bug#7491).
 

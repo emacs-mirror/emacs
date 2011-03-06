@@ -129,6 +129,9 @@ char **main_argv;
 /* Nonzero means don't wait for a response from Emacs.  --no-wait.  */
 int nowait = 0;
 
+/* Nonzero means don't print messages for successful operations.  --quiet. */
+int quiet = 0;
+
 /* Nonzero means args are expressions to be evaluated.  --eval.  */
 int eval = 0;
 
@@ -164,6 +167,7 @@ static void fail (void) NO_RETURN;
 struct option longopts[] =
 {
   { "no-wait",	no_argument,	   NULL, 'n' },
+  { "quiet",	no_argument,	   NULL, 'q' },
   { "eval",	no_argument,	   NULL, 'e' },
   { "help",	no_argument,	   NULL, 'H' },
   { "version",	no_argument,	   NULL, 'V' },
@@ -523,9 +527,9 @@ decode_options (int argc, char **argv)
     {
       int opt = getopt_long_only (argc, argv,
 #ifndef NO_SOCKETS_IN_FILE_SYSTEM
-			     "VHnea:s:f:d:tc",
+			     "VHneqa:s:f:d:tc",
 #else
-			     "VHnea:f:d:tc",
+			     "VHneqa:f:d:tc",
 #endif
 			     longopts, 0);
 
@@ -567,6 +571,10 @@ decode_options (int argc, char **argv)
 
 	case 'e':
 	  eval = 1;
+	  break;
+
+	case 'q':
+	  quiet = 1;
 	  break;
 
 	case 'V':
@@ -660,6 +668,7 @@ The following OPTIONS are accepted:\n\
 			use the current Emacs frame\n\
 -e, --eval    		Evaluate the FILE arguments as ELisp expressions\n\
 -n, --no-wait		Don't wait for the server to return\n\
+-q, --quiet		Don't display messages on success\n\
 -d DISPLAY, --display=DISPLAY\n\
 			Visit the file in the given display\n\
 --parent-id=ID          Open in parent window ID, via XEmbed\n"
@@ -986,7 +995,7 @@ set_tcp_socket (void)
   if (! get_server_config (&server, auth_string))
     return INVALID_SOCKET;
 
-  if (server.sin_addr.s_addr != inet_addr ("127.0.0.1"))
+  if (server.sin_addr.s_addr != inet_addr ("127.0.0.1") && !quiet)
     message (FALSE, "%s: connected to remote socket at %s\n",
              progname, inet_ntoa (server.sin_addr));
 
@@ -1712,7 +1721,7 @@ main (int argc, char **argv)
   send_to_emacs (emacs_socket, "\n");
 
   /* Wait for an answer. */
-  if (!eval && !tty && !nowait)
+  if (!eval && !tty && !nowait && !quiet)
     {
       printf ("Waiting for Emacs...");
       needlf = 2;

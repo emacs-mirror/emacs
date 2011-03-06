@@ -76,6 +76,7 @@ regulate cache behavior."
        key
        (symbol-value (intern-soft key password-data))))
 
+;;;###autoload
 (defun password-in-cache-p (key)
   "Check if KEY is in the cache."
   (and password-cache

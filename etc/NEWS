@@ -71,6 +71,9 @@ from load-path.  -Q now implies this.
 client frame in parent X window ID, via XEmbed.  This works like the
 --parent-id argument to Emacs.
 
++++
+*** New emacsclient argument -q/--quiet suppresses some status messages.
+
 *** If emacsclient shuts down as a result of Emacs signalling an
 error, its exit status is 1.
 
@@ -176,6 +179,8 @@ higher-resolution time stamps.
 and SIGHUP, and upon SIGINT in batch mode.
 
 ** kill-emacs-hook is now also run in batch mode.
+If you have code that adds something to kill-emacs-hook, you should
+consider if it is still appropriate to add it in the noninteractive case.
 
 ** New scrolling commands `scroll-up-command' and `scroll-down-command'
 (bound to C-v/[next] and M-v/[prior]) does not signal errors at top/bottom
@@ -650,6 +655,8 @@ Notifications API.  It requires D-Bus for communication.
 
 ** soap-client.el supports access to SOAP web services from Emacs.
 soap-inspect.el is an interactive inspector for SOAP WSDL structures.
+
+** xmodmap-generic-mode for xmodmap files.
 
 
 * Incompatible Lisp Changes in Emacs 24.1

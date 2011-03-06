@@ -162,7 +162,7 @@ OPTION_DEFAULT_ON([m17n-flt],[don't use m17n-flt for text shaping])
 OPTION_DEFAULT_ON([toolkit-scroll-bars],[don't use Motif or Xaw3d scroll bars])
 OPTION_DEFAULT_ON([xaw3d],[don't use Xaw3d])
 OPTION_DEFAULT_ON([xim],[don't use X11 XIM])
-OPTION_DEFAULT_OFF([ns],[use nextstep (Cocoa or GNUstep) windowing system])
+OPTION_DEFAULT_OFF([ns],[use NeXTstep (Cocoa or GNUstep) windowing system])
 
 OPTION_DEFAULT_ON([gpm],[don't use -lgpm for mouse support on a GNU/Linux console])
 OPTION_DEFAULT_ON([dbus],[don't compile with D-Bus support])
@@ -2244,14 +2244,22 @@ if test "${HAVE_X11}" = "yes"; then
       fi                          # "$HAVE_XFT" != no
     fi                            # "x${with_xft}" != "xno"
 
-    dnl For the "Does Emacs use" message at the end.
-    if test "$HAVE_XFT" != "yes"; then
-       HAVE_XFT=no
-    fi
-
     ## We used to allow building with FreeType and without Xft.
     ## However, the ftx font backend driver is not in good shape.
-    HAVE_FREETYPE=$HAVE_XFT
+    if test "$HAVE_XFT" != "yes"; then
+       dnl For the "Does Emacs use" message at the end.
+       HAVE_XFT=no
+       HAVE_FREETYPE=no
+    else
+       dnl Strict linkers fail with
+       dnl ftfont.o: undefined reference to symbol 'FT_New_Face'
+       dnl if -lfreetype is not specified.
+       dnl The following is needed to set FREETYPE_LIBS.
+       PKG_CHECK_MODULES(FREETYPE, freetype2, HAVE_FREETYPE=yes,
+			 HAVE_FREETYPE=no) 
+
+       test "$HAVE_FREETYPE" = "no" && AC_MSG_ERROR(libxft requires libfreetype)
+    fi
 
     HAVE_LIBOTF=no
     if test "${HAVE_FREETYPE}" = "yes"; then

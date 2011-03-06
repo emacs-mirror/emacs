@@ -109,7 +109,6 @@
 
 (eval-when-compile
   (require 'pcomplete)
-  (require 'esh-test)
   (require 'esh-util)
   (require 'esh-opt)
   (require 'esh-mode))
@@ -126,8 +125,9 @@ variable value, a subcommand, or even the result of a Lisp form."
 
 ;;; User Variables:
 
-(defcustom eshell-var-load-hook '(eshell-var-initialize)
+(defcustom eshell-var-load-hook nil
   "A list of functions to call when loading `eshell-var'."
+  :version "24.1"			; removed eshell-var-initialize
   :type 'hook
   :group 'eshell-var)
 
@@ -351,8 +351,7 @@ This function is explicit for adding to `eshell-parse-argument-hook'."
    '((?h "help" nil nil "show this usage screen")
      :external "env"
      :usage "<no arguments>")
-   (eshell-for setting (sort (eshell-environment-variables)
-			     'string-lessp)
+   (dolist (setting (sort (eshell-environment-variables) 'string-lessp))
      (eshell-buffered-print setting "\n"))
    (eshell-flush)))
 
@@ -374,7 +373,7 @@ This function is explicit for adding to `eshell-parse-argument-hook'."
 This involves setting any variable aliases which affect the
 environment, as specified in `eshell-variable-aliases-list'."
   (let ((process-environment (eshell-copy-environment)))
-    (eshell-for var-alias eshell-variable-aliases-list
+    (dolist (var-alias eshell-variable-aliases-list)
       (if (nth 2 var-alias)
 	  (setenv (car var-alias)
 		  (eshell-stringify
@@ -476,30 +475,6 @@ Possible options are:
 	(goto-char (match-end 0))))
      (t
       (error "Invalid variable reference")))))
-
-(eshell-deftest var interp-cmd
-  "Interpolate command result"
-  (eshell-command-result-p "+ ${+ 1 2} 3" "6\n"))
-
-(eshell-deftest var interp-lisp
-  "Interpolate Lisp form evalution"
-  (eshell-command-result-p "+ $(+ 1 2) 3" "6\n"))
-
-(eshell-deftest var interp-concat
-  "Interpolate and concat command"
-  (eshell-command-result-p "+ ${+ 1 2}3 3" "36\n"))
-
-(eshell-deftest var interp-concat-lisp
-  "Interpolate and concat Lisp form"
-  (eshell-command-result-p "+ $(+ 1 2)3 3" "36\n"))
-
-(eshell-deftest var interp-concat2
-  "Interpolate and concat two commands"
-  (eshell-command-result-p "+ ${+ 1 2}${+ 1 2} 3" "36\n"))
-
-(eshell-deftest var interp-concat-lisp2
-  "Interpolate and concat two Lisp forms"
-  (eshell-command-result-p "+ $(+ 1 2)$(+ 1 2) 3" "36\n"))
 
 (defun eshell-parse-indices ()
   "Parse and return a list of list of indices."
@@ -623,7 +598,7 @@ For example, to retrieve the second element of a user's record in
   "Generate list of applicable variables."
   (let ((argname pcomplete-stub)
 	completions)
-    (eshell-for alias eshell-variable-aliases-list
+    (dolist (alias eshell-variable-aliases-list)
       (if (string-match (concat "^" argname) (car alias))
 	  (setq completions (cons (car alias) completions))))
     (sort

@@ -28,6 +28,7 @@
 ;;; Code:
 
 (eval-when-compile
+  (require 'cl)				; assert
   (require 'eshell)
   (require 'esh-util))
 (require 'esh-mode)
@@ -166,9 +167,9 @@
       (insert "Testing Eshell under " (emacs-version))
       (switch-to-buffer test-buffer)
       (delete-other-windows))
-    (eshell-for funcname (sort (all-completions "eshell-test--"
+    (dolist (funcname (sort (all-completions "eshell-test--"
 						obarray 'functionp)
-			       'string-lessp)
+			       'string-lessp))
       (with-current-buffer test-buffer
 	(insert "\n"))
       (funcall (intern-soft funcname)))
@@ -227,6 +228,193 @@
 			eshell-metric-before-command))))
 		 "\n"))))
 	    nil t))
+
+
+;;; The tests.
+
+(defmacro eshell-deftest (module name label &rest forms)
+  (declare (indent 2))
+  (if (and (fboundp 'cl-compiling-file) (cl-compiling-file))
+      nil
+    (let ((fsym (intern (concat "eshell-test--" (symbol-name name)))))
+      `(eval-when-compile
+	 (ignore
+	  (defun ,fsym () ,label
+	    (eshell-run-test (quote ,module) (quote ,fsym) ,label
+			     (quote (progn ,@forms)))))))))
+
+
+(eshell-deftest mode same-window-buffer-names
+  "`eshell-buffer-name' is a member of `same-window-buffer-names'"
+  (member eshell-buffer-name same-window-buffer-names))
+
+(eshell-deftest mode eshell-directory-exists
+  "`eshell-directory-name' exists and is writable"
+  (file-writable-p eshell-directory-name))
+
+(eshell-deftest mode eshell-directory-modes
+  "`eshell-directory-name' has correct access protections"
+  (or (eshell-under-windows-p)
+      (= (file-modes eshell-directory-name)
+	 eshell-private-directory-modes)))
+
+(eshell-deftest mode simple-command-result
+  "`eshell-command-result' works with a simple command."
+  (= (eshell-command-result "+ 1 2") 3))
+
+
+(require 'em-banner)
+
+(eshell-deftest banner banner-displayed
+  "Startup banner is displayed at point-min"
+  (assert eshell-banner-message)
+  (let ((msg (eval eshell-banner-message)))
+    (assert msg)
+    (goto-char (point-min))
+    (looking-at msg)))
+
+
+(require 'esh-cmd)
+
+(eshell-deftest var last-result-var
+  "\"last result\" variable"
+  (eshell-command-result-p "+ 1 2; + $$ 2" "3\n5\n"))
+
+(eshell-deftest var last-result-var2
+  "\"last result\" variable"
+  (eshell-command-result-p "+ 1 2; + $$ $$" "3\n6\n"))
+
+(eshell-deftest var last-arg-var
+  "\"last arg\" variable"
+  (eshell-command-result-p "+ 1 2; + $_ 4" "3\n6\n"))
+
+(eshell-deftest cmd lisp-command
+  "Evaluate Lisp command"
+  (eshell-command-result-p "(+ 1 2)" "3"))
+
+(eshell-deftest cmd lisp-command-args
+  "Evaluate Lisp command (ignore args)"
+  (eshell-command-result-p "(+ 1 2) 3" "3"))
+
+(eshell-deftest cmd subcommand
+  "Run subcommand"
+  (eshell-command-result-p "{+ 1 2}" "3\n"))
+
+(eshell-deftest cmd subcommand-args
+  "Run subcommand (ignore args)"
+  (eshell-command-result-p "{+ 1 2} 3" "3\n"))
+
+(eshell-deftest cmd subcommand-lisp
+  "Run subcommand + Lisp form"
+  (eshell-command-result-p "{(+ 1 2)}" "3\n"))
+
+(eshell-deftest cmd named-command
+  "Execute named command"
+  (eshell-command-result-p "+ 1 2" "3\n"))
+
+
+(require 'esh-mode)
+
+(eshell-deftest mode major-mode
+  "Major mode is correct"
+  (eq major-mode 'eshell-mode))
+
+(eshell-deftest mode eshell-mode-variable
+  "`eshell-mode' is true"
+  (eq eshell-mode t))
+
+(eshell-deftest var window-height
+  "LINES equals window height"
+  (let ((eshell-stringify-t t))
+    (eshell-command-result-p "= $LINES (window-height)" "t\n")))
+
+(eshell-deftest mode command-running-p
+  "Modeline shows no command running"
+  (or (featurep 'xemacs)
+      (not eshell-status-in-modeline)
+      (and (memq 'eshell-command-running-string mode-line-format)
+	   (equal eshell-command-running-string "--"))))
+
+(eshell-deftest arg forward-arg
+  "Move across command arguments"
+  (eshell-insert-command "echo $(+ 1 (- 4 3)) \"alpha beta\" file" 'ignore)
+  (let ((here (point)) begin valid)
+    (eshell-bol)
+    (setq begin (point))
+    (eshell-forward-argument 4)
+    (setq valid (= here (point)))
+    (eshell-backward-argument 4)
+    (prog1
+	(and valid (= begin (point)))
+      (eshell-bol)
+      (delete-region (point) (point-max)))))
+
+(eshell-deftest mode queue-input
+  "Queue command input"
+  (eshell-insert-command "sleep 2")
+  (eshell-insert-command "echo alpha" 'eshell-queue-input)
+  (let ((count 10))
+    (while (and eshell-current-command
+		(> count 0))
+      (sit-for 1 0)
+      (setq count (1- count))))
+  (eshell-match-result "alpha\n"))
+
+; (eshell-deftest proc send-to-subprocess
+;   "Send input to a subprocess"
+;   ;; jww (1999-12-06): what about when bc is unavailable?
+;   (if (not (eshell-search-path "bc"))
+;       t
+;     (eshell-insert-command "bc")
+;     (eshell-insert-command "1 + 2")
+;     (sit-for 1 0)
+;     (forward-line -1)
+;     (prog1
+; 	(looking-at "3\n")
+;       (eshell-insert-command "quit")
+;       (sit-for 1 0))))
+
+(eshell-deftest io flush-output
+  "Flush previous output"
+  (eshell-insert-command "echo alpha")
+  (eshell-kill-output)
+  (and (eshell-match-result (regexp-quote "*** output flushed ***\n"))
+       (forward-line)
+       (= (point) eshell-last-output-start)))
+
+(eshell-deftest mode run-old-command
+  "Re-run an old command"
+  (eshell-insert-command "echo alpha")
+  (goto-char eshell-last-input-start)
+  (string= (eshell-get-old-input) "echo alpha"))
+
+
+(require 'esh-var)
+
+(eshell-deftest var interp-cmd
+  "Interpolate command result"
+  (eshell-command-result-p "+ ${+ 1 2} 3" "6\n"))
+
+(eshell-deftest var interp-lisp
+  "Interpolate Lisp form evalution"
+  (eshell-command-result-p "+ $(+ 1 2) 3" "6\n"))
+
+(eshell-deftest var interp-concat
+  "Interpolate and concat command"
+  (eshell-command-result-p "+ ${+ 1 2}3 3" "36\n"))
+
+(eshell-deftest var interp-concat-lisp
+  "Interpolate and concat Lisp form"
+  (eshell-command-result-p "+ $(+ 1 2)3 3" "36\n"))
+
+(eshell-deftest var interp-concat2
+  "Interpolate and concat two commands"
+  (eshell-command-result-p "+ ${+ 1 2}${+ 1 2} 3" "36\n"))
+
+(eshell-deftest var interp-concat-lisp2
+  "Interpolate and concat two Lisp forms"
+  (eshell-command-result-p "+ $(+ 1 2)$(+ 1 2) 3" "36\n"))
+
 
 (provide 'esh-test)
 

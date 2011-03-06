@@ -64,8 +64,9 @@ This can be any sexp, and should end with at least two newlines."
 
 (put 'eshell-banner-message 'risky-local-variable t)
 
-(defcustom eshell-banner-load-hook '(eshell-banner-initialize)
+(defcustom eshell-banner-load-hook nil
   "A list of functions to run when `eshell-banner' is loaded."
+  :version "24.1"                       ; removed eshell-banner-initialize
   :type 'hook
   :group 'eshell-banner)
 
@@ -80,14 +81,6 @@ This can be any sexp, and should end with at least two newlines."
     (let ((msg (eval eshell-banner-message)))
       (assert msg)
       (eshell-interactive-print msg))))
-
-(eshell-deftest banner banner-displayed
-  "Startup banner is displayed at point-min"
-  (assert eshell-banner-message)
-  (let ((msg (eval eshell-banner-message)))
-    (assert msg)
-    (goto-char (point-min))
-    (looking-at msg)))
 
 (provide 'em-banner)
 

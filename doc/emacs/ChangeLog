@@ -1,3 +1,12 @@
+2011-03-03  Drake Wilson  <drake@begriffli.ch>  (tiny change)
+
+	* misc.texi (emacsclient Options): Add q/quiet.
+
+2011-03-02  Glenn Morris  <rgm@gnu.org>
+
+	* mule.texi (Communication Coding) <x-select-request-type>:
+	Remove duplicate (essentially) paragraph.  (Bug#8148)
+
 2011-03-01  Christoph Scholtes  <cschol2112@googlemail.com>
 
 	* maintaining.texi (Format of ChangeLog): Add reference to

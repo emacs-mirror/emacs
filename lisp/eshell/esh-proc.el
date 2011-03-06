@@ -38,8 +38,9 @@ finish."
 
 ;;; User Variables:
 
-(defcustom eshell-proc-load-hook '(eshell-proc-initialize)
+(defcustom eshell-proc-load-hook nil
   "A hook that gets run when `eshell-proc' is loaded."
+  :version "24.1"			; removed eshell-proc-initialize
   :type 'hook
   :group 'eshell-proc)
 
@@ -94,13 +95,14 @@ is created."
   :type 'hook
   :group 'eshell-proc)
 
-(defcustom eshell-kill-hook '(eshell-reset-after-proc)
+(defcustom eshell-kill-hook nil
   "Called when a process run by `eshell-gather-process-output' has ended.
 It is passed two arguments: the process that was just ended, and the
 termination status (as a string).  Note that the first argument may be
 nil, in which case the user attempted to send a signal, but there was
 no relevant process.  This can be used for displaying help
 information, for example."
+  :version "24.1"			; removed eshell-reset-after-proc
   :type 'hook
   :group 'eshell-proc)
 
@@ -112,6 +114,14 @@ information, for example."
   "A list of the current status of subprocesses.")
 
 ;;; Functions:
+
+(defun eshell-kill-process-function (proc status)
+  "Function run when killing a process.
+Runs `eshell-reset-after-proc' and `eshell-kill-hook', passing arguments
+PROC and STATUS to both."
+  (or (memq 'eshell-reset-after-proc eshell-kill-hook)
+      (eshell-reset-after-proc proc status))
+  (run-hook-with-args 'eshell-kill-hook proc status))
 
 (defun eshell-proc-initialize ()
   "Initialize the process handling code."
@@ -346,7 +356,7 @@ See `eshell-needs-pipe'."
 	(eshell-update-markers eshell-last-output-end)
 	;; Simulate the effect of eshell-sentinel.
 	(eshell-close-handles (if (numberp exit-status) exit-status -1))
-	(run-hook-with-args 'eshell-kill-hook command exit-status)
+	(eshell-kill-process-function command exit-status)
 	(or eshell-in-pipeline-p
 	    (setq eshell-last-sync-output-start nil))
 	(if (not (numberp exit-status))
@@ -391,14 +401,14 @@ PROC is the process that's exiting.  STRING is the exit message."
 		      (eshell-close-handles (process-exit-status proc) 'nil
 					    (cadr entry))))
 		(eshell-remove-process-entry entry))))
-	(run-hook-with-args 'eshell-kill-hook proc string)))))
+	(eshell-kill-process-function proc string)))))
 
 (defun eshell-process-interact (func &optional all query)
   "Interact with a process, using PROMPT if more than one, via FUNC.
 If ALL is non-nil, background processes will be interacted with as well.
 If QUERY is non-nil, query the user with QUERY before calling FUNC."
   (let (defunct result)
-    (eshell-for entry eshell-process-list
+    (dolist (entry eshell-process-list)
       (if (and (memq (process-status (car entry))
 		    '(run stop open closed))
 	       (or all
@@ -412,7 +422,7 @@ If QUERY is non-nil, query the user with QUERY before calling FUNC."
     ;; clean up the process list; this can get dirty if an error
     ;; occurred that brought the user into the debugger, and then they
     ;; quit, so that the sentinel was never called.
-    (eshell-for d defunct
+    (dolist (d defunct)
       (eshell-remove-process-entry d))
     result))
 
@@ -485,31 +495,29 @@ See the variable `eshell-kill-processes-on-exit'."
 	    (kill-buffer buf)))
       (message nil))))
 
-(custom-add-option 'eshell-exit-hook 'eshell-query-kill-processes)
-
 (defun eshell-interrupt-process ()
   "Interrupt a process."
   (interactive)
   (unless (eshell-process-interact 'interrupt-process)
-    (run-hook-with-args 'eshell-kill-hook nil "interrupt")))
+    (eshell-kill-process-function nil "interrupt")))
 
 (defun eshell-kill-process ()
   "Kill a process."
   (interactive)
   (unless (eshell-process-interact 'kill-process)
-    (run-hook-with-args 'eshell-kill-hook nil "killed")))
+    (eshell-kill-process-function nil "killed")))
 
 (defun eshell-quit-process ()
   "Send quit signal to process."
   (interactive)
   (unless (eshell-process-interact 'quit-process)
-    (run-hook-with-args 'eshell-kill-hook nil "quit")))
+    (eshell-kill-process-function nil "quit")))
 
 ;(defun eshell-stop-process ()
 ;  "Send STOP signal to process."
 ;  (interactive)
 ;  (unless (eshell-process-interact 'stop-process)
-;    (run-hook-with-args 'eshell-kill-hook nil "stopped")))
+;    (eshell-kill-process-function nil "stopped")))
 
 ;(defun eshell-continue-process ()
 ;  "Send CONTINUE signal to process."
@@ -518,7 +526,7 @@ See the variable `eshell-kill-processes-on-exit'."
 ;    ;; jww (1999-09-17): this signal is not dealt with yet.  For
 ;    ;; example, `eshell-reset' will be called, and so will
 ;    ;; `eshell-resume-eval'.
-;    (run-hook-with-args 'eshell-kill-hook nil "continue")))
+;    (eshell-kill-process-function nil "continue")))
 
 (defun eshell-send-eof-to-process ()
   "Send EOF to process."

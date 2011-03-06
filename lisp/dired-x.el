@@ -436,6 +436,7 @@ move to its line in dired."
                 (dired-omit-mode)
                 (dired-goto-file file)))))))
 
+;;;###autoload
 (defun dired-jump-other-window (&optional file-name)
   "Like \\[dired-jump] (`dired-jump') but in other window."
   (interactive
@@ -704,14 +705,25 @@ Also useful for `auto-mode-alist' like this:
                       (dired-current-directory)
                     default-directory)))
   "Alist of major modes and their opinion on `default-directory'.
-This is given as a Lisp expression to evaluate.  A resulting value of
-nil is ignored in favor of `default-directory'.")
+Each element has the form (MAJOR . EXPRESSION).
+The function `dired-default-directory' evaluates EXPRESSION to
+determine a default directory.")
+
+(put 'dired-default-directory-alist 'risky-local-variable t) ; gets eval'd
+(make-obsolete-variable 'dired-default-directory-alist
+                        "this feature is due to be removed." "24.1")
 
 (defun dired-default-directory ()
-  "Usage like variable `default-directory'.
-Knows about the special cases in variable `dired-default-directory-alist'."
+  "Return the `dired-default-directory-alist' entry for the current major-mode.
+If none, return `default-directory'."
   (or (eval (cdr (assq major-mode dired-default-directory-alist)))
       default-directory))
+
+;; It looks like this was intended to be something of a "general" feature,
+;; but it only ever seems to have been used in dired-smart-shell-command,
+;; and does not seem worth keeping around (?).
+(make-obsolete 'dired-default-directory
+               "this feature is due to be removed." "24.1")
 
 (defun dired-smart-shell-command (command &optional output-buffer error-buffer)
   "Like function `shell-command', but in the current Virtual Dired directory."
@@ -723,7 +735,9 @@ Knows about the special cases in variable `dired-default-directory-alist'."
 			 ((eq major-mode 'dired-mode) (dired-get-filename t t))))
     current-prefix-arg
     shell-command-default-error-buffer))
-  (let ((default-directory (dired-default-directory)))
+  (let ((default-directory (or (and (eq major-mode 'dired-mode)
+                                    (dired-current-directory))
+                               default-directory)))
     (shell-command command output-buffer error-buffer)))
 
 
@@ -846,7 +860,7 @@ replace it with a dir-locals-file `./%s'"
 ;; NOTE: Use `gunzip -c' instead of `zcat' on `.gz' files.  Some do not
 ;; install GNU zip's version of zcat.
 
-(declare-function Man-support-local-filenames "man" ())
+(autoload 'Man-support-local-filenames "man")
 
 (defvar dired-guess-shell-alist-default
   (list
@@ -939,20 +953,27 @@ replace it with a dir-locals-file `./%s'"
 		  " " dired-guess-shell-znew-switches))
 
    ;; The following four extensions are useful with dired-man ("N" key)
-   (list "\\.\\(?:[0-9]\\|man\\)\\'" '(progn (require 'man)
-					   (if (Man-support-local-filenames)
-					       "man -l"
-					     "cat * | tbl | nroff -man -h")))
-   (list "\\.\\(?:[0-9]\\|man\\)\\.g?z\\'" '(progn (require 'man)
-						 (if (Man-support-local-filenames)
-						     "man -l"
-						   "gunzip -qc * | tbl | nroff -man -h"))
+   ;; FIXME "man ./" does not work with dired-do-shell-command,
+   ;; because there seems to be no way for us to modify the filename,
+   ;; only the command.  Hmph.  `dired-man' works though.
+   (list "\\.\\(?:[0-9]\\|man\\)\\'" '(let ((loc (Man-support-local-filenames)))
+                                        (cond ((eq loc 'man-db) "man -l")
+                                              ((eq loc 'man) "man ./")
+                                              (t
+                                               "cat * | tbl | nroff -man -h"))))
+   (list "\\.\\(?:[0-9]\\|man\\)\\.g?z\\'"
+         '(let ((loc (Man-support-local-filenames)))
+            (cond ((eq loc 'man-db)
+                   "man -l")
+                  ((eq loc 'man)
+                   "man ./")
+                  (t "gunzip -qc * | tbl | nroff -man -h")))
 	 ;; Optional decompression.
 	 '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q")))
-   (list "\\.[0-9]\\.Z\\'" '(progn (require 'man)
-				 (if (Man-support-local-filenames)
-				     "man -l"
-				   "zcat * | tbl | nroff -man -h"))
+   (list "\\.[0-9]\\.Z\\'" '(let ((loc (Man-support-local-filenames)))
+                              (cond ((eq loc 'man-db) "man -l")
+                                    ((eq loc 'man) "man ./")
+                                    (t "zcat * | tbl | nroff -man -h")))
 	 ;; Optional conversion to gzip format.
 	 '(concat "znew" (if dired-guess-shell-gzip-quiet " -q")
 		  " " dired-guess-shell-znew-switches))

@@ -983,7 +983,8 @@ accessible."
       nil)))
 
 (defun file-truename (filename &optional counter prev-dirs)
-  "Return the truename of FILENAME, which should be absolute.
+  "Return the truename of FILENAME.
+If FILENAME is not absolute, first expands it against `default-directory'.
 The truename of a file name is found by chasing symbolic links
 both at the level of the file and at the level of the directories
 containing it, until no links are left at any level.
@@ -1893,8 +1894,8 @@ the various files."
 			   (not nonexistent)
 			   ;; It is confusing to ask whether to visit
 			   ;; non-literally if they have the file in
-			   ;; hexl-mode.
-			   (not (eq major-mode 'hexl-mode)))
+			   ;; hexl-mode or image-mode.
+			   (not (memq major-mode '(hexl-mode image-mode))))
 		  (if (buffer-modified-p)
 		      (if (y-or-n-p
 			   (format
@@ -3868,7 +3869,9 @@ BACKUPNAME is the backup file name, which is the old file renamed."
        (set-file-selinux-context to-name context)))
 
 (defvar file-name-version-regexp
-  "\\(?:~\\|\\.~[-[:alnum:]:#@^._]+~\\)"
+  "\\(?:~\\|\\.~[-[:alnum:]:#@^._]+\\(?:~[[:digit:]]+\\)?~\\)"
+  ;; The last ~[[:digit]]+ matches relative versions in git,
+  ;; e.g. `foo.js.~HEAD~1~'.
   "Regular expression matching the backup/version part of a file name.
 Used by `file-name-sans-versions'.")
 
@@ -4608,14 +4611,14 @@ See `save-some-buffers-action-alist' if you want to
 change the additional actions you can take on files."
   (interactive "P")
   (save-window-excursion
-    (let* (queried some-automatic
+    (let* (queried autosaved-buffers
 	   files-done abbrevs-done)
       (dolist (buffer (buffer-list))
 	;; First save any buffers that we're supposed to save unconditionally.
 	;; That way the following code won't ask about them.
 	(with-current-buffer buffer
 	  (when (and buffer-save-without-query (buffer-modified-p))
-	    (setq some-automatic t)
+	    (push (buffer-name) autosaved-buffers)
 	    (save-buffer))))
       ;; Ask about those buffers that merit it,
       ;; and record the number thus saved.
@@ -4661,9 +4664,15 @@ change the additional actions you can take on files."
 	     (setq abbrevs-changed nil)
 	     (setq abbrevs-done t)))
       (or queried (> files-done 0) abbrevs-done
-	  (message (if some-automatic
-		       "(Some special files were saved without asking)"
-		     "(No files need saving)"))))))
+	  (cond
+	   ((null autosaved-buffers)
+	    (message "(No files need saving)"))
+	   ((= (length autosaved-buffers) 1)
+	    (message "(Saved %s)" (car autosaved-buffers)))
+	   (t
+	    (message "(Saved %d files: %s)"
+		     (length autosaved-buffers)
+		     (mapconcat 'identity autosaved-buffers ", "))))))))
 
 (defun not-modified (&optional arg)
   "Mark current buffer as unmodified, not needing to be saved.
@@ -4822,7 +4831,7 @@ given.  With a prefix argument, TRASH is nil."
    (let* ((trashing (and delete-by-moving-to-trash
 			 (null current-prefix-arg)))
 	  (dir (expand-file-name
-		(read-file-name
+		(read-directory-name
 		 (if trashing
 		     "Move directory to trash: "
 		   "Delete directory: ")
@@ -4890,7 +4899,7 @@ directly into NEWNAME instead."
    (let ((dir (read-directory-name
 	       "Copy directory: " default-directory default-directory t nil)))
      (list dir
-	   (read-file-name
+	   (read-directory-name
 	    (format "Copy directory %s to: " dir)
 	    default-directory default-directory nil nil)
 	   current-prefix-arg t nil)))
@@ -5589,7 +5598,7 @@ Prefix arg (second arg if noninteractive) means supply -l switch to `ls'.
 Actions controlled by variables `list-directory-brief-switches'
 and `list-directory-verbose-switches'."
   (interactive (let ((pfx current-prefix-arg))
-		 (list (read-file-name (if pfx "List directory (verbose): "
+		 (list (read-directory-name (if pfx "List directory (verbose): "
 					 "List directory (brief): ")
 				       nil default-directory nil)
 		       pfx)))

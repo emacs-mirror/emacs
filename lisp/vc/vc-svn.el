@@ -174,7 +174,9 @@ If you want to force an empty list of arguments, use t."
     (while (re-search-forward re nil t)
       (let ((state (cdr (assq (aref (match-string 1) 0) state-map)))
             (propstat (cdr (assq (aref (match-string 2) 0) state-map)))
-	    (filename (match-string 4)))
+            (filename (if (memq system-type '(windows-nt ms-dos))
+                          (replace-regexp-in-string "\\\\" "/" (match-string 4))
+                        (match-string 4))))
         (and (memq propstat '(conflict edited))
              (not (eq state 'conflict)) ; conflict always wins
              (setq state propstat))

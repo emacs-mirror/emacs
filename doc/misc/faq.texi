@@ -1042,11 +1042,11 @@ Emacs now supports using both X displays and ttys in the same session
 @item
 Emacs can be started as a daemon in the background.
 
-@cindex NeXTSTEP port
+@cindex NeXTstep port
 @cindex GNUstep port
 @cindex Mac OS X Cocoa
 @item
-There is a new NeXTSTEP port of Emacs.  This supports GNUstep and Mac OS
+There is a new NeXTstep port of Emacs.  This supports GNUstep and Mac OS
 X (via the Cocoa libraries).  The Carbon port of Emacs, which supported
 Mac OS X in Emacs 22, has been removed.
 

@@ -234,7 +234,7 @@ Use vector format for the keys:
   - put literal keys after a '?' question mark, eg: '?a', '?.'
   - enclose control, shift, or meta-modified keys as sequences within
     parentheses, with the literal key, as above, preceded by the name(s)
-    of the modifers, eg: [(control ?a)]
+    of the modifiers, eg: [(control ?a)]
 See the existing keys for examples.
 
 Functions can be bound to multiple keys, but binding keys to
@@ -261,7 +261,7 @@ Use vector format for the keys:
   - put literal keys after a '?' question mark, eg: '?a', '?.'
   - enclose control, shift, or meta-modified keys as sequences within
     parentheses, with the literal key, as above, preceded by the name(s)
-    of the modifers, eg: [(control ?a)]
+    of the modifiers, eg: [(control ?a)]
 See the existing keys for examples."
   :type 'allout-keybindings-binding
   :group 'allout-keybindings
@@ -1642,7 +1642,7 @@ So `allout-post-command-business' should not reactivate it...")
 (defun allout-init (mode)
   "DEPRECATED - configure allout activation by customizing
 `allout-auto-activation'.  This function remains around, limited
-from what it did before, for backwards compatability.
+from what it did before, for backwards compatibility.
 
 MODE is the activation mode - see `allout-auto-activation' for
 valid values."

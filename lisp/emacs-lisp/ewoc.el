@@ -495,6 +495,8 @@ Return the node (or nil if we just passed the last node)."
     ;; Never step below the first element.
     ;; (unless (ewoc--filter-hf-nodes ewoc node)
     ;;   (setq node (ewoc--node-nth dll -2)))
+    (unless node
+      (error "No next"))
     (ewoc-goto-node ewoc node)))
 
 (defun ewoc-goto-node (ewoc node)

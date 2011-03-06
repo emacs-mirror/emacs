@@ -84,8 +84,9 @@ it to get a real sense of how it works."
 
 ;;; User Variables:
 
-(defcustom eshell-smart-load-hook '(eshell-smart-initialize)
+(defcustom eshell-smart-load-hook nil
   "A list of functions to call when loading `eshell-smart'."
+  :version "24.1"			; removed eshell-smart-initialize
   :type 'hook
   :group 'eshell-smart)
 

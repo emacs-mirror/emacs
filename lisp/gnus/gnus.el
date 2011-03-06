@@ -1607,7 +1607,8 @@ slower."
     ("nnweb" none)
     ("nnrss" none)
     ("nnagent" post-mail)
-    ("nnimap" post-mail address prompt-address physical-address respool)
+    ("nnimap" post-mail address prompt-address physical-address respool
+     server-marks)
     ("nnmaildir" mail respool address)
     ("nnnil" none))
   "*An alist of valid select methods.
@@ -2545,7 +2546,7 @@ a string, be sure to use a valid format, see RFC 2616."
 (defvar gnus-extended-servers nil)
 
 ;; The carpal mode has been removed, but define the variable for
-;; backwards compatability.
+;; backwards compatibility.
 (defvar gnus-carpal nil)
 (make-obsolete-variable 'gnus-carpal nil "Emacs 24.1")
 
@@ -3267,7 +3268,7 @@ g -- Group name."
 	((= c ?d)
 	 (point))
 	((= c ?D)
-	 (read-file-name prompt nil default-directory 'lambda))
+	 (read-directory-name prompt nil default-directory 'lambda))
 	((= c ?f)
 	 (read-file-name prompt nil nil 'lambda))
 	((= c ?F)

@@ -280,25 +280,11 @@ shells such as bash, zsh, rc, 4dos."
   :type 'string
   :group 'eshell)
 
-(eshell-deftest mode same-window-buffer-names
-  "`eshell-buffer-name' is a member of `same-window-buffer-names'"
-  (member eshell-buffer-name same-window-buffer-names))
-
 (defcustom eshell-directory-name
   (locate-user-emacs-file "eshell/" ".eshell/")
   "The directory where Eshell control files should be kept."
   :type 'directory
   :group 'eshell)
-
-(eshell-deftest mode eshell-directory-exists
-  "`eshell-directory-name' exists and is writable"
-  (file-writable-p eshell-directory-name))
-
-(eshell-deftest mode eshell-directory-modes
-  "`eshell-directory-name' has correct access protections"
-  (or (eshell-under-windows-p)
-      (= (file-modes eshell-directory-name)
-	 eshell-private-directory-modes)))
 
 ;;;_* Running Eshell
 ;;
@@ -450,10 +436,6 @@ corresponding to a successful execution."
 	      (set status-var eshell-last-command-status))
 	  (cadr result))))))
 
-(eshell-deftest mode simple-command-result
-  "`eshell-command-result' works with a simple command."
-  (= (eshell-command-result "+ 1 2") 3))
-
 ;;;_* Reporting bugs
 ;;
 ;; If you do encounter a bug, on any system, please report
@@ -474,7 +456,7 @@ Emacs."
   ;; if the user set `eshell-prefer-to-shell' to t, but never loaded
   ;; Eshell, then `eshell-subgroups' will be unbound
   (when (fboundp 'eshell-subgroups)
-    (eshell-for module (eshell-subgroups 'eshell)
+    (dolist (module (eshell-subgroups 'eshell))
       ;; this really only unloads as many modules as possible,
       ;; since other `require' references (such as by customizing
       ;; `eshell-prefer-to-shell' to a non-nil value) might make it

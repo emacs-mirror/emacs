@@ -72,7 +72,9 @@ SYMBOL should be one of `grep-command', `grep-template',
 
 Some grep programs are able to surround matches with special
 markers in grep output.  Such markers can be used to highlight
-matches in grep mode.
+matches in grep mode.  This requires `font-lock-mode' to be active
+in grep buffers, so if you have globally disabled font-lock-mode,
+you will not get highlighting.
 
 This option sets the environment variable GREP_COLORS to specify
 markers for highlighting and GREP_OPTIONS to add the --color
@@ -462,6 +464,8 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
   (when (eq grep-highlight-matches 'auto-detect)
     (grep-compute-defaults))
   (unless (or (eq grep-highlight-matches 'auto-detect)
+	      ;; Uses font-lock to parse color escapes.  (Bug#8084)
+	      (null font-lock-mode)
 	      (null grep-highlight-matches))
     ;; `setenv' modifies `process-environment' let-bound in `compilation-start'
     ;; Any TERM except "dumb" allows GNU grep to use `--color=auto'

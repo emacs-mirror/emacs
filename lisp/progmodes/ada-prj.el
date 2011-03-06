@@ -227,7 +227,7 @@ If FILE-NAME is nil, ask the user for the name."
   ;;  the user to select a directory
   (let ((use-dialog-box nil))
     (unless file-name
-      (set 'file-name (read-file-name "Root directory: " nil nil t))))
+      (set 'file-name (read-directory-name "Root directory: " nil nil t))))
 
   (set 'ada-prj-current-values
        (plist-put ada-prj-current-values

@@ -189,7 +189,7 @@ static NSMutableArray *ns_pending_files, *ns_pending_service_names,
   *ns_pending_service_args;
 static BOOL inNsSelect = 0;
 
-/* Convert modifiers in a NeXTSTEP event to emacs style modifiers.  */
+/* Convert modifiers in a NeXTstep event to emacs style modifiers.  */
 #define NS_FUNCTION_KEY_MASK 0x800000
 #define NSLeftControlKeyMask    (0x000001 | NSControlKeyMask)
 #define NSRightControlKeyMask   (0x002000 | NSControlKeyMask)
@@ -2282,9 +2282,8 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
      to the glyph width; replace with CURSOR_WIDTH for bar cursors. */
   if (cursor_type == BAR_CURSOR || cursor_type == HBAR_CURSOR)
     {
-      if (cursor_width < 0)
-	cursor_width = FRAME_CURSOR_WIDTH (f);
-      cursor_width = min (cursor_width, 1);
+      if (cursor_width < 1)
+	cursor_width = max (FRAME_CURSOR_WIDTH (f), 1);
       w->phys_cursor_width = cursor_width;
     }
 

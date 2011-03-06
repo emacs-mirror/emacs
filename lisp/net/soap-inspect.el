@@ -2,9 +2,10 @@
 
 ;; Copyright (C) 2010-2011  Free Software Foundation, Inc.
 
-;; Author: Alexandru Harsanyi (AlexHarsanyi@gmail.com)
+;; Author: Alexandru Harsanyi <AlexHarsanyi@gmail.com>
 ;; Created: October 2010
 ;; Keywords: soap, web-services, comm, hypermedia
+;; Package: soap-client
 ;; Homepage: http://code.google.com/p/emacs-soap-client
 
 ;; This file is part of GNU Emacs.

@@ -1,3 +1,16 @@
+2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Makefile.in (srcs): Add package.texi.
+
+2011-03-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* processes.texi (Synchronous Processes): Minor clarification
+	(Bug#8149).
+
+2011-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* files.texi (Truenames): Minor clarification.  (Bug#2341)
+
 2011-03-01  Glenn Morris  <rgm@gnu.org>
 
 	* variables.texi (Directory Local Variables):

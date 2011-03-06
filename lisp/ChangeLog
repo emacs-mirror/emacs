@@ -1,4 +1,318 @@
+2011-03-06  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-ext.el (calc-init-extensions):
+	Rename calc-logunits-dblevel and calc-logunits-nplevel to
+	calc-dblevel and calc-nplevel, respectively.
+	Add keybindings for calc-spn, calc-midi and calc-freq.  Add
+	autoloads for calcFunc-spn, calcFunc-midi, calcFunc-freq,
+	calc-spn, calc-midi and calc-freq.
+
+	* calc/calc-units.el (calc-dblevel): Rename from
+	calc-logunits-dblevel.
+	(calc-nplevel): Rename from calc-logunits-nplevel.
+	(math-midi-round, math-freqp, math-midip, math-spnp)
+	(math-spn-to-midi, math-midi-to-spn, math-freq-to-spn)
+	(math-midi-to-freq, math-spn-to-freq, calcFunc-spn, calcFunc-midi)
+	(calcFunc-freq, calc-freq, calc-midi, calc-spn): New functions.
+	(math-notes): New variable.
+
+	* calc/calc.el (calc-note-threshold): New variable.
+
+2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package-archives): Accept either ordinary
+	directory names, in addition to HTTP URLs.
+	(package--with-work-buffer): New macro.   Handle normal directories.
+	(package-handle-response): Don't display the failing buffer.
+	(package-download-single, package-download-tar)
+	(package--download-one-archive): Use package--with-work-buffer.
+	(package-archive-base): Rename from package-archive-url.
+
+2011-03-06  Glenn Morris  <rgm@gnu.org>
+
+	* generic-x.el (generic-unix-modes): Add xmodmap-generic-mode.
+	(xmodmap-generic-mode): Respect generic-extras-enable-list.
+
+2011-03-06  Daniel Clemente  <dcl441-bugs@yahoo.com>  (tiny change)
+
+	* generic-x.el (xmodmap-generic-mode): New.  (Bug#2065)
+
+2011-03-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* allout.el (allout-init, allout-prefixed-keybindings)
+	(allout-unprefixed-keybindings):
+	* progmodes/prolog.el (prolog-find-term):
+	Fix typos in docstrings.
+
+2011-03-06  Nikolaj Schumacher  <me@nschum.de>  (tiny change)
+
+	* emacs-lisp/elp.el (elp-results): Fix off-by-one in header.  (Bug#2746)
+
+2011-03-06  Kevin Ryde  <user42@zip.com.au>
+
+	* textmodes/sgml-mode.el (sgml-fill-nobreak): Give it a doc.  (Bug#5326)
+
+2011-03-06  Michael Shields  <shields@msrl.com>  (tiny change)
+
+	* window.el (one-window-p, walk-windows, display-buffer):
+	Doc fixes.  (Bug#5567)
+
+2011-03-06  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* cus-edit.el (custom-prompt-variable): Use the `custom-get' property
+	of the variable if it exists.
+
+2011-03-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bookmark.el:
+	* desktop.el:
+	* emacs-lock.el:
+	* ps-print.el:
+	* saveplace.el:
+	* net/tramp-cache.el:
+	* obsolete/fast-lock.el:
+	* textmodes/reftex.el:
+	Don't set `kill-emacs-hook' on noninteractive sessions (bug#8137).
+
+2011-03-05  Antoine Levitt  <antoine.levitt@gmail.com>
+
+	* files.el (delete-directory, copy-directory, list-directory):
+	Use read-directory-name.
+
+	* find-file.el (ff-find-the-other-file):
+	* net/ange-ftp.el (ange-ftp-make-directory):
+	* printing.el (pr-interactive-dir):
+	* progmodes/ada-prj.el (ada-prj-load-directory):
+	* progmodes/ebnf2ps.el (ebnf-print-directory)
+	(ebnf-spool-directory, ebnf-eps-directory)
+	(ebnf-syntax-directory):
+	* shell.el (shell):
+	* speedbar.el (speedbar-create-directory):
+	* vc/emerge.el (emerge-merge-directories):
+	* vc/vc-dir.el (vc-dir):
+	* vc/vc.el (vc-create-tag, vc-retrieve-tag): Likewise.
+
+2011-03-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* help-mode.el (help-buffer): If we are to return the current
+	buffer, signal an error if it's not in Help mode (Bug#8147).
+
+2011-03-05  Reuben Thomas  <rrt@sc3d.org>
+
+	* files.el (file-name-version-regexp): Handle backup files of the
+	form `foo.js.~HEAD~1~' (Bug#8159).
+
+2011-03-05  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/esh-var.el: Don't require esh-test when compiling.
+	* eshell/em-banner.el, eshell/esh-cmd.el, eshell/esh-mode.el:
+	* eshell/esh-var.el, eshell/eshell.el: Move tests to esh-test.
+	* eshell/esh-test.el: Move to ../../test/eshell.el.
+
+2011-03-05  David Engster  <deng@randomsample.de>
+
+	* files.el (save-some-buffers): Report the names of buffers saved
+	automatically due to buffer-save-without-query (Bug#8134).
+
+2011-03-05  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
+	* net/rcirc.el: Add QuakeNet authentication support.
+	(rcirc-authinfo, rcirc-check-auth-status)
+	(rcirc-authenticate): Support QuakeNet.
+
+2011-03-05  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
+	* net/rcirc.el: Add functionality to authenticate before
+	autojoining channels.
+	(rcirc-authenticate-before-join): New option.
+	(rcirc-authenticated-hook): New variable.
+	(rcirc-connect): Make local variable rcirc-user-authenticated.
+	(rcirc-handler-001): Respect rcirc-authenticate-before-join.
+	(rcirc-check-auth-status, rcirc-join-channels-post-auth):
+	New functions.
+	(rcirc-handler-PRIVMSG, rcirc-handler-NOTICE):
+	Call rcirc-check-auth-status.
+
+2011-03-05  Alex Harsanyi  <AlexHarsanyi@gmail.com>
+
+	* net/soap-client.el (soap-namespace-put-link): Check if the target
+	name is fully qualified -- use only the name part.
+	(soap-parse-complex-type, soap-parse-sequence): Recognize xsd:all
+	types, treated the same as xsd:sequence.  (Bug#8166)
+
+2011-03-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (find-file-noselect): Don't ask about re-visiting
+	non-literally if the file is already visited in image-mode.
+	(Bug#8177)
+
+2011-03-05  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/esh-mode.el (eshell-kill-buffer-function): New function.
+	(eshell-mode): Use eshell-kill-buffer-function.
+	Run the -initialize functions independently of the -load-hooks.
+	* eshell/esh-proc.el (eshell-kill-process-function): New function.
+	(eshell-gather-process-output, eshell-sentinel)
+	(eshell-interrupt-process, eshell-kill-process, eshell-quit-process):
+	Use eshell-kill-process-function.
+	* eshell/em-alias.el (eshell-alias-load-hook):
+	* eshell/em-banner.el (eshell-banner-load-hook):
+	* eshell/em-cmpl.el (eshell-cmpl-load-hook):
+	* eshell/em-dirs.el (eshell-dirs-load-hook):
+	* eshell/em-glob.el (eshell-glob-load-hook):
+	* eshell/em-hist.el (eshell-hist-load-hook):
+	* eshell/em-pred.el (eshell-pred-load-hook):
+	* eshell/em-prompt.el (eshell-prompt-load-hook):
+	* eshell/em-rebind.el (eshell-rebind-load-hook):
+	* eshell/em-script.el (eshell-script-load-hook):
+	* eshell/em-smart.el (eshell-smart-load-hook):
+	* eshell/em-term.el (eshell-term-load-hook):
+	* eshell/em-unix.el (eshell-unix-load-hook):
+	* eshell/esh-arg.el (eshell-arg-load-hook):
+	* eshell/esh-cmd.el (eshell-cmd-load-hook):
+	* eshell/esh-ext.el (eshell-ext-load-hook):
+	* eshell/esh-io.el (eshell-io-load-hook):
+	* eshell/esh-mode.el (eshell-exit-hook):
+	* eshell/esh-proc.el (eshell-proc-load-hook, eshell-kill-hook):
+	* eshell/esh-var.el (eshell-var-load-hook):
+	Set default hook values to nil.  (Bug#5375)
+
+	* eshell/esh-module.el (eshell-module-unload-hook)
+	(eshell-modules-list): Remove leading * from defcustom docs.
+
+	* eshell/esh-util.el (eshell-for): Make it obsolete.
+	* eshell/em-alias.el (eshell/alias, eshell-alias-completions):
+	* eshell/em-dirs.el (eshell-save-some-last-dir):
+	* eshell/em-hist.el (eshell-save-some-history)
+	(eshell-hist-parse-modifier):
+	* eshell/em-ls.el (eshell-ls-dir, eshell-ls-files)
+	(eshell-ls-entries):
+	* eshell/em-unix.el (eshell/cat, eshell/du, eshell/su):
+	* eshell/esh-cmd.el (eshell-invoke-directly, eshell-do-eval)
+	(eshell/which):
+	* eshell/esh-ext.el (eshell-find-interpreter):
+	* eshell/esh-mode.el (eshell-mode):
+	* eshell/esh-module.el (eshell-unload-extension-modules):
+	* eshell/esh-proc.el (eshell-process-interact):
+	* eshell/esh-test.el (eshell-test):
+	* eshell/esh-util.el (eshell-flatten-list, eshell-winnow-list):
+	* eshell/esh-var.el (eshell/env, eshell-environment-variables)
+	(eshell-variables-list):
+	* eshell/eshell.el (eshell-unload-all-modules):
+	Replace eshell-for with dolist.
+
+2011-03-04  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-bzr.el (vc-bzr-after-dir-status): Handle bzr 2.3.0.  (Bug#8170)
+
+2011-03-04  Tom Tromey  <tromey@redhat.com>
+
+	* progmodes/gud.el (gdb-script-mode): Derive from prog-mode.
+
+2011-03-04  Glenn Morris  <rgm@gnu.org>
+
+	* outline.el (outline-regexp): No longer allow nil.
+	(outline-heading-end-regexp): Add safety predicate.  (Bug#7619)
+
+	* net/browse-url.el (browse-url):
+	Handle deleted default-directory.  (Bug#6077)
+
+	* recentf.el (recentf-include-p): In case of a buggy predicate,
+	err on the side of including, not excluding.  (Bug#5843)
+
+2011-03-04  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-units.el (math-to-standard-rec): Don't treat subscripted
+	variables as units.
+
+2011-03-04  Bob Rogers  <rogers@rgrjr.dyndns.org>
+
+	* emacs-lisp/ewoc.el (ewoc-goto-next): Give a more explicit error
+	if there is no node.  (Bug#3261)
+
+2011-03-04  Leo  <sdl.web@gmail.com>
+
+	* vc/diff-mode.el (diff-mode): Fix whitespace-style.  (Bug#8139)
+
+	* time.el (display-time-world-list): Fix typo.  (Bug#7571)
+
+2011-03-04  Zachary Kanfer  <zkanfer@gmail.com>  (tiny change)
+
+	* cus-edit.el (custom-buffer-create-internal):
+	Split search string before passing it to `customize-apropos' (bug#8136).
+
+2011-03-04  Drew Adams  <drew.adams@oracle.com>
+
+	* image-dired.el (image-dired-cmd-read-exif-data-options):
+	Fix typo in docstring (bug#8156).
+
+2011-03-03  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
+	* net/rcirc.el (rcirc-cmd-join): Accept comma-separated input.
+
+2011-03-03  Christian Ohler  <ohler@gnu.org>
+
+	* emacs-lisp/ert.el (ert--explain-equal): New function.
+	(ert--explain-equal-rec): Renamed from `ert--explain-not-equal'.
+	All callers changed.
+	(ert--explain-equal-including-properties): Renamed from
+	`ert--explain-not-equal-including-properties'.  All callers
+	changed.
+
+2011-03-03  Christian Ohler  <ohler@gnu.org>
+
+	* emacs-lisp/ert.el (ert--stats-set-test-and-result)
+	(ert-char-for-test-result, ert-string-for-test-result)
+	(ert-run-tests-batch, ert--print-test-for-ewoc):
+	Handle `ert-test-quit'.
+
+2011-03-03  David Abrahams  <dave@boostpro.com>  (tiny change)
+
+	* vc/ediff-init.el (ediff-use-faces, ediff-highlight-all-diffs):
+	Move ediff-defvar-local calls after defcustoms.  (Bug#1821)
+
+2011-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (file-truename): Doc fix.  (Bug#2341)
+
+2011-03-03  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>
+
+	* vc/vc-dir.el (vc-dir-mode-map): Bind vc-dir-find-file to e (Bug#7349).
+
+2011-03-03  Vagn Johansen  <gonz808@hotmail.com>  (tiny change)
+
+	* vc/vc-svn.el (vc-svn-after-dir-status): Some MS Windows svn client
+	programs output backslashes.  (Bug#7663)
+
+2011-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* mail/sendmail.el (mail-mode-map): Remove mail-sent-via.
+	(mail-mode): Remove mail-sent-via from the doc.
+	(mail-sent-via): Make it obsolete.  (Bug#1776)
+
+	* progmodes/grep.el (grep-highlight-matches): Doc fix.
+	(grep-process-setup): No highlighting without font-lock.  (Bug#8084)
+
+	* vc/vc-bzr.el (vc-bzr-state-heuristic): Handle dirstate entries
+	with no parents.  (Bug#8025)
+
+2011-03-02  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* password-cache.el (password-in-cache-p): Add autoload.
+
 2011-03-02  Glenn Morris  <rgm@gnu.org>
+
+	* man.el (Man-support-local-filenames): Also handle Red Hat's man.
+	* dired-x.el (Man-support-local-filenames): Autoload it.
+	(dired-guess-shell-alist-default): Also handle Red Hat's man.
+
+	* dired-x.el (dired-default-directory-alist, dired-default-directory):
+	Mark as obsolete.
+	(dired-smart-shell-command): Just call dired-current-directory.
+
+	* dired-x.el (dired-jump-other-window): Add autoload.
+	(dired-default-directory-alist, dired-default-directory): Doc fixes.
+	(dired-default-directory-alist): Mark as risky.
 
 	* dired-x.el (dired-omit-here-always): Make it obsolete.
 
@@ -28,8 +342,9 @@
 
 2011-03-01  Glenn Morris  <rgm@gnu.org>
 
-	* calendar/cal-hebrew.el (calendar-hebrew-birthday, diary-hebrew-date):
-	Rename and rework functions added in previous change.
+	* calendar/cal-hebrew.el (calendar-hebrew-birthday)
+	(diary-hebrew-birthday): Rename and rework functions added
+	in previous change.
 
 2011-03-01  Ed Reingold  <reingold@emr.cs.iit.edu>
 
@@ -66,7 +381,7 @@
 	* net/tramp-cmds.el (tramp-append-tramp-buffers): Dump load-path
 	shadows.
 
-2011-02-28  Antoine Levitt  <antoine.levitt@gmail.com>  (tiny change)
+2011-02-28  Antoine Levitt  <antoine.levitt@gmail.com>
 
 	* dired-x.el (dired-guess-shell-alist-default): Add rar and 7z.
 
@@ -187,7 +502,7 @@
 	* help-fns.el (describe-function-1): Don't signal an error just because
 	the DOC file disappeared.
 
-2011-02-22  Seppo Sade <sepposade1@gmail.com>  (tiny change)
+2011-02-22  Seppo Sade  <sepposade1@gmail.com>  (tiny change)
 
 	* eshell/esh-ext.el (eshell-external-command): Do not restrict
 	remote check to "ftp".  (Bug#8089)
@@ -250,8 +565,8 @@
 	* autorevert.el (auto-revert-mode, auto-revert-tail-mode)
 	(global-auto-revert-ignore-buffer): Remove leading "*" from docs.
 
-2011-02-19  Dmitry Bolshakov <dmitry.bolshakov@bridge-quest.com>
-            Dima Kogan <dkogan@cds.caltech.edu>  (tiny change)
+2011-02-19  Dmitry Bolshakov  <dmitry.bolshakov@bridge-quest.com>
+            Dima Kogan  <dkogan@cds.caltech.edu>  (tiny change)
 
 	* progmodes/hideshow.el (hs-find-block-beginning)
 	(hs-hide-level-recursive): Ignore comments when parsing braces
@@ -406,13 +721,13 @@
 
 2011-02-17  Ken Manheimer  <ken.manheimer@gmail.com>
 
-	* lisp/allout-widgets.el: (allout-widgets-icons-light-subdir)
+	* lisp/allout-widgets.el (allout-widgets-icons-light-subdir)
 	(allout-widgets-icons-dark-subdir): Track relocations of icons
 	* lisp/allout.el: Remove commentary about remove encryption
 	passphrase mnemonic support and verification.
-	(allout-encrypt-string): (allout-encrypt-string): Recognize epg
-	failure to decrypt gpg2 armored text using gpg1, and indicate that
-	the gpg version *might* be the problem in the error message.
+	(allout-encrypt-string): Recognize epg failure to decrypt gpg2
+	armored text using gpg1, and indicate that the gpg version *might*
+	be the problem in the error message.
 
 2011-02-17  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
 
@@ -701,7 +1016,7 @@
 
 2011-02-11  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
 
-	* net/rcirc.el (defun-rcirc-join): Accept multiple channels.
+	* net/rcirc.el (rcirc-cmd-join): Accept multiple channels.
 
 2011-02-11  Glenn Morris  <rgm@gnu.org>
 
@@ -744,7 +1059,7 @@
 	* play/pong.el (pong-mode-map):
 	* play/handwrite.el (menu-bar-handwrite-map):
 	* play/gametree.el (gametree-mode-map):
-	* net/rcirc.el (rcirc-mode-map, rcirc-browse-url-map
+	* net/rcirc.el (rcirc-mode-map, rcirc-browse-url-map)
 	(rcirc-multiline-minor-mode-map, rcirc-track-minor-mode-map):
 	* net/newst-plainview.el (newsticker-menu, newsticker-mode-map)
 	(newsticker--url-keymap):
@@ -782,7 +1097,7 @@
 	auto-activation is controlled solely by customization
 	`allout-auto-activation'.
 
-	(allout-auto-activation-helper) (allout-setup): New autoloads
+	(allout-auto-activation-helper, allout-setup): New autoloads
 	implement new custom set procedure for allout-auto-activation.
 	Also, explicitly invoke
 	(allout-setup) after allout-auto-activation is custom-defined, to
@@ -794,7 +1109,7 @@
 	allout-auto-activation, and mark obsolete.
 	(allout-mode): Respect string values for allout-auto-activation.
 	Run allout-after-copy-or-kill-hook without any args.
-	(allout-mode) (allout-layout) (allout-default-layout)
+	(allout-mode, allout-layout, allout-default-layout)
 	(outlineify-sticky): Adjust docstring for new scheme.
 	(allout-after-copy-or-kill-hook): No arguments - hook implementers
 	should concentrate on the kill ring.
@@ -835,7 +1150,7 @@
 	extension-specific processing of killed text.
 	(allout-mode): Include new allout-after-copy-or-kill-hook among
 	mentioned hooks.
-	(allout-kill-line) (allout-kill-topic): Ensure that processing
+	(allout-kill-line, allout-kill-topic): Ensure that processing
 	after kill happens even if barf-if-buffer-read-only is raised.
 	Include new allout-after-copy-or-kill-hook among that subsequent
 	processing.
@@ -857,23 +1172,23 @@
 	* calc/calc.el (calc-logunits-field-reference): Rename from
 	`calc-default-field-reference-level'.
 	(calc-logunits-power-reference): Rename from
-	`calc-default-power-reference-level'
+	`calc-default-power-reference-level'.
 
 	* calc/calc-units.el (math-logunits-quant): Rename from
 	`math-logunits-level'
 	(math-logunits-plus): Rename from math-logcombine.
 	(calcFunc-luplus, calcFunc-luminus calc-luplus, calc-luminus): Remove.
 	(calcFunc-lufieldadd, calcFunc-lupoweradd, calcFunc-lufieldsub)
-	(calcFunc-lufieldsub,calc-logunits-add calc-logunits-sub):
+	(calcFunc-lufieldsub, calc-logunits-add, calc-logunits-sub):
 	New functions.
 	(calcFunc-fieldquant): Rename from `calcFunc-fieldlevel'.
 	(calcFunc-powerquant): Rename from `calcFunc-powerlevel'.
 	(calc-logunits-quantity): Rename from `calc-level'.
 	(calcFunc-dbfieldlevel, calcFunc-dbpowerlevel, calcFunc-npfieldlevel)
-	(calcFunc-nppowerlevel,calc-logunits-dblevel, calc-logunits-nplevel)
+	(calcFunc-nppowerlevel, calc-logunits-dblevel, calc-logunits-nplevel)
 	(math-logunits-mul, calcFunc-lufieldmul, calcFunc-lupowermul)
 	(calc-logunits-mul, math-logunits-divide, calcFunc-lufielddiv)
-	(calcFunc-lupowerdiv,calc-logunits-divide,math-logunits-level):
+	(calcFunc-lupowerdiv, calc-logunits-divide, math-logunits-level):
 	New functions.
 
 	* calc/calc-help.el (calc-u-prefix-help): Remove "L" reference.
@@ -1596,7 +1911,7 @@
 	(allout-institute-keymap): Take over the "setup" part of the former
 	allout-setup-mode-map.  Reassign allout-mode-map-value value and
 	update the defalias.
-	(allout-command-prefix) (allout-prefixed-keybindings)
+	(allout-command-prefix, allout-prefixed-keybindings)
 	(allout-unprefixed-keybindings):
 	Use allout-compose-and-institute-keymap to process the bindings.
 	(allout-unprefixed-keybindings): Remove extraneous '?' question marks.
@@ -2591,7 +2906,7 @@
 	* loadup.el (symbol-file-load-history-loaded): Remove; unused.
 
 2010-12-15  Jari Aalto  <jari.aalto@cante.net>
-            Scott Evans <gse@antisleep.com>
+            Scott Evans  <gse@antisleep.com>
 
 	* rect.el (rectange--default-line-number-format)
 	(rectangle-number-line-callback): New functions.
@@ -2751,7 +3066,7 @@
 	* dired.el (dired-pop-to-buffer): Bind pop-up-frames to nil
 	(Bug#7533).
 
-2010-12-13  W. Martin Borgert <debacle@debian.org>  (tiny change)
+2010-12-13  W. Martin Borgert  <debacle@debian.org>  (tiny change)
 
 	* files.el (auto-mode-alist): Handle .dbk (DocBook) with xml-mode.
 	(Bug#7491).
@@ -3679,7 +3994,7 @@
 	  describe-prefix-bindings
 	- adapt to new version of called-interactively-p, while
 	  maintaining backwards compatibility with old version
-	- fix hotspot navigation so i works properly with meta-modified keys
+	- fix hotspot navigation so i works properly with meta-modified keys.
 
 	* allout.el (allout-keybindings, allout-bind-keys)
 	(allout-keybindings-binding, allout-prefixed-keybindings)
@@ -3806,7 +4121,7 @@
 2010-11-12  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-log-buffer): New constant.
-	Use it to replace all instances of "*Compile-Log*"
+	Use it to replace all instances of "*Compile-Log*".
 
 2010-11-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -5737,7 +6052,7 @@
 
 2010-10-03  Glenn Morris  <rgm@gnu.org>
 
-	* obsolete/x-menu.el: Remove file, obsolete since 21.1
+	* obsolete/x-menu.el: Remove file, obsolete since 21.1.
 
 	* textmodes/rst.el (rst-font-lock-keywords-function):
 	Drop Emacs 20 code.
@@ -6451,7 +6766,7 @@
 
 2010-09-14  Sascha Wilde  <wilde@sha-bang.de>
 
-	* vc/vc-hg.el (vc-hg-state,vc-hg-working-revision):
+	* vc/vc-hg.el (vc-hg-state, vc-hg-working-revision):
 	Replace setting HGRCPATH to "" by some less invasive --config options.
 
 2010-09-14  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -7567,7 +7882,7 @@
 
 	* net/dbus.el: Accept UNIX domain sockets as bus address.
 	(top): Don't initialize `dbus-registered-objects-table' anymore,
-	this is done in dbusbind,c.
+	this is done in dbusbind.c.
 	(dbus-check-event): Adapt test for bus.
 	(dbus-return-values-table, dbus-unregister-service)
 	(dbus-event-bus-name, dbus-introspect, dbus-register-property):
@@ -7904,7 +8219,7 @@
 	* progmodes/octave-mod.el (octave-mode): Set comment-add.
 	(octave-mode-map): Use comment-dwim (bug#6829).
 
-2010-08-12  Antoine Levitt  <antoine.levitt@gmail.com>  (tiny change)
+2010-08-12  Antoine Levitt  <antoine.levitt@gmail.com>
 
 	* cus-edit.el (custom-save-variables, custom-save-faces): Fix up
 	indentation of inserted comment.
@@ -8083,7 +8398,7 @@
 
 2010-08-08  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc/calc.el (calc-trail-mode,calc-refresh): Use `face' property
+	* calc/calc.el (calc-trail-mode, calc-refresh): Use `face' property
 	to italicize headers.
 	(calc-highlight-selections-with-faces): New variable.
 	(calc-selected-face, calc-nonselected-face): New faces.
@@ -8128,7 +8443,7 @@
 
 	* progmodes/cc-cmds.el (c-mask-paragraph, c-fill-paragraph):
 	Fix for the case that a C style comment has its delimiters alone on
-	their respective lines.
+	their respective lines.  (Bug#193)
 
 2010-08-06  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -10903,7 +11218,7 @@
 
 	* textmodes/ispell.el (ispell-init-process): Fix personal dictionary
 	condition in default directory check.
-	(ispell-init-process,ispell-kill-ispell,kill-buffer-hook):
+	(ispell-init-process, ispell-kill-ispell, kill-buffer-hook):
 	Kill ispell process when killing its associated buffer.
 
 2010-04-27  Jan Djärv  <jan.h.d@swipnet.se>
@@ -15633,7 +15948,7 @@
 	* vc-rcs.el (vc-rcs-print-log):
 	* vc-git.el (vc-git-print-log):
 	* vc-cvs.el (vc-cvs-print-log): Add new optional argument LIMIT,
-	ignore it.  Make the BUFFER argument non-optional
+	ignore it.  Make the BUFFER argument non-optional.
 
 	* bindings.el (mode-line-buffer-identification): Do not purecopy.
 
@@ -20387,12 +20702,12 @@
 2009-08-19  Magnus Henoch  <magnus.henoch@gmail.com>
 
 	* log-edit.el (log-edit-strip-single-file-name): New var.
-	(log-edit-insert-changelog): Use it.  Bug#3571
+	(log-edit-insert-changelog): Use it.  Bug#3571.
 
 2009-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (read-passwd): Use read-key so keypad keys work as well.
-	Bug#3287
+	Bug#3287.
 
 	* help.el (help-print-return-message): Rename from
 	print-help-return-message.
@@ -22156,7 +22471,7 @@
 	or shell command text during AUTO expansion.  Suggested by Tad Truex.
 	(verilog-read-sub-decls-expr, verilog-read-sub-decls-line)
 	(verilog-read-sub-decls-sig, verilog-symbol-detick-text):
-	Fix dotted nets {a.b,c.d} and excaped identifiers being mis-included
+	Fix dotted nets {a.b,c.d} and escaped identifiers being mis-included
 	in AUTOINOUT.  Reported by Matthew Lovell.
 	(verilog-read-always-signals-recurse): Fix AUTORESET "if (a<=b)"
 	causing use of <= assignments.  Reported by Alex Reed.

@@ -1041,7 +1041,8 @@ because they eliminate symbolic links as a cause of name variation.
 
 @defun file-truename filename
 The function @code{file-truename} returns the truename of the file
-@var{filename}.  The argument must be an absolute file name.
+@var{filename}.  If the argument is not an absolute file name,
+this function first expands it against @code{default-directory}.
 
 This function does not expand environment variables.  Only
 @code{substitute-in-file-name} does that.  @xref{Definition of

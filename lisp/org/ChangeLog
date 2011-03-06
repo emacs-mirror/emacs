@@ -1,13 +1,15 @@
-2011-02-28  Juanma Barranquero  <lekktu@gmail.com>
+2011-03-06  Juanma Barranquero  <lekktu@gmail.com>
 
-	* org.el (org-maybe-keyword-time-regexp):
-	* org-icalendar.el (org-icalendar-store-UID):
-	* org-agenda.el (org-agenda-scheduled-leaders)
-	(org-agenda-deadline-leaders, org-agenda-filter-preset):
-	* org-table.el (org-table-current-line-types)
-	(org-table-current-begin-line, org-table-current-begin-pos):
-	(org-table-current-field-formula):
+	* org.el (org-blank-before-new-entry, org-context-in-file-links)
+	(org-refile-targets, org-log-repeat, org-insert-link)
+	(org-speed-command-default-hook, org-speed-command-hook)
+	(org-in-regexps-block-p, org-yank-generic, org-goto-first-child):
 	Fix typos in docstrings.
+	(org-toggle-pretty-entities): Fix typo in message.
+
+2011-03-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* org-id.el: Don't set `kill-emacs-hook' on noninteractive sessions.
 
 2011-02-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -59,7 +61,7 @@
 2010-12-11  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org-inlinetask.el (org-inlinetask-export-templates): Add
-	Sébastien Vauban's suggestion for LaTeX export in docstring. This is
+	Sébastien Vauban's suggestion for LaTeX export in docstring.  This is
 	not default as it requires an additional LaTeX package: "todonotes".
 
 2010-12-11  Nicolas Goaziou  <n.goaziou@gmail.com>
@@ -113,7 +115,7 @@
 
 	* org.el (org-make-heading-search-string): Optionally limit number
 	of lines stored in file link search strings.
-	(org-context-in-file-links) Add option to set to integer specifying
+	(org-context-in-file-links): Add option to set to integer specifying
 	number of lines.
 
 2010-12-11  Carsten Dominik  <carsten.dominik@gmail.com>
@@ -290,7 +292,7 @@
 2010-12-11  Julien Danjou  <julien@danjou.info>
 
 	* org-agenda.el (org-format-agenda-item): Convert category to a string
-	if it is a symbol. This fixes the following call to
+	if it is a symbol.  This fixes the following call to
 	org-agenda-get-category-icon which fails if category is not a string.
 
 2010-12-11  Eric Schulte  <schulte.eric@gmail.com>
@@ -316,7 +318,7 @@
 
 	* ob-python.el (org-babel-execute:python): Use a :return header
 	argument for external evaluation in which the code block body need
-	be wrapped in a function
+	to be wrapped in a function.
 
 2010-12-11  Eric Schulte  <schulte.eric@gmail.com>
 
@@ -325,7 +327,7 @@
 
 2010-12-11  Carsten Dominik  <carsten.dominik@gmail.com>
 
-	* org.el (org-edit-special): Edit formulas when in TBLMF line
+	* org.el (org-edit-special): Edit formulas when in TBLMF line.
 
 2010-12-11  Allen S. Rout  <asr@ufl.edu>  (tiny change)
 
@@ -405,7 +407,7 @@
 
 	* org-macs.el (org-called-interactively-p): Wrap function call in
 	with-no-warnings.
-	(with-silent-modifications) Declare macro for Emacs < 23.2.
+	(with-silent-modifications): Declare macro for Emacs < 23.2.
 
 2010-12-11  Eric Schulte  <schulte.eric@gmail.com>
 
@@ -441,7 +443,7 @@
 2010-12-11  Achim Gratz  <Stromeko@Stromeko.DE>  (tiny change)
 
 	* org-clock.el (org-get-clocktable): Previous patch incorrectly
-	required whitespace in front of #+BEGIN: and #+END:
+	required whitespace in front of #+BEGIN: and #+END:.
 
 2010-12-11  Dan Davison  <dandavison7@gmail.com>
 
@@ -478,7 +480,7 @@
 2010-12-11  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org.el (org-indent-line-function): Drawers and blocks have no
-	influence on indentation of text below. Also fix indentation
+	influence on indentation of text below.  Also fix indentation
 	problem with a block at column 0 and add a special case for
 	literal examples.
 
@@ -491,7 +493,7 @@
 
 	* ob-ref.el (org-babel-ref-resolve): Recognize `list' as a unique
 	type of data
-	(org-babel-ref-at-ref-p): Recognize `list' as a unique type of data
+	(org-babel-ref-at-ref-p): Recognize `list' as a unique type of data.
 
 2010-12-11  Eric Schulte  <schulte.eric@gmail.com>
 
@@ -521,7 +523,7 @@
 	* org-clock.el (org-get-clocktable):
 	(org-in-clocktable-p):
 	(org-clocktable-shift):
-	(org-clocktable-steps): Fix regexp to allow for indented clock tables
+	(org-clocktable-steps): Fix regexp to allow for indented clock tables.
 
 2010-12-11  Puneeth Chaganti  <punchagan@gmail.com>
 
@@ -536,7 +538,7 @@
 	(org-export-latex-href-format): Rename the existing variable
 	`org-export-latex-hyperref-format' as `org-export-latex-href-format'
 	(org-export-latex-links): Use `org-export-latex-hyperref-format' and
-	`org-export-latex-href-format'
+	`org-export-latex-href-format'.
 
 2010-12-11  Eric Schulte  <schulte.eric@gmail.com>
 
@@ -546,7 +548,7 @@
 2010-12-11  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org-exp.el (org-export-preprocess-string): delaying code block
-	processing a bit to allow correct list parsing in the export string
+	processing a bit to allow correct list parsing in the export string.
 
 2010-12-11  Christopher Allan Webber  <cwebber@dustycloud.org>
 
@@ -586,7 +588,7 @@
 
 	* org-exp.el (org-export-format-source-code-or-example):
 	Remove hard-wired configuration of minted export
-	(org-export-latex-minted-with-line-numbers): Remove variable
+	(org-export-latex-minted-with-line-numbers): Remove variable.
 
 2010-12-11  Bastien Guerry  <bzg@altern.org>
 
@@ -603,7 +605,7 @@
 2010-12-11  Eric Schulte  <schulte.eric@gmail.com>
 
 	* ob-lob.el (org-babel-lob-get-info): including pass-through
-	header arguments in results variable header argument string
+	header arguments in results variable header argument string.
 
 2010-12-11  David Maus  <dmaus@ictsoc.de>
 
@@ -651,11 +653,11 @@
 2010-12-11  Eric Schulte  <schulte.eric@gmail.com>
 
 	* ob-calc.el (org-babel-execute:calc): support for variables --
-	converts :var variables in calc variables
+	converts :var variables in calc variables.
 
 2010-12-11  Carsten Dominik  <carsten.dominik@gmail.com>
 
-	* org.el (org-sparse-tree): Mention [r] in dispatch menu
+	* org.el (org-sparse-tree): Mention [r] in dispatch menu.
 
 2010-12-11  Carsten Dominik  <carsten.dominik@gmail.com>
 
@@ -754,10 +756,10 @@
 
 	* org-exp.el (org-export-format-source-code-or-example):
 	Use minted for latex source code export if `org-export-latex-listings'
-	has the value 'minted
+	has the value 'minted.
 
 	* org-latex.el (org-export-latex-listings): Document special value
-	'minted
+	'minted.
 
 	* org-latex.el (org-export-latex-minted): Delete variable.
 
@@ -797,10 +799,10 @@
 2010-11-11  Łukasz Stelmach  <lukasz.stelmach@iem.pw.edu.pl>
 
 	* org-agenda.el (org-agenda-get-sexps): Handle lists as return
-	values from diary entries
+	values from diary entries.
 
 	* org-bbdb.el (org-bbdb-anniversaries): Handle lists of
-	anniversaries
+	anniversaries.
 
 	* org.el (org-diary-sexp-entry): Handle lists as return values
 	from diary entries.
@@ -1045,90 +1047,90 @@
 
 	* ob-C.el (org-babel-C-execute): Remove call to
 	org-babel-process-params which should no longer be called from
-	within a language file
+	within a language file.
 
 	* ob-R.el (org-babel-execute:R): Remove call to
 	org-babel-process-params which should no longer be called from
 	within a language file
 	(org-babel-R-variable-assignments): Remove call to
 	org-babel-process-params which should no longer be called from
-	within a language file
+	within a language file.
 
 	* ob-asymptote.el (org-babel-execute:asymptote): Remove call to
 	org-babel-process-params which should no longer be called from
-	within a language file
+	within a language file.
 
 	* ob-clojure.el (org-babel-execute:clojure): Remove call to
 	org-babel-process-params which should no longer be called from
-	within a language file
+	within a language file.
 
 	* ob-dot.el (org-babel-execute:dot): Remove call to
 	org-babel-process-params which should no longer be called from
-	within a language file
+	within a language file.
 
 	* ob-emacs-lisp.el (org-babel-expand-body:emacs-lisp): Remove
 	call to org-babel-process-params which should no longer be called
 	from within a language file
 	(org-babel-execute:emacs-lisp): Remove call to
 	org-babel-process-params which should no longer be called from
-	within a language file
+	within a language file.
 
 	* ob-haskell.el (org-babel-execute:haskell): Remove call to
 	org-babel-process-params which should no longer be called from
-	within a language file
+	within a language file.
 
 	* ob-js.el (org-babel-execute:js): Remove call to
 	org-babel-process-params which should no longer be called from
-	within a language file
+	within a language file.
 
 	* ob-lisp.el (org-babel-execute:lisp): Remove call to
 	org-babel-process-params which should no longer be called from
-	within a language file
+	within a language file.
 
 	* ob-ocaml.el (org-babel-execute:ocaml): Remove call to
 	org-babel-process-params which should no longer be called from
-	within a language file
+	within a language file.
 
 	* ob-octave.el (org-babel-execute:octave): Remove call to
 	org-babel-process-params which should no longer be called from
-	within a language file
+	within a language file.
 
 	* ob-perl.el (org-babel-execute:perl): Remove call to
 	org-babel-process-params which should no longer be called from
-	within a language file
+	within a language file.
 
 	* ob-python.el (org-babel-execute:python): Remove call to
 	org-babel-process-params which should no longer be called from
-	within a language file
+	within a language file.
 
 	* ob-ruby.el (org-babel-execute:ruby): Remove call to
 	org-babel-process-params which should no longer be called from
-	within a language file
+	within a language file.
 
 	* ob-scheme.el (org-babel-execute:scheme): Remove call to
 	org-babel-process-params which should no longer be called from
-	within a language file
+	within a language file.
 
 	* ob-screen.el (org-babel-execute:screen): Remove call to
 	org-babel-process-params which should no longer be called from
 	within a language file
 	(org-babel-prep-session:screen): Remove call to
 	org-babel-process-params which should no longer be called from
-	within a language file
+	within a language file.
 
 	* ob-sh.el (org-babel-execute:sh): Remove call to
 	org-babel-process-params which should no longer be called from
-	within a language file
+	within a language file.
 
 	* ob-sql.el (org-babel-execute:sql): Remove call to
 	org-babel-process-params which should no longer be called from
-	within a language file
+	within a language file.
 
 	* ob-haskell.el (org-babel-execute:haskell): Remove reference to
-	processed params
+	processed params.
 
 	* ob-clojure.el (org-babel-execute:clojure): Remove reference to
-	processed params
+	processed params.
 
 	* ob-R.el (org-babel-execute:R): Remove reference to processed
 	params.
@@ -1319,162 +1321,45 @@
 
 2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
 
-	* ob-C.el (org-babel-expand-body:c++): Remove obsoleted optional
-	third argument
-	(org-babel-expand-body:c++): Remove obsoleted optional third
-	argument
-	(org-babel-C-expand): Remove obsoleted optional third argument
-
-	* ob-R.el:
-	(org-babel-expand-body:R): Remove obsoleted optional third
-	argument
-	(org-babel-execute:R): Remove obsoleted optional third argument
-	(org-babel-R-variable-assignments): Remove obsoleted optional
-	third argument
-
-	* ob-asymptote.el:
-	(org-babel-expand-body:asymptote): Remove obsoleted optional
-	third argument
-	(org-babel-execute:asymptote): Remove obsoleted optional third
-	argument
-
-	* ob-clojure.el:
-	(org-babel-expand-body:clojure): Remove obsoleted optional third
-	argument
-	(org-babel-execute:clojure): Remove obsoleted optional third
-	argument
-
-	* ob-css.el:
-	(org-babel-expand-body:css): Remove obsoleted optional third
-	argument
-
-	* ob-ditaa.el:
-	(org-babel-expand-body:ditaa): Remove obsoleted optional third
-	argument
-
-	* ob-dot.el:
-	(org-babel-expand-body:dot): Remove obsoleted optional third
-	argument
-	(org-babel-execute:dot): Remove obsoleted optional third
-	argument
-
-	* ob-emacs-lisp.el:
-	(org-babel-expand-body:emacs-lisp): Remove obsoleted optional
-	third argument
-	(org-babel-execute:emacs-lisp): Remove obsoleted optional third
-	argument
-
-	* ob-gnuplot.el:
-	(org-babel-expand-body:gnuplot): Remove obsoleted optional third
-	argument
-
-	* ob-haskell.el:
-	(org-babel-expand-body:haskell): Remove obsoleted optional third
-	argument
-	(org-babel-execute:haskell): Remove obsoleted optional third
-	argument
-	(org-babel-load-session:haskell): Remove obsoleted optional
-	third
-	(org-babel-prep-session:haskell): Remove obsoleted optional
-	third
-
-	* ob-js.el:
-	(org-babel-expand-body:js): Remove obsoleted optional third
-	argument
-	(org-babel-execute:js): Remove obsoleted optional third argument
-
-	* ob-latex.el:
-	(org-babel-expand-body:latex): Remove obsoleted optional third
-	argument
-
-	* ob-lisp.el:
-	(org-babel-expand-body:lisp): Remove obsoleted optional third
-	argument
-	(org-babel-execute:lisp): Remove obsoleted optional third
-	argument
-
-	* ob-mscgen.el:
-	(org-babel-expand-body:mscgen): Remove obsoleted optional third
-	argument
-
-	* ob-ocaml.el:
-	(org-babel-expand-body:ocaml): Remove obsoleted optional third
-	argument
-	(org-babel-execute:ocaml): Remove obsoleted optional third
-	argument
-
-	* ob-octave.el:
-	(org-babel-expand-body:matlab): Remove obsoleted optional third
-	argument
-	(org-babel-expand-body:octave): Remove obsoleted optional third
-	argument
-	(org-babel-execute:octave): Remove obsoleted optional third
-	argument
-	(org-babel-octave-variable-assignments): Remove obsoleted
-	optional third
-
-	* ob-org.el:
-	(org-babel-expand-body:org): Remove obsoleted optional third
-	argument
-
-	* ob-perl.el:
-	(org-babel-expand-body:perl): Remove obsoleted optional third
-	argument
-	(org-babel-execute:perl): Remove obsoleted optional third
-	argument
-
-	* ob-plantuml.el:
-	(org-babel-expand-body:plantuml): Remove obsoleted optional
-	third argument
-
-	* ob-python.el:
-	(org-babel-expand-body:python): Remove obsoleted optional third
-	argument
-	(org-babel-execute:python): Remove obsoleted optional third
-	argument
-	(org-babel-python-variable-assignments): Remove obsoleted
-	optional third
-
-	* ob-ruby.el:
-	(org-babel-expand-body:ruby): Remove obsoleted optional third
-	argument
-	(org-babel-execute:ruby): Remove obsoleted optional third
-	argument
-
-	* ob-sass.el:
-	(org-babel-expand-body:sass): Remove obsoleted optional third
-	argument
-
-	* ob-scheme.el:
-	(org-babel-expand-body:scheme): Remove obsoleted optional third
-	argument
-	(org-babel-execute:scheme): Remove obsoleted optional third
-	argument
-
-	* ob-screen.el:
-	(org-babel-expand-body:screen): Remove obsoleted optional third
-	argument
-
-	* ob-sh.el:
-	(org-babel-expand-body:sh): Remove obsoleted optional third
-	argument
-	(org-babel-execute:sh): Remove obsoleted optional third argument
-	(org-babel-sh-variable-assignments): Remove obsoleted optional
-	third
-
-	* ob-sql.el:
-	(org-babel-expand-body:sql): Remove obsoleted optional third
-	argument
-
-	* ob-sqlite.el:
-	(org-babel-expand-body:sqlite): Remove obsoleted optional third
-	argument
-	(org-babel-execute:sqlite): Remove obsoleted optional third
-	argument
-
-	* ob.el:
-	(org-babel-expand-body:generic): Remove obsoleted optional third
-	argument.
+	* ob-C.el (org-babel-expand-body:c++, org-babel-C-expand):
+	* ob-R.el (org-babel-expand-body:R, org-babel-execute:R)
+	(org-babel-R-variable-assignments):
+	* ob-asymptote.el (org-babel-expand-body:asymptote)
+	(org-babel-execute:asymptote):
+	* ob-clojure.el (org-babel-expand-body:clojure)
+	(org-babel-execute:clojure):
+	* ob-css.el (org-babel-expand-body:css):
+	* ob-ditaa.el (org-babel-expand-body:ditaa):
+	* ob-dot.el (org-babel-expand-body:dot, org-babel-execute:dot):
+	* ob-emacs-lisp.el (org-babel-expand-body:emacs-lisp)
+	(org-babel-execute:emacs-lisp):
+	* ob-gnuplot.el (org-babel-expand-body:gnuplot)
+	* ob-haskell.el (org-babel-expand-body:haskell)
+	(org-babel-execute:haskell, org-babel-load-session:haskell)
+	(org-babel-prep-session:haskell):
+	* ob-js.el (org-babel-expand-body:js, org-babel-execute:js):
+	* ob-latex.el (org-babel-expand-body:latex):
+	* ob-lisp.el (org-babel-expand-body:lisp, org-babel-execute:lisp):
+	* ob-mscgen.el (org-babel-expand-body:mscgen):
+	* ob-ocaml.el (org-babel-expand-body:ocaml, org-babel-execute:ocaml):
+	* ob-octave.el (org-babel-expand-body:matlab)
+	(org-babel-expand-body:octave, org-babel-execute:octave)
+	(org-babel-octave-variable-assignments):
+	* ob-org.el (org-babel-expand-body:org):
+	* ob-perl.el (org-babel-expand-body:perl, org-babel-execute:perl):
+	* ob-plantuml.el (org-babel-expand-body:plantuml):
+	* ob-python.el (org-babel-expand-body:python, org-babel-execute:python)
+	(org-babel-python-variable-assignments):
+	* ob-ruby.el (org-babel-expand-body:ruby, org-babel-execute:ruby):
+	* ob-sass.el (org-babel-expand-body:sass):
+	* ob-scheme.el (org-babel-expand-body:scheme, org-babel-execute:scheme):
+	* ob-screen.el (org-babel-expand-body:screen):
+	* ob-sh.el (org-babel-expand-body:sh, org-babel-execute:sh)
+	(org-babel-sh-variable-assignments):
+	* ob-sql.el (org-babel-expand-body:sql):
+	* ob-sqlite.el (org-babel-expand-body:sqlite, org-babel-execute:sqlite):
+	* ob.el (org-babel-expand-body:generic):
+	Remove obsoleted optional third argument.
 
 2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
 
@@ -1504,7 +1389,7 @@
 2010-11-11  Dan Davison  <davison@stats.ox.ac.uk>
 
 	* ob-sh.el (org-babel-sh-variable-assignments): Provide missing
-	docstring
+	docstring.
 
 	* ob-python.el (org-babel-python-variable-assignments):
 	Provide missing docstring.
@@ -1600,7 +1485,7 @@
 
 2010-11-11  Noorul Islam  <noorul@noorul.com>
 
-	* org-latex.el (org-export-latex-links) : Replaced hard coded
+	* org-latex.el (org-export-latex-links): Replaced hard coded
 	hyperref format with custom variable
 	`org-export-latex-hyperref-format'.
 
@@ -1654,7 +1539,7 @@
 
 2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
 
-	* ob.el (org-babel-params-from-properties): Max line with at <=80
+	* ob.el (org-babel-params-from-properties): Max line with at <=80.
 
 2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
 
@@ -2034,11 +1919,11 @@
 
 2010-11-11  Jambunathan K  <kjambunathan@gmail.com>  (tiny change)
 
-	* org.el (org-speed-command-hook): New. Hook for installing
-	additional speed commands. Use this for enabling speed commands on
+	* org.el (org-speed-command-hook): New.  Hook for installing
+	additional speed commands.  Use this for enabling speed commands on
 	src blocks.
 	(org-speed-command-default-hook): The default hook for
-	org-speed-command-hook. Factored out from org-self-insert-command
+	org-speed-command-hook.  Factored out from org-self-insert-command
 	and mimics existing behaviour.
 	(org-self-insert-command): Modified to use org-speed-command-hook.
 
@@ -2102,7 +1987,7 @@
 2010-11-11  Bastien Guerry  <bzg@altern.org>
 
 	* org-capture.el (org-capture-templates): Update docstring to
-	advertize %:org-date.
+	advertise %:org-date.
 
 2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
 
@@ -2179,7 +2064,7 @@
 2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
 
 	* ob.el (org-babel-demarcate-block): Interactive demarcation of
-	code blocks
+	code blocks.
 
 	* ob-keys.el (org-babel-key-bindings): Key bindings for block
 	demarcation.
@@ -2234,7 +2119,7 @@
 	[[elisp:(org-agenda-list)]], org-prepare-agenda erases the buffer
 	of the file containing the link, since that buffer is current
 	during org-prepare agenda (due to a with-current-buffer in
-	org-agenda-open-link). An additional test now ensures that the
+	org-agenda-open-link).  An additional test now ensures that the
 	agenda buffer is in fact current when the buffer is erased and
 	local variables for the agenda are set.
 
@@ -2292,7 +2177,7 @@
 
 2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
 
-	* ob-C.el (org): No longer requires org
+	* ob-C.el (org): No longer requires org.
 
 	* ob-ledger.el (org): No longer requires org.
 
@@ -2356,7 +2241,7 @@
 2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
 
 	* ob-keys.el (org-babel-key-bindings): Adding key-binding for
-	`org-babel-goto-src-block-head'
+	`org-babel-goto-src-block-head'.
 
 	* ob.el (org-babel-goto-src-block-head): Jump to the head of the
 	current code block.
@@ -2364,7 +2249,7 @@
 2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
 
 	* ob.el (org-babel-next-src-block): Now raising more informative
-	error when no further code blocks can be found
+	error when no further code blocks can be found.
 	(org-babel-previous-src-block): Now raising more informative error
 	when no previous code blocks can be found.
 
@@ -2376,7 +2261,7 @@
 
 2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
 
-	* ob-plantuml.el (org-babel-execute:plantuml):
+	* ob-plantuml.el (org-babel-execute:plantuml): ????
 
 2010-11-11  Dan Davison  <davison@stats.ox.ac.uk>
 
@@ -2475,7 +2360,7 @@
 2010-11-11  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org-list.el (org-toggle-checkbox): Ignore items in drawers when
-	used from an heading. Send an error when no item is in region.
+	used from an heading.  Send an error when no item is in region.
 
 2010-11-11  Dan Davison  <davison@stats.ox.ac.uk>
 
@@ -2528,7 +2413,7 @@
 2010-11-11  Dan Davison  <davison@stats.ox.ac.uk>
 
 	* org.el (org-fontify-meta-lines-and-blocks): Alter main regexp to
-	match code blocks with switches and header args. Call
+	match code blocks with switches and header args.  Call
 	`org-src-font-lock-fontify-block' for automatic fontification of
 	code in code blocks, controlled by variable
 	`org-src-fontify-natively'.
@@ -2541,14 +2426,14 @@
 
 2010-11-11  Noorul Islam  <noorul@noorul.com>  (tiny change)
 
-	* org-html.el (org-html-make-link): (Expand-file-name ) removes
-	one "/" from "///path-to-file", so add one. Anything other than
+	* org-html.el (org-html-make-link): (expand-file-name) removes
+	one "/" from "///path-to-file", so add one.  Anything other than
 	'file' type should be exported along with the type.
 
 2010-11-11  Noorul Islam  <noorul@noorul.com>  (tiny change)
 
-	* org.el (org-insert-subheading) : Fix compiler warning
-	(org-insert-todo-subheading) : Fix compiler warning.
+	* org.el (org-insert-subheading): Fix compiler warning
+	(org-insert-todo-subheading): Fix compiler warning.
 
 2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>
 
@@ -2589,7 +2474,7 @@
 
 	* org.el (org-indent-line-function): Indentation of source block
 	is left to `org-edit-src-exit' and shouldn't be modified by
-	`org-indent-line-function'. Indentation of others blocks should be
+	`org-indent-line-function'.  Indentation of others blocks should be
 	the same as the #+begin line.
 
 2010-11-11  Dan Davison  <davison@stats.ox.ac.uk>
@@ -2621,7 +2506,7 @@
 2010-11-11  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org-list.el (org-list-ending-method): New customizable variable
-	to tell Org Mode how lists end. See docstring.
+	to tell Org Mode how lists end.  See docstring.
 
 2010-11-11  Nicolas Goaziou  <n.goaziou@gmail.com>
 
@@ -2660,14 +2545,14 @@
 
 	* org-list.el (org-list-insert-item-generic): A single item
 	already counting blank lines in his body should be separated with
-	the next one by a blank line. Moreover, if user already provided
+	the next one by a blank line.  Moreover, if user already provided
 	blank lines, follow his wishes.
 
 2010-11-11  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org-list.el (org-indent-item-tree): When moving top item of a
 	*-list to column 0, only the first item had its bullet changed to
-	-. It now changes all items of the top-level list, as expected.
+	-.  It now changes all items of the top-level list, as expected.
 
 2010-11-11  Nicolas Goaziou  <n.goaziou@gmail.com>
 
@@ -2698,12 +2583,12 @@
 	change.
 
 	* org-list.el (org-indent-item-tree): Prevent whole list from
-	being moved when user is not moving subtree. Thus)
-	(`org-cycle-item-indentation' will not allow to move the list.
+	being moved when user is not moving subtree.  Thus
+	`org-cycle-item-indentation' will not allow to move the list.
 
 2010-11-11  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org-list.el (org-indent-item-tree): Remove region code. It was
+	* org-list.el (org-indent-item-tree): Remove region code.  It was
 	prone to errors and undocumented.
 
 	* org-list.el (org-item-indent-positions): Better heuristics to
@@ -2719,7 +2604,7 @@
 	* org-list.el (org-list-bullet-string): Do not modify match-data.
 
 	* org.el (org-toggle-item): Now working again when changing list
-	items into plain text. Moreover take into consideration
+	items into plain text.  Moreover take into consideration
 	`org-list-two-spaces-after-bullet-regexp'.
 
 2010-11-11  Nicolas Goaziou  <n.goaziou@gmail.com>
@@ -2734,11 +2619,10 @@
 2010-11-11  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org-docbook.el (org-export-as-docbook): Use override="num" in
-	any listitem matching [@start:num]
+	any listitem matching [@start:num].
 
 	* org-html.el (org-export-as-html): Use value="num" in any li
-	matching
-	[@start:num]
+	matching [@start:num].
 
 2010-11-11  Nicolas Goaziou  <n.goaziou@gmail.com>
 
@@ -2814,14 +2698,14 @@
 2010-11-11  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org-list.el (org-indent-item-tree): Try to keep relative
-	position on line. It can't if point is in white spaces before
+	position on line.  It can't if point is in white spaces before
 	bullet because mixed tabs and spaces make some columns
 	unattainable.
 
 2010-11-11  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org-list.el (org-cycle-item-indentation): Cycle when the whole
-	item only contains bullet and maybe a checkbox. Previously, TAB
+	item only contains bullet and maybe a checkbox.  Previously, TAB
 	would cycle when the first line of the item was blank.
 
 2010-11-11  Nicolas Goaziou  <n.goaziou@gmail.com>
@@ -2854,7 +2738,7 @@
 
 	* org-list.el (org-indent-item-tree): If indent rule is activated,
 	it should be impossible to outdent an item having children without
-	moving its subtree. Improved reordering of lists modified by
+	moving its subtree.  Improved reordering of lists modified by
 	cycling indentation.
 
 2010-11-11  Nicolas Goaziou  <n.goaziou@gmail.com>
@@ -2875,7 +2759,7 @@
 2010-11-11  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org-list.el (org-list-insert-item-generic): When local search
-	doesn't help, search the list globally for blank lines. Moreover,
+	doesn't help, search the list globally for blank lines.  Moreover,
 	don't bother with new lists, and add 1 blank line.
 
 2010-11-11  Nicolas Goaziou  <n.goaziou@gmail.com>
@@ -2899,7 +2783,7 @@
 	heading.
 
 	* org-list.el (org-list-make-subtree): Add protection when used
-	outside of list
+	outside of list.
 
 	* org-list.el (org-insert-item): Remove useless hack now
 	`org-in-item-p' is fixed.
@@ -2910,7 +2794,7 @@
 2010-11-11  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org-list.el (org-cycle-list-bullet): Prevent description items
-	from being numbered. String argument is also recognized now, as
+	from being numbered.  String argument is also recognized now, as
 	long as it is a valid bullet.
 
 2010-11-11  Nicolas Goaziou  <n.goaziou@gmail.com>
@@ -2979,8 +2863,8 @@
 
 2010-11-11  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org-timer.el (org-timer-item): Refactoring. Compute timer string
-	before inserting it in the buffer
+	* org-timer.el (org-timer-item): Refactoring.  Compute timer string
+	before inserting it in the buffer.
 
 	* org-timer.el (org-timer): Add an optional argument to return
 	timer string instead of inserting it.
@@ -3012,8 +2896,8 @@
 	a list prior to add a new item.
 
 	* org-timer.el (org-timer-item): When in a timer list, insert a
-	new timer item like `org-insert-item'. If in another list, send an
-	error. Otherwise, start a new timer list.
+	new timer item like `org-insert-item'.  If in another list, send an
+	error.  Otherwise, start a new timer list.
 
 2010-11-11  Nicolas Goaziou  <n.goaziou@gmail.com>
 
@@ -3058,7 +2942,7 @@
 
 	* org-list.el (org-list-send-list): We cannot count on
 	`org-list-top-point' and `org-list-bottom-point' before buffer is
-	narrowed. Find bounds of list otherwise.
+	narrowed.  Find bounds of list otherwise.
 
 2010-11-11  Nicolas Goaziou  <n.goaziou@gmail.com>
 
@@ -3094,7 +2978,7 @@
 2010-11-11  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org-docbook.el (org-export-as-docbook): Properly close any open
-	list when seeing ORG-LIST-END. Removed any reference to now
+	list when seeing ORG-LIST-END.  Removed any reference to now
 	unneeded DIDCLOSE variable.
 
 2010-11-11  Nicolas Goaziou  <n.goaziou@gmail.com>
@@ -3132,7 +3016,7 @@
 	recognize lists.
 
 	* org-latex.el (org-export-latex-lists): Better search for
-	lists. It now only finds items not enclosed and not protected.
+	lists.  It now only finds items not enclosed and not protected.
 
 2010-11-11  Nicolas Goaziou  <n.goaziou@gmail.com>
 
@@ -3167,10 +3051,10 @@
 2010-11-11  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org-list.el (org-search-forward-unenclosed): Fix behavior when
-	last occurence was enclosed.
+	last occurrence was enclosed.
 
 	* org-list.el (org-search-backward-unenclosed): Fix behavior when
-	last occurence was enclosed.
+	last occurrence was enclosed.
 
 2010-11-11  Nicolas Goaziou  <n.goaziou@gmail.com>
 
@@ -3206,8 +3090,8 @@
 
 2010-11-11  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org-html.el: preprocess buffer string and add ORG-LIST-END where
-	needed. Lists should not end before seeing this.
+	* org-html.el: Preprocess buffer string and add ORG-LIST-END where
+	needed.  Lists should not end before seeing this.
 
 2010-11-11  Nicolas Goaziou  <n.goaziou@gmail.com>
 
@@ -3280,7 +3164,7 @@
 	to evaluate code invisibly and block until output file exists.
 
 	* ob-R.el (org-babel-R-evaluate-session): Use `ess-eval-buffer' to
-	evaluate R code in session for :results value. Write result to
+	evaluate R code in session for :results value.  Write result to
 	file invisibly using new function
 	`org-babel-comint-eval-invisibly-and-wait-for-file'.
 
@@ -3309,7 +3193,7 @@
 2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
 
 	* ob-scheme.el: very preliminary support for evaluating scheme
-	code blocks
+	code blocks.
 
 	* org.el (org-babel-load-languages): Adding scheme.
 
@@ -3319,16 +3203,15 @@
 
 2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
 
-	* ob-R.el (ess-make-buffer-current):
-	Declared (ess-ask-for-ess-directory):
-	Declared (ess-local-process-name):
-	Declared * ob-latex.el (org-babel-latex-tex-to-pdf): Capturing free
-	variable
+	* ob-R.el (ess-make-buffer-current): Declared.
+	(ess-ask-for-ess-directory): Declared.
+	(ess-local-process-name): Declared.
+	* ob-latex.el (org-babel-latex-tex-to-pdf): Capturing free variable.
 
-	* ob.el (org-edit-src-code): Fixing arguments
-	(org-edit-src-exit):
-	Declared (org-outline-overlay-data):
-	Declared (org-set-outline-overlay-data): Declared.
+	* ob.el (org-edit-src-code): Fixing arguments.
+	(org-edit-src-exit): Declared.
+	(org-outline-overlay-data): Declared.
+	(org-set-outline-overlay-data): Declared.
 
 2010-11-11  Glenn Morris  <rgm@gnu.org>
 
@@ -3376,7 +3259,7 @@
 2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
 
 	* ob-exp.el (org-babel-exp-do-export): Remove hacky ":noeval",
-	which is now an alias to ":eval no"
+	which is now an alias to ":eval no".
 
 2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
 
@@ -3559,7 +3442,7 @@
 	* ob.el (org-babel-do-in-edit-buffer): New macro to evaluate lisp
 	in the language major mode edit buffer.
 	(org-babel-do-key-sequence-in-edit-buffer): New function to call
-	an arbitrary key sequence in the language major mode edit buffer
+	an arbitrary key sequence in the language major mode edit buffer.
 
 	* org-src.el (org-src-switch-to-buffer): Add new allowed value
 	'switch-invisibly for `org-src-window-setup'.
@@ -3585,7 +3468,7 @@
 	* org-src.el (org-edit-src-code): If at src block, store babel
 	info as buffer local variable.
 	(org-src-associate-babel-session): New function to associate code
-	edit buffer with comint session. Does nothing unless a
+	edit buffer with comint session.  Does nothing unless a
 	language-specific function named
 	`org-babel-LANG-associate-session' exists.
 	(org-src-babel-configure-edit-buffer): New function to be called
@@ -3723,7 +3606,7 @@
 
 2010-11-11  Noorul Islam  <noorul@noorul.com>
 
-	* org.el: org-set-visibility-according-to-property () Use backward
+	* org.el (org-set-visibility-according-to-property): Use backward
 	search instead of forward, so that top hierarchy gets priority.
 
 2010-11-11  Carsten Dominik  <carsten.dominik@gmail.com>
@@ -3809,7 +3692,7 @@
 2010-11-11  Dan Davison  <davison@stats.ox.ac.uk>
 
 	* ob-octave.el: Only (require 'matlab) when necessary.
-	(org-babel-octave-initiate-session) (require) octave-inf or matlab
+	(org-babel-octave-initiate-session): (require) octave-inf or matlab
 	as appropriate.
 	(org-babel-execute:matlab): Remove (require).
 	(org-babel-prep-session:matlab): Remove (require).
@@ -3827,7 +3710,7 @@
 
 2010-11-11  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org-latex.el (org-export-latex-tables): Add label if any
+	* org-latex.el (org-export-latex-tables): Add label if any.
 
 	* org-latex.el (org-export-latex-convert-table.el-table):
 	Fix little mistake when inserting label.
@@ -7328,7 +7211,7 @@
 	New customization variable for allowing the user to create an "auto
 	exclusion" filter for doing context-aware auto tag filtering.
 	(org-agenda-filter-by-tag): Changes to support the use of
-	`org-agenda-auto-exclude-function'.  See the new manual addition,.
+	`org-agenda-auto-exclude-function'.  See the new manual addition.
 
 2009-11-13  John Wiegley  <johnw@newartisans.com>
 
@@ -9398,7 +9281,7 @@
 	(org-export-latex-first-lines): New argument END, to force the end
 	of the region.
 	(org-export-region-as-latex): Use the property list.
-	(org-export-as-latex):
+	(org-export-as-latex): ????
 
 	* org-colview-xemacs.el (org-columns-remove-overlays)
 	(org-columns): Fix call to `local-variable-p'.
@@ -11772,7 +11655,7 @@
 
 2008-10-26  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org-agenda.el (org-agenda-filter-tags,org-agenda-filter-form):
+	* org-agenda.el (org-agenda-filter-tags, org-agenda-filter-form):
 	New variables.
 	(org-prepare-agenda): Reset the filter tags.
 	(org-agenda-filter-by-tag, org-agenda-filter-by-tag-show-all):
@@ -12879,7 +12762,7 @@
 
 	* org.el (org-base-buffer): New function.
 
-	* org-exp.el (org-icalendar-cleanup-string): Make sure ',"
+	* org-exp.el (org-icalendar-cleanup-string): Make sure ","
 	and ";" are escaped.
 	(org-print-icalendar-entries): Also apply
 	`org-icalendar-cleanup-string' to the headline, not only to the

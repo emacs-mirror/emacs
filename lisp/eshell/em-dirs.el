@@ -58,8 +58,9 @@ they lack somewhat in feel from the typical shell equivalents."
 
 ;;; User Variables:
 
-(defcustom eshell-dirs-load-hook '(eshell-dirs-initialize)
+(defcustom eshell-dirs-load-hook nil
   "A hook that gets run when `eshell-dirs' is loaded."
+  :version "24.1"			; removed eshell-dirs-initialize
   :type 'hook
   :group 'eshell-dirs)
 
@@ -233,7 +234,7 @@ Thus, this does not include the current directory.")
 
 (defun eshell-save-some-last-dir ()
   "Save the list-dir-ring for any open Eshell buffers."
-  (eshell-for buf (buffer-list)
+  (dolist (buf (buffer-list))
     (if (buffer-live-p buf)
 	(with-current-buffer buf
 	  (if (and eshell-mode

@@ -2,9 +2,10 @@
 
 ;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
 
-;; Author: Alexandru Harsanyi (AlexHarsanyi@gmail.com)
+;; Author: Alexandru Harsanyi <AlexHarsanyi@gmail.com>
 ;; Created: December, 2009
 ;; Keywords: soap, web-services, comm, hypermedia
+;; Package: soap-client
 ;; Homepage: http://code.google.com/p/emacs-soap-client
 
 ;; This file is part of GNU Emacs.
@@ -323,13 +324,18 @@ added to the namespace."
     ;; if name is nil, use TARGET as a name...
     (cond ((soap-element-p target)
            (setq name (soap-element-name target)))
+          ((consp target)               ; a fq name: (namespace . name)
+           (setq name (cdr target)))
           ((stringp target)
            (cond ((string-match "^\\(.*\\):\\(.*\\)$" target)
                   (setq name (match-string 2 target)))
                  (t
                   (setq name target))))))
 
-  (assert name)                         ; by now, name should be valid
+  ;; by now, name should be valid
+  (assert (and name (not (equal name "")))
+          nil
+          "Cannot determine name for namespace link")
   (push (make-soap-namespace-link :name name :target target)
         (gethash name (soap-namespace-elements ns))))
 
@@ -890,7 +896,11 @@ Return a SOAP-NAMESPACE containing the elements."
       (when (consp c)               ; skip string nodes, which are whitespace
         (let ((node-name (soap-l2wk (xml-node-name c))))
           (cond
-            ((eq node-name 'xsd:sequence)
+            ;; The difference between xsd:all and xsd:sequence is that fields
+            ;; in xsd:all are not ordered and they can occur only once.  We
+            ;; don't care about that difference in soap-client.el
+            ((or (eq node-name 'xsd:sequence)
+                 (eq node-name 'xsd:all))
              (setq type (soap-parse-complex-type-sequence c)))
             ((eq node-name 'xsd:complexContent)
              (setq type (soap-parse-complex-type-complex-content c)))
@@ -909,9 +919,10 @@ NODE is assumed to be an xsd:sequence node.  In that case, each
 of its children is assumed to be a sequence element.  Each
 sequence element is parsed constructing the corresponding type.
 A list of these types is returned."
-  (assert (eq (soap-l2wk (xml-node-name node)) 'xsd:sequence)
+  (assert (let ((n (soap-l2wk (xml-node-name node))))
+            (memq n '(xsd:sequence xsd:all)))
           nil
-          "soap-parse-sequence: expecting xsd:sequence node, got %s"
+          "soap-parse-sequence: expecting xsd:sequence or xsd:all node, got %s"
           (soap-l2wk (xml-node-name node)))
   (let (elements)
     (dolist (e (soap-xml-get-children1 node 'xsd:element))
