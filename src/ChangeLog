@@ -8,6 +8,7 @@
 	(display_line, display_string, rows_from_pos_range):
 	(mouse_face_from_buffer_pos, note_mouse_highlight, expose_frame):
 	Rename or move local decls.
+	* xdisp.c (BUILD_GLYPHLESS_GLYPH_STRING): Omit unused local var.
 
 2011-03-06  Michael Shields  <shields@msrl.com>  (tiny change)
 

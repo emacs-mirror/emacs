@@ -21171,7 +21171,6 @@ compute_overhangs_and_x (struct glyph_string *s, int x, int backward_p)
   do									    \
     {									    \
       int face_id;							    \
-      XChar2b *char2b;							    \
 									    \
       face_id = (row)->glyphs[area][START].face_id;			    \
 									    \
