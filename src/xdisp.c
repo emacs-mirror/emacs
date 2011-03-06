@@ -22267,7 +22267,8 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
     }
   else
     {
-      char buf[7], *str;
+      char buf[7];
+      const char *str;
       unsigned int code[6];
       int upper_len;
       int ascent, descent;

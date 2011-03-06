@@ -9,6 +9,8 @@
 	(mouse_face_from_buffer_pos, note_mouse_highlight, expose_frame):
 	Rename or move local decls.
 	* xdisp.c (BUILD_GLYPHLESS_GLYPH_STRING): Omit unused local var.
+	(produce_glyphless_glyph): Make a pointer "const"
+	since it might point to immutable storage.
 
 2011-03-06  Michael Shields  <shields@msrl.com>  (tiny change)
 
