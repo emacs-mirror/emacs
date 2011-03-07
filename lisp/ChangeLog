@@ -1,3 +1,7 @@
+2011-03-07  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc.el (vc-next-action): Add missing space to y-or-n-p prompt.
+
 2011-03-07  Ed Reingold  <reingold@emr.cs.iit.edu>
 
 	* calendar/cal-hebrew.el (diary-hebrew-yahrzeit):

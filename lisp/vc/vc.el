@@ -1115,7 +1115,7 @@ merge in the changes into your working copy."
 	(dolist (file files)
 	  (unless (file-writable-p file)
 	    ;; Make the file+buffer read-write.
-	    (unless (y-or-n-p (format "%s is edited but read-only; make it writable and continue?" file))
+	    (unless (y-or-n-p (format "%s is edited but read-only; make it writable and continue? " file))
 	      (error "Aborted"))
 	    (set-file-modes file (logior (file-modes file) 128))
 	    (let ((visited (get-file-buffer file)))
