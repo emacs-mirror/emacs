@@ -14,6 +14,8 @@
 
 	* lisp.h (IF_LINT): New macro, copied from ../lib-src/emacsclient.c.
 
+	* xdisp.c (redisplay_window): Rename local to avoid shadowing.
+
 2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (redisplay_window): Revert incorrect logic in 2011-03-06

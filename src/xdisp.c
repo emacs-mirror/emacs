@@ -14163,11 +14163,11 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
     {
       /* The function returns -1 if new fonts were loaded, 1 if
 	 successful, 0 if not successful.  */
-      int rc = try_scrolling (window, just_this_one_p,
+      int ss = try_scrolling (window, just_this_one_p,
 			      scroll_conservatively,
 			      emacs_scroll_step,
 			      temp_scroll_step, last_line_misfit);
-      switch (rc)
+      switch (ss)
 	{
 	case SCROLLING_SUCCESS:
 	  goto done;
