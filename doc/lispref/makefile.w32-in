@@ -87,6 +87,7 @@ srcs = \
   $(srcdir)/numbers.texi \
   $(srcdir)/objects.texi \
   $(srcdir)/os.texi \
+  $(srcdir)/package.texi \
   $(srcdir)/positions.texi \
   $(srcdir)/processes.texi \
   $(srcdir)/searching.texi \
