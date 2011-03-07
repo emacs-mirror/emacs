@@ -1,3 +1,8 @@
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/cc-cmds.el (c-beginning-of-statement): Fix incorrect
+	application of patch from Alan Mackenzie (Bug#7595).
+
 2011-03-07  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
 
 	* net/rcirc.el (rcirc-connect): Fix PASS bug.
