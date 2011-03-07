@@ -23,6 +23,8 @@
 	(run_window_configuration_change_hook, enlarge_window): Likewise.
 
 	* window.c (display_buffer): Now static.
+	* window.h (check_all_windows): New decl, to forestall
+	gcc -Wmissing-prototypes diagnostic.
 
 2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
