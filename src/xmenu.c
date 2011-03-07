@@ -1598,7 +1598,7 @@ create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv,
 
 Lisp_Object
 xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
-	    Lisp_Object title, const char **error, EMACS_UINT timestamp)
+	    Lisp_Object title, const char **error_name, EMACS_UINT timestamp)
 {
   int i;
   widget_value *wv, *save_wv = 0, *first_wv = 0, *prev_wv = 0;
@@ -1613,11 +1613,11 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
   if (! FRAME_X_P (f))
     abort ();
 
-  *error = NULL;
+  *error_name = NULL;
 
   if (menu_items_used <= MENU_ITEMS_PANE_LENGTH)
     {
-      *error = "Empty menu";
+      *error_name = "Empty menu";
       return Qnil;
     }
 
