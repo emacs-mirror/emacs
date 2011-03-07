@@ -1,3 +1,9 @@
+2011-03-07  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* nsterm.m (ns_draw_window_cursor): Fix handling of "cursor_width"
+	parameter for hbar cursors.  Based on a patch by Ben Key
+	<bkey76@gmail.com>.
+
 2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (redisplay_window): Revert incorrect logic in 2011-03-06
