@@ -60,6 +60,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <dlgs.h>
 #include <imm.h>
 #define FILE_NAME_TEXT_FIELD edt1
+#define FILE_NAME_COMBO_BOX cmb13
+#define FILE_NAME_LIST lst1
 
 #include "font.h"
 #include "w32font.h"
@@ -5868,13 +5870,37 @@ file_dialog_callback (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
 	  HWND dialog = GetParent (hwnd);
 	  HWND edit_control = GetDlgItem (dialog, FILE_NAME_TEXT_FIELD);
+	  HWND list = GetDlgItem (dialog, FILE_NAME_LIST);
 
-	  /* Directories is in index 2.  */
+	  /* At least on Windows 7, the above attempt to get the window handle
+	     to the File Name Text Field fails.	 The following code does the
+	     job though.  Note that this code is based on my examination of the
+	     window hierarchy using Microsoft Spy++.  bk */
+	  if (edit_control == NULL)
+	    {
+	      HWND tmp = GetDlgItem (dialog, FILE_NAME_COMBO_BOX);
+	      if (tmp)
+		{
+		  tmp = GetWindow (tmp, GW_CHILD);
+		  if (tmp)
+		    edit_control = GetWindow (tmp, GW_CHILD);
+		}
+	    }
+
+	  /* Directories is in index 2.	 */
 	  if (notify->lpOFN->nFilterIndex == 2)
 	    {
 	      CommDlg_OpenSave_SetControlText (dialog, FILE_NAME_TEXT_FIELD,
 					       "Current Directory");
 	      EnableWindow (edit_control, FALSE);
+	      /* Note that at least on Windows 7, the above call to EnableWindow
+		 disables the window that would ordinarily have focus.	If we
+		 do not set focus to some other window here, focus will land in
+		 no man's land and the user will be unable to tab through the
+		 dialog box (pressing tab will only result in a beep).
+		 Avoid that problem by setting focus to the list here.	*/
+	      if (CDN_INITDONE == notify->hdr.code)
+		SetFocus (list);
 	    }
 	  else
 	    {
@@ -5950,6 +5976,13 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
     }
   else
     filename[0] = '\0';
+
+  /* The code in file_dialog_callback that attempts to set the text
+     of the file name edit window when handling the CDN_INITDONE
+     WM_NOTIFY message does not work.  Setting filename to "Current
+     Directory" in the only_dir_p case here does work however.  */
+  if (filename[0] == 0 && ! NILP (only_dir_p))
+    strcpy (filename, "Current Directory");
 
   {
     NEWOPENFILENAME new_file_details;
