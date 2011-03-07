@@ -1,3 +1,8 @@
+2011-03-07  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
+
+	* play/morse.el (nato-alphabet, nato-region, denato-region):
+	New variable and functions.  (Bug#2288)
+
 2011-03-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/gud.el (gdb-script-syntax-propertize-function):
