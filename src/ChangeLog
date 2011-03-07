@@ -5,6 +5,8 @@
 	(xmenu_show): Rename parameter to avoid shadowing.
 	(xmenu_show, xdialog_show, xmenu_show): Make local pointers "const"
 	since they might point to immutable storage.
+	(next_menubar_widget_id): Declare only if USE_X_TOOLKIT,
+	since it's unused otherwise.
 
 	* xdisp.c (produce_glyphless_glyph): Initialize lower_xoff.
 	Add a FIXME comment, since the code still doesn't look right.

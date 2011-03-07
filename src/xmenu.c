@@ -124,10 +124,10 @@ static int update_frame_menubar (struct frame *);
    Xt on behalf of one of the widget sets.  */
 static int popup_activated_flag;
 
-static int next_menubar_widget_id;
-
 
 #ifdef USE_X_TOOLKIT
+
+static int next_menubar_widget_id;
 
 /* Return the frame whose ->output_data.x->id equals ID, or 0 if none.  */
 
