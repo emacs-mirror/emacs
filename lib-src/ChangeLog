@@ -119,7 +119,7 @@
 	($(BLD)/etags.$(O), $(BLD)/movemail.$(O), $(BLD)/ntlib.$(O)):
 	Depend on $(EMACS_ROOT)/nt/inc/sys/stat.h.
 
-2011-02-21  Ben Key  <bkey76@gmail.com>  (tiny change)
+2011-02-21  Ben Key  <bkey76@gmail.com>
 
 	* make-docfile.c (scan_c_file): Adapt DEFVAR_PER_BUFFER case to
 	the new BVAR macro.
