@@ -1,6 +1,7 @@
 2011-03-07  Glenn Morris  <rgm@gnu.org>
 
 	* vc/vc.el (vc-next-action): Add missing space to y-or-n-p prompt.
+	Give an explicit error if failed to make writable.  (Bug#6146)
 
 2011-03-07  Ed Reingold  <reingold@emr.cs.iit.edu>
 

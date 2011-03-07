@@ -1117,7 +1117,10 @@ merge in the changes into your working copy."
 	    ;; Make the file+buffer read-write.
 	    (unless (y-or-n-p (format "%s is edited but read-only; make it writable and continue? " file))
 	      (error "Aborted"))
-	    (set-file-modes file (logior (file-modes file) 128))
+            ;; Maybe we somehow lost permissions on the directory.
+            (condition-case nil
+                (set-file-modes file (logior (file-modes file) 128))
+              (error (error "Unable to make file writable")))
 	    (let ((visited (get-file-buffer file)))
 	      (when visited
 		(with-current-buffer visited
