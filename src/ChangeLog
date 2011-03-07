@@ -22,6 +22,8 @@
 	* window.c (window_loop, size_window):
 	(run_window_configuration_change_hook, enlarge_window): Likewise.
 
+	* window.c (display_buffer): Now static.
+
 2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (redisplay_window): Revert incorrect logic in 2011-03-06

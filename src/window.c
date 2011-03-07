@@ -3604,7 +3604,7 @@ select_frame_norecord (Lisp_Object frame)
     ? Fselect_frame (frame, Qt) : selected_frame;
 }
 
-Lisp_Object
+static Lisp_Object
 display_buffer (Lisp_Object buffer, Lisp_Object not_this_window_p, Lisp_Object override_frame)
 {
   return call3 (Qdisplay_buffer, buffer, not_this_window_p, override_frame);
