@@ -1662,7 +1662,7 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 	{
 	  /* Create a new pane.  */
 	  Lisp_Object pane_name, prefix;
-	  char *pane_string;
+	  const char *pane_string;
 
 	  pane_name = AREF (menu_items, i + MENU_ITEMS_PANE_NAME);
 	  prefix = AREF (menu_items, i + MENU_ITEMS_PANE_PREFIX);
@@ -2010,7 +2010,7 @@ xdialog_show (FRAME_PTR f,
      representing the text label and buttons.  */
   {
     Lisp_Object pane_name, prefix;
-    char *pane_string;
+    const char *pane_string;
     pane_name = XVECTOR (menu_items)->contents[MENU_ITEMS_PANE_NAME];
     prefix = XVECTOR (menu_items)->contents[MENU_ITEMS_PANE_PREFIX];
     pane_string = (NILP (pane_name)
@@ -2305,7 +2305,7 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 	{
 	  /* Create a new pane.  */
 	  Lisp_Object pane_name, prefix;
-	  char *pane_string;
+	  const char *pane_string;
 
           maxlines = max (maxlines, lines);
           lines = 0;
