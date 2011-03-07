@@ -879,12 +879,17 @@ use when highlighting the day in the calendar."
 (declare-function diary-ordinal-suffix "diary-lib" (n))
 
 ;;;###diary-autoload
-(defun diary-hebrew-yahrzeit (death-month death-day death-year &optional mark)
+(defun diary-hebrew-yahrzeit (death-month death-day death-year
+                                          &optional mark after-sunset)
   "Yahrzeit diary entry--entry applies if date is Yahrzeit or the day before.
 Parameters are DEATH-MONTH, DEATH-DAY, DEATH-YEAR; the diary
 entry is assumed to be the name of the person.  Although the date
 of death is specified by the civil calendar, the proper Hebrew
 calendar Yahrzeit is determined.
+
+If the death occurred after local sunset on the given civil date,
+the following civil date corresponds to the Hebrew date of
+death--set the optional parameter AFTER-SUNSET non-nil in this case.
 
 The order of the input parameters changes according to `calendar-date-style'
 \(e.g. to DEATH-DAY, DEATH-MONTH, DEATH-YEAR in the European style).
@@ -892,8 +897,9 @@ The order of the input parameters changes according to `calendar-date-style'
 An optional parameter MARK specifies a face or single-character string to
 use when highlighting the day in the calendar."
   (let* ((h-date (calendar-hebrew-from-absolute
-                  (calendar-absolute-from-gregorian
-                   (diary-make-date death-month death-day death-year))))
+                  (+ (calendar-absolute-from-gregorian
+                      (diary-make-date death-month death-day death-year))
+                     (if after-sunset 1 0))))
          (h-month (calendar-extract-month h-date))
          (h-day (calendar-extract-day h-date))
          (h-year (calendar-extract-year h-date))
