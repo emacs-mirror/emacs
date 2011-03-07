@@ -645,6 +645,8 @@ binding `log-view-expanded-log-entry-function' to a suitable function.
 ---
 *** `copyright-fix-years' can optionally convert consecutive years to ranges.
 
+*** New command `nato-region' converts text to NATO phonetic alphabet.
+
 
 * New Modes and Packages in Emacs 24.1
 
