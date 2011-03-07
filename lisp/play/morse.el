@@ -151,7 +151,7 @@ Geospatial-Intelligence Agency at http://www.nga.mil/")
 ;;;###autoload
 (defun morse-region (beg end)
   "Convert all text in a given region to morse code."
-  (interactive "r")
+  (interactive "*r")
   (if (integerp end)
       (setq end (copy-marker end)))
   (save-excursion
@@ -174,7 +174,7 @@ Geospatial-Intelligence Agency at http://www.nga.mil/")
 ;;;###autoload
 (defun unmorse-region (beg end)
   "Convert morse coded text in region to ordinary ASCII text."
-  (interactive "r")
+  (interactive "*r")
   (if (integerp end)
       (setq end (copy-marker end)))
   (save-excursion

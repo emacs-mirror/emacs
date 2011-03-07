@@ -2,6 +2,7 @@
 
 	* play/morse.el (nato-alphabet, nato-region, denato-region):
 	New variable and functions.  (Bug#2288)
+	(morse-region, unmorse-region): Barf if read-only.
 
 2011-03-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
