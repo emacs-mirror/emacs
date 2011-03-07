@@ -2458,13 +2458,15 @@ function does not require the declaration to contain a brace block."
 	  (goto-char last)
 	  (throw 'done '(nil . nil)))
 
-	 ;; Stop if we encounter a preprocessor line.
-	 ((and (not macro-end)
+	 ;; Stop if we encounter a preprocessor line.  Continue if we
+	 ;; hit a naked #
+	 ((and c-opt-cpp-prefix
+	       (not macro-end)
 	       (eq (char-after) ?#)
 	       (= (point) (c-point 'boi)))
-	  (goto-char last)
-	  ;(throw 'done (cons (eq (point) here) 'macro-boundary))) ; Changed 2003/3/26
-	  (throw 'done '(t . macro-boundary)))
+	  (if (= (point) here)          ; Not a macro, therefore naked #.
+	      (forward-char)
+	    (throw 'done '(t . macro-boundary))))
 
 	 ;; Stop after a ';', '}', or "};"
 	 ((looking-at ";\\|};?")
@@ -2663,14 +2665,19 @@ sentence motion in or near comments and multiline strings."
 		;; Are we about to move forward into or out of a
 		;; preprocessor command?
 		(when (eq (cdr res) 'macro-boundary)
-		  (save-excursion
-		    (end-of-line)
-		    (setq macro-fence
-			  (and (not (eobp))
-			       (progn (c-skip-ws-forward)
-				      (c-beginning-of-macro))
-			       (progn (c-end-of-macro)
-				      (point))))))
+		  (setq macro-fence
+			(save-excursion
+			  (if macro-fence
+			      (progn
+				(end-of-line)
+				(and (not (eobp))
+				     (progn (c-skip-ws-forward)
+					    (c-beginning-of-macro))
+				     (progn (c-end-of-macro)
+					    (point))))
+			    (and (not (eobp))
+				 (c-beginning-of-macro)
+				 (progn (c-end-of-macro) (point)))))))
 		;; Are we about to move forward into a literal?
 		(when (memq (cdr res) '(macro-boundary literal))
 		  (setq range (c-ascertain-following-literal)))

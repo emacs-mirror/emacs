@@ -4,8 +4,8 @@
 
 2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
 
-	* progmodes/cc-cmds.el (c-beginning-of-statement): Revert
-	2011-01-31 change.
+	* progmodes/cc-cmds.el (c-beginning-of-statement): Fix 2011-01-31
+	change; patch supplied by Alan Mackenzie was applied incorrectly.
 
 2011-02-26  Eli Zaretskii  <eliz@gnu.org>
 
