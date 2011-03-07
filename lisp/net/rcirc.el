@@ -548,7 +548,7 @@ If ARG is non-nil, instead prompt for connection parameters."
       (add-hook 'auto-save-hook 'rcirc-log-write)
 
       ;; identify
-      (when password
+      (unless (zerop (length password))
         (rcirc-send-string process (concat "PASS " password)))
       (rcirc-send-string process (concat "NICK " nick))
       (rcirc-send-string process (concat "USER " user-name
