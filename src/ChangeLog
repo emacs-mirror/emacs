@@ -41,6 +41,15 @@
 	* coding.c (coding_set_source, coding_set_destination):
 	Use "else { /* comment */ }" rather than "else /* comment */;"
 	for clarity, and to avoid gcc -Wempty-body warning.
+	(Fdefine_coding_system_internal): Don't redeclare 'i' inside
+	a block, when the outer 'i' will do.
+	(decode_coding_utf_8, decode_coding_utf_16, detect_coding_emacs_mule):
+	(emacs_mule_char, decode_coding_emacs_mule, detect_coding_iso_2022):
+	(decode_coding_iso_2022, decode_coding_sjis, decode_coding_big5):
+	(decode_coding_raw_text, decode_coding_charset, get_translation_table):
+	(Fdecode_sjis_char, Fdefine_coding_system_internal):
+	Rename locals to avoid shadowing.
+	* character.h (FETCH_STRING_CHAR_ADVANCE): Likewise.
 
 2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
