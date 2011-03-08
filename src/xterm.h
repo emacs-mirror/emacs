@@ -675,9 +675,20 @@ enum
 #define gtk_adjustment_get_upper(w) ((w)->upper)
 #endif
 
+#ifdef HAVE_GTK3
+#define DEFAULT_GDK_DISPLAY() \
+  gdk_x11_display_get_xdisplay (gdk_display_get_default ())
+#else
+#undef GDK_WINDOW_XID
+#define GDK_WINDOW_XID(w) GDK_WINDOW_XWINDOW (w)
+#define DEFAULT_GDK_DISPLAY() GDK_DISPLAY ()
+#define gtk_widget_get_preferred_size(a, ign, b) \
+  gtk_widget_size_request(a, b)
+#endif
+
 #define GTK_WIDGET_TO_X_WIN(w) \
   ((w) && gtk_widget_get_window (w) \
-   ? GDK_WINDOW_XWINDOW (gtk_widget_get_window (w)) : 0)
+   ? GDK_WINDOW_XID (gtk_widget_get_window (w)) : 0)
 
 #define FRAME_GTK_OUTER_WIDGET(f) ((f)->output_data.x->widget)
 #define FRAME_GTK_WIDGET(f) ((f)->output_data.x->edit_widget)

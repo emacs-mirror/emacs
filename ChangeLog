@@ -1,3 +1,7 @@
+2011-03-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in: Require 3.0 for --with-gtk3.  Add HAVE_GTK3.
+
 2011-03-06  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (FREETYPE_LIBS): Actually set it to something.

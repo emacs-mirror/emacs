@@ -660,8 +660,11 @@ The color for the border shadow, on the top and the left.
 @iftex
   The most common way to customize the GTK widgets Emacs uses (menus, dialogs
 tool bars and scroll bars) is by choosing an appropriate theme, for example
-with the GNOME theme selector.  You can also do Emacs specific customization
-by inserting GTK style directives in the file @file{~/.emacs.d/gtkrc}.  Some GTK
+with the GNOME theme selector.  
+
+You can also do Emacs specific customization
+by inserting GTK style directives in the file @file{~/.emacs.d/gtkrc},
+but only if you have a Gtk+ version earlier than 3 (i.e. 2).   Some GTK
 themes ignore customizations in @file{~/.emacs.d/gtkrc} so not everything
 works with all themes.  To customize Emacs font, background, faces, etc., use
 the normal X resources (@pxref{Resources}).  We will present some examples of

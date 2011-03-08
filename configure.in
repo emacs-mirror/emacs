@@ -1826,8 +1826,8 @@ fi
 
 HAVE_GTK=no
 if test "${with_gtk3}" = "yes"; then
-  GLIB_REQUIRED=2.6
-  GTK_REQUIRED=2.90
+  GLIB_REQUIRED=2.28
+  GTK_REQUIRED=3.0
   GTK_MODULES="gtk+-3.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
 
   dnl Checks for libraries.
@@ -1835,6 +1835,7 @@ if test "${with_gtk3}" = "yes"; then
   if test "$pkg_check_gtk" = "no" && test "$USE_X_TOOLKIT" != "maybe"; then
      AC_MSG_ERROR($GTK_PKG_ERRORS)
   fi
+  AC_DEFINE(HAVE_GTK3, 1, [Define to 1 if using GTK 3 or later.])
 fi
 
 if test "$pkg_check_gtk" != "yes"; then

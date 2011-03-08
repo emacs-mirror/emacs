@@ -1390,7 +1390,7 @@ menu_position_func (GtkMenu *menu, gint *x, gint *y, gboolean *push_in, gpointer
 
   /* Check if there is room for the menu.  If not, adjust x/y so that
      the menu is fully visible.  */
-  gtk_widget_size_request (GTK_WIDGET (menu), &req);
+  gtk_widget_get_preferred_size (GTK_WIDGET (menu), NULL, &req);
   if (data->x + req.width > disp_width)
     *x -= data->x + req.width - disp_width;
   if (data->y + req.height > disp_height)

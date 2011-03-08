@@ -1,3 +1,8 @@
+2011-03-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xresources.texi (GTK resources): ~/.emacs.d/gtkrc does not work
+	for Gtk+ 3.
+
 2011-03-08  Glenn Morris  <rgm@gnu.org>
 
 	* display.texi (Optional Mode Line): Don't mention exactly where

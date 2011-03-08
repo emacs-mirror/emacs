@@ -1,3 +1,55 @@
+2011-03-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.h (DEFAULT_GDK_DISPLAY): New define.
+	(GDK_WINDOW_XID, gtk_widget_get_preferred_size): New defines
+	for ! HAVE_GTK3.
+	(GTK_WIDGET_TO_X_WIN): Use GDK_WINDOW_XID.
+
+	* xmenu.c (menu_position_func): Call gtk_widget_get_preferred_size.
+
+	* gtkutil.c: Include gtkx.h if HAVE_GTK3.  If ! HAVE_GTK3, define
+	gdk_window_get_screen, gdk_window_get_geometry,
+	gdk_x11_window_lookup_for_display and GDK_KEY_g.
+	(xg_set_screen): Use DEFAULT_GDK_DISPLAY.
+	(xg_get_pixbuf_from_pixmap): New function.
+	(xg_get_pixbuf_from_pix_and_mask): Change parameters from GdkPixmap
+	to Pixmap, take frame as parameter, remove GdkColormap parameter.
+	Call xg_get_pixbuf_from_pixmap instead of
+	gdk_pixbuf_get_from_drawable.
+	(xg_get_image_for_pixmap): Do not make GdkPixmaps, call
+	xg_get_pixbuf_from_pix_and_mask with Pixmap parameters instead.
+	(xg_check_special_colors): Use GtkStyleContext and its functions
+	for HAVE_GTK3.
+	(xg_prepare_tooltip, xg_hide_tooltip): Call gdk_window_get_screen.
+	(xg_prepare_tooltip, create_dialog, menubar_map_cb)
+	(xg_update_frame_menubar, xg_tool_bar_detach_callback)
+	(xg_tool_bar_attach_callback, xg_update_tool_bar_sizes): Call
+	gtk_widget_get_preferred_size.
+	(xg_frame_resized): gdk_window_get_geometry only takes 5
+	parameters.
+	(xg_win_to_widget, xg_event_is_for_menubar): Call
+	gdk_x11_window_lookup_for_display.
+	(xg_set_widget_bg): New function.
+	(delete_cb): New function.
+	(xg_create_frame_widgets): connect delete-event to delete_cb.
+	Call xg_set_widget_bg.  Only set backgrund pixmap for ! HAVE_GTK3
+	(xg_set_background_color): Call xg_set_widget_bg.
+	(xg_set_frame_icon): Call xg_get_pixbuf_from_pix_and_mask.
+	(xg_create_scroll_bar): vadj is a GtkAdjustment for HAVE_GTK3.
+	Only call gtk_range_set_update_policy if ! HAVE_GTK3.
+	(xg_make_tool_item): Only connect xg_tool_bar_item_expose_callback
+	if ! HAVE_GTK3.
+	(update_frame_tool_bar): Call gtk_widget_hide.
+	(xg_initialize): Use GDK_KEY_g.
+
+	* xsmfns.c (gdk_set_sm_client_id): Define to gdk_set_sm_client_id
+	if ! HAVE_GTK3
+	(x_session_initialize): Call gdk_x11_set_sm_client_id.
+
+	* xterm.c (XFillRectangle): Use cairo routines for HAVE_GTK3.
+	(x_term_init): Disable Xinput(2) with GDK_CORE_DEVICE_EVENTS.
+	Load ~/emacs.d/gtkrc only for ! HAVE_GTK3.
+
 2011-03-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32xfns.c (select_palette): Check success of RealizePalette against

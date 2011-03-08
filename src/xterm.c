@@ -3021,6 +3021,17 @@ XTflash (struct frame *f)
     /* Use Gdk routines to draw.  This way, we won't draw over scroll bars
        when the scroll bars and the edit widget share the same X window.  */
     GdkWindow *window = gtk_widget_get_window (FRAME_GTK_WIDGET (f));
+#ifdef HAVE_GTK3
+    cairo_t *cr = gdk_cairo_create (window);
+    cairo_set_source_rgb (cr, 1, 1, 1);
+    cairo_set_operator (cr, CAIRO_OPERATOR_DIFFERENCE);
+#define XFillRectangle(d, win, gc, x, y, w, h) \
+    do {                                       \
+      cairo_rectangle (cr, x, y, w, h);        \
+      cairo_fill (cr);                         \
+    }                                          \
+    while (0)
+#else /* ! HAVE_GTK3 */
     GdkGCValues vals;
     GdkGC *gc;
     vals.foreground.pixel = (FRAME_FOREGROUND_PIXEL (f)
@@ -3030,7 +3041,8 @@ XTflash (struct frame *f)
                                  &vals, GDK_GC_FUNCTION | GDK_GC_FOREGROUND);
 #define XFillRectangle(d, win, gc, x, y, w, h) \
     gdk_draw_rectangle (window, gc, TRUE, x, y, w, h)
-#else
+#endif /* ! HAVE_GTK3 */
+#else /* ! USE_GTK */
     GC gc;
 
     /* Create a GC that will use the GXxor function to flip foreground
@@ -3151,7 +3163,11 @@ XTflash (struct frame *f)
 			width, height - 2 * FRAME_INTERNAL_BORDER_WIDTH (f));
 
 #ifdef USE_GTK
+#ifdef HAVE_GTK3
+      cairo_destroy (cr);
+#else
       g_object_unref (G_OBJECT (gc));
+#endif
 #undef XFillRectangle
 #else
       XFreeGC (FRAME_X_DISPLAY (f), gc);
@@ -9863,6 +9879,13 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
         XSetLocaleModifiers ("");
 
+        /* Emacs can only handle core input events, so make sure
+           Gtk doesn't use Xinput or Xinput2 extensions.  */
+        {
+          static char fix_events[] = "GDK_CORE_DEVICE_EVENTS=1";
+          putenv (fix_events);
+        }
+
         /* Work around GLib bug that outputs a faulty warning. See
            https://bugzilla.gnome.org/show_bug.cgi?id=563627.  */
         id = g_log_set_handler ("GLib", G_LOG_LEVEL_WARNING | G_LOG_FLAG_FATAL
@@ -9874,11 +9897,12 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
         fixup_locale ();
         xg_initialize ();
 
-        dpy = GDK_DISPLAY ();
+        dpy = DEFAULT_GDK_DISPLAY ();
 
         /* NULL window -> events for all windows go to our function */
         gdk_window_add_filter (NULL, event_handler_gdk, NULL);
 
+#if GTK_MAJOR_VERSION <= 2 && GTK_MINOR_VERSION <= 90
         /* Load our own gtkrc if it exists.  */
         {
           const char *file = "~/.emacs.d/gtkrc";
@@ -9890,6 +9914,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
           if (! NILP (abs_file) && !NILP (Ffile_readable_p (abs_file)))
             gtk_rc_parse (SSDATA (abs_file));
         }
+#endif
 
         XSetErrorHandler (x_error_handler);
         XSetIOErrorHandler (x_io_error_quitter);

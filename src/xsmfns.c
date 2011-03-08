@@ -41,6 +41,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "process.h"
 #include "keyboard.h"
 
+#ifndef HAVE_GTK3
+#define gdk_x11_set_sm_client_id(w) gdk_set_sm_client_id (w) 
+#endif
+
 /* This is the event used when SAVE_SESSION_EVENT occurs.  */
 
 static struct input_event emacs_event;
@@ -459,7 +463,7 @@ x_session_initialize (struct x_display_info *dpyinfo)
 #ifdef USE_GTK
       /* GTK creats a leader window by itself, but we need to tell
          it about our client_id.  */
-      gdk_set_sm_client_id (client_id);
+      gdk_x11_set_sm_client_id (client_id);
 #else
       create_client_leader_window (dpyinfo, client_id);
 #endif

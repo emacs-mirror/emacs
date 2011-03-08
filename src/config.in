@@ -285,6 +285,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `grantpt' function. */
 #undef HAVE_GRANTPT
 
+/* Define to 1 if using GTK 3 or later. */
+#undef HAVE_GTK3
+
 /* Define to 1 if you have the `gtk_adjustment_get_page_size' function. */
 #undef HAVE_GTK_ADJUSTMENT_GET_PAGE_SIZE
 
