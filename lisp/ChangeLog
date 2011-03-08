@@ -1,3 +1,8 @@
+2011-03-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.el (custom-available-themes): Return themes in
+	alphabetical order.
+
 2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/cc-cmds.el (c-beginning-of-statement): Fix incorrect

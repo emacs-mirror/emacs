@@ -1219,7 +1219,7 @@ NAME should be a symbol."
 	       (setq sym (intern (match-string 1 file)))
 	       (custom-theme-name-valid-p sym)
 	       (push sym themes)))))
-    (delete-dups themes)))
+    (nreverse (delete-dups themes))))
 
 (defun custom-theme--load-path ()
   (let (lpath)
