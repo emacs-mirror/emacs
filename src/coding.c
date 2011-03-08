@@ -2954,7 +2954,12 @@ detect_coding_iso_2022 (struct coding_system *coding,
   const unsigned char *src_end = coding->source + coding->src_bytes;
   int multibytep = coding->src_multibyte;
   int single_shifting = 0;
-  int id;
+
+  /* FIXME: Does ID need to be initialized here?  The "End of composition"
+     code below does not initialize ID even though ID is used
+     afterwards, and perhaps that is a bug.  */
+  int id = 0;
+
   int c, c1;
   int consumed_chars = 0;
   int i;

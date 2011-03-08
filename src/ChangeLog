@@ -56,6 +56,9 @@
 	(decode_coding_object, encode_coding_object, detect_coding_system):
 	(decode_coding_emacs_mule): Mark variables that gcc
 	-Wuninitialized does not deduce are never used uninitialized.
+	(detect_coding_iso_2022): Initialize a local variable that might
+	be used uninitialized.  Leave a FIXME because it's not clear that
+	this initialization is needed.
 	(ISO_CODE_LF, ISO_CODE_CR, CODING_ISO_FLAG_EUC_TW_SHIFT):
 	(ONE_MORE_BYTE_NO_CHECK, UTF_BOM, UTF_16_INVALID_P):
 	(SHIFT_OUT_OK, ENCODE_CONTROL_SEQUENCE_INTRODUCER):
