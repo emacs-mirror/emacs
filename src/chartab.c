@@ -118,7 +118,7 @@ char_table_ascii (Lisp_Object table)
   return XSUB_CHAR_TABLE (sub)->contents[0];
 }
 
-Lisp_Object
+static Lisp_Object
 copy_sub_char_table (Lisp_Object table)
 {
   Lisp_Object copy;
@@ -951,7 +951,7 @@ map_sub_char_table_for_charset (void (*c_function) (Lisp_Object, Lisp_Object),
    map_charset_chars.  */
 
 void
-map_char_table_for_charset (void (*c_function) (Lisp_Object, Lisp_Object), 
+map_char_table_for_charset (void (*c_function) (Lisp_Object, Lisp_Object),
 			    Lisp_Object function, Lisp_Object table, Lisp_Object arg,
 			    struct charset *charset,
 			    unsigned from, unsigned to)
@@ -1012,4 +1012,3 @@ syms_of_chartab (void)
   defsubr (&Soptimize_char_table);
   defsubr (&Smap_char_table);
 }
-
