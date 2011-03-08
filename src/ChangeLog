@@ -27,6 +27,7 @@
 	does not deduce are never used uninitialized.
 	* window.h (check_all_windows): New decl, to forestall
 	gcc -Wmissing-prototypes diagnostic.
+	* dispextern.h (bidi_dump_cached_states): Likewise.
 
 	* charset.h (CHECK_CHARSET_GET_CHARSET): Rename locals to avoid
 	shadowing.
