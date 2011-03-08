@@ -31,6 +31,9 @@
 	* charset.h (CHECK_CHARSET_GET_CHARSET): Rename locals to avoid
 	shadowing.
 	* charset.c (map_charset_for_dump, Fchar_charset): Likewise.
+	Include <limits.h>.
+	(Fsort_charsets): Redo min/max calculation to shorten the code a bit
+	and to avoid gcc -Wuninitialized warning.
 
 2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
 

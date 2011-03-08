@@ -29,6 +29,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <limits.h>
 #include <sys/types.h>
 #include <setjmp.h>
 #include "lisp.h"
@@ -2250,7 +2251,7 @@ See also `charset-priority-list' and `set-charset-priority'.  */)
   int n = XFASTINT (len), i, j, done;
   Lisp_Object tail, elt, attrs;
   struct charset_sort_data *sort_data;
-  int id, min_id, max_id;
+  int id, min_id = INT_MAX, max_id = INT_MIN;
   USE_SAFE_ALLOCA;
 
   if (n == 0)
@@ -2262,11 +2263,9 @@ See also `charset-priority-list' and `set-charset-priority'.  */)
       CHECK_CHARSET_GET_ATTR (elt, attrs);
       sort_data[i].charset = elt;
       sort_data[i].id = id = XINT (CHARSET_ATTR_ID (attrs));
-      if (i == 0)
-	min_id = max_id = id;
-      else if (id < min_id)
+      if (id < min_id)
 	min_id = id;
-      else if (id > max_id)
+      if (id > max_id)
 	max_id = id;
     }
   for (done = 0, tail = Vcharset_ordered_list, i = 0;
