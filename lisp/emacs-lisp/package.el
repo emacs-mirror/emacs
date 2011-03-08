@@ -1040,7 +1040,7 @@ makes them available for download."
   (unless (file-exists-p package-user-dir)
     (make-directory package-user-dir t))
   (dolist (archive package-archives)
-    (condition-case nil
+    (condition-case-no-debug nil
 	(package--download-one-archive archive "archive-contents")
       (error (message "Failed to download `%s' archive."
 		      (car archive)))))
@@ -1468,7 +1468,7 @@ packages marked for deletion are removed."
 				delete-list
 				", "))))
 	  (dolist (elt delete-list)
-	    (condition-case err
+	    (condition-case-no-debug err
 		(package-delete (car elt) (cdr elt))
 	      (error (message (cadr err)))))
 	(error "Aborted")))
