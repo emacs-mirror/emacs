@@ -1,3 +1,7 @@
+2011-03-08  Kristoffer Grönlund  <krig@koru.se>
+
+	* themes/wombat-theme.el: New file.
+
 2011-03-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* srecode/el.srt: Fix typo.
