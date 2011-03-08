@@ -72,7 +72,6 @@ static Lisp_Object bidi_type_table, bidi_mirror_table;
 #define RLO_CHAR   0x202E
 
 #define BIDI_EOB   -1
-#define BIDI_BOB   -2		/* FIXME: Is this needed? */
 
 /* Local data structures.  (Look in dispextern.h for the rest.)  */
 
