@@ -67,6 +67,7 @@
 
 	* category.c (hash_get_category_set): Remove unused local var.
 	(copy_category_table): Now static, since it's not used elsewhere.
+	* character.c (string_count_byte8): Likewise.
 
 	* ccl.c (CCL_WRITE_STRING, CCL_ENCODE_CHAR, Fccl_execute_on_string):
 	(Fregister_code_conversion_map): Rename locals to avoid shadowing.
