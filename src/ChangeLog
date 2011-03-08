@@ -52,6 +52,7 @@
 	* character.h (FETCH_STRING_CHAR_ADVANCE): Likewise.
 	* coding.c (emacs_mule_char, encode_invocation_designation):
 	Now static, since they're not used elsewhere.
+	(decode_coding_iso_2022): Add "default: abort ();" as a safety check.
 
 2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
 

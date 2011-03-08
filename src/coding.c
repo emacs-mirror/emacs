@@ -3899,6 +3899,10 @@ decode_coding_iso_2022 (struct coding_system *coding)
 	      }
 	      continue;
 	    }
+	  break;
+
+	default:
+	  abort ();
 	}
 
       if (cmp_status->state == COMPOSING_NO
