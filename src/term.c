@@ -664,8 +664,6 @@ encode_terminal_code (struct glyph *src, int src_len, struct coding_system *codi
 	    }
 	  else
 	    {
-	      unsigned char *p = SDATA (string);
-
 	      if (! STRING_MULTIBYTE (string))
 		string = string_to_multibyte (string);
 	      nbytes = buf - encode_terminal_src;
