@@ -85,6 +85,8 @@
 	* cm.c (cmgoto): Mark variables that gcc -Wuninitialized does not
 	deduce are never used uninitialized.
 
+	* term.c (encode_terminal_code): Now static.
+
 2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (redisplay_window): Revert incorrect logic in 2011-03-06

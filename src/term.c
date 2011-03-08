@@ -512,7 +512,7 @@ static int encode_terminal_dst_size;
    Set CODING->produced to the byte-length of the resulting byte
    sequence, and return a pointer to that byte sequence.  */
 
-unsigned char *
+static unsigned char *
 encode_terminal_code (struct glyph *src, int src_len, struct coding_system *coding)
 {
   struct glyph *src_end = src + src_len;
