@@ -1051,9 +1051,10 @@ coding_set_source (struct coding_system *coding)
       coding->source = SDATA (coding->src_object) + coding->src_pos_byte;
     }
   else
-    /* Otherwise, the source is C string and is never relocated
-       automatically.  Thus we don't have to update anything.  */
-    ;
+    {
+      /* Otherwise, the source is C string and is never relocated
+	 automatically.  Thus we don't have to update anything.  */
+    }
 }
 
 static void
@@ -1079,9 +1080,10 @@ coding_set_destination (struct coding_system *coding)
 	}
     }
   else
-    /* Otherwise, the destination is C string and is never relocated
-       automatically.  Thus we don't have to update anything.  */
-    ;
+    {
+      /* Otherwise, the destination is C string and is never relocated
+	 automatically.  Thus we don't have to update anything.  */
+    }
 }
 
 

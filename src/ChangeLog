@@ -38,6 +38,10 @@
 	does not deduce are never used uninitialized.
 	(load_charset): Abort instead of using uninitialized var.
 
+	* coding.c (coding_set_source, coding_set_destination):
+	Use "else { /* comment */ }" rather than "else /* comment */;"
+	for clarity, and to avoid gcc -Wempty-body warning.
+
 2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (redisplay_window): Revert incorrect logic in 2011-03-06
