@@ -358,9 +358,9 @@ extern int emacs_mule_charset[256];
 
 #define CHECK_CHARSET_GET_CHARSET(x, charset)	\
   do {						\
-    int id;					\
-    CHECK_CHARSET_GET_ID (x, id);		\
-    charset = CHARSET_FROM_ID (id);		\
+    int csid;					\
+    CHECK_CHARSET_GET_ID (x, csid);		\
+    charset = CHARSET_FROM_ID (csid);		\
   } while (0)
 
 
@@ -541,4 +541,3 @@ extern void map_charset_chars (void (*) (Lisp_Object, Lisp_Object),
                                struct charset *, unsigned, unsigned);
 
 #endif /* EMACS_CHARSET_H */
-

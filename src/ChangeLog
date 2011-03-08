@@ -1,7 +1,5 @@
 2011-03-08  Paul Eggert  <eggert@cs.ucla.edu>
 
-2011-03-08  Paul Eggert  <eggert@cs.ucla.edu>
-
 	* xmenu.c (menu_highlight_callback): Now static.
 	(set_frame_menubar): Remove unused local.
 	(xmenu_show): Rename parameter to avoid shadowing.
@@ -29,6 +27,10 @@
 	does not deduce are never used uninitialized.
 	* window.h (check_all_windows): New decl, to forestall
 	gcc -Wmissing-prototypes diagnostic.
+
+	* charset.h (CHECK_CHARSET_GET_CHARSET): Rename locals to avoid
+	shadowing.
+	* charset.c (map_charset_for_dump, Fchar_charset): Likewise.
 
 2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
 

@@ -668,9 +668,9 @@ map_charset_for_dump (void (*c_function) (Lisp_Object, Lisp_Object), Lisp_Object
 
   while (1)
     {
-      int index = GET_TEMP_CHARSET_WORK_ENCODER (c);
+      int idx = GET_TEMP_CHARSET_WORK_ENCODER (c);
 
-      if (index >= from_idx && index <= to_idx)
+      if (idx >= from_idx && idx <= to_idx)
 	{
 	  if (NILP (XCAR (range)))
 	    XSETCAR (range, make_number (c));
@@ -2066,10 +2066,10 @@ that case, find the charset from what supported by that coding system.  */)
 
 	  for (; CONSP (restriction); restriction = XCDR (restriction))
 	    {
-	      struct charset *charset;
+	      struct charset *rcharset;
 
-	      CHECK_CHARSET_GET_CHARSET (XCAR (restriction), charset);
-	      if (ENCODE_CHAR (charset, c) != CHARSET_INVALID_CODE (charset))
+	      CHECK_CHARSET_GET_CHARSET (XCAR (restriction), rcharset);
+	      if (ENCODE_CHAR (rcharset, c) != CHARSET_INVALID_CODE (rcharset))
 		return XCAR (restriction);
 	    }
 	  return Qnil;
