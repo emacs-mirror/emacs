@@ -2365,7 +2365,7 @@ decode_coding_emacs_mule (struct coding_system *coding)
 
   while (1)
     {
-      int c, id;
+      int c, id IF_LINT (= 0);
 
       src_base = src;
       consumed_chars_base = consumed_chars;
@@ -2410,7 +2410,7 @@ decode_coding_emacs_mule (struct coding_system *coding)
 	}
       else
 	{
-	  int nchars, nbytes;
+	  int nchars IF_LINT (= 0), nbytes IF_LINT (= 0);
 	  /* emacs_mule_char can load a charset map from a file, which
 	     allocates a large structure and might cause buffer text
 	     to be relocated as result.  Thus, we need to remember the
