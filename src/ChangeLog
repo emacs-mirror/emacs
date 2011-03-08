@@ -1,4 +1,6 @@
-2011-03-07  Paul Eggert  <eggert@cs.ucla.edu>
+2011-03-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+2011-03-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xmenu.c (menu_highlight_callback): Now static.
 	(set_frame_menubar): Remove unused local.
@@ -23,6 +25,8 @@
 	(run_window_configuration_change_hook, enlarge_window): Likewise.
 
 	* window.c (display_buffer): Now static.
+	(size_window): Mark variables that gcc -Wuninitialized
+	does not deduce are never used uninitialized.
 	* window.h (check_all_windows): New decl, to forestall
 	gcc -Wmissing-prototypes diagnostic.
 

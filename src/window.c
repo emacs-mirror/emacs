@@ -3124,7 +3124,7 @@ size_window (Lisp_Object window, int size, int width_p, int nodelete_p, int firs
     }
   else if (!NILP (*forward))
     {
-      int fixed_size, each, extra, n;
+      int fixed_size, each IF_LINT (= 0), extra IF_LINT (= 0), n;
       int resize_fixed_p, nfixed;
       int last_pos, first_pos, nchildren, total;
       int *new_sizes = NULL;
@@ -5522,7 +5522,7 @@ and redisplay normally--don't erase and redraw the frame.  */)
   struct buffer *obuf = current_buffer;
   int center_p = 0;
   EMACS_INT charpos, bytepos;
-  int iarg;
+  int iarg IF_LINT (= 0);
   int this_scroll_margin;
 
   /* If redisplay is suppressed due to an error, try again.  */
