@@ -61,7 +61,6 @@ static Lisp_Object hash_get_category_set (Lisp_Object, Lisp_Object);
 static Lisp_Object
 hash_get_category_set (Lisp_Object table, Lisp_Object category_set)
 {
-  Lisp_Object val;
   struct Lisp_Hash_Table *h;
   int i;
   unsigned hash;
@@ -538,4 +537,3 @@ See the documentation of the variable `word-combining-categories'.  */);
 
   category_table_version = 0;
 }
-

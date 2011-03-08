@@ -65,6 +65,8 @@
 	(ENCODE_DIRECTION_R2L, ENCODE_DIRECTION_L2R):
 	Remove unused macros.
 
+	* category.c (hash_get_category_set): Remove unused local var.
+
 2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (redisplay_window): Revert incorrect logic in 2011-03-06
