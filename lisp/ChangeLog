@@ -1,3 +1,13 @@
+2011-03-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* simple.el (shell-command-to-string): Use `process-file'.
+
+	* emacs-lisp/package.el (package-tar-file-info): Handle also
+	remote files.
+
+	* emacs-lisp/package-x.el (package-upload-buffer-internal): Use
+	`equal' for upload base check.
+
 2011-03-08  Arni Magnusson  <arnima@hafro.is>  (tiny change)
 
 	* textmodes/texinfo.el (texinfo-environments):

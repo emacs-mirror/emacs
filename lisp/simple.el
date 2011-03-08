@@ -2628,7 +2628,7 @@ specifies the value of ERROR-BUFFER."
   (with-output-to-string
     (with-current-buffer
       standard-output
-      (call-process shell-file-name nil t nil shell-command-switch command))))
+      (process-file shell-file-name nil t nil shell-command-switch command))))
 
 (defun process-file (program &optional infile buffer display &rest args)
   "Process files synchronously in a separate process.

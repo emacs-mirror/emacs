@@ -911,43 +911,46 @@ boundaries."
   "Find package information for a tar file.
 FILE is the name of the tar file to examine.
 The return result is a vector like `package-buffer-info'."
-  (unless (string-match "^\\(.+\\)-\\([0-9.]+\\)\\.tar$" file)
-    (error "Invalid package name `%s'" file))
-  (let* ((pkg-name (file-name-nondirectory (match-string-no-properties 1 file)))
-	 (pkg-version (match-string-no-properties 2 file))
-	 ;; Extract the package descriptor.
-	 (pkg-def-contents (shell-command-to-string
-			    ;; Requires GNU tar.
-			    (concat "tar -xOf " file " "
-				    pkg-name "-" pkg-version "/"
-				    pkg-name "-pkg.el")))
-	 (pkg-def-parsed (package-read-from-string pkg-def-contents)))
-    (unless (eq (car pkg-def-parsed) 'define-package)
-      (error "No `define-package' sexp is present in `%s-pkg.el'" pkg-name))
-    (let ((name-str       (nth 1 pkg-def-parsed))
-	  (version-string (nth 2 pkg-def-parsed))
-	  (docstring      (nth 3 pkg-def-parsed))
-	  (requires       (nth 4 pkg-def-parsed))
-	  (readme (shell-command-to-string
-		   ;; Requires GNU tar.
-		   (concat "tar -xOf " file " "
-			   pkg-name "-" pkg-version "/README"))))
-      (unless (equal pkg-version version-string)
-	(error "Package has inconsistent versions"))
-      (unless (equal pkg-name name-str)
-	(error "Package has inconsistent names"))
-      ;; Kind of a hack.
-      (if (string-match ": Not found in archive" readme)
-	  (setq readme nil))
-      ;; Turn string version numbers into list form.
-      (if (eq (car requires) 'quote)
-	  (setq requires (car (cdr requires))))
-      (setq requires
-	    (mapcar (lambda (elt)
-		      (list (car elt)
-			    (version-to-list (cadr elt))))
-		    requires))
-      (vector pkg-name requires docstring version-string readme))))
+  (let ((default-directory (file-name-directory file))
+	(file (file-name-nondirectory file)))
+    (unless (string-match "^\\(.+\\)-\\([0-9.]+\\)\\.tar$" file)
+      (error "Invalid package name `%s'" file))
+    (let* ((pkg-name (match-string-no-properties 1 file))
+	   (pkg-version (match-string-no-properties 2 file))
+	   ;; Extract the package descriptor.
+	   (pkg-def-contents (shell-command-to-string
+			      ;; Requires GNU tar.
+			      (concat "tar -xOf " file " "
+
+				      pkg-name "-" pkg-version "/"
+				      pkg-name "-pkg.el")))
+	   (pkg-def-parsed (package-read-from-string pkg-def-contents)))
+      (unless (eq (car pkg-def-parsed) 'define-package)
+	(error "No `define-package' sexp is present in `%s-pkg.el'" pkg-name))
+      (let ((name-str       (nth 1 pkg-def-parsed))
+	    (version-string (nth 2 pkg-def-parsed))
+	    (docstring      (nth 3 pkg-def-parsed))
+	    (requires       (nth 4 pkg-def-parsed))
+	    (readme (shell-command-to-string
+		     ;; Requires GNU tar.
+		     (concat "tar -xOf " file " "
+			     pkg-name "-" pkg-version "/README"))))
+	(unless (equal pkg-version version-string)
+	  (error "Package has inconsistent versions"))
+	(unless (equal pkg-name name-str)
+	  (error "Package has inconsistent names"))
+	;; Kind of a hack.
+	(if (string-match ": Not found in archive" readme)
+	    (setq readme nil))
+	;; Turn string version numbers into list form.
+	(if (eq (car requires) 'quote)
+	    (setq requires (car (cdr requires))))
+	(setq requires
+	      (mapcar (lambda (elt)
+			(list (car elt)
+			      (version-to-list (cadr elt))))
+		      requires))
+	(vector pkg-name requires docstring version-string readme)))))
 
 ;;;###autoload
 (defun package-install-from-buffer (pkg-info type)

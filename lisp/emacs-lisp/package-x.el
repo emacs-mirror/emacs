@@ -185,9 +185,9 @@ if it exists."
   (let ((package-archive-upload-base package-archive-upload-base))
     ;; Check if `package-archive-upload-base' is valid.
     (when (or (not (stringp package-archive-upload-base))
-	      (eq package-archive-upload-base
-		  (car-safe
-		   (get 'package-archive-upload-base 'standard-value))))
+	      (equal package-archive-upload-base
+		     (car-safe
+		      (get 'package-archive-upload-base 'standard-value))))
       (setq package-archive-upload-base
 	    (read-directory-name
 	     "Base directory for package archive: ")))
@@ -306,4 +306,4 @@ This should be invoked from the gnus *Summary* buffer."
 
 (provide 'package-x)
 
-;;; package.el ends here
+;;; package-x.el ends here
