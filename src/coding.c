@@ -1982,7 +1982,7 @@ detect_coding_emacs_mule (struct coding_system *coding,
    the decoded character or rule.  If an invalid byte is found, return
    -1.  If SRC is too short, return -2.  */
 
-int
+static int
 emacs_mule_char (struct coding_system *coding, const unsigned char *src,
 		 int *nbytes, int *nchars, int *id,
 		 struct composition_status *cmp_status)
@@ -4228,7 +4228,7 @@ decode_coding_iso_2022 (struct coding_system *coding)
    to use CHARSET.  The element `spec.iso_2022' of *CODING is updated.
    Return new DST.  */
 
-unsigned char *
+static unsigned char *
 encode_invocation_designation (struct charset *charset,
 			       struct coding_system *coding,
 			       unsigned char *dst, int *p_nchars)
