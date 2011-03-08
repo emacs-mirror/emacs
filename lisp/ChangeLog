@@ -1,5 +1,8 @@
 2011-03-08  Glenn Morris  <rgm@gnu.org>
 
+	* cus-start.el (cursor-in-non-selected-windows):
+	Fix :set quoting oddness.  (Bug#8192)
+
 	* font-lock.el (lisp-font-lock-keywords-1): Don't highlight `)'
 	in some setf expressions.  (Bug#2159)
 
