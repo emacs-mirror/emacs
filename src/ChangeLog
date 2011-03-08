@@ -36,6 +36,7 @@
 	and to avoid gcc -Wuninitialized warning.
 	(load_charset_map): Mark variables that gcc -Wuninitialized
 	does not deduce are never used uninitialized.
+	(load_charset): Abort instead of using uninitialized var.
 
 2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
 

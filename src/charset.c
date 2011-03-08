@@ -630,8 +630,12 @@ load_charset (struct charset *charset, int control_flag)
 
   if (CHARSET_METHOD (charset) == CHARSET_METHOD_MAP)
     map = CHARSET_MAP (charset);
-  else if (CHARSET_UNIFIED_P (charset))
-    map = CHARSET_UNIFY_MAP (charset);
+  else
+    {
+      if (! CHARSET_UNIFIED_P (charset))
+	abort ();
+      map = CHARSET_UNIFY_MAP (charset);
+    }
   if (STRINGP (map))
     load_charset_map_from_file (charset, map, control_flag);
   else
