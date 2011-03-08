@@ -1,3 +1,8 @@
+2011-03-08  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (Optional Mode Line): Don't mention exactly where
+	display-time appears.  (Bug#8193)
+
 2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* search.texi (Isearch Yank): C-y now bound to isearch-yank-kill.
