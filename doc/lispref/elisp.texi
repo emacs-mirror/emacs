@@ -62,6 +62,8 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
+@documentencoding UTF-8
+
 @dircategory GNU Emacs Lisp
 @direntry
 * Elisp: (elisp).       The Emacs Lisp Reference Manual.

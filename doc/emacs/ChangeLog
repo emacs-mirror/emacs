@@ -8,6 +8,7 @@
 	* Makefile.in (MAKEINFO_OPTS): Add --enable-encoding.
 	* emacs.texi (Acknowledgments):
 	* ack.texi (Acknowledgments): Names to UTF-8.
+	* emacs.texi: Set documentencoding.
 
 	* display.texi (Optional Mode Line): Don't mention exactly where
 	display-time appears.  (Bug#8193)
