@@ -331,20 +331,6 @@ char_table_ref_and_range (Lisp_Object table, int c, int *from, int *to)
 }
 
 
-#define ASET_RANGE(ARRAY, FROM, TO, LIMIT, VAL)				\
-  do {									\
-    int limit = (TO) < (LIMIT) ? (TO) : (LIMIT);			\
-    for (; (FROM) < limit; (FROM)++) (ARRAY)->contents[(FROM)] = (VAL);	\
-  } while (0)
-
-#define GET_SUB_CHAR_TABLE(TABLE, SUBTABLE, IDX, DEPTH, MIN_CHAR)	  \
-  do {									  \
-    (SUBTABLE) = (TABLE)->contents[(IDX)];				  \
-    if (!SUB_CHAR_TABLE_P (SUBTABLE))					  \
-      (SUBTABLE) = make_sub_char_table ((DEPTH), (MIN_CHAR), (SUBTABLE)); \
-  } while (0)
-
-
 static void
 sub_char_table_set (Lisp_Object table, int c, Lisp_Object val)
 {

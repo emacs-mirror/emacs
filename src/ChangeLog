@@ -76,6 +76,7 @@
 	elsewhere.
 	(sub_char_table_ref_and_range, char_table_ref_and_range):
 	Rename locals to avoid shadowing.
+	(ASET_RANGE, GET_SUB_CHAR_TABLE): Remove unused macros.
 
 2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
