@@ -82,6 +82,9 @@
 	* bidi.c (bidi_check_type): Now static, since it's not used elsewhere.
 	(BIDI_BOB): Remove unused macro.
 
+	* cm.c (cmgoto): Mark variables that gcc -Wuninitialized does not
+	deduce are never used uninitialized.
+
 2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (redisplay_window): Revert incorrect logic in 2011-03-06

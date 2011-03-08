@@ -330,7 +330,7 @@ cmgoto (struct tty_display_info *tty, int row, int col)
             llcost,
             relcost,
             directcost;
-    int     use;
+    int     use IF_LINT (= 0);
     char   *p,
            *dcm;
 
@@ -460,4 +460,3 @@ Wcm_init (struct tty_display_info *tty)
     return - 2;
   return 0;
 }
-
