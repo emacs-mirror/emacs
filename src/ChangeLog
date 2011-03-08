@@ -34,6 +34,8 @@
 	Include <limits.h>.
 	(Fsort_charsets): Redo min/max calculation to shorten the code a bit
 	and to avoid gcc -Wuninitialized warning.
+	(load_charset_map): Mark variables that gcc -Wuninitialized
+	does not deduce are never used uninitialized.
 
 2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
