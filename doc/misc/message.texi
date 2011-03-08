@@ -2298,8 +2298,7 @@ created.
 
 @item unique
 @item t
-Create the new buffer with the name generated in the Message way.  This
-is the default.
+Create the new buffer with the name generated in the Message way.
 
 @item unsent
 Similar to @code{unique} but the buffer name begins with "*unsent ".
@@ -2315,7 +2314,7 @@ type, the To address and the group name (any of these may be
 @code{nil}).  The function should return the new buffer name.
 @end table
 
-The default value is @code{unique}.
+The default value is @code{unsent}.
 
 @item message-max-buffers
 @vindex message-max-buffers

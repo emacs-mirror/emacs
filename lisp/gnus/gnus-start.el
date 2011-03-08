@@ -1306,16 +1306,13 @@ for new groups, and subscribe the new groups as zombies."
        ((>= level gnus-level-zombie)
 	;; Remove from the hash table.
 	(gnus-sethash group nil gnus-newsrc-hashtb)
-	;; We do not enter foreign groups into the list of dead
-	;; groups.
-	(unless (gnus-group-foreign-p group)
-	  (if (= level gnus-level-zombie)
-	      (push group gnus-zombie-list)
-	    (if (= oldlevel gnus-level-killed)
-		;; Remove from active hashtb.
-		(unintern group gnus-active-hashtb)
-	      ;; Don't add it into killed-list if it was killed.
-	      (push group gnus-killed-list)))))
+	(if (= level gnus-level-zombie)
+	    (push group gnus-zombie-list)
+	  (if (= oldlevel gnus-level-killed)
+	      ;; Remove from active hashtb.
+	      (unintern group gnus-active-hashtb)
+	    ;; Don't add it into killed-list if it was killed.
+	    (push group gnus-killed-list))))
        (t
 	;; If the list is to be entered into the newsrc assoc, and
 	;; it was killed, we have to create an entry in the newsrc

@@ -1,3 +1,14 @@
+2011-03-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-table-horizontal-line): Change the defaults for the table
+	lines to be spaces instead.
+
+2011-03-07  Julien Danjou  <julien@danjou.info>
+
+	* sieve-manage.el (sieve-sasl-auth): Create auth-info if not found.
+	(sieve-sasl-auth): Check that auth-source-search did return something,
+	or just return an empty string.
+
 2011-03-05  Antoine Levitt  <antoine.levitt@gmail.com>
 
 	* gnus.el (gnus-interactive): Use read-directory-name.
@@ -11,6 +22,13 @@
 	* gnus-group.el (gnus-group-make-directory-group): Likewise.
 
 2011-03-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-group-change-level): Allow putting foreign groups
+	onto the list of killed groups, too.  This makes killed nnimap groups,
+	for instance, more reliably not reappear.
+
+	* nnimap.el (nnimap-request-thread): Don't bug out when we can't find
+	the parent.
 
 	* gnus-sum.el (gnus-update-read-articles): Fix typo.
 

@@ -1545,10 +1545,11 @@ textual parts.")
 			       refid refid value)))))
 	 (result (with-current-buffer (nnimap-buffer)
 		   (nnimap-command  "UID SEARCH %s" cmd))))
-    (gnus-fetch-headers
-     (and (car result) (delete 0 (mapcar #'string-to-number
-					 (cdr (assoc "SEARCH" (cdr result))))))
-     nil t)))
+    (when result
+      (gnus-fetch-headers
+       (and (car result) (delete 0 (mapcar #'string-to-number
+					   (cdr (assoc "SEARCH" (cdr result))))))
+       nil t))))
 
 (defun nnimap-possibly-change-group (group server)
   (let ((open-result t))
