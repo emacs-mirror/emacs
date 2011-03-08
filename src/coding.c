@@ -7658,12 +7658,12 @@ decode_coding_object (struct coding_system *coding,
 		      Lisp_Object dst_object)
 {
   int count = SPECPDL_INDEX ();
-  unsigned char *destination;
-  EMACS_INT dst_bytes;
+  unsigned char *destination IF_LINT (= NULL);
+  EMACS_INT dst_bytes IF_LINT (= 0);
   EMACS_INT chars = to - from;
   EMACS_INT bytes = to_byte - from_byte;
   Lisp_Object attrs;
-  int saved_pt = -1, saved_pt_byte;
+  int saved_pt = -1, saved_pt_byte IF_LINT (= 0);
   int need_marker_adjustment = 0;
   Lisp_Object old_deactivate_mark;
 
@@ -7851,7 +7851,7 @@ encode_coding_object (struct coding_system *coding,
   EMACS_INT chars = to - from;
   EMACS_INT bytes = to_byte - from_byte;
   Lisp_Object attrs;
-  int saved_pt = -1, saved_pt_byte;
+  int saved_pt = -1, saved_pt_byte IF_LINT (= 0);
   int need_marker_adjustment = 0;
   int kill_src_buffer = 0;
   Lisp_Object old_deactivate_mark;
@@ -8184,8 +8184,8 @@ detect_coding_system (const unsigned char *src,
   base_category = XINT (CODING_ATTR_CATEGORY (attrs));
   if (base_category == coding_category_undecided)
     {
-      enum coding_category category;
-      struct coding_system *this;
+      enum coding_category category IF_LINT (= 0);
+      struct coding_system *this IF_LINT (= NULL);
       int c, i;
 
       /* Skip all ASCII bytes except for a few ISO2022 controls.  */

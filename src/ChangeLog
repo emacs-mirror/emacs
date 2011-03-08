@@ -53,6 +53,9 @@
 	* coding.c (emacs_mule_char, encode_invocation_designation):
 	Now static, since they're not used elsewhere.
 	(decode_coding_iso_2022): Add "default: abort ();" as a safety check.
+	(decode_coding_object, encode_coding_object, detect_coding_system):
+	Mark variables that gcc -Wuninitialized does not deduce are never
+	used uninitialized.
 
 2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
