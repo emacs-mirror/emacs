@@ -1,3 +1,8 @@
+2011-03-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32xfns.c (select_palette): Check success of RealizePalette against
+	GDI_ERROR, not zero.
+
 2011-03-07  Ben Key  <bkey76@gmail.com>
 
 	* w32fns.c (FILE_NAME_COMBO_BOX, FILE_NAME_LIST): Define.

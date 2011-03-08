@@ -97,7 +97,7 @@ select_palette (FRAME_PTR f, HDC hdc)
   else
     f->output_data.w32->old_palette = NULL;
 
-  if (RealizePalette (hdc))
+  if (RealizePalette (hdc) != GDI_ERROR)
   {
     Lisp_Object frame, framelist;
     FOR_EACH_FRAME (framelist, frame)
