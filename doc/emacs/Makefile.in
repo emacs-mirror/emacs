@@ -38,7 +38,7 @@ texinfodir = $(srcdir)/../misc
 # The makeinfo program is part of the Texinfo distribution.
 # Use --force so that it generates output even if there are errors.
 MAKEINFO = @MAKEINFO@
-MAKEINFO_OPTS = --force -I $(srcdir)
+MAKEINFO_OPTS = --force --enable-encoding -I $(srcdir)
 
 TEXI2DVI = texi2dvi
 TEXI2PDF = texi2pdf

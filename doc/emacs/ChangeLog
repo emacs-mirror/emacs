@@ -5,6 +5,10 @@
 
 2011-03-08  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (MAKEINFO_OPTS): Add --enable-encoding.
+	* emacs.texi (Acknowledgments):
+	* ack.texi (Acknowledgments): Names to UTF-8.
+
 	* display.texi (Optional Mode Line): Don't mention exactly where
 	display-time appears.  (Bug#8193)
 

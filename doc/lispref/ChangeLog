@@ -1,3 +1,8 @@
+2011-03-08  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (MAKEINFO_OPTS): Add --enable-encoding.
+	* intro.texi (Acknowledgements): Names to UTF-8.
+
 2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* package.texi: Update index keywords.
