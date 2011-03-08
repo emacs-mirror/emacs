@@ -1,3 +1,8 @@
+2011-03-08  Arni Magnusson  <arnima@hafro.is>  (tiny change)
+
+	* textmodes/texinfo.el (texinfo-environments):
+	Add deftypecv, deftypeivar, deftypemethod, deftypeop, html.  (Bug#2783)
+
 2011-03-08  Glenn Morris  <rgm@gnu.org>
 
 	* cus-start.el (cursor-in-non-selected-windows):
