@@ -180,7 +180,7 @@ bidi_get_type (int ch, bidi_dir_t override)
     }
 }
 
-void
+static void
 bidi_check_type (bidi_type_t type)
 {
   if (type < UNKNOWN_BT || type > NEUTRAL_ON)

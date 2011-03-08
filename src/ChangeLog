@@ -78,6 +78,8 @@
 	Rename locals to avoid shadowing.
 	(ASET_RANGE, GET_SUB_CHAR_TABLE): Remove unused macros.
 
+	* bidi.c (bidi_check_type): Now static, since it's not used elsewhere.
+
 2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (redisplay_window): Revert incorrect logic in 2011-03-06
