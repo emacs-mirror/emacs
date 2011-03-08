@@ -66,6 +66,7 @@
 	Remove unused macros.
 
 	* category.c (hash_get_category_set): Remove unused local var.
+	(copy_category_table): Now static, since it's not used elsewhere.
 
 2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
 

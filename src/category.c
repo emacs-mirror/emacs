@@ -227,7 +227,7 @@ copy_category_entry (Lisp_Object table, Lisp_Object c, Lisp_Object val)
    the original and the copy.  This function is called recursively by
    binding TABLE to a sub char table.  */
 
-Lisp_Object
+static Lisp_Object
 copy_category_table (Lisp_Object table)
 {
   table = copy_char_table (table);
