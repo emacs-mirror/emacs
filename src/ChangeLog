@@ -87,6 +87,17 @@
 
 	* term.c (encode_terminal_code): Now static.  Remove unused local.
 
+	* tparam.h: New file.
+	* term.c, tparam.h: Include it.
+	* deps.mk (term.o, tparam.o): Depend on tparam.h.
+	* term.c (tputs, tgetent, tgetflag, tgetnum, tparam, tgetstr):
+	Move these decls to tparam.h, and make them agree with what
+	is actually in tparam.c.  The previous trick of using incompatible
+	decls in different modules does not conform to the C standard.
+	All callers of tparam changed to use tparam's actual API.
+	* tparam.c (tparam1, tparam, tgoto):
+	Use const pointers where appropriate.
+
 2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (redisplay_window): Revert incorrect logic in 2011-03-06

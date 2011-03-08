@@ -32,6 +32,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "termchar.h"
 #include "termopts.h"
+#include "tparam.h"
 #include "buffer.h"
 #include "character.h"
 #include "charset.h"
@@ -52,18 +53,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "msdos.h"
 static int been_here = -1;
 #endif
-
-/* For now, don't try to include termcap.h.  On some systems,
-   configure finds a non-standard termcap.h that the main build
-   won't find.  */
-extern void tputs (const char *, int, int (*)(int));
-extern int tgetent (char *, const char *);
-extern int tgetflag (char *id);
-extern int tgetnum (char *id);
-
-char *tparam (char *, char *, int, int, ...);
-
-extern char *tgetstr (char *, char **);
 
 #include "cm.h"
 #ifdef HAVE_X_WINDOWS
@@ -262,7 +251,7 @@ tty_set_scroll_region (struct frame *f, int start, int stop)
   struct tty_display_info *tty = FRAME_TTY (f);
 
   if (tty->TS_set_scroll_region)
-    buf = tparam (tty->TS_set_scroll_region, 0, 0, start, stop - 1);
+    buf = tparam (tty->TS_set_scroll_region, 0, 0, start, stop - 1, 0, 0);
   else if (tty->TS_set_scroll_region_1)
     buf = tparam (tty->TS_set_scroll_region_1, 0, 0,
 		  FRAME_LINES (f), start,
@@ -859,7 +848,7 @@ tty_insert_glyphs (struct frame *f, struct glyph *start, int len)
 
   if (tty->TS_ins_multi_chars)
     {
-      buf = tparam (tty->TS_ins_multi_chars, 0, 0, len);
+      buf = tparam (tty->TS_ins_multi_chars, 0, 0, len, 0, 0, 0);
       OUTPUT1 (tty, buf);
       xfree (buf);
       if (start)
@@ -955,7 +944,7 @@ tty_delete_glyphs (struct frame *f, int n)
 
   if (tty->TS_del_multi_chars)
     {
-      buf = tparam (tty->TS_del_multi_chars, 0, 0, n);
+      buf = tparam (tty->TS_del_multi_chars, 0, 0, n, 0, 0, 0);
       OUTPUT1 (tty, buf);
       xfree (buf);
     }
@@ -997,7 +986,7 @@ tty_ins_del_lines (struct frame *f, int vpos, int n)
     {
       raw_cursor_to (f, vpos, 0);
       tty_background_highlight (tty);
-      buf = tparam (multi, 0, 0, i);
+      buf = tparam (multi, 0, 0, i, 0, 0, 0);
       OUTPUT (tty, buf);
       xfree (buf);
     }
@@ -2125,7 +2114,7 @@ turn_on_face (struct frame *f, int face_id)
       ts = tty->standout_mode ? tty->TS_set_background : tty->TS_set_foreground;
       if (fg >= 0 && ts)
 	{
-          p = tparam (ts, NULL, 0, (int) fg);
+          p = tparam (ts, NULL, 0, (int) fg, 0, 0, 0);
 	  OUTPUT (tty, p);
 	  xfree (p);
 	}
@@ -2133,7 +2122,7 @@ turn_on_face (struct frame *f, int face_id)
       ts = tty->standout_mode ? tty->TS_set_foreground : tty->TS_set_background;
       if (bg >= 0 && ts)
 	{
-          p = tparam (ts, NULL, 0, (int) bg);
+          p = tparam (ts, NULL, 0, (int) bg, 0, 0, 0);
 	  OUTPUT (tty, p);
 	  xfree (p);
 	}
