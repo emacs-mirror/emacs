@@ -395,8 +395,6 @@ Lisp_Object Vbig5_coding_system;
 
 /* Control characters of ISO2022.  */
 			/* code */	/* function */
-#define ISO_CODE_LF	0x0A		/* line-feed */
-#define ISO_CODE_CR	0x0D		/* carriage-return */
 #define ISO_CODE_SO	0x0E		/* shift-out */
 #define ISO_CODE_SI	0x0F		/* shift-in */
 #define ISO_CODE_SS2_7	0x19		/* single-shift-2 for 7-bit code */
@@ -479,7 +477,7 @@ enum iso_code_class_type
 
 #define CODING_ISO_FLAG_COMPOSITION	0x2000
 
-#define CODING_ISO_FLAG_EUC_TW_SHIFT	0x4000
+/* #define CODING_ISO_FLAG_EUC_TW_SHIFT	0x4000 */
 
 #define CODING_ISO_FLAG_USE_ROMAN	0x8000
 
@@ -718,25 +716,6 @@ static struct coding_system coding_categories[coding_category_max];
 	else						\
 	  c2 = -1;					\
       }							\
-  } while (0)
-
-
-#define ONE_MORE_BYTE_NO_CHECK(c)			\
-  do {							\
-    c = *src++;						\
-    if (multibytep && (c & 0x80))			\
-      {							\
-	if ((c & 0xFE) == 0xC0)				\
-	  c = ((c & 1) << 6) | *src++;			\
-	else						\
-	  {						\
-	    src--;					\
-	    c = - string_char (src, &src, NULL);	\
-	    record_conversion_result			\
-	      (coding, CODING_RESULT_INVALID_SRC);	\
-	  }						\
-      }							\
-    consumed_chars++;					\
   } while (0)
 
 
@@ -1219,7 +1198,6 @@ alloc_destination (struct coding_system *coding, EMACS_INT nbytes,
 #define UTF_8_4_OCTET_LEADING_P(c) (((c) & 0xF8) == 0xF0)
 #define UTF_8_5_OCTET_LEADING_P(c) (((c) & 0xFC) == 0xF8)
 
-#define UTF_BOM 0xFEFF
 #define UTF_8_BOM_1 0xEF
 #define UTF_8_BOM_2 0xBB
 #define UTF_8_BOM_3 0xBF
@@ -1534,11 +1512,6 @@ encode_coding_utf_8 (struct coding_system *coding)
 
 #define UTF_16_LOW_SURROGATE_P(val) \
   (((val) & 0xFC00) == 0xDC00)
-
-#define UTF_16_INVALID_P(val)	\
-  (((val) == 0xFFFE)		\
-   || ((val) == 0xFFFF)		\
-   || UTF_16_LOW_SURROGATE_P (val))
 
 
 static int
@@ -2904,10 +2877,6 @@ enum iso_code_class_type iso_code_class[256];
 #define SAFE_CHARSET_P(coding, id)	\
   ((id) <= (coding)->max_charset_id	\
    && (coding)->safe_charsets[id] != 255)
-
-
-#define SHIFT_OUT_OK(category)	\
-  (CODING_ISO_INITIAL (&coding_categories[category], 1) >= 0)
 
 static void
 setup_iso_safe_charsets (Lisp_Object attrs)
@@ -4294,30 +4263,6 @@ encode_invocation_designation (struct charset *charset,
   *p_nchars = produced_chars;
   return dst;
 }
-
-/* The following three macros produce codes for indicating direction
-   of text.  */
-#define ENCODE_CONTROL_SEQUENCE_INTRODUCER				\
-  do {									\
-    if (CODING_ISO_FLAGS (coding) == CODING_ISO_FLAG_SEVEN_BITS)	\
-      EMIT_TWO_ASCII_BYTES (ISO_CODE_ESC, '[');				\
-    else								\
-      EMIT_ONE_BYTE (ISO_CODE_CSI);					\
-  } while (0)
-
-
-#define ENCODE_DIRECTION_R2L()			\
-  do {						\
-    ENCODE_CONTROL_SEQUENCE_INTRODUCER (dst);	\
-    EMIT_TWO_ASCII_BYTES ('2', ']');		\
-  } while (0)
-
-
-#define ENCODE_DIRECTION_L2R()			\
-  do {						\
-    ENCODE_CONTROL_SEQUENCE_INTRODUCER (dst);	\
-    EMIT_TWO_ASCII_BYTES ('0', ']');		\
-  } while (0)
 
 
 /* Produce codes for designation and invocation to reset the graphic

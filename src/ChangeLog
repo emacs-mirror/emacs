@@ -56,6 +56,11 @@
 	(decode_coding_object, encode_coding_object, detect_coding_system):
 	Mark variables that gcc -Wuninitialized does not deduce are never
 	used uninitialized.
+	(ISO_CODE_LF, ISO_CODE_CR, CODING_ISO_FLAG_EUC_TW_SHIFT):
+	(ONE_MORE_BYTE_NO_CHECK, UTF_BOM, UTF_16_INVALID_P):
+	(SHIFT_OUT_OK, ENCODE_CONTROL_SEQUENCE_INTRODUCER):
+	(ENCODE_DIRECTION_R2L, ENCODE_DIRECTION_L2R):
+	Remove unused macros.
 
 2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
