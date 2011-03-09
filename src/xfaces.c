@@ -847,7 +847,6 @@ clear_face_cache (int clear_fonts_p)
 {
 #ifdef HAVE_WINDOW_SYSTEM
   Lisp_Object tail, frame;
-  struct frame *f;
 
   if (clear_fonts_p
       || ++clear_font_table_count == CLEAR_FONT_TABLE_COUNT)
@@ -875,7 +874,7 @@ clear_face_cache (int clear_fonts_p)
       /* Clear GCs of realized faces.  */
       FOR_EACH_FRAME (tail, frame)
 	{
-	  f = XFRAME (frame);
+	  struct frame *f = XFRAME (frame);
 	  if (FRAME_WINDOW_P (f))
 	      clear_face_gcs (FRAME_FACE_CACHE (f));
 	}
@@ -1754,14 +1753,14 @@ the WIDTH times as wide as FACE on FRAME.  */)
       /* This is of limited utility since it works with character
 	 widths.  Keep it for compatibility.  --gerd.  */
       int face_id = lookup_named_face (f, face, 0);
-      struct face *face = (face_id < 0
-			   ? NULL
-			   : FACE_FROM_ID (f, face_id));
+      struct face *width_face = (face_id < 0
+				 ? NULL
+				 : FACE_FROM_ID (f, face_id));
 
-      if (face && face->font)
+      if (width_face && width_face->font)
 	{
-	  size = face->font->pixel_size;
-	  avgwidth = face->font->average_width;
+	  size = width_face->font->pixel_size;
+	  avgwidth = width_face->font->average_width;
 	}
       else
 	{
@@ -3869,19 +3868,19 @@ return the font name used for CHARACTER.  */)
     {
       struct frame *f = frame_or_selected_frame (frame, 1);
       int face_id = lookup_named_face (f, face, 1);
-      struct face *face = FACE_FROM_ID (f, face_id);
+      struct face *fface = FACE_FROM_ID (f, face_id);
 
-      if (! face)
+      if (! fface)
 	return Qnil;
 #ifdef HAVE_WINDOW_SYSTEM
       if (FRAME_WINDOW_P (f) && !NILP (character))
 	{
 	  CHECK_CHARACTER (character);
-	  face_id = FACE_FOR_CHAR (f, face, XINT (character), -1, Qnil);
-	  face = FACE_FROM_ID (f, face_id);
+	  face_id = FACE_FOR_CHAR (f, fface, XINT (character), -1, Qnil);
+	  fface = FACE_FROM_ID (f, face_id);
 	}
-      return (face->font
-	      ? face->font->props[FONT_NAME_INDEX]
+      return (fface->font
+	      ? fface->font->props[FONT_NAME_INDEX]
 	      : Qnil);
 #else  /* !HAVE_WINDOW_SYSTEM */
       return build_string (FRAME_MSDOS_P (f)

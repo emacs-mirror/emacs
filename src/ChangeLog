@@ -1,5 +1,8 @@
 2011-03-09  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xfaces.c (clear_face_cache, Fx_list_fonts, Fface_font): Rename
+	or move locals to avoid shadowing.
+
 	* terminal.c (store_terminal_param): Now static.
 
 	* xmenu.c (menu_highlight_callback): Now static.
