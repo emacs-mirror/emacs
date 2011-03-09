@@ -12,6 +12,11 @@
 	unless they are used.
 	(XEMBED_VERSION, xembed_set_info): Don't define unless needed.
 	(x_fatal_error_signal): Remove; not used.
+	(x_draw_image_foreground, redo_mouse_highlight, XTmouse_position):
+	(x_scroll_bar_report_motion, handle_one_xevent, x_draw_bar_cursor):
+	(x_error_catcher, x_connection_closed, x_error_handler):
+	(x_error_quitter, xembed_send_message, x_iconify_frame):
+	(my_log_handler): Rename locals to avoid shadowing.
 
 	* xfaces.c (clear_face_cache, Fx_list_fonts, Fface_font): Rename
 	or move locals to avoid shadowing.
