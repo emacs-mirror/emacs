@@ -459,7 +459,12 @@ buffer."
   ;; shell-dependent assignments.
   (when (ring-empty-p comint-input-ring)
     (let ((shell (file-name-nondirectory (car
-		   (process-command (get-buffer-process (current-buffer)))))))
+		   (process-command (get-buffer-process (current-buffer))))))
+	  (hsize (getenv "HISTSIZE")))
+      (and (stringp hsize)
+	   (integerp (setq hsize (string-to-number hsize)))
+	   (> hsize 0)
+	   (set (make-local-variable 'comint-input-ring-size) hsize))
       (setq comint-input-ring-file-name
 	    (or (getenv "HISTFILE")
 		(cond ((string-equal shell "bash") "~/.bash_history")
