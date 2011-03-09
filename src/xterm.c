@@ -7755,6 +7755,10 @@ For details, see etc/PROBLEMS.\n",
 
   unbind_to (idx, Qnil);
   clear_waiting_for_input ();
+
+  /* Tell GCC not to suggest attribute 'noreturn' for this function.  */
+  IF_LINT (if (! terminal_list) return; )
+
   /* Here, we absolutely have to use a non-local exit (e.g. signal, throw,
      longjmp), because returning from this function would get us back into
      Xlib's code which will directly call `exit'.  */

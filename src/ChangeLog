@@ -18,6 +18,7 @@
 	(x_error_quitter, xembed_send_message, x_iconify_frame):
 	(my_log_handler): Rename locals to avoid shadowing.
 	(x_delete_glyphs, x_ins_del_lines): Mark with NO_RETURN.
+	(x_connection_closed): Tell GCC not to suggest NO_RETURN.
 
 	* xfaces.c (clear_face_cache, Fx_list_fonts, Fface_font): Rename
 	or move locals to avoid shadowing.
