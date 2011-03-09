@@ -9166,7 +9166,9 @@ x_make_frame_invisible (struct frame *f)
 void
 x_iconify_frame (struct frame *f)
 {
+#ifdef USE_X_TOOLKIT
   int result;
+#endif
   Lisp_Object type;
 
   /* Don't keep the highlight on an invisible frame.  */
@@ -9293,9 +9295,11 @@ void
 x_free_frame_resources (struct frame *f)
 {
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  Mouse_HLInfo *hlinfo = &dpyinfo->mouse_highlight;
+#ifdef USE_X_TOOLKIT
   Lisp_Object bar;
   struct scroll_bar *b;
-  Mouse_HLInfo *hlinfo = &dpyinfo->mouse_highlight;
+#endif
 
   BLOCK_INPUT;
 
