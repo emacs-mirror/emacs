@@ -1306,18 +1306,6 @@ static char **term_get_fkeys_address;
 static KBOARD *term_get_fkeys_kboard;
 static Lisp_Object term_get_fkeys_1 (void);
 
-/* Rework termcap API to accept const pointer args.  */
-static inline int my_tgetflag (const char *x) { return tgetflag ((char *) x); }
-static inline int my_tgetnum (const char *x) { return tgetnum ((char *) x); }
-static inline char *my_tgetstr (const char *x, char **a)
-{ return tgetstr ((char *) x, a); }
-#undef tgetflag
-#undef tgetnum
-#undef tgetstr
-#define tgetflag my_tgetflag
-#define tgetnum my_tgetnum
-#define tgetstr my_tgetstr
-
 /* Find the escape codes sent by the function keys for Vinput_decode_map.
    This function scans the termcap function key sequence entries, and
    adds entries to Vinput_decode_map for each function key it finds.  */

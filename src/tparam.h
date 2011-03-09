@@ -23,9 +23,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 void tputs (const char *, int, int (*) (int));
 int tgetent (char *, const char *);
-int tgetflag (char *id);
-int tgetnum (char *id);
-char *tgetstr (char *, char **);
+int tgetflag (const char *);
+int tgetnum (const char *);
+char *tgetstr (const char *, char **);
 char *tgoto (const char *, int, int);
 
 char *tparam (const char *, char *, int, int, int, int, int);

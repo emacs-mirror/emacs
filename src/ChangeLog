@@ -106,7 +106,6 @@
 	(term_get_fkeys_1, append_glyphless_glyph, produce_glyphless_glyph):
 	(turn_on_face, init_tty): Likewise.
 	* termchar.h (struct tty_display_info): Likewise.
-	* term.c (tgetflag, tgetnum, tgetstr): Redefine to use const pointers.
 
 	* term.c (term_mouse_position): Rename local to avoid shadowing.
 
