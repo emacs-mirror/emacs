@@ -1,4 +1,6 @@
-2011-03-08  Paul Eggert  <eggert@cs.ucla.edu>
+2011-03-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* terminal.c (store_terminal_param): Now static.
 
 	* xmenu.c (menu_highlight_callback): Now static.
 	(set_frame_menubar): Remove unused local.
