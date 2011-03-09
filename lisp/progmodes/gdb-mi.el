@@ -672,7 +672,7 @@ detailed description of this mode.
 		      ((string-equal (match-string 1) "size")
 		       (setq hsize (match-string 2))))))))
       (and (stringp hsize)
-	   (integerp (string-to-number hsize))
+	   (integerp (setq hsize (string-to-number hsize)))
 	   (> hsize 0)
 	   (set (make-local-variable 'comint-input-ring-size) hsize))
       (if (stringp hfile)
