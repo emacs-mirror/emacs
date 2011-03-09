@@ -2251,11 +2251,15 @@ The method used must be an out-of-band method."
 			'identity)
 		      (if t2 (tramp-make-copy-program-file-name v) newname)))
 
-	;; Check for port number.  Until now, there's no need for handling
-	;; like method, user, host.
-	(setq host (tramp-file-name-real-host v)
-	      port (tramp-file-name-port v)
-	      port (or (and port (number-to-string port)) ""))
+	;; Check for host and port number.  We cannot use
+	;; `tramp-file-name-port', because this returns also
+	;; `tramp-default-port', which might clash with settings in
+	;; "~/.ssh/config".
+	(setq host (tramp-file-name-host v)
+	      port "")
+	(when (string-match tramp-host-with-port-regexp host)
+	  (setq host (string-to-number (match-string 1 host))
+		port (string-to-number (match-string 2 host))))
 
 	;; Compose copy command.
 	(setq spec (format-spec-make
@@ -2270,7 +2274,7 @@ The method used must be an out-of-band method."
 	      copy-args
 	      (delete
 	       ;; " " has either been a replacement of "%k" (when
-	       ;; keep-date argument is non-nil), or a replacemtent
+	       ;; keep-date argument is non-nil), or a replacement
 	       ;; for the whole keep-date sublist.
 	       " "
 	       (dolist
@@ -2281,7 +2285,7 @@ The method used must be an out-of-band method."
 		       (append
 			copy-args
 			(let ((y (mapcar (lambda (z) (format-spec z spec)) x)))
-			  (if (zerop (length (car y))) '(" ") y))))))
+			  (if (member "" y) '(" ") y))))))
 	      copy-env
 	      (delq
 	       nil

@@ -1,3 +1,9 @@
+2011-03-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-do-copy-or-rename-file-out-of-band): Do
+	not use `tramp-file-name-port', because this returns also
+	`tramp-default-port'.
+
 2011-03-09  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
 
 	* net/rcirc.el (rcirc-handler-001): Remove useless
