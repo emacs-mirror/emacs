@@ -3465,13 +3465,13 @@ Offer one suitable for current depth DEPTH as default."
 (defun allout-make-topic-prefix (&optional prior-bullet
                                             new
                                             depth
-                                            solicit
+                                            instead
                                             number-control
                                             index)
   ;; Depth null means use current depth, non-null means we're either
   ;; opening a new topic after current topic, lower or higher, or we're
   ;; changing level of current topic.
-  ;; Solicit dominates specified bullet-char.
+  ;; Instead dominates specified bullet-char.
 ;;;_    . Doc string:
   "Generate a topic prefix suitable for optional arg DEPTH, or current depth.
 
@@ -3492,15 +3492,18 @@ bullet or previous sibling.
 Third arg DEPTH forces the topic prefix to that depth, regardless of
 the current topics' depth.
 
-If SOLICIT is non-nil, then the choice of bullet is solicited from
-user.  If it's a character, then that character is offered as the
-default, otherwise the one suited to the context (according to
-distinction or depth) is offered.  (This overrides other options,
-including, eg, a distinctive PRIOR-BULLET.)  If non-nil, then the
-context-specific bullet is used.
+If INSTEAD is:
+
+- nil, then the bullet char for the context is used, per distinction or depth
+- a string, then the first character of the string will be used
+- a character, then the user is solicited for bullet, with that char as default
+- anything else, the user is solicited with bullet char per context as default
+
+\(INSTEAD overrides other options, including, eg, a distinctive
+PRIOR-BULLET.)
 
 Fifth arg, NUMBER-CONTROL, matters only if `allout-numbered-bullet'
-is non-nil *and* soliciting was not explicitly invoked.  Then
+is non-nil *and* no specific INSTEAD was specified.  Then
 NUMBER-CONTROL non-nil forces prefix to either numbered or
 denumbered format, depending on the value of the sixth arg, INDEX.
 
@@ -3549,8 +3552,11 @@ index for each successive sibling)."
            ;; Solicitation overrides numbering and other cases:
            ((progn (setq body (make-string (- depth 2) ?\ ))
                    ;; The actual condition:
-                   solicit)
-            (let* ((got (allout-solicit-alternate-bullet depth solicit)))
+                   instead)
+            (let* ((got
+                    (if (and (stringp instead)(> (length instead) 0))
+                        (substring instead 0 1)
+                      (allout-solicit-alternate-bullet depth instead))))
               ;; Gotta check whether we're numbering and got a numbered bullet:
               (setq numbering (and allout-numbered-bullet
                                    (not (and number-control (not index)))
@@ -3913,7 +3919,7 @@ Note that refill of indented paragraphs is not done."
 		      (allout-end-of-prefix)
                       (setq from allout-recent-prefix-beginning
                             to allout-recent-prefix-end)
-		      (allout-rebullet-heading t	;;; solicit
+		      (allout-rebullet-heading t	;;; instead
 						nil	;;; depth
 						nil	;;; number-control
 						nil	;;; index
@@ -3931,8 +3937,8 @@ Note that refill of indented paragraphs is not done."
     (message "Done.")
     (cond (on-bullet (goto-char (allout-current-bullet-pos)))
 	  (initial-col (move-to-column initial-col)))))
-;;;_    > allout-rebullet-heading (&optional solicit ...)
-(defun allout-rebullet-heading (&optional solicit
+;;;_    > allout-rebullet-heading (&optional instead ...)
+(defun allout-rebullet-heading (&optional instead
                                            new-depth
                                            number-control
                                            index
@@ -3942,11 +3948,11 @@ Note that refill of indented paragraphs is not done."
 
 All args are optional.
 
-If SOLICIT is non-nil, then the choice of bullet is solicited from
-user.  If it's a character, then that character is offered as the
-default, otherwise the one suited to the context (according to
-distinction or depth) is offered.  If non-nil, then the
-context-specific bullet is just used.
+If INSTEAD is:
+- nil, then the bullet char for the context is used, per distinction or depth
+- a string, then the first character of the string will be used
+- a character, then the user is solicited for bullet, with that char as default
+- anything else, the user is solicited with bullet char per context as default
 
 Second arg DEPTH forces the topic prefix to that depth, regardless
 of the topic's current depth.
@@ -3981,7 +3987,7 @@ this function."
          (new-prefix (allout-make-topic-prefix current-bullet
                                                 nil
                                                 new-depth
-                                                solicit
+                                                instead
                                                 number-control
                                                 index)))
 
@@ -4028,7 +4034,7 @@ this function."
 		    (cond ((numberp index) (1+ index))
 			  ((not number-control)  (allout-sibling-index))))
 	      (if (allout-numbered-type-prefix)
-		  (allout-rebullet-heading nil		;;; solicit
+		  (allout-rebullet-heading nil		;;; instead
 					    new-depth	;;; new-depth
 					    number-control;;; number-control
 					    index	;;; index
@@ -4145,7 +4151,7 @@ a topic and its immediate offspring is greater than one.)"
            (when (< relative-depth 0)
              (save-excursion
                (goto-char local-point)
-               (allout-rebullet-heading nil               ;;; solicit
+               (allout-rebullet-heading nil               ;;; instead
                                         (+ starting-depth relative-depth)
                                         nil		;;; number
                                         starting-index
@@ -4203,7 +4209,7 @@ Returns final depth."
                                         ; Prime ascender for ascension:
       (setq ascender (1- allout-recent-depth))
       (if (>= allout-recent-depth depth)
-          (allout-rebullet-heading nil	;;; solicit
+          (allout-rebullet-heading nil	;;; instead
                                     nil	;;; depth
                                     nil	;;; number-control
                                     nil	;;; index
@@ -4230,7 +4236,7 @@ rebulleting each topic at this level."
           (use-bullet (equal '(16) denumber))
           (more t))
       (while more
-        (allout-rebullet-heading use-bullet		;;; solicit
+        (allout-rebullet-heading use-bullet		;;; instead
                                   depth			;;; depth
                                   t			;;; number-control
                                   index			;;; index
@@ -4577,32 +4583,20 @@ however, are left exactly like normal, non-allout-specific yanks."
                           (progn (widen)
                                  (forward-char -1)
                                  (narrow-to-region subj-beg (point))))))
-                  ;; Preserve new bullet if it's a distinctive one, otherwise
-                  ;; use old one:
-                  (if (string-match (regexp-quote prefix-bullet)
-                                    allout-distinctive-bullets-string)
-                                        ; Delete from bullet of old to
-                                        ; before bullet of new:
-                      (progn
-                        (beginning-of-line)
-                        (allout-unprotected
-                         (delete-region (point) subj-beg))
-                        (set-marker (allout-mark-marker t) subj-end)
-                        (goto-char subj-beg)
-                        (allout-end-of-prefix))
-                                        ; Delete base subj prefix,
-                                        ; leaving old one:
-                    (allout-unprotected
-                     (progn
-                       (delete-region (point) (+ (point)
-                                                 prefix-len
-                                                 (- adjust-to-depth
-                                                    subj-depth)))
+                  ;; Remove new heading prefix:
+                  (allout-unprotected
+                   (progn
+                     (delete-region (point) (+ (point)
+                                               prefix-len
+                                               (- adjust-to-depth
+                                                  subj-depth)))
                                         ; and delete residual subj
                                         ; prefix digits and space:
-                       (while (looking-at "[0-9]") (delete-char 1))
-                       (if (looking-at " ")
-                           (delete-char 1))))))
+                     (while (looking-at "[0-9]") (delete-char 1))
+                     (if (looking-at " ")
+                         (delete-char 1))))
+                  ;; Assert new topic's bullet - minimal effort if unchanged:
+                  (allout-rebullet-heading prefix-bullet))
               (exchange-point-and-mark))))
       (if rectify-numbering
           (progn
@@ -4613,7 +4607,7 @@ however, are left exactly like normal, non-allout-specific yanks."
               (goto-char subj-beg)
               (if (allout-goto-prefix-doublechecked)
                   (allout-unprotected
-                   (allout-rebullet-heading nil          ;;; solicit
+                   (allout-rebullet-heading nil          ;;; instead
                                             (allout-depth) ;;; depth
                                             nil ;;; number-control
                                             nil ;;; index

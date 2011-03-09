@@ -1,3 +1,14 @@
+2011-03-09  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el Summary: Change so yank of distinctive-bullet items
+	preserves the existing header prefix, rebulleting it if necessary,
+	rather than replacing it.  This is necessary for proper operation
+	of cooperative addons like allout-widgets.
+	(allout-make-topic-prefix) (allout-rebullet-heading): Change
+	SOLICIT arg to INSTEAD, and interpret additionally a string value
+	as alternate bullet to be used, instead of prompting the user for
+	a bullet character.
+
 2011-03-09  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-do-copy-or-rename-file-out-of-band): Do
