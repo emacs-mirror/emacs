@@ -1,6 +1,6 @@
 2011-03-09  Eli Zaretskii  <eliz@gnu.org>
 
-	* custom.texi (Init File): Add inex entries for ".emacs".
+	* custom.texi (Init File): Add index entries for ".emacs".
 	(Bug#8210)
 
 2011-03-08  Jan Djärv  <jan.h.d@swipnet.se>
