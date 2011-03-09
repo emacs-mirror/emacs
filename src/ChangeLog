@@ -1,5 +1,7 @@
 2011-03-09  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xterm.h (x_mouse_leave): New decl.
+
 	* xterm.c (x_copy_dpy_color, x_focus_on_frame, x_unfocus_frame):
 	Remove unused functions.
 

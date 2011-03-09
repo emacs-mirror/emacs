@@ -979,6 +979,7 @@ extern int x_alloc_nearest_color (struct frame *, Colormap, XColor *);
 extern void x_query_colors (struct frame *f, XColor *, int);
 extern void x_query_color (struct frame *f, XColor *);
 extern void x_clear_area (Display *, Window, int, int, int, int, int);
+extern void x_mouse_leave (struct x_display_info *);
 extern void set_vertical_scroll_bar (struct window *);
 
 extern int x_dispatch_event (XEvent *, Display *);
