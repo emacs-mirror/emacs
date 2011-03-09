@@ -1,3 +1,8 @@
+2011-03-09  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/gdb-mi.el (gdb): Improve 2010-12-08 change.
+	Check for GDBHISTFILE, HISTSIZE, etc.  (Bug#7889)
+
 2011-03-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/package.el (package-refresh-contents)
