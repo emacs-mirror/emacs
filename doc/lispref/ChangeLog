@@ -1,3 +1,9 @@
+2011-03-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* intro.texi (Acknowledgements): Convert to ISO-8859-1 encoding.
+
+	* makefile.w32-in (MAKEINFO_OPTS): Add --enable-encoding.
+
 2011-03-08  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (MAKEINFO_OPTS): Add --enable-encoding.

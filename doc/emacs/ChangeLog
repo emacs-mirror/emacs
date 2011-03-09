@@ -1,5 +1,10 @@
 2011-03-09  Eli Zaretskii  <eliz@gnu.org>
 
+	* ack.texi (Acknowledgments): Convert to ISO-8859-1 encoding.  Use
+	Texinfo @-commands for non Latin-1 characters.
+
+	* makefile.w32-in (MAKEINFO_OPTS): Add --enable-encoding.
+
 	* custom.texi (Init File): Add index entries for ".emacs".
 	(Bug#8210)
 
