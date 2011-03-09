@@ -961,9 +961,10 @@ static void
 tty_ins_del_lines (struct frame *f, int vpos, int n)
 {
   struct tty_display_info *tty = FRAME_TTY (f);
-  char *multi = n > 0 ? tty->TS_ins_multi_lines : tty->TS_del_multi_lines;
-  char *single = n > 0 ? tty->TS_ins_line : tty->TS_del_line;
-  char *scroll = n > 0 ? tty->TS_rev_scroll : tty->TS_fwd_scroll;
+  const char *multi =
+    n > 0 ? tty->TS_ins_multi_lines : tty->TS_del_multi_lines;
+  const char *single = n > 0 ? tty->TS_ins_line : tty->TS_del_line;
+  const char *scroll = n > 0 ? tty->TS_rev_scroll : tty->TS_fwd_scroll;
 
   register int i = n > 0 ? n : -n;
   register char *buf;
@@ -1138,9 +1139,9 @@ calculate_costs (struct frame *frame)
   if (FRAME_TERMCAP_P (frame))
     {
       struct tty_display_info *tty = FRAME_TTY (frame);
-      register char *f = (tty->TS_set_scroll_region
-                          ? tty->TS_set_scroll_region
-                          : tty->TS_set_scroll_region_1);
+      register const char *f = (tty->TS_set_scroll_region
+				? tty->TS_set_scroll_region
+				: tty->TS_set_scroll_region_1);
 
       FRAME_SCROLL_REGION_COST (frame) = string_cost (f);
 
@@ -1194,7 +1195,7 @@ calculate_costs (struct frame *frame)
 }
 
 struct fkey_table {
-  char *cap, *name;
+  const char *cap, *name;
 };
 
   /* Termcap capability names that correspond directly to X keysyms.
@@ -1305,6 +1306,18 @@ static char **term_get_fkeys_address;
 static KBOARD *term_get_fkeys_kboard;
 static Lisp_Object term_get_fkeys_1 (void);
 
+/* Rework termcap API to accept const pointer args.  */
+static inline int my_tgetflag (const char *x) { return tgetflag ((char *) x); }
+static inline int my_tgetnum (const char *x) { return tgetnum ((char *) x); }
+static inline char *my_tgetstr (const char *x, char **a)
+{ return tgetstr ((char *) x, a); }
+#undef tgetflag
+#undef tgetnum
+#undef tgetstr
+#define tgetflag my_tgetflag
+#define tgetnum my_tgetnum
+#define tgetstr my_tgetstr
+
 /* Find the escape codes sent by the function keys for Vinput_decode_map.
    This function scans the termcap function key sequence entries, and
    adds entries to Vinput_decode_map for each function key it finds.  */
@@ -1352,9 +1365,9 @@ term_get_fkeys_1 (void)
      "k;", and if it is present, assuming that "k0" denotes F0, otherwise F10.
      */
   {
-    char *k_semi  = tgetstr ("k;", address);
-    char *k0      = tgetstr ("k0", address);
-    char *k0_name = "f10";
+    const char *k_semi  = tgetstr ("k;", address);
+    const char *k0      = tgetstr ("k0", address);
+    const char *k0_name = "f10";
 
     if (k_semi)
       {
@@ -1447,7 +1460,7 @@ static void append_glyph (struct it *);
 static void produce_stretch_glyph (struct it *);
 static void append_composite_glyph (struct it *);
 static void produce_composite_glyph (struct it *);
-static void append_glyphless_glyph (struct it *, int, char *);
+static void append_glyphless_glyph (struct it *, int, const char *);
 static void produce_glyphless_glyph (struct it *, int, Lisp_Object);
 
 /* Append glyphs to IT's glyph_row.  Called from produce_glyphs for
@@ -1815,7 +1828,7 @@ produce_composite_glyph (struct it *it)
    comes from it->nglyphs bytes).  */
 
 static void
-append_glyphless_glyph (struct it *it, int face_id, char *str)
+append_glyphless_glyph (struct it *it, int face_id, const char *str)
 {
   struct glyph *glyph, *end;
   int i;
@@ -1890,7 +1903,8 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
 {
   int face_id;
   int len;
-  char buf[9], *str = "    ";
+  char buf[9];
+  char const *str = "    ";
 
   /* Get a face ID for the glyph by utilizing a cache (the same way as
      done for `escape-glyph' in get_next_display_element).  */
@@ -2109,7 +2123,8 @@ turn_on_face (struct frame *f, int face_id)
 
   if (tty->TN_max_colors > 0)
     {
-      char *ts, *p;
+      const char *ts;
+      char *p;
 
       ts = tty->standout_mode ? tty->TS_set_background : tty->TS_set_foreground;
       if (fg >= 0 && ts)
@@ -3519,10 +3534,10 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
 	 If it were in the termcap entry, it would confuse other programs.  */
       if (!tty->TS_set_window)
 	{
-	  p = tty->TS_termcap_modes;
-	  while (*p && strcmp (p, "\033v  "))
-	    p++;
-	  if (*p)
+	  const char *m = tty->TS_termcap_modes;
+	  while (*m && strcmp (m, "\033v  "))
+	    m++;
+	  if (*m)
 	    tty->TS_set_window = "\033v%C %C %C %C ";
 	}
       /* Termcap entry often fails to have :in: flag */

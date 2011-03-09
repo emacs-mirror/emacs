@@ -98,6 +98,16 @@
 	* tparam.c (tparam1, tparam, tgoto):
 	Use const pointers where appropriate.
 
+	* cm.c (calccost, cmgoto): Use const pointers where appropriate.
+	* cm.h (struct cm): Likewise.
+	* dispextern.h (do_line_insertion_deletion_costs): Likewise.
+	* scroll.c (ins_del_costs, do_line_insertion_deletion_costs): Likewise.
+	* term.c (tty_ins_del_lines, calculate_costs, struct fkey_table):
+	(term_get_fkeys_1, append_glyphless_glyph, produce_glyphless_glyph):
+	(turn_on_face, init_tty): Likewise.
+	* termchar.h (struct tty_display_info): Likewise.
+	* term.c (tgetflag, tgetnum, tgetstr): Redefine to use const pointers.
+
 2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (redisplay_window): Revert incorrect logic in 2011-03-06
