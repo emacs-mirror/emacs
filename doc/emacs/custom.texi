@@ -2114,6 +2114,8 @@ Reference Manual}.
 @node Init File
 @section The Init File, @file{~/.emacs}
 @cindex init file
+@cindex .emacs file
+@cindex ~/.emacs file
 @cindex Emacs initialization file
 @cindex key rebinding, permanent
 @cindex rebinding keys, permanently
