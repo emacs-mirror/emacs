@@ -7042,6 +7042,8 @@ XTread_socket (struct terminal *terminal, int expected, struct input_event *hold
         goto out;
     }
 
+ out:;
+
 #else /* USE_GTK */
 
   /* For GTK we must use the GTK event loop.  But XEvents gets passed
@@ -7067,8 +7069,6 @@ XTread_socket (struct terminal *terminal, int expected, struct input_event *hold
         break;
     }
 #endif /* USE_GTK */
-
- out:;
 
   /* On some systems, an X bug causes Emacs to get no more events
      when the window is destroyed.  Detect that.  (1994.)  */
