@@ -108,6 +108,8 @@
 	* termchar.h (struct tty_display_info): Likewise.
 	* term.c (tgetflag, tgetnum, tgetstr): Redefine to use const pointers.
 
+	* term.c (term_mouse_position): Rename local to avoid shadowing.
+
 2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (redisplay_window): Revert incorrect logic in 2011-03-06

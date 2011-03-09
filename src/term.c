@@ -2700,14 +2700,14 @@ term_mouse_movement (FRAME_PTR frame, Gpm_Event *event)
    Set *bar_window to Qnil, and *x and *y to the column and
    row of the character cell the mouse is over.
 
-   Set *time to the time the mouse was at the returned position.
+   Set *timeptr to the time the mouse was at the returned position.
 
    This clears mouse_moved until the next motion
    event arrives.  */
 static void
 term_mouse_position (FRAME_PTR *fp, int insist, Lisp_Object *bar_window,
 		     enum scroll_bar_part *part, Lisp_Object *x,
-		     Lisp_Object *y, unsigned long *time)
+		     Lisp_Object *y, unsigned long *timeptr)
 {
   struct timeval now;
 
@@ -2720,7 +2720,7 @@ term_mouse_position (FRAME_PTR *fp, int insist, Lisp_Object *bar_window,
   XSETINT (*x, last_mouse_x);
   XSETINT (*y, last_mouse_y);
   gettimeofday(&now, 0);
-  *time = (now.tv_sec * 1000) + (now.tv_usec / 1000);
+  *timeptr = (now.tv_sec * 1000) + (now.tv_usec / 1000);
 }
 
 /* Prepare a mouse-event in *RESULT for placement in the input queue.
