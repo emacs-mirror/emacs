@@ -4,6 +4,8 @@
 	or move locals to avoid shadowing.
 	(tty_defined_color, merge_face_heights): Now static.
 	(free_realized_faces_for_fontset): Remove; not used.
+	(Fx_list_fonts): Mark variable that gcc -Wuninitialized
+	does not deduce is never used uninitialized.
 
 	* terminal.c (store_terminal_param): Now static.
 

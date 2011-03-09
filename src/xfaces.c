@@ -1720,7 +1720,7 @@ the WIDTH times as wide as FACE on FRAME.  */)
   (Lisp_Object pattern, Lisp_Object face, Lisp_Object frame, Lisp_Object maximum, Lisp_Object width)
 {
   struct frame *f;
-  int size, avgwidth;
+  int size, avgwidth IF_LINT (= 0);
 
   check_x ();
   CHECK_STRING (pattern);
