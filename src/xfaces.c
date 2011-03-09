@@ -4312,45 +4312,6 @@ free_realized_faces (struct face_cache *c)
 }
 
 
-/* Free all realized faces that are using FONTSET on frame F.  */
-
-void
-free_realized_faces_for_fontset (struct frame *f, int fontset)
-{
-  struct face_cache *cache = FRAME_FACE_CACHE (f);
-  struct face *face;
-  int i;
-
-  /* We must block input here because we can't process X events safely
-     while only some faces are freed, or when the frame's current
-     matrix still references freed faces.  */
-  BLOCK_INPUT;
-
-  for (i = 0; i < cache->used; i++)
-    {
-      face = cache->faces_by_id[i];
-      if (face
-	  && face->fontset == fontset)
-	{
-	  uncache_face (cache, face);
-	  free_realized_face (f, face);
-	}
-    }
-
-  /* Must do a thorough redisplay the next time.  Mark current
-     matrices as invalid because they will reference faces freed
-     above.  This function is also called when a frame is destroyed.
-     In this case, the root window of F is nil.  */
-  if (WINDOWP (f->root_window))
-    {
-      clear_current_matrices (f);
-      ++windows_or_buffers_changed;
-    }
-
-  UNBLOCK_INPUT;
-}
-
-
 /* Free all realized faces on FRAME or on all frames if FRAME is nil.
    This is done after attributes of a named face have been changed,
    because we can't tell which realized faces depend on that face.  */
