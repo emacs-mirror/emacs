@@ -1,3 +1,8 @@
+2011-03-08  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth.texi (Help for developers): Show example of using
+	`auth-source-search' with prompts and :save-function.
+
 2011-03-07  Antoine Levitt  <antoine.levitt@gmail.com>
 
 	* message.texi (Message Buffers): Update default value of

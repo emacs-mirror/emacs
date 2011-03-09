@@ -279,16 +279,21 @@ textual parts.")
     (current-buffer)))
 
 (defun nnimap-credentials (address ports)
-  (let ((found (nth 0 (auth-source-search :max 1
-					  :host address
-					  :port ports
-					  :create t))))
+  (let* ((auth-source-creation-prompts
+          '((user  . "IMAP user at %h: ")
+            (secret . "IMAP password for %u@%h: ")))
+         (found (nth 0 (auth-source-search :max 1
+                                           :host address
+                                           :port ports
+                                           :require '(:user :secret)
+                                           :create t))))
     (if found
         (list (plist-get found :user)
 	      (let ((secret (plist-get found :secret)))
 		(if (functionp secret)
 		    (funcall secret)
-		  secret)))
+		  secret))
+	      (plist-get found :save-function))
       nil)))
 
 (defun nnimap-keepalive ()
@@ -396,7 +401,12 @@ textual parts.")
 		(let ((nnimap-inhibit-logging t))
 		  (setq login-result
 			(nnimap-login (car credentials) (cadr credentials))))
-		(unless (car login-result)
+		(if (car login-result)
+                    ;; save the credentials if a save function exists
+                    ;; (such a function will only be passed if a new
+                    ;; token was created)
+                    (when (functionp (nth 2 credentials))
+                      (funcall (nth 2 credentials)))
 		  ;; If the login failed, then forget the credentials
 		  ;; that are now possibly cached.
 		  (dolist (host (list (nnoo-current-server 'nnimap)
