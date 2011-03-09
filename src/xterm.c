@@ -6991,7 +6991,6 @@ static int
 XTread_socket (struct terminal *terminal, int expected, struct input_event *hold_quit)
 {
   int count = 0;
-  XEvent event;
   int event_found = 0;
 
   if (interrupt_input_blocked)
@@ -7025,6 +7024,7 @@ XTread_socket (struct terminal *terminal, int expected, struct input_event *hold
   while (XPending (terminal->display_info.x->display))
     {
       int finish;
+      XEvent event;
 
       XNextEvent (terminal->display_info.x->display, &event);
 

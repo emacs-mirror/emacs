@@ -7,6 +7,7 @@
 	(x_shift_glyphs_for_insert, XTflash, XTring_bell):
 	(x_calc_absolute_position): Now static.
 	(XTread_socket): Don't define label "out" unless it's used.
+	Don't declare local "event" unless it's used.
 
 	* xfaces.c (clear_face_cache, Fx_list_fonts, Fface_font): Rename
 	or move locals to avoid shadowing.
