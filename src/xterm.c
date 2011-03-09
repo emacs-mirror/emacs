@@ -2886,7 +2886,7 @@ x_draw_glyph_string (struct glyph_string *s)
 
 /* Shift display to make room for inserted glyphs.   */
 
-void
+static void
 x_shift_glyphs_for_insert (struct frame *f, int x, int y, int width, int height, int shift_by)
 {
   XCopyArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), FRAME_X_WINDOW (f),
@@ -2990,7 +2990,7 @@ timeval_subtract (struct timeval *result, struct timeval x, struct timeval y)
   return x.tv_sec < y.tv_sec;
 }
 
-void
+static void
 XTflash (struct frame *f)
 {
   BLOCK_INPUT;
@@ -3165,7 +3165,7 @@ XTtoggle_invisible_pointer (FRAME_PTR f, int invisible)
 
 /* Make audible bell.  */
 
-void
+static void
 XTring_bell (struct frame *f)
 {
   if (FRAME_X_DISPLAY (f))
@@ -8098,7 +8098,7 @@ xim_close_dpy (struct x_display_info *dpyinfo)
 /* Calculate the absolute position in frame F
    from its current recorded position values and gravity.  */
 
-void
+static void
 x_calc_absolute_position (struct frame *f)
 {
   int flags = f->size_hint_flags;
