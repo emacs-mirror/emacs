@@ -1112,7 +1112,7 @@ tty_lookup_color (struct frame *f, Lisp_Object color, XColor *tty_color, XColor 
 
 /* A version of defined_color for non-X frames.  */
 
-int
+static int
 tty_defined_color (struct frame *f, const char *color_name,
 		   XColor *color_def, int alloc)
 {
@@ -2251,7 +2251,7 @@ set_lface_from_font (struct frame *f, Lisp_Object lface, Lisp_Object font_object
    `relative' heights; the returned value is always an absolute height
    unless both FROM and TO are relative.  */
 
-Lisp_Object
+static Lisp_Object
 merge_face_heights (Lisp_Object from, Lisp_Object to, Lisp_Object invalid)
 {
   Lisp_Object result = invalid;
