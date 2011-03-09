@@ -263,11 +263,11 @@ from Gnus' @code{nnimap.el}.
                                            :create t))))
     (if found
         (list (plist-get found :user)
-	      (let ((secret (plist-get found :secret)))
-		(if (functionp secret)
-		    (funcall secret)
-		  secret))
-	      (plist-get found :save-function))
+              (let ((secret (plist-get found :secret)))
+                (if (functionp secret)
+                    (funcall secret)
+                  secret))
+              (plist-get found :save-function))
       nil)))
 @end example
 
@@ -287,7 +287,7 @@ Later, after a successful login, @code{nnimal.el} calls the
 @example
 (when (functionp (nth 2 credentials))
    (funcall (nth 2 credentials)))
-@end example  
+@end example
 
 Which will work whether the @code{:save-function} was provided or not.
 @code{:save-function} will be provided only when a new entry was
