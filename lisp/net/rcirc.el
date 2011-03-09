@@ -2449,8 +2449,7 @@ keywords when no KEYWORD is given."
     (if rcirc-auto-authenticate-flag
         (if rcirc-authenticate-before-join
             (progn
-              (with-rcirc-process-buffer process
-                (add-hook 'rcirc-authenticated-hook 'rcirc-join-channels-post-auth t t))
+	      (add-hook 'rcirc-authenticated-hook 'rcirc-join-channels-post-auth t t)
               (rcirc-authenticate))
           (rcirc-authenticate)
           (rcirc-join-channels process rcirc-startup-channels))
@@ -2515,7 +2514,7 @@ the only argument."
                (and ;; quakenet
                 (string= sender "Q")
                 (string= target rcirc-nick)
-                (string-match message "\\`You are now logged in as .+\\.\\'")))
+                (string-match "\\`You are now logged in as .+\\.\\'" message)))
           (setq rcirc-user-authenticated t)
           (run-hook-with-args 'rcirc-authenticated-hook process)
           (remove-hook 'rcirc-authenticated-hook 'rcirc-join-channels-post-auth t))))))
