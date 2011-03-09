@@ -89,6 +89,7 @@
 
 	* cm.c (cmgoto): Mark variables that gcc -Wuninitialized does not
 	deduce are never used uninitialized.
+	* term.c (encode_terminal_code): Likewise.
 
 	* term.c (encode_terminal_code): Now static.  Remove unused local.
 

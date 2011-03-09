@@ -533,8 +533,8 @@ encode_terminal_code (struct glyph *src, int src_len, struct coding_system *codi
     {
       if (src->type == COMPOSITE_GLYPH)
 	{
-	  struct composition *cmp;
-	  Lisp_Object gstring;
+	  struct composition *cmp IF_LINT (= NULL);
+	  Lisp_Object gstring IF_LINT (= Qnil);
 	  int i;
 
 	  nbytes = buf - encode_terminal_src;
@@ -595,7 +595,7 @@ encode_terminal_code (struct glyph *src, int src_len, struct coding_system *codi
       else if (! CHAR_GLYPH_PADDING_P (*src))
 	{
 	  GLYPH g;
-	  int c;
+	  int c IF_LINT (= 0);
 	  Lisp_Object string;
 
 	  string = Qnil;
