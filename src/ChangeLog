@@ -1,5 +1,8 @@
 2011-03-09  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xterm.c (x_copy_dpy_color, x_focus_on_frame, x_unfocus_frame):
+	Remove unused functions.
+
 	* xfaces.c (clear_face_cache, Fx_list_fonts, Fface_font): Rename
 	or move locals to avoid shadowing.
 	(tty_defined_color, merge_face_heights): Now static.

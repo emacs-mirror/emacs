@@ -1791,27 +1791,6 @@ x_copy_color (struct frame *f, long unsigned int pixel)
 }
 
 
-/* Allocate color PIXEL on display DPY.  PIXEL must already be allocated.
-   It's necessary to do this instead of just using PIXEL directly to
-   get color reference counts right.  */
-
-unsigned long
-x_copy_dpy_color (Display *dpy, Colormap cmap, long unsigned int pixel)
-{
-  XColor color;
-
-  color.pixel = pixel;
-  BLOCK_INPUT;
-  XQueryColor (dpy, cmap, &color);
-  XAllocColor (dpy, cmap, &color);
-  UNBLOCK_INPUT;
-#ifdef DEBUG_X_COLORS
-  register_color (pixel);
-#endif
-  return color.pixel;
-}
-
-
 /* Brightness beyond which a color won't have its highlight brightness
    boosted.
 
@@ -8862,31 +8841,6 @@ x_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y)
   UNBLOCK_INPUT;
 }
 
-/* focus shifting, raising and lowering.  */
-
-void
-x_focus_on_frame (struct frame *f)
-{
-#if 0
-  /* I don't think that the ICCCM allows programs to do things like this
-     without the interaction of the window manager.  Whatever you end up
-     doing with this code, do it to x_unfocus_frame too.  */
-  XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		  RevertToPointerRoot, CurrentTime);
-#endif /* ! 0 */
-}
-
-void
-x_unfocus_frame (struct frame *f)
-{
-#if 0
-  /* Look at the remarks in x_focus_on_frame.  */
-  if (FRAME_X_DISPLAY_INFO (f)->x_focus_frame == f)
-    XSetInputFocus (FRAME_X_DISPLAY (f), PointerRoot,
-		    RevertToPointerRoot, CurrentTime);
-#endif /* ! 0 */
-}
-
 /* Raise frame F.  */
 
 void
