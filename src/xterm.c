@@ -279,10 +279,6 @@ Lisp_Object Qx_gtk_map_stock;
 /* Some functions take this as char *, not const char *.  */
 static char emacs_class[] = EMACS_CLASS;
 
-/* XEmbed implementation.  */
-
-#define XEMBED_VERSION 0
-
 enum xembed_info
   {
     XEMBED_MAPPED = 1 << 0
@@ -7647,17 +7643,6 @@ x_connection_signal (int signalnum)	/* If we don't have an argument, */
 
 static char *error_msg;
 
-/* Function installed as fatal_error_signal_hook in
-   x_connection_closed.  Print the X error message, and exit normally,
-   instead of dumping core when XtCloseDisplay fails.  */
-
-static void
-x_fatal_error_signal (void)
-{
-  fprintf (stderr, "%s\n", error_msg);
-  exit (70);
-}
-
 /* Handle the loss of connection to display DPY.  ERROR_MESSAGE is
    the text of an error message that lead to the connection loss.  */
 
@@ -8901,6 +8886,12 @@ XTframe_raise_lower (FRAME_PTR f, int raise_flag)
 
 /* XEmbed implementation.  */
 
+#if defined USE_X_TOOLKIT || ! defined USE_GTK
+
+/* XEmbed implementation.  */
+
+#define XEMBED_VERSION 0
+
 static void
 xembed_set_info (struct frame *f, enum xembed_info flags)
 {
@@ -8914,6 +8905,7 @@ xembed_set_info (struct frame *f, enum xembed_info flags)
                    dpyinfo->Xatom_XEMBED_INFO, dpyinfo->Xatom_XEMBED_INFO,
 		   32, PropModeReplace, (unsigned char *) data, 2);
 }
+#endif /* defined USE_X_TOOLKIT || ! defined USE_GTK */
 
 static void
 xembed_send_message (struct frame *f, Time time, enum xembed_message message, long int detail, long int data1, long int data2)
