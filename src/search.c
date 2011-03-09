@@ -114,17 +114,13 @@ matcher_overflow (void)
    PATTERN is the pattern to compile.
    CP is the place to put the result.
    TRANSLATE is a translation table for ignoring case, or nil for none.
-   REGP is the structure that says where to store the "register"
-   values that will result from matching this pattern.
-   If it is 0, we should compile the pattern not to record any
-   subexpression bounds.
    POSIX is nonzero if we want full backtracking (POSIX style)
    for this pattern.  0 means backtrack only enough to get a valid match.
 
    The behavior also depends on Vsearch_spaces_regexp.  */
 
 static void
-compile_pattern_1 (struct regexp_cache *cp, Lisp_Object pattern, Lisp_Object translate, struct re_registers *regp, int posix)
+compile_pattern_1 (struct regexp_cache *cp, Lisp_Object pattern, Lisp_Object translate, int posix)
 {
   char *val;
   reg_syntax_t old;
@@ -247,7 +243,7 @@ compile_pattern (Lisp_Object pattern, struct re_registers *regp, Lisp_Object tra
       if (cp->next == 0)
 	{
 	compile_it:
-	  compile_pattern_1 (cp, pattern, translate, regp, posix);
+	  compile_pattern_1 (cp, pattern, translate, posix);
 	  break;
 	}
     }
