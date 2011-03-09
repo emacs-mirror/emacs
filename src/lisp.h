@@ -3378,6 +3378,7 @@ extern Lisp_Object directory_files_internal (Lisp_Object, Lisp_Object,
 
 /* Defined in term.c */
 extern int *char_ins_del_vector;
+extern void mark_ttys (void);
 extern void syms_of_term (void);
 extern void fatal (const char *msgid, ...) NO_RETURN;
 

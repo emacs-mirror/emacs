@@ -110,6 +110,9 @@
 
 	* term.c (term_mouse_position): Rename local to avoid shadowing.
 
+	* alloc.c (mark_ttys): Move decl from here ...
+	* lisp.h (mark_ttys): ... to here, so that it's checked against defn.
+
 2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (redisplay_window): Revert incorrect logic in 2011-03-06
