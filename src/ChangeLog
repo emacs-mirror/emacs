@@ -6,6 +6,8 @@
 	(free_realized_faces_for_fontset): Remove; not used.
 	(Fx_list_fonts): Mark variable that gcc -Wuninitialized
 	does not deduce is never used uninitialized.
+	(STRDUPA, LSTRDUPA, FONT_POINT_SIZE_QUANTUM): Remove; not used.
+	(LFACEP): Define only if XASSERTS, as it's not needed otherwise.
 
 	* terminal.c (store_terminal_param): Now static.
 

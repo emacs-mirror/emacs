@@ -297,16 +297,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define DIM(VECTOR) (sizeof (VECTOR) / sizeof *(VECTOR))
 
-/* Make a copy of string S on the stack using alloca.  Value is a pointer
-   to the copy.  */
-
-#define STRDUPA(S) strcpy ((char *) alloca (strlen ((S)) + 1), (S))
-
-/* Make a copy of the contents of Lisp string S on the stack using
-   alloca.  Value is a pointer to the copy.  */
-
-#define LSTRDUPA(S) STRDUPA (SDATA ((S)))
-
 /* Size of hash table of realized faces in face caches (should be a
    prime number).  */
 
@@ -1837,6 +1827,7 @@ the WIDTH times as wide as FACE on FRAME.  */)
 #define LFACE_INHERIT(LFACE)	    AREF ((LFACE), LFACE_INHERIT_INDEX)
 #define LFACE_FONTSET(LFACE)	    AREF ((LFACE), LFACE_FONTSET_INDEX)
 
+#if XASSERTS
 /* Non-zero if LFACE is a Lisp face.  A Lisp face is a vector of size
    LFACE_VECTOR_SIZE which has the symbol `face' in slot 0.  */
 
@@ -1844,6 +1835,7 @@ the WIDTH times as wide as FACE on FRAME.  */)
      (VECTORP (LFACE)					\
       && XVECTOR (LFACE)->size == LFACE_VECTOR_SIZE	\
       && EQ (AREF (LFACE, 0), Qface))
+#endif
 
 
 #if GLYPH_DEBUG
@@ -5246,10 +5238,6 @@ be found.  Value is ALIST.  */)
 
 
 #ifdef HAVE_WINDOW_SYSTEM
-
-/* Ignore the difference of font point size less than this value.  */
-
-#define FONT_POINT_SIZE_QUANTUM 5
 
 /* Return the fontset id of the base fontset name or alias name given
    by the fontset attribute of ATTRS.  Value is -1 if the fontset
