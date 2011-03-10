@@ -320,14 +320,39 @@ The inner alist is keyed by version.")
 (put 'package-obsolete-alist 'risky-local-variable t)
 
 (defconst package-subdirectory-regexp
-  "^\\([^.].*\\)-\\([0-9]+\\(?:[.][0-9]+\\)*\\)$"
+  "\\`\\([^.].*?\\)-\\([0-9]+\\(?:[.][0-9]+\\|\\(?:pre\\|beta\\|alpha\\)[0-9]+\\)*\\)\\'"
   "Regular expression matching the name of a package subdirectory.
 The first subexpression is the package name.
 The second subexpression is the version string.")
 
-(defun package-version-join (l)
-  "Turn a list of version numbers into a version string."
-  (mapconcat 'int-to-string l "."))
+(defun package-version-join (vlist)
+  "Return the version string corresponding to the list VLIST.
+This is, approximately, the inverse of `version-to-list'.
+\(Actually, it returns only one of the possible inverses, since
+`version-to-list' is a many-to-one operation.)"
+  (if (null vlist)
+      ""
+    (let ((str-list (list "." (int-to-string (car vlist)))))
+      (dolist (num (cdr vlist))
+	(cond
+	 ((>= num 0)
+	  (push (int-to-string num) str-list)
+	  (push "." str-list))
+	 ((< num -3)
+	  (error "Invalid version list `%s'" vlist))
+	 (t
+	  ;; pre, or beta, or alpha
+	  (cond ((equal "." (car str-list))
+		 (pop str-list))
+		((not (string-match "[0-9]+" (car str-list)))
+		 (error "Invalid version list `%s'" vlist)))
+	  (push (cond ((= num -1) "pre")
+		      ((= num -2) "beta")
+		      ((= num -3) "alpha"))
+		str-list))))
+      (if (equal "." (car str-list))
+	  (pop str-list))
+      (apply 'concat (nreverse str-list)))))
 
 (defun package-strip-version (dirname)
   "Strip the version from a combined package name and version.
@@ -592,7 +617,9 @@ Otherwise it uses an external `tar' program.
   (if (string= file-name "package")
       (package--write-file-no-coding
        (expand-file-name (concat file-name ".el") package-user-dir))
-    (let* ((pkg-dir  (expand-file-name (concat file-name "-" version)
+    (let* ((pkg-dir  (expand-file-name (concat file-name "-"
+					       (package-version-join
+						(version-to-list version)))
 				       package-user-dir))
 	   (el-file  (expand-file-name (concat file-name ".el") pkg-dir))
 	   (pkg-file (expand-file-name (concat file-name "-pkg.el") pkg-dir)))
