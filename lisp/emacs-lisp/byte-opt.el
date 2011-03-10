@@ -287,8 +287,7 @@
              ;; old-style-byte-codes, but not mixed cases (not sure
              ;; about new-style into new-style).
              (not lexical-binding)
-             (not (and (>= (length fn) 7)
-                       (aref fn 6))))   ;6 = COMPILED_PUSH_ARGS
+             (not (integerp (aref fn 0)))) ;New lexical byte-code.
         ;; (message "Inlining %S byte-code" name)
         (fetch-bytecode fn)
         (let ((string (aref fn 1)))

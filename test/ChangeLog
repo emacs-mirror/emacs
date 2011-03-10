@@ -1,3 +1,7 @@
+2011-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/lexbind-tests.el: New file.
+
 2011-03-05  Glenn Morris  <rgm@gnu.org>
 
 	* eshell.el: Move here from lisp/eshell/esh-test.el.

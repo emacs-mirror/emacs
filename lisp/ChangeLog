@@ -1,3 +1,16 @@
+2011-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cconv.el (cconv--convert-function): Rename from
+	cconv-closure-convert-function.
+	(cconv-convert): Rename from cconv-closure-convert-rec.
+	(cconv--analyse-use): Rename from cconv-analyse-use.
+	(cconv--analyse-function): Rename from cconv-analyse-function.
+	(cconv--analyse-use): Change some patterns to silence compiler.
+	(cconv-convert, cconv--convert-function): Rewrite.
+
+	* emacs-lisp/byte-opt.el (byte-compile-inline-expand): Adjust check for
+	new byte-code representation.
+
 2011-03-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el (byte-compile-arglist-signature):
