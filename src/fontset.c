@@ -1583,14 +1583,14 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
 
   if (ascii_changed)
     {
-      Lisp_Object tail, frame, alist;
+      Lisp_Object tail, fr, alist;
       int fontset_id = XINT (FONTSET_ID (fontset));
 
       FONTSET_ASCII (fontset) = fontname;
       name = FONTSET_NAME (fontset);
-      FOR_EACH_FRAME (tail, frame)
+      FOR_EACH_FRAME (tail, fr)
 	{
-	  FRAME_PTR f = XFRAME (frame);
+	  FRAME_PTR f = XFRAME (fr);
 	  Lisp_Object font_object;
 	  struct face *face;
 
@@ -1607,7 +1607,7 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
 	    {
 	      update_auto_fontset_alist (font_object, fontset);
 	      alist = Fcons (Fcons (Qfont, Fcons (name, font_object)), Qnil);
-	      Fmodify_frame_parameters (frame, alist);
+	      Fmodify_frame_parameters (fr, alist);
 	    }
 	}
     }

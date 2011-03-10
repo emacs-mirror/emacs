@@ -1,6 +1,7 @@
 2011-03-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* fontset.c (free_realized_fontset): Now static.
+	(Fset_fontset_font): Rename local to avoid shadowing.
 
 	* xrdb.c: Include "xterm.h", to check x_load_resources's interface.
 
