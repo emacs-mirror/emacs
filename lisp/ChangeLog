@@ -1,5 +1,7 @@
 2011-03-10  Glenn Morris  <rgm@gnu.org>
 
+	* vc/vc-hg.el (vc-hg-pull, vc-hg-merge-branch): Use vc-hg-program.
+
 	* vc/vc-git.el (vc-git-program): New option.
 	(vc-git-branches, vc-git-pull, vc-git-merge-branch, vc-git-command)
 	(vc-git--call): Use it.

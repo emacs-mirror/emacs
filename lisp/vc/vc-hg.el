@@ -663,14 +663,15 @@ then attempts to update the working directory."
       (let* ((root (vc-hg-root default-directory))
 	     (buffer (format "*vc-hg : %s*" (expand-file-name root)))
 	     (command "pull")
-	     (hg-program "hg")
+	     (hg-program vc-hg-program)
 	     ;; Fixme: before updating the working copy to the latest
 	     ;; state, should check if it's visiting an old revision.
 	     (args '("-u")))
 	;; If necessary, prompt for the exact command.
 	(when prompt
 	  (setq args (split-string
-		      (read-shell-command "Run Hg (like this): " "hg pull -u"
+		      (read-shell-command "Run Hg (like this): "
+					  (format "%s pull -u" hg-program)
 					  'vc-hg-history)
 		      " " t))
 	  (setq hg-program (car  args)
@@ -685,7 +686,7 @@ then attempts to update the working directory."
 This runs the command \"hg merge\"."
   (let* ((root (vc-hg-root default-directory))
 	 (buffer (format "*vc-hg : %s*" (expand-file-name root))))
-    (apply 'vc-do-async-command buffer root "hg" '("merge"))
+    (apply 'vc-do-async-command buffer root vc-hg-program '("merge"))
     (vc-set-async-update buffer)))
 
 ;;; Internal functions
