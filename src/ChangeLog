@@ -16,7 +16,10 @@
 	* lisp.h (GCPRO1_VAR, UNGCPRO_VAR): New macros,
 	so that the caller can use some name other than gcpro1.
 	(GCPRO1, UNGCPRO): Reimplement in terms of the new macros.
-	* xfns.c (x_decode_color, x_set_name, x_window): Now static.
+	* xfns.c (Fx_create_frame, x_create_tip_frame, Fx_show_tip):
+	(Fx_backspace_delete_keys_p):
+	Use them to avoid shadowing, and rename vars to avoid shadowing.
+	(x_decode_color, x_set_name, x_window): Now static.
 	(Fx_create_frame): Add braces to silence GCC warning.
 	(Fx_file_dialog, Fx_select_font): Fix pointer signedness.
 	(x_real_positions, xg_set_icon_from_xpm_data, x_create_tip_frame):
