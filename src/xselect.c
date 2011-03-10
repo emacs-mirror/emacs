@@ -97,7 +97,6 @@ static Lisp_Object clean_local_selection_data (Lisp_Object);
 #define TRACE0(fmt)		(void) 0
 #define TRACE1(fmt, a0)		(void) 0
 #define TRACE2(fmt, a0, a1)	(void) 0
-#define TRACE3(fmt, a0, a1)	(void) 0
 #endif
 
 
