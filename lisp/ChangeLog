@@ -1,3 +1,7 @@
+2011-03-10  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-msgend, rmail-msgbeg): Doc fixes.
+
 2011-03-10  Julien Danjou  <julien@danjou.info>
 
 	* avoid.el (mouse-avoidance-ignore-p): Do not move the cursor if

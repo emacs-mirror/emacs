@@ -2306,11 +2306,11 @@ change; nil means current message."
 ;;;; *** Rmail Message Selection And Support ***
 
 (defun rmail-msgend (n)
-  "Return the start position for message number N."
+  "Return the end position for message number N."
   (marker-position (aref rmail-message-vector (1+ n))))
 
 (defun rmail-msgbeg (n)
-  "Return the end position for message number N."
+  "Return the start position for message number N."
   (marker-position (aref rmail-message-vector n)))
 
 (defun rmail-apply-in-message (msgnum function &rest args)
