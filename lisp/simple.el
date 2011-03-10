@@ -637,7 +637,9 @@ If the region is active, only delete whitespace within the region."
             (if (looking-at ".*\f")
                 (goto-char (match-end 0))))
           (delete-region (point) (match-end 0)))
-        (set-marker end-marker nil)))))
+        (set-marker end-marker nil))))
+  ;; Return nil for the benefit of `write-file-functions'.
+  nil)
 
 (defun newline-and-indent ()
   "Insert a newline, then indent according to major mode.

@@ -1,3 +1,8 @@
+2011-03-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* simple.el (delete-trailing-whitespace): Return nil for the
+	benefit of `write-file-functions'.
+
 2011-03-10  Glenn Morris  <rgm@gnu.org>
 
 	* vc/vc-hg.el (vc-hg-pull, vc-hg-merge-branch): Use vc-hg-program.
