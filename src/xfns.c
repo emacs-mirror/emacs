@@ -648,7 +648,7 @@ x_defined_color (struct frame *f, const char *color_name,
    is a monochrome frame, return MONO_COLOR regardless of what ARG says.
    Signal an error if color can't be allocated.  */
 
-int
+static int
 x_decode_color (FRAME_PTR f, Lisp_Object color_name, int mono_color)
 {
   XColor cdef;
@@ -1635,7 +1635,7 @@ x_set_name_internal (FRAME_PTR f, Lisp_Object name)
        suggesting a new name, which lisp code should override; if
        F->explicit_name is set, ignore the new name; otherwise, set it.  */
 
-void
+static void
 x_set_name (struct frame *f, Lisp_Object name, int explicit)
 {
   /* Make sure that requests from lisp code override requests from
@@ -2620,7 +2620,7 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
 
 #else /* not USE_X_TOOLKIT */
 #ifdef USE_GTK
-void
+static void
 x_window (FRAME_PTR f)
 {
   if (! xg_create_frame_widgets (f))
@@ -2660,7 +2660,7 @@ x_window (FRAME_PTR f)
 #else /*! USE_GTK */
 /* Create and set up the X window for frame F.  */
 
-void
+static void
 x_window (struct frame *f)
 {
   XClassHint class_hints;
