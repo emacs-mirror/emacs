@@ -836,7 +836,7 @@ fontset_ascii (int id)
   return elt;
 }
 
-void
+static void
 free_realized_fontset (FRAME_PTR f, Lisp_Object fontset)
 {
   Lisp_Object tail;
