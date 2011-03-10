@@ -138,7 +138,8 @@ function `string-to-number'."
   (memq system-type '(ms-dos windows-nt)))
 
 (defmacro eshell-condition-case (tag form &rest handlers)
-  "Like `condition-case', but only if `eshell-pass-through-errors' is nil."
+  "If `eshell-handle-errors' is non-nil, this is `condition-case'.
+Otherwise, evaluates FORM with no error handling."
   (if eshell-handle-errors
       `(condition-case ,tag
 	   ,form

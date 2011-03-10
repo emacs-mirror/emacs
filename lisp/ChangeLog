@@ -1,5 +1,7 @@
 2011-03-10  Glenn Morris  <rgm@gnu.org>
 
+	* eshell/esh-util.el (eshell-condition-case): Doc fix.
+
 	* cus-edit.el (Custom-newline): If no button at point, look
 	for a subgroup button at start-of-line.  (Bug#2298)
 
