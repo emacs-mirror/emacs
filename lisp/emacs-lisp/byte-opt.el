@@ -1,4 +1,4 @@
-;;; byte-opt.el --- the optimization passes of the emacs-lisp byte compiler
+;;; byte-opt.el --- the optimization passes of the emacs-lisp byte compiler -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1991, 1994, 2000-2011  Free Software Foundation, Inc.
 
@@ -378,7 +378,9 @@
 
 ;;; implementing source-level optimizers
 
-(defun byte-optimize-form-code-walker (form for-effect)
+(defvar for-effect)
+
+(defun byte-optimize-form-code-walker (form for-effect-arg)
   ;;
   ;; For normal function calls, We can just mapcar the optimizer the cdr.  But
   ;; we need to have special knowledge of the syntax of the special forms
@@ -386,7 +388,8 @@
   ;; the important aspect is that they are subrs that don't evaluate all of
   ;; their args.)
   ;;
-  (let ((fn (car-safe form))
+  (let ((for-effect for-effect-arg)
+        (fn (car-safe form))
 	tmp)
     (cond ((not (consp form))
 	   (if (not (and for-effect
@@ -586,18 +589,19 @@
       (setq list (cdr list)))
     constant))
 
-(defun byte-optimize-form (form &optional for-effect)
+(defun byte-optimize-form (form &optional for-effect-arg)
   "The source-level pass of the optimizer."
   ;;
   ;; First, optimize all sub-forms of this one.
-  (setq form (byte-optimize-form-code-walker form for-effect))
+  (setq form (byte-optimize-form-code-walker form for-effect-arg))
   ;;
   ;; after optimizing all subforms, optimize this form until it doesn't
   ;; optimize any further.  This means that some forms will be passed through
   ;; the optimizer many times, but that's necessary to make the for-effect
   ;; processing do as much as possible.
   ;;
-  (let (opt new)
+  (let ((for-effect for-effect-arg)
+        opt new)
     (if (and (consp form)
 	     (symbolp (car form))
 	     (or (and for-effect
@@ -1355,6 +1359,7 @@
 	 (setq bytedecomp-ptr (1+ bytedecomp-ptr)) ;offset in next byte
 	 (aref bytedecomp-bytes bytedecomp-ptr))))
 
+(defvar byte-compile-tag-number)
 
 ;; This de-compiler is used for inline expansion of compiled functions,
 ;; and by the disassembler.
@@ -1376,9 +1381,9 @@
 ;; If MAKE-SPLICEABLE is nil, we are being called for the disassembler.
 ;; In that case, we put a pc value into the list
 ;; before each insn (or its label).
-(defun byte-decompile-bytecode-1 (bytedecomp-bytes constvec
-						   &optional make-spliceable)
-  (let ((length (length bytedecomp-bytes))
+(defun byte-decompile-bytecode-1 (bytes constvec &optional make-spliceable)
+  (let ((bytedecomp-bytes bytes)
+	(length (length bytes))
 	(bytedecomp-ptr 0) optr tags bytedecomp-op offset
 	lap tmp
 	endtag)
@@ -1522,7 +1527,7 @@
 ;; The variable `byte-boolean-vars' is now primitive and updated
 ;; automatically by DEFVAR_BOOL.
 
-(defun byte-optimize-lapcode (lap &optional for-effect)
+(defun byte-optimize-lapcode (lap &optional _for-effect)
   "Simple peephole optimizer.  LAP is both modified and returned.
 If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
   (let (lap0
