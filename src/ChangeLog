@@ -1,5 +1,7 @@
 2011-03-10  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* fringe.c (destroy_fringe_bitmap, init_fringe_bitmap): Now static.
+
 	* alloc.c (mark_fringe_data): Move decl from here ...
 	* lisp.h (mark_fringe_data) [HAVE_WINDOW_SYSTEM]: ... to here,
 	to check its interface.

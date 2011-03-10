@@ -1380,7 +1380,7 @@ compute_fringe_widths (struct frame *f, int redraw)
 
 /* Free resources used by a user-defined bitmap.  */
 
-void
+static void
 destroy_fringe_bitmap (int n)
 {
   struct fringe_bitmap **fbp;
@@ -1448,7 +1448,7 @@ static const unsigned char swap_nibble[16] = {
   0x3, 0xb, 0x7, 0xf};          /* 0011 1011 0111 1111 */
 #endif                          /* HAVE_X_WINDOWS */
 
-void
+static void
 init_fringe_bitmap (int which, struct fringe_bitmap *fb, int once_p)
 {
   if (once_p || fb->dynamic)
@@ -1831,4 +1831,3 @@ w32_reset_fringes (void)
 #endif /* HAVE_NTGUI */
 
 #endif /* HAVE_WINDOW_SYSTEM */
-
