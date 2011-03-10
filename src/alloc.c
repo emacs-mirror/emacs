@@ -276,10 +276,6 @@ static void gc_sweep (void);
 static void mark_glyph_matrix (struct glyph_matrix *);
 static void mark_face_cache (struct face_cache *);
 
-#ifdef HAVE_WINDOW_SYSTEM
-extern void mark_fringe_data (void);
-#endif /* HAVE_WINDOW_SYSTEM */
-
 static struct Lisp_String *allocate_string (void);
 static void compact_small_strings (void);
 static void free_large_strings (void);

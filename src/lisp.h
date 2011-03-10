@@ -2540,7 +2540,10 @@ extern Lisp_Object fmod_float (Lisp_Object x, Lisp_Object y);
 /* Defined in fringe.c */
 extern void syms_of_fringe (void);
 extern void init_fringe (void);
+#ifdef HAVE_WINDOW_SYSTEM
+extern void mark_fringe_data (void);
 extern void init_fringe_once (void);
+#endif /* HAVE_WINDOW_SYSTEM */
 
 /* Defined in image.c */
 extern Lisp_Object QCascent, QCmargin, QCrelief, Qcount, Qextension_data;

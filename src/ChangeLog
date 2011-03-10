@@ -1,5 +1,10 @@
 2011-03-10  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* alloc.c (mark_fringe_data): Move decl from here ...
+	* lisp.h (mark_fringe_data) [HAVE_WINDOW_SYSTEM]: ... to here,
+	to check its interface.
+	(init_fringe_once): Do not declare unless HAVE_WINDOW_SYSTEM.
+
 	* fontset.c (free_realized_fontset): Now static.
 	(Fset_fontset_font): Rename local to avoid shadowing.
 	(fontset_font): Mark local as initialized.
