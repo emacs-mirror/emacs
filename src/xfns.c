@@ -5566,11 +5566,11 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
   BLOCK_INPUT;
 
   if (STRINGP (default_filename))
-    cdef_file = SDATA (default_filename);
+    cdef_file = SSDATA (default_filename);
   else
-    cdef_file = SDATA (dir);
+    cdef_file = SSDATA (dir);
 
-  fn = xg_get_file_name (f, SDATA (prompt), cdef_file,
+  fn = xg_get_file_name (f, SSDATA (prompt), cdef_file,
                          ! NILP (mustmatch),
                          ! NILP (only_dir_p));
 
@@ -5626,12 +5626,12 @@ If FRAME is omitted or nil, it defaults to the selected frame. */)
   XSETFONT (font, FRAME_FONT (f));
   font_param = Ffont_get (font, intern (":name"));
   if (STRINGP (font_param))
-    default_name = xstrdup (SDATA (font_param));
+    default_name = xstrdup (SSDATA (font_param));
   else
     {
       font_param = Fframe_parameter (frame, Qfont_param);
       if (STRINGP (font_param))
-        default_name = xstrdup (SDATA (font_param));
+        default_name = xstrdup (SSDATA (font_param));
     }
 
   if (default_name == NULL && x_last_font_name != NULL)
