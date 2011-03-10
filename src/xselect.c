@@ -329,7 +329,7 @@ x_own_selection (Lisp_Object selection_name, Lisp_Object selection_value)
   struct frame *sf = SELECTED_FRAME ();
   Window selecting_window;
   Display *display;
-  Time time = last_event_timestamp;
+  Time timestamp = last_event_timestamp;
   Atom selection_atom;
   struct x_display_info *dpyinfo;
 
@@ -345,7 +345,7 @@ x_own_selection (Lisp_Object selection_name, Lisp_Object selection_value)
 
   BLOCK_INPUT;
   x_catch_errors (display);
-  XSetSelectionOwner (display, selection_atom, selecting_window, time);
+  XSetSelectionOwner (display, selection_atom, selecting_window, timestamp);
   x_check_errors (display, "Can't set selection: %s");
   x_uncatch_errors ();
   UNBLOCK_INPUT;
@@ -356,7 +356,7 @@ x_own_selection (Lisp_Object selection_name, Lisp_Object selection_value)
     Lisp_Object selection_data;
     Lisp_Object prev_value;
 
-    selection_time = long_to_cons ((unsigned long) time);
+    selection_time = long_to_cons ((unsigned long) timestamp);
     selection_data = list4 (selection_name, selection_value,
 			    selection_time, selected_frame);
     prev_value = assq_no_quit (selection_name, Vselection_alist);
@@ -2084,7 +2084,7 @@ DEFUN ("x-disown-selection-internal", Fx_disown_selection_internal,
        Sx_disown_selection_internal, 1, 2, 0,
        doc: /* If we own the selection SELECTION, disown it.
 Disowning it means there is no such selection.  */)
-  (Lisp_Object selection, Lisp_Object time)
+  (Lisp_Object selection, Lisp_Object time_object)
 {
   Time timestamp;
   Atom selection_atom;
@@ -2103,10 +2103,10 @@ Disowning it means there is no such selection.  */)
   display = FRAME_X_DISPLAY (sf);
   dpyinfo = FRAME_X_DISPLAY_INFO (sf);
   CHECK_SYMBOL (selection);
-  if (NILP (time))
+  if (NILP (time_object))
     timestamp = last_event_timestamp;
   else
-    timestamp = cons_to_long (time);
+    timestamp = cons_to_long (time_object);
 
   if (NILP (assq_no_quit (selection, Vselection_alist)))
     return Qnil;  /* Don't disown the selection when we're not the owner.  */
@@ -2434,7 +2434,6 @@ x_handle_dnd_message (struct frame *f, XClientMessageEvent *event, struct x_disp
 
   if (event->format == 32 && event->format < BITS_PER_LONG)
     {
-      int i;
       for (i = 0; i < 5; ++i) /* There are only 5 longs in a ClientMessage. */
         idata[i] = (int) event->data.l[i];
       data = (unsigned char *) idata;

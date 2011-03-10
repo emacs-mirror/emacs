@@ -2,6 +2,9 @@
 
 	* xselect.c (x_disown_buffer_selections): Remove; not used.
 	(TRACE3) [!defined TRACE_SELECTION]: Remove; not used.
+	(x_own_selection, Fx_disown_selection_internal): Rename locals
+	to avoid shadowing.
+	(x_handle_dnd_message): Remove local to avoid shadowing.
 
 	* lisp.h (GCPRO1_VAR, UNGCPRO_VAR): New macros,
 	so that the caller can use some name other than gcpro1.
