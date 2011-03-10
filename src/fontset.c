@@ -233,14 +233,14 @@ fontset_id_valid_p (int id)
 /* Macros to access special values of (base) FONTSET.  */
 #define FONTSET_NAME(fontset)		XCHAR_TABLE (fontset)->extras[1]
 #define FONTSET_ASCII(fontset)		XCHAR_TABLE (fontset)->extras[4]
-#define FONTSET_SPEC(fontset)		XCHAR_TABLE (fontset)->extras[5]
+/* #define FONTSET_SPEC(fontset)	XCHAR_TABLE (fontset)->extras[5] */
 
 /* Macros to access special values of (realized) FONTSET.  */
 #define FONTSET_BASE(fontset)		XCHAR_TABLE (fontset)->extras[2]
 #define FONTSET_FRAME(fontset)		XCHAR_TABLE (fontset)->extras[3]
 #define FONTSET_OBJLIST(fontset)	XCHAR_TABLE (fontset)->extras[4]
 #define FONTSET_NOFONT_FACE(fontset)	XCHAR_TABLE (fontset)->extras[5]
-#define FONTSET_REPERTORY(fontset)	XCHAR_TABLE (fontset)->extras[6]
+/* #define FONTSET_REPERTORY(fontset)	XCHAR_TABLE (fontset)->extras[6] */
 #define FONTSET_DEFAULT(fontset)	XCHAR_TABLE (fontset)->extras[7]
 
 /* For both base and realized fontset.  */
@@ -266,7 +266,6 @@ fontset_id_valid_p (int id)
   ASET ((rfont_def), 0, make_number (face_id))
 #define RFONT_DEF_FONT_DEF(rfont_def) AREF (rfont_def, 1)
 #define RFONT_DEF_SPEC(rfont_def) FONT_DEF_SPEC (AREF (rfont_def, 1))
-#define RFONT_DEF_REPERTORY(rfont_def) FONT_DEF_REPERTORY (AREF (rfont_def, 1))
 #define RFONT_DEF_OBJECT(rfont_def) AREF (rfont_def, 2)
 #define RFONT_DEF_SET_OBJECT(rfont_def, object)	\
   ASET ((rfont_def), 2, (object))
