@@ -1,6 +1,7 @@
 2011-03-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xfns.c (x_decode_color, x_set_name, x_window): Now static.
+	(Fx_create_frame): Add braces to silence GCC warning.
 
 2011-03-09  Paul Eggert  <eggert@cs.ucla.edu>
 
