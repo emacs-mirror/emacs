@@ -4756,6 +4756,12 @@ The format is suitable for use with `easy-menu-define'."
   "Invoke button at POS, or refuse to allow editing of Custom buffer."
   (interactive "@d")
   (let ((button (get-char-property pos 'button)))
+    ;; If there is no button at point, then use the one at the start
+    ;; of the line, if it is a custom-group-link (bug#2298).
+    (or button
+	(if (setq button (get-char-property (line-beginning-position) 'button))
+	    (or (eq (widget-type button) 'custom-group-link)
+		(setq button nil))))
     (if button
 	(widget-apply-action button event)
       (error "You can't edit this part of the Custom buffer"))))

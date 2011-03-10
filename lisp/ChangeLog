@@ -1,5 +1,8 @@
 2011-03-10  Glenn Morris  <rgm@gnu.org>
 
+	* cus-edit.el (Custom-newline): If no button at point, look
+	for a subgroup button at start-of-line.  (Bug#2298)
+
 	* mail/rmail.el (rmail-msgend, rmail-msgbeg): Doc fixes.
 
 2011-03-10  Julien Danjou  <julien@danjou.info>
