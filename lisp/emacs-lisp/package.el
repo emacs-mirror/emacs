@@ -848,15 +848,17 @@ The package is found on one of the archives in `package-archives'."
   ;; Try to activate it.
   (package-initialize))
 
-(defun package-strip-rcs-id (v-str)
-  "Strip RCS version ID from the version string.
+(defun package-strip-rcs-id (str)
+  "Strip RCS version ID from the version string STR.
 If the result looks like a dotted numeric version, return it.
 Otherwise return nil."
-  (if v-str
-      (if (string-match "^[ \t]*[$]Revision:[ \t]\([0-9.]+\)[ \t]*[$]$" v-str)
-	  (match-string 1 v-str)
-	(if (string-match "^[0-9.]*$" v-str)
-	    v-str))))
+  (when str
+    (when (string-match "\\`[ \t]*[$]Revision:[ \t]+" str)
+      (setq str (substring str (match-end 0))))
+    (condition-case nil
+	(if (version-to-list str)
+	    str)
+      (error nil))))
 
 (defun package-buffer-info ()
   "Return a vector describing the package in the current buffer.
