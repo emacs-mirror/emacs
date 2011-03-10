@@ -1,5 +1,7 @@
 2011-03-10  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xrdb.c: Include "xterm.h", to check x_load_resources's interface.
+
 	* xselect.c (x_disown_buffer_selections): Remove; not used.
 	(TRACE3) [!defined TRACE_SELECTION]: Remove; not used.
 	(x_own_selection, Fx_disown_selection_internal): Rename locals
