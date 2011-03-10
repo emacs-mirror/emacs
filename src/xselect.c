@@ -2131,26 +2131,6 @@ Disowning it means there is no such selection.  */)
   return Qt;
 }
 
-/* Get rid of all the selections in buffer BUFFER.
-   This is used when we kill a buffer.  */
-
-void
-x_disown_buffer_selections (Lisp_Object buffer)
-{
-  Lisp_Object tail;
-  struct buffer *buf = XBUFFER (buffer);
-
-  for (tail = Vselection_alist; CONSP (tail); tail = XCDR (tail))
-    {
-      Lisp_Object elt, value;
-      elt = XCAR (tail);
-      value = XCDR (elt);
-      if (CONSP (value) && MARKERP (XCAR (value))
-	  && XMARKER (XCAR (value))->buffer == buf)
-	Fx_disown_selection_internal (XCAR (elt), Qnil);
-    }
-}
-
 DEFUN ("x-selection-owner-p", Fx_selection_owner_p, Sx_selection_owner_p,
        0, 1, 0,
        doc: /* Whether the current Emacs process owns the given X Selection.
