@@ -1,5 +1,9 @@
 2011-03-10  Glenn Morris  <rgm@gnu.org>
 
+	* vc/vc-git.el (vc-git-program): New option.
+	(vc-git-branches, vc-git-pull, vc-git-merge-branch, vc-git-command)
+	(vc-git--call): Use it.
+
 	* eshell/esh-util.el (eshell-condition-case): Doc fix.
 
 	* cus-edit.el (Custom-newline): If no button at point, look
