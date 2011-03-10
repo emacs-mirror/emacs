@@ -713,7 +713,7 @@ fontset_find_font (Lisp_Object fontset, int c, struct face *face, int id, int fa
 static Lisp_Object
 fontset_font (Lisp_Object fontset, int c, struct face *face, int id)
 {
-  Lisp_Object rfont_def, default_rfont_def;
+  Lisp_Object rfont_def, default_rfont_def IF_LINT (= Qnil);
   Lisp_Object base_fontset;
 
   /* Try a font-group of FONTSET. */

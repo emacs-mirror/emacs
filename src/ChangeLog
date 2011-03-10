@@ -2,6 +2,7 @@
 
 	* fontset.c (free_realized_fontset): Now static.
 	(Fset_fontset_font): Rename local to avoid shadowing.
+	(fontset_font): Mark local as initialized.
 
 	* xrdb.c: Include "xterm.h", to check x_load_resources's interface.
 
