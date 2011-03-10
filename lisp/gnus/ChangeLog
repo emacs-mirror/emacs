@@ -4,8 +4,9 @@
 	character choice using `dropdown-list', `read-char-choice', or
 	`read-char'.  It appends "[a/b/c] " to the prompt if the choices were
 	'(?a ?b ?c).  The `dropdown-list' support is disabled for now.  Use
-	`eval-when-compile' to load `dropdown-list'.
+	`eval-when-compile' to load `dropdown-list'.  Remove `dropdown-list'.
 	(auth-source-netrc-saver): Use it.
+	(auth-source-pick-first-password): New convenience function.
 
 2011-03-08  Teodor Zlatanov  <tzz@lifelogs.com>
 

@@ -44,18 +44,7 @@
 (require 'gnus-util)
 (require 'assoc)
 (eval-when-compile (require 'cl))
-(eval-when-compile (require 'dropdown-list nil t))
-(eval-and-compile
-  (or (ignore-errors (require 'eieio))
-      ;; gnus-fallback-lib/ from gnus/lisp/gnus-fallback-lib
-      (ignore-errors
-	(let ((load-path (cons (expand-file-name
-				"gnus-fallback-lib/eieio"
-				(file-name-directory (locate-library "gnus")))
-			       load-path)))
-	  (require 'eieio)))
-      (error
-       "eieio not found in `load-path' or gnus-fallback-lib/ directory.")))
+(require 'eieio)
 
 (autoload 'secrets-create-item "secrets")
 (autoload 'secrets-delete-item "secrets")
@@ -313,12 +302,6 @@ with \"[a/b/c] \" if CHOICES is '\(?a ?b ?c\)."
 
       (while (not (memq k choices))
         (setq k (cond
-                 ((and nil (featurep 'dropdown-list))
-                  (let* ((blank (fill (copy-sequence prompt) ?.))
-                         (dlc (cons (format "%s %c" prompt (car choices))
-                                    (loop for c in (cdr choices)
-                                          collect (format "%s %c" blank c)))))
-                    (nth (dropdown-list dlc) choices)))
                  ((fboundp 'read-char-choice)
                   (read-char-choice full-prompt choices))
                  (t (message "%s" full-prompt)
@@ -769,7 +752,26 @@ while \(:host t) would find all host entries."
               (return 'no)))
           'no))))
 
-;;; Backend specific parsing: netrc/authinfo backend
+;;; (auth-source-pick-first-password :host "z.lifelogs.com")
+;;; (auth-source-pick-first-password :port "imap")
+(defun auth-source-pick-first-password (&rest spec)
+  "Pick the first secret found from applying SPEC to `auth-source-search'."
+  (let* ((result (nth 0 (apply 'auth-source-search (plist-put spec :max 1))))
+         (secret (plist-get result :secret)))
+
+    (if (functionp secret)
+        (funcall secret)
+      secret)))
+
+;; (auth-source-format-prompt "test %u %h %p" '((?u "user") (?h "host")))
+(defun auth-source-format-prompt (prompt alist)
+  "Format PROMPT using %x (for any character x) specifiers in ALIST."
+  (dolist (cell alist)
+    (let ((c (nth 0 cell))
+          (v (nth 1 cell)))
+      (when (and c v)
+        (setq prompt (replace-regexp-in-string (format "%%%c" c) v prompt)))))
+  prompt)
 
 (defun auth-source-ensure-strings (values)
   (unless (listp values)
@@ -779,6 +781,8 @@ while \(:host t) would find all host entries."
 		(format "%s" value)
 	      value))
 	  values))
+
+;;; Backend specific parsing: netrc/authinfo backend
 
 (defvar auth-source-netrc-cache nil)
 
@@ -997,17 +1001,6 @@ See `auth-source-search' for details on SPEC."
   (if (listp v)
       (nth 0 v)
     v))
-
-;; (auth-source-format-prompt "test %u %h %p" '((?u "user") (?h "host")))
-
-(defun auth-source-format-prompt (prompt alist)
-  "Format PROMPT using %x (for any character x) specifiers in ALIST."
-  (dolist (cell alist)
-    (let ((c (nth 0 cell))
-          (v (nth 1 cell)))
-      (when (and c v)
-        (setq prompt (replace-regexp-in-string (format "%%%c" c) v prompt)))))
-  prompt)
 
 ;;; (auth-source-search :host "nonesuch" :type 'netrc :max 1 :create t)
 ;;; (auth-source-search :host "nonesuch" :type 'netrc :max 1 :create t :create-extra-keys '((A "default A") (B)))
