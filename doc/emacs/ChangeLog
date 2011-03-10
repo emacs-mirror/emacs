@@ -1,3 +1,10 @@
+2011-03-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* search.texi (Regexp Example):
+	* mule.texi (International Chars):
+	* building.texi (External Lisp): Don't use characters outside
+	ISO-8859-1.
+
 2011-03-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* ack.texi (Acknowledgments): Convert to ISO-8859-1 encoding.  Use
