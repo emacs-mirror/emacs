@@ -249,20 +249,6 @@ Any list whose car is `frame-configuration' is assumed to be a frame
 configuration."
   (and (consp object)
        (eq (car object) 'frame-configuration)))
-
-(defun functionp (object)
-  "Non-nil if OBJECT is a function."
-  (or (and (symbolp object) (fboundp object)
-	   (condition-case nil
-	       (setq object (indirect-function object))
-	     (error nil))
-	   (eq (car-safe object) 'autoload)
-	   (not (car-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe object)))))))
-      (and (subrp object)
-           ;; Filter out special forms.
-           (not (eq 'unevalled (cdr (subr-arity object)))))
-      (byte-code-function-p object)
-      (eq (car-safe object) 'lambda)))
 
 ;;;; List functions.
 

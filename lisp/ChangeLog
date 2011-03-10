@@ -1,6 +1,24 @@
 2011-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* emacs-lisp/byte-opt.el: Use lexical binding.
+	* emacs-lisp/bytecomp.el: Use lexical-binding.
+	(byte-recompile-directory): Remove unused var `bytecomp-dest'.
+	(byte-recompile-file): Use derived-mode-p.
+	(byte-compile-from-buffer): Remove arg `bytecomp-filename'.
+	Use byte-compile-current-file instead.
+	(byte-compile-file): Adjust call accordingly.
+	(bytecomp-outbuffer): Move declaration before first use.
+	(for-effect): Declare dynamic.
+	(byte-compile-file-form-defmumble): Use byte-compile-current-file.
+	(byte-compile-top-level, byte-compile-out-toplevel, byte-compile-form):
+	Move dyn-binding of for-effect from function argument to let binding.
+	(byte-compile-out-toplevel): Don't both passing for-effect to
+	byte-optimize-lapcode.
+	(byte-compile-top-level-body, byte-compile-body):
+	Rename for-effect -> for-effect-arg so it's lexical.
+
+	* subr.el (functionp): Remove, now that it's in src/eval.c.
+
+	* emacs-lisp/byte-opt.el: Use lexical-binding.
 	(for-effectm byte-compile-tag-number): Declare dynamic.
 	(byte-optimize-form-code-walker, byte-optimize-form): Move dynamic
 	binding of for-effect from function argument to let binding.
