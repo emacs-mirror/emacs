@@ -461,7 +461,7 @@ x_real_positions (FRAME_PTR f, int *xptr, int *yptr)
   Window win = f->output_data.x->parent_desc;
   Atom actual_type;
   unsigned long actual_size, bytes_remaining;
-  int i, rc, actual_format;
+  int rc, actual_format;
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   long max_len = 400;
   Display *dpy = FRAME_X_DISPLAY (f);
@@ -746,7 +746,6 @@ xg_set_icon (FRAME_PTR f, Lisp_Object file)
 int
 xg_set_icon_from_xpm_data (FRAME_PTR f, const char **data)
 {
-  int result = 0;
   GdkPixbuf *pixbuf = gdk_pixbuf_new_from_xpm_data (data);
 
   if (!pixbuf)
@@ -4578,7 +4577,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
                     Lisp_Object text)
 {
   struct frame *f;
-  Lisp_Object frame, tem;
+  Lisp_Object frame;
   Lisp_Object name;
   long window_prompting = 0;
   int width, height;
