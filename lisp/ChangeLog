@@ -1,3 +1,8 @@
+2011-03-10  Julien Danjou  <julien@danjou.info>
+
+	* avoid.el (mouse-avoidance-ignore-p): Do not move the cursor if
+	`cursor-type' is nil.
+
 2011-03-09  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc.el (calc-mode-map): Don't bind "C-_" to `calc-missing-key'.
