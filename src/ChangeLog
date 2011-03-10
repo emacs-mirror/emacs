@@ -1,6 +1,8 @@
 2011-03-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* fringe.c (destroy_fringe_bitmap, init_fringe_bitmap): Now static.
+	(update_window_fringes): Initialize top_row_ends_at_zv_p and
+	bot_row_ends_at_zv_p, with a FIXME comment.
 
 	* alloc.c (mark_fringe_data): Move decl from here ...
 	* lisp.h (mark_fringe_data) [HAVE_WINDOW_SYSTEM]: ... to here,
