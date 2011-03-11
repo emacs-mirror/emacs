@@ -14163,11 +14163,11 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
     {
       /* The function returns -1 if new fonts were loaded, 1 if
 	 successful, 0 if not successful.  */
-      int rc = try_scrolling (window, just_this_one_p,
+      int ss = try_scrolling (window, just_this_one_p,
 			      scroll_conservatively,
 			      emacs_scroll_step,
 			      temp_scroll_step, last_line_misfit);
-      switch (rc)
+      switch (ss)
 	{
 	case SCROLLING_SUCCESS:
 	  goto done;
@@ -17229,14 +17229,16 @@ display_line (struct it *it)
   struct glyph_row *row = it->glyph_row;
   Lisp_Object overlay_arrow_string;
   struct it wrap_it;
-  int may_wrap = 0, wrap_x;
-  int wrap_row_used = -1, wrap_row_ascent, wrap_row_height;
-  int wrap_row_phys_ascent, wrap_row_phys_height;
-  int wrap_row_extra_line_spacing;
-  EMACS_INT wrap_row_min_pos, wrap_row_min_bpos;
-  EMACS_INT wrap_row_max_pos, wrap_row_max_bpos;
+  int may_wrap = 0, wrap_x IF_LINT (= 0);
+  int wrap_row_used = -1;
+  int wrap_row_ascent IF_LINT (= 0), wrap_row_height IF_LINT (= 0);
+  int wrap_row_phys_ascent IF_LINT (= 0), wrap_row_phys_height IF_LINT (= 0);
+  int wrap_row_extra_line_spacing IF_LINT (= 0);
+  EMACS_INT wrap_row_min_pos IF_LINT (= 0), wrap_row_min_bpos IF_LINT (= 0);
+  EMACS_INT wrap_row_max_pos IF_LINT (= 0), wrap_row_max_bpos IF_LINT (= 0);
   int cvpos;
-  EMACS_INT min_pos = ZV + 1, min_bpos, max_pos = 0, max_bpos;
+  EMACS_INT min_pos = ZV + 1, max_pos = 0;
+  EMACS_INT min_bpos IF_LINT (= 0), max_bpos IF_LINT (= 0);
 
   /* We always start displaying at hpos zero even if hscrolled.  */
   xassert (it->hpos == 0 && it->current_x == 0);
@@ -17910,16 +17912,13 @@ paragraphs, text begins at the right margin and is read from right to left.
 See also `bidi-paragraph-direction'.  */)
   (Lisp_Object buffer)
 {
-  struct buffer *buf;
-  struct buffer *old;
+  struct buffer *buf = current_buffer;
+  struct buffer *old = buf;
 
-  if (NILP (buffer))
-    buf = current_buffer;
-  else
+  if (! NILP (buffer))
     {
       CHECK_BUFFER (buffer);
       buf = XBUFFER (buffer);
-      old = current_buffer;
     }
 
   if (NILP (BVAR (buf, bidi_display_reordering)))
@@ -17936,8 +17935,7 @@ See also `bidi-paragraph-direction'.  */)
       EMACS_INT bytepos = BUF_PT_BYTE (buf);
       int c;
 
-      if (buf != current_buffer)
-	set_buffer_temp (buf);
+      set_buffer_temp (buf);
       /* bidi_paragraph_init finds the base direction of the paragraph
 	 by searching forward from paragraph start.  We need the base
 	 direction of the current or _previous_ paragraph, so we need
@@ -17965,8 +17963,7 @@ See also `bidi-paragraph-direction'.  */)
       itb.paragraph_dir = NEUTRAL_DIR;
 
       bidi_paragraph_init (NEUTRAL_DIR, &itb, 1);
-      if (buf != current_buffer)
-	set_buffer_temp (old);
+      set_buffer_temp (old);
       switch (itb.paragraph_dir)
 	{
 	case L2R:
@@ -21090,7 +21087,7 @@ compute_overhangs_and_x (struct glyph_string *s, int x, int backward_p)
     int cmp_id = (row)->glyphs[area][START].u.cmp.id;			    \
     struct composition *cmp = composition_table[cmp_id];		    \
     XChar2b *char2b;							    \
-    struct glyph_string *first_s;					    \
+    struct glyph_string *first_s IF_LINT (= NULL);			    \
     int n;								    \
     									    \
     char2b = (XChar2b *) alloca ((sizeof *char2b) * cmp->glyph_len);	    \
@@ -21294,7 +21291,8 @@ draw_glyphs (struct window *w, int x, struct glyph_row *row,
     {
       struct glyph_string *h, *t;
       Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
-      int mouse_beg_col, mouse_end_col, check_mouse_face = 0;
+      int mouse_beg_col IF_LINT (= 0), mouse_end_col IF_LINT (= 0);
+      int check_mouse_face = 0;
       int dummy_x = 0;
 
       /* If mouse highlighting is on, we may need to draw adjacent
@@ -22290,7 +22288,13 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
 	  if (metrics_upper.width >= metrics_lower.width)
 	    lower_xoff = (width - metrics_lower.width) / 2;
 	  else
-	    upper_xoff = (width - metrics_upper.width) / 2;
+	    {
+	      /* FIXME: This code doesn't look right.  It formerly was
+		 missing the "lower_xoff = 0;", which couldn't have
+		 been right since it left lower_xoff uninitialized.  */
+	      lower_xoff = 0;
+	      upper_xoff = (width - metrics_upper.width) / 2;
+	    }
 	}
 
       /* +5 is for horizontal bars of a box plus 1-pixel spaces at
@@ -25451,7 +25455,8 @@ note_mouse_highlight (struct frame *f, int x, int y)
 	    {
 	      /* The mouse-highlighting, if any, comes from an overlay
 		 or text property in the buffer.  */
-	      Lisp_Object buffer, cover_string;
+	      Lisp_Object buffer IF_LINT (= Qnil);
+	      Lisp_Object cover_string IF_LINT (= Qnil);
 
 	      if (STRINGP (object))
 		{

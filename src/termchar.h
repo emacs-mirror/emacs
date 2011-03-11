@@ -84,58 +84,58 @@ struct tty_display_info
 
   /* Strings, numbers and flags taken from the termcap entry.  */
 
-  char *TS_ins_line;		/* "al" */
-  char *TS_ins_multi_lines;	/* "AL" (one parameter, # lines to insert) */
-  char *TS_bell;                /* "bl" */
-  char *TS_clr_to_bottom;       /* "cd" */
-  char *TS_clr_line;		/* "ce", clear to end of line */
-  char *TS_clr_frame;		/* "cl" */
-  char *TS_set_scroll_region;	/* "cs" (2 params, first line and last line) */
-  char *TS_set_scroll_region_1; /* "cS" (4 params: total lines,
+  const char *TS_ins_line;	/* "al" */
+  const char *TS_ins_multi_lines; /* "AL" (one parameter, # lines to insert) */
+  const char *TS_bell;		/* "bl" */
+  const char *TS_clr_to_bottom;	/* "cd" */
+  const char *TS_clr_line;	/* "ce", clear to end of line */
+  const char *TS_clr_frame;	/* "cl" */
+  const char *TS_set_scroll_region; /* "cs" (2 params, first line and last line) */
+  const char *TS_set_scroll_region_1; /* "cS" (4 params: total lines,
                                    lines above scroll region, lines below it,
                                    total lines again) */
-  char *TS_del_char;		/* "dc" */
-  char *TS_del_multi_chars;	/* "DC" (one parameter, # chars to delete) */
-  char *TS_del_line;		/* "dl" */
-  char *TS_del_multi_lines;	/* "DL" (one parameter, # lines to delete) */
-  char *TS_delete_mode;		/* "dm", enter character-delete mode */
-  char *TS_end_delete_mode;	/* "ed", leave character-delete mode */
-  char *TS_end_insert_mode;	/* "ei", leave character-insert mode */
-  char *TS_ins_char;		/* "ic" */
-  char *TS_ins_multi_chars;	/* "IC" (one parameter, # chars to insert) */
-  char *TS_insert_mode;		/* "im", enter character-insert mode */
-  char *TS_pad_inserted_char;	/* "ip".  Just padding, no commands.  */
-  char *TS_end_keypad_mode;	/* "ke" */
-  char *TS_keypad_mode;		/* "ks" */
-  char *TS_pad_char;		/* "pc", char to use as padding */
-  char *TS_repeat;		/* "rp" (2 params, # times to repeat
+  const char *TS_del_char;	/* "dc" */
+  const char *TS_del_multi_chars; /* "DC" (one parameter, # chars to delete) */
+  const char *TS_del_line;	/* "dl" */
+  const char *TS_del_multi_lines; /* "DL" (one parameter, # lines to delete) */
+  const char *TS_delete_mode;	/* "dm", enter character-delete mode */
+  const char *TS_end_delete_mode; /* "ed", leave character-delete mode */
+  const char *TS_end_insert_mode; /* "ei", leave character-insert mode */
+  const char *TS_ins_char;	/* "ic" */
+  const char *TS_ins_multi_chars; /* "IC" (one parameter, # chars to insert) */
+  const char *TS_insert_mode;	/* "im", enter character-insert mode */
+  const char *TS_pad_inserted_char; /* "ip".  Just padding, no commands.  */
+  const char *TS_end_keypad_mode; /* "ke" */
+  const char *TS_keypad_mode;	/* "ks" */
+  const char *TS_pad_char;	/* "pc", char to use as padding */
+  const char *TS_repeat;	/* "rp" (2 params, # times to repeat
 				   and character to be repeated) */
-  char *TS_end_standout_mode;	/* "se" */
-  char *TS_fwd_scroll;		/* "sf" */
-  char *TS_standout_mode;       /* "so" */
-  char *TS_rev_scroll;          /* "sr" */
-  char *TS_end_termcap_modes;   /* "te" */
-  char *TS_termcap_modes;       /* "ti" */
-  char *TS_visible_bell;        /* "vb" */
-  char *TS_cursor_normal;       /* "ve" */
-  char *TS_cursor_visible;      /* "vs" */
-  char *TS_cursor_invisible;    /* "vi" */
-  char *TS_set_window;          /* "wi" (4 params, start and end of window,
+  const char *TS_end_standout_mode; /* "se" */
+  const char *TS_fwd_scroll;	/* "sf" */
+  const char *TS_standout_mode;	/* "so" */
+  const char *TS_rev_scroll;	/* "sr" */
+  const char *TS_end_termcap_modes; /* "te" */
+  const char *TS_termcap_modes;	/* "ti" */
+  const char *TS_visible_bell;	/* "vb" */
+  const char *TS_cursor_normal;	/* "ve" */
+  const char *TS_cursor_visible; /* "vs" */
+  const char *TS_cursor_invisible; /* "vi" */
+  const char *TS_set_window;	/* "wi" (4 params, start and end of window,
                                    each as vpos and hpos) */
 
-  char *TS_enter_bold_mode;     /* "md" -- turn on bold (extra bright mode).  */
-  char *TS_enter_dim_mode;      /* "mh" -- turn on half-bright mode.  */
-  char *TS_enter_blink_mode;    /* "mb" -- enter blinking mode.  */
-  char *TS_enter_reverse_mode;  /* "mr" -- enter reverse video mode.  */
-  char *TS_exit_underline_mode; /* "us" -- start underlining.  */
-  char *TS_enter_underline_mode; /* "ue" -- end underlining.  */
+  const char *TS_enter_bold_mode; /* "md" -- turn on bold (extra bright mode).  */
+  const char *TS_enter_dim_mode; /* "mh" -- turn on half-bright mode.  */
+  const char *TS_enter_blink_mode; /* "mb" -- enter blinking mode.  */
+  const char *TS_enter_reverse_mode; /* "mr" -- enter reverse video mode.  */
+  const char *TS_exit_underline_mode; /* "us" -- start underlining.  */
+  const char *TS_enter_underline_mode; /* "ue" -- end underlining.  */
 
   /* "as"/"ae" -- start/end alternate character set.  Not really
      supported, yet.  */
-  char *TS_enter_alt_charset_mode;
-  char *TS_exit_alt_charset_mode;
+  const char *TS_enter_alt_charset_mode;
+  const char *TS_exit_alt_charset_mode;
 
-  char *TS_exit_attribute_mode; /* "me" -- switch appearances off.  */
+  const char *TS_exit_attribute_mode; /* "me" -- switch appearances off.  */
 
   /* Value of the "NC" (no_color_video) capability, or 0 if not present.  */
   int TN_no_color_video;
@@ -147,12 +147,12 @@ struct tty_display_info
   int TN_max_pairs;
 
   /* "op" -- SVr4 set default pair to its original value.  */
-  char *TS_orig_pair;
+  const char *TS_orig_pair;
 
   /* "AF"/"AB" or "Sf"/"Sb"-- set ANSI or SVr4 foreground/background color.
      1 param, the color index.  */
-  char *TS_set_foreground;
-  char *TS_set_background;
+  const char *TS_set_foreground;
+  const char *TS_set_background;
 
   int TF_hazeltine;             /* termcap hz flag. */
   int TF_insmode_motion;        /* termcap mi flag: can move while in insert mode. */
@@ -210,4 +210,3 @@ extern struct tty_display_info *tty_list;
    : (abort(), (struct tty_display_info *) 0))
 
 #define CURTTY() FRAME_TTY (SELECTED_FRAME())
-

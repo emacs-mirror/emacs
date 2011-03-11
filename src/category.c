@@ -61,7 +61,6 @@ static Lisp_Object hash_get_category_set (Lisp_Object, Lisp_Object);
 static Lisp_Object
 hash_get_category_set (Lisp_Object table, Lisp_Object category_set)
 {
-  Lisp_Object val;
   struct Lisp_Hash_Table *h;
   int i;
   unsigned hash;
@@ -228,7 +227,7 @@ copy_category_entry (Lisp_Object table, Lisp_Object c, Lisp_Object val)
    the original and the copy.  This function is called recursively by
    binding TABLE to a sub char table.  */
 
-Lisp_Object
+static Lisp_Object
 copy_category_table (Lisp_Object table)
 {
   table = copy_char_table (table);
@@ -538,4 +537,3 @@ See the documentation of the variable `word-combining-categories'.  */);
 
   category_table_version = 0;
 }
-

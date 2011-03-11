@@ -109,7 +109,7 @@ void
 raw_cursor_to (struct frame *f, int row, int col)
 {
   if (FRAME_TERMINAL (f)->raw_cursor_to_hook)
-    (*FRAME_TERMINAL (f)->raw_cursor_to_hook) (f, row, col);  
+    (*FRAME_TERMINAL (f)->raw_cursor_to_hook) (f, row, col);
 }
 
 /* Erase operations */
@@ -444,7 +444,7 @@ selected frame's terminal). */)
 /* Set the value of terminal parameter PARAMETER in terminal D to VALUE.
    Return the previous value.  */
 
-Lisp_Object
+static Lisp_Object
 store_terminal_param (struct terminal *t, Lisp_Object parameter, Lisp_Object value)
 {
   Lisp_Object old_alist_elt = Fassq (parameter, t->param_alist);
@@ -569,4 +569,3 @@ or some time later.  */);
 
   Fprovide (intern_c_string ("multi-tty"), Qnil);
 }
-

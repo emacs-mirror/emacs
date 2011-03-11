@@ -1,3 +1,189 @@
+2011-03-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Minor changes for problems found by GCC 4.5.2's static checks.
+
+	* fringe.c (update_window_fringes): Mark locals as initialized
+	(Bug#8227).
+	(destroy_fringe_bitmap, init_fringe_bitmap): Now static.
+
+	* alloc.c (mark_fringe_data): Move decl from here ...
+	* lisp.h (mark_fringe_data) [HAVE_WINDOW_SYSTEM]: ... to here,
+	to check its interface.
+	(init_fringe_once): Do not declare unless HAVE_WINDOW_SYSTEM.
+
+	* fontset.c (free_realized_fontset): Now static.
+	(Fset_fontset_font): Rename local to avoid shadowing.
+	(fontset_font): Mark local as initialized.
+	(FONTSET_SPEC, FONTSET_REPERTORY, RFONT_DEF_REPERTORY): Remove; unused.
+
+	* xrdb.c: Include "xterm.h", to check x_load_resources's interface.
+
+	* xselect.c (x_disown_buffer_selections): Remove; not used.
+	(TRACE3) [!defined TRACE_SELECTION]: Remove; not used.
+	(x_own_selection, Fx_disown_selection_internal): Rename locals
+	to avoid shadowing.
+	(x_handle_dnd_message): Remove local to avoid shadowing.
+
+	* lisp.h (GCPRO1_VAR, UNGCPRO_VAR): New macros,
+	so that the caller can use some name other than gcpro1.
+	(GCPRO1, UNGCPRO): Reimplement in terms of the new macros.
+	* xfns.c (Fx_create_frame, x_create_tip_frame, Fx_show_tip):
+	(Fx_backspace_delete_keys_p):
+	Use them to avoid shadowing, and rename vars to avoid shadowing.
+	(x_decode_color, x_set_name, x_window): Now static.
+	(Fx_create_frame): Add braces to silence GCC warning.
+	(Fx_file_dialog, Fx_select_font): Fix pointer signedness.
+	(x_real_positions, xg_set_icon_from_xpm_data, x_create_tip_frame):
+	Remove unused locals.
+	(Fx_create_frame, x_create_tip_frame, Fx_show_tip):
+	(Fx_backspace_delete_keys_p): Rename locals to avoid shadowing.
+	Some of these renamings use the new GCPRO1_VAR and UNGCPRO_VAR
+	macros.
+
+	* xterm.h (x_mouse_leave): New decl.
+
+	* xterm.c (x_copy_dpy_color, x_focus_on_frame, x_unfocus_frame):
+	Remove unused functions.
+	(x_shift_glyphs_for_insert, XTflash, XTring_bell):
+	(x_calc_absolute_position): Now static.
+	(XTread_socket): Don't define label "out" unless it's used.
+	Don't declare local "event" unless it's used.
+	(x_iconify_frame, x_free_frame_resources): Don't declare locals
+	unless they are used.
+	(XEMBED_VERSION, xembed_set_info): Don't define unless needed.
+	(x_fatal_error_signal): Remove; not used.
+	(x_draw_image_foreground, redo_mouse_highlight, XTmouse_position):
+	(x_scroll_bar_report_motion, handle_one_xevent, x_draw_bar_cursor):
+	(x_error_catcher, x_connection_closed, x_error_handler):
+	(x_error_quitter, xembed_send_message, x_iconify_frame):
+	(my_log_handler): Rename locals to avoid shadowing.
+	(x_delete_glyphs, x_ins_del_lines): Mark with NO_RETURN.
+	(x_connection_closed): Tell GCC not to suggest NO_RETURN.
+
+	* xfaces.c (clear_face_cache, Fx_list_fonts, Fface_font): Rename
+	or move locals to avoid shadowing.
+	(tty_defined_color, merge_face_heights): Now static.
+	(free_realized_faces_for_fontset): Remove; not used.
+	(Fx_list_fonts): Mark variable that gcc -Wuninitialized
+	does not deduce is never used uninitialized.
+	(STRDUPA, LSTRDUPA, FONT_POINT_SIZE_QUANTUM): Remove; not used.
+	(LFACEP): Define only if XASSERTS, as it's not needed otherwise.
+
+	* terminal.c (store_terminal_param): Now static.
+
+	* xmenu.c (menu_highlight_callback): Now static.
+	(set_frame_menubar): Remove unused local.
+	(xmenu_show): Rename parameter to avoid shadowing.
+	(xmenu_show, xdialog_show, xmenu_show): Make local pointers "const"
+	since they might point to immutable storage.
+	(next_menubar_widget_id): Declare only if USE_X_TOOLKIT,
+	since it's unused otherwise.
+
+	* xdisp.c (produce_glyphless_glyph): Initialize lower_xoff.
+	Add a FIXME, since the code still doesn't look right.  (Bug#8215)
+	(Fcurrent_bidi_paragraph_direction): Simplify slightly; this
+	avoids a gcc -Wuninitialized diagnostic.
+	(display_line, BUILD_COMPOSITE_GLYPH_STRING, draw_glyphs):
+	(note_mouse_highlight): Mark variables that gcc -Wuninitialized
+	does not deduce are never used uninitialized.
+
+	* lisp.h (IF_LINT): New macro, copied from ../lib-src/emacsclient.c.
+
+	* xdisp.c (redisplay_window): Rename local to avoid shadowing.
+	* window.c (window_loop, size_window):
+	(run_window_configuration_change_hook, enlarge_window): Likewise.
+
+	* window.c (display_buffer): Now static.
+	(size_window): Mark variables that gcc -Wuninitialized
+	does not deduce are never used uninitialized.
+	* window.h (check_all_windows): New decl, to forestall
+	gcc -Wmissing-prototypes diagnostic.
+	* dispextern.h (bidi_dump_cached_states): Likewise.
+
+	* charset.h (CHECK_CHARSET_GET_CHARSET): Rename locals to avoid
+	shadowing.
+	* charset.c (map_charset_for_dump, Fchar_charset): Likewise.
+	Include <limits.h>.
+	(Fsort_charsets): Redo min/max calculation to shorten the code a bit
+	and to avoid gcc -Wuninitialized warning.
+	(load_charset_map): Mark variables that gcc -Wuninitialized
+	does not deduce are never used uninitialized.
+	(load_charset): Abort instead of using uninitialized var (Bug#8229).
+
+	* coding.c (coding_set_source, coding_set_destination):
+	Use "else { /* comment */ }" rather than "else /* comment */;"
+	for clarity, and to avoid gcc -Wempty-body warning.
+	(Fdefine_coding_system_internal): Don't redeclare 'i' inside
+	a block, when the outer 'i' will do.
+	(decode_coding_utf_8, decode_coding_utf_16, detect_coding_emacs_mule):
+	(emacs_mule_char, decode_coding_emacs_mule, detect_coding_iso_2022):
+	(decode_coding_iso_2022, decode_coding_sjis, decode_coding_big5):
+	(decode_coding_raw_text, decode_coding_charset, get_translation_table):
+	(Fdecode_sjis_char, Fdefine_coding_system_internal):
+	Rename locals to avoid shadowing.
+	* character.h (FETCH_STRING_CHAR_ADVANCE): Likewise.
+	* coding.c (emacs_mule_char, encode_invocation_designation):
+	Now static, since they're not used elsewhere.
+	(decode_coding_iso_2022): Add "default: abort ();" as a safety check.
+	(decode_coding_object, encode_coding_object, detect_coding_system):
+	(decode_coding_emacs_mule): Mark variables that gcc
+	-Wuninitialized does not deduce are never used uninitialized.
+	(detect_coding_iso_2022): Initialize a local variable that might
+	be used uninitialized.  Leave a FIXME because it's not clear that
+	this initialization is needed.  (Bug#8211)
+	(ISO_CODE_LF, ISO_CODE_CR, CODING_ISO_FLAG_EUC_TW_SHIFT):
+	(ONE_MORE_BYTE_NO_CHECK, UTF_BOM, UTF_16_INVALID_P):
+	(SHIFT_OUT_OK, ENCODE_CONTROL_SEQUENCE_INTRODUCER):
+	(ENCODE_DIRECTION_R2L, ENCODE_DIRECTION_L2R):
+	Remove unused macros.
+
+	* category.c (hash_get_category_set): Remove unused local var.
+	(copy_category_table): Now static, since it's not used elsewhere.
+	* character.c (string_count_byte8): Likewise.
+
+	* ccl.c (CCL_WRITE_STRING, CCL_ENCODE_CHAR, Fccl_execute_on_string):
+	(Fregister_code_conversion_map): Rename locals to avoid shadowing.
+
+	* chartab.c (copy_sub_char_table): Now static, since it's not used
+	elsewhere.
+	(sub_char_table_ref_and_range, char_table_ref_and_range):
+	Rename locals to avoid shadowing.
+	(ASET_RANGE, GET_SUB_CHAR_TABLE): Remove unused macros.
+
+	* bidi.c (bidi_check_type): Now static, since it's not used elsewhere.
+	(BIDI_BOB): Remove unused macro.
+
+	* cm.c (cmgoto): Mark variables that gcc -Wuninitialized does not
+	deduce are never used uninitialized.
+	* term.c (encode_terminal_code): Likewise.
+
+	* term.c (encode_terminal_code): Now static.  Remove unused local.
+
+	* tparam.h: New file.
+	* term.c, tparam.h: Include it.
+	* deps.mk (term.o, tparam.o): Depend on tparam.h.
+	* term.c (tputs, tgetent, tgetflag, tgetnum, tparam, tgetstr):
+	Move these decls to tparam.h, and make them agree with what
+	is actually in tparam.c.  The previous trick of using incompatible
+	decls in different modules does not conform to the C standard.
+	All callers of tparam changed to use tparam's actual API.
+	* tparam.c (tparam1, tparam, tgoto):
+	Use const pointers where appropriate.
+
+	* cm.c (calccost, cmgoto): Use const pointers where appropriate.
+	* cm.h (struct cm): Likewise.
+	* dispextern.h (do_line_insertion_deletion_costs): Likewise.
+	* scroll.c (ins_del_costs, do_line_insertion_deletion_costs): Likewise.
+	* term.c (tty_ins_del_lines, calculate_costs, struct fkey_table):
+	(term_get_fkeys_1, append_glyphless_glyph, produce_glyphless_glyph):
+	(turn_on_face, init_tty): Likewise.
+	* termchar.h (struct tty_display_info): Likewise.
+
+	* term.c (term_mouse_position): Rename local to avoid shadowing.
+
+	* alloc.c (mark_ttys): Move decl from here ...
+	* lisp.h (mark_ttys): ... to here, so that it's checked against defn.
+
 2011-03-11  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* .gdbinit (pwinx, xbuffer): Fix access to buffer name.

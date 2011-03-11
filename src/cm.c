@@ -199,7 +199,7 @@ calccost (struct tty_display_info *tty,
             tabx,
             tab2x,
             tabcost;
-    register char  *p;
+    register const char *p;
 
     /* If have just wrapped on a terminal with xn,
        don't believe the cursor position: give up here
@@ -330,9 +330,9 @@ cmgoto (struct tty_display_info *tty, int row, int col)
             llcost,
             relcost,
             directcost;
-    int     use;
-    char   *p,
-           *dcm;
+    int     use IF_LINT (= 0);
+    char *p;
+    const char *dcm;
 
   /* First the degenerate case */
     if (row == curY (tty) && col == curX (tty)) /* already there */
@@ -460,4 +460,3 @@ Wcm_init (struct tty_display_info *tty)
     return - 2;
   return 0;
 }
-

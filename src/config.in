@@ -1206,6 +1206,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 # define __restrict__
 #endif
 
+/* Define to `unsigned int' if <sys/types.h> does not define. */
+#undef size_t
+
 /* Define to any substitute for sys_siglist. */
 #undef sys_siglist
 
