@@ -1,3 +1,15 @@
+2011-03-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* termhooks.h (encode_terminal_code): Declare prototype.
+
+	* msdos.c (encode_terminal_code): Don't declare prototype.
+
+	* term.c (encode_terminal_code): Now external again, used by
+	w32console.c and msdos.c.
+
+	* makefile.w32-in ($(BLD)/term.$(O), ($(BLD)/tparam.$(O)): Depend
+	on $(SRC)/tparam.h, see revno 103623.
+
 2011-03-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix some minor problems found by GCC 4.5.2's static checks.

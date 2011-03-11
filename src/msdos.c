@@ -844,6 +844,7 @@ IT_set_face (int face)
 
 extern unsigned char *encode_terminal_code (struct glyph *, int,
 					    struct coding_system *);
+
 static void
 IT_write_glyphs (struct frame *f, struct glyph *str, int str_len)
 {
