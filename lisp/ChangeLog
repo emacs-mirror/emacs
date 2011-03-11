@@ -1,3 +1,15 @@
+2011-03-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (file-ownership-preserved-p): Pass `integer' as an
+	explicit 2nd argument to `file-attributes'.  If the file's owner
+	is the Administrators group on Windows, and the current user is
+	Administrator, consider that a match.
+
+	* server.el (server-ensure-safe-dir): Consider server directory
+	safe on MS-Windows if its owner is the Administrators group while
+	the current Emacs user is Administrator.  Use `=' to compare
+	numerical UIDs, since they could be integers or floats.
+
 2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 23.3 released.
