@@ -1,5 +1,9 @@
 2011-03-11  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* editfns.c (time_overflow): New function, refactoring common code.
+	(Fformat_time_string, Fdecode_time, Fencode_time):
+	(Fcurrent_time_string): Use it.
+
 	Move 'make_time' to be next to its inverse 'lisp_time_argument'.
 	* dired.c (make_time): Move to ...
 	* editfns.c (make_time): ... here.

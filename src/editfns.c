@@ -87,6 +87,7 @@ extern char **environ;
 extern Lisp_Object w32_get_internal_run_time (void);
 #endif
 
+static void time_overflow (void) NO_RETURN;
 static int tm_diff (struct tm *, struct tm *);
 static void find_field (Lisp_Object, Lisp_Object, Lisp_Object,
 			EMACS_INT *, Lisp_Object, EMACS_INT *);
@@ -1476,6 +1477,13 @@ on systems that do not provide resolution finer than a second.  */)
 }
 
 
+/* Report a time value that is out of range for Emacs.  */
+static void
+time_overflow (void)
+{
+  error ("Specified time is not representable");
+}
+
 /* Make a Lisp list that represents the time T.  */
 Lisp_Object
 make_time (time_t t)
@@ -1687,7 +1695,7 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
   tm = ut ? gmtime (&value) : localtime (&value);
   UNBLOCK_INPUT;
   if (! tm)
-    error ("Specified time is not representable");
+    time_overflow ();
 
   synchronize_system_time_locale ();
 
@@ -1746,7 +1754,7 @@ DOW and ZONE.)  */)
   decoded_time = localtime (&time_spec);
   UNBLOCK_INPUT;
   if (! decoded_time)
-    error ("Specified time is not representable");
+    time_overflow ();
   XSETFASTINT (list_args[0], decoded_time->tm_sec);
   XSETFASTINT (list_args[1], decoded_time->tm_min);
   XSETFASTINT (list_args[2], decoded_time->tm_hour);
@@ -1859,7 +1867,7 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
     }
 
   if (time == (time_t) -1)
-    error ("Specified time is not representable");
+    time_overflow ();
 
   return make_time (time);
 }
@@ -1894,7 +1902,7 @@ but this is considered obsolete.  */)
   tm = localtime (&value);
   UNBLOCK_INPUT;
   if (! (tm && TM_YEAR_IN_ASCTIME_RANGE (tm->tm_year) && (tem = asctime (tm))))
-    error ("Specified time is not representable");
+    time_overflow ();
 
   /* Remove the trailing newline.  */
   tem[strlen (tem) - 1] = '\0';
