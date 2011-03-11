@@ -406,7 +406,7 @@ faq.pdf: ${srcdir}/faq.texi $(emacsdir)/emacsver.texi
 ## This is the name used on the Emacs web-page.
 ## sed fixes up links to point to split version of the manual.
 emacs-faq.html: ${srcdir}/faq.texi $(emacsdir)/emacsver.texi
-	cd $(srcdir); $(MAKEINFO) $(MAKEINFO_OPTS) --no-split \
+	$(MAKEINFO) $(MAKEINFO_OPTS) --no-split \
 	  --css-ref='/layout.css' --html -o $@ $<
 	sed -i 's|a href="emacs.html#\([^"]*\)"|a href="manual/html_node/emacs/\1.html"|g' $@
 
