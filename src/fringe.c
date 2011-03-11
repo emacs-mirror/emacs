@@ -913,10 +913,7 @@ update_window_fringes (struct window *w, int keep_current_p)
   int bitmap_cache[MAX_BITMAP_CACHE];
   int top_ind_rn, bot_ind_rn;
   int top_ind_min_y, bot_ind_max_y;
-
-  /* FIXME: Do these need to be initialized?  If not, please change
-     their "= 0"s to "IF_LINT (= 0)"s.  Either way, please explain.  */
-  int top_row_ends_at_zv_p = 0, bot_row_ends_at_zv_p = 0;
+  int top_row_ends_at_zv_p IF_LINT (= 0), bot_row_ends_at_zv_p IF_LINT (= 0);
 
   if (w->pseudo_window_p)
     return 0;

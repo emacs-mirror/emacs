@@ -1,8 +1,8 @@
-2011-03-10  Paul Eggert  <eggert@cs.ucla.edu>
+2011-03-11  Paul Eggert  <eggert@cs.ucla.edu>
 
-	* fringe.c (destroy_fringe_bitmap, init_fringe_bitmap): Now static.
-	(update_window_fringes): Initialize top_row_ends_at_zv_p and
-	bot_row_ends_at_zv_p, with a FIXME comment.
+	* fringe.c (update_window_fringes): Mark locals as initialized
+	(Bug#8227).
+	(destroy_fringe_bitmap, init_fringe_bitmap): Now static.
 
 	* alloc.c (mark_fringe_data): Move decl from here ...
 	* lisp.h (mark_fringe_data) [HAVE_WINDOW_SYSTEM]: ... to here,
