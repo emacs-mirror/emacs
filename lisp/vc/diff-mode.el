@@ -811,7 +811,7 @@ PREFIX is only used internally: don't use it."
 (defun diff-ediff-patch ()
   "Call `ediff-patch-file' on the current buffer."
   (interactive)
-  (condition-case err
+  (condition-case nil
       (ediff-patch-file nil (current-buffer))
     (wrong-number-of-arguments (ediff-patch-file))))
 
@@ -1168,7 +1168,7 @@ else cover the whole buffer."
 ;; *-change-function is asking for trouble, whereas making them
 ;; from a post-command-hook doesn't pose much problems
 (defvar diff-unhandled-changes nil)
-(defun diff-after-change-function (beg end len)
+(defun diff-after-change-function (beg end _len)
   "Remember to fixup the hunk header.
 See `after-change-functions' for the meaning of BEG, END and LEN."
   ;; Ignoring changes when inhibit-read-only is set is strictly speaking
@@ -1690,7 +1690,7 @@ With a prefix argument, REVERSE the hunk."
   "See whether it's possible to apply the current hunk.
 With a prefix argument, try to REVERSE the hunk."
   (interactive "P")
-  (destructuring-bind (buf line-offset pos src dst &optional switched)
+  (destructuring-bind (buf line-offset pos src _dst &optional switched)
       (diff-find-source-location nil reverse)
     (set-window-point (display-buffer buf) (+ (car pos) (cdr src)))
     (diff-hunk-status-msg line-offset (diff-xor reverse switched) t)))
@@ -1710,7 +1710,7 @@ then `diff-jump-to-old-file' is also set, for the next invocations."
   ;; This is a convenient detail when using smerge-diff.
   (if event (posn-set-point (event-end event)))
   (let ((rev (not (save-excursion (beginning-of-line) (looking-at "[-<]")))))
-    (destructuring-bind (buf line-offset pos src dst &optional switched)
+    (destructuring-bind (buf line-offset pos src _dst &optional switched)
 	(diff-find-source-location other-file rev)
       (pop-to-buffer buf)
       (goto-char (+ (car pos) (cdr src)))
@@ -1728,7 +1728,7 @@ For use in `add-log-current-defun-function'."
     (when (looking-at diff-hunk-header-re)
       (forward-line 1)
       (re-search-forward "^[^ ]" nil t))
-    (destructuring-bind (&optional buf line-offset pos src dst switched)
+    (destructuring-bind (&optional buf _line-offset pos src dst switched)
         ;; Use `noprompt' since this is used in which-func-mode and such.
 	(ignore-errors                ;Signals errors in place of prompting.
           (diff-find-source-location nil nil 'noprompt))
@@ -1876,28 +1876,27 @@ I.e. like `add-change-log-entry-other-window' but applied to all hunks."
   ;; good to call it for each change.
   (save-excursion
     (goto-char (point-min))
-    (let ((orig-buffer (current-buffer)))
-      (condition-case nil
-	  ;; Call add-change-log-entry-other-window for each hunk in
-	  ;; the diff buffer.
-	  (while (progn
-                   (diff-hunk-next)
-                   ;; Move to where the changes are,
-                   ;; `add-change-log-entry-other-window' works better in
-                   ;; that case.
-                   (re-search-forward
-                    (concat "\n[!+-<>]"
-                            ;; If the hunk is a context hunk with an empty first
-                            ;; half, recognize the "--- NNN,MMM ----" line
-                            "\\(-- [0-9]+\\(,[0-9]+\\)? ----\n"
-                            ;; and skip to the next non-context line.
-                            "\\( .*\n\\)*[+]\\)?")
-                    nil t))
-            (save-excursion
-              ;; FIXME: this pops up windows of all the buffers.
-              (add-change-log-entry nil nil t nil t)))
-        ;; When there's no more hunks, diff-hunk-next signals an error.
-	(error nil)))))
+    (condition-case nil
+        ;; Call add-change-log-entry-other-window for each hunk in
+        ;; the diff buffer.
+        (while (progn
+                 (diff-hunk-next)
+                 ;; Move to where the changes are,
+                 ;; `add-change-log-entry-other-window' works better in
+                 ;; that case.
+                 (re-search-forward
+                  (concat "\n[!+-<>]"
+                          ;; If the hunk is a context hunk with an empty first
+                          ;; half, recognize the "--- NNN,MMM ----" line
+                          "\\(-- [0-9]+\\(,[0-9]+\\)? ----\n"
+                          ;; and skip to the next non-context line.
+                          "\\( .*\n\\)*[+]\\)?")
+                  nil t))
+          (save-excursion
+            ;; FIXME: this pops up windows of all the buffers.
+            (add-change-log-entry nil nil t nil t)))
+      ;; When there's no more hunks, diff-hunk-next signals an error.
+      (error nil))))
 
 ;; provide the package
 (provide 'diff-mode)

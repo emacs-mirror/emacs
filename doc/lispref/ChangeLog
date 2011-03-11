@@ -1,3 +1,7 @@
+2011-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* variables.texi (Converting to Lexical Binding): New node.
+
 2011-03-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* variables.texi (Scope): Mention the availability of lexical scoping.

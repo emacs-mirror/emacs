@@ -277,12 +277,12 @@ Not documented
 ;;;;;;  assert check-type typep deftype cl-struct-setf-expander defstruct
 ;;;;;;  define-modify-macro callf2 callf letf* letf rotatef shiftf
 ;;;;;;  remf cl-do-pop psetf setf get-setf-method defsetf define-setf-method
-;;;;;;  declare locally multiple-value-setq multiple-value-bind lexical-let*
-;;;;;;  lexical-let symbol-macrolet macrolet labels flet progv psetq
-;;;;;;  do-all-symbols do-symbols dotimes dolist do* do loop return-from
-;;;;;;  return block etypecase typecase ecase case load-time-value
-;;;;;;  eval-when destructuring-bind function* defmacro* defun* gentemp
-;;;;;;  gensym) "cl-macs" "cl-macs.el" "5bdba3fbbcbfcf57a2c9ca87a6318150")
+;;;;;;  declare the locally multiple-value-setq multiple-value-bind
+;;;;;;  lexical-let* lexical-let symbol-macrolet macrolet labels
+;;;;;;  flet progv psetq do-all-symbols do-symbols dotimes dolist
+;;;;;;  do* do loop return-from return block etypecase typecase ecase
+;;;;;;  case load-time-value eval-when destructuring-bind function*
+;;;;;;  defmacro* defun* gentemp gensym) "cl-macs" "cl-macs.el" "864a28dc0495ad87d39637a965387526")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'gensym "cl-macs" "\
@@ -534,6 +534,11 @@ values.  For compatibility, (values A B C) is a synonym for (list A B C).
 
 
 \(fn &rest BODY)" nil (quote macro))
+
+(autoload 'the "cl-macs" "\
+
+
+\(fn TYPE FORM)" nil (quote macro))
 
 (autoload 'declare "cl-macs" "\
 

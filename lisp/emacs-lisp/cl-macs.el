@@ -2428,11 +2428,13 @@ value, that slot cannot be set via `setf'.
 	    (push (cons name t) side-eff))))
     (if print-auto (nconc print-func (list '(princ ")" cl-s) t)))
     (if print-func
-	(push (list 'push
-		       (list 'function
-			     (list 'lambda '(cl-x cl-s cl-n)
-				   (list 'and pred-form print-func)))
-		       'custom-print-functions) forms))
+	(push `(push
+                ;; The auto-generated function does not pay attention to
+                ;; the depth argument cl-n.
+                (lambda (cl-x cl-s ,(if print-auto '_cl-n 'cl-n))
+                  (and ,pred-form ,print-func))
+                custom-print-functions)
+              forms))
     (push (list 'setq tag-symbol (list 'list (list 'quote tag))) forms)
     (push (list* 'eval-when '(compile load eval)
 		    (list 'put (list 'quote name) '(quote cl-struct-slots)
@@ -2586,7 +2588,7 @@ and then returning foo."
 	(cl-transform-function-property
 	 func 'cl-compiler-macro
 	 (cons (if (memq '&whole args) (delq '&whole args)
-		 (cons '--cl-whole-arg-- args)) body))
+		 (cons '_cl-whole-arg args)) body))
 	(list 'or (list 'get (list 'quote func) '(quote byte-compile))
 	      (list 'progn
 		    (list 'put (list 'quote func) '(quote byte-compile)

@@ -488,6 +488,8 @@ places where they originally did not directly appear."
                                 (cconv-convert form nil nil))
                               forms)))
     
+    (`(declare . ,_) form)              ;The args don't contain code.
+    
     (`(,func . ,forms)
      ;; First element is function or whatever function-like forms are: or, and,
      ;; if, progn, prog1, prog2, while, until
@@ -683,6 +685,8 @@ and updates the data stored in ENV."
      ;; variables in the function's enclosing environment, but it doesn't
      ;; seem worth the trouble.
      (dolist (form forms) (cconv-analyse-form form nil)))
+
+    (`(declare . ,_) nil)               ;The args don't contain code.
     
     (`(,_ . ,body-forms)    ; First element is a function or whatever.
      (dolist (form body-forms) (cconv-analyse-form form env)))

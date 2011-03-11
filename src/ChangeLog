@@ -1,3 +1,9 @@
+2011-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Fprog1, Fprog2): Simplify and use XCDR/XCAR.
+	(Fdefvar): Remove redundant SYMBOLP check.
+	(Ffunctionp): Don't signal an error for undefined aliases.
+
 2011-03-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* bytecode.c (exec_byte_code): Remove old lexical binding slot handling

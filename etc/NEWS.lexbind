@@ -18,7 +18,8 @@ all the code in that file.
 
 ** Lexically scoped interpreted functions are represented with a new form
 of function value which looks like (closure ENV lambda ARGS &rest BODY).
-
+** New macro `letrec' to define recursive local functions.
+
 ----------------------------------------------------------------------
 This file is part of GNU Emacs.
 

@@ -1,3 +1,35 @@
+2011-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (letrec): New macro.
+	(with-wrapper-hook): Move from simple.el and don't use CL.
+	* simple.el (with-wrapper-hook): Move with-wrapper-hook to subr.el.
+	* help-fns.el (help-function-arglist): Handle subroutines as well.
+	(describe-variable): Use special-variable-p to filter completions.
+	* emacs-lisp/macroexp.el (macroexpand-all-1): Don't expand `declare'
+	in defmacros.
+	* emacs-lisp/cconv.el (cconv-convert, cconv-analyse-form):
+	Handle `declare'.
+	* emacs-lisp/cl.el (pushnew): Silence unfixable warning.
+	* emacs-lisp/cl-macs.el (defstruct, define-compiler-macro):
+	Mark unused arg as unused.
+	* emacs-lisp/byte-opt.el (byte-optimize-lapcode): Use memq.
+	* emacs-lisp/autoload.el (make-autoload): Don't assume the macro's
+	first sexp is a list.
+	(autoload-generate-file-autoloads): Improve error message.
+	* emacs-lisp/advice.el (ad-arglist): Use help-function-arglist
+	to understand the new byte-code arg format.
+	* vc/smerge-mode.el:
+	* vc/log-view.el:
+	* vc/log-edit.el:
+	* vc/cvs-status.el:
+	* uniquify.el:
+	* textmodes/css-mode.el:
+	* textmodes/bibtex-style.el:
+	* reveal.el:
+	* newcomment.el:
+	* emacs-lisp/smie.el:
+	* abbrev.el: Use lexical-binding.
+
 2011-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el: Use lexical-binding.

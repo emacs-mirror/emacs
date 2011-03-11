@@ -1657,8 +1657,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	      ;; it is wrong to do the same thing for the -else-pop variants.
 	      ;;
 	      ((and (eq 'byte-not (car lap0))
-		    (or (eq 'byte-goto-if-nil (car lap1))
-			(eq 'byte-goto-if-not-nil (car lap1))))
+		    (memq (car lap1) '(byte-goto-if-nil byte-goto-if-not-nil)))
 	       (byte-compile-log-lap "  not %s\t-->\t%s"
 				     lap1
 				     (cons
@@ -1677,8 +1676,8 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	      ;;
 	      ;; it is wrong to do the same thing for the -else-pop variants.
 	      ;;
-	      ((and (or (eq 'byte-goto-if-nil (car lap0))
-			(eq 'byte-goto-if-not-nil (car lap0)))	; gotoX
+	      ((and (memq (car lap0)
+                          '(byte-goto-if-nil byte-goto-if-not-nil))	; gotoX
 		    (eq 'byte-goto (car lap1))			; gotoY
 		    (eq (cdr lap0) lap2))			; TAG X
 	       (let ((inverse (if (eq 'byte-goto-if-nil (car lap0))
@@ -1701,8 +1700,8 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
                     ;; only be known when the closure will be built at
                     ;; run-time).
                     (consp (cdr lap0)))
-	       (cond ((if (or (eq (car lap1) 'byte-goto-if-nil)
-                              (eq (car lap1) 'byte-goto-if-nil-else-pop))
+	       (cond ((if (memq (car lap1) '(byte-goto-if-nil
+                                             byte-goto-if-nil-else-pop))
                           (car (cdr lap0))
                         (not (car (cdr lap0))))
 		      (byte-compile-log-lap "  %s %s\t-->\t<deleted>"

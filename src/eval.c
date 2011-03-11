@@ -371,13 +371,12 @@ usage: (prog1 FIRST BODY...)  */)
 
   do
     {
+      Lisp_Object tem = eval_sub (XCAR (args_left));
       if (!(argnum++))
-	val = eval_sub (Fcar (args_left));
-      else
-	eval_sub (Fcar (args_left));
-      args_left = Fcdr (args_left);
+	val = tem;
+      args_left = XCDR (args_left);
     }
-  while (!NILP(args_left));
+  while (CONSP (args_left));
 
   UNGCPRO;
   return val;
@@ -406,13 +405,12 @@ usage: (prog2 FORM1 FORM2 BODY...)  */)
 
   do
     {
+      Lisp_Object tem = eval_sub (XCAR (args_left));
       if (!(argnum++))
-	val = eval_sub (Fcar (args_left));
-      else
-	eval_sub (Fcar (args_left));
-      args_left = Fcdr (args_left);
+	val = tem;
+      args_left = XCDR (args_left);
     }
-  while (!NILP (args_left));
+  while (CONSP (args_left));
 
   UNGCPRO;
   return val;
@@ -791,9 +789,8 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
   tem = Fdefault_boundp (sym);
   if (!NILP (tail))
     {
-      if (SYMBOLP (sym))
-	/* Do it before evaluating the initial value, for self-references.  */
-	XSYMBOL (sym)->declared_special = 1;
+      /* Do it before evaluating the initial value, for self-references.  */
+      XSYMBOL (sym)->declared_special = 1;
 
       if (SYMBOL_CONSTANT_P (sym))
 	{
@@ -2873,7 +2870,7 @@ DEFUN ("functionp", Ffunctionp, Sfunctionp, 1, 1, 0,
 {
   if (SYMBOLP (object) && !NILP (Ffboundp (object)))
     {
-      object = Findirect_function (object, Qnil);
+      object = Findirect_function (object, Qt);
 
       if (CONSP (object) && EQ (XCAR (object), Qautoload))
 	{

@@ -1242,6 +1242,67 @@ the hook's buffer-local value rather than its default value."
 	    (kill-local-variable hook)
 	  (set hook hook-value))))))
 
+(defmacro letrec (binders &rest body)
+  "Bind variables according to BINDERS then eval BODY.
+The value of the last form in BODY is returned.
+Each element of BINDERS is a list (SYMBOL VALUEFORM) which binds
+SYMBOL to the value of VALUEFORM.
+All symbols are bound before the VALUEFORMs are evalled."
+  ;; Only useful in lexical-binding mode.
+  ;; As a special-form, we could implement it more efficiently (and cleanly,
+  ;; making the vars actually unbound during evaluation of the binders).
+  (declare (debug let) (indent 1))
+  `(let ,(mapcar #'car binders)
+     ,@(mapcar (lambda (binder) `(setq ,@binder)) binders)
+     ,@body))
+
+(defmacro with-wrapper-hook (var args &rest body)
+  "Run BODY wrapped with the VAR hook.
+VAR is a special hook: its functions are called with a first argument
+which is the \"original\" code (the BODY), so the hook function can wrap
+the original function, or call it any number of times (including not calling
+it at all).  This is similar to an `around' advice.
+VAR is normally a symbol (a variable) in which case it is treated like
+a hook, with a buffer-local and a global part.  But it can also be an
+arbitrary expression.
+ARGS is a list of variables which will be passed as additional arguments
+to each function, after the initial argument, and which the first argument
+expects to receive when called."
+  (declare (indent 2) (debug t))
+  ;; We need those two gensyms because CL's lexical scoping is not available
+  ;; for function arguments :-(
+  (let ((funs (make-symbol "funs"))
+        (global (make-symbol "global"))
+        (argssym (make-symbol "args"))
+        (runrestofhook (make-symbol "runrestofhook")))
+    ;; Since the hook is a wrapper, the loop has to be done via
+    ;; recursion: a given hook function will call its parameter in order to
+    ;; continue looping.
+    `(letrec ((,runrestofhook
+               (lambda (,funs ,global ,argssym)
+                 ;; `funs' holds the functions left on the hook and `global'
+                 ;; holds the functions left on the global part of the hook
+                 ;; (in case the hook is local).
+                 (if (consp ,funs)
+                     (if (eq t (car ,funs))
+                         (funcall ,runrestofhook
+                                  (append ,global (cdr ,funs)) nil ,argssym)
+                       (apply (car ,funs)
+                              (apply-partially
+                               (lambda (,funs ,global &rest ,argssym)
+                                 (funcall ,runrestofhook ,funs ,global ,argssym))
+                               (cdr ,funs) ,global)
+                              ,argssym))
+                   ;; Once there are no more functions on the hook, run
+                   ;; the original body.
+                   (apply (lambda ,args ,@body) ,argssym)))))
+       (funcall ,runrestofhook ,var
+                ;; The global part of the hook, if any.
+                ,(if (symbolp var)
+                     `(if (local-variable-p ',var)
+                          (default-value ',var)))
+                (list ,@args)))))
+
 (defun add-to-list (list-var element &optional append compare-fn)
   "Add ELEMENT to the value of LIST-VAR if it isn't there yet.
 The test for presence of ELEMENT is done with `equal',

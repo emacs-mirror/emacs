@@ -2452,13 +2452,13 @@ This is used so that they can be compared with `eq', which is needed for
 
 (defvar mpc-faster-speedup 8)
 
-(defun mpc-ffwd (event)
+(defun mpc-ffwd (_event)
   "Fast forward."
   (interactive (list last-nonmenu-event))
   ;; (mpc--faster event 4.0 1)
   (mpc--faster-toggle mpc-faster-speedup 1))
 
-(defun mpc-rewind (event)
+(defun mpc-rewind (_event)
   "Fast rewind."
   (interactive (list last-nonmenu-event))
   ;; (mpc--faster event 4.0 -1)

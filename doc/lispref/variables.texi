@@ -912,7 +912,7 @@ dynamically scoped, like all variables in Emacs Lisp.
 * Extent::                      Extent means how long in time a value exists.
 * Impl of Scope::               Two ways to implement dynamic scoping.
 * Using Scoping::               How to use dynamic scoping carefully and avoid problems.
-* Lexical Binding::             
+* Lexical Binding::             Use of lexical scoping.
 @end menu
 
 @node Scope
@@ -1136,6 +1136,44 @@ body can later be evaluated in the proper context.  Those objects are called
 by @code{funcall}, and they are represented by a cons cell whose @code{car} is
 the symbol @code{closure}.
 
+@menu
+* Converting to Lexical Binding:: How to start using lexical scoping  
+@end menu
+
+@node Converting to Lexical Binding
+@subsubsection Converting a package to use lexical scoping
+
+Lexical scoping, as currently implemented, does not bring many significant
+benefits, unless you are a seasoned functional programmer addicted to
+higher-order functions.  But its importance will increase in the future:
+lexical scoping opens up a lot more opportunities for optimization, so
+lexically scoped code is likely to run faster in future Emacs versions, and it
+is much more friendly to concurrency, which we want to add in the near future.
+
+Converting a package to lexical binding is usually pretty easy and should not
+break backward compatibility: just add a file-local variable setting
+@code{lexical-binding} to @code{t} and add declarations of the form
+@code{(defvar @var{VAR})} for every variable which still needs to use
+dynamic scoping.
+
+To find which variables need this declaration, the simplest solution is to
+check the byte-compiler's warnings.  The byte-compiler will usually find those
+variables either because they are used outside of a let-binding (leading to
+warnings about reference or assignment to ``free variable @var{VAR}'') or
+because they are let-bound but not used within the let-binding (leading to
+warnings about ``unused lexical variable @var{VAR}'').
+
+In cases where a dynamically scoped variable was bound as a function argument,
+you will also need to move this binding to a @code{let}.  These cases are also
+flagged by the byte-compiler.
+
+To silence byte-compiler warnings about unused variables, just use a variable
+name that start with an underscore, which the byte-compiler interpret as an
+indication that this is a variable known not to be used.
+
+In most cases, the resulting code will then work with either setting of
+@code{lexical-binding}, so it can still be used with older Emacsen (which will
+simply ignore the @code{lexical-binding} variable setting).
 
 @node Buffer-Local Variables
 @section Buffer-Local Variables

@@ -432,11 +432,12 @@ This list lives partly on the stack.")
     (eval-when-compile . (lambda (&rest body)
 			   (list
 			    'quote
+                            ;; FIXME: is that right in lexbind code?
 			    (byte-compile-eval
-			      (byte-compile-top-level
-			       (macroexpand-all
-				(cons 'progn body)
-				byte-compile-initial-macro-environment))))))
+                             (byte-compile-top-level
+                              (macroexpand-all
+                               (cons 'progn body)
+                               byte-compile-initial-macro-environment))))))
     (eval-and-compile . (lambda (&rest body)
 			  (byte-compile-eval-before-compile (cons 'progn body))
 			  (cons 'progn body))))
@@ -2732,16 +2733,16 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	     (byte-compile-warn "malformed interactive spec: %s"
 				(prin1-to-string bytecomp-int)))))
     ;; Process the body.
-    (let* ((compiled
-	    (byte-compile-top-level (cons 'progn bytecomp-body) nil 'lambda
-                                    ;; If doing lexical binding, push a new
-                                    ;; lexical environment containing just the
-                                    ;; args (since lambda expressions should be
-                                    ;; closed by now).
-                                    (and lexical-binding
-                                         (byte-compile-make-lambda-lexenv
-                                          bytecomp-fun))
-                                    reserved-csts)))
+    (let ((compiled
+           (byte-compile-top-level (cons 'progn bytecomp-body) nil 'lambda
+                                   ;; If doing lexical binding, push a new
+                                   ;; lexical environment containing just the
+                                   ;; args (since lambda expressions should be
+                                   ;; closed by now).
+                                   (and lexical-binding
+                                        (byte-compile-make-lambda-lexenv
+                                         bytecomp-fun))
+                                   reserved-csts)))
       ;; Build the actual byte-coded function.
       (if (eq 'byte-code (car-safe compiled))
           (apply 'make-byte-code
@@ -3027,8 +3028,9 @@ That command is designed for interactive use only" bytecomp-fn))
   (when (and (byte-compile-warning-enabled-p 'callargs)
              (symbolp (car form)))
     (if (memq (car form)
-              '(custom-declare-group custom-declare-variable
-                                     custom-declare-face))
+              '(custom-declare-group
+                ;; custom-declare-variable custom-declare-face
+                ))
         (byte-compile-nogroup-warn form))
     (when (get (car form) 'byte-obsolete-info)
       (byte-compile-warn-obsolete (car form)))
