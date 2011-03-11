@@ -1,3 +1,8 @@
+2011-03-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help-fns.el (describe-variable): Don't complete keywords.
+	Suggested by Teodor Zlatanov <tzz@lifelogs.com>.
+
 2011-03-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/package.el (package-version-join): Impose a standard

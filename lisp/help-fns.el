@@ -592,9 +592,10 @@ it is displayed along with the global value."
 				     "Describe variable (default %s): " v)
 				  "Describe variable: ")
 				obarray
-				'(lambda (vv)
-				   (or (boundp vv)
-				       (get vv 'variable-documentation)))
+                                (lambda (vv)
+                                  (and (not (keywordp vv))
+                                       (or (boundp vv)
+                                           (get vv 'variable-documentation))))
 				t nil nil
 				(if (symbolp v) (symbol-name v))))
      (list (if (equal val "")
