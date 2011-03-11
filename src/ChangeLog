@@ -1,3 +1,9 @@
+2011-03-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	Backport revno:103582 from trunk.
+	* w32xfns.c (select_palette): Check success of RealizePalette against
+	GDI_ERROR, not zero.
+
 2011-03-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* fringe.c (update_window_fringes): Remove unused variables.
