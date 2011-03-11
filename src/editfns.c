@@ -1476,6 +1476,19 @@ on systems that do not provide resolution finer than a second.  */)
 }
 
 
+/* Make a Lisp list that represents the time T.  */
+Lisp_Object
+make_time (time_t t)
+{
+  return Fcons (make_number (t >> 16),
+		Fcons (make_number (t & 0177777), Qnil));
+}
+
+/* Decode a Lisp list SPECIFIED_TIME that represents a time.
+   If SPECIFIED_TIME is nil, use the current time.
+   Set *RESULT to seconds since the Epoch.
+   If USEC is not null, set *USEC to the microseconds component.
+   Return nonzero if successful.  */
 int
 lisp_time_argument (Lisp_Object specified_time, time_t *result, int *usec)
 {

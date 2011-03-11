@@ -1,3 +1,10 @@
+2011-03-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Move 'make_time' to be next to its inverse 'lisp_time_argument'.
+	* dired.c (make_time): Move to ...
+	* editfns.c (make_time): ... here.
+	* systime.h: Note the move.
+
 2011-03-11  Tom Tromey  <tromey@redhat.com>
 
 	* buffer.c (syms_of_buffer): Remove obsolete comment.
