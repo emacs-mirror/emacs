@@ -913,6 +913,11 @@ update_window_fringes (struct window *w, int keep_current_p)
   int bitmap_cache[MAX_BITMAP_CACHE];
   int top_ind_rn, bot_ind_rn;
   int top_ind_min_y, bot_ind_max_y;
+
+  /* top_ind_rn is set to a nonnegative value whenver
+     row->indicate_bob_p is set, so it's OK that top_row_ends_at_zv_p
+     is not initialized here.  Similarly for bot_ind_rn,
+     row->indicate_eob_p and bot_row_ends_at_zv_p.  */
   int top_row_ends_at_zv_p IF_LINT (= 0), bot_row_ends_at_zv_p IF_LINT (= 0);
 
   if (w->pseudo_window_p)
