@@ -2,6 +2,7 @@
 
 	* image.c (clear_image_cache): Now static.
 	(DIM, HAVE_STDLIB_H_1): Remove unused macros.
+	(xpm_load): Redo to avoid "discards qualifiers" gcc warning.
 
 2011-03-11  Paul Eggert  <eggert@cs.ucla.edu>
 

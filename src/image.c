@@ -3425,11 +3425,12 @@ xpm_load (struct frame *f, struct image *img)
 	{
 	  Lisp_Object name;
 	  Lisp_Object color;
+	  char *empty_string = (char *) "";
 
 	  if (!CONSP (XCAR (tail)))
 	    {
-	      xpm_syms[i].name = "";
-	      xpm_syms[i].value = "";
+	      xpm_syms[i].name = empty_string;
+	      xpm_syms[i].value = empty_string;
 	      continue;
 	    }
 	  name = XCAR (XCAR (tail));
@@ -3440,14 +3441,14 @@ xpm_load (struct frame *f, struct image *img)
 	      strcpy (xpm_syms[i].name, SSDATA (name));
 	    }
 	  else
-	    xpm_syms[i].name = "";
+	    xpm_syms[i].name = empty_string;
 	  if (STRINGP (color))
 	    {
 	      xpm_syms[i].value = (char *) alloca (SCHARS (color) + 1);
 	      strcpy (xpm_syms[i].value, SSDATA (color));
 	    }
 	  else
-	    xpm_syms[i].value = "";
+	    xpm_syms[i].value = empty_string;
 	}
     }
 
