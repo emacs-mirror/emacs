@@ -7127,7 +7127,7 @@ gif_load (struct frame *f, struct image *img)
 	}
 
       /* Open the GIF file.  */
-      gif = fn_DGifOpenFileName (SDATA (file));
+      gif = fn_DGifOpenFileName (SSDATA (file));
       if (gif == NULL)
 	{
 	  image_error ("Cannot open `%s'", file, Qnil);
