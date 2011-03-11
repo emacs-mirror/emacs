@@ -4687,7 +4687,7 @@ x_edge_detection (struct frame *f, struct image *img, Lisp_Object matrix,
     color_adjust = make_number (0xffff / 2);
 
   if (i == 9 && NUMBERP (color_adjust))
-    x_detect_edges (f, img, trans, (int) XFLOATINT (color_adjust));
+    x_detect_edges (f, img, trans, XFLOATINT (color_adjust));
 }
 
 

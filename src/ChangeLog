@@ -3,6 +3,8 @@
 	* image.c (clear_image_cache): Now static.
 	(DIM, HAVE_STDLIB_H_1): Remove unused macros.
 	(xpm_load): Redo to avoid "discards qualifiers" gcc warning.
+	(x_edge_detection): Remove unnecessary cast that
+	gcc -Wbad-function-cast diagnoses.
 
 2011-03-11  Paul Eggert  <eggert@cs.ucla.edu>
 
