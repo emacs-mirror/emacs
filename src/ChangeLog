@@ -6,6 +6,8 @@
 	(x_edge_detection): Remove unnecessary cast that
 	gcc -Wbad-function-cast diagnoses.
 	(gif_load): Fix pointer signedness.
+	(clear_image_cache, xbm_read_bitmap_data, x_detect_edges):
+	(jpeg_load, gif_load): Rename locals to avoid shadowing.
 
 2011-03-11  Paul Eggert  <eggert@cs.ucla.edu>
 
