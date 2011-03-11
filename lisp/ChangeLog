@@ -1,5 +1,8 @@
 2011-03-11  Juanma Barranquero  <lekktu@gmail.com>
 
+	Backport revno:103463 from trunk.
+	* emacs-lisp/cl-macs.el (lexical-let*): Fix argument name in docstring.
+
 	Backport revno:103622 from trunk.
 	* help-fns.el (describe-variable): Don't complete keywords.
 	Suggested by Teodor Zlatanov <tzz@lifelogs.com>.

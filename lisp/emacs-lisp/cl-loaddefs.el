@@ -282,7 +282,7 @@ Not documented
 ;;;;;;  flet progv psetq do-all-symbols do-symbols dotimes dolist
 ;;;;;;  do* do loop return-from return block etypecase typecase ecase
 ;;;;;;  case load-time-value eval-when destructuring-bind function*
-;;;;;;  defmacro* defun* gentemp gensym) "cl-macs" "cl-macs.el" "75e86ac663887b54bf1778f2dd028463")
+;;;;;;  defmacro* defun* gentemp gensym) "cl-macs" "cl-macs.el" "12451ac01f94f10d30cf7a8f92625c42")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'gensym "cl-macs" "\
@@ -505,7 +505,7 @@ lexical closures as in Common Lisp.
 (autoload 'lexical-let* "cl-macs" "\
 Like `let*', but lexically scoped.
 The main visible difference is that lambdas inside BODY, and in
-successive bindings within BINDINGS, will create lexical closures
+successive bindings within VARLIST, will create lexical closures
 as in Common Lisp.  This is similar to the behavior of `let*' in
 Common Lisp.
 
