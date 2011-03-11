@@ -38,8 +38,6 @@
 	Some of these renamings use the new GCPRO1_VAR and UNGCPRO_VAR
 	macros.
 
-2011-03-09  Paul Eggert  <eggert@cs.ucla.edu>
-
 	* xterm.h (x_mouse_leave): New decl.
 
 	* xterm.c (x_copy_dpy_color, x_focus_on_frame, x_unfocus_frame):
@@ -80,7 +78,7 @@
 	since it's unused otherwise.
 
 	* xdisp.c (produce_glyphless_glyph): Initialize lower_xoff.
-	Add a FIXME comment, since the code still doesn't look right.
+	Add a FIXME, since the code still doesn't look right.  (Bug#8215)
 	(Fcurrent_bidi_paragraph_direction): Simplify slightly; this
 	avoids a gcc -Wuninitialized diagnostic.
 	(display_line, BUILD_COMPOSITE_GLYPH_STRING, draw_glyphs):
@@ -108,7 +106,7 @@
 	and to avoid gcc -Wuninitialized warning.
 	(load_charset_map): Mark variables that gcc -Wuninitialized
 	does not deduce are never used uninitialized.
-	(load_charset): Abort instead of using uninitialized var.
+	(load_charset): Abort instead of using uninitialized var (Bug#8229).
 
 	* coding.c (coding_set_source, coding_set_destination):
 	Use "else { /* comment */ }" rather than "else /* comment */;"
@@ -130,7 +128,7 @@
 	-Wuninitialized does not deduce are never used uninitialized.
 	(detect_coding_iso_2022): Initialize a local variable that might
 	be used uninitialized.  Leave a FIXME because it's not clear that
-	this initialization is needed.
+	this initialization is needed.  (Bug#8211)
 	(ISO_CODE_LF, ISO_CODE_CR, CODING_ISO_FLAG_EUC_TW_SHIFT):
 	(ONE_MORE_BYTE_NO_CHECK, UTF_BOM, UTF_16_INVALID_P):
 	(SHIFT_OUT_OK, ENCODE_CONTROL_SEQUENCE_INTRODUCER):
