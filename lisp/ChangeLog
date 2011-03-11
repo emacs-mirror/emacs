@@ -1,3 +1,11 @@
+2011-03-11  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout-widgets.el (allout-widgets-tally) Initialize
+	allout-widgets-tally as a hash table rather than nil to prevent
+	mode-line redisplay warnings.
+	Also, clarify the module description and fix a comment typo.
+
+
 2011-03-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* help-fns.el (describe-variable): Don't complete keywords.

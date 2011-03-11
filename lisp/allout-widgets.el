@@ -1,4 +1,4 @@
-;; allout-widgets.el --- Show allout outline structure with graphical widgets.
+;; allout-widgets.el --- Visually highlight allout outline structure.
 
 ;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011 Ken Manheimer
 
@@ -238,7 +238,7 @@ buffer, and tracking increases as new widgets are added and
 decreases as obsolete widgets are garbage collected."
   :type 'boolean
   :group 'allout-widgets-developer)
-(defvar allout-widgets-tally nil
+(defvar allout-widgets-tally (make-hash-table :test 'eq :weakness 'key)
   "Hash-table of existing allout widgets, for debugging.
 
 Table is maintained iff `allout-widgets-maintain-tally' is non-nil.
