@@ -1493,7 +1493,7 @@ free_image_cache (struct frame *f)
    If image-cache-eviction-delay is non-nil, this frees images in the cache
    which weren't displayed for at least that many seconds.  */
 
-void
+static void
 clear_image_cache (struct frame *f, Lisp_Object filter)
 {
   struct image_cache *c = FRAME_IMAGE_CACHE (f);

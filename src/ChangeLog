@@ -1,5 +1,9 @@
 2011-03-11  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* image.c (clear_image_cache): Now static.
+
+2011-03-11  Paul Eggert  <eggert@cs.ucla.edu>
+
 	Fix some minor problems found by GCC 4.5.2's static checks.
 
 	* fringe.c (update_window_fringes): Mark locals as initialized
