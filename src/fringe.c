@@ -913,7 +913,12 @@ update_window_fringes (struct window *w, int keep_current_p)
   int bitmap_cache[MAX_BITMAP_CACHE];
   int top_ind_rn, bot_ind_rn;
   int top_ind_min_y, bot_ind_max_y;
-  int top_row_ends_at_zv_p, bot_row_ends_at_zv_p;
+
+  /* top_ind_rn is set to a nonnegative value whenver
+     row->indicate_bob_p is set, so it's OK that top_row_ends_at_zv_p
+     is not initialized here.  Similarly for bot_ind_rn,
+     row->indicate_eob_p and bot_row_ends_at_zv_p.  */
+  int top_row_ends_at_zv_p IF_LINT (= 0), bot_row_ends_at_zv_p IF_LINT (= 0);
 
   if (w->pseudo_window_p)
     return 0;
@@ -1380,7 +1385,7 @@ compute_fringe_widths (struct frame *f, int redraw)
 
 /* Free resources used by a user-defined bitmap.  */
 
-void
+static void
 destroy_fringe_bitmap (int n)
 {
   struct fringe_bitmap **fbp;
@@ -1448,7 +1453,7 @@ static const unsigned char swap_nibble[16] = {
   0x3, 0xb, 0x7, 0xf};          /* 0011 1011 0111 1111 */
 #endif                          /* HAVE_X_WINDOWS */
 
-void
+static void
 init_fringe_bitmap (int which, struct fringe_bitmap *fb, int once_p)
 {
   if (once_p || fb->dynamic)
@@ -1831,4 +1836,3 @@ w32_reset_fringes (void)
 #endif /* HAVE_NTGUI */
 
 #endif /* HAVE_WINDOW_SYSTEM */
-

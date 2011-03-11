@@ -2150,12 +2150,15 @@ struct gcpro
 			  || GC_MARK_STACK == GC_MARK_STACK_CHECK_GCPROS)
 
 
+#define GCPRO1(varname) GCPRO1_VAR (varname, gcpro1)
+#define UNGCPRO UNGCPRO_VAR (gcpro1)
+
 #if GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS
 
 /* Do something silly with gcproN vars just so gcc shuts up.  */
 /* You get warnings from MIPSPro...  */
 
-#define GCPRO1(varname) ((void) gcpro1)
+#define GCPRO1_VAR(varname, gcpro1) ((void) gcpro1)
 #define GCPRO2(varname1, varname2)(((void) gcpro2, (void) gcpro1))
 #define GCPRO3(varname1, varname2, varname3) \
   (((void) gcpro3, (void) gcpro2, (void) gcpro1))
@@ -2165,13 +2168,13 @@ struct gcpro
   (((void) gcpro5, (void) gcpro4, (void) gcpro3, (void) gcpro2, (void) gcpro1))
 #define GCPRO6(varname1, varname2, varname3, varname4, varname5, varname6) \
   (((void) gcpro6, (void) gcpro5, (void) gcpro4, (void) gcpro3, (void) gcpro2, (void) gcpro1))
-#define UNGCPRO ((void) 0)
+#define UNGCPRO_VAR(gcpro1) ((void) 0)
 
 #else /* GC_MARK_STACK != GC_MAKE_GCPROS_NOOPS */
 
 #ifndef DEBUG_GCPRO
 
-#define GCPRO1(varname) \
+#define GCPRO1_VAR(varname, gcpro1)				    \
  {gcpro1.next = gcprolist; gcpro1.var = &varname; gcpro1.nvars = 1; \
   gcprolist = &gcpro1; }
 
@@ -2210,13 +2213,13 @@ struct gcpro
   gcpro6.next = &gcpro5; gcpro6.var = &varname6; gcpro6.nvars = 1; \
   gcprolist = &gcpro6; }
 
-#define UNGCPRO (gcprolist = gcpro1.next)
+#define UNGCPRO_VAR(gcpro1) (gcprolist = gcpro1.next)
 
 #else
 
 extern int gcpro_level;
 
-#define GCPRO1(varname) \
+#define GCPRO1_VAR(varname, gcpro1)				    \
  {gcpro1.next = gcprolist; gcpro1.var = &varname; gcpro1.nvars = 1; \
   gcpro1.level = gcpro_level++; \
   gcprolist = &gcpro1; }
@@ -2266,7 +2269,7 @@ extern int gcpro_level;
   gcpro6.level = gcpro_level++; \
   gcprolist = &gcpro6; }
 
-#define UNGCPRO					\
+#define UNGCPRO_VAR(gcpro1)		\
  ((--gcpro_level != gcpro1.level)		\
   ? (abort (), 0)				\
   : ((gcprolist = gcpro1.next), 0))
@@ -2537,7 +2540,10 @@ extern Lisp_Object fmod_float (Lisp_Object x, Lisp_Object y);
 /* Defined in fringe.c */
 extern void syms_of_fringe (void);
 extern void init_fringe (void);
+#ifdef HAVE_WINDOW_SYSTEM
+extern void mark_fringe_data (void);
 extern void init_fringe_once (void);
+#endif /* HAVE_WINDOW_SYSTEM */
 
 /* Defined in image.c */
 extern Lisp_Object QCascent, QCmargin, QCrelief, Qcount, Qextension_data;
@@ -3378,6 +3384,7 @@ extern Lisp_Object directory_files_internal (Lisp_Object, Lisp_Object,
 
 /* Defined in term.c */
 extern int *char_ins_del_vector;
+extern void mark_ttys (void);
 extern void syms_of_term (void);
 extern void fatal (const char *msgid, ...) NO_RETURN;
 
@@ -3523,6 +3530,13 @@ extern void init_system_name (void);
 	    (EQ (hare, tortoise)			\
 	     && (circular_list_error ((list)), 1)))	\
 	 : 0)))
+
+/* Use this to suppress gcc's `...may be used before initialized' warnings. */
+#ifdef lint
+# define IF_LINT(Code) Code
+#else
+# define IF_LINT(Code) /* empty */
+#endif
 
 /* The ubiquitous min and max macros.  */
 

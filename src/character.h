@@ -356,11 +356,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
       CHARIDX++;							\
       if (STRING_MULTIBYTE (STRING))					\
 	{								\
-	  unsigned char *ptr = &SDATA (STRING)[BYTEIDX];		\
-	  int len;							\
+	  unsigned char *string_ptr = &SDATA (STRING)[BYTEIDX];		\
+	  int string_len;						\
 									\
-	  OUTPUT = STRING_CHAR_AND_LENGTH (ptr, len);			\
-	  BYTEIDX += len;						\
+	  OUTPUT = STRING_CHAR_AND_LENGTH (string_ptr, string_len);	\
+	  BYTEIDX += string_len;					\
 	}								\
       else								\
 	{								\

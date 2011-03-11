@@ -786,7 +786,7 @@ str_to_unibyte (const unsigned char *src, unsigned char *dst, EMACS_INT chars, i
 }
 
 
-EMACS_INT
+static EMACS_INT
 string_count_byte8 (Lisp_Object string)
 {
   int multibyte = STRING_MULTIBYTE (string);

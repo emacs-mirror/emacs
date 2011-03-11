@@ -32,6 +32,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "termchar.h"
 #include "termopts.h"
+#include "tparam.h"
 #include "buffer.h"
 #include "character.h"
 #include "charset.h"
@@ -52,18 +53,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "msdos.h"
 static int been_here = -1;
 #endif
-
-/* For now, don't try to include termcap.h.  On some systems,
-   configure finds a non-standard termcap.h that the main build
-   won't find.  */
-extern void tputs (const char *, int, int (*)(int));
-extern int tgetent (char *, const char *);
-extern int tgetflag (char *id);
-extern int tgetnum (char *id);
-
-char *tparam (char *, char *, int, int, ...);
-
-extern char *tgetstr (char *, char **);
 
 #include "cm.h"
 #ifdef HAVE_X_WINDOWS
@@ -262,7 +251,7 @@ tty_set_scroll_region (struct frame *f, int start, int stop)
   struct tty_display_info *tty = FRAME_TTY (f);
 
   if (tty->TS_set_scroll_region)
-    buf = tparam (tty->TS_set_scroll_region, 0, 0, start, stop - 1);
+    buf = tparam (tty->TS_set_scroll_region, 0, 0, start, stop - 1, 0, 0);
   else if (tty->TS_set_scroll_region_1)
     buf = tparam (tty->TS_set_scroll_region_1, 0, 0,
 		  FRAME_LINES (f), start,
@@ -512,7 +501,7 @@ static int encode_terminal_dst_size;
    Set CODING->produced to the byte-length of the resulting byte
    sequence, and return a pointer to that byte sequence.  */
 
-unsigned char *
+static unsigned char *
 encode_terminal_code (struct glyph *src, int src_len, struct coding_system *coding)
 {
   struct glyph *src_end = src + src_len;
@@ -544,8 +533,8 @@ encode_terminal_code (struct glyph *src, int src_len, struct coding_system *codi
     {
       if (src->type == COMPOSITE_GLYPH)
 	{
-	  struct composition *cmp;
-	  Lisp_Object gstring;
+	  struct composition *cmp IF_LINT (= NULL);
+	  Lisp_Object gstring IF_LINT (= Qnil);
 	  int i;
 
 	  nbytes = buf - encode_terminal_src;
@@ -606,7 +595,7 @@ encode_terminal_code (struct glyph *src, int src_len, struct coding_system *codi
       else if (! CHAR_GLYPH_PADDING_P (*src))
 	{
 	  GLYPH g;
-	  int c;
+	  int c IF_LINT (= 0);
 	  Lisp_Object string;
 
 	  string = Qnil;
@@ -664,8 +653,6 @@ encode_terminal_code (struct glyph *src, int src_len, struct coding_system *codi
 	    }
 	  else
 	    {
-	      unsigned char *p = SDATA (string);
-
 	      if (! STRING_MULTIBYTE (string))
 		string = string_to_multibyte (string);
 	      nbytes = buf - encode_terminal_src;
@@ -861,7 +848,7 @@ tty_insert_glyphs (struct frame *f, struct glyph *start, int len)
 
   if (tty->TS_ins_multi_chars)
     {
-      buf = tparam (tty->TS_ins_multi_chars, 0, 0, len);
+      buf = tparam (tty->TS_ins_multi_chars, 0, 0, len, 0, 0, 0);
       OUTPUT1 (tty, buf);
       xfree (buf);
       if (start)
@@ -957,7 +944,7 @@ tty_delete_glyphs (struct frame *f, int n)
 
   if (tty->TS_del_multi_chars)
     {
-      buf = tparam (tty->TS_del_multi_chars, 0, 0, n);
+      buf = tparam (tty->TS_del_multi_chars, 0, 0, n, 0, 0, 0);
       OUTPUT1 (tty, buf);
       xfree (buf);
     }
@@ -974,9 +961,10 @@ static void
 tty_ins_del_lines (struct frame *f, int vpos, int n)
 {
   struct tty_display_info *tty = FRAME_TTY (f);
-  char *multi = n > 0 ? tty->TS_ins_multi_lines : tty->TS_del_multi_lines;
-  char *single = n > 0 ? tty->TS_ins_line : tty->TS_del_line;
-  char *scroll = n > 0 ? tty->TS_rev_scroll : tty->TS_fwd_scroll;
+  const char *multi =
+    n > 0 ? tty->TS_ins_multi_lines : tty->TS_del_multi_lines;
+  const char *single = n > 0 ? tty->TS_ins_line : tty->TS_del_line;
+  const char *scroll = n > 0 ? tty->TS_rev_scroll : tty->TS_fwd_scroll;
 
   register int i = n > 0 ? n : -n;
   register char *buf;
@@ -999,7 +987,7 @@ tty_ins_del_lines (struct frame *f, int vpos, int n)
     {
       raw_cursor_to (f, vpos, 0);
       tty_background_highlight (tty);
-      buf = tparam (multi, 0, 0, i);
+      buf = tparam (multi, 0, 0, i, 0, 0, 0);
       OUTPUT (tty, buf);
       xfree (buf);
     }
@@ -1151,9 +1139,9 @@ calculate_costs (struct frame *frame)
   if (FRAME_TERMCAP_P (frame))
     {
       struct tty_display_info *tty = FRAME_TTY (frame);
-      register char *f = (tty->TS_set_scroll_region
-                          ? tty->TS_set_scroll_region
-                          : tty->TS_set_scroll_region_1);
+      register const char *f = (tty->TS_set_scroll_region
+				? tty->TS_set_scroll_region
+				: tty->TS_set_scroll_region_1);
 
       FRAME_SCROLL_REGION_COST (frame) = string_cost (f);
 
@@ -1207,7 +1195,7 @@ calculate_costs (struct frame *frame)
 }
 
 struct fkey_table {
-  char *cap, *name;
+  const char *cap, *name;
 };
 
   /* Termcap capability names that correspond directly to X keysyms.
@@ -1365,9 +1353,9 @@ term_get_fkeys_1 (void)
      "k;", and if it is present, assuming that "k0" denotes F0, otherwise F10.
      */
   {
-    char *k_semi  = tgetstr ("k;", address);
-    char *k0      = tgetstr ("k0", address);
-    char *k0_name = "f10";
+    const char *k_semi  = tgetstr ("k;", address);
+    const char *k0      = tgetstr ("k0", address);
+    const char *k0_name = "f10";
 
     if (k_semi)
       {
@@ -1460,7 +1448,7 @@ static void append_glyph (struct it *);
 static void produce_stretch_glyph (struct it *);
 static void append_composite_glyph (struct it *);
 static void produce_composite_glyph (struct it *);
-static void append_glyphless_glyph (struct it *, int, char *);
+static void append_glyphless_glyph (struct it *, int, const char *);
 static void produce_glyphless_glyph (struct it *, int, Lisp_Object);
 
 /* Append glyphs to IT's glyph_row.  Called from produce_glyphs for
@@ -1828,7 +1816,7 @@ produce_composite_glyph (struct it *it)
    comes from it->nglyphs bytes).  */
 
 static void
-append_glyphless_glyph (struct it *it, int face_id, char *str)
+append_glyphless_glyph (struct it *it, int face_id, const char *str)
 {
   struct glyph *glyph, *end;
   int i;
@@ -1903,7 +1891,8 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
 {
   int face_id;
   int len;
-  char buf[9], *str = "    ";
+  char buf[9];
+  char const *str = "    ";
 
   /* Get a face ID for the glyph by utilizing a cache (the same way as
      done for `escape-glyph' in get_next_display_element).  */
@@ -2122,12 +2111,13 @@ turn_on_face (struct frame *f, int face_id)
 
   if (tty->TN_max_colors > 0)
     {
-      char *ts, *p;
+      const char *ts;
+      char *p;
 
       ts = tty->standout_mode ? tty->TS_set_background : tty->TS_set_foreground;
       if (fg >= 0 && ts)
 	{
-          p = tparam (ts, NULL, 0, (int) fg);
+          p = tparam (ts, NULL, 0, (int) fg, 0, 0, 0);
 	  OUTPUT (tty, p);
 	  xfree (p);
 	}
@@ -2135,7 +2125,7 @@ turn_on_face (struct frame *f, int face_id)
       ts = tty->standout_mode ? tty->TS_set_foreground : tty->TS_set_background;
       if (bg >= 0 && ts)
 	{
-          p = tparam (ts, NULL, 0, (int) bg);
+          p = tparam (ts, NULL, 0, (int) bg, 0, 0, 0);
 	  OUTPUT (tty, p);
 	  xfree (p);
 	}
@@ -2698,14 +2688,14 @@ term_mouse_movement (FRAME_PTR frame, Gpm_Event *event)
    Set *bar_window to Qnil, and *x and *y to the column and
    row of the character cell the mouse is over.
 
-   Set *time to the time the mouse was at the returned position.
+   Set *timeptr to the time the mouse was at the returned position.
 
    This clears mouse_moved until the next motion
    event arrives.  */
 static void
 term_mouse_position (FRAME_PTR *fp, int insist, Lisp_Object *bar_window,
 		     enum scroll_bar_part *part, Lisp_Object *x,
-		     Lisp_Object *y, unsigned long *time)
+		     Lisp_Object *y, unsigned long *timeptr)
 {
   struct timeval now;
 
@@ -2718,7 +2708,7 @@ term_mouse_position (FRAME_PTR *fp, int insist, Lisp_Object *bar_window,
   XSETINT (*x, last_mouse_x);
   XSETINT (*y, last_mouse_y);
   gettimeofday(&now, 0);
-  *time = (now.tv_sec * 1000) + (now.tv_usec / 1000);
+  *timeptr = (now.tv_sec * 1000) + (now.tv_usec / 1000);
 }
 
 /* Prepare a mouse-event in *RESULT for placement in the input queue.
@@ -3532,10 +3522,10 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
 	 If it were in the termcap entry, it would confuse other programs.  */
       if (!tty->TS_set_window)
 	{
-	  p = tty->TS_termcap_modes;
-	  while (*p && strcmp (p, "\033v  "))
-	    p++;
-	  if (*p)
+	  const char *m = tty->TS_termcap_modes;
+	  while (*m && strcmp (m, "\033v  "))
+	    m++;
+	  if (*m)
 	    tty->TS_set_window = "\033v%C %C %C %C ";
 	}
       /* Termcap entry often fails to have :in: flag */

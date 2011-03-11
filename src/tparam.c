@@ -21,6 +21,7 @@ Boston, MA 02110-1301, USA.  */
 #include <config.h>
 #include <setjmp.h>
 #include "lisp.h"		/* for xmalloc */
+#include "tparam.h"
 
 #ifndef NULL
 #define NULL (char *) 0
@@ -38,11 +39,12 @@ Boston, MA 02110-1301, USA.  */
 
    The fourth and following args to tparam serve as the parameter values.  */
 
-static char *tparam1 (char *string, char *outstring, int len, char *up, char *left, register int *argp);
+static char *tparam1 (char const *string, char *outstring, int len,
+		      char *up, char *left, int *argp);
 
-/* VARARGS 2 */
 char *
-tparam (char *string, char *outstring, int len, int arg0, int arg1, int arg2, int arg3)
+tparam (const char *string, char *outstring, int len,
+	int arg0, int arg1, int arg2, int arg3)
 {
   int arg[4];
 
@@ -59,7 +61,7 @@ char *UP;
 static char tgoto_buf[50];
 
 char *
-tgoto (char *cm, int hpos, int vpos)
+tgoto (const char *cm, int hpos, int vpos)
 {
   int args[2];
   if (!cm)
@@ -70,10 +72,11 @@ tgoto (char *cm, int hpos, int vpos)
 }
 
 static char *
-tparam1 (char *string, char *outstring, int len, char *up, char *left, register int *argp)
+tparam1 (const char *string, char *outstring, int len,
+	 char *up, char *left, register int *argp)
 {
   register int c;
-  register char *p = string;
+  register const char *p = string;
   register char *op = outstring;
   char *outend;
   int outlen = 0;
@@ -277,4 +280,3 @@ main (argc, argv)
 }
 
 #endif /* DEBUG */
-

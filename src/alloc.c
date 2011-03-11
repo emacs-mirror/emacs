@@ -271,15 +271,10 @@ Lisp_Object Qpost_gc_hook;
 static void mark_buffer (Lisp_Object);
 static void mark_terminals (void);
 extern void mark_kboards (void);
-extern void mark_ttys (void);
 extern void mark_backtrace (void);
 static void gc_sweep (void);
 static void mark_glyph_matrix (struct glyph_matrix *);
 static void mark_face_cache (struct face_cache *);
-
-#ifdef HAVE_WINDOW_SYSTEM
-extern void mark_fringe_data (void);
-#endif /* HAVE_WINDOW_SYSTEM */
 
 static struct Lisp_String *allocate_string (void);
 static void compact_small_strings (void);
