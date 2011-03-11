@@ -550,10 +550,6 @@ x_create_bitmap_mask (struct frame *f, int id)
 			    Image types
  ***********************************************************************/
 
-/* Value is the number of elements of vector VECTOR.  */
-
-#define DIM(VECTOR)	(sizeof (VECTOR) / sizeof *(VECTOR))
-
 /* List of supported image types.  Use define_image_type to add new
    types.  Use lookup_image_type to find a type for a given symbol.  */
 
@@ -6032,7 +6028,6 @@ jpeg_image_p (Lisp_Object object)
 /* Work around a warning about HAVE_STDLIB_H being redefined in
    jconfig.h.  */
 #ifdef HAVE_STDLIB_H
-#define HAVE_STDLIB_H_1
 #undef HAVE_STDLIB_H
 #endif /* HAVE_STLIB_H */
 
