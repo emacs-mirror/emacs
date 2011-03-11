@@ -1,3 +1,7 @@
+2011-03-11  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* .gdbinit (pwinx, xbuffer): Fix access to buffer name.
+
 2011-03-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* search.c (compile_pattern_1): Remove argument regp, unused since
