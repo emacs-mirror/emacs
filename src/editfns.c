@@ -1439,11 +1439,11 @@ static EMACS_INT
 hi_time (time_t t)
 {
   time_t hi = t >> 16;
-  if (((TYPE_SIGNED (time_t)
-	&& TIME_T_MIN >> 16 < MOST_NEGATIVE_FIXNUM
-	&& hi < MOST_NEGATIVE_FIXNUM)
-       || (MOST_POSITIVE_FIXNUM < TIME_T_MAX >> 16
-	   && MOST_POSITIVE_FIXNUM < hi)))
+  if ((TYPE_SIGNED (time_t)
+       && TIME_T_MIN >> 16 < MOST_NEGATIVE_FIXNUM
+       && hi < MOST_NEGATIVE_FIXNUM)
+      || (MOST_POSITIVE_FIXNUM < TIME_T_MAX >> 16
+	  && MOST_POSITIVE_FIXNUM < hi))
     time_overflow ();
   return hi;
 }
