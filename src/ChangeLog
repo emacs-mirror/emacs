@@ -1,3 +1,10 @@
+2011-03-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* fringe.c (update_window_fringes): Remove unused variables.
+
+	* unexmacosx.c (copy_data_segment): Also copy __got section.
+	(Bug#8223)
+
 2011-03-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* termcap.c [MSDOS]: Include "msdos.h.

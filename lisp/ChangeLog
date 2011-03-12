@@ -1,3 +1,20 @@
+2011-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ebuff-menu.el (electric-buffer-menu-mode-map): Move initialization
+	into declaration.  Remove redundant and harmful binding.
+
+2011-03-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (file-ownership-preserved-p): Pass `integer' as an
+	explicit 2nd argument to `file-attributes'.  If the file's owner
+	is the Administrators group on Windows, and the current user is
+	Administrator, consider that a match.
+
+	* server.el (server-ensure-safe-dir): Consider server directory
+	safe on MS-Windows if its owner is the Administrators group while
+	the current Emacs user is Administrator.  Use `=' to compare
+	numerical UIDs, since they could be integers or floats.
+
 2011-03-12  Juanma Barranquero  <lekktu@gmail.com>
 
 	* vc/vc-bzr.el (vc-bzr-state): Handle bzr 2.3.0 (follow-up to bug#8170).
