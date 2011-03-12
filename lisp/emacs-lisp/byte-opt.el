@@ -308,9 +308,9 @@
 ;; ((lambda ...) ...)
 (defun byte-compile-unfold-lambda (form &optional name)
   ;; In lexical-binding mode, let and functions don't bind vars in the same way
-  ;; (let obey special-variable-p, but functions don't).  This doesn't matter
-  ;; here, because function's behavior is underspecified so it can safely be
-  ;; turned into a `let', even though the reverse is not true.
+  ;; (let obey special-variable-p, but functions don't).  But luckily, this
+  ;; doesn't matter here, because function's behavior is underspecified so it
+  ;; can safely be turned into a `let', even though the reverse is not true.
   (or name (setq name "anonymous lambda"))
   (let ((lambda (car form))
 	(values (cdr form)))
@@ -378,9 +378,7 @@
 
 ;;; implementing source-level optimizers
 
-(defvar for-effect)
-
-(defun byte-optimize-form-code-walker (form for-effect-arg)
+(defun byte-optimize-form-code-walker (form for-effect)
   ;;
   ;; For normal function calls, We can just mapcar the optimizer the cdr.  But
   ;; we need to have special knowledge of the syntax of the special forms
@@ -388,8 +386,7 @@
   ;; the important aspect is that they are subrs that don't evaluate all of
   ;; their args.)
   ;;
-  (let ((for-effect for-effect-arg)
-        (fn (car-safe form))
+  (let ((fn (car-safe form))
 	tmp)
     (cond ((not (consp form))
 	   (if (not (and for-effect
@@ -482,8 +479,8 @@
 		(byte-optimize-form (nth 2 form) for-effect)
 		(byte-optimize-body (nthcdr 3 form) for-effect)))))
 
-	  ((memq fn '(and or))  ; remember, and/or are control structures.
-	   ;; take forms off the back until we can't any more.
+	  ((memq fn '(and or))  ; Remember, and/or are control structures.
+	   ;; Take forms off the back until we can't any more.
 	   ;; In the future it could conceivably be a problem that the
 	   ;; subexpressions of these forms are optimized in the reverse
 	   ;; order, but it's ok for now.
@@ -498,7 +495,8 @@
 		     (byte-compile-log
 		      "  all subforms of %s called for effect; deleted" form))
 		 (and backwards
-		      (cons fn (nreverse (mapcar 'byte-optimize-form backwards)))))
+		      (cons fn (nreverse (mapcar 'byte-optimize-form
+                                                 backwards)))))
 	     (cons fn (mapcar 'byte-optimize-form (cdr form)))))
 
 	  ((eq fn 'interactive)
@@ -537,8 +535,8 @@
 	   ;; However, don't actually bother calling `ignore'.
 	   `(prog1 nil . ,(mapcar 'byte-optimize-form (cdr form))))
 
-          ((eq fn 'internal-make-closure)
-           form)
+          ;; Neeeded as long as we run byte-optimize-form after cconv.
+          ((eq fn 'internal-make-closure) form)
           
 	  ((not (symbolp fn))
            (debug)
@@ -589,19 +587,18 @@
       (setq list (cdr list)))
     constant))
 
-(defun byte-optimize-form (form &optional for-effect-arg)
+(defun byte-optimize-form (form &optional for-effect)
   "The source-level pass of the optimizer."
   ;;
   ;; First, optimize all sub-forms of this one.
-  (setq form (byte-optimize-form-code-walker form for-effect-arg))
+  (setq form (byte-optimize-form-code-walker form for-effect))
   ;;
   ;; after optimizing all subforms, optimize this form until it doesn't
   ;; optimize any further.  This means that some forms will be passed through
   ;; the optimizer many times, but that's necessary to make the for-effect
   ;; processing do as much as possible.
   ;;
-  (let ((for-effect for-effect-arg)
-        opt new)
+  (let (opt new)
     (if (and (consp form)
 	     (symbolp (car form))
 	     (or (and for-effect
@@ -618,7 +615,7 @@
 
 
 (defun byte-optimize-body (forms all-for-effect)
-  ;; optimize the cdr of a progn or implicit progn; all forms is a list of
+  ;; Optimize the cdr of a progn or implicit progn; all forms is a list of
   ;; forms, all but the last of which are optimized with the assumption that
   ;; they are being called for effect.  the last is for-effect as well if
   ;; all-for-effect is true.  returns a new list of forms.

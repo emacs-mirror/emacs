@@ -67,7 +67,6 @@
 
 ;; TODO:
 ;; - byte-optimize-form should be applied before cconv.
-;; - maybe unify byte-optimize and compiler-macros.
 ;; - canonize code in macro-expand so we don't have to handle (let (var) body)
 ;;   and other oddities.
 ;; - new byte codes for unwind-protect, catch, and condition-case so that

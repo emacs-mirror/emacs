@@ -1,3 +1,29 @@
+2011-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (apply-partially): Move from subr.el; don't use lexical-let.
+	(eval-after-load): Obey lexical-binding.
+	* simple.el (apply-partially): Move to subr.el.
+	* makefile.w32-in: Match changes in Makefile.in.
+	(BIG_STACK_DEPTH, BIG_STACK_OPTS, BYTE_COMPILE_FLAGS): New vars.
+	(.el.elc, compile-CMD, compile-SH, compile-always-CMD)
+	(compile-always-SH, compile-calc-CMD, compile-calc-SH): Use them.
+	(COMPILE_FIRST): Add pcase, macroexp, and cconv.
+	* emacs-lisp/macroexp.el (macroexpand-all-1): Silence warning about
+	calling CL's `compiler-macroexpand'.
+	* emacs-lisp/bytecomp.el (byte-compile-preprocess): New function.
+	(byte-compile-initial-macro-environment)
+	(byte-compile-toplevel-file-form, byte-compile, byte-compile-sexp):
+	Use it.
+	(byte-compile-eval, byte-compile-eval-before-compile):
+	Obey lexical-binding.
+	(byte-compile--for-effect): Rename from `for-effect'.
+	(display-call-tree): Use case.
+	* emacs-lisp/byte-opt.el (for-effect): Don't declare as dynamic.
+	(byte-optimize-form-code-walker, byte-optimize-form):
+	Revert to old arg name.
+	* Makefile.in (BYTE_COMPILE_FLAGS): New var.
+	(compile-onefile, .el.elc, compile-calc, recompile): Use it.
+
 2011-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (letrec): New macro.

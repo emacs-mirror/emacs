@@ -28,8 +28,7 @@
 
 ;;; Code:
 
-;; This is for lexical-let in apply-partially.
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl))       ;For define-minor-mode.
 
 (declare-function widget-convert "wid-edit" (type &rest args))
 (declare-function shell-mode "shell" ())
@@ -6605,38 +6604,25 @@ saving the value of `buffer-invisibility-spec' and setting it to nil."
 	 buffer-invisibility-spec)
     (setq buffer-invisibility-spec nil)))
 
-;; Partial application of functions (similar to "currying").
-;; This function is here rather than in subr.el because it uses CL.
-;; (defalias 'apply-partially #'curry)
-(defun apply-partially (fun &rest args)
-  "Return a function that is a partial application of FUN to ARGS.
-ARGS is a list of the first N arguments to pass to FUN.
-The result is a new function which does the same as FUN, except that
-the first N arguments are fixed at the values with which this function
-was called."
-  (lexical-let ((fun fun) (args1 args))
-    (lambda (&rest args2) (apply fun (append args1 args2)))))
-
 ;; Minibuffer prompt stuff.
 
-;(defun minibuffer-prompt-modification (start end)
-;  (error "You cannot modify the prompt"))
-;
-;
-;(defun minibuffer-prompt-insertion (start end)
-;  (let ((inhibit-modification-hooks t))
-;    (delete-region start end)
-;    ;; Discard undo information for the text insertion itself
-;    ;; and for the text deletion.above.
-;    (when (consp buffer-undo-list)
-;      (setq buffer-undo-list (cddr buffer-undo-list)))
-;    (message "You cannot modify the prompt")))
-;
-;
-;(setq minibuffer-prompt-properties
-;  (list 'modification-hooks '(minibuffer-prompt-modification)
-;	'insert-in-front-hooks '(minibuffer-prompt-insertion)))
-;
+;;(defun minibuffer-prompt-modification (start end)
+;;  (error "You cannot modify the prompt"))
+;;
+;;
+;;(defun minibuffer-prompt-insertion (start end)
+;;  (let ((inhibit-modification-hooks t))
+;;    (delete-region start end)
+;;    ;; Discard undo information for the text insertion itself
+;;    ;; and for the text deletion.above.
+;;    (when (consp buffer-undo-list)
+;;      (setq buffer-undo-list (cddr buffer-undo-list)))
+;;    (message "You cannot modify the prompt")))
+;;
+;;
+;;(setq minibuffer-prompt-properties
+;;  (list 'modification-hooks '(minibuffer-prompt-modification)
+;;	'insert-in-front-hooks '(minibuffer-prompt-insertion)))
 
 
 ;;;; Problematic external packages.

@@ -183,7 +183,9 @@ Assumes the caller has bound `macroexpand-all-environment'."
                    (cons (macroexpand-all-1
                           (list 'function f))
                          (macroexpand-all-forms args)))))
-      ;; Macro expand compiler macros.
+      ;; Macro expand compiler macros.  This cannot be delayed to
+      ;; byte-optimize-form because the output of the compiler-macro can
+      ;; use macros.
       ;; FIXME: Don't depend on CL.
       (`(,(pred (lambda (fun)
                   (and (symbolp fun)
@@ -191,7 +193,7 @@ Assumes the caller has bound `macroexpand-all-environment'."
                            'cl-byte-compile-compiler-macro)
                        (functionp 'compiler-macroexpand))))
          . ,_)
-       (let ((newform (compiler-macroexpand form)))
+       (let ((newform (with-no-warnings (compiler-macroexpand form))))
          (if (eq form newform)
              (macroexpand-all-forms form 1)
            (macroexpand-all-1 newform))))

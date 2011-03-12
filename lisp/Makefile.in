@@ -77,6 +77,8 @@ AUTOGENEL = loaddefs.el \
 BIG_STACK_DEPTH = 1200
 BIG_STACK_OPTS = --eval "(setq max-lisp-eval-depth $(BIG_STACK_DEPTH))"
 
+BYTE_COMPILE_FLAGS = $(BIG_STACK_OPTS) $(BYTE_COMPILE_EXTRA_FLAGS)
+
 # Files to compile before others during a bootstrap.  This is done to
 # speed up the bootstrap process.
 
@@ -205,7 +207,7 @@ compile-onefile:
 	@echo Compiling $(THEFILE)
 	@# Use byte-compile-refresh-preloaded to try and work around some of
 	@# the most common bootstrapping problems.
-	@$(emacs) $(BIG_STACK_OPTS) -l bytecomp $(BYTE_COMPILE_EXTRA_FLAGS) \
+	@$(emacs) $(BYTE_COMPILE_FLAGS) -l bytecomp \
 		-f byte-compile-refresh-preloaded \
 		-f batch-byte-compile $(THEFILE)
 
@@ -225,7 +227,7 @@ compile-onefile:
 	@# The BIG_STACK_OPTS are only needed to byte-compile the byte-compiler
 	@# files, which is normally done in compile-first, but may also be
 	@# recompiled via this rule.
-	@$(emacs) $(BIG_STACK_OPTS) $(BYTE_COMPILE_EXTRA_FLAGS) \
+	@$(emacs) $(BYTE_COMPILE_FLAGS) \
 		-f batch-byte-compile $<
 
 .PHONY: compile-first compile-main compile compile-always
@@ -291,7 +293,7 @@ compile-always: doit
 compile-calc:
 	for el in $(lisp)/calc/*.el; do \
 	  echo Compiling $$el; \
-	  $(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $$el || exit 1; \
+	  $(emacs) $(BYTE_COMPILE_FLAGS) -f batch-byte-compile $$el || exit 1; \
 	done
 
 # Backup compiled Lisp files in elc.tar.gz.  If that file already
@@ -318,7 +320,8 @@ compile-after-backup: backup-compiled-files compile-always
 # since the environment of later files is affected by definitions in
 # earlier ones.
 recompile: doit $(LOADDEFS) compile-first $(lisp)/progmodes/cc-mode.elc
-	$(emacs) --eval "(batch-byte-recompile-directory 0)" $(lisp)
+	$(emacs) $(BYTE_COMPILE_FLAGS) \
+	    --eval "(batch-byte-recompile-directory 0)" $(lisp)
 
 # Update MH-E internal autoloads. These are not to be confused with
 # the autoloads for the MH-E entry points, which are already in loaddefs.el.

@@ -116,6 +116,17 @@ BODY should be a list of Lisp expressions.
   ;; depend on backquote.el.
   (list 'function (cons 'lambda cdr)))
 
+;; Partial application of functions (similar to "currying").
+;; This function is here rather than in subr.el because it uses CL.
+(defun apply-partially (fun &rest args)
+  "Return a function that is a partial application of FUN to ARGS.
+ARGS is a list of the first N arguments to pass to FUN.
+The result is a new function which does the same as FUN, except that
+the first N arguments are fixed at the values with which this function
+was called."
+  `(closure () lambda (&rest args)
+            (apply ',fun ,@(mapcar (lambda (arg) `',arg) args) args)))
+
 (if (null (featurep 'cl))
     (progn
   ;; If we reload subr.el after having loaded CL, be careful not to
@@ -1675,6 +1686,8 @@ This function makes or adds to an entry on `after-load-alist'."
     (unless elt
       (setq elt (list regexp-or-feature))
       (push elt after-load-alist))
+    ;; Make sure `form' is evalled in the current lexical/dynamic code.
+    (setq form `(funcall ',(eval `(lambda () ,form) lexical-binding)))
     (when (symbolp regexp-or-feature)
       ;; For features, the after-load-alist elements get run when `provide' is
       ;; called rather than at the end of the file.  So add an indirection to
