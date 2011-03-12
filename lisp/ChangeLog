@@ -1,3 +1,8 @@
+2011-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ebuff-menu.el (electric-buffer-menu-mode-map): Move initialization
+	into declaration.  Remove redundant and harmful binding.
+
 2011-03-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	Backport revno:103463 from trunk.
