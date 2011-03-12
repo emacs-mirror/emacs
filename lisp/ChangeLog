@@ -1,3 +1,7 @@
+2011-03-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* vc/vc-bzr.el (vc-bzr-state): Handle bzr 2.3.0 (follow-up to bug#8170).
+
 2011-03-12  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.2.1.
@@ -5,10 +9,6 @@
 	* net/tramp-sh.el (tramp-methods): Exchange "%k" marker with options.
 
 	* net/trampver.el: Update release number.
-
-2011-03-12  Juanma Barranquero  <lekktu@gmail.com>
-
-	* vc/vc-bzr.el (vc-bzr-state): Handle bzr 2.3.0 (follow-up to bug#8170).
 
 2011-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -22,11 +22,10 @@
 
 2011-03-11  Ken Manheimer  <ken.manheimer@gmail.com>
 
-	* allout-widgets.el (allout-widgets-tally) Initialize
+	* allout-widgets.el (allout-widgets-tally): Initialize
 	allout-widgets-tally as a hash table rather than nil to prevent
 	mode-line redisplay warnings.
 	Also, clarify the module description and fix a comment typo.
-
 
 2011-03-11  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -77,7 +76,7 @@
 	preserves the existing header prefix, rebulleting it if necessary,
 	rather than replacing it.  This is necessary for proper operation
 	of cooperative addons like allout-widgets.
-	(allout-make-topic-prefix) (allout-rebullet-heading): Change
+	(allout-make-topic-prefix, allout-rebullet-heading): Change
 	SOLICIT arg to INSTEAD, and interpret additionally a string value
 	as alternate bullet to be used, instead of prompting the user for
 	a bullet character.
@@ -913,7 +912,7 @@
 2011-02-17  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* lisp/allout-widgets.el (allout-widgets-icons-light-subdir)
-	(allout-widgets-icons-dark-subdir): Track relocations of icons
+	(allout-widgets-icons-dark-subdir): Track relocations of icons.
 	* lisp/allout.el: Remove commentary about remove encryption
 	passphrase mnemonic support and verification.
 	(allout-encrypt-string): Recognize epg failure to decrypt gpg2
@@ -1290,10 +1289,9 @@
 
 	(allout-auto-activation-helper, allout-setup): New autoloads
 	implement new custom set procedure for allout-auto-activation.
-	Also, explicitly invoke
-	(allout-setup) after allout-auto-activation is custom-defined, to
-	effect the settings in emacs sessions besides the few where
-	allout-auto-activation customization is donea.
+	Also, explicitly invoke (allout-setup) after allout-auto-activation
+	is custom-defined, to affect the settings in emacs sessions besides
+	the few where allout-auto-activation customization is done.
 	(allout-auto-activation): Use allout-auto-activation-helper to
 	:set.  Revise the docstring.
 	(allout-init): Reduce functionality to just customizing
