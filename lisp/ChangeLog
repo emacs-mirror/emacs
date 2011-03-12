@@ -1,3 +1,8 @@
+2011-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-make-obsolete-variable):
+	Disable obsolescence warnings in the file that declares it.
+
 2011-03-11  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* allout-widgets.el (allout-widgets-tally) Initialize
