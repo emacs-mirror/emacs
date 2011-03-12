@@ -408,7 +408,10 @@ faq.pdf: ${srcdir}/faq.texi $(emacsdir)/emacsver.texi
 emacs-faq.html: ${srcdir}/faq.texi $(emacsdir)/emacsver.texi
 	$(MAKEINFO) $(MAKEINFO_OPTS) --no-split \
 	  --css-ref='/layout.css' --html -o $@ $<
-	sed -i 's|a href="emacs.html#\([^"]*\)"|a href="manual/html_node/emacs/\1.html"|g' $@
+	sed -i -e 's|a href="\([a-z]*\)\.html#\([^"]*\)"|a href="manual/html_node/\1/\2.html"|g' \
+	  -e 's|/Top\.html|/|g' $@
+emacs-faq.text: ${srcdir}/faq.texi $(emacsdir)/emacsver.texi
+	$(MAKEINFO) $(MAKEINFO_OPTS) --plaintext -o $@ $<
 
 flymake : $(infodir)/flymake
 $(infodir)/flymake: flymake.texi
@@ -692,7 +695,7 @@ mostlyclean:
 	rm -f gnustmp.*
 
 clean: mostlyclean
-	rm -f $(DVI_TARGETS) $(PDF_TARGETS) $(HTML_TARGETS)
+	rm -f $(DVI_TARGETS) $(PDF_TARGETS) $(HTML_TARGETS) emacs-faq.text
 
 distclean: clean
 #	rm -f Makefile
