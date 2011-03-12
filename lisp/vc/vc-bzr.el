@@ -435,8 +435,13 @@ If any error occurred in running `bzr status', then return nil."
 (defun vc-bzr-state (file)
   (lexical-let ((result (vc-bzr-status file)))
     (when (consp result)
-      (when (cdr result)
-	(message "Warnings in `bzr' output: %s" (cdr result)))
+      (let ((warnings (cdr result)))
+        (when warnings
+          ;; bzr 2.3.0 returns info about shelves, which is not really a warning
+          (when (string-match "[1-9]+ shel\\(f\\|ves\\) exists?\\..*?\n" warnings)
+            (setq warnings (replace-match "" nil nil warnings)))
+          (unless (string= warnings "")
+            (message "Warnings in `bzr' output: %s" warnings))))
       (cdr (assq (car result)
                  '((added . added)
                    (kindchanged . edited)

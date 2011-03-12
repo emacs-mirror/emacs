@@ -6,6 +6,10 @@
 
 	* net/trampver.el: Update release number.
 
+2011-03-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* vc/vc-bzr.el (vc-bzr-state): Handle bzr 2.3.0 (follow-up to bug#8170).
+
 2011-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/compile.el (compilation--previous-directory): Fix up
