@@ -2313,7 +2313,7 @@ FILE must be a local file name on a connection identified via VEC."
   (let* ((parameters (cdr reporter))
 	 (message (aref parameters 3)))
     (when (string-match message (or (current-message) ""))
-      (funcall 'progress-reporter-update reporter value))))
+      (tramp-compat-funcall 'progress-reporter-update reporter value))))
 
 (defmacro with-progress-reporter (vec level message &rest body)
   "Executes BODY, spinning a progress reporter with MESSAGE.
@@ -4570,7 +4570,7 @@ beginning of local filename are not substituted."
 		      (tramp-send-command v command nil t) ; nooutput
 		    ;; Check, whether a pty is associated.
 		    (tramp-maybe-open-connection v)
-		    (unless (process-get
+		    (unless (tramp-compat-process-get
 			     (tramp-get-connection-process v) 'remote-tty)
 		      (tramp-error
 		       v 'file-error
@@ -5025,7 +5025,9 @@ coding system might not be determined.  This function repairs it."
 	    (set-visited-file-modtime)
 	    (set-buffer-modified-p nil)
 	    ;; For root, preserve owner and group when editing files.
-	    (when (string-equal (file-remote-p filename 'user) "root")
+	    (when (string-equal
+		   (tramp-file-name-handler 'file-remote-p filename 'user)
+		   "root")
 	      (set (make-local-variable 'backup-by-copying-when-mismatch) t)))
 	  (when (and (stringp local-copy)
 		     (or remote-copy (null tramp-temp-buffer-file-name)))
@@ -7111,7 +7113,8 @@ process to set up.  VEC specifies the connection."
   ;; Set `remote-tty' process property.
   (ignore-errors
     (let ((tty (tramp-send-command-and-read vec "echo \\\"`tty`\\\"")))
-      (unless (zerop (length tty)) (process-put proc 'remote-tty tty))))
+      (unless (zerop (length tty))
+	(tramp-compat-process-put proc 'remote-tty tty))))
 
   ;; Dump stty settings in the traces.
   (when (>= tramp-verbose 9)

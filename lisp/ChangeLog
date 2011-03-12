@@ -1,3 +1,18 @@
+2011-03-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-progress-reporter-update): Use
+	`tramp-compat-funcall'.
+	(tramp-handle-start-file-process): Use `tramp-compat-process-get'.
+	(tramp-handle-insert-file-contents): Make `file-remote-p' call
+	compatible.
+	(tramp-open-connection-setup-interactive-shell): Use
+	`tramp-compat-process-put'.
+
+	* net/tramp-compat.el (tramp-compat-process-get)
+	(tramp-compat-process-put): New defuns.
+
+	* net/trampver.el: Update release number.
+
 2011-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* ebuff-menu.el (electric-buffer-menu-mode-map): Move initialization
