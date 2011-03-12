@@ -191,7 +191,7 @@ term.o: term.c termchar.h termhooks.h termopts.h lisp.h globals.h $(config_h) \
    cm.h frame.h disptab.h keyboard.h character.h charset.h coding.h ccl.h \
    xterm.h msdos.h window.h keymap.h blockinput.h atimer.h systime.h \
    systty.h syssignal.h tparam.h $(INTERVALS_H) buffer.h ../lib/unistd.h
-termcap.o: termcap.c lisp.h $(config_h)
+termcap.o: termcap.c lisp.h tparam.h msdos.h $(config_h)
 terminal.o: terminal.c frame.h termchar.h termhooks.h charset.h coding.h \
    keyboard.h lisp.h globals.h $(config_h) dispextern.h composite.h systime.h \
    msdos.h

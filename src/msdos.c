@@ -2999,17 +2999,17 @@ XMenuCreate (Display *foo1, Window foo2, char *foo3)
    to do.  */
 
 int
-XMenuAddPane (Display *foo, XMenu *menu, char *txt, int enable)
+XMenuAddPane (Display *foo, XMenu *menu, const char *txt, int enable)
 {
   int len;
-  char *p;
+  const char *p;
 
   if (!enable)
     abort ();
 
   IT_menu_make_room (menu);
   menu->submenu[menu->count] = IT_menu_create ();
-  menu->text[menu->count] = txt;
+  menu->text[menu->count] = (char *)txt;
   menu->panenumber[menu->count] = ++menu->panecount;
   menu->help_text[menu->count] = NULL;
   menu->count++;
