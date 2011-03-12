@@ -5,7 +5,7 @@
 	Constify `char *' arguments and their references according to
 	prototypes in tparam.h.
 
-	* deps.mk (termcap.o): Depend on tparam.h.
+	* deps.mk (termcap.o): Depend on tparam.h and msdos.h.
 
 	* msdos.c (XMenuAddPane): 3rd argument is `const char *' now.
 	Adapt all references accordingly.
