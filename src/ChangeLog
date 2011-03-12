@@ -1,3 +1,10 @@
+2011-03-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.c (XMenuAddPane): 3rd argument is `const char *' now.
+	Adapt all references accordingly.
+
+	* msdos.h (XMenuAddPane): 3rd argument is `const char *' now.
+
 2011-03-11  Tom Tromey  <tromey@redhat.com>
 
 	* buffer.c (syms_of_buffer): Remove obsolete comment.
