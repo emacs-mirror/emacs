@@ -1,3 +1,22 @@
+2011-03-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve quality of tests for time stamp overflow.  For example,
+	without this patch (encode-time 0 0 0 1 1 1152921504606846976)
+	returns the obviously-bogus value (-948597 62170) on my RHEL 5.5
+	x86-64 host.  With it, it reports time overflow.
+	* deps.mk (editfns.o): Depend on ../lib/intprops.h.
+	* editfns.c: Include limits.h and intprops.h.
+	(TIME_T_MIN, TIME_T_MAX): New macros.
+	(time_overflow): Move earlier, to before first use.
+	(hi_time, lo_time): New functions, for an accurate test for
+	out-of-range times.
+	(Fcurrent_time, Fget_internal_run_time, make_time): Use them.
+	(Fget_internal_run_time): Don't assume time_t fits in int.
+	(make_time): Use list2 instead of Fcons twice.
+	(Fdecode_time): More accurate test for out-of-range times.
+	(check_tm_member): New function.
+	(Fencode_time): Use it, to test for out-of-range times.
+
 2011-03-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* editfns.c (time_overflow): New function, refactoring common code.
