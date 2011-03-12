@@ -1,3 +1,15 @@
+2011-03-11  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-sync.el (gnus-sync-install-hooks, gnus-sync-unload-hook): Don't
+	install `gnus-sync-read' to any hooks by default.  It's buggy.  The
+	user will have to run `gnus-sync-read' manually and wait for Cloudy
+	Gnus.
+
+2011-03-11  Julien Danjou  <julien@danjou.info>
+
+	* mm-uu.el (mm-uu-type-alist): Add support for diff starting with "===
+	modified file".
+
 2011-03-09  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* auth-source.el (auth-source-read-char-choice): New function to read a
