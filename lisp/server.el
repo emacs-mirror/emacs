@@ -485,7 +485,13 @@ See variable `server-auth-dir' for details."
 			      (file-name-as-directory dir))
 		      :warning)
 		     (throw :safe t))
-		   (unless (eql uid (user-uid)) ; is the dir ours?
+		   (unless (or (= uid (user-uid)) ; is the dir ours?
+			       (and w32
+				    ;; Files created on Windows by
+				    ;; Administrator (RID=500) have
+				    ;; the Administrators (RID=544)
+				    ;; group recorded as the owner.
+				    (= uid 544) (= (user-uid) 500)))
 		     (throw :safe nil))
 		   (when w32                    ; on NTFS?
 		     (throw :safe t))

@@ -848,13 +848,6 @@ file_name_completion_stat (Lisp_Object dirname, DIRENTRY *dp, struct stat *st_ad
   return value;
 }
 
-Lisp_Object
-make_time (time_t time)
-{
-  return Fcons (make_number (time >> 16),
-		Fcons (make_number (time & 0177777), Qnil));
-}
-
 static char *
 stat_uname (struct stat *st)
 {

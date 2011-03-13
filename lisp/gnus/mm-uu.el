@@ -158,6 +158,12 @@ This can be either \"inline\" or \"attachment\".")
      mm-uu-diff-extract
      nil
      mm-uu-diff-test)
+    (diff
+     "^=== modified file "
+     nil
+     mm-uu-diff-extract
+     nil
+     mm-uu-diff-test)
     (git-format-patch
      "^diff --git "
      "^-- "

@@ -1,3 +1,26 @@
+2011-03-12  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth.texi (Help for developers): Update docs to explain that the
+	:save-function will only run the first time.
+
+2011-03-12  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (emacs-faq.html): Fix some more cross-refs.
+	(emacs-faq.text): New target.
+	(clean): Add emacs-faq.
+
+2011-03-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.2.1.
+
+	* trampver.texi: Update release number.
+
+2011-03-11  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (HTML_TARGETS): New.
+	(clean): Delete $HTML_TARGETS.
+	(emacs-faq.html): New, for use with the gnu.org Emacs webpage.
+
 2011-03-08  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* auth.texi (Help for developers): Show example of using

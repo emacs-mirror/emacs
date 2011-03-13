@@ -289,10 +289,20 @@ Later, after a successful login, @code{nnimal.el} calls the
    (funcall (nth 2 credentials)))
 @end example
 
-Which will work whether the @code{:save-function} was provided or not.
+This will work whether the @code{:save-function} was provided or not.
 @code{:save-function} will be provided only when a new entry was
 created, so this effectively says ``after a successful login, save the
 authentication information we just used, if it was newly created.''
+
+After the first time it's called, the @code{:save-function} will not
+run again (but it will log something if you have set
+@code{auth-source-debug} to @code{'trivia}).  This is so it won't ask
+the same question again, which is annoying.  This is so it won't ask
+the same question again, which is annoying.  This is so it won't ask
+the same question again, which is annoying.
+
+So the responsibility of the API user that specified @code{:create t}
+is to call the @code{:save-function} if it's provided.
 
 @defun auth-source-delete SPEC
 

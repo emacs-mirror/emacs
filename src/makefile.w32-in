@@ -1466,6 +1466,7 @@ $(BLD)/term.$(O) : \
 	$(SRC)/termchar.h \
 	$(SRC)/termhooks.h \
 	$(SRC)/termopts.h \
+	$(SRC)/tparam.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
 
@@ -1498,6 +1499,7 @@ $(BLD)/textprop.$(O) : \
 
 $(BLD)/tparam.$(O) : \
 	$(SRC)/tparam.c \
+	$(SRC)/tparam.h \
 	$(CONFIG_H) \
 	$(LISP_H)
 

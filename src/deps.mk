@@ -87,7 +87,8 @@ dosfns.o: buffer.h termchar.h termhooks.h frame.h blockinput.h window.h \
    msdos.h dosfns.h dispextern.h charset.h coding.h atimer.h systime.h \
    lisp.h $(config_h)
 editfns.o: editfns.c window.h buffer.h systime.h $(INTERVALS_H) character.h \
-   coding.h frame.h blockinput.h atimer.h ../lib/unistd.h ../lib/strftime.h \
+   coding.h frame.h blockinput.h atimer.h \
+   ../lib/intprops.h ../lib/strftime.h ../lib/unistd.h \
    lisp.h globals.h $(config_h)
 emacs.o: emacs.c commands.h systty.h syssignal.h blockinput.h process.h \
    termhooks.h buffer.h atimer.h systime.h $(INTERVALS_H) lisp.h $(config_h) \
@@ -191,7 +192,7 @@ term.o: term.c termchar.h termhooks.h termopts.h lisp.h globals.h $(config_h) \
    cm.h frame.h disptab.h keyboard.h character.h charset.h coding.h ccl.h \
    xterm.h msdos.h window.h keymap.h blockinput.h atimer.h systime.h \
    systty.h syssignal.h tparam.h $(INTERVALS_H) buffer.h ../lib/unistd.h
-termcap.o: termcap.c lisp.h $(config_h)
+termcap.o: termcap.c lisp.h tparam.h msdos.h $(config_h)
 terminal.o: terminal.c frame.h termchar.h termhooks.h charset.h coding.h \
    keyboard.h lisp.h globals.h $(config_h) dispextern.h composite.h systime.h \
    msdos.h

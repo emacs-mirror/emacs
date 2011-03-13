@@ -105,7 +105,7 @@ typedef struct x_menu_struct
 } XMenu;
 
 XMenu *XMenuCreate (Display *, Window, char *);
-int XMenuAddPane (Display *, XMenu *, char *, int);
+int XMenuAddPane (Display *, XMenu *, const char *, int);
 int XMenuAddSelection (Display *, XMenu *, int, int, char *, int, char *);
 void XMenuLocate (Display *, XMenu *, int, int, int, int,
 		  int *, int *, int *, int *);

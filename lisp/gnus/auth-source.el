@@ -54,6 +54,8 @@
 (autoload 'secrets-list-collections "secrets")
 (autoload 'secrets-search-items "secrets")
 
+(autoload 'rfc2104-hash "rfc2104")
+
 (defvar secrets-enabled)
 
 (defgroup auth-source nil
@@ -770,7 +772,9 @@ while \(:host t) would find all host entries."
     (let ((c (nth 0 cell))
           (v (nth 1 cell)))
       (when (and c v)
-        (setq prompt (replace-regexp-in-string (format "%%%c" c) v prompt)))))
+        (setq prompt (replace-regexp-in-string (format "%%%c" c)
+                                               (format "%s" v)
+                                               prompt)))))
   prompt)
 
 (defun auth-source-ensure-strings (values)
@@ -1096,7 +1100,7 @@ See `auth-source-search' for details on SPEC."
                 ;; special case prompt for passwords
                 (read-passwd prompt))
                ((null data)
-                (read-string prompt default))
+                (read-string prompt nil nil default))
                (t (or data default))))
 
         (when data
@@ -1138,70 +1142,79 @@ See `auth-source-search' for details on SPEC."
 
     (list artificial)))
 
-;;(funcall (plist-get (nth 0 (auth-source-search :host '("nonesuch") :user "tzz" :port "imap" :create t :max 1)) :save-function))
+;;(funcall (plist-get (nth 0 (auth-source-search :host '("nonesuch2") :user "tzz" :port "imap" :create t :max 1)) :save-function))
 (defun auth-source-netrc-saver (file add)
   "Save a line ADD in FILE, prompting along the way.
-Respects `auth-source-save-behavior'."
-  (with-temp-buffer
-    (when (file-exists-p file)
-      (insert-file-contents file))
-    (when auth-source-gpg-encrypt-to
-      ;; (see bug#7487) making `epa-file-encrypt-to' local to
-      ;; this buffer lets epa-file skip the key selection query
-      ;; (see the `local-variable-p' check in
-      ;; `epa-file-write-region').
-      (unless (local-variable-p 'epa-file-encrypt-to (current-buffer))
-        (make-local-variable 'epa-file-encrypt-to))
-      (if (listp auth-source-gpg-encrypt-to)
-          (setq epa-file-encrypt-to auth-source-gpg-encrypt-to)))
-    ;; we want the new data to be found first, so insert at beginning
-    (goto-char (point-min))
+Respects `auth-source-save-behavior'.  Uses
+`auth-source-netrc-cache' to avoid prompting more than once."
+  (let* ((key (format "%s %s" file (rfc2104-hash 'md5 64 16 file add)))
+         (cached (assoc key auth-source-netrc-cache)))
 
-    ;; ask AFTER we've successfully opened the file
-    (let ((prompt (format "Save auth info to file %s? " file))
-          (done (not (eq auth-source-save-behavior 'ask)))
-          (bufname "*auth-source Help*")
-          k)
-      (while (not done)
-        (setq k (auth-source-read-char-choice prompt '(?y ?n ?N ?e ??)))
-        (case k
-          (?y (setq done t))
-          (?? (save-excursion
-                (with-output-to-temp-buffer bufname
-                  (princ
-                   (concat "(y)es, save\n"
-                           "(n)o but use the info\n"
-                           "(N)o and don't ask to save again\n"
-                           "(e)dit the line\n"
-                           "(?) for help as you can see.\n"))
-                  (set-buffer standard-output)
-                  (help-mode))))
-          (?n (setq add ""
-                    done t))
-          (?N (setq add ""
-                    done t
-                    auth-source-save-behavior nil))
-          (?e (setq add (read-string "Line to add: " add)))
-          (t nil)))
+    (if cached
+        (auth-source-do-trivia
+         "auth-source-netrc-saver: found previous run for key %s, returning"
+         key)
+      (with-temp-buffer
+        (when (file-exists-p file)
+          (insert-file-contents file))
+        (when auth-source-gpg-encrypt-to
+          ;; (see bug#7487) making `epa-file-encrypt-to' local to
+          ;; this buffer lets epa-file skip the key selection query
+          ;; (see the `local-variable-p' check in
+          ;; `epa-file-write-region').
+          (unless (local-variable-p 'epa-file-encrypt-to (current-buffer))
+            (make-local-variable 'epa-file-encrypt-to))
+          (if (listp auth-source-gpg-encrypt-to)
+              (setq epa-file-encrypt-to auth-source-gpg-encrypt-to)))
+        ;; we want the new data to be found first, so insert at beginning
+        (goto-char (point-min))
 
-      (when (get-buffer-window bufname)
-        (delete-window (get-buffer-window bufname)))
+        ;; ask AFTER we've successfully opened the file
+        (let ((prompt (format "Save auth info to file %s? " file))
+              (done (not (eq auth-source-save-behavior 'ask)))
+              (bufname "*auth-source Help*")
+              k)
+          (while (not done)
+            (setq k (auth-source-read-char-choice prompt '(?y ?n ?N ?e ??)))
+            (case k
+              (?y (setq done t))
+              (?? (save-excursion
+                    (with-output-to-temp-buffer bufname
+                      (princ
+                       (concat "(y)es, save\n"
+                               "(n)o but use the info\n"
+                               "(N)o and don't ask to save again\n"
+                               "(e)dit the line\n"
+                               "(?) for help as you can see.\n"))
+                      (set-buffer standard-output)
+                      (help-mode))))
+              (?n (setq add ""
+                        done t))
+              (?N (setq add ""
+                        done t
+                        auth-source-save-behavior nil))
+              (?e (setq add (read-string "Line to add: " add)))
+              (t nil)))
 
-      ;; make sure the info is not saved
-      (when (null auth-source-save-behavior)
-        (setq add ""))
+          (when (get-buffer-window bufname)
+            (delete-window (get-buffer-window bufname)))
 
-      (when (< 0 (length add))
-        (progn
-          (unless (bolp)
-            (insert "\n"))
-          (insert add "\n")
-          (write-region (point-min) (point-max) file nil 'silent)
-          (auth-source-do-debug
-           "auth-source-netrc-create: wrote 1 new line to %s"
-           file)
-          (message "Saved new authentication information to %s" file)
-          nil)))))
+          ;; make sure the info is not saved
+          (when (null auth-source-save-behavior)
+            (setq add ""))
+
+          (when (< 0 (length add))
+            (progn
+              (unless (bolp)
+                (insert "\n"))
+              (insert add "\n")
+              (write-region (point-min) (point-max) file nil 'silent)
+              (auth-source-do-debug
+               "auth-source-netrc-create: wrote 1 new line to %s"
+               file)
+              (message "Saved new authentication information to %s" file)
+              nil))))
+      (aput 'auth-source-netrc-cache key "ran"))))
 
 ;;; Backend specific parsing: Secrets API backend
 

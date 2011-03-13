@@ -45,6 +45,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #include <ctype.h>
+#include <limits.h>
+#include <intprops.h>
 #include <strftime.h>
 
 #include "intervals.h"
@@ -87,6 +89,7 @@ extern char **environ;
 extern Lisp_Object w32_get_internal_run_time (void);
 #endif
 
+static void time_overflow (void) NO_RETURN;
 static int tm_diff (struct tm *, struct tm *);
 static void find_field (Lisp_Object, Lisp_Object, Lisp_Object,
 			EMACS_INT *, Lisp_Object, EMACS_INT *);
@@ -1414,6 +1417,49 @@ DEFUN ("emacs-pid", Femacs_pid, Semacs_pid, 0, 0, 0,
   return make_number (getpid ());
 }
 
+
+
+#ifndef TIME_T_MIN
+# define TIME_T_MIN TYPE_MINIMUM (time_t)
+#endif
+#ifndef TIME_T_MAX
+# define TIME_T_MAX TYPE_MAXIMUM (time_t)
+#endif
+
+/* Report that a time value is out of range for Emacs.  */
+static void
+time_overflow (void)
+{
+  error ("Specified time is not representable");
+}
+
+/* Return the upper part of the time T (everything but the bottom 16 bits),
+   making sure that it is representable.  */
+static EMACS_INT
+hi_time (time_t t)
+{
+  time_t hi = t >> 16;
+
+  /* Check for overflow, helping the compiler for common cases where
+     no runtime check is needed, and taking care not to convert
+     negative numbers to unsigned before comparing them.  */
+  if (! ((! TYPE_SIGNED (time_t)
+	  || MOST_NEGATIVE_FIXNUM <= TIME_T_MIN >> 16
+	  || MOST_NEGATIVE_FIXNUM <= hi)
+	 && (TIME_T_MAX >> 16 <= MOST_POSITIVE_FIXNUM
+	     || hi <= MOST_POSITIVE_FIXNUM)))
+    time_overflow ();
+
+  return hi;
+}
+
+/* Return the bottom 16 bits of the time T.  */
+static EMACS_INT
+lo_time (time_t t)
+{
+  return t & ((1 << 16) - 1);
+}
+
 DEFUN ("current-time", Fcurrent_time, Scurrent_time, 0, 0, 0,
        doc: /* Return the current time, as the number of seconds since 1970-01-01 00:00:00.
 The time is returned as a list of three integers.  The first has the
@@ -1428,8 +1474,8 @@ resolution finer than a second.  */)
   EMACS_TIME t;
 
   EMACS_GET_TIME (t);
-  return list3 (make_number ((EMACS_SECS (t) >> 16) & 0xffff),
-		make_number ((EMACS_SECS (t) >> 0)  & 0xffff),
+  return list3 (make_number (hi_time (EMACS_SECS (t))),
+		make_number (lo_time (EMACS_SECS (t))),
 		make_number (EMACS_USECS (t)));
 }
 
@@ -1448,7 +1494,8 @@ on systems that do not provide resolution finer than a second.  */)
 {
 #ifdef HAVE_GETRUSAGE
   struct rusage usage;
-  int secs, usecs;
+  time_t secs;
+  int usecs;
 
   if (getrusage (RUSAGE_SELF, &usage) < 0)
     /* This shouldn't happen.  What action is appropriate?  */
@@ -1463,8 +1510,8 @@ on systems that do not provide resolution finer than a second.  */)
       secs++;
     }
 
-  return list3 (make_number ((secs >> 16) & 0xffff),
-		make_number ((secs >> 0)  & 0xffff),
+  return list3 (make_number (hi_time (secs)),
+		make_number (lo_time (secs)),
 		make_number (usecs));
 #else /* ! HAVE_GETRUSAGE  */
 #ifdef WINDOWSNT
@@ -1476,6 +1523,19 @@ on systems that do not provide resolution finer than a second.  */)
 }
 
 
+/* Make a Lisp list that represents the time T.  */
+Lisp_Object
+make_time (time_t t)
+{
+  return list2 (make_number (hi_time (t)),
+		make_number (lo_time (t)));
+}
+
+/* Decode a Lisp list SPECIFIED_TIME that represents a time.
+   If SPECIFIED_TIME is nil, use the current time.
+   Set *RESULT to seconds since the Epoch.
+   If USEC is not null, set *USEC to the microseconds component.
+   Return nonzero if successful.  */
 int
 lisp_time_argument (Lisp_Object specified_time, time_t *result, int *usec)
 {
@@ -1496,6 +1556,7 @@ lisp_time_argument (Lisp_Object specified_time, time_t *result, int *usec)
   else
     {
       Lisp_Object high, low;
+      EMACS_INT hi;
       high = Fcar (specified_time);
       CHECK_NUMBER (high);
       low = Fcdr (specified_time);
@@ -1519,8 +1580,21 @@ lisp_time_argument (Lisp_Object specified_time, time_t *result, int *usec)
       else if (usec)
         *usec = 0;
       CHECK_NUMBER (low);
-      *result = (XINT (high) << 16) + (XINT (low) & 0xffff);
-      return *result >> 16 == XINT (high);
+      hi = XINT (high);
+
+      /* Check for overflow, helping the compiler for common cases
+	 where no runtime check is needed, and taking care not to
+	 convert negative numbers to unsigned before comparing them.  */
+      if (! ((TYPE_SIGNED (time_t)
+	      ? (TIME_T_MIN >> 16 <= MOST_NEGATIVE_FIXNUM
+		 || TIME_T_MIN >> 16 <= hi)
+	      : 0 <= hi)
+	     && (MOST_POSITIVE_FIXNUM <= TIME_T_MAX >> 16
+		 || hi <= TIME_T_MAX >> 16)))
+	return 0;
+
+      *result = (hi << 16) + (XINT (low) & 0xffff);
+      return 1;
     }
 }
 
@@ -1674,7 +1748,7 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
   tm = ut ? gmtime (&value) : localtime (&value);
   UNBLOCK_INPUT;
   if (! tm)
-    error ("Specified time is not representable");
+    time_overflow ();
 
   synchronize_system_time_locale ();
 
@@ -1732,8 +1806,10 @@ DOW and ZONE.)  */)
   BLOCK_INPUT;
   decoded_time = localtime (&time_spec);
   UNBLOCK_INPUT;
-  if (! decoded_time)
-    error ("Specified time is not representable");
+  if (! (decoded_time
+	 && MOST_NEGATIVE_FIXNUM - TM_YEAR_BASE <= decoded_time->tm_year
+	 && decoded_time->tm_year <= MOST_POSITIVE_FIXNUM - TM_YEAR_BASE))
+    time_overflow ();
   XSETFASTINT (list_args[0], decoded_time->tm_sec);
   XSETFASTINT (list_args[1], decoded_time->tm_min);
   XSETFASTINT (list_args[2], decoded_time->tm_hour);
@@ -1755,6 +1831,20 @@ DOW and ZONE.)  */)
   else
     XSETINT (list_args[8], tm_diff (&save_tm, decoded_time));
   return Flist (9, list_args);
+}
+
+/* Return OBJ - OFFSET, checking that OBJ is a valid fixnum and that
+   the result is representable as an int.  Assume OFFSET is small and
+   nonnegative.  */
+static int
+check_tm_member (Lisp_Object obj, int offset)
+{
+  EMACS_INT n;
+  CHECK_NUMBER (obj);
+  n = XINT (obj);
+  if (! (INT_MIN + offset <= n && n - offset <= INT_MAX))
+    time_overflow ();
+  return n - offset;
 }
 
 DEFUN ("encode-time", Fencode_time, Sencode_time, 6, MANY, 0,
@@ -1785,19 +1875,12 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
   struct tm tm;
   Lisp_Object zone = (nargs > 6 ? args[nargs - 1] : Qnil);
 
-  CHECK_NUMBER (args[0]);	/* second */
-  CHECK_NUMBER (args[1]);	/* minute */
-  CHECK_NUMBER (args[2]);	/* hour */
-  CHECK_NUMBER (args[3]);	/* day */
-  CHECK_NUMBER (args[4]);	/* month */
-  CHECK_NUMBER (args[5]);	/* year */
-
-  tm.tm_sec = XINT (args[0]);
-  tm.tm_min = XINT (args[1]);
-  tm.tm_hour = XINT (args[2]);
-  tm.tm_mday = XINT (args[3]);
-  tm.tm_mon = XINT (args[4]) - 1;
-  tm.tm_year = XINT (args[5]) - TM_YEAR_BASE;
+  tm.tm_sec  = check_tm_member (args[0], 0);
+  tm.tm_min  = check_tm_member (args[1], 0);
+  tm.tm_hour = check_tm_member (args[2], 0);
+  tm.tm_mday = check_tm_member (args[3], 0);
+  tm.tm_mon  = check_tm_member (args[4], 1);
+  tm.tm_year = check_tm_member (args[5], TM_YEAR_BASE);
   tm.tm_isdst = -1;
 
   if (CONSP (zone))
@@ -1846,7 +1929,7 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
     }
 
   if (time == (time_t) -1)
-    error ("Specified time is not representable");
+    time_overflow ();
 
   return make_time (time);
 }
@@ -1881,7 +1964,7 @@ but this is considered obsolete.  */)
   tm = localtime (&value);
   UNBLOCK_INPUT;
   if (! (tm && TM_YEAR_IN_ASCTIME_RANGE (tm->tm_year) && (tem = asctime (tm))))
-    error ("Specified time is not representable");
+    time_overflow ();
 
   /* Remove the trailing newline.  */
   tem[strlen (tem) - 1] = '\0';

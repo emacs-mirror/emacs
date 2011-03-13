@@ -5332,9 +5332,6 @@ syms_of_buffer (void)
   Fput (Qprotected_field, Qerror_message,
 	make_pure_c_string ("Attempt to modify a protected field"));
 
-  /* All these use DEFVAR_LISP_NOPRO because the slots in
-     buffer_defaults will all be marked via Vbuffer_defaults.  */
-
   DEFVAR_BUFFER_DEFAULTS ("default-mode-line-format",
 			  mode_line_format,
 			  doc: /* Default value of `mode-line-format' for buffers that don't override it.

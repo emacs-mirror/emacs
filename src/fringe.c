@@ -954,17 +954,9 @@ update_window_fringes (struct window *w, int keep_current_p)
 	   y < yb && rn < nrows;
 	   y += row->height, ++rn)
 	{
-	  unsigned indicate_bob_p, indicate_top_line_p;
-	  unsigned indicate_eob_p, indicate_bottom_line_p;
-
 	  row = w->desired_matrix->rows + rn;
 	  if (!row->enabled_p)
 	    row = w->current_matrix->rows + rn;
-
-	  indicate_bob_p = row->indicate_bob_p;
-	  indicate_top_line_p = row->indicate_top_line_p;
-	  indicate_eob_p = row->indicate_eob_p;
-	  indicate_bottom_line_p = row->indicate_bottom_line_p;
 
 	  row->indicate_bob_p = row->indicate_top_line_p = 0;
 	  row->indicate_eob_p = row->indicate_bottom_line_p = 0;
