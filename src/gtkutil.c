@@ -492,22 +492,22 @@ get_utf8_string (const char *str)
       gsize bytes_written;
       unsigned char *p = (unsigned char *)str;
       char *cp, *up;
-      GError *error = NULL;
+      GError *err = NULL;
 
       while (! (cp = g_locale_to_utf8 ((char *)p, -1, &bytes_read,
-                                       &bytes_written, &error))
-             && error->code == G_CONVERT_ERROR_ILLEGAL_SEQUENCE)
+                                       &bytes_written, &err))
+             && err->code == G_CONVERT_ERROR_ILLEGAL_SEQUENCE)
         {
           ++nr_bad;
           p += bytes_written+1;
-          g_error_free (error);
-          error = NULL;
+          g_error_free (err);
+          err = NULL;
         }
 
-      if (error)
+      if (err)
         {
-          g_error_free (error);
-          error = NULL;
+          g_error_free (err);
+          err = NULL;
         }
       if (cp) g_free (cp);
 
@@ -515,16 +515,16 @@ get_utf8_string (const char *str)
       p = (unsigned char *)str;
 
       while (! (cp = g_locale_to_utf8 ((char *)p, -1, &bytes_read,
-                                       &bytes_written, &error))
-             && error->code == G_CONVERT_ERROR_ILLEGAL_SEQUENCE)
+                                       &bytes_written, &err))
+             && err->code == G_CONVERT_ERROR_ILLEGAL_SEQUENCE)
         {
           strncpy (up, (char *)p, bytes_written);
           sprintf (up + bytes_written, "\\%03o", p[bytes_written]);
           up[bytes_written+4] = '\0';
           up += bytes_written+4;
           p += bytes_written+1;
-          g_error_free (error);
-          error = NULL;
+          g_error_free (err);
+          err = NULL;
         }
 
       if (cp)
@@ -532,10 +532,10 @@ get_utf8_string (const char *str)
           strcat (utf8_str, cp);
           g_free (cp);
         }
-      if (error)
+      if (err)
         {
-          g_error_free (error);
-          error = NULL;
+          g_error_free (err);
+          err = NULL;
         }
     }
   return utf8_str;
@@ -1415,8 +1415,6 @@ create_dialog (widget_value *wv,
   GtkDialog *wd = GTK_DIALOG (wdialog);
   GtkBox *cur_box = GTK_BOX (gtk_dialog_get_action_area (wd));
   widget_value *item;
-  GtkWidget *wvbox;
-  GtkWidget *whbox_up;
   GtkWidget *whbox_down;
 
   /* If the number of buttons is greater than 4, make two rows of buttons
@@ -1432,8 +1430,8 @@ create_dialog (widget_value *wv,
 
   if (make_two_rows)
     {
-      wvbox = gtk_vbox_new (TRUE, button_spacing);
-      whbox_up = gtk_hbox_new (FALSE, 0);
+      GtkWidget *wvbox = gtk_vbox_new (TRUE, button_spacing);
+      GtkWidget *whbox_up = gtk_hbox_new (FALSE, 0);
       whbox_down = gtk_hbox_new (FALSE, 0);
 
       gtk_box_pack_start (cur_box, wvbox, FALSE, FALSE, 0);
@@ -1702,7 +1700,7 @@ xg_get_file_with_chooser (FRAME_PTR f,
 			  int mustmatch_p, int only_dir_p,
 			  xg_get_file_func *func)
 {
-  char message[1024];
+  char msgbuf[1024];
 
   GtkWidget *filewin, *wtoggle, *wbox, *wmessage;
   GtkWindow *gwin = GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f));
@@ -1738,16 +1736,16 @@ xg_get_file_with_chooser (FRAME_PTR f,
 
   if (x_gtk_file_dialog_help_text)
     {
-      message[0] = '\0';
+      msgbuf[0] = '\0';
       /* Gtk+ 2.10 has the file name text entry box integrated in the dialog.
          Show the C-l help text only for versions < 2.10.  */
       if (gtk_check_version (2, 10, 0) && action != GTK_FILE_CHOOSER_ACTION_SAVE)
-        strcat (message, "\nType C-l to display a file name text entry box.\n");
-      strcat (message, "\nIf you don't like this file selector, use the "
+        strcat (msgbuf, "\nType C-l to display a file name text entry box.\n");
+      strcat (msgbuf, "\nIf you don't like this file selector, use the "
               "corresponding\nkey binding or customize "
               "use-file-dialog to turn it off.");
 
-      wmessage = gtk_label_new (message);
+      wmessage = gtk_label_new (msgbuf);
       gtk_widget_show (wmessage);
     }
 

@@ -9,6 +9,9 @@
 	(xg_set_toolkit_scroll_bar_thumb): Use it.
 	(xg_tool_bar_callback, xg_tool_item_stale_p): Rewrite to avoid
 	diagnostic from gcc -Wbad-function-cast.
+	(get_utf8_string, xg_get_file_with_chooser):
+	Rename locals to avoid shadowing.
+	(create_dialog): Move locals to avoid shadowing.
 
 	* xgselect.c (xg_select): Remove unused var.
 
