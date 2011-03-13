@@ -84,6 +84,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define XG_BIN_CHILD(x) gtk_bin_get_child (GTK_BIN (x))
 
+/* Get the current value of the range, truncated to an integer.  */
+static int
+int_gtk_range_get_value (GtkRange *range)
+{
+  return gtk_range_get_value (range);
+}
+
 
 /***********************************************************************
                       Display handling functions
@@ -3562,7 +3569,7 @@ xg_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar,
           changed = 1;
         }
 
-      if (changed || (int) gtk_range_get_value (GTK_RANGE (wscroll)) != value)
+      if (changed || int_gtk_range_get_value (GTK_RANGE (wscroll)) != value)
       {
         BLOCK_INPUT;
 
@@ -3570,7 +3577,7 @@ xg_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar,
            ignore_gtk_scrollbar to make the callback do nothing  */
         xg_ignore_gtk_scrollbar = 1;
 
-        if ((int) gtk_range_get_value (GTK_RANGE (wscroll)) != value)
+        if (int_gtk_range_get_value (GTK_RANGE (wscroll)) != value)
           gtk_range_set_value (GTK_RANGE (wscroll), (gdouble)value);
         else if (changed)
           gtk_adjustment_changed (adj);
@@ -3666,8 +3673,8 @@ xg_tool_bar_callback (GtkWidget *w, gpointer client_data)
 {
   /* The EMACS_INT cast avoids a warning. */
   int idx = (int) (EMACS_INT) client_data;
-  int mod = (int) (EMACS_INT) g_object_get_data (G_OBJECT (w),
-                                                 XG_TOOL_BAR_LAST_MODIFIER);
+  gpointer gmod = g_object_get_data (G_OBJECT (w), XG_TOOL_BAR_LAST_MODIFIER);
+  int mod = (int) (EMACS_INT) gmod;
 
   FRAME_PTR f = (FRAME_PTR) g_object_get_data (G_OBJECT (w), XG_FRAME_DATA);
   Lisp_Object key, frame;
@@ -4218,9 +4225,9 @@ xg_tool_item_stale_p (GtkWidget *wbutton, const char *stock_name,
     }
   else
     {
-      Pixmap old_img
-	= (Pixmap) g_object_get_data (G_OBJECT (wimage),
-				      XG_TOOL_BAR_IMAGE_DATA);
+      gpointer gold_img = g_object_get_data (G_OBJECT (wimage),
+					    XG_TOOL_BAR_IMAGE_DATA);
+      Pixmap old_img = (Pixmap) gold_img;
       if (old_img != img->pixmap)
 	return 1;
     }

@@ -4,6 +4,11 @@
 	to unsigned char * to avoid compiler diagnostic.
 	(xg_free_frame_widgets): Make it clear that a local variable is
 	needed only if USE_GTK_TOOLTIP.
+	(int_gtk_range_get_value): New function, which avoids a diagnostic
+	from gcc -Wbad-function-cast.
+	(xg_set_toolkit_scroll_bar_thumb): Use it.
+	(xg_tool_bar_callback, xg_tool_item_stale_p): Rewrite to avoid
+	diagnostic from gcc -Wbad-function-cast.
 
 	* xgselect.c (xg_select): Remove unused var.
 
