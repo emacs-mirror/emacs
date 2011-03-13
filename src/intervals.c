@@ -1892,8 +1892,7 @@ temp_set_point_both (struct buffer *buffer,
   if (charpos > BUF_ZV (buffer) || charpos < BUF_BEGV (buffer))
     abort ();
 
-  BUF_PT_BYTE (buffer) = bytepos;
-  BUF_PT (buffer) = charpos;
+  SET_BUF_PT_BOTH (buffer, charpos, bytepos);
 }
 
 /* Set point "temporarily", without checking any text properties.  */
@@ -2312,10 +2311,9 @@ get_local_map (register EMACS_INT position, register struct buffer *buffer,
   old_zv = BUF_ZV (buffer);
   old_begv_byte = BUF_BEGV_BYTE (buffer);
   old_zv_byte = BUF_ZV_BYTE (buffer);
-  BUF_BEGV (buffer) = BUF_BEG (buffer);
-  BUF_ZV (buffer) = BUF_Z (buffer);
-  BUF_BEGV_BYTE (buffer) = BUF_BEG_BYTE (buffer);
-  BUF_ZV_BYTE (buffer) = BUF_Z_BYTE (buffer);
+
+  SET_BUF_BEGV_BOTH (buffer, BUF_BEG (buffer), BUF_BEG_BYTE (buffer));
+  SET_BUF_ZV_BOTH (buffer, BUF_Z (buffer), BUF_Z_BYTE (buffer));
 
   XSETFASTINT (lispy_position, position);
   XSETBUFFER (lispy_buffer, buffer);
@@ -2329,10 +2327,8 @@ get_local_map (register EMACS_INT position, register struct buffer *buffer,
   if (NILP (prop))
     prop = get_pos_property (lispy_position, type, lispy_buffer);
 
-  BUF_BEGV (buffer) = old_begv;
-  BUF_ZV (buffer) = old_zv;
-  BUF_BEGV_BYTE (buffer) = old_begv_byte;
-  BUF_ZV_BYTE (buffer) = old_zv_byte;
+  SET_BUF_BEGV_BOTH (buffer, old_begv, old_begv_byte);
+  SET_BUF_ZV_BOTH (buffer, old_zv, old_zv_byte);
 
   /* Use the local map only if it is valid.  */
   prop = get_keymap (prop, 0, 0);

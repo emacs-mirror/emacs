@@ -411,9 +411,7 @@ adjust_markers_for_insert (EMACS_INT from, EMACS_INT from_byte,
 static void
 adjust_point (EMACS_INT nchars, EMACS_INT nbytes)
 {
-  BUF_PT (current_buffer) += nchars;
-  BUF_PT_BYTE (current_buffer) += nbytes;
-
+  SET_BUF_PT_BOTH (current_buffer, PT + nchars, PT_BYTE + nbytes);
   /* In a single-byte buffer, the two positions must be equal.  */
   eassert (PT_BYTE >= PT && PT_BYTE - PT <= ZV_BYTE - ZV);
 }

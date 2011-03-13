@@ -10909,7 +10909,7 @@ hscroll_window_tree (Lisp_Object window)
 	      current_buffer = XBUFFER (w->buffer);
 
 	      if (w == XWINDOW (selected_window))
-		pt = BUF_PT (current_buffer);
+		pt = PT;
 	      else
 		{
 		  pt = marker_position (w->pointm);
@@ -11347,7 +11347,7 @@ reconsider_clip_changes (struct window *w, struct buffer *b)
       EMACS_INT pt;
 
       if (w == XWINDOW (selected_window))
-	pt = BUF_PT (current_buffer);
+	pt = PT;
       else
 	pt = marker_position (w->pointm);
 

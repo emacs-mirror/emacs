@@ -368,15 +368,15 @@ unreadchar (Lisp_Object readcharfun, int c)
   else if (BUFFERP (readcharfun))
     {
       struct buffer *b = XBUFFER (readcharfun);
+      EMACS_INT charpos = BUF_PT (b);
       EMACS_INT bytepos = BUF_PT_BYTE (b);
 
-      BUF_PT (b)--;
       if (! NILP (BVAR (b, enable_multibyte_characters)))
 	BUF_DEC_POS (b, bytepos);
       else
 	bytepos--;
 
-      BUF_PT_BYTE (b) = bytepos;
+      SET_BUF_PT_BOTH (b, charpos - 1, bytepos);
     }
   else if (MARKERP (readcharfun))
     {
