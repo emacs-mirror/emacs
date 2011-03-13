@@ -3,6 +3,7 @@
 	* image.c (four_corners_best): Mark locals as initialized.
 	(gif_load): Initialize transparent_p to zero (Bug#8238).
 	Mark another local as initialized.
+	(my_png_error, my_error_exit): Mark with NO_RETURN.
 
 2011-03-11  Paul Eggert  <eggert@cs.ucla.edu>
 

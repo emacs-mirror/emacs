@@ -5530,6 +5530,7 @@ init_png_functions (Lisp_Object libraries)
 /* Error and warning handlers installed when the PNG library
    is initialized.  */
 
+static void my_png_error (png_struct *, const char *) NO_RETURN;
 static void
 my_png_error (png_struct *png_ptr, const char *msg)
 {
@@ -6104,6 +6105,7 @@ struct my_jpeg_error_mgr
 };
 
 
+static void my_error_exit (j_common_ptr) NO_RETURN;
 static void
 my_error_exit (j_common_ptr cinfo)
 {
