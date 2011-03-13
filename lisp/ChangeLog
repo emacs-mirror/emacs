@@ -1,3 +1,11 @@
+2011-03-13  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/ldap.el (ldap-search-internal): Add `auth-source-search'
+	integration for LDAP parameters.  The host, base, user or binddn,
+	and secret tokens can be specified in a netrc file, for instance.
+	This is optional because an `auth-source' parameter must be
+	specified in the search attributes.
+
 2011-03-13  Juanma Barranquero  <lekktu@gmail.com>
 
 	* help.el (describe-mode): Link to the mode's definition (bug#8185).
