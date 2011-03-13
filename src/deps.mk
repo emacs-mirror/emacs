@@ -87,7 +87,8 @@ dosfns.o: buffer.h termchar.h termhooks.h frame.h blockinput.h window.h \
    msdos.h dosfns.h dispextern.h charset.h coding.h atimer.h systime.h \
    lisp.h $(config_h)
 editfns.o: editfns.c window.h buffer.h systime.h $(INTERVALS_H) character.h \
-   coding.h frame.h blockinput.h atimer.h ../lib/unistd.h ../lib/strftime.h \
+   coding.h frame.h blockinput.h atimer.h \
+   ../lib/intprops.h ../lib/strftime.h ../lib/unistd.h \
    lisp.h globals.h $(config_h)
 emacs.o: emacs.c commands.h systty.h syssignal.h blockinput.h process.h \
    termhooks.h buffer.h atimer.h systime.h $(INTERVALS_H) lisp.h $(config_h) \

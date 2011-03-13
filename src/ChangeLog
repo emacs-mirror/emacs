@@ -1,3 +1,35 @@
+2011-03-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve quality of tests for time stamp overflow.
+	For example, without this patch (encode-time 0 0 0 1 1
+	1152921504606846976) returns the obviously-bogus value (-948597
+	62170) on my RHEL 5.5 x86-64 host.  With the patch, it correctly
+	reports time overflow.  See
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-03/msg00470.html>.
+	* deps.mk (editfns.o): Depend on ../lib/intprops.h.
+	* editfns.c: Include limits.h and intprops.h.
+	(TIME_T_MIN, TIME_T_MAX): New macros.
+	(time_overflow): Move earlier, to before first use.
+	(hi_time, lo_time): New functions, for an accurate test for
+	out-of-range times.
+	(Fcurrent_time, Fget_internal_run_time, make_time): Use them.
+	(Fget_internal_run_time): Don't assume time_t fits in int.
+	(make_time): Use list2 instead of Fcons twice.
+	(Fdecode_time): More accurate test for out-of-range times.
+	(check_tm_member): New function.
+	(Fencode_time): Use it, to test for out-of-range times.
+	(lisp_time_argument): Don't rely on undefined left-shift and
+	right-shift behavior when checking for time stamp overflow.
+
+	* editfns.c (time_overflow): New function, refactoring common code.
+	(Fformat_time_string, Fdecode_time, Fencode_time):
+	(Fcurrent_time_string): Use it.
+
+	Move 'make_time' to be next to its inverse 'lisp_time_argument'.
+	* dired.c (make_time): Move to ...
+	* editfns.c (make_time): ... here.
+	* systime.h: Note the move.
+
 2011-03-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* fringe.c (update_window_fringes): Remove unused variables.
