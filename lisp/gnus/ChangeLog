@@ -1,3 +1,8 @@
+2011-03-13  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-netrc-create): Show the default in the
+	prompt when prompting for token creation.
+
 2011-03-12  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* auth-source.el (auth-source-format-prompt): Always convert the value

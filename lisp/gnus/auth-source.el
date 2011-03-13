@@ -1100,6 +1100,10 @@ See `auth-source-search' for details on SPEC."
                 ;; special case prompt for passwords
                 (read-passwd prompt))
                ((null data)
+                (when default
+                  (setq
+                   prompt
+                   (concat prompt (format "(default %s) " default))))
                 (read-string prompt nil nil default))
                (t (or data default))))
 
