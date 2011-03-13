@@ -1,3 +1,8 @@
+2011-03-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(BLD)/editfns.$(O)): Depend on
+	$(EMACS_ROOT)/lib/intprops.h.
+
 2011-03-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix more problems found by GCC 4.5.2's static checks.

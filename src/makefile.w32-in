@@ -727,6 +727,7 @@ $(BLD)/editfns.$(O) : \
 	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(EMACS_ROOT)/lib/strftime.h \
+	$(EMACS_ROOT)/lib/intprops.h \
 	$(LISP_H) \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
