@@ -4,6 +4,8 @@
 	to unsigned char * to avoid compiler diagnostic.
 	(xg_free_frame_widgets): Make it clear that a local variable is
 	needed only if USE_GTK_TOOLTIP.
+	(gdk_window_get_screen): Make it clear that this macro is needed
+	only if USE_GTK_TOOLTIP.
 	(int_gtk_range_get_value): New function, which avoids a diagnostic
 	from gcc -Wbad-function-cast.
 	(xg_set_toolkit_scroll_bar_thumb): Use it.

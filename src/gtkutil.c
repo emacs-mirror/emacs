@@ -74,7 +74,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #ifndef HAVE_GTK3
+#ifdef USE_GTK_TOOLTIP
 #define gdk_window_get_screen(w) gdk_drawable_get_screen (w)
+#endif
 #define gdk_window_get_geometry(w, a, b, c, d) \
   gdk_window_get_geometry (w, a, b, c, d, 0)
 #define gdk_x11_window_lookup_for_display(d, w) \
