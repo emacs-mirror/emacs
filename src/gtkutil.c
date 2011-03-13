@@ -74,15 +74,24 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #ifndef HAVE_GTK3
+#ifdef USE_GTK_TOOLTIP
 #define gdk_window_get_screen(w) gdk_drawable_get_screen (w)
+#endif
 #define gdk_window_get_geometry(w, a, b, c, d) \
-  gdk_window_get_geometry (w, a, b, c, d, 0) 
+  gdk_window_get_geometry (w, a, b, c, d, 0)
 #define gdk_x11_window_lookup_for_display(d, w) \
   gdk_xid_table_lookup_for_display (d, w)
 #define GDK_KEY_g GDK_g
 #endif
 
 #define XG_BIN_CHILD(x) gtk_bin_get_child (GTK_BIN (x))
+
+/* Get the current value of the range, truncated to an integer.  */
+static int
+int_gtk_range_get_value (GtkRange *range)
+{
+  return gtk_range_get_value (range);
+}
 
 
 /***********************************************************************
@@ -258,7 +267,7 @@ xg_get_pixbuf_from_pixmap (FRAME_PTR f, Pixmap pix)
                    ~0, XYPixmap);
   if (!xim) return 0;
 
-  tmp_buf = gdk_pixbuf_new_from_data (xim->data,
+  tmp_buf = gdk_pixbuf_new_from_data ((guchar *) xim->data,
                                       GDK_COLORSPACE_RGB,
                                       FALSE,
                                       xim->bitmap_unit,
@@ -287,7 +296,7 @@ xg_get_pixbuf_from_pix_and_mask (FRAME_PTR f,
 
   width = gdk_pixbuf_get_width (icon_buf);
   height = gdk_pixbuf_get_height (icon_buf);
-  
+
   if (mask)
     {
       GdkPixbuf *mask_buf = xg_get_pixbuf_from_pixmap (f, mask);
@@ -393,7 +402,7 @@ xg_get_image_for_pixmap (FRAME_PTR f,
      Gtk+ assumes the pixmap is always there.  */
   icon_buf = xg_get_pixbuf_from_pix_and_mask (f, img->pixmap, img->mask);
 
-  if (icon_buf) 
+  if (icon_buf)
     {
       if (! old_widget)
         old_widget = GTK_IMAGE (gtk_image_new_from_pixbuf (icon_buf));
@@ -485,22 +494,22 @@ get_utf8_string (const char *str)
       gsize bytes_written;
       unsigned char *p = (unsigned char *)str;
       char *cp, *up;
-      GError *error = NULL;
+      GError *err = NULL;
 
       while (! (cp = g_locale_to_utf8 ((char *)p, -1, &bytes_read,
-                                       &bytes_written, &error))
-             && error->code == G_CONVERT_ERROR_ILLEGAL_SEQUENCE)
+                                       &bytes_written, &err))
+             && err->code == G_CONVERT_ERROR_ILLEGAL_SEQUENCE)
         {
           ++nr_bad;
           p += bytes_written+1;
-          g_error_free (error);
-          error = NULL;
+          g_error_free (err);
+          err = NULL;
         }
 
-      if (error)
+      if (err)
         {
-          g_error_free (error);
-          error = NULL;
+          g_error_free (err);
+          err = NULL;
         }
       if (cp) g_free (cp);
 
@@ -508,16 +517,16 @@ get_utf8_string (const char *str)
       p = (unsigned char *)str;
 
       while (! (cp = g_locale_to_utf8 ((char *)p, -1, &bytes_read,
-                                       &bytes_written, &error))
-             && error->code == G_CONVERT_ERROR_ILLEGAL_SEQUENCE)
+                                       &bytes_written, &err))
+             && err->code == G_CONVERT_ERROR_ILLEGAL_SEQUENCE)
         {
           strncpy (up, (char *)p, bytes_written);
           sprintf (up + bytes_written, "\\%03o", p[bytes_written]);
           up[bytes_written+4] = '\0';
           up += bytes_written+4;
           p += bytes_written+1;
-          g_error_free (error);
-          error = NULL;
+          g_error_free (err);
+          err = NULL;
         }
 
       if (cp)
@@ -525,10 +534,10 @@ get_utf8_string (const char *str)
           strcat (utf8_str, cp);
           g_free (cp);
         }
-      if (error)
+      if (err)
         {
-          g_error_free (error);
-          error = NULL;
+          g_error_free (err);
+          err = NULL;
         }
     }
   return utf8_str;
@@ -1188,7 +1197,9 @@ xg_free_frame_widgets (FRAME_PTR f)
 {
   if (FRAME_GTK_OUTER_WIDGET (f))
     {
+#ifdef USE_GTK_TOOLTIP
       struct x_output *x = f->output_data.x;
+#endif
       gtk_widget_destroy (FRAME_GTK_OUTER_WIDGET (f));
       FRAME_X_WINDOW (f) = 0; /* Set to avoid XDestroyWindow in xterm.c */
       FRAME_GTK_OUTER_WIDGET (f) = 0;
@@ -1406,8 +1417,6 @@ create_dialog (widget_value *wv,
   GtkDialog *wd = GTK_DIALOG (wdialog);
   GtkBox *cur_box = GTK_BOX (gtk_dialog_get_action_area (wd));
   widget_value *item;
-  GtkWidget *wvbox;
-  GtkWidget *whbox_up;
   GtkWidget *whbox_down;
 
   /* If the number of buttons is greater than 4, make two rows of buttons
@@ -1423,8 +1432,8 @@ create_dialog (widget_value *wv,
 
   if (make_two_rows)
     {
-      wvbox = gtk_vbox_new (TRUE, button_spacing);
-      whbox_up = gtk_hbox_new (FALSE, 0);
+      GtkWidget *wvbox = gtk_vbox_new (TRUE, button_spacing);
+      GtkWidget *whbox_up = gtk_hbox_new (FALSE, 0);
       whbox_down = gtk_hbox_new (FALSE, 0);
 
       gtk_box_pack_start (cur_box, wvbox, FALSE, FALSE, 0);
@@ -1693,7 +1702,7 @@ xg_get_file_with_chooser (FRAME_PTR f,
 			  int mustmatch_p, int only_dir_p,
 			  xg_get_file_func *func)
 {
-  char message[1024];
+  char msgbuf[1024];
 
   GtkWidget *filewin, *wtoggle, *wbox, *wmessage;
   GtkWindow *gwin = GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f));
@@ -1729,16 +1738,16 @@ xg_get_file_with_chooser (FRAME_PTR f,
 
   if (x_gtk_file_dialog_help_text)
     {
-      message[0] = '\0';
+      msgbuf[0] = '\0';
       /* Gtk+ 2.10 has the file name text entry box integrated in the dialog.
          Show the C-l help text only for versions < 2.10.  */
       if (gtk_check_version (2, 10, 0) && action != GTK_FILE_CHOOSER_ACTION_SAVE)
-        strcat (message, "\nType C-l to display a file name text entry box.\n");
-      strcat (message, "\nIf you don't like this file selector, use the "
+        strcat (msgbuf, "\nType C-l to display a file name text entry box.\n");
+      strcat (msgbuf, "\nIf you don't like this file selector, use the "
               "corresponding\nkey binding or customize "
               "use-file-dialog to turn it off.");
 
-      wmessage = gtk_label_new (message);
+      wmessage = gtk_label_new (msgbuf);
       gtk_widget_show (wmessage);
     }
 
@@ -3560,7 +3569,7 @@ xg_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar,
           changed = 1;
         }
 
-      if (changed || (int) gtk_range_get_value (GTK_RANGE (wscroll)) != value)
+      if (changed || int_gtk_range_get_value (GTK_RANGE (wscroll)) != value)
       {
         BLOCK_INPUT;
 
@@ -3568,7 +3577,7 @@ xg_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar,
            ignore_gtk_scrollbar to make the callback do nothing  */
         xg_ignore_gtk_scrollbar = 1;
 
-        if ((int) gtk_range_get_value (GTK_RANGE (wscroll)) != value)
+        if (int_gtk_range_get_value (GTK_RANGE (wscroll)) != value)
           gtk_range_set_value (GTK_RANGE (wscroll), (gdouble)value);
         else if (changed)
           gtk_adjustment_changed (adj);
@@ -3664,8 +3673,8 @@ xg_tool_bar_callback (GtkWidget *w, gpointer client_data)
 {
   /* The EMACS_INT cast avoids a warning. */
   int idx = (int) (EMACS_INT) client_data;
-  int mod = (int) (EMACS_INT) g_object_get_data (G_OBJECT (w),
-                                                 XG_TOOL_BAR_LAST_MODIFIER);
+  gpointer gmod = g_object_get_data (G_OBJECT (w), XG_TOOL_BAR_LAST_MODIFIER);
+  int mod = (int) (EMACS_INT) gmod;
 
   FRAME_PTR f = (FRAME_PTR) g_object_get_data (G_OBJECT (w), XG_FRAME_DATA);
   Lisp_Object key, frame;
@@ -4216,9 +4225,9 @@ xg_tool_item_stale_p (GtkWidget *wbutton, const char *stock_name,
     }
   else
     {
-      Pixmap old_img
-	= (Pixmap) g_object_get_data (G_OBJECT (wimage),
-				      XG_TOOL_BAR_IMAGE_DATA);
+      gpointer gold_img = g_object_get_data (G_OBJECT (wimage),
+					    XG_TOOL_BAR_IMAGE_DATA);
+      Pixmap old_img = (Pixmap) gold_img;
       if (old_img != img->pixmap)
 	return 1;
     }

@@ -1,5 +1,40 @@
 2011-03-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Fix more problems found by GCC 4.5.2's static checks.
+
+	* gtkutil.c (xg_get_pixbuf_from_pixmap): Add cast from char *
+	to unsigned char * to avoid compiler diagnostic.
+	(xg_free_frame_widgets): Make it clear that a local variable is
+	needed only if USE_GTK_TOOLTIP.
+	(gdk_window_get_screen): Make it clear that this macro is needed
+	only if USE_GTK_TOOLTIP.
+	(int_gtk_range_get_value): New function, which avoids a diagnostic
+	from gcc -Wbad-function-cast.
+	(xg_set_toolkit_scroll_bar_thumb): Use it.
+	(xg_tool_bar_callback, xg_tool_item_stale_p): Rewrite to avoid
+	diagnostic from gcc -Wbad-function-cast.
+	(get_utf8_string, xg_get_file_with_chooser):
+	Rename locals to avoid shadowing.
+	(create_dialog): Move locals to avoid shadowing.
+
+	* xgselect.c (xg_select): Remove unused var.
+
+	* image.c (four_corners_best): Mark locals as initialized.
+	(gif_load): Initialize transparent_p to zero (Bug#8238).
+	Mark another local as initialized.
+	(my_png_error, my_error_exit): Mark with NO_RETURN.
+
+	* image.c (clear_image_cache): Now static.
+	(DIM, HAVE_STDLIB_H_1): Remove unused macros.
+	(xpm_load): Redo to avoid "discards qualifiers" gcc warning.
+	(x_edge_detection): Remove unnecessary cast that
+	gcc -Wbad-function-cast diagnoses.
+	(gif_load): Fix pointer signedness.
+	(clear_image_cache, xbm_read_bitmap_data, x_detect_edges):
+	(jpeg_load, gif_load): Rename locals to avoid shadowing.
+
+2011-03-11  Paul Eggert  <eggert@cs.ucla.edu>
+
 	Improve quality of tests for time stamp overflow.
 	For example, without this patch (encode-time 0 0 0 1 1
 	1152921504606846976) returns the obviously-bogus value (-948597
