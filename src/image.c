@@ -1137,7 +1137,7 @@ static RGB_PIXEL_COLOR
 four_corners_best (XImagePtr_or_DC ximg, int *corners,
 		   unsigned long width, unsigned long height)
 {
-  RGB_PIXEL_COLOR corner_pixels[4], best;
+  RGB_PIXEL_COLOR corner_pixels[4], best IF_LINT (= 0);
   int i, best_count;
 
   if (corners && corners[BOT_CORNER] >= 0)
@@ -7103,7 +7103,7 @@ gif_load (struct frame *f, struct image *img)
   Lisp_Object file, specified_file;
   Lisp_Object specified_data;
   int rc, width, height, x, y, i;
-  boolean transparent_p;
+  boolean transparent_p = 0;
   XImagePtr ximg;
   ColorMapObject *gif_color_map;
   unsigned long pixel_colors[256];
@@ -7112,7 +7112,7 @@ gif_load (struct frame *f, struct image *img)
   int ino, image_height, image_width;
   gif_memory_source memsrc;
   unsigned char *raster;
-  unsigned int transparency_color_index;
+  unsigned int transparency_color_index IF_LINT (= 0);
 
   specified_file = image_spec_value (img->spec, QCfile, NULL);
   specified_data = image_spec_value (img->spec, QCdata, NULL);
