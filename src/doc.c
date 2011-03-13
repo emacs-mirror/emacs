@@ -369,6 +369,7 @@ string is passed through `substitute-command-keys'.  */)
       else if (EQ (funcar, Qkeymap))
 	return build_string ("Prefix command (definition is a keymap associating keystrokes with commands).");
       else if (EQ (funcar, Qlambda)
+	       || (EQ (funcar, Qclosure) && (fun = XCDR (fun), 1))
 	       || EQ (funcar, Qautoload))
 	{
 	  Lisp_Object tem1;
@@ -384,8 +385,6 @@ string is passed through `substitute-command-keys'.  */)
 	  else
 	    return Qnil;
 	}
-      else if (EQ (funcar, Qclosure))
- 	return Fdocumentation (Fcdr (XCDR (fun)), raw);
       else if (EQ (funcar, Qmacro))
 	return Fdocumentation (Fcdr (fun), raw);
       else
@@ -505,7 +504,8 @@ store_function_docstring (Lisp_Object fun, EMACS_INT offset)
       Lisp_Object tem;
 
       tem = XCAR (fun);
-      if (EQ (tem, Qlambda) || EQ (tem, Qautoload))
+      if (EQ (tem, Qlambda) || EQ (tem, Qautoload)
+	  || (EQ (tem, Qclosure) && (fun = XCDR (fun), 1)))
 	{
 	  tem = Fcdr (Fcdr (fun));
 	  if (CONSP (tem) && INTEGERP (XCAR (tem)))
@@ -513,8 +513,6 @@ store_function_docstring (Lisp_Object fun, EMACS_INT offset)
 	}
       else if (EQ (tem, Qmacro))
 	store_function_docstring (XCDR (fun), offset);
-      else if (EQ (tem, Qclosure))
-	store_function_docstring (Fcdr (XCDR (fun)), offset);
     }
 
   /* Bytecode objects sometimes have slots for it.  */

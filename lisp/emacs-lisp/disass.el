@@ -86,8 +86,7 @@ redefine OBJECT if it is a symbol."
 	(setq macro t
 	      obj (cdr obj)))
     (when (and (listp obj) (eq (car obj) 'closure))
-      (setq lexical-binding t)
-      (setq obj (cddr obj)))
+      (error "Don't know how to compile an interpreted closure"))
     (if (and (listp obj) (eq (car obj) 'byte-code))
 	(setq obj (list 'lambda nil obj)))
     (if (and (listp obj) (not (eq (car obj) 'lambda)))

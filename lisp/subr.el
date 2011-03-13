@@ -124,7 +124,7 @@ ARGS is a list of the first N arguments to pass to FUN.
 The result is a new function which does the same as FUN, except that
 the first N arguments are fixed at the values with which this function
 was called."
-  `(closure () lambda (&rest args)
+  `(closure () (&rest args)
             (apply ',fun ,@(mapcar (lambda (arg) `',arg) args) args)))
 
 (if (null (featurep 'cl))

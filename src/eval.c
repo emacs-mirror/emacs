@@ -487,7 +487,8 @@ usage: (function ARG)  */)
       && EQ (XCAR (quoted), Qlambda))
     /* This is a lambda expression within a lexical environment;
        return an interpreted closure instead of a simple lambda.  */
-    return Fcons (Qclosure, Fcons (Vinternal_interpreter_environment, quoted));
+    return Fcons (Qclosure, Fcons (Vinternal_interpreter_environment,
+				   XCDR (quoted)));
   else
     /* Simply quote the argument.  */
     return quoted;
@@ -2079,8 +2080,8 @@ then strings and vectors are not accepted.  */)
     return Qnil;
   funcar = XCAR (fun);
   if (EQ (funcar, Qclosure))
-    fun = Fcdr (XCDR (fun)), funcar = Fcar (fun);
-  if (EQ (funcar, Qlambda))
+    return !NILP (Fassq (Qinteractive, Fcdr (Fcdr (XCDR (fun))))) ? Qt : if_prop;
+  else if (EQ (funcar, Qlambda))
     return !NILP (Fassq (Qinteractive, Fcdr (XCDR (fun)))) ? Qt : if_prop;
   else if (EQ (funcar, Qautoload))
     return !NILP (Fcar (Fcdr (Fcdr (XCDR (fun))))) ? Qt : if_prop;
@@ -3121,7 +3122,7 @@ funcall_lambda (Lisp_Object fun, int nargs,
 	{
 	  fun = XCDR (fun);	/* Drop `closure'.  */
 	  lexenv = XCAR (fun);
-	  fun = XCDR (fun);	/* Drop the lexical environment.  */
+	  CHECK_LIST_CONS (fun, fun);
 	}
       else
 	lexenv = Qnil;

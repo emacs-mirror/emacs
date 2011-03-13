@@ -1345,7 +1345,7 @@ extra args."
 	  (let ((sig1 (byte-compile-arglist-signature
 		       (pcase old
                          (`(lambda ,args . ,_) args)
-                         (`(closure ,_ ,_ ,args . ,_) args)
+                         (`(closure ,_ ,args . ,_) args)
                          ((pred byte-code-function-p) (aref old 0))
                          (t '(&rest def)))))
 		(sig2 (byte-compile-arglist-signature (nth 2 form))))

@@ -104,8 +104,6 @@ ARGLIST can also be t or a string of the form \"(FUN ARG1 ARG2 ...)\"."
   (if (and (symbolp def) (fboundp def)) (setq def (indirect-function def)))
   ;; If definition is a macro, find the function inside it.
   (if (eq (car-safe def) 'macro) (setq def (cdr def)))
-  ;; and do the same for interpreted closures
-  (if (eq (car-safe def) 'closure) (setq def (cddr def)))
   (cond
    ((and (byte-code-function-p def) (integerp (aref def 0)))
     (let* ((args-desc (aref def 0))
@@ -124,6 +122,7 @@ ARGLIST can also be t or a string of the form \"(FUN ARG1 ARG2 ...)\"."
       (nreverse arglist)))
    ((byte-code-function-p def) (aref def 0))
    ((eq (car-safe def) 'lambda) (nth 1 def))
+   ((eq (car-safe def) 'closure) (nth 2 def))
    ((subrp def)
     (let ((arity (subr-arity def))
           (arglist ()))

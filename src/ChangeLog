@@ -1,3 +1,10 @@
+2011-03-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Ffunction): Use simpler format for closures.
+	(Fcommandp, funcall_lambda):
+	* doc.c (Fdocumentation, store_function_docstring):
+	* data.c (Finteractive_form): Adjust to new closure format.
+
 2011-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c (Fprog1, Fprog2): Simplify and use XCDR/XCAR.
