@@ -76,7 +76,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef HAVE_GTK3
 #define gdk_window_get_screen(w) gdk_drawable_get_screen (w)
 #define gdk_window_get_geometry(w, a, b, c, d) \
-  gdk_window_get_geometry (w, a, b, c, d, 0) 
+  gdk_window_get_geometry (w, a, b, c, d, 0)
 #define gdk_x11_window_lookup_for_display(d, w) \
   gdk_xid_table_lookup_for_display (d, w)
 #define GDK_KEY_g GDK_g
@@ -258,7 +258,7 @@ xg_get_pixbuf_from_pixmap (FRAME_PTR f, Pixmap pix)
                    ~0, XYPixmap);
   if (!xim) return 0;
 
-  tmp_buf = gdk_pixbuf_new_from_data (xim->data,
+  tmp_buf = gdk_pixbuf_new_from_data ((guchar *) xim->data,
                                       GDK_COLORSPACE_RGB,
                                       FALSE,
                                       xim->bitmap_unit,
@@ -287,7 +287,7 @@ xg_get_pixbuf_from_pix_and_mask (FRAME_PTR f,
 
   width = gdk_pixbuf_get_width (icon_buf);
   height = gdk_pixbuf_get_height (icon_buf);
-  
+
   if (mask)
     {
       GdkPixbuf *mask_buf = xg_get_pixbuf_from_pixmap (f, mask);
@@ -393,7 +393,7 @@ xg_get_image_for_pixmap (FRAME_PTR f,
      Gtk+ assumes the pixmap is always there.  */
   icon_buf = xg_get_pixbuf_from_pix_and_mask (f, img->pixmap, img->mask);
 
-  if (icon_buf) 
+  if (icon_buf)
     {
       if (! old_widget)
         old_widget = GTK_IMAGE (gtk_image_new_from_pixbuf (icon_buf));
