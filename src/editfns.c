@@ -1439,12 +1439,17 @@ static EMACS_INT
 hi_time (time_t t)
 {
   time_t hi = t >> 16;
-  if ((TYPE_SIGNED (time_t)
-       && TIME_T_MIN >> 16 < MOST_NEGATIVE_FIXNUM
-       && hi < MOST_NEGATIVE_FIXNUM)
-      || (MOST_POSITIVE_FIXNUM < TIME_T_MAX >> 16
-	  && MOST_POSITIVE_FIXNUM < hi))
+
+  /* Check for overflow, helping the compiler for common cases where
+     no runtime check is needed, and taking care not to convert
+     negative numbers to unsigned before comparing them.  */
+  if (! ((! TYPE_SIGNED (time_t)
+	  || MOST_NEGATIVE_FIXNUM <= TIME_T_MIN >> 16
+	  || MOST_NEGATIVE_FIXNUM <= hi)
+	 && (TIME_T_MAX >> 16 <= MOST_POSITIVE_FIXNUM
+	     || hi <= MOST_POSITIVE_FIXNUM)))
     time_overflow ();
+
   return hi;
 }
 
@@ -1551,6 +1556,7 @@ lisp_time_argument (Lisp_Object specified_time, time_t *result, int *usec)
   else
     {
       Lisp_Object high, low;
+      EMACS_INT hi;
       high = Fcar (specified_time);
       CHECK_NUMBER (high);
       low = Fcdr (specified_time);
@@ -1574,8 +1580,21 @@ lisp_time_argument (Lisp_Object specified_time, time_t *result, int *usec)
       else if (usec)
         *usec = 0;
       CHECK_NUMBER (low);
-      *result = (XINT (high) << 16) + (XINT (low) & 0xffff);
-      return *result >> 16 == XINT (high);
+      hi = XINT (high);
+
+      /* Check for overflow, helping the compiler for common cases
+	 where no runtime check is needed, and taking care not to
+	 convert negative numbers to unsigned before comparing them.  */
+      if (! ((TYPE_SIGNED (time_t)
+	      ? (TIME_T_MIN >> 16 <= MOST_NEGATIVE_FIXNUM
+		 || TIME_T_MIN >> 16 <= hi)
+	      : 0 <= hi)
+	     && (MOST_POSITIVE_FIXNUM <= TIME_T_MAX >> 16
+		 || hi <= TIME_T_MAX >> 16)))
+	return 0;
+
+      *result = (hi << 16) + (XINT (low) & 0xffff);
+      return 1;
     }
 }
 

@@ -1,3 +1,7 @@
+2011-03-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* editfns.c (lisp_time_argument): Check for time stamp overflow.
+
 2011-03-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Improve quality of tests for time stamp overflow.  For example,
