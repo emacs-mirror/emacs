@@ -2034,21 +2034,21 @@ if test "${HAVE_X11}" = "yes"; then
       fi                          # "$HAVE_XFT" != no
     fi                            # "x${with_xft}" != "xno"
 
-    dnl For the "Does Emacs use" message at the end.
-    if test "$HAVE_XFT" != "yes"; then
-       HAVE_XFT=no
-    fi
-
-
-    HAVE_FREETYPE=no
     ## We used to allow building with FreeType and without Xft.
     ## However, the ftx font backend driver is not in good shape.
-    if test "${HAVE_XFT}" = "yes"; then
-      dnl As we use Xft, we anyway use freetype.
-      dnl There's no need for additional CFLAGS and LIBS.
-      HAVE_FREETYPE=yes
-      FONTCONFIG_CFLAGS=
-      FONTCONFIG_LIBS=
+    if test "$HAVE_XFT" != "yes"; then
+       dnl For the "Does Emacs use" message at the end.
+       HAVE_XFT=no
+       HAVE_FREETYPE=no
+    else
+       dnl Strict linkers fail with
+       dnl ftfont.o: undefined reference to symbol 'FT_New_Face'
+       dnl if -lfreetype is not specified.
+       dnl The following is needed to set FREETYPE_LIBS.
+       PKG_CHECK_MODULES(FREETYPE, freetype2, HAVE_FREETYPE=yes,
+			 HAVE_FREETYPE=no)
+
+       test "$HAVE_FREETYPE" = "no" && AC_MSG_ERROR(libxft requires libfreetype)
     fi
 
     HAVE_LIBOTF=no
