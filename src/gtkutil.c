@@ -1188,7 +1188,9 @@ xg_free_frame_widgets (FRAME_PTR f)
 {
   if (FRAME_GTK_OUTER_WIDGET (f))
     {
+#ifdef USE_GTK_TOOLTIP
       struct x_output *x = f->output_data.x;
+#endif
       gtk_widget_destroy (FRAME_GTK_OUTER_WIDGET (f));
       FRAME_X_WINDOW (f) = 0; /* Set to avoid XDestroyWindow in xterm.c */
       FRAME_GTK_OUTER_WIDGET (f) = 0;

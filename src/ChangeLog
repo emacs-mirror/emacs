@@ -2,6 +2,8 @@
 
 	* gtkutil.c (xg_get_pixbuf_from_pixmap): Add cast from char *
 	to unsigned char * to avoid compiler diagnostic.
+	(xg_free_frame_widgets): Make it clear that a local variable is
+	needed only if USE_GTK_TOOLTIP.
 
 	* xgselect.c (xg_select): Remove unused var.
 
