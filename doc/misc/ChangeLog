@@ -1,3 +1,8 @@
+2011-03-12  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth.texi (Help for developers): Update docs to explain that the
+	:save-function will only run the first time.
+
 2011-03-12  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (emacs-faq.html): Fix some more cross-refs.

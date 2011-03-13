@@ -1,3 +1,13 @@
+2011-03-12  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-format-prompt): Always convert the value
+	to a string to avoid evaluating non-string arguments.
+	(auth-source-netrc-create): Offer default properly, not as initial
+	content in `read-string'.
+	(auth-source-netrc-saver): Use a cache keyed by file name and MD5 hash
+	of line to determine if we've been run before.  If so, don't run again,
+	but print a trivial message to indicate the cache was hit instead.
+
 2011-03-11  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus-sync.el (gnus-sync-install-hooks, gnus-sync-unload-hook): Don't
