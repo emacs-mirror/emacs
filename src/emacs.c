@@ -949,7 +949,7 @@ main (int argc, char **argv)
       /* Convert --script to -scriptload, un-skip it, and sort again
 	 so that it will be handled in proper sequence.  */
       /* FIXME broken for --script=FILE - is that supposed to work?  */
-      argv[skip_args - 1] = "-scriptload";
+      argv[skip_args - 1] = (char *) "-scriptload";
       skip_args -= 2;
       sort_args (argc, argv);
     }
@@ -1348,7 +1348,7 @@ main (int argc, char **argv)
 
 	for (j = 0; j < count_before + 1; j++)
 	  new[j] = argv[j];
-	new[count_before + 1] = "-d";
+	new[count_before + 1] = (char *) "-d";
 	new[count_before + 2] = displayname;
 	for (j = count_before + 2; j <argc; j++)
 	  new[j + 1] = argv[j];
@@ -1358,7 +1358,7 @@ main (int argc, char **argv)
     /* Change --display to -d, when its arg is separate.  */
     else if (displayname != 0 && skip_args > count_before
 	     && argv[count_before + 1][1] == '-')
-      argv[count_before + 1] = "-d";
+      argv[count_before + 1] = (char *) "-d";
 
     if (! no_site_lisp)
       {

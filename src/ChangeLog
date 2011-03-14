@@ -4,6 +4,8 @@
 	(DEFINE_DUMMY_FUNCTION): New macro.
 	(__do_global_ctors, __do_global_ctors_aux, __do_global_dtors, __main):
 	Use it.
+	(main): Add casts to avoid warnings
+	if GCC considers string literals to be constants.
 
 	* lisp.h (fatal_error_signal): Add decl, since it's exported.
 
