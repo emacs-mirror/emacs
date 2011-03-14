@@ -632,7 +632,7 @@ init_sigio (int fd)
 {
 }
 
-void
+static void
 reset_sigio (int fd)
 {
 }
@@ -662,7 +662,7 @@ init_sigio (int fd)
   interrupts_deferred = 0;
 }
 
-void
+static void
 reset_sigio (int fd)
 {
 #ifdef FASYNC
