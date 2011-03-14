@@ -1,6 +1,9 @@
 2011-03-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* emacs.c (init_cmdargs): Rename local to avoid shadowing.
+	(DEFINE_DUMMY_FUNCTION): New macro.
+	(__do_global_ctors, __do_global_ctors_aux, __do_global_dtors, __main):
+	Use it.
 
 	* lisp.h (fatal_error_signal): Add decl, since it's exported.
 
