@@ -1712,7 +1712,7 @@ the current buffer's major mode.  */)
 /* Switch to buffer BUFFER in the selected window.
    If NORECORD is non-nil, don't call record_buffer.  */
 
-Lisp_Object
+static Lisp_Object
 switch_to_buffer_1 (Lisp_Object buffer_or_name, Lisp_Object norecord)
 {
   register Lisp_Object buffer;

@@ -1,5 +1,7 @@
 2011-03-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* buffer.c (switch_to_buffer_1): Now static.
+
 	* sysdep.c (system_process_attributes): Rename vars to avoid shadowing.
 	Fix pointer signedness issue.
 	(sys_subshell): Mark local as volatile if checking for lint,
