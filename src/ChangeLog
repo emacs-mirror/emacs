@@ -9,6 +9,7 @@
 
 	* dbusbind.c (Fdbus_init_bus): Add cast to avoid warning
 	if GCC considers string literals to be constants.
+	(Fdbus_register_service, Fdbus_register_method): Remove unused vars.
 
 2011-03-13  Chong Yidong  <cyd@stupidchicken.com>
 

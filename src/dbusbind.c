@@ -1888,7 +1888,6 @@ usage: (dbus-register-service BUS SERVICE &rest FLAGS)  */)
   (int nargs, register Lisp_Object *args)
 {
   Lisp_Object bus, service;
-  struct gcpro gcpro1, gcpro2;
   DBusConnection *connection;
   unsigned int i;
   unsigned int value;
@@ -2122,7 +2121,6 @@ discovering the still incomplete interface.*/)
    Lisp_Object dont_register_service)
 {
   Lisp_Object key, key1, value;
-  DBusError derror;
   Lisp_Object args[2] = { bus, service };
 
   /* Check parameters.  */
