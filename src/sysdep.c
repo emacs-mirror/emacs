@@ -292,10 +292,6 @@ init_baud_rate (int fd)
 int wait_debugging;   /* Set nonzero to make following function work under dbx
 			 (at least for bsd).  */
 
-SIGTYPE
-wait_for_termination_signal (void)
-{}
-
 #ifndef MSDOS
 /* Wait for subprocess with process id `pid' to terminate and
    make sure it will get eliminated (not remain forever as a zombie) */

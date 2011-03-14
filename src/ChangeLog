@@ -1,6 +1,7 @@
 2011-03-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* sysdep.c (reset_io): Now static.
+	(wait_for_termination_signal): Remove; unused.
 
 	* keymap.c (keymap_parent, keymap_memberp, map_keymap_internal):
 	(copy_keymap_item, append_key, push_text_char_description):
