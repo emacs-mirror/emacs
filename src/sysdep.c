@@ -488,7 +488,7 @@ sys_subshell (void)
   int pid;
   struct save_signal saved_handlers[5];
   Lisp_Object dir;
-  unsigned char *str = 0;
+  unsigned char * IF_LINT (volatile) str = 0;
   int len;
 
   saved_handlers[0].code = SIGINT;
