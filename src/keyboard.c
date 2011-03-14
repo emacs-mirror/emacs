@@ -2694,7 +2694,7 @@ read_char (int commandflag, int nmaps, Lisp_Object *maps, Lisp_Object prev_event
 
   if (NILP (c))
     {
-      KBOARD *kb;
+      KBOARD *kb IF_LINT (= NULL);
 
       if (end_time)
 	{

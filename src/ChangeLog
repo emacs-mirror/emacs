@@ -8,7 +8,7 @@
 	(decode_keyboard_code, tty_read_avail_input, menu_bar_items):
 	(parse_tool_bar_item, read_key_sequence, Fread_key_sequence):
 	(Fread_key_sequence_vector): Rename locals to avoid shadowing.
-	(read_key_sequence): Mark locals as initialized.
+	(read_key_sequence, read_char): Mark locals as initialized.
 	(Fexit_recursive_edit, Fabort_recursive_edit): Mark with NO_RETURN.
 
 	* keyboard.h (make_ctrl_char): New decl.
