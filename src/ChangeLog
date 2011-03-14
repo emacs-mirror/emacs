@@ -1,5 +1,7 @@
 2011-03-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* emacs.c (init_cmdargs): Rename local to avoid shadowing.
+
 	* lisp.h (fatal_error_signal): Add decl, since it's exported.
 
 	* dbusbind.c: Pointer signedness fixes.

@@ -382,7 +382,7 @@ static void
 init_cmdargs (int argc, char **argv, int skip_args)
 {
   register int i;
-  Lisp_Object name, dir, tem;
+  Lisp_Object name, dir, handler;
   int count = SPECPDL_INDEX ();
   Lisp_Object raw_name;
 
@@ -393,8 +393,8 @@ init_cmdargs (int argc, char **argv, int skip_args)
 
   /* Add /: to the front of the name
      if it would otherwise be treated as magic.  */
-  tem = Ffind_file_name_handler (raw_name, Qt);
-  if (! NILP (tem))
+  handler = Ffind_file_name_handler (raw_name, Qt);
+  if (! NILP (handler))
     raw_name = concat2 (build_string ("/:"), raw_name);
 
   Vinvocation_name = Ffile_name_nondirectory (raw_name);
@@ -411,8 +411,8 @@ init_cmdargs (int argc, char **argv, int skip_args)
 	{
 	  /* Add /: to the front of the name
 	     if it would otherwise be treated as magic.  */
-	  tem = Ffind_file_name_handler (found, Qt);
-	  if (! NILP (tem))
+	  handler = Ffind_file_name_handler (found, Qt);
+	  if (! NILP (handler))
 	    found = concat2 (build_string ("/:"), found);
 	  Vinvocation_directory = Ffile_name_directory (found);
 	}
