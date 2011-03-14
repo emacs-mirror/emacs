@@ -1,3 +1,12 @@
+2011-03-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* dbusbind.c: Pointer signedness fixes.
+	(xd_signature, xd_append_arg, xd_initialize):
+	(Fdbus_call_method, Fdbus_call_method_asynchronously):
+	(Fdbus_method_return_internal, Fdbus_method_error_internal):
+	(Fdbus_send_signal, xd_read_message_1, Fdbus_register_service):
+	(Fdbus_register_signal): Use SSDATA when the context wants char *.
+
 2011-03-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* buffer.h (BUF_BEGV, BUF_BEGV_BYTE, BUF_ZV, BUF_ZV_BYTE, BUF_PT)
