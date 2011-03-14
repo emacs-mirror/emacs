@@ -3,6 +3,11 @@
 	* keyboard.c: Declare functions static if they are not used elsewhere.
 	(echo_char, echo_dash, cmd_error, top_level_2):
 	(poll_for_input, handle_async_input): Now static.
+	(read_char, kbd_buffer_get_event, make_lispy_position):
+	(make_lispy_event, make_lispy_movement, apply_modifiers):
+	(decode_keyboard_code, tty_read_avail_input, menu_bar_items):
+	(parse_tool_bar_item, read_key_sequence, Fread_key_sequence):
+	(Fread_key_sequence_vector): Rename locals to avoid shadowing.
 
 	* keyboard.h (make_ctrl_char): New decl.
 	(mark_kboards): Move decl here ...
