@@ -936,7 +936,7 @@ DEFUN ("dbus-init-bus", Fdbus_init_bus, Sdbus_init_bus, 1, 1, 0,
   Vdbus_registered_buses =  Fcons (bus, Vdbus_registered_buses);
 
   /* We do not want to abort.  */
-  putenv ("DBUS_FATAL_WARNINGS=0");
+  putenv ((char *) "DBUS_FATAL_WARNINGS=0");
 
   /* Return.  */
   return Qnil;

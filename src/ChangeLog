@@ -7,6 +7,9 @@
 	(Fdbus_send_signal, xd_read_message_1, Fdbus_register_service):
 	(Fdbus_register_signal): Use SSDATA when the context wants char *.
 
+	* dbusbind.c (Fdbus_init_bus): Add cast to avoid warning
+	if GCC considers string literals to be constants.
+
 2011-03-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* buffer.h (BUF_BEGV, BUF_BEGV_BYTE, BUF_ZV, BUF_ZV_BYTE, BUF_PT)
