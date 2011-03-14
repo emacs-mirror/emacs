@@ -3340,6 +3340,8 @@ extern void child_setup_tty (int);
 extern void setup_pty (int);
 extern int set_window_size (int, int, int);
 extern void create_process (Lisp_Object, char **, Lisp_Object);
+extern long get_random (void);
+extern void seed_random (long);
 extern int emacs_open (const char *, int, int);
 extern int emacs_close (int);
 extern int emacs_read (int, char *, unsigned int);

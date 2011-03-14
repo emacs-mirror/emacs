@@ -1,5 +1,8 @@
 2011-03-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* fns.c (get_random, seed_random): Move extern decls from here ...
+	* lisp.h: ... to here, so that they can be checked.
+
 	* sysdep.c (reset_io): Now static.
 	(wait_for_termination_signal): Remove; unused.
 

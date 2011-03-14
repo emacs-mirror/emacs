@@ -57,9 +57,6 @@ Lisp_Object Qcodeset, Qdays, Qmonths, Qpaper;
 
 static int internal_equal (Lisp_Object , Lisp_Object, int, int);
 
-extern long get_random (void);
-extern void seed_random (long);
-
 #ifndef HAVE_UNISTD_H
 extern long time ();
 #endif
