@@ -1,5 +1,8 @@
 2011-03-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* process.c (serial_open, serial_configure): Move decls from here ...
+	* systty.h: ... to here, so that they can be checked.
+
 	* fns.c (get_random, seed_random): Move extern decls from here ...
 	* lisp.h: ... to here, so that they can be checked.
 

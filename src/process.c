@@ -164,10 +164,6 @@ extern Lisp_Object QCfilter;
 
 extern const char *get_operating_system_release (void);
 
-/* From sysdep.c or w32.c  */
-extern int serial_open (char *port);
-extern void serial_configure (struct Lisp_Process *p, Lisp_Object contact);
-
 #ifndef HAVE_H_ERRNO
 extern int h_errno;
 #endif
