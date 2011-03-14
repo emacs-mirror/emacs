@@ -2774,8 +2774,8 @@ remapped command in the returned list.  */)
 	    considered remapped sequences yet, copy them over and
 	    process them.  */
 	 || (!remapped && (sequences = remapped_sequences,
-			   remapped = 1),
-	     CONSP (sequences)))
+			   remapped = 1,
+			   CONSP (sequences))))
     {
       Lisp_Object sequence, function;
 

@@ -3,6 +3,7 @@
 	* keymap.c (keymap_parent, keymap_memberp, map_keymap_internal):
 	(copy_keymap_item, append_key, push_text_char_description):
 	Now static.
+	(Fwhere_is_internal): Don't test CONSP (sequences) unnecessarily.
 
 	* keyboard.c: Declare functions static if they are not used elsewhere.
 	(echo_char, echo_dash, cmd_error, top_level_2):
