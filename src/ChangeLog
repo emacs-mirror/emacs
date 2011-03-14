@@ -1,5 +1,9 @@
 2011-03-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* keyboard.c: Declare functions static if they are not used elsewhere.
+	(echo_char, echo_dash, cmd_error, top_level_2):
+	(poll_for_input, handle_async_input): Now static.
+
 	* keyboard.h (make_ctrl_char): New decl.
 
 	* lisp.h (force_auto_save_soon): New decl.

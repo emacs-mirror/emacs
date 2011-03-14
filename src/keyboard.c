@@ -451,7 +451,7 @@ static int store_user_signal_events (void);
    C can be a character, which is printed prettily ("M-C-x" and all that
    jazz), or a symbol, whose name is printed.  */
 
-void
+static void
 echo_char (Lisp_Object c)
 {
   if (current_kboard->immediate_echo)
@@ -538,7 +538,7 @@ echo_char (Lisp_Object c)
 /* Temporarily add a dash to the end of the echo string if it's not
    empty, so that it serves as a mini-prompt for the very next character.  */
 
-void
+static void
 echo_dash (void)
 {
   /* Do nothing if not echoing at all.  */
@@ -967,7 +967,7 @@ restore_kboard_configuration (Lisp_Object was_locked)
 /* Handle errors that are not handled at inner levels
    by printing an error message and returning to the editor command loop.  */
 
-Lisp_Object
+static Lisp_Object
 cmd_error (Lisp_Object data)
 {
   Lisp_Object old_level, old_length;
@@ -1132,7 +1132,7 @@ command_loop_2 (Lisp_Object ignore)
   return Qnil;
 }
 
-Lisp_Object
+static Lisp_Object
 top_level_2 (void)
 {
   return Feval (Vtop_level);
@@ -1885,7 +1885,7 @@ poll_for_input_1 (void)
 /* Timer callback function for poll_timer.  TIMER is equal to
    poll_timer.  */
 
-void
+static void
 poll_for_input (struct atimer *timer)
 {
   if (poll_suppress_count == 0)
@@ -7056,7 +7056,7 @@ tty_read_avail_input (struct terminal *terminal,
   return nread;
 }
 
-void
+static void
 handle_async_input (void)
 {
   interrupt_input_pending = 0;
