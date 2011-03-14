@@ -1,5 +1,7 @@
 2011-03-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lisp.h (fatal_error_signal): Add decl, since it's exported.
+
 	* dbusbind.c: Pointer signedness fixes.
 	(xd_signature, xd_append_arg, xd_initialize):
 	(Fdbus_call_method, Fdbus_call_method_asynchronously):
