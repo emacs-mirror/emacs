@@ -1464,9 +1464,9 @@ with SIGHUP.  */)
 	   don't re-kill them.  */
 	if (other->base_buffer == b && !NILP (BVAR (other, name)))
 	  {
-	    Lisp_Object buffer;
-	    XSETBUFFER (buffer, other);
-	    Fkill_buffer (buffer);
+	    Lisp_Object buf;
+	    XSETBUFFER (buf, other);
+	    Fkill_buffer (buf);
 	  }
 
       UNGCPRO;
@@ -1527,9 +1527,9 @@ with SIGHUP.  */)
       && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b)
       && NILP (Fsymbol_value (intern ("auto-save-visited-file-name"))))
     {
-      Lisp_Object tem;
-      tem = Fsymbol_value (intern ("delete-auto-save-files"));
-      if (! NILP (tem))
+      Lisp_Object delete;
+      delete = Fsymbol_value (intern ("delete-auto-save-files"));
+      if (! NILP (delete))
 	internal_delete_file (BVAR (b, auto_save_file_name));
     }
 
@@ -1601,19 +1601,19 @@ with SIGHUP.  */)
 void
 record_buffer (Lisp_Object buf)
 {
-  register Lisp_Object link, prev;
+  register Lisp_Object list, prev;
   Lisp_Object frame;
   frame = selected_frame;
 
   prev = Qnil;
-  for (link = Vbuffer_alist; CONSP (link); link = XCDR (link))
+  for (list = Vbuffer_alist; CONSP (list); list = XCDR (list))
     {
-      if (EQ (XCDR (XCAR (link)), buf))
+      if (EQ (XCDR (XCAR (list)), buf))
 	break;
-      prev = link;
+      prev = list;
     }
 
-  /* Effectively do Vbuffer_alist = Fdelq (link, Vbuffer_alist);
+  /* Effectively do Vbuffer_alist = Fdelq (list, Vbuffer_alist);
      we cannot use Fdelq itself here because it allows quitting.  */
 
   if (NILP (prev))
@@ -1621,40 +1621,40 @@ record_buffer (Lisp_Object buf)
   else
     XSETCDR (prev, XCDR (XCDR (prev)));
 
-  XSETCDR (link, Vbuffer_alist);
-  Vbuffer_alist = link;
+  XSETCDR (list, Vbuffer_alist);
+  Vbuffer_alist = list;
 
   /* Effectively do a delq on buried_buffer_list.  */
 
   prev = Qnil;
-  for (link = XFRAME (frame)->buried_buffer_list; CONSP (link);
-       link = XCDR (link))
+  for (list = XFRAME (frame)->buried_buffer_list; CONSP (list);
+       list = XCDR (list))
     {
-      if (EQ (XCAR (link), buf))
+      if (EQ (XCAR (list), buf))
         {
           if (NILP (prev))
-            XFRAME (frame)->buried_buffer_list = XCDR (link);
+            XFRAME (frame)->buried_buffer_list = XCDR (list);
           else
             XSETCDR (prev, XCDR (XCDR (prev)));
           break;
         }
-      prev = link;
+      prev = list;
     }
 
   /* Now move this buffer to the front of frame_buffer_list also.  */
 
   prev = Qnil;
-  for (link = frame_buffer_list (frame); CONSP (link);
-       link = XCDR (link))
+  for (list = frame_buffer_list (frame); CONSP (list);
+       list = XCDR (list))
     {
-      if (EQ (XCAR (link), buf))
+      if (EQ (XCAR (list), buf))
 	break;
-      prev = link;
+      prev = list;
     }
 
   /* Effectively do delq.  */
 
-  if (CONSP (link))
+  if (CONSP (list))
     {
       if (NILP (prev))
 	set_frame_buffer_list (frame,
@@ -1662,8 +1662,8 @@ record_buffer (Lisp_Object buf)
       else
 	XSETCDR (prev, XCDR (XCDR (prev)));
 
-      XSETCDR (link, frame_buffer_list (frame));
-      set_frame_buffer_list (frame, link);
+      XSETCDR (list, frame_buffer_list (frame));
+      set_frame_buffer_list (frame, list);
     }
   else
     set_frame_buffer_list (frame, Fcons (buf, frame_buffer_list (frame)));
@@ -1984,13 +1984,13 @@ its frame, iconify that frame.  */)
      buffer is killed.  */
   if (!NILP (BVAR (XBUFFER (buffer), name)))
     {
-      Lisp_Object aelt, link;
+      Lisp_Object aelt, list;
 
       aelt = Frassq (buffer, Vbuffer_alist);
-      link = Fmemq (aelt, Vbuffer_alist);
+      list = Fmemq (aelt, Vbuffer_alist);
       Vbuffer_alist = Fdelq (aelt, Vbuffer_alist);
-      XSETCDR (link, Qnil);
-      Vbuffer_alist = nconc2 (Vbuffer_alist, link);
+      XSETCDR (list, Qnil);
+      Vbuffer_alist = nconc2 (Vbuffer_alist, list);
 
       XFRAME (selected_frame)->buffer_list
         = Fdelq (buffer, XFRAME (selected_frame)->buffer_list);
@@ -2335,12 +2335,12 @@ current buffer is cleared.  */)
 	  && GPT_BYTE > 1 && GPT_BYTE < Z_BYTE
 	  && ! CHAR_HEAD_P (*(GAP_END_ADDR)))
 	{
-	  unsigned char *p = GPT_ADDR - 1;
+	  unsigned char *q = GPT_ADDR - 1;
 
-	  while (! CHAR_HEAD_P (*p) && p > BEG_ADDR) p--;
-	  if (LEADING_CODE_P (*p))
+	  while (! CHAR_HEAD_P (*q) && q > BEG_ADDR) q--;
+	  if (LEADING_CODE_P (*q))
 	    {
-	      EMACS_INT new_gpt = GPT_BYTE - (GPT_ADDR - p);
+	      EMACS_INT new_gpt = GPT_BYTE - (GPT_ADDR - q);
 
 	      move_gap_both (new_gpt, new_gpt);
 	    }
@@ -2424,14 +2424,14 @@ current buffer is cleared.  */)
 	ZV = chars_in_text (BEG_ADDR, ZV_BYTE - BEG_BYTE) + BEG;
 
       {
-	EMACS_INT pt_byte = advance_to_char_boundary (PT_BYTE);
-	EMACS_INT pt;
+	EMACS_INT byte = advance_to_char_boundary (PT_BYTE);
+	EMACS_INT position;
 
-	if (pt_byte > GPT_BYTE)
-	  pt = chars_in_text (GAP_END_ADDR, pt_byte - GPT_BYTE) + GPT;
+	if (byte > GPT_BYTE)
+	  position = chars_in_text (GAP_END_ADDR, byte - GPT_BYTE) + GPT;
 	else
-	  pt = chars_in_text (BEG_ADDR, pt_byte - BEG_BYTE) + BEG;
-	TEMP_SET_PT_BOTH (pt, pt_byte);
+	  position = chars_in_text (BEG_ADDR, byte - BEG_BYTE) + BEG;
+	TEMP_SET_PT_BOTH (position, byte);
       }
 
       tail = markers = BUF_MARKERS (current_buffer);
@@ -4322,10 +4322,10 @@ report_overlay_modification (Lisp_Object start, Lisp_Object end, int after,
 
     for (i = 0; i < size;)
       {
-	Lisp_Object prop, overlay;
-	prop = copy[i++];
-	overlay = copy[i++];
-	call_overlay_mod_hooks (prop, overlay, after, arg1, arg2, arg3);
+	Lisp_Object prop_i, overlay_i;
+	prop_i = copy[i++];
+	overlay_i = copy[i++];
+	call_overlay_mod_hooks (prop_i, overlay_i, after, arg1, arg2, arg3);
       }
   }
   UNGCPRO;
