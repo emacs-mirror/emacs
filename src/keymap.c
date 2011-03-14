@@ -34,9 +34,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keymap.h"
 #include "window.h"
 
-/* The number of elements in keymap vectors.  */
-#define DENSE_TABLE_SIZE (0200)
-
 /* Actually allocate storage for these variables */
 
 Lisp_Object current_global_map;	/* Current global keymap */
