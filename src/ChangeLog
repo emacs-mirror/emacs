@@ -1,3 +1,7 @@
+2011-03-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* buffer.c (Fmake_indirect_buffer): Fix incorrect assertion.
+
 2011-03-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* buffer.h (BUF_BEGV, BUF_BEGV_BYTE, BUF_ZV, BUF_ZV_BYTE, BUF_PT)
