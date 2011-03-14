@@ -1,3 +1,8 @@
+2011-03-14  Michael Albinus <michael.albinus@gmx.de>
+
+	* tramp.texi (Remote processes): New subsection "Running shell on
+	a remote host".
+
 2011-03-12  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* auth.texi (Help for developers): Update docs to explain that the
