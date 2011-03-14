@@ -6,7 +6,7 @@
 	(w32_system_caret_x, w32_system_caret_y): Declare extern.
 
 	* w32select.c: Don't #include "keyboard.h".
-	(run_protected): Add extern declaration for  waiting_for_input.
+	(run_protected): Add extern declaration for waiting_for_input.
 
 	* w32.c (Qlocal, noninteractive1, inhibit_window_system):
 	* w32console.c (detect_input_pending, read_input_pending)
@@ -25,7 +25,7 @@
 
 2011-03-14  Chong Yidong  <cyd@stupidchicken.com>
 
-	* buffer.c (Fmake_indirect_buffer): Fix incorrect assertion.
+	* buffer.c (Fmake_indirect_buffer): Fix incorrect assertions.
 
 2011-03-13  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -130,7 +130,7 @@
 
 2011-03-12  Eli Zaretskii  <eliz@gnu.org>
 
-	* termcap.c [MSDOS]: Include "msdos.h.
+	* termcap.c [MSDOS]: Include "msdos.h".
 	(find_capability, tgetnum, tgetflag, tgetstr, tputs, tgetent):
 	Constify `char *' arguments and their references according to
 	prototypes in tparam.h.
