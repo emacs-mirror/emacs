@@ -1,5 +1,7 @@
 2011-03-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* keyboard.h (make_ctrl_char): New decl.
+
 	* lisp.h (force_auto_save_soon): New decl.
 
 	* emacs.c (init_cmdargs): Rename local to avoid shadowing.
