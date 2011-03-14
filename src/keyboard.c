@@ -8866,7 +8866,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 
   /* The length of the echo buffer when we started reading, and
      the length of this_command_keys when we started reading.  */
-  int echo_start;
+  int echo_start IF_LINT (= 0);
   int keys_start;
 
   /* The number of keymaps we're scanning right now, and the number of
@@ -8944,7 +8944,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
   Lisp_Object first_event;
 #endif
 
-  Lisp_Object original_uppercase;
+  Lisp_Object original_uppercase IF_LINT (= Qnil);
   int original_uppercase_position = -1;
 
   /* Gets around Microsoft compiler limitations.  */
@@ -9123,7 +9123,8 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 	 while those allow us to restart the entire key sequence,
 	 echo_local_start and keys_local_start allow us to throw away
 	 just one key.  */
-      int echo_local_start, keys_local_start, local_first_binding;
+      int echo_local_start IF_LINT (= 0);
+      int keys_local_start, local_first_binding;
 
       eassert (indec.end == t || (indec.end > t && indec.end <= mock_input));
       eassert (indec.start <= indec.end);
