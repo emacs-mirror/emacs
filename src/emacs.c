@@ -2380,7 +2380,7 @@ Special values:
 Anything else (in Emacs 24.1, the possibilities are: aix, berkeley-unix,
 hpux, irix, usg-unix-v) indicates some sort of Unix system.  */);
   Vsystem_type = intern_c_string (SYSTEM_TYPE);
-  /* Above values are from SYSTEM_TYPE in src/s/*.h.  */
+  /* The above values are from SYSTEM_TYPE in include files under src/s.  */
 
   DEFVAR_LISP ("system-configuration", Vsystem_configuration,
 	       doc: /* Value is string indicating configuration Emacs was built for.
