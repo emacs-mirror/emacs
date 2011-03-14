@@ -80,10 +80,6 @@ extern void w32_menu_display_help (HWND, HMENU, UINT, UINT);
 extern void w32_free_menu_strings (HWND);
 extern const char *map_w32_filename (const char *, const char **);
 
-extern int quit_char;
-
-extern const char *const lispy_function_keys[];
-
 /* If non-zero, a w32 timer that, when it expires, displays an
    hourglass cursor on all frames.  */
 static unsigned hourglass_timer = 0;
@@ -187,18 +183,10 @@ unsigned int msh_mousewheel = 0;
 #define MENU_FREE_DELAY 1000
 static unsigned menu_free_timer = 0;
 
-extern Lisp_Object Qtooltip;
-
 #ifdef GLYPH_DEBUG
 int image_cache_refcount, dpyinfo_refcount;
 #endif
 
-
-extern HWND w32_system_caret_hwnd;
-
-extern int w32_system_caret_height;
-extern int w32_system_caret_x;
-extern int w32_system_caret_y;
 static HWND w32_visible_system_caret_hwnd;
 
 /* From w32menu.c  */
@@ -5851,7 +5839,6 @@ Value is t if tooltip was open, nil otherwise.  */)
 /***********************************************************************
 			File selection dialog
  ***********************************************************************/
-extern Lisp_Object Qfile_name_history;
 
 /* Callback for altering the behavior of the Open File dialog.
    Makes the Filename text field contain "Current Directory" and be
@@ -5899,7 +5886,7 @@ file_dialog_callback (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		 no man's land and the user will be unable to tab through the
 		 dialog box (pressing tab will only result in a beep).
 		 Avoid that problem by setting focus to the list here.	*/
-	      if (CDN_INITDONE == notify->hdr.code)
+	      if (notify->hdr.code == CDN_INITDONE)
 		SetFocus (list);
 	    }
 	  else

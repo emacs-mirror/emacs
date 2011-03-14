@@ -90,7 +90,7 @@ struct kboard
 
     /* User-supplied table to translate input characters through.  */
     Lisp_Object KBOARD_INTERNAL_FIELD (Vkeyboard_translate_table);
-    
+
     /* Last command that may be repeated by `repeat'.  */
     Lisp_Object KBOARD_INTERNAL_FIELD (Vlast_repeatable_command);
 
@@ -140,12 +140,12 @@ struct kboard
     /* Keymap mapping keys to alternative preferred forms.
        See the DEFVAR for more documentation.  */
     Lisp_Object KBOARD_INTERNAL_FIELD (Vlocal_function_key_map);
-    
+
     /* Keymap mapping ASCII function key sequences onto their preferred
        forms.  Initialized by the terminal-specific lisp files.  See the
        DEFVAR for more documentation.  */
     Lisp_Object KBOARD_INTERNAL_FIELD (Vinput_decode_map);
-    
+
     /* Minibufferless frames on this display use this frame's minibuffer.  */
     Lisp_Object KBOARD_INTERNAL_FIELD (Vdefault_minibuffer_frame);
 
@@ -518,3 +518,6 @@ extern int tty_read_avail_input (struct terminal *, int,
                                  struct input_event *);
 extern EMACS_TIME timer_check (int);
 
+#ifdef WINDOWSNT
+extern const char *const lispy_function_keys[];
+#endif

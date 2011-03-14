@@ -78,7 +78,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "w32term.h"	/* for all of the w32 includes */
 #include "w32heap.h"	/* os_subtype */
 #include "blockinput.h"
-#include "keyboard.h"	/* cmd_error_internal() */
 #include "charset.h"
 #include "coding.h"
 #include "character.h"
@@ -391,6 +390,7 @@ run_protected (Lisp_Object (*code) (Lisp_Object), Lisp_Object arg)
      with global variables and calling strange looking functions.  Is
      this really the right way to run Lisp callbacks?  */
 
+  extern int waiting_for_input; /* from keyboard.c */
   int owfi;
 
   BLOCK_INPUT;

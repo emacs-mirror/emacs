@@ -1,3 +1,28 @@
+2011-03-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lisp.h (VWindow_system, Qfile_name_history):
+	* keyboard.h (lispy_function_keys) [WINDOWSNT]:
+	* w32term.h (w32_system_caret_hwnd, w32_system_caret_height)
+	(w32_system_caret_x, w32_system_caret_y): Declare extern.
+
+	* w32select.c: Don't #include "keyboard.h".
+	(run_protected): Add extern declaration for  waiting_for_input.
+
+	* w32.c (Qlocal, noninteractive1, inhibit_window_system):
+	* w32console.c (detect_input_pending, read_input_pending)
+	(encode_terminal_code):
+	* w32fns.c (quit_char, lispy_function_keys, Qtooltip)
+	(w32_system_caret_hwnd, w32_system_caret_height, w32_system_caret_x)
+	(w32_system_caret_y, Qfile_name_history):
+	* w32font.c (w32font_driver, QCantialias, QCotf, QClang):
+	* w32inevt.c (reinvoke_input_signal, lispy_function_keys):
+	* w32menu.c (Qmenu_bar, QCtoggle, QCradio, Qoverriding_local_map)
+	(Qoverriding_terminal_local_map, Qmenu_bar_update_hook):
+	* w32proc.c (Qlocal, report_file_error):
+	* w32term.c (Vwindow_system, updating_frame):
+	* w32uniscribe.c (initialized, uniscribe_font_driver):
+	Remove unneeded extern declarations.
+
 2011-03-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* buffer.c (Fmake_indirect_buffer): Fix incorrect assertion.

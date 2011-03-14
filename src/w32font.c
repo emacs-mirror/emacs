@@ -54,8 +54,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define JOHAB_CHARSET 130
 #endif
 
-extern struct font_driver w32font_driver;
-
 Lisp_Object Qgdi;
 Lisp_Object Quniscribe;
 static Lisp_Object QCformat;
@@ -64,7 +62,6 @@ static Lisp_Object Qserif, Qscript, Qdecorative;
 static Lisp_Object Qraster, Qoutline, Qunknown;
 
 /* antialiasing  */
-extern Lisp_Object QCantialias, QCotf, QClang; /* defined in font.c  */
 extern Lisp_Object Qnone; /* reuse from w32fns.c  */
 static Lisp_Object Qstandard, Qsubpixel, Qnatural;
 

@@ -2607,6 +2607,7 @@ extern void syms_of_insdel (void);
 
 /* Defined in dispnew.c */
 extern Lisp_Object selected_frame;
+extern Lisp_Object Vwindow_system;
 EXFUN (Fding, 1);
 EXFUN (Fredraw_frame, 1);
 EXFUN (Fsleep_for, 2);
@@ -3009,6 +3010,7 @@ extern Lisp_Object Qfile_error;
 extern Lisp_Object Qfile_exists_p;
 extern Lisp_Object Qfile_directory_p;
 extern Lisp_Object Qinsert_file_contents;
+extern Lisp_Object Qfile_name_history;
 EXFUN (Ffind_file_name_handler, 2);
 EXFUN (Ffile_name_as_directory, 1);
 EXFUN (Fexpand_file_name, 2);

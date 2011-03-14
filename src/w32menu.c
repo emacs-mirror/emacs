@@ -84,14 +84,6 @@ MessageBoxW_Proc unicode_message_box = NULL;
 
 Lisp_Object Qdebug_on_next_call;
 
-extern Lisp_Object Qmenu_bar;
-
-extern Lisp_Object QCtoggle, QCradio;
-
-extern Lisp_Object Qoverriding_local_map, Qoverriding_terminal_local_map;
-
-extern Lisp_Object Qmenu_bar_update_hook;
-
 void set_frame_menubar (FRAME_PTR, int, int);
 
 #ifdef HAVE_DIALOGS
