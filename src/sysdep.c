@@ -2845,8 +2845,10 @@ system_process_attributes (Lisp_Object pid)
   fd = emacs_open (fn, O_RDONLY, 0);
   if (fd >= 0)
     {
-      for (cmdline_size = 0; emacs_read (fd, &c, 1) == 1; cmdline_size++)
+      char ch;
+      for (cmdline_size = 0; emacs_read (fd, &ch, 1) == 1; cmdline_size++)
 	{
+	  c = ch;
 	  if (isspace (c) || c == '\\')
 	    cmdline_size++;	/* for later quoting, see below */
 	}
