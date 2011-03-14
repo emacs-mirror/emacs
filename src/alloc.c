@@ -270,7 +270,6 @@ Lisp_Object Qpost_gc_hook;
 
 static void mark_buffer (Lisp_Object);
 static void mark_terminals (void);
-extern void mark_kboards (void);
 extern void mark_backtrace (void);
 static void gc_sweep (void);
 static void mark_glyph_matrix (struct glyph_matrix *);

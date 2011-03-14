@@ -5,6 +5,8 @@
 	(poll_for_input, handle_async_input): Now static.
 
 	* keyboard.h (make_ctrl_char): New decl.
+	(mark_kboards): Move decl here ...
+	* alloc.c (mark_kboards): ... from here.
 
 	* lisp.h (force_auto_save_soon): New decl.
 

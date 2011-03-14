@@ -518,3 +518,4 @@ extern void add_user_signal (int, const char *);
 extern int tty_read_avail_input (struct terminal *, int,
                                  struct input_event *);
 extern EMACS_TIME timer_check (int);
+extern void mark_kboards (void);
