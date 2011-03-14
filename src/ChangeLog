@@ -5,6 +5,9 @@
 	Now static.
 	(Fwhere_is_internal): Don't test CONSP (sequences) unnecessarily.
 	(DENSE_TABLE_SIZE): Remove; unused.
+	(get_keymap, access_keymap, Fdefine_key, Fwhere_is_internal):
+	(describe_map_tree):
+	Rename locals to avoid shadowing.
 
 	* keyboard.c: Declare functions static if they are not used elsewhere.
 	(echo_char, echo_dash, cmd_error, top_level_2):

@@ -188,8 +188,9 @@ when reading a key-sequence to be looked-up in this keymap.  */)
    If the map needs to be autoloaded, but AUTOLOAD is zero (and ERROR
    is zero as well), return Qt.
 
-   ERROR controls how we respond if OBJECT isn't a keymap.
-   If ERROR is non-zero, signal an error; otherwise, just return Qnil.
+   ERROR_IF_NOT_KEYMAP controls how we respond if OBJECT isn't a keymap.
+   If ERROR_IF_NOT_KEYMAP is non-zero, signal an error; otherwise,
+   just return Qnil.
 
    Note that most of the time, we don't want to pursue autoloads.
    Functions like Faccessible_keymaps which scan entire keymap trees
@@ -201,7 +202,7 @@ when reading a key-sequence to be looked-up in this keymap.  */)
    do_autoload which can GC.  */
 
 Lisp_Object
-get_keymap (Lisp_Object object, int error, int autoload)
+get_keymap (Lisp_Object object, int error_if_not_keymap, int autoload)
 {
   Lisp_Object tem;
 
@@ -219,7 +220,7 @@ get_keymap (Lisp_Object object, int error, int autoload)
 
       /* Should we do an autoload?  Autoload forms for keymaps have
 	 Qkeymap as their fifth element.  */
-      if ((autoload || !error) && EQ (XCAR (tem), Qautoload)
+      if ((autoload || !error_if_not_keymap) && EQ (XCAR (tem), Qautoload)
 	  && SYMBOLP (object))
 	{
 	  Lisp_Object tail;
@@ -244,7 +245,7 @@ get_keymap (Lisp_Object object, int error, int autoload)
     }
 
  end:
-  if (error)
+  if (error_if_not_keymap)
     wrong_type_argument (Qkeymapp, object);
   return Qnil;
 }
@@ -465,19 +466,19 @@ access_keymap (Lisp_Object map, Lisp_Object idx, int t_ok, int noinherit, int au
       /* See if there is a meta-map.  If there's none, there is
          no binding for IDX, unless a default binding exists in MAP.  */
       struct gcpro gcpro1;
-      Lisp_Object meta_map;
+      Lisp_Object event_meta_map;
       GCPRO1 (map);
       /* A strange value in which Meta is set would cause
 	 infinite recursion.  Protect against that.  */
       if (XINT (meta_prefix_char) & CHAR_META)
 	meta_prefix_char = make_number (27);
-      meta_map = get_keymap (access_keymap (map, meta_prefix_char,
-					    t_ok, noinherit, autoload),
-			     0, autoload);
+      event_meta_map = get_keymap (access_keymap (map, meta_prefix_char,
+						  t_ok, noinherit, autoload),
+				   0, autoload);
       UNGCPRO;
-      if (CONSP (meta_map))
+      if (CONSP (event_meta_map))
 	{
-	  map = meta_map;
+	  map = event_meta_map;
 	  idx = make_number (XUINT (idx) & ~meta_modifier);
 	}
       else if (t_ok)
@@ -1139,10 +1140,10 @@ binding KEY to DEF is added at the front of KEYMAP.  */)
       int i = ASIZE (def);
       while (--i >= 0)
 	{
-	  Lisp_Object c = AREF (def, i);
-	  if (CONSP (c) && lucid_event_type_list_p (c))
-	    c = Fevent_convert_list (c);
-	  ASET (tmp, i, c);
+	  Lisp_Object defi = AREF (def, i);
+	  if (CONSP (defi) && lucid_event_type_list_p (defi))
+	    defi = Fevent_convert_list (defi);
+	  ASET (tmp, i, defi);
 	}
       def = tmp;
     }
@@ -2812,9 +2813,9 @@ remapped command in the returned list.  */)
 	 seems to be only one menu item to report.  */
       if (! NILP (sequence))
 	{
-	  Lisp_Object tem;
-	  tem = Faref (sequence, make_number (ASIZE (sequence) - 1));
-	  if (STRINGP (tem))
+	  Lisp_Object tem1;
+	  tem1 = Faref (sequence, make_number (ASIZE (sequence) - 1));
+	  if (STRINGP (tem1))
 	    Faset (sequence, make_number (ASIZE (sequence) - 1),
 		   build_string ("(any string)"));
 	}
@@ -3119,13 +3120,13 @@ key             binding\n\
       /* Delete from MAPS each element that is for the menu bar.  */
       for (list = maps; CONSP (list); list = XCDR (list))
 	{
-	  Lisp_Object elt, prefix, tem;
+	  Lisp_Object elt, elt_prefix, tem;
 
 	  elt = XCAR (list);
-	  prefix = Fcar (elt);
-	  if (XVECTOR (prefix)->size >= 1)
+	  elt_prefix = Fcar (elt);
+	  if (XVECTOR (elt_prefix)->size >= 1)
 	    {
-	      tem = Faref (prefix, make_number (0));
+	      tem = Faref (elt_prefix, make_number (0));
 	      if (EQ (tem, Qmenu_bar))
 		maps = Fdelq (elt, maps);
 	    }
@@ -3150,10 +3151,10 @@ key             binding\n\
 
   for (; CONSP (maps); maps = XCDR (maps))
     {
-      register Lisp_Object elt, prefix, tail;
+      register Lisp_Object elt, elt_prefix, tail;
 
       elt = XCAR (maps);
-      prefix = Fcar (elt);
+      elt_prefix = Fcar (elt);
 
       sub_shadows = Qnil;
 
@@ -3165,8 +3166,8 @@ key             binding\n\
 
 	  /* If the sequence by which we reach this keymap is zero-length,
 	     then the shadow map for this keymap is just SHADOW.  */
-	  if ((STRINGP (prefix) && SCHARS (prefix) == 0)
-	      || (VECTORP (prefix) && XVECTOR (prefix)->size == 0))
+	  if ((STRINGP (elt_prefix) && SCHARS (elt_prefix) == 0)
+	      || (VECTORP (elt_prefix) && XVECTOR (elt_prefix)->size == 0))
 	    ;
 	  /* If the sequence by which we reach this keymap actually has
 	     some elements, then the sequence's definition in SHADOW is
@@ -3192,12 +3193,12 @@ key             binding\n\
       for (tail = orig_maps; !EQ (tail, maps); tail = XCDR (tail))
 	{
 	  Lisp_Object tem;
-	  tem = Fequal (Fcar (XCAR (tail)), prefix);
+	  tem = Fequal (Fcar (XCAR (tail)), elt_prefix);
 	  if (!NILP (tem))
 	    sub_shadows = Fcons (XCDR (XCAR (tail)), sub_shadows);
 	}
 
-      describe_map (Fcdr (elt), prefix,
+      describe_map (Fcdr (elt), elt_prefix,
 		    transl ? describe_translation : describe_command,
 		    partial, sub_shadows, &seen, nomenu, mention_shadow);
 
