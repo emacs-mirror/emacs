@@ -2667,8 +2667,8 @@ system_process_attributes (Lisp_Object pid)
   size_t cmdsize = 0, cmdline_size;
   unsigned char c;
   int proc_id, ppid, uid, gid, pgrp, sess, tty, tpgid, thcount;
-  unsigned long long utime, stime, cutime, cstime, start;
-  long priority, nice, rss;
+  unsigned long long u_time, s_time, cutime, cstime, start;
+  long priority, niceness, rss;
   unsigned long minflt, majflt, cminflt, cmajflt, vsize;
   time_t sec;
   unsigned usec;
@@ -2748,8 +2748,8 @@ system_process_attributes (Lisp_Object pid)
 	  sscanf (p, "%c %d %d %d %d %d %*u %lu %lu %lu %lu %Lu %Lu %Lu %Lu %ld %ld %d %*d %Lu %lu %ld",
 		  &c, &ppid, &pgrp, &sess, &tty, &tpgid,
 		  &minflt, &cminflt, &majflt, &cmajflt,
-		  &utime, &stime, &cutime, &cstime,
-		  &priority, &nice, &thcount, &start, &vsize, &rss);
+		  &u_time, &s_time, &cutime, &cstime,
+		  &priority, &niceness, &thcount, &start, &vsize, &rss);
 	  {
 	    char state_str[2];
 
@@ -2777,13 +2777,14 @@ system_process_attributes (Lisp_Object pid)
 	  if (clocks_per_sec < 0)
 	    clocks_per_sec = 100;
 	  attrs = Fcons (Fcons (Qutime,
-				ltime_from_jiffies (utime, clocks_per_sec)),
+				ltime_from_jiffies (u_time, clocks_per_sec)),
 			 attrs);
 	  attrs = Fcons (Fcons (Qstime,
-				ltime_from_jiffies (stime, clocks_per_sec)),
+				ltime_from_jiffies (s_time, clocks_per_sec)),
 			 attrs);
 	  attrs = Fcons (Fcons (Qtime,
-				ltime_from_jiffies (stime+utime, clocks_per_sec)),
+				ltime_from_jiffies (s_time + u_time,
+						    clocks_per_sec)),
 			 attrs);
 	  attrs = Fcons (Fcons (Qcutime,
 				ltime_from_jiffies (cutime, clocks_per_sec)),
@@ -2795,7 +2796,7 @@ system_process_attributes (Lisp_Object pid)
 				ltime_from_jiffies (cstime+cutime, clocks_per_sec)),
 			 attrs);
 	  attrs = Fcons (Fcons (Qpri, make_number (priority)), attrs);
-	  attrs = Fcons (Fcons (Qnice, make_number (nice)), attrs);
+	  attrs = Fcons (Fcons (Qnice, make_number (niceness)), attrs);
 	  attrs = Fcons (Fcons (Qthcount, make_fixnum_or_float (thcount_eint)), attrs);
 	  EMACS_GET_TIME (tnow);
 	  get_up_time (&sec, &usec);
@@ -2825,7 +2826,7 @@ system_process_attributes (Lisp_Object pid)
 				       make_number
 				       (EMACS_USECS (telapsed)))),
 			 attrs);
-	  time_from_jiffies (utime + stime, clocks_per_sec, &sec, &usec);
+	  time_from_jiffies (u_time + s_time, clocks_per_sec, &sec, &usec);
 	  pcpu = (sec + usec / 1000000.0) / (EMACS_SECS (telapsed) + EMACS_USECS (telapsed) / 1000000.0);
 	  if (pcpu > 1.0)
 	    pcpu = 1.0;
