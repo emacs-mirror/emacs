@@ -255,7 +255,7 @@ get_keymap (Lisp_Object object, int error, int autoload)
 /* Return the parent map of KEYMAP, or nil if it has none.
    We assume that KEYMAP is a valid keymap.  */
 
-Lisp_Object
+static Lisp_Object
 keymap_parent (Lisp_Object keymap, int autoload)
 {
   Lisp_Object list;
@@ -283,7 +283,7 @@ If KEYMAP has no parent, return nil.  */)
 }
 
 /* Check whether MAP is one of MAPS parents.  */
-int
+static int
 keymap_memberp (Lisp_Object map, Lisp_Object maps)
 {
   if (NILP (map)) return 0;
@@ -598,7 +598,7 @@ map_keymap_char_table_item (Lisp_Object args, Lisp_Object key, Lisp_Object val)
 
 /* Call FUN for every binding in MAP and stop at (and return) the parent.
    FUN is called with 4 arguments: FUN (KEY, BINDING, ARGS, DATA).  */
-Lisp_Object
+static Lisp_Object
 map_keymap_internal (Lisp_Object map,
 		     map_keymap_function_t fun,
 		     Lisp_Object args,
@@ -960,7 +960,7 @@ store_in_keymap (Lisp_Object keymap, register Lisp_Object idx, Lisp_Object def)
 
 EXFUN (Fcopy_keymap, 1);
 
-Lisp_Object
+static Lisp_Object
 copy_keymap_item (Lisp_Object elt)
 {
   Lisp_Object res, tem;
@@ -1337,7 +1337,7 @@ define_as_prefix (Lisp_Object keymap, Lisp_Object c)
 
 /* Append a key to the end of a key sequence.  We always make a vector.  */
 
-Lisp_Object
+static Lisp_Object
 append_key (Lisp_Object key_sequence, Lisp_Object key)
 {
   Lisp_Object args[2];
@@ -2439,7 +2439,7 @@ around function keys and event symbols.  */)
   return Qnil;
 }
 
-char *
+static char *
 push_text_char_description (register unsigned int c, register char *p)
 {
   if (c >= 0200)
