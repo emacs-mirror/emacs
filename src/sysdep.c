@@ -1886,12 +1886,12 @@ emacs_write (int fildes, const char *buf, unsigned int nbyte)
  *	under error conditions.
  */
 
+#ifndef HAVE_GETWD
+
 #ifndef MAXPATHLEN
 /* In 4.1, param.h fails to define this.  */
 #define MAXPATHLEN 1024
 #endif
-
-#ifndef HAVE_GETWD
 
 char *
 getwd (char *pathname)

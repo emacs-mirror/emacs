@@ -4,6 +4,7 @@
 	Fix pointer signedness issue.
 	(sys_subshell): Mark local as volatile if checking for lint,
 	to suppress a gcc -Wclobbered warning that does not seem to be right.
+	(MAXPATHLEN): Define only if needed.
 
 	* process.c (serial_open, serial_configure): Move decls from here ...
 	* systty.h: ... to here, so that they can be checked.
