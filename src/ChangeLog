@@ -7,6 +7,8 @@
 	(Fexpand_file_name): Likewise.  In particular, newdir might
 	point at constant storage, so make it a const pointer.
 	(Fmake_directory_internal, Fread_file_name): Remove unused vars.
+	(Ffile_selinux_context, Fset_file_selinux_context): Fix pointer
+	signedness issues.
 
 	* minibuf.c (choose_minibuf_frame_1): Now static.
 	(Ftry_completion, Fall_completions): Rename or remove locals

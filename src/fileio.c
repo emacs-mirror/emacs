@@ -2756,7 +2756,7 @@ if file does not exist, is not accessible, or SELinux is disabled */)
 #if HAVE_LIBSELINUX
   if (is_selinux_enabled ())
     {
-      conlength = lgetfilecon (SDATA (absname), &con);
+      conlength = lgetfilecon (SSDATA (absname), &con);
       if (conlength > 0)
 	{
 	  context = context_new (con);
@@ -2811,34 +2811,35 @@ is disabled. */)
   if (is_selinux_enabled ())
     {
       /* Get current file context. */
-      conlength = lgetfilecon (SDATA (encoded_absname), &con);
+      conlength = lgetfilecon (SSDATA (encoded_absname), &con);
       if (conlength > 0)
 	{
 	  parsed_con = context_new (con);
 	  /* Change the parts defined in the parameter.*/
 	  if (STRINGP (user))
 	    {
-	      if (context_user_set (parsed_con, SDATA (user)))
+	      if (context_user_set (parsed_con, SSDATA (user)))
 		error ("Doing context_user_set");
 	    }
 	  if (STRINGP (role))
 	    {
-	      if (context_role_set (parsed_con, SDATA (role)))
+	      if (context_role_set (parsed_con, SSDATA (role)))
 		error ("Doing context_role_set");
 	    }
 	  if (STRINGP (type))
 	    {
-	      if (context_type_set (parsed_con, SDATA (type)))
+	      if (context_type_set (parsed_con, SSDATA (type)))
 		error ("Doing context_type_set");
 	    }
 	  if (STRINGP (range))
 	    {
-	      if (context_range_set (parsed_con, SDATA (range)))
+	      if (context_range_set (parsed_con, SSDATA (range)))
 		error ("Doing context_range_set");
 	    }
 
 	  /* Set the modified context back to the file. */
-	  fail = lsetfilecon (SDATA (encoded_absname), context_str (parsed_con));
+	  fail = lsetfilecon (SSDATA (encoded_absname),
+			      context_str (parsed_con));
 	  if (fail)
 	    report_file_error ("Doing lsetfilecon", Fcons (absname, Qnil));
 
