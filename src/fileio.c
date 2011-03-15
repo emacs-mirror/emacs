@@ -2045,7 +2045,6 @@ DEFUN ("delete-directory-internal", Fdelete_directory_internal,
   (Lisp_Object directory)
 {
   const char *dir;
-  Lisp_Object handler;
   Lisp_Object encoded_dir;
 
   CHECK_STRING (directory);
@@ -5430,7 +5429,7 @@ before any other event (mouse or keypress) is handled.  */)
 Lisp_Object
 Fread_file_name (Lisp_Object prompt, Lisp_Object dir, Lisp_Object default_filename, Lisp_Object mustmatch, Lisp_Object initial, Lisp_Object predicate)
 {
-  struct gcpro gcpro1, gcpro2;
+  struct gcpro gcpro1;
   Lisp_Object args[7];
 
   GCPRO1 (default_filename);

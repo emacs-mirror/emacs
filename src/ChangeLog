@@ -6,6 +6,7 @@
 	(file_name_as_directory): Use const pointers when appropriate.
 	(Fexpand_file_name): Likewise.  In particular, newdir might
 	point at constant storage, so make it a const pointer.
+	(Fmake_directory_internal, Fread_file_name): Remove unused vars.
 
 	* minibuf.c (choose_minibuf_frame_1): Now static.
 	(Ftry_completion, Fall_completions): Rename or remove locals
