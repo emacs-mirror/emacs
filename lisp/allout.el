@@ -310,6 +310,7 @@ Auto-layout is not.
 
 With value nil, inhibit any automatic allout-mode activation."
   :set 'allout-auto-activation-helper
+  ;; FIXME: Using strings here is unusual and less efficient than symbols.
   :type '(choice (const :tag "On" t)
                 (const :tag "Ask about layout" "ask")
                 (const :tag "Mode only" "activate")
@@ -752,7 +753,7 @@ Set this var to the bullet you want to use for file cross-references."
 
 ;;;_  = allout-flattened-numbering-abbreviation
 (define-obsolete-variable-alias 'allout-abbreviate-flattened-numbering
-  'allout-flattened-numbering-abbreviation "24.0")
+  'allout-flattened-numbering-abbreviation "24.1")
 (defcustom allout-flattened-numbering-abbreviation nil
   "If non-nil, `allout-flatten-exposed-to-buffer' abbreviates topic
 numbers to minimal amount with some context.  Otherwise, entire
@@ -1402,7 +1403,7 @@ their settings before allout-mode was started."
 (defvar allout-mode-deactivate-hook nil
   "*Hook that's run when allout mode ends.")
 (define-obsolete-variable-alias 'allout-mode-deactivate-hook
-  'allout-mode-off-hook "future")
+  'allout-mode-off-hook "24.1")
 ;;;_   = allout-exposure-category
 (defvar allout-exposure-category nil
   "Symbol for use as allout invisible-text overlay category.")
