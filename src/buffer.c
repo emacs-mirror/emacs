@@ -3398,7 +3398,8 @@ void
 fix_start_end_in_overlays (register EMACS_INT start, register EMACS_INT end)
 {
   Lisp_Object overlay;
-  struct Lisp_Overlay *before_list, *after_list;
+  struct Lisp_Overlay *before_list IF_LINT (= NULL);
+  struct Lisp_Overlay *after_list IF_LINT (= NULL);
   /* These are either nil, indicating that before_list or after_list
      should be assigned, or the cons cell the cdr of which should be
      assigned.  */
@@ -3546,7 +3547,7 @@ fix_overlays_before (struct buffer *bp, EMACS_INT prev, EMACS_INT pos)
   /* If parent is nil, replace overlays_before; otherwise, parent->next.  */
   struct Lisp_Overlay *tail = bp->overlays_before, *parent = NULL, *right_pair;
   Lisp_Object tem;
-  EMACS_INT end;
+  EMACS_INT end IF_LINT (= 0);
 
   /* After the insertion, the several overlays may be in incorrect
      order.  The possibility is that, in the list `overlays_before',

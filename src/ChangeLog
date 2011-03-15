@@ -1,3 +1,10 @@
+2011-03-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* buffer.c (fix_overlays_before): Mark locals as initialized.
+	(fix_start_end_in_overlays): Likewise.  This function should be
+	simplified by using pointers-to-pointers, but that's a different
+	matter.
+
 2011-03-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* buffer.c (switch_to_buffer_1): Now static.
