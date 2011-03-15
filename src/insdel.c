@@ -596,7 +596,6 @@ copy_text (const unsigned char *from_addr, unsigned char *to_addr,
     {
       EMACS_INT nchars = 0;
       EMACS_INT bytes_left = nbytes;
-      Lisp_Object tbl = Qnil;
 
       while (bytes_left > 0)
 	{
