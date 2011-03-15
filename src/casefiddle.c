@@ -32,7 +32,7 @@ enum case_action {CASE_UP, CASE_DOWN, CASE_CAPITALIZE, CASE_CAPITALIZE_UP};
 
 Lisp_Object Qidentity;
 
-Lisp_Object
+static Lisp_Object
 casify_object (enum case_action flag, Lisp_Object obj)
 {
   register int c, c1;
@@ -193,7 +193,7 @@ The argument object is not altered--the value is a copy.  */)
 /* flag is CASE_UP, CASE_DOWN or CASE_CAPITALIZE or CASE_CAPITALIZE_UP.
    b and e specify range of buffer to operate on. */
 
-void
+static void
 casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
 {
   register int c;

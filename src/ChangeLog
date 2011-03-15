@@ -1,5 +1,7 @@
 2011-03-15  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* casefiddle.c (casify_object, casify_region): Now static.
+
 	* cmds.c (internal_self_insert): Rename local to avoid shadowing.
 
 	* lisp.h (GCPRO2_VAR, GCPRO3_VAR, GCPRO4_VAR, GCPRO5_VAR, GCPRO6_VAR):
