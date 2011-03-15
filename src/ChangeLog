@@ -1,5 +1,8 @@
 2011-03-15  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lisp.h (verify_bytepos, count_markers): New decls,
+	so that gcc does not warn that these functions aren't declared.
+
 	* insdel.c (check_markers, make_gap_larger, make_gap_smaller):
 	(reset_var_on_error, Fcombine_after_change_execute_1): Now static.
 	(CHECK_MARKERS): Redo to avoid gcc -Wempty-body diagnostic.

@@ -2995,12 +2995,14 @@ extern EMACS_INT marker_byte_position (Lisp_Object);
 extern void clear_charpos_cache (struct buffer *);
 extern EMACS_INT charpos_to_bytepos (EMACS_INT);
 extern EMACS_INT buf_charpos_to_bytepos (struct buffer *, EMACS_INT);
+extern EMACS_INT verify_bytepos (EMACS_INT charpos);
 extern EMACS_INT buf_bytepos_to_charpos (struct buffer *, EMACS_INT);
 extern void unchain_marker (struct Lisp_Marker *marker);
 extern Lisp_Object set_marker_restricted (Lisp_Object, Lisp_Object, Lisp_Object);
 extern Lisp_Object set_marker_both (Lisp_Object, Lisp_Object, EMACS_INT, EMACS_INT);
 extern Lisp_Object set_marker_restricted_both (Lisp_Object, Lisp_Object,
                                                EMACS_INT, EMACS_INT);
+extern int count_markers (struct buffer *);
 extern void syms_of_marker (void);
 
 /* Defined in fileio.c */
