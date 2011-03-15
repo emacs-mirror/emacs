@@ -1,3 +1,7 @@
+2011-03-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (command-line): Update package subdirectory regexp.
+
 2011-03-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* allout.el (allout-abbreviate-flattened-numbering)

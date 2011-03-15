@@ -1191,7 +1191,7 @@ the `--debug-init' option to view a complete error backtrace."
 	       (dolist (subdir (directory-files dir))
 		 (when (and (file-directory-p (expand-file-name subdir dir))
 			    ;; package-subdirectory-regexp from package.el
-			    (string-match "^\\([^.].*\\)-\\([0-9]+\\(?:[.][0-9]+\\)*\\)$"
+			    (string-match "\\`\\([^.].*?\\)-\\([0-9]+\\(?:[.][0-9]+\\|\\(?:pre\\|beta\\|alpha\\)[0-9]+\\)*\\)\\'"
 					  subdir))
 		   (throw 'package-dir-found t)))))))
        (package-initialize))
