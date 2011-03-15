@@ -4222,9 +4222,6 @@ Case is ignored if `case-fold-search' is non-nil in the current buffer.  */)
   if (NILP (BVAR (current_buffer, case_fold_search)))
     return Qnil;
 
-  /* Do these in separate statements,
-     then compare the variables.
-     because of the way downcase uses temp variables.  */
   i1 = XFASTINT (c1);
   if (NILP (BVAR (current_buffer, enable_multibyte_characters))
       && ! ASCII_CHAR_P (i1))
@@ -4237,9 +4234,7 @@ Case is ignored if `case-fold-search' is non-nil in the current buffer.  */)
     {
       MAKE_CHAR_MULTIBYTE (i2);
     }
-  i1 = downcase (i1);
-  i2 = downcase (i2);
-  return (i1 == i2 ? Qt :  Qnil);
+  return (downcase (i1) == downcase (i2) ? Qt :  Qnil);
 }
 
 /* Transpose the markers in two regions of the current buffer, and
