@@ -2942,7 +2942,7 @@ read_char (int commandflag, int nmaps, Lisp_Object *maps, Lisp_Object prev_event
 	keys = Fcopy_sequence (this_command_keys);
       else
 	keys = Qnil;
-      GCPRO1_VAR (keys, inner_gcpro1);
+      GCPRO1_VAR (keys, inner_gcpro);
 
       /* Clear out this_command_keys.  */
       this_command_key_count = 0;
@@ -2980,7 +2980,7 @@ read_char (int commandflag, int nmaps, Lisp_Object *maps, Lisp_Object prev_event
       if (saved_immediate_echo)
 	echo_now ();
 
-      UNGCPRO_VAR (inner_gcpro1);
+      UNGCPRO_VAR (inner_gcpro);
 
       /* The input method can return no events.  */
       if (! CONSP (tem))
@@ -8963,7 +8963,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 
   struct gcpro outer_gcpro1;
 
-  GCPRO1_VAR (fake_prefixed_keys, outer_gcpro1);
+  GCPRO1_VAR (fake_prefixed_keys, outer_gcpro);
   raw_keybuf_count = 0;
 
   last_nonmenu_event = Qnil;
@@ -9258,7 +9258,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 	  if (EQ (key, Qt))
 	    {
 	      unbind_to (count, Qnil);
-	      UNGCPRO_VAR (outer_gcpro1);
+	      UNGCPRO_VAR (outer_gcpro);
 	      return -1;
 	    }
 
@@ -9941,7 +9941,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
       add_command_key (keybuf[t]);
     }
 
-  UNGCPRO_VAR (outer_gcpro1);
+  UNGCPRO_VAR (outer_gcpro);
   return t;
 }
 

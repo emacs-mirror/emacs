@@ -2109,129 +2109,143 @@ struct gcpro
 			  || GC_MARK_STACK == GC_MARK_STACK_CHECK_GCPROS)
 
 
-#define GCPRO1(varname) GCPRO1_VAR (varname, gcpro1)
-#define UNGCPRO UNGCPRO_VAR (gcpro1)
+#define GCPRO1(var) \
+  GCPRO1_VAR (var, gcpro)
+#define GCPRO2(var1, var2) \
+  GCPRO2_VAR (var1, var2, gcpro)
+#define GCPRO3(var1, var2, var3) \
+  GCPRO3_VAR (var1, var2, var3, gcpro)
+#define GCPRO4(var1, var2, var3, var4) \
+  GCPRO4_VAR (var1, var2, var3, var4, gcpro)
+#define GCPRO5(var1, var2, var3, var4, var5) \
+  GCPRO5_VAR (var1, var2, var3, var4, var5, gcpro)
+#define GCPRO6(var1, var2, var3, var4, var5, var6) \
+  GCPRO6_VAR (var1, var2, var3, var4, var5, var6, gcpro)
+#define UNGCPRO UNGCPRO_VAR (gcpro)
 
 #if GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS
 
 /* Do something silly with gcproN vars just so gcc shuts up.  */
 /* You get warnings from MIPSPro...  */
 
-#define GCPRO1_VAR(varname, gcpro1) ((void) gcpro1)
-#define GCPRO2(varname1, varname2)(((void) gcpro2, (void) gcpro1))
-#define GCPRO3(varname1, varname2, varname3) \
-  (((void) gcpro3, (void) gcpro2, (void) gcpro1))
-#define GCPRO4(varname1, varname2, varname3, varname4) \
-  (((void) gcpro4, (void) gcpro3, (void) gcpro2, (void) gcpro1))
-#define GCPRO5(varname1, varname2, varname3, varname4, varname5) \
-  (((void) gcpro5, (void) gcpro4, (void) gcpro3, (void) gcpro2, (void) gcpro1))
-#define GCPRO6(varname1, varname2, varname3, varname4, varname5, varname6) \
-  (((void) gcpro6, (void) gcpro5, (void) gcpro4, (void) gcpro3, (void) gcpro2, (void) gcpro1))
-#define UNGCPRO_VAR(gcpro1) ((void) 0)
+#define GCPRO1_VAR(var, gcpro) ((void) gcpro##1)
+#define GCPRO2_VAR(var1, var2, gcpro) \
+  ((void) gcpro##2, (void) gcpro##1)
+#define GCPRO3_VAR(var1, var2, var3, gcpro) \
+  ((void) gcpro##3, (void) gcpro##2, (void) gcpro##1)
+#define GCPRO4_VAR(var1, var2, var3, var4, gcpro) \
+  ((void) gcpro##4, (void) gcpro##3, (void) gcpro##2, (void) gcpro##1)
+#define GCPRO5_VAR(var1, var2, var3, var4, var5, gcpro) \
+  ((void) gcpro##5, (void) gcpro##4, (void) gcpro##3, (void) gcpro##2, \
+   (void) gcpro##1)
+#define GCPRO6_VAR(var1, var2, var3, var4, var5, var6, gcpro) \
+  ((void) gcpro##6, (void) gcpro##5, (void) gcpro##4, (void) gcpro##3, \
+   (void) gcpro##2, (void) gcpro##1)
+#define UNGCPRO_VAR(gcpro) ((void) 0)
 
 #else /* GC_MARK_STACK != GC_MAKE_GCPROS_NOOPS */
 
 #ifndef DEBUG_GCPRO
 
-#define GCPRO1_VAR(varname, gcpro1)				    \
- {gcpro1.next = gcprolist; gcpro1.var = &varname; gcpro1.nvars = 1; \
-  gcprolist = &gcpro1; }
+#define GCPRO1_VAR(var, gcpro) \
+ {gcpro##1.next = gcprolist; gcpro##1.var = &var; gcpro##1.nvars = 1; \
+  gcprolist = &gcpro##1; }
 
-#define GCPRO2(varname1, varname2) \
- {gcpro1.next = gcprolist; gcpro1.var = &varname1; gcpro1.nvars = 1; \
-  gcpro2.next = &gcpro1; gcpro2.var = &varname2; gcpro2.nvars = 1; \
-  gcprolist = &gcpro2; }
+#define GCPRO2_VAR(var1, var2, gcpro) \
+ {gcpro##1.next = gcprolist; gcpro##1.var = &var1; gcpro##1.nvars = 1; \
+  gcpro##2.next = &gcpro##1; gcpro##2.var = &var2; gcpro##2.nvars = 1; \
+  gcprolist = &gcpro##2; }
 
-#define GCPRO3(varname1, varname2, varname3) \
- {gcpro1.next = gcprolist; gcpro1.var = &varname1; gcpro1.nvars = 1; \
-  gcpro2.next = &gcpro1; gcpro2.var = &varname2; gcpro2.nvars = 1; \
-  gcpro3.next = &gcpro2; gcpro3.var = &varname3; gcpro3.nvars = 1; \
-  gcprolist = &gcpro3; }
+#define GCPRO3_VAR(var1, var2, var3, gcpro) \
+ {gcpro##1.next = gcprolist; gcpro##1.var = &var1; gcpro##1.nvars = 1; \
+  gcpro##2.next = &gcpro##1; gcpro##2.var = &var2; gcpro##2.nvars = 1; \
+  gcpro##3.next = &gcpro##2; gcpro##3.var = &var3; gcpro##3.nvars = 1; \
+  gcprolist = &gcpro##3; }
 
-#define GCPRO4(varname1, varname2, varname3, varname4) \
- {gcpro1.next = gcprolist; gcpro1.var = &varname1; gcpro1.nvars = 1; \
-  gcpro2.next = &gcpro1; gcpro2.var = &varname2; gcpro2.nvars = 1; \
-  gcpro3.next = &gcpro2; gcpro3.var = &varname3; gcpro3.nvars = 1; \
-  gcpro4.next = &gcpro3; gcpro4.var = &varname4; gcpro4.nvars = 1; \
-  gcprolist = &gcpro4; }
+#define GCPRO4_VAR(var1, var2, var3, var4, gcpro) \
+ {gcpro##1.next = gcprolist; gcpro##1.var = &var1; gcpro##1.nvars = 1; \
+  gcpro##2.next = &gcpro##1; gcpro##2.var = &var2; gcpro##2.nvars = 1; \
+  gcpro##3.next = &gcpro##2; gcpro##3.var = &var3; gcpro##3.nvars = 1; \
+  gcpro##4.next = &gcpro##3; gcpro##4.var = &var4; gcpro##4.nvars = 1; \
+  gcprolist = &gcpro##4; }
 
-#define GCPRO5(varname1, varname2, varname3, varname4, varname5) \
- {gcpro1.next = gcprolist; gcpro1.var = &varname1; gcpro1.nvars = 1; \
-  gcpro2.next = &gcpro1; gcpro2.var = &varname2; gcpro2.nvars = 1; \
-  gcpro3.next = &gcpro2; gcpro3.var = &varname3; gcpro3.nvars = 1; \
-  gcpro4.next = &gcpro3; gcpro4.var = &varname4; gcpro4.nvars = 1; \
-  gcpro5.next = &gcpro4; gcpro5.var = &varname5; gcpro5.nvars = 1; \
-  gcprolist = &gcpro5; }
+#define GCPRO5_VAR(var1, var2, var3, var4, var5, gcpro) \
+ {gcpro##1.next = gcprolist; gcpro##1.var = &var1; gcpro##1.nvars = 1; \
+  gcpro##2.next = &gcpro##1; gcpro##2.var = &var2; gcpro##2.nvars = 1; \
+  gcpro##3.next = &gcpro##2; gcpro##3.var = &var3; gcpro##3.nvars = 1; \
+  gcpro##4.next = &gcpro##3; gcpro##4.var = &var4; gcpro##4.nvars = 1; \
+  gcpro##5.next = &gcpro##4; gcpro##5.var = &var5; gcpro##5.nvars = 1; \
+  gcprolist = &gcpro##5; }
 
-#define GCPRO6(varname1, varname2, varname3, varname4, varname5, varname6) \
- {gcpro1.next = gcprolist; gcpro1.var = &varname1; gcpro1.nvars = 1; \
-  gcpro2.next = &gcpro1; gcpro2.var = &varname2; gcpro2.nvars = 1; \
-  gcpro3.next = &gcpro2; gcpro3.var = &varname3; gcpro3.nvars = 1; \
-  gcpro4.next = &gcpro3; gcpro4.var = &varname4; gcpro4.nvars = 1; \
-  gcpro5.next = &gcpro4; gcpro5.var = &varname5; gcpro5.nvars = 1; \
-  gcpro6.next = &gcpro5; gcpro6.var = &varname6; gcpro6.nvars = 1; \
-  gcprolist = &gcpro6; }
+#define GCPRO6_VAR(var1, var2, var3, var4, var5, var6, gcpro) \
+ {gcpro##1.next = gcprolist; gcpro##1.var = &var1; gcpro##1.nvars = 1; \
+  gcpro##2.next = &gcpro##1; gcpro##2.var = &var2; gcpro##2.nvars = 1; \
+  gcpro##3.next = &gcpro##2; gcpro##3.var = &var3; gcpro##3.nvars = 1; \
+  gcpro##4.next = &gcpro##3; gcpro##4.var = &var4; gcpro##4.nvars = 1; \
+  gcpro##5.next = &gcpro##4; gcpro##5.var = &var5; gcpro##5.nvars = 1; \
+  gcpro##6.next = &gcpro##5; gcpro##6.var = &var6; gcpro##6.nvars = 1; \
+  gcprolist = &gcpro##6; }
 
-#define UNGCPRO_VAR(gcpro1) (gcprolist = gcpro1.next)
+#define UNGCPRO_VAR(gcpro) (gcprolist = gcpro##1.next)
 
 #else
 
 extern int gcpro_level;
 
-#define GCPRO1_VAR(varname, gcpro1)				    \
- {gcpro1.next = gcprolist; gcpro1.var = &varname; gcpro1.nvars = 1; \
-  gcpro1.level = gcpro_level++; \
-  gcprolist = &gcpro1; }
+#define GCPRO1_VAR(var, gcpro) \
+ {gcpro##1.next = gcprolist; gcpro##1.var = &var; gcpro##1.nvars = 1; \
+  gcpro##1.level = gcpro_level++; \
+  gcprolist = &gcpro##1; }
 
-#define GCPRO2(varname1, varname2) \
- {gcpro1.next = gcprolist; gcpro1.var = &varname1; gcpro1.nvars = 1; \
-  gcpro1.level = gcpro_level; \
-  gcpro2.next = &gcpro1; gcpro2.var = &varname2; gcpro2.nvars = 1; \
-  gcpro2.level = gcpro_level++; \
-  gcprolist = &gcpro2; }
+#define GCPRO2_VAR(var1, var2, gcpro) \
+ {gcpro##1.next = gcprolist; gcpro##1.var = &var1; gcpro##1.nvars = 1; \
+  gcpro##1.level = gcpro_level; \
+  gcpro##2.next = &gcpro##1; gcpro##2.var = &var2; gcpro##2.nvars = 1; \
+  gcpro##2.level = gcpro_level++; \
+  gcprolist = &gcpro##2; }
 
-#define GCPRO3(varname1, varname2, varname3) \
- {gcpro1.next = gcprolist; gcpro1.var = &varname1; gcpro1.nvars = 1; \
-  gcpro1.level = gcpro_level; \
-  gcpro2.next = &gcpro1; gcpro2.var = &varname2; gcpro2.nvars = 1; \
-  gcpro3.next = &gcpro2; gcpro3.var = &varname3; gcpro3.nvars = 1; \
-  gcpro3.level = gcpro_level++; \
-  gcprolist = &gcpro3; }
+#define GCPRO3_VAR(var1, var2, var3, gcpro) \
+ {gcpro##1.next = gcprolist; gcpro##1.var = &var1; gcpro##1.nvars = 1; \
+  gcpro##1.level = gcpro_level; \
+  gcpro##2.next = &gcpro##1; gcpro##2.var = &var2; gcpro##2.nvars = 1; \
+  gcpro##3.next = &gcpro##2; gcpro##3.var = &var3; gcpro##3.nvars = 1; \
+  gcpro##3.level = gcpro_level++; \
+  gcprolist = &gcpro##3; }
 
-#define GCPRO4(varname1, varname2, varname3, varname4) \
- {gcpro1.next = gcprolist; gcpro1.var = &varname1; gcpro1.nvars = 1; \
-  gcpro1.level = gcpro_level; \
-  gcpro2.next = &gcpro1; gcpro2.var = &varname2; gcpro2.nvars = 1; \
-  gcpro3.next = &gcpro2; gcpro3.var = &varname3; gcpro3.nvars = 1; \
-  gcpro4.next = &gcpro3; gcpro4.var = &varname4; gcpro4.nvars = 1; \
-  gcpro4.level = gcpro_level++; \
-  gcprolist = &gcpro4; }
+#define GCPRO4_VAR(var1, var2, var3, var4, gcpro) \
+ {gcpro##1.next = gcprolist; gcpro##1.var = &var1; gcpro##1.nvars = 1; \
+  gcpro##1.level = gcpro_level; \
+  gcpro##2.next = &gcpro##1; gcpro##2.var = &var2; gcpro##2.nvars = 1; \
+  gcpro##3.next = &gcpro##2; gcpro##3.var = &var3; gcpro##3.nvars = 1; \
+  gcpro##4.next = &gcpro##3; gcpro##4.var = &var4; gcpro##4.nvars = 1; \
+  gcpro##4.level = gcpro_level++; \
+  gcprolist = &gcpro##4; }
 
-#define GCPRO5(varname1, varname2, varname3, varname4, varname5) \
- {gcpro1.next = gcprolist; gcpro1.var = &varname1; gcpro1.nvars = 1; \
-  gcpro1.level = gcpro_level; \
-  gcpro2.next = &gcpro1; gcpro2.var = &varname2; gcpro2.nvars = 1; \
-  gcpro3.next = &gcpro2; gcpro3.var = &varname3; gcpro3.nvars = 1; \
-  gcpro4.next = &gcpro3; gcpro4.var = &varname4; gcpro4.nvars = 1; \
-  gcpro5.next = &gcpro4; gcpro5.var = &varname5; gcpro5.nvars = 1; \
-  gcpro5.level = gcpro_level++; \
-  gcprolist = &gcpro5; }
+#define GCPRO5_VAR(var1, var2, var3, var4, var5, gcpro) \
+ {gcpro##1.next = gcprolist; gcpro##1.var = &var1; gcpro##1.nvars = 1; \
+  gcpro##1.level = gcpro_level; \
+  gcpro##2.next = &gcpro##1; gcpro##2.var = &var2; gcpro##2.nvars = 1; \
+  gcpro##3.next = &gcpro##2; gcpro##3.var = &var3; gcpro##3.nvars = 1; \
+  gcpro##4.next = &gcpro##3; gcpro##4.var = &var4; gcpro##4.nvars = 1; \
+  gcpro##5.next = &gcpro##4; gcpro##5.var = &var5; gcpro##5.nvars = 1; \
+  gcpro##5.level = gcpro_level++; \
+  gcprolist = &gcpro##5; }
 
-#define GCPRO6(varname1, varname2, varname3, varname4, varname5, varname6) \
- {gcpro1.next = gcprolist; gcpro1.var = &varname1; gcpro1.nvars = 1; \
-  gcpro1.level = gcpro_level; \
-  gcpro2.next = &gcpro1; gcpro2.var = &varname2; gcpro2.nvars = 1; \
-  gcpro3.next = &gcpro2; gcpro3.var = &varname3; gcpro3.nvars = 1; \
-  gcpro4.next = &gcpro3; gcpro4.var = &varname4; gcpro4.nvars = 1; \
-  gcpro5.next = &gcpro4; gcpro5.var = &varname5; gcpro5.nvars = 1; \
-  gcpro6.next = &gcpro5; gcpro6.var = &varname6; gcpro6.nvars = 1; \
-  gcpro6.level = gcpro_level++; \
-  gcprolist = &gcpro6; }
+#define GCPRO6_VAR(var1, var2, var3, var4, var5, var6, gcpro) \
+ {gcpro##1.next = gcprolist; gcpro##1.var = &var1; gcpro##1.nvars = 1; \
+  gcpro##1.level = gcpro_level; \
+  gcpro##2.next = &gcpro##1; gcpro##2.var = &var2; gcpro##2.nvars = 1; \
+  gcpro##3.next = &gcpro##2; gcpro##3.var = &var3; gcpro##3.nvars = 1; \
+  gcpro##4.next = &gcpro##3; gcpro##4.var = &var4; gcpro##4.nvars = 1; \
+  gcpro##5.next = &gcpro##4; gcpro##5.var = &var5; gcpro##5.nvars = 1; \
+  gcpro##6.next = &gcpro##5; gcpro##6.var = &var6; gcpro##6.nvars = 1; \
+  gcpro##6.level = gcpro_level++; \
+  gcprolist = &gcpro##6; }
 
-#define UNGCPRO_VAR(gcpro1)		\
- ((--gcpro_level != gcpro1.level)		\
-  ? (abort (), 0)				\
-  : ((gcprolist = gcpro1.next), 0))
+#define UNGCPRO_VAR(gcpro) \
+ ((--gcpro_level != gcpro##1.level) \
+  ? (abort (), 0) \
+  : ((gcprolist = gcpro##1.next), 0))
 
 #endif /* DEBUG_GCPRO */
 #endif /* GC_MARK_STACK != GC_MAKE_GCPROS_NOOPS */

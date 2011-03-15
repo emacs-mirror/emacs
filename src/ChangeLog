@@ -1,5 +1,14 @@
 2011-03-15  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lisp.h (GCPRO2_VAR, GCPRO3_VAR, GCPRO4_VAR, GCPRO5_VAR, GCPRO6_VAR):
+	New macros, so that the caller can use some names other than
+	gcpro1, gcpro2, etc.
+	(GCPRO2, GCPRO3, GCPRO4, GCPRO5, GCPRO6): Reimplement in terms
+	of the new macros.
+	(GCPRO1_VAR, UNGCPRO_VAR): Change the meaning of the second
+	argument, for consistency with GCPRO2_VAR, etc: it is now the
+	prefix of the variable, not the variable itself.  All uses
+	changed.
 	* dired.c (directory_files_internal, file_name_completion):
 	Rename locals to avoid shadowing.
 
