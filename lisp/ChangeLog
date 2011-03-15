@@ -1,3 +1,15 @@
+2011-03-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/ruby-mode.el (ruby-backward-sexp):
+	* progmodes/ebrowse.el (ebrowse-draw-file-member-info):
+	* play/gamegrid.el (gamegrid-make-face):
+	* play/bubbles.el (bubbles--grid-width, bubbles--grid-height)
+	(bubbles--colors, bubbles--shift-mode, bubbles--initialize-images):
+	* notifications.el (notifications-notify):
+	* net/xesam.el (xesam-search-engines):
+	* net/quickurl.el (quickurl-list-insert):
+	* vc/vc-hg.el (vc-hg-dir-printer): Fix use of case.
+
 2011-03-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* startup.el (command-line): Update package subdirectory regexp.

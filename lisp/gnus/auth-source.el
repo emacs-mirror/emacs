@@ -1130,10 +1130,10 @@ See `auth-source-search' for details on SPEC."
                                    (if (zerop (length add)) "" " ")
                                    ;; remap auth-source tokens to netrc
                                    (case r
-                                     ('user   "login")
-                                     ('host   "machine")
-                                     ('secret "password")
-                                     ('port   "port") ; redundant but clearer
+                                     (user   "login")
+                                     (host   "machine")
+                                     (secret "password")
+                                     (port   "port") ; redundant but clearer
                                      (t (symbol-name r)))
                                    ;; the value will be printed in %S format
                                    data))))

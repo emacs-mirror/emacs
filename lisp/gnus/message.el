@@ -3748,13 +3748,13 @@ prefix, and don't delete any headers."
 		(goto-char (mark t))
 		(insert-before-markers ?\n)
 		(goto-char pt))))
-	  (cond
-	    ((eq 'above message-cite-reply-position)
+	  (case message-cite-reply-position
+	    (above
 	     (message-goto-body)
 	     (insert body-text)
 	     (insert (if (bolp) "\n" "\n\n"))
 	     (message-goto-body))
-	    ((eq 'below message-cite-reply-position)
+	    (below
 	     (message-goto-signature)))
 	  ;; Add a `message-setup-very-last-hook' here?
 	  ;; Add `gnus-article-highlight-citation' here?

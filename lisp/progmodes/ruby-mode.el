@@ -974,7 +974,7 @@ With ARG, do it many times.  Negative ARG means move forward."
                    (goto-char (scan-sexps (1+ (point)) -1))
                    (case (char-before)
                      (?% (forward-char -1))
-                     ('(?q ?Q ?w ?W ?r ?x)
+                     ((?q ?Q ?w ?W ?r ?x)
                       (if (eq (char-before (1- (point))) ?%) (forward-char -2))))
                    nil)
                   ((looking-at "\\s\"\\|\\\\\\S_")
