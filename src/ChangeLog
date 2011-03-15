@@ -1,5 +1,8 @@
 2011-03-15  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* dired.c (directory_files_internal, file_name_completion):
+	Rename locals to avoid shadowing.
+
 	Fix a race condition diagnosed by gcc -Wsequence-point (Bug#8254).
 	An expression of the form (DOWNCASE (x) == DOWNCASE (y)), found in
 	dired.c's scmp function, had undefined behavior.
