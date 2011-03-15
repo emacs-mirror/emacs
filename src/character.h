@@ -128,9 +128,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
     XSETCDR ((x), tmp);			\
   } while (0)
 
-/* Nonzero iff C is an ASCII character.  */
-#define ASCII_CHAR_P(c) ((unsigned) (c) < 0x80)
-
 /* Nonzero iff C is a character of code less than 0x100.  */
 #define SINGLE_BYTE_CHAR_P(c) ((unsigned) (c) < 0x100)
 

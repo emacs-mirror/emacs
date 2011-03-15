@@ -1,5 +1,26 @@
 2011-03-15  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Fix a race condition diagnosed by gcc -Wsequence-point (Bug#8254).
+	An expression of the form (DOWNCASE (x) == DOWNCASE (y)), found in
+	dired.c's scmp function, had undefined behavior.
+	* lisp.h (DOWNCASE_TABLE, UPCASE_TABLE, DOWNCASE, UPPERCASEP):
+	(NOCASEP, LOWERCASEP, UPCASE, UPCASE1): Move from here ...
+	* buffer.h: ... to here, because these macros use current_buffer,
+	and the new implementation with inline functions needs to have
+	current_buffer in scope now, rather than later when the macros
+	are used.
+	(downcase, upcase1): New static inline functions.
+	(DOWNCASE, UPCASE1): Reimplement using these functions.
+	This avoids undefined behavior in expressions like
+	DOWNCASE (x) == DOWNCASE (y), which previously suffered
+	from race conditions in accessing the global variables
+	case_temp1 and case_temp2.
+	* casetab.c (case_temp1, case_temp2): Remove; no longer needed.
+	* lisp.h (case_temp1, case_temp2): Remove their decls.
+	* character.h (ASCII_CHAR_P): Move from here ...
+	* lisp.h: ... to here, so that the inline functions mentioned
+	above can use them.
+
 	* dired.c (directory_files_internal_unwind): Now static.
 
 	* fileio.c (file_name_as_directory, directory_file_name):

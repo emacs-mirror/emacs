@@ -841,6 +841,9 @@ struct Lisp_Vector
 
 #endif	/* not __GNUC__ */
 
+/* Nonzero iff C is an ASCII character.  */
+#define ASCII_CHAR_P(c) ((unsigned) (c) < 0x80)
+
 /* Almost equivalent to Faref (CT, IDX) with optimization for ASCII
    characters.  Do not check validity of CT.  */
 #define CHAR_TABLE_REF(CT, IDX)					\
@@ -2041,50 +2044,6 @@ extern int pending_signals;
 
 #define QUITP (!NILP (Vquit_flag) && NILP (Vinhibit_quit))
 
-/* Variables used locally in the following case handling macros.  */
-extern int case_temp1;
-extern Lisp_Object case_temp2;
-
-/* Current buffer's map from characters to lower-case characters.  */
-
-#define DOWNCASE_TABLE BVAR (current_buffer, downcase_table)
-
-/* Current buffer's map from characters to upper-case characters.  */
-
-#define UPCASE_TABLE BVAR (current_buffer, upcase_table)
-
-/* Downcase a character, or make no change if that cannot be done.  */
-
-#define DOWNCASE(CH)						\
-  ((case_temp1 = (CH),						\
-    case_temp2 = CHAR_TABLE_REF (DOWNCASE_TABLE, case_temp1),	\
-    NATNUMP (case_temp2))					\
-   ? XFASTINT (case_temp2) : case_temp1)
-
-/* 1 if CH is upper case.  */
-
-#define UPPERCASEP(CH) (DOWNCASE (CH) != (CH))
-
-/* 1 if CH is neither upper nor lower case.  */
-
-#define NOCASEP(CH) (UPCASE1 (CH) == (CH))
-
-/* 1 if CH is lower case.  */
-
-#define LOWERCASEP(CH) (!UPPERCASEP (CH) && !NOCASEP(CH))
-
-/* Upcase a character, or make no change if that cannot be done.  */
-
-#define UPCASE(CH) (!UPPERCASEP (CH) ? UPCASE1 (CH) : (CH))
-
-/* Upcase a character known to be not upper case.  */
-
-#define UPCASE1(CH)						\
-  ((case_temp1 = (CH),						\
-    case_temp2 = CHAR_TABLE_REF (UPCASE_TABLE, case_temp1),	\
-    NATNUMP (case_temp2))					\
-   ? XFASTINT (case_temp2) : case_temp1)
-
 extern Lisp_Object Vascii_downcase_table, Vascii_upcase_table;
 extern Lisp_Object Vascii_canon_table, Vascii_eqv_table;
 

@@ -1026,4 +1026,47 @@ extern int last_per_buffer_idx;
 
 #define PER_BUFFER_VALUE(BUFFER, OFFSET) \
       (*(Lisp_Object *)((OFFSET) + (char *) (BUFFER)))
+
+/* Current buffer's map from characters to lower-case characters.  */
 
+#define DOWNCASE_TABLE BVAR (current_buffer, downcase_table)
+
+/* Current buffer's map from characters to upper-case characters.  */
+
+#define UPCASE_TABLE BVAR (current_buffer, upcase_table)
+
+/* Downcase a character, or make no change if that cannot be done.  */
+
+static inline EMACS_INT
+downcase (int ch)
+{
+  Lisp_Object down = CHAR_TABLE_REF (DOWNCASE_TABLE, ch);
+  return NATNUMP (down) ? XFASTINT (down) : ch;
+}
+#define DOWNCASE(CH) downcase (CH)
+
+/* 1 if CH is upper case.  */
+
+#define UPPERCASEP(CH) (DOWNCASE (CH) != (CH))
+
+/* 1 if CH is neither upper nor lower case.  */
+
+#define NOCASEP(CH) (UPCASE1 (CH) == (CH))
+
+/* 1 if CH is lower case.  */
+
+#define LOWERCASEP(CH) (!UPPERCASEP (CH) && !NOCASEP(CH))
+
+/* Upcase a character, or make no change if that cannot be done.  */
+
+#define UPCASE(CH) (!UPPERCASEP (CH) ? UPCASE1 (CH) : (CH))
+
+/* Upcase a character known to be not upper case.  */
+
+static inline EMACS_INT
+upcase1 (int ch)
+{
+  Lisp_Object up = CHAR_TABLE_REF (UPCASE_TABLE, ch);
+  return NATNUMP (up) ? XFASTINT (up) : ch;
+}
+#define UPCASE1(CH) upcase1 (CH)
