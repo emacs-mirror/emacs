@@ -2571,9 +2571,6 @@ regex_compile (const re_char *pattern, size_t size, reg_syntax_t syntax, struct 
   /* If the object matched can contain multibyte characters.  */
   const boolean multibyte = RE_MULTIBYTE_P (bufp);
 
-  /* If a target of matching can contain multibyte characters.  */
-  const boolean target_multibyte = RE_TARGET_MULTIBYTE_P (bufp);
-
   /* Nonzero if we have pushed down into a subpattern.  */
   int in_subpattern = 0;
 
@@ -2928,7 +2925,7 @@ regex_compile (const re_char *pattern, size_t size, reg_syntax_t syntax, struct 
 	      {
 		boolean escaped_char = false;
 		const unsigned char *p2 = p;
-		re_wchar_t ch, c2;
+		re_wchar_t ch;
 
 		if (p == pend) FREE_STACK_RETURN (REG_EBRACK);
 
@@ -2991,10 +2988,7 @@ regex_compile (const re_char *pattern, size_t size, reg_syntax_t syntax, struct 
 		       them).  */
 		    if (c == ':' && *p == ']')
 		      {
-			re_wctype_t cc;
-			int limit;
-
-			cc = re_wctype (str);
+			re_wctype_t cc = re_wctype (str);
 
 			if (cc == 0)
 			  FREE_STACK_RETURN (REG_ECTYPE);
@@ -4558,7 +4552,6 @@ re_search_2 (struct re_pattern_buffer *bufp, const char *str1, int size1, const 
 	  if (multibyte)
 	    {
 	      re_char *p = POS_ADDR_VSTRING (startpos);
-	      re_char *pend = STOP_ADDR_VSTRING (startpos);
 	      int len = BYTES_BY_CHAR_HEAD (*p);
 
 	      range -= len;
@@ -5462,7 +5455,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const re_char *string1, int
 	  else
 	    do
 	      {
-		int pat_charlen, buf_charlen;
+		int pat_charlen;
 		int pat_ch, buf_ch;
 
 		PREFETCH ();
