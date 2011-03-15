@@ -2954,12 +2954,7 @@ detect_coding_iso_2022 (struct coding_system *coding,
   const unsigned char *src_end = coding->source + coding->src_bytes;
   int multibytep = coding->src_multibyte;
   int single_shifting = 0;
-
-  /* FIXME: Does ID need to be initialized here?  The "End of composition"
-     code below does not initialize ID even though ID is used
-     afterwards, and perhaps that is a bug.  */
-  int id = 0;
-
+  int id;
   int c, c1;
   int consumed_chars = 0;
   int i;
@@ -2999,40 +2994,11 @@ detect_coding_iso_2022 (struct coding_system *coding,
 	    break;
 	  single_shifting = 0;
 	  ONE_MORE_BYTE (c);
-	  if (c >= '(' && c <= '/')
-	    {
-	      /* Designation sequence for a charset of dimension 1.  */
-	      ONE_MORE_BYTE (c1);
-	      if (c1 < ' ' || c1 >= 0x80
-		  || (id = iso_charset_table[0][c >= ','][c1]) < 0)
-		/* Invalid designation sequence.  Just ignore.  */
-		break;
-	    }
-	  else if (c == '$')
-	    {
-	      /* Designation sequence for a charset of dimension 2.  */
-	      ONE_MORE_BYTE (c);
-	      if (c >= '@' && c <= 'B')
-		/* Designation for JISX0208.1978, GB2312, or JISX0208.  */
-		id = iso_charset_table[1][0][c];
-	      else if (c >= '(' && c <= '/')
-		{
-		  ONE_MORE_BYTE (c1);
-		  if (c1 < ' ' || c1 >= 0x80
-		      || (id = iso_charset_table[1][c >= ','][c1]) < 0)
-		    /* Invalid designation sequence.  Just ignore.  */
-		    break;
-		}
-	      else
-		/* Invalid designation sequence.  Just ignore it.  */
-		break;
-	    }
-	  else if (c == 'N' || c == 'O')
+	  if (c == 'N' || c == 'O')
 	    {
 	      /* ESC <Fe> for SS2 or SS3.  */
 	      single_shifting = 1;
 	      rejected |= CATEGORY_MASK_ISO_7BIT | CATEGORY_MASK_ISO_8BIT;
-	      break;
 	    }
 	  else if (c == '1')
 	    {
@@ -3048,36 +3014,66 @@ detect_coding_iso_2022 (struct coding_system *coding,
 	    {
 	      /* ESC <Fp> for start/end composition.  */
 	      composition_count = 0;
-	      break;
 	    }
 	  else
 	    {
-	      /* Invalid escape sequence.  Just ignore it.  */
-	      break;
-	    }
+	      if (c >= '(' && c <= '/')
+		{
+		  /* Designation sequence for a charset of dimension 1.  */
+		  ONE_MORE_BYTE (c1);
+		  if (c1 < ' ' || c1 >= 0x80
+		      || (id = iso_charset_table[0][c >= ','][c1]) < 0)
+		    /* Invalid designation sequence.  Just ignore.  */
+		    break;
+		}
+	      else if (c == '$')
+		{
+		  /* Designation sequence for a charset of dimension 2.  */
+		  ONE_MORE_BYTE (c);
+		  if (c >= '@' && c <= 'B')
+		    /* Designation for JISX0208.1978, GB2312, or JISX0208.  */
+		    id = iso_charset_table[1][0][c];
+		  else if (c >= '(' && c <= '/')
+		    {
+		      ONE_MORE_BYTE (c1);
+		      if (c1 < ' ' || c1 >= 0x80
+			  || (id = iso_charset_table[1][c >= ','][c1]) < 0)
+			/* Invalid designation sequence.  Just ignore.  */
+			break;
+		    }
+		  else
+		    /* Invalid designation sequence.  Just ignore it.  */
+		    break;
+		}
+	      else
+		{
+		  /* Invalid escape sequence.  Just ignore it.  */
+		  break;
+		}
 
-	  /* We found a valid designation sequence for CHARSET.  */
-	  rejected |= CATEGORY_MASK_ISO_8BIT;
-	  if (SAFE_CHARSET_P (&coding_categories[coding_category_iso_7],
-			      id))
-	    found |= CATEGORY_MASK_ISO_7;
-	  else
-	    rejected |= CATEGORY_MASK_ISO_7;
-	  if (SAFE_CHARSET_P (&coding_categories[coding_category_iso_7_tight],
-			      id))
-	    found |= CATEGORY_MASK_ISO_7_TIGHT;
-	  else
-	    rejected |= CATEGORY_MASK_ISO_7_TIGHT;
-	  if (SAFE_CHARSET_P (&coding_categories[coding_category_iso_7_else],
-			      id))
-	    found |= CATEGORY_MASK_ISO_7_ELSE;
-	  else
-	    rejected |= CATEGORY_MASK_ISO_7_ELSE;
-	  if (SAFE_CHARSET_P (&coding_categories[coding_category_iso_8_else],
-			      id))
-	    found |= CATEGORY_MASK_ISO_8_ELSE;
-	  else
-	    rejected |= CATEGORY_MASK_ISO_8_ELSE;
+	      /* We found a valid designation sequence for CHARSET.  */
+	      rejected |= CATEGORY_MASK_ISO_8BIT;
+	      if (SAFE_CHARSET_P (&coding_categories[coding_category_iso_7],
+				  id))
+		found |= CATEGORY_MASK_ISO_7;
+	      else
+		rejected |= CATEGORY_MASK_ISO_7;
+	      if (SAFE_CHARSET_P (&coding_categories[coding_category_iso_7_tight],
+				  id))
+		found |= CATEGORY_MASK_ISO_7_TIGHT;
+	      else
+		rejected |= CATEGORY_MASK_ISO_7_TIGHT;
+	      if (SAFE_CHARSET_P (&coding_categories[coding_category_iso_7_else],
+				  id))
+		found |= CATEGORY_MASK_ISO_7_ELSE;
+	      else
+		rejected |= CATEGORY_MASK_ISO_7_ELSE;
+	      if (SAFE_CHARSET_P (&coding_categories[coding_category_iso_8_else],
+				  id))
+		found |= CATEGORY_MASK_ISO_8_ELSE;
+	      else
+		rejected |= CATEGORY_MASK_ISO_8_ELSE;
+	    }
 	  break;
 
 	case ISO_CODE_SO:
@@ -3105,13 +3101,32 @@ detect_coding_iso_2022 (struct coding_system *coding,
 	  rejected |= CATEGORY_MASK_ISO_7BIT;
 	  if (CODING_ISO_FLAGS (&coding_categories[coding_category_iso_8_1])
 	      & CODING_ISO_FLAG_SINGLE_SHIFT)
-	    found |= CATEGORY_MASK_ISO_8_1, single_shifting = 1;
+	    {
+	      found |= CATEGORY_MASK_ISO_8_1;
+	      single_shifting = 1;
+	    }
 	  if (CODING_ISO_FLAGS (&coding_categories[coding_category_iso_8_2])
 	      & CODING_ISO_FLAG_SINGLE_SHIFT)
-	    found |= CATEGORY_MASK_ISO_8_2, single_shifting = 1;
+	    {
+	      found |= CATEGORY_MASK_ISO_8_2;
+	      single_shifting = 1;
+	    }
 	  if (single_shifting)
 	    break;
-	  goto check_extra_latin;
+	check_extra_latin:
+	  if (! VECTORP (Vlatin_extra_code_table)
+	      || NILP (XVECTOR (Vlatin_extra_code_table)->contents[c]))
+	    {
+	      rejected = CATEGORY_MASK_ISO;
+	      break;
+	    }
+	  if (CODING_ISO_FLAGS (&coding_categories[coding_category_iso_8_1])
+	      & CODING_ISO_FLAG_LATIN_EXTRA)
+	    found |= CATEGORY_MASK_ISO_8_1;
+	  else
+	    rejected |= CATEGORY_MASK_ISO_8_1;
+	  rejected |= CATEGORY_MASK_ISO_8_2;
+	  break;
 
 	default:
 	  if (c < 0)
@@ -3162,20 +3177,6 @@ detect_coding_iso_2022 (struct coding_system *coding,
 		}
 	      break;
 	    }
-	check_extra_latin:
-	  single_shifting = 0;
-	  if (! VECTORP (Vlatin_extra_code_table)
-	      || NILP (XVECTOR (Vlatin_extra_code_table)->contents[c]))
-	    {
-	      rejected = CATEGORY_MASK_ISO;
-	      break;
-	    }
-	  if (CODING_ISO_FLAGS (&coding_categories[coding_category_iso_8_1])
-	      & CODING_ISO_FLAG_LATIN_EXTRA)
-	    found |= CATEGORY_MASK_ISO_8_1;
-	  else
-	    rejected |= CATEGORY_MASK_ISO_8_1;
-	  rejected |= CATEGORY_MASK_ISO_8_2;
 	}
     }
   detect_info->rejected |= CATEGORY_MASK_ISO;

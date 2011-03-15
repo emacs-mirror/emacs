@@ -1,3 +1,8 @@
+2011-03-15  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* coding.c (detect_coding_iso_2022): Reorganize code to clarify
+	structure.
+
 2011-03-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* lisp.h (VWindow_system, Qfile_name_history):
