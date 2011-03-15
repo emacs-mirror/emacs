@@ -818,9 +818,6 @@ variable chain of symbols.  */)
    This does not handle buffer-local variables; use
    swap_in_symval_forwarding for that.  */
 
-#define do_blv_forwarding(blv) \
-  ((blv)->forwarded ? do_symval_forwarding (BLV_FWD (blv)) : BLV_VALUE (blv))
-
 Lisp_Object
 do_symval_forwarding (register union Lisp_Fwd *valcontents)
 {
@@ -866,14 +863,6 @@ do_symval_forwarding (register union Lisp_Fwd *valcontents)
 
    BUF non-zero means set the value in buffer BUF instead of the
    current buffer.  This only plays a role for per-buffer variables.  */
-
-#define store_blv_forwarding(blv, newval, buf)			\
-  do {								\
-    if ((blv)->forwarded)					\
-      store_symval_forwarding (BLV_FWD (blv), (newval), (buf));	\
-    else							\
-      SET_BLV_VALUE (blv, newval);				\
-  } while (0)
 
 static void
 store_symval_forwarding (union Lisp_Fwd *valcontents, register Lisp_Object newval, struct buffer *buf)
