@@ -377,10 +377,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
       if (STRING_MULTIBYTE (STRING))					      \
 	{								      \
 	  unsigned char *ptr = &SDATA (STRING)[BYTEIDX];		      \
-	  int len;							      \
+	  int ptrlen;							      \
 									      \
-	  OUTPUT = STRING_CHAR_AND_LENGTH (ptr, len);			      \
-	  BYTEIDX += len;						      \
+	  OUTPUT = STRING_CHAR_AND_LENGTH (ptr, ptrlen);		      \
+	  BYTEIDX += ptrlen;						      \
 	}								      \
       else								      \
 	{								      \

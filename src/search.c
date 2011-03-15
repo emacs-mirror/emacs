@@ -1725,17 +1725,17 @@ boyer_moore (EMACS_INT n, unsigned char *base_pat,
       /* Setup translate_prev_byte1/2/3/4 from CHAR_BASE.  Only a
 	 byte following them are the target of translation.  */
       unsigned char str[MAX_MULTIBYTE_LENGTH];
-      int len = CHAR_STRING (char_base, str);
+      int cblen = CHAR_STRING (char_base, str);
 
-      translate_prev_byte1 = str[len - 2];
-      if (len > 2)
+      translate_prev_byte1 = str[cblen - 2];
+      if (cblen > 2)
 	{
-	  translate_prev_byte2 = str[len - 3];
-	  if (len > 3)
+	  translate_prev_byte2 = str[cblen - 3];
+	  if (cblen > 3)
 	    {
-	      translate_prev_byte3 = str[len - 4];
-	      if (len > 4)
-		translate_prev_byte4 = str[len - 5];
+	      translate_prev_byte3 = str[cblen - 4];
+	      if (cblen > 4)
+		translate_prev_byte4 = str[cblen - 5];
 	    }
 	}
     }

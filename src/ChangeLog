@@ -1,5 +1,8 @@
 2011-03-15  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* search.c (boyer_moore): Rename locals to avoid shadowing.
+	* character.h (FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE): Likewise.
+
 	* search.c (simple_search): Remove unused var.
 
 	* dired.c (compile_pattern): Move decl from here ...
