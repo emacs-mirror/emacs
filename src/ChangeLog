@@ -7,6 +7,7 @@
 	Remove unused local vars.
 	(FREE_VAR): Rewrite so as not to use empty "else",
 	which gcc can warn about.
+	(regex_compile, re_match_2_internal): Mark locals as initialized.
 
 	* search.c (boyer_moore): Rename locals to avoid shadowing.
 	* character.h (FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE): Likewise.

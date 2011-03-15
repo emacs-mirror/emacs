@@ -2576,9 +2576,9 @@ regex_compile (const re_char *pattern, size_t size, reg_syntax_t syntax, struct 
 
   /* These hold the values of p, pattern, and pend from the main
      pattern when we have pushed into a subpattern.  */
-  re_char *main_p;
-  re_char *main_pattern;
-  re_char *main_pend;
+  re_char *main_p IF_LINT (= NULL);
+  re_char *main_pattern IF_LINT (= NULL);
+  re_char *main_pend IF_LINT (= NULL);
 
 #ifdef DEBUG
   debug++;
@@ -5533,7 +5533,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const re_char *string1, int
 
 	    /* Start of actual range_table, or end of bitmap if there is no
 	       range table.  */
-	    re_char *range_table;
+	    re_char *range_table IF_LINT (= NULL);
 
 	    /* Nonzero if there is a range table.  */
 	    int range_table_exists;
