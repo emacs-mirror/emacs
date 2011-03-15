@@ -1,5 +1,7 @@
 2011-03-15  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* marker.c (bytepos_to_charpos): Remove; unused.
+
 	* lisp.h (verify_bytepos, count_markers): New decls,
 	so that gcc does not warn that these functions aren't declared.
 
