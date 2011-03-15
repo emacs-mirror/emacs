@@ -1374,7 +1374,7 @@ name, or nil if there is no such user.  */)
       memcpy (r, p, q - p);
       r[q - p] = 0;
       strcat (r, SSDATA (login));
-      r[q - p] = UPCASE ((unsigned char) r[q - p]);
+      r[q - p] = upcase ((unsigned char) r[q - p]);
       strcat (r, q + 1);
       full = build_string (r);
     }
@@ -4213,7 +4213,7 @@ Case is ignored if `case-fold-search' is non-nil in the current buffer.  */)
 {
   int i1, i2;
   /* Check they're chars, not just integers, otherwise we could get array
-     bounds violations in DOWNCASE.  */
+     bounds violations in downcase.  */
   CHECK_CHARACTER (c1);
   CHECK_CHARACTER (c2);
 
@@ -4224,7 +4224,7 @@ Case is ignored if `case-fold-search' is non-nil in the current buffer.  */)
 
   /* Do these in separate statements,
      then compare the variables.
-     because of the way DOWNCASE uses temp variables.  */
+     because of the way downcase uses temp variables.  */
   i1 = XFASTINT (c1);
   if (NILP (BVAR (current_buffer, enable_multibyte_characters))
       && ! ASCII_CHAR_P (i1))
@@ -4237,8 +4237,8 @@ Case is ignored if `case-fold-search' is non-nil in the current buffer.  */)
     {
       MAKE_CHAR_MULTIBYTE (i2);
     }
-  i1 = DOWNCASE (i1);
-  i2 = DOWNCASE (i2);
+  i1 = downcase (i1);
+  i2 = downcase (i2);
   return (i1 == i2 ? Qt :  Qnil);
 }
 

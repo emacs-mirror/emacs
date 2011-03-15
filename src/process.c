@@ -495,7 +495,7 @@ status_message (struct Lisp_Process *p)
 	    string = (code_convert_string_norecord
 		      (string, Vlocale_coding_system, 0));
 	  c1 = STRING_CHAR (SDATA (string));
-	  c2 = DOWNCASE (c1);
+	  c2 = downcase (c1);
 	  if (c1 != c2)
 	    Faset (string, make_number (0), make_number (c2));
 	}

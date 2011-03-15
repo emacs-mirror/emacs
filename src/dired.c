@@ -790,8 +790,8 @@ scmp (const char *s1, const char *s2, int len)
   if (completion_ignore_case)
     {
       while (l
-	     && (DOWNCASE ((unsigned char) *s1++)
-		 == DOWNCASE ((unsigned char) *s2++)))
+	     && (downcase ((unsigned char) *s1++)
+		 == downcase ((unsigned char) *s2++)))
 	l--;
     }
   else

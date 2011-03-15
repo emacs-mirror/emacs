@@ -340,7 +340,7 @@ enum syntaxcode { Swhitespace = 0, Sword = 1, Ssymbol = 2 };
 		       || ((c) >= 'A' && (c) <= 'Z'))	\
 		    : SYNTAX (c) == Sword)
 
-# define ISLOWER(c) (LOWERCASEP (c))
+# define ISLOWER(c) lowercasep (c)
 
 # define ISPUNCT(c) (IS_REAL_ASCII (c)				\
 		    ? ((c) > ' ' && (c) < 0177			\
@@ -351,7 +351,7 @@ enum syntaxcode { Swhitespace = 0, Sword = 1, Ssymbol = 2 };
 
 # define ISSPACE(c) (SYNTAX (c) == Swhitespace)
 
-# define ISUPPER(c) (UPPERCASEP (c))
+# define ISUPPER(c) uppercasep (c)
 
 # define ISWORD(c) (SYNTAX (c) == Sword)
 

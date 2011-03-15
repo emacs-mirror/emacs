@@ -2469,7 +2469,7 @@ since only regular expressions have distinguished subexpressions.  */)
 	  else
 	    FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE (c, string, pos, pos_byte);
 
-	  if (LOWERCASEP (c))
+	  if (lowercasep (c))
 	    {
 	      /* Cannot be all caps if any original char is lower case */
 
@@ -2479,7 +2479,7 @@ since only regular expressions have distinguished subexpressions.  */)
 	      else
 		some_multiletter_word = 1;
 	    }
-	  else if (UPPERCASEP (c))
+	  else if (uppercasep (c))
 	    {
 	      some_uppercase = 1;
 	      if (SYNTAX (prevc) != Sword)

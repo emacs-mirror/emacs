@@ -64,13 +64,13 @@ casify_object (enum case_action flag, Lisp_Object obj)
 	multibyte = 1;
       if (! multibyte)
 	MAKE_CHAR_MULTIBYTE (c1);
-      c = DOWNCASE (c1);
+      c = downcase (c1);
       if (inword)
 	XSETFASTINT (obj, c | flags);
       else if (c == (XFASTINT (obj) & ~flagbits))
 	{
 	  if (! inword)
-	    c = UPCASE1 (c1);
+	    c = upcase1 (c1);
 	  if (! multibyte)
 	    MAKE_CHAR_UNIBYTE (c);
 	  XSETFASTINT (obj, c | flags);
@@ -92,10 +92,10 @@ casify_object (enum case_action flag, Lisp_Object obj)
 	  MAKE_CHAR_MULTIBYTE (c);
 	  c1 = c;
 	  if (inword && flag != CASE_CAPITALIZE_UP)
-	    c = DOWNCASE (c);
-	  else if (!UPPERCASEP (c)
+	    c = downcase (c);
+	  else if (!uppercasep (c)
 		   && (!inword || flag != CASE_CAPITALIZE_UP))
-	    c = UPCASE1 (c1);
+	    c = upcase1 (c1);
 	  if ((int) flag >= (int) CASE_CAPITALIZE)
 	    inword = (SYNTAX (c) == Sword);
 	  if (c != c1)
@@ -133,10 +133,10 @@ casify_object (enum case_action flag, Lisp_Object obj)
 	    }
 	  c = STRING_CHAR_AND_LENGTH (SDATA (obj) + i_byte, len);
 	  if (inword && flag != CASE_CAPITALIZE_UP)
-	    c = DOWNCASE (c);
-	  else if (!UPPERCASEP (c)
+	    c = downcase (c);
+	  else if (!uppercasep (c)
 		   && (!inword || flag != CASE_CAPITALIZE_UP))
-	    c = UPCASE1 (c);
+	    c = upcase1 (c);
 	  if ((int) flag >= (int) CASE_CAPITALIZE)
 	    inword = (SYNTAX (c) == Sword);
 	  o += CHAR_STRING (c, o);
@@ -243,10 +243,10 @@ casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
 	}
       c2 = c;
       if (inword && flag != CASE_CAPITALIZE_UP)
-	c = DOWNCASE (c);
-      else if (!UPPERCASEP (c)
+	c = downcase (c);
+      else if (!uppercasep (c)
 	       && (!inword || flag != CASE_CAPITALIZE_UP))
-	c = UPCASE1 (c);
+	c = upcase1 (c);
       if ((int) flag >= (int) CASE_CAPITALIZE)
 	inword = ((SYNTAX (c) == Sword)
 		  && (inword || !syntax_prefix_flag_p (c)));

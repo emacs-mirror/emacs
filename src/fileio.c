@@ -178,7 +178,7 @@ report_file_error (const char *string, Lisp_Object data)
 
 	    str = SSDATA (errstring);
 	    c = STRING_CHAR ((unsigned char *) str);
-	    Faset (errstring, make_number (0), make_number (DOWNCASE (c)));
+	    Faset (errstring, make_number (0), make_number (downcase (c)));
 	  }
 
 	xsignal (Qfile_error,

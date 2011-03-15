@@ -9836,7 +9836,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 	  && /* indec.start >= t && fkey.start >= t && */ keytran.start >= t
 	  && INTEGERP (key)
 	  && ((CHARACTERP (make_number (XINT (key) & ~CHAR_MODIFIER_MASK))
-	       && UPPERCASEP (XINT (key) & ~CHAR_MODIFIER_MASK))
+	       && uppercasep (XINT (key) & ~CHAR_MODIFIER_MASK))
 	      || (XINT (key) & shift_modifier)))
 	{
 	  Lisp_Object new_key;
@@ -9847,7 +9847,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 	  if (XINT (key) & shift_modifier)
 	    XSETINT (new_key, XINT (key) & ~shift_modifier);
 	  else
-	    XSETINT (new_key, (DOWNCASE (XINT (key) & ~CHAR_MODIFIER_MASK)
+	    XSETINT (new_key, (downcase (XINT (key) & ~CHAR_MODIFIER_MASK)
 			       | (XINT (key) & CHAR_MODIFIER_MASK)));
 
 	  /* We have to do this unconditionally, regardless of whether
@@ -9875,13 +9875,13 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 	      || (INTEGERP (key)
 		  && (KEY_TO_CHAR (key)
 		      < XCHAR_TABLE (BVAR (current_buffer, downcase_table))->size)
-		  && UPPERCASEP (KEY_TO_CHAR (key))))
+		  && uppercasep (KEY_TO_CHAR (key))))
 	    {
 	      Lisp_Object new_key
 		= (modifiers & shift_modifier
 		   ? apply_modifiers (modifiers & ~shift_modifier,
 				      XCAR (breakdown))
-		   : make_number (DOWNCASE (KEY_TO_CHAR (key)) | modifiers));
+		   : make_number (downcase (KEY_TO_CHAR (key)) | modifiers));
 
 	      original_uppercase = key;
 	      original_uppercase_position = t - 1;
