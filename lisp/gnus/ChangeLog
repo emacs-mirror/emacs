@@ -1,5 +1,8 @@
 2011-03-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-sum.el (gnus-articles-to-read): Revert back to old behaviour if
+	we're selecting a group with unread articles.
+
 	* nnimap.el (nnimap-open-connection-1): Allow `network-only', too.
 
 	* gssapi.el: New file separated out from imap.el to provide a general

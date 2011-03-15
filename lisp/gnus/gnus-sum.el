@@ -5798,7 +5798,8 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 
 (defun gnus-articles-to-read (group &optional read-all)
   "Find out what articles the user wants to read."
-  (let* ((articles
+  (let* ((only-read-p t)
+	 (articles
 	  ;; Select all articles if `read-all' is non-nil, or if there
 	  ;; are no unread articles.
 	  (if (or read-all
@@ -5822,6 +5823,7 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 		 (gnus-uncompress-range (gnus-active group)))
 	       (gnus-cache-articles-in-group group))
 	    ;; Select only the "normal" subset of articles.
+	    (setq only-read-p nil)
 	    (gnus-sorted-nunion
 	     (gnus-sorted-union gnus-newsgroup-dormant gnus-newsgroup-marked)
 	     gnus-newsgroup-unreads)))
@@ -5845,18 +5847,25 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 		  (let* ((cursor-in-echo-area nil)
 			 (initial (gnus-parameter-large-newsgroup-initial
 				   gnus-newsgroup-name))
+			 (default (if only-read-p
+				      (or initial gnus-large-newsgroup)
+				    number))
 			 (input
 			  (read-string
-			   (format
-			    "How many articles from %s (available %d, default %d): "
-			    (gnus-group-decoded-name
-			     (gnus-group-real-name gnus-newsgroup-name))
-			    number
-			    (or initial gnus-large-newsgroup))
+			   (if only-read-p
+			       (format
+			      "How many articles from %s (available %d, default %d): "
+			      (gnus-group-decoded-name
+			       (gnus-group-real-name gnus-newsgroup-name))
+			      number default)
+			     (format
+				"How many articles from %s (%d available): "
+				(gnus-group-decoded-name
+				 (gnus-group-real-name gnus-newsgroup-name))
+				default))
 			   nil
 			   nil
-			   (number-to-string
-			    (or initial gnus-large-newsgroup)))))
+			   (number-to-string default))))
 		    (if (string-match "^[ \t]*$" input) number input)))
 		 ((and (> scored marked) (< scored number)
 		       (> (- scored number) 20))
