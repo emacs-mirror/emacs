@@ -278,11 +278,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   do {									\
     if ((p) > (limit))							\
       {									\
-	const unsigned char *p0 = (p);					\
+	const unsigned char *pcb = (p);					\
 	do {								\
-	  p0--;								\
-	} while (p0 >= limit && ! CHAR_HEAD_P (*p0));			\
-	(p) = (BYTES_BY_CHAR_HEAD (*p0) == (p) - p0) ? p0 : (p) - 1;	\
+	  pcb--;							\
+	} while (pcb >= limit && ! CHAR_HEAD_P (*pcb));			\
+	(p) = (BYTES_BY_CHAR_HEAD (*pcb) == (p) - pcb) ? pcb : (p) - 1;	\
       }									\
   } while (0)
 
