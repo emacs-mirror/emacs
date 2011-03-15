@@ -1462,9 +1462,10 @@ If SCAN, request a scan of that group as well."
 	       (inline (gnus-request-group group (or dont-sub-check dont-check)
 					   method
 					   (gnus-get-info group)))
-	     ;;(error nil)
 	     (quit
-	      (message "Quit activating %s" group)
+	      (if debug-on-quit
+		  (debug "Quit")
+		(message "Quit activating %s" group))
 	      nil)))
 	 (unless dont-check
 	   (setq active (gnus-parse-active))
@@ -2004,7 +2005,9 @@ If SCAN, request a scan of that group as well."
 	      ;; We catch C-g so that we can continue past servers
 	      ;; that do not respond.
 	      (quit
-	       (message "Quit reading the active file")
+	       (if debug-on-quit
+		   (debug "Quit")
+		 (message "Quit reading the active file"))
 	       nil))))))))
 
 (defun gnus-read-active-file-1 (method force)

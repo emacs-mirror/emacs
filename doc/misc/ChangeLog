@@ -1,4 +1,8 @@
-2011-03-14  Michael Albinus <michael.albinus@gmx.de>
+2011-03-15  Antoine Levitt  <antoine.levitt@gmail.com>
+
+	* message.texi (Insertion Variables): Document message-cite-style.
+
+2011-03-14  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Remote processes): New subsection "Running shell on
 	a remote host".

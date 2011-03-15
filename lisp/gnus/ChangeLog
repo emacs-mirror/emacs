@@ -1,7 +1,54 @@
+2011-03-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-open-connection-1): Allow `network-only', too.
+
+	* gssapi.el: New file separated out from imap.el to provide a general
+	Kerberos 5 connection facility for Emacs.
+
+	* message.el (message-elide-ellipsis): Document the format spec
+	ellipsis.
+
+2011-03-15  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el (message-elide-region): Allow the ellipsis to say how many
+	lines were removed.
+
+2011-03-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-win.el (gnus-configure-frame): Protect against trying to restore
+	window configurations containing buffers that are now dead.
+
+	* nnimap.el (nnimap-parse-flags): Remove all MODSEQ entries before
+	parsing to avoid integer overflows.
+	(nnimap-parse-flags): Simplify the last change.
+	(nnimap-parse-flags): Store HIGHESTMODSEQ as a string, since it may be
+	too large for 32-bit Emacsen.
+
 2011-03-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* auth-source.el (auth-source-netrc-create):
 	* message.el (message-yank-original): Fix use of `case'.
+
+2011-03-15  Nelson Ferreira  <nelson.ferreira@ieee.org>  (tiny change)
+
+	* gnus-art.el (gnus-article-treat-body-boundary): Fix boundary width on
+	XEmacs, which was one character too wide.
+
+2011-03-09  Antoine Levitt  <antoine.levitt@gmail.com>
+
+	* gnus-sum.el (gnus-articles-to-read): Use gnus-large-newsgroup as
+	default number of articles to display.
+	(gnus-articles-to-read): Use pretty names for prompt.
+
+2011-03-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-int.el (gnus-open-server): Ditto.
+
+	* gnus-start.el (gnus-activate-group): Give a backtrace if
+	debug-on-quit is set and the user hits `C-g'.
+	(gnus-read-active-file): Ditto.
+
+	* gnus-group.el (gnus-group-read-ephemeral-group): Ditto.
 
 2011-03-15  Teodor Zlatanov  <tzz@lifelogs.com>
 
