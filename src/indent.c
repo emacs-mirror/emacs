@@ -1995,7 +1995,7 @@ whether or not it is currently displayed in some window.  */)
   Lisp_Object old_buffer;
   struct gcpro gcpro1;
   Lisp_Object lcols = Qnil;
-  double cols;
+  double cols IF_LINT (= 0);
 
   /* Allow LINES to be of the form (HPOS . VPOS) aka (COLUMNS . LINES).  */
   if (CONSP (lines) && (NUMBERP (XCAR (lines))))
@@ -2029,7 +2029,7 @@ whether or not it is currently displayed in some window.  */)
     }
   else
     {
-      int it_start, first_x, it_overshoot_expected;
+      int it_start, first_x, it_overshoot_expected IF_LINT (= 0);
 
       SET_TEXT_POS (pt, PT, PT_BYTE);
       start_display (&it, w, pt);

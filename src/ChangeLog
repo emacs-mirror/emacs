@@ -4,6 +4,7 @@
 	All uses changed.
 	(MULTIBYTE_BYTES_WIDTH, scan_for_column, compute_motion):
 	Rename locals to avoid shadowing.
+	(Fvertical_motion): Mark locals as initialized.
 
 	* casefiddle.c (casify_object, casify_region): Now static.
 	(casify_region): Mark local as initialized.
