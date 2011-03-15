@@ -5849,12 +5849,14 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 			  (read-string
 			   (format
 			    "How many articles from %s (available %d, default %d): "
-			    (gnus-group-decoded-name (gnus-group-real-name gnus-newsgroup-name))
+			    (gnus-group-decoded-name
+			     (gnus-group-real-name gnus-newsgroup-name))
 			    number
 			    (or initial gnus-large-newsgroup))
 			   nil
 			   nil
-			   (number-to-string (or initial gnus-large-newsgroup)))))
+			   (number-to-string
+			    (or initial gnus-large-newsgroup)))))
 		    (if (string-match "^[ \t]*$" input) number input)))
 		 ((and (> scored marked) (< scored number)
 		       (> (- scored number) 20))
@@ -5862,7 +5864,8 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 			 (read-string
 			  (format "%s %s (%d scored, %d total): "
 				  "How many articles from"
-				  (gnus-group-decoded-name (gnus-group-real-name gnus-newsgroup-name))
+				  (gnus-group-decoded-name
+				   (gnus-group-real-name gnus-newsgroup-name))
 				  scored number))))
 		    (if (string-match "^[ \t]*$" input)
 			number input)))
