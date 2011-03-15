@@ -1,3 +1,8 @@
+2011-03-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* makefile.w32-in (COMPILE_FIRST): Fix up last change.
+	* ldefs-boot.el: Revert to upstream's version.
+
 2011-03-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* help-fns.el (help-function-arglist):
