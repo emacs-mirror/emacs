@@ -1,5 +1,7 @@
 2011-03-15  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* character.h (INC_POS, DEC_POS): Rename locals to avoid shadowing.
+
 	* indent.c (MULTIBYTE_BYTES_WIDTH): New args bytes, width.
 	All uses changed.
 	(MULTIBYTE_BYTES_WIDTH, scan_for_column, compute_motion):

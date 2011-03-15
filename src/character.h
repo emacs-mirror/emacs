@@ -451,8 +451,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define INC_POS(pos_byte)				\
   do {							\
-    unsigned char *p = BYTE_POS_ADDR (pos_byte);	\
-    pos_byte += BYTES_BY_CHAR_HEAD (*p);		\
+    unsigned char *ptr = BYTE_POS_ADDR (pos_byte);	\
+    pos_byte += BYTES_BY_CHAR_HEAD (*ptr);		\
   } while (0)
 
 
@@ -461,16 +461,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define DEC_POS(pos_byte)			\
   do {						\
-    unsigned char *p;				\
+    unsigned char *ptr;				\
     						\
     pos_byte--;					\
     if (pos_byte < GPT_BYTE)			\
-      p = BEG_ADDR + pos_byte - BEG_BYTE;	\
+      ptr = BEG_ADDR + pos_byte - BEG_BYTE;	\
     else					\
-      p = BEG_ADDR + GAP_SIZE + pos_byte - BEG_BYTE;\
-    while (!CHAR_HEAD_P (*p))			\
+      ptr = BEG_ADDR + GAP_SIZE + pos_byte - BEG_BYTE; \
+    while (!CHAR_HEAD_P (*ptr))			\
       {						\
-	p--;					\
+	ptr--;					\
 	pos_byte--;				\
       }						\
   } while (0)
