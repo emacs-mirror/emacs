@@ -4666,7 +4666,14 @@ static int bcmp_translate _RE_ARGS((re_char *s1, re_char *s2,
 
 /* Free everything we malloc.  */
 #ifdef MATCH_MAY_ALLOCATE
-# define FREE_VAR(var) if (var) { REGEX_FREE (var); var = NULL; } else
+# define FREE_VAR(var)							\
+  do {									\
+    if (var)								\
+      {									\
+	REGEX_FREE (var);						\
+	var = NULL;							\
+      }									\
+  } while (0)
 # define FREE_VARIABLES()						\
   do {									\
     REGEX_FREE_STACK (fail_stack.stack);				\
