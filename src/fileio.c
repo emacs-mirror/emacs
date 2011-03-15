@@ -2941,19 +2941,19 @@ The value is an integer.  */)
 
 
 DEFUN ("set-file-times", Fset_file_times, Sset_file_times, 1, 2, 0,
-       doc: /* Set times of file FILENAME to TIME.
+       doc: /* Set times of file FILENAME to TIMESTAMP.
 Set both access and modification times.
 Return t on success, else nil.
-Use the current time if TIME is nil.  TIME is in the format of
+Use the current time if TIMESTAMP is nil.  TIMESTAMP is in the format of
 `current-time'. */)
-  (Lisp_Object filename, Lisp_Object time)
+  (Lisp_Object filename, Lisp_Object timestamp)
 {
   Lisp_Object absname, encoded_absname;
   Lisp_Object handler;
   time_t sec;
   int usec;
 
-  if (! lisp_time_argument (time, &sec, &usec))
+  if (! lisp_time_argument (timestamp, &sec, &usec))
     error ("Invalid time specification");
 
   absname = Fexpand_file_name (filename, BVAR (current_buffer, directory));
@@ -2962,7 +2962,7 @@ Use the current time if TIME is nil.  TIME is in the format of
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (absname, Qset_file_times);
   if (!NILP (handler))
-    return call3 (handler, Qset_file_times, absname, time);
+    return call3 (handler, Qset_file_times, absname, timestamp);
 
   encoded_absname = ENCODE_FILE (absname);
 
@@ -3358,13 +3358,13 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	      else if (nread > 0)
 		{
 		  struct buffer *prev = current_buffer;
-		  Lisp_Object buffer;
+		  Lisp_Object workbuf;
 		  struct buffer *buf;
 
 		  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
 
-		  buffer = Fget_buffer_create (build_string (" *code-converting-work*"));
-		  buf = XBUFFER (buffer);
+		  workbuf = Fget_buffer_create (build_string (" *code-converting-work*"));
+		  buf = XBUFFER (workbuf);
 
 		  delete_all_overlays (buf);
 		  BVAR (buf, directory) = BVAR (current_buffer, directory);
@@ -3876,7 +3876,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 
 	if (not_regular)
 	  {
-	    Lisp_Object val;
+	    Lisp_Object nbytes;
 
 	    /* Maybe make more room.  */
 	    if (gap_size < trytry)
@@ -3891,15 +3891,16 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	    non_regular_fd = fd;
 	    non_regular_inserted = inserted;
 	    non_regular_nbytes = trytry;
-	    val = internal_condition_case_1 (read_non_regular, Qnil, Qerror,
-					     read_non_regular_quit);
-	    if (NILP (val))
+	    nbytes = internal_condition_case_1 (read_non_regular,
+						Qnil, Qerror,
+						read_non_regular_quit);
+	    if (NILP (nbytes))
 	      {
 		read_quit = 1;
 		break;
 	      }
 
-	    this = XINT (val);
+	    this = XINT (nbytes);
 	  }
 	else
 	  {
@@ -3990,7 +3991,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	     care of marker adjustment.  By this way, we can run Lisp
 	     program safely before decoding the inserted text.  */
 	  Lisp_Object unwind_data;
-	  int count = SPECPDL_INDEX ();
+	  int count1 = SPECPDL_INDEX ();
 
 	  unwind_data = Fcons (BVAR (current_buffer, enable_multibyte_characters),
 			       Fcons (BVAR (current_buffer, undo_list),
@@ -4017,7 +4018,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	      if (CONSP (coding_system))
 		coding_system = XCAR (coding_system);
 	    }
-	  unbind_to (count, Qnil);
+	  unbind_to (count1, Qnil);
 	  inserted = Z_BYTE - BEG_BYTE;
 	}
 
@@ -4120,7 +4121,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
   if (inserted > 0)
     {
       /* Don't run point motion or modification hooks when decoding.  */
-      int count = SPECPDL_INDEX ();
+      int count1 = SPECPDL_INDEX ();
       EMACS_INT old_inserted = inserted;
       specbind (Qinhibit_point_motion_hooks, Qt);
       specbind (Qinhibit_modification_hooks, Qt);
@@ -4232,7 +4233,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	   Otherwise start with an empty undo_list.  */
 	BVAR (current_buffer, undo_list) = EQ (old_undo, Qt) ? Qt : Qnil;
 
-      unbind_to (count, Qnil);
+      unbind_to (count1, Qnil);
     }
 
   /* Call after-change hooks for the inserted text, aside from the case
@@ -5064,7 +5065,7 @@ An argument specifies the modification time value to use
 }
 
 static Lisp_Object
-auto_save_error (Lisp_Object error)
+auto_save_error (Lisp_Object error_val)
 {
   Lisp_Object args[3], msg;
   int i, nbytes;
@@ -5078,7 +5079,7 @@ auto_save_error (Lisp_Object error)
 
   args[0] = build_string ("Auto-saving %s: %s");
   args[1] = BVAR (current_buffer, name);
-  args[2] = Ferror_message_string (error);
+  args[2] = Ferror_message_string (error_val);
   msg = Fformat (3, args);
   GCPRO1 (msg);
   nbytes = SBYTES (msg);
