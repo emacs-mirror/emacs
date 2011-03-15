@@ -1,3 +1,9 @@
+2011-03-15  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-make-topic-prefix) (allout-rebullet-heading):
+	Invert the roles of character and string values for INSTEAD, so a
+	string is used for the more common case of a defaulting prompt.
+
 2011-03-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/ruby-mode.el (ruby-backward-sexp):

@@ -3496,8 +3496,8 @@ the current topics' depth.
 If INSTEAD is:
 
 - nil, then the bullet char for the context is used, per distinction or depth
-- a string, then the first character of the string will be used
-- a character, then the user is solicited for bullet, with that char as default
+- a \(numeric) character, then character's string representation is used
+- a string, then the user is asked for bullet with the first char as default
 - anything else, the user is solicited with bullet char per context as default
 
 \(INSTEAD overrides other options, including, eg, a distinctive
@@ -3554,10 +3554,12 @@ index for each successive sibling)."
            ((progn (setq body (make-string (- depth 2) ?\ ))
                    ;; The actual condition:
                    instead)
-            (let* ((got
-                    (if (and (stringp instead)(> (length instead) 0))
-                        (substring instead 0 1)
-                      (allout-solicit-alternate-bullet depth instead))))
+            (let ((got (cond ((stringp instead)
+                              (if (> (length instead) 0)
+                                  (allout-solicit-alternate-bullet
+                                   depth (substring instead 0 1))))
+                             ((characterp instead) (char-to-string instead))
+                             (t (allout-solicit-alternate-bullet depth)))))
               ;; Gotta check whether we're numbering and got a numbered bullet:
               (setq numbering (and allout-numbered-bullet
                                    (not (and number-control (not index)))
@@ -3951,8 +3953,8 @@ All args are optional.
 
 If INSTEAD is:
 - nil, then the bullet char for the context is used, per distinction or depth
-- a string, then the first character of the string will be used
-- a character, then the user is solicited for bullet, with that char as default
+- a \(numeric) character, then character's string representation is used
+- a string, then the user is asked for bullet with the first char as default
 - anything else, the user is solicited with bullet char per context as default
 
 Second arg DEPTH forces the topic prefix to that depth, regardless
