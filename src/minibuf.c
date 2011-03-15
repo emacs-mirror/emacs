@@ -135,7 +135,7 @@ choose_minibuf_frame (void)
   }
 }
 
-Lisp_Object
+static Lisp_Object
 choose_minibuf_frame_1 (Lisp_Object ignore)
 {
   choose_minibuf_frame ();
