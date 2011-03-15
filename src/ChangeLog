@@ -1,5 +1,9 @@
 2011-03-15  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* regex.c (CHARSET_LOOKUP_RANGE_TABLE_RAW, POP_FAILURE_REG_OR_COUNT):
+	Rename locals to avoid shadowing.
+	(regex_compile, re_match_2_internal): Move locals to avoid shadowing.
+
 	* search.c (boyer_moore): Rename locals to avoid shadowing.
 	* character.h (FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE): Likewise.
 

@@ -861,14 +861,14 @@ extract_number_and_incr (destination, source)
   do									\
     {									\
       re_wchar_t range_start, range_end;				\
-      re_char *p;							\
+      re_char *rtp;							\
       re_char *range_table_end						\
 	= CHARSET_RANGE_TABLE_END ((range_table), (count));		\
 									\
-      for (p = (range_table); p < range_table_end; p += 2 * 3)		\
+      for (rtp = (range_table); rtp < range_table_end; rtp += 2 * 3)	\
 	{								\
-	  EXTRACT_CHARACTER (range_start, p);				\
-	  EXTRACT_CHARACTER (range_end, p + 3);				\
+	  EXTRACT_CHARACTER (range_start, rtp);				\
+	  EXTRACT_CHARACTER (range_end, rtp + 3);			\
 									\
 	  if (range_start <= (c) && (c) <= range_end)			\
 	    {								\
@@ -1555,22 +1555,22 @@ do {									\
 /* Pop a saved register off the stack.  */
 #define POP_FAILURE_REG_OR_COUNT()					\
 do {									\
-  int reg = POP_FAILURE_INT ();						\
-  if (reg == -1)							\
+  int pfreg = POP_FAILURE_INT ();					\
+  if (pfreg == -1)							\
     {									\
       /* It's a counter.  */						\
       /* Here, we discard `const', making re_match non-reentrant.  */	\
       unsigned char *ptr = (unsigned char*) POP_FAILURE_POINTER ();	\
-      reg = POP_FAILURE_INT ();						\
-      STORE_NUMBER (ptr, reg);						\
-      DEBUG_PRINT3 ("     Pop counter %p = %d\n", ptr, reg);		\
+      pfreg = POP_FAILURE_INT ();					\
+      STORE_NUMBER (ptr, pfreg);					\
+      DEBUG_PRINT3 ("     Pop counter %p = %d\n", ptr, pfreg);		\
     }									\
   else									\
     {									\
-      regend[reg] = POP_FAILURE_POINTER ();				\
-      regstart[reg] = POP_FAILURE_POINTER ();				\
+      regend[pfreg] = POP_FAILURE_POINTER ();				\
+      regstart[pfreg] = POP_FAILURE_POINTER ();				\
       DEBUG_PRINT4 ("     Pop reg %d (spanning %p -> %p)\n",		\
-		    reg, regstart[reg], regend[reg]);			\
+		    pfreg, regstart[pfreg], regend[pfreg]);		\
     }									\
 } while (0)
 
@@ -2524,9 +2524,6 @@ regex_compile (const re_char *pattern, size_t size, reg_syntax_t syntax, struct 
   /* We fetch characters from PATTERN here.  */
   register re_wchar_t c, c1;
 
-  /* A random temporary spot in PATTERN.  */
-  re_char *p1;
-
   /* Points to the end of the buffer, where we should append.  */
   register unsigned char *b;
 
@@ -2894,6 +2891,8 @@ regex_compile (const re_char *pattern, size_t size, reg_syntax_t syntax, struct 
 
 	case '[':
 	  {
+	    re_char *p1;
+
 	    CLEAR_RANGE_TABLE_WORK_USED (range_table_work);
 
 	    if (p == pend) FREE_STACK_RETURN (REG_EBRACK);
@@ -5024,7 +5023,6 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const re_char *string1, int
   /* General temporaries.  */
   int mcnt;
   size_t reg;
-  boolean not;
 
   /* Just past the end of the corresponding string.  */
   re_char *end1, *end2;
@@ -6005,46 +6003,48 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const re_char *string1, int
 
 	case wordbound:
 	case notwordbound:
-	  not = (re_opcode_t) *(p - 1) == notwordbound;
-	  DEBUG_PRINT2 ("EXECUTING %swordbound.\n", not?"not":"");
+	  {
+	    boolean not = (re_opcode_t) *(p - 1) == notwordbound;
+	    DEBUG_PRINT2 ("EXECUTING %swordbound.\n", not?"not":"");
 
-	  /* We SUCCEED (or FAIL) in one of the following cases: */
+	    /* We SUCCEED (or FAIL) in one of the following cases: */
 
-	  /* Case 1: D is at the beginning or the end of string.  */
-	  if (AT_STRINGS_BEG (d) || AT_STRINGS_END (d))
-	    not = !not;
-	  else
-	    {
-	      /* C1 is the character before D, S1 is the syntax of C1, C2
-		 is the character at D, and S2 is the syntax of C2.  */
-	      re_wchar_t c1, c2;
-	      int s1, s2;
-	      int dummy;
+	    /* Case 1: D is at the beginning or the end of string.  */
+	    if (AT_STRINGS_BEG (d) || AT_STRINGS_END (d))
+	      not = !not;
+	    else
+	      {
+		/* C1 is the character before D, S1 is the syntax of C1, C2
+		   is the character at D, and S2 is the syntax of C2.  */
+		re_wchar_t c1, c2;
+		int s1, s2;
+		int dummy;
 #ifdef emacs
-	      int offset = PTR_TO_OFFSET (d - 1);
-	      int charpos = SYNTAX_TABLE_BYTE_TO_CHAR (offset);
-	      UPDATE_SYNTAX_TABLE (charpos);
+		int offset = PTR_TO_OFFSET (d - 1);
+		int charpos = SYNTAX_TABLE_BYTE_TO_CHAR (offset);
+		UPDATE_SYNTAX_TABLE (charpos);
 #endif
-	      GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
-	      s1 = SYNTAX (c1);
+		GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
+		s1 = SYNTAX (c1);
 #ifdef emacs
-	      UPDATE_SYNTAX_TABLE_FORWARD (charpos + 1);
+		UPDATE_SYNTAX_TABLE_FORWARD (charpos + 1);
 #endif
-	      PREFETCH_NOLIMIT ();
-	      GET_CHAR_AFTER (c2, d, dummy);
-	      s2 = SYNTAX (c2);
+		PREFETCH_NOLIMIT ();
+		GET_CHAR_AFTER (c2, d, dummy);
+		s2 = SYNTAX (c2);
 
-	      if (/* Case 2: Only one of S1 and S2 is Sword.  */
-		  ((s1 == Sword) != (s2 == Sword))
-		  /* Case 3: Both of S1 and S2 are Sword, and macro
-		     WORD_BOUNDARY_P (C1, C2) returns nonzero.  */
-		  || ((s1 == Sword) && WORD_BOUNDARY_P (c1, c2)))
-		not = !not;
-	    }
-	  if (not)
-	    break;
-	  else
-	    goto fail;
+		if (/* Case 2: Only one of S1 and S2 is Sword.  */
+		    ((s1 == Sword) != (s2 == Sword))
+		    /* Case 3: Both of S1 and S2 are Sword, and macro
+		       WORD_BOUNDARY_P (C1, C2) returns nonzero.  */
+		    || ((s1 == Sword) && WORD_BOUNDARY_P (c1, c2)))
+		  not = !not;
+	      }
+	    if (not)
+	      break;
+	    else
+	      goto fail;
+	  }
 
 	case wordbeg:
 	  DEBUG_PRINT1 ("EXECUTING wordbeg.\n");
@@ -6224,27 +6224,29 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const re_char *string1, int
 
 	case syntaxspec:
 	case notsyntaxspec:
-	  not = (re_opcode_t) *(p - 1) == notsyntaxspec;
-	  mcnt = *p++;
-	  DEBUG_PRINT3 ("EXECUTING %ssyntaxspec %d.\n", not?"not":"", mcnt);
-	  PREFETCH ();
+	  {
+	    boolean not = (re_opcode_t) *(p - 1) == notsyntaxspec;
+	    mcnt = *p++;
+	    DEBUG_PRINT3 ("EXECUTING %ssyntaxspec %d.\n", not?"not":"", mcnt);
+	    PREFETCH ();
 #ifdef emacs
-	  {
-	    int offset = PTR_TO_OFFSET (d);
-	    int pos1 = SYNTAX_TABLE_BYTE_TO_CHAR (offset);
-	    UPDATE_SYNTAX_TABLE (pos1);
-	  }
+	    {
+	      int offset = PTR_TO_OFFSET (d);
+	      int pos1 = SYNTAX_TABLE_BYTE_TO_CHAR (offset);
+	      UPDATE_SYNTAX_TABLE (pos1);
+	    }
 #endif
-	  {
-	    int len;
-	    re_wchar_t c;
+	    {
+	      int len;
+	      re_wchar_t c;
 
-	    GET_CHAR_AFTER (c, d, len);
-	    if ((SYNTAX (c) != (enum syntaxcode) mcnt) ^ not)
-	      goto fail;
-	    d += len;
+	      GET_CHAR_AFTER (c, d, len);
+	      if ((SYNTAX (c) != (enum syntaxcode) mcnt) ^ not)
+		goto fail;
+	      d += len;
+	    }
+	    break;
 	  }
-	  break;
 
 #ifdef emacs
 	case before_dot:
