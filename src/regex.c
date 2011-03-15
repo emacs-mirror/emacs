@@ -551,8 +551,6 @@ init_syntax_once (void)
 /* (Re)Allocate N items of type T using malloc, or fail.  */
 #define TALLOC(n, t) ((t *) malloc ((n) * sizeof (t)))
 #define RETALLOC(addr, n, t) ((addr) = (t *) realloc (addr, (n) * sizeof (t)))
-#define RETALLOC_IF(addr, n, t) \
-  if (addr) RETALLOC((addr), (n), t); else (addr) = TALLOC ((n), t)
 #define REGEX_TALLOC(n, t) ((t *) REGEX_ALLOCATE ((n) * sizeof (t)))
 
 #define BYTEWIDTH 8 /* In bits.  */
@@ -842,11 +840,6 @@ extract_number_and_incr (destination, source)
 #define CHARSET_RANGE_TABLE_BITS(p)		\
   ((p)[2 + CHARSET_BITMAP_SIZE (p)]		\
    + (p)[3 + CHARSET_BITMAP_SIZE (p)] * 0x100)
-
-/* Test if C is listed in the bitmap of charset P.  */
-#define CHARSET_LOOKUP_BITMAP(p, c)				\
-  ((c) < CHARSET_BITMAP_SIZE (p) * BYTEWIDTH			\
-   && (p)[2 + (c) / BYTEWIDTH] & (1 << ((c) % BYTEWIDTH)))
 
 /* Return the address of end of RANGE_TABLE.  COUNT is number of
    ranges (which is a pair of (start, end)) in the RANGE_TABLE.  `* 2'
@@ -1413,7 +1406,6 @@ typedef struct
 } fail_stack_type;
 
 #define FAIL_STACK_EMPTY()     (fail_stack.frame == 0)
-#define FAIL_STACK_FULL()      (fail_stack.avail == fail_stack.size)
 
 
 /* Define macros to initialize and free the failure stack.
@@ -1433,8 +1425,6 @@ typedef struct
     fail_stack.avail = 0;						\
     fail_stack.frame = 0;						\
   } while (0)
-
-# define RESET_FAIL_STACK()  REGEX_FREE_STACK (fail_stack.stack)
 #else
 # define INIT_FAIL_STACK()						\
   do {									\
@@ -1442,7 +1432,8 @@ typedef struct
     fail_stack.frame = 0;						\
   } while (0)
 
-# define RESET_FAIL_STACK() ((void)0)
+# define RETALLOC_IF(addr, n, t) \
+  if (addr) RETALLOC((addr), (n), t); else (addr) = TALLOC ((n), t)
 #endif
 
 
@@ -1495,17 +1486,10 @@ typedef struct
 #define PUSH_FAILURE_INT(item)					\
   fail_stack.stack[fail_stack.avail++].integer = (item)
 
-/* Push a fail_stack_elt_t value onto the failure stack.
-   Assumes the variable `fail_stack'.  Probably should only
-   be called from within `PUSH_FAILURE_POINT'.  */
-#define PUSH_FAILURE_ELT(item)					\
-  fail_stack.stack[fail_stack.avail++] =  (item)
-
-/* These three POP... operations complement the three PUSH... operations.
+/* These POP... operations complement the PUSH... operations.
    All assume that `fail_stack' is nonempty.  */
 #define POP_FAILURE_POINTER() fail_stack.stack[--fail_stack.avail].pointer
 #define POP_FAILURE_INT() fail_stack.stack[--fail_stack.avail].integer
-#define POP_FAILURE_ELT() fail_stack.stack[--fail_stack.avail]
 
 /* Individual items aside from the registers.  */
 #define NUM_NONREG_ITEMS 3
@@ -1762,16 +1746,6 @@ static int analyse_first _RE_ARGS ((re_char *p, re_char *pend,
     GET_BUFFER_SPACE (2);						\
     *b++ = (unsigned char) (c1);					\
     *b++ = (unsigned char) (c2);					\
-  } while (0)
-
-
-/* As with BUF_PUSH_2, except for three bytes.  */
-#define BUF_PUSH_3(c1, c2, c3)						\
-  do {									\
-    GET_BUFFER_SPACE (3);						\
-    *b++ = (unsigned char) (c1);					\
-    *b++ = (unsigned char) (c2);					\
-    *b++ = (unsigned char) (c3);					\
   } while (0)
 
 
@@ -4322,10 +4296,6 @@ WEAK_ALIAS (__re_search, re_search)
 #define HEAD_ADDR_VSTRING(P)		\
   (((P) >= size1 ? string2 : string1))
 
-/* End address of virtual concatenation of string.  */
-#define STOP_ADDR_VSTRING(P)				\
-  (((P) >= size1 ? string2 + size2 : string1 + size1))
-
 /* Address of POS in the concatenation of virtual string. */
 #define POS_ADDR_VSTRING(POS)					\
   (((POS) >= size1 ? string2 - size1 : string1) + (POS))
@@ -4636,16 +4606,6 @@ static int bcmp_translate _RE_ARGS((re_char *s1, re_char *s2,
 #define AT_STRINGS_BEG(d) ((d) == (size1 ? string1 : string2) || !size2)
 #define AT_STRINGS_END(d) ((d) == end2)
 
-
-/* Test if D points to a character which is word-constituent.  We have
-   two special cases to check for: if past the end of string1, look at
-   the first character in string2; and if before the beginning of
-   string2, look at the last character in string1.  */
-#define WORDCHAR_P(d)							\
-  (SYNTAX ((d) == end1 ? *string2					\
-	   : (d) == string2 - 1 ? *(end1 - 1) : *(d))			\
-   == Sword)
-
 /* Disabled due to a compiler bug -- see comment at case wordbound */
 
 /* The comment at case wordbound is following one, but we don't use
@@ -4657,6 +4617,15 @@ static int bcmp_translate _RE_ARGS((re_char *s1, re_char *s2,
    macro and introducing temporary variables works around the bug.  */
 
 #if 0
+/* Test if D points to a character which is word-constituent.  We have
+   two special cases to check for: if past the end of string1, look at
+   the first character in string2; and if before the beginning of
+   string2, look at the last character in string1.  */
+#define WORDCHAR_P(d)							\
+  (SYNTAX ((d) == end1 ? *string2					\
+	   : (d) == string2 - 1 ? *(end1 - 1) : *(d))			\
+   == Sword)
+
 /* Test if the character before D and the one at D differ with respect
    to being word-constituent.  */
 #define AT_WORD_BOUNDARY(d)						\

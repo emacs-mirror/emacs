@@ -8,6 +8,13 @@
 	(FREE_VAR): Rewrite so as not to use empty "else",
 	which gcc can warn about.
 	(regex_compile, re_match_2_internal): Mark locals as initialized.
+	(RETALLOC_IF): Define only if needed.
+	(WORDCHAR_P): Likewise.  This one is never needed, but is used
+	only in a comment talking about a compiler bug, so put inside
+	the #if 0 of that comment.
+	(CHARSET_LOOKUP_BITMAP, FAIL_STACK_FULL, RESET_FAIL_STACK):
+	(PUSH_FAILURE_ELT, BUF_PUSH_3, STOP_ADDR_VSTRING):
+	Remove; unused.
 
 	* search.c (boyer_moore): Rename locals to avoid shadowing.
 	* character.h (FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE): Likewise.
