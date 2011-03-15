@@ -1554,7 +1554,6 @@ simple_search (EMACS_INT n, unsigned char *pat,
 
 	    while (this_len > 0)
 	      {
-		int charlen;
 		int pat_ch, buf_ch;
 
 		DEC_BOTH (this_pos, this_pos_byte);

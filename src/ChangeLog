@@ -1,5 +1,7 @@
 2011-03-15  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* search.c (simple_search): Remove unused var.
+
 	* dired.c (compile_pattern): Move decl from here ...
 	* lisp.h: ... to here, so that it can be checked.
 	(struct re_registers): New forward decl.
