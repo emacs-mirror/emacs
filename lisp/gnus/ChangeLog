@@ -1,3 +1,8 @@
+2011-03-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* auth-source.el (auth-source-netrc-create): Use usual format for the
+	default in prompts.
+
 2011-03-13  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* auth-source.el (auth-source-netrc-create): Show the default in the
@@ -15,9 +20,9 @@
 
 2011-03-11  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* gnus-sync.el (gnus-sync-install-hooks, gnus-sync-unload-hook): Don't
-	install `gnus-sync-read' to any hooks by default.  It's buggy.  The
-	user will have to run `gnus-sync-read' manually and wait for Cloudy
+	* gnus-sync.el (gnus-sync-install-hooks, gnus-sync-unload-hook):
+	Don't install `gnus-sync-read' to any hooks by default.  It's buggy.
+	The user will have to run `gnus-sync-read' manually and wait for Cloudy
 	Gnus.
 
 2011-03-11  Julien Danjou  <julien@danjou.info>
@@ -101,8 +106,8 @@
 
 2011-03-05  Antoine Levitt  <antoine.levitt@gmail.com>
 
-	* message.el (message-cite-reply-position, message-cite-style): New
-	variables.
+	* message.el (message-cite-reply-position, message-cite-style):
+	New variables.
 	(message-yank-original): Use the new citation styles.
 
 2011-03-04  Daiki Ueno  <ueno@unixuser.org>
@@ -216,14 +221,14 @@
 
 2011-02-23  Lars Ingebrigtsen  <larsi@gnus.org>
 
-	* gnus-start.el (gnus-dribble-read-file): Set
-	buffer-save-without-query, since we always want to save the dribble
+	* gnus-start.el (gnus-dribble-read-file):
+	Set buffer-save-without-query, since we always want to save the dribble
 	file, probably.
 
 	* nnmail.el (nnmail-article-group): Allow a final "" split to work on
 	nnimap.
 
-	* gnus-sum.el (gnus-user-date-format-alist): Renamed back again from
+	* gnus-sum.el (gnus-user-date-format-alist): Rename back again from
 	-summary- since it's a user-visible variable.
 
 	* nnimap.el (nnimap-retrieve-group-data-early): Don't do QRESYNC the
@@ -469,8 +474,8 @@
 2011-02-14  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* auth-source.el (auth-source-backend-parse-parameters): Don't rely on
-	`plist-get' to accept non-list parameters (XEmacs issue).  Fix
-	docstring.
+	`plist-get' to accept non-list parameters (XEmacs issue).
+	Fix docstring.
 	(auth-source-secrets-search): Use `delete-dups', `append mapcar', and
 	`butlast' instead of `remove-duplicates', `mapcan', and `subseq'.
 	(auth-sources, auth-source-backend-parse, auth-source-secrets-search):
@@ -510,8 +515,8 @@
 
 2011-02-13  Tassilo Horn  <tassilo@member.fsf.org>  (tiny change)
 
-	* nnimap.el (nnimap-request-accept-article, nnimap-process-quirk): Fix
-	Gcc processing on imap.
+	* nnimap.el (nnimap-request-accept-article, nnimap-process-quirk):
+	Fix Gcc processing on imap.
 
 2011-02-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -599,8 +604,8 @@
 
 2011-02-06  Michael Albinus  <michael.albinus@gmx.de>
 
-	* auth-source.el (top): Require 'eieio unconditionally.  Autoload
-	`secrets-get-attributes' instead of `secrets-get-attribute'.
+	* auth-source.el (top): Require 'eieio unconditionally.
+	Autoload `secrets-get-attributes' instead of `secrets-get-attribute'.
 	(auth-source-secrets-search): Limit search when `max' is greater than
 	number of results.
 
@@ -636,7 +641,7 @@
 	(auth-source-protocol-defaults, auth-source-user-or-password-imap)
 	(auth-source-user-or-password-pop3, auth-source-user-or-password-ssh)
 	(auth-source-user-or-password-sftp)
-	(auth-source-user-or-password-smtp): Removed.
+	(auth-source-user-or-password-smtp): Remove.
 	(auth-source-user-or-password): Deprecated and modified to be a wrapper
 	around `auth-source-search'.  Not tested thoroughly.
 
@@ -802,16 +807,16 @@
 	* gnus-group.el (gnus-group-jump-to-group): Allow jumping to groups
 	that Gnus doesn't know exists again.
 
-	* gnus-art.el (gnus-article-date-lapsed-new-header): Removed.
+	* gnus-art.el (gnus-article-date-lapsed-new-header): Remove.
 	(gnus-treat-date-ut): Ditto.
-	(gnus-article-update-date-header): Renamed.
-	(gnus-treat-date-local): Removed.
-	(gnus-treat-date-english): Removed.
-	(gnus-treat-date-lapsed): Removed.
-	(gnus-treat-date-combined-lapsed): Removed.
-	(gnus-treat-date-original): Removed.
-	(gnus-treat-date-iso8601): Removed.
-	(gnus-treat-date-user-defined): Removed.
+	(gnus-article-update-date-header): Rename.
+	(gnus-treat-date-local): Remove.
+	(gnus-treat-date-english): Remove.
+	(gnus-treat-date-lapsed): Remove.
+	(gnus-treat-date-combined-lapsed): Remove.
+	(gnus-treat-date-original): Remove.
+	(gnus-treat-date-iso8601): Remove.
+	(gnus-treat-date-user-defined): Remove.
 	(gnus-article-date-headers): New variable to control all the date
 	header options.
 	(article-date-ut): Rewrite to allow using the new way to format date

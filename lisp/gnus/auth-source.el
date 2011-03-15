@@ -1093,17 +1093,19 @@ See `auth-source-search' for details on SPEC."
                         (?h ,(aget printable-defaults 'host))
                         (?p ,(aget printable-defaults 'port))))))
 
-        ;; store the data, prompting for the password if needed
+        ;; Store the data, prompting for the password if needed.
         (setq data
               (cond
                ((and (null data) (eq r 'secret))
-                ;; special case prompt for passwords
+                ;; Special case prompt for passwords.
                 (read-passwd prompt))
                ((null data)
                 (when default
-                  (setq
-                   prompt
-                   (concat prompt (format "(default %s) " default))))
+                  (setq prompt
+                        (if (string-match ": *\\'" prompt)
+                            (concat (substring prompt 0 (match-beginning 0))
+                                    " (default " default "): ")
+                          (concat prompt "(default " default ") "))))
                 (read-string prompt nil nil default))
                (t (or data default))))
 
@@ -1115,7 +1117,7 @@ See `auth-source-search' for details on SPEC."
                                             (lambda () data))
                                         data))))
 
-        ;; when r is not an empty string...
+        ;; When r is not an empty string...
         (when (and (stringp data)
                    (< 0 (length data)))
           ;; this function is not strictly necessary but I think it
@@ -1173,7 +1175,7 @@ Respects `auth-source-save-behavior'.  Uses
         ;; we want the new data to be found first, so insert at beginning
         (goto-char (point-min))
 
-        ;; ask AFTER we've successfully opened the file
+        ;; Ask AFTER we've successfully opened the file.
         (let ((prompt (format "Save auth info to file %s? " file))
               (done (not (eq auth-source-save-behavior 'ask)))
               (bufname "*auth-source Help*")
@@ -1190,6 +1192,8 @@ Respects `auth-source-save-behavior'.  Uses
                                "(N)o and don't ask to save again\n"
                                "(e)dit the line\n"
                                "(?) for help as you can see.\n"))
+                      ;; Why?  Doesn't with-output-to-temp-buffer already do
+                      ;; the exact same thing anyway?  --Stef
                       (set-buffer standard-output)
                       (help-mode))))
               (?n (setq add ""
@@ -1203,7 +1207,7 @@ Respects `auth-source-save-behavior'.  Uses
           (when (get-buffer-window bufname)
             (delete-window (get-buffer-window bufname)))
 
-          ;; make sure the info is not saved
+          ;; Make sure the info is not saved.
           (when (null auth-source-save-behavior)
             (setq add ""))
 
