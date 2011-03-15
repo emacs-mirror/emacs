@@ -1,5 +1,10 @@
 2011-03-15  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* indent.c (MULTIBYTE_BYTES_WIDTH): New args bytes, width.
+	All uses changed.
+	(MULTIBYTE_BYTES_WIDTH, scan_for_column, compute_motion):
+	Rename locals to avoid shadowing.
+
 	* casefiddle.c (casify_object, casify_region): Now static.
 	(casify_region): Mark local as initialized.
 
