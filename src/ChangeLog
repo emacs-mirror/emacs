@@ -1,5 +1,9 @@
 2011-03-15  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* fileio.c (file_name_as_directory, directory_file_name):
+	(barf_or_query_if_file_exists, auto_save_error, auto_save_1):
+	Now static.
+
 	* minibuf.c (choose_minibuf_frame_1): Now static.
 	(Ftry_completion, Fall_completions): Rename or remove locals
 	to avoid shadowing.

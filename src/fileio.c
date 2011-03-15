@@ -433,7 +433,7 @@ get a current directory to run processes in.  */)
 }
 
 
-char *
+static char *
 file_name_as_directory (char *out, char *in)
 {
   int size = strlen (in) - 1;
@@ -496,7 +496,7 @@ For a Unix-syntax file name, just appends a slash.  */)
  * Value is nonzero if the string output is different from the input.
  */
 
-int
+static int
 directory_file_name (char *src, char *dst)
 {
   long slen;
@@ -1734,7 +1734,7 @@ expand_and_dir_to_file (Lisp_Object filename, Lisp_Object defdir)
 
    If QUICK is nonzero, we ask for y or n, not yes or no.  */
 
-void
+static void
 barf_or_query_if_file_exists (Lisp_Object absname, const char *querystring,
 			      int interactive, struct stat *statptr, int quick)
 {
@@ -5059,7 +5059,7 @@ An argument specifies the modification time value to use
   return Qnil;
 }
 
-Lisp_Object
+static Lisp_Object
 auto_save_error (Lisp_Object error)
 {
   Lisp_Object args[3], msg;
@@ -5095,7 +5095,7 @@ auto_save_error (Lisp_Object error)
   return Qnil;
 }
 
-Lisp_Object
+static Lisp_Object
 auto_save_1 (void)
 {
   struct stat st;
