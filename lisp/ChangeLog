@@ -1,3 +1,8 @@
+2011-03-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-save-excursion): Change the
+	warning message.
+
 2011-03-14  Michael Albinus  <michael.albinus@gmx.de>
 
 	* shell.el (shell): When called interactively, offer to change the
