@@ -1272,7 +1272,7 @@ set_internal (register Lisp_Object symbol, register Lisp_Object newval, register
 /* Return the default value of SYMBOL, but don't check for voidness.
    Return Qunbound if it is void.  */
 
-Lisp_Object
+static Lisp_Object
 default_value (Lisp_Object symbol)
 {
   struct Lisp_Symbol *sym;
@@ -2219,7 +2219,7 @@ bool-vector.  IDX starts at 0.  */)
 
 enum comparison { equal, notequal, less, grtr, less_or_equal, grtr_or_equal };
 
-Lisp_Object
+static Lisp_Object
 arithcompare (Lisp_Object num1, Lisp_Object num2, enum comparison comparison)
 {
   double f1 = 0, f2 = 0;
@@ -2487,7 +2487,7 @@ enum arithop
 
 static Lisp_Object float_arith_driver (double, int, enum arithop,
                                        int, Lisp_Object *);
-Lisp_Object
+static Lisp_Object
 arith_driver (enum arithop code, int nargs, register Lisp_Object *args)
 {
   register Lisp_Object val;
@@ -3311,7 +3311,7 @@ syms_of_data (void)
   XSYMBOL (intern_c_string ("most-negative-fixnum"))->constant = 1;
 }
 
-SIGTYPE
+static SIGTYPE
 arith_error (int signo)
 {
   sigsetmask (SIGEMPTYMASK);
