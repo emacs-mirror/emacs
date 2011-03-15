@@ -3,6 +3,8 @@
 	* alloc.c (check_cons_list): Do not define unless GC_CHECK_CONS_LIST.
 	(Fmake_vector, Fvector, Fmake_byte_code, Fgarbage_collect):
 	Rename locals to avoid shadowing.
+	(mark_stack): Move local variables into the #ifdef region where
+	they're used.
 
 	* lisp.h (check_cons_list): Declare if GC_CHECK_CONS_LIST; this
 	avoids undefined behavior in theory.

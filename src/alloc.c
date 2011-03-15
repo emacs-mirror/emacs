@@ -4312,12 +4312,6 @@ static void
 mark_stack (void)
 {
   int i;
-  /* jmp_buf may not be aligned enough on darwin-ppc64 */
-  union aligned_jmpbuf {
-    Lisp_Object o;
-    jmp_buf j;
-  } j;
-  volatile int stack_grows_down_p = (char *) &j > (char *) stack_base;
   void *end;
 
 #ifdef HAVE___BUILTIN_UNWIND_INIT
@@ -4327,6 +4321,14 @@ mark_stack (void)
   __builtin_unwind_init ();
   end = &end;
 #else /* not HAVE___BUILTIN_UNWIND_INIT */
+#ifndef GC_SAVE_REGISTERS_ON_STACK
+  /* jmp_buf may not be aligned enough on darwin-ppc64 */
+  union aligned_jmpbuf {
+    Lisp_Object o;
+    jmp_buf j;
+  } j;
+  volatile int stack_grows_down_p = (char *) &j > (char *) stack_base;
+#endif
   /* This trick flushes the register windows so that all the state of
      the process is contained in the stack.  */
   /* Fixme: Code in the Boehm GC suggests flushing (with `flushrs') is
