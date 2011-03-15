@@ -434,7 +434,7 @@ get a current directory to run processes in.  */)
 
 
 static char *
-file_name_as_directory (char *out, char *in)
+file_name_as_directory (char *out, const char *in)
 {
   int size = strlen (in) - 1;
 
@@ -728,7 +728,8 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 {
   /* These point to SDATA and need to be careful with string-relocation
      during GC (via DECODE_FILE).  */
-  char *nm, *newdir;
+  char *nm;
+  const char *newdir;
   /* This should only point to alloca'd data.  */
   char *target;
 
@@ -1013,21 +1014,23 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
   if (!newdir && drive)
     {
       /* Get default directory if needed to make nm absolute. */
+      char *adir = NULL;
       if (!IS_DIRECTORY_SEP (nm[0]))
 	{
-	  newdir = alloca (MAXPATHLEN + 1);
-	  if (!getdefdir (toupper (drive) - 'A' + 1, newdir))
-	    newdir = NULL;
+	  adir = alloca (MAXPATHLEN + 1);
+	  if (!getdefdir (toupper (drive) - 'A' + 1, adir))
+	    adir = NULL;
 	}
-      if (!newdir)
+      if (!adir)
 	{
 	  /* Either nm starts with /, or drive isn't mounted. */
-	  newdir = alloca (4);
-	  newdir[0] = DRIVE_LETTER (drive);
-	  newdir[1] = ':';
-	  newdir[2] = '/';
-	  newdir[3] = 0;
+	  adir = alloca (4);
+	  adir[0] = DRIVE_LETTER (drive);
+	  adir[1] = ':';
+	  adir[2] = '/';
+	  adir[3] = 0;
 	}
+      newdir = adir;
     }
 #endif /* DOS_NT */
 
@@ -1074,7 +1077,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	     when we have pointers into lisp strings, we accomplish this
 	     indirectly by prepending newdir to nm if necessary, and using
 	     cwd (or the wd of newdir's drive) as the new newdir. */
-
+	  char *adir;
 	  if (IS_DRIVE (newdir[0]) && IS_DEVICE_SEP (newdir[1]))
 	    {
 	      drive = (unsigned char) newdir[0];
@@ -1087,14 +1090,15 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	      strcat (tmp, nm);
 	      nm = tmp;
 	    }
-	  newdir = alloca (MAXPATHLEN + 1);
+	  adir = alloca (MAXPATHLEN + 1);
 	  if (drive)
 	    {
-	      if (!getdefdir (toupper (drive) - 'A' + 1, newdir))
+	      if (!getdefdir (toupper (drive) - 'A' + 1, adir))
 		newdir = "/";
 	    }
 	  else
-	    getwd (newdir);
+	    getwd (adir);
+	  newdir = adir;
 	}
 
       /* Strip off drive name from prefix, if present. */
@@ -1111,13 +1115,13 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 #ifdef WINDOWSNT
 	  if (IS_DIRECTORY_SEP (newdir[0]) && IS_DIRECTORY_SEP (newdir[1]))
 	    {
-	      char *p;
-	      newdir = strcpy (alloca (strlen (newdir) + 1), newdir);
-	      p = newdir + 2;
+	      char *adir = strcpy (alloca (strlen (newdir) + 1), newdir);
+	      char *p = adir + 2;
 	      while (*p && !IS_DIRECTORY_SEP (*p)) p++;
 	      p++;
 	      while (*p && !IS_DIRECTORY_SEP (*p)) p++;
 	      *p = 0;
+	      newdir = adir;
 	    }
 	  else
 #endif
