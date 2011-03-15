@@ -1,6 +1,7 @@
 2011-03-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* filelock.c (within_one_second): Now static.
+	(lock_file_1): Rename local to avoid shadowing.
 
 	* buffer.c (fix_overlays_before): Mark locals as initialized.
 	(fix_start_end_in_overlays): Likewise.  This function should be
