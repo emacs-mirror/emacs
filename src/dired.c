@@ -79,11 +79,6 @@ extern struct direct *readdir (DIR *);
 #include "regex.h"
 #include "blockinput.h"
 
-/* Returns a search buffer, with a fastmap allocated and ready to go.  */
-extern struct re_pattern_buffer *compile_pattern (Lisp_Object,
-						  struct re_registers *,
-						  Lisp_Object, int, int);
-
 Lisp_Object Qdirectory_files;
 Lisp_Object Qdirectory_files_and_attributes;
 Lisp_Object Qfile_name_completion;

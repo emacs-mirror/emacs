@@ -3025,6 +3025,10 @@ EXFUN (Fset_match_data, 2);
 EXFUN (Fmatch_beginning, 1);
 EXFUN (Fmatch_end, 1);
 extern void record_unwind_save_match_data (void);
+struct re_registers;
+extern struct re_pattern_buffer *compile_pattern (Lisp_Object,
+						  struct re_registers *,
+						  Lisp_Object, int, int);
 extern int fast_string_match (Lisp_Object, Lisp_Object);
 extern int fast_c_string_match_ignore_case (Lisp_Object, const char *);
 extern int fast_string_match_ignore_case (Lisp_Object, Lisp_Object);
