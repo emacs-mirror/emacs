@@ -1,5 +1,9 @@
 2011-03-15  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* alloc.c (check_cons_list): Do not define unless GC_CHECK_CONS_LIST.
+	* lisp.h (check_cons_list): Declare if GC_CHECK_CONS_LIST; this
+	avoids undefined behavior in theory.
+
 	* regex.c (IF_LINT): Add defn, for benefit of ../lib-src.
 
 	Use functions, not macros, for up- and down-casing (Bug#8254).

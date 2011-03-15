@@ -27,9 +27,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    types of run time checks for Lisp objects.  */
 
 #ifdef GC_CHECK_CONS_LIST
-#define CHECK_CONS_LIST() check_cons_list()
+extern void check_cons_list (void);
+#define CHECK_CONS_LIST() check_cons_list ()
 #else
-#define CHECK_CONS_LIST() ((void)0)
+#define CHECK_CONS_LIST() ((void) 0)
 #endif
 
 /* These are default choices for the types to use.  */
