@@ -9,7 +9,7 @@
 	(upcase1): Likewise, for UPCASE_TABLE.
 	(uppercasep, lowercasep, upcase): New static inline functions.
 	* editfns.c (Fchar_equal): Remove no-longer-needed workaround for
-	the race-condition problem the old DOWNCASE.
+	the race-condition problem in the old DOWNCASE.
 
 	* regex.c (CHARSET_LOOKUP_RANGE_TABLE_RAW, POP_FAILURE_REG_OR_COUNT):
 	Rename locals to avoid shadowing.
