@@ -102,7 +102,7 @@ directory_files_internal_w32_unwind (Lisp_Object arg)
 }
 #endif
 
-Lisp_Object
+static Lisp_Object
 directory_files_internal_unwind (Lisp_Object dh)
 {
   DIR *d = (DIR *) XSAVE_VALUE (dh)->pointer;

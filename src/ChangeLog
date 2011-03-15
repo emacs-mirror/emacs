@@ -1,5 +1,7 @@
 2011-03-15  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* dired.c (directory_files_internal_unwind): Now static.
+
 	* fileio.c (file_name_as_directory, directory_file_name):
 	(barf_or_query_if_file_exists, auto_save_error, auto_save_1):
 	Now static.
