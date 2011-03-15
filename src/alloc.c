@@ -6057,7 +6057,7 @@ We divide the value by 1024 to make sure it fits in a Lisp integer.  */)
 {
   Lisp_Object end;
 
-  XSETINT (end, (EMACS_INT) sbrk (0) / 1024);
+  XSETINT (end, (EMACS_INT) (char *) sbrk (0) / 1024);
 
   return end;
 }

@@ -10,6 +10,7 @@
 	needed otherwise.
 	(CHECK_ALLOCATED): Define only if GC_CHECK_MARKED_OBJECTS.
 	(GC_STRING_CHARS): Remove; not used.
+	(Fmemory_limit): Cast sbrk's returned value to char *.
 
 	* lisp.h (check_cons_list): Declare if GC_CHECK_CONS_LIST; this
 	avoids undefined behavior in theory.
