@@ -2903,15 +2903,15 @@ See also the function `vector'.  */)
 {
   Lisp_Object vector;
   register EMACS_INT sizei;
-  register EMACS_INT index;
+  register EMACS_INT i;
   register struct Lisp_Vector *p;
 
   CHECK_NATNUM (length);
   sizei = XFASTINT (length);
 
   p = allocate_vector (sizei);
-  for (index = 0; index < sizei; index++)
-    p->contents[index] = init;
+  for (i = 0; i < sizei; i++)
+    p->contents[i] = init;
 
   XSETVECTOR (vector, p);
   return vector;
@@ -2925,14 +2925,14 @@ usage: (vector &rest OBJECTS)  */)
   (register int nargs, Lisp_Object *args)
 {
   register Lisp_Object len, val;
-  register int index;
+  register int i;
   register struct Lisp_Vector *p;
 
   XSETFASTINT (len, nargs);
   val = Fmake_vector (len, Qnil);
   p = XVECTOR (val);
-  for (index = 0; index < nargs; index++)
-    p->contents[index] = args[index];
+  for (i = 0; i < nargs; i++)
+    p->contents[i] = args[i];
   return val;
 }
 
@@ -2947,7 +2947,7 @@ usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INT
   (register int nargs, Lisp_Object *args)
 {
   register Lisp_Object len, val;
-  register int index;
+  register int i;
   register struct Lisp_Vector *p;
 
   XSETFASTINT (len, nargs);
@@ -2965,11 +2965,11 @@ usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INT
     args[1] = Fstring_as_unibyte (args[1]);
 
   p = XVECTOR (val);
-  for (index = 0; index < nargs; index++)
+  for (i = 0; i < nargs; i++)
     {
       if (!NILP (Vpurify_flag))
-	args[index] = Fpurecopy (args[index]);
-      p->contents[index] = args[index];
+	args[i] = Fpurecopy (args[i]);
+      p->contents[i] = args[i];
     }
   XSETPVECTYPE (p, PVEC_COMPILED);
   XSETCOMPILED (val, p);
@@ -5063,18 +5063,18 @@ returns nil, because real GC can't be done.  */)
 
   if (FLOATP (Vgc_cons_percentage))
     { /* Set gc_cons_combined_threshold.  */
-      EMACS_INT total = 0;
+      EMACS_INT tot = 0;
 
-      total += total_conses  * sizeof (struct Lisp_Cons);
-      total += total_symbols * sizeof (struct Lisp_Symbol);
-      total += total_markers * sizeof (union Lisp_Misc);
-      total += total_string_size;
-      total += total_vector_size * sizeof (Lisp_Object);
-      total += total_floats  * sizeof (struct Lisp_Float);
-      total += total_intervals * sizeof (struct interval);
-      total += total_strings * sizeof (struct Lisp_String);
+      tot += total_conses  * sizeof (struct Lisp_Cons);
+      tot += total_symbols * sizeof (struct Lisp_Symbol);
+      tot += total_markers * sizeof (union Lisp_Misc);
+      tot += total_string_size;
+      tot += total_vector_size * sizeof (Lisp_Object);
+      tot += total_floats  * sizeof (struct Lisp_Float);
+      tot += total_intervals * sizeof (struct interval);
+      tot += total_strings * sizeof (struct Lisp_String);
 
-      gc_relative_threshold = total * XFLOAT_DATA (Vgc_cons_percentage);
+      gc_relative_threshold = tot * XFLOAT_DATA (Vgc_cons_percentage);
     }
   else
     gc_relative_threshold = 0;
@@ -5123,9 +5123,9 @@ returns nil, because real GC can't be done.  */)
 
   if (!NILP (Vpost_gc_hook))
     {
-      int count = inhibit_garbage_collection ();
+      int gc_count = inhibit_garbage_collection ();
       safe_run_hooks (Qpost_gc_hook);
-      unbind_to (count, Qnil);
+      unbind_to (gc_count, Qnil);
     }
 
   /* Accumulate statistics.  */

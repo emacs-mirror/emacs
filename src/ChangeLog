@@ -1,6 +1,9 @@
 2011-03-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* alloc.c (check_cons_list): Do not define unless GC_CHECK_CONS_LIST.
+	(Fmake_vector, Fvector, Fmake_byte_code, Fgarbage_collect):
+	Rename locals to avoid shadowing.
+
 	* lisp.h (check_cons_list): Declare if GC_CHECK_CONS_LIST; this
 	avoids undefined behavior in theory.
 
