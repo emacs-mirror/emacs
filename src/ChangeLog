@@ -5,6 +5,11 @@
 	Rename locals to avoid shadowing.
 	(mark_stack): Move local variables into the #ifdef region where
 	they're used.
+	(BLOCK_INPUT_ALLOC, UNBLOCK_INPUT_ALLOC): Define only if
+	! defined SYSTEM_MALLOC && ! defined SYNC_INPUT, as they are not
+	needed otherwise.
+	(CHECK_ALLOCATED): Define only if GC_CHECK_MARKED_OBJECTS.
+	(GC_STRING_CHARS): Remove; not used.
 
 	* lisp.h (check_cons_list): Declare if GC_CHECK_CONS_LIST; this
 	avoids undefined behavior in theory.

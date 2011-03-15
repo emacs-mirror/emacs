@@ -92,7 +92,8 @@ extern __malloc_size_t __malloc_extra_blocks;
 
 #endif /* not DOUG_LEA_MALLOC */
 
-#if ! defined (SYSTEM_MALLOC) && defined (HAVE_GTK_AND_PTHREAD)
+#if ! defined SYSTEM_MALLOC && ! defined SYNC_INPUT
+#ifdef HAVE_GTK_AND_PTHREAD
 
 /* When GTK uses the file chooser dialog, different backends can be loaded
    dynamically.  One such a backend is the Gnome VFS backend that gets loaded
@@ -130,12 +131,13 @@ static pthread_mutex_t alloc_mutex;
     }                                                   \
   while (0)
 
-#else /* SYSTEM_MALLOC || not HAVE_GTK_AND_PTHREAD */
+#else /* ! defined HAVE_GTK_AND_PTHREAD */
 
 #define BLOCK_INPUT_ALLOC BLOCK_INPUT
 #define UNBLOCK_INPUT_ALLOC UNBLOCK_INPUT
 
-#endif /* SYSTEM_MALLOC || not HAVE_GTK_AND_PTHREAD */
+#endif /* ! defined HAVE_GTK_AND_PTHREAD */
+#endif /* ! defined SYSTEM_MALLOC && ! defined SYNC_INPUT */
 
 /* Value of _bytes_used, when spare_memory was freed.  */
 
@@ -152,13 +154,11 @@ static __malloc_size_t bytes_used_when_full;
 #define VECTOR_UNMARK(V)	((V)->size &= ~ARRAY_MARK_FLAG)
 #define VECTOR_MARKED_P(V)	(((V)->size & ARRAY_MARK_FLAG) != 0)
 
-/* Value is the number of bytes/chars of S, a pointer to a struct
-   Lisp_String.  This must be used instead of STRING_BYTES (S) or
-   S->size during GC, because S->size contains the mark bit for
+/* Value is the number of bytes of S, a pointer to a struct Lisp_String.
+   Be careful during GC, because S->size contains the mark bit for
    strings.  */
 
 #define GC_STRING_BYTES(S)	(STRING_BYTES (S))
-#define GC_STRING_CHARS(S)	((S)->size & ~ARRAY_MARK_FLAG)
 
 /* Global variables.  */
 struct emacs_globals globals;
@@ -5306,7 +5306,6 @@ mark_object (Lisp_Object arg)
 
 #else /* not GC_CHECK_MARKED_OBJECTS */
 
-#define CHECK_ALLOCATED()		(void) 0
 #define CHECK_LIVE(LIVEP)		(void) 0
 #define CHECK_ALLOCATED_AND_LIVE(LIVEP)	(void) 0
 
