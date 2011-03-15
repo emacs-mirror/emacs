@@ -2,6 +2,7 @@
 
 	* insdel.c (check_markers, make_gap_larger, make_gap_smaller):
 	(reset_var_on_error, Fcombine_after_change_execute_1): Now static.
+	(CHECK_MARKERS): Redo to avoid gcc -Wempty-body diagnostic.
 
 	* filelock.c (within_one_second): Now static.
 	(lock_file_1): Rename local to avoid shadowing.

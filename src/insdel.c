@@ -70,9 +70,12 @@ Lisp_Object combine_after_change_buffer;
 Lisp_Object Qinhibit_modification_hooks;
 
 #define CHECK_MARKERS()				\
-  if (check_markers_debug_flag)			\
-    check_markers ();				\
-  else
+  do						\
+    {						\
+      if (check_markers_debug_flag)		\
+	check_markers ();			\
+    }						\
+  while (0)
 
 static void
 check_markers (void)
