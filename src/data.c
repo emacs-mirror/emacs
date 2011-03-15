@@ -805,7 +805,10 @@ variable chain of symbols.  */)
   (Lisp_Object object)
 {
   if (SYMBOLP (object))
-    XSETSYMBOL (object,  indirect_variable (XSYMBOL (object)));
+    {
+      struct Lisp_Symbol *sym = indirect_variable (XSYMBOL (object));
+      XSETSYMBOL (object, sym);
+    }
   return object;
 }
 
