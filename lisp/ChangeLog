@@ -1,3 +1,8 @@
+2011-03-15  Kevin Ryde  <user42@zip.com.au>
+
+	* help-fns.el (variable-at-point): Skip leading quotes, if any
+	(bug#8253).
+
 2011-03-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el (byte-compile-save-excursion): Change the
