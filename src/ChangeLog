@@ -1,5 +1,8 @@
 2011-03-15  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lisp.h (eassert): Check that the argument compiles, even if
+	ENABLE_CHECKING is not defined.
+
 	* data.c (Findirect_variable): Name an expression, to avoid
 	gcc -Wbad-function-cast warning.
 	(default_value, arithcompare, arith_driver, arith_error): Now static.

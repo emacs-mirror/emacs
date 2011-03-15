@@ -86,7 +86,7 @@ extern void die (const char *, const char *, int) NO_RETURN;
 /* Define an Emacs version of "assert", since some system ones are
    flaky.  */
 #ifndef ENABLE_CHECKING
-#define eassert(X)	(void) 0
+#define eassert(X) ((void) (0 && (X))) /* Check that X compiles.  */
 #else /* ENABLE_CHECKING */
 #if defined (__GNUC__) && __GNUC__ >= 2 && defined (__STDC__)
 #define eassert(cond) CHECK(cond,"assertion failed: " #cond)
