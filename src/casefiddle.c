@@ -201,7 +201,10 @@ casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
   register int multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
   EMACS_INT start, end;
   EMACS_INT start_byte, end_byte;
-  EMACS_INT first = -1, last;	/* Position of first and last changes.  */
+
+  /* Position of first and last changes.  */
+  EMACS_INT first = -1, last IF_LINT (= 0);
+
   EMACS_INT opoint = PT;
   EMACS_INT opoint_byte = PT_BYTE;
 

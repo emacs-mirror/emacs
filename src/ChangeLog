@@ -1,6 +1,7 @@
 2011-03-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* casefiddle.c (casify_object, casify_region): Now static.
+	(casify_region): Mark local as initialized.
 
 	* cmds.c (internal_self_insert): Rename local to avoid shadowing.
 
