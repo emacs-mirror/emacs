@@ -382,7 +382,7 @@ lock_file_1 (char *lfname, int force)
 
 /* Return 1 if times A and B are no more than one second apart.  */
 
-int
+static int
 within_one_second (time_t a, time_t b)
 {
   return (a - b >= -1 && a - b <= 1);
