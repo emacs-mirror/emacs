@@ -1,5 +1,7 @@
 2011-03-15  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* regex.c (IF_LINT): Add defn, for benefit of ../lib-src.
+
 	Use functions, not macros, for up- and down-casing (Bug#8254).
 	* buffer.h (DOWNCASE_TABLE, UPCASE_TABLE, DOWNCASE, UPPERCASEP):
 	(NOCASEP, LOWERCASEP, UPCASE, UPCASE1): Remove.  All callers changed
