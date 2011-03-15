@@ -910,12 +910,12 @@ store_symval_forwarding (union Lisp_Fwd *valcontents, register Lisp_Object newva
 
 	  for (tail = Vbuffer_alist; CONSP (tail); tail = XCDR (tail))
 	    {
-	      Lisp_Object buf;
+	      Lisp_Object lbuf;
 	      struct buffer *b;
 
-	      buf = Fcdr (XCAR (tail));
-	      if (!BUFFERP (buf)) continue;
-	      b = XBUFFER (buf);
+	      lbuf = Fcdr (XCAR (tail));
+	      if (!BUFFERP (lbuf)) continue;
+	      b = XBUFFER (lbuf);
 
 	      if (! PER_BUFFER_VALUE_P (b, idx))
 		PER_BUFFER_VALUE (b, offset) = newval;

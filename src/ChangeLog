@@ -3,6 +3,7 @@
 	* data.c (Findirect_variable): Name an expression, to avoid
 	gcc -Wbad-function-cast warning.
 	(default_value, arithcompare, arith_driver, arith_error): Now static.
+	(store_symval_forwarding): Rename local to avoid shadowing.
 
 	* alloc.c (check_cons_list): Do not define unless GC_CHECK_CONS_LIST.
 	(Fmake_vector, Fvector, Fmake_byte_code, Fgarbage_collect):
