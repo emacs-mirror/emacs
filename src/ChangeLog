@@ -1,6 +1,8 @@
 2011-03-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* minibuf.c (choose_minibuf_frame_1): Now static.
+	(Ftry_completion, Fall_completions): Rename or remove locals
+	to avoid shadowing.
 
 	* marker.c (bytepos_to_charpos): Remove; unused.
 
