@@ -1,5 +1,14 @@
 2011-03-15  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Use functions, not macros, for up- and down-casing (Bug#8254).
+	* buffer.h (DOWNCASE_TABLE, UPCASE_TABLE, DOWNCASE, UPPERCASEP):
+	(NOCASEP, LOWERCASEP, UPCASE, UPCASE1): Remove.  All callers changed
+	to use the following functions instead of these macros.
+	(downcase): Adjust to lack of DOWNCASE_TABLE.  Return int, not
+	EMACS_INT, since callers assume the returned value fits in int.
+	(upcase1): Likewise, for UPCASE_TABLE.
+	(uppercasep, lowercasep, upcase): New static inline functions.
+
 	* regex.c (CHARSET_LOOKUP_RANGE_TABLE_RAW, POP_FAILURE_REG_OR_COUNT):
 	Rename locals to avoid shadowing.
 	(regex_compile, re_match_2_internal): Move locals to avoid shadowing.
