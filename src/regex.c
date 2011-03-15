@@ -5613,8 +5613,8 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const re_char *string1, int
 	    if (!not) goto fail;
 
 	    d += len;
-	    break;
 	  }
+	  break;
 
 
 	/* The beginning of a group is represented by start_memory.
@@ -6238,8 +6238,8 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const re_char *string1, int
 		goto fail;
 	      d += len;
 	    }
-	    break;
 	  }
+	  break;
 
 #ifdef emacs
 	case before_dot:
@@ -6262,18 +6262,21 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const re_char *string1, int
 
 	case categoryspec:
 	case notcategoryspec:
-	  not = (re_opcode_t) *(p - 1) == notcategoryspec;
-	  mcnt = *p++;
-	  DEBUG_PRINT3 ("EXECUTING %scategoryspec %d.\n", not?"not":"", mcnt);
-	  PREFETCH ();
 	  {
-	    int len;
-	    re_wchar_t c;
+	    boolean not = (re_opcode_t) *(p - 1) == notcategoryspec;
+	    mcnt = *p++;
+	    DEBUG_PRINT3 ("EXECUTING %scategoryspec %d.\n",
+			  not?"not":"", mcnt);
+	    PREFETCH ();
 
-	    GET_CHAR_AFTER (c, d, len);
-	    if ((!CHAR_HAS_CATEGORY (c, mcnt)) ^ not)
-	      goto fail;
-	    d += len;
+	    {
+	      int len;
+	      re_wchar_t c;
+	      GET_CHAR_AFTER (c, d, len);
+	      if ((!CHAR_HAS_CATEGORY (c, mcnt)) ^ not)
+		goto fail;
+	      d += len;
+	    }
 	  }
 	  break;
 
