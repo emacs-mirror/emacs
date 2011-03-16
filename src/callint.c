@@ -408,25 +408,25 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	string++;
       else if (*string == '@')
 	{
-	  Lisp_Object event, tem;
+	  Lisp_Object event, w;
 
 	  event = (next_event < key_count
 		   ? AREF (keys, next_event)
 		   : Qnil);
 	  if (EVENT_HAS_PARAMETERS (event)
-	      && (tem = XCDR (event), CONSP (tem))
-	      && (tem = XCAR (tem), CONSP (tem))
-	      && (tem = XCAR (tem), WINDOWP (tem)))
+	      && (w = XCDR (event), CONSP (w))
+	      && (w = XCAR (w), CONSP (w))
+	      && (w = XCAR (w), WINDOWP (w)))
 	    {
-	      if (MINI_WINDOW_P (XWINDOW (tem))
-		  && ! (minibuf_level > 0 && EQ (tem, minibuf_window)))
+	      if (MINI_WINDOW_P (XWINDOW (w))
+		  && ! (minibuf_level > 0 && EQ (w, minibuf_window)))
 		error ("Attempt to select inactive minibuffer window");
 
 	      /* If the current buffer wants to clean up, let it.  */
 	      if (!NILP (Vmouse_leave_buffer_hook))
 		call1 (Vrun_hooks, Qmouse_leave_buffer_hook);
 
-	      Fselect_window (tem, Qnil);
+	      Fselect_window (w, Qnil);
 	    }
 	  string++;
 	}
@@ -679,7 +679,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	    int first = 1;
 	    do
 	      {
-		Lisp_Object tem;
+		Lisp_Object str;
 		if (! first)
 		  {
 		    message ("Please enter a number.");
@@ -687,13 +687,13 @@ invoke it.  If KEYS is omitted or nil, the return value of
 		  }
 		first = 0;
 
-		tem = Fread_from_minibuffer (callint_message,
+		str = Fread_from_minibuffer (callint_message,
 					     Qnil, Qnil, Qnil, Qnil, Qnil,
 					     Qnil);
-		if (! STRINGP (tem) || SCHARS (tem) == 0)
+		if (! STRINGP (str) || SCHARS (str) == 0)
 		  args[i] = Qnil;
 		else
-		  args[i] = Fread (tem);
+		  args[i] = Fread (str);
 	      }
 	    while (! NUMBERP (args[i]));
 	  }
