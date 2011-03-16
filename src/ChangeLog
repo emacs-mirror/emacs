@@ -1,5 +1,8 @@
 2011-03-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* print.c (PRINT_CIRCLE_CANDIDATE_P): New macro.
+	(print_preprocess, print_object): New macro to fix last change.
+
 	* print.c (print_preprocess): Don't forget font objects.
 
 2011-03-16  Juanma Barranquero  <lekktu@gmail.com>
