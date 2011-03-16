@@ -7,6 +7,9 @@
 	* editfns.c (init_editfns, Fuser_login_name, Fuser_uid):
 	(Fuser_real_uid, Fuser_full_name): Remove unnecessary casts,
 	some of which prompt warnings from gcc -Wbad-function-cast.
+	(Fformat_time_string, Fencode_time, Finsert_char):
+	(Ftranslate_region_internal, Fformat):
+	Rename or remove local vars to avoid shadowing.
 
 2011-03-15  Paul Eggert  <eggert@cs.ucla.edu>
 

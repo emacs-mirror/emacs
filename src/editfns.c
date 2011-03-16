@@ -1721,7 +1721,7 @@ The modifiers are `E' and `O'.  For certain characters X,
 %OX is like %X, but uses the locale's number symbols.
 
 For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
-  (Lisp_Object format_string, Lisp_Object time, Lisp_Object universal)
+  (Lisp_Object format_string, Lisp_Object timeval, Lisp_Object universal)
 {
   time_t value;
   int size;
@@ -1732,7 +1732,7 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
 
   CHECK_STRING (format_string);
 
-  if (! (lisp_time_argument (time, &value, &usec)
+  if (! (lisp_time_argument (timeval, &value, &usec)
 	 && 0 <= usec && usec < 1000000))
     error ("Invalid time specification");
   ns = usec * 1000;
@@ -1870,7 +1870,7 @@ year values as low as 1901 do work.
 usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
   (int nargs, register Lisp_Object *args)
 {
-  time_t time;
+  time_t value;
   struct tm tm;
   Lisp_Object zone = (nargs > 6 ? args[nargs - 1] : Qnil);
 
@@ -1887,7 +1887,7 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
   if (NILP (zone))
     {
       BLOCK_INPUT;
-      time = mktime (&tm);
+      value = mktime (&tm);
       UNBLOCK_INPUT;
     }
   else
@@ -1915,7 +1915,7 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
       set_time_zone_rule (tzstring);
 
       BLOCK_INPUT;
-      time = mktime (&tm);
+      value = mktime (&tm);
       UNBLOCK_INPUT;
 
       /* Restore TZ to previous value.  */
@@ -1927,10 +1927,10 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
 #endif
     }
 
-  if (time == (time_t) -1)
+  if (value == (time_t) -1)
     time_overflow ();
 
-  return make_time (time);
+  return make_time (value);
 }
 
 DEFUN ("current-time-string", Fcurrent_time_string, Scurrent_time_string, 0, 1, 0,
@@ -2340,7 +2340,7 @@ from adjoining text, if those properties are sticky.  */)
   (Lisp_Object character, Lisp_Object count, Lisp_Object inherit)
 {
   register char *string;
-  register EMACS_INT strlen;
+  register EMACS_INT stringlen;
   register int i;
   register EMACS_INT n;
   int len;
@@ -2358,18 +2358,18 @@ from adjoining text, if those properties are sticky.  */)
   n = XINT (count) * len;
   if (n <= 0)
     return Qnil;
-  strlen = min (n, 256 * len);
-  string = (char *) alloca (strlen);
-  for (i = 0; i < strlen; i++)
+  stringlen = min (n, 256 * len);
+  string = (char *) alloca (stringlen);
+  for (i = 0; i < stringlen; i++)
     string[i] = str[i % len];
-  while (n >= strlen)
+  while (n >= stringlen)
     {
       QUIT;
       if (!NILP (inherit))
-	insert_and_inherit (string, strlen);
+	insert_and_inherit (string, stringlen);
       else
-	insert (string, strlen);
-      n -= strlen;
+	insert (string, stringlen);
+      n -= stringlen;
     }
   if (n > 0)
     {
@@ -3029,7 +3029,6 @@ It returns the number of characters changed.  */)
   EMACS_INT pos, pos_byte, end_pos;
   int multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
   int string_multibyte;
-  Lisp_Object val;
 
   validate_region (&start, &end);
   if (CHAR_TABLE_P (table))
@@ -3928,7 +3927,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	      /* handle case (precision[n] >= 0) */
 
 	      int width, padding;
-	      EMACS_INT nbytes, start, end;
+	      EMACS_INT nbytes, start;
 	      EMACS_INT nchars_string;
 
 	      /* lisp_string_width ignores a precision of 0, but GNU
@@ -3960,7 +3959,6 @@ usage: (format STRING &rest OBJECTS)  */)
 
 	      info[n].start = start = nchars;
 	      nchars += nchars_string;
-	      end = nchars;
 
 	      if (p > buf
 		  && multibyte
