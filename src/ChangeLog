@@ -3,6 +3,7 @@
 	* font.c (font_unparse_xlfd): Don't mix pointers to variables with
 	pointers to constants.
 	(font_parse_fcname): Remove unused vars.
+	(font_delete_unmatched): Now static.
 
 	* fns.c (require_nesting_list, require_unwind): Now static.
 	(Ffillarray): Rename locals to avoid shadowing.

@@ -2600,7 +2600,7 @@ static Lisp_Object scratch_font_spec, scratch_font_prefer;
      (2) doesn't match with any regexps in Vface_ignored_fonts (if non-nil).
 */
 
-Lisp_Object
+static Lisp_Object
 font_delete_unmatched (Lisp_Object vec, Lisp_Object spec, int size)
 {
   Lisp_Object entity, val;
