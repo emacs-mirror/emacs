@@ -328,9 +328,9 @@ If X is zero, both parts (SGNFCAND and EXP) are zero.  */)
     return Fcons (make_float (0.0), make_number (0));
   else
     {
-      int    exp;
-      double sgnfcand = frexp (f, &exp);
-      return Fcons (make_float (sgnfcand), make_number (exp));
+      int exponent;
+      double sgnfcand = frexp (f, &exponent);
+      return Fcons (make_float (sgnfcand), make_number (exponent));
     }
 }
 
@@ -338,10 +338,10 @@ DEFUN ("ldexp", Fldexp, Sldexp, 1, 2, 0,
        doc: /* Construct number X from significand SGNFCAND and exponent EXP.
 Returns the floating point value resulting from multiplying SGNFCAND
 (the significand) by 2 raised to the power of EXP (the exponent).   */)
-  (Lisp_Object sgnfcand, Lisp_Object exp)
+  (Lisp_Object sgnfcand, Lisp_Object exponent)
 {
-  CHECK_NUMBER (exp);
-  return make_float (ldexp (XFLOATINT (sgnfcand), XINT (exp)));
+  CHECK_NUMBER (exponent);
+  return make_float (ldexp (XFLOATINT (sgnfcand), XINT (exponent)));
 }
 #endif
 

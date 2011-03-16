@@ -1,6 +1,7 @@
 2011-03-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* floatfns.c (domain_error2): Define only if needed.
+	(Ffrexp, Fldexp): Rename locals to avoid shadowing.
 
 	* alloc.c (mark_backtrace): Move decl from here ...
 	* lisp.h: ... to here, so that it can be checked.
