@@ -10,6 +10,7 @@
 	(Fformat_time_string, Fencode_time, Finsert_char):
 	(Ftranslate_region_internal, Fformat):
 	Rename or remove local vars to avoid shadowing.
+	(Ftranslate_region_internal): Mark var as initialized.
 
 2011-03-15  Paul Eggert  <eggert@cs.ucla.edu>
 

@@ -3028,7 +3028,7 @@ It returns the number of characters changed.  */)
   EMACS_INT size;		/* Size of translate table. */
   EMACS_INT pos, pos_byte, end_pos;
   int multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
-  int string_multibyte;
+  int string_multibyte IF_LINT (= 0);
 
   validate_region (&start, &end);
   if (CHAR_TABLE_P (table))
