@@ -386,6 +386,8 @@ temacs:
    Instead we read the whole file, modify it, and write it out.  */
 
 #include <config.h>
+#include <unexec.h>
+
 extern void fatal (const char *msgid, ...);
 
 #include <sys/types.h>

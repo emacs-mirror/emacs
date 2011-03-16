@@ -1,5 +1,13 @@
 2011-03-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	New file unexec.h, the (simple) interface for unexec.
+	* deps.mk (emacs.o, unexaix.o, unexcw.o, unexcoff.o, unexelf.o):
+	(unexhp9k800.o, unexmacosx.o, unexsol.o, unexw32.o):
+	Depend on unexec.h.
+	* emacs.c [!defined CANNOT_DUMP]: Include unexec.h.
+	* unexaix.c, unexcoff.c, unexcw.c, unexelf.c, unexhp9k800.c:
+	* unexmacosx.c, unexsol.c, unexw32.c: Include unexec.h.
+
 	* syntax.c (Fforward_comment, scan_lists): Rename locals to avoid
 	shadowing.
 	(back_comment, skip_chars): Mark vars as initialized.

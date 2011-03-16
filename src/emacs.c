@@ -2085,9 +2085,7 @@ shut_down_emacs (int sig, int no_x, Lisp_Object stuff)
 
 #ifndef CANNOT_DUMP
 
-/* FIXME: maybe this should go into header file, config.h seems the
-   only one appropriate. */
-extern int unexec (const char *, const char *);
+#include "unexec.h"
 
 DEFUN ("dump-emacs", Fdump_emacs, Sdump_emacs, 2, 2, 0,
        doc: /* Dump current state of Emacs into executable file FILENAME.

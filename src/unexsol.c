@@ -1,6 +1,8 @@
 /* Trivial unexec for Solaris.  */
 
 #include <config.h>
+#include "unexec.h"
+
 #include <dlfcn.h>
 #include <setjmp.h>
 
