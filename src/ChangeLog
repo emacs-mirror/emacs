@@ -1,5 +1,8 @@
 2011-03-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* font.c (font_unparse_xlfd): Don't mix pointers to variables with
+	pointers to constants.
+
 	* fns.c (require_nesting_list, require_unwind): Now static.
 	(Ffillarray): Rename locals to avoid shadowing.
 

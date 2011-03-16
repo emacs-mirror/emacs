@@ -1163,7 +1163,8 @@ font_parse_xlfd (char *name, Lisp_Object font)
 int
 font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
 {
-  char *f[XLFD_REGISTRY_INDEX + 1];
+  char *p;
+  const char *f[XLFD_REGISTRY_INDEX + 1];
   Lisp_Object val;
   int i, j, len = 0;
 
@@ -1194,14 +1195,14 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
 	      /* Change "jisx0208*" and "jisx0208" to "jisx0208*-*".  */
 	      if (SDATA (val)[SBYTES (val) - 1] == '*')
 		{
-		  f[j] = alloca (SBYTES (val) + 3);
-		  sprintf (f[j], "%s-*", SDATA (val));
+		  f[j] = p = alloca (SBYTES (val) + 3);
+		  sprintf (p, "%s-*", SDATA (val));
 		  len += SBYTES (val) + 3;
 		}
 	      else
 		{
-		  f[j] = alloca (SBYTES (val) + 4);
-		  sprintf (f[j], "%s*-*", SDATA (val));
+		  f[j] = p = alloca (SBYTES (val) + 4);
+		  sprintf (p, "%s*-*", SDATA (val));
 		  len += SBYTES (val) + 4;
 		}
 	    }
@@ -1232,8 +1233,8 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
 	i = pixel_size;
       if (i > 0)
 	{
-	  f[XLFD_PIXEL_INDEX] = alloca (22);
-	  len += sprintf (f[XLFD_PIXEL_INDEX], "%d-*", i) + 1;
+	  f[XLFD_PIXEL_INDEX] = p = alloca (22);
+	  len += sprintf (p, "%d-*", i) + 1;
 	}
       else
 	f[XLFD_PIXEL_INDEX] = "*-*", len += 4;
@@ -1241,8 +1242,8 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
   else if (FLOATP (val))
     {
       i = XFLOAT_DATA (val) * 10;
-      f[XLFD_PIXEL_INDEX] = alloca (12);
-      len += sprintf (f[XLFD_PIXEL_INDEX], "*-%d", i) + 1;
+      f[XLFD_PIXEL_INDEX] = p = alloca (12);
+      len += sprintf (p, "*-%d", i) + 1;
     }
   else
     f[XLFD_PIXEL_INDEX] = "*-*", len += 4;
@@ -1250,9 +1251,8 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
   if (INTEGERP (AREF (font, FONT_DPI_INDEX)))
     {
       i = XINT (AREF (font, FONT_DPI_INDEX));
-      f[XLFD_RESX_INDEX] = alloca (22);
-      len += sprintf (f[XLFD_RESX_INDEX],
-		      "%d-%d", i, i) + 1;
+      f[XLFD_RESX_INDEX] = p = alloca (22);
+      len += sprintf (p, "%d-%d", i, i) + 1;
     }
   else
     f[XLFD_RESX_INDEX] = "*-*", len += 4;
@@ -1270,8 +1270,8 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
     f[XLFD_SPACING_INDEX] = "*", len += 2;
   if (INTEGERP (AREF (font,  FONT_AVGWIDTH_INDEX)))
     {
-      f[XLFD_AVGWIDTH_INDEX] = alloca (11);
-      len += sprintf (f[XLFD_AVGWIDTH_INDEX], "%ld",
+      f[XLFD_AVGWIDTH_INDEX] = p = alloca (11);
+      len += sprintf (p, "%ld",
                       (long) XINT (AREF (font, FONT_AVGWIDTH_INDEX))) + 1;
     }
   else
