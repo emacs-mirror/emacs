@@ -1391,8 +1391,6 @@ DEFUN ("system-name", Fsystem_name, Ssystem_name, 0, 0, 0,
   return Vsystem_name;
 }
 
-/* For the benefit of callers who don't want to include lisp.h */
-
 const char *
 get_system_name (void)
 {

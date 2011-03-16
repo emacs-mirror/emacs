@@ -162,8 +162,6 @@ extern Lisp_Object QCfilter;
 /* Define first descriptor number available for subprocesses.  */
 #define FIRST_PROC_DESC 3
 
-extern const char *get_operating_system_release (void);
-
 #ifndef HAVE_H_ERRNO
 extern int h_errno;
 #endif
