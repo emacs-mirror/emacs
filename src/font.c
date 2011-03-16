@@ -1448,12 +1448,10 @@ font_parse_fcname (char *name, Lisp_Object font)
     {
       /* Either a fontconfig-style name with no size and property
 	 data, or a GTK-style name.  */
-      Lisp_Object prop;
       Lisp_Object weight = Qnil, slant = Qnil;
       Lisp_Object width  = Qnil, size  = Qnil;
       char *word_start;
       int word_len;
-      int size_found = 0;
 
       /* Scan backwards from the end, looking for a size.  */
       for (p = name + len - 1; p >= name; p--)
