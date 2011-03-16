@@ -4,6 +4,7 @@
 	Rename locals to avoid shadowing.
 
 	* lread.c (read1): Rewrite so as not to use empty "else".
+	(Fload, readevalloop, read1): Rename locals to avoid shadowing.
 
 	* print.c (Fredirect_debugging_output): Fix pointer signedess.
 
