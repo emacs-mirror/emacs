@@ -1,3 +1,9 @@
+2011-03-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* editfns.c (init_editfns, Fuser_login_name, Fuser_uid):
+	(Fuser_real_uid, Fuser_full_name): Remove unnecessary casts,
+	some of which prompt warnings from gcc -Wbad-function-cast.
+
 2011-03-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* doc.c (Fdocumentation, Fsnarf_documentation): Move locals to

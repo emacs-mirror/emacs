@@ -122,7 +122,7 @@ Lisp_Object Qboundary;
 void
 init_editfns (void)
 {
-  char *user_name;
+  const char *user_name;
   register char *p;
   struct passwd *pw;	/* password entry for the current user */
   Lisp_Object tem;
@@ -136,7 +136,7 @@ init_editfns (void)
     return;
 #endif /* not CANNOT_DUMP */
 
-  pw = (struct passwd *) getpwuid (getuid ());
+  pw = getpwuid (getuid ());
 #ifdef MSDOS
   /* We let the real user name default to "root" because that's quite
      accurate on MSDOG and because it lets Emacs find the init file.
@@ -148,17 +148,17 @@ init_editfns (void)
 
   /* Get the effective user name, by consulting environment variables,
      or the effective uid if those are unset.  */
-  user_name = (char *) getenv ("LOGNAME");
+  user_name = getenv ("LOGNAME");
   if (!user_name)
 #ifdef WINDOWSNT
-    user_name = (char *) getenv ("USERNAME");	/* it's USERNAME on NT */
+    user_name = getenv ("USERNAME");	/* it's USERNAME on NT */
 #else  /* WINDOWSNT */
-    user_name = (char *) getenv ("USER");
+    user_name = getenv ("USER");
 #endif /* WINDOWSNT */
   if (!user_name)
     {
-      pw = (struct passwd *) getpwuid (geteuid ());
-      user_name = (char *) (pw ? pw->pw_name : "unknown");
+      pw = getpwuid (geteuid ());
+      user_name = pw ? pw->pw_name : "unknown";
     }
   Vuser_login_name = build_string (user_name);
 
@@ -1266,9 +1266,9 @@ of the user with that uid, or nil if there is no such user.  */)
   if (NILP (uid))
     return Vuser_login_name;
 
-  id = (uid_t)XFLOATINT (uid);
+  id = XFLOATINT (uid);
   BLOCK_INPUT;
-  pw = (struct passwd *) getpwuid (id);
+  pw = getpwuid (id);
   UNBLOCK_INPUT;
   return (pw ? build_string (pw->pw_name) : Qnil);
 }
@@ -1300,7 +1300,7 @@ Value is an integer or a float, depending on the value.  */)
   /* Make sure we don't produce a negative UID due to signed integer
      overflow.  */
   if (euid < 0)
-    return make_float ((double)geteuid ());
+    return make_float (geteuid ());
   return make_fixnum_or_float (euid);
 }
 
@@ -1316,7 +1316,7 @@ Value is an integer or a float, depending on the value.  */)
   /* Make sure we don't produce a negative UID due to signed integer
      overflow.  */
   if (uid < 0)
-    return make_float ((double)getuid ());
+    return make_float (getuid ());
   return make_fixnum_or_float (uid);
 }
 
@@ -1339,14 +1339,15 @@ name, or nil if there is no such user.  */)
     return Vuser_full_name;
   else if (NUMBERP (uid))
     {
+      uid_t u = XFLOATINT (uid);
       BLOCK_INPUT;
-      pw = (struct passwd *) getpwuid ((uid_t) XFLOATINT (uid));
+      pw = getpwuid (u);
       UNBLOCK_INPUT;
     }
   else if (STRINGP (uid))
     {
       BLOCK_INPUT;
-      pw = (struct passwd *) getpwnam (SSDATA (uid));
+      pw = getpwnam (SSDATA (uid));
       UNBLOCK_INPUT;
     }
   else
