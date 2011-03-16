@@ -1209,7 +1209,7 @@ print_preprocess (Lisp_Object obj)
  loop:
   if (STRINGP (obj) || CONSP (obj) || VECTORP (obj)
       || COMPILEDP (obj) || CHAR_TABLE_P (obj) || SUB_CHAR_TABLE_P (obj)
-      || HASH_TABLE_P (obj)
+      || HASH_TABLE_P (obj) || FONTP (obj)
       || (! NILP (Vprint_gensym)
 	  && SYMBOLP (obj)
 	  && !SYMBOL_INTERNED_P (obj)))

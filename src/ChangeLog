@@ -1,3 +1,7 @@
+2011-03-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* print.c (print_preprocess): Don't forget font objects.
+
 2011-03-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs.c (USAGE3): Doc fixes.
