@@ -2,6 +2,7 @@
 
 	* font.c (font_unparse_fcname): Abort in an "impossible" situation
 	instead of using an uninitialized var.
+	(font_sort_entities): Mark var as initialized.
 
 	* character.h (FETCH_CHAR_ADVANCE): Rename locals to avoid shadowing.
 
