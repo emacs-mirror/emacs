@@ -2,6 +2,7 @@
 
 	* syntax.c (Fforward_comment, scan_lists): Rename locals to avoid
 	shadowing.
+	(back_comment, skip_chars): Mark vars as initialized.
 
 	* character.h (FETCH_STRING_CHAR_ADVANCE_NO_CHECK, BUF_INC_POS):
 	Rename locals to avoid shadowing.

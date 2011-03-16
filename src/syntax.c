@@ -513,7 +513,7 @@ back_comment (EMACS_INT from, EMACS_INT from_byte, EMACS_INT stop, int comnested
   EMACS_INT comment_end = from;
   EMACS_INT comment_end_byte = from_byte;
   EMACS_INT comstart_pos = 0;
-  EMACS_INT comstart_byte;
+  EMACS_INT comstart_byte IF_LINT (= 0);
   /* Place where the containing defun starts,
      or 0 if we didn't come across it yet.  */
   EMACS_INT defun_start = 0;
@@ -1421,7 +1421,7 @@ skip_chars (int forwardp, Lisp_Object string, Lisp_Object lim, int handle_iso_cl
   register unsigned int c;
   unsigned char fastmap[0400];
   /* Store the ranges of non-ASCII characters.  */
-  int *char_ranges;
+  int *char_ranges IF_LINT (= NULL);
   int n_char_ranges = 0;
   int negate = 0;
   register EMACS_INT i, i_byte;
