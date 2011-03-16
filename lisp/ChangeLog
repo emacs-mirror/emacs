@@ -1,3 +1,9 @@
+2011-03-15  Ralph Schleicher  <rs@ralph-schleicher.de>
+
+	* info.el (info-initialize): Replace all uses of `:' with
+	path-separator for compatibility with non-Unix systems.
+	Cache quoting of path-separator.  (Bug#8258)
+
 2011-03-12  Juanma Barranquero  <lekktu@gmail.com>
 
 	* avoid.el (mouse-avoidance-mode, mouse-avoidance-nudge-dist)
