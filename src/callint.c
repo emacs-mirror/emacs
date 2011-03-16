@@ -258,7 +258,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
   Lisp_Object prefix_arg;
   char *string;
-  char *tem;
+  const char *tem;
 
   /* If varies[i] > 0, the i'th argument shouldn't just have its value
      in this call quoted in the command history.  It should be
