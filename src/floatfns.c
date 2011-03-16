@@ -187,8 +187,10 @@ static const char *float_error_fn_name;
   xsignal3 (Qrange_error, build_string ((op)), (a1), (a2))
 #define domain_error(op,arg) \
   xsignal2 (Qdomain_error, build_string ((op)), (arg))
+#ifdef FLOAT_CHECK_DOMAIN
 #define domain_error2(op,a1,a2) \
   xsignal3 (Qdomain_error, build_string ((op)), (a1), (a2))
+#endif
 
 /* Extract a Lisp number as a `double', or signal an error.  */
 
@@ -1037,7 +1039,7 @@ syms_of_floatfns (void)
   defsubr (&Scopysign);
   defsubr (&Sfrexp);
   defsubr (&Sldexp);
-#endif 
+#endif
 #if 0
   defsubr (&Sacosh);
   defsubr (&Sasinh);
@@ -1074,4 +1076,3 @@ syms_of_floatfns (void)
   defsubr (&Sround);
   defsubr (&Struncate);
 }
-
