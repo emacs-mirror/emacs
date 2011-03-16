@@ -158,7 +158,7 @@ restore_stack_limits (Lisp_Object data)
 
 /* Call the Lisp debugger, giving it argument ARG.  */
 
-Lisp_Object
+static Lisp_Object
 call_debugger (Lisp_Object arg)
 {
   int debug_while_redisplaying;
@@ -214,7 +214,7 @@ call_debugger (Lisp_Object arg)
   return unbind_to (count, val);
 }
 
-void
+static void
 do_debug_on_call (Lisp_Object code)
 {
   debug_on_next_call = 0;
@@ -1637,7 +1637,7 @@ See also the function `condition-case'.  */)
       if (!NILP (clause))
 	break;
     }
-	  
+
   if (/* Don't run the debugger for a memory-full error.
 	 (There is no room in memory to do that!) */
       !NILP (error_symbol)
@@ -1654,13 +1654,13 @@ See also the function `condition-case'.  */)
 	 can continue code which has signaled a quit.  */
       if (debugger_called && EQ (real_error_symbol, Qquit))
 	return Qnil;
-    }      
+    }
 
   if (!NILP (clause))
     {
       Lisp_Object unwind_data
 	= (NILP (error_symbol) ? data : Fcons (error_symbol, data));
-      
+
       h->chosen_clause = clause;
       unwind_to_catch (h->tag, unwind_data);
     }
@@ -1672,7 +1672,7 @@ See also the function `condition-case'.  */)
 
   if (! NILP (error_symbol))
     data = Fcons (error_symbol, data);
-      
+
   string = Ferror_message_string (data);
   fatal ("%s", SDATA (string), 0);
 }
@@ -3057,7 +3057,7 @@ DEFUN ("fetch-bytecode", Ffetch_bytecode, Sfetch_bytecode,
   return object;
 }
 
-void
+static void
 grow_specpdl (void)
 {
   register int count = SPECPDL_INDEX ();
@@ -3589,4 +3589,3 @@ The value the function returns is not used.  */);
   defsubr (&Sbacktrace);
   defsubr (&Sbacktrace_frame);
 }
-

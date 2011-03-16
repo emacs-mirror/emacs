@@ -1,5 +1,7 @@
 2011-03-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* eval.c (call_debugger, do_debug_on_call, grow_specpdl): Now static.
+
 	* callint.c (quotify_arg, quotify_args): Now static.
 	(Fcall_interactively): Rename locals to avoid shadowing.
 	Use const pointer when appropriate.
