@@ -2598,9 +2598,9 @@ particular subfeatures supported in this version of FEATURE.  */)
 
 /* List of features currently being require'd, innermost first.  */
 
-Lisp_Object require_nesting_list;
+static Lisp_Object require_nesting_list;
 
-Lisp_Object
+static Lisp_Object
 require_unwind (Lisp_Object old_value)
 {
   return require_nesting_list = old_value;
