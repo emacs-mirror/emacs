@@ -2781,8 +2781,9 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	    p = read_buffer + nchars;
 	  }
 	else
-	  /* Otherwise, READ_BUFFER contains only ASCII.  */
-	  ;
+	  {
+	    /* Otherwise, READ_BUFFER contains only ASCII.  */
+	  }
 
 	/* We want readchar_count to be the number of characters, not
 	   bytes.  Hence we adjust for multibyte characters in the

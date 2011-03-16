@@ -1,5 +1,7 @@
 2011-03-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lread.c (read1): Rewrite so as not to use empty "else".
+
 	* print.c (Fredirect_debugging_output): Fix pointer signedess.
 
 	* lisp.h (debug_output_compilation_hack): Add decl here, to avoid
