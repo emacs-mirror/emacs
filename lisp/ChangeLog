@@ -1,6 +1,17 @@
+2011-03-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/delphi.el (delphi-search-path, delphi-indent-level)
+	(delphi-verbose, delphi-comment-face, delphi-string-face)
+	(delphi-keyword-face, delphi-ignore-changes, delphi-indent-line)
+	(delphi-mode-abbrev-table, delphi-debug-buffer, delphi-tab)
+	(delphi-find-unit, delphi-find-current-xdef, delphi-fill-comment)
+	(delphi-new-comment-line, delphi-font-lock-defaults)
+	(delphi-debug-mode-map, delphi-mode-syntax-table, delphi-mode):
+	Fix typos in docstrings.
+
 2011-03-15  Ken Manheimer  <ken.manheimer@gmail.com>
 
-	* allout.el (allout-make-topic-prefix) (allout-rebullet-heading):
+	* allout.el (allout-make-topic-prefix, allout-rebullet-heading):
 	Invert the roles of character and string values for INSTEAD, so a
 	string is used for the more common case of a defaulting prompt.
 
