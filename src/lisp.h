@@ -2763,6 +2763,7 @@ EXFUN (Fprint, 2);
 EXFUN (Ferror_message_string, 1);
 extern Lisp_Object Qstandard_output;
 extern Lisp_Object Qexternal_debugging_output;
+extern void debug_output_compilation_hack (int);
 extern void temp_output_buffer_setup (const char *);
 extern int print_level;
 extern Lisp_Object Qprint_escape_newlines;

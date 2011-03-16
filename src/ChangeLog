@@ -1,5 +1,8 @@
 2011-03-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lisp.h (debug_output_compilation_hack): Add decl here, to avoid
+	warning when compiling print.c.
+
 	* font.c (font_unparse_fcname): Abort in an "impossible" situation
 	instead of using an uninitialized var.
 	(font_sort_entities): Mark var as initialized.
