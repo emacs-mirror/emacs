@@ -939,27 +939,27 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 				 save_restriction_save ());
 	  break;
 
-	case Bcatch:
+	case Bcatch:		/* FIXME: ill-suited for lexbind */
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
-	    TOP = internal_catch (TOP, eval_sub, v1); /* FIXME: lexbind */
+	    TOP = internal_catch (TOP, eval_sub, v1);
 	    AFTER_POTENTIAL_GC ();
 	    break;
 	  }
 
-	case Bunwind_protect:
-	  record_unwind_protect (Fprogn, POP); /* FIXME: lexbind */
+	case Bunwind_protect:	/* FIXME: avoid closure for lexbind */
+	  record_unwind_protect (Fprogn, POP);
 	  break;
 
-	case Bcondition_case:
+	case Bcondition_case:	/* FIXME: ill-suited for lexbind */
 	  {
 	    Lisp_Object handlers, body;
 	    handlers = POP;
 	    body = POP;
 	    BEFORE_POTENTIAL_GC ();
-	    TOP = internal_lisp_condition_case (TOP, body, handlers); /* FIXME: lexbind */
+	    TOP = internal_lisp_condition_case (TOP, body, handlers);
 	    AFTER_POTENTIAL_GC ();
 	    break;
 	  }

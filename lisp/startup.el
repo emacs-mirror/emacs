@@ -2082,6 +2082,7 @@ A fancy display is used on graphic displays, normal otherwise."
       ;; Note that any local variables in this function affect the
       ;; ability of -f batch-byte-compile to detect free variables.
       ;; So we give some of them with common names a cl1- prefix.
+      ;; FIXME: A better fix would be to make this file use lexical-binding.
       (let ((cl1-dir command-line-default-directory)
 	    cl1-tem
 	    ;; This approach loses for "-batch -L DIR --eval "(require foo)",

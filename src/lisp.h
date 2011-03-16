@@ -2864,6 +2864,7 @@ extern void xsignal2 (Lisp_Object, Lisp_Object, Lisp_Object) NO_RETURN;
 extern void xsignal3 (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object) NO_RETURN;
 extern void signal_error (const char *, Lisp_Object) NO_RETURN;
 EXFUN (Fcommandp, 2);
+EXFUN (Ffunctionp, 1);
 EXFUN (Feval, 2);
 extern Lisp_Object eval_sub (Lisp_Object form);
 EXFUN (Fapply, MANY);

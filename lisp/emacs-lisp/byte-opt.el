@@ -265,45 +265,72 @@
 
 (defun byte-compile-inline-expand (form)
   (let* ((name (car form))
-	 (fn (or (cdr (assq name byte-compile-function-environment))
-		 (and (fboundp name) (symbol-function name)))))
-    (if (null fn)
-	(progn
-	  (byte-compile-warn "attempt to inline `%s' before it was defined"
-			     name)
-	  form)
-      ;; else
-      (when (and (consp fn) (eq (car fn) 'autoload))
-	(load (nth 1 fn))
-	(setq fn (or (and (fboundp name) (symbol-function name))
-		     (cdr (assq name byte-compile-function-environment)))))
-      (if (and (consp fn) (eq (car fn) 'autoload))
-	  (error "File `%s' didn't define `%s'" (nth 1 fn) name))
-      (cond
-       ((and (symbolp fn) (not (eq fn t))) ;A function alias.
-        (byte-compile-inline-expand (cons fn (cdr form))))
-       ((and (byte-code-function-p fn)
-             ;; FIXME: This works to inline old-style-byte-codes into
-             ;; old-style-byte-codes, but not mixed cases (not sure
-             ;; about new-style into new-style).
-             (not lexical-binding)
-             (not (integerp (aref fn 0)))) ;New lexical byte-code.
-        ;; (message "Inlining %S byte-code" name)
-        (fetch-bytecode fn)
-        (let ((string (aref fn 1)))
-          ;; Isn't it an error for `string' not to be unibyte??  --stef
-          (if (fboundp 'string-as-unibyte)
-              (setq string (string-as-unibyte string)))
-          ;; `byte-compile-splice-in-already-compiled-code'
-          ;; takes care of inlining the body.
-          (cons `(lambda ,(aref fn 0)
-                   (byte-code ,string ,(aref fn 2) ,(aref fn 3)))
-                (cdr form))))
-       ((eq (car-safe fn) 'lambda)
-        (macroexpand-all (cons fn (cdr form))
-                         byte-compile-macro-environment))
-       (t ;; Give up on inlining.
-        form)))))
+         (localfn (cdr (assq name byte-compile-function-environment)))
+	 (fn (or localfn (and (fboundp name) (symbol-function name)))))
+    (when (and (consp fn) (eq (car fn) 'autoload))
+      (load (nth 1 fn))
+      (setq fn (or (and (fboundp name) (symbol-function name))
+                   (cdr (assq name byte-compile-function-environment)))))
+    (pcase fn
+      (`nil
+       (byte-compile-warn "attempt to inline `%s' before it was defined"
+                          name)
+       form)
+      (`(autoload . ,_)
+       (error "File `%s' didn't define `%s'" (nth 1 fn) name))
+      ((and (pred symbolp) (guard (not (eq fn t)))) ;A function alias.
+       (byte-compile-inline-expand (cons fn (cdr form))))
+      ((and (pred byte-code-function-p)
+            ;; FIXME: This only works to inline old-style-byte-codes into
+            ;; old-style-byte-codes.
+            (guard (not (or lexical-binding
+                            (integerp (aref fn 0))))))
+       ;; (message "Inlining %S byte-code" name)
+       (fetch-bytecode fn)
+       (let ((string (aref fn 1)))
+         (assert (not (multibyte-string-p string)))
+         ;; `byte-compile-splice-in-already-compiled-code'
+         ;; takes care of inlining the body.
+         (cons `(lambda ,(aref fn 0)
+                  (byte-code ,string ,(aref fn 2) ,(aref fn 3)))
+               (cdr form))))
+      ((and `(lambda . ,_)
+            ;; With lexical-binding we have several problems:
+            ;; - if `fn' comes from byte-compile-function-environment, we
+            ;;   need to preprocess `fn', so we handle it below.
+            ;; - else, it means that `fn' is dyn-bound (otherwise it would
+            ;;   start with `closure') so copying the code here would cause
+            ;;   it to be mis-interpreted.
+            (guard (not lexical-binding)))
+       (macroexpand-all (cons fn (cdr form))
+                        byte-compile-macro-environment))
+      ((and (or (and `(lambda ,args . ,body)
+                     (let env nil)
+                     (guard (eq fn localfn)))
+                `(closure ,env ,args . ,body))
+            (guard lexical-binding))
+       (let ((renv ()))
+         (dolist (binding env)
+           (cond
+	    ((consp binding)
+             ;; We check shadowing by the args, so that the `let' can be
+             ;; moved within the lambda, which can then be unfolded.
+             ;; FIXME: Some of those bindings might be unused in `body'.
+             (unless (memq (car binding) args) ;Shadowed.
+               (push `(,(car binding) ',(cdr binding)) renv)))
+	    ((eq binding t))
+	    (t (push `(defvar ,binding) body))))
+         ;; (message "Inlining closure %S" (car form))
+         (let ((newfn (byte-compile-preprocess
+                       `(lambda ,args (let ,(nreverse renv) ,@body)))))
+           (if (eq (car-safe newfn) 'function)
+               (byte-compile-unfold-lambda `(,(cadr newfn) ,@(cdr form)))
+             (byte-compile-log-warning
+              (format "Inlining closure %S failed" name))
+             form))))
+
+      (t ;; Give up on inlining.
+       form))))
 
 ;; ((lambda ...) ...)
 (defun byte-compile-unfold-lambda (form &optional name)
@@ -1095,7 +1122,7 @@
   (let ((fn (nth 1 form)))
     (if (memq (car-safe fn) '(quote function))
 	(cons (nth 1 fn) (cdr (cdr form)))
-	form)))
+      form)))
 
 (defun byte-optimize-apply (form)
   ;; If the last arg is a literal constant, turn this into a funcall.
@@ -1318,43 +1345,42 @@
 ;; Used and set dynamically in byte-decompile-bytecode-1.
 (defvar bytedecomp-op)
 (defvar bytedecomp-ptr)
-(defvar bytedecomp-bytes)
 
 ;; This function extracts the bitfields from variable-length opcodes.
 ;; Originally defined in disass.el (which no longer uses it.)
-(defun disassemble-offset ()
+(defun disassemble-offset (bytes)
   "Don't call this!"
-  ;; fetch and return the offset for the current opcode.
-  ;; return nil if this opcode has no offset
+  ;; Fetch and return the offset for the current opcode.
+  ;; Return nil if this opcode has no offset.
   (cond ((< bytedecomp-op byte-nth)
 	 (let ((tem (logand bytedecomp-op 7)))
 	   (setq bytedecomp-op (logand bytedecomp-op 248))
 	   (cond ((eq tem 6)
 		  ;; Offset in next byte.
 		  (setq bytedecomp-ptr (1+ bytedecomp-ptr))
-		  (aref bytedecomp-bytes bytedecomp-ptr))
+		  (aref bytes bytedecomp-ptr))
 		 ((eq tem 7)
 		  ;; Offset in next 2 bytes.
 		  (setq bytedecomp-ptr (1+ bytedecomp-ptr))
-		  (+ (aref bytedecomp-bytes bytedecomp-ptr)
+		  (+ (aref bytes bytedecomp-ptr)
 		     (progn (setq bytedecomp-ptr (1+ bytedecomp-ptr))
-			    (lsh (aref bytedecomp-bytes bytedecomp-ptr) 8))))
-		 (t tem))))		;offset was in opcode
+			    (lsh (aref bytes bytedecomp-ptr) 8))))
+		 (t tem))))		;Offset was in opcode.
 	((>= bytedecomp-op byte-constant)
-	 (prog1 (- bytedecomp-op byte-constant)	;offset in opcode
+	 (prog1 (- bytedecomp-op byte-constant)	;Offset in opcode.
 	   (setq bytedecomp-op byte-constant)))
 	((or (and (>= bytedecomp-op byte-constant2)
                   (<= bytedecomp-op byte-goto-if-not-nil-else-pop))
              (= bytedecomp-op byte-stack-set2))
 	 ;; Offset in next 2 bytes.
 	 (setq bytedecomp-ptr (1+ bytedecomp-ptr))
-	 (+ (aref bytedecomp-bytes bytedecomp-ptr)
+	 (+ (aref bytes bytedecomp-ptr)
 	    (progn (setq bytedecomp-ptr (1+ bytedecomp-ptr))
-		   (lsh (aref bytedecomp-bytes bytedecomp-ptr) 8))))
+		   (lsh (aref bytes bytedecomp-ptr) 8))))
 	((and (>= bytedecomp-op byte-listN)
 	      (<= bytedecomp-op byte-discardN))
-	 (setq bytedecomp-ptr (1+ bytedecomp-ptr)) ;offset in next byte
-	 (aref bytedecomp-bytes bytedecomp-ptr))))
+	 (setq bytedecomp-ptr (1+ bytedecomp-ptr)) ;Offset in next byte.
+	 (aref bytes bytedecomp-ptr))))
 
 (defvar byte-compile-tag-number)
 
@@ -1381,24 +1407,24 @@
 (defun byte-decompile-bytecode-1 (bytes constvec &optional make-spliceable)
   (let ((bytedecomp-bytes bytes)
 	(length (length bytes))
-	(bytedecomp-ptr 0) optr tags bytedecomp-op offset
+        (bytedecomp-ptr 0) optr tags bytedecomp-op offset
 	lap tmp
 	endtag)
     (while (not (= bytedecomp-ptr length))
       (or make-spliceable
-	  (setq lap (cons bytedecomp-ptr lap)))
+	  (push bytedecomp-ptr lap))
       (setq bytedecomp-op (aref bytedecomp-bytes bytedecomp-ptr)
 	    optr bytedecomp-ptr
-	    offset (disassemble-offset)) ; this does dynamic-scope magic
+            ;; This uses dynamic-scope magic.
+            offset (disassemble-offset bytedecomp-bytes))
       (setq bytedecomp-op (aref byte-code-vector bytedecomp-op))
       (cond ((memq bytedecomp-op byte-goto-ops)
-	     ;; it's a pc
+	     ;; It's a pc.
 	     (setq offset
 		   (cdr (or (assq offset tags)
-			    (car (setq tags
-				       (cons (cons offset
-						   (byte-compile-make-tag))
-					     tags)))))))
+                            (let ((new (cons offset (byte-compile-make-tag))))
+                              (push new tags)
+                              new)))))
 	    ((cond ((eq bytedecomp-op 'byte-constant2)
 		    (setq bytedecomp-op 'byte-constant) t)
 		   ((memq bytedecomp-op byte-constref-ops)))
@@ -1408,9 +1434,9 @@
 		   offset (if (eq bytedecomp-op 'byte-constant)
 			      (byte-compile-get-constant tmp)
 			    (or (assq tmp byte-compile-variables)
-				(car (setq byte-compile-variables
-					   (cons (list tmp)
-						 byte-compile-variables)))))))
+                                (let ((new (list tmp)))
+                                  (push new byte-compile-variables)
+                                  new)))))
 	    ((and make-spliceable
 		  (eq bytedecomp-op 'byte-return))
 	     (if (= bytedecomp-ptr (1- length))
@@ -1427,26 +1453,26 @@
 	     (setq bytedecomp-op 'byte-discardN-preserve-tos)
 	     (setq offset (- offset #x80))))
       ;; lap = ( [ (pc . (op . arg)) ]* )
-      (setq lap (cons (cons optr (cons bytedecomp-op (or offset 0)))
-		      lap))
+      (push (cons optr (cons bytedecomp-op (or offset 0)))
+            lap)
       (setq bytedecomp-ptr (1+ bytedecomp-ptr)))
-    ;; take off the dummy nil op that we replaced a trailing "return" with.
     (let ((rest lap))
       (while rest
 	(cond ((numberp (car rest)))
 	      ((setq tmp (assq (car (car rest)) tags))
-	       ;; this addr is jumped to
+	       ;; This addr is jumped to.
 	       (setcdr rest (cons (cons nil (cdr tmp))
 				  (cdr rest)))
 	       (setq tags (delq tmp tags))
 	       (setq rest (cdr rest))))
 	(setq rest (cdr rest))))
     (if tags (error "optimizer error: missed tags %s" tags))
+    ;; Take off the dummy nil op that we replaced a trailing "return" with.
     (if (null (car (cdr (car lap))))
 	(setq lap (cdr lap)))
     (if endtag
 	(setq lap (cons (cons nil endtag) lap)))
-    ;; remove addrs, lap = ( [ (op . arg) | (TAG tagno) ]* )
+    ;; Remove addrs, lap = ( [ (op . arg) | (TAG tagno) ]* )
     (mapcar (function (lambda (elt)
 			(if (numberp elt)
 			    elt

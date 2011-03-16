@@ -187,10 +187,13 @@ Then evaluate RESULT to get return value, default nil.
   ;; It would be cleaner to create an uninterned symbol,
   ;; but that uses a lot more space when many functions in many files
   ;; use dolist.
+  ;; FIXME: This cost disappears in byte-compiled lexical-binding files.
   (let ((temp '--dolist-tail--))
     `(let ((,temp ,(nth 1 spec))
 	   ,(car spec))
        (while ,temp
+         ;; FIXME: In lexical-binding code, a `let' inside the loop might
+         ;; turn out to be faster than the an outside `let' this `setq'.
 	 (setq ,(car spec) (car ,temp))
 	 ,@body
 	 (setq ,temp (cdr ,temp)))

@@ -1,3 +1,8 @@
+2011-03-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* image.c (parse_image_spec): Use Ffunctionp.
+	* lisp.h: Declare Ffunctionp.
+
 2011-03-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c (Ffunction): Use simpler format for closures.

@@ -27,16 +27,21 @@
 
 ;; Todo:
 
+;; - (pcase e (`(,x . ,x) foo)) signals an "x unused" warning if `foo' doesn't
+;;   use x, because x is bound separately for the equality constraint
+;;   (as well as any pred/guard) and for the body, so uses at one place don't
+;;   count for the other.
 ;; - provide ways to extend the set of primitives, with some kind of
 ;;   define-pcase-matcher.  We could easily make it so that (guard BOOLEXP)
 ;;   could be defined this way, as a shorthand for (pred (lambda (_) BOOLEXP)).
 ;;   But better would be if we could define new ways to match by having the
 ;;   extension provide its own `pcase--split-<foo>' thingy.
+;; - along these lines, provide patterns to match CL structs.
 ;; - provide something like (setq VAR) so a var can be set rather than
 ;;   let-bound.
-;; - provide a way to fallthrough to other cases.
+;; - provide a way to fallthrough to subsequent cases.
 ;; - try and be more clever to reduce the size of the decision tree, and
-;;   to reduce the number of leafs that need to be turned into function:
+;;   to reduce the number of leaves that need to be turned into function:
 ;;   - first, do the tests shared by all remaining branches (it will have
 ;;     to be performed anyway, so better so it first so it's shared).
 ;;   - then choose the test that discriminates more (?).
@@ -67,6 +72,7 @@ UPatterns can take the following forms:
   `QPAT		matches if the QPattern QPAT matches.
   (pred PRED)	matches if PRED applied to the object returns non-nil.
   (guard BOOLEXP)	matches if BOOLEXP evaluates to non-nil.
+  (let UPAT EXP)	matches if EXP matches UPAT.
 If a SYMBOL is used twice in the same pattern (i.e. the pattern is
 \"non-linear\"), then the second occurrence is turned into an `eq'uality test.
 
@@ -297,15 +303,21 @@ MATCH is the pattern that needs to be matched, of the form:
     (symbolp . consp)
     (symbolp . arrayp)
     (symbolp . stringp)
+    (symbolp . byte-code-function-p)
     (integerp . consp)
     (integerp . arrayp)
     (integerp . stringp)
+    (integerp . byte-code-function-p)
     (numberp . consp)
     (numberp . arrayp)
     (numberp . stringp)
+    (numberp . byte-code-function-p)
     (consp . arrayp)
     (consp . stringp)
-    (arrayp . stringp)))
+    (consp . byte-code-function-p)
+    (arrayp . stringp)
+    (arrayp . byte-code-function-p)
+    (stringp . byte-code-function-p)))
 
 (defun pcase--split-match (sym splitter match)
   (cond
@@ -514,11 +526,10 @@ Otherwise, it defers to REST which is a list of branches of the form
       (cond
        ((memq upat '(t _)) (pcase--u1 matches code vars rest))
        ((eq upat 'dontcare) :pcase--dontcare)
-       ((functionp upat)  (error "Feature removed, use (pred %s)" upat))
        ((memq (car-safe upat) '(guard pred))
         (if (eq (car upat) 'pred) (put sym 'pcase-used t))
         (let* ((splitrest
-            (pcase--split-rest
+                (pcase--split-rest
                  sym (apply-partially #'pcase--split-pred upat) rest))
                (then-rest (car splitrest))
                (else-rest (cdr splitrest)))
@@ -527,21 +538,24 @@ Otherwise, it defers to REST which is a list of branches of the form
                        (let* ((exp (cadr upat))
                               ;; `vs' is an upper bound on the vars we need.
                               (vs (pcase--fgrep (mapcar #'car vars) exp))
-                              (call (cond
-                                     ((eq 'guard (car upat)) exp)
-                                     ((functionp exp) `(,exp ,sym))
-                                     (t `(,@exp ,sym)))))
+                              (env (mapcar (lambda (var)
+                                             (list var (cdr (assq var vars))))
+                                           vs))
+                              (call (if (eq 'guard (car upat))
+                                        exp
+                                      (when (memq sym vs)
+                                        ;; `sym' is shadowed by `env'.
+                                        (let ((newsym (make-symbol "x")))
+                                          (push (list newsym sym) env)
+                                          (setq sym newsym)))
+                                      (if (functionp exp) `(,exp ,sym)
+                                        `(,@exp ,sym)))))
                          (if (null vs)
                              call
                            ;; Let's not replace `vars' in `exp' since it's
                            ;; too difficult to do it right, instead just
                            ;; let-bind `vars' around `exp'.
-                           `(let ,(mapcar (lambda (var)
-                                            (list var (cdr (assq var vars))))
-                                          vs)
-                              ;; FIXME: `vars' can capture `sym'.  E.g.
-                              ;; (pcase x ((and `(,x . ,y) (pred (fun x)))))
-                              ,call))))
+                           `(let* ,env ,call))))
                      (pcase--u1 matches code vars then-rest)
                      (pcase--u else-rest))))
        ((symbolp upat)
@@ -552,6 +566,25 @@ Otherwise, it defers to REST which is a list of branches of the form
           (pcase--u1 (cons `(match ,sym . (pred (eq ,(cdr (assq upat vars)))))
                            matches)
                      code vars rest)))
+       ((eq (car-safe upat) 'let)
+        ;; A upat of the form (let VAR EXP).
+        ;; (pcase--u1 matches code
+        ;;            (cons (cons (nth 1 upat) (nth 2 upat)) vars) rest)
+        (let* ((exp
+                (let* ((exp (nth 2 upat))
+                       (found (assq exp vars)))
+                  (if found (cdr found)
+                    (let* ((vs (pcase--fgrep (mapcar #'car vars) exp))
+                           (env (mapcar (lambda (v) (list v (cdr (assq v vars))))
+                                        vs)))
+                      (if env `(let* ,env ,exp) exp)))))
+               (sym (if (symbolp exp) exp (make-symbol "x")))
+               (body
+                (pcase--u1 (cons `(match ,sym . ,(nth 1 upat)) matches)
+                           code vars rest)))
+          (if (eq sym exp)
+              body
+            `(let* ((,sym ,exp)) ,body))))
        ((eq (car-safe upat) '\`)
         (put sym 'pcase-used t)
         (pcase--q1 sym (cadr upat) matches code vars rest))

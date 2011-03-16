@@ -497,7 +497,7 @@ The result of the body appears to the compiler as a quoted constant."
 				    (symbol-function 'byte-compile-file-form)))
 			(list 'byte-compile-file-form (list 'quote set))
 			'(byte-compile-file-form form)))
-	  (print set (symbol-value 'bytecomp-outbuffer)))
+	  (print set (symbol-value 'byte-compile-outbuffer)))
 	(list 'symbol-value (list 'quote temp)))
     (list 'quote (eval form))))
 

@@ -1,3 +1,23 @@
+2011-03-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/pcase.el (pcase-mutually-exclusive-predicates):
+	Add byte-code-function-p.
+	(pcase--u1): Remove left-over code from early development.
+	Fix case of variable shadowing in guards and predicates.
+	(pcase--u1): Add a new `let' pattern.
+
+	* emacs-lisp/bytecomp.el: Remove the bytecomp- prefix now that we use
+	lexical-binding.
+	(byte-compile-outbuffer): Rename from bytecomp-outbuffer.
+	* emacs-lisp/cl-macs.el (load-time-value):
+	* emacs-lisp/cl.el (cl-compiling-file): Adjust to new name.
+
+	* emacs-lisp/byte-opt.el (byte-compile-inline-expand): Make it work to
+	inline lexbind interpreted functions into lexbind code.
+	(bytedecomp-bytes): Not a dynamic var any more.
+	(disassemble-offset): Get the bytes via an argument instead.
+	(byte-decompile-bytecode-1): Use push.
+
 2011-03-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* makefile.w32-in (COMPILE_FIRST): Fix up last change.

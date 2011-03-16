@@ -65,8 +65,16 @@
 ;;
 ;;; Code:
 
-;; TODO:
+;; TODO: (not just for cconv but also for the lexbind changes in general)
+;; - inline lexical byte-code functions.
+;; - investigate some old v18 stuff in bytecomp.el.
+;; - optimize away unused cl-block-wrapper.
+;; - let (e)debug find the value of lexical variables from the stack.
 ;; - byte-optimize-form should be applied before cconv.
+;;   OTOH, the warnings emitted by cconv-analyze need to come before optimize
+;;   since afterwards they can because obnoxious (warnings about an "unused
+;;   variable" should not be emitted when the variable use has simply been
+;;   optimized away).
 ;; - canonize code in macro-expand so we don't have to handle (let (var) body)
 ;;   and other oddities.
 ;; - new byte codes for unwind-protect, catch, and condition-case so that
@@ -213,7 +221,7 @@ Returns a form where all lambdas don't have any free variables."
           (if (assq arg new-env) (push `(,arg) new-env))
         (push `(,arg . (car ,arg)) new-env)
         (push `(,arg (list ,arg)) letbind)))
-    
+
     (setq body-new (mapcar (lambda (form)
                              (cconv-convert form new-env nil))
                            body))
@@ -255,7 +263,7 @@ places where they originally did not directly appear."
                                        (cconv--set-diff (cdr (cddr mapping))
                                                         extend)))
                                  env))))
-    
+
   ;; What's the difference between fvrs and envs?
   ;; Suppose that we have the code
   ;; (lambda (..) fvr (let ((fvr 1)) (+ fvr 1)))
@@ -377,6 +385,7 @@ places where they originally did not directly appear."
                                   ; first element is lambda expression
     (`(,(and `(lambda . ,_) fun) . ,args)
      ;; FIXME: it's silly to create a closure just to call it.
+     ;; Running byte-optimize-form earlier will resolve this.
      `(funcall
        ,(cconv-convert `(function ,fun) env extend)
        ,@(mapcar (lambda (form)
@@ -486,9 +495,9 @@ places where they originally did not directly appear."
      `(interactive . ,(mapcar (lambda (form)
                                 (cconv-convert form nil nil))
                               forms)))
-    
+
     (`(declare . ,_) form)              ;The args don't contain code.
-    
+
     (`(,func . ,forms)
      ;; First element is function or whatever function-like forms are: or, and,
      ;; if, progn, prog1, prog2, while, until
@@ -623,7 +632,7 @@ and updates the data stored in ENV."
 
     (`(function (lambda ,vrs . ,body-forms))
      (cconv--analyse-function vrs body-forms env form))
-     
+
     (`(setq . ,forms)
      ;; If a local variable (member of env) is modified by setq then
      ;; it is a mutated variable.
@@ -646,8 +655,8 @@ and updates the data stored in ENV."
 
     (`(condition-case ,var ,protected-form . ,handlers)
      ;; FIXME: The bytecode for condition-case forces us to wrap the
-     ;; form and handlers in closures (for handlers, it's probably
-     ;; unavoidable, but not for the protected form).
+     ;; form and handlers in closures (for handlers, it's understandable
+     ;; but not for the protected form).
      (cconv--analyse-function () (list protected-form) env form)
      (dolist (handler handlers)
        (cconv--analyse-function (if var (list var)) (cdr handler) env form)))
@@ -657,8 +666,8 @@ and updates the data stored in ENV."
      (cconv-analyse-form form env)
      (cconv--analyse-function () body env form))
 
-    ;; FIXME: The bytecode for save-window-excursion and the lack of
-    ;; bytecode for track-mouse forces us to wrap the body.
+    ;; FIXME: The lack of bytecode for track-mouse forces us to wrap the body.
+    ;; `track-mouse' really should be made into a macro.
     (`(track-mouse . ,body)
      (cconv--analyse-function () body env form))
 
@@ -686,7 +695,7 @@ and updates the data stored in ENV."
      (dolist (form forms) (cconv-analyse-form form nil)))
 
     (`(declare . ,_) nil)               ;The args don't contain code.
-    
+
     (`(,_ . ,body-forms)    ; First element is a function or whatever.
      (dolist (form body-forms) (cconv-analyse-form form env)))
 
