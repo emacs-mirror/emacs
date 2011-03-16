@@ -118,7 +118,7 @@ usage: (interactive &optional ARGS)  */)
 
 /* Quotify EXP: if EXP is constant, return it.
    If EXP is not constant, return (quote EXP).  */
-Lisp_Object
+static Lisp_Object
 quotify_arg (register Lisp_Object exp)
 {
   if (!INTEGERP (exp) && !STRINGP (exp)
@@ -129,7 +129,7 @@ quotify_arg (register Lisp_Object exp)
 }
 
 /* Modify EXP by quotifying each element (except the first).  */
-Lisp_Object
+static Lisp_Object
 quotify_args (Lisp_Object exp)
 {
   register Lisp_Object tail;

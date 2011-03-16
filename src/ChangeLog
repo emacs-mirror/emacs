@@ -1,5 +1,7 @@
 2011-03-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* callint.c (quotify_arg, quotify_args): Now static.
+
 	* lisp.h (get_system_name, get_operating_system_release):
 	Move decls here, to check interfaces.
 	* process.c (get_operating_system_release): Move decl to lisp.h.
