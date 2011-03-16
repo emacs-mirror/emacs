@@ -2949,22 +2949,6 @@ font_get_name (Lisp_Object font_object)
 }
 
 
-/* Return the specification of FONT_OBJECT.  */
-
-Lisp_Object
-font_get_spec (Lisp_Object font_object)
-{
-  Lisp_Object spec = font_make_spec ();
-  int i;
-
-  for (i = 0; i < FONT_SIZE_INDEX; i++)
-    ASET (spec, i, AREF (font_object, i));
-  ASET (spec, FONT_SIZE_INDEX,
-	make_number (XFONT_OBJECT (font_object)->pixel_size));
-  return spec;
-}
-
-
 /* Create a new font spec from FONT_NAME, and return it.  If FONT_NAME
    could not be parsed by font_parse_name, return Qnil.  */
 

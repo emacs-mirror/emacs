@@ -4,6 +4,7 @@
 	pointers to constants.
 	(font_parse_fcname): Remove unused vars.
 	(font_delete_unmatched): Now static.
+	(font_get_spec): Remove; unused.
 
 	* fns.c (require_nesting_list, require_unwind): Now static.
 	(Ffillarray): Rename locals to avoid shadowing.
