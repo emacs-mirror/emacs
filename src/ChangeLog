@@ -7,6 +7,9 @@
 	(font_parse_fcname): Remove unused vars.
 	(font_delete_unmatched): Now static.
 	(font_get_spec): Remove; unused.
+	(font_style_to_value, font_prop_validate_style, font_unparse_fcname):
+	(font_update_drivers, Ffont_get_glyphs, font_add_log):
+	Rename or move locals to avoid shadowing.
 
 	* fns.c (require_nesting_list, require_unwind): Now static.
 	(Ffillarray): Rename locals to avoid shadowing.

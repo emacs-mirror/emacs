@@ -311,10 +311,10 @@ font_style_to_value (enum font_property_index prop, Lisp_Object val, int noerror
 {
   Lisp_Object table = AREF (font_style_table, prop - FONT_WEIGHT_INDEX);
   int len = ASIZE (table);
-  int i, j;
 
   if (SYMBOLP (val))
     {
+      int i, j;
       char *s;
       Lisp_Object args[2], elt;
 
@@ -500,10 +500,9 @@ font_prop_validate_style (Lisp_Object style, Lisp_Object val)
   enum font_property_index prop = (EQ (style, QCweight) ? FONT_WEIGHT_INDEX
 				   : EQ (style, QCslant) ? FONT_SLANT_INDEX
 				   : FONT_WIDTH_INDEX);
-  int n;
   if (INTEGERP (val))
     {
-      n = XINT (val);
+      int n = XINT (val);
       if (((n >> 4) & 0xF)
 	  >= ASIZE (AREF (font_style_table, prop - FONT_WEIGHT_INDEX)))
 	val = Qerror;
@@ -1602,15 +1601,15 @@ font_unparse_fcname (Lisp_Object font, int pixel_size, char *name, int nbytes)
     len += strlen (":scalable=false"); /* or ":scalable=true" */
   for (tail = AREF (font, FONT_EXTRA_INDEX); CONSP (tail); tail = XCDR (tail))
     {
-      Lisp_Object key = XCAR (XCAR (tail)), val = XCDR (XCAR (tail));
+      Lisp_Object key = XCAR (XCAR (tail)), value = XCDR (XCAR (tail));
 
       len += SBYTES (SYMBOL_NAME (key)) + 1; /* for :KEY= */
-      if (STRINGP (val))
-	len += SBYTES (val);
-      else if (INTEGERP (val))
-	len += sprintf (work, "%ld", (long) XINT (val));
-      else if (SYMBOLP (val))
-	len += (NILP (val) ? 5 : 4); /* for "false" or "true" */
+      if (STRINGP (value))
+	len += SBYTES (value);
+      else if (INTEGERP (value))
+	len += sprintf (work, "%ld", (long) XINT (value));
+      else if (SYMBOLP (value))
+	len += (NILP (value) ? 5 : 4); /* for "false" or "true" */
     }
 
   if (len > nbytes)
@@ -3418,14 +3417,13 @@ Lisp_Object
 font_update_drivers (FRAME_PTR f, Lisp_Object new_drivers)
 {
   Lisp_Object active_drivers = Qnil;
-  struct font_driver *driver;
   struct font_driver_list *list;
 
   /* At first, turn off non-requested drivers, and turn on requested
      drivers.  */
   for (list = f->font_driver_list; list; list = list->next)
     {
-      driver = list->driver;
+      struct font_driver *driver = list->driver;
       if ((EQ (new_drivers, Qt) || ! NILP (Fmemq (driver->type, new_drivers)))
 	  != list->on)
 	{
@@ -4651,7 +4649,7 @@ the corresponding element is nil.  */)
    Lisp_Object object)
 {
   struct font *font;
-  int i, len, c;
+  int i, len;
   Lisp_Object *chars, vec;
   USE_SAFE_ALLOCA;
 
@@ -4669,6 +4667,7 @@ the corresponding element is nil.  */)
       bytepos = CHAR_TO_BYTE (charpos);
       for (i = 0; charpos < XFASTINT (to); i++)
 	{
+	  int c;
 	  FETCH_CHAR_ADVANCE (c, charpos, bytepos);
 	  chars[i] = make_number (c);
 	}
@@ -4690,7 +4689,7 @@ the corresponding element is nil.  */)
       if (STRING_MULTIBYTE (object))
 	for (i = 0; i < len; i++)
 	  {
-	    c = STRING_CHAR_ADVANCE (p);
+	    int c = STRING_CHAR_ADVANCE (p);
 	    chars[i] = make_number (c);
 	  }
       else
@@ -4941,7 +4940,7 @@ static Lisp_Object Vfont_log_deferred;
 void
 font_add_log (const char *action, Lisp_Object arg, Lisp_Object result)
 {
-  Lisp_Object tail, val;
+  Lisp_Object val;
   int i;
 
   if (EQ (Vfont_log, Qt))
@@ -4997,6 +4996,7 @@ font_add_log (const char *action, Lisp_Object arg, Lisp_Object result)
     }
   else if (CONSP (result))
     {
+      Lisp_Object tail;
       result = Fcopy_sequence (result);
       for (tail = result; CONSP (tail); tail = XCDR (tail))
 	{
