@@ -1566,8 +1566,10 @@ font_unparse_fcname (Lisp_Object font, int pixel_size, char *name, int nbytes)
       point_size = -1;
       len += 21;		/* for ":pixelsize=NUM" */
     }
-  else if (FLOATP (val))
+  else
     {
+      if (! FLOATP (val))
+	abort ();
       pixel_size = -1;
       point_size = (int) XFLOAT_DATA (val);
       len += 11;		/* for "-NUM" */

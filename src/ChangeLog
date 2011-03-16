@@ -1,5 +1,8 @@
 2011-03-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* font.c (font_unparse_fcname): Abort in an "impossible" situation
+	instead of using an uninitialized var.
+
 	* character.h (FETCH_CHAR_ADVANCE): Rename locals to avoid shadowing.
 
 	* font.c (font_unparse_xlfd): Don't mix pointers to variables with
