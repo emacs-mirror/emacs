@@ -2,6 +2,8 @@
 
 	* eval.c (call_debugger, do_debug_on_call, grow_specpdl): Now static.
 	(Fdefvar): Rewrite so as not to use empty "else".
+	(lisp_indirect_variable): Name an expression,
+	to avoid gcc -Wbad-function-cast warning.
 
 	* callint.c (quotify_arg, quotify_args): Now static.
 	(Fcall_interactively): Rename locals to avoid shadowing.

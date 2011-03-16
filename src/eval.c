@@ -856,7 +856,8 @@ user_variable_p_eh (Lisp_Object ignore)
 static Lisp_Object
 lisp_indirect_variable (Lisp_Object sym)
 {
-  XSETSYMBOL (sym, indirect_variable (XSYMBOL (sym)));
+  struct Lisp_Symbol *s = indirect_variable (XSYMBOL (sym));
+  XSETSYMBOL (sym, s);
   return sym;
 }
 
