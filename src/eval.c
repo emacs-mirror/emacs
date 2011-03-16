@@ -764,11 +764,11 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
       if (SYMBOL_CONSTANT_P (sym))
 	{
 	  /* For upward compatibility, allow (defvar :foo (quote :foo)).  */
-	  Lisp_Object tem = Fcar (tail);
-	  if (! (CONSP (tem)
-		 && EQ (XCAR (tem), Qquote)
-		 && CONSP (XCDR (tem))
-		 && EQ (XCAR (XCDR (tem)), sym)))
+	  Lisp_Object tem1 = Fcar (tail);
+	  if (! (CONSP (tem1)
+		 && EQ (XCAR (tem1), Qquote)
+		 && CONSP (XCDR (tem1))
+		 && EQ (XCAR (XCDR (tem1)), sym)))
 	    error ("Constant symbol `%s' specified in defvar",
 		   SDATA (SYMBOL_NAME (sym)));
 	}
@@ -2539,8 +2539,8 @@ run_hook_with_args (int nargs, Lisp_Object *args, enum run_hooks_condition cond)
     }
   else
     {
-      Lisp_Object globals = Qnil;
-      GCPRO3 (sym, val, globals);
+      Lisp_Object global_vals = Qnil;
+      GCPRO3 (sym, val, global_vals);
 
       for (;
 	   CONSP (val) && ((cond == to_completion)
@@ -2552,23 +2552,25 @@ run_hook_with_args (int nargs, Lisp_Object *args, enum run_hooks_condition cond)
 	    {
 	      /* t indicates this hook has a local binding;
 		 it means to run the global binding too.  */
-	      globals = Fdefault_value (sym);
-	      if (NILP (globals)) continue;
+	      global_vals = Fdefault_value (sym);
+	      if (NILP (global_vals)) continue;
 
-	      if (!CONSP (globals) || EQ (XCAR (globals), Qlambda))
+	      if (!CONSP (global_vals) || EQ (XCAR (global_vals), Qlambda))
 		{
-		  args[0] = globals;
+		  args[0] = global_vals;
 		  ret = Ffuncall (nargs, args);
 		}
 	      else
 		{
 		  for (;
-		       CONSP (globals) && ((cond == to_completion)
-					   || (cond == until_success ? NILP (ret)
-					       : !NILP (ret)));
-		       globals = XCDR (globals))
+		       (CONSP (global_vals)
+			&& (cond == to_completion
+			    || (cond == until_success
+				? NILP (ret)
+				: !NILP (ret))));
+		       global_vals = XCDR (global_vals))
 		    {
-		      args[0] = XCAR (globals);
+		      args[0] = XCAR (global_vals);
 		      /* In a global value, t should not occur.  If it does, we
 			 must ignore it to avoid an endless loop.  */
 		      if (!EQ (args[0], Qt))
