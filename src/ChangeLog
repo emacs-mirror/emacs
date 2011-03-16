@@ -1,6 +1,7 @@
 2011-03-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* fns.c (require_nesting_list, require_unwind): Now static.
+	(Ffillarray): Rename locals to avoid shadowing.
 
 	* floatfns.c (domain_error2): Define only if needed.
 	(Ffrexp, Fldexp): Rename locals to avoid shadowing.

@@ -2133,15 +2133,15 @@ DEFUN ("fillarray", Ffillarray, Sfillarray, 2, 2, 0,
 ARRAY is a vector, string, char-table, or bool-vector.  */)
   (Lisp_Object array, Lisp_Object item)
 {
-  register EMACS_INT size, index;
+  register EMACS_INT size, idx;
   int charval;
 
   if (VECTORP (array))
     {
       register Lisp_Object *p = XVECTOR (array)->contents;
       size = ASIZE (array);
-      for (index = 0; index < size; index++)
-	p[index] = item;
+      for (idx = 0; idx < size; idx++)
+	p[idx] = item;
     }
   else if (CHAR_TABLE_P (array))
     {
@@ -2177,8 +2177,8 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
 	    *p++ = str[i % len];
 	}
       else
-	for (index = 0; index < size; index++)
-	  p[index] = charval;
+	for (idx = 0; idx < size; idx++)
+	  p[idx] = charval;
     }
   else if (BOOL_VECTOR_P (array))
     {
@@ -2188,14 +2188,14 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
 	   / BOOL_VECTOR_BITS_PER_CHAR);
 
       charval = (! NILP (item) ? -1 : 0);
-      for (index = 0; index < size_in_chars - 1; index++)
-	p[index] = charval;
-      if (index < size_in_chars)
+      for (idx = 0; idx < size_in_chars - 1; idx++)
+	p[idx] = charval;
+      if (idx < size_in_chars)
 	{
 	  /* Mask out bits beyond the vector size.  */
 	  if (XBOOL_VECTOR (array)->size % BOOL_VECTOR_BITS_PER_CHAR)
 	    charval &= (1 << (XBOOL_VECTOR (array)->size % BOOL_VECTOR_BITS_PER_CHAR)) - 1;
-	  p[index] = charval;
+	  p[idx] = charval;
 	}
     }
   else
