@@ -397,11 +397,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define FETCH_STRING_CHAR_ADVANCE_NO_CHECK(OUTPUT, STRING, CHARIDX, BYTEIDX) \
   do    								     \
     {									     \
-      unsigned char *ptr = &SDATA (STRING)[BYTEIDX];			     \
-      int len;								     \
+      unsigned char *fetch_ptr = &SDATA (STRING)[BYTEIDX];		     \
+      int fetch_len;							     \
 									     \
-      OUTPUT = STRING_CHAR_AND_LENGTH (ptr, len);			     \
-      BYTEIDX += len;							     \
+      OUTPUT = STRING_CHAR_AND_LENGTH (fetch_ptr, fetch_len);		     \
+      BYTEIDX += fetch_len;						     \
       CHARIDX++;							     \
     }									     \
   while (0)
@@ -510,8 +510,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define BUF_INC_POS(buf, pos_byte)				\
   do {								\
-    unsigned char *p = BUF_BYTE_ADDRESS (buf, pos_byte);	\
-    pos_byte += BYTES_BY_CHAR_HEAD (*p);			\
+    unsigned char *bbp = BUF_BYTE_ADDRESS (buf, pos_byte);	\
+    pos_byte += BYTES_BY_CHAR_HEAD (*bbp);			\
   } while (0)
 
 

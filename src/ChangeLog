@@ -1,5 +1,8 @@
 2011-03-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* character.h (FETCH_STRING_CHAR_ADVANCE_NO_CHECK, BUF_INC_POS):
+	Rename locals to avoid shadowing.
+
 	* lread.c (read1): Rewrite so as not to use empty "else".
 
 	* print.c (Fredirect_debugging_output): Fix pointer signedess.
