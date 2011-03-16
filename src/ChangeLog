@@ -1,5 +1,8 @@
 2011-03-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* syntax.c (Fforward_comment, scan_lists): Rename locals to avoid
+	shadowing.
+
 	* character.h (FETCH_STRING_CHAR_ADVANCE_NO_CHECK, BUF_INC_POS):
 	Rename locals to avoid shadowing.
 

@@ -554,7 +554,7 @@ back_comment (EMACS_INT from, EMACS_INT from_byte, EMACS_INT stop, int comnested
       com2end = (SYNTAX_FLAGS_COMEND_FIRST (syntax)
 		 && SYNTAX_FLAGS_COMEND_SECOND (prev_syntax));
       comstart = (com2start || code == Scomment);
-      
+
       /* Nasty cases with overlapping 2-char comment markers:
 	 - snmp-mode: -- c -- foo -- c --
 	              --- c --
@@ -2363,7 +2363,7 @@ between them, return t; otherwise return nil.  */)
 	  if (code == Scomment_fence)
 	    {
 	      /* Skip until first preceding unquoted comment_fence.  */
-	      int found = 0;
+	      int fence_found = 0;
 	      EMACS_INT ini = from, ini_byte = from_byte;
 
 	      while (1)
@@ -2374,13 +2374,13 @@ between them, return t; otherwise return nil.  */)
 		  if (SYNTAX (c) == Scomment_fence
 		      && !char_quoted (from, from_byte))
 		    {
-		      found = 1;
+		      fence_found = 1;
 		      break;
 		    }
 		  else if (from == stop)
 		    break;
 		}
-	      if (found == 0)
+	      if (fence_found == 0)
 		{
 		  from = ini;		/* Set point to ini + 1.  */
 		  from_byte = ini_byte;
@@ -2669,12 +2669,12 @@ scan_lists (register EMACS_INT from, EMACS_INT count, EMACS_INT depth, int sexpf
 	      /* We must record the comment style encountered so that
 		 later, we can match only the proper comment begin
 		 sequence of the same style.  */
-	      int c1, other_syntax;
+	      int c2, other_syntax;
 	      DEC_BOTH (from, from_byte);
 	      UPDATE_SYNTAX_TABLE_BACKWARD (from);
 	      code = Sendcomment;
-	      c1 = FETCH_CHAR_AS_MULTIBYTE (from_byte);
-	      other_syntax = SYNTAX_WITH_FLAGS (c1);
+	      c2 = FETCH_CHAR_AS_MULTIBYTE (from_byte);
+	      other_syntax = SYNTAX_WITH_FLAGS (c2);
 	      comstyle = SYNTAX_FLAGS_COMMENT_STYLE (other_syntax, syntax);
 	      comnested
 		= comnested || SYNTAX_FLAGS_COMMENT_NESTED (other_syntax);
@@ -3528,4 +3528,3 @@ In both cases, LIMIT bounds the search. */);
   defsubr (&Sbackward_prefix_chars);
   defsubr (&Sparse_partial_sexp);
 }
-
