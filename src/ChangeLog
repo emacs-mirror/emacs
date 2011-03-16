@@ -1,5 +1,7 @@
 2011-03-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* character.h (FETCH_CHAR_ADVANCE): Rename locals to avoid shadowing.
+
 	* font.c (font_unparse_xlfd): Don't mix pointers to variables with
 	pointers to constants.
 	(font_parse_fcname): Remove unused vars.

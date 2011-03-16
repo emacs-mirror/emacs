@@ -417,10 +417,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
       if (!NILP (BVAR (current_buffer, enable_multibyte_characters)))	\
 	{							\
 	  unsigned char *ptr = BYTE_POS_ADDR (BYTEIDX);		\
-	  int len;						\
+	  int string_len;					\
 								\
-	  OUTPUT= STRING_CHAR_AND_LENGTH (ptr, len);		\
-	  BYTEIDX += len;					\
+	  OUTPUT= STRING_CHAR_AND_LENGTH (ptr, string_len);	\
+	  BYTEIDX += string_len;				\
 	}							\
       else							\
 	{							\
