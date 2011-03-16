@@ -1,3 +1,7 @@
+2011-03-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs.c (USAGE3): Doc fixes.
+
 2011-03-15  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* coding.c (detect_coding_iso_2022): Reorganize code to clarify
