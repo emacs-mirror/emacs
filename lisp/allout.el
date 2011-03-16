@@ -4599,7 +4599,7 @@ however, are left exactly like normal, non-allout-specific yanks."
                      (if (looking-at " ")
                          (delete-char 1))))
                   ;; Assert new topic's bullet - minimal effort if unchanged:
-                  (allout-rebullet-heading prefix-bullet))
+                  (allout-rebullet-heading (string-to-char prefix-bullet)))
               (exchange-point-and-mark))))
       (if rectify-numbering
           (progn
