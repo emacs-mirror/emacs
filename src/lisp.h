@@ -2872,6 +2872,7 @@ extern Lisp_Object safe_call (int, Lisp_Object *);
 extern Lisp_Object safe_call1 (Lisp_Object, Lisp_Object);
 extern Lisp_Object safe_call2 (Lisp_Object, Lisp_Object, Lisp_Object);
 extern void init_eval (void);
+extern void mark_backtrace (void);
 extern void syms_of_eval (void);
 
 /* Defined in editfns.c */
