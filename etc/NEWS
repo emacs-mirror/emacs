@@ -62,6 +62,8 @@ longer have any effect.  (They were declared obsolete in Emacs 23.)
 ** New command line option `--no-site-lisp' removes site-lisp directories
 from load-path.  -Q now implies this.
 
+** On Windows, Emacs now warns when the obsolete _emacs init file is used.
+
 
 * Changes in Emacs 24.1
 

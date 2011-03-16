@@ -1,3 +1,7 @@
+2011-03-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Document warning about _emacs.
+
 2011-03-14  Michael Albinus  <michael.albinus@gmx.de>
 
 	* NEWS: `shell' prompts for the shell path name, when the default

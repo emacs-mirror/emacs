@@ -1,5 +1,9 @@
 2011-03-16  Juanma Barranquero  <lekktu@gmail.com>
 
+	* startup.el (command-line): Warn the user that _emacs is deprecated.
+
+2011-03-16  Juanma Barranquero  <lekktu@gmail.com>
+
 	* progmodes/delphi.el (delphi-search-path, delphi-indent-level)
 	(delphi-verbose, delphi-comment-face, delphi-string-face)
 	(delphi-keyword-face, delphi-ignore-changes, delphi-indent-line)
