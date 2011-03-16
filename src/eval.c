@@ -801,10 +801,11 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
       LOADHIST_ATTACH (sym);
     }
   else
-    /* Simple (defvar <var>) should not count as a definition at all.
-       It could get in the way of other definitions, and unloading this
-       package could try to make the variable unbound.  */
-    ;
+    {
+      /* Simple (defvar <var>) should not count as a definition at all.
+	 It could get in the way of other definitions, and unloading this
+	 package could try to make the variable unbound.  */
+    }
 
   return sym;
 }
