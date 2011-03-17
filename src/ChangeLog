@@ -1,6 +1,9 @@
 2011-03-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* bytecode.c (MAYBE_GC): Rewrite so as not to use empty "else".
+	(CONSTANTLIM): Remove; unused.
+	(METER_CODE, Bscan_buffer, Bread_char, Bset_mark):
+	Define only if needed.
 
 	* unexelf.c (unexec): Name an expression,
 	to avoid gcc -Wbad-function-cast warning.

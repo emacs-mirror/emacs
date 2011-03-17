@@ -76,11 +76,7 @@ Lisp_Object Qbyte_code_meter;
     }									\
 }
 
-#else /* no BYTE_CODE_METER */
-
-#define METER_CODE(last_code, this_code)
-
-#endif /* no BYTE_CODE_METER */
+#endif /* BYTE_CODE_METER */
 
 
 Lisp_Object Qbytecode;
@@ -146,7 +142,9 @@ Lisp_Object Qbytecode;
 #define Bpreceding_char 0150
 #define Bcurrent_column 0151
 #define Bindent_to 0152
+#ifdef BYTE_CODE_SAFE
 #define Bscan_buffer 0153 /* No longer generated as of v18 */
+#endif
 #define Beolp 0154
 #define Beobp 0155
 #define Bbolp 0156
@@ -154,8 +152,12 @@ Lisp_Object Qbytecode;
 #define Bcurrent_buffer 0160
 #define Bset_buffer 0161
 #define Bsave_current_buffer_1 0162 /* Replacing Bsave_current_buffer.  */
+#if 0
 #define Bread_char 0162 /* No longer generated as of v19 */
+#endif
+#ifdef BYTE_CODE_SAFE
 #define Bset_mark 0163 /* this loser is no longer generated as of v18 */
+#endif
 #define Binteractive_p 0164 /* Needed since interactive-p takes unevalled args */
 
 #define Bforward_char 0165
@@ -227,7 +229,6 @@ Lisp_Object Qbytecode;
 #define BinsertN 0261
 
 #define Bconstant 0300
-#define CONSTANTLIM 0100
 
 /* Whether to maintain a `top' and `bottom' field in the stack frame.  */
 #define BYTE_MAINTAIN_TOP (BYTE_CODE_SAFE || BYTE_MARK_STACK)
