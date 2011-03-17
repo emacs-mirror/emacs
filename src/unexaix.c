@@ -142,6 +142,7 @@ unexec (const char *new_name, const char *a_name)
       || unrelocate_symbols (new, a_out, a_name, new_name) < 0)
     {
       close (new);
+      return;
     }
 
   close (new);

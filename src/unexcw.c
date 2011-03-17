@@ -263,6 +263,7 @@ unexec (const char *outfile, const char *infile)
     {
       /* can only dump once */
       printf ("You can only dump Emacs once on this platform.\n");
+      return;
     }
 
   report_sheap_usage (1);

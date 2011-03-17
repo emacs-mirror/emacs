@@ -545,6 +545,7 @@ unexec (const char *new_name, const char *a_name)
       )
     {
       close (new);
+      return;
     }
 
   close (new);
