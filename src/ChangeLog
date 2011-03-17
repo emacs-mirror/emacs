@@ -4,7 +4,7 @@
 
 2011-03-16  Paul Eggert  <eggert@cs.ucla.edu>
 
-	New file unexec.h, the (simple) interface for unexec.
+	New file unexec.h, the (simple) interface for unexec (Bug#8267).
 	* unexec.h: New file.
 	* deps.mk (emacs.o, unexaix.o, unexcw.o, unexcoff.o, unexelf.o):
 	(unexhp9k800.o, unexmacosx.o, unexsol.o, unexw32.o):
