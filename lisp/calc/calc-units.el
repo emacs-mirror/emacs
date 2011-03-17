@@ -1623,39 +1623,39 @@ In symbolic mode, return the list (^ a b)."
                   coef)))
              units)))))))
 
-(defun calcFunc-lufieldplus (a b)
+(defun calcFunc-lufadd (a b)
   (math-logunits-add a b nil nil))
 
-(defun calcFunc-lupowerplus (a b)
+(defun calcFunc-lupadd (a b)
   (math-logunits-add a b nil t))
 
-(defun calcFunc-lufieldminus (a b)
+(defun calcFunc-lufsub (a b)
   (math-logunits-add a b t nil))
 
-(defun calcFunc-lupowerminus (a b)
+(defun calcFunc-lupsub (a b)
   (math-logunits-add a b t t))
 
-(defun calc-logunits-add (arg)
+(defun calc-lu-plus (arg)
   (interactive "P")
   (calc-slow-wrapper
    (if (calc-is-inverse)
        (if (calc-is-hyperbolic)
-           (calc-binary-op "lu-" 'calcFunc-lufieldminus arg)
-         (calc-binary-op "lu-" 'calcFunc-lupowerminus arg))
+           (calc-binary-op "lu-" 'calcFunc-lufsub arg)
+         (calc-binary-op "lu-" 'calcFunc-lupsub arg))
      (if (calc-is-hyperbolic)
-         (calc-binary-op "lu+" 'calcFunc-lufieldplus arg)
-       (calc-binary-op "lu+" 'calcFunc-lupowerplus arg)))))
+         (calc-binary-op "lu+" 'calcFunc-lufadd arg)
+       (calc-binary-op "lu+" 'calcFunc-lupadd arg)))))
 
-(defun calc-logunits-sub (arg)
+(defun calc-lu-minus (arg)
   (interactive "P")
   (calc-slow-wrapper
    (if (calc-is-inverse)
        (if (calc-is-hyperbolic)
-           (calc-binary-op "lu+" 'calcFunc-lufieldplus arg)
-         (calc-binary-op "lu+" 'calcFunc-lupowerplus arg))
+           (calc-binary-op "lu+" 'calcFunc-lufadd arg)
+         (calc-binary-op "lu+" 'calcFunc-lupadd arg))
      (if (calc-is-hyperbolic)
-         (calc-binary-op "lu-" 'calcFunc-lufieldminus arg)
-       (calc-binary-op "lu-" 'calcFunc-lupowerminus arg)))))
+         (calc-binary-op "lu-" 'calcFunc-lufsub arg)
+       (calc-binary-op "lu-" 'calcFunc-lupsub arg)))))
 
 (defun math-logunits-mul (a b power)
   (let (logunit coef units number)
@@ -1719,39 +1719,39 @@ In symbolic mode, return the list (^ a b)."
              (math-div (math-conditional-apply 'calcFunc-ln b) (if power 2 1)))
             units)))))))))
 
-(defun calcFunc-lufieldtimes (a b)
+(defun calcFunc-lufmul (a b)
   (math-logunits-mul a b nil))
 
-(defun calcFunc-lupowertimes (a b)
+(defun calcFunc-lupmul (a b)
   (math-logunits-mul a b t))
 
-(defun calc-logunits-mul (arg)
+(defun calc-lu-times (arg)
   (interactive "P")
   (calc-slow-wrapper
    (if (calc-is-inverse)
        (if (calc-is-hyperbolic)
-           (calc-binary-op "lu/" 'calcFunc-lufielddiv arg)
-         (calc-binary-op "lu/" 'calcFunc-lupowerdiv arg))
+           (calc-binary-op "lu/" 'calcFunc-lufdiv arg)
+         (calc-binary-op "lu/" 'calcFunc-lupdiv arg))
      (if (calc-is-hyperbolic)
-         (calc-binary-op "lu*" 'calcFunc-lufieldtimes arg)
-       (calc-binary-op "lu*" 'calcFunc-lupowertimes arg)))))
+         (calc-binary-op "lu*" 'calcFunc-lufmul arg)
+       (calc-binary-op "lu*" 'calcFunc-lupmul arg)))))
 
-(defun calcFunc-lufielddiv (a b)
+(defun calcFunc-lufdiv (a b)
   (math-logunits-divide a b nil))
 
-(defun calcFunc-lupowerdiv (a b)
+(defun calcFunc-lupdiv (a b)
   (math-logunits-divide a b t))
 
-(defun calc-logunits-divide (arg)
+(defun calc-lu-divide (arg)
   (interactive "P")
   (calc-slow-wrapper
    (if (calc-is-inverse)
        (if (calc-is-hyperbolic)
-           (calc-binary-op "lu*" 'calcFunc-lufieldtimes arg)
-         (calc-binary-op "lu*" 'calcFunc-lupowertimes arg))
+           (calc-binary-op "lu*" 'calcFunc-lufmul arg)
+         (calc-binary-op "lu*" 'calcFunc-lupmul arg))
      (if (calc-is-hyperbolic)
-         (calc-binary-op "lu/" 'calcFunc-lufielddiv arg)
-       (calc-binary-op "lu/" 'calcFunc-lupowerdiv arg)))))
+         (calc-binary-op "lu/" 'calcFunc-lufdiv arg)
+       (calc-binary-op "lu/" 'calcFunc-lupdiv arg)))))
 
 (defun math-logunits-quant (val ref power)
   (let* ((units (math-simplify (math-extract-units val)))
@@ -1777,29 +1777,29 @@ In symbolic mode, return the list (^ a b)."
                coeff))))
          runits)))))
 
-(defvar calc-logunits-field-reference)
-(defvar calc-logunits-power-reference)
+(defvar calc-lu-field-reference)
+(defvar calc-lu-power-reference)
 
-(defun calcFunc-fieldquant (val &optional ref)
+(defun calcFunc-fquant (val &optional ref)
   (unless ref
-    (setq ref (math-read-expr calc-logunits-field-reference)))
+    (setq ref (math-read-expr calc-lu-field-reference)))
   (math-logunits-quant val ref nil))
 
-(defun calcFunc-powerquant (val &optional ref)
+(defun calcFunc-pquant (val &optional ref)
   (unless ref
-    (setq ref (math-read-expr calc-logunits-power-reference)))
+    (setq ref (math-read-expr calc-lu-power-reference)))
   (math-logunits-quant val ref t))
 
-(defun calc-logunits-quantity (arg)
+(defun calc-lu-quant (arg)
   (interactive "P")
   (calc-slow-wrapper
    (if (calc-is-hyperbolic)
        (if (calc-is-option)
-           (calc-binary-op "lupq" 'calcFunc-fieldquant arg)
-         (calc-unary-op "lupq" 'calcFunc-fieldquant arg))
+           (calc-binary-op "lupq" 'calcFunc-fquant arg)
+         (calc-unary-op "lupq" 'calcFunc-fquant arg))
      (if (calc-is-option)
-         (calc-binary-op "lufq" 'calcFunc-powerquant arg)
-       (calc-unary-op "lufq" 'calcFunc-powerquant arg)))))
+         (calc-binary-op "lufq" 'calcFunc-pquant arg)
+       (calc-unary-op "lufq" 'calcFunc-pquant arg)))))
 
 (defun math-logunits-level (val ref db power)
   "Compute the value of VAL in decibels or nepers."
@@ -1817,47 +1817,47 @@ In symbolic mode, return the list (^ a b)."
             '(var Np var-Np)))
          units)))
 
-(defun calcFunc-dbfieldlevel (val &optional ref)
+(defun calcFunc-dbfield (val &optional ref)
   (unless ref
-    (setq ref (math-read-expr calc-logunits-field-reference)))
+    (setq ref (math-read-expr calc-lu-field-reference)))
   (math-logunits-level val ref t nil))
 
-(defun calcFunc-dbpowerlevel (val &optional ref)
+(defun calcFunc-dbpower (val &optional ref)
   (unless ref
-    (setq ref (math-read-expr calc-logunits-power-reference)))
+    (setq ref (math-read-expr calc-lu-power-reference)))
   (math-logunits-level val ref t t))
 
-(defun calcFunc-npfieldlevel (val &optional ref)
+(defun calcFunc-npfield (val &optional ref)
   (unless ref
-    (setq ref (math-read-expr calc-logunits-field-reference)))
+    (setq ref (math-read-expr calc-lu-field-reference)))
   (math-logunits-level val ref nil nil))
 
-(defun calcFunc-nppowerlevel (val &optional ref)
+(defun calcFunc-nppower (val &optional ref)
   (unless ref
-    (setq ref (math-read-expr calc-logunits-power-reference)))
+    (setq ref (math-read-expr calc-lu-power-reference)))
   (math-logunits-level val ref nil t))
 
-(defun calc-dblevel (arg)
+(defun calc-db (arg)
   (interactive "P")
   (calc-slow-wrapper
    (if (calc-is-hyperbolic)
        (if (calc-is-option)
-           (calc-binary-op "ludb" 'calcFunc-dbfieldlevel arg)
-         (calc-unary-op "ludb" 'calcFunc-dbfieldlevel arg))
+           (calc-binary-op "ludb" 'calcFunc-dbfield arg)
+         (calc-unary-op "ludb" 'calcFunc-dbfield arg))
      (if (calc-is-option)
-         (calc-binary-op "ludb" 'calcFunc-dbpowerlevel arg)
-       (calc-unary-op "ludb" 'calcFunc-dbpowerlevel arg)))))
+         (calc-binary-op "ludb" 'calcFunc-dbpower arg)
+       (calc-unary-op "ludb" 'calcFunc-dbpower arg)))))
 
-(defun calc-nplevel (arg)
+(defun calc-np (arg)
   (interactive "P")
   (calc-slow-wrapper
    (if (calc-is-hyperbolic)
        (if (calc-is-option)
-           (calc-binary-op "lunp" 'calcFunc-npfieldlevel arg)
-         (calc-unary-op "lunp" 'calcFunc-npfieldlevel arg))
+           (calc-binary-op "lunp" 'calcFunc-npfield arg)
+         (calc-unary-op "lunp" 'calcFunc-npfield arg))
      (if (calc-is-option)
-         (calc-binary-op "lunp" 'calcFunc-nppowerlevel arg)
-       (calc-unary-op "lunp" 'calcFunc-nppowerlevel arg)))))
+         (calc-binary-op "lunp" 'calcFunc-nppower arg)
+       (calc-unary-op "lunp" 'calcFunc-nppower arg)))))
 
 ;;; Musical notes
 

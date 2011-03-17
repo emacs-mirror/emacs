@@ -1,3 +1,7 @@
+2011-03-17  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Logarithmic Units): Update the function names.
+
 2011-03-15  Antoine Levitt  <antoine.levitt@gmail.com>
 
 	* message.texi (Insertion Variables): Document message-cite-style.

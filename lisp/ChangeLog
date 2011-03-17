@@ -1,3 +1,40 @@
+2011-03-17  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/README: Mention inclusion of musical notes.
+
+	* calc/calc-units.el (calc-lu-quant): Rename from
+	`calc-logunits-quantity'.
+	(calcFunc-lupquant): Rename from `calcFunc-powerquant'.
+	(calcFunc-lufquant): Rename from `calcFunc-fieldquant'.
+	(calc-db): Rename from `calc-dblevel'.
+	(calcFunc-dbpower): Rename from `calcFunc-dbpowerlevel'.
+	(calcFunc-dbfield): Rename from `calcFunc-dbfieldlevel'.
+	(calc-np): Rename from `calc-nplevel'.
+	(calcFunc-nppower): Rename from `calcFunc-nppowerlevel'.
+	(calcFunc-npfield): Rename from `calcFunc-npfieldlevel'.
+	(calc-lu-plus): Rename from `calc-logunits-add'.
+	(calcFunc-lupadd): Rename from `calcFunc-lupoweradd'.
+	(calcFunc-lufadd): Rename from `calcFunc-lufieldadd'.
+	(calc-lu-minus): Rename from `calc-logunits-sub'.
+	(calcFunc-lupsub): Rename from `calcFunc-lupowersub'.
+	(calcFunc-lufsub): Rename from `calcFunc-lufieldsub'.
+	(calc-lu-times): Rename from `calc-logunits-mul'.
+	(calcFunc-lupmul): Rename from `calcFunc-lupowermul'.
+	(calcFunc-lufmul): Rename from `calcFunc-lufieldmul'.
+	(calc-lu-divide): Rename from `calc-logunits-div'.
+	(calcFunc-lupdiv): Rename from `calcFunc-lupowerdiv'.
+	(calcFunc-lufdiv): Rename from `calcFunc-lufielddiv'.
+
+	* calc/calc-ext.el (calc-init-extensions): Update the names of the
+	functions being autoloaded.
+
+	* calc/calc.el (calc-lu-power-reference): Rename from
+	`calc-logunits-power-reference'.
+	(calc-lu-field-reference): Rename from
+	`calc-logunits-field-reference'.
+
+	* calc/calc-help (calc-l-prefix-help): Mention musical note functions.
+
 2011-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion-all-sorted-completions):
