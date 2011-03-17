@@ -1,3 +1,8 @@
+2011-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-all-sorted-completions):
+	Use :completion-cycle-penalty text property if present.
+
 2011-03-16  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* allout.el (allout-yank-processing): Adjust for new rebulleting
