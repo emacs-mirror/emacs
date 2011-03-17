@@ -1,5 +1,8 @@
 2011-03-17  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* s/irix6-5.h (PTY_OPEN): Declare stb, to loosen coupling.
+	* process.c (allocate_pty): Don't declare stb unless it's needed.
+
 	* bytecode.c (MAYBE_GC): Rewrite so as not to use empty "else".
 	(CONSTANTLIM): Remove; unused.
 	(METER_CODE, Bscan_buffer, Bread_char, Bset_mark):

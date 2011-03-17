@@ -545,7 +545,6 @@ allocate_pty (void)
     for (i = 0; i < 16; i++)
 #endif
       {
-	struct stat stb;	/* Used in some PTY_OPEN.  */
 #ifdef PTY_NAME_SPRINTF
 	PTY_NAME_SPRINTF
 #else
@@ -562,6 +561,7 @@ allocate_pty (void)
 	       three failures in a row before deciding that we've reached the
 	       end of the ptys.  */
 	    int failed_count = 0;
+	    struct stat stb;
 
 	    if (stat (pty_name, &stb) < 0)
 	      {
