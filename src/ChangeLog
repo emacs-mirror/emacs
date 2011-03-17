@@ -1,3 +1,7 @@
+2011-03-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* deps.mk (unexalpha.o): Remove; unused.
+
 2011-03-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	New file unexec.h, the (simple) interface for unexec.

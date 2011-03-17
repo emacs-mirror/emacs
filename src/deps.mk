@@ -201,7 +201,6 @@ tparam.o: tparam.c tparam.h lisp.h $(config_h)
 undo.o: undo.c buffer.h commands.h window.h dispextern.h msdos.h \
    lisp.h globals.h $(config_h)
 unexaix.o: unexaix.c lisp.h unexec.h $(config_h)
-unexalpha.o: unexalpha.c $(config_h)
 unexcw.o: unexcw.c lisp.h unexec.h $(config_h)
 unexcoff.o: unexcoff.c lisp.h unexec.h $(config_h)
 unexelf.o: unexelf.c unexec.h ../lib/unistd.h $(config_h)
