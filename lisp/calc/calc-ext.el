@@ -945,7 +945,7 @@ calcFunc-pclean calcFunc-pfloat calcFunc-pfrac)
 
  ("calc-units" calcFunc-usimplify calcFunc-lufadd calcFunc-lupadd
 calcFunc-lufsub calcFunc-lupsub calcFunc-lufmul calcFunc-lupmul
-calcFunc-lufdiv calcFunc-lupdiv calcFunc-fquant calcFunc-pquant
+calcFunc-lufdiv calcFunc-lupdiv calcFunc-lufquant calcFunc-lupquant
 calcFunc-dbfield calcFunc-dbpower calcFunc-npfield
 calcFunc-nppower calcFunc-spn calcFunc-midi calcFunc-freq
 math-build-units-table math-build-units-table-buffer

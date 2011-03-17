@@ -28238,17 +28238,17 @@ capital @kbd{O} prefix is used.
 
 @kindex l q
 @pindex calc-lu-quant
-@tindex pquant
-@tindex fquant
-The @kbd{l q} (@code{calc-lu-quant}) [@code{pquant}]
+@tindex lupquant
+@tindex lufquant
+The @kbd{l q} (@code{calc-lu-quant}) [@code{lupquant}]
 command computes the power quantity corresponding to a given number of
 logarithmic units. With the capital @kbd{O} prefix, @kbd{O l q}, the
 reference level will be read from the top of the stack. (In an
-algebraic formula, @code{pquant} can be given an optional second
+algebraic formula, @code{lupquant} can be given an optional second
 argument which will be used for the reference level.) For example, 
 @code{20 dB @key{RET} l q} will return @code{100 mW}; 
 @code{20 dB @key{RET} 4 W @key{RET} O l q} will return @code{400 W}.   
-The @kbd{H l q} [@code{fquant}] command behaves like @kbd{l q} but
+The @kbd{H l q} [@code{lufquant}] command behaves like @kbd{l q} but
 computes field quantities instead of power quantities.
 
 @kindex l d
@@ -36222,10 +36222,10 @@ keystrokes are not listed in this summary.
 @r{    a b@:    O l n   @:             @:        @:nppower@:(a,b)}
 @r{      a@:    H l n   @:             @:        @:npfield@:(a)}
 @r{    a b@:  O H l n   @:             @:        @:npfield@:(a,b)}
-@r{      a@:      l q   @:             @:        @:pquant@:(a)}
-@r{    a b@:    O l q   @:             @:        @:pquant@:(a,b)}
-@r{      a@:    H l q   @:             @:        @:fquant@:(a)}
-@r{    a b@:  O H l q   @:             @:        @:fquant@:(a,b)}
+@r{      a@:      l q   @:             @:        @:lupquant@:(a)}
+@r{    a b@:    O l q   @:             @:        @:lupquant@:(a,b)}
+@r{      a@:    H l q   @:             @:        @:lufquant@:(a)}
+@r{    a b@:  O H l q   @:             @:        @:lufquant@:(a,b)}
 @r{      a@:      l s   @:             @:        @:spn@:(a)}
 @r{      a@:      l m   @:             @:        @:midi@:(a)}
 @r{      a@:      l f   @:             @:        @:freq@:(a)}

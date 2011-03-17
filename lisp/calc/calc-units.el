@@ -1780,12 +1780,12 @@ In symbolic mode, return the list (^ a b)."
 (defvar calc-lu-field-reference)
 (defvar calc-lu-power-reference)
 
-(defun calcFunc-fquant (val &optional ref)
+(defun calcFunc-lufquant (val &optional ref)
   (unless ref
     (setq ref (math-read-expr calc-lu-field-reference)))
   (math-logunits-quant val ref nil))
 
-(defun calcFunc-pquant (val &optional ref)
+(defun calcFunc-lupquant (val &optional ref)
   (unless ref
     (setq ref (math-read-expr calc-lu-power-reference)))
   (math-logunits-quant val ref t))
@@ -1795,11 +1795,11 @@ In symbolic mode, return the list (^ a b)."
   (calc-slow-wrapper
    (if (calc-is-hyperbolic)
        (if (calc-is-option)
-           (calc-binary-op "lupq" 'calcFunc-fquant arg)
-         (calc-unary-op "lupq" 'calcFunc-fquant arg))
+           (calc-binary-op "lupq" 'calcFunc-lufquant arg)
+         (calc-unary-op "lupq" 'calcFunc-lufquant arg))
      (if (calc-is-option)
-         (calc-binary-op "lufq" 'calcFunc-pquant arg)
-       (calc-unary-op "lufq" 'calcFunc-pquant arg)))))
+         (calc-binary-op "lufq" 'calcFunc-lupquant arg)
+       (calc-unary-op "lufq" 'calcFunc-lupquant arg)))))
 
 (defun math-logunits-level (val ref db power)
   "Compute the value of VAL in decibels or nepers."
