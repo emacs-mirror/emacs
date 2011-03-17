@@ -1,3 +1,119 @@
+2011-03-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* custom.el (custom-known-themes): Reflow docstring.
+	(custom-theme-load-path): Fix typo in docstring.
+	(load-theme): Fix typo in error message.
+	(custom-available-themes, custom-variable-theme-value):
+	Use `let', not `let*'.
+
+2011-03-17  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/README: Mention inclusion of musical notes.
+
+	* calc/calc-units.el (calc-lu-quant): Rename from
+	`calc-logunits-quantity'.
+	(calcFunc-lupquant): Rename from `calcFunc-powerquant'.
+	(calcFunc-lufquant): Rename from `calcFunc-fieldquant'.
+	(calc-db): Rename from `calc-dblevel'.
+	(calcFunc-dbpower): Rename from `calcFunc-dbpowerlevel'.
+	(calcFunc-dbfield): Rename from `calcFunc-dbfieldlevel'.
+	(calc-np): Rename from `calc-nplevel'.
+	(calcFunc-nppower): Rename from `calcFunc-nppowerlevel'.
+	(calcFunc-npfield): Rename from `calcFunc-npfieldlevel'.
+	(calc-lu-plus): Rename from `calc-logunits-add'.
+	(calcFunc-lupadd): Rename from `calcFunc-lupoweradd'.
+	(calcFunc-lufadd): Rename from `calcFunc-lufieldadd'.
+	(calc-lu-minus): Rename from `calc-logunits-sub'.
+	(calcFunc-lupsub): Rename from `calcFunc-lupowersub'.
+	(calcFunc-lufsub): Rename from `calcFunc-lufieldsub'.
+	(calc-lu-times): Rename from `calc-logunits-mul'.
+	(calcFunc-lupmul): Rename from `calcFunc-lupowermul'.
+	(calcFunc-lufmul): Rename from `calcFunc-lufieldmul'.
+	(calc-lu-divide): Rename from `calc-logunits-div'.
+	(calcFunc-lupdiv): Rename from `calcFunc-lupowerdiv'.
+	(calcFunc-lufdiv): Rename from `calcFunc-lufielddiv'.
+
+	* calc/calc-ext.el (calc-init-extensions): Update the names of the
+	functions being autoloaded.
+
+	* calc/calc.el (calc-lu-power-reference): Rename from
+	`calc-logunits-power-reference'.
+	(calc-lu-field-reference): Rename from
+	`calc-logunits-field-reference'.
+
+	* calc/calc-help (calc-l-prefix-help): Mention musical note functions.
+
+2011-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-all-sorted-completions):
+	Use :completion-cycle-penalty text property if present.
+
+2011-03-16  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-yank-processing): Adjust for new rebulleting
+	regime so bullet being yanked is used without prompting the user
+	for a choice.
+
+2011-03-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* startup.el (command-line): Warn the user that _emacs is deprecated.
+
+2011-03-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/delphi.el (delphi-search-path, delphi-indent-level)
+	(delphi-verbose, delphi-comment-face, delphi-string-face)
+	(delphi-keyword-face, delphi-ignore-changes, delphi-indent-line)
+	(delphi-mode-abbrev-table, delphi-debug-buffer, delphi-tab)
+	(delphi-find-unit, delphi-find-current-xdef, delphi-fill-comment)
+	(delphi-new-comment-line, delphi-font-lock-defaults)
+	(delphi-debug-mode-map, delphi-mode-syntax-table, delphi-mode):
+	Fix typos in docstrings.
+
+2011-03-15  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-make-topic-prefix, allout-rebullet-heading):
+	Invert the roles of character and string values for INSTEAD, so a
+	string is used for the more common case of a defaulting prompt.
+
+2011-03-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/ruby-mode.el (ruby-backward-sexp):
+	* progmodes/ebrowse.el (ebrowse-draw-file-member-info):
+	* play/gamegrid.el (gamegrid-make-face):
+	* play/bubbles.el (bubbles--grid-width, bubbles--grid-height)
+	(bubbles--colors, bubbles--shift-mode, bubbles--initialize-images):
+	* notifications.el (notifications-notify):
+	* net/xesam.el (xesam-search-engines):
+	* net/quickurl.el (quickurl-list-insert):
+	* vc/vc-hg.el (vc-hg-dir-printer): Fix use of case.
+
+2011-03-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (command-line): Update package subdirectory regexp.
+
+2011-03-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* allout.el (allout-abbreviate-flattened-numbering)
+	(allout-mode-deactivate-hook): Fix up obsolescence "date".
+
+	* subr.el (read-char-choice): Only show the cursor after the prompt,
+	not after the answer.
+
+2011-03-15  Kevin Ryde  <user42@zip.com.au>
+
+	* help-fns.el (variable-at-point): Skip leading quotes, if any
+	(bug#8253).
+
+2011-03-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-save-excursion): Change the
+	warning message.
+
+2011-03-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* shell.el (shell): When called interactively, offer to change the
+	shell file name on remote hosts.
+
 2011-03-13  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* net/ldap.el (ldap-search-internal): Add `auth-source-search'

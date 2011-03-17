@@ -26,8 +26,6 @@
 
 	* deps.mk (unexalpha.o): Remove; unused.
 
-2011-03-16  Paul Eggert  <eggert@cs.ucla.edu>
-
 	New file unexec.h, the (simple) interface for unexec (Bug#8267).
 	* unexec.h: New file.
 	* deps.mk (emacs.o, unexaix.o, unexcw.o, unexcoff.o, unexelf.o):
@@ -97,8 +95,6 @@
 	(Ftranslate_region_internal, Fformat):
 	Rename or remove local vars to avoid shadowing.
 	(Ftranslate_region_internal): Mark var as initialized.
-
-2011-03-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* doc.c (Fdocumentation, Fsnarf_documentation): Move locals to
 	avoid shadowing.
@@ -249,10 +245,7 @@
 	(fix_start_end_in_overlays): Likewise.  This function should be
 	simplified by using pointers-to-pointers, but that's a different
 	matter.
-
-2011-03-14  Paul Eggert  <eggert@cs.ucla.edu>
-
-	* buffer.c (switch_to_buffer_1): Now static.
+	(switch_to_buffer_1): Now static.
 	(Fkill_buffer, record_buffer, Fbury_buffer, Fset_buffer_multibyte):
 	(report_overlay_modification): Rename locals to avoid shadowing.
 
@@ -316,6 +309,51 @@
 	* dbusbind.c (Fdbus_init_bus): Add cast to avoid warning
 	if GCC considers string literals to be constants.
 	(Fdbus_register_service, Fdbus_register_method): Remove unused vars.
+
+2011-03-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* print.c (PRINT_CIRCLE_CANDIDATE_P): New macro.
+	(print_preprocess, print_object): New macro to fix last change.
+
+	* print.c (print_preprocess): Don't forget font objects.
+
+2011-03-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs.c (USAGE3): Doc fixes.
+
+2011-03-15  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* coding.c (detect_coding_iso_2022): Reorganize code to clarify
+	structure.
+
+2011-03-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lisp.h (VWindow_system, Qfile_name_history):
+	* keyboard.h (lispy_function_keys) [WINDOWSNT]:
+	* w32term.h (w32_system_caret_hwnd, w32_system_caret_height)
+	(w32_system_caret_x, w32_system_caret_y): Declare extern.
+
+	* w32select.c: Don't #include "keyboard.h".
+	(run_protected): Add extern declaration for waiting_for_input.
+
+	* w32.c (Qlocal, noninteractive1, inhibit_window_system):
+	* w32console.c (detect_input_pending, read_input_pending)
+	(encode_terminal_code):
+	* w32fns.c (quit_char, lispy_function_keys, Qtooltip)
+	(w32_system_caret_hwnd, w32_system_caret_height, w32_system_caret_x)
+	(w32_system_caret_y, Qfile_name_history):
+	* w32font.c (w32font_driver, QCantialias, QCotf, QClang):
+	* w32inevt.c (reinvoke_input_signal, lispy_function_keys):
+	* w32menu.c (Qmenu_bar, QCtoggle, QCradio, Qoverriding_local_map)
+	(Qoverriding_terminal_local_map, Qmenu_bar_update_hook):
+	* w32proc.c (Qlocal, report_file_error):
+	* w32term.c (Vwindow_system, updating_frame):
+	* w32uniscribe.c (initialized, uniscribe_font_driver):
+	Remove unneeded extern declarations.
+
+2011-03-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* buffer.c (Fmake_indirect_buffer): Fix incorrect assertions.
 
 2011-03-13  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -420,7 +458,7 @@
 
 2011-03-12  Eli Zaretskii  <eliz@gnu.org>
 
-	* termcap.c [MSDOS]: Include "msdos.h.
+	* termcap.c [MSDOS]: Include "msdos.h".
 	(find_capability, tgetnum, tgetflag, tgetstr, tputs, tgetent):
 	Constify `char *' arguments and their references according to
 	prototypes in tparam.h.

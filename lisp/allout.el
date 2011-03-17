@@ -310,6 +310,7 @@ Auto-layout is not.
 
 With value nil, inhibit any automatic allout-mode activation."
   :set 'allout-auto-activation-helper
+  ;; FIXME: Using strings here is unusual and less efficient than symbols.
   :type '(choice (const :tag "On" t)
                 (const :tag "Ask about layout" "ask")
                 (const :tag "Mode only" "activate")
@@ -752,7 +753,7 @@ Set this var to the bullet you want to use for file cross-references."
 
 ;;;_  = allout-flattened-numbering-abbreviation
 (define-obsolete-variable-alias 'allout-abbreviate-flattened-numbering
-  'allout-flattened-numbering-abbreviation "24.0")
+  'allout-flattened-numbering-abbreviation "24.1")
 (defcustom allout-flattened-numbering-abbreviation nil
   "If non-nil, `allout-flatten-exposed-to-buffer' abbreviates topic
 numbers to minimal amount with some context.  Otherwise, entire
@@ -1402,7 +1403,7 @@ their settings before allout-mode was started."
 (defvar allout-mode-deactivate-hook nil
   "*Hook that's run when allout mode ends.")
 (define-obsolete-variable-alias 'allout-mode-deactivate-hook
-  'allout-mode-off-hook "future")
+  'allout-mode-off-hook "24.1")
 ;;;_   = allout-exposure-category
 (defvar allout-exposure-category nil
   "Symbol for use as allout invisible-text overlay category.")
@@ -3495,8 +3496,8 @@ the current topics' depth.
 If INSTEAD is:
 
 - nil, then the bullet char for the context is used, per distinction or depth
-- a string, then the first character of the string will be used
-- a character, then the user is solicited for bullet, with that char as default
+- a \(numeric) character, then character's string representation is used
+- a string, then the user is asked for bullet with the first char as default
 - anything else, the user is solicited with bullet char per context as default
 
 \(INSTEAD overrides other options, including, eg, a distinctive
@@ -3553,10 +3554,12 @@ index for each successive sibling)."
            ((progn (setq body (make-string (- depth 2) ?\ ))
                    ;; The actual condition:
                    instead)
-            (let* ((got
-                    (if (and (stringp instead)(> (length instead) 0))
-                        (substring instead 0 1)
-                      (allout-solicit-alternate-bullet depth instead))))
+            (let ((got (cond ((stringp instead)
+                              (if (> (length instead) 0)
+                                  (allout-solicit-alternate-bullet
+                                   depth (substring instead 0 1))))
+                             ((characterp instead) (char-to-string instead))
+                             (t (allout-solicit-alternate-bullet depth)))))
               ;; Gotta check whether we're numbering and got a numbered bullet:
               (setq numbering (and allout-numbered-bullet
                                    (not (and number-control (not index)))
@@ -3950,8 +3953,8 @@ All args are optional.
 
 If INSTEAD is:
 - nil, then the bullet char for the context is used, per distinction or depth
-- a string, then the first character of the string will be used
-- a character, then the user is solicited for bullet, with that char as default
+- a \(numeric) character, then character's string representation is used
+- a string, then the user is asked for bullet with the first char as default
 - anything else, the user is solicited with bullet char per context as default
 
 Second arg DEPTH forces the topic prefix to that depth, regardless
@@ -4596,7 +4599,7 @@ however, are left exactly like normal, non-allout-specific yanks."
                      (if (looking-at " ")
                          (delete-char 1))))
                   ;; Assert new topic's bullet - minimal effort if unchanged:
-                  (allout-rebullet-heading prefix-bullet))
+                  (allout-rebullet-heading (string-to-char prefix-bullet)))
               (exchange-point-and-mark))))
       (if rectify-numbering
           (progn

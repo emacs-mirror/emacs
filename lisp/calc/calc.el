@@ -434,13 +434,13 @@ by displaying the sub-formula in `calc-selected-face'."
   :group 'calc
   :type 'boolean)
 
-(defcustom calc-logunits-field-reference
+(defcustom calc-lu-field-reference
   "20 uPa"
   "The default reference level for logarithmic units (field)."
   :group 'calc
   :type '(string))
 
-(defcustom calc-logunits-power-reference
+(defcustom calc-lu-power-reference
   "mW"
   "The default reference level for logarithmic units (power)."
   :group 'calc

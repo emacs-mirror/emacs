@@ -704,7 +704,15 @@ scroll the window of possible completions."
         (when last
           (setcdr last nil)
           ;; Prefer shorter completions.
-          (setq all (sort all (lambda (c1 c2) (< (length c1) (length c2)))))
+          (setq all (sort all (lambda (c1 c2)
+                                (let ((s1 (get-text-property
+                                           0 :completion-cycle-penalty c1))
+                                      (s2 (get-text-property
+                                           0 :completion-cycle-penalty c2)))
+                                  (if (eq s1 s2)
+                                      (< (length c1) (length c2))
+                                    (< (or s1 (length c1))
+                                       (or s2 (length c2))))))))
           ;; Prefer recently used completions.
           (let ((hist (symbol-value minibuffer-history-variable)))
             (setq all (sort all (lambda (c1 c2)

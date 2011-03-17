@@ -52,10 +52,6 @@ int uniscribe_available = 0;
 extern Lisp_Object Quniscribe;
 extern Lisp_Object Qopentype;
 
-extern int initialized;
-
-extern struct font_driver uniscribe_font_driver;
-
 /* EnumFontFamiliesEx callback.  */
 static int CALLBACK add_opentype_font_name_to_list (ENUMLOGFONTEX *,
                                                     NEWTEXTMETRICEX *,

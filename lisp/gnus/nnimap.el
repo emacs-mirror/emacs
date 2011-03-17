@@ -340,6 +340,7 @@ textual parts.")
 	   (ports
 	    (cond
 	     ((or (eq nnimap-stream 'network)
+		  (eq nnimap-stream 'network-only)
 		  (eq nnimap-stream 'starttls))
 	      (nnheader-message 7 "Opening connection to %s..."
 				nnimap-address)
@@ -1452,6 +1453,11 @@ textual parts.")
   ;; Change \Delete etc to %Delete, so that the reader can read it.
   (subst-char-in-region (point-min) (point-max)
 			?\\ ?% t)
+  ;; Remove any MODSEQ entries in the buffer, because they may contain
+  ;; numbers that are too large for 32-bit Emacsen.
+  (while (re-search-forward " MODSEQ ([0-9]+)" nil t)
+    (replace-match "" t t))
+  (goto-char (point-min))
   (let (start end articles groups uidnext elems permanent-flags
 	      uidvalidity vanished highestmodseq)
     (dolist (elem sequences)
@@ -1491,9 +1497,9 @@ textual parts.")
 			    (match-string 1)))
 		 (goto-char start)
 		 (setq highestmodseq
-		       (and (search-forward "HIGHESTMODSEQ "
+		       (and (re-search-forward "HIGHESTMODSEQ \\([0-9]+\\)"
 					    (or end (point-min)) t)
-			    (read (current-buffer))))
+			    (match-string 1)))
 		 (goto-char end)
 		 (forward-line -1))
 	       ;; The UID FETCH FLAGS was successful.
@@ -1507,18 +1513,7 @@ textual parts.")
 	    (goto-char end))
 	  (while (re-search-forward "^\\* [0-9]+ FETCH " start t)
 	    (let ((p (point)))
-	      ;; FIXME: For FETCH lines like "* 2971 FETCH (FLAGS (%Recent) UID
-	      ;; 12509 MODSEQ (13419098521433281274))" we get an
-	      ;; overflow-error.  The handler simply deletes that large number
-	      ;; and reads again.  But maybe there's a better fix...
-	      (setq elems (condition-case nil (read (current-buffer))
-			    (overflow-error
-			     ;; After an overflow-error, point is just after
-			     ;; the too large number.  So delete it and try
-			     ;; again.
-			     (delete-region (point) (progn (backward-word) (point)))
-			     (goto-char p)
-			     (read (current-buffer)))))
+	      (setq elems (read (current-buffer)))
 	      (push (cons (cadr (memq 'UID elems))
 			  (cadr (memq 'FLAGS elems)))
 		    articles)))
@@ -1674,6 +1669,8 @@ textual parts.")
 	    (goto-char (point-max)))
           openp)
       (quit
+       (when debug-on-quit
+	 (debug "Quit"))
        ;; The user hit C-g while we were waiting: kill the process, in case
        ;; it's a gnutls-cli process that's stuck (tends to happen a lot behind
        ;; NAT routers).

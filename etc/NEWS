@@ -62,6 +62,8 @@ longer have any effect.  (They were declared obsolete in Emacs 23.)
 ** New command line option `--no-site-lisp' removes site-lisp directories
 from load-path.  -Q now implies this.
 
+** On Windows, Emacs now warns when the obsolete _emacs init file is used.
+
 
 * Changes in Emacs 24.1
 
@@ -334,6 +336,10 @@ between applications.
 ** New command `rectangle-number-lines', bound to `C-x r N', numbers
 the lines in the current rectangle.  With an prefix argument, this
 prompts for a number to count from and for a format string.
+
+** The command shell prompts for the shell path name, when the default
+directory is a remote file name and neither environment variable
+$ESHELL nor variable `explicit-shell-file-name' is set.
 
 
 * Changes in Specialized Modes and Packages in Emacs 24.1

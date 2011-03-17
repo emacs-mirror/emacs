@@ -1,3 +1,13 @@
+2011-03-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Document warning about _emacs.
+
+2011-03-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: `shell' prompts for the shell path name, when the default
+	directory is a remote file name and neither environment variable
+	$ESHELL nor variable `explicit-shell-file-name' is set.
+
 2011-03-08  Kristoffer Grönlund  <krig@koru.se>
 
 	* themes/wombat-theme.el: New file.

@@ -1006,19 +1006,23 @@ opening the first frame (e.g. open a connection to an X server).")
 		(if init-file-user
 		    (let ((user-init-file-1
 			   (cond
-			    ((eq system-type 'ms-dos)
-			     (concat "~" init-file-user "/_emacs"))
-			    ((eq system-type 'windows-nt)
-			     ;; Prefer .emacs on Windows.
-			     (if (directory-files "~" nil "^\\.emacs\\(\\.elc?\\)?$")
-				 "~/.emacs"
-			       ;; Also support _emacs for compatibility.
-			       (if (directory-files "~" nil "^_emacs\\(\\.elc?\\)?$")
-				   "~/_emacs"
-				 ;; But default to .emacs if _emacs does not exist.
-				 "~/.emacs")))
-			    (t
-			     (concat "~" init-file-user "/.emacs")))))
+			     ((eq system-type 'ms-dos)
+			      (concat "~" init-file-user "/_emacs"))
+			     ((not (eq system-type 'windows-nt))
+			      (concat "~" init-file-user "/.emacs"))
+			     ;; Else deal with the Windows situation
+			     ((directory-files "~" nil "^\\.emacs\\(\\.elc?\\)?$")
+			      ;; Prefer .emacs on Windows.
+			      "~/.emacs")
+			     ((directory-files "~" nil "^_emacs\\(\\.elc?\\)?$")
+			      ;; Also support _emacs for compatibility, but warn about it.
+			      (display-warning
+			       'initialization
+			       "`_emacs' init file is deprecated, please use `.emacs'"
+			       :warning)
+			      "~/_emacs")
+			     (t ;; But default to .emacs if _emacs does not exist.
+			      "~/.emacs"))))
 		      ;; This tells `load' to store the file name found
 		      ;; into user-init-file.
 		      (setq user-init-file t)
@@ -1191,7 +1195,7 @@ the `--debug-init' option to view a complete error backtrace."
 	       (dolist (subdir (directory-files dir))
 		 (when (and (file-directory-p (expand-file-name subdir dir))
 			    ;; package-subdirectory-regexp from package.el
-			    (string-match "^\\([^.].*\\)-\\([0-9]+\\(?:[.][0-9]+\\)*\\)$"
+			    (string-match "\\`\\([^.].*?\\)-\\([0-9]+\\(?:[.][0-9]+\\|\\(?:pre\\|beta\\|alpha\\)[0-9]+\\)*\\)\\'"
 					  subdir))
 		   (throw 'package-dir-found t)))))))
        (package-initialize))

@@ -583,6 +583,21 @@ Otherwise, one argument `-i' is passed to the shell.
                    (get-buffer-create (or buffer "*shell*"))
                  ;; If the current buffer is a dead shell buffer, use it.
                  (current-buffer)))
+
+  ;; On remote hosts, the local `shell-file-name' might be useless.
+  (if (and (interactive-p)
+	   (file-remote-p default-directory)
+	   (null explicit-shell-file-name)
+	   (null (getenv "ESHELL")))
+      (with-current-buffer buffer
+	(set (make-local-variable 'explicit-shell-file-name)
+	     (file-remote-p
+	      (expand-file-name
+	       (read-file-name
+		"Remote shell path: " default-directory shell-file-name
+		t shell-file-name))
+	      'localname))))
+
   ;; Pop to buffer, so that the buffer's window will be correctly set
   ;; when we call comint (so that comint sets the COLUMNS env var properly).
   (pop-to-buffer buffer)

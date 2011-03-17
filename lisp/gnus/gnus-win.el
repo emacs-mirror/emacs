@@ -268,8 +268,10 @@ See the Gnus manual for an explanation of the syntax used.")
 	    (error "Invalid buffer type: %s" type))
 	  (let ((buf (gnus-get-buffer-create
 		      (gnus-window-to-buffer-helper buffer))))
-	    (if (eq buf (window-buffer (selected-window))) (set-buffer buf)
-	      (switch-to-buffer buf)))
+	    (when (buffer-name buf)
+	      (if (eq buf (window-buffer (selected-window)))
+		  (set-buffer buf)
+		(switch-to-buffer buf))))
 	  (when (memq 'frame-focus split)
 	    (setq gnus-window-frame-focus window))
 	  ;; We return the window if it has the `point' spec.

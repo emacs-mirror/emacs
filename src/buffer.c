@@ -611,8 +611,8 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
   /* Make sure the base buffer has markers for its narrowing.  */
   if (NILP (BVAR (b->base_buffer, pt_marker)))
     {
-      eassert (NILP (BVAR (b, begv_marker)));
-      eassert (NILP (BVAR (b, zv_marker)));
+      eassert (NILP (BVAR (b->base_buffer, begv_marker)));
+      eassert (NILP (BVAR (b->base_buffer, zv_marker)));
 
       BVAR (b->base_buffer, pt_marker) = Fmake_marker ();
       set_marker_both (BVAR (b->base_buffer, pt_marker), base_buffer,

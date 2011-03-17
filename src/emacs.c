@@ -141,7 +141,7 @@ Lisp_Object Qfile_name_handler_alist;
 
 Lisp_Object Qrisky_local_variable;
 
-/* If non-zero, emacs should not attempt to use a window-specific code,
+/* If non-zero, Emacs should not attempt to use a window-specific code,
    but instead should use the virtual terminal under which it was started.  */
 int inhibit_window_system;
 
@@ -169,7 +169,6 @@ static unsigned long heap_bss_diff;
 #define MAX_HEAP_BSS_DIFF (1024*1024)
 
 /* Nonzero means running Emacs without interactive terminal.  */
-
 int noninteractive;
 
 /* Nonzero means remove site-lisp directories from load-path.  */
@@ -249,14 +248,14 @@ Display options:\n\
 --border-color, -bd COLOR       main border color\n\
 --border-width, -bw WIDTH       width of main border\n\
 --color, --color=MODE           override color mode for character terminals;\n\
-                                  MODE defaults to `auto', and can also\n\
-                                  be `never', `auto', `always',\n\
+                                  MODE defaults to `auto', and\n\
+                                  can also be `never', `always',\n\
                                   or a mode name like `ansi8'\n\
 --cursor-color, -cr COLOR       color of the Emacs cursor indicating point\n\
 --font, -fn FONT                default font; must be fixed-width\n\
 --foreground-color, -fg COLOR   window foreground color\n\
 --fullheight, -fh               make the first frame high as the screen\n\
---fullscreen, -fs               make first frame fullscreen\n\
+--fullscreen, -fs               make the first frame fullscreen\n\
 --fullwidth, -fw                make the first frame wide as the screen\n\
 --maximized, -mm                make the first frame maximized\n\
 --geometry, -g GEOMETRY         window geometry\n\
@@ -577,7 +576,8 @@ DEFINE_DUMMY_FUNCTION (__main)
    enough information to do it right.  */
 
 static int
-argmatch (char **argv, int argc, const char *sstr, const char *lstr, int minlen, char **valptr, int *skipptr)
+argmatch (char **argv, int argc, const char *sstr, const char *lstr,
+          int minlen, char **valptr, int *skipptr)
 {
   char *p = NULL;
   int arglen;

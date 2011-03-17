@@ -476,11 +476,11 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
 
 (defun org-mouse-agenda-type (type)
   (case type
-   ('tags "Tags: ")
-   ('todo "TODO: ")
-   ('tags-tree "Tags tree: ")
-   ('todo-tree "TODO tree: ")
-   ('occur-tree "Occur tree: ")
+   (tags "Tags: ")
+   (todo "TODO: ")
+   (tags-tree "Tags tree: ")
+   (todo-tree "TODO tree: ")
+   (occur-tree "Occur tree: ")
    (t "Agenda command ???")))
 
 

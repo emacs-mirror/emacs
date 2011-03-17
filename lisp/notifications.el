@@ -210,8 +210,8 @@ used to manipulate the notification item with
       (add-to-list 'hints `(:dict-entry
                             "urgency"
                             (:variant :byte ,(case urgency
-                                               ('low 0)
-                                               ('critical 2)
+                                               (low 0)
+                                               (critical 2)
                                                (t 1)))) t))
     (when category
       (add-to-list 'hints `(:dict-entry

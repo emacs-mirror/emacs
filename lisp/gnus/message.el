@@ -49,6 +49,7 @@
 (require 'mail-parse)
 (require 'mml)
 (require 'rfc822)
+(require 'format-spec)
 
 (autoload 'mailclient-send-it "mailclient") ;; Emacs 22 or contrib/
 
@@ -438,7 +439,10 @@ whitespace)."
   :group 'message-various)
 
 (defcustom message-elide-ellipsis "\n[...]\n\n"
-  "*The string which is inserted for elided text."
+  "*The string which is inserted for elided text.
+This is a format-spec string, and you can use %l to say how many
+lines were removed, and %c to say how many characters were
+removed."
   :type 'string
   :link '(custom-manual "(message)Various Commands")
   :group 'message-various)
@@ -3535,8 +3539,12 @@ Note that this should not be used in newsgroups."
 An ellipsis (from `message-elide-ellipsis') will be inserted where the
 text was killed."
   (interactive "r")
-  (kill-region b e)
-  (insert message-elide-ellipsis))
+  (let ((lines (count-lines b e))
+        (chars (- e b)))
+    (kill-region b e)
+    (insert (format-spec message-elide-ellipsis
+                         `((?l . ,lines)
+                           (?c . ,chars))))))
 
 (defvar message-caesar-translation-table nil)
 
@@ -3749,12 +3757,12 @@ prefix, and don't delete any headers."
 		(insert-before-markers ?\n)
 		(goto-char pt))))
 	  (case message-cite-reply-position
-	    ('above
+	    (above
 	     (message-goto-body)
 	     (insert body-text)
 	     (insert (if (bolp) "\n" "\n\n"))
 	     (message-goto-body))
-	    ('below
+	    (below
 	     (message-goto-signature)))
 	  ;; Add a `message-setup-very-last-hook' here?
 	  ;; Add `gnus-article-highlight-citation' here?

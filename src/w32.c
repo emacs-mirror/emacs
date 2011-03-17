@@ -147,9 +147,6 @@ typedef HRESULT (WINAPI * ShGetFolderPath_fn)
 void globals_of_w32 (void);
 static DWORD get_rid (PSID);
 
-/* Defined in process.c for its own purpose.  */
-extern Lisp_Object Qlocal;
-
 
 /* Initialization states.
 
@@ -5666,8 +5663,6 @@ sys_write (int fd, const void * buffer, unsigned int count)
 static void
 check_windows_init_file (void)
 {
-  extern int noninteractive, inhibit_window_system;
-
   /* A common indication that Emacs is not installed properly is when
      it cannot find the Windows installation file.  If this file does
      not exist in the expected place, tell the user.  */

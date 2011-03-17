@@ -88,8 +88,6 @@ extern void free_frame_menubar (struct frame *);
 extern int w32_codepage_for_font (char *fontname);
 extern Cursor w32_load_cursor (LPCTSTR name);
 
-extern Lisp_Object Vwindow_system;
-
 #define x_any_window_to_frame x_window_to_frame
 #define x_top_window_to_frame x_window_to_frame
 
@@ -137,13 +135,6 @@ BOOL (WINAPI *pfnSetLayeredWindowAttributes) (HWND, COLORREF, BYTE, DWORD);
 #ifndef WS_EX_LAYERED
 #define WS_EX_LAYERED 0x80000
 #endif
-
-/* Frame being updated by update_frame.  This is declared in term.c.
-   This is set by update_begin and looked at by all the
-   w32 functions.  It is zero while not inside an update.
-   In that case, the w32 functions assume that `SELECTED_FRAME ()'
-   is the frame to apply to.  */
-extern struct frame *updating_frame;
 
 /* This is a frame waiting to be autoraised, within w32_read_socket.  */
 struct frame *pending_autoraise_frame;
@@ -2536,8 +2527,7 @@ x_delete_glyphs (struct frame *f, register int n)
 }
 
 
-/* Clear entire frame.  If updating_frame is non-null, clear that
-   frame.  Otherwise clear the selected frame.  */
+/* Clear entire frame.  */
 
 static void
 x_clear_frame (struct frame *f)
@@ -6060,7 +6050,7 @@ w32_create_terminal (struct w32_display_info *dpyinfo)
   terminal->mouse_position_hook = w32_mouse_position;
   terminal->frame_rehighlight_hook = w32_frame_rehighlight;
   terminal->frame_raise_lower_hook = w32_frame_raise_lower;
-  //  terminal->fullscreen_hook = XTfullscreen_hook;
+  /* terminal->fullscreen_hook = XTfullscreen_hook; */
   terminal->set_vertical_scroll_bar_hook = w32_set_vertical_scroll_bar;
   terminal->condemn_scroll_bars_hook = w32_condemn_scroll_bars;
   terminal->redeem_scroll_bar_hook = w32_redeem_scroll_bar;

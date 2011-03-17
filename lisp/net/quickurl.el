@@ -511,15 +511,15 @@ TYPE dictates what will be inserted, options are:
         (with-current-buffer quickurl-list-last-buffer
           (insert
            (case type
-             ('url         (funcall quickurl-format-function url))
-             ('naked-url   (quickurl-url-url url))
-             ('with-lookup (format "%s <URL:%s>"
+             (url         (funcall quickurl-format-function url))
+             (naked-url   (quickurl-url-url url))
+             (with-lookup (format "%s <URL:%s>"
                                    (quickurl-url-keyword url)
                                    (quickurl-url-url url)))
-             ('with-desc   (format "%S <URL:%s>"
+             (with-desc   (format "%S <URL:%s>"
                                    (quickurl-url-description url)
                                    (quickurl-url-url url)))
-             ('lookup      (quickurl-url-keyword url)))))
+             (lookup      (quickurl-url-keyword url)))))
       (error "No URL details on that line"))
     url))
 

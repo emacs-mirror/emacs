@@ -2313,9 +2313,10 @@ Return the name of the group if selection was successful."
 		       gnus-fetch-old-ephemeral-headers))
 		  (gnus-group-read-group (or number t) t group select-articles))
 	    group)
-	;;(error nil)
 	(quit
-	 (message "Quit reading the ephemeral group")
+	 (if debug-on-quit
+	     (debug "Quit")
+	   (message "Quit reading the ephemeral group"))
 	 nil)))))
 
 (defcustom gnus-gmane-group-download-format

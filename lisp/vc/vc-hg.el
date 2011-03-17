@@ -529,9 +529,9 @@ REV is the revision to check out into WORKFILE."
       (insert (propertize
                (format "   (%s %s)"
                        (case (vc-hg-extra-fileinfo->rename-state extra)
-                         ('copied "copied from")
-                         ('renamed-from "renamed from")
-                         ('renamed-to "renamed to"))
+                         (copied "copied from")
+                         (renamed-from "renamed from")
+                         (renamed-to "renamed to"))
                        (vc-hg-extra-fileinfo->extra-name extra))
                'face 'font-lock-comment-face)))))
 
