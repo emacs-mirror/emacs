@@ -363,6 +363,7 @@ unmark_byte_stack (void)
    We do this at every branch, to avoid loops that never GC.  */
 
 #define MAYBE_GC()					\
+ do {							\
   if (consing_since_gc > gc_cons_threshold		\
       && consing_since_gc > gc_relative_threshold)	\
     {							\
@@ -370,7 +371,7 @@ unmark_byte_stack (void)
       Fgarbage_collect ();				\
       AFTER_POTENTIAL_GC ();				\
     }							\
-  else
+ } while (0)
 
 /* Check for jumping out of range.  */
 

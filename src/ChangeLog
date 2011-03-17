@@ -1,5 +1,7 @@
 2011-03-17  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* bytecode.c (MAYBE_GC): Rewrite so as not to use empty "else".
+
 	* unexelf.c (unexec): Name an expression,
 	to avoid gcc -Wbad-function-cast warning.
 	Use a different way to cause a compilation error if anyone uses
