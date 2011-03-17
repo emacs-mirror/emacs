@@ -178,7 +178,7 @@ report_file_error (const char *string, Lisp_Object data)
 
 	    str = SSDATA (errstring);
 	    c = STRING_CHAR ((unsigned char *) str);
-	    Faset (errstring, make_number (0), make_number (DOWNCASE (c)));
+	    Faset (errstring, make_number (0), make_number (downcase (c)));
 	  }
 
 	xsignal (Qfile_error,
@@ -433,8 +433,8 @@ get a current directory to run processes in.  */)
 }
 
 
-char *
-file_name_as_directory (char *out, char *in)
+static char *
+file_name_as_directory (char *out, const char *in)
 {
   int size = strlen (in) - 1;
 
@@ -496,7 +496,7 @@ For a Unix-syntax file name, just appends a slash.  */)
  * Value is nonzero if the string output is different from the input.
  */
 
-int
+static int
 directory_file_name (char *src, char *dst)
 {
   long slen;
@@ -728,7 +728,8 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 {
   /* These point to SDATA and need to be careful with string-relocation
      during GC (via DECODE_FILE).  */
-  char *nm, *newdir;
+  char *nm;
+  const char *newdir;
   /* This should only point to alloca'd data.  */
   char *target;
 
@@ -1013,21 +1014,23 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
   if (!newdir && drive)
     {
       /* Get default directory if needed to make nm absolute. */
+      char *adir = NULL;
       if (!IS_DIRECTORY_SEP (nm[0]))
 	{
-	  newdir = alloca (MAXPATHLEN + 1);
-	  if (!getdefdir (toupper (drive) - 'A' + 1, newdir))
-	    newdir = NULL;
+	  adir = alloca (MAXPATHLEN + 1);
+	  if (!getdefdir (toupper (drive) - 'A' + 1, adir))
+	    adir = NULL;
 	}
-      if (!newdir)
+      if (!adir)
 	{
 	  /* Either nm starts with /, or drive isn't mounted. */
-	  newdir = alloca (4);
-	  newdir[0] = DRIVE_LETTER (drive);
-	  newdir[1] = ':';
-	  newdir[2] = '/';
-	  newdir[3] = 0;
+	  adir = alloca (4);
+	  adir[0] = DRIVE_LETTER (drive);
+	  adir[1] = ':';
+	  adir[2] = '/';
+	  adir[3] = 0;
 	}
+      newdir = adir;
     }
 #endif /* DOS_NT */
 
@@ -1074,7 +1077,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	     when we have pointers into lisp strings, we accomplish this
 	     indirectly by prepending newdir to nm if necessary, and using
 	     cwd (or the wd of newdir's drive) as the new newdir. */
-
+	  char *adir;
 	  if (IS_DRIVE (newdir[0]) && IS_DEVICE_SEP (newdir[1]))
 	    {
 	      drive = (unsigned char) newdir[0];
@@ -1087,14 +1090,15 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	      strcat (tmp, nm);
 	      nm = tmp;
 	    }
-	  newdir = alloca (MAXPATHLEN + 1);
+	  adir = alloca (MAXPATHLEN + 1);
 	  if (drive)
 	    {
-	      if (!getdefdir (toupper (drive) - 'A' + 1, newdir))
+	      if (!getdefdir (toupper (drive) - 'A' + 1, adir))
 		newdir = "/";
 	    }
 	  else
-	    getwd (newdir);
+	    getwd (adir);
+	  newdir = adir;
 	}
 
       /* Strip off drive name from prefix, if present. */
@@ -1111,13 +1115,13 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 #ifdef WINDOWSNT
 	  if (IS_DIRECTORY_SEP (newdir[0]) && IS_DIRECTORY_SEP (newdir[1]))
 	    {
-	      char *p;
-	      newdir = strcpy (alloca (strlen (newdir) + 1), newdir);
-	      p = newdir + 2;
+	      char *adir = strcpy (alloca (strlen (newdir) + 1), newdir);
+	      char *p = adir + 2;
 	      while (*p && !IS_DIRECTORY_SEP (*p)) p++;
 	      p++;
 	      while (*p && !IS_DIRECTORY_SEP (*p)) p++;
 	      *p = 0;
+	      newdir = adir;
 	    }
 	  else
 #endif
@@ -1734,7 +1738,7 @@ expand_and_dir_to_file (Lisp_Object filename, Lisp_Object defdir)
 
    If QUICK is nonzero, we ask for y or n, not yes or no.  */
 
-void
+static void
 barf_or_query_if_file_exists (Lisp_Object absname, const char *querystring,
 			      int interactive, struct stat *statptr, int quick)
 {
@@ -2041,7 +2045,6 @@ DEFUN ("delete-directory-internal", Fdelete_directory_internal,
   (Lisp_Object directory)
 {
   const char *dir;
-  Lisp_Object handler;
   Lisp_Object encoded_dir;
 
   CHECK_STRING (directory);
@@ -2753,7 +2756,7 @@ if file does not exist, is not accessible, or SELinux is disabled */)
 #if HAVE_LIBSELINUX
   if (is_selinux_enabled ())
     {
-      conlength = lgetfilecon (SDATA (absname), &con);
+      conlength = lgetfilecon (SSDATA (absname), &con);
       if (conlength > 0)
 	{
 	  context = context_new (con);
@@ -2808,34 +2811,35 @@ is disabled. */)
   if (is_selinux_enabled ())
     {
       /* Get current file context. */
-      conlength = lgetfilecon (SDATA (encoded_absname), &con);
+      conlength = lgetfilecon (SSDATA (encoded_absname), &con);
       if (conlength > 0)
 	{
 	  parsed_con = context_new (con);
 	  /* Change the parts defined in the parameter.*/
 	  if (STRINGP (user))
 	    {
-	      if (context_user_set (parsed_con, SDATA (user)))
+	      if (context_user_set (parsed_con, SSDATA (user)))
 		error ("Doing context_user_set");
 	    }
 	  if (STRINGP (role))
 	    {
-	      if (context_role_set (parsed_con, SDATA (role)))
+	      if (context_role_set (parsed_con, SSDATA (role)))
 		error ("Doing context_role_set");
 	    }
 	  if (STRINGP (type))
 	    {
-	      if (context_type_set (parsed_con, SDATA (type)))
+	      if (context_type_set (parsed_con, SSDATA (type)))
 		error ("Doing context_type_set");
 	    }
 	  if (STRINGP (range))
 	    {
-	      if (context_range_set (parsed_con, SDATA (range)))
+	      if (context_range_set (parsed_con, SSDATA (range)))
 		error ("Doing context_range_set");
 	    }
 
 	  /* Set the modified context back to the file. */
-	  fail = lsetfilecon (SDATA (encoded_absname), context_str (parsed_con));
+	  fail = lsetfilecon (SSDATA (encoded_absname),
+			      context_str (parsed_con));
 	  if (fail)
 	    report_file_error ("Doing lsetfilecon", Fcons (absname, Qnil));
 
@@ -2937,19 +2941,19 @@ The value is an integer.  */)
 
 
 DEFUN ("set-file-times", Fset_file_times, Sset_file_times, 1, 2, 0,
-       doc: /* Set times of file FILENAME to TIME.
+       doc: /* Set times of file FILENAME to TIMESTAMP.
 Set both access and modification times.
 Return t on success, else nil.
-Use the current time if TIME is nil.  TIME is in the format of
+Use the current time if TIMESTAMP is nil.  TIMESTAMP is in the format of
 `current-time'. */)
-  (Lisp_Object filename, Lisp_Object time)
+  (Lisp_Object filename, Lisp_Object timestamp)
 {
   Lisp_Object absname, encoded_absname;
   Lisp_Object handler;
   time_t sec;
   int usec;
 
-  if (! lisp_time_argument (time, &sec, &usec))
+  if (! lisp_time_argument (timestamp, &sec, &usec))
     error ("Invalid time specification");
 
   absname = Fexpand_file_name (filename, BVAR (current_buffer, directory));
@@ -2958,7 +2962,7 @@ Use the current time if TIME is nil.  TIME is in the format of
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (absname, Qset_file_times);
   if (!NILP (handler))
-    return call3 (handler, Qset_file_times, absname, time);
+    return call3 (handler, Qset_file_times, absname, timestamp);
 
   encoded_absname = ENCODE_FILE (absname);
 
@@ -3354,13 +3358,13 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	      else if (nread > 0)
 		{
 		  struct buffer *prev = current_buffer;
-		  Lisp_Object buffer;
+		  Lisp_Object workbuf;
 		  struct buffer *buf;
 
 		  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
 
-		  buffer = Fget_buffer_create (build_string (" *code-converting-work*"));
-		  buf = XBUFFER (buffer);
+		  workbuf = Fget_buffer_create (build_string (" *code-converting-work*"));
+		  buf = XBUFFER (workbuf);
 
 		  delete_all_overlays (buf);
 		  BVAR (buf, directory) = BVAR (current_buffer, directory);
@@ -3872,7 +3876,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 
 	if (not_regular)
 	  {
-	    Lisp_Object val;
+	    Lisp_Object nbytes;
 
 	    /* Maybe make more room.  */
 	    if (gap_size < trytry)
@@ -3887,15 +3891,16 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	    non_regular_fd = fd;
 	    non_regular_inserted = inserted;
 	    non_regular_nbytes = trytry;
-	    val = internal_condition_case_1 (read_non_regular, Qnil, Qerror,
-					     read_non_regular_quit);
-	    if (NILP (val))
+	    nbytes = internal_condition_case_1 (read_non_regular,
+						Qnil, Qerror,
+						read_non_regular_quit);
+	    if (NILP (nbytes))
 	      {
 		read_quit = 1;
 		break;
 	      }
 
-	    this = XINT (val);
+	    this = XINT (nbytes);
 	  }
 	else
 	  {
@@ -3986,7 +3991,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	     care of marker adjustment.  By this way, we can run Lisp
 	     program safely before decoding the inserted text.  */
 	  Lisp_Object unwind_data;
-	  int count = SPECPDL_INDEX ();
+	  int count1 = SPECPDL_INDEX ();
 
 	  unwind_data = Fcons (BVAR (current_buffer, enable_multibyte_characters),
 			       Fcons (BVAR (current_buffer, undo_list),
@@ -4013,7 +4018,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	      if (CONSP (coding_system))
 		coding_system = XCAR (coding_system);
 	    }
-	  unbind_to (count, Qnil);
+	  unbind_to (count1, Qnil);
 	  inserted = Z_BYTE - BEG_BYTE;
 	}
 
@@ -4116,7 +4121,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
   if (inserted > 0)
     {
       /* Don't run point motion or modification hooks when decoding.  */
-      int count = SPECPDL_INDEX ();
+      int count1 = SPECPDL_INDEX ();
       EMACS_INT old_inserted = inserted;
       specbind (Qinhibit_point_motion_hooks, Qt);
       specbind (Qinhibit_modification_hooks, Qt);
@@ -4228,7 +4233,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	   Otherwise start with an empty undo_list.  */
 	BVAR (current_buffer, undo_list) = EQ (old_undo, Qt) ? Qt : Qnil;
 
-      unbind_to (count, Qnil);
+      unbind_to (count1, Qnil);
     }
 
   /* Call after-change hooks for the inserted text, aside from the case
@@ -5059,8 +5064,8 @@ An argument specifies the modification time value to use
   return Qnil;
 }
 
-Lisp_Object
-auto_save_error (Lisp_Object error)
+static Lisp_Object
+auto_save_error (Lisp_Object error_val)
 {
   Lisp_Object args[3], msg;
   int i, nbytes;
@@ -5074,7 +5079,7 @@ auto_save_error (Lisp_Object error)
 
   args[0] = build_string ("Auto-saving %s: %s");
   args[1] = BVAR (current_buffer, name);
-  args[2] = Ferror_message_string (error);
+  args[2] = Ferror_message_string (error_val);
   msg = Fformat (3, args);
   GCPRO1 (msg);
   nbytes = SBYTES (msg);
@@ -5095,7 +5100,7 @@ auto_save_error (Lisp_Object error)
   return Qnil;
 }
 
-Lisp_Object
+static Lisp_Object
 auto_save_1 (void)
 {
   struct stat st;
@@ -5426,7 +5431,7 @@ before any other event (mouse or keypress) is handled.  */)
 Lisp_Object
 Fread_file_name (Lisp_Object prompt, Lisp_Object dir, Lisp_Object default_filename, Lisp_Object mustmatch, Lisp_Object initial, Lisp_Object predicate)
 {
-  struct gcpro gcpro1, gcpro2;
+  struct gcpro gcpro1;
   Lisp_Object args[7];
 
   GCPRO1 (default_filename);

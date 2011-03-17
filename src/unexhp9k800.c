@@ -50,6 +50,8 @@
 */
 
 #include <config.h>
+#include "unexec.h"
+
 #include <stdio.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -319,4 +321,3 @@ display_header (hdr, auxhdr)
 	  hdr->unloadable_sp_location, hdr->unloadable_sp_size);
 }
 #endif /* DEBUG */
-

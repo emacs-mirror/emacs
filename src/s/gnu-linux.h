@@ -44,7 +44,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define UNIX98_PTYS
 
 /* Run only once.  We need a `for'-loop because the code uses `continue'.  */
-#define PTY_ITERATION	for (i = 0; i < 1; i++)
+#define PTY_ITERATION	int i; for (i = 0; i < 1; i++)
 
 #ifdef HAVE_GETPT
 #define PTY_NAME_SPRINTF

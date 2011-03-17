@@ -854,7 +854,7 @@ append to existing target file.  */)
     {
       file = Fexpand_file_name (file, Qnil);
       initial_stderr_stream = stderr;
-      stderr = fopen (SDATA (file), NILP (append) ? "w" : "a");
+      stderr = fopen (SSDATA (file), NILP (append) ? "w" : "a");
       if (stderr == NULL)
 	{
 	  stderr = initial_stderr_stream;

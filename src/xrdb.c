@@ -54,8 +54,6 @@ extern char *getenv (const char *);
 extern struct passwd *getpwuid (uid_t);
 extern struct passwd *getpwnam (const char *);
 
-extern const char *get_system_name (void);
-
 char *x_get_string_resource (XrmDatabase rdb, const char *name,
 			     const char *class);
 static int file_p (const char *filename);

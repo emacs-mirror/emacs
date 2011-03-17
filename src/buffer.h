@@ -1026,4 +1026,31 @@ extern int last_per_buffer_idx;
 
 #define PER_BUFFER_VALUE(BUFFER, OFFSET) \
       (*(Lisp_Object *)((OFFSET) + (char *) (BUFFER)))
+
+/* Downcase a character C, or make no change if that cannot be done.  */
+static inline int
+downcase (int c)
+{
+  Lisp_Object downcase_table = BVAR (current_buffer, downcase_table);
+  Lisp_Object down = CHAR_TABLE_REF (downcase_table, c);
+  return NATNUMP (down) ? XFASTINT (down) : c;
+}
 
+/* 1 if C is upper case.  */
+static inline int uppercasep (int c) { return downcase (c) != c; }
+
+/* Upcase a character C known to be not upper case.  */
+static inline int
+upcase1 (int c)
+{
+  Lisp_Object upcase_table = BVAR (current_buffer, upcase_table);
+  Lisp_Object up = CHAR_TABLE_REF (upcase_table, c);
+  return NATNUMP (up) ? XFASTINT (up) : c;
+}
+
+/* 1 if C is lower case.  */
+static inline int lowercasep (int c)
+{ return !uppercasep (c) && upcase1 (c) != c; }
+
+/* Upcase a character C, or make no change if that cannot be done.  */
+static inline int upcase (int c) { return uppercasep (c) ? c : upcase1 (c); }

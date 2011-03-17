@@ -95,6 +95,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef malloc
 #undef realloc
 #undef free
+
+#include "unexec.h"
+
 #include <stdio.h>
 #include <fcntl.h>
 #include <stdarg.h>

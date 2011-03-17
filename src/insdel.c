@@ -70,11 +70,14 @@ Lisp_Object combine_after_change_buffer;
 Lisp_Object Qinhibit_modification_hooks;
 
 #define CHECK_MARKERS()				\
-  if (check_markers_debug_flag)			\
-    check_markers ();				\
-  else
+  do						\
+    {						\
+      if (check_markers_debug_flag)		\
+	check_markers ();			\
+    }						\
+  while (0)
 
-void
+static void
 check_markers (void)
 {
   register struct Lisp_Marker *tail;
@@ -451,7 +454,7 @@ adjust_markers_for_replace (EMACS_INT from, EMACS_INT from_byte,
 
 /* Make the gap NBYTES_ADDED bytes longer.  */
 
-void
+static void
 make_gap_larger (EMACS_INT nbytes_added)
 {
   Lisp_Object tem;
@@ -506,7 +509,7 @@ make_gap_larger (EMACS_INT nbytes_added)
 
 /* Make the gap NBYTES_REMOVED bytes shorter.  */
 
-void
+static void
 make_gap_smaller (EMACS_INT nbytes_removed)
 {
   Lisp_Object tem;
@@ -593,7 +596,6 @@ copy_text (const unsigned char *from_addr, unsigned char *to_addr,
     {
       EMACS_INT nchars = 0;
       EMACS_INT bytes_left = nbytes;
-      Lisp_Object tbl = Qnil;
 
       while (bytes_left > 0)
 	{
@@ -2099,7 +2101,7 @@ prepare_to_modify_buffer (EMACS_INT start, EMACS_INT end,
    VARIABLE is the variable to maybe set to nil.
    NO-ERROR-FLAG is nil if there was an error,
    anything else meaning no error (so this function does nothing).  */
-Lisp_Object
+static Lisp_Object
 reset_var_on_error (Lisp_Object val)
 {
   if (NILP (XCDR (val)))
@@ -2263,7 +2265,7 @@ signal_after_change (EMACS_INT charpos, EMACS_INT lendel, EMACS_INT lenins)
   unbind_to (count, Qnil);
 }
 
-Lisp_Object
+static Lisp_Object
 Fcombine_after_change_execute_1 (Lisp_Object val)
 {
   Vcombine_after_change_calls = val;

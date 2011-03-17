@@ -118,3 +118,6 @@ struct emacs_tty {
 extern int emacs_get_tty (int, struct emacs_tty *);
 extern int emacs_set_tty (int, struct emacs_tty *, int);
 
+/* From sysdep.c or w32.c  */
+extern int serial_open (char *);
+extern void serial_configure (struct Lisp_Process *, Lisp_Object);

@@ -27,9 +27,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    types of run time checks for Lisp objects.  */
 
 #ifdef GC_CHECK_CONS_LIST
-#define CHECK_CONS_LIST() check_cons_list()
+extern void check_cons_list (void);
+#define CHECK_CONS_LIST() check_cons_list ()
 #else
-#define CHECK_CONS_LIST() ((void)0)
+#define CHECK_CONS_LIST() ((void) 0)
 #endif
 
 /* These are default choices for the types to use.  */
@@ -85,7 +86,7 @@ extern void die (const char *, const char *, int) NO_RETURN;
 /* Define an Emacs version of "assert", since some system ones are
    flaky.  */
 #ifndef ENABLE_CHECKING
-#define eassert(X)	(void) 0
+#define eassert(X) ((void) (0 && (X))) /* Check that X compiles.  */
 #else /* ENABLE_CHECKING */
 #if defined (__GNUC__) && __GNUC__ >= 2 && defined (__STDC__)
 #define eassert(cond) CHECK(cond,"assertion failed: " #cond)
@@ -840,6 +841,9 @@ struct Lisp_Vector
    :  char_table_ref ((CT), (IDX)))
 
 #endif	/* not __GNUC__ */
+
+/* Nonzero iff C is an ASCII character.  */
+#define ASCII_CHAR_P(c) ((unsigned) (c) < 0x80)
 
 /* Almost equivalent to Faref (CT, IDX) with optimization for ASCII
    characters.  Do not check validity of CT.  */
@@ -2041,50 +2045,6 @@ extern int pending_signals;
 
 #define QUITP (!NILP (Vquit_flag) && NILP (Vinhibit_quit))
 
-/* Variables used locally in the following case handling macros.  */
-extern int case_temp1;
-extern Lisp_Object case_temp2;
-
-/* Current buffer's map from characters to lower-case characters.  */
-
-#define DOWNCASE_TABLE BVAR (current_buffer, downcase_table)
-
-/* Current buffer's map from characters to upper-case characters.  */
-
-#define UPCASE_TABLE BVAR (current_buffer, upcase_table)
-
-/* Downcase a character, or make no change if that cannot be done.  */
-
-#define DOWNCASE(CH)						\
-  ((case_temp1 = (CH),						\
-    case_temp2 = CHAR_TABLE_REF (DOWNCASE_TABLE, case_temp1),	\
-    NATNUMP (case_temp2))					\
-   ? XFASTINT (case_temp2) : case_temp1)
-
-/* 1 if CH is upper case.  */
-
-#define UPPERCASEP(CH) (DOWNCASE (CH) != (CH))
-
-/* 1 if CH is neither upper nor lower case.  */
-
-#define NOCASEP(CH) (UPCASE1 (CH) == (CH))
-
-/* 1 if CH is lower case.  */
-
-#define LOWERCASEP(CH) (!UPPERCASEP (CH) && !NOCASEP(CH))
-
-/* Upcase a character, or make no change if that cannot be done.  */
-
-#define UPCASE(CH) (!UPPERCASEP (CH) ? UPCASE1 (CH) : (CH))
-
-/* Upcase a character known to be not upper case.  */
-
-#define UPCASE1(CH)						\
-  ((case_temp1 = (CH),						\
-    case_temp2 = CHAR_TABLE_REF (UPCASE_TABLE, case_temp1),	\
-    NATNUMP (case_temp2))					\
-   ? XFASTINT (case_temp2) : case_temp1)
-
 extern Lisp_Object Vascii_downcase_table, Vascii_upcase_table;
 extern Lisp_Object Vascii_canon_table, Vascii_eqv_table;
 
@@ -2150,129 +2110,143 @@ struct gcpro
 			  || GC_MARK_STACK == GC_MARK_STACK_CHECK_GCPROS)
 
 
-#define GCPRO1(varname) GCPRO1_VAR (varname, gcpro1)
-#define UNGCPRO UNGCPRO_VAR (gcpro1)
+#define GCPRO1(var) \
+  GCPRO1_VAR (var, gcpro)
+#define GCPRO2(var1, var2) \
+  GCPRO2_VAR (var1, var2, gcpro)
+#define GCPRO3(var1, var2, var3) \
+  GCPRO3_VAR (var1, var2, var3, gcpro)
+#define GCPRO4(var1, var2, var3, var4) \
+  GCPRO4_VAR (var1, var2, var3, var4, gcpro)
+#define GCPRO5(var1, var2, var3, var4, var5) \
+  GCPRO5_VAR (var1, var2, var3, var4, var5, gcpro)
+#define GCPRO6(var1, var2, var3, var4, var5, var6) \
+  GCPRO6_VAR (var1, var2, var3, var4, var5, var6, gcpro)
+#define UNGCPRO UNGCPRO_VAR (gcpro)
 
 #if GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS
 
 /* Do something silly with gcproN vars just so gcc shuts up.  */
 /* You get warnings from MIPSPro...  */
 
-#define GCPRO1_VAR(varname, gcpro1) ((void) gcpro1)
-#define GCPRO2(varname1, varname2)(((void) gcpro2, (void) gcpro1))
-#define GCPRO3(varname1, varname2, varname3) \
-  (((void) gcpro3, (void) gcpro2, (void) gcpro1))
-#define GCPRO4(varname1, varname2, varname3, varname4) \
-  (((void) gcpro4, (void) gcpro3, (void) gcpro2, (void) gcpro1))
-#define GCPRO5(varname1, varname2, varname3, varname4, varname5) \
-  (((void) gcpro5, (void) gcpro4, (void) gcpro3, (void) gcpro2, (void) gcpro1))
-#define GCPRO6(varname1, varname2, varname3, varname4, varname5, varname6) \
-  (((void) gcpro6, (void) gcpro5, (void) gcpro4, (void) gcpro3, (void) gcpro2, (void) gcpro1))
-#define UNGCPRO_VAR(gcpro1) ((void) 0)
+#define GCPRO1_VAR(var, gcpro) ((void) gcpro##1)
+#define GCPRO2_VAR(var1, var2, gcpro) \
+  ((void) gcpro##2, (void) gcpro##1)
+#define GCPRO3_VAR(var1, var2, var3, gcpro) \
+  ((void) gcpro##3, (void) gcpro##2, (void) gcpro##1)
+#define GCPRO4_VAR(var1, var2, var3, var4, gcpro) \
+  ((void) gcpro##4, (void) gcpro##3, (void) gcpro##2, (void) gcpro##1)
+#define GCPRO5_VAR(var1, var2, var3, var4, var5, gcpro) \
+  ((void) gcpro##5, (void) gcpro##4, (void) gcpro##3, (void) gcpro##2, \
+   (void) gcpro##1)
+#define GCPRO6_VAR(var1, var2, var3, var4, var5, var6, gcpro) \
+  ((void) gcpro##6, (void) gcpro##5, (void) gcpro##4, (void) gcpro##3, \
+   (void) gcpro##2, (void) gcpro##1)
+#define UNGCPRO_VAR(gcpro) ((void) 0)
 
 #else /* GC_MARK_STACK != GC_MAKE_GCPROS_NOOPS */
 
 #ifndef DEBUG_GCPRO
 
-#define GCPRO1_VAR(varname, gcpro1)				    \
- {gcpro1.next = gcprolist; gcpro1.var = &varname; gcpro1.nvars = 1; \
-  gcprolist = &gcpro1; }
+#define GCPRO1_VAR(var, gcpro) \
+ {gcpro##1.next = gcprolist; gcpro##1.var = &var; gcpro##1.nvars = 1; \
+  gcprolist = &gcpro##1; }
 
-#define GCPRO2(varname1, varname2) \
- {gcpro1.next = gcprolist; gcpro1.var = &varname1; gcpro1.nvars = 1; \
-  gcpro2.next = &gcpro1; gcpro2.var = &varname2; gcpro2.nvars = 1; \
-  gcprolist = &gcpro2; }
+#define GCPRO2_VAR(var1, var2, gcpro) \
+ {gcpro##1.next = gcprolist; gcpro##1.var = &var1; gcpro##1.nvars = 1; \
+  gcpro##2.next = &gcpro##1; gcpro##2.var = &var2; gcpro##2.nvars = 1; \
+  gcprolist = &gcpro##2; }
 
-#define GCPRO3(varname1, varname2, varname3) \
- {gcpro1.next = gcprolist; gcpro1.var = &varname1; gcpro1.nvars = 1; \
-  gcpro2.next = &gcpro1; gcpro2.var = &varname2; gcpro2.nvars = 1; \
-  gcpro3.next = &gcpro2; gcpro3.var = &varname3; gcpro3.nvars = 1; \
-  gcprolist = &gcpro3; }
+#define GCPRO3_VAR(var1, var2, var3, gcpro) \
+ {gcpro##1.next = gcprolist; gcpro##1.var = &var1; gcpro##1.nvars = 1; \
+  gcpro##2.next = &gcpro##1; gcpro##2.var = &var2; gcpro##2.nvars = 1; \
+  gcpro##3.next = &gcpro##2; gcpro##3.var = &var3; gcpro##3.nvars = 1; \
+  gcprolist = &gcpro##3; }
 
-#define GCPRO4(varname1, varname2, varname3, varname4) \
- {gcpro1.next = gcprolist; gcpro1.var = &varname1; gcpro1.nvars = 1; \
-  gcpro2.next = &gcpro1; gcpro2.var = &varname2; gcpro2.nvars = 1; \
-  gcpro3.next = &gcpro2; gcpro3.var = &varname3; gcpro3.nvars = 1; \
-  gcpro4.next = &gcpro3; gcpro4.var = &varname4; gcpro4.nvars = 1; \
-  gcprolist = &gcpro4; }
+#define GCPRO4_VAR(var1, var2, var3, var4, gcpro) \
+ {gcpro##1.next = gcprolist; gcpro##1.var = &var1; gcpro##1.nvars = 1; \
+  gcpro##2.next = &gcpro##1; gcpro##2.var = &var2; gcpro##2.nvars = 1; \
+  gcpro##3.next = &gcpro##2; gcpro##3.var = &var3; gcpro##3.nvars = 1; \
+  gcpro##4.next = &gcpro##3; gcpro##4.var = &var4; gcpro##4.nvars = 1; \
+  gcprolist = &gcpro##4; }
 
-#define GCPRO5(varname1, varname2, varname3, varname4, varname5) \
- {gcpro1.next = gcprolist; gcpro1.var = &varname1; gcpro1.nvars = 1; \
-  gcpro2.next = &gcpro1; gcpro2.var = &varname2; gcpro2.nvars = 1; \
-  gcpro3.next = &gcpro2; gcpro3.var = &varname3; gcpro3.nvars = 1; \
-  gcpro4.next = &gcpro3; gcpro4.var = &varname4; gcpro4.nvars = 1; \
-  gcpro5.next = &gcpro4; gcpro5.var = &varname5; gcpro5.nvars = 1; \
-  gcprolist = &gcpro5; }
+#define GCPRO5_VAR(var1, var2, var3, var4, var5, gcpro) \
+ {gcpro##1.next = gcprolist; gcpro##1.var = &var1; gcpro##1.nvars = 1; \
+  gcpro##2.next = &gcpro##1; gcpro##2.var = &var2; gcpro##2.nvars = 1; \
+  gcpro##3.next = &gcpro##2; gcpro##3.var = &var3; gcpro##3.nvars = 1; \
+  gcpro##4.next = &gcpro##3; gcpro##4.var = &var4; gcpro##4.nvars = 1; \
+  gcpro##5.next = &gcpro##4; gcpro##5.var = &var5; gcpro##5.nvars = 1; \
+  gcprolist = &gcpro##5; }
 
-#define GCPRO6(varname1, varname2, varname3, varname4, varname5, varname6) \
- {gcpro1.next = gcprolist; gcpro1.var = &varname1; gcpro1.nvars = 1; \
-  gcpro2.next = &gcpro1; gcpro2.var = &varname2; gcpro2.nvars = 1; \
-  gcpro3.next = &gcpro2; gcpro3.var = &varname3; gcpro3.nvars = 1; \
-  gcpro4.next = &gcpro3; gcpro4.var = &varname4; gcpro4.nvars = 1; \
-  gcpro5.next = &gcpro4; gcpro5.var = &varname5; gcpro5.nvars = 1; \
-  gcpro6.next = &gcpro5; gcpro6.var = &varname6; gcpro6.nvars = 1; \
-  gcprolist = &gcpro6; }
+#define GCPRO6_VAR(var1, var2, var3, var4, var5, var6, gcpro) \
+ {gcpro##1.next = gcprolist; gcpro##1.var = &var1; gcpro##1.nvars = 1; \
+  gcpro##2.next = &gcpro##1; gcpro##2.var = &var2; gcpro##2.nvars = 1; \
+  gcpro##3.next = &gcpro##2; gcpro##3.var = &var3; gcpro##3.nvars = 1; \
+  gcpro##4.next = &gcpro##3; gcpro##4.var = &var4; gcpro##4.nvars = 1; \
+  gcpro##5.next = &gcpro##4; gcpro##5.var = &var5; gcpro##5.nvars = 1; \
+  gcpro##6.next = &gcpro##5; gcpro##6.var = &var6; gcpro##6.nvars = 1; \
+  gcprolist = &gcpro##6; }
 
-#define UNGCPRO_VAR(gcpro1) (gcprolist = gcpro1.next)
+#define UNGCPRO_VAR(gcpro) (gcprolist = gcpro##1.next)
 
 #else
 
 extern int gcpro_level;
 
-#define GCPRO1_VAR(varname, gcpro1)				    \
- {gcpro1.next = gcprolist; gcpro1.var = &varname; gcpro1.nvars = 1; \
-  gcpro1.level = gcpro_level++; \
-  gcprolist = &gcpro1; }
+#define GCPRO1_VAR(var, gcpro) \
+ {gcpro##1.next = gcprolist; gcpro##1.var = &var; gcpro##1.nvars = 1; \
+  gcpro##1.level = gcpro_level++; \
+  gcprolist = &gcpro##1; }
 
-#define GCPRO2(varname1, varname2) \
- {gcpro1.next = gcprolist; gcpro1.var = &varname1; gcpro1.nvars = 1; \
-  gcpro1.level = gcpro_level; \
-  gcpro2.next = &gcpro1; gcpro2.var = &varname2; gcpro2.nvars = 1; \
-  gcpro2.level = gcpro_level++; \
-  gcprolist = &gcpro2; }
+#define GCPRO2_VAR(var1, var2, gcpro) \
+ {gcpro##1.next = gcprolist; gcpro##1.var = &var1; gcpro##1.nvars = 1; \
+  gcpro##1.level = gcpro_level; \
+  gcpro##2.next = &gcpro##1; gcpro##2.var = &var2; gcpro##2.nvars = 1; \
+  gcpro##2.level = gcpro_level++; \
+  gcprolist = &gcpro##2; }
 
-#define GCPRO3(varname1, varname2, varname3) \
- {gcpro1.next = gcprolist; gcpro1.var = &varname1; gcpro1.nvars = 1; \
-  gcpro1.level = gcpro_level; \
-  gcpro2.next = &gcpro1; gcpro2.var = &varname2; gcpro2.nvars = 1; \
-  gcpro3.next = &gcpro2; gcpro3.var = &varname3; gcpro3.nvars = 1; \
-  gcpro3.level = gcpro_level++; \
-  gcprolist = &gcpro3; }
+#define GCPRO3_VAR(var1, var2, var3, gcpro) \
+ {gcpro##1.next = gcprolist; gcpro##1.var = &var1; gcpro##1.nvars = 1; \
+  gcpro##1.level = gcpro_level; \
+  gcpro##2.next = &gcpro##1; gcpro##2.var = &var2; gcpro##2.nvars = 1; \
+  gcpro##3.next = &gcpro##2; gcpro##3.var = &var3; gcpro##3.nvars = 1; \
+  gcpro##3.level = gcpro_level++; \
+  gcprolist = &gcpro##3; }
 
-#define GCPRO4(varname1, varname2, varname3, varname4) \
- {gcpro1.next = gcprolist; gcpro1.var = &varname1; gcpro1.nvars = 1; \
-  gcpro1.level = gcpro_level; \
-  gcpro2.next = &gcpro1; gcpro2.var = &varname2; gcpro2.nvars = 1; \
-  gcpro3.next = &gcpro2; gcpro3.var = &varname3; gcpro3.nvars = 1; \
-  gcpro4.next = &gcpro3; gcpro4.var = &varname4; gcpro4.nvars = 1; \
-  gcpro4.level = gcpro_level++; \
-  gcprolist = &gcpro4; }
+#define GCPRO4_VAR(var1, var2, var3, var4, gcpro) \
+ {gcpro##1.next = gcprolist; gcpro##1.var = &var1; gcpro##1.nvars = 1; \
+  gcpro##1.level = gcpro_level; \
+  gcpro##2.next = &gcpro##1; gcpro##2.var = &var2; gcpro##2.nvars = 1; \
+  gcpro##3.next = &gcpro##2; gcpro##3.var = &var3; gcpro##3.nvars = 1; \
+  gcpro##4.next = &gcpro##3; gcpro##4.var = &var4; gcpro##4.nvars = 1; \
+  gcpro##4.level = gcpro_level++; \
+  gcprolist = &gcpro##4; }
 
-#define GCPRO5(varname1, varname2, varname3, varname4, varname5) \
- {gcpro1.next = gcprolist; gcpro1.var = &varname1; gcpro1.nvars = 1; \
-  gcpro1.level = gcpro_level; \
-  gcpro2.next = &gcpro1; gcpro2.var = &varname2; gcpro2.nvars = 1; \
-  gcpro3.next = &gcpro2; gcpro3.var = &varname3; gcpro3.nvars = 1; \
-  gcpro4.next = &gcpro3; gcpro4.var = &varname4; gcpro4.nvars = 1; \
-  gcpro5.next = &gcpro4; gcpro5.var = &varname5; gcpro5.nvars = 1; \
-  gcpro5.level = gcpro_level++; \
-  gcprolist = &gcpro5; }
+#define GCPRO5_VAR(var1, var2, var3, var4, var5, gcpro) \
+ {gcpro##1.next = gcprolist; gcpro##1.var = &var1; gcpro##1.nvars = 1; \
+  gcpro##1.level = gcpro_level; \
+  gcpro##2.next = &gcpro##1; gcpro##2.var = &var2; gcpro##2.nvars = 1; \
+  gcpro##3.next = &gcpro##2; gcpro##3.var = &var3; gcpro##3.nvars = 1; \
+  gcpro##4.next = &gcpro##3; gcpro##4.var = &var4; gcpro##4.nvars = 1; \
+  gcpro##5.next = &gcpro##4; gcpro##5.var = &var5; gcpro##5.nvars = 1; \
+  gcpro##5.level = gcpro_level++; \
+  gcprolist = &gcpro##5; }
 
-#define GCPRO6(varname1, varname2, varname3, varname4, varname5, varname6) \
- {gcpro1.next = gcprolist; gcpro1.var = &varname1; gcpro1.nvars = 1; \
-  gcpro1.level = gcpro_level; \
-  gcpro2.next = &gcpro1; gcpro2.var = &varname2; gcpro2.nvars = 1; \
-  gcpro3.next = &gcpro2; gcpro3.var = &varname3; gcpro3.nvars = 1; \
-  gcpro4.next = &gcpro3; gcpro4.var = &varname4; gcpro4.nvars = 1; \
-  gcpro5.next = &gcpro4; gcpro5.var = &varname5; gcpro5.nvars = 1; \
-  gcpro6.next = &gcpro5; gcpro6.var = &varname6; gcpro6.nvars = 1; \
-  gcpro6.level = gcpro_level++; \
-  gcprolist = &gcpro6; }
+#define GCPRO6_VAR(var1, var2, var3, var4, var5, var6, gcpro) \
+ {gcpro##1.next = gcprolist; gcpro##1.var = &var1; gcpro##1.nvars = 1; \
+  gcpro##1.level = gcpro_level; \
+  gcpro##2.next = &gcpro##1; gcpro##2.var = &var2; gcpro##2.nvars = 1; \
+  gcpro##3.next = &gcpro##2; gcpro##3.var = &var3; gcpro##3.nvars = 1; \
+  gcpro##4.next = &gcpro##3; gcpro##4.var = &var4; gcpro##4.nvars = 1; \
+  gcpro##5.next = &gcpro##4; gcpro##5.var = &var5; gcpro##5.nvars = 1; \
+  gcpro##6.next = &gcpro##5; gcpro##6.var = &var6; gcpro##6.nvars = 1; \
+  gcpro##6.level = gcpro_level++; \
+  gcprolist = &gcpro##6; }
 
-#define UNGCPRO_VAR(gcpro1)		\
- ((--gcpro_level != gcpro1.level)		\
-  ? (abort (), 0)				\
-  : ((gcprolist = gcpro1.next), 0))
+#define UNGCPRO_VAR(gcpro) \
+ ((--gcpro_level != gcpro##1.level) \
+  ? (abort (), 0) \
+  : ((gcprolist = gcpro##1.next), 0))
 
 #endif /* DEBUG_GCPRO */
 #endif /* GC_MARK_STACK != GC_MAKE_GCPROS_NOOPS */
@@ -2790,6 +2764,7 @@ EXFUN (Fprint, 2);
 EXFUN (Ferror_message_string, 1);
 extern Lisp_Object Qstandard_output;
 extern Lisp_Object Qexternal_debugging_output;
+extern void debug_output_compilation_hack (int);
 extern void temp_output_buffer_setup (const char *);
 extern int print_level;
 extern Lisp_Object Qprint_escape_newlines;
@@ -2899,8 +2874,10 @@ extern Lisp_Object safe_call (int, Lisp_Object *);
 extern Lisp_Object safe_call1 (Lisp_Object, Lisp_Object);
 extern Lisp_Object safe_call2 (Lisp_Object, Lisp_Object, Lisp_Object);
 extern void init_eval (void);
+extern void mark_backtrace (void);
 extern void syms_of_eval (void);
 
+/* Defined in editfns.c */
 extern Lisp_Object Qfield;
 EXFUN (Fcurrent_message, 0);
 EXFUN (Fgoto_char, 1);
@@ -2940,6 +2917,8 @@ extern Lisp_Object make_buffer_string (EMACS_INT, EMACS_INT, int);
 extern Lisp_Object make_buffer_string_both (EMACS_INT, EMACS_INT, EMACS_INT,
 					    EMACS_INT, int);
 extern void init_editfns (void);
+const char *get_system_name (void);
+const char *get_operating_system_release (void);
 extern void syms_of_editfns (void);
 EXFUN (Fconstrain_to_field, 5);
 EXFUN (Ffield_end, 3);
@@ -2996,12 +2975,14 @@ extern EMACS_INT marker_byte_position (Lisp_Object);
 extern void clear_charpos_cache (struct buffer *);
 extern EMACS_INT charpos_to_bytepos (EMACS_INT);
 extern EMACS_INT buf_charpos_to_bytepos (struct buffer *, EMACS_INT);
+extern EMACS_INT verify_bytepos (EMACS_INT charpos);
 extern EMACS_INT buf_bytepos_to_charpos (struct buffer *, EMACS_INT);
 extern void unchain_marker (struct Lisp_Marker *marker);
 extern Lisp_Object set_marker_restricted (Lisp_Object, Lisp_Object, Lisp_Object);
 extern Lisp_Object set_marker_both (Lisp_Object, Lisp_Object, EMACS_INT, EMACS_INT);
 extern Lisp_Object set_marker_restricted_both (Lisp_Object, Lisp_Object,
                                                EMACS_INT, EMACS_INT);
+extern int count_markers (struct buffer *);
 extern void syms_of_marker (void);
 
 /* Defined in fileio.c */
@@ -3052,6 +3033,10 @@ EXFUN (Fset_match_data, 2);
 EXFUN (Fmatch_beginning, 1);
 EXFUN (Fmatch_end, 1);
 extern void record_unwind_save_match_data (void);
+struct re_registers;
+extern struct re_pattern_buffer *compile_pattern (Lisp_Object,
+						  struct re_registers *,
+						  Lisp_Object, int, int);
 extern int fast_string_match (Lisp_Object, Lisp_Object);
 extern int fast_c_string_match_ignore_case (Lisp_Object, const char *);
 extern int fast_string_match_ignore_case (Lisp_Object, Lisp_Object);
@@ -3143,6 +3128,7 @@ extern void cmd_error_internal (Lisp_Object, const char *);
 extern Lisp_Object command_loop_1 (void);
 extern Lisp_Object recursive_edit_1 (void);
 extern void record_auto_save (void);
+extern void force_auto_save_soon (void);
 extern void init_keyboard (void);
 extern void syms_of_keyboard (void);
 extern void keys_of_keyboard (void);
@@ -3195,6 +3181,7 @@ extern Lisp_Object decode_env_path (const char *, const char *);
 extern Lisp_Object empty_unibyte_string, empty_multibyte_string;
 extern Lisp_Object Qfile_name_handler_alist;
 extern void (*fatal_error_signal_hook) (void);
+extern SIGTYPE fatal_error_signal (int);
 EXFUN (Fkill_emacs, 1) NO_RETURN;
 #if HAVE_SETLOCALE
 void fixup_locale (void);
@@ -3340,6 +3327,8 @@ extern void child_setup_tty (int);
 extern void setup_pty (int);
 extern int set_window_size (int, int, int);
 extern void create_process (Lisp_Object, char **, Lisp_Object);
+extern long get_random (void);
+extern void seed_random (long);
 extern int emacs_open (const char *, int, int);
 extern int emacs_close (int);
 extern int emacs_read (int, char *, unsigned int);

@@ -805,7 +805,10 @@ variable chain of symbols.  */)
   (Lisp_Object object)
 {
   if (SYMBOLP (object))
-    XSETSYMBOL (object,  indirect_variable (XSYMBOL (object)));
+    {
+      struct Lisp_Symbol *sym = indirect_variable (XSYMBOL (object));
+      XSETSYMBOL (object, sym);
+    }
   return object;
 }
 
@@ -814,9 +817,6 @@ variable chain of symbols.  */)
    return the Lisp value of the symbol.
    This does not handle buffer-local variables; use
    swap_in_symval_forwarding for that.  */
-
-#define do_blv_forwarding(blv) \
-  ((blv)->forwarded ? do_symval_forwarding (BLV_FWD (blv)) : BLV_VALUE (blv))
 
 Lisp_Object
 do_symval_forwarding (register union Lisp_Fwd *valcontents)
@@ -864,14 +864,6 @@ do_symval_forwarding (register union Lisp_Fwd *valcontents)
    BUF non-zero means set the value in buffer BUF instead of the
    current buffer.  This only plays a role for per-buffer variables.  */
 
-#define store_blv_forwarding(blv, newval, buf)			\
-  do {								\
-    if ((blv)->forwarded)					\
-      store_symval_forwarding (BLV_FWD (blv), (newval), (buf));	\
-    else							\
-      SET_BLV_VALUE (blv, newval);				\
-  } while (0)
-
 static void
 store_symval_forwarding (union Lisp_Fwd *valcontents, register Lisp_Object newval, struct buffer *buf)
 {
@@ -907,12 +899,12 @@ store_symval_forwarding (union Lisp_Fwd *valcontents, register Lisp_Object newva
 
 	  for (tail = Vbuffer_alist; CONSP (tail); tail = XCDR (tail))
 	    {
-	      Lisp_Object buf;
+	      Lisp_Object lbuf;
 	      struct buffer *b;
 
-	      buf = Fcdr (XCAR (tail));
-	      if (!BUFFERP (buf)) continue;
-	      b = XBUFFER (buf);
+	      lbuf = Fcdr (XCAR (tail));
+	      if (!BUFFERP (lbuf)) continue;
+	      b = XBUFFER (lbuf);
 
 	      if (! PER_BUFFER_VALUE_P (b, idx))
 		PER_BUFFER_VALUE (b, offset) = newval;
@@ -1269,7 +1261,7 @@ set_internal (register Lisp_Object symbol, register Lisp_Object newval, register
 /* Return the default value of SYMBOL, but don't check for voidness.
    Return Qunbound if it is void.  */
 
-Lisp_Object
+static Lisp_Object
 default_value (Lisp_Object symbol)
 {
   struct Lisp_Symbol *sym;
@@ -1503,8 +1495,8 @@ The function `default-value' gets the default value and `set-default' sets it.  
 {
   struct Lisp_Symbol *sym;
   struct Lisp_Buffer_Local_Value *blv = NULL;
-  union Lisp_Val_Fwd valcontents;
-  int forwarded;
+  union Lisp_Val_Fwd valcontents IF_LINT (= {0});
+  int forwarded IF_LINT (= 0);
 
   CHECK_SYMBOL (variable);
   sym = XSYMBOL (variable);
@@ -1579,8 +1571,8 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
   (register Lisp_Object variable)
 {
   register Lisp_Object tem;
-  int forwarded;
-  union Lisp_Val_Fwd valcontents;
+  int forwarded IF_LINT (= 0);
+  union Lisp_Val_Fwd valcontents IF_LINT (= {0});
   struct Lisp_Symbol *sym;
   struct Lisp_Buffer_Local_Value *blv = NULL;
 
@@ -2216,7 +2208,7 @@ bool-vector.  IDX starts at 0.  */)
 
 enum comparison { equal, notequal, less, grtr, less_or_equal, grtr_or_equal };
 
-Lisp_Object
+static Lisp_Object
 arithcompare (Lisp_Object num1, Lisp_Object num2, enum comparison comparison)
 {
   double f1 = 0, f2 = 0;
@@ -2484,7 +2476,7 @@ enum arithop
 
 static Lisp_Object float_arith_driver (double, int, enum arithop,
                                        int, Lisp_Object *);
-Lisp_Object
+static Lisp_Object
 arith_driver (enum arithop code, int nargs, register Lisp_Object *args)
 {
   register Lisp_Object val;
@@ -3308,7 +3300,7 @@ syms_of_data (void)
   XSYMBOL (intern_c_string ("most-negative-fixnum"))->constant = 1;
 }
 
-SIGTYPE
+static SIGTYPE
 arith_error (int signo)
 {
   sigsetmask (SIGEMPTYMASK);

@@ -274,20 +274,20 @@ skip_invisible (EMACS_INT pos, EMACS_INT *next_boundary_p, EMACS_INT to, Lisp_Ob
    This macro is used in current_column_1, Fmove_to_column, and
    compute_motion.  */
 
-#define MULTIBYTE_BYTES_WIDTH(p, dp)					\
+#define MULTIBYTE_BYTES_WIDTH(p, dp, bytes, width)			\
   do {									\
-    int c;								\
+    int ch;								\
     									\
     wide_column = 0;							\
-    c = STRING_CHAR_AND_LENGTH (p, bytes);				\
+    ch = STRING_CHAR_AND_LENGTH (p, bytes);				\
     if (BYTES_BY_CHAR_HEAD (*p) != bytes)				\
       width = bytes * 4;						\
     else								\
       {									\
-	if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))		\
-	  width = XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;		\
+	if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, ch)))		\
+	  width = XVECTOR (DISP_CHAR_VECTOR (dp, ch))->size;		\
 	else								\
-	  width = CHAR_WIDTH (c);					\
+	  width = CHAR_WIDTH (ch);					\
 	if (width > 1)							\
 	  wide_column = width;						\
       }									\
@@ -569,14 +569,14 @@ scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
       prev_col = col;
 
       { /* Check display property.  */
-	EMACS_INT end;
-	int width = check_display_width (scan, col, &end);
+	EMACS_INT endp;
+	int width = check_display_width (scan, col, &endp);
 	if (width >= 0)
 	  {
 	    col += width;
-	    if (end > scan) /* Avoid infinite loops with 0-width overlays.  */
+	    if (endp > scan) /* Avoid infinite loops with 0-width overlays.  */
 	      {
-		scan = end; scan_byte = charpos_to_bytepos (scan);
+		scan = endp; scan_byte = charpos_to_bytepos (scan);
 		continue;
 	      }
 	  }
@@ -669,7 +669,7 @@ scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
 	      int bytes, width, wide_column;
 
 	      ptr = BYTE_POS_ADDR (scan_byte);
-	      MULTIBYTE_BYTES_WIDTH (ptr, dp);
+	      MULTIBYTE_BYTES_WIDTH (ptr, dp, bytes, width);
 	      /* Subtract one to compensate for the increment
 		 that is going to happen below.  */
 	      scan_byte += bytes - 1;
@@ -1657,15 +1657,15 @@ compute_motion (EMACS_INT from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
 		{
 		  /* Start of multi-byte form.  */
 		  unsigned char *ptr;
-		  int bytes, width, wide_column;
+		  int mb_bytes, mb_width, wide_column;
 
 		  pos_byte--;	/* rewind POS_BYTE */
 		  ptr = BYTE_POS_ADDR (pos_byte);
-		  MULTIBYTE_BYTES_WIDTH (ptr, dp);
-		  pos_byte += bytes;
+		  MULTIBYTE_BYTES_WIDTH (ptr, dp, mb_bytes, mb_width);
+		  pos_byte += mb_bytes;
 		  if (wide_column)
 		    wide_column_end_hpos = hpos + wide_column;
-		  hpos += width;
+		  hpos += mb_width;
 		}
 	      else if (VECTORP (charvec))
 		++hpos;
@@ -1995,7 +1995,7 @@ whether or not it is currently displayed in some window.  */)
   Lisp_Object old_buffer;
   struct gcpro gcpro1;
   Lisp_Object lcols = Qnil;
-  double cols;
+  double cols IF_LINT (= 0);
 
   /* Allow LINES to be of the form (HPOS . VPOS) aka (COLUMNS . LINES).  */
   if (CONSP (lines) && (NUMBERP (XCAR (lines))))
@@ -2029,7 +2029,7 @@ whether or not it is currently displayed in some window.  */)
     }
   else
     {
-      int it_start, first_x, it_overshoot_expected;
+      int it_start, first_x, it_overshoot_expected IF_LINT (= 0);
 
       SET_TEXT_POS (pt, PT, PT_BYTE);
       start_display (&it, w, pt);

@@ -1,3 +1,317 @@
+2011-03-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix more problems found by GCC 4.5.2's static checks.
+
+	* process.c (make_serial_process_unwind, send_process_trap):
+	(sigchld_handler): Now static.
+
+	* process.c (allocate_pty): Let PTY_ITERATION declare iteration vars.
+	That way, the code declares only the vars that it needs.
+	* s/aix4-2.h (PTY_ITERATION): Declare iteration vars.
+	* s/cygwin.h (PTY_ITERATION): Likewise.
+	* s/darwin.h (PTY_ITERATION): Likewise.
+	* s/gnu-linux.h (PTY_ITERATION): Likewise.
+
+	* s/irix6-5.h (PTY_OPEN): Declare stb, to loosen coupling.
+	* process.c (allocate_pty): Don't declare stb unless it's needed.
+
+	* bytecode.c (MAYBE_GC): Rewrite so as not to use empty "else".
+	(CONSTANTLIM): Remove; unused.
+	(METER_CODE, Bscan_buffer, Bread_char, Bset_mark):
+	Define only if needed.
+
+	* unexelf.c (unexec): Name an expression,
+	to avoid gcc -Wbad-function-cast warning.
+	Use a different way to cause a compilation error if anyone uses
+	n rather than nn, a way that does not involve shadowing.
+	(ELF_BSS_SECTION_NAME, OLD_PROGRAM_H): Remove; unused.
+
+	* deps.mk (unexalpha.o): Remove; unused.
+
+	New file unexec.h, the (simple) interface for unexec (Bug#8267).
+	* unexec.h: New file.
+	* deps.mk (emacs.o, unexaix.o, unexcw.o, unexcoff.o, unexelf.o):
+	(unexhp9k800.o, unexmacosx.o, unexsol.o, unexw32.o):
+	Depend on unexec.h.
+	* emacs.c [!defined CANNOT_DUMP]: Include unexec.h.
+	* unexaix.c, unexcoff.c, unexcw.c, unexelf.c, unexhp9k800.c:
+	* unexmacosx.c, unexsol.c, unexw32.c: Include unexec.h.
+
+	* syntax.c (Fforward_comment, scan_lists): Rename locals to avoid
+	shadowing.
+	(back_comment, skip_chars): Mark vars as initialized.
+
+	* character.h (FETCH_STRING_CHAR_ADVANCE_NO_CHECK, BUF_INC_POS):
+	Rename locals to avoid shadowing.
+
+	* lread.c (read1): Rewrite so as not to use empty "else".
+	(Fload, readevalloop, read1): Rename locals to avoid shadowing.
+
+	* print.c (Fredirect_debugging_output): Fix pointer signedess.
+
+	* lisp.h (debug_output_compilation_hack): Add decl here, to avoid
+	warning when compiling print.c.
+
+	* font.c (font_unparse_fcname): Abort in an "impossible" situation
+	instead of using an uninitialized var.
+	(font_sort_entities): Mark var as initialized.
+
+	* character.h (FETCH_CHAR_ADVANCE): Rename locals to avoid shadowing.
+
+	* font.c (font_unparse_xlfd): Don't mix pointers to variables with
+	pointers to constants.
+	(font_parse_fcname): Remove unused vars.
+	(font_delete_unmatched): Now static.
+	(font_get_spec): Remove; unused.
+	(font_style_to_value, font_prop_validate_style, font_unparse_fcname):
+	(font_update_drivers, Ffont_get_glyphs, font_add_log):
+	Rename or move locals to avoid shadowing.
+
+	* fns.c (require_nesting_list, require_unwind): Now static.
+	(Ffillarray): Rename locals to avoid shadowing.
+
+	* floatfns.c (domain_error2): Define only if needed.
+	(Ffrexp, Fldexp): Rename locals to avoid shadowing.
+
+	* alloc.c (mark_backtrace): Move decl from here ...
+	* lisp.h: ... to here, so that it can be checked.
+
+	* eval.c (call_debugger, do_debug_on_call, grow_specpdl): Now static.
+	(Fdefvar): Rewrite so as not to use empty "else".
+	(lisp_indirect_variable): Name an expression,
+	to avoid gcc -Wbad-function-cast warning.
+	(Fdefvar): Rename locals to avoid shadowing.
+
+	* callint.c (quotify_arg, quotify_args): Now static.
+	(Fcall_interactively): Rename locals to avoid shadowing.
+	Use const pointer when appropriate.
+
+	* lisp.h (get_system_name, get_operating_system_release):
+	Move decls here, to check interfaces.
+	* process.c (get_operating_system_release): Move decl to lisp.h.
+	* xrdb.c (get_system_name): Likewise.
+	* editfns.c (init_editfns, Fuser_login_name, Fuser_uid):
+	(Fuser_real_uid, Fuser_full_name): Remove unnecessary casts,
+	some of which prompt warnings from gcc -Wbad-function-cast.
+	(Fformat_time_string, Fencode_time, Finsert_char):
+	(Ftranslate_region_internal, Fformat):
+	Rename or remove local vars to avoid shadowing.
+	(Ftranslate_region_internal): Mark var as initialized.
+
+	* doc.c (Fdocumentation, Fsnarf_documentation): Move locals to
+	avoid shadowing.
+
+	* lisp.h (eassert): Check that the argument compiles, even if
+	ENABLE_CHECKING is not defined.
+
+	* data.c (Findirect_variable): Name an expression, to avoid
+	gcc -Wbad-function-cast warning.
+	(default_value, arithcompare, arith_driver, arith_error): Now static.
+	(store_symval_forwarding): Rename local to avoid shadowing.
+	(Fmake_variable_buffer_local, Fmake_local_variable): Mark
+	variables as initialized.
+	(do_blv_forwarding, do_symval_forwarding): Remove; unused.
+
+	* alloc.c (check_cons_list): Do not define unless GC_CHECK_CONS_LIST.
+	(Fmake_vector, Fvector, Fmake_byte_code, Fgarbage_collect):
+	Rename locals to avoid shadowing.
+	(mark_stack): Move local variables into the #ifdef region where
+	they're used.
+	(BLOCK_INPUT_ALLOC, UNBLOCK_INPUT_ALLOC): Define only if
+	! defined SYSTEM_MALLOC && ! defined SYNC_INPUT, as they are not
+	needed otherwise.
+	(CHECK_ALLOCATED): Define only if GC_CHECK_MARKED_OBJECTS.
+	(GC_STRING_CHARS): Remove; not used.
+	(Fmemory_limit): Cast sbrk's returned value to char *.
+
+	* lisp.h (check_cons_list): Declare if GC_CHECK_CONS_LIST; this
+	avoids undefined behavior in theory.
+
+	* regex.c (IF_LINT): Add defn, for benefit of ../lib-src.
+
+	Use functions, not macros, for up- and down-casing (Bug#8254).
+	* buffer.h (DOWNCASE_TABLE, UPCASE_TABLE, DOWNCASE, UPPERCASEP):
+	(NOCASEP, LOWERCASEP, UPCASE, UPCASE1): Remove.  All callers changed
+	to use the following functions instead of these macros.
+	(downcase): Adjust to lack of DOWNCASE_TABLE.  Return int, not
+	EMACS_INT, since callers assume the returned value fits in int.
+	(upcase1): Likewise, for UPCASE_TABLE.
+	(uppercasep, lowercasep, upcase): New static inline functions.
+	* editfns.c (Fchar_equal): Remove no-longer-needed workaround for
+	the race-condition problem in the old DOWNCASE.
+
+	* regex.c (CHARSET_LOOKUP_RANGE_TABLE_RAW, POP_FAILURE_REG_OR_COUNT):
+	Rename locals to avoid shadowing.
+	(regex_compile, re_match_2_internal): Move locals to avoid shadowing.
+	(regex_compile, re_search_2, re_match_2_internal):
+	Remove unused local vars.
+	(FREE_VAR): Rewrite so as not to use empty "else",
+	which gcc can warn about.
+	(regex_compile, re_match_2_internal): Mark locals as initialized.
+	(RETALLOC_IF): Define only if needed.
+	(WORDCHAR_P): Likewise.  This one is never needed, but is used
+	only in a comment talking about a compiler bug, so put inside
+	the #if 0 of that comment.
+	(CHARSET_LOOKUP_BITMAP, FAIL_STACK_FULL, RESET_FAIL_STACK):
+	(PUSH_FAILURE_ELT, BUF_PUSH_3, STOP_ADDR_VSTRING):
+	Remove; unused.
+
+	* search.c (boyer_moore): Rename locals to avoid shadowing.
+	* character.h (FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE):
+	(PREV_CHAR_BOUNDARY): Likewise.
+
+	* search.c (simple_search): Remove unused var.
+
+	* dired.c (compile_pattern): Move decl from here ...
+	* lisp.h: ... to here, so that it can be checked.
+	(struct re_registers): New forward decl.
+
+	* character.h (INC_POS, DEC_POS): Rename locals to avoid shadowing.
+
+	* indent.c (MULTIBYTE_BYTES_WIDTH): New args bytes, width.
+	All uses changed.
+	(MULTIBYTE_BYTES_WIDTH, scan_for_column, compute_motion):
+	Rename locals to avoid shadowing.
+	(Fvertical_motion): Mark locals as initialized.
+
+	* casefiddle.c (casify_object, casify_region): Now static.
+	(casify_region): Mark local as initialized.
+
+	* cmds.c (internal_self_insert): Rename local to avoid shadowing.
+
+	* lisp.h (GCPRO2_VAR, GCPRO3_VAR, GCPRO4_VAR, GCPRO5_VAR, GCPRO6_VAR):
+	New macros, so that the caller can use some names other than
+	gcpro1, gcpro2, etc.
+	(GCPRO2, GCPRO3, GCPRO4, GCPRO5, GCPRO6): Reimplement in terms
+	of the new macros.
+	(GCPRO1_VAR, UNGCPRO_VAR): Change the meaning of the second
+	argument, for consistency with GCPRO2_VAR, etc: it is now the
+	prefix of the variable, not the variable itself.  All uses
+	changed.
+	* dired.c (directory_files_internal, file_name_completion):
+	Rename locals to avoid shadowing.
+
+	Fix a race condition diagnosed by gcc -Wsequence-point (Bug#8254).
+	An expression of the form (DOWNCASE (x) == DOWNCASE (y)), found in
+	dired.c's scmp function, had undefined behavior.
+	* lisp.h (DOWNCASE_TABLE, UPCASE_TABLE, DOWNCASE, UPPERCASEP):
+	(NOCASEP, LOWERCASEP, UPCASE, UPCASE1): Move from here ...
+	* buffer.h: ... to here, because these macros use current_buffer,
+	and the new implementation with inline functions needs to have
+	current_buffer in scope now, rather than later when the macros
+	are used.
+	(downcase, upcase1): New static inline functions.
+	(DOWNCASE, UPCASE1): Reimplement using these functions.
+	This avoids undefined behavior in expressions like
+	DOWNCASE (x) == DOWNCASE (y), which previously suffered
+	from race conditions in accessing the global variables
+	case_temp1 and case_temp2.
+	* casetab.c (case_temp1, case_temp2): Remove; no longer needed.
+	* lisp.h (case_temp1, case_temp2): Remove their decls.
+	* character.h (ASCII_CHAR_P): Move from here ...
+	* lisp.h: ... to here, so that the inline functions mentioned
+	above can use them.
+
+	* dired.c (directory_files_internal_unwind): Now static.
+
+	* fileio.c (file_name_as_directory, directory_file_name):
+	(barf_or_query_if_file_exists, auto_save_error, auto_save_1):
+	Now static.
+	(file_name_as_directory): Use const pointers when appropriate.
+	(Fexpand_file_name): Likewise.  In particular, newdir might
+	point at constant storage, so make it a const pointer.
+	(Fmake_directory_internal, Fread_file_name): Remove unused vars.
+	(Ffile_selinux_context, Fset_file_selinux_context): Fix pointer
+	signedness issues.
+	(Fset_file_times, Finsert_file_contents, auto_save_error):
+	Rename locals to avoid shadowing.
+
+	* minibuf.c (choose_minibuf_frame_1): Now static.
+	(Ftry_completion, Fall_completions): Rename or remove locals
+	to avoid shadowing.
+
+	* marker.c (bytepos_to_charpos): Remove; unused.
+
+	* lisp.h (verify_bytepos, count_markers): New decls,
+	so that gcc does not warn that these functions aren't declared.
+
+	* insdel.c (check_markers, make_gap_larger, make_gap_smaller):
+	(reset_var_on_error, Fcombine_after_change_execute_1): Now static.
+	(CHECK_MARKERS): Redo to avoid gcc -Wempty-body diagnostic.
+	(copy_text): Remove unused local var.
+
+	* filelock.c (within_one_second): Now static.
+	(lock_file_1): Rename local to avoid shadowing.
+
+	* buffer.c (fix_overlays_before): Mark locals as initialized.
+	(fix_start_end_in_overlays): Likewise.  This function should be
+	simplified by using pointers-to-pointers, but that's a different
+	matter.
+	(switch_to_buffer_1): Now static.
+	(Fkill_buffer, record_buffer, Fbury_buffer, Fset_buffer_multibyte):
+	(report_overlay_modification): Rename locals to avoid shadowing.
+
+	* sysdep.c (system_process_attributes): Rename vars to avoid shadowing.
+	Fix pointer signedness issue.
+	(sys_subshell): Mark local as volatile if checking for lint,
+	to suppress a gcc -Wclobbered warning that does not seem to be right.
+	(MAXPATHLEN): Define only if needed.
+
+	* process.c (serial_open, serial_configure): Move decls from here ...
+	* systty.h: ... to here, so that they can be checked.
+
+	* fns.c (get_random, seed_random): Move extern decls from here ...
+	* lisp.h: ... to here, so that they can be checked.
+
+	* sysdep.c (reset_io): Now static.
+	(wait_for_termination_signal): Remove; unused.
+
+	* keymap.c (keymap_parent, keymap_memberp, map_keymap_internal):
+	(copy_keymap_item, append_key, push_text_char_description):
+	Now static.
+	(Fwhere_is_internal): Don't test CONSP (sequences) unnecessarily.
+	(DENSE_TABLE_SIZE): Remove; unused.
+	(get_keymap, access_keymap, Fdefine_key, Fwhere_is_internal):
+	(describe_map_tree):
+	Rename locals to avoid shadowing.
+
+	* keyboard.c: Declare functions static if they are not used elsewhere.
+	(echo_char, echo_dash, cmd_error, top_level_2):
+	(poll_for_input, handle_async_input): Now static.
+	(read_char, kbd_buffer_get_event, make_lispy_position):
+	(make_lispy_event, make_lispy_movement, apply_modifiers):
+	(decode_keyboard_code, tty_read_avail_input, menu_bar_items):
+	(parse_tool_bar_item, read_key_sequence, Fread_key_sequence):
+	(Fread_key_sequence_vector): Rename locals to avoid shadowing.
+	(read_key_sequence, read_char): Mark locals as initialized.
+	(Fexit_recursive_edit, Fabort_recursive_edit): Mark with NO_RETURN.
+
+	* keyboard.h (make_ctrl_char): New decl.
+	(mark_kboards): Move decl here ...
+	* alloc.c (mark_kboards): ... from here.
+
+	* lisp.h (force_auto_save_soon): New decl.
+
+	* emacs.c (init_cmdargs): Rename local to avoid shadowing.
+	(DEFINE_DUMMY_FUNCTION): New macro.
+	(__do_global_ctors, __do_global_ctors_aux, __do_global_dtors, __main):
+	Use it.
+	(main): Add casts to avoid warnings
+	if GCC considers string literals to be constants.
+
+	* lisp.h (fatal_error_signal): Add decl, since it's exported.
+
+	* dbusbind.c: Pointer signedness fixes.
+	(xd_signature, xd_append_arg, xd_initialize):
+	(Fdbus_call_method, Fdbus_call_method_asynchronously):
+	(Fdbus_method_return_internal, Fdbus_method_error_internal):
+	(Fdbus_send_signal, xd_read_message_1, Fdbus_register_service):
+	(Fdbus_register_signal): Use SSDATA when the context wants char *.
+
+	* dbusbind.c (Fdbus_init_bus): Add cast to avoid warning
+	if GCC considers string literals to be constants.
+	(Fdbus_register_service, Fdbus_register_method): Remove unused vars.
+
 2011-03-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* print.c (PRINT_CIRCLE_CANDIDATE_P): New macro.

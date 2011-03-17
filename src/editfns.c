@@ -122,7 +122,7 @@ Lisp_Object Qboundary;
 void
 init_editfns (void)
 {
-  char *user_name;
+  const char *user_name;
   register char *p;
   struct passwd *pw;	/* password entry for the current user */
   Lisp_Object tem;
@@ -136,7 +136,7 @@ init_editfns (void)
     return;
 #endif /* not CANNOT_DUMP */
 
-  pw = (struct passwd *) getpwuid (getuid ());
+  pw = getpwuid (getuid ());
 #ifdef MSDOS
   /* We let the real user name default to "root" because that's quite
      accurate on MSDOG and because it lets Emacs find the init file.
@@ -148,17 +148,17 @@ init_editfns (void)
 
   /* Get the effective user name, by consulting environment variables,
      or the effective uid if those are unset.  */
-  user_name = (char *) getenv ("LOGNAME");
+  user_name = getenv ("LOGNAME");
   if (!user_name)
 #ifdef WINDOWSNT
-    user_name = (char *) getenv ("USERNAME");	/* it's USERNAME on NT */
+    user_name = getenv ("USERNAME");	/* it's USERNAME on NT */
 #else  /* WINDOWSNT */
-    user_name = (char *) getenv ("USER");
+    user_name = getenv ("USER");
 #endif /* WINDOWSNT */
   if (!user_name)
     {
-      pw = (struct passwd *) getpwuid (geteuid ());
-      user_name = (char *) (pw ? pw->pw_name : "unknown");
+      pw = getpwuid (geteuid ());
+      user_name = pw ? pw->pw_name : "unknown";
     }
   Vuser_login_name = build_string (user_name);
 
@@ -1266,9 +1266,9 @@ of the user with that uid, or nil if there is no such user.  */)
   if (NILP (uid))
     return Vuser_login_name;
 
-  id = (uid_t)XFLOATINT (uid);
+  id = XFLOATINT (uid);
   BLOCK_INPUT;
-  pw = (struct passwd *) getpwuid (id);
+  pw = getpwuid (id);
   UNBLOCK_INPUT;
   return (pw ? build_string (pw->pw_name) : Qnil);
 }
@@ -1300,7 +1300,7 @@ Value is an integer or a float, depending on the value.  */)
   /* Make sure we don't produce a negative UID due to signed integer
      overflow.  */
   if (euid < 0)
-    return make_float ((double)geteuid ());
+    return make_float (geteuid ());
   return make_fixnum_or_float (euid);
 }
 
@@ -1316,7 +1316,7 @@ Value is an integer or a float, depending on the value.  */)
   /* Make sure we don't produce a negative UID due to signed integer
      overflow.  */
   if (uid < 0)
-    return make_float ((double)getuid ());
+    return make_float (getuid ());
   return make_fixnum_or_float (uid);
 }
 
@@ -1339,14 +1339,15 @@ name, or nil if there is no such user.  */)
     return Vuser_full_name;
   else if (NUMBERP (uid))
     {
+      uid_t u = XFLOATINT (uid);
       BLOCK_INPUT;
-      pw = (struct passwd *) getpwuid ((uid_t) XFLOATINT (uid));
+      pw = getpwuid (u);
       UNBLOCK_INPUT;
     }
   else if (STRINGP (uid))
     {
       BLOCK_INPUT;
-      pw = (struct passwd *) getpwnam (SSDATA (uid));
+      pw = getpwnam (SSDATA (uid));
       UNBLOCK_INPUT;
     }
   else
@@ -1374,7 +1375,7 @@ name, or nil if there is no such user.  */)
       memcpy (r, p, q - p);
       r[q - p] = 0;
       strcat (r, SSDATA (login));
-      r[q - p] = UPCASE ((unsigned char) r[q - p]);
+      r[q - p] = upcase ((unsigned char) r[q - p]);
       strcat (r, q + 1);
       full = build_string (r);
     }
@@ -1389,8 +1390,6 @@ DEFUN ("system-name", Fsystem_name, Ssystem_name, 0, 0, 0,
 {
   return Vsystem_name;
 }
-
-/* For the benefit of callers who don't want to include lisp.h */
 
 const char *
 get_system_name (void)
@@ -1722,7 +1721,7 @@ The modifiers are `E' and `O'.  For certain characters X,
 %OX is like %X, but uses the locale's number symbols.
 
 For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
-  (Lisp_Object format_string, Lisp_Object time, Lisp_Object universal)
+  (Lisp_Object format_string, Lisp_Object timeval, Lisp_Object universal)
 {
   time_t value;
   int size;
@@ -1733,7 +1732,7 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
 
   CHECK_STRING (format_string);
 
-  if (! (lisp_time_argument (time, &value, &usec)
+  if (! (lisp_time_argument (timeval, &value, &usec)
 	 && 0 <= usec && usec < 1000000))
     error ("Invalid time specification");
   ns = usec * 1000;
@@ -1871,7 +1870,7 @@ year values as low as 1901 do work.
 usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
   (int nargs, register Lisp_Object *args)
 {
-  time_t time;
+  time_t value;
   struct tm tm;
   Lisp_Object zone = (nargs > 6 ? args[nargs - 1] : Qnil);
 
@@ -1888,7 +1887,7 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
   if (NILP (zone))
     {
       BLOCK_INPUT;
-      time = mktime (&tm);
+      value = mktime (&tm);
       UNBLOCK_INPUT;
     }
   else
@@ -1916,7 +1915,7 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
       set_time_zone_rule (tzstring);
 
       BLOCK_INPUT;
-      time = mktime (&tm);
+      value = mktime (&tm);
       UNBLOCK_INPUT;
 
       /* Restore TZ to previous value.  */
@@ -1928,10 +1927,10 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
 #endif
     }
 
-  if (time == (time_t) -1)
+  if (value == (time_t) -1)
     time_overflow ();
 
-  return make_time (time);
+  return make_time (value);
 }
 
 DEFUN ("current-time-string", Fcurrent_time_string, Scurrent_time_string, 0, 1, 0,
@@ -2341,7 +2340,7 @@ from adjoining text, if those properties are sticky.  */)
   (Lisp_Object character, Lisp_Object count, Lisp_Object inherit)
 {
   register char *string;
-  register EMACS_INT strlen;
+  register EMACS_INT stringlen;
   register int i;
   register EMACS_INT n;
   int len;
@@ -2359,18 +2358,18 @@ from adjoining text, if those properties are sticky.  */)
   n = XINT (count) * len;
   if (n <= 0)
     return Qnil;
-  strlen = min (n, 256 * len);
-  string = (char *) alloca (strlen);
-  for (i = 0; i < strlen; i++)
+  stringlen = min (n, 256 * len);
+  string = (char *) alloca (stringlen);
+  for (i = 0; i < stringlen; i++)
     string[i] = str[i % len];
-  while (n >= strlen)
+  while (n >= stringlen)
     {
       QUIT;
       if (!NILP (inherit))
-	insert_and_inherit (string, strlen);
+	insert_and_inherit (string, stringlen);
       else
-	insert (string, strlen);
-      n -= strlen;
+	insert (string, stringlen);
+      n -= stringlen;
     }
   if (n > 0)
     {
@@ -3029,8 +3028,7 @@ It returns the number of characters changed.  */)
   EMACS_INT size;		/* Size of translate table. */
   EMACS_INT pos, pos_byte, end_pos;
   int multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
-  int string_multibyte;
-  Lisp_Object val;
+  int string_multibyte IF_LINT (= 0);
 
   validate_region (&start, &end);
   if (CHAR_TABLE_P (table))
@@ -3929,7 +3927,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	      /* handle case (precision[n] >= 0) */
 
 	      int width, padding;
-	      EMACS_INT nbytes, start, end;
+	      EMACS_INT nbytes, start;
 	      EMACS_INT nchars_string;
 
 	      /* lisp_string_width ignores a precision of 0, but GNU
@@ -3961,7 +3959,6 @@ usage: (format STRING &rest OBJECTS)  */)
 
 	      info[n].start = start = nchars;
 	      nchars += nchars_string;
-	      end = nchars;
 
 	      if (p > buf
 		  && multibyte
@@ -4213,7 +4210,7 @@ Case is ignored if `case-fold-search' is non-nil in the current buffer.  */)
 {
   int i1, i2;
   /* Check they're chars, not just integers, otherwise we could get array
-     bounds violations in DOWNCASE.  */
+     bounds violations in downcase.  */
   CHECK_CHARACTER (c1);
   CHECK_CHARACTER (c2);
 
@@ -4222,9 +4219,6 @@ Case is ignored if `case-fold-search' is non-nil in the current buffer.  */)
   if (NILP (BVAR (current_buffer, case_fold_search)))
     return Qnil;
 
-  /* Do these in separate statements,
-     then compare the variables.
-     because of the way DOWNCASE uses temp variables.  */
   i1 = XFASTINT (c1);
   if (NILP (BVAR (current_buffer, enable_multibyte_characters))
       && ! ASCII_CHAR_P (i1))
@@ -4237,9 +4231,7 @@ Case is ignored if `case-fold-search' is non-nil in the current buffer.  */)
     {
       MAKE_CHAR_MULTIBYTE (i2);
     }
-  i1 = DOWNCASE (i1);
-  i2 = DOWNCASE (i2);
-  return (i1 == i2 ? Qt :  Qnil);
+  return (downcase (i1) == downcase (i2) ? Qt :  Qnil);
 }
 
 /* Transpose the markers in two regions of the current buffer, and

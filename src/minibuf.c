@@ -135,7 +135,7 @@ choose_minibuf_frame (void)
   }
 }
 
-Lisp_Object
+static Lisp_Object
 choose_minibuf_frame_1 (Lisp_Object ignore)
 {
   choose_minibuf_frame ();
@@ -1212,7 +1212,7 @@ is used to further constrain the set of candidates.  */)
 		    && (!SYMBOLP (XCAR (collection))
 			|| NILP (XCAR (collection)))))
 	       ? list_table : function_table));
-  int index = 0, obsize = 0;
+  int idx = 0, obsize = 0;
   int matchcount = 0;
   int bindcount = -1;
   Lisp_Object bucket, zero, end, tem;
@@ -1231,7 +1231,7 @@ is used to further constrain the set of candidates.  */)
     {
       collection = check_obarray (collection);
       obsize = XVECTOR (collection)->size;
-      bucket = XVECTOR (collection)->contents[index];
+      bucket = XVECTOR (collection)->contents[idx];
     }
 
   while (1)
@@ -1262,23 +1262,23 @@ is used to further constrain the set of candidates.  */)
 	      else
 		XSETFASTINT (bucket, 0);
 	    }
-	  else if (++index >= obsize)
+	  else if (++idx >= obsize)
 	    break;
 	  else
 	    {
-	      bucket = XVECTOR (collection)->contents[index];
+	      bucket = XVECTOR (collection)->contents[idx];
 	      continue;
 	    }
 	}
       else /* if (type == hash_table) */
 	{
-	  while (index < HASH_TABLE_SIZE (XHASH_TABLE (collection))
-		 && NILP (HASH_HASH (XHASH_TABLE (collection), index)))
-	    index++;
-	  if (index >= HASH_TABLE_SIZE (XHASH_TABLE (collection)))
+	  while (idx < HASH_TABLE_SIZE (XHASH_TABLE (collection))
+		 && NILP (HASH_HASH (XHASH_TABLE (collection), idx)))
+	    idx++;
+	  if (idx >= HASH_TABLE_SIZE (XHASH_TABLE (collection)))
 	    break;
 	  else
-	    elt = eltstring = HASH_KEY (XHASH_TABLE (collection), index++);
+	    elt = eltstring = HASH_KEY (XHASH_TABLE (collection), idx++);
 	}
 
       /* Is this element a possible completion? */
@@ -1333,7 +1333,7 @@ is used to further constrain the set of candidates.  */)
 		  tem = (type == hash_table
 			 ? call2 (predicate, elt,
 				  HASH_VALUE (XHASH_TABLE (collection),
-					      index - 1))
+					      idx - 1))
 			 : call1 (predicate, elt));
 		  UNGCPRO;
 		}
@@ -1477,7 +1477,7 @@ with a space are ignored unless STRING itself starts with a space.  */)
     : NILP (collection) || (CONSP (collection)
 			    && (!SYMBOLP (XCAR (collection))
 				|| NILP (XCAR (collection))));
-  int index = 0, obsize = 0;
+  int idx = 0, obsize = 0;
   int bindcount = -1;
   Lisp_Object bucket, tem, zero;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
@@ -1494,7 +1494,7 @@ with a space are ignored unless STRING itself starts with a space.  */)
     {
       collection = check_obarray (collection);
       obsize = XVECTOR (collection)->size;
-      bucket = XVECTOR (collection)->contents[index];
+      bucket = XVECTOR (collection)->contents[idx];
     }
 
   while (1)
@@ -1525,23 +1525,23 @@ with a space are ignored unless STRING itself starts with a space.  */)
 	      else
 		XSETFASTINT (bucket, 0);
 	    }
-	  else if (++index >= obsize)
+	  else if (++idx >= obsize)
 	    break;
 	  else
 	    {
-	      bucket = XVECTOR (collection)->contents[index];
+	      bucket = XVECTOR (collection)->contents[idx];
 	      continue;
 	    }
 	}
       else /* if (type == 3) */
 	{
-	  while (index < HASH_TABLE_SIZE (XHASH_TABLE (collection))
-		 && NILP (HASH_HASH (XHASH_TABLE (collection), index)))
-	    index++;
-	  if (index >= HASH_TABLE_SIZE (XHASH_TABLE (collection)))
+	  while (idx < HASH_TABLE_SIZE (XHASH_TABLE (collection))
+		 && NILP (HASH_HASH (XHASH_TABLE (collection), idx)))
+	    idx++;
+	  if (idx >= HASH_TABLE_SIZE (XHASH_TABLE (collection)))
 	    break;
 	  else
-	    elt = eltstring = HASH_KEY (XHASH_TABLE (collection), index++);
+	    elt = eltstring = HASH_KEY (XHASH_TABLE (collection), idx++);
 	}
 
       /* Is this element a possible completion? */
@@ -1566,8 +1566,6 @@ with a space are ignored unless STRING itself starts with a space.  */)
 	{
 	  /* Yes. */
 	  Lisp_Object regexps;
-	  Lisp_Object zero;
-	  XSETFASTINT (zero, 0);
 
 	  /* Ignore this element if it fails to match all the regexps.  */
 	  {
@@ -1603,7 +1601,7 @@ with a space are ignored unless STRING itself starts with a space.  */)
 		  GCPRO4 (tail, eltstring, allmatches, string);
 		  tem = type == 3
 		    ? call2 (predicate, elt,
-			     HASH_VALUE (XHASH_TABLE (collection), index - 1))
+			     HASH_VALUE (XHASH_TABLE (collection), idx - 1))
 		    : call1 (predicate, elt);
 		  UNGCPRO;
 		}

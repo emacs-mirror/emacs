@@ -322,17 +322,20 @@ string is passed through `substitute-command-keys'.  */)
 {
   Lisp_Object fun;
   Lisp_Object funcar;
-  Lisp_Object tem, doc;
+  Lisp_Object doc;
   int try_reload = 1;
 
  documentation:
 
   doc = Qnil;
 
-  if (SYMBOLP (function)
-      && (tem = Fget (function, Qfunction_documentation),
-	  !NILP (tem)))
-    return Fdocumentation_property (function, Qfunction_documentation, raw);
+  if (SYMBOLP (function))
+    {
+      Lisp_Object tem = Fget (function, Qfunction_documentation);
+      if (!NILP (tem))
+	return Fdocumentation_property (function, Qfunction_documentation,
+					raw);
+    }
 
   fun = Findirect_function (function, Qnil);
   if (SUBRP (fun))
@@ -348,13 +351,16 @@ string is passed through `substitute-command-keys'.  */)
     {
       if ((ASIZE (fun) & PSEUDOVECTOR_SIZE_MASK) <= COMPILED_DOC_STRING)
 	return Qnil;
-      tem = AREF (fun, COMPILED_DOC_STRING);
-      if (STRINGP (tem))
-	doc = tem;
-      else if (NATNUMP (tem) || CONSP (tem))
-	doc = tem;
       else
-	return Qnil;
+	{
+	  Lisp_Object tem = AREF (fun, COMPILED_DOC_STRING);
+	  if (STRINGP (tem))
+	    doc = tem;
+	  else if (NATNUMP (tem) || CONSP (tem))
+	    doc = tem;
+	  else
+	    return Qnil;
+	}
     }
   else if (STRINGP (fun) || VECTORP (fun))
     {
@@ -370,9 +376,8 @@ string is passed through `substitute-command-keys'.  */)
       else if (EQ (funcar, Qlambda)
 	       || EQ (funcar, Qautoload))
 	{
-	  Lisp_Object tem1;
-	  tem1 = Fcdr (Fcdr (fun));
-	  tem = Fcar (tem1);
+	  Lisp_Object tem1 = Fcdr (Fcdr (fun));
+	  Lisp_Object tem = Fcar (tem1);
 	  if (STRINGP (tem))
 	    doc = tem;
 	  /* Handle a doc reference--but these never come last
@@ -539,7 +544,7 @@ the same file name is found in the `doc-directory'.  */)
   char buf[1024 + 1];
   register EMACS_INT filled;
   register EMACS_INT pos;
-  register char *p, *end;
+  register char *p;
   Lisp_Object sym;
   char *name;
   int skip_file = 0;
@@ -598,6 +603,7 @@ the same file name is found in the `doc-directory'.  */)
   pos = 0;
   while (1)
     {
+      register char *end;
       if (filled < 512)
 	filled += emacs_read (fd, &buf[filled], sizeof buf - 1 - filled);
       if (!filled)

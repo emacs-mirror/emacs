@@ -292,10 +292,6 @@ init_baud_rate (int fd)
 int wait_debugging;   /* Set nonzero to make following function work under dbx
 			 (at least for bsd).  */
 
-SIGTYPE
-wait_for_termination_signal (void)
-{}
-
 #ifndef MSDOS
 /* Wait for subprocess with process id `pid' to terminate and
    make sure it will get eliminated (not remain forever as a zombie) */
@@ -492,7 +488,7 @@ sys_subshell (void)
   int pid;
   struct save_signal saved_handlers[5];
   Lisp_Object dir;
-  unsigned char *str = 0;
+  unsigned char * IF_LINT (volatile) str = 0;
   int len;
 
   saved_handlers[0].code = SIGINT;
@@ -632,7 +628,7 @@ init_sigio (int fd)
 {
 }
 
-void
+static void
 reset_sigio (int fd)
 {
 }
@@ -662,7 +658,7 @@ init_sigio (int fd)
   interrupts_deferred = 0;
 }
 
-void
+static void
 reset_sigio (int fd)
 {
 #ifdef FASYNC
@@ -1890,12 +1886,12 @@ emacs_write (int fildes, const char *buf, unsigned int nbyte)
  *	under error conditions.
  */
 
+#ifndef HAVE_GETWD
+
 #ifndef MAXPATHLEN
 /* In 4.1, param.h fails to define this.  */
 #define MAXPATHLEN 1024
 #endif
-
-#ifndef HAVE_GETWD
 
 char *
 getwd (char *pathname)
@@ -2671,8 +2667,8 @@ system_process_attributes (Lisp_Object pid)
   size_t cmdsize = 0, cmdline_size;
   unsigned char c;
   int proc_id, ppid, uid, gid, pgrp, sess, tty, tpgid, thcount;
-  unsigned long long utime, stime, cutime, cstime, start;
-  long priority, nice, rss;
+  unsigned long long u_time, s_time, cutime, cstime, start;
+  long priority, niceness, rss;
   unsigned long minflt, majflt, cminflt, cmajflt, vsize;
   time_t sec;
   unsigned usec;
@@ -2752,8 +2748,8 @@ system_process_attributes (Lisp_Object pid)
 	  sscanf (p, "%c %d %d %d %d %d %*u %lu %lu %lu %lu %Lu %Lu %Lu %Lu %ld %ld %d %*d %Lu %lu %ld",
 		  &c, &ppid, &pgrp, &sess, &tty, &tpgid,
 		  &minflt, &cminflt, &majflt, &cmajflt,
-		  &utime, &stime, &cutime, &cstime,
-		  &priority, &nice, &thcount, &start, &vsize, &rss);
+		  &u_time, &s_time, &cutime, &cstime,
+		  &priority, &niceness, &thcount, &start, &vsize, &rss);
 	  {
 	    char state_str[2];
 
@@ -2781,13 +2777,14 @@ system_process_attributes (Lisp_Object pid)
 	  if (clocks_per_sec < 0)
 	    clocks_per_sec = 100;
 	  attrs = Fcons (Fcons (Qutime,
-				ltime_from_jiffies (utime, clocks_per_sec)),
+				ltime_from_jiffies (u_time, clocks_per_sec)),
 			 attrs);
 	  attrs = Fcons (Fcons (Qstime,
-				ltime_from_jiffies (stime, clocks_per_sec)),
+				ltime_from_jiffies (s_time, clocks_per_sec)),
 			 attrs);
 	  attrs = Fcons (Fcons (Qtime,
-				ltime_from_jiffies (stime+utime, clocks_per_sec)),
+				ltime_from_jiffies (s_time + u_time,
+						    clocks_per_sec)),
 			 attrs);
 	  attrs = Fcons (Fcons (Qcutime,
 				ltime_from_jiffies (cutime, clocks_per_sec)),
@@ -2799,7 +2796,7 @@ system_process_attributes (Lisp_Object pid)
 				ltime_from_jiffies (cstime+cutime, clocks_per_sec)),
 			 attrs);
 	  attrs = Fcons (Fcons (Qpri, make_number (priority)), attrs);
-	  attrs = Fcons (Fcons (Qnice, make_number (nice)), attrs);
+	  attrs = Fcons (Fcons (Qnice, make_number (niceness)), attrs);
 	  attrs = Fcons (Fcons (Qthcount, make_fixnum_or_float (thcount_eint)), attrs);
 	  EMACS_GET_TIME (tnow);
 	  get_up_time (&sec, &usec);
@@ -2829,7 +2826,7 @@ system_process_attributes (Lisp_Object pid)
 				       make_number
 				       (EMACS_USECS (telapsed)))),
 			 attrs);
-	  time_from_jiffies (utime + stime, clocks_per_sec, &sec, &usec);
+	  time_from_jiffies (u_time + s_time, clocks_per_sec, &sec, &usec);
 	  pcpu = (sec + usec / 1000000.0) / (EMACS_SECS (telapsed) + EMACS_USECS (telapsed) / 1000000.0);
 	  if (pcpu > 1.0)
 	    pcpu = 1.0;
@@ -2848,8 +2845,10 @@ system_process_attributes (Lisp_Object pid)
   fd = emacs_open (fn, O_RDONLY, 0);
   if (fd >= 0)
     {
-      for (cmdline_size = 0; emacs_read (fd, &c, 1) == 1; cmdline_size++)
+      char ch;
+      for (cmdline_size = 0; emacs_read (fd, &ch, 1) == 1; cmdline_size++)
 	{
+	  c = ch;
 	  if (isspace (c) || c == '\\')
 	    cmdline_size++;	/* for later quoting, see below */
 	}

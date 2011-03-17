@@ -46,7 +46,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define HAVE_PTYS if the system supports pty devices.  */
 #define HAVE_PTYS
-#define PTY_ITERATION		for (i = 0; i < 1; i++) /* ick */
+#define PTY_ITERATION		int i; for (i = 0; i < 1; i++) /* ick */
 #define PTY_NAME_SPRINTF	/* none */
 #define PTY_TTY_NAME_SPRINTF	/* none */
 #define PTY_OPEN					\
@@ -102,4 +102,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Send signals to subprocesses by "typing" special chars at them.  */
 #define SIGNALS_VIA_CHARACTERS
-

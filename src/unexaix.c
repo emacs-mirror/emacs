@@ -40,6 +40,8 @@ what you give them.   Help stamp out software-hoarding!  */
  */
 
 #include <config.h>
+#include "unexec.h"
+
 #define PERROR(file) report_error (file, new)
 #include <a.out.h>
 /* Define getpagesize () if the system does not.
