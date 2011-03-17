@@ -32,7 +32,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* In AIX, you allocate a pty by opening /dev/ptc to get the master side.
    To get the name of the slave side, you just ttyname() the master side.  */
-#define PTY_ITERATION for (c = 0; !c ; c++)
+#define PTY_ITERATION int c; for (c = 0; !c ; c++)
 #define PTY_NAME_SPRINTF strcpy (pty_name, "/dev/ptc");
 #define PTY_TTY_NAME_SPRINTF strcpy (pty_name, ttyname (fd));
 

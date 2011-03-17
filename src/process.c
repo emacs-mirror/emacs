@@ -535,12 +535,12 @@ static char pty_name[24];
 static int
 allocate_pty (void)
 {
-  register int c, i;
   int fd;
 
 #ifdef PTY_ITERATION
   PTY_ITERATION
 #else
+  register int c, i;
   for (c = FIRST_PTY_LETTER; c <= 'z'; c++)
     for (i = 0; i < 16; i++)
 #endif

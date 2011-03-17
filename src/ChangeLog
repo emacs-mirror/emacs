@@ -1,5 +1,12 @@
 2011-03-17  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* process.c (allocate_pty): Let PTY_ITERATION declare iteration vars.
+	That way, the code declares only the vars that it needs.
+	* s/aix4-2.h (PTY_ITERATION): Declare iteration vars.
+	* s/cygwin.h (PTY_ITERATION): Likewise.
+	* s/darwin.h (PTY_ITERATION): Likewise.
+	* s/gnu-linux.h (PTY_ITERATION): Likewise.
+
 	* s/irix6-5.h (PTY_OPEN): Declare stb, to loosen coupling.
 	* process.c (allocate_pty): Don't declare stb unless it's needed.
 
