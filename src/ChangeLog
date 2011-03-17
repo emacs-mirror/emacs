@@ -2,6 +2,8 @@
 
 	* unexelf.c (unexec): Name an expression,
 	to avoid gcc -Wbad-function-cast warning.
+	Use a different way to cause a compilation error if anyone uses
+	n rather than nn, a way that does not involve shadowing.
 
 	* deps.mk (unexalpha.o): Remove; unused.
 

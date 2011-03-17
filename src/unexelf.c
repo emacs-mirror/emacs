@@ -1235,8 +1235,8 @@ temacs:
       ElfW(Shdr) section = NEW_SECTION_H (n);
 
       /* Cause a compilation error if anyone uses n instead of nn below.  */
-      struct {int a;} n;
-      (void)n.a;		/* Prevent `unused variable' warnings.  */
+      #define n ((void) 0);
+      n /* Prevent 'macro "n" is not used' warnings.  */
 
       switch (section.sh_type)
 	{
@@ -1283,6 +1283,8 @@ temacs:
 	    }
 	  break;
 	}
+
+      #undef n
     }
 
   /* Write out new_file, and free the buffers.  */
