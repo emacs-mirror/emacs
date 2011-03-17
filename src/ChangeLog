@@ -4,6 +4,7 @@
 	to avoid gcc -Wbad-function-cast warning.
 	Use a different way to cause a compilation error if anyone uses
 	n rather than nn, a way that does not involve shadowing.
+	(ELF_BSS_SECTION_NAME, OLD_PROGRAM_H): Remove; unused.
 
 	* deps.mk (unexalpha.o): Remove; unused.
 

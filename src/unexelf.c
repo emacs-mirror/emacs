@@ -520,10 +520,6 @@ typedef struct {
 # define ElfW(type) ElfExpandBitsW (ELFSIZE, type)
 #endif
 
-#ifndef ELF_BSS_SECTION_NAME
-#define ELF_BSS_SECTION_NAME ".bss"
-#endif
-
 /* Get the address of a particular section or program header entry,
  * accounting for the size of the entries.
  */
@@ -555,8 +551,6 @@ typedef struct {
      (*(ElfW(Shdr) *) ((byte *) old_section_h + old_file_h->e_shentsize * (n)))
 #define NEW_SECTION_H(n) \
      (*(ElfW(Shdr) *) ((byte *) new_section_h + new_file_h->e_shentsize * (n)))
-#define OLD_PROGRAM_H(n) \
-     (*(ElfW(Phdr) *) ((byte *) old_program_h + old_file_h->e_phentsize * (n)))
 #define NEW_PROGRAM_H(n) \
      (*(ElfW(Phdr) *) ((byte *) new_program_h + new_file_h->e_phentsize * (n)))
 
