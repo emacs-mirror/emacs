@@ -36,6 +36,7 @@
 	* emacs.c [!defined CANNOT_DUMP]: Include unexec.h.
 	* unexaix.c, unexcoff.c, unexcw.c, unexelf.c, unexhp9k800.c:
 	* unexmacosx.c, unexsol.c, unexw32.c: Include unexec.h.
+	Change as necessary to match prototype in unexec.h.
 
 	* syntax.c (Fforward_comment, scan_lists): Rename locals to avoid
 	shadowing.

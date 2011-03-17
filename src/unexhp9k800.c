@@ -76,7 +76,7 @@ run_time_remap (ignored)
 
 
 /* Create a new a.out file, same as old but with current data space */
-int
+void
 unexec (const char *new_name,      /* name of the new a.out file to be created */
 	const char *old_name)       /* name of the old a.out file */
 {
@@ -133,7 +133,6 @@ unexec (const char *new_name,      /* name of the new a.out file to be created *
   /* Close the binary file */
   close (old);
   close (new);
-  return 0;
 }
 
 /* Save current data space in the file, update header.  */

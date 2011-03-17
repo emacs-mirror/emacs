@@ -524,7 +524,7 @@ adjust_lnnoptrs (int writedesc, int readdesc, const char *new_name)
  *
  * driving logic.
  */
-int
+void
 unexec (const char *new_name, const char *a_name)
 {
   int new = -1, a_out = -1;
@@ -545,15 +545,12 @@ unexec (const char *new_name, const char *a_name)
       )
     {
       close (new);
-      return -1;
     }
 
   close (new);
   if (a_out >= 0)
     close (a_out);
   mark_x (new_name);
-  return 0;
 }
 
 #endif /* not CANNOT_DUMP */
-

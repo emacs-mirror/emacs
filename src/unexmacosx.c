@@ -1227,7 +1227,7 @@ dump_it (void)
    from it.  The file names of the output and input files are outfile
    and infile, respectively.  The three other parameters are
    ignored.  */
-int
+void
 unexec (const char *outfile, const char *infile)
 {
   if (in_dumped_exec)
@@ -1258,7 +1258,6 @@ unexec (const char *outfile, const char *infile)
   dump_it ();
 
   close (outfd);
-  return 0;
 }
 
 
@@ -1383,4 +1382,3 @@ unexec_free (void *ptr)
   else
     malloc_zone_free (emacs_zone, (unexec_malloc_header_t *) ptr - 1);
 }
-

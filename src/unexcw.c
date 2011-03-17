@@ -249,7 +249,7 @@ add_exe_suffix_if_necessary (const char *name, char *modified)
   return (modified);
 }
 
-int
+void
 unexec (const char *outfile, const char *infile)
 {
   char infile_buffer[FILENAME_MAX];
@@ -263,7 +263,6 @@ unexec (const char *outfile, const char *infile)
     {
       /* can only dump once */
       printf ("You can only dump Emacs once on this platform.\n");
-      return (1);
     }
 
   report_sheap_usage (1);
@@ -298,6 +297,4 @@ unexec (const char *outfile, const char *infile)
 
   ret = close (fd_out);
   assert (ret == 0);
-
-  return (0);
 }
