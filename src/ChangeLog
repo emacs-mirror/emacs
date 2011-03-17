@@ -1,5 +1,8 @@
 2011-03-17  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* process.c (make_serial_process_unwind, send_process_trap):
+	(sigchld_handler): Now static.
+
 	* process.c (allocate_pty): Let PTY_ITERATION declare iteration vars.
 	That way, the code declares only the vars that it needs.
 	* s/aix4-2.h (PTY_ITERATION): Declare iteration vars.

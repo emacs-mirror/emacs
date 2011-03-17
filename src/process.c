@@ -2724,7 +2724,8 @@ usage: (serial-process-configure &rest ARGS)  */)
 }
 
 /* Used by make-serial-process to recover from errors.  */
-Lisp_Object make_serial_process_unwind (Lisp_Object proc)
+static Lisp_Object
+make_serial_process_unwind (Lisp_Object proc)
 {
   if (!PROCESSP (proc))
     abort ();
@@ -5476,7 +5477,7 @@ read_process_output (Lisp_Object proc, register int channel)
 jmp_buf send_process_frame;
 Lisp_Object process_sent_to;
 
-SIGTYPE
+static SIGTYPE
 send_process_trap (int ignore)
 {
   SIGNAL_THREAD_CHECK (SIGPIPE);
@@ -6385,7 +6386,7 @@ process has been transmitted to the serial port.  */)
    indirectly; if it does, that is a bug  */
 
 #ifdef SIGCHLD
-SIGTYPE
+static SIGTYPE
 sigchld_handler (int signo)
 {
   int old_errno = errno;
