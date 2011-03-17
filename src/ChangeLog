@@ -1,3 +1,8 @@
+2011-03-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* xfaces.c (Fx_load_color_file):
+	Read color file from absolute filename (bug#8250).
+
 2011-03-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	Backport revno:103582 from trunk.
