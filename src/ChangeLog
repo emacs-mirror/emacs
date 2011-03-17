@@ -1,5 +1,8 @@
 2011-03-17  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* unexelf.c (unexec): Name an expression,
+	to avoid gcc -Wbad-function-cast warning.
+
 	* deps.mk (unexalpha.o): Remove; unused.
 
 2011-03-16  Paul Eggert  <eggert@cs.ucla.edu>

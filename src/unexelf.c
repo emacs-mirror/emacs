@@ -625,6 +625,10 @@ unexec (const char *new_name, const char *old_name)
 {
   int new_file, old_file, new_file_size;
 
+#if defined (emacs) || !defined (DEBUG)
+  void *new_break;
+#endif
+
   /* Pointers to the base of the image of the two files.  */
   caddr_t old_base, new_base;
 
@@ -755,7 +759,8 @@ unexec (const char *new_name, const char *old_name)
 				 old_name, old_file_h, old_section_h, 0);
 
 #if defined (emacs) || !defined (DEBUG)
-  new_bss_addr = (ElfW(Addr)) sbrk (0);
+  new_break = sbrk (0);
+  new_bss_addr = (ElfW(Addr)) new_break;
 #else
   new_bss_addr = old_bss_addr + old_bss_size + 0x1234;
 #endif
@@ -956,13 +961,13 @@ temacs:
 	Link	Info	Adralgn      Entsize
 
 [22]	1	3	0x335150     0x315150     0x4          	.data.rel.local
-	0	0	0x4          0            
+	0	0	0x4          0
 
 [23]	8	3	0x335158     0x315158     0x42720      	.bss
-	0	0	0x8          0            
+	0	0	0x8          0
 
 [24]	2	0	0            0x315154     0x1c9d0      	.symtab
-	25	1709	0x4          0x10         
+	25	1709	0x4          0x10
 	  */
 
 	  if (NEW_SECTION_H (nn).sh_offset >= old_bss_offset
@@ -1309,4 +1314,3 @@ temacs:
   if (chmod (new_name, stat_buf.st_mode) == -1)
     fatal ("Can't chmod (%s): errno %d\n", new_name, errno);
 }
-
