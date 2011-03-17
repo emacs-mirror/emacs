@@ -3076,10 +3076,7 @@ images if any to the browser, and deletes them when exiting the group
 The `gnus-list-identifiers' variable specifies what to do."
   (interactive)
   (let ((inhibit-point-motion-hooks t)
-        (regexp (or (gnus-parameter-list-identifier gnus-newsgroup-name)
-                    (if (consp gnus-list-identifiers)
-                        (mapconcat 'identity gnus-list-identifiers " *\\|")
-                      gnus-list-identifiers)))
+        (regexp (gnus-group-get-list-identifiers gnus-newsgroup-name))
         (inhibit-read-only t))
     (when regexp
       (save-excursion

@@ -705,6 +705,8 @@ Assume text has been decoded if DECODED is non-nil."
 		    ;; Mutt still uses application/pgp even though
 		    ;; it has already been withdrawn.
 		    (string-match "\\`text/\\|\\`application/pgp\\'" type)
+                    (equal (car (mm-handle-disposition handle))
+                           "inline")
 		    (setq
 		     children
 		     (with-current-buffer buffer

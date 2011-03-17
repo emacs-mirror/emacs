@@ -1,3 +1,18 @@
+2011-03-16  Julien Danjou  <julien@danjou.info>
+
+	* mm-uu.el (mm-uu-dissect-text-parts): Only dissect handle that are
+	inline.
+
+	* gnus-art.el (article-hide-list-identifiers): Use
+	gnus-group-get-list-identifiers.
+
+	* gnus-sum.el (gnus-group-get-list-identifiers): New function.
+	(gnus-summary-remove-list-identifiers): Use
+	gnus-group-get-list-identifiers to get regexp.
+	(gnus-select-newsgroup, gnus-summary-insert-subject)
+	(gnus-summary-insert-articles): Call
+	gnus-summary-remove-list-identifiers unconditionally.
+
 2011-03-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-sum.el (gnus-articles-to-read): Revert back to old behaviour if

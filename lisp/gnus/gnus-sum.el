@@ -5510,12 +5510,17 @@ or a straight list of headers."
 	 (cdr (assq number gnus-newsgroup-scored))
 	 (memq number gnus-newsgroup-processable))))))
 
+(defun gnus-group-get-list-identifiers (group)
+  "Get list identifier regexp for GROUP."
+  (or (gnus-parameter-list-identifier group)
+      (if (consp gnus-list-identifiers)
+          (mapconcat 'identity gnus-list-identifiers " *\\|")
+        gnus-list-identifiers)))
+
 (defun gnus-summary-remove-list-identifiers ()
   "Remove list identifiers in `gnus-list-identifiers' from articles in the current group."
-  (let ((regexp (if (consp gnus-list-identifiers)
-		    (mapconcat 'identity gnus-list-identifiers " *\\|")
-		  gnus-list-identifiers))
-	changed subject)
+  (let ((regexp (gnus-group-get-list-identifiers gnus-newsgroup-name))
+        changed subject)
     (when regexp
       (setq regexp (concat "^\\(?:R[Ee]: +\\)*\\(" regexp " *\\)"))
       (dolist (header gnus-newsgroup-headers)
@@ -5707,8 +5712,7 @@ If SELECT-ARTICLES, only select those articles from GROUP."
       (when gnus-agent
 	(gnus-agent-get-undownloaded-list))
       ;; Remove list identifiers from subject
-      (when gnus-list-identifiers
-	(gnus-summary-remove-list-identifiers))
+      (gnus-summary-remove-list-identifiers)
       ;; Check whether auto-expire is to be done in this group.
       (setq gnus-newsgroup-auto-expire
 	    (gnus-group-auto-expirable-p group))
@@ -6576,9 +6580,8 @@ the subject line on."
 		  (1+ (point-at-eol))
 		(gnus-delete-line))))))
       ;; Remove list identifiers from subject.
-      (when gnus-list-identifiers
-	(let ((gnus-newsgroup-headers (list header)))
-	  (gnus-summary-remove-list-identifiers)))
+      (let ((gnus-newsgroup-headers (list header)))
+        (gnus-summary-remove-list-identifiers))
       (when old-header
 	(mail-header-set-number header (mail-header-number old-header)))
       (setq gnus-newsgroup-sparse
@@ -12682,8 +12685,7 @@ returned."
     (when gnus-agent
       (gnus-agent-get-undownloaded-list))
     ;; Remove list identifiers from subject
-    (when gnus-list-identifiers
-      (gnus-summary-remove-list-identifiers))
+    (gnus-summary-remove-list-identifiers)
     ;; First and last article in this newsgroup.
     (when gnus-newsgroup-headers
       (setq gnus-newsgroup-begin
