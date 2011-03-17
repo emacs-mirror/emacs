@@ -789,10 +789,10 @@ E.g. dumped variables whose default depends on run-time information."
 (defvar custom-known-themes '(user changed)
    "Themes that have been defined with `deftheme'.
 The default value is the list (user changed).  The theme `changed'
-contains the settings before custom themes are applied.  The
-theme `user' contains all the settings the user customized and saved.
-Additional themes declared with the `deftheme' macro will be added to
-the front of this list.")
+contains the settings before custom themes are applied.  The theme
+`user' contains all the settings the user customized and saved.
+Additional themes declared with the `deftheme' macro will be added
+to the front of this list.")
 
 (defsubst custom-theme-p (theme)
   "Non-nil when THEME has been defined."
@@ -1071,7 +1071,7 @@ order.  Each element in the list should be one of the following:
   named \"themes\" in `data-directory').
 - a directory name (a string).
 
-Each theme file is named NAME-theme.el, where THEME is the theme
+Each theme file is named THEME-theme.el, where THEME is the theme
 name."
   :type '(repeat (choice (const :tag "custom-theme-directory"
 				custom-theme-directory)
@@ -1143,7 +1143,7 @@ Return t if THEME was successfully loaded, nil otherwise."
 			 '("" "c")))
 	hash)
     (unless fn
-      (error "Unable to find theme file for `%s'." theme))
+      (error "Unable to find theme file for `%s'" theme))
     (with-temp-buffer
       (insert-file-contents fn)
       (setq hash (sha1 (current-buffer)))
@@ -1209,7 +1209,7 @@ NAME should be a symbol."
 
 (defun custom-available-themes ()
   "Return a list of available Custom themes (symbols)."
-  (let* (sym themes)
+  (let (sym themes)
     (dolist (dir (custom-theme--load-path))
       (when (file-directory-p dir)
 	(dolist (file (file-expand-wildcards
@@ -1335,7 +1335,7 @@ That is to say, it specifies what the value should be according to
 currently enabled custom themes.
 
 This function returns nil if no custom theme specifies a value for VARIABLE."
-  (let* ((theme-value (get variable 'theme-value)))
+  (let ((theme-value (get variable 'theme-value)))
     (if theme-value
 	(cdr (car theme-value)))))
 
