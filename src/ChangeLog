@@ -1,5 +1,9 @@
 2011-03-18  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lisp.h (child_setup): Now NO_RETURN unless DOS_NT.
+	This should get cleaned up, so that child_setup has the
+	same signature on all platforms.
+
 	* callproc.c (call_process_cleanup): Now static.
 	(relocate_fd): Rename locals to avoid shadowing.
 

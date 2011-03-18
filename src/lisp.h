@@ -3233,7 +3233,11 @@ extern void syms_of_process (void);
 extern void setup_process_coding_systems (Lisp_Object);
 
 EXFUN (Fcall_process, MANY);
-extern int child_setup (int, int, int, char **, int, Lisp_Object);
+extern int child_setup (int, int, int, char **, int, Lisp_Object)
+#ifndef DOS_NT
+ NO_RETURN
+#endif
+ ;
 extern void init_callproc_1 (void);
 extern void init_callproc (void);
 extern void set_initial_environment (void);
