@@ -595,7 +595,7 @@ wav_play (struct sound *s, struct sound_device *sd)
      files I found so far.  If someone feels inclined to implement the
      whole RIFF-WAVE spec, please do.  */
   if (STRINGP (s->data))
-    sd->write (sd, SDATA (s->data) + sizeof *header,
+    sd->write (sd, SSDATA (s->data) + sizeof *header,
 	       SBYTES (s->data) - sizeof *header);
   else
     {
@@ -686,7 +686,7 @@ au_play (struct sound *s, struct sound_device *sd)
   sd->configure (sd);
 
   if (STRINGP (s->data))
-    sd->write (sd, SDATA (s->data) + header->data_offset,
+    sd->write (sd, SSDATA (s->data) + header->data_offset,
 	       SBYTES (s->data) - header->data_offset);
   else
     {
@@ -1410,7 +1410,7 @@ Internal use only, use `play-sound' instead.  */)
     {
       int len = SCHARS (attrs[SOUND_DEVICE]);
       current_sound_device->file = (char *) alloca (len + 1);
-      strcpy (current_sound_device->file, SDATA (attrs[SOUND_DEVICE]));
+      strcpy (current_sound_device->file, SSDATA (attrs[SOUND_DEVICE]));
     }
 
   if (INTEGERP (attrs[SOUND_VOLUME]))
@@ -1498,4 +1498,3 @@ init_sound (void)
 }
 
 #endif /* HAVE_SOUND */
-

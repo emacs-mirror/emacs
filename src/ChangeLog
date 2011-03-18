@@ -1,5 +1,8 @@
 2011-03-18  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* sound.c (wav_play, au_play, Fplay_sound_internal):
+	Fix pointer signedness.
+
 	* region-cache.c (insert_cache_boundary): Redo var to avoid shadowing.
 
 	* region-cache.h (pp_cache): New decl, for gcc -Wmissing-prototypes.
