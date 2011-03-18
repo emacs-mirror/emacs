@@ -1,6 +1,7 @@
 2011-03-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* callproc.c (call_process_cleanup): Now static.
+	(relocate_fd): Rename locals to avoid shadowing.
 
 2011-03-17  Eli Zaretskii  <eliz@gnu.org>
 

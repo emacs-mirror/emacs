@@ -1272,12 +1272,12 @@ relocate_fd (int fd, int minfd)
 #endif
       if (new == -1)
 	{
-	  const char *message1 = "Error while setting up child: ";
+	  const char *message_1 = "Error while setting up child: ";
 	  const char *errmessage = strerror (errno);
-	  const char *message2 = "\n";
-	  emacs_write (2, message1, strlen (message1));
+	  const char *message_2 = "\n";
+	  emacs_write (2, message_1, strlen (message_1));
 	  emacs_write (2, errmessage, strlen (errmessage));
-	  emacs_write (2, message2, strlen (message2));
+	  emacs_write (2, message_2, strlen (message_2));
 	  _exit (1);
 	}
       emacs_close (fd);
