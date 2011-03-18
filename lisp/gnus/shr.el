@@ -113,6 +113,15 @@ cid: URL as the argument.")
 
 ;; Public functions and commands.
 
+(defun shr-visit-file (file)
+  (interactive "fHTML file name: ")
+  (pop-to-buffer "*html*")
+  (erase-buffer)
+  (shr-insert-document
+   (with-temp-buffer
+     (insert-file-contents file)
+     (libxml-parse-html-region (point-min) (point-max)))))
+
 ;;;###autoload
 (defun shr-insert-document (dom)
   (setq shr-content-cache nil)

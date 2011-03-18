@@ -44,6 +44,7 @@
 (require 'wid-edit)
 (require 'mm-uu)
 (require 'message)
+(require 'mouse)
 
 (autoload 'gnus-msg-mail "gnus-msg" nil t)
 (autoload 'gnus-button-mailto "gnus-msg")

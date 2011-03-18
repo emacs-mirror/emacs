@@ -1,3 +1,28 @@
+2011-03-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el: Require mouse, which the build bot seems to say is
+	needed.
+
+	* gravatar.el (gravatar-retrieve-synchronously): Use `url-retrieve' on
+	XEmacs, since it doesn't have url-retrieve-synchronously.
+
+2011-03-17  Antoine Levitt  <antoine.levitt@gmail.com>
+
+	* gnus-group.el (gnus-group-list-ticked): New function.
+	(gnus-group-make-menu-bar): Provide a menu entry for it.
+	(gnus-group-list-map): Provide a binding for it.
+
+2011-03-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-visit-file): New command.
+
+	* nnimap.el (nnimap-fetch-inbox): Rewrite slightly last patch.
+
+2011-03-17  Bjørn Mork  <bjorn@mork.no>
+
+	* nnimap.el (nnimap-fetch-inbox): Don't download bodies on ver4-capable
+	servers.
+
 2011-03-16  Julien Danjou  <julien@danjou.info>
 
 	* mm-uu.el (mm-uu-dissect-text-parts): Only dissect handle that are
