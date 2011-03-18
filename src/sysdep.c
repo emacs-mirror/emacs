@@ -488,10 +488,7 @@ sys_subshell (void)
   int pid;
   struct save_signal saved_handlers[5];
   Lisp_Object dir;
-
-  /* Volatile because otherwise vfork might clobber it on some hosts.  */
-  unsigned char *volatile dirstr = 0;
-
+  unsigned char *volatile str_volatile = 0;
   unsigned char *str;
   int len;
 
@@ -516,7 +513,7 @@ sys_subshell (void)
     goto xyzzy;
 
   dir = expand_and_dir_to_file (Funhandled_file_name_directory (dir), Qnil);
-  str = dirstr = (unsigned char *) alloca (SCHARS (dir) + 2);
+  str_volatile = str = (unsigned char *) alloca (SCHARS (dir) + 2);
   len = SCHARS (dir);
   memcpy (str, SDATA (dir), len);
   if (str[len - 1] != '/') str[len++] = '/';
@@ -548,7 +545,7 @@ sys_subshell (void)
 	sh = "sh";
 
       /* Use our buffer's default directory for the subshell.  */
-      str = dirstr;
+      str = str_volatile;
       if (str && chdir ((char *) str) != 0)
 	{
 #ifndef DOS_NT
