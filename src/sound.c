@@ -600,7 +600,7 @@ wav_play (struct sound *s, struct sound_device *sd)
   else
     {
       char *buffer;
-      int nbytes;
+      int nbytes = 0;
       int blksize = sd->period_size ? sd->period_size (sd) : 2048;
       int data_left = header->data_length;
 
