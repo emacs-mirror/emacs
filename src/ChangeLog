@@ -1,5 +1,7 @@
 2011-03-18  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* region-cache.h (pp_cache): New decl, for gcc -Wmissing-prototypes.
+
 	* callproc.c (Fcall_process): Use 'volatile' to avoid vfork clobbering.
 	* sysdep.c (sys_subshell): Likewise.
 	Previously, the sys_subshell 'volatile' was incorrectly IF_LINTted out.
