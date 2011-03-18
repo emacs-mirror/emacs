@@ -3467,7 +3467,7 @@ usage: (make-network-process &rest ARGS)  */)
 	  if (EQ (service, Qt))
 	    {
 	      struct sockaddr_in sa1;
-	      int len1 = sizeof (sa1);
+	      socklen_t len1 = sizeof (sa1);
 	      if (getsockname (s, (struct sockaddr *)&sa1, &len1) == 0)
 		{
 		  ((struct sockaddr_in *)(lres->ai_addr))->sin_port = sa1.sin_port;
@@ -3514,7 +3514,8 @@ usage: (make-network-process &rest ARGS)  */)
 	  /* Unlike most other syscalls connect() cannot be called
 	     again.  (That would return EALREADY.)  The proper way to
 	     wait for completion is select(). */
-	  int sc, len;
+	  int sc;
+	  socklen_t len;
 	  SELECT_TYPE fdset;
 	retry_select:
 	  FD_ZERO (&fdset);
@@ -3587,7 +3588,7 @@ usage: (make-network-process &rest ARGS)  */)
       if (!is_server)
 	{
 	  struct sockaddr_in sa1;
-	  int len1 = sizeof (sa1);
+	  socklen_t len1 = sizeof (sa1);
 	  if (getsockname (s, (struct sockaddr *)&sa1, &len1) == 0)
 	    contact = Fplist_put (contact, QClocal,
 				  conv_sockaddr_to_lisp ((struct sockaddr *)&sa1, len1));
@@ -4192,7 +4193,7 @@ server_accept_connection (Lisp_Object server, int channel)
     struct sockaddr_un un;
 #endif
   } saddr;
-  int len = sizeof saddr;
+  socklen_t len = sizeof saddr;
 
   s = accept (channel, &saddr.sa, &len);
 
@@ -5059,7 +5060,7 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 	      /* getsockopt(,,SO_ERROR,,) is said to hang on some systems.
 		 So only use it on systems where it is known to work.  */
 	      {
-		int xlen = sizeof (xerrno);
+		socklen_t xlen = sizeof (xerrno);
 		if (getsockopt (channel, SOL_SOCKET, SO_ERROR, &xerrno, &xlen))
 		  xerrno = errno;
 	      }
@@ -5171,7 +5172,7 @@ read_process_output (Lisp_Object proc, register int channel)
   /* We have a working select, so proc_buffered_char is always -1.  */
   if (DATAGRAM_CHAN_P (channel))
     {
-      int len = datagram_address[channel].len;
+      socklen_t len = datagram_address[channel].len;
       nbytes = recvfrom (channel, chars + carryover, readmax,
 			 0, datagram_address[channel].sa, &len);
     }

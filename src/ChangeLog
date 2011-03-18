@@ -1,3 +1,13 @@
+2011-03-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* process.c (Fmake_network_process): Use socklen_t, not int,
+	where POSIX says socklen_t is required in portable programs.
+	This fixes a porting bug on hosts like 64-bit HP-UX, where
+	socklen_t is wider than int.
+	(Fmake_network_process, server_accept_connection):
+	(wait_reading_process_output, read_process_output):
+	Likewise.
+
 2011-03-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix more problems found by GCC 4.5.2's static checks.

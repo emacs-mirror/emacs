@@ -1,3 +1,9 @@
+2011-03-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (GNULIB_MODULES): Add socklen.
+	* configure.in: Do not check for sys/socket.h, since socklen does that.
+	* m4/socklen.m4: New automatically-generated file, from gnulib.
+
 2011-03-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Update for gnulib.

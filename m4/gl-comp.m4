@@ -45,6 +45,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module mktime:
   # Code from module multiarch:
   # Code from module readlink:
+  # Code from module socklen:
   # Code from module stat:
   # Code from module stdbool:
   # Code from module stddef:
@@ -111,6 +112,8 @@ AC_DEFUN([gl_INIT],
   # Code from module readlink:
   gl_FUNC_READLINK
   gl_UNISTD_MODULE_INDICATOR([readlink])
+  # Code from module socklen:
+  gl_TYPE_SOCKLEN_T
   # Code from module stat:
   gl_FUNC_STAT
   gl_SYS_STAT_MODULE_INDICATOR([stat])
@@ -327,6 +330,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/mktime.m4
   m4/multiarch.m4
   m4/readlink.m4
+  m4/socklen.m4
   m4/st_dm_mode.m4
   m4/stat.m4
   m4/stdbool.m4
