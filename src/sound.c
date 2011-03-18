@@ -1104,7 +1104,6 @@ alsa_close (struct sound_device *sd)
 static void
 alsa_choose_format (struct sound_device *sd, struct sound *s)
 {
-  struct alsa_params *p = (struct alsa_params *) sd->data;
   if (s->type == RIFF)
     {
       struct wav_header *h = (struct wav_header *) s->header;

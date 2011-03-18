@@ -2,6 +2,7 @@
 
 	* sound.c (wav_play, au_play, Fplay_sound_internal):
 	Fix pointer signedness.
+	(alsa_choose_format): Remove unused local var.
 
 	* region-cache.c (insert_cache_boundary): Redo var to avoid shadowing.
 
