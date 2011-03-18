@@ -1,3 +1,7 @@
+2011-03-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* callproc.c (call_process_cleanup): Now static.
+
 2011-03-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in ($(BLD)/unexw32.$(O)): Depend on $(SRC)/unexec.h.

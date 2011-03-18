@@ -107,7 +107,7 @@ call_process_kill (Lisp_Object fdpid)
   return Qnil;
 }
 
-Lisp_Object
+static Lisp_Object
 call_process_cleanup (Lisp_Object arg)
 {
   Lisp_Object fdpid = Fcdr (arg);
