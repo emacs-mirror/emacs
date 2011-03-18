@@ -1,5 +1,7 @@
 2011-03-18  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* textprop.c (property_change_between_p): Remove; unused.
+
 	* intervals.c (interval_start_pos): Now static.
 
 	* intervals.h (CHECK_TOTAL_LENGTH): Avoid empty "else".
