@@ -1,5 +1,7 @@
 2011-03-18  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* region-cache.c (insert_cache_boundary): Redo var to avoid shadowing.
+
 	* region-cache.h (pp_cache): New decl, for gcc -Wmissing-prototypes.
 
 	* callproc.c (Fcall_process): Use 'volatile' to avoid vfork clobbering.
