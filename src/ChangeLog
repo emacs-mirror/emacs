@@ -1,7 +1,8 @@
 2011-03-18  Paul Eggert  <eggert@cs.ucla.edu>
 
-	* sysdep.c (sys_subshell): Use 'volatile' to avoid vfork clobbering.
-	Before, this 'volatile' was incorrectly IF_LINTted out.
+	* callproc.c (Fcall_process): Use 'volatile' to avoid vfork clobbering.
+	* sysdep.c (sys_subshell): Likewise.
+	Previously, the sys_subshell 'volatile' was incorrectly IF_LINTted out.
 
 	* lisp.h (child_setup): Now NO_RETURN unless DOS_NT.
 	This should get cleaned up, so that child_setup has the
