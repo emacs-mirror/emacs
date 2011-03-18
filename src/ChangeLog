@@ -1,5 +1,7 @@
 2011-03-18  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* intervals.c (interval_start_pos): Now static.
+
 	* intervals.h (CHECK_TOTAL_LENGTH): Avoid empty "else".
 
 	* atimer.c (start_atimer, append_atimer_lists, set_alarm): Rename
