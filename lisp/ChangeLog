@@ -1,7 +1,8 @@
-2011-03-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+2011-03-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* calendar/time-date.el (format-seconds): Use assoc instead of
-	assoc-string to avoid warning on XEmacs.
+	* vc/diff-mode.el (diff-mode-map): Shadow problematic bindings from
+	diff-mode-shared-map (bug#8284).
+	(diff-mode-shared-map): Re-introduce some bindings that were problematic.
 
 2011-03-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
