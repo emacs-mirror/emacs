@@ -1,3 +1,8 @@
+2011-03-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* composite.c (composition_compute_stop_pos): Rename local to
+	avoid shadowing.
+
 2011-03-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	character.h: Rename locals to avoid shadowing.

@@ -1115,7 +1115,7 @@ composition_compute_stop_pos (struct composition_it *cmp_it, EMACS_INT charpos, 
 	  if (! NILP (val))
 	    {
 	      Lisp_Object elt;
-	      int ridx, back, len;
+	      int ridx, back, blen;
 
 	      for (ridx = 0; CONSP (val); val = XCDR (val), ridx++)
 		{
@@ -1132,17 +1132,17 @@ composition_compute_stop_pos (struct composition_it *cmp_it, EMACS_INT charpos, 
 			bpos = (NILP (string) ? CHAR_TO_BYTE (cpos)
 				: string_char_to_byte (string, cpos));
 		      if (STRINGP (AREF (elt, 0)))
-			len = fast_looking_at (AREF (elt, 0), cpos, bpos,
-					       start + 1, limit, string);
+			blen = fast_looking_at (AREF (elt, 0), cpos, bpos,
+						start + 1, limit, string);
 		      else
-			len = 1;
-		      if (len > 0)
+			blen = 1;
+		      if (blen > 0)
 			{
 			  /* Make CPOS point to the last character of
-			     match.  Note that LEN is byte-length.  */
-			  if (len > 1)
+			     match.  Note that BLEN is byte-length.  */
+			  if (blen > 1)
 			    {
-			      bpos += len;
+			      bpos += blen;
 			      if (NILP (string))
 				cpos = BYTE_TO_CHAR (bpos) - 1;
 			      else
@@ -2032,4 +2032,3 @@ See also the documentation of `auto-composition-mode'.  */);
   defsubr (&Sfind_composition_internal);
   defsubr (&Scomposition_get_gstring);
 }
-
