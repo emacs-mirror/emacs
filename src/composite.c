@@ -1364,7 +1364,7 @@ composition_reseat_it (struct composition_it *cmp_it, EMACS_INT charpos, EMACS_I
 int
 composition_update_it (struct composition_it *cmp_it, EMACS_INT charpos, EMACS_INT bytepos, Lisp_Object string)
 {
-  int i, c;
+  int i, c IF_LINT (= 0);
 
   if (cmp_it->ch < 0)
     {

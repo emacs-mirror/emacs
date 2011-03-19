@@ -4,6 +4,7 @@
 	avoid shadowing.
 	(composition_reseat_it): Remove unused locals.
 	(find_automatic_composition, composition_adjust_point): Likewise.
+	(composition_update_it): Mark var as initialized.
 
 2011-03-18  Paul Eggert  <eggert@cs.ucla.edu>
 
