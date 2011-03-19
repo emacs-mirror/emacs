@@ -1,3 +1,11 @@
+2011-03-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl-byte-compile-block, cl-block-wrapper)
+	(cl-block-throw, cl-byte-compile-throw): Use a compiler-macro rather
+	than a `byte-compile' hook to optimize away unused CL blocks, so that
+	also works for lexbind code.
+	Move the code after define-compiler-macro.
+
 2011-03-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/pcase.el (pcase-mutually-exclusive-predicates):

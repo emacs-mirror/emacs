@@ -598,33 +598,6 @@ called from BODY."
 	  (list* 'catch (list 'quote (intern (format "--cl-block-%s--" name)))
 		 body))))
 
-(defvar cl-active-block-names nil)
-
-(put 'cl-block-wrapper 'byte-compile 'cl-byte-compile-block)
-(defun cl-byte-compile-block (cl-form)
-  ;; Here we try to determine if a catch tag is used or not, so as to get rid
-  ;; of the catch when it's not used.
-  (if (and (fboundp 'byte-compile-form-do-effect) ; Optimizing compiler?
-           ;; FIXME: byte-compile-top-level can only be used for code that is
-           ;; closed (as the name implies), so for lexical scoping we should
-           ;; implement this optimization differently.
-           (not lexical-binding))
-      (progn
-	(let* ((cl-entry (cons (nth 1 (nth 1 (nth 1 cl-form))) nil))
-	       (cl-active-block-names (cons cl-entry cl-active-block-names))
-	       (cl-body (byte-compile-top-level
-			 (cons 'progn (cddr (nth 1 cl-form))))))
-	  (if (cdr cl-entry)
-	      (byte-compile-form (list 'catch (nth 1 (nth 1 cl-form)) cl-body))
-	    (byte-compile-form cl-body))))
-    (byte-compile-form (nth 1 cl-form))))
-
-(put 'cl-block-throw 'byte-compile 'cl-byte-compile-throw)
-(defun cl-byte-compile-throw (cl-form)
-  (let ((cl-found (assq (nth 1 (nth 1 cl-form)) cl-active-block-names)))
-    (if cl-found (setcdr cl-found t)))
-  (byte-compile-normal-call (cons 'throw (cdr cl-form))))
-
 ;;;###autoload
 (defmacro return (&optional result)
   "Return from the block named nil.
@@ -1433,7 +1406,7 @@ by EXPANSION, and (setq NAME ...) will act like (setf EXPANSION ...).
   "Like `let', but lexically scoped.
 The main visible difference is that lambdas inside BODY will create
 lexical closures as in Common Lisp.
-\n(fn VARLIST BODY)"
+\n(fn BINDINGS BODY)"
   (let* ((cl-closure-vars cl-closure-vars)
 	 (vars (mapcar (function
 			(lambda (x)
@@ -1476,10 +1449,10 @@ lexical closures as in Common Lisp.
 (defmacro lexical-let* (bindings &rest body)
   "Like `let*', but lexically scoped.
 The main visible difference is that lambdas inside BODY, and in
-successive bindings within VARLIST, will create lexical closures
+successive bindings within BINDINGS, will create lexical closures
 as in Common Lisp.  This is similar to the behavior of `let*' in
 Common Lisp.
-\n(fn VARLIST BODY)"
+\n(fn BINDINGS BODY)"
   (if (null bindings) (cons 'progn body)
     (setq bindings (reverse bindings))
     (while bindings
@@ -2625,6 +2598,27 @@ and then returning foo."
   (if (eq form (setq form (compiler-macroexpand form)))
       (byte-compile-normal-call form)
     (byte-compile-form form)))
+
+;; Optimize away unused block-wrappers.
+
+(defvar cl-active-block-names nil)
+
+(define-compiler-macro cl-block-wrapper (cl-form)
+  (let* ((cl-entry (cons (nth 1 (nth 1 cl-form)) nil))
+         (cl-active-block-names (cons cl-entry cl-active-block-names))
+         (cl-body (macroexpand-all      ;Performs compiler-macro expansions.
+                   (cons 'progn (cddr cl-form))
+                   macroexpand-all-environment)))
+    ;; FIXME: To avoid re-applying macroexpand-all, we'd like to be able
+    ;; to indicate that this return value is already fully expanded.
+    (if (cdr cl-entry)
+        `(catch (nth 1 cl-form) ,@(cdr cl-body))
+      cl-body)))
+
+(define-compiler-macro cl-block-throw (cl-tag cl-value)
+  (let ((cl-found (assq (nth 1 cl-tag) cl-active-block-names)))
+    (if cl-found (setcdr cl-found t)))
+  `(throw ,cl-tag ,cl-value))
 
 ;;;###autoload
 (defmacro defsubst* (name args &rest body)
