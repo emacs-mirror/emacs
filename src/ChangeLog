@@ -1,5 +1,7 @@
 2011-03-19  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xfont.c (xfont_list_family): Mark var as initialized.
+
 	* xml.c (make_dom): Now static.
 
 	* composite.c (composition_compute_stop_pos): Rename local to
