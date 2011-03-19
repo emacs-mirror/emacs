@@ -1,3 +1,10 @@
+2011-03-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* emerge.el (emerge-metachars): Separate value for ms-dos and
+	windows-nt systems.
+	(emerge-protect-metachars): Quote correctly for ms-dos and
+	windows-nt systems.
+
 2011-03-15  Ralph Schleicher  <rs@ralph-schleicher.de>
 
 	* info.el (info-initialize): Replace all uses of `:' with
