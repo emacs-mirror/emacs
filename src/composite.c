@@ -1489,7 +1489,13 @@ find_automatic_composition (EMACS_INT pos, EMACS_INT limit, EMACS_INT *start, EM
   EMACS_INT head, tail, stop;
   /* Limit to check a composition after POS.  */
   EMACS_INT fore_check_limit;
-  struct position_record orig, cur, check, prev;
+  struct position_record orig, cur;
+
+  /* FIXME: It's not obvious whether these two variables need initialization.
+     If they do, please supply initial values.
+     If not, please remove this comment.  */
+  struct position_record check IF_LINT (= {0}), prev IF_LINT (= {0});
+
   Lisp_Object check_val, val, elt;
   int c;
   Lisp_Object window;

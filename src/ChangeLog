@@ -5,6 +5,7 @@
 	(composition_reseat_it): Remove unused locals.
 	(find_automatic_composition, composition_adjust_point): Likewise.
 	(composition_update_it): Mark var as initialized.
+	(find_automatic_composition): Mark vars as initialized, with a FIXME.
 
 2011-03-18  Paul Eggert  <eggert@cs.ucla.edu>
 
