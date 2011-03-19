@@ -1,3 +1,10 @@
+2011-03-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* facemenu.el (list-colors-display): Call list-faces-display
+	inside with-help-window.
+	(list-colors-print): Use display property to align the final
+	column, instead of checking window-width.
+
 2011-03-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* emerge.el (emerge-metachars): Separate value for ms-dos and
