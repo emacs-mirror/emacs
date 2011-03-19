@@ -1,5 +1,12 @@
 2011-03-18  Paul Eggert  <eggert@cs.ucla.edu>
 
+	character.h: Rename locals to avoid shadowing.
+	* character.h (PREV_CHAR_BOUNDARY, FETCH_STRING_CHAR_ADVANCE):
+	(FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE, FETCH_CHAR_ADVANCE):
+	(FETCH_CHAR_ADVANCE_NO_CHECK, INC_POS, DEC_POS, BUF_INC_POS):
+	(BUF_DEC_POS): Be more systematic about renaming local temporaries
+	to avoid shadowing.
+
 	* textprop.c (property_change_between_p): Remove; unused.
 
 	* intervals.c (interval_start_pos): Now static.
