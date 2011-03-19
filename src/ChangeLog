@@ -1,5 +1,10 @@
 2011-03-19  Juanma Barranquero  <lekktu@gmail.com>
 
+	* xfaces.c (Fx_load_color_file):
+	Read color file from absolute filename (bug#8250).
+
+2011-03-19  Juanma Barranquero  <lekktu@gmail.com>
+
 	* makefile.w32-in: Update dependencies.
 
 2011-03-17  Eli Zaretskii  <eliz@gnu.org>

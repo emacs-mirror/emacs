@@ -1,3 +1,22 @@
+2011-03-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* emerge.el (emerge-metachars): Separate value for ms-dos and
+	windows-nt systems.
+	(emerge-protect-metachars): Quote correctly for ms-dos and
+	windows-nt systems.
+
+2011-03-19  Ralph Schleicher  <rs@ralph-schleicher.de>
+
+	* info.el (info-initialize): Replace all uses of `:' with
+	path-separator for compatibility with non-Unix systems.
+	Cache quoting of path-separator.  (Bug#8258)
+
+2011-03-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* avoid.el (mouse-avoidance-mode, mouse-avoidance-nudge-dist)
+	(mouse-avoidance-threshold, mouse-avoidance-banish-destination)
+	(mouse-avoidance-mode): Fix typos in docstrings.
+
 2011-03-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* startup.el (package-subdirectory-regexp): Move from package.el.
