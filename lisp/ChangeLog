@@ -1,5 +1,8 @@
 2011-03-19  Chong Yidong  <cyd@stupidchicken.com>
 
+	* dired-aux.el (dired-create-directory): Signal an error if the
+	directory already exists (Bug#8246).
+
 	* facemenu.el (list-colors-display): Call list-faces-display
 	inside with-help-window.
 	(list-colors-print): Use display property to align the final
