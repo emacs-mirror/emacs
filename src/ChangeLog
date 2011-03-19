@@ -1,3 +1,7 @@
+2011-03-19  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* process.c (Fformat_network_address): Doc fix.
+
 2011-03-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* buffer.h (BUF_BEGV, BUF_BEGV_BYTE, BUF_ZV, BUF_ZV_BYTE, BUF_PT)

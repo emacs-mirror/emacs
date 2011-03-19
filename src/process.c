@@ -1598,9 +1598,9 @@ at end of BUFFER, unless you specify an output stream or filter
 function to handle the output.  BUFFER may also be nil, meaning that
 this process is not associated with any buffer.
 
-PROGRAM is the program file name.  It is searched for in PATH.  If
-nil, just associate a pty with the buffer.  Remaining arguments are
-strings to give program as arguments.
+PROGRAM is the program file name.  It is searched for in `exec-path'
+(which see).  If nil, just associate a pty with the buffer.  Remaining
+arguments are strings to give program as arguments.
 
 If you want to separate standard output from standard error, invoke
 the command through a shell and redirect one of them using the shell
