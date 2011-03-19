@@ -1,5 +1,7 @@
 2011-03-19  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xml.c (make_dom): Now static.
+
 	* composite.c (composition_compute_stop_pos): Rename local to
 	avoid shadowing.
 	(composition_reseat_it): Remove unused locals.
