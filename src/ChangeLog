@@ -4,6 +4,9 @@
 	(ftfont_otf_capability, ftfont_shape): Omit decls if not needed.
 	(OTF_TAG_SYM): Omit macro if not needed.
 	(ftfont_list): Remove unused local.
+	(get_adstyle_property, ftfont_pattern_entity):
+	(ftfont_lookup_cache, ftfont_open, ftfont_anchor_point):
+	Rename locals to avoid shadowing.
 
 	* xfont.c (xfont_list_family): Mark var as initialized.
 
