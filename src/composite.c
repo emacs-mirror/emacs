@@ -1248,8 +1248,8 @@ composition_reseat_it (struct composition_it *cmp_it, EMACS_INT charpos, EMACS_I
   else if (w)
     {
       Lisp_Object lgstring = Qnil;
-      Lisp_Object val, elt, re;
-      int len, i;
+      Lisp_Object val, elt;
+      int i;
 
       val = CHAR_TABLE_REF (Vcomposition_function_table, cmp_it->ch);
       for (i = 0; i < cmp_it->rule_idx; i++, val = XCDR (val));
@@ -1491,7 +1491,6 @@ find_automatic_composition (EMACS_INT pos, EMACS_INT limit, EMACS_INT *start, EM
   EMACS_INT fore_check_limit;
   struct position_record orig, cur, check, prev;
   Lisp_Object check_val, val, elt;
-  int check_lookback;
   int c;
   Lisp_Object window;
   struct window *w;
@@ -1657,7 +1656,7 @@ find_automatic_composition (EMACS_INT pos, EMACS_INT limit, EMACS_INT *start, EM
 EMACS_INT
 composition_adjust_point (EMACS_INT last_pt, EMACS_INT new_pt)
 {
-  EMACS_INT charpos, bytepos, startpos, beg, end, pos;
+  EMACS_INT beg, end;
   Lisp_Object val;
   int i;
 
