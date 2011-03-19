@@ -871,7 +871,6 @@ ftfont_list (Lisp_Object frame, Lisp_Object spec)
   FcObjectSet *objset = NULL;
   FcCharSet *charset;
   Lisp_Object chars = Qnil;
-  FcResult result;
   char otlayout[15];		/* For "otlayout:XXXX" */
   struct OpenTypeSpec *otspec = NULL;
   int spacing = -1;

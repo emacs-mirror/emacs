@@ -3,6 +3,7 @@
 	* ftfont.c (ftfont_resolve_generic_family): Fix pointer signedness.
 	(ftfont_otf_capability, ftfont_shape): Omit decls if not needed.
 	(OTF_TAG_SYM): Omit macro if not needed.
+	(ftfont_list): Remove unused local.
 
 	* xfont.c (xfont_list_family): Mark var as initialized.
 
