@@ -491,8 +491,12 @@ static int ftfont_get_bitmap (struct font *, unsigned,
                               struct font_bitmap *, int);
 static int ftfont_anchor_point (struct font *, unsigned, int,
                                 int *, int *);
+#ifdef HAVE_LIBOTF
 static Lisp_Object ftfont_otf_capability (struct font *);
+# ifdef HAVE_M17N_FLT
 static Lisp_Object ftfont_shape (Lisp_Object);
+# endif
+#endif
 
 #ifdef HAVE_OTF_GET_VARIATION_GLYPHS
 static int ftfont_variation_glyphs (struct font *, int c,
@@ -619,6 +623,7 @@ struct OpenTypeSpec
     (P)[4] = '\0';				\
   } while (0)
 
+#ifdef HAVE_LIBOTF
 #define OTF_TAG_SYM(SYM, TAG)			\
   do {						\
     char str[5];				\
@@ -626,6 +631,7 @@ struct OpenTypeSpec
     OTF_TAG_STR (TAG, str);			\
     (SYM) = font_intern_prop (str, 4, 1);	\
   } while (0)
+#endif
 
 
 static struct OpenTypeSpec *
