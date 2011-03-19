@@ -96,8 +96,6 @@ struct cm
     int cc_vabs;
   };
 
-extern char PC;			/* Pad character */
-
 /* Shorthand */
 #ifndef NoCMShortHand
 #define curY(tty)		(tty)->Wcm->cm_curY

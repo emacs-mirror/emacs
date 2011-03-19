@@ -1,5 +1,17 @@
 2011-03-19  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Make tparam.h and terminfo.c consistent.
+	* cm.c (tputs, tgoto, BC, UP): Remove extern decls.  Include
+	tparam.h instead, since it declares them.
+	* cm.h (PC): Remove extern decl; tparam.h now does this.
+	* deps.mk (cm.o, terminfo.o): Depend on tparam.h.
+	* terminfo.c: Include tparam.h, to check interfaces.
+	(tparm): Make 1st arg a const pointer in decl.  Put it at top level.
+	(tparam): Adjust signature to match interface in tparam.h;
+	this removes some undefined behavior.  Check that outstring and len
+	are zero, which they always are with Emacs.
+	* tparam.h (PC, BC, UP): New extern decls.
+
 	* xftfont.c (xftfont_shape): Now static, and defined only if needed.
 	(xftfont_open): Rename locals to avoid shadowing.
 
