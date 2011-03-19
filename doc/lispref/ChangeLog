@@ -1,3 +1,11 @@
+2011-03-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* positions.texi (Excursions): Explain the "save-excursion
+	defeated by set-buffer" warning.
+
+	* buffers.texi (Current Buffer): Copyedits.  Don't recommend using
+	save-excursion.  Suggested by Uday S Reddy.
+
 2011-03-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* strings.texi (String Conversion): Don't mention
