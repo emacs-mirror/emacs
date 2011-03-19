@@ -1,3 +1,16 @@
+2011-03-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (package-subdirectory-regexp): Move from package.el.
+	Omit \\` and \\', and let callers add them.
+
+	* emacs-lisp/package.el (package-strip-version)
+	(package-load-all-descriptors): Add \\` and \\' to
+	package-subdirectory-regexp before using it.
+	(package-untar-buffer): New arg DIR; ensure that file untars only
+	into this expected directory.  Remove superfluous delete-region.
+	(package-unpack): Caller changed.
+	(package-tar-file-info): Use package-subdirectory-regexp.
+
 2011-03-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc/diff-mode.el (diff-mode-map): Shadow problematic bindings from

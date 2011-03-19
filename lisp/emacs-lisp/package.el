@@ -319,12 +319,6 @@ Like `package-alist', but maps package name to a second alist.
 The inner alist is keyed by version.")
 (put 'package-obsolete-alist 'risky-local-variable t)
 
-(defconst package-subdirectory-regexp
-  "\\`\\([^.].*?\\)-\\([0-9]+\\(?:[.][0-9]+\\|\\(?:pre\\|beta\\|alpha\\)[0-9]+\\)*\\)\\'"
-  "Regular expression matching the name of a package subdirectory.
-The first subexpression is the package name.
-The second subexpression is the version string.")
-
 (defun package-version-join (vlist)
   "Return the version string corresponding to the list VLIST.
 This is, approximately, the inverse of `version-to-list'.
@@ -357,7 +351,7 @@ This is, approximately, the inverse of `version-to-list'.
 (defun package-strip-version (dirname)
   "Strip the version from a combined package name and version.
 E.g., if given \"quux-23.0\", will return \"quux\""
-  (if (string-match package-subdirectory-regexp dirname)
+  (if (string-match (concat "\\`" package-subdirectory-regexp "\\'") dirname)
       (match-string 1 dirname)))
 
 (defun package-load-descriptor (dir package)
@@ -382,12 +376,13 @@ In each valid package subdirectory, this function loads the
 description file containing a call to `define-package', which
 updates `package-alist' and `package-obsolete-alist'."
   (let ((all (memq 'all package-load-list))
+	(regexp (concat "\\`" package-subdirectory-regexp "\\'"))
 	name version force)
     (dolist (dir (cons package-user-dir package-directory-list))
       (when (file-directory-p dir)
 	(dolist (subdir (directory-files dir))
 	  (when (and (file-directory-p (expand-file-name subdir dir))
-		     (string-match package-subdirectory-regexp subdir))
+		     (string-match regexp subdir))
 	    (setq name    (intern (match-string 1 subdir))
 		  version (match-string 2 subdir)
 		  force   (assq name package-load-list))
@@ -579,30 +574,29 @@ EXTRA-PROPERTIES is currently unused."
       (package-autoload-ensure-default-file generated-autoload-file))
     (update-directory-autoloads pkg-dir)))
 
-(defun package-untar-buffer ()
+(defvar tar-parse-info)
+(declare-function tar-untar-buffer "tar-mode" ())
+
+(defun package-untar-buffer (dir)
   "Untar the current buffer.
-This uses `tar-untar-buffer' if it is available.
-Otherwise it uses an external `tar' program.
-`default-directory' should be set by the caller."
+This uses `tar-untar-buffer' from Tar mode.  All files should
+untar into a directory named DIR; otherwise, signal an error."
   (require 'tar-mode)
-  (if (fboundp 'tar-untar-buffer)
-      (progn
-	;; tar-mode messes with narrowing, so we just let it have the
-	;; whole buffer to play with.
-	(delete-region (point-min) (point))
-	(tar-mode)
-	(tar-untar-buffer))
-    ;; FIXME: check the result.
-    (call-process-region (point) (point-max) "tar" nil '(nil nil) nil
-			 "xf" "-")))
+  (tar-mode)
+  ;; Make sure everything extracts into DIR.
+  (let ((regexp (concat "\\`" (regexp-quote dir) "/")))
+    (dolist (tar-data tar-parse-info)
+      (unless (string-match regexp (aref tar-data 2))
+	(error "Package does not untar cleanly into directory %s/" dir))))
+  (tar-untar-buffer))
 
 (defun package-unpack (name version)
-  (let ((pkg-dir (expand-file-name (concat (symbol-name name) "-" version)
-				   package-user-dir)))
+  (let* ((dirname (concat (symbol-name name) "-" version))
+	 (pkg-dir (expand-file-name dirname package-user-dir)))
     (make-directory package-user-dir t)
     ;; FIXME: should we delete PKG-DIR if it exists?
     (let* ((default-directory (file-name-as-directory package-user-dir)))
-      (package-untar-buffer)
+      (package-untar-buffer dirname)
       (package-generate-autoloads (symbol-name name) pkg-dir)
       (let ((load-path (cons pkg-dir load-path)))
 	(byte-recompile-directory pkg-dir 0 t)))))
@@ -942,7 +936,8 @@ FILE is the name of the tar file to examine.
 The return result is a vector like `package-buffer-info'."
   (let ((default-directory (file-name-directory file))
 	(file (file-name-nondirectory file)))
-    (unless (string-match "^\\(.+\\)-\\([0-9.]+\\)\\.tar$" file)
+    (unless (string-match (concat "\\`" package-subdirectory-regexp "\\.tar\\'")
+			  file)
       (error "Invalid package name `%s'" file))
     (let* ((pkg-name (match-string-no-properties 1 file))
 	   (pkg-version (match-string-no-properties 2 file))

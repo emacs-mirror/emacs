@@ -392,6 +392,15 @@ Warning Warning!!!  Pure space overflow    !!!Warning Warning
   :type 'directory
   :initialize 'custom-initialize-delay)
 
+(defconst package-subdirectory-regexp
+  "\\([^.].*?\\)-\\([0-9]+\\(?:[.][0-9]+\\|\\(?:pre\\|beta\\|alpha\\)[0-9]+\\)*\\)"
+  "Regular expression matching the name of a package subdirectory.
+The first subexpression is the package name.
+The second subexpression is the version string.
+
+The regexp should not contain a starting \"\\`\" or a trailing
+ \"\\'\"; those are added automatically by callers.")
+
 (defun normal-top-level-add-subdirs-to-load-path ()
   "Add all subdirectories of current directory to `load-path'.
 More precisely, this uses only the subdirectories whose names
@@ -1194,9 +1203,9 @@ the `--debug-init' option to view a complete error backtrace."
 	     (when (file-directory-p dir)
 	       (dolist (subdir (directory-files dir))
 		 (when (and (file-directory-p (expand-file-name subdir dir))
-			    ;; package-subdirectory-regexp from package.el
-			    (string-match "\\`\\([^.].*?\\)-\\([0-9]+\\(?:[.][0-9]+\\|\\(?:pre\\|beta\\|alpha\\)[0-9]+\\)*\\)\\'"
-					  subdir))
+			    (string-match
+			     (concat "\\`" package-subdirectory-regexp "\\'")
+			     subdir))
 		   (throw 'package-dir-found t)))))))
        (package-initialize))
 
