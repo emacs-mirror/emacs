@@ -1,3 +1,25 @@
+2011-03-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* buffer.h (BUF_BEGV, BUF_BEGV_BYTE, BUF_ZV, BUF_ZV_BYTE, BUF_PT)
+	(BUF_PT_BYTE): Rewrite to handle indirect buffers (Bug#8219).
+	These macros can no longer be used for assignment.
+
+	* buffer.c (Fget_buffer_create, Fmake_indirect_buffer): Assign
+	struct members directly, instead of using BUF_BEGV etc.
+	(record_buffer_markers, fetch_buffer_markers): New functions for
+	recording and fetching special buffer markers.
+	(set_buffer_internal_1, set_buffer_temp): Use them.
+
+	* lread.c (unreadchar): Use SET_BUF_PT_BOTH.
+
+	* insdel.c (adjust_point): Use SET_BUF_PT_BOTH.
+
+	* intervals.c (temp_set_point_both): Use SET_BUF_PT_BOTH.
+	(get_local_map): Use SET_BUF_BEGV_BOTH and SET_BUF_ZV_BOTH.
+
+	* xdisp.c (hscroll_window_tree):
+	(reconsider_clip_changes): Use PT instead of BUF_PT.
+
 2011-03-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* xfaces.c (Fx_load_color_file):

@@ -371,15 +371,17 @@ even if it is dead.  The return value is never nil.  */)
   if (! BUF_BEG_ADDR (b))
     buffer_memory_full ();
 
-  BUF_PT (b) = BEG;
+  b->pt = BEG;
+  b->begv = BEG;
+  b->zv = BEG;
+  b->pt_byte = BEG_BYTE;
+  b->begv_byte = BEG_BYTE;
+  b->zv_byte = BEG_BYTE;
+
   BUF_GPT (b) = BEG;
-  BUF_BEGV (b) = BEG;
-  BUF_ZV (b) = BEG;
-  BUF_Z (b) = BEG;
-  BUF_PT_BYTE (b) = BEG_BYTE;
   BUF_GPT_BYTE (b) = BEG_BYTE;
-  BUF_BEGV_BYTE (b) = BEG_BYTE;
-  BUF_ZV_BYTE (b) = BEG_BYTE;
+
+  BUF_Z (b) = BEG;
   BUF_Z_BYTE (b) = BEG_BYTE;
   BUF_MODIFF (b) = 1;
   BUF_CHARS_MODIFF (b) = 1;
@@ -533,6 +535,53 @@ clone_per_buffer_values (from, to)
   to->local_var_alist = buffer_lisp_local_variables (from);
 }
 
+
+/* If buffer B has markers to record PT, BEGV and ZV when it is not
+   current, update these markers.  */
+
+static void
+record_buffer_markers (struct buffer *b)
+{
+  if (! NILP (b->pt_marker))
+    {
+      Lisp_Object buffer;
+
+      eassert (!NILP (b->begv_marker));
+      eassert (!NILP (b->zv_marker));
+
+      XSETBUFFER (buffer, b);
+      set_marker_both (b->pt_marker, buffer, b->pt, b->pt_byte);
+      set_marker_both (b->begv_marker, buffer, b->begv, b->begv_byte);
+      set_marker_both (b->zv_marker, buffer, b->zv, b->zv_byte);
+    }
+}
+
+
+/* If buffer B has markers to record PT, BEGV and ZV when it is not
+   current, fetch these values into B->begv etc.  */
+
+static void
+fetch_buffer_markers (struct buffer *b)
+{
+  if (! NILP (b->pt_marker))
+    {
+      Lisp_Object m;
+
+      eassert (!NILP (b->begv_marker));
+      eassert (!NILP (b->zv_marker));
+
+      m = b->pt_marker;
+      SET_BUF_PT_BOTH (b, marker_position (m), marker_byte_position (m));
+
+      m = b->begv_marker;
+      SET_BUF_BEGV_BOTH (b, marker_position (m), marker_byte_position (m));
+
+      m = b->zv_marker;
+      SET_BUF_ZV_BOTH (b, marker_position (m), marker_byte_position (m));
+    }
+}
+
+
 DEFUN ("make-indirect-buffer", Fmake_indirect_buffer, Smake_indirect_buffer,
        2, 3,
        "bMake indirect buffer (to buffer): \nBName of indirect buffer: ",
@@ -572,12 +621,12 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
   /* Use the base buffer's text object.  */
   b->text = b->base_buffer->text;
 
-  BUF_BEGV (b) = BUF_BEGV (b->base_buffer);
-  BUF_ZV (b) = BUF_ZV (b->base_buffer);
-  BUF_PT (b) = BUF_PT (b->base_buffer);
-  BUF_BEGV_BYTE (b) = BUF_BEGV_BYTE (b->base_buffer);
-  BUF_ZV_BYTE (b) = BUF_ZV_BYTE (b->base_buffer);
-  BUF_PT_BYTE (b) = BUF_PT_BYTE (b->base_buffer);
+  b->pt = b->base_buffer->pt;
+  b->begv = b->base_buffer->begv;
+  b->zv = b->base_buffer->zv;
+  b->pt_byte = b->base_buffer->pt_byte;
+  b->begv_byte = b->base_buffer->begv_byte;
+  b->zv_byte = b->base_buffer->zv_byte;
 
   b->newline_cache = 0;
   b->width_run_cache = 0;
@@ -607,24 +656,23 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
   /* Make sure the base buffer has markers for its narrowing.  */
   if (NILP (b->base_buffer->pt_marker))
     {
+      eassert (NILP (b->base_buffer->begv_marker));
+      eassert (NILP (b->base_buffer->zv_marker));
+
       b->base_buffer->pt_marker = Fmake_marker ();
       set_marker_both (b->base_buffer->pt_marker, base_buffer,
-		       BUF_PT (b->base_buffer),
-		       BUF_PT_BYTE (b->base_buffer));
-    }
-  if (NILP (b->base_buffer->begv_marker))
-    {
+		       b->base_buffer->pt,
+		       b->base_buffer->pt_byte);
+
       b->base_buffer->begv_marker = Fmake_marker ();
       set_marker_both (b->base_buffer->begv_marker, base_buffer,
-		       BUF_BEGV (b->base_buffer),
-		       BUF_BEGV_BYTE (b->base_buffer));
-    }
-  if (NILP (b->base_buffer->zv_marker))
-    {
+		       b->base_buffer->begv,
+		       b->base_buffer->begv_byte);
+
       b->base_buffer->zv_marker = Fmake_marker ();
       set_marker_both (b->base_buffer->zv_marker, base_buffer,
-		       BUF_ZV (b->base_buffer),
-		       BUF_ZV_BYTE (b->base_buffer));
+		       b->base_buffer->zv,
+		       b->base_buffer->zv_byte);
       XMARKER (b->base_buffer->zv_marker)->insertion_type = 1;
     }
 
@@ -632,11 +680,11 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
     {
       /* Give the indirect buffer markers for its narrowing.  */
       b->pt_marker = Fmake_marker ();
-      set_marker_both (b->pt_marker, buf, BUF_PT (b), BUF_PT_BYTE (b));
+      set_marker_both (b->pt_marker, buf, b->pt, b->pt_byte);
       b->begv_marker = Fmake_marker ();
-      set_marker_both (b->begv_marker, buf, BUF_BEGV (b), BUF_BEGV_BYTE (b));
+      set_marker_both (b->begv_marker, buf, b->begv, b->begv_byte);
       b->zv_marker = Fmake_marker ();
-      set_marker_both (b->zv_marker, buf, BUF_ZV (b), BUF_ZV_BYTE (b));
+      set_marker_both (b->zv_marker, buf, b->zv, b->zv_byte);
       XMARKER (b->zv_marker)->insertion_type = 1;
     }
   else
@@ -1890,27 +1938,7 @@ set_buffer_internal_1 (b)
 
       /* If the old current buffer has markers to record PT, BEGV and ZV
 	 when it is not current, update them now.  */
-      if (! NILP (old_buf->pt_marker))
-	{
-	  Lisp_Object obuf;
-	  XSETBUFFER (obuf, old_buf);
-	  set_marker_both (old_buf->pt_marker, obuf,
-			   BUF_PT (old_buf), BUF_PT_BYTE (old_buf));
-	}
-      if (! NILP (old_buf->begv_marker))
-	{
-	  Lisp_Object obuf;
-	  XSETBUFFER (obuf, old_buf);
-	  set_marker_both (old_buf->begv_marker, obuf,
-			   BUF_BEGV (old_buf), BUF_BEGV_BYTE (old_buf));
-	}
-      if (! NILP (old_buf->zv_marker))
-	{
-	  Lisp_Object obuf;
-	  XSETBUFFER (obuf, old_buf);
-	  set_marker_both (old_buf->zv_marker, obuf,
-			   BUF_ZV (old_buf), BUF_ZV_BYTE (old_buf));
-	}
+      record_buffer_markers (old_buf);
     }
 
   /* Get the undo list from the base buffer, so that it appears
@@ -1920,21 +1948,7 @@ set_buffer_internal_1 (b)
 
   /* If the new current buffer has markers to record PT, BEGV and ZV
      when it is not current, fetch them now.  */
-  if (! NILP (b->pt_marker))
-    {
-      BUF_PT (b) = marker_position (b->pt_marker);
-      BUF_PT_BYTE (b) = marker_byte_position (b->pt_marker);
-    }
-  if (! NILP (b->begv_marker))
-    {
-      BUF_BEGV (b) = marker_position (b->begv_marker);
-      BUF_BEGV_BYTE (b) = marker_byte_position (b->begv_marker);
-    }
-  if (! NILP (b->zv_marker))
-    {
-      BUF_ZV (b) = marker_position (b->zv_marker);
-      BUF_ZV_BYTE (b) = marker_byte_position (b->zv_marker);
-    }
+  fetch_buffer_markers (b);
 
   /* Look down buffer's list of local Lisp variables
      to find and update any that forward into C variables. */
@@ -1984,50 +1998,13 @@ set_buffer_temp (b)
   old_buf = current_buffer;
   current_buffer = b;
 
-  if (old_buf)
-    {
-      /* If the old current buffer has markers to record PT, BEGV and ZV
-	 when it is not current, update them now.  */
-      if (! NILP (old_buf->pt_marker))
-	{
-	  Lisp_Object obuf;
-	  XSETBUFFER (obuf, old_buf);
-	  set_marker_both (old_buf->pt_marker, obuf,
-			   BUF_PT (old_buf), BUF_PT_BYTE (old_buf));
-	}
-      if (! NILP (old_buf->begv_marker))
-	{
-	  Lisp_Object obuf;
-	  XSETBUFFER (obuf, old_buf);
-	  set_marker_both (old_buf->begv_marker, obuf,
-			   BUF_BEGV (old_buf), BUF_BEGV_BYTE (old_buf));
-	}
-      if (! NILP (old_buf->zv_marker))
-	{
-	  Lisp_Object obuf;
-	  XSETBUFFER (obuf, old_buf);
-	  set_marker_both (old_buf->zv_marker, obuf,
-			   BUF_ZV (old_buf), BUF_ZV_BYTE (old_buf));
-	}
-    }
+  /* If the old current buffer has markers to record PT, BEGV and ZV
+     when it is not current, update them now.  */
+  record_buffer_markers (old_buf);
 
   /* If the new current buffer has markers to record PT, BEGV and ZV
      when it is not current, fetch them now.  */
-  if (! NILP (b->pt_marker))
-    {
-      BUF_PT (b) = marker_position (b->pt_marker);
-      BUF_PT_BYTE (b) = marker_byte_position (b->pt_marker);
-    }
-  if (! NILP (b->begv_marker))
-    {
-      BUF_BEGV (b) = marker_position (b->begv_marker);
-      BUF_BEGV_BYTE (b) = marker_byte_position (b->begv_marker);
-    }
-  if (! NILP (b->zv_marker))
-    {
-      BUF_ZV (b) = marker_position (b->zv_marker);
-      BUF_ZV_BYTE (b) = marker_byte_position (b->zv_marker);
-    }
+  fetch_buffer_markers (b);
 }
 
 DEFUN ("set-buffer", Fset_buffer, Sset_buffer, 1, 1, 0,

@@ -10760,7 +10760,7 @@ hscroll_window_tree (window)
 	      current_buffer = XBUFFER (w->buffer);
 
 	      if (w == XWINDOW (selected_window))
-		pt = BUF_PT (current_buffer);
+		pt = PT;
 	      else
 		{
 		  pt = marker_position (w->pointm);
@@ -11194,7 +11194,7 @@ reconsider_clip_changes (w, b)
       int pt;
 
       if (w == XWINDOW (selected_window))
-	pt = BUF_PT (current_buffer);
+	pt = PT;
       else
 	pt = marker_position (w->pointm);
 

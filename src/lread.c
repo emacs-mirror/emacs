@@ -458,15 +458,15 @@ unreadchar (readcharfun, c)
   else if (BUFFERP (readcharfun))
     {
       struct buffer *b = XBUFFER (readcharfun);
-      int bytepos = BUF_PT_BYTE (b);
+      EMACS_INT charpos = BUF_PT (b);
+      EMACS_INT bytepos = BUF_PT_BYTE (b);
 
-      BUF_PT (b)--;
       if (! NILP (b->enable_multibyte_characters))
 	BUF_DEC_POS (b, bytepos);
       else
 	bytepos--;
 
-      BUF_PT_BYTE (b) = bytepos;
+      SET_BUF_PT_BOTH (b, charpos - 1, bytepos);
     }
   else if (MARKERP (readcharfun))
     {

@@ -107,21 +107,45 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define BUF_BEG(buf) (BEG)
 #define BUF_BEG_BYTE(buf) (BEG_BYTE)
 
+/* The BUF_BEGV[_BYTE], BUF_ZV[_BYTE], and BUF_PT[_BYTE] macros cannot
+   be used for assignment; use SET_BUF_* macros below for that.  */
+
 /* Position of beginning of accessible range of buffer.  */
-#define BUF_BEGV(buf) ((buf)->begv)
-#define BUF_BEGV_BYTE(buf) ((buf)->begv_byte)
+#define BUF_BEGV(buf)					\
+   (buf == current_buffer ? BEGV			\
+    : NILP (buf->begv_marker) ? buf->begv		\
+    : marker_position (buf->begv_marker))
+
+#define BUF_BEGV_BYTE(buf)				\
+   (buf == current_buffer ? BEGV_BYTE			\
+    : NILP (buf->begv_marker) ? buf->begv_byte		\
+    : marker_byte_position (buf->begv_marker))
 
 /* Position of point in buffer.  */
-#define BUF_PT(buf) ((buf)->pt)
-#define BUF_PT_BYTE(buf) ((buf)->pt_byte)
+#define BUF_PT(buf)					\
+   (buf == current_buffer ? PT				\
+    : NILP (buf->pt_marker) ? buf->pt			\
+    : marker_position (buf->pt_marker))
+
+#define BUF_PT_BYTE(buf)				\
+   (buf == current_buffer ? PT_BYTE			\
+    : NILP (buf->pt_marker) ? buf->pt_byte		\
+    : marker_byte_position (buf->pt_marker))
+
+/* Position of end of accessible range of buffer.  */
+#define BUF_ZV(buf)					\
+   (buf == current_buffer ? ZV				\
+    : NILP (buf->zv_marker) ? buf->zv			\
+    : marker_position (buf->zv_marker))
+
+#define BUF_ZV_BYTE(buf)				\
+   (buf == current_buffer ? ZV_BYTE			\
+    : NILP (buf->zv_marker) ? buf->zv_byte		\
+    : marker_byte_position (buf->zv_marker))
 
 /* Position of gap in buffer.  */
 #define BUF_GPT(buf) ((buf)->text->gpt)
 #define BUF_GPT_BYTE(buf) ((buf)->text->gpt_byte)
-
-/* Position of end of accessible range of buffer.  */
-#define BUF_ZV(buf) ((buf)->zv)
-#define BUF_ZV_BYTE(buf) ((buf)->zv_byte)
 
 /* Position of end of buffer.  */
 #define BUF_Z(buf) ((buf)->text->z)
@@ -229,8 +253,6 @@ extern void enlarge_buffer_text P_ ((struct buffer *, EMACS_INT));
 
 
 /* Macros for setting the BEGV, ZV or PT of a given buffer.
-
-   SET_BUF_PT* seet to be redundant.  Get rid of them?
 
    The ..._BOTH macros take both a charpos and a bytepos,
    which must correspond to each other.
