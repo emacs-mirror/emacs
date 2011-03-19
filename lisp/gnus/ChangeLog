@@ -1,3 +1,8 @@
+2011-03-18  Julien Danjou  <julien@danjou.info>
+
+	* gnus-util.el (gnus-buffer-live-p): Simplify gnus-buffer-live-p.
+	(gnus-buffer-live-p): Check that buffer is not nil.
+
 2011-03-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-art.el: Require mouse, which the build bot seems to say is
