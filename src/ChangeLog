@@ -1,6 +1,7 @@
 2011-03-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xftfont.c (xftfont_shape): Now static, and defined only if needed.
+	(xftfont_open): Rename locals to avoid shadowing.
 
 	* ftfont.c (ftfont_resolve_generic_family): Fix pointer signedness.
 	(ftfont_otf_capability, ftfont_shape): Omit decls if not needed.
