@@ -1,5 +1,7 @@
 2011-03-19  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* ftfont.c (ftfont_resolve_generic_family): Fix pointer signedness.
+
 	* xfont.c (xfont_list_family): Mark var as initialized.
 
 	* xml.c (make_dom): Now static.

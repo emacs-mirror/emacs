@@ -311,8 +311,9 @@ ftfont_resolve_generic_family (Lisp_Object family, FcPattern *pattern)
   if (FcPatternGetLangSet (pattern, FC_LANG, 0, &langset) != FcResultMatch)
     {
       /* This is to avoid the effect of locale.  */
+      static const FcChar8 lang[] = "en";
       langset = FcLangSetCreate ();
-      FcLangSetAdd (langset, "en");
+      FcLangSetAdd (langset, lang);
       FcPatternAddLangSet (pattern, FC_LANG, langset);
       FcLangSetDestroy (langset);
     }
