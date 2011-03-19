@@ -672,7 +672,8 @@ xftfont_draw (struct glyph_string *s, int from, int to, int x, int y, int with_b
   return len;
 }
 
-Lisp_Object
+#if defined HAVE_M17N_FLT && defined HAVE_LIBOTF
+static Lisp_Object
 xftfont_shape (Lisp_Object lgstring)
 {
   struct font *font;
@@ -688,6 +689,7 @@ xftfont_shape (Lisp_Object lgstring)
   XftUnlockFace (xftfont_info->xftfont);
   return val;
 }
+#endif
 
 static int
 xftfont_end_for_frame (FRAME_PTR f)
