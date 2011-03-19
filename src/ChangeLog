@@ -1,3 +1,7 @@
+2011-03-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in: Update dependencies.
+
 2011-03-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in ($(BLD)/unexw32.$(O)): Depend on $(SRC)/unexec.h.
