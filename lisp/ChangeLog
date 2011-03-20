@@ -1,3 +1,8 @@
+2011-03-20  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-menu.el (calc-units-menu): Add entries for logarithmic
+	units and musical notes.
+
 2011-03-20  Leo  <sdl.web@gmail.com>
 
 	* ido.el (ido-read-internal): Use completing-read-default.
