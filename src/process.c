@@ -3950,7 +3950,7 @@ FLAGS is the current flags of the interface.  */)
   CHECK_STRING (ifname);
 
   memset (rq.ifr_name, 0, sizeof rq.ifr_name);
-  strncpy (rq.ifr_name, SDATA (ifname), sizeof (rq.ifr_name));
+  strncpy (rq.ifr_name, SSDATA (ifname), sizeof (rq.ifr_name));
 
   s = socket (AF_INET, SOCK_STREAM, 0);
   if (s < 0)
