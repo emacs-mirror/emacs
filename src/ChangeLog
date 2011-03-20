@@ -7,6 +7,7 @@
 	(Fmake_network_process): Define label "retry_connect" only if needed.
 	(Fnetwork_interface_info): Fix pointer signedness.
 	(process_send_signal): Add cast to avoid pointer signedness problem.
+	(FIRST_PROC_DESC, IF_NON_BLOCKING_CONNECT): Remove unused macros.
 
 2011-03-19  Paul Eggert  <eggert@cs.ucla.edu>
 

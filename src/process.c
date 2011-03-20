@@ -159,9 +159,6 @@ extern Lisp_Object QCfilter;
 #define SERIALCONN_P(p) (EQ (XPROCESS (p)->type, Qserial))
 #define SERIALCONN1_P(p) (EQ ((p)->type, Qserial))
 
-/* Define first descriptor number available for subprocesses.  */
-#define FIRST_PROC_DESC 3
-
 #ifndef HAVE_H_ERRNO
 extern int h_errno;
 #endif
@@ -278,10 +275,6 @@ static SELECT_TYPE connect_wait_mask;
 
 /* Number of bits set in connect_wait_mask.  */
 static int num_pending_connects;
-
-#define IF_NON_BLOCKING_CONNECT(s) s
-#else  /* NON_BLOCKING_CONNECT */
-#define IF_NON_BLOCKING_CONNECT(s)
 #endif	/* NON_BLOCKING_CONNECT */
 
 /* The largest descriptor currently in use for a process object.  */
@@ -4930,8 +4923,6 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
             d->func (channel, d->data, 0);
           }
 
-      /* Really FIRST_PROC_DESC should be 0 on Unix,
-	 but this is safer in the short run.  */
       for (channel = 0; channel <= max_process_desc; channel++)
 	{
 	  if (FD_ISSET (channel, &Available)
