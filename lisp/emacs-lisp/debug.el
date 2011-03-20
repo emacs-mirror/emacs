@@ -269,10 +269,8 @@ That buffer should be current already."
   (setq buffer-undo-list t)
   (let ((standard-output (current-buffer))
 	(print-escape-newlines t)
-        (print-quoted t)                ;Doesn't seem to work :-(
-	(print-level 1000)              ;8
-	;; (print-length 50)
-        )
+	(print-level 8)
+	(print-length 50))
     (backtrace))
   (goto-char (point-min))
   (delete-region (point)

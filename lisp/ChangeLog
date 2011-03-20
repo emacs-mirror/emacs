@@ -1,3 +1,8 @@
+2011-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/debug.el (debugger-setup-buffer): Revert local change to
+	print depth and length.
+
 2011-03-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl-macs.el (cl-byte-compile-block, cl-block-wrapper)
