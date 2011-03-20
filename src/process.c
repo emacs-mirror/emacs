@@ -1250,8 +1250,8 @@ Returns nil if format of ADDRESS is invalid.  */)
 static Lisp_Object
 list_processes_1 (Lisp_Object query_only)
 {
-  register Lisp_Object tail, tem;
-  Lisp_Object proc, minspace, tem1;
+  register Lisp_Object tail;
+  Lisp_Object proc, minspace;
   register struct Lisp_Process *p;
   char tembuf[300];
   int w_proc, w_buffer, w_tty;
@@ -1453,10 +1453,10 @@ list_processes_1 (Lisp_Object query_only)
 	}
       else
 	{
-	  tem = p->command;
+	  Lisp_Object tem = p->command;
 	  while (1)
 	    {
-	      tem1 = Fcar (tem);
+	      Lisp_Object tem1 = Fcar (tem);
 	      if (NILP (tem1))
 		break;
 	      Finsert (1, &tem1);
@@ -3705,10 +3705,10 @@ usage: (make-network-process &rest ARGS)  */)
 
   {
     /* Setup coding systems for communicating with the network stream.  */
-    struct gcpro gcpro1;
+    struct gcpro inner_gcpro1;
     /* Qt denotes we have not yet called Ffind_operation_coding_system.  */
     Lisp_Object coding_systems = Qt;
-    Lisp_Object args[5], val;
+    Lisp_Object fargs[5], val;
 
     if (!NILP (tem))
       {
@@ -3731,11 +3731,11 @@ usage: (make-network-process &rest ARGS)  */)
 	  coding_systems = Qnil;
 	else
 	  {
-	    args[0] = Qopen_network_stream, args[1] = name,
-	      args[2] = buffer, args[3] = host, args[4] = service;
-	    GCPRO1 (proc);
-	    coding_systems = Ffind_operation_coding_system (5, args);
-	    UNGCPRO;
+	    fargs[0] = Qopen_network_stream, fargs[1] = name,
+	      fargs[2] = buffer, fargs[3] = host, fargs[4] = service;
+	    GCPRO1_VAR (proc, inner_gcpro);
+	    coding_systems = Ffind_operation_coding_system (5, fargs);
+	    UNGCPRO_VAR (inner_gcpro);
 	  }
 	if (CONSP (coding_systems))
 	  val = XCAR (coding_systems);
@@ -3764,11 +3764,11 @@ usage: (make-network-process &rest ARGS)  */)
 	      coding_systems = Qnil;
 	    else
 	      {
-		args[0] = Qopen_network_stream, args[1] = name,
-		  args[2] = buffer, args[3] = host, args[4] = service;
-		GCPRO1 (proc);
-		coding_systems = Ffind_operation_coding_system (5, args);
-		UNGCPRO;
+		fargs[0] = Qopen_network_stream, fargs[1] = name,
+		  fargs[2] = buffer, fargs[3] = host, fargs[4] = service;
+		GCPRO1_VAR (proc, inner_gcpro);
+		coding_systems = Ffind_operation_coding_system (5, fargs);
+		UNGCPRO_VAR (inner_gcpro);
 	      }
 	  }
 	if (CONSP (coding_systems))
@@ -5128,9 +5128,9 @@ read_process_output_call (Lisp_Object fun_and_args)
 }
 
 static Lisp_Object
-read_process_output_error_handler (Lisp_Object error)
+read_process_output_error_handler (Lisp_Object error_val)
 {
-  cmd_error_internal (error, "error in process filter: ");
+  cmd_error_internal (error_val, "error in process filter: ");
   Vinhibit_quit = Qt;
   update_echo_area ();
   Fsleep_for (make_number (2), Qnil);
@@ -6534,9 +6534,9 @@ exec_sentinel_unwind (Lisp_Object data)
 }
 
 static Lisp_Object
-exec_sentinel_error_handler (Lisp_Object error)
+exec_sentinel_error_handler (Lisp_Object error_val)
 {
-  cmd_error_internal (error, "error in process sentinel: ");
+  cmd_error_internal (error_val, "error in process sentinel: ");
   Vinhibit_quit = Qt;
   update_echo_area ();
   Fsleep_for (make_number (2), Qnil);
