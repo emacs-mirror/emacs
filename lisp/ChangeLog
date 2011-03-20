@@ -1,3 +1,10 @@
+2011-03-20  Christian Ohler  <ohler@gnu.org>
+
+	* emacs-lisp/ert.el (ert-run-tests-batch): Remove unused variable.
+	(ert-delete-all-tests): Use `called-interactively-p' rather than
+	`interactive-p'.
+	(ert--make-xrefs-region): Respect END.
+
 2011-03-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* dired-aux.el (dired-create-directory): Signal an error if the
