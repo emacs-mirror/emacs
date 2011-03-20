@@ -4,6 +4,7 @@
 	(list_processes_1, Fmake_network_process):
 	(read_process_output_error_handler, exec_sentinel_error_handler):
 	Rename or move locals.
+	(Fmake_network_process): Define label "retry_connect" only if needed.
 
 2011-03-19  Paul Eggert  <eggert@cs.ucla.edu>
 

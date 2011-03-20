@@ -3403,7 +3403,9 @@ usage: (make-network-process &rest ARGS)  */)
     {
       int optn, optbits;
 
+#ifdef WINDOWSNT
     retry_connect:
+#endif
 
       s = socket (lres->ai_family, lres->ai_socktype, lres->ai_protocol);
       if (s < 0)
