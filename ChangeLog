@@ -1,3 +1,15 @@
+2011-03-20  Glenn Morris  <rgm@gnu.org>
+
+	* autogen/: New directory, to be excluded from releases.
+	* autogen/copy_autogen, autogen/update_autogen: New scripts.
+	* autogen/README: New file.
+	* autogen/aclocal.m4, autogen/config.in, autogen/configure:
+	* autogen/Makefile.in: Add auto-updated generated files.
+	* autogen.sh: No longer a no-op, now it tests for autotools
+	and runs them as necessary.
+	* configure.in: Defaule maintainer-mode to on.
+	* aclocal.m4, configure, lib/Makefile.in: Remove files.
+
 2011-03-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Update for gnulib.

@@ -1,3 +1,7 @@
+2011-03-20  Glenn Morris  <rgm@gnu.org>
+
+	* config.in: Remove file.
+
 2011-03-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* minibuf.c (Vcompleting_read_function): Don't declare, global variables
