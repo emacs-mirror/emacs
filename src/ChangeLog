@@ -1,5 +1,13 @@
 2011-03-20  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* process.c (Fmake_network_process): Use socklen_t, not int,
+	where POSIX says socklen_t is required in portable programs.
+	This fixes a porting bug on hosts like 64-bit HP-UX, where
+	socklen_t is wider than int (Bug#8277).
+	(Fmake_network_process, server_accept_connection):
+	(wait_reading_process_output, read_process_output):
+	Likewise.
+
 	* process.c: Rename or move locals to avoid shadowing.
 	(list_processes_1, Fmake_network_process):
 	(read_process_output_error_handler, exec_sentinel_error_handler):
