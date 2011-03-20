@@ -1,6 +1,6 @@
 2011-03-20  Paul Eggert  <eggert@cs.ucla.edu>
 
-	* emacs.c (Fdaemon_initialized): Do not ignore I/O errors.
+	* emacs.c (Fdaemon_initialized): Do not ignore I/O errors (Bug#8303).
 
 	* process.c (Fmake_network_process): Use socklen_t, not int,
 	where POSIX says socklen_t is required in portable programs.
