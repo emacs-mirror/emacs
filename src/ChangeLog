@@ -1,3 +1,9 @@
+2011-03-20  Leo  <sdl.web@gmail.com>
+
+	* minibuf.c (completing-read-function): New variable.
+	(completing-read-default): Rename from completing-read.
+	(completing-read): Call completing-read-function.
+
 2011-03-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* xfaces.c (Fx_load_color_file):

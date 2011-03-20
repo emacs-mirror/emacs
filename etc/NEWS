@@ -81,6 +81,9 @@ error, its exit status is 1.
 
 ** Completion can cycle, depending on completion-cycle-threshold.
 
+** `completing-read' can be customized using the new variable
+`completing-read-function'
+
 ** auto-mode-case-fold is now enabled by default.
 
 +++
