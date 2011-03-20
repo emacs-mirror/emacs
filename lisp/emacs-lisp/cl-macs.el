@@ -2612,7 +2612,7 @@ and then returning foo."
     ;; FIXME: To avoid re-applying macroexpand-all, we'd like to be able
     ;; to indicate that this return value is already fully expanded.
     (if (cdr cl-entry)
-        `(catch (nth 1 cl-form) ,@(cdr cl-body))
+        `(catch ,(nth 1 cl-form) ,@(cdr cl-body))
       cl-body)))
 
 (define-compiler-macro cl-block-throw (cl-tag cl-value)

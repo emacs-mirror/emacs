@@ -1,3 +1,8 @@
+2011-03-20  Christian Ohler  <ohler@gnu.org>
+
+	* emacs-lisp/cl-macs.el (cl-block-wrapper): Fix typo that broke CL
+	blocks.
+
 2011-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/debug.el (debugger-setup-buffer): Revert local change to
