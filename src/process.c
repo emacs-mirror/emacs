@@ -5927,7 +5927,7 @@ process_send_signal (Lisp_Object process, int signo, Lisp_Object current_group,
 
       if (sig_char && *sig_char != CDISABLE)
 	{
-	  send_process (proc, sig_char, 1, Qnil);
+	  send_process (proc, (char *) sig_char, 1, Qnil);
 	  return;
 	}
       /* If we can't send the signal with a character,
