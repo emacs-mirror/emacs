@@ -1,5 +1,7 @@
 2011-03-20  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* emacs.c (Fdaemon_initialized): Do not ignore I/O errors.
+
 	* process.c (Fmake_network_process): Use socklen_t, not int,
 	where POSIX says socklen_t is required in portable programs.
 	This fixes a porting bug on hosts like 64-bit HP-UX, where
