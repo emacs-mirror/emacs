@@ -1,3 +1,9 @@
+2011-03-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuf.c (Vcompleting_read_function): Don't declare, global variables
+	are now in src/globals.h.
+	(syms_of_minibuf): Remove spurious & from previous change.
+
 2011-03-20  Leo  <sdl.web@gmail.com>
 
 	* minibuf.c (completing-read-function): New variable.

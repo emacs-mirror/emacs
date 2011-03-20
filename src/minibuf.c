@@ -73,7 +73,6 @@ Lisp_Object Qminibuffer_completion_table;
 Lisp_Object Qminibuffer_completion_predicate;
 Lisp_Object Qminibuffer_completion_confirm;
 Lisp_Object Qcompleting_read_default;
-Lisp_Object Vcompleting_read_function;
 Lisp_Object Quser_variable_p;
 
 Lisp_Object Qminibuffer_default;
@@ -2142,7 +2141,7 @@ If the value is `confirm-after-completion', the user may exit with an
   Vminibuffer_completing_file_name = Qnil;
 
   DEFVAR_LISP ("completing-read-function",
-	       &Vcompleting_read_function,
+	       Vcompleting_read_function,
 	       doc: /* The function called by `completing-read' to do the work.
 It should accept the same arguments as `completing-read'.  */);
   Vcompleting_read_function = Qcompleting_read_default;
