@@ -1912,8 +1912,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
     /* child_setup must clobber environ on systems with true vfork.
        Protect it from permanent change.  */
     char **save_environ = environ;
-
-    current_dir = ENCODE_FILE (current_dir);
+    volatile Lisp_Object encoded_current_dir = ENCODE_FILE (current_dir);
 
 #ifndef WINDOWSNT
     pid = vfork ();
@@ -2054,13 +2053,13 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 	  child_setup_tty (xforkout);
 #ifdef WINDOWSNT
 	pid = child_setup (xforkin, xforkout, xforkout,
-			   new_argv, 1, current_dir);
+			   new_argv, 1, encoded_current_dir);
 #else  /* not WINDOWSNT */
 #ifdef FD_CLOEXEC
 	emacs_close (wait_child_setup[0]);
 #endif
 	child_setup (xforkin, xforkout, xforkout,
-		     new_argv, 1, current_dir);
+		     new_argv, 1, encoded_current_dir);
 #endif /* not WINDOWSNT */
       }
     environ = save_environ;
