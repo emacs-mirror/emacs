@@ -1,5 +1,11 @@
 2011-03-21  Paul Eggert  <eggert@cs.ucla.edu>
 
+	update-game-score: fix bug with -r
+	* update-game-score.c (main): Don't set 'scores' to garbage when
+	-r is specified and scorecount != MAX_SCORES.  This bug was
+	introduced in the 2002-04-10 change, and was found with gcc
+	-Wstrict-overflow (GCC 4.5.2, x86-64).
+
 	fakemail: Remove dependency on ignore-value.
 	This undoes some of the recent fakemail-related changes.
 	It is made possible due to recent changes to gnulib's stdio module.
