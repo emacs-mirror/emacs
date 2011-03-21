@@ -575,6 +575,7 @@ If ANY-SYMBOL is non-nil, don't insist the symbol be bound."
   (with-syntax-table emacs-lisp-mode-syntax-table
     (or (condition-case ()
 	    (save-excursion
+	      (skip-chars-forward "'")
 	      (or (not (zerop (skip-syntax-backward "_w")))
 		  (eq (char-syntax (following-char)) ?w)
 		  (eq (char-syntax (following-char)) ?_)

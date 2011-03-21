@@ -231,10 +231,10 @@ The function respects the value of the :exports header argument."
 			  (org-babel-exp-results info type 'silent))))
 	 (clean () (org-babel-remove-result info)))
     (case (intern (or (cdr (assoc :exports (nth 2 info))) "code"))
-      ('none (silently) (clean) "")
-      ('code (silently) (clean) (org-babel-exp-code info type))
-      ('results (org-babel-exp-results info type))
-      ('both (concat (org-babel-exp-code info type)
+      (none (silently) (clean) "")
+      (code (silently) (clean) (org-babel-exp-code info type))
+      (results (org-babel-exp-results info type))
+      (both (concat (org-babel-exp-code info type)
 		     "\n\n"
 		     (org-babel-exp-results info type))))))
 
@@ -250,8 +250,8 @@ The code block is not evaluated."
         (name (nth 4 info))
         (args (mapcar #'cdr (org-babel-get-header (nth 2 info) :var))))
     (case type
-      ('inline (format "=%s=" body))
-      ('block
+      (inline (format "=%s=" body))
+      (block
 	  (let ((str
 		 (format "#+BEGIN_SRC %s %s\n%s%s#+END_SRC\n" lang switches body
 			 (if (and body (string-match "\n$" body))
@@ -265,7 +265,7 @@ The code block is not evaluated."
 			     (mapconcat #'identity args ", ")))
 	       str))
 	    str))
-      ('lob
+      (lob
        (let ((call-line (and (string-match "results=" (car args))
 			     (substring (car args) (match-end 0)))))
 	 (cond

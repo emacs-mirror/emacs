@@ -29,6 +29,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <limits.h>
 #include <sys/types.h>
 #include <setjmp.h>
 #include "lisp.h"
@@ -250,7 +251,7 @@ struct charset_map_entries
 static void
 load_charset_map (struct charset *charset, struct charset_map_entries *entries, int n_entries, int control_flag)
 {
-  Lisp_Object vec, table;
+  Lisp_Object vec IF_LINT (= Qnil), table IF_LINT (= Qnil);
   unsigned max_code = CHARSET_MAX_CODE (charset);
   int ascii_compatible_p = charset->ascii_compatible_p;
   int min_char, max_char, nonascii_min_char;
@@ -629,8 +630,12 @@ load_charset (struct charset *charset, int control_flag)
 
   if (CHARSET_METHOD (charset) == CHARSET_METHOD_MAP)
     map = CHARSET_MAP (charset);
-  else if (CHARSET_UNIFIED_P (charset))
-    map = CHARSET_UNIFY_MAP (charset);
+  else
+    {
+      if (! CHARSET_UNIFIED_P (charset))
+	abort ();
+      map = CHARSET_UNIFY_MAP (charset);
+    }
   if (STRINGP (map))
     load_charset_map_from_file (charset, map, control_flag);
   else
@@ -668,9 +673,9 @@ map_charset_for_dump (void (*c_function) (Lisp_Object, Lisp_Object), Lisp_Object
 
   while (1)
     {
-      int index = GET_TEMP_CHARSET_WORK_ENCODER (c);
+      int idx = GET_TEMP_CHARSET_WORK_ENCODER (c);
 
-      if (index >= from_idx && index <= to_idx)
+      if (idx >= from_idx && idx <= to_idx)
 	{
 	  if (NILP (XCAR (range)))
 	    XSETCAR (range, make_number (c));
@@ -2066,10 +2071,10 @@ that case, find the charset from what supported by that coding system.  */)
 
 	  for (; CONSP (restriction); restriction = XCDR (restriction))
 	    {
-	      struct charset *charset;
+	      struct charset *rcharset;
 
-	      CHECK_CHARSET_GET_CHARSET (XCAR (restriction), charset);
-	      if (ENCODE_CHAR (charset, c) != CHARSET_INVALID_CODE (charset))
+	      CHECK_CHARSET_GET_CHARSET (XCAR (restriction), rcharset);
+	      if (ENCODE_CHAR (rcharset, c) != CHARSET_INVALID_CODE (rcharset))
 		return XCAR (restriction);
 	    }
 	  return Qnil;
@@ -2250,7 +2255,7 @@ See also `charset-priority-list' and `set-charset-priority'.  */)
   int n = XFASTINT (len), i, j, done;
   Lisp_Object tail, elt, attrs;
   struct charset_sort_data *sort_data;
-  int id, min_id, max_id;
+  int id, min_id = INT_MAX, max_id = INT_MIN;
   USE_SAFE_ALLOCA;
 
   if (n == 0)
@@ -2262,11 +2267,9 @@ See also `charset-priority-list' and `set-charset-priority'.  */)
       CHECK_CHARSET_GET_ATTR (elt, attrs);
       sort_data[i].charset = elt;
       sort_data[i].id = id = XINT (CHARSET_ATTR_ID (attrs));
-      if (i == 0)
-	min_id = max_id = id;
-      else if (id < min_id)
+      if (id < min_id)
 	min_id = id;
-      else if (id > max_id)
+      if (id > max_id)
 	max_id = id;
     }
   for (done = 0, tail = Vcharset_ordered_list, i = 0;

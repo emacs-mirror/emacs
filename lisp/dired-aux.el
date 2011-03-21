@@ -1638,11 +1638,14 @@ Optional arg HOW-TO determiness how to treat the target.
 
 ;;;###autoload
 (defun dired-create-directory (directory)
-  "Create a directory called DIRECTORY."
+  "Create a directory called DIRECTORY.
+If DIRECTORY already exists, signal an error."
   (interactive
    (list (read-file-name "Create directory: " (dired-current-directory))))
   (let* ((expanded (directory-file-name (expand-file-name directory)))
 	 (try expanded) new)
+    (if (file-exists-p expanded)
+	(error "Cannot create directory %s: file exists" expanded))
     ;; Find the topmost nonexistent parent dir (variable `new')
     (while (and try (not (file-exists-p try)) (not (equal new try)))
       (setq new try

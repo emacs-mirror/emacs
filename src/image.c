@@ -550,10 +550,6 @@ x_create_bitmap_mask (struct frame *f, int id)
 			    Image types
  ***********************************************************************/
 
-/* Value is the number of elements of vector VECTOR.  */
-
-#define DIM(VECTOR)	(sizeof (VECTOR) / sizeof *(VECTOR))
-
 /* List of supported image types.  Use define_image_type to add new
    types.  Use lookup_image_type to find a type for a given symbol.  */
 
@@ -1139,7 +1135,7 @@ static RGB_PIXEL_COLOR
 four_corners_best (XImagePtr_or_DC ximg, int *corners,
 		   unsigned long width, unsigned long height)
 {
-  RGB_PIXEL_COLOR corner_pixels[4], best;
+  RGB_PIXEL_COLOR corner_pixels[4], best IF_LINT (= 0);
   int i, best_count;
 
   if (corners && corners[BOT_CORNER] >= 0)
@@ -1491,7 +1487,7 @@ free_image_cache (struct frame *f)
    If image-cache-eviction-delay is non-nil, this frees images in the cache
    which weren't displayed for at least that many seconds.  */
 
-void
+static void
 clear_image_cache (struct frame *f, Lisp_Object filter)
 {
   struct image_cache *c = FRAME_IMAGE_CACHE (f);
@@ -1559,9 +1555,9 @@ clear_image_cache (struct frame *f, Lisp_Object filter)
 
 	  FOR_EACH_FRAME (tail, frame)
 	    {
-	      struct frame *f = XFRAME (frame);
-	      if (FRAME_IMAGE_CACHE (f) == c)
-		clear_current_matrices (f);
+	      struct frame *fr = XFRAME (frame);
+	      if (FRAME_IMAGE_CACHE (fr) == c)
+		clear_current_matrices (fr);
 	    }
 
 	  ++windows_or_buffers_changed;
@@ -2653,11 +2649,11 @@ xbm_read_bitmap_data (struct frame *f, unsigned char *contents, unsigned char *e
 
       if (LA1 == XBM_TK_NUMBER)
 	{
-          char *p = strrchr (buffer, '_');
-	  p = p ? p + 1 : buffer;
-          if (strcmp (p, "width") == 0)
+	  char *q = strrchr (buffer, '_');
+	  q = q ? q + 1 : buffer;
+	  if (strcmp (q, "width") == 0)
 	    *width = value;
-          else if (strcmp (p, "height") == 0)
+	  else if (strcmp (q, "height") == 0)
 	    *height = value;
 	}
       expect (XBM_TK_NUMBER);
@@ -3427,11 +3423,12 @@ xpm_load (struct frame *f, struct image *img)
 	{
 	  Lisp_Object name;
 	  Lisp_Object color;
+	  char *empty_string = (char *) "";
 
 	  if (!CONSP (XCAR (tail)))
 	    {
-	      xpm_syms[i].name = "";
-	      xpm_syms[i].value = "";
+	      xpm_syms[i].name = empty_string;
+	      xpm_syms[i].value = empty_string;
 	      continue;
 	    }
 	  name = XCAR (XCAR (tail));
@@ -3442,14 +3439,14 @@ xpm_load (struct frame *f, struct image *img)
 	      strcpy (xpm_syms[i].name, SSDATA (name));
 	    }
 	  else
-	    xpm_syms[i].name = "";
+	    xpm_syms[i].name = empty_string;
 	  if (STRINGP (color))
 	    {
 	      xpm_syms[i].value = (char *) alloca (SCHARS (color) + 1);
 	      strcpy (xpm_syms[i].value, SSDATA (color));
 	    }
 	  else
-	    xpm_syms[i].value = "";
+	    xpm_syms[i].value = empty_string;
 	}
     }
 
@@ -4605,14 +4602,14 @@ x_detect_edges (struct frame *f, struct image *img, int *matrix, int color_adjus
 
       for (x = 1; x < img->width - 1; ++x, ++p)
 	{
-	  int r, g, b, y1, x1;
+	  int r, g, b, yy, xx;
 
 	  r = g = b = i = 0;
-	  for (y1 = y - 1; y1 < y + 2; ++y1)
-	    for (x1 = x - 1; x1 < x + 2; ++x1, ++i)
+	  for (yy = y - 1; yy < y + 2; ++yy)
+	    for (xx = x - 1; xx < x + 2; ++xx, ++i)
 	      if (matrix[i])
 	        {
-	          XColor *t = COLOR (colors, x1, y1);
+	          XColor *t = COLOR (colors, xx, yy);
 		  r += matrix[i] * t->red;
 		  g += matrix[i] * t->green;
 		  b += matrix[i] * t->blue;
@@ -4688,7 +4685,7 @@ x_edge_detection (struct frame *f, struct image *img, Lisp_Object matrix,
     color_adjust = make_number (0xffff / 2);
 
   if (i == 9 && NUMBERP (color_adjust))
-    x_detect_edges (f, img, trans, (int) XFLOATINT (color_adjust));
+    x_detect_edges (f, img, trans, XFLOATINT (color_adjust));
 }
 
 
@@ -5531,6 +5528,7 @@ init_png_functions (Lisp_Object libraries)
 /* Error and warning handlers installed when the PNG library
    is initialized.  */
 
+static void my_png_error (png_struct *, const char *) NO_RETURN;
 static void
 my_png_error (png_struct *png_ptr, const char *msg)
 {
@@ -6030,7 +6028,6 @@ jpeg_image_p (Lisp_Object object)
 /* Work around a warning about HAVE_STDLIB_H being redefined in
    jconfig.h.  */
 #ifdef HAVE_STDLIB_H
-#define HAVE_STDLIB_H_1
 #undef HAVE_STDLIB_H
 #endif /* HAVE_STLIB_H */
 
@@ -6106,6 +6103,7 @@ struct my_jpeg_error_mgr
 };
 
 
+static void my_error_exit (j_common_ptr) NO_RETURN;
 static void
 my_error_exit (j_common_ptr cinfo)
 {
@@ -6366,10 +6364,10 @@ jpeg_load (struct frame *f, struct image *img)
       if (rc == 1)
 	{
 	  /* Called from my_error_exit.  Display a JPEG error.  */
-	  char buffer[JMSG_LENGTH_MAX];
-	  cinfo.err->format_message ((j_common_ptr) &cinfo, buffer);
+	  char buf[JMSG_LENGTH_MAX];
+	  cinfo.err->format_message ((j_common_ptr) &cinfo, buf);
 	  image_error ("Error reading JPEG image `%s': %s", img->spec,
-		       build_string (buffer));
+		       build_string (buf));
 	}
 
       /* Close the input file and destroy the JPEG object.  */
@@ -7105,7 +7103,7 @@ gif_load (struct frame *f, struct image *img)
   Lisp_Object file, specified_file;
   Lisp_Object specified_data;
   int rc, width, height, x, y, i;
-  boolean transparent_p;
+  boolean transparent_p = 0;
   XImagePtr ximg;
   ColorMapObject *gif_color_map;
   unsigned long pixel_colors[256];
@@ -7114,7 +7112,7 @@ gif_load (struct frame *f, struct image *img)
   int ino, image_height, image_width;
   gif_memory_source memsrc;
   unsigned char *raster;
-  unsigned int transparency_color_index;
+  unsigned int transparency_color_index IF_LINT (= 0);
 
   specified_file = image_spec_value (img->spec, QCfile, NULL);
   specified_data = image_spec_value (img->spec, QCdata, NULL);
@@ -7129,7 +7127,7 @@ gif_load (struct frame *f, struct image *img)
 	}
 
       /* Open the GIF file.  */
-      gif = fn_DGifOpenFileName (SDATA (file));
+      gif = fn_DGifOpenFileName (SSDATA (file));
       if (gif == NULL)
 	{
 	  image_error ("Cannot open `%s'", file, Qnil);
@@ -7302,9 +7300,9 @@ gif_load (struct frame *f, struct image *img)
 
 	  for (x = 0; x < image_width; x++)
 	    {
-	      int i = raster[(y * image_width) + x];
+	      int c = raster[(y * image_width) + x];
 	      XPutPixel (ximg, x + img->corners[LEFT_CORNER],
-			 row + img->corners[TOP_CORNER], pixel_colors[i]);
+			 row + img->corners[TOP_CORNER], pixel_colors[c]);
 	    }
 
 	  row += interlace_increment[pass];
@@ -7315,9 +7313,9 @@ gif_load (struct frame *f, struct image *img)
       for (y = 0; y < image_height; ++y)
 	for (x = 0; x < image_width; ++x)
 	  {
-	    int i = raster[y * image_width + x];
+	    int c = raster[y * image_width + x];
 	    XPutPixel (ximg, x + img->corners[LEFT_CORNER],
-		       y + img->corners[TOP_CORNER], pixel_colors[i]);
+		       y + img->corners[TOP_CORNER], pixel_colors[c]);
 	  }
     }
 

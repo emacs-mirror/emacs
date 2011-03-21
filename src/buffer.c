@@ -330,15 +330,17 @@ even if it is dead.  The return value is never nil.  */)
   if (! BUF_BEG_ADDR (b))
     buffer_memory_full ();
 
-  BUF_PT (b) = BEG;
+  b->pt = BEG;
+  b->begv = BEG;
+  b->zv = BEG;
+  b->pt_byte = BEG_BYTE;
+  b->begv_byte = BEG_BYTE;
+  b->zv_byte = BEG_BYTE;
+
   BUF_GPT (b) = BEG;
-  BUF_BEGV (b) = BEG;
-  BUF_ZV (b) = BEG;
-  BUF_Z (b) = BEG;
-  BUF_PT_BYTE (b) = BEG_BYTE;
   BUF_GPT_BYTE (b) = BEG_BYTE;
-  BUF_BEGV_BYTE (b) = BEG_BYTE;
-  BUF_ZV_BYTE (b) = BEG_BYTE;
+
+  BUF_Z (b) = BEG;
   BUF_Z_BYTE (b) = BEG_BYTE;
   BUF_MODIFF (b) = 1;
   BUF_CHARS_MODIFF (b) = 1;
@@ -489,6 +491,53 @@ clone_per_buffer_values (struct buffer *from, struct buffer *to)
   BVAR (to, local_var_alist) = buffer_lisp_local_variables (from);
 }
 
+
+/* If buffer B has markers to record PT, BEGV and ZV when it is not
+   current, update these markers.  */
+
+static void
+record_buffer_markers (struct buffer *b)
+{
+  if (! NILP (BVAR (b, pt_marker)))
+    {
+      Lisp_Object buffer;
+
+      eassert (!NILP (BVAR (b, begv_marker)));
+      eassert (!NILP (BVAR (b, zv_marker)));
+
+      XSETBUFFER (buffer, b);
+      set_marker_both (BVAR (b, pt_marker), buffer, b->pt, b->pt_byte);
+      set_marker_both (BVAR (b, begv_marker), buffer, b->begv, b->begv_byte);
+      set_marker_both (BVAR (b, zv_marker), buffer, b->zv, b->zv_byte);
+    }
+}
+
+
+/* If buffer B has markers to record PT, BEGV and ZV when it is not
+   current, fetch these values into B->begv etc.  */
+
+static void
+fetch_buffer_markers (struct buffer *b)
+{
+  if (! NILP (BVAR (b, pt_marker)))
+    {
+      Lisp_Object m;
+
+      eassert (!NILP (BVAR (b, begv_marker)));
+      eassert (!NILP (BVAR (b, zv_marker)));
+
+      m = BVAR (b, pt_marker);
+      SET_BUF_PT_BOTH (b, marker_position (m), marker_byte_position (m));
+
+      m = BVAR (b, begv_marker);
+      SET_BUF_BEGV_BOTH (b, marker_position (m), marker_byte_position (m));
+
+      m = BVAR (b, zv_marker);
+      SET_BUF_ZV_BOTH (b, marker_position (m), marker_byte_position (m));
+    }
+}
+
+
 DEFUN ("make-indirect-buffer", Fmake_indirect_buffer, Smake_indirect_buffer,
        2, 3,
        "bMake indirect buffer (to buffer): \nBName of indirect buffer: ",
@@ -527,12 +576,12 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
   /* Use the base buffer's text object.  */
   b->text = b->base_buffer->text;
 
-  BUF_BEGV (b) = BUF_BEGV (b->base_buffer);
-  BUF_ZV (b) = BUF_ZV (b->base_buffer);
-  BUF_PT (b) = BUF_PT (b->base_buffer);
-  BUF_BEGV_BYTE (b) = BUF_BEGV_BYTE (b->base_buffer);
-  BUF_ZV_BYTE (b) = BUF_ZV_BYTE (b->base_buffer);
-  BUF_PT_BYTE (b) = BUF_PT_BYTE (b->base_buffer);
+  b->pt = b->base_buffer->pt;
+  b->begv = b->base_buffer->begv;
+  b->zv = b->base_buffer->zv;
+  b->pt_byte = b->base_buffer->pt_byte;
+  b->begv_byte = b->base_buffer->begv_byte;
+  b->zv_byte = b->base_buffer->zv_byte;
 
   b->newline_cache = 0;
   b->width_run_cache = 0;
@@ -562,24 +611,23 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
   /* Make sure the base buffer has markers for its narrowing.  */
   if (NILP (BVAR (b->base_buffer, pt_marker)))
     {
+      eassert (NILP (BVAR (b->base_buffer, begv_marker)));
+      eassert (NILP (BVAR (b->base_buffer, zv_marker)));
+
       BVAR (b->base_buffer, pt_marker) = Fmake_marker ();
       set_marker_both (BVAR (b->base_buffer, pt_marker), base_buffer,
-		       BUF_PT (b->base_buffer),
-		       BUF_PT_BYTE (b->base_buffer));
-    }
-  if (NILP (BVAR (b->base_buffer, begv_marker)))
-    {
+		       b->base_buffer->pt,
+		       b->base_buffer->pt_byte);
+
       BVAR (b->base_buffer, begv_marker) = Fmake_marker ();
       set_marker_both (BVAR (b->base_buffer, begv_marker), base_buffer,
-		       BUF_BEGV (b->base_buffer),
-		       BUF_BEGV_BYTE (b->base_buffer));
-    }
-  if (NILP (BVAR (b->base_buffer, zv_marker)))
-    {
+		       b->base_buffer->begv,
+		       b->base_buffer->begv_byte);
+
       BVAR (b->base_buffer, zv_marker) = Fmake_marker ();
       set_marker_both (BVAR (b->base_buffer, zv_marker), base_buffer,
-		       BUF_ZV (b->base_buffer),
-		       BUF_ZV_BYTE (b->base_buffer));
+		       b->base_buffer->zv,
+		       b->base_buffer->zv_byte);
       XMARKER (BVAR (b->base_buffer, zv_marker))->insertion_type = 1;
     }
 
@@ -587,11 +635,11 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
     {
       /* Give the indirect buffer markers for its narrowing.  */
       BVAR (b, pt_marker) = Fmake_marker ();
-      set_marker_both (BVAR (b, pt_marker), buf, BUF_PT (b), BUF_PT_BYTE (b));
+      set_marker_both (BVAR (b, pt_marker), buf, b->pt, b->pt_byte);
       BVAR (b, begv_marker) = Fmake_marker ();
-      set_marker_both (BVAR (b, begv_marker), buf, BUF_BEGV (b), BUF_BEGV_BYTE (b));
+      set_marker_both (BVAR (b, begv_marker), buf, b->begv, b->begv_byte);
       BVAR (b, zv_marker) = Fmake_marker ();
-      set_marker_both (BVAR (b, zv_marker), buf, BUF_ZV (b), BUF_ZV_BYTE (b));
+      set_marker_both (BVAR (b, zv_marker), buf, b->zv, b->zv_byte);
       XMARKER (BVAR (b, zv_marker))->insertion_type = 1;
     }
   else
@@ -1416,9 +1464,9 @@ with SIGHUP.  */)
 	   don't re-kill them.  */
 	if (other->base_buffer == b && !NILP (BVAR (other, name)))
 	  {
-	    Lisp_Object buffer;
-	    XSETBUFFER (buffer, other);
-	    Fkill_buffer (buffer);
+	    Lisp_Object buf;
+	    XSETBUFFER (buf, other);
+	    Fkill_buffer (buf);
 	  }
 
       UNGCPRO;
@@ -1479,9 +1527,9 @@ with SIGHUP.  */)
       && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b)
       && NILP (Fsymbol_value (intern ("auto-save-visited-file-name"))))
     {
-      Lisp_Object tem;
-      tem = Fsymbol_value (intern ("delete-auto-save-files"));
-      if (! NILP (tem))
+      Lisp_Object delete;
+      delete = Fsymbol_value (intern ("delete-auto-save-files"));
+      if (! NILP (delete))
 	internal_delete_file (BVAR (b, auto_save_file_name));
     }
 
@@ -1553,19 +1601,19 @@ with SIGHUP.  */)
 void
 record_buffer (Lisp_Object buf)
 {
-  register Lisp_Object link, prev;
+  register Lisp_Object list, prev;
   Lisp_Object frame;
   frame = selected_frame;
 
   prev = Qnil;
-  for (link = Vbuffer_alist; CONSP (link); link = XCDR (link))
+  for (list = Vbuffer_alist; CONSP (list); list = XCDR (list))
     {
-      if (EQ (XCDR (XCAR (link)), buf))
+      if (EQ (XCDR (XCAR (list)), buf))
 	break;
-      prev = link;
+      prev = list;
     }
 
-  /* Effectively do Vbuffer_alist = Fdelq (link, Vbuffer_alist);
+  /* Effectively do Vbuffer_alist = Fdelq (list, Vbuffer_alist);
      we cannot use Fdelq itself here because it allows quitting.  */
 
   if (NILP (prev))
@@ -1573,40 +1621,40 @@ record_buffer (Lisp_Object buf)
   else
     XSETCDR (prev, XCDR (XCDR (prev)));
 
-  XSETCDR (link, Vbuffer_alist);
-  Vbuffer_alist = link;
+  XSETCDR (list, Vbuffer_alist);
+  Vbuffer_alist = list;
 
   /* Effectively do a delq on buried_buffer_list.  */
 
   prev = Qnil;
-  for (link = XFRAME (frame)->buried_buffer_list; CONSP (link);
-       link = XCDR (link))
+  for (list = XFRAME (frame)->buried_buffer_list; CONSP (list);
+       list = XCDR (list))
     {
-      if (EQ (XCAR (link), buf))
+      if (EQ (XCAR (list), buf))
         {
           if (NILP (prev))
-            XFRAME (frame)->buried_buffer_list = XCDR (link);
+            XFRAME (frame)->buried_buffer_list = XCDR (list);
           else
             XSETCDR (prev, XCDR (XCDR (prev)));
           break;
         }
-      prev = link;
+      prev = list;
     }
 
   /* Now move this buffer to the front of frame_buffer_list also.  */
 
   prev = Qnil;
-  for (link = frame_buffer_list (frame); CONSP (link);
-       link = XCDR (link))
+  for (list = frame_buffer_list (frame); CONSP (list);
+       list = XCDR (list))
     {
-      if (EQ (XCAR (link), buf))
+      if (EQ (XCAR (list), buf))
 	break;
-      prev = link;
+      prev = list;
     }
 
   /* Effectively do delq.  */
 
-  if (CONSP (link))
+  if (CONSP (list))
     {
       if (NILP (prev))
 	set_frame_buffer_list (frame,
@@ -1614,8 +1662,8 @@ record_buffer (Lisp_Object buf)
       else
 	XSETCDR (prev, XCDR (XCDR (prev)));
 
-      XSETCDR (link, frame_buffer_list (frame));
-      set_frame_buffer_list (frame, link);
+      XSETCDR (list, frame_buffer_list (frame));
+      set_frame_buffer_list (frame, list);
     }
   else
     set_frame_buffer_list (frame, Fcons (buf, frame_buffer_list (frame)));
@@ -1664,7 +1712,7 @@ the current buffer's major mode.  */)
 /* Switch to buffer BUFFER in the selected window.
    If NORECORD is non-nil, don't call record_buffer.  */
 
-Lisp_Object
+static Lisp_Object
 switch_to_buffer_1 (Lisp_Object buffer_or_name, Lisp_Object norecord)
 {
   register Lisp_Object buffer;
@@ -1796,27 +1844,7 @@ set_buffer_internal_1 (register struct buffer *b)
 
       /* If the old current buffer has markers to record PT, BEGV and ZV
 	 when it is not current, update them now.  */
-      if (! NILP (BVAR (old_buf, pt_marker)))
-	{
-	  Lisp_Object obuf;
-	  XSETBUFFER (obuf, old_buf);
-	  set_marker_both (BVAR (old_buf, pt_marker), obuf,
-			   BUF_PT (old_buf), BUF_PT_BYTE (old_buf));
-	}
-      if (! NILP (BVAR (old_buf, begv_marker)))
-	{
-	  Lisp_Object obuf;
-	  XSETBUFFER (obuf, old_buf);
-	  set_marker_both (BVAR (old_buf, begv_marker), obuf,
-			   BUF_BEGV (old_buf), BUF_BEGV_BYTE (old_buf));
-	}
-      if (! NILP (BVAR (old_buf, zv_marker)))
-	{
-	  Lisp_Object obuf;
-	  XSETBUFFER (obuf, old_buf);
-	  set_marker_both (BVAR (old_buf, zv_marker), obuf,
-			   BUF_ZV (old_buf), BUF_ZV_BYTE (old_buf));
-	}
+      record_buffer_markers (old_buf);
     }
 
   /* Get the undo list from the base buffer, so that it appears
@@ -1826,21 +1854,7 @@ set_buffer_internal_1 (register struct buffer *b)
 
   /* If the new current buffer has markers to record PT, BEGV and ZV
      when it is not current, fetch them now.  */
-  if (! NILP (BVAR (b, pt_marker)))
-    {
-      BUF_PT (b) = marker_position (BVAR (b, pt_marker));
-      BUF_PT_BYTE (b) = marker_byte_position (BVAR (b, pt_marker));
-    }
-  if (! NILP (BVAR (b, begv_marker)))
-    {
-      BUF_BEGV (b) = marker_position (BVAR (b, begv_marker));
-      BUF_BEGV_BYTE (b) = marker_byte_position (BVAR (b, begv_marker));
-    }
-  if (! NILP (BVAR (b, zv_marker)))
-    {
-      BUF_ZV (b) = marker_position (BVAR (b, zv_marker));
-      BUF_ZV_BYTE (b) = marker_byte_position (BVAR (b, zv_marker));
-    }
+  fetch_buffer_markers (b);
 
   /* Look down buffer's list of local Lisp variables
      to find and update any that forward into C variables. */
@@ -1876,50 +1890,13 @@ set_buffer_temp (struct buffer *b)
   old_buf = current_buffer;
   current_buffer = b;
 
-  if (old_buf)
-    {
-      /* If the old current buffer has markers to record PT, BEGV and ZV
-	 when it is not current, update them now.  */
-      if (! NILP (BVAR (old_buf, pt_marker)))
-	{
-	  Lisp_Object obuf;
-	  XSETBUFFER (obuf, old_buf);
-	  set_marker_both (BVAR (old_buf, pt_marker), obuf,
-			   BUF_PT (old_buf), BUF_PT_BYTE (old_buf));
-	}
-      if (! NILP (BVAR (old_buf, begv_marker)))
-	{
-	  Lisp_Object obuf;
-	  XSETBUFFER (obuf, old_buf);
-	  set_marker_both (BVAR (old_buf, begv_marker), obuf,
-			   BUF_BEGV (old_buf), BUF_BEGV_BYTE (old_buf));
-	}
-      if (! NILP (BVAR (old_buf, zv_marker)))
-	{
-	  Lisp_Object obuf;
-	  XSETBUFFER (obuf, old_buf);
-	  set_marker_both (BVAR (old_buf, zv_marker), obuf,
-			   BUF_ZV (old_buf), BUF_ZV_BYTE (old_buf));
-	}
-    }
+  /* If the old current buffer has markers to record PT, BEGV and ZV
+     when it is not current, update them now.  */
+  record_buffer_markers (old_buf);
 
   /* If the new current buffer has markers to record PT, BEGV and ZV
      when it is not current, fetch them now.  */
-  if (! NILP (BVAR (b, pt_marker)))
-    {
-      BUF_PT (b) = marker_position (BVAR (b, pt_marker));
-      BUF_PT_BYTE (b) = marker_byte_position (BVAR (b, pt_marker));
-    }
-  if (! NILP (BVAR (b, begv_marker)))
-    {
-      BUF_BEGV (b) = marker_position (BVAR (b, begv_marker));
-      BUF_BEGV_BYTE (b) = marker_byte_position (BVAR (b, begv_marker));
-    }
-  if (! NILP (BVAR (b, zv_marker)))
-    {
-      BUF_ZV (b) = marker_position (BVAR (b, zv_marker));
-      BUF_ZV_BYTE (b) = marker_byte_position (BVAR (b, zv_marker));
-    }
+  fetch_buffer_markers (b);
 }
 
 DEFUN ("set-buffer", Fset_buffer, Sset_buffer, 1, 1, 0,
@@ -2007,13 +1984,13 @@ its frame, iconify that frame.  */)
      buffer is killed.  */
   if (!NILP (BVAR (XBUFFER (buffer), name)))
     {
-      Lisp_Object aelt, link;
+      Lisp_Object aelt, list;
 
       aelt = Frassq (buffer, Vbuffer_alist);
-      link = Fmemq (aelt, Vbuffer_alist);
+      list = Fmemq (aelt, Vbuffer_alist);
       Vbuffer_alist = Fdelq (aelt, Vbuffer_alist);
-      XSETCDR (link, Qnil);
-      Vbuffer_alist = nconc2 (Vbuffer_alist, link);
+      XSETCDR (list, Qnil);
+      Vbuffer_alist = nconc2 (Vbuffer_alist, list);
 
       XFRAME (selected_frame)->buffer_list
         = Fdelq (buffer, XFRAME (selected_frame)->buffer_list);
@@ -2358,12 +2335,12 @@ current buffer is cleared.  */)
 	  && GPT_BYTE > 1 && GPT_BYTE < Z_BYTE
 	  && ! CHAR_HEAD_P (*(GAP_END_ADDR)))
 	{
-	  unsigned char *p = GPT_ADDR - 1;
+	  unsigned char *q = GPT_ADDR - 1;
 
-	  while (! CHAR_HEAD_P (*p) && p > BEG_ADDR) p--;
-	  if (LEADING_CODE_P (*p))
+	  while (! CHAR_HEAD_P (*q) && q > BEG_ADDR) q--;
+	  if (LEADING_CODE_P (*q))
 	    {
-	      EMACS_INT new_gpt = GPT_BYTE - (GPT_ADDR - p);
+	      EMACS_INT new_gpt = GPT_BYTE - (GPT_ADDR - q);
 
 	      move_gap_both (new_gpt, new_gpt);
 	    }
@@ -2447,14 +2424,14 @@ current buffer is cleared.  */)
 	ZV = chars_in_text (BEG_ADDR, ZV_BYTE - BEG_BYTE) + BEG;
 
       {
-	EMACS_INT pt_byte = advance_to_char_boundary (PT_BYTE);
-	EMACS_INT pt;
+	EMACS_INT byte = advance_to_char_boundary (PT_BYTE);
+	EMACS_INT position;
 
-	if (pt_byte > GPT_BYTE)
-	  pt = chars_in_text (GAP_END_ADDR, pt_byte - GPT_BYTE) + GPT;
+	if (byte > GPT_BYTE)
+	  position = chars_in_text (GAP_END_ADDR, byte - GPT_BYTE) + GPT;
 	else
-	  pt = chars_in_text (BEG_ADDR, pt_byte - BEG_BYTE) + BEG;
-	TEMP_SET_PT_BOTH (pt, pt_byte);
+	  position = chars_in_text (BEG_ADDR, byte - BEG_BYTE) + BEG;
+	TEMP_SET_PT_BOTH (position, byte);
       }
 
       tail = markers = BUF_MARKERS (current_buffer);
@@ -3421,7 +3398,8 @@ void
 fix_start_end_in_overlays (register EMACS_INT start, register EMACS_INT end)
 {
   Lisp_Object overlay;
-  struct Lisp_Overlay *before_list, *after_list;
+  struct Lisp_Overlay *before_list IF_LINT (= NULL);
+  struct Lisp_Overlay *after_list IF_LINT (= NULL);
   /* These are either nil, indicating that before_list or after_list
      should be assigned, or the cons cell the cdr of which should be
      assigned.  */
@@ -3569,7 +3547,7 @@ fix_overlays_before (struct buffer *bp, EMACS_INT prev, EMACS_INT pos)
   /* If parent is nil, replace overlays_before; otherwise, parent->next.  */
   struct Lisp_Overlay *tail = bp->overlays_before, *parent = NULL, *right_pair;
   Lisp_Object tem;
-  EMACS_INT end;
+  EMACS_INT end IF_LINT (= 0);
 
   /* After the insertion, the several overlays may be in incorrect
      order.  The possibility is that, in the list `overlays_before',
@@ -4345,10 +4323,10 @@ report_overlay_modification (Lisp_Object start, Lisp_Object end, int after,
 
     for (i = 0; i < size;)
       {
-	Lisp_Object prop, overlay;
-	prop = copy[i++];
-	overlay = copy[i++];
-	call_overlay_mod_hooks (prop, overlay, after, arg1, arg2, arg3);
+	Lisp_Object prop_i, overlay_i;
+	prop_i = copy[i++];
+	overlay_i = copy[i++];
+	call_overlay_mod_hooks (prop_i, overlay_i, after, arg1, arg2, arg3);
       }
   }
   UNGCPRO;
@@ -5332,9 +5310,6 @@ syms_of_buffer (void)
 	pure_cons (Qprotected_field, pure_cons (Qerror, Qnil)));
   Fput (Qprotected_field, Qerror_message,
 	make_pure_c_string ("Attempt to modify a protected field"));
-
-  /* All these use DEFVAR_LISP_NOPRO because the slots in
-     buffer_defaults will all be marked via Vbuffer_defaults.  */
 
   DEFVAR_BUFFER_DEFAULTS ("default-mode-line-format",
 			  mode_line_format,

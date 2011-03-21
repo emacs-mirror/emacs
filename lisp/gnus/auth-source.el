@@ -54,6 +54,8 @@
 (autoload 'secrets-list-collections "secrets")
 (autoload 'secrets-search-items "secrets")
 
+(autoload 'rfc2104-hash "rfc2104")
+
 (defvar secrets-enabled)
 
 (defgroup auth-source nil
@@ -286,6 +288,28 @@ If the value is not a list, symmetric encryption will be used."
    msg))
 
 
+;;; (auth-source-read-char-choice "enter choice? " '(?a ?b ?q))
+(defun auth-source-read-char-choice (prompt choices)
+  "Read one of CHOICES by `read-char-choice', or `read-char'.
+`dropdown-list' support is disabled because it doesn't work reliably.
+Only one of CHOICES will be returned.  The PROMPT is augmented
+with \"[a/b/c] \" if CHOICES is '\(?a ?b ?c\)."
+  (when choices
+    (let* ((prompt-choices
+            (apply 'concat (loop for c in choices
+                                 collect (format "%c/" c))))
+           (prompt-choices (concat "[" (substring prompt-choices 0 -1) "] "))
+           (full-prompt (concat prompt prompt-choices))
+           k)
+
+      (while (not (memq k choices))
+        (setq k (cond
+                 ((fboundp 'read-char-choice)
+                  (read-char-choice full-prompt choices))
+                 (t (message "%s" full-prompt)
+                    (setq k (read-char))))))
+      k)))
+
 ;; (auth-source-pick nil :host "any" :port 'imap :user "joe")
 ;; (auth-source-pick t :host "any" :port 'imap :user "joe")
 ;; (setq auth-sources '((:source (:secrets default) :host t :port t :user "joe")
@@ -393,7 +417,7 @@ parameters."
 
 (defun* auth-source-search (&rest spec
                                   &key type max host user port secret
-                                  create delete
+                                  require create delete
                                   &allow-other-keys)
   "Search or modify authentication backends according to SPEC.
 
@@ -487,6 +511,11 @@ should `catch' the backend-specific error as usual.  Some
 backends (netrc, at least) will prompt the user rather than throw
 an error.
 
+:require (A B C) means that only results that contain those
+tokens will be returned.  Thus for instance requiring :secret
+will ensure that any results will actually have a :secret
+property.
+
 :delete t means to delete any found entries.  nil by default.
 Use `auth-source-delete' in ELisp code instead of calling
 `auth-source-search' directly with this parameter.
@@ -516,11 +545,17 @@ is a plist with keys :backend :host :port :user, plus any other
 keys provided by the backend (notably :secret).  But note the
 exception for :max 0, which see above.
 
+The token can hold a :save-function key.  If you call that, the
+user will be prompted to save the data to the backend.  You can't
+request that this should happen right after creation, because
+`auth-source-search' has no way of knowing if the token is
+actually useful.  So the caller must arrange to call this function.
+
 The token's :secret key can hold a function.  In that case you
 must call it to obtain the actual value."
   (let* ((backends (mapcar 'auth-source-backend-parse auth-sources))
          (max (or max 1))
-         (ignored-keys '(:create :delete :max))
+         (ignored-keys '(:require :create :delete :max))
          (keys (loop for i below (length spec) by 2
                      unless (memq (nth i spec) ignored-keys)
                      collect (nth i spec)))
@@ -538,6 +573,10 @@ must call it to obtain the actual value."
       (assert
        (or (eq t create) (listp create)) t
        "Invalid auth-source :create parameter (must be t or a list): %s %s")
+
+      (assert
+       (listp require) t
+       "Invalid auth-source :require parameter (must be a list): %s")
 
       (setq filtered-backends (copy-sequence backends))
       (dolist (backend backends)
@@ -562,8 +601,9 @@ must call it to obtain the actual value."
                                                spec
                                                ;; to exit early
                                                max
-                                               ;; create and delete
-                                               nil delete))
+                                               ;; create is always nil here
+                                               nil delete
+                                               require))
 
       (auth-source-do-debug
        "auth-source-search: found %d results (max %d) matching %S"
@@ -577,9 +617,9 @@ must call it to obtain the actual value."
                                                  spec
                                                  ;; to exit early
                                                  max
-                                                 ;; create and delete
-                                                 create delete))
-        (auth-source-do-warn
+                                                 create delete
+                                                 require))
+        (auth-source-do-debug
          "auth-source-search: CREATED %d results (max %d) matching %S"
          (length found) max spec))
 
@@ -589,18 +629,19 @@ must call it to obtain the actual value."
 
       found))
 
-(defun auth-source-search-backends (backends spec max create delete)
+(defun auth-source-search-backends (backends spec max create delete require)
   (let (matches)
     (dolist (backend backends)
       (when (> max (length matches))   ; when we need more matches...
-        (let ((bmatches (apply
-                         (slot-value backend 'search-function)
-                         :backend backend
-                         ;; note we're overriding whatever the spec
-                         ;; has for :create and :delete
-                         :create create
-                         :delete delete
-                         spec)))
+        (let* ((bmatches (apply
+                          (slot-value backend 'search-function)
+                          :backend backend
+                          ;; note we're overriding whatever the spec
+                          ;; has for :require, :create, and :delete
+                          :require require
+                          :create create
+                          :delete delete
+                          spec)))
           (when bmatches
             (auth-source-do-trivia
              "auth-source-search-backend: got %d (max %d) in %s:%s matching %S"
@@ -713,7 +754,28 @@ while \(:host t) would find all host entries."
               (return 'no)))
           'no))))
 
-;;; Backend specific parsing: netrc/authinfo backend
+;;; (auth-source-pick-first-password :host "z.lifelogs.com")
+;;; (auth-source-pick-first-password :port "imap")
+(defun auth-source-pick-first-password (&rest spec)
+  "Pick the first secret found from applying SPEC to `auth-source-search'."
+  (let* ((result (nth 0 (apply 'auth-source-search (plist-put spec :max 1))))
+         (secret (plist-get result :secret)))
+
+    (if (functionp secret)
+        (funcall secret)
+      secret)))
+
+;; (auth-source-format-prompt "test %u %h %p" '((?u "user") (?h "host")))
+(defun auth-source-format-prompt (prompt alist)
+  "Format PROMPT using %x (for any character x) specifiers in ALIST."
+  (dolist (cell alist)
+    (let ((c (nth 0 cell))
+          (v (nth 1 cell)))
+      (when (and c v)
+        (setq prompt (replace-regexp-in-string (format "%%%c" c)
+                                               (format "%s" v)
+                                               prompt)))))
+  prompt)
 
 (defun auth-source-ensure-strings (values)
   (unless (listp values)
@@ -724,12 +786,14 @@ while \(:host t) would find all host entries."
 	      value))
 	  values))
 
+;;; Backend specific parsing: netrc/authinfo backend
+
 (defvar auth-source-netrc-cache nil)
 
 ;;; (auth-source-netrc-parse "~/.authinfo.gpg")
 (defun* auth-source-netrc-parse (&rest
                                  spec
-                                 &key file max host user port delete
+                                 &key file max host user port delete require
                                  &allow-other-keys)
   "Parse FILE and return a list of all entries in the file.
 Note that the MAX parameter is used so we can exit the parse early."
@@ -828,7 +892,15 @@ Note that the MAX parameter is used so we can exit the parse early."
                         (or
                          (aget alist "port")
                          (aget alist "protocol")
-                         t)))
+                         t))
+                       (or
+                        ;; the required list of keys is nil, or
+                        (null require)
+                        ;; every element of require is in the normalized list
+                        (let ((normalized (nth 0 (auth-source-netrc-normalize
+                                                 (list alist)))))
+                          (loop for req in require
+                                always (plist-get normalized req)))))
               (decf max)
               (push (nreverse alist) result)
               ;; to delete a line, we just comment it out
@@ -853,7 +925,7 @@ Note that the MAX parameter is used so we can exit the parse early."
                   (setq epa-file-encrypt-to auth-source-gpg-encrypt-to)))
 
             ;; ask AFTER we've successfully opened the file
-            (when (y-or-n-p (format "Save file %s? (%d modifications)"
+            (when (y-or-n-p (format "Save file %s? (%d deletions)"
                                     file modified))
               (write-region (point-min) (point-max) file nil 'silent)
               (auth-source-do-debug
@@ -893,7 +965,7 @@ Note that the MAX parameter is used so we can exit the parse early."
 
 (defun* auth-source-netrc-search (&rest
                                   spec
-                                  &key backend create delete
+                                  &key backend require create delete
                                   type max host user port
                                   &allow-other-keys)
 "Given a property list SPEC, return search matches from the :backend.
@@ -905,6 +977,7 @@ See `auth-source-search' for details on SPEC."
   (let ((results (auth-source-netrc-normalize
                   (auth-source-netrc-parse
                    :max max
+                   :require require
                    :delete delete
                    :file (oref backend source)
                    :host (or host t)
@@ -932,17 +1005,6 @@ See `auth-source-search' for details on SPEC."
   (if (listp v)
       (nth 0 v)
     v))
-
-;; (auth-source-format-prompt "test %u %h %p" '((?u "user") (?h "host")))
-
-(defun auth-source-format-prompt (prompt alist)
-  "Format PROMPT using %x (for any character x) specifiers in ALIST."
-  (dolist (cell alist)
-    (let ((c (nth 0 cell))
-          (v (nth 1 cell)))
-      (when (and c v)
-        (setq prompt (replace-regexp-in-string (format "%%%c" c) v prompt)))))
-  prompt)
 
 ;;; (auth-source-search :host "nonesuch" :type 'netrc :max 1 :create t)
 ;;; (auth-source-search :host "nonesuch" :type 'netrc :max 1 :create t :create-extra-keys '((A "default A") (B)))
@@ -992,12 +1054,12 @@ See `auth-source-search' for details on SPEC."
              (data (auth-source-netrc-element-or-first data))
              ;; this is the default to be offered
              (given-default (aget auth-source-creation-defaults r))
-             ;; the default supplementals are simple: for the user,
-             ;; try (user-login-name), otherwise take given-default
+             ;; the default supplementals are simple:
+             ;; for the user, try `given-default' and then (user-login-name);
+             ;; otherwise take `given-default'
              (default (cond
-                       ;; don't default the user name
-                       ;; ((and (not given-default) (eq r 'user))
-                       ;;  (user-login-name))
+                       ((and (not given-default) (eq r 'user))
+                        (user-login-name))
                        (t given-default)))
              (printable-defaults (list
                                   (cons 'user
@@ -1020,10 +1082,10 @@ See `auth-source-search' for details on SPEC."
                                          "[any port]"))))
              (prompt (or (aget auth-source-creation-prompts r)
                          (case r
-                           ('secret "%p password for user %u, host %h: ")
-                           ('user "%p user name: ")
-                           ('host "%p host name for user %u: ")
-                           ('port "%p port for user %u and host %h: "))
+                           (secret "%p password for %u@%h: ")
+                           (user "%p user name for %h: ")
+                           (host "%p host name for user %u: ")
+                           (port "%p port for %u@%h: "))
                          (format "Enter %s (%%u@%%h:%%p): " r)))
              (prompt (auth-source-format-prompt
                       prompt
@@ -1031,14 +1093,20 @@ See `auth-source-search' for details on SPEC."
                         (?h ,(aget printable-defaults 'host))
                         (?p ,(aget printable-defaults 'port))))))
 
-        ;; store the data, prompting for the password if needed
+        ;; Store the data, prompting for the password if needed.
         (setq data
               (cond
                ((and (null data) (eq r 'secret))
-                ;; special case prompt for passwords
+                ;; Special case prompt for passwords.
                 (read-passwd prompt))
                ((null data)
-                (read-string prompt default))
+                (when default
+                  (setq prompt
+                        (if (string-match ": *\\'" prompt)
+                            (concat (substring prompt 0 (match-beginning 0))
+                                    " (default " default "): ")
+                          (concat prompt "(default " default ") "))))
+                (read-string prompt nil nil default))
                (t (or data default))))
 
         (when data
@@ -1049,7 +1117,7 @@ See `auth-source-search' for details on SPEC."
                                             (lambda () data))
                                         data))))
 
-        ;; when r is not an empty string...
+        ;; When r is not an empty string...
         (when (and (stringp data)
                    (< 0 (length data)))
           ;; this function is not strictly necessary but I think it
@@ -1062,79 +1130,99 @@ See `auth-source-search' for details on SPEC."
                                    (if (zerop (length add)) "" " ")
                                    ;; remap auth-source tokens to netrc
                                    (case r
-                                     ('user   "login")
-                                     ('host   "machine")
-                                     ('secret "password")
-                                     ('port   "port") ; redundant but clearer
+                                     (user   "login")
+                                     (host   "machine")
+                                     (secret "password")
+                                     (port   "port") ; redundant but clearer
                                      (t (symbol-name r)))
                                    ;; the value will be printed in %S format
                                    data))))
             (setq add (concat add (funcall printer)))))))
 
-    (with-temp-buffer
-      (when (file-exists-p file)
-        (insert-file-contents file))
-      (when auth-source-gpg-encrypt-to
-        ;; (see bug#7487) making `epa-file-encrypt-to' local to
-        ;; this buffer lets epa-file skip the key selection query
-        ;; (see the `local-variable-p' check in
-        ;; `epa-file-write-region').
-        (unless (local-variable-p 'epa-file-encrypt-to (current-buffer))
-          (make-local-variable 'epa-file-encrypt-to))
-        (if (listp auth-source-gpg-encrypt-to)
-            (setq epa-file-encrypt-to auth-source-gpg-encrypt-to)))
-      (goto-char (point-max))
+    (plist-put
+     artificial
+     :save-function
+     (lexical-let ((file file)
+                   (add add))
+       (lambda () (auth-source-netrc-saver file add))))
 
-      ;; ask AFTER we've successfully opened the file
-      (let ((prompt (format "Save auth info to file %s? %s: "
-                            file
-                            "y/n/N/e/?"))
-            (done (not (eq auth-source-save-behavior 'ask)))
-            (bufname "*auth-source Help*")
-            k)
-        (while (not done)
-          (message "%s" prompt)
-          (setq k (read-char))
-          (case k
-            (?y (setq done t))
-            (?? (save-excursion
-                  (with-output-to-temp-buffer bufname
-                    (princ
-                     (concat "(y)es, save\n"
-                             "(n)o but use the info\n"
-                             "(N)o and don't ask to save again\n"
-                             "(e)dit the line\n"
-                             "(?) for help as you can see.\n"))
-                  (set-buffer standard-output)
-                  (help-mode))))
-            (?n (setq add ""
-                      done t))
-            (?N (setq add ""
-                      done t
-                      auth-source-save-behavior nil))
-            (?e (setq add (read-string "Line to add: " add)))
-            (t nil)))
+    (list artificial)))
 
-        (when (get-buffer-window bufname)
-          (delete-window (get-buffer-window bufname)))
+;;(funcall (plist-get (nth 0 (auth-source-search :host '("nonesuch2") :user "tzz" :port "imap" :create t :max 1)) :save-function))
+(defun auth-source-netrc-saver (file add)
+  "Save a line ADD in FILE, prompting along the way.
+Respects `auth-source-save-behavior'.  Uses
+`auth-source-netrc-cache' to avoid prompting more than once."
+  (let* ((key (format "%s %s" file (rfc2104-hash 'md5 64 16 file add)))
+         (cached (assoc key auth-source-netrc-cache)))
 
-        ;; make sure the info is not saved
-        (when (null auth-source-save-behavior)
-          (setq add ""))
+    (if cached
+        (auth-source-do-trivia
+         "auth-source-netrc-saver: found previous run for key %s, returning"
+         key)
+      (with-temp-buffer
+        (when (file-exists-p file)
+          (insert-file-contents file))
+        (when auth-source-gpg-encrypt-to
+          ;; (see bug#7487) making `epa-file-encrypt-to' local to
+          ;; this buffer lets epa-file skip the key selection query
+          ;; (see the `local-variable-p' check in
+          ;; `epa-file-write-region').
+          (unless (local-variable-p 'epa-file-encrypt-to (current-buffer))
+            (make-local-variable 'epa-file-encrypt-to))
+          (if (listp auth-source-gpg-encrypt-to)
+              (setq epa-file-encrypt-to auth-source-gpg-encrypt-to)))
+        ;; we want the new data to be found first, so insert at beginning
+        (goto-char (point-min))
 
-        (when (< 0 (length add))
-          (progn
-            (unless (bolp)
-              (insert "\n"))
-            (insert add "\n")
-            (write-region (point-min) (point-max) file nil 'silent)
-            (auth-source-do-warn
-             "auth-source-netrc-create: wrote 1 new line to %s"
-             file)
-            nil))
+        ;; Ask AFTER we've successfully opened the file.
+        (let ((prompt (format "Save auth info to file %s? " file))
+              (done (not (eq auth-source-save-behavior 'ask)))
+              (bufname "*auth-source Help*")
+              k)
+          (while (not done)
+            (setq k (auth-source-read-char-choice prompt '(?y ?n ?N ?e ??)))
+            (case k
+              (?y (setq done t))
+              (?? (save-excursion
+                    (with-output-to-temp-buffer bufname
+                      (princ
+                       (concat "(y)es, save\n"
+                               "(n)o but use the info\n"
+                               "(N)o and don't ask to save again\n"
+                               "(e)dit the line\n"
+                               "(?) for help as you can see.\n"))
+                      ;; Why?  Doesn't with-output-to-temp-buffer already do
+                      ;; the exact same thing anyway?  --Stef
+                      (set-buffer standard-output)
+                      (help-mode))))
+              (?n (setq add ""
+                        done t))
+              (?N (setq add ""
+                        done t
+                        auth-source-save-behavior nil))
+              (?e (setq add (read-string "Line to add: " add)))
+              (t nil)))
 
-        (when (eq done t)
-          (list artificial))))))
+          (when (get-buffer-window bufname)
+            (delete-window (get-buffer-window bufname)))
+
+          ;; Make sure the info is not saved.
+          (when (null auth-source-save-behavior)
+            (setq add ""))
+
+          (when (< 0 (length add))
+            (progn
+              (unless (bolp)
+                (insert "\n"))
+              (insert add "\n")
+              (write-region (point-min) (point-max) file nil 'silent)
+              (auth-source-do-debug
+               "auth-source-netrc-create: wrote 1 new line to %s"
+               file)
+              (message "Saved new authentication information to %s" file)
+              nil))))
+      (aput 'auth-source-netrc-cache key "ran"))))
 
 ;;; Backend specific parsing: Secrets API backend
 

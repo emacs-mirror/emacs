@@ -4071,7 +4071,8 @@ binding slots have been popped."
 (defun byte-compile-save-excursion (form)
   (if (and (eq 'set-buffer (car-safe (car-safe (cdr form))))
            (byte-compile-warning-enabled-p 'suspicious))
-      (byte-compile-warn "`save-excursion' defeated by `set-buffer'"))
+      (byte-compile-warn
+       "Use `with-current-buffer' rather than save-excursion+set-buffer"))
   (byte-compile-out 'byte-save-excursion 0)
   (byte-compile-body-do-effect (cdr form))
   (byte-compile-out 'byte-unbind 1))
@@ -4119,6 +4120,17 @@ binding slots have been popped."
             `'(macro . ,(eval code))))
        ,@decls
        ',(nth 1 form)))))
+
+;; If foo.el declares `toto' as obsolete, it is likely that foo.el will
+;; actually use `toto' in order for this obsolete variable to still work
+;; correctly, so paradoxically, while byte-compiling foo.el, the presence
+;; of a make-obsolete-variable call for `toto' is an indication that `toto'
+;; should not trigger obsolete-warnings in foo.el.
+(byte-defop-compiler-1 make-obsolete-variable)
+(defun byte-compile-make-obsolete-variable (form)
+  (when (eq 'quote (car-safe (nth 1 form)))
+    (push (nth 1 (nth 1 form)) byte-compile-not-obsolete-vars))
+  (byte-compile-normal-call form))
 
 (defun byte-compile-defvar (form)
   ;; This is not used for file-level defvar/consts with doc strings.

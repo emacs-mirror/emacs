@@ -344,13 +344,13 @@ static int
 lock_file_1 (char *lfname, int force)
 {
   register int err;
-  time_t boot_time;
+  time_t boot;
   const char *user_name;
   const char *host_name;
   char *lock_info_str;
 
   /* Call this first because it can GC.  */
-  boot_time = get_boot_time ();
+  boot = get_boot_time ();
 
   if (STRINGP (Fuser_login_name (Qnil)))
     user_name = SSDATA (Fuser_login_name (Qnil));
@@ -363,9 +363,9 @@ lock_file_1 (char *lfname, int force)
   lock_info_str = (char *)alloca (strlen (user_name) + strlen (host_name)
 				  + LOCK_PID_MAX + 30);
 
-  if (boot_time)
+  if (boot)
     sprintf (lock_info_str, "%s@%s.%lu:%lu", user_name, host_name,
-	     (unsigned long) getpid (), (unsigned long) boot_time);
+	     (unsigned long) getpid (), (unsigned long) boot);
   else
     sprintf (lock_info_str, "%s@%s.%lu", user_name, host_name,
 	     (unsigned long) getpid ());
@@ -382,7 +382,7 @@ lock_file_1 (char *lfname, int force)
 
 /* Return 1 if times A and B are no more than one second apart.  */
 
-int
+static int
 within_one_second (time_t a, time_t b)
 {
   return (a - b >= -1 && a - b <= 1);

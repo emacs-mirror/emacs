@@ -57,9 +57,6 @@ Lisp_Object Qcodeset, Qdays, Qmonths, Qpaper;
 
 static int internal_equal (Lisp_Object , Lisp_Object, int, int);
 
-extern long get_random (void);
-extern void seed_random (long);
-
 #ifndef HAVE_UNISTD_H
 extern long time ();
 #endif
@@ -2136,15 +2133,15 @@ DEFUN ("fillarray", Ffillarray, Sfillarray, 2, 2, 0,
 ARRAY is a vector, string, char-table, or bool-vector.  */)
   (Lisp_Object array, Lisp_Object item)
 {
-  register EMACS_INT size, index;
+  register EMACS_INT size, idx;
   int charval;
 
   if (VECTORP (array))
     {
       register Lisp_Object *p = XVECTOR (array)->contents;
       size = ASIZE (array);
-      for (index = 0; index < size; index++)
-	p[index] = item;
+      for (idx = 0; idx < size; idx++)
+	p[idx] = item;
     }
   else if (CHAR_TABLE_P (array))
     {
@@ -2180,8 +2177,8 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
 	    *p++ = str[i % len];
 	}
       else
-	for (index = 0; index < size; index++)
-	  p[index] = charval;
+	for (idx = 0; idx < size; idx++)
+	  p[idx] = charval;
     }
   else if (BOOL_VECTOR_P (array))
     {
@@ -2191,14 +2188,14 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
 	   / BOOL_VECTOR_BITS_PER_CHAR);
 
       charval = (! NILP (item) ? -1 : 0);
-      for (index = 0; index < size_in_chars - 1; index++)
-	p[index] = charval;
-      if (index < size_in_chars)
+      for (idx = 0; idx < size_in_chars - 1; idx++)
+	p[idx] = charval;
+      if (idx < size_in_chars)
 	{
 	  /* Mask out bits beyond the vector size.  */
 	  if (XBOOL_VECTOR (array)->size % BOOL_VECTOR_BITS_PER_CHAR)
 	    charval &= (1 << (XBOOL_VECTOR (array)->size % BOOL_VECTOR_BITS_PER_CHAR)) - 1;
-	  p[index] = charval;
+	  p[idx] = charval;
 	}
     }
   else
@@ -2601,9 +2598,9 @@ particular subfeatures supported in this version of FEATURE.  */)
 
 /* List of features currently being require'd, innermost first.  */
 
-Lisp_Object require_nesting_list;
+static Lisp_Object require_nesting_list;
 
-Lisp_Object
+static Lisp_Object
 require_unwind (Lisp_Object old_value)
 {
   return require_nesting_list = old_value;

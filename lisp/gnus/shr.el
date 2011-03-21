@@ -53,17 +53,17 @@ fit these criteria."
   :group 'shr
   :type 'regexp)
 
-(defcustom shr-table-horizontal-line ?-
+(defcustom shr-table-horizontal-line ? 
   "Character used to draw horizontal table lines."
   :group 'shr
   :type 'character)
 
-(defcustom shr-table-vertical-line ?|
+(defcustom shr-table-vertical-line ? 
   "Character used to draw vertical table lines."
   :group 'shr
   :type 'character)
 
-(defcustom shr-table-corner ?+
+(defcustom shr-table-corner ? 
   "Character used to draw table corners."
   :group 'shr
   :type 'character)
@@ -112,6 +112,15 @@ cid: URL as the argument.")
     map))
 
 ;; Public functions and commands.
+
+(defun shr-visit-file (file)
+  (interactive "fHTML file name: ")
+  (pop-to-buffer "*html*")
+  (erase-buffer)
+  (shr-insert-document
+   (with-temp-buffer
+     (insert-file-contents file)
+     (libxml-parse-html-region (point-min) (point-max)))))
 
 ;;;###autoload
 (defun shr-insert-document (dom)

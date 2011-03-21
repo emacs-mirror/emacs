@@ -414,18 +414,18 @@ If there is no registered search engine at all, the function returns `nil'."
 	;; Hopefully, this will change later.
 	(setq hit-fields
 	      (case (intern vendor-id)
-		('Beagle
+		(Beagle
 		 '("xesam:mimeType" "xesam:url"))
-		('Strigi
+		(Strigi
 		 '("xesam:author" "xesam:cc" "xesam:charset"
 		   "xesam:contentType" "xesam:fileExtension"
 		   "xesam:id" "xesam:lineCount" "xesam:links"
 		   "xesam:mimeType" "xesam:name" "xesam:size"
 		   "xesam:sourceModified" "xesam:subject" "xesam:to"
 		   "xesam:url"))
-		('TrackerXesamSession
+		(TrackerXesamSession
 		 '("xesam:relevancyRating" "xesam:url"))
-		('Debbugs
+		(Debbugs
 		 '("xesam:keyword" "xesam:owner" "xesam:title"
 		   "xesam:url" "xesam:sourceModified" "xesam:mimeType"
 		   "debbugs:key"))

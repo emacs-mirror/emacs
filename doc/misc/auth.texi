@@ -131,11 +131,11 @@ library encourages this confusion by accepting both, as you'll see
 later.
 
 If you have problems with the search, set @code{auth-source-debug} to
-@code{t} and see what host, port, and user the library is checking in
-the @code{*Messages*} buffer.  Ditto for any other problems, your
-first step is always to see what's being checked.  The second step, of
-course, is to write a blog entry about it and wait for the answer in
-the comments.
+@code{'trivia} and see what host, port, and user the library is
+checking in the @code{*Messages*} buffer.  Ditto for any other
+problems, your first step is always to see what's being checked.  The
+second step, of course, is to write a blog entry about it and wait for
+the answer in the comments.
 
 You can customize the variable @code{auth-sources}.  The following may
 be needed if you are using an older version of Emacs or if the
@@ -232,6 +232,14 @@ TODO: how does it work generally, how does secrets.el work, some examples.
 @node Help for developers
 @chapter Help for developers
 
+The auth-source library lets you control logging output easily.
+
+@defvar auth-source-debug
+Set this variable to 'trivia to see lots of output in *Messages*, or
+set it to a function that behaves like @code{message} to do your own
+logging.
+@end defvar
+
 The auth-source library only has a few functions for external use.
 
 @defun auth-source-search SPEC
@@ -239,6 +247,62 @@ The auth-source library only has a few functions for external use.
 TODO: how to include docstring?
 
 @end defun
+
+Let's take a look at an example of using @code{auth-source-search}
+from Gnus' @code{nnimap.el}.
+
+@example
+(defun nnimap-credentials (address ports)
+  (let* ((auth-source-creation-prompts
+          '((user  . "IMAP user at %h: ")
+            (secret . "IMAP password for %u@@%h: ")))
+         (found (nth 0 (auth-source-search :max 1
+                                           :host address
+                                           :port ports
+                                           :require '(:user :secret)
+                                           :create t))))
+    (if found
+        (list (plist-get found :user)
+              (let ((secret (plist-get found :secret)))
+                (if (functionp secret)
+                    (funcall secret)
+                  secret))
+              (plist-get found :save-function))
+      nil)))
+@end example
+
+This call requires the user and password (secret) to be in the
+results.  It also requests that an entry be created if it doesn't
+exist already.  While the created entry is being assembled, the shown
+prompts will be used to interact with the user.  The caller can also
+pass data in @code{auth-source-creation-defaults} to supply defaults
+for any of the prompts.
+
+Note that the password needs to be evaluated if it's a function.  It's
+wrapped in a function to provide some security.
+
+Later, after a successful login, @code{nnimal.el} calls the
+@code{:save-function} like so:
+
+@example
+(when (functionp (nth 2 credentials))
+   (funcall (nth 2 credentials)))
+@end example
+
+This will work whether the @code{:save-function} was provided or not.
+@code{:save-function} will be provided only when a new entry was
+created, so this effectively says ``after a successful login, save the
+authentication information we just used, if it was newly created.''
+
+After the first time it's called, the @code{:save-function} will not
+run again (but it will log something if you have set
+@code{auth-source-debug} to @code{'trivia}).  This is so it won't ask
+the same question again, which is annoying.  This is so it won't ask
+the same question again, which is annoying.  This is so it won't ask
+the same question again, which is annoying.
+
+So the responsibility of the API user that specified @code{:create t}
+is to call the @code{:save-function} if it's provided.
 
 @defun auth-source-delete SPEC
 

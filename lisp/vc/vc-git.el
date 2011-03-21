@@ -119,6 +119,12 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   :version "23.1"
   :group 'vc)
 
+(defcustom vc-git-program "git"
+  "Name of the Git executable (excluding any arguments)."
+  :version "24.1"
+  :type 'string
+  :group 'vc)
+
 (defcustom vc-git-root-log-format
   '("%d%h..: %an %ad %s"
     ;; The first shy group matches the characters drawn by --graph.
@@ -554,7 +560,7 @@ or an empty string if none."
   "Return the existing branches, as a list of strings.
 The car of the list is the current branch."
   (with-temp-buffer
-    (call-process "git" nil t nil "branch")
+    (call-process vc-git-program nil t nil "branch")
     (goto-char (point-min))
     (let (current-branch branches)
       (while (not (eobp))
@@ -633,13 +639,13 @@ for the Git command to run."
   (let* ((root (vc-git-root default-directory))
 	 (buffer (format "*vc-git : %s*" (expand-file-name root)))
 	 (command "pull")
-	 (git-program "git")
+	 (git-program vc-git-program)
 	 args)
     ;; If necessary, prompt for the exact command.
     (when prompt
       (setq args (split-string
 		  (read-shell-command "Git pull command: "
-				      "git pull"
+                                      (format "%s pull" git-program)
 				      'vc-git-history)
 		  " " t))
       (setq git-program (car  args)
@@ -663,7 +669,7 @@ This prompts for a branch to merge from."
 			       branches
 			     (cons "FETCH_HEAD" branches))
 			   nil t)))
-    (apply 'vc-do-async-command buffer root "git" "merge"
+    (apply 'vc-do-async-command buffer root vc-git-program "merge"
 	   (list merge-source))
     (vc-set-async-update buffer)))
 
@@ -1083,8 +1089,10 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 
 (defun vc-git-command (buffer okstatus file-or-list &rest flags)
   "A wrapper around `vc-do-command' for use in vc-git.el.
-The difference to vc-do-command is that this function always invokes `git'."
-  (apply 'vc-do-command (or buffer "*vc*") okstatus "git" file-or-list flags))
+The difference to vc-do-command is that this function always invokes
+`vc-git-program'."
+  (apply 'vc-do-command (or buffer "*vc*") okstatus vc-git-program
+         file-or-list flags))
 
 (defun vc-git--empty-db-p ()
   "Check if the git db is empty (no commit done yet)."
@@ -1095,7 +1103,7 @@ The difference to vc-do-command is that this function always invokes `git'."
   ;; We don't need to care the arguments.  If there is a file name, it
   ;; is always a relative one.  This works also for remote
   ;; directories.
-  (apply 'process-file "git" nil buffer nil command args))
+  (apply 'process-file vc-git-program nil buffer nil command args))
 
 (defun vc-git--out-ok (command &rest args)
   (zerop (apply 'vc-git--call '(t nil) command args)))

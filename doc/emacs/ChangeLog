@@ -1,3 +1,40 @@
+2011-03-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (Windows HOME): Fix the wording to clarify how Emacs sets
+	HOME on Windows and where it looks for init files.  (Bug#8221)
+
+2011-03-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* search.texi (Regexp Example):
+	* mule.texi (International Chars):
+	* building.texi (External Lisp): Don't use characters outside
+	ISO-8859-1.
+
+2011-03-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* ack.texi (Acknowledgments): Convert to ISO-8859-1 encoding.  Use
+	Texinfo @-commands for non Latin-1 characters.
+
+	* makefile.w32-in (MAKEINFO_OPTS): Add --enable-encoding.
+
+	* custom.texi (Init File): Add index entries for ".emacs".
+	(Bug#8210)
+
+2011-03-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xresources.texi (GTK resources): ~/.emacs.d/gtkrc does not work
+	for Gtk+ 3.
+
+2011-03-08  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (MAKEINFO_OPTS): Add --enable-encoding.
+	* emacs.texi (Acknowledgments):
+	* ack.texi (Acknowledgments): Names to UTF-8.
+	* emacs.texi: Set documentencoding.
+
+	* display.texi (Optional Mode Line): Don't mention exactly where
+	display-time appears.  (Bug#8193)
+
 2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* search.texi (Isearch Yank): C-y now bound to isearch-yank-kill.

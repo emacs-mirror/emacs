@@ -33,7 +33,7 @@ texinfodir = $(srcdir)/../misc
 TEX=tex
 INSTALL_INFO = install-info
 MAKEINFO = makeinfo
-MAKEINFO_OPTS = --force  -I$(srcdir) -I$(emacsdir)
+MAKEINFO_OPTS = --force --enable-encoding  -I$(srcdir) -I$(emacsdir)
 
 # The environment variable and its value to add $(srcdir) to the path
 # searched for TeX input files.
@@ -87,6 +87,7 @@ srcs = \
   $(srcdir)/numbers.texi \
   $(srcdir)/objects.texi \
   $(srcdir)/os.texi \
+  $(srcdir)/package.texi \
   $(srcdir)/positions.texi \
   $(srcdir)/processes.texi \
   $(srcdir)/searching.texi \

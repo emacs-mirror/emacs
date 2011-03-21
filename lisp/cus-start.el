@@ -111,9 +111,9 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (cursor-in-non-selected-windows
 	      cursor boolean nil
 	      :tag "Cursor In Non-selected Windows"
-	      :set #'(lambda (symbol value)
-		       (set-default symbol value)
-		       (force-mode-line-update t)))
+	      :set (lambda (symbol value)
+		     (set-default symbol value)
+		     (force-mode-line-update t)))
 	     (transient-mark-mode editing-basics boolean nil
 				  :standard (not noninteractive)
 				  :initialize custom-initialize-delay

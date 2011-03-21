@@ -1306,16 +1306,13 @@ for new groups, and subscribe the new groups as zombies."
        ((>= level gnus-level-zombie)
 	;; Remove from the hash table.
 	(gnus-sethash group nil gnus-newsrc-hashtb)
-	;; We do not enter foreign groups into the list of dead
-	;; groups.
-	(unless (gnus-group-foreign-p group)
-	  (if (= level gnus-level-zombie)
-	      (push group gnus-zombie-list)
-	    (if (= oldlevel gnus-level-killed)
-		;; Remove from active hashtb.
-		(unintern group gnus-active-hashtb)
-	      ;; Don't add it into killed-list if it was killed.
-	      (push group gnus-killed-list)))))
+	(if (= level gnus-level-zombie)
+	    (push group gnus-zombie-list)
+	  (if (= oldlevel gnus-level-killed)
+	      ;; Remove from active hashtb.
+	      (unintern group gnus-active-hashtb)
+	    ;; Don't add it into killed-list if it was killed.
+	    (push group gnus-killed-list))))
        (t
 	;; If the list is to be entered into the newsrc assoc, and
 	;; it was killed, we have to create an entry in the newsrc
@@ -1465,9 +1462,10 @@ If SCAN, request a scan of that group as well."
 	       (inline (gnus-request-group group (or dont-sub-check dont-check)
 					   method
 					   (gnus-get-info group)))
-	     ;;(error nil)
 	     (quit
-	      (message "Quit activating %s" group)
+	      (if debug-on-quit
+		  (debug "Quit")
+		(message "Quit activating %s" group))
 	      nil)))
 	 (unless dont-check
 	   (setq active (gnus-parse-active))
@@ -2007,7 +2005,9 @@ If SCAN, request a scan of that group as well."
 	      ;; We catch C-g so that we can continue past servers
 	      ;; that do not respond.
 	      (quit
-	       (message "Quit reading the active file")
+	       (if debug-on-quit
+		   (debug "Quit")
+		 (message "Quit reading the active file"))
 	       nil))))))))
 
 (defun gnus-read-active-file-1 (method force)

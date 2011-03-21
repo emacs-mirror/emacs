@@ -40,6 +40,8 @@ what you give them.   Help stamp out software-hoarding!  */
  */
 
 #include <config.h>
+#include "unexec.h"
+
 #define PERROR(file) report_error (file, new)
 #include <a.out.h>
 /* Define getpagesize () if the system does not.
@@ -119,7 +121,8 @@ static void write_segment (int, char *, char *);
  *
  * driving logic.
  */
-int unexec (const char *new_name, const char *a_name)
+void
+unexec (const char *new_name, const char *a_name)
 {
   int new = -1, a_out = -1;
 
@@ -139,14 +142,13 @@ int unexec (const char *new_name, const char *a_name)
       || unrelocate_symbols (new, a_out, a_name, new_name) < 0)
     {
       close (new);
-      return -1;
+      return;
     }
 
   close (new);
   if (a_out >= 0)
     close (a_out);
   mark_x (new_name);
-  return 0;
 }
 
 /* ****************************************************************
@@ -637,4 +639,3 @@ start_of_text (void)
 {
   return ((char *) 0x10000000);
 }
-

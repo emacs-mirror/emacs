@@ -5510,12 +5510,17 @@ or a straight list of headers."
 	 (cdr (assq number gnus-newsgroup-scored))
 	 (memq number gnus-newsgroup-processable))))))
 
+(defun gnus-group-get-list-identifiers (group)
+  "Get list identifier regexp for GROUP."
+  (or (gnus-parameter-list-identifier group)
+      (if (consp gnus-list-identifiers)
+          (mapconcat 'identity gnus-list-identifiers " *\\|")
+        gnus-list-identifiers)))
+
 (defun gnus-summary-remove-list-identifiers ()
   "Remove list identifiers in `gnus-list-identifiers' from articles in the current group."
-  (let ((regexp (if (consp gnus-list-identifiers)
-		    (mapconcat 'identity gnus-list-identifiers " *\\|")
-		  gnus-list-identifiers))
-	changed subject)
+  (let ((regexp (gnus-group-get-list-identifiers gnus-newsgroup-name))
+        changed subject)
     (when regexp
       (setq regexp (concat "^\\(?:R[Ee]: +\\)*\\(" regexp " *\\)"))
       (dolist (header gnus-newsgroup-headers)
@@ -5707,8 +5712,7 @@ If SELECT-ARTICLES, only select those articles from GROUP."
       (when gnus-agent
 	(gnus-agent-get-undownloaded-list))
       ;; Remove list identifiers from subject
-      (when gnus-list-identifiers
-	(gnus-summary-remove-list-identifiers))
+      (gnus-summary-remove-list-identifiers)
       ;; Check whether auto-expire is to be done in this group.
       (setq gnus-newsgroup-auto-expire
 	    (gnus-group-auto-expirable-p group))
@@ -5798,7 +5802,8 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 
 (defun gnus-articles-to-read (group &optional read-all)
   "Find out what articles the user wants to read."
-  (let* ((articles
+  (let* ((only-read-p t)
+	 (articles
 	  ;; Select all articles if `read-all' is non-nil, or if there
 	  ;; are no unread articles.
 	  (if (or read-all
@@ -5822,6 +5827,7 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 		 (gnus-uncompress-range (gnus-active group)))
 	       (gnus-cache-articles-in-group group))
 	    ;; Select only the "normal" subset of articles.
+	    (setq only-read-p nil)
 	    (gnus-sorted-nunion
 	     (gnus-sorted-union gnus-newsgroup-dormant gnus-newsgroup-marked)
 	     gnus-newsgroup-unreads)))
@@ -5845,16 +5851,25 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 		  (let* ((cursor-in-echo-area nil)
 			 (initial (gnus-parameter-large-newsgroup-initial
 				   gnus-newsgroup-name))
+			 (default (if only-read-p
+				      (or initial gnus-large-newsgroup)
+				    number))
 			 (input
 			  (read-string
-			   (format
-			    "How many articles from %s (%s %d): "
-			    (gnus-group-decoded-name gnus-newsgroup-name)
-			    (if initial "max" "default")
-			    number)
-			   (if initial
-			       (cons (number-to-string initial)
-				     0)))))
+			   (if only-read-p
+			       (format
+			      "How many articles from %s (available %d, default %d): "
+			      (gnus-group-decoded-name
+			       (gnus-group-real-name gnus-newsgroup-name))
+			      number default)
+			     (format
+				"How many articles from %s (%d available): "
+				(gnus-group-decoded-name
+				 (gnus-group-real-name gnus-newsgroup-name))
+				default))
+			   nil
+			   nil
+			   (number-to-string default))))
 		    (if (string-match "^[ \t]*$" input) number input)))
 		 ((and (> scored marked) (< scored number)
 		       (> (- scored number) 20))
@@ -5862,7 +5877,8 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 			 (read-string
 			  (format "%s %s (%d scored, %d total): "
 				  "How many articles from"
-				  (gnus-group-decoded-name group)
+				  (gnus-group-decoded-name
+				   (gnus-group-real-name gnus-newsgroup-name))
 				  scored number))))
 		    (if (string-match "^[ \t]*$" input)
 			number input)))
@@ -6564,9 +6580,8 @@ the subject line on."
 		  (1+ (point-at-eol))
 		(gnus-delete-line))))))
       ;; Remove list identifiers from subject.
-      (when gnus-list-identifiers
-	(let ((gnus-newsgroup-headers (list header)))
-	  (gnus-summary-remove-list-identifiers)))
+      (let ((gnus-newsgroup-headers (list header)))
+        (gnus-summary-remove-list-identifiers))
       (when old-header
 	(mail-header-set-number header (mail-header-number old-header)))
       (setq gnus-newsgroup-sparse
@@ -12670,8 +12685,7 @@ returned."
     (when gnus-agent
       (gnus-agent-get-undownloaded-list))
     ;; Remove list identifiers from subject
-    (when gnus-list-identifiers
-      (gnus-summary-remove-list-identifiers))
+    (gnus-summary-remove-list-identifiers)
     ;; First and last article in this newsgroup.
     (when gnus-newsgroup-headers
       (setq gnus-newsgroup-begin

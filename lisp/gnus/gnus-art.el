@@ -44,6 +44,7 @@
 (require 'wid-edit)
 (require 'mm-uu)
 (require 'message)
+(require 'mouse)
 
 (autoload 'gnus-msg-mail "gnus-msg" nil t)
 (autoload 'gnus-button-mailto "gnus-msg")
@@ -2337,10 +2338,12 @@ long lines if and only if arg is positive."
       (let ((start (point)))
 	(insert "X-Boundary: ")
 	(gnus-add-text-properties start (point) '(invisible t intangible t))
-	(insert (let (str)
-		  (while (>= (window-width) (length str))
+       (insert (let (str (max (window-width)))
+                 (if (featurep 'xemacs)
+                     (setq max (1- max)))
+                 (while (>= max (length str))
 		    (setq str (concat str gnus-body-boundary-delimiter)))
-		  (substring str 0 (window-width)))
+                 (substring str 0 max))
 		"\n")
 	(gnus-put-text-property start (point) 'gnus-decoration 'header)))))
 
@@ -3074,10 +3077,7 @@ images if any to the browser, and deletes them when exiting the group
 The `gnus-list-identifiers' variable specifies what to do."
   (interactive)
   (let ((inhibit-point-motion-hooks t)
-        (regexp (or (gnus-parameter-list-identifier gnus-newsgroup-name)
-                    (if (consp gnus-list-identifiers)
-                        (mapconcat 'identity gnus-list-identifiers " *\\|")
-                      gnus-list-identifiers)))
+        (regexp (gnus-group-get-list-identifiers gnus-newsgroup-name))
         (inhibit-read-only t))
     (when regexp
       (save-excursion

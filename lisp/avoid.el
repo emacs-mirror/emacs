@@ -76,7 +76,7 @@
 
 ;;;###autoload
 (defcustom mouse-avoidance-mode nil
-  "Activate mouse avoidance mode.
+  "Activate Mouse Avoidance mode.
 See function `mouse-avoidance-mode' for possible values.
 Setting this variable directly does not take effect;
 use either \\[customize] or the function `mouse-avoidance-mode'."
@@ -85,8 +85,7 @@ use either \\[customize] or the function `mouse-avoidance-mode'."
 	 (mouse-avoidance-mode (or value 'none)))
   :initialize 'custom-initialize-default
   :type '(choice (const :tag "none" nil) (const banish) (const jump)
-		 (const animate) (const exile) (const proteus)
-		 )
+		 (const animate) (const exile) (const proteus))
   :group 'avoid
   :require 'avoid
   :version "20.3")
@@ -94,7 +93,7 @@ use either \\[customize] or the function `mouse-avoidance-mode'."
 
 (defcustom mouse-avoidance-nudge-dist 15
   "Average distance that mouse will be moved when approached by cursor.
-Only applies in Mouse-Avoidance mode `jump' and its derivatives.
+Only applies in Mouse Avoidance mode `jump' and its derivatives.
 For best results make this larger than `mouse-avoidance-threshold'."
   :type 'integer
   :group 'avoid)
@@ -112,7 +111,7 @@ For best results make this larger than `mouse-avoidance-threshold'."
 (defcustom mouse-avoidance-threshold 5
   "Mouse-pointer's flight distance.
 If the cursor gets closer than this, the mouse pointer will move away.
-Only applies in mouse-avoidance-modes `animate' and `jump'."
+Only applies in Mouse Avoidance modes `animate' and `jump'."
   :type 'integer
   :group 'avoid)
 
@@ -183,7 +182,7 @@ Acceptable distance is defined by `mouse-avoidance-threshold'."
 		mouse-avoidance-threshold))))))
 
 (defun mouse-avoidance-banish-destination ()
-  "The position to which Mouse-Avoidance mode `banish' moves the mouse.
+  "The position to which Mouse Avoidance mode `banish' moves the mouse.
 You can redefine this if you want the mouse banished to a different corner."
   (let* ((pos (window-edges)))
     (cons (- (nth 2 pos) 2)
@@ -278,6 +277,7 @@ redefine this function to suit your own tastes."
 (defun mouse-avoidance-ignore-p ()
   (let ((mp (mouse-position)))
     (or (not (frame-pointer-visible-p)) ; The pointer is hidden
+        (not cursor-type)               ; There's no cursor
         executing-kbd-macro	       ; don't check inside macro
 	(null (cadr mp))	       ; don't move unless in an Emacs frame
 	(not (eq (car mp) (selected-frame)))
@@ -332,7 +332,7 @@ redefine this function to suit your own tastes."
 
 ;;;###autoload
 (defun mouse-avoidance-mode (&optional mode)
-  "Set cursor avoidance mode to MODE.
+  "Set Mouse Avoidance mode to MODE.
 MODE should be one of the symbols `banish', `exile', `jump', `animate',
 `cat-and-mouse', `proteus', or `none'.
 
@@ -352,7 +352,7 @@ Effects of the different modes:
 
 Whenever the mouse is moved, the frame is also raised.
 
-\(see `mouse-avoidance-threshold' for definition of \"too close\",
+\(See `mouse-avoidance-threshold' for definition of \"too close\",
 and `mouse-avoidance-nudge-dist' and `mouse-avoidance-nudge-var' for
 definition of \"random distance\".)"
   (interactive

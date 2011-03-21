@@ -237,7 +237,7 @@ preferred charset: unicode (Unicode (ISO10646))
 Character code properties: customize what to show
   name: LATIN CAPITAL LETTER A WITH GRAVE
   general-category: Lu (Letter, Uppercase)
-  decomposition: (65 768) ('A' '̀')
+  decomposition: (65 768) ('A' '`')
   old-name: LATIN CAPITAL LETTER A GRAVE
 
 There are text properties here:

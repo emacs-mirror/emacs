@@ -167,7 +167,7 @@ acceptable because the buffer's representation is a choice made by the
 user that cannot be overridden automatically.
 
   Converting unibyte text to multibyte text leaves @acronym{ASCII}
-characters unchanged, and converts bytes with codes 128 through 159 to
+characters unchanged, and converts bytes with codes 128 through 255 to
 the multibyte representation of raw eight-bit bytes.
 
   Converting multibyte text to unibyte converts all @acronym{ASCII}

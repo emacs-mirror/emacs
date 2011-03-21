@@ -124,10 +124,10 @@ static int update_frame_menubar (struct frame *);
    Xt on behalf of one of the widget sets.  */
 static int popup_activated_flag;
 
-static int next_menubar_widget_id;
-
 
 #ifdef USE_X_TOOLKIT
+
+static int next_menubar_widget_id;
 
 /* Return the frame whose ->output_data.x->id equals ID, or 0 if none.  */
 
@@ -723,7 +723,7 @@ show_help_event (FRAME_PTR f, xt_or_gtk_widget widget, Lisp_Object help)
    unhighlighting.  */
 
 #ifdef USE_GTK
-void
+static void
 menu_highlight_callback (GtkWidget *widget, gpointer call_data)
 {
   xg_menu_item_cb_data *cb_data;
@@ -742,7 +742,7 @@ menu_highlight_callback (GtkWidget *widget, gpointer call_data)
     show_help_event (cb_data->cl_data->f, widget, help);
 }
 #else
-void
+static void
 menu_highlight_callback (Widget widget, LWLIB_ID id, void *call_data)
 {
   struct frame *f;
@@ -1175,8 +1175,6 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
     }
   else
     {
-      GtkWidget *wvbox = f->output_data.x->vbox_widget;
-
       menubar_widget
         = xg_create_widget ("menubar", "menubar", f, first_wv,
                             G_CALLBACK (menubar_selection_callback),
@@ -1390,7 +1388,7 @@ menu_position_func (GtkMenu *menu, gint *x, gint *y, gboolean *push_in, gpointer
 
   /* Check if there is room for the menu.  If not, adjust x/y so that
      the menu is fully visible.  */
-  gtk_widget_size_request (GTK_WIDGET (menu), &req);
+  gtk_widget_get_preferred_size (GTK_WIDGET (menu), NULL, &req);
   if (data->x + req.width > disp_width)
     *x -= data->x + req.width - disp_width;
   if (data->y + req.height > disp_height)
@@ -1600,7 +1598,7 @@ create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv,
 
 Lisp_Object
 xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
-	    Lisp_Object title, const char **error, EMACS_UINT timestamp)
+	    Lisp_Object title, const char **error_name, EMACS_UINT timestamp)
 {
   int i;
   widget_value *wv, *save_wv = 0, *first_wv = 0, *prev_wv = 0;
@@ -1615,11 +1613,11 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
   if (! FRAME_X_P (f))
     abort ();
 
-  *error = NULL;
+  *error_name = NULL;
 
   if (menu_items_used <= MENU_ITEMS_PANE_LENGTH)
     {
-      *error = "Empty menu";
+      *error_name = "Empty menu";
       return Qnil;
     }
 
@@ -1664,7 +1662,7 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 	{
 	  /* Create a new pane.  */
 	  Lisp_Object pane_name, prefix;
-	  char *pane_string;
+	  const char *pane_string;
 
 	  pane_name = AREF (menu_items, i + MENU_ITEMS_PANE_NAME);
 	  prefix = AREF (menu_items, i + MENU_ITEMS_PANE_PREFIX);
@@ -2012,7 +2010,7 @@ xdialog_show (FRAME_PTR f,
      representing the text label and buttons.  */
   {
     Lisp_Object pane_name, prefix;
-    char *pane_string;
+    const char *pane_string;
     pane_name = XVECTOR (menu_items)->contents[MENU_ITEMS_PANE_NAME];
     prefix = XVECTOR (menu_items)->contents[MENU_ITEMS_PANE_PREFIX];
     pane_string = (NILP (pane_name)
@@ -2307,7 +2305,7 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 	{
 	  /* Create a new pane.  */
 	  Lisp_Object pane_name, prefix;
-	  char *pane_string;
+	  const char *pane_string;
 
           maxlines = max (maxlines, lines);
           lines = 0;

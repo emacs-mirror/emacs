@@ -801,7 +801,7 @@ append to existing target file.  */)
     {
       file = Fexpand_file_name (file, Qnil);
       initial_stderr_stream = stderr;
-      stderr = fopen (SDATA (file), NILP (append) ? "w" : "a");
+      stderr = fopen (SSDATA (file), NILP (append) ? "w" : "a");
       if (stderr == NULL)
 	{
 	  stderr = initial_stderr_stream;
@@ -1120,6 +1120,16 @@ print (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag)
   print_object (obj, printcharfun, escapeflag);
 }
 
+#define PRINT_CIRCLE_CANDIDATE_P(obj)					\
+  (STRINGP (obj) || CONSP (obj)						\
+   || (VECTORLIKEP (obj)						\
+      && (VECTORP (obj) || COMPILEDP (obj)				\
+	  || CHAR_TABLE_P (obj) || SUB_CHAR_TABLE_P (obj)		\
+	  || HASH_TABLE_P (obj) || FONTP (obj)))			\
+   || (! NILP (Vprint_gensym)						\
+       && SYMBOLP (obj)							\
+       && !SYMBOL_INTERNED_P (obj)))
+
 /* Construct Vprint_number_table according to the structure of OBJ.
    OBJ itself and all its elements will be added to Vprint_number_table
    recursively if it is a list, vector, compiled function, char-table,
@@ -1154,12 +1164,7 @@ print_preprocess (Lisp_Object obj)
   halftail = obj;
 
  loop:
-  if (STRINGP (obj) || CONSP (obj) || VECTORP (obj)
-      || COMPILEDP (obj) || CHAR_TABLE_P (obj) || SUB_CHAR_TABLE_P (obj)
-      || HASH_TABLE_P (obj)
-      || (! NILP (Vprint_gensym)
-	  && SYMBOLP (obj)
-	  && !SYMBOL_INTERNED_P (obj)))
+  if (PRINT_CIRCLE_CANDIDATE_P (obj))
     {
       if (!HASH_TABLE_P (Vprint_number_table))
 	{
@@ -1336,12 +1341,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
     error ("Apparently circular structure being printed");
 
   /* Detect circularities and truncate them.  */
-  if (STRINGP (obj) || CONSP (obj) || VECTORP (obj)
-      || COMPILEDP (obj) || CHAR_TABLE_P (obj) || SUB_CHAR_TABLE_P (obj)
-      || HASH_TABLE_P (obj)
-      || (! NILP (Vprint_gensym)
-	  && SYMBOLP (obj)
-	  && !SYMBOL_INTERNED_P (obj)))
+  if (PRINT_CIRCLE_CANDIDATE_P (obj))
     {
       if (NILP (Vprint_circle) && NILP (Vprint_gensym))
 	{

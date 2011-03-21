@@ -860,27 +860,29 @@ POS and RES.")
                        (car compilation--previous-directory-cache)))
            (prev
             (previous-single-property-change
-             pos 'compilation-directory nil cache)))
-      (cond
-       ((null cache)
-        (setq compilation--previous-directory-cache
-              (cons (copy-marker pos) (copy-marker prev)))
-        prev)
-       ((eq prev cache)
-        (if cache
-            (set-marker (car compilation--previous-directory-cache) pos)
-          (setq compilation--previous-directory-cache
-                (cons (copy-marker pos) nil)))
-        (cdr compilation--previous-directory-cache))
-       (t
-        (if cache
-            (progn
-              (set-marker (car compilation--previous-directory-cache) pos)
-              (setcdr compilation--previous-directory-cache
-                      (copy-marker prev)))
-          (setq compilation--previous-directory-cache
-                (cons (copy-marker pos) (copy-marker prev))))
-        prev)))))
+             pos 'compilation-directory nil cache))
+           (res
+            (cond
+             ((null cache)
+              (setq compilation--previous-directory-cache
+                    (cons (copy-marker pos) (if prev (copy-marker prev))))
+              prev)
+             ((and prev (= prev cache))
+              (if cache
+                  (set-marker (car compilation--previous-directory-cache) pos)
+                (setq compilation--previous-directory-cache
+                      (cons (copy-marker pos) nil)))
+              (cdr compilation--previous-directory-cache))
+             (t
+              (if cache
+                  (progn
+                    (set-marker cache pos)
+                    (setcdr compilation--previous-directory-cache
+                            (copy-marker prev)))
+                (setq compilation--previous-directory-cache
+                      (cons (copy-marker pos) (if prev (copy-marker prev)))))
+              prev))))
+      (if (markerp res) (marker-position res) res))))
 
 ;; Internal function for calculating the text properties of a directory
 ;; change message.  The compilation-directory property is important, because it
@@ -889,7 +891,7 @@ POS and RES.")
 (defun compilation-directory-properties (idx leave)
   (if leave (setq leave (match-end leave)))
   ;; find previous stack, and push onto it, or if `leave' pop it
-  (let ((dir (compilation--previous-directory (point))))
+  (let ((dir (compilation--previous-directory (match-beginning 0))))
     (setq dir (if dir (or (get-text-property (1- dir) 'compilation-directory)
 			  (get-text-property dir 'compilation-directory))))
     `(font-lock-face ,(if leave
@@ -948,7 +950,8 @@ POS and RES.")
                             (match-string-no-properties file))))
 	  (let ((dir
 	    (unless (file-name-absolute-p file)
-                   (let ((pos (compilation--previous-directory (point))))
+                   (let ((pos (compilation--previous-directory
+                               (match-beginning 0))))
                      (when pos
                        (or (get-text-property (1- pos) 'compilation-directory)
                            (get-text-property pos 'compilation-directory)))))))

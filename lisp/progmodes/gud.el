@@ -3127,7 +3127,9 @@ class of the file (using s to separate nested class ids)."
    ("^document\\s-.*\\(\n\\)" (1 "< b"))
    ("^end\\(\\>\\)"
     (1 (ignore
-        (unless (eq (match-beginning 0) (point-min))
+        (when (and (> (match-beginning 0) (point-min))
+                   (eq 1 (nth 7 (save-excursion
+                                  (syntax-ppss (1- (match-beginning 0)))))))
           ;; We change the \n in front, which is more difficult, but results
           ;; in better highlighting.  If the doc is empty, the single \n is
           ;; both the beginning and the end of the docstring, which can't be

@@ -162,12 +162,6 @@ extern Lisp_Object QCfilter;
 /* Define first descriptor number available for subprocesses.  */
 #define FIRST_PROC_DESC 3
 
-extern const char *get_operating_system_release (void);
-
-/* From sysdep.c or w32.c  */
-extern int serial_open (char *port);
-extern void serial_configure (struct Lisp_Process *p, Lisp_Object contact);
-
 #ifndef HAVE_H_ERRNO
 extern int h_errno;
 #endif
@@ -499,7 +493,7 @@ status_message (struct Lisp_Process *p)
 	    string = (code_convert_string_norecord
 		      (string, Vlocale_coding_system, 0));
 	  c1 = STRING_CHAR (SDATA (string));
-	  c2 = DOWNCASE (c1);
+	  c2 = downcase (c1);
 	  if (c1 != c2)
 	    Faset (string, make_number (0), make_number (c2));
 	}
@@ -541,17 +535,16 @@ static char pty_name[24];
 static int
 allocate_pty (void)
 {
-  register int c, i;
   int fd;
 
 #ifdef PTY_ITERATION
   PTY_ITERATION
 #else
+  register int c, i;
   for (c = FIRST_PTY_LETTER; c <= 'z'; c++)
     for (i = 0; i < 16; i++)
 #endif
       {
-	struct stat stb;	/* Used in some PTY_OPEN.  */
 #ifdef PTY_NAME_SPRINTF
 	PTY_NAME_SPRINTF
 #else
@@ -568,6 +561,7 @@ allocate_pty (void)
 	       three failures in a row before deciding that we've reached the
 	       end of the ptys.  */
 	    int failed_count = 0;
+	    struct stat stb;
 
 	    if (stat (pty_name, &stb) < 0)
 	      {
@@ -2730,7 +2724,8 @@ usage: (serial-process-configure &rest ARGS)  */)
 }
 
 /* Used by make-serial-process to recover from errors.  */
-Lisp_Object make_serial_process_unwind (Lisp_Object proc)
+static Lisp_Object
+make_serial_process_unwind (Lisp_Object proc)
 {
   if (!PROCESSP (proc))
     abort ();
@@ -5482,7 +5477,7 @@ read_process_output (Lisp_Object proc, register int channel)
 jmp_buf send_process_frame;
 Lisp_Object process_sent_to;
 
-SIGTYPE
+static SIGTYPE
 send_process_trap (int ignore)
 {
   SIGNAL_THREAD_CHECK (SIGPIPE);
@@ -6391,7 +6386,7 @@ process has been transmitted to the serial port.  */)
    indirectly; if it does, that is a bug  */
 
 #ifdef SIGCHLD
-SIGTYPE
+static SIGTYPE
 sigchld_handler (int signo)
 {
   int old_errno = errno;

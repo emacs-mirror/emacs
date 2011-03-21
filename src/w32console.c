@@ -41,12 +41,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* from window.c */
 extern Lisp_Object Frecenter (Lisp_Object);
 
-/* from keyboard.c */
-extern int detect_input_pending (void);
-
-/* from sysdep.c */
-extern int read_input_pending (void);
-
 static void w32con_move_cursor (struct frame *f, int row, int col);
 static void w32con_clear_to_end (struct frame *f);
 static void w32con_clear_frame (struct frame *f);
@@ -276,9 +270,6 @@ w32con_insert_glyphs (struct frame *f, register struct glyph *start,
       w32con_clear_end_of_line (f, cursor_coords.X + len);
     }
 }
-
-extern unsigned char *encode_terminal_code (struct glyph *, int,
-                                            struct coding_system *);
 
 static void
 w32con_write_glyphs (struct frame *f, register struct glyph *string,

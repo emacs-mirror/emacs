@@ -141,7 +141,7 @@ Lisp_Object Qfile_name_handler_alist;
 
 Lisp_Object Qrisky_local_variable;
 
-/* If non-zero, emacs should not attempt to use a window-specific code,
+/* If non-zero, Emacs should not attempt to use a window-specific code,
    but instead should use the virtual terminal under which it was started.  */
 int inhibit_window_system;
 
@@ -169,7 +169,6 @@ static unsigned long heap_bss_diff;
 #define MAX_HEAP_BSS_DIFF (1024*1024)
 
 /* Nonzero means running Emacs without interactive terminal.  */
-
 int noninteractive;
 
 /* Nonzero means remove site-lisp directories from load-path.  */
@@ -249,14 +248,14 @@ Display options:\n\
 --border-color, -bd COLOR       main border color\n\
 --border-width, -bw WIDTH       width of main border\n\
 --color, --color=MODE           override color mode for character terminals;\n\
-                                  MODE defaults to `auto', and can also\n\
-                                  be `never', `auto', `always',\n\
+                                  MODE defaults to `auto', and\n\
+                                  can also be `never', `always',\n\
                                   or a mode name like `ansi8'\n\
 --cursor-color, -cr COLOR       color of the Emacs cursor indicating point\n\
 --font, -fn FONT                default font; must be fixed-width\n\
 --foreground-color, -fg COLOR   window foreground color\n\
 --fullheight, -fh               make the first frame high as the screen\n\
---fullscreen, -fs               make first frame fullscreen\n\
+--fullscreen, -fs               make the first frame fullscreen\n\
 --fullwidth, -fw                make the first frame wide as the screen\n\
 --maximized, -mm                make the first frame maximized\n\
 --geometry, -g GEOMETRY         window geometry\n\
@@ -382,7 +381,7 @@ static void
 init_cmdargs (int argc, char **argv, int skip_args)
 {
   register int i;
-  Lisp_Object name, dir, tem;
+  Lisp_Object name, dir, handler;
   int count = SPECPDL_INDEX ();
   Lisp_Object raw_name;
 
@@ -393,8 +392,8 @@ init_cmdargs (int argc, char **argv, int skip_args)
 
   /* Add /: to the front of the name
      if it would otherwise be treated as magic.  */
-  tem = Ffind_file_name_handler (raw_name, Qt);
-  if (! NILP (tem))
+  handler = Ffind_file_name_handler (raw_name, Qt);
+  if (! NILP (handler))
     raw_name = concat2 (build_string ("/:"), raw_name);
 
   Vinvocation_name = Ffile_name_nondirectory (raw_name);
@@ -411,8 +410,8 @@ init_cmdargs (int argc, char **argv, int skip_args)
 	{
 	  /* Add /: to the front of the name
 	     if it would otherwise be treated as magic.  */
-	  tem = Ffind_file_name_handler (found, Qt);
-	  if (! NILP (tem))
+	  handler = Ffind_file_name_handler (found, Qt);
+	  if (! NILP (handler))
 	    found = concat2 (build_string ("/:"), found);
 	  Vinvocation_directory = Ffile_name_directory (found);
 	}
@@ -547,21 +546,22 @@ static char dump_tz[] = "UtC0";
    Provide dummy definitions to avoid error.
    (We don't have any real constructors or destructors.)  */
 #ifdef __GNUC__
+
+/* Define a dummy function F.  Declare F too, to pacify gcc
+   -Wmissing-prototypes.  */
+#define DEFINE_DUMMY_FUNCTION(f) void f (void); void f (void) {}
+
 #ifndef GCC_CTORS_IN_LIBC
-void __do_global_ctors (void)
-{}
-void __do_global_ctors_aux (void)
-{}
-void __do_global_dtors (void)
-{}
+DEFINE_DUMMY_FUNCTION (__do_global_ctors)
+DEFINE_DUMMY_FUNCTION (__do_global_ctors_aux)
+DEFINE_DUMMY_FUNCTION (__do_global_dtors)
 /* GNU/Linux has a bug in its library; avoid an error.  */
 #ifndef GNU_LINUX
 char * __CTOR_LIST__[2] = { (char *) (-1), 0 };
 #endif
 char * __DTOR_LIST__[2] = { (char *) (-1), 0 };
 #endif /* GCC_CTORS_IN_LIBC */
-void __main (void)
-{}
+DEFINE_DUMMY_FUNCTION (__main)
 #endif /* __GNUC__ */
 #endif /* ORDINARY_LINK */
 
@@ -576,7 +576,8 @@ void __main (void)
    enough information to do it right.  */
 
 static int
-argmatch (char **argv, int argc, const char *sstr, const char *lstr, int minlen, char **valptr, int *skipptr)
+argmatch (char **argv, int argc, const char *sstr, const char *lstr,
+          int minlen, char **valptr, int *skipptr)
 {
   char *p = NULL;
   int arglen;
@@ -948,7 +949,7 @@ main (int argc, char **argv)
       /* Convert --script to -scriptload, un-skip it, and sort again
 	 so that it will be handled in proper sequence.  */
       /* FIXME broken for --script=FILE - is that supposed to work?  */
-      argv[skip_args - 1] = "-scriptload";
+      argv[skip_args - 1] = (char *) "-scriptload";
       skip_args -= 2;
       sort_args (argc, argv);
     }
@@ -1347,7 +1348,7 @@ main (int argc, char **argv)
 
 	for (j = 0; j < count_before + 1; j++)
 	  new[j] = argv[j];
-	new[count_before + 1] = "-d";
+	new[count_before + 1] = (char *) "-d";
 	new[count_before + 2] = displayname;
 	for (j = count_before + 2; j <argc; j++)
 	  new[j + 1] = argv[j];
@@ -1357,7 +1358,7 @@ main (int argc, char **argv)
     /* Change --display to -d, when its arg is separate.  */
     else if (displayname != 0 && skip_args > count_before
 	     && argv[count_before + 1][1] == '-')
-      argv[count_before + 1] = "-d";
+      argv[count_before + 1] = (char *) "-d";
 
     if (! no_site_lisp)
       {
@@ -2084,9 +2085,7 @@ shut_down_emacs (int sig, int no_x, Lisp_Object stuff)
 
 #ifndef CANNOT_DUMP
 
-/* FIXME: maybe this should go into header file, config.h seems the
-   only one appropriate. */
-extern int unexec (const char *, const char *);
+#include "unexec.h"
 
 DEFUN ("dump-emacs", Fdump_emacs, Sdump_emacs, 2, 2, 0,
        doc: /* Dump current state of Emacs into executable file FILENAME.
@@ -2380,7 +2379,7 @@ Special values:
 Anything else (in Emacs 24.1, the possibilities are: aix, berkeley-unix,
 hpux, irix, usg-unix-v) indicates some sort of Unix system.  */);
   Vsystem_type = intern_c_string (SYSTEM_TYPE);
-  /* Above values are from SYSTEM_TYPE in src/s/*.h.  */
+  /* The above values are from SYSTEM_TYPE in include files under src/s.  */
 
   DEFVAR_LISP ("system-configuration", Vsystem_configuration,
 	       doc: /* Value is string indicating configuration Emacs was built for.

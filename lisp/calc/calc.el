@@ -434,13 +434,13 @@ by displaying the sub-formula in `calc-selected-face'."
   :group 'calc
   :type 'boolean)
 
-(defcustom calc-logunits-field-reference
+(defcustom calc-lu-field-reference
   "20 uPa"
   "The default reference level for logarithmic units (field)."
   :group 'calc
   :type '(string))
 
-(defcustom calc-logunits-power-reference
+(defcustom calc-lu-power-reference
   "mW"
   "The default reference level for logarithmic units (power)."
   :group 'calc
@@ -1084,7 +1084,7 @@ Used by `calc-user-invocation'.")
           "lOW")
     (mapc (lambda (x) (define-key map (char-to-string x) 'calc-missing-key))
           (concat "ABCDEFGHIJKLMNOPQRSTUVXZabcdfghjkmoprstuvwxyz"
-                  ":\\|!()[]<>{},;=~`\C-k\C-w\C-_"))
+                  ":\\|!()[]<>{},;=~`\C-k\C-w"))
     (define-key map "\M-w" 'calc-missing-key)
     (define-key map "\M-k" 'calc-missing-key)
     (define-key map "\M-\C-w" 'calc-missing-key)

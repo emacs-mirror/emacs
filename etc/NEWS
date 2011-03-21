@@ -62,6 +62,8 @@ longer have any effect.  (They were declared obsolete in Emacs 23.)
 ** New command line option `--no-site-lisp' removes site-lisp directories
 from load-path.  -Q now implies this.
 
+** On Windows, Emacs now warns when the obsolete _emacs init file is used.
+
 
 * Changes in Emacs 24.1
 
@@ -78,6 +80,9 @@ client frame in parent X window ID, via XEmbed.  This works like the
 error, its exit status is 1.
 
 ** Completion can cycle, depending on completion-cycle-threshold.
+
+** `completing-read' can be customized using the new variable
+`completing-read-function'
 
 ** auto-mode-case-fold is now enabled by default.
 
@@ -183,8 +188,8 @@ If you have code that adds something to kill-emacs-hook, you should
 consider if it is still appropriate to add it in the noninteractive case.
 
 ** New scrolling commands `scroll-up-command' and `scroll-down-command'
-(bound to C-v/[next] and M-v/[prior]) does not signal errors at top/bottom
-of buffer at first key-press (instead moves to top/bottom of buffer)
+(bound to C-v/[next] and M-v/[prior]) do not signal errors at top/bottom
+of buffer at first key-press (instead move to top/bottom of buffer)
 when a new variable `scroll-error-top-bottom' is non-nil.
 
 ** New scrolling commands `scroll-up-line' and `scroll-down-line'
@@ -335,6 +340,10 @@ between applications.
 the lines in the current rectangle.  With an prefix argument, this
 prompts for a number to count from and for a format string.
 
+** The command shell prompts for the shell path name, when the default
+directory is a remote file name and neither environment variable
+$ESHELL nor variable `explicit-shell-file-name' is set.
+
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
 
@@ -359,7 +368,7 @@ Just set shell-dir-cookie-re to an appropriate regexp.
 ** Archive Mode has basic support to browse 7z archives.
 
 ** browse-url has gotten a new variable that is used for mailto: URLs,
-   `browse-url-mailto-function', which defaults to `browse-url-mail'.
+`browse-url-mailto-function', which defaults to `browse-url-mail'.
 
 ** Directory local variables can apply to file-less buffers, in certain modes
 (eg dired, vc-dir, log-edit).  For example, adding
@@ -645,6 +654,8 @@ binding `log-view-expanded-log-entry-function' to a suitable function.
 ---
 *** `copyright-fix-years' can optionally convert consecutive years to ranges.
 
+*** New command `nato-region' converts text to NATO phonetic alphabet.
+
 
 * New Modes and Packages in Emacs 24.1
 
@@ -694,15 +705,14 @@ FIXME: This only says what was changed, but not what are the
 programmer-visible consequences.
 
 ** Passing a nil argument to a minor mode function now turns the mode
-   ON unconditionally.
+ON unconditionally.
 
 ** During startup, Emacs no longer adds entries for `menu-bar-lines'
-and `tool-bar-lines' to `default-frame-alist' and
-`initial-frame-alist'.  With these alist entries omitted, `make-frame'
-checks the value of the variable `menu-bar-mode'/`tool-bar-mode' to
-determine whether to create a menu-bar or tool-bar, respectively.
-If the alist entries are added, they override the value of
-`menu-bar-mode'/`tool-bar-mode'.
+and `tool-bar-lines' to `default-frame-alist' and `initial-frame-alist'.
+With these alist entries omitted, `make-frame' checks the value of the
+variable `menu-bar-mode'/`tool-bar-mode' to determine whether to create
+a menu-bar or tool-bar, respectively.  If the alist entries are added,
+they override the value of `menu-bar-mode'/`tool-bar-mode'.
 
 ** Regions created by mouse dragging are now normal active regions,
 similar to the ones created by shift-selection.  In previous Emacs
@@ -822,13 +832,13 @@ displayed with a "spinning bar".
 
 * Changes in Emacs 24.1 on non-free operating systems
 
-** New configure.bat option --enable-checking builds emacs with extra
+** New configure.bat option --enable-checking builds Emacs with extra
 runtime checks.
 
 ** New configure.bat option --distfiles to specify files to be
-included in binary distribution
+included in binary distribution.
 
-** New make target `dist' to create binary distribution for MS Windows
+** New make target `dist' to create binary distribution for MS Windows.
 
 
 ----------------------------------------------------------------------

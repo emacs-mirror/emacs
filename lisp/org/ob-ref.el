@@ -147,12 +147,12 @@ the variable."
 	(let ((params (append args '((:results . "silent")))))
 	  (setq result
 		(case type
-		  ('results-line (org-babel-read-result))
-		  ('table (org-babel-read-table))
-		  ('list (org-babel-read-list))
-		  ('file (org-babel-read-link))
-		  ('source-block (org-babel-execute-src-block nil nil params))
-		  ('lob (org-babel-execute-src-block nil lob-info params)))))
+		  (results-line (org-babel-read-result))
+		  (table (org-babel-read-table))
+		  (list (org-babel-read-list))
+		  (file (org-babel-read-link))
+		  (source-block (org-babel-execute-src-block nil nil params))
+		  (lob (org-babel-execute-src-block nil lob-info params)))))
 	(if (symbolp result)
 	    (format "%S" result)
 	  (if (and index (listp result))

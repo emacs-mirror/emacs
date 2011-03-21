@@ -938,8 +938,8 @@ line_ins_del (FRAME_PTR frame, int ov1, int pf1, int ovn, int pfn, register int 
 
 static void
 ins_del_costs (FRAME_PTR frame,
-	       char *one_line_string, char *multi_string,
-	       char *setup_string, char *cleanup_string,
+	       const char *one_line_string, const char *multi_string,
+	       const char *setup_string, const char *cleanup_string,
 	       int *costvec, int *ncostvec,
 	       int coefficient)
 {
@@ -994,9 +994,12 @@ ins_del_costs (FRAME_PTR frame,
 
 void
 do_line_insertion_deletion_costs (FRAME_PTR frame,
-				  char *ins_line_string, char *multi_ins_string,
-				  char *del_line_string, char *multi_del_string,
-				  char *setup_string, char *cleanup_string,
+				  const char *ins_line_string,
+				  const char *multi_ins_string,
+				  const char *del_line_string,
+				  const char *multi_del_string,
+				  const char *setup_string,
+				  const char *cleanup_string,
 				  int coefficient)
 {
   if (FRAME_INSERT_COST (frame) != 0)

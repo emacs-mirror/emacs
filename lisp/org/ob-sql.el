@@ -66,18 +66,18 @@ This function is called by `org-babel-execute-src-block'."
          (out-file (or (cdr (assoc :out-file params))
                        (org-babel-temp-file "sql-out-")))
          (command (case (intern engine)
-                    ('msosql (format "osql %s -s \"\t\" -i %s -o %s"
-                                     (or cmdline "")
-                                     (org-babel-process-file-name in-file)
-                                     (org-babel-process-file-name out-file)))
-                    ('mysql (format "mysql %s -e \"source %s\" > %s"
+                    (msosql (format "osql %s -s \"\t\" -i %s -o %s"
                                     (or cmdline "")
-				    (org-babel-process-file-name in-file)
-				    (org-babel-process-file-name out-file)))
-		    ('postgresql (format "psql -A -P footer=off -F \"\t\"  -f %s -o %s %s"
-				    (org-babel-process-file-name in-file)
-				    (org-babel-process-file-name out-file)
-				    (or cmdline "")))
+                                    (org-babel-process-file-name in-file)
+                                    (org-babel-process-file-name out-file)))
+                    (mysql (format "mysql %s -e \"source %s\" > %s"
+                                   (or cmdline "")
+                                   (org-babel-process-file-name in-file)
+                                   (org-babel-process-file-name out-file)))
+		    (postgresql (format "psql -A -P footer=off -F \"\t\"  -f %s -o %s %s"
+                                        (org-babel-process-file-name in-file)
+                                        (org-babel-process-file-name out-file)
+                                        (or cmdline "")))
                     (t (error "no support for the %s sql engine" engine)))))
     (with-temp-file in-file
       (insert (org-babel-expand-body:sql body params)))

@@ -28,6 +28,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 #include <setjmp.h>
 
+#include "lisp.h"
+
+/* This may include sys/types.h, and that somehow loses
+   if this is not done before the other system files.  */
+#include "xterm.h"
+
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 #include <X11/X.h>
@@ -38,8 +44,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #include <sys/stat.h>
 
-#include "lisp.h"
-
 #ifdef USE_MOTIF
 /* For Vdouble_click_time.  */
 #include "keyboard.h"
@@ -49,8 +53,6 @@ extern char *getenv (const char *);
 
 extern struct passwd *getpwuid (uid_t);
 extern struct passwd *getpwnam (const char *);
-
-extern const char *get_system_name (void);
 
 char *x_get_string_resource (XrmDatabase rdb, const char *name,
 			     const char *class);

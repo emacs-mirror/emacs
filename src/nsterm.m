@@ -2235,7 +2235,7 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
    -------------------------------------------------------------------------- */
 {
   NSRect r, s;
-  int fx, fy, h;
+  int fx, fy, h, cursor_height;
   struct frame *f = WINDOW_XFRAME (w);
   struct glyph *phys_cursor_glyph;
   int overspill;
@@ -2279,12 +2279,19 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   get_phys_cursor_geometry (w, glyph_row, phys_cursor_glyph, &fx, &fy, &h);
 
   /* The above get_phys_cursor_geometry call set w->phys_cursor_width
-     to the glyph width; replace with CURSOR_WIDTH for bar cursors. */
-  if (cursor_type == BAR_CURSOR || cursor_type == HBAR_CURSOR)
+     to the glyph width; replace with CURSOR_WIDTH for (V)BAR cursors. */
+  if (cursor_type == BAR_CURSOR)
     {
       if (cursor_width < 1)
 	cursor_width = max (FRAME_CURSOR_WIDTH (f), 1);
       w->phys_cursor_width = cursor_width;
+    }
+  /* If we have an HBAR, "cursor_width" MAY specify height. */
+  else if (cursor_type == HBAR_CURSOR)
+    {
+      cursor_height = (cursor_width < 1) ? lrint (0.25 * h) : cursor_width;
+      fy += h - cursor_height;
+      h = cursor_height;
     }
 
   r.origin.x = fx, r.origin.y = fy;
@@ -2337,10 +2344,7 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
       [FRAME_CURSOR_COLOR (f) set];
       break;
     case HBAR_CURSOR:
-      s = r;
-      s.origin.y += lrint (0.75 * s.size.height);
-      s.size.height = lrint (s.size.height * 0.25);
-      NSRectFill (s);
+      NSRectFill (r);
       break;
     case BAR_CURSOR:
       s = r;

@@ -221,7 +221,7 @@ GLOBAL_SOURCES =   dosfns.c msdos.c \
 	region-cache.c sound.c atimer.c \
 	doprnt.c intervals.c textprop.c composite.c
 SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
-  xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o dbusbind.o
+	xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o dbusbind.o
 obj = $(GLOBAL_SOURCES:.c=.o)
 
 globals.h: gl-stamp
@@ -386,6 +386,7 @@ $(BLD)/alloc.$(O) : \
 	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(LISP_H) \
+	$(PROCESS_H) \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
@@ -396,7 +397,6 @@ $(BLD)/alloc.$(O) : \
 	$(SRC)/frame.h \
 	$(SRC)/intervals.h \
 	$(SRC)/keyboard.h \
-	$(PROCESS_H) \
 	$(SRC)/puresize.h \
 	$(SRC)/syssignal.h \
 	$(SRC)/systime.h \
@@ -484,8 +484,10 @@ $(BLD)/callproc.$(O) : \
 	$(CONFIG_H) \
 	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
+	$(EMACS_ROOT)/nt/inc/sys/ioctl.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(LISP_H) \
+	$(PROCESS_H) \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
@@ -497,7 +499,6 @@ $(BLD)/callproc.$(O) : \
 	$(SRC)/dispextern.h \
 	$(SRC)/epaths.h \
 	$(SRC)/frame.h \
-	$(PROCESS_H) \
 	$(SRC)/syssignal.h \
 	$(SRC)/systime.h \
 	$(SRC)/systty.h \
@@ -653,6 +654,7 @@ $(BLD)/dired.$(O) : \
 	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/dir.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
+	$(EMACS_ROOT)/lib/filemode.h \
 	$(LISP_H) \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
@@ -662,7 +664,6 @@ $(BLD)/dired.$(O) : \
 	$(SRC)/coding.h \
 	$(SRC)/commands.h \
 	$(SRC)/composite.h \
-	$(EMACS_ROOT)/lib/filemode.h \
 	$(SRC)/ndir.h \
 	$(SRC)/regex.h \
 	$(SRC)/systime.h
@@ -673,6 +674,7 @@ $(BLD)/dispnew.$(O) : \
 	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(LISP_H) \
+	$(PROCESS_H) \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
@@ -687,7 +689,6 @@ $(BLD)/dispnew.$(O) : \
 	$(SRC)/indent.h \
 	$(SRC)/intervals.h \
 	$(SRC)/keyboard.h \
-	$(PROCESS_H) \
 	$(SRC)/syssignal.h \
 	$(SRC)/systime.h \
 	$(SRC)/termchar.h \
@@ -726,6 +727,7 @@ $(BLD)/editfns.$(O) : \
 	$(EMACS_ROOT)/nt/inc/pwd.h \
 	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
+	$(EMACS_ROOT)/lib/intprops.h \
 	$(EMACS_ROOT)/lib/strftime.h \
 	$(LISP_H) \
 	$(SRC)/atimer.h \
@@ -746,8 +748,10 @@ $(BLD)/emacs.$(O) : \
 	$(CONFIG_H) \
 	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
+	$(EMACS_ROOT)/nt/inc/sys/ioctl.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(LISP_H) \
+	$(PROCESS_H) \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
@@ -756,15 +760,14 @@ $(BLD)/emacs.$(O) : \
 	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
 	$(SRC)/frame.h \
-	$(SRC)/gnutls.h \
 	$(SRC)/intervals.h \
 	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \
-	$(PROCESS_H) \
 	$(SRC)/syssignal.h \
 	$(SRC)/systime.h \
 	$(SRC)/systty.h \
 	$(SRC)/termhooks.h \
+	$(SRC)/unexec.h \
 	$(SRC)/w32.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32heap.h \
@@ -836,6 +839,7 @@ $(BLD)/fns.$(O) : \
 	$(CONFIG_H) \
 	$(EMACS_ROOT)/nt/inc/langinfo.h \
 	$(EMACS_ROOT)/nt/inc/nl_types.h \
+	$(EMACS_ROOT)/nt/inc/stdint.h \
 	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(EMACS_ROOT)/lib/md5.h \
@@ -1029,6 +1033,7 @@ $(BLD)/keyboard.$(O) : \
 	$(EMACS_ROOT)/nt/inc/sys/ioctl.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(LISP_H) \
+	$(PROCESS_H) \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
@@ -1043,7 +1048,6 @@ $(BLD)/keyboard.$(O) : \
 	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \
 	$(SRC)/macros.h \
-	$(PROCESS_H) \
 	$(SRC)/puresize.h \
 	$(SRC)/syntax.h \
 	$(SRC)/syssignal.h \
@@ -1181,11 +1185,11 @@ $(BLD)/w32.$(O) : \
 	$(EMACS_ROOT)/nt/inc/sys/socket.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(LISP_H) \
+	$(PROCESS_H) \
 	$(SRC)/coding.h \
 	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
 	$(SRC)/ndir.h \
-	$(PROCESS_H) \
 	$(SRC)/systime.h \
 	$(SRC)/w32.h \
 	$(SRC)/w32gui.h \
@@ -1224,11 +1228,11 @@ $(BLD)/w32proc.$(O) : \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(LISP_H) \
+	$(PROCESS_H) \
 	$(SRC)/character.h \
 	$(SRC)/coding.h \
 	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
-	$(PROCESS_H) \
 	$(SRC)/syssignal.h \
 	$(SRC)/systime.h \
 	$(SRC)/syswait.h \
@@ -1260,6 +1264,7 @@ $(BLD)/print.$(O) : \
 	$(EMACS_ROOT)/lib/ftoastr.h \
 	$(EMACS_ROOT)/lib/intprops.h \
 	$(LISP_H) \
+	$(PROCESS_H) \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
@@ -1273,7 +1278,6 @@ $(BLD)/print.$(O) : \
 	$(SRC)/frame.h \
 	$(SRC)/intervals.h \
 	$(SRC)/keyboard.h \
-	$(PROCESS_H) \
 	$(SRC)/systime.h \
 	$(SRC)/termchar.h \
 	$(SRC)/termhooks.h \
@@ -1288,9 +1292,11 @@ $(BLD)/process.$(O) : \
 	$(EMACS_ROOT)/nt/inc/arpa/inet.h \
 	$(EMACS_ROOT)/nt/inc/netinet/in.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
+	$(EMACS_ROOT)/nt/inc/sys/ioctl.h \
 	$(EMACS_ROOT)/nt/inc/sys/socket.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(LISP_H) \
+	$(PROCESS_H) \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
@@ -1301,7 +1307,6 @@ $(BLD)/process.$(O) : \
 	$(SRC)/dispextern.h \
 	$(SRC)/frame.h \
 	$(SRC)/keyboard.h \
-	$(PROCESS_H) \
 	$(SRC)/sysselect.h \
 	$(SRC)/syssignal.h \
 	$(SRC)/systime.h \
@@ -1414,10 +1419,12 @@ $(BLD)/sysdep.$(O) : \
 	$(EMACS_ROOT)/nt/inc/pwd.h \
 	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
+	$(EMACS_ROOT)/nt/inc/sys/ioctl.h \
 	$(EMACS_ROOT)/nt/inc/sys/socket.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(EMACS_ROOT)/lib/ignore-value.h \
 	$(LISP_H) \
+	$(PROCESS_H) \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/cm.h \
@@ -1426,7 +1433,6 @@ $(BLD)/sysdep.$(O) : \
 	$(SRC)/dispextern.h \
 	$(SRC)/frame.h \
 	$(SRC)/keyboard.h \
-	$(PROCESS_H) \
 	$(SRC)/sysselect.h \
 	$(SRC)/syssignal.h \
 	$(SRC)/systime.h \
@@ -1444,6 +1450,7 @@ $(BLD)/term.$(O) : \
 	$(CONFIG_H) \
 	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
+	$(EMACS_ROOT)/nt/inc/sys/ioctl.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(LISP_H) \
 	$(SRC)/atimer.h \
@@ -1466,6 +1473,7 @@ $(BLD)/term.$(O) : \
 	$(SRC)/termchar.h \
 	$(SRC)/termhooks.h \
 	$(SRC)/termopts.h \
+	$(SRC)/tparam.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/window.h
 
@@ -1499,7 +1507,8 @@ $(BLD)/textprop.$(O) : \
 $(BLD)/tparam.$(O) : \
 	$(SRC)/tparam.c \
 	$(CONFIG_H) \
-	$(LISP_H)
+	$(LISP_H) \
+	$(SRC)/tparam.h
 
 $(BLD)/undo.$(O) : \
 	$(SRC)/undo.c \
@@ -1514,6 +1523,7 @@ $(BLD)/undo.$(O) : \
 $(BLD)/unexw32.$(O) : \
 	$(SRC)/unexw32.c \
 	$(CONFIG_H) \
+	$(SRC)/unexec.h \
 	$(SRC)/w32heap.h
 
 $(BLD)/vm-limit.$(O) : \
@@ -1553,6 +1563,7 @@ $(BLD)/xdisp.$(O) : \
 	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(LISP_H) \
+	$(PROCESS_H) \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
@@ -1572,7 +1583,6 @@ $(BLD)/xdisp.$(O) : \
 	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \
 	$(SRC)/macros.h \
-	$(PROCESS_H) \
 	$(SRC)/region-cache.h \
 	$(SRC)/systime.h \
 	$(SRC)/termchar.h \
@@ -1664,8 +1674,10 @@ $(BLD)/w32term.$(O) : \
 	$(SRC)/w32term.c \
 	$(CONFIG_H) \
 	$(EMACS_ROOT)/nt/inc/unistd.h \
+	$(EMACS_ROOT)/nt/inc/sys/ioctl.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(LISP_H) \
+	$(PROCESS_H) \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
@@ -1682,7 +1694,6 @@ $(BLD)/w32term.$(O) : \
 	$(SRC)/intervals.h \
 	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \
-	$(PROCESS_H) \
 	$(SRC)/systime.h \
 	$(SRC)/systty.h \
 	$(SRC)/termchar.h \
@@ -1705,7 +1716,6 @@ $(BLD)/w32select.$(O) : \
 	$(SRC)/charset.h \
 	$(SRC)/coding.h \
 	$(SRC)/composite.h \
-	$(SRC)/keyboard.h \
 	$(SRC)/systime.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32heap.h \

@@ -3629,7 +3629,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
 ;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
 ;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "154cdfbf451aedec60c5012b625ff329")
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "2d805d6766bd7970cd446413b4ed4ce0")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\
@@ -3860,6 +3860,7 @@ Not documented
 
 (autoload 'dired-create-directory "dired-aux" "\
 Create a directory called DIRECTORY.
+If DIRECTORY already exists, signal an error.
 
 \(fn DIRECTORY)" t nil)
 

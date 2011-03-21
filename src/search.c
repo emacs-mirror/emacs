@@ -114,17 +114,13 @@ matcher_overflow (void)
    PATTERN is the pattern to compile.
    CP is the place to put the result.
    TRANSLATE is a translation table for ignoring case, or nil for none.
-   REGP is the structure that says where to store the "register"
-   values that will result from matching this pattern.
-   If it is 0, we should compile the pattern not to record any
-   subexpression bounds.
    POSIX is nonzero if we want full backtracking (POSIX style)
    for this pattern.  0 means backtrack only enough to get a valid match.
 
    The behavior also depends on Vsearch_spaces_regexp.  */
 
 static void
-compile_pattern_1 (struct regexp_cache *cp, Lisp_Object pattern, Lisp_Object translate, struct re_registers *regp, int posix)
+compile_pattern_1 (struct regexp_cache *cp, Lisp_Object pattern, Lisp_Object translate, int posix)
 {
   char *val;
   reg_syntax_t old;
@@ -247,7 +243,7 @@ compile_pattern (Lisp_Object pattern, struct re_registers *regp, Lisp_Object tra
       if (cp->next == 0)
 	{
 	compile_it:
-	  compile_pattern_1 (cp, pattern, translate, regp, posix);
+	  compile_pattern_1 (cp, pattern, translate, posix);
 	  break;
 	}
     }
@@ -1558,7 +1554,6 @@ simple_search (EMACS_INT n, unsigned char *pat,
 
 	    while (this_len > 0)
 	      {
-		int charlen;
 		int pat_ch, buf_ch;
 
 		DEC_BOTH (this_pos, this_pos_byte);
@@ -1730,17 +1725,17 @@ boyer_moore (EMACS_INT n, unsigned char *base_pat,
       /* Setup translate_prev_byte1/2/3/4 from CHAR_BASE.  Only a
 	 byte following them are the target of translation.  */
       unsigned char str[MAX_MULTIBYTE_LENGTH];
-      int len = CHAR_STRING (char_base, str);
+      int cblen = CHAR_STRING (char_base, str);
 
-      translate_prev_byte1 = str[len - 2];
-      if (len > 2)
+      translate_prev_byte1 = str[cblen - 2];
+      if (cblen > 2)
 	{
-	  translate_prev_byte2 = str[len - 3];
-	  if (len > 3)
+	  translate_prev_byte2 = str[cblen - 3];
+	  if (cblen > 3)
 	    {
-	      translate_prev_byte3 = str[len - 4];
-	      if (len > 4)
-		translate_prev_byte4 = str[len - 5];
+	      translate_prev_byte3 = str[cblen - 4];
+	      if (cblen > 4)
+		translate_prev_byte4 = str[cblen - 5];
 	    }
 	}
     }
@@ -2474,7 +2469,7 @@ since only regular expressions have distinguished subexpressions.  */)
 	  else
 	    FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE (c, string, pos, pos_byte);
 
-	  if (LOWERCASEP (c))
+	  if (lowercasep (c))
 	    {
 	      /* Cannot be all caps if any original char is lower case */
 
@@ -2484,7 +2479,7 @@ since only regular expressions have distinguished subexpressions.  */)
 	      else
 		some_multiletter_word = 1;
 	    }
-	  else if (UPPERCASEP (c))
+	  else if (uppercasep (c))
 	    {
 	      some_uppercase = 1;
 	      if (SYNTAX (prevc) != Sword)

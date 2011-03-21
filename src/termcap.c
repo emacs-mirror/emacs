@@ -25,6 +25,10 @@ Boston, MA 02110-1301, USA.  */
 #include <unistd.h>
 
 #include "lisp.h"
+#include "tparam.h"
+#ifdef MSDOS
+#include "msdos.h"
+#endif
 
 #ifndef NULL
 #define NULL (char *) 0
@@ -65,7 +69,7 @@ static char *tgetst1 (char *ptr, char **area);
    0 if not found.  */
 
 static char *
-find_capability (register char *bp, register char *cap)
+find_capability (register char *bp, register const char *cap)
 {
   for (; *bp; bp++)
     if (bp[0] == ':'
@@ -76,7 +80,7 @@ find_capability (register char *bp, register char *cap)
 }
 
 int
-tgetnum (char *cap)
+tgetnum (const char *cap)
 {
   register char *ptr = find_capability (term_entry, cap);
   if (!ptr || ptr[-1] != '#')
@@ -85,7 +89,7 @@ tgetnum (char *cap)
 }
 
 int
-tgetflag (char *cap)
+tgetflag (const char *cap)
 {
   register char *ptr = find_capability (term_entry, cap);
   return ptr && ptr[-1] == ':';
@@ -97,7 +101,7 @@ tgetflag (char *cap)
    If AREA is null, space is allocated with `malloc'.  */
 
 char *
-tgetstr (char *cap, char **area)
+tgetstr (const char *cap, char **area)
 {
   register char *ptr = find_capability (term_entry, cap);
   if (!ptr || (ptr[-1] != '=' && ptr[-1] != '~'))
@@ -263,7 +267,7 @@ tgetst1 (char *ptr, char **area)
 char PC;
 
 void
-tputs (register char *str, int nlines, register int (*outfun) (/* ??? */))
+tputs (register const char *str, int nlines, int (*outfun) (int))
 {
   register int padcount = 0;
   register int speed;
@@ -355,7 +359,7 @@ valid_filename_p (fn)
    in it, and some other value otherwise.  */
 
 int
-tgetent (char *bp, char *name)
+tgetent (char *bp, const char *name)
 {
   register char *termcap_name;
   register int fd;
@@ -442,7 +446,7 @@ tgetent (char *bp, char *name)
   buf.size = BUFSIZE;
   /* Add 1 to size to ensure room for terminating null.  */
   buf.beg = (char *) xmalloc (buf.size + 1);
-  term = indirect ? indirect : name;
+  term = indirect ? indirect : (char *)name;
 
   if (!bp)
     {

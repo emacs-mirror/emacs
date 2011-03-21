@@ -229,7 +229,7 @@ AC_ARG_ENABLE(maintainer-mode,
                 [enable make rules and dependencies not useful (and sometimes
 		 confusing) to the casual installer])],
       USE_MAINTAINER_MODE=$enableval,
-      USE_MAINTAINER_MODE=no)
+      USE_MAINTAINER_MODE=yes)
 if test $USE_MAINTAINER_MODE = yes; then
   MAINT=
 else
@@ -1826,8 +1826,8 @@ fi
 
 HAVE_GTK=no
 if test "${with_gtk3}" = "yes"; then
-  GLIB_REQUIRED=2.6
-  GTK_REQUIRED=2.90
+  GLIB_REQUIRED=2.28
+  GTK_REQUIRED=3.0
   GTK_MODULES="gtk+-3.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
 
   dnl Checks for libraries.
@@ -1835,6 +1835,7 @@ if test "${with_gtk3}" = "yes"; then
   if test "$pkg_check_gtk" = "no" && test "$USE_X_TOOLKIT" != "maybe"; then
      AC_MSG_ERROR($GTK_PKG_ERRORS)
   fi
+  AC_DEFINE(HAVE_GTK3, 1, [Define to 1 if using GTK 3 or later.])
 fi
 
 if test "$pkg_check_gtk" != "yes"; then
@@ -2256,7 +2257,7 @@ if test "${HAVE_X11}" = "yes"; then
        dnl if -lfreetype is not specified.
        dnl The following is needed to set FREETYPE_LIBS.
        PKG_CHECK_MODULES(FREETYPE, freetype2, HAVE_FREETYPE=yes,
-			 HAVE_FREETYPE=no) 
+			 HAVE_FREETYPE=no)
 
        test "$HAVE_FREETYPE" = "no" && AC_MSG_ERROR(libxft requires libfreetype)
     fi

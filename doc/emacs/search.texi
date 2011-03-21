@@ -917,13 +917,13 @@ setting of the syntax table (@pxref{Syntax}).
 @node Regexp Example
 @section Regular Expression Example
 
-  Here is an example of a regexp---the regexp that Emacs uses, by
-default, to recognize the end of a sentence, not including the
-following space (i.e., the variable @code{sentence-end-base}):
+  Here is an example of a regexp---similar to the regexp that Emacs
+uses, by default, to recognize the end of a sentence, not including
+the following space (i.e., the variable @code{sentence-end-base}):
 
 @example
 @verbatim
-[.?!][]\"'””)}]*
+[.?!][]\"')}]*
 @end verbatim
 @end example
 

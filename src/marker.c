@@ -257,9 +257,10 @@ verify_bytepos (EMACS_INT charpos)
   return below_byte;
 }
 
-/* bytepos_to_charpos returns the char position corresponding to BYTEPOS.  */
+/* buf_bytepos_to_charpos returns the char position corresponding to
+   BYTEPOS.  */
 
-/* This macro is a subroutine of bytepos_to_charpos.
+/* This macro is a subroutine of buf_bytepos_to_charpos.
    It is used when BYTEPOS is actually the byte position.  */
 
 #define CONSIDER(BYTEPOS, CHARPOS)					\
@@ -300,12 +301,6 @@ verify_bytepos (EMACS_INT charpos)
 	  return value;							\
 	}								\
     }									\
-}
-
-EMACS_INT
-bytepos_to_charpos (EMACS_INT bytepos)
-{
-  return buf_bytepos_to_charpos (current_buffer, bytepos);
 }
 
 EMACS_INT
@@ -896,4 +891,3 @@ syms_of_marker (void)
 	       doc: /* Non-nil enables debugging checks in byte/char position conversions.  */);
   byte_debug_flag = 0;
 }
-

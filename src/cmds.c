@@ -485,18 +485,18 @@ internal_self_insert (int c, EMACS_INT n)
        : (c == ' ' || c == '\n'))
       && !NILP (BVAR (current_buffer, auto_fill_function)))
     {
-      Lisp_Object tem;
+      Lisp_Object auto_fill_result;
 
       if (c == '\n')
 	/* After inserting a newline, move to previous line and fill
 	   that.  Must have the newline in place already so filling and
 	   justification, if any, know where the end is going to be.  */
 	SET_PT_BOTH (PT - 1, PT_BYTE - 1);
-      tem = call0 (BVAR (current_buffer, auto_fill_function));
+      auto_fill_result = call0 (BVAR (current_buffer, auto_fill_function));
       /* Test PT < ZV in case the auto-fill-function is strange.  */
       if (c == '\n' && PT < ZV)
 	SET_PT_BOTH (PT + 1, PT_BYTE + 1);
-      if (!NILP (tem))
+      if (!NILP (auto_fill_result))
 	hairy = 2;
     }
 

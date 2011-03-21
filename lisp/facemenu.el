@@ -567,18 +567,12 @@ You can change the color sort order by customizing `list-colors-sort'."
   (with-help-window buffer-name
     (with-current-buffer standard-output
       (erase-buffer)
+      (list-colors-print list callback)
+      (set-buffer-modified-p nil)
       (setq truncate-lines t)))
-  (let ((buf (get-buffer buffer-name))
-	(inhibit-read-only t))
-    ;; Display buffer before generating content, to allow
-    ;; `list-colors-print' to get the right window-width.
-    (with-selected-window (or (get-buffer-window buf t) (selected-window))
-      (with-current-buffer buf
-	(list-colors-print list callback)
-	(set-buffer-modified-p nil)))
-    (when callback
-      (pop-to-buffer buf)
-      (message "Click on a color to select it."))))
+  (when callback
+    (pop-to-buffer buffer-name)
+    (message "Click on a color to select it.")))
 
 (defun list-colors-print (list &optional callback)
   (let ((callback-fn
@@ -595,30 +589,19 @@ You can change the color sort order by customizing `list-colors-sort'."
       (let* ((opoint (point))
 	     (color-values (color-values (car color)))
 	     (light-p (>= (apply 'max color-values)
-			  (* (car (color-values "white")) .5)))
-	     (max-len (max (- (window-width) 33) 20)))
+			  (* (car (color-values "white")) .5))))
 	(insert (car color))
 	(indent-to 22)
 	(put-text-property opoint (point) 'face `(:background ,(car color)))
 	(put-text-property
 	 (prog1 (point)
 	   (insert " ")
-	   (if (cdr color)
-	       ;; Insert as many color names as possible, fitting max-len.
-	       (let ((names (list (car color)))
-		     (others (cdr color))
-		     (len (length (car color)))
-		     newlen)
-		 (while (and others
-			     (< (setq newlen (+ len 2 (length (car others))))
-				max-len))
-		   (setq len newlen)
-		   (push (pop others) names))
-		 (insert (mapconcat 'identity (nreverse names) ", ")))
-	     (insert (car color))))
+	   ;; Insert all color names.
+	   (insert (mapconcat 'identity color ",")))
 	 (point)
 	 'face (list :foreground (car color)))
-	(indent-to (max (- (window-width) 8) 44))
+	(insert (propertize " " 'display '(space :align-to (- right 9))))
+	(insert " ")
 	(insert (propertize
 		 (apply 'format "#%02x%02x%02x"
 			(mapcar (lambda (c) (lsh c -8))

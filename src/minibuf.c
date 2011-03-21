@@ -72,6 +72,7 @@ Lisp_Object Qcompletion_ignore_case;
 Lisp_Object Qminibuffer_completion_table;
 Lisp_Object Qminibuffer_completion_predicate;
 Lisp_Object Qminibuffer_completion_confirm;
+Lisp_Object Qcompleting_read_default;
 Lisp_Object Quser_variable_p;
 
 Lisp_Object Qminibuffer_default;
@@ -135,7 +136,7 @@ choose_minibuf_frame (void)
   }
 }
 
-Lisp_Object
+static Lisp_Object
 choose_minibuf_frame_1 (Lisp_Object ignore)
 {
   choose_minibuf_frame ();
@@ -1213,7 +1214,7 @@ is used to further constrain the set of candidates.  */)
 		    && (!SYMBOLP (XCAR (collection))
 			|| NILP (XCAR (collection)))))
 	       ? list_table : function_table));
-  int index = 0, obsize = 0;
+  int idx = 0, obsize = 0;
   int matchcount = 0;
   int bindcount = -1;
   Lisp_Object bucket, zero, end, tem;
@@ -1232,7 +1233,7 @@ is used to further constrain the set of candidates.  */)
     {
       collection = check_obarray (collection);
       obsize = XVECTOR (collection)->size;
-      bucket = XVECTOR (collection)->contents[index];
+      bucket = XVECTOR (collection)->contents[idx];
     }
 
   while (1)
@@ -1263,23 +1264,23 @@ is used to further constrain the set of candidates.  */)
 	      else
 		XSETFASTINT (bucket, 0);
 	    }
-	  else if (++index >= obsize)
+	  else if (++idx >= obsize)
 	    break;
 	  else
 	    {
-	      bucket = XVECTOR (collection)->contents[index];
+	      bucket = XVECTOR (collection)->contents[idx];
 	      continue;
 	    }
 	}
       else /* if (type == hash_table) */
 	{
-	  while (index < HASH_TABLE_SIZE (XHASH_TABLE (collection))
-		 && NILP (HASH_HASH (XHASH_TABLE (collection), index)))
-	    index++;
-	  if (index >= HASH_TABLE_SIZE (XHASH_TABLE (collection)))
+	  while (idx < HASH_TABLE_SIZE (XHASH_TABLE (collection))
+		 && NILP (HASH_HASH (XHASH_TABLE (collection), idx)))
+	    idx++;
+	  if (idx >= HASH_TABLE_SIZE (XHASH_TABLE (collection)))
 	    break;
 	  else
-	    elt = eltstring = HASH_KEY (XHASH_TABLE (collection), index++);
+	    elt = eltstring = HASH_KEY (XHASH_TABLE (collection), idx++);
 	}
 
       /* Is this element a possible completion? */
@@ -1334,7 +1335,7 @@ is used to further constrain the set of candidates.  */)
 		  tem = (type == hash_table
 			 ? call2 (predicate, elt,
 				  HASH_VALUE (XHASH_TABLE (collection),
-					      index - 1))
+					      idx - 1))
 			 : call1 (predicate, elt));
 		  UNGCPRO;
 		}
@@ -1478,7 +1479,7 @@ with a space are ignored unless STRING itself starts with a space.  */)
     : NILP (collection) || (CONSP (collection)
 			    && (!SYMBOLP (XCAR (collection))
 				|| NILP (XCAR (collection))));
-  int index = 0, obsize = 0;
+  int idx = 0, obsize = 0;
   int bindcount = -1;
   Lisp_Object bucket, tem, zero;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
@@ -1495,7 +1496,7 @@ with a space are ignored unless STRING itself starts with a space.  */)
     {
       collection = check_obarray (collection);
       obsize = XVECTOR (collection)->size;
-      bucket = XVECTOR (collection)->contents[index];
+      bucket = XVECTOR (collection)->contents[idx];
     }
 
   while (1)
@@ -1526,23 +1527,23 @@ with a space are ignored unless STRING itself starts with a space.  */)
 	      else
 		XSETFASTINT (bucket, 0);
 	    }
-	  else if (++index >= obsize)
+	  else if (++idx >= obsize)
 	    break;
 	  else
 	    {
-	      bucket = XVECTOR (collection)->contents[index];
+	      bucket = XVECTOR (collection)->contents[idx];
 	      continue;
 	    }
 	}
       else /* if (type == 3) */
 	{
-	  while (index < HASH_TABLE_SIZE (XHASH_TABLE (collection))
-		 && NILP (HASH_HASH (XHASH_TABLE (collection), index)))
-	    index++;
-	  if (index >= HASH_TABLE_SIZE (XHASH_TABLE (collection)))
+	  while (idx < HASH_TABLE_SIZE (XHASH_TABLE (collection))
+		 && NILP (HASH_HASH (XHASH_TABLE (collection), idx)))
+	    idx++;
+	  if (idx >= HASH_TABLE_SIZE (XHASH_TABLE (collection)))
 	    break;
 	  else
-	    elt = eltstring = HASH_KEY (XHASH_TABLE (collection), index++);
+	    elt = eltstring = HASH_KEY (XHASH_TABLE (collection), idx++);
 	}
 
       /* Is this element a possible completion? */
@@ -1567,8 +1568,6 @@ with a space are ignored unless STRING itself starts with a space.  */)
 	{
 	  /* Yes. */
 	  Lisp_Object regexps;
-	  Lisp_Object zero;
-	  XSETFASTINT (zero, 0);
 
 	  /* Ignore this element if it fails to match all the regexps.  */
 	  {
@@ -1604,7 +1603,7 @@ with a space are ignored unless STRING itself starts with a space.  */)
 		  GCPRO4 (tail, eltstring, allmatches, string);
 		  tem = type == 3
 		    ? call2 (predicate, elt,
-			     HASH_VALUE (XHASH_TABLE (collection), index - 1))
+			     HASH_VALUE (XHASH_TABLE (collection), idx - 1))
 		    : call1 (predicate, elt);
 		  UNGCPRO;
 		}
@@ -1677,7 +1676,27 @@ If INHERIT-INPUT-METHOD is non-nil, the minibuffer inherits
   the current input method and the setting of `enable-multibyte-characters'.
 
 Completion ignores case if the ambient value of
-  `completion-ignore-case' is non-nil.  */)
+  `completion-ignore-case' is non-nil.
+
+See also `completing-read-function'.  */)
+  (Lisp_Object prompt, Lisp_Object collection, Lisp_Object predicate, Lisp_Object require_match, Lisp_Object initial_input, Lisp_Object hist, Lisp_Object def, Lisp_Object inherit_input_method)
+{
+  Lisp_Object args[9];
+  args[0] = Vcompleting_read_function;
+  args[1] = prompt;
+  args[2] = collection;
+  args[3] = predicate;
+  args[4] = require_match;
+  args[5] = initial_input;
+  args[6] = hist;
+  args[7] = def;
+  args[8] = inherit_input_method;
+  return Ffuncall (9, args);
+}
+
+DEFUN ("completing-read-default", Fcompleting_read_default, Scompleting_read_default, 2, 8, 0,
+       doc: /* Default method for reading from the minibuffer with completion.
+See `completing-read' for the meaning of the arguments.  */)
   (Lisp_Object prompt, Lisp_Object collection, Lisp_Object predicate, Lisp_Object require_match, Lisp_Object initial_input, Lisp_Object hist, Lisp_Object def, Lisp_Object inherit_input_method)
 {
   Lisp_Object val, histvar, histpos, position;
@@ -1975,6 +1994,9 @@ syms_of_minibuf (void)
   minibuf_save_list = Qnil;
   staticpro (&minibuf_save_list);
 
+  Qcompleting_read_default = intern_c_string ("completing-read-default");
+  staticpro (&Qcompleting_read_default);
+
   Qcompletion_ignore_case = intern_c_string ("completion-ignore-case");
   staticpro (&Qcompletion_ignore_case);
 
@@ -2119,6 +2141,12 @@ If the value is `confirm-after-completion', the user may exit with an
 	       doc: /* Non-nil means completing file names.  */);
   Vminibuffer_completing_file_name = Qnil;
 
+  DEFVAR_LISP ("completing-read-function",
+	       Vcompleting_read_function,
+	       doc: /* The function called by `completing-read' to do the work.
+It should accept the same arguments as `completing-read'.  */);
+  Vcompleting_read_function = Qcompleting_read_default;
+
   DEFVAR_LISP ("minibuffer-help-form", Vminibuffer_help_form,
 	       doc: /* Value that `help-form' takes on inside the minibuffer.  */);
   Vminibuffer_help_form = Qnil;
@@ -2194,4 +2222,5 @@ properties.  */);
   defsubr (&Stest_completion);
   defsubr (&Sassoc_string);
   defsubr (&Scompleting_read);
+  defsubr (&Scompleting_read_default);
 }

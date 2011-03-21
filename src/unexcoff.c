@@ -50,6 +50,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
  */
 
 #include <config.h>
+#include "unexec.h"
+
 #define PERROR(file) report_error (file, new)
 
 #ifndef CANNOT_DUMP  /* all rest of file!  */
@@ -522,7 +524,7 @@ adjust_lnnoptrs (int writedesc, int readdesc, const char *new_name)
  *
  * driving logic.
  */
-int
+void
 unexec (const char *new_name, const char *a_name)
 {
   int new = -1, a_out = -1;
@@ -543,15 +545,13 @@ unexec (const char *new_name, const char *a_name)
       )
     {
       close (new);
-      return -1;
+      return;
     }
 
   close (new);
   if (a_out >= 0)
     close (a_out);
   mark_x (new_name);
-  return 0;
 }
 
 #endif /* not CANNOT_DUMP */
-

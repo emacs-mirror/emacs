@@ -999,8 +999,7 @@ value is 200 characters.
   Emacs can optionally display the time and system load in all mode
 lines.  To enable this feature, type @kbd{M-x display-time} or customize
 the option @code{display-time-mode}.  The information added to the mode
-line usually appears after the buffer name, before the mode names and
-their parentheses.  It looks like this:
+line looks like this:
 
 @example
 @var{hh}:@var{mm}pm @var{l.ll}

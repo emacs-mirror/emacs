@@ -122,8 +122,7 @@ when editing big diffs)."
     ("\C-m" . diff-goto-source)
     ([mouse-2] . diff-goto-source)
     ;; From XEmacs' diff-mode.
-    ;; Standard M-w is useful, so don't change M-W.
-    ;;("W" . widen)
+    ("W" . widen)
     ;;("." . diff-goto-source)		;display-buffer
     ;;("f" . diff-goto-source)		;find-file
     ("o" . diff-goto-source)		;other-window
@@ -135,17 +134,21 @@ when editing big diffs)."
     ;; Not useful if you have to metafy them.
     ;;(" " . scroll-up)
     ;;("\177" . scroll-down)
-    ;; Standard M-a is useful, so don't change M-A.
-    ;;("A" . diff-ediff-patch)
-    ;; Standard M-r is useful, so don't change M-r or M-R.
-    ;;("r" . diff-restrict-view)
-    ;;("R" . diff-reverse-direction)
-    )
+    ("A" . diff-ediff-patch)
+    ("r" . diff-restrict-view)
+    ("R" . diff-reverse-direction))
   "Basic keymap for `diff-mode', bound to various prefix keys."
   :inherit special-mode-map)
 
 (easy-mmode-defmap diff-mode-map
-  `(("\e" . ,diff-mode-shared-map)
+  `(("\e" . ,(let ((map (make-sparse-keymap)))
+               ;; We want to inherit most bindings from diff-mode-shared-map,
+               ;; but not all since they may hide useful M-<foo> global
+               ;; bindings when editing.
+               (set-keymap-parent map diff-mode-shared-map)
+               (dolist (key '("A" "r" "R" "g" "q" "W"))
+                 (define-key map key nil))
+               map))
     ;; From compilation-minor-mode.
     ("\C-c\C-c" . diff-goto-source)
     ;; By analogy with the global C-x 4 a binding.

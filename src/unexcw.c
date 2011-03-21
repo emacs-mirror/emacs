@@ -19,6 +19,8 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
+#include "unexec.h"
+
 #include <setjmp.h>
 #include <lisp.h>
 #include <stdio.h>
@@ -247,7 +249,7 @@ add_exe_suffix_if_necessary (const char *name, char *modified)
   return (modified);
 }
 
-int
+void
 unexec (const char *outfile, const char *infile)
 {
   char infile_buffer[FILENAME_MAX];
@@ -261,7 +263,7 @@ unexec (const char *outfile, const char *infile)
     {
       /* can only dump once */
       printf ("You can only dump Emacs once on this platform.\n");
-      return (1);
+      return;
     }
 
   report_sheap_usage (1);
@@ -296,7 +298,4 @@ unexec (const char *outfile, const char *infile)
 
   ret = close (fd_out);
   assert (ret == 0);
-
-  return (0);
 }
-

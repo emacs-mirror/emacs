@@ -2944,6 +2944,7 @@ enum tool_bar_item_image
 
 extern void bidi_init_it (EMACS_INT, EMACS_INT, struct bidi_it *);
 extern void bidi_move_to_visually_next (struct bidi_it *);
+extern void bidi_dump_cached_states (void);
 extern void bidi_paragraph_init (bidi_dir_t, struct bidi_it *, int);
 extern int  bidi_mirror_char (int);
 
@@ -3325,9 +3326,10 @@ extern struct terminal *init_tty (const char *, const char *, int);
 
 extern int scrolling_max_lines_saved (int, int, int *, int *, int *);
 extern int scroll_cost (struct frame *, int, int, int);
-extern void do_line_insertion_deletion_costs (struct frame *, char *,
-                                              char *, char *, char *,
-                                              char *, char *, int);
+extern void do_line_insertion_deletion_costs (struct frame *, const char *,
+                                              const char *, const char *,
+					      const char *, const char *,
+					      const char *, int);
 void scrolling_1 (struct frame *, int, int, int, int *, int *, int *,
                   int *, int);
 

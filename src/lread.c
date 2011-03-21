@@ -370,15 +370,15 @@ unreadchar (Lisp_Object readcharfun, int c)
   else if (BUFFERP (readcharfun))
     {
       struct buffer *b = XBUFFER (readcharfun);
+      EMACS_INT charpos = BUF_PT (b);
       EMACS_INT bytepos = BUF_PT_BYTE (b);
 
-      BUF_PT (b)--;
       if (! NILP (BVAR (b, enable_multibyte_characters)))
 	BUF_DEC_POS (b, bytepos);
       else
 	bytepos--;
 
-      BUF_PT_BYTE (b) = bytepos;
+      SET_BUF_PT_BOTH (b, charpos - 1, bytepos);
     }
   else if (MARKERP (readcharfun))
     {
@@ -1133,10 +1133,10 @@ Return t if the file exists and loads successfully.  */)
      Also, just loading a file recursively is not always an error in
      the general case; the second load may do something different.  */
   {
-    int count = 0;
+    int load_count = 0;
     Lisp_Object tem;
     for (tem = Vloads_in_progress; CONSP (tem); tem = XCDR (tem))
-      if (!NILP (Fequal (found, XCAR (tem))) && (++count > 3))
+      if (!NILP (Fequal (found, XCAR (tem))) && (++load_count > 3))
 	{
 	  if (fd >= 0)
 	    emacs_close (fd);
@@ -1787,8 +1787,8 @@ readevalloop (Lisp_Object readcharfun,
 		 to a different value when evaluated.  */
 	      if (BUFFERP (readcharfun))
 		{
-		  struct buffer *b = XBUFFER (readcharfun);
-		  if (BUF_PT (b) == BUF_ZV (b))
+		  struct buffer *buf = XBUFFER (readcharfun);
+		  if (BUF_PT (buf) == BUF_ZV (buf))
 		    continue_reading_p = 0;
 		}
 	    }
@@ -2810,7 +2810,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
       {
 	char *p = read_buffer;
 	char *end = read_buffer + read_buffer_size;
-	register int c;
+	register int ch;
 	/* Nonzero if we saw an escape sequence specifying
 	   a multibyte character.  */
 	int force_multibyte = 0;
@@ -2820,8 +2820,8 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	int cancel = 0;
 	int nchars = 0;
 
-	while ((c = READCHAR) >= 0
-	       && c != '\"')
+	while ((ch = READCHAR) >= 0
+	       && ch != '\"')
 	  {
 	    if (end - p < MAX_MULTIBYTE_LENGTH)
 	      {
@@ -2832,44 +2832,44 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 		end = read_buffer + read_buffer_size;
 	      }
 
-	    if (c == '\\')
+	    if (ch == '\\')
 	      {
 		int modifiers;
 
-		c = read_escape (readcharfun, 1);
+		ch = read_escape (readcharfun, 1);
 
-		/* C is -1 if \ newline has just been seen */
-		if (c == -1)
+		/* CH is -1 if \ newline has just been seen */
+		if (ch == -1)
 		  {
 		    if (p == read_buffer)
 		      cancel = 1;
 		    continue;
 		  }
 
-		modifiers = c & CHAR_MODIFIER_MASK;
-		c = c & ~CHAR_MODIFIER_MASK;
+		modifiers = ch & CHAR_MODIFIER_MASK;
+		ch = ch & ~CHAR_MODIFIER_MASK;
 
-		if (CHAR_BYTE8_P (c))
+		if (CHAR_BYTE8_P (ch))
 		  force_singlebyte = 1;
-		else if (! ASCII_CHAR_P (c))
+		else if (! ASCII_CHAR_P (ch))
 		  force_multibyte = 1;
-		else		/* i.e. ASCII_CHAR_P (c) */
+		else		/* i.e. ASCII_CHAR_P (ch) */
 		  {
 		    /* Allow `\C- ' and `\C-?'.  */
 		    if (modifiers == CHAR_CTL)
 		      {
-			if (c == ' ')
-			  c = 0, modifiers = 0;
-			else if (c == '?')
-			  c = 127, modifiers = 0;
+			if (ch == ' ')
+			  ch = 0, modifiers = 0;
+			else if (ch == '?')
+			  ch = 127, modifiers = 0;
 		      }
 		    if (modifiers & CHAR_SHIFT)
 		      {
 			/* Shift modifier is valid only with [A-Za-z].  */
-			if (c >= 'A' && c <= 'Z')
+			if (ch >= 'A' && ch <= 'Z')
 			  modifiers &= ~CHAR_SHIFT;
-			else if (c >= 'a' && c <= 'z')
-			  c -= ('a' - 'A'), modifiers &= ~CHAR_SHIFT;
+			else if (ch >= 'a' && ch <= 'z')
+			  ch -= ('a' - 'A'), modifiers &= ~CHAR_SHIFT;
 		      }
 
 		    if (modifiers & CHAR_META)
@@ -2877,7 +2877,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 			/* Move the meta bit to the right place for a
 			   string.  */
 			modifiers &= ~CHAR_META;
-			c = BYTE8_TO_CHAR (c | 0x80);
+			ch = BYTE8_TO_CHAR (ch | 0x80);
 			force_singlebyte = 1;
 		      }
 		  }
@@ -2885,20 +2885,20 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 		/* Any modifiers remaining are invalid.  */
 		if (modifiers)
 		  error ("Invalid modifier in string");
-		p += CHAR_STRING (c, (unsigned char *) p);
+		p += CHAR_STRING (ch, (unsigned char *) p);
 	      }
 	    else
 	      {
-		p += CHAR_STRING (c, (unsigned char *) p);
-		if (CHAR_BYTE8_P (c))
+		p += CHAR_STRING (ch, (unsigned char *) p);
+		if (CHAR_BYTE8_P (ch))
 		  force_singlebyte = 1;
-		else if (! ASCII_CHAR_P (c))
+		else if (! ASCII_CHAR_P (ch))
 		  force_multibyte = 1;
 	      }
 	    nchars++;
 	  }
 
-	if (c < 0)
+	if (ch < 0)
 	  end_of_file_error ();
 
 	/* If purifying, and string starts with \ newline,
@@ -2917,8 +2917,9 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	    p = read_buffer + nchars;
 	  }
 	else
-	  /* Otherwise, READ_BUFFER contains only ASCII.  */
-	  ;
+	  {
+	    /* Otherwise, READ_BUFFER contains only ASCII.  */
+	  }
 
 	/* We want readchar_count to be the number of characters, not
 	   bytes.  Hence we adjust for multibyte characters in the

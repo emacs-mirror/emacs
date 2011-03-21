@@ -72,6 +72,8 @@ Summary of changes to "Calc"
 
 Emacs 24.1
 
+* Support for musical notes added.
+
 * Support for logarithmic units added.
 
 * Calc no longer uses the tex prefix for TeX specific unit 

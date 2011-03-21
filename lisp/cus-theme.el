@@ -100,6 +100,9 @@ named *Custom Theme*."
   (make-local-variable 'custom-theme-insert-face-marker)
   (make-local-variable 'custom-theme-insert-variable-marker)
   (make-local-variable 'custom-theme--listed-faces)
+  (when (called-interactively-p 'interactive)
+    (unless (y-or-n-p "Include basic face customizations in this theme? ")
+      (setq custom-theme--listed-faces nil)))
 
   (if (eq theme 'user)
       (widget-insert "This buffer contains all the Custom settings you have made.
@@ -188,7 +191,7 @@ remove them from your saved Custom file.\n\n"))
 	(while vars
 	  (if (eq (car vars) 'custom-enabled-themes)
 	      (progn (pop vars) (pop values))
-	    (custom-theme-add-var-1 (pop vars) (pop values)))))
+	    (custom-theme-add-var-1 (pop vars) (eval (pop values))))))
     (setq custom-theme-insert-variable-marker (point-marker))
     (widget-insert " ")
     (widget-create 'push-button
@@ -297,8 +300,9 @@ SPEC, if non-nil, should be a face spec to which to set the widget."
 
 ;;; Reading and writing
 
+;;;###autoload
 (defun custom-theme-visit-theme (theme)
-  "Load the custom theme THEME's settings into the current buffer."
+  "Set up a Custom buffer to edit custom theme THEME."
   (interactive
    (list
     (intern (completing-read "Find custom theme: "
@@ -662,5 +666,7 @@ Theme files are named *-theme.el in `"))
 	(error "More than one theme is currently selected")))
   (widget-toggle-action widget event)
   (setq custom-theme-allow-multiple-selections (widget-value widget)))
+
+(provide 'cus-theme)
 
 ;;; cus-theme.el ends here

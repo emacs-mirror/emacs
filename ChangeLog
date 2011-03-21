@@ -1,3 +1,27 @@
+2011-03-20  Glenn Morris  <rgm@gnu.org>
+
+	* autogen/: New directory, to be excluded from releases.
+	* autogen/copy_autogen, autogen/update_autogen: New scripts.
+	* autogen/README: New file.
+	* autogen/aclocal.m4, autogen/config.in, autogen/configure:
+	* autogen/Makefile.in: Add auto-updated generated files.
+	* autogen.sh: No longer a no-op, now it tests for autotools
+	and runs them as necessary.
+	* configure.in: Defaule maintainer-mode to on.
+	* aclocal.m4, configure, lib/Makefile.in: Remove files.
+
+2011-03-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Update for gnulib.
+	* Makefile.in (GNULIB_MODULES): Add intprops, as Emacs now
+	includes <intprops.h> directly.
+	* lib/sys_stat.in.h: New version from Gnulib, which fixes a bug
+	when building Emacs on Solaris 9 and running it on Solaris 10.
+
+2011-03-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in: Require 3.0 for --with-gtk3.  Add HAVE_GTK3.
+
 2011-03-06  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (FREETYPE_LIBS): Actually set it to something.
@@ -47,7 +71,7 @@
 
 2011-02-21  Christoph Scholtes  <cschol2112@gmail.com>
 
-	* lib/makefile.w32-in: ($(BLD)/md5.$(O)): Added dependency on
+	* lib/makefile.w32-in ($(BLD)/md5.$(O)): Added dependency on
 	$(EMACS_ROOT)/nt/inc/stdint.h.
 
 2011-02-21  Eli Zaretskii  <eliz@gnu.org>
@@ -86,7 +110,7 @@
 	way to test this so I left it alone.
 	* configure: Regenerate.
 
-2011-02-20  Christoph Scholtes <cschol2112@gmail.com>
+2011-02-20  Christoph Scholtes  <cschol2112@gmail.com>
 
 	* lib/makefile.w32-in ($(BLD)/md5.$(O)): New recipe, moved from
 	src/makefile.w32-in.
@@ -949,7 +973,7 @@
 
 2010-06-28  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* configure.in: Add --with-x-toolkit=gtk3. Remove HAVE_GTK_MULTIDISPLAY,
+	* configure.in: Add --with-x-toolkit=gtk3.  Remove HAVE_GTK_MULTIDISPLAY,
 	check for gtk_file_chooser_dialog_new, and HAVE_GTK_FILE_BOTH (implied
 	by minimum required Gtk+ 2.6).  Add checks for functions introduced
 	in Gtk+ 2.14 or newer (bug#6505).

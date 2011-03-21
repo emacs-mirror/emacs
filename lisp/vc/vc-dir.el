@@ -104,7 +104,7 @@ See `run-hooks'."
 	;; We pass a filename to create-file-buffer because it is what
 	;; the function expects, and also what uniquify needs (if active)
         (with-current-buffer (create-file-buffer (expand-file-name bname dir))
-          (cd dir)
+          (setq default-directory dir)
           (vc-setup-buffer (current-buffer))
           ;; Reset the vc-parent-buffer-name so that it does not appear
           ;; in the mode-line.
@@ -1002,7 +1002,7 @@ specific headers."
             (generate-new-buffer (format " *VC-%s* tmp status" backend))))
     (lexical-let ((buffer (current-buffer)))
       (with-current-buffer vc-dir-process-buffer
-        (cd def-dir)
+        (setq default-directory def-dir)
         (erase-buffer)
         (vc-call-backend
          backend 'dir-status-files def-dir files default-state
@@ -1067,7 +1067,7 @@ Throw an error if another update process is in progress."
       (ewoc-set-hf vc-ewoc (vc-dir-headers backend def-dir) "")
       (lexical-let ((buffer (current-buffer)))
         (with-current-buffer vc-dir-process-buffer
-          (cd def-dir)
+          (setq default-directory def-dir)
           (erase-buffer)
           (vc-call-backend
            backend 'dir-status def-dir
