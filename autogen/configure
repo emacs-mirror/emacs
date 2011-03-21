@@ -3934,7 +3934,7 @@ fi
 if test "${enable_maintainer_mode+set}" = set; then :
   enableval=$enable_maintainer_mode; USE_MAINTAINER_MODE=$enableval
 else
-  USE_MAINTAINER_MODE=no
+  USE_MAINTAINER_MODE=yes
 fi
 
 if test $USE_MAINTAINER_MODE = yes; then
