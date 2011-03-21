@@ -1,3 +1,8 @@
+2011-03-21  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/esh-opt.el (eshell-eval-using-options, eshell-process-args):
+	Doc fixes.
+
 2011-03-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cus-theme.el: Add missing provide statement.
