@@ -2529,8 +2529,9 @@ use is not recommended.  Explicitly check for a frame-parameter instead.  */)
 	}
 
       /* Now process them in reverse of specified order.  */
-      for (i--; i >= 0; i--)
+      while (i != 0)
 	{
+	  i--;
 	  prop = parms[i];
 	  val = values[i];
 	  store_frame_param (f, prop, val);
