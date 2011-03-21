@@ -1202,6 +1202,10 @@ The text is killed and replaced with the contents of the variable
 @code{message-elide-ellipsis}.  The default value is to use an ellipsis
 (@samp{[...]}).
 
+This is a format-spec string, and you can use @samp{%l} to say how
+many lines were removed, and @samp{%c} to say how many characters were
+removed.
+
 @item C-c M-k
 @kindex C-c M-k
 @findex message-kill-address

@@ -1,3 +1,73 @@
+2011-03-20  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-menu.el (calc-units-menu): Add entries for logarithmic
+	units and musical notes.
+
+2011-03-20  Leo  <sdl.web@gmail.com>
+
+	* ido.el (ido-read-internal): Use completing-read-default.
+	(ido-completing-read): Fix compatibility with completing-read.
+
+2011-03-20  Christian Ohler  <ohler@gnu.org>
+
+	* emacs-lisp/ert.el (ert-run-tests-batch): Remove unused variable.
+	(ert-delete-all-tests): Use `called-interactively-p' rather than
+	`interactive-p'.
+	(ert--make-xrefs-region): Respect END.
+
+2011-03-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired-aux.el (dired-create-directory): Signal an error if the
+	directory already exists (Bug#8246).
+
+	* facemenu.el (list-colors-display): Call list-faces-display
+	inside with-help-window.
+	(list-colors-print): Use display property to align the final
+	column, instead of checking window-width.
+
+2011-03-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* emerge.el (emerge-metachars): Separate value for ms-dos and
+	windows-nt systems.
+	(emerge-protect-metachars): Quote correctly for ms-dos and
+	windows-nt systems.
+
+2011-03-19  Ralph Schleicher  <rs@ralph-schleicher.de>
+
+	* info.el (info-initialize): Replace all uses of `:' with
+	path-separator for compatibility with non-Unix systems.
+	Cache quoting of path-separator.  (Bug#8258)
+
+2011-03-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* avoid.el (mouse-avoidance-mode, mouse-avoidance-nudge-dist)
+	(mouse-avoidance-threshold, mouse-avoidance-banish-destination)
+	(mouse-avoidance-mode): Fix typos in docstrings.
+
+2011-03-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (package-subdirectory-regexp): Move from package.el.
+	Omit \\` and \\', and let callers add them.
+
+	* emacs-lisp/package.el (package-strip-version)
+	(package-load-all-descriptors): Add \\` and \\' to
+	package-subdirectory-regexp before using it.
+	(package-untar-buffer): New arg DIR; ensure that file untars only
+	into this expected directory.  Remove superfluous delete-region.
+	(package-unpack): Caller changed.
+	(package-tar-file-info): Use package-subdirectory-regexp.
+
+2011-03-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/diff-mode.el (diff-mode-map): Shadow problematic bindings from
+	diff-mode-shared-map (bug#8284).
+	(diff-mode-shared-map): Re-introduce some bindings that were problematic.
+
+2011-03-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* calendar/time-date.el (format-seconds): Use assoc instead of
+	assoc-string, since assoc-string doesn't exist in XEmacs.
+
 2011-03-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* custom.el (custom-known-themes): Reflow docstring.

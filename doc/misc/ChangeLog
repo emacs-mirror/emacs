@@ -2,6 +2,11 @@
 
 	* calc.texi (Logarithmic Units): Update the function names.
 
+2011-03-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* message.texi (Various Commands): Document format specs in the
+	ellipsis.
+
 2011-03-15  Antoine Levitt  <antoine.levitt@gmail.com>
 
 	* message.texi (Insertion Variables): Document message-cite-style.

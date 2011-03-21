@@ -1482,9 +1482,8 @@ Returns the stats object."
                  (let ((print-escape-newlines t)
                        (print-level 5)
                        (print-length 10))
-                   (let ((begin (point)))
-                     (ert--pp-with-indentation-and-newline
-                      (ert-test-result-with-condition-condition result))))
+                   (ert--pp-with-indentation-and-newline
+                    (ert-test-result-with-condition-condition result)))
                  (goto-char (1- (point-max)))
                  (assert (looking-at "\n"))
                  (delete-char 1)
@@ -1603,7 +1602,7 @@ Nothing more than an interactive interface to `ert-make-test-unbound'."
 (defun ert-delete-all-tests ()
   "Make all symbols in `obarray' name no test."
   (interactive)
-  (when (interactive-p)
+  (when (called-interactively-p 'any)
     (unless (y-or-n-p "Delete all tests? ")
       (error "Aborted")))
   ;; We can't use `ert-select-tests' here since that gives us only
@@ -1793,7 +1792,7 @@ EWOC and STATS are arguments for `ert--results-update-stats-display'."
 BEGIN and END specify a region in the current buffer."
   (save-excursion
     (save-restriction
-      (narrow-to-region begin (point))
+      (narrow-to-region begin end)
       ;; Inhibit optimization in `debugger-make-xrefs' that would
       ;; sometimes insert unrelated backtrace info into our buffer.
       (let ((debugger-previous-backtrace nil))

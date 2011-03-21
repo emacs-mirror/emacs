@@ -697,7 +697,8 @@ simple manner.")
   "M" gnus-group-list-all-matching
   "l" gnus-group-list-level
   "c" gnus-group-list-cached
-  "?" gnus-group-list-dormant)
+  "?" gnus-group-list-dormant
+  "!" gnus-group-list-ticked)
 
 (gnus-define-keys (gnus-group-list-limit-map "/" gnus-group-list-map)
   "k"  gnus-group-list-limit
@@ -849,7 +850,8 @@ simple manner.")
 	["List all groups matching..." gnus-group-list-all-matching t]
 	["List active file" gnus-group-list-active t]
 	["List groups with cached" gnus-group-list-cached t]
-	["List groups with dormant" gnus-group-list-dormant t])
+	["List groups with dormant" gnus-group-list-dormant t]
+	["List groups with ticked" gnus-group-list-ticked t])
        ("Sort"
 	["Default sort" gnus-group-sort-groups t]
 	["Sort by method" gnus-group-sort-groups-by-method t]
@@ -4531,6 +4533,28 @@ This command may read the active file."
 	   #'(lambda (info)
 	       (let ((marks (gnus-info-marks info)))
 		 (assq 'dormant marks)))
+	   lowest
+	   'ignore)
+  (goto-char (point-min))
+  (gnus-group-position-point))
+
+(defun gnus-group-list-ticked (level &optional lowest)
+  "List all groups with ticked articles.
+If the prefix LEVEL is non-nil, it should be a number that says which
+level to cut off listing groups.
+If LOWEST, don't list groups with level lower than LOWEST.
+
+This command may read the active file."
+  (interactive "P")
+  (when level
+    (setq level (prefix-numeric-value level)))
+  (when (or (not level) (>= level gnus-level-zombie))
+    (gnus-cache-open))
+  (funcall gnus-group-prepare-function
+	   (or level gnus-level-subscribed)
+	   #'(lambda (info)
+	       (let ((marks (gnus-info-marks info)))
+		 (assq 'tick marks)))
 	   lowest
 	   'ignore)
   (goto-char (point-min))

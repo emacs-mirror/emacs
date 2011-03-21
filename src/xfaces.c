@@ -6297,7 +6297,7 @@ where R,G,B are numbers between 0 and 255 and name is an arbitrary string.  */)
   CHECK_STRING (filename);
   abspath = Fexpand_file_name (filename, Qnil);
 
-  fp = fopen (SDATA (filename), "rt");
+  fp = fopen (SDATA (abspath), "rt");
   if (fp)
     {
       char buf[512];

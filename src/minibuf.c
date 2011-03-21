@@ -72,6 +72,7 @@ Lisp_Object Qcompletion_ignore_case;
 Lisp_Object Qminibuffer_completion_table;
 Lisp_Object Qminibuffer_completion_predicate;
 Lisp_Object Qminibuffer_completion_confirm;
+Lisp_Object Qcompleting_read_default;
 Lisp_Object Quser_variable_p;
 
 Lisp_Object Qminibuffer_default;
@@ -1674,7 +1675,27 @@ If INHERIT-INPUT-METHOD is non-nil, the minibuffer inherits
   the current input method and the setting of `enable-multibyte-characters'.
 
 Completion ignores case if the ambient value of
-  `completion-ignore-case' is non-nil.  */)
+  `completion-ignore-case' is non-nil.
+
+See also `completing-read-function'.  */)
+  (Lisp_Object prompt, Lisp_Object collection, Lisp_Object predicate, Lisp_Object require_match, Lisp_Object initial_input, Lisp_Object hist, Lisp_Object def, Lisp_Object inherit_input_method)
+{
+  Lisp_Object args[9];
+  args[0] = Vcompleting_read_function;
+  args[1] = prompt;
+  args[2] = collection;
+  args[3] = predicate;
+  args[4] = require_match;
+  args[5] = initial_input;
+  args[6] = hist;
+  args[7] = def;
+  args[8] = inherit_input_method;
+  return Ffuncall (9, args);
+}
+
+DEFUN ("completing-read-default", Fcompleting_read_default, Scompleting_read_default, 2, 8, 0,
+       doc: /* Default method for reading from the minibuffer with completion.
+See `completing-read' for the meaning of the arguments.  */)
   (Lisp_Object prompt, Lisp_Object collection, Lisp_Object predicate, Lisp_Object require_match, Lisp_Object initial_input, Lisp_Object hist, Lisp_Object def, Lisp_Object inherit_input_method)
 {
   Lisp_Object val, histvar, histpos, position;
@@ -1972,6 +1993,9 @@ syms_of_minibuf (void)
   minibuf_save_list = Qnil;
   staticpro (&minibuf_save_list);
 
+  Qcompleting_read_default = intern_c_string ("completing-read-default");
+  staticpro (&Qcompleting_read_default);
+
   Qcompletion_ignore_case = intern_c_string ("completion-ignore-case");
   staticpro (&Qcompletion_ignore_case);
 
@@ -2116,6 +2140,12 @@ If the value is `confirm-after-completion', the user may exit with an
 	       doc: /* Non-nil means completing file names.  */);
   Vminibuffer_completing_file_name = Qnil;
 
+  DEFVAR_LISP ("completing-read-function",
+	       Vcompleting_read_function,
+	       doc: /* The function called by `completing-read' to do the work.
+It should accept the same arguments as `completing-read'.  */);
+  Vcompleting_read_function = Qcompleting_read_default;
+
   DEFVAR_LISP ("minibuffer-help-form", Vminibuffer_help_form,
 	       doc: /* Value that `help-form' takes on inside the minibuffer.  */);
   Vminibuffer_help_form = Qnil;
@@ -2191,4 +2221,5 @@ properties.  */);
   defsubr (&Stest_completion);
   defsubr (&Sassoc_string);
   defsubr (&Scompleting_read);
+  defsubr (&Scompleting_read_default);
 }

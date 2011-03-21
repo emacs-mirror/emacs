@@ -1,3 +1,11 @@
+2011-03-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* strings.texi (String Conversion): Don't mention
+	string-make-(uni|multi)byte (bug#8262).
+	* nonascii.texi (Converting Representations): Fix up range.
+	* keymaps.texi (Key Binding Commands): Update code point, avoid
+	"unibyte character" and remove mention of unibyte bindings.
+
 2011-03-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* modes.texi (Operator Precedence Grammars): Don't use characters

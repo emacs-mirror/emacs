@@ -2,8 +2,6 @@
 
 	* fileio.c (Fcopy_file): Report error if fchown or fchmod fail.
 
-2011-03-20  Paul Eggert  <eggert@cs.ucla.edu>
-
 	* emacs.c (Fdaemon_initialized): Do not ignore I/O errors (Bug#8303).
 
 	* process.c (Fmake_network_process): Use socklen_t, not int,
@@ -23,8 +21,6 @@
 	(process_send_signal): Add cast to avoid pointer signedness problem.
 	(FIRST_PROC_DESC, IF_NON_BLOCKING_CONNECT): Remove unused macros.
 	(create_process): Use 'volatile' to avoid vfork clobbering (Bug#8298).
-
-2011-03-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Make tparam.h and terminfo.c consistent.
 	* cm.c (tputs, tgoto, BC, UP): Remove extern decls.  Include
@@ -60,8 +56,6 @@
 	(composition_update_it): Mark var as initialized.
 	(find_automatic_composition): Mark vars as initialized,
 	with a FIXME (Bug#8290).
-
-2011-03-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	character.h: Rename locals to avoid shadowing.
 	* character.h (PREV_CHAR_BOUNDARY, FETCH_STRING_CHAR_ADVANCE):
@@ -100,6 +94,31 @@
 
 	* callproc.c (call_process_cleanup): Now static.
 	(relocate_fd): Rename locals to avoid shadowing.
+
+2011-03-20  Glenn Morris  <rgm@gnu.org>
+
+	* config.in: Remove file.
+
+2011-03-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuf.c (Vcompleting_read_function): Don't declare, global variables
+	are now in src/globals.h.
+	(syms_of_minibuf): Remove spurious & from previous change.
+
+2011-03-20  Leo  <sdl.web@gmail.com>
+
+	* minibuf.c (completing-read-function): New variable.
+	(completing-read-default): Rename from completing-read.
+	(completing-read): Call completing-read-function.
+
+2011-03-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* xfaces.c (Fx_load_color_file):
+	Read color file from absolute filename (bug#8250).
+
+2011-03-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in: Update dependencies.
 
 2011-03-17  Eli Zaretskii  <eliz@gnu.org>
 
