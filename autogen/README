@@ -4,7 +4,7 @@ generate them yourself using eg `autogen.sh'.
 
 File:        Destination:  Created by:
 configure    ../           autoconf
-config.in    ../src        autoconf      * also used by MSDOS bzr build
+config.in    ../src        autoheader      * also used by MSDOS bzr build
 aclocal.m4   ../           aclocal
 Makefile.in  ../lib        automake
 
