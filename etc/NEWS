@@ -746,6 +746,7 @@ sc.el, x-menu.el, rnews.el, rnewspost.el
 * Lisp changes in Emacs 24.1
 
 ** byte-compile-disable-print-circle is obsolete.
+** deferred-action-list and deferred-action-function are obsolete.
 ** Removed the stack-trace-on-error variable.
 Also the debugger can now "continue" from an error, which means it will jump
 to the error handler as if the debugger had not been invoked instead of
