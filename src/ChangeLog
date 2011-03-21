@@ -2,6 +2,8 @@
 
 	* frame.c (Fmodify_frame_parameters): Simplify loop counter.
 	This also avoids a warning with gcc -Wstrict-overflow.
+	(validate_x_resource_name): Simplify count usage.
+	This also avoids a warning with gcc -Wstrict-overflow.
 
 	* fileio.c (Fcopy_file): Report error if fchown or fchmod
 	fail (Bug#8306).
