@@ -1,4 +1,4 @@
-2011-03-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+2011-03-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* strings.texi (String Conversion): Don't mention
 	string-make-(uni|multi)byte (bug#8262).
