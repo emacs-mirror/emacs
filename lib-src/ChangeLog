@@ -1,3 +1,12 @@
+2011-03-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	fakemail: Remove dependency on ignore-value.
+	This undoes some of the recent fakemail-related changes.
+	It is made possible due to recent changes to gnulib's stdio module.
+	* Makefile.in (fakemail${EXEEXT}): Do not depend on ignore-value.h.
+	* fakemail.c: Do not include ignore-value.h.
+	(put_line): Do not use ignore_value.
+
 2011-03-03  Drake Wilson  <drake@begriffli.ch>  (tiny change)
 
 	* emacsclient.c (longopts): Add quiet.

@@ -1,3 +1,10 @@
+2011-03-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	fakemail: Remove dependency on ignore-value.
+	* Makefile.in (GNULIB_MODULES): Add stdio.
+	* lib/stdio.in.h, m4/stdio_h.m4: New files, automatically
+	imported from gnulib.
+
 2011-03-20  Glenn Morris  <rgm@gnu.org>
 
 	* autogen/: New directory, to be excluded from releases.
