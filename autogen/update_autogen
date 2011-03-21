@@ -169,7 +169,10 @@ msg "Committing..."
 ## bzr status output is annoyingly always relative to top-level, not PWD.
 cd ../
 
-bzr commit -m "Auto-commit of generated files." $modified || \
+opt=
+[ "$quiet" ] || opt=-q
+
+bzr commit $opt -m "Auto-commit of generated files." $modified || \
     die "bzr commit error"
 
 
