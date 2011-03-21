@@ -1,3 +1,8 @@
+2011-03-21  Leo Liu  <sdl.web@gmail.com>
+
+	* ido.el (ido-read-internal): Add ido-selected to history instead
+	of user input.
+
 2011-03-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (deferred-action-list, deferred-action-function):
