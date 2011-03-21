@@ -1,3 +1,10 @@
+2011-03-21  Leo Liu  <sdl.web@gmail.com>
+
+	* minibuffer.el (read-file-name-function): Change default value.
+	(read-file-name--defaults): Rename from read-file-name-defaults.
+	(read-file-name-default): Rename from read-file-name.
+	(read-file-name): Call read-file-name-function.
+
 2011-03-21  Glenn Morris  <rgm@gnu.org>
 
 	* eshell/esh-opt.el (eshell-eval-using-options, eshell-process-args):
