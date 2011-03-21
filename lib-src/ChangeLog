@@ -1,5 +1,11 @@
 2011-03-21  Paul Eggert  <eggert@cs.ucla.edu>
 
+	etags: In Prolog functions, don't assume int fits in size_t.
+	This avoids a warning with gcc -Wstrict-overflow.
+	* etags.c (Prolog_functions, prolog_pr, prolog_atom): Use size_t,
+	not int, to store sizes.
+	(prolog_atom): Return 0, not -1, on error.  All callers changed.
+
 	update-game-score: fix bug with -r
 	* update-game-score.c (main): Don't set 'scores' to garbage when
 	-r is specified and scorecount != MAX_SCORES (Bug#8310).  This bug
