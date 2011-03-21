@@ -1,3 +1,10 @@
+2011-03-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-theme.el: Add missing provide statement.
+	(customize-create-theme): Extract theme value correctly.
+	(custom-theme-visit-theme): Autoload.
+	(customize-create-theme): Prompt before inserting default faces.
+
 2011-03-20  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-menu.el (calc-units-menu): Add entries for logarithmic
