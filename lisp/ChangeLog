@@ -1,3 +1,7 @@
+2011-03-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.el (custom-push-theme): Quote "changed" custom var entry.
+
 2011-03-21  Leo Liu  <sdl.web@gmail.com>
 
 	* ido.el (ido-read-internal): Add ido-selected to history instead

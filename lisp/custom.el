@@ -849,10 +849,10 @@ See `custom-known-themes' for a list of known themes."
 	;; theme is later disabled.
 	(cond ((and (eq prop 'theme-value)
 		    (boundp symbol))
-	       (let ((sv (get symbol 'standard-value)))
-		 (unless (and sv
-			      (equal (eval (car sv)) (symbol-value symbol)))
-		   (setq old (list (list 'changed (symbol-value symbol)))))))
+	       (let ((sv  (get symbol 'standard-value))
+		     (val (symbol-value symbol)))
+		 (unless (and sv (equal (eval (car sv)) val))
+		   (setq old `((changed ,(custom-quote val)))))))
 	      ((and (facep symbol)
 		    (not (face-attr-match-p
 			  symbol
