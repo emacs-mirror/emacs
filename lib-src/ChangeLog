@@ -1,5 +1,12 @@
 2011-03-21  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* ebrowse.c: Use size_t, not int, for sizes.
+	This avoids a warning with gcc -Wstrict-overflow, and works
+	better for very large objects.
+	(inbuffer_size): Now size_t.  All uses changed.
+	(xmalloc, xrealloc, operator_name, process_file): Use size_t for
+	sizes.  Don't bother testing whether a size_t value can be negative.
+
 	* etags.c (Ada_funcs): Redo slightly to avoid overflow warning.
 
 	etags: In Prolog functions, don't assume int fits in size_t.
