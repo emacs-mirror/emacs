@@ -1,6 +1,7 @@
 2011-03-21  Paul Eggert  <eggert@cs.ucla.edu>
 
-	* fileio.c (Fcopy_file): Report error if fchown or fchmod fail.
+	* fileio.c (Fcopy_file): Report error if fchown or fchmod
+	fail (Bug#8306).
 
 	* emacs.c (Fdaemon_initialized): Do not ignore I/O errors (Bug#8303).
 
