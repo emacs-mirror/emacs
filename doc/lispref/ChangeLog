@@ -1,3 +1,10 @@
+2011-03-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuf.texi (Basic Completion): Be a bit more precise about the
+	valid kinds of completion tables.
+	(Programmed Completion): Remove obsolete text about lambda expressions
+	not being valid completion tables.
+
 2011-03-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* positions.texi (Excursions): Explain the "save-excursion
