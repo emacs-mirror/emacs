@@ -1,5 +1,7 @@
 2011-03-21  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* etags.c (Ada_funcs): Redo slightly to avoid overflow warning.
+
 	etags: In Prolog functions, don't assume int fits in size_t.
 	This avoids a warning with gcc -Wstrict-overflow.
 	* etags.c (Prolog_functions, prolog_pr, prolog_atom): Use size_t,

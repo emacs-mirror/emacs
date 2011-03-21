@@ -4198,7 +4198,7 @@ Ada_funcs (FILE *inf)
 	  /* Skip a string i.e. "abcd". */
 	  if (inquote || (*dbp == '"'))
 	    {
-	      dbp = etags_strchr ((inquote) ? dbp : dbp+1, '"');
+	      dbp = etags_strchr (dbp + !inquote, '"');
 	      if (dbp != NULL)
 		{
 		  inquote = FALSE;
