@@ -7,7 +7,7 @@
 	* lisp.h (SAFE_ALLOCA, SAFE_ALLOCA_LISP): Avoid 'int' overflow
 	leading to a memory leak, possible in functions like
 	load_charset_map_from_file that can allocate an unbounded number
-	of objects.
+	of objects (Bug#8318).
 
 	* xmenu.c (set_frame_menubar): Use EMACS_UINT, not int, for indexes
 	that could (at least in theory) be that large.
