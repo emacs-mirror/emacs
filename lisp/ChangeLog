@@ -1,5 +1,8 @@
 2011-03-22  Juanma Barranquero  <lekktu@gmail.com>
 
+	* simple.el (backward-delete-char-untabify):
+	Avoid warning about using `delete-backward-char'.
+
 	* image.el (image-type-file-name-regexps): Make it variable.
 	`imagemagick-register-types' modifies it, and the user may want
 	to add new extensions for known image types.
