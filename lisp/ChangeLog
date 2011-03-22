@@ -1,6 +1,15 @@
-2011-03-21  Chong Yidong  <cyd@stupidchicken.com>
+2011-03-22  Chong Yidong  <cyd@stupidchicken.com>
 
-	* custom.el (custom-push-theme): Quote "changed" custom var entry.
+	* custom.el (custom--inhibit-theme-enable): Make it affect only
+	custom-theme-set-variables and custom-theme-set-faces.
+	(provide-theme): Ignore custom--inhibit-theme-enable.
+	(load-theme): Enable the theme explicitly if NO-ENABLE is non-nil.
+	(custom-enabling-themes): Delete variable.
+	(enable-theme): Accept only loaded themes as arguments.  Ignore
+	the special custom-enabled-themes variable.
+	(custom-enabled-themes): Forbid themes from setting this.
+	Eliminate use of custom-enabling-themes.
+	(custom-push-theme): Quote "changed" custom var entry.
 
 2011-03-21  Leo Liu  <sdl.web@gmail.com>
 
