@@ -245,8 +245,8 @@ do_scrolling (struct frame *frame, struct glyph_matrix *current_matrix, struct m
   int i, j, k;
 
   /* Set to 1 if we have set a terminal window with
-     set_terminal_window.  */
-  int terminal_window_p = 0;
+     set_terminal_window.  It's unsigned to work around GCC bug 48228.  */
+  unsigned int terminal_window_p = 0;
 
   /* A queue for line insertions to be done.  */
   struct queue { int count, pos; };

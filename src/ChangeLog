@@ -1,3 +1,8 @@
+2011-03-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* scroll.c (do_scrolling): Work around GCC bug 48228.
+	See <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48228>.
+
 2011-03-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* frame.c (Fmodify_frame_parameters): Simplify loop counter.
