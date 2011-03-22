@@ -1,3 +1,10 @@
+2011-03-22  Leo Liu  <sdl.web@gmail.com>
+
+	* net/rcirc.el (rcirc-completion-at-point): Return nil if point is
+	located before rcirc-prompt-end-marker.
+	(rcirc-complete): Error if point is not after rcirc prompt.
+	Handle the case when table is nil.
+
 2011-03-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* custom.el (custom--inhibit-theme-enable): Make it affect only
