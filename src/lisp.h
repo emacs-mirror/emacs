@@ -3602,7 +3602,7 @@ extern Lisp_Object safe_alloca_unwind (Lisp_Object);
     else						  \
       {							  \
 	buf = (type) xmalloc (size);			  \
-	sa_must_free++;					  \
+	sa_must_free = 1;				  \
 	record_unwind_protect (safe_alloca_unwind,	  \
 			       make_save_value (buf, 0)); \
       }							  \
@@ -3632,7 +3632,7 @@ extern Lisp_Object safe_alloca_unwind (Lisp_Object);
 	buf = (Lisp_Object *) xmalloc (size_);		  \
 	arg_ = make_save_value (buf, nelt);		  \
 	XSAVE_VALUE (arg_)->dogc = 1;			  \
-	sa_must_free++;					  \
+	sa_must_free = 1;				  \
 	record_unwind_protect (safe_alloca_unwind, arg_); \
       }							  \
   } while (0)
