@@ -455,7 +455,7 @@
 	  (narrow-to-region (point) (point))
 	  (mm-insert-part handle)
 	  (goto-char (point-max)))
-      (insert (mm-decode-string (mm-get-part handle) charset)))
+      (mm-display-inline-fontify handle))
     (when (and mm-fill-flowed
 	       (equal type "plain")
 	       (equal (cdr (assoc 'format (mm-handle-type handle)))
@@ -565,15 +565,16 @@
 		     (face-property 'default prop) (current-buffer))))
 	      (delete-region ,(point-min-marker) ,(point-max-marker)))))))))
 
-(defun mm-display-inline-fontify (handle mode)
+(defun mm-display-inline-fontify (handle &optional mode)
+  "Insert HANDLE inline fontifying with MODE.
+If MODE is not set, try to find mode automatically."
   (let ((charset (mail-content-type-get (mm-handle-type handle) 'charset))
 	text coding-system)
     (unless (eq charset 'gnus-decoded)
       (mm-with-unibyte-buffer
 	(mm-insert-part handle)
 	(mm-decompress-buffer
-	 (or (mail-content-type-get (mm-handle-disposition handle) 'name)
-	     (mail-content-type-get (mm-handle-disposition handle) 'filename))
+         (mm-handle-filename handle)
 	 t t)
 	(unless charset
 	  (setq coding-system (mm-find-buffer-file-coding-system)))
@@ -601,7 +602,10 @@
 	    (font-lock-support-mode nil)
 	    ;; I find font-lock a bit too verbose.
 	    (font-lock-verbose nil))
-	(funcall mode)
+        (setq buffer-file-name (mm-handle-filename handle))
+        (if mode
+            (funcall mode)
+          (normal-mode))
 	;; The mode function might have already turned on font-lock.
 	(unless (symbol-value 'font-lock-mode)
 	  (font-lock-fontify-buffer)))
@@ -614,6 +618,9 @@
 		       nil)
 		     nil nil nil nil nil 'text-prop))
       (setq text (buffer-string))
+      ;; Set buffer unmodified to avoid confirmation when killing the
+      ;; buffer.
+      (set-buffer-modified-p nil)
       (kill-buffer (current-buffer)))
     (mm-insert-inline handle text)))
 
