@@ -225,21 +225,29 @@ specified in `abbrev-file-name' is used."
 		    abbrev-file-name)))
   (or (and file (> (length file) 0))
       (setq file abbrev-file-name))
-  (let ((coding-system-for-write 'emacs-mule))
-    (with-temp-file file
-      (insert ";;-*-coding: emacs-mule;-*-\n")
+  (let ((coding-system-for-write 'utf-8))
+    (with-temp-buffer
       (dolist (table
-               ;; We sort the table in order to ease the automatic
-               ;; merging of different versions of the user's abbrevs
-               ;; file.  This is useful, for example, for when the
-               ;; user keeps their home directory in a revision
-               ;; control system, and is therefore keeping multiple
-               ;; slightly-differing copies loosely synchronized.
-               (sort (copy-sequence abbrev-table-name-list)
-                     (lambda (s1 s2)
-                       (string< (symbol-name s1)
-                                (symbol-name s2)))))
-	(insert-abbrev-table-description table nil)))))
+	       ;; We sort the table in order to ease the automatic
+	       ;; merging of different versions of the user's abbrevs
+	       ;; file.  This is useful, for example, for when the
+	       ;; user keeps their home directory in a revision
+	       ;; control system, and is therefore keeping multiple
+	       ;; slightly-differing copies loosely synchronized.
+	       (sort (copy-sequence abbrev-table-name-list)
+		     (lambda (s1 s2)
+		       (string< (symbol-name s1)
+				(symbol-name s2)))))
+	(insert-abbrev-table-description table nil))
+      (when (unencodable-char-position (point-min) (point-max) 'utf-8)
+	(setq coding-system-for-write
+	      (if (> emacs-major-version 24)
+		  'utf-8-emacs
+		;; For compatibility with Emacs 22 (See Bug#8308)
+		'emacs-mule)))
+      (goto-char (point-min))
+      (insert (format ";;-*-coding: %s;-*-\n" coding-system-for-write))
+      (write-region nil nil file nil 0))))
 
 (defun add-mode-abbrev (arg)
   "Define mode-specific abbrev for last word(s) before point.
