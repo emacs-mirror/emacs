@@ -19006,7 +19006,7 @@ pint2str (register char *buf, register int width, register EMACS_INT d)
 
 static const char power_letter[] =
   {
-    0,	 /* not used */
+    0,	 /* no letter */
     'k', /* kilo */
     'M', /* mega */
     'G', /* giga */
@@ -19088,8 +19088,7 @@ pint2hrstr (char *buf, int width, int d)
   p = psuffix = buf + max (width, length);
 
   /* Print EXPONENT. */
-  if (exponent)
-    *psuffix++ = power_letter[exponent];
+  *psuffix++ = power_letter[exponent];
   *psuffix = '\0';
 
   /* Print TENTHS. */

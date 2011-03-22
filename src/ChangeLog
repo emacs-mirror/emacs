@@ -4,6 +4,8 @@
 	This is less likely to overflow, and avoids undefined behavior if
 	overflow does occur.  All callers changed.  Use strtoul to scan
 	for the unsigned long integer.
+	(pint2hrstr): Simplify and tune code slightly.
+	This also avoids a (bogus) GCC warning with gcc -Wstrict-overflow.
 
 	* scroll.c (do_scrolling): Work around GCC bug 48228.
 	See <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48228>.
