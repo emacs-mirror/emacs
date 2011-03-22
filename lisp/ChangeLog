@@ -1,3 +1,10 @@
+2011-03-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image.el (image-type-file-name-regexps): Make it variable.
+	`imagemagick-register-types' modifies it, and the user may want
+	to add new extensions for known image types.
+	(imagemagick-register-types): Throw error if not using ImageMagick.
+
 2011-03-22  Leo Liu  <sdl.web@gmail.com>
 
 	* net/rcirc.el (rcirc-completion-at-point): Return nil if point is
