@@ -1,5 +1,10 @@
 2011-03-22  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xdisp.c (message_log_check_duplicate): Return unsigned long, not int.
+	This is less likely to overflow, and avoids undefined behavior if
+	overflow does occur.  All callers changed.  Use strtoul to scan
+	for the unsigned long integer.
+
 	* scroll.c (do_scrolling): Work around GCC bug 48228.
 	See <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48228>.
 
