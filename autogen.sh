@@ -184,7 +184,7 @@ instead of this script.
 If all else fails, you can try using the pre-built versions of the
 generated files by doing:
 
-cd autogen && ./copy_autogen
+./autogen/copy_autogen
 
 This is not recommended - see the comments in \`copy_autogen'.
 

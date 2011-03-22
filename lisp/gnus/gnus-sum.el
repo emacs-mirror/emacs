@@ -12142,10 +12142,7 @@ If REVERSE, save parts that do not match TYPE."
 		    mm-file-name-rewrite-functions
 		    (file-name-nondirectory
 		     (or
-		      (mail-content-type-get
-		       (mm-handle-disposition handle) 'filename)
-		      (mail-content-type-get
-		       (mm-handle-type handle) 'name)
+                      (mm-handle-filename handle)
 		      (format "%s.%d.%d" gnus-newsgroup-name
 			      (cdr gnus-article-current)
 			      gnus-summary-save-parts-counter))))

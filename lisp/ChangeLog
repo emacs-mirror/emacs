@@ -1,3 +1,72 @@
+2011-03-22  Leo Liu  <sdl.web@gmail.com>
+
+	* abbrev.el (write-abbrev-file): Use utf-8 for writing if it can
+	encode all chars in abbrevs; otherwise use emacs-mule or
+	utf-8-emacs.  (Bug#8308)
+
+2011-03-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* simple.el (backward-delete-char-untabify):
+	Avoid warning about using `delete-backward-char'.
+
+	* image.el (image-type-file-name-regexps): Make it variable.
+	`imagemagick-register-types' modifies it, and the user may want
+	to add new extensions for known image types.
+	(imagemagick-register-types): Throw error if not using ImageMagick.
+
+2011-03-22  Leo Liu  <sdl.web@gmail.com>
+
+	* net/rcirc.el (rcirc-completion-at-point): Return nil if point is
+	located before rcirc-prompt-end-marker.
+	(rcirc-complete): Error if point is not after rcirc prompt.
+	Handle the case when table is nil.
+	(rcirc-user-authenticated): Define to fix compiler warning.
+
+2011-03-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.el (custom--inhibit-theme-enable): Make it affect only
+	custom-theme-set-variables and custom-theme-set-faces.
+	(provide-theme): Ignore custom--inhibit-theme-enable.
+	(load-theme): Enable the theme explicitly if NO-ENABLE is non-nil.
+	(custom-enabling-themes): Delete variable.
+	(enable-theme): Accept only loaded themes as arguments.  Ignore
+	the special custom-enabled-themes variable.
+	(custom-enabled-themes): Forbid themes from setting this.
+	Eliminate use of custom-enabling-themes.
+	(custom-push-theme): Quote "changed" custom var entry.
+
+2011-03-21  Leo Liu  <sdl.web@gmail.com>
+
+	* ido.el (ido-read-internal): Add ido-selected to history instead
+	of user input.
+
+2011-03-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (deferred-action-list, deferred-action-function):
+	Mark obsolete.
+
+2011-03-21  Leo Liu  <sdl.web@gmail.com>
+
+	* vc/log-view.el: Remove (require 'wid-edit), not needed after the
+	change on 2011-02-13 (bug#8309).
+
+	* minibuffer.el (read-file-name-function): Change default value.
+	(read-file-name--defaults): Rename from read-file-name-defaults.
+	(read-file-name-default): Rename from read-file-name.
+	(read-file-name): Call read-file-name-function.
+
+2011-03-21  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/esh-opt.el (eshell-eval-using-options, eshell-process-args):
+	Doc fixes.
+
+2011-03-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-theme.el: Add missing provide statement.
+	(customize-create-theme): Extract theme value correctly.
+	(custom-theme-visit-theme): Autoload.
+	(customize-create-theme): Prompt before inserting default faces.
+
 2011-03-20  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-menu.el (calc-units-menu): Add entries for logarithmic

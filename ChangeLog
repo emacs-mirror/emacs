@@ -1,16 +1,19 @@
-2011-03-21  Paul Eggert  <eggert@cs.ucla.edu>
+2011-03-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in (GNULIB_MODULES): Add socklen.
 	* configure.in: Do not check for sys/socket.h, since socklen does that.
 	* m4/socklen.m4: New automatically-generated file, from gnulib.
-
-2011-03-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	fakemail: Remove dependency on ignore-value.
 	* Makefile.in (GNULIB_MODULES): Add stdio.
 	* lib/stdio.in.h, m4/stdio_h.m4: New files, automatically
 	imported from gnulib.
 	* .bzrignore: Add lib/stdio.h.
+2011-03-22  Glenn Morris  <rgm@gnu.org>
+
+	* autogen/copy_autogen: Work from ./ or ../.
+	Fix time-stamps.
+	* autogen.sh: Doc fix.
 
 2011-03-20  Glenn Morris  <rgm@gnu.org>
 

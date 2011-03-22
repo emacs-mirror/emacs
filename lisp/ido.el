@@ -1978,7 +1978,9 @@ If INITIAL is non-nil, it specifies the initial input string."
 	   (ido-completing-read t)
 	   (ido-require-match require-match)
 	   (ido-use-mycompletion-depth (1+ (minibuffer-depth)))
-	   (show-paren-mode nil))
+	   (show-paren-mode nil)
+	   ;; Postpone history adding till later
+	   (history-add-new-input nil))
 	;; prompt the user for the file name
 	(setq ido-exit nil)
 	(setq ido-final-text
@@ -2158,6 +2160,7 @@ If INITIAL is non-nil, it specifies the initial input string."
 
 	 (t
 	  (setq done t))))))
+    (and history (add-to-history history ido-selected))
     ido-selected))
 
 (defun ido-edit-input ()
