@@ -1,3 +1,9 @@
+2011-03-22  Glenn Morris  <rgm@gnu.org>
+
+	* autogen/copy_autogen: Work from ./ or ../.
+	Fix time-stamps.
+	* autogen.sh: Doc fix.
+
 2011-03-20  Glenn Morris  <rgm@gnu.org>
 
 	* autogen/: New directory, to be excluded from releases.
