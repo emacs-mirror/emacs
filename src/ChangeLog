@@ -1,5 +1,8 @@
 2011-03-22  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xmenu.c (set_frame_menubar): Use EMACS_UINT, not int, for indexes
+	that could (at least in theory) be that large.
+
 	* xdisp.c (message_log_check_duplicate): Return unsigned long, not int.
 	This is less likely to overflow, and avoids undefined behavior if
 	overflow does occur.  All callers changed.  Use strtoul to scan
