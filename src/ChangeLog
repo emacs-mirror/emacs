@@ -1,5 +1,9 @@
 2011-03-22  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* coding.c (encode_coding_raw_text): Avoid unnecessary test
+	the first time through the loop, since we know p0 < p1 then.
+	This also avoids a gcc -Wstrict-overflow warning.
+
 	* lisp.h (SAFE_ALLOCA, SAFE_ALLOCA_LISP): Avoid 'int' overflow
 	leading to a memory leak, possible in functions like
 	load_charset_map_from_file that can allocate an unbounded number
