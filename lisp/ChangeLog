@@ -4,6 +4,7 @@
 	located before rcirc-prompt-end-marker.
 	(rcirc-complete): Error if point is not after rcirc prompt.
 	Handle the case when table is nil.
+	(rcirc-user-authenticated): Define to fix compiler warning.
 
 2011-03-22  Chong Yidong  <cyd@stupidchicken.com>
 
