@@ -1,5 +1,7 @@
 2011-03-23  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* cm.c (calccost): Turn while-do into do-while, for clarity.
+
 	Fix more problems found by GCC 4.5.2's static checks.
 
 	* coding.c (encode_coding_raw_text): Avoid unnecessary test
