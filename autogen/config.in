@@ -833,6 +833,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if `vfork' works. */
 #undef HAVE_WORKING_VFORK
 
+/* Define to 1 if you have the <ws2tcpip.h> header file. */
+#undef HAVE_WS2TCPIP_H
+
 /* Define to 1 if you want to use version 11 of X windows. Otherwise, Emacs
    expects to use version 10. */
 #undef HAVE_X11
@@ -1205,6 +1208,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 # define _Restrict
 # define __restrict__
 #endif
+
+/* type to use in place of socklen_t if not defined */
+#undef socklen_t
 
 /* Define to any substitute for sys_siglist. */
 #undef sys_siglist
