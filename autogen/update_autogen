@@ -170,7 +170,7 @@ msg "Committing..."
 cd ../
 
 opt=
-[ "$quiet" ] || opt=-q
+[ "$quiet" ] && opt=-q
 
 bzr commit $opt -m "Auto-commit of generated files." $modified || \
     die "bzr commit error"
