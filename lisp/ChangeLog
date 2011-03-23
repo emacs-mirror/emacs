@@ -1,3 +1,30 @@
+2011-03-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-file-form-defmumble):
+	byte-compile-lambda now always returns a byte-code-function.
+	(byte-compile-byte-code-maker, byte-compile-byte-code-unmake)
+	(byte-compile-closure): Remove.
+	(byte-compile-lambda): Always return a byte-code-function.
+	(byte-compile-top-level): Don't handle `byte-code' forms specially.
+	(byte-compile-inline-lapcode): New function, taken from byte-opt.el.
+	(byte-compile-unfold-bcf): New function.
+	(byte-compile-form): Use it to optimize inline byte-code-functions.
+	(byte-compile-function-form, byte-compile-defun): Simplify.
+	(byte-compile-defmacro): Don't bother calling
+	byte-compile-byte-code-maker.
+	* emacs-lisp/byte-opt.el (byte-inline-lapcode): Move to bytecomp.el.
+	(byte-compile-inline-expand): Inline all bytecompiled functions.
+	Unify the inlining code of the lexbind and dynbind interpreted
+	functions.
+	(byte-compile-unfold-lambda): Don't handle byte-compiled functions
+	at all.
+	(byte-optimize-form-code-walker): Don't optimize byte-compiled inlined
+	functions here.
+	(byte-compile-splice-in-already-compiled-code): Remove.
+	(byte-code): Don't optimize it any more.
+	(byte-decompile-bytecode-1): Remove unused bytedecomp-bytes.
+	Leave `byte-return's even for `make-spliceable'.
+
 2011-03-20  Christian Ohler  <ohler@gnu.org>
 
 	* emacs-lisp/cl-macs.el (cl-block-wrapper): Fix typo that broke CL

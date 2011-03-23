@@ -66,9 +66,6 @@
 ;;; Code:
 
 ;; TODO: (not just for cconv but also for the lexbind changes in general)
-;; - inline lexical byte-code functions.
-;; - investigate some old v18 stuff in bytecomp.el.
-;; - optimize away unused cl-block-wrapper.
 ;; - let (e)debug find the value of lexical variables from the stack.
 ;; - byte-optimize-form should be applied before cconv.
 ;;   OTOH, the warnings emitted by cconv-analyze need to come before optimize
@@ -87,7 +84,7 @@
 ;; - Since we know here when a variable is not mutated, we could pass that
 ;;   info to the byte-compiler, e.g. by using a new `immutable-let'.
 ;; - add tail-calls to bytecode.c and the byte compiler.
-;; - call known non-escaping functions with gotos rather than `call'.
+;; - call known non-escaping functions with `goto' rather than `call'.
 ;; - optimize mapcar to a while loop.
 
 ;; (defmacro dlet (binders &rest body)

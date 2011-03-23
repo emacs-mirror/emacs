@@ -2390,15 +2390,15 @@ by side-effects."
 		    (not (assq (nth 1 form)
 			       byte-compile-initial-macro-environment)))
 	       (byte-compile-warn
-		 "`%s' defined multiple times, as both function and macro"
-		 (nth 1 form)))
+                "`%s' defined multiple times, as both function and macro"
+                (nth 1 form)))
 	   (setcdr that-one nil))
 	  (this-one
 	   (when (and (byte-compile-warning-enabled-p 'redefine)
-		    ;; hack: don't warn when compiling the magic internal
-		    ;; byte-compiler macros in byte-run.el...
-		    (not (assq (nth 1 form)
-			       byte-compile-initial-macro-environment)))
+                      ;; hack: don't warn when compiling the magic internal
+                      ;; byte-compiler macros in byte-run.el...
+                      (not (assq (nth 1 form)
+                                 byte-compile-initial-macro-environment)))
 	     (byte-compile-warn "%s `%s' defined multiple times in this file"
 				(if macrop "macro" "function")
 				(nth 1 form))))
@@ -2430,52 +2430,36 @@ by side-effects."
       (dolist (decl (byte-compile-defmacro-declaration form))
         (prin1 decl byte-compile-outbuffer)))
 
-    (let* ((new-one (byte-compile-lambda (nthcdr 2 form) t))
-	   (code (byte-compile-byte-code-maker new-one)))
+    (let* ((code (byte-compile-lambda (nthcdr 2 form) t)))
       (if this-one
-	  (setcdr this-one new-one)
+	  (setcdr this-one code)
 	(set this-kind
-	     (cons (cons name new-one)
+	     (cons (cons name code)
 		   (symbol-value this-kind))))
-      (if (and (stringp (nth 3 form))
-	       (eq 'quote (car-safe code))
-	       (eq 'lambda (car-safe (nth 1 code))))
-	  (cons (car form)
-		(cons name (cdr (nth 1 code))))
-	(byte-compile-flush-pending)
-	(if (not (stringp (nth 3 form)))
-	    ;; No doc string.  Provide -1 as the "doc string index"
-	    ;; so that no element will be treated as a doc string.
-	    (byte-compile-output-docform
-	     "\n(defalias '"
-	     name
-	     (cond ((atom code)
-		    (if macrop '(" '(macro . #[" -1 "])") '(" #[" -1 "]")))
-		   ((eq (car code) 'quote)
-		    (setq code new-one)
-		    (if macrop '(" '(macro " -1 ")") '(" '(" -1 ")")))
-		   ((if macrop '(" (cons 'macro (" -1 "))") '(" (" -1 ")"))))
-	     (append code nil)
-	     (and (atom code) byte-compile-dynamic
-		  1)
-	     nil)
-	  ;; Output the form by hand, that's much simpler than having
-	  ;; b-c-output-file-form analyze the defalias.
-	  (byte-compile-output-docform
-	   "\n(defalias '"
-	   name
-	   (cond ((atom code)
-		  (if macrop '(" '(macro . #[" 4 "])") '(" #[" 4 "]")))
-		 ((eq (car code) 'quote)
-		  (setq code new-one)
-		  (if macrop '(" '(macro " 2 ")") '(" '(" 2 ")")))
-		 ((if macrop '(" (cons 'macro (" 5 "))") '(" (" 5 ")"))))
-	   (append code nil)
-	   (and (atom code) byte-compile-dynamic
-		1)
-	   nil))
-	(princ ")" byte-compile-outbuffer)
-	nil))))
+      (byte-compile-flush-pending)
+      (if (not (stringp (nth 3 form)))
+          ;; No doc string.  Provide -1 as the "doc string index"
+          ;; so that no element will be treated as a doc string.
+          (byte-compile-output-docform
+           "\n(defalias '"
+           name
+           (if macrop '(" '(macro . #[" -1 "])") '(" #[" -1 "]"))
+           (append code nil)            ; Turn byte-code-function-p into list.
+           (and (atom code) byte-compile-dynamic
+                1)
+           nil)
+        ;; Output the form by hand, that's much simpler than having
+        ;; b-c-output-file-form analyze the defalias.
+        (byte-compile-output-docform
+         "\n(defalias '"
+         name
+         (if macrop '(" '(macro . #[" 4 "])") '(" #[" 4 "]"))
+         (append code nil)              ; Turn byte-code-function-p into list.
+         (and (atom code) byte-compile-dynamic
+              1)
+         nil))
+      (princ ")" byte-compile-outbuffer)
+      nil)))
 
 ;; Print Lisp object EXP in the output file, inside a comment,
 ;; and return the file position it will have.
@@ -2546,56 +2530,6 @@ If FORM is a lambda or a macro, byte-compile it as a function."
   (displaying-byte-compile-warnings
    (byte-compile-close-variables
     (byte-compile-top-level (byte-compile-preprocess sexp)))))
-
-;; Given a function made by byte-compile-lambda, make a form which produces it.
-(defun byte-compile-byte-code-maker (fun)
-  (cond
-   ;; ## atom is faster than compiled-func-p.
-   ((atom fun)				; compiled function.
-    ;; generate-emacs19-bytecodes must be on, otherwise byte-compile-lambda
-    ;; would have produced a lambda.
-    fun)
-   ;; b-c-lambda didn't produce a compiled-function, so it's either a trivial
-   ;; function, or this is Emacs 18, or generate-emacs19-bytecodes is off.
-   ((let (tmp)
-      ;; FIXME: can this happen?
-      (if (and (setq tmp (assq 'byte-code (cdr-safe (cdr fun))))
-	       (null (cdr (memq tmp fun))))
-	  ;; Generate a make-byte-code call.
-	  (let* ((interactive (assq 'interactive (cdr (cdr fun)))))
-	    (nconc (list 'make-byte-code
-			 (list 'quote (nth 1 fun)) ;arglist
-			 (nth 1 tmp)	;bytes
-			 (nth 2 tmp)	;consts
-			 (nth 3 tmp))	;depth
-		   (cond ((stringp (nth 2 fun))
-			  (list (nth 2 fun))) ;doc
-			 (interactive
-			  (list nil)))
-		   (cond (interactive
-			  (list (if (or (null (nth 1 interactive))
-					(stringp (nth 1 interactive)))
-				    (nth 1 interactive)
-				  ;; Interactive spec is a list or a variable
-				  ;; (if it is correct).
-				  (list 'quote (nth 1 interactive))))))))
-	;; a non-compiled function (probably trivial)
-	(list 'quote fun))))))
-
-;; Turn a function into an ordinary lambda.  Needed for v18 files.
-(defun byte-compile-byte-code-unmake (function) ;FIXME: what is it?
-  (if (consp function)
-      function;;It already is a lambda.
-    (setq function (append function nil)) ; turn it into a list
-    (nconc (list 'lambda (nth 0 function))
-	   (and (nth 4 function) (list (nth 4 function)))
-	   (if (nthcdr 5 function)
-	       (list (cons 'interactive (if (nth 5 function)
-					    (nthcdr 5 function)))))
-	   (list (list 'byte-code
-		       (nth 1 function) (nth 2 function)
-		       (nth 3 function))))))
-
 
 (defun byte-compile-check-lambda-list (list)
   "Check lambda-list LIST for errors."
@@ -2745,20 +2679,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
                   ;; optionally, the interactive spec.
                   (if int
                       (list (nth 1 int)))))
-	(setq compiled
-	      (nconc (if int (list int))
-		     (cond ((eq (car-safe compiled) 'progn) (cdr compiled))
-			   (compiled (list compiled)))))
-	(nconc (list 'lambda arglist)
-	       (if (or doc (stringp (car compiled)))
-		   (cons doc (cond (compiled)
-				   (body (list nil))))
-		 compiled))))))
-
-(defun byte-compile-closure (form &optional add-lambda)
-  (let ((code (byte-compile-lambda form add-lambda)))
-    ;; A simple lambda is just a constant.
-    (byte-compile-constant code)))
+        (error "byte-compile-top-level did not return byte-code")))))
 
 (defvar byte-compile-reserved-constants 0)
 
@@ -2818,23 +2739,18 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	(setq form (byte-optimize-form form byte-compile--for-effect)))
     (while (and (eq (car-safe form) 'progn) (null (cdr (cdr form))))
       (setq form (nth 1 form)))
-    (if (and (eq 'byte-code (car-safe form))
-	     (not (memq byte-optimize '(t byte)))
-	     (stringp (nth 1 form)) (vectorp (nth 2 form))
-	     (natnump (nth 3 form)))
-	form
-      ;; Set up things for a lexically-bound function.
-      (when (and lexical-binding (eq output-type 'lambda))
-	;; See how many arguments there are, and set the current stack depth
-	;; accordingly.
-        (setq byte-compile-depth (length byte-compile-lexical-environment))
-	;; If there are args, output a tag to record the initial
-	;; stack-depth for the optimizer.
-	(when (> byte-compile-depth 0)
-	  (byte-compile-out-tag (byte-compile-make-tag))))
-      ;; Now compile FORM
-      (byte-compile-form form byte-compile--for-effect)
-      (byte-compile-out-toplevel byte-compile--for-effect output-type))))
+    ;; Set up things for a lexically-bound function.
+    (when (and lexical-binding (eq output-type 'lambda))
+      ;; See how many arguments there are, and set the current stack depth
+      ;; accordingly.
+      (setq byte-compile-depth (length byte-compile-lexical-environment))
+      ;; If there are args, output a tag to record the initial
+      ;; stack-depth for the optimizer.
+      (when (> byte-compile-depth 0)
+        (byte-compile-out-tag (byte-compile-make-tag))))
+    ;; Now compile FORM
+    (byte-compile-form form byte-compile--for-effect)
+    (byte-compile-out-toplevel byte-compile--for-effect output-type)))
 
 (defun byte-compile-out-toplevel (&optional for-effect output-type)
   (if for-effect
@@ -2873,7 +2789,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
   ;;	progn	-> as <<same-as-eval>> or (progn <<same-as-eval>> atom)
   ;;	file	-> as progn, but takes both quotes and atoms, and longer forms.
   (let (rest
-        (byte-compile--for-effect for-effect)
+        (byte-compile--for-effect for-effect)    ;FIXME: Probably unused!
 	(maycall (not (eq output-type 'lambda))) ; t if we may make a funcall.
 	tmp body)
     (cond
@@ -2999,8 +2915,10 @@ That command is designed for interactive use only" fn))
           (byte-compile-normal-call form))
         (if (byte-compile-warning-enabled-p 'cl-functions)
             (byte-compile-cl-warn form))))
-     ((and (or (byte-code-function-p (car form))
-               (eq (car-safe (car form)) 'lambda))
+     ((and (byte-code-function-p (car form))
+           (memq byte-optimize '(t lap)))
+      (byte-compile-unfold-bcf form))
+     ((and (eq (car-safe (car form)) 'lambda)
            ;; if the form comes out the same way it went in, that's
            ;; because it was malformed, and we couldn't unfold it.
            (not (eq form (setq form (byte-compile-unfold-lambda form)))))
@@ -3031,6 +2949,80 @@ That command is designed for interactive use only" fn))
   (byte-compile-push-constant (car form))
   (mapc 'byte-compile-form (cdr form))	; wasteful, but faster.
   (byte-compile-out 'byte-call (length (cdr form))))
+
+
+;; Splice the given lap code into the current instruction stream.
+;; If it has any labels in it, you're responsible for making sure there
+;; are no collisions, and that byte-compile-tag-number is reasonable
+;; after this is spliced in.  The provided list is destroyed.
+(defun byte-compile-inline-lapcode (lap end-depth)
+  ;; "Replay" the operations: we used to just do
+  ;; (setq byte-compile-output (nconc (nreverse lap) byte-compile-output))
+  ;; but that fails to update byte-compile-depth, so we had to assume
+  ;; that `lap' ends up adding exactly 1 element to the stack.  This
+  ;; happens to be true for byte-code generated by bytecomp.el without
+  ;; lexical-binding, but it's not true in general, and it's not true for
+  ;; code output by bytecomp.el with lexical-binding.
+  (let ((endtag (byte-compile-make-tag)))
+    (dolist (op lap)
+      (cond
+       ((eq (car op) 'TAG) (byte-compile-out-tag op))
+       ((memq (car op) byte-goto-ops) (byte-compile-goto (car op) (cdr op)))
+       ((eq (car op) 'byte-return)
+        (byte-compile-discard (- byte-compile-depth end-depth) t)
+        (byte-compile-goto 'byte-goto endtag))
+       (t (byte-compile-out (car op) (cdr op)))))
+    (byte-compile-out-tag endtag)))
+
+(defun byte-compile-unfold-bcf (form)
+  (let* ((byte-compile-bound-variables byte-compile-bound-variables)
+         (fun (car form))
+         (fargs (aref fun 0))
+         (start-depth byte-compile-depth)
+         (fmax2 (if (numberp fargs) (lsh fargs -7)))     ;2*max+rest.
+         ;; (fmin (if (numberp fargs) (logand fargs 127)))
+         (alen (length (cdr form)))
+         (dynbinds ()))
+    (fetch-bytecode fun)
+    (mapc 'byte-compile-form (cdr form))
+    (unless fmax2
+      ;; Old-style byte-code.
+      (assert (listp fargs))
+      (while fargs
+        (case (car fargs)
+          (&optional (setq fargs (cdr fargs)))
+          (&rest (setq fmax2 (+ (* 2 (length dynbinds)) 1))
+                 (push (cadr fargs) dynbinds)
+                 (setq fargs nil))
+          (t (push (pop fargs) dynbinds))))
+      (unless fmax2 (setq fmax2 (* 2 (length dynbinds)))))
+    (cond
+     ((<= (+ alen alen) fmax2)
+      ;; Add missing &optional (or &rest) arguments.
+      (dotimes (i (- (/ (1+ fmax2) 2) alen))
+        (byte-compile-push-constant nil)))
+     ((zerop (logand fmax2 1))
+      (byte-compile-log-warning "Too many arguments for inlined function"
+                                nil :error)
+      (byte-compile-discard (- alen (/ fmax2 2))))
+     (t
+      ;; Turn &rest args into a list.
+      (let ((n (- alen (/ (1- fmax2) 2))))
+        (assert (> n 0) nil "problem: fmax2=%S alen=%S n=%S" fmax2 alen n)
+        (if (< n 5)
+            (byte-compile-out
+             (aref [byte-list1 byte-list2 byte-list3 byte-list4] (1- n))
+             0)
+          (byte-compile-out 'byte-listN n)))))
+    (mapc #'byte-compile-dynamic-variable-bind dynbinds)
+    (byte-compile-inline-lapcode
+     (byte-decompile-bytecode-1 (aref fun 1) (aref fun 2) t)
+     (1+ start-depth))
+    ;; Unbind dynamic variables.
+    (when dynbinds
+      (byte-compile-out 'byte-unbind (length dynbinds)))
+    (assert (eq byte-compile-depth (1+ start-depth))
+            nil "Wrong depth start=%s end=%s" start-depth byte-compile-depth)))
 
 (defun byte-compile-check-variable (var &optional binding)
   "Do various error checks before a use of the variable VAR.
@@ -3271,7 +3263,7 @@ If it is nil, then the handler is \"byte-compile-SYMBOL.\""
   (byte-compile-warn "`%s' called with %d arg%s, but requires %s"
 		     (car form) (length (cdr form))
 		     (if (= 1 (length (cdr form))) "" "s") n)
-  ;; get run-time wrong-number-of-args error.
+  ;; Get run-time wrong-number-of-args error.
   (byte-compile-normal-call form))
 
 (defun byte-compile-no-args (form)
@@ -3534,7 +3526,7 @@ discarding."
 	      (byte-compile-warn
       "A quoted lambda form is the second argument of `fset'.  This is probably
      not what you want, as that lambda cannot be compiled.  Consider using
-     the syntax (function (lambda (...) ...)) instead.")))))
+     the syntax #'(lambda (...) ...) instead.")))))
   (byte-compile-two-args form))
 
 ;; (function foo) must compile like 'foo, not like (symbol-function 'foo).
@@ -3542,9 +3534,9 @@ discarding."
 ;; and (funcall (function foo)) will lose with autoloads.
 
 (defun byte-compile-function-form (form)
-  (if (symbolp (nth 1 form))
-      (byte-compile-constant (nth 1 form))
-    (byte-compile-closure (nth 1 form))))
+  (byte-compile-constant (if (symbolp (nth 1 form))
+                             (nth 1 form)
+                           (byte-compile-lambda (nth 1 form)))))
 
 (defun byte-compile-indent-to (form)
   (let ((len (length form)))
@@ -4102,18 +4094,16 @@ binding slots have been popped."
       (byte-compile-set-symbol-position (car form))
     (byte-compile-set-symbol-position 'defun)
     (error "defun name must be a symbol, not %s" (car form)))
-  (let ((byte-compile--for-effect nil))
-    (byte-compile-push-constant 'defalias)
-    (byte-compile-push-constant (nth 1 form))
-    (byte-compile-closure (cdr (cdr form)) t))
+  (byte-compile-push-constant 'defalias)
+  (byte-compile-push-constant (nth 1 form))
+  (byte-compile-push-constant (byte-compile-lambda (cdr (cdr form)) t))
   (byte-compile-out 'byte-call 2))
 
 (defun byte-compile-defmacro (form)
   ;; This is not used for file-level defmacros with doc strings.
   (byte-compile-body-do-effect
    (let ((decls (byte-compile-defmacro-declaration form))
-         (code (byte-compile-byte-code-maker
-                (byte-compile-lambda (cdr (cdr form)) t))))
+         (code (byte-compile-lambda (cdr (cdr form)) t)))
      `((defalias ',(nth 1 form)
          ,(if (eq (car-safe code) 'make-byte-code)
               `(cons 'macro ,code)
