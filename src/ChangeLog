@@ -1,5 +1,8 @@
 2011-03-23  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* chartab.c (sub_char_table_ref_and_range): Redo to avoid overflow
+	concerns.
+
 	* term.c (produce_glyphless_glyph): Remove unnecessary test.
 
 	* cm.c (calccost): Turn while-do into do-while, for clarity.
