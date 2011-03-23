@@ -10474,8 +10474,8 @@
 	(POSIX_SIGNALS): Do not define.
 
 	Remove support for old UNIX System V systems.
-	* s/unixware.h: Add the contents of s/usg-5-4-2.h.
-	* s/usg-5-4-2.h: Remove.
+	* s/unixware.h: Add the contents of s/usg5-4-2.h.
+	* s/usg5-4-2.h: Remove.
 
 	Remove support for Solaris on PPC and for old versions.
 	* s/sol2-6.h: Add the contents of s/sol-2.3.h, s/sol-2.4.h, s/sol-2.5.h.
