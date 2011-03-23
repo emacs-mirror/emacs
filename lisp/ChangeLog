@@ -1,3 +1,7 @@
+2011-03-23  Leo Liu  <sdl.web@gmail.com>
+
+	* help-mode.el (help-mode-finish): Tweak regexp.
+
 2011-03-23  Glenn Morris  <rgm@gnu.org>
 
 	* eshell/esh-opt.el (eshell-eval-using-options):

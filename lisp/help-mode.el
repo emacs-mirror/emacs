@@ -330,7 +330,7 @@ Commands:
     (save-excursion
       (goto-char (point-min))
       (let ((inhibit-read-only t))
-	(when (re-search-forward "^This \\w+ is advised.$" nil t)
+	(when (re-search-forward "^This [^[:space:]]+ is advised.$" nil t)
 	  (put-text-property (match-beginning 0)
 			     (match-end 0)
 			     'face 'font-lock-warning-face))))
