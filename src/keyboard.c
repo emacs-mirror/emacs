@@ -1492,10 +1492,7 @@ command_loop_1 (void)
 
       Vthis_command = cmd;
       real_this_command = cmd;
-      /* Note that the value cell will never directly contain nil
-	 if the symbol is a local variable.  */
-      if (!NILP (Vpre_command_hook) && !NILP (Vrun_hooks))
-	safe_run_hooks (Qpre_command_hook);
+      safe_run_hooks (Qpre_command_hook);
 
       already_adjusted = 0;
 
@@ -1541,18 +1538,14 @@ command_loop_1 (void)
           }
       KVAR (current_kboard, Vlast_prefix_arg) = Vcurrent_prefix_arg;
 
-      /* Note that the value cell will never directly contain nil
-	 if the symbol is a local variable.  */
-      if (!NILP (Vpost_command_hook) && !NILP (Vrun_hooks))
-	safe_run_hooks (Qpost_command_hook);
+      safe_run_hooks (Qpost_command_hook);
 
       /* If displaying a message, resize the echo area window to fit
 	 that message's size exactly.  */
       if (!NILP (echo_area_buffer[0]))
 	resize_echo_area_exactly ();
 
-      if (!NILP (Vdeferred_action_list))
-	safe_run_hooks (Qdeferred_action_function);
+      safe_run_hooks (Qdeferred_action_function);
 
       /* If there is a prefix argument,
 	 1) We don't want Vlast_command to be ``universal-argument''
@@ -1621,7 +1614,10 @@ command_loop_1 (void)
 		}
 
 	      if (current_buffer != prev_buffer || MODIFF != prev_modiff)
-		call1 (Vrun_hooks, intern ("activate-mark-hook"));
+                {
+                  Lisp_Object hook = intern ("activate-mark-hook");
+                  Frun_hooks (1, &hook);
+                }
 	    }
 
 	  Vsaved_region_selection = Qnil;
@@ -1819,9 +1815,7 @@ adjust_point_for_property (EMACS_INT last_pt, int modified)
 static Lisp_Object
 safe_run_hooks_1 (void)
 {
-  if (NILP (Vrun_hooks))
-    return Qnil;
-  return call1 (Vrun_hooks, Vinhibit_quit);
+  return Frun_hooks (1, &Vinhibit_quit);
 }
 
 /* Subroutine for safe_run_hooks: handle an error by clearing out the hook.  */
@@ -10129,11 +10123,11 @@ a special event, so ignore the prefix argument and don't clear it.  */)
   if (SYMBOLP (cmd))
     {
       tem = Fget (cmd, Qdisabled);
-      if (!NILP (tem) && !NILP (Vrun_hooks))
+      if (!NILP (tem))
 	{
 	  tem = Fsymbol_value (Qdisabled_command_function);
 	  if (!NILP (tem))
-	    return call1 (Vrun_hooks, Qdisabled_command_function);
+	    return Frun_hooks (1, &Qdisabled_command_function);
 	}
     }
 
@@ -10617,6 +10611,7 @@ On such systems, Emacs starts a subshell instead of suspending.  */)
   int old_height, old_width;
   int width, height;
   struct gcpro gcpro1;
+  Lisp_Object hook;
 
   if (tty_list && tty_list->next)
     error ("There are other tty frames open; close them before suspending Emacs");
@@ -10625,8 +10620,8 @@ On such systems, Emacs starts a subshell instead of suspending.  */)
     CHECK_STRING (stuffstring);
 
   /* Run the functions in suspend-hook.  */
-  if (!NILP (Vrun_hooks))
-    call1 (Vrun_hooks, intern ("suspend-hook"));
+  hook = intern ("suspend-hook");
+  Frun_hooks (1, &hook);
 
   GCPRO1 (stuffstring);
   get_tty_size (fileno (CURTTY ()->input), &old_width, &old_height);
@@ -10650,8 +10645,8 @@ On such systems, Emacs starts a subshell instead of suspending.  */)
     change_frame_size (SELECTED_FRAME (), height, width, 0, 0, 0);
 
   /* Run suspend-resume-hook.  */
-  if (!NILP (Vrun_hooks))
-    call1 (Vrun_hooks, intern ("suspend-resume-hook"));
+  hook = intern ("suspend-resume-hook");
+  Frun_hooks (1, &hook);
 
   UNGCPRO;
   return Qnil;

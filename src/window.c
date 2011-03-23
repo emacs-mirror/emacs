@@ -3690,27 +3690,23 @@ temp_output_buffer_show (register Lisp_Object buf)
 
       /* Run temp-buffer-show-hook, with the chosen window selected
 	 and its buffer current.  */
+      {
+        int count = SPECPDL_INDEX ();
+        Lisp_Object prev_window, prev_buffer;
+        prev_window = selected_window;
+        XSETBUFFER (prev_buffer, old);
 
-      if (!NILP (Vrun_hooks)
-	  && !NILP (Fboundp (Qtemp_buffer_show_hook))
-	  && !NILP (Fsymbol_value (Qtemp_buffer_show_hook)))
-	{
-	  int count = SPECPDL_INDEX ();
-	  Lisp_Object prev_window, prev_buffer;
-	  prev_window = selected_window;
-	  XSETBUFFER (prev_buffer, old);
-
-	  /* Select the window that was chosen, for running the hook.
-	     Note: Both Fselect_window and select_window_norecord may
-	     set-buffer to the buffer displayed in the window,
-	     so we need to save the current buffer.  --stef  */
-	  record_unwind_protect (Fset_buffer, prev_buffer);
-	  record_unwind_protect (select_window_norecord, prev_window);
-	  Fselect_window (window, Qt);
-	  Fset_buffer (w->buffer);
-	  call1 (Vrun_hooks, Qtemp_buffer_show_hook);
-	  unbind_to (count, Qnil);
-	}
+        /* Select the window that was chosen, for running the hook.
+           Note: Both Fselect_window and select_window_norecord may
+           set-buffer to the buffer displayed in the window,
+           so we need to save the current buffer.  --stef  */
+        record_unwind_protect (Fset_buffer, prev_buffer);
+        record_unwind_protect (select_window_norecord, prev_window);
+        Fselect_window (window, Qt);
+        Fset_buffer (w->buffer);
+        Frun_hooks (1, &Qtemp_buffer_show_hook);
+        unbind_to (count, Qnil);
+      }
     }
 }
 

@@ -928,18 +928,21 @@ save_excursion_restore (Lisp_Object info)
   tem1 = BVAR (current_buffer, mark_active);
   BVAR (current_buffer, mark_active) = tem;
 
-  if (!NILP (Vrun_hooks))
+  /* If mark is active now, and either was not active
+     or was at a different place, run the activate hook.  */
+  if (! NILP (tem))
     {
-      /* If mark is active now, and either was not active
-	 or was at a different place, run the activate hook.  */
-      if (! NILP (BVAR (current_buffer, mark_active)))
-	{
-	  if (! EQ (omark, nmark))
-	    call1 (Vrun_hooks, intern ("activate-mark-hook"));
-	}
-      /* If mark has ceased to be active, run deactivate hook.  */
-      else if (! NILP (tem1))
-	call1 (Vrun_hooks, intern ("deactivate-mark-hook"));
+      if (! EQ (omark, nmark))
+        {
+          tem = intern ("activate-mark-hook");
+          Frun_hooks (1, &tem);
+        }
+    }
+  /* If mark has ceased to be active, run deactivate hook.  */
+  else if (! NILP (tem1))
+    {
+      tem = intern ("deactivate-mark-hook");
+      Frun_hooks (1, &tem);
     }
 
   /* If buffer was visible in a window, and a different window was

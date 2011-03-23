@@ -1,3 +1,21 @@
+2011-03-23  Julien Danjou  <julien@danjou.info>
+
+	* term.c (Fsuspend_tty, Fresume_tty):
+	* minibuf.c (read_minibuf, run_exit_minibuf_hook):
+	* window.c (temp_output_buffer_show):
+	* insdel.c (signal_before_change):
+	* frame.c (Fhandle_switch_frame):
+	* fileio.c (Fdo_auto_save):
+	* emacs.c (Fkill_emacs):
+	* editfns.c (save_excursion_restore):
+	* cmds.c (internal_self_insert):
+	* callint.c (Fcall_interactively):
+	* buffer.c (Fkill_all_local_variables):
+	* keyboard.c (Fcommand_execute, Fsuspend_emacs, safe_run_hooks_1):
+	Use Frun_hooks.
+	(command_loop_1): Use Frun_hooks. Call safe_run_hooks
+	unconditionnaly since it does the check itself.
+
 2011-03-23  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix more problems found by GCC 4.5.2's static checks.

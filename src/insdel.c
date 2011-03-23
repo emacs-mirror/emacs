@@ -2137,14 +2137,14 @@ signal_before_change (EMACS_INT start_int, EMACS_INT end_int,
 
   specbind (Qinhibit_modification_hooks, Qt);
 
-  /* If buffer is unmodified, run a special hook for that case.  */
+  /* If buffer is unmodified, run a special hook for that case.  The
+   check for Vfirst_change_hook is just a minor optimization. */
   if (SAVE_MODIFF >= MODIFF
-      && !NILP (Vfirst_change_hook)
-      && !NILP (Vrun_hooks))
+      && !NILP (Vfirst_change_hook))
     {
       PRESERVE_VALUE;
       PRESERVE_START_END;
-      call1 (Vrun_hooks, Qfirst_change_hook);
+      Frun_hooks (1, &Qfirst_change_hook);
     }
 
   /* Now run the before-change-functions if any.  */

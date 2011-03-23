@@ -1972,14 +1972,15 @@ all of which are called before Emacs is actually killed.  */)
   (Lisp_Object arg)
 {
   struct gcpro gcpro1;
+  Lisp_Object hook;
 
   GCPRO1 (arg);
 
   if (feof (stdin))
     arg = Qt;
 
-  if (!NILP (Vrun_hooks))
-    call1 (Vrun_hooks, intern ("kill-emacs-hook"));
+  hook = intern ("kill-emacs-hook");
+  Frun_hooks (1, &hook);
 
   UNGCPRO;
 

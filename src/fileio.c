@@ -5180,7 +5180,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
   (Lisp_Object no_message, Lisp_Object current_only)
 {
   struct buffer *old = current_buffer, *b;
-  Lisp_Object tail, buf;
+  Lisp_Object tail, buf, hook;
   int auto_saved = 0;
   int do_handled_files;
   Lisp_Object oquit;
@@ -5210,8 +5210,8 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
   /* No GCPRO needed, because (when it matters) all Lisp_Object variables
      point to non-strings reached from Vbuffer_alist.  */
 
-  if (!NILP (Vrun_hooks))
-    call1 (Vrun_hooks, intern ("auto-save-hook"));
+  hook = intern ("auto-save-hook");
+  Frun_hooks (1, &hook);
 
   if (STRINGP (Vauto_save_list_file_name))
     {

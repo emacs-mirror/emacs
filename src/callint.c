@@ -423,8 +423,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 		error ("Attempt to select inactive minibuffer window");
 
 	      /* If the current buffer wants to clean up, let it.  */
-	      if (!NILP (Vmouse_leave_buffer_hook))
-		call1 (Vrun_hooks, Qmouse_leave_buffer_hook);
+              Frun_hooks (1, &Qmouse_leave_buffer_hook);
 
 	      Fselect_window (w, Qnil);
 	    }
