@@ -1,3 +1,130 @@
+2011-03-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix more problems found by GCC 4.5.2's static checks.
+
+	* coding.c (encode_coding_raw_text): Avoid unnecessary test
+	the first time through the loop, since we know p0 < p1 then.
+	This also avoids a gcc -Wstrict-overflow warning.
+
+	* lisp.h (SAFE_ALLOCA, SAFE_ALLOCA_LISP): Avoid 'int' overflow
+	leading to a memory leak, possible in functions like
+	load_charset_map_from_file that can allocate an unbounded number
+	of objects (Bug#8318).
+
+	* xmenu.c (set_frame_menubar): Use EMACS_UINT, not int, for indexes
+	that could (at least in theory) be that large.
+
+	* xdisp.c (message_log_check_duplicate): Return unsigned long, not int.
+	This is less likely to overflow, and avoids undefined behavior if
+	overflow does occur.  All callers changed.  Use strtoul to scan
+	for the unsigned long integer.
+	(pint2hrstr): Simplify and tune code slightly.
+	This also avoids a (bogus) GCC warning with gcc -Wstrict-overflow.
+
+	* scroll.c (do_scrolling): Work around GCC bug 48228.
+	See <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48228>.
+
+	* frame.c (Fmodify_frame_parameters): Simplify loop counter.
+	This also avoids a warning with gcc -Wstrict-overflow.
+	(validate_x_resource_name): Simplify count usage.
+	This also avoids a warning with gcc -Wstrict-overflow.
+
+	* fileio.c (Fcopy_file): Report error if fchown or fchmod
+	fail (Bug#8306).
+
+	* emacs.c (Fdaemon_initialized): Do not ignore I/O errors (Bug#8303).
+
+	* process.c (Fmake_network_process): Use socklen_t, not int,
+	where POSIX says socklen_t is required in portable programs.
+	This fixes a porting bug on hosts like 64-bit HP-UX, where
+	socklen_t is wider than int (Bug#8277).
+	(Fmake_network_process, server_accept_connection):
+	(wait_reading_process_output, read_process_output):
+	Likewise.
+
+	* process.c: Rename or move locals to avoid shadowing.
+	(list_processes_1, Fmake_network_process):
+	(read_process_output_error_handler, exec_sentinel_error_handler):
+	Rename or move locals.
+	(Fmake_network_process): Define label "retry_connect" only if needed.
+	(Fnetwork_interface_info): Fix pointer signedness.
+	(process_send_signal): Add cast to avoid pointer signedness problem.
+	(FIRST_PROC_DESC, IF_NON_BLOCKING_CONNECT): Remove unused macros.
+	(create_process): Use 'volatile' to avoid vfork clobbering (Bug#8298).
+
+	Make tparam.h and terminfo.c consistent.
+	* cm.c (tputs, tgoto, BC, UP): Remove extern decls.  Include
+	tparam.h instead, since it declares them.
+	* cm.h (PC): Remove extern decl; tparam.h now does this.
+	* deps.mk (cm.o, terminfo.o): Depend on tparam.h.
+	* terminfo.c: Include tparam.h, to check interfaces.
+	(tparm): Make 1st arg a const pointer in decl.  Put it at top level.
+	(tparam): Adjust signature to match interface in tparam.h;
+	this removes some undefined behavior.  Check that outstring and len
+	are zero, which they always are with Emacs.
+	* tparam.h (PC, BC, UP): New extern decls.
+
+	* xftfont.c (xftfont_shape): Now static, and defined only if needed.
+	(xftfont_open): Rename locals to avoid shadowing.
+
+	* ftfont.c (ftfont_resolve_generic_family): Fix pointer signedness.
+	(ftfont_otf_capability, ftfont_shape): Omit decls if not needed.
+	(OTF_TAG_SYM): Omit macro if not needed.
+	(ftfont_list): Remove unused local.
+	(get_adstyle_property, ftfont_pattern_entity):
+	(ftfont_lookup_cache, ftfont_open, ftfont_anchor_point):
+	Rename locals to avoid shadowing.
+
+	* xfont.c (xfont_list_family): Mark var as initialized.
+
+	* xml.c (make_dom): Now static.
+
+	* composite.c (composition_compute_stop_pos): Rename local to
+	avoid shadowing.
+	(composition_reseat_it): Remove unused locals.
+	(find_automatic_composition, composition_adjust_point): Likewise.
+	(composition_update_it): Mark var as initialized.
+	(find_automatic_composition): Mark vars as initialized,
+	with a FIXME (Bug#8290).
+
+	character.h: Rename locals to avoid shadowing.
+	* character.h (PREV_CHAR_BOUNDARY, FETCH_STRING_CHAR_ADVANCE):
+	(FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE, FETCH_CHAR_ADVANCE):
+	(FETCH_CHAR_ADVANCE_NO_CHECK, INC_POS, DEC_POS, BUF_INC_POS):
+	(BUF_DEC_POS): Be more systematic about renaming local temporaries
+	to avoid shadowing.
+
+	* textprop.c (property_change_between_p): Remove; unused.
+
+	* intervals.c (interval_start_pos): Now static.
+
+	* intervals.h (CHECK_TOTAL_LENGTH): Avoid empty "else".
+
+	* atimer.c (start_atimer, append_atimer_lists, set_alarm): Rename
+	locals to avoid shadowing.
+
+	* sound.c (wav_play, au_play, Fplay_sound_internal):
+	Fix pointer signedness.
+	(alsa_choose_format): Remove unused local var.
+	(wav_play): Initialize a variable to 0, to prevent undefined
+	behavior (Bug#8278).
+
+	* region-cache.c (insert_cache_boundary): Redo var to avoid shadowing.
+
+	* region-cache.h (pp_cache): New decl, for gcc -Wmissing-prototypes.
+
+	* callproc.c (Fcall_process): Use 'volatile' to avoid vfork
+	clobbering (Bug#8298).
+	* sysdep.c (sys_subshell): Likewise.
+	Previously, the sys_subshell 'volatile' was incorrectly IF_LINTted out.
+
+	* lisp.h (child_setup): Now NO_RETURN unless DOS_NT.
+	This should get cleaned up, so that child_setup has the
+	same signature on all platforms.
+
+	* callproc.c (call_process_cleanup): Now static.
+	(relocate_fd): Rename locals to avoid shadowing.
+
 2011-03-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xterm.c (x_clear_frame): Remove XClearWindow call.  This appears

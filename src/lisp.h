@@ -3233,7 +3233,11 @@ extern void syms_of_process (void);
 extern void setup_process_coding_systems (Lisp_Object);
 
 EXFUN (Fcall_process, MANY);
-extern int child_setup (int, int, int, char **, int, Lisp_Object);
+extern int child_setup (int, int, int, char **, int, Lisp_Object)
+#ifndef DOS_NT
+ NO_RETURN
+#endif
+ ;
 extern void init_callproc_1 (void);
 extern void init_callproc (void);
 extern void set_initial_environment (void);
@@ -3598,7 +3602,7 @@ extern Lisp_Object safe_alloca_unwind (Lisp_Object);
     else						  \
       {							  \
 	buf = (type) xmalloc (size);			  \
-	sa_must_free++;					  \
+	sa_must_free = 1;				  \
 	record_unwind_protect (safe_alloca_unwind,	  \
 			       make_save_value (buf, 0)); \
       }							  \
@@ -3628,7 +3632,7 @@ extern Lisp_Object safe_alloca_unwind (Lisp_Object);
 	buf = (Lisp_Object *) xmalloc (size_);		  \
 	arg_ = make_save_value (buf, nelt);		  \
 	XSAVE_VALUE (arg_)->dogc = 1;			  \
-	sa_must_free++;					  \
+	sa_must_free = 1;				  \
 	record_unwind_protect (safe_alloca_unwind, arg_); \
       }							  \
   } while (0)

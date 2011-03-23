@@ -65,7 +65,7 @@ coding.o: coding.c coding.h ccl.h buffer.h character.h charset.h composite.h \
    window.h dispextern.h msdos.h frame.h termhooks.h \
    lisp.h globals.h $(config_h)
 cm.o: cm.c frame.h cm.h termhooks.h termchar.h dispextern.h msdos.h \
-   lisp.h globals.h $(config_h)
+   tparam.h lisp.h globals.h $(config_h)
 cmds.o: cmds.c syntax.h buffer.h character.h commands.h window.h lisp.h \
    globals.h $(config_h) msdos.h dispextern.h keyboard.h keymap.h systime.h \
    coding.h frame.h composite.h
@@ -196,7 +196,7 @@ termcap.o: termcap.c lisp.h tparam.h msdos.h $(config_h)
 terminal.o: terminal.c frame.h termchar.h termhooks.h charset.h coding.h \
    keyboard.h lisp.h globals.h $(config_h) dispextern.h composite.h systime.h \
    msdos.h
-terminfo.o: terminfo.c lisp.h globals.h $(config_h)
+terminfo.o: terminfo.c tparam.h lisp.h globals.h $(config_h)
 tparam.o: tparam.c tparam.h lisp.h $(config_h)
 undo.o: undo.c buffer.h commands.h window.h dispextern.h msdos.h \
    lisp.h globals.h $(config_h)

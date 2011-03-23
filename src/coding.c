@@ -5266,11 +5266,12 @@ encode_coding_raw_text (struct coding_system *coding)
 		unsigned char str[MAX_MULTIBYTE_LENGTH], *p0 = str, *p1 = str;
 
 		CHAR_STRING_ADVANCE (c, p1);
-		while (p0 < p1)
+		do
 		  {
 		    EMIT_ONE_BYTE (*p0);
 		    p0++;
 		  }
+		while (p0 < p1);
 	      }
 	  }
       else

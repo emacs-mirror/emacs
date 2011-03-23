@@ -378,7 +378,7 @@ int max_regexp = 50;
 
 char *inbuffer;
 char *in;
-int inbuffer_size;
+size_t inbuffer_size;
 
 /* Return the current buffer position in the input file.  */
 
@@ -492,7 +492,7 @@ yyerror (const char *format, const char *s)
    available.  */
 
 static void *
-xmalloc (int nbytes)
+xmalloc (size_t nbytes)
 {
   void *p = malloc (nbytes);
   if (p == NULL)
@@ -507,7 +507,7 @@ xmalloc (int nbytes)
 /* Like realloc but print an error and exit if out of memory.  */
 
 static void *
-xrealloc (void *p, int sz)
+xrealloc (void *p, size_t sz)
 {
   p = realloc (p, sz);
   if (p == NULL)
@@ -2792,10 +2792,10 @@ parse_classname (void)
 static char *
 operator_name (int *sc)
 {
-  static int id_size = 0;
+  static size_t id_size = 0;
   static char *id = NULL;
   const char *s;
-  int len;
+  size_t len;
 
   MATCH ();
 
@@ -2811,7 +2811,7 @@ operator_name (int *sc)
       len = strlen (s) + 10;
       if (len > id_size)
 	{
-	  int new_size = max (len, 2 * id_size);
+	  size_t new_size = max (len, 2 * id_size);
 	  id = (char *) xrealloc (id, new_size);
 	  id_size = new_size;
 	}
@@ -2832,7 +2832,7 @@ operator_name (int *sc)
     }
   else
     {
-      int tokens_matched = 0;
+      size_t tokens_matched = 0;
 
       len = 20;
       if (len > id_size)
@@ -2853,7 +2853,7 @@ operator_name (int *sc)
 	  len += strlen (s) + 2;
 	  if (len > id_size)
 	    {
-	      int new_size = max (len, 2 * id_size);
+	      size_t new_size = max (len, 2 * id_size);
 	      id = (char *) xrealloc (id, new_size);
 	      id_size = new_size;
 	    }
@@ -3550,7 +3550,7 @@ process_file (char *file)
   fp = open_file (file);
   if (fp)
     {
-      int nread, nbytes;
+      size_t nread, nbytes;
 
       /* Give a progress indication if needed.  */
       if (f_very_verbose)
@@ -3574,12 +3574,10 @@ process_file (char *file)
 	    }
 
 	  nbytes = fread (inbuffer + nread, 1, READ_CHUNK_SIZE, fp);
-	  if (nbytes <= 0)
+	  if (nbytes == 0)
 	    break;
 	  nread += nbytes;
 	}
-      if (nread < 0)
-	nread = 0;
       inbuffer[nread] = '\0';
 
       /* Reinitialize scanner and parser for the new input file.  */

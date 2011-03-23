@@ -28,7 +28,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "buffer.h"
 
-Lisp_Object make_dom (xmlNode *node)
+static Lisp_Object
+make_dom (xmlNode *node)
 {
   if (node->type == XML_ELEMENT_NODE)
     {

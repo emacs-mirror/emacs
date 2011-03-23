@@ -159,9 +159,6 @@ extern Lisp_Object QCfilter;
 #define SERIALCONN_P(p) (EQ (XPROCESS (p)->type, Qserial))
 #define SERIALCONN1_P(p) (EQ ((p)->type, Qserial))
 
-/* Define first descriptor number available for subprocesses.  */
-#define FIRST_PROC_DESC 3
-
 #ifndef HAVE_H_ERRNO
 extern int h_errno;
 #endif
@@ -278,10 +275,6 @@ static SELECT_TYPE connect_wait_mask;
 
 /* Number of bits set in connect_wait_mask.  */
 static int num_pending_connects;
-
-#define IF_NON_BLOCKING_CONNECT(s) s
-#else  /* NON_BLOCKING_CONNECT */
-#define IF_NON_BLOCKING_CONNECT(s)
 #endif	/* NON_BLOCKING_CONNECT */
 
 /* The largest descriptor currently in use for a process object.  */
@@ -1250,8 +1243,8 @@ Returns nil if format of ADDRESS is invalid.  */)
 static Lisp_Object
 list_processes_1 (Lisp_Object query_only)
 {
-  register Lisp_Object tail, tem;
-  Lisp_Object proc, minspace, tem1;
+  register Lisp_Object tail;
+  Lisp_Object proc, minspace;
   register struct Lisp_Process *p;
   char tembuf[300];
   int w_proc, w_buffer, w_tty;
@@ -1453,10 +1446,10 @@ list_processes_1 (Lisp_Object query_only)
 	}
       else
 	{
-	  tem = p->command;
+	  Lisp_Object tem = p->command;
 	  while (1)
 	    {
-	      tem1 = Fcar (tem);
+	      Lisp_Object tem1 = Fcar (tem);
 	      if (NILP (tem1))
 		break;
 	      Finsert (1, &tem1);
@@ -1919,8 +1912,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
     /* child_setup must clobber environ on systems with true vfork.
        Protect it from permanent change.  */
     char **save_environ = environ;
-
-    current_dir = ENCODE_FILE (current_dir);
+    volatile Lisp_Object encoded_current_dir = ENCODE_FILE (current_dir);
 
 #ifndef WINDOWSNT
     pid = vfork ();
@@ -2061,13 +2053,13 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 	  child_setup_tty (xforkout);
 #ifdef WINDOWSNT
 	pid = child_setup (xforkin, xforkout, xforkout,
-			   new_argv, 1, current_dir);
+			   new_argv, 1, encoded_current_dir);
 #else  /* not WINDOWSNT */
 #ifdef FD_CLOEXEC
 	emacs_close (wait_child_setup[0]);
 #endif
 	child_setup (xforkin, xforkout, xforkout,
-		     new_argv, 1, current_dir);
+		     new_argv, 1, encoded_current_dir);
 #endif /* not WINDOWSNT */
       }
     environ = save_environ;
@@ -3403,7 +3395,9 @@ usage: (make-network-process &rest ARGS)  */)
     {
       int optn, optbits;
 
+#ifdef WINDOWSNT
     retry_connect:
+#endif
 
       s = socket (lres->ai_family, lres->ai_socktype, lres->ai_protocol);
       if (s < 0)
@@ -3467,7 +3461,7 @@ usage: (make-network-process &rest ARGS)  */)
 	  if (EQ (service, Qt))
 	    {
 	      struct sockaddr_in sa1;
-	      int len1 = sizeof (sa1);
+	      socklen_t len1 = sizeof (sa1);
 	      if (getsockname (s, (struct sockaddr *)&sa1, &len1) == 0)
 		{
 		  ((struct sockaddr_in *)(lres->ai_addr))->sin_port = sa1.sin_port;
@@ -3514,7 +3508,8 @@ usage: (make-network-process &rest ARGS)  */)
 	  /* Unlike most other syscalls connect() cannot be called
 	     again.  (That would return EALREADY.)  The proper way to
 	     wait for completion is select(). */
-	  int sc, len;
+	  int sc;
+	  socklen_t len;
 	  SELECT_TYPE fdset;
 	retry_select:
 	  FD_ZERO (&fdset);
@@ -3587,7 +3582,7 @@ usage: (make-network-process &rest ARGS)  */)
       if (!is_server)
 	{
 	  struct sockaddr_in sa1;
-	  int len1 = sizeof (sa1);
+	  socklen_t len1 = sizeof (sa1);
 	  if (getsockname (s, (struct sockaddr *)&sa1, &len1) == 0)
 	    contact = Fplist_put (contact, QClocal,
 				  conv_sockaddr_to_lisp ((struct sockaddr *)&sa1, len1));
@@ -3705,10 +3700,10 @@ usage: (make-network-process &rest ARGS)  */)
 
   {
     /* Setup coding systems for communicating with the network stream.  */
-    struct gcpro gcpro1;
+    struct gcpro inner_gcpro1;
     /* Qt denotes we have not yet called Ffind_operation_coding_system.  */
     Lisp_Object coding_systems = Qt;
-    Lisp_Object args[5], val;
+    Lisp_Object fargs[5], val;
 
     if (!NILP (tem))
       {
@@ -3731,11 +3726,11 @@ usage: (make-network-process &rest ARGS)  */)
 	  coding_systems = Qnil;
 	else
 	  {
-	    args[0] = Qopen_network_stream, args[1] = name,
-	      args[2] = buffer, args[3] = host, args[4] = service;
-	    GCPRO1 (proc);
-	    coding_systems = Ffind_operation_coding_system (5, args);
-	    UNGCPRO;
+	    fargs[0] = Qopen_network_stream, fargs[1] = name,
+	      fargs[2] = buffer, fargs[3] = host, fargs[4] = service;
+	    GCPRO1_VAR (proc, inner_gcpro);
+	    coding_systems = Ffind_operation_coding_system (5, fargs);
+	    UNGCPRO_VAR (inner_gcpro);
 	  }
 	if (CONSP (coding_systems))
 	  val = XCAR (coding_systems);
@@ -3764,11 +3759,11 @@ usage: (make-network-process &rest ARGS)  */)
 	      coding_systems = Qnil;
 	    else
 	      {
-		args[0] = Qopen_network_stream, args[1] = name,
-		  args[2] = buffer, args[3] = host, args[4] = service;
-		GCPRO1 (proc);
-		coding_systems = Ffind_operation_coding_system (5, args);
-		UNGCPRO;
+		fargs[0] = Qopen_network_stream, fargs[1] = name,
+		  fargs[2] = buffer, fargs[3] = host, fargs[4] = service;
+		GCPRO1_VAR (proc, inner_gcpro);
+		coding_systems = Ffind_operation_coding_system (5, fargs);
+		UNGCPRO_VAR (inner_gcpro);
 	      }
 	  }
 	if (CONSP (coding_systems))
@@ -3948,7 +3943,7 @@ FLAGS is the current flags of the interface.  */)
   CHECK_STRING (ifname);
 
   memset (rq.ifr_name, 0, sizeof rq.ifr_name);
-  strncpy (rq.ifr_name, SDATA (ifname), sizeof (rq.ifr_name));
+  strncpy (rq.ifr_name, SSDATA (ifname), sizeof (rq.ifr_name));
 
   s = socket (AF_INET, SOCK_STREAM, 0);
   if (s < 0)
@@ -4192,7 +4187,7 @@ server_accept_connection (Lisp_Object server, int channel)
     struct sockaddr_un un;
 #endif
   } saddr;
-  int len = sizeof saddr;
+  socklen_t len = sizeof saddr;
 
   s = accept (channel, &saddr.sa, &len);
 
@@ -4928,8 +4923,6 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
             d->func (channel, d->data, 0);
           }
 
-      /* Really FIRST_PROC_DESC should be 0 on Unix,
-	 but this is safer in the short run.  */
       for (channel = 0; channel <= max_process_desc; channel++)
 	{
 	  if (FD_ISSET (channel, &Available)
@@ -5059,7 +5052,7 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 	      /* getsockopt(,,SO_ERROR,,) is said to hang on some systems.
 		 So only use it on systems where it is known to work.  */
 	      {
-		int xlen = sizeof (xerrno);
+		socklen_t xlen = sizeof (xerrno);
 		if (getsockopt (channel, SOL_SOCKET, SO_ERROR, &xerrno, &xlen))
 		  xerrno = errno;
 	      }
@@ -5128,9 +5121,9 @@ read_process_output_call (Lisp_Object fun_and_args)
 }
 
 static Lisp_Object
-read_process_output_error_handler (Lisp_Object error)
+read_process_output_error_handler (Lisp_Object error_val)
 {
-  cmd_error_internal (error, "error in process filter: ");
+  cmd_error_internal (error_val, "error in process filter: ");
   Vinhibit_quit = Qt;
   update_echo_area ();
   Fsleep_for (make_number (2), Qnil);
@@ -5171,7 +5164,7 @@ read_process_output (Lisp_Object proc, register int channel)
   /* We have a working select, so proc_buffered_char is always -1.  */
   if (DATAGRAM_CHAN_P (channel))
     {
-      int len = datagram_address[channel].len;
+      socklen_t len = datagram_address[channel].len;
       nbytes = recvfrom (channel, chars + carryover, readmax,
 			 0, datagram_address[channel].sa, &len);
     }
@@ -5925,7 +5918,7 @@ process_send_signal (Lisp_Object process, int signo, Lisp_Object current_group,
 
       if (sig_char && *sig_char != CDISABLE)
 	{
-	  send_process (proc, sig_char, 1, Qnil);
+	  send_process (proc, (char *) sig_char, 1, Qnil);
 	  return;
 	}
       /* If we can't send the signal with a character,
@@ -6534,9 +6527,9 @@ exec_sentinel_unwind (Lisp_Object data)
 }
 
 static Lisp_Object
-exec_sentinel_error_handler (Lisp_Object error)
+exec_sentinel_error_handler (Lisp_Object error_val)
 {
-  cmd_error_internal (error, "error in process sentinel: ");
+  cmd_error_internal (error_val, "error in process sentinel: ");
   Vinhibit_quit = Qt;
   update_echo_area ();
   Fsleep_for (make_number (2), Qnil);

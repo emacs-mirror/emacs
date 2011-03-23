@@ -62,8 +62,6 @@ main ()
 
 /* This is to declare cuserid.  */
 #include <unistd.h>
-
-#include <ignore-value.h>
 
 /* Type definitions */
 
@@ -500,7 +498,7 @@ put_line (const char *string)
 		}
 	    }
 	  /* Output that much, then break the line.  */
-	  ignore_value (fwrite (s, 1, breakpos - s, rem->handle));
+	  fwrite (s, 1, breakpos - s, rem->handle);
 	  column = 8;
 
 	  /* Skip whitespace and prepare to print more addresses.  */

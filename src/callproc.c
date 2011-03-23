@@ -107,7 +107,7 @@ call_process_kill (Lisp_Object fdpid)
   return Qnil;
 }
 
-Lisp_Object
+static Lisp_Object
 call_process_cleanup (Lisp_Object arg)
 {
   Lisp_Object fdpid = Fcdr (arg);
@@ -180,7 +180,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   (int nargs, register Lisp_Object *args)
 {
   Lisp_Object infile, buffer, current_dir, path;
-  int display_p;
+  volatile int display_p_volatile;
   int fd[2];
   int filefd;
   register int pid;
@@ -190,6 +190,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   int bufsize = CALLPROC_BUFFER_SIZE_MIN;
   int count = SPECPDL_INDEX ();
 
+  const unsigned char **volatile new_argv_volatile;
   register const unsigned char **new_argv;
   /* File to use for stderr in the child.
      t means use same as standard output.  */
@@ -343,7 +344,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     UNGCPRO;
   }
 
-  display_p = INTERACTIVE && nargs >= 4 && !NILP (args[3]);
+  display_p_volatile = INTERACTIVE && nargs >= 4 && !NILP (args[3]);
 
   filefd = emacs_open (SSDATA (infile), O_RDONLY, 0);
   if (filefd < 0)
@@ -371,7 +372,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
       && SREF (path, 1) == ':')
     path = Fsubstring (path, make_number (2), Qnil);
 
-  new_argv = (const unsigned char **)
+  new_argv_volatile = new_argv = (const unsigned char **)
     alloca (max (2, nargs - 2) * sizeof (char *));
   if (nargs > 4)
     {
@@ -542,6 +543,8 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
     pid = vfork ();
 
+    new_argv = new_argv_volatile;
+
     if (pid == 0)
       {
 	if (fd[0] >= 0)
@@ -673,6 +676,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     int first = 1;
     EMACS_INT total_read = 0;
     int carryover = 0;
+    int display_p = display_p_volatile;
     int display_on_the_fly = display_p;
     struct coding_system saved_coding;
 
@@ -1272,12 +1276,12 @@ relocate_fd (int fd, int minfd)
 #endif
       if (new == -1)
 	{
-	  const char *message1 = "Error while setting up child: ";
+	  const char *message_1 = "Error while setting up child: ";
 	  const char *errmessage = strerror (errno);
-	  const char *message2 = "\n";
-	  emacs_write (2, message1, strlen (message1));
+	  const char *message_2 = "\n";
+	  emacs_write (2, message_1, strlen (message_1));
 	  emacs_write (2, errmessage, strlen (errmessage));
-	  emacs_write (2, message2, strlen (message2));
+	  emacs_write (2, message_2, strlen (message_2));
 	  _exit (1);
 	}
       emacs_close (fd);

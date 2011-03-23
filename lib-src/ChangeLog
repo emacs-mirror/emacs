@@ -1,3 +1,33 @@
+2011-03-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* ebrowse.c: Use size_t, not int, for sizes.
+	This avoids a warning with gcc -Wstrict-overflow, and works
+	better for very large objects.
+	(inbuffer_size): Now size_t.  All uses changed.
+	(xmalloc, xrealloc, operator_name, process_file): Use size_t for
+	sizes.  Don't bother testing whether a size_t value can be negative.
+
+	* etags.c (Ada_funcs): Redo slightly to avoid overflow warning.
+
+	etags: In Prolog functions, don't assume int fits in size_t.
+	This avoids a warning with gcc -Wstrict-overflow.
+	* etags.c (Prolog_functions, prolog_pr, prolog_atom): Use size_t,
+	not int, to store sizes.
+	(prolog_atom): Return 0, not -1, on error.  All callers changed.
+
+	update-game-score: fix bug with -r
+	* update-game-score.c (main): Don't set 'scores' to garbage when
+	-r is specified and scorecount != MAX_SCORES (Bug#8310).  This bug
+	was introduced in the 2002-04-10 change, and was found with gcc
+	-Wstrict-overflow (GCC 4.5.2, x86-64).
+
+	fakemail: Remove dependency on ignore-value.
+	This undoes some of the recent fakemail-related changes.
+	It is made possible due to recent changes to gnulib's stdio module.
+	* Makefile.in (fakemail${EXEEXT}): Do not depend on ignore-value.h.
+	* fakemail.c: Do not include ignore-value.h.
+	(put_line): Do not use ignore_value.
+
 2011-03-03  Drake Wilson  <drake@begriffli.ch>  (tiny change)
 
 	* emacsclient.c (longopts): Add quiet.

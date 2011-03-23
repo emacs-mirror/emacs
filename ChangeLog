@@ -1,3 +1,16 @@
+2011-03-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix more problems found by GCC 4.5.2's static checks.
+	* Makefile.in (GNULIB_MODULES): Add socklen.
+	* configure.in: Do not check for sys/socket.h, since socklen does that.
+	* m4/socklen.m4: New automatically-generated file, from gnulib.
+
+	fakemail: Remove dependency on ignore-value.
+	* Makefile.in (GNULIB_MODULES): Add stdio.
+	* lib/stdio.in.h, m4/stdio_h.m4: New files, automatically
+	imported from gnulib.
+	* .bzrignore: Add lib/stdio.h.
+
 2011-03-22  Glenn Morris  <rgm@gnu.org>
 
 	* autogen/copy_autogen: Work from ./ or ../.

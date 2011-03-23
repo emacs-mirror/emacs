@@ -922,7 +922,7 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 #endif
   Lisp_Object items;
   widget_value *wv, *first_wv, *prev_wv = 0;
-  int i, last_i = 0;
+  EMACS_UINT i, last_i = 0;
   int *submenu_start, *submenu_end;
   int *submenu_top_level_items, *submenu_n_panes;
 
