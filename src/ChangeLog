@@ -1,5 +1,7 @@
 2011-03-23  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* term.c (produce_glyphless_glyph): Remove unnecessary test.
+
 	* cm.c (calccost): Turn while-do into do-while, for clarity.
 
 	Fix more problems found by GCC 4.5.2's static checks.

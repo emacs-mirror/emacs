@@ -1952,7 +1952,7 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
 
   it->pixel_width = len;
   it->nglyphs = len;
-  if (len > 0 && it->glyph_row)
+  if (it->glyph_row)
     append_glyphless_glyph (it, face_id, str);
 }
 
