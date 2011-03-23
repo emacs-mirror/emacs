@@ -1,5 +1,8 @@
 2011-03-23  Glenn Morris  <rgm@gnu.org>
 
+	* eshell/esh-opt.el (eshell-eval-using-options):
+	Do not bind unused local variable `eshell-option-stub'.
+
 	* progmodes/gdb-mi.el (gdb): Fix typo in previous change.
 
 2011-03-22  Juanma Barranquero  <lekktu@gmail.com>

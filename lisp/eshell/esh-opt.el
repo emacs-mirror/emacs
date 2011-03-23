@@ -102,10 +102,9 @@ interned variable `args' (created using a `let' form)."
 	       macro-args
 	     (list 'eshell-stringify-list
 		   (list 'eshell-flatten-list macro-args)))))
-     (let ,(append (mapcar (lambda (opt)
-			     (or (and (listp opt) (nth 3 opt))
-				 'eshell-option-stub))
-			   (cadr options))
+     (let ,(append (delq nil (mapcar (lambda (opt)
+				       (and (listp opt) (nth 3 opt)))
+				     (cadr options)))
 		   '(usage-msg last-value ext-command args))
        (eshell-do-opt ,name ,options (quote ,body-forms)))))
 
