@@ -1,3 +1,9 @@
+2011-03-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/derived.el (define-derived-mode): Wrap declaration of
+	keymap variable in `with-no-warnings' to avoid a warning when the
+	keymap has been already `defconst'ed.
+
 2011-03-22  Leo Liu  <sdl.web@gmail.com>
 
 	* abbrev.el (write-abbrev-file): Use utf-8 for writing if it can
