@@ -648,7 +648,7 @@ detailed description of this mode.
   (set (make-local-variable 'gud-minor-mode) 'gdbmi)
   (setq comint-input-sender 'gdb-send)
   (when (ring-empty-p comint-input-ring) ; cf shell-mode
-    (let ((hfile (expand-file-name (or (getenv "GBDHISTFILE")
+    (let ((hfile (expand-file-name (or (getenv "GDBHISTFILE")
 				       (if (eq system-type 'ms-dos)
 					   "_gdb_history"
 					 ".gdb_history"))))

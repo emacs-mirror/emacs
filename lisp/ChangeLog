@@ -1,3 +1,7 @@
+2011-03-23  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/gdb-mi.el (gdb): Fix typo in previous change.
+
 2011-03-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/derived.el (define-derived-mode): Wrap declaration of
