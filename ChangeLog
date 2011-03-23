@@ -1,3 +1,9 @@
+2011-03-23  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (mkdir): Use `install-sh -d' instead of mkinstalldirs.
+	(sync-from-gnulib): Don't sync mkinstalldirs.
+	* make-dist: Don't distribute mkinstalldirs.
+
 2011-03-23  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix more problems found by GCC 4.5.2's static checks.

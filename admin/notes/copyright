@@ -143,10 +143,6 @@ lib/Makefile.in
 install-sh
  - this file is copyright MIT, which is OK. Leave the copyright alone.
 
-mkinstalldirs
-src/m/news-r6.h
-  public domain, leave alone.
-
 etc/refcards/*.tex
   also update the \def\year macro for the latest year.
 

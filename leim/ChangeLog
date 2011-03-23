@@ -1,3 +1,7 @@
+2011-03-23  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install): Use `install-sh -d' rather than mkinstalldirs.
+
 2011-02-28  Juanma Barranquero  <lekktu@gmail.com>
 
 	* quail/ethiopic.el ("ethiopic"): Fix tpo in docstring.
