@@ -21,6 +21,13 @@ with a prefix argument or by typing C-u C-h C-n.
 crt*.o files, if they are in a non-standard location.  This is only
 used on x86-64 and s390x GNU/Linux architectures.
 
+** The MS-Windows build prefers libpng version 1.14 or later.
+Versions of libpng before 1.14 had security issues, so we now
+recommend to use version 1.14 or later.  Precompiled Windows binaries
+require version 1.14 or later.  See README.W32 and nt/INSTALL for
+details and pointers to URLs where the latest libpng can be
+downloaded.
+
 * Changes in Emacs 23.3
 
 ** The last-resort backup file `%backup%~' is now written to
