@@ -492,9 +492,8 @@ assignment. So this could be restored if it is still useful, but Jan Djärv
 says it is obsolete:
 <http://lists.gnu.org/archive/html/emacs-devel/2007-03/msg00673.html>
 
-src/m/mips4.h, news-risc.h, pmax.h
-src/s/aix3-2.h, bsd386.h, hpux8.h, hpux9.h, irix4-0.h, irix5-0.h,
-netbsd.h, sol2-3.h, usg5-4-2.h
+src/s/aix3-2.h, hpux8.h, hpux9.h, irix5-0.h, netbsd.h, usg5-4-2.h
+  [note some of these have since been merged into other files]
   - all these (not obviously trivial) files were missing copyrights
   till Feb 2007, when FSF copyright was added. Matt Norwood advised:
 
@@ -509,22 +508,6 @@ netbsd.h, sol2-3.h, usg5-4-2.h
 
 Here is my (rgm) take on the details of the above files:
 
-mips4.h
-  might be trivial? started trivial, been added to in tiny changes by
-  those with FSF assignment, often result of email suggestions by others.
-
-news-risc.h
-  started trivial. Grown by tiny additions, plus chunk
-  from mips.h, which was and is Copyright FSF
-
-pmax.h
-  started trivial. grown in tiny changes, except for maybe Jim Wilson's
-  comment.
-
-? irix4-0.h
-  I would say started non-trivial (1992, rms). only tiny changes since
-  installed.
-
 ? irix5-0.h
   I would say started non-trivial (1993, jimb, heavily based
   on irix4-0.h). A few borderline non-tiny changes since.
@@ -533,11 +516,7 @@ usg5-4-2.h
  started non-trivial, but was heavily based on usg5-4.h, which was and is
  copyright FSF. only tiny changes since installed.
 
-sol2-3.h
- started trivial. only non-tiny change (1994) incorporated code from
- usg5-4.h, which was and is copyright FSF.
-
-aix3-2.h, bsd386.h, hpux8.h, hpux9.h, netbsd.h
+aix3-2.h, hpux8.h, hpux9.h, netbsd.h
   started trivial, grown in tiny changes.
 
 netbsd.h:
@@ -552,8 +531,8 @@ Someone might want to tweak the copyright years (for dates before
 Note: erring on the side of caution, I also added notices to some
 files I thought might be considered non-trivial (if one includes
 comment) in s/:
-  aix4-1.h hpux10.h irix6-0.h irix6-5.h
-  ptx4.h sol2.h
+  aix4-1.h hpux10.h irix6-5.h
+  sol2.h
 
 (everything with > 30 non-blank lines, which at least is _some_ kind of
 system)
