@@ -104,14 +104,10 @@ OPTIND=1
 [ $# -eq 0 ] || die "Wrong number of arguments"
 
 
-function msg ()
-{
-    [ "$quiet" ] && return 0
-    echo "$@"
-}                               # function msg
+[ "$quiet" ] && exec 1> /dev/null
 
 
-msg "Running bzr status..."
+echo "Running bzr status..."
 
 bzr status -S $sources >| $tempfile || die "bzr status error for sources"
 
@@ -119,7 +115,7 @@ while read stat file; do
 
     case $stat in
         M)
-            msg "Locally modified: $file"
+            echo "Locally modified: $file"
             [ "$force" ] || die "There are local modifications"
             ;;
 
@@ -128,7 +124,7 @@ while read stat file; do
 done < $tempfile
 
 
-msg "Running autoreconf..."
+echo "Running autoreconf..."
 
 autoreconf -I m4 || die "autoreconf error"
 
@@ -138,6 +134,7 @@ cp $genfiles autogen/
 
 cd autogen
 
+echo "Checking status of generated files..."
 
 bzr status -S $basegen >| $tempfile || \
     die "bzr status error for generated files"
@@ -155,28 +152,25 @@ done < $tempfile
 
 
 [ "$modified" ] || {
-    msg "No files were modified"
+    echo "No files were modified"
     exit 0
 }
 
-msg "Modified file(s): $modified"
+echo "Modified file(s): $modified"
 
 [ "$commit" ] || exit 0
 
 
-msg "Committing..."
+echo "Committing..."
 
 ## bzr status output is annoyingly always relative to top-level, not PWD.
 cd ../
 
-opt=
-[ "$quiet" ] && opt=-q
-
-bzr commit $opt -m "Auto-commit of generated files." $modified || \
+bzr commit -m "Auto-commit of generated files." $modified || \
     die "bzr commit error"
 
 
-msg "Committed files: $modified"
+echo "Committed files: $modified"
 
 exit
 

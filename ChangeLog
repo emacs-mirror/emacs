@@ -1,6 +1,7 @@
 2011-03-23  Glenn Morris  <rgm@gnu.org>
 
 	* autogen/update_autogen: Fix typo.
+	(msg): Remove function; use `exec' instead.
 
 	* Makefile.in (mkdir): Use `install-sh -d' instead of mkinstalldirs.
 	(sync-from-gnulib): Don't sync mkinstalldirs.
