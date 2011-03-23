@@ -1,3 +1,8 @@
+2011-03-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cmdproxy.c: Include <ctype.h>.
+	(make_absolute): Remove unused variable `i'.
+
 2011-02-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/unistd.h (readlink, symlink): Declare prototypes.

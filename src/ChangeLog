@@ -1,3 +1,25 @@
+2011-03-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (x_set_menu_bar_lines): Remove unused variable `olines'.
+	(w32_wnd_proc): Pass NULL to Windows API, not uninitialized buffer.
+	(Fx_close_connection): Remove unused variable `i'.
+
+	* w32font.c (w32font_draw): Return number of glyphs.
+	(w32font_open_internal): Remove unused variable `i'.
+	(w32font_driver): Add missing initializer.
+
+	* w32menu.c (utf8to16): Remove unused variable `utf16'.
+	(fill_in_menu): Remove unused variable `items_added'.
+
+	* w32term.c (last_mouse_press_frame): Remove static global variable.
+	(w32_clip_to_row): Remove unused variable `f'.
+	(x_delete_terminal): Remove unused variable `i'.
+
+	* w32uniscribe.c (uniscribe_shape): Remove unused variable `nclusters'.
+	(NOTHING): Remove unused static global variable.
+	(uniscribe_check_otf): Remove unused variable `table'.
+	(uniscribe_font_driver): Add missing initializers.
+
 2011-03-23  Julien Danjou  <julien@danjou.info>
 
 	* term.c (Fsuspend_tty, Fresume_tty):
