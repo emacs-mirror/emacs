@@ -1,3 +1,8 @@
+2011-03-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* vc-annotate.el (vc-annotate-show-log-revision-at-line):
+	Fix typo in docstring.
+
 2011-03-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* emerge.el (emerge-metachars): Separate value for ms-dos and
