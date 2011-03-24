@@ -1,3 +1,7 @@
+2011-03-24  Drew Adams  <drew.adams@oracle.com>
+
+	* thingatpt.el: Support `defun'.
+
 2011-03-23  Leo Liu  <sdl.web@gmail.com>
 
 	* abbrevlist.el: Move to obsolete/abbrevlist.el.
