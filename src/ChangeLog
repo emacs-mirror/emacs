@@ -1,5 +1,9 @@
 2011-03-24  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* keyboard.c (syms_of_keyboard): Use the same style as later
+	in this function when indexing through an array.  This also
+	works around GCC bug 48267.
+
 	* image.c (tiff_load): Fix off-by-one image count (Bug#8336).
 
 	* xselect.c (x_check_property_data): Return correct size (Bug#8335).

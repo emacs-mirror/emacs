@@ -11574,12 +11574,12 @@ syms_of_keyboard (void)
   last_point_position_window = Qnil;
 
   {
-    const struct event_head *p;
+    int i;
+    int len = sizeof (head_table) / sizeof (head_table[0]);
 
-    for (p = head_table;
-	 p < head_table + (sizeof (head_table) / sizeof (head_table[0]));
-	 p++)
+    for (i = 0; i < len; i++)
       {
+	const struct event_head *p = &head_table[i];
 	*p->var = intern_c_string (p->name);
 	staticpro (p->var);
 	Fput (*p->var, Qevent_kind, *p->kind);
