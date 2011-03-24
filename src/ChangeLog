@@ -1,5 +1,7 @@
 2011-03-24  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* image.c (tiff_load): Fix off-by-one image count (Bug#8336).
+
 	* xselect.c (x_check_property_data): Return correct size (Bug#8335).
 
 2011-03-23  Paul Eggert  <eggert@cs.ucla.edu>
