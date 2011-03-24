@@ -1,3 +1,7 @@
+2011-03-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xselect.c (x_check_property_data): Return correct size (Bug#8335).
+
 2011-03-23  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xterm.c (x_make_frame_visible, same_x_server): Redo to avoid overflow
