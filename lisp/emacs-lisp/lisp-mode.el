@@ -700,7 +700,8 @@ If CHAR is not a character, return nil."
 With argument, print output into current buffer."
   (let ((standard-output (if eval-last-sexp-arg-internal (current-buffer) t)))
     ;; Setup the lexical environment if lexical-binding is enabled.
-    (eval-last-sexp-print-value (eval (preceding-sexp) lexical-binding))))
+    (eval-last-sexp-print-value
+     (eval (eval-sexp-add-defvars (preceding-sexp)) lexical-binding))))
 
 
 (defun eval-last-sexp-print-value (value)
@@ -728,6 +729,23 @@ With argument, print output into current buffer."
 
 (defvar eval-last-sexp-fake-value (make-symbol "t"))
 
+(defun eval-sexp-add-defvars (exp &optional pos)
+  "Prepend EXP with all the `defvar's that precede it in the buffer.
+POS specifies the starting position where EXP was found and defaults to point."
+  (if (not lexical-binding)
+      exp
+    (save-excursion
+      (unless pos (setq pos (point)))
+      (let ((vars ()))
+        (goto-char (point-min))
+        (while (re-search-forward
+                "^(def\\(?:var\\|const\\|custom\\)[ \t\n]+\\([^; '()\n\t]+\\)"
+                pos t)
+          (let ((var (intern (match-string 1))))
+            (unless (special-variable-p var)
+              (push var vars))))
+        `(progn ,@(mapcar (lambda (v) `(defvar ,v)) vars) ,exp)))))
+  
 (defun eval-last-sexp (eval-last-sexp-arg-internal)
   "Evaluate sexp before point; print value in minibuffer.
 Interactively, with prefix argument, print output into current buffer.

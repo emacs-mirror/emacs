@@ -553,7 +553,7 @@ FORM is the parent form that binds this var."
     (dolist (arg args)
       (cond
        ((byte-compile-not-lexical-var-p arg)
-        (byte-compile-report-error
+        (byte-compile-log-warning
          (format "Argument %S is not a lexical variable" arg)))
        ((eq ?& (aref (symbol-name arg) 0)) nil) ;Ignore &rest, &optional, ...
        (t (let ((varstruct (list arg nil nil nil nil)))

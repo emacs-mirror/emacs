@@ -1,4 +1,4 @@
-;;; startup.el --- process Emacs shell arguments
+;;; startup.el --- process Emacs shell arguments  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1985-1986, 1992, 1994-2011  Free Software Foundation, Inc.
 
@@ -98,6 +98,7 @@ the remaining command-line args are in the variable `command-line-args-left'.")
   "List of command-line args not yet processed.")
 
 (defvaralias 'argv 'command-line-args-left
+  ;; FIXME: Bad name for a dynamically bound variable.
   "List of command-line args not yet processed.
 This is a convenience alias, so that one can write \(pop argv\)
 inside of --eval command line arguments in order to access
@@ -326,7 +327,7 @@ this variable usefully is to set it while building and dumping Emacs."
   :type '(choice (const :tag "none" nil) string)
   :group 'initialization
   :initialize 'custom-initialize-default
-  :set (lambda (variable value)
+  :set (lambda (_variable _value)
 	  (error "Customizing `site-run-file' does not work")))
 
 (defcustom mail-host-address nil
@@ -1526,7 +1527,7 @@ a face or button specification."
 	(make-button (prog1 (point) (insert-image img)) (point)
 		     'face 'default
 		     'help-echo "mouse-2, RET: Browse http://www.gnu.org/"
-		     'action (lambda (button) (browse-url "http://www.gnu.org/"))
+		     'action (lambda (_button) (browse-url "http://www.gnu.org/"))
 		     'follow-link t)
 	(insert "\n\n")))))
 
@@ -1539,15 +1540,15 @@ a face or button specification."
        :face 'variable-pitch
        "\nTo start...     "
        :link '("Open a File"
-	       (lambda (button) (call-interactively 'find-file))
+	       (lambda (_button) (call-interactively 'find-file))
 	       "Specify a new file's name, to edit the file")
        "     "
        :link '("Open Home Directory"
-	       (lambda (button) (dired "~"))
+	       (lambda (_button) (dired "~"))
 	       "Open your home directory, to operate on its files")
        "     "
        :link '("Customize Startup"
-	       (lambda (button) (customize-group 'initialization))
+	       (lambda (_button) (customize-group 'initialization))
 	       "Change initialization settings including this screen")
        "\n"))
     (fancy-splash-insert
@@ -1587,7 +1588,7 @@ a face or button specification."
       (fancy-splash-insert
        :face 'variable-pitch "\n"
        :link '("Dismiss this startup screen"
-	       (lambda (button)
+	       (lambda (_button)
 		 (when startup-screen-inhibit-startup-screen
 		   (customize-set-variable 'inhibit-startup-screen t)
 		   (customize-mark-to-save 'inhibit-startup-screen)
@@ -1809,37 +1810,37 @@ To quit a partially entered command, type Control-g.\n")
 
   (insert "\nImportant Help menu items:\n")
   (insert-button "Emacs Tutorial"
-		 'action (lambda (button) (help-with-tutorial))
+		 'action (lambda (_button) (help-with-tutorial))
 		 'follow-link t)
   (insert "\t\tLearn basic Emacs keystroke commands\n")
   (insert-button "Read the Emacs Manual"
-		 'action (lambda (button) (info-emacs-manual))
+		 'action (lambda (_button) (info-emacs-manual))
 		 'follow-link t)
   (insert "\tView the Emacs manual using Info\n")
   (insert-button "\(Non)Warranty"
-		 'action (lambda (button) (describe-no-warranty))
+		 'action (lambda (_button) (describe-no-warranty))
 		 'follow-link t)
   (insert "\t\tGNU Emacs comes with ABSOLUTELY NO WARRANTY\n")
   (insert-button "Copying Conditions"
-		 'action (lambda (button) (describe-copying))
+		 'action (lambda (_button) (describe-copying))
 		 'follow-link t)
   (insert "\tConditions for redistributing and changing Emacs\n")
   (insert-button "More Manuals / Ordering Manuals"
-		 'action (lambda (button) (view-order-manuals))
+		 'action (lambda (_button) (view-order-manuals))
 		 'follow-link t)
   (insert "  How to order printed manuals from the FSF\n")
 
   (insert "\nUseful tasks:\n")
   (insert-button "Visit New File"
-		 'action (lambda (button) (call-interactively 'find-file))
+		 'action (lambda (_button) (call-interactively 'find-file))
 		 'follow-link t)
   (insert "\t\tSpecify a new file's name, to edit the file\n")
   (insert-button "Open Home Directory"
-		 'action (lambda (button) (dired "~"))
+		 'action (lambda (_button) (dired "~"))
 		 'follow-link t)
   (insert "\tOpen your home directory, to operate on its files\n")
   (insert-button "Customize Startup"
-		 'action (lambda (button) (customize-group 'initialization))
+		 'action (lambda (_button) (customize-group 'initialization))
 		 'follow-link t)
   (insert "\tChange initialization settings including this screen\n")
 
@@ -1873,20 +1874,20 @@ To quit a partially entered command, type Control-g.\n")
                        (where (key-description where))
                        (t "M-x help")))))
     (insert-button "Emacs manual"
-                   'action (lambda (button) (info-emacs-manual))
+                   'action (lambda (_button) (info-emacs-manual))
                    'follow-link t)
     (insert (substitute-command-keys"\t   \\[info-emacs-manual]\t"))
     (insert-button "Browse manuals"
-                   'action (lambda (button) (Info-directory))
+                   'action (lambda (_button) (Info-directory))
                    'follow-link t)
     (insert (substitute-command-keys "\t   \\[info]\n"))
     (insert-button "Emacs tutorial"
-                   'action (lambda (button) (help-with-tutorial))
+                   'action (lambda (_button) (help-with-tutorial))
                    'follow-link t)
     (insert (substitute-command-keys
              "\t   \\[help-with-tutorial]\tUndo changes\t   \\[undo]\n"))
     (insert-button "Buy manuals"
-                   'action (lambda (button) (view-order-manuals))
+                   'action (lambda (_button) (view-order-manuals))
                    'follow-link t)
     (insert (substitute-command-keys
              "\t   \\[view-order-manuals]\tExit Emacs\t   \\[save-buffers-kill-terminal]")))
@@ -1894,7 +1895,7 @@ To quit a partially entered command, type Control-g.\n")
   ;; Say how to use the menu bar with the keyboard.
   (insert "\n")
   (insert-button "Activate menubar"
-		 'action (lambda (button) (tmm-menubar))
+		 'action (lambda (_button) (tmm-menubar))
 		 'follow-link t)
   (if (and (eq (key-binding "\M-`") 'tmm-menubar)
 	   (eq (key-binding [f10]) 'tmm-menubar))
@@ -1910,21 +1911,21 @@ If you have no Meta key, you may instead type ESC followed by the character.)")
   (insert "\nUseful tasks:\n")
 
   (insert-button "Visit New File"
-		 'action (lambda (button) (call-interactively 'find-file))
+		 'action (lambda (_button) (call-interactively 'find-file))
 		 'follow-link t)
   (insert "\t\t\t")
   (insert-button "Open Home Directory"
-		 'action (lambda (button) (dired "~"))
+		 'action (lambda (_button) (dired "~"))
 		 'follow-link t)
   (insert "\n")
 
   (insert-button "Customize Startup"
-		 'action (lambda (button) (customize-group 'initialization))
+		 'action (lambda (_button) (customize-group 'initialization))
 		 'follow-link t)
   (insert "\t\t")
   (insert-button "Open *scratch* buffer"
-		 'action (lambda (button) (switch-to-buffer
-					   (get-buffer-create "*scratch*")))
+		 'action (lambda (_button) (switch-to-buffer
+                                       (get-buffer-create "*scratch*")))
 		 'follow-link t)
   (insert "\n")
   (insert "\n" (emacs-version) "\n" emacs-copyright "\n")
@@ -1977,7 +1978,7 @@ Type \\[describe-distribution] for information on "))
 
   (insert-button "Authors"
 		 'action
-		 (lambda (button)
+		 (lambda (_button)
 		   (view-file (expand-file-name "AUTHORS" data-directory))
 		   (goto-char (point-min)))
 		 'follow-link t)
@@ -1985,34 +1986,34 @@ Type \\[describe-distribution] for information on "))
 
   (insert-button "Contributing"
 		 'action
-		 (lambda (button)
+		 (lambda (_button)
 		   (view-file (expand-file-name "CONTRIBUTE" data-directory))
 		   (goto-char (point-min)))
 		 'follow-link t)
   (insert "\tHow to contribute improvements to Emacs\n\n")
 
   (insert-button "GNU and Freedom"
-		 'action (lambda (button) (describe-gnu-project))
+		 'action (lambda (_button) (describe-gnu-project))
 		 'follow-link t)
   (insert "\t\tWhy we developed GNU Emacs and the GNU system\n")
 
   (insert-button "Absence of Warranty"
-		 'action (lambda (button) (describe-no-warranty))
+		 'action (lambda (_button) (describe-no-warranty))
 		 'follow-link t)
   (insert "\tGNU Emacs comes with ABSOLUTELY NO WARRANTY\n")
 
   (insert-button "Copying Conditions"
-		 'action (lambda (button) (describe-copying))
+		 'action (lambda (_button) (describe-copying))
 		 'follow-link t)
   (insert "\tConditions for redistributing and changing Emacs\n")
 
   (insert-button "Getting New Versions"
-		 'action (lambda (button) (describe-distribution))
+		 'action (lambda (_button) (describe-distribution))
 		 'follow-link t)
   (insert "\tHow to get the latest version of GNU Emacs\n")
 
   (insert-button "More Manuals / Ordering Manuals"
-		 'action (lambda (button) (view-order-manuals))
+		 'action (lambda (_button) (view-order-manuals))
 		 'follow-link t)
   (insert "\tBuying printed manuals from the FSF\n"))
 
@@ -2078,7 +2079,7 @@ A fancy display is used on graphic displays, normal otherwise."
 (defalias 'about-emacs 'display-about-screen)
 (defalias 'display-splash-screen 'display-startup-screen)
 
-(defun command-line-1 (command-line-args-left)
+(defun command-line-1 (args-left)
   (display-startup-echo-area-message)
   (when (and pure-space-overflow
 	     (not noninteractive))
@@ -2089,15 +2090,12 @@ A fancy display is used on graphic displays, normal otherwise."
      :warning))
 
   (let ((file-count 0)
+        (command-line-args-left args-left)
 	first-file-buffer)
     (when command-line-args-left
       ;; We have command args; process them.
-      ;; Note that any local variables in this function affect the
-      ;; ability of -f batch-byte-compile to detect free variables.
-      ;; So we give some of them with common names a cl1- prefix.
-      ;; FIXME: A better fix would be to make this file use lexical-binding.
-      (let ((cl1-dir command-line-default-directory)
-	    cl1-tem
+      (let ((dir command-line-default-directory)
+	    tem
 	    ;; This approach loses for "-batch -L DIR --eval "(require foo)",
 	    ;; if foo is intended to be found in DIR.
 	    ;;
@@ -2120,8 +2118,8 @@ A fancy display is used on graphic displays, normal otherwise."
                      "--find-file" "--visit" "--file" "--no-desktop")
                    (mapcar (lambda (elt) (concat "-" (car elt)))
 			     command-switch-alist)))
-	    (cl1-line 0)
-	    (cl1-column 0))
+	    (line 0)
+	    (column 0))
 
 	;; Add the long X options to longopts.
 	(dolist (tem command-line-x-option-alist)
@@ -2162,12 +2160,12 @@ A fancy display is used on graphic displays, normal otherwise."
 			  argi orig-argi)))))
 
 	    ;; Execute the option.
-	    (cond ((setq cl1-tem (assoc argi command-switch-alist))
+	    (cond ((setq tem (assoc argi command-switch-alist))
 		   (if argval
 		       (let ((command-line-args-left
 			      (cons argval command-line-args-left)))
-			 (funcall (cdr cl1-tem) argi))
-		     (funcall (cdr cl1-tem) argi)))
+			 (funcall (cdr tem) argi))
+		     (funcall (cdr tem) argi)))
 
 		  ((equal argi "-no-splash")
 		   (setq inhibit-startup-screen t))
@@ -2176,22 +2174,22 @@ A fancy display is used on graphic displays, normal otherwise."
 				  "-funcall"
 				  "-e"))  ; what the source used to say
 		   (setq inhibit-startup-screen t)
-		   (setq cl1-tem (intern (or argval (pop command-line-args-left))))
-		   (if (commandp cl1-tem)
-		       (command-execute cl1-tem)
-		     (funcall cl1-tem)))
+		   (setq tem (intern (or argval (pop command-line-args-left))))
+		   (if (commandp tem)
+		       (command-execute tem)
+		     (funcall tem)))
 
 		  ((member argi '("-eval" "-execute"))
 		   (setq inhibit-startup-screen t)
 		   (eval (read (or argval (pop command-line-args-left)))))
 
 		  ((member argi '("-L" "-directory"))
-		   (setq cl1-tem (expand-file-name
+		   (setq tem (expand-file-name
 			      (command-line-normalize-file-name
 			       (or argval (pop command-line-args-left)))))
-		   (cond (splice (setcdr splice (cons cl1-tem (cdr splice)))
+		   (cond (splice (setcdr splice (cons tem (cdr splice)))
 				 (setq splice (cdr splice)))
-			 (t (setq load-path (cons cl1-tem load-path)
+			 (t (setq load-path (cons tem load-path)
 				  splice load-path))))
 
 		  ((member argi '("-l" "-load"))
@@ -2215,10 +2213,10 @@ A fancy display is used on graphic displays, normal otherwise."
 
 		  ((equal argi "-insert")
 		   (setq inhibit-startup-screen t)
-		   (setq cl1-tem (or argval (pop command-line-args-left)))
-		   (or (stringp cl1-tem)
+		   (setq tem (or argval (pop command-line-args-left)))
+		   (or (stringp tem)
 		       (error "File name omitted from `-insert' option"))
-		   (insert-file-contents (command-line-normalize-file-name cl1-tem)))
+		   (insert-file-contents (command-line-normalize-file-name tem)))
 
 		  ((equal argi "-kill")
 		   (kill-emacs t))
@@ -2231,42 +2229,42 @@ A fancy display is used on graphic displays, normal otherwise."
 		   (message "\"--no-desktop\" ignored because the Desktop package is not loaded"))
 
 		  ((string-match "^\\+[0-9]+\\'" argi)
-		   (setq cl1-line (string-to-number argi)))
+		   (setq line (string-to-number argi)))
 
 		  ((string-match "^\\+\\([0-9]+\\):\\([0-9]+\\)\\'" argi)
-		   (setq cl1-line (string-to-number (match-string 1 argi))
-			 cl1-column (string-to-number (match-string 2 argi))))
+		   (setq line (string-to-number (match-string 1 argi))
+			 column (string-to-number (match-string 2 argi))))
 
-		  ((setq cl1-tem (assoc orig-argi command-line-x-option-alist))
+		  ((setq tem (assoc orig-argi command-line-x-option-alist))
 		   ;; Ignore X-windows options and their args if not using X.
 		   (setq command-line-args-left
-			 (nthcdr (nth 1 cl1-tem) command-line-args-left)))
+			 (nthcdr (nth 1 tem) command-line-args-left)))
 
-		  ((setq cl1-tem (assoc orig-argi command-line-ns-option-alist))
+		  ((setq tem (assoc orig-argi command-line-ns-option-alist))
 		   ;; Ignore NS-windows options and their args if not using NS.
 		   (setq command-line-args-left
-			 (nthcdr (nth 1 cl1-tem) command-line-args-left)))
+			 (nthcdr (nth 1 tem) command-line-args-left)))
 
 		  ((member argi '("-find-file" "-file" "-visit"))
 		   (setq inhibit-startup-screen t)
 		   ;; An explicit option to specify visiting a file.
-		   (setq cl1-tem (or argval (pop command-line-args-left)))
-		   (unless (stringp cl1-tem)
+		   (setq tem (or argval (pop command-line-args-left)))
+		   (unless (stringp tem)
 		     (error "File name omitted from `%s' option" argi))
 		   (setq file-count (1+ file-count))
 		   (let ((file (expand-file-name
-				(command-line-normalize-file-name cl1-tem)
-				cl1-dir)))
+				(command-line-normalize-file-name tem)
+				dir)))
 		     (if (= file-count 1)
 			 (setq first-file-buffer (find-file file))
 		       (find-file-other-window file)))
-		   (unless (zerop cl1-line)
+		   (unless (zerop line)
 		     (goto-char (point-min))
-		     (forward-line (1- cl1-line)))
-		   (setq cl1-line 0)
-		   (unless (< cl1-column 1)
-		     (move-to-column (1- cl1-column)))
-		   (setq cl1-column 0))
+		     (forward-line (1- line)))
+		   (setq line 0)
+		   (unless (< column 1)
+		     (move-to-column (1- column)))
+		   (setq column 0))
 
 		  ;; These command lines now have no effect.
 		  ((string-match "\\`--?\\(no-\\)?\\(uni\\|multi\\)byte$" argi)
@@ -2294,19 +2292,19 @@ A fancy display is used on graphic displays, normal otherwise."
 			   (let ((file
 				  (expand-file-name
 				   (command-line-normalize-file-name orig-argi)
-				   cl1-dir)))
+				   dir)))
 			     (cond ((= file-count 1)
 				    (setq first-file-buffer (find-file file)))
 				   (inhibit-startup-screen
 				    (find-file-other-window file))
 				   (t (find-file file))))
-			   (unless (zerop cl1-line)
+			   (unless (zerop line)
 			     (goto-char (point-min))
-			     (forward-line (1- cl1-line)))
-			   (setq cl1-line 0)
-			   (unless (< cl1-column 1)
-			     (move-to-column (1- cl1-column)))
-			   (setq cl1-column 0))))))
+			     (forward-line (1- line)))
+			   (setq line 0)
+			   (unless (< column 1)
+			     (move-to-column (1- column)))
+			   (setq column 0))))))
 	    ;; In unusual circumstances, the execution of Lisp code due
 	    ;; to command-line options can cause the last visible frame
 	    ;; to be deleted.  In this case, kill emacs to avoid an

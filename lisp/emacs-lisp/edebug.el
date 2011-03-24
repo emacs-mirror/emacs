@@ -519,6 +519,7 @@ the minibuffer."
 	  ((and (eq (car form) 'defcustom)
 		(default-boundp (nth 1 form)))
 	   ;; Force variable to be bound.
+           ;; FIXME: Shouldn't this use the :setter or :initializer?
 	   (set-default (nth 1 form) (eval (nth 2 form) lexical-binding)))
           ((eq (car form) 'defface)
            ;; Reset the face.
@@ -532,7 +533,7 @@ the minibuffer."
 				(put ',(nth 1 form) 'customized-face
 				     ,(nth 2 form)))
 			(put (nth 1 form) 'saved-face nil)))))
-    (setq edebug-result (eval form lexical-binding))
+    (setq edebug-result (eval (eval-sexp-add-defvars form) lexical-binding))
     (if (not edebugging)
 	(princ edebug-result)
       edebug-result)))
