@@ -1,3 +1,8 @@
+2011-03-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32term.c (x_set_glyph_string_clipping):
+	Don't pass uninitialized region to CombineRgn.
+
 2011-03-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32fns.c (x_set_menu_bar_lines): Remove unused variable `olines'.

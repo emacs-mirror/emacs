@@ -1068,16 +1068,12 @@ x_set_glyph_string_clipping (struct glyph_string *s)
     w32_set_clip_rectangle (s->hdc, r);
   else if (n > 1)
     {
-      HRGN full_clip, clip1, clip2;
-      clip1 = CreateRectRgnIndirect (r);
-      clip2 = CreateRectRgnIndirect (r + 1);
-      if (CombineRgn (full_clip, clip1, clip2, RGN_OR) != ERROR)
-        {
-          SelectClipRgn (s->hdc, full_clip);
-        }
+      HRGN clip1 = CreateRectRgnIndirect (r);
+      HRGN clip2 = CreateRectRgnIndirect (r + 1);
+      if (CombineRgn (clip1, clip1, clip2, RGN_OR) != ERROR)
+        SelectClipRgn (s->hdc, clip1);
       DeleteObject (clip1);
       DeleteObject (clip2);
-      DeleteObject (full_clip);
     }
     s->num_clips = n;
 }
