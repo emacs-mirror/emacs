@@ -688,6 +688,8 @@ scroll the window of possible completions."
         (t     t)))))
 
 (defun completion--flush-all-sorted-completions (&rest ignore)
+  (remove-hook 'after-change-functions
+               'completion--flush-all-sorted-completions t)
   (setq completion-cycling nil)
   (setq completion-all-sorted-completions nil))
 
@@ -1242,6 +1244,8 @@ Point needs to be somewhere between START and END."
   (assert (<= start (point)) (<= (point) end))
   ;; FIXME: undisplay the *Completions* buffer once the completion is done.
   (with-wrapper-hook
+      ;; FIXME: Maybe we should use this hook to provide a "display
+      ;; completions" operation as well.
       completion-in-region-functions (start end collection predicate)
     (let ((minibuffer-completion-table collection)
           (minibuffer-completion-predicate predicate)
@@ -1253,7 +1257,9 @@ Point needs to be somewhere between START and END."
 
 (defvar completion-at-point-functions '(tags-completion-at-point-function)
   "Special hook to find the completion table for the thing at point.
-It is called without any argument and should return either nil,
+Each function on this hook is called in turns without any argument and should
+return either nil to mean that it is not applicable at point,
+or t to mean that it already performed completion (discouraged),
 or a function of no argument to perform completion (discouraged),
 or a list of the form (START END COLLECTION &rest PROPS) where
  START and END delimit the entity to complete and should include point,
@@ -1271,7 +1277,7 @@ The completion method is determined by `completion-at-point-functions'."
               'completion-at-point-functions)))
     (cond
      ((functionp res) (funcall res))
-     (res
+     ((consp res)
       (let* ((plist (nthcdr 3 res))
              (start (nth 0 res))
              (end (nth 1 res))
@@ -1279,7 +1285,8 @@ The completion method is determined by `completion-at-point-functions'."
               (or (plist-get plist :annotation-function)
                   completion-annotate-function)))
         (completion-in-region start end (nth 2 res)
-                              (plist-get plist :predicate)))))))
+                              (plist-get plist :predicate))))
+     (res))))  ;Maybe completion already happened and the function returned t.
 
 ;;; Key bindings.
 

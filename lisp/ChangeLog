@@ -1,3 +1,17 @@
+2011-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion--flush-all-sorted-completions):
+	Remove itself from hook.
+	(completion-at-point): Let the functions perform the completion
+	immediately and return nil or t.
+	* comint.el (comint-dynamic-complete-functions): Now identical to
+	completion-at-point-functions.
+	(comint-dynamic-list-input-ring): Remove unused var `index'.
+	(comint--match-partial-filename, comint--unquote&expand-filename):
+	New funs, split from comint-match-partial-filename.
+	(comint-dynamic-complete): Use completion-at-point.
+	(comint-dynamic-complete-filename): Use comint--match-partial-filename.
+
 2011-03-24  Drew Adams  <drew.adams@oracle.com>
 
 	* thingatpt.el: Support `defun'.
@@ -52,8 +66,8 @@
 	(provide-theme): Ignore custom--inhibit-theme-enable.
 	(load-theme): Enable the theme explicitly if NO-ENABLE is non-nil.
 	(custom-enabling-themes): Delete variable.
-	(enable-theme): Accept only loaded themes as arguments.  Ignore
-	the special custom-enabled-themes variable.
+	(enable-theme): Accept only loaded themes as arguments.
+	Ignore the special custom-enabled-themes variable.
 	(custom-enabled-themes): Forbid themes from setting this.
 	Eliminate use of custom-enabling-themes.
 	(custom-push-theme): Quote "changed" custom var entry.
@@ -390,8 +404,8 @@
 
 2011-03-09  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp-sh.el (tramp-do-copy-or-rename-file-out-of-band): Do
-	not use `tramp-file-name-port', because this returns also
+	* net/tramp-sh.el (tramp-do-copy-or-rename-file-out-of-band):
+	Do not use `tramp-file-name-port', because this returns also
 	`tramp-default-port'.
 
 2011-03-09  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
@@ -420,8 +434,8 @@
 	* emacs-lisp/package.el (package-tar-file-info): Handle also
 	remote files.
 
-	* emacs-lisp/package-x.el (package-upload-buffer-internal): Use
-	`equal' for upload base check.
+	* emacs-lisp/package-x.el (package-upload-buffer-internal):
+	Use `equal' for upload base check.
 
 2011-03-08  Arni Magnusson  <arnima@hafro.is>  (tiny change)
 
@@ -750,9 +764,9 @@
 2011-03-03  Christian Ohler  <ohler@gnu.org>
 
 	* emacs-lisp/ert.el (ert--explain-equal): New function.
-	(ert--explain-equal-rec): Renamed from `ert--explain-not-equal'.
+	(ert--explain-equal-rec): Rename from `ert--explain-not-equal'.
 	All callers changed.
-	(ert--explain-equal-including-properties): Renamed from
+	(ert--explain-equal-including-properties): Rename from
 	`ert--explain-not-equal-including-properties'.  All callers
 	changed.
 
@@ -8275,8 +8289,8 @@
 
 	Sync with Tramp 2.1.19.
 
-	* net/tramp-gvfs.el (tramp-gvfs-handle-write-region): Protect
-	deleting tmpfile.
+	* net/tramp-gvfs.el (tramp-gvfs-handle-write-region):
+	Protect deleting tmpfile.
 	(tramp-gvfs-maybe-open-connection): Use `tramp-compat-funcall'.
 
 	* net/tramp.el (tramp-handle-expand-file-name)
@@ -10554,8 +10568,8 @@
 	* net/tramp-ftp.el (tramp-ftp-file-name-handler):
 	Use `delete-file' instead of `tramp-compat-delete-file'.
 
-	* net/tramp-gvfs.el (tramp-gvfs-handle-write-region): Use
-	`delete-file' instead of `tramp-compat-delete-file'.
+	* net/tramp-gvfs.el (tramp-gvfs-handle-write-region):
+	Use `delete-file' instead of `tramp-compat-delete-file'.
 
 	* net/tramp-imap.el (tramp-imap-do-copy-or-rename-file):
 	Use `delete-file' instead of `tramp-compat-delete-file'.
