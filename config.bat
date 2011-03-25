@@ -156,7 +156,7 @@ rm -f epaths.tmp
 
 rem   Create "config.h"
 rm -f config.h2 config.tmp
-sed -e '' config.in > config.tmp
+sed -e '' ../autogen/config.in > config.tmp
 if "%X11%" == "" goto src4
 sed -f ../msdos/sed2x.inp < ..\autogen\config.in > config.tmp
 :src4

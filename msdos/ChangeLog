@@ -1,6 +1,12 @@
 2011-03-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* sedlibmk.inp: Adapt to addition of the gnulib stdio module.
+	Add a description of what needs to be done when a new gnulib
+	module is added.
+	(GNULIB_PRINTF, GNULIB_PRINTF_POSIX): Add missing variables.
+	(MKDIR_P): Fix replacement command.
+	(NEXT_AS_FIRST_DIRECTIVE_STDIO_H, NEXT_STDIO_H): Edit to
+	"<stdio.h>", as lib/stdio.h cannot be left unused.
 
 2011-02-26  Eli Zaretskii  <eliz@gnu.org>
 

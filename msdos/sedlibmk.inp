@@ -28,22 +28,27 @@
 #
 #     /^REPLACE_CALLOC *=/s/@REPLACE_CALLOC@/0/
 # 
-#  . If it's a header, edit the corresponding variable to either an
-#    empty value or to the name of the header.  Examples:
+#  . If the module is a header or adds headers, edit the corresponding
+#    variable to either an empty value or to the name of the header.
+#    Examples:
 #
 #       /^STDINT_H *=/s/@[^@\n]*@/stdint.h/  -- stdint.h is needed
 #       /^STDDEF_H *=/s/@[^@\n]*@//          -- stddef.h is not needed
 #
 #  . Also edit the NEXT_foo and NEXT_AS_FIRST_DIRECTIVE_foo_H variable
-#    as appropriately: to an empty value if the DJGPP system header
-#    should not be included after the gnulib one, or if the gnulib one
-#    is not needed; and to the corresponding DJGPP header name
-#    otherwise.  Examples:
+#    as appropriately: to an empty value if the gnulib header is not
+#    used, and to the corresponding DJGPP header name otherwise.
+#    Examples:
 #
 #     /^NEXT_STDDEF_H *=/s/@[^@\n]*@//
 #     /^NEXT_STDINT_H *=/s/@[^@\n]*@/<stdint.h>/
 #     /^NEXT_AS_FIRST_DIRECTIVE_GETOPT_H *=/s/@[^@\n]*@/<getopt.h>/
 #     /^NEXT_AS_FIRST_DIRECTIVE_STDDEF_H *=/s/@[^@\n]*@//
+#
+#  . Note that some gnulib headers cannot be left unused: those for
+#    which there's no corresponding foo_H variable in
+#    autogen/Makefile.in (example: stdio.h).  For these the "not
+#    needed" path is not applicable.
 #
 #  . If the header is needed, edit all the variables it uses as
 #    appropriate.  In general, if DJGPP has the corresponding feature,
@@ -77,6 +82,13 @@
 #     /^stdio\.h:/,/^	[ 	]*mv /{
 #       s/'\; \\ *$/' >> $@-t/
 #     }
+#
+# The following Awk script is useful for editing portions of
+# autogen/Makefile.in into Sed commands that define the corresponding
+# variables to zero (which is what is required in the absolute
+# majority of cases):
+#
+#   { printf "/^%s *=/s/%s/0/\n",$1,$3}
 #
 # ----------------------------------------------------------------------
 # Replace @..@ constants.
@@ -195,6 +207,8 @@ am__cd = cd
 /^GNULIB_PIPE2 *=/s/@GNULIB_PIPE2@/0/
 /^GNULIB_POPEN *=/s/@GNULIB_POPEN@/0/
 /^GNULIB_PREAD *=/s/@GNULIB_PREAD@/0/
+/^GNULIB_PRINTF *=/s/@GNULIB_PRINTF@/0/
+/^GNULIB_PRINTF_POSIX *=/s/@GNULIB_PRINTF_POSIX@/0/
 /^GNULIB_PTSNAME *=/s/@GNULIB_PTSNAME@/0/
 /^GNULIB_PUTC *=/s/@GNULIB_PUTC@/0/
 /^GNULIB_PUTCHAR *=/s/@GNULIB_PUTCHAR@/0/
@@ -366,14 +380,14 @@ am__cd = cd
 /^NEXT_AS_FIRST_DIRECTIVE_GETOPT_H *=/s/@[^@\n]*@/<getopt.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_STDDEF_H *=/s/@[^@\n]*@//
 /^NEXT_AS_FIRST_DIRECTIVE_STDINT_H *=/s/@[^@\n]*@/<stdint.h>/
-/^NEXT_AS_FIRST_DIRECTIVE_STDIO_H *=/s/@[^@\n]*@//
+/^NEXT_AS_FIRST_DIRECTIVE_STDIO_H *=/s/@[^@\n]*@/<stdio.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_STDLIB_H *=/s/@[^@\n]*@/<stdlib.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_SYS_STAT_H *=/s!@[^@\n]*@!<sys/stat.h>!
 /^NEXT_AS_FIRST_DIRECTIVE_TIME_H *=/s/@[^@\n]*@/<time.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_UNISTD_H *=/s/@[^@\n]*@/<unistd.h>/
 /^NEXT_GETOPT_H *=/s/@[^@\n]*@/<getopt.h>/
 /^NEXT_STDDEF_H *=/s/@[^@\n]*@//
-/^NEXT_STDIO_H *=/s/@[^@\n]*@//
+/^NEXT_STDIO_H *=/s/@[^@\n]*@/<stdio.h>/
 /^NEXT_STDINT_H *=/s/@[^@\n]*@/<stdint.h>/
 /^NEXT_STDLIB_H *=/s/@[^@\n]*@/<stdlib.h>/
 /^NEXT_SYS_STAT_H *=/s!@[^@\n]*@!<sys/stat.h>!
@@ -526,4 +540,4 @@ s/\.in-h\;  *\\$/.in-h >> $@-t/
 /^unistd\.h:/,/^	[ 	]*mv /{
   s/'\; \\ *$/' >> $@-t/
 }
-s!\$(MKDIR_P)[ 	][ 	]*sys!command.com /c "if not exist sys\stat.h md sys"!
+s!\$(MKDIR_P)[ 	][ 	]*sys!command.com /c "if not exist sys\\stat.h md sys"!
