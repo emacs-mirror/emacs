@@ -677,7 +677,6 @@ w32_console_read_socket (struct terminal *terminal,
                          int expected,
                          struct input_event *hold_quit)
 {
-  BOOL no_events = TRUE;
   int nev, ret = 0, add;
   int isdead;
 

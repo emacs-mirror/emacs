@@ -183,7 +183,7 @@ unsigned int msh_mousewheel = 0;
 #define MENU_FREE_DELAY 1000
 static unsigned menu_free_timer = 0;
 
-#ifdef GLYPH_DEBUG
+#if GLYPH_DEBUG
 int image_cache_refcount, dpyinfo_refcount;
 #endif
 
@@ -2862,7 +2862,6 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			 base character (ie. translating the base key plus
 			 shift modifier).  */
 		      int add;
-		      int isdead = 0;
 		      KEY_EVENT_RECORD key;
 
 		      key.bKeyDown = TRUE;
@@ -3980,7 +3979,7 @@ unwind_create_frame (Lisp_Object frame)
   /* If frame is ``official'', nothing to do.  */
   if (!CONSP (Vframe_list) || !EQ (XCAR (Vframe_list), frame))
     {
-#ifdef GLYPH_DEBUG
+#if GLYPH_DEBUG
       struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
 #endif
 
@@ -4521,8 +4520,6 @@ DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
   (Lisp_Object display)
 {
-  struct w32_display_info *dpyinfo = check_x_display_info (display);
-
   return make_number (1);
 }
 
@@ -5171,7 +5168,7 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
 		    Lisp_Object parms, Lisp_Object text)
 {
   struct frame *f;
-  Lisp_Object frame, tem;
+  Lisp_Object frame;
   Lisp_Object name;
   long window_prompting = 0;
   int width, height;

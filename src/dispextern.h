@@ -662,7 +662,7 @@ struct glyph_matrix
      line.  */
   unsigned header_line_p : 1;
 
-#ifdef GLYPH_DEBUG
+#if GLYPH_DEBUG
   /* A string identifying the method used to display the matrix.  */
   char method[512];
 #endif

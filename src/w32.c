@@ -3250,8 +3250,6 @@ int
 stat (const char * path, struct stat * buf)
 {
   char *name, *r;
-  char drive_root[4];
-  UINT devtype;
   WIN32_FIND_DATA wfd;
   HANDLE fh;
   unsigned __int64 fake_inode;
@@ -4043,7 +4041,6 @@ system_process_attributes (Lisp_Object pid)
   TOKEN_PRIMARY_GROUP group_token;
   unsigned euid;
   unsigned egid;
-  DWORD sess;
   PROCESS_MEMORY_COUNTERS mem;
   PROCESS_MEMORY_COUNTERS_EX mem_ex;
   DWORD minrss, maxrss;
@@ -5408,7 +5405,6 @@ sys_read (int fd, char * buffer, unsigned int count)
 	    {
 	      HANDLE hnd = fd_info[fd].hnd;
 	      OVERLAPPED *ovl = &fd_info[fd].cp->ovl_read;
-	      DWORD err = 0;
 	      int rc = 0;
 	      COMMTIMEOUTS ct;
 

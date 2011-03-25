@@ -765,7 +765,6 @@ main (int argc, char **argv)
   PIMAGE_NT_HEADERS nt_header;
   file_data in_file, out_file;
   char out_filename[MAX_PATH], in_filename[MAX_PATH];
-  const char *ptr;
 
   strcpy (in_filename, argv[1]);
   strcpy (out_filename, argv[2]);

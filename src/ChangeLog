@@ -1,3 +1,34 @@
+2011-03-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dispextern.h (glyph_matric): Use #if GLYPH_DEBUG, not #ifdef.
+
+	* fileio.c (check_executable) [DOS_NT]: Remove unused variables `len'
+	and `suffix'.
+	(Fset_file_selinux_context) [HAVE_LIBSELINUX]: Move here declaration
+	of variables specific to SELinux and computation of `encoded_absname'.
+
+	* image.c (XPutPixel): Remove unused variable `height'.
+
+	* keyboard.c (make_lispy_event): Remove unused variable `hpos'.
+
+	* unexw32.c (get_section_info): Remove unused variable `section'.
+
+	* w32.c (stat): Remove unused variables `drive_root' and `devtype'.
+	(system_process_attributes): Remove unused variable `sess'.
+	(sys_read): Remove unused variable `err'.
+
+	* w32fns.c (top): Wrap variables with #if GLYPH_DEBUG, not #ifdef.
+	(w32_wnd_proc): Remove unused variable `isdead'.
+	(unwind_create_frame): Use #if GLYPH_DEBUG, not #ifdef.
+	(Fx_server_max_request_size): Remove unused variable `dpyinfo'.
+	(x_create_tip_frame): Remove unused variable `tem'.
+
+	* w32inevt.c (w32_console_read_socket):
+	Remove unused variable `no_events'.
+
+	* w32term.c (x_draw_composite_glyph_string_foreground):
+	Remove unused variable `width'.
+
 2011-03-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32term.c (x_set_glyph_string_clipping):
@@ -40,7 +71,7 @@
 	* buffer.c (Fkill_all_local_variables):
 	* keyboard.c (Fcommand_execute, Fsuspend_emacs, safe_run_hooks_1):
 	Use Frun_hooks.
-	(command_loop_1): Use Frun_hooks. Call safe_run_hooks
+	(command_loop_1): Use Frun_hooks.  Call safe_run_hooks
 	unconditionnaly since it does the check itself.
 
 2011-03-23  Paul Eggert  <eggert@cs.ucla.edu>

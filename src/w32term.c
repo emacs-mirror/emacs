@@ -1289,7 +1289,6 @@ x_draw_composite_glyph_string_foreground (struct glyph_string *s)
   else if (! s->first_glyph->u.cmp.automatic)
     {
       int y = s->ybase;
-      int width = 0;
       HFONT old_font;
 
       old_font = SelectObject (s->hdc, FONT_HANDLE (font));

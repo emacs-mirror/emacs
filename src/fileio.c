@@ -2359,8 +2359,6 @@ static int
 check_executable (char *filename)
 {
 #ifdef DOS_NT
-  int len = strlen (filename);
-  char *suffix;
   struct stat st;
   if (stat (filename, &st) < 0)
     return 0;
@@ -2786,13 +2784,14 @@ as a list ("user", "role", "type", "range"). Has no effect if SELinux
 is disabled. */)
   (Lisp_Object filename, Lisp_Object context)
 {
-  Lisp_Object absname, encoded_absname;
+  Lisp_Object absname;
   Lisp_Object handler;
+#if HAVE_LIBSELINUX
+  Lisp_Object encoded_absname;
   Lisp_Object user = CAR_SAFE (context);
   Lisp_Object role = CAR_SAFE (CDR_SAFE (context));
   Lisp_Object type = CAR_SAFE (CDR_SAFE (CDR_SAFE (context)));
   Lisp_Object range = CAR_SAFE (CDR_SAFE (CDR_SAFE (CDR_SAFE (context))));
-#if HAVE_LIBSELINUX
   security_context_t con;
   int fail, conlength;
   context_t parsed_con;
@@ -2806,9 +2805,9 @@ is disabled. */)
   if (!NILP (handler))
     return call3 (handler, Qset_file_selinux_context, absname, context);
 
+#if HAVE_LIBSELINUX
   encoded_absname = ENCODE_FILE (absname);
 
-#if HAVE_LIBSELINUX
   if (is_selinux_enabled ())
     {
       /* Get current file context. */
