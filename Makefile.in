@@ -344,12 +344,9 @@ sync-from-gnulib: $(gnulib_srcdir)
 	cd $(srcdir)/m4 && mv gnulib-comp.m4 $(DOS_gnulib_comp.m4)
 	cp $(gnulib_srcdir)/build-aux/texinfo.tex $(srcdir)/doc/misc
 	cp \
-	  $(gnulib_srcdir)/build-aux/config.sub \
-	  $(gnulib_srcdir)/build-aux/config.guess \
-	  $(gnulib_srcdir)/build-aux/install-sh \
 	  $(gnulib_srcdir)/build-aux/move-if-change \
 	  $(srcdir)
-	cd $(srcdir) && autoreconf -I m4
+	cd $(srcdir) && autoreconf -i -I m4
 .PHONY: sync-from-gnulib
 
 # These targets should be "${SUBDIR} without `src'".

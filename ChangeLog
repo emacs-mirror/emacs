@@ -1,3 +1,17 @@
+2011-03-25  Glenn Morris  <rgm@gnu.org>
+
+	* compile, config.guess, config.sub, depcomp, install-sh, missing:
+	Remove; autoreconf can supply them.
+	* Makefile.in (sync-from-gnulib): Don't sync config.sub,
+	config.guess, install-sh.  Pass -i to autoreconf.
+	* autogen/update_autogen (genfiles): Add compile, config.guess,
+	config.sub, depcomp, install-sh, missing.  Pass -i to autoreconf.
+	Discard non-error output from autoreconf in -q case.
+	* autogen/compile, autogen/config.guess, autogen/config.sub:
+	* autogen/depcomp, autogen/install-sh, autogen/missing: New.
+	* autogen/copy_autogen: Add compile, config.guess, config.sub, depcomp,
+	install-sh, missing.
+
 2011-03-23  Glenn Morris  <rgm@gnu.org>
 
 	* autogen/update_autogen: Fix typo.

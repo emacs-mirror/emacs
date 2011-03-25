@@ -31,7 +31,7 @@ For each step, check for possible errors.
 5.  Edit configure.in so that maintainer-mode is off by default.
     (FIXME - need to find a better way of dealing with this).
 
-     autoreconf -I m4 --force
+     autoreconf -i -I m4 --force
      make bootstrap
 
 6.  Commit etc/AUTHORS, all the files changed by M-x set-version, and

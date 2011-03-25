@@ -177,7 +177,7 @@ this script.
 If you know that the required versions are in your PATH, but this
 script has made an error, then you can simply run
 
-autoreconf -I m4
+autoreconf -i -I m4
 
 instead of this script.
 
@@ -198,7 +198,7 @@ echo "Your system has the required tools, running autoreconf..."
 
 
 ## Let autoreconf figure out what, if anything, needs doing.
-autoreconf -I m4 || exit $?
+autoreconf -i -I m4 || exit $?
 
 echo "You can now run \`./configure'."
 

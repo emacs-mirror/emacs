@@ -16,6 +16,7 @@ if test ! -e config.in; then
 fi
 
 ## Order implied by top-level Makefile's rules, for time-stamps.
+cp compile config.guess config.sub depcomp install-sh missing ../
 cp aclocal.m4 ../
 cp configure ../
 touch ../src/stamp-h.in

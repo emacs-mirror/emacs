@@ -21,7 +21,7 @@ First, generate the `configure' script:
 
   $ ./autogen.sh
 
-(or you can just run `autoreconf -I m4').
+(or you can just run `autoreconf -i -I m4').
 
 You can then configure your build (use `./configure --help' to see
 options you can set):
