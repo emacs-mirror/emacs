@@ -2806,11 +2806,10 @@ is disabled. */)
     return call3 (handler, Qset_file_selinux_context, absname, context);
 
 #if HAVE_LIBSELINUX
-  encoded_absname = ENCODE_FILE (absname);
-
   if (is_selinux_enabled ())
     {
       /* Get current file context. */
+      encoded_absname = ENCODE_FILE (absname);
       conlength = lgetfilecon (SSDATA (encoded_absname), &con);
       if (conlength > 0)
 	{
