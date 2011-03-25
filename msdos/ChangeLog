@@ -1,3 +1,7 @@
+2011-03-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedlibmk.inp: Adapt to addition of the gnulib stdio module.
+
 2011-02-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* sedlibmk.inp (BITSIZEOF_PTRDIFF_T, BITSIZEOF_SIG_ATOMIC_T)

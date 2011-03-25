@@ -1,3 +1,8 @@
+2011-03-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.bat: Generate src/config.h and lib/Makefile from
+	autogen/config.in and autogen/Makefile.in.
+
 2011-03-25  Glenn Morris  <rgm@gnu.org>
 
 	* compile, config.guess, config.sub, depcomp, install-sh, missing:
