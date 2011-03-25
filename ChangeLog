@@ -1,3 +1,7 @@
+2011-03-25  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* autogen/update_autogen: Remove useless function keyword.
+
 2011-03-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.bat: Generate src/config.h and lib/Makefile from

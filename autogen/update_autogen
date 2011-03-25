@@ -28,7 +28,7 @@
 
 ### Code:
 
-function die ()                 # write error to stderr and exit
+die ()                 # write error to stderr and exit
 {
     [ $# -gt 0 ] && echo "$PN: $@" >&2
     exit 1
@@ -45,7 +45,7 @@ cd ../
 [ -d autogen ] || die "Could not locate autogen directory"
 
 
-function usage ()
+usage ()
 {
     cat 1>&2 <<EOF
 Usage: ${PN} [-f] [-c] [-q]
