@@ -1964,17 +1964,9 @@ If INITIAL is non-nil, it specifies the initial input string."
       (ido-set-matches)
       (if (and ido-matches (eq ido-try-merged-list 'auto))
 	  (setq ido-try-merged-list t))
-      (let
-	  ((minibuffer-local-completion-map
-	    (if (memq ido-cur-item '(file dir))
-		minibuffer-local-completion-map
-	      ido-completion-map))
-	   (minibuffer-local-filename-completion-map
-	    (if (memq ido-cur-item '(file dir))
-		ido-completion-map
-	      minibuffer-local-filename-completion-map))
-	   (max-mini-window-height (or ido-max-window-height
-				       (and (boundp 'max-mini-window-height) max-mini-window-height)))
+      (let ((max-mini-window-height (or ido-max-window-height
+					(and (boundp 'max-mini-window-height)
+					     max-mini-window-height)))
 	   (ido-completing-read t)
 	   (ido-require-match require-match)
 	   (ido-use-mycompletion-depth (1+ (minibuffer-depth)))
@@ -1985,12 +1977,11 @@ If INITIAL is non-nil, it specifies the initial input string."
 	(setq ido-exit nil)
 	(setq ido-final-text
 	      (catch 'ido
-		(completing-read-default
-		 (ido-make-prompt item prompt)
-		 '(("dummy" . 1)) nil nil ; table predicate require-match
-		 (prog1 ido-text-init (setq ido-text-init nil))	;initial-contents
-		 history))))
-      (ido-trace "completing-read" ido-final-text)
+		(read-from-minibuffer (ido-make-prompt item prompt)
+				      (prog1 ido-text-init
+					(setq ido-text-init nil))
+				      ido-completion-map nil history))))
+      (ido-trace "read-from-minibuffer" ido-final-text)
       (if (get-buffer ido-completion-buffer)
 	  (kill-buffer ido-completion-buffer))
 
@@ -4494,17 +4485,13 @@ For details of keybindings, see `ido-find-file'."
 
 	;; Insert the match-status information:
 	(ido-set-common-completion)
-	(let ((inf (ido-completions
-		    contents
-		    minibuffer-completion-table
-		    minibuffer-completion-predicate
-		    (not minibuffer-completion-confirm))))
+	(let ((inf (ido-completions contents)))
 	  (setq ido-show-confirm-message nil)
 	  (ido-trace "inf" inf)
 	  (insert inf))
 	))))
 
-(defun ido-completions (name candidates predicate require-match)
+(defun ido-completions (name)
   ;; Return the string that is displayed after the user's text.
   ;; Modified from `icomplete-completions'.
 
