@@ -1,5 +1,13 @@
 2011-03-25  Juanma Barranquero  <lekktu@gmail.com>
 
+	* buffer.c (defvar_per_buffer): Remove unused parameter `doc'.
+	(DEFVAR_PER_BUFFER): Don't pass it.
+
+	* dispnew.c (row_equal_p, add_row_entry): Remove unused parameter `w'.
+	(scrolling_window): Don't pass it.
+
+2011-03-25  Juanma Barranquero  <lekktu@gmail.com>
+
 	* dispextern.h (glyph_matric): Use #if GLYPH_DEBUG, not #ifdef.
 
 	* fileio.c (check_executable) [DOS_NT]: Remove unused variables `len'

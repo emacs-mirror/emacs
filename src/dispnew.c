@@ -1297,13 +1297,11 @@ line_draw_cost (struct glyph_matrix *matrix, int vpos)
 
 
 /* Test two glyph rows A and B for equality.  Value is non-zero if A
-   and B have equal contents.  W is the window to which the glyphs
-   rows A and B belong.  It is needed here to test for partial row
-   visibility.  MOUSE_FACE_P non-zero means compare the mouse_face_p
-   flags of A and B, too.  */
+   and B have equal contents.  MOUSE_FACE_P non-zero means compare the
+   mouse_face_p flags of A and B, too.  */
 
 static INLINE int
-row_equal_p (struct window *w, struct glyph_row *a, struct glyph_row *b, int mouse_face_p)
+row_equal_p (struct glyph_row *a, struct glyph_row *b, int mouse_face_p)
 {
   if (a == b)
     return 1;
@@ -4251,17 +4249,16 @@ static int runs_size;
 
 static struct run **runs;
 
-/* Add glyph row ROW to the scrolling hash table during the scrolling
-   of window W.  */
+/* Add glyph row ROW to the scrolling hash table.  */
 
 static INLINE struct row_entry *
-add_row_entry (struct window *w, struct glyph_row *row)
+add_row_entry (struct glyph_row *row)
 {
   struct row_entry *entry;
   int i = row->hash % row_table_size;
 
   entry = row_table[i];
-  while (entry && !row_equal_p (w, entry->row, row, 1))
+  while (entry && !row_equal_p (entry->row, row, 1))
     entry = entry->next;
 
   if (entry == NULL)
@@ -4328,7 +4325,7 @@ scrolling_window (struct window *w, int header_line_p)
 	  && c->y == d->y
 	  && MATRIX_ROW_BOTTOM_Y (c) <= yb
 	  && MATRIX_ROW_BOTTOM_Y (d) <= yb
-	  && row_equal_p (w, c, d, 1))
+	  && row_equal_p (c, d, 1))
 	{
 	  assign_row (c, d);
 	  d->enabled_p = 0;
@@ -4381,8 +4378,7 @@ scrolling_window (struct window *w, int header_line_p)
 	 && (MATRIX_ROW (current_matrix, i - 1)->y
 	     == MATRIX_ROW (desired_matrix, j - 1)->y)
 	 && !MATRIX_ROW (desired_matrix, j - 1)->redraw_fringe_bitmaps_p
-         && row_equal_p (w,
-			 MATRIX_ROW (desired_matrix, i - 1),
+         && row_equal_p (MATRIX_ROW (desired_matrix, i - 1),
                          MATRIX_ROW (current_matrix, j - 1), 1))
     --i, --j;
   last_new = i;
@@ -4443,7 +4439,7 @@ scrolling_window (struct window *w, int header_line_p)
     {
       if (MATRIX_ROW (current_matrix, i)->enabled_p)
 	{
-	  entry = add_row_entry (w, MATRIX_ROW (current_matrix, i));
+	  entry = add_row_entry (MATRIX_ROW (current_matrix, i));
 	  old_lines[i] = entry;
 	  ++entry->old_uses;
 	}
@@ -4454,7 +4450,7 @@ scrolling_window (struct window *w, int header_line_p)
   for (i = first_new; i < last_new; ++i)
     {
       xassert (MATRIX_ROW_ENABLED_P (desired_matrix, i));
-      entry = add_row_entry (w, MATRIX_ROW (desired_matrix, i));
+      entry = add_row_entry (MATRIX_ROW (desired_matrix, i));
       ++entry->new_uses;
       entry->new_line_number = i;
       new_lines[i] = entry;
