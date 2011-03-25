@@ -1,3 +1,9 @@
+2011-03-25  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* mm-util.el (mm-handle-filename): Move to mm-decode.el (bug#8330).
+
+	* mm-decode.el (mm-handle-filename): Move from mm-util.el (bug#8330).
+
 2011-03-21  Julien Danjou  <julien@danjou.info>
 
 	* mm-view.el (mm-display-inline-fontify): Make mode optional, and call

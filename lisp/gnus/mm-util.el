@@ -1667,13 +1667,6 @@ gzip, bzip2, etc. are allowed."
 	(when decomp
 	  (kill-buffer (current-buffer)))))))
 
-(defun mm-handle-filename (handle)
-  "Return filename of HANDLE if any."
-  (or (mail-content-type-get (mm-handle-type handle)
-                             'name)
-      (mail-content-type-get (mm-handle-disposition handle)
-                             'filename)))
-
 (provide 'mm-util)
 
 ;;; mm-util.el ends here

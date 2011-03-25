@@ -1744,6 +1744,13 @@ If RECURSIVE, search recursively."
 	    (delete-region ,(point-min-marker)
 			   ,(point-max-marker))))))))
 
+(defun mm-handle-filename (handle)
+  "Return filename of HANDLE if any."
+  (or (mail-content-type-get (mm-handle-type handle)
+                             'name)
+      (mail-content-type-get (mm-handle-disposition handle)
+                             'filename)))
+
 (provide 'mm-decode)
 
 ;;; mm-decode.el ends here
