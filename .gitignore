@@ -1,5 +1,11 @@
 configure
 aclocal.m4
+compile
+config.guess
+config.sub
+depcomp
+install-sh
+missing
 lib/Makefile.in
 src/config.in
 autom4te.cache
