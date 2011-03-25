@@ -1,3 +1,8 @@
+2011-03-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (handle_fontified_prop): Discard changes to clip_changed
+	incurred during fontification.
+
 2011-03-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* buffer.c (defvar_per_buffer): Remove unused parameter `doc'.

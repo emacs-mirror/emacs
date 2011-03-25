@@ -3164,6 +3164,9 @@ handle_fontified_prop (struct it *it)
     {
       int count = SPECPDL_INDEX ();
       Lisp_Object val;
+      struct buffer *obuf = current_buffer;
+      int begv = BEGV, zv = ZV;
+      int old_clip_changed = current_buffer->clip_changed;
 
       val = Vfontification_functions;
       specbind (Qfontification_functions, Qnil);
@@ -3208,6 +3211,23 @@ handle_fontified_prop (struct it *it)
 	}
 
       unbind_to (count, Qnil);
+
+      /* Fontification functions routinely call `save-restriction'.
+	 Normally, this tags clip_changed, which can confuse redisplay
+	 (see discussion in Bug#6671).  Since we don't perform any
+	 special handling of fontification changes in the case where
+	 `save-restriction' isn't called, there's no point doing so in
+	 this case either.  So, if the buffer's restrictions are
+	 actually left unchanged, reset clip_changed.  */
+      if (obuf == current_buffer)
+      	{
+      	  if (begv == BEGV && zv == ZV)
+	    current_buffer->clip_changed = old_clip_changed;
+      	}
+      /* There isn't much we can reasonably do to protect against
+      	 misbehaving fontification, but here's a fig leaf.  */
+      else if (!NILP (BVAR (obuf, name)))
+      	set_buffer_internal_1 (obuf);
 
       /* The fontification code may have added/removed text.
 	 It could do even a lot worse, but let's at least protect against
