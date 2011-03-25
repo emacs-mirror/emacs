@@ -3,6 +3,7 @@
 	* midnight.el (midnight-time-float): Remove.  Note it calculates
 	the microsecond component incorrectly and seconds-to-time does the
 	same job.
+	Remove redundant (require 'timer).
 
 	* ido.el (ido-read-internal): Simplify with read-from-minibuffer.
 	(ido-completions): Remove unused arguments.  (Bug#8329)

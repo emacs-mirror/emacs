@@ -39,8 +39,6 @@
 (eval-when-compile
  (require 'cl))
 
-(require 'timer)
-
 (defgroup midnight nil
   "Run something every day at midnight."
   :group 'calendar
