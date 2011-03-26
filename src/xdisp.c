@@ -13016,7 +13016,8 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
   int dy = 0, amount_to_scroll = 0, scroll_down_p = 0;
   int extra_scroll_margin_lines = last_line_misfit ? 1 : 0;
   Lisp_Object aggressive;
-  int scroll_limit = INT_MAX / FRAME_LINE_HEIGHT (f);
+  /* We will never try scrolling more than this number of lines.  */
+  int scroll_limit = 100;
 
 #if GLYPH_DEBUG
   debug_method_add (w, "try_scrolling");
@@ -13032,14 +13033,14 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
   else
     this_scroll_margin = 0;
 
-  /* Force arg_scroll_conservatively to have a reasonable value, to avoid
-     overflow while computing how much to scroll.  Note that the user
-     can supply scroll-conservatively equal to `most-positive-fixnum',
-     which can be larger than INT_MAX.  */
+  /* Force arg_scroll_conservatively to have a reasonable value, to
+     avoid scrolling too far away with slow move_it_* functions.  Note
+     that the user can supply scroll-conservatively equal to
+     `most-positive-fixnum', which can be larger than INT_MAX.  */
   if (arg_scroll_conservatively > scroll_limit)
     {
-      arg_scroll_conservatively = scroll_limit;
-      scroll_max = INT_MAX;
+      arg_scroll_conservatively = scroll_limit + 1;
+      scroll_max = scroll_limit * FRAME_LINE_HEIGHT (f);
     }
   else if (scroll_step || arg_scroll_conservatively || temp_scroll_step)
     /* Compute how much we should try to scroll maximally to bring
@@ -13076,7 +13077,7 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 	  /* Compute how many pixels below window bottom to stop searching
 	     for PT.  This avoids costly search for PT that is far away if
 	     the user limited scrolling by a small number of lines, but
-	     always finds PT if arg_scroll_conservatively is set to a large
+	     always finds PT if scroll_conservatively is set to a large
 	     number, such as most-positive-fixnum.  */
 	  int slack = max (scroll_max, 10 * FRAME_LINE_HEIGHT (f));
 	  int y_to_move =
@@ -13128,12 +13129,12 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 	return SCROLLING_FAILED;
 
       start_display (&it, w, startp);
-      if (scroll_max < INT_MAX)
+      if (arg_scroll_conservatively <= scroll_limit)
 	move_it_vertically (&it, amount_to_scroll);
       else
 	{
 	  /* Extra precision for users who set scroll-conservatively
-	     to most-positive-fixnum: make sure the amount we scroll
+	     to a large number: make sure the amount we scroll
 	     the window start is never less than amount_to_scroll,
 	     which was computed as distance from window bottom to
 	     point.  This matters when lines at window top and lines

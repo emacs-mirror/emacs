@@ -2,6 +2,7 @@
 
 	* xdisp.c (redisplay_window): Don't check buffer's clip_changed
 	flag as a prerequisite for invoking try_scrolling.  (Bug#6671)
+	(try_scrolling): Limit scrolling to 100 screen lines.
 
 2011-03-26  Juanma Barranquero  <lekktu@gmail.com>
 
