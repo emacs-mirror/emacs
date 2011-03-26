@@ -3,6 +3,11 @@
 	* xdisp.c (redisplay_window): Don't check buffer's clip_changed
 	flag as a prerequisite for invoking try_scrolling.  (Bug#6671)
 	(try_scrolling): Limit scrolling to 100 screen lines.
+	(SCROLL_LIMIT): New macro.
+	(try_scrolling): Use it when setting scroll_limit.
+	(redisplay_window): Even when falling back on "recentering",
+	position point in the window according to scroll-conservatively,
+	scroll-margin, and scroll-*-aggressively variables.  (Bug#6671)
 
 2011-03-26  Juanma Barranquero  <lekktu@gmail.com>
 

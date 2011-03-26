@@ -13003,6 +13003,9 @@ enum
   SCROLLING_NEED_LARGER_MATRICES
 };
 
+/* If scroll-conservatively is more than this, never recenter.  */
+#define SCROLL_LIMIT 100
+
 static int
 try_scrolling (Lisp_Object window, int just_this_one_p,
 	       EMACS_INT arg_scroll_conservatively, EMACS_INT scroll_step,
@@ -13017,7 +13020,7 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
   int extra_scroll_margin_lines = last_line_misfit ? 1 : 0;
   Lisp_Object aggressive;
   /* We will never try scrolling more than this number of lines.  */
-  int scroll_limit = 100;
+  int scroll_limit = SCROLL_LIMIT;
 
 #if GLYPH_DEBUG
   debug_method_add (w, "try_scrolling");
@@ -14202,11 +14205,10 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	}
     }
 
-  /* Finally, just choose place to start which centers point */
+  /* Finally, just choose a place to start which positions point
+     according to user preferences.  */
 
  recenter:
-  if (centering_position < 0)
-    centering_position = window_box_height (w) / 2;
 
 #if GLYPH_DEBUG
   debug_method_add (w, "recenter");
@@ -14218,10 +14220,62 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
   if (!buffer_unchanged_p)
     w->base_line_number = Qnil;
 
-  /* Move backward half the height of the window.  */
+  /* Determine the window start relative to point.  */
   init_iterator (&it, w, PT, PT_BYTE, NULL, DEFAULT_FACE_ID);
   it.current_y = it.last_visible_y;
+  if (centering_position < 0)
+    {
+      int margin =
+	scroll_margin > 0
+	? min (scroll_margin, WINDOW_TOTAL_LINES (w) / 4)
+	: 0;
+      int scrolling_up = PT > CHARPOS (startp) + margin;
+      Lisp_Object aggressive =
+	scrolling_up
+	? BVAR (current_buffer, scroll_up_aggressively)
+	: BVAR (current_buffer, scroll_down_aggressively);
+
+      if (!MINI_WINDOW_P (w)
+	  && scroll_conservatively > SCROLL_LIMIT || NUMBERP (aggressive))
+	{
+	  int pt_offset = 0;
+
+	  /* Setting scroll-conservatively overrides
+	     scroll-*-aggressively.  */
+	  if (!scroll_conservatively && NUMBERP (aggressive))
+	    {
+	      double float_amount = XFLOATINT (aggressive);
+
+	      pt_offset = float_amount * WINDOW_BOX_TEXT_HEIGHT (w);
+	      if (pt_offset == 0 && float_amount > 0)
+		pt_offset = 1;
+	      if (pt_offset)
+		margin -= 1;
+	    }
+	  /* Compute how much to move the window start backward from
+	     point so that point will be displayed where the user
+	     wants it.  */
+	  if (scrolling_up)
+	    {
+	      centering_position = it.last_visible_y;
+	      if (pt_offset)
+		centering_position -= pt_offset;
+	      centering_position -=
+		FRAME_LINE_HEIGHT (f) * (1 + margin + (last_line_misfit != 0));
+	      /* Don't let point enter the scroll margin near top of
+		 the window.  */
+	      if (centering_position < margin * FRAME_LINE_HEIGHT (f))
+		centering_position = margin * FRAME_LINE_HEIGHT (f);
+	    }
+	  else
+	    centering_position = margin * FRAME_LINE_HEIGHT (f) + pt_offset;
+	}
+      else
+	/* Move backward from point half the height of the window.  */
+	centering_position = window_box_height (w) / 2;
+    }
   move_it_vertically_backward (&it, centering_position);
+
   xassert (IT_CHARPOS (it) >= BEGV);
 
   /* The function move_it_vertically_backward may move over more
@@ -14238,8 +14292,9 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 
   it.current_x = it.hpos = 0;
 
-  /* Set startp here explicitly in case that helps avoid an infinite loop
-     in case the window-scroll-functions functions get errors.  */
+  /* Set the window start position here explicitly, to avoid an
+     infinite loop in case the functions in window-scroll-functions
+     get errors.  */
   set_marker_both (w->start, Qnil, IT_CHARPOS (it), IT_BYTEPOS (it));
 
   /* Run scroll hooks.  */
