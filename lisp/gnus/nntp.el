@@ -1339,26 +1339,26 @@ password contained in '~/.nntp-authinfo'."
 	  (condition-case err
 	      (let ((coding-system-for-read nntp-coding-system-for-read)
 		    (coding-system-for-write nntp-coding-system-for-write)
-		    (map '((nntp-open-network-stream network)
-			   (network-only network-only)
+		    (map '((nntp-open-network-stream try-starttls)
+			   (network-only default)
 			   (nntp-open-ssl-stream tls)
 			   (nntp-open-tls-stream tls))))
 		(if (assoc nntp-open-connection-function map)
-		    (car (open-protocol-stream
-			  "nntpd" pbuffer nntp-address nntp-port-number
-			  :type (cadr
-				 (assoc nntp-open-connection-function map))
-			  :end-of-command "^\\([2345]\\|[.]\\).*\n"
-			  :capability-command "CAPABILITIES\r\n"
-			  :success "^3"
-			  :starttls-function
-			  (lambda (capabilities)
-			    (if (not (string-match "STARTTLS" capabilities))
-				nil
-			      "STARTTLS\r\n"))))
+		    (open-protocol-stream
+		     "nntpd" pbuffer nntp-address nntp-port-number
+		     :type (or (cadr (assoc nntp-open-connection-function map))
+			       'try-starttls)
+		     :end-of-command "^\\([2345]\\|[.]\\).*\n"
+		     :capability-command "CAPABILITIES\r\n"
+		     :success "^3"
+		     :starttls-function
+		     (lambda (capabilities)
+		       (if (not (string-match "STARTTLS" capabilities))
+			   nil
+			 "STARTTLS\r\n")))
 		  (funcall nntp-open-connection-function pbuffer)))
 	    (error
-	     (nnheader-report 'nntp "%s" err))
+	     (nnheader-report 'nntp ">>> %s" err))
 	    (quit
 	     (message "Quit opening connection to %s" nntp-address)
 	     (nntp-kill-buffer pbuffer)
@@ -1366,6 +1366,9 @@ password contained in '~/.nntp-authinfo'."
 	     nil))))
     (when timer
       (nnheader-cancel-timer timer))
+    (when (and process
+	       (not (memq (process-status process) '(open run))))
+      (setq process nil))
     (unless process
       (nntp-kill-buffer pbuffer))
     (when (and (buffer-name pbuffer)

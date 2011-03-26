@@ -37,7 +37,7 @@
 
 ;; (open-protocol-stream
 ;;  "*nnimap*" buffer address port
-;;  :type 'network
+;;  :type 'try-starttls
 ;;  :capability-command "1 CAPABILITY\r\n"
 ;;  :success " OK "
 ;;  :starttls-function
@@ -48,171 +48,164 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
 (require 'tls)
 (require 'starttls)
-(require 'format-spec)
-
-(defcustom proto-stream-always-use-starttls (fboundp 'open-gnutls-stream)
-  "If non-nil, always try to upgrade network connections with STARTTLS."
-  :version "24.1"
-  :type 'boolean
-  :group 'comm)
 
 (declare-function gnutls-negotiate "gnutls"
 		  (proc type &optional priority-string trustfiles keyfiles))
 
 ;;;###autoload
 (defun open-protocol-stream (name buffer host service &rest parameters)
-  "Open a network stream to HOST, upgrading to STARTTLS if possible.
-The first four parameters have the same meaning as in
-`open-network-stream'.  The function returns a list where the
-first element is the stream, the second element is the greeting
-the server replied with after connecting, and the third element
-is a string representing the capabilities of the server (if any).
+  "Open a network stream to HOST, possibly with encryption.
+Normally, return a network process object; with a non-nil
+:return-list parameter, return a list instead (see below).
 
-The PARAMETERS is a keyword list that can have the following
-values:
+The first four parameters, NAME, BUFFER, HOST, and SERVICE, have
+the same meanings as in `open-network-stream'.  The remaining
+PARAMETERS should be a sequence of keywords and values:
 
-:type -- either `network', `network-only, `tls', `shell' or
-`starttls'.  If omitted, the default is `network'.  `network'
-will be opportunistically upgraded to STARTTLS if both the server
-and Emacs supports it.  If you don't want STARTTLS upgrades, use
-`network-only'.
+:type specifies the connection type, one of the following:
+  `default'  -- An ordinary network connection.
+  `try-starttls'
+             -- Begin an ordinary network connection, and try
+                upgrading it to an encrypted connection via
+                STARTTLS if both HOST and Emacs support TLS.  If
+                that fails, keep the unencrypted connection.
+  `starttls' -- Begin an ordinary connection, and try upgrading
+                it via STARTTLS.  If that fails for any reason,
+                drop the connection; in this case, the returned
+                process object is a killed process.
+  `tls' or `ssl' -- A TLS connection.
+  `shell'    -- A shell connection.
 
-:end-of-command -- a regexp saying what the end of a command is.
-This defaults to \"\\n\".
+:return-list specifies this function's return value.
+  If omitted or nil, return a process object.  A non-nil means to
+  return (PROC . PROPS), where PROC is a process object and PROPS
+  is a plist of connection properties, with these keywords:
+   :greeting -- the greeting returned by HOST (a string), or nil.
+   :capabilities -- a string representing HOST's capabilities,
+                    or nil if none could be found.
+   :type -- the actual connection type; either `default' for an
+            unencrypted connection, or `tls'.
 
-:success -- a regexp saying whether the STARTTLS command was
-successful or not.  For instance, for NNTP this is \"^3\".
+:end-of-command specifies a regexp matching the end of a command.
+  If non-nil, it defaults to \"\\n\".
 
-:capability-command -- a string representing the command used to
-query server for capabilities.  For instance, for IMAP this is
-\"1 CAPABILITY\\r\\n\".
+:success specifies a regexp matching a message indicating a
+  successful STARTTLS negotiation.  For instance, the default
+  should be \"^3\" for an NNTP connection.  If this is not
+  supplied, STARTTLS will always fail.
 
-:starttls-function -- a function that takes one parameter, which
-is the response to the capaibility command.  It should return nil
-if it turns out that the server doesn't support STARTTLS, or the
-command to switch on STARTTLS otherwise.
+:capability-command specifies a command used to query the HOST
+  for its capabilities.  For instance, for IMAP this should be
+  \"1 CAPABILITY\\r\\n\".
 
-The return value from this function is a four-element list, where
-the first element is the stream (if connection was successful);
-the second element is the \"greeting\", i. e., the string the
-server sent over on initial contact; the third element is the
-capability string; and the fourth element is either `network' or
-`tls', depending on whether the connection ended up being
-encrypted or not."
-  (let ((type (or (cadr (memq :type parameters)) 'network)))
-    (cond
-     ((eq type 'starttls)
-      (setq type 'network))
-     ((eq type 'ssl)
-      (setq type 'tls)))
-    (let ((open-result
-	   (funcall (intern (format "proto-stream-open-%s" type) obarray)
-		    name buffer host service parameters)))
-      (if (null open-result)
-	  (list nil nil nil type)
-	(let ((stream (car open-result)))
-	  (list (and stream
-		     (memq (process-status stream)
-			   '(open run))
-		     stream)
-		(nth 1 open-result)
-		(nth 2 open-result)
-		(nth 3 open-result)))))))
+:starttls-function specifies a function for handling STARTTLS.
+  This function should take one parameter, the response to the
+  capability command, and should return the command to switch on
+  STARTTLS if the server supports STARTTLS, and nil otherwise."
+  (let ((type (plist-get parameters :type))
+	(return-list (plist-get parameters :return-list)))
+    (if (and (null return-list) (memq type '(nil default)))
+	;; The simplest case---no encryption, and no need to report
+	;; connection properties.  Like `open-network-stream', this
+	;; doesn't read anything into BUFFER yet.
+	(open-network-stream name buffer host service)
+      ;; For everything else, refer to proto-stream-open-*.
+      (unless (plist-get parameters :end-of-command)
+	(setq parameters
+	      (append '(:end-of-command "\r\n") parameters)))
+      (let* ((connection-function
+	      (cond
+	       ((memq type '(nil default))
+		'proto-stream-open-default)
+	       ((memq type '(try-starttls starttls))
+		'proto-stream-open-starttls)
+	       ((memq type '(tls ssl))
+		'proto-stream-open-tls)
+	       ((eq type 'shell)
+		'proto-stream-open-shell)
+	       (t
+		(error "Invalid connection type %s" type))))
+	     (result (funcall connection-function
+			      name buffer host service parameters)))
+	(if return-list
+	    (list (car result)
+		  :greeting     (nth 1 result)
+		  :capabilities (nth 2 result)
+		  :type         (nth 3 result))
+	  (car result))))))
 
-(defun proto-stream-open-network-only (name buffer host service parameters)
+(defun proto-stream-open-default (name buffer host service parameters)
   (let ((start (with-current-buffer buffer (point)))
 	(stream (open-network-stream name buffer host service)))
     (list stream
-	  (proto-stream-get-response
-	   stream start (proto-stream-eoc parameters))
+	  (proto-stream-get-response stream start
+				     (plist-get parameters :end-of-command))
 	  nil
-	  'network)))
+	  'default)))
 
-(defun proto-stream-open-network (name buffer host service parameters)
+(defun proto-stream-open-starttls (name buffer host service parameters)
   (let* ((start (with-current-buffer buffer (point)))
+	 ;; This should be `starttls' or `try-starttls'.
+	 (type               (plist-get parameters :type))
+	 (starttls-function  (plist-get parameters :starttls-function))
+	 (success-string     (plist-get parameters :success))
+	 (capability-command (plist-get parameters :capability-command))
+	 (eoc                (plist-get parameters :end-of-command))
+	 ;; Return (STREAM GREETING CAPABILITIES RESULTING-TYPE)
 	 (stream (open-network-stream name buffer host service))
-	 (capability-command (cadr (memq :capability-command parameters)))
-	 (eoc (proto-stream-eoc parameters))
-	 (type (cadr (memq :type parameters)))
 	 (greeting (proto-stream-get-response stream start eoc))
-	 success)
-    (if (not capability-command)
-	(list stream greeting nil 'network)
-      (let* ((capabilities
-	      (proto-stream-command stream capability-command eoc))
-	     (starttls-command
-	      (funcall (cadr (memq :starttls-function parameters))
-		       capabilities)))
-	(cond
-	  ;; If this server doesn't support STARTTLS, but we have
-	  ;; requested it explicitly, then close the connection and
-	  ;; return nil.
-	 ((or (not starttls-command)
-	      (and (not (eq type 'starttls))
-		   (not proto-stream-always-use-starttls)))
-	  (if (eq type 'starttls)
-	      (progn
-		(delete-process stream)
-		nil)
-	    ;; Otherwise, just return this plain network connection.
-	    (list stream greeting capabilities 'network)))
-	 ;; We have some kind of STARTTLS support, so we try to
-	 ;; upgrade the connection opportunistically.
-	 ((or (fboundp 'open-gnutls-stream)
-	      (executable-find "gnutls-cli"))
-	  (unless (fboundp 'open-gnutls-stream)
-	    (delete-process stream)
-	    (setq start (with-current-buffer buffer (point-max)))
-	    (let* ((starttls-use-gnutls t)
-		   (starttls-extra-arguments
-		    (if (not (eq type 'starttls))
-			;; When doing opportunistic TLS upgrades we
-			;; don't really care about the identity of the
-			;; peer.
-			(cons "--insecure" starttls-extra-arguments)
-		      starttls-extra-arguments)))
-	      (setq stream (starttls-open-stream name buffer host service)))
-	    (proto-stream-get-response stream start eoc))
-	  (if (not
-	       (string-match
-		(cadr (memq :success parameters))
-		(proto-stream-command stream starttls-command eoc)))
-	      ;; We got an error back from the STARTTLS command.
-	      (progn
-		(if (eq type 'starttls)
-		    (progn
-		      (delete-process stream)
-		      nil)
-		  (list stream greeting capabilities 'network)))
-	    ;; The server said it was OK to start doing STARTTLS negotiations.
-	    (if (fboundp 'open-gnutls-stream)
-		(gnutls-negotiate stream nil)
-	      (unless (starttls-negotiate stream)
-		(delete-process stream)
-		(setq stream nil)))
-	    (when (or (null stream)
-		      (not (memq (process-status stream)
-				 '(open run))))
-	      ;; It didn't successfully negotiate STARTTLS, so we reopen
-	      ;; the connection.
-	      (setq stream (open-network-stream name buffer host service))
-	      (proto-stream-get-response stream start eoc))
-	    ;; Re-get the capabilities, since they may have changed
-	    ;; after switching to TLS.
-	    (list stream greeting
-		  (proto-stream-command stream capability-command eoc) 'tls)))
-	 ;; We don't have STARTTLS support available, but the caller
-	 ;; requested a STARTTLS connection, so we give up.
-	 ((eq (cadr (memq :type parameters)) 'starttls)
-	  (delete-process stream)
-	  nil)
-	 ;; Fall back on using a plain network stream.
-	 (t
-	  (list stream greeting capabilities 'network)))))))
+	 (capabilities (when capability-command
+			 (proto-stream-command stream
+					       capability-command eoc)))
+	 (resulting-type 'default)
+	 starttls-command)
+
+    ;; If we have STARTTLS support, try to upgrade the connection.
+    (when (and (or (fboundp 'open-gnutls-stream)
+		   (executable-find "gnutls-cli"))
+	       capabilities success-string starttls-function
+	       (setq starttls-command
+		     (funcall starttls-function capabilities)))
+      ;; If using external STARTTLS, drop this connection and start
+      ;; anew with `starttls-open-stream'.
+      (unless (fboundp 'open-gnutls-stream)
+	(delete-process stream)
+	(setq start (with-current-buffer buffer (point-max)))
+	(let* ((starttls-use-gnutls t)
+	       (starttls-extra-arguments
+		(if (not (eq type 'starttls))
+		    ;; For opportunistic TLS upgrades, we don't
+		    ;; really care about the identity of the peer.
+		    (cons "--insecure" starttls-extra-arguments)
+		  starttls-extra-arguments)))
+	  (setq stream (starttls-open-stream name buffer host service)))
+	(proto-stream-get-response stream start eoc))
+      (when (string-match success-string
+			  (proto-stream-command stream starttls-command eoc))
+	;; The server said it was OK to begin STARTTLS negotiations.
+	(if (fboundp 'open-gnutls-stream)
+	    (gnutls-negotiate stream nil)
+	  (unless (starttls-negotiate stream)
+	    (delete-process stream)))
+	(if (memq (process-status stream) '(open run))
+	    (setq resulting-type 'tls)
+	  ;; We didn't successfully negotiate STARTTLS; if TLS
+	  ;; isn't demanded, reopen an unencrypted connection.
+	  (when (eq type 'try-starttls)
+	    (setq stream (open-network-stream name buffer host service))
+	    (proto-stream-get-response stream start eoc)))
+	;; Re-get the capabilities, which may have now changed.
+	(setq capabilities
+	      (proto-stream-command stream capability-command eoc))))
+
+    ;; If TLS is mandatory, close the connection if it's unencrypted.
+    (and (eq type 'starttls)
+	 (eq resulting-type 'default)
+	 (delete-process stream))
+    ;; Return value:
+    (list stream greeting capabilities resulting-type)))
 
 (defun proto-stream-command (stream command eoc)
   (let ((start (with-current-buffer (process-buffer stream) (point-max))))
@@ -241,46 +234,42 @@ encrypted or not."
 	   (funcall (if (fboundp 'open-gnutls-stream)
 			'open-gnutls-stream
 		      'open-tls-stream)
-		    name buffer host service)))
+		    name buffer host service))
+	  (eoc (plist-get parameters :end-of-command)))
       (if (null stream)
-	  nil
+	  (list nil nil nil 'default)
 	;; If we're using tls.el, we have to delete the output from
 	;; openssl/gnutls-cli.
 	(unless (fboundp 'open-gnutls-stream)
-	  (proto-stream-get-response
-	   stream start (proto-stream-eoc parameters))
+	  (proto-stream-get-response stream start eoc)
 	  (goto-char (point-min))
-	  (when (re-search-forward (proto-stream-eoc parameters) nil t)
+	  (when (re-search-forward eoc nil t)
 	    (goto-char (match-beginning 0))
 	    (delete-region (point-min) (line-beginning-position))))
 	(proto-stream-capability-open start stream parameters 'tls)))))
 
 (defun proto-stream-open-shell (name buffer host service parameters)
+  (require 'format-spec)
   (proto-stream-capability-open
    (with-current-buffer buffer (point))
    (let ((process-connection-type nil))
      (start-process name buffer shell-file-name
 		    shell-command-switch
 		    (format-spec
-		     (cadr (memq :shell-command parameters))
+		     (plist-get parameters :shell-command)
 		     (format-spec-make
 		      ?s host
 		      ?p service))))
-   parameters 'network))
+   parameters 'default))
 
 (defun proto-stream-capability-open (start stream parameters stream-type)
-  (let ((capability-command (cadr (memq :capability-command parameters)))
-	(greeting (proto-stream-get-response
-		   stream start (proto-stream-eoc parameters))))
+  (let* ((capability-command (plist-get parameters :capability-command))
+	 (eoc 		     (plist-get parameters :end-of-command))
+	 (greeting (proto-stream-get-response stream start eoc)))
     (list stream greeting
 	  (and capability-command
-	       (proto-stream-command
-		stream capability-command (proto-stream-eoc parameters)))
+	       (proto-stream-command stream capability-command eoc))
 	  stream-type)))
-
-(defun proto-stream-eoc (parameters)
-  (or (cadr (memq :end-of-command parameters))
-      "\r\n"))
 
 (provide 'proto-stream)
 
