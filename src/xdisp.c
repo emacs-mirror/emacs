@@ -13125,6 +13125,10 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 	      amount_to_scroll = float_amount;
 	      if (amount_to_scroll == 0 && float_amount > 0)
 		amount_to_scroll = 1;
+	      /* Don't let point enter the scroll margin near top of
+		 the window.  */
+	      if (amount_to_scroll > height - 2*this_scroll_margin + dy)
+		amount_to_scroll = height - 2*this_scroll_margin + dy;
 	    }
 	}
 
@@ -13208,6 +13212,11 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 		  amount_to_scroll = float_amount;
 		  if (amount_to_scroll == 0 && float_amount > 0)
 		    amount_to_scroll = 1;
+		  amount_to_scroll -= this_scroll_margin - dy;
+		  /* Don't let point enter the scroll margin near
+		     bottom of the window.  */
+		  if (amount_to_scroll > height - 2*this_scroll_margin + dy)
+		    amount_to_scroll = height - 2*this_scroll_margin + dy;
 		}
 	    }
 
@@ -14236,7 +14245,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	: BVAR (current_buffer, scroll_down_aggressively);
 
       if (!MINI_WINDOW_P (w)
-	  && scroll_conservatively > SCROLL_LIMIT || NUMBERP (aggressive))
+	  && (scroll_conservatively > SCROLL_LIMIT || NUMBERP (aggressive)))
 	{
 	  int pt_offset = 0;
 
