@@ -1,3 +1,8 @@
+2011-03-26  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Replace obsolete macros AC_TRY_COMPILE, AC_TRY_LINK,
+	AC_TRY_RUN with AC_COMPILE_IFELSE, AC_LINK_IFELSE, AC_RUN_IFELSE.
+
 2011-03-25  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* autogen/update_autogen: Remove useless function keyword.
