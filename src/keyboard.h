@@ -507,7 +507,7 @@ extern void kbd_buffer_store_event_hold (struct input_event *,
 extern void kbd_buffer_unget_event (struct input_event *);
 extern void poll_for_input_1 (void);
 extern void show_help_echo (Lisp_Object, Lisp_Object, Lisp_Object,
-                            Lisp_Object, int);
+                            Lisp_Object);
 extern void gen_help_event (Lisp_Object, Lisp_Object, Lisp_Object,
                             Lisp_Object, EMACS_INT);
 extern void kbd_buffer_store_help_event (Lisp_Object, Lisp_Object);
@@ -517,7 +517,7 @@ extern void add_user_signal (int, const char *);
 
 extern int tty_read_avail_input (struct terminal *, int,
                                  struct input_event *);
-extern EMACS_TIME timer_check (int);
+extern EMACS_TIME timer_check (void);
 extern void mark_kboards (void);
 
 #ifdef WINDOWSNT

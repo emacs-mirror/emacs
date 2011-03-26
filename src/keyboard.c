@@ -351,7 +351,7 @@ Lisp_Object Qmenu_bar;
 Lisp_Object recursive_edit_unwind (Lisp_Object buffer), command_loop (void);
 Lisp_Object Fthis_command_keys (void);
 Lisp_Object Qextended_command_history;
-EMACS_TIME timer_check (int do_it_now);
+EMACS_TIME timer_check (void);
 
 static void record_menu_key (Lisp_Object c);
 static int echo_length (void);
@@ -2068,16 +2068,12 @@ make_ctrl_char (int c)
    the `display' property).  POS is the position in that string under
    the mouse.
 
-   OK_TO_OVERWRITE_KEYSTROKE_ECHO non-zero means it's okay if the help
-   echo overwrites a keystroke echo currently displayed in the echo
-   area.
-
    Note: this function may only be called with HELP nil or a string
    from X code running asynchronously.  */
 
 void
 show_help_echo (Lisp_Object help, Lisp_Object window, Lisp_Object object,
-		Lisp_Object pos, int ok_to_overwrite_keystroke_echo)
+		Lisp_Object pos)
 {
   if (!NILP (help) && !STRINGP (help))
     {
@@ -3007,7 +3003,7 @@ read_char (int commandflag, int nmaps, Lisp_Object *maps, Lisp_Object prev_event
       htem = Fcdr (htem);
       position = Fcar (htem);
 
-      show_help_echo (help, window, object, position, 0);
+      show_help_echo (help, window, object, position);
 
       /* We stopped being idle for this event; undo that.  */
       if (!end_time)
@@ -3309,7 +3305,7 @@ static int
 readable_events (int flags)
 {
   if (flags & READABLE_EVENTS_DO_TIMERS_NOW)
-    timer_check (1);
+    timer_check ();
 
   /* If the buffer contains only FOCUS_IN_EVENT events, and
      READABLE_EVENTS_FILTER_EVENTS is set, report it as empty.  */
@@ -4383,14 +4379,10 @@ timer_check_2 (void)
    Returns the time to wait until the next timer fires.
    If no timer is active, return -1.
 
-   As long as any timer is ripe, we run it.
-
-   DO_IT_NOW is now ignored.  It used to mean that we should
-   run the timer directly instead of queueing a timer-event.
-   Now we always run timers directly.  */
+   As long as any timer is ripe, we run it.  */
 
 EMACS_TIME
-timer_check (int do_it_now)
+timer_check (void)
 {
   EMACS_TIME nexttime;
 

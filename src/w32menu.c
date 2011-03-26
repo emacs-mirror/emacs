@@ -1616,7 +1616,7 @@ w32_menu_display_help (HWND owner, HMENU menu, UINT item, UINT flags)
       else
 	/* X version has a loop through frames here, which doesn't
 	   appear to do anything, unless it has some side effect.  */
-	show_help_echo (help, Qnil, Qnil, Qnil, 1);
+	show_help_echo (help, Qnil, Qnil, Qnil);
     }
 }
 

@@ -1555,7 +1555,7 @@ static gboolean
 xg_maybe_add_timer (gpointer data)
 {
   struct xg_dialog_data *dd = (struct xg_dialog_data *) data;
-  EMACS_TIME next_time = timer_check (1);
+  EMACS_TIME next_time = timer_check ();
   long secs = EMACS_SECS (next_time);
   long usecs = EMACS_USECS (next_time);
 

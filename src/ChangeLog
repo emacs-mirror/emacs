@@ -1,3 +1,26 @@
+2011-03-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* keyboard.h (timer_check, show_help_echo): Remove unused parameters.
+
+	* keyboard.c (timer_check): Remove parameter `do_it_now',
+	unused since revno:14998 (1996-04-12).
+	(show_help_echo): Remove parameter `ok_to_overwrite_keystroke_echo',
+	unused since revno:86854 (2008-04-19).
+
+	* keyboard.c (read_char):
+	* w32menu.c (w32_menu_display_help):
+	* xmenu.c (show_help_event, menu_help_callback):
+	Adjust calls to `show_help_echo'.
+
+	* gtkutil.c (xg_maybe_add_timer):
+	* keyboard.c (readable_events):
+	* process.c (wait_reading_process_output):
+	* xmenu.c (x_menu_wait_for_event): Adjust calls to `timer_check'.
+
+	* insdel.c (adjust_markers_gap_motion):
+	Remove; no-op since revno:20569 (1998-01-02).
+	(gap_left, gap_right): Don't call it.
+
 2011-03-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (handle_fontified_prop): Discard changes to clip_changed

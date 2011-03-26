@@ -4548,7 +4548,7 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 	      struct buffer *old_buffer = current_buffer;
 	      Lisp_Object old_window = selected_window;
 
-	      timer_delay = timer_check (1);
+	      timer_delay = timer_check ();
 
 	      /* If a timer has run, this might have changed buffers
 		 an alike.  Make read_key_sequence aware of that.  */
@@ -6946,7 +6946,7 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 	  do
 	    {
 	      int old_timers_run = timers_run;
-	      timer_delay = timer_check (1);
+	      timer_delay = timer_check ();
 	      if (timers_run != old_timers_run && do_display)
 		/* We must retry, since a timer may have requeued itself
 		   and that could alter the time delay.  */
