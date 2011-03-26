@@ -1,3 +1,8 @@
+2011-03-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (redisplay_window): Don't check buffer's clip_changed
+	flag as a prerequisite for invoking try_scrolling.  (Bug#6671)
+
 2011-03-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32.c (read_unc_volume): Use parameter `henum', instead of
