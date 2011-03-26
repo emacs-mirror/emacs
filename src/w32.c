@@ -2376,8 +2376,8 @@ readdir (DIR *dirp)
   if (wnet_enum_handle != INVALID_HANDLE_VALUE)
     {
       if (!read_unc_volume (wnet_enum_handle,
-			      dir_find_data.cFileName,
-			      MAX_PATH))
+                            dir_find_data.cFileName,
+                            MAX_PATH))
 	return NULL;
     }
   /* If we aren't dir_finding, do a find-first, otherwise do a find-next. */
@@ -2487,7 +2487,7 @@ read_unc_volume (HANDLE henum, char *readbuf, int size)
 
   count = 1;
   buffer = alloca (bufsize);
-  result = WNetEnumResource (wnet_enum_handle, &count, buffer, &bufsize);
+  result = WNetEnumResource (henum, &count, buffer, &bufsize);
   if (result != NO_ERROR)
     return NULL;
 

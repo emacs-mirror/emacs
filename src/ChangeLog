@@ -1,5 +1,12 @@
 2011-03-26  Juanma Barranquero  <lekktu@gmail.com>
 
+	* w32.c (read_unc_volume): Use parameter `henum', instead of
+	global variable `wget_enum_handle'.
+
+	* keymap.c (describe_vector): Remove parameters `indices' and
+	`char_table_depth', unused since revno:43563.1.32 (2002-03-01).
+	(describe_map, Fdescribe_vector): Adjust calls to `describe_vector'.
+
 	* keyboard.h (timer_check, show_help_echo): Remove unused parameters.
 
 	* keyboard.c (timer_check): Remove parameter `do_it_now',
