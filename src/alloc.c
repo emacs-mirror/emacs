@@ -254,8 +254,10 @@ const char *pending_malloc_warning;
 
 /* Buffer in which we save a copy of the C stack at each GC.  */
 
+#if MAX_SAVE_STACK > 0
 static char *stack_copy;
-static int stack_copy_size;
+static size_t stack_copy_size;
+#endif
 
 /* Non-zero means ignore malloc warnings.  Set during initialization.
    Currently not used.  */
@@ -4903,21 +4905,26 @@ returns nil, because real GC can't be done.  */)
 #if MAX_SAVE_STACK > 0
   if (NILP (Vpurify_flag))
     {
-      i = &stack_top_variable - stack_bottom;
-      if (i < 0) i = -i;
-      if (i < MAX_SAVE_STACK)
+      char *stack;
+      size_t stack_size;
+      if (&stack_top_variable < stack_bottom)
 	{
-	  if (stack_copy == 0)
-	    stack_copy = (char *) xmalloc (stack_copy_size = i);
-	  else if (stack_copy_size < i)
-	    stack_copy = (char *) xrealloc (stack_copy, (stack_copy_size = i));
-	  if (stack_copy)
+	  stack = &stack_top_variable;
+	  stack_size = stack_bottom - &stack_top_variable;
+	}
+      else
+	{
+	  stack = stack_bottom;
+	  stack_size = &stack_top_variable - stack_bottom;
+	}
+      if (stack_size <= MAX_SAVE_STACK)
+	{
+	  if (stack_copy_size < stack_size)
 	    {
-	      if ((EMACS_INT) (&stack_top_variable - stack_bottom) > 0)
-		memcpy (stack_copy, stack_bottom, i);
-	      else
-		memcpy (stack_copy, &stack_top_variable, i);
+	      stack_copy = (char *) xrealloc (stack_copy, stack_size);
+	      stack_copy_size = stack_size;
 	    }
+	  memcpy (stack_copy, stack, stack_size);
 	}
     }
 #endif /* MAX_SAVE_STACK > 0 */
