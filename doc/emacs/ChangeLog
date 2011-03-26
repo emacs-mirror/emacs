@@ -1,3 +1,7 @@
+2011-03-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Auto Scrolling): Fix scroll-up/scroll-down confusion.
+
 2011-03-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdog.texi (Windows HOME): Fix the wording to clarify how Emacs sets

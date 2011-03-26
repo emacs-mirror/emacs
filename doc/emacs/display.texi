@@ -195,15 +195,15 @@ how aggressively it scrolls by setting the variables
 The value of @code{scroll-up-aggressively} should be either
 @code{nil}, or a fraction @var{f} between 0 and 1.  A fraction
 specifies where on the screen to put point when scrolling upward: when
-a window scrolls up because point is above the window start, the new
-start position is chosen to put point @var{f} parts of the window
-height from the top.  Thus, larger @var{f} means more aggressive
+a window scrolls up because point below the window end, the new start
+position is chosen to put point @var{f} parts of the window height
+from the bottom.  Thus, larger @var{f} means more aggressive
 scrolling.  The default value, @code{nil}, is equivalent to 0.5.
 
   Likewise, @code{scroll-down-aggressively} is used for scrolling
-down.  The value specifies how far point should be placed from the
-bottom of the window; thus, as with @code{scroll-up-aggressively}, a
-larger value is more aggressive.
+down.  The value specifies how far point should be placed from the top
+of the window; thus, as with @code{scroll-up-aggressively}, a larger
+value is more aggressive.
 
 @vindex scroll-margin
   The variable @code{scroll-margin} restricts how close point can come
