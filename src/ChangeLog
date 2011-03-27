@@ -1,3 +1,14 @@
+2011-03-27  Anders Lindgren <andlind@gmail.com>
+
+	* nsterm.m (ns_menu_bar_is_hidden): New variable.
+	(ns_constrain_all_frames, ns_menu_bar_should_be_hidden)
+	(ns_update_auto_hide_menu_bar): New functions.
+	(ns_update_begin): Call ns_update_auto_hide_menu_bar.
+	(applicationDidBecomeActive): Call ns_update_auto_hide_menu_bar and
+	ns_constrain_all_frames.
+	(constrainFrameRect): Return at once if ns_menu_bar_should_be_hidden.
+	(syms_of_nsterm): DEFVAR ns-auto-hide-menu-bar, init to Qnil.
+
 2011-03-27  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsmenu.m (runDialogAt): Remove argument to timer_check.
