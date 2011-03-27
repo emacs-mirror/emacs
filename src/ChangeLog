@@ -1,3 +1,10 @@
+2011-03-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (try_scrolling): Clean up the case of PT below the
+	margin at bottom of window: scroll_max can no longer be INT_MAX.
+	(redisplay_window): Find character position of margin and use
+	that, rather than adding margin to PT.
+
 2011-03-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (redisplay_window): Don't check buffer's clip_changed

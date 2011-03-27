@@ -13083,10 +13083,7 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 	     always finds PT if scroll_conservatively is set to a large
 	     number, such as most-positive-fixnum.  */
 	  int slack = max (scroll_max, 10 * FRAME_LINE_HEIGHT (f));
-	  int y_to_move =
-	    slack >= INT_MAX - it.last_visible_y
-	    ? INT_MAX
-	    : it.last_visible_y + slack;
+	  int y_to_move = it.last_visible_y + slack;
 
 	  /* Compute the distance from the scroll margin to PT or to
 	     the scroll limit, whichever comes first.  This should
@@ -13198,8 +13195,8 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 	  start_display (&it, w, startp);
 
 	  if (arg_scroll_conservatively)
-	    amount_to_scroll
-	      = max (dy, FRAME_LINE_HEIGHT (f) * max (scroll_step, temp_scroll_step));
+	    amount_to_scroll = max (dy, FRAME_LINE_HEIGHT (f) *
+				    max (scroll_step, temp_scroll_step));
 	  else if (scroll_step || temp_scroll_step)
 	    amount_to_scroll = scroll_max;
 	  else
@@ -14238,8 +14235,22 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	scroll_margin > 0
 	? min (scroll_margin, WINDOW_TOTAL_LINES (w) / 4)
 	: 0;
-      int scrolling_up = PT > CHARPOS (startp) + margin;
-      Lisp_Object aggressive =
+      EMACS_INT margin_pos = CHARPOS (startp);
+      int scrolling_up;
+      Lisp_Object aggressive;
+
+      /* If there is a scroll margin at the top of the window, find
+	 its character position.  */
+      if (margin)
+	{
+	  struct it it1;
+
+	  start_display (&it1, w, startp);
+	  move_it_vertically (&it1, margin);
+	  margin_pos = IT_CHARPOS (it1);
+	}
+      scrolling_up = PT > margin_pos;
+      aggressive =
 	scrolling_up
 	? BVAR (current_buffer, scroll_up_aggressively)
 	: BVAR (current_buffer, scroll_down_aggressively);
@@ -14280,7 +14291,8 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	    centering_position = margin * FRAME_LINE_HEIGHT (f) + pt_offset;
 	}
       else
-	/* Move backward from point half the height of the window.  */
+	/* Set the window start half the height of the window backward
+	   from point.  */
 	centering_position = window_box_height (w) / 2;
     }
   move_it_vertically_backward (&it, centering_position);
