@@ -1,6 +1,7 @@
 2011-03-27  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* eval.c (Fbacktrace): Don't assume nargs fits in int.
+	(Fbacktrace_frame): Don't assume nframes fits in int.
 
 	* syntax.c (scan_sexps_forward): Avoid pointer wraparound.
 

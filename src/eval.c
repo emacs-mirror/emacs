@@ -3365,7 +3365,7 @@ If NFRAMES is more than the number of frames, the value is nil.  */)
   (Lisp_Object nframes)
 {
   register struct backtrace *backlist = backtrace_list;
-  register int i;
+  register EMACS_INT i;
   Lisp_Object tem;
 
   CHECK_NATNUM (nframes);
