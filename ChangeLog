@@ -1,3 +1,8 @@
+2011-03-27  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (AC_TYPE_SIGNAL): Remove obsolete macro.
+	(AH_BOTTOM): Do not define SIGTYPE.
+
 2011-03-26  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in: Replace obsolete macros AC_TRY_COMPILE, AC_TRY_LINK,

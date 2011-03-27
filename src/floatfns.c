@@ -103,7 +103,7 @@ extern double logb (double);
 #endif
 
 #ifdef FLOAT_CATCH_SIGILL
-static SIGTYPE float_error ();
+static void float_error ();
 #endif
 
 /* Nonzero while executing in floating point.
@@ -126,7 +126,7 @@ static const char *float_error_fn_name;
    Handle errors which may result in signals or may set errno.
 
    Note that float_error may be declared to return void, so you can't
-   just cast the zero after the colon to (SIGTYPE) to make the types
+   just cast the zero after the colon to (void) to make the types
    check properly.  */
 
 #ifdef FLOAT_CHECK_ERRNO
@@ -960,7 +960,7 @@ Rounds the value toward zero.  */)
 }
 
 #ifdef FLOAT_CATCH_SIGILL
-static SIGTYPE
+static void
 float_error (signo)
      int signo;
 {

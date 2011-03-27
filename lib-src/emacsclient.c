@@ -1116,7 +1116,7 @@ socket_status (char *name)
 /* A signal handler that passes the signal to the Emacs process.
    Useful for SIGWINCH.  */
 
-static SIGTYPE
+static void
 pass_signal_to_emacs (int signalnum)
 {
   int old_errno = errno;
@@ -1131,7 +1131,7 @@ pass_signal_to_emacs (int signalnum)
 /* Signal handler for SIGCONT; notify the Emacs process that it can
    now resume our tty frame.  */
 
-static SIGTYPE
+static void
 handle_sigcont (int signalnum)
 {
   int old_errno = errno;
@@ -1157,7 +1157,7 @@ handle_sigcont (int signalnum)
    reality, we may get a SIGTSTP on C-z.  Handling this signal and
    notifying Emacs about it should get things under control again. */
 
-static SIGTYPE
+static void
 handle_sigtstp (int signalnum)
 {
   int old_errno = errno;

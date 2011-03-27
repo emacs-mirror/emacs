@@ -1,3 +1,7 @@
+2011-03-27  Glenn Morris  <rgm@gnu.org>
+
+	* config.nt: Remove RETSIGTYPE, SIGTYPE (identical to void).
+
 2011-03-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* addpm.c (main): Remove unused variable `retval'.

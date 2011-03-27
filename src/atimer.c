@@ -64,7 +64,7 @@ static void set_alarm (void);
 static void schedule_atimer (struct atimer *);
 static struct atimer *append_atimer_lists (struct atimer *,
                                            struct atimer *);
-SIGTYPE alarm_signal_handler (int signo);
+void alarm_signal_handler (int signo);
 
 
 /* Start a new atimer of type TYPE.  TIME specifies when the timer is
@@ -388,7 +388,7 @@ run_timers (void)
 /* Signal handler for SIGALRM.  SIGNO is the signal number, i.e.
    SIGALRM.  */
 
-SIGTYPE
+void
 alarm_signal_handler (int signo)
 {
 #ifndef SYNC_INPUT

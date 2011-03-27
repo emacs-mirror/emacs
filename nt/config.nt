@@ -393,15 +393,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef STACK_DIRECTION
 #endif
 
-/* Define the return type of signal handlers if the s-xxx file
-   did not already do so.  */
-#define RETSIGTYPE void
-
-/* SIGTYPE is the macro we actually use.  */
-#ifndef SIGTYPE
-#define SIGTYPE RETSIGTYPE
-#endif
-
 #ifdef emacs /* Don't do this for lib-src.  */
 /* Tell regex.c to use a type compatible with Emacs.  */
 #define RE_TRANSLATE_TYPE Lisp_Object

@@ -1,3 +1,12 @@
+2011-03-27  Glenn Morris  <rgm@gnu.org>
+
+	* syssignal.h: Replace RETSIGTYPE with void.
+	* atimer.c, data.c, dispnew.c, emacs.c, floatfns.c, keyboard.c:
+	* keyboard.h, lisp.h, process.c, sysdep.c, xterm.c:
+	Replace SIGTYPE with void everywhere.
+	* s/usg5-4-common.h (SIGTYPE): Remove definition.
+	* s/template.h (SIGTYPE): Remove commented out definition.
+
 2011-03-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (redisplay_window): Don't check buffer's clip_changed

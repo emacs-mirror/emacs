@@ -1227,9 +1227,6 @@ if test $emacs_cv_struct_utimbuf = yes; then
   AC_DEFINE(HAVE_STRUCT_UTIMBUF, 1, [Define to 1 if `struct utimbuf' is declared by <utime.h>.])
 fi
 
-dnl checks for typedefs
-AC_TYPE_SIGNAL
-
 dnl Check for speed_t typedef.
 AC_CACHE_CHECK(for speed_t, emacs_cv_speed_t,
   [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <termios.h>]], [[speed_t x = 1;]])],
@@ -3491,11 +3488,6 @@ AH_BOTTOM([
    exactly since GNUstep is multi-OS.  */
 #if defined HAVE_NS && defined NS_IMPL_GNUSTEP
 #  define SYSTEM_PURESIZE_EXTRA 30000
-#endif
-
-/* SIGTYPE is the macro we actually use.  */
-#ifndef SIGTYPE
-#define SIGTYPE RETSIGTYPE
 #endif
 
 #ifdef emacs /* Don't do this for lib-src.  */

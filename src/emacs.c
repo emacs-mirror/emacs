@@ -308,7 +308,7 @@ pthread_t main_thread;
 
 
 /* Handle bus errors, invalid instruction, etc.  */
-SIGTYPE
+void
 fatal_error_signal (int sig)
 {
   SIGNAL_THREAD_CHECK (sig);
@@ -345,7 +345,7 @@ fatal_error_signal (int sig)
 #ifdef SIGDANGER
 
 /* Handler for SIGDANGER.  */
-SIGTYPE
+void
 memory_warning_signal (sig)
      int sig;
 {

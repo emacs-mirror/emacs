@@ -5566,7 +5566,7 @@ marginal_area_string (struct window *w, enum window_part part,
 
 #ifdef SIGWINCH
 
-static SIGTYPE
+static void
 window_change_signal (int signalnum) /* If we don't have an argument, */
                    		/* some compilers complain in signal calls.  */
 {

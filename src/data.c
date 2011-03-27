@@ -3300,7 +3300,7 @@ syms_of_data (void)
   XSYMBOL (intern_c_string ("most-negative-fixnum"))->constant = 1;
 }
 
-static SIGTYPE
+static void
 arith_error (int signo)
 {
   sigsetmask (SIGEMPTYMASK);

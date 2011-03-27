@@ -5470,7 +5470,7 @@ read_process_output (Lisp_Object proc, register int channel)
 jmp_buf send_process_frame;
 Lisp_Object process_sent_to;
 
-static SIGTYPE
+static void
 send_process_trap (int ignore)
 {
   SIGNAL_THREAD_CHECK (SIGPIPE);
@@ -5497,7 +5497,7 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
   EMACS_INT rv;
   struct coding_system *coding;
   struct gcpro gcpro1;
-  SIGTYPE (*volatile old_sigpipe) (int);
+  void (*volatile old_sigpipe) (int);
 
   GCPRO1 (object);
 
@@ -5619,7 +5619,7 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
 	  while (this > 0)
 	    {
 	      int outfd = p->outfd;
-	      old_sigpipe = (SIGTYPE (*) (int)) signal (SIGPIPE, send_process_trap);
+	      old_sigpipe = (void (*) (int)) signal (SIGPIPE, send_process_trap);
 #ifdef DATAGRAM_SOCKETS
 	      if (DATAGRAM_CHAN_P (outfd))
 		{
@@ -6379,7 +6379,7 @@ process has been transmitted to the serial port.  */)
    indirectly; if it does, that is a bug  */
 
 #ifdef SIGCHLD
-static SIGTYPE
+static void
 sigchld_handler (int signo)
 {
   int old_errno = errno;
