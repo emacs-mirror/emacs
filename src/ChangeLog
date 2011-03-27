@@ -1,5 +1,20 @@
 2011-03-27  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xterm.c (x_make_frame_visible, same_x_server): Redo to avoid overflow
+	concerns.
+
+	* term.c (produce_glyphless_glyph): Remove unnecessary test.
+
+	* cm.c (calccost): Turn while-do into do-while, for clarity.
+
+	* keyboard.c (syms_of_keyboard): Use the same style as later
+	in this function when indexing through an array.  This also
+	works around GCC bug 48267.
+
+	* image.c (tiff_load): Fix off-by-one image count (Bug#8336).
+
+	* xselect.c (x_check_property_data): Return correct size (Bug#8335).
+
 	* chartab.c (sub_char_table_ref_and_range): Redo for slight
 	efficiency gain, and to bypass a gcc -Wstrict-overflow warning.
 

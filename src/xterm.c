@@ -9121,7 +9121,7 @@ x_make_frame_visible (struct frame *f)
        unknown reason, the call to XtMapWidget is completely ignored.
        Mapping the widget a second time works.  */
 
-    if (!FRAME_VISIBLE_P (f) && --retry_count > 0)
+    if (!FRAME_VISIBLE_P (f) && --retry_count != 0)
       goto retry;
   }
 }
@@ -9726,7 +9726,7 @@ same_x_server (const char *name1, const char *name2)
   for (; *name1 != '\0' && *name1 == *name2; name1++, name2++)
     {
       if (*name1 == ':')
-	seen_colon++;
+	seen_colon = 1;
       if (seen_colon && *name1 == '.')
 	return 1;
     }
