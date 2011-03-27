@@ -3298,7 +3298,6 @@ Output stream used is value of `standard-output'.  */)
   (void)
 {
   register struct backtrace *backlist = backtrace_list;
-  register int i;
   Lisp_Object tail;
   Lisp_Object tem;
   struct gcpro gcpro1;
@@ -3325,9 +3324,10 @@ Output stream used is value of `standard-output'.  */)
 	  write_string ("(", -1);
 	  if (backlist->nargs == (size_t) MANY)
 	    {
+	      int i;
 	      for (tail = *backlist->args, i = 0;
 		   !NILP (tail);
-		   tail = Fcdr (tail), i++)
+		   tail = Fcdr (tail), i = 1)
 		{
 		  if (i) write_string (" ", -1);
 		  Fprin1 (Fcar (tail), Qnil);
@@ -3335,6 +3335,7 @@ Output stream used is value of `standard-output'.  */)
 	    }
 	  else
 	    {
+	      size_t i;
 	      for (i = 0; i < backlist->nargs; i++)
 		{
 		  if (i) write_string (" ", -1);
