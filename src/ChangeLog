@@ -1,3 +1,7 @@
+2011-03-27  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsmenu.m (runDialogAt): Remove argument to timer_check.
+
 2011-03-27  Glenn Morris  <rgm@gnu.org>
 
 	* syssignal.h: Replace RETSIGTYPE with void.
