@@ -1,5 +1,7 @@
 2011-03-27  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* syntax.c (scan_sexps_forward): Avoid pointer wraparound.
+
 	* xterm.c (x_make_frame_visible, same_x_server): Redo to avoid overflow
 	concerns.
 
