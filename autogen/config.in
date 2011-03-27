@@ -999,9 +999,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    slash */
 #undef REPLACE_FUNC_STAT_FILE
 
-/* Define as the return type of signal handlers (`int' or `void'). */
-#undef RETSIGTYPE
-
 /* Define to l, ll, u, ul, ull, etc., as suitable for constants of type
    'sig_atomic_t'. */
 #undef SIG_ATOMIC_T_SUFFIX
@@ -1272,11 +1269,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    exactly since GNUstep is multi-OS.  */
 #if defined HAVE_NS && defined NS_IMPL_GNUSTEP
 #  define SYSTEM_PURESIZE_EXTRA 30000
-#endif
-
-/* SIGTYPE is the macro we actually use.  */
-#ifndef SIGTYPE
-#define SIGTYPE RETSIGTYPE
 #endif
 
 #ifdef emacs /* Don't do this for lib-src.  */
