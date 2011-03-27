@@ -1,3 +1,39 @@
+2011-03-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* proto-stream.el: Changes preparatory to merging open-protocol-stream
+	with open-network-stream.
+	(proto-stream-always-use-starttls): Option removed.
+	(open-protocol-stream): Return a process object by default.  Provide a
+	new parameter :return-list specifying a list-type return value, which
+	now has the form (PROP . PLIST) instead of a fixed-length list.  Change
+	:type `network' to `try-starttls', and `network-only' to `default'.
+	Make `default' the default, for compatibility with open-network-stream.
+	Handle the no-parameter case exactly as open-network-stream, with no
+	additional stream processing.  Search plists using plist-get.
+	Explicitly add :end-of-commend parameter if it is missing.
+	(proto-stream-open-default): Renamed from
+	proto-stream-open-network-only.  Return 'default as the type.
+	(proto-stream-open-starttls): Rename from proto-stream-open-network.
+	Use plist-get.  Don't return `tls' as the type if STARTTLS negotiation
+	failed.  Always return a list with a (possibly dead) process as the
+	first element, for compatibility with open-network-stream.
+	(proto-stream-open-tls): Use plist-get.  Always return a list.
+	(proto-stream-open-shell): Return `default' as connection type.
+	(proto-stream-capability-open): Use plist-get.
+	(proto-stream-eoc): Function deleted.
+
+	* nnimap.el (nnimap-stream, nnimap-open-connection)
+	(nnimap-open-connection-1): Handle renaming of :type parameter for
+	open-protocol-stream.
+	(nnimap-open-connection-1): Pass a :return-list parameter
+	open-protocol-stream to obtain a list return value.  Parse this list
+	using plist-get.
+
+	* nntp.el (nntp-open-connection): Handle renaming of :type parameter
+	for open-protocol-stream.  Accept open-protocol-stream return value
+	that is a subprocess object instead of a list.  Handle the case of a
+	dead returned process.
+
 2011-03-25  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* mm-util.el (mm-handle-filename): Move to mm-decode.el (bug#8330).

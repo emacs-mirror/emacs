@@ -14176,7 +14176,6 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
        || temp_scroll_step
        || NUMBERP (BVAR (current_buffer, scroll_up_aggressively))
        || NUMBERP (BVAR (current_buffer, scroll_down_aggressively)))
-      && !current_buffer->clip_changed
       && CHARPOS (startp) >= BEGV
       && CHARPOS (startp) <= ZV)
     {

@@ -27,6 +27,20 @@
 	(stack_copy_size): Now size_t, not int.
 	(stack_copy, stack_copy_size): Define only if MAX_SAVE_STACK > 0.
 
+2011-03-27  Glenn Morris  <rgm@gnu.org>
+
+	* syssignal.h: Replace RETSIGTYPE with void.
+	* atimer.c, data.c, dispnew.c, emacs.c, floatfns.c, keyboard.c:
+	* keyboard.h, lisp.h, process.c, sysdep.c, xterm.c:
+	Replace SIGTYPE with void everywhere.
+	* s/usg5-4-common.h (SIGTYPE): Remove definition.
+	* s/template.h (SIGTYPE): Remove commented out definition.
+
+2011-03-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (redisplay_window): Don't check buffer's clip_changed
+	flag as a prerequisite for invoking try_scrolling.  (Bug#6671)
+
 2011-03-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32.c (read_unc_volume): Use parameter `henum', instead of

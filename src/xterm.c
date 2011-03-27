@@ -349,7 +349,7 @@ static int handle_one_xevent (struct x_display_info *, XEvent *,
                               int *, struct input_event *);
 /* Don't declare this NO_RETURN because we want no
    interference with debugging failing X calls.  */
-static SIGTYPE x_connection_closed (Display *, const char *);
+static void x_connection_closed (Display *, const char *);
 
 
 /* Flush display of frame F, or of all frames if F is null.  */
@@ -7650,7 +7650,7 @@ x_trace_wire (void)
    SIGPIPE will fail, causing Xlib to invoke the X IO error handler,
    which will do the appropriate cleanup for us.  */
 
-static SIGTYPE
+static void
 x_connection_signal (int signalnum)	/* If we don't have an argument, */
                    		/* some compilers complain in signal calls.  */
 {
@@ -7673,7 +7673,7 @@ static char *error_msg;
 /* Handle the loss of connection to display DPY.  ERROR_MESSAGE is
    the text of an error message that lead to the connection loss.  */
 
-static SIGTYPE
+static void
 x_connection_closed (Display *dpy, const char *error_message)
 {
   struct x_display_info *dpyinfo = x_display_info_for_display (dpy);

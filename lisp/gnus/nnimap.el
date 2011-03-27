@@ -62,9 +62,9 @@ it will default to `imap'.")
 
 (defvoo nnimap-stream 'undecided
   "How nnimap will talk to the IMAP server.
-Values are `ssl', `network', `network-only, `starttls' or
+Values are `ssl', `default', `try-starttls', `starttls' or
 `shell'.  The default is to try `ssl' first, and then
-`network'.")
+`try-starttls'.")
 
 (defvoo nnimap-shell-program (if (boundp 'imap-shell-program)
 				 (if (listp imap-shell-program)
@@ -319,7 +319,7 @@ textual parts.")
     (setq nnimap-stream 'ssl))
   (let ((stream
 	 (if (eq nnimap-stream 'undecided)
-	     (loop for type in '(ssl network)
+	     (loop for type in '(ssl try-starttls)
 		   for stream = (let ((nnimap-stream type))
 				  (nnimap-open-connection-1 buffer))
 		   while (eq stream 'no-connect)
@@ -339,9 +339,7 @@ textual parts.")
 	   (port nil)
 	   (ports
 	    (cond
-	     ((or (eq nnimap-stream 'network)
-		  (eq nnimap-stream 'network-only)
-		  (eq nnimap-stream 'starttls))
+	     ((memq nnimap-stream '(try-starttls default starttls))
 	      (nnheader-message 7 "Opening connection to %s..."
 				nnimap-address)
 	      '("imap" "143"))
@@ -355,21 +353,28 @@ textual parts.")
 	      '("imaps" "imap" "993" "143"))
 	     (t
 	      (error "Unknown stream type: %s" nnimap-stream))))
-	   (proto-stream-always-use-starttls t)
            login-result credentials)
       (when nnimap-server-port
 	(push nnimap-server-port ports))
-      (destructuring-bind (stream greeting capabilities stream-type)
-	  (open-protocol-stream
-	   "*nnimap*" (current-buffer) nnimap-address (car ports)
-	   :type nnimap-stream
-	   :shell-command nnimap-shell-program
-	   :capability-command "1 CAPABILITY\r\n"
-	   :success " OK "
-	   :starttls-function
-	   (lambda (capabilities)
-	     (when (gnus-string-match-p "STARTTLS" capabilities)
-	       "1 STARTTLS\r\n")))
+      (let* ((stream-list
+	      (open-protocol-stream
+	       "*nnimap*" (current-buffer) nnimap-address (car ports)
+	       :type nnimap-stream
+	       :return-list t
+	       :shell-command nnimap-shell-program
+	       :capability-command "1 CAPABILITY\r\n"
+	       :success " OK "
+	       :starttls-function
+	       (lambda (capabilities)
+		 (when (gnus-string-match-p "STARTTLS" capabilities)
+		   "1 STARTTLS\r\n"))))
+	     (stream (car stream-list))
+	     (props (cdr stream-list))
+	     (greeting (plist-get props :greeting))
+	     (capabilities (plist-get props :capabilities))
+	     (stream-type (plist-get props :type)))
+	(when (and stream (not (memq (process-status stream) '(open run))))
+	  (setq stream nil))
 	(setf (nnimap-process nnimap-object) stream)
 	(setf (nnimap-stream-type nnimap-object) stream-type)
 	(if (not stream)

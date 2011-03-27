@@ -449,7 +449,7 @@ child_setup_tty (int out)
 struct save_signal
 {
   int code;
-  SIGTYPE (*handler) (int);
+  void (*handler) (int);
 };
 
 static void save_signal_handlers (struct save_signal *);
@@ -608,7 +608,7 @@ save_signal_handlers (struct save_signal *saved_handlers)
   while (saved_handlers->code)
     {
       saved_handlers->handler
-        = (SIGTYPE (*) (int)) signal (saved_handlers->code, SIG_IGN);
+        = (void (*) (int)) signal (saved_handlers->code, SIG_IGN);
       saved_handlers++;
     }
 }
