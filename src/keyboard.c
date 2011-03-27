@@ -1270,7 +1270,7 @@ some_mouse_moved (void)
 /* This is the actual command reading loop,
    sans error-handling encapsulation.  */
 
-static int read_key_sequence (Lisp_Object *, int, Lisp_Object,
+static int read_key_sequence (Lisp_Object *, size_t, Lisp_Object,
                               int, int, int);
 void safe_run_hooks (Lisp_Object);
 static void adjust_point_for_property (EMACS_INT, int);
@@ -8748,7 +8748,7 @@ access_keymap_keyremap (Lisp_Object map, Lisp_Object key, Lisp_Object prompt,
    The return value is non-zero if the remapping actually took place.  */
 
 static int
-keyremap_step (Lisp_Object *keybuf, int bufsize, volatile keyremap *fkey,
+keyremap_step (Lisp_Object *keybuf, size_t bufsize, volatile keyremap *fkey,
 	       int input, int doit, int *diff, Lisp_Object prompt)
 {
   Lisp_Object next, key;
@@ -8841,7 +8841,7 @@ keyremap_step (Lisp_Object *keybuf, int bufsize, volatile keyremap *fkey,
    from the selected window's buffer.  */
 
 static int
-read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
+read_key_sequence (Lisp_Object *keybuf, size_t bufsize, Lisp_Object prompt,
 		   int dont_downcase_last, int can_return_switch_frame,
 		   int fix_current_buffer)
 {
