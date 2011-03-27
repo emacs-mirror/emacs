@@ -38,9 +38,9 @@ struct backtrace
   struct backtrace *next;
   Lisp_Object *function;
   Lisp_Object *args;	/* Points to vector of args. */
-  int nargs;		/* Length of vector.
-			   If nargs is UNEVALLED, args points to slot holding
-			   list of unevalled args */
+  size_t nargs;		/* Length of vector.
+			   If nargs is (size_t) UNEVALLED, args points
+			   to slot holding list of unevalled args */
   char evalargs;
   /* Nonzero means call value of debugger when done with this operation. */
   char debug_on_exit;
@@ -111,7 +111,7 @@ Lisp_Object Vsignaling_function;
 
 int handling_signal;
 
-static Lisp_Object funcall_lambda (Lisp_Object, int, Lisp_Object*);
+static Lisp_Object funcall_lambda (Lisp_Object, size_t, Lisp_Object*);
 static void unwind_to_catch (struct catchtag *, Lisp_Object) NO_RETURN;
 static int interactive_p (int);
 static Lisp_Object apply_lambda (Lisp_Object, Lisp_Object, int);
@@ -553,7 +553,7 @@ interactive_p (int exclude_subrs_p)
      looking at several frames for special forms.  Skip past them.  */
   while (btp
 	 && (EQ (*btp->function, Qbytecode)
-	     || btp->nargs == UNEVALLED))
+	     || btp->nargs == (size_t) UNEVALLED))
     btp = btp->next;
 
   /* btp now points at the frame of the innermost function that isn't
@@ -959,7 +959,7 @@ usage: (let VARLIST BODY...)  */)
   Lisp_Object *temps, tem;
   register Lisp_Object elt, varlist;
   int count = SPECPDL_INDEX ();
-  register int argnum;
+  register size_t argnum;
   struct gcpro gcpro1, gcpro2;
   USE_SAFE_ALLOCA;
 
@@ -1511,8 +1511,8 @@ internal_condition_case_2 (Lisp_Object (*bfun) (Lisp_Object, Lisp_Object),
    and ARGS as second argument.  */
 
 Lisp_Object
-internal_condition_case_n (Lisp_Object (*bfun) (int, Lisp_Object*),
-			   int nargs,
+internal_condition_case_n (Lisp_Object (*bfun) (size_t, Lisp_Object *),
+			   size_t nargs,
 			   Lisp_Object *args,
 			   Lisp_Object handlers,
 			   Lisp_Object (*hfun) (Lisp_Object))
@@ -2203,7 +2203,7 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
 	{
 	  /* Pass a vector of evaluated arguments */
 	  Lisp_Object *vals;
-	  register int argnum = 0;
+	  register size_t argnum = 0;
 	  USE_SAFE_ALLOCA;
 
 	  SAFE_ALLOCA_LISP (vals, XINT (numargs));
@@ -2332,9 +2332,9 @@ DEFUN ("apply", Fapply, Sapply, 2, MANY, 0,
 Then return the value FUNCTION returns.
 Thus, (apply '+ 1 2 '(3 4)) returns 10.
 usage: (apply FUNCTION &rest ARGUMENTS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
-  register int i, numargs;
+  register size_t i, numargs;
   register Lisp_Object spread_arg;
   register Lisp_Object *funcall_args;
   Lisp_Object fun, retval;
@@ -2374,7 +2374,7 @@ usage: (apply FUNCTION &rest ARGUMENTS)  */)
       if (numargs < XSUBR (fun)->min_args
 	  || (XSUBR (fun)->max_args >= 0 && XSUBR (fun)->max_args < numargs))
 	goto funcall;		/* Let funcall get the error */
-      else if (XSUBR (fun)->max_args > numargs)
+      else if (XSUBR (fun)->max_args >= 0 && XSUBR (fun)->max_args > numargs)
 	{
 	  /* Avoid making funcall cons up a yet another new vector of arguments
 	     by explicitly supplying nil's for optional values */
@@ -2416,7 +2416,7 @@ usage: (apply FUNCTION &rest ARGUMENTS)  */)
 /* Run hook variables in various ways.  */
 
 enum run_hooks_condition {to_completion, until_success, until_failure};
-static Lisp_Object run_hook_with_args (int, Lisp_Object *,
+static Lisp_Object run_hook_with_args (size_t, Lisp_Object *,
 				       enum run_hooks_condition);
 
 DEFUN ("run-hooks", Frun_hooks, Srun_hooks, 0, MANY, 0,
@@ -2434,10 +2434,10 @@ hook; they should use `run-mode-hooks' instead.
 Do not use `make-local-variable' to make a hook variable buffer-local.
 Instead, use `add-hook' and specify t for the LOCAL argument.
 usage: (run-hooks &rest HOOKS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   Lisp_Object hook[1];
-  register int i;
+  register size_t i;
 
   for (i = 0; i < nargs; i++)
     {
@@ -2463,7 +2463,7 @@ as that may change.
 Do not use `make-local-variable' to make a hook variable buffer-local.
 Instead, use `add-hook' and specify t for the LOCAL argument.
 usage: (run-hook-with-args HOOK &rest ARGS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   return run_hook_with_args (nargs, args, to_completion);
 }
@@ -2483,7 +2483,7 @@ However, if they all return nil, we return nil.
 Do not use `make-local-variable' to make a hook variable buffer-local.
 Instead, use `add-hook' and specify t for the LOCAL argument.
 usage: (run-hook-with-args-until-success HOOK &rest ARGS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   return run_hook_with_args (nargs, args, until_success);
 }
@@ -2502,7 +2502,7 @@ Then we return nil.  However, if they all return non-nil, we return non-nil.
 Do not use `make-local-variable' to make a hook variable buffer-local.
 Instead, use `add-hook' and specify t for the LOCAL argument.
 usage: (run-hook-with-args-until-failure HOOK &rest ARGS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   return run_hook_with_args (nargs, args, until_failure);
 }
@@ -2516,7 +2516,8 @@ usage: (run-hook-with-args-until-failure HOOK &rest ARGS)  */)
    except that it isn't necessary to gcpro ARGS[0].  */
 
 static Lisp_Object
-run_hook_with_args (int nargs, Lisp_Object *args, enum run_hooks_condition cond)
+run_hook_with_args (size_t nargs, Lisp_Object *args,
+		    enum run_hooks_condition cond)
 {
   Lisp_Object sym, val, ret;
   struct gcpro gcpro1, gcpro2, gcpro3;
@@ -2763,16 +2764,16 @@ DEFUN ("funcall", Ffuncall, Sfuncall, 1, MANY, 0,
 Return the value that function returns.
 Thus, (funcall 'cons 'x 'y) returns (x . y).
 usage: (funcall FUNCTION &rest ARGUMENTS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   Lisp_Object fun, original_fun;
   Lisp_Object funcar;
-  int numargs = nargs - 1;
+  size_t numargs = nargs - 1;
   Lisp_Object lisp_numargs;
   Lisp_Object val;
   struct backtrace backtrace;
   register Lisp_Object *internal_args;
-  register int i;
+  register size_t i;
 
   QUIT;
   if ((consing_since_gc > gc_cons_threshold
@@ -2925,21 +2926,21 @@ static Lisp_Object
 apply_lambda (Lisp_Object fun, Lisp_Object args, int eval_flag)
 {
   Lisp_Object args_left;
-  Lisp_Object numargs;
+  size_t numargs;
   register Lisp_Object *arg_vector;
   struct gcpro gcpro1, gcpro2, gcpro3;
-  register int i;
+  register size_t i;
   register Lisp_Object tem;
   USE_SAFE_ALLOCA;
 
-  numargs = Flength (args);
-  SAFE_ALLOCA_LISP (arg_vector, XINT (numargs));
+  numargs = XINT (Flength (args));
+  SAFE_ALLOCA_LISP (arg_vector, numargs);
   args_left = args;
 
   GCPRO3 (*arg_vector, args_left, fun);
   gcpro1.nvars = 0;
 
-  for (i = 0; i < XINT (numargs);)
+  for (i = 0; i < numargs; )
     {
       tem = Fcar (args_left), args_left = Fcdr (args_left);
       if (eval_flag) tem = Feval (tem);
@@ -2955,7 +2956,7 @@ apply_lambda (Lisp_Object fun, Lisp_Object args, int eval_flag)
       backtrace_list->nargs = i;
     }
   backtrace_list->evalargs = 0;
-  tem = funcall_lambda (fun, XINT (numargs), arg_vector);
+  tem = funcall_lambda (fun, numargs, arg_vector);
 
   /* Do the debug-on-exit now, while arg_vector still exists.  */
   if (backtrace_list->debug_on_exit)
@@ -2971,11 +2972,13 @@ apply_lambda (Lisp_Object fun, Lisp_Object args, int eval_flag)
    FUN must be either a lambda-expression or a compiled-code object.  */
 
 static Lisp_Object
-funcall_lambda (Lisp_Object fun, int nargs, register Lisp_Object *arg_vector)
+funcall_lambda (Lisp_Object fun, size_t nargs,
+		register Lisp_Object *arg_vector)
 {
   Lisp_Object val, syms_left, next;
   int count = SPECPDL_INDEX ();
-  int i, optional, rest;
+  size_t i;
+  int optional, rest;
 
   if (CONSP (fun))
     {
@@ -3310,7 +3313,7 @@ Output stream used is value of `standard-output'.  */)
   while (backlist)
     {
       write_string (backlist->debug_on_exit ? "* " : "  ", 2);
-      if (backlist->nargs == UNEVALLED)
+      if (backlist->nargs == (size_t) UNEVALLED)
 	{
 	  Fprin1 (Fcons (*backlist->function, *backlist->args), Qnil);
 	  write_string ("\n", -1);
@@ -3320,7 +3323,7 @@ Output stream used is value of `standard-output'.  */)
 	  tem = *backlist->function;
 	  Fprin1 (tem, Qnil);	/* This can QUIT */
 	  write_string ("(", -1);
-	  if (backlist->nargs == MANY)
+	  if (backlist->nargs == (size_t) MANY)
 	    {
 	      for (tail = *backlist->args, i = 0;
 		   !NILP (tail);
@@ -3372,11 +3375,11 @@ If NFRAMES is more than the number of frames, the value is nil.  */)
 
   if (!backlist)
     return Qnil;
-  if (backlist->nargs == UNEVALLED)
+  if (backlist->nargs == (size_t) UNEVALLED)
     return Fcons (Qnil, Fcons (*backlist->function, *backlist->args));
   else
     {
-      if (backlist->nargs == MANY)
+      if (backlist->nargs == (size_t) MANY)
 	tem = *backlist->args;
       else
 	tem = Flist (backlist->nargs, backlist->args);
@@ -3390,17 +3393,18 @@ void
 mark_backtrace (void)
 {
   register struct backtrace *backlist;
-  register int i;
+  register size_t i;
 
   for (backlist = backtrace_list; backlist; backlist = backlist->next)
     {
       mark_object (*backlist->function);
 
-      if (backlist->nargs == UNEVALLED || backlist->nargs == MANY)
-	i = 0;
+      if (backlist->nargs == (size_t) UNEVALLED
+	  || backlist->nargs == (size_t) MANY)
+	i = 1;
       else
-	i = backlist->nargs - 1;
-      for (; i >= 0; i--)
+	i = backlist->nargs;
+      while (i--)
 	mark_object (backlist->args[i]);
     }
 }

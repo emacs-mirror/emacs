@@ -2181,7 +2181,7 @@ safe_eval_handler (Lisp_Object arg)
    redisplay during the evaluation.  */
 
 Lisp_Object
-safe_call (int nargs, Lisp_Object *args)
+safe_call (size_t nargs, Lisp_Object *args)
 {
   Lisp_Object val;
 
@@ -16389,7 +16389,7 @@ With ARG, turn tracing on if and only if ARG is positive.  */)
 DEFUN ("trace-to-stderr", Ftrace_to_stderr, Strace_to_stderr, 1, MANY, "",
        doc: /* Like `format', but print result to stderr.
 usage: (trace-to-stderr STRING &rest OBJECTS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   Lisp_Object s = Fformat (nargs, args);
   fprintf (stderr, "%s", SDATA (s));

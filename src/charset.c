@@ -845,7 +845,7 @@ DEFUN ("define-charset-internal", Fdefine_charset_internal,
        Sdefine_charset_internal, charset_arg_max, MANY, 0,
        doc: /* For internal use only.
 usage: (define-charset-internal ...)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   /* Charset attr vector.  */
   Lisp_Object attrs;
@@ -2171,11 +2171,12 @@ DEFUN ("set-charset-priority", Fset_charset_priority, Sset_charset_priority,
        1, MANY, 0,
        doc: /* Assign higher priority to the charsets given as arguments.
 usage: (set-charset-priority &rest charsets)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   Lisp_Object new_head, old_list, arglist[2];
   Lisp_Object list_2022, list_emacs_mule;
-  int i, id;
+  size_t i;
+  int id;
 
   old_list = Fcopy_sequence (Vcharset_ordered_list);
   new_head = Qnil;

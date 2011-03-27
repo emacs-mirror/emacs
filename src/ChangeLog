@@ -1,3 +1,22 @@
+2011-03-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Variadic C functions now count arguments with size_t, not int.
+	This avoids an unnecessary limitation on 64-bit machines, which
+	caused (substring ...) to crash on large vectors (Bug#8344).
+	* lisp.h (struct Lisp_Subr.function.aMANY): Now takes size_t, not int.
+	(DEFUN_ARGS_MANY, internal_condition_case_n, safe_call): Likewise.
+	All variadic functions changed accordingly.
+	(struct gcpro.nvars): Now size_t, not int.  All uses changed.
+	* data.c (arith_driver, float_arith_driver): Likewise.
+	* editfns.c (general_insert_function): Likewise.
+	* eval.c (struct backtrace.nargs, interactive_p)
+	(internal_condition_case_n, run_hook_with_args, apply_lambda)
+	(funcall_lambda, mark_backtrace): Likewise.
+	* fns.c (concat): Likewise.
+	* frame.c (x_set_frame_parameters): Likewise.
+	* fns.c (get_key_arg): Now accepts and returns size_t, and returns
+	0 if not found, not -1.  All callers changed.
+
 2011-03-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* alloc.c (garbage_collect): Don't assume stack size fits in int.

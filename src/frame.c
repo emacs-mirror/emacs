@@ -2902,7 +2902,7 @@ x_set_frame_parameters (FRAME_PTR f, Lisp_Object alist)
   /* Record in these vectors all the parms specified.  */
   Lisp_Object *parms;
   Lisp_Object *values;
-  int i, p;
+  size_t i, p;
   int left_no_change = 0, top_no_change = 0;
   int icon_left_no_change = 0, icon_top_no_change = 0;
   int size_changed = 0;
@@ -2975,7 +2975,7 @@ x_set_frame_parameters (FRAME_PTR f, Lisp_Object alist)
     }
 
   /* Now process them in reverse of specified order.  */
-  for (i--; i >= 0; i--)
+  while (i-- != 0)
     {
       Lisp_Object prop, val;
 

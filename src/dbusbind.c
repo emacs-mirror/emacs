@@ -1051,7 +1051,7 @@ object is returned instead of a list containing this single Lisp object.
   => "i686"
 
 usage: (dbus-call-method BUS SERVICE PATH INTERFACE METHOD &optional :timeout TIMEOUT &rest ARGS)  */)
-  (int nargs, register Lisp_Object *args)
+  (size_t nargs, register Lisp_Object *args)
 {
   Lisp_Object bus, service, path, interface, method;
   Lisp_Object result;
@@ -1063,7 +1063,7 @@ usage: (dbus-call-method BUS SERVICE PATH INTERFACE METHOD &optional :timeout TI
   DBusError derror;
   unsigned int dtype;
   int timeout = -1;
-  int i = 5;
+  size_t i = 5;
   char signature[DBUS_MAXIMUM_SIGNATURE_LENGTH];
 
   /* Check parameters.  */
@@ -1116,7 +1116,7 @@ usage: (dbus-call-method BUS SERVICE PATH INTERFACE METHOD &optional :timeout TI
 	{
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i]);
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i+1]);
-	  XD_DEBUG_MESSAGE ("Parameter%d %s %s", i-4,
+	  XD_DEBUG_MESSAGE ("Parameter%lu %s %s", (unsigned long) (i-4),
 			    SDATA (format2 ("%s", args[i], Qnil)),
 			    SDATA (format2 ("%s", args[i+1], Qnil)));
 	  ++i;
@@ -1124,7 +1124,7 @@ usage: (dbus-call-method BUS SERVICE PATH INTERFACE METHOD &optional :timeout TI
       else
 	{
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i]);
-	  XD_DEBUG_MESSAGE ("Parameter%d %s", i-4,
+	  XD_DEBUG_MESSAGE ("Parameter%lu %s", (unsigned long) (i-4),
 			    SDATA (format2 ("%s", args[i], Qnil)));
 	}
 
@@ -1233,7 +1233,7 @@ Example:
   -| i686
 
 usage: (dbus-call-method-asynchronously BUS SERVICE PATH INTERFACE METHOD HANDLER &optional :timeout TIMEOUT &rest ARGS)  */)
-  (int nargs, register Lisp_Object *args)
+  (size_t nargs, register Lisp_Object *args)
 {
   Lisp_Object bus, service, path, interface, method, handler;
   Lisp_Object result;
@@ -1243,7 +1243,7 @@ usage: (dbus-call-method-asynchronously BUS SERVICE PATH INTERFACE METHOD HANDLE
   DBusMessageIter iter;
   unsigned int dtype;
   int timeout = -1;
-  int i = 6;
+  size_t i = 6;
   char signature[DBUS_MAXIMUM_SIGNATURE_LENGTH];
 
   /* Check parameters.  */
@@ -1298,7 +1298,7 @@ usage: (dbus-call-method-asynchronously BUS SERVICE PATH INTERFACE METHOD HANDLE
 	{
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i]);
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i+1]);
-	  XD_DEBUG_MESSAGE ("Parameter%d %s %s", i-4,
+	  XD_DEBUG_MESSAGE ("Parameter%lu %s %s", (unsigned long) (i-4),
 			    SDATA (format2 ("%s", args[i], Qnil)),
 			    SDATA (format2 ("%s", args[i+1], Qnil)));
 	  ++i;
@@ -1306,7 +1306,7 @@ usage: (dbus-call-method-asynchronously BUS SERVICE PATH INTERFACE METHOD HANDLE
       else
 	{
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i]);
-	  XD_DEBUG_MESSAGE ("Parameter%d %s", i-4,
+	  XD_DEBUG_MESSAGE ("Parameter%lu %s", (unsigned long) (i - 4),
 			    SDATA (format2 ("%s", args[i], Qnil)));
 	}
 
@@ -1357,7 +1357,7 @@ DEFUN ("dbus-method-return-internal", Fdbus_method_return_internal,
 This is an internal function, it shall not be used outside dbus.el.
 
 usage: (dbus-method-return-internal BUS SERIAL SERVICE &rest ARGS)  */)
-  (int nargs, register Lisp_Object *args)
+  (size_t nargs, register Lisp_Object *args)
 {
   Lisp_Object bus, serial, service;
   struct gcpro gcpro1, gcpro2, gcpro3;
@@ -1365,7 +1365,7 @@ usage: (dbus-method-return-internal BUS SERIAL SERVICE &rest ARGS)  */)
   DBusMessage *dmessage;
   DBusMessageIter iter;
   unsigned int dtype;
-  int i;
+  size_t i;
   char signature[DBUS_MAXIMUM_SIGNATURE_LENGTH];
 
   /* Check parameters.  */
@@ -1405,7 +1405,7 @@ usage: (dbus-method-return-internal BUS SERIAL SERVICE &rest ARGS)  */)
 	{
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i]);
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i+1]);
-	  XD_DEBUG_MESSAGE ("Parameter%d %s %s", i-2,
+	  XD_DEBUG_MESSAGE ("Parameter%lu %s %s", (unsigned long) (i-2),
 			    SDATA (format2 ("%s", args[i], Qnil)),
 			    SDATA (format2 ("%s", args[i+1], Qnil)));
 	  ++i;
@@ -1413,7 +1413,7 @@ usage: (dbus-method-return-internal BUS SERIAL SERVICE &rest ARGS)  */)
       else
 	{
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i]);
-	  XD_DEBUG_MESSAGE ("Parameter%d %s", i-2,
+	  XD_DEBUG_MESSAGE ("Parameter%lu %s", (unsigned long) (i-2),
 			    SDATA (format2 ("%s", args[i], Qnil)));
 	}
 
@@ -1445,7 +1445,7 @@ DEFUN ("dbus-method-error-internal", Fdbus_method_error_internal,
 This is an internal function, it shall not be used outside dbus.el.
 
 usage: (dbus-method-error-internal BUS SERIAL SERVICE &rest ARGS)  */)
-  (int nargs, register Lisp_Object *args)
+  (size_t nargs, register Lisp_Object *args)
 {
   Lisp_Object bus, serial, service;
   struct gcpro gcpro1, gcpro2, gcpro3;
@@ -1453,7 +1453,7 @@ usage: (dbus-method-error-internal BUS SERIAL SERVICE &rest ARGS)  */)
   DBusMessage *dmessage;
   DBusMessageIter iter;
   unsigned int dtype;
-  int i;
+  size_t i;
   char signature[DBUS_MAXIMUM_SIGNATURE_LENGTH];
 
   /* Check parameters.  */
@@ -1494,7 +1494,7 @@ usage: (dbus-method-error-internal BUS SERIAL SERVICE &rest ARGS)  */)
 	{
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i]);
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i+1]);
-	  XD_DEBUG_MESSAGE ("Parameter%d %s %s", i-2,
+	  XD_DEBUG_MESSAGE ("Parameter%lu %s %s", (unsigned long) (i-2),
 			    SDATA (format2 ("%s", args[i], Qnil)),
 			    SDATA (format2 ("%s", args[i+1], Qnil)));
 	  ++i;
@@ -1502,7 +1502,7 @@ usage: (dbus-method-error-internal BUS SERIAL SERVICE &rest ARGS)  */)
       else
 	{
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i]);
-	  XD_DEBUG_MESSAGE ("Parameter%d %s", i-2,
+	  XD_DEBUG_MESSAGE ("Parameter%lu %s", (unsigned long) (i-2),
 			    SDATA (format2 ("%s", args[i], Qnil)));
 	}
 
@@ -1557,7 +1557,7 @@ Example:
   "org.gnu.Emacs.FileManager" "FileModified" "/home/albinus/.emacs")
 
 usage: (dbus-send-signal BUS SERVICE PATH INTERFACE SIGNAL &rest ARGS)  */)
-  (int nargs, register Lisp_Object *args)
+  (size_t nargs, register Lisp_Object *args)
 {
   Lisp_Object bus, service, path, interface, signal;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
@@ -1565,7 +1565,7 @@ usage: (dbus-send-signal BUS SERVICE PATH INTERFACE SIGNAL &rest ARGS)  */)
   DBusMessage *dmessage;
   DBusMessageIter iter;
   unsigned int dtype;
-  int i;
+  size_t i;
   char signature[DBUS_MAXIMUM_SIGNATURE_LENGTH];
 
   /* Check parameters.  */
@@ -1609,7 +1609,7 @@ usage: (dbus-send-signal BUS SERVICE PATH INTERFACE SIGNAL &rest ARGS)  */)
 	{
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i]);
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i+1]);
-	  XD_DEBUG_MESSAGE ("Parameter%d %s %s", i-4,
+	  XD_DEBUG_MESSAGE ("Parameter%lu %s %s", (unsigned long) (i-4),
 			    SDATA (format2 ("%s", args[i], Qnil)),
 			    SDATA (format2 ("%s", args[i+1], Qnil)));
 	  ++i;
@@ -1617,7 +1617,7 @@ usage: (dbus-send-signal BUS SERVICE PATH INTERFACE SIGNAL &rest ARGS)  */)
       else
 	{
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i]);
-	  XD_DEBUG_MESSAGE ("Parameter%d %s", i-4,
+	  XD_DEBUG_MESSAGE ("Parameter%lu %s", (unsigned long) (i-4),
 			    SDATA (format2 ("%s", args[i], Qnil)));
 	}
 
@@ -1885,11 +1885,11 @@ Example:
   => :already-owner.
 
 usage: (dbus-register-service BUS SERVICE &rest FLAGS)  */)
-  (int nargs, register Lisp_Object *args)
+  (size_t nargs, register Lisp_Object *args)
 {
   Lisp_Object bus, service;
   DBusConnection *connection;
-  unsigned int i;
+  size_t i;
   unsigned int value;
   unsigned int flags = 0;
   int result;
@@ -1985,13 +1985,13 @@ INTERFACE, SIGNAL and HANDLER must not be nil.  Example:
 `dbus-unregister-object' for removing the registration.
 
 usage: (dbus-register-signal BUS SERVICE PATH INTERFACE SIGNAL HANDLER &rest ARGS) */)
-  (int nargs, register Lisp_Object *args)
+  (size_t nargs, register Lisp_Object *args)
 {
   Lisp_Object bus, service, path, interface, signal, handler;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
   Lisp_Object uname, key, key1, value;
   DBusConnection *connection;
-  int i;
+  size_t i;
   char rule[DBUS_MAXIMUM_MATCH_RULE_LENGTH];
   char x[DBUS_MAXIMUM_MATCH_RULE_LENGTH];
   DBusError derror;
@@ -2061,7 +2061,8 @@ usage: (dbus-register-signal BUS SERVICE PATH INTERFACE SIGNAL HANDLER &rest ARG
 	if (!NILP (args[i]))
 	  {
 	    CHECK_STRING (args[i]);
-	    sprintf (x, ",arg%d='%s'", i-6, SDATA (args[i]));
+	    sprintf (x, ",arg%lu='%s'", (unsigned long) (i-6),
+		     SDATA (args[i]));
 	    strcat (rule, x);
 	  }
 

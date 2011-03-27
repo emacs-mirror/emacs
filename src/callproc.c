@@ -177,7 +177,7 @@ and returns a numeric exit status or a signal description string.
 If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.
 
 usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
-  (int nargs, register Lisp_Object *args)
+  (size_t nargs, register Lisp_Object *args)
 {
   Lisp_Object infile, buffer, current_dir, path;
   volatile int display_p_volatile;
@@ -221,7 +221,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   /* Decide the coding-system for giving arguments.  */
   {
     Lisp_Object val, *args2;
-    int i;
+    size_t i;
 
     /* If arguments are supplied, we may have to encode them.  */
     if (nargs >= 5)
@@ -373,10 +373,10 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     path = Fsubstring (path, make_number (2), Qnil);
 
   new_argv_volatile = new_argv = (const unsigned char **)
-    alloca (max (2, nargs - 2) * sizeof (char *));
+    alloca ((nargs > 4 ? nargs - 2 : 2) * sizeof (char *));
   if (nargs > 4)
     {
-      register int i;
+      register size_t i;
       struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
 
       GCPRO5 (infile, buffer, current_dir, path, error_file);
@@ -643,7 +643,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	{
 	  if (EQ (coding_systems, Qt))
 	    {
-	      int i;
+	      size_t i;
 
 	      args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof *args2);
 	      args2[0] = Qcall_process;
@@ -864,7 +864,7 @@ and returns a numeric exit status or a signal description string.
 If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.
 
 usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &rest ARGS)  */)
-  (int nargs, register Lisp_Object *args)
+  (size_t nargs, register Lisp_Object *args)
 {
   struct gcpro gcpro1;
   Lisp_Object filename_string;
@@ -873,7 +873,7 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
   /* Qt denotes we have not yet called Ffind_operation_coding_system.  */
   Lisp_Object coding_systems;
   Lisp_Object val, *args2;
-  int i;
+  size_t i;
   char *tempfile;
   Lisp_Object tmpdir, pattern;
 
