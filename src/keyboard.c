@@ -9359,80 +9359,84 @@ read_key_sequence (Lisp_Object *keybuf, size_t bufsize, Lisp_Object prompt,
 		    last_real_key_start = t - 1;
 		}
 
-	      /* Key sequences beginning with mouse clicks are
-		 read using the keymaps in the buffer clicked on,
-		 not the current buffer.  If we're at the
-		 beginning of a key sequence, switch buffers.  */
-	      if (last_real_key_start == 0
-		  && WINDOWP (window)
-		  && BUFFERP (XWINDOW (window)->buffer)
-		  && XBUFFER (XWINDOW (window)->buffer) != current_buffer)
+	      if (last_real_key_start == 0)
 		{
-		  XVECTOR (raw_keybuf)->contents[raw_keybuf_count++] = key;
-		  keybuf[t] = key;
-		  mock_input = t + 1;
-
-		  /* Arrange to go back to the original buffer once we're
-		     done reading the key sequence.  Note that we can't
-		     use save_excursion_{save,restore} here, because they
-		     save point as well as the current buffer; we don't
-		     want to save point, because redisplay may change it,
-		     to accommodate a Fset_window_start or something.  We
-		     don't want to do this at the top of the function,
-		     because we may get input from a subprocess which
-		     wants to change the selected window and stuff (say,
-		     emacsclient).  */
-		  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
-
-		  if (! FRAME_LIVE_P (XFRAME (selected_frame)))
-		    Fkill_emacs (Qnil);
-		  set_buffer_internal (XBUFFER (XWINDOW (window)->buffer));
-		  orig_local_map = get_local_map (PT, current_buffer,
-						  Qlocal_map);
-		  orig_keymap = get_local_map (PT, current_buffer, Qkeymap);
-		  goto replay_sequence;
-		}
-
-	      /* For a mouse click, get the local text-property keymap
-		 of the place clicked on, rather than point.  */
-	      if (last_real_key_start == 0
-		  && CONSP (XCDR (key))
-		  && ! localized_local_map)
-		{
-		  Lisp_Object map_here, start, pos;
-
-		  localized_local_map = 1;
-		  start = EVENT_START (key);
-
-		  if (CONSP (start) && POSN_INBUFFER_P (start))
+		  /* Key sequences beginning with mouse clicks are
+		     read using the keymaps in the buffer clicked on,
+		     not the current buffer.  If we're at the
+		     beginning of a key sequence, switch buffers.  */
+		  if (WINDOWP (window)
+		      && BUFFERP (XWINDOW (window)->buffer)
+		      && XBUFFER (XWINDOW (window)->buffer) != current_buffer)
 		    {
-		      pos = POSN_BUFFER_POSN (start);
-		      if (INTEGERP (pos)
-			  && XINT (pos) >= BEGV
-			  && XINT (pos) <= ZV)
+		      XVECTOR (raw_keybuf)->contents[raw_keybuf_count++] = key;
+		      keybuf[t] = key;
+		      mock_input = t + 1;
+
+		      /* Arrange to go back to the original buffer once we're
+			 done reading the key sequence.  Note that we can't
+			 use save_excursion_{save,restore} here, because they
+			 save point as well as the current buffer; we don't
+			 want to save point, because redisplay may change it,
+			 to accommodate a Fset_window_start or something.  We
+			 don't want to do this at the top of the function,
+			 because we may get input from a subprocess which
+			 wants to change the selected window and stuff (say,
+			 emacsclient).  */
+		      record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+
+		      if (! FRAME_LIVE_P (XFRAME (selected_frame)))
+			Fkill_emacs (Qnil);
+		      set_buffer_internal (XBUFFER (XWINDOW (window)->buffer));
+		      orig_local_map = get_local_map (PT, current_buffer,
+						      Qlocal_map);
+		      orig_keymap = get_local_map (PT, current_buffer,
+						   Qkeymap);
+		      goto replay_sequence;
+		    }
+
+		  /* For a mouse click, get the local text-property keymap
+		     of the place clicked on, rather than point.  */
+		  if (CONSP (XCDR (key))
+		      && ! localized_local_map)
+		    {
+		      Lisp_Object map_here, start, pos;
+
+		      localized_local_map = 1;
+		      start = EVENT_START (key);
+
+		      if (CONSP (start) && POSN_INBUFFER_P (start))
 			{
-			  map_here = get_local_map (XINT (pos),
-						    current_buffer, Qlocal_map);
-			  if (!EQ (map_here, orig_local_map))
+			  pos = POSN_BUFFER_POSN (start);
+			  if (INTEGERP (pos)
+			      && XINT (pos) >= BEGV
+			      && XINT (pos) <= ZV)
 			    {
-			      orig_local_map = map_here;
-			      ++localized_local_map;
-			    }
+			      map_here = get_local_map (XINT (pos),
+							current_buffer,
+							Qlocal_map);
+			      if (!EQ (map_here, orig_local_map))
+				{
+				  orig_local_map = map_here;
+				  ++localized_local_map;
+				}
 
-			  map_here = get_local_map (XINT (pos),
-						     current_buffer, Qkeymap);
-			  if (!EQ (map_here, orig_keymap))
-			    {
-			      orig_keymap = map_here;
-			      ++localized_local_map;
-			    }
+			      map_here = get_local_map (XINT (pos),
+							current_buffer,
+							Qkeymap);
+			      if (!EQ (map_here, orig_keymap))
+				{
+				  orig_keymap = map_here;
+				  ++localized_local_map;
+				}
 
-			  if (localized_local_map > 1)
-			    {
-			      keybuf[t] = key;
-			      mock_input = t + 1;
+			      if (localized_local_map > 1)
+				{
+				  keybuf[t] = key;
+				  mock_input = t + 1;
 
-			      goto replay_sequence;
+				  goto replay_sequence;
+				}
 			    }
 			}
 		    }
