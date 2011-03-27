@@ -194,8 +194,8 @@ extern KBOARD *all_kboards;
 /* Nonzero in the single-kboard state, 0 in the any-kboard state.  */
 extern int single_kboard;
 
-/* Total number of times read_char has returned.  */
-extern int num_input_events;
+/* Total number of times read_char has returned, modulo SIZE_MAX + 1.  */
+extern size_t num_input_events;
 
 /* Nonzero means polling for input is temporarily suppressed.  */
 extern int poll_suppress_count;

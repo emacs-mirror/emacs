@@ -1,5 +1,9 @@
 2011-03-27  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* keyboard.c, keyboard.h (num_input_events): Now size_t.
+	This avoids undefined behavior on integer overflow, and is a bit
+	more convenient anyway since it is compared to a size_t variable.
+
 	Variadic C functions now count arguments with size_t, not int.
 	This avoids an unnecessary limitation on 64-bit machines, which
 	caused (substring ...) to crash on large vectors (Bug#8344).
