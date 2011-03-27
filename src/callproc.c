@@ -189,6 +189,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   char buf[CALLPROC_BUFFER_SIZE_MAX];
   int bufsize = CALLPROC_BUFFER_SIZE_MIN;
   int count = SPECPDL_INDEX ();
+  volatile USE_SAFE_ALLOCA;
 
   const unsigned char **volatile new_argv_volatile;
   register const unsigned char **new_argv;
@@ -242,7 +243,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	  val = Qraw_text;
 	else
 	  {
-	    args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof *args2);
+	    SAFE_ALLOCA (args2, Lisp_Object *, (nargs + 1) * sizeof *args2);
 	    args2[0] = Qcall_process;
 	    for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
 	    coding_systems = Ffind_operation_coding_system (nargs + 1, args2);
@@ -372,8 +373,9 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
       && SREF (path, 1) == ':')
     path = Fsubstring (path, make_number (2), Qnil);
 
-  new_argv_volatile = new_argv = (const unsigned char **)
-    alloca ((nargs > 4 ? nargs - 2 : 2) * sizeof (char *));
+  SAFE_ALLOCA (new_argv, const unsigned char **,
+	       (nargs > 4 ? nargs - 2 : 2) * sizeof *new_argv);
+  new_argv_volatile = new_argv;
   if (nargs > 4)
     {
       register size_t i;
@@ -645,7 +647,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	    {
 	      size_t i;
 
-	      args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof *args2);
+	      SAFE_ALLOCA (args2, Lisp_Object *, (nargs + 1) * sizeof *args2);
 	      args2[0] = Qcall_process;
 	      for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
 	      coding_systems
@@ -809,6 +811,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
      when exiting.  */
   call_process_exited = 1;
 
+  SAFE_FREE ();
   unbind_to (count, Qnil);
 
   if (synch_process_termsig)
@@ -897,30 +900,35 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
 #endif
     }
 
-  pattern = Fexpand_file_name (Vtemp_file_name_pattern, tmpdir);
-  tempfile = (char *) alloca (SBYTES (pattern) + 1);
-  memcpy (tempfile, SDATA (pattern), SBYTES (pattern) + 1);
-  coding_systems = Qt;
+  {
+    USE_SAFE_ALLOCA;
+    pattern = Fexpand_file_name (Vtemp_file_name_pattern, tmpdir);
+    SAFE_ALLOCA (tempfile, char *, SBYTES (pattern) + 1);
+    memcpy (tempfile, SDATA (pattern), SBYTES (pattern) + 1);
+    coding_systems = Qt;
 
 #ifdef HAVE_MKSTEMP
- {
-   int fd;
+    {
+      int fd;
 
-   BLOCK_INPUT;
-   fd = mkstemp (tempfile);
-   UNBLOCK_INPUT;
-   if (fd == -1)
-     report_file_error ("Failed to open temporary file",
-			Fcons (Vtemp_file_name_pattern, Qnil));
-   else
-     close (fd);
- }
+      BLOCK_INPUT;
+      fd = mkstemp (tempfile);
+      UNBLOCK_INPUT;
+      if (fd == -1)
+	report_file_error ("Failed to open temporary file",
+			   Fcons (Vtemp_file_name_pattern, Qnil));
+      else
+	close (fd);
+    }
 #else
-  mktemp (tempfile);
+    mktemp (tempfile);
 #endif
 
-  filename_string = build_string (tempfile);
-  GCPRO1 (filename_string);
+    filename_string = build_string (tempfile);
+    GCPRO1 (filename_string);
+    SAFE_FREE ();
+  }
+
   start = args[0];
   end = args[1];
   /* Decide coding-system of the contents of the temporary file.  */
@@ -930,11 +938,13 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
     val = Qraw_text;
   else
     {
-      args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof *args2);
+      USE_SAFE_ALLOCA;
+      SAFE_ALLOCA (args2, Lisp_Object *, (nargs + 1) * sizeof *args2);
       args2[0] = Qcall_process_region;
       for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
       coding_systems = Ffind_operation_coding_system (nargs + 1, args2);
       val = CONSP (coding_systems) ? XCDR (coding_systems) : Qnil;
+      SAFE_FREE ();
     }
   val = complement_process_encoding_system (val);
 
