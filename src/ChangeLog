@@ -1,5 +1,8 @@
 2011-03-27  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* keyboard.c (parse_modifiers_uncached, parse_modifiers):
+	Don't assume string length fits in int.
+
 	* callproc.c (Fcall_process, Fcall_process_region): Use SAFE_ALLOCA
 	instead of alloca (Bug#8344).
 

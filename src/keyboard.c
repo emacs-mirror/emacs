@@ -5959,10 +5959,10 @@ make_lispy_switch_frame (Lisp_Object frame)
    This doesn't use any caches.  */
 
 static int
-parse_modifiers_uncached (Lisp_Object symbol, int *modifier_end)
+parse_modifiers_uncached (Lisp_Object symbol, EMACS_INT *modifier_end)
 {
   Lisp_Object name;
-  int i;
+  EMACS_INT i;
   int modifiers;
 
   CHECK_SYMBOL (symbol);
@@ -5972,7 +5972,7 @@ parse_modifiers_uncached (Lisp_Object symbol, int *modifier_end)
 
   for (i = 0; i+2 <= SBYTES (name); )
     {
-      int this_mod_end = 0;
+      EMACS_INT this_mod_end = 0;
       int this_mod = 0;
 
       /* See if the name continues with a modifier word.
@@ -6169,7 +6169,7 @@ parse_modifiers (Lisp_Object symbol)
     return elements;
   else
     {
-      int end;
+      EMACS_INT end;
       int modifiers = parse_modifiers_uncached (symbol, &end);
       Lisp_Object unmodified;
       Lisp_Object mask;
