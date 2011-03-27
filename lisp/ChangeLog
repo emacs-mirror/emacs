@@ -1,3 +1,7 @@
+2011-03-27  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* cus-start.el (all): Add boolean ns-auto-hide-menu-bar.
+
 2011-03-27  Leo Liu  <sdl.web@gmail.com>
 
 	* ansi-color.el (ansi-color-names-vector): Allow cons cell value

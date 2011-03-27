@@ -162,6 +162,9 @@ cannot be encoded by the `terminal-coding-system'.
 
 ** On graphical displays, the mode-line no longer ends in dashes.
 
+** On Nextstep/OSX, the menu bar can be hidden by customizing
+   ns-auto-hide-menu-bar.
+
 ** Basic SELinux support has been added.
 This requires Emacs to be linked with libselinux at build time.
 

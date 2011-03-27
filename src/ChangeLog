@@ -1,3 +1,7 @@
+2011-03-27  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (syms_of_nsterm): Use doc: for ns-auto-hide-menu-bar.
+
 2011-03-27  Anders Lindgren <andlind@gmail.com>
 
 	* nsterm.m (ns_menu_bar_is_hidden): New variable.

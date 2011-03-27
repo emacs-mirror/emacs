@@ -6486,7 +6486,8 @@ allowing it to be used at a lower level for accented character entry.");
   last_mouse_motion_frame = Qnil;
 
   DEFVAR_LISP ("ns-auto-hide-menu-bar", ns_auto_hide_menu_bar,
-               "Non-nil means that the menu bar is hidden, but appears when the mouse is near.  Only works on OSX 10.6 or later.");
+               doc: /* Non-nil means that the menu bar is hidden, but appears when the mouse is near.
+Only works on OSX 10.6 or later.  */);
   ns_auto_hide_menu_bar = Qnil;
 
   /* TODO: move to common code */
