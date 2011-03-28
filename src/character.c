@@ -232,13 +232,10 @@ translate_char (Lisp_Object table, int c)
 }
 
 /* Convert ASCII or 8-bit character C to unibyte.  If C is none of
-   them, return (C & 0xFF).
-
-   The argument REV_TBL is now ignored.  It will be removed in the
-   future.  */
+   them, return (C & 0xFF).  */
 
 int
-multibyte_char_to_unibyte (int c, Lisp_Object rev_tbl)
+multibyte_char_to_unibyte (int c)
 {
   if (c < 0x80)
     return c;

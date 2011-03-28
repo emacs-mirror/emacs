@@ -2387,7 +2387,7 @@ push_key_description (register unsigned int c, register char *p, int force_multi
       /* Now we are sure that C is a valid character code.  */
       if (NILP (BVAR (current_buffer, enable_multibyte_characters))
 	  && ! force_multibyte)
-	*p++ = multibyte_char_to_unibyte (c, Qnil);
+	*p++ = multibyte_char_to_unibyte (c);
       else
 	p += CHAR_STRING (c, (unsigned char *) p);
     }

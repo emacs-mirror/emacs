@@ -2634,10 +2634,7 @@ since only regular expressions have distinguished subexpressions.  */)
       EMACS_INT substed_alloc_size, substed_len;
       int buf_multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
       int str_multibyte = STRING_MULTIBYTE (newtext);
-      Lisp_Object rev_tbl;
       int really_changed = 0;
-
-      rev_tbl = Qnil;
 
       substed_alloc_size = length * 2 + 100;
       substed = (unsigned char *) xmalloc (substed_alloc_size + 1);
@@ -2658,7 +2655,7 @@ since only regular expressions have distinguished subexpressions.  */)
 	    {
 	      FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c, newtext, pos, pos_byte);
 	      if (!buf_multibyte)
-		c = multibyte_char_to_unibyte (c, rev_tbl);
+		c = multibyte_char_to_unibyte (c);
 	    }
 	  else
 	    {
@@ -2681,7 +2678,7 @@ since only regular expressions have distinguished subexpressions.  */)
 		  FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c, newtext,
 						      pos, pos_byte);
 		  if (!buf_multibyte && !ASCII_CHAR_P (c))
-		    c = multibyte_char_to_unibyte (c, rev_tbl);
+		    c = multibyte_char_to_unibyte (c);
 		}
 	      else
 		{

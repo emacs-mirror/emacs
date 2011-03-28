@@ -7962,7 +7962,7 @@ message_dolog (const char *m, EMACS_INT nbytes, int nlflag, int multibyte)
 	      c = string_char_and_length (msg + i, &char_bytes);
 	      work[0] = (ASCII_CHAR_P (c)
 			 ? c
-			 : multibyte_char_to_unibyte (c, Qnil));
+			 : multibyte_char_to_unibyte (c));
 	      insert_1_both (work, 1, 1, 1, 0, 0);
 	    }
 	}
@@ -9223,7 +9223,7 @@ set_message_1 (EMACS_INT a1, Lisp_Object a2, EMACS_INT nbytes, EMACS_INT multiby
 	      c = string_char_and_length (msg + i, &n);
 	      work[0] = (ASCII_CHAR_P (c)
 			 ? c
-			 : multibyte_char_to_unibyte (c, Qnil));
+			 : multibyte_char_to_unibyte (c));
 	      insert_1_both (work, 1, 1, 1, 0, 0);
 	    }
 	}

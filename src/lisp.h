@@ -2403,7 +2403,7 @@ EXFUN (Fchar_width, 1);
 EXFUN (Fstring, MANY);
 extern EMACS_INT chars_in_text (const unsigned char *, EMACS_INT);
 extern EMACS_INT multibyte_chars_in_text (const unsigned char *, EMACS_INT);
-extern int multibyte_char_to_unibyte (int, Lisp_Object);
+extern int multibyte_char_to_unibyte (int);
 extern int multibyte_char_to_unibyte_safe (int);
 extern void init_character_once (void);
 extern void syms_of_character (void);

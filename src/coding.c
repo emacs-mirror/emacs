@@ -853,8 +853,7 @@ static unsigned char *alloc_destination (struct coding_system *,
                                          EMACS_INT, unsigned char *);
 static void setup_iso_safe_charsets (Lisp_Object);
 static unsigned char *encode_designation_at_bol (struct coding_system *,
-                                                 int *, int *,
-                                                 unsigned char *);
+                                                 int *, unsigned char *);
 static int detect_eol (const unsigned char *,
                        EMACS_INT, enum coding_category);
 static Lisp_Object adjust_coding_eol_type (struct coding_system *, int);
@@ -4299,7 +4298,7 @@ encode_invocation_designation (struct charset *charset,
 
 static unsigned char *
 encode_designation_at_bol (struct coding_system *coding, int *charbuf,
-			   int *charbuf_end, unsigned char *dst)
+			   unsigned char *dst)
 {
   struct charset *charset;
   /* Table of charsets to be designated to each graphic register.  */
@@ -4390,7 +4389,7 @@ encode_coding_iso_2022 (struct coding_system *coding)
 	  unsigned char *dst_prev = dst;
 
 	  /* We have to produce designation sequences if any now.  */
-	  dst = encode_designation_at_bol (coding, charbuf, charbuf_end, dst);
+	  dst = encode_designation_at_bol (coding, charbuf, dst);
 	  bol_designation = 0;
 	  /* We are sure that designation sequences are all ASCII bytes.  */
 	  produced_chars += dst - dst_prev;

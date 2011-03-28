@@ -2226,7 +2226,7 @@ general_insert_function (void (*insert_func)
 	    {
 	      str[0] = (ASCII_CHAR_P (XINT (val))
 			? XINT (val)
-			: multibyte_char_to_unibyte (XINT (val), Qnil));
+			: multibyte_char_to_unibyte (XINT (val)));
 	      len = 1;
 	    }
 	  (*insert_func) ((char *) str, len);

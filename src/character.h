@@ -69,7 +69,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define CHAR_TO_BYTE8(c)	\
   (CHAR_BYTE8_P (c)		\
    ? (c) - 0x3FFF00		\
-   : multibyte_char_to_unibyte (c, Qnil))
+   : multibyte_char_to_unibyte (c))
 
 /* Return the raw 8-bit byte for character C,
    or -1 if C doesn't correspond to a byte.  */
