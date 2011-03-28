@@ -1,3 +1,8 @@
+2011-03-28  Glenn Morris  <rgm@gnu.org>
+
+	* autogen.sh (get_version): Discard "not found" lines.
+	(check_version): Respect $AUTOCONF etc environment variables.
+
 2011-03-27  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (AC_TYPE_SIGNAL): Remove obsolete macro.
