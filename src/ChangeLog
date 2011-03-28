@@ -1,3 +1,20 @@
+2011-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (safe_run_hook_funcall): New function.
+	(safe_run_hooks_1, safe_run_hooks_error, safe_run_hooks): On error,
+	don't set the hook to nil, but remove the offending function instead.
+	(Qcommand_hook_internal): Remove, unused.
+	(syms_of_keyboard): Don't initialize Qcommand_hook_internal nor define
+	Vcommand_hook_internal.
+
+	* eval.c (enum run_hooks_condition): Remove.
+	(funcall_nil, funcall_not): New functions.
+	(run_hook_with_args): Call each function through a `funcall' argument.
+	Remove `cond' argument, now redundant.
+	(Frun_hooks, Frun_hook_with_args, Frun_hook_with_args_until_success)
+	(Frun_hook_with_args_until_failure): Adjust accordingly.
+	(run_hook_wrapped_funcall, Frun_hook_wrapped): New functions.
+
 2011-03-28  Juanma Barranquero  <lekktu@gmail.com>
 
 	* dispextern.h (string_buffer_position): Remove declaration.

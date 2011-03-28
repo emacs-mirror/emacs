@@ -748,6 +748,11 @@ sc.el, x-menu.el, rnews.el, rnewspost.el
 
 * Lisp changes in Emacs 24.1
 
+** pre/post-command-hook are not reset to nil upon error.
+Instead, the offending function is removed.
+
+** New low-level function run-hook-wrapped.
+
 ** byte-compile-disable-print-circle is obsolete.
 ** deferred-action-list and deferred-action-function are obsolete.
 ** Removed the stack-trace-on-error variable.
