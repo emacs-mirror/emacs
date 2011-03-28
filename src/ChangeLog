@@ -1,3 +1,12 @@
+2011-03-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (try_scrolling): When point is above the window, allow
+	searching as far as scroll_max, or one screenful, to compute
+	vertical distance from PT to the scroll margin position.  This
+	prevents try_scrolling from unnecessarily failing when
+	scroll-conservatively is set to a value slightly larger than the
+	window height.
+
 2011-03-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (try_scrolling): Clean up the case of PT below the

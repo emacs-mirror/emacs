@@ -13176,16 +13176,19 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 	{
 	  /* Point is in the scroll margin at the top of the window or
 	     above what is displayed in the window.  */
-	  int y0;
+	  int y0, y_to_move;
 
 	  /* Compute the vertical distance from PT to the scroll
-	     margin position.  Give up if distance is greater than
-	     scroll_max.  */
+	     margin position.  Move as far as scroll_max allows, or
+	     one screenful, or 10 screen lines, whichever is largest.
+	     Give up if distance is greater than scroll_max.  */
 	  SET_TEXT_POS (pos, PT, PT_BYTE);
 	  start_display (&it, w, pos);
 	  y0 = it.current_y;
+	  y_to_move = max (it.last_visible_y,
+			   max (scroll_max, 10 * FRAME_LINE_HEIGHT (f)));
 	  move_it_to (&it, CHARPOS (scroll_margin_pos), 0,
-		      it.last_visible_y, -1,
+		      y_to_move, -1,
 		      MOVE_TO_POS | MOVE_TO_X | MOVE_TO_Y);
 	  dy = it.current_y - y0;
 	  if (dy > scroll_max)
