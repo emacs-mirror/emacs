@@ -95,10 +95,9 @@ static void save_search_regs (void);
 static EMACS_INT simple_search (EMACS_INT, unsigned char *, EMACS_INT,
 				EMACS_INT, Lisp_Object, EMACS_INT, EMACS_INT,
                                 EMACS_INT, EMACS_INT);
-static EMACS_INT boyer_moore (EMACS_INT, unsigned char *, EMACS_INT, EMACS_INT,
-                              Lisp_Object, Lisp_Object,
-                              EMACS_INT, EMACS_INT,
-                              EMACS_INT, EMACS_INT, int);
+static EMACS_INT boyer_moore (EMACS_INT, unsigned char *, EMACS_INT,
+                              Lisp_Object, Lisp_Object, EMACS_INT,
+                              EMACS_INT, int);
 static EMACS_INT search_buffer (Lisp_Object, EMACS_INT, EMACS_INT,
                                 EMACS_INT, EMACS_INT, EMACS_INT, int,
                                 Lisp_Object, Lisp_Object, int);
@@ -1416,15 +1415,14 @@ search_buffer (Lisp_Object string, EMACS_INT pos, EMACS_INT pos_byte,
 	}
 
       len_byte = pat - patbuf;
-      len = raw_pattern_size;
       pat = base_pat = patbuf;
 
       if (boyer_moore_ok)
-	return boyer_moore (n, pat, len, len_byte, trt, inverse_trt,
-			    pos, pos_byte, lim, lim_byte,
+	return boyer_moore (n, pat, len_byte, trt, inverse_trt,
+			    pos_byte, lim_byte,
 			    char_base);
       else
-	return simple_search (n, pat, len, len_byte, trt,
+	return simple_search (n, pat, raw_pattern_size, len_byte, trt,
 			      pos, pos_byte, lim, lim_byte);
     }
 }
@@ -1636,8 +1634,8 @@ simple_search (EMACS_INT n, unsigned char *pat,
 }
 
 /* Do Boyer-Moore search N times for the string BASE_PAT,
-   whose length is LEN/LEN_BYTE,
-   from buffer position POS/POS_BYTE until LIM/LIM_BYTE.
+   whose length is LEN_BYTE,
+   from buffer position POS_BYTE until LIM_BYTE.
    DIRECTION says which direction we search in.
    TRT and INVERSE_TRT are translation tables.
    Characters in PAT are already translated by TRT.
@@ -1652,10 +1650,10 @@ simple_search (EMACS_INT n, unsigned char *pat,
 
 static EMACS_INT
 boyer_moore (EMACS_INT n, unsigned char *base_pat,
-	     EMACS_INT len, EMACS_INT len_byte,
+	     EMACS_INT len_byte,
 	     Lisp_Object trt, Lisp_Object inverse_trt,
-	     EMACS_INT pos, EMACS_INT pos_byte,
-	     EMACS_INT lim, EMACS_INT lim_byte, int char_base)
+	     EMACS_INT pos_byte, EMACS_INT lim_byte,
+             int char_base)
 {
   int direction = ((n > 0) ? 1 : -1);
   register EMACS_INT dirlen;
@@ -1776,8 +1774,8 @@ boyer_moore (EMACS_INT n, unsigned char *base_pat,
 	    stride_for_teases = BM_tab[j];
 
 	  BM_tab[j] = dirlen - i;
-	  /* A translation table is accompanied by its inverse -- see */
-	  /* comment following downcase_table for details */
+	  /* A translation table is accompanied by its inverse -- see
+	     comment following downcase_table for details.  */
 	  if (ch >= 0)
 	    {
 	      int starting_ch = ch;
