@@ -1,3 +1,9 @@
+2011-03-28  Leo Liu  <sdl.web@gmail.com>
+
+	* abbrev.el (abbrev-table-empty-p): New function.
+	(prepare-abbrev-list-buffer): Place empty abbrev tables after
+	nonempty ones.  (Bug#5937)
+
 2011-03-27  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* cus-start.el (all): Add boolean ns-auto-hide-menu-bar.

@@ -123,8 +123,13 @@ Otherwise display all abbrevs."
       (if local
           (insert-abbrev-table-description
            (abbrev-table-name local-table) t)
-        (dolist (table abbrev-table-name-list)
-          (insert-abbrev-table-description table t)))
+        (let (empty-tables)
+	  (dolist (table abbrev-table-name-list)
+	    (if (abbrev-table-empty-p (symbol-value table))
+		(push table empty-tables)
+	      (insert-abbrev-table-description table t)))
+	  (dolist (table (nreverse empty-tables))
+	    (insert-abbrev-table-description table t))))
       (goto-char (point-min))
       (set-buffer-modified-p nil)
       (edit-abbrevs-mode)
@@ -419,6 +424,19 @@ PROPS is a list of properties."
 (defun abbrev-table-p (object)
   (and (vectorp object)
        (numberp (abbrev-table-get object :abbrev-table-modiff))))
+
+(defun abbrev-table-empty-p (object &optional ignore-system)
+  "Return nil if there are no abbrev symbols in OBJECT.
+If IGNORE-SYSTEM is non-nil, system definitions are ignored."
+  (unless (abbrev-table-p object)
+    (error "Non abbrev table object"))
+  (not (catch 'some
+	 (mapatoms (lambda (abbrev)
+		     (unless (or (zerop (length (symbol-name abbrev)))
+				 (and ignore-system
+				      (abbrev-get abbrev :system)))
+		       (throw 'some t)))
+		   object))))
 
 (defvar global-abbrev-table (make-abbrev-table)
   "The abbrev table whose abbrevs affect all buffers.
