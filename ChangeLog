@@ -1,5 +1,7 @@
 2011-03-28  Glenn Morris  <rgm@gnu.org>
 
+	* autogen/update_autogen: Pass -f to autoreconf.
+
 	* autogen.sh (get_version): Discard "not found" lines.
 	(check_version): Respect $AUTOCONF etc environment variables.
 
