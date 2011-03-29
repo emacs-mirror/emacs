@@ -2278,7 +2278,7 @@ void staticpro (Lisp_Object *);
 struct window;
 struct frame;
 
-/* Defined in data.c */
+/* Defined in data.c.  */
 extern Lisp_Object Qnil, Qt, Qquote, Qlambda, Qsubr, Qunbound;
 extern Lisp_Object Qerror_conditions, Qerror_message, Qtop_level;
 extern Lisp_Object Qerror, Qquit, Qwrong_type_argument, Qargs_out_of_range;
@@ -2403,7 +2403,7 @@ EXFUN (Fchar_width, 1);
 EXFUN (Fstring, MANY);
 extern EMACS_INT chars_in_text (const unsigned char *, EMACS_INT);
 extern EMACS_INT multibyte_chars_in_text (const unsigned char *, EMACS_INT);
-extern int multibyte_char_to_unibyte (int, Lisp_Object);
+extern int multibyte_char_to_unibyte (int);
 extern int multibyte_char_to_unibyte_safe (int);
 extern void init_character_once (void);
 extern void syms_of_character (void);
@@ -2812,7 +2812,7 @@ extern void init_obarray (void);
 extern void init_lread (void);
 extern void syms_of_lread (void);
 
-/* Defined in eval.c */
+/* Defined in eval.c.  */
 extern Lisp_Object Qautoload, Qexit, Qinteractive, Qcommandp, Qdefun, Qmacro;
 extern Lisp_Object Qinhibit_quit;
 extern Lisp_Object Vautoload_queue;
@@ -2830,6 +2830,9 @@ EXFUN (Frun_hooks, MANY);
 EXFUN (Frun_hook_with_args, MANY);
 EXFUN (Frun_hook_with_args_until_failure, MANY);
 extern void run_hook_with_args_2 (Lisp_Object, Lisp_Object, Lisp_Object);
+extern Lisp_Object run_hook_with_args (size_t nargs, Lisp_Object *args,
+				       Lisp_Object (*funcall)
+				       (size_t nargs, Lisp_Object *args));
 EXFUN (Fprogn, UNEVALLED);
 EXFUN (Finteractive_p, 0);
 EXFUN (Fthrow, 2) NO_RETURN;

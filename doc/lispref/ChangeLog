@@ -1,3 +1,8 @@
+2011-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* commands.texi (Command Overview): post-command-hook is not reset to
+	nil any more.
+
 2011-03-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* strings.texi (String Conversion): Don't mention

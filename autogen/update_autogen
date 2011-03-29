@@ -126,7 +126,7 @@ done < $tempfile
 
 echo "Running autoreconf..."
 
-autoreconf -i -I m4 2>| $tempfile
+autoreconf -f -i -I m4 2>| $tempfile
 
 retval=$?
 

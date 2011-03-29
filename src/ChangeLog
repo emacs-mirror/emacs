@@ -8,8 +8,6 @@
 	* dispnew.c (update_window) [PERIODIC_PREEMPTION_CHECKING]:
 	Omit unused local var.
 
-2011-03-27  Paul Eggert  <eggert@cs.ucla.edu>
-
 	* keyboard.c (parse_modifiers_uncached, parse_modifiers):
 	Don't assume string length fits in int.
 	(keyremap_step, read_key_sequence): Use size_t for sizes.
@@ -62,11 +60,85 @@
 	* fns.c (get_key_arg): Now accepts and returns size_t, and returns
 	0 if not found, not -1.  All callers changed.
 
-2011-03-26  Paul Eggert  <eggert@cs.ucla.edu>
-
 	* alloc.c (garbage_collect): Don't assume stack size fits in int.
 	(stack_copy_size): Now size_t, not int.
 	(stack_copy, stack_copy_size): Define only if MAX_SAVE_STACK > 0.
+
+2011-03-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* coding.c (encode_designation_at_bol): Remove parameter `charbuf_end',
+	unused since revno:43563.1.17 (2002-03-01) and revno:84043 (2008-02-1).
+	All callers changed.
+
+	* lisp.h (multibyte_char_to_unibyte):
+	* character.c (multibyte_char_to_unibyte): Remove parameter `rev_tbl',
+	unused since revno:43563.1.16 (2002-03-01) and revno:84043 (2008-02-1).
+	* character.h (CHAR_TO_BYTE8):
+	* cmds.c (internal_self_insert):
+	* editfns.c (general_insert_function):
+	* keymap.c (push_key_description):
+	* search.c (Freplace_match):
+	* xdisp.c (message_dolog, set_message_1): All callers changed.
+
+2011-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (safe_run_hook_funcall): New function.
+	(safe_run_hooks_1, safe_run_hooks_error, safe_run_hooks): On error,
+	don't set the hook to nil, but remove the offending function instead.
+	(Qcommand_hook_internal): Remove, unused.
+	(syms_of_keyboard): Don't initialize Qcommand_hook_internal nor define
+	Vcommand_hook_internal.
+
+	* eval.c (enum run_hooks_condition): Remove.
+	(funcall_nil, funcall_not): New functions.
+	(run_hook_with_args): Call each function through a `funcall' argument.
+	Remove `cond' argument, now redundant.
+	(Frun_hooks, Frun_hook_with_args, Frun_hook_with_args_until_success)
+	(Frun_hook_with_args_until_failure): Adjust accordingly.
+	(run_hook_wrapped_funcall, Frun_hook_wrapped): New functions.
+
+2011-03-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dispextern.h (string_buffer_position): Remove declaration.
+
+	* print.c (strout): Remove parameter `multibyte', unused since
+	revno:25356 (1999-08-21).  All callers changed.
+
+	* search.c (boyer_moore): Remove parameters `len', `pos' and `lim',
+	never used since function introduction in revno:20870 (1998-02-08).
+	All callers changed.
+
+	* w32.c (_wsa_errlist): Use braces for struct initializers.
+
+	* xdisp.c (string_buffer_position_lim): Remove parameter `w',
+	never used since function introduction in revno:36704 (2001-03-09).
+	All callers changed.
+	(string_buffer_position): Likewise.  Also, make static (it's never
+	used outside xdisp.c).
+	(cursor_row_p): Remove parameter `w', unused since
+	revno:32591 (2000-10-17).  All callers changed.
+	(decode_mode_spec): Remove parameter `precision', introduced during
+	Gerd Moellmann's rewrite at revno:25013 (1999-07-21), but never used.
+	All callers changed.
+
+2011-03-27  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (syms_of_nsterm): Use doc: for ns-auto-hide-menu-bar.
+
+2011-03-27  Anders Lindgren  <andlind@gmail.com>
+
+	* nsterm.m (ns_menu_bar_is_hidden): New variable.
+	(ns_constrain_all_frames, ns_menu_bar_should_be_hidden)
+	(ns_update_auto_hide_menu_bar): New functions.
+	(ns_update_begin): Call ns_update_auto_hide_menu_bar.
+	(applicationDidBecomeActive): Call ns_update_auto_hide_menu_bar and
+	ns_constrain_all_frames.
+	(constrainFrameRect): Return at once if ns_menu_bar_should_be_hidden.
+	(syms_of_nsterm): DEFVAR ns-auto-hide-menu-bar, init to Qnil.
+
+2011-03-27  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsmenu.m (runDialogAt): Remove argument to timer_check.
 
 2011-03-27  Glenn Morris  <rgm@gnu.org>
 

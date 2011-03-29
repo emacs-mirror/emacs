@@ -754,7 +754,7 @@ static void setup_for_ellipsis (struct it *, int);
 static void mark_window_display_accurate_1 (struct window *, int);
 static int single_display_spec_string_p (Lisp_Object, Lisp_Object);
 static int display_prop_string_p (Lisp_Object, Lisp_Object);
-static int cursor_row_p (struct window *, struct glyph_row *);
+static int cursor_row_p (struct glyph_row *);
 static int redisplay_mode_lines (Lisp_Object, int);
 static char *decode_mode_spec_coding (Lisp_Object, char *, int);
 
@@ -823,8 +823,7 @@ static int display_mode_lines (struct window *);
 static int display_mode_line (struct window *, enum face_id, Lisp_Object);
 static int display_mode_element (struct it *, int, int, int, Lisp_Object, Lisp_Object, int);
 static int store_mode_line_string (const char *, Lisp_Object, int, int, int, Lisp_Object);
-static const char *decode_mode_spec (struct window *, int, int, int,
-				     Lisp_Object *);
+static const char *decode_mode_spec (struct window *, int, int, Lisp_Object *);
 static void display_menu_bar (struct window *);
 static int display_count_lines (EMACS_INT, EMACS_INT, EMACS_INT, int,
 				EMACS_INT *);
@@ -4420,20 +4419,18 @@ display_prop_string_p (Lisp_Object prop, Lisp_Object string)
   return 0;
 }
 
-/* Look for STRING in overlays and text properties in W's buffer,
-   between character positions FROM and TO (excluding TO).
+/* Look for STRING in overlays and text properties in the current
+   buffer, between character positions FROM and TO (excluding TO).
    BACK_P non-zero means look back (in this case, TO is supposed to be
    less than FROM).
    Value is the first character position where STRING was found, or
    zero if it wasn't found before hitting TO.
 
-   W's buffer must be current.
-
    This function may only use code that doesn't eval because it is
    called asynchronously from note_mouse_highlight.  */
 
 static EMACS_INT
-string_buffer_position_lim (struct window *w, Lisp_Object string,
+string_buffer_position_lim (Lisp_Object string,
 			    EMACS_INT from, EMACS_INT to, int back_p)
 {
   Lisp_Object limit, prop, pos;
@@ -4471,27 +4468,25 @@ string_buffer_position_lim (struct window *w, Lisp_Object string,
   return found ? XINT (pos) : 0;
 }
 
-/* Determine which buffer position in W's buffer STRING comes from.
+/* Determine which buffer position in current buffer STRING comes from.
    AROUND_CHARPOS is an approximate position where it could come from.
    Value is the buffer position or 0 if it couldn't be determined.
-
-   W's buffer must be current.
 
    This function is necessary because we don't record buffer positions
    in glyphs generated from strings (to keep struct glyph small).
    This function may only use code that doesn't eval because it is
    called asynchronously from note_mouse_highlight.  */
 
-EMACS_INT
-string_buffer_position (struct window *w, Lisp_Object string, EMACS_INT around_charpos)
+static EMACS_INT
+string_buffer_position (Lisp_Object string, EMACS_INT around_charpos)
 {
   const int MAX_DISTANCE = 1000;
-  EMACS_INT found = string_buffer_position_lim (w, string, around_charpos,
+  EMACS_INT found = string_buffer_position_lim (string, around_charpos,
 						around_charpos + MAX_DISTANCE,
 						0);
 
   if (!found)
-    found = string_buffer_position_lim (w, string, around_charpos,
+    found = string_buffer_position_lim (string, around_charpos,
 					around_charpos - MAX_DISTANCE, 1);
   return found;
 }
@@ -7967,7 +7962,7 @@ message_dolog (const char *m, EMACS_INT nbytes, int nlflag, int multibyte)
 	      c = string_char_and_length (msg + i, &char_bytes);
 	      work[0] = (ASCII_CHAR_P (c)
 			 ? c
-			 : multibyte_char_to_unibyte (c, Qnil));
+			 : multibyte_char_to_unibyte (c));
 	      insert_1_both (work, 1, 1, 1, 0, 0);
 	    }
 	}
@@ -9228,7 +9223,7 @@ set_message_1 (EMACS_INT a1, Lisp_Object a2, EMACS_INT nbytes, EMACS_INT multiby
 	      c = string_char_and_length (msg + i, &n);
 	      work[0] = (ASCII_CHAR_P (c)
 			 ? c
-			 : multibyte_char_to_unibyte (c, Qnil));
+			 : multibyte_char_to_unibyte (c));
 	      insert_1_both (work, 1, 1, 1, 0, 0);
 	    }
 	}
@@ -12731,7 +12726,7 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 		  EMACS_INT tem;
 
 		  str = glyph->object;
-		  tem = string_buffer_position_lim (w, str, pos, pos_after, 0);
+		  tem = string_buffer_position_lim (str, pos, pos_after, 0);
 		  if (tem == 0	/* from overlay */
 		      || pos <= tem)
 		    {
@@ -13457,7 +13452,7 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
 		     && row < w->current_matrix->rows
 				+ w->current_matrix->nrows - 1
 		     && MATRIX_ROW_START_CHARPOS (row+1) == PT
-		     && !cursor_row_p (w, row))
+		     && !cursor_row_p (row))
 		++row;
 
 	      /* If within the scroll margin, scroll.  Note that
@@ -13509,7 +13504,7 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
 		 skip forward over overlay strings.  */
 	      while (MATRIX_ROW_BOTTOM_Y (row) < last_y
 		     && MATRIX_ROW_END_CHARPOS (row) == PT
-		     && !cursor_row_p (w, row))
+		     && !cursor_row_p (row))
 		++row;
 
 	      /* If within the scroll margin, scroll.  */
@@ -13605,7 +13600,7 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
 		{
 		  if (MATRIX_ROW_START_CHARPOS (row) <= PT
 		      && PT <= MATRIX_ROW_END_CHARPOS (row)
-		      && cursor_row_p (w, row))
+		      && cursor_row_p (row))
 		    rv |= set_cursor_from_row (w, row, w->current_matrix,
 					       0, 0, 0, 0);
 		  /* As soon as we've found the first suitable row
@@ -13644,7 +13639,7 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
 		}
 	      while (MATRIX_ROW_BOTTOM_Y (row) < last_y
 		     && MATRIX_ROW_START_CHARPOS (row) == PT
-		     && cursor_row_p (w, row));
+		     && cursor_row_p (row));
 	    }
 	}
     }
@@ -16968,11 +16963,11 @@ highlight_trailing_whitespace (struct frame *f, struct glyph_row *row)
 }
 
 
-/* Value is non-zero if glyph row ROW in window W should be
+/* Value is non-zero if glyph row ROW should be
    used to hold the cursor.  */
 
 static int
-cursor_row_p (struct window *w, struct glyph_row *row)
+cursor_row_p (struct glyph_row *row)
 {
   int result = 1;
 
@@ -17885,7 +17880,7 @@ display_line (struct it *it)
 	   && !MATRIX_ROW (it->w->desired_matrix, cvpos)->ends_at_zv_p))
       && PT >= MATRIX_ROW_START_CHARPOS (row)
       && PT <= MATRIX_ROW_END_CHARPOS (row)
-      && cursor_row_p (it->w, row))
+      && cursor_row_p (row))
     set_cursor_from_row (it->w, row, it->w->desired_matrix, 0, 0, 0, 0);
 
   /* Highlight trailing whitespace.  */
@@ -18537,7 +18532,7 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
 		    charpos = (STRING_MULTIBYTE (elt)
 			       ? string_byte_to_char (elt, bytepos)
 			       : bytepos);
-		    spec = decode_mode_spec (it->w, c, field, prec, &string);
+		    spec = decode_mode_spec (it->w, c, field, &string);
 		    multibyte = STRINGP (string) && STRING_MULTIBYTE (string);
 
 		    switch (mode_line_target)
@@ -19208,9 +19203,8 @@ decode_mode_spec_coding (Lisp_Object coding_system, register char *buf, int eol_
 }
 
 /* Return a string for the output of a mode line %-spec for window W,
-   generated by character C.  PRECISION >= 0 means don't return a
-   string longer than that value.  FIELD_WIDTH > 0 means pad the
-   string returned with spaces to that value.  Return a Lisp string in
+   generated by character C.  FIELD_WIDTH > 0 means pad the string
+   returned with spaces to that value.  Return a Lisp string in
    *STRING if the resulting string is taken from that Lisp string.
 
    Note we operate on the current buffer for most purposes,
@@ -19220,7 +19214,7 @@ static char lots_of_dashes[] = "------------------------------------------------
 
 static const char *
 decode_mode_spec (struct window *w, register int c, int field_width,
-		  int precision, Lisp_Object *string)
+		  Lisp_Object *string)
 {
   Lisp_Object obj;
   struct frame *f = XFRAME (WINDOW_FRAME (w));
@@ -24317,7 +24311,7 @@ mouse_face_from_buffer_pos (Lisp_Object window,
 	     END_CHARPOS, or if they come from an overlay.  */
 	  if (EQ (glyph->object, before_string))
 	    {
-	      pos = string_buffer_position (w, before_string,
+	      pos = string_buffer_position (before_string,
 					    start_charpos);
 	      /* If pos == 0, it means before_string came from an
 		 overlay, not from a buffer position.  */
@@ -24326,7 +24320,7 @@ mouse_face_from_buffer_pos (Lisp_Object window,
 	    }
 	  else if (EQ (glyph->object, after_string))
 	    {
-	      pos = string_buffer_position (w, after_string, end_charpos);
+	      pos = string_buffer_position (after_string, end_charpos);
 	      if (!pos || (pos >= start_charpos && pos < end_charpos))
 		break;
 	    }
@@ -24368,7 +24362,7 @@ mouse_face_from_buffer_pos (Lisp_Object window,
 	     END_CHARPOS, or if they come from an overlay.  */
 	  if (EQ (glyph->object, before_string))
 	    {
-	      pos = string_buffer_position (w, before_string, start_charpos);
+	      pos = string_buffer_position (before_string, start_charpos);
 	      /* If pos == 0, it means before_string came from an
 		 overlay, not from a buffer position.  */
 	      if (!pos || (pos >= start_charpos && pos < end_charpos))
@@ -24376,7 +24370,7 @@ mouse_face_from_buffer_pos (Lisp_Object window,
 	    }
 	  else if (EQ (glyph->object, after_string))
 	    {
-	      pos = string_buffer_position (w, after_string, end_charpos);
+	      pos = string_buffer_position (after_string, end_charpos);
 	      if (!pos || (pos >= start_charpos && pos < end_charpos))
 		break;
 	    }
@@ -24434,13 +24428,13 @@ mouse_face_from_buffer_pos (Lisp_Object window,
 	     END_CHARPOS, or if they come from an overlay.  */
 	  if (EQ (end->object, before_string))
 	    {
-	      pos = string_buffer_position (w, before_string, start_charpos);
+	      pos = string_buffer_position (before_string, start_charpos);
 	      if (!pos || (pos >= start_charpos && pos < end_charpos))
 		break;
 	    }
 	  else if (EQ (end->object, after_string))
 	    {
-	      pos = string_buffer_position (w, after_string, end_charpos);
+	      pos = string_buffer_position (after_string, end_charpos);
 	      if (!pos || (pos >= start_charpos && pos < end_charpos))
 		break;
 	    }
@@ -24484,13 +24478,13 @@ mouse_face_from_buffer_pos (Lisp_Object window,
 	     END_CHARPOS, or if they come from an overlay.  */
 	  if (EQ (end->object, before_string))
 	    {
-	      pos = string_buffer_position (w, before_string, start_charpos);
+	      pos = string_buffer_position (before_string, start_charpos);
 	      if (!pos || (pos >= start_charpos && pos < end_charpos))
 		break;
 	    }
 	  else if (EQ (end->object, after_string))
 	    {
-	      pos = string_buffer_position (w, after_string, end_charpos);
+	      pos = string_buffer_position (after_string, end_charpos);
 	      if (!pos || (pos >= start_charpos && pos < end_charpos))
 		break;
 	    }
@@ -25473,7 +25467,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
 		     check if the text under it has one.  */
 		  struct glyph_row *r = MATRIX_ROW (w->current_matrix, vpos);
 		  EMACS_INT start = MATRIX_ROW_START_CHARPOS (r);
-		  pos = string_buffer_position (w, object, start);
+		  pos = string_buffer_position (object, start);
 		  if (pos > 0)
 		    {
 		      mouse_face = get_char_property_and_overlay
@@ -25583,7 +25577,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
 		    struct glyph_row *r
 		      = MATRIX_ROW (w->current_matrix, vpos);
 		    EMACS_INT start = MATRIX_ROW_START_CHARPOS (r);
-		    EMACS_INT p = string_buffer_position (w, obj, start);
+		    EMACS_INT p = string_buffer_position (obj, start);
 		    if (p > 0)
 		      {
 			help = Fget_char_property (make_number (p),
@@ -25639,7 +25633,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
 		      struct glyph_row *r
 			= MATRIX_ROW (w->current_matrix, vpos);
 		      EMACS_INT start = MATRIX_ROW_START_CHARPOS (r);
-		      EMACS_INT p = string_buffer_position (w, obj, start);
+		      EMACS_INT p = string_buffer_position (obj, start);
 		      if (p > 0)
 			pointer = Fget_char_property (make_number (p),
 						      Qpointer, w->buffer);

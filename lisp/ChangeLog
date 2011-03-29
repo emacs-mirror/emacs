@@ -1,3 +1,37 @@
+2011-03-29  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-hide-by-annotation, allout-flag-region):
+	Reduce possibility of overlay leakage by making them volatile.
+
+	* allout-widgets.el (allout-widgets-tally): Define as nil so the
+	hash is not shared between buffers.  Mode initialization is
+	responsible for giving it a useful starting value.
+	(allout-item-span): Reduce possibility of overlay leakage by
+	making them volatile.
+	(allout-widgets-count-buttons-in-region): Add diagnostic function
+	for tracking down button overlay leaks.
+
+2011-03-29  Leo Liu  <sdl.web@gmail.com>
+
+	* ido.el (ido-read-internal): Use the default history var
+	minibuffer-history if no HISTORY is specified.
+
+2011-03-28  Brian T. Sniffen  <bsniffen@akamai.com>  (tiny change)
+
+	* net/imap.el (imap-shell-open, imap-process-connection-type): Use
+	imap-process-connection-type for 'shell' streams as well as
+	Kerberos, SSL, other subprocesses.
+
+2011-03-28  Leo Liu  <sdl.web@gmail.com>
+
+	* abbrev.el (abbrev-table-empty-p): New function.
+	(prepare-abbrev-list-buffer): Place empty abbrev tables after
+	nonempty ones.  (Bug#5937)
+
+2011-03-27  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* cus-start.el (all): Add boolean ns-auto-hide-menu-bar.
+
 2011-03-27  Leo Liu  <sdl.web@gmail.com>
 
 	* ansi-color.el (ansi-color-names-vector): Allow cons cell value

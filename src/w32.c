@@ -1505,6 +1505,7 @@ w32_get_resource (char *key, LPDWORD lpdwtype)
 }
 
 char *get_emacs_configuration (void);
+
 void
 init_environment (char ** argv)
 {
@@ -1591,25 +1592,25 @@ init_environment (char ** argv)
        If not, then we can try to default to the appdata directory under the
        user's profile, which is more likely to be writable.   */
     if (stat ("C:/.emacs", &ignored) < 0)
-    {
-      HRESULT profile_result;
-      /* Dynamically load ShGetFolderPath, as it won't exist on versions
-	 of Windows 95 and NT4 that have not been updated to include
-	 MSIE 5.  */
-      ShGetFolderPath_fn get_folder_path;
-      get_folder_path = (ShGetFolderPath_fn)
-	GetProcAddress (GetModuleHandle ("shell32.dll"), "SHGetFolderPathA");
+      {
+	HRESULT profile_result;
+	/* Dynamically load ShGetFolderPath, as it won't exist on versions
+	   of Windows 95 and NT4 that have not been updated to include
+	   MSIE 5.  */
+	ShGetFolderPath_fn get_folder_path;
+	get_folder_path = (ShGetFolderPath_fn)
+	  GetProcAddress (GetModuleHandle ("shell32.dll"), "SHGetFolderPathA");
 
-      if (get_folder_path != NULL)
-	{
-	  profile_result = get_folder_path (NULL, CSIDL_APPDATA, NULL,
-					    0, default_home);
+	if (get_folder_path != NULL)
+	  {
+	    profile_result = get_folder_path (NULL, CSIDL_APPDATA, NULL,
+					      0, default_home);
 
-	  /* If we can't get the appdata dir, revert to old behavior.  */
-	  if (profile_result == S_OK)
-	    env_vars[0].def_value = default_home;
-	}
-    }
+	    /* If we can't get the appdata dir, revert to old behavior.	 */
+	    if (profile_result == S_OK)
+	      env_vars[0].def_value = default_home;
+	  }
+      }
 
   /* Get default locale info and use it for LANG.  */
   if (GetLocaleInfo (LOCALE_USER_DEFAULT,
@@ -2082,42 +2083,42 @@ GetCachedVolumeInformation (char * root_dir)
   info = lookup_volume_info (root_dir);
 
   if (info == NULL || ! VOLINFO_STILL_VALID (root_dir, info))
-  {
-    char  name[ 256 ];
-    DWORD serialnum;
-    DWORD maxcomp;
-    DWORD flags;
-    char  type[ 256 ];
+    {
+      char  name[ 256 ];
+      DWORD serialnum;
+      DWORD maxcomp;
+      DWORD flags;
+      char  type[ 256 ];
 
-    /* Info is not cached, or is stale. */
-    if (!GetVolumeInformation (root_dir,
-			       name, sizeof (name),
-			       &serialnum,
-			       &maxcomp,
-			       &flags,
-			       type, sizeof (type)))
-      return NULL;
+      /* Info is not cached, or is stale. */
+      if (!GetVolumeInformation (root_dir,
+				 name, sizeof (name),
+				 &serialnum,
+				 &maxcomp,
+				 &flags,
+				 type, sizeof (type)))
+	return NULL;
 
-    /* Cache the volume information for future use, overwriting existing
-       entry if present.  */
-    if (info == NULL)
-      {
-	info = (volume_info_data *) xmalloc (sizeof (volume_info_data));
-	add_volume_info (root_dir, info);
-      }
-    else
-      {
-	xfree (info->name);
-	xfree (info->type);
-      }
+      /* Cache the volume information for future use, overwriting existing
+	 entry if present.  */
+      if (info == NULL)
+	{
+	  info = (volume_info_data *) xmalloc (sizeof (volume_info_data));
+	  add_volume_info (root_dir, info);
+	}
+      else
+	{
+	  xfree (info->name);
+	  xfree (info->type);
+	}
 
-    info->name = xstrdup (name);
-    info->serialnum = serialnum;
-    info->maxcomp = maxcomp;
-    info->flags = flags;
-    info->type = xstrdup (type);
-    info->timestamp = GetTickCount ();
-  }
+      info->name = xstrdup (name);
+      info->serialnum = serialnum;
+      info->maxcomp = maxcomp;
+      info->flags = flags;
+      info->type = xstrdup (type);
+      info->timestamp = GetTickCount ();
+    }
 
   return info;
 }
@@ -4517,75 +4518,75 @@ struct {
   int errnum;
   char * msg;
 } _wsa_errlist[] = {
-  WSAEINTR                , "Interrupted function call",
-  WSAEBADF                , "Bad file descriptor",
-  WSAEACCES               , "Permission denied",
-  WSAEFAULT               , "Bad address",
-  WSAEINVAL               , "Invalid argument",
-  WSAEMFILE               , "Too many open files",
+  {WSAEINTR                , "Interrupted function call"},
+  {WSAEBADF                , "Bad file descriptor"},
+  {WSAEACCES               , "Permission denied"},
+  {WSAEFAULT               , "Bad address"},
+  {WSAEINVAL               , "Invalid argument"},
+  {WSAEMFILE               , "Too many open files"},
 
-  WSAEWOULDBLOCK          , "Resource temporarily unavailable",
-  WSAEINPROGRESS          , "Operation now in progress",
-  WSAEALREADY             , "Operation already in progress",
-  WSAENOTSOCK             , "Socket operation on non-socket",
-  WSAEDESTADDRREQ         , "Destination address required",
-  WSAEMSGSIZE             , "Message too long",
-  WSAEPROTOTYPE           , "Protocol wrong type for socket",
-  WSAENOPROTOOPT          , "Bad protocol option",
-  WSAEPROTONOSUPPORT      , "Protocol not supported",
-  WSAESOCKTNOSUPPORT      , "Socket type not supported",
-  WSAEOPNOTSUPP           , "Operation not supported",
-  WSAEPFNOSUPPORT         , "Protocol family not supported",
-  WSAEAFNOSUPPORT         , "Address family not supported by protocol family",
-  WSAEADDRINUSE           , "Address already in use",
-  WSAEADDRNOTAVAIL        , "Cannot assign requested address",
-  WSAENETDOWN             , "Network is down",
-  WSAENETUNREACH          , "Network is unreachable",
-  WSAENETRESET            , "Network dropped connection on reset",
-  WSAECONNABORTED         , "Software caused connection abort",
-  WSAECONNRESET           , "Connection reset by peer",
-  WSAENOBUFS              , "No buffer space available",
-  WSAEISCONN              , "Socket is already connected",
-  WSAENOTCONN             , "Socket is not connected",
-  WSAESHUTDOWN            , "Cannot send after socket shutdown",
-  WSAETOOMANYREFS         , "Too many references",	    /* not sure */
-  WSAETIMEDOUT            , "Connection timed out",
-  WSAECONNREFUSED         , "Connection refused",
-  WSAELOOP                , "Network loop",		    /* not sure */
-  WSAENAMETOOLONG         , "Name is too long",
-  WSAEHOSTDOWN            , "Host is down",
-  WSAEHOSTUNREACH         , "No route to host",
-  WSAENOTEMPTY            , "Buffer not empty",		    /* not sure */
-  WSAEPROCLIM             , "Too many processes",
-  WSAEUSERS               , "Too many users",		    /* not sure */
-  WSAEDQUOT               , "Double quote in host name",    /* really not sure */
-  WSAESTALE               , "Data is stale",		    /* not sure */
-  WSAEREMOTE              , "Remote error",		    /* not sure */
+  {WSAEWOULDBLOCK          , "Resource temporarily unavailable"},
+  {WSAEINPROGRESS          , "Operation now in progress"},
+  {WSAEALREADY             , "Operation already in progress"},
+  {WSAENOTSOCK             , "Socket operation on non-socket"},
+  {WSAEDESTADDRREQ         , "Destination address required"},
+  {WSAEMSGSIZE             , "Message too long"},
+  {WSAEPROTOTYPE           , "Protocol wrong type for socket"},
+  {WSAENOPROTOOPT          , "Bad protocol option"},
+  {WSAEPROTONOSUPPORT      , "Protocol not supported"},
+  {WSAESOCKTNOSUPPORT      , "Socket type not supported"},
+  {WSAEOPNOTSUPP           , "Operation not supported"},
+  {WSAEPFNOSUPPORT         , "Protocol family not supported"},
+  {WSAEAFNOSUPPORT         , "Address family not supported by protocol family"},
+  {WSAEADDRINUSE           , "Address already in use"},
+  {WSAEADDRNOTAVAIL        , "Cannot assign requested address"},
+  {WSAENETDOWN             , "Network is down"},
+  {WSAENETUNREACH          , "Network is unreachable"},
+  {WSAENETRESET            , "Network dropped connection on reset"},
+  {WSAECONNABORTED         , "Software caused connection abort"},
+  {WSAECONNRESET           , "Connection reset by peer"},
+  {WSAENOBUFS              , "No buffer space available"},
+  {WSAEISCONN              , "Socket is already connected"},
+  {WSAENOTCONN             , "Socket is not connected"},
+  {WSAESHUTDOWN            , "Cannot send after socket shutdown"},
+  {WSAETOOMANYREFS         , "Too many references"},	    /* not sure */
+  {WSAETIMEDOUT            , "Connection timed out"},
+  {WSAECONNREFUSED         , "Connection refused"},
+  {WSAELOOP                , "Network loop"},		    /* not sure */
+  {WSAENAMETOOLONG         , "Name is too long"},
+  {WSAEHOSTDOWN            , "Host is down"},
+  {WSAEHOSTUNREACH         , "No route to host"},
+  {WSAENOTEMPTY            , "Buffer not empty"},	    /* not sure */
+  {WSAEPROCLIM             , "Too many processes"},
+  {WSAEUSERS               , "Too many users"},		    /* not sure */
+  {WSAEDQUOT               , "Double quote in host name"},  /* really not sure */
+  {WSAESTALE               , "Data is stale"},		    /* not sure */
+  {WSAEREMOTE              , "Remote error"},		    /* not sure */
 
-  WSASYSNOTREADY          , "Network subsystem is unavailable",
-  WSAVERNOTSUPPORTED      , "WINSOCK.DLL version out of range",
-  WSANOTINITIALISED       , "Winsock not initialized successfully",
-  WSAEDISCON              , "Graceful shutdown in progress",
+  {WSASYSNOTREADY          , "Network subsystem is unavailable"},
+  {WSAVERNOTSUPPORTED      , "WINSOCK.DLL version out of range"},
+  {WSANOTINITIALISED       , "Winsock not initialized successfully"},
+  {WSAEDISCON              , "Graceful shutdown in progress"},
 #ifdef WSAENOMORE
-  WSAENOMORE              , "No more operations allowed",   /* not sure */
-  WSAECANCELLED           , "Operation cancelled",	    /* not sure */
-  WSAEINVALIDPROCTABLE    , "Invalid procedure table from service provider",
-  WSAEINVALIDPROVIDER     , "Invalid service provider version number",
-  WSAEPROVIDERFAILEDINIT  , "Unable to initialize a service provider",
-  WSASYSCALLFAILURE       , "System call failure",
-  WSASERVICE_NOT_FOUND    , "Service not found",	    /* not sure */
-  WSATYPE_NOT_FOUND       , "Class type not found",
-  WSA_E_NO_MORE           , "No more resources available",  /* really not sure */
-  WSA_E_CANCELLED         , "Operation already cancelled",  /* really not sure */
-  WSAEREFUSED             , "Operation refused",	    /* not sure */
+  {WSAENOMORE              , "No more operations allowed"}, /* not sure */
+  {WSAECANCELLED           , "Operation cancelled"},	    /* not sure */
+  {WSAEINVALIDPROCTABLE    , "Invalid procedure table from service provider"},
+  {WSAEINVALIDPROVIDER     , "Invalid service provider version number"},
+  {WSAEPROVIDERFAILEDINIT  , "Unable to initialize a service provider"},
+  {WSASYSCALLFAILURE       , "System call failure"},
+  {WSASERVICE_NOT_FOUND    , "Service not found"},	    /* not sure */
+  {WSATYPE_NOT_FOUND       , "Class type not found"},
+  {WSA_E_NO_MORE           , "No more resources available"}, /* really not sure */
+  {WSA_E_CANCELLED         , "Operation already cancelled"}, /* really not sure */
+  {WSAEREFUSED             , "Operation refused"},	    /* not sure */
 #endif
 
-  WSAHOST_NOT_FOUND       , "Host not found",
-  WSATRY_AGAIN            , "Authoritative host not found during name lookup",
-  WSANO_RECOVERY          , "Non-recoverable error during name lookup",
-  WSANO_DATA              , "Valid name, no data record of requested type",
+  {WSAHOST_NOT_FOUND       , "Host not found"},
+  {WSATRY_AGAIN            , "Authoritative host not found during name lookup"},
+  {WSANO_RECOVERY          , "Non-recoverable error during name lookup"},
+  {WSANO_DATA              , "Valid name, no data record of requested type"},
 
-  -1, NULL
+  {-1, NULL}
 };
 
 char *

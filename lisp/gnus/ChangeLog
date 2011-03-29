@@ -1,3 +1,8 @@
+2011-03-29  Julien Danjou  <julien@danjou.info>
+
+	* mm-view.el (mm-display-inline-fontify): Use `set-normal-mode' with
+	local variables disabled rather than `normal-mode'.
+
 2011-03-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* proto-stream.el: Changes preparatory to merging open-protocol-stream

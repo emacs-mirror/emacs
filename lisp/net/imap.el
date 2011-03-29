@@ -211,7 +211,7 @@ until a successful connection is made."
   :type '(repeat string))
 
 (defcustom imap-process-connection-type nil
-  "*Value for `process-connection-type' to use for Kerberos4, GSSAPI and SSL.
+  "*Value for `process-connection-type' to use for Kerberos4, GSSAPI, shell, and SSL.
 The `process-connection-type' variable controls the type of device
 used to communicate with subprocesses.  Values are nil to use a
 pipe, or t or `pty' to use a pty.  The value has no effect if the
@@ -770,6 +770,7 @@ sure of changing the value of `foo'."
       (let* ((port (or port imap-default-port))
 	     (coding-system-for-read imap-coding-system-for-read)
 	     (coding-system-for-write imap-coding-system-for-write)
+             (process-connection-type imap-process-connection-type)
 	     (process (start-process
 		       name buffer shell-file-name shell-command-switch
 		       (format-spec

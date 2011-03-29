@@ -254,7 +254,6 @@ Lisp_Object Qecho_area_clear_hook;
 /* Hooks to run before and after each command.  */
 Lisp_Object Qpre_command_hook;
 Lisp_Object Qpost_command_hook;
-Lisp_Object Qcommand_hook_internal;
 
 Lisp_Object Qdeferred_action_function;
 
@@ -1815,20 +1814,63 @@ adjust_point_for_property (EMACS_INT last_pt, int modified)
 static Lisp_Object
 safe_run_hooks_1 (void)
 {
-  return Frun_hooks (1, &Vinhibit_quit);
+  eassert (CONSP (Vinhibit_quit));
+  return call0 (XCDR (Vinhibit_quit));
 }
 
-/* Subroutine for safe_run_hooks: handle an error by clearing out the hook.  */
+/* Subroutine for safe_run_hooks: handle an error by clearing out the function
+   from the hook.  */
 
 static Lisp_Object
-safe_run_hooks_error (Lisp_Object data)
+safe_run_hooks_error (Lisp_Object error_data)
 {
-  Lisp_Object args[3];
-  args[0] = build_string ("Error in %s: %s");
-  args[1] = Vinhibit_quit;
-  args[2] = data;
-  Fmessage (3, args);
-  return Fset (Vinhibit_quit, Qnil);
+  Lisp_Object hook
+    = CONSP (Vinhibit_quit) ? XCAR (Vinhibit_quit) : Vinhibit_quit;
+  Lisp_Object fun = CONSP (Vinhibit_quit) ? XCDR (Vinhibit_quit) : Qnil;
+  Lisp_Object args[4];
+  args[0] = build_string ("Error in %s (%s): %s");
+  args[1] = hook;
+  args[2] = fun;
+  args[3] = error_data;
+  Fmessage (4, args);
+  if (SYMBOLP (hook))
+    {
+      Lisp_Object val;
+      int found = 0;
+      Lisp_Object newval = Qnil;
+      for (val = find_symbol_value (hook); CONSP (val); val = XCDR (val))
+	if (EQ (fun, XCAR (val)))
+	  found = 1;
+	else
+	  newval = Fcons (XCAR (val), newval);
+      if (found)
+	return Fset (hook, Fnreverse (newval));
+      /* Not found in the local part of the hook.  Let's look at the global
+	 part.  */
+      newval = Qnil;
+      for (val = (NILP (Fdefault_boundp (hook)) ? Qnil
+		  : Fdefault_value (hook));
+	   CONSP (val); val = XCDR (val))
+	if (EQ (fun, XCAR (val)))
+	  found = 1;
+	else
+	  newval = Fcons (XCAR (val), newval);
+      if (found)
+	return Fset_default (hook, Fnreverse (newval));
+    }
+  return Qnil;
+}
+
+static Lisp_Object
+safe_run_hook_funcall (size_t nargs, Lisp_Object *args)
+{
+  eassert (nargs == 1);
+  if (CONSP (Vinhibit_quit))
+    XSETCDR (Vinhibit_quit, args[0]);
+  else
+    Vinhibit_quit = Fcons (Vinhibit_quit, args[0]);
+
+  return internal_condition_case (safe_run_hooks_1, Qt, safe_run_hooks_error);
 }
 
 /* If we get an error while running the hook, cause the hook variable
@@ -1838,10 +1880,13 @@ safe_run_hooks_error (Lisp_Object data)
 void
 safe_run_hooks (Lisp_Object hook)
 {
+  /* FIXME: our `internal_condition_case' does not provide any way to pass data
+     to its body or to its handlers other than via globals such as
+     dynamically-bound variables ;-)  */
   int count = SPECPDL_INDEX ();
   specbind (Qinhibit_quit, hook);
 
-  internal_condition_case (safe_run_hooks_1, Qt, safe_run_hooks_error);
+  run_hook_with_args (1, &hook, safe_run_hook_funcall);
 
   unbind_to (count, Qnil);
 }
@@ -11442,9 +11487,6 @@ syms_of_keyboard (void)
   Qdeferred_action_function = intern_c_string ("deferred-action-function");
   staticpro (&Qdeferred_action_function);
 
-  Qcommand_hook_internal = intern_c_string ("command-hook-internal");
-  staticpro (&Qcommand_hook_internal);
-
   Qfunction_key = intern_c_string ("function-key");
   staticpro (&Qfunction_key);
   Qmouse_click = intern_c_string ("mouse-click");
@@ -11912,22 +11954,18 @@ Buffer modification stores t in this variable.  */);
   Qdeactivate_mark = intern_c_string ("deactivate-mark");
   staticpro (&Qdeactivate_mark);
 
-  DEFVAR_LISP ("command-hook-internal", Vcommand_hook_internal,
-	       doc: /* Temporary storage of `pre-command-hook' or `post-command-hook'.  */);
-  Vcommand_hook_internal = Qnil;
-
   DEFVAR_LISP ("pre-command-hook", Vpre_command_hook,
 	       doc: /* Normal hook run before each command is executed.
 If an unhandled error happens in running this hook,
-the hook value is set to nil, since otherwise the error
-might happen repeatedly and make Emacs nonfunctional.  */);
+the function in which the error occurred is unconditionally removed, since
+otherwise the error might happen repeatedly and make Emacs nonfunctional.  */);
   Vpre_command_hook = Qnil;
 
   DEFVAR_LISP ("post-command-hook", Vpost_command_hook,
 	       doc: /* Normal hook run after each command is executed.
 If an unhandled error happens in running this hook,
-the hook value is set to nil, since otherwise the error
-might happen repeatedly and make Emacs nonfunctional.  */);
+the function in which the error occurred is unconditionally removed, since
+otherwise the error might happen repeatedly and make Emacs nonfunctional.  */);
   Vpost_command_hook = Qnil;
 
 #if 0
