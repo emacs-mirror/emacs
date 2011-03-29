@@ -14643,8 +14643,6 @@ try_window_reusing_current_matrix (struct window *w)
 
   if (CHARPOS (new_start) <= CHARPOS (start))
     {
-      int first_row_y;
-
       /* Don't use this method if the display starts with an ellipsis
 	 displayed for invisible text.  It's not easy to handle that case
 	 below, and it's certainly not worth the effort since this is
@@ -14659,7 +14657,6 @@ try_window_reusing_current_matrix (struct window *w)
 	 text.  Note that it.vpos == 0 if or if not there is a
          header-line; it's not the same as the MATRIX_ROW_VPOS!  */
       start_display (&it, w, new_start);
-      first_row_y = it.current_y;
       w->cursor.vpos = -1;
       last_text_row = last_reused_text_row = NULL;
 
@@ -22757,7 +22754,6 @@ x_produce_glyphs (struct it *it)
 	      int ch = COMPOSITION_GLYPH (cmp, i);
 	      int face_id;
 	      struct face *this_face;
-	      int this_boff;
 
 	      if (ch == '\t')
 		ch = ' ';
@@ -22769,9 +22765,6 @@ x_produce_glyphs (struct it *it)
 		pcm = NULL;
 	      else
 		{
-		  this_boff = font->baseline_offset;
-		  if (font->vertical_centering)
-		    this_boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
 		  get_char_face_and_encoding (it->f, ch, face_id,
 					      &char2b, it->multibyte_p, 0);
 		  pcm = get_per_char_metric (it->f, font, &char2b);
@@ -24974,10 +24967,9 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
 	      CONSP (hotspot))
 	  && (hotspot = XCDR (hotspot), CONSP (hotspot)))
 	{
-	  Lisp_Object area_id, plist;
+	  Lisp_Object plist;
 
-	  area_id = XCAR (hotspot);
-	  /* Could check AREA_ID to see if we enter/leave this hot-spot.
+	  /* Could check XCAR (hotspot) to see if we enter/leave this hot-spot.
 	     If so, we could look for mouse-enter, mouse-leave
 	     properties in PLIST (and do something...).  */
 	  hotspot = XCDR (hotspot);
@@ -25312,10 +25304,10 @@ note_mouse_highlight (struct frame *f, int x, int y)
 		      CONSP (hotspot))
 		  && (hotspot = XCDR (hotspot), CONSP (hotspot)))
 		{
-		  Lisp_Object area_id, plist;
+		  Lisp_Object plist;
 
-		  area_id = XCAR (hotspot);
-		  /* Could check AREA_ID to see if we enter/leave this hot-spot.
+		  /* Could check XCAR (hotspot) to see if we enter/leave
+		     this hot-spot.
 		     If so, we could look for mouse-enter, mouse-leave
 		     properties in PLIST (and do something...).  */
 		  hotspot = XCDR (hotspot);

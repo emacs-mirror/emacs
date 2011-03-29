@@ -1,5 +1,8 @@
 2011-03-29  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xdisp.c (try_window_reusing_current_matrix, x_produce_glyphs):
+	(note_mode_line_or_margin_highlight, note_mouse_highlight):
+	Omit unused local vars.
 	* window.c (shrink_windows): Omit unused local var.
 	* menu.c (digest_single_submenu): Omit unused local var.
 	* dispnew.c (update_window) [PERIODIC_PREEMPTION_CHECKING]:
