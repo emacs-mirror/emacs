@@ -3590,7 +3590,10 @@ update_window (struct window *w, int force_p)
       struct glyph_row *row, *end;
       struct glyph_row *mode_line_row;
       struct glyph_row *header_line_row;
-      int yb, changed_p = 0, mouse_face_overwritten_p = 0, n_updated;
+      int yb, changed_p = 0, mouse_face_overwritten_p = 0;
+#if ! PERIODIC_PREEMPTION_CHECKING
+      int n_updated = 0;
+#endif
 
       rif->update_window_begin_hook (w);
       yb = window_text_bottom_y (w);
@@ -3643,7 +3646,7 @@ update_window (struct window *w, int force_p)
 	}
 
       /* Update the rest of the lines.  */
-      for (n_updated = 0; row < end && (force_p || !input_pending); ++row)
+      for (; row < end && (force_p || !input_pending); ++row)
 	if (row->enabled_p)
 	  {
 	    int vpos = MATRIX_ROW_VPOS (row, desired_matrix);
