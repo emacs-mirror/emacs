@@ -603,9 +603,10 @@ If MODE is not set, try to find mode automatically."
 	    ;; I find font-lock a bit too verbose.
 	    (font-lock-verbose nil))
         (setq buffer-file-name (mm-handle-filename handle))
+        (set (make-local-variable 'enable-local-variables) nil)
         (if mode
             (funcall mode)
-          (normal-mode))
+          (set-auto-mode))
 	;; The mode function might have already turned on font-lock.
 	(unless (symbol-value 'font-lock-mode)
 	  (font-lock-fontify-buffer)))

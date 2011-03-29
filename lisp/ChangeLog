@@ -3,6 +3,12 @@
 	* ido.el (ido-read-internal): Use the default history var
 	minibuffer-history if no HISTORY is specified.
 
+2011-03-28  Brian T. Sniffen  <bsniffen@akamai.com>  (tiny change)
+
+	* net/imap.el (imap-shell-open, imap-process-connection-type): Use
+	imap-process-connection-type for 'shell' streams as well as
+	Kerberos, SSL, other subprocesses.
+
 2011-03-28  Leo Liu  <sdl.web@gmail.com>
 
 	* abbrev.el (abbrev-table-empty-p): New function.
