@@ -1,5 +1,6 @@
 2011-03-29  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* menu.c (digest_single_submenu): Omit unused local var.
 	* dispnew.c (update_window) [PERIODIC_PREEMPTION_CHECKING]:
 	Omit unused local var.
 
