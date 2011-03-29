@@ -1,3 +1,7 @@
+2011-03-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* etags.c (just_read_file): Remove dummy variable and simplify.
+
 2011-03-27  Glenn Morris  <rgm@gnu.org>
 
 	* emacsclient.c: Replace SIGTYPE with void.

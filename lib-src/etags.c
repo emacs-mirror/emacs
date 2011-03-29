@@ -3978,10 +3978,8 @@ Yacc_entries (FILE *inf)
 static void
 just_read_file (FILE *inf)
 {
-  register char *dummy;
-
-  LOOP_ON_INPUT_LINES (inf, lb, dummy)
-    continue;
+  while (!feof (inf))
+    readline (&lb, inf);
 }
 
 
