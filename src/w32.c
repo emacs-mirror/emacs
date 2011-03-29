@@ -1505,6 +1505,7 @@ w32_get_resource (char *key, LPDWORD lpdwtype)
 }
 
 char *get_emacs_configuration (void);
+
 void
 init_environment (char ** argv)
 {
@@ -1591,25 +1592,25 @@ init_environment (char ** argv)
        If not, then we can try to default to the appdata directory under the
        user's profile, which is more likely to be writable.   */
     if (stat ("C:/.emacs", &ignored) < 0)
-    {
-      HRESULT profile_result;
-      /* Dynamically load ShGetFolderPath, as it won't exist on versions
-	 of Windows 95 and NT4 that have not been updated to include
-	 MSIE 5.  */
-      ShGetFolderPath_fn get_folder_path;
-      get_folder_path = (ShGetFolderPath_fn)
-	GetProcAddress (GetModuleHandle ("shell32.dll"), "SHGetFolderPathA");
+      {
+	HRESULT profile_result;
+	/* Dynamically load ShGetFolderPath, as it won't exist on versions
+	   of Windows 95 and NT4 that have not been updated to include
+	   MSIE 5.  */
+	ShGetFolderPath_fn get_folder_path;
+	get_folder_path = (ShGetFolderPath_fn)
+	  GetProcAddress (GetModuleHandle ("shell32.dll"), "SHGetFolderPathA");
 
-      if (get_folder_path != NULL)
-	{
-	  profile_result = get_folder_path (NULL, CSIDL_APPDATA, NULL,
-					    0, default_home);
+	if (get_folder_path != NULL)
+	  {
+	    profile_result = get_folder_path (NULL, CSIDL_APPDATA, NULL,
+					      0, default_home);
 
-	  /* If we can't get the appdata dir, revert to old behavior.  */
-	  if (profile_result == S_OK)
-	    env_vars[0].def_value = default_home;
-	}
-    }
+	    /* If we can't get the appdata dir, revert to old behavior.	 */
+	    if (profile_result == S_OK)
+	      env_vars[0].def_value = default_home;
+	  }
+      }
 
   /* Get default locale info and use it for LANG.  */
   if (GetLocaleInfo (LOCALE_USER_DEFAULT,
@@ -2082,42 +2083,42 @@ GetCachedVolumeInformation (char * root_dir)
   info = lookup_volume_info (root_dir);
 
   if (info == NULL || ! VOLINFO_STILL_VALID (root_dir, info))
-  {
-    char  name[ 256 ];
-    DWORD serialnum;
-    DWORD maxcomp;
-    DWORD flags;
-    char  type[ 256 ];
+    {
+      char  name[ 256 ];
+      DWORD serialnum;
+      DWORD maxcomp;
+      DWORD flags;
+      char  type[ 256 ];
 
-    /* Info is not cached, or is stale. */
-    if (!GetVolumeInformation (root_dir,
-			       name, sizeof (name),
-			       &serialnum,
-			       &maxcomp,
-			       &flags,
-			       type, sizeof (type)))
-      return NULL;
+      /* Info is not cached, or is stale. */
+      if (!GetVolumeInformation (root_dir,
+				 name, sizeof (name),
+				 &serialnum,
+				 &maxcomp,
+				 &flags,
+				 type, sizeof (type)))
+	return NULL;
 
-    /* Cache the volume information for future use, overwriting existing
-       entry if present.  */
-    if (info == NULL)
-      {
-	info = (volume_info_data *) xmalloc (sizeof (volume_info_data));
-	add_volume_info (root_dir, info);
-      }
-    else
-      {
-	xfree (info->name);
-	xfree (info->type);
-      }
+      /* Cache the volume information for future use, overwriting existing
+	 entry if present.  */
+      if (info == NULL)
+	{
+	  info = (volume_info_data *) xmalloc (sizeof (volume_info_data));
+	  add_volume_info (root_dir, info);
+	}
+      else
+	{
+	  xfree (info->name);
+	  xfree (info->type);
+	}
 
-    info->name = xstrdup (name);
-    info->serialnum = serialnum;
-    info->maxcomp = maxcomp;
-    info->flags = flags;
-    info->type = xstrdup (type);
-    info->timestamp = GetTickCount ();
-  }
+      info->name = xstrdup (name);
+      info->serialnum = serialnum;
+      info->maxcomp = maxcomp;
+      info->flags = flags;
+      info->type = xstrdup (type);
+      info->timestamp = GetTickCount ();
+    }
 
   return info;
 }
