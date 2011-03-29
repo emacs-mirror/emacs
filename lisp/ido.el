@@ -2151,7 +2151,7 @@ If INITIAL is non-nil, it specifies the initial input string."
 
 	 (t
 	  (setq done t))))))
-    (and history (add-to-history history ido-selected))
+    (add-to-history (or history 'minibuffer-history) ido-selected)
     ido-selected))
 
 (defun ido-edit-input ()

@@ -1,3 +1,8 @@
+2011-03-29  Leo Liu  <sdl.web@gmail.com>
+
+	* ido.el (ido-read-internal): Use the default history var
+	minibuffer-history if no HISTORY is specified.
+
 2011-03-28  Leo Liu  <sdl.web@gmail.com>
 
 	* abbrev.el (abbrev-table-empty-p): New function.
