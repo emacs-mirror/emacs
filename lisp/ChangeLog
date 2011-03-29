@@ -1,3 +1,16 @@
+2011-03-29  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-hide-by-annotation, allout-flag-region):
+	Reduce possibility of overlay leakage by making them volatile.
+
+	* allout-widgets.el (allout-widgets-tally): Define as nil so the
+	hash is not shared between buffers.  Mode initialization is
+	responsible for giving it a useful starting value.
+	(allout-item-span): Reduce possibility of overlay leakage by
+	making them volatile.
+	(allout-widgets-count-buttons-in-region): Add diagnostic function
+	for tracking down button overlay leaks.
+
 2011-03-29  Leo Liu  <sdl.web@gmail.com>
 
 	* ido.el (ido-read-internal): Use the default history var
