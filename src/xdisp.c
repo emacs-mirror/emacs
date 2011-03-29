@@ -13212,7 +13212,8 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 		  amount_to_scroll = float_amount;
 		  if (amount_to_scroll == 0 && float_amount > 0)
 		    amount_to_scroll = 1;
-		  amount_to_scroll -= this_scroll_margin - dy;
+		  amount_to_scroll -=
+		    this_scroll_margin - dy - FRAME_LINE_HEIGHT (f);
 		  /* Don't let point enter the scroll margin near
 		     bottom of the window.  */
 		  if (amount_to_scroll > height - 2*this_scroll_margin + dy)

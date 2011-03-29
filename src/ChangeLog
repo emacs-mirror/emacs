@@ -1,3 +1,9 @@
+2011-03-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (try_scrolling): When scrolling down aggressively,
+	scroll one screen line less, to make sure we end up at the margin
+	for fractions close to 1.
+
 2011-03-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (try_scrolling): When point is above the window, allow
