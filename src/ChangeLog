@@ -1,5 +1,8 @@
 2011-03-30  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* unexelf.c (unexec) [! (defined _SYSTYPE_SYSV || defined __sgi)]:
+	Remove unused local var.
+
 	* editfns.c (Fmessage_box): Remove unused local var.
 
 2011-03-29  Paul Eggert  <eggert@cs.ucla.edu>
