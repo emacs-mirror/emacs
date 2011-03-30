@@ -366,7 +366,7 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
   (interactive
    (list current-prefix-arg
 	 (file-name-as-directory
-	  (read-file-name "Uudecode and save in dir: "
+	  (read-directory-name "Uudecode and save in dir: "
 			  gnus-uu-default-dir
 			  gnus-uu-default-dir t))))
   (gnus-uu-decode-with-method 'gnus-uu-uustrip-article n dir nil nil t))
@@ -381,7 +381,7 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
   (interactive
    (list current-prefix-arg
 	 (file-name-as-directory
-	  (read-file-name "Unshar and save in dir: "
+	  (read-directory-name "Unshar and save in dir: "
 			  gnus-uu-default-dir
 			  gnus-uu-default-dir t))))
   (gnus-uu-decode-with-method 'gnus-uu-unshar-article n dir nil 'scan t))
@@ -390,12 +390,11 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
   "Saves the current article."
   (interactive
    (list current-prefix-arg
-	 (read-file-name
-	  (if gnus-uu-save-separate-articles
-	      "Save articles in dir: "
-	    "Save articles in file: ")
-	  gnus-uu-default-dir
-	  gnus-uu-default-dir)))
+	 (if gnus-uu-save-separate-articles
+	     (read-directory-name
+	      "Save articles in dir: " gnus-uu-default-dir gnus-uu-default-dir)
+	   (read-file-name
+	    "Save article in file: " gnus-uu-default-dir gnus-uu-default-dir))))
   (setq gnus-uu-saved-article-name file)
   (gnus-uu-decode-with-method 'gnus-uu-save-article n nil t))
 
@@ -404,7 +403,7 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
   (interactive
    (list current-prefix-arg
 	 (file-name-as-directory
-	  (read-file-name "Unbinhex and save in dir: "
+	  (read-directory-name "Unbinhex and save in dir: "
 			  gnus-uu-default-dir
 			  gnus-uu-default-dir))))
   (setq gnus-uu-binhex-article-name
@@ -416,7 +415,7 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
   (interactive
    (list current-prefix-arg
 	 (file-name-as-directory
-	  (read-file-name "yEnc decode and save in dir: "
+	  (read-directory-name "yEnc decode and save in dir: "
 			  gnus-uu-default-dir
 			  gnus-uu-default-dir))))
   (setq gnus-uu-yenc-article-name nil)
@@ -458,10 +457,11 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
   "Saves and views the current article."
   (interactive
    (list current-prefix-arg
-	 (read-file-name  (if gnus-uu-save-separate-articles
-			      "Save articles is dir: "
-			    "Save articles in file: ")
-			  gnus-uu-default-dir gnus-uu-default-dir)))
+	 (if gnus-uu-save-separate-articles
+	     (read-directory-name "Save articles in dir: "
+				  gnus-uu-default-dir gnus-uu-default-dir)
+	   (read-file-name "Save articles in file: "
+			   gnus-uu-default-dir gnus-uu-default-dir))))
   (let ((gnus-view-pseudos (or gnus-view-pseudos 'automatic)))
     (gnus-uu-decode-save n file)))
 
@@ -742,7 +742,7 @@ When called interactively, prompt for REGEXP."
   (interactive
    (list current-prefix-arg
 	 (file-name-as-directory
-	  (read-file-name "Save in dir: "
+	  (read-directory-name "Save in dir: "
 			  gnus-uu-default-dir
 			  gnus-uu-default-dir t))))
   (gnus-uu-decode-with-method 'gnus-uu-decode-postscript-article

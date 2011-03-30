@@ -335,26 +335,26 @@ buffer."
 
 (defun org-src-switch-to-buffer (buffer context)
   (case org-src-window-setup
-    ('current-window
+    (current-window
      (switch-to-buffer buffer))
-    ('other-window
+    (other-window
      (switch-to-buffer-other-window buffer))
-    ('other-frame
+    (other-frame
      (case context
-       ('exit
+       (exit
 	(let ((frame (selected-frame)))
 	  (switch-to-buffer-other-frame buffer)
 	  (delete-frame frame)))
-       ('save
+       (save
 	(kill-buffer (current-buffer))
 	(switch-to-buffer buffer))
        (t
 	(switch-to-buffer-other-frame buffer))))
-    ('reorganize-frame
+    (reorganize-frame
      (if (eq context 'edit) (delete-other-windows))
      (org-switch-to-buffer-other-window buffer)
      (if (eq context 'exit) (delete-other-windows)))
-    ('switch-invisibly
+    (switch-invisibly
      (set-buffer buffer))
     (t
      (message "Invalid value %s for org-src-window-setup"

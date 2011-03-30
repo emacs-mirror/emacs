@@ -1472,8 +1472,8 @@ Removes badly formatted data and ignored directories."
   (add-hook 'choose-completion-string-functions 'ido-choose-completion-string))
 
 (define-minor-mode ido-everywhere
-  "Toggle using ido speed-ups everywhere file and directory names are read.
-With ARG, turn ido speed-up on if arg is positive, off otherwise."
+  "Toggle using ido-mode everywhere file and directory names are read.
+With ARG, turn ido-mode on if arg is positive, off otherwise."
   :global t
   :group 'ido
   (when (get 'ido-everywhere 'file)
@@ -1494,8 +1494,8 @@ With ARG, turn ido speed-up on if arg is positive, off otherwise."
 
 ;;;###autoload
 (defun ido-mode (&optional arg)
-  "Toggle ido speed-ups on or off.
-With ARG, turn ido speed-up on if arg is positive, off otherwise.
+  "Toggle ido mode on or off.
+With ARG, turn ido-mode on if arg is positive, off otherwise.
 Turning on ido-mode will remap (via a minor-mode keymap) the default
 keybindings for the `find-file' and `switch-to-buffer' families of
 commands to the ido versions of these functions.
@@ -1964,31 +1964,24 @@ If INITIAL is non-nil, it specifies the initial input string."
       (ido-set-matches)
       (if (and ido-matches (eq ido-try-merged-list 'auto))
 	  (setq ido-try-merged-list t))
-      (let
-	  ((minibuffer-local-completion-map
-	    (if (memq ido-cur-item '(file dir))
-		minibuffer-local-completion-map
-	      ido-completion-map))
-	   (minibuffer-local-filename-completion-map
-	    (if (memq ido-cur-item '(file dir))
-		ido-completion-map
-	      minibuffer-local-filename-completion-map))
-	   (max-mini-window-height (or ido-max-window-height
-				       (and (boundp 'max-mini-window-height) max-mini-window-height)))
+      (let ((max-mini-window-height (or ido-max-window-height
+					(and (boundp 'max-mini-window-height)
+					     max-mini-window-height)))
 	   (ido-completing-read t)
 	   (ido-require-match require-match)
 	   (ido-use-mycompletion-depth (1+ (minibuffer-depth)))
-	   (show-paren-mode nil))
+	   (show-paren-mode nil)
+	   ;; Postpone history adding till later
+	   (history-add-new-input nil))
 	;; prompt the user for the file name
 	(setq ido-exit nil)
 	(setq ido-final-text
 	      (catch 'ido
-		(completing-read
-		 (ido-make-prompt item prompt)
-		 '(("dummy" . 1)) nil nil ; table predicate require-match
-		 (prog1 ido-text-init (setq ido-text-init nil))	;initial-contents
-		 history))))
-      (ido-trace "completing-read" ido-final-text)
+		(read-from-minibuffer (ido-make-prompt item prompt)
+				      (prog1 ido-text-init
+					(setq ido-text-init nil))
+				      ido-completion-map nil history))))
+      (ido-trace "read-from-minibuffer" ido-final-text)
       (if (get-buffer ido-completion-buffer)
 	  (kill-buffer ido-completion-buffer))
 
@@ -2158,6 +2151,7 @@ If INITIAL is non-nil, it specifies the initial input string."
 
 	 (t
 	  (setq done t))))))
+    (add-to-history (or history 'minibuffer-history) ido-selected)
     ido-selected))
 
 (defun ido-edit-input ()
@@ -4491,17 +4485,13 @@ For details of keybindings, see `ido-find-file'."
 
 	;; Insert the match-status information:
 	(ido-set-common-completion)
-	(let ((inf (ido-completions
-		    contents
-		    minibuffer-completion-table
-		    minibuffer-completion-predicate
-		    (not minibuffer-completion-confirm))))
+	(let ((inf (ido-completions contents)))
 	  (setq ido-show-confirm-message nil)
 	  (ido-trace "inf" inf)
 	  (insert inf))
 	))))
 
-(defun ido-completions (name candidates predicate require-match)
+(defun ido-completions (name)
   ;; Return the string that is displayed after the user's text.
   ;; Modified from `icomplete-completions'.
 
@@ -4740,13 +4730,13 @@ See `read-directory-name' for additional parameters."
 	  (concat ido-current-directory filename)))))
 
 ;;;###autoload
-(defun ido-completing-read (prompt choices &optional predicate require-match initial-input hist def)
+(defun ido-completing-read (prompt choices &optional predicate require-match initial-input hist def inherit-input-method)
   "Ido replacement for the built-in `completing-read'.
 Read a string in the minibuffer with ido-style completion.
 PROMPT is a string to prompt with; normally it ends in a colon and a space.
 CHOICES is a list of strings which are the possible completions.
-PREDICATE is currently ignored; it is included to be compatible
- with `completing-read'.
+PREDICATE and INHERIT-INPUT-METHOD is currently ignored; it is included
+ to be compatible with `completing-read'.
 If REQUIRE-MATCH is non-nil, the user is not allowed to exit unless
  the input is (or completes to) an element of CHOICES or is null.
  If the input is null, `ido-completing-read' returns DEF, or an empty

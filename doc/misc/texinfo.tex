@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2011-02-14.11}
+\def\texinfoversion{2011-02-24.09}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -218,7 +218,7 @@
   \tracingmacros2
   \tracingrestores1
   \showboxbreadth\maxdimen \showboxdepth\maxdimen
-  \ifx\eTeXversion\undefined\else % etex gives us more logging
+  \ifx\eTeXversion\thisisundefined\else % etex gives us more logging
     \tracingscantokens1
     \tracingifs1
     \tracinggroups1
@@ -611,7 +611,7 @@
   \else\ifx\temp\offword \plainnonfrenchspacing
   \else
     \errhelp = \EMsimple
-    \errmessage{Unknown @frenchspacing option `\temp', must be on/off}%
+    \errmessage{Unknown @frenchspacing option `\temp', must be on|off}%
   \fi\fi
 }
 
@@ -1082,9 +1082,8 @@ where each line of input produces a line of output.}
 \newif\ifpdfmakepagedest
 
 % when pdftex is run in dvi mode, \pdfoutput is defined (so \pdfoutput=1
-% can be set).  So we test for \relax and 0 as well as \undefined,
-% borrowed from ifpdf.sty.
-\ifx\pdfoutput\undefined
+% can be set).  So we test for \relax and 0 as well as being undefined.
+\ifx\pdfoutput\thisisundefined
 \else
   \ifx\pdfoutput\relax
   \else
@@ -1516,7 +1515,7 @@ output) for that.)}
 % if we are producing pdf, and we have \pdffontattr, then define cmaps.
 % (\pdffontattr was introduced many years ago, but people still run
 % older pdftex's; it's easy to conditionalize, so we do.)
-\ifpdf \ifx\pdffontattr\undefined \else
+\ifpdf \ifx\pdffontattr\thisisundefined \else
   \begingroup
     \catcode`\^^M=\active \def^^M{^^J}% Output line endings as the ^^J char.
     \catcode`\%=12 \immediate\pdfobj stream {%!PS-Adobe-3.0 Resource-CMap
@@ -1783,7 +1782,7 @@ end
 % Use cm as the default font prefix.
 % To specify the font prefix, you must define \fontprefix
 % before you read in texinfo.tex.
-\ifx\fontprefix\undefined
+\ifx\fontprefix\thisisundefined
 \def\fontprefix{cm}
 \fi
 % Support font families that don't use the same naming scheme as CM.
@@ -2297,12 +2296,11 @@ end
 
 \let\markupsetuplqkbd \markupsetnoligaturesquoteleft
 
-% Allow an option to not replace quotes with a regular directed right
-% quote/apostrophe (char 0x27), but instead use the undirected quote
-% from cmtt (char 0x0d).  The undirected quote is ugly, so don't make it
-% the default, but it works for pasting with more pdf viewers (at least
-% evince), the lilypond developers report.  xpdf does work with the
-% regular 0x27.
+% Allow an option to not use regular directed right quote/apostrophe
+% (char 0x27), but instead the undirected quote from cmtt (char 0x0d).
+% The undirected quote is ugly, so don't make it the default, but it
+% works for pasting with more pdf viewers (at least evince), the
+% lilypond developers report.  xpdf does work with the regular 0x27.
 %
 \def\codequoteright{%
   \expandafter\ifx\csname SETtxicodequoteundirected\endcsname\relax
@@ -2324,6 +2322,36 @@ end
       \relax`%
     \else \char'22 \fi
   \else \char'22 \fi
+}
+
+% Commands to set the quote options.
+% 
+\parseargdef\codequoteundirected{%
+  \def\temp{#1}%
+  \ifx\temp\onword
+    \expandafter\let\csname SETtxicodequoteundirected\endcsname
+      = t%
+  \else\ifx\temp\offword
+    \expandafter\let\csname SETtxicodequoteundirected\endcsname
+      = \relax
+  \else
+    \errhelp = \EMsimple
+    \errmessage{Unknown @codequoteundirected value `\temp', must be on|off}%
+  \fi\fi
+}
+%
+\parseargdef\codequotebacktick{%
+  \def\temp{#1}%
+  \ifx\temp\onword
+    \expandafter\let\csname SETtxicodequotebacktick\endcsname
+      = t%
+  \else\ifx\temp\offword
+    \expandafter\let\csname SETtxicodequotebacktick\endcsname
+      = \relax
+  \else
+    \errhelp = \EMsimple
+    \errmessage{Unknown @codequotebacktick value `\temp', must be on|off}%
+  \fi\fi
 }
 
 % [Knuth] pp. 380,381,391, disable Spanish ligatures ?` and !` of \tt font.
@@ -2527,7 +2555,7 @@ end
     \allowcodebreaksfalse
   \else
     \errhelp = \EMsimple
-    \errmessage{Unknown @allowcodebreaks option `\txiarg'}%
+    \errmessage{Unknown @allowcodebreaks option `\txiarg', must be true|false}%
   \fi\fi
 }
 
@@ -3109,7 +3137,7 @@ end
 %  Textures 1.7.7 (preloaded format=plain 93.10.14)  (68K)  16 APR 2004 02:38
 % so we'll define it if necessary.
 %
-\ifx\Orb\undefined
+\ifx\Orb\thisisundefined
 \def\Orb{\mathhexbox20D}
 \fi
 
@@ -3384,7 +3412,7 @@ end
 % This produces Day Month Year style of output.
 % Only define if not already defined, in case a txi-??.tex file has set
 % up a different format (e.g., txi-cs.tex does this).
-\ifx\today\undefined
+\ifx\today\thisisundefined
 \def\today{%
   \number\day\space
   \ifcase\month
@@ -6465,7 +6493,7 @@ end
 %
 \def\Equotation{%
   \par
-  \ifx\quotationauthor\undefined\else
+  \ifx\quotationauthor\thisisundefined\else
     % indent a bit.
     \leftline{\kern 2\leftskip \sl ---\quotationauthor}%
   \fi
@@ -7000,7 +7028,7 @@ end
 
 % To do this right we need a feature of e-TeX, \scantokens,
 % which we arrange to emulate with a temporary file in ordinary TeX.
-\ifx\eTeXversion\undefined
+\ifx\eTeXversion\thisisundefined
   \newwrite\macscribble
   \def\scantokens#1{%
     \toks0={#1}%
@@ -7422,6 +7450,27 @@ end
   \fi
 }
 
+% @xrefautosectiontitle on|off says whether @section(ing) names are used
+% automatically in xrefs, if the third arg is not explicitly specified.
+% This was provided as a "secret" @set xref-automatic-section-title
+% variable, now it's official.
+% 
+\parseargdef\xrefautomaticsectiontitle{%
+  \def\temp{#1}%
+  \ifx\temp\onword
+    \expandafter\let\csname SETxref-automatic-section-title\endcsname
+      = \empty
+  \else\ifx\temp\offword
+    \expandafter\let\csname SETxref-automatic-section-title\endcsname
+      = \relax
+  \else
+    \errhelp = \EMsimple
+    \errmessage{Unknown @xrefautomaticsectiontitle value `\temp',
+                must be on|off}%
+  \fi\fi
+}
+
+
 % @xref, @pxref, and @ref generate cross-references.  For \xrefX, #1 is
 % the node name, #2 the name of the Info cross-reference, #3 the printed
 % node name, #4 the name of the Info file, #5 the name of the printed
@@ -7438,7 +7487,7 @@ end
   \setbox0=\hbox{\printedrefname\unskip}%
   \ifdim \wd0 = 0pt
     % No printed node name was explicitly given.
-    \expandafter\ifx\csname SETxref-automatic-section-title\endcsname\relax
+    \expandafter\ifx\csname SETxref-automatic-section-title\endcsname \relax
       % Use the node name inside the square brackets.
       \def\printedrefname{\ignorespaces #1}%
     \else
@@ -7908,7 +7957,7 @@ end
   it from ftp://tug.org/tex/epsf.tex.}
 %
 \def\image#1{%
-  \ifx\epsfbox\undefined
+  \ifx\epsfbox\thisiundefined
     \ifwarnednoepsf \else
       \errhelp = \noepsfhelp
       \errmessage{epsf.tex not found, images will be ignored}%

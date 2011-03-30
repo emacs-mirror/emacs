@@ -271,19 +271,24 @@ keybindings.  These keybindings are part of the keymap
 @node Isearch Yank
 @subsection Isearch Yanking
 
-  Within incremental search, you can use @kbd{C-w} and @kbd{C-y} to grab
-text from the buffer into the search string.  This makes it convenient
-to search for another occurrence of text at point.
+  Within incremental search, @kbd{C-y} (@code{isearch-yank-kill})
+copies text from the kill ring into the search string.  It uses the
+same text that @kbd{C-y}, outside of incremental search, would
+normally yank into the buffer.  @kbd{Mouse-2} in the echo area does
+the same.  @xref{Yanking}.
 
-  @kbd{C-w} copies the character or word after point and adds it to
-the search string, advancing point over it.  (The decision, whether to
-copy a character or a word, is heuristic.)
+  @kbd{C-w} (@code{isearch-yank-word-or-char}) grabs the next
+character or word at point, and adds it to the search string.  This is
+convenient for searching for another occurrence of the text at point.
+(The decision, whether to copy a character or a word, is heuristic.)
 
-  @kbd{C-y} is similar to @kbd{C-w} but copies all the rest of the
-current line into the search string.  If point is already at the end
-of a line, it grabs the entire next line.  If the search is currently
-case-insensitive, both @kbd{C-y} and @kbd{C-w} convert the text they
-copy to lower case, so that the search remains case-insensitive.
+  Similarly, @kbd{M-s C-e} (@code{isearch-yank-line}) grabs the rest
+of the current line, and adds it to the search string.  If point is
+already at the end of a line, it grabs the entire next line.
+
+  If the search is currently case-insensitive, both @kbd{C-w} and
+@kbd{M-s C-e} convert the text they copy to lower case, so that the
+search remains case-insensitive.
 
   @kbd{C-M-w} and @kbd{C-M-y} modify the search string by only one
 character at a time: @kbd{C-M-w} deletes the last character from the
@@ -292,10 +297,6 @@ end of the search string.  An alternative method to add the character
 after point into the search string is to enter the minibuffer by
 @kbd{M-e} and to type @kbd{C-f} at the end of the search string in the
 minibuffer.
-
-  The character @kbd{M-y} copies text from the kill ring into the
-search string.  It uses the same text that @kbd{C-y} would yank.
-@kbd{Mouse-2} in the echo area does the same.  @xref{Yanking}.
 
 @node Isearch Scroll
 @subsection Scrolling During Incremental Search
@@ -468,8 +469,8 @@ apply to the lazy highlight, which always matches whole words.
 
 @node Regexp Search
 @section Regular Expression Search
-@cindex regular expression
-@cindex regexp
+@cindex regexp search
+@cindex search for a regular expression
 
   A @dfn{regular expression} (or @dfn{regexp} for short) is a pattern
 that denotes a class of alternative strings to match.  GNU Emacs
@@ -543,6 +544,8 @@ Search}.
 @node Regexps
 @section Syntax of Regular Expressions
 @cindex syntax of regexps
+@cindex regular expression
+@cindex regexp
 
   This manual describes regular expression features that users
 typically use.  @xref{Regular Expressions,,, elisp, The Emacs Lisp
@@ -914,13 +917,13 @@ setting of the syntax table (@pxref{Syntax}).
 @node Regexp Example
 @section Regular Expression Example
 
-  Here is an example of a regexp---the regexp that Emacs uses, by
-default, to recognize the end of a sentence, not including the
-following space (i.e., the variable @code{sentence-end-base}):
+  Here is an example of a regexp---similar to the regexp that Emacs
+uses, by default, to recognize the end of a sentence, not including
+the following space (i.e., the variable @code{sentence-end-base}):
 
 @example
 @verbatim
-[.?!][]\"'””)}]*
+[.?!][]\"')}]*
 @end verbatim
 @end example
 

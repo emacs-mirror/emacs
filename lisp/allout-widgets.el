@@ -1,4 +1,4 @@
-;; allout-widgets.el --- Show allout outline structure with graphical widgets.
+;; allout-widgets.el --- Visually highlight allout outline structure.
 
 ;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011 Ken Manheimer
 
@@ -2013,7 +2013,7 @@ Optional FORCE means force reassignment of the region property."
   ;; item body), to bias the registered values.
   ;;
   ;; This is not necessary/useful when the item is being decorated, because
-  ;; that always must be preceeded by a fresh item parse.
+  ;; that always must be preceded by a fresh item parse.
 
   (if (not (eq field :body-end))
       (widget-get item-widget :from)
@@ -2100,6 +2100,7 @@ previously established or is not moved."
     (cond ((not overlay) (when start
                            (setq overlay (make-overlay start end nil t nil))
                            (overlay-put overlay 'button item-widget)
+                           (overlay-put overlay 'evaporate t)
                            (widget-put item-widget :span-overlay overlay)
                            t))
           ;; report:
@@ -2343,6 +2344,19 @@ The elements of LIST are not copied, just the list structure itself."
 	(while (consp list) (push (pop list) res))
 	(prog1 (nreverse res) (setcdr res list)))
     (car list)))
+;;;_  . allout-widgets-count-buttons-in-region (start end)
+(defun allout-widgets-count-buttons-in-region (start end)
+  "Debugging/diagnostic tool - count overlays with 'button' property in region."
+  (interactive "r")
+  (setq start (or start (point-min))
+        end (or end (point-max)))
+  (if (> start end) (let ((interim start)) (setq start end end interim)))
+  (let ((button-overlays (delq nil
+                               (mapcar (function (lambda (o)
+                                                   (if (overlay-get o 'button)
+                                                       o)))
+                                       (overlays-in start end)))))
+    (length button-overlays)))
 
 ;;;_ : Run unit tests:
 (defun allout-widgets-run-unit-tests ()

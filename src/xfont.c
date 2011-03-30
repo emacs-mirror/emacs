@@ -629,7 +629,7 @@ xfont_list_family (Lisp_Object frame)
   char **names;
   int num_fonts, i;
   Lisp_Object list;
-  char *last_family;
+  char *last_family IF_LINT (= 0);
   int last_len;
 
   BLOCK_INPUT;

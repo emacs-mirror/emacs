@@ -20,6 +20,6 @@ rem   along with GNU Emacs.  If not, see http://www.gnu.org/licenses/.
 
 rem   ----------------------------------------------------------------------
 
-echo %1 | sed -e "s,^,@echo # dummy > deps\\," -e "s,\.c,.Po," > tdepfile.bat
+echo %1 | sed -e "s,\(.*\)\.c,@if not exist deps\\\1.Po echo # dummy > deps\\\1.Po," > tdepfile.bat
 call tdepfile
 del tdepfile.bat

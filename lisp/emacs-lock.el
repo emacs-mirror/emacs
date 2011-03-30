@@ -88,7 +88,8 @@ If the buffer is locked, signal error and display its name."
   (if emacs-lock-buffer-locked
       (setq emacs-lock-from-exiting t)))
 
-(add-hook 'kill-emacs-hook 'check-emacs-lock)
+(unless noninteractive
+  (add-hook 'kill-emacs-hook 'check-emacs-lock))
 (add-hook 'kill-buffer-hook 'emacs-lock-check-buffer-lock)
 (add-hook 'shell-mode-hook 'emacs-lock-was-buffer-locked)
 (add-hook 'shell-mode-hook 'emacs-lock-shell-sentinel)

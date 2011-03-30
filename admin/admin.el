@@ -212,6 +212,236 @@ Root must be the root of an Emacs source tree."
                    "\\\\def\\\\year{")
                  "\\([0-9]\\{4\\}\\)}.+%.+copyright year"))))))
 
+;;; Various bits of magic for generating the web manuals
+
+(defun make-manuals (root)
+  "Generate the web manuals for the Emacs webpage."
+  (interactive "DEmacs root directory: ")
+  (let* ((dest (expand-file-name "manual" root))
+	 (html-node-dir (expand-file-name "html_node" dest))
+	 (html-mono-dir (expand-file-name "html_mono" dest))
+	 (txt-dir (expand-file-name "text" dest))
+	 (dvi-dir (expand-file-name "dvi" dest))
+	 (ps-dir (expand-file-name "ps" dest)))
+    (when (file-directory-p dest)
+      (if (y-or-n-p (format "Directory %s exists, delete it first?" dest))
+	  (delete-directory dest t)
+	(error "Aborted")))
+    (make-directory dest)
+    (make-directory html-node-dir)
+    (make-directory html-mono-dir)
+    (make-directory txt-dir)
+    (make-directory dvi-dir)
+    (make-directory ps-dir)
+    ;; Emacs manual
+    (let ((texi (expand-file-name "doc/emacs/emacs.texi" root)))
+      (manual-html-node texi (expand-file-name "emacs" html-node-dir))
+      (manual-html-mono texi (expand-file-name "emacs.html" html-mono-dir))
+      (manual-txt texi (expand-file-name "emacs.txt" txt-dir))
+      (manual-pdf texi (expand-file-name "emacs.pdf" dest))
+      (manual-dvi texi (expand-file-name "emacs.dvi" dvi-dir)
+      		  (expand-file-name "emacs.ps" ps-dir)))
+    ;; Lisp manual
+    (let ((texi (expand-file-name "doc/lispref/elisp.texi" root)))
+      (manual-html-node texi (expand-file-name "elisp" html-node-dir))
+      (manual-html-mono texi (expand-file-name "elisp.html" html-mono-dir))
+      (manual-txt texi (expand-file-name "elisp.txt" txt-dir))
+      (manual-pdf texi (expand-file-name "elisp.pdf" dest))
+      (manual-dvi texi (expand-file-name "elisp.dvi" dvi-dir)
+      		  (expand-file-name "elisp.ps" ps-dir)))
+    (message "Manuals created in %s" dest)))
+
+(defconst manual-doctype-string
+  "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\"
+\"http://www.w3.org/TR/html4/loose.dtd\">\n\n")
+
+(defconst manual-meta-string
+  "<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">
+<link rev=\"made\" href=\"mailto:webmasters@gnu.org\">
+<link rel=\"icon\" type=\"image/png\" href=\"/graphics/gnu-head-mini.png\">
+<meta name=\"ICBM\" content=\"42.256233,-71.006581\">
+<meta name=\"DC.title\" content=\"gnu.org\">\n\n")
+
+(defconst manual-style-string "<style type=\"text/css\">
+@import url('/style.css');\n</style>\n")
+
+(defun manual-html-mono (texi-file dest)
+  "Run Makeinfo on TEXI-FILE, emitting mono HTML output to DEST.
+This function also edits the HTML files so that they validate as
+HTML 4.01 Transitional, and pulls in the gnu.org stylesheet using
+the @import directive."
+  (call-process "makeinfo" nil nil nil
+		"--html" "--no-split" texi-file "-o" dest)
+  (with-temp-buffer
+    (insert-file-contents dest)
+    (setq buffer-file-name dest)
+    (manual-html-fix-headers)
+    (manual-html-fix-index-1)
+    (manual-html-fix-index-2 t)
+    (manual-html-fix-node-div)
+    (goto-char (point-max))
+    (re-search-backward "</body>[\n \t]*</html>")
+    (insert "</div>\n\n")
+    (save-buffer)))
+
+(defun manual-html-node (texi-file dir)
+  "Run Makeinfo on TEXI-FILE, emitting per-node HTML output to DIR.
+This function also edits the HTML files so that they validate as
+HTML 4.01 Transitional, and pulls in the gnu.org stylesheet using
+the @import directive."
+  (unless (file-exists-p texi-file)
+    (error "Manual file %s not found" texi-file))
+  (call-process "makeinfo" nil nil nil
+		"--html" texi-file "-o" dir)
+  ;; Loop through the node files, fixing them up.
+  (dolist (f (directory-files dir nil "\\.html\\'"))
+    (let (opoint)
+      (with-temp-buffer
+	(insert-file-contents (expand-file-name f dir))
+	(setq buffer-file-name (expand-file-name f dir))
+	(if (looking-at "<meta http-equiv")
+	    ;; Ignore those HTML files that are just redirects.
+	    (set-buffer-modified-p nil)
+	  (manual-html-fix-headers)
+	  (if (equal f "index.html")
+	      (let (copyright-text)
+		(manual-html-fix-index-1)
+		;; Move copyright notice to the end.
+		(re-search-forward "[ \t]*<p>Copyright &copy;")
+		(setq opoint (match-beginning 0))
+		(re-search-forward "</blockquote>")
+		(setq copyright-text (buffer-substring opoint (point)))
+		(delete-region opoint (point))
+		(manual-html-fix-index-2)
+		(insert copyright-text "\n</div>\n"))
+	    ;; For normal nodes, give the header div a blue bg.
+	    (manual-html-fix-node-div))
+	  (save-buffer))))))
+
+(defun manual-txt (texi-file dest)
+  "Run Makeinfo on TEXI-FILE, emitting plaintext output to DEST."
+  (call-process "makeinfo" nil nil nil
+		"--plaintext" "--no-split" texi-file "-o" dest)
+  (shell-command (concat "gzip -c " dest " > " (concat dest ".gz"))))
+
+(defun manual-pdf (texi-file dest)
+  "Run texi2pdf on TEXI-FILE, emitting plaintext output to DEST."
+  (call-process "texi2pdf" nil nil nil texi-file "-o" dest))
+
+(defun manual-dvi (texi-file dest ps-dest)
+  "Run texi2dvi on TEXI-FILE, emitting dvi output to DEST.
+Also generate postscript output in PS-DEST."
+  (call-process "texi2dvi" nil nil nil texi-file "-o" dest)
+  (call-process "dvips" nil nil nil dest "-o" ps-dest)
+  (call-process "gzip" nil nil nil dest)
+  (call-process "gzip" nil nil nil ps-dest))
+
+(defun manual-html-fix-headers ()
+  "Fix up HTML headers for the Emacs manual in the current buffer."
+  (let (opoint)
+    (insert manual-doctype-string)
+    (search-forward "<head>\n")
+    (insert manual-meta-string)
+    (search-forward "<meta")
+    (setq opoint (match-beginning 0))
+    (re-search-forward "<!--")
+    (goto-char (match-beginning 0))
+    (delete-region opoint (point))
+    (insert manual-style-string)
+    (search-forward "<meta http-equiv=\"Content-Style")
+    (setq opoint (match-beginning 0))
+    (search-forward "</head>")
+    (delete-region opoint (match-beginning 0))))
+
+(defun manual-html-fix-node-div ()
+  "Fix up HTML \"node\" divs in the current buffer."
+  (let (opoint div-end)
+    (while (search-forward "<div class=\"node\">" nil t)
+      (replace-match
+       "<div class=\"node\" style=\"background-color:#DDDDFF\">"
+       t t)
+      (setq opoint (point))
+      (re-search-forward "</div>")
+      (setq div-end (match-beginning 0))
+      (goto-char opoint)
+      (if (search-forward "<hr>" div-end 'move)
+	  (replace-match "" t t)))))
+
+(defun manual-html-fix-index-1 ()
+  (let (opoint)
+    (re-search-forward "<body>\n\\(<h1 class=\"settitle\\)")
+    (setq opoint (match-beginning 1))
+    (search-forward "<h2 class=\"unnumbered")
+    (goto-char (match-beginning 0))
+    (delete-region opoint (point))
+    (insert "<div id=\"content\" class=\"inner\">\n\n")))
+
+(defun manual-html-fix-index-2 (&optional table-workaround)
+  "Replace the index list in the current buffer with a HTML table."
+  (let (done open-td tag desc)
+    ;; Convert the list that Makeinfo made into a table.
+    (search-forward "<ul class=\"menu\">")
+    (replace-match "<table style=\"float:left\" width=\"100%\">")
+    (forward-line 1)
+    (while (not done)
+      (cond
+       ((or (looking-at "<li>\\(<a.+</a>\\):[ \t]+\\(.*\\)$")
+	    (looking-at "<li>\\(<a.+</a>\\)$"))
+	(setq tag (match-string 1))
+	(setq desc (match-string 2))
+	(replace-match "" t t)
+	(when open-td
+	  (save-excursion
+	    (forward-char -1)
+	    (skip-chars-backward " ")
+	    (delete-region (point) (line-end-position))
+	    (insert "</td>\n  </tr>")))
+	(insert "  <tr>\n    ")
+	(if table-workaround
+	    ;; This works around a Firefox bug in the mono file.
+	    (insert "<td bgcolor=\"white\">")
+	  (insert "<td>"))
+	(insert tag "</td>\n    <td>" (or desc ""))
+	(setq open-td t))
+       ((eq (char-after) ?\n)
+	(delete-char 1)
+	;; Negate the following `forward-line'.
+	(forward-line -1))
+       ((looking-at "<!-- ")
+	(search-forward "-->"))
+       ((looking-at "<p>[- ]*The Detailed Node Listing[- \n]*")
+	(replace-match "  </td></tr></table>\n
+<h3>Detailed Node Listing</h3>\n\n" t t)
+	(search-forward "<p>")
+	(search-forward "<p>")
+	(goto-char (match-beginning 0))
+	(skip-chars-backward "\n ")
+	(setq open-td nil)
+	(insert "</p>\n\n<table  style=\"float:left\" width=\"100%\">"))
+       ((looking-at "</li></ul>")
+	(replace-match "" t t))
+       ((looking-at "<p>")
+	(replace-match "" t t)
+	(when open-td
+	  (insert "  </td></tr>")
+	  (setq open-td nil))
+	(insert "  <tr>
+    <th colspan=\"2\" align=\"left\" style=\"text-align:left\">")
+	(re-search-forward "</p>[ \t\n]*<ul class=\"menu\">")
+	(replace-match "  </th></tr>"))
+       ((looking-at "[ \t]*</ul>[ \t]*$")
+	(replace-match
+	 (if open-td
+	     "  </td></tr>\n</table>"
+	   "</table>") t t)
+	(setq done t))
+       (t
+	(if (eobp)
+	    (error "Parse error in %s" f))
+	(unless open-td
+	  (setq done t))))
+      (forward-line 1))))
+
 (provide 'admin)
 
 ;;; admin.el ends here

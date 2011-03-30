@@ -1078,7 +1078,7 @@ for the duration of the command."
 					(plain-list-item . auto))
   "Should `org-insert-heading' leave a blank line before new heading/item?
 The value is an alist, with `heading' and `plain-list-item' as car,
-and a boolean flag as cdr. The cdr may lso be the symbol `auto', and then
+and a boolean flag as cdr.  The cdr may lso be the symbol `auto', and then
 Org will look at the surrounding headings/items and try to make an
 intelligent decision wether to insert a blank line or not.
 
@@ -1384,9 +1384,9 @@ nil   Never use an ID to make a link, instead link using a text search for
 (defcustom org-context-in-file-links t
   "Non-nil means file links from `org-store-link' contain context.
 A search string will be added to the file name with :: as separator and
-used to find the context when the link is activated by the command 
-`org-open-at-point'. When this option is t, the entire active region 
-will be placed in the search string of the file link. If set to a 
+used to find the context when the link is activated by the command
+`org-open-at-point'.  When this option is t, the entire active region
+will be placed in the search string of the file link.  If set to a
 positive integer, only the first n lines of context will be stored.
 
 Using a prefix arg to the command \\[org-store-link] (`org-store-link')
@@ -1843,7 +1843,7 @@ This is list of cons cells.  Each cell contains:
   - a cons cell (:level . N).  Any headline of level N is considered a target.
     Note that, when `org-odd-levels-only' is set, level corresponds to
     order in hierarchy, not to the number of stars.
-  - a cons cell (:maxlevel . N). Any headline with level <= N is a target.
+  - a cons cell (:maxlevel . N).  Any headline with level <= N is a target.
     Note that, when `org-odd-levels-only' is set, level corresponds to
     order in hierarchy, not to the number of stars.
 
@@ -2418,7 +2418,7 @@ An auto-repeating task is immediately switched back to TODO when
 marked DONE.  If you are not logging state changes (by adding \"@\"
 or \"!\" to the TODO keyword definition), or set `org-log-done' to
 record a closing note, there will be no record of the task moving
-through DONE. This variable forces taking a note anyway.
+through DONE.  This variable forces taking a note anyway.
 
 nil     Don't force a record
 time    Record a time stamp
@@ -2624,8 +2624,8 @@ See also `org-agenda-jump-prefer-future'."
 The default is to do the same as configured in `org-read-date-prefer-future'.
 But you can alse set a deviating value here.
 This may t or nil, or the symbol `org-read-date-prefer-future'."
-  :group 'org-agenda 
-  :group 'org-time 
+  :group 'org-agenda
+  :group 'org-time
   :type '(choice
 	  (const :tag "Use org-read-date-prefer-future"
 		 org-read-date-prefer-future)
@@ -5575,7 +5575,7 @@ needs to be inserted at a specific position in the font-lock sequence.")
   (org-set-local 'org-pretty-entities (not org-pretty-entities))
   (org-restart-font-lock)
   (if org-pretty-entities
-      (message "Entities are displayed as UTF8 characers")
+      (message "Entities are displayed as UTF8 characters")
     (save-restriction
       (widen)
       (org-decompose-region (point-min) (point-max))
@@ -8525,9 +8525,9 @@ according to FMT (default from `org-email-link-description-format')."
     (when (and string (integerp lines) (> lines 0))
       (let ((slines (org-split-string s "\n")))
 	(when (< lines (length slines))
-	  (setq s (mapconcat 
+	  (setq s (mapconcat
 		   'identity
-		   (reverse (nthcdr (- (length slines) lines) 
+		   (reverse (nthcdr (- (length slines) lines)
 				    (reverse slines))) "\n")))))
     (mapconcat 'identity (org-split-string s "[ \t]+") " ")))
 
@@ -8672,8 +8672,8 @@ be displayed in the buffer instead of the link.
 If there is already a link at point, this command will allow you to edit link
 and description parts.
 
-With a \\[universal-argument] prefix, prompts for a file to link to. The file name can
-be selected using completion. The path to the file will be relative to the
+With a \\[universal-argument] prefix, prompts for a file to link to.  The file name can
+be selected using completion.  The path to the file will be relative to the
 current directory if the file is in the current directory or a subdirectory.
 Otherwise, the link will be the absolute path as completed in the minibuffer
 \(i.e. normally ~/path/to/file).  You can configure this behavior using the
@@ -16498,8 +16498,8 @@ If not, return to the original position and throw an error."
 
 (defun org-speed-command-default-hook (keys)
   "Hook for activating single-letter speed commands.
-`org-speed-commands-default' specifies a minimal command set. Use
-`org-speed-commands-user' for further customization."
+`org-speed-commands-default' specifies a minimal command set.
+Use `org-speed-commands-user' for further customization."
   (when (or (and (bolp) (looking-at outline-regexp))
 	    (and (functionp org-use-speed-commands)
 		 (funcall org-use-speed-commands)))
@@ -16521,11 +16521,11 @@ Each hook takes a single argument, a user-pressed command key
 which is also a `self-insert-command' from the global map.
 
 Within the hook, examine the cursor position and the command key
-and return nil or a valid handler as appropriate. Handler could
+and return nil or a valid handler as appropriate.  Handler could
 be one of an interactive command, a function, or a form.
 
 Set `org-use-speed-commands' to non-nil value to enable this
-hook. The default setting is `org-speed-command-default-hook'."
+hook.  The default setting is `org-speed-command-default-hook'."
   :group 'org-structure
   :type 'hook)
 
@@ -18300,11 +18300,11 @@ really on, so that the block visually is on the match."
 (defun org-in-regexps-block-p (start-re end-re &optional bound)
   "Return t if the current point is between matches of START-RE and END-RE.
 This will also return t if point is on one of the two matches or
-in an unfinished block. END-RE can be a string or a form
+in an unfinished block.  END-RE can be a string or a form
 returning a string.
 
-An optional third argument bounds the search for START-RE. It
-defaults to previous heading or `point-min'."
+An optional third argument bounds the search for START-RE.
+It defaults to previous heading or `point-min'."
   (let ((pos (point))
 	(limit (or bound (save-excursion (outline-previous-heading)))))
     (save-excursion
@@ -19040,7 +19040,7 @@ plainly yank the text as it is.
   "Perform some yank-like command.
 
 This function implements the behavior described in the `org-yank'
-documentation. However, it has been generalized to work for any
+documentation.  However, it has been generalized to work for any
 interactive command with similar behavior."
 
   ;; pretend to be command COMMAND
@@ -19247,7 +19247,7 @@ move point."
 
 (defun org-goto-first-child ()
   "Goto the first child, even if it is invisible.
-Return t when a child was found. Otherwise don't move point and
+Return t when a child was found.  Otherwise don't move point and
 return nil."
   (let (level (pos (point)) (re (concat "^" outline-regexp)))
     (when (condition-case nil (org-back-to-heading t) (error nil))

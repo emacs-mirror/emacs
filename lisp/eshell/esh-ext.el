@@ -46,8 +46,9 @@ loaded into memory, thus beginning a new process."
 
 ;;; User Variables:
 
-(defcustom eshell-ext-load-hook '(eshell-ext-initialize)
+(defcustom eshell-ext-load-hook nil
   "A hook that gets run when `eshell-ext' is loaded."
+  :version "24.1"			; removed eshell-ext-initialize
   :type 'hook
   :group 'eshell-ext)
 
@@ -263,7 +264,7 @@ line of the form #!<interp>."
   (let ((finterp
 	 (catch 'found
 	   (ignore
-	    (eshell-for possible eshell-interpreter-alist
+	    (dolist (possible eshell-interpreter-alist)
 	      (cond
 	       ((functionp (car possible))
 		(and (funcall (car possible) file)

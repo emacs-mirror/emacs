@@ -1056,7 +1056,7 @@ Show file information or library names in threads buffer.
 Show addresses for thread frames in threads buffer.
 @end table
 
-  It’s possible to observe information for several threads
+  It's possible to observe information for several threads
 simultaneously (in addition to buffers which show information for
 currently selected thread) using the following keys from the threads
 buffer.

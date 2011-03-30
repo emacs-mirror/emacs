@@ -4,8 +4,27 @@ See the end of the file for license conditions.
 
 	      Building and Installing Emacs from Bazaar
 
-If this is the first time you go through it, you'll need to configure
-before bootstrapping:
+Building Emacs from Bazaar requires some tools that are not needed
+when building from a release.  You will need:
+
+autoconf  - at least the version specified near the start of
+  configure.in (in the AC_PREREQ command).
+automake  - we recommend at least version 1.11.
+makeinfo  - not strictly necessary, but highly recommended, so that
+  you can build the manuals.
+
+The `autogen.sh' script can help you figure out if you have the
+necessary tools.
+
+The first time you build, there are a couple of extra steps.
+First, generate the `configure' script and some related files:
+
+  $ ./autogen.sh
+
+(or you can just run `autoreconf -i -I m4').
+
+You can then configure your build (use `./configure --help' to see
+options you can set):
 
   $ ./configure
 

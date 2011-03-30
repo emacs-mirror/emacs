@@ -2540,7 +2540,28 @@ Another trick might be that you put @code{ForwardX11 yes} or
 that host.
 
 
-@subsection Running shell-command on a remote host
+@subsection Running @code{shell} on a remote host
+@cindex shell
+
+Calling @code{M-x shell} in a buffer related to a remote host runs the
+local shell as defined in @option{shell-file-name}.  This might be
+also a valid path name for a shell to be applied on the remote host,
+but it will fail at least when your local and remote hosts belong to
+different system types, like @samp{windows-nt} and @samp{gnu/linux}.
+
+You must set the variable @option{explicit-shell-file-name} to the
+shell path name on the remote host, in order to start that shell on
+the remote host.
+
+@ifset emacs
+Starting with Emacs 24 this won't be necessary, if you call
+@code{shell} interactively.  You will be asked for the remote shell
+path, if you are on a remote buffer, and if
+@option{explicit-shell-file-name} is equal to @code{nil}.
+@end ifset
+
+
+@subsection Running @code{shell-command} on a remote host
 @cindex shell-command
 
 @code{shell-command} allows to execute commands in a shell, either
@@ -2556,13 +2577,13 @@ You will see the buffer @file{*Async Shell Command*}, containing the
 continuous output of the @command{tail} command.
 
 
-@subsection Running eshell on a remote host
+@subsection Running @code{eshell} on a remote host
 @cindex eshell
 
 @value{tramp} is integrated into @file{eshell.el}.  That is, you can
 open an interactive shell on your remote host, and run commands there.
-After you have started @code{eshell}, you could perform commands like
-this:
+After you have started @code{M-x eshell}, you could perform commands
+like this:
 
 @example
 @b{~ $} cd @trampfn{sudo, , , /etc} @key{RET}
@@ -2740,8 +2761,8 @@ There is also a Savannah project page.
 @item
 Which systems does it work on?
 
-The package has been used successfully on Emacs 22, Emacs 23, XEmacs
-21 (starting with 21.4), and SXEmacs 22.
+The package has been used successfully on Emacs 22, Emacs 23, Emacs
+24, XEmacs 21 (starting with 21.4), and SXEmacs 22.
 
 The package was intended to work on Unix, and it really expects a
 Unix-like system on the remote end (except the @option{smb} method),

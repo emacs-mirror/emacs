@@ -220,10 +220,15 @@ If VERSION is nil, the package is not loaded (it is \"disabled\")."
 (defcustom package-archives '(("gnu" . "http://elpa.gnu.org/packages/"))
   "An alist of archives from which to fetch.
 The default value points to the GNU Emacs package repository.
-Each element has the form (ID . URL), where ID is an identifier
-string for an archive and URL is a http: URL (a string)."
+
+Each element has the form (ID . LOCATION).
+ ID is an archive name, as a string.
+ LOCATION specifies the base location for the archive.
+  If it starts with \"http:\", it is treated as a HTTP URL;
+  otherwise it should be an absolute directory name.
+  (Other types of URL are currently not supported.)"
   :type '(alist :key-type (string :tag "Archive name")
-                :value-type (string :tag "Archive URL"))
+                :value-type (string :tag "URL or directory name"))
   :risky t
   :group 'package
   :version "24.1")
@@ -314,20 +319,39 @@ Like `package-alist', but maps package name to a second alist.
 The inner alist is keyed by version.")
 (put 'package-obsolete-alist 'risky-local-variable t)
 
-(defconst package-subdirectory-regexp
-  "^\\([^.].*\\)-\\([0-9]+\\(?:[.][0-9]+\\)*\\)$"
-  "Regular expression matching the name of a package subdirectory.
-The first subexpression is the package name.
-The second subexpression is the version string.")
-
-(defun package-version-join (l)
-  "Turn a list of version numbers into a version string."
-  (mapconcat 'int-to-string l "."))
+(defun package-version-join (vlist)
+  "Return the version string corresponding to the list VLIST.
+This is, approximately, the inverse of `version-to-list'.
+\(Actually, it returns only one of the possible inverses, since
+`version-to-list' is a many-to-one operation.)"
+  (if (null vlist)
+      ""
+    (let ((str-list (list "." (int-to-string (car vlist)))))
+      (dolist (num (cdr vlist))
+	(cond
+	 ((>= num 0)
+	  (push (int-to-string num) str-list)
+	  (push "." str-list))
+	 ((< num -3)
+	  (error "Invalid version list `%s'" vlist))
+	 (t
+	  ;; pre, or beta, or alpha
+	  (cond ((equal "." (car str-list))
+		 (pop str-list))
+		((not (string-match "[0-9]+" (car str-list)))
+		 (error "Invalid version list `%s'" vlist)))
+	  (push (cond ((= num -1) "pre")
+		      ((= num -2) "beta")
+		      ((= num -3) "alpha"))
+		str-list))))
+      (if (equal "." (car str-list))
+	  (pop str-list))
+      (apply 'concat (nreverse str-list)))))
 
 (defun package-strip-version (dirname)
   "Strip the version from a combined package name and version.
 E.g., if given \"quux-23.0\", will return \"quux\""
-  (if (string-match package-subdirectory-regexp dirname)
+  (if (string-match (concat "\\`" package-subdirectory-regexp "\\'") dirname)
       (match-string 1 dirname)))
 
 (defun package-load-descriptor (dir package)
@@ -352,12 +376,13 @@ In each valid package subdirectory, this function loads the
 description file containing a call to `define-package', which
 updates `package-alist' and `package-obsolete-alist'."
   (let ((all (memq 'all package-load-list))
+	(regexp (concat "\\`" package-subdirectory-regexp "\\'"))
 	name version force)
     (dolist (dir (cons package-user-dir package-directory-list))
       (when (file-directory-p dir)
 	(dolist (subdir (directory-files dir))
 	  (when (and (file-directory-p (expand-file-name subdir dir))
-		     (string-match package-subdirectory-regexp subdir))
+		     (string-match regexp subdir))
 	    (setq name    (intern (match-string 1 subdir))
 		  version (match-string 2 subdir)
 		  force   (assq name package-load-list))
@@ -549,30 +574,29 @@ EXTRA-PROPERTIES is currently unused."
       (package-autoload-ensure-default-file generated-autoload-file))
     (update-directory-autoloads pkg-dir)))
 
-(defun package-untar-buffer ()
+(defvar tar-parse-info)
+(declare-function tar-untar-buffer "tar-mode" ())
+
+(defun package-untar-buffer (dir)
   "Untar the current buffer.
-This uses `tar-untar-buffer' if it is available.
-Otherwise it uses an external `tar' program.
-`default-directory' should be set by the caller."
+This uses `tar-untar-buffer' from Tar mode.  All files should
+untar into a directory named DIR; otherwise, signal an error."
   (require 'tar-mode)
-  (if (fboundp 'tar-untar-buffer)
-      (progn
-	;; tar-mode messes with narrowing, so we just let it have the
-	;; whole buffer to play with.
-	(delete-region (point-min) (point))
-	(tar-mode)
-	(tar-untar-buffer))
-    ;; FIXME: check the result.
-    (call-process-region (point) (point-max) "tar" nil '(nil nil) nil
-			 "xf" "-")))
+  (tar-mode)
+  ;; Make sure everything extracts into DIR.
+  (let ((regexp (concat "\\`" (regexp-quote dir) "/")))
+    (dolist (tar-data tar-parse-info)
+      (unless (string-match regexp (aref tar-data 2))
+	(error "Package does not untar cleanly into directory %s/" dir))))
+  (tar-untar-buffer))
 
 (defun package-unpack (name version)
-  (let ((pkg-dir (expand-file-name (concat (symbol-name name) "-" version)
-				   package-user-dir)))
+  (let* ((dirname (concat (symbol-name name) "-" version))
+	 (pkg-dir (expand-file-name dirname package-user-dir)))
     (make-directory package-user-dir t)
     ;; FIXME: should we delete PKG-DIR if it exists?
     (let* ((default-directory (file-name-as-directory package-user-dir)))
-      (package-untar-buffer)
+      (package-untar-buffer dirname)
       (package-generate-autoloads (symbol-name name) pkg-dir)
       (let ((load-path (cons pkg-dir load-path)))
 	(byte-recompile-directory pkg-dir 0 t)))))
@@ -587,7 +611,9 @@ Otherwise it uses an external `tar' program.
   (if (string= file-name "package")
       (package--write-file-no-coding
        (expand-file-name (concat file-name ".el") package-user-dir))
-    (let* ((pkg-dir  (expand-file-name (concat file-name "-" version)
+    (let* ((pkg-dir  (expand-file-name (concat file-name "-"
+					       (package-version-join
+						(version-to-list version)))
 				       package-user-dir))
 	   (el-file  (expand-file-name (concat file-name ".el") pkg-dir))
 	   (pkg-file (expand-file-name (concat file-name "-pkg.el") pkg-dir)))
@@ -617,8 +643,36 @@ Otherwise it uses an external `tar' program.
       (let ((load-path (cons pkg-dir load-path)))
 	(byte-recompile-directory pkg-dir 0 t)))))
 
+(defmacro package--with-work-buffer (location file &rest body)
+  "Run BODY in a buffer containing the contents of FILE at LOCATION.
+LOCATION is the base location of a package archive, and should be
+one of the URLs (or file names) specified in `package-archives'.
+FILE is the name of a file relative to that base location.
+
+This macro retrieves FILE from LOCATION into a temporary buffer,
+and evaluates BODY while that buffer is current.  This work
+buffer is killed afterwards.  Return the last value in BODY."
+  `(let* ((http (string-match "\\`http:" ,location))
+	  (buffer
+	   (if http
+	       (url-retrieve-synchronously (concat ,location ,file))
+	     (generate-new-buffer "*package work buffer*"))))
+     (prog1
+	 (with-current-buffer buffer
+	   (if http
+	       (progn (package-handle-response)
+		      (re-search-forward "^$" nil 'move)
+		      (forward-char)
+		      (delete-region (point-min) (point)))
+	     (unless (file-name-absolute-p ,location)
+	       (error "Archive location %s is not an absolute file name"
+		      ,location))
+	     (insert-file-contents (expand-file-name ,file ,location)))
+	   ,@body)
+       (kill-buffer buffer))))
+
 (defun package-handle-response ()
-  "Handle the response from the server.
+  "Handle the response from a `url-retrieve-synchronously' call.
 Parse the HTTP response and throw if an error occurred.
 The url package seems to require extra processing for this.
 This should be called in a `save-excursion', in the download buffer.
@@ -627,7 +681,6 @@ It will move point to somewhere in the headers."
   (require 'url-http)
   (let ((response (url-http-parse-response)))
     (when (or (< response 200) (>= response 300))
-      (display-buffer (current-buffer))
       (error "Error during download request:%s"
 	     (buffer-substring-no-properties (point) (progn
 						       (end-of-line)
@@ -635,28 +688,17 @@ It will move point to somewhere in the headers."
 
 (defun package-download-single (name version desc requires)
   "Download and install a single-file package."
-  (let ((buffer (url-retrieve-synchronously
-		 (concat (package-archive-url name)
-			 (symbol-name name) "-" version ".el"))))
-    (with-current-buffer buffer
-      (package-handle-response)
-      (re-search-forward "^$" nil 'move)
-      (forward-char)
-      (delete-region (point-min) (point))
-      (package-unpack-single (symbol-name name) version desc requires)
-      (kill-buffer buffer))))
+  (let ((location (package-archive-base name))
+	(file (concat (symbol-name name) "-" version ".el")))
+    (package--with-work-buffer location file
+      (package-unpack-single (symbol-name name) version desc requires))))
 
 (defun package-download-tar (name version)
   "Download and install a tar package."
-  (let ((tar-buffer (url-retrieve-synchronously
-		     (concat (package-archive-url name)
-			     (symbol-name name) "-" version ".tar"))))
-    (with-current-buffer tar-buffer
-      (package-handle-response)
-      (re-search-forward "^$" nil 'move)
-      (forward-char)
-      (package-unpack name version)
-      (kill-buffer tar-buffer))))
+  (let ((location (package-archive-base name))
+	(file (concat (symbol-name name) "-" version ".tar")))
+    (package--with-work-buffer location file
+      (package-unpack name version))))
 
 (defun package-installed-p (package &optional min-version)
   "Return true if PACKAGE, of VERSION or newer, is installed.
@@ -827,15 +869,17 @@ The package is found on one of the archives in `package-archives'."
   ;; Try to activate it.
   (package-initialize))
 
-(defun package-strip-rcs-id (v-str)
-  "Strip RCS version ID from the version string.
+(defun package-strip-rcs-id (str)
+  "Strip RCS version ID from the version string STR.
 If the result looks like a dotted numeric version, return it.
 Otherwise return nil."
-  (if v-str
-      (if (string-match "^[ \t]*[$]Revision:[ \t]\([0-9.]+\)[ \t]*[$]$" v-str)
-	  (match-string 1 v-str)
-	(if (string-match "^[0-9.]*$" v-str)
-	    v-str))))
+  (when str
+    (when (string-match "\\`[ \t]*[$]Revision:[ \t]+" str)
+      (setq str (substring str (match-end 0))))
+    (condition-case nil
+	(if (version-to-list str)
+	    str)
+      (error nil))))
 
 (defun package-buffer-info ()
   "Return a vector describing the package in the current buffer.
@@ -890,43 +934,47 @@ boundaries."
   "Find package information for a tar file.
 FILE is the name of the tar file to examine.
 The return result is a vector like `package-buffer-info'."
-  (unless (string-match "^\\(.+\\)-\\([0-9.]+\\)\\.tar$" file)
-    (error "Invalid package name `%s'" file))
-  (let* ((pkg-name (file-name-nondirectory (match-string-no-properties 1 file)))
-	 (pkg-version (match-string-no-properties 2 file))
-	 ;; Extract the package descriptor.
-	 (pkg-def-contents (shell-command-to-string
-			    ;; Requires GNU tar.
-			    (concat "tar -xOf " file " "
-				    pkg-name "-" pkg-version "/"
-				    pkg-name "-pkg.el")))
-	 (pkg-def-parsed (package-read-from-string pkg-def-contents)))
-    (unless (eq (car pkg-def-parsed) 'define-package)
-      (error "No `define-package' sexp is present in `%s-pkg.el'" pkg-name))
-    (let ((name-str       (nth 1 pkg-def-parsed))
-	  (version-string (nth 2 pkg-def-parsed))
-	  (docstring      (nth 3 pkg-def-parsed))
-	  (requires       (nth 4 pkg-def-parsed))
-	  (readme (shell-command-to-string
-		   ;; Requires GNU tar.
-		   (concat "tar -xOf " file " "
-			   pkg-name "-" pkg-version "/README"))))
-      (unless (equal pkg-version version-string)
-	(error "Package has inconsistent versions"))
-      (unless (equal pkg-name name-str)
-	(error "Package has inconsistent names"))
-      ;; Kind of a hack.
-      (if (string-match ": Not found in archive" readme)
-	  (setq readme nil))
-      ;; Turn string version numbers into list form.
-      (if (eq (car requires) 'quote)
-	  (setq requires (car (cdr requires))))
-      (setq requires
-	    (mapcar (lambda (elt)
-		      (list (car elt)
-			    (version-to-list (cadr elt))))
-		    requires))
-      (vector pkg-name requires docstring version-string readme))))
+  (let ((default-directory (file-name-directory file))
+	(file (file-name-nondirectory file)))
+    (unless (string-match (concat "\\`" package-subdirectory-regexp "\\.tar\\'")
+			  file)
+      (error "Invalid package name `%s'" file))
+    (let* ((pkg-name (match-string-no-properties 1 file))
+	   (pkg-version (match-string-no-properties 2 file))
+	   ;; Extract the package descriptor.
+	   (pkg-def-contents (shell-command-to-string
+			      ;; Requires GNU tar.
+			      (concat "tar -xOf " file " "
+
+				      pkg-name "-" pkg-version "/"
+				      pkg-name "-pkg.el")))
+	   (pkg-def-parsed (package-read-from-string pkg-def-contents)))
+      (unless (eq (car pkg-def-parsed) 'define-package)
+	(error "No `define-package' sexp is present in `%s-pkg.el'" pkg-name))
+      (let ((name-str       (nth 1 pkg-def-parsed))
+	    (version-string (nth 2 pkg-def-parsed))
+	    (docstring      (nth 3 pkg-def-parsed))
+	    (requires       (nth 4 pkg-def-parsed))
+	    (readme (shell-command-to-string
+		     ;; Requires GNU tar.
+		     (concat "tar -xOf " file " "
+			     pkg-name "-" pkg-version "/README"))))
+	(unless (equal pkg-version version-string)
+	  (error "Package has inconsistent versions"))
+	(unless (equal pkg-name name-str)
+	  (error "Package has inconsistent names"))
+	;; Kind of a hack.
+	(if (string-match ": Not found in archive" readme)
+	    (setq readme nil))
+	;; Turn string version numbers into list form.
+	(if (eq (car requires) 'quote)
+	    (setq requires (car (cdr requires))))
+	(setq requires
+	      (mapcar (lambda (elt)
+			(list (car elt)
+			      (version-to-list (cadr elt))))
+		      requires))
+	(vector pkg-name requires docstring version-string readme)))))
 
 ;;;###autoload
 (defun package-install-from-buffer (pkg-info type)
@@ -987,31 +1035,26 @@ The file can either be a tar file or an Emacs Lisp file."
       (error "Package `%s-%s' is a system package, not deleting"
 	     name version))))
 
-(defun package-archive-url (name)
+(defun package-archive-base (name)
   "Return the archive containing the package NAME."
   (let ((desc (cdr (assq (intern-soft name) package-archive-contents))))
     (cdr (assoc (aref desc (- (length desc) 1)) package-archives))))
 
 (defun package--download-one-archive (archive file)
-  "Download an archive file FILE from ARCHIVE, and cache it locally."
-  (let* ((archive-name (car archive))
-         (archive-url  (cdr archive))
-	 (dir (expand-file-name "archives" package-user-dir))
-	 (dir (expand-file-name archive-name dir))
-         (buffer (url-retrieve-synchronously (concat archive-url file))))
-    (with-current-buffer buffer
-      (package-handle-response)
-      (re-search-forward "^$" nil 'move)
-      (forward-char)
-      (delete-region (point-min) (point))
+  "Retrieve an archive file FILE from ARCHIVE, and cache it.
+ARCHIVE should be a cons cell of the form (NAME . LOCATION),
+similar to an entry in `package-alist'.  Save the cached copy to
+\"archives/NAME/archive-contents\" in `package-user-dir'."
+  (let* ((dir (expand-file-name "archives" package-user-dir))
+	 (dir (expand-file-name (car archive) dir)))
+    (package--with-work-buffer (cdr archive) file
       ;; Read the retrieved buffer to make sure it is valid (e.g. it
       ;; may fetch a URL redirect page).
       (when (listp (read buffer))
 	(make-directory dir t)
 	(setq buffer-file-name (expand-file-name file dir))
 	(let ((version-control 'never))
-	  (save-buffer))))
-    (kill-buffer buffer)))
+	  (save-buffer))))))
 
 (defun package-refresh-contents ()
   "Download the ELPA archive description if needed.
@@ -1021,7 +1064,7 @@ makes them available for download."
   (unless (file-exists-p package-user-dir)
     (make-directory package-user-dir t))
   (dolist (archive package-archives)
-    (condition-case nil
+    (condition-case-no-debug nil
 	(package--download-one-archive archive "archive-contents")
       (error (message "Failed to download `%s' archive."
 		      (car archive)))))
@@ -1176,27 +1219,21 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
 	    (while (re-search-forward "^\\(;+ ?\\)" nil t)
 	      (replace-match ""))))
       (let ((readme (expand-file-name (concat package-name "-readme.txt")
-				      package-user-dir)))
+				      package-user-dir))
+	    readme-string)
 	;; For elpa packages, try downloading the commentary.  If that
 	;; fails, try an existing readme file in `package-user-dir'.
-	(cond ((let ((buffer (ignore-errors
-			       (url-retrieve-synchronously
-				(concat (package-archive-url package)
-					package-name "-readme.txt"))))
-		     response)
-		 (when buffer
-		   (with-current-buffer buffer
-		     (setq response (url-http-parse-response))
-		     (if (or (< response 200) (>= response 300))
-			 (setq response nil)
-		       (setq buffer-file-name
-			     (expand-file-name readme package-user-dir))
-		       (delete-region (point-min) (1+ url-http-end-of-headers))
-		       (save-buffer)))
-		   (when response
-		     (insert-buffer-substring buffer)
-		     (kill-buffer buffer)
-		     t))))
+	(cond ((condition-case nil
+		   (package--with-work-buffer (package-archive-base package)
+					      (concat package-name "-readme.txt")
+		     (setq buffer-file-name
+			   (expand-file-name readme package-user-dir))
+		     (let ((version-control 'never))
+		       (save-buffer))
+		     (setq readme-string (buffer-string))
+		     t)
+		 (error nil))
+	       (insert readme-string))
 	      ((file-readable-p readme)
 	       (insert-file-contents readme)
 	       (goto-char (point-max))))))))
@@ -1455,7 +1492,7 @@ packages marked for deletion are removed."
 				delete-list
 				", "))))
 	  (dolist (elt delete-list)
-	    (condition-case err
+	    (condition-case-no-debug err
 		(package-delete (car elt) (cdr elt))
 	      (error (message (cadr err)))))
 	(error "Aborted")))

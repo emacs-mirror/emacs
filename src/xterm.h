@@ -675,9 +675,20 @@ enum
 #define gtk_adjustment_get_upper(w) ((w)->upper)
 #endif
 
+#ifdef HAVE_GTK3
+#define DEFAULT_GDK_DISPLAY() \
+  gdk_x11_display_get_xdisplay (gdk_display_get_default ())
+#else
+#undef GDK_WINDOW_XID
+#define GDK_WINDOW_XID(w) GDK_WINDOW_XWINDOW (w)
+#define DEFAULT_GDK_DISPLAY() GDK_DISPLAY ()
+#define gtk_widget_get_preferred_size(a, ign, b) \
+  gtk_widget_size_request(a, b)
+#endif
+
 #define GTK_WIDGET_TO_X_WIN(w) \
   ((w) && gtk_widget_get_window (w) \
-   ? GDK_WINDOW_XWINDOW (gtk_widget_get_window (w)) : 0)
+   ? GDK_WINDOW_XID (gtk_widget_get_window (w)) : 0)
 
 #define FRAME_GTK_OUTER_WIDGET(f) ((f)->output_data.x->widget)
 #define FRAME_GTK_WIDGET(f) ((f)->output_data.x->edit_widget)
@@ -979,6 +990,7 @@ extern int x_alloc_nearest_color (struct frame *, Colormap, XColor *);
 extern void x_query_colors (struct frame *f, XColor *, int);
 extern void x_query_color (struct frame *f, XColor *);
 extern void x_clear_area (Display *, Window, int, int, int, int, int);
+extern void x_mouse_leave (struct x_display_info *);
 extern void set_vertical_scroll_bar (struct window *);
 
 extern int x_dispatch_event (XEvent *, Display *);

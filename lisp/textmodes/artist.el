@@ -422,7 +422,7 @@ be in `artist-spray-chars', or spraying will behave strangely.")
 (defvar artist-mode-name " Artist"
   "Name of Artist mode beginning with a space (appears in the mode-line).")
 
-(defvar artist-curr-go 'pen-char
+(defvar artist-curr-go 'pen-line
   "Current selected graphics operation.")
 (make-variable-buffer-local 'artist-curr-go)
 
@@ -502,6 +502,49 @@ This variable is initialized by the `artist-make-prev-next-op-alist' function.")
 (defvar artist-arrow-point-1 nil)
 (defvar artist-arrow-point-2 nil)
 
+(defvar artist-menu-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [spray-chars]
+      '(menu-item "Characters for Spray" artist-select-spray-chars
+		  :help "Choose characters for sprayed by the spray-can"))
+    (define-key map [borders]
+      '(menu-item "Draw Shape Borders" artist-toggle-borderless-shapes
+		  :help "Toggle whether shapes are drawn with borders"
+		  :button (:toggle . (not artist-borderless-shapes))))
+    (define-key map [trimming]
+      '(menu-item "Trim Line Endings" artist-toggle-trim-line-endings
+		  :help "Toggle trimming of line-endings"
+		  :button (:toggle . artist-trim-line-endings)))
+    (define-key map [rubber-band]
+      '(menu-item "Rubber-banding" artist-toggle-rubber-banding
+		  :help "Toggle rubber-banding"
+		  :button (:toggle . artist-rubber-banding)))
+    (define-key map [set-erase]
+      '(menu-item "Character to Erase..." artist-select-erase-char
+		  :help "Choose a specific character to erase"))
+    (define-key map [set-line]
+      '(menu-item "Character for Line..." artist-select-line-char
+		  :help "Choose the character to insert when drawing lines"))
+    (define-key map [set-fill]
+      '(menu-item "Character for Fill..." artist-select-fill-char
+		  :help "Choose the character to insert when filling in shapes"))
+    (define-key map [artist-separator] '(menu-item "--"))
+    (dolist (op '(("Vaporize" artist-select-op-vaporize-lines vaporize-lines)
+		  ("Erase" artist-select-op-erase-rectangle erase-rect)
+		  ("Spray-can" artist-select-op-spray-set-size spray-get-size)
+		  ("Text" artist-select-op-text-overwrite text-ovwrt)
+		  ("Ellipse" artist-select-op-circle circle)
+		  ("Poly-line" artist-select-op-straight-poly-line spolyline)
+		  ("Rectangle" artist-select-op-square square)
+    		  ("Line" artist-select-op-straight-line s-line)
+    		  ("Pen" artist-select-op-pen-line pen-line)))
+      (define-key map (vector (nth 2 op))
+    	`(menu-item ,(nth 0 op)
+    		    ,(nth 1 op)
+    		    :help ,(format "Draw using the %s style" (nth 0 op))
+    		    :button (:radio . (eq artist-curr-go ',(nth 2 op))))))
+    map))
+
 (defvar artist-mode-map
   (let ((map (make-sparse-keymap)))
     (setq artist-mode-map (make-sparse-keymap))
@@ -554,6 +597,7 @@ This variable is initialized by the `artist-make-prev-next-op-alist' function.")
     (define-key map "\C-c\C-a\C-y" 'artist-select-op-paste)
     (define-key map "\C-c\C-af"    'artist-select-op-flood-fill)
     (define-key map "\C-c\C-a\C-b" 'artist-submit-bug-report)
+    (define-key map [menu-bar artist] (cons "Artist" artist-menu-map))
     map)
   "Keymap for `artist-minor-mode'.")
 
@@ -4601,6 +4645,10 @@ If optional argument STATE is positive, turn borders on."
 
 	  (artist-arrow-point-set-state artist-arrow-point-2 new-state)))))
 
+(defun artist-select-op-pen-line ()
+  "Select drawing pen lines."
+  (interactive)
+  (artist-select-operation "Pen Line"))
 
 (defun artist-select-op-line ()
   "Select drawing lines."

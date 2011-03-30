@@ -352,7 +352,7 @@ internal_self_insert (int c, EMACS_INT n)
     {
       str[0] = (SINGLE_BYTE_CHAR_P (c)
 		? c
-		: multibyte_char_to_unibyte (c, Qnil));
+		: multibyte_char_to_unibyte (c));
       len = 1;
     }
   if (!NILP (overwrite)
@@ -381,33 +381,37 @@ internal_self_insert (int c, EMACS_INT n)
 	{
 	  EMACS_INT pos = PT;
 	  EMACS_INT pos_byte = PT_BYTE;
+
+	  /* FIXME: Check for integer overflow when calculating
+	     target_clm and actual_clm.  */
+
 	  /* Column the cursor should be placed at after this insertion.
 	     The correct value should be calculated only when necessary.  */
-	  int target_clm = ((int) current_column () /* iftc */
-			    + n * (int) XINT (Fchar_width (make_number (c))));
+	  EMACS_INT target_clm = (current_column ()
+				  + n * XINT (Fchar_width (make_number (c))));
 
-	      /* The actual cursor position after the trial of moving
-		 to column TARGET_CLM.  It is greater than TARGET_CLM
-		 if the TARGET_CLM is middle of multi-column
-		 character.  In that case, the new point is set after
-		 that character.  */
-	      int actual_clm
-		= (int) XFASTINT (Fmove_to_column (make_number (target_clm),
-						   Qnil));
+	  /* The actual cursor position after the trial of moving
+	     to column TARGET_CLM.  It is greater than TARGET_CLM
+	     if the TARGET_CLM is middle of multi-column
+	     character.  In that case, the new point is set after
+	     that character.  */
+	  EMACS_INT actual_clm
+	    = XFASTINT (Fmove_to_column (make_number (target_clm), Qnil));
 
-	      chars_to_delete = PT - pos;
+	  chars_to_delete = PT - pos;
 
-	      if (actual_clm > target_clm)
-	    { /* We will delete too many columns.  Let's fill columns
-		     by spaces so that the remaining text won't move.  */
+	  if (actual_clm > target_clm)
+	    {
+	      /* We will delete too many columns.  Let's fill columns
+		 by spaces so that the remaining text won't move.  */
 	      EMACS_INT actual = PT_BYTE;
 	      DEC_POS (actual);
 	      if (FETCH_CHAR (actual) == '\t')
 		/* Rather than add spaces, let's just keep the tab. */
 		chars_to_delete--;
 	      else
-		  spaces_to_insert = actual_clm - target_clm;
-		}
+		spaces_to_insert = actual_clm - target_clm;
+	    }
 
 	  SET_PT_BOTH (pos, pos_byte);
 	}
@@ -481,23 +485,23 @@ internal_self_insert (int c, EMACS_INT n)
        : (c == ' ' || c == '\n'))
       && !NILP (BVAR (current_buffer, auto_fill_function)))
     {
-      Lisp_Object tem;
+      Lisp_Object auto_fill_result;
 
       if (c == '\n')
 	/* After inserting a newline, move to previous line and fill
 	   that.  Must have the newline in place already so filling and
 	   justification, if any, know where the end is going to be.  */
 	SET_PT_BOTH (PT - 1, PT_BYTE - 1);
-      tem = call0 (BVAR (current_buffer, auto_fill_function));
+      auto_fill_result = call0 (BVAR (current_buffer, auto_fill_function));
       /* Test PT < ZV in case the auto-fill-function is strange.  */
       if (c == '\n' && PT < ZV)
 	SET_PT_BOTH (PT + 1, PT_BYTE + 1);
-      if (!NILP (tem))
+      if (!NILP (auto_fill_result))
 	hairy = 2;
     }
 
   /* Run hooks for electric keys.  */
-  call1 (Vrun_hooks, Qpost_self_insert_hook);
+  Frun_hooks (1, &Qpost_self_insert_hook);
 
   return hairy;
 }

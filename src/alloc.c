@@ -92,7 +92,8 @@ extern __malloc_size_t __malloc_extra_blocks;
 
 #endif /* not DOUG_LEA_MALLOC */
 
-#if ! defined (SYSTEM_MALLOC) && defined (HAVE_GTK_AND_PTHREAD)
+#if ! defined SYSTEM_MALLOC && ! defined SYNC_INPUT
+#ifdef HAVE_GTK_AND_PTHREAD
 
 /* When GTK uses the file chooser dialog, different backends can be loaded
    dynamically.  One such a backend is the Gnome VFS backend that gets loaded
@@ -130,12 +131,13 @@ static pthread_mutex_t alloc_mutex;
     }                                                   \
   while (0)
 
-#else /* SYSTEM_MALLOC || not HAVE_GTK_AND_PTHREAD */
+#else /* ! defined HAVE_GTK_AND_PTHREAD */
 
 #define BLOCK_INPUT_ALLOC BLOCK_INPUT
 #define UNBLOCK_INPUT_ALLOC UNBLOCK_INPUT
 
-#endif /* SYSTEM_MALLOC || not HAVE_GTK_AND_PTHREAD */
+#endif /* ! defined HAVE_GTK_AND_PTHREAD */
+#endif /* ! defined SYSTEM_MALLOC && ! defined SYNC_INPUT */
 
 /* Value of _bytes_used, when spare_memory was freed.  */
 
@@ -152,13 +154,11 @@ static __malloc_size_t bytes_used_when_full;
 #define VECTOR_UNMARK(V)	((V)->size &= ~ARRAY_MARK_FLAG)
 #define VECTOR_MARKED_P(V)	(((V)->size & ARRAY_MARK_FLAG) != 0)
 
-/* Value is the number of bytes/chars of S, a pointer to a struct
-   Lisp_String.  This must be used instead of STRING_BYTES (S) or
-   S->size during GC, because S->size contains the mark bit for
+/* Value is the number of bytes of S, a pointer to a struct Lisp_String.
+   Be careful during GC, because S->size contains the mark bit for
    strings.  */
 
 #define GC_STRING_BYTES(S)	(STRING_BYTES (S))
-#define GC_STRING_CHARS(S)	((S)->size & ~ARRAY_MARK_FLAG)
 
 /* Global variables.  */
 struct emacs_globals globals;
@@ -254,8 +254,10 @@ const char *pending_malloc_warning;
 
 /* Buffer in which we save a copy of the C stack at each GC.  */
 
+#if MAX_SAVE_STACK > 0
 static char *stack_copy;
-static int stack_copy_size;
+static size_t stack_copy_size;
+#endif
 
 /* Non-zero means ignore malloc warnings.  Set during initialization.
    Currently not used.  */
@@ -270,16 +272,9 @@ Lisp_Object Qpost_gc_hook;
 
 static void mark_buffer (Lisp_Object);
 static void mark_terminals (void);
-extern void mark_kboards (void);
-extern void mark_ttys (void);
-extern void mark_backtrace (void);
 static void gc_sweep (void);
 static void mark_glyph_matrix (struct glyph_matrix *);
 static void mark_face_cache (struct face_cache *);
-
-#ifdef HAVE_WINDOW_SYSTEM
-extern void mark_fringe_data (void);
-#endif /* HAVE_WINDOW_SYSTEM */
 
 static struct Lisp_String *allocate_string (void);
 static void compact_small_strings (void);
@@ -2659,17 +2654,17 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
   return val;
 }
 
+#ifdef GC_CHECK_CONS_LIST
 /* Get an error now if there's any junk in the cons free list.  */
 void
 check_cons_list (void)
 {
-#ifdef GC_CHECK_CONS_LIST
   struct Lisp_Cons *tail = cons_free_list;
 
   while (tail)
     tail = tail->u.chain;
-#endif
 }
+#endif
 
 /* Make a list of 1, 2, 3, 4 or 5 specified objects.  */
 
@@ -2712,7 +2707,7 @@ DEFUN ("list", Flist, Slist, 0, MANY, 0,
        doc: /* Return a newly created list with specified arguments as elements.
 Any number of arguments, even zero arguments, are allowed.
 usage: (list &rest OBJECTS)  */)
-  (int nargs, register Lisp_Object *args)
+  (size_t nargs, register Lisp_Object *args)
 {
   register Lisp_Object val;
   val = Qnil;
@@ -2909,15 +2904,15 @@ See also the function `vector'.  */)
 {
   Lisp_Object vector;
   register EMACS_INT sizei;
-  register EMACS_INT index;
+  register EMACS_INT i;
   register struct Lisp_Vector *p;
 
   CHECK_NATNUM (length);
   sizei = XFASTINT (length);
 
   p = allocate_vector (sizei);
-  for (index = 0; index < sizei; index++)
-    p->contents[index] = init;
+  for (i = 0; i < sizei; i++)
+    p->contents[i] = init;
 
   XSETVECTOR (vector, p);
   return vector;
@@ -2928,17 +2923,17 @@ DEFUN ("vector", Fvector, Svector, 0, MANY, 0,
        doc: /* Return a newly created vector with specified arguments as elements.
 Any number of arguments, even zero arguments, are allowed.
 usage: (vector &rest OBJECTS)  */)
-  (register int nargs, Lisp_Object *args)
+  (register size_t nargs, Lisp_Object *args)
 {
   register Lisp_Object len, val;
-  register int index;
+  register size_t i;
   register struct Lisp_Vector *p;
 
   XSETFASTINT (len, nargs);
   val = Fmake_vector (len, Qnil);
   p = XVECTOR (val);
-  for (index = 0; index < nargs; index++)
-    p->contents[index] = args[index];
+  for (i = 0; i < nargs; i++)
+    p->contents[i] = args[i];
   return val;
 }
 
@@ -2950,10 +2945,10 @@ stack size, (optional) doc string, and (optional) interactive spec.
 The first four arguments are required; at most six have any
 significance.
 usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INTERACTIVE-SPEC &rest ELEMENTS)  */)
-  (register int nargs, Lisp_Object *args)
+  (register size_t nargs, Lisp_Object *args)
 {
   register Lisp_Object len, val;
-  register int index;
+  register size_t i;
   register struct Lisp_Vector *p;
 
   XSETFASTINT (len, nargs);
@@ -2971,11 +2966,11 @@ usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INT
     args[1] = Fstring_as_unibyte (args[1]);
 
   p = XVECTOR (val);
-  for (index = 0; index < nargs; index++)
+  for (i = 0; i < nargs; i++)
     {
       if (!NILP (Vpurify_flag))
-	args[index] = Fpurecopy (args[index]);
-      p->contents[index] = args[index];
+	args[i] = Fpurecopy (args[i]);
+      p->contents[i] = args[i];
     }
   XSETPVECTYPE (p, PVEC_COMPILED);
   XSETCOMPILED (val, p);
@@ -4235,7 +4230,7 @@ static void
 check_gcpros (void)
 {
   struct gcpro *p;
-  int i;
+  size_t i;
 
   for (p = gcprolist; p; p = p->next)
     for (i = 0; i < p->nvars; ++i)
@@ -4318,12 +4313,6 @@ static void
 mark_stack (void)
 {
   int i;
-  /* jmp_buf may not be aligned enough on darwin-ppc64 */
-  union aligned_jmpbuf {
-    Lisp_Object o;
-    jmp_buf j;
-  } j;
-  volatile int stack_grows_down_p = (char *) &j > (char *) stack_base;
   void *end;
 
 #ifdef HAVE___BUILTIN_UNWIND_INIT
@@ -4333,6 +4322,14 @@ mark_stack (void)
   __builtin_unwind_init ();
   end = &end;
 #else /* not HAVE___BUILTIN_UNWIND_INIT */
+#ifndef GC_SAVE_REGISTERS_ON_STACK
+  /* jmp_buf may not be aligned enough on darwin-ppc64 */
+  union aligned_jmpbuf {
+    Lisp_Object o;
+    jmp_buf j;
+  } j;
+  volatile int stack_grows_down_p = (char *) &j > (char *) stack_base;
+#endif
   /* This trick flushes the register windows so that all the state of
      the process is contained in the stack.  */
   /* Fixme: Code in the Boehm GC suggests flushing (with `flushrs') is
@@ -4842,7 +4839,7 @@ returns nil, because real GC can't be done.  */)
 {
   register struct specbinding *bind;
   char stack_top_variable;
-  register int i;
+  register size_t i;
   int message_p;
   Lisp_Object total[8];
   int count = SPECPDL_INDEX ();
@@ -4908,21 +4905,26 @@ returns nil, because real GC can't be done.  */)
 #if MAX_SAVE_STACK > 0
   if (NILP (Vpurify_flag))
     {
-      i = &stack_top_variable - stack_bottom;
-      if (i < 0) i = -i;
-      if (i < MAX_SAVE_STACK)
+      char *stack;
+      size_t stack_size;
+      if (&stack_top_variable < stack_bottom)
 	{
-	  if (stack_copy == 0)
-	    stack_copy = (char *) xmalloc (stack_copy_size = i);
-	  else if (stack_copy_size < i)
-	    stack_copy = (char *) xrealloc (stack_copy, (stack_copy_size = i));
-	  if (stack_copy)
+	  stack = &stack_top_variable;
+	  stack_size = stack_bottom - &stack_top_variable;
+	}
+      else
+	{
+	  stack = stack_bottom;
+	  stack_size = &stack_top_variable - stack_bottom;
+	}
+      if (stack_size <= MAX_SAVE_STACK)
+	{
+	  if (stack_copy_size < stack_size)
 	    {
-	      if ((EMACS_INT) (&stack_top_variable - stack_bottom) > 0)
-		memcpy (stack_copy, stack_bottom, i);
-	      else
-		memcpy (stack_copy, &stack_top_variable, i);
+	      stack_copy = (char *) xrealloc (stack_copy, stack_size);
+	      stack_copy_size = stack_size;
 	    }
+	  memcpy (stack_copy, stack, stack_size);
 	}
     }
 #endif /* MAX_SAVE_STACK > 0 */
@@ -5069,18 +5071,18 @@ returns nil, because real GC can't be done.  */)
 
   if (FLOATP (Vgc_cons_percentage))
     { /* Set gc_cons_combined_threshold.  */
-      EMACS_INT total = 0;
+      EMACS_INT tot = 0;
 
-      total += total_conses  * sizeof (struct Lisp_Cons);
-      total += total_symbols * sizeof (struct Lisp_Symbol);
-      total += total_markers * sizeof (union Lisp_Misc);
-      total += total_string_size;
-      total += total_vector_size * sizeof (Lisp_Object);
-      total += total_floats  * sizeof (struct Lisp_Float);
-      total += total_intervals * sizeof (struct interval);
-      total += total_strings * sizeof (struct Lisp_String);
+      tot += total_conses  * sizeof (struct Lisp_Cons);
+      tot += total_symbols * sizeof (struct Lisp_Symbol);
+      tot += total_markers * sizeof (union Lisp_Misc);
+      tot += total_string_size;
+      tot += total_vector_size * sizeof (Lisp_Object);
+      tot += total_floats  * sizeof (struct Lisp_Float);
+      tot += total_intervals * sizeof (struct interval);
+      tot += total_strings * sizeof (struct Lisp_String);
 
-      gc_relative_threshold = total * XFLOAT_DATA (Vgc_cons_percentage);
+      gc_relative_threshold = tot * XFLOAT_DATA (Vgc_cons_percentage);
     }
   else
     gc_relative_threshold = 0;
@@ -5129,9 +5131,9 @@ returns nil, because real GC can't be done.  */)
 
   if (!NILP (Vpost_gc_hook))
     {
-      int count = inhibit_garbage_collection ();
+      int gc_count = inhibit_garbage_collection ();
       safe_run_hooks (Qpost_gc_hook);
-      unbind_to (count, Qnil);
+      unbind_to (gc_count, Qnil);
     }
 
   /* Accumulate statistics.  */
@@ -5310,7 +5312,6 @@ mark_object (Lisp_Object arg)
 
 #else /* not GC_CHECK_MARKED_OBJECTS */
 
-#define CHECK_ALLOCATED()		(void) 0
 #define CHECK_LIVE(LIVEP)		(void) 0
 #define CHECK_ALLOCATED_AND_LIVE(LIVEP)	(void) 0
 
@@ -6062,7 +6063,7 @@ We divide the value by 1024 to make sure it fits in a Lisp integer.  */)
 {
   Lisp_Object end;
 
-  XSETINT (end, (EMACS_INT) sbrk (0) / 1024);
+  XSETINT (end, (EMACS_INT) (char *) sbrk (0) / 1024);
 
   return end;
 }

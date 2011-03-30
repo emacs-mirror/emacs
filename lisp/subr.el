@@ -1101,6 +1101,8 @@ is converted into a string by expressing it in decimal."
 
 (make-obsolete-variable 'define-key-rebound-commands nil "23.2")
 (make-obsolete-variable 'redisplay-end-trigger-functions 'jit-lock-register "23.1")
+(make-obsolete-variable 'deferred-action-list 'post-command-hook "24.1")
+(make-obsolete-variable 'deferred-action-function 'post-command-hook "24.1")
 (make-obsolete 'window-redisplay-end-trigger nil "23.1")
 (make-obsolete 'set-window-redisplay-end-trigger nil "23.1")
 
@@ -2003,24 +2005,24 @@ If optional argument INHIBIT-KEYBOARD-QUIT is non-nil, ignore
 keyboard-quit events while waiting for a valid input."
   (unless (consp chars)
     (error "Called `read-char-choice' without valid char choices"))
-  (let ((cursor-in-echo-area t)
-	(executing-kbd-macro executing-kbd-macro)
-	char done)
-    (while (not done)
-      (unless (get-text-property 0 'face prompt)
-	(setq prompt (propertize prompt 'face 'minibuffer-prompt)))
-      (setq char (let ((inhibit-quit inhibit-keyboard-quit))
-		   (read-key prompt)))
-      (cond
-       ((not (numberp char)))
-       ((memq char chars)
-	(setq done t))
-       ((and executing-kbd-macro (= char -1))
-	;; read-event returns -1 if we are in a kbd macro and
-	;; there are no more events in the macro.  Attempt to
-	;; get an event interactively.
-	(setq executing-kbd-macro nil))))
-    ;; Display the question with the answer.
+  (let (char done)
+    (let ((cursor-in-echo-area t)
+          (executing-kbd-macro executing-kbd-macro))
+      (while (not done)
+        (unless (get-text-property 0 'face prompt)
+          (setq prompt (propertize prompt 'face 'minibuffer-prompt)))
+        (setq char (let ((inhibit-quit inhibit-keyboard-quit))
+                     (read-key prompt)))
+        (cond
+         ((not (numberp char)))
+         ((memq char chars)
+          (setq done t))
+         ((and executing-kbd-macro (= char -1))
+          ;; read-event returns -1 if we are in a kbd macro and
+          ;; there are no more events in the macro.  Attempt to
+          ;; get an event interactively.
+          (setq executing-kbd-macro nil)))))
+    ;; Display the question with the answer.  But without cursor-in-echo-area.
     (message "%s%s" prompt (char-to-string char))
     char))
 

@@ -41,8 +41,6 @@ static void insert_from_buffer_1 (struct buffer *buf,
 				  int inherit);
 static void gap_left (EMACS_INT charpos, EMACS_INT bytepos, int newgap);
 static void gap_right (EMACS_INT charpos, EMACS_INT bytepos);
-static void adjust_markers_gap_motion (EMACS_INT from, EMACS_INT to,
-				       EMACS_INT amount);
 static void adjust_markers_for_insert (EMACS_INT from, EMACS_INT from_byte,
 				       EMACS_INT to, EMACS_INT to_byte,
 				       int before_markers);
@@ -70,11 +68,14 @@ Lisp_Object combine_after_change_buffer;
 Lisp_Object Qinhibit_modification_hooks;
 
 #define CHECK_MARKERS()				\
-  if (check_markers_debug_flag)			\
-    check_markers ();				\
-  else
+  do						\
+    {						\
+      if (check_markers_debug_flag)		\
+	check_markers ();			\
+    }						\
+  while (0)
 
-void
+static void
 check_markers (void)
 {
   register struct Lisp_Marker *tail;
@@ -159,10 +160,9 @@ gap_left (EMACS_INT charpos, EMACS_INT bytepos, int newgap)
       memmove (to, from, i);
     }
 
-  /* Adjust markers, and buffer data structure, to put the gap at BYTEPOS.
-     BYTEPOS is where the loop above stopped, which may be what was specified
-     or may be where a quit was detected.  */
-  adjust_markers_gap_motion (bytepos, GPT_BYTE, GAP_SIZE);
+  /* Adjust buffer data structure, to put the gap at BYTEPOS.
+     BYTEPOS is where the loop above stopped, which may be what
+     was specified or may be where a quit was detected.  */
   GPT_BYTE = bytepos;
   GPT = charpos;
   if (bytepos < charpos)
@@ -214,75 +214,12 @@ gap_right (EMACS_INT charpos, EMACS_INT bytepos)
       from += i, to += i;
     }
 
-  adjust_markers_gap_motion (GPT_BYTE + GAP_SIZE, bytepos + GAP_SIZE,
-			     - GAP_SIZE);
   GPT = charpos;
   GPT_BYTE = bytepos;
   if (bytepos < charpos)
     abort ();
   if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
   QUIT;
-}
-
-/* Add AMOUNT to the byte position of every marker in the current buffer
-   whose current byte position is between FROM (exclusive) and TO (inclusive).
-
-   Also, any markers past the outside of that interval, in the direction
-   of adjustment, are first moved back to the near end of the interval
-   and then adjusted by AMOUNT.
-
-   When the latter adjustment is done, if AMOUNT is negative,
-   we record the adjustment for undo.  (This case happens only for
-   deletion.)
-
-   The markers' character positions are not altered,
-   because gap motion does not affect character positions.  */
-
-int adjust_markers_test;
-
-static void
-adjust_markers_gap_motion (EMACS_INT from, EMACS_INT to, EMACS_INT amount)
-{
-  /* Now that a marker has a bytepos, not counting the gap,
-     nothing needs to be done here.  */
-#if 0
-  Lisp_Object marker;
-  register struct Lisp_Marker *m;
-  register EMACS_INT mpos;
-
-  marker = BUF_MARKERS (current_buffer);
-
-  while (!NILP (marker))
-    {
-      m = XMARKER (marker);
-      mpos = m->bytepos;
-      if (amount > 0)
-	{
-	  if (mpos > to && mpos < to + amount)
-	    {
-	      if (adjust_markers_test)
-		abort ();
-	      mpos = to + amount;
-	    }
-	}
-      else
-	{
-	  /* Here's the case where a marker is inside text being deleted.
-	     AMOUNT can be negative for gap motion, too,
-	     but then this range contains no markers.  */
-	  if (mpos > from + amount && mpos <= from)
-	    {
-	      if (adjust_markers_test)
-		abort ();
-	      mpos = from + amount;
-	    }
-	}
-      if (mpos > from && mpos <= to)
-	mpos += amount;
-      m->bufpos = mpos;
-      marker = m->chain;
-    }
-#endif
 }
 
 /* Adjust all markers for a deletion
@@ -411,9 +348,7 @@ adjust_markers_for_insert (EMACS_INT from, EMACS_INT from_byte,
 static void
 adjust_point (EMACS_INT nchars, EMACS_INT nbytes)
 {
-  BUF_PT (current_buffer) += nchars;
-  BUF_PT_BYTE (current_buffer) += nbytes;
-
+  SET_BUF_PT_BOTH (current_buffer, PT + nchars, PT_BYTE + nbytes);
   /* In a single-byte buffer, the two positions must be equal.  */
   eassert (PT_BYTE >= PT && PT_BYTE - PT <= ZV_BYTE - ZV);
 }
@@ -453,7 +388,7 @@ adjust_markers_for_replace (EMACS_INT from, EMACS_INT from_byte,
 
 /* Make the gap NBYTES_ADDED bytes longer.  */
 
-void
+static void
 make_gap_larger (EMACS_INT nbytes_added)
 {
   Lisp_Object tem;
@@ -508,7 +443,7 @@ make_gap_larger (EMACS_INT nbytes_added)
 
 /* Make the gap NBYTES_REMOVED bytes shorter.  */
 
-void
+static void
 make_gap_smaller (EMACS_INT nbytes_removed)
 {
   Lisp_Object tem;
@@ -595,7 +530,6 @@ copy_text (const unsigned char *from_addr, unsigned char *to_addr,
     {
       EMACS_INT nchars = 0;
       EMACS_INT bytes_left = nbytes;
-      Lisp_Object tbl = Qnil;
 
       while (bytes_left > 0)
 	{
@@ -2101,7 +2035,7 @@ prepare_to_modify_buffer (EMACS_INT start, EMACS_INT end,
    VARIABLE is the variable to maybe set to nil.
    NO-ERROR-FLAG is nil if there was an error,
    anything else meaning no error (so this function does nothing).  */
-Lisp_Object
+static Lisp_Object
 reset_var_on_error (Lisp_Object val)
 {
   if (NILP (XCDR (val)))
@@ -2137,14 +2071,14 @@ signal_before_change (EMACS_INT start_int, EMACS_INT end_int,
 
   specbind (Qinhibit_modification_hooks, Qt);
 
-  /* If buffer is unmodified, run a special hook for that case.  */
+  /* If buffer is unmodified, run a special hook for that case.  The
+   check for Vfirst_change_hook is just a minor optimization. */
   if (SAVE_MODIFF >= MODIFF
-      && !NILP (Vfirst_change_hook)
-      && !NILP (Vrun_hooks))
+      && !NILP (Vfirst_change_hook))
     {
       PRESERVE_VALUE;
       PRESERVE_START_END;
-      call1 (Vrun_hooks, Qfirst_change_hook);
+      Frun_hooks (1, &Qfirst_change_hook);
     }
 
   /* Now run the before-change-functions if any.  */
@@ -2265,7 +2199,7 @@ signal_after_change (EMACS_INT charpos, EMACS_INT lendel, EMACS_INT lenins)
   unbind_to (count, Qnil);
 }
 
-Lisp_Object
+static Lisp_Object
 Fcombine_after_change_execute_1 (Lisp_Object val)
 {
   Vcombine_after_change_calls = val;

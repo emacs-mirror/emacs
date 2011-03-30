@@ -1,3 +1,13 @@
+configure
+aclocal.m4
+compile
+config.guess
+config.sub
+depcomp
+install-sh
+missing
+lib/Makefile.in
+src/config.in
 autom4te.cache
 makefile
 *~
@@ -5,5 +15,3 @@ makefile
 
 /bin/
 /site-lisp/
-
-# arch-tag: 75cd3c50-1875-4814-8360-190f7de38302

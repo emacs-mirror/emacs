@@ -796,26 +796,31 @@ This macro is used to test if macroexpansion in `should' works."
   (should (equal (ert--string-first-line "foo\nbar") "foo"))
   (should (equal (ert--string-first-line " foo\nbar\nbaz\n") " foo")))
 
-(ert-deftest ert-test-explain-not-equal ()
-  (should (equal (ert--explain-not-equal nil 'foo)
+(ert-deftest ert-test-explain-equal ()
+  (should (equal (ert--explain-equal nil 'foo)
                  '(different-atoms nil foo)))
-  (should (equal (ert--explain-not-equal '(a a) '(a b))
+  (should (equal (ert--explain-equal '(a a) '(a b))
                  '(list-elt 1 (different-atoms a b))))
-  (should (equal (ert--explain-not-equal '(1 48) '(1 49))
+  (should (equal (ert--explain-equal '(1 48) '(1 49))
                  '(list-elt 1 (different-atoms (48 "#x30" "?0")
                                                (49 "#x31" "?1")))))
-  (should (equal (ert--explain-not-equal 'nil '(a))
+  (should (equal (ert--explain-equal 'nil '(a))
                  '(different-types nil (a))))
-  (should (equal (ert--explain-not-equal '(a b c) '(a b c d))
+  (should (equal (ert--explain-equal '(a b c) '(a b c d))
                  '(proper-lists-of-different-length 3 4 (a b c) (a b c d)
                                                     first-mismatch-at 3)))
   (let ((sym (make-symbol "a")))
-    (should (equal (ert--explain-not-equal 'a sym)
+    (should (equal (ert--explain-equal 'a sym)
                    `(different-symbols-with-the-same-name a ,sym)))))
 
-(ert-deftest ert-test-explain-not-equal-improper-list ()
-  (should (equal (ert--explain-not-equal '(a . b) '(a . c))
+(ert-deftest ert-test-explain-equal-improper-list ()
+  (should (equal (ert--explain-equal '(a . b) '(a . c))
                  '(cdr (different-atoms b c)))))
+
+(ert-deftest ert-test-explain-equal-keymaps ()
+  ;; This used to be very slow.
+  (should (equal (make-keymap) (make-keymap)))
+  (should (equal (make-sparse-keymap) (make-sparse-keymap))))
 
 (ert-deftest ert-test-significant-plist-keys ()
   (should (equal (ert--significant-plist-keys '()) '()))
@@ -852,21 +857,21 @@ This macro is used to test if macroexpansion in `should' works."
   (should (equal (ert--abbreviate-string "bar" 1 t) "r"))
   (should (equal (ert--abbreviate-string "bar" 0 t) "")))
 
-(ert-deftest ert-test-explain-not-equal-string-properties ()
+(ert-deftest ert-test-explain-equal-string-properties ()
   (should
-   (equal (ert--explain-not-equal-including-properties #("foo" 0 1 (a b))
-                                                       "foo")
+   (equal (ert--explain-equal-including-properties #("foo" 0 1 (a b))
+                                                   "foo")
           '(char 0 "f"
                  (different-properties-for-key a (different-atoms b nil))
                  context-before ""
                  context-after "oo")))
-  (should (equal (ert--explain-not-equal-including-properties
+  (should (equal (ert--explain-equal-including-properties
                   #("foo" 1 3 (a b))
                   #("goo" 0 1 (c d)))
                  '(array-elt 0 (different-atoms (?f "#x66" "?f")
                                                 (?g "#x67" "?g")))))
   (should
-   (equal (ert--explain-not-equal-including-properties
+   (equal (ert--explain-equal-including-properties
            #("foo" 0 1 (a b c d) 1 3 (a b))
            #("foo" 0 1 (c d a b) 1 2 (a foo)))
           '(char 1 "o" (different-properties-for-key a (different-atoms b foo))

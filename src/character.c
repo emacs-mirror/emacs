@@ -232,13 +232,10 @@ translate_char (Lisp_Object table, int c)
 }
 
 /* Convert ASCII or 8-bit character C to unibyte.  If C is none of
-   them, return (C & 0xFF).
-
-   The argument REV_TBL is now ignored.  It will be removed in the
-   future.  */
+   them, return (C & 0xFF).  */
 
 int
-multibyte_char_to_unibyte (int c, Lisp_Object rev_tbl)
+multibyte_char_to_unibyte (int c)
 {
   if (c < 0x80)
     return c;
@@ -761,7 +758,7 @@ str_as_unibyte (unsigned char *str, EMACS_INT bytes)
    corresponding byte and store in DST.  CHARS is the number of
    characters in SRC.  The value is the number of bytes stored in DST.
    Usually, the value is the same as CHARS, but is less than it if SRC
-   contains a non-ASCII, non-eight-bit characater.  If ACCEPT_LATIN_1
+   contains a non-ASCII, non-eight-bit character.  If ACCEPT_LATIN_1
    is nonzero, a Latin-1 character is accepted and converted to a byte
    of that character code.
    Note: Currently the arg ACCEPT_LATIN_1 is not used.  */
@@ -786,7 +783,7 @@ str_to_unibyte (const unsigned char *src, unsigned char *dst, EMACS_INT chars, i
 }
 
 
-EMACS_INT
+static EMACS_INT
 string_count_byte8 (Lisp_Object string)
 {
   int multibyte = STRING_MULTIBYTE (string);
@@ -893,9 +890,10 @@ DEFUN ("string", Fstring, Sstring, 0, MANY, 0,
        doc: /*
 Concatenate all the argument characters and make the result a string.
 usage: (string &rest CHARACTERS)  */)
-  (int n, Lisp_Object *args)
+  (size_t n, Lisp_Object *args)
 {
-  int i, c;
+  size_t i;
+  int c;
   unsigned char *buf, *p;
   Lisp_Object str;
   USE_SAFE_ALLOCA;
@@ -918,9 +916,10 @@ usage: (string &rest CHARACTERS)  */)
 DEFUN ("unibyte-string", Funibyte_string, Sunibyte_string, 0, MANY, 0,
        doc: /* Concatenate all the argument bytes and make the result a unibyte string.
 usage: (unibyte-string &rest BYTES)  */)
-  (int n, Lisp_Object *args)
+  (size_t n, Lisp_Object *args)
 {
-  int i, c;
+  size_t i;
+  int c;
   unsigned char *buf, *p;
   Lisp_Object str;
   USE_SAFE_ALLOCA;

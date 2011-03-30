@@ -197,6 +197,8 @@ PDF_TARGETS = \
 	widget.pdf \
 	woman.pdf
 
+HTML_TARGETS = emacs-faq.html
+
 TEXI2DVI = texi2dvi
 TEXI2PDF = texi2pdf
 
@@ -401,6 +403,15 @@ faq.dvi: ${srcdir}/faq.texi $(emacsdir)/emacsver.texi
 	$(ENVADD) $(TEXI2DVI) $<
 faq.pdf: ${srcdir}/faq.texi $(emacsdir)/emacsver.texi
 	$(ENVADD) $(TEXI2PDF) $<
+## This is the name used on the Emacs web-page.
+## sed fixes up links to point to split version of the manual.
+emacs-faq.html: ${srcdir}/faq.texi $(emacsdir)/emacsver.texi
+	$(MAKEINFO) $(MAKEINFO_OPTS) --no-split \
+	  --css-ref='/layout.css' --html -o $@ $<
+	sed -i -e 's|a href="\([a-z]*\)\.html#\([^"]*\)"|a href="manual/html_node/\1/\2.html"|g' \
+	  -e 's|/Top\.html|/|g' $@
+emacs-faq.text: ${srcdir}/faq.texi $(emacsdir)/emacsver.texi
+	$(MAKEINFO) $(MAKEINFO_OPTS) --plaintext -o $@ $<
 
 flymake : $(infodir)/flymake
 $(infodir)/flymake: flymake.texi
@@ -684,7 +695,7 @@ mostlyclean:
 	rm -f gnustmp.*
 
 clean: mostlyclean
-	rm -f $(DVI_TARGETS) $(PDF_TARGETS)
+	rm -f $(DVI_TARGETS) $(PDF_TARGETS) $(HTML_TARGETS) emacs-faq.text
 
 distclean: clean
 #	rm -f Makefile

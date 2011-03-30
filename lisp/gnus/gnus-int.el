@@ -270,7 +270,9 @@ If it is down, start it up (again)."
 			       server (error-message-string err))
 		 nil)
 		(quit
-		 (gnus-message 1 "Quit trying to open server %s" server)
+		 (if debug-on-quit
+		     (debug "Quit")
+		   (gnus-message 1 "Quit trying to open server %s" server))
 		 nil)))
 	     open-offline)
 	;; If this hasn't been opened before, we add it to the list.

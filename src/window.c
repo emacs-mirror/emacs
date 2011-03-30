@@ -1769,8 +1769,10 @@ window_list (void)
 
    ALL_FRAMES	t means search all frames,
 		nil means search just current frame,
-		`visible' means search just visible frames,
-		0 means search visible and iconified frames,
+		`visible' means search just visible frames on the
+                current terminal,
+		0 means search visible and iconified frames on the
+                current terminal,
 		a window means search the frame that window belongs to,
 		a frame means consider windows on that frame, only.  */
 
@@ -1836,8 +1838,8 @@ candidate_window_p (Lisp_Object window, Lisp_Object owindow, Lisp_Object minibuf
 
 
 /* Decode arguments as allowed by Fnext_window, Fprevious_window, and
-   Fwindow_list.  See there for the meaning of WINDOW, MINIBUF, and
-   ALL_FRAMES.  */
+   Fwindow_list.  See candidate_window_p for the meaning of WINDOW,
+   MINIBUF, and ALL_FRAMES.  */
 
 static void
 decode_next_window_args (Lisp_Object *window, Lisp_Object *minibuf, Lisp_Object *all_frames)
@@ -1871,12 +1873,6 @@ decode_next_window_args (Lisp_Object *window, Lisp_Object *minibuf, Lisp_Object 
     ;
   else if (!EQ (*all_frames, Qt))
     *all_frames = Qnil;
-
-  /* Now *ALL_FRAMES is t meaning search all frames, nil meaning
-     search just current frame, `visible' meaning search just visible
-     frames, 0 meaning search visible and iconified frames, or a
-     window, meaning search the frame that window belongs to, or a
-     frame, meaning consider windows on that frame, only.  */
 }
 
 
@@ -1974,9 +1970,9 @@ ALL-FRAMES nil or omitted means consider all windows on WINDOW's
  windows on all frames that share that minibuffer too.
 ALL-FRAMES t means consider all windows on all existing frames.
 ALL-FRAMES `visible' means consider all windows on all visible
- frames.
+ frames on the current terminal.
 ALL-FRAMES 0 means consider all windows on all visible and
- iconified frames.
+ iconified frames on the current terminal.
 ALL-FRAMES a frame means consider all windows on that frame only.
 Anything else means consider all windows on WINDOW's frame and no
  others.
@@ -2213,13 +2209,13 @@ window_loop (enum window_loop type, Lisp_Object obj, int mini, Lisp_Object frame
 	  case DELETE_BUFFER_WINDOWS:
 	    if (EQ (w->buffer, obj))
 	      {
-		struct frame *f = XFRAME (WINDOW_FRAME (w));
+		struct frame *fr = XFRAME (WINDOW_FRAME (w));
 
 		/* If this window is dedicated, and in a frame of its own,
 		   kill the frame.  */
-		if (EQ (window, FRAME_ROOT_WINDOW (f))
+		if (EQ (window, FRAME_ROOT_WINDOW (fr))
 		    && !NILP (w->dedicated)
-		    && other_visible_frames (f))
+		    && other_visible_frames (fr))
 		  {
 		    /* Skip the other windows on this frame.
 		       There might be one, the minibuffer!  */
@@ -2271,16 +2267,16 @@ window_loop (enum window_loop type, Lisp_Object obj, int mini, Lisp_Object frame
 	    if (EQ (w->buffer, obj))
 	      {
 		Lisp_Object buffer;
-		struct frame *f = XFRAME (w->frame);
+		struct frame *fr = XFRAME (w->frame);
 
 		/* Find another buffer to show in this window.  */
 		buffer = Fother_buffer (obj, Qnil, w->frame);
 
 		/* If this window is dedicated, and in a frame of its own,
 		   kill the frame.  */
-		if (EQ (window, FRAME_ROOT_WINDOW (f))
+		if (EQ (window, FRAME_ROOT_WINDOW (fr))
 		    && !NILP (w->dedicated)
-		    && other_visible_frames (f))
+		    && other_visible_frames (fr))
 		  {
 		    /* Skip the other windows on this frame.
 		       There might be one, the minibuffer!  */
@@ -2294,11 +2290,11 @@ window_loop (enum window_loop type, Lisp_Object obj, int mini, Lisp_Object frame
 		  }
 		else if (!NILP (w->dedicated) && !NILP (w->parent))
 		  {
-		    Lisp_Object window;
-		    XSETWINDOW (window, w);
+		    Lisp_Object window_to_delete;
+		    XSETWINDOW (window_to_delete, w);
 		    /* If this window is dedicated and not the only window
 		       in its frame, then kill it.  */
-		    Fdelete_window (window);
+		    Fdelete_window (window_to_delete);
 		  }
 		else
 		  {
@@ -2982,14 +2978,10 @@ shrink_windows (int total, int size, int nchildren, int shrinkable,
   while (total_shrink > total_removed)
     {
       int nonzero_sizes = 0;
-      int nonzero_idx = -1;
 
       for (i = 0; i < nchildren; ++i)
         if (new_sizes[i] > 0)
-          {
-            ++nonzero_sizes;
-            nonzero_idx = i;
-          }
+	  ++nonzero_sizes;
 
       for (i = 0; i < nchildren; ++i)
         if (new_sizes[i] > min_sizes[i])
@@ -3128,7 +3120,7 @@ size_window (Lisp_Object window, int size, int width_p, int nodelete_p, int firs
     }
   else if (!NILP (*forward))
     {
-      int fixed_size, each, extra, n;
+      int fixed_size, each IF_LINT (= 0), extra IF_LINT (= 0), n;
       int resize_fixed_p, nfixed;
       int last_pos, first_pos, nchildren, total;
       int *new_sizes = NULL;
@@ -3174,11 +3166,11 @@ size_window (Lisp_Object window, int size, int width_p, int nodelete_p, int firs
       last_pos = first_pos;
       for (n = 0, child = *forward; !NILP (child); child = c->next, ++n)
 	{
-	  int new_size, old_size;
+	  int new_child_size, old_child_size;
 
 	  c = XWINDOW (child);
-	  old_size = WINDOW_TOTAL_SIZE (c, width_p);
-	  new_size = old_size;
+	  old_child_size = WINDOW_TOTAL_SIZE (c, width_p);
+	  new_child_size = old_child_size;
 
 	  /* The top or left edge position of this child equals the
 	     bottom or right edge of its predecessor.  */
@@ -3190,18 +3182,20 @@ size_window (Lisp_Object window, int size, int width_p, int nodelete_p, int firs
 	  /* If this child can be resized, do it.  */
 	  if (resize_fixed_p || !window_fixed_size_p (c, width_p, 0))
 	    {
-	      new_size = new_sizes ? new_sizes[n] : old_size + each + extra;
+	      new_child_size =
+		new_sizes ? new_sizes[n] : old_child_size + each + extra;
 	      extra = 0;
 	    }
 
 	  /* Set new size.  Note that size_window also propagates
 	     edge positions to children, so it's not a no-op if we
 	     didn't change the child's size.  */
-	  size_window (child, new_size, width_p, 1, first_only, last_only);
+	  size_window (child, new_child_size, width_p, 1,
+		       first_only, last_only);
 
 	  /* Remember the bottom/right edge position of this child; it
 	     will be used to set the top/left edge of the next child.  */
-          last_pos += new_size;
+          last_pos += new_child_size;
 	}
 
       xfree (new_sizes);
@@ -3329,12 +3323,12 @@ run_window_configuration_change_hook (struct frame *f)
 	if (!NILP (Flocal_variable_p (Qwindow_configuration_change_hook,
 				      buffer)))
 	  {
-	    int count = SPECPDL_INDEX ();
+	    int count1 = SPECPDL_INDEX ();
 	    record_unwind_protect (select_window_norecord, Fselected_window ());
 	    select_window_norecord (window);
 	    run_funs (Fbuffer_local_value (Qwindow_configuration_change_hook,
 					   buffer));
-	    unbind_to (count, Qnil);
+	    unbind_to (count1, Qnil);
 	  }
       }
   }
@@ -3606,7 +3600,7 @@ select_frame_norecord (Lisp_Object frame)
     ? Fselect_frame (frame, Qt) : selected_frame;
 }
 
-Lisp_Object
+static Lisp_Object
 display_buffer (Lisp_Object buffer, Lisp_Object not_this_window_p, Lisp_Object override_frame)
 {
   return call3 (Qdisplay_buffer, buffer, not_this_window_p, override_frame);
@@ -3692,27 +3686,23 @@ temp_output_buffer_show (register Lisp_Object buf)
 
       /* Run temp-buffer-show-hook, with the chosen window selected
 	 and its buffer current.  */
+      {
+        int count = SPECPDL_INDEX ();
+        Lisp_Object prev_window, prev_buffer;
+        prev_window = selected_window;
+        XSETBUFFER (prev_buffer, old);
 
-      if (!NILP (Vrun_hooks)
-	  && !NILP (Fboundp (Qtemp_buffer_show_hook))
-	  && !NILP (Fsymbol_value (Qtemp_buffer_show_hook)))
-	{
-	  int count = SPECPDL_INDEX ();
-	  Lisp_Object prev_window, prev_buffer;
-	  prev_window = selected_window;
-	  XSETBUFFER (prev_buffer, old);
-
-	  /* Select the window that was chosen, for running the hook.
-	     Note: Both Fselect_window and select_window_norecord may
-	     set-buffer to the buffer displayed in the window,
-	     so we need to save the current buffer.  --stef  */
-	  record_unwind_protect (Fset_buffer, prev_buffer);
-	  record_unwind_protect (select_window_norecord, prev_window);
-	  Fselect_window (window, Qt);
-	  Fset_buffer (w->buffer);
-	  call1 (Vrun_hooks, Qtemp_buffer_show_hook);
-	  unbind_to (count, Qnil);
-	}
+        /* Select the window that was chosen, for running the hook.
+           Note: Both Fselect_window and select_window_norecord may
+           set-buffer to the buffer displayed in the window,
+           so we need to save the current buffer.  --stef  */
+        record_unwind_protect (Fset_buffer, prev_buffer);
+        record_unwind_protect (select_window_norecord, prev_window);
+        Fselect_window (window, Qt);
+        Fset_buffer (w->buffer);
+        Frun_hooks (1, &Qtemp_buffer_show_hook);
+        unbind_to (count, Qnil);
+      }
     }
 }
 
@@ -4123,7 +4113,7 @@ enlarge_window (Lisp_Object window, int delta, int horiz_flag)
 	{
 	  /* If trying to grow this window to or beyond size of the parent,
 	     just delete all the sibling windows.  */
-	  Lisp_Object start, tem, next;
+	  Lisp_Object start, tem;
 
 	  start = XWINDOW (parent)->vchild;
 	  if (NILP (start))
@@ -4133,9 +4123,9 @@ enlarge_window (Lisp_Object window, int delta, int horiz_flag)
 	  tem = XWINDOW (window)->next;
 	  while (! NILP (tem))
 	    {
-	      next = XWINDOW (tem)->next;
+	      Lisp_Object next1 = XWINDOW (tem)->next;
 	      delete_window (tem);
-	      tem = next;
+	      tem = next1;
 	    }
 
 	  /* Delete any siblings that come after WINDOW.
@@ -4144,9 +4134,9 @@ enlarge_window (Lisp_Object window, int delta, int horiz_flag)
 	  tem = start;
 	  while (! EQ (tem, window))
 	    {
-	      next = XWINDOW (tem)->next;
+	      Lisp_Object next1 = XWINDOW (tem)->next;
 	      delete_window (tem);
-	      tem = next;
+	      tem = next1;
 	    }
 	}
       else
@@ -5524,7 +5514,7 @@ and redisplay normally--don't erase and redraw the frame.  */)
   struct buffer *obuf = current_buffer;
   int center_p = 0;
   EMACS_INT charpos, bytepos;
-  int iarg;
+  int iarg IF_LINT (= 0);
   int this_scroll_margin;
 
   /* If redisplay is suppressed due to an error, try again.  */
@@ -7228,4 +7218,3 @@ keys_of_window (void)
   initial_define_key (meta_map, Ctl ('V'), "scroll-other-window");
   initial_define_key (meta_map, 'v', "scroll-down-command");
 }
-

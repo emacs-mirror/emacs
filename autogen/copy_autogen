@@ -1,0 +1,26 @@
+#!/bin/sh
+
+## Helper script for those building Emacs from bzr without autoconf etc.
+## This installs some pre-generated versions of the automatically
+## generated files.  It is highly recommended to install the necessary
+## tools instead of using this.  Note that if eg configure.in
+## is updated, the next time you run make it will attempt to
+## regenerate configure and will fail if you do not have the required
+## tools.  You will have to run this script again.
+
+test -d autogen && cd autogen
+
+if test ! -e config.in; then
+    echo "Cannot find autogen/ directory."
+    exit 1
+fi
+
+## Order implied by top-level Makefile's rules, for time-stamps.
+cp compile config.guess config.sub depcomp install-sh missing ../
+cp aclocal.m4 ../
+cp configure ../
+touch ../src/stamp-h.in
+cp config.in ../src/
+cp Makefile.in ../lib/
+
+echo "You can now run configure"

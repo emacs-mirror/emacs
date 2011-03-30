@@ -72,7 +72,6 @@ static Lisp_Object bidi_type_table, bidi_mirror_table;
 #define RLO_CHAR   0x202E
 
 #define BIDI_EOB   -1
-#define BIDI_BOB   -2		/* FIXME: Is this needed? */
 
 /* Local data structures.  (Look in dispextern.h for the rest.)  */
 
@@ -180,7 +179,7 @@ bidi_get_type (int ch, bidi_dir_t override)
     }
 }
 
-void
+static void
 bidi_check_type (bidi_type_t type)
 {
   if (type < UNKNOWN_BT || type > NEUTRAL_ON)
@@ -1520,7 +1519,7 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
   bidi_check_type (bidi_it->type);
 
   /* For L1 below, we need to know, for each WS character, whether
-     it belongs to a sequence of WS characters preceeding a newline
+     it belongs to a sequence of WS characters preceding a newline
      or a TAB or a paragraph separator.  */
   if (bidi_it->orig_type == NEUTRAL_WS
       && bidi_it->next_for_ws.type == UNKNOWN_BT)

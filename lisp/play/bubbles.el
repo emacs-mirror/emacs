@@ -719,57 +719,57 @@ static char * dot3d_xpm[] = {
 (defsubst bubbles--grid-width ()
   "Return the grid width for the current game theme."
   (car (case bubbles-game-theme
-         ('easy
+         (easy
           bubbles--grid-small)
-         ('medium
+         (medium
           bubbles--grid-medium)
-         ('difficult
+         (difficult
           bubbles--grid-large)
-         ('hard
+         (hard
           bubbles--grid-huge)
-         ('user-defined
+         (user-defined
           bubbles-grid-size))))
 
 (defsubst bubbles--grid-height ()
   "Return the grid height for the current game theme."
   (cdr (case bubbles-game-theme
-         ('easy
+         (easy
           bubbles--grid-small)
-         ('medium
+         (medium
           bubbles--grid-medium)
-         ('difficult
+         (difficult
           bubbles--grid-large)
-         ('hard
+         (hard
           bubbles--grid-huge)
-         ('user-defined
+         (user-defined
           bubbles-grid-size))))
 
 (defsubst bubbles--colors ()
   "Return the color list for the current game theme."
   (case bubbles-game-theme
-    ('easy
+    (easy
      bubbles--colors-2)
-    ('medium
+    (medium
      bubbles--colors-3)
-    ('difficult
+    (difficult
      bubbles--colors-4)
-    ('hard
+    (hard
      bubbles--colors-5)
-    ('user-defined
+    (user-defined
      bubbles-colors)))
 
 (defsubst bubbles--shift-mode ()
   "Return the shift mode for the current game theme."
   (case bubbles-game-theme
-    ('easy
+    (easy
      'default)
-    ('medium
+    (medium
      'default)
-    ('difficult
+    (difficult
      'always)
-    ('hard
+    (hard
      'always)
-    ('user-defined
+    (user-defined
      bubbles-shift-mode)))
 
 (defun bubbles-save-settings ()
@@ -1346,11 +1346,11 @@ Return t if new char is non-empty."
   (when (and (display-images-p)
              (not (eq bubbles-graphics-theme 'ascii)))
     (let ((template (case bubbles-graphics-theme
-                      ('circles bubbles--image-template-circle)
-                      ('balls bubbles--image-template-ball)
-                      ('squares bubbles--image-template-square)
-                      ('diamonds bubbles--image-template-diamond)
-                      ('emacs bubbles--image-template-emacs))))
+                      (circles bubbles--image-template-circle)
+                      (balls bubbles--image-template-ball)
+                      (squares bubbles--image-template-square)
+                      (diamonds bubbles--image-template-diamond)
+                      (emacs bubbles--image-template-emacs))))
       (setq bubbles--empty-image
             (create-image (replace-regexp-in-string
                            "^\"\\(.*\\)\t.*c .*\",$"

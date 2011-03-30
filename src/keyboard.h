@@ -90,7 +90,7 @@ struct kboard
 
     /* User-supplied table to translate input characters through.  */
     Lisp_Object KBOARD_INTERNAL_FIELD (Vkeyboard_translate_table);
-    
+
     /* Last command that may be repeated by `repeat'.  */
     Lisp_Object KBOARD_INTERNAL_FIELD (Vlast_repeatable_command);
 
@@ -140,12 +140,12 @@ struct kboard
     /* Keymap mapping keys to alternative preferred forms.
        See the DEFVAR for more documentation.  */
     Lisp_Object KBOARD_INTERNAL_FIELD (Vlocal_function_key_map);
-    
+
     /* Keymap mapping ASCII function key sequences onto their preferred
        forms.  Initialized by the terminal-specific lisp files.  See the
        DEFVAR for more documentation.  */
     Lisp_Object KBOARD_INTERNAL_FIELD (Vinput_decode_map);
-    
+
     /* Minibufferless frames on this display use this frame's minibuffer.  */
     Lisp_Object KBOARD_INTERNAL_FIELD (Vdefault_minibuffer_frame);
 
@@ -194,8 +194,8 @@ extern KBOARD *all_kboards;
 /* Nonzero in the single-kboard state, 0 in the any-kboard state.  */
 extern int single_kboard;
 
-/* Total number of times read_char has returned.  */
-extern int num_input_events;
+/* Total number of times read_char has returned, modulo SIZE_MAX + 1.  */
+extern size_t num_input_events;
 
 /* Nonzero means polling for input is temporarily suppressed.  */
 extern int poll_suppress_count;
@@ -485,7 +485,7 @@ extern void push_frame_kboard (struct frame *);
 extern void pop_kboard (void);
 extern void temporarily_switch_to_single_kboard (struct frame *);
 extern void record_asynch_buffer_change (void);
-extern SIGTYPE input_poll_signal (int);
+extern void input_poll_signal (int);
 extern void start_polling (void);
 extern void stop_polling (void);
 extern void set_poll_suppress_count (int);
@@ -494,6 +494,7 @@ extern int input_polling_used (void);
 extern void clear_input_pending (void);
 extern int requeued_events_pending_p (void);
 extern void bind_polling_period (int);
+extern int make_ctrl_char (int);
 extern void stuff_buffered_input (Lisp_Object);
 extern void clear_waiting_for_input (void);
 extern void swallow_events (int);
@@ -506,7 +507,7 @@ extern void kbd_buffer_store_event_hold (struct input_event *,
 extern void kbd_buffer_unget_event (struct input_event *);
 extern void poll_for_input_1 (void);
 extern void show_help_echo (Lisp_Object, Lisp_Object, Lisp_Object,
-                            Lisp_Object, int);
+                            Lisp_Object);
 extern void gen_help_event (Lisp_Object, Lisp_Object, Lisp_Object,
                             Lisp_Object, EMACS_INT);
 extern void kbd_buffer_store_help_event (Lisp_Object, Lisp_Object);
@@ -516,5 +517,9 @@ extern void add_user_signal (int, const char *);
 
 extern int tty_read_avail_input (struct terminal *, int,
                                  struct input_event *);
-extern EMACS_TIME timer_check (int);
+extern EMACS_TIME timer_check (void);
+extern void mark_kboards (void);
 
+#ifdef WINDOWSNT
+extern const char *const lispy_function_keys[];
+#endif

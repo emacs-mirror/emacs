@@ -46,8 +46,9 @@ which commands are considered visual in nature."
 
 ;;; User Variables:
 
-(defcustom eshell-term-load-hook '(eshell-term-initialize)
+(defcustom eshell-term-load-hook nil
   "A list of functions to call when loading `eshell-term'."
+  :version "24.1"			; removed eshell-term-initialize
   :type 'hook
   :group 'eshell-term)
 

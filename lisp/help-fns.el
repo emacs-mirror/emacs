@@ -534,6 +534,7 @@ If ANY-SYMBOL is non-nil, don't insist the symbol be bound."
   (with-syntax-table emacs-lisp-mode-syntax-table
     (or (condition-case ()
 	    (save-excursion
+	      (skip-chars-forward "'")
 	      (or (not (zerop (skip-syntax-backward "_w")))
 		  (eq (char-syntax (following-char)) ?w)
 		  (eq (char-syntax (following-char)) ?_)
@@ -592,9 +593,10 @@ it is displayed along with the global value."
 				     "Describe variable (default %s): " v)
 				  "Describe variable: ")
 				obarray
-				'(lambda (vv)
-				   (or (boundp vv)
-				       (get vv 'variable-documentation)))
+                                (lambda (vv)
+                                  (and (not (keywordp vv))
+                                       (or (boundp vv)
+                                           (get vv 'variable-documentation))))
 				t nil nil
 				(if (symbolp v) (symbol-name v))))
      (list (if (equal val "")
@@ -748,15 +750,21 @@ it is displayed along with the global value."
 		(setq extra-line t)
 		(if (member (cons variable val) dir-local-variables-alist)
 		    (let ((file (and (buffer-file-name)
-				     (not (file-remote-p (buffer-file-name)))
-				     (dir-locals-find-file (buffer-file-name)))))
+                                      (not (file-remote-p (buffer-file-name)))
+                                      (dir-locals-find-file
+                                       (buffer-file-name))))
+                          (type "file"))
 		      (princ "  This variable is a directory local variable")
 		      (when file
-			(princ (concat "\n  from the file \""
-				       (if (consp file)
-					   (car file)
-					 file)
-				       "\"")))
+                        (if (consp file) ; result from cache
+                            ;; If the cache element has an mtime, we
+                            ;; assume it came from a file.
+                            (if (nth 2 file)
+                                (setq file (expand-file-name
+                                            dir-locals-file (car file)))
+                              ;; Otherwise, assume it was set directly.
+                              (setq type "directory")))
+			(princ (format "\n  from the %s \"%s\"" type file)))
 		      (princ ".\n"))
 		  (princ "  This variable is a file local variable.\n")))
 

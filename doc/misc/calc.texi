@@ -27676,6 +27676,7 @@ begin with the @kbd{u} prefix key.
 * Predefined Units::
 * User-Defined Units::
 * Logarithmic Units::
+* Musical Notes::
 @end menu
 
 @node Basic Operations on Units, The Units Table, Units, Units
@@ -28121,51 +28122,19 @@ was already a set of user-defined units in your Calc init file, it
 is replaced by the new set.  (@xref{General Mode Commands}, for a way to
 tell Calc to use a different file for the Calc init file.)
 
-@node Logarithmic Units,  , User-Defined Units, Units
+@node Logarithmic Units, Musical Notes, User-Defined Units, Units
 @section Logarithmic Units
 
 The units @code{dB} (decibels) and @code{Np} (nepers) are logarithmic
-units which are typically manipulated differently than standard units.
-Calc provides commands to work with these logarithmic units.
+units which are manipulated differently than standard units.  Calc
+provides commands to work with these logarithmic units.
 
 Decibels and nepers are used to measure power quantities as well as 
-field quantities (quantities whose squares are proportional to power).
-The decibel and neper values of a quantity are relative to
-a reference quantity; for example, the decibel value of a sound
-pressure level of 
-@infoline @math{60 uPa}
-@texline @math{60 \mu{\rm Pa}}
-relative to 
-@infoline @math{20 uPa}
-@texline @math{20 \mu{\rm Pa}}
-(the threshhold of human hearing) is 
-@infoline @math{20 log10(60 uPa/ 20 uPa) dB = 20 log10(3) dB},
-@texline  @math{20 \log_{10}(60 \mu{\rm Pa}/20 \mu{\rm Pa}) {\rm dB} = 20 \log_{10}(3) {\rm dB}},
-which is about 
-@infoline @math{9.54 dB}.
-@texline @math{9.54 {\rm dB}}.
-Note that in taking the ratio, the original units cancel and so these
-logarithmic units are dimensionless. 
-
-@vindex calc-logunits-power-reference
-@vindex calc-logunits-field-reference
-The Calc commands for the logarithmic units assume that power quantities
-are being used unless the @kbd{H} prefix is used, in which case they assume that 
-field quantities are being used.  For power quantities, Calc uses 
-@infoline @math{1 mW} 
-@texline @math{1 {\rm mW}}
-as the default reference quantity; this default can be changed by changing 
-the value of the customizable variable
-@code{calc-logunits-power-reference} (@pxref{Customizing Calc}).
-For field quantities, Calc uses 
-@infoline @math{20 uPa} 
-@texline @math{20 \mu{\rm Pa}}
-as the default reference quantity; this is the value used in acoustics
-which is where decibels are commonly encountered.  This default can be
-changed by changing the value of the customizable variable
-@code{calc-logunits-field-reference} (@pxref{Customizing Calc}).  A
-non-default reference quantity will be read from the stack if the
-capital @kbd{O} prefix is used.
+field quantities (quantities whose squares are proportional to power);
+these two types of quantities are handled slightly different from each
+other.  By default the Calc commands work as if power quantities are
+being used; with the @kbd{H} prefix the Calc commands work as if field
+quantities are being used.
 
 The decibel level of a power 
 @infoline @math{P1},
@@ -28213,6 +28182,20 @@ relative to a reference
 is defined as
 @infoline @math{20 log10(F1/F0) dB}.
 @texline @math{20 \log_{10}(F_{1}/F_{0}) {\rm dB}}.
+For example, the decibel value of a sound pressure level of 
+@infoline @math{60 uPa}
+@texline @math{60 \mu{\rm Pa}}
+relative to 
+@infoline @math{20 uPa}
+@texline @math{20 \mu{\rm Pa}}
+(the threshhold of human hearing) is 
+@infoline @math{20 log10(60 uPa/ 20 uPa) dB = 20 log10(3) dB},
+@texline  @math{20 \log_{10}(60 \mu{\rm Pa}/20 \mu{\rm Pa}) {\rm dB} = 20 \log_{10}(3) {\rm dB}},
+which is about 
+@infoline @math{9.54 dB}.
+@texline @math{9.54 {\rm dB}}.
+Note that in taking the ratio, the original units cancel and so these
+logarithmic units are dimensionless. 
 
 Nepers (named after John Napier, who is credited with inventing the
 logarithm) are similar to bels except they use natural logarithms instead
@@ -28235,55 +28218,72 @@ is
 @infoline @math{ln(F1/F0) Np}.
 @texline @math{\ln(F_1/F_0) {\rm Np}}.
 
+@vindex calc-lu-power-reference
+@vindex calc-lu-field-reference
+For power quantities, Calc uses
+@infoline @math{1 mW} 
+@texline @math{1 {\rm mW}}
+as the default reference quantity; this default can be changed by changing 
+the value of the customizable variable
+@code{calc-lu-power-reference} (@pxref{Customizing Calc}).
+For field quantities, Calc uses 
+@infoline @math{20 uPa} 
+@texline @math{20 \mu{\rm Pa}}
+as the default reference quantity; this is the value used in acoustics
+which is where decibels are commonly encountered.  This default can be
+changed by changing the value of the customizable variable
+@code{calc-lu-field-reference} (@pxref{Customizing Calc}).  A
+non-default reference quantity will be read from the stack if the
+capital @kbd{O} prefix is used.
+
 @kindex l q
-@pindex calc-logunits-quantity
-@tindex powerquant
-@tindex fieldquant
-The @kbd{l q} (@code{calc-logunits-quantity}) [@code{powerquant}]
+@pindex calc-lu-quant
+@tindex lupquant
+@tindex lufquant
+The @kbd{l q} (@code{calc-lu-quant}) [@code{lupquant}]
 command computes the power quantity corresponding to a given number of
 logarithmic units. With the capital @kbd{O} prefix, @kbd{O l q}, the
 reference level will be read from the top of the stack. (In an
-algebraic formula, @code{powerquant} can be given an optional second
+algebraic formula, @code{lupquant} can be given an optional second
 argument which will be used for the reference level.) For example, 
 @code{20 dB @key{RET} l q} will return @code{100 mW}; 
 @code{20 dB @key{RET} 4 W @key{RET} O l q} will return @code{400 W}.   
-The @kbd{H l q} [@code{fieldquant}] command behaves like @kbd{l q} but
+The @kbd{H l q} [@code{lufquant}] command behaves like @kbd{l q} but
 computes field quantities instead of power quantities.
 
 @kindex l d
-@pindex calc-logunits-dblevel
-@tindex dbpowerlevel
-@tindex dbfieldlevel
+@pindex calc-db
+@tindex dbpower
+@tindex dbfield
 @kindex l n
-@pindex calc-logunits-nplevel
-@tindex nppowerlevel
-@tindex npfieldlevel
-The @kbd{l d} (@code{calc-logunits-dblevel}) [@code{dbpowerlevel}]
-command will compute the decibel level of a power quantity using the
-default reference level; @kbd{H l d} [@code{dbfieldlevel}] will
-compute the decibel level of a field quantity.  The commands @kbd{l n} 
-(@code{calc-logunits-nplevel}) [@code{nppowerlevel}] and @kbd{H l n} 
-[@code{npfieldlevel}] will similarly compute neper levels.  With the
-capital @kbd{O} prefix these commands will read a reference level
-from the stack; in an algebraic formula the reference level can be
-given as an optional second argument.
+@pindex calc-np
+@tindex nppower
+@tindex npfield
+The @kbd{l d} (@code{calc-db}) [@code{dbpower}] command will compute
+the decibel level of a power quantity using the default reference
+level; @kbd{H l d} [@code{dbfield}] will compute the decibel level of
+a field quantity.  The commands @kbd{l n} (@code{calc-np})
+[@code{nppower}] and @kbd{H l n} [@code{npfield}] will similarly
+compute neper levels.  With the capital @kbd{O} prefix these commands
+will read a reference level from the stack; in an algebraic formula
+the reference level can be given as an optional second argument.
 
 @kindex l +
-@pindex calc-logunits-add
-@tindex lupoweradd
-@tindex lufieldadd
+@pindex calc-lu-plus
+@tindex lupadd
+@tindex lufadd
 @kindex l -
-@pindex calc-logunits-sub
-@tindex lupowersub
-@tindex lufieldsub
+@pindex calc-lu-minus
+@tindex lupsub
+@tindex lufsub
 @kindex l *
-@pindex calc-logunits-mul
-@tindex lupowermul
-@tindex lufieldmul
+@pindex calc-lu-times
+@tindex lupmul
+@tindex lufmul
 @kindex l /
-@pindex calc-logunits-div
-@tindex lupowerdiv
-@tindex lufielddiv
+@pindex calc-lu-divide
+@tindex lupdiv
+@tindex lufdiv
 The sum of two power or field quantities doesn't correspond to the sum
 of the corresponding decibel or neper levels.  If the powers
 corresponding to decibel levels 
@@ -28304,13 +28304,13 @@ $$ 10 \log_{10}(10^{D_1/10} + 10^{D_2/10}) {\rm dB}.$$
 @end tex
 
 @noindent
-When field quantities are combined, it often means the 
-corresponding powers are added and so the above formula might be used.  
-In acoustics, for example, the decibel sound pressure level is defined
-using the field formula but the sound pressure levels are combined
-as the sound power levels, and so the above formula should be used.  If 
-two field quantities themselves are added, the new decibel level will be 
-
+When field quantities are combined, it often means the corresponding
+powers are added and so the above formula might be used.  In
+acoustics, for example, the sound pressure level is a field quantity
+and so the decibels are often defined using the field formula, but the
+sound pressure levels are combined as the sound power levels, and so
+the above formula should be used.  If two field quantities themselves
+are added, the new decibel level will be
 
 @ifnottex
 @example
@@ -28348,20 +28348,88 @@ $$ D + 20 \log_{10}(N) {\rm dB}.$$
 @end tex
 
 @noindent
-There are similar formulas for combining nepers.  
-The @kbd{l +} (@code{calc-logunits-add}) [@code{lupoweradd}] command
-will ``add'' two logarithmic unit power levels this way; with the
-@kbd{H} prefix, @kbd{H l +} [@code{lufieldadd}] will add logarithmic
-unit field levels.  Similarly, logarithmic units can be
-``subtracted'' with @kbd{l -} (@code{calc-logunits-sub}) 
-[@code{lupowersub}] or @kbd{H l -} [@code{lufieldsub}]. 
-The @kbd{l *} (@code{calc-logunits-mul}) [@code{lupowermul}] 
-and @kbd{H l *} [@code{lufieldmul}] commands will ``multiply''
-a logarithmic unit by a number; the @kbd{l /}
-(@code{calc-logunits-divide})  [@code{lupowerdiv}] and  
-@kbd{H l /} [@code{lufielddiv}] commands will ``divide'' a
-logarithmic unit by a number. Note that the reference quantities don't
-play a role in this arithmetic. 
+There are similar formulas for combining nepers.  The @kbd{l +}
+(@code{calc-lu-plus}) [@code{lupadd}] command will ``add'' two
+logarithmic unit power levels this way; with the @kbd{H} prefix,
+@kbd{H l +} [@code{lufadd}] will add logarithmic unit field levels.
+Similarly, logarithmic units can be ``subtracted'' with @kbd{l -}
+(@code{calc-lu-minus}) [@code{lupsub}] or @kbd{H l -} [@code{lufsub}].
+The @kbd{l *} (@code{calc-lu-times}) [@code{lupmul}] and @kbd{H l *}
+[@code{lufmul}] commands will ``multiply'' a logarithmic unit by a
+number; the @kbd{l /} (@code{calc-lu-divide}) [@code{lupdiv}] and
+@kbd{H l /} [@code{lufdiv}] commands will ``divide'' a logarithmic
+unit by a number. Note that the reference quantities don't play a role
+in this arithmetic.
+
+@node Musical Notes, , Logarithmic Units, Units
+@section Musical Notes
+
+Calc can convert between musical notes and their associated
+frequencies.  Notes can be given using either scientific pitch
+notation or midi numbers.  Since these note systems are basically
+logarithmic scales, Calc uses the @kbd{l} prefix for functions
+operating on notes.
+
+Scientific pitch notation refers to a note by giving a letter
+A through G, possibly followed by a flat or sharp) with a subscript
+indicating an octave number.  Each octave starts with C and ends with
+B and 
+@c increasing each note by a semitone will result
+@c in the sequence @expr{C}, @expr{C} sharp, @expr{D}, @expr{E} flat, @expr{E},
+@c @expr{F}, @expr{F} sharp, @expr{G}, @expr{A} flat, @expr{A}, @expr{B}
+@c flat and @expr{B}.  
+the octave numbered 0 was chosen to correspond to the lowest
+audible frequency.  Using this system, middle C (about 261.625 Hz)
+corresponds to the note @expr{C} in octave 4 and is denoted
+@expr{C_4}.  Any frequency can be described by giving a note plus an
+offset in cents (where a cent is a ratio of frequencies so that a
+semitone consists of 100 cents). 
+
+The midi note number system assigns numbers to notes so that
+@expr{C_(-1)} corresponds to the midi note number 0 and @expr{G_9}
+corresponds to the midi note number 127.   A midi controller can have
+up to 128 keys and each midi note number from  0 to 127 corresponds to
+a possible key. 
+
+@kindex l s
+@pindex calc-spn
+@tindex spn
+The @kbd{l s} (@code{calc-spn}) [@code{spn}] command converts either
+a frequency or a midi number to scientific pitch notation.  For
+example, @code{500 Hz} gets converted to 
+@code{B_4 + 21.3094853649 cents} and @code{84} to @code{C_6}. 
+
+
+@kindex l m
+@pindex calc-midi
+@tindex midi
+The @kbd{l m} (@code{calc-midi}) [@code{midi}] command converts either
+a frequency or a note given in scientific pitch notation to the
+corresponding midi number. For example, @code{C_6} gets converted to 84
+and @code{440 Hz} to 69.
+
+@kindex l f
+@pindex calc-freq
+@tindex freq
+The @kbd{l f} (@code{calc-freq}) [@code{freq}] command converts either
+either a midi number or a note given in scientific pitch notation to
+the corresponding frequency. For example, @code{Asharp_2 + 30 cents}
+gets converted to @code{118.578040134 Hz} and @code{55} to
+@code{195.99771799 Hz}.
+
+Since the frequencies of notes are not usually given exactly (and are
+typically irrational), the customizable variable
+@code{calc-note-threshold} determines how close (in cents) a frequency
+needs to be to a note to be recognized as that note
+(@pxref{Customizing Calc}).  This variable has a default value of
+@code{1}.  For example, middle @var{C} is approximately
+@expr{261.625565302 Hz}; this frequency is often shortened to
+@expr{261.625 Hz}.  Without @code{calc-note-threshold} (or a value of
+@expr{0}), Calc would convert @code{261.625 Hz} to scientific pitch
+notation @code{B_3 + 99.9962592773 cents}; with the default value of
+@code{1}, Calc converts @code{261.625 Hz} to @code{C_4}.
+
+
 
 @node Store and Recall, Graphics, Units, Top
 @chapter Storing and Recalling
@@ -35468,17 +35536,26 @@ should also be added to @code{calc-embedded-announce-formula-alist}
 and @code{calc-embedded-open-close-plain-alist}.
 @end defvar
 
-@defvar  calc-logunits-power-reference
-@defvarx calc-logunits-field-reference
+@defvar  calc-lu-power-reference
+@defvarx calc-lu-field-reference
 See @ref{Logarithmic Units}.@*
-The variables @code{calc-logunits-power-reference} and
-@code{calc-logunits-field-reference} are unit expressions (written as
+The variables @code{calc-lu-power-reference} and
+@code{calc-lu-field-reference} are unit expressions (written as
 strings) which Calc will use as reference quantities for logarithmic
 units.
 
-The default value of @code{calc-logunits-power-reference} is @code{"mW"}
-and the default value of @code{calc-logunits-field-reference} is
+The default value of @code{calc-lu-power-reference} is @code{"mW"}
+and the default value of @code{calc-lu-field-reference} is
 @code{"20 uPa"}.  
+@end defvar
+
+@defvar calc-note-threshold
+See @ref{Musical Notes}.@*
+The variable @code{calc-note-threshold} is a number (written as a
+string) which determines how close (in cents) a frequency needs to be
+to a note to be recognized as that note.
+
+The default value of @code{calc-note-threshold} is 1.
 @end defvar
 
 @defvar calc-highlight-selections-with-faces
@@ -36129,26 +36206,29 @@ keystrokes are not listed in this summary.
 @r{    v x@:    I k T   @:             @:        @:ltpt@:(x,v)}
 
 @c
-@r{    a b@:      l +   @:             @:     2  @:lupoweradd@:(a,b)}
-@r{    a b@:    H l +   @:             @:     2  @:lufieldadd@:(a,b)}
-@r{    a b@:      l -   @:             @:     2  @:lupowersub@:(a,b)}
-@r{    a b@:    H l -   @:             @:     2  @:lufieldsub@:(a,b)}
-@r{    a b@:      l *   @:             @:     2  @:lupowermul@:(a,b)}
-@r{    a b@:    H l *   @:             @:     2  @:lufieldmul@:(a,b)}
-@r{    a b@:      l /   @:             @:     2  @:lupowerdiv@:(a,b)}
-@r{    a b@:    H l /   @:             @:     2  @:lufielddiv@:(a,b)}
-@r{      a@:      l d   @:             @:     1  @:dbpowerlevel@:(a)}
-@r{    a b@:    O l d   @:             @:     2  @:dbpowerlevel@:(a,b)}
-@r{      a@:    H l d   @:             @:     1  @:dbfieldlevel@:(a)}
-@r{    a b@:  O H l d   @:             @:     2  @:dbfieldlevel@:(a,b)}
-@r{      a@:      l n   @:             @:     1  @:nppowerlevel@:(a)}
-@r{    a b@:    O l n   @:             @:     2  @:nppowerlevel@:(a,b)}
-@r{      a@:    H l n   @:             @:     1  @:npfieldlevel@:(a)}
-@r{    a b@:  O H l n   @:             @:     2  @:npfieldlevel@:(a,b)}
-@r{      a@:      l q   @:             @:     1  @:powerquant@:(a)}
-@r{    a b@:    O l q   @:             @:     2  @:powerquant@:(a,b)}
-@r{      a@:    H l q   @:             @:     1  @:fieldquant@:(a)}
-@r{    a b@:  O H l q   @:             @:     2  @:fieldquant@:(a,b)}
+@r{    a b@:      l +   @:             @:        @:lupadd@:(a,b)}
+@r{    a b@:    H l +   @:             @:        @:lufadd@:(a,b)}
+@r{    a b@:      l -   @:             @:        @:lupsub@:(a,b)}
+@r{    a b@:    H l -   @:             @:        @:lufsub@:(a,b)}
+@r{    a b@:      l *   @:             @:        @:lupmul@:(a,b)}
+@r{    a b@:    H l *   @:             @:        @:lufmul@:(a,b)}
+@r{    a b@:      l /   @:             @:        @:lupdiv@:(a,b)}
+@r{    a b@:    H l /   @:             @:        @:lufdiv@:(a,b)}
+@r{      a@:      l d   @:             @:        @:dbpower@:(a)}
+@r{    a b@:    O l d   @:             @:        @:dbpower@:(a,b)}
+@r{      a@:    H l d   @:             @:        @:dbfield@:(a)}
+@r{    a b@:  O H l d   @:             @:        @:dbfield@:(a,b)}
+@r{      a@:      l n   @:             @:        @:nppower@:(a)}
+@r{    a b@:    O l n   @:             @:        @:nppower@:(a,b)}
+@r{      a@:    H l n   @:             @:        @:npfield@:(a)}
+@r{    a b@:  O H l n   @:             @:        @:npfield@:(a,b)}
+@r{      a@:      l q   @:             @:        @:lupquant@:(a)}
+@r{    a b@:    O l q   @:             @:        @:lupquant@:(a,b)}
+@r{      a@:    H l q   @:             @:        @:lufquant@:(a)}
+@r{    a b@:  O H l q   @:             @:        @:lufquant@:(a,b)}
+@r{      a@:      l s   @:             @:        @:spn@:(a)}
+@r{      a@:      l m   @:             @:        @:midi@:(a)}
+@r{      a@:      l f   @:             @:        @:freq@:(a)}
 
 @c
 @r{       @:      m a   @:             @: 12,13  @:calc-algebraic-mode@:}

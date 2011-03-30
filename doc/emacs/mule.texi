@@ -237,7 +237,7 @@ preferred charset: unicode (Unicode (ISO10646))
 Character code properties: customize what to show
   name: LATIN CAPITAL LETTER A WITH GRAVE
   general-category: Lu (Letter, Uppercase)
-  decomposition: (65 768) ('A' '̀')
+  decomposition: (65 768) ('A' '`')
   old-name: LATIN CAPITAL LETTER A GRAVE
 
 There are text properties here:
@@ -1152,15 +1152,6 @@ specified by one of the environment variables @env{LC_ALL},
 @env{LC_CTYPE}, and @env{LANG}.  (The first one, in the order
 specified above, whose value is nonempty is the one that determines
 the text representation.)
-
-@vindex x-select-request-type
-  The variable @code{x-select-request-type} specifies a selection data
-type of selection to request from the X server.  The default value is
-@code{nil}, which means Emacs tries @code{COMPOUND_TEXT} and
-@code{UTF8_STRING}, and uses whichever result seems more appropriate.
-You can explicitly specify the data type by setting the variable to
-one of the symbols @code{COMPOUND_TEXT}, @code{UTF8_STRING},
-@code{STRING} and @code{TEXT}.
 
 @node File Name Coding
 @section Coding Systems for File Names

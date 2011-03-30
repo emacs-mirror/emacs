@@ -1025,9 +1025,9 @@ See Info node `(emacs)Subdir switches' for more details."
   ;; Keeps any marks that may be present in column one (doing this
   ;; here is faster than with dired-add-entry's optional arg).
   ;; Does not update other dired buffers.  Use dired-relist-entry for that.
-  (let ((char (following-char))
-	(opoint (line-beginning-position))
-	(buffer-read-only))
+  (let* ((opoint (line-beginning-position))
+	 (char (char-after opoint))
+	 (buffer-read-only))
     (delete-region opoint (progn (forward-line 1) (point)))
     (if file
 	(progn
@@ -1638,11 +1638,14 @@ Optional arg HOW-TO determiness how to treat the target.
 
 ;;;###autoload
 (defun dired-create-directory (directory)
-  "Create a directory called DIRECTORY."
+  "Create a directory called DIRECTORY.
+If DIRECTORY already exists, signal an error."
   (interactive
    (list (read-file-name "Create directory: " (dired-current-directory))))
   (let* ((expanded (directory-file-name (expand-file-name directory)))
 	 (try expanded) new)
+    (if (file-exists-p expanded)
+	(error "Cannot create directory %s: file exists" expanded))
     ;; Find the topmost nonexistent parent dir (variable `new')
     (while (and try (not (file-exists-p try)) (not (equal new try)))
       (setq new try

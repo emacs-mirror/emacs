@@ -21,6 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 */
 
 #include <config.h>
+#include "unexec.h"
 
 #include <stdio.h>
 #include <fcntl.h>
@@ -340,7 +341,6 @@ get_section_info (file_data *p_infile)
 {
   PIMAGE_DOS_HEADER dos_header;
   PIMAGE_NT_HEADERS nt_header;
-  PIMAGE_SECTION_HEADER section;
   int overlap;
 
   dos_header = (PIMAGE_DOS_HEADER) p_infile->file_base;
@@ -723,7 +723,7 @@ copy_executable_and_dump_data (file_data *p_infile,
 
 
 /* Dump out .data and .bss sections into a new executable.  */
-int
+void
 unexec (const char *new_name, const char *old_name)
 {
   file_data in_file, out_file;
@@ -819,9 +819,6 @@ unexec (const char *new_name, const char *old_name)
 
   close_file_data (&in_file);
   close_file_data (&out_file);
-
-  return 0;
 }
 
 /* eof */
-

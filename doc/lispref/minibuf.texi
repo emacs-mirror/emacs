@@ -433,18 +433,17 @@ expression, thus moving point forward one word.
 @cindex minibuffer history
 @cindex history list
 
-  A @dfn{minibuffer history list} records previous minibuffer inputs so
-the user can reuse them conveniently.  A history list is actually a
-symbol, not a list; it is a variable whose value is a list of strings
-(previous inputs), most recent first.
+  A @dfn{minibuffer history list} records previous minibuffer inputs
+so the user can reuse them conveniently.  It is a variable whose value
+is a list of strings (previous inputs), most recent first.
 
-  There are many separate history lists, used for different kinds of
-inputs.  It's the Lisp programmer's job to specify the right history
-list for each use of the minibuffer.
+  There are many separate minibuffer history lists, used for different
+kinds of inputs.  It's the Lisp programmer's job to specify the right
+history list for each use of the minibuffer.
 
-  You specify the history list with the optional @var{hist} argument
-to either @code{read-from-minibuffer} or @code{completing-read}.  Here
-are the possible values for it:
+  You specify a minibuffer history list with the optional @var{hist}
+argument to @code{read-from-minibuffer} or @code{completing-read}.
+Here are the possible values for it:
 
 @table @asis
 @item @var{variable}

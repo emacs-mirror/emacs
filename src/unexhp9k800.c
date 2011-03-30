@@ -50,6 +50,8 @@
 */
 
 #include <config.h>
+#include "unexec.h"
+
 #include <stdio.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -74,7 +76,7 @@ run_time_remap (ignored)
 
 
 /* Create a new a.out file, same as old but with current data space */
-int
+void
 unexec (const char *new_name,      /* name of the new a.out file to be created */
 	const char *old_name)       /* name of the old a.out file */
 {
@@ -131,7 +133,6 @@ unexec (const char *new_name,      /* name of the new a.out file to be created *
   /* Close the binary file */
   close (old);
   close (new);
-  return 0;
 }
 
 /* Save current data space in the file, update header.  */
@@ -319,4 +320,3 @@ display_header (hdr, auxhdr)
 	  hdr->unloadable_sp_location, hdr->unloadable_sp_size);
 }
 #endif /* DEBUG */
-

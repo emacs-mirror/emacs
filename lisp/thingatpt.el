@@ -207,6 +207,12 @@ a symbol as a valid THING."
 		  (cons opoint end))))
 	(error nil)))))
 
+;; Defuns
+
+(put 'defun 'beginning-op 'beginning-of-defun)
+(put 'defun 'end-op       'end-of-defun)
+(put 'defun 'forward-op   'end-of-defun)
+
 ;;  Filenames and URLs  www.com/foo%32bar
 
 (defvar thing-at-point-file-name-chars "-~/[:alnum:]_.${}#%,:"

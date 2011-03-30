@@ -805,7 +805,10 @@ variable chain of symbols.  */)
   (Lisp_Object object)
 {
   if (SYMBOLP (object))
-    XSETSYMBOL (object,  indirect_variable (XSYMBOL (object)));
+    {
+      struct Lisp_Symbol *sym = indirect_variable (XSYMBOL (object));
+      XSETSYMBOL (object, sym);
+    }
   return object;
 }
 
@@ -814,9 +817,6 @@ variable chain of symbols.  */)
    return the Lisp value of the symbol.
    This does not handle buffer-local variables; use
    swap_in_symval_forwarding for that.  */
-
-#define do_blv_forwarding(blv) \
-  ((blv)->forwarded ? do_symval_forwarding (BLV_FWD (blv)) : BLV_VALUE (blv))
 
 Lisp_Object
 do_symval_forwarding (register union Lisp_Fwd *valcontents)
@@ -864,14 +864,6 @@ do_symval_forwarding (register union Lisp_Fwd *valcontents)
    BUF non-zero means set the value in buffer BUF instead of the
    current buffer.  This only plays a role for per-buffer variables.  */
 
-#define store_blv_forwarding(blv, newval, buf)			\
-  do {								\
-    if ((blv)->forwarded)					\
-      store_symval_forwarding (BLV_FWD (blv), (newval), (buf));	\
-    else							\
-      SET_BLV_VALUE (blv, newval);				\
-  } while (0)
-
 static void
 store_symval_forwarding (union Lisp_Fwd *valcontents, register Lisp_Object newval, struct buffer *buf)
 {
@@ -907,12 +899,12 @@ store_symval_forwarding (union Lisp_Fwd *valcontents, register Lisp_Object newva
 
 	  for (tail = Vbuffer_alist; CONSP (tail); tail = XCDR (tail))
 	    {
-	      Lisp_Object buf;
+	      Lisp_Object lbuf;
 	      struct buffer *b;
 
-	      buf = Fcdr (XCAR (tail));
-	      if (!BUFFERP (buf)) continue;
-	      b = XBUFFER (buf);
+	      lbuf = Fcdr (XCAR (tail));
+	      if (!BUFFERP (lbuf)) continue;
+	      b = XBUFFER (lbuf);
 
 	      if (! PER_BUFFER_VALUE_P (b, idx))
 		PER_BUFFER_VALUE (b, offset) = newval;
@@ -1269,7 +1261,7 @@ set_internal (register Lisp_Object symbol, register Lisp_Object newval, register
 /* Return the default value of SYMBOL, but don't check for voidness.
    Return Qunbound if it is void.  */
 
-Lisp_Object
+static Lisp_Object
 default_value (Lisp_Object symbol)
 {
   struct Lisp_Symbol *sym;
@@ -1503,8 +1495,8 @@ The function `default-value' gets the default value and `set-default' sets it.  
 {
   struct Lisp_Symbol *sym;
   struct Lisp_Buffer_Local_Value *blv = NULL;
-  union Lisp_Val_Fwd valcontents;
-  int forwarded;
+  union Lisp_Val_Fwd valcontents IF_LINT (= {0});
+  int forwarded IF_LINT (= 0);
 
   CHECK_SYMBOL (variable);
   sym = XSYMBOL (variable);
@@ -1579,8 +1571,8 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
   (register Lisp_Object variable)
 {
   register Lisp_Object tem;
-  int forwarded;
-  union Lisp_Val_Fwd valcontents;
+  int forwarded IF_LINT (= 0);
+  union Lisp_Val_Fwd valcontents IF_LINT (= {0});
   struct Lisp_Symbol *sym;
   struct Lisp_Buffer_Local_Value *blv = NULL;
 
@@ -2216,7 +2208,7 @@ bool-vector.  IDX starts at 0.  */)
 
 enum comparison { equal, notequal, less, grtr, less_or_equal, grtr_or_equal };
 
-Lisp_Object
+static Lisp_Object
 arithcompare (Lisp_Object num1, Lisp_Object num2, enum comparison comparison)
 {
   double f1 = 0, f2 = 0;
@@ -2482,13 +2474,13 @@ enum arithop
     Amin
   };
 
-static Lisp_Object float_arith_driver (double, int, enum arithop,
-                                       int, Lisp_Object *);
-Lisp_Object
-arith_driver (enum arithop code, int nargs, register Lisp_Object *args)
+static Lisp_Object float_arith_driver (double, size_t, enum arithop,
+                                       size_t, Lisp_Object *);
+static Lisp_Object
+arith_driver (enum arithop code, size_t nargs, register Lisp_Object *args)
 {
   register Lisp_Object val;
-  register int argnum;
+  register size_t argnum;
   register EMACS_INT accum = 0;
   register EMACS_INT next;
 
@@ -2570,7 +2562,8 @@ arith_driver (enum arithop code, int nargs, register Lisp_Object *args)
 #define isnan(x) ((x) != (x))
 
 static Lisp_Object
-float_arith_driver (double accum, register int argnum, enum arithop code, int nargs, register Lisp_Object *args)
+float_arith_driver (double accum, register size_t argnum, enum arithop code,
+		    size_t nargs, register Lisp_Object *args)
 {
   register Lisp_Object val;
   double next;
@@ -2632,7 +2625,7 @@ float_arith_driver (double accum, register int argnum, enum arithop code, int na
 DEFUN ("+", Fplus, Splus, 0, MANY, 0,
        doc: /* Return sum of any number of arguments, which are numbers or markers.
 usage: (+ &rest NUMBERS-OR-MARKERS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   return arith_driver (Aadd, nargs, args);
 }
@@ -2642,7 +2635,7 @@ DEFUN ("-", Fminus, Sminus, 0, MANY, 0,
 With one arg, negates it.  With more than one arg,
 subtracts all but the first from the first.
 usage: (- &optional NUMBER-OR-MARKER &rest MORE-NUMBERS-OR-MARKERS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   return arith_driver (Asub, nargs, args);
 }
@@ -2650,7 +2643,7 @@ usage: (- &optional NUMBER-OR-MARKER &rest MORE-NUMBERS-OR-MARKERS)  */)
 DEFUN ("*", Ftimes, Stimes, 0, MANY, 0,
        doc: /* Return product of any number of arguments, which are numbers or markers.
 usage: (* &rest NUMBERS-OR-MARKERS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   return arith_driver (Amult, nargs, args);
 }
@@ -2659,9 +2652,9 @@ DEFUN ("/", Fquo, Squo, 2, MANY, 0,
        doc: /* Return first argument divided by all the remaining arguments.
 The arguments must be numbers or markers.
 usage: (/ DIVIDEND DIVISOR &rest DIVISORS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
-  int argnum;
+  size_t argnum;
   for (argnum = 2; argnum < nargs; argnum++)
     if (FLOATP (args[argnum]))
       return float_arith_driver (0, 0, Adiv, nargs, args);
@@ -2743,7 +2736,7 @@ DEFUN ("max", Fmax, Smax, 1, MANY, 0,
        doc: /* Return largest of all the arguments (which must be numbers or markers).
 The value is always a number; markers are converted to numbers.
 usage: (max NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   return arith_driver (Amax, nargs, args);
 }
@@ -2752,7 +2745,7 @@ DEFUN ("min", Fmin, Smin, 1, MANY, 0,
        doc: /* Return smallest of all the arguments (which must be numbers or markers).
 The value is always a number; markers are converted to numbers.
 usage: (min NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   return arith_driver (Amin, nargs, args);
 }
@@ -2761,7 +2754,7 @@ DEFUN ("logand", Flogand, Slogand, 0, MANY, 0,
        doc: /* Return bitwise-and of all the arguments.
 Arguments may be integers, or markers converted to integers.
 usage: (logand &rest INTS-OR-MARKERS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   return arith_driver (Alogand, nargs, args);
 }
@@ -2770,7 +2763,7 @@ DEFUN ("logior", Flogior, Slogior, 0, MANY, 0,
        doc: /* Return bitwise-or of all the arguments.
 Arguments may be integers, or markers converted to integers.
 usage: (logior &rest INTS-OR-MARKERS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   return arith_driver (Alogior, nargs, args);
 }
@@ -2779,7 +2772,7 @@ DEFUN ("logxor", Flogxor, Slogxor, 0, MANY, 0,
        doc: /* Return bitwise-exclusive-or of all the arguments.
 Arguments may be integers, or markers converted to integers.
 usage: (logxor &rest INTS-OR-MARKERS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   return arith_driver (Alogxor, nargs, args);
 }
@@ -3308,7 +3301,7 @@ syms_of_data (void)
   XSYMBOL (intern_c_string ("most-negative-fixnum"))->constant = 1;
 }
 
-SIGTYPE
+static void
 arith_error (int signo)
 {
   sigsetmask (SIGEMPTYMASK);

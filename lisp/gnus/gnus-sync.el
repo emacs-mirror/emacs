@@ -25,7 +25,8 @@
 ;; This is the gnus-sync.el package.
 
 ;; It's due for a rewrite using gnus-after-set-mark-hook and
-;; gnus-before-update-mark-hook.  Until then please consider it
+;; gnus-before-update-mark-hook, and my plan is to do this once No
+;; Gnus development is done.  Until then please consider it
 ;; experimental.
 
 ;; Put this in your startup file (~/.gnus.el for instance)
@@ -42,7 +43,8 @@
 
 ;; TODO:
 
-;; - after gnus-sync-read, the message counts are wrong
+;; - after gnus-sync-read, the message counts are wrong.  So it's not
+;;   run automatically, you have to call it with M-x gnus-sync-read
 
 ;; - use gnus-after-set-mark-hook and gnus-before-update-mark-hook to
 ;;   catch the mark updates
@@ -220,13 +222,13 @@ synchronized, I believe).  Also see `gnus-variable-list'."
   "Install the sync hooks."
   (interactive)
   ;; (add-hook 'gnus-get-new-news-hook 'gnus-sync-read)
-  (add-hook 'gnus-save-newsrc-hook 'gnus-sync-save)
-  (add-hook 'gnus-read-newsrc-el-hook 'gnus-sync-read))
+  ;; (add-hook 'gnus-read-newsrc-el-hook 'gnus-sync-read)
+  (add-hook 'gnus-save-newsrc-hook 'gnus-sync-save))
 
 (defun gnus-sync-unload-hook ()
   "Uninstall the sync hooks."
   (interactive)
-  ;; (remove-hook 'gnus-get-new-news-hook 'gnus-sync-read)
+  (remove-hook 'gnus-get-new-news-hook 'gnus-sync-read)
   (remove-hook 'gnus-save-newsrc-hook 'gnus-sync-save)
   (remove-hook 'gnus-read-newsrc-el-hook 'gnus-sync-read))
 

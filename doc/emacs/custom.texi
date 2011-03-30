@@ -1331,7 +1331,8 @@ corresponding alist applies to all the files in that subdirectory.
          (tab-width . 4)
          (fill-column . 80)))
  (c-mode . ((c-file-style . "BSD")))
- (java-mode . ((c-file-style . "BSD")))
+ (java-mode . ((c-file-style . "BSD")
+               (subdirs . nil)))
  ("src/imported"
   . ((nil . ((change-log-default-name . "ChangeLog.local"))))))
 @end example
@@ -1340,8 +1341,10 @@ corresponding alist applies to all the files in that subdirectory.
 This example shows some settings for a hypothetical project.  It sets
 @samp{indent-tabs-mode}, @code{tab-width}, and @code{fill-column} for
 any file in the project's directory tree, and it sets the indentation
-style for any C or Java source file.  Finally, it specifies a different
-@file{ChangeLog} file name for any file in the @file{src/imported}
+style for any C or Java source file.  The special @code{subdirs} element
+indicates that the Java mode settings are only to be applied in the
+current directory, not in any subdirectories.  Finally, it specifies a
+different @file{ChangeLog} file name for any file in the @file{src/imported}
 subdirectory of the directory where you put the @file{.dir-locals.el}
 file.
 
@@ -2111,6 +2114,8 @@ Reference Manual}.
 @node Init File
 @section The Init File, @file{~/.emacs}
 @cindex init file
+@cindex .emacs file
+@cindex ~/.emacs file
 @cindex Emacs initialization file
 @cindex key rebinding, permanent
 @cindex rebinding keys, permanently

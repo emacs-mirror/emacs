@@ -41,8 +41,9 @@ the behavior of normal shells while the user editing new input text."
 
 ;;; User Variables:
 
-(defcustom eshell-rebind-load-hook '(eshell-rebind-initialize)
+(defcustom eshell-rebind-load-hook nil
   "A list of functions to call when loading `eshell-rebind'."
+  :version "24.1"			; removed eshell-rebind-initialize
   :type 'hook
   :group 'eshell-rebind)
 

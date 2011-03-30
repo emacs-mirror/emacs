@@ -1,6 +1,8 @@
 /* Trivial unexec for Solaris.  */
 
 #include <config.h>
+#include "unexec.h"
+
 #include <dlfcn.h>
 #include <setjmp.h>
 
@@ -9,14 +11,14 @@
 #include "charset.h"
 #include "coding.h"
 
-int
+void
 unexec (const char *new_name, const char *old_name)
 {
   Lisp_Object data;
   Lisp_Object errstring;
 
   if (! dldump (0, new_name, RTLD_MEMORY))
-    return 0;
+    return;
 
   data = Fcons (build_string (new_name), Qnil);
   synchronize_system_messages_locale ();
@@ -26,4 +28,3 @@ unexec (const char *new_name, const char *old_name)
   xsignal (Qfile_error,
 	   Fcons (build_string ("Cannot unexec"), Fcons (errstring, data)));
 }
-

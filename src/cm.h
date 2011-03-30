@@ -35,25 +35,25 @@ struct cm
     int cm_curX;			/* Current column */
 
     /* Capabilities from termcap */
-    char *cm_up;		/* up (up) */
-    char *cm_down;		/* down (do) */
-    char *cm_left;		/* left (le) */
-    char *cm_right;		/* right (nd) */
-    char *cm_home;		/* home (ho) */
-    char *cm_cr;		/* carriage return (cr) */
-    char *cm_ll;		/* last line (ll) */
-    char *cm_tab;		/* tab (ta) */
-    char *cm_backtab;		/* backtab (bt) */
+    const char *cm_up;		/* up (up) */
+    const char *cm_down;	/* down (do) */
+    const char *cm_left;	/* left (le) */
+    const char *cm_right;	/* right (nd) */
+    const char *cm_home;	/* home (ho) */
+    const char *cm_cr;		/* carriage return (cr) */
+    const char *cm_ll;		/* last line (ll) */
+    const char *cm_tab;		/* tab (ta) */
+    const char *cm_backtab;	/* backtab (bt) */
     char *cm_abs;		/* absolute (cm) */
-    char *cm_habs;		/* horizontal absolute (ch) */
-    char *cm_vabs;		/* vertical absolute (cv) */
+    const char *cm_habs;	/* horizontal absolute (ch) */
+    const char *cm_vabs;	/* vertical absolute (cv) */
 #if 0
-    char *cm_ds;		/* "don't send" string (ds) */
+    const char *cm_ds;		/* "don't send" string (ds) */
 #endif
-    char *cm_multiup;		/* multiple up (UP) */
-    char *cm_multidown;		/* multiple down (DO) */
-    char *cm_multileft;		/* multiple left (LE) */
-    char *cm_multiright;	/* multiple right (RI) */
+    const char *cm_multiup;	/* multiple up (UP) */
+    const char *cm_multidown;	/* multiple down (DO) */
+    const char *cm_multileft;	/* multiple left (LE) */
+    const char *cm_multiright;	/* multiple right (RI) */
     int cm_cols;		/* number of cols on screen (co) */
     int cm_rows;		/* number of rows on screen (li) */
     int cm_tabwidth;		/* tab width (it) */
@@ -95,8 +95,6 @@ struct cm
     int cc_habs;
     int cc_vabs;
   };
-
-extern char PC;			/* Pad character */
 
 /* Shorthand */
 #ifndef NoCMShortHand
@@ -168,4 +166,3 @@ extern void cmcostinit (struct tty_display_info *);
 extern void cmgoto (struct tty_display_info *, int, int);
 extern void Wcm_clear (struct tty_display_info *);
 extern int Wcm_init (struct tty_display_info *);
-

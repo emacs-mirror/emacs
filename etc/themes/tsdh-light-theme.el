@@ -57,3 +57,10 @@
  '(window-number-face ((t (:foreground "red" :weight bold)))))
 
 (provide-theme 'tsdh-light)
+
+
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
+
+;;; tsdh-light-theme.el ends here

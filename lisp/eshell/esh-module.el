@@ -43,7 +43,7 @@ customizing the variable `eshell-modules-list'."
 
 (defcustom eshell-module-unload-hook
   '(eshell-unload-extension-modules)
-  "*A hook run when `eshell-module' is unloaded."
+  "A hook run when `eshell-module' is unloaded."
   :type 'hook
   :group 'eshell-module)
 
@@ -61,7 +61,7 @@ customizing the variable `eshell-modules-list'."
     eshell-script
     eshell-term
     eshell-unix)
-  "*A list of optional add-on modules to be loaded by Eshell.
+  "A list of optional add-on modules to be loaded by Eshell.
 Changes will only take effect in future Eshell buffers."
   :type (append
 	 (list 'set ':tag "Supported modules")
@@ -92,7 +92,7 @@ customization group.  Example: `eshell-cmpl' for that module."
 
 (defun eshell-unload-extension-modules ()
   "Unload any memory resident extension modules."
-  (eshell-for module (eshell-subgroups 'eshell-module)
+  (dolist (module (eshell-subgroups 'eshell-module))
     (if (featurep module)
 	(ignore-errors
 	  (message "Unloading %s..." (symbol-name module))

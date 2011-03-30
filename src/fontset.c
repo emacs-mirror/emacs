@@ -233,14 +233,14 @@ fontset_id_valid_p (int id)
 /* Macros to access special values of (base) FONTSET.  */
 #define FONTSET_NAME(fontset)		XCHAR_TABLE (fontset)->extras[1]
 #define FONTSET_ASCII(fontset)		XCHAR_TABLE (fontset)->extras[4]
-#define FONTSET_SPEC(fontset)		XCHAR_TABLE (fontset)->extras[5]
+/* #define FONTSET_SPEC(fontset)	XCHAR_TABLE (fontset)->extras[5] */
 
 /* Macros to access special values of (realized) FONTSET.  */
 #define FONTSET_BASE(fontset)		XCHAR_TABLE (fontset)->extras[2]
 #define FONTSET_FRAME(fontset)		XCHAR_TABLE (fontset)->extras[3]
 #define FONTSET_OBJLIST(fontset)	XCHAR_TABLE (fontset)->extras[4]
 #define FONTSET_NOFONT_FACE(fontset)	XCHAR_TABLE (fontset)->extras[5]
-#define FONTSET_REPERTORY(fontset)	XCHAR_TABLE (fontset)->extras[6]
+/* #define FONTSET_REPERTORY(fontset)	XCHAR_TABLE (fontset)->extras[6] */
 #define FONTSET_DEFAULT(fontset)	XCHAR_TABLE (fontset)->extras[7]
 
 /* For both base and realized fontset.  */
@@ -266,7 +266,6 @@ fontset_id_valid_p (int id)
   ASET ((rfont_def), 0, make_number (face_id))
 #define RFONT_DEF_FONT_DEF(rfont_def) AREF (rfont_def, 1)
 #define RFONT_DEF_SPEC(rfont_def) FONT_DEF_SPEC (AREF (rfont_def, 1))
-#define RFONT_DEF_REPERTORY(rfont_def) FONT_DEF_REPERTORY (AREF (rfont_def, 1))
 #define RFONT_DEF_OBJECT(rfont_def) AREF (rfont_def, 2)
 #define RFONT_DEF_SET_OBJECT(rfont_def, object)	\
   ASET ((rfont_def), 2, (object))
@@ -713,7 +712,7 @@ fontset_find_font (Lisp_Object fontset, int c, struct face *face, int id, int fa
 static Lisp_Object
 fontset_font (Lisp_Object fontset, int c, struct face *face, int id)
 {
-  Lisp_Object rfont_def, default_rfont_def;
+  Lisp_Object rfont_def, default_rfont_def IF_LINT (= Qnil);
   Lisp_Object base_fontset;
 
   /* Try a font-group of FONTSET. */
@@ -836,7 +835,7 @@ fontset_ascii (int id)
   return elt;
 }
 
-void
+static void
 free_realized_fontset (FRAME_PTR f, Lisp_Object fontset)
 {
   Lisp_Object tail;
@@ -1583,14 +1582,14 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
 
   if (ascii_changed)
     {
-      Lisp_Object tail, frame, alist;
+      Lisp_Object tail, fr, alist;
       int fontset_id = XINT (FONTSET_ID (fontset));
 
       FONTSET_ASCII (fontset) = fontname;
       name = FONTSET_NAME (fontset);
-      FOR_EACH_FRAME (tail, frame)
+      FOR_EACH_FRAME (tail, fr)
 	{
-	  FRAME_PTR f = XFRAME (frame);
+	  FRAME_PTR f = XFRAME (fr);
 	  Lisp_Object font_object;
 	  struct face *face;
 
@@ -1607,7 +1606,7 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
 	    {
 	      update_auto_fontset_alist (font_object, fontset);
 	      alist = Fcons (Fcons (Qfont, Fcons (name, font_object)), Qnil);
-	      Fmodify_frame_parameters (frame, alist);
+	      Fmodify_frame_parameters (fr, alist);
 	    }
 	}
     }

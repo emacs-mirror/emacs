@@ -129,7 +129,7 @@ starting from the first line of text below the header line.
 
 * Changes in Emacs 23.3 on non-free operating systems
 
-** The nextstep port can have different modifiers for the left and right
+** The NeXTstep port can have different modifiers for the left and right
 alt/option key by customizing the value for ns-right-alternate-modifier.
 
 
@@ -697,7 +697,7 @@ a GIF library.
 
 *** Emacs now supports multi-page TIFF images.
 
-** New NeXTSTEP-based port.
+** New NeXTstep-based port.
 This provides support for GNUstep (via the GNUstep libraries) and Mac
 OS X (via the Cocoa libraries).
 
@@ -707,7 +707,7 @@ other emacsen (e.g. X11 build) use --disable-ns-self-contained.  See
 nextstep/README and nextstep/INSTALL in the Emacs source directory.
 
 ** Mac OS X is no longer supported via Carbon.
-Use the NeXTSTEP port, described above.
+Use the NeXTstep port, described above.
 
 ** The new configuration option "--with-dbus" enables D-Bus language
 bindings for Emacs.
@@ -1746,7 +1746,7 @@ directories in which `ffap-rfc' will first search for RFCs.
 *** hide-ifdef-mode allows shadowing ifdef-blocks instead of hiding them.
 See option `hide-ifdef-shadow' and function `hide-ifdef-toggle-shadowing'.
 
-*** `icomplete-prospects-height' now supercedes `icomplete-prospects-length'.
+*** `icomplete-prospects-height' now supersedes `icomplete-prospects-length'.
 
 *** Info displays breadcrumbs in the header of the page.
 See Info-breadcrumbs-depth to control it.

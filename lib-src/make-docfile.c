@@ -617,7 +617,7 @@ write_globals (void)
   qsort (globals, num_globals, sizeof (struct global), compare_globals);
   for (i = 0; i < num_globals; ++i)
     {
-      char *type;
+      char const *type;
 
       switch (globals[i].type)
 	{
@@ -658,12 +658,8 @@ scan_c_file (char *filename, const char *mode)
   FILE *infile;
   register int c;
   register int commas;
-  register int defunflag;
-  register int defvarperbufferflag;
-  register int defvarflag;
   int minargs, maxargs;
   int extension = filename[strlen (filename) - 1];
-  enum global_type type;
 
   if (extension == 'o')
     filename[strlen (filename) - 1] = 'c';
@@ -693,6 +689,10 @@ scan_c_file (char *filename, const char *mode)
   while (!feof (infile))
     {
       int doc_keyword = 0;
+      int defunflag = 0;
+      int defvarperbufferflag = 0;
+      int defvarflag = 0;
+      enum global_type type = INVALID;
 
       if (c != '\n' && c != '\r')
 	{
@@ -726,7 +726,6 @@ scan_c_file (char *filename, const char *mode)
 	    continue;
 
 	  defvarflag = 1;
-	  defunflag = 0;
 
 	  c = getc (infile);
 	  defvarperbufferflag = (c == 'P');
@@ -738,8 +737,6 @@ scan_c_file (char *filename, const char *mode)
 		type = LISP_OBJECT;
 	      else if (c == 'B')
 		type = BOOLEAN;
-	      else
-		type = INVALID;
 	    }
 
 	  c = getc (infile);
@@ -758,8 +755,6 @@ scan_c_file (char *filename, const char *mode)
 	    continue;
 	  c = getc (infile);
 	  defunflag = c == 'U';
-	  defvarflag = 0;
-	  defvarperbufferflag = 0;
 	}
       else continue;
 

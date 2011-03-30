@@ -1,3 +1,8 @@
+2011-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* GNUstep/Emacs.base/Resources/Info-gnustep.plist:
+	Refer to etc/NEXTSTEP rather than emacs-app.sf.net.
+
 2011-01-02  Glenn Morris  <rgm@gnu.org>
 
 	* Cocoa/Emacs.base/Contents/Info.plist:

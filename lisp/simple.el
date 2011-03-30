@@ -637,7 +637,9 @@ If the region is active, only delete whitespace within the region."
             (if (looking-at ".*\f")
                 (goto-char (match-end 0))))
           (delete-region (point) (match-end 0)))
-        (set-marker end-marker nil)))))
+        (set-marker end-marker nil))))
+  ;; Return nil for the benefit of `write-file-functions'.
+  nil)
 
 (defun newline-and-indent ()
   "Insert a newline, then indent according to major mode.
@@ -2628,7 +2630,7 @@ specifies the value of ERROR-BUFFER."
   (with-output-to-string
     (with-current-buffer
       standard-output
-      (call-process shell-file-name nil t nil shell-command-switch command))))
+      (process-file shell-file-name nil t nil shell-command-switch command))))
 
 (defun process-file (program &optional infile buffer display &rest args)
   "Process files synchronously in a separate process.
@@ -3390,16 +3392,16 @@ and KILLP is t if a prefix arg was specified."
 		(delete-char 1)))
 	  (forward-char -1)
 	  (setq count (1- count))))))
-  (delete-backward-char
-   (let ((skip (cond ((eq backward-delete-char-untabify-method 'hungry) " \t")
+  (let* ((skip (cond ((eq backward-delete-char-untabify-method 'hungry) " \t")
                      ((eq backward-delete-char-untabify-method 'all)
-                      " \t\n\r"))))
-     (if skip
-         (let ((wh (- (point) (save-excursion (skip-chars-backward skip)
-					    (point)))))
-	 (+ arg (if (zerop wh) 0 (1- wh))))
-         arg))
-   killp))
+                      " \t\n\r")))
+         (n (if skip
+                (let ((wh (- (point) (save-excursion (skip-chars-backward skip)
+                                                     (point)))))
+                  (+ arg (if (zerop wh) 0 (1- wh))))
+              arg)))
+    ;; Avoid warning about delete-backward-char
+    (with-no-warnings (delete-backward-char n killp))))
 
 (defun zap-to-char (arg char)
   "Kill up to and including ARGth occurrence of CHAR.

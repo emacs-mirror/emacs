@@ -325,7 +325,7 @@ xd_signature (char *signature, unsigned int dtype, unsigned int parent_type, Lis
       if ((subtype == DBUS_TYPE_SIGNATURE)
 	  && STRINGP (CAR_SAFE (XD_NEXT_VALUE (elt)))
 	  && NILP (CDR_SAFE (XD_NEXT_VALUE (elt))))
-	strcpy (x, SDATA (CAR_SAFE (XD_NEXT_VALUE (elt))));
+	strcpy (x, SSDATA (CAR_SAFE (XD_NEXT_VALUE (elt))));
 
       while (!NILP (elt))
 	{
@@ -531,7 +531,7 @@ xd_append_arg (unsigned int dtype, Lisp_Object object, DBusMessageIter *iter)
 	     but by not encoding it, we guarantee it's valid utf-8, even if
 	     it contains eight-bit-bytes.  Of course, you can still send
 	     manually-crafted junk by passing a unibyte string.  */
-	  char *val = SDATA (object);
+	  char *val = SSDATA (object);
 	  XD_DEBUG_MESSAGE ("%c %s", dtype, val);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
 	    XD_SIGNAL2 (build_string ("Unable to append argument"), object);
@@ -569,7 +569,7 @@ xd_append_arg (unsigned int dtype, Lisp_Object object, DBusMessageIter *iter)
 		&& STRINGP (CAR_SAFE (XD_NEXT_VALUE (object)))
 		&& NILP (CDR_SAFE (XD_NEXT_VALUE (object))))
 	      {
-		strcpy (signature, SDATA (CAR_SAFE (XD_NEXT_VALUE (object))));
+		strcpy (signature, SSDATA (CAR_SAFE (XD_NEXT_VALUE (object))));
 		object = CDR_SAFE (XD_NEXT_VALUE (object));
 	      }
 
@@ -789,7 +789,7 @@ xd_initialize (Lisp_Object bus, int raise_error)
   dbus_error_init (&derror);
 
   if (STRINGP (bus))
-      connection = dbus_connection_open (SDATA (bus), &derror);
+      connection = dbus_connection_open (SSDATA (bus), &derror);
   else
     if (EQ (bus, QCdbus_system_bus))
       connection = dbus_bus_get (DBUS_BUS_SYSTEM, &derror);
@@ -936,7 +936,7 @@ DEFUN ("dbus-init-bus", Fdbus_init_bus, Sdbus_init_bus, 1, 1, 0,
   Vdbus_registered_buses =  Fcons (bus, Vdbus_registered_buses);
 
   /* We do not want to abort.  */
-  putenv ("DBUS_FATAL_WARNINGS=0");
+  putenv ((char *) "DBUS_FATAL_WARNINGS=0");
 
   /* Return.  */
   return Qnil;
@@ -1051,7 +1051,7 @@ object is returned instead of a list containing this single Lisp object.
   => "i686"
 
 usage: (dbus-call-method BUS SERVICE PATH INTERFACE METHOD &optional :timeout TIMEOUT &rest ARGS)  */)
-  (int nargs, register Lisp_Object *args)
+  (size_t nargs, register Lisp_Object *args)
 {
   Lisp_Object bus, service, path, interface, method;
   Lisp_Object result;
@@ -1063,7 +1063,7 @@ usage: (dbus-call-method BUS SERVICE PATH INTERFACE METHOD &optional :timeout TI
   DBusError derror;
   unsigned int dtype;
   int timeout = -1;
-  int i = 5;
+  size_t i = 5;
   char signature[DBUS_MAXIMUM_SIGNATURE_LENGTH];
 
   /* Check parameters.  */
@@ -1089,10 +1089,10 @@ usage: (dbus-call-method BUS SERVICE PATH INTERFACE METHOD &optional :timeout TI
   connection = xd_initialize (bus, TRUE);
 
   /* Create the message.  */
-  dmessage = dbus_message_new_method_call (SDATA (service),
-					   SDATA (path),
-					   SDATA (interface),
-					   SDATA (method));
+  dmessage = dbus_message_new_method_call (SSDATA (service),
+					   SSDATA (path),
+					   SSDATA (interface),
+					   SSDATA (method));
   UNGCPRO;
   if (dmessage == NULL)
     XD_SIGNAL1 (build_string ("Unable to create a new message"));
@@ -1116,7 +1116,7 @@ usage: (dbus-call-method BUS SERVICE PATH INTERFACE METHOD &optional :timeout TI
 	{
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i]);
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i+1]);
-	  XD_DEBUG_MESSAGE ("Parameter%d %s %s", i-4,
+	  XD_DEBUG_MESSAGE ("Parameter%lu %s %s", (unsigned long) (i-4),
 			    SDATA (format2 ("%s", args[i], Qnil)),
 			    SDATA (format2 ("%s", args[i+1], Qnil)));
 	  ++i;
@@ -1124,7 +1124,7 @@ usage: (dbus-call-method BUS SERVICE PATH INTERFACE METHOD &optional :timeout TI
       else
 	{
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i]);
-	  XD_DEBUG_MESSAGE ("Parameter%d %s", i-4,
+	  XD_DEBUG_MESSAGE ("Parameter%lu %s", (unsigned long) (i-4),
 			    SDATA (format2 ("%s", args[i], Qnil)));
 	}
 
@@ -1233,7 +1233,7 @@ Example:
   -| i686
 
 usage: (dbus-call-method-asynchronously BUS SERVICE PATH INTERFACE METHOD HANDLER &optional :timeout TIMEOUT &rest ARGS)  */)
-  (int nargs, register Lisp_Object *args)
+  (size_t nargs, register Lisp_Object *args)
 {
   Lisp_Object bus, service, path, interface, method, handler;
   Lisp_Object result;
@@ -1243,7 +1243,7 @@ usage: (dbus-call-method-asynchronously BUS SERVICE PATH INTERFACE METHOD HANDLE
   DBusMessageIter iter;
   unsigned int dtype;
   int timeout = -1;
-  int i = 6;
+  size_t i = 6;
   char signature[DBUS_MAXIMUM_SIGNATURE_LENGTH];
 
   /* Check parameters.  */
@@ -1272,10 +1272,10 @@ usage: (dbus-call-method-asynchronously BUS SERVICE PATH INTERFACE METHOD HANDLE
   connection = xd_initialize (bus, TRUE);
 
   /* Create the message.  */
-  dmessage = dbus_message_new_method_call (SDATA (service),
-					   SDATA (path),
-					   SDATA (interface),
-					   SDATA (method));
+  dmessage = dbus_message_new_method_call (SSDATA (service),
+					   SSDATA (path),
+					   SSDATA (interface),
+					   SSDATA (method));
   if (dmessage == NULL)
     XD_SIGNAL1 (build_string ("Unable to create a new message"));
 
@@ -1298,7 +1298,7 @@ usage: (dbus-call-method-asynchronously BUS SERVICE PATH INTERFACE METHOD HANDLE
 	{
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i]);
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i+1]);
-	  XD_DEBUG_MESSAGE ("Parameter%d %s %s", i-4,
+	  XD_DEBUG_MESSAGE ("Parameter%lu %s %s", (unsigned long) (i-4),
 			    SDATA (format2 ("%s", args[i], Qnil)),
 			    SDATA (format2 ("%s", args[i+1], Qnil)));
 	  ++i;
@@ -1306,7 +1306,7 @@ usage: (dbus-call-method-asynchronously BUS SERVICE PATH INTERFACE METHOD HANDLE
       else
 	{
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i]);
-	  XD_DEBUG_MESSAGE ("Parameter%d %s", i-4,
+	  XD_DEBUG_MESSAGE ("Parameter%lu %s", (unsigned long) (i - 4),
 			    SDATA (format2 ("%s", args[i], Qnil)));
 	}
 
@@ -1357,7 +1357,7 @@ DEFUN ("dbus-method-return-internal", Fdbus_method_return_internal,
 This is an internal function, it shall not be used outside dbus.el.
 
 usage: (dbus-method-return-internal BUS SERIAL SERVICE &rest ARGS)  */)
-  (int nargs, register Lisp_Object *args)
+  (size_t nargs, register Lisp_Object *args)
 {
   Lisp_Object bus, serial, service;
   struct gcpro gcpro1, gcpro2, gcpro3;
@@ -1365,7 +1365,7 @@ usage: (dbus-method-return-internal BUS SERIAL SERVICE &rest ARGS)  */)
   DBusMessage *dmessage;
   DBusMessageIter iter;
   unsigned int dtype;
-  int i;
+  size_t i;
   char signature[DBUS_MAXIMUM_SIGNATURE_LENGTH];
 
   /* Check parameters.  */
@@ -1386,7 +1386,7 @@ usage: (dbus-method-return-internal BUS SERIAL SERVICE &rest ARGS)  */)
   dmessage = dbus_message_new (DBUS_MESSAGE_TYPE_METHOD_RETURN);
   if ((dmessage == NULL)
       || (!dbus_message_set_reply_serial (dmessage, XUINT (serial)))
-      || (!dbus_message_set_destination (dmessage, SDATA (service))))
+      || (!dbus_message_set_destination (dmessage, SSDATA (service))))
     {
       UNGCPRO;
       XD_SIGNAL1 (build_string ("Unable to create a return message"));
@@ -1405,7 +1405,7 @@ usage: (dbus-method-return-internal BUS SERIAL SERVICE &rest ARGS)  */)
 	{
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i]);
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i+1]);
-	  XD_DEBUG_MESSAGE ("Parameter%d %s %s", i-2,
+	  XD_DEBUG_MESSAGE ("Parameter%lu %s %s", (unsigned long) (i-2),
 			    SDATA (format2 ("%s", args[i], Qnil)),
 			    SDATA (format2 ("%s", args[i+1], Qnil)));
 	  ++i;
@@ -1413,7 +1413,7 @@ usage: (dbus-method-return-internal BUS SERIAL SERVICE &rest ARGS)  */)
       else
 	{
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i]);
-	  XD_DEBUG_MESSAGE ("Parameter%d %s", i-2,
+	  XD_DEBUG_MESSAGE ("Parameter%lu %s", (unsigned long) (i-2),
 			    SDATA (format2 ("%s", args[i], Qnil)));
 	}
 
@@ -1445,7 +1445,7 @@ DEFUN ("dbus-method-error-internal", Fdbus_method_error_internal,
 This is an internal function, it shall not be used outside dbus.el.
 
 usage: (dbus-method-error-internal BUS SERIAL SERVICE &rest ARGS)  */)
-  (int nargs, register Lisp_Object *args)
+  (size_t nargs, register Lisp_Object *args)
 {
   Lisp_Object bus, serial, service;
   struct gcpro gcpro1, gcpro2, gcpro3;
@@ -1453,7 +1453,7 @@ usage: (dbus-method-error-internal BUS SERIAL SERVICE &rest ARGS)  */)
   DBusMessage *dmessage;
   DBusMessageIter iter;
   unsigned int dtype;
-  int i;
+  size_t i;
   char signature[DBUS_MAXIMUM_SIGNATURE_LENGTH];
 
   /* Check parameters.  */
@@ -1475,7 +1475,7 @@ usage: (dbus-method-error-internal BUS SERIAL SERVICE &rest ARGS)  */)
   if ((dmessage == NULL)
       || (!dbus_message_set_error_name (dmessage, DBUS_ERROR_FAILED))
       || (!dbus_message_set_reply_serial (dmessage, XUINT (serial)))
-      || (!dbus_message_set_destination (dmessage, SDATA (service))))
+      || (!dbus_message_set_destination (dmessage, SSDATA (service))))
     {
       UNGCPRO;
       XD_SIGNAL1 (build_string ("Unable to create a error message"));
@@ -1494,7 +1494,7 @@ usage: (dbus-method-error-internal BUS SERIAL SERVICE &rest ARGS)  */)
 	{
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i]);
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i+1]);
-	  XD_DEBUG_MESSAGE ("Parameter%d %s %s", i-2,
+	  XD_DEBUG_MESSAGE ("Parameter%lu %s %s", (unsigned long) (i-2),
 			    SDATA (format2 ("%s", args[i], Qnil)),
 			    SDATA (format2 ("%s", args[i+1], Qnil)));
 	  ++i;
@@ -1502,7 +1502,7 @@ usage: (dbus-method-error-internal BUS SERIAL SERVICE &rest ARGS)  */)
       else
 	{
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i]);
-	  XD_DEBUG_MESSAGE ("Parameter%d %s", i-2,
+	  XD_DEBUG_MESSAGE ("Parameter%lu %s", (unsigned long) (i-2),
 			    SDATA (format2 ("%s", args[i], Qnil)));
 	}
 
@@ -1557,7 +1557,7 @@ Example:
   "org.gnu.Emacs.FileManager" "FileModified" "/home/albinus/.emacs")
 
 usage: (dbus-send-signal BUS SERVICE PATH INTERFACE SIGNAL &rest ARGS)  */)
-  (int nargs, register Lisp_Object *args)
+  (size_t nargs, register Lisp_Object *args)
 {
   Lisp_Object bus, service, path, interface, signal;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
@@ -1565,7 +1565,7 @@ usage: (dbus-send-signal BUS SERVICE PATH INTERFACE SIGNAL &rest ARGS)  */)
   DBusMessage *dmessage;
   DBusMessageIter iter;
   unsigned int dtype;
-  int i;
+  size_t i;
   char signature[DBUS_MAXIMUM_SIGNATURE_LENGTH];
 
   /* Check parameters.  */
@@ -1591,9 +1591,9 @@ usage: (dbus-send-signal BUS SERVICE PATH INTERFACE SIGNAL &rest ARGS)  */)
   connection = xd_initialize (bus, TRUE);
 
   /* Create the message.  */
-  dmessage = dbus_message_new_signal (SDATA (path),
-				      SDATA (interface),
-				      SDATA (signal));
+  dmessage = dbus_message_new_signal (SSDATA (path),
+				      SSDATA (interface),
+				      SSDATA (signal));
   UNGCPRO;
   if (dmessage == NULL)
     XD_SIGNAL1 (build_string ("Unable to create a new message"));
@@ -1609,7 +1609,7 @@ usage: (dbus-send-signal BUS SERVICE PATH INTERFACE SIGNAL &rest ARGS)  */)
 	{
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i]);
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i+1]);
-	  XD_DEBUG_MESSAGE ("Parameter%d %s %s", i-4,
+	  XD_DEBUG_MESSAGE ("Parameter%lu %s %s", (unsigned long) (i-4),
 			    SDATA (format2 ("%s", args[i], Qnil)),
 			    SDATA (format2 ("%s", args[i+1], Qnil)));
 	  ++i;
@@ -1617,7 +1617,7 @@ usage: (dbus-send-signal BUS SERVICE PATH INTERFACE SIGNAL &rest ARGS)  */)
       else
 	{
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i]);
-	  XD_DEBUG_MESSAGE ("Parameter%d %s", i-4,
+	  XD_DEBUG_MESSAGE ("Parameter%lu %s", (unsigned long) (i-4),
 			    SDATA (format2 ("%s", args[i], Qnil)));
 	}
 
@@ -1745,11 +1745,11 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
 	  /* key has the structure (UNAME SERVICE PATH HANDLER).  */
 	  if (((uname == NULL)
 	       || (NILP (CAR_SAFE (key)))
-	       || (strcmp (uname, SDATA (CAR_SAFE (key))) == 0))
+	       || (strcmp (uname, SSDATA (CAR_SAFE (key))) == 0))
 	      && ((path == NULL)
 		  || (NILP (CAR_SAFE (CDR_SAFE (CDR_SAFE (key)))))
 		  || (strcmp (path,
-			      SDATA (CAR_SAFE (CDR_SAFE (CDR_SAFE (key)))))
+			      SSDATA (CAR_SAFE (CDR_SAFE (CDR_SAFE (key)))))
 		      == 0))
 	      && (!NILP (CAR_SAFE (CDR_SAFE (CDR_SAFE (CDR_SAFE (key)))))))
 	    {
@@ -1885,12 +1885,11 @@ Example:
   => :already-owner.
 
 usage: (dbus-register-service BUS SERVICE &rest FLAGS)  */)
-  (int nargs, register Lisp_Object *args)
+  (size_t nargs, register Lisp_Object *args)
 {
   Lisp_Object bus, service;
-  struct gcpro gcpro1, gcpro2;
   DBusConnection *connection;
-  unsigned int i;
+  size_t i;
   unsigned int value;
   unsigned int flags = 0;
   int result;
@@ -1921,7 +1920,7 @@ usage: (dbus-register-service BUS SERVICE &rest FLAGS)  */)
 
   /* Request the known name from the bus.  */
   dbus_error_init (&derror);
-  result = dbus_bus_request_name (connection, SDATA (service), flags,
+  result = dbus_bus_request_name (connection, SSDATA (service), flags,
 				  &derror);
   if (dbus_error_is_set (&derror))
     XD_ERROR (derror);
@@ -1986,13 +1985,13 @@ INTERFACE, SIGNAL and HANDLER must not be nil.  Example:
 `dbus-unregister-object' for removing the registration.
 
 usage: (dbus-register-signal BUS SERVICE PATH INTERFACE SIGNAL HANDLER &rest ARGS) */)
-  (int nargs, register Lisp_Object *args)
+  (size_t nargs, register Lisp_Object *args)
 {
   Lisp_Object bus, service, path, interface, signal, handler;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
   Lisp_Object uname, key, key1, value;
   DBusConnection *connection;
-  int i;
+  size_t i;
   char rule[DBUS_MAXIMUM_MATCH_RULE_LENGTH];
   char x[DBUS_MAXIMUM_MATCH_RULE_LENGTH];
   DBusError derror;
@@ -2019,8 +2018,8 @@ usage: (dbus-register-signal BUS SERVICE PATH INTERFACE SIGNAL HANDLER &rest ARG
      name of "org.freedesktop.DBus" is that string itself.  */
   if ((STRINGP (service))
       && (SBYTES (service) > 0)
-      && (strcmp (SDATA (service), DBUS_SERVICE_DBUS) != 0)
-      && (strncmp (SDATA (service), ":", 1) != 0))
+      && (strcmp (SSDATA (service), DBUS_SERVICE_DBUS) != 0)
+      && (strncmp (SSDATA (service), ":", 1) != 0))
     {
       uname = call2 (intern ("dbus-get-name-owner"), bus, service);
       /* When there is no unique name, we mark it with an empty
@@ -2062,7 +2061,8 @@ usage: (dbus-register-signal BUS SERVICE PATH INTERFACE SIGNAL HANDLER &rest ARG
 	if (!NILP (args[i]))
 	  {
 	    CHECK_STRING (args[i]);
-	    sprintf (x, ",arg%d='%s'", i-6, SDATA (args[i]));
+	    sprintf (x, ",arg%lu='%s'", (unsigned long) (i-6),
+		     SDATA (args[i]));
 	    strcat (rule, x);
 	  }
 
@@ -2122,7 +2122,6 @@ discovering the still incomplete interface.*/)
    Lisp_Object dont_register_service)
 {
   Lisp_Object key, key1, value;
-  DBusError derror;
   Lisp_Object args[2] = { bus, service };
 
   /* Check parameters.  */
@@ -2350,4 +2349,3 @@ be called when the D-Bus reply message arrives.  */);
 }
 
 #endif /* HAVE_DBUS */
-

@@ -776,7 +776,7 @@ Vi's prefix argument will be used.  Otherwise, the prefix argument passed to
 		  (viper-copy-event (viper-seq-last-elt key))))
 
 	  (if (commandp com)
-	      ;; pretend that current state is the state we excaped to
+	      ;; pretend that current state is the state we escaped to
 	      (let ((viper-current-state state))
 		(setq prefix-arg (or prefix-arg arg))
 		(command-execute com)))
@@ -2375,7 +2375,7 @@ problems."
     (if (eq viper-intermediate-command 'viper-repeat)
 	(viper-change-subr (mark t) (point))
       (viper-change (mark t) (point)))
-    ;; com is set to ?r when we repeat this comand with dot
+    ;; com is set to ?r when we repeat this command with dot
     (viper-set-destructive-command (list 'viper-substitute val ?r nil nil nil))
     ))
 

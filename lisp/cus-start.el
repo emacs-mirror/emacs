@@ -111,9 +111,9 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (cursor-in-non-selected-windows
 	      cursor boolean nil
 	      :tag "Cursor In Non-selected Windows"
-	      :set #'(lambda (symbol value)
-		       (set-default symbol value)
-		       (force-mode-line-update t)))
+	      :set (lambda (symbol value)
+		     (set-default symbol value)
+		     (force-mode-line-update t)))
 	     (transient-mark-mode editing-basics boolean nil
 				  :standard (not noninteractive)
 				  :initialize custom-initialize-delay
@@ -356,6 +356,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 		      (const alt) (const hyper)
 		      (const super)) "23.1")
 	     (ns-antialias-text ns boolean "23.1")
+	     (ns-auto-hide-menu-bar ns boolean "24.0")
 	     ;; process.c
 	     (delete-exited-processes processes-basics boolean)
 	     ;; syntax.c

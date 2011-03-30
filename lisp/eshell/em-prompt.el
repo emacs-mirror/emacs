@@ -37,8 +37,9 @@ as is common with most shells."
 
 ;;; User Variables:
 
-(defcustom eshell-prompt-load-hook '(eshell-prompt-initialize)
+(defcustom eshell-prompt-load-hook nil
   "A list of functions to call when loading `eshell-prompt'."
+  :version "24.1"			; removed eshell-prompt-initialize
   :type 'hook
   :group 'eshell-prompt)
 
