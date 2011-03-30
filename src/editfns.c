@@ -3444,12 +3444,12 @@ usage: (message-box FORMAT-STRING &rest ARGS)  */)
       if (FRAME_WINDOW_P (XFRAME (selected_frame))
 	  || FRAME_MSDOS_P (XFRAME (selected_frame)))
       {
-	Lisp_Object pane, menu, obj;
+	Lisp_Object pane, menu;
 	struct gcpro gcpro1;
 	pane = Fcons (Fcons (build_string ("OK"), Qt), Qnil);
 	GCPRO1 (pane);
 	menu = Fcons (val, pane);
-	obj = Fx_popup_dialog (Qt, menu, Qt);
+	Fx_popup_dialog (Qt, menu, Qt);
 	UNGCPRO;
 	return val;
       }

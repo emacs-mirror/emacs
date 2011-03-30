@@ -1,3 +1,7 @@
+2011-03-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* editfns.c (Fmessage_box): Remove unused local var.
+
 2011-03-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xdisp.c (try_window_reusing_current_matrix, x_produce_glyphs):
