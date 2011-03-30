@@ -76,27 +76,27 @@ to innd, you could say something like:
 You probably don't want to do that, though.")
 
 (defvoo nntp-open-connection-function 'nntp-open-network-stream
-  "*Function used for connecting to a remote system.
-It will be called with the buffer to output in as argument.
+  "Method for connecting to a remote system.
+It should be a function, which is called with the output buffer
+as its single argument, or one of the following special values:
 
-Currently, five such functions are provided (please refer to their
-respective doc string for more information), three of them establishing
-direct connections to the nntp server, and two of them using an indirect
-host.
+- `nntp-open-network-stream' specifies a network connection,
+  upgrading to a TLS connection via STARTTLS if possible.
+- `nntp-open-plain-stream' specifies an unencrypted network
+  connection (no STARTTLS upgrade is attempted).
+- `nntp-open-ssl-stream' or `nntp-open-tls-stream' specify a TLS
+  network connection.
 
-Direct connections:
-- `nntp-open-network-stream' (the default),
-- `network-only' (the same as the above, but don't do automatic
-  STARTTLS upgrades).
-- `nntp-open-ssl-stream',
-- `nntp-open-tls-stream',
-- `nntp-open-netcat-stream'.
-- `nntp-open-telnet-stream'.
-
-Indirect connections:
-- `nntp-open-via-rlogin-and-netcat',
-- `nntp-open-via-rlogin-and-telnet',
-- `nntp-open-via-telnet-and-telnet'.")
+Apart from the above special values, valid functions are as
+follows; please refer to their respective doc string for more
+information.
+For direct connections:
+- `nntp-open-netcat-stream'
+- `nntp-open-telnet-stream'
+For indirect connections:
+- `nntp-open-via-rlogin-and-netcat'
+- `nntp-open-via-rlogin-and-telnet'
+- `nntp-open-via-telnet-and-telnet'")
 
 (defvoo nntp-never-echoes-commands nil
   "*Non-nil means the nntp server never echoes commands.
@@ -1339,15 +1339,15 @@ password contained in '~/.nntp-authinfo'."
 	  (condition-case err
 	      (let ((coding-system-for-read nntp-coding-system-for-read)
 		    (coding-system-for-write nntp-coding-system-for-write)
-		    (map '((nntp-open-network-stream try-starttls)
-			   (network-only default)
+		    (map '((nntp-open-network-stream network)
+			   (network-only plain) ; compat
+			   (nntp-open-plain-stream plain)
 			   (nntp-open-ssl-stream tls)
 			   (nntp-open-tls-stream tls))))
 		(if (assoc nntp-open-connection-function map)
 		    (open-protocol-stream
 		     "nntpd" pbuffer nntp-address nntp-port-number
-		     :type (or (cadr (assoc nntp-open-connection-function map))
-			       'try-starttls)
+		     :type (cadr (assoc nntp-open-connection-function map))
 		     :end-of-command "^\\([2345]\\|[.]\\).*\n"
 		     :capability-command "CAPABILITIES\r\n"
 		     :success "^3"

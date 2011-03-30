@@ -1,3 +1,20 @@
+2011-03-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* proto-stream.el (open-protocol-stream): Bring back `network' type.
+	Make this the default type.
+	(proto-stream-open-plain): Rename from proto-stream-open-default.
+	(open-protocol-stream, proto-stream-open-starttls)
+	(proto-stream-open-tls, proto-stream-open-shell): Replace `default'
+	with `plain'.
+
+	* nnimap.el (nnimap-stream, nnimap-open-connection-1): Accept `network'
+	value.
+
+	* nntp.el (nntp-open-connection-function): Document the fact that some
+	values are not functions but are instead handled specially.  Recognize
+	nntp-open-plain-stream value.
+	(nntp-open-connection): Recognize that value.
+
 2011-03-29  Julien Danjou  <julien@danjou.info>
 
 	* mm-view.el (mm-display-inline-fontify): Use `set-normal-mode' with

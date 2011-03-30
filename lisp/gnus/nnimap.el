@@ -61,10 +61,12 @@ If nnimap-stream is `ssl', this will default to `imaps'.  If not,
 it will default to `imap'.")
 
 (defvoo nnimap-stream 'undecided
-  "How nnimap will talk to the IMAP server.
-Values are `ssl', `default', `try-starttls', `starttls' or
-`shell'.  The default is to try `ssl' first, and then
-`try-starttls'.")
+  "How nnimap talks to the IMAP server.
+The value should be either `undecided', `ssl' or `tls',
+`network', `starttls', `plain', or `shell'.
+
+If the value is `undecided', nnimap tries `ssl' first, then falls
+back on `network'.")
 
 (defvoo nnimap-shell-program (if (boundp 'imap-shell-program)
 				 (if (listp imap-shell-program)
@@ -319,7 +321,7 @@ textual parts.")
     (setq nnimap-stream 'ssl))
   (let ((stream
 	 (if (eq nnimap-stream 'undecided)
-	     (loop for type in '(ssl try-starttls)
+	     (loop for type in '(ssl network)
 		   for stream = (let ((nnimap-stream type))
 				  (nnimap-open-connection-1 buffer))
 		   while (eq stream 'no-connect)
@@ -339,7 +341,7 @@ textual parts.")
 	   (port nil)
 	   (ports
 	    (cond
-	     ((memq nnimap-stream '(try-starttls default starttls))
+	     ((memq nnimap-stream '(network plain starttls))
 	      (nnheader-message 7 "Opening connection to %s..."
 				nnimap-address)
 	      '("imap" "143"))
