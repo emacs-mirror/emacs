@@ -886,7 +886,7 @@ non-nil, otherwise in local time."
              (point))))
 
       ;; Now insert the new line for this item.
-      (cond ((re-search-forward "^\\s *\\*\\s *$" bound t)
+      (cond ((re-search-forward "^\\s *\\* *$" bound t)
              ;; Put this file name into the existing empty item.
              (if item
                  (insert item)))
@@ -928,7 +928,7 @@ non-nil, otherwise in local time."
 	;; No function name, so put in a colon unless we have just a star.
 	(unless (save-excursion
 		  (beginning-of-line 1)
-		  (looking-at "\\s *\\(\\*\\s *\\)?$"))
+		  (looking-at "\\s *\\(\\* *\\)?$"))
 	  (insert ": ")
 	  (if version (insert version ?\s)))
       ;; Make it easy to get rid of the function name.

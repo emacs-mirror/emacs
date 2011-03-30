@@ -1,3 +1,9 @@
+2011-03-30  Jason Merrill  <jason@redhat.com>  (tiny change)
+
+	* vc/add-log.el (add-change-log-entry): Don't use whitespace
+	syntax class to search for whitespace on a single line
+	(Message-ID: <4D938140.4030905@redhat.com>).
+
 2011-03-30  Leo Liu  <sdl.web@gmail.com>
 
 	* abbrev.el (abbrev-edit-save-to-file, abbrev-edit-save-buffer):
