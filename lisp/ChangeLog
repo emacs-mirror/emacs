@@ -1,3 +1,12 @@
+2011-03-30  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* progmodes/python.el (python-default-interpreter)
+	(python-python-command-args, python-jython-command-args)
+	(python-which-shell, python-which-args, python-which-bufname)
+	(python-file-queue, python-comint-output-filter-function)
+	(python-toggle-shells, python-shell): Remove obsolete defcustoms,
+	variables and functions.
+
 2011-03-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion-table-dynamic): Optimize `boundaries'.
