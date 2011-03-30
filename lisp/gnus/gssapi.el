@@ -33,14 +33,14 @@
 				   "--authentication-id %l")
 			   "imtest -m gssapi -u %l -p %p %s")
   "List of strings containing commands for GSSAPI (krb5) authentication.
-%s is replaced with server hostname, %p with port to connect to, and
-%l with the value of `imap-default-user'.  The program should accept
-IMAP commands on stdin and return responses to stdout.  Each entry in
-the list is tried until a successful connection is made."
+%s is replaced with server hostname, %p with port to connect to,
+and %l with the user name.  The program should accept commands on
+stdin and return responses to stdout.  Each entry in the list is
+tried until a successful connection is made."
   :group 'network
   :type '(repeat string))
 
-(defun open-gssapi-stream (name buffer server port)
+(defun open-gssapi-stream (name buffer server port user)
   (let ((cmds gssapi-program)
 	cmd done)
     (with-current-buffer buffer
@@ -57,7 +57,7 @@ the list is tried until a successful connection is made."
 			  (format-spec-make
 			   ?s server
 			   ?p (number-to-string port)
-			   ?l imap-default-user))))
+			   ?l user))))
 	       response)
 	  (when process
 	    (while (and (memq (process-status process) '(open run))
@@ -92,7 +92,7 @@ the list is tried until a successful connection is made."
 	      (accept-process-output process 1)
 	      (sit-for 1))
 	    (erase-buffer)
-	    (message "GSSAPI IMAP connection: %s" (or response "failed"))
+	    (message "GSSAPI connection: %s" (or response "failed"))
 	    (if (and response (let ((case-fold-search nil))
 				(not (string-match "failed" response))))
 		(setq done process)

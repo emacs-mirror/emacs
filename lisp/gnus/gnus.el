@@ -1043,12 +1043,15 @@ be set in `.emacs' instead."
                                          ((boundp 'image-load-path)
                                           (symbol-value 'image-load-path))
                                          (t load-path)))
-                  (image (find-image
-                          `((:type xpm :file "gnus.xpm"
+                  (image (gnus-splash-svg-color-symbols (find-image
+                          `((:type svg :file "gnus.svg"
+                                   :color-symbols
+                                   (("#bf9900" . ,(car gnus-logo-colors))
+                                    ("#ffcc00" . ,(cadr gnus-logo-colors))))
+                            (:type xpm :file "gnus.xpm"
                                    :color-symbols
                                    (("thing" . ,(car gnus-logo-colors))
                                     ("shadow" . ,(cadr gnus-logo-colors))))
-                            (:type svg :file "gnus.svg")
                             (:type png :file "gnus.png")
                             (:type pbm :file "gnus.pbm"
                                    ;; Account for the pbm's background.
@@ -1057,7 +1060,7 @@ be set in `.emacs' instead."
                             (:type xbm :file "gnus.xbm"
                                    ;; Account for the xbm's background.
                                    :background ,(face-foreground 'gnus-splash)
-                                   :foreground ,(face-background 'default))))))
+                                   :foreground ,(face-background 'default)))))))
              (when image
                (let ((size (image-size image)))
                  (insert-char ?\n (max 0 (round (- (window-height)
@@ -1102,6 +1105,20 @@ be set in `.emacs' instead."
     (goto-char (point-min))
     (setq mode-line-buffer-identification (concat " " gnus-version))
     (set-buffer-modified-p t)))
+
+(defun gnus-splash-svg-color-symbols (list)
+  "Do color-symbol search-and-replace in svg file"
+  (let ((type (plist-get (cdr list) :type))
+        (file (plist-get (cdr list) :file))
+        (color-symbols (plist-get (cdr list) :color-symbols)))
+    (if (string= type "svg")
+        (let ((data (with-temp-buffer (insert-file file) (buffer-string))))
+          (mapc (lambda (rule)
+                  (setq data (replace-regexp-in-string
+                              (concat "fill:" (car rule))
+                              (concat "fill:" (cdr rule)) data))) color-symbols)
+          (cons (car list) (list :type type :data data)))
+       list)))
 
 (eval-when (load)
   (let ((command (format "%s" this-command)))

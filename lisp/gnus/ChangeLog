@@ -15,6 +15,59 @@
 	nntp-open-plain-stream value.
 	(nntp-open-connection): Recognize that value.
 
+2011-03-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gssapi.el (open-gssapi-stream): Remove the last mentions of the IMAP
+	stuff.
+
+	* gnus-score.el (gnus-score-string): Fix calling convention of
+	`gnus-simplify-buffer-fuzzy' after last patches.
+
+	* gnus-sum.el (gnus-update-marks): Don't send any marks updates to the
+	server for articles we didn't get any headers for.  This is a sanity
+	check.
+
+2011-03-29  Michael Welsh Duggan  <md5i@md5i.com>
+
+	* nnimap.el (nnimap-open-connection-1): Is the login responds with a
+	new CAPABILITY, use it.
+
+2011-03-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-agent.el (gnus-agent-fetch-headers): Don't message if we're not
+	downloading anything.
+
+	* gnus.el (gnus-splash-svg-color-symbols): Removed superfluous `and'.
+
+2011-03-29  Adam Sjøgren  <asjo@koldfront.dk>
+
+	* gnus.el (gnus-group-startup-message): Prefer svg file and replace
+	colors.
+	(gnus-splash-svg-color-symbols): New function.
+
+2011-03-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-simplify-buffer-fuzzy): Take the regexp explicitly
+	instead of using the global gnus-simplify-subject-fuzzy-regexp.
+	(gnus-simplify-subject-fuzzy): Use the local
+	gnus-simplify-subject-fuzzy-regex instead of the global one.  This
+	makes using this variable in group parameters work.
+
+2011-03-29  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-unfollowed-groups): Add
+	"archive:sent" to the unfollowed group regex (for the recent Gnus
+	archive:sent-YYYY-MM-DD groups).
+	(gnus-registry-split-fancy-with-parent): Bail out early in sender
+	tracking if there are more than `gnus-registry-max-track-groups'
+	matches.
+
+2011-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* message.el (message--yank-original-internal): New function to do the
+	insertion cleanly inside eval in `message-yank-original'.
+	(message-yank-original): Use it.
+
 2011-03-29  Julien Danjou  <julien@danjou.info>
 
 	* mm-view.el (mm-display-inline-fontify): Use `set-normal-mode' with

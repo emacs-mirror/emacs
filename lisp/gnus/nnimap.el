@@ -410,11 +410,18 @@ textual parts.")
 		  (setq login-result
 			(nnimap-login (car credentials) (cadr credentials))))
 		(if (car login-result)
-                    ;; save the credentials if a save function exists
+		    (progn
+                    ;; Save the credentials if a save function exists
                     ;; (such a function will only be passed if a new
-                    ;; token was created)
-                    (when (functionp (nth 2 credentials))
-                      (funcall (nth 2 credentials)))
+                    ;; token was created).
+		      (when (functionp (nth 2 credentials))
+			(funcall (nth 2 credentials)))
+		      ;; See if CAPABILITY is set as part of login
+		      ;; response.
+		      (dolist (response (cddr login-result))
+			(when (string= "CAPABILITY" (upcase (car response)))
+			  (setf (nnimap-capabilities nnimap-object)
+				(mapcar #'upcase (cdr response))))))
 		  ;; If the login failed, then forget the credentials
 		  ;; that are now possibly cached.
 		  (dolist (host (list (nnoo-current-server 'nnimap)

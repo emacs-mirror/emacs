@@ -1734,7 +1734,7 @@ If RE-ONLY is non-nil, strip leading `Re:'s only."
   (while (re-search-forward regexp nil t)
     (replace-match (or newtext ""))))
 
-(defun gnus-simplify-buffer-fuzzy ()
+(defun gnus-simplify-buffer-fuzzy (regexp)
   "Simplify string in the buffer fuzzily.
 The string in the accessible portion of the current buffer is simplified.
 It is assumed to be a single-line subject.
@@ -1748,11 +1748,10 @@ matter is removed.  Additional things can be deleted by setting
     (while (not (eq modified-tick (buffer-modified-tick)))
       (setq modified-tick (buffer-modified-tick))
       (cond
-       ((listp gnus-simplify-subject-fuzzy-regexp)
-	(mapc 'gnus-simplify-buffer-fuzzy-step
-	      gnus-simplify-subject-fuzzy-regexp))
-       (gnus-simplify-subject-fuzzy-regexp
-	(gnus-simplify-buffer-fuzzy-step gnus-simplify-subject-fuzzy-regexp)))
+       ((listp regexp)
+	(mapc 'gnus-simplify-buffer-fuzzy-step regexp))
+       (regexp
+	(gnus-simplify-buffer-fuzzy-step regexp)))
       (gnus-simplify-buffer-fuzzy-step "^ *\\[[-+?*!][-+?*!]\\] *")
       (gnus-simplify-buffer-fuzzy-step
        "^ *\\(re\\|fw\\|fwd\\)[[{(^0-9]*[])}]?[:;] *")
@@ -1767,15 +1766,16 @@ matter is removed.  Additional things can be deleted by setting
   "Simplify a subject string fuzzily.
 See `gnus-simplify-buffer-fuzzy' for details."
   (save-excursion
-    (gnus-set-work-buffer)
-    (let ((case-fold-search t))
-      ;; Remove uninteresting prefixes.
-      (when (and gnus-simplify-ignored-prefixes
-		 (string-match gnus-simplify-ignored-prefixes subject))
-	(setq subject (substring subject (match-end 0))))
-      (insert subject)
-      (inline (gnus-simplify-buffer-fuzzy))
-      (buffer-string))))
+    (let ((regexp gnus-simplify-subject-fuzzy-regexp))
+      (gnus-set-work-buffer)
+      (let ((case-fold-search t))
+	;; Remove uninteresting prefixes.
+	(when (and gnus-simplify-ignored-prefixes
+		   (string-match gnus-simplify-ignored-prefixes subject))
+	  (setq subject (substring subject (match-end 0))))
+	(insert subject)
+	(inline (gnus-simplify-buffer-fuzzy regexp))
+	(buffer-string)))))
 
 (defsubst gnus-simplify-subject-fully (subject)
   "Simplify a subject string according to `gnus-summary-gather-subject-limit'."
@@ -6068,14 +6068,23 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 		    'request-set-mark gnus-newsgroup-name)
 		   (not (gnus-article-unpropagatable-p (cdr type))))
 	  (let* ((old (cdr (assq (cdr type) (gnus-info-marks info))))
-		 (del (gnus-remove-from-range (gnus-copy-sequence old) list))
-		 (add (gnus-remove-from-range
-		       (gnus-copy-sequence list) old)))
+		 ;; Don't do anything about marks for articles we
+		 ;; didn't actually get any headers for.
+		 (existing (gnus-compress-sequence gnus-newsgroup-articles))
+		 (del
+		  (gnus-sorted-range-intersection
+		   existing
+		   (gnus-remove-from-range (gnus-copy-sequence old) list)))
+		 (add
+		  (gnus-sorted-range-intersection
+		   existing
+		   (gnus-remove-from-range
+		    (gnus-copy-sequence list) old))))
 	    (when add
 	      (push (list add 'add (list (cdr type))) delta-marks))
 	    (when del
-	      ;; Don't delete marks from outside the active range.  This
-	      ;; shouldn't happen, but is a sanity check.
+	      ;; Don't delete marks from outside the active range.
+	      ;; This shouldn't happen, but is a sanity check.
 	      (setq del (gnus-sorted-range-intersection
 			 (gnus-active gnus-newsgroup-name) del))
 	      (push (list del 'del (list (cdr type))) delta-marks))))
