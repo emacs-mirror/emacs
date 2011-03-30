@@ -1,3 +1,8 @@
+2011-03-30  Zachary Kanfer  <zkanfer@gmail.com>  (tiny change)
+
+	* keyboard.c (Fexecute_extended_command): Do log the "suggest key
+	binding" message (bug#7967).
+
 2011-03-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix more problems found by GCC 4.6.0's static checks.

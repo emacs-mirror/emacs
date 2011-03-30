@@ -10340,9 +10340,9 @@ give to the command you invoke, if it asks for an argument.  */)
 	  sprintf (newmessage, "You can run the command `%s' with %s",
 		   SDATA (SYMBOL_NAME (function)),
 		   SDATA (binding));
-	  message2_nolog (newmessage,
-			  strlen (newmessage),
-			  STRING_MULTIBYTE (binding));
+	  message2 (newmessage,
+		    strlen (newmessage),
+		    STRING_MULTIBYTE (binding));
 	  if (NUMBERP (Vsuggest_key_bindings))
 	    waited = sit_for (Vsuggest_key_bindings, 0, 2);
 	  else
