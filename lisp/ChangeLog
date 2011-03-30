@@ -1,3 +1,10 @@
+2011-03-30  Leo Liu  <sdl.web@gmail.com>
+
+	* abbrev.el (abbrev-edit-save-to-file, abbrev-edit-save-buffer):
+	New commands.
+	(edit-abbrevs-map): Bind them here.
+	(write-abbrev-file): New optinal arg VERBOSE.  (Bug#5937)
+
 2011-03-29  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* allout.el (allout-hide-by-annotation, allout-flag-region):
