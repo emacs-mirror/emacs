@@ -124,7 +124,7 @@ ARGS is a list of the first N arguments to pass to FUN.
 The result is a new function which does the same as FUN, except that
 the first N arguments are fixed at the values with which this function
 was called."
-  `(closure () (&rest args)
+  `(closure (t) (&rest args)
             (apply ',fun ,@(mapcar (lambda (arg) `',arg) args) args)))
 
 (if (null (featurep 'cl))
@@ -174,8 +174,6 @@ value of last one, or nil if there are none.
   ;; If we reload subr.el after having loaded CL, be careful not to
   ;; overwrite CL's extended definition of `dolist', `dotimes',
   ;; `declare', `push' and `pop'.
-(defvar --dolist-tail-- nil
-  "Temporary variable used in `dolist' expansion.")
 
 (defmacro dolist (spec &rest body)
   "Loop over a list.
@@ -189,19 +187,27 @@ Then evaluate RESULT to get return value, default nil.
   ;; use dolist.
   ;; FIXME: This cost disappears in byte-compiled lexical-binding files.
   (let ((temp '--dolist-tail--))
-    `(let ((,temp ,(nth 1 spec))
-	   ,(car spec))
-       (while ,temp
-         ;; FIXME: In lexical-binding code, a `let' inside the loop might
-         ;; turn out to be faster than the an outside `let' this `setq'.
-	 (setq ,(car spec) (car ,temp))
-	 ,@body
-	 (setq ,temp (cdr ,temp)))
-       ,@(if (cdr (cdr spec))
-	     `((setq ,(car spec) nil) ,@(cdr (cdr spec)))))))
-
-(defvar --dotimes-limit-- nil
-  "Temporary variable used in `dotimes' expansion.")
+    ;; This is not a reliable test, but it does not matter because both
+    ;; semantics are acceptable, tho one is slightly faster with dynamic
+    ;; scoping and the other is slightly faster (and has cleaner semantics)
+    ;; with lexical scoping.
+    (if lexical-binding
+        `(let ((,temp ,(nth 1 spec)))
+           (while ,temp
+             (let ((,(car spec) (car ,temp)))
+               ,@body
+               (setq ,temp (cdr ,temp))))
+           ,@(if (cdr (cdr spec))
+                 ;; FIXME: This let often leads to "unused var" warnings.
+                 `((let ((,(car spec) nil)) ,@(cdr (cdr spec))))))
+      `(let ((,temp ,(nth 1 spec))
+             ,(car spec))
+         (while ,temp
+           (setq ,(car spec) (car ,temp))
+           ,@body
+           (setq ,temp (cdr ,temp)))
+         ,@(if (cdr (cdr spec))
+               `((setq ,(car spec) nil) ,@(cdr (cdr spec))))))))
 
 (defmacro dotimes (spec &rest body)
   "Loop a certain number of times.
@@ -214,15 +220,30 @@ the return value (nil if RESULT is omitted).
   ;; It would be cleaner to create an uninterned symbol,
   ;; but that uses a lot more space when many functions in many files
   ;; use dotimes.
+  ;; FIXME: This cost disappears in byte-compiled lexical-binding files.
   (let ((temp '--dotimes-limit--)
 	(start 0)
 	(end (nth 1 spec)))
-    `(let ((,temp ,end)
-	   (,(car spec) ,start))
-       (while (< ,(car spec) ,temp)
-	 ,@body
-	 (setq ,(car spec) (1+ ,(car spec))))
-       ,@(cdr (cdr spec)))))
+    ;; This is not a reliable test, but it does not matter because both
+    ;; semantics are acceptable, tho one is slightly faster with dynamic
+    ;; scoping and the other has cleaner semantics.
+    (if lexical-binding
+        (let ((counter '--dotimes-counter--))
+          `(let ((,temp ,end)
+                 (,counter ,start))
+             (while (< ,counter ,temp)
+               (let ((,(car spec) ,counter))
+                 ,@body)
+               (setq ,counter (1+ ,counter)))
+             ,@(if (cddr spec)
+                   ;; FIXME: This let often leads to "unused var" warnings.
+                   `((let ((,(car spec) ,counter)) ,@(cddr spec))))))
+      `(let ((,temp ,end)
+             (,(car spec) ,start))
+         (while (< ,(car spec) ,temp)
+           ,@body
+           (setq ,(car spec) (1+ ,(car spec))))
+         ,@(cdr (cdr spec))))))
 
 (defmacro declare (&rest specs)
   "Do not evaluate any arguments and return nil.

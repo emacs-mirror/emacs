@@ -566,7 +566,8 @@ already is one.)"
    ;; but this causes problems while edebugging edebug.
    (let ((edebug-all-forms t)
 	 (edebug-all-defs t))
-     (edebug-read-top-level-form))))
+     (eval-sexp-add-defvars
+      (edebug-read-top-level-form)))))
 
 
 (defun edebug-read-top-level-form ()

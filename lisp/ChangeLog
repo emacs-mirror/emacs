@@ -1,3 +1,13 @@
+2011-03-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (apply-partially): Use a non-nil static environment.
+	(--dolist-tail--, --dotimes-limit--): Don't declare dynamically bound.
+	(dolist): Use a more efficient form for lexical-binding.
+	(dotimes): Use a cleaner semantics for lexical-binding.
+
+	* emacs-lisp/edebug.el (edebug-eval-top-level-form):
+	Use eval-sexp-add-defvars.
+
 2011-03-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (COMPILE_FIRST): Remove pcase.
