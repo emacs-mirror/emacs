@@ -13003,7 +13003,10 @@ enum
   SCROLLING_NEED_LARGER_MATRICES
 };
 
-/* If scroll-conservatively is more than this, never recenter.  */
+/* If scroll-conservatively is more than this, never recenter.
+
+   If you change this, don't forget to update the doc string of
+   `scroll-conservatively' and the Emacs manual.  */
 #define SCROLL_LIMIT 100
 
 static int
@@ -26604,6 +26607,10 @@ If point moves off-screen, redisplay will scroll by up to
 `scroll-conservatively' lines in order to bring point just barely
 onto the screen again.  If that cannot be done, then redisplay
 recenters point as usual.
+
+If the value is greater than 100, redisplay will never recenter point,
+but will always scroll just enough text to bring point into view, even
+if you move far away.
 
 A value of zero means always recenter point if it moves off screen.  */);
   scroll_conservatively = 0;

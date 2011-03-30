@@ -1,3 +1,8 @@
+2011-03-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (syms_of_xdisp) <scroll-conservatively>: Document the
+	threshold of 100 lines for never-recentering scrolling.
+
 2011-03-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (try_scrolling): When scrolling down aggressively,
