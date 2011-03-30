@@ -1,3 +1,17 @@
+2011-03-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-table-dynamic): Optimize `boundaries'.
+	(completion-in-region-mode): New minor mode.
+	(completion-in-region): Use it.
+	(completion-in-region--data, completion-in-region-mode-map): New vars.
+	(completion-in-region--postch): New function.
+	(completion--capf-misbehave-funs, completion--capf-safe-funs):
+	New vars.
+	(completion--capf-wrapper): New function.
+	(completion-at-point): Use it to track well-behavedness of
+	hook functions.
+	(completion-help-at-point): New command.
+
 2011-03-30  Jason Merrill  <jason@redhat.com>  (tiny change)
 
 	* vc/add-log.el (add-change-log-entry): Don't use whitespace

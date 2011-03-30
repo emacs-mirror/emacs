@@ -67,6 +67,9 @@ from load-path.  -Q now implies this.
 
 * Changes in Emacs 24.1
 
+** Completion in a non-minibuffer now tries to detect the end of completion
+and pops down the *Completions* buffer accordingly.
+
 ** emacsclient changes
 
 *** New emacsclient argument --parent-id ID can be used to open a
