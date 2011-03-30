@@ -890,9 +890,10 @@ DEFUN ("string", Fstring, Sstring, 0, MANY, 0,
        doc: /*
 Concatenate all the argument characters and make the result a string.
 usage: (string &rest CHARACTERS)  */)
-  (int n, Lisp_Object *args)
+  (size_t n, Lisp_Object *args)
 {
-  int i, c;
+  size_t i;
+  int c;
   unsigned char *buf, *p;
   Lisp_Object str;
   USE_SAFE_ALLOCA;
@@ -915,9 +916,10 @@ usage: (string &rest CHARACTERS)  */)
 DEFUN ("unibyte-string", Funibyte_string, Sunibyte_string, 0, MANY, 0,
        doc: /* Concatenate all the argument bytes and make the result a unibyte string.
 usage: (unibyte-string &rest BYTES)  */)
-  (int n, Lisp_Object *args)
+  (size_t n, Lisp_Object *args)
 {
-  int i, c;
+  size_t i;
+  int c;
   unsigned char *buf, *p;
   Lisp_Object str;
   USE_SAFE_ALLOCA;

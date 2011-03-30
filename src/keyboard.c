@@ -201,8 +201,8 @@ Lisp_Object unread_switch_frame;
 /* Last size recorded for a current buffer which is not a minibuffer.  */
 static EMACS_INT last_non_minibuf_size;
 
-/* Total number of times read_char has returned.  */
-int num_input_events;
+/* Total number of times read_char has returned, modulo SIZE_MAX + 1.  */
+size_t num_input_events;
 
 /* Value of num_nonmacro_input_events as of last auto save.  */
 
@@ -1269,7 +1269,7 @@ some_mouse_moved (void)
 /* This is the actual command reading loop,
    sans error-handling encapsulation.  */
 
-static int read_key_sequence (Lisp_Object *, int, Lisp_Object,
+static int read_key_sequence (Lisp_Object *, size_t, Lisp_Object,
                               int, int, int);
 void safe_run_hooks (Lisp_Object);
 static void adjust_point_for_property (EMACS_INT, int);
@@ -1862,7 +1862,7 @@ safe_run_hooks_error (Lisp_Object error_data)
 }
 
 static Lisp_Object
-safe_run_hook_funcall (int nargs, Lisp_Object *args)
+safe_run_hook_funcall (size_t nargs, Lisp_Object *args)
 {
   eassert (nargs == 1);
   if (CONSP (Vinhibit_quit))
@@ -6004,10 +6004,10 @@ make_lispy_switch_frame (Lisp_Object frame)
    This doesn't use any caches.  */
 
 static int
-parse_modifiers_uncached (Lisp_Object symbol, int *modifier_end)
+parse_modifiers_uncached (Lisp_Object symbol, EMACS_INT *modifier_end)
 {
   Lisp_Object name;
-  int i;
+  EMACS_INT i;
   int modifiers;
 
   CHECK_SYMBOL (symbol);
@@ -6017,7 +6017,7 @@ parse_modifiers_uncached (Lisp_Object symbol, int *modifier_end)
 
   for (i = 0; i+2 <= SBYTES (name); )
     {
-      int this_mod_end = 0;
+      EMACS_INT this_mod_end = 0;
       int this_mod = 0;
 
       /* See if the name continues with a modifier word.
@@ -6214,7 +6214,7 @@ parse_modifiers (Lisp_Object symbol)
     return elements;
   else
     {
-      int end;
+      EMACS_INT end;
       int modifiers = parse_modifiers_uncached (symbol, &end);
       Lisp_Object unmodified;
       Lisp_Object mask;
@@ -8793,7 +8793,7 @@ access_keymap_keyremap (Lisp_Object map, Lisp_Object key, Lisp_Object prompt,
    The return value is non-zero if the remapping actually took place.  */
 
 static int
-keyremap_step (Lisp_Object *keybuf, int bufsize, volatile keyremap *fkey,
+keyremap_step (Lisp_Object *keybuf, size_t bufsize, volatile keyremap *fkey,
 	       int input, int doit, int *diff, Lisp_Object prompt)
 {
   Lisp_Object next, key;
@@ -8886,7 +8886,7 @@ keyremap_step (Lisp_Object *keybuf, int bufsize, volatile keyremap *fkey,
    from the selected window's buffer.  */
 
 static int
-read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
+read_key_sequence (Lisp_Object *keybuf, size_t bufsize, Lisp_Object prompt,
 		   int dont_downcase_last, int can_return_switch_frame,
 		   int fix_current_buffer)
 {
@@ -9404,80 +9404,84 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 		    last_real_key_start = t - 1;
 		}
 
-	      /* Key sequences beginning with mouse clicks are
-		 read using the keymaps in the buffer clicked on,
-		 not the current buffer.  If we're at the
-		 beginning of a key sequence, switch buffers.  */
-	      if (last_real_key_start == 0
-		  && WINDOWP (window)
-		  && BUFFERP (XWINDOW (window)->buffer)
-		  && XBUFFER (XWINDOW (window)->buffer) != current_buffer)
+	      if (last_real_key_start == 0)
 		{
-		  XVECTOR (raw_keybuf)->contents[raw_keybuf_count++] = key;
-		  keybuf[t] = key;
-		  mock_input = t + 1;
-
-		  /* Arrange to go back to the original buffer once we're
-		     done reading the key sequence.  Note that we can't
-		     use save_excursion_{save,restore} here, because they
-		     save point as well as the current buffer; we don't
-		     want to save point, because redisplay may change it,
-		     to accommodate a Fset_window_start or something.  We
-		     don't want to do this at the top of the function,
-		     because we may get input from a subprocess which
-		     wants to change the selected window and stuff (say,
-		     emacsclient).  */
-		  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
-
-		  if (! FRAME_LIVE_P (XFRAME (selected_frame)))
-		    Fkill_emacs (Qnil);
-		  set_buffer_internal (XBUFFER (XWINDOW (window)->buffer));
-		  orig_local_map = get_local_map (PT, current_buffer,
-						  Qlocal_map);
-		  orig_keymap = get_local_map (PT, current_buffer, Qkeymap);
-		  goto replay_sequence;
-		}
-
-	      /* For a mouse click, get the local text-property keymap
-		 of the place clicked on, rather than point.  */
-	      if (last_real_key_start == 0
-		  && CONSP (XCDR (key))
-		  && ! localized_local_map)
-		{
-		  Lisp_Object map_here, start, pos;
-
-		  localized_local_map = 1;
-		  start = EVENT_START (key);
-
-		  if (CONSP (start) && POSN_INBUFFER_P (start))
+		  /* Key sequences beginning with mouse clicks are
+		     read using the keymaps in the buffer clicked on,
+		     not the current buffer.  If we're at the
+		     beginning of a key sequence, switch buffers.  */
+		  if (WINDOWP (window)
+		      && BUFFERP (XWINDOW (window)->buffer)
+		      && XBUFFER (XWINDOW (window)->buffer) != current_buffer)
 		    {
-		      pos = POSN_BUFFER_POSN (start);
-		      if (INTEGERP (pos)
-			  && XINT (pos) >= BEGV
-			  && XINT (pos) <= ZV)
+		      XVECTOR (raw_keybuf)->contents[raw_keybuf_count++] = key;
+		      keybuf[t] = key;
+		      mock_input = t + 1;
+
+		      /* Arrange to go back to the original buffer once we're
+			 done reading the key sequence.  Note that we can't
+			 use save_excursion_{save,restore} here, because they
+			 save point as well as the current buffer; we don't
+			 want to save point, because redisplay may change it,
+			 to accommodate a Fset_window_start or something.  We
+			 don't want to do this at the top of the function,
+			 because we may get input from a subprocess which
+			 wants to change the selected window and stuff (say,
+			 emacsclient).  */
+		      record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+
+		      if (! FRAME_LIVE_P (XFRAME (selected_frame)))
+			Fkill_emacs (Qnil);
+		      set_buffer_internal (XBUFFER (XWINDOW (window)->buffer));
+		      orig_local_map = get_local_map (PT, current_buffer,
+						      Qlocal_map);
+		      orig_keymap = get_local_map (PT, current_buffer,
+						   Qkeymap);
+		      goto replay_sequence;
+		    }
+
+		  /* For a mouse click, get the local text-property keymap
+		     of the place clicked on, rather than point.  */
+		  if (CONSP (XCDR (key))
+		      && ! localized_local_map)
+		    {
+		      Lisp_Object map_here, start, pos;
+
+		      localized_local_map = 1;
+		      start = EVENT_START (key);
+
+		      if (CONSP (start) && POSN_INBUFFER_P (start))
 			{
-			  map_here = get_local_map (XINT (pos),
-						    current_buffer, Qlocal_map);
-			  if (!EQ (map_here, orig_local_map))
+			  pos = POSN_BUFFER_POSN (start);
+			  if (INTEGERP (pos)
+			      && XINT (pos) >= BEGV
+			      && XINT (pos) <= ZV)
 			    {
-			      orig_local_map = map_here;
-			      ++localized_local_map;
-			    }
+			      map_here = get_local_map (XINT (pos),
+							current_buffer,
+							Qlocal_map);
+			      if (!EQ (map_here, orig_local_map))
+				{
+				  orig_local_map = map_here;
+				  ++localized_local_map;
+				}
 
-			  map_here = get_local_map (XINT (pos),
-						     current_buffer, Qkeymap);
-			  if (!EQ (map_here, orig_keymap))
-			    {
-			      orig_keymap = map_here;
-			      ++localized_local_map;
-			    }
+			      map_here = get_local_map (XINT (pos),
+							current_buffer,
+							Qkeymap);
+			      if (!EQ (map_here, orig_keymap))
+				{
+				  orig_keymap = map_here;
+				  ++localized_local_map;
+				}
 
-			  if (localized_local_map > 1)
-			    {
-			      keybuf[t] = key;
-			      mock_input = t + 1;
+			      if (localized_local_map > 1)
+				{
+				  keybuf[t] = key;
+				  mock_input = t + 1;
 
-			      goto replay_sequence;
+				  goto replay_sequence;
+				}
 			    }
 			}
 		    }
@@ -11602,12 +11606,12 @@ syms_of_keyboard (void)
   last_point_position_window = Qnil;
 
   {
-    const struct event_head *p;
+    int i;
+    int len = sizeof (head_table) / sizeof (head_table[0]);
 
-    for (p = head_table;
-	 p < head_table + (sizeof (head_table) / sizeof (head_table[0]));
-	 p++)
+    for (i = 0; i < len; i++)
       {
+	const struct event_head *p = &head_table[i];
 	*p->var = intern_c_string (p->name);
 	staticpro (p->var);
 	Fput (*p->var, Qevent_kind, *p->kind);

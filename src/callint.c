@@ -265,8 +265,9 @@ invoke it.  If KEYS is omitted or nil, the return value of
      recorded as a call to the function named callint_argfuns[varies[i]].  */
   int *varies;
 
-  register int i, j;
-  int count, foo;
+  register size_t i, j;
+  size_t count;
+  int foo;
   char prompt1[100];
   char *tem1;
   int arg_from_tty = 0;

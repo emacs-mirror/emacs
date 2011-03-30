@@ -651,7 +651,9 @@ unexec (const char *new_name, const char *old_name)
   int n, nn;
   int old_bss_index, old_sbss_index, old_plt_index;
   int old_data_index, new_data2_index;
+#if defined _SYSTYPE_SYSV || defined __sgi
   int old_mdebug_index;
+#endif
   struct stat stat_buf;
   int old_file_size;
 
@@ -695,8 +697,10 @@ unexec (const char *new_name, const char *old_name)
 
   /* Find the mdebug section, if any.  */
 
+#if defined _SYSTYPE_SYSV || defined __sgi
   old_mdebug_index = find_section (".mdebug", old_section_names,
 				   old_name, old_file_h, old_section_h, 1);
+#endif
 
   /* Find the old .bss section.  Figure out parameters of the new
      data2 and bss sections.  */

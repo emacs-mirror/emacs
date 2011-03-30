@@ -2190,7 +2190,8 @@ and t is the same as `SECONDARY'.  */)
 ***********************************************************************/
 /* Check that lisp values are of correct type for x_fill_property_data.
    That is, number, string or a cons with two numbers (low and high 16
-   bit parts of a 32 bit number).  */
+   bit parts of a 32 bit number).  Return the number of items in DATA,
+   or -1 if there is an error.  */
 
 int
 x_check_property_data (Lisp_Object data)
@@ -2198,15 +2199,16 @@ x_check_property_data (Lisp_Object data)
   Lisp_Object iter;
   int size = 0;
 
-  for (iter = data; CONSP (iter) && size != -1; iter = XCDR (iter), ++size)
+  for (iter = data; CONSP (iter); iter = XCDR (iter))
     {
       Lisp_Object o = XCAR (iter);
 
       if (! NUMBERP (o) && ! STRINGP (o) && ! CONSP (o))
-        size = -1;
+        return -1;
       else if (CONSP (o) &&
                (! NUMBERP (XCAR (o)) || ! NUMBERP (XCDR (o))))
-        size = -1;
+        return -1;
+      size++;
     }
 
   return size;

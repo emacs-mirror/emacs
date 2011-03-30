@@ -1,3 +1,76 @@
+2011-03-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix more problems found by GCC 4.6.0's static checks.
+
+	* unexelf.c (unexec) [! (defined _SYSTYPE_SYSV || defined __sgi)]:
+	Remove unused local var.
+
+	* editfns.c (Fmessage_box): Remove unused local var.
+
+	* xdisp.c (try_window_reusing_current_matrix, x_produce_glyphs):
+	(note_mode_line_or_margin_highlight, note_mouse_highlight):
+	Omit unused local vars.
+	* window.c (shrink_windows): Omit unused local var.
+	* menu.c (digest_single_submenu): Omit unused local var.
+	* dispnew.c (update_window) [PERIODIC_PREEMPTION_CHECKING]:
+	Omit unused local var.
+
+	* keyboard.c (parse_modifiers_uncached, parse_modifiers):
+	Don't assume string length fits in int.
+	(keyremap_step, read_key_sequence): Use size_t for sizes.
+	(read_key_sequence): Don't check last_real_key_start redundantly.
+
+	* callproc.c (Fcall_process, Fcall_process_region): Use SAFE_ALLOCA
+	instead of alloca (Bug#8344).
+
+	* eval.c (Fbacktrace): Don't assume nargs fits in int.
+	(Fbacktrace_frame): Don't assume nframes fits in int.
+
+	* syntax.c (scan_sexps_forward): Avoid pointer wraparound.
+
+	* xterm.c (x_make_frame_visible, same_x_server): Redo to avoid overflow
+	concerns.
+
+	* term.c (produce_glyphless_glyph): Remove unnecessary test.
+
+	* cm.c (calccost): Turn while-do into do-while, for clarity.
+
+	* keyboard.c (syms_of_keyboard): Use the same style as later
+	in this function when indexing through an array.  This also
+	works around GCC bug 48267.
+
+	* image.c (tiff_load): Fix off-by-one image count (Bug#8336).
+
+	* xselect.c (x_check_property_data): Return correct size (Bug#8335).
+
+	* chartab.c (sub_char_table_ref_and_range): Redo for slight
+	efficiency gain, and to bypass a gcc -Wstrict-overflow warning.
+
+	* keyboard.c, keyboard.h (num_input_events): Now size_t.
+	This avoids undefined behavior on integer overflow, and is a bit
+	more convenient anyway since it is compared to a size_t variable.
+
+	Variadic C functions now count arguments with size_t, not int.
+	This avoids an unnecessary limitation on 64-bit machines, which
+	caused (substring ...) to crash on large vectors (Bug#8344).
+	* lisp.h (struct Lisp_Subr.function.aMANY): Now takes size_t, not int.
+	(DEFUN_ARGS_MANY, internal_condition_case_n, safe_call): Likewise.
+	All variadic functions and their callers changed accordingly.
+	(struct gcpro.nvars): Now size_t, not int.  All uses changed.
+	* data.c (arith_driver, float_arith_driver): Likewise.
+	* editfns.c (general_insert_function): Likewise.
+	* eval.c (struct backtrace.nargs, interactive_p)
+	(internal_condition_case_n, run_hook_with_args, apply_lambda)
+	(funcall_lambda, mark_backtrace): Likewise.
+	* fns.c (concat): Likewise.
+	* frame.c (x_set_frame_parameters): Likewise.
+	* fns.c (get_key_arg): Now accepts and returns size_t, and returns
+	0 if not found, not -1.  All callers changed.
+
+	* alloc.c (garbage_collect): Don't assume stack size fits in int.
+	(stack_copy_size): Now size_t, not int.
+	(stack_copy, stack_copy_size): Define only if MAX_SAVE_STACK > 0.
+
 2011-03-28  Juanma Barranquero  <lekktu@gmail.com>
 
 	* coding.c (encode_designation_at_bol): Remove parameter `charbuf_end',

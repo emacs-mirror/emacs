@@ -254,8 +254,10 @@ const char *pending_malloc_warning;
 
 /* Buffer in which we save a copy of the C stack at each GC.  */
 
+#if MAX_SAVE_STACK > 0
 static char *stack_copy;
-static int stack_copy_size;
+static size_t stack_copy_size;
+#endif
 
 /* Non-zero means ignore malloc warnings.  Set during initialization.
    Currently not used.  */
@@ -2705,7 +2707,7 @@ DEFUN ("list", Flist, Slist, 0, MANY, 0,
        doc: /* Return a newly created list with specified arguments as elements.
 Any number of arguments, even zero arguments, are allowed.
 usage: (list &rest OBJECTS)  */)
-  (int nargs, register Lisp_Object *args)
+  (size_t nargs, register Lisp_Object *args)
 {
   register Lisp_Object val;
   val = Qnil;
@@ -2921,10 +2923,10 @@ DEFUN ("vector", Fvector, Svector, 0, MANY, 0,
        doc: /* Return a newly created vector with specified arguments as elements.
 Any number of arguments, even zero arguments, are allowed.
 usage: (vector &rest OBJECTS)  */)
-  (register int nargs, Lisp_Object *args)
+  (register size_t nargs, Lisp_Object *args)
 {
   register Lisp_Object len, val;
-  register int i;
+  register size_t i;
   register struct Lisp_Vector *p;
 
   XSETFASTINT (len, nargs);
@@ -2943,10 +2945,10 @@ stack size, (optional) doc string, and (optional) interactive spec.
 The first four arguments are required; at most six have any
 significance.
 usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INTERACTIVE-SPEC &rest ELEMENTS)  */)
-  (register int nargs, Lisp_Object *args)
+  (register size_t nargs, Lisp_Object *args)
 {
   register Lisp_Object len, val;
-  register int i;
+  register size_t i;
   register struct Lisp_Vector *p;
 
   XSETFASTINT (len, nargs);
@@ -4228,7 +4230,7 @@ static void
 check_gcpros (void)
 {
   struct gcpro *p;
-  int i;
+  size_t i;
 
   for (p = gcprolist; p; p = p->next)
     for (i = 0; i < p->nvars; ++i)
@@ -4837,7 +4839,7 @@ returns nil, because real GC can't be done.  */)
 {
   register struct specbinding *bind;
   char stack_top_variable;
-  register int i;
+  register size_t i;
   int message_p;
   Lisp_Object total[8];
   int count = SPECPDL_INDEX ();
@@ -4903,21 +4905,26 @@ returns nil, because real GC can't be done.  */)
 #if MAX_SAVE_STACK > 0
   if (NILP (Vpurify_flag))
     {
-      i = &stack_top_variable - stack_bottom;
-      if (i < 0) i = -i;
-      if (i < MAX_SAVE_STACK)
+      char *stack;
+      size_t stack_size;
+      if (&stack_top_variable < stack_bottom)
 	{
-	  if (stack_copy == 0)
-	    stack_copy = (char *) xmalloc (stack_copy_size = i);
-	  else if (stack_copy_size < i)
-	    stack_copy = (char *) xrealloc (stack_copy, (stack_copy_size = i));
-	  if (stack_copy)
+	  stack = &stack_top_variable;
+	  stack_size = stack_bottom - &stack_top_variable;
+	}
+      else
+	{
+	  stack = stack_bottom;
+	  stack_size = &stack_top_variable - stack_bottom;
+	}
+      if (stack_size <= MAX_SAVE_STACK)
+	{
+	  if (stack_copy_size < stack_size)
 	    {
-	      if ((EMACS_INT) (&stack_top_variable - stack_bottom) > 0)
-		memcpy (stack_copy, stack_bottom, i);
-	      else
-		memcpy (stack_copy, &stack_top_variable, i);
+	      stack_copy = (char *) xrealloc (stack_copy, stack_size);
+	      stack_copy_size = stack_size;
 	    }
+	  memcpy (stack_copy, stack, stack_size);
 	}
     }
 #endif /* MAX_SAVE_STACK > 0 */

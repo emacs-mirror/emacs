@@ -1,3 +1,8 @@
+2011-03-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix a problem found by GCC 4.6.0's static checks.
+	* etags.c (just_read_file): Remove dummy variable and simplify.
+
 2011-03-27  Glenn Morris  <rgm@gnu.org>
 
 	* emacsclient.c: Replace SIGTYPE with void.

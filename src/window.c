@@ -2978,14 +2978,10 @@ shrink_windows (int total, int size, int nchildren, int shrinkable,
   while (total_shrink > total_removed)
     {
       int nonzero_sizes = 0;
-      int nonzero_idx = -1;
 
       for (i = 0; i < nchildren; ++i)
         if (new_sizes[i] > 0)
-          {
-            ++nonzero_sizes;
-            nonzero_idx = i;
-          }
+	  ++nonzero_sizes;
 
       for (i = 0; i < nchildren; ++i)
         if (new_sizes[i] > min_sizes[i])
