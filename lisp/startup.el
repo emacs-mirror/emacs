@@ -1096,7 +1096,8 @@ the `--debug-init' option to view a complete error backtrace."
 		      user-init-file
 		      (get (car error) 'error-message)
 		      (if (cdr error) ": " "")
-		      (mapconcat (lambda (s) (prin1-to-string s t)) (cdr error) ", "))
+		      (mapconcat (lambda (s) (prin1-to-string s t))
+                                 (cdr error) ", "))
 	      :warning)
 	     (setq init-file-had-error t))))
 
@@ -1292,25 +1293,25 @@ If this is nil, no message will be displayed."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defconst fancy-startup-text
-  '((:face (variable-pitch (:foreground "red"))
+  `((:face (variable-pitch (:foreground "red"))
      "Welcome to "
      :link ("GNU Emacs"
-	    (lambda (button) (browse-url "http://www.gnu.org/software/emacs/"))
+	    ,(lambda (_button) (browse-url "http://www.gnu.org/software/emacs/"))
 	    "Browse http://www.gnu.org/software/emacs/")
      ", one component of the "
      :link
-     (lambda ()
+     ,(lambda ()
        (if (eq system-type 'gnu/linux)
-	   '("GNU/Linux"
-	     (lambda (button) (browse-url "http://www.gnu.org/gnu/linux-and-gnu.html"))
+            `("GNU/Linux"
+              ,(lambda (_button) (browse-url "http://www.gnu.org/gnu/linux-and-gnu.html"))
 	     "Browse http://www.gnu.org/gnu/linux-and-gnu.html")
-	 '("GNU" (lambda (button) (describe-gnu-project))
+          `("GNU" ,(lambda (_button) (describe-gnu-project))
 	   "Display info on the GNU project")))
      " operating system.\n\n"
      :face variable-pitch
-     :link ("Emacs Tutorial" (lambda (button) (help-with-tutorial)))
+     :link ("Emacs Tutorial" ,(lambda (_button) (help-with-tutorial)))
      "\tLearn basic keystroke commands"
-     (lambda ()
+     ,(lambda ()
        (let* ((en "TUTORIAL")
 	      (tut (or (get-language-info current-language-environment
 					  'tutorial)
@@ -1328,19 +1329,20 @@ If this is nil, no message will be displayed."
 	   (concat " (" title ")"))))
      "\n"
      :link ("Emacs Guided Tour"
-	    (lambda (button) (browse-url "http://www.gnu.org/software/emacs/tour/"))
+	    ,(lambda (_button)
+               (browse-url "http://www.gnu.org/software/emacs/tour/"))
 	    "Browse http://www.gnu.org/software/emacs/tour/")
      "\tOverview of Emacs features at gnu.org\n"
-     :link ("View Emacs Manual" (lambda (button) (info-emacs-manual)))
+     :link ("View Emacs Manual" ,(lambda (_button) (info-emacs-manual)))
      "\tView the Emacs manual using Info\n"
-     :link ("Absence of Warranty" (lambda (button) (describe-no-warranty)))
+     :link ("Absence of Warranty" ,(lambda (_button) (describe-no-warranty)))
      "\tGNU Emacs comes with "
      :face (variable-pitch (:slant oblique))
      "ABSOLUTELY NO WARRANTY\n"
      :face variable-pitch
-     :link ("Copying Conditions" (lambda (button) (describe-copying)))
+     :link ("Copying Conditions" ,(lambda (_button) (describe-copying)))
      "\tConditions for redistributing and changing Emacs\n"
-     :link ("Ordering Manuals" (lambda (button) (view-order-manuals)))
+     :link ("Ordering Manuals" ,(lambda (_button) (view-order-manuals)))
      "\tPurchasing printed copies of manuals\n"
      "\n"))
   "A list of texts to show in the middle part of splash screens.
@@ -1348,61 +1350,62 @@ Each element in the list should be a list of strings or pairs
 `:face FACE', like `fancy-splash-insert' accepts them.")
 
 (defconst fancy-about-text
-  '((:face (variable-pitch (:foreground "red"))
+  `((:face (variable-pitch (:foreground "red"))
      "This is "
      :link ("GNU Emacs"
-	    (lambda (button) (browse-url "http://www.gnu.org/software/emacs/"))
+	    ,(lambda (_button) (browse-url "http://www.gnu.org/software/emacs/"))
 	    "Browse http://www.gnu.org/software/emacs/")
      ", one component of the "
      :link
-     (lambda ()
+     ,(lambda ()
        (if (eq system-type 'gnu/linux)
-	   '("GNU/Linux"
-	     (lambda (button) (browse-url "http://www.gnu.org/gnu/linux-and-gnu.html"))
+	   `("GNU/Linux"
+	     ,(lambda (_button)
+                (browse-url "http://www.gnu.org/gnu/linux-and-gnu.html"))
 	     "Browse http://www.gnu.org/gnu/linux-and-gnu.html")
-	 '("GNU" (lambda (button) (describe-gnu-project))
+	 `("GNU" ,(lambda (_button) (describe-gnu-project))
 	   "Display info on the GNU project.")))
      " operating system.\n"
-     :face (lambda ()
+     :face ,(lambda ()
 	     (list 'variable-pitch
 		   (list :foreground
 			 (if (eq (frame-parameter nil 'background-mode) 'dark)
 			     "cyan" "darkblue"))))
      "\n"
-     (lambda () (emacs-version))
+     ,(lambda () (emacs-version))
      "\n"
      :face (variable-pitch (:height 0.8))
-     (lambda () emacs-copyright)
+     ,(lambda () emacs-copyright)
      "\n\n"
      :face variable-pitch
      :link ("Authors"
-	    (lambda (button)
+	    ,(lambda (_button)
 	      (view-file (expand-file-name "AUTHORS" data-directory))
 	      (goto-char (point-min))))
      "\tMany people have contributed code included in GNU Emacs\n"
      :link ("Contributing"
-	    (lambda (button)
+	    ,(lambda (_button)
 	      (view-file (expand-file-name "CONTRIBUTE" data-directory))
 	      (goto-char (point-min))))
      "\tHow to contribute improvements to Emacs\n"
      "\n"
-     :link ("GNU and Freedom" (lambda (button) (describe-gnu-project)))
+     :link ("GNU and Freedom" ,(lambda (_button) (describe-gnu-project)))
      "\tWhy we developed GNU Emacs, and the GNU operating system\n"
-     :link ("Absence of Warranty" (lambda (button) (describe-no-warranty)))
+     :link ("Absence of Warranty" ,(lambda (_button) (describe-no-warranty)))
      "\tGNU Emacs comes with "
      :face (variable-pitch (:slant oblique))
      "ABSOLUTELY NO WARRANTY\n"
      :face variable-pitch
-     :link ("Copying Conditions" (lambda (button) (describe-copying)))
+     :link ("Copying Conditions" ,(lambda (_button) (describe-copying)))
      "\tConditions for redistributing and changing Emacs\n"
-     :link ("Getting New Versions" (lambda (button) (describe-distribution)))
+     :link ("Getting New Versions" ,(lambda (_button) (describe-distribution)))
      "\tHow to obtain the latest version of Emacs\n"
-     :link ("Ordering Manuals" (lambda (button) (view-order-manuals)))
+     :link ("Ordering Manuals" ,(lambda (_button) (view-order-manuals)))
      "\tBuying printed manuals from the FSF\n"
      "\n"
-     :link ("Emacs Tutorial" (lambda (button) (help-with-tutorial)))
+     :link ("Emacs Tutorial" ,(lambda (_button) (help-with-tutorial)))
      "\tLearn basic Emacs keystroke commands"
-     (lambda ()
+     ,(lambda ()
        (let* ((en "TUTORIAL")
 	      (tut (or (get-language-info current-language-environment
 					  'tutorial)
@@ -1420,7 +1423,8 @@ Each element in the list should be a list of strings or pairs
 	   (concat " (" title ")"))))
      "\n"
      :link ("Emacs Guided Tour"
-	    (lambda (button) (browse-url "http://www.gnu.org/software/emacs/tour/"))
+	    ,(lambda (_button)
+               (browse-url "http://www.gnu.org/software/emacs/tour/"))
 	    "Browse http://www.gnu.org/software/emacs/tour/")
      "\tSee an overview of Emacs features at gnu.org"
      ))
@@ -1539,16 +1543,16 @@ a face or button specification."
       (fancy-splash-insert
        :face 'variable-pitch
        "\nTo start...     "
-       :link '("Open a File"
-	       (lambda (_button) (call-interactively 'find-file))
+       :link `("Open a File"
+	       ,(lambda (_button) (call-interactively 'find-file))
 	       "Specify a new file's name, to edit the file")
        "     "
-       :link '("Open Home Directory"
-	       (lambda (_button) (dired "~"))
+       :link `("Open Home Directory"
+	       ,(lambda (_button) (dired "~"))
 	       "Open your home directory, to operate on its files")
        "     "
-       :link '("Customize Startup"
-	       (lambda (_button) (customize-group 'initialization))
+       :link `("Customize Startup"
+	       ,(lambda (_button) (customize-group 'initialization))
 	       "Change initialization settings including this screen")
        "\n"))
     (fancy-splash-insert
@@ -1587,15 +1591,15 @@ a face or button specification."
     (when concise
       (fancy-splash-insert
        :face 'variable-pitch "\n"
-       :link '("Dismiss this startup screen"
-	       (lambda (_button)
-		 (when startup-screen-inhibit-startup-screen
-		   (customize-set-variable 'inhibit-startup-screen t)
-		   (customize-mark-to-save 'inhibit-startup-screen)
-		   (custom-save-all))
-		 (let ((w (get-buffer-window "*GNU Emacs*")))
-		   (and w (not (one-window-p)) (delete-window w)))
-		 (kill-buffer "*GNU Emacs*")))
+       :link `("Dismiss this startup screen"
+	       ,(lambda (_button)
+                  (when startup-screen-inhibit-startup-screen
+                    (customize-set-variable 'inhibit-startup-screen t)
+                    (customize-mark-to-save 'inhibit-startup-screen)
+                    (custom-save-all))
+                  (let ((w (get-buffer-window "*GNU Emacs*")))
+                    (and w (not (one-window-p)) (delete-window w)))
+                  (kill-buffer "*GNU Emacs*")))
        "  ")
       (when (or user-init-file custom-file)
 	(let ((checked (create-image "checked.xpm"
@@ -1938,36 +1942,36 @@ If you have no Meta key, you may instead type ESC followed by the character.)")
 	 "
 GNU Emacs comes with ABSOLUTELY NO WARRANTY; type C-h C-w for ")
 	(insert-button "full details"
-		       'action (lambda (button) (describe-no-warranty))
+		       'action (lambda (_button) (describe-no-warranty))
 		       'follow-link t)
 	(insert ".
 Emacs is Free Software--Free as in Freedom--so you can redistribute copies
 of Emacs and modify it; type C-h C-c to see ")
 	(insert-button "the conditions"
-		       'action (lambda (button) (describe-copying))
+		       'action (lambda (_button) (describe-copying))
 		       'follow-link t)
 	(insert ".
 Type C-h C-d for information on ")
 	(insert-button "getting the latest version"
-		       'action (lambda (button) (describe-distribution))
+		       'action (lambda (_button) (describe-distribution))
 		       'follow-link t)
 	(insert "."))
     (insert (substitute-command-keys
 	     "
 GNU Emacs comes with ABSOLUTELY NO WARRANTY; type \\[describe-no-warranty] for "))
     (insert-button "full details"
-		   'action (lambda (button) (describe-no-warranty))
+		   'action (lambda (_button) (describe-no-warranty))
 		   'follow-link t)
     (insert (substitute-command-keys ".
 Emacs is Free Software--Free as in Freedom--so you can redistribute copies
 of Emacs and modify it; type \\[describe-copying] to see "))
     (insert-button "the conditions"
-		   'action (lambda (button) (describe-copying))
+		   'action (lambda (_button) (describe-copying))
 		   'follow-link t)
     (insert (substitute-command-keys".
 Type \\[describe-distribution] for information on "))
     (insert-button "getting the latest version"
-		   'action (lambda (button) (describe-distribution))
+		   'action (lambda (_button) (describe-distribution))
 		   'follow-link t)
     (insert ".")))
 

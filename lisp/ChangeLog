@@ -1,3 +1,13 @@
+2011-03-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (with-output-to-temp-buffer): Don't change current-buffer to
+	standard-output while running the body.
+
+	* startup.el: Fix up warnings, move lambda expressions
+	outside of quote.
+
+	* Makefile.in (COMPILE_FIRST): Remove pcase; it's not so important.
+
 2011-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* startup.el: Convert to lexical-binding.  Mark unused arguments.

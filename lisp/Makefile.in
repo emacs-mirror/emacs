@@ -85,7 +85,6 @@ BYTE_COMPILE_FLAGS = $(BIG_STACK_OPTS) $(BYTE_COMPILE_EXTRA_FLAGS)
 COMPILE_FIRST = \
 	$(lisp)/emacs-lisp/bytecomp.elc \
 	$(lisp)/emacs-lisp/byte-opt.elc \
-	$(lisp)/emacs-lisp/pcase.elc \
 	$(lisp)/emacs-lisp/macroexp.elc \
 	$(lisp)/emacs-lisp/cconv.elc \
 	$(lisp)/emacs-lisp/autoload.elc
