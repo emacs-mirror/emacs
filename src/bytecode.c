@@ -554,7 +554,16 @@ If the third argument is incorrect, Emacs may crash.  */)
 	  {
 	    Lisp_Object v1;
 	    v1 = TOP;
-	    TOP = CAR (v1);
+	    if (CONSP (v1))
+	      TOP = XCAR (v1);
+	    else if (NILP (v1))
+	      TOP = Qnil;
+	    else
+	      {
+		BEFORE_POTENTIAL_GC ();
+		wrong_type_argument (Qlistp, v1);
+		AFTER_POTENTIAL_GC ();
+	      }
 	    break;
 	  }
 
@@ -580,7 +589,17 @@ If the third argument is incorrect, Emacs may crash.  */)
 	  {
 	    Lisp_Object v1;
 	    v1 = TOP;
-	    TOP = CDR (v1);
+	    if (CONSP (v1))
+	      TOP = XCDR (v1);
+	    else if (NILP (v1))
+	      TOP = Qnil;
+	    else
+	      {
+		BEFORE_POTENTIAL_GC ();
+		wrong_type_argument (Qlistp, v1);
+		AFTER_POTENTIAL_GC ();
+	      }
+	    break;
 	    break;
 	  }
 
@@ -911,13 +930,13 @@ If the third argument is incorrect, Emacs may crash.  */)
 	    v1 = POP;
 	    v2 = TOP;
 	    CHECK_NUMBER (v2);
-	    AFTER_POTENTIAL_GC ();
 	    op = XINT (v2);
 	    immediate_quit = 1;
 	    while (--op >= 0 && CONSP (v1))
 	      v1 = XCDR (v1);
 	    immediate_quit = 0;
 	    TOP = CAR (v1);
+	    AFTER_POTENTIAL_GC ();
 	    break;
 	  }
 
