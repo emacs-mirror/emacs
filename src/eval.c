@@ -38,16 +38,20 @@ struct backtrace
   struct backtrace *next;
   Lisp_Object *function;
   Lisp_Object *args;	/* Points to vector of args.  */
-  size_t nargs;		/* Length of vector.
-			   If nargs is (size_t) UNEVALLED, args points
-			   to slot holding list of unevalled args.  */
-  char evalargs;
+#define NARGS_BITS (BITS_PER_INT - 2)
+  /* Let's not use size_t because we want to allow negative values (for
+     UNEVALLED).  Also let's steal 2 bits so we save a word (or more for
+     alignment).  In any case I doubt Emacs would survive a function call with
+     more than 500M arguments.  */
+  int nargs : NARGS_BITS; /* Length of vector.
+			     If nargs is UNEVALLED, args points
+			     to slot holding list of unevalled args.  */
+  char evalargs : 1;
   /* Nonzero means call value of debugger when done with this operation.  */
-  char debug_on_exit;
+  char debug_on_exit : 1;
 };
 
 struct backtrace *backtrace_list;
-
 struct catchtag *catchlist;
 
 #ifdef DEBUG_GCPRO
@@ -553,7 +557,7 @@ interactive_p (int exclude_subrs_p)
      looking at several frames for special forms.  Skip past them.  */
   while (btp
 	 && (EQ (*btp->function, Qbytecode)
-	     || btp->nargs == (size_t) UNEVALLED))
+	     || btp->nargs == UNEVALLED))
     btp = btp->next;
 
   /* `btp' now points at the frame of the innermost function that isn't
@@ -3335,7 +3339,7 @@ Output stream used is value of `standard-output'.  */)
   while (backlist)
     {
       write_string (backlist->debug_on_exit ? "* " : "  ", 2);
-      if (backlist->nargs == (size_t) UNEVALLED)
+      if (backlist->nargs == UNEVALLED)
 	{
 	  Fprin1 (Fcons (*backlist->function, *backlist->args), Qnil);
 	  write_string ("\n", -1);
@@ -3345,8 +3349,8 @@ Output stream used is value of `standard-output'.  */)
 	  tem = *backlist->function;
 	  Fprin1 (tem, Qnil);	/* This can QUIT.  */
 	  write_string ("(", -1);
-	  if (backlist->nargs == (size_t) MANY)
-	    {
+	  if (backlist->nargs == MANY)
+	    {			/* FIXME: Can this happen?  */
 	      int i;
 	      for (tail = *backlist->args, i = 0;
 		   !NILP (tail);
@@ -3399,11 +3403,11 @@ If NFRAMES is more than the number of frames, the value is nil.  */)
 
   if (!backlist)
     return Qnil;
-  if (backlist->nargs == (size_t) UNEVALLED)
+  if (backlist->nargs == UNEVALLED)
     return Fcons (Qnil, Fcons (*backlist->function, *backlist->args));
   else
     {
-      if (backlist->nargs == (size_t) MANY)
+      if (backlist->nargs == MANY) /* FIXME: Can this happen?  */
 	tem = *backlist->args;
       else
 	tem = Flist (backlist->nargs, backlist->args);
@@ -3423,8 +3427,8 @@ mark_backtrace (void)
     {
       mark_object (*backlist->function);
 
-      if (backlist->nargs == (size_t) UNEVALLED
-	  || backlist->nargs == (size_t) MANY)
+      if (backlist->nargs == UNEVALLED
+	  || backlist->nargs == MANY) /* FIXME: Can this happen?  */
 	i = 1;
       else
 	i = backlist->nargs;

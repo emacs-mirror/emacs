@@ -1,5 +1,10 @@
 2011-03-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* eval.c (struct backtrace): Don't cheat with negative numbers, but do
+	steal a few bits to be more compact.
+	(interactive_p, Fbacktrace, Fbacktrace_frame, mark_backtrace):
+	Remove unneeded casts.
+
 	* bytecode.c (Fbyte_code): CAR and CDR can GC.
 
 2011-03-30  Zachary Kanfer  <zkanfer@gmail.com>  (tiny change)
@@ -344,8 +349,8 @@
 	(create_process): Use 'volatile' to avoid vfork clobbering (Bug#8298).
 
 	Make tparam.h and terminfo.c consistent.
-	* cm.c (tputs, tgoto, BC, UP): Remove extern decls.  Include
-	tparam.h instead, since it declares them.
+	* cm.c (tputs, tgoto, BC, UP): Remove extern decls.
+	Include tparam.h instead, since it declares them.
 	* cm.h (PC): Remove extern decl; tparam.h now does this.
 	* deps.mk (cm.o, terminfo.o): Depend on tparam.h.
 	* terminfo.c: Include tparam.h, to check interfaces.
@@ -391,8 +396,8 @@
 
 	* intervals.h (CHECK_TOTAL_LENGTH): Avoid empty "else".
 
-	* atimer.c (start_atimer, append_atimer_lists, set_alarm): Rename
-	locals to avoid shadowing.
+	* atimer.c (start_atimer, append_atimer_lists, set_alarm):
+	Rename locals to avoid shadowing.
 
 	* sound.c (wav_play, au_play, Fplay_sound_internal):
 	Fix pointer signedness.
@@ -561,8 +566,8 @@
 	gcc -Wbad-function-cast warning.
 	(default_value, arithcompare, arith_driver, arith_error): Now static.
 	(store_symval_forwarding): Rename local to avoid shadowing.
-	(Fmake_variable_buffer_local, Fmake_local_variable): Mark
-	variables as initialized.
+	(Fmake_variable_buffer_local, Fmake_local_variable):
+	Mark variables as initialized.
 	(do_blv_forwarding, do_symval_forwarding): Remove; unused.
 
 	* alloc.c (check_cons_list): Do not define unless GC_CHECK_CONS_LIST.
@@ -816,8 +821,8 @@
 	(BUF_PT_BYTE): Rewrite to handle indirect buffers (Bug#8219).
 	These macros can no longer be used for assignment.
 
-	* buffer.c (Fget_buffer_create, Fmake_indirect_buffer): Assign
-	struct members directly, instead of using BUF_BEGV etc.
+	* buffer.c (Fget_buffer_create, Fmake_indirect_buffer):
+	Assign struct members directly, instead of using BUF_BEGV etc.
 	(record_buffer_markers, fetch_buffer_markers): New functions for
 	recording and fetching special buffer markers.
 	(set_buffer_internal_1, set_buffer_temp): Use them.
@@ -938,8 +943,8 @@
 	* term.c (encode_terminal_code): Now external again, used by
 	w32console.c and msdos.c.
 
-	* makefile.w32-in ($(BLD)/term.$(O), ($(BLD)/tparam.$(O)): Depend
-	on $(SRC)/tparam.h, see revno 103623.
+	* makefile.w32-in ($(BLD)/term.$(O), ($(BLD)/tparam.$(O)):
+	Depend on $(SRC)/tparam.h, see revno 103623.
 
 2011-03-11  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -1003,8 +1008,8 @@
 	(x_delete_glyphs, x_ins_del_lines): Mark with NO_RETURN.
 	(x_connection_closed): Tell GCC not to suggest NO_RETURN.
 
-	* xfaces.c (clear_face_cache, Fx_list_fonts, Fface_font): Rename
-	or move locals to avoid shadowing.
+	* xfaces.c (clear_face_cache, Fx_list_fonts, Fface_font):
+	Rename or move locals to avoid shadowing.
 	(tty_defined_color, merge_face_heights): Now static.
 	(free_realized_faces_for_fontset): Remove; not used.
 	(Fx_list_fonts): Mark variable that gcc -Wuninitialized
@@ -1162,12 +1167,12 @@
 	(xg_prepare_tooltip, xg_hide_tooltip): Call gdk_window_get_screen.
 	(xg_prepare_tooltip, create_dialog, menubar_map_cb)
 	(xg_update_frame_menubar, xg_tool_bar_detach_callback)
-	(xg_tool_bar_attach_callback, xg_update_tool_bar_sizes): Call
-	gtk_widget_get_preferred_size.
+	(xg_tool_bar_attach_callback, xg_update_tool_bar_sizes):
+	Call gtk_widget_get_preferred_size.
 	(xg_frame_resized): gdk_window_get_geometry only takes 5
 	parameters.
-	(xg_win_to_widget, xg_event_is_for_menubar): Call
-	gdk_x11_window_lookup_for_display.
+	(xg_win_to_widget, xg_event_is_for_menubar):
+	Call gdk_x11_window_lookup_for_display.
 	(xg_set_widget_bg): New function.
 	(delete_cb): New function.
 	(xg_create_frame_widgets): connect delete-event to delete_cb.
@@ -1263,7 +1268,7 @@
 	(produce_glyphless_glyph): Make a pointer "const"
 	since it might point to immutable storage.
 	(update_window_cursor): Now static, since it's not used elsewhere.
-	(SKIP_GLYPHS): Removed unused macro.
+	(SKIP_GLYPHS): Remove unused macro.
 
 2011-03-06  Michael Shields  <shields@msrl.com>  (tiny change)
 
@@ -7760,7 +7765,7 @@
 	* xterm.c (x_send_scroll_bar_event, SET_SAVED_MENU_EVENT)
 	(handle_one_xevent, x_check_errors, xim_initialize, x_term_init):
 	Likewise.
-	* character.h (BCOPY_SHORT): Removed.
+	* character.h (BCOPY_SHORT): Remove.
 	* config.in: Regenerate.
 	* dispnew.c (safe_bcopy): Only define as dummy if PROFILING.
 	* emacs.c (main) [PROFILING]: Don't declare
@@ -19549,7 +19554,7 @@
 	Set xftfont_info->ft_size.  Don't unlock the face.  Check BDF
 	properties if appropriate.
 	(xftfont_close): Unlock the face.
-	(xftfont_anchor_point, xftfont_shape): Deleted.
+	(xftfont_anchor_point, xftfont_shape): Delete.
 	(syms_of_xftfont): Don't set members anchor_point and shape of
 	xftfont_driver.
 
@@ -21454,7 +21459,7 @@
 	Delete externs.
 	(fontset_from_font_name): Extern it.
 	(FS_LOAD_FONT, FONT_INFO_ID, FONT_INFO_FROM_ID)
-	(FONT_INFO_FROM_FACE): Deleted.
+	(FONT_INFO_FROM_FACE): Delete.
 	(face_for_font): Adjust prototype.
 
 	* fontset.c: Throughout the file, delete all USE_FONT_BACKEND
@@ -21471,7 +21476,7 @@
 	(fontset_compare_rfontdef): New function.
 	(reorder_font_vector): Remove the argument CHARSET-ID.  Sort
 	rfont-defs by qsort.  Adjusted for the change of font-group vector.
-	(load_font_get_repertory): Deleted.
+	(load_font_get_repertory): Delete.
 	(fontset_find_font): Use new macros to ref/set elements of
 	font-def and rfont-def.
 	(fontset_font): Fix the timing of remembering that no font for C.
@@ -21487,11 +21492,11 @@
 	font-def.
 	(Fnew_fontset): Use font_unparse_xlfd to generate
 	FONTSET_ASCII (fontset).
-	(new_fontset_from_font_name): Deleted.
+	(new_fontset_from_font_name): Delete.
 	(fontset_from_font): Rename from new_fontset_from_font.  Check if
 	a fontset is already created for the font.  FIx updating of
 	Vfontset_alias_alist.
-	(fontset_ascii_font): Deleted.
+	(fontset_ascii_font): Delete.
 	(Ffont_info): Adjust for the format change of font-spec.
 	(Finternal_char_font): Likewise.
 	(Ffontset_info): Likewise.
@@ -21519,7 +21524,7 @@
 	(ftfont_list): Return a list, not vector.
 	(ftfont_match): Use ftfont_spec_pattern to get a pattern.
 	(ftfont_list_family): Don't downcase names.
-	(ftfont_free_entity): Deleted.
+	(ftfont_free_entity): Delete.
 	(ftfont_open): Return a font-object.  Adjusted for the change of
 	struct font.  Get underline_thickness and underline_position from
 	font property.  Don't update dpyinfo->smallest_font_height and
@@ -21571,13 +21576,13 @@
 	(QCfoundry, QCadstyle, QCregistry, QCspacing, QCsize, QCavgwidth)
 	(Qp): Extern them.
 	(clear_font_table, load_face_font, xlfd_lookup_field_contents):
-	Deleted.
-	(struct font_name): Deleted.
-	(xlfd_numeric_value, xlfd_symbolic_value): Deleted.
+	Delete.
+	(struct font_name): Delete.
+	(xlfd_numeric_value, xlfd_symbolic_value): Delete.
 	(compare_fonts_by_sort_order): New function.
 	(xlfd_numeric_slant, xlfd_symbolic_slant, xlfd_numeric_weight)
 	(xlfd_symbolic_weight, xlfd_numeric_swidth, xlfd_symbolic_swidth):
-	Deleted.
+	Delete.
 	(Fx_family_fonts): Use font_list_entities, and sort fonts by
 	compare_fonts_by_sort_order.
 	(Fx_font_family_list): Call Ffont_family_list.
@@ -21590,9 +21595,9 @@
 	(free_font_names, sort_fonts, x_face_list_fonts)
 	(face_font_available_p, sorted_font_list, cmp_font_names)
 	(font_list_1, concat_font_list, font_list, remove_duplicates):
-	Deleted.
+	Delete.
 	(Fx_list_fonts): Use Ffont_list.
-	(LFACE_AVGWIDTH): Deleted.
+	(LFACE_AVGWIDTH): Delete.
 	(check_lface_attrs): Don't check LFACE_AVGWIDTH.  Check LFACE_FONT
 	by FONTP.
 	(lface_fully_specified_p): Don't check LFACE_AVGWIDTH.
@@ -21614,7 +21619,7 @@
 	(Fface_font): Get a font name from font->props[FONT_NAME_INDEX].
 	(lface_same_font_attributes_p): Don't check LFACE_AVGWIDTH.
 	Compare fonts by EQ.
-	(lookup_non_ascii_face): Deleted.
+	(lookup_non_ascii_face): Delete.
 	(face_for_font): The 2nd argument changed.
 	(x_supports_face_attributes_p): Don't check LFACE_AVGWIDTH.
 	Check atomic font properties by case insensitive.
@@ -21637,7 +21642,7 @@
 
 	* xfont.c: Include <stdlib.h> and "ccl.h".
 	(struct xfont_info): New structure.
-	(xfont_query_font): Deleted.
+	(xfont_query_font): Delete.
 	(xfont_find_ccl_program): Rename from x_find_ccl_program and
 	moved from xterm.c.
 	(xfont_driver): Adjust for the change of struct font_driver.
@@ -21653,7 +21658,7 @@
 	dpyinfo->smallest_char_width.
 	(xfont_close): Don't free struct font.
 	(xfont_prepare_face): Adjust for the change of struct font.
-	(xfont_done_face): Deleted.
+	(xfont_done_face): Delete.
 	(xfont_has_char): Adjust for the change of struct font.
 	(xfont_encode_char, xfont_draw): Likewise.
 	(xfont_check): New function.
@@ -21683,7 +21688,7 @@
 	* xterm.c: Throughout the file, delete all USE_FONT_BACKEND
 	conditionals.  Don't check enable_font_backend.  Delete all codes
 	used only when USE_FONT_BACKEND is not defined.  Don't include ccl.h.
-	(x_per_char_metric, x_encode_char): Deleted.
+	(x_per_char_metric, x_encode_char): Delete.
 	(x_set_cursor_gc, x_set_mouse_face_gc): Don't set GCFont.
 	(x_compute_glyph_string_overhangs): Adjust for the change of
 	`struct face'.
@@ -21692,10 +21697,10 @@
 	(x_draw_glyph_string): Likewise.  Use font->underline_position and
 	font->underline_thickness.
 	(x_new_font): Rename from x_new_fontset2.
-	(x_new_fontset, x_get_font_info, x_list_fonts): Deleted.
+	(x_new_fontset, x_get_font_info, x_list_fonts): Delete.
 	(x_check_font): Call `check' method of a font driver.
 	(x_font_min_bounds, x_compute_min_glyph_bounds, x_load_font)
-	(x_query_font, x_get_font_repertory): Deleted.
+	(x_query_font, x_get_font_repertory): Delete.
 	(x_find_ccl_program): Rename and moved to xfont.c.
 	(x_redisplay_interface): Adjust for the change of `struct
 	redisplay_interface'.
