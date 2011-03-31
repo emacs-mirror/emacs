@@ -807,7 +807,7 @@ static void push_it (struct it *);
 static void pop_it (struct it *);
 static void sync_frame_with_window_matrix_rows (struct window *);
 static void select_frame_for_redisplay (Lisp_Object);
-static void redisplay_internal ();
+static void redisplay_internal (void);
 static int echo_area_display (int);
 static void redisplay_windows (Lisp_Object);
 static void redisplay_window (Lisp_Object, int);
@@ -11415,7 +11415,7 @@ do { if (polling_stopped_here) start_polling ();	\
    is not necessary; currently that causes some problems.  */
 
 static void
-redisplay_internal ()
+redisplay_internal (void)
 {
   struct window *w = XWINDOW (selected_window);
   struct window *sw;

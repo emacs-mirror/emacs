@@ -1,3 +1,7 @@
+2011-03-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* xdisp.c (redisplay_internal): Fix prototype.
+
 2011-03-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (SCROLL_LIMIT): New macro.
@@ -18,11 +22,6 @@
 	margin as result of the scroll.
 	(syms_of_xdisp) <scroll-conservatively>: Document the
 	threshold of 100 lines for never-recentering scrolling.
-
-2011-03-26  Eli Zaretskii  <eliz@gnu.org>
-
-	* xdisp.c (redisplay_window): Don't check buffer's clip_changed
-	flag as a prerequisite for invoking try_scrolling.  (Bug#6671)
 
 2011-03-31  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -209,6 +208,11 @@
 	Replace SIGTYPE with void everywhere.
 	* s/usg5-4-common.h (SIGTYPE): Remove definition.
 	* s/template.h (SIGTYPE): Remove commented out definition.
+
+2011-03-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (redisplay_window): Don't check buffer's clip_changed
+	flag as a prerequisite for invoking try_scrolling.  (Bug#6671)
 
 2011-03-26  Juanma Barranquero  <lekktu@gmail.com>
 
