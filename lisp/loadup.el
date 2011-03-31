@@ -106,7 +106,6 @@
 
 (load "cus-face")
 (load "faces")  ; after here, `defface' may be used.
-(load "minibuffer")
 
 (load "button")
 (load "startup")
@@ -117,6 +116,7 @@
   ;; In case loaddefs hasn't been generated yet.
   (file-error (load "ldefs-boot.el")))
 
+(load "minibuffer")
 (load "abbrev")         ;lisp-mode.el and simple.el use define-abbrev-table.
 (load "simple")
 
