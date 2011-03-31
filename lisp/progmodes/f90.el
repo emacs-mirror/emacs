@@ -2203,7 +2203,7 @@ CHANGE-WORD should be one of 'upcase-word, 'downcase-word, 'capitalize-word."
   (let ((tag (find-tag-default)))
     (or (and tag
              ;; See bug#7919. TODO I imagine there are other cases...?
-             (string-match "%\\(.+\\)" tag)
+             (string-match "%\\([^%]+\\)\\'" tag)
              (match-string-no-properties 1 tag))
         tag)))
 

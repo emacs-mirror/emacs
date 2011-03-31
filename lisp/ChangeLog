@@ -1,5 +1,7 @@
 2011-03-31  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/f90.el (f90-find-tag-default): Handle multiple `%'.
+
 	* generic-x.el (etc-fstab-generic-mode): Add ext4, sysfs keywords.
 
 2011-03-30  Christoph Scholtes  <cschol2112@googlemail.com>
