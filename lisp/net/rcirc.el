@@ -2454,7 +2454,15 @@ keywords when no KEYWORD is given."
     (setq rcirc-nick (car args))
     (rcirc-update-prompt)
     (if rcirc-auto-authenticate-flag
-        (if rcirc-authenticate-before-join
+        (if (and rcirc-authenticate-before-join
+		 ;; We have to ensure that there's an authentication
+		 ;; entry for that server.  Else,
+		 ;; rcirc-authenticated-hook won't be triggered, and
+		 ;; autojoin won't happen at all.
+		 (let (auth-required)
+		   (dolist (s rcirc-authinfo auth-required)
+		     (when (string-match (car s) rcirc-server-name)
+		       (setq auth-required t)))))
             (progn
 	      (add-hook 'rcirc-authenticated-hook 'rcirc-join-channels-post-auth t t)
               (rcirc-authenticate))
