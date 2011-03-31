@@ -890,7 +890,7 @@ to that frame.  */)
 {
   /* Preserve prefix arg that the command loop just cleared.  */
   KVAR (current_kboard, Vprefix_arg) = Vcurrent_prefix_arg;
-  call1 (Vrun_hooks, Qmouse_leave_buffer_hook);
+  Frun_hooks (1, &Qmouse_leave_buffer_hook);
   return do_switch_frame (event, 0, 0, Qnil);
 }
 
@@ -2529,7 +2529,7 @@ use is not recommended.  Explicitly check for a frame-parameter instead.  */)
 	}
 
       /* Now process them in reverse of specified order.  */
-      for (i--; i >= 0; i--)
+      while (--i >= 0)
 	{
 	  prop = parms[i];
 	  val = values[i];
@@ -2902,7 +2902,7 @@ x_set_frame_parameters (FRAME_PTR f, Lisp_Object alist)
   /* Record in these vectors all the parms specified.  */
   Lisp_Object *parms;
   Lisp_Object *values;
-  int i, p;
+  size_t i, p;
   int left_no_change = 0, top_no_change = 0;
   int icon_left_no_change = 0, icon_top_no_change = 0;
   int size_changed = 0;
@@ -2975,7 +2975,7 @@ x_set_frame_parameters (FRAME_PTR f, Lisp_Object alist)
     }
 
   /* Now process them in reverse of specified order.  */
-  for (i--; i >= 0; i--)
+  while (i-- != 0)
     {
       Lisp_Object prop, val;
 
@@ -3713,8 +3713,7 @@ validate_x_resource_name (void)
     return;
 
   /* If name is entirely invalid, or nearly so, use `emacs'.  */
-  if (good_count == 0
-      || (good_count == 1 && bad_count > 0))
+  if (good_count < 2)
     {
       Vx_resource_name = build_string ("emacs");
       return;

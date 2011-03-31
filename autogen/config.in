@@ -833,6 +833,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if `vfork' works. */
 #undef HAVE_WORKING_VFORK
 
+/* Define to 1 if you have the <ws2tcpip.h> header file. */
+#undef HAVE_WS2TCPIP_H
+
 /* Define to 1 if you want to use version 11 of X windows. Otherwise, Emacs
    expects to use version 10. */
 #undef HAVE_X11
@@ -995,9 +998,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if stat needs help when passed a file name with a trailing
    slash */
 #undef REPLACE_FUNC_STAT_FILE
-
-/* Define as the return type of signal handlers (`int' or `void'). */
-#undef RETSIGTYPE
 
 /* Define to l, ll, u, ul, ull, etc., as suitable for constants of type
    'sig_atomic_t'. */
@@ -1206,6 +1206,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 # define __restrict__
 #endif
 
+/* type to use in place of socklen_t if not defined */
+#undef socklen_t
+
 /* Define to any substitute for sys_siglist. */
 #undef sys_siglist
 
@@ -1266,11 +1269,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    exactly since GNUstep is multi-OS.  */
 #if defined HAVE_NS && defined NS_IMPL_GNUSTEP
 #  define SYSTEM_PURESIZE_EXTRA 30000
-#endif
-
-/* SIGTYPE is the macro we actually use.  */
-#ifndef SIGTYPE
-#define SIGTYPE RETSIGTYPE
 #endif
 
 #ifdef emacs /* Don't do this for lib-src.  */

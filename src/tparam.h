@@ -29,3 +29,7 @@ char *tgetstr (const char *, char **);
 char *tgoto (const char *, int, int);
 
 char *tparam (const char *, char *, int, int, int, int, int);
+
+extern char PC;
+extern char *BC;
+extern char *UP;

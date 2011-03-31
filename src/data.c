@@ -2476,13 +2476,13 @@ enum arithop
     Amin
   };
 
-static Lisp_Object float_arith_driver (double, int, enum arithop,
-                                       int, Lisp_Object *);
+static Lisp_Object float_arith_driver (double, size_t, enum arithop,
+                                       size_t, Lisp_Object *);
 static Lisp_Object
-arith_driver (enum arithop code, int nargs, register Lisp_Object *args)
+arith_driver (enum arithop code, size_t nargs, register Lisp_Object *args)
 {
   register Lisp_Object val;
-  register int argnum;
+  register size_t argnum;
   register EMACS_INT accum = 0;
   register EMACS_INT next;
 
@@ -2564,7 +2564,8 @@ arith_driver (enum arithop code, int nargs, register Lisp_Object *args)
 #define isnan(x) ((x) != (x))
 
 static Lisp_Object
-float_arith_driver (double accum, register int argnum, enum arithop code, int nargs, register Lisp_Object *args)
+float_arith_driver (double accum, register size_t argnum, enum arithop code,
+		    size_t nargs, register Lisp_Object *args)
 {
   register Lisp_Object val;
   double next;
@@ -2626,7 +2627,7 @@ float_arith_driver (double accum, register int argnum, enum arithop code, int na
 DEFUN ("+", Fplus, Splus, 0, MANY, 0,
        doc: /* Return sum of any number of arguments, which are numbers or markers.
 usage: (+ &rest NUMBERS-OR-MARKERS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   return arith_driver (Aadd, nargs, args);
 }
@@ -2636,7 +2637,7 @@ DEFUN ("-", Fminus, Sminus, 0, MANY, 0,
 With one arg, negates it.  With more than one arg,
 subtracts all but the first from the first.
 usage: (- &optional NUMBER-OR-MARKER &rest MORE-NUMBERS-OR-MARKERS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   return arith_driver (Asub, nargs, args);
 }
@@ -2644,7 +2645,7 @@ usage: (- &optional NUMBER-OR-MARKER &rest MORE-NUMBERS-OR-MARKERS)  */)
 DEFUN ("*", Ftimes, Stimes, 0, MANY, 0,
        doc: /* Return product of any number of arguments, which are numbers or markers.
 usage: (* &rest NUMBERS-OR-MARKERS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   return arith_driver (Amult, nargs, args);
 }
@@ -2653,9 +2654,9 @@ DEFUN ("/", Fquo, Squo, 2, MANY, 0,
        doc: /* Return first argument divided by all the remaining arguments.
 The arguments must be numbers or markers.
 usage: (/ DIVIDEND DIVISOR &rest DIVISORS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
-  int argnum;
+  size_t argnum;
   for (argnum = 2; argnum < nargs; argnum++)
     if (FLOATP (args[argnum]))
       return float_arith_driver (0, 0, Adiv, nargs, args);
@@ -2737,7 +2738,7 @@ DEFUN ("max", Fmax, Smax, 1, MANY, 0,
        doc: /* Return largest of all the arguments (which must be numbers or markers).
 The value is always a number; markers are converted to numbers.
 usage: (max NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   return arith_driver (Amax, nargs, args);
 }
@@ -2746,7 +2747,7 @@ DEFUN ("min", Fmin, Smin, 1, MANY, 0,
        doc: /* Return smallest of all the arguments (which must be numbers or markers).
 The value is always a number; markers are converted to numbers.
 usage: (min NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   return arith_driver (Amin, nargs, args);
 }
@@ -2755,7 +2756,7 @@ DEFUN ("logand", Flogand, Slogand, 0, MANY, 0,
        doc: /* Return bitwise-and of all the arguments.
 Arguments may be integers, or markers converted to integers.
 usage: (logand &rest INTS-OR-MARKERS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   return arith_driver (Alogand, nargs, args);
 }
@@ -2764,7 +2765,7 @@ DEFUN ("logior", Flogior, Slogior, 0, MANY, 0,
        doc: /* Return bitwise-or of all the arguments.
 Arguments may be integers, or markers converted to integers.
 usage: (logior &rest INTS-OR-MARKERS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   return arith_driver (Alogior, nargs, args);
 }
@@ -2773,7 +2774,7 @@ DEFUN ("logxor", Flogxor, Slogxor, 0, MANY, 0,
        doc: /* Return bitwise-exclusive-or of all the arguments.
 Arguments may be integers, or markers converted to integers.
 usage: (logxor &rest INTS-OR-MARKERS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   return arith_driver (Alogxor, nargs, args);
 }
@@ -3302,7 +3303,7 @@ syms_of_data (void)
   XSYMBOL (intern_c_string ("most-negative-fixnum"))->constant = 1;
 }
 
-static SIGTYPE
+static void
 arith_error (int signo)
 {
   sigsetmask (SIGEMPTYMASK);

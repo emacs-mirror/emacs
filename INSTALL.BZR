@@ -17,11 +17,11 @@ The `autogen.sh' script can help you figure out if you have the
 necessary tools.
 
 The first time you build, there are a couple of extra steps.
-First, generate the `configure' script:
+First, generate the `configure' script and some related files:
 
   $ ./autogen.sh
 
-(or you can just run `autoreconf -I m4').
+(or you can just run `autoreconf -i -I m4').
 
 You can then configure your build (use `./configure --help' to see
 options you can set):

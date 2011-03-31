@@ -4489,8 +4489,9 @@ Topic exposure is marked with text-properties, to be used by
             ;; advance to just after end of this annotation:
             (setq next (allout-next-single-char-property-change
                         (point) 'allout-was-hidden nil end))
-            (overlay-put (make-overlay prev next nil 'front-advance)
-                         'category 'allout-exposure-category)
+            (let ((o (make-overlay prev next nil 'front-advance)))
+              (overlay-put o 'category 'allout-exposure-category)
+              (overlay-put o 'evaporate t))
             (allout-deannotate-hidden prev next)
             (setq prev next)
             (if next (goto-char next)))))

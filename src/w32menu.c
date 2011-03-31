@@ -1320,7 +1320,6 @@ utf8to16 (unsigned char * src, int len, WCHAR * dest)
 {
   while (len > 0)
     {
-      int utf16;
       if (*src < 0x80)
 	{
 	  *dest = (WCHAR) *src;
@@ -1546,8 +1545,6 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 static int
 fill_in_menu (HMENU menu, widget_value *wv)
 {
-  int items_added = 0;
-
   for ( ; wv != NULL; wv = wv->next)
     {
       if (wv->contents)
@@ -1619,7 +1616,7 @@ w32_menu_display_help (HWND owner, HMENU menu, UINT item, UINT flags)
       else
 	/* X version has a loop through frames here, which doesn't
 	   appear to do anything, unless it has some side effect.  */
-	show_help_echo (help, Qnil, Qnil, Qnil, 1);
+	show_help_echo (help, Qnil, Qnil, Qnil);
     }
 }
 

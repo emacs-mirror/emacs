@@ -45,10 +45,12 @@ AC_DEFUN([gl_EARLY],
   # Code from module mktime:
   # Code from module multiarch:
   # Code from module readlink:
+  # Code from module socklen:
   # Code from module stat:
   # Code from module stdbool:
   # Code from module stddef:
   # Code from module stdint:
+  # Code from module stdio:
   # Code from module stdlib:
   # Code from module strftime:
   # Code from module symlink:
@@ -111,6 +113,8 @@ AC_DEFUN([gl_INIT],
   # Code from module readlink:
   gl_FUNC_READLINK
   gl_UNISTD_MODULE_INDICATOR([readlink])
+  # Code from module socklen:
+  gl_TYPE_SOCKLEN_T
   # Code from module stat:
   gl_FUNC_STAT
   gl_SYS_STAT_MODULE_INDICATOR([stat])
@@ -120,6 +124,8 @@ AC_DEFUN([gl_INIT],
   gl_STDDEF_H
   # Code from module stdint:
   gl_STDINT_H
+  # Code from module stdio:
+  gl_STDIO_H
   # Code from module stdlib:
   gl_STDLIB_H
   # Code from module strftime:
@@ -305,6 +311,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/stdbool.in.h
   lib/stddef.in.h
   lib/stdint.in.h
+  lib/stdio.in.h
   lib/stdlib.in.h
   lib/strftime.c
   lib/strftime.h
@@ -327,11 +334,13 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/mktime.m4
   m4/multiarch.m4
   m4/readlink.m4
+  m4/socklen.m4
   m4/st_dm_mode.m4
   m4/stat.m4
   m4/stdbool.m4
   m4/stddef_h.m4
   m4/stdint.m4
+  m4/stdio_h.m4
   m4/stdlib_h.m4
   m4/strftime.m4
   m4/symlink.m4

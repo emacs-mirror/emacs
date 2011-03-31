@@ -201,8 +201,8 @@ Lisp_Object unread_switch_frame;
 /* Last size recorded for a current buffer which is not a minibuffer.  */
 static EMACS_INT last_non_minibuf_size;
 
-/* Total number of times read_char has returned.  */
-int num_input_events;
+/* Total number of times read_char has returned, modulo SIZE_MAX + 1.  */
+size_t num_input_events;
 
 /* Value of num_nonmacro_input_events as of last auto save.  */
 
@@ -254,7 +254,6 @@ Lisp_Object Qecho_area_clear_hook;
 /* Hooks to run before and after each command.  */
 Lisp_Object Qpre_command_hook;
 Lisp_Object Qpost_command_hook;
-Lisp_Object Qcommand_hook_internal;
 
 Lisp_Object Qdeferred_action_function;
 
@@ -351,7 +350,7 @@ Lisp_Object Qmenu_bar;
 Lisp_Object recursive_edit_unwind (Lisp_Object buffer), command_loop (void);
 Lisp_Object Fthis_command_keys (void);
 Lisp_Object Qextended_command_history;
-EMACS_TIME timer_check (int do_it_now);
+EMACS_TIME timer_check (void);
 
 static void record_menu_key (Lisp_Object c);
 static int echo_length (void);
@@ -434,15 +433,15 @@ static void restore_getcjmp (jmp_buf);
 static Lisp_Object apply_modifiers (int, Lisp_Object);
 static void clear_event (struct input_event *);
 static Lisp_Object restore_kboard_configuration (Lisp_Object);
-static SIGTYPE interrupt_signal (int signalnum);
+static void interrupt_signal (int signalnum);
 #ifdef SIGIO
-static SIGTYPE input_available_signal (int signo);
+static void input_available_signal (int signo);
 #endif
 static void handle_interrupt (void);
 static void timer_start_idle (void);
 static void timer_stop_idle (void);
 static void timer_resume_idle (void);
-static SIGTYPE handle_user_signal (int);
+static void handle_user_signal (int);
 static char *find_user_signal_name (int);
 static int store_user_signal_events (void);
 
@@ -1270,7 +1269,7 @@ some_mouse_moved (void)
 /* This is the actual command reading loop,
    sans error-handling encapsulation.  */
 
-static int read_key_sequence (Lisp_Object *, int, Lisp_Object,
+static int read_key_sequence (Lisp_Object *, size_t, Lisp_Object,
                               int, int, int);
 void safe_run_hooks (Lisp_Object);
 static void adjust_point_for_property (EMACS_INT, int);
@@ -1492,10 +1491,7 @@ command_loop_1 (void)
 
       Vthis_command = cmd;
       real_this_command = cmd;
-      /* Note that the value cell will never directly contain nil
-	 if the symbol is a local variable.  */
-      if (!NILP (Vpre_command_hook) && !NILP (Vrun_hooks))
-	safe_run_hooks (Qpre_command_hook);
+      safe_run_hooks (Qpre_command_hook);
 
       already_adjusted = 0;
 
@@ -1541,18 +1537,14 @@ command_loop_1 (void)
           }
       KVAR (current_kboard, Vlast_prefix_arg) = Vcurrent_prefix_arg;
 
-      /* Note that the value cell will never directly contain nil
-	 if the symbol is a local variable.  */
-      if (!NILP (Vpost_command_hook) && !NILP (Vrun_hooks))
-	safe_run_hooks (Qpost_command_hook);
+      safe_run_hooks (Qpost_command_hook);
 
       /* If displaying a message, resize the echo area window to fit
 	 that message's size exactly.  */
       if (!NILP (echo_area_buffer[0]))
 	resize_echo_area_exactly ();
 
-      if (!NILP (Vdeferred_action_list))
-	safe_run_hooks (Qdeferred_action_function);
+      safe_run_hooks (Qdeferred_action_function);
 
       /* If there is a prefix argument,
 	 1) We don't want Vlast_command to be ``universal-argument''
@@ -1621,7 +1613,10 @@ command_loop_1 (void)
 		}
 
 	      if (current_buffer != prev_buffer || MODIFF != prev_modiff)
-		call1 (Vrun_hooks, intern ("activate-mark-hook"));
+                {
+                  Lisp_Object hook = intern ("activate-mark-hook");
+                  Frun_hooks (1, &hook);
+                }
 	    }
 
 	  Vsaved_region_selection = Qnil;
@@ -1819,22 +1814,63 @@ adjust_point_for_property (EMACS_INT last_pt, int modified)
 static Lisp_Object
 safe_run_hooks_1 (void)
 {
-  if (NILP (Vrun_hooks))
-    return Qnil;
-  return call1 (Vrun_hooks, Vinhibit_quit);
+  eassert (CONSP (Vinhibit_quit));
+  return call0 (XCDR (Vinhibit_quit));
 }
 
-/* Subroutine for safe_run_hooks: handle an error by clearing out the hook.  */
+/* Subroutine for safe_run_hooks: handle an error by clearing out the function
+   from the hook.  */
 
 static Lisp_Object
-safe_run_hooks_error (Lisp_Object data)
+safe_run_hooks_error (Lisp_Object error_data)
 {
-  Lisp_Object args[3];
-  args[0] = build_string ("Error in %s: %s");
-  args[1] = Vinhibit_quit;
-  args[2] = data;
-  Fmessage (3, args);
-  return Fset (Vinhibit_quit, Qnil);
+  Lisp_Object hook
+    = CONSP (Vinhibit_quit) ? XCAR (Vinhibit_quit) : Vinhibit_quit;
+  Lisp_Object fun = CONSP (Vinhibit_quit) ? XCDR (Vinhibit_quit) : Qnil;
+  Lisp_Object args[4];
+  args[0] = build_string ("Error in %s (%s): %s");
+  args[1] = hook;
+  args[2] = fun;
+  args[3] = error_data;
+  Fmessage (4, args);
+  if (SYMBOLP (hook))
+    {
+      Lisp_Object val;
+      int found = 0;
+      Lisp_Object newval = Qnil;
+      for (val = find_symbol_value (hook); CONSP (val); val = XCDR (val))
+	if (EQ (fun, XCAR (val)))
+	  found = 1;
+	else
+	  newval = Fcons (XCAR (val), newval);
+      if (found)
+	return Fset (hook, Fnreverse (newval));
+      /* Not found in the local part of the hook.  Let's look at the global
+	 part.  */
+      newval = Qnil;
+      for (val = (NILP (Fdefault_boundp (hook)) ? Qnil
+		  : Fdefault_value (hook));
+	   CONSP (val); val = XCDR (val))
+	if (EQ (fun, XCAR (val)))
+	  found = 1;
+	else
+	  newval = Fcons (XCAR (val), newval);
+      if (found)
+	return Fset_default (hook, Fnreverse (newval));
+    }
+  return Qnil;
+}
+
+static Lisp_Object
+safe_run_hook_funcall (size_t nargs, Lisp_Object *args)
+{
+  eassert (nargs == 1);
+  if (CONSP (Vinhibit_quit))
+    XSETCDR (Vinhibit_quit, args[0]);
+  else
+    Vinhibit_quit = Fcons (Vinhibit_quit, args[0]);
+
+  return internal_condition_case (safe_run_hooks_1, Qt, safe_run_hooks_error);
 }
 
 /* If we get an error while running the hook, cause the hook variable
@@ -1844,10 +1880,13 @@ safe_run_hooks_error (Lisp_Object data)
 void
 safe_run_hooks (Lisp_Object hook)
 {
+  /* FIXME: our `internal_condition_case' does not provide any way to pass data
+     to its body or to its handlers other than via globals such as
+     dynamically-bound variables ;-)  */
   int count = SPECPDL_INDEX ();
   specbind (Qinhibit_quit, hook);
 
-  internal_condition_case (safe_run_hooks_1, Qt, safe_run_hooks_error);
+  run_hook_with_args (1, &hook, safe_run_hook_funcall);
 
   unbind_to (count, Qnil);
 }
@@ -2074,16 +2113,12 @@ make_ctrl_char (int c)
    the `display' property).  POS is the position in that string under
    the mouse.
 
-   OK_TO_OVERWRITE_KEYSTROKE_ECHO non-zero means it's okay if the help
-   echo overwrites a keystroke echo currently displayed in the echo
-   area.
-
    Note: this function may only be called with HELP nil or a string
    from X code running asynchronously.  */
 
 void
 show_help_echo (Lisp_Object help, Lisp_Object window, Lisp_Object object,
-		Lisp_Object pos, int ok_to_overwrite_keystroke_echo)
+		Lisp_Object pos)
 {
   if (!NILP (help) && !STRINGP (help))
     {
@@ -3013,7 +3048,7 @@ read_char (int commandflag, int nmaps, Lisp_Object *maps, Lisp_Object prev_event
       htem = Fcdr (htem);
       position = Fcar (htem);
 
-      show_help_echo (help, window, object, position, 0);
+      show_help_echo (help, window, object, position);
 
       /* We stopped being idle for this event; undo that.  */
       if (!end_time)
@@ -3315,7 +3350,7 @@ static int
 readable_events (int flags)
 {
   if (flags & READABLE_EVENTS_DO_TIMERS_NOW)
-    timer_check (1);
+    timer_check ();
 
   /* If the buffer contains only FOCUS_IN_EVENT events, and
      READABLE_EVENTS_FILTER_EVENTS is set, report it as empty.  */
@@ -4389,14 +4424,10 @@ timer_check_2 (void)
    Returns the time to wait until the next timer fires.
    If no timer is active, return -1.
 
-   As long as any timer is ripe, we run it.
-
-   DO_IT_NOW is now ignored.  It used to mean that we should
-   run the timer directly instead of queueing a timer-event.
-   Now we always run timers directly.  */
+   As long as any timer is ripe, we run it.  */
 
 EMACS_TIME
-timer_check (int do_it_now)
+timer_check (void)
 {
   EMACS_TIME nexttime;
 
@@ -5405,7 +5436,6 @@ make_lispy_event (struct input_event *event)
 		&& (event->modifiers & down_modifier))
 	      {
 		Lisp_Object items, item;
-		int hpos;
 		int i;
 
 		/* Find the menu bar item under `column'.  */
@@ -5974,10 +6004,10 @@ make_lispy_switch_frame (Lisp_Object frame)
    This doesn't use any caches.  */
 
 static int
-parse_modifiers_uncached (Lisp_Object symbol, int *modifier_end)
+parse_modifiers_uncached (Lisp_Object symbol, EMACS_INT *modifier_end)
 {
   Lisp_Object name;
-  int i;
+  EMACS_INT i;
   int modifiers;
 
   CHECK_SYMBOL (symbol);
@@ -5987,7 +6017,7 @@ parse_modifiers_uncached (Lisp_Object symbol, int *modifier_end)
 
   for (i = 0; i+2 <= SBYTES (name); )
     {
-      int this_mod_end = 0;
+      EMACS_INT this_mod_end = 0;
       int this_mod = 0;
 
       /* See if the name continues with a modifier word.
@@ -6184,7 +6214,7 @@ parse_modifiers (Lisp_Object symbol)
     return elements;
   else
     {
-      int end;
+      EMACS_INT end;
       int modifiers = parse_modifiers_uncached (symbol, &end);
       Lisp_Object unmodified;
       Lisp_Object mask;
@@ -7097,7 +7127,7 @@ process_pending_signals (void)
 #ifdef SIGIO   /* for entire page */
 /* Note SIGIO has been undef'd if FIONREAD is missing.  */
 
-static SIGTYPE
+static void
 input_available_signal (int signo)
 {
   /* Must preserve main program's value of errno.  */
@@ -7175,7 +7205,7 @@ add_user_signal (int sig, const char *name)
   signal (sig, handle_user_signal);
 }
 
-static SIGTYPE
+static void
 handle_user_signal (int sig)
 {
   int old_errno = errno;
@@ -8769,7 +8799,7 @@ access_keymap_keyremap (Lisp_Object map, Lisp_Object key, Lisp_Object prompt,
    The return value is non-zero if the remapping actually took place.  */
 
 static int
-keyremap_step (Lisp_Object *keybuf, int bufsize, volatile keyremap *fkey,
+keyremap_step (Lisp_Object *keybuf, size_t bufsize, volatile keyremap *fkey,
 	       int input, int doit, int *diff, Lisp_Object prompt)
 {
   Lisp_Object next, key;
@@ -8862,7 +8892,7 @@ keyremap_step (Lisp_Object *keybuf, int bufsize, volatile keyremap *fkey,
    from the selected window's buffer.  */
 
 static int
-read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
+read_key_sequence (Lisp_Object *keybuf, size_t bufsize, Lisp_Object prompt,
 		   int dont_downcase_last, int can_return_switch_frame,
 		   int fix_current_buffer)
 {
@@ -9380,80 +9410,84 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 		    last_real_key_start = t - 1;
 		}
 
-	      /* Key sequences beginning with mouse clicks are
-		 read using the keymaps in the buffer clicked on,
-		 not the current buffer.  If we're at the
-		 beginning of a key sequence, switch buffers.  */
-	      if (last_real_key_start == 0
-		  && WINDOWP (window)
-		  && BUFFERP (XWINDOW (window)->buffer)
-		  && XBUFFER (XWINDOW (window)->buffer) != current_buffer)
+	      if (last_real_key_start == 0)
 		{
-		  XVECTOR (raw_keybuf)->contents[raw_keybuf_count++] = key;
-		  keybuf[t] = key;
-		  mock_input = t + 1;
-
-		  /* Arrange to go back to the original buffer once we're
-		     done reading the key sequence.  Note that we can't
-		     use save_excursion_{save,restore} here, because they
-		     save point as well as the current buffer; we don't
-		     want to save point, because redisplay may change it,
-		     to accommodate a Fset_window_start or something.  We
-		     don't want to do this at the top of the function,
-		     because we may get input from a subprocess which
-		     wants to change the selected window and stuff (say,
-		     emacsclient).  */
-		  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
-
-		  if (! FRAME_LIVE_P (XFRAME (selected_frame)))
-		    Fkill_emacs (Qnil);
-		  set_buffer_internal (XBUFFER (XWINDOW (window)->buffer));
-		  orig_local_map = get_local_map (PT, current_buffer,
-						  Qlocal_map);
-		  orig_keymap = get_local_map (PT, current_buffer, Qkeymap);
-		  goto replay_sequence;
-		}
-
-	      /* For a mouse click, get the local text-property keymap
-		 of the place clicked on, rather than point.  */
-	      if (last_real_key_start == 0
-		  && CONSP (XCDR (key))
-		  && ! localized_local_map)
-		{
-		  Lisp_Object map_here, start, pos;
-
-		  localized_local_map = 1;
-		  start = EVENT_START (key);
-
-		  if (CONSP (start) && POSN_INBUFFER_P (start))
+		  /* Key sequences beginning with mouse clicks are
+		     read using the keymaps in the buffer clicked on,
+		     not the current buffer.  If we're at the
+		     beginning of a key sequence, switch buffers.  */
+		  if (WINDOWP (window)
+		      && BUFFERP (XWINDOW (window)->buffer)
+		      && XBUFFER (XWINDOW (window)->buffer) != current_buffer)
 		    {
-		      pos = POSN_BUFFER_POSN (start);
-		      if (INTEGERP (pos)
-			  && XINT (pos) >= BEGV
-			  && XINT (pos) <= ZV)
+		      XVECTOR (raw_keybuf)->contents[raw_keybuf_count++] = key;
+		      keybuf[t] = key;
+		      mock_input = t + 1;
+
+		      /* Arrange to go back to the original buffer once we're
+			 done reading the key sequence.  Note that we can't
+			 use save_excursion_{save,restore} here, because they
+			 save point as well as the current buffer; we don't
+			 want to save point, because redisplay may change it,
+			 to accommodate a Fset_window_start or something.  We
+			 don't want to do this at the top of the function,
+			 because we may get input from a subprocess which
+			 wants to change the selected window and stuff (say,
+			 emacsclient).  */
+		      record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+
+		      if (! FRAME_LIVE_P (XFRAME (selected_frame)))
+			Fkill_emacs (Qnil);
+		      set_buffer_internal (XBUFFER (XWINDOW (window)->buffer));
+		      orig_local_map = get_local_map (PT, current_buffer,
+						      Qlocal_map);
+		      orig_keymap = get_local_map (PT, current_buffer,
+						   Qkeymap);
+		      goto replay_sequence;
+		    }
+
+		  /* For a mouse click, get the local text-property keymap
+		     of the place clicked on, rather than point.  */
+		  if (CONSP (XCDR (key))
+		      && ! localized_local_map)
+		    {
+		      Lisp_Object map_here, start, pos;
+
+		      localized_local_map = 1;
+		      start = EVENT_START (key);
+
+		      if (CONSP (start) && POSN_INBUFFER_P (start))
 			{
-			  map_here = get_local_map (XINT (pos),
-						    current_buffer, Qlocal_map);
-			  if (!EQ (map_here, orig_local_map))
+			  pos = POSN_BUFFER_POSN (start);
+			  if (INTEGERP (pos)
+			      && XINT (pos) >= BEGV
+			      && XINT (pos) <= ZV)
 			    {
-			      orig_local_map = map_here;
-			      ++localized_local_map;
-			    }
+			      map_here = get_local_map (XINT (pos),
+							current_buffer,
+							Qlocal_map);
+			      if (!EQ (map_here, orig_local_map))
+				{
+				  orig_local_map = map_here;
+				  ++localized_local_map;
+				}
 
-			  map_here = get_local_map (XINT (pos),
-						     current_buffer, Qkeymap);
-			  if (!EQ (map_here, orig_keymap))
-			    {
-			      orig_keymap = map_here;
-			      ++localized_local_map;
-			    }
+			      map_here = get_local_map (XINT (pos),
+							current_buffer,
+							Qkeymap);
+			      if (!EQ (map_here, orig_keymap))
+				{
+				  orig_keymap = map_here;
+				  ++localized_local_map;
+				}
 
-			  if (localized_local_map > 1)
-			    {
-			      keybuf[t] = key;
-			      mock_input = t + 1;
+			      if (localized_local_map > 1)
+				{
+				  keybuf[t] = key;
+				  mock_input = t + 1;
 
-			      goto replay_sequence;
+				  goto replay_sequence;
+				}
 			    }
 			}
 		    }
@@ -10135,11 +10169,11 @@ a special event, so ignore the prefix argument and don't clear it.  */)
   if (SYMBOLP (cmd))
     {
       tem = Fget (cmd, Qdisabled);
-      if (!NILP (tem) && !NILP (Vrun_hooks))
+      if (!NILP (tem))
 	{
 	  tem = Fsymbol_value (Qdisabled_command_function);
 	  if (!NILP (tem))
-	    return call1 (Vrun_hooks, Qdisabled_command_function);
+	    return Frun_hooks (1, &Qdisabled_command_function);
 	}
     }
 
@@ -10312,9 +10346,9 @@ give to the command you invoke, if it asks for an argument.  */)
 	  sprintf (newmessage, "You can run the command `%s' with %s",
 		   SDATA (SYMBOL_NAME (function)),
 		   SDATA (binding));
-	  message2_nolog (newmessage,
-			  strlen (newmessage),
-			  STRING_MULTIBYTE (binding));
+	  message2 (newmessage,
+		    strlen (newmessage),
+		    STRING_MULTIBYTE (binding));
 	  if (NUMBERP (Vsuggest_key_bindings))
 	    waited = sit_for (Vsuggest_key_bindings, 0, 2);
 	  else
@@ -10623,6 +10657,7 @@ On such systems, Emacs starts a subshell instead of suspending.  */)
   int old_height, old_width;
   int width, height;
   struct gcpro gcpro1;
+  Lisp_Object hook;
 
   if (tty_list && tty_list->next)
     error ("There are other tty frames open; close them before suspending Emacs");
@@ -10631,8 +10666,8 @@ On such systems, Emacs starts a subshell instead of suspending.  */)
     CHECK_STRING (stuffstring);
 
   /* Run the functions in suspend-hook.  */
-  if (!NILP (Vrun_hooks))
-    call1 (Vrun_hooks, intern ("suspend-hook"));
+  hook = intern ("suspend-hook");
+  Frun_hooks (1, &hook);
 
   GCPRO1 (stuffstring);
   get_tty_size (fileno (CURTTY ()->input), &old_width, &old_height);
@@ -10656,8 +10691,8 @@ On such systems, Emacs starts a subshell instead of suspending.  */)
     change_frame_size (SELECTED_FRAME (), height, width, 0, 0, 0);
 
   /* Run suspend-resume-hook.  */
-  if (!NILP (Vrun_hooks))
-    call1 (Vrun_hooks, intern ("suspend-resume-hook"));
+  hook = intern ("suspend-resume-hook");
+  Frun_hooks (1, &hook);
 
   UNGCPRO;
   return Qnil;
@@ -10732,7 +10767,7 @@ clear_waiting_for_input (void)
    SIGINT was generated by C-g, so we call handle_interrupt.
    Otherwise, the handler kills Emacs.  */
 
-static SIGTYPE
+static void
 interrupt_signal (int signalnum)	/* If we don't have an argument, some */
 					/* compilers complain in signal calls. */
 {
@@ -11458,9 +11493,6 @@ syms_of_keyboard (void)
   Qdeferred_action_function = intern_c_string ("deferred-action-function");
   staticpro (&Qdeferred_action_function);
 
-  Qcommand_hook_internal = intern_c_string ("command-hook-internal");
-  staticpro (&Qcommand_hook_internal);
-
   Qfunction_key = intern_c_string ("function-key");
   staticpro (&Qfunction_key);
   Qmouse_click = intern_c_string ("mouse-click");
@@ -11580,12 +11612,12 @@ syms_of_keyboard (void)
   last_point_position_window = Qnil;
 
   {
-    const struct event_head *p;
+    int i;
+    int len = sizeof (head_table) / sizeof (head_table[0]);
 
-    for (p = head_table;
-	 p < head_table + (sizeof (head_table) / sizeof (head_table[0]));
-	 p++)
+    for (i = 0; i < len; i++)
       {
+	const struct event_head *p = &head_table[i];
 	*p->var = intern_c_string (p->name);
 	staticpro (p->var);
 	Fput (*p->var, Qevent_kind, *p->kind);
@@ -11928,22 +11960,18 @@ Buffer modification stores t in this variable.  */);
   Qdeactivate_mark = intern_c_string ("deactivate-mark");
   staticpro (&Qdeactivate_mark);
 
-  DEFVAR_LISP ("command-hook-internal", Vcommand_hook_internal,
-	       doc: /* Temporary storage of `pre-command-hook' or `post-command-hook'.  */);
-  Vcommand_hook_internal = Qnil;
-
   DEFVAR_LISP ("pre-command-hook", Vpre_command_hook,
 	       doc: /* Normal hook run before each command is executed.
 If an unhandled error happens in running this hook,
-the hook value is set to nil, since otherwise the error
-might happen repeatedly and make Emacs nonfunctional.  */);
+the function in which the error occurred is unconditionally removed, since
+otherwise the error might happen repeatedly and make Emacs nonfunctional.  */);
   Vpre_command_hook = Qnil;
 
   DEFVAR_LISP ("post-command-hook", Vpost_command_hook,
 	       doc: /* Normal hook run after each command is executed.
 If an unhandled error happens in running this hook,
-the hook value is set to nil, since otherwise the error
-might happen repeatedly and make Emacs nonfunctional.  */);
+the function in which the error occurred is unconditionally removed, since
+otherwise the error might happen repeatedly and make Emacs nonfunctional.  */);
   Vpost_command_hook = Qnil;
 
 #if 0

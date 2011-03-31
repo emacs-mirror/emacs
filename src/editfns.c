@@ -101,7 +101,7 @@ static void general_insert_function (void (*) (const char *, EMACS_INT),
 				     void (*) (Lisp_Object, EMACS_INT,
 					       EMACS_INT, EMACS_INT,
 					       EMACS_INT, int),
-				     int, int, Lisp_Object *);
+				     int, size_t, Lisp_Object *);
 static Lisp_Object subst_char_in_region_unwind (Lisp_Object);
 static Lisp_Object subst_char_in_region_unwind_1 (Lisp_Object);
 static void transpose_markers (EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT,
@@ -928,18 +928,21 @@ save_excursion_restore (Lisp_Object info)
   tem1 = BVAR (current_buffer, mark_active);
   BVAR (current_buffer, mark_active) = tem;
 
-  if (!NILP (Vrun_hooks))
+  /* If mark is active now, and either was not active
+     or was at a different place, run the activate hook.  */
+  if (! NILP (tem))
     {
-      /* If mark is active now, and either was not active
-	 or was at a different place, run the activate hook.  */
-      if (! NILP (BVAR (current_buffer, mark_active)))
-	{
-	  if (! EQ (omark, nmark))
-	    call1 (Vrun_hooks, intern ("activate-mark-hook"));
-	}
-      /* If mark has ceased to be active, run deactivate hook.  */
-      else if (! NILP (tem1))
-	call1 (Vrun_hooks, intern ("deactivate-mark-hook"));
+      if (! EQ (omark, nmark))
+        {
+          tem = intern ("activate-mark-hook");
+          Frun_hooks (1, &tem);
+        }
+    }
+  /* If mark has ceased to be active, run deactivate hook.  */
+  else if (! NILP (tem1))
+    {
+      tem = intern ("deactivate-mark-hook");
+      Frun_hooks (1, &tem);
     }
 
   /* If buffer was visible in a window, and a different window was
@@ -1868,7 +1871,7 @@ Years before 1970 are not guaranteed to work.  On some systems,
 year values as low as 1901 do work.
 
 usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
-  (int nargs, register Lisp_Object *args)
+  (size_t nargs, register Lisp_Object *args)
 {
   time_t value;
   struct tm tm;
@@ -2204,9 +2207,9 @@ general_insert_function (void (*insert_func)
 			 void (*insert_from_string_func)
 			      (Lisp_Object, EMACS_INT, EMACS_INT,
 			       EMACS_INT, EMACS_INT, int),
-			 int inherit, int nargs, Lisp_Object *args)
+			 int inherit, size_t nargs, Lisp_Object *args)
 {
-  register int argnum;
+  register size_t argnum;
   register Lisp_Object val;
 
   for (argnum = 0; argnum < nargs; argnum++)
@@ -2223,7 +2226,7 @@ general_insert_function (void (*insert_func)
 	    {
 	      str[0] = (ASCII_CHAR_P (XINT (val))
 			? XINT (val)
-			: multibyte_char_to_unibyte (XINT (val), Qnil));
+			: multibyte_char_to_unibyte (XINT (val)));
 	      len = 1;
 	    }
 	  (*insert_func) ((char *) str, len);
@@ -2269,7 +2272,7 @@ buffer; to accomplish this, apply `string-as-multibyte' to the string
 and insert the result.
 
 usage: (insert &rest ARGS)  */)
-  (int nargs, register Lisp_Object *args)
+  (size_t nargs, register Lisp_Object *args)
 {
   general_insert_function (insert, insert_from_string, 0, nargs, args);
   return Qnil;
@@ -2288,7 +2291,7 @@ If the current buffer is unibyte, multibyte strings are converted
 to unibyte for insertion.
 
 usage: (insert-and-inherit &rest ARGS)  */)
-  (int nargs, register Lisp_Object *args)
+  (size_t nargs, register Lisp_Object *args)
 {
   general_insert_function (insert_and_inherit, insert_from_string, 1,
 			   nargs, args);
@@ -2305,7 +2308,7 @@ If the current buffer is unibyte, multibyte strings are converted
 to unibyte for insertion.
 
 usage: (insert-before-markers &rest ARGS)  */)
-  (int nargs, register Lisp_Object *args)
+  (size_t nargs, register Lisp_Object *args)
 {
   general_insert_function (insert_before_markers,
 			   insert_from_string_before_markers, 0,
@@ -2324,7 +2327,7 @@ If the current buffer is unibyte, multibyte strings are converted
 to unibyte for insertion.
 
 usage: (insert-before-markers-and-inherit &rest ARGS)  */)
-  (int nargs, register Lisp_Object *args)
+  (size_t nargs, register Lisp_Object *args)
 {
   general_insert_function (insert_before_markers_and_inherit,
 			   insert_from_string_before_markers, 1,
@@ -3396,7 +3399,7 @@ any existing message; this lets the minibuffer contents show.  See
 also `current-message'.
 
 usage: (message FORMAT-STRING &rest ARGS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   if (NILP (args[0])
       || (STRINGP (args[0])
@@ -3424,7 +3427,7 @@ If the first argument is nil or the empty string, clear any existing
 message; let the minibuffer contents show.
 
 usage: (message-box FORMAT-STRING &rest ARGS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   if (NILP (args[0]))
     {
@@ -3441,12 +3444,12 @@ usage: (message-box FORMAT-STRING &rest ARGS)  */)
       if (FRAME_WINDOW_P (XFRAME (selected_frame))
 	  || FRAME_MSDOS_P (XFRAME (selected_frame)))
       {
-	Lisp_Object pane, menu, obj;
+	Lisp_Object pane, menu;
 	struct gcpro gcpro1;
 	pane = Fcons (Fcons (build_string ("OK"), Qt), Qnil);
 	GCPRO1 (pane);
 	menu = Fcons (val, pane);
-	obj = Fx_popup_dialog (Qt, menu, Qt);
+	Fx_popup_dialog (Qt, menu, Qt);
 	UNGCPRO;
 	return val;
       }
@@ -3481,7 +3484,7 @@ If the first argument is nil or the empty string, clear any existing
 message; let the minibuffer contents show.
 
 usage: (message-or-box FORMAT-STRING &rest ARGS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
 #ifdef HAVE_MENUS
   if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
@@ -3505,14 +3508,14 @@ First argument is the string to copy.
 Remaining arguments form a sequence of PROPERTY VALUE pairs for text
 properties to add to the result.
 usage: (propertize STRING &rest PROPERTIES)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   Lisp_Object properties, string;
   struct gcpro gcpro1, gcpro2;
-  int i;
+  size_t i;
 
   /* Number of args must be odd.  */
-  if ((nargs & 1) == 0 || nargs < 1)
+  if ((nargs & 1) == 0)
     error ("Wrong number of arguments");
 
   properties = string = Qnil;
@@ -3587,10 +3590,10 @@ decimal point itself is omitted.  For %s and %S, the precision
 specifier truncates the string to the given width.
 
 usage: (format STRING &rest OBJECTS)  */)
-  (int nargs, register Lisp_Object *args)
+  (size_t nargs, register Lisp_Object *args)
 {
-  register int n;		/* The number of the next arg to substitute */
-  register EMACS_INT total;	/* An estimate of the final length */
+  register size_t n;		/* The number of the next arg to substitute */
+  register size_t total;	/* An estimate of the final length */
   char *buf, *p;
   register char *format, *end, *format_start;
   int nchars;
@@ -3666,8 +3669,8 @@ usage: (format STRING &rest OBJECTS)  */)
 
   /* Allocate the info and discarded tables.  */
   {
-    int nbytes = (nargs+1) * sizeof *info;
-    int i;
+    size_t nbytes = (nargs+1) * sizeof *info;
+    size_t i;
     if (!info)
       info = (struct info *) alloca (nbytes);
     memset (info, 0, nbytes);

@@ -2520,8 +2520,7 @@ The first thing this function does is run
 the normal hook `change-major-mode-hook'.  */)
   (void)
 {
-  if (!NILP (Vrun_hooks))
-    call1 (Vrun_hooks, Qchange_major_mode_hook);
+  Frun_hooks (1, &Qchange_major_mode_hook);
 
   /* Make sure none of the bindings in local_var_alist
      remain swapped in, in their symbols.  */
@@ -5225,12 +5224,12 @@ init_buffer (void)
 #define DEFVAR_PER_BUFFER(lname, vname, type, doc)			\
   do {									\
     static struct Lisp_Buffer_Objfwd bo_fwd;				\
-    defvar_per_buffer (&bo_fwd, lname, vname, type, 0);			\
+    defvar_per_buffer (&bo_fwd, lname, vname, type);			\
   } while (0)
 
 static void
 defvar_per_buffer (struct Lisp_Buffer_Objfwd *bo_fwd, const char *namestring,
-		   Lisp_Object *address, Lisp_Object type, char *doc)
+		   Lisp_Object *address, Lisp_Object type)
 {
   struct Lisp_Symbol *sym;
   int offset;

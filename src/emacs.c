@@ -308,7 +308,7 @@ pthread_t main_thread;
 
 
 /* Handle bus errors, invalid instruction, etc.  */
-SIGTYPE
+void
 fatal_error_signal (int sig)
 {
   SIGNAL_THREAD_CHECK (sig);
@@ -345,7 +345,7 @@ fatal_error_signal (int sig)
 #ifdef SIGDANGER
 
 /* Handler for SIGDANGER.  */
-SIGTYPE
+void
 memory_warning_signal (sig)
      int sig;
 {
@@ -1972,14 +1972,15 @@ all of which are called before Emacs is actually killed.  */)
   (Lisp_Object arg)
 {
   struct gcpro gcpro1;
+  Lisp_Object hook;
 
   GCPRO1 (arg);
 
   if (feof (stdin))
     arg = Qt;
 
-  if (!NILP (Vrun_hooks))
-    call1 (Vrun_hooks, intern ("kill-emacs-hook"));
+  hook = intern ("kill-emacs-hook");
+  Frun_hooks (1, &hook);
 
   UNGCPRO;
 
@@ -2312,6 +2313,7 @@ from the parent process and its tty file descriptors.  */)
   (void)
 {
   int nfd;
+  int err = 0;
 
   if (!IS_DAEMON)
     error ("This function can only be called if emacs is run as a daemon");
@@ -2324,10 +2326,11 @@ from the parent process and its tty file descriptors.  */)
 
   /* Get rid of stdin, stdout and stderr.  */
   nfd = open ("/dev/null", O_RDWR);
-  dup2 (nfd, 0);
-  dup2 (nfd, 1);
-  dup2 (nfd, 2);
-  close (nfd);
+  err |= nfd < 0;
+  err |= dup2 (nfd, 0) < 0;
+  err |= dup2 (nfd, 1) < 0;
+  err |= dup2 (nfd, 2) < 0;
+  err |= close (nfd) != 0;
 
   /* Closing the pipe will notify the parent that it can exit.
      FIXME: In case some other process inherited the pipe, closing it here
@@ -2336,10 +2339,13 @@ from the parent process and its tty file descriptors.  */)
      Instead, we should probably close the pipe in start-process and
      call-process to make sure the pipe is never inherited by
      subprocesses.  */
-  write (daemon_pipe[1], "\n", 1);
-  close (daemon_pipe[1]);
+  err |= write (daemon_pipe[1], "\n", 1) < 0;
+  err |= close (daemon_pipe[1]) != 0;
   /* Set it to an invalid value so we know we've already run this function.  */
   daemon_pipe[1] = -1;
+
+  if (err)
+    error ("I/O error during daemon initialization");
   return Qt;
 }
 

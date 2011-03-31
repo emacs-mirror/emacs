@@ -3346,16 +3346,16 @@ and KILLP is t if a prefix arg was specified."
 		(delete-char 1)))
 	  (forward-char -1)
 	  (setq count (1- count))))))
-  (delete-backward-char
-   (let ((skip (cond ((eq backward-delete-char-untabify-method 'hungry) " \t")
+  (let* ((skip (cond ((eq backward-delete-char-untabify-method 'hungry) " \t")
                      ((eq backward-delete-char-untabify-method 'all)
-                      " \t\n\r"))))
-     (if skip
-         (let ((wh (- (point) (save-excursion (skip-chars-backward skip)
-					    (point)))))
-	 (+ arg (if (zerop wh) 0 (1- wh))))
-         arg))
-   killp))
+                      " \t\n\r")))
+         (n (if skip
+                (let ((wh (- (point) (save-excursion (skip-chars-backward skip)
+                                                     (point)))))
+                  (+ arg (if (zerop wh) 0 (1- wh))))
+              arg)))
+    ;; Avoid warning about delete-backward-char
+    (with-no-warnings (delete-backward-char n killp))))
 
 (defun zap-to-char (arg char)
   "Kill up to and including ARGth occurrence of CHAR.

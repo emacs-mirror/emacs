@@ -682,6 +682,8 @@ scroll the window of possible completions."
         (t     t)))))
 
 (defun completion--flush-all-sorted-completions (&rest _ignore)
+  (remove-hook 'after-change-functions
+               'completion--flush-all-sorted-completions t)
   (setq completion-cycling nil)
   (setq completion-all-sorted-completions nil))
 
@@ -1236,6 +1238,8 @@ Point needs to be somewhere between START and END."
   (assert (<= start (point)) (<= (point) end))
   ;; FIXME: undisplay the *Completions* buffer once the completion is done.
   (with-wrapper-hook
+      ;; FIXME: Maybe we should use this hook to provide a "display
+      ;; completions" operation as well.
       completion-in-region-functions (start end collection predicate)
     (let ((minibuffer-completion-table collection)
           (minibuffer-completion-predicate predicate)
@@ -1247,7 +1251,9 @@ Point needs to be somewhere between START and END."
 
 (defvar completion-at-point-functions '(tags-completion-at-point-function)
   "Special hook to find the completion table for the thing at point.
-It is called without any argument and should return either nil,
+Each function on this hook is called in turns without any argument and should
+return either nil to mean that it is not applicable at point,
+or t to mean that it already performed completion (discouraged),
 or a function of no argument to perform completion (discouraged),
 or a list of the form (START END COLLECTION &rest PROPS) where
  START and END delimit the entity to complete and should include point,
@@ -1265,7 +1271,7 @@ The completion method is determined by `completion-at-point-functions'."
               'completion-at-point-functions)))
     (cond
      ((functionp res) (funcall res))
-     (res
+     ((consp res)
       (let* ((plist (nthcdr 3 res))
              (start (nth 0 res))
              (end (nth 1 res))
@@ -1273,7 +1279,8 @@ The completion method is determined by `completion-at-point-functions'."
               (or (plist-get plist :annotation-function)
                   completion-annotate-function)))
         (completion-in-region start end (nth 2 res)
-                              (plist-get plist :predicate)))))))
+                              (plist-get plist :predicate))))
+     (res))))  ;Maybe completion already happened and the function returned t.
 
 ;;; Key bindings.
 
@@ -1480,8 +1487,9 @@ except that it passes the file name through `substitute-in-file-name'."
                             'completion--file-name-table)
   "Internal subroutine for `read-file-name'.  Do not call this.")
 
-(defvar read-file-name-function nil
-  "If this is non-nil, `read-file-name' does its work by calling this function.")
+(defvar read-file-name-function 'read-file-name-default
+  "The function called by `read-file-name' to do its work.
+It should accept the same arguments as `read-file-name'.")
 
 (defcustom read-file-name-completion-ignore-case
   (if (memq system-type '(ms-dos windows-nt darwin cygwin))
@@ -1519,7 +1527,7 @@ such as making the current buffer visit no file in the case of
 (declare-function x-file-dialog "xfns.c"
                   (prompt dir &optional default-filename mustmatch only-dir-p))
 
-(defun read-file-name-defaults (&optional dir initial)
+(defun read-file-name--defaults (&optional dir initial)
   (let ((default
 	  (cond
 	   ;; With non-nil `initial', use `dir' as the first default.
@@ -1586,6 +1594,12 @@ treated as equivalent to nil.
 
 See also `read-file-name-completion-ignore-case'
 and `read-file-name-function'."
+  (funcall (or read-file-name-function #'read-file-name-default)
+           prompt dir default-filename mustmatch initial predicate))
+
+(defun read-file-name-default (prompt &optional dir default-filename mustmatch initial predicate)
+  "Default method for reading file names.
+See `read-file-name' for the meaning of the arguments."
   (unless dir (setq dir default-directory))
   (unless (file-name-absolute-p dir) (setq dir (expand-file-name dir)))
   (unless default-filename
@@ -1607,9 +1621,6 @@ and `read-file-name-function'."
                     (minibuffer--double-dollars dir)))
                  (initial (cons (minibuffer--double-dollars initial) 0)))))
 
-    (if read-file-name-function
-        (funcall read-file-name-function
-                 prompt dir default-filename mustmatch initial predicate)
       (let ((completion-ignore-case read-file-name-completion-ignore-case)
             (minibuffer-completing-file-name t)
             (pred (or predicate 'file-exists-p))
@@ -1645,7 +1656,7 @@ and `read-file-name-function'."
 				 (lambda ()
 				   (with-current-buffer
 				       (window-buffer (minibuffer-selected-window))
-				     (read-file-name-defaults dir initial)))))
+				   (read-file-name--defaults dir initial)))))
                         (completing-read prompt 'read-file-name-internal
                                          pred mustmatch insdef
                                          'file-name-history default-filename)))
@@ -1719,7 +1730,7 @@ and `read-file-name-function'."
                                 (if history-delete-duplicates
                                     (delete val1 file-name-history)
                                   file-name-history)))))))
-          val)))))
+	val))))
 
 (defun internal-complete-buffer-except (&optional buffer)
   "Perform completion on all buffers excluding BUFFER.

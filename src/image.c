@@ -4483,7 +4483,6 @@ static void
 XPutPixel (XImagePtr ximg, int x, int y, COLORREF color)
 {
   int width = ximg->info.bmiHeader.biWidth;
-  int height = ximg->info.bmiHeader.biHeight;
   unsigned char * pixel;
 
   /* True color images.  */
@@ -6752,7 +6751,7 @@ tiff_load (struct frame *f, struct image *img)
   TIFF *tiff;
   int width, height, x, y, count;
   uint32 *buf;
-  int rc, rc2;
+  int rc;
   XImagePtr ximg;
   tiff_memory_source memsrc;
   Lisp_Object image;
@@ -6840,8 +6839,8 @@ tiff_load (struct frame *f, struct image *img)
   rc = fn_TIFFReadRGBAImage (tiff, width, height, buf, 0);
 
   /* Count the number of images in the file.  */
-  for (count = 1, rc2 = 1; rc2; count++)
-    rc2 = fn_TIFFSetDirectory (tiff, count);
+  for (count = 1; fn_TIFFSetDirectory (tiff, count); count++)
+    continue;
 
   if (count > 1)
     img->data.lisp_val = Fcons (Qcount,

@@ -69,7 +69,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define CHAR_TO_BYTE8(c)	\
   (CHAR_BYTE8_P (c)		\
    ? (c) - 0x3FFF00		\
-   : multibyte_char_to_unibyte (c, Qnil))
+   : multibyte_char_to_unibyte (c))
 
 /* Return the raw 8-bit byte for character C,
    or -1 if C doesn't correspond to a byte.  */
@@ -278,11 +278,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   do {									\
     if ((p) > (limit))							\
       {									\
-	const unsigned char *pcb = (p);					\
+	const unsigned char *chp = (p);					\
 	do {								\
-	  pcb--;							\
-	} while (pcb >= limit && ! CHAR_HEAD_P (*pcb));			\
-	(p) = (BYTES_BY_CHAR_HEAD (*pcb) == (p) - pcb) ? pcb : (p) - 1;	\
+	  chp--;							\
+	} while (chp >= limit && ! CHAR_HEAD_P (*chp));			\
+	(p) = (BYTES_BY_CHAR_HEAD (*chp) == (p) - chp) ? chp : (p) - 1;	\
       }									\
   } while (0)
 
@@ -353,11 +353,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
       CHARIDX++;							\
       if (STRING_MULTIBYTE (STRING))					\
 	{								\
-	  unsigned char *string_ptr = &SDATA (STRING)[BYTEIDX];		\
-	  int string_len;						\
+	  unsigned char *chp = &SDATA (STRING)[BYTEIDX];		\
+	  int chlen;							\
 									\
-	  OUTPUT = STRING_CHAR_AND_LENGTH (string_ptr, string_len);	\
-	  BYTEIDX += string_len;					\
+	  OUTPUT = STRING_CHAR_AND_LENGTH (chp, chlen);			\
+	  BYTEIDX += chlen;						\
 	}								\
       else								\
 	{								\
@@ -376,11 +376,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
       CHARIDX++;							      \
       if (STRING_MULTIBYTE (STRING))					      \
 	{								      \
-	  unsigned char *ptr = &SDATA (STRING)[BYTEIDX];		      \
-	  int ptrlen;							      \
+	  unsigned char *chp = &SDATA (STRING)[BYTEIDX];		      \
+	  int chlen;							      \
 									      \
-	  OUTPUT = STRING_CHAR_AND_LENGTH (ptr, ptrlen);		      \
-	  BYTEIDX += ptrlen;						      \
+	  OUTPUT = STRING_CHAR_AND_LENGTH (chp, chlen);			      \
+	  BYTEIDX += chlen;						      \
 	}								      \
       else								      \
 	{								      \
@@ -416,11 +416,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
       CHARIDX++;						\
       if (!NILP (BVAR (current_buffer, enable_multibyte_characters)))	\
 	{							\
-	  unsigned char *ptr = BYTE_POS_ADDR (BYTEIDX);		\
-	  int string_len;					\
+	  unsigned char *chp = BYTE_POS_ADDR (BYTEIDX);		\
+	  int chlen;						\
 								\
-	  OUTPUT= STRING_CHAR_AND_LENGTH (ptr, string_len);	\
-	  BYTEIDX += string_len;				\
+	  OUTPUT= STRING_CHAR_AND_LENGTH (chp, chlen);		\
+	  BYTEIDX += chlen;					\
 	}							\
       else							\
 	{							\
@@ -436,11 +436,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define FETCH_CHAR_ADVANCE_NO_CHECK(OUTPUT, CHARIDX, BYTEIDX)	\
   do    							\
     {								\
-      unsigned char *ptr = BYTE_POS_ADDR (BYTEIDX);		\
-      int len;							\
+      unsigned char *chp = BYTE_POS_ADDR (BYTEIDX);		\
+      int chlen;							\
 								\
-      OUTPUT = STRING_CHAR_AND_LENGTH (ptr, len);		\
-      BYTEIDX += len;						\
+      OUTPUT = STRING_CHAR_AND_LENGTH (chp, chlen);		\
+      BYTEIDX += chlen;						\
       CHARIDX++;						\
     }								\
   while (0)
@@ -451,8 +451,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define INC_POS(pos_byte)				\
   do {							\
-    unsigned char *ptr = BYTE_POS_ADDR (pos_byte);	\
-    pos_byte += BYTES_BY_CHAR_HEAD (*ptr);		\
+    unsigned char *chp = BYTE_POS_ADDR (pos_byte);	\
+    pos_byte += BYTES_BY_CHAR_HEAD (*chp);		\
   } while (0)
 
 
@@ -461,16 +461,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define DEC_POS(pos_byte)			\
   do {						\
-    unsigned char *ptr;				\
+    unsigned char *chp;				\
     						\
     pos_byte--;					\
     if (pos_byte < GPT_BYTE)			\
-      ptr = BEG_ADDR + pos_byte - BEG_BYTE;	\
+      chp = BEG_ADDR + pos_byte - BEG_BYTE;	\
     else					\
-      ptr = BEG_ADDR + GAP_SIZE + pos_byte - BEG_BYTE; \
-    while (!CHAR_HEAD_P (*ptr))			\
+      chp = BEG_ADDR + GAP_SIZE + pos_byte - BEG_BYTE; \
+    while (!CHAR_HEAD_P (*chp))			\
       {						\
-	ptr--;					\
+	chp--;					\
 	pos_byte--;				\
       }						\
   } while (0)
@@ -510,8 +510,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define BUF_INC_POS(buf, pos_byte)				\
   do {								\
-    unsigned char *bbp = BUF_BYTE_ADDRESS (buf, pos_byte);	\
-    pos_byte += BYTES_BY_CHAR_HEAD (*bbp);			\
+    unsigned char *chp = BUF_BYTE_ADDRESS (buf, pos_byte);	\
+    pos_byte += BYTES_BY_CHAR_HEAD (*chp);			\
   } while (0)
 
 
@@ -520,15 +520,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define BUF_DEC_POS(buf, pos_byte)					\
   do {									\
-    unsigned char *p;							\
+    unsigned char *chp;							\
     pos_byte--;								\
     if (pos_byte < BUF_GPT_BYTE (buf))					\
-      p = BUF_BEG_ADDR (buf) + pos_byte - BEG_BYTE;			\
+      chp = BUF_BEG_ADDR (buf) + pos_byte - BEG_BYTE;			\
     else								\
-      p = BUF_BEG_ADDR (buf) + BUF_GAP_SIZE (buf) + pos_byte - BEG_BYTE;\
-    while (!CHAR_HEAD_P (*p))						\
+      chp = BUF_BEG_ADDR (buf) + BUF_GAP_SIZE (buf) + pos_byte - BEG_BYTE;\
+    while (!CHAR_HEAD_P (*chp))						\
       {									\
-	p--;								\
+	chp--;								\
 	pos_byte--;							\
       }									\
   } while (0)

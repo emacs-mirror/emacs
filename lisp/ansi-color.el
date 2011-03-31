@@ -132,8 +132,18 @@ Parameter  Color
   37  47   white
 
 This vector is used by `ansi-color-make-color-map' to create a color
-map.  This color map is stored in the variable `ansi-color-map'."
-  :type '(vector string string string string string string string string)
+map.  This color map is stored in the variable `ansi-color-map'.
+
+Each element may also be a cons cell where the car and cdr specify the
+foreground and background colors, respectively."
+  :type '(vector (choice color (cons color color))
+                 (choice color (cons color color))
+                 (choice color (cons color color))
+                 (choice color (cons color color))
+                 (choice color (cons color color))
+                 (choice color (cons color color))
+                 (choice color (cons color color))
+                 (choice color (cons color color)))
   :set 'ansi-color-map-update
   :initialize 'custom-initialize-default
   :group 'ansi-colors)
@@ -528,7 +538,8 @@ The face definitions are based upon the variables
     (mapc
      (function (lambda (e)
                  (aset ansi-color-map index
-		       (ansi-color-make-face 'foreground e))
+		       (ansi-color-make-face 'foreground
+                                             (if (consp e) (car e) e)))
                  (setq index (1+ index)) ))
      ansi-color-names-vector)
     ;; background attributes
@@ -536,7 +547,8 @@ The face definitions are based upon the variables
     (mapc
      (function (lambda (e)
                  (aset ansi-color-map index
-		       (ansi-color-make-face 'background e))
+		       (ansi-color-make-face 'background
+                                             (if (consp e) (cdr e) e)))
                  (setq index (1+ index)) ))
      ansi-color-names-vector)
     ansi-color-map))

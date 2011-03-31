@@ -1,3 +1,154 @@
+2011-03-30  Leo Liu  <sdl.web@gmail.com>
+
+	* abbrev.el (abbrev-edit-save-to-file, abbrev-edit-save-buffer):
+	New commands.
+	(edit-abbrevs-map): Bind them here.
+	(write-abbrev-file): New optinal arg VERBOSE.  (Bug#5937)
+
+2011-03-29  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-hide-by-annotation, allout-flag-region):
+	Reduce possibility of overlay leakage by making them volatile.
+
+	* allout-widgets.el (allout-widgets-tally): Define as nil so the
+	hash is not shared between buffers.  Mode initialization is
+	responsible for giving it a useful starting value.
+	(allout-item-span): Reduce possibility of overlay leakage by
+	making them volatile.
+	(allout-widgets-count-buttons-in-region): Add diagnostic function
+	for tracking down button overlay leaks.
+
+2011-03-29  Leo Liu  <sdl.web@gmail.com>
+
+	* ido.el (ido-read-internal): Use the default history var
+	minibuffer-history if no HISTORY is specified.
+
+2011-03-28  Brian T. Sniffen  <bsniffen@akamai.com>  (tiny change)
+
+	* net/imap.el (imap-shell-open, imap-process-connection-type): Use
+	imap-process-connection-type for 'shell' streams as well as
+	Kerberos, SSL, other subprocesses.
+
+2011-03-28  Leo Liu  <sdl.web@gmail.com>
+
+	* abbrev.el (abbrev-table-empty-p): New function.
+	(prepare-abbrev-list-buffer): Place empty abbrev tables after
+	nonempty ones.  (Bug#5937)
+
+2011-03-27  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* cus-start.el (all): Add boolean ns-auto-hide-menu-bar.
+
+2011-03-27  Leo Liu  <sdl.web@gmail.com>
+
+	* ansi-color.el (ansi-color-names-vector): Allow cons cell value
+	for foreground and background colors.
+	(ansi-color-make-color-map): Adapt.
+
+2011-03-25  Leo Liu  <sdl.web@gmail.com>
+
+	* midnight.el (midnight-time-float): Remove.  Note it calculates
+	the microsecond component incorrectly and seconds-to-time does the
+	same job.
+	Remove redundant (require 'timer).
+
+	* ido.el (ido-read-internal): Simplify with read-from-minibuffer.
+	(ido-completions): Remove unused arguments.  (Bug#8329)
+
+2011-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion--flush-all-sorted-completions):
+	Remove itself from hook.
+	(completion-at-point): Let the functions perform the completion
+	immediately and return nil or t.
+	* comint.el (comint-dynamic-complete-functions): Now identical to
+	completion-at-point-functions.
+	(comint-dynamic-list-input-ring): Remove unused var `index'.
+	(comint--match-partial-filename, comint--unquote&expand-filename):
+	New funs, split from comint-match-partial-filename.
+	(comint-dynamic-complete): Use completion-at-point.
+	(comint-dynamic-complete-filename): Use comint--match-partial-filename.
+
+2011-03-24  Drew Adams  <drew.adams@oracle.com>
+
+	* thingatpt.el: Support `defun'.
+
+2011-03-23  Leo Liu  <sdl.web@gmail.com>
+
+	* abbrevlist.el: Move to obsolete/abbrevlist.el.
+
+	* help-mode.el (help-mode-finish): Tweak regexp.
+
+2011-03-23  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/esh-opt.el (eshell-eval-using-options):
+	Do not bind unused local variable `eshell-option-stub'.
+
+	* progmodes/gdb-mi.el (gdb): Fix typo in previous change.
+
+2011-03-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/derived.el (define-derived-mode): Wrap declaration of
+	keymap variable in `with-no-warnings' to avoid a warning when the
+	keymap has been already `defconst'ed.
+
+2011-03-22  Leo Liu  <sdl.web@gmail.com>
+
+	* abbrev.el (write-abbrev-file): Use utf-8 for writing if it can
+	encode all chars in abbrevs; otherwise use emacs-mule or
+	utf-8-emacs.  (Bug#8308)
+
+2011-03-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* simple.el (backward-delete-char-untabify):
+	Avoid warning about using `delete-backward-char'.
+
+	* image.el (image-type-file-name-regexps): Make it variable.
+	`imagemagick-register-types' modifies it, and the user may want
+	to add new extensions for known image types.
+	(imagemagick-register-types): Throw error if not using ImageMagick.
+
+2011-03-22  Leo Liu  <sdl.web@gmail.com>
+
+	* net/rcirc.el (rcirc-completion-at-point): Return nil if point is
+	located before rcirc-prompt-end-marker.
+	(rcirc-complete): Error if point is not after rcirc prompt.
+	Handle the case when table is nil.
+	(rcirc-user-authenticated): Define to fix compiler warning.
+
+2011-03-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.el (custom--inhibit-theme-enable): Make it affect only
+	custom-theme-set-variables and custom-theme-set-faces.
+	(provide-theme): Ignore custom--inhibit-theme-enable.
+	(load-theme): Enable the theme explicitly if NO-ENABLE is non-nil.
+	(custom-enabling-themes): Delete variable.
+	(enable-theme): Accept only loaded themes as arguments.
+	Ignore the special custom-enabled-themes variable.
+	(custom-enabled-themes): Forbid themes from setting this.
+	Eliminate use of custom-enabling-themes.
+	(custom-push-theme): Quote "changed" custom var entry.
+
+2011-03-21  Leo Liu  <sdl.web@gmail.com>
+
+	* ido.el (ido-read-internal): Add ido-selected to history instead
+	of user input.
+
+2011-03-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (deferred-action-list, deferred-action-function):
+	Mark obsolete.
+
+2011-03-21  Leo Liu  <sdl.web@gmail.com>
+
+	* vc/log-view.el: Remove (require 'wid-edit), not needed after the
+	change on 2011-02-13 (bug#8309).
+
+	* minibuffer.el (read-file-name-function): Change default value.
+	(read-file-name--defaults): Rename from read-file-name-defaults.
+	(read-file-name-default): Rename from read-file-name.
+	(read-file-name): Call read-file-name-function.
+
 2011-03-21  Glenn Morris  <rgm@gnu.org>
 
 	* eshell/esh-opt.el (eshell-eval-using-options, eshell-process-args):
@@ -310,8 +461,8 @@
 
 2011-03-09  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp-sh.el (tramp-do-copy-or-rename-file-out-of-band): Do
-	not use `tramp-file-name-port', because this returns also
+	* net/tramp-sh.el (tramp-do-copy-or-rename-file-out-of-band):
+	Do not use `tramp-file-name-port', because this returns also
 	`tramp-default-port'.
 
 2011-03-09  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
@@ -340,8 +491,8 @@
 	* emacs-lisp/package.el (package-tar-file-info): Handle also
 	remote files.
 
-	* emacs-lisp/package-x.el (package-upload-buffer-internal): Use
-	`equal' for upload base check.
+	* emacs-lisp/package-x.el (package-upload-buffer-internal):
+	Use `equal' for upload base check.
 
 2011-03-08  Arni Magnusson  <arnima@hafro.is>  (tiny change)
 
@@ -670,9 +821,9 @@
 2011-03-03  Christian Ohler  <ohler@gnu.org>
 
 	* emacs-lisp/ert.el (ert--explain-equal): New function.
-	(ert--explain-equal-rec): Renamed from `ert--explain-not-equal'.
+	(ert--explain-equal-rec): Rename from `ert--explain-not-equal'.
 	All callers changed.
-	(ert--explain-equal-including-properties): Renamed from
+	(ert--explain-equal-including-properties): Rename from
 	`ert--explain-not-equal-including-properties'.  All callers
 	changed.
 
@@ -8195,8 +8346,8 @@
 
 	Sync with Tramp 2.1.19.
 
-	* net/tramp-gvfs.el (tramp-gvfs-handle-write-region): Protect
-	deleting tmpfile.
+	* net/tramp-gvfs.el (tramp-gvfs-handle-write-region):
+	Protect deleting tmpfile.
 	(tramp-gvfs-maybe-open-connection): Use `tramp-compat-funcall'.
 
 	* net/tramp.el (tramp-handle-expand-file-name)
@@ -10474,8 +10625,8 @@
 	* net/tramp-ftp.el (tramp-ftp-file-name-handler):
 	Use `delete-file' instead of `tramp-compat-delete-file'.
 
-	* net/tramp-gvfs.el (tramp-gvfs-handle-write-region): Use
-	`delete-file' instead of `tramp-compat-delete-file'.
+	* net/tramp-gvfs.el (tramp-gvfs-handle-write-region):
+	Use `delete-file' instead of `tramp-compat-delete-file'.
 
 	* net/tramp-imap.el (tramp-imap-do-copy-or-rename-file):
 	Use `delete-file' instead of `tramp-compat-delete-file'.

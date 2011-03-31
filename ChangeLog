@@ -1,3 +1,71 @@
+2011-03-28  Glenn Morris  <rgm@gnu.org>
+
+	* autogen/update_autogen: Pass -f to autoreconf.
+
+	* autogen.sh (get_version): Discard "not found" lines.
+	(check_version): Respect $AUTOCONF etc environment variables.
+
+2011-03-27  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (AC_TYPE_SIGNAL): Remove obsolete macro.
+	(AH_BOTTOM): Do not define SIGTYPE.
+
+2011-03-26  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Replace obsolete macros AC_TRY_COMPILE, AC_TRY_LINK,
+	AC_TRY_RUN with AC_COMPILE_IFELSE, AC_LINK_IFELSE, AC_RUN_IFELSE.
+
+2011-03-25  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* autogen/update_autogen: Remove useless function keyword.
+
+2011-03-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.bat: Generate src/config.h and lib/Makefile from
+	autogen/config.in and autogen/Makefile.in.
+
+2011-03-25  Glenn Morris  <rgm@gnu.org>
+
+	* compile, config.guess, config.sub, depcomp, install-sh, missing:
+	Remove; autoreconf can supply them.
+	* Makefile.in (sync-from-gnulib): Don't sync config.sub,
+	config.guess, install-sh.  Pass -i to autoreconf.
+	* autogen/update_autogen (genfiles): Add compile, config.guess,
+	config.sub, depcomp, install-sh, missing.  Pass -i to autoreconf.
+	Discard non-error output from autoreconf in -q case.
+	* autogen/compile, autogen/config.guess, autogen/config.sub:
+	* autogen/depcomp, autogen/install-sh, autogen/missing: New.
+	* autogen/copy_autogen: Add compile, config.guess, config.sub, depcomp,
+	install-sh, missing.
+
+2011-03-23  Glenn Morris  <rgm@gnu.org>
+
+	* autogen/update_autogen: Fix typo.
+	(msg): Remove function; use `exec' instead.
+
+	* Makefile.in (mkdir): Use `install-sh -d' instead of mkinstalldirs.
+	(sync-from-gnulib): Don't sync mkinstalldirs.
+	* make-dist: Don't distribute mkinstalldirs.
+
+2011-03-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix more problems found by GCC 4.5.2's static checks.
+	* Makefile.in (GNULIB_MODULES): Add socklen.
+	* configure.in: Do not check for sys/socket.h, since socklen does that.
+	* m4/socklen.m4: New automatically-generated file, from gnulib.
+
+	fakemail: Remove dependency on ignore-value.
+	* Makefile.in (GNULIB_MODULES): Add stdio.
+	* lib/stdio.in.h, m4/stdio_h.m4: New files, automatically
+	imported from gnulib.
+	* .bzrignore: Add lib/stdio.h.
+
+2011-03-22  Glenn Morris  <rgm@gnu.org>
+
+	* autogen/copy_autogen: Work from ./ or ../.
+	Fix time-stamps.
+	* autogen.sh: Doc fix.
+
 2011-03-20  Glenn Morris  <rgm@gnu.org>
 
 	* autogen/: New directory, to be excluded from releases.

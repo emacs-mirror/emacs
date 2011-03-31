@@ -586,7 +586,7 @@ split_interval_left (INTERVAL interval, EMACS_INT offset)
    Don't use this function on an interval which is the child
    of another interval!  */
 
-int
+static int
 interval_start_pos (INTERVAL source)
 {
   Lisp_Object parent;
@@ -2559,4 +2559,3 @@ set_intervals_multibyte (int multi_flag)
     set_intervals_multibyte_1 (BUF_INTERVALS (current_buffer), multi_flag,
 			       BEG, BEG_BYTE, Z, Z_BYTE);
 }
-

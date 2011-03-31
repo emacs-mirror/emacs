@@ -39,8 +39,6 @@
 (eval-when-compile
  (require 'cl))
 
-(require 'timer)
-
 (defgroup midnight nil
   "Run something every day at midnight."
   :group 'calendar
@@ -65,12 +63,6 @@ call `cancel-timer' or `timer-activate' on `midnight-timer' instead."
              (cancel-timer midnight-timer))))
 
 ;;; time conversion
-
-(defun midnight-time-float (num)
-  "Convert the float number of seconds since epoch to the list of 3 integers."
-  (let* ((div (ash 1 16)) (1st (floor num div)))
-    (list 1st (floor (- num (* (float div) 1st)))
-          (round (* 10000000 (mod num 1))))))
 
 (defun midnight-buffer-display-time (&optional buffer)
   "Return the time-stamp of BUFFER, or current buffer, as float."

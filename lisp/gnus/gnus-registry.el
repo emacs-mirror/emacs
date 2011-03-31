@@ -124,7 +124,7 @@ display."
   :type 'symbol)
 
 (defcustom gnus-registry-unfollowed-groups
-  '("delayed$" "drafts$" "queue$" "INBOX$" "^nnmairix:")
+  '("delayed$" "drafts$" "queue$" "INBOX$" "^nnmairix:" "archive")
   "List of groups that gnus-registry-split-fancy-with-parent won't return.
 The group names are matched, they don't have to be fully
 qualified.  This parameter tells the Registry 'never split a
@@ -541,24 +541,26 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 		       user-mail-address)))
       (maphash
        (lambda (key value)
-	 (let ((this-sender (cdr
-			     (gnus-registry-fetch-extra key 'sender)))
-	       matches)
-	   (when (and this-sender
-		      (equal sender this-sender))
-	     (let ((groups (gnus-registry-fetch-groups
-			    key
-			    gnus-registry-max-track-groups)))
-	       (dolist (group groups)
-		 (when (and group (gnus-registry-follow-group-p group))
-		   (push group found-full)
-		   (setq found (append (list group) (delete group found))))))
-	     (push key matches)
-	     (gnus-message
-	      ;; raise level of messaging if gnus-registry-track-extra
-	      (if gnus-registry-track-extra 7 9)
-	      "%s (extra tracking) traced sender %s to groups %s (keys %s)"
-	      log-agent sender found matches))))
+         ;; don't use more than gnus-registry-max-track-groups
+         (when (< (length found-full) gnus-registry-max-track-groups)
+           (let ((this-sender
+                  (cdr (gnus-registry-fetch-extra key 'sender)))
+                 matches)
+             (when (and this-sender
+                        (equal sender this-sender))
+               (let ((groups (gnus-registry-fetch-groups
+                              key
+                              gnus-registry-max-track-groups)))
+                 (dolist (group groups)
+                   (when (and group (gnus-registry-follow-group-p group))
+                     (push group found-full)
+                     (setq found (append (list group) (delete group found))))))
+               (push key matches)
+               (gnus-message
+                ;; raise level of messaging if gnus-registry-track-extra
+                (if gnus-registry-track-extra 7 9)
+                "%s (extra tracking) traced sender %s to groups %s (keys %s)"
+                log-agent sender found matches)))))
        gnus-registry-hashtb)
       ;; filter the found groups and return them
       ;; the found groups are NOT the full groups

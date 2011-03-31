@@ -320,7 +320,7 @@ uniscribe_shape (Lisp_Object lgstring)
 	    }
           if (SUCCEEDED (result))
 	    {
-	      int j, nclusters, from, to;
+	      int j, from, to;
 
 	      from = 0;
 	      to = from;
@@ -629,8 +629,6 @@ add_opentype_font_name_to_list (ENUMLOGFONTEX *logical_font,
     STR[4] = '\0';                                           \
   } while (0)
 
-static char* NOTHING = "    ";
-
 #define SNAME(VAL) SDATA (SYMBOL_NAME (VAL))
 
 /* Check if font supports the otf script/language/features specified.
@@ -646,7 +644,6 @@ uniscribe_check_otf (LOGFONT *font, Lisp_Object otf_spec)
   struct frame * f;
   HDC context;
   HFONT check_font, old_font;
-  DWORD table;
   int i, retval = 0;
   struct gcpro gcpro1;
 
@@ -936,7 +933,11 @@ struct font_driver uniscribe_font_driver =
     NULL, /* otf_drive - use shape instead.  */
     NULL, /* start_for_frame */
     NULL, /* end_for_frame */
-    uniscribe_shape
+    uniscribe_shape,
+    NULL, /* check */
+    NULL, /* get_variation_glyphs */
+    NULL, /* filter_properties */
+    NULL, /* cached_font_ok */
   };
 
 /* Note that this should be called at every startup, not just when dumping,

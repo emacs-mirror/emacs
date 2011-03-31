@@ -491,6 +491,7 @@ If ARG is non-nil, instead prompt for connection parameters."
 (defvar rcirc-server nil)		; server provided by server
 (defvar rcirc-server-name nil)		; server name given by 001 response
 (defvar rcirc-timeout-timer nil)
+(defvar rcirc-user-authenticated nil)
 (defvar rcirc-user-disconnect nil)
 (defvar rcirc-connecting nil)
 (defvar rcirc-process nil)
@@ -828,18 +829,21 @@ The list is updated automatically by `defun-rcirc-command'.")
 
 (defun rcirc-completion-at-point ()
   "Function used for `completion-at-point-functions' in `rcirc-mode'."
-  (let* ((beg (save-excursion
-		(if (re-search-backward " " rcirc-prompt-end-marker t)
-		    (1+ (point))
-		  rcirc-prompt-end-marker)))
-	 (table (if (and (= beg rcirc-prompt-end-marker)
-			 (eq (char-after beg) ?/))
-		    (delete-dups
-		     (nconc
-		      (sort (copy-sequence rcirc-client-commands) 'string-lessp)
-		      (sort (copy-sequence rcirc-server-commands) 'string-lessp)))
-		  (rcirc-channel-nicks (rcirc-buffer-process) rcirc-target))))
-    (list beg (point) table)))
+  (and (rcirc-looking-at-input)
+       (let* ((beg (save-excursion
+		     (if (re-search-backward " " rcirc-prompt-end-marker t)
+			 (1+ (point))
+		       rcirc-prompt-end-marker)))
+	      (table (if (and (= beg rcirc-prompt-end-marker)
+			      (eq (char-after beg) ?/))
+			 (delete-dups
+			  (nconc (sort (copy-sequence rcirc-client-commands)
+				       'string-lessp)
+				 (sort (copy-sequence rcirc-server-commands)
+				       'string-lessp)))
+		       (rcirc-channel-nicks (rcirc-buffer-process)
+					    rcirc-target))))
+	 (list beg (point) table))))
 
 (defvar rcirc-completions nil)
 (defvar rcirc-completion-start nil)
@@ -848,6 +852,8 @@ The list is updated automatically by `defun-rcirc-command'.")
   "Cycle through completions from list of nicks in channel or IRC commands.
 IRC command completion is performed only if '/' is the first input char."
   (interactive)
+  (unless (rcirc-looking-at-input)
+    (error "Point not located after rcirc prompt"))
   (if (eq last-command this-command)
       (setq rcirc-completions
 	    (append (cdr rcirc-completions) (list (car rcirc-completions))))
@@ -855,9 +861,10 @@ IRC command completion is performed only if '/' is the first input char."
 	  (table (rcirc-completion-at-point)))
       (setq rcirc-completion-start (car table))
       (setq rcirc-completions
-	    (all-completions (buffer-substring rcirc-completion-start
-					       (cadr table))
-			     (nth 2 table)))))
+	    (and rcirc-completion-start
+		 (all-completions (buffer-substring rcirc-completion-start
+						    (cadr table))
+				  (nth 2 table))))))
   (let ((completion (car rcirc-completions)))
     (when completion
       (delete-region rcirc-completion-start (point))

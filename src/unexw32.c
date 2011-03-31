@@ -341,7 +341,6 @@ get_section_info (file_data *p_infile)
 {
   PIMAGE_DOS_HEADER dos_header;
   PIMAGE_NT_HEADERS nt_header;
-  PIMAGE_SECTION_HEADER section;
   int overlap;
 
   dos_header = (PIMAGE_DOS_HEADER) p_infile->file_base;

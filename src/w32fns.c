@@ -183,7 +183,7 @@ unsigned int msh_mousewheel = 0;
 #define MENU_FREE_DELAY 1000
 static unsigned menu_free_timer = 0;
 
-#ifdef GLYPH_DEBUG
+#if GLYPH_DEBUG
 int image_cache_refcount, dpyinfo_refcount;
 #endif
 
@@ -1527,7 +1527,6 @@ void
 x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
   int nlines;
-  int olines = FRAME_MENU_BAR_LINES (f);
 
   /* Right now, menu bars don't work properly in minibuf-only frames;
      most of the commands try to apply themselves to the minibuffer
@@ -2863,7 +2862,6 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			 base character (ie. translating the base key plus
 			 shift modifier).  */
 		      int add;
-		      int isdead = 0;
 		      KEY_EVENT_RECORD key;
 
 		      key.bKeyDown = TRUE;
@@ -2951,7 +2949,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
           HIMC context = get_ime_context_fn (hwnd);
           wmsg.dwModifiers = w32_get_key_modifiers (wParam, lParam);
           /* Get buffer size.  */
-          size = get_composition_string_fn (context, GCS_RESULTSTR, buffer, 0);
+          size = get_composition_string_fn (context, GCS_RESULTSTR, NULL, 0);
           buffer = alloca (size);
           size = get_composition_string_fn (context, GCS_RESULTSTR,
                                             buffer, size);
@@ -3981,7 +3979,7 @@ unwind_create_frame (Lisp_Object frame)
   /* If frame is ``official'', nothing to do.  */
   if (!CONSP (Vframe_list) || !EQ (XCAR (Vframe_list), frame))
     {
-#ifdef GLYPH_DEBUG
+#if GLYPH_DEBUG
       struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
 #endif
 
@@ -4522,8 +4520,6 @@ DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
   (Lisp_Object display)
 {
-  struct w32_display_info *dpyinfo = check_x_display_info (display);
-
   return make_number (1);
 }
 
@@ -4820,7 +4816,6 @@ If DISPLAY is nil, that stands for the selected frame's display.  */)
   (Lisp_Object display)
 {
   struct w32_display_info *dpyinfo = check_x_display_info (display);
-  int i;
 
   if (dpyinfo->reference_count > 0)
     error ("Display still has frames on it");
@@ -5173,7 +5168,7 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
 		    Lisp_Object parms, Lisp_Object text)
 {
   struct frame *f;
-  Lisp_Object frame, tem;
+  Lisp_Object frame;
   Lisp_Object name;
   long window_prompting = 0;
   int width, height;

@@ -160,7 +160,6 @@ int last_scroll_bar_drag_pos;
 /* Where the mouse was last time we reported a mouse event.  */
 static RECT last_mouse_glyph;
 static FRAME_PTR last_mouse_glyph_frame;
-static Lisp_Object last_mouse_press_frame;
 
 /* The scroll bar in which the last motion event occurred.
 
@@ -1069,16 +1068,12 @@ x_set_glyph_string_clipping (struct glyph_string *s)
     w32_set_clip_rectangle (s->hdc, r);
   else if (n > 1)
     {
-      HRGN full_clip, clip1, clip2;
-      clip1 = CreateRectRgnIndirect (r);
-      clip2 = CreateRectRgnIndirect (r + 1);
-      if (CombineRgn (full_clip, clip1, clip2, RGN_OR) != ERROR)
-        {
-          SelectClipRgn (s->hdc, full_clip);
-        }
+      HRGN clip1 = CreateRectRgnIndirect (r);
+      HRGN clip2 = CreateRectRgnIndirect (r + 1);
+      if (CombineRgn (clip1, clip1, clip2, RGN_OR) != ERROR)
+        SelectClipRgn (s->hdc, clip1);
       DeleteObject (clip1);
       DeleteObject (clip2);
-      DeleteObject (full_clip);
     }
     s->num_clips = n;
 }
@@ -1294,7 +1289,6 @@ x_draw_composite_glyph_string_foreground (struct glyph_string *s)
   else if (! s->first_glyph->u.cmp.automatic)
     {
       int y = s->ybase;
-      int width = 0;
       HFONT old_font;
 
       old_font = SelectObject (s->hdc, FONT_HANDLE (font));
@@ -4842,7 +4836,6 @@ w32_read_socket (struct terminal *terminal, int expected,
 static void
 w32_clip_to_row (struct window *w, struct glyph_row *row, int area, HDC hdc)
 {
-  struct frame *f = XFRAME (WINDOW_FRAME (w));
   RECT clip_rect;
   int window_x, window_y, window_width;
 
@@ -6089,7 +6082,6 @@ static void
 x_delete_terminal (struct terminal *terminal)
 {
   struct w32_display_info *dpyinfo = terminal->display_info.w32;
-  int i;
 
   /* Protect against recursive calls.  delete_frame in
      delete_terminal calls us back when it deletes our last frame.  */

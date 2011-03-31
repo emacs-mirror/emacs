@@ -30,6 +30,7 @@
 ### Code:
 
 ## Tools we need:
+## Note that we respect the values of AUTOCONF etc, like autoreconf does.
 progs="autoconf automake"
 
 ## Minimum versions we need:
@@ -46,7 +47,8 @@ automake_min=1.11
 ## Also note that we do not handle micro versions.
 get_version ()
 {
-    $1 --version 2>&1 | sed -n '1 s/.* \([1-9][0-9\.]*\).*/\1/p'
+    ## Remove eg "./autogen.sh: line 50: autoconf: command not found".
+    $1 --version 2>&1 | sed -e '/not found/d' -n -e '1 s/.* \([1-9][0-9\.]*\).*/\1/p'
 }
 
 ## $1 = version string, eg "2.59"
@@ -71,7 +73,14 @@ minor_version ()
 ## Return 3 for unexpected error (eg failed to parse version).
 check_version ()
 {
-    have_version=`get_version $1`
+    ## Respect eg $AUTOMAKE if it is set, like autoreconf does.
+    uprog=`echo $1 | sed 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/'`
+
+    eval uprog=\$${uprog}
+
+    [ x"$uprog" = x ] && uprog=$1
+
+    have_version=`get_version $uprog`
 
     [ x"$have_version" = x ] && return 1
 
@@ -177,14 +186,14 @@ this script.
 If you know that the required versions are in your PATH, but this
 script has made an error, then you can simply run
 
-autoreconf -I m4
+autoreconf -i -I m4
 
 instead of this script.
 
 If all else fails, you can try using the pre-built versions of the
 generated files by doing:
 
-cd autogen && ./copy_autogen
+./autogen/copy_autogen
 
 This is not recommended - see the comments in \`copy_autogen'.
 
@@ -198,7 +207,7 @@ echo "Your system has the required tools, running autoreconf..."
 
 
 ## Let autoreconf figure out what, if anything, needs doing.
-autoreconf -I m4 || exit $?
+autoreconf -i -I m4 || exit $?
 
 echo "You can now run \`./configure'."
 

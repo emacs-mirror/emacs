@@ -1,3 +1,137 @@
+2011-03-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* proto-stream.el (open-protocol-stream): Bring back `network' type.
+	Make this the default type.
+	(proto-stream-open-plain): Rename from proto-stream-open-default.
+	(open-protocol-stream, proto-stream-open-starttls)
+	(proto-stream-open-tls, proto-stream-open-shell): Replace `default'
+	with `plain'.
+
+	* nnimap.el (nnimap-stream, nnimap-open-connection-1): Accept `network'
+	value.
+
+	* nntp.el (nntp-open-connection-function): Document the fact that some
+	values are not functions but are instead handled specially.  Recognize
+	nntp-open-plain-stream value.
+	(nntp-open-connection): Recognize that value.
+
+2011-03-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gssapi.el (open-gssapi-stream): Remove the last mentions of the IMAP
+	stuff.
+
+	* gnus-score.el (gnus-score-string): Fix calling convention of
+	`gnus-simplify-buffer-fuzzy' after last patches.
+
+	* gnus-sum.el (gnus-update-marks): Don't send any marks updates to the
+	server for articles we didn't get any headers for.  This is a sanity
+	check.
+
+2011-03-29  Michael Welsh Duggan  <md5i@md5i.com>
+
+	* nnimap.el (nnimap-open-connection-1): Is the login responds with a
+	new CAPABILITY, use it.
+
+2011-03-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-agent.el (gnus-agent-fetch-headers): Don't message if we're not
+	downloading anything.
+
+	* gnus.el (gnus-splash-svg-color-symbols): Removed superfluous `and'.
+
+2011-03-29  Adam Sjøgren  <asjo@koldfront.dk>
+
+	* gnus.el (gnus-group-startup-message): Prefer svg file and replace
+	colors.
+	(gnus-splash-svg-color-symbols): New function.
+
+2011-03-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-simplify-buffer-fuzzy): Take the regexp explicitly
+	instead of using the global gnus-simplify-subject-fuzzy-regexp.
+	(gnus-simplify-subject-fuzzy): Use the local
+	gnus-simplify-subject-fuzzy-regex instead of the global one.  This
+	makes using this variable in group parameters work.
+
+2011-03-29  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-unfollowed-groups): Add
+	"archive:sent" to the unfollowed group regex (for the recent Gnus
+	archive:sent-YYYY-MM-DD groups).
+	(gnus-registry-split-fancy-with-parent): Bail out early in sender
+	tracking if there are more than `gnus-registry-max-track-groups'
+	matches.
+
+2011-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* message.el (message--yank-original-internal): New function to do the
+	insertion cleanly inside eval in `message-yank-original'.
+	(message-yank-original): Use it.
+
+2011-03-29  Julien Danjou  <julien@danjou.info>
+
+	* mm-view.el (mm-display-inline-fontify): Use `set-normal-mode' with
+	local variables disabled rather than `normal-mode'.
+
+2011-03-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* proto-stream.el: Changes preparatory to merging open-protocol-stream
+	with open-network-stream.
+	(proto-stream-always-use-starttls): Option removed.
+	(open-protocol-stream): Return a process object by default.  Provide a
+	new parameter :return-list specifying a list-type return value, which
+	now has the form (PROP . PLIST) instead of a fixed-length list.  Change
+	:type `network' to `try-starttls', and `network-only' to `default'.
+	Make `default' the default, for compatibility with open-network-stream.
+	Handle the no-parameter case exactly as open-network-stream, with no
+	additional stream processing.  Search plists using plist-get.
+	Explicitly add :end-of-commend parameter if it is missing.
+	(proto-stream-open-default): Renamed from
+	proto-stream-open-network-only.  Return 'default as the type.
+	(proto-stream-open-starttls): Rename from proto-stream-open-network.
+	Use plist-get.  Don't return `tls' as the type if STARTTLS negotiation
+	failed.  Always return a list with a (possibly dead) process as the
+	first element, for compatibility with open-network-stream.
+	(proto-stream-open-tls): Use plist-get.  Always return a list.
+	(proto-stream-open-shell): Return `default' as connection type.
+	(proto-stream-capability-open): Use plist-get.
+	(proto-stream-eoc): Function deleted.
+
+	* nnimap.el (nnimap-stream, nnimap-open-connection)
+	(nnimap-open-connection-1): Handle renaming of :type parameter for
+	open-protocol-stream.
+	(nnimap-open-connection-1): Pass a :return-list parameter
+	open-protocol-stream to obtain a list return value.  Parse this list
+	using plist-get.
+
+	* nntp.el (nntp-open-connection): Handle renaming of :type parameter
+	for open-protocol-stream.  Accept open-protocol-stream return value
+	that is a subprocess object instead of a list.  Handle the case of a
+	dead returned process.
+
+2011-03-25  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* mm-util.el (mm-handle-filename): Move to mm-decode.el (bug#8330).
+
+	* mm-decode.el (mm-handle-filename): Move from mm-util.el (bug#8330).
+
+2011-03-21  Julien Danjou  <julien@danjou.info>
+
+	* mm-view.el (mm-display-inline-fontify): Make mode optional, and call
+	normal-mode if not set. Set temp buffer unmodified to avoid kill-buffer
+	query.
+	(mm-inline-text): Render normal text with fontification whenever
+	possible.
+
+	* gnus-sum.el (gnus-summary-save-parts-1):
+	* gnus-art.el (gnus-article-browse-html-save-cid-content)
+	(gnus-article-browse-html-parts, gnus-mime-delete-part)
+	(gnus-mime-copy-part, gnus-mime-inline-part, gnus-insert-mime-button):
+	Use `mm-handle-filename'.
+
+	* mm-util.el (mm-handle-filename): New function, return the filename of
+	an handle.
+
 2011-03-18  Julien Danjou  <julien@danjou.info>
 
 	* gnus-util.el (gnus-buffer-live-p): Simplify gnus-buffer-live-p.

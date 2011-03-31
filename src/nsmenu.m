@@ -1705,7 +1705,6 @@ void process_dialog (id window, Lisp_Object list)
 - (Lisp_Object)runDialogAt: (NSPoint)p
 {
   NSInteger ret;
-  extern EMACS_TIME timer_check (int do_it_now); /* TODO: add to a header */
 
   /* initiate a session that will be ended by pop_down_menu */
   popupSession = [NSApp beginModalSessionForWindow: self];
@@ -1715,7 +1714,7 @@ void process_dialog (id window, Lisp_Object list)
     {
       /* Run this for timers.el, indep of atimers; might not return.
          TODO: use return value to avoid calling every iteration. */
-      timer_check (1);
+      timer_check ();
       [NSThread sleepUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.1]];
     }
 

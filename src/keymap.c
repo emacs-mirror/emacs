@@ -81,8 +81,7 @@ static void describe_map (Lisp_Object, Lisp_Object,
 			  int, Lisp_Object, Lisp_Object*, int, int);
 static void describe_vector (Lisp_Object, Lisp_Object, Lisp_Object,
                              void (*) (Lisp_Object, Lisp_Object), int,
-                             Lisp_Object, Lisp_Object, int *,
-                             int, int, int);
+                             Lisp_Object, Lisp_Object, int, int);
 static void silly_event_symbol_error (Lisp_Object);
 static Lisp_Object get_keyelt (Lisp_Object, int);
 
@@ -2388,7 +2387,7 @@ push_key_description (register unsigned int c, register char *p, int force_multi
       /* Now we are sure that C is a valid character code.  */
       if (NILP (BVAR (current_buffer, enable_multibyte_characters))
 	  && ! force_multibyte)
-	*p++ = multibyte_char_to_unibyte (c, Qnil);
+	*p++ = multibyte_char_to_unibyte (c);
       else
 	p += CHAR_STRING (c, (unsigned char *) p);
     }
@@ -3353,7 +3352,7 @@ describe_map (Lisp_Object map, Lisp_Object prefix,
 	  || CHAR_TABLE_P (XCAR (tail)))
 	describe_vector (XCAR (tail),
 			 prefix, Qnil, elt_describer, partial, shadow, map,
-			 (int *)0, 0, 1, mention_shadow);
+			 1, mention_shadow);
       else if (CONSP (XCAR (tail)))
 	{
 	  int this_shadowed = 0;
@@ -3506,7 +3505,7 @@ DESCRIBER is the output function used; nil means use `princ'.  */)
   specbind (Qstandard_output, Fcurrent_buffer ());
   CHECK_VECTOR_OR_CHAR_TABLE (vector);
   describe_vector (vector, Qnil, describer, describe_vector_princ, 0,
-		   Qnil, Qnil, (int *)0, 0, 0, 0);
+		   Qnil, Qnil, 0, 0);
 
   return unbind_to (count, Qnil);
 }
@@ -3539,9 +3538,6 @@ DESCRIBER is the output function used; nil means use `princ'.  */)
 
    ARGS is simply passed as the second argument to ELT_DESCRIBER.
 
-   INDICES and CHAR_TABLE_DEPTH are ignored.  They will be removed in
-   the near future.
-
    KEYMAP_P is 1 if vector is known to be a keymap, so map ESC to M-.
 
    ARGS is simply passed as the second argument to ELT_DESCRIBER.  */
@@ -3550,8 +3546,7 @@ static void
 describe_vector (Lisp_Object vector, Lisp_Object prefix, Lisp_Object args,
 		 void (*elt_describer) (Lisp_Object, Lisp_Object),
 		 int partial, Lisp_Object shadow, Lisp_Object entire_map,
-		 int *indices, int char_table_depth, int keymap_p,
-		 int mention_shadow)
+		 int keymap_p, int mention_shadow)
 {
   Lisp_Object definition;
   Lisp_Object tem2;

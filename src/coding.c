@@ -853,8 +853,7 @@ static unsigned char *alloc_destination (struct coding_system *,
                                          EMACS_INT, unsigned char *);
 static void setup_iso_safe_charsets (Lisp_Object);
 static unsigned char *encode_designation_at_bol (struct coding_system *,
-                                                 int *, int *,
-                                                 unsigned char *);
+                                                 int *, unsigned char *);
 static int detect_eol (const unsigned char *,
                        EMACS_INT, enum coding_category);
 static Lisp_Object adjust_coding_eol_type (struct coding_system *, int);
@@ -4299,7 +4298,7 @@ encode_invocation_designation (struct charset *charset,
 
 static unsigned char *
 encode_designation_at_bol (struct coding_system *coding, int *charbuf,
-			   int *charbuf_end, unsigned char *dst)
+			   unsigned char *dst)
 {
   struct charset *charset;
   /* Table of charsets to be designated to each graphic register.  */
@@ -4390,7 +4389,7 @@ encode_coding_iso_2022 (struct coding_system *coding)
 	  unsigned char *dst_prev = dst;
 
 	  /* We have to produce designation sequences if any now.  */
-	  dst = encode_designation_at_bol (coding, charbuf, charbuf_end, dst);
+	  dst = encode_designation_at_bol (coding, charbuf, dst);
 	  bol_designation = 0;
 	  /* We are sure that designation sequences are all ASCII bytes.  */
 	  produced_chars += dst - dst_prev;
@@ -5266,11 +5265,12 @@ encode_coding_raw_text (struct coding_system *coding)
 		unsigned char str[MAX_MULTIBYTE_LENGTH], *p0 = str, *p1 = str;
 
 		CHAR_STRING_ADVANCE (c, p1);
-		while (p0 < p1)
+		do
 		  {
 		    EMIT_ONE_BYTE (*p0);
 		    p0++;
 		  }
+		while (p0 < p1);
 	      }
 	  }
       else
@@ -9299,7 +9299,7 @@ function to call for FILENAME, that function should examine the
 contents of BUFFER instead of reading the file.
 
 usage: (find-operation-coding-system OPERATION ARGUMENTS...)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   Lisp_Object operation, target_idx, target, val;
   register Lisp_Object chain;
@@ -9308,17 +9308,17 @@ usage: (find-operation-coding-system OPERATION ARGUMENTS...)  */)
     error ("Too few arguments");
   operation = args[0];
   if (!SYMBOLP (operation)
-      || !INTEGERP (target_idx = Fget (operation, Qtarget_idx)))
+      || !NATNUMP (target_idx = Fget (operation, Qtarget_idx)))
     error ("Invalid first argument");
-  if (nargs < 1 + XINT (target_idx))
+  if (nargs < 1 + XFASTINT (target_idx))
     error ("Too few arguments for operation: %s",
 	   SDATA (SYMBOL_NAME (operation)));
-  target = args[XINT (target_idx) + 1];
+  target = args[XFASTINT (target_idx) + 1];
   if (!(STRINGP (target)
 	|| (EQ (operation, Qinsert_file_contents) && CONSP (target)
 	    && STRINGP (XCAR (target)) && BUFFERP (XCDR (target)))
 	|| (EQ (operation, Qopen_network_stream) && INTEGERP (target))))
-    error ("Invalid %dth argument", XINT (target_idx) + 1);
+    error ("Invalid %dth argument", XFASTINT (target_idx) + 1);
   if (CONSP (target))
     target = XCAR (target);
 
@@ -9375,9 +9375,9 @@ If multiple coding systems belong to the same category,
 all but the first one are ignored.
 
 usage: (set-coding-system-priority &rest coding-systems)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
-  int i, j;
+  size_t i, j;
   int changed[coding_category_max];
   enum coding_category priorities[coding_category_max];
 
@@ -9420,7 +9420,7 @@ usage: (set-coding-system-priority &rest coding-systems)  */)
 
   /* Update `coding-category-list'.  */
   Vcoding_category_list = Qnil;
-  for (i = coding_category_max - 1; i >= 0; i--)
+  for (i = coding_category_max; i-- > 0; )
     Vcoding_category_list
       = Fcons (AREF (Vcoding_category_table, priorities[i]),
 	       Vcoding_category_list);
@@ -9481,7 +9481,7 @@ DEFUN ("define-coding-system-internal", Fdefine_coding_system_internal,
        Sdefine_coding_system_internal, coding_arg_max, MANY, 0,
        doc: /* For internal use only.
 usage: (define-coding-system-internal ...)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   Lisp_Object name;
   Lisp_Object spec_vec;		/* [ ATTRS ALIASE EOL_TYPE ] */

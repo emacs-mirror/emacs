@@ -3265,9 +3265,9 @@ do { prev_from = from;				\
     = (curlevel == levelstart) ? -1 : (curlevel - 1)->last;
   state.location = from;
   state.levelstarts = Qnil;
-  while (--curlevel >= levelstart)
-      state.levelstarts = Fcons (make_number (curlevel->last),
-				 state.levelstarts);
+  while (curlevel > levelstart)
+    state.levelstarts = Fcons (make_number ((--curlevel)->last),
+			       state.levelstarts);
   immediate_quit = 0;
 
   *stateptr = state;

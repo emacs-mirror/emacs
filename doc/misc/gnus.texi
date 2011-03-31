@@ -3320,6 +3320,11 @@ List all groups with cached articles (@code{gnus-group-list-cached}).
 @findex gnus-group-list-dormant
 List all groups with dormant articles (@code{gnus-group-list-dormant}).
 
+@item A !
+@kindex A ! (Group)
+@findex gnus-group-list-ticked
+List all groups with ticked articles (@code{gnus-group-list-ticked}).
+
 @item A /
 @kindex A / (Group)
 @findex gnus-group-list-limit

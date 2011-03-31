@@ -239,14 +239,16 @@ calculate_scrolling (FRAME_PTR frame,
    of lines.  */
 
 static void
-do_scrolling (struct frame *frame, struct glyph_matrix *current_matrix, struct matrix_elt *matrix, int window_size, int unchanged_at_top)
+do_scrolling (struct frame *frame, struct glyph_matrix *current_matrix,
+              struct matrix_elt *matrix, int window_size,
+              int unchanged_at_top)
 {
   struct matrix_elt *p;
   int i, j, k;
 
   /* Set to 1 if we have set a terminal window with
-     set_terminal_window.  */
-  int terminal_window_p = 0;
+     set_terminal_window.  It's unsigned to work around GCC bug 48228.  */
+  unsigned int terminal_window_p = 0;
 
   /* A queue for line insertions to be done.  */
   struct queue { int count, pos; };
@@ -831,7 +833,9 @@ scrolling_1 (FRAME_PTR frame, int window_size, int unchanged_at_top,
    such a line will have little weight.  */
 
 int
-scrolling_max_lines_saved (int start, int end, int *oldhash, int *newhash, int *cost)
+scrolling_max_lines_saved (int start, int end,
+                           int *oldhash, int *newhash,
+                           int *cost)
 {
   struct { int hash; int count; } lines[01000];
   register int i, h;
@@ -920,7 +924,8 @@ scroll_cost (FRAME_PTR frame, int from, int to, int amount)
    overhead and multiply factor values */
 
 static void
-line_ins_del (FRAME_PTR frame, int ov1, int pf1, int ovn, int pfn, register int *ov, register int *mf)
+line_ins_del (FRAME_PTR frame, int ov1, int pf1, int ovn, int pfn,
+              register int *ov, register int *mf)
 {
   register EMACS_INT i;
   register EMACS_INT frame_lines = FRAME_LINES (frame);

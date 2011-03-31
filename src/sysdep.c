@@ -449,7 +449,7 @@ child_setup_tty (int out)
 struct save_signal
 {
   int code;
-  SIGTYPE (*handler) (int);
+  void (*handler) (int);
 };
 
 static void save_signal_handlers (struct save_signal *);
@@ -488,7 +488,8 @@ sys_subshell (void)
   int pid;
   struct save_signal saved_handlers[5];
   Lisp_Object dir;
-  unsigned char * IF_LINT (volatile) str = 0;
+  unsigned char *volatile str_volatile = 0;
+  unsigned char *str;
   int len;
 
   saved_handlers[0].code = SIGINT;
@@ -512,7 +513,7 @@ sys_subshell (void)
     goto xyzzy;
 
   dir = expand_and_dir_to_file (Funhandled_file_name_directory (dir), Qnil);
-  str = (unsigned char *) alloca (SCHARS (dir) + 2);
+  str_volatile = str = (unsigned char *) alloca (SCHARS (dir) + 2);
   len = SCHARS (dir);
   memcpy (str, SDATA (dir), len);
   if (str[len - 1] != '/') str[len++] = '/';
@@ -544,6 +545,7 @@ sys_subshell (void)
 	sh = "sh";
 
       /* Use our buffer's default directory for the subshell.  */
+      str = str_volatile;
       if (str && chdir ((char *) str) != 0)
 	{
 #ifndef DOS_NT
@@ -606,7 +608,7 @@ save_signal_handlers (struct save_signal *saved_handlers)
   while (saved_handlers->code)
     {
       saved_handlers->handler
-        = (SIGTYPE (*) (int)) signal (saved_handlers->code, SIG_IGN);
+        = (void (*) (int)) signal (saved_handlers->code, SIG_IGN);
       saved_handlers++;
     }
 }

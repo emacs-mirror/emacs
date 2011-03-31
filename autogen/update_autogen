@@ -28,7 +28,7 @@
 
 ### Code:
 
-function die ()                 # write error to stderr and exit
+die ()                 # write error to stderr and exit
 {
     [ $# -gt 0 ] && echo "$PN: $@" >&2
     exit 1
@@ -45,7 +45,7 @@ cd ../
 [ -d autogen ] || die "Could not locate autogen directory"
 
 
-function usage ()
+usage ()
 {
     cat 1>&2 <<EOF
 Usage: ${PN} [-f] [-c] [-q]
@@ -68,7 +68,7 @@ quiet=
 
 ## Parameters.
 sources="configure.in lib/Makefile.am"
-genfiles="configure aclocal.m4 src/config.in lib/Makefile.in"
+genfiles="configure aclocal.m4 src/config.in lib/Makefile.in compile config.guess config.sub depcomp install-sh missing"
 
 for g in $genfiles; do
     basegen="$basegen ${g##*/}"
@@ -104,14 +104,10 @@ OPTIND=1
 [ $# -eq 0 ] || die "Wrong number of arguments"
 
 
-function msg ()
-{
-    [ "$quiet" ] && return 0
-    echo "$@"
-}                               # function msg
+[ "$quiet" ] && exec 1> /dev/null
 
 
-msg "Running bzr status..."
+echo "Running bzr status..."
 
 bzr status -S $sources >| $tempfile || die "bzr status error for sources"
 
@@ -119,7 +115,7 @@ while read stat file; do
 
     case $stat in
         M)
-            msg "Locally modified: $file"
+            echo "Locally modified: $file"
             [ "$force" ] || die "There are local modifications"
             ;;
 
@@ -128,9 +124,20 @@ while read stat file; do
 done < $tempfile
 
 
-msg "Running autoreconf..."
+echo "Running autoreconf..."
 
-autoreconf -I m4 || die "autoreconf error"
+autoreconf -f -i -I m4 2>| $tempfile
+
+retval=$?
+
+## Annoyingly, autoreconf puts the "installing `./foo' messages on stderr.
+if [ "$quiet" ]; then
+    grep -v 'installing `\.' $tempfile 1>&2
+else
+    cat "$tempfile" 1>&2
+fi
+
+[ $retval -ne 0 ] && die "autoreconf error"
 
 
 cp $genfiles autogen/
@@ -138,6 +145,7 @@ cp $genfiles autogen/
 
 cd autogen
 
+echo "Checking status of generated files..."
 
 bzr status -S $basegen >| $tempfile || \
     die "bzr status error for generated files"
@@ -155,28 +163,25 @@ done < $tempfile
 
 
 [ "$modified" ] || {
-    msg "No files were modified"
+    echo "No files were modified"
     exit 0
 }
 
-msg "Modified file(s): $modified"
+echo "Modified file(s): $modified"
 
 [ "$commit" ] || exit 0
 
 
-msg "Committing..."
+echo "Committing..."
 
 ## bzr status output is annoyingly always relative to top-level, not PWD.
 cd ../
 
-opt=
-[ "$quiet" ] || opt=-q
-
-bzr commit $opt -m "Auto-commit of generated files." $modified || \
+bzr commit -m "Auto-commit of generated files." $modified || \
     die "bzr commit error"
 
 
-msg "Committed files: $modified"
+echo "Committed files: $modified"
 
 exit
 

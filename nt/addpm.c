@@ -274,8 +274,6 @@ main (int argc, char *argv[])
     {
       if (strlen (start_folder) < (MAX_PATH - 20))
 	{
-	  BOOL retval;
-
 	  strcat (start_folder, "\\Gnu Emacs");
 	  if (CreateDirectory (start_folder, NULL)
 	      || GetLastError () == ERROR_ALREADY_EXISTS)
@@ -307,8 +305,6 @@ main (int argc, char *argv[])
       /* Ensure there is enough room for "...\GNU Emacs\Emacs.lnk".  */
       if (strlen (start_folder) < (MAX_PATH - 20))
 	{
-	  BOOL retval;
-
 	  strcat (start_folder, "\\Gnu Emacs");
 	  if (CreateDirectory (start_folder, NULL)
 	      || GetLastError () == ERROR_ALREADY_EXISTS)

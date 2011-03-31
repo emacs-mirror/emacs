@@ -649,12 +649,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
   if (STRINGP (input_method) && !NILP (Ffboundp (Qactivate_input_method)))
     call1 (Qactivate_input_method, input_method);
 
-  /* Run our hook, but not if it is empty.
-     (run-hooks would do nothing if it is empty,
-     but it's important to save time here in the usual case.)  */
-  if (!NILP (Vminibuffer_setup_hook) && !EQ (Vminibuffer_setup_hook, Qunbound)
-      && !NILP (Vrun_hooks))
-    call1 (Vrun_hooks, Qminibuffer_setup_hook);
+  Frun_hooks (1, &Qminibuffer_setup_hook);
 
   /* Don't allow the user to undo past this point.  */
   BVAR (current_buffer, undo_list) = Qnil;
@@ -806,10 +801,7 @@ get_minibuffer (int depth)
 static Lisp_Object
 run_exit_minibuf_hook (Lisp_Object data)
 {
-  if (!NILP (Vminibuffer_exit_hook) && !EQ (Vminibuffer_exit_hook, Qunbound)
-      && !NILP (Vrun_hooks))
-    safe_run_hooks (Qminibuffer_exit_hook);
-
+  safe_run_hooks (Qminibuffer_exit_hook);
   return Qnil;
 }
 

@@ -8,12 +8,18 @@
 ## regenerate configure and will fail if you do not have the required
 ## tools.  You will have to run this script again.
 
+test -d autogen && cd autogen
+
 if test ! -e config.in; then
-    echo "You must run this script from the autogen/ directory."
+    echo "Cannot find autogen/ directory."
     exit 1
 fi
 
-cp configure aclocal.m4 ../
+## Order implied by top-level Makefile's rules, for time-stamps.
+cp compile config.guess config.sub depcomp install-sh missing ../
+cp aclocal.m4 ../
+cp configure ../
+touch ../src/stamp-h.in
 cp config.in ../src/
 cp Makefile.in ../lib/
 

@@ -1,3 +1,431 @@
+2011-03-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (struct backtrace): Don't cheat with negative numbers, but do
+	steal a few bits to be more compact.
+	(interactive_p, Fbacktrace, Fbacktrace_frame, mark_backtrace):
+	Remove unneeded casts.
+
+	* bytecode.c (Fbyte_code): CAR and CDR can GC.
+
+2011-03-30  Zachary Kanfer  <zkanfer@gmail.com>  (tiny change)
+
+	* keyboard.c (Fexecute_extended_command): Do log the "suggest key
+	binding" message (bug#7967).
+
+2011-03-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix more problems found by GCC 4.6.0's static checks.
+
+	* unexelf.c (unexec) [! (defined _SYSTYPE_SYSV || defined __sgi)]:
+	Remove unused local var.
+
+	* editfns.c (Fmessage_box): Remove unused local var.
+
+	* xdisp.c (try_window_reusing_current_matrix, x_produce_glyphs):
+	(note_mode_line_or_margin_highlight, note_mouse_highlight):
+	Omit unused local vars.
+	* window.c (shrink_windows): Omit unused local var.
+	* menu.c (digest_single_submenu): Omit unused local var.
+	* dispnew.c (update_window) [PERIODIC_PREEMPTION_CHECKING]:
+	Omit unused local var.
+
+	* keyboard.c (parse_modifiers_uncached, parse_modifiers):
+	Don't assume string length fits in int.
+	(keyremap_step, read_key_sequence): Use size_t for sizes.
+	(read_key_sequence): Don't check last_real_key_start redundantly.
+
+	* callproc.c (Fcall_process, Fcall_process_region): Use SAFE_ALLOCA
+	instead of alloca (Bug#8344).
+
+	* eval.c (Fbacktrace): Don't assume nargs fits in int.
+	(Fbacktrace_frame): Don't assume nframes fits in int.
+
+	* syntax.c (scan_sexps_forward): Avoid pointer wraparound.
+
+	* xterm.c (x_make_frame_visible, same_x_server): Redo to avoid overflow
+	concerns.
+
+	* term.c (produce_glyphless_glyph): Remove unnecessary test.
+
+	* cm.c (calccost): Turn while-do into do-while, for clarity.
+
+	* keyboard.c (syms_of_keyboard): Use the same style as later
+	in this function when indexing through an array.  This also
+	works around GCC bug 48267.
+
+	* image.c (tiff_load): Fix off-by-one image count (Bug#8336).
+
+	* xselect.c (x_check_property_data): Return correct size (Bug#8335).
+
+	* chartab.c (sub_char_table_ref_and_range): Redo for slight
+	efficiency gain, and to bypass a gcc -Wstrict-overflow warning.
+
+	* keyboard.c, keyboard.h (num_input_events): Now size_t.
+	This avoids undefined behavior on integer overflow, and is a bit
+	more convenient anyway since it is compared to a size_t variable.
+
+	Variadic C functions now count arguments with size_t, not int.
+	This avoids an unnecessary limitation on 64-bit machines, which
+	caused (substring ...) to crash on large vectors (Bug#8344).
+	* lisp.h (struct Lisp_Subr.function.aMANY): Now takes size_t, not int.
+	(DEFUN_ARGS_MANY, internal_condition_case_n, safe_call): Likewise.
+	All variadic functions and their callers changed accordingly.
+	(struct gcpro.nvars): Now size_t, not int.  All uses changed.
+	* data.c (arith_driver, float_arith_driver): Likewise.
+	* editfns.c (general_insert_function): Likewise.
+	* eval.c (struct backtrace.nargs, interactive_p)
+	(internal_condition_case_n, run_hook_with_args, apply_lambda)
+	(funcall_lambda, mark_backtrace): Likewise.
+	* fns.c (concat): Likewise.
+	* frame.c (x_set_frame_parameters): Likewise.
+	* fns.c (get_key_arg): Now accepts and returns size_t, and returns
+	0 if not found, not -1.  All callers changed.
+
+	* alloc.c (garbage_collect): Don't assume stack size fits in int.
+	(stack_copy_size): Now size_t, not int.
+	(stack_copy, stack_copy_size): Define only if MAX_SAVE_STACK > 0.
+
+2011-03-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* coding.c (encode_designation_at_bol): Remove parameter `charbuf_end',
+	unused since revno:43563.1.17 (2002-03-01) and revno:84043 (2008-02-1).
+	All callers changed.
+
+	* lisp.h (multibyte_char_to_unibyte):
+	* character.c (multibyte_char_to_unibyte): Remove parameter `rev_tbl',
+	unused since revno:43563.1.16 (2002-03-01) and revno:84043 (2008-02-1).
+	* character.h (CHAR_TO_BYTE8):
+	* cmds.c (internal_self_insert):
+	* editfns.c (general_insert_function):
+	* keymap.c (push_key_description):
+	* search.c (Freplace_match):
+	* xdisp.c (message_dolog, set_message_1): All callers changed.
+
+2011-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (safe_run_hook_funcall): New function.
+	(safe_run_hooks_1, safe_run_hooks_error, safe_run_hooks): On error,
+	don't set the hook to nil, but remove the offending function instead.
+	(Qcommand_hook_internal): Remove, unused.
+	(syms_of_keyboard): Don't initialize Qcommand_hook_internal nor define
+	Vcommand_hook_internal.
+
+	* eval.c (enum run_hooks_condition): Remove.
+	(funcall_nil, funcall_not): New functions.
+	(run_hook_with_args): Call each function through a `funcall' argument.
+	Remove `cond' argument, now redundant.
+	(Frun_hooks, Frun_hook_with_args, Frun_hook_with_args_until_success)
+	(Frun_hook_with_args_until_failure): Adjust accordingly.
+	(run_hook_wrapped_funcall, Frun_hook_wrapped): New functions.
+
+2011-03-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dispextern.h (string_buffer_position): Remove declaration.
+
+	* print.c (strout): Remove parameter `multibyte', unused since
+	revno:25356 (1999-08-21).  All callers changed.
+
+	* search.c (boyer_moore): Remove parameters `len', `pos' and `lim',
+	never used since function introduction in revno:20870 (1998-02-08).
+	All callers changed.
+
+	* w32.c (_wsa_errlist): Use braces for struct initializers.
+
+	* xdisp.c (string_buffer_position_lim): Remove parameter `w',
+	never used since function introduction in revno:36704 (2001-03-09).
+	All callers changed.
+	(string_buffer_position): Likewise.  Also, make static (it's never
+	used outside xdisp.c).
+	(cursor_row_p): Remove parameter `w', unused since
+	revno:32591 (2000-10-17).  All callers changed.
+	(decode_mode_spec): Remove parameter `precision', introduced during
+	Gerd Moellmann's rewrite at revno:25013 (1999-07-21), but never used.
+	All callers changed.
+
+2011-03-27  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (syms_of_nsterm): Use doc: for ns-auto-hide-menu-bar.
+
+2011-03-27  Anders Lindgren  <andlind@gmail.com>
+
+	* nsterm.m (ns_menu_bar_is_hidden): New variable.
+	(ns_constrain_all_frames, ns_menu_bar_should_be_hidden)
+	(ns_update_auto_hide_menu_bar): New functions.
+	(ns_update_begin): Call ns_update_auto_hide_menu_bar.
+	(applicationDidBecomeActive): Call ns_update_auto_hide_menu_bar and
+	ns_constrain_all_frames.
+	(constrainFrameRect): Return at once if ns_menu_bar_should_be_hidden.
+	(syms_of_nsterm): DEFVAR ns-auto-hide-menu-bar, init to Qnil.
+
+2011-03-27  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsmenu.m (runDialogAt): Remove argument to timer_check.
+
+2011-03-27  Glenn Morris  <rgm@gnu.org>
+
+	* syssignal.h: Replace RETSIGTYPE with void.
+	* atimer.c, data.c, dispnew.c, emacs.c, floatfns.c, keyboard.c:
+	* keyboard.h, lisp.h, process.c, sysdep.c, xterm.c:
+	Replace SIGTYPE with void everywhere.
+	* s/usg5-4-common.h (SIGTYPE): Remove definition.
+	* s/template.h (SIGTYPE): Remove commented out definition.
+
+2011-03-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (redisplay_window): Don't check buffer's clip_changed
+	flag as a prerequisite for invoking try_scrolling.  (Bug#6671)
+
+2011-03-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32.c (read_unc_volume): Use parameter `henum', instead of
+	global variable `wget_enum_handle'.
+
+	* keymap.c (describe_vector): Remove parameters `indices' and
+	`char_table_depth', unused since revno:43563.1.32 (2002-03-01).
+	(describe_map, Fdescribe_vector): Adjust calls to `describe_vector'.
+
+	* keyboard.h (timer_check, show_help_echo): Remove unused parameters.
+
+	* keyboard.c (timer_check): Remove parameter `do_it_now',
+	unused since revno:14998 (1996-04-12).
+	(show_help_echo): Remove parameter `ok_to_overwrite_keystroke_echo',
+	unused since revno:86854 (2008-04-19).
+
+	* keyboard.c (read_char):
+	* w32menu.c (w32_menu_display_help):
+	* xmenu.c (show_help_event, menu_help_callback):
+	Adjust calls to `show_help_echo'.
+
+	* gtkutil.c (xg_maybe_add_timer):
+	* keyboard.c (readable_events):
+	* process.c (wait_reading_process_output):
+	* xmenu.c (x_menu_wait_for_event): Adjust calls to `timer_check'.
+
+	* insdel.c (adjust_markers_gap_motion):
+	Remove; no-op since revno:20569 (1998-01-02).
+	(gap_left, gap_right): Don't call it.
+
+2011-03-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (handle_fontified_prop): Discard changes to clip_changed
+	incurred during fontification.
+
+2011-03-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* buffer.c (defvar_per_buffer): Remove unused parameter `doc'.
+	(DEFVAR_PER_BUFFER): Don't pass it.
+
+	* dispnew.c (row_equal_p, add_row_entry): Remove unused parameter `w'.
+	(scrolling_window): Don't pass it.
+
+2011-03-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dispextern.h (glyph_matric): Use #if GLYPH_DEBUG, not #ifdef.
+
+	* fileio.c (check_executable) [DOS_NT]: Remove unused variables `len'
+	and `suffix'.
+	(Fset_file_selinux_context) [HAVE_LIBSELINUX]: Move here declaration
+	of variables specific to SELinux and computation of `encoded_absname'.
+
+	* image.c (XPutPixel): Remove unused variable `height'.
+
+	* keyboard.c (make_lispy_event): Remove unused variable `hpos'.
+
+	* unexw32.c (get_section_info): Remove unused variable `section'.
+
+	* w32.c (stat): Remove unused variables `drive_root' and `devtype'.
+	(system_process_attributes): Remove unused variable `sess'.
+	(sys_read): Remove unused variable `err'.
+
+	* w32fns.c (top): Wrap variables with #if GLYPH_DEBUG, not #ifdef.
+	(w32_wnd_proc): Remove unused variable `isdead'.
+	(unwind_create_frame): Use #if GLYPH_DEBUG, not #ifdef.
+	(Fx_server_max_request_size): Remove unused variable `dpyinfo'.
+	(x_create_tip_frame): Remove unused variable `tem'.
+
+	* w32inevt.c (w32_console_read_socket):
+	Remove unused variable `no_events'.
+
+	* w32term.c (x_draw_composite_glyph_string_foreground):
+	Remove unused variable `width'.
+
+2011-03-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32term.c (x_set_glyph_string_clipping):
+	Don't pass uninitialized region to CombineRgn.
+
+2011-03-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (x_set_menu_bar_lines): Remove unused variable `olines'.
+	(w32_wnd_proc): Pass NULL to Windows API, not uninitialized buffer.
+	(Fx_close_connection): Remove unused variable `i'.
+
+	* w32font.c (w32font_draw): Return number of glyphs.
+	(w32font_open_internal): Remove unused variable `i'.
+	(w32font_driver): Add missing initializer.
+
+	* w32menu.c (utf8to16): Remove unused variable `utf16'.
+	(fill_in_menu): Remove unused variable `items_added'.
+
+	* w32term.c (last_mouse_press_frame): Remove static global variable.
+	(w32_clip_to_row): Remove unused variable `f'.
+	(x_delete_terminal): Remove unused variable `i'.
+
+	* w32uniscribe.c (uniscribe_shape): Remove unused variable `nclusters'.
+	(NOTHING): Remove unused static global variable.
+	(uniscribe_check_otf): Remove unused variable `table'.
+	(uniscribe_font_driver): Add missing initializers.
+
+2011-03-23  Julien Danjou  <julien@danjou.info>
+
+	* term.c (Fsuspend_tty, Fresume_tty):
+	* minibuf.c (read_minibuf, run_exit_minibuf_hook):
+	* window.c (temp_output_buffer_show):
+	* insdel.c (signal_before_change):
+	* frame.c (Fhandle_switch_frame):
+	* fileio.c (Fdo_auto_save):
+	* emacs.c (Fkill_emacs):
+	* editfns.c (save_excursion_restore):
+	* cmds.c (internal_self_insert):
+	* callint.c (Fcall_interactively):
+	* buffer.c (Fkill_all_local_variables):
+	* keyboard.c (Fcommand_execute, Fsuspend_emacs, safe_run_hooks_1):
+	Use Frun_hooks.
+	(command_loop_1): Use Frun_hooks.  Call safe_run_hooks
+	unconditionnaly since it does the check itself.
+
+2011-03-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix more problems found by GCC 4.5.2's static checks.
+
+	* coding.c (encode_coding_raw_text): Avoid unnecessary test
+	the first time through the loop, since we know p0 < p1 then.
+	This also avoids a gcc -Wstrict-overflow warning.
+
+	* lisp.h (SAFE_ALLOCA, SAFE_ALLOCA_LISP): Avoid 'int' overflow
+	leading to a memory leak, possible in functions like
+	load_charset_map_from_file that can allocate an unbounded number
+	of objects (Bug#8318).
+
+	* xmenu.c (set_frame_menubar): Use EMACS_UINT, not int, for indexes
+	that could (at least in theory) be that large.
+
+	* xdisp.c (message_log_check_duplicate): Return unsigned long, not int.
+	This is less likely to overflow, and avoids undefined behavior if
+	overflow does occur.  All callers changed.  Use strtoul to scan
+	for the unsigned long integer.
+	(pint2hrstr): Simplify and tune code slightly.
+	This also avoids a (bogus) GCC warning with gcc -Wstrict-overflow.
+
+	* scroll.c (do_scrolling): Work around GCC bug 48228.
+	See <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48228>.
+
+	* frame.c (Fmodify_frame_parameters): Simplify loop counter.
+	This also avoids a warning with gcc -Wstrict-overflow.
+	(validate_x_resource_name): Simplify count usage.
+	This also avoids a warning with gcc -Wstrict-overflow.
+
+	* fileio.c (Fcopy_file): Report error if fchown or fchmod
+	fail (Bug#8306).
+
+	* emacs.c (Fdaemon_initialized): Do not ignore I/O errors (Bug#8303).
+
+	* process.c (Fmake_network_process): Use socklen_t, not int,
+	where POSIX says socklen_t is required in portable programs.
+	This fixes a porting bug on hosts like 64-bit HP-UX, where
+	socklen_t is wider than int (Bug#8277).
+	(Fmake_network_process, server_accept_connection):
+	(wait_reading_process_output, read_process_output):
+	Likewise.
+
+	* process.c: Rename or move locals to avoid shadowing.
+	(list_processes_1, Fmake_network_process):
+	(read_process_output_error_handler, exec_sentinel_error_handler):
+	Rename or move locals.
+	(Fmake_network_process): Define label "retry_connect" only if needed.
+	(Fnetwork_interface_info): Fix pointer signedness.
+	(process_send_signal): Add cast to avoid pointer signedness problem.
+	(FIRST_PROC_DESC, IF_NON_BLOCKING_CONNECT): Remove unused macros.
+	(create_process): Use 'volatile' to avoid vfork clobbering (Bug#8298).
+
+	Make tparam.h and terminfo.c consistent.
+	* cm.c (tputs, tgoto, BC, UP): Remove extern decls.
+	Include tparam.h instead, since it declares them.
+	* cm.h (PC): Remove extern decl; tparam.h now does this.
+	* deps.mk (cm.o, terminfo.o): Depend on tparam.h.
+	* terminfo.c: Include tparam.h, to check interfaces.
+	(tparm): Make 1st arg a const pointer in decl.  Put it at top level.
+	(tparam): Adjust signature to match interface in tparam.h;
+	this removes some undefined behavior.  Check that outstring and len
+	are zero, which they always are with Emacs.
+	* tparam.h (PC, BC, UP): New extern decls.
+
+	* xftfont.c (xftfont_shape): Now static, and defined only if needed.
+	(xftfont_open): Rename locals to avoid shadowing.
+
+	* ftfont.c (ftfont_resolve_generic_family): Fix pointer signedness.
+	(ftfont_otf_capability, ftfont_shape): Omit decls if not needed.
+	(OTF_TAG_SYM): Omit macro if not needed.
+	(ftfont_list): Remove unused local.
+	(get_adstyle_property, ftfont_pattern_entity):
+	(ftfont_lookup_cache, ftfont_open, ftfont_anchor_point):
+	Rename locals to avoid shadowing.
+
+	* xfont.c (xfont_list_family): Mark var as initialized.
+
+	* xml.c (make_dom): Now static.
+
+	* composite.c (composition_compute_stop_pos): Rename local to
+	avoid shadowing.
+	(composition_reseat_it): Remove unused locals.
+	(find_automatic_composition, composition_adjust_point): Likewise.
+	(composition_update_it): Mark var as initialized.
+	(find_automatic_composition): Mark vars as initialized,
+	with a FIXME (Bug#8290).
+
+	character.h: Rename locals to avoid shadowing.
+	* character.h (PREV_CHAR_BOUNDARY, FETCH_STRING_CHAR_ADVANCE):
+	(FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE, FETCH_CHAR_ADVANCE):
+	(FETCH_CHAR_ADVANCE_NO_CHECK, INC_POS, DEC_POS, BUF_INC_POS):
+	(BUF_DEC_POS): Be more systematic about renaming local temporaries
+	to avoid shadowing.
+
+	* textprop.c (property_change_between_p): Remove; unused.
+
+	* intervals.c (interval_start_pos): Now static.
+
+	* intervals.h (CHECK_TOTAL_LENGTH): Avoid empty "else".
+
+	* atimer.c (start_atimer, append_atimer_lists, set_alarm):
+	Rename locals to avoid shadowing.
+
+	* sound.c (wav_play, au_play, Fplay_sound_internal):
+	Fix pointer signedness.
+	(alsa_choose_format): Remove unused local var.
+	(wav_play): Initialize a variable to 0, to prevent undefined
+	behavior (Bug#8278).
+
+	* region-cache.c (insert_cache_boundary): Redo var to avoid shadowing.
+
+	* region-cache.h (pp_cache): New decl, for gcc -Wmissing-prototypes.
+
+	* callproc.c (Fcall_process): Use 'volatile' to avoid vfork
+	clobbering (Bug#8298).
+	* sysdep.c (sys_subshell): Likewise.
+	Previously, the sys_subshell 'volatile' was incorrectly IF_LINTted out.
+
+	* lisp.h (child_setup): Now NO_RETURN unless DOS_NT.
+	This should get cleaned up, so that child_setup has the
+	same signature on all platforms.
+
+	* callproc.c (call_process_cleanup): Now static.
+	(relocate_fd): Rename locals to avoid shadowing.
+
+2011-03-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.c (x_clear_frame): Remove XClearWindow call.  This appears
+	not to be necessary, and produces flickering.
+
 2011-03-20  Glenn Morris  <rgm@gnu.org>
 
 	* config.in: Remove file.
@@ -138,8 +566,8 @@
 	gcc -Wbad-function-cast warning.
 	(default_value, arithcompare, arith_driver, arith_error): Now static.
 	(store_symval_forwarding): Rename local to avoid shadowing.
-	(Fmake_variable_buffer_local, Fmake_local_variable): Mark
-	variables as initialized.
+	(Fmake_variable_buffer_local, Fmake_local_variable):
+	Mark variables as initialized.
 	(do_blv_forwarding, do_symval_forwarding): Remove; unused.
 
 	* alloc.c (check_cons_list): Do not define unless GC_CHECK_CONS_LIST.
@@ -393,8 +821,8 @@
 	(BUF_PT_BYTE): Rewrite to handle indirect buffers (Bug#8219).
 	These macros can no longer be used for assignment.
 
-	* buffer.c (Fget_buffer_create, Fmake_indirect_buffer): Assign
-	struct members directly, instead of using BUF_BEGV etc.
+	* buffer.c (Fget_buffer_create, Fmake_indirect_buffer):
+	Assign struct members directly, instead of using BUF_BEGV etc.
 	(record_buffer_markers, fetch_buffer_markers): New functions for
 	recording and fetching special buffer markers.
 	(set_buffer_internal_1, set_buffer_temp): Use them.
@@ -515,8 +943,8 @@
 	* term.c (encode_terminal_code): Now external again, used by
 	w32console.c and msdos.c.
 
-	* makefile.w32-in ($(BLD)/term.$(O), ($(BLD)/tparam.$(O)): Depend
-	on $(SRC)/tparam.h, see revno 103623.
+	* makefile.w32-in ($(BLD)/term.$(O), ($(BLD)/tparam.$(O)):
+	Depend on $(SRC)/tparam.h, see revno 103623.
 
 2011-03-11  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -580,8 +1008,8 @@
 	(x_delete_glyphs, x_ins_del_lines): Mark with NO_RETURN.
 	(x_connection_closed): Tell GCC not to suggest NO_RETURN.
 
-	* xfaces.c (clear_face_cache, Fx_list_fonts, Fface_font): Rename
-	or move locals to avoid shadowing.
+	* xfaces.c (clear_face_cache, Fx_list_fonts, Fface_font):
+	Rename or move locals to avoid shadowing.
 	(tty_defined_color, merge_face_heights): Now static.
 	(free_realized_faces_for_fontset): Remove; not used.
 	(Fx_list_fonts): Mark variable that gcc -Wuninitialized
@@ -739,12 +1167,12 @@
 	(xg_prepare_tooltip, xg_hide_tooltip): Call gdk_window_get_screen.
 	(xg_prepare_tooltip, create_dialog, menubar_map_cb)
 	(xg_update_frame_menubar, xg_tool_bar_detach_callback)
-	(xg_tool_bar_attach_callback, xg_update_tool_bar_sizes): Call
-	gtk_widget_get_preferred_size.
+	(xg_tool_bar_attach_callback, xg_update_tool_bar_sizes):
+	Call gtk_widget_get_preferred_size.
 	(xg_frame_resized): gdk_window_get_geometry only takes 5
 	parameters.
-	(xg_win_to_widget, xg_event_is_for_menubar): Call
-	gdk_x11_window_lookup_for_display.
+	(xg_win_to_widget, xg_event_is_for_menubar):
+	Call gdk_x11_window_lookup_for_display.
 	(xg_set_widget_bg): New function.
 	(delete_cb): New function.
 	(xg_create_frame_widgets): connect delete-event to delete_cb.
@@ -840,7 +1268,7 @@
 	(produce_glyphless_glyph): Make a pointer "const"
 	since it might point to immutable storage.
 	(update_window_cursor): Now static, since it's not used elsewhere.
-	(SKIP_GLYPHS): Removed unused macro.
+	(SKIP_GLYPHS): Remove unused macro.
 
 2011-03-06  Michael Shields  <shields@msrl.com>  (tiny change)
 
@@ -7337,7 +7765,7 @@
 	* xterm.c (x_send_scroll_bar_event, SET_SAVED_MENU_EVENT)
 	(handle_one_xevent, x_check_errors, xim_initialize, x_term_init):
 	Likewise.
-	* character.h (BCOPY_SHORT): Removed.
+	* character.h (BCOPY_SHORT): Remove.
 	* config.in: Regenerate.
 	* dispnew.c (safe_bcopy): Only define as dummy if PROFILING.
 	* emacs.c (main) [PROFILING]: Don't declare
@@ -10342,8 +10770,8 @@
 	(POSIX_SIGNALS): Do not define.
 
 	Remove support for old UNIX System V systems.
-	* s/unixware.h: Add the contents of s/usg-5-4-2.h.
-	* s/usg-5-4-2.h: Remove.
+	* s/unixware.h: Add the contents of s/usg5-4-2.h.
+	* s/usg5-4-2.h: Remove.
 
 	Remove support for Solaris on PPC and for old versions.
 	* s/sol2-6.h: Add the contents of s/sol-2.3.h, s/sol-2.4.h, s/sol-2.5.h.
@@ -19126,7 +19554,7 @@
 	Set xftfont_info->ft_size.  Don't unlock the face.  Check BDF
 	properties if appropriate.
 	(xftfont_close): Unlock the face.
-	(xftfont_anchor_point, xftfont_shape): Deleted.
+	(xftfont_anchor_point, xftfont_shape): Delete.
 	(syms_of_xftfont): Don't set members anchor_point and shape of
 	xftfont_driver.
 
@@ -21031,7 +21459,7 @@
 	Delete externs.
 	(fontset_from_font_name): Extern it.
 	(FS_LOAD_FONT, FONT_INFO_ID, FONT_INFO_FROM_ID)
-	(FONT_INFO_FROM_FACE): Deleted.
+	(FONT_INFO_FROM_FACE): Delete.
 	(face_for_font): Adjust prototype.
 
 	* fontset.c: Throughout the file, delete all USE_FONT_BACKEND
@@ -21048,7 +21476,7 @@
 	(fontset_compare_rfontdef): New function.
 	(reorder_font_vector): Remove the argument CHARSET-ID.  Sort
 	rfont-defs by qsort.  Adjusted for the change of font-group vector.
-	(load_font_get_repertory): Deleted.
+	(load_font_get_repertory): Delete.
 	(fontset_find_font): Use new macros to ref/set elements of
 	font-def and rfont-def.
 	(fontset_font): Fix the timing of remembering that no font for C.
@@ -21064,11 +21492,11 @@
 	font-def.
 	(Fnew_fontset): Use font_unparse_xlfd to generate
 	FONTSET_ASCII (fontset).
-	(new_fontset_from_font_name): Deleted.
+	(new_fontset_from_font_name): Delete.
 	(fontset_from_font): Rename from new_fontset_from_font.  Check if
 	a fontset is already created for the font.  FIx updating of
 	Vfontset_alias_alist.
-	(fontset_ascii_font): Deleted.
+	(fontset_ascii_font): Delete.
 	(Ffont_info): Adjust for the format change of font-spec.
 	(Finternal_char_font): Likewise.
 	(Ffontset_info): Likewise.
@@ -21096,7 +21524,7 @@
 	(ftfont_list): Return a list, not vector.
 	(ftfont_match): Use ftfont_spec_pattern to get a pattern.
 	(ftfont_list_family): Don't downcase names.
-	(ftfont_free_entity): Deleted.
+	(ftfont_free_entity): Delete.
 	(ftfont_open): Return a font-object.  Adjusted for the change of
 	struct font.  Get underline_thickness and underline_position from
 	font property.  Don't update dpyinfo->smallest_font_height and
@@ -21148,13 +21576,13 @@
 	(QCfoundry, QCadstyle, QCregistry, QCspacing, QCsize, QCavgwidth)
 	(Qp): Extern them.
 	(clear_font_table, load_face_font, xlfd_lookup_field_contents):
-	Deleted.
-	(struct font_name): Deleted.
-	(xlfd_numeric_value, xlfd_symbolic_value): Deleted.
+	Delete.
+	(struct font_name): Delete.
+	(xlfd_numeric_value, xlfd_symbolic_value): Delete.
 	(compare_fonts_by_sort_order): New function.
 	(xlfd_numeric_slant, xlfd_symbolic_slant, xlfd_numeric_weight)
 	(xlfd_symbolic_weight, xlfd_numeric_swidth, xlfd_symbolic_swidth):
-	Deleted.
+	Delete.
 	(Fx_family_fonts): Use font_list_entities, and sort fonts by
 	compare_fonts_by_sort_order.
 	(Fx_font_family_list): Call Ffont_family_list.
@@ -21167,9 +21595,9 @@
 	(free_font_names, sort_fonts, x_face_list_fonts)
 	(face_font_available_p, sorted_font_list, cmp_font_names)
 	(font_list_1, concat_font_list, font_list, remove_duplicates):
-	Deleted.
+	Delete.
 	(Fx_list_fonts): Use Ffont_list.
-	(LFACE_AVGWIDTH): Deleted.
+	(LFACE_AVGWIDTH): Delete.
 	(check_lface_attrs): Don't check LFACE_AVGWIDTH.  Check LFACE_FONT
 	by FONTP.
 	(lface_fully_specified_p): Don't check LFACE_AVGWIDTH.
@@ -21191,7 +21619,7 @@
 	(Fface_font): Get a font name from font->props[FONT_NAME_INDEX].
 	(lface_same_font_attributes_p): Don't check LFACE_AVGWIDTH.
 	Compare fonts by EQ.
-	(lookup_non_ascii_face): Deleted.
+	(lookup_non_ascii_face): Delete.
 	(face_for_font): The 2nd argument changed.
 	(x_supports_face_attributes_p): Don't check LFACE_AVGWIDTH.
 	Check atomic font properties by case insensitive.
@@ -21214,7 +21642,7 @@
 
 	* xfont.c: Include <stdlib.h> and "ccl.h".
 	(struct xfont_info): New structure.
-	(xfont_query_font): Deleted.
+	(xfont_query_font): Delete.
 	(xfont_find_ccl_program): Rename from x_find_ccl_program and
 	moved from xterm.c.
 	(xfont_driver): Adjust for the change of struct font_driver.
@@ -21230,7 +21658,7 @@
 	dpyinfo->smallest_char_width.
 	(xfont_close): Don't free struct font.
 	(xfont_prepare_face): Adjust for the change of struct font.
-	(xfont_done_face): Deleted.
+	(xfont_done_face): Delete.
 	(xfont_has_char): Adjust for the change of struct font.
 	(xfont_encode_char, xfont_draw): Likewise.
 	(xfont_check): New function.
@@ -21260,7 +21688,7 @@
 	* xterm.c: Throughout the file, delete all USE_FONT_BACKEND
 	conditionals.  Don't check enable_font_backend.  Delete all codes
 	used only when USE_FONT_BACKEND is not defined.  Don't include ccl.h.
-	(x_per_char_metric, x_encode_char): Deleted.
+	(x_per_char_metric, x_encode_char): Delete.
 	(x_set_cursor_gc, x_set_mouse_face_gc): Don't set GCFont.
 	(x_compute_glyph_string_overhangs): Adjust for the change of
 	`struct face'.
@@ -21269,10 +21697,10 @@
 	(x_draw_glyph_string): Likewise.  Use font->underline_position and
 	font->underline_thickness.
 	(x_new_font): Rename from x_new_fontset2.
-	(x_new_fontset, x_get_font_info, x_list_fonts): Deleted.
+	(x_new_fontset, x_get_font_info, x_list_fonts): Delete.
 	(x_check_font): Call `check' method of a font driver.
 	(x_font_min_bounds, x_compute_min_glyph_bounds, x_load_font)
-	(x_query_font, x_get_font_repertory): Deleted.
+	(x_query_font, x_get_font_repertory): Delete.
 	(x_find_ccl_program): Rename and moved to xfont.c.
 	(x_redisplay_interface): Adjust for the change of `struct
 	redisplay_interface'.

@@ -662,7 +662,7 @@ struct glyph_matrix
      line.  */
   unsigned header_line_p : 1;
 
-#ifdef GLYPH_DEBUG
+#if GLYPH_DEBUG
   /* A string identifying the method used to display the matrix.  */
   char method[512];
 #endif
@@ -2953,8 +2953,6 @@ extern int  bidi_mirror_char (int);
 struct glyph_row *row_containing_pos (struct window *, EMACS_INT,
                                       struct glyph_row *,
                                       struct glyph_row *, int);
-EMACS_INT string_buffer_position (struct window *, Lisp_Object,
-                                  EMACS_INT);
 int line_bottom_y (struct it *);
 int display_prop_intangible_p (Lisp_Object);
 void resize_echo_area_exactly (void);

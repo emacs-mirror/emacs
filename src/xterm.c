@@ -349,7 +349,7 @@ static int handle_one_xevent (struct x_display_info *, XEvent *,
                               int *, struct input_event *);
 /* Don't declare this NO_RETURN because we want no
    interference with debugging failing X calls.  */
-static SIGTYPE x_connection_closed (Display *, const char *);
+static void x_connection_closed (Display *, const char *);
 
 
 /* Flush display of frame F, or of all frames if F is null.  */
@@ -2928,10 +2928,14 @@ x_clear_frame (struct frame *f)
   /* We don't set the output cursor here because there will always
      follow an explicit cursor_to.  */
   BLOCK_INPUT;
-  XClearWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
 
-  /* We have to clear the scroll bars, too.  If we have changed
-     colors or something like that, then they should be notified.  */
+  /* The following calls have been commented out because they do not
+     seem to accomplish anything, apart from causing flickering during
+     window resize.  */
+  /* XClearWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f)); */
+
+  /* We have to clear the scroll bars.  If we have changed colors or
+     something like that, then they should be notified.  */
   x_scroll_bar_clear (f);
 
 #if defined (USE_GTK) && defined (USE_TOOLKIT_SCROLL_BARS)
@@ -7646,7 +7650,7 @@ x_trace_wire (void)
    SIGPIPE will fail, causing Xlib to invoke the X IO error handler,
    which will do the appropriate cleanup for us.  */
 
-static SIGTYPE
+static void
 x_connection_signal (int signalnum)	/* If we don't have an argument, */
                    		/* some compilers complain in signal calls.  */
 {
@@ -7669,7 +7673,7 @@ static char *error_msg;
 /* Handle the loss of connection to display DPY.  ERROR_MESSAGE is
    the text of an error message that lead to the connection loss.  */
 
-static SIGTYPE
+static void
 x_connection_closed (Display *dpy, const char *error_message)
 {
   struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
@@ -9117,7 +9121,7 @@ x_make_frame_visible (struct frame *f)
        unknown reason, the call to XtMapWidget is completely ignored.
        Mapping the widget a second time works.  */
 
-    if (!FRAME_VISIBLE_P (f) && --retry_count > 0)
+    if (!FRAME_VISIBLE_P (f) && --retry_count != 0)
       goto retry;
   }
 }
@@ -9722,7 +9726,7 @@ same_x_server (const char *name1, const char *name2)
   for (; *name1 != '\0' && *name1 == *name2; name1++, name2++)
     {
       if (*name1 == ':')
-	seen_colon++;
+	seen_colon = 1;
       if (seen_colon && *name1 == '.')
 	return 1;
     }

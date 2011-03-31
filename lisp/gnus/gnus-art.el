@@ -2811,14 +2811,11 @@ Return file name."
 	   ((equal (concat "<" cid ">") (mm-handle-id handle))
 	    (setq file
 		  (expand-file-name
-		   (or (mail-content-type-get
-			(mm-handle-disposition handle) 'filename)
-		       (mail-content-type-get
-			(setq type (mm-handle-type handle)) 'name)
-		       (concat
-			(make-temp-name "cid")
-			(car (rassoc (car type) mailcap-mime-extensions))))
-		   directory))
+                   (or (mm-handle-filename handle)
+                       (concat
+                        (make-temp-name "cid")
+                        (car (rassoc (car (mm-handle-type handle)) mailcap-mime-extensions))))
+                   directory))
 	    (mm-save-part-to-file handle file)
 	    (throw 'found file))))))))
 
@@ -2835,10 +2832,7 @@ message header will be added to the bodies of the \"text/html\" parts."
 	    ((or (equal (car (setq type (mm-handle-type handle))) "text/html")
 		 (and (equal (car type) "message/external-body")
 		      (or header
-			  (setq file (or (mail-content-type-get type 'name)
-					 (mail-content-type-get
-					  (mm-handle-disposition handle)
-					  'filename))))
+			  (setq file (mm-handle-filename handle)))
 		      (or (mm-handle-cache handle)
 			  (condition-case code
 			      (progn (mm-extern-cache-contents handle) t)
@@ -5043,14 +5037,11 @@ Deleting parts may malfunction or destroy the article; continue? "))
     (let* ((data (get-text-property (point) 'gnus-data))
 	   (id (get-text-property (point) 'gnus-part))
 	   (handles gnus-article-mime-handles)
-	   (none "(none)")
 	   (description
 	    (let ((desc (mm-handle-description data)))
 	      (when desc
 		(mail-decode-encoded-word-string desc))))
-	   (filename
-	    (or (mail-content-type-get (mm-handle-disposition data) 'filename)
-		none))
+	   (filename (or (mm-handle-filename (mm-handle-disposition data)) "(none)"))
 	   (type (mm-handle-media-type data)))
       (unless data
 	(error "No MIME part under point"))
@@ -5168,10 +5159,7 @@ are decompressed."
   (unless handle
     (setq handle (get-text-property (point) 'gnus-data)))
   (when handle
-    (let ((filename (or (mail-content-type-get (mm-handle-type handle)
-					       'name)
-			(mail-content-type-get (mm-handle-disposition handle)
-					       'filename)))
+    (let ((filename (mm-handle-filename handle))
 	  contents dont-decode charset coding-system)
       (mm-with-unibyte-buffer
 	(mm-insert-part handle)
@@ -5261,12 +5249,7 @@ Compressed files like .gz and .bz2 are decompressed."
 	(mm-with-unibyte-buffer
 	  (mm-insert-part handle)
 	  (setq contents
-		(or (mm-decompress-buffer
-		     (or (mail-content-type-get (mm-handle-type handle)
-						'name)
-			 (mail-content-type-get (mm-handle-disposition handle)
-						'filename))
-		     nil t)
+		(or (mm-decompress-buffer (mm-handle-filename handle) nil t)
 		    (buffer-string))))
 	(cond
 	 ((not arg)
@@ -5671,8 +5654,7 @@ all parts."
 
 (defun gnus-insert-mime-button (handle gnus-tmp-id &optional displayed)
   (let ((gnus-tmp-name
-	 (or (mail-content-type-get (mm-handle-type handle) 'name)
-	     (mail-content-type-get (mm-handle-disposition handle) 'filename)
+	 (or (mm-handle-filename handle)
 	     (mail-content-type-get (mm-handle-type handle) 'url)
 	     ""))
 	(gnus-tmp-type (mm-handle-media-type handle))

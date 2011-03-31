@@ -1,3 +1,18 @@
+2011-03-27  Glenn Morris  <rgm@gnu.org>
+
+	* config.nt: Remove RETSIGTYPE, SIGTYPE (identical to void).
+
+2011-03-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* addpm.c (main): Remove unused variable `retval'.
+
+	* preprep.c (main): Remove unused variable `ptr'.
+
+2011-03-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cmdproxy.c: Include <ctype.h>.
+	(make_absolute): Remove unused variable `i'.
+
 2011-02-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/unistd.h (readlink, symlink): Declare prototypes.

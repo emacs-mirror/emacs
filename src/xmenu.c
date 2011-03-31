@@ -383,7 +383,7 @@ x_menu_wait_for_event (void *data)
 #endif
          )
     {
-      EMACS_TIME next_time = timer_check (1), *ntp;
+      EMACS_TIME next_time = timer_check (), *ntp;
       long secs = EMACS_SECS (next_time);
       long usecs = EMACS_USECS (next_time);
       SELECT_TYPE read_fds;
@@ -712,7 +712,7 @@ show_help_event (FRAME_PTR f, xt_or_gtk_widget widget, Lisp_Object help)
 	    break;
 	}
 #endif
-      show_help_echo (help, Qnil, Qnil, Qnil, 1);
+      show_help_echo (help, Qnil, Qnil, Qnil);
     }
 }
 
@@ -922,7 +922,7 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 #endif
   Lisp_Object items;
   widget_value *wv, *first_wv, *prev_wv = 0;
-  int i, last_i = 0;
+  EMACS_UINT i, last_i = 0;
   int *submenu_start, *submenu_end;
   int *submenu_top_level_items, *submenu_n_panes;
 
@@ -2201,7 +2201,7 @@ menu_help_callback (char *help_string, int pane, int item)
  		       Fcons (pane_name,
  			      Fcons (make_number (pane), Qnil)));
   show_help_echo (help_string ? build_string (help_string) : Qnil,
- 		  Qnil, menu_object, make_number (item), 1);
+ 		  Qnil, menu_object, make_number (item));
 }
 
 static Lisp_Object

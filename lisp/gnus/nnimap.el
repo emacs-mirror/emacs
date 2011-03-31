@@ -61,10 +61,12 @@ If nnimap-stream is `ssl', this will default to `imaps'.  If not,
 it will default to `imap'.")
 
 (defvoo nnimap-stream 'undecided
-  "How nnimap will talk to the IMAP server.
-Values are `ssl', `network', `network-only, `starttls' or
-`shell'.  The default is to try `ssl' first, and then
-`network'.")
+  "How nnimap talks to the IMAP server.
+The value should be either `undecided', `ssl' or `tls',
+`network', `starttls', `plain', or `shell'.
+
+If the value is `undecided', nnimap tries `ssl' first, then falls
+back on `network'.")
 
 (defvoo nnimap-shell-program (if (boundp 'imap-shell-program)
 				 (if (listp imap-shell-program)
@@ -339,9 +341,7 @@ textual parts.")
 	   (port nil)
 	   (ports
 	    (cond
-	     ((or (eq nnimap-stream 'network)
-		  (eq nnimap-stream 'network-only)
-		  (eq nnimap-stream 'starttls))
+	     ((memq nnimap-stream '(network plain starttls))
 	      (nnheader-message 7 "Opening connection to %s..."
 				nnimap-address)
 	      '("imap" "143"))
@@ -355,21 +355,28 @@ textual parts.")
 	      '("imaps" "imap" "993" "143"))
 	     (t
 	      (error "Unknown stream type: %s" nnimap-stream))))
-	   (proto-stream-always-use-starttls t)
            login-result credentials)
       (when nnimap-server-port
 	(push nnimap-server-port ports))
-      (destructuring-bind (stream greeting capabilities stream-type)
-	  (open-protocol-stream
-	   "*nnimap*" (current-buffer) nnimap-address (car ports)
-	   :type nnimap-stream
-	   :shell-command nnimap-shell-program
-	   :capability-command "1 CAPABILITY\r\n"
-	   :success " OK "
-	   :starttls-function
-	   (lambda (capabilities)
-	     (when (gnus-string-match-p "STARTTLS" capabilities)
-	       "1 STARTTLS\r\n")))
+      (let* ((stream-list
+	      (open-protocol-stream
+	       "*nnimap*" (current-buffer) nnimap-address (car ports)
+	       :type nnimap-stream
+	       :return-list t
+	       :shell-command nnimap-shell-program
+	       :capability-command "1 CAPABILITY\r\n"
+	       :success " OK "
+	       :starttls-function
+	       (lambda (capabilities)
+		 (when (gnus-string-match-p "STARTTLS" capabilities)
+		   "1 STARTTLS\r\n"))))
+	     (stream (car stream-list))
+	     (props (cdr stream-list))
+	     (greeting (plist-get props :greeting))
+	     (capabilities (plist-get props :capabilities))
+	     (stream-type (plist-get props :type)))
+	(when (and stream (not (memq (process-status stream) '(open run))))
+	  (setq stream nil))
 	(setf (nnimap-process nnimap-object) stream)
 	(setf (nnimap-stream-type nnimap-object) stream-type)
 	(if (not stream)
@@ -403,11 +410,18 @@ textual parts.")
 		  (setq login-result
 			(nnimap-login (car credentials) (cadr credentials))))
 		(if (car login-result)
-                    ;; save the credentials if a save function exists
+		    (progn
+                    ;; Save the credentials if a save function exists
                     ;; (such a function will only be passed if a new
-                    ;; token was created)
-                    (when (functionp (nth 2 credentials))
-                      (funcall (nth 2 credentials)))
+                    ;; token was created).
+		      (when (functionp (nth 2 credentials))
+			(funcall (nth 2 credentials)))
+		      ;; See if CAPABILITY is set as part of login
+		      ;; response.
+		      (dolist (response (cddr login-result))
+			(when (string= "CAPABILITY" (upcase (car response)))
+			  (setf (nnimap-capabilities nnimap-object)
+				(mapcar #'upcase (cdr response))))))
 		  ;; If the login failed, then forget the credentials
 		  ;; that are now possibly cached.
 		  (dolist (host (list (nnoo-current-server 'nnimap)

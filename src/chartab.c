@@ -215,7 +215,6 @@ sub_char_table_ref_and_range (Lisp_Object table, int c, int *from, int *to, Lisp
   struct Lisp_Sub_Char_Table *tbl = XSUB_CHAR_TABLE (table);
   int depth = XINT (tbl->depth);
   int min_char = XINT (tbl->min_char);
-  int max_char = min_char + chartab_chars[depth - 1] - 1;
   int chartab_idx = CHARTAB_IDX (c, depth, min_char), idx;
   Lisp_Object val;
 
@@ -244,8 +243,9 @@ sub_char_table_ref_and_range (Lisp_Object table, int c, int *from, int *to, Lisp
 	  break;
 	}
     }
-  while ((c = min_char + (chartab_idx + 1) * chartab_chars[depth]) <= max_char
-	 && *to >= c)
+  while (((c = (chartab_idx + 1) * chartab_chars[depth])
+	  < chartab_chars[depth - 1])
+	 && (c += min_char) <= *to)
     {
       Lisp_Object this_val;
 
