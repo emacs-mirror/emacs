@@ -1,3 +1,7 @@
+2011-03-31  Glenn Morris  <rgm@gnu.org>
+
+	* generic-x.el (etc-fstab-generic-mode): Add ext4, sysfs keywords.
+
 2011-03-30  Christoph Scholtes  <cschol2112@googlemail.com>
 
 	* progmodes/python.el (python-default-interpreter)
