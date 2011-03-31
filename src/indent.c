@@ -2072,7 +2072,7 @@ whether or not it is currently displayed in some window.  */)
 	  /* Do this even if LINES is 0, so that we move back to the
 	     beginning of the current line as we ought.  */
 	  if (XINT (lines) == 0 || IT_CHARPOS (it) > 0)
-	    move_it_by_lines (&it, XINT (lines), 0);
+	    move_it_by_lines (&it, XINT (lines));
 	}
       else
 	{
@@ -2090,9 +2090,9 @@ whether or not it is currently displayed in some window.  */)
 		  || (it_overshoot_expected < 0
 		      && it.method == GET_FROM_BUFFER
 		      && it.c == '\n'))
-		move_it_by_lines (&it, -1, 0);
+		move_it_by_lines (&it, -1);
 	      it.vpos = 0;
-	      move_it_by_lines (&it, XINT (lines), 0);
+	      move_it_by_lines (&it, XINT (lines));
 	    }
 	  else
 	    {
@@ -2105,15 +2105,15 @@ whether or not it is currently displayed in some window.  */)
 		  while (IT_CHARPOS (it) <= it_start)
 		    {
 		      it.vpos = 0;
-		      move_it_by_lines (&it, 1, 0);
+		      move_it_by_lines (&it, 1);
 		    }
 		  if (XINT (lines) > 1)
-		    move_it_by_lines (&it, XINT (lines) - 1, 0);
+		    move_it_by_lines (&it, XINT (lines) - 1);
 		}
 	      else
 		{
 		  it.vpos = 0;
-		  move_it_by_lines (&it, XINT (lines), 0);
+		  move_it_by_lines (&it, XINT (lines));
 		}
 	    }
 	}

@@ -2988,7 +2988,7 @@ void start_display (struct it *, struct window *, struct text_pos);
 void move_it_to (struct it *, EMACS_INT, int, int, int, int);
 void move_it_vertically (struct it *, int);
 void move_it_vertically_backward (struct it *, int);
-void move_it_by_lines (struct it *, int, int);
+void move_it_by_lines (struct it *, int);
 void move_it_past_eol (struct it *);
 void move_it_in_display_line (struct it *it,
 			      EMACS_INT to_charpos, int to_x,

@@ -802,13 +802,12 @@ static int cursor_row_fully_visible_p (struct window *, int, int);
 static int try_scrolling (Lisp_Object, int, EMACS_INT, EMACS_INT, int, int);
 static int try_cursor_movement (Lisp_Object, struct text_pos, int *);
 static int trailing_whitespace_p (EMACS_INT);
-static unsigned long int message_log_check_duplicate (EMACS_INT, EMACS_INT,
-						      EMACS_INT, EMACS_INT);
+static unsigned long int message_log_check_duplicate (EMACS_INT, EMACS_INT);
 static void push_it (struct it *);
 static void pop_it (struct it *);
 static void sync_frame_with_window_matrix_rows (struct window *);
 static void select_frame_for_redisplay (Lisp_Object);
-static void redisplay_internal (int);
+static void redisplay_internal ();
 static int echo_area_display (int);
 static void redisplay_windows (Lisp_Object);
 static void redisplay_window (Lisp_Object, int);
@@ -1146,7 +1145,7 @@ line_bottom_y (struct it *it)
 	line_height = last_height;
       else if (IT_CHARPOS (*it) < ZV)
 	{
-	  move_it_by_lines (it, 1, 1);
+	  move_it_by_lines (it, 1);
 	  line_height = (it->max_ascent || it->max_descent
 			 ? it->max_ascent + it->max_descent
 			 : last_height);
@@ -1270,7 +1269,7 @@ pos_visible_p (struct window *w, EMACS_INT charpos, int *x, int *y,
 
       it2 = it;
       if (IT_CHARPOS (it) < ZV && FETCH_BYTE (IT_BYTEPOS (it)) != '\n')
-	move_it_by_lines (&it, 1, 0);
+	move_it_by_lines (&it, 1);
       if (charpos < IT_CHARPOS (it)
 	  || (it.what == IT_EOB && charpos == IT_CHARPOS (it)))
 	{
@@ -7638,7 +7637,7 @@ move_it_vertically_backward (struct it *it, int dy)
       /* DY == 0 means move to the start of the screen line.  The
 	 value of nlines is > 0 if continuation lines were involved.  */
       if (nlines > 0)
-	move_it_by_lines (it, nlines, 1);
+	move_it_by_lines (it, nlines);
     }
   else
     {
@@ -7682,7 +7681,7 @@ move_it_vertically_backward (struct it *it, int dy)
 	    {
 	      do
 		{
-		  move_it_by_lines (it, 1, 1);
+		  move_it_by_lines (it, 1);
 		}
 	      while (target_y >= line_bottom_y (it) && IT_CHARPOS (*it) < ZV);
 	    }
@@ -7712,7 +7711,7 @@ move_it_vertically (struct it *it, int dy)
       if (IT_CHARPOS (*it) == ZV
 	  && ZV > BEGV
 	  && FETCH_BYTE (IT_BYTEPOS (*it) - 1) != '\n')
-	move_it_by_lines (it, 0, 0);
+	move_it_by_lines (it, 0);
     }
 }
 
@@ -7732,15 +7731,14 @@ move_it_past_eol (struct it *it)
 
 /* Move IT by a specified number DVPOS of screen lines down.  DVPOS
    negative means move up.  DVPOS == 0 means move to the start of the
-   screen line.  NEED_Y_P non-zero means calculate IT->current_y.  If
-   NEED_Y_P is zero, IT->current_y will be left unchanged.
+   screen line.
 
-   Further optimization ideas: If we would know that IT->f doesn't use
+   Optimization idea: If we would know that IT->f doesn't use
    a face with proportional font, we could be faster for
    truncate-lines nil.  */
 
 void
-move_it_by_lines (struct it *it, int dvpos, int need_y_p)
+move_it_by_lines (struct it *it, int dvpos)
 {
 
   /* The commented-out optimization uses vmotion on terminals.  This
@@ -8003,8 +8001,8 @@ message_dolog (const char *m, EMACS_INT nbytes, int nlflag, int multibyte)
 	      prev_bol = PT;
 	      prev_bol_byte = PT_BYTE;
 
-	      dups = message_log_check_duplicate (prev_bol, prev_bol_byte,
-						  this_bol, this_bol_byte);
+	      dups = message_log_check_duplicate (prev_bol_byte,
+                                                  this_bol_byte);
 	      if (dups)
 		{
 		  del_range_both (prev_bol, prev_bol_byte,
@@ -8079,8 +8077,7 @@ message_dolog (const char *m, EMACS_INT nbytes, int nlflag, int multibyte)
    value N > 1 if we should also append " [N times]".  */
 
 static unsigned long int
-message_log_check_duplicate (EMACS_INT prev_bol, EMACS_INT prev_bol_byte,
-			     EMACS_INT this_bol, EMACS_INT this_bol_byte)
+message_log_check_duplicate (EMACS_INT prev_bol_byte, EMACS_INT this_bol_byte)
 {
   EMACS_INT i;
   EMACS_INT len = Z_BYTE - 1 - this_bol_byte;
@@ -8838,7 +8835,7 @@ resize_echo_area_exactly (void)
 	{
 	  ++windows_or_buffers_changed;
 	  ++update_mode_lines;
-	  redisplay_internal (0);
+	  redisplay_internal ();
 	}
     }
 }
@@ -9379,7 +9376,7 @@ echo_area_display (int update_frame_p)
 	      int count = SPECPDL_INDEX ();
 	      specbind (Qredisplay_dont_pause, Qt);
 	      windows_or_buffers_changed = 1;
-	      redisplay_internal (0);
+	      redisplay_internal ();
 	      unbind_to (count, Qnil);
 	    }
 	  else if (FRAME_WINDOW_P (f) && n == 0)
@@ -11150,7 +11147,7 @@ text_outside_line_unchanged_p (struct window *w,
 void
 redisplay (void)
 {
-  redisplay_internal (0);
+  redisplay_internal ();
 }
 
 
@@ -11414,14 +11411,11 @@ do { if (polling_stopped_here) start_polling ();	\
        polling_stopped_here = 0; } while (0)
 
 
-/* If PRESERVE_ECHO_AREA is nonzero, it means this redisplay is not in
-   response to any user action; therefore, we should preserve the echo
-   area.  (Actually, our caller does that job.)  Perhaps in the future
-   avoid recentering windows if it is not necessary; currently that
-   causes some problems.  */
+/* Perhaps in the future avoid recentering windows if it
+   is not necessary; currently that causes some problems.  */
 
 static void
-redisplay_internal (int preserve_echo_area)
+redisplay_internal ()
 {
   struct window *w = XWINDOW (selected_window);
   struct window *sw;
@@ -12181,11 +12175,11 @@ redisplay_preserve_echo_area (int from_where)
       /* We have a previously displayed message, but no current
 	 message.  Redisplay the previous message.  */
       display_last_displayed_message_p = 1;
-      redisplay_internal (1);
+      redisplay_internal ();
       display_last_displayed_message_p = 0;
     }
   else
-    redisplay_internal (1);
+    redisplay_internal ();
 
   if (FRAME_RIF (SELECTED_FRAME ()) != NULL
       && FRAME_RIF (SELECTED_FRAME ())->flush_display_optional)
@@ -13139,14 +13133,14 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 	  int start_y = line_bottom_y (&it1);
 
 	  do {
-	    move_it_by_lines (&it, 1, 1);
+	    move_it_by_lines (&it, 1);
 	    it1 = it;
 	  } while (line_bottom_y (&it1) - start_y < amount_to_scroll);
 	}
 
       /* If STARTP is unchanged, move it down another screen line.  */
       if (CHARPOS (it.current.pos) == CHARPOS (startp))
-	move_it_by_lines (&it, 1, 1);
+	move_it_by_lines (&it, 1);
       startp = it.current.pos;
     }
   else
@@ -13307,7 +13301,7 @@ compute_window_start_on_continuation_line (struct window *w)
 	    {
 	      min_distance = distance;
 	      pos = it.current.pos;
-	      move_it_by_lines (&it, 1, 0);
+	      move_it_by_lines (&it, 1);
 	    }
 
 	  /* Set the window start there.  */
@@ -14269,13 +14263,13 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	  && PT >= Z - XFASTINT (w->window_end_pos))
 	{
 	  clear_glyph_matrix (w->desired_matrix);
-	  move_it_by_lines (&it, 1, 0);
+	  move_it_by_lines (&it, 1);
 	  try_window (window, it.current.pos, 0);
 	}
       else if (PT < IT_CHARPOS (it))
 	{
 	  clear_glyph_matrix (w->desired_matrix);
-	  move_it_by_lines (&it, -1, 0);
+	  move_it_by_lines (&it, -1);
 	  try_window (window, it.current.pos, 0);
 	}
       else

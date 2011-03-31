@@ -4858,7 +4858,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
 	     looking at an image that is taller that the window height.  */
 	  while (start_pos == IT_CHARPOS (it)
 		 && start_pos > BEGV)
-	    move_it_by_lines (&it, -1, 1);
+	    move_it_by_lines (&it, -1);
 	}
       else if (dy > 0)
 	{
@@ -4868,11 +4868,11 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
 	     looking at an image that is taller that the window height.  */
 	  while (start_pos == IT_CHARPOS (it)
 		 && start_pos < ZV)
-	    move_it_by_lines (&it, 1, 1);
+	    move_it_by_lines (&it, 1);
 	}
     }
   else
-    move_it_by_lines (&it, n, 1);
+    move_it_by_lines (&it, n);
 
   /* We failed if we find ZV is already on the screen (scrolling up,
      means there's nothing past the end), or if we can't start any
@@ -4983,7 +4983,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
 	  while (it.current_y < this_scroll_margin)
 	    {
 	      int prev = it.current_y;
-	      move_it_by_lines (&it, 1, 1);
+	      move_it_by_lines (&it, 1);
 	      if (prev == it.current_y)
 		break;
 	    }
@@ -5017,7 +5017,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
 	partial_p = it.current_y + it.ascent + it.descent > it.last_visible_y;
       else
 	{
-	  move_it_by_lines (&it, 1, 1);
+	  move_it_by_lines (&it, 1);
 	  partial_p = it.current_y > it.last_visible_y;
 	}
 
@@ -5044,7 +5044,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
 	    /* The last line was only partially visible, so back up two
 	       lines to make sure we're on a fully visible line.  */
 	    {
-	      move_it_by_lines (&it, -2, 0);
+	      move_it_by_lines (&it, -2);
 	      SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
 	    }
 	  else
@@ -5587,14 +5587,14 @@ and redisplay normally--don't erase and redraw the frame.  */)
 	  start_display (&it, w, pt);
 
 	  /* Be sure we have the exact height of the full line containing PT.  */
-	  move_it_by_lines (&it, 0, 1);
+	  move_it_by_lines (&it, 0);
 
 	  /* The amount of pixels we have to move back is the window
 	     height minus what's displayed in the line containing PT,
 	     and the lines below.  */
 	  it.current_y = 0;
 	  it.vpos = 0;
-	  move_it_by_lines (&it, nlines, 1);
+	  move_it_by_lines (&it, nlines);
 
 	  if (it.vpos == nlines)
 	    h -= it.current_y;
@@ -5633,7 +5633,7 @@ and redisplay normally--don't erase and redraw the frame.  */)
 	  */
 	  h += extra_line_spacing;
 	  while (-it.current_y > h)
-	    move_it_by_lines (&it, 1, 1);
+	    move_it_by_lines (&it, 1);
 
 	  charpos = IT_CHARPOS (it);
 	  bytepos = IT_BYTEPOS (it);
