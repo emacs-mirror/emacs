@@ -6072,14 +6072,10 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 		 ;; didn't actually get any headers for.
 		 (existing (gnus-compress-sequence gnus-newsgroup-articles))
 		 (del
-		  (gnus-sorted-range-intersection
-		   existing
-		   (gnus-remove-from-range (gnus-copy-sequence old) list)))
+		  (gnus-remove-from-range (gnus-copy-sequence old) list))
 		 (add
-		  (gnus-sorted-range-intersection
-		   existing
-		   (gnus-remove-from-range
-		    (gnus-copy-sequence list) old))))
+		  (gnus-remove-from-range
+		   (gnus-copy-sequence list) old)))
 	    (when add
 	      (push (list add 'add (list (cdr type))) delta-marks))
 	    (when del

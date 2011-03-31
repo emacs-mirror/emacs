@@ -1,3 +1,8 @@
+2011-03-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-update-marks): Revert intersection change, which
+	made marks not propagate, again.
+
 2011-03-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* proto-stream.el (open-protocol-stream): Bring back `network' type.
