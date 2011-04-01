@@ -51,7 +51,7 @@ by Hallvard:
  *
  * define BYTE_CODE_METER to enable generation of a byte-op usage histogram.
  */
-#define BYTE_CODE_SAFE 1
+/* #define BYTE_CODE_SAFE */
 /* #define BYTE_CODE_METER */
 
 
@@ -160,7 +160,7 @@ extern Lisp_Object Qand_optional, Qand_rest;
 #ifdef BYTE_CODE_SAFE
 #define Bset_mark 0163 /* this loser is no longer generated as of v18 */
 #endif
-#define Binteractive_p 0164 /* Obsolete.  */
+#define Binteractive_p 0164 /* Obsolete since Emacs-24.1.  */
 
 #define Bforward_char 0165
 #define Bforward_word 0166
@@ -185,16 +185,16 @@ extern Lisp_Object Qand_optional, Qand_rest;
 #define Bdup 0211
 
 #define Bsave_excursion 0212
-#define Bsave_window_excursion 0213 /* Obsolete.  */
+#define Bsave_window_excursion 0213 /* Obsolete since Emacs-24.1.  */
 #define Bsave_restriction 0214
 #define Bcatch 0215
 
 #define Bunwind_protect 0216
 #define Bcondition_case 0217
-#define Btemp_output_buffer_setup 0220 /* Obsolete.  */
-#define Btemp_output_buffer_show 0221  /* Obsolete.  */
+#define Btemp_output_buffer_setup 0220 /* Obsolete since Emacs-24.1.  */
+#define Btemp_output_buffer_show 0221  /* Obsolete since Emacs-24.1.  */
 
-#define Bunbind_all 0222	/* Obsolete.  */
+#define Bunbind_all 0222	/* Obsolete.  Never used.  */
 
 #define Bset_marker 0223
 #define Bmatch_beginning 0224
@@ -413,24 +413,15 @@ unmark_byte_stack (void)
   } while (0)
 
 
-DEFUN ("byte-code", Fbyte_code, Sbyte_code, 3, MANY, 0,
+DEFUN ("byte-code", Fbyte_code, Sbyte_code, 3, 3, 0,
        doc: /* Function used internally in byte-compiled code.
 The first argument, BYTESTR, is a string of byte code;
 the second, VECTOR, a vector of constants;
 the third, MAXDEPTH, the maximum stack depth used in this function.
-If the third argument is incorrect, Emacs may crash.
-
-If ARGS-TEMPLATE is specified, it is an argument list specification,
-according to which any remaining arguments are pushed on the stack
-before executing BYTESTR.
-
-usage: (byte-code BYTESTR VECTOR MAXDEP &optional ARGS-TEMPLATE &rest ARGS) */)
-     (size_t nargs, Lisp_Object *args)
+If the third argument is incorrect, Emacs may crash.  */)
+  (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth)
 {
-  Lisp_Object args_tmpl = nargs >= 4 ? args[3] : Qnil;
-  int pnargs = nargs >= 4 ? nargs - 4 : 0;
-  Lisp_Object *pargs = nargs >= 4 ? args + 4 : 0;
-  return exec_byte_code (args[0], args[1], args[2], args_tmpl, pnargs, pargs);
+  return exec_byte_code (bytestr, vector, maxdepth, Qnil, 0, NULL);
 }
 
 /* Execute the byte-code in BYTESTR.  VECTOR is the constant vector, and
@@ -810,7 +801,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  AFTER_POTENTIAL_GC ();
 	  break;
 
-	case Bunbind_all:	/* Obsolete.  */
+	case Bunbind_all:	/* Obsolete.  Never used.  */
 	  /* To unbind back to the beginning of this frame.  Not used yet,
 	     but will be needed for tail-recursion elimination.  */
 	  BEFORE_POTENTIAL_GC ();
@@ -938,12 +929,12 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 				 save_excursion_save ());
 	  break;
 
-	case Bsave_current_buffer: /* Obsolete.  */
+	case Bsave_current_buffer: /* Obsolete since ??.  */
 	case Bsave_current_buffer_1:
 	  record_unwind_protect (set_buffer_if_live, Fcurrent_buffer ());
 	  break;
 
-	case Bsave_window_excursion: /* Obsolete.  */
+	case Bsave_window_excursion: /* Obsolete since 24.1.  */
 	  {
 	    register int count = SPECPDL_INDEX ();
 	    record_unwind_protect (Fset_window_configuration,
@@ -985,7 +976,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	    break;
 	  }
 
-	case Btemp_output_buffer_setup: /* Obsolete.  */
+	case Btemp_output_buffer_setup: /* Obsolete since 24.1.  */
 	  BEFORE_POTENTIAL_GC ();
 	  CHECK_STRING (TOP);
 	  temp_output_buffer_setup (SSDATA (TOP));
@@ -993,7 +984,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  TOP = Vstandard_output;
 	  break;
 
-	case Btemp_output_buffer_show: /* Obsolete.  */
+	case Btemp_output_buffer_show: /* Obsolete since 24.1.  */
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
@@ -1465,7 +1456,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  AFTER_POTENTIAL_GC ();
 	  break;
 
-	case Binteractive_p:	/* Obsolete.  */
+	case Binteractive_p:	/* Obsolete since 24.1.  */
 	  PUSH (Finteractive_p ());
 	  break;
 

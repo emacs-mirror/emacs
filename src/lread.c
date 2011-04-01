@@ -796,16 +796,16 @@ lisp_file_lexically_bound_p (Lisp_Object readcharfun)
       } beg_end_state = NOMINAL;
       int in_file_vars = 0;
 
-#define UPDATE_BEG_END_STATE(ch)					      \
-  if (beg_end_state == NOMINAL)						      \
-    beg_end_state = (ch == '-' ? AFTER_FIRST_DASH : NOMINAL);		      \
-  else if (beg_end_state == AFTER_FIRST_DASH)				      \
-    beg_end_state = (ch == '*' ? AFTER_ASTERIX : NOMINAL);		      \
-  else if (beg_end_state == AFTER_ASTERIX)				      \
-    {									      \
-      if (ch == '-')							      \
-	in_file_vars = !in_file_vars;					      \
-      beg_end_state = NOMINAL;						      \
+#define UPDATE_BEG_END_STATE(ch)				\
+  if (beg_end_state == NOMINAL)					\
+    beg_end_state = (ch == '-' ? AFTER_FIRST_DASH : NOMINAL);	\
+  else if (beg_end_state == AFTER_FIRST_DASH)			\
+    beg_end_state = (ch == '*' ? AFTER_ASTERIX : NOMINAL);	\
+  else if (beg_end_state == AFTER_ASTERIX)			\
+    {								\
+      if (ch == '-')						\
+	in_file_vars = !in_file_vars;				\
+      beg_end_state = NOMINAL;					\
     }
 
       /* Skip until we get to the file vars, if any.  */
@@ -834,7 +834,7 @@ lisp_file_lexically_bound_p (Lisp_Object readcharfun)
 	      UPDATE_BEG_END_STATE (ch);
 	      ch = READCHAR;
 	    }
-	  
+
 	  while (var_end > var
 		 && (var_end[-1] == ' ' || var_end[-1] == '\t'))
 	    var_end--;
@@ -880,7 +880,6 @@ lisp_file_lexically_bound_p (Lisp_Object readcharfun)
       return rv;
     }
 }
-
 
 /* Value is a version number of byte compiled code if the file
    associated with file descriptor FD is a compiled Lisp file that's
@@ -1275,7 +1274,6 @@ Return t if the file exists and loads successfully.  */)
   specbind (Qinhibit_file_name_operation, Qnil);
   load_descriptor_list
     = Fcons (make_number (fileno (stream)), load_descriptor_list);
-
   specbind (Qload_in_progress, Qt);
 
   instream = stream;
@@ -1863,11 +1861,9 @@ This function preserves the position of point.  */)
 
   specbind (Qeval_buffer_list, Fcons (buf, Veval_buffer_list));
   specbind (Qstandard_output, tem);
-  specbind (Qlexical_binding, Qnil);
   record_unwind_protect (save_excursion_restore, save_excursion_save ());
   BUF_TEMP_SET_PT (XBUFFER (buf), BUF_BEGV (XBUFFER (buf)));
-  if (lisp_file_lexically_bound_p (buf))
-    Fset (Qlexical_binding, Qt);
+  specbind (Qlexical_binding, lisp_file_lexically_bound_p (buf) ? Qt : Qnil);
   readevalloop (buf, 0, filename,
 		!NILP (printflag), unibyte, Qnil, Qnil, Qnil);
   unbind_to (count, Qnil);
@@ -3336,7 +3332,6 @@ read_vector (Lisp_Object readcharfun, int bytecodeflag)
   for (i = 0; i < size; i++)
     {
       item = Fcar (tem);
-
       /* If `load-force-doc-strings' is t when reading a lazily-loaded
 	 bytecode object, the docstring containing the bytecode and
 	 constants values must be treated as unibyte and passed to
@@ -3394,7 +3389,6 @@ read_vector (Lisp_Object readcharfun, int bytecodeflag)
       tem = Fcdr (tem);
       free_cons (otem);
     }
-
   return vector;
 }
 
@@ -4024,7 +4018,6 @@ defvar_lisp (struct Lisp_Objfwd *o_fwd,
   staticpro (address);
 }
 
-
 /* Similar but define a variable whose value is the Lisp Object stored
    at a particular offset in the current kboard object.  */
 
@@ -4470,7 +4463,7 @@ to load.  See also `load-dangerous-libraries'.  */);
 	       doc: /* If non-nil, use lexical binding when evaluating code.
 This only applies to code evaluated by `eval-buffer' and `eval-region'.
 This variable is automatically set from the file variables of an interpreted
-  lisp file read using `load'.  */);
+  Lisp file read using `load'.  */);
   Fmake_variable_buffer_local (Qlexical_binding);
 
   DEFVAR_LISP ("eval-buffer-list", Veval_buffer_list,

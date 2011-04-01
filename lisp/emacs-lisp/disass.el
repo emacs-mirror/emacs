@@ -72,7 +72,6 @@ redefine OBJECT if it is a symbol."
   (let ((macro 'nil)
 	(name 'nil)
 	(doc 'nil)
-	(lexical-binding nil)
 	args)
     (while (symbolp obj)
       (setq name obj

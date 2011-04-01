@@ -3649,6 +3649,7 @@ displaying that buffer.  */)
   return Qnil;
 }
 
+
 void
 temp_output_buffer_show (register Lisp_Object buf)
 {

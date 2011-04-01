@@ -1,3 +1,12 @@
+2011-04-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-single-version)
+	(byte-compile-version-cond, byte-compile-delay-out)
+	(byte-compile-delayed-out): Remove, unused.
+
+	* emacs-lisp/byte-opt.el (byte-optimize-form-code-walker):
+	Remove debug statement.
+
 2011-03-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (apply-partially): Use a non-nil static environment.

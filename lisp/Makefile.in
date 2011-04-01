@@ -206,8 +206,8 @@ compile-onefile:
 	@echo Compiling $(THEFILE)
 	@# Use byte-compile-refresh-preloaded to try and work around some of
 	@# the most common bootstrapping problems.
-	@$(emacs) $(BYTE_COMPILE_FLAGS) -l bytecomp \
-		-f byte-compile-refresh-preloaded \
+	@$(emacs) $(BYTE_COMPILE_FLAGS) \
+		-l bytecomp -f byte-compile-refresh-preloaded \
 		-f batch-byte-compile $(THEFILE)
 
 # Files MUST be compiled one by one. If we compile several files in a
@@ -292,7 +292,7 @@ compile-always: doit
 compile-calc:
 	for el in $(lisp)/calc/*.el; do \
 	  echo Compiling $$el; \
-	  $(emacs) $(BYTE_COMPILE_FLAGS) -f batch-byte-compile $$el || exit 1; \
+	  $(emacs) $(BYTE_COMPILE_FLAGS) -f batch-byte-compile $$el || exit 1;\
 	done
 
 # Backup compiled Lisp files in elc.tar.gz.  If that file already

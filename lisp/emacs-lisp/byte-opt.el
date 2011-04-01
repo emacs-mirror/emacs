@@ -534,7 +534,6 @@
            (cons fn (mapcar #'byte-optimize-form (cdr form))))
 
 	  ((not (symbolp fn))
-           (debug)
 	   (byte-compile-warn "`%s' is a malformed function"
 			      (prin1-to-string fn))
 	   form)
@@ -1455,8 +1454,7 @@
     byte-cdr-safe byte-cons byte-list1 byte-list2 byte-point byte-point-max
     byte-point-min byte-following-char byte-preceding-char
     byte-current-column byte-eolp byte-eobp byte-bolp byte-bobp
-    byte-current-buffer byte-stack-ref ;; byte-closed-var
-    ))
+    byte-current-buffer byte-stack-ref))
 
 (defconst byte-compile-side-effect-free-ops
   (nconc
@@ -2029,7 +2027,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 					 (+ (cdr lap0) (cdr lap1))))
 	     (setq lap (delq lap0 lap))
 	     (setcdr lap1 (+ (cdr lap1) (cdr lap0))))
-	    
+
 	    ;;
 	    ;; stack-set-M [discard/discardN ...]  -->  discardN-preserve-tos
 	    ;; stack-set-M [discard/discardN ...]  -->  discardN
@@ -2053,10 +2051,9 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	     (setq lap (delq lap0 lap))
              (setcar lap1
                      (if (= tmp2 tmp3)
-                         ;; The value stored is the new TOS, so pop
-                         ;; one more value (to get rid of the old
-                         ;; value) using the TOS-preserving
-                         ;; discard operator.
+                         ;; The value stored is the new TOS, so pop one more
+                         ;; value (to get rid of the old value) using the
+                         ;; TOS-preserving discard operator.
                          'byte-discardN-preserve-tos
                        ;; Otherwise, the value stored is lost, so just use a
                        ;; normal discard.
@@ -2071,8 +2068,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	    ;; discardN-(X+Y)
 	    ;;
 	    ((and (memq (car lap0)
-			'(byte-discard
-			  byte-discardN
+			'(byte-discard byte-discardN
 			  byte-discardN-preserve-tos))
 		  (memq (car lap1) '(byte-discard byte-discardN)))
 	     (setq lap (delq lap0 lap))

@@ -67,15 +67,23 @@
 
 ;; TODO: (not just for cconv but also for the lexbind changes in general)
 ;; - let (e)debug find the value of lexical variables from the stack.
+;; - make eval-region do the eval-sexp-add-defvars danse.
 ;; - byte-optimize-form should be applied before cconv.
 ;;   OTOH, the warnings emitted by cconv-analyze need to come before optimize
 ;;   since afterwards they can because obnoxious (warnings about an "unused
 ;;   variable" should not be emitted when the variable use has simply been
 ;;   optimized away).
+;; - turn defun and defmacro into macros (and remove special handling of
+;;   `declare' afterwards).
+;; - let macros specify that some let-bindings come from the same source,
+;;   so the unused warning takes all uses into account.
+;; - let interactive specs return a function to build the args (to stash into
+;;   command-history).
 ;; - canonize code in macro-expand so we don't have to handle (let (var) body)
 ;;   and other oddities.
 ;; - new byte codes for unwind-protect, catch, and condition-case so that
 ;;   closures aren't needed at all.
+;; - inline source code of different binding mode by first compiling it.
 ;; - a reference to a var that is known statically to always hold a constant
 ;;   should be turned into a byte-constant rather than a byte-stack-ref.
 ;;   Hmm... right, that's called constant propagation and could be done here,

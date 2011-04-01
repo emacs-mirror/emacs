@@ -745,7 +745,7 @@ POS specifies the starting position where EXP was found and defaults to point."
             (unless (special-variable-p var)
               (push var vars))))
         `(progn ,@(mapcar (lambda (v) `(defvar ,v)) vars) ,exp)))))
-  
+
 (defun eval-last-sexp (eval-last-sexp-arg-internal)
   "Evaluate sexp before point; print value in minibuffer.
 Interactively, with prefix argument, print output into current buffer.

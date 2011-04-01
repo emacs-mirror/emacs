@@ -96,6 +96,7 @@ default setting for optimization purposes.")
   "Non-nil means to optimize the method dispatch on primary methods.")
 
 ;; State Variables
+;; FIXME: These two constants below should have an `eieio-' prefix added!!
 (defvar this nil
   "Inside a method, this variable is the object in question.
 DO NOT SET THIS YOURSELF unless you are trying to simulate friendly slots.
@@ -122,7 +123,7 @@ execute a `call-next-method'.  DO NOT SET THIS YOURSELF!")
 ;; while it is being built itself.
 (defvar eieio-default-superclass nil)
 
-;; FIXME: The constants below should have a `eieio-' prefix added!!
+;; FIXME: The constants below should have an `eieio-' prefix added!!
 (defconst class-symbol 1 "Class's symbol (self-referencing.).")
 (defconst class-parent 2 "Class parent slot.")
 (defconst class-children 3 "Class children class slot.")

@@ -1137,7 +1137,7 @@ by @code{funcall}, and they are represented by a cons cell whose @code{car} is
 the symbol @code{closure}.
 
 @menu
-* Converting to Lexical Binding:: How to start using lexical scoping  
+* Converting to Lexical Binding:: How to start using lexical scoping
 @end menu
 
 @node Converting to Lexical Binding

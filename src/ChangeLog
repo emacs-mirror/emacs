@@ -1,3 +1,8 @@
+2011-04-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bytecode.c (Fbyte_code): Revert to old calling convention.
+	* lisp.h (COMPILED_PUSH_ARGS): Remove, unused.
+
 2011-03-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* image.c (parse_image_spec): Use Ffunctionp.

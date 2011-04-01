@@ -171,8 +171,8 @@ static void
 fix_command (Lisp_Object input, Lisp_Object values)
 {
   /* FIXME: Instead of this ugly hack, we should provide a way for an
-     interactive spec to return an expression that will re-build the args
-     without user intervention.  */
+     interactive spec to return an expression/function that will re-build the
+     args without user intervention.  */
   if (CONSP (input))
     {
       Lisp_Object car;

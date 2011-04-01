@@ -17,7 +17,7 @@ It is typically set via file-local variables, in which case it applies to
 all the code in that file.
 
 ** Lexically scoped interpreted functions are represented with a new form
-of function value which looks like (closure ENV lambda ARGS &rest BODY).
+of function value which looks like (closure ENV ARGS &rest BODY).
 ** New macro `letrec' to define recursive local functions.
 
 ----------------------------------------------------------------------

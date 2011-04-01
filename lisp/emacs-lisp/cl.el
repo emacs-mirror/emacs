@@ -278,9 +278,9 @@ definitions to shadow the loaded ones for use in file byte-compilation.
 (defvar cl-compiling-file nil)
 (defun cl-compiling-file ()
   (or cl-compiling-file
-      (and (boundp 'byte-compile-outbuffer)
-           (bufferp (symbol-value 'byte-compile-outbuffer))
-	   (equal (buffer-name (symbol-value 'byte-compile-outbuffer))
+      (and (boundp 'byte-compile--outbuffer)
+           (bufferp (symbol-value 'byte-compile--outbuffer))
+	   (equal (buffer-name (symbol-value 'byte-compile--outbuffer))
 		  " *Compiler Output*"))))
 
 (defvar cl-proclaims-deferred nil)

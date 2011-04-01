@@ -3484,6 +3484,9 @@ Automatically called by the Emacs Lisp byte compiler as a
    (macroexpand-all
     (wisent-automaton-lisp-form (eval form)))))
 
+;; FIXME: We shouldn't use a `byte-compile' handler.  Maybe using a hash-table
+;; instead of an obarray would work around the problem that obarrays
+;; aren't printable.  Then (put 'wisent-compile-grammar 'side-effect-free t).
 (put 'wisent-compile-grammar 'byte-compile 'wisent-byte-compile-grammar)
 
 (defun wisent-automaton-lisp-form (automaton)

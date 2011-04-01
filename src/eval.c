@@ -117,10 +117,10 @@ Lisp_Object Vsignaling_function;
 
 int handling_signal;
 
-static Lisp_Object apply_lambda (Lisp_Object fun, Lisp_Object args);
 static Lisp_Object funcall_lambda (Lisp_Object, size_t, Lisp_Object *);
 static void unwind_to_catch (struct catchtag *, Lisp_Object) NO_RETURN;
 static int interactive_p (int);
+static Lisp_Object apply_lambda (Lisp_Object fun, Lisp_Object args);
 
 void
 init_eval_once (void)
@@ -684,7 +684,7 @@ usage: (defmacro NAME ARGLIST [DOCSTRING] [DECL] BODY...)  */)
     tail = Fcons (lambda_list, tail);
   else
     tail = Fcons (lambda_list, Fcons (doc, tail));
-  
+
   defn = Fcons (Qlambda, tail);
   if (!NILP (Vinternal_interpreter_environment)) /* Mere optimization!  */
     defn = Ffunction (Fcons (defn, Qnil));
@@ -1012,11 +1012,8 @@ usage: (let* VARLIST BODY...)  */)
 
       varlist = XCDR (varlist);
     }
-
   UNGCPRO;
-
   val = Fprogn (Fcdr (args));
-
   return unbind_to (count, val);
 }
 
@@ -2083,7 +2080,8 @@ then strings and vectors are not accepted.  */)
     return Qnil;
   funcar = XCAR (fun);
   if (EQ (funcar, Qclosure))
-    return !NILP (Fassq (Qinteractive, Fcdr (Fcdr (XCDR (fun))))) ? Qt : if_prop;
+    return (!NILP (Fassq (Qinteractive, Fcdr (Fcdr (XCDR (fun)))))
+	    ? Qt : if_prop);
   else if (EQ (funcar, Qlambda))
     return !NILP (Fassq (Qinteractive, Fcdr (XCDR (fun)))) ? Qt : if_prop;
   else if (EQ (funcar, Qautoload))
@@ -2898,7 +2896,7 @@ call7 (Lisp_Object fn, Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3,
 /* The caller should GCPRO all the elements of ARGS.  */
 
 DEFUN ("functionp", Ffunctionp, Sfunctionp, 1, 1, 0,
-       doc: /* Return non-nil if OBJECT is a type of object that can be called as a function.  */)
+       doc: /* Non-nil if OBJECT is a function.  */)
      (Lisp_Object object)
 {
   if (SYMBOLP (object) && !NILP (Ffboundp (object)))
@@ -3220,7 +3218,7 @@ funcall_lambda (Lisp_Object fun, size_t nargs,
 	    xsignal2 (Qwrong_number_of_arguments, fun, make_number (nargs));
 	  else
 	    val = Qnil;
-	    
+
 	  /* Bind the argument.  */
 	  if (!NILP (lexenv) && SYMBOLP (next))
 	    /* Lexically bind NEXT by adding it to the lexenv alist.  */
@@ -3501,7 +3499,6 @@ context where binding is lexical by default.  */)
 }
 
 
-
 DEFUN ("backtrace-debug", Fbacktrace_debug, Sbacktrace_debug, 2, 2, 0,
        doc: /* Set the debug-on-exit flag of eval frame LEVEL levels down to FLAG.
 The debugger is entered when that frame exits, if the flag is non-nil.  */)

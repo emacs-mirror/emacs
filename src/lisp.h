@@ -1483,7 +1483,6 @@ typedef unsigned char UCHAR;
 #define COMPILED_STACK_DEPTH 3
 #define COMPILED_DOC_STRING 4
 #define COMPILED_INTERACTIVE 5
-#define COMPILED_PUSH_ARGS 6
 
 /* Flag bits in a character.  These also get used in termhooks.h.
    Richard Stallman <rms@gnu.ai.mit.edu> thinks that MULE
@@ -3264,7 +3263,7 @@ extern int read_bytecode_char (int);
 
 /* Defined in bytecode.c */
 extern Lisp_Object Qbytecode;
-EXFUN (Fbyte_code, MANY);
+EXFUN (Fbyte_code, 3);
 extern void syms_of_bytecode (void);
 extern struct byte_stack *byte_stack_list;
 #ifdef BYTE_MARK_STACK

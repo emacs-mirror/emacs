@@ -3640,7 +3640,7 @@ Return the result of the last expression."
   (eval (if (bound-and-true-p cl-debug-env)
             (cl-macroexpand-all edebug-expr cl-debug-env)
           edebug-expr)
-        lexical-binding)) ;; FIXME: lexbind.
+        lexical-binding))
 
 (defun edebug-safe-eval (edebug-expr)
   ;; Evaluate EXPR safely.
