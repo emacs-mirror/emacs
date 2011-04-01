@@ -1,6 +1,6 @@
 2011-04-01  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Replace two copies of readlink code with single gnulib version.
+	Replace 2 copies of readlink code with 1 gnulib version (Bug#8401).
 	* Makefile.in (GNULIB_MODULES): Add careadlinkat.
 	* lib/allocator.h, lib/careadlinkat.c, lib/careadlinkat.h:
 	* m4/ssize_t.m4: New files, automatically generated from gnulib.
