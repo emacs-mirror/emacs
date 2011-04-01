@@ -1,5 +1,8 @@
 2011-04-01  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xfaces.c (realize_named_face): Remove vars that are set but not used.
+	(map_tty_color) [!defined MSDOS]: Likewise.
+
 	* term.c (tty_write_glyphs): Use size_t; this avoids overflow warning.
 
 	* coding.c: Remove vars that are set but not used.

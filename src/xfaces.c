@@ -5444,7 +5444,6 @@ realize_named_face (struct frame *f, Lisp_Object symbol, int id)
   Lisp_Object lface = lface_from_face_name (f, symbol, 0);
   Lisp_Object attrs[LFACE_VECTOR_SIZE];
   Lisp_Object symbol_attrs[LFACE_VECTOR_SIZE];
-  struct face *new_face;
 
   /* The default face must exist and be fully specified.  */
   get_lface_attributes_no_remap (f, Qdefault, attrs, 1);
@@ -5464,7 +5463,7 @@ realize_named_face (struct frame *f, Lisp_Object symbol, int id)
   merge_face_vectors (f, symbol_attrs, attrs, 0);
 
   /* Realize the face.  */
-  new_face = realize_face (c, attrs, id);
+  realize_face (c, attrs, id);
 }
 
 
@@ -5761,20 +5760,15 @@ map_tty_color (struct frame *f, struct face *face, enum lface_attribute_index id
 {
   Lisp_Object frame, color, def;
   int foreground_p = idx == LFACE_FOREGROUND_INDEX;
-  unsigned long default_pixel, default_other_pixel, pixel;
+  unsigned long default_pixel =
+    foreground_p ? FACE_TTY_DEFAULT_FG_COLOR : FACE_TTY_DEFAULT_BG_COLOR;
+  unsigned long pixel = default_pixel;
+#ifdef MSDOS
+  unsigned long default_other_pixel =
+    foreground_p ? FACE_TTY_DEFAULT_BG_COLOR : FACE_TTY_DEFAULT_FG_COLOR;
+#endif
 
   xassert (idx == LFACE_FOREGROUND_INDEX || idx == LFACE_BACKGROUND_INDEX);
-
-  if (foreground_p)
-    {
-      pixel = default_pixel = FACE_TTY_DEFAULT_FG_COLOR;
-      default_other_pixel = FACE_TTY_DEFAULT_BG_COLOR;
-    }
-  else
-    {
-      pixel = default_pixel = FACE_TTY_DEFAULT_BG_COLOR;
-      default_other_pixel = FACE_TTY_DEFAULT_FG_COLOR;
-    }
 
   XSETFRAME (frame, f);
   color = face->lface[idx];
