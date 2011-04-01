@@ -9,6 +9,8 @@
 	* sysdep.c: Include allocator.h, careadlinkat.h.
 	(emacs_no_realloc_allocator): New static constant.
 	(emacs_readlink): New function.
+	* deps.mk (sysdep.o): Depend on ../lib/allocator.h and on
+	../lib/careadlinkat.h.
 
 2011-03-31  Juanma Barranquero  <lekktu@gmail.com>
 
