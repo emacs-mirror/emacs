@@ -510,7 +510,7 @@ concat (size_t nargs, Lisp_Object *args,
 	  Lisp_Object ch;
 	  EMACS_INT this_len_byte;
 
-	  if (VECTORP (this))
+	  if (VECTORP (this) || COMPILEDP (this))
 	    for (i = 0; i < len; i++)
 	      {
 		ch = AREF (this, i);
@@ -2297,7 +2297,7 @@ mapcar1 (EMACS_INT leni, Lisp_Object *vals, Lisp_Object fn, Lisp_Object seq)
     1) lists are not relocated and 2) the list is marked via `seq' so will not
     be freed */
 
-  if (VECTORP (seq))
+  if (VECTORP (seq) || COMPILEDP (seq))
     {
       for (i = 0; i < leni; i++)
 	{

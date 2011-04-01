@@ -745,7 +745,9 @@ Value, if non-nil, is a list \(interactive SPEC).  */)
   else if (CONSP (fun))
     {
       Lisp_Object funcar = XCAR (fun);
-      if (EQ (funcar, Qlambda))
+      if (EQ (funcar, Qclosure))
+	return Fassq (Qinteractive, Fcdr (Fcdr (XCDR (fun))));
+      else if (EQ (funcar, Qlambda))
 	return Fassq (Qinteractive, Fcdr (XCDR (fun)));
       else if (EQ (funcar, Qautoload))
 	{
@@ -1431,7 +1433,7 @@ usage: (setq-default [VAR VALUE]...)  */)
 
   do
     {
-      val = Feval (Fcar (Fcdr (args_left)));
+      val = eval_sub (Fcar (Fcdr (args_left)));
       symbol = XCAR (args_left);
       Fset_default (symbol, val);
       args_left = Fcdr (XCDR (args_left));
@@ -2101,7 +2103,7 @@ or a byte-code object.  IDX starts at 0.  */)
 
       if (idxval < 0 || idxval >= size)
 	args_out_of_range (array, idx);
-      return XVECTOR (array)->contents[idxval];
+      return AREF (array, idxval);
     }
 }
 

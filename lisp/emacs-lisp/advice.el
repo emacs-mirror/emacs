@@ -2535,17 +2535,11 @@ See Info node `(elisp)Computed Advice' for detailed documentation."
   "Return the argument list of DEFINITION.
 If DEFINITION could be from a subr then its NAME should be
 supplied to make subr arglist lookup more efficient."
-  (cond ((ad-compiled-p definition)
-	 (aref (ad-compiled-code definition) 0))
-	((consp definition)
-	 (car (cdr (ad-lambda-expression definition))))
-	((ad-subr-p definition)
-	 (if name
-	     (ad-subr-arglist name)
-	   ;; otherwise get it from its printed representation:
-	   (setq name (format "%s" definition))
-	   (string-match "^#<subr \\([^>]+\\)>$" name)
-	   (ad-subr-arglist (intern (match-string 1 name)))))))
+  (require 'help-fns)
+  (cond
+   ((or (ad-macro-p definition) (ad-advice-p definition))
+    (help-function-arglist (cdr definition)))
+   (t (help-function-arglist definition))))
 
 ;; Store subr-args as `((arg1 arg2 ...))' so I can distinguish
 ;; a defined empty arglist `(nil)' from an undefined arglist:

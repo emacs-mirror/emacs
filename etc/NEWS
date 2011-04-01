@@ -773,6 +773,22 @@ sc.el, x-menu.el, rnews.el, rnewspost.el
 
 * Lisp changes in Emacs 24.1
 
+** Code can now use lexical scoping by default instead of dynamic scoping.
+The `lexical-binding' variable lets code use lexical scoping for local
+variables.  It is typically set via file-local variables, in which case it
+applies to all the code in that file.
+
+*** `eval' takes a new optional argument `lexical' to choose the new lexical
+binding instead of the old dynamic binding mode.
+
+*** Lexically scoped interpreted functions are represented with a new form
+of function value which looks like (closure ENV ARGS &rest BODY).
+
+*** New macro `letrec' to define recursive local functions.
+
+*** New function `special-variable-p' to check whether a variable is
+declared as dynamically bound.
+
 ** pre/post-command-hook are not reset to nil upon error.
 Instead, the offending function is removed.
 

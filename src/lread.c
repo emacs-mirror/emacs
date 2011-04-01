@@ -73,6 +73,7 @@ Lisp_Object Qascii_character, Qload, Qload_file_name;
 Lisp_Object Qbackquote, Qcomma, Qcomma_at, Qcomma_dot, Qfunction;
 Lisp_Object Qinhibit_file_name_operation;
 Lisp_Object Qeval_buffer_list;
+Lisp_Object Qlexical_binding;
 Lisp_Object Qfile_truename, Qdo_after_load_evaluation; /* ACM 2006/5/16 */
 
 /* Used instead of Qget_file_char while loading *.elc files compiled
@@ -80,6 +81,8 @@ Lisp_Object Qfile_truename, Qdo_after_load_evaluation; /* ACM 2006/5/16 */
 static Lisp_Object Qget_emacs_mule_file_char;
 
 static Lisp_Object Qload_force_doc_strings;
+
+extern Lisp_Object Qinternal_interpreter_environment;
 
 static Lisp_Object Qload_in_progress;
 
@@ -147,8 +150,7 @@ static Lisp_Object Vloads_in_progress;
 static int read_emacs_mule_char (int, int (*) (int, Lisp_Object),
                                  Lisp_Object);
 
-static void readevalloop (Lisp_Object, FILE*, Lisp_Object,
-                          Lisp_Object (*) (Lisp_Object), int,
+static void readevalloop (Lisp_Object, FILE*, Lisp_Object, int,
                           Lisp_Object, Lisp_Object,
                           Lisp_Object, Lisp_Object);
 static Lisp_Object load_unwind (Lisp_Object);
@@ -769,6 +771,116 @@ DEFUN ("get-file-char", Fget_file_char, Sget_file_char, 0, 0, 0,
 
 
 
+
+/* Return true if the lisp code read using READCHARFUN defines a non-nil
+   `lexical-binding' file variable.  After returning, the stream is
+   positioned following the first line, if it is a comment, otherwise
+   nothing is read.  */
+
+static int
+lisp_file_lexically_bound_p (Lisp_Object readcharfun)
+{
+  int ch = READCHAR;
+  if (ch != ';')
+    /* The first line isn't a comment, just give up.  */
+    {
+      UNREAD (ch);
+      return 0;
+    }
+  else
+    /* Look for an appropriate file-variable in the first line.  */
+    {
+      int rv = 0;
+      enum {
+	NOMINAL, AFTER_FIRST_DASH, AFTER_ASTERIX,
+      } beg_end_state = NOMINAL;
+      int in_file_vars = 0;
+
+#define UPDATE_BEG_END_STATE(ch)				\
+  if (beg_end_state == NOMINAL)					\
+    beg_end_state = (ch == '-' ? AFTER_FIRST_DASH : NOMINAL);	\
+  else if (beg_end_state == AFTER_FIRST_DASH)			\
+    beg_end_state = (ch == '*' ? AFTER_ASTERIX : NOMINAL);	\
+  else if (beg_end_state == AFTER_ASTERIX)			\
+    {								\
+      if (ch == '-')						\
+	in_file_vars = !in_file_vars;				\
+      beg_end_state = NOMINAL;					\
+    }
+
+      /* Skip until we get to the file vars, if any.  */
+      do
+	{
+	  ch = READCHAR;
+	  UPDATE_BEG_END_STATE (ch);
+	}
+      while (!in_file_vars && ch != '\n' && ch != EOF);
+
+      while (in_file_vars)
+	{
+	  char var[100], *var_end, val[100], *val_end;
+
+	  ch = READCHAR;
+
+	  /* Read a variable name.  */
+	  while (ch == ' ' || ch == '\t')
+	    ch = READCHAR;
+
+	  var_end = var;
+	  while (ch != ':' && ch != '\n' && ch != EOF)
+	    {
+	      if (var_end < var + sizeof var - 1)
+		*var_end++ = ch;
+	      UPDATE_BEG_END_STATE (ch);
+	      ch = READCHAR;
+	    }
+
+	  while (var_end > var
+		 && (var_end[-1] == ' ' || var_end[-1] == '\t'))
+	    var_end--;
+	  *var_end = '\0';
+
+	  if (ch == ':')
+	    {
+	      /* Read a variable value.  */
+	      ch = READCHAR;
+
+	      while (ch == ' ' || ch == '\t')
+		ch = READCHAR;
+
+	      val_end = val;
+	      while (ch != ';' && ch != '\n' && ch != EOF && in_file_vars)
+		{
+		  if (val_end < val + sizeof val - 1)
+		    *val_end++ = ch;
+		  UPDATE_BEG_END_STATE (ch);
+		  ch = READCHAR;
+		}
+	      if (! in_file_vars)
+		/* The value was terminated by an end-marker, which
+		   remove.  */
+		val_end -= 3;
+	      while (val_end > val
+		     && (val_end[-1] == ' ' || val_end[-1] == '\t'))
+		val_end--;
+	      *val_end = '\0';
+
+	      if (strcmp (var, "lexical-binding") == 0)
+		/* This is it...  */
+		{
+		  rv = (strcmp (val, "nil") != 0);
+		  break;
+		}
+	    }
+	}
+
+      while (ch != '\n' && ch != EOF)
+	ch = READCHAR;
+
+      return rv;
+    }
+}
+
 /* Value is a version number of byte compiled code if the file
    associated with file descriptor FD is a compiled Lisp file that's
    safe to load.  Only files compiled with Emacs are safe to load.
@@ -1033,6 +1145,12 @@ Return t if the file exists and loads successfully.  */)
     Vloads_in_progress = Fcons (found, Vloads_in_progress);
   }
 
+  /* All loads are by default dynamic, unless the file itself specifies
+     otherwise using a file-variable in the first line.  This is bound here
+     so that it takes effect whether or not we use
+     Vload_source_file_function.  */
+  specbind (Qlexical_binding, Qnil);
+
   /* Get the name for load-history. */
   hist_file_name = (! NILP (Vpurify_flag)
                     ? Fconcat (2, (tmp[0] = Ffile_name_directory (file),
@@ -1157,15 +1275,20 @@ Return t if the file exists and loads successfully.  */)
   load_descriptor_list
     = Fcons (make_number (fileno (stream)), load_descriptor_list);
   specbind (Qload_in_progress, Qt);
+
+  instream = stream;
+  if (lisp_file_lexically_bound_p (Qget_file_char))
+    Fset (Qlexical_binding, Qt);
+
   if (! version || version >= 22)
     readevalloop (Qget_file_char, stream, hist_file_name,
-		  Feval, 0, Qnil, Qnil, Qnil, Qnil);
+		  0, Qnil, Qnil, Qnil, Qnil);
   else
     {
       /* We can't handle a file which was compiled with
 	 byte-compile-dynamic by older version of Emacs.  */
       specbind (Qload_force_doc_strings, Qt);
-      readevalloop (Qget_emacs_mule_file_char, stream, hist_file_name, Feval,
+      readevalloop (Qget_emacs_mule_file_char, stream, hist_file_name,
 		    0, Qnil, Qnil, Qnil, Qnil);
     }
   unbind_to (count, Qnil);
@@ -1535,7 +1658,6 @@ static void
 readevalloop (Lisp_Object readcharfun,
 	      FILE *stream,
 	      Lisp_Object sourcename,
-	      Lisp_Object (*evalfun) (Lisp_Object),
 	      int printflag,
 	      Lisp_Object unibyte, Lisp_Object readfun,
 	      Lisp_Object start, Lisp_Object end)
@@ -1546,6 +1668,7 @@ readevalloop (Lisp_Object readcharfun,
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   struct buffer *b = 0;
   int continue_reading_p;
+  Lisp_Object lex_bound;
   /* Nonzero if reading an entire buffer.  */
   int whole_buffer = 0;
   /* 1 on the first time around.  */
@@ -1570,6 +1693,14 @@ readevalloop (Lisp_Object readcharfun,
   specbind (Qcurrent_load_list, Qnil);
   record_unwind_protect (readevalloop_1, load_convert_to_unibyte ? Qt : Qnil);
   load_convert_to_unibyte = !NILP (unibyte);
+
+  /* If lexical binding is active (either because it was specified in
+     the file's header, or via a buffer-local variable), create an empty
+     lexical environment, otherwise, turn off lexical binding.  */
+  lex_bound = find_symbol_value (Qlexical_binding);
+  specbind (Qinternal_interpreter_environment,
+	    NILP (lex_bound) || EQ (lex_bound, Qunbound)
+	    ? Qnil : Fcons (Qt, Qnil));
 
   GCPRO4 (sourcename, readfun, start, end);
 
@@ -1672,7 +1803,7 @@ readevalloop (Lisp_Object readcharfun,
       unbind_to (count1, Qnil);
 
       /* Now eval what we just read.  */
-      val = (*evalfun) (val);
+      val = eval_sub (val);
 
       if (printflag)
 	{
@@ -1732,7 +1863,8 @@ This function preserves the position of point.  */)
   specbind (Qstandard_output, tem);
   record_unwind_protect (save_excursion_restore, save_excursion_save ());
   BUF_TEMP_SET_PT (XBUFFER (buf), BUF_BEGV (XBUFFER (buf)));
-  readevalloop (buf, 0, filename, Feval,
+  specbind (Qlexical_binding, lisp_file_lexically_bound_p (buf) ? Qt : Qnil);
+  readevalloop (buf, 0, filename,
 		!NILP (printflag), unibyte, Qnil, Qnil, Qnil);
   unbind_to (count, Qnil);
 
@@ -1753,6 +1885,7 @@ which is the input stream for reading characters.
 This function does not move point.  */)
   (Lisp_Object start, Lisp_Object end, Lisp_Object printflag, Lisp_Object read_function)
 {
+  /* FIXME: Do the eval-sexp-add-defvars danse!  */
   int count = SPECPDL_INDEX ();
   Lisp_Object tem, cbuf;
 
@@ -1766,7 +1899,7 @@ This function does not move point.  */)
   specbind (Qeval_buffer_list, Fcons (cbuf, Veval_buffer_list));
 
   /* readevalloop calls functions which check the type of start and end.  */
-  readevalloop (cbuf, 0, BVAR (XBUFFER (cbuf), filename), Feval,
+  readevalloop (cbuf, 0, BVAR (XBUFFER (cbuf), filename),
 		!NILP (printflag), Qnil, read_function,
 		start, end);
 
@@ -3838,6 +3971,7 @@ defvar_int (struct Lisp_Intfwd *i_fwd,
   sym = intern_c_string (namestring);
   i_fwd->type = Lisp_Fwd_Int;
   i_fwd->intvar = address;
+  XSYMBOL (sym)->declared_special = 1;
   XSYMBOL (sym)->redirect = SYMBOL_FORWARDED;
   SET_SYMBOL_FWD (XSYMBOL (sym), (union Lisp_Fwd *)i_fwd);
 }
@@ -3852,6 +3986,7 @@ defvar_bool (struct Lisp_Boolfwd *b_fwd,
   sym = intern_c_string (namestring);
   b_fwd->type = Lisp_Fwd_Bool;
   b_fwd->boolvar = address;
+  XSYMBOL (sym)->declared_special = 1;
   XSYMBOL (sym)->redirect = SYMBOL_FORWARDED;
   SET_SYMBOL_FWD (XSYMBOL (sym), (union Lisp_Fwd *)b_fwd);
   Vbyte_boolean_vars = Fcons (sym, Vbyte_boolean_vars);
@@ -3870,6 +4005,7 @@ defvar_lisp_nopro (struct Lisp_Objfwd *o_fwd,
   sym = intern_c_string (namestring);
   o_fwd->type = Lisp_Fwd_Obj;
   o_fwd->objvar = address;
+  XSYMBOL (sym)->declared_special = 1;
   XSYMBOL (sym)->redirect = SYMBOL_FORWARDED;
   SET_SYMBOL_FWD (XSYMBOL (sym), (union Lisp_Fwd *)o_fwd);
 }
@@ -3893,6 +4029,7 @@ defvar_kboard (struct Lisp_Kboard_Objfwd *ko_fwd,
   sym = intern_c_string (namestring);
   ko_fwd->type = Lisp_Fwd_Kboard_Obj;
   ko_fwd->offset = offset;
+  XSYMBOL (sym)->declared_special = 1;
   XSYMBOL (sym)->redirect = SYMBOL_FORWARDED;
   SET_SYMBOL_FWD (XSYMBOL (sym), (union Lisp_Fwd *)ko_fwd);
 }
@@ -4319,6 +4456,15 @@ When the regular expression matches, the file is considered to be safe
 to load.  See also `load-dangerous-libraries'.  */);
   Vbytecomp_version_regexp
     = make_pure_c_string ("^;;;.\\(in Emacs version\\|bytecomp version FSF\\)");
+
+  Qlexical_binding = intern ("lexical-binding");
+  staticpro (&Qlexical_binding);
+  DEFVAR_LISP ("lexical-binding", Vlexical_binding,
+	       doc: /* If non-nil, use lexical binding when evaluating code.
+This only applies to code evaluated by `eval-buffer' and `eval-region'.
+This variable is automatically set from the file variables of an interpreted
+  Lisp file read using `load'.  */);
+  Fmake_variable_buffer_local (Qlexical_binding);
 
   DEFVAR_LISP ("eval-buffer-list", Veval_buffer_list,
 	       doc: /* List of buffers being read from by calls to `eval-buffer' and `eval-region'.  */);

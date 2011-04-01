@@ -853,7 +853,6 @@ EXFUN (Fwindow_minibuffer_p, 1);
 EXFUN (Fdelete_window, 1);
 EXFUN (Fwindow_buffer, 1);
 EXFUN (Fget_buffer_window, 2);
-EXFUN (Fsave_window_excursion, UNEVALLED);
 EXFUN (Fset_window_configuration, 1);
 EXFUN (Fcurrent_window_configuration, 1);
 extern int compare_window_configurations (Lisp_Object, Lisp_Object, int);

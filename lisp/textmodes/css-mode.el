@@ -1,4 +1,4 @@
-;;; css-mode.el --- Major mode to edit CSS files
+;;; css-mode.el --- Major mode to edit CSS files -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2006-2011  Free Software Foundation, Inc.
 

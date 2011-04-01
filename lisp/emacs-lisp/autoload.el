@@ -137,7 +137,7 @@ or macro definition or a defcustom)."
             ;; Special case to autoload some of the macro's declarations.
             (let ((decls (nth (if (stringp (nth 3 form)) 4 3) form))
                   (exps '()))
-              (when (eq (car decls) 'declare)
+              (when (eq (car-safe decls) 'declare)
                 ;; FIXME: We'd like to reuse macro-declaration-function,
                 ;; but we can't since it doesn't return anything.
                 (dolist (decl decls)
@@ -471,7 +471,8 @@ Return non-nil if and only if FILE adds no autoloads to OUTFILE
                                    (marker-buffer output-start)))
                               (autoload-print-form autoload)))
                         (error
-                         (message "Error in %s: %S" file err)))
+                         (message "Autoload cookie error in %s:%s %S"
+                                  file (count-lines (point-min) (point)) err)))
 
                     ;; Copy the rest of the line to the output.
                     (princ (buffer-substring

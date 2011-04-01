@@ -1,4 +1,4 @@
-;;; dired.el --- directory-browsing commands
+;;; dired.el --- directory-browsing commands -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1985-1986, 1992-1997, 2000-2011
 ;;   Free Software Foundation, Inc.
@@ -1181,7 +1181,7 @@ If HDR is non-nil, insert a header line with the directory name."
 
 ;; Reverting a dired buffer
 
-(defun dired-revert (&optional arg noconfirm)
+(defun dired-revert (&optional _arg _noconfirm)
   "Reread the dired buffer.
 Must also be called after `dired-actual-switches' have changed.
 Should not fail even on completely garbaged buffers.
@@ -2143,7 +2143,7 @@ Optional arg GLOBAL means to replace all matches."
   ;; dired-get-filename.
   (concat (or dir default-directory) file))
 
-(defun dired-make-relative (file &optional dir ignore)
+(defun dired-make-relative (file &optional dir _ignore)
   "Convert FILE (an absolute file name) to a name relative to DIR.
 If this is impossible, return FILE unchanged.
 DIR must be a directory name, not a file name."
@@ -3233,7 +3233,7 @@ Type \\[help-command] at that time for help."
   (interactive "cRemove marks (RET means all): \nP")
   (save-excursion
     (let* ((count 0)
-	   (inhibit-read-only t) case-fold-search query
+	   (inhibit-read-only t) case-fold-search
 	   (string (format "\n%c" mark))
 	   (help-form "\
 Type SPC or `y' to unmark one file, DEL or `n' to skip to next,
@@ -3508,6 +3508,8 @@ Anything else means ask for each directory."
 (declare-function dnd-get-local-file-name "dnd" (uri &optional must-exist))
 (declare-function dnd-get-local-file-uri "dnd" (uri))
 
+(defvar dired-overwrite-confirmed)      ;Defined in dired-aux.
+
 (defun dired-dnd-handle-local-file (uri action)
   "Copy, move or link a file to the dired directory.
 URI is the file to handle, ACTION is one of copy, move, link or ask.
@@ -3569,38 +3571,38 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 
 (eval-when-compile (require 'desktop))
 
-(defun dired-desktop-buffer-misc-data (desktop-dirname)
+(defun dired-desktop-buffer-misc-data (dirname)
   "Auxiliary information to be saved in desktop file."
   (cons
    ;; Value of `dired-directory'.
    (if (consp dired-directory)
        ;; Directory name followed by list of files.
-       (cons (desktop-file-name (car dired-directory) desktop-dirname)
+       (cons (desktop-file-name (car dired-directory) dirname)
              (cdr dired-directory))
      ;; Directory name, optionally with shell wildcard.
-     (desktop-file-name dired-directory desktop-dirname))
+     (desktop-file-name dired-directory dirname))
    ;; Subdirectories in `dired-subdir-alist'.
    (cdr
      (nreverse
        (mapcar
-         (function (lambda (f) (desktop-file-name (car f) desktop-dirname)))
+         (function (lambda (f) (desktop-file-name (car f) dirname)))
          dired-subdir-alist)))))
 
-(defun dired-restore-desktop-buffer (desktop-buffer-file-name
-                                     desktop-buffer-name
-                                     desktop-buffer-misc)
+(defun dired-restore-desktop-buffer (_file-name
+                                     _buffer-name
+                                     misc-data)
   "Restore a dired buffer specified in a desktop file."
-  ;; First element of `desktop-buffer-misc' is the value of `dired-directory'.
+  ;; First element of `misc-data' is the value of `dired-directory'.
   ;; This value is a directory name, optionally with shell wildcard or
   ;; a directory name followed by list of files.
-  (let* ((dired-dir (car desktop-buffer-misc))
+  (let* ((dired-dir (car misc-data))
          (dir (if (consp dired-dir) (car dired-dir) dired-dir)))
     (if (file-directory-p (file-name-directory dir))
         (progn
           (dired dired-dir)
-          ;; The following elements of `desktop-buffer-misc' are the keys
+          ;; The following elements of `misc-data' are the keys
           ;; from `dired-subdir-alist'.
-          (mapc 'dired-maybe-insert-subdir (cdr desktop-buffer-misc))
+          (mapc 'dired-maybe-insert-subdir (cdr misc-data))
           (current-buffer))
       (message "Desktop: Directory %s no longer exists." dir)
       (when desktop-missing-file-warning (sit-for 1))

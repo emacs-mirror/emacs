@@ -871,8 +871,7 @@ Returns (end-pos end-of-buffer-p)"
       ;; XEmacs can calculate the end of the window by using
       ;; the 'guarantee options. GOOD!
       (let ((end (window-end win t)))
-	(if (= end (funcall (symbol-function 'point-max)
-			    (window-buffer win)))
+	(if (= end (point-max (window-buffer win)))
 	    (list end t)
 	  (list (+ end 1) nil)))
     ;; Emacs: We have to calculate the end by ourselves.

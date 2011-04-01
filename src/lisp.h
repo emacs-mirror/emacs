@@ -1016,6 +1016,10 @@ struct Lisp_Symbol
   /* Interned state of the symbol.  This is an enumerator from
      enum symbol_interned.  */
   unsigned interned : 2;
+  
+  /* Non-zero means that this variable has been explicitly declared
+     special (with `defvar' etc), and shouldn't be lexically bound.  */
+  unsigned declared_special : 1;
 
   /* The symbol's name, as a Lisp string.
 
@@ -2814,7 +2818,7 @@ extern void syms_of_lread (void);
 
 /* Defined in eval.c.  */
 extern Lisp_Object Qautoload, Qexit, Qinteractive, Qcommandp, Qdefun, Qmacro;
-extern Lisp_Object Qinhibit_quit;
+extern Lisp_Object Qinhibit_quit, Qclosure;
 extern Lisp_Object Vautoload_queue;
 extern Lisp_Object Vsignaling_function;
 extern int handling_signal;
@@ -2844,7 +2848,9 @@ extern void xsignal2 (Lisp_Object, Lisp_Object, Lisp_Object) NO_RETURN;
 extern void xsignal3 (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object) NO_RETURN;
 extern void signal_error (const char *, Lisp_Object) NO_RETURN;
 EXFUN (Fcommandp, 2);
-EXFUN (Feval, 1);
+EXFUN (Ffunctionp, 1);
+EXFUN (Feval, 2);
+extern Lisp_Object eval_sub (Lisp_Object form);
 EXFUN (Fapply, MANY);
 EXFUN (Ffuncall, MANY);
 EXFUN (Fbacktrace, 0);
@@ -3264,6 +3270,8 @@ extern struct byte_stack *byte_stack_list;
 extern void mark_byte_stack (void);
 #endif
 extern void unmark_byte_stack (void);
+extern Lisp_Object exec_byte_code (Lisp_Object, Lisp_Object, Lisp_Object,
+				   Lisp_Object, int, Lisp_Object *);
 
 /* Defined in macros.c */
 extern Lisp_Object Qexecute_kbd_macro;

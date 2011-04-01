@@ -1,3 +1,61 @@
+2011-04-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Add lexical binding.
+
+	* window.c (Ftemp_output_buffer_show): New fun.
+	(Fsave_window_excursion):
+	* print.c (Fwith_output_to_temp_buffer): Move to subr.el.
+
+	* lread.c (lisp_file_lexically_bound_p): New function.
+	(Fload): Bind Qlexical_binding.
+	(readevalloop): Remove `evalfun' arg.
+	Bind Qinternal_interpreter_environment.
+	(Feval_buffer): Bind Qlexical_binding.
+	(defvar_int, defvar_bool, defvar_lisp_nopro, defvar_kboard):
+	Mark as dynamic.
+	(syms_of_lread): Declare `lexical-binding'.
+
+	* lisp.h (struct Lisp_Symbol): New field `declared_special'.
+
+	* keyboard.c (eval_dyn): New fun.
+	(menu_item_eval_property): Use it.
+
+	* image.c (parse_image_spec): Use Ffunctionp.
+
+	* fns.c (concat, mapcar1): Accept byte-code-functions.
+
+	* eval.c (Fsetq): Handle lexical vars.
+	(Fdefun, Fdefmacro, Ffunction): Make closures when needed.
+	(Fdefconst, Fdefvaralias, Fdefvar): Mark as dynamic.
+	(FletX, Flet): Obey lexical binding.
+	(Fcommandp): Handle closures.
+	(Feval): New `lexical' arg.
+	(eval_sub): New function extracted from Feval.  Use it almost
+	everywhere where Feval was used.  Look up vars in lexical env.
+	Handle closures.
+	(Ffunctionp): Move from subr.el.
+	(Ffuncall): Handle closures.
+	(apply_lambda): Remove `eval_flags'.
+	(funcall_lambda): Handle closures and new byte-code-functions.
+	(Fspecial_variable_p): New function.
+	(syms_of_eval): Initialize the Vinternal_interpreter_environment var,
+	but without exporting it to Lisp.
+
+	* doc.c (Fdocumentation, store_function_docstring):
+	* data.c (Finteractive_form): Handle closures.
+
+	* callint.c (Fcall_interactively): Preserve lexical-binding mode for
+	interactive spec.
+
+	* bytecode.c (Bstack_ref, Bstack_set, Bstack_set2, BdiscardN): New
+	byte-codes.
+	(exec_byte_code): New function extracted from Fbyte_code to handle new
+	calling convention for byte-code-functions.  Add new byte-codes.
+
+	* buffer.c (defvar_per_buffer): Set new `declared_special' field.
+
+	* alloc.c (Fmake_symbol): Init new `declared_special' field.
+
 2011-03-31  Juanma Barranquero  <lekktu@gmail.com>
 
 	* xdisp.c (redisplay_internal): Fix prototype.

@@ -123,12 +123,10 @@ If CURRENT-NAME is a string, that is the `use instead' message
 If provided, WHEN should be a string indicating when the function
 was first made obsolete, for example a date or a release number."
   (interactive "aMake function obsolete: \nxObsoletion replacement: ")
-  (let ((handler (get obsolete-name 'byte-compile)))
-    (if (eq 'byte-compile-obsolete handler)
-	(setq handler (nth 1 (get obsolete-name 'byte-obsolete-info)))
-      (put obsolete-name 'byte-compile 'byte-compile-obsolete))
-    (put obsolete-name 'byte-obsolete-info
-	 (list (purecopy current-name) handler (purecopy when))))
+  (put obsolete-name 'byte-obsolete-info
+       ;; The second entry used to hold the `byte-compile' handler, but
+       ;; is not used any more nowadays.
+       (list (purecopy current-name) nil (purecopy when)))
   obsolete-name)
 (set-advertised-calling-convention
  ;; New code should always provide the `when' argument.

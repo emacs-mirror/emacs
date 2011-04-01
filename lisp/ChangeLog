@@ -1,3 +1,197 @@
+2011-04-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Add lexical binding.
+
+	* subr.el (apply-partially): Use new closures rather than CL.
+	(--dolist-tail--, --dotimes-limit--): Don't declare dynamic.
+	(dolist, dotimes): Use slightly different expansion for lexical code.
+	(functionp): Move to C.
+	(letrec): New macro.
+	(with-wrapper-hook): Use it and apply-partially instead of CL.
+	(eval-after-load): Preserve lexical-binding.
+	(save-window-excursion, with-output-to-temp-buffer): Turn them
+	into macros.
+
+	* simple.el (with-wrapper-hook, apply-partially): Move to subr.el.
+
+	* help-fns.el (help-split-fundoc): Return nil if there's nothing else
+	than the arglist.
+	(help-add-fundoc-usage): Don't add `Not documented'.
+	(help-function-arglist): Handle closures, subroutines, and new
+	byte-code-functions.
+	(help-make-usage): Remove leading underscores.
+	(describe-function-1): Handle closures.
+	(describe-variable): Use special-variable-p for completion.
+
+	* files.el (lexical-binding): Declare safe.
+
+	* emacs-lisp/pcase.el: Don't use destructuring-bind.
+	(pcase--memoize): Rename from pcase-memoize.  Change weakness.
+	(pcase): Add `let' pattern.
+	Change memoization so it actually works.
+	(pcase-mutually-exclusive-predicates): Add byte-code-function-p.
+	(pcase--u1) <guard, pred>: Fix possible shadowing problem.
+	<let>: New case.
+
+	* emacs-lisp/macroexp.el: Use lexical binding.
+	(macroexpand-all-1): Check obsolete macros.  Expand compiler-macros.
+	Don't convert ' to #' without checking that it's indeed quoting
+	a lambda.
+
+	* emacs-lisp/lisp-mode.el (eval-last-sexp-1):
+	Use eval-sexp-add-defvars.
+	(eval-sexp-add-defvars): New fun.
+
+	* emacs-lisp/float-sup.el (pi): Don't declare as dynamically bound.
+
+	* emacs-lisp/eieio.el (byte-compile-file-form-defmethod):
+	Don't autoload.
+	(eieio-defgeneric-form-primary-only-one): Use `byte-compile' rather
+	than the internal `byte-compile-lambda'.
+	(defmethod): Don't hide code under quotes.
+	(eieio-defmethod): New `code' argument.
+
+	* emacs-lisp/eieio-comp.el: Remove.
+
+	* emacs-lisp/edebug.el (edebug-eval-defun)
+	(edebug-eval-top-level-form): Use eval-sexp-add-defvars.
+	(edebug-toggle): Avoid `eval'.
+
+	* emacs-lisp/disass.el (disassemble-internal): Handle new
+	`closure' objects.
+	(disassemble-1): Handle new byte codes.
+
+	* emacs-lisp/cl.el (pushnew): Silence warning.
+
+	* emacs-lisp/cl-macs.el (cl-byte-compile-block)
+	(cl-byte-compile-throw): Remove.
+	(cl-block-wrapper, cl-block-throw): Use compiler-macros instead.
+
+	* emacs-lisp/cl-extra.el (cl-macroexpand-all): Properly quote CL
+	closures.
+
+	* emacs-lisp/cconv.el: New file.
+
+	* emacs-lisp/bytecomp.el: Use lexical binding instead of
+	a "bytecomp-" prefix.  Macroexpand everything as a separate phase.
+	(byte-compile-initial-macro-environment):
+	Handle declare-function here.
+	(byte-compile--lexical-environment): New var.
+	(byte-stack-ref, byte-stack-set, byte-discardN)
+	(byte-discardN-preserve-tos): New lap codes.
+	(byte-interactive-p): Don't use any more.
+	(byte-compile-push-bytecodes, byte-compile-push-bytecode-const2):
+	New macros.
+	(byte-compile-lapcode): Use them and handle new lap codes.
+	(byte-compile-obsolete): Remove.
+	(byte-compile-arglist-signature): Handle new byte-code arg"lists".
+	(byte-compile-arglist-warn): Check late def of inlinable funs.
+	(byte-compile-cl-warn): Don't silence warnings for compiler-macros
+	since they should have been expanded by now.
+	(byte-compile--outbuffer): Rename from bytecomp-outbuffer.
+	(byte-compile-from-buffer): Remove unused second arg.
+	(byte-compile-preprocess): New function.
+	(byte-compile-toplevel-file-form): New function to distinguish
+	file-form calls from outside from file-form calls from hunk-handlers.
+	(byte-compile-file-form): Simplify.
+	(byte-compile-file-form-defsubst): Remove.
+	(byte-compile-file-form-defmumble): Simplify now that
+	byte-compile-lambda always returns a byte-code-function.
+	(byte-compile): Preprocess.
+	(byte-compile-byte-code-maker, byte-compile-byte-code-unmake):
+	Remove, not used any more.
+	(byte-compile-arglist-vars, byte-compile-make-lambda-lexenv)
+	(byte-compile-make-args-desc): New funs.
+	(byte-compile-lambda): Handle lexical functions.  Always return
+	a byte-code-function.
+	(byte-compile-reserved-constants): New var, to make up room for
+	closed-over variables.
+	(byte-compile-constants-vector): Obey it.
+	(byte-compile-top-level): New args `lexenv' and `reserved-csts'.
+	(byte-compile-macroexpand-declare-function): New function.
+	(byte-compile-form): Call byte-compile-unfold-bcf to inline immediate
+	byte-code-functions.
+	(byte-compile-form): Check obsolescence here.
+	(byte-compile-inline-lapcode, byte-compile-unfold-bcf): New functions.
+	(byte-compile-variable-ref): Remove.
+	(byte-compile-dynamic-variable-op): New fun.
+	(byte-compile-dynamic-variable-bind, byte-compile-variable-ref)
+	(byte-compile-variable-set): New funs.
+	(byte-compile-discard): Add 2 args.
+	(byte-compile-stack-ref, byte-compile-stack-set)
+	(byte-compile-make-closure, byte-compile-get-closed-var): New funs.
+	(byte-compile-funarg, byte-compile-funarg-2): Remove, handled in
+	macroexpand-all instead.
+	(byte-compile-quote-form): Remove.
+	(byte-compile-push-binding-init, byte-compile-not-lexical-var-p)
+	(byte-compile-bind, byte-compile-unbind): New funs.
+	(byte-compile-let): Handle let* and lexical binding.
+	(byte-compile-let*): Remove.
+	(byte-compile-catch, byte-compile-unwind-protect)
+	(byte-compile-track-mouse, byte-compile-condition-case):
+	Handle a new :fun-body form, used for lexical scoping.
+	(byte-compile-save-window-excursion)
+	(byte-compile-with-output-to-temp-buffer): Remove.
+	(byte-compile-defun): Simplify.
+	(byte-compile-stack-adjustment): New fun.
+	(byte-compile-out): Use it.
+	(byte-compile-refresh-preloaded): Don't reload byte-compiler files.
+
+	* emacs-lisp/byte-run.el (make-obsolete): Don't set the `byte-compile'
+	handler any more.
+
+	* emacs-lisp/byte-opt.el: Use lexical binding.
+	(byte-inline-lapcode): Remove (to bytecomp).
+	(byte-compile-inline-expand): Pay attention to inlining to/from
+	lexically bound code.
+	(byte-compile-unfold-lambda): Don't handle byte-code-functions
+	any more.
+	(byte-optimize-form-code-walker): Don't handle save-window-excursion
+	any more and don't call compiler-macros.
+	(byte-compile-splice-in-already-compiled-code): Remove.
+	(byte-code): Don't inline any more.
+	(disassemble-offset): Receive `bytes' as argument rather than via
+	dynamic scoping.
+	(byte-compile-tag-number): Declare before first use.
+	(byte-decompile-bytecode-1): Handle new byte-codes, don't change
+	`return' even if make-spliceable.
+	(byte-compile-side-effect-and-error-free-ops): Add stack-ref, remove
+	obsolete interactive-p.
+	(byte-optimize-lapcode): Optimize new lap-codes.
+	Don't trip up on new form of `byte-constant' lap code.
+
+	* emacs-lisp/autoload.el (make-autoload): Don't burp on trivial macros.
+
+	* emacs-lisp/advice.el (ad-arglist): Use help-function-arglist.
+
+	* custom.el (custom-initialize-default, custom-declare-variable):
+	Use `defvar'.
+
+	* Makefile.in (BIG_STACK_DEPTH, BIG_STACK_OPTS, BYTE_COMPILE_FLAGS):
+	New variables.
+	(compile-onefile, .el.elc, compile-calc, recompile): Use them.
+	(COMPILE_FIRST): Add macroexp and cconv.
+	* makefile.w32-in: Mirror changes in Makefile.in.
+
+	* vc/cvs-status.el:
+	* vc/diff-mode.el:
+	* vc/log-edit.el:
+	* vc/log-view.el:
+	* vc/smerge-mode.el:
+	* textmodes/bibtex-style.el:
+	* textmodes/css.el:
+	* startup.el:
+	* uniquify.el:
+	* minibuffer.el: 
+	* newcomment.el: 
+	* reveal.el: 
+	* server.el: 
+	* mpc.el: 
+	* emacs-lisp/smie.el: 
+	* doc-view.el: 
+	* dired.el: 
+	* abbrev.el: Use lexical binding.
+
 2011-04-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* info.el (info-display-manual): New function.
@@ -73,8 +267,8 @@
 
 2011-03-28  Brian T. Sniffen  <bsniffen@akamai.com>  (tiny change)
 
-	* net/imap.el (imap-shell-open, imap-process-connection-type): Use
-	imap-process-connection-type for 'shell' streams as well as
+	* net/imap.el (imap-shell-open, imap-process-connection-type):
+	Use imap-process-connection-type for 'shell' streams as well as
 	Kerberos, SSL, other subprocesses.
 
 2011-03-28  Leo Liu  <sdl.web@gmail.com>

@@ -1,4 +1,4 @@
-;;; abbrev.el --- abbrev mode commands for Emacs
+;;; abbrev.el --- abbrev mode commands for Emacs -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1985-1987, 1992, 2001-2011  Free Software Foundation, Inc.
 
@@ -814,20 +814,19 @@ Returns the abbrev symbol, if expansion took place."
     (destructuring-bind (&optional sym name wordstart wordend)
         (abbrev--before-point)
       (when sym
-        (let ((value sym))
-          (unless (or ;; executing-kbd-macro
-                   noninteractive
-                   (window-minibuffer-p (selected-window)))
-            ;; Add an undo boundary, in case we are doing this for
-            ;; a self-inserting command which has avoided making one so far.
-            (undo-boundary))
-          ;; Now sym is the abbrev symbol.
-          (setq last-abbrev-text name)
-          (setq last-abbrev sym)
-          (setq last-abbrev-location wordstart)
-          ;; If this abbrev has an expansion, delete the abbrev
-          ;; and insert the expansion.
-          (abbrev-insert sym name wordstart wordend))))))
+        (unless (or ;; executing-kbd-macro
+                 noninteractive
+                 (window-minibuffer-p (selected-window)))
+          ;; Add an undo boundary, in case we are doing this for
+          ;; a self-inserting command which has avoided making one so far.
+          (undo-boundary))
+        ;; Now sym is the abbrev symbol.
+        (setq last-abbrev-text name)
+        (setq last-abbrev sym)
+        (setq last-abbrev-location wordstart)
+        ;; If this abbrev has an expansion, delete the abbrev
+        ;; and insert the expansion.
+        (abbrev-insert sym name wordstart wordend)))))
 
 (defun unexpand-abbrev ()
   "Undo the expansion of the last abbrev that expanded.
