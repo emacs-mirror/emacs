@@ -1,3 +1,7 @@
+2011-04-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* info.el (info-display-manual): New function.
+
 2011-03-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* loadup.el: Load minibuffer after loaddefs, to use define-minor-mode.

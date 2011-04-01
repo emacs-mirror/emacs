@@ -4930,6 +4930,27 @@ type returned by `Info-bookmark-make-record', which see."
     (bookmark-default-handler
      `("" (buffer . ,buf) . ,(bookmark-get-bookmark-record bmk)))))
 
+
+;;;###autoload
+(defun info-display-manual (manual)
+  "Go to Info buffer that displays MANUAL, creating it if none already exists."
+  (interactive "sManual name: ")
+  (let ((blist (buffer-list))
+	(manual-re (concat "\\(/\\|\\`\\)" manual "\\(\\.\\|\\'\\)"))
+	(case-fold-search t)
+	found)
+    (dolist (buffer blist)
+      (with-current-buffer buffer
+	(when (and (eq major-mode 'Info-mode)
+		   (stringp Info-current-file)
+		   (string-match manual-re Info-current-file))
+	  (setq found buffer
+		blist nil))))
+    (if found
+	(pop-to-buffer found)
+      (info-initialize)
+      (info (Info-find-file manual)))))
+
 (provide 'info)
 
 ;;; info.el ends here

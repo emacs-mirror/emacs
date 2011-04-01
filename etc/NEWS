@@ -676,6 +676,14 @@ binding `log-view-expanded-log-entry-function' to a suitable function.
 
 *** New command `nato-region' converts text to NATO phonetic alphabet.
 
+*** The new command `info-display-manual' will display an Info manual
+specified by its name.  If that manual is already visited in some Info
+buffer within the current session, the command will display that
+buffer.  Otherwise, it will load the manual and display it.  This is
+handy if you have many manuals in many Info buffers, and don't
+remember the name of the buffer visiting the manual you want to
+consult.
+
 
 * New Modes and Packages in Emacs 24.1
 
