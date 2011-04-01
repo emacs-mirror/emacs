@@ -66,6 +66,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define IS_DIRECTORY_SEP(_c_) ((_c_) == DIRECTORY_SEP)
 #endif
 
+/* Use this to suppress gcc's `...may be used before initialized' warnings. */
+#ifdef lint
+# define IF_LINT(Code) Code
+#else
+# define IF_LINT(Code) /* empty */
+#endif
+
 static int scan_file (char *filename);
 static int scan_lisp_file (const char *filename, const char *mode);
 static int scan_c_file (char *filename, const char *mode);
@@ -481,7 +488,7 @@ write_c_args (FILE *out, char *func, char *buf, int minargs, int maxargs)
 {
   register char *p;
   int in_ident = 0;
-  char *ident_start;
+  char *ident_start IF_LINT (= NULL);
   size_t ident_length = 0;
 
   fprintf (out, "(fn");
