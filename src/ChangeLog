@@ -1,5 +1,7 @@
 2011-04-01  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* print.c (print_object): Remove var that is set but not used.
+
 	Replace two copies of readlink code with single gnulib version.
 	The gnulib version avoids calling malloc in the usual case,
 	and on 64-bit hosts doesn't have some arbitrary 32-bit limits.
