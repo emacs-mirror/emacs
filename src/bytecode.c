@@ -425,8 +425,8 @@ If the third argument is incorrect, Emacs may crash.  */)
 #ifdef BYTE_CODE_SAFE
   int const_length = XVECTOR (vector)->size;
   Lisp_Object *stacke;
-#endif
   int bytestr_length;
+#endif
   struct byte_stack stack;
   Lisp_Object *top;
   Lisp_Object result;
@@ -453,7 +453,9 @@ If the third argument is incorrect, Emacs may crash.  */)
        convert them back to the originally intended unibyte form.  */
     bytestr = Fstring_as_unibyte (bytestr);
 
+#ifdef BYTE_CODE_SAFE
   bytestr_length = SBYTES (bytestr);
+#endif
   vectorp = XVECTOR (vector)->contents;
 
   stack.byte_string = bytestr;

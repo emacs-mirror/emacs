@@ -1,5 +1,8 @@
 2011-04-01  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* bytecode.c (Fbyte_code) [!defined BYTE_CODE_SAFE]: Remove var
+	that is set but not used.
+
 	* print.c (print_object): Remove var that is set but not used.
 
 	Replace 2 copies of readlink code with 1 gnulib version (Bug#8401).
