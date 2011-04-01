@@ -3340,6 +3340,8 @@ extern int emacs_open (const char *, int, int);
 extern int emacs_close (int);
 extern int emacs_read (int, char *, unsigned int);
 extern int emacs_write (int, const char *, unsigned int);
+enum { READLINK_BUFSIZE = 1024 };
+extern char *emacs_readlink (const char *, char [READLINK_BUFSIZE]);
 #ifndef HAVE_MEMSET
 extern void *memset (void *, int, size_t);
 #endif

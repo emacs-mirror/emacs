@@ -2579,9 +2579,8 @@ points to a nonexistent file.  */)
 {
   Lisp_Object handler;
   char *buf;
-  int bufsize;
-  int valsize;
   Lisp_Object val;
+  char readlink_buf[READLINK_BUFSIZE];
 
   CHECK_STRING (filename);
   filename = Fexpand_file_name (filename, Qnil);
@@ -2594,36 +2593,15 @@ points to a nonexistent file.  */)
 
   filename = ENCODE_FILE (filename);
 
-  bufsize = 50;
-  buf = NULL;
-  do
-    {
-      bufsize *= 2;
-      buf = (char *) xrealloc (buf, bufsize);
-      memset (buf, 0, bufsize);
+  buf = emacs_readlink (SSDATA (filename), readlink_buf);
+  if (! buf)
+    return Qnil;
 
-      errno = 0;
-      valsize = readlink (SSDATA (filename), buf, bufsize);
-      if (valsize == -1)
-	{
-#ifdef ERANGE
-	  /* HP-UX reports ERANGE if buffer is too small.  */
-	  if (errno == ERANGE)
-	    valsize = bufsize;
-	  else
-#endif
-	    {
-	      xfree (buf);
-	      return Qnil;
-	    }
-	}
-    }
-  while (valsize >= bufsize);
-
-  val = make_string (buf, valsize);
+  val = build_string (buf);
   if (buf[0] == '/' && strchr (buf, ':'))
     val = concat2 (build_string ("/:"), val);
-  xfree (buf);
+  if (buf != readlink_buf)
+    xfree (buf);
   val = DECODE_FILE (val);
   return val;
 }

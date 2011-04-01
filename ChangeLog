@@ -1,3 +1,10 @@
+2011-04-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Replace two copies of readlink code with single gnulib version.
+	* Makefile.in (GNULIB_MODULES): Add careadlinkat.
+	* lib/allocator.h, lib/careadlinkat.c, lib/careadlinkat.h:
+	* m4/ssize_t.m4: New files, automatically generated from gnulib.
+
 2011-03-28  Glenn Morris  <rgm@gnu.org>
 
 	* autogen/update_autogen: Pass -f to autoreconf.
