@@ -1,3 +1,8 @@
+2011-04-01  Julien Danjou  <julien@danjou.info>
+
+	* mm-view.el (mm-display-inline-fontify): Do not fontify with
+	fundamental-mode.
+
 2011-03-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-sum.el (gnus-update-marks): Revert intersection change, which
