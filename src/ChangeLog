@@ -1,5 +1,7 @@
 2011-04-01  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xfns.c (x_create_tip_frame): Remove var that is set but not used.
+
 	* xterm.c (x_scroll_bar_to_input_event) [!USE_GTK]:
 	Remove var that is set but not used.
 	(scroll_bar_windows_size): Now size_t, not int.
