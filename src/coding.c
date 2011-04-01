@@ -1296,12 +1296,9 @@ decode_coding_utf_8 (struct coding_system *coding)
   int consumed_chars = 0, consumed_chars_base = 0;
   int multibytep = coding->src_multibyte;
   enum utf_bom_type bom = CODING_UTF_8_BOM (coding);
-  Lisp_Object attr, charset_list;
   int eol_dos =
     !inhibit_eol_conversion && EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
   int byte_after_cr = -1;
-
-  CODING_GET_INFO (coding, attr, charset_list);
 
   if (bom != utf_without_bom)
     {
@@ -1610,12 +1607,9 @@ decode_coding_utf_16 (struct coding_system *coding)
   enum utf_bom_type bom = CODING_UTF_16_BOM (coding);
   enum utf_16_endian_type endian = CODING_UTF_16_ENDIAN (coding);
   int surrogate = CODING_UTF_16_SURROGATE (coding);
-  Lisp_Object attr, charset_list;
   int eol_dos =
     !inhibit_eol_conversion && EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
   int byte_after_cr1 = -1, byte_after_cr2 = -1;
-
-  CODING_GET_INFO (coding, attr, charset_list);
 
   if (bom == utf_with_bom)
     {
@@ -1736,10 +1730,7 @@ encode_coding_utf_16 (struct coding_system *coding)
   enum utf_bom_type bom = CODING_UTF_16_BOM (coding);
   int big_endian = CODING_UTF_16_ENDIAN (coding) == utf_16_big_endian;
   int produced_chars = 0;
-  Lisp_Object attrs, charset_list;
   int c;
-
-  CODING_GET_INFO (coding, attrs, charset_list);
 
   if (bom != utf_without_bom)
     {
@@ -2342,7 +2333,6 @@ decode_coding_emacs_mule (struct coding_system *coding)
     = coding->charbuf + coding->charbuf_size - (MAX_ANNOTATION_LENGTH * 3);
   int consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
-  Lisp_Object attrs, charset_list;
   int char_offset = coding->produced_char;
   int last_offset = char_offset;
   int last_id = charset_ascii;
@@ -2350,8 +2340,6 @@ decode_coding_emacs_mule (struct coding_system *coding)
     !inhibit_eol_conversion && EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
   int byte_after_cr = -1;
   struct composition_status *cmp_status = &coding->spec.emacs_mule.cmp_status;
-
-  CODING_GET_INFO (coding, attrs, charset_list);
 
   if (cmp_status->state != COMPOSING_NO)
     {
@@ -3265,11 +3253,10 @@ detect_coding_iso_2022 (struct coding_system *coding,
 */
 
 /* Decode a composition rule C1 and maybe one more byte from the
-   source, and set RULE to the encoded composition rule, NBYTES to the
-   length of the composition rule.  If the rule is invalid, set RULE
-   to some negative value.  */
+   source, and set RULE to the encoded composition rule.  If the rule
+   is invalid, set RULE to some negative value.  */
 
-#define DECODE_COMPOSITION_RULE(rule, nbytes)				\
+#define DECODE_COMPOSITION_RULE(rule)					\
   do {									\
     rule = c1 - 32;							\
     if (rule < 0)							\
@@ -3281,7 +3268,6 @@ detect_coding_iso_2022 (struct coding_system *coding,
 	if (gref == 4) gref = 10;					\
 	if (nref == 4) nref = 10;					\
 	rule = COMPOSITION_ENCODE_RULE (gref, nref);			\
-	nbytes = 1;							\
       }									\
     else			/* new format (after ver.21) */		\
       {									\
@@ -3291,7 +3277,6 @@ detect_coding_iso_2022 (struct coding_system *coding,
 	rule = COMPOSITION_ENCODE_RULE (rule - 81, b - 32);		\
 	if (rule >= 0)							\
 	  rule += 0x100;   /* to destinguish it from the old format */	\
-	nbytes = 2;							\
       }									\
   } while (0)
 
@@ -3476,7 +3461,7 @@ decode_coding_iso_2022 (struct coding_system *coding)
   struct charset *charset;
   int c;
   struct composition_status *cmp_status = CODING_ISO_CMP_STATUS (coding);
-  Lisp_Object attrs, charset_list;
+  Lisp_Object attrs = CODING_ID_ATTRS (coding->id);
   int char_offset = coding->produced_char;
   int last_offset = char_offset;
   int last_id = charset_ascii;
@@ -3485,10 +3470,7 @@ decode_coding_iso_2022 (struct coding_system *coding)
   int byte_after_cr = -1;
   int i;
 
-  CODING_GET_INFO (coding, attrs, charset_list);
   setup_iso_safe_charsets (attrs);
-  /* Charset list may have been changed.  */
-  charset_list = CODING_ATTR_CHARSET_LIST (attrs);
   coding->safe_charsets = SDATA (CODING_ATTR_SAFE_CHARSETS (attrs));
 
   if (cmp_status->state != COMPOSING_NO)
@@ -3558,9 +3540,9 @@ decode_coding_iso_2022 (struct coding_system *coding)
 	   || cmp_status->state == COMPOSING_COMPONENT_RULE)
 	  && c1 != ISO_CODE_ESC)
 	{
-	  int rule, nbytes;
+	  int rule;
 
-	  DECODE_COMPOSITION_RULE (rule, nbytes);
+	  DECODE_COMPOSITION_RULE (rule);
 	  if (rule < 0)
 	    goto invalid_code;
 	  STORE_COMPOSITION_RULE (rule);
@@ -4878,13 +4860,12 @@ encode_coding_sjis (struct coding_system *coding)
   int produced_chars = 0;
   Lisp_Object attrs, charset_list, val;
   int ascii_compatible;
-  struct charset *charset_roman, *charset_kanji, *charset_kana;
+  struct charset *charset_kanji, *charset_kana;
   struct charset *charset_kanji2;
   int c;
 
   CODING_GET_INFO (coding, attrs, charset_list);
-  val = charset_list;
-  charset_roman = CHARSET_FROM_ID (XINT (XCAR (val))), val = XCDR (val);
+  val = XCDR (charset_list);
   charset_kana = CHARSET_FROM_ID (XINT (XCAR (val))), val = XCDR (val);
   charset_kanji = CHARSET_FROM_ID (XINT (XCAR (val))), val = XCDR (val);
   charset_kanji2 = NILP (val) ? NULL : CHARSET_FROM_ID (XINT (XCAR (val)));
@@ -4970,12 +4951,11 @@ encode_coding_big5 (struct coding_system *coding)
   int produced_chars = 0;
   Lisp_Object attrs, charset_list, val;
   int ascii_compatible;
-  struct charset *charset_roman, *charset_big5;
+  struct charset *charset_big5;
   int c;
 
   CODING_GET_INFO (coding, attrs, charset_list);
-  val = charset_list;
-  charset_roman = CHARSET_FROM_ID (XINT (XCAR (val))), val = XCDR (val);
+  val = XCDR (charset_list);
   charset_big5 = CHARSET_FROM_ID (XINT (XCAR (val)));
   ascii_compatible = ! NILP (CODING_ATTR_ASCII_COMPAT (attrs));
 
@@ -5433,7 +5413,8 @@ decode_coding_charset (struct coding_system *coding)
     = coding->charbuf + coding->charbuf_size - (MAX_ANNOTATION_LENGTH * 2);
   int consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
-  Lisp_Object attrs, charset_list, valids;
+  Lisp_Object attrs = CODING_ID_ATTRS (coding->id);
+  Lisp_Object valids;
   int char_offset = coding->produced_char;
   int last_offset = char_offset;
   int last_id = charset_ascii;
@@ -5441,7 +5422,6 @@ decode_coding_charset (struct coding_system *coding)
     !inhibit_eol_conversion && EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
   int byte_after_cr = -1;
 
-  CODING_GET_INFO (coding, attrs, charset_list);
   valids = AREF (attrs, coding_attr_charset_valids);
 
   while (1)
