@@ -2,6 +2,9 @@
 
 	* xterm.c (x_scroll_bar_to_input_event) [!USE_GTK]:
 	Remove var that is set but not used.
+	(scroll_bar_windows_size): Now size_t, not int.
+	(x_send_scroll_bar_event): Use size_t, not int, for sizes.
+	Check for overflow.
 
 	* xfaces.c (realize_named_face): Remove vars that are set but not used.
 	(map_tty_color) [!defined MSDOS]: Likewise.
