@@ -1,5 +1,7 @@
 2011-04-01  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* term.c (tty_write_glyphs): Use size_t; this avoids overflow warning.
+
 	* coding.c: Remove vars that are set but not used.
 	(DECODE_COMPOSITION_RULE): Remove 2nd arg, which is unused.
 	All callers changed.

@@ -707,6 +707,7 @@ tty_write_glyphs (struct frame *f, struct glyph *string, int len)
 {
   unsigned char *conversion_buffer;
   struct coding_system *coding;
+  size_t n, stringlen;
 
   struct tty_display_info *tty = FRAME_TTY (f);
 
@@ -734,13 +735,12 @@ tty_write_glyphs (struct frame *f, struct glyph *string, int len)
      the tail.  */
   coding->mode &= ~CODING_MODE_LAST_BLOCK;
 
-  while (len > 0)
+  for (stringlen = len; stringlen != 0; stringlen -= n)
     {
       /* Identify a run of glyphs with the same face.  */
       int face_id = string->face_id;
-      int n;
 
-      for (n = 1; n < len; ++n)
+      for (n = 1; n < stringlen; ++n)
 	if (string[n].face_id != face_id)
 	  break;
 
@@ -748,7 +748,7 @@ tty_write_glyphs (struct frame *f, struct glyph *string, int len)
       tty_highlight_if_desired (tty);
       turn_on_face (f, face_id);
 
-      if (n == len)
+      if (n == stringlen)
 	/* This is the last run.  */
 	coding->mode |= CODING_MODE_LAST_BLOCK;
       conversion_buffer = encode_terminal_code (string, n, coding);
@@ -762,7 +762,6 @@ tty_write_glyphs (struct frame *f, struct glyph *string, int len)
 	    fwrite (conversion_buffer, 1, coding->produced, tty->termscript);
 	  UNBLOCK_INPUT;
 	}
-      len -= n;
       string += n;
 
       /* Turn appearance modes off.  */
