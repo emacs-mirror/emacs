@@ -2869,18 +2869,19 @@ asking you for confirmation."
 ;;
 ;; For variables defined in the C source code the declaration should go here:
 
-(mapc (lambda (pair)
-	(put (car pair) 'safe-local-variable (cdr pair)))
-      '((buffer-read-only        . booleanp)   ;; C source code
-	(default-directory       . stringp)    ;; C source code
-	(fill-column             . integerp)   ;; C source code
-	(indent-tabs-mode        . booleanp)   ;; C source code
-	(left-margin             . integerp)   ;; C source code
-	(no-update-autoloads     . booleanp)
-	(tab-width               . integerp)   ;; C source code
-	(truncate-lines          . booleanp)   ;; C source code
-	(word-wrap               . booleanp) ;; C source code
-	(bidi-display-reordering . booleanp))) ;; C source code
+(dolist (pair
+	 '((buffer-read-only        . booleanp)	;; C source code
+	   (default-directory       . stringp)	;; C source code
+	   (fill-column             . integerp)	;; C source code
+	   (indent-tabs-mode        . booleanp)	;; C source code
+	   (left-margin             . integerp)	;; C source code
+	   (no-update-autoloads     . booleanp)
+	   (lexical-binding	 . booleanp)	  ;; C source code
+	   (tab-width               . integerp)	  ;; C source code
+	   (truncate-lines          . booleanp)	  ;; C source code
+	   (word-wrap               . booleanp)	  ;; C source code
+	   (bidi-display-reordering . booleanp))) ;; C source code
+  (put (car pair) 'safe-local-variable (cdr pair)))
 
 (put 'bidi-paragraph-direction 'safe-local-variable
      (lambda (v) (memq v '(nil right-to-left left-to-right))))

@@ -5240,6 +5240,7 @@ defvar_per_buffer (struct Lisp_Buffer_Objfwd *bo_fwd, const char *namestring,
   bo_fwd->type = Lisp_Fwd_Buffer_Obj;
   bo_fwd->offset = offset;
   bo_fwd->slottype = type;
+  sym->declared_special = 1;
   sym->redirect = SYMBOL_FORWARDED;
   {
     /* I tried to do the job without a cast, but it seems impossible.

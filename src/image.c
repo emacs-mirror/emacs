@@ -831,9 +831,7 @@ parse_image_spec (Lisp_Object spec, struct image_keyword *keywords,
 
 	case IMAGE_FUNCTION_VALUE:
 	  value = indirect_function (value);
-	  if (SUBRP (value)
-	      || COMPILEDP (value)
-	      || (CONSP (value) && EQ (XCAR (value), Qlambda)))
+	  if (!NILP (Ffunctionp (value)))
 	    break;
 	  return 0;
 

@@ -161,7 +161,14 @@ an element already on the list.
   (if (symbolp place)
       (if (null keys)
  	  `(let ((x ,x))
-	     (if (memql x ,place) ,place (setq ,place (cons x ,place))))
+	     (if (memql x ,place)
+                 ;; This symbol may later on expand to actual code which then
+                 ;; trigger warnings like "value unused" since pushnew's return
+                 ;; value is rarely used.  It should not matter that other
+                 ;; warnings may be silenced, since `place' is used earlier and
+                 ;; should have triggered them already.
+                 (with-no-warnings ,place)
+               (setq ,place (cons x ,place))))
 	(list 'setq place (list* 'adjoin x place keys)))
     (list* 'callf2 'adjoin x place keys)))
 
@@ -271,9 +278,9 @@ definitions to shadow the loaded ones for use in file byte-compilation.
 (defvar cl-compiling-file nil)
 (defun cl-compiling-file ()
   (or cl-compiling-file
-      (and (boundp 'bytecomp-outbuffer)
-           (bufferp (symbol-value 'bytecomp-outbuffer))
-	   (equal (buffer-name (symbol-value 'bytecomp-outbuffer))
+      (and (boundp 'byte-compile--outbuffer)
+           (bufferp (symbol-value 'byte-compile--outbuffer))
+	   (equal (buffer-name (symbol-value 'byte-compile--outbuffer))
 		  " *Compiler Output*"))))
 
 (defvar cl-proclaims-deferred nil)

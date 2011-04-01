@@ -1,4 +1,4 @@
-;;; cvs-status.el --- major mode for browsing `cvs status' output -*- coding: utf-8 -*-
+;;; cvs-status.el --- major mode for browsing `cvs status' output -*- coding: utf-8; lexical-binding: t -*-
 
 ;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
 
@@ -87,6 +87,12 @@
   '(cvs-status-font-lock-keywords t nil nil nil (font-lock-multiline . t)))
 
 (defvar cvs-minor-wrap-function)
+(defvar cvs-force-command)
+(defvar cvs-minor-current-files)
+(defvar cvs-secondary-branch-prefix)
+(defvar cvs-branch-prefix)
+(defvar cvs-tag-print-rev)
+
 (put 'cvs-status-mode 'mode-class 'special)
 ;;;###autoload
 (define-derived-mode cvs-status-mode fundamental-mode "CVS-Status"
@@ -472,7 +478,7 @@ Optional prefix ARG chooses between two representations."
 		   (nprev (if (and cvs-tree-nomerge next
 				   (equal vlist (cvs-tag->vlist next)))
 			      prev vlist)))
-	      (cvs-map (lambda (v p) v) nprev prev)))
+	      (cvs-map (lambda (v _p) v) nprev prev)))
 	   (after (save-excursion
 		   (newline)
 		   (cvs-tree-tags-insert (cdr tags) nprev)))
@@ -512,24 +518,24 @@ Optional prefix ARG chooses between two representations."
 ;;;; Merged trees from different files
 ;;;;
 
-(defun cvs-tree-fuzzy-merge-1 (trees tree prev)
-  )
+;; (defun cvs-tree-fuzzy-merge-1 (trees tree prev)
+;;   )
 
-(defun cvs-tree-fuzzy-merge (trees tree)
-  "Do the impossible:  merge TREE into TREES."
-  ())
+;; (defun cvs-tree-fuzzy-merge (trees tree)
+;;   "Do the impossible:  merge TREE into TREES."
+;;   ())
 
-(defun cvs-tree ()
-  "Get tags from the status output and merge tham all into a big tree."
-  (save-excursion
-    (goto-char (point-min))
-    (let ((inhibit-read-only t)
-	  (trees (make-vector 31 0)) tree)
-      (while (listp (setq tree (cvs-tags->tree (cvs-status-get-tags))))
-	(cvs-tree-fuzzy-merge trees tree))
-      (erase-buffer)
-      (let ((cvs-tag-print-rev nil))
-	(cvs-tree-print tree 'cvs-tag->string 3)))))
+;; (defun cvs-tree ()
+;;   "Get tags from the status output and merge them all into a big tree."
+;;   (save-excursion
+;;     (goto-char (point-min))
+;;     (let ((inhibit-read-only t)
+;; 	  (trees (make-vector 31 0)) tree)
+;;       (while (listp (setq tree (cvs-tags->tree (cvs-status-get-tags))))
+;; 	(cvs-tree-fuzzy-merge trees tree))
+;;       (erase-buffer)
+;;       (let ((cvs-tag-print-rev nil))
+;; 	(cvs-tree-print tree 'cvs-tag->string 3)))))
 
 
 (provide 'cvs-status)

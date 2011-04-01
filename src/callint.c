@@ -121,8 +121,9 @@ usage: (interactive &optional ARGS)  */)
 static Lisp_Object
 quotify_arg (register Lisp_Object exp)
 {
-  if (!INTEGERP (exp) && !STRINGP (exp)
-      && !NILP (exp) && !EQ (exp, Qt))
+  if (CONSP (exp)
+      || (SYMBOLP (exp)
+	  && !NILP (exp) && !EQ (exp, Qt)))
     return Fcons (Qquote, Fcons (exp, Qnil));
 
   return exp;
@@ -169,6 +170,9 @@ check_mark (int for_region)
 static void
 fix_command (Lisp_Object input, Lisp_Object values)
 {
+  /* FIXME: Instead of this ugly hack, we should provide a way for an
+     interactive spec to return an expression/function that will re-build the
+     args without user intervention.  */
   if (CONSP (input))
     {
       Lisp_Object car;
@@ -332,11 +336,14 @@ invoke it.  If KEYS is omitted or nil, the return value of
   else
     {
       Lisp_Object input;
+      Lisp_Object funval = Findirect_function (function, Qt);
       i = num_input_events;
       input = specs;
       /* Compute the arg values using the user's expression.  */
       GCPRO2 (input, filter_specs);
-      specs = Feval (specs);
+      specs = Feval (specs,
+		     CONSP (funval) && EQ (Qclosure, XCAR (funval))
+		     ? Qt : Qnil);
       UNGCPRO;
       if (i != num_input_events || !NILP (record_flag))
 	{

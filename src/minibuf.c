@@ -971,7 +971,8 @@ Such arguments are used as in `read-from-minibuffer'.)  */)
 {
   return Feval (read_minibuf (Vread_expression_map, initial_contents,
 			      prompt, Qnil, 1, Qread_expression_history,
-			      make_number (0), Qnil, 0, 0));
+			      make_number (0), Qnil, 0, 0),
+		Qnil);
 }
 
 /* Functions that use the minibuffer to read various things. */

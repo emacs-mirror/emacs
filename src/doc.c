@@ -36,6 +36,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 Lisp_Object Qfunction_documentation;
 
+extern Lisp_Object Qclosure;
 /* Buffer used for reading from documentation file.  */
 static char *get_doc_string_buffer;
 static int get_doc_string_buffer_size;
@@ -374,6 +375,7 @@ string is passed through `substitute-command-keys'.  */)
       else if (EQ (funcar, Qkeymap))
 	return build_string ("Prefix command (definition is a keymap associating keystrokes with commands).");
       else if (EQ (funcar, Qlambda)
+	       || (EQ (funcar, Qclosure) && (fun = XCDR (fun), 1))
 	       || EQ (funcar, Qautoload))
 	{
 	  Lisp_Object tem1 = Fcdr (Fcdr (fun));
@@ -480,7 +482,7 @@ aren't strings.  */)
     }
   else if (!STRINGP (tem))
     /* Feval protects its argument.  */
-    tem = Feval (tem);
+    tem = Feval (tem, Qnil);
 
   if (NILP (raw) && STRINGP (tem))
     tem = Fsubstitute_command_keys (tem);
@@ -507,7 +509,8 @@ store_function_docstring (Lisp_Object fun, EMACS_INT offset)
       Lisp_Object tem;
 
       tem = XCAR (fun);
-      if (EQ (tem, Qlambda) || EQ (tem, Qautoload))
+      if (EQ (tem, Qlambda) || EQ (tem, Qautoload)
+	  || (EQ (tem, Qclosure) && (fun = XCDR (fun), 1)))
 	{
 	  tem = Fcdr (Fcdr (fun));
 	  if (CONSP (tem) && INTEGERP (XCAR (tem)))

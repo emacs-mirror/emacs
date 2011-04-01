@@ -1,6 +1,14 @@
+2011-04-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* variables.texi (Defining Variables): Mention the new meaning of `defvar'.
+	(Lexical Binding): New sub-section.
+
+	* eval.texi (Eval): Discourage the use of `eval'.
+	Document its new `lexical' argument.
+
 2011-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* commands.texi (Command Overview): post-command-hook is not reset to
+	* commands.texi (Command Overview): `post-command-hook' is not reset to
 	nil any more.
 
 2011-03-19  Stefan Monnier  <monnier@iro.umontreal.ca>

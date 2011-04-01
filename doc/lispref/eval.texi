@@ -585,6 +585,11 @@ occurrence in a program being run.  On rare occasions, you may need to
 write code that evaluates a form that is computed at run time, such as
 after reading a form from text being edited or getting one from a
 property list.  On these occasions, use the @code{eval} function.
+Often @code{eval} is not needed and something else should be used instead.
+For example, to get the value of a variable, while @code{eval} works,
+@code{symbol-value} is preferable; or rather than store expressions
+in a property list that then need to go through @code{eval}, it is better to
+store functions instead that are then passed to @code{funcall}.
 
   The functions and variables described in this section evaluate forms,
 specify limits to the evaluation process, or record recently returned
@@ -596,10 +601,13 @@ to store an expression in the data structure and evaluate it.  Using
 functions provides the ability to pass information to them as
 arguments.
 
-@defun eval form
+@defun eval form &optional lexical
 This is the basic function evaluating an expression.  It evaluates
 @var{form} in the current environment and returns the result.  How the
 evaluation proceeds depends on the type of the object (@pxref{Forms}).
+@var{lexical} if non-nil means to evaluate @var{form} using lexical scoping
+rules (@pxref{Lexical Binding}) instead of the default dynamic scoping used
+historically in Emacs Lisp.
 
 Since @code{eval} is a function, the argument expression that appears
 in a call to @code{eval} is evaluated twice: once as preparation before

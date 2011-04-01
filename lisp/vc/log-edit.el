@@ -1,4 +1,4 @@
-;;; log-edit.el --- Major mode for editing CVS commit messages
+;;; log-edit.el --- Major mode for editing CVS commit messages -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
@@ -329,7 +329,7 @@ automatically."
 (defconst log-edit-header-contents-regexp
   "[ \t]*\\(.*\\(\n[ \t].*\\)*\\)\n?")
 
-(defun log-edit-match-to-eoh (limit)
+(defun log-edit-match-to-eoh (_limit)
   ;; FIXME: copied from message-match-to-eoh.
   (let ((start (point)))
     (rfc822-goto-eoh)
@@ -361,7 +361,7 @@ automatically."
          nil lax)))))
 
 ;;;###autoload
-(defun log-edit (callback &optional setup params buffer mode &rest ignore)
+(defun log-edit (callback &optional setup params buffer mode &rest _ignore)
   "Setup a buffer to enter a log message.
 \\<log-edit-mode-map>The buffer will be put in mode MODE or `log-edit-mode'
 if MODE is nil.
