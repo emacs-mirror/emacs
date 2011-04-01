@@ -4240,14 +4240,12 @@ x_scroll_bar_to_input_event (XEvent *event, struct input_event *ievent)
 {
   XClientMessageEvent *ev = (XClientMessageEvent *) event;
   Lisp_Object window;
-  struct frame *f;
   struct window *w;
 
   w = scroll_bar_windows[ev->data.l[0]];
   scroll_bar_windows[ev->data.l[0]] = NULL;
 
   XSETWINDOW (window, w);
-  f = XFRAME (w->frame);
 
   ievent->kind = SCROLL_BAR_CLICK_EVENT;
   ievent->frame_or_window = window;
@@ -4255,7 +4253,8 @@ x_scroll_bar_to_input_event (XEvent *event, struct input_event *ievent)
 #ifdef USE_GTK
   ievent->timestamp = CurrentTime;
 #else
-  ievent->timestamp = XtLastTimestampProcessed (FRAME_X_DISPLAY (f));
+  ievent->timestamp =
+    XtLastTimestampProcessed (FRAME_X_DISPLAY (XFRAME (w->frame)));
 #endif
   ievent->part = ev->data.l[1];
   ievent->code = ev->data.l[2];

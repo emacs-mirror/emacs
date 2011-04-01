@@ -1,5 +1,8 @@
 2011-04-01  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xterm.c (x_scroll_bar_to_input_event) [!USE_GTK]:
+	Remove var that is set but not used.
+
 	* xfaces.c (realize_named_face): Remove vars that are set but not used.
 	(map_tty_color) [!defined MSDOS]: Likewise.
 
