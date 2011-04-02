@@ -3203,7 +3203,6 @@ variable `last-coding-system-used' to the coding system actually used.  */)
   if (stat (SSDATA (filename), &st) < 0)
 #endif /* WINDOWSNT */
     {
-      if (fd >= 0) emacs_close (fd);
     badopen:
       if (NILP (visit))
 	report_file_error ("Opening input file", Fcons (orig_filename, Qnil));
