@@ -1,5 +1,11 @@
 2011-04-02  Glenn Morris  <rgm@gnu.org>
 
+	* find-dired.el (find-exec-terminator): New option.
+	(find-ls-option): Test for -ls support.
+	(find-ls-subdir-switches): Test for -b in find-ls-option.
+	(find-dired, find-grep-dired): Doc fixes.
+	(find-dired): Use find-exec-terminator.
+
 	* find-dired.el (find-ls-option, find-ls-subdir-switches)
 	(find-grep-options): Do not autoload these defcustoms, remove purecopy.
 	(find-name-arg): Remove purecopy.
