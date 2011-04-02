@@ -27,9 +27,9 @@ lisp = $(CURDIR)
 srcdir = $(CURDIR)/..
 
 # You can specify a different executable on the make command line,
-# e.g. "make EMACS=../src/emacs ...".
+# e.g. "make EMACS=../bin/emacs ...".
 
-EMACS = $(THISDIR)/../bin/emacs.exe
+EMACS = ../src/$(BLD)/emacs.exe
 
 # Command line flags for Emacs.
 
