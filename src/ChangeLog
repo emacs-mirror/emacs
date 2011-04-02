@@ -1,5 +1,8 @@
 2011-04-02  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* buffer.c (Fprevious_overlay_change): Remove var that is set
+	but not used.
+
 	* keyboard.c (menu_bar_items, read_char_minibuf_menu_prompt):
 	Remove vars that are set but not used.
 	(timer_check_2): Don't assume timer-list and idle-timer-list are lists.
