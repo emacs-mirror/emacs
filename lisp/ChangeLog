@@ -1,5 +1,8 @@
 2011-04-02  Glenn Morris  <rgm@gnu.org>
 
+	* find-dired.el (find-ls-option, find-ls-subdir-switches)
+	(find-grep-options): Do not autoload these defcustoms.
+
 	* progmodes/grep.el (grep-find-use-xargs): Doc fix.
 	(grep-compute-defaults): Check for `-exec COMMAND +' support.
 	Set grep-find-use-xargs, grep-find-command, and grep-find-template

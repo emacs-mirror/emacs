@@ -35,7 +35,6 @@
 
 ;; find's -ls corresponds to these switches.
 ;; Note -b, at least GNU find quotes spaces etc. in filenames
-;;;###autoload
 (defcustom find-ls-option
   (if (eq system-type 'berkeley-unix) (purecopy '("-ls" . "-gilsb"))
     (purecopy '("-exec ls -ld {} \\;" . "-ld")))
@@ -47,7 +46,6 @@ LS-SWITCHES is a list of `ls' switches to tell dired how to parse the output."
 	       (string :tag "Ls Switches"))
   :group 'find-dired)
 
-;;;###autoload
 (defcustom find-ls-subdir-switches (purecopy "-al")
   "`ls' switches for inserting subdirectories in `*Find*' buffers.
 This should contain the \"-l\" switch.
@@ -57,7 +55,6 @@ them for `find-ls-option'."
   :group 'find-dired
   :version "22.1")
 
-;;;###autoload
 (defcustom find-grep-options
   (purecopy (if (or (eq system-type 'berkeley-unix)
 	  (string-match "solaris2" system-configuration)
