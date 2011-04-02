@@ -19,7 +19,7 @@
 	move point if the callback function has moved changed/killed the
 	process buffer.
 
-2010-12-16  Miles Bader  <Miles Bader <miles@gnu.org>>
+2010-12-16  Miles Bader  <miles@gnu.org>
 
 	* url-cookie.el: Require 'cl when compiling -- it's necessary for
 	defstruct.
