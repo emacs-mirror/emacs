@@ -100,7 +100,7 @@ ns_get_family (Lisp_Object font_spec)
       return nil;
   else
     {
-      char *tmp = strdup (SDATA (SYMBOL_NAME (tem)));
+      char *tmp = xstrdup (SDATA (SYMBOL_NAME (tem)));
       NSString *family;
       ns_unescape_name (tmp);
       family = [NSString stringWithUTF8String: tmp];
@@ -176,7 +176,7 @@ ns_descriptor_to_entity (NSFontDescriptor *desc,
     if (family == nil)
       family = [[NSFont userFixedPitchFontOfSize: 0] familyName];
 
-    escapedFamily = strdup ([family UTF8String]);
+    escapedFamily = xstrdup ([family UTF8String]);
     ns_escape_name (escapedFamily);
 
     ASET (font_entity, FONT_TYPE_INDEX, Qns);
@@ -1526,4 +1526,3 @@ syms_of_nsfont (void)
   DEFVAR_LISP ("ns-reg-to-script", Vns_reg_to_script,
                doc: /* Internal use: maps font registry to unicode script. */);
 }
-

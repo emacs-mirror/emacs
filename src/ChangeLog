@@ -1,3 +1,9 @@
+2011-04-02  Jim Meyering  <meyering@redhat.com>
+
+	do not dereference NULL upon failed strdup
+	* nsfont.m (ns_descriptor_to_entity): Use xstrdup, not strdup.
+	(ns_get_family): Likewise.
+
 2011-04-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* eval.c (unwind_to_catch) [DEBUG_GCPRO]: Remove redundant assignment.
