@@ -2875,6 +2875,7 @@ xbm_load (struct frame *f, struct image *img)
       /* Parse the image specification.  */
       memcpy (fmt, xbm_format, sizeof fmt);
       parsed_p = parse_image_spec (img->spec, fmt, XBM_LAST, Qxbm);
+      (void) parsed_p;
       xassert (parsed_p);
 
       /* Get specified width, and height.  */
