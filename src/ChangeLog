@@ -1,5 +1,8 @@
 2011-04-02  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* minibuf.c (read_minibuf_noninteractive): Use size_t for sizes.
+	Check for integer overflow on size calculations.
+
 	* buffer.c (Fprevious_overlay_change): Remove var that is set
 	but not used.
 
