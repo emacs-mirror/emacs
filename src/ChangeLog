@@ -12,7 +12,7 @@
 	that are set but not used.
 
 	* xfns.c (make_invisible_cursor): Don't return garbage
-	if XCreateBitmapFromData fails.
+	if XCreateBitmapFromData fails (Bug#8410).
 
 	* xselect.c (x_get_local_selection, x_handle_property_notify):
 	Remove vars that are set but not used.
