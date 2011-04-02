@@ -1,3 +1,7 @@
+2011-04-02  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (save-some-buffers): Doc fix.
+
 2011-04-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (EMACS): Default to ../src/$(BLD)/emacs.exe.
