@@ -1708,7 +1708,6 @@ postprocess_image (struct frame *f, struct image *img)
 int
 lookup_image (struct frame *f, Lisp_Object spec)
 {
-  struct image_cache *c;
   struct image *img;
   unsigned hash;
   EMACS_TIME now;
@@ -1717,8 +1716,6 @@ lookup_image (struct frame *f, Lisp_Object spec)
      specification.  */
   xassert (FRAME_WINDOW_P (f));
   xassert (valid_image_p (spec));
-
-  c = FRAME_IMAGE_CACHE (f);
 
   /* Look up SPEC in the hash table of the image cache.  */
   hash = sxhash (spec, 0);

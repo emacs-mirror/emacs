@@ -1,5 +1,7 @@
 2011-04-02  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* image.c (lookup_image): Remove var that is set but not used.
+
 	* fontset.c (Finternal_char_font, Ffontset_info): Remove vars
 	that are set but not used.
 
