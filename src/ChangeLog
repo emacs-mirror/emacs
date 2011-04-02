@@ -1,6 +1,12 @@
+2011-04-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xselect.c (x_get_local_selection, x_handle_property_notify):
+	Remove vars that are set but not used.
+
 2011-04-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xfns.c (x_create_tip_frame): Remove var that is set but not used.
+	(make_invisible_cursor): Initialize a possibly-uninitialized variable.
 
 	* xterm.c (x_scroll_bar_to_input_event) [!USE_GTK]:
 	Remove var that is set but not used.
