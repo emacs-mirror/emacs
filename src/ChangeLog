@@ -1,5 +1,7 @@
 2011-04-02  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* gtkutil.c (xg_get_file_with_chooser): Mark var as initialized.
+
 	* image.c (lookup_image): Remove var that is set but not used.
 	(xbm_load): Use parse_p, for gcc -Werror=unused-but-set-variable.
 
