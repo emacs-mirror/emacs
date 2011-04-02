@@ -1,5 +1,8 @@
 2011-04-02  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* fontset.c (Finternal_char_font, Ffontset_info): Remove vars
+	that are set but not used.
+
 	* xfns.c (make_invisible_cursor): Don't return garbage
 	if XCreateBitmapFromData fails.
 
