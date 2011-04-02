@@ -1,3 +1,7 @@
+2011-04-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* eval.c (unwind_to_catch) [DEBUG_GCPRO]: Remove redundant assignment.
+
 2011-04-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (ns_update_auto_hide_menu_bar): Only for OSX 10.6 or
