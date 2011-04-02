@@ -7357,8 +7357,6 @@ menu_bar_items (Lisp_Object old)
 
   Lisp_Object def, tail;
 
-  Lisp_Object result;
-
   int mapno;
   Lisp_Object oquit;
 
@@ -7418,8 +7416,6 @@ menu_bar_items (Lisp_Object old)
   }
 
   /* Look up in each map the dummy prefix key `menu-bar'.  */
-
-  result = Qnil;
 
   for (mapno = nmaps - 1; mapno >= 0; mapno--)
     if (!NILP (maps[mapno]))
@@ -8494,7 +8490,6 @@ read_char_minibuf_menu_prompt (int commandflag, int nmaps, Lisp_Object *maps)
       int notfirst = 0;
       int i = nlength;
       Lisp_Object obj;
-      int ch;
       Lisp_Object orig_defn_macro;
 
       /* Loop over elements of map.  */
@@ -8664,8 +8659,6 @@ read_char_minibuf_menu_prompt (int commandflag, int nmaps, Lisp_Object *maps)
 	return obj;
       else if (XINT (obj) == -2)
         return obj;
-      else
-	ch = XINT (obj);
 
       if (! EQ (obj, menu_prompt_more_char)
 	  && (!INTEGERP (menu_prompt_more_char)

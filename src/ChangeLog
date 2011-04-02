@@ -1,5 +1,8 @@
 2011-04-02  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* keyboard.c (menu_bar_items, read_char_minibuf_menu_prompt):
+	Remove vars that are set but not used.
+
 	* gtkutil.c (xg_get_file_with_chooser): Mark var as initialized.
 
 	* image.c (lookup_image): Remove var that is set but not used.
