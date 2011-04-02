@@ -652,7 +652,7 @@ FILE is the name of a file relative to that base location.
 This macro retrieves FILE from LOCATION into a temporary buffer,
 and evaluates BODY while that buffer is current.  This work
 buffer is killed afterwards.  Return the last value in BODY."
-  `(let* ((http (string-match "\\`http:" ,location))
+  `(let* ((http (string-match "\\`https?:" ,location))
 	  (buffer
 	   (if http
 	       (url-retrieve-synchronously (concat ,location ,file))

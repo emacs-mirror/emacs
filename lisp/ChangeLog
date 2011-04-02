@@ -1,3 +1,15 @@
+2011-04-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package--with-work-buffer): Recognize
+	https URLs.
+
+	* net/network-stream.el: Move from gnus/proto-stream.el.  Change
+	prefix to network-stream throughout.
+	(open-protocol-stream): Merge into open-network-stream, leaving
+	open-protocol-stream as an alias.  Handle nil BUFFER args.
+
+	* subr.el (open-network-stream): Move to net/network-stream.el.
+
 2011-04-02  Glenn Morris  <rgm@gnu.org>
 
 	* find-dired.el (find-exec-terminator): New option.
@@ -210,14 +222,14 @@
 	* textmodes/css.el:
 	* startup.el:
 	* uniquify.el:
-	* minibuffer.el: 
-	* newcomment.el: 
-	* reveal.el: 
-	* server.el: 
-	* mpc.el: 
-	* emacs-lisp/smie.el: 
-	* doc-view.el: 
-	* dired.el: 
+	* minibuffer.el:
+	* newcomment.el:
+	* reveal.el:
+	* server.el:
+	* mpc.el:
+	* emacs-lisp/smie.el:
+	* doc-view.el:
+	* dired.el:
 	* abbrev.el: Use lexical binding.
 
 2011-04-01  Eli Zaretskii  <eliz@gnu.org>

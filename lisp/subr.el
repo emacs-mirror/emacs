@@ -1792,28 +1792,6 @@ Signal an error if the program returns with a non-zero exit status."
 	  (forward-line 1))
 	(nreverse lines)))))
 
-;; open-network-stream is a wrapper around make-network-process.
-
-(when (featurep 'make-network-process)
-  (defun open-network-stream (name buffer host service)
-    "Open a TCP connection for a service to a host.
-Returns a subprocess-object to represent the connection.
-Input and output work as for subprocesses; `delete-process' closes it.
-
-NAME is the name for the process.  It is modified if necessary to make
- it unique.
-BUFFER is the buffer (or buffer name) to associate with the
- process.  Process output goes at end of that buffer.  BUFFER may
- be nil, meaning that this process is not associated with any buffer.
-HOST is the name or IP address of the host to connect to.
-SERVICE is the name of the service desired, or an integer specifying
- a port number to connect to.
-
-This is a wrapper around `make-network-process', and only offers a
-subset of its functionality."
-    (make-network-process :name name :buffer buffer
-				     :host host :service service)))
-
 ;; compatibility
 
 (make-obsolete

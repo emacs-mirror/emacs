@@ -1,3 +1,10 @@
+2011-04-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* proto-stream.el: Move to Emacs core, at net/network-stream.el.
+
+	* nnimap.el (nnimap-open-connection-1): Pass explicit :end-of-command
+	parameter to open-protocol-stream.
+
 2011-04-01  Julien Danjou  <julien@danjou.info>
 
 	* mm-view.el (mm-display-inline-fontify): Do not fontify with
