@@ -3,6 +3,7 @@
 	* keyboard.c (menu_bar_items, read_char_minibuf_menu_prompt):
 	Remove vars that are set but not used.
 	(timer_check_2): Don't assume timer-list and idle-timer-list are lists.
+	(timer_check_2): Mark vars as initialized.
 
 	* gtkutil.c (xg_get_file_with_chooser): Mark var as initialized.
 

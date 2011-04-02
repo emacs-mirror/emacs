@@ -4233,7 +4233,8 @@ static EMACS_TIME
 timer_check_2 (void)
 {
   EMACS_TIME nexttime;
-  EMACS_TIME now, idleness_now;
+  EMACS_TIME now;
+  EMACS_TIME idleness_now IF_LINT (= {0});
   Lisp_Object timers, idle_timers, chosen_timer;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
@@ -4270,7 +4271,9 @@ timer_check_2 (void)
       Lisp_Object *vector;
       Lisp_Object timer = Qnil, idle_timer = Qnil;
       EMACS_TIME timer_time, idle_timer_time;
-      EMACS_TIME difference, timer_difference, idle_timer_difference;
+      EMACS_TIME difference;
+      EMACS_TIME timer_difference IF_LINT (= {0});
+      EMACS_TIME idle_timer_difference IF_LINT (= {0});
 
       /* Skip past invalid timers and timers already handled.  */
       if (CONSP (timers))
