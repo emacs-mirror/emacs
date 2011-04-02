@@ -855,19 +855,20 @@ make_invisible_cursor (struct frame *f)
   static char const no_data[] = { 0 };
   Pixmap pix;
   XColor col;
-  Cursor c;
+  Cursor c = 0;
 
   x_catch_errors (dpy);
   pix = XCreateBitmapFromData (dpy, FRAME_X_DISPLAY_INFO (f)->root_window,
                                no_data, 1, 1);
   if (! x_had_errors_p (dpy) && pix != None)
     {
+      Cursor pixc;
       col.pixel = 0;
       col.red = col.green = col.blue = 0;
       col.flags = DoRed | DoGreen | DoBlue;
-      c = XCreatePixmapCursor (dpy, pix, pix, &col, &col, 0, 0);
-      if (x_had_errors_p (dpy) || c == None)
-        c = 0;
+      pixc = XCreatePixmapCursor (dpy, pix, pix, &col, &col, 0, 0);
+      if (! x_had_errors_p (dpy) && pixc != None)
+        c = pixc;
       XFreePixmap (dpy, pix);
     }
 

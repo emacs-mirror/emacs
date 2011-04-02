@@ -1,5 +1,8 @@
 2011-04-02  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xfns.c (make_invisible_cursor): Don't return garbage
+	if XCreateBitmapFromData fails.
+
 	* xselect.c (x_get_local_selection, x_handle_property_notify):
 	Remove vars that are set but not used.
 
