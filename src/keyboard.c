@@ -4273,7 +4273,7 @@ timer_check_2 (void)
       EMACS_TIME difference, timer_difference, idle_timer_difference;
 
       /* Skip past invalid timers and timers already handled.  */
-      if (!NILP (timers))
+      if (CONSP (timers))
 	{
 	  timer = XCAR (timers);
 	  if (!VECTORP (timer) || XVECTOR (timer)->size != 8)
@@ -4291,7 +4291,7 @@ timer_check_2 (void)
 	      continue;
 	    }
 	}
-      if (!NILP (idle_timers))
+      if (CONSP (idle_timers))
 	{
 	  timer = XCAR (idle_timers);
 	  if (!VECTORP (timer) || XVECTOR (timer)->size != 8)
@@ -4314,7 +4314,7 @@ timer_check_2 (void)
 	 based on the next ordinary timer.
 	 TIMER_DIFFERENCE is the distance in time from NOW to when
 	 this timer becomes ripe (negative if it's already ripe).  */
-      if (!NILP (timers))
+      if (CONSP (timers))
 	{
 	  timer = XCAR (timers);
 	  vector = XVECTOR (timer)->contents;
@@ -4326,7 +4326,7 @@ timer_check_2 (void)
 
       /* Set IDLE_TIMER, IDLE_TIMER_TIME and IDLE_TIMER_DIFFERENCE
 	 based on the next idle timer.  */
-      if (!NILP (idle_timers))
+      if (CONSP (idle_timers))
 	{
 	  idle_timer = XCAR (idle_timers);
 	  vector = XVECTOR (idle_timer)->contents;
@@ -4340,7 +4340,7 @@ timer_check_2 (void)
 	 and set CHOSEN_TIMER, VECTOR and DIFFERENCE accordingly.
 	 Also step down the list where we found that timer.  */
 
-      if (! NILP (timers) && ! NILP (idle_timers))
+      if (CONSP (timers) && CONSP (idle_timers))
 	{
 	  EMACS_TIME temp;
 	  EMACS_SUB_TIME (temp, timer_difference, idle_timer_difference);
@@ -4357,7 +4357,7 @@ timer_check_2 (void)
 	      difference = idle_timer_difference;
 	    }
 	}
-      else if (! NILP (timers))
+      else if (CONSP (timers))
 	{
 	  chosen_timer = timer;
 	  timers = XCDR (timers);
