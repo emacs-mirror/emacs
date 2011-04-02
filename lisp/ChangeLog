@@ -1,5 +1,10 @@
 2011-04-02  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/grep.el (grep-find-use-xargs): Doc fix.
+	(grep-compute-defaults): Check for `-exec COMMAND +' support.
+	Set grep-find-use-xargs, grep-find-command, and grep-find-template
+	accordingly.  Don't add the null-device if not needed.
+
 	* files.el (save-some-buffers): Doc fix.
 
 2011-04-02  Eli Zaretskii  <eliz@gnu.org>
