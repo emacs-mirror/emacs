@@ -1,5 +1,7 @@
 2011-04-02  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* fileio.c (Finsert_file_contents): Avoid signed integer overflow.
+
 	* minibuf.c (read_minibuf_noninteractive): Use size_t for sizes.
 	Check for integer overflow on size calculations.
 
