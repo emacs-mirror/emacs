@@ -583,6 +583,9 @@ ns_menu_bar_should_be_hidden (void)
 static void
 ns_update_auto_hide_menu_bar (void)
 {
+#ifndef MAC_OS_X_VERSION_10_6
+#define MAC_OS_X_VERSION_10_6 1060
+#endif
 #ifdef NS_IMPL_COCOA
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
   BLOCK_INPUT;

@@ -1,3 +1,8 @@
+2011-04-03  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_update_auto_hide_menu_bar): Define MAC_OS_X_VERSION_10_6
+	if not defined (Bug#8403).
+
 2011-04-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* xdisp.c (display_count_lines): Remove parameter `start',
