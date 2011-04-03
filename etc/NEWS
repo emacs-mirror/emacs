@@ -349,6 +349,7 @@ between applications.
 
 *** To return to the previous behavior, do the following:
 
+**** Change `select-active-regions' to nil.
 **** Change `mouse-drag-copy-region' to t.
 **** Change `x-select-enable-primary' to t (on X only).
 **** Change `x-select-enable-clipboard' to nil.
