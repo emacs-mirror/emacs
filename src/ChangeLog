@@ -1,5 +1,7 @@
 2011-04-03  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* fns.c (substring_both): Remove var that is set but not used.
+
 	* eval.c (funcall_lambda): Rename local to avoid shadowing.
 
 	* alloc.c (mark_object_loop_halt, mark_object): Use size_t, not int.
