@@ -2076,12 +2076,11 @@ font_score (Lisp_Object entity, Lisp_Object *spec_prop)
   for (i = FONT_WEIGHT_INDEX; i <= FONT_WIDTH_INDEX; i++)
     if (! NILP (spec_prop[i]) && ! EQ (AREF (entity, i), spec_prop[i]))
       {
-	int diff = (XINT (AREF (entity, i)) >> 8) - (XINT (spec_prop[i]) >> 8);
-
+	EMACS_INT diff = ((XINT (AREF (entity, i)) >> 8)
+			  - (XINT (spec_prop[i]) >> 8));
 	if (diff < 0)
 	  diff = - diff;
-	if (diff > 0)
-	  score |= min (diff, 127) << sort_shift_bits[i];
+	score |= min (diff, 127) << sort_shift_bits[i];
       }
 
   /* Score the size.  Maximum difference is 127.  */
