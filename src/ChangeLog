@@ -1,5 +1,7 @@
 2011-04-03  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* search.c (boyer_moore, wordify): Remove vars set but not used.
+
 	* indent.c (MULTIBYTE_BYTES_WIDTH): Don't compute wide_column.
 	All callers changed.  This avoids the need for an unused var.
 
