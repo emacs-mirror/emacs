@@ -1363,33 +1363,28 @@ Special value `always' suppresses confirmation."
 ;; The basic function for half a dozen variations on cp/mv/ln/ln -s.
 (defun dired-create-files (file-creator operation fn-list name-constructor
 					&optional marker-char)
+  "Create one or more new files from a list of existing files FN-LIST.
+This function also handles querying the user, updating Dired
+buffers, and displaying a success or failure message.
 
-;; Create a new file for each from a list of existing files.  The user
-;; is queried, dired buffers are updated, and at the end a success or
-;; failure message is displayed
+FILE-CREATOR should be a function.  It is called once for each
+file in FN-LIST, and must create a new file, querying the user
+and updating Dired buffers as necessary.  It should accept three
+arguments: the old file name, the new name, and an argument
+OK-IF-ALREADY-EXISTS with the same meaning as in `copy-file'.
 
-;; FILE-CREATOR must accept three args: oldfile newfile ok-if-already-exists
+OPERATION should be a capitalized string describing the operation
+performed (e.g. `Copy').  It is used for error logging.
 
-;; It is called for each file and must create newfile, the entry of
-;; which will be added.  The user will be queried if the file already
-;; exists.  If oldfile is removed by FILE-CREATOR (i.e, it is a
-;; rename), it is FILE-CREATOR's responsibility to update dired
-;; buffers.  FILE-CREATOR must abort by signaling a file-error if it
-;; could not create newfile.  The error is caught and logged.
+FN-LIST is the list of files to copy (full absolute file names).
 
-;; OPERATION (a capitalized string, e.g. `Copy') describes the
-;; operation performed.  It is used for error logging.
+NAME-CONSTRUCTOR should be a function accepting a single
+argument, the name of an old file, and returning either the
+corresponding new file name or nil to skip.
 
-;; FN-LIST is the list of files to copy (full absolute file names).
-
-;; NAME-CONSTRUCTOR returns a newfile for every oldfile, or nil to
-;; skip.  If it skips files for other reasons than a direct user
-;; query, it is supposed to tell why (using dired-log).
-
-;; Optional MARKER-CHAR is a character with which to mark every
-;; newfile's entry, or t to use the current marker character if the
-;; oldfile was marked.
-
+Optional MARKER-CHAR is a character with which to mark every
+newfile's entry, or t to use the current marker character if the
+old file was marked."
   (let (dired-create-files-failures failures
 	skipped (success-count 0) (total (length fn-list)))
     (let (to overwrite-query
