@@ -1,6 +1,7 @@
 2011-04-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* fns.c (substring_both): Remove var that is set but not used.
+	(sxhash): Redo loop for clarity and to avoid wraparound warning.
 
 	* eval.c (funcall_lambda): Rename local to avoid shadowing.
 

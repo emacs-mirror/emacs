@@ -4219,9 +4219,9 @@ sxhash (Lisp_Object obj, int depth)
       {
 	double val = XFLOAT_DATA (obj);
 	unsigned char *p = (unsigned char *) &val;
-	unsigned char *e = p + sizeof val;
-	for (hash = 0; p < e; ++p)
-	  hash = SXHASH_COMBINE (hash, *p);
+	size_t i;
+	for (hash = 0, i = 0; i < sizeof val; i++)
+	  hash = SXHASH_COMBINE (hash, p[i]);
 	break;
       }
 
