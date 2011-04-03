@@ -271,14 +271,13 @@ skip_invisible (EMACS_INT pos, EMACS_INT *next_boundary_p, EMACS_INT to, Lisp_Ob
 
    DP is a display table or NULL.
 
-   This macro is used in current_column_1, Fmove_to_column, and
+   This macro is used in scan_for_column and in
    compute_motion.  */
 
 #define MULTIBYTE_BYTES_WIDTH(p, dp, bytes, width)			\
   do {									\
     int ch;								\
     									\
-    wide_column = 0;							\
     ch = STRING_CHAR_AND_LENGTH (p, bytes);				\
     if (BYTES_BY_CHAR_HEAD (*p) != bytes)				\
       width = bytes * 4;						\
@@ -288,8 +287,6 @@ skip_invisible (EMACS_INT pos, EMACS_INT *next_boundary_p, EMACS_INT to, Lisp_Ob
 	  width = XVECTOR (DISP_CHAR_VECTOR (dp, ch))->size;		\
 	else								\
 	  width = CHAR_WIDTH (ch);					\
-	if (width > 1)							\
-	  wide_column = width;						\
       }									\
   } while (0)
 
@@ -666,7 +663,7 @@ scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
 	    {
 	      /* Start of multi-byte form.  */
 	      unsigned char *ptr;
-	      int bytes, width, wide_column;
+	      int bytes, width;
 
 	      ptr = BYTE_POS_ADDR (scan_byte);
 	      MULTIBYTE_BYTES_WIDTH (ptr, dp, bytes, width);
@@ -1657,14 +1654,14 @@ compute_motion (EMACS_INT from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
 		{
 		  /* Start of multi-byte form.  */
 		  unsigned char *ptr;
-		  int mb_bytes, mb_width, wide_column;
+		  int mb_bytes, mb_width;
 
 		  pos_byte--;	/* rewind POS_BYTE */
 		  ptr = BYTE_POS_ADDR (pos_byte);
 		  MULTIBYTE_BYTES_WIDTH (ptr, dp, mb_bytes, mb_width);
 		  pos_byte += mb_bytes;
-		  if (wide_column)
-		    wide_column_end_hpos = hpos + wide_column;
+		  if (mb_width > 1 && BYTES_BY_CHAR_HEAD (*ptr) == mb_bytes)
+		    wide_column_end_hpos = hpos + mb_width;
 		  hpos += mb_width;
 		}
 	      else if (VECTORP (charvec))
