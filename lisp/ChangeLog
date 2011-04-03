@@ -1,3 +1,11 @@
+2011-04-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textmodes/flyspell.el (flyspell-word): Recognize default
+	dictionary case for flyspell-mark-duplications-exceptions.  Use
+	regexp matching for languages.
+	(flyspell-mark-duplications-exceptions): Add "that" and "had" for
+	default dictionary (Bug#7926).
+
 2011-04-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/package.el (package--with-work-buffer): Recognize
