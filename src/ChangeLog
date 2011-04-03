@@ -1,5 +1,7 @@
 2011-04-03  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* eval.c (funcall_lambda): Rename local to avoid shadowing.
+
 	* alloc.c (mark_object_loop_halt, mark_object): Use size_t, not int.
 	Otherwise, GCC 4.6.0 optimizes the loop check away since the check
 	can always succeed if overflow has undefined behavior.
