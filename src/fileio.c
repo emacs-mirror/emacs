@@ -3607,6 +3607,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       EMACS_INT bufpos;
       unsigned char *decoded;
       EMACS_INT temp;
+      EMACS_INT this = 0;
       int this_count = SPECPDL_INDEX ();
       int multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
       Lisp_Object conversion_buffer;
@@ -3633,7 +3634,6 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	  /* try is reserved in some compilers (Microsoft C) */
 	  EMACS_INT trytry = min (total - how_much,
 				  READ_BUF_SIZE - unprocessed);
-	  EMACS_INT this;
 
 	  /* Allow quitting out of the actual I/O.  */
 	  immediate_quit = 1;
@@ -3642,11 +3642,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	  immediate_quit = 0;
 
 	  if (this <= 0)
-	    {
-	      if (this < 0)
-		how_much = this;
-	      break;
-	    }
+	    break;
 
 	  how_much += this;
 
@@ -3669,7 +3665,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       /* At this point, HOW_MUCH should equal TOTAL, or should be <= 0
 	 if we couldn't read the file.  */
 
-      if (how_much < 0)
+      if (this < 0)
 	error ("IO error reading %s: %s",
 	       SDATA (orig_filename), emacs_strerror (errno));
 
