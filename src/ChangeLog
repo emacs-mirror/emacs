@@ -1,5 +1,9 @@
 2011-04-03  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* alloc.c (mark_object_loop_halt, mark_object): Use size_t, not int.
+	Otherwise, GCC 4.6.0 optimizes the loop check away since the check
+	can always succeed if overflow has undefined behavior.
+
 	* search.c (boyer_moore, wordify): Remove vars set but not used.
 	(wordify): Omit three unnecessary tests.
 
