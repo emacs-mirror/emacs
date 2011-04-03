@@ -1,5 +1,7 @@
 2011-04-03  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* casefiddle.c (casify_region): Remove var that is set but not used.
+
 	* dired.c (file_name_completion): Remove var that is set but not used.
 
 	* fileio.c (Finsert_file_contents): Make EOF condition clearer.
