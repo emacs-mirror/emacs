@@ -3071,7 +3071,7 @@ font_find_for_lface (FRAME_PTR f, Lisp_Object *attrs, Lisp_Object spec, int c)
 {
   Lisp_Object work;
   Lisp_Object frame, entities, val;
-  Lisp_Object size, foundry[3], *family, registry[3], adstyle[3];
+  Lisp_Object foundry[3], *family, registry[3], adstyle[3];
   int pixel_size;
   int i, j, k, l;
 
@@ -3102,7 +3102,6 @@ font_find_for_lface (FRAME_PTR f, Lisp_Object *attrs, Lisp_Object spec, int c)
   work = Fcopy_font_spec (spec);
   ASET (work, FONT_TYPE_INDEX, AREF (spec, FONT_TYPE_INDEX));
   XSETFRAME (frame, f);
-  size = AREF (spec, FONT_SIZE_INDEX);
   pixel_size = font_pixel_size (f, spec);
   if (pixel_size == 0 && INTEGERP (attrs[LFACE_HEIGHT_INDEX]))
     {
@@ -4723,10 +4722,9 @@ the corresponding element is nil.  */)
       Lisp_Object g;
       int c = XFASTINT (chars[i]);
       unsigned code;
-      EMACS_INT cod;
       struct font_metrics metrics;
 
-      cod = code = font->driver->encode_char (font, c);
+      code = font->driver->encode_char (font, c);
       if (code == FONT_INVALID_CODE)
 	continue;
       g = Fmake_vector (make_number (LGLYPH_SIZE), Qnil);
