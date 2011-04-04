@@ -1,4 +1,4 @@
-;;; re-builder.el --- building Regexps with visual feedback
+;;; re-builder.el --- building Regexps with visual feedback -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
 
@@ -506,7 +506,7 @@ If SUBEXP is non-nil mark only the corresponding sub-expressions."
   (reb-update-regexp)
   (reb-update-overlays subexp))
 
-(defun reb-auto-update (beg end lenold &optional force)
+(defun reb-auto-update (_beg _end _lenold &optional force)
   "Called from `after-update-functions' to update the display.
 BEG, END and LENOLD are passed in from the hook.
 An actual update is only done if the regexp has changed or if the

@@ -1,4 +1,4 @@
-;;; linum.el --- display line numbers in the left margin
+;;; linum.el --- display line numbers in the left margin -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
@@ -174,14 +174,14 @@ and you have to scroll or press \\[recenter-top-bottom] to update the numbers."
       (setq line (1+ line)))
     (set-window-margins win width (cdr (window-margins win)))))
 
-(defun linum-after-change (beg end len)
+(defun linum-after-change (beg end _len)
   ;; update overlays on deletions, and after newlines are inserted
   (when (or (= beg end)
             (= end (point-max))
             (string-match-p "\n" (buffer-substring-no-properties beg end)))
     (linum-update-current)))
 
-(defun linum-after-scroll (win start)
+(defun linum-after-scroll (win _start)
   (linum-update (window-buffer win)))
 
 ;; (defun linum-after-size (frame)
