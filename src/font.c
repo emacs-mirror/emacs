@@ -2697,14 +2697,12 @@ font_list_entities (Lisp_Object frame, Lisp_Object spec)
   for (i = FONT_FOUNDRY_INDEX; i <= FONT_REGISTRY_INDEX; i++)
     ASET (scratch_font_spec, i, AREF (spec, i));
   for (i = FONT_WEIGHT_INDEX; i < FONT_EXTRA_INDEX; i++)
-    {
-      ASET (scratch_font_spec, i, Qnil);
-      if (! NILP (AREF (spec, i)))
-	need_filtering = 1;
-      if (i == FONT_DPI_INDEX)
-	/* Skip FONT_SPACING_INDEX  */
-	i++;
-    }
+    if (i != FONT_SPACING_INDEX)
+      {
+	ASET (scratch_font_spec, i, Qnil);
+	if (! NILP (AREF (spec, i)))
+	  need_filtering = 1;
+      }
   ASET (scratch_font_spec, FONT_SPACING_INDEX, AREF (spec, FONT_SPACING_INDEX));
   ASET (scratch_font_spec, FONT_EXTRA_INDEX, AREF (spec, FONT_EXTRA_INDEX));
 
