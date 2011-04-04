@@ -4,6 +4,7 @@
 	(exec_sentinel): Remove vars that were set but not used.
 	(create_pty): Remove unnecessary "volatile"s.
 	(Fnetwork_interface_info): Avoid possibility of int overflow.
+	(read_process_output): Do adaptive read buffering even if carryover.
 
 	* bytecode.c (exec_byte_code): Rename local to avoid shadowing.
 

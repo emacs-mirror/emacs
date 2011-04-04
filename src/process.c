@@ -5162,15 +5162,22 @@ read_process_output (Lisp_Object proc, register int channel)
     }
   else
 #endif
-  if (proc_buffered_char[channel] < 0)
     {
+      int buffered = 0 <= proc_buffered_char[channel];
+      if (buffered)
+	{
+	  chars[carryover] = proc_buffered_char[channel];
+	  proc_buffered_char[channel] = -1;
+	}
 #ifdef HAVE_GNUTLS
       if (XPROCESS (proc)->gnutls_p)
 	nbytes = emacs_gnutls_read (channel, XPROCESS (proc),
-                                    chars + carryover, readmax);
+				    chars + carryover + buffered,
+				    readmax - buffered);
       else
 #endif
-	nbytes = emacs_read (channel, chars + carryover, readmax);
+	nbytes = emacs_read (channel, chars + carryover + buffered,
+			     readmax - buffered);
 #ifdef ADAPTIVE_READ_BUFFERING
       if (nbytes > 0 && p->adaptive_read_buffering)
 	{
@@ -5184,7 +5191,7 @@ read_process_output (Lisp_Object proc, register int channel)
 		  delay += READ_OUTPUT_DELAY_INCREMENT * 2;
 		}
 	    }
-	  else if (delay > 0 && (nbytes == readmax))
+	  else if (delay > 0 && nbytes == readmax - buffered)
 	    {
 	      delay -= READ_OUTPUT_DELAY_INCREMENT;
 	      if (delay == 0)
@@ -5198,22 +5205,13 @@ read_process_output (Lisp_Object proc, register int channel)
 	    }
 	}
 #endif
-    }
-  else
-    {
-      chars[carryover] = proc_buffered_char[channel];
-      proc_buffered_char[channel] = -1;
-#ifdef HAVE_GNUTLS
-      if (XPROCESS (proc)->gnutls_p)
-	nbytes = emacs_gnutls_read (channel, XPROCESS (proc),
-                                    chars + carryover + 1, readmax - 1);
-      else
-#endif
-	nbytes = emacs_read (channel, chars + carryover + 1,  readmax - 1);
-      if (nbytes < 0)
-	nbytes = 1;
-      else
-	nbytes = nbytes + 1;
+      if (buffered)
+	{
+	  if (nbytes < 0)
+	    nbytes = 1;
+	  else
+	    nbytes = nbytes + 1;
+	}
     }
 
   p->decoding_carryover = 0;
