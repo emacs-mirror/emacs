@@ -907,7 +907,7 @@ safe_to_load_p (int fd)
 	if (i == 4)
 	  version = buf[i];
 
-      if (i == nbytes
+      if (i >= nbytes
 	  || fast_c_string_match_ignore_case (Vbytecomp_version_regexp,
 					      buf + i) < 0)
 	safe_p = 0;
