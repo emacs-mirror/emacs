@@ -5205,13 +5205,8 @@ read_process_output (Lisp_Object proc, register int channel)
 	    }
 	}
 #endif
-      if (buffered)
-	{
-	  if (nbytes < 0)
-	    nbytes = 1;
-	  else
-	    nbytes = nbytes + 1;
-	}
+      nbytes += buffered;
+      nbytes += buffered && nbytes <= 0;
     }
 
   p->decoding_carryover = 0;

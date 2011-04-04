@@ -5,6 +5,7 @@
 	(create_pty): Remove unnecessary "volatile"s.
 	(Fnetwork_interface_info): Avoid possibility of int overflow.
 	(read_process_output): Do adaptive read buffering even if carryover.
+	(read_process_output): Simplify nbytes computation if buffered.
 
 	* bytecode.c (exec_byte_code): Rename local to avoid shadowing.
 
