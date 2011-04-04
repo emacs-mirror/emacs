@@ -1344,11 +1344,7 @@ list_processes_1 (Lisp_Object query_only)
 	symbol = XCAR (p->status);
 
       if (EQ (symbol, Qsignal))
-	{
-	  Lisp_Object tem;
-	  tem = Fcar (Fcdr (p->status));
-	  Fprinc (symbol, Qnil);
-	}
+	Fprinc (symbol, Qnil);
       else if (NETCONN1_P (p) || SERIALCONN1_P (p))
 	{
 	  if (EQ (symbol, Qexit))
@@ -2152,7 +2148,6 @@ create_pty (Lisp_Object process)
   int inchannel, outchannel;
 
   /* Use volatile to protect variables from being clobbered by longjmp.  */
-  volatile int forkin, forkout;
   volatile int pty_flag = 0;
 
   inchannel = outchannel = -1;
@@ -2169,11 +2164,11 @@ create_pty (Lisp_Object process)
 #ifdef O_NOCTTY
       /* Don't let this terminal become our controlling terminal
 	 (in case we don't have one).  */
-      forkout = forkin = emacs_open (pty_name, O_RDWR | O_NOCTTY, 0);
+      volatile int forkout = emacs_open (pty_name, O_RDWR | O_NOCTTY, 0);
 #else
-      forkout = forkin = emacs_open (pty_name, O_RDWR, 0);
+      volatile int forkout = emacs_open (pty_name, O_RDWR, 0);
 #endif
-      if (forkin < 0)
+      if (forkout < 0)
 	report_file_error ("Opening pty", Qnil);
 #if defined (DONT_REOPEN_PTY)
       /* In the case that vfork is defined as fork, the parent process
@@ -2181,8 +2176,6 @@ create_pty (Lisp_Object process)
 	 tty options setup.  So we setup tty before forking.  */
       child_setup_tty (forkout);
 #endif /* DONT_REOPEN_PTY */
-#else
-      forkin = forkout = -1;
 #endif /* not USG, or USG_SUBTTY_WORKS */
       pty_flag = 1;
     }
@@ -5249,15 +5242,17 @@ read_process_output (Lisp_Object proc, register int channel)
   outstream = p->filter;
   if (!NILP (outstream))
     {
-      Lisp_Object obuffer, okeymap;
       Lisp_Object text;
       int outer_running_asynch_code = running_asynch_code;
       int waiting = waiting_for_user_input_p;
 
       /* No need to gcpro these, because all we do with them later
 	 is test them for EQness, and none of them should be a string.  */
+#if 0
+      Lisp_Object obuffer, okeymap;
       XSETBUFFER (obuffer, current_buffer);
       okeymap = BVAR (current_buffer, keymap);
+#endif
 
       /* We inhibit quit here instead of just catching it so that
 	 hitting ^G when a filter happens to be running won't screw
@@ -6540,7 +6535,7 @@ exec_sentinel_error_handler (Lisp_Object error_val)
 static void
 exec_sentinel (Lisp_Object proc, Lisp_Object reason)
 {
-  Lisp_Object sentinel, obuffer, odeactivate, okeymap;
+  Lisp_Object sentinel, odeactivate;
   register struct Lisp_Process *p = XPROCESS (proc);
   int count = SPECPDL_INDEX ();
   int outer_running_asynch_code = running_asynch_code;
@@ -6552,8 +6547,11 @@ exec_sentinel (Lisp_Object proc, Lisp_Object reason)
   /* No need to gcpro these, because all we do with them later
      is test them for EQness, and none of them should be a string.  */
   odeactivate = Vdeactivate_mark;
+#if 0
+  Lisp_Object obuffer, okeymap;
   XSETBUFFER (obuffer, current_buffer);
   okeymap = BVAR (current_buffer, keymap);
+#endif
 
   /* There's no good reason to let sentinels change the current
      buffer, and many callers of accept-process-output, sit-for, and

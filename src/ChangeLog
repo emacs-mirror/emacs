@@ -1,5 +1,8 @@
 2011-04-04  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* process.c (list_processes_1, create_pty, read_process_output):
+	(exec_sentinel): Remove vars that were set but not used.
+
 	* bytecode.c (exec_byte_code): Rename local to avoid shadowing.
 
 	* syntax.c (scan_words): Remove var that was set but not used.
