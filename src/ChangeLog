@@ -1,5 +1,8 @@
 2011-04-04  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* composite.h, composite.c (composition_gstring_put_cache):
+	Use EMACS_INT, not int, for length.
+
 	* composite.h (COMPOSITION_DECODE_REFS): New macro,
 	breaking out part of COMPOSITION_DECODE_RULE.
 	(COMPOSITION_DECODE_RULE): Use it.

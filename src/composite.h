@@ -307,7 +307,7 @@ struct composition_it;
 struct face;
 struct font_metrics;
 
-extern Lisp_Object composition_gstring_put_cache (Lisp_Object, int);
+extern Lisp_Object composition_gstring_put_cache (Lisp_Object, EMACS_INT);
 extern Lisp_Object composition_gstring_from_id (int);
 extern int composition_gstring_p (Lisp_Object);
 extern int composition_gstring_width (Lisp_Object, EMACS_INT, EMACS_INT,

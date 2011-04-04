@@ -661,12 +661,12 @@ gstring_lookup_cache (Lisp_Object header)
 }
 
 Lisp_Object
-composition_gstring_put_cache (Lisp_Object gstring, int len)
+composition_gstring_put_cache (Lisp_Object gstring, EMACS_INT len)
 {
   struct Lisp_Hash_Table *h = XHASH_TABLE (gstring_hash_table);
   unsigned hash;
   Lisp_Object header, copy;
-  int i;
+  EMACS_INT i;
 
   header = LGSTRING_HEADER (gstring);
   hash = h->hashfn (h, header);
