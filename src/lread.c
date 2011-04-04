@@ -819,7 +819,7 @@ lisp_file_lexically_bound_p (Lisp_Object readcharfun)
       while (in_file_vars)
 	{
 	  char var[100], val[100];
-	  int i;
+	  unsigned i;
 
 	  ch = READCHAR;
 
@@ -2319,7 +2319,7 @@ static Lisp_Object
 read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 {
   register int c;
-  int uninterned_symbol = 0;
+  unsigned uninterned_symbol = 0;
   int multibyte;
 
   *pch = 0;
