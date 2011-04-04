@@ -1,4 +1,4 @@
-;;; epa.el --- the EasyPG Assistant
+;;; epa.el --- the EasyPG Assistant -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2006-2011  Free Software Foundation, Inc.
 
@@ -269,7 +269,7 @@ You should bind this variable with `let', but do not set it globally.")
   :action 'epa--key-widget-action
   :help-echo 'epa--key-widget-help-echo)
 
-(defun epa--key-widget-action (widget &optional event)
+(defun epa--key-widget-action (widget &optional _event)
   (save-selected-window
     (epa--show-key (widget-get widget :value))))
 
@@ -460,7 +460,7 @@ If ARG is non-nil, mark the key."
      (list nil)))
   (epa--list-keys name t))
 
-(defun epa--key-list-revert-buffer (&optional ignore-auto noconfirm)
+(defun epa--key-list-revert-buffer (&optional _ignore-auto _noconfirm)
   (apply #'epa--list-keys epa-list-keys-arguments))
 
 (defun epa--marked-keys ()
@@ -490,13 +490,13 @@ If ARG is non-nil, mark the key."
 - `\\[epa-mark-key]' to mark a key on the line
 - `\\[epa-unmark-key]' to unmark a key on the line\n"))
       (widget-create 'link
-		     :notify (lambda (&rest ignore) (abort-recursive-edit))
+		     :notify (lambda (&rest _ignore) (abort-recursive-edit))
 		     :help-echo
 		     (substitute-command-keys
 		      "Click here or \\[abort-recursive-edit] to cancel")
 		     "Cancel")
       (widget-create 'link
-		     :notify (lambda (&rest ignore) (exit-recursive-edit))
+		     :notify (lambda (&rest _ignore) (exit-recursive-edit))
 		     :help-echo
 		     (substitute-command-keys
 		      "Click here or \\[exit-recursive-edit] to finish")
@@ -649,7 +649,7 @@ If SECRET is non-nil, list secret keys instead of public keys."
 	     (format "Passphrase for %s %s: " key-id (cdr entry))
 	   (format "Passphrase for %s: " key-id)))))))
 
-(defun epa-progress-callback-function (context what char current total
+(defun epa-progress-callback-function (_context what _char current total
 					       handback)
   (message "%s%d%% (%d/%d)" (or handback
 				(concat what ": "))
@@ -964,7 +964,7 @@ See the reason described in the `epa-verify-region' documentation."
 (eval-and-compile
   (if (fboundp 'select-safe-coding-system)
       (defalias 'epa--select-safe-coding-system 'select-safe-coding-system)
-    (defun epa--select-safe-coding-system (from to)
+    (defun epa--select-safe-coding-system (_from _to)
       buffer-file-coding-system)))
 
 ;;;###autoload

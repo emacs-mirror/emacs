@@ -1,3 +1,12 @@
+2011-04-04  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa-dired.el:
+	* epa-mail.el:
+	* epa-hook.el:
+	* epa-file.el:
+	* epa.el:
+	* epg.el: Use lexical binding.
+
 2011-04-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* dired-aux.el (dired-create-files): Add docstring (Bug#7970).
