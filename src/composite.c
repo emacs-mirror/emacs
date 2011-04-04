@@ -354,7 +354,7 @@ get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
 
       for (i = 1; i < glyph_len; i += 2)
 	{
-	  int rule, gref, nref, xoff, yoff;
+	  int rule, gref, nref;
 	  int this_width;
 	  float this_left;
 
@@ -376,7 +376,7 @@ get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
 		|       |
 		6---7---8 -- descent
 	  */
-	  COMPOSITION_DECODE_RULE (rule, gref, nref, xoff, yoff);
+	  COMPOSITION_DECODE_REFS (rule, gref, nref);
 	  this_left = (leftmost
 		       + (gref % 3) * (rightmost - leftmost) / 2.0
 		       - (nref % 3) * this_width / 2.0);

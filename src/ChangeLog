@@ -1,5 +1,11 @@
 2011-04-04  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* composite.h (COMPOSITION_DECODE_REFS): New macro,
+	breaking out part of COMPOSITION_DECODE_RULE.
+	(COMPOSITION_DECODE_RULE): Use it.
+	* composite.c (get_composition_id): Remove unused local vars,
+	by using the new macro.
+
 	* textprop.c (set_text_properties_1): Change while to do-while,
 	since the condition is always true at first.
 

@@ -126,19 +126,26 @@ extern Lisp_Object composition_temp;
 	->contents[(n) * 2 - 1])
 
 /* Decode encoded composition rule RULE_CODE into GREF (global
-   reference point code), NREF (new reference point code), XOFF
-   (horizontal offset) YOFF (vertical offset).  Don't check RULE_CODE,
+   reference point code), NREF (new ref. point code).  Don't check RULE_CODE;
    always set GREF and NREF to valid values.  By side effect,
    RULE_CODE is modified.  */
+
+#define COMPOSITION_DECODE_REFS(rule_code, gref, nref)			\
+  do {									\
+    rule_code &= 0xFF;							\
+    gref = (rule_code) / 12;						\
+    if (gref > 12) gref = 11;						\
+    nref = (rule_code) % 12;						\
+  } while (0)
+
+/* Like COMPOSITION_DECODE_REFS (RULE_CODE, GREF, NREF), but also
+   decode RULE_CODE into XOFF and YOFF (vertical offset).  */
 
 #define COMPOSITION_DECODE_RULE(rule_code, gref, nref, xoff, yoff)	\
   do {									\
     xoff = (rule_code) >> 16;						\
     yoff = ((rule_code) >> 8) & 0xFF;					\
-    rule_code &= 0xFF;							\
-    gref = (rule_code) / 12;						\
-    if (gref > 12) gref = 11;						\
-    nref = (rule_code) % 12;						\
+    COMPOSITION_DECODE_REFS (rule_code, gref, nref);			\
   } while (0)
 
 /* Return encoded composition rule for the pair of global reference
@@ -281,7 +288,7 @@ enum lglyph_indices
     else								\
       ASET ((g), LGLYPH_IX_CODE, make_number (val));			\
   } while (0)
-      
+
 #define LGLYPH_SET_WIDTH(g, val) ASET ((g), LGLYPH_IX_WIDTH, make_number (val))
 #define LGLYPH_SET_LBEARING(g, val) ASET ((g), LGLYPH_IX_LBEARING, make_number (val))
 #define LGLYPH_SET_RBEARING(g, val) ASET ((g), LGLYPH_IX_RBEARING, make_number (val))
@@ -321,4 +328,3 @@ extern EMACS_INT composition_adjust_point (EMACS_INT, EMACS_INT);
 EXFUN (Fcomposition_get_gstring, 4);
 
 #endif /* not EMACS_COMPOSITE_H */
-
