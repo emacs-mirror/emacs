@@ -938,12 +938,12 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 
 	case Bsave_window_excursion: /* Obsolete since 24.1.  */
 	  {
-	    register int count = SPECPDL_INDEX ();
+	    register int count1 = SPECPDL_INDEX ();
 	    record_unwind_protect (Fset_window_configuration,
 				   Fcurrent_window_configuration (Qnil));
 	    BEFORE_POTENTIAL_GC ();
 	    TOP = Fprogn (TOP);
-	    unbind_to (count, TOP);
+	    unbind_to (count1, TOP);
 	    AFTER_POTENTIAL_GC ();
 	    break;
 	  }

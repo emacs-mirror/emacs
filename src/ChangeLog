@@ -1,5 +1,7 @@
 2011-04-04  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* bytecode.c (exec_byte_code): Rename local to avoid shadowing.
+
 	* syntax.c (scan_words): Remove var that was set but not used.
 	(update_syntax_table): Use unsigned instead of int.
 
