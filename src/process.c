@@ -3949,7 +3949,7 @@ FLAGS is the current flags of the interface.  */)
       const struct ifflag_def *fp;
       int fnum;
 
-      any++;
+      any = 1;
       for (fp = ifflag_table; flags != 0 && fp->flag_sym; fp++)
 	{
 	  if (flags & fp->flag_bit)
@@ -3977,7 +3977,7 @@ FLAGS is the current flags of the interface.  */)
       register struct Lisp_Vector *p = XVECTOR (hwaddr);
       int n;
 
-      any++;
+      any = 1;
       for (n = 0; n < 6; n++)
 	p->contents[n] = make_number (((unsigned char *)&rq.ifr_hwaddr.sa_data[0])[n]);
       elt = Fcons (make_number (rq.ifr_hwaddr.sa_family), hwaddr);
@@ -3989,7 +3989,7 @@ FLAGS is the current flags of the interface.  */)
 #if defined(SIOCGIFNETMASK) && (defined(HAVE_STRUCT_IFREQ_IFR_NETMASK) || defined(HAVE_STRUCT_IFREQ_IFR_ADDR))
   if (ioctl (s, SIOCGIFNETMASK, &rq) == 0)
     {
-      any++;
+      any = 1;
 #ifdef HAVE_STRUCT_IFREQ_IFR_NETMASK
       elt = conv_sockaddr_to_lisp (&rq.ifr_netmask, sizeof (rq.ifr_netmask));
 #else
@@ -4003,7 +4003,7 @@ FLAGS is the current flags of the interface.  */)
 #if defined(SIOCGIFBRDADDR) && defined(HAVE_STRUCT_IFREQ_IFR_BROADADDR)
   if (ioctl (s, SIOCGIFBRDADDR, &rq) == 0)
     {
-      any++;
+      any = 1;
       elt = conv_sockaddr_to_lisp (&rq.ifr_broadaddr, sizeof (rq.ifr_broadaddr));
     }
 #endif
@@ -4013,7 +4013,7 @@ FLAGS is the current flags of the interface.  */)
 #if defined(SIOCGIFADDR) && defined(HAVE_STRUCT_IFREQ_IFR_ADDR)
   if (ioctl (s, SIOCGIFADDR, &rq) == 0)
     {
-      any++;
+      any = 1;
       elt = conv_sockaddr_to_lisp (&rq.ifr_addr, sizeof (rq.ifr_addr));
     }
 #endif

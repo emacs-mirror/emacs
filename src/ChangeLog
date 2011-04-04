@@ -3,6 +3,7 @@
 	* process.c (list_processes_1, create_pty, read_process_output):
 	(exec_sentinel): Remove vars that were set but not used.
 	(create_pty): Remove unnecessary "volatile"s.
+	(Fnetwork_interface_info): Avoid possibility of int overflow.
 
 	* bytecode.c (exec_byte_code): Rename local to avoid shadowing.
 
