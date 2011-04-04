@@ -1,5 +1,11 @@
 2011-04-04  Juanma Barranquero  <lekktu@gmail.com>
 
+	* help-fns.el (describe-variable): Complete all variables having
+	documentation, including keywords.
+	http://lists.gnu.org/archive/html/emacs-devel/2011-04/msg00112.html
+
+2011-04-04  Juanma Barranquero  <lekktu@gmail.com>
+
 	Convert to lexical-binding.
 
 	* bs.el (bs-refresh, bs-sort-buffer-interns-are-last)

@@ -635,8 +635,8 @@ it is displayed along with the global value."
 				  "Describe variable: ")
 				obarray
 				(lambda (vv)
-                                  (or (special-variable-p vv)
-                                      (get vv 'variable-documentation)))
+                                  (or (get vv 'variable-documentation)
+                                      (not (keywordp vv))))
 				t nil nil
 				(if (symbolp v) (symbol-name v))))
      (list (if (equal val "")
