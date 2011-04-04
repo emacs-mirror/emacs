@@ -1379,8 +1379,8 @@ set_text_properties_1 (Lisp_Object start, Lisp_Object end, Lisp_Object propertie
       i = next_interval (i);
     }
 
-  /* We are starting at the beginning of an interval, I */
-  while (len > 0)
+  /* We are starting at the beginning of an interval I.  LEN is positive.  */
+  do
     {
       if (i == 0)
 	abort ();
@@ -1412,6 +1412,7 @@ set_text_properties_1 (Lisp_Object start, Lisp_Object end, Lisp_Object propertie
 
       i = next_interval (i);
     }
+  while (len > 0);
 }
 
 DEFUN ("remove-text-properties", Fremove_text_properties,

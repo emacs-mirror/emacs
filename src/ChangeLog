@@ -1,5 +1,8 @@
 2011-04-04  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* textprop.c (set_text_properties_1): Change while to do-while,
+	since the condition is always true at first.
+
 	* intervals.c (graft_intervals_into_buffer): Mark var as used.
 	(interval_deletion_adjustment): Return unsigned value.
 	All uses changed.
