@@ -2146,9 +2146,7 @@ void
 create_pty (Lisp_Object process)
 {
   int inchannel, outchannel;
-
-  /* Use volatile to protect variables from being clobbered by longjmp.  */
-  volatile int pty_flag = 0;
+  int pty_flag = 0;
 
   inchannel = outchannel = -1;
 
@@ -2164,9 +2162,9 @@ create_pty (Lisp_Object process)
 #ifdef O_NOCTTY
       /* Don't let this terminal become our controlling terminal
 	 (in case we don't have one).  */
-      volatile int forkout = emacs_open (pty_name, O_RDWR | O_NOCTTY, 0);
+      int forkout = emacs_open (pty_name, O_RDWR | O_NOCTTY, 0);
 #else
-      volatile int forkout = emacs_open (pty_name, O_RDWR, 0);
+      int forkout = emacs_open (pty_name, O_RDWR, 0);
 #endif
       if (forkout < 0)
 	report_file_error ("Opening pty", Qnil);
