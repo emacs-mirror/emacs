@@ -1,5 +1,7 @@
 2011-04-04  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lread.c (lisp_file_lexically_bound_p): Use ints rather than endptrs.
+
 	* print.c (print_error_message): Avoid int overflow.
 
 	* font.c (font_list_entities): Redo for clarity,

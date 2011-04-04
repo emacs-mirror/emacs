@@ -818,7 +818,8 @@ lisp_file_lexically_bound_p (Lisp_Object readcharfun)
 
       while (in_file_vars)
 	{
-	  char var[100], *var_end, val[100], *val_end;
+	  char var[100], val[100];
+	  int i;
 
 	  ch = READCHAR;
 
@@ -826,19 +827,18 @@ lisp_file_lexically_bound_p (Lisp_Object readcharfun)
 	  while (ch == ' ' || ch == '\t')
 	    ch = READCHAR;
 
-	  var_end = var;
+	  i = 0;
 	  while (ch != ':' && ch != '\n' && ch != EOF)
 	    {
-	      if (var_end < var + sizeof var - 1)
-		*var_end++ = ch;
+	      if (i < sizeof var - 1)
+		var[i++] = ch;
 	      UPDATE_BEG_END_STATE (ch);
 	      ch = READCHAR;
 	    }
 
-	  while (var_end > var
-		 && (var_end[-1] == ' ' || var_end[-1] == '\t'))
-	    var_end--;
-	  *var_end = '\0';
+	  while (i > 0 && (var[i - 1] == ' ' || var[i - 1] == '\t'))
+	    i--;
+	  var[i] = '\0';
 
 	  if (ch == ':')
 	    {
@@ -848,22 +848,21 @@ lisp_file_lexically_bound_p (Lisp_Object readcharfun)
 	      while (ch == ' ' || ch == '\t')
 		ch = READCHAR;
 
-	      val_end = val;
+	      i = 0;
 	      while (ch != ';' && ch != '\n' && ch != EOF && in_file_vars)
 		{
-		  if (val_end < val + sizeof val - 1)
-		    *val_end++ = ch;
+		  if (i < sizeof val - 1)
+		    val[i++] = ch;
 		  UPDATE_BEG_END_STATE (ch);
 		  ch = READCHAR;
 		}
 	      if (! in_file_vars)
 		/* The value was terminated by an end-marker, which
 		   remove.  */
-		val_end -= 3;
-	      while (val_end > val
-		     && (val_end[-1] == ' ' || val_end[-1] == '\t'))
-		val_end--;
-	      *val_end = '\0';
+		i -= 3;
+	      while (i > 0 && (val[i - 1] == ' ' || val[i - 1] == '\t'))
+		i--;
+	      val[i] = '\0';
 
 	      if (strcmp (var, "lexical-binding") == 0)
 		/* This is it...  */
