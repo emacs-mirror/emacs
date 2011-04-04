@@ -1,5 +1,7 @@
 2011-04-04  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* syntax.c (scan_words): Remove var that was set but not used.
+
 	* lread.c (lisp_file_lexically_bound_p): Use ints rather than endptrs.
 	(lisp_file_lexically_bound_p, read1): Use unsigned instead of int.
 	(safe_to_load_p): Make the end-of-loop test the inverse of the in-loop.
