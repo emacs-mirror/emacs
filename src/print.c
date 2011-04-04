@@ -929,7 +929,7 @@ print_error_message (Lisp_Object data, Lisp_Object stream, const char *context,
   else
     write_string_1 ("peculiar error", -1, stream);
 
-  for (i = 0; CONSP (tail); tail = XCDR (tail), i++)
+  for (i = 0; CONSP (tail); tail = XCDR (tail), i = 1)
     {
       Lisp_Object obj;
 

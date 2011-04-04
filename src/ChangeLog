@@ -1,5 +1,7 @@
 2011-04-04  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* print.c (print_error_message): Avoid int overflow.
+
 	* font.c (font_list_entities): Redo for clarity,
 	so that reader need not know FONT_DPI_INDEX + 1 == FONT_SPACING_INDEX.
 
