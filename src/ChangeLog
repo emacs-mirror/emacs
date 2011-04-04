@@ -1,6 +1,8 @@
 2011-04-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* intervals.c (graft_intervals_into_buffer): Mark var as used.
+	(interval_deletion_adjustment): Return unsigned value.
+	All uses changed.
 
 	* process.c (list_processes_1, create_pty, read_process_output):
 	(exec_sentinel): Remove vars that were set but not used.
