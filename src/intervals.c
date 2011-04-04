@@ -1677,7 +1677,7 @@ graft_intervals_into_buffer (INTERVAL source, EMACS_INT position,
 			     EMACS_INT length, struct buffer *buffer,
 			     int inherit)
 {
-  register INTERVAL under, over, this, prev;
+  register INTERVAL under, over, this;
   register INTERVAL tree;
   EMACS_INT over_used;
 
@@ -1767,7 +1767,8 @@ graft_intervals_into_buffer (INTERVAL source, EMACS_INT position,
       /* This call may have some effect because previous_interval may
          update `position' fields of intervals.  Thus, don't ignore it
          for the moment.  Someone please tell me the truth (K.Handa).  */
-      prev = previous_interval (under);
+      INTERVAL prev = previous_interval (under);
+      (void) prev;
 #if 0
       /* But, this code surely has no effect.  And, anyway,
          END_NONSTICKY_P is unreliable now.  */
