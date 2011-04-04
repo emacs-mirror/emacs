@@ -1,3 +1,8 @@
+2011-04-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (safe_run_hook_funcall): Fix last change (don't stop at the
+	first non-nil return value).
+
 2011-04-03  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (ns_update_auto_hide_menu_bar): Define MAC_OS_X_VERSION_10_6

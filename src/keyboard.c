@@ -1870,7 +1870,8 @@ safe_run_hook_funcall (size_t nargs, Lisp_Object *args)
   else
     Vinhibit_quit = Fcons (Vinhibit_quit, args[0]);
 
-  return internal_condition_case (safe_run_hooks_1, Qt, safe_run_hooks_error);
+  internal_condition_case (safe_run_hooks_1, Qt, safe_run_hooks_error);
+  return Qnil;
 }
 
 /* If we get an error while running the hook, cause the hook variable
