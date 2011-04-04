@@ -6070,12 +6070,15 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 	  (let* ((old (cdr (assq (cdr type) (gnus-info-marks info))))
 		 ;; Don't do anything about marks for articles we
 		 ;; didn't actually get any headers for.
-		 (existing (gnus-compress-sequence gnus-newsgroup-articles))
 		 (del
-		  (gnus-remove-from-range (gnus-copy-sequence old) list))
+		  (gnus-list-range-intersection
+		   gnus-newsgroup-articles
+		   (gnus-remove-from-range (gnus-copy-sequence old) list)))
 		 (add
-		  (gnus-remove-from-range
-		   (gnus-copy-sequence list) old)))
+		  (gnus-list-range-intersection
+		   gnus-newsgroup-articles
+		   (gnus-remove-from-range
+		    (gnus-copy-sequence list) old))))
 	    (when add
 	      (push (list add 'add (list (cdr type))) delta-marks))
 	    (when del
