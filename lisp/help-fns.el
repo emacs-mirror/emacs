@@ -636,7 +636,7 @@ it is displayed along with the global value."
 				obarray
 				(lambda (vv)
                                   (or (get vv 'variable-documentation)
-                                      (not (keywordp vv))))
+                                      (and (boundp vv) (not (keywordp vv)))))
 				t nil nil
 				(if (symbolp v) (symbol-name v))))
      (list (if (equal val "")
