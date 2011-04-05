@@ -1,6 +1,7 @@
 2011-04-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xfont.c (xfont_text_extents): Remove var that was set but not used.
+	(xfont_open): Avoid unnecessary tests.
 
 	* composite.c (composition_gstring_put_cache): Use unsigned integer.
 
