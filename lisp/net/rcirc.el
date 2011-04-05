@@ -4,7 +4,7 @@
 
 ;; Author: Ryan Yeske <rcyeske@gmail.com>
 ;; Maintainers: Ryan Yeske <rcyeske@gmail.com>,
-;;              Deniz Dogan <deniz.a.m.dogan@gmail.com>
+;;              Deniz Dogan <deniz@dogan.se>
 ;; Keywords: comm
 
 ;; This file is part of GNU Emacs.

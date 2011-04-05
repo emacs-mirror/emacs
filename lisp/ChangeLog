@@ -1,6 +1,7 @@
-2011-04-05  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+2011-04-05  Deniz Dogan  <deniz@dogan.se>
 
-	* net/rcirc.el (rcirc-mode-map): Remove M-o binding.
+	* net/rcirc.el: Update my e-mail address.
+	(rcirc-mode-map): Remove M-o binding.
 
 2011-04-05  Chong Yidong  <cyd@stupidchicken.com>
 
