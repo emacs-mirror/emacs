@@ -1,5 +1,9 @@
 2011-04-05  Juanma Barranquero  <lekktu@gmail.com>
 
+	* font-lock.el (font-lock-refresh-defaults):
+	Don't bind `hi-lock--inhibit-font-lock-hook', removed in
+	revno:99634.2.463 (2010-10-09) and revno:101913 (2010-10-12).
+
 	* info.el (Info-directory-list, Info-read-node-name-2)
 	(Info-split-parameter-string): Doc fixes.
 	(Info-virtual-nodes): Reflow docstring.
@@ -15,7 +19,7 @@
 	(Info-history-find-file, Info-history-find-node, Info-toc-find-node)
 	(Info-virtual-index-find-node, Info-apropos-find-file)
 	(Info-apropos-find-node, Info-finder-find-file, Info-finder-find-node):
-	Mark unused parameters; fix typos in arguments.
+	Mark unused parameters; fix typos in docstrings.
 	(Info-virtual-index): Remove unused local variable `nodename'.
 
 2011-04-05  Deniz Dogan  <deniz@dogan.se>
