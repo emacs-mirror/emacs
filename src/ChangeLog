@@ -1,5 +1,8 @@
 2011-04-05  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* coding.c (EMIT_ONE_BYTE, EMIT_TWO_BYTES): Use unsigned, not int.
+	This avoids several warnings with gcc -Wstrict-overflow.
+
 	* xfont.c (xfont_text_extents): Remove var that was set but not used.
 	(xfont_open): Avoid unnecessary tests.
 

@@ -753,7 +753,7 @@ static struct coding_system coding_categories[coding_category_max];
     produced_chars++;			\
     if (multibytep)			\
       {					\
-	int ch = (c);			\
+	unsigned ch = (c);		\
 	if (ch >= 0x80)			\
 	  ch = BYTE8_TO_CHAR (ch);	\
 	CHAR_STRING_ADVANCE (ch, dst);	\
@@ -770,7 +770,7 @@ static struct coding_system coding_categories[coding_category_max];
     produced_chars += 2;		\
     if (multibytep)			\
       {					\
-	int ch;				\
+	unsigned ch;			\
 					\
 	ch = (c1);			\
 	if (ch >= 0x80)			\
