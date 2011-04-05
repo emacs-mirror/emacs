@@ -57,6 +57,11 @@ careadlinkatcwd (int fd, char const *filename, char *buffer,
 }
 #endif
 
+/* A standard allocator.  For now, only careadlinkat needs this, but
+   perhaps it should be moved to the allocator module.  */
+static struct allocator const standard_allocator =
+  { malloc, realloc, free, NULL };
+
 /* Assuming the current directory is FD, get the symbolic link value
    of FILENAME as a null-terminated string and put it into a buffer.
    If FD is AT_FDCWD, FILENAME is interpreted relative to the current
@@ -88,17 +93,8 @@ careadlinkat (int fd, char const *filename,
     SSIZE_MAX < SIZE_MAX ? (size_t) SSIZE_MAX + 1 : SIZE_MAX;
   char stack_buf[1024];
 
-  void *(*pmalloc) (size_t) = malloc;
-  void *(*prealloc) (void *, size_t) = realloc;
-  void (*pfree) (void *) = free;
-  void (*pdie) (void) = NULL;
-  if (alloc)
-    {
-      pmalloc = alloc->malloc;
-      prealloc = alloc->realloc;
-      pfree = alloc->free;
-      pdie = alloc->die;
-    }
+  if (! alloc)
+    alloc = &standard_allocator;
 
   if (! buffer_size)
     {
@@ -127,7 +123,7 @@ careadlinkat (int fd, char const *filename,
             {
               if (buf != buffer)
                 {
-                  pfree (buf);
+                  alloc->free (buf);
                   errno = readlinkat_errno;
                 }
               return NULL;
@@ -142,16 +138,16 @@ careadlinkat (int fd, char const *filename,
 
           if (buf == stack_buf)
             {
-              char *b = (char *) pmalloc (link_size);
+              char *b = (char *) alloc->malloc (link_size);
               if (! b)
                 break;
               memcpy (b, buf, link_size);
               buf = b;
             }
-          else if (link_size < buf_size && buf != buffer && prealloc)
+          else if (link_size < buf_size && buf != buffer && alloc->realloc)
             {
               /* Shrink BUF before returning it.  */
-              char *b = (char *) prealloc (buf, link_size);
+              char *b = (char *) alloc->realloc (buf, link_size);
               if (b)
                 buf = b;
             }
@@ -160,7 +156,7 @@ careadlinkat (int fd, char const *filename,
         }
 
       if (buf != buffer)
-        pfree (buf);
+        alloc->free (buf);
 
       if (buf_size <= buf_size_max / 2)
         buf_size *= 2;
@@ -168,12 +164,12 @@ careadlinkat (int fd, char const *filename,
         buf_size = buf_size_max;
       else
         break;
-      buf = (char *) pmalloc (buf_size);
+      buf = (char *) alloc->malloc (buf_size);
     }
   while (buf);
 
-  if (pdie)
-    pdie ();
+  if (alloc->die)
+    alloc->die ();
   errno = ENOMEM;
   return NULL;
 }

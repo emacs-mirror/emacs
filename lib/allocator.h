@@ -21,8 +21,15 @@
 
 #include <stddef.h>
 
+/* An object describing a memory allocator family.  */
+
 struct allocator
 {
+  /* Do not use GCC attributes such as __attribute__ ((malloc)) with
+     the function types pointed at by these members, because these
+     attributes do not work with pointers to functions.  See
+     <http://lists.gnu.org/archive/html/bug-gnulib/2011-04/msg00007.html>.  */
+
   /* Call MALLOC to allocate memory, like 'malloc'.  On failure MALLOC
      should return NULL, though not necessarily set errno.  When given
      a zero size it may return NULL even if successful.  */
@@ -37,8 +44,9 @@ struct allocator
   /* Call FREE to free memory, like 'free'.  */
   void (*free) (void *);
 
-  /* If nonnull, call DIE if MALLOC or REALLOC fails.  DIE should
-     not return.  */
+  /* If nonnull, call DIE if MALLOC or REALLOC fails.  DIE should not
+     return.  DIE can be used by code that detects memory overflow
+     while calculating sizes to be passed to MALLOC or REALLOC.  */
   void (*die) (void);
 };
 
