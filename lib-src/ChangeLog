@@ -1,3 +1,7 @@
+2011-04-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* emacsclient.c (message): Mark it as a printf-like function.
+
 2011-04-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* make-docfile.c (IF_LINT): New macro, copied from emacsclient.c.
