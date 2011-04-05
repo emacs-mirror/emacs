@@ -1,3 +1,98 @@
+2011-04-05  Deniz Dogan  <deniz@dogan.se>
+
+	* net/rcirc.el: Update my e-mail address.
+	(rcirc-mode-map): Remove M-o binding.
+
+2011-04-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (command-line): Save the cursor's theme-face
+	directly, instead of using face-override-spec.
+
+	* custom.el (load-theme): Minor optimization in assigning faces.
+
+2011-04-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help-fns.el (describe-variable): Complete all variables having
+	documentation, including keywords.
+	http://lists.gnu.org/archive/html/emacs-devel/2011-04/msg00112.html
+
+2011-04-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	Convert to lexical-binding.
+
+	* bs.el (bs-refresh, bs-sort-buffer-interns-are-last)
+	(bs--get-marked-string, bs--get-modified-string)
+	(bs--get-readonly-string, bs--get-size-string, bs--get-name)
+	(bs--get-mode-name, bs--get-file-name): Mark unused arguments.
+	(bs--configuration-name-for-prefix-arg): Rename argument PREFIX-ARG.
+
+	* ehelp.el (electric-help-execute-extended)
+	(electric-help-ctrl-x-prefix):
+	* hexl.el (hexl-revert-buffer-function):
+	* linum.el (linum-after-change, linum-after-scroll):
+	* emacs-lisp/re-builder.el (reb-auto-update): Mark unused arguments.
+
+	* help-fns.el (help-describe-category-set): Remove unused ERR variable.
+
+2011-04-04  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa-dired.el:
+	* epa-mail.el:
+	* epa-hook.el:
+	* epa-file.el:
+	* epa.el:
+	* epg.el: Use lexical binding.
+
+2011-04-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired-aux.el (dired-create-files): Add docstring (Bug#7970).
+
+	* textmodes/flyspell.el (flyspell-word): Recognize default
+	dictionary case for flyspell-mark-duplications-exceptions.  Use
+	regexp matching for languages.
+	(flyspell-mark-duplications-exceptions): Add "that" and "had" for
+	default dictionary (Bug#7926).
+
+2011-04-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package--with-work-buffer): Recognize
+	https URLs.
+
+	* net/network-stream.el: Move from gnus/proto-stream.el.  Change
+	prefix to network-stream throughout.
+	(open-protocol-stream): Merge into open-network-stream, leaving
+	open-protocol-stream as an alias.  Handle nil BUFFER args.
+
+	* subr.el (open-network-stream): Move to net/network-stream.el.
+
+2011-04-02  Glenn Morris  <rgm@gnu.org>
+
+	* find-dired.el (find-exec-terminator): New option.
+	(find-ls-option): Test for -ls support.
+	(find-ls-subdir-switches): Test for -b in find-ls-option.
+	(find-dired, find-grep-dired): Doc fixes.
+	(find-dired): Use find-exec-terminator.
+
+	* find-dired.el (find-ls-option, find-ls-subdir-switches)
+	(find-grep-options): Do not autoload these defcustoms, remove purecopy.
+	(find-name-arg): Remove purecopy.
+
+	* progmodes/grep.el (grep-find-use-xargs): Doc fix.
+	(grep-compute-defaults): Check for `-exec COMMAND +' support.
+	Set grep-find-use-xargs, grep-find-command, and grep-find-template
+	accordingly.  Don't add the null-device if not needed.
+
+	* files.el (save-some-buffers): Doc fix.
+
+2011-04-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (EMACS): Default to ../src/$(BLD)/emacs.exe.
+
+2011-04-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/idlwave.el (idlwave-one-key-select, idlwave-list-abbrevs):
+	Use `dolist' rather than `mapcar'.
+
 2011-04-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Add lexical binding.
@@ -182,14 +277,14 @@
 	* textmodes/css.el:
 	* startup.el:
 	* uniquify.el:
-	* minibuffer.el: 
-	* newcomment.el: 
-	* reveal.el: 
-	* server.el: 
-	* mpc.el: 
-	* emacs-lisp/smie.el: 
-	* doc-view.el: 
-	* dired.el: 
+	* minibuffer.el:
+	* newcomment.el:
+	* reveal.el:
+	* server.el:
+	* mpc.el:
+	* emacs-lisp/smie.el:
+	* doc-view.el:
+	* dired.el:
 	* abbrev.el: Use lexical binding.
 
 2011-04-01  Eli Zaretskii  <eliz@gnu.org>
@@ -203,7 +298,7 @@
 2011-03-31  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* net/rcirc.el (rcirc-handler-001): Only authenticate, if there's
-	an entry for that server in rcirc-authinfo. (Bug#8385)
+	an entry for that server in rcirc-authinfo.  (Bug#8385)
 
 2011-03-31  Glenn Morris  <rgm@gnu.org>
 

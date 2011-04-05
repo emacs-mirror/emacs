@@ -331,9 +331,8 @@ telling Microsoft that."
 	   (not trusted)
 	   (save-window-excursion
 	     (with-output-to-temp-buffer "*Cookie Warning*"
-	       (mapcar
-		(lambda (x)
-		  (princ (format "%s - %s" (car x) (cdr x)))) rest))
+	       (dolist (x rest)
+                 (princ (format "%s - %s" (car x) (cdr x)))))
 	     (prog1
 		 (not (funcall url-confirmation-func
 			       (format "Allow %s to set these cookies? "

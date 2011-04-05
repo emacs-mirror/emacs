@@ -3629,7 +3629,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
 ;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
 ;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "2d805d6766bd7970cd446413b4ed4ce0")
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "0488aa71a7abdb8dcc9ce90201114ebc")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\
@@ -3766,7 +3766,7 @@ can be produced by `dired-get-marked-files', for example.
 \(fn COMMAND &optional ARG FILE-LIST)" t nil)
 
 (autoload 'dired-run-shell-command "dired-aux" "\
-Not documented
+
 
 \(fn COMMAND)" nil nil)
 
@@ -3785,7 +3785,7 @@ command with a prefix argument (the value does not matter).
 \(fn &optional ARG FMT)" t nil)
 
 (autoload 'dired-compress-file "dired-aux" "\
-Not documented
+
 
 \(fn FILE)" nil nil)
 
@@ -3834,12 +3834,12 @@ See Info node `(emacs)Subdir switches' for more details.
 \(fn &optional ARG TEST-FOR-SUBDIR)" t nil)
 
 (autoload 'dired-add-file "dired-aux" "\
-Not documented
+
 
 \(fn FILENAME &optional MARKER-CHAR)" nil nil)
 
 (autoload 'dired-remove-file "dired-aux" "\
-Not documented
+
 
 \(fn FILE)" nil nil)
 
@@ -3849,12 +3849,12 @@ Create or update the line for FILE in all Dired buffers it would belong in.
 \(fn FILE)" nil nil)
 
 (autoload 'dired-copy-file "dired-aux" "\
-Not documented
+
 
 \(fn FROM TO OK-FLAG)" nil nil)
 
 (autoload 'dired-rename-file "dired-aux" "\
-Not documented
+
 
 \(fn FILE NEWNAME OK-IF-ALREADY-EXISTS)" nil nil)
 

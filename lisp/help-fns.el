@@ -1,4 +1,4 @@
-;;; help-fns.el --- Complex help functions
+;;; help-fns.el --- Complex help functions -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1985-1986, 1993-1994, 1998-2011
 ;;   Free Software Foundation, Inc.
@@ -635,8 +635,8 @@ it is displayed along with the global value."
 				  "Describe variable: ")
 				obarray
 				(lambda (vv)
-                                  (or (special-variable-p vv)
-                                      (get vv 'variable-documentation)))
+                                  (or (get vv 'variable-documentation)
+                                      (and (boundp vv) (not (keywordp vv)))))
 				t nil nil
 				(if (symbolp v) (symbol-name v))))
      (list (if (equal val "")
@@ -879,7 +879,7 @@ BUFFER defaults to the current buffer."
   (insert (cond
 	   ((null value) "default")
 	   ((char-table-p value) "deeper char-table ...")
-	   (t (condition-case err
+	   (t (condition-case nil
 		  (category-set-mnemonics value)
 		(error "invalid"))))))
 

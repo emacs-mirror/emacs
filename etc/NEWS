@@ -349,6 +349,7 @@ between applications.
 
 *** To return to the previous behavior, do the following:
 
+**** Change `select-active-regions' to nil.
 **** Change `mouse-drag-copy-region' to t.
 **** Change `x-select-enable-primary' to t (on X only).
 **** Change `x-select-enable-clipboard' to nil.
@@ -772,6 +773,12 @@ sc.el, x-menu.el, rnews.el, rnewspost.el
 
 
 * Lisp changes in Emacs 24.1
+
+** `open-network-stream' can now be used to open an encrypted stream.
+It now accepts an optional `:type' parameter for initiating a TLS
+connection, directly or via STARTTLS.  To do STARTTLS, additional
+parameters (`:end-of-command', `:success', `:capabilities-command')
+must also be supplied.
 
 ** Code can now use lexical scoping by default instead of dynamic scoping.
 The `lexical-binding' variable lets code use lexical scoping for local

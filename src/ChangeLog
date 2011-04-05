@@ -1,5 +1,7 @@
 2011-04-05  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Fix more problems found by GCC 4.6.0's static checks.
+
 	* coding.c (EMIT_ONE_BYTE, EMIT_TWO_BYTES): Use unsigned, not int.
 	This avoids several warnings with gcc -Wstrict-overflow.
 	(DECODE_COMPOSITION_RULE): If the rule is invalid, goto invalid_code
@@ -13,8 +15,6 @@
 	(xfont_open): Avoid unnecessary tests.
 
 	* composite.c (composition_gstring_put_cache): Use unsigned integer.
-
-2011-04-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* composite.h, composite.c (composition_gstring_put_cache):
 	Use EMACS_INT, not int, for length.
@@ -53,8 +53,6 @@
 	* font.c (font_list_entities): Redo for clarity,
 	so that reader need not know FONT_DPI_INDEX + 1 == FONT_SPACING_INDEX.
 
-2011-04-03  Paul Eggert  <eggert@cs.ucla.edu>
-
 	* font.c (font_find_for_lface, Ffont_get_glyphs): Remove unused vars.
 	(font_score): Avoid potential overflow in diff calculation.
 
@@ -78,8 +76,6 @@
 	* dired.c (file_name_completion): Remove var that is set but not used.
 
 	* fileio.c (Finsert_file_contents): Make EOF condition clearer.
-
-2011-04-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* fileio.c (Finsert_file_contents): Avoid signed integer overflow.
 	(Finsert_file_contents): Remove unnecessary code checking fd.
@@ -108,8 +104,6 @@
 
 	* xselect.c (x_get_local_selection, x_handle_property_notify):
 	Remove vars that are set but not used.
-
-2011-04-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xfns.c (x_create_tip_frame): Remove var that is set but not used.
 	(make_invisible_cursor): Initialize a possibly-uninitialized variable.
@@ -148,6 +142,43 @@
 	(emacs_readlink): New function.
 	* deps.mk (sysdep.o): Depend on ../lib/allocator.h and on
 	../lib/careadlinkat.h.
+
+2011-04-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (safe_run_hook_funcall): Fix last change (don't stop at the
+	first non-nil return value).
+
+2011-04-03  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_update_auto_hide_menu_bar): Define MAC_OS_X_VERSION_10_6
+	if not defined (Bug#8403).
+
+2011-04-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* xdisp.c (display_count_lines): Remove parameter `start',
+	unused since revno:20537 (1998-01-01).  All callers changed.
+	(get_char_face_and_encoding): Remove parameter `multibyte_p',
+	unused since revno:87605 (2008-05-14).  All callers changed.
+	(fill_stretch_glyph_string): Remove parameters `row' and `area',
+	unused at least since Kim's GUI unification at revno:50135 (2003-03-16)
+	and thereabouts.  All callers changed.
+	(get_per_char_metric): Remove parameter `f', unused since
+	revno:87605 (2008-05-14).  All callers changed.
+
+2011-04-02  Jim Meyering  <meyering@redhat.com>
+
+	do not dereference NULL upon failed strdup
+	* nsfont.m (ns_descriptor_to_entity): Use xstrdup, not strdup.
+	(ns_get_family): Likewise.
+
+2011-04-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* eval.c (unwind_to_catch) [DEBUG_GCPRO]: Remove redundant assignment.
+
+2011-04-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_update_auto_hide_menu_bar): Only for OSX 10.6 or
+	later (Bug#8403).
 
 2011-04-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 

@@ -1297,7 +1297,7 @@ unwind_to_catch (struct catchtag *catch, Lisp_Object value)
   byte_stack_list = catch->byte_stack;
   gcprolist = catch->gcpro;
 #ifdef DEBUG_GCPRO
-  gcpro_level = gcprolist ? gcprolist->level + 1 : gcpro_level = 0;
+  gcpro_level = gcprolist ? gcprolist->level + 1 : 0;
 #endif
   backtrace_list = catch->backlist;
   lisp_eval_depth = catch->lisp_eval_depth;

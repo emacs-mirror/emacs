@@ -4,7 +4,7 @@
 
 ;; Author: Ryan Yeske <rcyeske@gmail.com>
 ;; Maintainers: Ryan Yeske <rcyeske@gmail.com>,
-;;              Deniz Dogan <deniz.a.m.dogan@gmail.com>
+;;              Deniz Dogan <deniz@dogan.se>
 ;; Keywords: comm
 
 ;; This file is part of GNU Emacs.
@@ -900,7 +900,6 @@ IRC command completion is performed only if '/' is the first input char."
     (define-key map (kbd "C-c C-m") 'rcirc-cmd-msg)
     (define-key map (kbd "C-c C-r") 'rcirc-cmd-nick) ; rename
     (define-key map (kbd "C-c C-o") 'rcirc-omit-mode)
-    (define-key map (kbd "M-o") 'rcirc-omit-mode)
     (define-key map (kbd "C-c C-p") 'rcirc-cmd-part)
     (define-key map (kbd "C-c C-q") 'rcirc-cmd-query)
     (define-key map (kbd "C-c C-t") 'rcirc-cmd-topic)
