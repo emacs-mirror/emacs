@@ -1016,7 +1016,7 @@ struct Lisp_Symbol
   /* Interned state of the symbol.  This is an enumerator from
      enum symbol_interned.  */
   unsigned interned : 2;
-  
+
   /* Non-zero means that this variable has been explicitly declared
      special (with `defvar' etc), and shouldn't be lexically bound.  */
   unsigned declared_special : 1;
@@ -2627,8 +2627,8 @@ extern void restore_message (void);
 extern Lisp_Object current_message (void);
 extern void set_message (const char *s, Lisp_Object, EMACS_INT, int);
 extern void clear_message (int, int);
-extern void message (const char *, ...);
-extern void message_nolog (const char *, ...);
+extern void message (const char *, ...) ATTRIBUTE_FORMAT_PRINTF (1, 2);
+extern void message_nolog (const char *, ...) ATTRIBUTE_FORMAT_PRINTF (1, 2);
 extern void message1 (const char *);
 extern void message1_nolog (const char *);
 extern void message2 (const char *, EMACS_INT, int);
@@ -2782,7 +2782,8 @@ extern void float_to_string (char *, double);
 extern void syms_of_print (void);
 
 /* Defined in doprnt.c */
-extern EMACS_INT doprnt (char *, int, const char *, const char *, va_list);
+extern EMACS_INT doprnt (char *, int, const char *, const char *, va_list)
+  ATTRIBUTE_FORMAT_PRINTF (3, 0);
 
 extern Lisp_Object Qvariable_documentation, Qstandard_input;
 extern Lisp_Object Qbackquote, Qcomma, Qcomma_at, Qcomma_dot, Qfunction;
@@ -2873,8 +2874,9 @@ extern Lisp_Object internal_condition_case_n (Lisp_Object (*) (size_t, Lisp_Obje
 extern void specbind (Lisp_Object, Lisp_Object);
 extern void record_unwind_protect (Lisp_Object (*) (Lisp_Object), Lisp_Object);
 extern Lisp_Object unbind_to (int, Lisp_Object);
-extern void error (const char *, ...) NO_RETURN;
-extern void verror (const char *, va_list) NO_RETURN;
+extern void error (const char *, ...) NO_RETURN ATTRIBUTE_FORMAT_PRINTF (1, 2);
+extern void verror (const char *, va_list)
+  NO_RETURN ATTRIBUTE_FORMAT_PRINTF (1, 0);
 extern void do_autoload (Lisp_Object, Lisp_Object);
 extern Lisp_Object un_autoload (Lisp_Object);
 EXFUN (Ffetch_bytecode, 1);
@@ -3394,7 +3396,8 @@ extern Lisp_Object directory_files_internal (Lisp_Object, Lisp_Object,
 extern int *char_ins_del_vector;
 extern void mark_ttys (void);
 extern void syms_of_term (void);
-extern void fatal (const char *msgid, ...) NO_RETURN;
+extern void fatal (const char *msgid, ...)
+  NO_RETURN ATTRIBUTE_FORMAT_PRINTF (1, 2);
 
 /* Defined in terminal.c */
 EXFUN (Fframe_terminal, 1);
