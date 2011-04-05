@@ -966,11 +966,11 @@ xfont_text_extents (struct font *font, unsigned int *code, int nglyphs, struct f
 {
   XFontStruct *xfont = ((struct xfont_info *) font)->xfont;
   int width = 0;
-  int i, first, x;
+  int i, first;
 
   if (metrics)
     memset (metrics, 0, sizeof (struct font_metrics));
-  for (i = 0, x = 0, first = 1; i < nglyphs; i++)
+  for (i = 0, first = 1; i < nglyphs; i++)
     {
       XChar2b char2b;
       static XCharStruct *pcm;
