@@ -1,3 +1,23 @@
+2011-04-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* info.el (Info-directory-list, Info-read-node-name-2)
+	(Info-split-parameter-string): Doc fixes.
+	(Info-virtual-nodes): Reflow docstring.
+	(Info-find-file, Info-directory-toc-nodes, Info-history-toc-nodes)
+	(Info-apropos-toc-nodes, info-finder, Info-get-token)
+	(Info-find-emacs-command-nodes, Info-speedbar-key-map):
+	Fix typos in docstrings.
+	(Info-revert-buffer-function, Info-search, Info-isearch-pop-state)
+	(Info-speedbar-hierarchy-buttons, Info-speedbar-goto-node)
+	(Info-speedbar-buttons, Info-desktop-buffer-misc-data)
+	(Info-restore-desktop-buffer): Mark unused parameters.
+	(Info-directory-find-file, Info-directory-find-node)
+	(Info-history-find-file, Info-history-find-node, Info-toc-find-node)
+	(Info-virtual-index-find-node, Info-apropos-find-file)
+	(Info-apropos-find-node, Info-finder-find-file, Info-finder-find-node):
+	Mark unused parameters; fix typos in arguments.
+	(Info-virtual-index): Remove unused local variable `nodename'.
+
 2011-04-05  Deniz Dogan  <deniz@dogan.se>
 
 	* net/rcirc.el: Update my e-mail address.
