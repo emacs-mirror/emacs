@@ -2,6 +2,8 @@
 
 	Fix more problems found by GCC 4.6.0's static checks.
 
+	* eval.c (Fsignal): Remove excess argument to 'fatal'.
+
 	* coding.c (EMIT_ONE_BYTE, EMIT_TWO_BYTES): Use unsigned, not int.
 	This avoids several warnings with gcc -Wstrict-overflow.
 	(DECODE_COMPOSITION_RULE): If the rule is invalid, goto invalid_code

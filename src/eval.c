@@ -1757,7 +1757,7 @@ See also the function `condition-case'.  */)
     data = Fcons (error_symbol, data);
 
   string = Ferror_message_string (data);
-  fatal ("%s", SDATA (string), 0);
+  fatal ("%s", SDATA (string));
 }
 
 /* Internal version of Fsignal that never returns.
