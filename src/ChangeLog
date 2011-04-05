@@ -2,6 +2,8 @@
 
 	Fix more problems found by GCC 4.6.0's static checks.
 
+	* menu.c (Fx_popup_menu): Don't assume error_name lacks printf formats.
+
 	* fns.c (Fstring_to_unibyte): Don't rely on undefined behavior
 	by passing a long int to a printf format expecting an int.
 
