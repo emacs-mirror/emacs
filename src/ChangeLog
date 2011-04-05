@@ -2,6 +2,8 @@
 
 	Fix more problems found by GCC 4.6.0's static checks.
 
+	* xdisp.c (vmessage): Mark as a printf-like function.
+
 	* term.c (vfatal, maybe_fatal): Mark as printf-like functions.
 
 	* sound.c (sound_warning): Don't crash if arg contains a printf format.
