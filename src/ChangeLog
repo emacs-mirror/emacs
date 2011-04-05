@@ -2,6 +2,8 @@
 
 	Fix more problems found by GCC 4.6.0's static checks.
 
+	* term.c (vfatal, maybe_fatal): Mark as printf-like functions.
+
 	* sound.c (sound_warning): Don't crash if arg contains a printf format.
 
 	* image.c (tiff_error_handler, tiff_warning_handler): Mark as
