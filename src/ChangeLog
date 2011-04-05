@@ -1,3 +1,7 @@
+2011-04-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* composite.c (composition_gstring_put_cache): Use unsigned integer.
+
 2011-04-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* composite.h, composite.c (composition_gstring_put_cache):

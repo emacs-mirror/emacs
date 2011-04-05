@@ -672,11 +672,11 @@ composition_gstring_put_cache (Lisp_Object gstring, EMACS_INT len)
   hash = h->hashfn (h, header);
   if (len < 0)
     {
-      len = LGSTRING_GLYPH_LEN (gstring);
-      for (i = 0; i < len; i++)
-	if (NILP (LGSTRING_GLYPH (gstring, i)))
+      EMACS_UINT j, glyph_len = LGSTRING_GLYPH_LEN (gstring);
+      for (j = 0; j < glyph_len; j++)
+	if (NILP (LGSTRING_GLYPH (gstring, j)))
 	  break;
-      len = i;
+      len = j;
     }
 
   copy = Fmake_vector (make_number (len + 2), Qnil);
