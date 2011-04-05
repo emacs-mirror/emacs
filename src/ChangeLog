@@ -2,6 +2,8 @@
 
 	Fix more problems found by GCC 4.6.0's static checks.
 
+	* sound.c (sound_warning): Don't crash if arg contains a printf format.
+
 	* image.c (tiff_error_handler, tiff_warning_handler): Mark as
 	printf-like functions.
 	(tiff_load): Add casts to remove these marks before passing them
