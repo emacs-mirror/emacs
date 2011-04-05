@@ -2,6 +2,9 @@
 
 	Fix more problems found by GCC 4.6.0's static checks.
 
+	* fns.c (Fstring_to_unibyte): Don't rely on undefined behavior
+	by passing a long int to a printf format expecting an int.
+
 	* lisp.h (message, message_nolog, doprint, error, verror, fatal):
 	Mark as printf-like functions.
 
