@@ -1,3 +1,7 @@
+2011-04-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.in (ATTRIBUTE_FORMAT, ATTRIBUTE_FORMAT_PRINTF): New macros.
+
 2011-04-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Replace 2 copies of readlink code with 1 gnulib version (Bug#8401).
