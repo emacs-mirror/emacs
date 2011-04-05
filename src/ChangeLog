@@ -2,6 +2,8 @@
 
 	Fix more problems found by GCC 4.6.0's static checks.
 
+	* xmenu.c (Fx_popup_dialog): Don't assume string is free of formats.
+
 	* menu.c (Fx_popup_menu): Don't assume error_name lacks printf formats.
 
 	* fns.c (Fstring_to_unibyte): Don't rely on undefined behavior
