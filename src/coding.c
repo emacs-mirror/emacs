@@ -3254,13 +3254,13 @@ detect_coding_iso_2022 (struct coding_system *coding,
 
 /* Decode a composition rule C1 and maybe one more byte from the
    source, and set RULE to the encoded composition rule.  If the rule
-   is invalid, set RULE to some negative value.  */
+   is invalid, goto invalid_code.  */
 
 #define DECODE_COMPOSITION_RULE(rule)					\
   do {									\
     rule = c1 - 32;							\
     if (rule < 0)							\
-      break;								\
+      goto invalid_code;						\
     if (rule < 81)		/* old format (before ver.21) */	\
       {									\
 	int gref = (rule) / 9;						\
@@ -3274,9 +3274,10 @@ detect_coding_iso_2022 (struct coding_system *coding,
 	int b;								\
 									\
 	ONE_MORE_BYTE (b);						\
+	if (! COMPOSITION_ENCODE_RULE_VALID (rule - 81, b - 32))	\
+	  goto invalid_code;						\
 	rule = COMPOSITION_ENCODE_RULE (rule - 81, b - 32);		\
-	if (rule >= 0)							\
-	  rule += 0x100;   /* to destinguish it from the old format */	\
+	rule += 0x100;   /* Distinguish it from the old format.  */	\
       }									\
   } while (0)
 
@@ -3543,8 +3544,6 @@ decode_coding_iso_2022 (struct coding_system *coding)
 	  int rule;
 
 	  DECODE_COMPOSITION_RULE (rule);
-	  if (rule < 0)
-	    goto invalid_code;
 	  STORE_COMPOSITION_RULE (rule);
 	  continue;
 	}

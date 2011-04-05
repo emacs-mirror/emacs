@@ -148,12 +148,15 @@ extern Lisp_Object composition_temp;
     COMPOSITION_DECODE_REFS (rule_code, gref, nref);			\
   } while (0)
 
+/* Nonzero if the global reference point GREF and new reference point NREF are
+   valid.  */
+#define COMPOSITION_ENCODE_RULE_VALID(gref, nref)	\
+  ((unsigned) (gref) < 12 && (unsigned) (nref) < 12)
+
 /* Return encoded composition rule for the pair of global reference
-   point GREF and new reference point NREF.  If arguments are invalid,
-   return -1. */
+   point GREF and new reference point NREF.  Arguments must be valid.  */
 #define COMPOSITION_ENCODE_RULE(gref, nref)		\
-  ((unsigned) (gref) < 12 && (unsigned) (nref) < 12	\
-   ? (gref) * 12 + (nref) : -1)
+  ((gref) * 12 + (nref))
 
 /* Data structure that records information about a composition
    currently used in some buffers or strings.
