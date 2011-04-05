@@ -1,3 +1,10 @@
+2011-04-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (command-line): Save the cursor's theme-face
+	directly, instead of using face-override-spec.
+
+	* custom.el (load-theme): Minor optimization in assigning faces.
+
 2011-04-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* help-fns.el (describe-variable): Complete all variables having

@@ -1151,6 +1151,20 @@ Return t if THEME was successfully loaded, nil otherwise."
 		(custom-theme-load-confirm hash))
 	(let ((custom--inhibit-theme-enable t))
 	  (eval-buffer))
+	;; Optimization: if the theme changes the `default' face, put that
+	;; entry first.  This avoids some `frame-set-background-mode' rigmarole
+	;; by assigning the new background immediately.
+	(let* ((settings (get theme 'theme-settings))
+	       (tail settings)
+	       found)
+	  (while (and tail (not found))
+	    (and (eq (nth 0 (car tail)) 'theme-face)
+		 (eq (nth 1 (car tail)) 'default)
+		 (setq found (car tail)))
+	    (setq tail (cdr tail)))
+	  (if found
+	      (put theme 'theme-settings (cons found (delq found settings)))))
+	;; Finally, enable the theme.
 	(unless no-enable
 	  (enable-theme theme))
 	t))))

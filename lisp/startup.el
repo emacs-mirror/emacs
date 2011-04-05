@@ -906,7 +906,8 @@ opening the first frame (e.g. open a connection to an X server).")
       ;; spec, but mark it as changed outside of Customize.
       (let ((color (x-get-resource "cursorColor" "CursorColor")))
 	(when color
-	  (face-spec-set 'cursor `((t (:background ,color))))
+	  (put 'cursor 'theme-face
+	       `((changed ((t :background ,color)))))
 	  (put 'cursor 'face-modified t)))))
     (frame-initialize))
 
