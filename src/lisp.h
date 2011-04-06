@@ -2628,7 +2628,6 @@ extern Lisp_Object current_message (void);
 extern void set_message (const char *s, Lisp_Object, EMACS_INT, int);
 extern void clear_message (int, int);
 extern void message (const char *, ...) ATTRIBUTE_FORMAT_PRINTF (1, 2);
-extern void message_nolog (const char *, ...) ATTRIBUTE_FORMAT_PRINTF (1, 2);
 extern void message1 (const char *);
 extern void message1_nolog (const char *);
 extern void message2 (const char *, EMACS_INT, int);
