@@ -2,6 +2,32 @@
 
 	* emacs-lisp/tabulated-list.el: New file.
 
+	* emacs-lisp/package.el: Use Tabulated List mode.
+	(package-menu-mode-map): Inherit from tabulated-list-mode-map.
+	(package-menu-mode): Derive from tabulated-list-mode.  Set up the
+	table format using Tabulated List mode variables.
+	(package--push): New macro, replacing package-list-maybe-add.
+	(package-menu--generate): Use package--push.  Renamed from
+	package--generate-package-list.
+	(package-menu-refresh, list-packages): Use it.
+	(package-menu--print-info): Renamed from package-print-package.
+	Return insertion data instead of inserting it directly.
+	(package-menu-describe-package, package-menu-execute): Use
+	tabulated-list-get-id.
+	(package-menu-mark-delete, package-menu-mark-install)
+	(package-menu-mark-unmark, package-menu-backup-unmark)
+	(package-menu-mark-obsolete-for-deletion): Use
+	tabulated-list-put-tag.
+	(package--list-packages, package-menu-revert)
+	(package-menu-get-package, package-menu-get-version)
+	(package-menu-sort-by-column): Functions deleted.
+	(package-menu-package-list, package-menu-sort-key): Vars deleted.
+	(package-menu--status-predicate, package-menu--version-predicate)
+	(package-menu--name-predicate)
+	(package-menu--description-predicate): Handle arguments in the
+	Tabulated List format.
+	(package-list-packages-no-fetch): Call list-packages.
+
 2011-04-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* files.el (after-find-file-from-revert-buffer): Remove variable.
