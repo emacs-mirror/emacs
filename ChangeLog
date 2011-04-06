@@ -1,3 +1,11 @@
+2011-04-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lib/makefile.w32-in (GNULIBOBJS): Add careadlinkat.$(O).
+	($(BLD)/careadlinkat.$(O)): New target.
+	($(BLD)/dtoastr.$(O), $(BLD)/getopt.$(O), $(BLD)/getopt1.$(O))
+	($(BLD)/strftime.$(O), $(BLD)/time_r.$(O), $(BLD)/md5.$(O)):
+	Update dependencies.
+
 2011-04-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix more problems found by GCC 4.6.0's static checks.
