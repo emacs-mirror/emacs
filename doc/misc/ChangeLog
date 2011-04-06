@@ -48,6 +48,10 @@
 	* auth.texi (Help for developers): Show example of using
 	`auth-source-search' with prompts and :save-function.
 
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
 2011-03-07  Antoine Levitt  <antoine.levitt@gmail.com>
 
 	* message.texi (Message Buffers): Update default value of

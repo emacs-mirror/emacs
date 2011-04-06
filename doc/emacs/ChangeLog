@@ -41,6 +41,10 @@
 	* display.texi (Optional Mode Line): Don't mention exactly where
 	display-time appears.  (Bug#8193)
 
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
 2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* search.texi (Isearch Yank): C-y now bound to isearch-yank-kill.

@@ -8,6 +8,10 @@
 	* url-cookie.el (url-cookie-handle-set-cookie):
 	Use `dolist' rather than `mapcar'.
 
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
 2011-02-12  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* url-parse.el (url-bit-for-url, url-user-for-url)

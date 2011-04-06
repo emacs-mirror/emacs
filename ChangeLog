@@ -111,6 +111,10 @@
 
 	* configure.in: Require 3.0 for --with-gtk3.  Add HAVE_GTK3.
 
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
 2011-03-06  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (FREETYPE_LIBS): Actually set it to something.

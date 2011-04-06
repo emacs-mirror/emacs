@@ -359,6 +359,10 @@
 	(auth-source-netrc-saver): New function, intended to be wrapped for
 	:save-function.
 
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
 2011-03-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-table-horizontal-line): Change the defaults for the table

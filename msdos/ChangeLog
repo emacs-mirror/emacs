@@ -5,6 +5,10 @@
 	module is added.
 	(MKDIR_P): Fix replacement command.
 
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
 2011-02-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* sedlibmk.inp (BITSIZEOF_PTRDIFF_T, BITSIZEOF_SIG_ATOMIC_T)
