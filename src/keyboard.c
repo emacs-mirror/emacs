@@ -4234,7 +4234,8 @@ static EMACS_TIME
 timer_check_2 (void)
 {
   EMACS_TIME nexttime;
-  EMACS_TIME now, idleness_now;
+  EMACS_TIME now;
+  EMACS_TIME idleness_now IF_LINT (= {0});
   Lisp_Object timers, idle_timers, chosen_timer;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
@@ -4271,10 +4272,12 @@ timer_check_2 (void)
       Lisp_Object *vector;
       Lisp_Object timer = Qnil, idle_timer = Qnil;
       EMACS_TIME timer_time, idle_timer_time;
-      EMACS_TIME difference, timer_difference, idle_timer_difference;
+      EMACS_TIME difference;
+      EMACS_TIME timer_difference IF_LINT (= {0});
+      EMACS_TIME idle_timer_difference IF_LINT (= {0});
 
       /* Skip past invalid timers and timers already handled.  */
-      if (!NILP (timers))
+      if (CONSP (timers))
 	{
 	  timer = XCAR (timers);
 	  if (!VECTORP (timer) || XVECTOR (timer)->size != 8)
@@ -4292,7 +4295,7 @@ timer_check_2 (void)
 	      continue;
 	    }
 	}
-      if (!NILP (idle_timers))
+      if (CONSP (idle_timers))
 	{
 	  timer = XCAR (idle_timers);
 	  if (!VECTORP (timer) || XVECTOR (timer)->size != 8)
@@ -4315,7 +4318,7 @@ timer_check_2 (void)
 	 based on the next ordinary timer.
 	 TIMER_DIFFERENCE is the distance in time from NOW to when
 	 this timer becomes ripe (negative if it's already ripe).  */
-      if (!NILP (timers))
+      if (CONSP (timers))
 	{
 	  timer = XCAR (timers);
 	  vector = XVECTOR (timer)->contents;
@@ -4327,7 +4330,7 @@ timer_check_2 (void)
 
       /* Set IDLE_TIMER, IDLE_TIMER_TIME and IDLE_TIMER_DIFFERENCE
 	 based on the next idle timer.  */
-      if (!NILP (idle_timers))
+      if (CONSP (idle_timers))
 	{
 	  idle_timer = XCAR (idle_timers);
 	  vector = XVECTOR (idle_timer)->contents;
@@ -4341,7 +4344,7 @@ timer_check_2 (void)
 	 and set CHOSEN_TIMER, VECTOR and DIFFERENCE accordingly.
 	 Also step down the list where we found that timer.  */
 
-      if (! NILP (timers) && ! NILP (idle_timers))
+      if (CONSP (timers) && CONSP (idle_timers))
 	{
 	  EMACS_TIME temp;
 	  EMACS_SUB_TIME (temp, timer_difference, idle_timer_difference);
@@ -4358,7 +4361,7 @@ timer_check_2 (void)
 	      difference = idle_timer_difference;
 	    }
 	}
-      else if (! NILP (timers))
+      else if (CONSP (timers))
 	{
 	  chosen_timer = timer;
 	  timers = XCDR (timers);
@@ -7358,8 +7361,6 @@ menu_bar_items (Lisp_Object old)
 
   Lisp_Object def, tail;
 
-  Lisp_Object result;
-
   int mapno;
   Lisp_Object oquit;
 
@@ -7419,8 +7420,6 @@ menu_bar_items (Lisp_Object old)
   }
 
   /* Look up in each map the dummy prefix key `menu-bar'.  */
-
-  result = Qnil;
 
   for (mapno = nmaps - 1; mapno >= 0; mapno--)
     if (!NILP (maps[mapno]))
@@ -8495,7 +8494,6 @@ read_char_minibuf_menu_prompt (int commandflag, int nmaps, Lisp_Object *maps)
       int notfirst = 0;
       int i = nlength;
       Lisp_Object obj;
-      int ch;
       Lisp_Object orig_defn_macro;
 
       /* Loop over elements of map.  */
@@ -8665,8 +8663,6 @@ read_char_minibuf_menu_prompt (int commandflag, int nmaps, Lisp_Object *maps)
 	return obj;
       else if (XINT (obj) == -2)
         return obj;
-      else
-	ch = XINT (obj);
 
       if (! EQ (obj, menu_prompt_more_char)
 	  && (!INTEGERP (menu_prompt_more_char)

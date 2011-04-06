@@ -1757,7 +1757,7 @@ See also the function `condition-case'.  */)
     data = Fcons (error_symbol, data);
 
   string = Ferror_message_string (data);
-  fatal ("%s", SDATA (string), 0);
+  fatal ("%s", SDATA (string));
 }
 
 /* Internal version of Fsignal that never returns.
@@ -3206,26 +3206,26 @@ funcall_lambda (Lisp_Object fun, size_t nargs,
 	optional = 1;
       else
 	{
-	  Lisp_Object val;
+	  Lisp_Object arg;
 	  if (rest)
 	    {
-	      val = Flist (nargs - i, &arg_vector[i]);
+	      arg = Flist (nargs - i, &arg_vector[i]);
 	      i = nargs;
 	    }
 	  else if (i < nargs)
-	    val = arg_vector[i++];
+	    arg = arg_vector[i++];
 	  else if (!optional)
 	    xsignal2 (Qwrong_number_of_arguments, fun, make_number (nargs));
 	  else
-	    val = Qnil;
+	    arg = Qnil;
 
 	  /* Bind the argument.  */
 	  if (!NILP (lexenv) && SYMBOLP (next))
 	    /* Lexically bind NEXT by adding it to the lexenv alist.  */
-	    lexenv = Fcons (Fcons (next, val), lexenv);
+	    lexenv = Fcons (Fcons (next, arg), lexenv);
 	  else
 	    /* Dynamically bind NEXT.  */
-	    specbind (next, val);
+	    specbind (next, arg);
 	}
     }
 

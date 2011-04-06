@@ -1344,11 +1344,7 @@ list_processes_1 (Lisp_Object query_only)
 	symbol = XCAR (p->status);
 
       if (EQ (symbol, Qsignal))
-	{
-	  Lisp_Object tem;
-	  tem = Fcar (Fcdr (p->status));
-	  Fprinc (symbol, Qnil);
-	}
+	Fprinc (symbol, Qnil);
       else if (NETCONN1_P (p) || SERIALCONN1_P (p))
 	{
 	  if (EQ (symbol, Qexit))
@@ -2150,10 +2146,7 @@ void
 create_pty (Lisp_Object process)
 {
   int inchannel, outchannel;
-
-  /* Use volatile to protect variables from being clobbered by longjmp.  */
-  volatile int forkin, forkout;
-  volatile int pty_flag = 0;
+  int pty_flag = 0;
 
   inchannel = outchannel = -1;
 
@@ -2169,11 +2162,11 @@ create_pty (Lisp_Object process)
 #ifdef O_NOCTTY
       /* Don't let this terminal become our controlling terminal
 	 (in case we don't have one).  */
-      forkout = forkin = emacs_open (pty_name, O_RDWR | O_NOCTTY, 0);
+      int forkout = emacs_open (pty_name, O_RDWR | O_NOCTTY, 0);
 #else
-      forkout = forkin = emacs_open (pty_name, O_RDWR, 0);
+      int forkout = emacs_open (pty_name, O_RDWR, 0);
 #endif
-      if (forkin < 0)
+      if (forkout < 0)
 	report_file_error ("Opening pty", Qnil);
 #if defined (DONT_REOPEN_PTY)
       /* In the case that vfork is defined as fork, the parent process
@@ -2181,8 +2174,6 @@ create_pty (Lisp_Object process)
 	 tty options setup.  So we setup tty before forking.  */
       child_setup_tty (forkout);
 #endif /* DONT_REOPEN_PTY */
-#else
-      forkin = forkout = -1;
 #endif /* not USG, or USG_SUBTTY_WORKS */
       pty_flag = 1;
     }
@@ -3958,7 +3949,7 @@ FLAGS is the current flags of the interface.  */)
       const struct ifflag_def *fp;
       int fnum;
 
-      any++;
+      any = 1;
       for (fp = ifflag_table; flags != 0 && fp->flag_sym; fp++)
 	{
 	  if (flags & fp->flag_bit)
@@ -3986,7 +3977,7 @@ FLAGS is the current flags of the interface.  */)
       register struct Lisp_Vector *p = XVECTOR (hwaddr);
       int n;
 
-      any++;
+      any = 1;
       for (n = 0; n < 6; n++)
 	p->contents[n] = make_number (((unsigned char *)&rq.ifr_hwaddr.sa_data[0])[n]);
       elt = Fcons (make_number (rq.ifr_hwaddr.sa_family), hwaddr);
@@ -3998,7 +3989,7 @@ FLAGS is the current flags of the interface.  */)
 #if defined(SIOCGIFNETMASK) && (defined(HAVE_STRUCT_IFREQ_IFR_NETMASK) || defined(HAVE_STRUCT_IFREQ_IFR_ADDR))
   if (ioctl (s, SIOCGIFNETMASK, &rq) == 0)
     {
-      any++;
+      any = 1;
 #ifdef HAVE_STRUCT_IFREQ_IFR_NETMASK
       elt = conv_sockaddr_to_lisp (&rq.ifr_netmask, sizeof (rq.ifr_netmask));
 #else
@@ -4012,7 +4003,7 @@ FLAGS is the current flags of the interface.  */)
 #if defined(SIOCGIFBRDADDR) && defined(HAVE_STRUCT_IFREQ_IFR_BROADADDR)
   if (ioctl (s, SIOCGIFBRDADDR, &rq) == 0)
     {
-      any++;
+      any = 1;
       elt = conv_sockaddr_to_lisp (&rq.ifr_broadaddr, sizeof (rq.ifr_broadaddr));
     }
 #endif
@@ -4022,7 +4013,7 @@ FLAGS is the current flags of the interface.  */)
 #if defined(SIOCGIFADDR) && defined(HAVE_STRUCT_IFREQ_IFR_ADDR)
   if (ioctl (s, SIOCGIFADDR, &rq) == 0)
     {
-      any++;
+      any = 1;
       elt = conv_sockaddr_to_lisp (&rq.ifr_addr, sizeof (rq.ifr_addr));
     }
 #endif
@@ -5171,15 +5162,22 @@ read_process_output (Lisp_Object proc, register int channel)
     }
   else
 #endif
-  if (proc_buffered_char[channel] < 0)
     {
+      int buffered = 0 <= proc_buffered_char[channel];
+      if (buffered)
+	{
+	  chars[carryover] = proc_buffered_char[channel];
+	  proc_buffered_char[channel] = -1;
+	}
 #ifdef HAVE_GNUTLS
       if (XPROCESS (proc)->gnutls_p)
 	nbytes = emacs_gnutls_read (channel, XPROCESS (proc),
-                                    chars + carryover, readmax);
+				    chars + carryover + buffered,
+				    readmax - buffered);
       else
 #endif
-	nbytes = emacs_read (channel, chars + carryover, readmax);
+	nbytes = emacs_read (channel, chars + carryover + buffered,
+			     readmax - buffered);
 #ifdef ADAPTIVE_READ_BUFFERING
       if (nbytes > 0 && p->adaptive_read_buffering)
 	{
@@ -5193,7 +5191,7 @@ read_process_output (Lisp_Object proc, register int channel)
 		  delay += READ_OUTPUT_DELAY_INCREMENT * 2;
 		}
 	    }
-	  else if (delay > 0 && (nbytes == readmax))
+	  else if (delay > 0 && nbytes == readmax - buffered)
 	    {
 	      delay -= READ_OUTPUT_DELAY_INCREMENT;
 	      if (delay == 0)
@@ -5207,22 +5205,8 @@ read_process_output (Lisp_Object proc, register int channel)
 	    }
 	}
 #endif
-    }
-  else
-    {
-      chars[carryover] = proc_buffered_char[channel];
-      proc_buffered_char[channel] = -1;
-#ifdef HAVE_GNUTLS
-      if (XPROCESS (proc)->gnutls_p)
-	nbytes = emacs_gnutls_read (channel, XPROCESS (proc),
-                                    chars + carryover + 1, readmax - 1);
-      else
-#endif
-	nbytes = emacs_read (channel, chars + carryover + 1,  readmax - 1);
-      if (nbytes < 0)
-	nbytes = 1;
-      else
-	nbytes = nbytes + 1;
+      nbytes += buffered;
+      nbytes += buffered && nbytes <= 0;
     }
 
   p->decoding_carryover = 0;
@@ -5249,15 +5233,17 @@ read_process_output (Lisp_Object proc, register int channel)
   outstream = p->filter;
   if (!NILP (outstream))
     {
-      Lisp_Object obuffer, okeymap;
       Lisp_Object text;
       int outer_running_asynch_code = running_asynch_code;
       int waiting = waiting_for_user_input_p;
 
       /* No need to gcpro these, because all we do with them later
 	 is test them for EQness, and none of them should be a string.  */
+#if 0
+      Lisp_Object obuffer, okeymap;
       XSETBUFFER (obuffer, current_buffer);
       okeymap = BVAR (current_buffer, keymap);
+#endif
 
       /* We inhibit quit here instead of just catching it so that
 	 hitting ^G when a filter happens to be running won't screw
@@ -6540,7 +6526,7 @@ exec_sentinel_error_handler (Lisp_Object error_val)
 static void
 exec_sentinel (Lisp_Object proc, Lisp_Object reason)
 {
-  Lisp_Object sentinel, obuffer, odeactivate, okeymap;
+  Lisp_Object sentinel, odeactivate;
   register struct Lisp_Process *p = XPROCESS (proc);
   int count = SPECPDL_INDEX ();
   int outer_running_asynch_code = running_asynch_code;
@@ -6552,8 +6538,11 @@ exec_sentinel (Lisp_Object proc, Lisp_Object reason)
   /* No need to gcpro these, because all we do with them later
      is test them for EQness, and none of them should be a string.  */
   odeactivate = Vdeactivate_mark;
+#if 0
+  Lisp_Object obuffer, okeymap;
   XSETBUFFER (obuffer, current_buffer);
   okeymap = BVAR (current_buffer, keymap);
+#endif
 
   /* There's no good reason to let sentinels change the current
      buffer, and many callers of accept-process-output, sit-for, and

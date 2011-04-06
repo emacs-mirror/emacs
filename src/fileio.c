@@ -2579,9 +2579,8 @@ points to a nonexistent file.  */)
 {
   Lisp_Object handler;
   char *buf;
-  int bufsize;
-  int valsize;
   Lisp_Object val;
+  char readlink_buf[READLINK_BUFSIZE];
 
   CHECK_STRING (filename);
   filename = Fexpand_file_name (filename, Qnil);
@@ -2594,36 +2593,15 @@ points to a nonexistent file.  */)
 
   filename = ENCODE_FILE (filename);
 
-  bufsize = 50;
-  buf = NULL;
-  do
-    {
-      bufsize *= 2;
-      buf = (char *) xrealloc (buf, bufsize);
-      memset (buf, 0, bufsize);
+  buf = emacs_readlink (SSDATA (filename), readlink_buf);
+  if (! buf)
+    return Qnil;
 
-      errno = 0;
-      valsize = readlink (SSDATA (filename), buf, bufsize);
-      if (valsize == -1)
-	{
-#ifdef ERANGE
-	  /* HP-UX reports ERANGE if buffer is too small.  */
-	  if (errno == ERANGE)
-	    valsize = bufsize;
-	  else
-#endif
-	    {
-	      xfree (buf);
-	      return Qnil;
-	    }
-	}
-    }
-  while (valsize >= bufsize);
-
-  val = make_string (buf, valsize);
+  val = build_string (buf);
   if (buf[0] == '/' && strchr (buf, ':'))
     val = concat2 (build_string ("/:"), val);
-  xfree (buf);
+  if (buf != readlink_buf)
+    xfree (buf);
   val = DECODE_FILE (val);
   return val;
 }
@@ -3225,7 +3203,6 @@ variable `last-coding-system-used' to the coding system actually used.  */)
   if (stat (SSDATA (filename), &st) < 0)
 #endif /* WINDOWSNT */
     {
-      if (fd >= 0) emacs_close (fd);
     badopen:
       if (NILP (visit))
 	report_file_error ("Opening input file", Fcons (orig_filename, Qnil));
@@ -3261,9 +3238,16 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 
   record_unwind_protect (close_file_unwind, make_number (fd));
 
-  /* Can happen on any platform that uses long as type of off_t, but allows
-     file sizes to exceed 2Gb, so give a suitable message.  */
-  if (! not_regular && st.st_size < 0)
+
+  /* Arithmetic overflow can occur if an Emacs integer cannot represent the
+     file size, or if the calculations below overflow.  The calculations below
+     double the file size twice, so check that it can be multiplied by 4
+     safely.
+
+     Also check whether the size is negative, which can happen on a platform
+     that allows file sizes greater than the maximum off_t value.  */
+  if (! not_regular
+      && ! (0 <= st.st_size && st.st_size <= MOST_POSITIVE_FIXNUM / 4))
     error ("Maximum buffer size exceeded");
 
   /* Prevent redisplay optimizations.  */
@@ -3289,18 +3273,6 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       if (! not_regular)
 	{
 	  XSETINT (end, st.st_size);
-
-	  /* Arithmetic overflow can occur if an Emacs integer cannot
-	     represent the file size, or if the calculations below
-	     overflow.  The calculations below double the file size
-	     twice, so check that it can be multiplied by 4 safely.  */
-	  if (XINT (end) != st.st_size
-	      /* Actually, it should test either INT_MAX or LONG_MAX
-		 depending on which one is used for EMACS_INT.  But in
-		 any case, in practice, this test is redundant with the
-		 one above.
-		 || st.st_size > INT_MAX / 4 */)
-	    error ("Maximum buffer size exceeded");
 
 	  /* The file size returned from stat may be zero, but data
 	     may be readable nonetheless, for example when this is a
@@ -3635,6 +3607,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       EMACS_INT bufpos;
       unsigned char *decoded;
       EMACS_INT temp;
+      EMACS_INT this = 0;
       int this_count = SPECPDL_INDEX ();
       int multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
       Lisp_Object conversion_buffer;
@@ -3661,7 +3634,6 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	  /* try is reserved in some compilers (Microsoft C) */
 	  EMACS_INT trytry = min (total - how_much,
 				  READ_BUF_SIZE - unprocessed);
-	  EMACS_INT this;
 
 	  /* Allow quitting out of the actual I/O.  */
 	  immediate_quit = 1;
@@ -3670,11 +3642,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	  immediate_quit = 0;
 
 	  if (this <= 0)
-	    {
-	      if (this < 0)
-		how_much = this;
-	      break;
-	    }
+	    break;
 
 	  how_much += this;
 
@@ -3697,7 +3665,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       /* At this point, HOW_MUCH should equal TOTAL, or should be <= 0
 	 if we couldn't read the file.  */
 
-      if (how_much < 0)
+      if (this < 0)
 	error ("IO error reading %s: %s",
 	       SDATA (orig_filename), emacs_strerror (errno));
 

@@ -28,6 +28,7 @@ AC_DEFUN([gl_EARLY],
   AC_REQUIRE([AC_PROG_RANLIB])
   # Code from module arg-nonnull:
   # Code from module c++defs:
+  # Code from module careadlinkat:
   # Code from module crypto/md5:
   # Code from module dosname:
   # Code from module dtoastr:
@@ -46,6 +47,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module multiarch:
   # Code from module readlink:
   # Code from module socklen:
+  # Code from module ssize_t:
   # Code from module stat:
   # Code from module stdbool:
   # Code from module stddef:
@@ -79,6 +81,8 @@ AC_DEFUN([gl_INIT],
   gl_source_base='lib'
   # Code from module arg-nonnull:
   # Code from module c++defs:
+  # Code from module careadlinkat:
+  AC_CHECK_FUNCS_ONCE([readlinkat])
   # Code from module crypto/md5:
   gl_MD5
   # Code from module dosname:
@@ -115,6 +119,8 @@ AC_DEFUN([gl_INIT],
   gl_UNISTD_MODULE_INDICATOR([readlink])
   # Code from module socklen:
   gl_TYPE_SOCKLEN_T
+  # Code from module ssize_t:
+  gt_TYPE_SSIZE_T
   # Code from module stat:
   gl_FUNC_STAT
   gl_SYS_STAT_MODULE_INDICATOR([stat])
@@ -287,6 +293,9 @@ AC_DEFUN([gl_FILE_LIST], [
   build-aux/arg-nonnull.h
   build-aux/c++defs.h
   build-aux/warn-on-use.h
+  lib/allocator.h
+  lib/careadlinkat.c
+  lib/careadlinkat.h
   lib/dosname.h
   lib/dtoastr.c
   lib/filemode.c
@@ -335,6 +344,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/multiarch.m4
   m4/readlink.m4
   m4/socklen.m4
+  m4/ssize_t.m4
   m4/st_dm_mode.m4
   m4/stat.m4
   m4/stdbool.m4

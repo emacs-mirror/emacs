@@ -1674,7 +1674,6 @@ boyer_moore (EMACS_INT n, unsigned char *base_pat,
   int translate_prev_byte1 = 0;
   int translate_prev_byte2 = 0;
   int translate_prev_byte3 = 0;
-  int translate_prev_byte4 = 0;
 
   /* The general approach is that we are going to maintain that we know
      the first (closest to the present position, in whatever direction
@@ -1730,11 +1729,7 @@ boyer_moore (EMACS_INT n, unsigned char *base_pat,
 	{
 	  translate_prev_byte2 = str[cblen - 3];
 	  if (cblen > 3)
-	    {
-	      translate_prev_byte3 = str[cblen - 4];
-	      if (cblen > 4)
-		translate_prev_byte4 = str[cblen - 5];
-	    }
+	    translate_prev_byte3 = str[cblen - 4];
 	}
     }
 
@@ -2091,7 +2086,7 @@ set_search_regs (EMACS_INT beg_byte, EMACS_INT nbytes)
 static Lisp_Object
 wordify (Lisp_Object string, int lax)
 {
-  register unsigned char *p, *o;
+  register unsigned char *o;
   register EMACS_INT i, i_byte, len, punct_count = 0, word_count = 0;
   Lisp_Object val;
   int prev_c = 0;
@@ -2099,7 +2094,6 @@ wordify (Lisp_Object string, int lax)
   int whitespace_at_end;
 
   CHECK_STRING (string);
-  p = SDATA (string);
   len = SCHARS (string);
 
   for (i = 0, i_byte = 0; i < len; )
@@ -2111,7 +2105,7 @@ wordify (Lisp_Object string, int lax)
       if (SYNTAX (c) != Sword)
 	{
 	  punct_count++;
-	  if (i > 0 && SYNTAX (prev_c) == Sword)
+	  if (SYNTAX (prev_c) == Sword)
 	    word_count++;
 	}
 
@@ -2124,10 +2118,11 @@ wordify (Lisp_Object string, int lax)
       whitespace_at_end = 0;
     }
   else
-    whitespace_at_end = 1;
-
-  if (!word_count)
-    return empty_unibyte_string;
+    {
+      whitespace_at_end = 1;
+      if (!word_count)
+	return empty_unibyte_string;
+    }
 
   adjust = - punct_count + 5 * (word_count - 1)
     + ((lax && !whitespace_at_end) ? 2 : 4);
@@ -2155,7 +2150,7 @@ wordify (Lisp_Object string, int lax)
 	  memcpy (o, SDATA (string) + i_byte_orig, i_byte - i_byte_orig);
 	  o += i_byte - i_byte_orig;
 	}
-      else if (i > 0 && SYNTAX (prev_c) == Sword && --word_count)
+      else if (SYNTAX (prev_c) == Sword && --word_count)
 	{
 	  *o++ = '\\';
 	  *o++ = 'W';

@@ -354,7 +354,7 @@ get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
 
       for (i = 1; i < glyph_len; i += 2)
 	{
-	  int rule, gref, nref, xoff, yoff;
+	  int rule, gref, nref;
 	  int this_width;
 	  float this_left;
 
@@ -376,7 +376,7 @@ get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
 		|       |
 		6---7---8 -- descent
 	  */
-	  COMPOSITION_DECODE_RULE (rule, gref, nref, xoff, yoff);
+	  COMPOSITION_DECODE_REFS (rule, gref, nref);
 	  this_left = (leftmost
 		       + (gref % 3) * (rightmost - leftmost) / 2.0
 		       - (nref % 3) * this_width / 2.0);
@@ -661,22 +661,22 @@ gstring_lookup_cache (Lisp_Object header)
 }
 
 Lisp_Object
-composition_gstring_put_cache (Lisp_Object gstring, int len)
+composition_gstring_put_cache (Lisp_Object gstring, EMACS_INT len)
 {
   struct Lisp_Hash_Table *h = XHASH_TABLE (gstring_hash_table);
   unsigned hash;
   Lisp_Object header, copy;
-  int i;
+  EMACS_INT i;
 
   header = LGSTRING_HEADER (gstring);
   hash = h->hashfn (h, header);
   if (len < 0)
     {
-      len = LGSTRING_GLYPH_LEN (gstring);
-      for (i = 0; i < len; i++)
-	if (NILP (LGSTRING_GLYPH (gstring, i)))
+      EMACS_UINT j, glyph_len = LGSTRING_GLYPH_LEN (gstring);
+      for (j = 0; j < glyph_len; j++)
+	if (NILP (LGSTRING_GLYPH (gstring, j)))
 	  break;
-      len = i;
+      len = j;
     }
 
   copy = Fmake_vector (make_number (len + 2), Qnil);

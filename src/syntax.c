@@ -175,7 +175,8 @@ update_syntax_table (EMACS_INT charpos, int count, int init,
 		     Lisp_Object object)
 {
   Lisp_Object tmp_table;
-  int cnt = 0, invalidate = 1;
+  unsigned cnt = 0;
+  int invalidate = 1;
   INTERVAL i;
 
   if (init)
@@ -1219,7 +1220,7 @@ scan_words (register EMACS_INT from, register EMACS_INT count)
   register EMACS_INT from_byte = CHAR_TO_BYTE (from);
   register enum syntaxcode code;
   int ch0, ch1;
-  Lisp_Object func, script, pos;
+  Lisp_Object func, pos;
 
   immediate_quit = 1;
   QUIT;
@@ -1259,7 +1260,6 @@ scan_words (register EMACS_INT from, register EMACS_INT count)
 	}
       else
 	{
-	  script = CHAR_TABLE_REF (Vchar_script_table, ch0);
 	  while (1)
 	    {
 	      if (from == end) break;
@@ -1310,7 +1310,6 @@ scan_words (register EMACS_INT from, register EMACS_INT count)
 	}
       else
 	{
-	  script = CHAR_TABLE_REF (Vchar_script_table, ch1);
 	  while (1)
 	    {
 	      if (from == beg)

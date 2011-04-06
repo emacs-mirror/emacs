@@ -1815,7 +1815,6 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 2, 0,
   int c;
   struct frame *f;
   struct face *face;
-  int cs_id;
 
   if (NILP (position))
     {
@@ -1824,11 +1823,10 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 2, 0,
       f = XFRAME (selected_frame);
       face_id = lookup_basic_face (f, DEFAULT_FACE_ID);
       pos = -1;
-      cs_id = -1;
     }
   else
     {
-      Lisp_Object window, charset;
+      Lisp_Object window;
       struct window *w;
 
       CHECK_NUMBER_COERCE_MARKER (position);
@@ -1850,11 +1848,6 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 2, 0,
       f = XFRAME (w->frame);
       face_id = face_at_buffer_position (w, pos, -1, -1, &dummy,
 					 pos + 100, 0, -1);
-      charset = Fget_char_property (position, Qcharset, Qnil);
-      if (CHARSETP (charset))
-	cs_id = XINT (CHARSET_SYMBOL_ID (charset));
-      else
-	cs_id = -1;
     }
   if (! CHAR_VALID_P (c, 0))
     return Qnil;
@@ -1900,7 +1893,6 @@ information about the derived fonts from the default fontset.  The
 format is the same as above.  */)
   (Lisp_Object fontset, Lisp_Object frame)
 {
-  FRAME_PTR f;
   Lisp_Object *realized[2], fontsets[2], tables[2];
   Lisp_Object val, elt;
   int c, i, j, k;
@@ -1908,7 +1900,6 @@ format is the same as above.  */)
   (*check_window_system_func) ();
 
   fontset = check_fontset_name (fontset, &frame);
-  f = XFRAME (frame);
 
   /* Recode fontsets realized on FRAME from the base fontset FONTSET
      in the table `realized'.  */

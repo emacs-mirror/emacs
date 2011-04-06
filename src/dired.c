@@ -639,8 +639,6 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
 
       {
 	Lisp_Object regexps;
-	Lisp_Object zero;
-	XSETFASTINT (zero, 0);
 
 	/* Ignore this element if it fails to match all the regexps.  */
 	if (completion_ignore_case)

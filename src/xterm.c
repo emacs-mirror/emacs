@@ -4165,7 +4165,7 @@ xt_action_hook (Widget widget, XtPointer client_data, String action_name,
    x_send_scroll_bar_event and x_scroll_bar_to_input_event.  */
 
 static struct window **scroll_bar_windows;
-static int scroll_bar_windows_size;
+static size_t scroll_bar_windows_size;
 
 
 /* Send a client message with message type Xatom_Scrollbar for a
@@ -4180,7 +4180,7 @@ x_send_scroll_bar_event (Lisp_Object window, int part, int portion, int whole)
   XClientMessageEvent *ev = (XClientMessageEvent *) &event;
   struct window *w = XWINDOW (window);
   struct frame *f = XFRAME (w->frame);
-  int i;
+  size_t i;
 
   BLOCK_INPUT;
 
@@ -4201,10 +4201,12 @@ x_send_scroll_bar_event (Lisp_Object window, int part, int portion, int whole)
 
   if (i == scroll_bar_windows_size)
     {
-      int new_size = max (10, 2 * scroll_bar_windows_size);
+      size_t new_size = max (10, 2 * scroll_bar_windows_size);
       size_t nbytes = new_size * sizeof *scroll_bar_windows;
       size_t old_nbytes = scroll_bar_windows_size * sizeof *scroll_bar_windows;
 
+      if ((size_t) -1 / sizeof *scroll_bar_windows < new_size)
+	memory_full ();
       scroll_bar_windows = (struct window **) xrealloc (scroll_bar_windows,
 							nbytes);
       memset (&scroll_bar_windows[i], 0, nbytes - old_nbytes);
@@ -4240,14 +4242,12 @@ x_scroll_bar_to_input_event (XEvent *event, struct input_event *ievent)
 {
   XClientMessageEvent *ev = (XClientMessageEvent *) event;
   Lisp_Object window;
-  struct frame *f;
   struct window *w;
 
   w = scroll_bar_windows[ev->data.l[0]];
   scroll_bar_windows[ev->data.l[0]] = NULL;
 
   XSETWINDOW (window, w);
-  f = XFRAME (w->frame);
 
   ievent->kind = SCROLL_BAR_CLICK_EVENT;
   ievent->frame_or_window = window;
@@ -4255,7 +4255,8 @@ x_scroll_bar_to_input_event (XEvent *event, struct input_event *ievent)
 #ifdef USE_GTK
   ievent->timestamp = CurrentTime;
 #else
-  ievent->timestamp = XtLastTimestampProcessed (FRAME_X_DISPLAY (f));
+  ievent->timestamp =
+    XtLastTimestampProcessed (FRAME_X_DISPLAY (XFRAME (w->frame)));
 #endif
   ievent->part = ev->data.l[1];
   ievent->code = ev->data.l[2];

@@ -200,7 +200,7 @@ casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
   register int inword = flag == CASE_DOWN;
   register int multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
   EMACS_INT start, end;
-  EMACS_INT start_byte, end_byte;
+  EMACS_INT start_byte;
 
   /* Position of first and last changes.  */
   EMACS_INT first = -1, last IF_LINT (= 0);
@@ -222,7 +222,6 @@ casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
   modify_region (current_buffer, start, end, 0);
   record_change (start, end - start);
   start_byte = CHAR_TO_BYTE (start);
-  end_byte = CHAR_TO_BYTE (end);
 
   SETUP_BUFFER_SYNTAX_TABLE();	/* For syntax_prefix_flag_p.  */
 

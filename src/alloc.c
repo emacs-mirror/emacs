@@ -5221,7 +5221,7 @@ int last_marked_index;
    links of a list, in mark_object.  In debugging,
    the call to abort will hit a breakpoint.
    Normally this is zero and the check never goes off.  */
-static int mark_object_loop_halt;
+static size_t mark_object_loop_halt;
 
 static void
 mark_vectorlike (struct Lisp_Vector *ptr)
@@ -5278,7 +5278,7 @@ mark_object (Lisp_Object arg)
   void *po;
   struct mem_node *m;
 #endif
-  int cdr_count = 0;
+  size_t cdr_count = 0;
 
  loop:
 

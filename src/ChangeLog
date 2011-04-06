@@ -1,3 +1,167 @@
+2011-04-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix more problems found by GCC 4.6.0's static checks.
+
+	* xmenu.c (Fx_popup_dialog): Don't assume string is free of formats.
+
+	* menu.c (Fx_popup_menu): Don't assume error_name lacks printf formats.
+
+	* lisp.h (message, message_nolog, fatal): Mark as printf-like.
+
+	* xdisp.c (vmessage): Mark as a printf-like function.
+
+	* term.c (vfatal, maybe_fatal): Mark as printf-like functions.
+
+	* sound.c (sound_warning): Don't crash if arg contains a printf format.
+
+	* image.c (tiff_error_handler, tiff_warning_handler): Mark as
+	printf-like functions.
+	(tiff_load): Add casts to remove these marks before passing them
+	to system-supplied API.
+
+	* eval.c (Fsignal): Remove excess argument to 'fatal'.
+
+	* coding.c (EMIT_ONE_BYTE, EMIT_TWO_BYTES): Use unsigned, not int.
+	This avoids several warnings with gcc -Wstrict-overflow.
+	(DECODE_COMPOSITION_RULE): If the rule is invalid, goto invalid_code
+	directly, rather than having caller test rule sign.  This avoids
+	some unnecessary tests.
+	* composite.h (COMPOSITION_ENCODE_RULE_VALID): New macro.
+	(COMPOSITION_ENCODE_RULE): Arguments now must be valid.  This
+	affects only one use, in DECODE_COMPOSITION_RULE, which is changed.
+
+	* xfont.c (xfont_text_extents): Remove var that was set but not used.
+	(xfont_open): Avoid unnecessary tests.
+
+	* composite.c (composition_gstring_put_cache): Use unsigned integer.
+
+	* composite.h, composite.c (composition_gstring_put_cache):
+	Use EMACS_INT, not int, for length.
+
+	* composite.h (COMPOSITION_DECODE_REFS): New macro,
+	breaking out part of COMPOSITION_DECODE_RULE.
+	(COMPOSITION_DECODE_RULE): Use it.
+	* composite.c (get_composition_id): Remove unused local vars,
+	by using the new macro.
+
+	* textprop.c (set_text_properties_1): Change while to do-while,
+	since the condition is always true at first.
+
+	* intervals.c (graft_intervals_into_buffer): Mark var as used.
+	(interval_deletion_adjustment): Return unsigned value.
+	All uses changed.
+
+	* process.c (list_processes_1, create_pty, read_process_output):
+	(exec_sentinel): Remove vars that were set but not used.
+	(create_pty): Remove unnecessary "volatile"s.
+	(Fnetwork_interface_info): Avoid possibility of int overflow.
+	(read_process_output): Do adaptive read buffering even if carryover.
+	(read_process_output): Simplify nbytes computation if buffered.
+
+	* bytecode.c (exec_byte_code): Rename local to avoid shadowing.
+
+	* syntax.c (scan_words): Remove var that was set but not used.
+	(update_syntax_table): Use unsigned instead of int.
+
+	* lread.c (lisp_file_lexically_bound_p): Use ints rather than endptrs.
+	(lisp_file_lexically_bound_p, read1): Use unsigned instead of int.
+	(safe_to_load_p): Make the end-of-loop test the inverse of the in-loop.
+
+	* print.c (print_error_message): Avoid int overflow.
+
+	* font.c (font_list_entities): Redo for clarity,
+	so that reader need not know FONT_DPI_INDEX + 1 == FONT_SPACING_INDEX.
+
+	* font.c (font_find_for_lface, Ffont_get_glyphs): Remove unused vars.
+	(font_score): Avoid potential overflow in diff calculation.
+
+	* fns.c (substring_both): Remove var that is set but not used.
+	(sxhash): Redo loop for clarity and to avoid wraparound warning.
+
+	* eval.c (funcall_lambda): Rename local to avoid shadowing.
+
+	* alloc.c (mark_object_loop_halt, mark_object): Use size_t, not int.
+	Otherwise, GCC 4.6.0 optimizes the loop check away since the check
+	can always succeed if overflow has undefined behavior.
+
+	* search.c (boyer_moore, wordify): Remove vars set but not used.
+	(wordify): Omit three unnecessary tests.
+
+	* indent.c (MULTIBYTE_BYTES_WIDTH): Don't compute wide_column.
+	All callers changed.  This avoids the need for an unused var.
+
+	* casefiddle.c (casify_region): Remove var that is set but not used.
+
+	* dired.c (file_name_completion): Remove var that is set but not used.
+
+	* fileio.c (Finsert_file_contents): Make EOF condition clearer.
+
+	* fileio.c (Finsert_file_contents): Avoid signed integer overflow.
+	(Finsert_file_contents): Remove unnecessary code checking fd.
+
+	* minibuf.c (read_minibuf_noninteractive): Use size_t for sizes.
+	Check for integer overflow on size calculations.
+
+	* buffer.c (Fprevious_overlay_change): Remove var that is set
+	but not used.
+
+	* keyboard.c (menu_bar_items, read_char_minibuf_menu_prompt):
+	Remove vars that are set but not used.
+	(timer_check_2): Don't assume timer-list and idle-timer-list are lists.
+	(timer_check_2): Mark vars as initialized.
+
+	* gtkutil.c (xg_get_file_with_chooser): Mark var as initialized.
+
+	* image.c (lookup_image): Remove var that is set but not used.
+	(xbm_load): Use parse_p, for gcc -Werror=unused-but-set-variable.
+
+	* fontset.c (Finternal_char_font, Ffontset_info): Remove vars
+	that are set but not used.
+
+	* xfns.c (make_invisible_cursor): Don't return garbage
+	if XCreateBitmapFromData fails (Bug#8410).
+
+	* xselect.c (x_get_local_selection, x_handle_property_notify):
+	Remove vars that are set but not used.
+
+	* xfns.c (x_create_tip_frame): Remove var that is set but not used.
+	(make_invisible_cursor): Initialize a possibly-uninitialized variable.
+
+	* xterm.c (x_scroll_bar_to_input_event) [!USE_GTK]:
+	Remove var that is set but not used.
+	(scroll_bar_windows_size): Now size_t, not int.
+	(x_send_scroll_bar_event): Use size_t, not int, for sizes.
+	Check for overflow.
+
+	* xfaces.c (realize_named_face): Remove vars that are set but not used.
+	(map_tty_color) [!defined MSDOS]: Likewise.
+
+	* term.c (tty_write_glyphs): Use size_t; this avoids overflow warning.
+
+	* coding.c: Remove vars that are set but not used.
+	(DECODE_COMPOSITION_RULE): Remove 2nd arg, which is unused.
+	All callers changed.
+	(decode_coding_utf_8, decode_coding_utf_16 decode_coding_emacs_mule):
+	(decode_coding_iso_2022, encode_coding_sjis, encode_coding_big5):
+	(decode_coding_charset): Remove vars that are set but not used.
+
+	* bytecode.c (Fbyte_code) [!defined BYTE_CODE_SAFE]: Remove var
+	that is set but not used.
+
+	* print.c (print_object): Remove var that is set but not used.
+
+	Replace 2 copies of readlink code with 1 gnulib version (Bug#8401).
+	The gnulib version avoids calling malloc in the usual case,
+	and on 64-bit hosts doesn't have some arbitrary 32-bit limits.
+	* fileio.c (Ffile_symlink_p): Use emacs_readlink.
+	* filelock.c (current_lock_owner): Likewise.
+	* lisp.h (READLINK_BUFSIZE, emacs_readlink): New function.
+	* sysdep.c: Include allocator.h, careadlinkat.h.
+	(emacs_no_realloc_allocator): New static constant.
+	(emacs_readlink): New function.
+	* deps.mk (sysdep.o): Depend on ../lib/allocator.h and on
+	../lib/careadlinkat.h.
+
 2011-04-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.c (safe_run_hook_funcall): Fix last change (don't stop at the

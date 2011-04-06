@@ -391,7 +391,7 @@ static Lisp_Object
 x_get_local_selection (Lisp_Object selection_symbol, Lisp_Object target_type, int local_request)
 {
   Lisp_Object local_value;
-  Lisp_Object handler_fn, value, type, check;
+  Lisp_Object handler_fn, value, check;
   int count;
 
   local_value = assq_no_quit (selection_symbol, Vselection_alist);
@@ -469,7 +469,6 @@ x_get_local_selection (Lisp_Object selection_symbol, Lisp_Object target_type, in
   check = value;
   if (CONSP (value)
       && SYMBOLP (XCAR (value)))
-    type = XCAR (value),
     check = XCDR (value);
 
   if (STRINGP (check)
@@ -1203,9 +1202,9 @@ wait_for_property_change (struct prop_location *location)
 void
 x_handle_property_notify (XPropertyEvent *event)
 {
-  struct prop_location *prev = 0, *rest = property_change_wait_list;
+  struct prop_location *rest;
 
-  while (rest)
+  for (rest = property_change_wait_list; rest; rest = rest->next)
     {
       if (!rest->arrived
 	  && rest->property == event->atom
@@ -1226,9 +1225,6 @@ x_handle_property_notify (XPropertyEvent *event)
 
 	  return;
 	}
-
-      prev = rest;
-      rest = rest->next;
     }
 }
 

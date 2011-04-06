@@ -31,6 +31,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif /* HAVE_LIMITS_H */
 #include <unistd.h>
 
+#include <allocator.h>
+#include <careadlinkat.h>
 #include <ignore-value.h>
 
 #include "lisp.h"
@@ -1865,6 +1867,22 @@ emacs_write (int fildes, const char *buf, unsigned int nbyte)
       bytes_written += rtnval;
     }
   return (bytes_written);
+}
+
+static struct allocator const emacs_norealloc_allocator =
+  { xmalloc, NULL, xfree, memory_full };
+
+/* Get the symbolic link value of FILENAME.  Return a pointer to a
+   NUL-terminated string.  If readlink fails, return NULL and set
+   errno.  If the value fits in INITIAL_BUF, return INITIAL_BUF.
+   Otherwise, allocate memory and return a pointer to that memory.  If
+   memory allocation fails, diagnose and fail without returning.  If
+   successful, store the length of the symbolic link into *LINKLEN.  */
+char *
+emacs_readlink (char const *filename, char initial_buf[READLINK_BUFSIZE])
+{
+  return careadlinkat (AT_FDCWD, filename, initial_buf, READLINK_BUFSIZE,
+		       &emacs_norealloc_allocator, careadlinkatcwd);
 }
 
 #ifdef USG

@@ -187,6 +187,7 @@ sysdep.o: sysdep.c syssignal.h systty.h systime.h syswait.h blockinput.h \
    process.h dispextern.h termhooks.h termchar.h termopts.h coding.h \
    frame.h atimer.h window.h msdos.h dosfns.h keyboard.h cm.h lisp.h \
    globals.h $(config_h) composite.h sysselect.h gnutls.h \
+   ../lib/allocator.h ../lib/careadlinkat.h \
    ../lib/unistd.h ../lib/ignore-value.h
 term.o: term.c termchar.h termhooks.h termopts.h lisp.h globals.h $(config_h) \
    cm.h frame.h disptab.h keyboard.h character.h charset.h coding.h ccl.h \

@@ -1,3 +1,12 @@
+2011-04-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix more problems found by GCC 4.6.0's static checks.
+
+	* emacsclient.c (message): Mark it as a printf-like function.
+
+	* make-docfile.c (IF_LINT): New macro, copied from emacsclient.c.
+	(write_c_args): Use it to suppress GCC warning.
+
 2011-03-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix a problem found by GCC 4.6.0's static checks.

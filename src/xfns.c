@@ -855,19 +855,20 @@ make_invisible_cursor (struct frame *f)
   static char const no_data[] = { 0 };
   Pixmap pix;
   XColor col;
-  Cursor c;
+  Cursor c = 0;
 
   x_catch_errors (dpy);
   pix = XCreateBitmapFromData (dpy, FRAME_X_DISPLAY_INFO (f)->root_window,
                                no_data, 1, 1);
   if (! x_had_errors_p (dpy) && pix != None)
     {
+      Cursor pixc;
       col.pixel = 0;
       col.red = col.green = col.blue = 0;
       col.flags = DoRed | DoGreen | DoBlue;
-      c = XCreatePixmapCursor (dpy, pix, pix, &col, &col, 0, 0);
-      if (x_had_errors_p (dpy) || c == None)
-        c = 0;
+      pixc = XCreatePixmapCursor (dpy, pix, pix, &col, &col, 0, 0);
+      if (! x_had_errors_p (dpy) && pixc != None)
+        c = pixc;
       XFreePixmap (dpy, pix);
     }
 
@@ -4579,7 +4580,6 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
   struct frame *f;
   Lisp_Object frame;
   Lisp_Object name;
-  long window_prompting = 0;
   int width, height;
   int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3;
@@ -4757,7 +4757,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
 
   f->output_data.x->parent_desc = FRAME_X_DISPLAY_INFO (f)->root_window;
 
-  window_prompting = x_figure_window_size (f, parms, 0);
+  x_figure_window_size (f, parms, 0);
 
   {
     XSetWindowAttributes attrs;

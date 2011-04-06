@@ -1247,17 +1247,10 @@ substring_both (Lisp_Object string, EMACS_INT from, EMACS_INT from_byte,
 {
   Lisp_Object res;
   EMACS_INT size;
-  EMACS_INT size_byte;
 
   CHECK_VECTOR_OR_STRING (string);
 
-  if (STRINGP (string))
-    {
-      size = SCHARS (string);
-      size_byte = SBYTES (string);
-    }
-  else
-    size = ASIZE (string);
+  size = STRINGP (string) ? SCHARS (string) : ASIZE (string);
 
   if (!(0 <= from && from <= to && to <= size))
     args_out_of_range_3 (string, make_number (from), make_number (to));
@@ -4226,9 +4219,9 @@ sxhash (Lisp_Object obj, int depth)
       {
 	double val = XFLOAT_DATA (obj);
 	unsigned char *p = (unsigned char *) &val;
-	unsigned char *e = p + sizeof val;
-	for (hash = 0; p < e; ++p)
-	  hash = SXHASH_COMBINE (hash, *p);
+	size_t i;
+	for (hash = 0, i = 0; i < sizeof val; i++)
+	  hash = SXHASH_COMBINE (hash, p[i]);
 	break;
       }
 

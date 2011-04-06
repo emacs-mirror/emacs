@@ -1016,7 +1016,7 @@ struct Lisp_Symbol
   /* Interned state of the symbol.  This is an enumerator from
      enum symbol_interned.  */
   unsigned interned : 2;
-  
+
   /* Non-zero means that this variable has been explicitly declared
      special (with `defvar' etc), and shouldn't be lexically bound.  */
   unsigned declared_special : 1;
@@ -2627,8 +2627,8 @@ extern void restore_message (void);
 extern Lisp_Object current_message (void);
 extern void set_message (const char *s, Lisp_Object, EMACS_INT, int);
 extern void clear_message (int, int);
-extern void message (const char *, ...);
-extern void message_nolog (const char *, ...);
+extern void message (const char *, ...) ATTRIBUTE_FORMAT_PRINTF (1, 2);
+extern void message_nolog (const char *, ...) ATTRIBUTE_FORMAT_PRINTF (1, 2);
 extern void message1 (const char *);
 extern void message1_nolog (const char *);
 extern void message2 (const char *, EMACS_INT, int);
@@ -3348,6 +3348,8 @@ extern int emacs_open (const char *, int, int);
 extern int emacs_close (int);
 extern int emacs_read (int, char *, unsigned int);
 extern int emacs_write (int, const char *, unsigned int);
+enum { READLINK_BUFSIZE = 1024 };
+extern char *emacs_readlink (const char *, char [READLINK_BUFSIZE]);
 #ifndef HAVE_MEMSET
 extern void *memset (void *, int, size_t);
 #endif
@@ -3392,7 +3394,8 @@ extern Lisp_Object directory_files_internal (Lisp_Object, Lisp_Object,
 extern int *char_ins_del_vector;
 extern void mark_ttys (void);
 extern void syms_of_term (void);
-extern void fatal (const char *msgid, ...) NO_RETURN;
+extern void fatal (const char *msgid, ...)
+  NO_RETURN ATTRIBUTE_FORMAT_PRINTF (1, 2);
 
 /* Defined in terminal.c */
 EXFUN (Fframe_terminal, 1);

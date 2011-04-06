@@ -1704,7 +1704,7 @@ xg_get_file_with_chooser (FRAME_PTR f,
 {
   char msgbuf[1024];
 
-  GtkWidget *filewin, *wtoggle, *wbox, *wmessage;
+  GtkWidget *filewin, *wtoggle, *wbox, *wmessage IF_LINT (= NULL);
   GtkWindow *gwin = GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f));
   GtkFileChooserAction action = (mustmatch_p ?
                                  GTK_FILE_CHOOSER_ACTION_OPEN :

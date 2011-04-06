@@ -341,7 +341,7 @@ for instance using the window manager, then this produces a quit and
     unbind_to (specpdl_count, Qnil);
     discard_menu_items ();
 
-    if (error_name) error (error_name);
+    if (error_name) error ("%s", error_name);
     return selection;
   }
 #endif
