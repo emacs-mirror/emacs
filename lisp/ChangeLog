@@ -1,3 +1,7 @@
+2011-04-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/tabulated-list.el: New file.
+
 2011-04-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* files.el (after-find-file-from-revert-buffer): Remove variable.
