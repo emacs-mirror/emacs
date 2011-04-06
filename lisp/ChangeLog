@@ -1,3 +1,14 @@
+2011-04-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* files.el (after-find-file-from-revert-buffer): Remove variable.
+	(after-find-file): Dont' bind it.
+	(revert-buffer-in-progress-p): New variable.
+	(revert-buffer): Bind it.
+	Pass nil for `after-find-file-from-revert-buffer'.
+
+	* saveplace.el (save-place-find-file-hook): Use new variable
+	`rever-buffer-in-progress-p', not `after-find-file-from-revert-buffer'.
+
 2011-04-06  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (AUTOGEN_VCS): New variable.

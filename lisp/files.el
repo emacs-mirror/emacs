@@ -2100,10 +2100,8 @@ the file contents into it using `insert-file-contents-literally'."
   	  (confirm-nonexistent-file-or-buffer))))
   (switch-to-buffer (find-file-noselect filename nil t)))
 
-(defvar after-find-file-from-revert-buffer nil)
-
 (defun after-find-file (&optional error warn noauto
-				  after-find-file-from-revert-buffer
+				  _after-find-file-from-revert-buffer
 				  nomodes)
   "Called after finding a file and by the default revert function.
 Sets buffer mode, parses local variables.
@@ -2111,8 +2109,8 @@ Optional args ERROR, WARN, and NOAUTO: ERROR non-nil means there was an
 error in reading the file.  WARN non-nil means warn if there
 exists an auto-save file more recent than the visited file.
 NOAUTO means don't mess with auto-save mode.
-Fourth arg AFTER-FIND-FILE-FROM-REVERT-BUFFER non-nil
- means this call was from `revert-buffer'.
+Fourth arg AFTER-FIND-FILE-FROM-REVERT-BUFFER is ignored
+\(see `revert-buffer-in-progress-p' for similar functionality).
 Fifth arg NOMODES non-nil means don't alter the file's modes.
 Finishes by calling the functions in `find-file-hook'
 unless NOMODES is non-nil."
@@ -5004,6 +5002,10 @@ hook functions.
 If `revert-buffer-function' is used to override the normal revert
 mechanism, this hook is not used.")
 
+(defvar revert-buffer-in-progress-p nil
+  "Non-nil if a `revert-buffer' operation is in progress, nil otherwise.
+This is true even if a `revert-buffer-function' is being used.")
+
 (defvar revert-buffer-internal-hook)
 
 (defun revert-buffer (&optional ignore-auto noconfirm preserve-modes)
@@ -5046,10 +5048,12 @@ non-nil, it is called instead of rereading visited file contents."
   ;; interface, but leaving the programmatic interface the same.
   (interactive (list (not current-prefix-arg)))
   (if revert-buffer-function
-      (funcall revert-buffer-function ignore-auto noconfirm)
+      (let ((revert-buffer-in-progress-p t))
+        (funcall revert-buffer-function ignore-auto noconfirm))
     (with-current-buffer (or (buffer-base-buffer (current-buffer))
 			     (current-buffer))
-      (let* ((auto-save-p (and (not ignore-auto)
+      (let* ((revert-buffer-in-progress-p t)
+             (auto-save-p (and (not ignore-auto)
 			       (recent-auto-save-p)
 			       buffer-auto-save-file-name
 			       (file-readable-p buffer-auto-save-file-name)
@@ -5140,7 +5144,7 @@ non-nil, it is called instead of rereading visited file contents."
 		 ;; have changed the truename.
 		 (setq buffer-file-truename
 		       (abbreviate-file-name (file-truename buffer-file-name)))
-		 (after-find-file nil nil t t preserve-modes)
+		 (after-find-file nil nil t nil preserve-modes)
 		 ;; Run after-revert-hook as it was before we reverted.
 		 (setq-default revert-buffer-internal-hook global-hook)
 		 (if local-hook

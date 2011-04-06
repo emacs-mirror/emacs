@@ -1,3 +1,7 @@
+2011-04-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: New variable `revert-buffer-in-progress-p'.
+
 2011-03-22  Sebastian Hermida  <sebas00@gmail.com>
 
 	* themes/misterioso-theme.el: New file.

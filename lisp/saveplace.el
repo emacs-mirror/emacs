@@ -285,7 +285,7 @@ may have changed\) back to `save-place-alist'."
   (let ((cell (assoc buffer-file-name save-place-alist)))
     (if cell
 	(progn
-	  (or after-find-file-from-revert-buffer
+	  (or revert-buffer-in-progress-p
 	      (goto-char (cdr cell)))
           ;; and make sure it will be saved again for later
           (setq save-place t)))))
