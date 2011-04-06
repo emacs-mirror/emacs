@@ -243,7 +243,8 @@ done < $tempfile
 [ -e Makefile ] || {
     echo "Running ./configure..."
 
-    ./configure || die "configure error"
+    ## Minimize required packages.
+    ./configure --without-x || die "configure error"
 }
 
 
