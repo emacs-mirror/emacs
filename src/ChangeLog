@@ -6,10 +6,7 @@
 
 	* menu.c (Fx_popup_menu): Don't assume error_name lacks printf formats.
 
-	* fns.c (Fstring_to_unibyte): Don't rely on undefined behavior
-	by passing a long int to a printf format expecting an int.
-
-	* lisp.h (message, message_nolog, doprint, error, verror, fatal):
+	* lisp.h (message, message_nolog, doprnt, error, verror, fatal):
 	Mark as printf-like functions.
 
 	* xdisp.c (vmessage): Mark as a printf-like function.
