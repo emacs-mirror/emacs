@@ -57,7 +57,10 @@
 
 (eval-when-compile (require 'cl))
 
-(require 'ert)
+(eval-when-compile
+  (when (null (require 'ert nil t))
+    (defmacro* ert-deftest (name () &body docstring-keys-and-body))))
+
 (require 'gnus)
 (require 'gnus-int)
 (require 'gnus-sum)
@@ -807,6 +810,9 @@ only the last one's marks are returned."
 
     (nth 1 (assoc id entries))))
 
+(defun gnus-registry-delete-entries (idlist)
+  (registry-delete gnus-registry-db idlist nil))
+
 (defun gnus-registry-get-id-key (id key)
   (cdr-safe (assq key (gnus-registry-get-or-make-entry id))))
 
@@ -818,6 +824,51 @@ only the last one's marks are returned."
     (registry-insert db id entry)
     entry))
 
+(defun gnus-registry-import-eld (file)
+  (interactive "fOld registry file to import? ")
+  ;; example content:
+  ;;   (setq gnus-registry-alist '(
+  ;; ("<messageID>" ((marks nil)
+  ;;                 (mtime 19365 1776 440496)
+  ;;                 (sender . "root (Cron Daemon)")
+  ;;                 (subject . "Cron"))
+  ;;  "cron" "nnml+private:cron")
+  (load file t)
+  (when (boundp 'gnus-registry-alist)
+    (let* ((old (symbol-value 'gnus-registry-alist))
+           (count 0)
+           (expected (length old))
+           entry)
+      (while (car-safe old)
+        (incf count)
+        ;; don't use progress reporters for backwards compatibility
+        (when (and (< 0 expected)
+                   (= 0 (mod count 100)))
+          (message "importing: %d of %d (%.2f%%)"
+                   count expected (/ (* 100 count) expected)))
+        (setq entry (car-safe old)
+              old (cdr-safe old))
+        (let* ((id (car-safe entry))
+               (new-entry (gnus-registry-get-or-make-entry id))
+               (rest (cdr-safe entry))
+               (groups (loop for p in rest
+                             when (stringp p)
+                             collect p))
+               extra-cell key val)
+          ;; remove all the strings from the entry
+          (delete* nil rest :test (lambda (a b) (stringp b)))
+          (gnus-registry-set-id-key id 'group groups)
+          ;; just use the first extra element
+          (setq rest (car-safe rest))
+          (while (car-safe rest)
+            (setq extra-cell (car-safe rest)
+                  key (car-safe extra-cell)
+                  val (cdr-safe extra-cell)
+                  rest (cdr-safe rest))
+            (when (and val (atom val))
+              (setq val (list val)))
+            (gnus-registry-set-id-key id key val))))
+      (message "Import done, collected %d entries" count))))
 
 (ert-deftest gnus-registry-usage-test ()
   (let* ((n 100)

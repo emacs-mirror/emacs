@@ -77,7 +77,10 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'ert))
+(eval-when-compile
+  (when (null (require 'ert nil t))
+    (defmacro* ert-deftest (name () &body docstring-keys-and-body))))
+
 (eval-when-compile (require 'cl))
 (eval-and-compile
   (or (ignore-errors (progn
