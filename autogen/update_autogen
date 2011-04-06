@@ -51,7 +51,7 @@ cd ../
 usage ()
 {
     cat 1>&2 <<EOF
-Usage: ${PN} [-f] [-c] [-q] [-l] [-C] [-- make-flags]
+Usage: ${PN} [-f] [-c] [-q] [-l [-L]] [-C] [-- make-flags]
 Update the generated files in the Emacs autogen/ directory.
 Options:
 -f: force an update even if the source files are locally modified.
@@ -60,6 +60,7 @@ Options:
 -q: be quiet; only give error messages, not status messages.
 -l: also update the versioned loaddefs-like files in lisp/.
 This requires a build.  Passes any non-option args to make (eg -- -j2).
+-L: also update ldefs-boot.el.
 -C: start from a clean state.  Slower, but more correct.
 EOF
     exit 1
@@ -73,6 +74,7 @@ commit=
 quiet=
 clean=
 ldefs_flag=
+lboot_flag=
 
 ## Parameters.
 ldefs_in=lisp/loaddefs.el
@@ -91,7 +93,7 @@ tempfile=/tmp/$PN.$$
 trap "rm -f $tempfile 2> /dev/null" EXIT
 
 
-while getopts ":hcflqC" option ; do
+while getopts ":hcflqCL" option ; do
     case $option in
         (h) usage ;;
 
@@ -104,6 +106,8 @@ while getopts ":hcflqC" option ; do
         (q) quiet=1 ;;
 
         (C) clean=1 ;;
+
+        (L) lboot_flag=1 ;;
 
         (\?) die "Bad option -$OPTARG" ;;
 
@@ -264,7 +268,7 @@ echo "Running lisp/ make..."
 make -C lisp "$@" autoloads EMACS=../src/bootstrap-emacs || die "make src error"
 
 
-cp $ldefs_in $ldefs_out || die "cp ldefs_boot error"
+[ ! "$lboot_flag" ] || cp $ldefs_in $ldefs_out || die "cp ldefs_boot error"
 
 
 cd lisp
