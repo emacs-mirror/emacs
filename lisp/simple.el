@@ -2690,7 +2690,93 @@ support pty association, if PROGRAM is nil."
   (let ((fh (find-file-name-handler default-directory 'start-file-process)))
     (if fh (apply fh 'start-file-process name buffer program program-args)
       (apply 'start-process name buffer program program-args))))
+
+;;;; Process menu
 
+(defvar tabulated-list-format)
+(defvar tabulated-list-entries)
+(defvar tabulated-list-sort-key)
+(declare-function tabulated-list-init-header  "tabulated-list" ())
+(declare-function tabulated-list-print "tabulated-list" ())
+
+(defvar process-menu-query-only nil)
+
+(define-derived-mode process-menu-mode tabulated-list-mode "Process Menu"
+  "Major mode for listing the processes called by Emacs."
+  (setq tabulated-list-format [("Process" 15 t)
+			       ("Status"   7 t)
+			       ("Buffer"  15 t)
+			       ("TTY"     12 t)
+			       ("Command"  0 t)])
+  (make-local-variable 'process-menu-query-only)
+  (setq tabulated-list-sort-key (cons "Process" nil))
+  (add-hook 'tabulated-list-revert-hook 'list-processes--refresh nil t)
+  (tabulated-list-init-header))
+
+(defun list-processes--refresh ()
+  "Recompute the list of processes for the Process List buffer."
+  (setq tabulated-list-entries nil)
+  (dolist (p (process-list))
+    (when (or (not process-menu-query-only)
+	      (process-query-on-exit-flag p))
+      (let* ((buf (process-buffer p))
+	     (type (process-type p))
+	     (name (process-name p))
+	     (status (symbol-name (process-status p)))
+	     (buf-label (if (buffer-live-p buf)
+			    `(,(buffer-name buf)
+			      face link
+			      help-echo ,(concat "Visit buffer `"
+						 (buffer-name buf) "'")
+			      follow-link t
+			      process-buffer ,buf
+			      action process-menu-visit-buffer)
+			  "--"))
+	     (tty (or (process-tty-name p) "--"))
+	     (cmd
+	      (if (memq type '(network serial))
+		  (let ((contact (process-contact p t)))
+		    (if (eq type 'network)
+			(format "(%s %s)"
+				(if (plist-get contact :type)
+				    "datagram"
+				  "network")
+				(if (plist-get contact :server)
+				    (format "server on %s"
+					    (plist-get contact :server))
+				  (format "connection to %s"
+					  (plist-get contact :host))))
+		      (format "(serial port %s%s)"
+			      (or (plist-get contact :port) "?")
+			      (let ((speed (plist-get contact :speed)))
+				(if speed
+				    (format " at %s b/s" speed)
+				  "")))))
+		(mapconcat 'identity (process-command p) " "))))
+	(push (list p (vector name status buf-label tty cmd))
+	      tabulated-list-entries)))))
+
+(defun process-menu-visit-buffer (button)
+  (display-buffer (button-get button 'process-buffer)))
+
+(defun list-processes (&optional query-only buffer)
+  "Display a list of all processes.
+If optional argument QUERY-ONLY is non-nil, only processes with
+the query-on-exit flag set are listed.
+Any process listed as exited or signaled is actually eliminated
+after the listing is made.
+Optional argument BUFFER specifies a buffer to use, instead of
+\"*Process List\".
+The return value is always nil."
+  (interactive)
+  (unless (bufferp buffer)
+    (setq buffer (get-buffer-create "*Process List*")))
+  (with-current-buffer buffer
+    (process-menu-mode)
+    (setq process-menu-query-only query-only)
+    (list-processes--refresh)
+    (tabulated-list-print))
+  (display-buffer buffer))
 
 (defvar universal-argument-map
   (let ((map (make-sparse-keymap)))

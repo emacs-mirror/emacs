@@ -6146,8 +6146,8 @@ With prefix ARG, silently save all file-visiting buffers, then kill."
 		    (setq active t))
 	       (setq processes (cdr processes)))
 	     (or (not active)
-		 (list-processes t)
-		 (yes-or-no-p "Active processes exist; kill them and exit anyway? "))))
+		 (progn (list-processes t)
+			(yes-or-no-p "Active processes exist; kill them and exit anyway? ")))))
        ;; Query the user for other things, perhaps.
        (run-hook-with-args-until-failure 'kill-emacs-query-functions)
        (or (null confirm-kill-emacs)

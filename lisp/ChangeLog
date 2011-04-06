@@ -1,5 +1,16 @@
 2011-04-06  Chong Yidong  <cyd@stupidchicken.com>
 
+	* simple.el: Lisp reimplement of list-processes.  Based on an
+	earlier reimplementation by Leo Liu, but using tabulated-list.el.
+	(process-menu-mode): New major mode.
+	(list-processes--refresh, list-processes):
+	(process-menu-visit-buffer): New functions.
+
+	* files.el (save-buffers-kill-emacs): Don't assume any return
+	value of list-processes, which is undocumented anyway.
+
+2011-04-06  Chong Yidong  <cyd@stupidchicken.com>
+
 	* emacs-lisp/tabulated-list.el: New file.
 
 	* emacs-lisp/package.el: Use Tabulated List mode.
