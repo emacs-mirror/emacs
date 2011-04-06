@@ -35,6 +35,16 @@
 #       /^STDINT_H *=/s/@[^@\n]*@/stdint.h/  -- stdint.h is needed
 #       /^STDDEF_H *=/s/@[^@\n]*@//          -- stddef.h is not needed
 #
+#  . Some of the headers are generated conditionally, and the
+#    corresponding recipes are guarder by @GL_GENERATE_xxxx_H_TRUE@
+#    and @GL_GENERATE_xxxx_H_FALSE@.  Depending on whether DJGPP uses
+#    the corresponding header, these should be edited either to
+#    nothing (thus exposing the recipe) or to #, which comments the
+#    recipe away.  Example:
+#
+#       s/^@GL_GENERATE_STDBOOL_H_TRUE@/\#/
+#       s/^@GL_GENERATE_STDBOOL_H_FALSE@//
+#
 #  . Also edit the NEXT_foo and NEXT_AS_FIRST_DIRECTIVE_foo_H variable
 #    as appropriately: to an empty value if the gnulib header is not
 #    used, and to the corresponding DJGPP header name otherwise.
@@ -490,6 +500,7 @@ am__cd = cd
 /^WCHAR_T_SUFFIX *=/s/@WCHAR_T_SUFFIX@/h/
 /^WINT_T_SUFFIX *=/s/@WINT_T_SUFFIX@//
 /^gl_LIBOBJS *=/s/@[^@\n]*@/getopt.o getopt1.o strftime.o time_r.o getloadavg.o md5.o filemode.o/
+/^am_libgnu_a_OBJECTS *=/s/careadlinkat.\$(OBJEXT)//
 /^srcdir *=/s/@[^@\n]*@/./
 /^top_srcdir *=/s/@[^@\n]*@/../
 /^top_builddir *=/s/@[^@\n]*@/../
@@ -500,6 +511,10 @@ s/@PRAGMA_COLUMNS@//
 /^\$(srcdir)\/Makefile\.in:/,/^[ 	][ 	]*\$(AUTOMAKE)/d
 /^Makefile:/,/^[ 	][ 	]*esac/d
 /^\$(top_srcdir)\/configure:/,/^\$(ACLOCAL_M4)/d
+/^\$(top_builddir)\/config.status:/,/^$/d
+#
+# Remove the dependencies on $(top_builddir)/config.status
+s/ $(top_builddir)\/config.status//
 #
 # Fix the include-dependency lines
 s/^@AMDEP_TRUE@//
@@ -507,7 +522,7 @@ s/^@AMDEP_FALSE@/\#/
 s/@am__include@/include/
 s/@am__quote@//g
 s/^@am__fastdepCC_TRUE@//
-s/^@am__fastdepCC_FALSE/\#/
+s/^@am__fastdepCC_FALSE@/\#/
 #
 # Fix the *-clean rules, to not use a Unixy `test' command.  Empty
 # lists are replaced with a dummy file, to avoid an error message from
@@ -520,6 +535,12 @@ s/^	-*test -z.*|| rm/	 -rm/
 s/@echo /@djecho/
 #
 # Fix the recipes for header files
+s/^@GL_GENERATE_STDBOOL_H_TRUE@/\#/
+s/^@GL_GENERATE_STDBOOL_H_FALSE@//
+s/^@GL_GENERATE_STDDEF_H_TRUE@/\#/
+s/^@GL_GENERATE_STDDEF_H_FALSE@//
+s/^@GL_GENERATE_STDINT_H_TRUE@//
+s/^@GL_GENERATE_STDINT_H_FALSE@/\#/
 /^arg-nonnull\.h:/,/^[ 	][ 	]*mv /c\
 arg-nonnull.h: $(top_srcdir)/./arg-nonnull.h\
 	sed -n -e '/GL_ARG_NONNULL/,$$p' < $(top_srcdir)/./arg-nonnull.h > $@
