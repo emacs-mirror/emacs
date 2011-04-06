@@ -58,9 +58,11 @@
 (eval-when-compile (require 'cl))
 
 (eval-when-compile
-  (when (null (require 'ert nil t))
+  (when (null (ignore-errors (require 'ert)))
     (defmacro* ert-deftest (name () &body docstring-keys-and-body))))
 
+(ignore-errors
+  (require 'ert))
 (require 'gnus)
 (require 'gnus-int)
 (require 'gnus-sum)
@@ -394,85 +396,83 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
            &allow-other-keys)
   (gnus-message
    10
-   "gnus-registry--split-fancy-with-parent-internal: %S" spec)
+   "gnus-registry--split-fancy-with-parent-internal %S" spec)
   (let ((db gnus-registry-db)
         found)
-    ;; this is a big if-else statement.  it uses
+    ;; this is a big chain of statements.  it uses
     ;; gnus-registry-post-process-groups to filter the results after
     ;; every step.
-    (cond
-     ;; the references string must be valid and parse to valid references
-     (references
+    ;; the references string must be valid and parse to valid references
+    (when references
+      (gnus-message
+       9
+       "%s is tracing references %s"
+       log-agent refstr)
       (dolist (reference (nreverse references))
-        (gnus-message
-         9
-         "%s is looking for matches for reference %s from [%s]"
-         log-agent reference refstr)
-        (setq found
-              (loop for group in (gnus-registry-get-id-key reference 'group)
-                    when (gnus-registry-follow-group-p group)
-                    do (gnus-message
-                        7
-                        "%s traced the reference %s from [%s] to group %s"
-                        log-agent reference refstr group)
-                    collect group)))
+        (gnus-message 9 "%s is looking up %s" log-agent reference)
+        (loop for group in (gnus-registry-get-id-key reference 'group)
+              when (gnus-registry-follow-group-p group)
+              do (gnus-message 7 "%s traced %s to %s" log-agent reference group)
+              do (push group found)))
       ;; filter the found groups and return them
       ;; the found groups are the full groups
       (setq found (gnus-registry-post-process-groups
                    "references" refstr found)))
 
      ;; else: there were no matches, try the extra tracking by sender
-     ((and (memq 'sender gnus-registry-track-extra)
-           sender
-           (gnus-grep-in-list
-            sender
-            gnus-registry-unfollowed-addresses))
-      (let ((groups (apply
-                     'append
-                     (mapcar
-                      (lambda (reference)
-                        (gnus-registry-get-id-key reference 'group))
-                      (registry-lookup-secondary-value db 'sender sender)))))
-        (setq found
-              (loop for group in groups
-                    when (gnus-registry-follow-group-p group)
-                  do (gnus-message
-                      ;; raise level of messaging if gnus-registry-track-extra
-                      (if gnus-registry-track-extra 7 9)
-                      "%s (extra tracking) traced sender '%s' to groups %s"
-                      log-agent sender found)
-                  collect group)))
+     (when (and (null found)
+                (memq 'sender gnus-registry-track-extra)
+                sender
+                (gnus-grep-in-list
+                 sender
+                 gnus-registry-unfollowed-addresses))
+       (let ((groups (apply
+                      'append
+                      (mapcar
+                       (lambda (reference)
+                         (gnus-registry-get-id-key reference 'group))
+                       (registry-lookup-secondary-value db 'sender sender)))))
+         (setq found
+               (loop for group in groups
+                     when (gnus-registry-follow-group-p group)
+                     do (gnus-message
+                         ;; warn more if gnus-registry-track-extra
+                         (if gnus-registry-track-extra 7 9)
+                         "%s (extra tracking) traced sender '%s' to %s"
+                         log-agent sender group)
+                     collect group)))
 
-      ;; filter the found groups and return them
-      ;; the found groups are NOT the full groups
-      (setq found (gnus-registry-post-process-groups
-                   "sender" sender found)))
+       ;; filter the found groups and return them
+       ;; the found groups are NOT the full groups
+       (setq found (gnus-registry-post-process-groups
+                    "sender" sender found)))
 
      ;; else: there were no matches, now try the extra tracking by subject
-     ((and (memq 'subject gnus-registry-track-extra)
-           subject
-           (< gnus-registry-minimum-subject-length (length subject)))
-      (let ((groups (apply
-                     'append
-                     (mapcar
-                      (lambda (reference)
-                        (gnus-registry-get-id-key reference 'group))
-                      (registry-lookup-secondary-value db 'subject subject)))))
-        (setq found
-              (loop for group in groups
-                    when (gnus-registry-follow-group-p group)
-                    do (gnus-message
-                        ;; raise level of messaging if gnus-registry-track-extra
-                        (if gnus-registry-track-extra 7 9)
-                        "%s (extra tracking) traced subject '%s' to groups %s"
-                        log-agent subject found)
-                    collect group))
-      ;; filter the found groups and return them
-      ;; the found groups are NOT the full groups
-      (setq found (gnus-registry-post-process-groups
-                   "subject" subject found)))))
-    ;; after the (cond) we extract the actual value safely
-    (car-safe found)))
+     (when (and (null found)
+                (memq 'subject gnus-registry-track-extra)
+                subject
+                (< gnus-registry-minimum-subject-length (length subject)))
+       (let ((groups (apply
+                      'append
+                      (mapcar
+                       (lambda (reference)
+                         (gnus-registry-get-id-key reference 'group))
+                       (registry-lookup-secondary-value db 'subject subject)))))
+         (setq found
+               (loop for group in groups
+                     when (gnus-registry-follow-group-p group)
+                     do (gnus-message
+                         ;; warn more if gnus-registry-track-extra
+                         (if gnus-registry-track-extra 7 9)
+                         "%s (extra tracking) traced subject '%s' to %s"
+                         log-agent subject group)
+                     collect group))
+         ;; filter the found groups and return them
+         ;; the found groups are NOT the full groups
+         (setq found (gnus-registry-post-process-groups
+                      "subject" subject found))))
+     ;; after the (cond) we extract the actual value safely
+     (car-safe found)))
 
 (defun gnus-registry-post-process-groups (mode key groups)
   "Inspects GROUPS found by MODE for KEY to determine which ones to follow.
@@ -489,25 +489,48 @@ Foreign methods are not supported so they are rejected.
 Reduces the list to a single group, or complains if that's not
 possible.  Uses `gnus-registry-split-strategy'."
   (let ((log-agent "gnus-registry-post-process-group")
-        out)
-
-    ;; the strategy can be nil, in which case groups is nil
-    (setq groups
+        (desc (format "%d groups" (length groups)))
+        out chosen)
+    ;; the strategy can be nil, in which case chosen is nil
+    (setq chosen
           (case gnus-registry-split-strategy
-            ;; first strategy
+            ;; default, take only one-element lists into chosen
+            ((nil)
+             (and (= (length groups) 1)
+                  (car-safe groups)))
+
             ((first)
-             (and groups (list (car-safe groups))))
+             (car-safe groups))
 
             ((majority)
              (let ((freq (make-hash-table
                           :size 256
                           :test 'equal)))
-               (mapc (lambda (x) (puthash x (1+ (gethash x freq 0)) freq))
+               (mapc (lambda (x) (let ((x (gnus-group-short-name x)))
+                              (puthash x (1+ (gethash x freq 0)) freq)))
                      groups)
-               (list (car-safe
-                      (sort groups (lambda (a b)
-                                     (> (gethash a freq 0)
-                                        (gethash b freq 0))))))))))
+               (setq desc (format "%d groups, %d unique"
+                                  (length groups)
+                                  (hash-table-count freq)))
+               (car-safe
+                (sort groups
+                      (lambda (a b)
+                        (> (gethash (gnus-group-short-name a) freq 0)
+                           (gethash (gnus-group-short-name b) freq 0)))))))))
+
+    (if chosen
+        (gnus-message
+         9
+         "%s: strategy %s on %s produced %s"
+         log-agent gnus-registry-split-strategy desc chosen)
+      (gnus-message
+       9
+       "%s: strategy %s on %s did not produce an answer"
+       log-agent
+       (or gnus-registry-split-strategy "default")
+       desc))
+
+    (setq groups (and chosen (list chosen)))
 
     (dolist (group groups)
       (let ((m1 (gnus-find-method-for-group group))
@@ -517,18 +540,20 @@ possible.  Uses `gnus-registry-split-strategy'."
         (if (gnus-methods-equal-p m1 m2)
             (progn
               ;; this is REALLY just for debugging
-              (gnus-message
-               10
-               "%s stripped group %s to %s"
-               log-agent group short-name)
+              (when (not (equal group short-name))
+                (gnus-message
+                 10
+                 "%s: stripped group %s to %s"
+                 log-agent group short-name))
               (add-to-list 'out short-name))
           ;; else...
           (gnus-message
            7
-           "%s ignored foreign group %s"
+           "%s: ignored foreign group %s"
            log-agent group))))
 
-    ;; is there just one group?
+    (setq out (delq nil out))
+
     (cond
      ((= (length out) 1) out)
      ((null out)
