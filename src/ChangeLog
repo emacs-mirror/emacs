@@ -6,8 +6,7 @@
 
 	* menu.c (Fx_popup_menu): Don't assume error_name lacks printf formats.
 
-	* lisp.h (message, message_nolog, doprnt, error, verror, fatal):
-	Mark as printf-like functions.
+	* lisp.h (message, message_nolog, fatal): Mark as printf-like.
 
 	* xdisp.c (vmessage): Mark as a printf-like function.
 
