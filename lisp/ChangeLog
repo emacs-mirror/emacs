@@ -1,5 +1,11 @@
 2011-04-06  Chong Yidong  <cyd@stupidchicken.com>
 
+	* emacs-lisp/cconv.el (cconv--analyse-use): Ignore "ignored" when
+	issuing unused warnings.
+
+	* emacs-lisp/tabulated-list.el (tabulated-list-print): Use lambda
+	macro directly.
+
 	* simple.el: Lisp reimplement of list-processes.  Based on an
 	earlier reimplementation by Leo Liu, but using tabulated-list.el.
 	(process-menu-mode): New major mode.

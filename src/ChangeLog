@@ -1,3 +1,8 @@
+2011-04-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* process.c (Flist_processes): Removed to Lisp.
+	(list_processes_1): Deleted.
+
 2011-04-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdos.c (careadlinkat, careadlinkatcwd): MS-DOS replacements.
