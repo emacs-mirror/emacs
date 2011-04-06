@@ -1,3 +1,9 @@
+2011-04-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (NO_INLINE, ATTRIBUTE_FORMAT)
+	(ATTRIBUTE_FORMAT_PRINTF): Define, as followup to revision 103841
+	on the trunk on 2011-04-06.
+
 2011-03-27  Glenn Morris  <rgm@gnu.org>
 
 	* config.nt: Remove RETSIGTYPE, SIGTYPE (identical to void).
