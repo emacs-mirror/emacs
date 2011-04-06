@@ -1,3 +1,13 @@
+2011-04-06  Glenn Morris  <rgm@gnu.org>
+
+	* autogen/update_autogen: Handle loaddefs-like files as well.
+	(usage): Add -l, -C.
+	(clean, ldefs_flag, ldefs_in, ldefs_out): New variables.
+	With -l, check status of lisp/ as well.
+	With -C, clean before building.
+	(autoreconf): Only pass -f in the `clean' case.
+	(commit): New function.
+
 2011-03-28  Glenn Morris  <rgm@gnu.org>
 
 	* autogen/update_autogen: Pass -f to autoreconf.
