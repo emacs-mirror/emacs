@@ -1,3 +1,7 @@
+2011-04-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (careadlinkat, careadlinkatcwd): New always-fail stubs.
+
 2011-04-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix more problems found by GCC 4.6.0's static checks.
