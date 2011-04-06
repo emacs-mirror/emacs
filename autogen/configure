@@ -592,9 +592,9 @@ ac_includes_default="\
 #endif"
 
 ac_header_list=
-gl_getopt_required=POSIX
-gl_getopt_required=POSIX
 ac_func_list=
+gl_getopt_required=POSIX
+gl_getopt_required=POSIX
 ac_subst_vars='gltests_LTLIBOBJS
 gltests_LIBOBJS
 gl_LTLIBOBJS
@@ -760,6 +760,8 @@ GNULIB_FOPEN
 GNULIB_FFLUSH
 GNULIB_FCLOSE
 GNULIB_DPRINTF
+GL_GENERATE_STDINT_H_FALSE
+GL_GENERATE_STDINT_H_TRUE
 STDINT_H
 WINT_T_SUFFIX
 WCHAR_T_SUFFIX
@@ -786,10 +788,14 @@ HAVE_UNSIGNED_LONG_LONG_INT
 HAVE_LONG_LONG_INT
 NEXT_AS_FIRST_DIRECTIVE_STDDEF_H
 NEXT_STDDEF_H
+GL_GENERATE_STDDEF_H_FALSE
+GL_GENERATE_STDDEF_H_TRUE
 STDDEF_H
 HAVE_WCHAR_T
 REPLACE_NULL
 HAVE__BOOL
+GL_GENERATE_STDBOOL_H_FALSE
+GL_GENERATE_STDBOOL_H_TRUE
 STDBOOL_H
 APPLE_UNIVERSAL_BUILD
 REPLACE_TIMEGM
@@ -3025,6 +3031,7 @@ fi
 as_fn_append ac_header_list " stdlib.h"
 as_fn_append ac_header_list " unistd.h"
 as_fn_append ac_header_list " sys/param.h"
+as_fn_append ac_func_list " readlinkat"
 gl_getopt_required=GNU
 as_fn_append ac_header_list " getopt.h"
 as_fn_append ac_func_list " lstat"
@@ -6191,6 +6198,7 @@ $as_echo "$ac_cv_safe_to_define___extensions__" >&6; }
 
   # Code from module arg-nonnull:
   # Code from module c++defs:
+  # Code from module careadlinkat:
   # Code from module crypto/md5:
   # Code from module dosname:
   # Code from module dtoastr:
@@ -6209,6 +6217,7 @@ $as_echo "$ac_cv_safe_to_define___extensions__" >&6; }
   # Code from module multiarch:
   # Code from module readlink:
   # Code from module socklen:
+  # Code from module ssize_t:
   # Code from module stat:
   # Code from module stdbool:
   # Code from module stddef:
@@ -13541,6 +13550,24 @@ fi
   export LIBC_FATAL_STDERR_
 
 
+
+
+  for ac_func in $ac_func_list
+do :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+eval as_val=\$$as_ac_var
+   if test "x$as_val" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+
+
+
    { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether byte ordering is bigendian" >&5
 $as_echo_n "checking whether byte ordering is bigendian... " >&6; }
 if test "${ac_cv_c_bigendian+set}" = set; then :
@@ -14659,22 +14686,6 @@ fi
 
 
 
-  for ac_func in $ac_func_list
-do :
-  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
-ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
-eval as_val=\$$as_ac_var
-   if test "x$as_val" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
-_ACEOF
-
-fi
-done
-
-
-
-
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether lstat correctly handles trailing slash" >&5
 $as_echo_n "checking whether lstat correctly handles trailing slash... " >&6; }
 if test "${ac_cv_func_lstat_dereferences_slashed_symlink+set}" = set; then :
@@ -14913,7 +14924,6 @@ fi
 
     REPLACE_NULL=0;
   HAVE_WCHAR_T=1;
-  STDDEF_H='';
 
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for wchar_t" >&5
@@ -15457,6 +15467,8 @@ fi
   gl_source_base='lib'
   # Code from module arg-nonnull:
   # Code from module c++defs:
+  # Code from module careadlinkat:
+
   # Code from module crypto/md5:
 
 
@@ -16546,6 +16558,40 @@ _ACEOF
 
 fi
 
+  # Code from module ssize_t:
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ssize_t" >&5
+$as_echo_n "checking for ssize_t... " >&6; }
+if test "${gt_cv_ssize_t+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <sys/types.h>
+int
+main ()
+{
+int x = sizeof (ssize_t *) + sizeof (ssize_t);
+            return !x;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gt_cv_ssize_t=yes
+else
+  gt_cv_ssize_t=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gt_cv_ssize_t" >&5
+$as_echo "$gt_cv_ssize_t" >&6; }
+  if test $gt_cv_ssize_t = no; then
+
+$as_echo "#define ssize_t int" >>confdefs.h
+
+  fi
+
   # Code from module stat:
 
 
@@ -16677,6 +16723,14 @@ $as_echo "#define REPLACE_FUNC_STAT_FILE 1" >>confdefs.h
     STDBOOL_H='stdbool.h'
   fi
 
+   if test -n "$STDBOOL_H"; then
+  GL_GENERATE_STDBOOL_H_TRUE=
+  GL_GENERATE_STDBOOL_H_FALSE='#'
+else
+  GL_GENERATE_STDBOOL_H_TRUE='#'
+  GL_GENERATE_STDBOOL_H_FALSE=
+fi
+
 
   if test "$ac_cv_type__Bool" = yes; then
     HAVE__BOOL=1
@@ -16689,6 +16743,7 @@ $as_echo "#define REPLACE_FUNC_STAT_FILE 1" >>confdefs.h
 
 
 
+  STDDEF_H=
   if test $gt_cv_c_wchar_t = no; then
     HAVE_WCHAR_T=0
     STDDEF_H=stddef.h
@@ -16724,6 +16779,15 @@ $as_echo "$gl_cv_decl_null_works" >&6; }
     REPLACE_NULL=1
     STDDEF_H=stddef.h
   fi
+
+   if test -n "$STDDEF_H"; then
+  GL_GENERATE_STDDEF_H_TRUE=
+  GL_GENERATE_STDDEF_H_FALSE='#'
+else
+  GL_GENERATE_STDDEF_H_TRUE='#'
+  GL_GENERATE_STDDEF_H_FALSE=
+fi
+
   if test -n "$STDDEF_H"; then
 
 
@@ -17483,6 +17547,14 @@ _ACEOF
 
     STDINT_H=stdint.h
   fi
+
+   if test -n "$STDINT_H"; then
+  GL_GENERATE_STDINT_H_TRUE=
+  GL_GENERATE_STDINT_H_FALSE='#'
+else
+  GL_GENERATE_STDINT_H_TRUE='#'
+  GL_GENERATE_STDINT_H_FALSE=
+fi
 
 
   # Code from module stdio:
@@ -20154,6 +20226,18 @@ if test -z "${GL_COND_LIBTOOL_TRUE}" && test -z "${GL_COND_LIBTOOL_FALSE}"; then
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 
+if test -z "${GL_GENERATE_STDBOOL_H_TRUE}" && test -z "${GL_GENERATE_STDBOOL_H_FALSE}"; then
+  as_fn_error "conditional \"GL_GENERATE_STDBOOL_H\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${GL_GENERATE_STDDEF_H_TRUE}" && test -z "${GL_GENERATE_STDDEF_H_FALSE}"; then
+  as_fn_error "conditional \"GL_GENERATE_STDDEF_H\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${GL_GENERATE_STDINT_H_TRUE}" && test -z "${GL_GENERATE_STDINT_H_FALSE}"; then
+  as_fn_error "conditional \"GL_GENERATE_STDINT_H\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
 
     gl_libobjs=
     gl_ltlibobjs=
