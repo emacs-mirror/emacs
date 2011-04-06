@@ -1,3 +1,9 @@
+2011-04-06  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-move.el (calendar-scroll-toolkit-scroll): New function.
+	* calendar/calendar.el (calendar-mode-map):
+	Check for toolkit scroll bars.  (Bug#8305)
+
 2011-04-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* minibuffer.el (completion-in-region--postch)
