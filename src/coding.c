@@ -9023,7 +9023,7 @@ Return the corresponding character.  */)
 {
   Lisp_Object spec, attrs, val;
   struct charset *charset_roman, *charset_kanji, *charset_kana, *charset;
-  int c;
+  EMACS_INT c;
 
   CHECK_NATNUM (code);
   c = XFASTINT (code);
@@ -9048,7 +9048,8 @@ Return the corresponding character.  */)
     }
   else
     {
-      int c1 = c >> 8, c2 = c & 0xFF;
+      EMACS_INT c1 = c >> 8;
+      int c2 = c & 0xFF;
 
       if (c1 < 0x81 || (c1 > 0x9F && c1 < 0xE0) || c1 > 0xEF
 	  || c2 < 0x40 || c2 == 0x7F || c2 > 0xFC)
