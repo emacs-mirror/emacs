@@ -68,9 +68,9 @@
 
 ;; autoload gnus-registry
 (autoload 'gnus-registry-group-count "gnus-registry")
-(autoload 'gnus-registry-add-group "gnus-registry")
-(autoload 'gnus-registry-store-extra-entry "gnus-registry")
-(autoload 'gnus-registry-fetch-extra "gnus-registry")
+(autoload 'gnus-registry-get-id-key "gnus-registry")
+(autoload 'gnus-registry-set-id-key "gnus-registry")
+(autoload 'gnus-registry-handle-action "gnus-registry")
 
 ;; autoload dns-query
 (autoload 'dns-query "dns")
@@ -1764,8 +1764,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 
              (when (and id split-return spam-log-to-registry)
                (when (zerop (gnus-registry-group-count id))
-                 (gnus-registry-add-group
-                  id group subject sender))
+                 (gnus-registry-handle-action id nil group subject sender))
 
                (unless registry-lookup
                  (spam-log-processing-to-registry
@@ -1894,13 +1893,10 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
              (spam-process-type-valid-p type)
              (spam-classification-valid-p classification)
              (spam-backend-valid-p backend))
-        (let ((cell-list (cdr-safe (gnus-registry-fetch-extra id type)))
+        (let ((cell-list (gnus-registry-get-id-key id type))
               (cell (list classification backend group)))
           (push cell cell-list)
-          (gnus-registry-store-extra-entry
-           id
-           type
-           cell-list))
+          (gnus-registry-set-id-key id type cell-list))
 
       (gnus-error
        7
@@ -1913,7 +1909,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
   (when spam-log-to-registry
     (if (and (stringp id)
              (spam-process-type-valid-p type))
-        (cdr-safe (gnus-registry-fetch-extra id type))
+        (gnus-registry-get-id-key id type)
       (progn
         (gnus-error
          7
@@ -1945,7 +1941,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
              (spam-process-type-valid-p type)
              (spam-classification-valid-p classification)
              (spam-backend-valid-p backend))
-        (let ((cell-list (cdr-safe (gnus-registry-fetch-extra id type)))
+        (let ((cell-list (gnus-registry-get-id-key id type))
               found)
           (dolist (cell cell-list)
             (unless found
@@ -1970,16 +1966,13 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
              (spam-process-type-valid-p type)
              (spam-classification-valid-p classification)
              (spam-backend-valid-p backend))
-        (let ((cell-list (cdr-safe (gnus-registry-fetch-extra id type)))
+        (let ((cell-list (gnus-registry-get-id-key id type))
               new-cell-list found)
           (dolist (cell cell-list)
             (unless (and (eq classification (nth 0 cell))
                          (eq backend (nth 1 cell)))
               (push cell new-cell-list)))
-          (gnus-registry-store-extra-entry
-           id
-           type
-           new-cell-list))
+          (gnus-registry-set-id-key id type new-cell-list))
       (progn
         (gnus-error 7 (format
                        "%s call with bad ID, type, spam-backend, or group"

@@ -1,3 +1,41 @@
+2011-04-06  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (AUTOGEN_VCS): New variable.
+	(autoloads): Use $AUTOGEN_VCS.
+
+	* calendar/cal-move.el (calendar-scroll-toolkit-scroll): New function.
+	* calendar/calendar.el (calendar-mode-map):
+	Check for toolkit scroll bars.  (Bug#8305)
+
+2011-04-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuffer.el (completion-in-region--postch)
+	(completion-in-region-mode): Remove unnecessary messages.
+
+2011-04-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* font-lock.el (font-lock-refresh-defaults):
+	Don't bind `hi-lock--inhibit-font-lock-hook', removed in
+	revno:99634.2.463 (2010-10-09) and revno:101913 (2010-10-12).
+
+	* info.el (Info-directory-list, Info-read-node-name-2)
+	(Info-split-parameter-string): Doc fixes.
+	(Info-virtual-nodes): Reflow docstring.
+	(Info-find-file, Info-directory-toc-nodes, Info-history-toc-nodes)
+	(Info-apropos-toc-nodes, info-finder, Info-get-token)
+	(Info-find-emacs-command-nodes, Info-speedbar-key-map):
+	Fix typos in docstrings.
+	(Info-revert-buffer-function, Info-search, Info-isearch-pop-state)
+	(Info-speedbar-hierarchy-buttons, Info-speedbar-goto-node)
+	(Info-speedbar-buttons, Info-desktop-buffer-misc-data)
+	(Info-restore-desktop-buffer): Mark unused parameters.
+	(Info-directory-find-file, Info-directory-find-node)
+	(Info-history-find-file, Info-history-find-node, Info-toc-find-node)
+	(Info-virtual-index-find-node, Info-apropos-find-file)
+	(Info-apropos-find-node, Info-finder-find-file, Info-finder-find-node):
+	Mark unused parameters; fix typos in docstrings.
+	(Info-virtual-index): Remove unused local variable `nodename'.
+
 2011-04-05  Deniz Dogan  <deniz@dogan.se>
 
 	* net/rcirc.el: Update my e-mail address.

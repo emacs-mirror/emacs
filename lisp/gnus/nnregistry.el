@@ -53,7 +53,7 @@
 (deffoo nnregistry-request-article (id &optional group server buffer)
   (and (not nnregistry-within-nnregistry)
        (let* ((nnregistry-within-nnregistry t)
-	      (group (gnus-registry-fetch-group id))
+	      (group (nth 0 (gnus-registry-get-id-key id 'group)))
 	      (gnus-override-method nil))
 	 (message "nnregistry: requesting article `%s' in group `%s'"
 		  id group)

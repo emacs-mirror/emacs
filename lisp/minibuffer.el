@@ -1278,7 +1278,6 @@ Point needs to be somewhere between START and END."
 ;; - pcomplete: pop it down on SPC or after some time-delay.
 ;; - semantic: use a post-command-hook check similar to this one.
 (defun completion-in-region--postch ()
-  (message "completion-in-region--postch: cmd=%s" this-command)
   (or unread-command-events ;Don't pop down the completions in the middle of
                             ;mouse-drag-region/mouse-set-point.
       (and completion-in-region--data
@@ -1310,10 +1309,8 @@ Point needs to be somewhere between START and END."
         (delq (assq 'completion-in-region-mode minor-mode-overriding-map-alist)
               minor-mode-overriding-map-alist))
   (if (null completion-in-region-mode)
-      (progn
-        (unless (equal "*Completions*" (buffer-name (window-buffer)))
-          (minibuffer-hide-completions))
-        (message "Leaving completion-in-region-mode"))
+      (unless (equal "*Completions*" (buffer-name (window-buffer)))
+	(minibuffer-hide-completions))
     ;; (add-hook 'pre-command-hook #'completion-in-region--prech)
     (add-hook 'post-command-hook #'completion-in-region--postch)
     (push `(completion-in-region-mode . ,completion-in-region-mode-map)

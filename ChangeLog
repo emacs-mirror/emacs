@@ -1,13 +1,21 @@
-2011-04-05  Paul Eggert  <eggert@cs.ucla.edu>
+2011-04-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.in (ATTRIBUTE_FORMAT, ATTRIBUTE_FORMAT_PRINTF): New macros.
-
-2011-04-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Replace 2 copies of readlink code with 1 gnulib version (Bug#8401).
 	* Makefile.in (GNULIB_MODULES): Add careadlinkat.
 	* lib/allocator.h, lib/careadlinkat.c, lib/careadlinkat.h:
 	* m4/ssize_t.m4: New files, automatically generated from gnulib.
+
+2011-04-06  Glenn Morris  <rgm@gnu.org>
+
+	* autogen/update_autogen: Handle loaddefs-like files as well.
+	(usage): Add -l, -C.
+	(clean, ldefs_flag, ldefs_in, ldefs_out): New variables.
+	With -l, check status of lisp/ as well.
+	With -C, clean before building.
+	(autoreconf): Only pass -f in the `clean' case.
+	(commit): New function.
 
 2011-03-28  Glenn Morris  <rgm@gnu.org>
 

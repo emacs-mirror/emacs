@@ -1,3 +1,8 @@
+2011-04-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* mh-funcs.el (mh-undo-folder): Accept and ignore arguments,
+	for compatibility with `revert-buffer'.  Doc fix.  (Bug#8431)
+
 2011-03-05  Antoine Levitt  <antoine.levitt@gmail.com>
 
 	* mh-funcs.el (mh-store-msg, mh-store-buffer):

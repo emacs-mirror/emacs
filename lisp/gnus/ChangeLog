@@ -1,3 +1,35 @@
+2011-04-05  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-fixup-registry): New function to
+	fixup the parameters that can be customized by the user between
+	save/read cycles.
+	(gnus-registry-read): Use it.
+	(gnus-registry-make-db): Use it.
+	(gnus-registry-spool-action, gnus-registry-handle-action): Fix
+	messaging.
+	(gnus-registry--split-fancy-with-parent-internal): Fix loop.  Map
+	references to actual group names with sender and subject tracking.
+	(gnus-registry-post-process-groups): Use `cond' for better messaging.
+	(gnus-registry-usage-test): Add subject lookup test.
+
+	* registry.el (registry-db, initialize-instance): Set up constructor
+	instead of :initform arguments for the sake of older Emacsen.
+	(registry-lookup-breaks-before-lexbind): New method to demonstrate
+	pre-lexbind merge bug.
+	(registry-usage-test): Use it.
+	(initialize-instance, registry-db): Move the non-function initforms
+	back to the class definition.
+
+2011-04-03  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* registry.el: New library to manage gnus-registry-style data.
+
+	* gnus-registry.el: Use it (major rewrite).
+
+	* nnregistry.el: Use it.
+
+	* spam.el: Use it.
+
 2011-04-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-sum.el (gnus-update-marks): Reinstate the code to not alter
