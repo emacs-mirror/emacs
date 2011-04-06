@@ -1,5 +1,7 @@
 2011-04-06  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xterm.c (x_catch_errors): Remove duplicate declaration.
+
 	* term.c (maybe_fatal): Mark its 3rd arg as a printf format, too.
 
 	* xdisp.c, lisp.h (message_nolog): Remove; unused.
