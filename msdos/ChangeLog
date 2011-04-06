@@ -1,3 +1,15 @@
+2011-04-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedlibmk.inp: Update checklist.
+	(am_libgnu_a_OBJECTS): Remove careadlinkat.$(OBJEXT).
+	($(top_builddir)/config.status): Edit away, both as target and in
+	prerequisites.
+	(@am__fastdepCC_FALSE@): Fix editing.
+	(@GL_GENERATE_STDBOOL_H_TRUE@, @GL_GENERATE_STDBOOL_H_FALSE@)
+	(@GL_GENERATE_STDDEF_H_TRUE@, @GL_GENERATE_STDDEF_H_FALSE@)
+	(@GL_GENERATE_STDINT_H_TRUE@, @GL_GENERATE_STDINT_H_FALSE@): Edit
+	to either nothing or "#".
+
 2011-03-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* sedlibmk.inp: Adapt to addition of the gnulib stdio module.
