@@ -268,7 +268,10 @@ echo "Running lisp/ make..."
 make -C lisp "$@" autoloads EMACS=../src/bootstrap-emacs || die "make src error"
 
 
-[ ! "$lboot_flag" ] || cp $ldefs_in $ldefs_out || die "cp ldefs_boot error"
+## Ignore comment differences.
+[ ! "$lboot_flag" ] || \
+    diff -q -I '^;' $ldefs_in $ldefs_out || \
+    cp $ldefs_in $ldefs_out || die "cp ldefs_boot error"
 
 
 cd lisp

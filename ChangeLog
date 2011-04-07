@@ -1,3 +1,7 @@
+2011-04-07  Glenn Morris  <rgm@gnu.org>
+
+	* autogen/update_autogen: Ignore comment diffs in ldefs-boot.el.
+
 2011-04-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* lib/makefile.w32-in ($(BLD)/careadlinkat.$(O), GNULIBOBJS):
