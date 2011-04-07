@@ -1,3 +1,17 @@
+2011-04-07  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-handle-action): More debugging.
+
+	* gnus-start.el (gnus-gnus-to-newsrc-format): Add a way to run
+	interactively so the newsrc file can contain foreign groups too.
+	Useful for debugging but not much for users.
+
+2011-04-07  David Engster  <dengste@eml.cc>
+
+	* registry.el (registry-usage-test): Only do
+	`registry-lookup-breaks-before-lexbind' testing for Emacs24 with
+	lexical binding.
+
 2011-04-06  David Engster  <dengste@eml.cc>
 
 	* registry.el, gnus-registry.el: Use `ignore-errors' instead of third

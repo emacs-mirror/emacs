@@ -321,6 +321,9 @@ This is not required after changing `gnus-registry-cache-file'."
     (gnus-registry-handle-action id nil to subject sender)))
 
 (defun gnus-registry-handle-action (id from to subject sender)
+  (gnus-message
+   10
+   "gnus-registry-handle-action %S" (list id from to subject sender))
   (let ((db gnus-registry-db)
         ;; safe if not found
         (entry (gnus-registry-get-or-make-entry id)))

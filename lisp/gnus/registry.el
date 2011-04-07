@@ -357,12 +357,13 @@ Removes only entries without the :precious keys."
     (should (= 58 (caadr (registry-lookup db '(1 58 99)))))
     (message "Grouped individual lookup")
     (should (= 3 (length (registry-lookup db '(1 58 99)))))
-    (message "Individual lookup (breaks before lexbind)")
-    (should (= 58
-               (caadr (registry-lookup-breaks-before-lexbind db '(1 58 99)))))
-    (message "Grouped individual lookup (breaks before lexbind)")
-    (should (= 3
-               (length (registry-lookup-breaks-before-lexbind db '(1 58 99)))))
+    (when (boundp 'lexical-binding)
+      (message "Individual lookup (breaks before lexbind)")
+      (should (= 58
+		 (caadr (registry-lookup-breaks-before-lexbind db '(1 58 99)))))
+      (message "Grouped individual lookup (breaks before lexbind)")
+      (should (= 3
+		 (length (registry-lookup-breaks-before-lexbind db '(1 58 99))))))
     (message "Search")
     (should (= n (length (registry-search db :all t))))
     (should (= n (length (registry-search db :member '((sender "me"))))))
