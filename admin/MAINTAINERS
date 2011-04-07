@@ -145,7 +145,6 @@ src/config.in
 src/data.c
 src/dispnew.c
 src/doc.c
-src/doprnt.c
 src/ecrt0.c
 src/emacs.c
 src/epaths.in
@@ -215,4 +214,3 @@ src/xmenu.c
 src/xrdb.c
 src/xselect.c
 src/xterm.c
-

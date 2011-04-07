@@ -1,5 +1,11 @@
 2011-04-07  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Remove the doprnt implementation, as Emacs now uses vsnprintf.
+	* doprnt.c: Remove.
+	* lisp.h (doprnt): Remove.
+	* Makefile.in (base_obj): Remove doprnt.o.
+	* deps.mk (doprnt.o): Remove.
+
 	error: Print 32- and 64-bit integers portably (Bug#8435).
 	Without this change, on typical 64-bit hosts error ("...%d...", N)
 	was used to print both 32- and 64-bit integers N, which relied on

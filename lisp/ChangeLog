@@ -1,3 +1,8 @@
+2011-04-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove the doprnt implementation, as Emacs now uses vsnprintf.
+	* emacs-lisp/find-gc.el (find-gc-source-files): Remove doprnt.c.
+
 2011-04-06  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (AUTOGEN_VCS): New variable.
