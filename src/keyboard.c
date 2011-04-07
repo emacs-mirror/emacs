@@ -8778,7 +8778,8 @@ access_keymap_keyremap (Lisp_Object map, Lisp_Object key, Lisp_Object prompt,
 	 (To ignore it safely, we would need to gcpro a bunch of
 	 other variables.)  */
       if (! (VECTORP (next) || STRINGP (next)))
-	error ("Function %s returns invalid key sequence", tem);
+	error ("Function %s returns invalid key sequence",
+	       SSDATA (SYMBOL_NAME (tem)));
     }
   return next;
 }
