@@ -3804,7 +3804,7 @@ See Info node `(elisp)Splitting Windows' for more details and examples.  */)
 	error ("Window height %d too small (after splitting)", size_int);
       if (size_int + window_safe_height > XFASTINT (o->total_lines))
 	error ("Window height %d too small (after splitting)",
-	       XFASTINT (o->total_lines) - size_int);
+	       (int) (XFASTINT (o->total_lines) - size_int));
       if (NILP (o->parent)
 	  || NILP (XWINDOW (o->parent)->vchild))
 	{
@@ -3821,7 +3821,7 @@ See Info node `(elisp)Splitting Windows' for more details and examples.  */)
 	error ("Window width %d too small (after splitting)", size_int);
       if (size_int + window_safe_width > XFASTINT (o->total_cols))
 	error ("Window width %d too small (after splitting)",
-	       XFASTINT (o->total_cols) - size_int);
+	       (int) (XFASTINT (o->total_cols) - size_int));
       if (NILP (o->parent)
 	  || NILP (XWINDOW (o->parent)->hchild))
 	{

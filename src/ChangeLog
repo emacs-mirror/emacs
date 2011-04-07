@@ -1,5 +1,27 @@
 2011-04-07  Paul Eggert  <eggert@cs.ucla.edu>
 
+	error: Print 32- and 64-bit integers portably (Bug#8435).
+	Without this change, on typical 64-bit hosts error ("...%d...", N)
+	was used to print both 32- and 64-bit integers N, which relied on
+	undefined behavior.
+	* lisp.h, src/m/amdx86-64.h, src/m/ia64.h, src/m/ibms390x.h (pEd):
+	New macro.
+	* lisp.h (error, verror): Mark as printf-like functions.
+	* eval.c (verror): Use vsnprintf, not doprnt, to do the real work.
+	Report overflow in size calculations when allocating printf buffer.
+	Do not truncate output string at its first null byte.
+	* xdisp.c (vmessage): Use vsnprintf, not doprnt, to do the real work.
+	Truncate the output at a character boundary, since vsnprintf does not
+	do that.
+	* charset.c (check_iso_charset_parameter): Convert internal
+	character to string before calling 'error', since %c now has the
+	printf meaning.
+	* coding.c (Fdecode_sjis_char, Fdecode_big5_char): Avoid int
+	overflow when computing char to be passed to 'error'.  Do not
+	pass Lisp_Object to 'error'; pass the integer instead.
+	* nsfns.m (Fns_do_applescript): Use int, not long, since it's
+	formatted with plain %d.
+
 	* eval.c (internal_lisp_condition_case): Don't pass spurious arg.
 
 	* keyboard.c (access_keymap_keyremap): Print func name, not garbage.

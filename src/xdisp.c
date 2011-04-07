@@ -8407,10 +8407,18 @@ vmessage (const char *m, va_list ap)
 	{
 	  if (m)
 	    {
-	      EMACS_INT len;
+	      char *buf = FRAME_MESSAGE_BUF (f);
+	      size_t bufsize = FRAME_MESSAGE_BUF_SIZE (f);
+	      int len = vsnprintf (buf, bufsize, m, ap);
+	      if (len < 0)
+		len = 0;
 
-	      len = doprnt (FRAME_MESSAGE_BUF (f),
-			    FRAME_MESSAGE_BUF_SIZE (f), m, (char *)0, ap);
+	      /* Do any truncation at a character boundary.  */
+	      if (0 < bufsize && bufsize <= len)
+		for (len = bufsize - 1;
+		     len && ! CHAR_HEAD_P (buf[len - 1]);
+		     len--)
+		  continue;
 
 	      message2 (FRAME_MESSAGE_BUF (f), len, 0);
 	    }

@@ -28,6 +28,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define the type to use.  */
 #define EMACS_INT               long
+#define pEd			"ld"
 #define EMACS_UINT              unsigned long
 
 /* Define XPNTR to avoid or'ing with DATA_SEG_BITS */

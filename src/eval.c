@@ -1977,21 +1977,26 @@ void
 verror (const char *m, va_list ap)
 {
   char buf[200];
-  EMACS_INT size = 200;
-  int mlen;
+  size_t size = sizeof buf;
+  size_t size_max = (size_t) -1;
   char *buffer = buf;
   int allocated = 0;
+  int used;
   Lisp_Object string;
-
-  mlen = strlen (m);
 
   while (1)
     {
-      EMACS_INT used;
-      used = doprnt (buffer, size, m, m + mlen, ap);
+      used = vsnprintf (buffer, size, m, ap);
+      if (used < 0)
+	used = 0;
       if (used < size)
 	break;
-      size *= 2;
+      if (size <= size_max / 2)
+	size *= 2;
+      else if (size < size_max)
+	size = size_max;
+      else
+	memory_full ();
       if (allocated)
 	buffer = (char *) xrealloc (buffer, size);
       else
@@ -2001,7 +2006,7 @@ verror (const char *m, va_list ap)
 	}
     }
 
-  string = build_string (buffer);
+  string = make_string (buffer, used);
   if (allocated)
     xfree (buffer);
 

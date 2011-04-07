@@ -154,7 +154,7 @@ get_doc_string (Lisp_Object filepos, int unibyte, int definition)
   if (0 > lseek (fd, position - offset, 0))
     {
       emacs_close (fd);
-      error ("Position %ld out of range in doc string file \"%s\"",
+      error ("Position %"pEd" out of range in doc string file \"%s\"",
 	     position, name);
     }
 
@@ -669,7 +669,7 @@ the same file name is found in the `doc-directory'.  */)
 		; /* Just a source file name boundary marker.  Ignore it.  */
 
 	      else
-		error ("DOC file invalid at position %d", pos);
+		error ("DOC file invalid at position %"pEd, pos);
 	    }
 	}
       pos += end - buf;

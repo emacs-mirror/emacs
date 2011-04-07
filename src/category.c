@@ -128,7 +128,7 @@ the current buffer's category table.  */)
   table = check_category_table (table);
 
   if (!NILP (CATEGORY_DOCSTRING (table, XFASTINT (category))))
-    error ("Category `%c' is already defined", XFASTINT (category));
+    error ("Category `%c' is already defined", (int) XFASTINT (category));
   if (!NILP (Vpurify_flag))
     docstring = Fpurecopy (docstring);
   CATEGORY_DOCSTRING (table, XFASTINT (category)) = docstring;
@@ -373,7 +373,7 @@ then delete CATEGORY from the category set instead of adding it.  */)
   table = check_category_table (table);
 
   if (NILP (CATEGORY_DOCSTRING (table, XFASTINT (category))))
-    error ("Undefined category: %c", XFASTINT (category));
+    error ("Undefined category: %c", (int) XFASTINT (category));
 
   set_value = NILP (reset) ? Qt : Qnil;
 
