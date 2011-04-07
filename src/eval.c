@@ -1976,7 +1976,7 @@ find_handler_clause (Lisp_Object handlers, Lisp_Object conditions,
 void
 verror (const char *m, va_list ap)
 {
-  char buf[200];
+  char buf[4000];
   size_t size = sizeof buf;
   size_t size_max = (size_t) -1;
   char *buffer = buf;

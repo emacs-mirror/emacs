@@ -1,5 +1,7 @@
 2011-04-07  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* eval.c (verror): Initial buffer size is 4000 (not 200) bytes.
+
 	Remove the doprnt implementation, as Emacs now uses vsnprintf.
 	* doprnt.c: Remove.
 	* lisp.h (doprnt): Remove.
