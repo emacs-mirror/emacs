@@ -1,3 +1,7 @@
+2011-04-07  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
+
+	* play/morse.el (denato-region): Handle varying case.  (Bug#8386)
+
 2011-04-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/cconv.el (cconv--analyse-use): Ignore "ignored" when

@@ -231,7 +231,7 @@ Geospatial-Intelligence Agency at http://www.nga.mil/")
 	(if (null (looking-at "[a-z]+"))
 	    (forward-char 1)
 	  (setq str (buffer-substring (match-beginning 0) (match-end 0)))
-	  (if (null (setq nato (rassoc str nato-alphabet)))
+	  (if (null (setq nato (rassoc (capitalize str) nato-alphabet)))
 	      (goto-char (match-end 0))
 	    (replace-match
 		  (if (string-equal "(" (car nato))
