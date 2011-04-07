@@ -40,7 +40,7 @@
 ;; |  % vc-hooks.el     43605  Emacs-Lisp    /usr/share/emacs/19.34/lisp$|
 ;; -----------------------------------------------------------------------
 
-;;; Quick Installation und Customization:
+;;; Quick Installation and Customization:
 
 ;; To display the bs menu, do
 ;;   M-x bs-show
@@ -1083,7 +1083,7 @@ configuration."
 		  bs-dont-show-regexp     (nth 3 list)
 		  bs-dont-show-function   (nth 4 list)
 		  bs-buffer-sort-function (nth 5 list))
-	  ;; for backward compability
+	  ;; for backward compatibility
 	  (funcall (cdr list)))
       ;; else
       (ding)

@@ -1061,7 +1061,7 @@ Return the selected window."
 ;; it wasn't just moved here. (i.e. M-> shall not unconditionally place
 ;; the point in the selected window.)
 ;;
-;; (Compability cludge: in Emacs `window-end' is equal to `point-max';
+;; (Compatibility cludge: in Emacs `window-end' is equal to `point-max';
 ;; in XEmacs, it is equal to `point-max + 1'. Should I really bother
 ;; checking `window-end' now when I check `end-of-buffer' explicitly?)
 

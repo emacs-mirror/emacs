@@ -15214,7 +15214,7 @@
 	* smime-ldap.el (smime-ldap-search): Add compatibility for XEmacs.
 
 	* smime.el (smime-cert-by-ldap-1): Handle certificates distributed
-	in PEM format.  Adjust to the XEmacs compability.
+	in PEM format.  Adjust to the XEmacs compatibility.
 
 2005-05-30  Reiner Steib  <Reiner.Steib@gmx.de>
 
