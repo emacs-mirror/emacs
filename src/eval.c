@@ -1401,7 +1401,7 @@ internal_lisp_condition_case (volatile Lisp_Object var, Lisp_Object bodyform,
 	     || (CONSP (tem)
 		 && (SYMBOLP (XCAR (tem))
 		     || CONSP (XCAR (tem))))))
-	error ("Invalid condition handler", tem);
+	error ("Invalid condition handler");
     }
 
   c.tag = Qnil;

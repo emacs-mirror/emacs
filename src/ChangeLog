@@ -1,5 +1,7 @@
 2011-04-07  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* eval.c (internal_lisp_condition_case): Don't pass spurious arg.
+
 	* keyboard.c (access_keymap_keyremap): Print func name, not garbage.
 
 2011-04-06  Paul Eggert  <eggert@cs.ucla.edu>
