@@ -1,3 +1,7 @@
+2011-04-08  Svante Signell  <svante.signell@telia.com>  (tiny change)
+
+	* term.c (init_tty): Fix incorrect ifdef placement (Bug#8450).
+
 2011-03-19  Christoph Scholtes  <cschol2112@googlemail.com>
 
 	* process.c (Fformat_network_address): Doc fix.
