@@ -1140,6 +1140,34 @@ it means chase no more than that many links and then stop."
 	(setq count (1+ count))))
     newname))
 
+;; A handy function to display file sizes in human-readable form.
+;; See http://en.wikipedia.org/wiki/Kibibyte for the reference.
+(defun file-size-human-readable (file-size &optional flavor)
+  "Produce a string showing FILE-SIZE in human-readable form.
+
+Optional second argument FLAVOR controls the units and the display format:
+
+ If FLAVOR is nil or omitted, each kilobyte is 1024 bytes and the produced
+    suffixes are \"k\", \"M\", \"G\", \"T\", etc.
+ If FLAVOR is `si', each kilobyte is 1000 bytes and the produced suffixes
+    are \"k\", \"M\", \"G\", \"T\", etc.
+ If FLAVOR is `iec', each kilobyte is 1024 bytes and the produced suffixes
+    are \"KiB\", \"MiB\", \"GiB\", \"TiB\", etc."
+  (let ((power (if (or (null flavor) (eq flavor 'iec))
+		   1024.0
+		 1000.0))
+	(post-fixes
+	 ;; none, kilo, mega, giga, tera, peta, exa, zetta, yotta
+	 (list "" "k" "M" "G" "T" "P" "E" "Z" "Y")))
+    (while (and (>= file-size power) (cdr post-fixes))
+      (setq file-size (/ file-size power)
+	    post-fixes (cdr post-fixes)))
+    (format "%.0f%s%s" file-size
+	    (if (and (eq flavor 'iec) (string= (car post-fixes) "k"))
+		"K"
+	      (car post-fixes))
+	    (if (eq flavor 'iec) "iB" ""))))
+
 (defun make-temp-file (prefix &optional dir-flag suffix)
   "Create a temporary file.
 The returned file name (created by appending some random characters at the end
