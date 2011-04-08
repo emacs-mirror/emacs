@@ -1,3 +1,8 @@
+2011-04-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (list-processes): If async subprocesses are not
+	available, error out with a clear error message.
+
 2011-04-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* help.el (help-form-show): New function, to be called from C.

@@ -2769,6 +2769,8 @@ Optional argument BUFFER specifies a buffer to use, instead of
 \"*Process List\".
 The return value is always nil."
   (interactive)
+  (or (fboundp 'process-list)
+      (error "Asynchronous subprocesses are not supported on this system"))
   (unless (bufferp buffer)
     (setq buffer (get-buffer-create "*Process List*")))
   (with-current-buffer buffer
