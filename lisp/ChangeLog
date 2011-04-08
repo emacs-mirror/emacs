@@ -1,3 +1,10 @@
+2011-04-08  Sho Nakatani <lay.sakura@gmail.com>
+
+	* doc-view.el (doc-view-fit-width-to-window)
+	(doc-view-fit-height-to-window, doc-view-fit-page-to-window): New
+	functions for fitting the shown image to the Emacs window size.
+	(doc-view-mode-map): Add bindings for the new functions.
+
 2011-03-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* vc-annotate.el (vc-annotate-show-log-revision-at-line):

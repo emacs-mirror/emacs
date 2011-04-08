@@ -328,6 +328,10 @@ Can be `dvi', `pdf', or `ps'.")
     ;; Zoom in/out.
     (define-key map "+"               'doc-view-enlarge)
     (define-key map "-"               'doc-view-shrink)
+    ;; Fit the image to the window
+    (define-key map "W"               'doc-view-fit-width-to-window)
+    (define-key map "H"               'doc-view-fit-height-to-window)
+    (define-key map "P"               'doc-view-fit-page-to-window)
     ;; Killing the buffer (and the process)
     (define-key map (kbd "k")         'doc-view-kill-proc-and-buffer)
     (define-key map (kbd "K")         'doc-view-kill-proc)
@@ -663,6 +667,78 @@ OpenDocument format)."
   "Shrink the document."
   (interactive (list doc-view-shrink-factor))
   (doc-view-enlarge (/ 1.0 factor)))
+
+(defun doc-view-fit-width-to-window ()
+  "Fit the image width to the window width."
+  (interactive)
+  (let ((win-width (- (nth 2 (window-inside-pixel-edges))
+                      (nth 0 (window-inside-pixel-edges))))
+        (slice (doc-view-current-slice)))
+    (if (not slice)
+        (let ((img-width (car (image-display-size
+                               (image-get-display-property) t))))
+          (doc-view-enlarge (/ (float win-width) (float img-width))))
+
+      ;; If slice is set
+      (let* ((slice-width (nth 2 slice))
+             (scale-factor (/ (float win-width) (float slice-width)))
+             (new-slice (mapcar (lambda (x) (ceiling (* scale-factor x))) slice)))
+
+        (doc-view-enlarge scale-factor)
+        (setf (doc-view-current-slice) new-slice)
+        (doc-view-goto-page (doc-view-current-page))))))
+
+(defun doc-view-fit-height-to-window ()
+  "Fit the image height to the window height."
+  (interactive)
+  (let ((win-height (- (nth 3 (window-inside-pixel-edges))
+                       (nth 1 (window-inside-pixel-edges))))
+        (slice (doc-view-current-slice)))
+    (if (not slice)
+        (let ((img-height (cdr (image-display-size
+                                (image-get-display-property) t))))
+          ;; When users call 'doc-view-fit-height-to-window',
+          ;; they might want to go to next page by typing SPC
+          ;; ONLY once. So I used '(- win-height 1)' instead of
+          ;; 'win-height'
+          (doc-view-enlarge (/ (float (- win-height 1)) (float img-height))))
+
+      ;; If slice is set
+      (let* ((slice-height (nth 3 slice))
+             (scale-factor (/ (float (- win-height 1)) (float slice-height)))
+             (new-slice (mapcar (lambda (x) (ceiling (* scale-factor x))) slice)))
+
+        (doc-view-enlarge scale-factor)
+        (setf (doc-view-current-slice) new-slice)
+        (doc-view-goto-page (doc-view-current-page))))))
+
+(defun doc-view-fit-page-to-window ()
+  "Fit the image to the window.
+More specifically, this function enlarges image by:
+
+min {(window-width / image-width), (window-height / image-height)} times."
+  (interactive)
+  (let ((win-width (- (nth 2 (window-inside-pixel-edges))
+                      (nth 0 (window-inside-pixel-edges))))
+        (win-height (- (nth 3 (window-inside-pixel-edges))
+                       (nth 1 (window-inside-pixel-edges))))
+        (slice (doc-view-current-slice)))
+    (if (not slice)
+        (let ((img-width (car (image-display-size
+                               (image-get-display-property) t)))
+              (img-height (cdr (image-display-size
+                                (image-get-display-property) t))))
+          (doc-view-enlarge (min (/ (float win-width) (float img-width))
+                                 (/ (float (- win-height 1)) (float img-height)))))
+      ;; If slice is set
+      (let* ((slice-width (nth 2 slice))
+             (slice-height (nth 3 slice))
+             (scale-factor (min (/ (float win-width) (float slice-width))
+                                (/ (float (- win-height 1)) (float slice-height))))
+             (new-slice (mapcar (lambda (x) (ceiling (* scale-factor x))) slice)))
+        (doc-view-enlarge scale-factor)
+        (setf (doc-view-current-slice) new-slice)
+        (doc-view-goto-page (doc-view-current-page))))))
 
 (defun doc-view-reconvert-doc ()
   "Reconvert the current document.
