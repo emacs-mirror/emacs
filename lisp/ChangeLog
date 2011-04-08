@@ -1,5 +1,8 @@
 2011-04-08  Glenn Morris  <rgm@gnu.org>
 
+	* net/browse-url.el (browse-url-firefox):
+	Test system-type, not system-configuration.
+
 	* vc/log-edit.el (log-edit-empty-buffer-p): New function.
 	(log-edit-insert-cvs-template, log-edit-insert-cvs-rcstemplate):
 	Use log-edit-empty-buffer-p.  (Bug#7598)
