@@ -2775,8 +2775,6 @@ extern Lisp_Object Qprint_escape_newlines;
 extern void write_string (const char *, int);
 extern void print_error_message (Lisp_Object, Lisp_Object, const char *,
 				 Lisp_Object);
-extern Lisp_Object internal_with_output_to_temp_buffer
-        (const char *, Lisp_Object (*) (Lisp_Object), Lisp_Object);
 #define FLOAT_TO_STRING_BUFSIZE 350
 extern void float_to_string (char *, double);
 extern void syms_of_print (void);

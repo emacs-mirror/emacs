@@ -1,3 +1,8 @@
+2011-04-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* help.el (help-form-show): New function, to be called from C.
+	Put help-form output in a buffer named differently than *Help*.
+
 2011-04-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* files.el (file-size-human-readable): New function.

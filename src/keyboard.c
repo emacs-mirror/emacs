@@ -260,6 +260,8 @@ Lisp_Object Qdeferred_action_function;
 Lisp_Object Qinput_method_exit_on_first_char;
 Lisp_Object Qinput_method_use_echo_area;
 
+Lisp_Object Qhelp_form_show;
+
 /* File in which we write all commands we read.  */
 FILE *dribble;
 
@@ -3095,10 +3097,7 @@ read_char (int commandflag, int nmaps, Lisp_Object *maps, Lisp_Object prev_event
 	= Fcons (Fcurrent_window_configuration (Qnil),
 		 help_form_saved_window_configs);
       record_unwind_protect (read_char_help_form_unwind, Qnil);
-
-      tem0 = Feval (Vhelp_form, Qnil);
-      if (STRINGP (tem0))
-	internal_with_output_to_temp_buffer ("*Help*", print_help, tem0);
+      call0 (Qhelp_form_show);
 
       cancel_echoing ();
       do
@@ -11601,6 +11600,9 @@ syms_of_keyboard (void)
   staticpro (&Qinput_method_exit_on_first_char);
   Qinput_method_use_echo_area = intern_c_string ("input-method-use-echo-area");
   staticpro (&Qinput_method_use_echo_area);
+
+  Qhelp_form_show = intern_c_string ("help-form-show");
+  staticpro (&Qhelp_form_show);
 
   Fset (Qinput_method_exit_on_first_char, Qnil);
   Fset (Qinput_method_use_echo_area, Qnil);

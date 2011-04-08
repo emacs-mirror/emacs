@@ -1,3 +1,13 @@
+2011-04-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (read_char): Call Lisp function help-form-show,
+	instead of using internal_with_output_to_temp_buffer.
+	(Qhelp_form_show): New var.
+
+	* print.c (internal_with_output_to_temp_buffer): Function deleted.
+
+	* lisp.h (internal_with_output_to_temp_buffer): Remove prototype.
+
 2011-04-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* process.c (Flist_processes): Removed to Lisp.

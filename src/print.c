@@ -520,29 +520,6 @@ temp_output_buffer_setup (const char *bufname)
 
   specbind (Qstandard_output, buf);
 }
-
-/* FIXME: Use Lisp's with-output-to-temp-buffer instead!  */
-Lisp_Object
-internal_with_output_to_temp_buffer (const char *bufname, Lisp_Object (*function) (Lisp_Object), Lisp_Object args)
-{
-  int count = SPECPDL_INDEX ();
-  Lisp_Object buf, val;
-  struct gcpro gcpro1;
-
-  GCPRO1 (args);
-  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
-  temp_output_buffer_setup (bufname);
-  buf = Vstandard_output;
-  UNGCPRO;
-
-  val = (*function) (args);
-
-  GCPRO1 (val);
-  temp_output_buffer_show (buf);
-  UNGCPRO;
-
-  return unbind_to (count, val);
-}
 
 static void print (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag);
 static void print_preprocess (Lisp_Object obj);

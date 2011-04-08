@@ -3664,9 +3664,6 @@ temp_output_buffer_show (register Lisp_Object buf)
   BEGV = BEG;
   ZV = Z;
   SET_PT (BEG);
-#if 0  /* rms: there should be no reason for this.  */
-  XBUFFER (buf)->prevent_redisplay_optimizations_p = 1;
-#endif
   set_buffer_internal (old);
 
   if (!NILP (Vtemp_buffer_show_function))
