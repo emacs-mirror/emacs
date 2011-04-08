@@ -1,7 +1,12 @@
 2011-04-08  Chong Yidong  <cyd@stupidchicken.com>
 
-	* xterm.c (handle_one_xevent): Avoid type-punned derefencing of X
-	events.
+	* ftfont.c (get_adstyle_property, ftfont_pattern_entity): Use
+	unsigned char, to match FcChar8 type definition.
+
+	* xterm.c (handle_one_xevent):
+	* xmenu.c (create_and_show_popup_menu):
+	* xselect.c (x_decline_selection_request)
+	(x_reply_selection_request): Avoid type-punned deref of X events.
 
 2011-04-08  Svante Signell  <svante.signell@telia.com>  (tiny change)
 
