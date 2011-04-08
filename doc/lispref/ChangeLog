@@ -1,3 +1,18 @@
+2011-03-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuf.texi (Basic Completion): Be a bit more precise about the
+	valid kinds of completion tables.
+	(Programmed Completion): Remove obsolete text about lambda expressions
+	not being valid completion tables.
+
+2011-03-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* positions.texi (Excursions): Explain the "save-excursion
+	defeated by set-buffer" warning.
+
+	* buffers.texi (Current Buffer): Copyedits.  Don't recommend using
+	save-excursion.  Suggested by Uday S Reddy.
+
 2011-04-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* variables.texi (Defining Variables): Mention the new meaning of `defvar'.

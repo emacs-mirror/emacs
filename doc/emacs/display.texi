@@ -206,16 +206,18 @@ how aggressively it scrolls by setting the variables
 @code{scroll-up-aggressively} and @code{scroll-down-aggressively}.
 The value of @code{scroll-up-aggressively} should be either
 @code{nil}, or a fraction @var{f} between 0 and 1.  A fraction
-specifies where on the screen to put point when scrolling upward: when
-a window scrolls up because point is above the window start, the new
+specifies where on the screen to put point when scrolling upward,
+i.e.@: when point moves forward in the buffer, and therefore text
+scrolls up in the window.  When point goes off the window end, the new
 start position is chosen to put point @var{f} parts of the window
-height from the top.  Thus, larger @var{f} means more aggressive
-scrolling.  The default value, @code{nil}, is equivalent to 0.5.
+height from the bottom.  Thus, larger @var{f} means more aggressive
+scrolling: more new text is brought into view.  The default value,
+@code{nil}, is equivalent to 0.5.
 
   Likewise, @code{scroll-down-aggressively} is used for scrolling
-down.  The value specifies how far point should be placed from the
-bottom of the window; thus, as with @code{scroll-up-aggressively}, a
-larger value is more aggressive.
+down, i.e.@: moving point back in the buffer.  The value specifies how
+far point should be placed from the top of the window; thus, as with
+@code{scroll-up-aggressively}, a larger value is more aggressive.
 
   These two variables are ignored if either @code{scroll-step} or
 @code{scroll-conservatively} are set to a non-zero value.
