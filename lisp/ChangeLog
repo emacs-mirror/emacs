@@ -1,5 +1,9 @@
 2011-04-08  Glenn Morris  <rgm@gnu.org>
 
+	* vc/log-edit.el (log-edit-empty-buffer-p): New function.
+	(log-edit-insert-cvs-template, log-edit-insert-cvs-rcstemplate):
+	Use log-edit-empty-buffer-p.  (Bug#7598)
+
 	* net/rlogin.el (rlogin-process-connection-type): Simplify.
 	(rlogin-mode-map): Initialize in the defvar.
 	(rlogin): Use ignore-errors.
