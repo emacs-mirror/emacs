@@ -1,3 +1,7 @@
+2011-04-08  Glenn Morris  <rgm@gnu.org>
+
+	* replace.el (occur-mode-map): Some fixes for menu items.
+
 2011-04-07  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
 
 	* play/morse.el (denato-region): Handle varying case.  (Bug#8386)
