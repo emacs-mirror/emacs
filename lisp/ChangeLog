@@ -1,5 +1,7 @@
 2011-04-08  Glenn Morris  <rgm@gnu.org>
 
+	* man.el (Man-page-header-regexp): Solaris < 2.6 no longer supported.
+
 	* net/browse-url.el (browse-url-firefox):
 	Test system-type, not system-configuration.
 
