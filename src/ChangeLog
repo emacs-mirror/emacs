@@ -1,3 +1,14 @@
+2011-04-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* eval.c: Port to Windows vsnprintf (Bug#8435).
+	Include <limits.h>.
+	(SIZE_MAX): Define if the headers do not.
+	(verror): Do not give up if vsnprintf returns a negative count.
+	Instead, grow the buffer.  This ports to Windows vsnprintf, which
+	does not conform to C99.  Problem reported by Eli Zaretskii.
+	Also, simplify the allocation scheme, by avoiding the need for
+	calling realloc, and removing the ALLOCATED variable.
+
 2011-04-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* eval.c (verror): Initial buffer size is 4000 (not 200) bytes.

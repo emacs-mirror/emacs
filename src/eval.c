@@ -18,6 +18,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
+#include <limits.h>
 #include <setjmp.h>
 #include "lisp.h"
 #include "blockinput.h"
@@ -28,6 +29,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #if HAVE_X_WINDOWS
 #include "xterm.h"
+#endif
+
+#ifndef SIZE_MAX
+# define SIZE_MAX ((size_t) -1)
 #endif
 
 /* This definition is duplicated in alloc.c and keyboard.c.  */
@@ -1978,36 +1983,37 @@ verror (const char *m, va_list ap)
 {
   char buf[4000];
   size_t size = sizeof buf;
-  size_t size_max = (size_t) -1;
+  size_t size_max =
+    min (MOST_POSITIVE_FIXNUM, min (INT_MAX, SIZE_MAX - 1)) + 1;
   char *buffer = buf;
-  int allocated = 0;
   int used;
   Lisp_Object string;
 
   while (1)
     {
       used = vsnprintf (buffer, size, m, ap);
+
       if (used < 0)
-	used = 0;
-      if (used < size)
-	break;
-      if (size <= size_max / 2)
-	size *= 2;
-      else if (size < size_max)
-	size = size_max;
-      else
-	memory_full ();
-      if (allocated)
-	buffer = (char *) xrealloc (buffer, size);
-      else
 	{
-	  buffer = (char *) xmalloc (size);
-	  allocated = 1;
+	  /* Non-C99 vsnprintf, such as w32, returns -1 when SIZE is too small.
+	     Guess a larger USED to work around the incompatibility.  */
+	  used = (size <= size_max / 2 ? 2 * size
+		  : size < size_max ? size_max - 1
+		  : size_max);
 	}
+      else if (used < size)
+	break;
+      if (size_max <= used)
+	memory_full ();
+      size = used + 1;
+
+      if (buffer != buf)
+	xfree (buffer);
+      buffer = (char *) xmalloc (size);
     }
 
   string = make_string (buffer, used);
-  if (allocated)
+  if (buffer != buf)
     xfree (buffer);
 
   xsignal1 (Qerror, string);
