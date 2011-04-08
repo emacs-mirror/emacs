@@ -1,3 +1,7 @@
+2011-03-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Auto Scrolling): Fix scroll-up/scroll-down confusion.
+
 2011-03-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* display.texi (Auto Scrolling): Document the limit of 100 lines
