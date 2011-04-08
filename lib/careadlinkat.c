@@ -26,14 +26,8 @@
 
 #include <errno.h>
 #include <limits.h>
-#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
-/* Use the system functions, not the gnulib overrides, because this
-   module does not depend on GNU or POSIX semantics.  */
-#undef malloc
-#undef realloc
 
 /* Define this independently so that stdint.h is not a prerequisite.  */
 #ifndef SIZE_MAX
@@ -56,11 +50,6 @@ careadlinkatcwd (int fd, char const *filename, char *buffer,
   return readlink (filename, buffer, buffer_size);
 }
 #endif
-
-/* A standard allocator.  For now, only careadlinkat needs this, but
-   perhaps it should be moved to the allocator module.  */
-static struct allocator const standard_allocator =
-  { malloc, realloc, free, NULL };
 
 /* Assuming the current directory is FD, get the symbolic link value
    of FILENAME as a null-terminated string and put it into a buffer.
@@ -94,7 +83,7 @@ careadlinkat (int fd, char const *filename,
   char stack_buf[1024];
 
   if (! alloc)
-    alloc = &standard_allocator;
+    alloc = &stdlib_allocator;
 
   if (! buffer_size)
     {
@@ -138,16 +127,16 @@ careadlinkat (int fd, char const *filename,
 
           if (buf == stack_buf)
             {
-              char *b = (char *) alloc->malloc (link_size);
+              char *b = (char *) alloc->allocate (link_size);
               if (! b)
                 break;
               memcpy (b, buf, link_size);
               buf = b;
             }
-          else if (link_size < buf_size && buf != buffer && alloc->realloc)
+          else if (link_size < buf_size && buf != buffer && alloc->reallocate)
             {
               /* Shrink BUF before returning it.  */
-              char *b = (char *) alloc->realloc (buf, link_size);
+              char *b = (char *) alloc->reallocate (buf, link_size);
               if (b)
                 buf = b;
             }
@@ -164,7 +153,7 @@ careadlinkat (int fd, char const *filename,
         buf_size = buf_size_max;
       else
         break;
-      buf = (char *) alloc->malloc (buf_size);
+      buf = (char *) alloc->allocate (buf_size);
     }
   while (buf);
 
