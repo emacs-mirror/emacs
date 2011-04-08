@@ -3,6 +3,7 @@
 	* keyboard.c (read_char): Call Lisp function help-form-show,
 	instead of using internal_with_output_to_temp_buffer.
 	(Qhelp_form_show): New var.
+	(syms_of_keyboard): Use DEFSYM macro.
 
 	* print.c (internal_with_output_to_temp_buffer): Function deleted.
 

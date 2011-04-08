@@ -11439,14 +11439,9 @@ syms_of_keyboard (void)
   staticpro (&Vlispy_mouse_stem);
 
   /* Tool-bars.  */
-  QCimage = intern_c_string (":image");
-  staticpro (&QCimage);
-
-  staticpro (&Qhelp_echo);
-  Qhelp_echo = intern_c_string ("help-echo");
-
-  staticpro (&Qrtl);
-  Qrtl = intern_c_string (":rtl");
+  DEFSYM (QCimage, ":image");
+  DEFSYM (Qhelp_echo, "help-echo");
+  DEFSYM (Qrtl, ":rtl");
 
   staticpro (&item_properties);
   item_properties = Qnil;
@@ -11459,150 +11454,81 @@ syms_of_keyboard (void)
   staticpro (&real_this_command);
   real_this_command = Qnil;
 
-  Qtimer_event_handler = intern_c_string ("timer-event-handler");
-  staticpro (&Qtimer_event_handler);
+  DEFSYM (Qtimer_event_handler, "timer-event-handler");
+  DEFSYM (Qdisabled_command_function, "disabled-command-function");
+  DEFSYM (Qself_insert_command, "self-insert-command");
+  DEFSYM (Qforward_char, "forward-char");
+  DEFSYM (Qbackward_char, "backward-char");
+  DEFSYM (Qdisabled, "disabled");
+  DEFSYM (Qundefined, "undefined");
+  DEFSYM (Qpre_command_hook, "pre-command-hook");
+  DEFSYM (Qpost_command_hook, "post-command-hook");
+  DEFSYM (Qdeferred_action_function, "deferred-action-function");
+  DEFSYM (Qfunction_key, "function-key");
+  DEFSYM (Qmouse_click, "mouse-click");
+  DEFSYM (Qdrag_n_drop, "drag-n-drop");
+  DEFSYM (Qsave_session, "save-session");
+  DEFSYM (Qconfig_changed_event, "config-changed-event");
+  DEFSYM (Qmenu_enable, "menu-enable");
 
-  Qdisabled_command_function = intern_c_string ("disabled-command-function");
-  staticpro (&Qdisabled_command_function);
-
-  Qself_insert_command = intern_c_string ("self-insert-command");
-  staticpro (&Qself_insert_command);
-
-  Qforward_char = intern_c_string ("forward-char");
-  staticpro (&Qforward_char);
-
-  Qbackward_char = intern_c_string ("backward-char");
-  staticpro (&Qbackward_char);
-
-  Qdisabled = intern_c_string ("disabled");
-  staticpro (&Qdisabled);
-
-  Qundefined = intern_c_string ("undefined");
-  staticpro (&Qundefined);
-
-  Qpre_command_hook = intern_c_string ("pre-command-hook");
-  staticpro (&Qpre_command_hook);
-
-  Qpost_command_hook = intern_c_string ("post-command-hook");
-  staticpro (&Qpost_command_hook);
-
-  Qdeferred_action_function = intern_c_string ("deferred-action-function");
-  staticpro (&Qdeferred_action_function);
-
-  Qfunction_key = intern_c_string ("function-key");
-  staticpro (&Qfunction_key);
-  Qmouse_click = intern_c_string ("mouse-click");
-  staticpro (&Qmouse_click);
 #if defined (WINDOWSNT)
-  Qlanguage_change = intern_c_string ("language-change");
-  staticpro (&Qlanguage_change);
+  DEFSYM (Qlanguage_change, "language-change");
 #endif
-  Qdrag_n_drop = intern_c_string ("drag-n-drop");
-  staticpro (&Qdrag_n_drop);
-
-  Qsave_session = intern_c_string ("save-session");
-  staticpro (&Qsave_session);
 
 #ifdef HAVE_DBUS
-  Qdbus_event = intern_c_string ("dbus-event");
-  staticpro (&Qdbus_event);
+  DEFSYM (Qdbus_event, "dbus-event");
 #endif
 
-  Qconfig_changed_event = intern_c_string ("config-changed-event");
-  staticpro (&Qconfig_changed_event);
+  DEFSYM (QCenable, ":enable");
+  DEFSYM (QCvisible, ":visible");
+  DEFSYM (QChelp, ":help");
+  DEFSYM (QCfilter, ":filter");
+  DEFSYM (QCbutton, ":button");
+  DEFSYM (QCkeys, ":keys");
+  DEFSYM (QCkey_sequence, ":key-sequence");
+  DEFSYM (QCtoggle, ":toggle");
+  DEFSYM (QCradio, ":radio");
+  DEFSYM (QClabel, ":label");
+  DEFSYM (QCvert_only, ":vert-only");
 
-  Qmenu_enable = intern_c_string ("menu-enable");
-  staticpro (&Qmenu_enable);
-  QCenable = intern_c_string (":enable");
-  staticpro (&QCenable);
-  QCvisible = intern_c_string (":visible");
-  staticpro (&QCvisible);
-  QChelp = intern_c_string (":help");
-  staticpro (&QChelp);
-  QCfilter = intern_c_string (":filter");
-  staticpro (&QCfilter);
-  QCbutton = intern_c_string (":button");
-  staticpro (&QCbutton);
-  QCkeys = intern_c_string (":keys");
-  staticpro (&QCkeys);
-  QCkey_sequence = intern_c_string (":key-sequence");
-  staticpro (&QCkey_sequence);
-  QCtoggle = intern_c_string (":toggle");
-  staticpro (&QCtoggle);
-  QCradio = intern_c_string (":radio");
-  staticpro (&QCradio);
-  QClabel = intern_c_string (":label");
-  staticpro (&QClabel);
-  QCvert_only = intern_c_string (":vert-only");
-  staticpro (&QCvert_only);
-
-  Qmode_line = intern_c_string ("mode-line");
-  staticpro (&Qmode_line);
-  Qvertical_line = intern_c_string ("vertical-line");
-  staticpro (&Qvertical_line);
-  Qvertical_scroll_bar = intern_c_string ("vertical-scroll-bar");
-  staticpro (&Qvertical_scroll_bar);
-  Qmenu_bar = intern_c_string ("menu-bar");
-  staticpro (&Qmenu_bar);
+  DEFSYM (Qmode_line, "mode-line");
+  DEFSYM (Qvertical_line, "vertical-line");
+  DEFSYM (Qvertical_scroll_bar, "vertical-scroll-bar");
+  DEFSYM (Qmenu_bar, "menu-bar");
 
 #if defined (HAVE_MOUSE) || defined (HAVE_GPM)
-  Qmouse_fixup_help_message = intern_c_string ("mouse-fixup-help-message");
-  staticpro (&Qmouse_fixup_help_message);
+  DEFSYM (Qmouse_fixup_help_message, "mouse-fixup-help-message");
 #endif
 
-  Qabove_handle = intern_c_string ("above-handle");
-  staticpro (&Qabove_handle);
-  Qhandle = intern_c_string ("handle");
-  staticpro (&Qhandle);
-  Qbelow_handle = intern_c_string ("below-handle");
-  staticpro (&Qbelow_handle);
-  Qup = intern_c_string ("up");
-  staticpro (&Qup);
-  Qdown = intern_c_string ("down");
-  staticpro (&Qdown);
-  Qtop = intern_c_string ("top");
-  staticpro (&Qtop);
-  Qbottom = intern_c_string ("bottom");
-  staticpro (&Qbottom);
-  Qend_scroll = intern_c_string ("end-scroll");
-  staticpro (&Qend_scroll);
-  Qratio = intern_c_string ("ratio");
-  staticpro (&Qratio);
+  DEFSYM (Qabove_handle, "above-handle");
+  DEFSYM (Qhandle, "handle");
+  DEFSYM (Qbelow_handle, "below-handle");
+  DEFSYM (Qup, "up");
+  DEFSYM (Qdown, "down");
+  DEFSYM (Qtop, "top");
+  DEFSYM (Qbottom, "bottom");
+  DEFSYM (Qend_scroll, "end-scroll");
+  DEFSYM (Qratio, "ratio");
 
-  Qevent_kind = intern_c_string ("event-kind");
-  staticpro (&Qevent_kind);
-  Qevent_symbol_elements = intern_c_string ("event-symbol-elements");
-  staticpro (&Qevent_symbol_elements);
-  Qevent_symbol_element_mask = intern_c_string ("event-symbol-element-mask");
-  staticpro (&Qevent_symbol_element_mask);
-  Qmodifier_cache = intern_c_string ("modifier-cache");
-  staticpro (&Qmodifier_cache);
+  DEFSYM (Qevent_kind, "event-kind");
+  DEFSYM (Qevent_symbol_elements, "event-symbol-elements");
+  DEFSYM (Qevent_symbol_element_mask, "event-symbol-element-mask");
+  DEFSYM (Qmodifier_cache, "modifier-cache");
 
-  Qrecompute_lucid_menubar = intern_c_string ("recompute-lucid-menubar");
-  staticpro (&Qrecompute_lucid_menubar);
-  Qactivate_menubar_hook = intern_c_string ("activate-menubar-hook");
-  staticpro (&Qactivate_menubar_hook);
+  DEFSYM (Qrecompute_lucid_menubar, "recompute-lucid-menubar");
+  DEFSYM (Qactivate_menubar_hook, "activate-menubar-hook");
 
-  Qpolling_period = intern_c_string ("polling-period");
-  staticpro (&Qpolling_period);
+  DEFSYM (Qpolling_period, "polling-period");
 
-  Qinput_method_function = intern_c_string ("input-method-function");
-  staticpro (&Qinput_method_function);
+  DEFSYM (Qx_set_selection, "x-set-selection");
+  DEFSYM (QPRIMARY, "PRIMARY");
+  DEFSYM (Qhandle_switch_frame, "handle-switch-frame");
 
-  Qx_set_selection = intern_c_string ("x-set-selection");
-  staticpro (&Qx_set_selection);
-  QPRIMARY = intern_c_string ("PRIMARY");
-  staticpro (&QPRIMARY);
-  Qhandle_switch_frame = intern_c_string ("handle-switch-frame");
-  staticpro (&Qhandle_switch_frame);
+  DEFSYM (Qinput_method_function, "input-method-function");
+  DEFSYM (Qinput_method_exit_on_first_char, "input-method-exit-on-first-char");
+  DEFSYM (Qinput_method_use_echo_area, "input-method-use-echo-area");
 
-  Qinput_method_exit_on_first_char = intern_c_string ("input-method-exit-on-first-char");
-  staticpro (&Qinput_method_exit_on_first_char);
-  Qinput_method_use_echo_area = intern_c_string ("input-method-use-echo-area");
-  staticpro (&Qinput_method_use_echo_area);
-
-  Qhelp_form_show = intern_c_string ("help-form-show");
-  staticpro (&Qhelp_form_show);
+  DEFSYM (Qhelp_form_show, "help-form-show");
 
   Fset (Qinput_method_exit_on_first_char, Qnil);
   Fset (Qinput_method_use_echo_area, Qnil);
@@ -11653,9 +11579,8 @@ syms_of_keyboard (void)
   raw_keybuf = Fmake_vector (make_number (30), Qnil);
   staticpro (&raw_keybuf);
 
-  Qextended_command_history = intern_c_string ("extended-command-history");
+  DEFSYM (Qextended_command_history, "extended-command-history");
   Fset (Qextended_command_history, Qnil);
-  staticpro (&Qextended_command_history);
 
   accent_key_syms = Qnil;
   staticpro (&accent_key_syms);
@@ -11956,8 +11881,7 @@ The command loop sets this to nil before each command,
 and tests the value when the command returns.
 Buffer modification stores t in this variable.  */);
   Vdeactivate_mark = Qnil;
-  Qdeactivate_mark = intern_c_string ("deactivate-mark");
-  staticpro (&Qdeactivate_mark);
+  DEFSYM (Qdeactivate_mark, "deactivate-mark");
 
   DEFVAR_LISP ("pre-command-hook", Vpre_command_hook,
 	       doc: /* Normal hook run before each command is executed.
@@ -11977,8 +11901,7 @@ otherwise the error might happen repeatedly and make Emacs nonfunctional.  */);
   DEFVAR_LISP ("echo-area-clear-hook", ...,
 	       doc: /* Normal hook run when clearing the echo area.  */);
 #endif
-  Qecho_area_clear_hook = intern_c_string ("echo-area-clear-hook");
-  staticpro (&Qecho_area_clear_hook);
+  DEFSYM (Qecho_area_clear_hook, "echo-area-clear-hook");
   Fset (Qecho_area_clear_hook, Qnil);
 
   DEFVAR_LISP ("lucid-menu-bar-dirty-flag", Vlucid_menu_bar_dirty_flag,
