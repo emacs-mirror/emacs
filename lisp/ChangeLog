@@ -1,5 +1,9 @@
 2011-04-08  Glenn Morris  <rgm@gnu.org>
 
+	* net/rlogin.el (rlogin-process-connection-type): Simplify.
+	(rlogin-mode-map): Initialize in the defvar.
+	(rlogin): Use ignore-errors.
+
 	* replace.el (occur-mode-map): Some fixes for menu items.
 
 2011-04-07  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
