@@ -1,3 +1,8 @@
+2011-04-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.c (handle_one_xevent): Avoid type-punned derefencing of X
+	events.
+
 2011-04-08  Svante Signell  <svante.signell@telia.com>  (tiny change)
 
 	* term.c (init_tty): Fix incorrect ifdef placement (Bug#8450).
