@@ -1,5 +1,7 @@
 2011-04-09  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xdisp.c (vmessage): Use a better test for character truncation.
+
 	* charset.c (load_charset_map): <, not <=, for optimization,
 	and to avoid potential problems with integer overflow.
 	* chartab.c (sub_char_table_set_range, char_table_set_range): Likewise.
