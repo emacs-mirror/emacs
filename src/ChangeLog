@@ -1,5 +1,10 @@
 2011-04-09  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* callint.c (Fcall_interactively): <, not <=, for optimization.
+	(Fcall_interactively): Count the number of arguments produced,
+	not the number of arguments given.  This is simpler and lets GCC
+	4.6.0 generate slightly better code.
+
 	* ftfont.c: Distingish more carefully between FcChar8 and char.
 	The previous code passed unsigned char * to a functions like
 	strlen and xstrcasecmp that expect char *, which does not
