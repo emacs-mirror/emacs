@@ -368,7 +368,7 @@ data if you want to preserve them.  */)
 static Lisp_Object
 string_match_1 (Lisp_Object regexp, Lisp_Object string, Lisp_Object start, int posix)
 {
-  int val;
+  EMACS_INT val;
   struct re_pattern_buffer *bufp;
   EMACS_INT pos, pos_byte;
   int i;
@@ -468,10 +468,10 @@ matched by parenthesis constructs in the pattern.  */)
    and return the index of the match, or negative on failure.
    This does not clobber the match data.  */
 
-int
+EMACS_INT
 fast_string_match (Lisp_Object regexp, Lisp_Object string)
 {
-  int val;
+  EMACS_INT val;
   struct re_pattern_buffer *bufp;
 
   bufp = compile_pattern (regexp, 0, Qnil,
@@ -491,10 +491,10 @@ fast_string_match (Lisp_Object regexp, Lisp_Object string)
    This does not clobber the match data.
    We assume that STRING contains single-byte characters.  */
 
-int
+EMACS_INT
 fast_c_string_match_ignore_case (Lisp_Object regexp, const char *string)
 {
-  int val;
+  EMACS_INT val;
   struct re_pattern_buffer *bufp;
   size_t len = strlen (string);
 
@@ -511,10 +511,10 @@ fast_c_string_match_ignore_case (Lisp_Object regexp, const char *string)
 
 /* Like fast_string_match but ignore case.  */
 
-int
+EMACS_INT
 fast_string_match_ignore_case (Lisp_Object regexp, Lisp_Object string)
 {
-  int val;
+  EMACS_INT val;
   struct re_pattern_buffer *bufp;
 
   bufp = compile_pattern (regexp, 0, Vascii_canon_table,
@@ -643,7 +643,7 @@ newline_cache_on_off (struct buffer *buf)
 
 EMACS_INT
 scan_buffer (register int target, EMACS_INT start, EMACS_INT end,
-	     EMACS_INT count, int *shortage, int allow_quit)
+	     EMACS_INT count, EMACS_INT *shortage, int allow_quit)
 {
   struct region_cache *newline_cache;
   int direction;
@@ -933,7 +933,7 @@ scan_newline (EMACS_INT start, EMACS_INT start_byte,
 EMACS_INT
 find_next_newline_no_quit (EMACS_INT from, EMACS_INT cnt)
 {
-  return scan_buffer ('\n', from, 0, cnt, (int *) 0, 0);
+  return scan_buffer ('\n', from, 0, cnt, (EMACS_INT *) 0, 0);
 }
 
 /* Like find_next_newline, but returns position before the newline,
@@ -943,7 +943,7 @@ find_next_newline_no_quit (EMACS_INT from, EMACS_INT cnt)
 EMACS_INT
 find_before_next_newline (EMACS_INT from, EMACS_INT to, EMACS_INT cnt)
 {
-  int shortage;
+  EMACS_INT shortage;
   EMACS_INT pos = scan_buffer ('\n', from, to, cnt, &shortage, 1);
 
   if (shortage == 0)
@@ -958,9 +958,9 @@ static Lisp_Object
 search_command (Lisp_Object string, Lisp_Object bound, Lisp_Object noerror,
 		Lisp_Object count, int direction, int RE, int posix)
 {
-  register int np;
+  register EMACS_INT np;
   EMACS_INT lim, lim_byte;
-  int n = direction;
+  EMACS_INT n = direction;
 
   if (!NILP (count))
     {
@@ -2524,7 +2524,7 @@ since only regular expressions have distinguished subexpressions.  */)
 	  /* We build up the substituted string in ACCUM.  */
 	  Lisp_Object accum;
 	  Lisp_Object middle;
-	  int length = SBYTES (newtext);
+	  EMACS_INT length = SBYTES (newtext);
 
 	  accum = Qnil;
 
@@ -2880,7 +2880,7 @@ Return value is undefined if the last search failed.  */)
   len = 0;
   for (i = 0; i < search_regs.num_regs; i++)
     {
-      int start = search_regs.start[i];
+      EMACS_INT start = search_regs.start[i];
       if (start >= 0)
 	{
 	  if (EQ (last_thing_searched, Qt)

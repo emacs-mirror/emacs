@@ -763,7 +763,7 @@ static Lisp_Object get_it_property (struct it *it, Lisp_Object prop);
 static void handle_line_prefix (struct it *);
 
 static void pint2str (char *, int, EMACS_INT);
-static void pint2hrstr (char *, int, int);
+static void pint2hrstr (char *, int, EMACS_INT);
 static struct text_pos run_window_scroll_functions (Lisp_Object,
                                                     struct text_pos);
 static void reconsider_clip_changes (struct window *, struct buffer *);
@@ -825,7 +825,8 @@ static int display_mode_element (struct it *, int, int, int, Lisp_Object, Lisp_O
 static int store_mode_line_string (const char *, Lisp_Object, int, int, int, Lisp_Object);
 static const char *decode_mode_spec (struct window *, int, int, Lisp_Object *);
 static void display_menu_bar (struct window *);
-static int display_count_lines (EMACS_INT, EMACS_INT, int, EMACS_INT *);
+static EMACS_INT display_count_lines (EMACS_INT, EMACS_INT, EMACS_INT,
+				      EMACS_INT *);
 static int display_string (const char *, Lisp_Object, Lisp_Object,
                            EMACS_INT, EMACS_INT, struct it *, int, int, int, int);
 static void compute_line_metrics (struct it *);
@@ -19107,11 +19108,11 @@ static const char power_letter[] =
   };
 
 static void
-pint2hrstr (char *buf, int width, int d)
+pint2hrstr (char *buf, int width, EMACS_INT d)
 {
   /* We aim to represent the nonnegative integer D as
      QUOTIENT.TENTHS * 10 ^ (3 * EXPONENT). */
-  int quotient = d;
+  EMACS_INT quotient = d;
   int remainder = 0;
   /* -1 means: do not use TENTHS. */
   int tenths = -1;
@@ -19437,7 +19438,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
     case 'l':
       {
 	EMACS_INT startpos, startpos_byte, line, linepos, linepos_byte;
-	int topline, nlines, height;
+	EMACS_INT topline, nlines, height;
 	EMACS_INT junk;
 
 	/* %c and %l are ignored in `frame-title-format'.  */
@@ -19502,7 +19503,8 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 	    EMACS_INT limit = BUF_BEGV (b);
 	    EMACS_INT limit_byte = BUF_BEGV_BYTE (b);
 	    EMACS_INT position;
-	    int distance = (height * 2 + 30) * line_number_display_limit_width;
+	    EMACS_INT distance = 
+	      (height * 2 + 30) * line_number_display_limit_width;
 
 	    if (startpos - distance > limit)
 	      {
@@ -19705,17 +19707,17 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 
    Set *BYTE_POS_PTR to 1 if we found COUNT lines, 0 if we hit LIMIT.  */
 
-static int
+static EMACS_INT
 display_count_lines (EMACS_INT start_byte,
-		     EMACS_INT limit_byte, int count,
+		     EMACS_INT limit_byte, EMACS_INT count,
 		     EMACS_INT *byte_pos_ptr)
 {
   register unsigned char *cursor;
   unsigned char *base;
 
-  register int ceiling;
+  register EMACS_INT ceiling;
   register unsigned char *ceiling_addr;
-  int orig_count = count;
+  EMACS_INT orig_count = count;
 
   /* If we are not in selective display mode,
      check only for newlines.  */

@@ -1,3 +1,44 @@
+2011-04-09  Eli Zaretskii  <eliz@emacstest.gnu.org>
+
+	Fix some uses of `int' instead of EMACS_INT.
+	* search.c (string_match_1, fast_string_match)
+	(fast_c_string_match_ignore_case, fast_string_match_ignore_case)
+	(scan_buffer, find_next_newline_no_quit)
+	(find_before_next_newline, search_command, Freplace_match)
+	(Fmatch_data): Make some `int' variables be EMACS_INT.
+
+	* xdisp.c (display_count_lines): 3rd argument and return value now
+	EMACS_INT.  All callers changed.
+	(pint2hrstr): Last argument is now EMACS_INT.
+
+	* coding.c (detect_coding_utf_8, detect_coding_emacs_mule)
+	(detect_coding_iso_2022, detect_coding_sjis, detect_coding_big5)
+	(detect_coding_ccl, detect_coding_charset, decode_coding_utf_8)
+	(decode_coding_utf_16, decode_coding_emacs_mule)
+	(decode_coding_iso_2022, decode_coding_sjis, decode_coding_big5)
+	(decode_coding_ccl, decode_coding_charset)
+	<consumed_chars, consumed_chars_base>: Declare EMACS_INT.
+	(decode_coding_iso_2022, decode_coding_emacs_mule)
+	(decode_coding_sjis, decode_coding_big5, decode_coding_charset)
+	<char_offset, last_offset>: Declare EMACS_INT.
+	(encode_coding_utf_8, encode_coding_utf_16)
+	(encode_coding_emacs_mule, encode_invocation_designation)
+	(encode_designation_at_bol, encode_coding_iso_2022)
+	(encode_coding_sjis, encode_coding_big5, encode_coding_ccl)
+	(encode_coding_raw_text, encode_coding_charset) <produced_chars>:
+	Declare EMACS_INT.
+	(ASSURE_DESTINATION): Declare more_bytes EMACS_INT.
+	(encode_invocation_designation): Last argument P_NCHARS is now
+	EMACS_INT.
+	(decode_eol): Declare pos_byte, pos, and pos_end EMACS_INT.
+	(produce_chars): from_nchars and to_nchars are now EMACS_INT.
+
+	* coding.h (struct coding_system) <head_ascii>: Declare EMACS_INT.
+	All users changed.
+
+	* ccl.c (Fccl_execute_on_string): Declare some variables
+	EMACS_INT.
+
 2011-04-08  Svante Signell  <svante.signell@telia.com>  (tiny change)
 
 	* term.c (init_tty): Fix incorrect ifdef placement (Bug#8450).

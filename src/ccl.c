@@ -2049,7 +2049,7 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
   Lisp_Object val;
   struct ccl_program ccl;
   int i;
-  int outbufsize;
+  EMACS_INT outbufsize;
   unsigned char *outbuf, *outp;
   EMACS_INT str_chars, str_bytes;
 #define CCL_EXECUTE_BUF_SIZE 1024
