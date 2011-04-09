@@ -3674,7 +3674,7 @@ usage: (format STRING &rest OBJECTS)  */)
     if (!info)
       info = (struct info *) alloca (nbytes);
     memset (info, 0, nbytes);
-    for (i = 0; i <= nargs; i++)
+    for (i = 0; i < nargs + 1; i++)
       info[i].start = -1;
     if (!discarded)
       SAFE_ALLOCA (discarded, char *, SBYTES (args[0]));
