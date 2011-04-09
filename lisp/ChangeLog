@@ -1,7 +1,7 @@
 2011-04-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image-mode.el (image-type, image-mode-map, image-minor-mode-map)
-	(image-toggle-display):
+	(image-toggle-display): Doc fix.
 
 2011-04-06  Juanma Barranquero  <lekktu@gmail.com>
 
