@@ -18,6 +18,7 @@
 /* Written by Paul Eggert.  */
 
 #ifndef _GL_ALLOCATOR_H
+#define _GL_ALLOCATOR_H
 
 #include <stddef.h>
 
@@ -53,4 +54,4 @@ struct allocator
 /* An allocator using the stdlib functions and a null DIE function.  */
 extern struct allocator const stdlib_allocator;
 
-#endif
+#endif /* _GL_ALLOCATOR_H */
