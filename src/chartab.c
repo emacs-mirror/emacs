@@ -404,9 +404,8 @@ sub_char_table_set_range (Lisp_Object *table, int depth, int min_char, int from,
 	to = max_char;
       i = CHARTAB_IDX (from, depth, min_char);
       j = CHARTAB_IDX (to, depth, min_char);
-      j++;
       min_char += chartab_chars[depth] * i;
-      for (; i < j; i++, min_char += chartab_chars[depth])
+      for (j++; i < j; i++, min_char += chartab_chars[depth])
 	sub_char_table_set_range (XSUB_CHAR_TABLE (*table)->contents + i,
 				  depth, min_char, from, to, val);
     }
