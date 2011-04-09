@@ -1,5 +1,8 @@
 2011-04-09  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xmenu.c (set_frame_menubar): Allocate smaller local vectors.
+	This also lets GCC 4.6.0 generate slightly better loop code.
+
 	* callint.c (Fcall_interactively): <, not <=, for optimization.
 	(Fcall_interactively): Count the number of arguments produced,
 	not the number of arguments given.  This is simpler and lets GCC
