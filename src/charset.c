@@ -317,7 +317,7 @@ load_charset_map (struct charset *charset, struct charset_map_entries *entries, 
   for (i = 0; i < n_entries; i++)
     {
       unsigned from, to;
-      int from_index, to_index;
+      int from_index, to_index, lim_index;
       int from_c, to_c;
       int idx = i % 0x10000;
 
@@ -339,6 +339,7 @@ load_charset_map (struct charset *charset, struct charset_map_entries *entries, 
 	}
       if (from_index < 0 || to_index < 0)
 	continue;
+      lim_index = to_index + 1;
 
       if (to_c > max_char)
 	max_char = to_c;
@@ -348,10 +349,10 @@ load_charset_map (struct charset *charset, struct charset_map_entries *entries, 
       if (control_flag == 1)
 	{
 	  if (charset->method == CHARSET_METHOD_MAP)
-	    for (; from_index <= to_index; from_index++, from_c++)
+	    for (; from_index < lim_index; from_index++, from_c++)
 	      ASET (vec, from_index, make_number (from_c));
 	  else
-	    for (; from_index <= to_index; from_index++, from_c++)
+	    for (; from_index < lim_index; from_index++, from_c++)
 	      CHAR_TABLE_SET (Vchar_unify_table,
 			      CHARSET_CODE_OFFSET (charset) + from_index,
 			      make_number (from_c));
@@ -360,7 +361,7 @@ load_charset_map (struct charset *charset, struct charset_map_entries *entries, 
 	{
 	  if (charset->method == CHARSET_METHOD_MAP
 	      && CHARSET_COMPACT_CODES_P (charset))
-	    for (; from_index <= to_index; from_index++, from_c++)
+	    for (; from_index < lim_index; from_index++, from_c++)
 	      {
 		unsigned code = INDEX_TO_CODE_POINT (charset, from_index);
 
@@ -368,17 +369,17 @@ load_charset_map (struct charset *charset, struct charset_map_entries *entries, 
 		  CHAR_TABLE_SET (table, from_c, make_number (code));
 	      }
 	  else
-	    for (; from_index <= to_index; from_index++, from_c++)
+	    for (; from_index < lim_index; from_index++, from_c++)
 	      {
 		if (NILP (CHAR_TABLE_REF (table, from_c)))
 		  CHAR_TABLE_SET (table, from_c, make_number (from_index));
 	      }
 	}
       else if (control_flag == 3)
-	for (; from_index <= to_index; from_index++, from_c++)
+	for (; from_index < lim_index; from_index++, from_c++)
 	  SET_TEMP_CHARSET_WORK_DECODER (from_c, from_index);
       else if (control_flag == 4)
-	for (; from_index <= to_index; from_index++, from_c++)
+	for (; from_index < lim_index; from_index++, from_c++)
 	  SET_TEMP_CHARSET_WORK_ENCODER (from_c, from_index);
       else			/* control_flag == 0 */
 	{
