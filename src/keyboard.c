@@ -3090,7 +3090,6 @@ read_char (int commandflag, int nmaps, Lisp_Object *maps, Lisp_Object prev_event
   /* Process the help character specially if enabled */
   if (!NILP (Vhelp_form) && help_char_p (c))
     {
-      Lisp_Object tem0;
       int count = SPECPDL_INDEX ();
 
       help_form_saved_window_configs

@@ -1,5 +1,7 @@
 2011-04-09  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* keyboard.c (read_char): Remove unused var.
+
 	* eval.c: Port to Windows vsnprintf (Bug#8435).
 	Include <limits.h>.
 	(SIZE_MAX): Define if the headers do not.
