@@ -1,5 +1,13 @@
 2011-04-09  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* ftfont.c: Distingish more carefully between FcChar8 and char.
+	The previous code passed unsigned char * to a functions like
+	strlen and xstrcasecmp that expect char *, which does not
+	conform to the C standard.
+	(get_adstyle_property, ftfont_pattern_entity): Use FcChar8 for
+	arguments to FcPatternGetString, and explicitly cast FcChar8 * to
+	char * when the C standard requires it.
+
 	* keyboard.c (read_char): Remove unused var.
 
 	* eval.c: Port to Windows vsnprintf (Bug#8435).
