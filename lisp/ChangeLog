@@ -1,3 +1,8 @@
+2011-04-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image-mode.el (image-type, image-mode-map, image-minor-mode-map)
+	(image-toggle-display):
+
 2011-04-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	Backport revno:103823 and revno:103824 from trunk.
