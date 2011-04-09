@@ -8,7 +8,7 @@
 	* xselect.c (x_decline_selection_request)
 	(x_reply_selection_request): Avoid type-punned deref of X events.
 
-2011-04-08  Svante Signell  <svante.signell@telia.com>  (tiny change)
+2011-04-08  Samuel Thibault  <sthibault@debian.org>  (tiny change)
 
 	* term.c (init_tty): Fix incorrect ifdef placement (Bug#8450).
 
