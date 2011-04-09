@@ -12,6 +12,12 @@
 
 2011-04-08  Eli Zaretskii  <eliz@gnu.org>
 
+	* files.el (file-size-human-readable): Produce one digit after
+	decimal, like "ls -lh" does.
+
+	* ls-lisp.el (ls-lisp-format-file-size): Allow for 7 characters in
+	the file size representation.
+
 	* simple.el (list-processes): If async subprocesses are not
 	available, error out with a clear error message.
 

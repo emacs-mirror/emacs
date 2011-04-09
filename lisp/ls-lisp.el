@@ -724,7 +724,7 @@ All ls time options, namely c, t and u, are handled."
 		  ls-lisp-filesize-f-fmt
 		ls-lisp-filesize-d-fmt)
 	      file-size)
-    (format " %4s" (file-size-human-readable file-size))))
+    (format " %7s" (file-size-human-readable file-size))))
 
 (provide 'ls-lisp)
 

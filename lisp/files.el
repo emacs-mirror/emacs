@@ -1162,7 +1162,10 @@ Optional second argument FLAVOR controls the units and the display format:
     (while (and (>= file-size power) (cdr post-fixes))
       (setq file-size (/ file-size power)
 	    post-fixes (cdr post-fixes)))
-    (format "%.0f%s%s" file-size
+    (format (if (> (mod file-size 1.0) 0.05)
+		"%.1f%s%s"
+	      "%.0f%s%s")
+	    file-size
 	    (if (and (eq flavor 'iec) (string= (car post-fixes) "k"))
 		"K"
 	      (car post-fixes))
