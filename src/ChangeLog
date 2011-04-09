@@ -1,3 +1,13 @@
+2011-04-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ftfont.c (get_adstyle_property, ftfont_pattern_entity): Use
+	unsigned char, to match FcChar8 type definition.
+
+	* xterm.c (handle_one_xevent):
+	* xmenu.c (create_and_show_popup_menu):
+	* xselect.c (x_decline_selection_request)
+	(x_reply_selection_request): Avoid type-punned deref of X events.
+
 2011-04-09  Eli Zaretskii  <eliz@emacstest.gnu.org>
 
 	Fix some uses of `int' instead of EMACS_INT.
@@ -39,7 +49,7 @@
 	* ccl.c (Fccl_execute_on_string): Declare some variables
 	EMACS_INT.
 
-2011-04-08  Svante Signell  <svante.signell@telia.com>  (tiny change)
+2011-04-08  Samuel Thibault  <sthibault@debian.org>  (tiny change)
 
 	* term.c (init_tty): Fix incorrect ifdef placement (Bug#8450).
 
