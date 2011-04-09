@@ -173,6 +173,8 @@
 
 ;;; Code:
 
+(require 'tabulated-list)
+
 (defgroup package nil
   "Manager for Emacs Lisp packages."
   :group 'applications
@@ -1249,12 +1251,10 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
 ;;;; Package menu mode.
 
 (defvar package-menu-mode-map
-  (let ((map (copy-keymap special-mode-map))
+  (let ((map (make-sparse-keymap))
 	(menu-map (make-sparse-keymap "Package")))
-    (set-keymap-parent map button-buffer-map)
+    (set-keymap-parent map tabulated-list-mode-map)
     (define-key map "\C-m" 'package-menu-describe-package)
-    (define-key map "n" 'next-line)
-    (define-key map "p" 'previous-line)
     (define-key map "u" 'package-menu-mark-unmark)
     (define-key map "\177" 'package-menu-backup-unmark)
     (define-key map "d" 'package-menu-mark-delete)
@@ -1264,8 +1264,6 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
     (define-key map "x" 'package-menu-execute)
     (define-key map "h" 'package-menu-quick-help)
     (define-key map "?" 'package-menu-describe-package)
-    (define-key map [follow-link] 'mouse-face)
-    (define-key map [mouse-2] 'mouse-select-window)
     (define-key map [menu-bar package-menu] (cons "Package" menu-map))
     (define-key menu-map [mq]
       '(menu-item "Quit" quit-window
@@ -1314,49 +1312,93 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
     map)
   "Local keymap for `package-menu-mode' buffers.")
 
-(defvar package-menu-sort-button-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [header-line mouse-1] 'package-menu-sort-by-column)
-    (define-key map [header-line mouse-2] 'package-menu-sort-by-column)
-    (define-key map [follow-link] 'mouse-face)
-    map)
-  "Local keymap for package menu sort buttons.")
-
-(put 'package-menu-mode 'mode-class 'special)
-
-(define-derived-mode package-menu-mode special-mode "Package Menu"
+(define-derived-mode package-menu-mode tabulated-list-mode "Package Menu"
   "Major mode for browsing a list of packages.
 Letters do not insert themselves; instead, they are commands.
 \\<package-menu-mode-map>
 \\{package-menu-mode-map}"
-  (setq truncate-lines t)
-  (setq buffer-read-only t)
-  (set (make-local-variable 'revert-buffer-function) 'package-menu-revert)
-  (setq header-line-format
-	(mapconcat
-	 (lambda (pair)
-	   (let ((column (car pair))
-		 (name (cdr pair)))
-	     (concat
-	      ;; Insert a space that aligns the button properly.
-	      (propertize " " 'display (list 'space :align-to column)
-			  'face 'fixed-pitch)
-	      ;; Set up the column button.
-	      (propertize name
-			  'column-name name
-			  'help-echo "mouse-1: sort by column"
-			  'mouse-face 'highlight
-			  'keymap package-menu-sort-button-map))))
-	 ;; We take a trick from buff-menu and have a dummy leading
-	 ;; space to align the header line with the beginning of the
-	 ;; text.  This doesn't really work properly on Emacs 21, but
-	 ;; it is close enough.
-	 '((0 . "")
-	   (2 . "Package")
-	   (20 . "Version")
-	   (32 . "Status")
-	   (43 . "Description"))
-	 "")))
+  (setq tabulated-list-format [("Package" 18 package-menu--name-predicate)
+			       ("Version" 12 nil)
+			       ("Status"  10 package-menu--status-predicate)
+			       ("Description" 0 nil)])
+  (setq tabulated-list-padding 2)
+  (setq tabulated-list-sort-key (cons "Status" nil))
+  (tabulated-list-init-header))
+
+(defmacro package--push (package desc status listname)
+  "Convenience macro for `package-menu--generate'.
+If the alist stored in the symbol LISTNAME lacks an entry for a
+package PACKAGE with descriptor DESC, add one.  The alist is
+keyed with cons cells (PACKAGE . VERSION), where PACKAGE is a
+symbol and VERSION is a version list."
+  `(let* ((version (package-desc-vers ,desc))
+	  (key (cons ,package version)))
+     (unless (assoc key ,listname)
+       (push (list key ,status (package-desc-doc ,desc)) ,listname))))
+
+(defun package-menu--generate (&optional remember-pos)
+  "Populate the Package Menu.
+Optional argument REMEMBER-POS, if non-nil, means to move point
+to the entry as before."
+  ;; Construct list of ((PACKAGE . VERSION) STATUS DESCRIPTION).
+  (let (info-list name builtin)
+    ;; Installed packages:
+    (dolist (elt package-alist)
+      (setq name (car elt))
+      (package--push name (cdr elt)
+		     (if (stringp (cadr (assq name package-load-list)))
+			 "held" "installed")
+		     info-list))
+
+    ;; Built-in packages:
+    (dolist (elt package--builtins)
+      (setq name (car elt))
+      (unless (eq name 'emacs) ; Hide the `emacs' package.
+    	(package--push name (cdr elt) "built-in" info-list)))
+
+    ;; Available and disabled packages:
+    (dolist (elt package-archive-contents)
+      (setq name (car elt))
+      (let ((hold (assq name package-load-list)))
+	(package--push name (cdr elt)
+		       (if (and hold (null (cadr hold))) "disabled" "available")
+		       info-list)))
+
+    ;; Obsolete packages:
+    (dolist (elt package-obsolete-alist)
+      (dolist (inner-elt (cdr elt))
+	(package--push (car elt) (cdr inner-elt) "obsolete" info-list)))
+
+    ;; Print the result.
+    (setq tabulated-list-entries (mapcar 'package-menu--print-info info-list))
+    (tabulated-list-print remember-pos)))
+
+(defun package-menu--print-info (pkg)
+  "Return a package entry suitable for `tabulated-list-entries'.
+PKG has the form ((PACKAGE . VERSION) STATUS DOC).
+Return (KEY [NAME VERSION STATUS DOC]), where KEY is the
+identifier (NAME . VERSION-LIST)."
+  (let* ((package (caar pkg))
+	 (version (cdr (car pkg)))
+	 (status  (nth 1 pkg))
+	 (doc (or (nth 2 pkg) ""))
+	 (face (cond
+		((string= status "built-in")  'font-lock-builtin-face)
+		((string= status "available") 'default)
+		((string= status "held")      'font-lock-constant-face)
+		((string= status "disabled")  'font-lock-warning-face)
+		((string= status "installed") 'font-lock-comment-face)
+		(t 'font-lock-warning-face)))) ; obsolete.
+    (list (cons package version)
+	  (vector (list (symbol-name package)
+			'face 'link
+			'follow-link t
+			'package-symbol package
+			'action 'package-menu-describe-package)
+		  (propertize (package-version-join version)
+			      'font-lock-face face)
+		  (propertize status 'font-lock-face face)
+		  (propertize doc 'font-lock-face face)))))
 
 (defun package-menu-refresh ()
   "Download the Emacs Lisp package archive.
@@ -1366,59 +1408,42 @@ This fetches the contents of each archive specified in
   (unless (eq major-mode 'package-menu-mode)
     (error "The current buffer is not a Package Menu"))
   (package-refresh-contents)
-  (package--generate-package-list))
+  (package-menu--generate t))
 
-(defun package-menu-revert (&optional arg noconfirm)
-  "Update the list of packages.
-This function is the `revert-buffer-function' for Package Menu
-buffers.  The arguments are ignored."
+(defun package-menu-describe-package (&optional button)
+  "Describe the current package.
+If optional arg BUTTON is non-nil, describe its associated package."
   (interactive)
-  (unless (eq major-mode 'package-menu-mode)
-    (error "The current buffer is not a Package Menu"))
-  (package--generate-package-list))
-
-(defun package-menu-describe-package ()
-  "Describe the package in the current line."
-  (interactive)
-  (let ((name (package-menu-get-package)))
-    (if name
-	(describe-package (intern name))
-      (message "No package on this line"))))
-
-(defun package-menu-mark-internal (what)
-  (unless (eobp)
-    (let ((buffer-read-only nil))
-      (beginning-of-line)
-      (delete-char 1)
-      (insert what)
-      (forward-line))))
+  (let ((package (if button (button-get button 'package-symbol)
+		   (car (tabulated-list-get-id)))))
+    (if package
+	(describe-package package))))
 
 ;; fixme numeric argument
 (defun package-menu-mark-delete (num)
   "Mark a package for deletion and move to the next line."
   (interactive "p")
   (if (string-equal (package-menu-get-status) "installed")
-      (package-menu-mark-internal "D")
+      (tabulated-list-put-tag "D" t)
     (forward-line)))
 
 (defun package-menu-mark-install (num)
   "Mark a package for installation and move to the next line."
   (interactive "p")
   (if (string-equal (package-menu-get-status) "available")
-      (package-menu-mark-internal "I")
+      (tabulated-list-put-tag "I" t)
     (forward-line)))
 
 (defun package-menu-mark-unmark (num)
   "Clear any marks on a package and move to the next line."
   (interactive "p")
-  (package-menu-mark-internal " "))
+  (tabulated-list-put-tag " " t))
 
 (defun package-menu-backup-unmark ()
   "Back up one line and clear any marks on that package."
   (interactive)
   (forward-line -1)
-  (package-menu-mark-internal " ")
-  (forward-line -1))
+  (tabulated-list-put-tag " "))
 
 (defun package-menu-mark-obsolete-for-deletion ()
   "Mark all obsolete packages for deletion."
@@ -1428,7 +1453,7 @@ buffers.  The arguments are ignored."
     (forward-line 2)
     (while (not (eobp))
       (if (looking-at ".*\\s obsolete\\s ")
-	  (package-menu-mark-internal "D")
+	  (tabulated-list-put-tag "D" t)
 	(forward-line 1)))))
 
 (defun package-menu-quick-help ()
@@ -1438,20 +1463,6 @@ buffers.  The arguments are ignored."
 
 (define-obsolete-function-alias
   'package-menu-view-commentary 'package-menu-describe-package "24.1")
-
-;; Return the name of the package on the current line.
-(defun package-menu-get-package ()
-  (save-excursion
-    (beginning-of-line)
-    (if (looking-at ". \\([^ \t]*\\)")
-	(match-string-no-properties 1))))
-
-;; Return the version of the package on the current line.
-(defun package-menu-get-version ()
-  (save-excursion
-    (beginning-of-line)
-    (if (looking-at ". [^ \t]*[ \t]*\\([0-9.]*\\)")
-	(match-string 1))))
 
 (defun package-menu-get-status ()
   (save-excursion
@@ -1464,19 +1475,22 @@ buffers.  The arguments are ignored."
 Packages marked for installation are downloaded and installed;
 packages marked for deletion are removed."
   (interactive)
-  (let (install-list delete-list cmd)
+  (unless (eq major-mode 'package-menu-mode)
+    (error "The current buffer is not in Package Menu mode"))
+  (let (install-list delete-list cmd id)
     (save-excursion
       (goto-char (point-min))
       (while (not (eobp))
 	(setq cmd (char-after))
-	(cond
-	 ((eq cmd ?\s) t)
-	 ((eq cmd ?D)
-	  (push (cons (package-menu-get-package)
-		      (package-menu-get-version))
-		delete-list))
-	 ((eq cmd ?I)
-	  (push (package-menu-get-package) install-list)))
+	(unless (eq cmd ?\s)
+	  ;; This is the key (PACKAGE . VERSION-LIST).
+	  (setq id (tabulated-list-get-id))
+	  (cond ((eq cmd ?D)
+		 (push (cons (symbol-name (car id))
+			     (package-version-join (cdr id)))
+		       delete-list))
+		((eq cmd ?I)
+		 (push (car id) install-list))))
 	(forward-line)))
     ;; Delete packages, prompting if necessary.
     (when delete-list
@@ -1502,217 +1516,71 @@ packages marked for deletion are removed."
 	       (format "Install package `%s'? " (car install-list))
 	     (format "Install these %d packages (%s)? "
 		     (length install-list)
-		     (mapconcat 'identity install-list ", "))))
-	  (dolist (elt install-list)
-	    (package-install (intern elt)))))
+		     (mapconcat 'symbol-name install-list ", "))))
+	  (mapc 'package-install install-list)))
     ;; If we deleted anything, regenerate `package-alist'.  This is done
     ;; automatically if we installed a package.
     (and delete-list (null install-list)
 	 (package-initialize))
     (if (or delete-list install-list)
-	(package-menu-revert)
+	(package-menu--generate t)
       (message "No operations specified."))))
 
-(defun package-print-package (package version key desc)
-  (let ((face
-	 (cond ((string= key "built-in") 'font-lock-builtin-face)
-	       ((string= key "available") 'default)
-	       ((string= key "held") 'font-lock-constant-face)
-	       ((string= key "disabled") 'font-lock-warning-face)
-	       ((string= key "installed") 'font-lock-comment-face)
-	       (t ; obsolete, but also the default.
-		'font-lock-warning-face))))
-    (insert (propertize "  " 'font-lock-face face))
-    (insert-text-button (symbol-name package)
-			'face 'link
-			'follow-link t
-			'package-symbol package
-			'action (lambda (button)
-				  (describe-package
-				   (button-get button 'package-symbol))))
-    (indent-to 20 1)
-    (insert (propertize (package-version-join version) 'font-lock-face face))
-    (indent-to 32 1)
-    (insert (propertize key 'font-lock-face face))
-    ;; FIXME: this 'when' is bogus...
-    (when desc
-      (indent-to 43 1)
-      (let ((opoint (point)))
-	(insert (propertize desc 'font-lock-face face))
-	(upcase-region opoint (min (point) (1+ opoint)))))
-    (insert "\n")))
+(defun package-menu--version-predicate (A B)
+  (let ((vA (or (aref (cadr A) 1)  '(0)))
+	(vB (or (aref (cadr B) 1) '(0))))
+    (if (version-list-= vA vB)
+	(package-menu--name-predicate A B)
+      (version-list-< vA vB))))
 
-(defun package-list-maybe-add (package version status description result)
-  (unless (assoc (cons package version) result)
-    (push (list (cons package version) status description) result))
-  result)
+(defun package-menu--status-predicate (A B)
+  (let ((sA (aref (cadr A) 2))
+	(sB (aref (cadr B) 2)))
+    (cond ((string= sA sB)
+	   (package-menu--name-predicate A B))
+	  ((string= sA  "available") t)
+	  ((string= sB "available") nil)
+	  ((string= sA  "installed") t)
+	  ((string= sB "installed") nil)
+	  ((string= sA  "held") t)
+	  ((string= sB "held") nil)
+	  ((string= sA  "built-in") t)
+	  ((string= sB "built-in") nil)
+	  ((string= sA  "obsolete") t)
+	  ((string= sB  "obsolete") nil)
+	  (t (string< sA sB)))))
 
-(defvar package-menu-package-list nil
-  "List of packages to display in the Package Menu buffer.
-A value of nil means to display all packages.")
+(defun package-menu--description-predicate (A B)
+  (let ((dA (aref (cadr A) 3))
+	(dB (aref (cadr B) 3)))
+    (if (string= dA dB)
+	(package-menu--name-predicate A B)
+      (string< dA dB))))
 
-(defvar package-menu-sort-key nil
-  "Sort key for the current Package Menu buffer.")
-
-(defun package--generate-package-list ()
-  "Populate the current Package Menu buffer."
-  (let ((inhibit-read-only t)
-	info-list name desc hold builtin)
-    (erase-buffer)
-    ;; List installed packages
-    (dolist (elt package-alist)
-      (setq name (car elt))
-      (when (or (null package-menu-package-list)
-		(memq name package-menu-package-list))
-	(setq desc (cdr elt)
-	      hold (cadr (assq name package-load-list)))
-	(setq info-list
-	      (package-list-maybe-add
-	       name (package-desc-vers desc)
-	       ;; FIXME: it turns out to be tricky to see if this
-	       ;; package is presently activated.
-	       (if (stringp hold) "held" "installed")
-	       (package-desc-doc desc)
-	       info-list))))
-
-    ;; List built-in packages
-    (dolist (elt package--builtins)
-      (setq name (car elt))
-      (when (and (not (eq name 'emacs)) ; Hide the `emacs' package.
-		 (or (null package-menu-package-list)
-		     (memq name package-menu-package-list)))
-	(setq desc (cdr elt))
-	(setq info-list
-	      (package-list-maybe-add
-	       name (package-desc-vers desc)
-	       "built-in"
-	       (package-desc-doc desc)
-	       info-list))))
-
-    ;; List available and disabled packages
-    (dolist (elt package-archive-contents)
-      (setq name (car elt)
-	    desc (cdr elt)
-	    hold (assq name package-load-list))
-      (when (or (null package-menu-package-list)
-		(memq name package-menu-package-list))
-	(setq info-list
-	      (package-list-maybe-add name
-				      (package-desc-vers desc)
-				      (if (and hold (null (cadr hold)))
-					  "disabled"
-					"available")
-				      (package-desc-doc (cdr elt))
-				      info-list))))
-    ;; List obsolete packages
-    (mapc (lambda (elt)
-	    (mapc (lambda (inner-elt)
-		    (setq info-list
-			  (package-list-maybe-add (car elt)
-						  (package-desc-vers
-						   (cdr inner-elt))
-						  "obsolete"
-						  (package-desc-doc
-						   (cdr inner-elt))
-						  info-list)))
-		  (cdr elt)))
-	  package-obsolete-alist)
-
-    (setq info-list
-	  (sort info-list
-		(cond ((string= package-menu-sort-key "Package")
-		       'package-menu--name-predicate)
-		      ((string= package-menu-sort-key "Version")
-		       'package-menu--version-predicate)
-		      ((string= package-menu-sort-key "Description")
-		       'package-menu--description-predicate)
-		      (t ; By default, sort by package status
-		       'package-menu--status-predicate))))
-
-    (dolist (elt info-list)
-      (package-print-package (car (car elt))
-			     (cdr (car elt))
-			     (car (cdr elt))
-			     (car (cdr (cdr elt)))))
-    (goto-char (point-min))
-    (set-buffer-modified-p nil)
-    (current-buffer)))
-
-(defun package-menu--version-predicate (left right)
-  (let ((vleft  (or (cdr (car left))  '(0)))
-	(vright (or (cdr (car right)) '(0))))
-    (if (version-list-= vleft vright)
-	(package-menu--name-predicate left right)
-      (version-list-< vleft vright))))
-
-(defun package-menu--status-predicate (left right)
-  (let ((sleft  (cadr left))
-	(sright (cadr right)))
-    (cond ((string= sleft sright)
-	   (package-menu--name-predicate left right))
-	  ((string= sleft  "available") t)
-	  ((string= sright "available") nil)
-	  ((string= sleft  "installed") t)
-	  ((string= sright "installed") nil)
-	  ((string= sleft  "held") t)
-	  ((string= sright "held") nil)
-	  ((string= sleft  "built-in") t)
-	  ((string= sright "built-in") nil)
-	  ((string= sleft  "obsolete") t)
-	  ((string= sright  "obsolete") nil)
-	  (t (string< sleft sright)))))
-
-(defun package-menu--description-predicate (left right)
-  (let ((sleft  (car (cddr left)))
-	(sright (car (cddr right))))
-    (if (string= sleft sright)
-	(package-menu--name-predicate left right)
-      (string< sleft sright))))
-
-(defun package-menu--name-predicate (left right)
-  (string< (symbol-name (caar left))
-	   (symbol-name (caar right))))
-
-(defun package-menu-sort-by-column (&optional e)
-  "Sort the package menu by the column of the mouse click E."
-  (interactive "e")
-  (let* ((pos (event-start e))
-	 (obj (posn-object pos))
-	 (col (if obj
-		  (get-text-property (cdr obj) 'column-name (car obj))
-		(get-text-property (posn-point pos) 'column-name)))
-	 (buf (window-buffer (posn-window (event-start e)))))
-    (with-current-buffer buf
-      (when (eq major-mode 'package-menu-mode)
-	(setq package-menu-sort-key col)
-	(package--generate-package-list)))))
-
-(defun package--list-packages (&optional packages)
-  "Generate and pop to the *Packages* buffer.
-Optional PACKAGES is a list of names of packages (symbols) to
-list; the default is to display everything in `package-alist'."
-  (require 'finder-inf nil t)
-  (let ((buf (get-buffer-create "*Packages*")))
-    (with-current-buffer buf
-      (package-menu-mode)
-      (set (make-local-variable 'package-menu-package-list) packages)
-      (set (make-local-variable 'package-menu-sort-key) nil)
-      (package--generate-package-list))
-    ;; The package menu buffer has keybindings.  If the user types
-    ;; `M-x list-packages', that suggests it should become current.
-    (switch-to-buffer buf)))
+(defun package-menu--name-predicate (A B)
+  (string< (symbol-name (caar A))
+	   (symbol-name (caar B))))
 
 ;;;###autoload
-(defun list-packages ()
+(defun list-packages (&optional no-fetch)
   "Display a list of packages.
-Fetches the updated list of packages before displaying.
+This first fetches the updated list of packages before
+displaying, unless a prefix argument NO-FETCH is specified.
 The list is displayed in a buffer named `*Packages*'."
-  (interactive)
+  (interactive "P")
+  (require 'finder-inf nil t)
   ;; Initialize the package system if necessary.
   (unless package--initialized
     (package-initialize t))
-  (package-refresh-contents)
-  (package--list-packages))
+  (unless no-fetch
+    (package-refresh-contents))
+  (let ((buf (get-buffer-create "*Packages*")))
+    (with-current-buffer buf
+      (package-menu-mode)
+      (package-menu--generate))
+    ;; The package menu buffer has keybindings.  If the user types
+    ;; `M-x list-packages', that suggests it should become current.
+    (switch-to-buffer buf)))
 
 ;;;###autoload
 (defalias 'package-list-packages 'list-packages)
@@ -1722,7 +1590,7 @@ The list is displayed in a buffer named `*Packages*'."
 Does not fetch the updated list of packages before displaying.
 The list is displayed in a buffer named `*Packages*'."
   (interactive)
-  (package--list-packages))
+  (list-packages t))
 
 (provide 'package)
 

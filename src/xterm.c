@@ -4045,7 +4045,7 @@ x_window_to_scroll_bar (Display *display, Window window_id)
 	  return XSCROLL_BAR (bar);
     }
 
-  return 0;
+  return NULL;
 }
 
 
@@ -6008,7 +6008,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
         goto OTHER;
 #endif /* USE_X_TOOLKIT */
       {
-        XSelectionClearEvent *eventp = (XSelectionClearEvent *) &event;
+        XSelectionClearEvent *eventp = &(event.xselectionclear);
 
         inev.ie.kind = SELECTION_CLEAR_EVENT;
         SELECTION_EVENT_DISPLAY (&inev.sie) = eventp->display;
@@ -6025,8 +6025,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
         goto OTHER;
 #endif /* USE_X_TOOLKIT */
       {
-          XSelectionRequestEvent *eventp
-            = (XSelectionRequestEvent *) &event;
+	  XSelectionRequestEvent *eventp = &(event.xselectionrequest);
 
           inev.ie.kind = SELECTION_REQUEST_EVENT;
           SELECTION_EVENT_DISPLAY (&inev.sie) = eventp->display;

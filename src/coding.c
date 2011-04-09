@@ -159,7 +159,7 @@ detect_coding_XXX (struct coding_system *coding,
   const unsigned char *src = coding->source;
   const unsigned char *src_end = coding->source + coding->src_bytes;
   int multibytep = coding->src_multibyte;
-  int consumed_chars = 0;
+  EMACS_INT consumed_chars = 0;
   int found = 0;
   ...;
 
@@ -266,7 +266,7 @@ encode_coding_XXX (struct coding_system *coding)
   unsigned char *dst = coding->destination + coding->produced;
   unsigned char *dst_end = coding->destination + coding->dst_bytes;
   unsigned char *adjusted_dst_end = dst_end - _MAX_BYTES_PRODUCED_IN_LOOP_;
-  int produced_chars = 0;
+  EMACS_INT produced_chars = 0;
 
   for (; charbuf < charbuf_end && dst < adjusted_dst_end; charbuf++)
     {
@@ -943,7 +943,7 @@ record_conversion_result (struct coding_system *coding,
   do {								\
     if (dst + (bytes) >= dst_end)				\
       {								\
-	int more_bytes = charbuf_end - charbuf + (bytes);	\
+	EMACS_INT more_bytes = charbuf_end - charbuf + (bytes);	\
 								\
 	dst = alloc_destination (coding, more_bytes, dst);	\
 	dst_end = coding->destination + coding->dst_bytes;	\
@@ -1208,7 +1208,7 @@ detect_coding_utf_8 (struct coding_system *coding,
   const unsigned char *src = coding->source, *src_base;
   const unsigned char *src_end = coding->source + coding->src_bytes;
   int multibytep = coding->src_multibyte;
-  int consumed_chars = 0;
+  EMACS_INT consumed_chars = 0;
   int bom_found = 0;
   int found = 0;
 
@@ -1293,7 +1293,7 @@ decode_coding_utf_8 (struct coding_system *coding)
   const unsigned char *src_base;
   int *charbuf = coding->charbuf + coding->charbuf_used;
   int *charbuf_end = coding->charbuf + coding->charbuf_size;
-  int consumed_chars = 0, consumed_chars_base = 0;
+  EMACS_INT consumed_chars = 0, consumed_chars_base = 0;
   int multibytep = coding->src_multibyte;
   enum utf_bom_type bom = CODING_UTF_8_BOM (coding);
   int eol_dos =
@@ -1444,7 +1444,7 @@ encode_coding_utf_8 (struct coding_system *coding)
   int *charbuf_end = charbuf + coding->charbuf_used;
   unsigned char *dst = coding->destination + coding->produced;
   unsigned char *dst_end = coding->destination + coding->dst_bytes;
-  int produced_chars = 0;
+  EMACS_INT produced_chars = 0;
   int c;
 
   if (CODING_UTF_8_BOM (coding) == utf_with_bom)
@@ -1602,7 +1602,7 @@ decode_coding_utf_16 (struct coding_system *coding)
   int *charbuf = coding->charbuf + coding->charbuf_used;
   /* We may produces at most 3 chars in one loop.  */
   int *charbuf_end = coding->charbuf + coding->charbuf_size - 2;
-  int consumed_chars = 0, consumed_chars_base = 0;
+  EMACS_INT consumed_chars = 0, consumed_chars_base = 0;
   int multibytep = coding->src_multibyte;
   enum utf_bom_type bom = CODING_UTF_16_BOM (coding);
   enum utf_16_endian_type endian = CODING_UTF_16_ENDIAN (coding);
@@ -1729,7 +1729,7 @@ encode_coding_utf_16 (struct coding_system *coding)
   int safe_room = 8;
   enum utf_bom_type bom = CODING_UTF_16_BOM (coding);
   int big_endian = CODING_UTF_16_ENDIAN (coding) == utf_16_big_endian;
-  int produced_chars = 0;
+  EMACS_INT produced_chars = 0;
   int c;
 
   if (bom != utf_without_bom)
@@ -1863,7 +1863,7 @@ detect_coding_emacs_mule (struct coding_system *coding,
   const unsigned char *src = coding->source, *src_base;
   const unsigned char *src_end = coding->source + coding->src_bytes;
   int multibytep = coding->src_multibyte;
-  int consumed_chars = 0;
+  EMACS_INT consumed_chars = 0;
   int c;
   int found = 0;
 
@@ -2331,10 +2331,10 @@ decode_coding_emacs_mule (struct coding_system *coding)
      loop and one more charset annotation at the end.  */
   int *charbuf_end
     = coding->charbuf + coding->charbuf_size - (MAX_ANNOTATION_LENGTH * 3);
-  int consumed_chars = 0, consumed_chars_base;
+  EMACS_INT consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
-  int char_offset = coding->produced_char;
-  int last_offset = char_offset;
+  EMACS_INT char_offset = coding->produced_char;
+  EMACS_INT last_offset = char_offset;
   int last_id = charset_ascii;
   int eol_dos =
     !inhibit_eol_conversion && EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
@@ -2585,7 +2585,7 @@ encode_coding_emacs_mule (struct coding_system *coding)
   unsigned char *dst = coding->destination + coding->produced;
   unsigned char *dst_end = coding->destination + coding->dst_bytes;
   int safe_room = 8;
-  int produced_chars = 0;
+  EMACS_INT produced_chars = 0;
   Lisp_Object attrs, charset_list;
   int c;
   int preferred_charset_id = -1;
@@ -2943,7 +2943,7 @@ detect_coding_iso_2022 (struct coding_system *coding,
   int single_shifting = 0;
   int id;
   int c, c1;
-  int consumed_chars = 0;
+  EMACS_INT consumed_chars = 0;
   int i;
   int rejected = 0;
   int found = 0;
@@ -3453,7 +3453,7 @@ decode_coding_iso_2022 (struct coding_system *coding)
      loop and one more charset annotation at the end.  */
   int *charbuf_end
     = coding->charbuf + coding->charbuf_size - (MAX_ANNOTATION_LENGTH * 3);
-  int consumed_chars = 0, consumed_chars_base;
+  EMACS_INT consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
   /* Charsets invoked to graphic plane 0 and 1 respectively.  */
   int charset_id_0 = CODING_ISO_INVOKED_CHARSET (coding, 0);
@@ -3463,8 +3463,8 @@ decode_coding_iso_2022 (struct coding_system *coding)
   int c;
   struct composition_status *cmp_status = CODING_ISO_CMP_STATUS (coding);
   Lisp_Object attrs = CODING_ID_ATTRS (coding->id);
-  int char_offset = coding->produced_char;
-  int last_offset = char_offset;
+  EMACS_INT char_offset = coding->produced_char;
+  EMACS_INT last_offset = char_offset;
   int last_id = charset_ascii;
   int eol_dos =
     !inhibit_eol_conversion && EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
@@ -4190,10 +4190,10 @@ decode_coding_iso_2022 (struct coding_system *coding)
 static unsigned char *
 encode_invocation_designation (struct charset *charset,
 			       struct coding_system *coding,
-			       unsigned char *dst, int *p_nchars)
+			       unsigned char *dst, EMACS_INT *p_nchars)
 {
   int multibytep = coding->dst_multibyte;
-  int produced_chars = *p_nchars;
+  EMACS_INT produced_chars = *p_nchars;
   int reg;			/* graphic register number */
   int id = CHARSET_ID (charset);
 
@@ -4285,7 +4285,7 @@ encode_designation_at_bol (struct coding_system *coding, int *charbuf,
   /* Table of charsets to be designated to each graphic register.  */
   int r[4];
   int c, found = 0, reg;
-  int produced_chars = 0;
+  EMACS_INT produced_chars = 0;
   int multibytep = coding->dst_multibyte;
   Lisp_Object attrs;
   Lisp_Object charset_list;
@@ -4340,7 +4340,7 @@ encode_coding_iso_2022 (struct coding_system *coding)
   int bol_designation
     = (CODING_ISO_FLAGS (coding) & CODING_ISO_FLAG_DESIGNATE_AT_BOL
        && CODING_ISO_BOL (coding));
-  int produced_chars = 0;
+  EMACS_INT produced_chars = 0;
   Lisp_Object attrs, eol_type, charset_list;
   int ascii_compatible;
   int c;
@@ -4528,7 +4528,7 @@ detect_coding_sjis (struct coding_system *coding,
   const unsigned char *src = coding->source, *src_base;
   const unsigned char *src_end = coding->source + coding->src_bytes;
   int multibytep = coding->src_multibyte;
-  int consumed_chars = 0;
+  EMACS_INT consumed_chars = 0;
   int found = 0;
   int c;
   Lisp_Object attrs, charset_list;
@@ -4585,7 +4585,7 @@ detect_coding_big5 (struct coding_system *coding,
   const unsigned char *src = coding->source, *src_base;
   const unsigned char *src_end = coding->source + coding->src_bytes;
   int multibytep = coding->src_multibyte;
-  int consumed_chars = 0;
+  EMACS_INT consumed_chars = 0;
   int found = 0;
   int c;
 
@@ -4636,13 +4636,13 @@ decode_coding_sjis (struct coding_system *coding)
      the end.  */
   int *charbuf_end
     = coding->charbuf + coding->charbuf_size - (MAX_ANNOTATION_LENGTH * 2);
-  int consumed_chars = 0, consumed_chars_base;
+  EMACS_INT consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
   struct charset *charset_roman, *charset_kanji, *charset_kana;
   struct charset *charset_kanji2;
   Lisp_Object attrs, charset_list, val;
-  int char_offset = coding->produced_char;
-  int last_offset = char_offset;
+  EMACS_INT char_offset = coding->produced_char;
+  EMACS_INT last_offset = char_offset;
   int last_id = charset_ascii;
   int eol_dos =
     !inhibit_eol_conversion && EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
@@ -4754,12 +4754,12 @@ decode_coding_big5 (struct coding_system *coding)
      the end.  */
   int *charbuf_end
     = coding->charbuf + coding->charbuf_size - (MAX_ANNOTATION_LENGTH * 2);
-  int consumed_chars = 0, consumed_chars_base;
+  EMACS_INT consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
   struct charset *charset_roman, *charset_big5;
   Lisp_Object attrs, charset_list, val;
-  int char_offset = coding->produced_char;
-  int last_offset = char_offset;
+  EMACS_INT char_offset = coding->produced_char;
+  EMACS_INT last_offset = char_offset;
   int last_id = charset_ascii;
   int eol_dos =
     !inhibit_eol_conversion && EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
@@ -4856,7 +4856,7 @@ encode_coding_sjis (struct coding_system *coding)
   unsigned char *dst = coding->destination + coding->produced;
   unsigned char *dst_end = coding->destination + coding->dst_bytes;
   int safe_room = 4;
-  int produced_chars = 0;
+  EMACS_INT produced_chars = 0;
   Lisp_Object attrs, charset_list, val;
   int ascii_compatible;
   struct charset *charset_kanji, *charset_kana;
@@ -4947,7 +4947,7 @@ encode_coding_big5 (struct coding_system *coding)
   unsigned char *dst = coding->destination + coding->produced;
   unsigned char *dst_end = coding->destination + coding->dst_bytes;
   int safe_room = 4;
-  int produced_chars = 0;
+  EMACS_INT produced_chars = 0;
   Lisp_Object attrs, charset_list, val;
   int ascii_compatible;
   struct charset *charset_big5;
@@ -5022,10 +5022,10 @@ detect_coding_ccl (struct coding_system *coding,
   const unsigned char *src = coding->source, *src_base;
   const unsigned char *src_end = coding->source + coding->src_bytes;
   int multibytep = coding->src_multibyte;
-  int consumed_chars = 0;
+  EMACS_INT consumed_chars = 0;
   int found = 0;
   unsigned char *valids;
-  int head_ascii = coding->head_ascii;
+  EMACS_INT head_ascii = coding->head_ascii;
   Lisp_Object attrs;
 
   detect_info->checked |= CATEGORY_MASK_CCL;
@@ -5062,7 +5062,7 @@ decode_coding_ccl (struct coding_system *coding)
   const unsigned char *src_end = coding->source + coding->src_bytes;
   int *charbuf = coding->charbuf + coding->charbuf_used;
   int *charbuf_end = coding->charbuf + coding->charbuf_size;
-  int consumed_chars = 0;
+  EMACS_INT consumed_chars = 0;
   int multibytep = coding->src_multibyte;
   struct ccl_program *ccl = &coding->spec.ccl->ccl;
   int source_charbuf[1024];
@@ -5134,7 +5134,8 @@ encode_coding_ccl (struct coding_system *coding)
   unsigned char *dst = coding->destination + coding->produced;
   unsigned char *dst_end = coding->destination + coding->dst_bytes;
   int destination_charbuf[1024];
-  int i, produced_chars = 0;
+  EMACS_INT produced_chars = 0;
+  int i;
   Lisp_Object attrs, charset_list;
 
   CODING_GET_INFO (coding, attrs, charset_list);
@@ -5220,7 +5221,7 @@ encode_coding_raw_text (struct coding_system *coding)
   int *charbuf_end = coding->charbuf + coding->charbuf_used;
   unsigned char *dst = coding->destination + coding->produced;
   unsigned char *dst_end = coding->destination + coding->dst_bytes;
-  int produced_chars = 0;
+  EMACS_INT produced_chars = 0;
   int c;
 
   if (multibytep)
@@ -5303,10 +5304,10 @@ detect_coding_charset (struct coding_system *coding,
   const unsigned char *src = coding->source, *src_base;
   const unsigned char *src_end = coding->source + coding->src_bytes;
   int multibytep = coding->src_multibyte;
-  int consumed_chars = 0;
+  EMACS_INT consumed_chars = 0;
   Lisp_Object attrs, valids, name;
   int found = 0;
-  int head_ascii = coding->head_ascii;
+  EMACS_INT head_ascii = coding->head_ascii;
   int check_latin_extra = 0;
 
   detect_info->checked |= CATEGORY_MASK_CHARSET;
@@ -5410,12 +5411,12 @@ decode_coding_charset (struct coding_system *coding)
      the end.  */
   int *charbuf_end
     = coding->charbuf + coding->charbuf_size - (MAX_ANNOTATION_LENGTH * 2);
-  int consumed_chars = 0, consumed_chars_base;
+  EMACS_INT consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
   Lisp_Object attrs = CODING_ID_ATTRS (coding->id);
   Lisp_Object valids;
-  int char_offset = coding->produced_char;
-  int last_offset = char_offset;
+  EMACS_INT char_offset = coding->produced_char;
+  EMACS_INT last_offset = char_offset;
   int last_id = charset_ascii;
   int eol_dos =
     !inhibit_eol_conversion && EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
@@ -5536,7 +5537,7 @@ encode_coding_charset (struct coding_system *coding)
   unsigned char *dst = coding->destination + coding->produced;
   unsigned char *dst_end = coding->destination + coding->dst_bytes;
   int safe_room = MAX_MULTIBYTE_LENGTH;
-  int produced_chars = 0;
+  EMACS_INT produced_chars = 0;
   Lisp_Object attrs, charset_list;
   int ascii_compatible;
   int c;
@@ -6444,7 +6445,7 @@ decode_eol (struct coding_system *coding)
     }
   else if (EQ (eol_type, Qdos))
     {
-      int n = 0;
+      EMACS_INT n = 0;
 
       if (NILP (coding->dst_object))
 	{
@@ -6459,9 +6460,9 @@ decode_eol (struct coding_system *coding)
 	}
       else
 	{
-	  int pos_byte = coding->dst_pos_byte;
-	  int pos = coding->dst_pos;
-	  int pos_end = pos + coding->produced_char - 1;
+	  EMACS_INT pos_byte = coding->dst_pos_byte;
+	  EMACS_INT pos = coding->dst_pos;
+	  EMACS_INT pos_end = pos + coding->produced_char - 1;
 
 	  while (pos < pos_end)
 	    {
@@ -6646,7 +6647,7 @@ produce_chars (struct coding_system *coding, Lisp_Object translation_table,
 
 	  if (c >= 0)
 	    {
-	      int from_nchars = 1, to_nchars = 1;
+	      EMACS_INT from_nchars = 1, to_nchars = 1;
 	      Lisp_Object trans = Qnil;
 
 	      LOOKUP_TRANSLATION_TABLE (translation_table, c, trans);

@@ -1,10 +1,53 @@
+2011-04-07  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-handle-action): More debugging.
+
+	* gnus-start.el (gnus-gnus-to-newsrc-format): Add a way to run
+	interactively so the newsrc file can contain foreign groups too.
+	Useful for debugging but not much for users.
+
+2011-04-07  David Engster  <dengste@eml.cc>
+
+	* registry.el (registry-usage-test): Only do
+	`registry-lookup-breaks-before-lexbind' testing for Emacs24 with
+	lexical binding.
+
+2011-04-06  David Engster  <dengste@eml.cc>
+
+	* registry.el, gnus-registry.el: Use `ignore-errors' instead of third
+	argument NOERROR for `require', since XEmacs 21.4 does not support it.
+
+2011-04-06  David Engster  <dengste@eml.cc>
+
+	* registry.el (initialize-instance): Change :after to :AFTER to be
+	compatible with old EIEIO version in XEmacs.
+
 2011-04-06  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* gnus-registry.el: Don't use ERT if it's not available.
+	* gnus-registry.el (gnus-registry-post-process-groups)
+	(gnus-registry--split-fancy-with-parent-internal): Fix splitting bugs
+	and provide better messaging.
+
+2011-04-06  David Engster  <dengste@eml.cc>
+
+	* Makefile.in (fail-on-warning): New rule to compile with warnings as
+	errors.
+
+	* dgnushack.el (dgnushack-compile-error-on-warn): New function to call
+	dgnushack-compile with error-on-warn enabled, and to signal an error if
+	clean compilation failed.
+	(dgnushack-compile): New argument 'error-on-warn'.  If non-nil, compile
+	with `byte-compile-error-on-warn'.  Return nil if errors occured.
+
+2011-04-06  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el: Don't use ERT if it's not available.  Load it
+	unconditionally anyway, discarding errors.
 	(gnus-registry-delete-entries): New convenience function.
 	(gnus-registry-import-eld): Import from old .eld registry.
 
-	* registry.el: Don't use ERT if it's not available.
+	* registry.el: Don't use ERT if it's not available.  Load it
+	unconditionally anyway, discarding errors.
 
 	* proto-stream.el (gnutls-negotiate): Revert inadvertent commit of the
 	version from the Claudio Bley GnuTLS patch (extra optional parameters
@@ -15171,7 +15214,7 @@
 	* smime-ldap.el (smime-ldap-search): Add compatibility for XEmacs.
 
 	* smime.el (smime-cert-by-ldap-1): Handle certificates distributed
-	in PEM format.  Adjust to the XEmacs compability.
+	in PEM format.  Adjust to the XEmacs compatibility.
 
 2005-05-30  Reiner Steib  <Reiner.Steib@gmx.de>
 

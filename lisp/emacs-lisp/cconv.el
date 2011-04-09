@@ -536,7 +536,9 @@ FORM is the parent form that binds this var."
               ;; it is often non-trivial for the programmer to avoid such
               ;; unused vars.
               (not (intern-soft var))
-              (eq ?_ (aref (symbol-name var) 0)))
+              (eq ?_ (aref (symbol-name var) 0))
+	      ;; As a special exception, ignore "ignore".
+	      (eq var 'ignored))
        (byte-compile-log-warning (format "Unused lexical %s `%S'"
                                          varkind var))))
     ;; If it's unused, there's no point converting it into a cons-cell, even if

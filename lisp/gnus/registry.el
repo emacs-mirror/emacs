@@ -78,8 +78,11 @@
 ;;; Code:
 
 (eval-when-compile
-  (when (null (require 'ert nil t))
+  (when (null (ignore-errors (require 'ert)))
     (defmacro* ert-deftest (name () &body docstring-keys-and-body))))
+
+(ignore-errors
+  (require 'ert))
 
 (eval-when-compile (require 'cl))
 (eval-and-compile
@@ -128,7 +131,7 @@
          :type hash-table
          :documentation "The data hashtable.")))
 
-(defmethod initialize-instance :after ((this registry-db) slots)
+(defmethod initialize-instance :AFTER ((this registry-db) slots)
   "Set value of data slot of THIS after initialization."
   (with-slots (data tracker) this
     (unless (member :data slots)
@@ -354,12 +357,13 @@ Removes only entries without the :precious keys."
     (should (= 58 (caadr (registry-lookup db '(1 58 99)))))
     (message "Grouped individual lookup")
     (should (= 3 (length (registry-lookup db '(1 58 99)))))
-    (message "Individual lookup (breaks before lexbind)")
-    (should (= 58
-               (caadr (registry-lookup-breaks-before-lexbind db '(1 58 99)))))
-    (message "Grouped individual lookup (breaks before lexbind)")
-    (should (= 3
-               (length (registry-lookup-breaks-before-lexbind db '(1 58 99)))))
+    (when (boundp 'lexical-binding)
+      (message "Individual lookup (breaks before lexbind)")
+      (should (= 58
+		 (caadr (registry-lookup-breaks-before-lexbind db '(1 58 99)))))
+      (message "Grouped individual lookup (breaks before lexbind)")
+      (should (= 3
+		 (length (registry-lookup-breaks-before-lexbind db '(1 58 99))))))
     (message "Search")
     (should (= n (length (registry-search db :all t))))
     (should (= n (length (registry-search db :member '((sender "me"))))))

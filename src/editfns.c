@@ -750,7 +750,7 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */)
     /* It is possible that NEW_POS is not within the same field as
        OLD_POS; try to move NEW_POS so that it is.  */
     {
-      int shortage;
+      EMACS_INT shortage;
       Lisp_Object field_bound;
 
       if (fwd)

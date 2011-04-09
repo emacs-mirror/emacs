@@ -62,8 +62,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
 (defgroup ls-lisp nil
   "Emulate the ls program completely in Emacs Lisp."
   :version "21.1"
@@ -726,13 +724,7 @@ All ls time options, namely c, t and u, are handled."
 		  ls-lisp-filesize-f-fmt
 		ls-lisp-filesize-d-fmt)
 	      file-size)
-    (if (< file-size 1024)
-	(format " %4d" file-size)
-      (do ((file-size (/ file-size 1024.0) (/ file-size 1024.0))
-	   ;; kilo, mega, giga, tera, peta, exa
-	   (post-fixes (list "k" "M" "G" "T" "P" "E") (cdr post-fixes)))
-	  ((< file-size 1024)
-	   (format " %3.0f%s"  file-size (car post-fixes)))))))
+    (format " %7s" (file-size-human-readable file-size))))
 
 (provide 'ls-lisp)
 

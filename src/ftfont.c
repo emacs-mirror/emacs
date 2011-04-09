@@ -160,7 +160,7 @@ static struct
 static Lisp_Object
 get_adstyle_property (FcPattern *p)
 {
-  char *str, *end;
+  unsigned char *str, *end;
   Lisp_Object adstyle;
 
   if (FcPatternGetString (p, FC_STYLE, 0, (FcChar8 **) &str) != FcResultMatch)
@@ -189,7 +189,7 @@ static Lisp_Object
 ftfont_pattern_entity (FcPattern *p, Lisp_Object extra)
 {
   Lisp_Object key, cache, entity;
-  char *file, *str;
+  unsigned char *file, *str;
   int idx;
   int numeric;
   double dbl;

@@ -449,7 +449,7 @@ struct coding_system
      -1 in setup_coding_system, and updated by detect_coding.  So,
      when this is equal to the byte length of the text being
      converted, we can skip the actual conversion process.  */
-  int head_ascii;
+  EMACS_INT head_ascii;
 
   /* The following members are set by encoding/decoding routine.  */
   EMACS_INT produced, produced_char, consumed, consumed_char;

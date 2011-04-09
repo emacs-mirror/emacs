@@ -691,6 +691,9 @@ consult.
 ** New global minor modes electric-pair-mode, electric-indent-mode,
 and electric-layout-mode.
 
+** tabulated-list.el provides a generic major mode for tabulated data,
+from which other modes can be derived.
+
 ** pcase.el provides the ML-style pattern matching macro `pcase'.
 
 ** secrets.el is an implementation of the Secret Service API, an
@@ -885,6 +888,9 @@ now be nil, or omitted.  This makes a "non-numeric" reporter.  Each
 time you call `progress-reporter-update' on that progress reporter,
 with a nil or omitted VALUE argument, the reporter message is
 displayed with a "spinning bar".
+
+** New variable `revert-buffer-in-progress-p' is true while a buffer is
+being reverted, even if the buffer has a local `revert-buffer-function'.
 
 
 * Changes in Emacs 24.1 on non-free operating systems

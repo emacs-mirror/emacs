@@ -1,7 +1,121 @@
-2011-04-07  Paul Eggert  <eggert@cs.ucla.edu>
+2011-04-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove the doprnt implementation, as Emacs now uses vsnprintf.
 	* emacs-lisp/find-gc.el (find-gc-source-files): Remove doprnt.c.
+
+2011-04-08  Sho Nakatani <lay.sakura@gmail.com>
+
+	* doc-view.el (doc-view-fit-width-to-window)
+	(doc-view-fit-height-to-window, doc-view-fit-page-to-window): New
+	functions for fitting the shown image to the Emacs window size.
+	(doc-view-mode-map): Add bindings for the new functions.
+
+2011-03-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* vc-annotate.el (vc-annotate-show-log-revision-at-line):
+	Fix typo in docstring.
+
+2011-04-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (file-size-human-readable): Produce one digit after
+	decimal, like "ls -lh" does.
+
+	* ls-lisp.el (ls-lisp-format-file-size): Allow for 7 characters in
+	the file size representation.
+
+	* simple.el (list-processes): If async subprocesses are not
+	available, error out with a clear error message.
+
+2011-04-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* help.el (help-form-show): New function, to be called from C.
+	Put help-form output in a buffer named differently than *Help*.
+
+2011-04-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (file-size-human-readable): New function.
+
+	* ls-lisp.el (ls-lisp-format-file-size): Use it, instead of
+	computing the representation inline.  Don't require `cl'.
+
+2011-04-08  Glenn Morris  <rgm@gnu.org>
+
+	* man.el (Man-page-header-regexp): Solaris < 2.6 no longer supported.
+
+	* net/browse-url.el (browse-url-firefox):
+	Test system-type, not system-configuration.
+
+	* vc/log-edit.el (log-edit-empty-buffer-p): New function.
+	(log-edit-insert-cvs-template, log-edit-insert-cvs-rcstemplate):
+	Use log-edit-empty-buffer-p.  (Bug#7598)
+
+	* net/rlogin.el (rlogin-process-connection-type): Simplify.
+	(rlogin-mode-map): Initialize in the defvar.
+	(rlogin): Use ignore-errors.
+
+	* replace.el (occur-mode-map): Some fixes for menu items.
+
+2011-04-07  Aaron S. Hawley  <aaron.s.hawley@gmail.com>
+
+	* play/morse.el (denato-region): Handle varying case.  (Bug#8386)
+
+2011-04-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/cconv.el (cconv--analyse-use): Ignore "ignored" when
+	issuing unused warnings.
+
+	* emacs-lisp/tabulated-list.el (tabulated-list-print): Use lambda
+	macro directly.
+
+	* simple.el: Lisp reimplement of list-processes.  Based on an
+	earlier reimplementation by Leo Liu, but using tabulated-list.el.
+	(process-menu-mode): New major mode.
+	(list-processes--refresh, list-processes):
+	(process-menu-visit-buffer): New functions.
+
+	* files.el (save-buffers-kill-emacs): Don't assume any return
+	value of list-processes, which is undocumented anyway.
+
+2011-04-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/tabulated-list.el: New file.
+
+	* emacs-lisp/package.el: Use Tabulated List mode.
+	(package-menu-mode-map): Inherit from tabulated-list-mode-map.
+	(package-menu-mode): Derive from tabulated-list-mode.  Set up the
+	table format using Tabulated List mode variables.
+	(package--push): New macro, replacing package-list-maybe-add.
+	(package-menu--generate): Use package--push.  Renamed from
+	package--generate-package-list.
+	(package-menu-refresh, list-packages): Use it.
+	(package-menu--print-info): Renamed from package-print-package.
+	Return insertion data instead of inserting it directly.
+	(package-menu-describe-package, package-menu-execute): Use
+	tabulated-list-get-id.
+	(package-menu-mark-delete, package-menu-mark-install)
+	(package-menu-mark-unmark, package-menu-backup-unmark)
+	(package-menu-mark-obsolete-for-deletion): Use
+	tabulated-list-put-tag.
+	(package--list-packages, package-menu-revert)
+	(package-menu-get-package, package-menu-get-version)
+	(package-menu-sort-by-column): Functions deleted.
+	(package-menu-package-list, package-menu-sort-key): Vars deleted.
+	(package-menu--status-predicate, package-menu--version-predicate)
+	(package-menu--name-predicate)
+	(package-menu--description-predicate): Handle arguments in the
+	Tabulated List format.
+	(package-list-packages-no-fetch): Call list-packages.
+
+2011-04-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* files.el (after-find-file-from-revert-buffer): Remove variable.
+	(after-find-file): Dont' bind it.
+	(revert-buffer-in-progress-p): New variable.
+	(revert-buffer): Bind it.
+	Pass nil for `after-find-file-from-revert-buffer'.
+
+	* saveplace.el (save-place-find-file-hook): Use new variable
+	`rever-buffer-in-progress-p', not `after-find-file-from-revert-buffer'.
 
 2011-04-06  Glenn Morris  <rgm@gnu.org>
 
@@ -575,7 +689,7 @@
 	(emerge-protect-metachars): Quote correctly for ms-dos and
 	windows-nt systems.
 
-2011-03-19  Ralph Schleicher  <rs@ralph-schleicher.de>
+2011-03-19  Ralph Schleicher  <rs@ralph-schleicher.de>  (tiny change)
 
 	* info.el (info-initialize): Replace all uses of `:' with
 	path-separator for compatibility with non-Unix systems.

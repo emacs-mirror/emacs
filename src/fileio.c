@@ -271,7 +271,7 @@ use the standard functions without calling themselves recursively.  */)
       if (CONSP (elt))
 	{
 	  Lisp_Object string = XCAR (elt);
-	  int match_pos;
+	  EMACS_INT match_pos;
 	  Lisp_Object handler = XCDR (elt);
 	  Lisp_Object operations = Qnil;
 

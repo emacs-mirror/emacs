@@ -3046,13 +3046,13 @@ struct re_registers;
 extern struct re_pattern_buffer *compile_pattern (Lisp_Object,
 						  struct re_registers *,
 						  Lisp_Object, int, int);
-extern int fast_string_match (Lisp_Object, Lisp_Object);
-extern int fast_c_string_match_ignore_case (Lisp_Object, const char *);
-extern int fast_string_match_ignore_case (Lisp_Object, Lisp_Object);
+extern EMACS_INT fast_string_match (Lisp_Object, Lisp_Object);
+extern EMACS_INT fast_c_string_match_ignore_case (Lisp_Object, const char *);
+extern EMACS_INT fast_string_match_ignore_case (Lisp_Object, Lisp_Object);
 extern EMACS_INT fast_looking_at (Lisp_Object, EMACS_INT, EMACS_INT,
                                   EMACS_INT, EMACS_INT, Lisp_Object);
 extern EMACS_INT scan_buffer (int, EMACS_INT, EMACS_INT, EMACS_INT,
-			      int *, int);
+			      EMACS_INT *, int);
 extern EMACS_INT scan_newline (EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT,
 			       EMACS_INT, int);
 extern EMACS_INT find_next_newline (EMACS_INT, int);

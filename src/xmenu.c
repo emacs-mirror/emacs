@@ -1529,7 +1529,8 @@ create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv,
   int i;
   Arg av[2];
   int ac = 0;
-  XButtonPressedEvent dummy;
+  XEvent dummy;
+  XButtonPressedEvent *event = &(dummy.xbutton);
   LWLIB_ID menu_id;
   Widget menu;
 
@@ -1547,36 +1548,35 @@ create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv,
                            popup_deactivate_callback,
                            menu_highlight_callback);
 
-  dummy.type = ButtonPress;
-  dummy.serial = 0;
-  dummy.send_event = 0;
-  dummy.display = FRAME_X_DISPLAY (f);
-  dummy.time = CurrentTime;
-  dummy.root = FRAME_X_DISPLAY_INFO (f)->root_window;
-  dummy.window = dummy.root;
-  dummy.subwindow = dummy.root;
-  dummy.x = x;
-  dummy.y = y;
+  event->type = ButtonPress;
+  event->serial = 0;
+  event->send_event = 0;
+  event->display = FRAME_X_DISPLAY (f);
+  event->time = CurrentTime;
+  event->root = FRAME_X_DISPLAY_INFO (f)->root_window;
+  event->window = event->subwindow = event->root;
+  event->x = x;
+  event->y = y;
 
   /* Adjust coordinates to be root-window-relative.  */
   x += f->left_pos + FRAME_OUTER_TO_INNER_DIFF_X (f);
   y += f->top_pos + FRAME_OUTER_TO_INNER_DIFF_Y (f);
 
-  dummy.x_root = x;
-  dummy.y_root = y;
+  event->x_root = x;
+  event->y_root = y;
 
-  dummy.state = 0;
-  dummy.button = 0;
+  event->state = 0;
+  event->button = 0;
   for (i = 0; i < 5; i++)
     if (FRAME_X_DISPLAY_INFO (f)->grabbed & (1 << i))
-      dummy.button = i;
+      event->button = i;
 
   /* Don't allow any geometry request from the user.  */
   XtSetArg (av[ac], XtNgeometry, 0); ac++;
   XtSetValues (menu, av, ac);
 
   /* Display the menu.  */
-  lw_popup_menu (menu, (XEvent *) &dummy);
+  lw_popup_menu (menu, &dummy);
   popup_activated_flag = 1;
   x_activate_timeout_atimer ();
 
