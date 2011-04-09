@@ -1,3 +1,14 @@
+2011-04-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image-mode.el (image-toggle-display-image): Signal an error if
+	not in Image mode.
+	(image-transform-mode, image-transform-resize)
+	(image-transform-set-rotation): Doc fix.
+	(image-transform-set-resize): Deleted.
+	(image-transform-set-scale, image-transform-fit-to-height)
+	(image-transform-fit-to-width): Handle image-toggle-display-image
+	and image-transform-resize directly.
+
 2011-04-08  Sho Nakatani <lay.sakura@gmail.com>
 
 	* doc-view.el (doc-view-fit-width-to-window)
