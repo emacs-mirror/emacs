@@ -191,7 +191,8 @@ set_identity (Lisp_Object table, Lisp_Object c, Lisp_Object elt)
 {
   if (NATNUMP (elt))
     {
-      int from, to;
+      int from;
+      unsigned to;
 
       if (CONSP (c))
 	{
@@ -200,7 +201,7 @@ set_identity (Lisp_Object table, Lisp_Object c, Lisp_Object elt)
 	}
       else
 	from = to = XINT (c);
-      for (; from <= to; from++)
+      for (to++; from < to; from++)
 	CHAR_TABLE_SET (table, from, make_number (from));
     }
 }
@@ -215,7 +216,8 @@ shuffle (Lisp_Object table, Lisp_Object c, Lisp_Object elt)
 {
   if (NATNUMP (elt))
     {
-      int from, to;
+      int from;
+      unsigned to;
 
       if (CONSP (c))
 	{
@@ -225,7 +227,7 @@ shuffle (Lisp_Object table, Lisp_Object c, Lisp_Object elt)
       else
 	from = to = XINT (c);
 
-      for (; from <= to; from++)
+      for (to++; from < to; from++)
 	{
 	  Lisp_Object tem = Faref (table, elt);
 	  Faset (table, elt, make_number (from));

@@ -2,6 +2,7 @@
 
 	* charset.c (load_charset_map): <, not <=, for optimization.
 	* chartab.c (sub_char_table_set_range, char_table_set_range): Likewise.
+	* casetab.c (set_identity, shuffle): Likewise.
 
 	* xmenu.c (set_frame_menubar): Allocate smaller local vectors.
 	This also lets GCC 4.6.0 generate slightly better loop code.
