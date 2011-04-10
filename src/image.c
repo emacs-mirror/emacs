@@ -7370,14 +7370,13 @@ gif_load (struct frame *f, struct image *img)
 
 
 /***********************************************************************
-				 imagemagick
+				 ImageMagick
 ***********************************************************************/
 #if defined (HAVE_IMAGEMAGICK)
 
-/* The symbol `imagemagick' identifying images of this type.  */
-
 Lisp_Object Qimagemagick;
-/* Indices of image specification fields in imagemagick_format, below.  */
+
+/* Indices of image specification fields in imagemagick_format.  */
 
 enum imagemagick_keyword_index
   {
@@ -7418,6 +7417,7 @@ static struct image_keyword imagemagick_format[IMAGEMAGICK_LAST] =
     {":rotation",	IMAGE_NUMBER_VALUE,     		0},
     {":crop",		IMAGE_DONT_CHECK_VALUE_TYPE,		0}
   };
+
 /* Free X resources of imagemagick image IMG which is used on frame F.  */
 
 static void
@@ -7426,8 +7426,6 @@ imagemagick_clear_image (struct frame *f,
 {
   x_clear_image (f, img);
 }
-
-
 
 /* Return non-zero if OBJECT is a valid IMAGEMAGICK image specification.  Do
    this by calling parse_image_spec and supplying the keywords that
@@ -7457,7 +7455,7 @@ imagemagick_image_p (Lisp_Object object)
 
    Uses librimagemagick to do most of the image processing.
 
-   non-zero when successful.
+   Return non-zero if successful.
 */
 
 static int
@@ -7504,12 +7502,12 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
   Image * im_image;
 
 
-  /* Handle image index for image types who can contain more than one
-     image.  Interface :index is same as for GIF.  First we "ping" the
-     image to see how many sub-images it contains. Pinging is faster
-     than loading the image to find out things about it.  */
+  /* Handle image index for image types who can contain more than one image.
+     Interface :index is same as for GIF.  First we "ping" the image to see how
+     many sub-images it contains.  Pinging is faster than loading the image to
+     find out things about it.  */
 
-  /* `MagickWandGenesis' initializes the imagemagick environment.  */
+  /* Initialize the imagemagick environment.  */
   MagickWandGenesis ();
   image = image_spec_value (img->spec, QCindex, NULL);
   ino = INTEGERP (image) ? XFASTINT (image) : 0;
@@ -7541,7 +7539,7 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
   DestroyMagickWand (ping_wand);
 
   /* Now, after pinging, we know how many images are inside the
-     file. If its not a bundle, just one.  */
+     file.  If it's not a bundle, the number is one.  */
 
   if (filename != NULL)
     {
@@ -7572,7 +7570,7 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
   if (status == MagickFalse) goto imagemagick_error;
 
   /* If width and/or height is set in the display spec assume we want
-     to scale to those values.  if either h or w is unspecified, the
+     to scale to those values.  If either h or w is unspecified, the
      unspecified should be calculated from the specified to preserve
      aspect ratio.  */
 
@@ -7584,17 +7582,13 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
   height = MagickGetImageHeight (image_wand);
   width = MagickGetImageWidth (image_wand);
 
-  if(desired_width != -1 && desired_height == -1)
-    {
-      /* w known, calculate h.  */
-      desired_height = (double) desired_width / width * height;
-    }
-  if(desired_width == -1 && desired_height != -1)
-    {
-      /* h known, calculate w.  */
-      desired_width = (double) desired_height / height * width;
-    }
-  if(desired_width != -1 && desired_height != -1)
+  if (desired_width != -1 && desired_height == -1)
+    /* w known, calculate h.  */
+    desired_height = (double) desired_width / width * height;
+  if (desired_width == -1 && desired_height != -1)
+    /* h known, calculate w.  */
+    desired_width = (double) desired_height / height * width;
+  if (desired_width != -1 && desired_height != -1)
     {
       status = MagickScaleImage (image_wand, desired_width, desired_height);
       if (status == MagickFalse)
@@ -7604,19 +7598,17 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
 	}
     }
 
-
   /* crop behaves similar to image slicing in Emacs but is more memory
      efficient.  */
   crop = image_spec_value (img->spec, QCcrop, NULL);
 
   if (CONSP (crop) && INTEGERP (XCAR (crop)))
     {
-      /* After some testing, it seems MagickCropImage is the fastest
-         crop function in ImageMagick.  This crop function seems to do
-         less copying than the alternatives, but it still reads the
-         entire image into memory before croping, which is aparently
-         difficult to avoid when using imagemagick.  */
-
+      /* After some testing, it seems MagickCropImage is the fastest crop
+         function in ImageMagick.  This crop function seems to do less copying
+         than the alternatives, but it still reads the entire image into memory
+         before croping, which is aparently difficult to avoid when using
+         imagemagick.  */
       int w, h, x, y;
       w = XFASTINT (XCAR (crop));
       crop = XCDR (crop);
@@ -7877,12 +7869,10 @@ static struct image_type imagemagick_type =
   };
 
 
-
-
 DEFUN ("imagemagick-types", Fimagemagick_types, Simagemagick_types, 0, 0, 0,
-       doc: /* Return image file types supported by ImageMagick.
-Since ImageMagick recognizes a lot of file-types that clash with Emacs,
-such as .c, we want to be able to alter the list at the lisp level.  */)
+       doc: /* Return the image types supported by ImageMagick.
+Note that ImageMagick recognizes many file-types that Emacs does not recognize
+as images, such as .c.  */)
   (void)
 {
   Lisp_Object typelist = Qnil;

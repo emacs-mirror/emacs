@@ -469,6 +469,8 @@ Remove text properties that display the image."
   "Show the image of the image file.
 Turn the image data into a real image, but only if the whole file
 was inserted."
+  (unless (derived-mode-p 'image-mode major-mode)
+    (error "The buffer is not in Image mode"))
   (let* ((filename (buffer-file-name))
 	 (data-p (not (and filename
 			   (file-readable-p filename)
@@ -485,8 +487,7 @@ was inserted."
 	 (type (image-type file-or-data nil data-p))
          (image0 (create-animated-image file-or-data type data-p))
 	 (image (append image0
-                        (image-transform-properties image0)
-                        ))
+                        (image-transform-properties image0)))
 	 (props
 	  `(display ,image
 		    intangible ,image
@@ -557,80 +558,86 @@ the image file and `image-mode' showing the image as an image."
 
 (defvar image-transform-minor-mode-map
   (let ((map (make-sparse-keymap)))
-;    (define-key map  [(control ?+)] 'image-scale-in)
-;    (define-key map  [(control ?-)] 'image-scale-out)
-;    (define-key map  [(control ?=)] 'image-scale-none)
-;;    (define-key map "c f h" 'image-scale-fit-height)
-;;    (define-key map "c ]" 'image-rotate-right)
+    ;; (define-key map  [(control ?+)] 'image-scale-in)
+    ;; (define-key map  [(control ?-)] 'image-scale-out)
+    ;; (define-key map  [(control ?=)] 'image-scale-none)
+    ;; (define-key map "c f h" 'image-scale-fit-height)
+    ;; (define-key map "c ]" 'image-rotate-right)
     map)
-  "Minor mode keymap for transforming the view of images Image mode.")
+  "Minor mode keymap `image-transform-mode'.")
 
 (define-minor-mode image-transform-mode
-  "minor mode for scaleing and rotation"
-  nil "image-transform"
-  image-transform-minor-mode-map)
+  "Minor mode for scaling and rotating images.
+This minor mode has no effect unless Emacs is compiled with
+ImageMagick support."
+  nil "image-transform" image-transform-minor-mode-map)
 
-(defvar image-transform-resize   nil
-  "The image resize operation. See the command
-  `image-transform-set-scale' for more information." )
+(defvar image-transform-resize nil
+  "The image resize operation.
+Its value should be one of the following:
+ - nil, meaning no resizing.
+ - `fit-height', meaning to fit the image to the window height.
+ - `fit-width', meaning to fit the image to the window width.
+ - A number, which is a scale factor (the default size is 100).")
 
 (defvar image-transform-rotation 0.0)
 
-
 (defun image-transform-properties (display)
-  "Calculate the display properties for transformations; scaling
-and rotation. "
-  (let*
-      ((size (image-size display t))
-       (height
-        (cond
-         ((and (numberp image-transform-resize) (eq 100 image-transform-resize))
-          nil)
-         ((numberp image-transform-resize)
-          (* image-transform-resize (cdr size)))
-         ((eq image-transform-resize 'fit-height)
-          (- (nth 3 (window-inside-pixel-edges)) (nth 1 (window-inside-pixel-edges))))
-         (t nil)))
-       (width (if (eq image-transform-resize 'fit-width)
-                  (- (nth 2 (window-inside-pixel-edges)) (nth 0 (window-inside-pixel-edges))))))
-
+  "Rescale and/or rotate the current image.
+The scale factor and rotation angle are given by the variables
+`image-transform-resize' and `image-transform-rotation'.  This
+takes effect only if Emacs is compiled with ImageMagick support."
+  (let* ((size (image-size display t))
+	 (height
+	  (cond
+	   ((numberp image-transform-resize)
+	    (unless (= image-transform-resize 100)
+	      (* image-transform-resize (cdr size))))
+	   ((eq image-transform-resize 'fit-height)
+	    (- (nth 3 (window-inside-pixel-edges))
+	       (nth 1 (window-inside-pixel-edges))))))
+	 (width (if (eq image-transform-resize 'fit-width)
+		    (- (nth 2 (window-inside-pixel-edges))
+		       (nth 0 (window-inside-pixel-edges))))))
+    ;;TODO fit-to-* should consider the rotation angle
     `(,@(if height (list :height height))
       ,@(if width (list :width width))
       ,@(if (not (equal 0.0 image-transform-rotation))
-            (list :rotation image-transform-rotation))
-      ;;TODO fit-to-* should consider the rotation angle
-      )))
+            (list :rotation image-transform-rotation)))))
 
 (defun image-transform-set-scale (scale)
-  "SCALE sets the scaling for images. "
-  (interactive "nscale:")
-  (image-transform-set-resize (float scale)))
+  "Prompt for a number, and resize the current image by that amount.
+This command has no effect unless Emacs is compiled with
+ImageMagick support."
+  (interactive "nScale: ")
+  (setq image-transform-resize resize)
+  (image-toggle-display-image))
 
 (defun image-transform-fit-to-height ()
-  "Fit image height to window height. "
+  "Fit the current image to the height of the current window.
+This command has no effect unless Emacs is compiled with
+ImageMagick support."
   (interactive)
-  (image-transform-set-resize 'fit-height))
+  (setq image-transform-resize 'fit-height)
+  (image-toggle-display-image))
 
 (defun image-transform-fit-to-width ()
-  "Fit image width to window width. "
+  "Fit the current image to the width of the current window.
+This command has no effect unless Emacs is compiled with
+ImageMagick support."
   (interactive)
-  (image-transform-set-resize 'fit-width))
-
-(defun image-transform-set-resize (resize)
-  "Set the resize mode for images. The RESIZE value can be the
-symbol fit-height which fits the image to the window height. The
-symbol fit-width fits the image to the window width.  A number
-indicates a scaling factor. nil indicates scale to 100%. "
-  (setq image-transform-resize resize)
-  (if (eq 'image-mode major-mode) (image-toggle-display-image)))
+  (setq image-transform-resize 'fit-width)
+  (image-toggle-display-image))
 
 (defun image-transform-set-rotation (rotation)
-  "Set the image ROTATION angle. "
-  (interactive "nrotation:")
+  "Prompt for an angle ROTATION, and rotate the image by that amount.
+ROTATION should be in degrees.  This command has no effect unless
+Emacs is compiled with ImageMagick support."
+  (interactive "nRotation angle (in degrees): ")
   ;;TODO 0 90 180 270 degrees are the only reasonable angles here
   ;;otherwise combining with rescaling will get very awkward
   (setq image-transform-rotation (float rotation))
-  (if (eq major-mode 'image-mode) (image-toggle-display-image)))
+  (image-toggle-display-image))
 
 (provide 'image-mode)
 

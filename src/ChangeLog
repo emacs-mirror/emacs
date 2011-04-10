@@ -80,6 +80,10 @@
 
 2011-04-09  Chong Yidong  <cyd@stupidchicken.com>
 
+	* image.c (Fimagemagick_types): Doc fix, and comment cleanup.
+
+2011-04-09  Chong Yidong  <cyd@stupidchicken.com>
+
 	* ftfont.c (get_adstyle_property, ftfont_pattern_entity): Use
 	unsigned char, to match FcChar8 type definition.
 
