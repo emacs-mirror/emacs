@@ -22,10 +22,9 @@
 
 #include "careadlinkat.h"
 
-#include "allocator.h"
-
 #include <errno.h>
 #include <limits.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -38,15 +37,20 @@
 # define SSIZE_MAX ((ssize_t) (SIZE_MAX / 2))
 #endif
 
+#include "allocator.h"
+
 #if ! HAVE_READLINKAT
-/* Ignore FD.  Get the symbolic link value of FILENAME and put it into
-   BUFFER, with size BUFFER_SIZE.  This function acts like readlink
-   but has readlinkat's signature.  */
+/* Get the symbolic link value of FILENAME and put it into BUFFER, with
+   size BUFFER_SIZE.  This function acts like readlink  but has
+   readlinkat's signature.  */
 ssize_t
 careadlinkatcwd (int fd, char const *filename, char *buffer,
                  size_t buffer_size)
 {
-  (void) fd;
+  /* FD must be AT_FDCWD here, otherwise the caller is using this
+     function in contexts for which it was not meant for.  */
+  if (fd != AT_FDCWD)
+    abort ();
   return readlink (filename, buffer, buffer_size);
 }
 #endif
