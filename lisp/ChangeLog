@@ -1,3 +1,13 @@
+2011-04-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuffer.el (completion-show-inline-help): New var.
+	(completion--do-completion, minibuffer-complete)
+	(minibuffer-force-complete, minibuffer-complete-word): Inhibit
+	minibuffer messages if completion-show-inline-help is nil.
+
+	* icomplete.el (icomplete-mode): Bind completion-show-inline-help
+	to avoid interference from inline help (Bug#5849).
+
 2011-04-10  Leo Liu  <sdl.web@gmail.com>
 
 	* emacs-lisp/tabulated-list.el (tabulated-list-print-entry): Fix

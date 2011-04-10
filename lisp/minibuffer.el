@@ -381,6 +381,9 @@ If the current buffer is not a minibuffer, erase its entire contents."
   ;; is on, the field doesn't cover the entire minibuffer contents.
   (delete-region (minibuffer-prompt-end) (point-max)))
 
+(defvar completion-show-inline-help t
+  "If non-nil, print helpful inline messages during completion.")
+
 (defcustom completion-auto-help t
   "Non-nil means automatically provide help for invalid completion input.
 If the value is t the *Completion* buffer is displayed whenever completion
@@ -568,8 +571,9 @@ E = after completion we now have an Exact match.
     (cond
      ((null comp)
       (minibuffer-hide-completions)
-      (unless completion-fail-discreetly
-        (ding) (minibuffer-message "No match"))
+      (when (and (not completion-fail-discreetly) completion-show-inline-help)
+	(ding)
+	(minibuffer-message "No match"))
       (minibuffer--bitset nil nil nil))
      ((eq t comp)
       (minibuffer-hide-completions)
@@ -639,9 +643,10 @@ E = after completion we now have an Exact match.
               (minibuffer-hide-completions))
              ;; Show the completion table, if requested.
              ((not exact)
-              (if (case completion-auto-help
-                    (lazy (eq this-command last-command))
-                    (t completion-auto-help))
+	      (if (cond ((null completion-show-inline-help) t)
+			((eq completion-auto-help 'lazy)
+			 (eq this-command last-command))
+			(t completion-auto-help))
                   (minibuffer-completion-help)
                 (minibuffer-message "Next char not unique")))
              ;; If the last exact completion and this one were the same, it
@@ -683,9 +688,11 @@ scroll the window of possible completions."
     t)
    (t (case (completion--do-completion)
         (#b000 nil)
-        (#b001 (minibuffer-message "Sole completion")
+        (#b001 (if completion-show-inline-help
+		   (minibuffer-message "Sole completion"))
                t)
-        (#b011 (minibuffer-message "Complete, but not unique")
+        (#b011 (if completion-show-inline-help
+		   (minibuffer-message "Complete, but not unique"))
                t)
         (t     t)))))
 
@@ -743,7 +750,9 @@ Repeated uses step through the possible completions."
          (end (field-end))
          (all (completion-all-sorted-completions)))
     (if (not (consp all))
-        (minibuffer-message (if all "No more completions" "No completions"))
+	(if completion-show-inline-help
+	    (minibuffer-message
+	     (if all "No more completions" "No completions")))
       (setq completion-cycling t)
       (goto-char end)
       (insert (car all))
@@ -931,9 +940,11 @@ Return nil if there is no valid completion, else t."
   (interactive)
   (case (completion--do-completion 'completion--try-word-completion)
     (#b000 nil)
-    (#b001 (minibuffer-message "Sole completion")
+    (#b001 (if completion-show-inline-help
+	       (minibuffer-message "Sole completion"))
            t)
-    (#b011 (minibuffer-message "Complete, but not unique")
+    (#b011 (if completion-show-inline-help
+	       (minibuffer-message "Complete, but not unique"))
            t)
     (t     t)))
 

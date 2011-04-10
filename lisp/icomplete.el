@@ -179,8 +179,11 @@ otherwise turn it off."
   (if icomplete-mode
       ;; The following is not really necessary after first time -
       ;; no great loss.
-      (add-hook 'minibuffer-setup-hook 'icomplete-minibuffer-setup)
-    (remove-hook 'minibuffer-setup-hook 'icomplete-minibuffer-setup)))
+      (progn
+	(setq completion-show-inline-help nil)
+	(add-hook 'minibuffer-setup-hook 'icomplete-minibuffer-setup))
+    (remove-hook 'minibuffer-setup-hook 'icomplete-minibuffer-setup)
+    (setq completion-show-inline-help t)))
 
 ;;;_ > icomplete-simple-completing-p ()
 (defun icomplete-simple-completing-p ()
