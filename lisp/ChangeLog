@@ -1,3 +1,8 @@
+2011-04-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse.el (mouse-drag-mode-line-1): Make sure that if we push
+	mouse-2 into unread-command-events, it is interpreted correctly.
+
 2011-04-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image-mode.el (image-type, image-mode-map, image-minor-mode-map)
