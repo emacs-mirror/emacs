@@ -18,6 +18,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
+#include <limits.h>
 #include <setjmp.h>
 #include "lisp.h"
 #include "blockinput.h"
@@ -28,6 +29,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #if HAVE_X_WINDOWS
 #include "xterm.h"
+#endif
+
+#ifndef SIZE_MAX
+# define SIZE_MAX ((size_t) -1)
 #endif
 
 /* This definition is duplicated in alloc.c and keyboard.c.  */
@@ -1401,7 +1406,7 @@ internal_lisp_condition_case (volatile Lisp_Object var, Lisp_Object bodyform,
 	     || (CONSP (tem)
 		 && (SYMBOLP (XCAR (tem))
 		     || CONSP (XCAR (tem))))))
-	error ("Invalid condition handler", tem);
+	error ("Invalid condition handler");
     }
 
   c.tag = Qnil;
@@ -1976,33 +1981,39 @@ find_handler_clause (Lisp_Object handlers, Lisp_Object conditions,
 void
 verror (const char *m, va_list ap)
 {
-  char buf[200];
-  EMACS_INT size = 200;
-  int mlen;
+  char buf[4000];
+  size_t size = sizeof buf;
+  size_t size_max =
+    min (MOST_POSITIVE_FIXNUM, min (INT_MAX, SIZE_MAX - 1)) + 1;
   char *buffer = buf;
-  int allocated = 0;
+  int used;
   Lisp_Object string;
-
-  mlen = strlen (m);
 
   while (1)
     {
-      EMACS_INT used;
-      used = doprnt (buffer, size, m, m + mlen, ap);
-      if (used < size)
-	break;
-      size *= 2;
-      if (allocated)
-	buffer = (char *) xrealloc (buffer, size);
-      else
+      used = vsnprintf (buffer, size, m, ap);
+
+      if (used < 0)
 	{
-	  buffer = (char *) xmalloc (size);
-	  allocated = 1;
+	  /* Non-C99 vsnprintf, such as w32, returns -1 when SIZE is too small.
+	     Guess a larger USED to work around the incompatibility.  */
+	  used = (size <= size_max / 2 ? 2 * size
+		  : size < size_max ? size_max - 1
+		  : size_max);
 	}
+      else if (used < size)
+	break;
+      if (size_max <= used)
+	memory_full ();
+      size = used + 1;
+
+      if (buffer != buf)
+	xfree (buffer);
+      buffer = (char *) xmalloc (size);
     }
 
-  string = build_string (buffer);
-  if (allocated)
+  string = make_string (buffer, used);
+  if (buffer != buf)
     xfree (buffer);
 
   xsignal1 (Qerror, string);

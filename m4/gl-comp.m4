@@ -26,6 +26,7 @@ AC_DEFUN([gl_EARLY],
   m4_pattern_allow([^gl_LIBOBJS$])dnl a variable
   m4_pattern_allow([^gl_LTLIBOBJS$])dnl a variable
   AC_REQUIRE([AC_PROG_RANLIB])
+  # Code from module allocator:
   # Code from module arg-nonnull:
   # Code from module c++defs:
   # Code from module careadlinkat:
@@ -79,6 +80,7 @@ AC_DEFUN([gl_INIT],
   m4_pushdef([gl_LIBSOURCES_DIR], [])
   gl_COMMON
   gl_source_base='lib'
+  # Code from module allocator:
   # Code from module arg-nonnull:
   # Code from module c++defs:
   # Code from module careadlinkat:
@@ -293,6 +295,7 @@ AC_DEFUN([gl_FILE_LIST], [
   build-aux/arg-nonnull.h
   build-aux/c++defs.h
   build-aux/warn-on-use.h
+  lib/allocator.c
   lib/allocator.h
   lib/careadlinkat.c
   lib/careadlinkat.h

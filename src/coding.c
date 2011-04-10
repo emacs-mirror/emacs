@@ -9024,14 +9024,15 @@ Return the corresponding character.  */)
 {
   Lisp_Object spec, attrs, val;
   struct charset *charset_roman, *charset_kanji, *charset_kana, *charset;
+  EMACS_INT ch;
   int c;
 
   CHECK_NATNUM (code);
-  c = XFASTINT (code);
+  ch = XFASTINT (code);
   CHECK_CODING_SYSTEM_GET_SPEC (Vsjis_coding_system, spec);
   attrs = AREF (spec, 0);
 
-  if (ASCII_BYTE_P (c)
+  if (ASCII_BYTE_P (ch)
       && ! NILP (CODING_ATTR_ASCII_COMPAT (attrs)))
     return code;
 
@@ -9040,26 +9041,31 @@ Return the corresponding character.  */)
   charset_kana = CHARSET_FROM_ID (XINT (XCAR (val))), val = XCDR (val);
   charset_kanji = CHARSET_FROM_ID (XINT (XCAR (val)));
 
-  if (c <= 0x7F)
-    charset = charset_roman;
-  else if (c >= 0xA0 && c < 0xDF)
+  if (ch <= 0x7F)
     {
+      c = ch;
+      charset = charset_roman;
+    }
+  else if (ch >= 0xA0 && ch < 0xDF)
+    {
+      c = ch - 0x80;
       charset = charset_kana;
-      c -= 0x80;
     }
   else
     {
-      int c1 = c >> 8, c2 = c & 0xFF;
+      EMACS_INT c1 = ch >> 8;
+      int c2 = ch & 0xFF;
 
       if (c1 < 0x81 || (c1 > 0x9F && c1 < 0xE0) || c1 > 0xEF
 	  || c2 < 0x40 || c2 == 0x7F || c2 > 0xFC)
-	error ("Invalid code: %d", code);
+	error ("Invalid code: %"pEd, ch);
+      c = ch;
       SJIS_TO_JIS (c);
       charset = charset_kanji;
     }
   c = DECODE_CHAR (charset, c);
   if (c < 0)
-    error ("Invalid code: %d", code);
+    error ("Invalid code: %"pEd, ch);
   return make_number (c);
 }
 
@@ -9099,14 +9105,15 @@ Return the corresponding character.  */)
 {
   Lisp_Object spec, attrs, val;
   struct charset *charset_roman, *charset_big5, *charset;
+  EMACS_INT ch;
   int c;
 
   CHECK_NATNUM (code);
-  c = XFASTINT (code);
+  ch = XFASTINT (code);
   CHECK_CODING_SYSTEM_GET_SPEC (Vbig5_coding_system, spec);
   attrs = AREF (spec, 0);
 
-  if (ASCII_BYTE_P (c)
+  if (ASCII_BYTE_P (ch)
       && ! NILP (CODING_ATTR_ASCII_COMPAT (attrs)))
     return code;
 
@@ -9114,19 +9121,24 @@ Return the corresponding character.  */)
   charset_roman = CHARSET_FROM_ID (XINT (XCAR (val))), val = XCDR (val);
   charset_big5 = CHARSET_FROM_ID (XINT (XCAR (val)));
 
-  if (c <= 0x7F)
-    charset = charset_roman;
+  if (ch <= 0x7F)
+    {
+      c = ch;
+      charset = charset_roman;
+    }
   else
     {
-      int b1 = c >> 8, b2 = c & 0x7F;
+      EMACS_INT b1 = ch >> 8;
+      int b2 = ch & 0x7F;
       if (b1 < 0xA1 || b1 > 0xFE
 	  || b2 < 0x40 || (b2 > 0x7E && b2 < 0xA1) || b2 > 0xFE)
-	error ("Invalid code: %d", code);
+	error ("Invalid code: %"pEd, ch);
+      c = ch;
       charset = charset_big5;
     }
-  c = DECODE_CHAR (charset, (unsigned )c);
+  c = DECODE_CHAR (charset, c);
   if (c < 0)
-    error ("Invalid code: %d", code);
+    error ("Invalid code: %"pEd, ch);
   return make_number (c);
 }
 
@@ -9298,7 +9310,7 @@ usage: (find-operation-coding-system OPERATION ARGUMENTS...)  */)
 	|| (EQ (operation, Qinsert_file_contents) && CONSP (target)
 	    && STRINGP (XCAR (target)) && BUFFERP (XCDR (target)))
 	|| (EQ (operation, Qopen_network_stream) && INTEGERP (target))))
-    error ("Invalid %dth argument", XFASTINT (target_idx) + 1);
+    error ("Invalid %"pEd"th argument", XFASTINT (target_idx) + 1);
   if (CONSP (target))
     target = XCAR (target);
 
@@ -9774,7 +9786,7 @@ usage: (define-coding-system-internal ...)  */)
 	  CHECK_CHARSET_GET_ID (tmp1, id);
 	  CHECK_NATNUM_CDR (val);
 	  if (XINT (XCDR (val)) >= 4)
-	    error ("Invalid graphic register number: %d", XINT (XCDR (val)));
+	    error ("Invalid graphic register number: %"pEd, XINT (XCDR (val)));
 	  XSETCAR (val, make_number (id));
 	}
 

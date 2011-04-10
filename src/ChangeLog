@@ -1,3 +1,86 @@
+2011-04-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix more problems found by GCC 4.6.0's static checks.
+
+	* xdisp.c (vmessage): Use a better test for character truncation.
+
+	* charset.c (load_charset_map): <, not <=, for optimization,
+	and to avoid potential problems with integer overflow.
+	* chartab.c (sub_char_table_set_range, char_table_set_range): Likewise.
+	* casetab.c (set_identity, shuffle): Likewise.
+	* editfns.c (Fformat): Likewise.
+	* syntax.c (skip_chars): Likewise.
+
+	* xmenu.c (set_frame_menubar): Allocate smaller local vectors.
+	This also lets GCC 4.6.0 generate slightly better loop code.
+
+	* callint.c (Fcall_interactively): <, not <=, for optimization.
+	(Fcall_interactively): Count the number of arguments produced,
+	not the number of arguments given.  This is simpler and lets GCC
+	4.6.0 generate slightly better code.
+
+	* ftfont.c: Distingish more carefully between FcChar8 and char.
+	The previous code passed unsigned char * to a functions like
+	strlen and xstrcasecmp that expect char *, which does not
+	conform to the C standard.
+	(get_adstyle_property, ftfont_pattern_entity): Use FcChar8 for
+	arguments to FcPatternGetString, and explicitly cast FcChar8 * to
+	char * when the C standard requires it.
+
+	* keyboard.c (read_char): Remove unused var.
+
+	* eval.c: Port to Windows vsnprintf (Bug#8435).
+	Include <limits.h>.
+	(SIZE_MAX): Define if the headers do not.
+	(verror): Do not give up if vsnprintf returns a negative count.
+	Instead, grow the buffer.  This ports to Windows vsnprintf, which
+	does not conform to C99.  Problem reported by Eli Zaretskii.
+	Also, simplify the allocation scheme, by avoiding the need for
+	calling realloc, and removing the ALLOCATED variable.
+
+	* eval.c (verror): Initial buffer size is 4000 (not 200) bytes.
+
+	Remove invocations of doprnt, as Emacs now uses vsnprintf.
+	But keep the doprint source code for now, as we might revamp it
+	and use it again (Bug#8435).
+	* lisp.h (doprnt): Remove.
+	* Makefile.in (base_obj): Remove doprnt.o.
+	* deps.mk (doprnt.o): Remove.
+
+	error: Print 32- and 64-bit integers portably (Bug#8435).
+	Without this change, on typical 64-bit hosts error ("...%d...", N)
+	was used to print both 32- and 64-bit integers N, which relied on
+	undefined behavior.
+	* lisp.h, src/m/amdx86-64.h, src/m/ia64.h, src/m/ibms390x.h (pEd):
+	New macro.
+	* lisp.h (error, verror): Mark as printf-like functions.
+	* eval.c (verror): Use vsnprintf, not doprnt, to do the real work.
+	Report overflow in size calculations when allocating printf buffer.
+	Do not truncate output string at its first null byte.
+	* xdisp.c (vmessage): Use vsnprintf, not doprnt, to do the real work.
+	Truncate the output at a character boundary, since vsnprintf does not
+	do that.
+	* charset.c (check_iso_charset_parameter): Convert internal
+	character to string before calling 'error', since %c now has the
+	printf meaning.
+	* coding.c (Fdecode_sjis_char, Fdecode_big5_char): Avoid int
+	overflow when computing char to be passed to 'error'.  Do not
+	pass Lisp_Object to 'error'; pass the integer instead.
+	* nsfns.m (Fns_do_applescript): Use int, not long, since it's
+	formatted with plain %d.
+
+	* eval.c (internal_lisp_condition_case): Don't pass spurious arg.
+
+	* keyboard.c (access_keymap_keyremap): Print func name, not garbage.
+
+	* coding.c (Fdecode_sjis_char): Don't assume CODE fits in int.
+
+	* xterm.c (x_catch_errors): Remove duplicate declaration.
+
+	* term.c (maybe_fatal): Mark its 3rd arg as a printf format, too.
+
+	* xdisp.c, lisp.h (message_nolog): Remove; unused.
+
 2011-04-10  Jim Meyering  <meyering@redhat.com>
 
 	use ssize_t and size_t for read- and write-like emacs_gnutls_* functions

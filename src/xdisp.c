@@ -8408,10 +8408,19 @@ vmessage (const char *m, va_list ap)
 	{
 	  if (m)
 	    {
-	      EMACS_INT len;
+	      char *buf = FRAME_MESSAGE_BUF (f);
+	      size_t bufsize = FRAME_MESSAGE_BUF_SIZE (f);
+	      int len;
 
-	      len = doprnt (FRAME_MESSAGE_BUF (f),
-			    FRAME_MESSAGE_BUF_SIZE (f), m, (char *)0, ap);
+	      memset (buf, 0, bufsize);
+	      len = vsnprintf (buf, bufsize, m, ap);
+
+	      /* Do any truncation at a character boundary.  */
+	      if (! (0 <= len && len < bufsize))
+		for (len = strnlen (buf, bufsize);
+		     len && ! CHAR_HEAD_P (buf[len - 1]);
+		     len--)
+		  continue;
 
 	      message2 (FRAME_MESSAGE_BUF (f), len, 0);
 	    }
@@ -8435,6 +8444,7 @@ message (const char *m, ...)
 }
 
 
+#if 0
 /* The non-logging version of message.  */
 
 void
@@ -8449,6 +8459,7 @@ message_nolog (const char *m, ...)
   Vmessage_log_max = old_log_max;
   va_end (ap);
 }
+#endif
 
 
 /* Display the current message in the current mini-buffer.  This is
@@ -19503,7 +19514,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 	    EMACS_INT limit = BUF_BEGV (b);
 	    EMACS_INT limit_byte = BUF_BEGV_BYTE (b);
 	    EMACS_INT position;
-	    EMACS_INT distance = 
+	    EMACS_INT distance =
 	      (height * 2 + 30) * line_number_display_limit_width;
 
 	    if (startpos - distance > limit)

@@ -1541,7 +1541,8 @@ skip_chars (int forwardp, Lisp_Object string, Lisp_Object lim, int handle_iso_cl
 
 	      if (c <= c2)
 		{
-		  while (c <= c2)
+		  unsigned lim2 = c2 + 1;
+		  while (c < lim2)
 		    fastmap[c++] = 1;
 		  if (! ASCII_CHAR_P (c2))
 		    string_has_eight_bit = 1;
@@ -1681,7 +1682,8 @@ skip_chars (int forwardp, Lisp_Object string, Lisp_Object lim, int handle_iso_cl
 		}
 	      if (! ASCII_CHAR_P (c))
 		{
-		  while (leading_code <= leading_code2)
+		  unsigned lim2 = leading_code2 + 1;
+		  while (leading_code < lim2)
 		    fastmap[leading_code++] = 1;
 		  if (c <= c2)
 		    {
@@ -1713,9 +1715,9 @@ skip_chars (int forwardp, Lisp_Object string, Lisp_Object lim, int handle_iso_cl
 	  for (i = 0; i < n_char_ranges; i += 2)
 	    {
 	      int c1 = char_ranges[i];
-	      int c2 = char_ranges[i + 1];
+	      unsigned lim2 = char_ranges[i + 1] + 1;
 
-	      for (; c1 <= c2; c1++)
+	      for (; c1 < lim2; c1++)
 		{
 		  int b = CHAR_TO_BYTE_SAFE (c1);
 		  if (b >= 0)

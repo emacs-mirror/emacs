@@ -7539,8 +7539,6 @@ x_error_catcher (Display *display, XErrorEvent *event)
 
    Calling x_uncatch_errors resumes the normal error handling.  */
 
-void x_check_errors (Display *dpy, const char *format);
-
 void
 x_catch_errors (Display *dpy)
 {

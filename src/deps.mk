@@ -82,7 +82,6 @@ dispnew.o: dispnew.c systime.h commands.h process.h frame.h coding.h \
 # doc.o's dependency on buildobj.h is in src/Makefile.in.
 doc.o: doc.c lisp.h $(config_h) buffer.h keyboard.h keymap.h \
    character.h systime.h coding.h composite.h ../lib/unistd.h globals.h
-doprnt.o: doprnt.c character.h lisp.h globals.h ../lib/unistd.h $(config_h)
 dosfns.o: buffer.h termchar.h termhooks.h frame.h blockinput.h window.h \
    msdos.h dosfns.h dispextern.h charset.h coding.h atimer.h systime.h \
    lisp.h $(config_h)

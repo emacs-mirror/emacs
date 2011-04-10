@@ -160,11 +160,13 @@ static struct
 static Lisp_Object
 get_adstyle_property (FcPattern *p)
 {
-  unsigned char *str, *end;
+  FcChar8 *fcstr;
+  char *str, *end;
   Lisp_Object adstyle;
 
-  if (FcPatternGetString (p, FC_STYLE, 0, (FcChar8 **) &str) != FcResultMatch)
+  if (FcPatternGetString (p, FC_STYLE, 0, &fcstr) != FcResultMatch)
     return Qnil;
+  str = (char *) fcstr;
   for (end = str; *end && *end != ' '; end++);
   if (*end)
     {
@@ -189,19 +191,20 @@ static Lisp_Object
 ftfont_pattern_entity (FcPattern *p, Lisp_Object extra)
 {
   Lisp_Object key, cache, entity;
-  unsigned char *file, *str;
+  FcChar8 *str;
+  char *file;
   int idx;
   int numeric;
   double dbl;
   FcBool b;
 
-  if (FcPatternGetString (p, FC_FILE, 0, (FcChar8 **) &file) != FcResultMatch)
+  if (FcPatternGetString (p, FC_FILE, 0, &str) != FcResultMatch)
     return Qnil;
   if (FcPatternGetInteger (p, FC_INDEX, 0, &idx) != FcResultMatch)
     return Qnil;
 
-  key = Fcons (make_unibyte_string ((char *) file, strlen ((char *) file)),
-	       make_number (idx));
+  file = (char *) str;
+  key = Fcons (make_unibyte_string (file, strlen (file)), make_number (idx));
   cache = ftfont_lookup_cache (key, FTFONT_CACHE_FOR_ENTITY);
   entity = XCAR (cache);
   if (! NILP (entity))
@@ -219,10 +222,16 @@ ftfont_pattern_entity (FcPattern *p, Lisp_Object extra)
   ASET (entity, FONT_TYPE_INDEX, Qfreetype);
   ASET (entity, FONT_REGISTRY_INDEX, Qiso10646_1);
 
-  if (FcPatternGetString (p, FC_FOUNDRY, 0, (FcChar8 **) &str) == FcResultMatch)
-    ASET (entity, FONT_FOUNDRY_INDEX, font_intern_prop (str, strlen (str), 1));
-  if (FcPatternGetString (p, FC_FAMILY, 0, (FcChar8 **) &str) == FcResultMatch)
-    ASET (entity, FONT_FAMILY_INDEX, font_intern_prop (str, strlen (str), 1));
+  if (FcPatternGetString (p, FC_FOUNDRY, 0, &str) == FcResultMatch)
+    {
+      char *s = (char *) str;
+      ASET (entity, FONT_FOUNDRY_INDEX, font_intern_prop (s, strlen (s), 1));
+    }
+  if (FcPatternGetString (p, FC_FAMILY, 0, &str) == FcResultMatch)
+    {
+      char *s = (char *) str;
+      ASET (entity, FONT_FAMILY_INDEX, font_intern_prop (s, strlen (s), 1));
+    }
   if (FcPatternGetInteger (p, FC_WEIGHT, 0, &numeric) == FcResultMatch)
     {
       if (numeric >= FC_WEIGHT_REGULAR && numeric < FC_WEIGHT_MEDIUM)

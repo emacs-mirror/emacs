@@ -317,7 +317,7 @@ load_charset_map (struct charset *charset, struct charset_map_entries *entries, 
   for (i = 0; i < n_entries; i++)
     {
       unsigned from, to;
-      int from_index, to_index;
+      int from_index, to_index, lim_index;
       int from_c, to_c;
       int idx = i % 0x10000;
 
@@ -339,6 +339,7 @@ load_charset_map (struct charset *charset, struct charset_map_entries *entries, 
 	}
       if (from_index < 0 || to_index < 0)
 	continue;
+      lim_index = to_index + 1;
 
       if (to_c > max_char)
 	max_char = to_c;
@@ -348,10 +349,10 @@ load_charset_map (struct charset *charset, struct charset_map_entries *entries, 
       if (control_flag == 1)
 	{
 	  if (charset->method == CHARSET_METHOD_MAP)
-	    for (; from_index <= to_index; from_index++, from_c++)
+	    for (; from_index < lim_index; from_index++, from_c++)
 	      ASET (vec, from_index, make_number (from_c));
 	  else
-	    for (; from_index <= to_index; from_index++, from_c++)
+	    for (; from_index < lim_index; from_index++, from_c++)
 	      CHAR_TABLE_SET (Vchar_unify_table,
 			      CHARSET_CODE_OFFSET (charset) + from_index,
 			      make_number (from_c));
@@ -360,7 +361,7 @@ load_charset_map (struct charset *charset, struct charset_map_entries *entries, 
 	{
 	  if (charset->method == CHARSET_METHOD_MAP
 	      && CHARSET_COMPACT_CODES_P (charset))
-	    for (; from_index <= to_index; from_index++, from_c++)
+	    for (; from_index < lim_index; from_index++, from_c++)
 	      {
 		unsigned code = INDEX_TO_CODE_POINT (charset, from_index);
 
@@ -368,17 +369,17 @@ load_charset_map (struct charset *charset, struct charset_map_entries *entries, 
 		  CHAR_TABLE_SET (table, from_c, make_number (code));
 	      }
 	  else
-	    for (; from_index <= to_index; from_index++, from_c++)
+	    for (; from_index < lim_index; from_index++, from_c++)
 	      {
 		if (NILP (CHAR_TABLE_REF (table, from_c)))
 		  CHAR_TABLE_SET (table, from_c, make_number (from_index));
 	      }
 	}
       else if (control_flag == 3)
-	for (; from_index <= to_index; from_index++, from_c++)
+	for (; from_index < lim_index; from_index++, from_c++)
 	  SET_TEMP_CHARSET_WORK_DECODER (from_c, from_index);
       else if (control_flag == 4)
-	for (; from_index <= to_index; from_index++, from_c++)
+	for (; from_index < lim_index; from_index++, from_c++)
 	  SET_TEMP_CHARSET_WORK_ENCODER (from_c, from_index);
       else			/* control_flag == 0 */
 	{
@@ -493,7 +494,7 @@ load_charset_map_from_file (struct charset *charset, Lisp_Object mapfile, int co
   unbind_to (count, Qnil);
   if (fd < 0
       || ! (fp = fdopen (fd, "r")))
-    error ("Failure in loading charset map: %S", SDATA (mapfile));
+    error ("Failure in loading charset map: %s", SDATA (mapfile));
 
   /* Use SAFE_ALLOCA instead of alloca, as `charset_map_entries' is
      large (larger than MAX_ALLOCA).  */
@@ -1000,7 +1001,7 @@ usage: (define-charset-internal ...)  */)
     {
       CHECK_NUMBER (val);
       if (XINT (val) < '0' || XINT (val) > 127)
-	error ("Invalid iso-final-char: %d", XINT (val));
+	error ("Invalid iso-final-char: %"pEd, XINT (val));
       charset.iso_final = XINT (val);
     }
 
@@ -1022,7 +1023,7 @@ usage: (define-charset-internal ...)  */)
     {
       CHECK_NATNUM (val);
       if ((XINT (val) > 0 && XINT (val) <= 128) || XINT (val) >= 256)
-	error ("Invalid emacs-mule-id: %d", XINT (val));
+	error ("Invalid emacs-mule-id: %"pEd, XINT (val));
       charset.emacs_mule_id = XINT (val);
     }
 
@@ -1440,11 +1441,17 @@ check_iso_charset_parameter (Lisp_Object dimension, Lisp_Object chars, Lisp_Obje
   CHECK_NATNUM (final_char);
 
   if (XINT (dimension) > 3)
-    error ("Invalid DIMENSION %d, it should be 1, 2, or 3", XINT (dimension));
+    error ("Invalid DIMENSION %"pEd", it should be 1, 2, or 3",
+	   XINT (dimension));
   if (XINT (chars) != 94 && XINT (chars) != 96)
-    error ("Invalid CHARS %d, it should be 94 or 96", XINT (chars));
+    error ("Invalid CHARS %"pEd", it should be 94 or 96", XINT (chars));
   if (XINT (final_char) < '0' || XINT (final_char) > '~')
-    error ("Invalid FINAL-CHAR %c, it should be `0'..`~'", XINT (chars));
+    {
+      unsigned char str[MAX_MULTIBYTE_LENGTH + 1];
+      int len = CHAR_STRING (XINT (chars), str);
+      str[len] = '\0';
+      error ("Invalid FINAL-CHAR %s, it should be `0'..`~'", str);
+    }
 }
 
 

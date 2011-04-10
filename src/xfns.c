@@ -215,7 +215,7 @@ check_x_display_info (Lisp_Object object)
       struct terminal *t = get_terminal (object, 1);
 
       if (t->type != output_x_window)
-        error ("Terminal %d is not an X display", XINT (object));
+        error ("Terminal %"pEd" is not an X display", XINT (object));
 
       dpyinfo = t->display_info.x;
     }

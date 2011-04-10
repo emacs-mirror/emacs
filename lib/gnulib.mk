@@ -21,6 +21,14 @@ libgnu_a_LIBADD = $(gl_LIBOBJS)
 libgnu_a_DEPENDENCIES = $(gl_LIBOBJS)
 EXTRA_libgnu_a_SOURCES =
 
+## begin gnulib module allocator
+
+libgnu_a_SOURCES += allocator.c
+
+EXTRA_DIST += allocator.h
+
+## end   gnulib module allocator
+
 ## begin gnulib module arg-nonnull
 
 # The BUILT_SOURCES created by this Makefile snippet are not used via #include
@@ -73,7 +81,7 @@ EXTRA_DIST += $(top_srcdir)/./c++defs.h
 
 libgnu_a_SOURCES += careadlinkat.c
 
-EXTRA_DIST += allocator.h careadlinkat.h
+EXTRA_DIST += careadlinkat.h
 
 ## end   gnulib module careadlinkat
 

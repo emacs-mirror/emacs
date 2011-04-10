@@ -18,6 +18,7 @@
 /* Written by Paul Eggert.  */
 
 #ifndef _GL_ALLOCATOR_H
+#define _GL_ALLOCATOR_H
 
 #include <stddef.h>
 
@@ -30,16 +31,16 @@ struct allocator
      attributes do not work with pointers to functions.  See
      <http://lists.gnu.org/archive/html/bug-gnulib/2011-04/msg00007.html>.  */
 
-  /* Call MALLOC to allocate memory, like 'malloc'.  On failure MALLOC
+  /* Call ALLOCATE to allocate memory, like 'malloc'.  On failure ALLOCATE
      should return NULL, though not necessarily set errno.  When given
      a zero size it may return NULL even if successful.  */
-  void *(*malloc) (size_t);
+  void *(*allocate) (size_t);
 
-  /* If nonnull, call REALLOC to reallocate memory, like 'realloc'.
-     On failure REALLOC should return NULL, though not necessarily set
+  /* If nonnull, call REALLOCATE to reallocate memory, like 'realloc'.
+     On failure REALLOCATE should return NULL, though not necessarily set
      errno.  When given a zero size it may return NULL even if
      successful.  */
-  void *(*realloc) (void *, size_t);
+  void *(*reallocate) (void *, size_t);
 
   /* Call FREE to free memory, like 'free'.  */
   void (*free) (void *);
@@ -50,4 +51,7 @@ struct allocator
   void (*die) (void);
 };
 
-#endif
+/* An allocator using the stdlib functions and a null DIE function.  */
+extern struct allocator const stdlib_allocator;
+
+#endif /* _GL_ALLOCATOR_H */

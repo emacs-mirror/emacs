@@ -18,6 +18,7 @@
 /* Written by Paul Eggert, Bruno Haible, and Jim Meyering.  */
 
 #ifndef _GL_CAREADLINKAT_H
+#define _GL_CAREADLINKAT_H
 
 #include <fcntl.h>
 #include <unistd.h>
@@ -37,7 +38,10 @@ struct allocator;
    buffer managed by ALLOC.  It is the caller's responsibility to free
    the returned value if it is nonnull and is not BUFFER.
 
-   The PREADLINKAT function specifies how to read links.
+   The PREADLINKAT function specifies how to read links.  It operates
+   like POSIX readlinkat()
+   <http://pubs.opengroup.org/onlinepubs/9699919799/functions/readlink.html>
+   but can assume that its first argument is the same as FD.
 
    If successful, return the buffer address; otherwise return NULL and
    set errno.  */
@@ -49,8 +53,10 @@ char *careadlinkat (int fd, char const *filename,
                                             char *, size_t));
 
 /* Suitable values for careadlinkat's FD and PREADLINKAT arguments,
-   when doing a plain readlink.  */
+   when doing a plain readlink:
+   Pass FD = AT_FDCWD and PREADLINKAT = careadlinkatcwd.  */
 #if HAVE_READLINKAT
+/* AT_FDCWD is declared in <fcntl.h>, readlinkat in <unistd.h>.  */
 # define careadlinkatcwd readlinkat
 #else
 /* Define AT_FDCWD independently, so that the careadlinkat module does
