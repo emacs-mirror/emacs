@@ -8417,10 +8417,13 @@ vmessage (const char *m, va_list ap)
 
 	      /* Do any truncation at a character boundary.  */
 	      if (! (0 <= len && len < bufsize))
-		for (len = strnlen (buf, bufsize);
-		     len && ! CHAR_HEAD_P (buf[len - 1]);
-		     len--)
-		  continue;
+		{
+		  char *end = memchr (buf, 0, bufsize);
+		  for (len = end ? end - buf : bufsize;
+		       len && ! CHAR_HEAD_P (buf[len - 1]);
+		       len--)
+		    continue;
+		}
 
 	      message2 (FRAME_MESSAGE_BUF (f), len, 0);
 	    }

@@ -1,5 +1,7 @@
 2011-04-10  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xdisp.c (vmessage): Use memchr, not strnlen, which some hosts lack.
+
 	Fix more problems found by GCC 4.6.0's static checks.
 
 	* xdisp.c (vmessage): Use a better test for character truncation.
