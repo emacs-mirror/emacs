@@ -1,3 +1,8 @@
+2011-04-10  Samuel Thibault  <sthibault@debian.org>  (tiny change)
+
+	* sysdep.c (wait_for_termination): On GNU Hurd, kill returns -1 on
+	zombies (Bug#8467).
+
 2011-04-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* buffer.c (syms_of_buffer): Doc fix (Bug#6902).
