@@ -60,7 +60,7 @@ Each entry has the form (FUNCTION . FUNCTIONS-IT-CALLS).")
     "alloc.c" "data.c" "doc.c" "editfns.c"
     "callint.c" "eval.c" "fns.c" "print.c" "lread.c"
     "abbrev.c" "syntax.c" "unexcoff.c"
-    "bytecode.c" "process.c" "callproc.c"
+    "bytecode.c" "process.c" "callproc.c" "doprnt.c"
     "x11term.c" "x11fns.c"))
 
 

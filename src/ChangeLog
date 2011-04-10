@@ -38,8 +38,9 @@
 
 	* eval.c (verror): Initial buffer size is 4000 (not 200) bytes.
 
-	Remove the doprnt implementation, as Emacs now uses vsnprintf.
-	* doprnt.c: Remove.
+	Remove invocations of doprnt, as Emacs now uses vsnprintf.
+	But keep the doprint source code for now, as we might revamp it
+	and use it again (Bug#8435).
 	* lisp.h (doprnt): Remove.
 	* Makefile.in (base_obj): Remove doprnt.o.
 	* deps.mk (doprnt.o): Remove.
