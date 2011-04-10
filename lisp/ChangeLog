@@ -1,3 +1,8 @@
+2011-04-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuffer.el (completion--do-completion): Avoid the "Next char
+	not unique" prompt if icomplete-mode is enabled (Bug#5849).
+
 2011-04-10  Stephen Berman <stephen.berman@gmx.net>
 
 	* textmodes/page.el (what-page): Use line-number-at-pos to
