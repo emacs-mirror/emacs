@@ -271,7 +271,7 @@ of column descriptors."
 	;; Truncate labels if necessary.
 	(and (> width 6)
 	     (> (length label) width)
-	     (setq label (concat (substring desc 0 (- width 3))
+	     (setq label (concat (substring label 0 (- width 3))
 				 "...")))
 	(if (stringp desc)
 	    (insert (propertize label 'help-echo help-echo))

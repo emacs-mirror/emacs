@@ -1,7 +1,12 @@
-2011-04-09  Paul Eggert  <eggert@cs.ucla.edu>
+2011-04-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove the doprnt implementation, as Emacs now uses vsnprintf.
 	* emacs-lisp/find-gc.el (find-gc-source-files): Remove doprnt.c.
+
+2011-04-10  Leo Liu  <sdl.web@gmail.com>
+
+	* emacs-lisp/tabulated-list.el (tabulated-list-print-entry): Fix
+	typo.
 
 2011-04-09  Chong Yidong  <cyd@stupidchicken.com>
 
