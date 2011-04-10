@@ -491,8 +491,7 @@ in the selected frame."
     (unless (eq menu buff)
       (bury-buffer menu))
     (when others
-      ;; Never rebind `window-splits' to anything but 'binary ...
-      (let ((window-splits 'resize)
+      (let ((window-splits t)
 	    (window buff-window)
 	    other)
 	(while (and window others)

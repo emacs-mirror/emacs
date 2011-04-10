@@ -1,3 +1,40 @@
+2011-04-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* lisp.h: Extern other_buffer_safely.
+
+	* buffer.c: New symbol Qbuffer_list_update_hook.
+	(Fget_buffer_create, Fmake_indirect_buffer, Frename_buffer)
+	(Fkill_buffer, record_buffer): Run buffer-list-update-hook.
+	(other_buffer_safely): New function.
+	(Frecord_buffer): Mention return value in doc-string.
+	(Funrecord_buffer): Mention return value in doc-string.  Run
+	buffer-list-update-hook.
+	(syms_of_buffer): Define Vbuffer_list_update_hook.
+
+	* window.h (window): New slot nest.
+
+	* window.c: Remove Qsafe, Qabove, Qbelow.  Add Qauto_buffer_name.
+	(select_window): Restore version from Emacs 23 to avoid
+	clobbering the current buffer when the selected window is
+	selected.  Reported by Juanma Barranquero.
+	(Fwindow_nested, Fset_window_nested): Remove.
+	(Fwindow_splits, Fset_window_splits, Fwindow_nest)
+	(Fset_window_nest): New functions.
+	(recombine_windows): Use ->nest instead of ->nested.
+	(window_loop): Call other_buffer_safely
+	(Fdelete_other_windows_internal): Reset splits status of
+	remaining window.
+	(make_parent_window, make_window): Initialize splits and nest
+	status.
+	(Fsplit_window_internal): Handle splits and nest status.
+	(Fdelete_window_internal): Remove bflag.  Handle nest status.
+	(saved_window): Add slots for splits and nest status.
+	(Fset_window_configuration): Handle auto_buffer_name.  Handle
+	splits and nest status.  Reorder code.
+	(save_window_save): Handle splits and nest status.
+	(syms_of_window): Rewrite doc-string of window-splits.  New
+	variable window-nest.
+
 2011-02-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* dired.c (Ffile_attributes): Increase size of modes from 10 to 12

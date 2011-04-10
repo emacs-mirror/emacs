@@ -1024,10 +1024,14 @@ SCROLL equal `other' means tell how to scroll the \"other\"
 window."
   (let ((scroll-part
 	 (cond
+	  ;; If we don't have QUIT-PART we probably reuse a window
+	  ;; showing the same buffer so we don't show any message.
+	  ((not quit-part) nil)
 	  ((pos-visible-in-window-p
 	    (with-current-buffer (window-buffer window)
-	      (point-max)) window)
-	   ;; Buffer end is visible.
+	      (point-max)) window t)
+	   ;; Buffer end is at least partially visible, no need to talk
+	   ;; about scrolling.
 	   ".")
 	  ((eq scroll 'other)
 	   ", \\[scroll-other-window] to scroll help.")

@@ -129,6 +129,7 @@ Lisp_Object Qprotected_field;
 Lisp_Object QSFundamental;	/* A string "Fundamental" */
 
 Lisp_Object Qkill_buffer_hook;
+Lisp_Object Qbuffer_list_update_hook;
 
 Lisp_Object Qget_file_buffer;
 
@@ -382,6 +383,9 @@ even if it is dead.  The return value is never nil.  */)
   /* Put this in the alist of all live buffers.  */
   XSETBUFFER (buffer, b);
   Vbuffer_alist = nconc2 (Vbuffer_alist, Fcons (Fcons (name, buffer), Qnil));
+  /* And run buffer-list-update-hook.  */
+  if (!NILP (Vrun_hooks))
+    call1 (Vrun_hooks, Qbuffer_list_update_hook);
 
   /* An error in calling the function here (should someone redefine it)
      can lead to infinite regress until you run out of stack.  rms
@@ -610,6 +614,10 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
       Fset (intern ("buffer-stale-function"), Qnil);
       set_buffer_internal_1 (old_b);
     }
+
+  /* Run buffer-list-update-hook.  */
+  if (!NILP (Vrun_hooks))
+    call1 (Vrun_hooks, Qbuffer_list_update_hook);
 
   return buf;
 }
@@ -1214,6 +1222,11 @@ This does not change the name of the visited file (if any).  */)
   if (NILP (BVAR (current_buffer, filename))
       && !NILP (BVAR (current_buffer, auto_save_file_name)))
     call0 (intern ("rename-auto-save-file"));
+
+  /* Run buffer-list-update-hook.  */
+  if (!NILP (Vrun_hooks))
+    call1 (Vrun_hooks, Qbuffer_list_update_hook);
+
   /* Refetch since that last call may have done GC.  */
   return BVAR (current_buffer, name);
 }
@@ -1293,6 +1306,36 @@ exists, return the buffer `*scratch*' (creating it if necessary).  */)
 	}
       return buf;
     }
+}
+
+/* The following function is a safe variant of Fother_buffer: It doesn't
+   pay attention to any frame-local buffer lists, doesn't care about
+   visibility of buffers, and doesn't evaluate any frame predicates.  */
+
+Lisp_Object
+other_buffer_safely (Lisp_Object buffer)
+{
+  Lisp_Object Fset_buffer_major_mode (Lisp_Object buffer);
+  Lisp_Object tail, buf;
+
+  tail = Vbuffer_alist;
+  for (; CONSP (tail); tail = XCDR (tail))
+    {
+      buf = Fcdr (XCAR (tail));
+      if (BUFFERP (buf) && !EQ (buf, buffer)
+	  && !NILP (BVAR (XBUFFER (buf), name))
+	  && (SREF (BVAR (XBUFFER (buf), name), 0) != ' '))
+	return buf;
+    }
+
+  buf = Fget_buffer (build_string ("*scratch*"));
+  if (NILP (buf))
+    {
+      buf = Fget_buffer_create (build_string ("*scratch*"));
+      Fset_buffer_major_mode (buf);
+    }
+
+  return buf;
 }
 
 DEFUN ("buffer-enable-undo", Fbuffer_enable_undo, Sbuffer_enable_undo,
@@ -1545,6 +1588,10 @@ with SIGHUP.  */)
   UNBLOCK_INPUT;
   BVAR (b, undo_list) = Qnil;
 
+  /* Run buffer-list-update-hook.  */
+  if (!NILP (Vrun_hooks))
+    call1 (Vrun_hooks, Qbuffer_list_update_hook);
+
   return Qt;
 }
 
@@ -1583,10 +1630,15 @@ record_buffer (Lisp_Object buffer)
   /* Update buffer list of selected frame.  */
   f->buffer_list = Fcons (buffer, Fdelq (buffer, f->buffer_list));
   f->buried_buffer_list = Fdelq (buffer, f->buried_buffer_list);
+
+  /* Run buffer-list-update-hook.  */
+  if (!NILP (Vrun_hooks))
+    call1 (Vrun_hooks, Qbuffer_list_update_hook);
 }
 
 DEFUN ("record-buffer", Frecord_buffer, Srecord_buffer, 1, 1, 0,
-       doc: /* Move BUFFER to the front of the buffer list.  */)
+       doc: /* Move BUFFER to the front of the buffer list.
+Return BUFFER.  */)
   (Lisp_Object buffer)
 {
   CHECK_BUFFER (buffer);
@@ -1603,7 +1655,8 @@ DEFUN ("record-buffer", Frecord_buffer, Srecord_buffer, 1, 1, 0,
      called only when BUFFER was shown in the selected frame.  */
 
 DEFUN ("unrecord-buffer", Funrecord_buffer, Sunrecord_buffer, 1, 1, 0,
-       doc: /* Move BUFFER to the end of the buffer list.  */)
+       doc: /* Move BUFFER to the end of the buffer list.
+Return BUFFER.  */)
   (Lisp_Object buffer)
 {
   Lisp_Object aelt, link, tem;
@@ -1626,6 +1679,12 @@ DEFUN ("unrecord-buffer", Funrecord_buffer, Sunrecord_buffer, 1, 1, 0,
   /* Update buffer lists of selected frame.  */
   f->buffer_list = Fdelq (buffer, f->buffer_list);
   f->buried_buffer_list = Fcons (buffer, Fdelq (buffer, f->buried_buffer_list));
+
+  /* Run buffer-list-update-hook.  */
+  if (!NILP (Vrun_hooks))
+    call1 (Vrun_hooks, Qbuffer_list_update_hook);
+
+  return buffer;
 }
 
 DEFUN ("set-buffer-major-mode", Fset_buffer_major_mode, Sset_buffer_major_mode, 1, 1, 0,
@@ -6002,6 +6061,15 @@ The function `kill-all-local-variables' runs this before doing anything else.  *
   Vchange_major_mode_hook = Qnil;
   Qchange_major_mode_hook = intern_c_string ("change-major-mode-hook");
   staticpro (&Qchange_major_mode_hook);
+
+  DEFVAR_LISP ("buffer-list-update-hook", Vbuffer_list_update_hook,
+	       doc: /* Hook run when the buffer list changes.
+Functions running this hook are `get-buffer-create',
+`make-indirect-buffer', `rename-buffer', `kill-buffer',
+`record-buffer' and `unrecord-buffer'.  */);
+  Vbuffer_list_update_hook = Qnil;
+  Qbuffer_list_update_hook = intern_c_string ("buffer-list-update-hook");
+  staticpro (&Qbuffer_list_update_hook);
 
   defsubr (&Sbuffer_live_p);
   defsubr (&Sbuffer_list);

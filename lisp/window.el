@@ -1586,7 +1586,7 @@ edge of WINDOW consider using `adjust-window-trailing-edge'
 instead."
   (setq window (normalize-any-window window))
   (let* ((frame (window-frame window))
-	 right)
+	 sibling)
     (cond
      ((eq window (frame-root-window frame))
       (error "Cannot resize root window of frame"))
@@ -1595,25 +1595,20 @@ instead."
      ((window-resizable-p window delta horizontal ignore)
       (resize-window-reset frame horizontal)
       (resize-this-window window delta horizontal ignore t)
-      (if (and (not (eq window-splits 'resize))
+      (if (and (not (window-splits window))
 	       (window-iso-combined-p window horizontal)
-	       (setq right (window-right window))
-	       (or (window-size-ignore window ignore)
-		   (not (window-size-fixed-p right)))
-	       (or (< delta 0)
-		   (> (- (window-total-size right horizontal)
-			 (window-min-size right horizontal))
-		      delta)))
-	  ;; Resize window below/on the right of WINDOW - this is the
-	  ;; classic Emacs behavior, so retain it for `window-splits'
-	  ;; not 'resize, iso-combined windows.  It's a PITA, though.
+	       (setq sibling (or (window-right window) (window-left window)))
+	       (window-sizable-p sibling (- delta) horizontal ignore))
+	  ;; Resize WINDOW's neighbor, preferably the one on the right,
+	  ;; since up to Emacs 23 it was handled this way.
 	  (let ((parent-size
 		 (window-total-size (window-parent window) horizontal)))
-	    (resize-this-window right (- delta) horizontal nil t)
+	    (resize-this-window sibling (- delta) horizontal nil t)
 	    (resize-window-normal
 	     window (/ (float (window-new-total-size window)) parent-size))
 	    (resize-window-normal
-	     right (/ (float (window-new-total-size right)) parent-size)))
+	     sibling (/ (float (window-new-total-size sibling)) parent-size)))
+	;; Resize all other windows in the same combination.
 	(resize-other-windows window delta horizontal ignore))
       (resize-window-apply frame horizontal))
      (t
@@ -2426,45 +2421,23 @@ non-side window, signal an error."
 	     (size (window-total-size window horizontal))
 	     (frame-selected
 	      (window-or-subwindow-p (frame-selected-window frame) window))
-	     ;; LEFT is WINDOW's _left_ sibling - traditionally LEFT
-	     ;; gets enlarged and is selected after the deletion.
-	     (left (window-left window))
-	     ;; RIGHT is WINDOW's right sibling.
-	     (right (window-right window))
-	     ;; SIBLING is WINDOW's sibling provided they are the only
-	     ;; child windows of PARENT.
-	     (sibling
-	      (or (and left (not right) (not (window-left left)) left)
-		  (and right (not left) (not (window-right right)) right))))
+	     ;; Emacs 23 preferably gives WINDOW's space to its left
+	     ;; sibling.
+	     (sibling (or (window-left window) (window-right window))))
 	(resize-window-reset frame horizontal)
 	(cond
-	 ((or (and (eq window-splits 'nest)
-		   (or (and left (not (window-left left))
-			    (not (window-right window)))
-		       (and (not left)
-			    (setq left (window-right window))
-			    (not (window-right left))))
-		   (not (window-size-fixed-p left horizontal)))
-	      (and left (not window-splits)
-		   (not (window-size-fixed-p left horizontal))))
-	  ;; Resize WINDOW's left sibling.
-	  (resize-this-window left size horizontal nil t)
+	 ((and (not (window-splits window))
+	       sibling (window-sizable-p sibling size))
+	  ;; Resize WINDOW's sibling.
+	  (resize-this-window sibling size horizontal nil t)
 	  (resize-window-normal
-	   left (+ (window-normal-size left horizontal)
-		   (window-normal-size window horizontal))))
-	 ((let ((sub (window-child parent)))
-	    (catch 'found
-	      ;; Look for a non-fixed-size sibling.
-	      (while sub
-		(when (and (not (eq sub window))
-			   (not (window-size-fixed-p sub horizontal)))
-		  (throw 'found t))
-		(setq sub (window-right sub)))))
-	  ;; We can do it without resizing fixed-size windows.
+	   sibling (+ (window-normal-size sibling horizontal)
+		      (window-normal-size window horizontal))))
+	 ((window-resizable-p window (- size) horizontal nil nil nil t)
+	  ;; Can do it without resizing fixed-size windows.
 	  (resize-other-windows window (- size) horizontal))
 	 (t
-	  ;; Can't do without resizing fixed-size windows.  We really
-	  ;; should signal an error here but who would agree :-(
+	  ;; Can't do without resizing fixed-size windows.
 	  (resize-other-windows window (- size) horizontal t)))
 	;; Actually delete WINDOW.
 	(delete-window-internal window)
@@ -2937,11 +2910,11 @@ frames left."
 BUFFER-OR-NAME may be a buffer or the name of an existing buffer
 and defaults to the current buffer.
 
-When a window showing BUFFER-OR-NAME is dedicated that window is
-deleted.  If that window is the only window on its frame, that
-frame is deleted too when there are other frames left.  If there
-are no other frames left, some other buffer is displayed in that
-window.
+When a window showing BUFFER-OR-NAME is either dedicated, or the
+window has no previous buffer, that window is deleted.  If that
+window is the only window on its frame, the frame is deleted too
+when there are other frames left.  If there are no other frames
+left, some other buffer is displayed in that window.
 
 This function removes the buffer denoted by BUFFER-OR-NAME from
 all window-local buffer lists."
@@ -3084,7 +3057,7 @@ selected on WINDOW's frame."
 	 (frame (window-frame window))
 	 (function (window-parameter window 'split-window-function))
 	 ;; Rebind this locally since in some cases we do have to nest.
-	 (window-splits window-splits)
+	 (window-nest window-nest)
 	 atom-root)
     (window-check frame)
     (catch 'done
@@ -3110,15 +3083,15 @@ selected on WINDOW's frame."
 	     ;; `new-size' to the size of the new window.
 	     (old-size (window-total-size window horflag))
 	     (resize
-	      (and (eq window-splits 'resize)
+	      (and window-splits (not window-nest)
 		   ;; Resize makes sense in iso-combinations only.
 		   (window-iso-combined-p window horflag)
-		   (or (not size) (< size 0) 
+		   (or (not size) (< size 0)
 		       ;; If SIZE is a non-negative integer, we cannot
-		       ;; resize, bind `window-splits' to 'nest instead
-		       ;; to make sure that subsequent window deletions
-		       ;; are handled correctly.
-		       (and (setq window-splits 'nest) nil))))
+		       ;; resize, bind `window-nest' to t instead to
+		       ;; make sure that subsequent window deletions are
+		       ;; handled correctly.
+		       (and (setq window-nest t) nil))))
 	     (new-size
 	      (cond
 	       ((not size)
@@ -3151,13 +3124,13 @@ selected on WINDOW's frame."
 		(- size))))
 	     (root (window-parameter window 'root))
 	     (window-side (window-parameter window 'window-side)))
-	;; Check window types and handle `window-splits' with sides.
+	;; Check window types and handle `window-nest' with sides.
 	(when (and window-side
 		   (or (not parent)
 		       (not (window-parameter parent 'window-side))))
 	  ;; A side root window.  Make sure a new parent gets created.
 	  ;; Reset `resize' to nil too.
-	  (setq window-splits 'nest)
+	  (setq window-nest t)
 	  (setq resize nil))
 
 	;; Check the sizes.
@@ -3213,7 +3186,7 @@ selected on WINDOW's frame."
 			 (- parent-size new-size))
 		      parent-size))
 	      (setq sub (window-right sub)))))
-	 ((eq window-splits 'nest)
+	 (window-nest
 	  ;; Get entire space from WINDOW making sure that a new parent
 	  ;; windows gets created.
 	  (resize-window-total window (- old-size new-size))
@@ -3581,8 +3554,8 @@ specific buffers."
 	   (cons 'total-width (window-total-size window t))
 	   (cons 'normal-height (window-normal-size window))
 	   (cons 'normal-width (window-normal-size window t))
-	   (when (and (not buffer) (window-nested window))
-	     (cons 'nested t))
+	   (cons 'splits (window-splits window))
+	   (cons 'nest (window-nest window))
 	   (let (list)
 	     (dolist (parameter (window-parameters window))
 	       (unless (memq (car parameter)
@@ -3703,7 +3676,7 @@ value can be also stored on disk and read back in a new session."
 				     window-safe-min-width)))
 
 	      (if (window-sizable-p window (- size) horflag 'safe)
-		  (let* ((window-splits (when (assq 'nested item) 'nest)))
+		  (let* ((window-nest (assq 'nest item)))
 		    ;; We must inherit the nesting, otherwise we might mess
 		    ;; up handling of atomic and side window.
 		    (setq new (split-window window size horflag)))
@@ -3729,10 +3702,14 @@ value can be also stored on disk and read back in a new session."
   (dolist (item window-state-put-list)
     (let ((window (car item))
 	  (clone-number (cdr (assq 'clone-number item)))
+	  (splits (cdr (assq 'splits item)))
+	  (nest (cdr (assq 'nest item)))
 	  (parameters (cdr (assq 'parameters item)))
 	  (state (cdr (assq 'buffer item))))
       ;; Put in clone-number.
       (when clone-number (set-window-clone-number window clone-number))
+      (when splits (set-window-splits window splits))
+      (when nest (set-window-nest window nest))
       ;; Process parameters.
       (when parameters
 	(dolist (parameter parameters)
@@ -3896,7 +3873,7 @@ buffer display specifiers.")
      (reuse-window other same nil)
      (pop-up-window (largest . nil) (lru . nil))
      (reuse-window other other nil))
-    (other-visible-frame
+    (other-frame
      ;; Avoid selected frame.
      (reuse-window nil same other)
      (pop-up-frame)
@@ -4156,7 +4133,7 @@ The following macro specifiers are provided:
   `same-frame-other-window' as `other-window' but stay on the
   selected frame.
 
-  `other-visible-frame' to display the buffer on another visible
+  `other-frame' to display the buffer on another visible
   frame.
 
   `default' to use the default value of `display-buffer-alist'.
@@ -4587,7 +4564,7 @@ using the location specifiers `same-window' or `other-frame'."
 	 :tag "Other frame only"
 	 :format "%t%v"
 	 :inline t
-	 (const :format "\n" other-visible-frame))
+	 (const :format "\n" other-frame))
 	(list
 	 :tag "Default"
 	 :format "%t%v"
@@ -4898,8 +4875,7 @@ none was found."
   "Subroutine of `display-buffer-split-window'."
   (let* ((horflag (memq side '(left right)))
 	 (parent (window-parent window))
-	 (resize (and (eq window-splits 'resize)
-		      (window-iso-combined-p window horflag)))
+	 (resize (and window-splits (window-iso-combined-p window horflag)))
 	 (old-size
 	  ;; We either resize WINDOW or its parent.
 	  (window-total-size (if resize parent window) horflag))
@@ -5008,7 +4984,7 @@ Return the new window, nil if it could not be created."
 (defun display-buffer-split-atom-window (window &optional side nest specifiers)
   "Make WINDOW part of an atomic window."
   (let ((ignore-window-parameters t)
-	(window-splits 'nest)
+	(window-nest t)
 	(selected-window (selected-window))
 	root new new-parent)
 
@@ -5100,7 +5076,9 @@ description."
 	(set-window-parameter
 	 window 'quit-restore (list 'new-window buffer selected-window))
 	(setq display-buffer-window (cons window 'new-window))
-	(display-buffer-in-window buffer window specifiers)))))
+	(display-buffer-in-window buffer window specifiers)
+	(set-window-prev-buffers window nil)
+	window))))
 
 (defun display-buffer-pop-up-frame (buffer &optional graphic-only specifiers)
   "Make a new frame for displaying BUFFER.
@@ -5171,7 +5149,9 @@ failed."
        window 'quit-restore (list 'new-window buffer selected-window))
       (setq display-buffer-window (cons window 'new-window))
       (set-window-parameter window 'window-slot slot)
-      (display-buffer-in-window buffer window specifiers))))
+      (display-buffer-in-window buffer window specifiers)
+      (set-window-prev-buffers window nil)
+      window)))
 
 (defun display-buffer-in-side-window (buffer side &optional slot specifiers)
   "Display BUFFER in a window on SIDE of the selected frame.

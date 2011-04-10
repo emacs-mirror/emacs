@@ -1,3 +1,31 @@
+2011-04-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (resize-window): With window-splits nil resize
+	either left or right sibling to behave more like Emacs 23.
+	Reported by Juanma Barranquero.
+	(delete-window, split-window): Simplify code and adapt to new
+	window-splits/window-nest semantics.
+	(window-state-get-1, window-state-put-1, window-state-put-2)
+	(display-buffer-split-window-1)
+	(display-buffer-split-atom-window): Adapt to new
+	window-splits/window-nest semantics.
+	(display-buffer-macro-specifiers, display-buffer-alist): Replace other-visible-frame
+	by other-frame.
+	(display-buffer-pop-up-window)
+	(display-buffer-pop-up-side-window): Reset new window's previous
+	buffers to nil to avoid that we switch back to the buffer from
+	the split window when quitting the window.
+
+	* menu-bar.el (kill-this-buffer, kill-this-buffer-enabled-p): Do
+	not offer to kill a buffer when we can't reliably kill it.
+
+	* help.el (help-window-display-message): Improve message shown.
+
+	* cus-start.el (all): Add entry for window-nest, rework that of
+	window-splits.
+
+	* buff-menu.el (Buffer-menu-select): Bind window-splits to t.
+
 2011-02-24  Glenn Morris  <rgm@gnu.org>
 
 	* files-x.el (modify-dir-local-variable): Handle dir-locals from

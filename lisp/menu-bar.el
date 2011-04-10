@@ -433,7 +433,7 @@
 
 (defvar menu-bar-edit-menu
   (let ((menu (make-sparse-keymap "Edit")))
-    
+
     (define-key menu [props]
       `(menu-item ,(purecopy "Text Properties") facemenu-menu))
 
@@ -1634,7 +1634,7 @@ key, a click, or a menu-item")))
 
 (defvar menu-bar-search-documentation-menu
   (let ((menu (make-sparse-keymap "Search Documentation")))
-    
+
     (define-key menu [search-documentation-strings]
       `(menu-item ,(purecopy "Search Documentation Strings...") apropos-documentation
                   :help
@@ -1818,19 +1818,21 @@ for the definition of the menu frame."
 When called in the minibuffer, get out of the minibuffer
 using `abort-recursive-edit'."
   (interactive)
-  (if (menu-bar-non-minibuffer-window-p)
-      (kill-buffer (current-buffer))
-    (abort-recursive-edit)))
+  (cond
+   ((not (menu-bar-menu-frame-live-and-visible-p)))
+   ((menu-bar-non-minibuffer-window-p)
+    (kill-buffer))
+   (t (abort-recursive-edit))))
 
 (defun kill-this-buffer-enabled-p ()
-  (let ((count 0)
-	(buffers (buffer-list)))
-    (while buffers
-      (or (string-match "^ " (buffer-name (car buffers)))
-	  (setq count (1+ count)))
-      (setq buffers (cdr buffers)))
-    (or (not (menu-bar-non-minibuffer-window-p))
-	(> count 1))))
+  (or (not (menu-bar-non-minibuffer-window-p))
+      (let (found-1)
+	(catch 'found-2
+	  (dolist (buffer (buffer-list))
+	    (unless (string-match-p "^ " (buffer-name buffer))
+	      (if (not found-1)
+		  (setq found-1 t)
+		(throw 'found-2 t))))))))
 
 (put 'dired 'menu-enable '(menu-bar-non-minibuffer-window-p))
 

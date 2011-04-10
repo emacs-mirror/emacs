@@ -1,3 +1,9 @@
+2011-04-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Splitting Windows): Explain window-splits and
+	window-nest.
+	(Displaying Buffers): Replace other-visible-frame by other-frame.
+
 2011-02-24  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Window Configurations): Fix typo.

@@ -264,8 +264,13 @@ struct window
        must run the redisplay-end-trigger-hook.  */
     Lisp_Object redisplay_end_trigger;
 
-    /* Non-nil means this window's subwindows are never recombined.  */
-    Lisp_Object nested;
+    /* Non-nil means deleting or resizing this window distributes
+       space among all windows in the same combination.  */
+    Lisp_Object splits;
+
+    /* Non-nil means this window's child windows are never
+       (re-)combined.  */
+    Lisp_Object nest;
 
     /* Alist of <buffer, window-start, window-point> triples listing
        buffers previously shown in this window.  */

@@ -2960,6 +2960,7 @@ EXFUN (Fbarf_if_buffer_read_only, 0);
 EXFUN (Fcurrent_buffer, 0);
 EXFUN (Fswitch_to_buffer, 2);
 EXFUN (Fother_buffer, 3);
+extern Lisp_Object other_buffer_safely (Lisp_Object);
 EXFUN (Foverlay_get, 2);
 EXFUN (Fbuffer_modified_p, 1);
 EXFUN (Fset_buffer_modified_p, 1);

@@ -392,11 +392,8 @@ since it could result in memory overflow and make Emacs crash."
 		       (const :tag "Never (nil)" :value nil)
 		       (const :tag "Only on ttys" :value tty)
 		       (other :tag "Always" t)) "23.1")
-	     (window-splits
-	      windows (choice
-		       (const :tag "Standard" :value nil)
-		       (const :tag "Nest" :value nest)
-		       (const :tag "Resize" :value resize)) "24.1")
+	     (window-splits windows boolean "24.1")
+	     (window-nest windows boolean "24.1")
 	     ;; xdisp.c
 	     (show-trailing-whitespace whitespace-faces boolean nil
 				       :safe booleanp)
