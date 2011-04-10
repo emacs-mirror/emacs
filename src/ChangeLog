@@ -1,3 +1,13 @@
+2011-04-10  Jim Meyering  <meyering@redhat.com>
+
+	use ssize_t and size_t for read- and write-like emacs_gnutls_* functions
+	* gnutls.c (emacs_gnutls_read): Adjust signature to be more read-like:
+	return ssize_t not "int", and use size_t as the buffer length.
+	(emacs_gnutls_write): Likewise, and make the buffer pointer "const".
+	* gnutls.h: Update declarations.
+	* process.c (read_process_output): Use ssize_t, to match.
+	(send_process): Likewise.
+
 2011-04-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image.c (Fimagemagick_types): Doc fix, and comment cleanup.

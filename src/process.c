@@ -4898,7 +4898,7 @@ read_process_output_error_handler (Lisp_Object error_val)
 static int
 read_process_output (Lisp_Object proc, register int channel)
 {
-  register int nbytes;
+  register ssize_t nbytes;
   char *chars;
   register Lisp_Object outstream;
   register struct Lisp_Process *p = XPROCESS (proc);
@@ -5243,7 +5243,7 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
 {
   /* Use volatile to protect variables from being clobbered by longjmp.  */
   struct Lisp_Process *p = XPROCESS (proc);
-  EMACS_INT rv;
+  ssize_t rv;
   struct coding_system *coding;
   struct gcpro gcpro1;
   void (*volatile old_sigpipe) (int);
