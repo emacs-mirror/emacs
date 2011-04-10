@@ -1,3 +1,17 @@
+2011-04-10  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix write-region and its subroutines for buffers > 2GB.
+	* fileio.c (a_write, e_write): Modify declaration of arguments and
+	local variables to support buffers larger than 2GB.
+	(Fcopy_file): Use EMACS_INT for return value of emacs_read.
+
+	* sysdep.c (emacs_write, emacs_read): Use ssize_t for last
+	argument, local variables, and return value.
+
+	* lisp.h: Update prototypes of emacs_write and emacs_read.
+
+	* sound.c (vox_write): Use ssize_t for return value of emacs_write.
+
 2011-04-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xdisp.c (vmessage): Use memchr, not strnlen, which some hosts lack.

@@ -143,9 +143,10 @@ Lisp_Object Qfile_name_history;
 
 Lisp_Object Qcar_less_than_car;
 
-static int a_write (int, Lisp_Object, int, int,
+static int a_write (int, Lisp_Object, EMACS_INT, EMACS_INT,
                     Lisp_Object *, struct coding_system *);
-static int e_write (int, Lisp_Object, int, int, struct coding_system *);
+static int e_write (int, Lisp_Object, EMACS_INT, EMACS_INT, 
+		    struct coding_system *);
 
 
 void
@@ -1805,7 +1806,8 @@ If PRESERVE-SELINUX-CONTEXT is non-nil and SELinux is enabled
 on the system, we copy the SELinux context of FILE to NEWNAME.  */)
   (Lisp_Object file, Lisp_Object newname, Lisp_Object ok_if_already_exists, Lisp_Object keep_time, Lisp_Object preserve_uid_gid, Lisp_Object preserve_selinux_context)
 {
-  int ifd, ofd, n;
+  int ifd, ofd;
+  EMACS_INT n;
   char buf[16 * 1024];
   struct stat st, out_st;
   Lisp_Object handler;
@@ -4792,11 +4794,13 @@ build_annotations (Lisp_Object start, Lisp_Object end)
    The return value is negative in case of system call failure.  */
 
 static int
-a_write (int desc, Lisp_Object string, int pos, register int nchars, Lisp_Object *annot, struct coding_system *coding)
+a_write (int desc, Lisp_Object string, EMACS_INT pos,
+	 register EMACS_INT nchars, Lisp_Object *annot,
+	 struct coding_system *coding)
 {
   Lisp_Object tem;
-  int nextpos;
-  int lastpos = pos + nchars;
+  EMACS_INT nextpos;
+  EMACS_INT lastpos = pos + nchars;
 
   while (NILP (*annot) || CONSP (*annot))
     {
@@ -4836,7 +4840,8 @@ a_write (int desc, Lisp_Object string, int pos, register int nchars, Lisp_Object
    are indexes to the string STRING.  */
 
 static int
-e_write (int desc, Lisp_Object string, int start, int end, struct coding_system *coding)
+e_write (int desc, Lisp_Object string, EMACS_INT start, EMACS_INT end,
+	 struct coding_system *coding)
 {
   if (STRINGP (string))
     {
@@ -4867,8 +4872,8 @@ e_write (int desc, Lisp_Object string, int start, int end, struct coding_system 
 	}
       else
 	{
-	  int start_byte = CHAR_TO_BYTE (start);
-	  int end_byte = CHAR_TO_BYTE (end);
+	  EMACS_INT start_byte = CHAR_TO_BYTE (start);
+	  EMACS_INT end_byte = CHAR_TO_BYTE (end);
 
 	  coding->src_multibyte = (end - start) < (end_byte - start_byte);
 	  if (CODING_REQUIRE_ENCODING (coding))

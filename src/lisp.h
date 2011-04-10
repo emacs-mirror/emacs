@@ -3346,8 +3346,8 @@ extern long get_random (void);
 extern void seed_random (long);
 extern int emacs_open (const char *, int, int);
 extern int emacs_close (int);
-extern int emacs_read (int, char *, unsigned int);
-extern int emacs_write (int, const char *, unsigned int);
+extern ssize_t emacs_read (int, char *, ssize_t);
+extern ssize_t emacs_write (int, const char *, ssize_t);
 enum { READLINK_BUFSIZE = 1024 };
 extern char *emacs_readlink (const char *, char [READLINK_BUFSIZE]);
 #ifndef HAVE_MEMSET

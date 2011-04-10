@@ -1825,10 +1825,10 @@ emacs_close (int fd)
   return rtnval;
 }
 
-int
-emacs_read (int fildes, char *buf, unsigned int nbyte)
+ssize_t
+emacs_read (int fildes, char *buf, ssize_t nbyte)
 {
-  register int rtnval;
+  register ssize_t rtnval;
 
   while ((rtnval = read (fildes, buf, nbyte)) == -1
 	 && (errno == EINTR))
@@ -1836,10 +1836,10 @@ emacs_read (int fildes, char *buf, unsigned int nbyte)
   return (rtnval);
 }
 
-int
-emacs_write (int fildes, const char *buf, unsigned int nbyte)
+ssize_t
+emacs_write (int fildes, const char *buf, ssize_t nbyte)
 {
-  register int rtnval, bytes_written;
+  register ssize_t rtnval, bytes_written;
 
   bytes_written = 0;
 
