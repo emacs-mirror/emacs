@@ -8444,6 +8444,24 @@ message (const char *m, ...)
 }
 
 
+#if 0
+/* The non-logging version of message.  */
+
+void
+message_nolog (const char *m, ...)
+{
+  Lisp_Object old_log_max;
+  va_list ap;
+  va_start (ap, m);
+  old_log_max = Vmessage_log_max;
+  Vmessage_log_max = Qnil;
+  vmessage (m, ap);
+  Vmessage_log_max = old_log_max;
+  va_end (ap);
+}
+#endif
+
+
 /* Display the current message in the current mini-buffer.  This is
    only called from error handlers in process.c, and is not time
    critical.  */
