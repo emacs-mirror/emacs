@@ -105,7 +105,7 @@
 	* xselect.c (x_decline_selection_request)
 	(x_reply_selection_request): Avoid type-punned deref of X events.
 
-2011-04-09  Eli Zaretskii  <eliz@emacstest.gnu.org>
+2011-04-09  Eli Zaretskii  <eliz@gnu.org>
 
 	Fix some uses of `int' instead of EMACS_INT.
 	* search.c (string_match_1, fast_string_match)
