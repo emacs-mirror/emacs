@@ -1,3 +1,8 @@
+2011-04-10  Stephen Berman <stephen.berman@gmx.net>
+
+	* textmodes/page.el (what-page): Use line-number-at-pos to
+	calculate line number (Bug#6825).
+
 2011-04-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mouse.el (mouse-drag-mode-line-1): Make sure that if we push
