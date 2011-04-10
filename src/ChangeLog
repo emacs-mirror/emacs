@@ -1,5 +1,9 @@
 2011-04-10  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* editfns.c (Fformat): Remove unreachable code.
+
+2011-04-10  Paul Eggert  <eggert@cs.ucla.edu>
+
 	Fix more problems found by GCC 4.6.0's static checks.
 
 	* xdisp.c (vmessage): Use a better test for character truncation.

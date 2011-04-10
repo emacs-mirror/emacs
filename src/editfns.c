@@ -3802,7 +3802,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	    if (*format == 'c')
 	      {
 		if (! ASCII_CHAR_P (XINT (args[n]))
-		    /* Note: No one can remeber why we have to treat
+		    /* Note: No one can remember why we have to treat
 		       the character 0 as a multibyte character here.
 		       But, until it causes a real problem, let's
 		       don't change it.  */
@@ -3814,12 +3814,6 @@ usage: (format STRING &rest OBJECTS)  */)
 			goto retry;
 		      }
 		    args[n] = Fchar_to_string (args[n]);
-		    thissize = SBYTES (args[n]);
-		  }
-		else if (! ASCII_BYTE_P (XINT (args[n])) && multibyte)
-		  {
-		    args[n]
-		      = Fchar_to_string (Funibyte_char_to_multibyte (args[n]));
 		    thissize = SBYTES (args[n]);
 		  }
 	      }
