@@ -5746,7 +5746,8 @@ Linefeed indents to this column in Fundamental mode.  */);
 
   DEFVAR_PER_BUFFER ("tab-width", &current_buffer->tab_width,
 		     make_number (LISP_INT_TAG),
-		     doc: /* *Distance between tab stops (for display of tab characters), in columns.  */);
+		     doc: /* *Distance between tab stops (for display of tab characters), in columns.
+This should be an integer greater than zero.  */);
 
   DEFVAR_PER_BUFFER ("ctl-arrow", &current_buffer->ctl_arrow, Qnil,
 		     doc: /* *Non-nil means display control chars with uparrow.

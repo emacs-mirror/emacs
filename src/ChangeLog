@@ -1,3 +1,7 @@
+2011-04-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* buffer.c (syms_of_buffer): Doc fix (Bug#6902).
+
 2011-04-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* ftfont.c (get_adstyle_property, ftfont_pattern_entity): Use
