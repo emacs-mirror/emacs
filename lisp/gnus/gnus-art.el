@@ -3407,7 +3407,11 @@ lines forward."
 	(setq ended t)))))
 
 (defun article-treat-date ()
-  (article-date-ut gnus-article-date-headers t))
+  (article-date-ut (if (gnus-buffer-live-p gnus-summary-buffer)
+		       (with-current-buffer gnus-summary-buffer
+			 gnus-article-date-headers)
+		     gnus-article-date-headers)
+		   t))
 
 (defun article-date-ut (&optional type highlight date-position)
   "Convert DATE date to TYPE in the current article.
