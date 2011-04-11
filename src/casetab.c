@@ -25,8 +25,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "character.h"
 
 static Lisp_Object Qcase_table_p, Qcase_table;
-Lisp_Object Vascii_downcase_table, Vascii_upcase_table;
-Lisp_Object Vascii_canon_table, Vascii_eqv_table;
+Lisp_Object Vascii_downcase_table;
+static Lisp_Object Vascii_upcase_table;
+Lisp_Object Vascii_canon_table;
+static Lisp_Object Vascii_eqv_table;
 
 static void set_canon (Lisp_Object case_table, Lisp_Object range, Lisp_Object elt);
 static void set_identity (Lisp_Object table, Lisp_Object c, Lisp_Object elt);

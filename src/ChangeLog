@@ -1,5 +1,8 @@
 2011-04-11  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* casetab.c (Vascii_upcase_table, Vascii_eqv_table): Now static.
+	* lisp.h: Remove these decls.
+
 	* buffer.c (buffer_count): Remove unused var.
 
 	* bidi.c (bidi_dump_cached_states): Mark as externally visible,
