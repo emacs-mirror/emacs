@@ -1,3 +1,9 @@
+2011-04-11  Leo Liu  <sdl.web@gmail.com>
+
+	* ido.el (ido-buffer-internal): Allow method 'kill for virtual
+	buffers.
+	(ido-kill-buffer-at-head): Support killing virtual buffers.
+
 2011-04-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* minibuffer.el (completion-show-inline-help): New var.
