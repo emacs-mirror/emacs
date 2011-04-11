@@ -1,5 +1,7 @@
 2011-04-11  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* chartab.c (chartab_chars, chartab_bits): Now static.
+
 	* charset.h (charset_iso_8859_1): Remove decl.
 	* charset.c (charset_iso_8859_1, charset_emacs, map_charset_for_dump):
 	Now static.
