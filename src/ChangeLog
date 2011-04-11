@@ -1,5 +1,11 @@
 2011-04-11  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* coding.h (coding, code_convert_region, encode_coding_gap): Remove
+	decls.
+	* coding.c (Vsjis_coding_system, Vbig5_coding_system):
+	(iso_code_class, detect_coding, code_convert_region): Now static.
+	(encode_coding_gap): Remove; unused.
+
 	* chartab.c (chartab_chars, chartab_bits): Now static.
 
 	* charset.h (charset_iso_8859_1): Remove decl.

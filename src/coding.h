@@ -695,10 +695,6 @@ extern int encoding_buffer_size (struct coding_system *, int);
 extern void setup_coding_system (Lisp_Object, struct coding_system *);
 extern Lisp_Object coding_charset_list (struct coding_system *);
 extern Lisp_Object coding_system_charset_list (Lisp_Object);
-extern void detect_coding (struct coding_system *);
-extern Lisp_Object code_convert_region (Lisp_Object, Lisp_Object,
-                                        Lisp_Object, Lisp_Object,
-                                        int, int);
 extern Lisp_Object code_convert_string (Lisp_Object, Lisp_Object,
                                         Lisp_Object, int, int, int);
 extern Lisp_Object code_convert_string_norecord (Lisp_Object, Lisp_Object,
@@ -708,8 +704,6 @@ extern Lisp_Object coding_inherit_eol_type (Lisp_Object, Lisp_Object);
 extern Lisp_Object complement_process_encoding_system (Lisp_Object);
 
 extern int decode_coding_gap (struct coding_system *,
-                              EMACS_INT, EMACS_INT);
-extern int encode_coding_gap (struct coding_system *,
                               EMACS_INT, EMACS_INT);
 extern void decode_coding_object (struct coding_system *,
                                   Lisp_Object, EMACS_INT, EMACS_INT,

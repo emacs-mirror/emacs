@@ -358,8 +358,8 @@ static Lisp_Object Qtranslation_table_for_decode;
 static Lisp_Object Qtranslation_table_for_encode;
 
 /* Two special coding systems.  */
-Lisp_Object Vsjis_coding_system;
-Lisp_Object Vbig5_coding_system;
+static Lisp_Object Vsjis_coding_system;
+static Lisp_Object Vbig5_coding_system;
 
 /* ISO2022 section */
 
@@ -2862,7 +2862,7 @@ encode_coding_emacs_mule (struct coding_system *coding)
   COMPOSITION_WITH_RULE_ALTCHARS:
 	ESC 4 ALTCHAR [ RULE ALTCHAR ] ESC 0 CHAR [ CHAR ] ESC 1 */
 
-enum iso_code_class_type iso_code_class[256];
+static enum iso_code_class_type iso_code_class[256];
 
 #define SAFE_CHARSET_P(coding, id)	\
   ((id) <= (coding)->max_charset_id	\
@@ -6212,7 +6212,7 @@ adjust_coding_eol_type (struct coding_system *coding, int eol_seen)
    system is detected, update fields of CODING by the detected coding
    system.  */
 
-void
+static void
 detect_coding (struct coding_system *coding)
 {
   const unsigned char *src, *src_end;
@@ -7530,30 +7530,6 @@ decode_coding_gap (struct coding_system *coding,
   return coding->result;
 }
 
-int
-encode_coding_gap (struct coding_system *coding,
-		   EMACS_INT chars, EMACS_INT bytes)
-{
-  int count = SPECPDL_INDEX ();
-
-  code_conversion_save (0, 0);
-
-  coding->src_object = Fcurrent_buffer ();
-  coding->src_chars = chars;
-  coding->src_bytes = bytes;
-  coding->src_pos = -chars;
-  coding->src_pos_byte = -bytes;
-  coding->src_multibyte = chars < bytes;
-  coding->dst_object = coding->src_object;
-  coding->dst_pos = PT;
-  coding->dst_pos_byte = PT_BYTE;
-
-  encode_coding (coding);
-
-  unbind_to (count, Qnil);
-  return coding->result;
-}
-
 
 /* Decode the text in the range FROM/FROM_BYTE and TO/TO_BYTE in
    SRC_OBJECT into DST_OBJECT by coding context CODING.
@@ -8834,7 +8810,7 @@ is nil.  */)
 }
 
 
-Lisp_Object
+static Lisp_Object
 code_convert_region (Lisp_Object start, Lisp_Object end,
 		     Lisp_Object coding_system, Lisp_Object dst_object,
 		     int encodep, int norecord)
