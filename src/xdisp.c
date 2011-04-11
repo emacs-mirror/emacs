@@ -14248,7 +14248,14 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 
       /* If there is a scroll margin at the top of the window, find
 	 its character position.  */
-      if (margin)
+      if (margin
+	  /* Cannot call start_display if startp is not in the
+	     accessible region of the buffer.  This can happen when we
+	     have just switched to a different buffer and/or changed
+	     its restriction.  In that case, startp is initialized to
+	     the character position 1 (BEG) because we did not yet
+	     have chance to display the buffer even once.  */
+	  && BEGV <= CHARPOS (startp) && CHARPOS (startp) <= ZV)
 	{
 	  struct it it1;
 

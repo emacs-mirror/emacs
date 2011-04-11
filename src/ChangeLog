@@ -1,3 +1,9 @@
+2011-04-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (redisplay_window): Don't try to determine the character
+	position of the scroll margin if the window start point w->startp
+	is outside the buffer's accessible region.
+
 2011-03-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (syms_of_xdisp) <scroll-conservatively>: Document the
