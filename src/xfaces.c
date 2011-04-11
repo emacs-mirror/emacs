@@ -1793,7 +1793,7 @@ the WIDTH times as wide as FACE on FRAME.  */)
 	  {
 	    /* This is a scalable font.  For backward compatibility,
 	       we set the specified size. */
-	    font_entity = Fcopy_font_spec (font_entity);
+	    font_entity = copy_font_spec (font_entity);
 	    ASET (font_entity, FONT_SIZE_INDEX,
 		  AREF (font_spec, FONT_SIZE_INDEX));
 	  }
@@ -2317,9 +2317,9 @@ merge_face_vectors (struct frame *f, Lisp_Object *from, Lisp_Object *to, struct 
   if (!UNSPECIFIEDP (from[i]))
     {
       if (!UNSPECIFIEDP (to[i]))
-	to[i] = Fmerge_font_spec (from[i], to[i]);
+	to[i] = merge_font_spec (from[i], to[i]);
       else
-	to[i] = Fcopy_font_spec (from[i]);
+	to[i] = copy_font_spec (from[i]);
       if (! NILP (AREF (to[i], FONT_FOUNDRY_INDEX)))
 	to[LFACE_FOUNDRY_INDEX] = SYMBOL_NAME (AREF (to[i], FONT_FOUNDRY_INDEX));
       if (! NILP (AREF (to[i], FONT_FAMILY_INDEX)))

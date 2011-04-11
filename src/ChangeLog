@@ -1,5 +1,11 @@
 2011-04-11  Paul Eggert  <eggert@cs.ucla.edu>
 
+	font.c: Make copy_font_spec and merge_font_spec ordinary C functions.
+	* font.c (copy_font_spec): Rename from Fcopy_font_spec, since it
+	was inaccessible from Lisp.
+	(merge_font_spec): Likewise, renaming from Fmerge_font_spec.
+	* font.c, font.h, fontset.c, xfaces.c, xfont.c: Change all uses.
+
 	alloc.c: Import and export fewer symbols, and remove unused items.
 	* lisp.h (suppress_checking, die): Declare only if ENABLE_CHECKING
 	is defined.

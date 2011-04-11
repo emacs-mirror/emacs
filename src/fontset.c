@@ -1709,7 +1709,7 @@ int
 fontset_from_font (Lisp_Object font_object)
 {
   Lisp_Object font_name = font_get_name (font_object);
-  Lisp_Object font_spec = Fcopy_font_spec (font_object);
+  Lisp_Object font_spec = copy_font_spec (font_object);
   Lisp_Object registry = AREF (font_spec, FONT_REGISTRY_INDEX);
   Lisp_Object fontset_spec, alias, name, fontset;
   Lisp_Object val;
@@ -1726,7 +1726,7 @@ fontset_from_font (Lisp_Object font_object)
       sprintf (temp, "fontset-auto%d", num_auto_fontsets - 1);
       alias = intern (temp);
     }
-  fontset_spec = Fcopy_font_spec (font_spec);
+  fontset_spec = copy_font_spec (font_spec);
   ASET (fontset_spec, FONT_REGISTRY_INDEX, alias);
   name = Ffont_xlfd_name (fontset_spec, Qnil);
   if (NILP (name))
