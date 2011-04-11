@@ -1,5 +1,8 @@
 2011-04-11  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* atimer.c (alarm_signal_handler, run_all_atimers): Now static.
+	* atimer.h (run_all_atimers): Removed; not exported.
+
 	font.c: Make copy_font_spec and merge_font_spec ordinary C functions.
 	* font.c (copy_font_spec): Rename from Fcopy_font_spec, since it
 	was inaccessible from Lisp.
