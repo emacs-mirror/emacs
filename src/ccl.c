@@ -56,7 +56,7 @@ static Lisp_Object Qccl_program_idx;
    CCL_PROG is already resolved to index numbers or not, UPDATEDP (t
    or nil) is the flat to tell if the CCL program is updated after it
    was once used.  */
-Lisp_Object Vccl_program_table;
+static Lisp_Object Vccl_program_table;
 
 /* Return a hash table of id number ID.  */
 #define GET_HASH_TABLE(id) \
@@ -1925,30 +1925,6 @@ setup_ccl_program (struct ccl_program *ccl, Lisp_Object ccl_prog)
   ccl->suppress_error = 0;
   ccl->eight_bit_control = 0;
   ccl->quit_silently = 0;
-  return 0;
-}
-
-
-/* Check if CCL is updated or not.  If not, re-setup members of CCL.  */
-
-int
-check_ccl_update (struct ccl_program *ccl)
-{
-  Lisp_Object slot, ccl_prog;
-
-  if (ccl->idx < 0)
-    return 0;
-  slot = AREF (Vccl_program_table, ccl->idx);
-  if (NILP (AREF (slot, 3)))
-    return 0;
-  ccl_prog = ccl_get_compiled_code (AREF (slot, 0), &ccl->idx);
-  if (! VECTORP (ccl_prog))
-    return -1;
-  ccl->size = ASIZE (ccl_prog);
-  ccl->prog = XVECTOR (ccl_prog)->contents;
-  ccl->eof_ic = XINT (AREF (ccl_prog, CCL_HEADER_EOF));
-  ccl->buf_magnification = XINT (AREF (ccl_prog, CCL_HEADER_BUF_MAG));
-  ASET (slot, 3, Qnil);
   return 0;
 }
 
