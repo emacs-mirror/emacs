@@ -1,5 +1,9 @@
 2011-04-11  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* category.c (SET_CATEGORY_SET, set_category_set): Move here.
+	* category.h: ... from here.
+	* category.c (check_category_table, set_category_set): Now static.
+
 	* casetab.c (Vascii_upcase_table, Vascii_eqv_table): Now static.
 	* lisp.h: Remove these decls.
 
