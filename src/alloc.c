@@ -212,6 +212,9 @@ static int malloc_hysteresis;
    remapping on more recent systems because this is less important
    nowadays than in the days of small memories and timesharing.  */
 
+#ifndef VIRT_ADDR_VARIES
+static
+#endif
 EMACS_INT pure[(PURESIZE + sizeof (EMACS_INT) - 1) / sizeof (EMACS_INT)] = {1,};
 #define PUREBEG (char *) pure
 
@@ -281,8 +284,7 @@ static struct Lisp_String *allocate_string (void);
 static void compact_small_strings (void);
 static void free_large_strings (void);
 static void sweep_strings (void);
-
-extern int message_enable_multibyte;
+static void free_misc (Lisp_Object);
 
 /* When scanning the C stack for live Lisp objects, Emacs keeps track
    of what memory allocated via lisp_malloc is intended for what
@@ -1341,7 +1343,7 @@ static int total_free_intervals, total_intervals;
 
 /* List of free intervals.  */
 
-INTERVAL interval_free_list;
+static INTERVAL interval_free_list;
 
 /* Total number of interval blocks now in use.  */
 
@@ -2460,19 +2462,19 @@ struct float_block
 
 /* Current float_block.  */
 
-struct float_block *float_block;
+static struct float_block *float_block;
 
 /* Index of first unused Lisp_Float in the current float_block.  */
 
-int float_block_index;
+static int float_block_index;
 
 /* Total number of float blocks now in use.  */
 
-int n_float_blocks;
+static int n_float_blocks;
 
 /* Free-list of Lisp_Floats.  */
 
-struct Lisp_Float *float_free_list;
+static struct Lisp_Float *float_free_list;
 
 
 /* Initialize float allocation.  */
@@ -2572,15 +2574,15 @@ struct cons_block
 
 /* Current cons_block.  */
 
-struct cons_block *cons_block;
+static struct cons_block *cons_block;
 
 /* Index of first unused Lisp_Cons in the current block.  */
 
-int cons_block_index;
+static int cons_block_index;
 
 /* Free-list of Lisp_Cons structures.  */
 
-struct Lisp_Cons *cons_free_list;
+static struct Lisp_Cons *cons_free_list;
 
 /* Total number of cons blocks now in use.  */
 
@@ -3168,7 +3170,7 @@ allocate_misc (void)
 
 /* Free a Lisp_Misc object */
 
-void
+static void
 free_misc (Lisp_Object misc)
 {
   XMISCTYPE (misc) = Lisp_Misc_Free;
@@ -5216,7 +5218,7 @@ mark_face_cache (struct face_cache *c)
 
 #define LAST_MARKED_SIZE 500
 static Lisp_Object last_marked[LAST_MARKED_SIZE];
-int last_marked_index;
+static int last_marked_index;
 
 /* For debugging--call abort when we cdr down this many
    links of a list, in mark_object.  In debugging,
@@ -6108,6 +6110,7 @@ Frames, windows, buffers, and subprocesses count as vectors
   return Flist (8, consed);
 }
 
+#ifdef ENABLE_CHECKING
 int suppress_checking;
 
 void
@@ -6117,6 +6120,7 @@ die (const char *msg, const char *file, int line)
 	   file, line, msg);
   abort ();
 }
+#endif
 
 /* Initialization */
 

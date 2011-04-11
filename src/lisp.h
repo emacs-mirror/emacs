@@ -55,10 +55,10 @@ extern void check_cons_list (void);
 #endif
 
 /* Extra internal type checking?  */
-extern int suppress_checking;
-extern void die (const char *, const char *, int) NO_RETURN;
 
 #ifdef ENABLE_CHECKING
+
+extern void die (const char *, const char *, int) NO_RETURN;
 
 /* The suppress_checking variable is initialized to 0 in alloc.c.  Set
    it to 1 using a debugger to temporarily disable aborting on
@@ -73,6 +73,8 @@ extern void die (const char *, const char *, int) NO_RETURN;
    CHECK macro altogether, e.g., if XSTRING (x) uses CHECK to test
    STRINGP (x), but a particular use of XSTRING is invoked only after
    testing that STRINGP (x) is true, making the test redundant.  */
+
+extern int suppress_checking EXTERNALLY_VISIBLE;
 
 #define CHECK(check,msg) (((check) || suppress_checking		\
 			   ? (void) 0				\
@@ -1968,8 +1970,6 @@ struct handler
     struct handler *next;
   };
 
-extern struct handler *handlerlist;
-
 /* This structure helps implement the `catch' and `throw' control
    structure.  A struct catchtag contains all the information needed
    to restore the state of the interpreter after a non-local jump.
@@ -2005,7 +2005,6 @@ struct catchtag
   struct byte_stack *byte_stack;
 };
 
-extern struct catchtag *catchlist;
 extern struct backtrace *backtrace_list;
 
 extern Lisp_Object memory_signal_data;
@@ -2615,7 +2614,6 @@ extern Lisp_Object Qrisky_local_variable;
 extern struct frame *last_glyphless_glyph_frame;
 extern unsigned last_glyphless_glyph_face_id;
 extern int last_glyphless_glyph_merged_face_id;
-extern int message_enable_multibyte;
 extern int noninteractive_need_newline;
 extern Lisp_Object echo_area_buffer[2];
 extern void add_to_log (const char *, Lisp_Object, Lisp_Object);
@@ -2724,7 +2722,6 @@ extern Lisp_Object make_float (double);
 extern void display_malloc_warning (void);
 extern int inhibit_garbage_collection (void);
 extern Lisp_Object make_save_value (void *, int);
-extern void free_misc (Lisp_Object);
 extern void free_marker (Lisp_Object);
 extern void free_cons (struct Lisp_Cons *);
 extern void init_alloc_once (void);
@@ -2822,6 +2819,10 @@ extern Lisp_Object Qand_rest;
 extern Lisp_Object Vautoload_queue;
 extern Lisp_Object Vsignaling_function;
 extern int handling_signal;
+#if BYTE_MARK_STACK
+extern struct catchtag *catchlist;
+extern struct handler *handlerlist;
+#endif
 /* To run a normal hook, use the appropriate function from the list below.
    The calling convention:
 
@@ -2882,7 +2883,9 @@ extern Lisp_Object safe_call (size_t, Lisp_Object *);
 extern Lisp_Object safe_call1 (Lisp_Object, Lisp_Object);
 extern Lisp_Object safe_call2 (Lisp_Object, Lisp_Object, Lisp_Object);
 extern void init_eval (void);
+#if BYTE_MARK_STACK
 extern void mark_backtrace (void);
+#endif
 extern void syms_of_eval (void);
 
 /* Defined in editfns.c */
@@ -3255,7 +3258,7 @@ extern int read_bytecode_char (int);
 extern Lisp_Object Qbytecode;
 extern void syms_of_bytecode (void);
 extern struct byte_stack *byte_stack_list;
-#ifdef BYTE_MARK_STACK
+#if BYTE_MARK_STACK
 extern void mark_byte_stack (void);
 #endif
 extern void unmark_byte_stack (void);

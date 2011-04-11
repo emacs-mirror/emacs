@@ -57,7 +57,22 @@ struct backtrace
 };
 
 struct backtrace *backtrace_list;
+
+#if !BYTE_MARK_STACK
+static
+#endif
 struct catchtag *catchlist;
+
+/* Chain of condition handlers currently in effect.
+   The elements of this chain are contained in the stack frames
+   of Fcondition_case and internal_condition_case.
+   When an error is signaled (by calling Fsignal, below),
+   this chain is searched for an element that applies.  */
+
+#if !BYTE_MARK_STACK
+static
+#endif
+struct handler *handlerlist;
 
 #ifdef DEBUG_GCPRO
 /* Count levels of GCPRO to detect failure to UNGCPRO.  */
@@ -1345,14 +1360,6 @@ usage: (unwind-protect BODYFORM UNWINDFORMS...)  */)
   return unbind_to (count, val);
 }
 
-/* Chain of condition handlers currently in effect.
-   The elements of this chain are contained in the stack frames
-   of Fcondition_case and internal_condition_case.
-   When an error is signaled (by calling Fsignal, below),
-   this chain is searched for an element that applies.  */
-
-struct handler *handlerlist;
-
 DEFUN ("condition-case", Fcondition_case, Scondition_case, 2, UNEVALLED, 0,
        doc: /* Regain control when an error is signaled.
 Executes BODYFORM and returns its value if no error happens.
@@ -3629,6 +3636,7 @@ If NFRAMES is more than the number of frames, the value is nil.  */)
 }
 
 
+#if BYTE_MARK_STACK
 void
 mark_backtrace (void)
 {
@@ -3648,6 +3656,7 @@ mark_backtrace (void)
 	mark_object (backlist->args[i]);
     }
 }
+#endif
 
 void
 syms_of_eval (void)

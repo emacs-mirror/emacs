@@ -1,5 +1,25 @@
 2011-04-11  Paul Eggert  <eggert@cs.ucla.edu>
 
+	alloc.c: Import and export fewer symbols, and remove unused items.
+	* lisp.h (suppress_checking, die): Declare only if ENABLE_CHECKING
+	is defined.
+	(suppress_checking): Add EXTERNALLY_VISIBLE attribute, so that
+	it's not optimized away by whole-program optimization.
+	(message_enable_multibyte, free_misc): Remove.
+	(catchlist, handlerlist, mark_backtrace):
+	Declare only if BYTE_MARK_STACK.
+	(mark_byte_stack): Likewise, fixing a ifdef-vs-if typo.
+	* alloc.c (pure): Export only if VIRT_ADDR_VARIES is defined.
+	(message_enable_multibyte): Remove decl.
+	(free_misc, interval_free_list, float_block, float_block_index):
+	(n_float_blocks, float_free_list, cons_block, cons_block_index):
+	(cons_free_list, last_marked_index):
+	Now static.
+	(suppress_checking, die): Define only if ENABLE_CHECKING is defined.
+	* eval.c (catchlist, handlerlist): Export only if BYTE_MARK_STACK.
+	(mark_backtrace): Define only if BYTE_MARK_STACK.
+	* xdisp.c (message_enable_multibyte): Now static.
+
 	Declare Lisp_Object Q* variables to be 'static' if not exproted.
 	This makes it easier for human readers (and static analyzers)
 	to see whether these variables are used from other modules.

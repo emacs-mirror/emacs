@@ -504,7 +504,7 @@ Lisp_Object Vmessage_stack;
 /* Nonzero means multibyte characters were enabled when the echo area
    message was specified.  */
 
-int message_enable_multibyte;
+static int message_enable_multibyte;
 
 /* Nonzero if we should redraw the mode lines on the next redisplay.  */
 
