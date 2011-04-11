@@ -1,5 +1,9 @@
 2011-04-11  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* charset.h (charset_iso_8859_1): Remove decl.
+	* charset.c (charset_iso_8859_1, charset_emacs, map_charset_for_dump):
+	Now static.
+
 	* ccl.h (check_ccl_update, Vccl_program_table): Remove decls.
 	* ccl.c (Vccl_program_table): Now static.
 	(check_ccl_update): Remove; unused.

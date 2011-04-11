@@ -519,7 +519,6 @@ extern Lisp_Object Qcharsetp;
 
 extern Lisp_Object Qascii;
 extern int charset_ascii, charset_eight_bit;
-extern int charset_iso_8859_1;
 extern int charset_unicode;
 extern int charset_jisx0201_roman;
 extern int charset_jisx0208_1978;
