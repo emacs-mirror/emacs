@@ -294,9 +294,6 @@ get_truename_buffer (register Lisp_Object filename)
   return Qnil;
 }
 
-/* Incremented for each buffer created, to assign the buffer number. */
-int buffer_count;
-
 DEFUE ("get-buffer-create", Fget_buffer_create, Sget_buffer_create, 1, 1, 0,
        doc: /* Return the buffer specified by BUFFER-OR-NAME, creating a new one if needed.
 If BUFFER-OR-NAME is a string and a live buffer with that name exists,
