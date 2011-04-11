@@ -1,3 +1,12 @@
+2011-04-11  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-action): Remove properties and
+	simplify subject in `gnus-registry-handle-action'.
+	(gnus-registry-spool-action): Get subject and sender from message if
+	they are not passed in.
+	(gnus-registry-handle-action): Remove properties and simplify subject
+	consistently.
+
 2011-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* registry.el: Require CL before using defmacro*.

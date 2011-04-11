@@ -294,11 +294,8 @@ This is not required after changing `gnus-registry-cache-file'."
 ;; article move/copy/spool/delete actions
 (defun gnus-registry-action (action data-header from &optional to method)
   (let* ((id (mail-header-id data-header))
-         (subject (gnus-string-remove-all-properties
-                   (gnus-registry-simplify-subject
-                    (mail-header-subject data-header))))
-         (sender (gnus-string-remove-all-properties
-                  (mail-header-from data-header)))
+         (subject (mail-header-subject data-header))
+         (sender (mail-header-from data-header))
          (from (gnus-group-guess-full-name-from-command-method from))
          (to (if to (gnus-group-guess-full-name-from-command-method to) nil))
          (to-name (if to to "the Bit Bucket")))
@@ -312,7 +309,9 @@ This is not required after changing `gnus-registry-cache-file'."
      to subject sender)))
 
 (defun gnus-registry-spool-action (id group &optional subject sender)
-  (let ((to (gnus-group-guess-full-name-from-command-method group)))
+  (let ((to (gnus-group-guess-full-name-from-command-method group))
+        (subject (or subject (message-fetch-field "subject")))
+        (sender (or sender (message-fetch-field "from"))))
     (when (and (stringp id) (string-match "\r$" id))
       (setq id (substring id 0 -1)))
     (gnus-message 7 "Gnus registry: article %s spooled to %s"
@@ -326,7 +325,10 @@ This is not required after changing `gnus-registry-cache-file'."
    "gnus-registry-handle-action %S" (list id from to subject sender))
   (let ((db gnus-registry-db)
         ;; safe if not found
-        (entry (gnus-registry-get-or-make-entry id)))
+        (entry (gnus-registry-get-or-make-entry id))
+        (subject (gnus-string-remove-all-properties
+                  (gnus-registry-simplify-subject subject)))
+        (sender (gnus-string-remove-all-properties sender)))
 
     ;; this could be done by calling `gnus-registry-set-id-key'
     ;; several times but it's better to bunch the transactions
