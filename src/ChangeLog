@@ -1,5 +1,11 @@
 2011-04-11  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* bidi.c (bidi_dump_cached_states): Mark as externally visible,
+	so that it's not optimized away.
+	(bidi_ignore_explicit_marks_for_paragraph_level): Likewise.
+	* dispextern.h (bidi_dump_cached_states): Remove, since it's
+	exported only to the debugger.
+
 	* atimer.c (alarm_signal_handler, run_all_atimers): Now static.
 	* atimer.h (run_all_atimers): Removed; not exported.
 
