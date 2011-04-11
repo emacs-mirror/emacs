@@ -639,7 +639,7 @@ or else nothing is done if current buffer isn't visiting a file.  */)
   return Qnil;
 }
 
-DEFUN ("unlock-buffer", Funlock_buffer, Sunlock_buffer,
+DEFUE ("unlock-buffer", Funlock_buffer, Sunlock_buffer,
        0, 0, 0,
        doc: /* Unlock the file visited in the current buffer.
 If the buffer is not modified, this does nothing because the file

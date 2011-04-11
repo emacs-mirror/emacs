@@ -307,7 +307,7 @@ If the multibyte character does not represent a byte, return -1.  */)
     }
 }
 
-DEFUN ("char-width", Fchar_width, Schar_width, 1, 1, 0,
+DEFUE ("char-width", Fchar_width, Schar_width, 1, 1, 0,
        doc: /* Return width of CHAR when displayed in the current buffer.
 The width is measured by how many columns it occupies on the screen.
 Tab is taken to occupy `tab-width' columns.
@@ -886,7 +886,7 @@ string_escape_byte8 (Lisp_Object string)
 }
 
 
-DEFUN ("string", Fstring, Sstring, 0, MANY, 0,
+DEFUE ("string", Fstring, Sstring, 0, MANY, 0,
        doc: /*
 Concatenate all the argument characters and make the result a string.
 usage: (string &rest CHARACTERS)  */)

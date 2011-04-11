@@ -1017,7 +1017,7 @@ find_and_return_menu_selection (FRAME_PTR f, int keymaps, void *client_data)
 }
 #endif  /* HAVE_NS */
 
-DEFUN ("x-popup-menu", Fx_popup_menu, Sx_popup_menu, 2, 2, 0,
+DEFUE ("x-popup-menu", Fx_popup_menu, Sx_popup_menu, 2, 2, 0,
        doc: /* Pop up a deck-of-cards menu and return user's selection.
 POSITION is a position specification.  This is either a mouse button event
 or a list ((XOFFSET YOFFSET) WINDOW)

@@ -42,7 +42,8 @@ static char *get_doc_string_buffer;
 static int get_doc_string_buffer_size;
 
 static unsigned char *read_bytecode_pointer;
-Lisp_Object Fsnarf_documentation (Lisp_Object);
+INFUN (Fdocumentation_property, 3);
+INFUN (Fsnarf_documentation, 1);
 
 /* readchar in lread.c calls back here to fetch the next byte.
    If UNREADFLAG is 1, we unread a byte.  */
@@ -680,7 +681,7 @@ the same file name is found in the `doc-directory'.  */)
   return Qnil;
 }
 
-DEFUN ("substitute-command-keys", Fsubstitute_command_keys,
+DEFUE ("substitute-command-keys", Fsubstitute_command_keys,
        Ssubstitute_command_keys, 1, 1, 0,
        doc: /* Substitute key descriptions for command names in STRING.
 Substrings of the form \\=\\[COMMAND] replaced by either: a keystroke

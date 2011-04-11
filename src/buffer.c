@@ -100,6 +100,8 @@ static char buffer_permanent_local_flags[MAX_PER_BUFFER_VARS];
 
 int last_per_buffer_idx;
 
+INFUN (Fset_buffer_major_mode, 1);
+INFUN (Fdelete_overlay, 1);
 static void call_overlay_mod_hooks (Lisp_Object list, Lisp_Object overlay,
                                     int after, Lisp_Object arg1,
                                     Lisp_Object arg2, Lisp_Object arg3);
@@ -157,7 +159,7 @@ nsberror (Lisp_Object spec)
   error ("Invalid buffer argument");
 }
 
-DEFUN ("buffer-live-p", Fbuffer_live_p, Sbuffer_live_p, 1, 1, 0,
+DEFUE ("buffer-live-p", Fbuffer_live_p, Sbuffer_live_p, 1, 1, 0,
        doc: /* Return non-nil if OBJECT is a buffer which has not been killed.
 Value is nil if OBJECT is not a buffer or if it has been killed.  */)
   (Lisp_Object object)
@@ -229,7 +231,7 @@ assoc_ignore_text_properties (register Lisp_Object key, Lisp_Object list)
   return Qnil;
 }
 
-DEFUN ("get-buffer", Fget_buffer, Sget_buffer, 1, 1, 0,
+DEFUE ("get-buffer", Fget_buffer, Sget_buffer, 1, 1, 0,
        doc: /* Return the buffer named BUFFER-OR-NAME.
 BUFFER-OR-NAME must be either a string or a buffer.  If BUFFER-OR-NAME
 is a string and there is no buffer with that name, return nil.  If
@@ -294,7 +296,7 @@ get_truename_buffer (register Lisp_Object filename)
 /* Incremented for each buffer created, to assign the buffer number. */
 int buffer_count;
 
-DEFUN ("get-buffer-create", Fget_buffer_create, Sget_buffer_create, 1, 1, 0,
+DEFUE ("get-buffer-create", Fget_buffer_create, Sget_buffer_create, 1, 1, 0,
        doc: /* Return the buffer specified by BUFFER-OR-NAME, creating a new one if needed.
 If BUFFER-OR-NAME is a string and a live buffer with that name exists,
 return that buffer.  If no such buffer exists, create a new buffer with
@@ -830,8 +832,8 @@ reset_buffer_local_variables (register struct buffer *b, int permanent_too)
    and set-visited-file-name ought to be able to use this to really
    rename the buffer properly.  */
 
-DEFUN ("generate-new-buffer-name", Fgenerate_new_buffer_name, Sgenerate_new_buffer_name,
-       1, 2, 0,
+DEFUE ("generate-new-buffer-name", Fgenerate_new_buffer_name,
+       Sgenerate_new_buffer_name, 1, 2, 0,
        doc: /* Return a string that is the name of no existing buffer based on NAME.
 If there is no live buffer named NAME, then return NAME.
 Otherwise modify name by appending `<NUMBER>', incrementing NUMBER
@@ -868,7 +870,7 @@ it is in the sequence to be tried) even if a buffer with that name exists.  */)
 }
 
 
-DEFUN ("buffer-name", Fbuffer_name, Sbuffer_name, 0, 1, 0,
+DEFUE ("buffer-name", Fbuffer_name, Sbuffer_name, 0, 1, 0,
        doc: /* Return the name of BUFFER, as a string.
 BUFFER defaults to the current buffer.
 Return nil if BUFFER has been killed.  */)
@@ -880,7 +882,7 @@ Return nil if BUFFER has been killed.  */)
   return BVAR (XBUFFER (buffer), name);
 }
 
-DEFUN ("buffer-file-name", Fbuffer_file_name, Sbuffer_file_name, 0, 1, 0,
+DEFUE ("buffer-file-name", Fbuffer_file_name, Sbuffer_file_name, 0, 1, 0,
        doc: /* Return name of file BUFFER is visiting, or nil if none.
 No argument or nil as argument means use the current buffer.  */)
   (register Lisp_Object buffer)
@@ -915,7 +917,7 @@ BUFFER defaults to the current buffer.  */)
   return base_buffer;
 }
 
-DEFUN ("buffer-local-value", Fbuffer_local_value,
+DEFUE ("buffer-local-value", Fbuffer_local_value,
        Sbuffer_local_value, 2, 2, 0,
        doc: /* Return the value of VARIABLE in BUFFER.
 If VARIABLE does not have a buffer-local binding in BUFFER, the value
@@ -1056,7 +1058,7 @@ No argument or nil as argument means use current buffer as BUFFER.  */)
   return result;
 }
 
-DEFUN ("buffer-modified-p", Fbuffer_modified_p, Sbuffer_modified_p,
+DEFUE ("buffer-modified-p", Fbuffer_modified_p, Sbuffer_modified_p,
        0, 1, 0,
        doc: /* Return t if BUFFER was modified since its file was last read or saved.
 No argument or nil as argument means use current buffer as BUFFER.  */)
@@ -1074,7 +1076,7 @@ No argument or nil as argument means use current buffer as BUFFER.  */)
   return BUF_SAVE_MODIFF (buf) < BUF_MODIFF (buf) ? Qt : Qnil;
 }
 
-DEFUN ("set-buffer-modified-p", Fset_buffer_modified_p, Sset_buffer_modified_p,
+DEFUE ("set-buffer-modified-p", Fset_buffer_modified_p, Sset_buffer_modified_p,
        1, 1, 0,
        doc: /* Mark current buffer as modified or unmodified according to FLAG.
 A non-nil FLAG means mark the buffer modified.  */)
@@ -1266,7 +1268,7 @@ This does not change the name of the visited file (if any).  */)
   return BVAR (current_buffer, name);
 }
 
-DEFUN ("other-buffer", Fother_buffer, Sother_buffer, 0, 3, 0,
+DEFUE ("other-buffer", Fother_buffer, Sother_buffer, 0, 3, 0,
        doc: /* Return most recently selected buffer other than BUFFER.
 Buffers not visible in windows are preferred to visible buffers,
 unless optional second argument VISIBLE-OK is non-nil.
@@ -1276,7 +1278,6 @@ If no other buffer exists, the buffer `*scratch*' is returned.
 If BUFFER is omitted or nil, some interesting buffer is returned.  */)
   (register Lisp_Object buffer, Lisp_Object visible_ok, Lisp_Object frame)
 {
-  Lisp_Object Fset_buffer_major_mode (Lisp_Object buffer);
   register Lisp_Object tail, buf, notsogood, tem, pred, add_ons;
   notsogood = Qnil;
 
@@ -1341,7 +1342,7 @@ If BUFFER is omitted or nil, some interesting buffer is returned.  */)
   return buf;
 }
 
-DEFUN ("buffer-enable-undo", Fbuffer_enable_undo, Sbuffer_enable_undo,
+DEFUE ("buffer-enable-undo", Fbuffer_enable_undo, Sbuffer_enable_undo,
        0, 1, "",
        doc: /* Start keeping undo information for buffer BUFFER.
 No argument or nil as argument means do this for the current buffer.  */)
@@ -1370,7 +1371,7 @@ Hook to be run (by `run-hooks', which see) when a buffer is killed.\n\
 The buffer being killed will be current while the hook is running.\n\
 See `kill-buffer'."
  */
-DEFUN ("kill-buffer", Fkill_buffer, Skill_buffer, 0, 1, "bKill buffer: ",
+DEFUE ("kill-buffer", Fkill_buffer, Skill_buffer, 0, 1, "bKill buffer: ",
        doc: /* Kill buffer BUFFER-OR-NAME.
 The argument may be a buffer or the name of an existing buffer.
 Argument nil or omitted means kill the current buffer.  Return t if the
@@ -1789,7 +1790,7 @@ messing with the window-buffer correspondences.  */)
     return switch_to_buffer_1 (buffer_or_name, norecord);
 }
 
-DEFUN ("current-buffer", Fcurrent_buffer, Scurrent_buffer, 0, 0, 0,
+DEFUE ("current-buffer", Fcurrent_buffer, Scurrent_buffer, 0, 0, 0,
        doc: /* Return the current buffer as a Lisp object.  */)
   (void)
 {
@@ -1899,7 +1900,7 @@ set_buffer_temp (struct buffer *b)
   fetch_buffer_markers (b);
 }
 
-DEFUN ("set-buffer", Fset_buffer, Sset_buffer, 1, 1, 0,
+DEFUE ("set-buffer", Fset_buffer, Sset_buffer, 1, 1, 0,
        doc: /* Make buffer BUFFER-OR-NAME current for editing operations.
 BUFFER-OR-NAME may be a buffer or the name of an existing buffer.  See
 also `save-excursion' when you want to make a buffer current
@@ -1928,7 +1929,7 @@ set_buffer_if_live (Lisp_Object buffer)
   return Qnil;
 }
 
-DEFUN ("barf-if-buffer-read-only", Fbarf_if_buffer_read_only,
+DEFUE ("barf-if-buffer-read-only", Fbarf_if_buffer_read_only,
 				   Sbarf_if_buffer_read_only, 0, 0, 0,
        doc: /* Signal a `buffer-read-only' error if the current buffer is read-only.  */)
   (void)
@@ -2001,7 +2002,7 @@ its frame, iconify that frame.  */)
   return Qnil;
 }
 
-DEFUN ("erase-buffer", Ferase_buffer, Serase_buffer, 0, 0, "*",
+DEFUE ("erase-buffer", Ferase_buffer, Serase_buffer, 0, 0, "*",
        doc: /* Delete the entire contents of the current buffer.
 Any narrowing restriction in effect (see `narrow-to-region') is removed,
 so the buffer is truly empty after this.  */)
@@ -2212,7 +2213,7 @@ DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
   return Qnil;
 }
 
-DEFUN ("set-buffer-multibyte", Fset_buffer_multibyte, Sset_buffer_multibyte,
+DEFUE ("set-buffer-multibyte", Fset_buffer_multibyte, Sset_buffer_multibyte,
        1, 1, 0,
        doc: /* Set the multibyte flag of the current buffer to FLAG.
 If FLAG is t, this makes the buffer a multibyte buffer.
@@ -2501,8 +2502,8 @@ current buffer is cleared.  */)
   return flag;
 }
 
-DEFUN ("kill-all-local-variables", Fkill_all_local_variables, Skill_all_local_variables,
-       0, 0, 0,
+DEFUE ("kill-all-local-variables", Fkill_all_local_variables,
+       Skill_all_local_variables, 0, 0, 0,
        doc: /* Switch to Fundamental mode by killing current buffer's local variables.
 Most local variable bindings are eliminated so that the default values
 become effective once more.  Also, the syntax table is set from
@@ -3900,7 +3901,7 @@ DEFUN ("delete-overlay", Fdelete_overlay, Sdelete_overlay, 1, 1, 0,
 
 /* Overlay dissection functions.  */
 
-DEFUN ("overlay-start", Foverlay_start, Soverlay_start, 1, 1, 0,
+DEFUE ("overlay-start", Foverlay_start, Soverlay_start, 1, 1, 0,
        doc: /* Return the position at which OVERLAY starts.  */)
   (Lisp_Object overlay)
 {
@@ -3909,7 +3910,7 @@ DEFUN ("overlay-start", Foverlay_start, Soverlay_start, 1, 1, 0,
   return (Fmarker_position (OVERLAY_START (overlay)));
 }
 
-DEFUN ("overlay-end", Foverlay_end, Soverlay_end, 1, 1, 0,
+DEFUE ("overlay-end", Foverlay_end, Soverlay_end, 1, 1, 0,
        doc: /* Return the position at which OVERLAY ends.  */)
   (Lisp_Object overlay)
 {
@@ -3999,7 +4000,7 @@ end of the buffer.  */)
   return result;
 }
 
-DEFUN ("next-overlay-change", Fnext_overlay_change, Snext_overlay_change,
+DEFUE ("next-overlay-change", Fnext_overlay_change, Snext_overlay_change,
        1, 1, 0,
        doc: /* Return the next position after POS where an overlay starts or ends.
 If there are no overlay boundaries from POS to (point-max),
@@ -4040,7 +4041,7 @@ the value is (point-max).  */)
   return make_number (endpos);
 }
 
-DEFUN ("previous-overlay-change", Fprevious_overlay_change,
+DEFUE ("previous-overlay-change", Fprevious_overlay_change,
        Sprevious_overlay_change, 1, 1, 0,
        doc: /* Return the previous position before POS where an overlay starts or ends.
 If there are no overlay boundaries from (point-min) to POS,
@@ -4109,7 +4110,7 @@ for positions far away from POS).  */)
   return Qnil;
 }
 
-DEFUN ("overlay-get", Foverlay_get, Soverlay_get, 2, 2, 0,
+DEFUE ("overlay-get", Foverlay_get, Soverlay_get, 2, 2, 0,
        doc: /* Get the property of overlay OVERLAY with property name PROP.  */)
   (Lisp_Object overlay, Lisp_Object prop)
 {

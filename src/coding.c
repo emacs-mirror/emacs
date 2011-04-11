@@ -7991,7 +7991,7 @@ preferred_coding_system (void)
 #ifdef emacs
 /*** 8. Emacs Lisp library functions ***/
 
-DEFUN ("coding-system-p", Fcoding_system_p, Scoding_system_p, 1, 1, 0,
+DEFUE ("coding-system-p", Fcoding_system_p, Scoding_system_p, 1, 1, 0,
        doc: /* Return t if OBJECT is nil or a coding-system.
 See the documentation of `define-coding-system' for information
 about coding-system objects.  */)
@@ -8006,7 +8006,7 @@ about coding-system objects.  */)
   return Qt;
 }
 
-DEFUN ("read-non-nil-coding-system", Fread_non_nil_coding_system,
+DEFUE ("read-non-nil-coding-system", Fread_non_nil_coding_system,
        Sread_non_nil_coding_system, 1, 1, 0,
        doc: /* Read a coding system from the minibuffer, prompting with string PROMPT.  */)
   (Lisp_Object prompt)
@@ -8021,7 +8021,7 @@ DEFUN ("read-non-nil-coding-system", Fread_non_nil_coding_system,
   return (Fintern (val, Qnil));
 }
 
-DEFUN ("read-coding-system", Fread_coding_system, Sread_coding_system, 1, 2, 0,
+DEFUE ("read-coding-system", Fread_coding_system, Sread_coding_system, 1, 2, 0,
        doc: /* Read a coding system from the minibuffer, prompting with string PROMPT.
 If the user enters null input, return second argument DEFAULT-CODING-SYSTEM.
 Ignores case when completing coding systems (all Emacs coding systems
@@ -8041,7 +8041,7 @@ are lower-case).  */)
   return (SCHARS (val) == 0 ? Qnil : Fintern (val, Qnil));
 }
 
-DEFUN ("check-coding-system", Fcheck_coding_system, Scheck_coding_system,
+DEFUE ("check-coding-system", Fcheck_coding_system, Scheck_coding_system,
        1, 1, 0,
        doc: /* Check validity of CODING-SYSTEM.
 If valid, return CODING-SYSTEM, else signal a `coding-system-error' error.
@@ -8976,7 +8976,7 @@ code_convert_string_norecord (Lisp_Object string, Lisp_Object coding_system,
 }
 
 
-DEFUN ("decode-coding-string", Fdecode_coding_string, Sdecode_coding_string,
+DEFUE ("decode-coding-string", Fdecode_coding_string, Sdecode_coding_string,
        2, 4, 0,
        doc: /* Decode STRING which is encoded in CODING-SYSTEM, and return the result.
 
@@ -9250,7 +9250,7 @@ DEFUN ("keyboard-coding-system",
 }
 
 
-DEFUN ("find-operation-coding-system", Ffind_operation_coding_system,
+DEFUE ("find-operation-coding-system", Ffind_operation_coding_system,
        Sfind_operation_coding_system,  1, MANY, 0,
        doc: /* Choose a coding system for an operation based on the target name.
 The value names a pair of coding systems: (DECODING-SYSTEM . ENCODING-SYSTEM).
@@ -10093,7 +10093,7 @@ DEFUN ("define-coding-system-alias", Fdefine_coding_system_alias,
   return Qnil;
 }
 
-DEFUN ("coding-system-base", Fcoding_system_base, Scoding_system_base,
+DEFUE ("coding-system-base", Fcoding_system_base, Scoding_system_base,
        1, 1, 0,
        doc: /* Return the base of CODING-SYSTEM.
 Any alias or subsidiary coding system is not a base coding system.  */)
@@ -10136,7 +10136,7 @@ DEFUN ("coding-system-aliases", Fcoding_system_aliases, Scoding_system_aliases,
   return AREF (spec, 1);
 }
 
-DEFUN ("coding-system-eol-type", Fcoding_system_eol_type,
+DEFUE ("coding-system-eol-type", Fcoding_system_eol_type,
        Scoding_system_eol_type, 1, 1, 0,
        doc: /* Return eol-type of CODING-SYSTEM.
 An eol-type is an integer 0, 1, 2, or a vector of coding systems.

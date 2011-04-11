@@ -235,6 +235,7 @@ static int process_output_skip;
 #define process_output_delay_count 0
 #endif
 
+INFUN (Fget_process, 1);
 static int keyboard_bit_set (SELECT_TYPE *);
 static void deactivate_process (Lisp_Object);
 static void status_notify (struct Lisp_Process *);
@@ -782,7 +783,7 @@ nil, indicating the current buffer's process.  */)
   return Qnil;
 }
 
-DEFUN ("process-status", Fprocess_status, Sprocess_status, 1, 1, 0,
+DEFUE ("process-status", Fprocess_status, Sprocess_status, 1, 1, 0,
        doc: /* Return the status of PROCESS.
 The returned value is one of the following symbols:
 run  -- for a process that is running.
@@ -1083,7 +1084,7 @@ DEFUN ("process-query-on-exit-flag",
 }
 
 #ifdef DATAGRAM_SOCKETS
-Lisp_Object Fprocess_datagram_address (Lisp_Object process);
+INFUN (Fprocess_datagram_address, 1);
 #endif
 
 DEFUN ("process-contact", Fprocess_contact, Sprocess_contact,
@@ -5775,7 +5776,7 @@ don't send the signal.  */)
   return process;
 }
 
-DEFUN ("kill-process", Fkill_process, Skill_process, 0, 2, 0,
+DEFUE ("kill-process", Fkill_process, Skill_process, 0, 2, 0,
        doc: /* Kill process PROCESS.  May be process or name of one.
 See function `interrupt-process' for more details on usage.  */)
   (Lisp_Object process, Lisp_Object current_group)
@@ -6915,7 +6916,7 @@ close_process_descs (void)
 #endif
 }
 
-DEFUN ("get-buffer-process", Fget_buffer_process, Sget_buffer_process, 1, 1, 0,
+DEFUE ("get-buffer-process", Fget_buffer_process, Sget_buffer_process, 1, 1, 0,
        doc: /* Return the (or a) process associated with BUFFER.
 BUFFER may be a buffer or the name of one.  */)
   (register Lisp_Object buffer)
@@ -6982,8 +6983,8 @@ kill_buffer_processes (Lisp_Object buffer)
 #endif /* subprocesses */
 }
 
-DEFUN ("waiting-for-user-input-p", Fwaiting_for_user_input_p, Swaiting_for_user_input_p,
-       0, 0, 0,
+DEFUE ("waiting-for-user-input-p", Fwaiting_for_user_input_p,
+       Swaiting_for_user_input_p, 0, 0, 0,
        doc: /* Returns non-nil if Emacs is waiting for input from the user.
 This is intended for use by asynchronous process output filters and sentinels.  */)
   (void)

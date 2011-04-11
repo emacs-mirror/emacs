@@ -270,7 +270,7 @@ record_property_change (EMACS_INT beg, EMACS_INT length,
   current_buffer = obuf;
 }
 
-DEFUN ("undo-boundary", Fundo_boundary, Sundo_boundary, 0, 0, 0,
+DEFUE ("undo-boundary", Fundo_boundary, Sundo_boundary, 0, 0, 0,
        doc: /* Mark a boundary between units of undo.
 An undo command will stop at this point,
 but another undo command will undo to the previous boundary.  */)
@@ -711,4 +711,3 @@ so it must make sure not to do a lot of consing.  */);
 	       doc: /* Non-nil means do not record `point' in `buffer-undo-list'.  */);
   undo_inhibit_record_point = 0;
 }
-

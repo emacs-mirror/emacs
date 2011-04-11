@@ -138,6 +138,7 @@ static EMACS_INT find_start_begv;
 static int find_start_modiff;
 
 
+INFUN (Fsyntax_table_p, 1);
 static Lisp_Object skip_chars (int, Lisp_Object, Lisp_Object, int);
 static Lisp_Object skip_syntaxes (int, Lisp_Object, Lisp_Object);
 static Lisp_Object scan_lists (EMACS_INT, EMACS_INT, EMACS_INT, int);
@@ -1337,7 +1338,7 @@ scan_words (register EMACS_INT from, register EMACS_INT count)
   return from;
 }
 
-DEFUN ("forward-word", Fforward_word, Sforward_word, 0, 1, "^p",
+DEFUE ("forward-word", Fforward_word, Sforward_word, 0, 1, "^p",
        doc: /* Move point forward ARG words (backward if ARG is negative).
 Normally returns t.
 If an edge of the buffer or a field boundary is reached, point is left there
@@ -1366,9 +1367,7 @@ and the function returns nil.  Field boundaries are not noticed if
   return val == orig_val ? Qt : Qnil;
 }
 
-Lisp_Object skip_chars (int, Lisp_Object, Lisp_Object, int);
-
-DEFUN ("skip-chars-forward", Fskip_chars_forward, Sskip_chars_forward, 1, 2, 0,
+DEFUE ("skip-chars-forward", Fskip_chars_forward, Sskip_chars_forward, 1, 2, 0,
        doc: /* Move point forward, stopping before a char not in STRING, or at pos LIM.
 STRING is like the inside of a `[...]' in a regular expression
 except that `]' is never special and `\\' quotes `^', `-' or `\\'
@@ -1383,7 +1382,7 @@ Returns the distance traveled, either zero or positive.  */)
   return skip_chars (1, string, lim, 1);
 }
 
-DEFUN ("skip-chars-backward", Fskip_chars_backward, Sskip_chars_backward, 1, 2, 0,
+DEFUE ("skip-chars-backward", Fskip_chars_backward, Sskip_chars_backward, 1, 2, 0,
        doc: /* Move point backward, stopping after a char not in STRING, or at pos LIM.
 See `skip-chars-forward' for details.
 Returns the distance traveled, either zero or negative.  */)

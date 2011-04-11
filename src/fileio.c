@@ -143,6 +143,7 @@ Lisp_Object Qfile_name_history;
 
 Lisp_Object Qcar_less_than_car;
 
+INFUN (Fmake_symbolic_link, 3);
 static int a_write (int, Lisp_Object, int, int,
                     Lisp_Object *, struct coding_system *);
 static int e_write (int, Lisp_Object, int, int, struct coding_system *);
@@ -239,7 +240,8 @@ Lisp_Object Qwrite_region;
 Lisp_Object Qverify_visited_file_modtime;
 Lisp_Object Qset_visited_file_modtime;
 
-DEFUN ("find-file-name-handler", Ffind_file_name_handler, Sfind_file_name_handler, 2, 2, 0,
+DEFUE ("find-file-name-handler", Ffind_file_name_handler,
+       Sfind_file_name_handler, 2, 2, 0,
        doc: /* Return FILENAME's handler function for OPERATION, if it has one.
 Otherwise, return nil.
 A file name is handled if one of the regular expressions in
@@ -299,7 +301,7 @@ use the standard functions without calling themselves recursively.  */)
   return result;
 }
 
-DEFUN ("file-name-directory", Ffile_name_directory, Sfile_name_directory,
+DEFUE ("file-name-directory", Ffile_name_directory, Sfile_name_directory,
        1, 1, 0,
        doc: /* Return the directory component in file name FILENAME.
 Return nil if FILENAME does not include a directory.
@@ -373,7 +375,7 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
   return make_specified_string (beg, -1, p - beg, STRING_MULTIBYTE (filename));
 }
 
-DEFUN ("file-name-nondirectory", Ffile_name_nondirectory,
+DEFUE ("file-name-nondirectory", Ffile_name_nondirectory,
        Sfile_name_nondirectory, 1, 1, 0,
        doc: /* Return file name FILENAME sans its directory.
 For example, in a Unix-syntax file name,
@@ -408,7 +410,7 @@ or the entire name if it contains no slash.  */)
   return make_specified_string (p, -1, end - p, STRING_MULTIBYTE (filename));
 }
 
-DEFUN ("unhandled-file-name-directory", Funhandled_file_name_directory,
+DEFUE ("unhandled-file-name-directory", Funhandled_file_name_directory,
        Sunhandled_file_name_directory, 1, 1, 0,
        doc: /* Return a directly usable directory name somehow associated with FILENAME.
 A `directly usable' directory name is one that may be used without the
@@ -460,7 +462,7 @@ file_name_as_directory (char *out, const char *in)
   return out;
 }
 
-DEFUN ("file-name-as-directory", Ffile_name_as_directory,
+DEFUE ("file-name-as-directory", Ffile_name_as_directory,
        Sfile_name_as_directory, 1, 1, 0,
        doc: /* Return a string representing the file name FILE interpreted as a directory.
 This operation exists because a directory is also a file, but its name as
@@ -519,7 +521,7 @@ directory_file_name (char *src, char *dst)
   return 1;
 }
 
-DEFUN ("directory-file-name", Fdirectory_file_name, Sdirectory_file_name,
+DEFUE ("directory-file-name", Fdirectory_file_name, Sdirectory_file_name,
        1, 1, 0,
        doc: /* Returns the file name of the directory named DIRECTORY.
 This is the name of the file that holds the data for the directory DIRECTORY.
@@ -701,7 +703,7 @@ probably use `make-temp-file' instead, except in three circumstances:
 
 
 
-DEFUN ("expand-file-name", Fexpand_file_name, Sexpand_file_name, 1, 2, 0,
+DEFUE ("expand-file-name", Fexpand_file_name, Sexpand_file_name, 1, 2, 0,
        doc: /* Convert filename NAME to absolute, and canonicalize it.
 Second arg DEFAULT-DIRECTORY is directory to start with if NAME is relative
 \(does not start with slash or tilde); if DEFAULT-DIRECTORY is nil or missing,
@@ -1500,7 +1502,7 @@ search_embedded_absfilename (char *nm, char *endp)
   return NULL;
 }
 
-DEFUN ("substitute-in-file-name", Fsubstitute_in_file_name,
+DEFUE ("substitute-in-file-name", Fsubstitute_in_file_name,
        Ssubstitute_in_file_name, 1, 1, 0,
        doc: /* Substitute environment variables referred to in FILENAME.
 `$FOO' where FOO is an environment variable name means to substitute
@@ -2343,7 +2345,7 @@ This happens for interactive use with M-x.  */)
 }
 
 
-DEFUN ("file-name-absolute-p", Ffile_name_absolute_p, Sfile_name_absolute_p,
+DEFUE ("file-name-absolute-p", Ffile_name_absolute_p, Sfile_name_absolute_p,
        1, 1, 0,
        doc: /* Return t if file FILENAME specifies an absolute file name.
 On Unix, this is a name starting with a `/' or a `~'.  */)
@@ -2399,7 +2401,7 @@ check_writable (const char *filename)
 #endif /* not MSDOS */
 }
 
-DEFUN ("file-exists-p", Ffile_exists_p, Sfile_exists_p, 1, 1, 0,
+DEFUE ("file-exists-p", Ffile_exists_p, Sfile_exists_p, 1, 1, 0,
        doc: /* Return t if file FILENAME exists (whether or not you can read it.)
 See also `file-readable-p' and `file-attributes'.
 This returns nil for a symlink to a nonexistent file.
@@ -2446,7 +2448,7 @@ For a directory, this means you can access files in that directory.  */)
   return (check_executable (SSDATA (absname)) ? Qt : Qnil);
 }
 
-DEFUN ("file-readable-p", Ffile_readable_p, Sfile_readable_p, 1, 1, 0,
+DEFUE ("file-readable-p", Ffile_readable_p, Sfile_readable_p, 1, 1, 0,
        doc: /* Return t if file FILENAME exists and you can read it.
 See also `file-exists-p' and `file-attributes'.  */)
   (Lisp_Object filename)
@@ -2568,7 +2570,7 @@ If there is no error, returns nil.  */)
   return Qnil;
 }
 
-DEFUN ("file-symlink-p", Ffile_symlink_p, Sfile_symlink_p, 1, 1, 0,
+DEFUE ("file-symlink-p", Ffile_symlink_p, Sfile_symlink_p, 1, 1, 0,
        doc: /* Return non-nil if file FILENAME is the name of a symbolic link.
 The value is the link target, as a string.
 Otherwise it returns nil.
@@ -2606,7 +2608,7 @@ points to a nonexistent file.  */)
   return val;
 }
 
-DEFUN ("file-directory-p", Ffile_directory_p, Sfile_directory_p, 1, 1, 0,
+DEFUE ("file-directory-p", Ffile_directory_p, Sfile_directory_p, 1, 1, 0,
        doc: /* Return t if FILENAME names an existing directory.
 Symbolic links to directories count as directories.
 See `file-symlink-p' to distinguish symlinks.  */)
@@ -2631,7 +2633,8 @@ See `file-symlink-p' to distinguish symlinks.  */)
   return S_ISDIR (st.st_mode) ? Qt : Qnil;
 }
 
-DEFUN ("file-accessible-directory-p", Ffile_accessible_directory_p, Sfile_accessible_directory_p, 1, 1, 0,
+DEFUE ("file-accessible-directory-p", Ffile_accessible_directory_p,
+       Sfile_accessible_directory_p, 1, 1, 0,
        doc: /* Return t if file FILENAME names a directory you can open.
 For the value to be t, FILENAME must specify the name of a directory as a file,
 and the directory must allow you to open files in it.  In order to use a
@@ -4350,7 +4353,7 @@ choose_write_coding_system (Lisp_Object start, Lisp_Object end, Lisp_Object file
   return val;
 }
 
-DEFUN ("write-region", Fwrite_region, Swrite_region, 3, 7,
+DEFUE ("write-region", Fwrite_region, Swrite_region, 3, 7,
        "r\nFWrite region to file: \ni\ni\ni\np",
        doc: /* Write current region into specified file.
 When called from a program, requires three arguments:
@@ -4911,7 +4914,7 @@ e_write (int desc, Lisp_Object string, int start, int end, struct coding_system 
   return 0;
 }
 
-DEFUN ("verify-visited-file-modtime", Fverify_visited_file_modtime,
+DEFUE ("verify-visited-file-modtime", Fverify_visited_file_modtime,
        Sverify_visited_file_modtime, 0, 1, 0,
        doc: /* Return t if last mod time of BUF's visited file matches what BUF records.
 This means that the file has not been changed since it was visited or saved.
@@ -5132,7 +5135,7 @@ do_auto_save_eh (Lisp_Object ignore)
   return Qnil;
 }
 
-DEFUN ("do-auto-save", Fdo_auto_save, Sdo_auto_save, 0, 2, "",
+DEFUE ("do-auto-save", Fdo_auto_save, Sdo_auto_save, 0, 2, "",
        doc: /* Auto-save all buffers that need it.
 This is all buffers that have auto-saving enabled
 and are changed since last auto-saved.

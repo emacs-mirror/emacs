@@ -350,7 +350,6 @@ Lisp_Object Qvertical_scroll_bar;
 Lisp_Object Qmenu_bar;
 
 Lisp_Object recursive_edit_unwind (Lisp_Object buffer), command_loop (void);
-Lisp_Object Fthis_command_keys (void);
 Lisp_Object Qextended_command_history;
 EMACS_TIME timer_check (void);
 
@@ -439,6 +438,7 @@ static void interrupt_signal (int signalnum);
 #ifdef SIGIO
 static void input_available_signal (int signo);
 #endif
+INFUN (Fcommand_execute, 4);
 static void handle_interrupt (void);
 static void timer_start_idle (void);
 static void timer_stop_idle (void);
@@ -758,7 +758,7 @@ force_auto_save_soon (void)
   record_asynch_buffer_change ();
 }
 
-DEFUN ("recursive-edit", Frecursive_edit, Srecursive_edit, 0, 0, "",
+DEFUE ("recursive-edit", Frecursive_edit, Srecursive_edit, 0, 0, "",
        doc: /* Invoke the editor command loop recursively.
 To get out of the recursive edit, a command can do `(throw 'exit nil)';
 that tells this function to return.
@@ -1152,7 +1152,7 @@ top_level_1 (Lisp_Object ignore)
   return Qnil;
 }
 
-DEFUN ("top-level", Ftop_level, Stop_level, 0, 0, "",
+DEFUE ("top-level", Ftop_level, Stop_level, 0, 0, "",
        doc: /* Exit all recursive editing levels.
 This also exits all active minibuffers.  */)
   (void)
@@ -1170,7 +1170,7 @@ This also exits all active minibuffers.  */)
   Fthrow (Qtop_level, Qnil);
 }
 
-Lisp_Object Fexit_recursive_edit (void) NO_RETURN;
+INFUN (Fexit_recursive_edit, 0) NO_RETURN;
 DEFUN ("exit-recursive-edit", Fexit_recursive_edit, Sexit_recursive_edit, 0, 0, "",
        doc: /* Exit from the innermost recursive edit or minibuffer.  */)
   (void)
@@ -1181,7 +1181,7 @@ DEFUN ("exit-recursive-edit", Fexit_recursive_edit, Sexit_recursive_edit, 0, 0, 
   error ("No recursive edit is in progress");
 }
 
-Lisp_Object Fabort_recursive_edit (void) NO_RETURN;
+INFUN (Fabort_recursive_edit, 0) NO_RETURN;
 DEFUN ("abort-recursive-edit", Fabort_recursive_edit, Sabort_recursive_edit, 0, 0, "",
        doc: /* Abort the command that requested this recursive edit or minibuffer input.  */)
   (void)
@@ -6470,7 +6470,7 @@ modify_event_symbol (EMACS_INT symbol_num, unsigned int modifiers, Lisp_Object s
    such as (ctrl meta backspace), into the usual representation of that
    event type as a number or a symbol.  */
 
-DEFUN ("event-convert-list", Fevent_convert_list, Sevent_convert_list, 1, 1, 0,
+DEFUE ("event-convert-list", Fevent_convert_list, Sevent_convert_list, 1, 1, 0,
        doc: /* Convert the event description list EVENT-DESC to an event type.
 EVENT-DESC should contain one base event type (a character or symbol)
 and zero or more modifier names (control, meta, hyper, super, shift, alt,
@@ -9981,7 +9981,7 @@ read_key_sequence (Lisp_Object *keybuf, size_t bufsize, Lisp_Object prompt,
   return t;
 }
 
-DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 5, 0,
+DEFUE ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 5, 0,
        doc: /* Read a sequence of keystrokes and return as a string or vector.
 The sequence is sufficient to specify a non-prefix command in the
 current local and global maps.
@@ -10609,7 +10609,7 @@ If FILE is nil, close any open dribble file.  */)
   return Qnil;
 }
 
-DEFUN ("discard-input", Fdiscard_input, Sdiscard_input, 0, 0, 0,
+DEFUE ("discard-input", Fdiscard_input, Sdiscard_input, 0, 0, 0,
        doc: /* Discard the contents of the terminal input buffer.
 Also end any kbd macro being defined.  */)
   (void)
@@ -10962,7 +10962,8 @@ quit_throw_to_read_char (void)
   _longjmp (getcjmp, 1);
 }
 
-DEFUN ("set-input-interrupt-mode", Fset_input_interrupt_mode, Sset_input_interrupt_mode, 1, 1, 0,
+DEFUE ("set-input-interrupt-mode", Fset_input_interrupt_mode,
+       Sset_input_interrupt_mode, 1, 1, 0,
        doc: /* Set interrupt mode of reading keyboard input.
 If INTERRUPT is non-nil, Emacs will use input interrupts;
 otherwise Emacs uses CBREAK mode.
@@ -11127,7 +11128,7 @@ See also `current-input-mode'.  */)
   return Qnil;
 }
 
-DEFUN ("set-input-mode", Fset_input_mode, Sset_input_mode, 3, 4, 0,
+DEFUE ("set-input-mode", Fset_input_mode, Sset_input_mode, 3, 4, 0,
        doc: /* Set mode of reading keyboard input.
 First arg INTERRUPT non-nil means use input interrupts;
  nil means use CBREAK mode.

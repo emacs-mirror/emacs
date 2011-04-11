@@ -96,7 +96,7 @@ int synch_process_retcode;
 /* Nonzero if this is termination due to exit.  */
 static int call_process_exited;
 
-EXFUN (Fgetenv_internal, 2);
+INFUN (Fgetenv_internal, 2);
 
 static Lisp_Object
 call_process_kill (Lisp_Object fdpid)
@@ -152,7 +152,7 @@ call_process_cleanup (Lisp_Object arg)
   return Qnil;
 }
 
-DEFUN ("call-process", Fcall_process, Scall_process, 1, MANY, 0,
+DEFUE ("call-process", Fcall_process, Scall_process, 1, MANY, 0,
        doc: /* Call PROGRAM synchronously in separate process.
 The remaining arguments are optional.
 The program's input comes from file INFILE (nil means `/dev/null').

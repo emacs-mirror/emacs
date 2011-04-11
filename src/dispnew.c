@@ -337,7 +337,7 @@ add_frame_display_history (struct frame *f, int paused_p)
 }
 
 
-DEFUN ("dump-redisplay-history", Fdump_redisplay_history,
+DEFUE ("dump-redisplay-history", Fdump_redisplay_history,
        Sdump_redisplay_history, 0, 0, "",
        doc: /* Dump redisplay history to stderr.  */)
   (void)
@@ -3139,7 +3139,7 @@ window_to_frame_hpos (struct window *w, int hpos)
 			    Redrawing Frames
  **********************************************************************/
 
-DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
+DEFUE ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
        doc: /* Clear frame FRAME and output again what is supposed to appear on it.  */)
   (Lisp_Object frame)
 {
@@ -5878,7 +5878,7 @@ when TERMINAL is nil.  */)
 }
 
 
-DEFUN ("ding", Fding, Sding, 0, 1, 0,
+DEFUE ("ding", Fding, Sding, 0, 1, 0,
        doc: /* Beep, or flash the screen.
 Also, unless an argument is given,
 terminate any keyboard macro currently executing.  */)
@@ -5914,7 +5914,7 @@ bitch_at_user (void)
 			  Sleeping, Waiting
  ***********************************************************************/
 
-DEFUN ("sleep-for", Fsleep_for, Ssleep_for, 1, 2, 0,
+DEFUE ("sleep-for", Fsleep_for, Ssleep_for, 1, 2, 0,
        doc: /* Pause, without updating display, for SECONDS seconds.
 SECONDS may be a floating-point value, meaning that you can wait for a
 fraction of a second.  Optional second arg MILLISECONDS specifies an
@@ -6020,7 +6020,7 @@ sit_for (Lisp_Object timeout, int reading, int do_display)
 }
 
 
-DEFUN ("redisplay", Fredisplay, Sredisplay, 0, 1, 0,
+DEFUE ("redisplay", Fredisplay, Sredisplay, 0, 1, 0,
        doc: /* Perform redisplay if no input is available.
 If optional arg FORCE is non-nil or `redisplay-dont-pause' is non-nil,
 perform a full redisplay even if input is available.

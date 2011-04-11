@@ -48,7 +48,7 @@ static void adjust_markers_for_replace (EMACS_INT, EMACS_INT, EMACS_INT,
 					EMACS_INT, EMACS_INT, EMACS_INT);
 static void adjust_point (EMACS_INT nchars, EMACS_INT nbytes);
 
-Lisp_Object Fcombine_after_change_execute (void);
+INFUN (Fcombine_after_change_execute, 0);
 
 /* List of elements of the form (BEG-UNCHANGED END-UNCHANGED CHANGE-AMOUNT)
    describing changes which happened while combine_after_change_calls

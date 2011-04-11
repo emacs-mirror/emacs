@@ -70,6 +70,7 @@ static Lisp_Object where_is_cache;
 /* Which keymaps are reverse-stored in the cache.  */
 static Lisp_Object where_is_cache_keymaps;
 
+INFUN (Flookup_key, 3);
 static Lisp_Object store_in_keymap (Lisp_Object, Lisp_Object, Lisp_Object);
 static void fix_submap_inheritance (Lisp_Object, Lisp_Object, Lisp_Object);
 
@@ -108,7 +109,7 @@ in case you use it as a menu with `x-popup-menu'.  */)
 		Fcons (Fmake_char_table (Qkeymap, Qnil), tail));
 }
 
-DEFUN ("make-sparse-keymap", Fmake_sparse_keymap, Smake_sparse_keymap, 0, 1, 0,
+DEFUE ("make-sparse-keymap", Fmake_sparse_keymap, Smake_sparse_keymap, 0, 1, 0,
        doc: /* Construct and return a new sparse keymap.
 Its car is `keymap' and its cdr is an alist of (CHAR . DEFINITION),
 which binds the character CHAR to DEFINITION, or (SYMBOL . DEFINITION),
@@ -160,7 +161,7 @@ is also allowed as an element.  */)
   return (KEYMAPP (object) ? Qt : Qnil);
 }
 
-DEFUN ("keymap-prompt", Fkeymap_prompt, Skeymap_prompt, 1, 1, 0,
+DEFUE ("keymap-prompt", Fkeymap_prompt, Skeymap_prompt, 1, 1, 0,
        doc: /* Return the prompt-string of a keymap MAP.
 If non-nil, the prompt is shown in the echo-area
 when reading a key-sequence to be looked-up in this keymap.  */)
@@ -291,7 +292,7 @@ keymap_memberp (Lisp_Object map, Lisp_Object maps)
 
 /* Set the parent keymap of MAP to PARENT.  */
 
-DEFUN ("set-keymap-parent", Fset_keymap_parent, Sset_keymap_parent, 2, 2, 0,
+DEFUE ("set-keymap-parent", Fset_keymap_parent, Sset_keymap_parent, 2, 2, 0,
        doc: /* Modify KEYMAP to set its parent map to PARENT.
 Return PARENT.  PARENT should be nil or another keymap.  */)
   (Lisp_Object keymap, Lisp_Object parent)
@@ -955,7 +956,7 @@ store_in_keymap (Lisp_Object keymap, register Lisp_Object idx, Lisp_Object def)
   return def;
 }
 
-EXFUN (Fcopy_keymap, 1);
+INFUN (Fcopy_keymap, 1);
 
 static Lisp_Object
 copy_keymap_item (Lisp_Object elt)
@@ -1079,7 +1080,7 @@ is not copied.  */)
 
 /* GC is possible in this function if it autoloads a keymap.  */
 
-DEFUN ("define-key", Fdefine_key, Sdefine_key, 3, 3, 0,
+DEFUE ("define-key", Fdefine_key, Sdefine_key, 3, 3, 0,
        doc: /* In KEYMAP, define key sequence KEY as DEF.
 KEYMAP is a keymap.
 
@@ -1210,7 +1211,7 @@ binding KEY to DEF is added at the front of KEYMAP.  */)
 
 /* This function may GC (it calls Fkey_binding).  */
 
-DEFUN ("command-remapping", Fcommand_remapping, Scommand_remapping, 1, 3, 0,
+DEFUE ("command-remapping", Fcommand_remapping, Scommand_remapping, 1, 3, 0,
        doc: /* Return the remapping for command COMMAND.
 Returns nil if COMMAND is not remapped (or not a symbol).
 
@@ -1518,7 +1519,7 @@ current_minor_maps (Lisp_Object **modeptr, Lisp_Object **mapptr)
   return i;
 }
 
-DEFUN ("current-active-maps", Fcurrent_active_maps, Scurrent_active_maps,
+DEFUE ("current-active-maps", Fcurrent_active_maps, Scurrent_active_maps,
        0, 2, 0,
        doc: /* Return a list of the currently active keymaps.
 OLP if non-nil indicates that we should obey `overriding-local-map' and
@@ -1661,7 +1662,7 @@ like in the respective argument of `key-binding'. */)
 
 /* GC is possible in this function if it autoloads a keymap.  */
 
-DEFUN ("key-binding", Fkey_binding, Skey_binding, 1, 4, 0,
+DEFUE ("key-binding", Fkey_binding, Skey_binding, 1, 4, 0,
        doc: /* Return the binding for command KEY in current keymaps.
 KEY is a string or vector, a sequence of keystrokes.
 The binding is probably a symbol with a function definition.
@@ -2178,7 +2179,7 @@ Lisp_Object Qsingle_key_description, Qkey_description;
 
 /* This function cannot GC.  */
 
-DEFUN ("key-description", Fkey_description, Skey_description, 1, 2, 0,
+DEFUE ("key-description", Fkey_description, Skey_description, 1, 2, 0,
        doc: /* Return a pretty description of key-sequence KEYS.
 Optional arg PREFIX is the sequence of keys leading up to KEYS.
 Control characters turn into "C-foo" sequences, meta into "M-foo",
@@ -2397,7 +2398,7 @@ push_key_description (register unsigned int c, register char *p, int force_multi
 
 /* This function cannot GC.  */
 
-DEFUN ("single-key-description", Fsingle_key_description,
+DEFUE ("single-key-description", Fsingle_key_description,
        Ssingle_key_description, 1, 2, 0,
        doc: /* Return a pretty description of command character KEY.
 Control characters turn into C-whatever, etc.
@@ -2675,7 +2676,7 @@ where_is_internal (Lisp_Object definition, Lisp_Object keymaps,
 
 /* This function can GC if Flookup_key autoloads any keymaps.  */
 
-DEFUN ("where-is-internal", Fwhere_is_internal, Swhere_is_internal, 1, 5, 0,
+DEFUE ("where-is-internal", Fwhere_is_internal, Swhere_is_internal, 1, 5, 0,
        doc: /* Return list of keys that invoke DEFINITION.
 If KEYMAP is a keymap, search only KEYMAP and the global keymap.
 If KEYMAP is nil, search all the currently active keymaps.

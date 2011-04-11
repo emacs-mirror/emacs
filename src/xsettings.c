@@ -718,8 +718,8 @@ DEFUN ("font-get-system-font", Ffont_get_system_font, Sfont_get_system_font,
     : Qnil;
 }
 
-DEFUN ("tool-bar-get-system-style", Ftool_bar_get_system_style, Stool_bar_get_system_style,
-       0, 0, 0,
+DEFUE ("tool-bar-get-system-style", Ftool_bar_get_system_style,
+       Stool_bar_get_system_style, 0, 0, 0,
        doc: /* Get the system tool bar style.
 If no system tool bar style is known, return `tool-bar-style' if set to a
 known style.  Otherwise return image.  */)

@@ -148,7 +148,7 @@ casify_object (enum case_action flag, Lisp_Object obj)
     }
 }
 
-DEFUN ("upcase", Fupcase, Supcase, 1, 1, 0,
+DEFUE ("upcase", Fupcase, Supcase, 1, 1, 0,
        doc: /* Convert argument to upper case and return that.
 The argument may be a character or string.  The result has the same type.
 The argument object is not altered--the value is a copy.
@@ -158,7 +158,7 @@ See also `capitalize', `downcase' and `upcase-initials'.  */)
   return casify_object (CASE_UP, obj);
 }
 
-DEFUN ("downcase", Fdowncase, Sdowncase, 1, 1, 0,
+DEFUE ("downcase", Fdowncase, Sdowncase, 1, 1, 0,
        doc: /* Convert argument to lower case and return that.
 The argument may be a character or string.  The result has the same type.
 The argument object is not altered--the value is a copy.  */)
@@ -180,7 +180,7 @@ The argument object is not altered--the value is a copy.  */)
 
 /* Like Fcapitalize but change only the initials.  */
 
-DEFUN ("upcase-initials", Fupcase_initials, Supcase_initials, 1, 1, 0,
+DEFUE ("upcase-initials", Fupcase_initials, Supcase_initials, 1, 1, 0,
        doc: /* Convert the initial of each word in the argument to upper case.
 Do not change the other letters of each word.
 The argument may be a character or string.  The result has the same type.
@@ -301,7 +301,7 @@ casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
     }
 }
 
-DEFUN ("upcase-region", Fupcase_region, Supcase_region, 2, 2, "r",
+DEFUE ("upcase-region", Fupcase_region, Supcase_region, 2, 2, "r",
        doc: /* Convert the region to upper case.  In programs, wants two arguments.
 These arguments specify the starting and ending character numbers of
 the region to operate on.  When used as a command, the text between
@@ -338,7 +338,7 @@ character positions to operate on.  */)
 
 /* Like Fcapitalize_region but change only the initials.  */
 
-DEFUN ("upcase-initials-region", Fupcase_initials_region,
+DEFUE ("upcase-initials-region", Fupcase_initials_region,
        Supcase_initials_region, 2, 2, "r",
        doc: /* Upcase the initial of each word in the region.
 Subsequent letters of each word are not changed.

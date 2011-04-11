@@ -1,3 +1,62 @@
+2011-04-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Make Emacs functions such as Fatom 'static' by default.
+	This makes it easier for human readers (and static analyzers)
+	to see whether these functions can be called from other modules.
+	DEFUN now defines a static function.  To make the function external
+	so that it can be used in other C modules, use the new macro DEFUE.
+	* lisp.h (DEFINE_FUNC): New macro, with the old contents of DEFUN.
+	(DEFUN): Rewrite in terms of DEFINE_FUNC.  It now generates a
+	static function definition.  Use DEFUE if you want an extern one.
+	(DEFUE, INFUN): New macros.
+	(Funibyte_char_to_multibyte, Fsyntax_table_p, Finit_image_library):
+	(Feval_region, Fbacktrace, Ffetch_bytecode, Fswitch_to_buffer):
+	(Ffile_executable_p, Fmake_symbolic_link, Fcommand_execute):
+	(Fget_process, Fdocumentation_property, Fbyte_code, Ffile_attributes):
+	Remove decls, since these functions are now static.
+	(Funintern, Fget_internal_run_time): New decls, since these functions
+	were already external.
+	* alloc.c, buffer.c, callint.c, callproc.c, casefiddle.c, casetab.c:
+	* ccl.c, character.c, chartab.c, cmds.c, coding.c, data.c, dispnew.c:
+	* doc.c, editfns.c, emacs.c, eval.c, fileio.c, filelock.c, floatfns.c:
+	* fns.c, font.c, fontset.c, frame.c, image.c, indent.c:
+	* keyboard.c, keymap.c, lread.c:
+	* macros.c, marker.c, menu.c, minibuf.c, print.c, process.c, search.c:
+	* syntax.c, term.c, terminal.c, textprop.c, undo.c:
+	* window.c, xdisp.c, xfaces.c, xfns.c, xmenu.c, xsettings.c:
+	Mark functions with DEFUE instead of DEFUN,
+	if they are used in other modules.
+	* buffer.c (Fset_buffer_major_mode, Fdelete_overlay): New forward
+	decls for now-static functions.
+	* buffer.h (Fdelete_overlay): Remove decl.
+	* callproc.c (Fgetenv_internal): Mark as internal.
+	* composite.c (Fremove_list_of_text_properties): Remove decl.
+	(Fcomposition_get_gstring): New forward static decl.
+	* composite.h (Fcomposite_get_gstring): Remove decl.
+	* dired.c (Ffile_attributes): New forward static decl.
+	* doc.c (Fdocumntation_property): New forward static decl.
+	* eval.c (Ffetch_bytecode): New forward static decl.
+	(Funintern): Remove extern decl; now in .h file where it belongs.
+	* fileio.c (Fmake_symbolic_link): New forward static decl.
+	* image.c (Finit_image_library): New forward static decl.
+	* insdel.c (Fcombine_after_change_execute): Make forward decl static.
+	* intervals.h (Fprevious_property_change):
+	(Fremove_list_of_text_properties): Remove decls.
+	* keyboard.c (Fthis_command_keys): Remove decl.
+	(Fcommand_execute): New forward static decl.
+	* keymap.c (Flookup_key): New forward static decl.
+	(Fcopy_keymap): Now static.
+	* keymap.h (Flookup_key): Remove decl.
+	* process.c (Fget_process): New forward static decl.
+	(Fprocess_datagram_address): Mark as internal.
+	* syntax.c (Fsyntax_table_p): New forward static decl.
+	(skip_chars): Remove duplicate decl.
+	* textprop.c (Fprevious_property_change): New forward static decl.
+	* window.c (Fset_window_fringes, Fset_window_scroll_bars):
+	Now internal.
+	(Fset_window_margins, Fset_window_vscroll): New forward static decls.
+	* window.h (Fset_window_vscroll, Fset_window_margins): Remove decls.
+
 2011-04-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* editfns.c (Fformat): Remove unreachable code.

@@ -851,7 +851,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
   }
 }
 
-DEFUN ("prefix-numeric-value", Fprefix_numeric_value, Sprefix_numeric_value,
+DEFUE ("prefix-numeric-value", Fprefix_numeric_value, Sprefix_numeric_value,
        1, 1, 0,
        doc: /* Return numeric meaning of raw prefix argument RAW.
 A raw prefix argument is what you get from `(interactive "P")'.

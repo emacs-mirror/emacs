@@ -763,8 +763,6 @@ extern Lisp_Object Vmouse_event;
 EXFUN (Fnext_window, 3);
 EXFUN (Fselect_window, 2);
 EXFUN (Fset_window_buffer, 3);
-EXFUN (Fset_window_vscroll, 3);
-EXFUN (Fset_window_margins, 3);
 EXFUN (Fset_window_point, 2);
 extern Lisp_Object make_window (void);
 extern Lisp_Object window_from_coordinates (struct frame *, int, int,

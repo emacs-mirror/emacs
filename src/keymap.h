@@ -27,7 +27,6 @@ extern Lisp_Object current_global_map;
 EXFUN (Fmake_sparse_keymap, 1);
 EXFUN (Fkeymap_prompt, 1);
 EXFUN (Fdefine_key, 3);
-EXFUN (Flookup_key, 3);
 EXFUN (Fcommand_remapping, 3);
 EXFUN (Fkey_binding, 4);
 EXFUN (Fkey_description, 2);
@@ -53,4 +52,3 @@ extern void map_keymap_canonical (Lisp_Object map,
 				  Lisp_Object args, void *data);
 
 #endif
-

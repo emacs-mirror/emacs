@@ -215,7 +215,7 @@ finalize_kbd_macro_chars (void)
   current_kboard->kbd_macro_end = current_kboard->kbd_macro_ptr;
 }
 
-DEFUN ("cancel-kbd-macro-events", Fcancel_kbd_macro_events,
+DEFUE ("cancel-kbd-macro-events", Fcancel_kbd_macro_events,
        Scancel_kbd_macro_events, 0, 0, 0,
        doc: /* Cancel the events added to a keyboard macro for this command.  */)
   (void)
@@ -282,7 +282,7 @@ pop_kbd_macro (Lisp_Object info)
   return Qnil;
 }
 
-DEFUN ("execute-kbd-macro", Fexecute_kbd_macro, Sexecute_kbd_macro, 1, 3, 0,
+DEFUE ("execute-kbd-macro", Fexecute_kbd_macro, Sexecute_kbd_macro, 1, 3, 0,
        doc: /* Execute MACRO as string of editor command characters.
 If MACRO is a symbol, its function definition is used.
 COUNT is a repeat count, or nil for once, or 0 for infinite loop.
@@ -391,4 +391,3 @@ This is nil when not executing a keyboard macro.  */);
   DEFVAR_KBOARD ("last-kbd-macro", Vlast_kbd_macro,
 		 doc: /* Last kbd macro defined, as a string or vector; nil if none defined.  */);
 }
-

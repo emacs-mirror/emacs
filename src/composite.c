@@ -158,7 +158,7 @@ Lisp_Object Qauto_composition_function;
    auto-compositions.  */
 #define MAX_AUTO_COMPOSITION_LOOKBACK 3
 
-EXFUN (Fremove_list_of_text_properties, 4);
+INFUN (Fcomposition_get_gstring, 4);
 
 /* Temporary variable used in macros COMPOSITION_XXX.  */
 Lisp_Object composition_temp;

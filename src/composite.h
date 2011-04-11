@@ -328,6 +328,4 @@ extern int composition_update_it (struct composition_it *,
 
 extern EMACS_INT composition_adjust_point (EMACS_INT, EMACS_INT);
 
-EXFUN (Fcomposition_get_gstring, 4);
-
 #endif /* not EMACS_COMPOSITE_H */

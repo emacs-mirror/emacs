@@ -79,7 +79,7 @@ This is the one used for new buffers.  */)
 
 static Lisp_Object set_case_table (Lisp_Object table, int standard);
 
-DEFUN ("set-case-table", Fset_case_table, Sset_case_table, 1, 1, 0,
+DEFUE ("set-case-table", Fset_case_table, Sset_case_table, 1, 1, 0,
        doc: /* Select a new case table for the current buffer.
 A case table is a char-table which maps characters
 to their lower-case equivalents.  It also has three \"extra\" slots
@@ -101,7 +101,8 @@ EQUIVALENCES is a map that cyclicly permutes each equivalence class
   return set_case_table (table, 0);
 }
 
-DEFUN ("set-standard-case-table", Fset_standard_case_table, Sset_standard_case_table, 1, 1, 0,
+DEFUE ("set-standard-case-table", Fset_standard_case_table,
+       Sset_standard_case_table, 1, 1, 0,
        doc: /* Select a new standard case table for new buffers.
 See `set-case-table' for more info on case tables.  */)
   (Lisp_Object table)

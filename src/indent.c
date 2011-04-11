@@ -796,7 +796,7 @@ string_display_width (string, beg, end)
 #endif /* 0 */
 
 
-DEFUN ("indent-to", Findent_to, Sindent_to, 1, 2, "NIndent to column: ",
+DEFUE ("indent-to", Findent_to, Sindent_to, 1, 2, "NIndent to column: ",
        doc: /* Indent from point with tabs and spaces until COLUMN is reached.
 Optional second argument MINIMUM says always do at least MINIMUM spaces
 even if that goes past COLUMN; by default, MINIMUM is zero.
@@ -967,7 +967,7 @@ indented_beyond_p (EMACS_INT pos, EMACS_INT pos_byte, EMACS_INT column)
   return val >= column;
 }
 
-DEFUN ("move-to-column", Fmove_to_column, Smove_to_column, 1, 2, "p",
+DEFUE ("move-to-column", Fmove_to_column, Smove_to_column, 1, 2, "p",
        doc: /* Move point to column COLUMN in the current line.
 Interactively, COLUMN is the value of prefix numeric argument.
 The column of a character is calculated by adding together the widths
@@ -1959,7 +1959,7 @@ vmotion (register EMACS_INT from, register EMACS_INT vtarget, struct window *w)
 			 w);
 }
 
-DEFUN ("vertical-motion", Fvertical_motion, Svertical_motion, 1, 2, 0,
+DEFUE ("vertical-motion", Fvertical_motion, Svertical_motion, 1, 2, 0,
        doc: /* Move point to start of the screen line LINES lines down.
 If LINES is negative, this means moving up.
 

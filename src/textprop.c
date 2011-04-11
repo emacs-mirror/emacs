@@ -73,6 +73,7 @@ Lisp_Object interval_insert_behind_hooks;
 Lisp_Object interval_insert_in_front_hooks;
 
 static void text_read_only (Lisp_Object) NO_RETURN;
+INFUN (Fprevious_property_change, 3);
 
 
 /* Signal a `text-read-only' error.  This function makes it easier
@@ -544,7 +545,7 @@ interval_of (int position, Lisp_Object object)
   return find_interval (i, position);
 }
 
-DEFUN ("text-properties-at", Ftext_properties_at,
+DEFUE ("text-properties-at", Ftext_properties_at,
        Stext_properties_at, 1, 2, 0,
        doc: /* Return the list of properties of the character at POSITION in OBJECT.
 If the optional second argument OBJECT is a buffer (or nil, which means
@@ -571,7 +572,7 @@ If POSITION is at the end of OBJECT, the value is nil.  */)
   return i->plist;
 }
 
-DEFUN ("get-text-property", Fget_text_property, Sget_text_property, 2, 3, 0,
+DEFUE ("get-text-property", Fget_text_property, Sget_text_property, 2, 3, 0,
        doc: /* Return the value of POSITION's property PROP, in OBJECT.
 OBJECT is optional and defaults to the current buffer.
 If POSITION is at the end of OBJECT, the value is nil.  */)
@@ -646,7 +647,7 @@ get_char_property_and_overlay (Lisp_Object position, register Lisp_Object prop, 
   return Fget_text_property (position, prop, object);
 }
 
-DEFUN ("get-char-property", Fget_char_property, Sget_char_property, 2, 3, 0,
+DEFUE ("get-char-property", Fget_char_property, Sget_char_property, 2, 3, 0,
        doc: /* Return the value of POSITION's property PROP, in OBJECT.
 Both overlay properties and text properties are checked.
 OBJECT is optional and defaults to the current buffer.
@@ -683,7 +684,7 @@ POSITION is at the end of OBJECT, both car and cdr are nil.  */)
 }
 
 
-DEFUN ("next-char-property-change", Fnext_char_property_change,
+DEFUE ("next-char-property-change", Fnext_char_property_change,
        Snext_char_property_change, 1, 2, 0,
        doc: /* Return the position of next text property or overlay change.
 This scans characters forward in the current buffer from POSITION till
@@ -708,7 +709,7 @@ LIMIT is a no-op if it is greater than (point-max).  */)
   return Fnext_property_change (position, Qnil, temp);
 }
 
-DEFUN ("previous-char-property-change", Fprevious_char_property_change,
+DEFUE ("previous-char-property-change", Fprevious_char_property_change,
        Sprevious_char_property_change, 1, 2, 0,
        doc: /* Return the position of previous text property or overlay change.
 Scans characters backward in the current buffer from POSITION till it
@@ -734,7 +735,7 @@ LIMIT is a no-op if it is less than (point-min).  */)
 }
 
 
-DEFUN ("next-single-char-property-change", Fnext_single_char_property_change,
+DEFUE ("next-single-char-property-change", Fnext_single_char_property_change,
        Snext_single_char_property_change, 2, 4, 0,
        doc: /* Return the position of next text property or overlay change for a specific property.
 Scans characters forward from POSITION till it finds
@@ -817,7 +818,7 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
   return position;
 }
 
-DEFUN ("previous-single-char-property-change",
+DEFUE ("previous-single-char-property-change",
        Fprevious_single_char_property_change,
        Sprevious_single_char_property_change, 2, 4, 0,
        doc: /* Return the position of previous text property or overlay change for a specific property.
@@ -910,7 +911,7 @@ back past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
   return position;
 }
 
-DEFUN ("next-property-change", Fnext_property_change,
+DEFUE ("next-property-change", Fnext_property_change,
        Snext_property_change, 1, 3, 0,
        doc: /* Return the position of next property change.
 Scans characters forward from POSITION in OBJECT till it finds
@@ -974,7 +975,7 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
     return make_number (next->position);
 }
 
-DEFUN ("next-single-property-change", Fnext_single_property_change,
+DEFUE ("next-single-property-change", Fnext_single_property_change,
        Snext_single_property_change, 2, 4, 0,
        doc: /* Return the position of next property change for a specific property.
 Scans characters forward from POSITION till it finds
@@ -1022,7 +1023,7 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
     return make_number (next->position);
 }
 
-DEFUN ("previous-property-change", Fprevious_property_change,
+DEFUE ("previous-property-change", Fprevious_property_change,
        Sprevious_property_change, 1, 3, 0,
        doc: /* Return the position of previous property change.
 Scans characters backwards from POSITION in OBJECT till it finds
@@ -1069,7 +1070,7 @@ back past position LIMIT; return LIMIT if nothing is found until LIMIT.  */)
     return make_number (previous->position + LENGTH (previous));
 }
 
-DEFUN ("previous-single-property-change", Fprevious_single_property_change,
+DEFUE ("previous-single-property-change", Fprevious_single_property_change,
        Sprevious_single_property_change, 2, 4, 0,
        doc: /* Return the position of previous property change for a specific property.
 Scans characters backward from POSITION till it finds
@@ -1123,7 +1124,7 @@ back past position LIMIT; return LIMIT if nothing is found until LIMIT.  */)
 
 /* Callers note, this can GC when OBJECT is a buffer (or nil).  */
 
-DEFUN ("add-text-properties", Fadd_text_properties,
+DEFUE ("add-text-properties", Fadd_text_properties,
        Sadd_text_properties, 3, 4, 0,
        doc: /* Add properties to the text from START to END.
 The third argument PROPERTIES is a property list
@@ -1232,7 +1233,7 @@ Return t if any property value actually changed, nil otherwise.  */)
 
 /* Callers note, this can GC when OBJECT is a buffer (or nil).  */
 
-DEFUN ("put-text-property", Fput_text_property,
+DEFUE ("put-text-property", Fput_text_property,
        Sput_text_property, 4, 5, 0,
        doc: /* Set one property of the text from START to END.
 The third and fourth arguments PROPERTY and VALUE
@@ -1248,7 +1249,7 @@ markers).  If OBJECT is a string, START and END are 0-based indices into it.  */
   return Qnil;
 }
 
-DEFUN ("set-text-properties", Fset_text_properties,
+DEFUE ("set-text-properties", Fset_text_properties,
        Sset_text_properties, 3, 4, 0,
        doc: /* Completely replace properties of text from START to END.
 The third argument PROPERTIES is the new property list.
@@ -1415,7 +1416,7 @@ set_text_properties_1 (Lisp_Object start, Lisp_Object end, Lisp_Object propertie
   while (len > 0);
 }
 
-DEFUN ("remove-text-properties", Fremove_text_properties,
+DEFUE ("remove-text-properties", Fremove_text_properties,
        Sremove_text_properties, 3, 4, 0,
        doc: /* Remove some properties from text from START to END.
 The third argument PROPERTIES is a property list
@@ -1505,7 +1506,7 @@ Use `set-text-properties' if you want to remove all text properties.  */)
     }
 }
 
-DEFUN ("remove-list-of-text-properties", Fremove_list_of_text_properties,
+DEFUE ("remove-list-of-text-properties", Fremove_list_of_text_properties,
        Sremove_list_of_text_properties, 3, 4, 0,
        doc: /* Remove some properties from text from START to END.
 The third argument LIST-OF-PROPERTIES is a list of property names to remove.
@@ -1615,7 +1616,7 @@ Return t if any property was actually removed, nil otherwise.  */)
     }
 }
 
-DEFUN ("text-property-any", Ftext_property_any,
+DEFUE ("text-property-any", Ftext_property_any,
        Stext_property_any, 4, 5, 0,
        doc: /* Check text from START to END for property PROPERTY equalling VALUE.
 If so, return the position of the first character whose property PROPERTY

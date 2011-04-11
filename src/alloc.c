@@ -2174,7 +2174,7 @@ compact_small_strings (void)
 }
 
 
-DEFUN ("make-string", Fmake_string, Smake_string, 2, 2, 0,
+DEFUE ("make-string", Fmake_string, Smake_string, 2, 2, 0,
        doc: /* Return a newly created string of length LENGTH, with INIT in each element.
 LENGTH must be an integer.
 INIT must be an integer that represents a character.  */)
@@ -2222,7 +2222,7 @@ INIT must be an integer that represents a character.  */)
 }
 
 
-DEFUN ("make-bool-vector", Fmake_bool_vector, Smake_bool_vector, 2, 2, 0,
+DEFUE ("make-bool-vector", Fmake_bool_vector, Smake_bool_vector, 2, 2, 0,
        doc: /* Return a new bool-vector of length LENGTH, using INIT for each element.
 LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
   (Lisp_Object length, Lisp_Object init)
@@ -2610,7 +2610,7 @@ free_cons (struct Lisp_Cons *ptr)
   cons_free_list = ptr;
 }
 
-DEFUN ("cons", Fcons, Scons, 2, 2, 0,
+DEFUE ("cons", Fcons, Scons, 2, 2, 0,
        doc: /* Create a new cons, give it CAR and CDR as components, and return it.  */)
   (Lisp_Object car, Lisp_Object cdr)
 {
@@ -2703,7 +2703,7 @@ list5 (Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3, Lisp_Object arg4, L
 }
 
 
-DEFUN ("list", Flist, Slist, 0, MANY, 0,
+DEFUE ("list", Flist, Slist, 0, MANY, 0,
        doc: /* Return a newly created list with specified arguments as elements.
 Any number of arguments, even zero arguments, are allowed.
 usage: (list &rest OBJECTS)  */)
@@ -2721,7 +2721,7 @@ usage: (list &rest OBJECTS)  */)
 }
 
 
-DEFUN ("make-list", Fmake_list, Smake_list, 2, 2, 0,
+DEFUE ("make-list", Fmake_list, Smake_list, 2, 2, 0,
        doc: /* Return a newly created list of length LENGTH, with each element being INIT.  */)
   (register Lisp_Object length, Lisp_Object init)
 {
@@ -2897,7 +2897,7 @@ allocate_process (void)
 }
 
 
-DEFUN ("make-vector", Fmake_vector, Smake_vector, 2, 2, 0,
+DEFUE ("make-vector", Fmake_vector, Smake_vector, 2, 2, 0,
        doc: /* Return a newly created vector of length LENGTH, with each element being INIT.
 See also the function `vector'.  */)
   (register Lisp_Object length, Lisp_Object init)
@@ -2919,7 +2919,7 @@ See also the function `vector'.  */)
 }
 
 
-DEFUN ("vector", Fvector, Svector, 0, MANY, 0,
+DEFUE ("vector", Fvector, Svector, 0, MANY, 0,
        doc: /* Return a newly created vector with specified arguments as elements.
 Any number of arguments, even zero arguments, are allowed.
 usage: (vector &rest OBJECTS)  */)
@@ -2938,7 +2938,7 @@ usage: (vector &rest OBJECTS)  */)
 }
 
 
-DEFUN ("make-byte-code", Fmake_byte_code, Smake_byte_code, 4, MANY, 0,
+DEFUE ("make-byte-code", Fmake_byte_code, Smake_byte_code, 4, MANY, 0,
        doc: /* Create a byte-code object with specified arguments as elements.
 The arguments should be the ARGLIST, bytecode-string BYTE-CODE, constant
 vector CONSTANTS, maximum stack size DEPTH, (optional) DOCSTRING,
@@ -3033,7 +3033,7 @@ init_symbol (void)
 }
 
 
-DEFUN ("make-symbol", Fmake_symbol, Smake_symbol, 1, 1, 0,
+DEFUE ("make-symbol", Fmake_symbol, Smake_symbol, 1, 1, 0,
        doc: /* Return a newly allocated uninterned symbol whose name is NAME.
 Its value and function definition are void, and its property list is nil.  */)
   (Lisp_Object name)
@@ -3196,7 +3196,7 @@ make_save_value (void *pointer, int integer)
   return val;
 }
 
-DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
+DEFUE ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
        doc: /* Return a newly allocated marker which does not point at any place.  */)
   (void)
 {
@@ -3925,7 +3925,7 @@ static int max_live, max_zombies;
 
 static double avg_live;
 
-DEFUN ("gc-status", Fgc_status, Sgc_status, 0, 0, "",
+DEFUE ("gc-status", Fgc_status, Sgc_status, 0, 0, "",
        doc: /* Show information about live and zombie objects.  */)
   (void)
 {
@@ -4740,7 +4740,7 @@ make_pure_vector (EMACS_INT len)
 }
 
 
-DEFUN ("purecopy", Fpurecopy, Spurecopy, 1, 1, 0,
+DEFUE ("purecopy", Fpurecopy, Spurecopy, 1, 1, 0,
        doc: /* Make a copy of object OBJ in pure storage.
 Recursively copies contents of vectors and cons cells.
 Does not copy symbols.  Copies strings without text properties.  */)
@@ -4834,7 +4834,7 @@ inhibit_garbage_collection (void)
 }
 
 
-DEFUN ("garbage-collect", Fgarbage_collect, Sgarbage_collect, 0, 0, "",
+DEFUE ("garbage-collect", Fgarbage_collect, Sgarbage_collect, 0, 0, "",
        doc: /* Reclaim storage for Lisp objects no longer needed.
 Garbage collection happens automatically if you cons more than
 `gc-cons-threshold' bytes of Lisp data since previous garbage collection.

@@ -137,6 +137,7 @@ static void free_color_table (void);
 static unsigned long *colors_in_color_table (int *n);
 static unsigned long lookup_pixel_color (struct frame *f, unsigned long p);
 #endif
+INFUN (Finit_image_library, 2);
 
 /* Code to deal with bitmaps.  Bitmaps are referenced by their bitmap
    id, which is just an int that this section returns.  Bitmaps are
@@ -7869,7 +7870,7 @@ static struct image_type imagemagick_type =
   };
 
 
-DEFUN ("imagemagick-types", Fimagemagick_types, Simagemagick_types, 0, 0, 0,
+DEFUE ("imagemagick-types", Fimagemagick_types, Simagemagick_types, 0, 0, 0,
        doc: /* Return the image types supported by ImageMagick.
 Note that ImageMagick recognizes many file-types that Emacs does not recognize
 as images, such as .c.  */)
@@ -8580,7 +8581,7 @@ x_kill_gs_process (Pixmap pixmap, struct frame *f)
 
 #if GLYPH_DEBUG
 
-DEFUN ("imagep", Fimagep, Simagep, 1, 1, 0,
+DEFUE ("imagep", Fimagep, Simagep, 1, 1, 0,
        doc: /* Value is non-nil if SPEC is a valid image specification.  */)
   (Lisp_Object spec)
 {
@@ -8588,7 +8589,7 @@ DEFUN ("imagep", Fimagep, Simagep, 1, 1, 0,
 }
 
 
-DEFUN ("lookup-image", Flookup_image, Slookup_image, 1, 1, 0, "")
+DEFUE ("lookup-image", Flookup_image, Slookup_image, 1, 1, 0, "")
   (Lisp_Object spec)
 {
   int id = -1;

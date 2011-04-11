@@ -683,7 +683,7 @@ DEFUN ("abs", Fabs, Sabs, 1, 1, 0,
   return arg;
 }
 
-DEFUN ("float", Ffloat, Sfloat, 1, 1, 0,
+DEFUE ("float", Ffloat, Sfloat, 1, 1, 0,
        doc: /* Return the floating point number equal to ARG.  */)
   (register Lisp_Object arg)
 {
@@ -886,7 +886,7 @@ systems, but 2 on others.  */)
   return rounding_driver (arg, divisor, emacs_rint, round2, "round");
 }
 
-DEFUN ("truncate", Ftruncate, Struncate, 1, 2, 0,
+DEFUE ("truncate", Ftruncate, Struncate, 1, 2, 0,
        doc: /* Truncate a floating point number to an int.
 Rounds ARG toward zero.
 With optional DIVISOR, truncate ARG/DIVISOR.  */)

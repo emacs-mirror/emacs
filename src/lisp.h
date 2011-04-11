@@ -1804,8 +1804,12 @@ typedef struct {
  `doc' is documentation for the user.  */
 
 /* This version of DEFUN declares a function prototype with the right
-   arguments, so we can catch errors with maxargs at compile-time.  */
-#define DEFUN(lname, fnname, sname, minargs, maxargs, intspec, doc)	\
+   arguments, so we can catch errors with maxargs at compile-time.
+   DEFUN defines an internal function, and DEFUE is similar but defines a
+   external function, which can be used in other C-language modules.  */
+#define DEFUN static DEFINE_FUNC
+#define DEFUE extern DEFINE_FUNC
+#define DEFINE_FUNC(lname, fnname, sname, minargs, maxargs, intspec, doc) \
   Lisp_Object fnname DEFUN_ARGS_ ## maxargs ;				\
   DECL_ALIGN (struct Lisp_Subr, sname) =				\
     { PVEC_SUBR | (sizeof (struct Lisp_Subr) / sizeof (EMACS_INT)),	\
@@ -2279,6 +2283,8 @@ void staticpro (Lisp_Object *);
    appropriate prototype.  */
 #define EXFUN(fnname, maxargs) \
   extern Lisp_Object fnname DEFUN_ARGS_ ## maxargs
+#define INFUN(fnname, maxargs) \
+  static Lisp_Object fnname DEFUN_ARGS_ ## maxargs
 
 /* Forward declarations for prototypes.  */
 struct window;
@@ -2404,7 +2410,6 @@ extern void init_coding_once (void);
 extern void syms_of_coding (void);
 
 /* Defined in character.c */
-EXFUN (Funibyte_char_to_multibyte, 1);
 EXFUN (Fchar_width, 1);
 EXFUN (Fstring, MANY);
 extern EMACS_INT chars_in_text (const unsigned char *, EMACS_INT);
@@ -2428,7 +2433,6 @@ extern void syms_of_composite (void);
 EXFUN (Fforward_word, 1);
 EXFUN (Fskip_chars_forward, 2);
 EXFUN (Fskip_chars_backward, 2);
-EXFUN (Fsyntax_table_p, 1);
 extern void init_syntax_once (void);
 extern void syms_of_syntax (void);
 
@@ -2529,7 +2533,6 @@ extern void init_fringe_once (void);
 extern Lisp_Object QCascent, QCmargin, QCrelief, Qcount, Qextension_data;
 extern Lisp_Object QCconversion, QCcolor_symbols, QCheuristic_mask;
 extern Lisp_Object QCindex, QCmatrix, QCcolor_adjustment, QCmask;
-EXFUN (Finit_image_library, 2);
 extern int x_bitmap_mask (struct frame *, int);
 extern void syms_of_image (void);
 extern void init_image (void);
@@ -2790,11 +2793,11 @@ EXFUN (Fread, 1);
 EXFUN (Fread_from_string, 3);
 EXFUN (Fintern, 2);
 EXFUN (Fintern_soft, 2);
+EXFUN (Funintern, 2);
 EXFUN (Fload, 5);
 EXFUN (Fget_load_suffixes, 0);
 EXFUN (Fread_char, 3);
 EXFUN (Fread_event, 3);
-EXFUN (Feval_region, 4);
 extern Lisp_Object check_obarray (Lisp_Object);
 extern Lisp_Object intern (const char *);
 extern Lisp_Object intern_c_string (const char *);
@@ -2852,7 +2855,6 @@ EXFUN (Feval, 2);
 extern Lisp_Object eval_sub (Lisp_Object form);
 EXFUN (Fapply, MANY);
 EXFUN (Ffuncall, MANY);
-EXFUN (Fbacktrace, 0);
 extern Lisp_Object apply1 (Lisp_Object, Lisp_Object);
 extern Lisp_Object call0 (Lisp_Object);
 extern Lisp_Object call1 (Lisp_Object, Lisp_Object);
@@ -2877,7 +2879,6 @@ extern void verror (const char *, va_list)
   NO_RETURN ATTRIBUTE_FORMAT_PRINTF (1, 0);
 extern void do_autoload (Lisp_Object, Lisp_Object);
 extern Lisp_Object un_autoload (Lisp_Object);
-EXFUN (Ffetch_bytecode, 1);
 extern void init_eval_once (void);
 extern Lisp_Object safe_call (size_t, Lisp_Object *);
 extern Lisp_Object safe_call1 (Lisp_Object, Lisp_Object);
@@ -2921,6 +2922,7 @@ EXFUN (Fwiden, 0);
 EXFUN (Fuser_login_name, 1);
 EXFUN (Fsystem_name, 0);
 EXFUN (Fcurrent_time, 0);
+EXFUN (Fget_internal_run_time, 0);
 extern EMACS_INT clip_to_bounds (EMACS_INT, EMACS_INT, EMACS_INT);
 extern Lisp_Object make_buffer_string (EMACS_INT, EMACS_INT, int);
 extern Lisp_Object make_buffer_string_both (EMACS_INT, EMACS_INT, EMACS_INT,
@@ -2953,7 +2955,6 @@ EXFUN (Fset_buffer, 1);
 extern Lisp_Object set_buffer_if_live (Lisp_Object);
 EXFUN (Fbarf_if_buffer_read_only, 0);
 EXFUN (Fcurrent_buffer, 0);
-EXFUN (Fswitch_to_buffer, 2);
 EXFUN (Fother_buffer, 3);
 EXFUN (Foverlay_get, 2);
 EXFUN (Fbuffer_modified_p, 1);
@@ -3018,7 +3019,6 @@ EXFUN (Funhandled_file_name_directory, 1);
 EXFUN (Ffile_directory_p, 1);
 EXFUN (Fwrite_region, 7);
 EXFUN (Ffile_readable_p, 1);
-EXFUN (Ffile_executable_p, 1);
 EXFUN (Fread_file_name, 6);
 extern Lisp_Object close_file_unwind (Lisp_Object);
 extern Lisp_Object restore_point_unwind (Lisp_Object);
@@ -3026,7 +3026,6 @@ extern void report_file_error (const char *, Lisp_Object) NO_RETURN;
 extern int internal_delete_file (Lisp_Object);
 extern void syms_of_fileio (void);
 extern Lisp_Object make_temp_name (Lisp_Object, int);
-EXFUN (Fmake_symbolic_link, 3);
 extern Lisp_Object Qdelete_file;
 
 /* Defined in abbrev.c */
@@ -3119,7 +3118,6 @@ extern int input_pending;
 EXFUN (Fdiscard_input, 0);
 EXFUN (Frecursive_edit, 0);
 EXFUN (Ftop_level, 0) NO_RETURN;
-EXFUN (Fcommand_execute, 4);
 extern Lisp_Object menu_bar_items (Lisp_Object);
 extern Lisp_Object tool_bar_items (Lisp_Object, int *);
 extern Lisp_Object Qvertical_scroll_bar;
@@ -3221,7 +3219,6 @@ extern int running_asynch_code;
 
 /* Defined in process.c */
 extern Lisp_Object QCtype, Qlocal;
-EXFUN (Fget_process, 1);
 EXFUN (Fget_buffer_process, 1);
 EXFUN (Fprocess_status, 1);
 EXFUN (Fkill_process, 2);
@@ -3255,7 +3252,6 @@ extern void syms_of_callproc (void);
 /* Defined in doc.c */
 extern Lisp_Object Qfunction_documentation;
 EXFUN (Fsubstitute_command_keys, 1);
-EXFUN (Fdocumentation_property, 3);
 extern Lisp_Object read_doc_string (Lisp_Object);
 extern Lisp_Object get_doc_string (Lisp_Object, int, int);
 extern void syms_of_doc (void);
@@ -3263,7 +3259,6 @@ extern int read_bytecode_char (int);
 
 /* Defined in bytecode.c */
 extern Lisp_Object Qbytecode;
-EXFUN (Fbyte_code, 3);
 extern void syms_of_bytecode (void);
 extern struct byte_stack *byte_stack_list;
 #ifdef BYTE_MARK_STACK
@@ -3384,7 +3379,6 @@ extern void syms_of_category (void);
 extern void syms_of_ccl (void);
 
 /* Defined in dired.c */
-EXFUN (Ffile_attributes, 2);
 extern void syms_of_dired (void);
 extern Lisp_Object directory_files_internal (Lisp_Object, Lisp_Object,
                                              Lisp_Object, Lisp_Object,

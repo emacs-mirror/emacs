@@ -2411,7 +2411,7 @@ get_named_tty (const char *name)
 }
 
 
-DEFUN ("tty-type", Ftty_type, Stty_type, 0, 1, 0,
+DEFUE ("tty-type", Ftty_type, Stty_type, 0, 1, 0,
        doc: /* Return the type of the tty device that TERMINAL uses.
 Returns nil if TERMINAL is not on a tty device.
 

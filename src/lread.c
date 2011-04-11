@@ -681,7 +681,7 @@ read_filtered_event (int no_switch_frame, int ascii_required,
   return val;
 }
 
-DEFUN ("read-char", Fread_char, Sread_char, 0, 3, 0,
+DEFUE ("read-char", Fread_char, Sread_char, 0, 3, 0,
        doc: /* Read a character from the command input (keyboard or macro).
 It is returned as a number.
 If the character has modifiers, they are resolved and reflected to the
@@ -714,7 +714,7 @@ floating-point value.  */)
 	  : make_number (char_resolve_modifier_mask (XINT (val))));
 }
 
-DEFUN ("read-event", Fread_event, Sread_event, 0, 3, 0,
+DEFUE ("read-event", Fread_event, Sread_event, 0, 3, 0,
        doc: /* Read an event object from the input stream.
 If the optional argument PROMPT is non-nil, display that as a prompt.
 If the optional argument INHERIT-INPUT-METHOD is non-nil and some
@@ -950,7 +950,7 @@ load_warn_old_style_backquotes (Lisp_Object file)
   return Qnil;
 }
 
-DEFUN ("get-load-suffixes", Fget_load_suffixes, Sget_load_suffixes, 0, 0, 0,
+DEFUE ("get-load-suffixes", Fget_load_suffixes, Sget_load_suffixes, 0, 0, 0,
        doc: /* Return the suffixes that `load' should try if a suffix is \
 required.
 This uses the variables `load-suffixes' and `load-file-rep-suffixes'.  */)
@@ -972,7 +972,7 @@ This uses the variables `load-suffixes' and `load-file-rep-suffixes'.  */)
   return Fnreverse (lst);
 }
 
-DEFUN ("load", Fload, Sload, 1, 5, 0,
+DEFUE ("load", Fload, Sload, 1, 5, 0,
        doc: /* Execute a file of Lisp code named FILE.
 First try FILE with `.elc' appended, then try with `.el',
 then try FILE unmodified (the exact suffixes in the exact order are
@@ -1906,7 +1906,7 @@ This function does not move point.  */)
 }
 
 
-DEFUN ("read", Fread, Sread, 0, 1, 0,
+DEFUE ("read", Fread, Sread, 0, 1, 0,
        doc: /* Read one Lisp expression as text from STREAM, return as Lisp object.
 If STREAM is nil, use the value of `standard-input' (which see).
 STREAM or the value of `standard-input' may be:
@@ -1929,7 +1929,7 @@ STREAM or the value of `standard-input' may be:
   return read_internal_start (stream, Qnil, Qnil);
 }
 
-DEFUN ("read-from-string", Fread_from_string, Sread_from_string, 1, 3, 0,
+DEFUE ("read-from-string", Fread_from_string, Sread_from_string, 1, 3, 0,
        doc: /* Read one Lisp expression which is represented as text by STRING.
 Returns a cons: (OBJECT-READ . FINAL-STRING-INDEX).
 START and END optionally delimit a substring of STRING from which to read;
@@ -3654,7 +3654,7 @@ make_symbol (const char *str)
 		       : make_string (str, len));
 }
 
-DEFUN ("intern", Fintern, Sintern, 1, 2, 0,
+DEFUE ("intern", Fintern, Sintern, 1, 2, 0,
        doc: /* Return the canonical symbol whose name is STRING.
 If there is none, one is created by this function and returned.
 A second optional argument specifies the obarray to use;
@@ -3700,7 +3700,7 @@ it defaults to the value of `obarray'.  */)
   return sym;
 }
 
-DEFUN ("intern-soft", Fintern_soft, Sintern_soft, 1, 2, 0,
+DEFUE ("intern-soft", Fintern_soft, Sintern_soft, 1, 2, 0,
        doc: /* Return the canonical symbol named NAME, or nil if none exists.
 NAME may be a string or a symbol.  If it is a symbol, that exact
 symbol is searched for.
@@ -3728,7 +3728,7 @@ it defaults to the value of `obarray'.  */)
     return tem;
 }
 
-DEFUN ("unintern", Funintern, Sunintern, 1, 2, 0,
+DEFUE ("unintern", Funintern, Sunintern, 1, 2, 0,
        doc: /* Delete the symbol named NAME, if any, from OBARRAY.
 The value is t if a symbol was found and deleted, nil otherwise.
 NAME may be a string or a symbol.  If it is a symbol, that symbol
