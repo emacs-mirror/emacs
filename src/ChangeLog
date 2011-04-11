@@ -1,5 +1,9 @@
 2011-04-11  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* commands.h (last_point_position, last_point_position_buffer):
+	(last_point_position_window): Remove decls.
+	* keyboard.c: Make these variables static.
+
 	* coding.h (coding, code_convert_region, encode_coding_gap): Remove
 	decls.
 	* coding.c (Vsjis_coding_system, Vbig5_coding_system):
