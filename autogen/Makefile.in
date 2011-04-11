@@ -78,7 +78,8 @@ AR = ar
 ARFLAGS = cru
 libgnu_a_AR = $(AR) $(ARFLAGS)
 am__DEPENDENCIES_1 =
-am_libgnu_a_OBJECTS = careadlinkat.$(OBJEXT) dtoastr.$(OBJEXT)
+am_libgnu_a_OBJECTS = allocator.$(OBJEXT) careadlinkat.$(OBJEXT) \
+	dtoastr.$(OBJEXT)
 libgnu_a_OBJECTS = $(am_libgnu_a_OBJECTS)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -692,10 +693,10 @@ x_default_search_path = @x_default_search_path@
 BUILT_SOURCES = arg-nonnull.h c++defs.h $(GETOPT_H) $(STDBOOL_H) \
 	$(STDDEF_H) $(STDINT_H) stdio.h stdlib.h sys/stat.h time.h \
 	unistd.h warn-on-use.h
-EXTRA_DIST = $(top_srcdir)/./arg-nonnull.h $(top_srcdir)/./c++defs.h \
-	allocator.h careadlinkat.h md5.c md5.h dosname.h ftoastr.c \
-	ftoastr.h filemode.c filemode.h getloadavg.c getopt.c \
-	getopt.in.h getopt1.c getopt_int.h intprops.h lstat.c \
+EXTRA_DIST = allocator.h $(top_srcdir)/./arg-nonnull.h \
+	$(top_srcdir)/./c++defs.h careadlinkat.h md5.c md5.h dosname.h \
+	ftoastr.c ftoastr.h filemode.c filemode.h getloadavg.c \
+	getopt.c getopt.in.h getopt1.c getopt_int.h intprops.h lstat.c \
 	mktime-internal.h mktime.c readlink.c stat.c stdbool.in.h \
 	stddef.in.h stdint.in.h stdio.in.h stdlib.in.h strftime.c \
 	strftime.h symlink.c sys_stat.in.h time.in.h time_r.c \
@@ -708,7 +709,8 @@ MOSTLYCLEANFILES = core *.stackdump arg-nonnull.h arg-nonnull.h-t \
 	time.h-t unistd.h unistd.h-t warn-on-use.h warn-on-use.h-t
 noinst_LIBRARIES = libgnu.a
 DEFAULT_INCLUDES = -I. -I../src -I$(top_srcdir)/src
-libgnu_a_SOURCES = careadlinkat.c dtoastr.c gettext.h ignore-value.h
+libgnu_a_SOURCES = allocator.c careadlinkat.c dtoastr.c gettext.h \
+	ignore-value.h
 libgnu_a_LIBADD = $(gl_LIBOBJS)
 libgnu_a_DEPENDENCIES = $(gl_LIBOBJS)
 EXTRA_libgnu_a_SOURCES = md5.c ftoastr.c filemode.c getloadavg.c \
@@ -766,6 +768,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/allocator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/careadlinkat.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dtoastr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filemode.Po@am__quote@

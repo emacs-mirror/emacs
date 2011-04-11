@@ -6196,6 +6196,7 @@ $as_echo "$ac_cv_safe_to_define___extensions__" >&6; }
 
 
 
+  # Code from module allocator:
   # Code from module arg-nonnull:
   # Code from module c++defs:
   # Code from module careadlinkat:
@@ -15465,6 +15466,7 @@ fi
 
 
   gl_source_base='lib'
+  # Code from module allocator:
   # Code from module arg-nonnull:
   # Code from module c++defs:
   # Code from module careadlinkat:
