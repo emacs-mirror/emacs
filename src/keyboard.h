@@ -408,15 +408,10 @@ typedef struct _widget_value
 extern Lisp_Object Qswitch_frame;
 
 /* Properties on event heads.  */
-extern Lisp_Object Qevent_kind, Qevent_symbol_elements;
-
-/* Getting an unmodified version of an event head.  */
-#define EVENT_HEAD_UNMODIFIED(event_head) \
-  (Fcar (Fget ((event_head), Qevent_symbol_elements)))
+extern Lisp_Object Qevent_kind;
 
 /* The values of Qevent_kind properties.  */
-extern Lisp_Object Qfunction_key, Qmouse_click, Qmouse_movement;
-extern Lisp_Object Qscroll_bar_movement;
+extern Lisp_Object Qmouse_click;
 
 extern Lisp_Object Qhelp_echo;
 
@@ -454,9 +449,7 @@ extern Lisp_Object real_this_command;
 
 /* Non-nil disable property on a command means
    do not execute it; call disabled-command-function's value instead.  */
-extern Lisp_Object QCbutton, QCtoggle, QCradio, QClabel;
-
-extern Lisp_Object Qinput_method_function;
+extern Lisp_Object QCtoggle, QCradio;
 
 /* An event header symbol HEAD may have a property named
    Qevent_symbol_element_mask, which is of the form (BASE MODIFIERS);

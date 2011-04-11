@@ -300,27 +300,30 @@ encode_coding_XXX (struct coding_system *coding)
 
 Lisp_Object Vcoding_system_hash_table;
 
-Lisp_Object Qcoding_system, Qcoding_aliases, Qeol_type;
+static Lisp_Object Qcoding_system, Qeol_type;
+static Lisp_Object Qcoding_aliases;
 Lisp_Object Qunix, Qdos;
 Lisp_Object Qbuffer_file_coding_system;
-Lisp_Object Qpost_read_conversion, Qpre_write_conversion;
-Lisp_Object Qdefault_char;
+static Lisp_Object Qpost_read_conversion, Qpre_write_conversion;
+static Lisp_Object Qdefault_char;
 Lisp_Object Qno_conversion, Qundecided;
-Lisp_Object Qcharset, Qiso_2022, Qutf_8, Qutf_16, Qshift_jis, Qbig5;
-Lisp_Object Qbig, Qlittle;
-Lisp_Object Qcoding_system_history;
-Lisp_Object Qvalid_codes;
-Lisp_Object QCcategory, QCmnemonic, QCdefault_char;
-Lisp_Object QCdecode_translation_table, QCencode_translation_table;
-Lisp_Object QCpost_read_conversion, QCpre_write_conversion;
-Lisp_Object QCascii_compatible_p;
+Lisp_Object Qcharset, Qutf_8;
+static Lisp_Object Qiso_2022;
+static Lisp_Object Qutf_16, Qshift_jis, Qbig5;
+static Lisp_Object Qbig, Qlittle;
+static Lisp_Object Qcoding_system_history;
+static Lisp_Object Qvalid_codes;
+static Lisp_Object QCcategory, QCmnemonic, QCdefault_char;
+static Lisp_Object QCdecode_translation_table, QCencode_translation_table;
+static Lisp_Object QCpost_read_conversion, QCpre_write_conversion;
+static Lisp_Object QCascii_compatible_p;
 
 Lisp_Object Qcall_process, Qcall_process_region;
 Lisp_Object Qstart_process, Qopen_network_stream;
-Lisp_Object Qtarget_idx;
+static Lisp_Object Qtarget_idx;
 
-Lisp_Object Qinsufficient_source, Qinconsistent_eol, Qinvalid_source;
-Lisp_Object Qinterrupted, Qinsufficient_memory;
+static Lisp_Object Qinsufficient_source, Qinconsistent_eol, Qinvalid_source;
+static Lisp_Object Qinterrupted, Qinsufficient_memory;
 
 /* If a symbol has this property, evaluate the value to define the
    symbol as a coding system.  */
@@ -351,8 +354,8 @@ struct coding_system safe_terminal_coding;
 
 Lisp_Object Qtranslation_table;
 Lisp_Object Qtranslation_table_id;
-Lisp_Object Qtranslation_table_for_decode;
-Lisp_Object Qtranslation_table_for_encode;
+static Lisp_Object Qtranslation_table_for_decode;
+static Lisp_Object Qtranslation_table_for_encode;
 
 /* Two special coding systems.  */
 Lisp_Object Vsjis_coding_system;

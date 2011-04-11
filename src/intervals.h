@@ -295,8 +295,6 @@ extern int invisible_p (Lisp_Object, Lisp_Object);
 /* Declared in textprop.c */
 
 /* Types of hooks. */
-extern Lisp_Object Qmouse_left;
-extern Lisp_Object Qmouse_entered;
 extern Lisp_Object Qpoint_left;
 extern Lisp_Object Qpoint_entered;
 extern Lisp_Object Qmodification_hooks;
@@ -305,8 +303,8 @@ extern Lisp_Object Qlocal_map;
 extern Lisp_Object Qkeymap;
 
 /* Visual properties text (including strings) may have. */
-extern Lisp_Object Qforeground, Qbackground, Qfont, Qunderline, Qstipple;
-extern Lisp_Object Qinvisible, Qintangible, Qread_only;
+extern Lisp_Object Qfont;
+extern Lisp_Object Qinvisible, Qintangible;
 
 /* Sticky properties */
 extern Lisp_Object Qfront_sticky, Qrear_nonsticky;

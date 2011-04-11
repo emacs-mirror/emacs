@@ -31,10 +31,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "dispextern.h"
 #include "frame.h"
 
-Lisp_Object Qkill_forward_chars, Qkill_backward_chars;
+static Lisp_Object Qkill_forward_chars, Qkill_backward_chars;
 
 /* A possible value for a buffer's overwrite-mode variable.  */
-Lisp_Object Qoverwrite_mode_binary;
+static Lisp_Object Qoverwrite_mode_binary;
 
 static int internal_self_insert (int, EMACS_INT);
 

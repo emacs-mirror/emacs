@@ -38,16 +38,16 @@ Lisp_Object Qccl, Qcclp;
 
 /* This symbol is a property which associates with ccl program vector.
    Ex: (get 'ccl-big5-encoder 'ccl-program) returns ccl program vector.  */
-Lisp_Object Qccl_program;
+static Lisp_Object Qccl_program;
 
 /* These symbols are properties which associate with code conversion
    map and their ID respectively.  */
-Lisp_Object Qcode_conversion_map;
-Lisp_Object Qcode_conversion_map_id;
+static Lisp_Object Qcode_conversion_map;
+static Lisp_Object Qcode_conversion_map_id;
 
 /* Symbols of ccl program have this property, a value of the property
    is an index for Vccl_protram_table. */
-Lisp_Object Qccl_program_idx;
+static Lisp_Object Qccl_program_idx;
 
 /* Table of registered CCL programs.  Each element is a vector of
    NAME, CCL_PROG, RESOLVEDP, and UPDATEDP, where NAME (symbol) is the

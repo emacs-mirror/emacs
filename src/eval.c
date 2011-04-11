@@ -66,12 +66,13 @@ int gcpro_level;
 
 Lisp_Object Qautoload, Qmacro, Qexit, Qinteractive, Qcommandp, Qdefun;
 Lisp_Object Qinhibit_quit;
-Lisp_Object Qand_rest, Qand_optional;
-Lisp_Object Qdebug_on_error;
-Lisp_Object Qdeclare;
+Lisp_Object Qand_rest;
+static Lisp_Object Qand_optional;
+static Lisp_Object Qdebug_on_error;
+static Lisp_Object Qdeclare;
 Lisp_Object Qinternal_interpreter_environment, Qclosure;
 
-Lisp_Object Qdebug;
+static Lisp_Object Qdebug;
 
 /* This holds either the symbol `run-hooks' or nil.
    It is nil at an early stage of startup, and when Emacs

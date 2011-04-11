@@ -1047,7 +1047,7 @@ extern Lisp_Object selected_frame;
 
 extern Lisp_Object Qauto_raise, Qauto_lower;
 extern Lisp_Object Qborder_color, Qborder_width;
-extern Lisp_Object Qbuffer_predicate, Qbuffer_list, Qburied_buffer_list;
+extern Lisp_Object Qbuffer_predicate;
 extern Lisp_Object Qcursor_color, Qcursor_type;
 extern Lisp_Object Qfont;
 extern Lisp_Object Qbackground_color, Qforeground_color;
@@ -1076,7 +1076,6 @@ extern Lisp_Object Qminibuffer, Qmodeline;
 extern Lisp_Object Qx, Qw32, Qmac, Qpc, Qns;
 extern Lisp_Object Qvisible;
 extern Lisp_Object Qdisplay_type;
-extern Lisp_Object Qbackground_mode;
 
 extern Lisp_Object Qx_resource_name;
 

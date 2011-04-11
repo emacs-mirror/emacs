@@ -69,10 +69,10 @@ Lisp_Object Qonly;
 Lisp_Object Qx, Qw32, Qmac, Qpc, Qns;
 Lisp_Object Qvisible;
 Lisp_Object Qdisplay_type;
-Lisp_Object Qbackground_mode;
+static Lisp_Object Qbackground_mode;
 Lisp_Object Qnoelisp;
 
-Lisp_Object Qx_frame_parameter;
+static Lisp_Object Qx_frame_parameter;
 Lisp_Object Qx_resource_name;
 Lisp_Object Qterminal;
 Lisp_Object Qterminal_live_p;
@@ -82,7 +82,7 @@ Lisp_Object Qterminal_live_p;
 Lisp_Object Qauto_raise, Qauto_lower;
 Lisp_Object Qborder_color, Qborder_width;
 Lisp_Object Qcursor_color, Qcursor_type;
-Lisp_Object Qgeometry;  /* Not used */
+static Lisp_Object Qgeometry;  /* Not used */
 Lisp_Object Qheight, Qwidth;
 Lisp_Object Qleft, Qright;
 Lisp_Object Qicon_left, Qicon_top, Qicon_type, Qicon_name;
@@ -95,19 +95,20 @@ Lisp_Object Qvisibility;
 Lisp_Object Qscroll_bar_foreground, Qscroll_bar_background;
 Lisp_Object Qscreen_gamma;
 Lisp_Object Qline_spacing;
-Lisp_Object Quser_position, Quser_size;
+static Lisp_Object Quser_position, Quser_size;
 Lisp_Object Qwait_for_wm;
-Lisp_Object Qwindow_id;
+static Lisp_Object Qwindow_id;
 #ifdef HAVE_X_WINDOWS
-Lisp_Object Qouter_window_id;
+static Lisp_Object Qouter_window_id;
 #endif
 Lisp_Object Qparent_id;
 Lisp_Object Qtitle, Qname;
-Lisp_Object Qexplicit_name;
+static Lisp_Object Qexplicit_name;
 Lisp_Object Qunsplittable;
 Lisp_Object Qmenu_bar_lines, Qtool_bar_lines, Qtool_bar_position;
 Lisp_Object Qleft_fringe, Qright_fringe;
-Lisp_Object Qbuffer_predicate, Qbuffer_list, Qburied_buffer_list;
+Lisp_Object Qbuffer_predicate;
+static Lisp_Object Qbuffer_list, Qburied_buffer_list;
 Lisp_Object Qtty_color_mode;
 Lisp_Object Qtty, Qtty_type;
 

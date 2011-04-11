@@ -68,10 +68,10 @@ Lisp_Object Qcharsetp;
 
 /* Special charset symbols.  */
 Lisp_Object Qascii;
-Lisp_Object Qeight_bit;
-Lisp_Object Qiso_8859_1;
-Lisp_Object Qunicode;
-Lisp_Object Qemacs;
+static Lisp_Object Qeight_bit;
+static Lisp_Object Qiso_8859_1;
+static Lisp_Object Qunicode;
+static Lisp_Object Qemacs;
 
 /* The corresponding charsets.  */
 int charset_ascii;
@@ -87,7 +87,7 @@ int charset_jisx0208;
 int charset_ksc5601;
 
 /* Value of charset attribute `charset-iso-plane'.  */
-Lisp_Object Qgl, Qgr;
+static Lisp_Object Qgl, Qgr;
 
 /* Charset of unibyte characters.  */
 int charset_unibyte;

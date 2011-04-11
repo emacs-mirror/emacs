@@ -49,11 +49,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define NULL ((POINTER_TYPE *)0)
 #endif
 
-Lisp_Object Qstring_lessp, Qprovide, Qrequire;
-Lisp_Object Qyes_or_no_p_history;
+Lisp_Object Qstring_lessp;
+static Lisp_Object Qprovide, Qrequire;
+static Lisp_Object Qyes_or_no_p_history;
 Lisp_Object Qcursor_in_echo_area;
-Lisp_Object Qwidget_type;
-Lisp_Object Qcodeset, Qdays, Qmonths, Qpaper;
+static Lisp_Object Qwidget_type;
+static Lisp_Object Qcodeset, Qdays, Qmonths, Qpaper;
 
 static int internal_equal (Lisp_Object , Lisp_Object, int, int);
 
@@ -2541,7 +2542,7 @@ advisable.  */)
   return ret;
 }
 
-Lisp_Object Qsubfeatures;
+static Lisp_Object Qsubfeatures;
 
 DEFUN ("featurep", Ffeaturep, Sfeaturep, 1, 2, 0,
        doc: /* Return t if FEATURE is present in this Emacs.
@@ -3354,9 +3355,10 @@ struct Lisp_Hash_Table *weak_hash_tables;
 
 /* Various symbols.  */
 
-Lisp_Object Qhash_table_p, Qeq, Qeql, Qequal, Qkey, Qvalue;
+static Lisp_Object Qhash_table_p, Qkey, Qvalue;
+Lisp_Object Qeq, Qeql, Qequal;
 Lisp_Object QCtest, QCsize, QCrehash_size, QCrehash_threshold, QCweakness;
-Lisp_Object Qhash_table_test, Qkey_or_value, Qkey_and_value;
+static Lisp_Object Qhash_table_test, Qkey_or_value, Qkey_and_value;
 
 /* Function prototypes.  */
 

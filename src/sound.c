@@ -94,9 +94,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Symbols.  */
 
-Lisp_Object QCvolume, QCdevice;
-Lisp_Object Qsound;
-Lisp_Object Qplay_sound_functions;
+static Lisp_Object QCvolume, QCdevice;
+static Lisp_Object Qsound;
+static Lisp_Object Qplay_sound_functions;
 
 /* Indices of attributes in a sound attributes vector.  */
 

@@ -30,14 +30,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 Lisp_Object Qminus, Qplus;
 Lisp_Object Qcall_interactively;
-Lisp_Object Qcommand_debug_status;
-Lisp_Object Qenable_recursive_minibuffers;
+static Lisp_Object Qcommand_debug_status;
+static Lisp_Object Qenable_recursive_minibuffers;
 
-Lisp_Object Qhandle_shift_selection;
+static Lisp_Object Qhandle_shift_selection;
 
 Lisp_Object Qmouse_leave_buffer_hook;
 
-Lisp_Object Qlist, Qlet, Qletx, Qsave_excursion, Qprogn, Qif, Qwhen;
+static Lisp_Object Qlist, Qlet, Qletx, Qsave_excursion, Qprogn, Qif;
+Lisp_Object Qwhen;
 static Lisp_Object preserved_fns;
 
 /* Marker used within call-interactively to refer to point.  */

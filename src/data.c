@@ -52,26 +52,33 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 extern double atof (const char *);
 #endif /* !atof */
 
-Lisp_Object Qnil, Qt, Qquote, Qlambda, Qsubr, Qunbound;
+Lisp_Object Qnil, Qt, Qquote, Qlambda, Qunbound;
+static Lisp_Object Qsubr;
 Lisp_Object Qerror_conditions, Qerror_message, Qtop_level;
-Lisp_Object Qerror, Qquit, Qwrong_type_argument, Qargs_out_of_range;
-Lisp_Object Qvoid_variable, Qvoid_function, Qcyclic_function_indirection;
-Lisp_Object Qcyclic_variable_indirection, Qcircular_list;
-Lisp_Object Qsetting_constant, Qinvalid_read_syntax;
+Lisp_Object Qerror, Qquit, Qargs_out_of_range;
+static Lisp_Object Qwrong_type_argument;
+Lisp_Object Qvoid_variable, Qvoid_function;
+static Lisp_Object Qcyclic_function_indirection;
+static Lisp_Object Qcyclic_variable_indirection;
+Lisp_Object Qcircular_list;
+static Lisp_Object Qsetting_constant;
+Lisp_Object Qinvalid_read_syntax;
 Lisp_Object Qinvalid_function, Qwrong_number_of_arguments, Qno_catch;
 Lisp_Object Qend_of_file, Qarith_error, Qmark_inactive;
 Lisp_Object Qbeginning_of_buffer, Qend_of_buffer, Qbuffer_read_only;
 Lisp_Object Qtext_read_only;
 
-Lisp_Object Qintegerp, Qnatnump, Qwholenump, Qsymbolp, Qlistp, Qconsp;
+Lisp_Object Qintegerp, Qwholenump, Qsymbolp, Qlistp, Qconsp;
+static Lisp_Object Qnatnump;
 Lisp_Object Qstringp, Qarrayp, Qsequencep, Qbufferp;
 Lisp_Object Qchar_or_string_p, Qmarkerp, Qinteger_or_marker_p, Qvectorp;
-Lisp_Object Qbuffer_or_string_p, Qkeywordp;
-Lisp_Object Qboundp, Qfboundp;
+Lisp_Object Qbuffer_or_string_p;
+static Lisp_Object Qkeywordp, Qboundp;
+Lisp_Object Qfboundp;
 Lisp_Object Qchar_table_p, Qvector_or_char_table_p;
 
 Lisp_Object Qcdr;
-Lisp_Object Qad_advice_info, Qad_activate_internal;
+static Lisp_Object Qad_advice_info, Qad_activate_internal;
 
 Lisp_Object Qrange_error, Qdomain_error, Qsingularity_error;
 Lisp_Object Qoverflow_error, Qunderflow_error;
@@ -83,7 +90,7 @@ Lisp_Object Qinteger;
 static Lisp_Object Qsymbol, Qstring, Qcons, Qmarker, Qoverlay;
 Lisp_Object Qwindow;
 static Lisp_Object Qfloat, Qwindow_configuration;
-Lisp_Object Qprocess;
+static Lisp_Object Qprocess;
 static Lisp_Object Qcompiled_function, Qbuffer, Qframe, Qvector;
 static Lisp_Object Qchar_table, Qbool_vector, Qhash_table;
 static Lisp_Object Qsubrp, Qmany, Qunevalled;

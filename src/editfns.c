@@ -107,7 +107,7 @@ static Lisp_Object subst_char_in_region_unwind_1 (Lisp_Object);
 static void transpose_markers (EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT,
 			       EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT);
 
-Lisp_Object Qbuffer_access_fontify_functions;
+static Lisp_Object Qbuffer_access_fontify_functions;
 INFUN (Fuser_full_name, 1);
 
 /* Symbol for the text property used to mark fields.  */
@@ -116,7 +116,7 @@ Lisp_Object Qfield;
 
 /* A special value for Qfield properties.  */
 
-Lisp_Object Qboundary;
+static Lisp_Object Qboundary;
 
 
 void

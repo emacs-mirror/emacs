@@ -264,11 +264,12 @@ static size_t stack_copy_size;
 
 static int ignore_warnings;
 
-Lisp_Object Qgc_cons_threshold, Qchar_table_extra_slots;
+static Lisp_Object Qgc_cons_threshold;
+Lisp_Object Qchar_table_extra_slots;
 
 /* Hook run after GC has finished.  */
 
-Lisp_Object Qpost_gc_hook;
+static Lisp_Object Qpost_gc_hook;
 
 static void mark_buffer (Lisp_Object);
 static void mark_terminals (void);

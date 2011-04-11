@@ -50,10 +50,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "nsterm.h"
 #endif
 
-Lisp_Object Qwindowp, Qwindow_live_p, Qwindow_configuration_p;
-Lisp_Object Qdisplay_buffer;
-Lisp_Object Qscroll_up, Qscroll_down, Qscroll_command;
-Lisp_Object Qwindow_size_fixed;
+Lisp_Object Qwindowp, Qwindow_live_p;
+static Lisp_Object Qwindow_configuration_p;
+static Lisp_Object Qdisplay_buffer;
+static Lisp_Object Qscroll_up, Qscroll_down, Qscroll_command;
+static Lisp_Object Qwindow_size_fixed;
 
 static int displayed_window_lines (struct window *);
 static struct window *decode_window (Lisp_Object);
@@ -116,7 +117,7 @@ Lisp_Object minibuf_selected_window;
 
 /* Hook run at end of temp_output_buffer_show.  */
 
-Lisp_Object Qtemp_buffer_show_hook;
+static Lisp_Object Qtemp_buffer_show_hook;
 
 /* Incremented for each window created.  */
 

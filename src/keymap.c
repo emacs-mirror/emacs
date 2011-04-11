@@ -56,8 +56,9 @@ Lisp_Object control_x_map;	/* The keymap used for globally bound
 
 /* keymap used for minibuffers when doing completion */
 /* keymap used for minibuffers when doing completion and require a match */
-Lisp_Object Qkeymapp, Qkeymap, Qnon_ascii, Qmenu_item, Qremap;
-Lisp_Object QCadvertised_binding;
+static Lisp_Object Qkeymapp, Qnon_ascii;
+Lisp_Object Qkeymap, Qmenu_item, Qremap;
+static Lisp_Object QCadvertised_binding;
 
 /* Alist of elements like (DEL . "\d").  */
 static Lisp_Object exclude_keys;
@@ -659,7 +660,7 @@ map_keymap (Lisp_Object map, map_keymap_function_t fun, Lisp_Object args, void *
   UNGCPRO;
 }
 
-Lisp_Object Qkeymap_canonicalize;
+static Lisp_Object Qkeymap_canonicalize;
 
 /* Same as map_keymap, but does it right, properly eliminating duplicate
    bindings due to inheritance.   */
@@ -2175,7 +2176,7 @@ then the value includes only maps for prefixes that start with PREFIX.  */)
     }
   return maps;
 }
-Lisp_Object Qsingle_key_description, Qkey_description;
+static Lisp_Object Qsingle_key_description, Qkey_description;
 
 /* This function cannot GC.  */
 

@@ -139,10 +139,10 @@ char *gray_bitmap_bits = gray_bits;
 
 static int x_in_use;
 
-Lisp_Object Qnone;
-Lisp_Object Qsuppress_icon;
-Lisp_Object Qundefined_color;
-Lisp_Object Qcompound_text, Qcancel_timer;
+static Lisp_Object Qnone;
+static Lisp_Object Qsuppress_icon;
+static Lisp_Object Qundefined_color;
+static Lisp_Object Qcompound_text, Qcancel_timer;
 Lisp_Object Qfont_param;
 
 #if GLYPH_DEBUG

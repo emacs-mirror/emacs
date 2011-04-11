@@ -105,10 +105,6 @@ extern void ccl_driver (struct ccl_program *, int *, int *, int, int,
 /* Vector of CCL program names vs corresponding program data.  */
 extern Lisp_Object Vccl_program_table;
 
-/* Symbols of ccl program have this property, a value of the property
-   is an index for Vccl_protram_table. */
-extern Lisp_Object Qccl_program_idx;
-
 extern Lisp_Object Qccl, Qcclp;
 
 EXFUN (Fccl_program_p, 1);
@@ -120,4 +116,3 @@ EXFUN (Fccl_program_p, 1);
   } while (0);
 
 #endif /* EMACS_CCL_H */
-

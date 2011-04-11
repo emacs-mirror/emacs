@@ -111,7 +111,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define FALSE 0
 #endif /* no TRUE */
 
-Lisp_Object Qdebug_on_next_call;
+static Lisp_Object Qdebug_on_next_call;
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
 static Lisp_Object xdialog_show (FRAME_PTR, int, Lisp_Object, Lisp_Object,

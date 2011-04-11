@@ -48,7 +48,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    For the moment, we are not using this feature.  */
 static int category_table_version;
 
-Lisp_Object Qcategory_table, Qcategoryp, Qcategorysetp, Qcategory_table_p;
+static Lisp_Object Qcategory_table, Qcategoryp, Qcategorysetp, Qcategory_table_p;
 
 /* Temporary internal variable used in macro CHAR_HAS_CATEGORY.  */
 Lisp_Object _temp_category_set;

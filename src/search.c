@@ -85,10 +85,10 @@ static Lisp_Object last_thing_searched;
 
 /* error condition signaled when regexp compile_pattern fails */
 
-Lisp_Object Qinvalid_regexp;
+static Lisp_Object Qinvalid_regexp;
 
 /* Error condition used for failing searches */
-Lisp_Object Qsearch_failed;
+static Lisp_Object Qsearch_failed;
 
 static void set_search_regs (EMACS_INT, EMACS_INT);
 static void save_search_regs (void);

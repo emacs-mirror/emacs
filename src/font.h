@@ -239,7 +239,7 @@ enum font_property_index
   ASET ((font), prop, make_number (font_style_to_value (prop, val, 1)))
 
 extern Lisp_Object QCspacing, QCdpi, QCscalable, QCotf, QClang, QCscript;
-extern Lisp_Object QCavgwidth, QCantialias, QCfont_entity, QCfc_unknown_spec;
+extern Lisp_Object QCavgwidth, QCantialias, QCfont_entity;
 extern Lisp_Object Qp;
 
 
@@ -871,4 +871,3 @@ extern void font_deferred_log (const char *, Lisp_Object, Lisp_Object);
 #endif	/* not FONT_DEBUG */
 
 #endif	/* not EMACS_FONT_H */
-

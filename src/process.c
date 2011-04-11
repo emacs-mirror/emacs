@@ -127,22 +127,24 @@ int inhibit_sentinels;
 
 #ifdef subprocesses
 
-Lisp_Object Qprocessp;
-Lisp_Object Qrun, Qstop, Qsignal;
-Lisp_Object Qopen, Qclosed, Qconnect, Qfailed, Qlisten;
-Lisp_Object Qlocal, Qipv4, Qdatagram, Qseqpacket;
-Lisp_Object Qreal, Qnetwork, Qserial;
+static Lisp_Object Qprocessp;
+static Lisp_Object Qrun, Qstop, Qsignal;
+static Lisp_Object Qopen, Qclosed, Qconnect, Qfailed, Qlisten;
+Lisp_Object Qlocal;
+static Lisp_Object Qipv4, Qdatagram, Qseqpacket;
+static Lisp_Object Qreal, Qnetwork, Qserial;
 #ifdef AF_INET6
-Lisp_Object Qipv6;
+static Lisp_Object Qipv6;
 #endif
-Lisp_Object QCport, QCspeed, QCprocess;
+static Lisp_Object QCport, QCprocess;
+Lisp_Object QCspeed;
 Lisp_Object QCbytesize, QCstopbits, QCparity, Qodd, Qeven;
 Lisp_Object QCflowcontrol, Qhw, Qsw, QCsummary;
-Lisp_Object QCbuffer, QChost, QCservice;
-Lisp_Object QClocal, QCremote, QCcoding;
-Lisp_Object QCserver, QCnowait, QCnoquery, QCstop;
-Lisp_Object QCsentinel, QClog, QCoptions, QCplist;
-Lisp_Object Qlast_nonmenu_event;
+static Lisp_Object QCbuffer, QChost, QCservice;
+static Lisp_Object QClocal, QCremote, QCcoding;
+static Lisp_Object QCserver, QCnowait, QCnoquery, QCstop;
+static Lisp_Object QCsentinel, QClog, QCoptions, QCplist;
+static Lisp_Object Qlast_nonmenu_event;
 /* QCfamily is declared and initialized in xfaces.c,
    QCfilter in keyboard.c.  */
 extern Lisp_Object QCfamily, QCfilter;

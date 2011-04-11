@@ -53,35 +53,35 @@ int minibuf_level;
 
 /* The maximum length of a minibuffer history.  */
 
-Lisp_Object Qhistory_length;
+static Lisp_Object Qhistory_length;
 
 /* Fread_minibuffer leaves the input here as a string. */
 
 Lisp_Object last_minibuf_string;
 
-Lisp_Object Qminibuffer_history, Qbuffer_name_history;
+static Lisp_Object Qminibuffer_history, Qbuffer_name_history;
 
-Lisp_Object Qread_file_name_internal;
+static Lisp_Object Qread_file_name_internal;
 
 /* Normal hooks for entry to and exit from minibuffer.  */
 
-Lisp_Object Qminibuffer_setup_hook;
-Lisp_Object Qminibuffer_exit_hook;
+static Lisp_Object Qminibuffer_setup_hook;
+static Lisp_Object Qminibuffer_exit_hook;
 
 Lisp_Object Qcompletion_ignore_case;
-Lisp_Object Qminibuffer_completion_table;
-Lisp_Object Qminibuffer_completion_predicate;
-Lisp_Object Qminibuffer_completion_confirm;
-Lisp_Object Qcompleting_read_default;
-Lisp_Object Quser_variable_p;
+static Lisp_Object Qminibuffer_completion_table;
+static Lisp_Object Qminibuffer_completion_predicate;
+static Lisp_Object Qminibuffer_completion_confirm;
+static Lisp_Object Qcompleting_read_default;
+static Lisp_Object Quser_variable_p;
 
-Lisp_Object Qminibuffer_default;
+static Lisp_Object Qminibuffer_default;
 
-Lisp_Object Qcurrent_input_method, Qactivate_input_method;
+static Lisp_Object Qcurrent_input_method, Qactivate_input_method;
 
-Lisp_Object Qcase_fold_search;
+static Lisp_Object Qcase_fold_search;
 
-Lisp_Object Qread_expression_history;
+static Lisp_Object Qread_expression_history;
 
 /* Prompt to display in front of the mini-buffer contents.  */
 

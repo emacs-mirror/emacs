@@ -757,10 +757,9 @@ extern Lisp_Object preferred_coding_system (void);
 
 extern Lisp_Object Qutf_8, Qutf_8_emacs;
 
-extern Lisp_Object Qcoding_system, Qeol_type, Qcoding_category_index;
+extern Lisp_Object Qcoding_category_index;
 extern Lisp_Object Qcoding_system_p;
 extern Lisp_Object Qraw_text, Qemacs_mule, Qno_conversion, Qundecided;
-extern Lisp_Object Qiso_2022;
 extern Lisp_Object Qbuffer_file_coding_system;
 
 extern Lisp_Object Qunix, Qdos, Qmac;
@@ -789,4 +788,3 @@ extern char emacs_mule_bytes[256];
 extern int emacs_mule_string_char (unsigned char *);
 
 #endif /* EMACS_CODING_H */
-

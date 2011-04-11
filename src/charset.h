@@ -517,7 +517,7 @@ extern int iso_charset_table[ISO_MAX_DIMENSION][ISO_MAX_CHARS][ISO_MAX_FINAL];
 
 extern Lisp_Object Qcharsetp;
 
-extern Lisp_Object Qascii, Qunicode;
+extern Lisp_Object Qascii;
 extern int charset_ascii, charset_eight_bit;
 extern int charset_iso_8859_1;
 extern int charset_unicode;

@@ -39,11 +39,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 Lisp_Object Qstandard_output;
 
-Lisp_Object Qtemp_buffer_setup_hook;
+static Lisp_Object Qtemp_buffer_setup_hook;
 
 /* These are used to print like we read.  */
 
-Lisp_Object Qfloat_output_format;
+static Lisp_Object Qfloat_output_format;
 
 #include <math.h>
 
@@ -79,7 +79,7 @@ EMACS_INT print_buffer_pos;
 EMACS_INT print_buffer_pos_byte;
 
 Lisp_Object Qprint_escape_newlines;
-Lisp_Object Qprint_escape_multibyte, Qprint_escape_nonascii;
+static Lisp_Object Qprint_escape_multibyte, Qprint_escape_nonascii;
 
 /* Vprint_number_table is a table, that keeps objects that are going to
    be printed, to allow use of #n= and #n# to express sharing.

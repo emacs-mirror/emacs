@@ -113,30 +113,31 @@ static void reset_buffer_local_variables (struct buffer *b, int permanent_too);
  to prevent lossage due to user rplac'ing this alist or its elements.  */
 Lisp_Object Vbuffer_alist;
 
-Lisp_Object Qkill_buffer_query_functions;
+static Lisp_Object Qkill_buffer_query_functions;
 
 /* Hook run before changing a major mode.  */
-Lisp_Object Qchange_major_mode_hook;
+static Lisp_Object Qchange_major_mode_hook;
 
 Lisp_Object Qfirst_change_hook;
 Lisp_Object Qbefore_change_functions;
 Lisp_Object Qafter_change_functions;
-Lisp_Object Qucs_set_table_for_input;
+static Lisp_Object Qucs_set_table_for_input;
 
-Lisp_Object Qfundamental_mode, Qmode_class, Qpermanent_local;
-Lisp_Object Qpermanent_local_hook;
+static Lisp_Object Qfundamental_mode, Qmode_class, Qpermanent_local;
+static Lisp_Object Qpermanent_local_hook;
 
-Lisp_Object Qprotected_field;
+static Lisp_Object Qprotected_field;
 
-Lisp_Object QSFundamental;	/* A string "Fundamental" */
+static Lisp_Object QSFundamental;	/* A string "Fundamental" */
 
-Lisp_Object Qkill_buffer_hook;
+static Lisp_Object Qkill_buffer_hook;
 
-Lisp_Object Qget_file_buffer;
+static Lisp_Object Qget_file_buffer;
 
-Lisp_Object Qoverlayp;
+static Lisp_Object Qoverlayp;
 
-Lisp_Object Qpriority, Qevaporate, Qbefore_string, Qafter_string;
+Lisp_Object Qpriority, Qbefore_string, Qafter_string;
+static Lisp_Object Qevaporate;
 
 Lisp_Object Qmodification_hooks;
 Lisp_Object Qinsert_in_front_hooks;

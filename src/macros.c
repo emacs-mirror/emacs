@@ -27,7 +27,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "window.h"
 #include "keyboard.h"
 
-Lisp_Object Qexecute_kbd_macro, Qkbd_macro_termination_hook;
+Lisp_Object Qexecute_kbd_macro;
+static Lisp_Object Qkbd_macro_termination_hook;
 
 /* Number of successful iterations so far
    for innermost keyboard macro.

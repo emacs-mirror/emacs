@@ -2291,22 +2291,22 @@ struct window;
 struct frame;
 
 /* Defined in data.c.  */
-extern Lisp_Object Qnil, Qt, Qquote, Qlambda, Qsubr, Qunbound;
+extern Lisp_Object Qnil, Qt, Qquote, Qlambda, Qunbound;
 extern Lisp_Object Qerror_conditions, Qerror_message, Qtop_level;
-extern Lisp_Object Qerror, Qquit, Qwrong_type_argument, Qargs_out_of_range;
+extern Lisp_Object Qerror, Qquit, Qargs_out_of_range;
 extern Lisp_Object Qvoid_variable, Qvoid_function;
-extern Lisp_Object Qsetting_constant, Qinvalid_read_syntax;
+extern Lisp_Object Qinvalid_read_syntax;
 extern Lisp_Object Qinvalid_function, Qwrong_number_of_arguments, Qno_catch;
 extern Lisp_Object Qend_of_file, Qarith_error, Qmark_inactive;
 extern Lisp_Object Qbeginning_of_buffer, Qend_of_buffer, Qbuffer_read_only;
 extern Lisp_Object Qtext_read_only;
 extern Lisp_Object Qinteractive_form;
 extern Lisp_Object Qcircular_list;
-extern Lisp_Object Qintegerp, Qnatnump, Qwholenump, Qsymbolp, Qlistp, Qconsp;
+extern Lisp_Object Qintegerp, Qwholenump, Qsymbolp, Qlistp, Qconsp;
 extern Lisp_Object Qstringp, Qarrayp, Qsequencep, Qbufferp;
 extern Lisp_Object Qchar_or_string_p, Qmarkerp, Qinteger_or_marker_p, Qvectorp;
 extern Lisp_Object Qbuffer_or_string_p;
-extern Lisp_Object Qboundp, Qfboundp;
+extern Lisp_Object Qfboundp;
 extern Lisp_Object Qchar_table_p, Qvector_or_char_table_p;
 
 extern Lisp_Object Qcdr;
@@ -2530,9 +2530,8 @@ extern void init_fringe_once (void);
 #endif /* HAVE_WINDOW_SYSTEM */
 
 /* Defined in image.c */
-extern Lisp_Object QCascent, QCmargin, QCrelief, Qcount, Qextension_data;
-extern Lisp_Object QCconversion, QCcolor_symbols, QCheuristic_mask;
-extern Lisp_Object QCindex, QCmatrix, QCcolor_adjustment, QCmask;
+extern Lisp_Object QCascent, QCmargin, QCrelief;
+extern Lisp_Object QCconversion;
 extern int x_bitmap_mask (struct frame *, int);
 extern void syms_of_image (void);
 extern void init_image (void);
@@ -2602,8 +2601,6 @@ extern void syms_of_display (void);
 /* Defined in xdisp.c */
 extern Lisp_Object Qinhibit_point_motion_hooks;
 extern Lisp_Object Qinhibit_redisplay, Qdisplay;
-extern Lisp_Object Qinhibit_eval_during_redisplay;
-extern Lisp_Object Qmessage_truncate_lines;
 extern Lisp_Object Qmenu_bar_update_hook;
 extern Lisp_Object Qwindow_scroll_functions;
 extern Lisp_Object Qoverriding_local_map, Qoverriding_terminal_local_map;
@@ -2821,6 +2818,7 @@ extern void syms_of_lread (void);
 /* Defined in eval.c.  */
 extern Lisp_Object Qautoload, Qexit, Qinteractive, Qcommandp, Qdefun, Qmacro;
 extern Lisp_Object Qinhibit_quit, Qclosure;
+extern Lisp_Object Qand_rest;
 extern Lisp_Object Vautoload_queue;
 extern Lisp_Object Vsignaling_function;
 extern int handling_signal;
@@ -2963,8 +2961,7 @@ EXFUN (Fkill_buffer, 1);
 EXFUN (Fkill_all_local_variables, 0);
 EXFUN (Fbuffer_enable_undo, 1);
 EXFUN (Ferase_buffer, 0);
-extern Lisp_Object Qoverlayp;
-extern Lisp_Object Qpriority, Qwindow, Qevaporate, Qbefore_string, Qafter_string;
+extern Lisp_Object Qpriority, Qwindow, Qbefore_string, Qafter_string;
 extern Lisp_Object get_truename_buffer (Lisp_Object);
 extern struct buffer *all_buffers;
 EXFUN (Fprevious_overlay_change, 1);
@@ -3111,16 +3108,14 @@ extern Lisp_Object echo_message_buffer;
 extern struct kboard *echo_kboard;
 extern void cancel_echoing (void);
 extern Lisp_Object Qdisabled, QCfilter;
-extern Lisp_Object Qabove_handle, Qhandle, Qbelow_handle;
-extern Lisp_Object Qup, Qdown, Qbottom, Qend_scroll;
-extern Lisp_Object Qtop, Qratio;
+extern Lisp_Object Qup, Qdown, Qbottom;
+extern Lisp_Object Qtop;
 extern int input_pending;
 EXFUN (Fdiscard_input, 0);
 EXFUN (Frecursive_edit, 0);
 EXFUN (Ftop_level, 0) NO_RETURN;
 extern Lisp_Object menu_bar_items (Lisp_Object);
 extern Lisp_Object tool_bar_items (Lisp_Object, int *);
-extern Lisp_Object Qvertical_scroll_bar;
 extern void discard_mouse_events (void);
 EXFUN (Fevent_convert_list, 1);
 EXFUN (Fread_key_sequence, 5);
@@ -3223,7 +3218,6 @@ EXFUN (Fget_buffer_process, 1);
 EXFUN (Fprocess_status, 1);
 EXFUN (Fkill_process, 2);
 EXFUN (Fwaiting_for_user_input_p, 0);
-extern Lisp_Object Qprocessp;
 extern void kill_buffer_processes (Lisp_Object);
 extern int wait_reading_process_output (int, int, int, int,
                                         Lisp_Object,
@@ -3411,9 +3405,9 @@ EXFUN (Fx_focus_frame, 1);
 #endif
 
 /* Defined in xfaces.c */
-extern Lisp_Object Qdefault, Qtool_bar, Qregion, Qfringe;
-extern Lisp_Object Qheader_line, Qscroll_bar, Qcursor, Qborder, Qmouse, Qmenu;
-extern Lisp_Object Qmode_line_inactive, Qvertical_border;
+extern Lisp_Object Qdefault, Qtool_bar, Qfringe;
+extern Lisp_Object Qheader_line, Qscroll_bar, Qcursor;
+extern Lisp_Object Qmode_line_inactive;
 extern Lisp_Object Qface;
 extern Lisp_Object Qnormal;
 extern Lisp_Object QCfamily, QCweight, QCslant;

@@ -95,7 +95,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define ST_COMMENT_STYLE (256 + 1)
 #define ST_STRING_STYLE (256 + 2)
 
-Lisp_Object Qsyntax_table_p, Qsyntax_table, Qscan_error;
+static Lisp_Object Qsyntax_table_p;
+static Lisp_Object Qsyntax_table, Qscan_error;
 
 /* Used as a temporary in SYNTAX_ENTRY and other macros in syntax.h,
    if not compiled with GCC.  No need to mark it, since it is used

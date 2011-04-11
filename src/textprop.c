@@ -47,16 +47,19 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 /* Types of hooks.  */
-Lisp_Object Qmouse_left;
-Lisp_Object Qmouse_entered;
+static Lisp_Object Qmouse_left;
+static Lisp_Object Qmouse_entered;
 Lisp_Object Qpoint_left;
 Lisp_Object Qpoint_entered;
 Lisp_Object Qcategory;
 Lisp_Object Qlocal_map;
 
 /* Visual properties text (including strings) may have.  */
-Lisp_Object Qforeground, Qbackground, Qfont, Qunderline, Qstipple;
-Lisp_Object Qinvisible, Qread_only, Qintangible, Qmouse_face;
+static Lisp_Object Qforeground, Qbackground, Qunderline;
+Lisp_Object Qfont;
+static Lisp_Object Qstipple;
+Lisp_Object Qinvisible, Qintangible, Qmouse_face;
+static Lisp_Object Qread_only;
 Lisp_Object Qminibuffer_prompt;
 
 /* Sticky properties */

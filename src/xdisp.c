@@ -318,29 +318,31 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 Lisp_Object Qoverriding_local_map, Qoverriding_terminal_local_map;
 Lisp_Object Qwindow_scroll_functions;
-Lisp_Object Qwindow_text_change_functions;
-Lisp_Object Qredisplay_end_trigger_functions;
+static Lisp_Object Qwindow_text_change_functions;
+static Lisp_Object Qredisplay_end_trigger_functions;
 Lisp_Object Qinhibit_point_motion_hooks;
-Lisp_Object QCeval, QCfile, QCdata, QCpropertize;
-Lisp_Object Qfontified;
-Lisp_Object Qgrow_only;
-Lisp_Object Qinhibit_eval_during_redisplay;
-Lisp_Object Qbuffer_position, Qposition, Qobject;
-Lisp_Object Qright_to_left, Qleft_to_right;
+static Lisp_Object QCeval, QCpropertize;
+Lisp_Object QCfile, QCdata;
+static Lisp_Object Qfontified;
+static Lisp_Object Qgrow_only;
+static Lisp_Object Qinhibit_eval_during_redisplay;
+static Lisp_Object Qbuffer_position, Qposition, Qobject;
+static Lisp_Object Qright_to_left, Qleft_to_right;
 
 /* Cursor shapes */
 Lisp_Object Qbar, Qhbar, Qbox, Qhollow;
 
 /* Pointer shapes */
-Lisp_Object Qarrow, Qhand, Qtext;
+static Lisp_Object Qarrow, Qhand;
+Lisp_Object Qtext;
 
 /* Holds the list (error).  */
 Lisp_Object list_of_error;
 
-Lisp_Object Qfontification_functions;
+static Lisp_Object Qfontification_functions;
 
-Lisp_Object Qwrap_prefix;
-Lisp_Object Qline_prefix;
+static Lisp_Object Qwrap_prefix;
+static Lisp_Object Qline_prefix;
 
 /* Non-nil means don't actually do any redisplay.  */
 
@@ -350,12 +352,14 @@ Lisp_Object Qinhibit_redisplay;
 
 Lisp_Object Qdisplay;
 
-Lisp_Object Qspace, QCalign_to, QCrelative_width, QCrelative_height;
-Lisp_Object Qleft_margin, Qright_margin, Qspace_width, Qraise;
-Lisp_Object Qslice;
+Lisp_Object Qspace, QCalign_to;
+static Lisp_Object QCrelative_width, QCrelative_height;
+Lisp_Object Qleft_margin, Qright_margin;
+static Lisp_Object Qspace_width, Qraise;
+static Lisp_Object Qslice;
 Lisp_Object Qcenter;
-Lisp_Object Qmargin, Qpointer;
-Lisp_Object Qline_height;
+static Lisp_Object Qmargin, Qpointer;
+static Lisp_Object Qline_height;
 
 #ifdef HAVE_WINDOW_SYSTEM
 
@@ -383,15 +387,15 @@ Lisp_Object Qline_height;
 
 /* Name of the face used to highlight trailing whitespace.  */
 
-Lisp_Object Qtrailing_whitespace;
+static Lisp_Object Qtrailing_whitespace;
 
 /* Name and number of the face used to highlight escape glyphs.  */
 
-Lisp_Object Qescape_glyph;
+static Lisp_Object Qescape_glyph;
 
 /* Name and number of the face used to highlight non-breaking spaces.  */
 
-Lisp_Object Qnobreak_space;
+static Lisp_Object Qnobreak_space;
 
 /* The symbol `image' which is the car of the lists used to represent
    images in Lisp.  Also a tool bar style.  */
@@ -399,8 +403,9 @@ Lisp_Object Qnobreak_space;
 Lisp_Object Qimage;
 
 /* The image map types.  */
-Lisp_Object QCmap, QCpointer;
-Lisp_Object Qrect, Qcircle, Qpoly;
+Lisp_Object QCmap;
+static Lisp_Object QCpointer;
+static Lisp_Object Qrect, Qcircle, Qpoly;
 
 /* Tool bar styles */
 Lisp_Object Qboth, Qboth_horiz, Qtext_image_horiz;
@@ -460,12 +465,12 @@ static struct buffer *this_line_buffer;
    Voverlay_arrow_position is a marker, last-arrow-position is its
    numerical position.  */
 
-Lisp_Object Qlast_arrow_position, Qlast_arrow_string;
+static Lisp_Object Qlast_arrow_position, Qlast_arrow_string;
 
 /* Alternative overlay-arrow-string and overlay-arrow-bitmap
    properties on a symbol in overlay-arrow-variable-list.  */
 
-Lisp_Object Qoverlay_arrow_string, Qoverlay_arrow_bitmap;
+static Lisp_Object Qoverlay_arrow_string, Qoverlay_arrow_bitmap;
 
 Lisp_Object Qmenu_bar_update_hook;
 
@@ -548,8 +553,8 @@ int message_buf_print;
 
 /* The symbol `inhibit-menubar-update' and its DEFVAR_BOOL variable.  */
 
-Lisp_Object Qinhibit_menubar_update;
-Lisp_Object Qmessage_truncate_lines;
+static Lisp_Object Qinhibit_menubar_update;
+static Lisp_Object Qmessage_truncate_lines;
 
 /* Set to 1 in clear_message to make redisplay_internal aware
    of an emptied echo area.  */
@@ -603,7 +608,7 @@ int trace_move;
 #define TRACE_MOVE(x)	(void) 0
 #endif
 
-Lisp_Object Qauto_hscroll_mode;
+static Lisp_Object Qauto_hscroll_mode;
 
 /* Buffer being redisplayed -- for redisplay_window_error.  */
 
@@ -708,7 +713,7 @@ static struct glyph_slice null_glyph_slice = { 0, 0, 0, 0 };
 
 int redisplaying_p;
 
-Lisp_Object Qinhibit_free_realized_faces;
+static Lisp_Object Qinhibit_free_realized_faces;
 
 /* If a string, XTread_socket generates an event to display that string.
    (The display is done in read_char.)  */
@@ -735,7 +740,7 @@ struct atimer *hourglass_atimer;
 Lisp_Object Qglyphless_char;
 
 /* Symbol for the purpose of Vglyphless_char_display.  */
-Lisp_Object Qglyphless_char_display;
+static Lisp_Object Qglyphless_char_display;
 
 /* Method symbols for Vglyphless_char_display.  */
 static Lisp_Object Qhex_code, Qempty_box, Qthin_space, Qzero_width;

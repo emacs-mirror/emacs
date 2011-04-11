@@ -100,7 +100,8 @@ int single_kboard;
 
 /* Non-nil disable property on a command means
    do not execute it; call disabled-command-function's value instead.  */
-Lisp_Object Qdisabled, Qdisabled_command_function;
+Lisp_Object Qdisabled;
+static Lisp_Object Qdisabled_command_function;
 
 #define NUM_RECENT_KEYS (300)
 int recent_keys_index;	/* Index for storing next element into recent_keys */
@@ -231,36 +232,37 @@ Lisp_Object internal_last_event_frame;
    X Windows wants this for selection ownership.  */
 unsigned long last_event_timestamp;
 
-Lisp_Object Qx_set_selection, QPRIMARY, Qhandle_switch_frame;
+static Lisp_Object Qx_set_selection, Qhandle_switch_frame;
+Lisp_Object QPRIMARY;
 
-Lisp_Object Qself_insert_command;
-Lisp_Object Qforward_char;
-Lisp_Object Qbackward_char;
-Lisp_Object Qundefined;
-Lisp_Object Qtimer_event_handler;
+static Lisp_Object Qself_insert_command;
+static Lisp_Object Qforward_char;
+static Lisp_Object Qbackward_char;
+static Lisp_Object Qundefined;
+static Lisp_Object Qtimer_event_handler;
 
 /* read_key_sequence stores here the command definition of the
    key sequence that it reads.  */
 Lisp_Object read_key_sequence_cmd;
 
-Lisp_Object Qinput_method_function;
+static Lisp_Object Qinput_method_function;
 
-Lisp_Object Qdeactivate_mark;
+static Lisp_Object Qdeactivate_mark;
 
 Lisp_Object Qrecompute_lucid_menubar, Qactivate_menubar_hook;
 
-Lisp_Object Qecho_area_clear_hook;
+static Lisp_Object Qecho_area_clear_hook;
 
 /* Hooks to run before and after each command.  */
-Lisp_Object Qpre_command_hook;
-Lisp_Object Qpost_command_hook;
+static Lisp_Object Qpre_command_hook;
+static Lisp_Object Qpost_command_hook;
 
-Lisp_Object Qdeferred_action_function;
+static Lisp_Object Qdeferred_action_function;
 
-Lisp_Object Qinput_method_exit_on_first_char;
-Lisp_Object Qinput_method_use_echo_area;
+static Lisp_Object Qinput_method_exit_on_first_char;
+static Lisp_Object Qinput_method_use_echo_area;
 
-Lisp_Object Qhelp_form_show;
+static Lisp_Object Qhelp_form_show;
 
 /* File in which we write all commands we read.  */
 FILE *dribble;
@@ -293,42 +295,49 @@ static struct input_event * volatile kbd_store_ptr;
    at inopportune times.  */
 
 /* Symbols to head events.  */
-Lisp_Object Qmouse_movement;
-Lisp_Object Qscroll_bar_movement;
+static Lisp_Object Qmouse_movement;
+static Lisp_Object Qscroll_bar_movement;
 Lisp_Object Qswitch_frame;
-Lisp_Object Qdelete_frame;
-Lisp_Object Qiconify_frame;
-Lisp_Object Qmake_frame_visible;
-Lisp_Object Qselect_window;
+static Lisp_Object Qdelete_frame;
+static Lisp_Object Qiconify_frame;
+static Lisp_Object Qmake_frame_visible;
+static Lisp_Object Qselect_window;
 Lisp_Object Qhelp_echo;
 
 #if defined (HAVE_MOUSE) || defined (HAVE_GPM)
-Lisp_Object Qmouse_fixup_help_message;
+static Lisp_Object Qmouse_fixup_help_message;
 #endif
 
 /* Symbols to denote kinds of events.  */
-Lisp_Object Qfunction_key;
+static Lisp_Object Qfunction_key;
 Lisp_Object Qmouse_click;
 #if defined (WINDOWSNT)
 Lisp_Object Qlanguage_change;
 #endif
-Lisp_Object Qdrag_n_drop;
-Lisp_Object Qsave_session;
+static Lisp_Object Qdrag_n_drop;
+static Lisp_Object Qsave_session;
 #ifdef HAVE_DBUS
-Lisp_Object Qdbus_event;
+static Lisp_Object Qdbus_event;
 #endif
-Lisp_Object Qconfig_changed_event;
+static Lisp_Object Qconfig_changed_event;
 
 /* Lisp_Object Qmouse_movement; - also an event header */
 
 /* Properties of event headers.  */
 Lisp_Object Qevent_kind;
-Lisp_Object Qevent_symbol_elements;
+static Lisp_Object Qevent_symbol_elements;
 
 /* menu and tool bar item parts */
-Lisp_Object Qmenu_enable;
-Lisp_Object QCenable, QCvisible, QChelp, QCfilter, QCkeys, QCkey_sequence;
-Lisp_Object QCbutton, QCtoggle, QCradio, QClabel, QCvert_only;
+static Lisp_Object Qmenu_enable;
+static Lisp_Object QCenable, QCvisible, QChelp, QCkeys, QCkey_sequence;
+Lisp_Object QCfilter;
+
+/* Non-nil disable property on a command means
+   do not execute it; call disabled-command-function's value instead.  */
+Lisp_Object QCtoggle, QCradio;
+static Lisp_Object QCbutton, QClabel;
+
+static Lisp_Object QCvert_only;
 
 /* An event header symbol HEAD may have a property named
    Qevent_symbol_element_mask, which is of the form (BASE MODIFIERS);
@@ -341,22 +350,22 @@ Lisp_Object Qevent_symbol_element_mask;
    Qmodifier_cache, which is an alist mapping modifier masks onto
    modified versions of BASE.  If present, this helps speed up
    apply_modifiers.  */
-Lisp_Object Qmodifier_cache;
+static Lisp_Object Qmodifier_cache;
 
 /* Symbols to use for parts of windows.  */
 Lisp_Object Qmode_line;
 Lisp_Object Qvertical_line;
-Lisp_Object Qvertical_scroll_bar;
+static Lisp_Object Qvertical_scroll_bar;
 Lisp_Object Qmenu_bar;
 
 Lisp_Object recursive_edit_unwind (Lisp_Object buffer), command_loop (void);
-Lisp_Object Qextended_command_history;
+static Lisp_Object Qextended_command_history;
 EMACS_TIME timer_check (void);
 
 static void record_menu_key (Lisp_Object c);
 static int echo_length (void);
 
-Lisp_Object Qpolling_period;
+static Lisp_Object Qpolling_period;
 
 /* Incremented whenever a timer is run.  */
 int timers_run;
@@ -5032,9 +5041,11 @@ static const char *const lispy_drag_n_drop_names[] =
 };
 
 /* Scroll bar parts.  */
-Lisp_Object Qabove_handle, Qhandle, Qbelow_handle;
-Lisp_Object Qup, Qdown, Qbottom, Qend_scroll;
-Lisp_Object Qtop, Qratio;
+static Lisp_Object Qabove_handle, Qhandle, Qbelow_handle;
+Lisp_Object Qup, Qdown, Qbottom;
+static Lisp_Object Qend_scroll;
+Lisp_Object Qtop;
+static Lisp_Object Qratio;
 
 /* An array of scroll bar parts, indexed by an enum scroll_bar_part value.  */
 static Lisp_Object *const scroll_bar_parts[] = {
@@ -7889,8 +7900,8 @@ static int ntool_bar_items;
 
 /* The symbols `:image' and `:rtl'.  */
 
-Lisp_Object QCimage;
-Lisp_Object Qrtl;
+static Lisp_Object QCimage;
+static Lisp_Object Qrtl;
 
 /* Function prototypes.  */
 

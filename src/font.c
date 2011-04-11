@@ -48,7 +48,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "nsterm.h"
 #endif /* HAVE_NS */
 
-Lisp_Object Qopentype;
+static Lisp_Object Qopentype;
 
 /* Important character set strings.  */
 Lisp_Object Qascii_0, Qiso8859_1, Qiso10646_1, Qunicode_bmp, Qunicode_sip;
@@ -125,14 +125,16 @@ Lisp_Object QCfoundry;
 static Lisp_Object QCadstyle, QCregistry;
 /* Symbols representing keys of font extra info.  */
 Lisp_Object QCspacing, QCdpi, QCscalable, QCotf, QClang, QCscript, QCavgwidth;
-Lisp_Object QCantialias, QCfont_entity, QCfc_unknown_spec;
+Lisp_Object QCantialias, QCfont_entity;
+static Lisp_Object QCfc_unknown_spec;
 /* Symbols representing values of font spacing property.  */
-Lisp_Object Qc, Qm, Qp, Qd;
+static Lisp_Object Qc, Qm, Qd;
+Lisp_Object Qp;
 /* Special ADSTYLE properties to avoid fonts used for Latin
    characters; used in xfont.c and ftfont.c.  */
 Lisp_Object Qja, Qko;
 
-Lisp_Object QCuser_spec;
+static Lisp_Object QCuser_spec;
 
 /* Alist of font registry symbol and the corresponding charsets
    information.  The information is retrieved from

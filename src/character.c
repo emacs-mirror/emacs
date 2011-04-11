@@ -50,7 +50,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 Lisp_Object Qcharacterp;
 
-Lisp_Object Qauto_fill_chars;
+static Lisp_Object Qauto_fill_chars;
 
 /* Char-table of information about which character to unify to which
    Unicode character.  Mainly used by the macro MAYBE_UNIFY_CHAR.  */
