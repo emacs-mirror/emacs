@@ -1,5 +1,7 @@
 2011-04-11  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lisp.h (DEFINE_FUNC): Make sname 'static'.
+
 	Make Emacs functions such as Fatom 'static' by default.
 	This makes it easier for human readers (and static analyzers)
 	to see whether these functions can be called from other modules.
@@ -16,6 +18,7 @@
 	Remove decls, since these functions are now static.
 	(Funintern, Fget_internal_run_time): New decls, since these functions
 	were already external.
+
 	* alloc.c, buffer.c, callint.c, callproc.c, casefiddle.c, casetab.c:
 	* ccl.c, character.c, chartab.c, cmds.c, coding.c, data.c, dispnew.c:
 	* doc.c, editfns.c, emacs.c, eval.c, fileio.c, filelock.c, floatfns.c:
