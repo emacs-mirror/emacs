@@ -1,5 +1,10 @@
 2011-04-12  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* ftxfont.c: Make symbols static if they're not exported.
+	(ftxfont_driver): Export only if !defined HAVE_XFT && def8ined
+	HAVE_FREETYPE.
+	* font.h (ftxfont_driver): Likewise.
+
 	* xfns.c: Make symbols static if they're not exported.
 	(x_last_font_name, x_display_info_for_name):
 	(x_set_foreground_color, x_set_background_color, x_set_mouse_color):

@@ -821,13 +821,14 @@ extern void syms_of_ftfont (void);
 #endif	/* HAVE_FREETYPE */
 #ifdef HAVE_X_WINDOWS
 extern struct font_driver xfont_driver;
-extern struct font_driver ftxfont_driver;
 extern void syms_of_xfont (void);
 extern void syms_of_ftxfont (void);
 #ifdef HAVE_XFT
 extern struct font_driver xftfont_driver;
 extern void syms_of_xftfont (void);
-#endif	/* HAVE_XFT */
+#elif defined HAVE_FREETYPE
+extern struct font_driver ftxfont_driver;
+#endif
 #ifdef HAVE_BDFFONT
 extern void syms_of_bdffont (void);
 #endif	/* HAVE_BDFFONT */
