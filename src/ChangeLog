@@ -1,5 +1,13 @@
 2011-04-12  Andreas Schwab  <schwab@linux-m68k.org>
 
+	* charset.c (Fclear_charset_maps): Use xfree instead of free.
+	(Bug#8437)
+	* keyboard.c (parse_tool_bar_item): Likewise.
+	* sound.c (sound_cleanup, alsa_close): Likewise.
+	* termcap.c (tgetent): Likewise.
+	* xfns.c (x_default_font_parameter): Likewise.
+	* xsettings.c (read_and_apply_settings): Likewise.
+
 	* alloc.c (overrun_check_malloc, overrun_check_realloc)
 	(overrun_check_free): Protoize.
 

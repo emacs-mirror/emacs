@@ -460,8 +460,8 @@ sound_cleanup (Lisp_Object arg)
     current_sound_device->close (current_sound_device);
   if (current_sound->fd > 0)
     emacs_close (current_sound->fd);
-  free (current_sound_device);
-  free (current_sound);
+  xfree (current_sound_device);
+  xfree (current_sound);
 
   return Qnil;
 }
@@ -1095,7 +1095,7 @@ alsa_close (struct sound_device *sd)
           snd_pcm_drain (p->handle);
           snd_pcm_close (p->handle);
         }
-      free (p);
+      xfree (p);
     }
 }
 

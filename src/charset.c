@@ -2145,7 +2145,7 @@ It should be called only from temacs invoked for dumping.  */)
 {
   if (temp_charset_work)
     {
-      free (temp_charset_work);
+      xfree (temp_charset_work);
       temp_charset_work = NULL;
     }
 
