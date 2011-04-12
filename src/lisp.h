@@ -2320,7 +2320,6 @@ extern Lisp_Object Qinteger;
 
 extern Lisp_Object Qfont_spec, Qfont_entity, Qfont_object;
 
-extern void circular_list_error (Lisp_Object) NO_RETURN;
 EXFUN (Finteractive_form, 1);
 EXFUN (Fbyteorder, 0);
 
@@ -3520,16 +3519,6 @@ extern void init_system_name (void);
    : (CONSP (obj)					\
       ? 0						\
       : (wrong_type_argument (Qlistp, (list))), 1))
-
-#define FOREACH(hare, list, tortoise, n)		\
-  for (tortoise = hare = (list), n = 0;			\
-       !LIST_END_P (list, hare);			\
-       (hare = XCDR (hare), ++n,			\
-	((n & 1) != 0					\
-	 ? (tortoise = XCDR (tortoise),			\
-	    (EQ (hare, tortoise)			\
-	     && (circular_list_error ((list)), 1)))	\
-	 : 0)))
 
 /* Use this to suppress gcc's `...may be used before initialized' warnings. */
 #ifdef lint

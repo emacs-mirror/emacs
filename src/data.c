@@ -101,13 +101,6 @@ Lisp_Object Qinteractive_form;
 static void swap_in_symval_forwarding (struct Lisp_Symbol *, struct Lisp_Buffer_Local_Value *);
 
 
-void
-circular_list_error (Lisp_Object list)
-{
-  xsignal (Qcircular_list, list);
-}
-
-
 Lisp_Object
 wrong_type_argument (register Lisp_Object predicate, register Lisp_Object value)
 {

@@ -1,3 +1,8 @@
+2011-04-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lisp.h (circular_list_error, FOREACH): Remove; unused.
+	* data.c (circular_list_error): Remove.
+
 2011-04-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* commands.h (last_point_position, last_point_position_buffer):
