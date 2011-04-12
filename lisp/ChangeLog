@@ -1,3 +1,11 @@
+2011-04-12  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (adjust-window-trailing-edge): If WINDOW is a
+	window-splits nil window, try to adjust it the Emacs 23 way.
+	(switch-to-prev-buffer, switch-to-next-buffer): If we have to
+	show a buffer from the frame's buffer list try to postpone
+	showing visible buffers.  Reported by Juanma Barranquero.
+
 2011-04-09  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (resize-window): With window-splits nil resize

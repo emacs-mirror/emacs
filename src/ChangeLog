@@ -1,3 +1,8 @@
+2011-04-12  Martin Rudalics  <rudalics@gmx.at>
+
+	* buffer.c (Fkill_buffer): Don't inhibit quit around calls to
+	replace_buffer_in_windows and frames_discard_buffer.
+
 2011-04-09  Martin Rudalics  <rudalics@gmx.at>
 
 	* lisp.h: Extern other_buffer_safely.

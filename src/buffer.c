@@ -1507,13 +1507,19 @@ with SIGHUP.  */)
   if (NILP (BVAR (b, name)))
     return Qnil;
 
+  /* These may run Lisp code and into infinite loops (if someone
+     insisted on circular lists) so allow quitting here.  */
+  replace_buffer_in_windows (buffer);
+  frames_discard_buffer (buffer);
+
   clear_charpos_cache (b);
 
   tem = Vinhibit_quit;
   Vinhibit_quit = Qt;
-  replace_buffer_in_windows (buffer);
+  /* Remove the buffer from the list of all buffers.  */
   Vbuffer_alist = Fdelq (Frassq (buffer, Vbuffer_alist), Vbuffer_alist);
-  frames_discard_buffer (buffer);
+  /* If replace_buffer_in_windows didn't do its job correctly fix that
+     now.  */
   replace_buffer_in_windows_safely (buffer);
   Vinhibit_quit = tem;
 

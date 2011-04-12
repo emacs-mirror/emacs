@@ -2107,6 +2107,13 @@ possible in the desired direction."
       (unless (zerop delta)
 	;; Start resizing.
 	(resize-window-reset frame horizontal)
+	(if (and (not (window-splits left))
+		 (window-sizable-p left delta horizontal)
+		 (window-sizable-p right (- delta) horizontal))
+	    ;; For the window-splits nil case proceed conventionally.
+	    (progn
+	      (resize-this-window left delta horizontal nil t)
+	      (resize-this-window right (- delta) horizontal nil t))
 	;; Try to enlarge LEFT first.
 	(setq this-delta (window-resizable left delta horizontal))
 	(unless (zerop this-delta)
@@ -2118,7 +2125,7 @@ possible in the desired direction."
 	  (resize-other-windows
 	   left (- this-delta delta) horizontal nil 'left))
 	;; Shrink windows on right of LEFT.
-	(resize-other-windows left delta horizontal nil 'right)))
+	(resize-other-windows left delta horizontal nil 'right))))
      ((< delta 0)
       (setq max-delta (window-max-delta-1 right 0 horizontal nil 'left))
       (setq min-delta (window-min-delta-1 left delta horizontal nil 'right))
@@ -2128,6 +2135,13 @@ possible in the desired direction."
       (unless (zerop delta)
 	;; Start resizing.
 	(resize-window-reset frame horizontal)
+	(if (and (not (window-splits right))
+		 (window-sizable-p left delta horizontal)
+		 (window-sizable-p right (- delta) horizontal))
+	    ;; For the window-splits nil case proceed conventionally.
+	    (progn
+	      (resize-this-window left delta horizontal nil t)
+	      (resize-this-window right (- delta) horizontal nil t))
 	;; Try to enlarge RIGHT.
 	(setq this-delta (window-resizable right (- delta) horizontal))
 	(unless (zerop this-delta)
@@ -2139,7 +2153,7 @@ possible in the desired direction."
 	  (resize-other-windows
 	   right (- this-delta delta) horizontal nil 'right))
 	;; Shrink windows on left of RIGHT.
-	(resize-other-windows right (- delta) horizontal nil 'left))))
+	(resize-other-windows right (- delta) horizontal nil 'left)))))
     (unless (zerop delta)
       ;; Don't report an error in the standard case.
       (unless (resize-window-apply frame horizontal)
@@ -2629,7 +2643,7 @@ shall not be switched to in future invocations of this command."
 	 (old-buffer (window-buffer window))
 	 ;; Save this since it's destroyed by `set-window-buffer'.
 	 (next-buffers (window-next-buffers window))
-	 entry new-buffer killed-buffers deletable)
+	 entry new-buffer killed-buffers deletable visible)
     (cond
      ;; When BURY-OR-KILL is non-nil, there's no previous buffer for
      ;; this window, and we can delete the window (or the frame) do
@@ -2673,9 +2687,12 @@ shall not be switched to in future invocations of this command."
 		     (not (eq buffer old-buffer))
 		     (not (eq (aref (buffer-name buffer) 0) ?\s))
 		     (or bury-or-kill (not (memq buffer next-buffers))))
+	    (if (get-buffer-window buffer)
+		;; Try to avoid showing a buffer visible in some other window.
+		(setq visible buffer)
 	    (setq new-buffer buffer)
 	    (set-window-buffer-start-and-point window new-buffer)
-	    (throw 'found t)))
+	    (throw 'found t))))
 	(unless bury-or-kill
 	  ;; Scan reverted next buffers last (must not use nreverse
 	  ;; here!).
@@ -2690,7 +2707,12 @@ shall not be switched to in future invocations of this command."
 	      (setq new-buffer buffer)
 	      (set-window-buffer-start-and-point
 	       window new-buffer (nth 1 entry) (nth 2 entry))
-	      (throw 'found t)))))
+	      (throw 'found t))))
+
+	;; Show a buffer visible in another window.
+	(when visible
+	  (setq new-buffer visible)
+	  (set-window-buffer-start-and-point window new-buffer)))
 
       (if bury-or-kill
 	  ;; Remove `old-buffer' from WINDOW's previous and (restored list
@@ -2722,7 +2744,7 @@ WINDOW must be a live window and defaults to the selected one."
   (let* ((window (normalize-live-window window))
 	 (old-buffer (window-buffer window))
 	 (next-buffers (window-next-buffers window))
-	 new-buffer entry killed-buffers)
+	 new-buffer entry killed-buffers visible)
     (when (window-dedicated-p window)
       (error "Window %s is dedicated to buffer %s" window old-buffer))
 
@@ -2744,9 +2766,12 @@ WINDOW must be a live window and defaults to the selected one."
 	(when (and (buffer-live-p buffer) (not (eq buffer old-buffer))
 		   (not (eq (aref (buffer-name buffer) 0) ?\s))
 		   (not (assq buffer (window-prev-buffers window))))
-	  (setq new-buffer buffer)
-	  (set-window-buffer-start-and-point window new-buffer)
-	  (throw 'found t)))
+	  (if (get-buffer-window buffer)
+	      ;; Try to avoid showing a buffer visible in some other window.
+	      (setq visible buffer)
+	    (setq new-buffer buffer)
+	    (set-window-buffer-start-and-point window new-buffer)
+	    (throw 'found t))))
       ;; Scan WINDOW's reverted previous buffers last (must not use
       ;; nreverse here!)
       (dolist (entry (reverse (window-prev-buffers window)))
@@ -2757,7 +2782,12 @@ WINDOW must be a live window and defaults to the selected one."
 		   (not (eq new-buffer old-buffer)))
 	  (set-window-buffer-start-and-point
 	   window new-buffer (nth 1 entry) (nth 2 entry))
-	  (throw 'found t))))
+	  (throw 'found t)))
+
+      ;; Show a buffer visible in another window.
+      (when visible
+	(setq new-buffer visible)
+	(set-window-buffer-start-and-point window new-buffer)))
 
     ;; Remove `new-buffer' from and restore WINDOW's next buffers.
     (set-window-next-buffers window (delq new-buffer next-buffers))
