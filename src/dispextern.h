@@ -3229,11 +3229,9 @@ extern Lisp_Object marginal_area_string (struct window *, enum window_part,
                                          Lisp_Object *,
                                          int *, int *, int *, int *);
 extern void redraw_frame (struct frame *);
-extern void redraw_garbaged_frames (void);
 extern void cancel_line (int, struct frame *);
 extern void init_desired_glyphs (struct frame *);
 extern int update_frame (struct frame *, int, int);
-extern int scrolling (struct frame *);
 extern void bitch_at_user (void);
 void adjust_glyphs (struct frame *);
 void free_glyphs (struct frame *);
@@ -3249,7 +3247,6 @@ void rotate_matrix (struct glyph_matrix *, int, int, int);
 void increment_matrix_positions (struct glyph_matrix *,
                                  int, int, EMACS_INT, EMACS_INT);
 void blank_row (struct window *, struct glyph_row *, int);
-void increment_row_positions (struct glyph_row *, EMACS_INT, EMACS_INT);
 void enable_glyph_matrix_rows (struct glyph_matrix *, int, int, int);
 void clear_glyph_row (struct glyph_row *);
 void prepare_desired_row (struct glyph_row *);

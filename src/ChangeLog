@@ -1,5 +1,13 @@
 2011-04-12  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* dispnew.c: Make symbols static if they're not exported.
+	* dispextern.h (redraw_garbaged_frames, scrolling):
+	(increment_row_positions): Remove.
+	* dispnew.c (new_glyph_matrix, increment_row_positions, scrolling):
+	(delayed_size_change, glyph_matrix_count, glyph_pool_count):
+	Now static.
+	(redraw_garbaged_frames): Remove; unused.
+
 	* xfaces.c: Make symbols static if they're not exported.
 	* dispextern.h (ascii_face_of_lisp_face, free_realized_face):
 	Remove decls.
