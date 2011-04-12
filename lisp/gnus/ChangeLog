@@ -1,3 +1,8 @@
+2011-04-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mm-url.el (mm-url-package-name): Removed to ease third-party reuse.
+	(mm-url-insert-file-contents): Don't set the package names.
+
 2011-04-11  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus-registry.el (gnus-registry-action): Remove properties and
