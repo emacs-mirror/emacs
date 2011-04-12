@@ -1149,12 +1149,6 @@ extern int updated_area;
 
 extern int display_completed;
 
-/* A temporary storage area, including a row of glyphs.  Initialized
-   in xdisp.c.  Used for various purposes, as an example see
-   get_overlay_arrow_glyph_row.  */
-
-extern struct glyph_row scratch_glyph_row;
-
 
 
 /************************************************************************
@@ -2965,24 +2959,17 @@ int window_box_left (struct window *, int);
 int window_box_left_offset (struct window *, int);
 int window_box_right (struct window *, int);
 int window_box_right_offset (struct window *, int);
-void window_box_edges (struct window *, int, int *, int *, int *, int *);
 int estimate_mode_line_height (struct frame *, enum face_id);
 void pixel_to_glyph_coords (struct frame *, int, int, int *, int *,
                             NativeRectangle *, int);
-int glyph_to_pixel_coords (struct window *, int, int, int *, int *);
 void remember_mouse_glyph (struct frame *, int, int, NativeRectangle *);
 
 void mark_window_display_accurate (Lisp_Object, int);
 void redisplay_preserve_echo_area (int);
-int set_cursor_from_row (struct window *, struct glyph_row *,
-                         struct glyph_matrix *, EMACS_INT, EMACS_INT,
-			 int, int);
 void init_iterator (struct it *, struct window *, EMACS_INT,
                     EMACS_INT, struct glyph_row *, enum face_id);
 void init_iterator_to_row_start (struct it *, struct window *,
                                  struct glyph_row *);
-int get_next_display_element (struct it *);
-void set_iterator_to_next (struct it *, int);
 void start_display (struct it *, struct window *, struct text_pos);
 void move_it_to (struct it *, EMACS_INT, int, int, int, int);
 void move_it_vertically (struct it *, int);
@@ -2994,7 +2981,6 @@ void move_it_in_display_line (struct it *it,
 			      enum move_operation_enum op);
 int in_display_vector_p (struct it *);
 int frame_mode_line_height (struct frame *);
-void highlight_trailing_whitespace (struct frame *, struct glyph_row *);
 extern Lisp_Object Qtool_bar;
 extern int redisplaying_p;
 extern int help_echo_showing_p;
@@ -3057,12 +3043,10 @@ extern int x_intersect_rectangles (XRectangle *, XRectangle *,
                                    XRectangle *);
 #endif	/* HAVE_WINDOW_SYSTEM */
 
-extern void frame_to_window_pixel_xy (struct window *, int *, int *);
 extern void note_mouse_highlight (struct frame *, int, int);
 extern void x_clear_window_mouse_face (struct window *);
 extern void cancel_mouse_face (struct frame *);
 extern int clear_mouse_face (Mouse_HLInfo *);
-extern void show_mouse_face (Mouse_HLInfo *, enum draw_glyphs_face);
 extern int cursor_in_mouse_face_p (struct window *w);
 extern void draw_row_with_mouse_face (struct window *, int, struct glyph_row *,
 				      int, int, enum draw_glyphs_face);

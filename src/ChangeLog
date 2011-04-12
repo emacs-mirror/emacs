@@ -1,5 +1,23 @@
 2011-04-12  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xdisp.c: Make symbols static if they're not exported.
+	* dispextern.h (scratch_glyph_row, window_box_edges):
+	(glyph_to_pixel_coords, set_cursor_from_row):
+	(get_next_display_element, set_iterator_to_next):
+	(highlight_trailing_whitespace, frame_to_window_pixel_xy):
+	(show_mouse_face): Remove decls
+	* frame.h (message_buf_print): Likewise.
+	* lisp.h (pop_message, set_message, check_point_in_composition):
+	Likewise.
+	* xterm.h (set_vertical_scroll_bar): Likewise.
+	* xdisp.c (list_of_error, Vmessage_stack, line_number_displayed):
+	(message_buf_print, scratch_glyph_row, displayed_buffer):
+	(set_iterator_to_next, pop_message, set_message, set_cursor_from_row):
+	(get_next_display_element, show_mouse_face, window_box_edges):
+	(frame_to_window_pixel_xy, check_point_in_composition):
+	(set_vertical_scroll_bar, highlight_trailing_whitespace): Now static.
+	(glyph_to_pixel_coords): Remove; unused.
+
 	* dired.c (file_name_completion): Now static.
 
 	* dbusbind.c (xd_in_read_queued_messages): Now static.

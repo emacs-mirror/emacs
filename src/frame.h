@@ -31,11 +31,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Nonzero means there is at least one garbaged frame. */
 extern int frame_garbaged;
 
-/* Nonzero means FRAME_MESSAGE_BUF (selected_frame) is being used by
-   print.  */
-
-extern int message_buf_print;
-
 
 /* The structure representing a frame.  */
 

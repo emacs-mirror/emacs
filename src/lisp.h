@@ -2621,10 +2621,8 @@ extern void setup_echo_area_for_printing (int);
 extern int push_message (void);
 extern Lisp_Object pop_message_unwind (Lisp_Object);
 extern Lisp_Object restore_message_unwind (Lisp_Object);
-extern void pop_message (void);
 extern void restore_message (void);
 extern Lisp_Object current_message (void);
-extern void set_message (const char *s, Lisp_Object, EMACS_INT, int);
 extern void clear_message (int, int);
 extern void message (const char *, ...) ATTRIBUTE_FORMAT_PRINTF (1, 2);
 extern void message1 (const char *);
@@ -2639,8 +2637,6 @@ extern void message_log_maybe_newline (void);
 extern void update_echo_area (void);
 extern void truncate_echo_area (EMACS_INT);
 extern void redisplay (void);
-extern int check_point_in_composition
-        (struct buffer *, EMACS_INT, struct buffer *, EMACS_INT);
 extern void redisplay_preserve_echo_area (int);
 extern void prepare_menu_bars (void);
 
