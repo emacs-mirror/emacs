@@ -24,8 +24,8 @@
 
 2011-04-10  Leo Liu  <sdl.web@gmail.com>
 
-	* emacs-lisp/tabulated-list.el (tabulated-list-print-entry): Fix
-	typo.
+	* emacs-lisp/tabulated-list.el (tabulated-list-print-entry):
+	Fix typo.
 
 2011-04-09  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -38,14 +38,14 @@
 	(image-transform-fit-to-width): Handle image-toggle-display-image
 	and image-transform-resize directly.
 
-2011-04-08  Sho Nakatani <lay.sakura@gmail.com>
+2011-04-08  Sho Nakatani  <lay.sakura@gmail.com>
 
 	* doc-view.el (doc-view-fit-width-to-window)
-	(doc-view-fit-height-to-window, doc-view-fit-page-to-window): New
-	functions for fitting the shown image to the Emacs window size.
+	(doc-view-fit-height-to-window, doc-view-fit-page-to-window):
+	New functions for fitting the shown image to the Emacs window size.
 	(doc-view-mode-map): Add bindings for the new functions.
 
-2011-03-24  Juanma Barranquero  <lekktu@gmail.com>
+2011-04-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* vc-annotate.el (vc-annotate-show-log-revision-at-line):
 	Fix typo in docstring.
@@ -125,12 +125,12 @@
 	(package-menu-refresh, list-packages): Use it.
 	(package-menu--print-info): Renamed from package-print-package.
 	Return insertion data instead of inserting it directly.
-	(package-menu-describe-package, package-menu-execute): Use
-	tabulated-list-get-id.
+	(package-menu-describe-package, package-menu-execute):
+	Use tabulated-list-get-id.
 	(package-menu-mark-delete, package-menu-mark-install)
 	(package-menu-mark-unmark, package-menu-backup-unmark)
-	(package-menu-mark-obsolete-for-deletion): Use
-	tabulated-list-put-tag.
+	(package-menu-mark-obsolete-for-deletion):
+	Use tabulated-list-put-tag.
 	(package--list-packages, package-menu-revert)
 	(package-menu-get-package, package-menu-get-version)
 	(package-menu-sort-by-column): Functions deleted.
@@ -247,11 +247,11 @@
 
 2011-04-02  Chong Yidong  <cyd@stupidchicken.com>
 
-	* emacs-lisp/package.el (package--with-work-buffer): Recognize
-	https URLs.
+	* emacs-lisp/package.el (package--with-work-buffer):
+	Recognize https URLs.
 
-	* net/network-stream.el: Move from gnus/proto-stream.el.  Change
-	prefix to network-stream throughout.
+	* net/network-stream.el: Move from gnus/proto-stream.el.
+	Change prefix to network-stream throughout.
 	(open-protocol-stream): Merge into open-network-stream, leaving
 	open-protocol-stream as an alias.  Handle nil BUFFER args.
 
@@ -929,10 +929,10 @@
 
 2011-03-11  Ken Manheimer  <ken.manheimer@gmail.com>
 
-	* allout-widgets.el (allout-widgets-tally): Initialize
-	allout-widgets-tally as a hash table rather than nil to prevent
-	mode-line redisplay warnings.
-	Also, clarify the module description and fix a comment typo.
+	* allout-widgets.el (allout-widgets-tally):
+	Initialize allout-widgets-tally as a hash table rather than nil to
+	prevent mode-line redisplay warnings.  Also, clarify the module
+	description and fix a comment typo.
 
 2011-03-11  Juanma Barranquero  <lekktu@gmail.com>
 
