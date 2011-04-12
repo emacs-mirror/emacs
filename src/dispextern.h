@@ -3131,7 +3131,6 @@ unsigned long load_color (struct frame *, struct face *, Lisp_Object,
 void unload_color (struct frame *, unsigned long);
 char *choose_face_font (struct frame *, Lisp_Object *, Lisp_Object,
                         int *);
-int ascii_face_of_lisp_face (struct frame *, int);
 void prepare_face_for_display (struct frame *, struct face *);
 int xstrcasecmp (const char *, const char *);
 int lookup_named_face (struct frame *, Lisp_Object, int);
@@ -3157,7 +3156,6 @@ int face_at_string_position (struct window *w, Lisp_Object string,
 int merge_faces (struct frame *, Lisp_Object, int, int);
 int compute_char_face (struct frame *, int, Lisp_Object);
 void free_all_realized_faces (Lisp_Object);
-void free_realized_face (struct frame *, struct face *);
 extern Lisp_Object Qforeground_color, Qbackground_color;
 extern Lisp_Object Qframe_set_background_mode;
 extern char unspecified_fg[], unspecified_bg[];

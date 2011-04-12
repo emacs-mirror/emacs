@@ -425,7 +425,7 @@ int face_change_count;
    display.   This is a kluge to suppress `bold black' foreground text
    which is hard to read on an LCD monitor.  */
 
-int tty_suppress_bold_inverse_default_colors_p;
+static int tty_suppress_bold_inverse_default_colors_p;
 
 /* A list of the form `((x . y))' used to avoid consing in
    Finternal_set_lisp_face_attribute.  */
@@ -443,7 +443,7 @@ static int ngcs;
 /* Non-zero means the definition of the `menu' face for new frames has
    been changed.  */
 
-int menu_face_changed_default;
+static int menu_face_changed_default;
 
 
 /* Function prototypes.  */
@@ -613,6 +613,8 @@ x_free_colors (struct frame *f, long unsigned int *pixels, int npixels)
 }
 
 
+#ifdef USE_X_TOOLKIT
+
 /* Free colors used on frame F.  PIXELS is an array of NPIXELS pixel
    color values.  Interrupt input must be blocked when this function
    is called.  */
@@ -633,7 +635,7 @@ x_free_dpy_colors (Display *dpy, Screen *screen, Colormap cmap, long unsigned in
       XFreeColors (dpy, cmap, pixels, npixels, 0);
     }
 }
-
+#endif /* USE_X_TOOLKIT */
 
 /* Create and return a GC for use on frame F.  GC values and mask
    are given by XGCV and MASK.  */
@@ -1145,7 +1147,7 @@ tty_defined_color (struct frame *f, const char *color_name,
 
    This does the right thing for any type of frame.  */
 
-int
+static int
 defined_color (struct frame *f, const char *color_name, XColor *color_def, int alloc)
 {
   if (!FRAME_WINDOW_P (f))
@@ -4091,7 +4093,7 @@ make_realized_face (Lisp_Object *attr)
 /* Free realized face FACE, including its X resources.  FACE may
    be null.  */
 
-void
+static void
 free_realized_face (struct frame *f, struct face *face)
 {
   if (face)
@@ -4606,26 +4608,6 @@ lookup_basic_face (struct frame *f, int face_id)
     return face_id;		/* Give up. */
 
   return remapped_face_id;
-}
-
-
-/* Return the ID of the realized ASCII face of Lisp face with ID
-   LFACE_ID on frame F.  Value is -1 if LFACE_ID isn't valid.  */
-
-int
-ascii_face_of_lisp_face (struct frame *f, int lface_id)
-{
-  int face_id;
-
-  if (lface_id >= 0 && lface_id < lface_id_to_name_size)
-    {
-      Lisp_Object face_name = lface_id_to_name[lface_id];
-      face_id = lookup_named_face (f, face_name, 1);
-    }
-  else
-    face_id = -1;
-
-  return face_id;
 }
 
 

@@ -1041,7 +1041,6 @@ extern int xg_set_icon_from_xpm_data (struct frame *, const char**);
 #endif /* USE_GTK */
 
 extern void x_real_positions (struct frame *, int *, int *);
-extern int defined_color (struct frame *, const char *, XColor *, int);
 extern void x_set_border_pixel (struct frame *, int);
 extern void x_set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
 extern void x_implicitly_set_name (struct frame *, Lisp_Object, Lisp_Object);
@@ -1066,8 +1065,10 @@ extern void x_set_tool_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
 
 /* Defined in xfaces.c */
 
+#ifdef USE_X_TOOLKIT
 extern void x_free_dpy_colors (Display *, Screen *, Colormap,
                                unsigned long *, int);
+#endif /* USE_X_TOOLKIT */
 
 /* Defined in xmenu.c */
 

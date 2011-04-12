@@ -1,5 +1,15 @@
 2011-04-12  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xfaces.c: Make symbols static if they're not exported.
+	* dispextern.h (ascii_face_of_lisp_face, free_realized_face):
+	Remove decls.
+	* xterm.h (defined_color): Remove decls.
+	(x_free_dpy_colors): Declare only if USE_X_TOOLKIT.
+	* xfaces.c (tty_suppress_bold_inverse_default_colors_p):
+	(menu_face_changed_default, defined_color, free_realized_face):
+	(x_free_dpy_colors): Define only if USE_X_TOOLKIT.
+	(ascii_face_of_lisp_face): Remove; unused.
+
 	* xdisp.c: Make symbols static if they're not exported.
 	* dispextern.h (scratch_glyph_row, window_box_edges):
 	(glyph_to_pixel_coords, set_cursor_from_row):
