@@ -1,5 +1,8 @@
 2011-04-12  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/cal-tex.el (cal-tex-end-document):
+	Try to automatically use latin1 input if needed.
+
 	* calendar/cal-hebrew.el (diary-hebrew-rosh-hodesh):
 	Don't try to cons a mark onto an empty element.
 
