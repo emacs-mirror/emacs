@@ -1,5 +1,9 @@
 2011-04-12  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* dired.c (file_name_completion): Now static.
+
+	* dbusbind.c (xd_in_read_queued_messages): Now static.
+
 	* lisp.h (circular_list_error, FOREACH): Remove; unused.
 	* data.c (circular_list_error): Remove.
 

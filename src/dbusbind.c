@@ -76,7 +76,7 @@ static Lisp_Object QCdbus_type_array, QCdbus_type_variant;
 static Lisp_Object QCdbus_type_struct, QCdbus_type_dict_entry;
 
 /* Whether we are reading a D-Bus event.  */
-int xd_in_read_queued_messages = 0;
+static int xd_in_read_queued_messages = 0;
 
 
 /* We use "xd_" and "XD_" as prefix for all internal symbols, because

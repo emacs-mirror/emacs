@@ -381,7 +381,9 @@ which see.  */)
 }
 
 
-Lisp_Object file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int ver_flag, Lisp_Object predicate);
+static Lisp_Object file_name_completion
+  (Lisp_Object file, Lisp_Object dirname, int all_flag, int ver_flag,
+   Lisp_Object predicate);
 
 DEFUN ("file-name-completion", Ffile_name_completion, Sfile_name_completion,
        2, 3, 0,
@@ -441,7 +443,7 @@ These are all file names in directory DIRECTORY which begin with FILE.  */)
 static int file_name_completion_stat (Lisp_Object dirname, DIRENTRY *dp, struct stat *st_addr);
 static Lisp_Object Qdefault_directory;
 
-Lisp_Object
+static Lisp_Object
 file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int ver_flag, Lisp_Object predicate)
 {
   DIR *d;
