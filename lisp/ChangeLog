@@ -1,3 +1,9 @@
+2011-04-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/network-stream.el (network-stream-open-starttls): Only do
+	opportunistic STARTTLS upgrades if we have built-in gnutls support.
+	Upgrades via gnutls-cli are too slow to be done opportunistically.
+
 2011-04-12  Juanma Barranquero  <lekktu@gmail.com>
 
 	* dframe.el (dframe-current-frame): Remove spurious quote.

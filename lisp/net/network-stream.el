@@ -171,9 +171,11 @@ values:
 	 (resulting-type 'plain)
 	 starttls-command)
 
-    ;; If we have STARTTLS support, try to upgrade the connection.
+    ;; If we have built-in STARTTLS support, try to upgrade the
+    ;; connection.
     (when (and (or (fboundp 'open-gnutls-stream)
-		   (executable-find "gnutls-cli"))
+		   (and require-tls
+			(executable-find "gnutls-cli")))
 	       capabilities success-string starttls-function
 	       (setq starttls-command
 		     (funcall starttls-function capabilities)))
