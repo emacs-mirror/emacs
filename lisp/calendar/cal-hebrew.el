@@ -954,16 +954,17 @@ use when highlighting the day in the calendar."
                      (format "%s (second day)" this-month)
                    this-month))))
       (if (= (% d 7) 6)        ; Saturday--check for Shabbat Mevarchim
-          (cons mark
-                (cond ((and (> h-day 22) (/= h-month 6) (= 29 last-day))
+          (cond ((and (> h-day 22) (/= h-month 6) (= 29 last-day))
+                 (cons mark
                        (format "Mevarchim Rosh Hodesh %s (%s)"
                                (aref h-month-names
                                      (if (= h-month
                                             (calendar-hebrew-last-month-of-year
                                              h-year))
                                          0 h-month))
-                               (aref calendar-day-name-array (- 29 h-day))))
-                      ((and (< h-day 30) (> h-day 22) (= 30 last-day))
+                               (aref calendar-day-name-array (- 29 h-day)))))
+                ((and (< h-day 30) (> h-day 22) (= 30 last-day))
+                 (cons mark
                        (format "Mevarchim Rosh Hodesh %s (%s-%s)"
                                (aref h-month-names h-month)
                                (if (= h-day 29)

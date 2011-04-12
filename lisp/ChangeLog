@@ -1,3 +1,8 @@
+2011-04-12  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-hebrew.el (diary-hebrew-rosh-hodesh):
+	Don't try to cons a mark onto an empty element.
+
 2011-04-11  Leo Liu  <sdl.web@gmail.com>
 
 	* ido.el (ido-buffer-internal): Allow method 'kill for virtual
