@@ -1,5 +1,18 @@
 2011-04-12  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xfns.c: Make symbols static if they're not exported.
+	(x_last_font_name, x_display_info_for_name):
+	(x_set_foreground_color, x_set_background_color, x_set_mouse_color):
+	(x_set_cursor_color, x_set_border_pixel, x_set_border_color):
+	(x_set_cursor_type, x_set_icon_type, x_set_icon_name):
+	(x_set_scroll_bar_foreground, x_set_scroll_bar_background):
+	(x_explicitly_set_name, x_set_title, xic_defaut_fontset, tip_timer):
+	(last_show_tip_args): Now static.
+	(xic_defaut_fontset, xic_create_fontsetname): Define only if
+	defined HAVE_X_WINDOWS && defined USE_X_TOOLKIT
+	(x_screen_planes): Remove; unused.
+	* dispextern.h (x_screen_planes): Remove decl.
+
 	* dispnew.c: Make symbols static if they're not exported.
 	* dispextern.h (redraw_garbaged_frames, scrolling):
 	(increment_row_positions): Remove.

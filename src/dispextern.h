@@ -3171,7 +3171,6 @@ void gamma_correct (struct frame *, COLORREF *);
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-int x_screen_planes (struct frame *);
 void x_implicitly_set_name (struct frame *, Lisp_Object, Lisp_Object);
 
 extern Lisp_Object tip_frame;
