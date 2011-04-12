@@ -1826,9 +1826,17 @@ emacs_close (int fd)
 }
 
 ssize_t
-emacs_read (int fildes, char *buf, ssize_t nbyte)
+emacs_read (int fildes, char *buf, size_t nbyte)
 {
   register ssize_t rtnval;
+
+  /* Defend against the possibility that a buggy caller passes a negative NBYTE
+     argument, which would be converted to a large unsigned size_t NBYTE.  This
+     defense prevents callers from doing large writes, unfortunately.  This
+     size restriction can be removed once we have carefully checked that there
+     are no such callers.  */
+  if ((ssize_t) nbyte < 0)
+    abort ();
 
   while ((rtnval = read (fildes, buf, nbyte)) == -1
 	 && (errno == EINTR))
@@ -1837,13 +1845,17 @@ emacs_read (int fildes, char *buf, ssize_t nbyte)
 }
 
 ssize_t
-emacs_write (int fildes, const char *buf, ssize_t nbyte)
+emacs_write (int fildes, const char *buf, size_t nbyte)
 {
   register ssize_t rtnval, bytes_written;
 
+  /* Defend against negative NBYTE, as in emacs_read.  */
+  if ((ssize_t) nbyte < 0)
+    abort ();
+
   bytes_written = 0;
 
-  while (nbyte > 0)
+  while (nbyte != 0)
     {
       rtnval = write (fildes, buf, nbyte);
 
