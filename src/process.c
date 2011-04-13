@@ -5396,7 +5396,7 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
 		  else
 #endif
 		    written = emacs_write (outfd, buf, this);
-		  rv = (written == this ? 0 : -1);
+		  rv = (written ? 0 : -1);
 #ifdef ADAPTIVE_READ_BUFFERING
 		  if (p->read_output_delay > 0
 		      && p->adaptive_read_buffering == 1)
