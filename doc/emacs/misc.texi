@@ -1672,6 +1672,11 @@ all server buffers are finished.  You can take as long as you like to
 edit the server buffers within Emacs, and they are @emph{not} killed
 when you type @kbd{C-x #} in them.
 
+@item -q
+@itemx --quiet
+Do not let @command{emacsclient} display messages about waiting for
+Emacs or connecting to remote server sockets.
+
 @item -s @var{server-name}
 @itemx --socket-name=@var{server-name}
 Connect to the Emacs server named @var{server-name}.  The server name

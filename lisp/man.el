@@ -254,8 +254,7 @@ Used in `bookmark-set' to get the default bookmark name."
   "Regular expression describing a manpage section within parentheses.")
 
 (defvar Man-page-header-regexp
-  (if (and (string-match "-solaris2\\." system-configuration)
-	   (not (string-match "-solaris2\\.[123435]$" system-configuration)))
+  (if (string-match "-solaris2\\." system-configuration)
       (concat "^[-A-Za-z0-9_].*[ \t]\\(" Man-name-regexp
 	      "(\\(" Man-section-regexp "\\))\\)$")
     (concat "^[ \t]*\\(" Man-name-regexp
@@ -623,36 +622,32 @@ and the `Man-section-translations-alist' variables)."
       (concat Man-specified-section-option section " " name))))
 
 (defun Man-support-local-filenames ()
-  "Check the availability of `-l' option of the man command.
-This option allows `man' to interpret command line arguments
-as local filenames.
-Return the value of the variable `Man-support-local-filenames'
-if it was set to nil or t before the call of this function.
-If t, the man command supports `-l' option.  If nil, it doesn't.
-Otherwise, if the value of `Man-support-local-filenames'
-is neither t nor nil, then determine a new value, set it
-to the variable `Man-support-local-filenames' and return
-a new value."
-  (if (or (not Man-support-local-filenames)
-          (eq Man-support-local-filenames t))
-      Man-support-local-filenames
-    (setq Man-support-local-filenames
-          (with-temp-buffer
-            (and (equal (condition-case nil
-			    (let ((default-directory
-				    ;; Assure that `default-directory' exists
-				    ;; and is readable.
- 				    (if (and (file-directory-p default-directory)
- 					     (file-readable-p default-directory))
- 					default-directory
- 				      (expand-file-name "~/"))))
- 			      (call-process manual-program nil t nil "--help"))
-                          (error nil))
-                        0)
-                 (progn
-                   (goto-char (point-min))
-                   (search-forward "--local-file" nil t))
-                 t)))))
+  "Return non-nil if the man command supports local filenames.
+Different man programs support this feature in different ways.
+The default Debian man program (\"man-db\") has a `--local-file'
+\(or `-l') option for this purpose.  The default Red Hat man
+program has no such option, but interprets any name containing
+a \"/\" as a local filename.  The function returns either `man-db'
+`man', or nil."
+  (if (eq Man-support-local-filenames 'auto-detect)
+      (setq Man-support-local-filenames
+            (with-temp-buffer
+              (let ((default-directory
+                      ;; Ensure that `default-directory' exists and is readable.
+                      (if (and (file-directory-p default-directory)
+                               (file-readable-p default-directory))
+                        default-directory
+                        (expand-file-name "~/"))))
+                (ignore-errors
+                  (call-process manual-program nil t nil "--help")))
+              (cond ((search-backward "--local-file" nil 'move)
+                     'man-db)
+                    ;; This feature seems to be present in at least ver 1.4f,
+                    ;; which is about 20 years old.
+                    ;; I don't know if this version has an official name?
+                    ((looking-at "^man, versione? [1-9]")
+                     'man))))
+    Man-support-local-filenames))
 
 
 ;; ======================================================================

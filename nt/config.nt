@@ -345,10 +345,30 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define INLINE
 #endif
 
+#if __GNUC__ >= 3  /* On GCC 3.0 we might get a warning.  */
+#define NO_INLINE __attribute__((noinline))
+#else
+#define NO_INLINE
+#endif
+
 #if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1))
 #define EXTERNALLY_VISIBLE __attribute__((externally_visible))
 #else
 #define EXTERNALLY_VISIBLE
+#endif
+
+#if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 7)
+# define ATTRIBUTE_FORMAT(spec) __attribute__ ((__format__ spec))
+#else
+# define ATTRIBUTE_FORMAT(spec) /* empty */
+#endif
+
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 4)
+# define ATTRIBUTE_FORMAT_PRINTF(formatstring_parameter, first_argument) \
+   ATTRIBUTE_FORMAT ((__gnu_printf__, formatstring_parameter, first_argument))
+#else
+# define ATTRIBUTE_FORMAT_PRINTF(formatstring_parameter, first_argument) \
+   ATTRIBUTE_FORMAT ((__printf__, formatstring_parameter, first_argument))
 #endif
 
 #if (__GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 8))
@@ -393,15 +413,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef STACK_DIRECTION
 #endif
 
-/* Define the return type of signal handlers if the s-xxx file
-   did not already do so.  */
-#define RETSIGTYPE void
-
-/* SIGTYPE is the macro we actually use.  */
-#ifndef SIGTYPE
-#define SIGTYPE RETSIGTYPE
-#endif
-
 #ifdef emacs /* Don't do this for lib-src.  */
 /* Tell regex.c to use a type compatible with Emacs.  */
 #define RE_TRANSLATE_TYPE Lisp_Object
@@ -410,6 +421,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #define my_strftime nstrftime   /* for strftime.c */
+
+/* Define to the type of st_nlink in struct stat, or a supertype. */
+#define nlink_t short
 
 #ifndef WINDOWSNT
 /* Some of the files of Emacs which are intended for use with other

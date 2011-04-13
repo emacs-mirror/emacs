@@ -354,7 +354,7 @@ get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
 
       for (i = 1; i < glyph_len; i += 2)
 	{
-	  int rule, gref, nref, xoff, yoff;
+	  int rule, gref, nref;
 	  int this_width;
 	  float this_left;
 
@@ -376,7 +376,7 @@ get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
 		|       |
 		6---7---8 -- descent
 	  */
-	  COMPOSITION_DECODE_RULE (rule, gref, nref, xoff, yoff);
+	  COMPOSITION_DECODE_REFS (rule, gref, nref);
 	  this_left = (leftmost
 		       + (gref % 3) * (rightmost - leftmost) / 2.0
 		       - (nref % 3) * this_width / 2.0);
@@ -661,22 +661,22 @@ gstring_lookup_cache (Lisp_Object header)
 }
 
 Lisp_Object
-composition_gstring_put_cache (Lisp_Object gstring, int len)
+composition_gstring_put_cache (Lisp_Object gstring, EMACS_INT len)
 {
   struct Lisp_Hash_Table *h = XHASH_TABLE (gstring_hash_table);
   unsigned hash;
   Lisp_Object header, copy;
-  int i;
+  EMACS_INT i;
 
   header = LGSTRING_HEADER (gstring);
   hash = h->hashfn (h, header);
   if (len < 0)
     {
-      len = LGSTRING_GLYPH_LEN (gstring);
-      for (i = 0; i < len; i++)
-	if (NILP (LGSTRING_GLYPH (gstring, i)))
+      EMACS_UINT j, glyph_len = LGSTRING_GLYPH_LEN (gstring);
+      for (j = 0; j < glyph_len; j++)
+	if (NILP (LGSTRING_GLYPH (gstring, j)))
 	  break;
-      len = i;
+      len = j;
     }
 
   copy = Fmake_vector (make_number (len + 2), Qnil);
@@ -1115,7 +1115,7 @@ composition_compute_stop_pos (struct composition_it *cmp_it, EMACS_INT charpos, 
 	  if (! NILP (val))
 	    {
 	      Lisp_Object elt;
-	      int ridx, back, len;
+	      int ridx, back, blen;
 
 	      for (ridx = 0; CONSP (val); val = XCDR (val), ridx++)
 		{
@@ -1132,17 +1132,17 @@ composition_compute_stop_pos (struct composition_it *cmp_it, EMACS_INT charpos, 
 			bpos = (NILP (string) ? CHAR_TO_BYTE (cpos)
 				: string_char_to_byte (string, cpos));
 		      if (STRINGP (AREF (elt, 0)))
-			len = fast_looking_at (AREF (elt, 0), cpos, bpos,
-					       start + 1, limit, string);
+			blen = fast_looking_at (AREF (elt, 0), cpos, bpos,
+						start + 1, limit, string);
 		      else
-			len = 1;
-		      if (len > 0)
+			blen = 1;
+		      if (blen > 0)
 			{
 			  /* Make CPOS point to the last character of
-			     match.  Note that LEN is byte-length.  */
-			  if (len > 1)
+			     match.  Note that BLEN is byte-length.  */
+			  if (blen > 1)
 			    {
-			      bpos += len;
+			      bpos += blen;
 			      if (NILP (string))
 				cpos = BYTE_TO_CHAR (bpos) - 1;
 			      else
@@ -1248,8 +1248,8 @@ composition_reseat_it (struct composition_it *cmp_it, EMACS_INT charpos, EMACS_I
   else if (w)
     {
       Lisp_Object lgstring = Qnil;
-      Lisp_Object val, elt, re;
-      int len, i;
+      Lisp_Object val, elt;
+      int i;
 
       val = CHAR_TABLE_REF (Vcomposition_function_table, cmp_it->ch);
       for (i = 0; i < cmp_it->rule_idx; i++, val = XCDR (val));
@@ -1364,7 +1364,7 @@ composition_reseat_it (struct composition_it *cmp_it, EMACS_INT charpos, EMACS_I
 int
 composition_update_it (struct composition_it *cmp_it, EMACS_INT charpos, EMACS_INT bytepos, Lisp_Object string)
 {
-  int i, c;
+  int i, c IF_LINT (= 0);
 
   if (cmp_it->ch < 0)
     {
@@ -1489,9 +1489,14 @@ find_automatic_composition (EMACS_INT pos, EMACS_INT limit, EMACS_INT *start, EM
   EMACS_INT head, tail, stop;
   /* Limit to check a composition after POS.  */
   EMACS_INT fore_check_limit;
-  struct position_record orig, cur, check, prev;
+  struct position_record orig, cur;
+
+  /* FIXME: It's not obvious whether these two variables need initialization.
+     If they do, please supply initial values.
+     If not, please remove this comment.  */
+  struct position_record check IF_LINT (= {0}), prev IF_LINT (= {0});
+
   Lisp_Object check_val, val, elt;
-  int check_lookback;
   int c;
   Lisp_Object window;
   struct window *w;
@@ -1657,7 +1662,7 @@ find_automatic_composition (EMACS_INT pos, EMACS_INT limit, EMACS_INT *start, EM
 EMACS_INT
 composition_adjust_point (EMACS_INT last_pt, EMACS_INT new_pt)
 {
-  EMACS_INT charpos, bytepos, startpos, beg, end, pos;
+  EMACS_INT beg, end;
   Lisp_Object val;
   int i;
 
@@ -2032,4 +2037,3 @@ See also the documentation of `auto-composition-mode'.  */);
   defsubr (&Sfind_composition_internal);
   defsubr (&Scomposition_get_gstring);
 }
-

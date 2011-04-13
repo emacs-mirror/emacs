@@ -629,7 +629,7 @@ xfont_list_family (Lisp_Object frame)
   char **names;
   int num_fonts, i;
   Lisp_Object list;
-  char *last_family;
+  char *last_family IF_LINT (= 0);
   int last_len;
 
   BLOCK_INPUT;
@@ -844,22 +844,25 @@ xfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
 	font->average_width = XINT (val) / 10;
       if (font->average_width < 0)
 	font->average_width = - font->average_width;
-      if (font->average_width == 0
-	  && encoding->ascii_compatible_p)
+      else
 	{
-	  int width = font->space_width, n = pcm != NULL;
+	  if (font->average_width == 0
+	      && encoding->ascii_compatible_p)
+	    {
+	      int width = font->space_width, n = pcm != NULL;
 
-	  for (char2b.byte2 = 33; char2b.byte2 <= 126; char2b.byte2++)
-	    if ((pcm = xfont_get_pcm (xfont, &char2b)) != NULL)
-	      width += pcm->width, n++;
-	  if (n > 0)
-	    font->average_width = width / n;
+	      for (char2b.byte2 = 33; char2b.byte2 <= 126; char2b.byte2++)
+		if ((pcm = xfont_get_pcm (xfont, &char2b)) != NULL)
+		  width += pcm->width, n++;
+	      if (n > 0)
+		font->average_width = width / n;
+	    }
+	  if (font->average_width == 0)
+	    /* No easy way other than this to get a reasonable
+	       average_width.  */
+	    font->average_width
+	      = (xfont->min_bounds.width + xfont->max_bounds.width) / 2;
 	}
-      if (font->average_width == 0)
-	/* No easy way other than this to get a reasonable
-	   average_width.  */
-	font->average_width
-	  = (xfont->min_bounds.width + xfont->max_bounds.width) / 2;
     }
 
   BLOCK_INPUT;
@@ -966,11 +969,11 @@ xfont_text_extents (struct font *font, unsigned int *code, int nglyphs, struct f
 {
   XFontStruct *xfont = ((struct xfont_info *) font)->xfont;
   int width = 0;
-  int i, first, x;
+  int i, first;
 
   if (metrics)
     memset (metrics, 0, sizeof (struct font_metrics));
-  for (i = 0, x = 0, first = 1; i < nglyphs; i++)
+  for (i = 0, first = 1; i < nglyphs; i++)
     {
       XChar2b char2b;
       static XCharStruct *pcm;

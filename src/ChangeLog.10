@@ -20002,7 +20002,7 @@
 
 	* w32reg.c (w32_get_rdb_resource): New function.
 	(x_get_string_resource): Use it, so resources passed with -xrm
-	supercede the ones in the registry.
+	supersede the ones in the registry.
 
 2003-03-04  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -25474,7 +25474,7 @@
 	recursive call unless that arg is non-nil.
 	(where_is_internal): New argument no_remap.  Callers changed.
 	Call recursively to find original key bindings for a remapped
-	comand unless that arg is non-nil.
+	command unless that arg is non-nil.
 	(Fwhere_is_internal): New optional argument NO-REMAP.
 	Doc updated.  Callers changed.  Pass arg to where_is_internal.
 

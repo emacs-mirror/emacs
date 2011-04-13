@@ -215,7 +215,7 @@ check_x_display_info (Lisp_Object object)
       struct terminal *t = get_terminal (object, 1);
 
       if (t->type != output_x_window)
-        error ("Terminal %d is not an X display", XINT (object));
+        error ("Terminal %"pEd" is not an X display", XINT (object));
 
       dpyinfo = t->display_info.x;
     }
@@ -461,7 +461,7 @@ x_real_positions (FRAME_PTR f, int *xptr, int *yptr)
   Window win = f->output_data.x->parent_desc;
   Atom actual_type;
   unsigned long actual_size, bytes_remaining;
-  int i, rc, actual_format;
+  int rc, actual_format;
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   long max_len = 400;
   Display *dpy = FRAME_X_DISPLAY (f);
@@ -648,7 +648,7 @@ x_defined_color (struct frame *f, const char *color_name,
    is a monochrome frame, return MONO_COLOR regardless of what ARG says.
    Signal an error if color can't be allocated.  */
 
-int
+static int
 x_decode_color (FRAME_PTR f, Lisp_Object color_name, int mono_color)
 {
   XColor cdef;
@@ -746,7 +746,6 @@ xg_set_icon (FRAME_PTR f, Lisp_Object file)
 int
 xg_set_icon_from_xpm_data (FRAME_PTR f, const char **data)
 {
-  int result = 0;
   GdkPixbuf *pixbuf = gdk_pixbuf_new_from_xpm_data (data);
 
   if (!pixbuf)
@@ -856,19 +855,20 @@ make_invisible_cursor (struct frame *f)
   static char const no_data[] = { 0 };
   Pixmap pix;
   XColor col;
-  Cursor c;
+  Cursor c = 0;
 
   x_catch_errors (dpy);
   pix = XCreateBitmapFromData (dpy, FRAME_X_DISPLAY_INFO (f)->root_window,
                                no_data, 1, 1);
   if (! x_had_errors_p (dpy) && pix != None)
     {
+      Cursor pixc;
       col.pixel = 0;
       col.red = col.green = col.blue = 0;
       col.flags = DoRed | DoGreen | DoBlue;
-      c = XCreatePixmapCursor (dpy, pix, pix, &col, &col, 0, 0);
-      if (x_had_errors_p (dpy) || c == None)
-        c = 0;
+      pixc = XCreatePixmapCursor (dpy, pix, pix, &col, &col, 0, 0);
+      if (! x_had_errors_p (dpy) && pixc != None)
+        c = pixc;
       XFreePixmap (dpy, pix);
     }
 
@@ -1639,7 +1639,7 @@ x_set_name_internal (FRAME_PTR f, Lisp_Object name)
        suggesting a new name, which lisp code should override; if
        F->explicit_name is set, ignore the new name; otherwise, set it.  */
 
-void
+static void
 x_set_name (struct frame *f, Lisp_Object name, int explicit)
 {
   /* Make sure that requests from lisp code override requests from
@@ -2624,7 +2624,7 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
 
 #else /* not USE_X_TOOLKIT */
 #ifdef USE_GTK
-void
+static void
 x_window (FRAME_PTR f)
 {
   if (! xg_create_frame_widgets (f))
@@ -2664,7 +2664,7 @@ x_window (FRAME_PTR f)
 #else /*! USE_GTK */
 /* Create and set up the X window for frame F.  */
 
-void
+static void
 x_window (struct frame *f)
 {
   XClassHint class_hints;
@@ -2987,7 +2987,7 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
         {
           char *name = xstrdup (system_font);
           font = font_open_by_name (f, name);
-          free (name);
+          xfree (name);
         }
     }
 
@@ -3188,7 +3188,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
      to get the color reference counts right, so initialize them!  */
   {
     Lisp_Object black;
-    struct gcpro gcpro1;
+    struct gcpro inner_gcpro1;
 
     /* Function x_decode_color can signal an error.  Make
        sure to initialize color slots so that we won't try
@@ -3201,7 +3201,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
     f->output_data.x->mouse_pixel = -1;
 
     black = build_string ("black");
-    GCPRO1 (black);
+    GCPRO1_VAR (black, inner_gcpro);
     FRAME_FOREGROUND_PIXEL (f)
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
     FRAME_BACKGROUND_PIXEL (f)
@@ -3214,7 +3214,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
     f->output_data.x->mouse_pixel
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
-    UNGCPRO;
+    UNGCPRO_VAR (inner_gcpro);
   }
 
   /* Specify the parent under which to make this X window.  */
@@ -3452,8 +3452,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
       else if (! NILP (visibility))
 	x_make_frame_visible (f);
       else
-	/* Must have been Qnil.  */
-	;
+	{
+	  /* Must have been Qnil.  */
+	}
     }
 
   BLOCK_INPUT;
@@ -4581,9 +4582,8 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
                     Lisp_Object text)
 {
   struct frame *f;
-  Lisp_Object frame, tem;
+  Lisp_Object frame;
   Lisp_Object name;
-  long window_prompting = 0;
   int width, height;
   int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3;
@@ -4655,7 +4655,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
      to get the color reference counts right, so initialize them!  */
   {
     Lisp_Object black;
-    struct gcpro gcpro1;
+    struct gcpro inner_gcpro1;
 
     /* Function x_decode_color can signal an error.  Make
        sure to initialize color slots so that we won't try
@@ -4668,7 +4668,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
     f->output_data.x->mouse_pixel = -1;
 
     black = build_string ("black");
-    GCPRO1 (black);
+    GCPRO1_VAR (black, inner_gcpro);
     FRAME_FOREGROUND_PIXEL (f)
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
     FRAME_BACKGROUND_PIXEL (f)
@@ -4681,7 +4681,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
     f->output_data.x->mouse_pixel
       = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
-    UNGCPRO;
+    UNGCPRO_VAR (inner_gcpro);
   }
 
   /* Set the name; the functions to which we pass f expect the name to
@@ -4761,7 +4761,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
 
   f->output_data.x->parent_desc = FRAME_X_DISPLAY_INFO (f)->root_window;
 
-  window_prompting = x_figure_window_size (f, parms, 0);
+  x_figure_window_size (f, parms, 0);
 
   {
     XSetWindowAttributes attrs;
@@ -5039,7 +5039,7 @@ Text larger than the specified size is clipped.  */)
 	  && !NILP (Fequal (last_string, string))
 	  && !NILP (Fequal (last_parms, parms)))
 	{
-	  struct frame *f = XFRAME (tip_frame);
+	  struct frame *tip_f = XFRAME (tip_frame);
 
 	  /* Only DX and DY have changed.  */
 	  if (!NILP (tip_timer))
@@ -5050,9 +5050,9 @@ Text larger than the specified size is clipped.  */)
 	    }
 
 	  BLOCK_INPUT;
-	  compute_tip_xy (f, parms, dx, dy, FRAME_PIXEL_WIDTH (f),
-			  FRAME_PIXEL_HEIGHT (f), &root_x, &root_y);
-	  XMoveWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+	  compute_tip_xy (tip_f, parms, dx, dy, FRAME_PIXEL_WIDTH (tip_f),
+			  FRAME_PIXEL_HEIGHT (tip_f), &root_x, &root_y);
+	  XMoveWindow (FRAME_X_DISPLAY (tip_f), FRAME_X_WINDOW (tip_f),
 		       root_x, root_y);
 	  UNBLOCK_INPUT;
 	  goto start_timer;
@@ -5569,11 +5569,11 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
   BLOCK_INPUT;
 
   if (STRINGP (default_filename))
-    cdef_file = SDATA (default_filename);
+    cdef_file = SSDATA (default_filename);
   else
-    cdef_file = SDATA (dir);
+    cdef_file = SSDATA (dir);
 
-  fn = xg_get_file_name (f, SDATA (prompt), cdef_file,
+  fn = xg_get_file_name (f, SSDATA (prompt), cdef_file,
                          ! NILP (mustmatch),
                          ! NILP (only_dir_p));
 
@@ -5629,12 +5629,12 @@ If FRAME is omitted or nil, it defaults to the selected frame. */)
   XSETFONT (font, FRAME_FONT (f));
   font_param = Ffont_get (font, intern (":name"));
   if (STRINGP (font_param))
-    default_name = xstrdup (SDATA (font_param));
+    default_name = xstrdup (SSDATA (font_param));
   else
     {
       font_param = Fframe_parameter (frame, Qfont_param);
       if (STRINGP (font_param))
-        default_name = xstrdup (SDATA (font_param));
+        default_name = xstrdup (SSDATA (font_param));
     }
 
   if (default_name == NULL && x_last_font_name != NULL)
@@ -5698,7 +5698,7 @@ present and mapped to the usual X keysyms.  */)
   struct frame *f = check_x_frame (frame);
   Display *dpy = FRAME_X_DISPLAY (f);
   Lisp_Object have_keys;
-  int major, minor, op, event, error;
+  int major, minor, op, event, error_code;
 
   BLOCK_INPUT;
 
@@ -5714,7 +5714,7 @@ present and mapped to the usual X keysyms.  */)
   /* Check that the server supports XKB.  */
   major = XkbMajorVersion;
   minor = XkbMinorVersion;
-  if (!XkbQueryExtension (dpy, &op, &event, &error, &major, &minor))
+  if (!XkbQueryExtension (dpy, &op, &event, &error_code, &major, &minor))
     {
       UNBLOCK_INPUT;
       return Qlambda;

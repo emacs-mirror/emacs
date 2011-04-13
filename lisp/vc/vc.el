@@ -1115,9 +1115,12 @@ merge in the changes into your working copy."
 	(dolist (file files)
 	  (unless (file-writable-p file)
 	    ;; Make the file+buffer read-write.
-	    (unless (y-or-n-p (format "%s is edited but read-only; make it writable and continue?" file))
+	    (unless (y-or-n-p (format "%s is edited but read-only; make it writable and continue? " file))
 	      (error "Aborted"))
-	    (set-file-modes file (logior (file-modes file) 128))
+            ;; Maybe we somehow lost permissions on the directory.
+            (condition-case nil
+                (set-file-modes file (logior (file-modes file) 128))
+              (error (error "Unable to make file writable")))
 	    (let ((visited (get-file-buffer file)))
 	      (when visited
 		(with-current-buffer visited
@@ -1954,7 +1957,7 @@ checked out in that new branch."
 	  ;; For VC's that do not work at file level, it's pointless
 	  ;; to ask for a directory, branches are created at repository level.
 	  default-directory
-	(read-file-name "Directory: " default-directory default-directory t))
+	(read-directory-name "Directory: " default-directory default-directory t))
       (read-string (if current-prefix-arg "New branch name: " "New tag name: "))
       current-prefix-arg)))
   (message "Making %s... " (if branchp "branch" "tag"))
@@ -1980,7 +1983,7 @@ allowed and simply skipped)."
 	  ;; For VC's that do not work at file level, it's pointless
 	  ;; to ask for a directory, branches are created at repository level.
 	  default-directory
-	(read-file-name "Directory: " default-directory default-directory t))
+	(read-directory-name "Directory: " default-directory default-directory t))
       (read-string "Tag name to retrieve (default latest revisions): "))))
   (let ((update (yes-or-no-p "Update any affected buffers? "))
 	(msg (if (or (not name) (string= name ""))

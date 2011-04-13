@@ -1306,16 +1306,13 @@ for new groups, and subscribe the new groups as zombies."
        ((>= level gnus-level-zombie)
 	;; Remove from the hash table.
 	(gnus-sethash group nil gnus-newsrc-hashtb)
-	;; We do not enter foreign groups into the list of dead
-	;; groups.
-	(unless (gnus-group-foreign-p group)
-	  (if (= level gnus-level-zombie)
-	      (push group gnus-zombie-list)
-	    (if (= oldlevel gnus-level-killed)
-		;; Remove from active hashtb.
-		(unintern group gnus-active-hashtb)
-	      ;; Don't add it into killed-list if it was killed.
-	      (push group gnus-killed-list)))))
+	(if (= level gnus-level-zombie)
+	    (push group gnus-zombie-list)
+	  (if (= oldlevel gnus-level-killed)
+	      ;; Remove from active hashtb.
+	      (unintern group gnus-active-hashtb)
+	    ;; Don't add it into killed-list if it was killed.
+	    (push group gnus-killed-list))))
        (t
 	;; If the list is to be entered into the newsrc assoc, and
 	;; it was killed, we have to create an entry in the newsrc
@@ -1465,9 +1462,10 @@ If SCAN, request a scan of that group as well."
 	       (inline (gnus-request-group group (or dont-sub-check dont-check)
 					   method
 					   (gnus-get-info group)))
-	     ;;(error nil)
 	     (quit
-	      (message "Quit activating %s" group)
+	      (if debug-on-quit
+		  (debug "Quit")
+		(message "Quit activating %s" group))
 	      nil)))
 	 (unless dont-check
 	   (setq active (gnus-parse-active))
@@ -1513,7 +1511,7 @@ If SCAN, request a scan of that group as well."
 	   (num 0))
 
       ;; These checks are present in gnus-activate-group but skipped
-      ;; due to setting dont-check in the preceeding call.
+      ;; due to setting dont-check in the preceding call.
 
       ;; If a cache is present, we may have to alter the active info.
       (when (and gnus-use-cache info)
@@ -1690,6 +1688,16 @@ If SCAN, request a scan of that group as well."
 			    method))
 	      (setcar elem method))
 	    (push (list method 'ok) methods)))))
+
+    ;; If we have primary/secondary select methods, but no groups from
+    ;; them, we still want to issue a retrieval request from them.
+    (dolist (method (cons gnus-select-method
+			  gnus-secondary-select-methods))
+      (when (and (not (assoc method type-cache))
+		 (gnus-check-backend-function 'request-list (car method)))
+	(with-current-buffer nntp-server-buffer
+	  (gnus-read-active-file-1 method nil))))
+
     ;; Start early async retrieval of data.
     (dolist (elem type-cache)
       (destructuring-bind (method method-type infos dummy) elem
@@ -1712,19 +1720,12 @@ If SCAN, request a scan of that group as well."
 	      (setcar (nthcdr 3 elem)
 		      (gnus-retrieve-group-data-early method infos)))))))
 
-    ;; If we have primary/secondary select methods, but no groups from
-    ;; them, we still want to issue a retrieval request from them.
-    (dolist (method (cons gnus-select-method
-			  gnus-secondary-select-methods))
-      (when (and (not (assoc method type-cache))
-		 (gnus-check-backend-function 'request-list (car method)))
-	(with-current-buffer nntp-server-buffer
-	  (gnus-read-active-file-1 method nil))))
-
     ;; Do the rest of the retrieval.
     (dolist (elem type-cache)
       (destructuring-bind (method method-type infos early-data) elem
-	(when (and method infos)
+	(when (and method infos
+		   (not (eq (gnus-server-status method)
+			    'denied)))
 	  (let ((updatep (gnus-check-backend-function
 			  'request-update-info (car method))))
 	    ;; See if any of the groups from this method require updating.
@@ -1886,7 +1887,7 @@ If SCAN, request a scan of that group as well."
                             ;; OK - I'm done
                             (setq articles nil))
                            ((< range article)
-                            ;; this range preceeds the article. Leave the range unmodified.
+                            ;; this range precedes the article. Leave the range unmodified.
                             (pop ranges)
                             ranges)
                            ((= range article)
@@ -1909,11 +1910,11 @@ If SCAN, request a scan of that group as well."
                             (setcar ranges min)
                             ranges)
                            ((< max article)
-                            ;; this range preceeds the article. Leave the range unmodified.
+                            ;; this range precedes the article. Leave the range unmodified.
                             (pop ranges)
                             ranges)
                            ((< article min)
-                            ;; this article preceeds the range.  Return null to move to the
+                            ;; this article precedes the range.  Return null to move to the
                             ;; next article
                             nil)
                            (t
@@ -2006,7 +2007,9 @@ If SCAN, request a scan of that group as well."
 	      ;; We catch C-g so that we can continue past servers
 	      ;; that do not respond.
 	      (quit
-	       (message "Quit reading the active file")
+	       (if debug-on-quit
+		   (debug "Quit")
+		 (message "Quit reading the active file"))
 	       nil))))))))
 
 (defun gnus-read-active-file-1 (method force)
@@ -2870,7 +2873,8 @@ If FORCE is non-nil, the .newsrc file is read."
       (pop list))
     (nreverse olist)))
 
-(defun gnus-gnus-to-newsrc-format ()
+(defun gnus-gnus-to-newsrc-format (&optional foreign-ok)
+  (interactive (list (gnus-y-or-n-p "write foreign groups too? ")))
   ;; Generate and save the .newsrc file.
   (with-current-buffer (create-file-buffer gnus-current-startup-file)
     (let ((newsrc (cdr gnus-newsrc-alist))
@@ -2892,7 +2896,8 @@ If FORCE is non-nil, the .newsrc file is read."
 	;; Don't write foreign groups to .newsrc.
 	(when (or (null (setq method (gnus-info-method info)))
 		  (equal method "native")
-		  (inline (gnus-server-equal method gnus-select-method)))
+		  (inline (gnus-server-equal method gnus-select-method))
+                  foreign-ok)
 	  (insert (gnus-info-group info)
 		  (if (> (gnus-info-level info) gnus-level-subscribed)
 		      "!" ":"))

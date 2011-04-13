@@ -175,7 +175,8 @@ update_syntax_table (EMACS_INT charpos, int count, int init,
 		     Lisp_Object object)
 {
   Lisp_Object tmp_table;
-  int cnt = 0, invalidate = 1;
+  unsigned cnt = 0;
+  int invalidate = 1;
   INTERVAL i;
 
   if (init)
@@ -513,7 +514,7 @@ back_comment (EMACS_INT from, EMACS_INT from_byte, EMACS_INT stop, int comnested
   EMACS_INT comment_end = from;
   EMACS_INT comment_end_byte = from_byte;
   EMACS_INT comstart_pos = 0;
-  EMACS_INT comstart_byte;
+  EMACS_INT comstart_byte IF_LINT (= 0);
   /* Place where the containing defun starts,
      or 0 if we didn't come across it yet.  */
   EMACS_INT defun_start = 0;
@@ -554,7 +555,7 @@ back_comment (EMACS_INT from, EMACS_INT from_byte, EMACS_INT stop, int comnested
       com2end = (SYNTAX_FLAGS_COMEND_FIRST (syntax)
 		 && SYNTAX_FLAGS_COMEND_SECOND (prev_syntax));
       comstart = (com2start || code == Scomment);
-      
+
       /* Nasty cases with overlapping 2-char comment markers:
 	 - snmp-mode: -- c -- foo -- c --
 	              --- c --
@@ -1219,7 +1220,7 @@ scan_words (register EMACS_INT from, register EMACS_INT count)
   register EMACS_INT from_byte = CHAR_TO_BYTE (from);
   register enum syntaxcode code;
   int ch0, ch1;
-  Lisp_Object func, script, pos;
+  Lisp_Object func, pos;
 
   immediate_quit = 1;
   QUIT;
@@ -1259,7 +1260,6 @@ scan_words (register EMACS_INT from, register EMACS_INT count)
 	}
       else
 	{
-	  script = CHAR_TABLE_REF (Vchar_script_table, ch0);
 	  while (1)
 	    {
 	      if (from == end) break;
@@ -1310,7 +1310,6 @@ scan_words (register EMACS_INT from, register EMACS_INT count)
 	}
       else
 	{
-	  script = CHAR_TABLE_REF (Vchar_script_table, ch1);
 	  while (1)
 	    {
 	      if (from == beg)
@@ -1421,7 +1420,7 @@ skip_chars (int forwardp, Lisp_Object string, Lisp_Object lim, int handle_iso_cl
   register unsigned int c;
   unsigned char fastmap[0400];
   /* Store the ranges of non-ASCII characters.  */
-  int *char_ranges;
+  int *char_ranges IF_LINT (= NULL);
   int n_char_ranges = 0;
   int negate = 0;
   register EMACS_INT i, i_byte;
@@ -1542,7 +1541,8 @@ skip_chars (int forwardp, Lisp_Object string, Lisp_Object lim, int handle_iso_cl
 
 	      if (c <= c2)
 		{
-		  while (c <= c2)
+		  unsigned lim2 = c2 + 1;
+		  while (c < lim2)
 		    fastmap[c++] = 1;
 		  if (! ASCII_CHAR_P (c2))
 		    string_has_eight_bit = 1;
@@ -1682,7 +1682,8 @@ skip_chars (int forwardp, Lisp_Object string, Lisp_Object lim, int handle_iso_cl
 		}
 	      if (! ASCII_CHAR_P (c))
 		{
-		  while (leading_code <= leading_code2)
+		  unsigned lim2 = leading_code2 + 1;
+		  while (leading_code < lim2)
 		    fastmap[leading_code++] = 1;
 		  if (c <= c2)
 		    {
@@ -1714,9 +1715,9 @@ skip_chars (int forwardp, Lisp_Object string, Lisp_Object lim, int handle_iso_cl
 	  for (i = 0; i < n_char_ranges; i += 2)
 	    {
 	      int c1 = char_ranges[i];
-	      int c2 = char_ranges[i + 1];
+	      unsigned lim2 = char_ranges[i + 1] + 1;
 
-	      for (; c1 <= c2; c1++)
+	      for (; c1 < lim2; c1++)
 		{
 		  int b = CHAR_TO_BYTE_SAFE (c1);
 		  if (b >= 0)
@@ -2363,7 +2364,7 @@ between them, return t; otherwise return nil.  */)
 	  if (code == Scomment_fence)
 	    {
 	      /* Skip until first preceding unquoted comment_fence.  */
-	      int found = 0;
+	      int fence_found = 0;
 	      EMACS_INT ini = from, ini_byte = from_byte;
 
 	      while (1)
@@ -2374,13 +2375,13 @@ between them, return t; otherwise return nil.  */)
 		  if (SYNTAX (c) == Scomment_fence
 		      && !char_quoted (from, from_byte))
 		    {
-		      found = 1;
+		      fence_found = 1;
 		      break;
 		    }
 		  else if (from == stop)
 		    break;
 		}
-	      if (found == 0)
+	      if (fence_found == 0)
 		{
 		  from = ini;		/* Set point to ini + 1.  */
 		  from_byte = ini_byte;
@@ -2669,12 +2670,12 @@ scan_lists (register EMACS_INT from, EMACS_INT count, EMACS_INT depth, int sexpf
 	      /* We must record the comment style encountered so that
 		 later, we can match only the proper comment begin
 		 sequence of the same style.  */
-	      int c1, other_syntax;
+	      int c2, other_syntax;
 	      DEC_BOTH (from, from_byte);
 	      UPDATE_SYNTAX_TABLE_BACKWARD (from);
 	      code = Sendcomment;
-	      c1 = FETCH_CHAR_AS_MULTIBYTE (from_byte);
-	      other_syntax = SYNTAX_WITH_FLAGS (c1);
+	      c2 = FETCH_CHAR_AS_MULTIBYTE (from_byte);
+	      other_syntax = SYNTAX_WITH_FLAGS (c2);
 	      comstyle = SYNTAX_FLAGS_COMMENT_STYLE (other_syntax, syntax);
 	      comnested
 		= comnested || SYNTAX_FLAGS_COMMENT_NESTED (other_syntax);
@@ -3265,9 +3266,9 @@ do { prev_from = from;				\
     = (curlevel == levelstart) ? -1 : (curlevel - 1)->last;
   state.location = from;
   state.levelstarts = Qnil;
-  while (--curlevel >= levelstart)
-      state.levelstarts = Fcons (make_number (curlevel->last),
-				 state.levelstarts);
+  while (curlevel > levelstart)
+    state.levelstarts = Fcons (make_number ((--curlevel)->last),
+			       state.levelstarts);
   immediate_quit = 0;
 
   *stateptr = state;
@@ -3528,4 +3529,3 @@ In both cases, LIMIT bounds the search. */);
   defsubr (&Sbackward_prefix_chars);
   defsubr (&Sparse_partial_sexp);
 }
-

@@ -84,8 +84,8 @@ Activity means that there was no user input in the last 10 seconds."
   :type  '(choice (const :tag "All frames" t)
 		  (const :tag "All visible frames" visible)
 		  (const :tag "Only the selected frame" nil)
-		  (const :tag "Only the selected frame if it was active"
-			 active)))
+		  (const :tag "Only the selected frame if it is visible"
+			 selected-visible)))
 
 (defcustom erc-track-exclude nil
   "A list targets (channel names or query targets) which should not be tracked."

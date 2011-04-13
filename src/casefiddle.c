@@ -32,7 +32,7 @@ enum case_action {CASE_UP, CASE_DOWN, CASE_CAPITALIZE, CASE_CAPITALIZE_UP};
 
 Lisp_Object Qidentity;
 
-Lisp_Object
+static Lisp_Object
 casify_object (enum case_action flag, Lisp_Object obj)
 {
   register int c, c1;
@@ -64,13 +64,13 @@ casify_object (enum case_action flag, Lisp_Object obj)
 	multibyte = 1;
       if (! multibyte)
 	MAKE_CHAR_MULTIBYTE (c1);
-      c = DOWNCASE (c1);
+      c = downcase (c1);
       if (inword)
 	XSETFASTINT (obj, c | flags);
       else if (c == (XFASTINT (obj) & ~flagbits))
 	{
 	  if (! inword)
-	    c = UPCASE1 (c1);
+	    c = upcase1 (c1);
 	  if (! multibyte)
 	    MAKE_CHAR_UNIBYTE (c);
 	  XSETFASTINT (obj, c | flags);
@@ -92,10 +92,10 @@ casify_object (enum case_action flag, Lisp_Object obj)
 	  MAKE_CHAR_MULTIBYTE (c);
 	  c1 = c;
 	  if (inword && flag != CASE_CAPITALIZE_UP)
-	    c = DOWNCASE (c);
-	  else if (!UPPERCASEP (c)
+	    c = downcase (c);
+	  else if (!uppercasep (c)
 		   && (!inword || flag != CASE_CAPITALIZE_UP))
-	    c = UPCASE1 (c1);
+	    c = upcase1 (c1);
 	  if ((int) flag >= (int) CASE_CAPITALIZE)
 	    inword = (SYNTAX (c) == Sword);
 	  if (c != c1)
@@ -133,10 +133,10 @@ casify_object (enum case_action flag, Lisp_Object obj)
 	    }
 	  c = STRING_CHAR_AND_LENGTH (SDATA (obj) + i_byte, len);
 	  if (inword && flag != CASE_CAPITALIZE_UP)
-	    c = DOWNCASE (c);
-	  else if (!UPPERCASEP (c)
+	    c = downcase (c);
+	  else if (!uppercasep (c)
 		   && (!inword || flag != CASE_CAPITALIZE_UP))
-	    c = UPCASE1 (c);
+	    c = upcase1 (c);
 	  if ((int) flag >= (int) CASE_CAPITALIZE)
 	    inword = (SYNTAX (c) == Sword);
 	  o += CHAR_STRING (c, o);
@@ -193,15 +193,18 @@ The argument object is not altered--the value is a copy.  */)
 /* flag is CASE_UP, CASE_DOWN or CASE_CAPITALIZE or CASE_CAPITALIZE_UP.
    b and e specify range of buffer to operate on. */
 
-void
+static void
 casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
 {
   register int c;
   register int inword = flag == CASE_DOWN;
   register int multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
   EMACS_INT start, end;
-  EMACS_INT start_byte, end_byte;
-  EMACS_INT first = -1, last;	/* Position of first and last changes.  */
+  EMACS_INT start_byte;
+
+  /* Position of first and last changes.  */
+  EMACS_INT first = -1, last IF_LINT (= 0);
+
   EMACS_INT opoint = PT;
   EMACS_INT opoint_byte = PT_BYTE;
 
@@ -219,7 +222,6 @@ casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
   modify_region (current_buffer, start, end, 0);
   record_change (start, end - start);
   start_byte = CHAR_TO_BYTE (start);
-  end_byte = CHAR_TO_BYTE (end);
 
   SETUP_BUFFER_SYNTAX_TABLE();	/* For syntax_prefix_flag_p.  */
 
@@ -240,10 +242,10 @@ casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
 	}
       c2 = c;
       if (inword && flag != CASE_CAPITALIZE_UP)
-	c = DOWNCASE (c);
-      else if (!UPPERCASEP (c)
+	c = downcase (c);
+      else if (!uppercasep (c)
 	       && (!inword || flag != CASE_CAPITALIZE_UP))
-	c = UPCASE1 (c);
+	c = upcase1 (c);
       if ((int) flag >= (int) CASE_CAPITALIZE)
 	inword = ((SYNTAX (c) == Sword)
 		  && (inword || !syntax_prefix_flag_p (c)));

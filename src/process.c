@@ -159,15 +159,6 @@ extern Lisp_Object QCfilter;
 #define SERIALCONN_P(p) (EQ (XPROCESS (p)->type, Qserial))
 #define SERIALCONN1_P(p) (EQ ((p)->type, Qserial))
 
-/* Define first descriptor number available for subprocesses.  */
-#define FIRST_PROC_DESC 3
-
-extern const char *get_operating_system_release (void);
-
-/* From sysdep.c or w32.c  */
-extern int serial_open (char *port);
-extern void serial_configure (struct Lisp_Process *p, Lisp_Object contact);
-
 #ifndef HAVE_H_ERRNO
 extern int h_errno;
 #endif
@@ -284,10 +275,6 @@ static SELECT_TYPE connect_wait_mask;
 
 /* Number of bits set in connect_wait_mask.  */
 static int num_pending_connects;
-
-#define IF_NON_BLOCKING_CONNECT(s) s
-#else  /* NON_BLOCKING_CONNECT */
-#define IF_NON_BLOCKING_CONNECT(s)
 #endif	/* NON_BLOCKING_CONNECT */
 
 /* The largest descriptor currently in use for a process object.  */
@@ -499,7 +486,7 @@ status_message (struct Lisp_Process *p)
 	    string = (code_convert_string_norecord
 		      (string, Vlocale_coding_system, 0));
 	  c1 = STRING_CHAR (SDATA (string));
-	  c2 = DOWNCASE (c1);
+	  c2 = downcase (c1);
 	  if (c1 != c2)
 	    Faset (string, make_number (0), make_number (c2));
 	}
@@ -541,17 +528,16 @@ static char pty_name[24];
 static int
 allocate_pty (void)
 {
-  register int c, i;
   int fd;
 
 #ifdef PTY_ITERATION
   PTY_ITERATION
 #else
+  register int c, i;
   for (c = FIRST_PTY_LETTER; c <= 'z'; c++)
     for (i = 0; i < 16; i++)
 #endif
       {
-	struct stat stb;	/* Used in some PTY_OPEN.  */
 #ifdef PTY_NAME_SPRINTF
 	PTY_NAME_SPRINTF
 #else
@@ -568,6 +554,7 @@ allocate_pty (void)
 	       three failures in a row before deciding that we've reached the
 	       end of the ptys.  */
 	    int failed_count = 0;
+	    struct stat stb;
 
 	    if (stat (pty_name, &stb) < 0)
 	      {
@@ -1252,248 +1239,6 @@ Returns nil if format of ADDRESS is invalid.  */)
 
   return Qnil;
 }
-
-static Lisp_Object
-list_processes_1 (Lisp_Object query_only)
-{
-  register Lisp_Object tail, tem;
-  Lisp_Object proc, minspace, tem1;
-  register struct Lisp_Process *p;
-  char tembuf[300];
-  int w_proc, w_buffer, w_tty;
-  int exited = 0;
-  Lisp_Object i_status, i_buffer, i_tty, i_command;
-
-  w_proc = 4;    /* Proc   */
-  w_buffer = 6;  /* Buffer */
-  w_tty = 0;     /* Omit if no ttys */
-
-  for (tail = Vprocess_alist; CONSP (tail); tail = XCDR (tail))
-    {
-      int i;
-
-      proc = Fcdr (XCAR (tail));
-      p = XPROCESS (proc);
-      if (NILP (p->type))
-	continue;
-      if (!NILP (query_only) && p->kill_without_query)
-	continue;
-      if (STRINGP (p->name)
-	  && ( i = SCHARS (p->name), (i > w_proc)))
-	w_proc = i;
-      if (!NILP (p->buffer))
-	{
-	  if (NILP (BVAR (XBUFFER (p->buffer), name)))
-	    {
-	      if (w_buffer < 8)
-		w_buffer = 8;  /* (Killed) */
-	    }
-	  else if ((i = SCHARS (BVAR (XBUFFER (p->buffer), name)), (i > w_buffer)))
-	    w_buffer = i;
-	}
-      if (STRINGP (p->tty_name)
-	  && (i = SCHARS (p->tty_name), (i > w_tty)))
-	w_tty = i;
-    }
-
-  XSETFASTINT (i_status, w_proc + 1);
-  XSETFASTINT (i_buffer, XFASTINT (i_status) + 9);
-  if (w_tty)
-    {
-      XSETFASTINT (i_tty, XFASTINT (i_buffer) + w_buffer + 1);
-      XSETFASTINT (i_command, XFASTINT (i_tty) + w_tty + 1);
-    }
-  else
-    {
-      i_tty = Qnil;
-      XSETFASTINT (i_command, XFASTINT (i_buffer) + w_buffer + 1);
-    }
-
-  XSETFASTINT (minspace, 1);
-
-  set_buffer_internal (XBUFFER (Vstandard_output));
-  BVAR (current_buffer, undo_list) = Qt;
-
-  BVAR (current_buffer, truncate_lines) = Qt;
-
-  write_string ("Proc", -1);
-  Findent_to (i_status, minspace); write_string ("Status", -1);
-  Findent_to (i_buffer, minspace); write_string ("Buffer", -1);
-  if (!NILP (i_tty))
-    {
-      Findent_to (i_tty, minspace); write_string ("Tty", -1);
-    }
-  Findent_to (i_command, minspace); write_string ("Command", -1);
-  write_string ("\n", -1);
-
-  write_string ("----", -1);
-  Findent_to (i_status, minspace); write_string ("------", -1);
-  Findent_to (i_buffer, minspace); write_string ("------", -1);
-  if (!NILP (i_tty))
-    {
-      Findent_to (i_tty, minspace); write_string ("---", -1);
-    }
-  Findent_to (i_command, minspace); write_string ("-------", -1);
-  write_string ("\n", -1);
-
-  for (tail = Vprocess_alist; CONSP (tail); tail = XCDR (tail))
-    {
-      Lisp_Object symbol;
-
-      proc = Fcdr (XCAR (tail));
-      p = XPROCESS (proc);
-      if (NILP (p->type))
-	continue;
-      if (!NILP (query_only) && p->kill_without_query)
-	continue;
-
-      Finsert (1, &p->name);
-      Findent_to (i_status, minspace);
-
-      if (p->raw_status_new)
-	update_status (p);
-      symbol = p->status;
-      if (CONSP (p->status))
-	symbol = XCAR (p->status);
-
-      if (EQ (symbol, Qsignal))
-	{
-	  Lisp_Object tem;
-	  tem = Fcar (Fcdr (p->status));
-	  Fprinc (symbol, Qnil);
-	}
-      else if (NETCONN1_P (p) || SERIALCONN1_P (p))
-	{
-	  if (EQ (symbol, Qexit))
-	    write_string ("closed", -1);
-	  else if (EQ (p->command, Qt))
-	    write_string ("stopped", -1);
-	  else if (EQ (symbol, Qrun))
-	    write_string ("open", -1);
-	  else
-	    Fprinc (symbol, Qnil);
-	}
-      else if (SERIALCONN1_P (p))
-	{
-	  write_string ("running", -1);
-	}
-      else
-	Fprinc (symbol, Qnil);
-
-      if (EQ (symbol, Qexit))
-	{
-	  Lisp_Object tem;
-	  tem = Fcar (Fcdr (p->status));
-	  if (XFASTINT (tem))
-	    {
-	      sprintf (tembuf, " %d", (int) XFASTINT (tem));
-	      write_string (tembuf, -1);
-	    }
-	}
-
-      if (EQ (symbol, Qsignal) || EQ (symbol, Qexit) || EQ (symbol, Qclosed))
-	exited++;
-
-      Findent_to (i_buffer, minspace);
-      if (NILP (p->buffer))
-	insert_string ("(none)");
-      else if (NILP (BVAR (XBUFFER (p->buffer), name)))
-	insert_string ("(Killed)");
-      else
-	Finsert (1, &BVAR (XBUFFER (p->buffer), name));
-
-      if (!NILP (i_tty))
-	{
-	  Findent_to (i_tty, minspace);
-	  if (STRINGP (p->tty_name))
-	    Finsert (1, &p->tty_name);
-	}
-
-      Findent_to (i_command, minspace);
-
-      if (EQ (p->status, Qlisten))
-	{
-	  Lisp_Object port = Fplist_get (p->childp, QCservice);
-	  if (INTEGERP (port))
-	    port = Fnumber_to_string (port);
-	  if (NILP (port))
-	    port = Fformat_network_address (Fplist_get (p->childp, QClocal), Qnil);
-	  sprintf (tembuf, "(network %s server on %s)\n",
-		   (DATAGRAM_CHAN_P (p->infd) ? "datagram" : "stream"),
-		   (STRINGP (port) ? SSDATA (port) : "?"));
-	  insert_string (tembuf);
-	}
-      else if (NETCONN1_P (p))
-	{
-	  /* For a local socket, there is no host name,
-	     so display service instead.  */
-	  Lisp_Object host = Fplist_get (p->childp, QChost);
-	  if (!STRINGP (host))
-	    {
-	      host = Fplist_get (p->childp, QCservice);
-	      if (INTEGERP (host))
-		host = Fnumber_to_string (host);
-	    }
-	  if (NILP (host))
-	    host = Fformat_network_address (Fplist_get (p->childp, QCremote), Qnil);
-	  sprintf (tembuf, "(network %s connection to %s)\n",
-		   (DATAGRAM_CHAN_P (p->infd) ? "datagram" : "stream"),
-		   (STRINGP (host) ? SSDATA (host) : "?"));
-	  insert_string (tembuf);
-	}
-      else if (SERIALCONN1_P (p))
-	{
-	  Lisp_Object port = Fplist_get (p->childp, QCport);
-	  Lisp_Object speed = Fplist_get (p->childp, QCspeed);
-	  insert_string ("(serial port ");
-	  if (STRINGP (port))
-	    insert_string (SSDATA (port));
-	  else
-	    insert_string ("?");
-	  if (INTEGERP (speed))
-	    {
-	      sprintf (tembuf, " at %ld b/s", (long) XINT (speed));
-	      insert_string (tembuf);
-	    }
-	  insert_string (")\n");
-	}
-      else
-	{
-	  tem = p->command;
-	  while (1)
-	    {
-	      tem1 = Fcar (tem);
-	      if (NILP (tem1))
-		break;
-	      Finsert (1, &tem1);
-	      tem = Fcdr (tem);
-	      if (NILP (tem))
-		break;
-	      insert_string (" ");
-	    }
-	  insert_string ("\n");
-       }
-    }
-  if (exited)
-    {
-      status_notify (NULL);
-      redisplay_preserve_echo_area (13);
-    }
-  return Qnil;
-}
-
-DEFUN ("list-processes", Flist_processes, Slist_processes, 0, 1, "P",
-       doc: /* Display a list of all processes.
-If optional argument QUERY-ONLY is non-nil, only processes with
-the query-on-exit flag set will be listed.
-Any process listed as exited or signaled is actually eliminated
-after the listing is made.  */)
-  (Lisp_Object query_only)
-{
-  internal_with_output_to_temp_buffer ("*Process List*",
-				       list_processes_1, query_only);
-  return Qnil;
-}
 
 DEFUN ("process-list", Fprocess_list, Sprocess_list, 0, 0, 0,
        doc: /* Return a list of all processes.  */)
@@ -1516,20 +1261,20 @@ at end of BUFFER, unless you specify an output stream or filter
 function to handle the output.  BUFFER may also be nil, meaning that
 this process is not associated with any buffer.
 
-PROGRAM is the program file name.  It is searched for in PATH.  If
-nil, just associate a pty with the buffer.  Remaining arguments are
-strings to give program as arguments.
+PROGRAM is the program file name.  It is searched for in `exec-path'
+(which see).  If nil, just associate a pty with the buffer.  Remaining
+arguments are strings to give program as arguments.
 
 If you want to separate standard output from standard error, invoke
 the command through a shell and redirect one of them using the shell
 syntax.
 
 usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
-  (int nargs, register Lisp_Object *args)
+  (size_t nargs, register Lisp_Object *args)
 {
   Lisp_Object buffer, name, program, proc, current_dir, tem;
   register unsigned char **new_argv;
-  register int i;
+  register size_t i;
   int count = SPECPDL_INDEX ();
 
   buffer = args[1];
@@ -1735,7 +1480,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
       new_argv = (unsigned char **) alloca ((nargs - 1) * sizeof (char *));
       new_argv[nargs - 2] = 0;
 
-      for (i = nargs - 3; i >= 0; i--)
+      for (i = nargs - 2; i-- != 0; )
 	{
 	  new_argv[i] = SDATA (XCAR (tem));
 	  tem = XCDR (tem);
@@ -1925,8 +1670,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
     /* child_setup must clobber environ on systems with true vfork.
        Protect it from permanent change.  */
     char **save_environ = environ;
-
-    current_dir = ENCODE_FILE (current_dir);
+    volatile Lisp_Object encoded_current_dir = ENCODE_FILE (current_dir);
 
 #ifndef WINDOWSNT
     pid = vfork ();
@@ -2067,13 +1811,13 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 	  child_setup_tty (xforkout);
 #ifdef WINDOWSNT
 	pid = child_setup (xforkin, xforkout, xforkout,
-			   new_argv, 1, current_dir);
+			   new_argv, 1, encoded_current_dir);
 #else  /* not WINDOWSNT */
 #ifdef FD_CLOEXEC
 	emacs_close (wait_child_setup[0]);
 #endif
 	child_setup (xforkin, xforkout, xforkout,
-		     new_argv, 1, current_dir);
+		     new_argv, 1, encoded_current_dir);
 #endif /* not WINDOWSNT */
       }
     environ = save_environ;
@@ -2164,10 +1908,7 @@ void
 create_pty (Lisp_Object process)
 {
   int inchannel, outchannel;
-
-  /* Use volatile to protect variables from being clobbered by longjmp.  */
-  volatile int forkin, forkout;
-  volatile int pty_flag = 0;
+  int pty_flag = 0;
 
   inchannel = outchannel = -1;
 
@@ -2183,11 +1924,11 @@ create_pty (Lisp_Object process)
 #ifdef O_NOCTTY
       /* Don't let this terminal become our controlling terminal
 	 (in case we don't have one).  */
-      forkout = forkin = emacs_open (pty_name, O_RDWR | O_NOCTTY, 0);
+      int forkout = emacs_open (pty_name, O_RDWR | O_NOCTTY, 0);
 #else
-      forkout = forkin = emacs_open (pty_name, O_RDWR, 0);
+      int forkout = emacs_open (pty_name, O_RDWR, 0);
 #endif
-      if (forkin < 0)
+      if (forkout < 0)
 	report_file_error ("Opening pty", Qnil);
 #if defined (DONT_REOPEN_PTY)
       /* In the case that vfork is defined as fork, the parent process
@@ -2195,8 +1936,6 @@ create_pty (Lisp_Object process)
 	 tty options setup.  So we setup tty before forking.  */
       child_setup_tty (forkout);
 #endif /* DONT_REOPEN_PTY */
-#else
-      forkin = forkout = -1;
 #endif /* not USG, or USG_SUBTTY_WORKS */
       pty_flag = 1;
     }
@@ -2695,7 +2434,7 @@ Examples:
 \(serial-process-configure :port "\\\\.\\COM13" :bytesize 7)
 
 usage: (serial-process-configure &rest ARGS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   struct Lisp_Process *p;
   Lisp_Object contact = Qnil;
@@ -2730,7 +2469,8 @@ usage: (serial-process-configure &rest ARGS)  */)
 }
 
 /* Used by make-serial-process to recover from errors.  */
-Lisp_Object make_serial_process_unwind (Lisp_Object proc)
+static Lisp_Object
+make_serial_process_unwind (Lisp_Object proc)
 {
   if (!PROCESSP (proc))
     abort ();
@@ -2812,7 +2552,7 @@ Examples:
 \(make-serial-process :port "/dev/tty.BlueConsole-SPP-1" :speed nil)
 
 usage:  (make-serial-process &rest ARGS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   int fd = -1;
   Lisp_Object proc, contact, port;
@@ -3090,7 +2830,7 @@ The original argument list, modified with the actual connection
 information, is available via the `process-contact' function.
 
 usage: (make-network-process &rest ARGS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   Lisp_Object proc;
   Lisp_Object contact;
@@ -3406,9 +3146,12 @@ usage: (make-network-process &rest ARGS)  */)
 
   for (lres = res; lres; lres = lres->ai_next)
     {
-      int optn, optbits;
+      size_t optn;
+      int optbits;
 
+#ifdef WINDOWSNT
     retry_connect:
+#endif
 
       s = socket (lres->ai_family, lres->ai_socktype, lres->ai_protocol);
       if (s < 0)
@@ -3472,7 +3215,7 @@ usage: (make-network-process &rest ARGS)  */)
 	  if (EQ (service, Qt))
 	    {
 	      struct sockaddr_in sa1;
-	      int len1 = sizeof (sa1);
+	      socklen_t len1 = sizeof (sa1);
 	      if (getsockname (s, (struct sockaddr *)&sa1, &len1) == 0)
 		{
 		  ((struct sockaddr_in *)(lres->ai_addr))->sin_port = sa1.sin_port;
@@ -3519,7 +3262,8 @@ usage: (make-network-process &rest ARGS)  */)
 	  /* Unlike most other syscalls connect() cannot be called
 	     again.  (That would return EALREADY.)  The proper way to
 	     wait for completion is select(). */
-	  int sc, len;
+	  int sc;
+	  socklen_t len;
 	  SELECT_TYPE fdset;
 	retry_select:
 	  FD_ZERO (&fdset);
@@ -3592,7 +3336,7 @@ usage: (make-network-process &rest ARGS)  */)
       if (!is_server)
 	{
 	  struct sockaddr_in sa1;
-	  int len1 = sizeof (sa1);
+	  socklen_t len1 = sizeof (sa1);
 	  if (getsockname (s, (struct sockaddr *)&sa1, &len1) == 0)
 	    contact = Fplist_put (contact, QClocal,
 				  conv_sockaddr_to_lisp ((struct sockaddr *)&sa1, len1));
@@ -3710,10 +3454,10 @@ usage: (make-network-process &rest ARGS)  */)
 
   {
     /* Setup coding systems for communicating with the network stream.  */
-    struct gcpro gcpro1;
+    struct gcpro inner_gcpro1;
     /* Qt denotes we have not yet called Ffind_operation_coding_system.  */
     Lisp_Object coding_systems = Qt;
-    Lisp_Object args[5], val;
+    Lisp_Object fargs[5], val;
 
     if (!NILP (tem))
       {
@@ -3736,11 +3480,11 @@ usage: (make-network-process &rest ARGS)  */)
 	  coding_systems = Qnil;
 	else
 	  {
-	    args[0] = Qopen_network_stream, args[1] = name,
-	      args[2] = buffer, args[3] = host, args[4] = service;
-	    GCPRO1 (proc);
-	    coding_systems = Ffind_operation_coding_system (5, args);
-	    UNGCPRO;
+	    fargs[0] = Qopen_network_stream, fargs[1] = name,
+	      fargs[2] = buffer, fargs[3] = host, fargs[4] = service;
+	    GCPRO1_VAR (proc, inner_gcpro);
+	    coding_systems = Ffind_operation_coding_system (5, fargs);
+	    UNGCPRO_VAR (inner_gcpro);
 	  }
 	if (CONSP (coding_systems))
 	  val = XCAR (coding_systems);
@@ -3769,11 +3513,11 @@ usage: (make-network-process &rest ARGS)  */)
 	      coding_systems = Qnil;
 	    else
 	      {
-		args[0] = Qopen_network_stream, args[1] = name,
-		  args[2] = buffer, args[3] = host, args[4] = service;
-		GCPRO1 (proc);
-		coding_systems = Ffind_operation_coding_system (5, args);
-		UNGCPRO;
+		fargs[0] = Qopen_network_stream, fargs[1] = name,
+		  fargs[2] = buffer, fargs[3] = host, fargs[4] = service;
+		GCPRO1_VAR (proc, inner_gcpro);
+		coding_systems = Ffind_operation_coding_system (5, fargs);
+		UNGCPRO_VAR (inner_gcpro);
 	      }
 	  }
 	if (CONSP (coding_systems))
@@ -3953,7 +3697,7 @@ FLAGS is the current flags of the interface.  */)
   CHECK_STRING (ifname);
 
   memset (rq.ifr_name, 0, sizeof rq.ifr_name);
-  strncpy (rq.ifr_name, SDATA (ifname), sizeof (rq.ifr_name));
+  strncpy (rq.ifr_name, SSDATA (ifname), sizeof (rq.ifr_name));
 
   s = socket (AF_INET, SOCK_STREAM, 0);
   if (s < 0)
@@ -3967,7 +3711,7 @@ FLAGS is the current flags of the interface.  */)
       const struct ifflag_def *fp;
       int fnum;
 
-      any++;
+      any = 1;
       for (fp = ifflag_table; flags != 0 && fp->flag_sym; fp++)
 	{
 	  if (flags & fp->flag_bit)
@@ -3995,7 +3739,7 @@ FLAGS is the current flags of the interface.  */)
       register struct Lisp_Vector *p = XVECTOR (hwaddr);
       int n;
 
-      any++;
+      any = 1;
       for (n = 0; n < 6; n++)
 	p->contents[n] = make_number (((unsigned char *)&rq.ifr_hwaddr.sa_data[0])[n]);
       elt = Fcons (make_number (rq.ifr_hwaddr.sa_family), hwaddr);
@@ -4007,7 +3751,7 @@ FLAGS is the current flags of the interface.  */)
 #if defined(SIOCGIFNETMASK) && (defined(HAVE_STRUCT_IFREQ_IFR_NETMASK) || defined(HAVE_STRUCT_IFREQ_IFR_ADDR))
   if (ioctl (s, SIOCGIFNETMASK, &rq) == 0)
     {
-      any++;
+      any = 1;
 #ifdef HAVE_STRUCT_IFREQ_IFR_NETMASK
       elt = conv_sockaddr_to_lisp (&rq.ifr_netmask, sizeof (rq.ifr_netmask));
 #else
@@ -4021,7 +3765,7 @@ FLAGS is the current flags of the interface.  */)
 #if defined(SIOCGIFBRDADDR) && defined(HAVE_STRUCT_IFREQ_IFR_BROADADDR)
   if (ioctl (s, SIOCGIFBRDADDR, &rq) == 0)
     {
-      any++;
+      any = 1;
       elt = conv_sockaddr_to_lisp (&rq.ifr_broadaddr, sizeof (rq.ifr_broadaddr));
     }
 #endif
@@ -4031,7 +3775,7 @@ FLAGS is the current flags of the interface.  */)
 #if defined(SIOCGIFADDR) && defined(HAVE_STRUCT_IFREQ_IFR_ADDR)
   if (ioctl (s, SIOCGIFADDR, &rq) == 0)
     {
-      any++;
+      any = 1;
       elt = conv_sockaddr_to_lisp (&rq.ifr_addr, sizeof (rq.ifr_addr));
     }
 #endif
@@ -4197,7 +3941,7 @@ server_accept_connection (Lisp_Object server, int channel)
     struct sockaddr_un un;
 #endif
   } saddr;
-  int len = sizeof saddr;
+  socklen_t len = sizeof saddr;
 
   s = accept (channel, &saddr.sa, &len);
 
@@ -4558,7 +4302,7 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 	      struct buffer *old_buffer = current_buffer;
 	      Lisp_Object old_window = selected_window;
 
-	      timer_delay = timer_check (1);
+	      timer_delay = timer_check ();
 
 	      /* If a timer has run, this might have changed buffers
 		 an alike.  Make read_key_sequence aware of that.  */
@@ -4933,8 +4677,6 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
             d->func (channel, d->data, 0);
           }
 
-      /* Really FIRST_PROC_DESC should be 0 on Unix,
-	 but this is safer in the short run.  */
       for (channel = 0; channel <= max_process_desc; channel++)
 	{
 	  if (FD_ISSET (channel, &Available)
@@ -5064,7 +4806,7 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 	      /* getsockopt(,,SO_ERROR,,) is said to hang on some systems.
 		 So only use it on systems where it is known to work.  */
 	      {
-		int xlen = sizeof (xerrno);
+		socklen_t xlen = sizeof (xerrno);
 		if (getsockopt (channel, SOL_SOCKET, SO_ERROR, &xerrno, &xlen))
 		  xerrno = errno;
 	      }
@@ -5133,9 +4875,9 @@ read_process_output_call (Lisp_Object fun_and_args)
 }
 
 static Lisp_Object
-read_process_output_error_handler (Lisp_Object error)
+read_process_output_error_handler (Lisp_Object error_val)
 {
-  cmd_error_internal (error, "error in process filter: ");
+  cmd_error_internal (error_val, "error in process filter: ");
   Vinhibit_quit = Qt;
   update_echo_area ();
   Fsleep_for (make_number (2), Qnil);
@@ -5156,7 +4898,7 @@ read_process_output_error_handler (Lisp_Object error)
 static int
 read_process_output (Lisp_Object proc, register int channel)
 {
-  register int nbytes;
+  register ssize_t nbytes;
   char *chars;
   register Lisp_Object outstream;
   register struct Lisp_Process *p = XPROCESS (proc);
@@ -5176,21 +4918,28 @@ read_process_output (Lisp_Object proc, register int channel)
   /* We have a working select, so proc_buffered_char is always -1.  */
   if (DATAGRAM_CHAN_P (channel))
     {
-      int len = datagram_address[channel].len;
+      socklen_t len = datagram_address[channel].len;
       nbytes = recvfrom (channel, chars + carryover, readmax,
 			 0, datagram_address[channel].sa, &len);
     }
   else
 #endif
-  if (proc_buffered_char[channel] < 0)
     {
+      int buffered = 0 <= proc_buffered_char[channel];
+      if (buffered)
+	{
+	  chars[carryover] = proc_buffered_char[channel];
+	  proc_buffered_char[channel] = -1;
+	}
 #ifdef HAVE_GNUTLS
       if (XPROCESS (proc)->gnutls_p)
 	nbytes = emacs_gnutls_read (channel, XPROCESS (proc),
-                                    chars + carryover, readmax);
+				    chars + carryover + buffered,
+				    readmax - buffered);
       else
 #endif
-	nbytes = emacs_read (channel, chars + carryover, readmax);
+	nbytes = emacs_read (channel, chars + carryover + buffered,
+			     readmax - buffered);
 #ifdef ADAPTIVE_READ_BUFFERING
       if (nbytes > 0 && p->adaptive_read_buffering)
 	{
@@ -5204,7 +4953,7 @@ read_process_output (Lisp_Object proc, register int channel)
 		  delay += READ_OUTPUT_DELAY_INCREMENT * 2;
 		}
 	    }
-	  else if (delay > 0 && (nbytes == readmax))
+	  else if (delay > 0 && nbytes == readmax - buffered)
 	    {
 	      delay -= READ_OUTPUT_DELAY_INCREMENT;
 	      if (delay == 0)
@@ -5218,22 +4967,8 @@ read_process_output (Lisp_Object proc, register int channel)
 	    }
 	}
 #endif
-    }
-  else
-    {
-      chars[carryover] = proc_buffered_char[channel];
-      proc_buffered_char[channel] = -1;
-#ifdef HAVE_GNUTLS
-      if (XPROCESS (proc)->gnutls_p)
-	nbytes = emacs_gnutls_read (channel, XPROCESS (proc),
-                                    chars + carryover + 1, readmax - 1);
-      else
-#endif
-	nbytes = emacs_read (channel, chars + carryover + 1,  readmax - 1);
-      if (nbytes < 0)
-	nbytes = 1;
-      else
-	nbytes = nbytes + 1;
+      nbytes += buffered;
+      nbytes += buffered && nbytes <= 0;
     }
 
   p->decoding_carryover = 0;
@@ -5260,15 +4995,17 @@ read_process_output (Lisp_Object proc, register int channel)
   outstream = p->filter;
   if (!NILP (outstream))
     {
-      Lisp_Object obuffer, okeymap;
       Lisp_Object text;
       int outer_running_asynch_code = running_asynch_code;
       int waiting = waiting_for_user_input_p;
 
       /* No need to gcpro these, because all we do with them later
 	 is test them for EQness, and none of them should be a string.  */
+#if 0
+      Lisp_Object obuffer, okeymap;
       XSETBUFFER (obuffer, current_buffer);
       okeymap = BVAR (current_buffer, keymap);
+#endif
 
       /* We inhibit quit here instead of just catching it so that
 	 hitting ^G when a filter happens to be running won't screw
@@ -5482,7 +5219,7 @@ read_process_output (Lisp_Object proc, register int channel)
 jmp_buf send_process_frame;
 Lisp_Object process_sent_to;
 
-SIGTYPE
+static void
 send_process_trap (int ignore)
 {
   SIGNAL_THREAD_CHECK (SIGPIPE);
@@ -5506,10 +5243,10 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
 {
   /* Use volatile to protect variables from being clobbered by longjmp.  */
   struct Lisp_Process *p = XPROCESS (proc);
-  EMACS_INT rv;
+  ssize_t rv;
   struct coding_system *coding;
   struct gcpro gcpro1;
-  SIGTYPE (*volatile old_sigpipe) (int);
+  void (*volatile old_sigpipe) (int);
 
   GCPRO1 (object);
 
@@ -5631,7 +5368,7 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
 	  while (this > 0)
 	    {
 	      int outfd = p->outfd;
-	      old_sigpipe = (SIGTYPE (*) (int)) signal (SIGPIPE, send_process_trap);
+	      old_sigpipe = (void (*) (int)) signal (SIGPIPE, send_process_trap);
 #ifdef DATAGRAM_SOCKETS
 	      if (DATAGRAM_CHAN_P (outfd))
 		{
@@ -5930,7 +5667,7 @@ process_send_signal (Lisp_Object process, int signo, Lisp_Object current_group,
 
       if (sig_char && *sig_char != CDISABLE)
 	{
-	  send_process (proc, sig_char, 1, Qnil);
+	  send_process (proc, (char *) sig_char, 1, Qnil);
 	  return;
 	}
       /* If we can't send the signal with a character,
@@ -6391,7 +6128,7 @@ process has been transmitted to the serial port.  */)
    indirectly; if it does, that is a bug  */
 
 #ifdef SIGCHLD
-SIGTYPE
+static void
 sigchld_handler (int signo)
 {
   int old_errno = errno;
@@ -6539,9 +6276,9 @@ exec_sentinel_unwind (Lisp_Object data)
 }
 
 static Lisp_Object
-exec_sentinel_error_handler (Lisp_Object error)
+exec_sentinel_error_handler (Lisp_Object error_val)
 {
-  cmd_error_internal (error, "error in process sentinel: ");
+  cmd_error_internal (error_val, "error in process sentinel: ");
   Vinhibit_quit = Qt;
   update_echo_area ();
   Fsleep_for (make_number (2), Qnil);
@@ -6551,7 +6288,7 @@ exec_sentinel_error_handler (Lisp_Object error)
 static void
 exec_sentinel (Lisp_Object proc, Lisp_Object reason)
 {
-  Lisp_Object sentinel, obuffer, odeactivate, okeymap;
+  Lisp_Object sentinel, odeactivate;
   register struct Lisp_Process *p = XPROCESS (proc);
   int count = SPECPDL_INDEX ();
   int outer_running_asynch_code = running_asynch_code;
@@ -6563,8 +6300,11 @@ exec_sentinel (Lisp_Object proc, Lisp_Object reason)
   /* No need to gcpro these, because all we do with them later
      is test them for EQness, and none of them should be a string.  */
   odeactivate = Vdeactivate_mark;
+#if 0
+  Lisp_Object obuffer, okeymap;
   XSETBUFFER (obuffer, current_buffer);
   okeymap = BVAR (current_buffer, keymap);
+#endif
 
   /* There's no good reason to let sentinels change the current
      buffer, and many callers of accept-process-output, sit-for, and
@@ -6958,7 +6698,7 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 	  do
 	    {
 	      int old_timers_run = timers_run;
-	      timer_delay = timer_check (1);
+	      timer_delay = timer_check ();
 	      if (timers_run != old_timers_run && do_display)
 		/* We must retry, since a timer may have requeued itself
 		   and that could alter the time delay.  */
@@ -7690,7 +7430,6 @@ The variable takes effect when `start-process' is called.  */);
   defsubr (&Sprocess_contact);
   defsubr (&Sprocess_plist);
   defsubr (&Sset_process_plist);
-  defsubr (&Slist_processes);
   defsubr (&Sprocess_list);
   defsubr (&Sstart_process);
   defsubr (&Sserial_process_configure);

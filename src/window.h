@@ -839,6 +839,7 @@ extern void freeze_window_starts (struct frame *, int);
 extern void grow_mini_window (struct window *, int);
 extern void shrink_mini_window (struct window *);
 extern int window_relative_x_coord (struct window *, enum window_part, int);
+extern void check_all_windows (void);
 
 void run_window_configuration_change_hook (struct frame *f);
 
@@ -848,14 +849,6 @@ void run_window_configuration_change_hook (struct frame *f);
 
 void set_window_buffer (Lisp_Object window, Lisp_Object buffer,
                         int run_hooks_p, int keep_margins_p);
-
-/* Prompt to display in front of the minibuffer contents.  */
-
-extern Lisp_Object minibuf_prompt;
-
-/* The visual width of the above.  */
-
-extern int minibuf_prompt_width;
 
 /* This is the window where the echo area message was displayed.  It
    is always a minibuffer window, but it may not be the same window
@@ -920,7 +913,6 @@ EXFUN (Fselected_window, 0);
 EXFUN (Fwindow_minibuffer_p, 1);
 EXFUN (Fwindow_buffer, 1);
 EXFUN (Fget_buffer_window, 2);
-EXFUN (Fsave_window_excursion, UNEVALLED);
 EXFUN (Fset_window_configuration, 1);
 EXFUN (Fcurrent_window_configuration, 1);
 extern int compare_window_configurations (Lisp_Object, Lisp_Object, int);
@@ -938,4 +930,3 @@ extern void syms_of_window (void);
 extern void keys_of_window (void);
 
 #endif /* not WINDOW_H_INCLUDED */
-

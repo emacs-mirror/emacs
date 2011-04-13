@@ -21,6 +21,13 @@ with a prefix argument or by typing C-u C-h C-n.
 crt*.o files, if they are in a non-standard location.  This is only
 used on x86-64 and s390x GNU/Linux architectures.
 
+** The MS-Windows build prefers libpng version 1.14 or later.
+Versions of libpng before 1.14 had security issues, so we now
+recommend to use version 1.14 or later.  Precompiled Windows binaries
+require version 1.14 or later.  See README.W32 and nt/INSTALL for
+details and pointers to URLs where the latest libpng can be
+downloaded.
+
 * Changes in Emacs 23.3
 
 ** The last-resort backup file `%backup%~' is now written to
@@ -129,7 +136,7 @@ starting from the first line of text below the header line.
 
 * Changes in Emacs 23.3 on non-free operating systems
 
-** The nextstep port can have different modifiers for the left and right
+** The NeXTstep port can have different modifiers for the left and right
 alt/option key by customizing the value for ns-right-alternate-modifier.
 
 
@@ -697,7 +704,7 @@ a GIF library.
 
 *** Emacs now supports multi-page TIFF images.
 
-** New NeXTSTEP-based port.
+** New NeXTstep-based port.
 This provides support for GNUstep (via the GNUstep libraries) and Mac
 OS X (via the Cocoa libraries).
 
@@ -707,7 +714,7 @@ other emacsen (e.g. X11 build) use --disable-ns-self-contained.  See
 nextstep/README and nextstep/INSTALL in the Emacs source directory.
 
 ** Mac OS X is no longer supported via Carbon.
-Use the NeXTSTEP port, described above.
+Use the NeXTstep port, described above.
 
 ** The new configuration option "--with-dbus" enables D-Bus language
 bindings for Emacs.
@@ -1746,7 +1753,7 @@ directories in which `ffap-rfc' will first search for RFCs.
 *** hide-ifdef-mode allows shadowing ifdef-blocks instead of hiding them.
 See option `hide-ifdef-shadow' and function `hide-ifdef-toggle-shadowing'.
 
-*** `icomplete-prospects-height' now supercedes `icomplete-prospects-length'.
+*** `icomplete-prospects-height' now supersedes `icomplete-prospects-length'.
 
 *** Info displays breadcrumbs in the header of the page.
 See Info-breadcrumbs-depth to control it.

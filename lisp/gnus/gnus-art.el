@@ -44,6 +44,7 @@
 (require 'wid-edit)
 (require 'mm-uu)
 (require 'message)
+(require 'mouse)
 
 (autoload 'gnus-msg-mail "gnus-msg" nil t)
 (autoload 'gnus-button-mailto "gnus-msg")
@@ -1253,6 +1254,24 @@ predicate.  See Info node `(gnus)Customizing Articles'."
   :link '(custom-manual "(gnus)Customizing Articles")
   :type gnus-article-treat-custom)
 
+(gnus-define-group-parameter
+ list-identifier
+ :variable-document
+ "Alist of regexps and correspondent identifiers."
+ :variable-group gnus-article-washing
+ :parameter-type
+ '(choice :tag "Identifier"
+	  :value nil
+	  (symbol :tag "Item in `gnus-list-identifiers'" none)
+	  regexp
+	  (const :tag "None" nil))
+ :parameter-document
+ "If non-nil, specify how to remove `identifiers' from articles' subject.
+
+Any symbol is used to look up a regular expression to match the
+banner in `gnus-list-identifiers'.  A string is used as a regular
+expression to match the identifier directly.")
+
 (make-obsolete-variable 'gnus-treat-strip-pgp nil
 			"Gnus 5.10 (Emacs 22.1)")
 
@@ -1725,9 +1744,10 @@ Initialized from `text-mode-syntax-table.")
 (put 'gnus-with-article-headers 'edebug-form-spec '(body))
 
 (defmacro gnus-with-article-buffer (&rest forms)
-  `(with-current-buffer gnus-article-buffer
-     (let ((inhibit-read-only t))
-       ,@forms)))
+  `(when (buffer-live-p (get-buffer gnus-article-buffer))
+     (with-current-buffer gnus-article-buffer
+       (let ((inhibit-read-only t))
+         ,@forms))))
 
 (put 'gnus-with-article-buffer 'lisp-indent-function 0)
 (put 'gnus-with-article-buffer 'edebug-form-spec '(body))
@@ -2318,10 +2338,12 @@ long lines if and only if arg is positive."
       (let ((start (point)))
 	(insert "X-Boundary: ")
 	(gnus-add-text-properties start (point) '(invisible t intangible t))
-	(insert (let (str)
-		  (while (>= (window-width) (length str))
+       (insert (let (str (max (window-width)))
+                 (if (featurep 'xemacs)
+                     (setq max (1- max)))
+                 (while (>= max (length str))
 		    (setq str (concat str gnus-body-boundary-delimiter)))
-		  (substring str 0 (window-width)))
+                 (substring str 0 max))
 		"\n")
 	(gnus-put-text-property start (point) 'gnus-decoration 'header)))))
 
@@ -2789,14 +2811,11 @@ Return file name."
 	   ((equal (concat "<" cid ">") (mm-handle-id handle))
 	    (setq file
 		  (expand-file-name
-		   (or (mail-content-type-get
-			(mm-handle-disposition handle) 'filename)
-		       (mail-content-type-get
-			(setq type (mm-handle-type handle)) 'name)
-		       (concat
-			(make-temp-name "cid")
-			(car (rassoc (car type) mailcap-mime-extensions))))
-		   directory))
+                   (or (mm-handle-filename handle)
+                       (concat
+                        (make-temp-name "cid")
+                        (car (rassoc (car (mm-handle-type handle)) mailcap-mime-extensions))))
+                   directory))
 	    (mm-save-part-to-file handle file)
 	    (throw 'found file))))))))
 
@@ -2813,10 +2832,7 @@ message header will be added to the bodies of the \"text/html\" parts."
 	    ((or (equal (car (setq type (mm-handle-type handle))) "text/html")
 		 (and (equal (car type) "message/external-body")
 		      (or header
-			  (setq file (or (mail-content-type-get type 'name)
-					 (mail-content-type-get
-					  (mm-handle-disposition handle)
-					  'filename))))
+			  (setq file (mm-handle-filename handle)))
 		      (or (mm-handle-cache handle)
 			  (condition-case code
 			      (progn (mm-extern-cache-contents handle) t)
@@ -3055,10 +3071,8 @@ images if any to the browser, and deletes them when exiting the group
 The `gnus-list-identifiers' variable specifies what to do."
   (interactive)
   (let ((inhibit-point-motion-hooks t)
-	(regexp (if (consp gnus-list-identifiers)
-		    (mapconcat 'identity gnus-list-identifiers " *\\|")
-		  gnus-list-identifiers))
-	(inhibit-read-only t))
+        (regexp (gnus-group-get-list-identifiers gnus-newsgroup-name))
+        (inhibit-read-only t))
     (when regexp
       (save-excursion
 	(save-restriction
@@ -3393,7 +3407,11 @@ lines forward."
 	(setq ended t)))))
 
 (defun article-treat-date ()
-  (article-date-ut gnus-article-date-headers t))
+  (article-date-ut (if (gnus-buffer-live-p gnus-summary-buffer)
+		       (with-current-buffer gnus-summary-buffer
+			 gnus-article-date-headers)
+		     gnus-article-date-headers)
+		   t))
 
 (defun article-date-ut (&optional type highlight date-position)
   "Convert DATE date to TYPE in the current article.
@@ -5023,14 +5041,11 @@ Deleting parts may malfunction or destroy the article; continue? "))
     (let* ((data (get-text-property (point) 'gnus-data))
 	   (id (get-text-property (point) 'gnus-part))
 	   (handles gnus-article-mime-handles)
-	   (none "(none)")
 	   (description
 	    (let ((desc (mm-handle-description data)))
 	      (when desc
 		(mail-decode-encoded-word-string desc))))
-	   (filename
-	    (or (mail-content-type-get (mm-handle-disposition data) 'filename)
-		none))
+	   (filename (or (mm-handle-filename (mm-handle-disposition data)) "(none)"))
 	   (type (mm-handle-media-type data)))
       (unless data
 	(error "No MIME part under point"))
@@ -5148,10 +5163,7 @@ are decompressed."
   (unless handle
     (setq handle (get-text-property (point) 'gnus-data)))
   (when handle
-    (let ((filename (or (mail-content-type-get (mm-handle-type handle)
-					       'name)
-			(mail-content-type-get (mm-handle-disposition handle)
-					       'filename)))
+    (let ((filename (mm-handle-filename handle))
 	  contents dont-decode charset coding-system)
       (mm-with-unibyte-buffer
 	(mm-insert-part handle)
@@ -5241,12 +5253,7 @@ Compressed files like .gz and .bz2 are decompressed."
 	(mm-with-unibyte-buffer
 	  (mm-insert-part handle)
 	  (setq contents
-		(or (mm-decompress-buffer
-		     (or (mail-content-type-get (mm-handle-type handle)
-						'name)
-			 (mail-content-type-get (mm-handle-disposition handle)
-						'filename))
-		     nil t)
+		(or (mm-decompress-buffer (mm-handle-filename handle) nil t)
 		    (buffer-string))))
 	(cond
 	 ((not arg)
@@ -5651,8 +5658,7 @@ all parts."
 
 (defun gnus-insert-mime-button (handle gnus-tmp-id &optional displayed)
   (let ((gnus-tmp-name
-	 (or (mail-content-type-get (mm-handle-type handle) 'name)
-	     (mail-content-type-get (mm-handle-disposition handle) 'filename)
+	 (or (mm-handle-filename handle)
 	     (mail-content-type-get (mm-handle-type handle) 'url)
 	     ""))
 	(gnus-tmp-type (mm-handle-media-type handle))

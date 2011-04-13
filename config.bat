@@ -156,9 +156,9 @@ rm -f epaths.tmp
 
 rem   Create "config.h"
 rm -f config.h2 config.tmp
-sed -e '' config.in > config.tmp
+sed -e '' ../autogen/config.in > config.tmp
 if "%X11%" == "" goto src4
-sed -f ../msdos/sed2x.inp <config.in >config.tmp
+sed -f ../msdos/sed2x.inp < ..\autogen\config.in > config.tmp
 :src4
 sed -f ../msdos/sed2v2.inp <config.tmp >config.h2
 Rem See if DECL_ALIGN can be supported with this GCC
@@ -280,17 +280,21 @@ cd lib
 Rem Rename files like djtar on plain DOS filesystem would.
 If Exist c++defs.h update c++defs.h cxxdefs.h
 If Exist getopt.in.h update getopt.in.h getopt.in-h
-If Exist stddef.in.h update stddef.in.h  stddef.in-h
 If Exist stdbool.in.h update stdbool.in.h stdbool.in-h
+If Exist stddef.in.h update stddef.in.h  stddef.in-h
+If Exist stdint.in.h update stdint.in.h  stdint.in-h
+If Exist stdio.in.h update stdio.in.h stdio.in-h
 If Exist stdlib.in.h update stdlib.in.h stdlib.in-h
+If Exist sys_stat.in.h update sys_stat.in.h sys_stat.in-h
 If Exist time.in.h update time.in.h time.in-h
 If Exist unistd.in.h update unistd.in.h unistd.in-h
-sed -f ../msdos/sedlibcf.inp < Makefile.in > makefile.tmp
+sed -f ../msdos/sedlibcf.inp < ..\autogen\Makefile.in > makefile.tmp
 sed -f ../msdos/sedlibmk.inp < makefile.tmp > Makefile
 rm -f makefile.tmp
+Rem Create .Po files for new files in lib/
 If Not Exist deps\stamp mkdir deps
-If Not Exist deps\stamp for %%f in (*.c) do @call ..\msdos\depfiles.bat %%f
-If Not Exist deps\stamp echo deps-stamp > deps\stamp
+for %%f in (*.c) do @call ..\msdos\depfiles.bat %%f
+echo deps-stamp > deps\stamp
 cd ..
 rem   ----------------------------------------------------------------------
 Echo Configuring the lisp directory...

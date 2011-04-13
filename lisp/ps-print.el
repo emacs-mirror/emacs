@@ -6645,7 +6645,8 @@ If FACE is not a valid face name, use default face."
 	 (error "Unprinted PostScript"))))
 
 (cond ((fboundp 'add-hook)
-       (funcall 'add-hook 'kill-emacs-hook 'ps-kill-emacs-check))
+       (unless noninteractive
+         (funcall 'add-hook 'kill-emacs-hook 'ps-kill-emacs-check)))
       (kill-emacs-hook
        (message "Won't override existing `kill-emacs-hook'"))
       (t

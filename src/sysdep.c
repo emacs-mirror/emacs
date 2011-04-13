@@ -31,6 +31,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif /* HAVE_LIMITS_H */
 #include <unistd.h>
 
+#include <allocator.h>
+#include <careadlinkat.h>
 #include <ignore-value.h>
 
 #include "lisp.h"
@@ -292,10 +294,6 @@ init_baud_rate (int fd)
 int wait_debugging;   /* Set nonzero to make following function work under dbx
 			 (at least for bsd).  */
 
-SIGTYPE
-wait_for_termination_signal (void)
-{}
-
 #ifndef MSDOS
 /* Wait for subprocess with process id `pid' to terminate and
    make sure it will get eliminated (not remain forever as a zombie) */
@@ -453,7 +451,7 @@ child_setup_tty (int out)
 struct save_signal
 {
   int code;
-  SIGTYPE (*handler) (int);
+  void (*handler) (int);
 };
 
 static void save_signal_handlers (struct save_signal *);
@@ -492,7 +490,8 @@ sys_subshell (void)
   int pid;
   struct save_signal saved_handlers[5];
   Lisp_Object dir;
-  unsigned char *str = 0;
+  unsigned char *volatile str_volatile = 0;
+  unsigned char *str;
   int len;
 
   saved_handlers[0].code = SIGINT;
@@ -516,7 +515,7 @@ sys_subshell (void)
     goto xyzzy;
 
   dir = expand_and_dir_to_file (Funhandled_file_name_directory (dir), Qnil);
-  str = (unsigned char *) alloca (SCHARS (dir) + 2);
+  str_volatile = str = (unsigned char *) alloca (SCHARS (dir) + 2);
   len = SCHARS (dir);
   memcpy (str, SDATA (dir), len);
   if (str[len - 1] != '/') str[len++] = '/';
@@ -548,6 +547,7 @@ sys_subshell (void)
 	sh = "sh";
 
       /* Use our buffer's default directory for the subshell.  */
+      str = str_volatile;
       if (str && chdir ((char *) str) != 0)
 	{
 #ifndef DOS_NT
@@ -610,7 +610,7 @@ save_signal_handlers (struct save_signal *saved_handlers)
   while (saved_handlers->code)
     {
       saved_handlers->handler
-        = (SIGTYPE (*) (int)) signal (saved_handlers->code, SIG_IGN);
+        = (void (*) (int)) signal (saved_handlers->code, SIG_IGN);
       saved_handlers++;
     }
 }
@@ -632,7 +632,7 @@ init_sigio (int fd)
 {
 }
 
-void
+static void
 reset_sigio (int fd)
 {
 }
@@ -662,7 +662,7 @@ init_sigio (int fd)
   interrupts_deferred = 0;
 }
 
-void
+static void
 reset_sigio (int fd)
 {
 #ifdef FASYNC
@@ -1825,10 +1825,18 @@ emacs_close (int fd)
   return rtnval;
 }
 
-int
-emacs_read (int fildes, char *buf, unsigned int nbyte)
+ssize_t
+emacs_read (int fildes, char *buf, size_t nbyte)
 {
-  register int rtnval;
+  register ssize_t rtnval;
+
+  /* Defend against the possibility that a buggy caller passes a negative NBYTE
+     argument, which would be converted to a large unsigned size_t NBYTE.  This
+     defense prevents callers from doing large writes, unfortunately.  This
+     size restriction can be removed once we have carefully checked that there
+     are no such callers.  */
+  if ((ssize_t) nbyte < 0)
+    abort ();
 
   while ((rtnval = read (fildes, buf, nbyte)) == -1
 	 && (errno == EINTR))
@@ -1836,14 +1844,18 @@ emacs_read (int fildes, char *buf, unsigned int nbyte)
   return (rtnval);
 }
 
-int
-emacs_write (int fildes, const char *buf, unsigned int nbyte)
+ssize_t
+emacs_write (int fildes, const char *buf, size_t nbyte)
 {
-  register int rtnval, bytes_written;
+  register ssize_t rtnval, bytes_written;
+
+  /* Defend against negative NBYTE, as in emacs_read.  */
+  if ((ssize_t) nbyte < 0)
+    abort ();
 
   bytes_written = 0;
 
-  while (nbyte > 0)
+  while (nbyte != 0)
     {
       rtnval = write (fildes, buf, nbyte);
 
@@ -1868,6 +1880,22 @@ emacs_write (int fildes, const char *buf, unsigned int nbyte)
     }
   return (bytes_written);
 }
+
+static struct allocator const emacs_norealloc_allocator =
+  { xmalloc, NULL, xfree, memory_full };
+
+/* Get the symbolic link value of FILENAME.  Return a pointer to a
+   NUL-terminated string.  If readlink fails, return NULL and set
+   errno.  If the value fits in INITIAL_BUF, return INITIAL_BUF.
+   Otherwise, allocate memory and return a pointer to that memory.  If
+   memory allocation fails, diagnose and fail without returning.  If
+   successful, store the length of the symbolic link into *LINKLEN.  */
+char *
+emacs_readlink (char const *filename, char initial_buf[READLINK_BUFSIZE])
+{
+  return careadlinkat (AT_FDCWD, filename, initial_buf, READLINK_BUFSIZE,
+		       &emacs_norealloc_allocator, careadlinkatcwd);
+}
 
 #ifdef USG
 /*
@@ -1890,12 +1918,12 @@ emacs_write (int fildes, const char *buf, unsigned int nbyte)
  *	under error conditions.
  */
 
+#ifndef HAVE_GETWD
+
 #ifndef MAXPATHLEN
 /* In 4.1, param.h fails to define this.  */
 #define MAXPATHLEN 1024
 #endif
-
-#ifndef HAVE_GETWD
 
 char *
 getwd (char *pathname)
@@ -2345,7 +2373,8 @@ serial_configure (struct Lisp_Process *p,
   CHECK_NUMBER (tem);
   err = cfsetspeed (&attr, XINT (tem));
   if (err != 0)
-    error ("cfsetspeed(%d) failed: %s", XINT (tem), emacs_strerror (errno));
+    error ("cfsetspeed(%"pEd") failed: %s", XINT (tem),
+	   emacs_strerror (errno));
   childp2 = Fplist_put (childp2, QCspeed, tem);
 
   /* Configure bytesize.  */
@@ -2671,8 +2700,8 @@ system_process_attributes (Lisp_Object pid)
   size_t cmdsize = 0, cmdline_size;
   unsigned char c;
   int proc_id, ppid, uid, gid, pgrp, sess, tty, tpgid, thcount;
-  unsigned long long utime, stime, cutime, cstime, start;
-  long priority, nice, rss;
+  unsigned long long u_time, s_time, cutime, cstime, start;
+  long priority, niceness, rss;
   unsigned long minflt, majflt, cminflt, cmajflt, vsize;
   time_t sec;
   unsigned usec;
@@ -2752,8 +2781,8 @@ system_process_attributes (Lisp_Object pid)
 	  sscanf (p, "%c %d %d %d %d %d %*u %lu %lu %lu %lu %Lu %Lu %Lu %Lu %ld %ld %d %*d %Lu %lu %ld",
 		  &c, &ppid, &pgrp, &sess, &tty, &tpgid,
 		  &minflt, &cminflt, &majflt, &cmajflt,
-		  &utime, &stime, &cutime, &cstime,
-		  &priority, &nice, &thcount, &start, &vsize, &rss);
+		  &u_time, &s_time, &cutime, &cstime,
+		  &priority, &niceness, &thcount, &start, &vsize, &rss);
 	  {
 	    char state_str[2];
 
@@ -2781,13 +2810,14 @@ system_process_attributes (Lisp_Object pid)
 	  if (clocks_per_sec < 0)
 	    clocks_per_sec = 100;
 	  attrs = Fcons (Fcons (Qutime,
-				ltime_from_jiffies (utime, clocks_per_sec)),
+				ltime_from_jiffies (u_time, clocks_per_sec)),
 			 attrs);
 	  attrs = Fcons (Fcons (Qstime,
-				ltime_from_jiffies (stime, clocks_per_sec)),
+				ltime_from_jiffies (s_time, clocks_per_sec)),
 			 attrs);
 	  attrs = Fcons (Fcons (Qtime,
-				ltime_from_jiffies (stime+utime, clocks_per_sec)),
+				ltime_from_jiffies (s_time + u_time,
+						    clocks_per_sec)),
 			 attrs);
 	  attrs = Fcons (Fcons (Qcutime,
 				ltime_from_jiffies (cutime, clocks_per_sec)),
@@ -2799,7 +2829,7 @@ system_process_attributes (Lisp_Object pid)
 				ltime_from_jiffies (cstime+cutime, clocks_per_sec)),
 			 attrs);
 	  attrs = Fcons (Fcons (Qpri, make_number (priority)), attrs);
-	  attrs = Fcons (Fcons (Qnice, make_number (nice)), attrs);
+	  attrs = Fcons (Fcons (Qnice, make_number (niceness)), attrs);
 	  attrs = Fcons (Fcons (Qthcount, make_fixnum_or_float (thcount_eint)), attrs);
 	  EMACS_GET_TIME (tnow);
 	  get_up_time (&sec, &usec);
@@ -2829,7 +2859,7 @@ system_process_attributes (Lisp_Object pid)
 				       make_number
 				       (EMACS_USECS (telapsed)))),
 			 attrs);
-	  time_from_jiffies (utime + stime, clocks_per_sec, &sec, &usec);
+	  time_from_jiffies (u_time + s_time, clocks_per_sec, &sec, &usec);
 	  pcpu = (sec + usec / 1000000.0) / (EMACS_SECS (telapsed) + EMACS_USECS (telapsed) / 1000000.0);
 	  if (pcpu > 1.0)
 	    pcpu = 1.0;
@@ -2848,8 +2878,10 @@ system_process_attributes (Lisp_Object pid)
   fd = emacs_open (fn, O_RDONLY, 0);
   if (fd >= 0)
     {
-      for (cmdline_size = 0; emacs_read (fd, &c, 1) == 1; cmdline_size++)
+      char ch;
+      for (cmdline_size = 0; emacs_read (fd, &ch, 1) == 1; cmdline_size++)
 	{
+	  c = ch;
 	  if (isspace (c) || c == '\\')
 	    cmdline_size++;	/* for later quoting, see below */
 	}

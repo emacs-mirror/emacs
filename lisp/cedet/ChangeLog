@@ -1,3 +1,12 @@
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
+2011-02-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* semantic/wisent/comp.el (wisent-byte-compile-grammar):
+	Macroexpand before passing to byte-compile-form.
+
 2011-01-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* srecode/srt-mode.el (srecode-template-mode): Use define-derived-mode.

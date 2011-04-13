@@ -296,7 +296,7 @@ local definitions."
 
 (define-overloadable-function semantic-format-tag-canonical-name (tag &optional parent color)
   "Return a canonical name for TAG.
-A canonical name includes the names of any parents or namespaces preceeding
+A canonical name includes the names of any parents or namespaces preceding
 the tag.
 Optional argument PARENT is the parent type if TAG is a detail.
 Optional argument COLOR means highlight the prototype with font-lock colors.")

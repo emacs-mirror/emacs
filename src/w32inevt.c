@@ -40,18 +40,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "w32heap.h"
 #include "w32term.h"
 
-/* stdin, from ntterm */
+/* stdin, from w32console.c */
 extern HANDLE keyboard_handle;
 
 /* Info for last mouse motion */
 static COORD movement_pos;
 static DWORD movement_time;
 
-/* from keyboard.c */
-extern void reinvoke_input_signal (void);
-
+/* from w32fns.c */
 extern unsigned int map_keypad_keys (unsigned int, unsigned int);
-
 extern unsigned int w32_key_to_modifier (int key);
 
 /* Event queue */
@@ -260,8 +257,6 @@ w32_kbd_patch_key (KEY_EVENT_RECORD *event)
   return isdead;
 }
 
-
-extern const char *const lispy_function_keys[];
 
 static int faked_key = 0;
 
@@ -682,7 +677,6 @@ w32_console_read_socket (struct terminal *terminal,
                          int expected,
                          struct input_event *hold_quit)
 {
-  BOOL no_events = TRUE;
   int nev, ret = 0, add;
   int isdead;
 

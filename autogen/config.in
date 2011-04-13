@@ -285,6 +285,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `grantpt' function. */
 #undef HAVE_GRANTPT
 
+/* Define to 1 if using GTK 3 or later. */
+#undef HAVE_GTK3
+
 /* Define to 1 if you have the `gtk_adjustment_get_page_size' function. */
 #undef HAVE_GTK_ADJUSTMENT_GET_PAGE_SIZE
 
@@ -576,6 +579,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `random' function. */
 #undef HAVE_RANDOM
 
+/* Define to 1 if you have the `readlink' function. */
+#undef HAVE_READLINK
+
+/* Define to 1 if you have the `readlinkat' function. */
+#undef HAVE_READLINKAT
+
 /* Define to 1 if you have the `recvfrom' function. */
 #undef HAVE_RECVFROM
 
@@ -695,6 +704,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define if struct stat has an st_dm_mode member. */
 #undef HAVE_ST_DM_MODE
+
+/* Define to 1 if you have the `symlink' function. */
+#undef HAVE_SYMLINK
 
 /* Define to 1 if you have the `sync' function. */
 #undef HAVE_SYNC
@@ -824,6 +836,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if `vfork' works. */
 #undef HAVE_WORKING_VFORK
 
+/* Define to 1 if you have the <ws2tcpip.h> header file. */
+#undef HAVE_WS2TCPIP_H
+
 /* Define to 1 if you want to use version 11 of X windows. Otherwise, Emacs
    expects to use version 10. */
 #undef HAVE_X11
@@ -897,6 +912,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if localtime caches TZ. */
 #undef LOCALTIME_CACHE
 
+/* Define to 1 if `lstat' dereferences a symlink specified with a trailing
+   slash. */
+#undef LSTAT_FOLLOWS_SLASHED_SYMLINK
+
 /* String giving fallback POP mail host. */
 #undef MAILHOST
 
@@ -968,12 +987,20 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    'ptrdiff_t'. */
 #undef PTRDIFF_T_SUFFIX
 
+/* Define to 1 if readlink fails to recognize a trailing slash. */
+#undef READLINK_TRAILING_SLASH_BUG
+
 /* Define REL_ALLOC if you want to use the relocating allocator for buffer
    space. */
 #undef REL_ALLOC
 
-/* Define as the return type of signal handlers (`int' or `void'). */
-#undef RETSIGTYPE
+/* Define to 1 if stat needs help when passed a directory name with a trailing
+   slash */
+#undef REPLACE_FUNC_STAT_DIR
+
+/* Define to 1 if stat needs help when passed a file name with a trailing
+   slash */
+#undef REPLACE_FUNC_STAT_FILE
 
 /* Define to l, ll, u, ul, ull, etc., as suitable for constants of type
    'sig_atomic_t'. */
@@ -1182,8 +1209,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 # define __restrict__
 #endif
 
-/* Define to `unsigned int' if <sys/types.h> does not define. */
-#undef size_t
+/* type to use in place of socklen_t if not defined */
+#undef socklen_t
+
+/* Define as a signed type of the same size as size_t. */
+#undef ssize_t
 
 /* Define to any substitute for sys_siglist. */
 #undef sys_siglist
@@ -1245,11 +1275,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    exactly since GNUstep is multi-OS.  */
 #if defined HAVE_NS && defined NS_IMPL_GNUSTEP
 #  define SYSTEM_PURESIZE_EXTRA 30000
-#endif
-
-/* SIGTYPE is the macro we actually use.  */
-#ifndef SIGTYPE
-#define SIGTYPE RETSIGTYPE
 #endif
 
 #ifdef emacs /* Don't do this for lib-src.  */
@@ -1341,6 +1366,20 @@ typedef unsigned size_t;
 #define EXTERNALLY_VISIBLE __attribute__((externally_visible))
 #else
 #define EXTERNALLY_VISIBLE
+#endif
+
+#if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 7)
+# define ATTRIBUTE_FORMAT(spec) __attribute__ ((__format__ spec))
+#else
+# define ATTRIBUTE_FORMAT(spec) /* empty */
+#endif
+
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 4)
+# define ATTRIBUTE_FORMAT_PRINTF(formatstring_parameter, first_argument) \
+   ATTRIBUTE_FORMAT ((__gnu_printf__, formatstring_parameter, first_argument))
+#else
+# define ATTRIBUTE_FORMAT_PRINTF(formatstring_parameter, first_argument) \
+   ATTRIBUTE_FORMAT ((__printf__, formatstring_parameter, first_argument))
 #endif
 
 /* Some versions of GNU/Linux define noinline in their headers.  */

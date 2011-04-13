@@ -858,7 +858,17 @@ whose documentation describes the minor mode."
             (let ((start (point)))
               (insert (format-mode-line mode nil nil buffer))
               (add-text-properties start (point) '(face bold)))))
-	(princ " mode:\n")
+	(princ " mode")
+	(let* ((mode major-mode)
+	       (file-name (find-lisp-object-file-name mode nil)))
+	  (when file-name
+	    (princ (concat " defined in `" (file-name-nondirectory file-name) "'"))
+	    ;; Make a hyperlink to the library.
+	    (with-current-buffer standard-output
+	      (save-excursion
+		(re-search-backward "`\\([^`']+\\)'" nil t)
+		(help-xref-button 1 'help-function-def mode file-name)))))
+	(princ ":\n")
 	(princ (documentation major-mode)))))
   ;; For the sake of IELM and maybe others
   nil)
@@ -1125,6 +1135,15 @@ variable `temp-buffer-show-specifiers' to an appropriate value."
 	 (with-output-to-temp-buffer ,buffer-name
 	   (progn ,@body))
        (when display-buffer-window (help-window-setup)))))
+
+;; Called from C, on encountering `help-char' when reading a char.
+;; Don't print to *Help*; that would clobber Help history.
+(defun help-form-show ()
+  "Display the output of a non-nil `help-form'."
+  (let ((msg (eval help-form)))
+    (if (stringp msg)
+	(with-output-to-temp-buffer " *Char Help*"
+	  (princ msg)))))
 
 (provide 'help)
 

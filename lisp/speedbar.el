@@ -1622,7 +1622,7 @@ Files can be renamed to new names or moved to new directories."
   (let ((f (speedbar-line-file)))
     (if f
 	(let* ((basedir (file-name-directory f))
-	       (nd (read-file-name "Create directory: "
+	       (nd (read-directory-name "Create directory: "
 				   basedir)))
 	  ;; Make the directory
 	  (make-directory nd t)

@@ -297,16 +297,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define DIM(VECTOR) (sizeof (VECTOR) / sizeof *(VECTOR))
 
-/* Make a copy of string S on the stack using alloca.  Value is a pointer
-   to the copy.  */
-
-#define STRDUPA(S) strcpy ((char *) alloca (strlen ((S)) + 1), (S))
-
-/* Make a copy of the contents of Lisp string S on the stack using
-   alloca.  Value is a pointer to the copy.  */
-
-#define LSTRDUPA(S) STRDUPA (SDATA ((S)))
-
 /* Size of hash table of realized faces in face caches (should be a
    prime number).  */
 
@@ -847,7 +837,6 @@ clear_face_cache (int clear_fonts_p)
 {
 #ifdef HAVE_WINDOW_SYSTEM
   Lisp_Object tail, frame;
-  struct frame *f;
 
   if (clear_fonts_p
       || ++clear_font_table_count == CLEAR_FONT_TABLE_COUNT)
@@ -875,7 +864,7 @@ clear_face_cache (int clear_fonts_p)
       /* Clear GCs of realized faces.  */
       FOR_EACH_FRAME (tail, frame)
 	{
-	  f = XFRAME (frame);
+	  struct frame *f = XFRAME (frame);
 	  if (FRAME_WINDOW_P (f))
 	      clear_face_gcs (FRAME_FACE_CACHE (f));
 	}
@@ -1113,7 +1102,7 @@ tty_lookup_color (struct frame *f, Lisp_Object color, XColor *tty_color, XColor 
 
 /* A version of defined_color for non-X frames.  */
 
-int
+static int
 tty_defined_color (struct frame *f, const char *color_name,
 		   XColor *color_def, int alloc)
 {
@@ -1721,7 +1710,7 @@ the WIDTH times as wide as FACE on FRAME.  */)
   (Lisp_Object pattern, Lisp_Object face, Lisp_Object frame, Lisp_Object maximum, Lisp_Object width)
 {
   struct frame *f;
-  int size, avgwidth;
+  int size, avgwidth IF_LINT (= 0);
 
   check_x ();
   CHECK_STRING (pattern);
@@ -1754,14 +1743,14 @@ the WIDTH times as wide as FACE on FRAME.  */)
       /* This is of limited utility since it works with character
 	 widths.  Keep it for compatibility.  --gerd.  */
       int face_id = lookup_named_face (f, face, 0);
-      struct face *face = (face_id < 0
-			   ? NULL
-			   : FACE_FROM_ID (f, face_id));
+      struct face *width_face = (face_id < 0
+				 ? NULL
+				 : FACE_FROM_ID (f, face_id));
 
-      if (face && face->font)
+      if (width_face && width_face->font)
 	{
-	  size = face->font->pixel_size;
-	  avgwidth = face->font->average_width;
+	  size = width_face->font->pixel_size;
+	  avgwidth = width_face->font->average_width;
 	}
       else
 	{
@@ -1838,6 +1827,7 @@ the WIDTH times as wide as FACE on FRAME.  */)
 #define LFACE_INHERIT(LFACE)	    AREF ((LFACE), LFACE_INHERIT_INDEX)
 #define LFACE_FONTSET(LFACE)	    AREF ((LFACE), LFACE_FONTSET_INDEX)
 
+#if XASSERTS
 /* Non-zero if LFACE is a Lisp face.  A Lisp face is a vector of size
    LFACE_VECTOR_SIZE which has the symbol `face' in slot 0.  */
 
@@ -1845,6 +1835,7 @@ the WIDTH times as wide as FACE on FRAME.  */)
      (VECTORP (LFACE)					\
       && XVECTOR (LFACE)->size == LFACE_VECTOR_SIZE	\
       && EQ (AREF (LFACE, 0), Qface))
+#endif
 
 
 #if GLYPH_DEBUG
@@ -2252,7 +2243,7 @@ set_lface_from_font (struct frame *f, Lisp_Object lface, Lisp_Object font_object
    `relative' heights; the returned value is always an absolute height
    unless both FROM and TO are relative.  */
 
-Lisp_Object
+static Lisp_Object
 merge_face_heights (Lisp_Object from, Lisp_Object to, Lisp_Object invalid)
 {
   Lisp_Object result = invalid;
@@ -3869,19 +3860,19 @@ return the font name used for CHARACTER.  */)
     {
       struct frame *f = frame_or_selected_frame (frame, 1);
       int face_id = lookup_named_face (f, face, 1);
-      struct face *face = FACE_FROM_ID (f, face_id);
+      struct face *fface = FACE_FROM_ID (f, face_id);
 
-      if (! face)
+      if (! fface)
 	return Qnil;
 #ifdef HAVE_WINDOW_SYSTEM
       if (FRAME_WINDOW_P (f) && !NILP (character))
 	{
 	  CHECK_CHARACTER (character);
-	  face_id = FACE_FOR_CHAR (f, face, XINT (character), -1, Qnil);
-	  face = FACE_FROM_ID (f, face_id);
+	  face_id = FACE_FOR_CHAR (f, fface, XINT (character), -1, Qnil);
+	  fface = FACE_FROM_ID (f, face_id);
 	}
-      return (face->font
-	      ? face->font->props[FONT_NAME_INDEX]
+      return (fface->font
+	      ? fface->font->props[FONT_NAME_INDEX]
 	      : Qnil);
 #else  /* !HAVE_WINDOW_SYSTEM */
       return build_string (FRAME_MSDOS_P (f)
@@ -4310,45 +4301,6 @@ free_realized_faces (struct face_cache *c)
 
       UNBLOCK_INPUT;
     }
-}
-
-
-/* Free all realized faces that are using FONTSET on frame F.  */
-
-void
-free_realized_faces_for_fontset (struct frame *f, int fontset)
-{
-  struct face_cache *cache = FRAME_FACE_CACHE (f);
-  struct face *face;
-  int i;
-
-  /* We must block input here because we can't process X events safely
-     while only some faces are freed, or when the frame's current
-     matrix still references freed faces.  */
-  BLOCK_INPUT;
-
-  for (i = 0; i < cache->used; i++)
-    {
-      face = cache->faces_by_id[i];
-      if (face
-	  && face->fontset == fontset)
-	{
-	  uncache_face (cache, face);
-	  free_realized_face (f, face);
-	}
-    }
-
-  /* Must do a thorough redisplay the next time.  Mark current
-     matrices as invalid because they will reference faces freed
-     above.  This function is also called when a frame is destroyed.
-     In this case, the root window of F is nil.  */
-  if (WINDOWP (f->root_window))
-    {
-      clear_current_matrices (f);
-      ++windows_or_buffers_changed;
-    }
-
-  UNBLOCK_INPUT;
 }
 
 
@@ -5287,10 +5239,6 @@ be found.  Value is ALIST.  */)
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-/* Ignore the difference of font point size less than this value.  */
-
-#define FONT_POINT_SIZE_QUANTUM 5
-
 /* Return the fontset id of the base fontset name or alias name given
    by the fontset attribute of ATTRS.  Value is -1 if the fontset
    attribute of ATTRS doesn't name a fontset.  */
@@ -5496,7 +5444,6 @@ realize_named_face (struct frame *f, Lisp_Object symbol, int id)
   Lisp_Object lface = lface_from_face_name (f, symbol, 0);
   Lisp_Object attrs[LFACE_VECTOR_SIZE];
   Lisp_Object symbol_attrs[LFACE_VECTOR_SIZE];
-  struct face *new_face;
 
   /* The default face must exist and be fully specified.  */
   get_lface_attributes_no_remap (f, Qdefault, attrs, 1);
@@ -5516,7 +5463,7 @@ realize_named_face (struct frame *f, Lisp_Object symbol, int id)
   merge_face_vectors (f, symbol_attrs, attrs, 0);
 
   /* Realize the face.  */
-  new_face = realize_face (c, attrs, id);
+  realize_face (c, attrs, id);
 }
 
 
@@ -5813,20 +5760,15 @@ map_tty_color (struct frame *f, struct face *face, enum lface_attribute_index id
 {
   Lisp_Object frame, color, def;
   int foreground_p = idx == LFACE_FOREGROUND_INDEX;
-  unsigned long default_pixel, default_other_pixel, pixel;
+  unsigned long default_pixel =
+    foreground_p ? FACE_TTY_DEFAULT_FG_COLOR : FACE_TTY_DEFAULT_BG_COLOR;
+  unsigned long pixel = default_pixel;
+#ifdef MSDOS
+  unsigned long default_other_pixel =
+    foreground_p ? FACE_TTY_DEFAULT_BG_COLOR : FACE_TTY_DEFAULT_FG_COLOR;
+#endif
 
   xassert (idx == LFACE_FOREGROUND_INDEX || idx == LFACE_BACKGROUND_INDEX);
-
-  if (foreground_p)
-    {
-      pixel = default_pixel = FACE_TTY_DEFAULT_FG_COLOR;
-      default_other_pixel = FACE_TTY_DEFAULT_BG_COLOR;
-    }
-  else
-    {
-      pixel = default_pixel = FACE_TTY_DEFAULT_BG_COLOR;
-      default_other_pixel = FACE_TTY_DEFAULT_FG_COLOR;
-    }
 
   XSETFRAME (frame, f);
   color = face->lface[idx];
@@ -6349,7 +6291,7 @@ where R,G,B are numbers between 0 and 255 and name is an arbitrary string.  */)
   CHECK_STRING (filename);
   abspath = Fexpand_file_name (filename, Qnil);
 
-  fp = fopen (SDATA (filename), "rt");
+  fp = fopen (SDATA (abspath), "rt");
   if (fp)
     {
       char buf[512];

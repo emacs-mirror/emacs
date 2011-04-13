@@ -60,6 +60,7 @@ $(BLD)/dtoastr.$(O) : \
 	$(SRC)/ftoastr.c \
 	$(SRC)/ftoastr.h \
 	$(SRC)/intprops.h \
+	$(EMACS_ROOT)/nt/inc/sys/stat.h \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h
@@ -68,6 +69,9 @@ $(BLD)/getopt.$(O) : \
 	$(SRC)/getopt.c \
 	$(SRC)/getopt.h \
 	$(SRC)/getopt_int.h \
+	$(SRC)/gettext.h \
+	$(EMACS_ROOT)/nt/inc/unistd.h \
+	$(EMACS_ROOT)/nt/inc/sys/stat.h \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h
@@ -76,6 +80,7 @@ $(BLD)/getopt1.$(O) : \
 	$(SRC)/getopt1.c \
 	$(SRC)/getopt.h \
 	$(SRC)/getopt_int.h \
+	$(EMACS_ROOT)/nt/inc/sys/stat.h \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h
@@ -84,13 +89,14 @@ $(BLD)/strftime.$(O) : \
 	$(SRC)/strftime.c \
 	$(SRC)/strftime.h \
 	$(EMACS_ROOT)/nt/inc/stdbool.h \
+	$(EMACS_ROOT)/nt/inc/sys/stat.h \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h
 
 $(BLD)/time_r.$(O) : \
 	$(SRC)/time_r.c \
-	$(EMACS_ROOT)/nt/inc/stdbool.h \
+	$(EMACS_ROOT)/nt/inc/sys/stat.h \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h
@@ -99,6 +105,7 @@ $(BLD)/md5.$(O) : \
 	$(SRC)/md5.c \
 	$(SRC)/md5.h \
 	$(EMACS_ROOT)/nt/inc/stdint.h \
+	$(EMACS_ROOT)/nt/inc/sys/stat.h \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h

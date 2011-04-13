@@ -1715,7 +1715,7 @@ If COMPILEP is non-nil, compile, otherwise consult."
 ;; Font-lock stuff
 ;;-------------------------------------------------------------------
 
-;; Auxilliary functions
+;; Auxiliary functions
 (defun prolog-make-keywords-regexp (keywords &optional protect)
   "Create regexp from the list of strings KEYWORDS.
 If PROTECT is non-nil, surround the result regexp by word breaks."
@@ -3777,7 +3777,7 @@ If the point is not on a variable then insert underscore."
 
 
 (defun prolog-find-term (functor arity &optional prefix)
-  "Go to the position at the start of the next occurance of a term.
+  "Go to the position at the start of the next occurrence of a term.
 The term is specified with FUNCTOR and ARITY.  The optional argument
 PREFIX is the prefix of the search regexp."
   (let* (;; If prefix is not set then use the default "\\<"

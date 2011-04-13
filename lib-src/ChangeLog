@@ -1,3 +1,125 @@
+2011-04-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix more problems found by GCC 4.6.0's static checks.
+
+	* emacsclient.c (message): Mark it as a printf-like function.
+
+	* make-docfile.c (IF_LINT): New macro, copied from emacsclient.c.
+	(write_c_args): Use it to suppress GCC warning.
+
+2011-03-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix a problem found by GCC 4.6.0's static checks.
+	* etags.c (just_read_file): Remove dummy variable and simplify.
+
+2011-03-27  Glenn Morris  <rgm@gnu.org>
+
+	* emacsclient.c: Replace SIGTYPE with void.
+
+2011-03-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ntlib.c: Include <ctype.h>.
+
+2011-03-23  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in ($(DESTDIR)${archlibdir}):
+	Use `install-sh -d' rather than mkinstalldirs.
+
+2011-03-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* ebrowse.c: Use size_t, not int, for sizes.
+	This avoids a warning with gcc -Wstrict-overflow, and works
+	better for very large objects.
+	(inbuffer_size): Now size_t.  All uses changed.
+	(xmalloc, xrealloc, operator_name, process_file): Use size_t for
+	sizes.  Don't bother testing whether a size_t value can be negative.
+
+	* etags.c (Ada_funcs): Redo slightly to avoid overflow warning.
+
+	etags: In Prolog functions, don't assume int fits in size_t.
+	This avoids a warning with gcc -Wstrict-overflow.
+	* etags.c (Prolog_functions, prolog_pr, prolog_atom): Use size_t,
+	not int, to store sizes.
+	(prolog_atom): Return 0, not -1, on error.  All callers changed.
+
+	update-game-score: fix bug with -r
+	* update-game-score.c (main): Don't set 'scores' to garbage when
+	-r is specified and scorecount != MAX_SCORES (Bug#8310).  This bug
+	was introduced in the 2002-04-10 change, and was found with gcc
+	-Wstrict-overflow (GCC 4.5.2, x86-64).
+
+	fakemail: Remove dependency on ignore-value.
+	This undoes some of the recent fakemail-related changes.
+	It is made possible due to recent changes to gnulib's stdio module.
+	* Makefile.in (fakemail${EXEEXT}): Do not depend on ignore-value.h.
+	* fakemail.c: Do not include ignore-value.h.
+	(put_line): Do not use ignore_value.
+
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
+2011-03-03  Drake Wilson  <drake@begriffli.ch>  (tiny change)
+
+	* emacsclient.c (longopts): Add quiet.
+	(decode_options): Handle q/quiet.
+	(print_help_and_exit): Add q/quiet.
+	(main): Suppress some messages if quiet option is used.
+
+2011-02-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (fakemail${EXEEXT}): Depend on lib/ignore-value.h.
+
+	* emacsclient.c (xstrdup) [WINDOWSNT]: Function added back.
+	(w32_getenv): Use xstrdup to return all values in malloc'ed
+	storage.
+
+2011-02-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* ebrowse.c (parse_qualified_param_ident_or_type): Make it clear
+	to reader (and to the compiler) that the loop always executes at
+	least once.  This prevents a warning with recent GCC.
+	(BROWSE_STRUCT): Remove unused macro.
+
+	* fakemail.c: Include <ignore-value.h>.
+	(put_line): Explicitly ignore fwrite return value, for benefit of
+	recent glibc + gcc.
+	(close_the_streams): Diagnose output errors instead of merely
+	exiting with nonzero status.
+	(my_fclose, main): Diagnose input errors, and exit with nonzero status.
+	Formerly, input errors were silently ignored.
+
+	* ebrowse.c (putstr): Rename from PUTSTR and turn into a function.
+	All callers changed.  This is cleaner, and avoids GCC warnings about
+	passing NULL to fputs.
+	(insert_keyword): Rename parameter to avoid shadowing diagnostic.
+
+2011-02-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* emacsclient.c (main): Avoid dangling 'if'.
+	(xstrdup): Remove; no longer needed.
+	(get_current_dir_name, w32_getenv, get_server_config, find_tty):
+	(set_local_socket, main):
+	Use const char *, not char *, for pointers that are not assigned
+	through.
+	(IF_LINT): New macro.
+	(set_local_socket, main): Use it to suppress warnings with
+	GCC -Wuninitialized.
+
+	* emacsclient.c: Redo local variables to avoid shadowing problems.
+	(message, socket_status, start_daemon_and_retry_set_socket):
+	Rename locals.
+	(main): Move decl of "i".
+
+	* etags.c (ISUPPER): Move to inside the only #ifdef where it's used.
+	This avoids an unused-macro warning with some GCC settings.
+
+	* make-docfile.c (write_globals): Change char * to char const *
+	to avoid a GCC "assignment discards qualifiers" diagnostic
+	in some configurations.
+	(scan_c_file): Refactor local variable decls to make their scope
+	more accurate and to avoid a GCC -Wuninitialized diagnostic.
+
 2011-02-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* etags.c (canonicalize_filename, ISUPPER): Fix last change.
@@ -58,7 +180,7 @@
 	($(BLD)/etags.$(O), $(BLD)/movemail.$(O), $(BLD)/ntlib.$(O)):
 	Depend on $(EMACS_ROOT)/nt/inc/sys/stat.h.
 
-2011-02-21  Ben Key  <bkey76@gmail.com>  (tiny change)
+2011-02-21  Ben Key  <bkey76@gmail.com>
 
 	* make-docfile.c (scan_c_file): Adapt DEFVAR_PER_BUFFER case to
 	the new BVAR macro.

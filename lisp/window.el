@@ -1162,10 +1162,11 @@ non-nil values of ALL-FRAMES have special meanings:
 
 - t means consider all windows on all existing frames.
 
-- `visible' means consider all windows on all visible frames.
+- `visible' means consider all windows on all visible frames on
+  the current terminal.
 
 - 0 (the number zero) means consider all windows on all visible
-  and iconified frames.
+  and iconified frames on the current terminal.
 
 - A frame means consider all windows on that frame only.
 
@@ -1310,10 +1311,11 @@ values of ALL-FRAMES have special meanings:
 
 - t means consider all windows on all existing frames.
 
-- `visible' means consider all windows on all visible frames.
+- `visible' means consider all windows on all visible frames on
+  the current terminal.
 
 - 0 (the number zero) means consider all windows on all visible
-  and iconified frames.
+  and iconified frames on the current terminal.
 
 - A frame means consider all windows on that frame only.
 
@@ -1339,10 +1341,11 @@ have special meanings:
 
 - t means consider all windows on all existing frames.
 
-- `visible' means consider all windows on all visible frames.
+- `visible' means consider all windows on all visible frames on
+  the current terminal.
 
 - 0 (the number zero) means consider all windows on all visible
-    and iconified frames.
+  and iconified frames on the current terminal.
 
 - A frame means consider all windows on that frame only.
 
@@ -1371,10 +1374,11 @@ have special meanings:
 
 - t means consider all windows on all existing frames.
 
-- `visible' means consider all windows on all visible frames.
+- `visible' means consider all windows on all visible frames on
+  the current terminal.
 
 - 0 (the number zero) means consider all windows on all visible
-    and iconified frames.
+  and iconified frames on the current terminal.
 
 - A frame means consider all windows on that frame only.
 
@@ -1399,10 +1403,11 @@ have special meanings:
 
 - t means consider all windows on all existing frames.
 
-- `visible' means consider all windows on all visible frames.
+- `visible' means consider all windows on all visible frames on
+  the current terminal.
 
 - 0 (the number zero) means consider all windows on all visible
-    and iconified frames.
+  and iconified frames on the current terminal.
 
 - A frame means consider all windows on that frame only.
 
@@ -1478,10 +1483,11 @@ non-nil values of ALL-FRAMES have special meanings:
 
 - t means consider all windows on all existing frames.
 
-- `visible' means consider all windows on all visible frames.
+- `visible' means consider all windows on all visible frames on
+  the current terminal.
 
 - 0 (the number zero) means consider all windows on all visible
-  and iconified frames.
+  and iconified frames on the current terminal.
 
 - A frame means consider all windows on that frame only.
 
@@ -2327,10 +2333,11 @@ with a special meaning are:
 
 - t means consider all windows on all existing frames.
 
-- `visible' means consider all windows on all visible frames.
+- `visible' means consider all windows on all visible frames on
+  the current terminal.
 
 - 0 (the number zero) means consider all windows on all visible
-  and iconified frames.
+  and iconified frames on the current terminal.
 
 - A frame means consider all windows on that frame only.
 
@@ -2897,10 +2904,11 @@ have special meanings:
 
 - t means consider all windows on the selected frame only.
 
-- `visible' means consider all windows on all visible frames.
+- `visible' means consider all windows on all visible frames on
+  the current terminal.
 
 - 0 (the number zero) means consider all windows on all visible
-    and iconified frames.
+  and iconified frames on the current terminal.
 
 - A frame means consider all windows on that frame only.
 
@@ -3972,11 +3980,12 @@ suitable window and can be one of the following:
 
   nil to reuse a window on the selected frame.
 
-  `visible' to search visible frames only.
+  `visible' to search visible frames on the current terminal.
 
   `other' stands for any visible frame but the selected one.
 
-  0 \(the number zero) to search visible and iconified frames.
+  0 \(the number zero) to search visible and iconified frames on
+  the current terminal.
 
   t to search arbitrary frames including invisible ones.
 

@@ -66,6 +66,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define IS_DIRECTORY_SEP(_c_) ((_c_) == DIRECTORY_SEP)
 #endif
 
+/* Use this to suppress gcc's `...may be used before initialized' warnings. */
+#ifdef lint
+# define IF_LINT(Code) Code
+#else
+# define IF_LINT(Code) /* empty */
+#endif
+
 static int scan_file (char *filename);
 static int scan_lisp_file (const char *filename, const char *mode);
 static int scan_c_file (char *filename, const char *mode);
@@ -481,7 +488,7 @@ write_c_args (FILE *out, char *func, char *buf, int minargs, int maxargs)
 {
   register char *p;
   int in_ident = 0;
-  char *ident_start;
+  char *ident_start IF_LINT (= NULL);
   size_t ident_length = 0;
 
   fprintf (out, "(fn");
@@ -617,7 +624,7 @@ write_globals (void)
   qsort (globals, num_globals, sizeof (struct global), compare_globals);
   for (i = 0; i < num_globals; ++i)
     {
-      char *type;
+      char const *type;
 
       switch (globals[i].type)
 	{
@@ -658,12 +665,8 @@ scan_c_file (char *filename, const char *mode)
   FILE *infile;
   register int c;
   register int commas;
-  register int defunflag;
-  register int defvarperbufferflag;
-  register int defvarflag;
   int minargs, maxargs;
   int extension = filename[strlen (filename) - 1];
-  enum global_type type;
 
   if (extension == 'o')
     filename[strlen (filename) - 1] = 'c';
@@ -693,6 +696,10 @@ scan_c_file (char *filename, const char *mode)
   while (!feof (infile))
     {
       int doc_keyword = 0;
+      int defunflag = 0;
+      int defvarperbufferflag = 0;
+      int defvarflag = 0;
+      enum global_type type = INVALID;
 
       if (c != '\n' && c != '\r')
 	{
@@ -726,7 +733,6 @@ scan_c_file (char *filename, const char *mode)
 	    continue;
 
 	  defvarflag = 1;
-	  defunflag = 0;
 
 	  c = getc (infile);
 	  defvarperbufferflag = (c == 'P');
@@ -738,8 +744,6 @@ scan_c_file (char *filename, const char *mode)
 		type = LISP_OBJECT;
 	      else if (c == 'B')
 		type = BOOLEAN;
-	      else
-		type = INVALID;
 	    }
 
 	  c = getc (infile);
@@ -758,8 +762,6 @@ scan_c_file (char *filename, const char *mode)
 	    continue;
 	  c = getc (infile);
 	  defunflag = c == 'U';
-	  defvarflag = 0;
-	  defvarperbufferflag = 0;
 	}
       else continue;
 

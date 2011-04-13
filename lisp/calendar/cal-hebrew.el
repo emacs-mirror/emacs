@@ -792,6 +792,20 @@ from the cursor position."
 (define-obsolete-function-alias 'list-yahrzeit-dates
   'calendar-hebrew-list-yahrzeits "23.1")
 
+(defun calendar-hebrew-birthday (date year)
+  "Absolute date of the anniversary of Hebrew birth DATE, in Hebrew YEAR."
+  (let ((b-day (calendar-extract-day date))
+        (b-month (calendar-extract-month date))
+        (b-year (calendar-extract-year date)))
+    ;; If it's Adar in a normal Hebrew year or Adar II in a Hebrew leap year...
+    (if (= b-month (calendar-hebrew-last-month-of-year b-year))
+        ;; ...then use the same day in last month of Hebrew year.
+        (calendar-hebrew-to-absolute
+         (list (calendar-hebrew-last-month-of-year year) b-day year))
+      ;; Else use the normal anniversary of the birth date,
+      ;; or the corresponding day in years without that date.
+      (+ (calendar-hebrew-to-absolute (list b-month 1 year)) b-day -1))))
+
 (defvar date)
 
 ;; To be called from diary-list-sexp-entries, where DATE is bound.
@@ -799,6 +813,37 @@ from the cursor position."
 (defun diary-hebrew-date ()
   "Hebrew calendar equivalent of date diary entry."
   (format "Hebrew date (until sunset): %s" (calendar-hebrew-date-string date)))
+
+(defvar entry)
+(declare-function diary-ordinal-suffix "diary-lib" (n))
+
+;;;###diary-autoload
+(defun diary-hebrew-birthday (month day year &optional after-sunset)
+  "Hebrew birthday diary entry.
+Entry applies if date is birthdate (MONTH DAY YEAR), or the day before.
+The order of the input parameters changes according to
+`calendar-date-style' (e.g. to DAY MONTH YEAR in the European style).
+
+Assumes the associated diary entry is the name of the person.
+
+Although the date of birth is specified by the *civil* calendar,
+this function determines the proper Hebrew calendar birthday.
+If the optional argument AFTER-SUNSET is non-nil, this means the
+birth occurred after local sunset on the given civil date.
+In this case, the following civil date corresponds to the Hebrew birthday."
+  (let* ((h-date (calendar-hebrew-from-absolute
+                  (+ (calendar-absolute-from-gregorian
+                      (diary-make-date month day year))
+                     (if after-sunset 1 0))))
+         (h-year (calendar-extract-year h-date))     ; birth-day
+         (d (calendar-absolute-from-gregorian date)) ; today
+         (h-yr (calendar-extract-year (calendar-hebrew-from-absolute d)))
+         (age (- h-yr h-year))          ; current H year - birth H-year
+         (b-date (calendar-hebrew-birthday h-date h-yr)))
+    (and (> age 0) (memq b-date (list d (1+ d)))
+         (format "%s's %d%s Hebrew birthday%s" entry age
+                 (diary-ordinal-suffix age)
+                 (if (= b-date d) "" " (evening)")))))
 
 ;;;###diary-autoload
 (defun diary-hebrew-omer (&optional mark)
@@ -829,19 +874,22 @@ use when highlighting the day in the calendar."
 ;;;###diary-autoload
 (define-obsolete-function-alias 'diary-omer 'diary-hebrew-omer "23.1")
 
-(defvar entry)
-
 (autoload 'diary-make-date "diary-lib")
 
 (declare-function diary-ordinal-suffix "diary-lib" (n))
 
 ;;;###diary-autoload
-(defun diary-hebrew-yahrzeit (death-month death-day death-year &optional mark)
+(defun diary-hebrew-yahrzeit (death-month death-day death-year
+                                          &optional mark after-sunset)
   "Yahrzeit diary entry--entry applies if date is Yahrzeit or the day before.
 Parameters are DEATH-MONTH, DEATH-DAY, DEATH-YEAR; the diary
 entry is assumed to be the name of the person.  Although the date
 of death is specified by the civil calendar, the proper Hebrew
 calendar Yahrzeit is determined.
+
+If the death occurred after local sunset on the given civil date,
+the following civil date corresponds to the Hebrew date of
+death--set the optional parameter AFTER-SUNSET non-nil in this case.
 
 The order of the input parameters changes according to `calendar-date-style'
 \(e.g. to DEATH-DAY, DEATH-MONTH, DEATH-YEAR in the European style).
@@ -849,8 +897,9 @@ The order of the input parameters changes according to `calendar-date-style'
 An optional parameter MARK specifies a face or single-character string to
 use when highlighting the day in the calendar."
   (let* ((h-date (calendar-hebrew-from-absolute
-                  (calendar-absolute-from-gregorian
-                   (diary-make-date death-month death-day death-year))))
+                  (+ (calendar-absolute-from-gregorian
+                      (diary-make-date death-month death-day death-year))
+                     (if after-sunset 1 0))))
          (h-month (calendar-extract-month h-date))
          (h-day (calendar-extract-day h-date))
          (h-year (calendar-extract-year h-date))
@@ -905,16 +954,17 @@ use when highlighting the day in the calendar."
                      (format "%s (second day)" this-month)
                    this-month))))
       (if (= (% d 7) 6)        ; Saturday--check for Shabbat Mevarchim
-          (cons mark
-                (cond ((and (> h-day 22) (/= h-month 6) (= 29 last-day))
+          (cond ((and (> h-day 22) (/= h-month 6) (= 29 last-day))
+                 (cons mark
                        (format "Mevarchim Rosh Hodesh %s (%s)"
                                (aref h-month-names
                                      (if (= h-month
                                             (calendar-hebrew-last-month-of-year
                                              h-year))
                                          0 h-month))
-                               (aref calendar-day-name-array (- 29 h-day))))
-                      ((and (< h-day 30) (> h-day 22) (= 30 last-day))
+                               (aref calendar-day-name-array (- 29 h-day)))))
+                ((and (< h-day 30) (> h-day 22) (= 30 last-day))
+                 (cons mark
                        (format "Mevarchim Rosh Hodesh %s (%s-%s)"
                                (aref h-month-names h-month)
                                (if (= h-day 29)

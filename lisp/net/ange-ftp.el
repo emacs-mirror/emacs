@@ -4070,7 +4070,7 @@ directory, so that Emacs will know its current contents."
 	(ange-ftp-get-files dir t))))
 
 (defun ange-ftp-make-directory (dir &optional parents)
-  (interactive (list (expand-file-name (read-file-name "Make directory: "))))
+  (interactive (list (expand-file-name (read-directory-name "Make directory: "))))
   (if parents
       (let ((parent (file-name-directory (directory-file-name dir))))
 	(or (file-exists-p parent)

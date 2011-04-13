@@ -116,6 +116,17 @@ BODY should be a list of Lisp expressions.
   ;; depend on backquote.el.
   (list 'function (cons 'lambda cdr)))
 
+;; Partial application of functions (similar to "currying").
+;; This function is here rather than in subr.el because it uses CL.
+(defun apply-partially (fun &rest args)
+  "Return a function that is a partial application of FUN to ARGS.
+ARGS is a list of the first N arguments to pass to FUN.
+The result is a new function which does the same as FUN, except that
+the first N arguments are fixed at the values with which this function
+was called."
+  `(closure (t) (&rest args)
+            (apply ',fun ,@(mapcar (lambda (arg) `',arg) args) args)))
+
 (if (null (featurep 'cl))
     (progn
   ;; If we reload subr.el after having loaded CL, be careful not to
@@ -163,8 +174,6 @@ value of last one, or nil if there are none.
   ;; If we reload subr.el after having loaded CL, be careful not to
   ;; overwrite CL's extended definition of `dolist', `dotimes',
   ;; `declare', `push' and `pop'.
-(defvar --dolist-tail-- nil
-  "Temporary variable used in `dolist' expansion.")
 
 (defmacro dolist (spec &rest body)
   "Loop over a list.
@@ -176,18 +185,29 @@ Then evaluate RESULT to get return value, default nil.
   ;; It would be cleaner to create an uninterned symbol,
   ;; but that uses a lot more space when many functions in many files
   ;; use dolist.
+  ;; FIXME: This cost disappears in byte-compiled lexical-binding files.
   (let ((temp '--dolist-tail--))
-    `(let ((,temp ,(nth 1 spec))
-	   ,(car spec))
-       (while ,temp
-	 (setq ,(car spec) (car ,temp))
-	 ,@body
-	 (setq ,temp (cdr ,temp)))
-       ,@(if (cdr (cdr spec))
-	     `((setq ,(car spec) nil) ,@(cdr (cdr spec)))))))
-
-(defvar --dotimes-limit-- nil
-  "Temporary variable used in `dotimes' expansion.")
+    ;; This is not a reliable test, but it does not matter because both
+    ;; semantics are acceptable, tho one is slightly faster with dynamic
+    ;; scoping and the other is slightly faster (and has cleaner semantics)
+    ;; with lexical scoping.
+    (if lexical-binding
+        `(let ((,temp ,(nth 1 spec)))
+           (while ,temp
+             (let ((,(car spec) (car ,temp)))
+               ,@body
+               (setq ,temp (cdr ,temp))))
+           ,@(if (cdr (cdr spec))
+                 ;; FIXME: This let often leads to "unused var" warnings.
+                 `((let ((,(car spec) nil)) ,@(cdr (cdr spec))))))
+      `(let ((,temp ,(nth 1 spec))
+             ,(car spec))
+         (while ,temp
+           (setq ,(car spec) (car ,temp))
+           ,@body
+           (setq ,temp (cdr ,temp)))
+         ,@(if (cdr (cdr spec))
+               `((setq ,(car spec) nil) ,@(cdr (cdr spec))))))))
 
 (defmacro dotimes (spec &rest body)
   "Loop a certain number of times.
@@ -200,15 +220,30 @@ the return value (nil if RESULT is omitted).
   ;; It would be cleaner to create an uninterned symbol,
   ;; but that uses a lot more space when many functions in many files
   ;; use dotimes.
+  ;; FIXME: This cost disappears in byte-compiled lexical-binding files.
   (let ((temp '--dotimes-limit--)
 	(start 0)
 	(end (nth 1 spec)))
-    `(let ((,temp ,end)
-	   (,(car spec) ,start))
-       (while (< ,(car spec) ,temp)
-	 ,@body
-	 (setq ,(car spec) (1+ ,(car spec))))
-       ,@(cdr (cdr spec)))))
+    ;; This is not a reliable test, but it does not matter because both
+    ;; semantics are acceptable, tho one is slightly faster with dynamic
+    ;; scoping and the other has cleaner semantics.
+    (if lexical-binding
+        (let ((counter '--dotimes-counter--))
+          `(let ((,temp ,end)
+                 (,counter ,start))
+             (while (< ,counter ,temp)
+               (let ((,(car spec) ,counter))
+                 ,@body)
+               (setq ,counter (1+ ,counter)))
+             ,@(if (cddr spec)
+                   ;; FIXME: This let often leads to "unused var" warnings.
+                   `((let ((,(car spec) ,counter)) ,@(cddr spec))))))
+      `(let ((,temp ,end)
+             (,(car spec) ,start))
+         (while (< ,(car spec) ,temp)
+           ,@body
+           (setq ,(car spec) (1+ ,(car spec))))
+         ,@(cdr (cdr spec))))))
 
 (defmacro declare (&rest specs)
   "Do not evaluate any arguments and return nil.
@@ -249,20 +284,6 @@ Any list whose car is `frame-configuration' is assumed to be a frame
 configuration."
   (and (consp object)
        (eq (car object) 'frame-configuration)))
-
-(defun functionp (object)
-  "Non-nil if OBJECT is a function."
-  (or (and (symbolp object) (fboundp object)
-	   (condition-case nil
-	       (setq object (indirect-function object))
-	     (error nil))
-	   (eq (car-safe object) 'autoload)
-	   (not (car-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe object)))))))
-      (and (subrp object)
-           ;; Filter out special forms.
-           (not (eq 'unevalled (cdr (subr-arity object)))))
-      (byte-code-function-p object)
-      (eq (car-safe object) 'lambda)))
 
 ;;;; List functions.
 
@@ -1101,6 +1122,8 @@ is converted into a string by expressing it in decimal."
 
 (make-obsolete-variable 'define-key-rebound-commands nil "23.2")
 (make-obsolete-variable 'redisplay-end-trigger-functions 'jit-lock-register "23.1")
+(make-obsolete-variable 'deferred-action-list 'post-command-hook "24.1")
+(make-obsolete-variable 'deferred-action-function 'post-command-hook "24.1")
 (make-obsolete 'window-redisplay-end-trigger nil "23.1")
 (make-obsolete 'set-window-redisplay-end-trigger nil "23.1")
 
@@ -1255,6 +1278,67 @@ the hook's buffer-local value rather than its default value."
 	(if (equal hook-value '(t))
 	    (kill-local-variable hook)
 	  (set hook hook-value))))))
+
+(defmacro letrec (binders &rest body)
+  "Bind variables according to BINDERS then eval BODY.
+The value of the last form in BODY is returned.
+Each element of BINDERS is a list (SYMBOL VALUEFORM) which binds
+SYMBOL to the value of VALUEFORM.
+All symbols are bound before the VALUEFORMs are evalled."
+  ;; Only useful in lexical-binding mode.
+  ;; As a special-form, we could implement it more efficiently (and cleanly,
+  ;; making the vars actually unbound during evaluation of the binders).
+  (declare (debug let) (indent 1))
+  `(let ,(mapcar #'car binders)
+     ,@(mapcar (lambda (binder) `(setq ,@binder)) binders)
+     ,@body))
+
+(defmacro with-wrapper-hook (var args &rest body)
+  "Run BODY wrapped with the VAR hook.
+VAR is a special hook: its functions are called with a first argument
+which is the \"original\" code (the BODY), so the hook function can wrap
+the original function, or call it any number of times (including not calling
+it at all).  This is similar to an `around' advice.
+VAR is normally a symbol (a variable) in which case it is treated like
+a hook, with a buffer-local and a global part.  But it can also be an
+arbitrary expression.
+ARGS is a list of variables which will be passed as additional arguments
+to each function, after the initial argument, and which the first argument
+expects to receive when called."
+  (declare (indent 2) (debug t))
+  ;; We need those two gensyms because CL's lexical scoping is not available
+  ;; for function arguments :-(
+  (let ((funs (make-symbol "funs"))
+        (global (make-symbol "global"))
+        (argssym (make-symbol "args"))
+        (runrestofhook (make-symbol "runrestofhook")))
+    ;; Since the hook is a wrapper, the loop has to be done via
+    ;; recursion: a given hook function will call its parameter in order to
+    ;; continue looping.
+    `(letrec ((,runrestofhook
+               (lambda (,funs ,global ,argssym)
+                 ;; `funs' holds the functions left on the hook and `global'
+                 ;; holds the functions left on the global part of the hook
+                 ;; (in case the hook is local).
+                 (if (consp ,funs)
+                     (if (eq t (car ,funs))
+                         (funcall ,runrestofhook
+                                  (append ,global (cdr ,funs)) nil ,argssym)
+                       (apply (car ,funs)
+                              (apply-partially
+                               (lambda (,funs ,global &rest ,argssym)
+                                 (funcall ,runrestofhook ,funs ,global ,argssym))
+                               (cdr ,funs) ,global)
+                              ,argssym))
+                   ;; Once there are no more functions on the hook, run
+                   ;; the original body.
+                   (apply (lambda ,args ,@body) ,argssym)))))
+       (funcall ,runrestofhook ,var
+                ;; The global part of the hook, if any.
+                ,(if (symbolp var)
+                     `(if (local-variable-p ',var)
+                          (default-value ',var)))
+                (list ,@args)))))
 
 (defun add-to-list (list-var element &optional append compare-fn)
   "Add ELEMENT to the value of LIST-VAR if it isn't there yet.
@@ -1628,6 +1712,8 @@ This function makes or adds to an entry on `after-load-alist'."
     (unless elt
       (setq elt (list regexp-or-feature))
       (push elt after-load-alist))
+    ;; Make sure `form' is evalled in the current lexical/dynamic code.
+    (setq form `(funcall ',(eval `(lambda () ,form) lexical-binding)))
     (when (symbolp regexp-or-feature)
       ;; For features, the after-load-alist elements get run when `provide' is
       ;; called rather than at the end of the file.  So add an indirection to
@@ -1705,28 +1791,6 @@ Signal an error if the program returns with a non-zero exit status."
 			    lines))
 	  (forward-line 1))
 	(nreverse lines)))))
-
-;; open-network-stream is a wrapper around make-network-process.
-
-(when (featurep 'make-network-process)
-  (defun open-network-stream (name buffer host service)
-    "Open a TCP connection for a service to a host.
-Returns a subprocess-object to represent the connection.
-Input and output work as for subprocesses; `delete-process' closes it.
-
-NAME is the name for the process.  It is modified if necessary to make
- it unique.
-BUFFER is the buffer (or buffer name) to associate with the
- process.  Process output goes at end of that buffer.  BUFFER may
- be nil, meaning that this process is not associated with any buffer.
-HOST is the name or IP address of the host to connect to.
-SERVICE is the name of the service desired, or an integer specifying
- a port number to connect to.
-
-This is a wrapper around `make-network-process', and only offers a
-subset of its functionality."
-    (make-network-process :name name :buffer buffer
-				     :host host :service service)))
 
 ;; compatibility
 
@@ -2003,24 +2067,24 @@ If optional argument INHIBIT-KEYBOARD-QUIT is non-nil, ignore
 keyboard-quit events while waiting for a valid input."
   (unless (consp chars)
     (error "Called `read-char-choice' without valid char choices"))
-  (let ((cursor-in-echo-area t)
-	(executing-kbd-macro executing-kbd-macro)
-	char done)
-    (while (not done)
-      (unless (get-text-property 0 'face prompt)
-	(setq prompt (propertize prompt 'face 'minibuffer-prompt)))
-      (setq char (let ((inhibit-quit inhibit-keyboard-quit))
-		   (read-key prompt)))
-      (cond
-       ((not (numberp char)))
-       ((memq char chars)
-	(setq done t))
-       ((and executing-kbd-macro (= char -1))
-	;; read-event returns -1 if we are in a kbd macro and
-	;; there are no more events in the macro.  Attempt to
-	;; get an event interactively.
-	(setq executing-kbd-macro nil))))
-    ;; Display the question with the answer.
+  (let (char done)
+    (let ((cursor-in-echo-area t)
+          (executing-kbd-macro executing-kbd-macro))
+      (while (not done)
+        (unless (get-text-property 0 'face prompt)
+          (setq prompt (propertize prompt 'face 'minibuffer-prompt)))
+        (setq char (let ((inhibit-quit inhibit-keyboard-quit))
+                     (read-key prompt)))
+        (cond
+         ((not (numberp char)))
+         ((memq char chars)
+          (setq done t))
+         ((and executing-kbd-macro (= char -1))
+          ;; read-event returns -1 if we are in a kbd macro and
+          ;; there are no more events in the macro.  Attempt to
+          ;; get an event interactively.
+          (setq executing-kbd-macro nil)))))
+    ;; Display the question with the answer.  But without cursor-in-echo-area.
     (message "%s%s" prompt (char-to-string char))
     char))
 
@@ -2760,6 +2824,71 @@ nor the buffer list."
 	   (select-frame ,old-frame 'norecord))
 	 (when (buffer-live-p ,old-buffer)
 	   (set-buffer ,old-buffer))))))
+
+(defmacro save-window-excursion (&rest body)
+  "Execute BODY, preserving window sizes and contents.
+Return the value of the last form in BODY.
+Restore which buffer appears in which window, where display starts,
+and the value of point and mark for each window.
+Also restore the choice of selected window.
+Also restore which buffer is current.
+Does not restore the value of point in current buffer.
+
+BEWARE: Most uses of this macro introduce bugs.
+E.g. it should not be used to try and prevent some code from opening
+a new window, since that window may sometimes appear in another frame,
+in which case `save-window-excursion' cannot help."
+  (declare (indent 0) (debug t))
+  (let ((c (make-symbol "wconfig")))
+    `(let ((,c (current-window-configuration)))
+       (unwind-protect (progn ,@body)
+         (set-window-configuration ,c)))))
+
+(defmacro with-output-to-temp-buffer (bufname &rest body)
+  "Bind `standard-output' to buffer BUFNAME, eval BODY, then show that buffer.
+
+This construct makes buffer BUFNAME empty before running BODY.
+It does not make the buffer current for BODY.
+Instead it binds `standard-output' to that buffer, so that output
+generated with `prin1' and similar functions in BODY goes into
+the buffer.
+
+At the end of BODY, this marks buffer BUFNAME unmodifed and displays
+it in a window, but does not select it.  The normal way to do this is
+by calling `display-buffer', then running `temp-buffer-show-hook'.
+However, if `temp-buffer-show-function' is non-nil, it calls that
+function instead (and does not run `temp-buffer-show-hook').  The
+function gets one argument, the buffer to display.
+
+The return value of `with-output-to-temp-buffer' is the value of the
+last form in BODY.  If BODY does not finish normally, the buffer
+BUFNAME is not displayed.
+
+This runs the hook `temp-buffer-setup-hook' before BODY,
+with the buffer BUFNAME temporarily current.  It runs the hook
+`temp-buffer-show-hook' after displaying buffer BUFNAME, with that
+buffer temporarily current, and the window that was used to display it
+temporarily selected.  But it doesn't run `temp-buffer-show-hook'
+if it uses `temp-buffer-show-function'."
+  (let ((old-dir (make-symbol "old-dir"))
+        (buf (make-symbol "buf")))
+    `(let* ((,old-dir default-directory)
+            (,buf
+             (with-current-buffer (get-buffer-create ,bufname)
+               (prog1 (current-buffer)
+                 (kill-all-local-variables)
+                 ;; FIXME: delete_all_overlays
+                 (setq default-directory ,old-dir)
+                 (setq buffer-read-only nil)
+                 (setq buffer-file-name nil)
+                 (setq buffer-undo-list t)
+                 (let ((inhibit-read-only t)
+                       (inhibit-modification-hooks t))
+                   (erase-buffer)
+                   (run-hooks 'temp-buffer-setup-hook)))))
+            (standard-output ,buf))
+       (prog1 (progn ,@body)
+         (internal-temp-output-buffer-show ,buf)))))
 
 (defmacro with-temp-file (file &rest body)
   "Create a new buffer, evaluate BODY there, and write the buffer to FILE.

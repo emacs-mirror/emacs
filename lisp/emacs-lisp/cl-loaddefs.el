@@ -10,7 +10,7 @@
 ;;;;;;  ceiling* floor* isqrt lcm gcd cl-progv-before cl-set-frame-visible-p
 ;;;;;;  cl-map-overlays cl-map-intervals cl-map-keymap-recursively
 ;;;;;;  notevery notany every some mapcon mapcan mapl maplist map
-;;;;;;  cl-mapcar-many equalp coerce) "cl-extra" "cl-extra.el" "60f6b85256416c5f2a0a3954a11523b6")
+;;;;;;  cl-mapcar-many equalp coerce) "cl-extra" "cl-extra.el" "26339d9571f9485bf34fa6d2ae38fc84")
 ;;; Generated autoloads from cl-extra.el
 
 (autoload 'coerce "cl-extra" "\
@@ -277,12 +277,12 @@ Not documented
 ;;;;;;  assert check-type typep deftype cl-struct-setf-expander defstruct
 ;;;;;;  define-modify-macro callf2 callf letf* letf rotatef shiftf
 ;;;;;;  remf cl-do-pop psetf setf get-setf-method defsetf define-setf-method
-;;;;;;  declare locally multiple-value-setq multiple-value-bind lexical-let*
-;;;;;;  lexical-let symbol-macrolet macrolet labels flet progv psetq
-;;;;;;  do-all-symbols do-symbols dotimes dolist do* do loop return-from
-;;;;;;  return block etypecase typecase ecase case load-time-value
-;;;;;;  eval-when destructuring-bind function* defmacro* defun* gentemp
-;;;;;;  gensym) "cl-macs" "cl-macs.el" "0904b956872432ae7cc5fa9abcefce63")
+;;;;;;  declare the locally multiple-value-setq multiple-value-bind
+;;;;;;  lexical-let* lexical-let symbol-macrolet macrolet labels
+;;;;;;  flet progv psetq do-all-symbols do-symbols dotimes dolist
+;;;;;;  do* do loop return-from return block etypecase typecase ecase
+;;;;;;  case load-time-value eval-when destructuring-bind function*
+;;;;;;  defmacro* defun* gentemp gensym) "cl-macs" "cl-macs.el" "fe8a5acbe14e32846a77578b2165fab5")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'gensym "cl-macs" "\
@@ -319,7 +319,7 @@ its argument list allows full Common Lisp conventions.
 \(fn FUNC)" nil (quote macro))
 
 (autoload 'destructuring-bind "cl-macs" "\
-Not documented
+
 
 \(fn ARGS EXPR &rest BODY)" nil (quote macro))
 
@@ -445,7 +445,7 @@ from OBARRAY.
 \(fn (VAR [OBARRAY [RESULT]]) BODY...)" nil (quote macro))
 
 (autoload 'do-all-symbols "cl-macs" "\
-Not documented
+
 
 \(fn SPEC &rest BODY)" nil (quote macro))
 
@@ -500,7 +500,7 @@ Like `let', but lexically scoped.
 The main visible difference is that lambdas inside BODY will create
 lexical closures as in Common Lisp.
 
-\(fn VARLIST BODY)" nil (quote macro))
+\(fn BINDINGS BODY)" nil (quote macro))
 
 (autoload 'lexical-let* "cl-macs" "\
 Like `let*', but lexically scoped.
@@ -509,7 +509,7 @@ successive bindings within BINDINGS, will create lexical closures
 as in Common Lisp.  This is similar to the behavior of `let*' in
 Common Lisp.
 
-\(fn VARLIST BODY)" nil (quote macro))
+\(fn BINDINGS BODY)" nil (quote macro))
 
 (autoload 'multiple-value-bind "cl-macs" "\
 Collect multiple return values.
@@ -531,12 +531,17 @@ values.  For compatibility, (values A B C) is a synonym for (list A B C).
 \(fn (SYM...) FORM)" nil (quote macro))
 
 (autoload 'locally "cl-macs" "\
-Not documented
+
 
 \(fn &rest BODY)" nil (quote macro))
 
+(autoload 'the "cl-macs" "\
+
+
+\(fn TYPE FORM)" nil (quote macro))
+
 (autoload 'declare "cl-macs" "\
-Not documented
+
 
 \(fn &rest SPECS)" nil (quote macro))
 
@@ -596,7 +601,7 @@ before assigning any PLACEs to the corresponding values.
 \(fn PLACE VAL PLACE VAL ...)" nil (quote macro))
 
 (autoload 'cl-do-pop "cl-macs" "\
-Not documented
+
 
 \(fn PLACE)" nil nil)
 
@@ -684,7 +689,7 @@ value, that slot cannot be set via `setf'.
 \(fn NAME SLOTS...)" nil (quote macro))
 
 (autoload 'cl-struct-setf-expander "cl-macs" "\
-Not documented
+
 
 \(fn X NAME ACCESSOR PRED-FORM POS)" nil nil)
 
@@ -730,7 +735,7 @@ and then returning foo.
 \(fn FUNC ARGS &rest BODY)" nil (quote macro))
 
 (autoload 'compiler-macroexpand "cl-macs" "\
-Not documented
+
 
 \(fn FORM)" nil nil)
 

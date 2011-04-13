@@ -98,38 +98,39 @@ require \"fileinto\";
 
 (defvar sieve-manage-buffer nil)
 (defvar sieve-buffer-header-end nil)
+(defvar sieve-buffer-script-name nil
+  "The real script name of the buffer.")
+(make-local-variable 'sieve-buffer-script-name)
 
 ;; Sieve-manage mode:
 
-(defvar sieve-manage-mode-map nil
+(defvar sieve-manage-mode-map
+  (let ((map (make-sparse-keymap)))
+    ;; various
+    (define-key map "?" 'sieve-help)
+    (define-key map "h" 'sieve-help)
+    (define-key map "q" 'sieve-bury-buffer)
+    ;; activating
+    (define-key map "m" 'sieve-activate)
+    (define-key map "u" 'sieve-deactivate)
+    (define-key map "\M-\C-?" 'sieve-deactivate-all)
+    ;; navigation keys
+    (define-key map "\C-p" 'sieve-prev-line)
+    (define-key map [up] 'sieve-prev-line)
+    (define-key map "\C-n" 'sieve-next-line)
+    (define-key map [down] 'sieve-next-line)
+    (define-key map " " 'sieve-next-line)
+    (define-key map "n" 'sieve-next-line)
+    (define-key map "p" 'sieve-prev-line)
+    (define-key map "\C-m" 'sieve-edit-script)
+    (define-key map "f" 'sieve-edit-script)
+    (define-key map "o" 'sieve-edit-script-other-window)
+    (define-key map "r" 'sieve-remove)
+    (define-key map "q" 'sieve-manage-quit)
+    (define-key map [(down-mouse-2)] 'sieve-edit-script)
+    (define-key map [(down-mouse-3)] 'sieve-manage-mode-menu)
+    map)
   "Keymap for `sieve-manage-mode'.")
-
-(if sieve-manage-mode-map
-    ()
-  (setq sieve-manage-mode-map (make-sparse-keymap))
-  (suppress-keymap sieve-manage-mode-map)
-  ;; various
-  (define-key sieve-manage-mode-map "?" 'sieve-help)
-  (define-key sieve-manage-mode-map "h" 'sieve-help)
-  (define-key sieve-manage-mode-map "q" 'sieve-bury-buffer)
-  ;; activating
-  (define-key sieve-manage-mode-map "m" 'sieve-activate)
-  (define-key sieve-manage-mode-map "u" 'sieve-deactivate)
-  (define-key sieve-manage-mode-map "\M-\C-?" 'sieve-deactivate-all)
-  ;; navigation keys
-  (define-key sieve-manage-mode-map "\C-p" 'sieve-prev-line)
-  (define-key sieve-manage-mode-map [up] 'sieve-prev-line)
-  (define-key sieve-manage-mode-map "\C-n" 'sieve-next-line)
-  (define-key sieve-manage-mode-map [down] 'sieve-next-line)
-  (define-key sieve-manage-mode-map " " 'sieve-next-line)
-  (define-key sieve-manage-mode-map "n" 'sieve-next-line)
-  (define-key sieve-manage-mode-map "p" 'sieve-prev-line)
-  (define-key sieve-manage-mode-map "\C-m" 'sieve-edit-script)
-  (define-key sieve-manage-mode-map "f" 'sieve-edit-script)
-  (define-key sieve-manage-mode-map "o" 'sieve-edit-script-other-window)
-  (define-key sieve-manage-mode-map "r" 'sieve-remove)
-  (define-key sieve-manage-mode-map [(down-mouse-2)] 'sieve-edit-script)
-  (define-key sieve-manage-mode-map [(down-mouse-3)] 'sieve-manage-mode-menu))
 
 (easy-menu-define sieve-manage-mode-menu sieve-manage-mode-map
   "Sieve Menu."
@@ -138,20 +139,20 @@ require \"fileinto\";
     ["Activate script" sieve-activate t]
     ["Deactivate script" sieve-deactivate t]))
 
-(define-derived-mode sieve-manage-mode fundamental-mode "SIEVE"
+(define-derived-mode sieve-manage-mode fundamental-mode "Sieve-manage"
   "Mode used for sieve script management."
-  (setq mode-name "SIEVE")
   (buffer-disable-undo (current-buffer))
   (setq truncate-lines t)
   (easy-menu-add sieve-manage-mode-menu sieve-manage-mode-map))
 
 (put 'sieve-manage-mode 'mode-class 'special)
 
-;; This is necessary to allow correct handling of \\[cvs-mode-diff-map]
-;; in substitute-command-keys.
-;(fset 'sieve-manage-mode-map sieve-manage-mode-map)
-
 ;; Commands used in sieve-manage mode:
+
+(defun sieve-manage-quit ()
+  "Quit."
+  (interactive)
+  (kill-buffer (current-buffer)))
 
 (defun sieve-activate (&optional pos)
   (interactive "d")
@@ -204,7 +205,10 @@ require \"fileinto\";
       (switch-to-buffer (get-buffer-create "template.siv"))
       (insert sieve-template))
     (sieve-mode)
-    (message "Press C-c C-l to upload script to server.")))
+    (setq sieve-buffer-script-name name)
+    (message
+     (substitute-command-keys
+      "Press \\[sieve-upload] to upload script to server."))))
 
 (defmacro sieve-change-region (&rest body)
   "Turns off sieve-region before executing BODY, then re-enables it after.
@@ -337,13 +341,18 @@ Server  : " server ":" (or port "2000") "
     ;; get list of script names and print them
     (let ((scripts (sieve-manage-listscripts sieve-manage-buffer)))
       (if (null scripts)
-	  (insert (format (concat "No scripts on server, press RET on %s to "
-				  "create a new script.\n") sieve-new-script))
-	(insert (format (concat "%d script%s on server, press RET on a script "
-				"name edits it, or\npress RET on %s to create "
-				"a new script.\n") (length scripts)
-				(if (eq (length scripts) 1) "" "s")
-				sieve-new-script)))
+	  (insert
+           (substitute-command-keys
+            (format
+             "No scripts on server, press \\[sieve-edit-script] on %s to create a new script.\n"
+             sieve-new-script)))
+	(insert
+         (substitute-command-keys
+          (format (concat "%d script%s on server, press \\[sieve-edit-script] on a script "
+                          "name edits it, or\npress \\[sieve-edit-script] on %s to create "
+                          "a new script.\n") (length scripts)
+                          (if (eq (length scripts) 1) "" "s")
+                          sieve-new-script))))
       (save-excursion
 	(sieve-insert-scripts (list sieve-new-script))
 	(sieve-insert-scripts scripts)))
@@ -363,15 +372,15 @@ Server  : " server ":" (or port "2000") "
 ;;;###autoload
 (defun sieve-upload (&optional name)
   (interactive)
-  (unless name
-    (setq name (buffer-name)))
   (when (or (get-buffer sieve-buffer) (call-interactively 'sieve-manage))
     (let ((script (buffer-string)) err)
       (with-current-buffer (get-buffer sieve-buffer)
-	(setq err (sieve-manage-putscript name script sieve-manage-buffer))
+	(setq err (sieve-manage-putscript
+                   (or name sieve-buffer-script-name (buffer-name))
+                   script sieve-manage-buffer))
 	(if (sieve-manage-ok-p err)
-	    (message (concat
-		      "Sieve upload done.  Use `C-c RET' to manage scripts."))
+	    (message (substitute-command-keys
+		      "Sieve upload done.  Use \\[sieve-manage] to manage scripts."))
 	  (message "Sieve upload failed: %s" (nth 2 err)))))))
 
 ;;;###autoload

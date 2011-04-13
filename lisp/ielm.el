@@ -371,7 +371,8 @@ simply inserts a newline."
 				   (*** *3))
 			       (kill-buffer (current-buffer))
 			       (set-buffer ielm-wbuf)
-			       (setq ielm-result (eval ielm-form))
+			       (setq ielm-result
+                                     (eval ielm-form lexical-binding))
 			       (setq ielm-wbuf (current-buffer))
 			       (setq
 				ielm-temp-buffer

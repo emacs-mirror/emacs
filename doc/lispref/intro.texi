@@ -1,4 +1,4 @@
-@c -*-texinfo-*-
+@c -*-coding: iso-latin-1-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990-1994, 2001-2011  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
@@ -542,6 +542,6 @@ Kirman, Bob Knighten, Frederick M. Korz, Joe Lammens, Glenn M. Lewis,
 K. Richard Magill, Brian Marick, Roland McGrath, Stefan Monnier, Skip
 Montanaro, John Gardiner Myers, Thomas A. Peterson, Francesco Potorti,
 Friedrich Pukelsheim, Arnold D. Robbins, Raul Rockwell, Jason Rumney,
-Per Starb@"ack, Shinichirou Sugou, Kimmo Suominen, Edward Tharp, Bill
+Per Starbäck, Shinichirou Sugou, Kimmo Suominen, Edward Tharp, Bill
 Trost, Rickard Westman, Jean White, Eduard Wiebe, Matthew Wilding,
 Carl Witty, Dale Worley, Rusty Wright, and David D. Zuhn.

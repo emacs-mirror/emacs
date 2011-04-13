@@ -60,6 +60,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <dlgs.h>
 #include <imm.h>
 #define FILE_NAME_TEXT_FIELD edt1
+#define FILE_NAME_COMBO_BOX cmb13
+#define FILE_NAME_LIST lst1
 
 #include "font.h"
 #include "w32font.h"
@@ -77,10 +79,6 @@ extern int w32_console_toggle_lock_key (int, Lisp_Object);
 extern void w32_menu_display_help (HWND, HMENU, UINT, UINT);
 extern void w32_free_menu_strings (HWND);
 extern const char *map_w32_filename (const char *, const char **);
-
-extern int quit_char;
-
-extern const char *const lispy_function_keys[];
 
 /* If non-zero, a w32 timer that, when it expires, displays an
    hourglass cursor on all frames.  */
@@ -185,18 +183,10 @@ unsigned int msh_mousewheel = 0;
 #define MENU_FREE_DELAY 1000
 static unsigned menu_free_timer = 0;
 
-extern Lisp_Object Qtooltip;
-
-#ifdef GLYPH_DEBUG
+#if GLYPH_DEBUG
 int image_cache_refcount, dpyinfo_refcount;
 #endif
 
-
-extern HWND w32_system_caret_hwnd;
-
-extern int w32_system_caret_height;
-extern int w32_system_caret_x;
-extern int w32_system_caret_y;
 static HWND w32_visible_system_caret_hwnd;
 
 /* From w32menu.c  */
@@ -1537,7 +1527,6 @@ void
 x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
   int nlines;
-  int olines = FRAME_MENU_BAR_LINES (f);
 
   /* Right now, menu bars don't work properly in minibuf-only frames;
      most of the commands try to apply themselves to the minibuffer
@@ -2876,7 +2865,6 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			 base character (ie. translating the base key plus
 			 shift modifier).  */
 		      int add;
-		      int isdead = 0;
 		      KEY_EVENT_RECORD key;
 
 		      key.bKeyDown = TRUE;
@@ -2964,7 +2952,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
           HIMC context = get_ime_context_fn (hwnd);
           wmsg.dwModifiers = w32_get_key_modifiers (wParam, lParam);
           /* Get buffer size.  */
-          size = get_composition_string_fn (context, GCS_RESULTSTR, buffer, 0);
+          size = get_composition_string_fn (context, GCS_RESULTSTR, NULL, 0);
           buffer = alloca (size);
           size = get_composition_string_fn (context, GCS_RESULTSTR,
                                             buffer, size);
@@ -3994,7 +3982,7 @@ unwind_create_frame (Lisp_Object frame)
   /* If frame is ``official'', nothing to do.  */
   if (!CONSP (Vframe_list) || !EQ (XCAR (Vframe_list), frame))
     {
-#ifdef GLYPH_DEBUG
+#if GLYPH_DEBUG
       struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
 #endif
 
@@ -4535,8 +4523,6 @@ DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
   (Lisp_Object display)
 {
-  struct w32_display_info *dpyinfo = check_x_display_info (display);
-
   return make_number (1);
 }
 
@@ -4833,7 +4819,6 @@ If DISPLAY is nil, that stands for the selected frame's display.  */)
   (Lisp_Object display)
 {
   struct w32_display_info *dpyinfo = check_x_display_info (display);
-  int i;
 
   if (dpyinfo->reference_count > 0)
     error ("Display still has frames on it");
@@ -5186,7 +5171,7 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
 		    Lisp_Object parms, Lisp_Object text)
 {
   struct frame *f;
-  Lisp_Object frame, tem;
+  Lisp_Object frame;
   Lisp_Object name;
   long window_prompting = 0;
   int width, height;
@@ -5850,7 +5835,6 @@ Value is t if tooltip was open, nil otherwise.  */)
 /***********************************************************************
 			File selection dialog
  ***********************************************************************/
-extern Lisp_Object Qfile_name_history;
 
 /* Callback for altering the behavior of the Open File dialog.
    Makes the Filename text field contain "Current Directory" and be
@@ -5869,13 +5853,37 @@ file_dialog_callback (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
 	  HWND dialog = GetParent (hwnd);
 	  HWND edit_control = GetDlgItem (dialog, FILE_NAME_TEXT_FIELD);
+	  HWND list = GetDlgItem (dialog, FILE_NAME_LIST);
 
-	  /* Directories is in index 2.  */
+	  /* At least on Windows 7, the above attempt to get the window handle
+	     to the File Name Text Field fails.	 The following code does the
+	     job though.  Note that this code is based on my examination of the
+	     window hierarchy using Microsoft Spy++.  bk */
+	  if (edit_control == NULL)
+	    {
+	      HWND tmp = GetDlgItem (dialog, FILE_NAME_COMBO_BOX);
+	      if (tmp)
+		{
+		  tmp = GetWindow (tmp, GW_CHILD);
+		  if (tmp)
+		    edit_control = GetWindow (tmp, GW_CHILD);
+		}
+	    }
+
+	  /* Directories is in index 2.	 */
 	  if (notify->lpOFN->nFilterIndex == 2)
 	    {
 	      CommDlg_OpenSave_SetControlText (dialog, FILE_NAME_TEXT_FIELD,
 					       "Current Directory");
 	      EnableWindow (edit_control, FALSE);
+	      /* Note that at least on Windows 7, the above call to EnableWindow
+		 disables the window that would ordinarily have focus.	If we
+		 do not set focus to some other window here, focus will land in
+		 no man's land and the user will be unable to tab through the
+		 dialog box (pressing tab will only result in a beep).
+		 Avoid that problem by setting focus to the list here.	*/
+	      if (notify->hdr.code == CDN_INITDONE)
+		SetFocus (list);
 	    }
 	  else
 	    {
@@ -5951,6 +5959,13 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
     }
   else
     filename[0] = '\0';
+
+  /* The code in file_dialog_callback that attempts to set the text
+     of the file name edit window when handling the CDN_INITDONE
+     WM_NOTIFY message does not work.  Setting filename to "Current
+     Directory" in the only_dir_p case here does work however.  */
+  if (filename[0] == 0 && ! NILP (only_dir_p))
+    strcpy (filename, "Current Directory");
 
   {
     NEWOPENFILENAME new_file_details;

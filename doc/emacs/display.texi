@@ -183,7 +183,20 @@ visible portion of the text.
 if you set @code{scroll-conservatively} to a small number @var{n},
 then if you move point just a little off the screen (less than @var{n}
 lines), Emacs scrolls the text just far enough to bring point back on
-screen.  By default, @code{scroll-conservatively} is@tie{}0.
+screen.  By default, @code{scroll-conservatively} is@tie{}0.  If you
+set @code{scroll-conservatively} to a large number (larger than 100),
+Emacs will never center point as result of scrolling, even if point
+moves far away from the text previously displayed in the window.  With
+such a large value, Emacs will always scroll text just enough for
+bringing point into view, so point will end up at the top or bottom of
+the window, depending on the scroll direction.
+
+@vindex scroll-step
+  The variable @code{scroll-step} determines how many lines to scroll
+the window when point moves off the screen.  If moving by that number
+of lines fails to bring point back into view, point is centered
+instead.  The default value is zero, which causes point to always be
+centered after scrolling.
 
 @cindex aggressive scrolling
 @vindex scroll-up-aggressively
@@ -193,16 +206,21 @@ how aggressively it scrolls by setting the variables
 @code{scroll-up-aggressively} and @code{scroll-down-aggressively}.
 The value of @code{scroll-up-aggressively} should be either
 @code{nil}, or a fraction @var{f} between 0 and 1.  A fraction
-specifies where on the screen to put point when scrolling upward: when
-a window scrolls up because point is above the window start, the new
+specifies where on the screen to put point when scrolling upward,
+i.e.@: when point moves forward in the buffer, and therefore text
+scrolls up in the window.  When point goes off the window end, the new
 start position is chosen to put point @var{f} parts of the window
-height from the top.  Thus, larger @var{f} means more aggressive
-scrolling.  The default value, @code{nil}, is equivalent to 0.5.
+height from the bottom.  Thus, larger @var{f} means more aggressive
+scrolling: more new text is brought into view.  The default value,
+@code{nil}, is equivalent to 0.5.
 
   Likewise, @code{scroll-down-aggressively} is used for scrolling
-down.  The value specifies how far point should be placed from the
-bottom of the window; thus, as with @code{scroll-up-aggressively}, a
-larger value is more aggressive.
+down, i.e.@: moving point back in the buffer.  The value specifies how
+far point should be placed from the top of the window; thus, as with
+@code{scroll-up-aggressively}, a larger value is more aggressive.
+
+  These two variables are ignored if either @code{scroll-step} or
+@code{scroll-conservatively} are set to a non-zero value.
 
 @vindex scroll-margin
   The variable @code{scroll-margin} restricts how close point can come
@@ -999,8 +1017,7 @@ value is 200 characters.
   Emacs can optionally display the time and system load in all mode
 lines.  To enable this feature, type @kbd{M-x display-time} or customize
 the option @code{display-time-mode}.  The information added to the mode
-line usually appears after the buffer name, before the mode names and
-their parentheses.  It looks like this:
+line looks like this:
 
 @example
 @var{hh}:@var{mm}pm @var{l.ll}

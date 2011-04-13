@@ -53,8 +53,9 @@ by name)."
   :tag "UNIX commands in Lisp"
   :group 'eshell-module)
 
-(defcustom eshell-unix-load-hook '(eshell-unix-initialize)
+(defcustom eshell-unix-load-hook nil
   "A list of functions to run when `eshell-unix' is loaded."
+  :version "24.1"			; removed eshell-unix-initialize
   :type 'hook
   :group 'eshell-unix)
 
@@ -587,7 +588,7 @@ symlink, then revert to the system's definition of cat."
   (setq args (eshell-stringify-list (eshell-flatten-list args)))
   (if (or eshell-in-pipeline-p
 	  (catch 'special
-	    (eshell-for arg args
+	    (dolist (arg args)
 	      (unless (or (and (stringp arg)
 			       (> (length arg) 0)
 			       (eq (aref arg 0) ?-))
@@ -610,12 +611,12 @@ symlink, then revert to the system's definition of cat."
        :show-usage
        :usage "[OPTION] FILE...
 Concatenate FILE(s), or standard input, to standard output.")
-     (eshell-for file args
+     (dolist (file args)
        (if (string= file "-")
 	   (throw 'eshell-external
 		  (eshell-external-command "cat" args))))
      (let ((curbuf (current-buffer)))
-       (eshell-for file args
+       (dolist (file args)
 	 (with-temp-buffer
 	   (insert-file-contents file)
 	   (goto-char (point-min))
@@ -851,7 +852,7 @@ external command."
   (let ((ext-du (eshell-search-path "du")))
     (if (and ext-du
 	     (not (catch 'have-ange-path
-		    (eshell-for arg args
+		    (dolist (arg args)
 		      (if (string-equal
 			   (file-remote-p (expand-file-name arg) 'method) "ftp")
 			  (throw 'have-ange-path t))))))
@@ -1055,7 +1056,7 @@ Become another USER during a login session.")
 			    "localhost"))
 		  (dir (or (file-remote-p default-directory 'localname)
 			   (expand-file-name default-directory))))
-	      (eshell-for arg args
+	      (dolist (arg args)
 		(if (string-equal arg "-") (setq login t) (setq user arg)))
 	      ;; `eshell-eval-using-options' does not handle "-".
 	      (if (member "-" orig-args) (setq login t))

@@ -4,7 +4,7 @@
 
 ;; Author: Ryan Yeske <rcyeske@gmail.com>
 ;; Maintainers: Ryan Yeske <rcyeske@gmail.com>,
-;;              Deniz Dogan <deniz.a.m.dogan@gmail.com>
+;;              Deniz Dogan <deniz@dogan.se>
 ;; Keywords: comm
 
 ;; This file is part of GNU Emacs.
@@ -204,12 +204,14 @@ The ARGUMENTS for each METHOD symbol are:
   `nickserv': NICK PASSWORD [NICKSERV-NICK]
   `chanserv': NICK CHANNEL PASSWORD
   `bitlbee': NICK PASSWORD
+  `quakenet': ACCOUNT PASSWORD
 
 Examples:
  ((\"freenode\" nickserv \"bob\" \"p455w0rd\")
   (\"freenode\" chanserv \"bob\" \"#bobland\" \"passwd99\")
   (\"bitlbee\" bitlbee \"robert\" \"sekrit\")
-  (\"dal.net\" nickserv \"bob\" \"sekrit\" \"NickServ@services.dal.net\"))"
+  (\"dal.net\" nickserv \"bob\" \"sekrit\" \"NickServ@services.dal.net\")
+  (\"quakenet.org\" quakenet \"bobby\" \"sekrit\"))"
   :type '(alist :key-type (string :tag "Server")
 		:value-type (choice (list :tag "NickServ"
 					  (const nickserv)
@@ -223,12 +225,23 @@ Examples:
 				    (list :tag "BitlBee"
 					  (const bitlbee)
 					  (string :tag "Nick")
-					  (string :tag "Password"))))
+					  (string :tag "Password"))
+                                    (list :tag "QuakeNet"
+                                          (const quakenet)
+                                          (string :tag "Account")
+                                          (string :tag "Password"))))
   :group 'rcirc)
 
 (defcustom rcirc-auto-authenticate-flag t
   "*Non-nil means automatically send authentication string to server.
 See also `rcirc-authinfo'."
+  :type 'boolean
+  :group 'rcirc)
+
+(defcustom rcirc-authenticate-before-join t
+  "*Non-nil means authenticate to services before joining channels.
+Currently only works with NickServ on some networks."
+  :version "24.1"
   :type 'boolean
   :group 'rcirc)
 
@@ -281,6 +294,9 @@ See `rcirc-dim-nick' face."
 Called with 5 arguments, PROCESS, SENDER, RESPONSE, TARGET and TEXT."
   :type 'hook
   :group 'rcirc)
+
+(defvar rcirc-authenticated-hook nil
+  "Hook run after successfully authenticated.")
 
 (defcustom rcirc-always-use-server-buffer-flag nil
   "Non-nil means messages without a channel target will go to the server buffer."
@@ -475,6 +491,7 @@ If ARG is non-nil, instead prompt for connection parameters."
 (defvar rcirc-server nil)		; server provided by server
 (defvar rcirc-server-name nil)		; server name given by 001 response
 (defvar rcirc-timeout-timer nil)
+(defvar rcirc-user-authenticated nil)
 (defvar rcirc-user-disconnect nil)
 (defvar rcirc-connecting nil)
 (defvar rcirc-process nil)
@@ -524,13 +541,15 @@ If ARG is non-nil, instead prompt for connection parameters."
       (setq rcirc-timeout-timer nil)
       (make-local-variable 'rcirc-user-disconnect)
       (setq rcirc-user-disconnect nil)
+      (make-local-variable 'rcirc-user-authenticated)
+      (setq rcirc-user-authenticated nil)
       (make-local-variable 'rcirc-connecting)
       (setq rcirc-connecting t)
 
       (add-hook 'auto-save-hook 'rcirc-log-write)
 
       ;; identify
-      (when password
+      (unless (zerop (length password))
         (rcirc-send-string process (concat "PASS " password)))
       (rcirc-send-string process (concat "NICK " nick))
       (rcirc-send-string process (concat "USER " user-name
@@ -810,18 +829,21 @@ The list is updated automatically by `defun-rcirc-command'.")
 
 (defun rcirc-completion-at-point ()
   "Function used for `completion-at-point-functions' in `rcirc-mode'."
-  (let* ((beg (save-excursion
-		(if (re-search-backward " " rcirc-prompt-end-marker t)
-		    (1+ (point))
-		  rcirc-prompt-end-marker)))
-	 (table (if (and (= beg rcirc-prompt-end-marker)
-			 (eq (char-after beg) ?/))
-		    (delete-dups
-		     (nconc
-		      (sort (copy-sequence rcirc-client-commands) 'string-lessp)
-		      (sort (copy-sequence rcirc-server-commands) 'string-lessp)))
-		  (rcirc-channel-nicks (rcirc-buffer-process) rcirc-target))))
-    (list beg (point) table)))
+  (and (rcirc-looking-at-input)
+       (let* ((beg (save-excursion
+		     (if (re-search-backward " " rcirc-prompt-end-marker t)
+			 (1+ (point))
+		       rcirc-prompt-end-marker)))
+	      (table (if (and (= beg rcirc-prompt-end-marker)
+			      (eq (char-after beg) ?/))
+			 (delete-dups
+			  (nconc (sort (copy-sequence rcirc-client-commands)
+				       'string-lessp)
+				 (sort (copy-sequence rcirc-server-commands)
+				       'string-lessp)))
+		       (rcirc-channel-nicks (rcirc-buffer-process)
+					    rcirc-target))))
+	 (list beg (point) table))))
 
 (defvar rcirc-completions nil)
 (defvar rcirc-completion-start nil)
@@ -830,6 +852,8 @@ The list is updated automatically by `defun-rcirc-command'.")
   "Cycle through completions from list of nicks in channel or IRC commands.
 IRC command completion is performed only if '/' is the first input char."
   (interactive)
+  (unless (rcirc-looking-at-input)
+    (error "Point not located after rcirc prompt"))
   (if (eq last-command this-command)
       (setq rcirc-completions
 	    (append (cdr rcirc-completions) (list (car rcirc-completions))))
@@ -837,9 +861,10 @@ IRC command completion is performed only if '/' is the first input char."
 	  (table (rcirc-completion-at-point)))
       (setq rcirc-completion-start (car table))
       (setq rcirc-completions
-	    (all-completions (buffer-substring rcirc-completion-start
-					       (cadr table))
-			     (nth 2 table)))))
+	    (and rcirc-completion-start
+		 (all-completions (buffer-substring rcirc-completion-start
+						    (cadr table))
+				  (nth 2 table))))))
   (let ((completion (car rcirc-completions)))
     (when completion
       (delete-region rcirc-completion-start (point))
@@ -875,7 +900,6 @@ IRC command completion is performed only if '/' is the first input char."
     (define-key map (kbd "C-c C-m") 'rcirc-cmd-msg)
     (define-key map (kbd "C-c C-r") 'rcirc-cmd-nick) ; rename
     (define-key map (kbd "C-c C-o") 'rcirc-omit-mode)
-    (define-key map (kbd "M-o") 'rcirc-omit-mode)
     (define-key map (kbd "C-c C-p") 'rcirc-cmd-part)
     (define-key map (kbd "C-c C-q") 'rcirc-cmd-query)
     (define-key map (kbd "C-c C-t") 'rcirc-cmd-topic)
@@ -2104,7 +2128,8 @@ CHANNELS is a comma- or space-separated string of channel names."
   (let* ((split-channels (split-string channels "[ ,]" t))
          (buffers (mapcar (lambda (ch)
                             (rcirc-get-buffer-create process ch))
-                          split-channels)))
+                          split-channels))
+         (channels (mapconcat 'identity split-channels ",")))
     (rcirc-send-string process (concat "JOIN " channels))
     (when (not (eq (selected-window) (minibuffer-window)))
       (dolist (b buffers) ;; order the new channel buffers in the buffer list
@@ -2427,10 +2452,30 @@ keywords when no KEYWORD is given."
     (setq rcirc-server-name sender)
     (setq rcirc-nick (car args))
     (rcirc-update-prompt)
-    (when rcirc-auto-authenticate-flag (rcirc-authenticate))
+    (if rcirc-auto-authenticate-flag
+        (if (and rcirc-authenticate-before-join
+		 ;; We have to ensure that there's an authentication
+		 ;; entry for that server.  Else,
+		 ;; rcirc-authenticated-hook won't be triggered, and
+		 ;; autojoin won't happen at all.
+		 (let (auth-required)
+		   (dolist (s rcirc-authinfo auth-required)
+		     (when (string-match (car s) rcirc-server-name)
+		       (setq auth-required t)))))
+            (progn
+	      (add-hook 'rcirc-authenticated-hook 'rcirc-join-channels-post-auth t t)
+              (rcirc-authenticate))
+          (rcirc-authenticate)
+          (rcirc-join-channels process rcirc-startup-channels))
+      (rcirc-join-channels process rcirc-startup-channels))))
+
+(defun rcirc-join-channels-post-auth (process)
+  "Join `rcirc-startup-channels' after authenticating."
+  (with-rcirc-process-buffer process
     (rcirc-join-channels process rcirc-startup-channels)))
 
 (defun rcirc-handler-PRIVMSG (process sender args text)
+  (rcirc-check-auth-status process sender args text)
   (let ((target (if (rcirc-channel-p (car args))
                     (car args)
                   sender))
@@ -2443,6 +2488,7 @@ keywords when no KEYWORD is given."
       (rcirc-put-nick-channel process sender target rcirc-current-line))))
 
 (defun rcirc-handler-NOTICE (process sender args text)
+  (rcirc-check-auth-status process sender args text)
   (let ((target (car args))
         (message (cadr args)))
     (if (string-match "^\C-a\\(.*\\)\C-a$" message)
@@ -2459,6 +2505,33 @@ keywords when no KEYWORD is given."
 			      nil	; server notice
 			    sender)))
                  message t))))
+
+(defun rcirc-check-auth-status (process sender args text)
+  "Check if the user just authenticated.
+If authenticated, runs `rcirc-authenticated-hook' with PROCESS as
+the only argument."
+  (with-rcirc-process-buffer process
+    (when (and (not rcirc-user-authenticated)
+               rcirc-authenticate-before-join
+               rcirc-auto-authenticate-flag)
+      (let ((target (car args))
+            (message (cadr args)))
+        (when (or
+               (and ;; nickserv
+                (string= sender "NickServ")
+                (string= target rcirc-nick)
+                (member message
+                        (list
+                         (format "You are now identified for \C-b%s\C-b." rcirc-nick)
+                         "Password accepted - you are now recognized."
+                         )))
+               (and ;; quakenet
+                (string= sender "Q")
+                (string= target rcirc-nick)
+                (string-match "\\`You are now logged in as .+\\.\\'" message)))
+          (setq rcirc-user-authenticated t)
+          (run-hook-with-args 'rcirc-authenticated-hook process)
+          (remove-hook 'rcirc-authenticated-hook 'rcirc-join-channels-post-auth t))))))
 
 (defun rcirc-handler-WALLOPS (process sender args text)
   (rcirc-print process sender "WALLOPS" sender (car args) t))
@@ -2704,26 +2777,33 @@ Passwords are stored in `rcirc-authinfo' (which see)."
 	    (nick (caddr i))
 	    (method (cadr i))
 	    (args (cdddr i)))
-	(when (and (string-match server rcirc-server)
-		   (string-match nick rcirc-nick))
-	  (cond ((equal method 'nickserv)
-		 (rcirc-send-privmsg
-		  process
+	(when (and (string-match server rcirc-server))
+          (if (and (memq method '(nickserv chanserv bitlbee))
+                   (string-match nick rcirc-nick))
+              ;; the following methods rely on the user's nickname.
+              (case method
+                (nickserv
+                 (rcirc-send-privmsg
+                  process
                   (or (cadr args) "NickServ")
-                  (concat "identify " (car args))))
-		((equal method 'chanserv)
-		 (rcirc-send-privmsg
-		  process
+                  (concat "IDENTIFY " (car args))))
+                (chanserv
+                 (rcirc-send-privmsg
+                  process
                   "ChanServ"
-                  (format "identify %s %s" (car args) (cadr args))))
-		((equal method 'bitlbee)
-		 (rcirc-send-privmsg
-		  process
+                  (format "IDENTIFY %s %s" (car args) (cadr args))))
+                (bitlbee
+                 (rcirc-send-privmsg
+                  process
                   "&bitlbee"
-                  (concat "identify " (car args))))
-		(t
-		 (message "No %S authentication method defined"
-			  method))))))))
+                  (concat "IDENTIFY " (car args)))))
+            ;; quakenet authentication doesn't rely on the user's nickname.
+            ;; the variable `nick' here represents the Q account name.
+            (when (eq method 'quakenet)
+              (rcirc-send-privmsg 
+               process
+               "Q@CServe.quakenet.org"
+               (format "AUTH %s %s" nick (car args))))))))))
 
 (defun rcirc-handler-INVITE (process sender args text)
   (rcirc-print process sender "INVITE" nil (mapconcat 'identity args " ") t))

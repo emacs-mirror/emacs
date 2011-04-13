@@ -1,3 +1,33 @@
+2011-04-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: New variable `revert-buffer-in-progress-p'.
+
+2011-03-22  Sebastian Hermida  <sebas00@gmail.com>
+
+	* themes/misterioso-theme.el: New file.
+
+2011-03-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Document warning about _emacs.
+
+2011-03-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: `shell' prompts for the shell path name, when the default
+	directory is a remote file name and neither environment variable
+	$ESHELL nor variable `explicit-shell-file-name' is set.
+
+2011-03-08  Kristoffer Grönlund  <krig@koru.se>
+
+	* themes/wombat-theme.el: New file.
+
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
+2011-03-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* srecode/el.srt: Fix typo.
+
 2011-02-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* themes/tango-dark-theme.el: Tweak background on low-color
@@ -6,15 +36,15 @@
 2011-02-17  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* etc/images/icons/allout-widgets/dark-bg,
-	etc/images/icons/allout-widgets/light-bg,
-	encrypted-locked.{xpm,png}, unlocked-encrypted.{xpm,png}:
+	* etc/images/icons/allout-widgets/light-bg,
+	* encrypted-locked.{xpm,png}, unlocked-encrypted.{xpm,png}:
 	Reorganize icon directories and files to reconcile against windows
 	short-filename clashes.
 
 2011-02-16  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* etc/images/icons/allout-widgets-dark-bg,
-	etc/images/icons/allout-widgets-light-bg: Icons for new
+	* etc/images/icons/allout-widgets-light-bg: Icons for new
 	allout-widgets.el.
 
 	* etc/images/icons/README: Include coypright and GPL 3 license for
@@ -117,7 +147,7 @@
 
 	* NEWS: Mention new Tramp method "ksu".
 
-2010-12-13  W. Martin Borgert <debacle@debian.org>  (tiny change)
+2010-12-13  W. Martin Borgert  <debacle@debian.org>  (tiny change)
 
 	* schema/schemas.xml: Add DocBook (Bug#7491).
 

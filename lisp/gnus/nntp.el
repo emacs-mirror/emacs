@@ -27,13 +27,16 @@
 
 ;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
-  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r)))
+  ;; In Emacs 24, `open-protocol-stream' is an autoloaded alias for
+  ;; `make-network-stream'.
+  (unless (fboundp 'open-protocol-stream)
+    (require 'proto-stream)))
 
 (require 'nnheader)
 (require 'nnoo)
 (require 'gnus-util)
 (require 'gnus)
-(require 'proto-stream)
 (require 'gnus-group) ;; gnus-group-name-charset
 
 (nnoo-declare nntp)
@@ -76,27 +79,27 @@ to innd, you could say something like:
 You probably don't want to do that, though.")
 
 (defvoo nntp-open-connection-function 'nntp-open-network-stream
-  "*Function used for connecting to a remote system.
-It will be called with the buffer to output in as argument.
+  "Method for connecting to a remote system.
+It should be a function, which is called with the output buffer
+as its single argument, or one of the following special values:
 
-Currently, five such functions are provided (please refer to their
-respective doc string for more information), three of them establishing
-direct connections to the nntp server, and two of them using an indirect
-host.
+- `nntp-open-network-stream' specifies a network connection,
+  upgrading to a TLS connection via STARTTLS if possible.
+- `nntp-open-plain-stream' specifies an unencrypted network
+  connection (no STARTTLS upgrade is attempted).
+- `nntp-open-ssl-stream' or `nntp-open-tls-stream' specify a TLS
+  network connection.
 
-Direct connections:
-- `nntp-open-network-stream' (the default),
-- `network-only' (the same as the above, but don't do automatic
-  STARTTLS upgrades).
-- `nntp-open-ssl-stream',
-- `nntp-open-tls-stream',
-- `nntp-open-netcat-stream'.
-- `nntp-open-telnet-stream'.
-
-Indirect connections:
-- `nntp-open-via-rlogin-and-netcat',
-- `nntp-open-via-rlogin-and-telnet',
-- `nntp-open-via-telnet-and-telnet'.")
+Apart from the above special values, valid functions are as
+follows; please refer to their respective doc string for more
+information.
+For direct connections:
+- `nntp-open-netcat-stream'
+- `nntp-open-telnet-stream'
+For indirect connections:
+- `nntp-open-via-rlogin-and-netcat'
+- `nntp-open-via-rlogin-and-telnet'
+- `nntp-open-via-telnet-and-telnet'")
 
 (defvoo nntp-never-echoes-commands nil
   "*Non-nil means the nntp server never echoes commands.
@@ -1340,25 +1343,25 @@ password contained in '~/.nntp-authinfo'."
 	      (let ((coding-system-for-read nntp-coding-system-for-read)
 		    (coding-system-for-write nntp-coding-system-for-write)
 		    (map '((nntp-open-network-stream network)
-			   (network-only network-only)
+			   (network-only plain) ; compat
+			   (nntp-open-plain-stream plain)
 			   (nntp-open-ssl-stream tls)
 			   (nntp-open-tls-stream tls))))
 		(if (assoc nntp-open-connection-function map)
-		    (car (open-protocol-stream
-			  "nntpd" pbuffer nntp-address nntp-port-number
-			  :type (cadr
-				 (assoc nntp-open-connection-function map))
-			  :end-of-command "^\\([2345]\\|[.]\\).*\n"
-			  :capability-command "CAPABILITIES\r\n"
-			  :success "^3"
-			  :starttls-function
-			  (lambda (capabilities)
-			    (if (not (string-match "STARTTLS" capabilities))
-				nil
-			      "STARTTLS\r\n"))))
+		    (open-protocol-stream
+		     "nntpd" pbuffer nntp-address nntp-port-number
+		     :type (cadr (assoc nntp-open-connection-function map))
+		     :end-of-command "^\\([2345]\\|[.]\\).*\n"
+		     :capability-command "CAPABILITIES\r\n"
+		     :success "^3"
+		     :starttls-function
+		     (lambda (capabilities)
+		       (if (not (string-match "STARTTLS" capabilities))
+			   nil
+			 "STARTTLS\r\n")))
 		  (funcall nntp-open-connection-function pbuffer)))
 	    (error
-	     (nnheader-report 'nntp "%s" err))
+	     (nnheader-report 'nntp ">>> %s" err))
 	    (quit
 	     (message "Quit opening connection to %s" nntp-address)
 	     (nntp-kill-buffer pbuffer)
@@ -1366,6 +1369,9 @@ password contained in '~/.nntp-authinfo'."
 	     nil))))
     (when timer
       (nnheader-cancel-timer timer))
+    (when (and process
+	       (not (memq (process-status process) '(open run))))
+      (setq process nil))
     (unless process
       (nntp-kill-buffer pbuffer))
     (when (and (buffer-name pbuffer)
@@ -1672,7 +1678,7 @@ password contained in '~/.nntp-authinfo'."
 
         ;; Some nntp servers seem to have an extension to the XOVER
         ;; extension.  On these servers, requesting an article range
-        ;; preceeding the active range does not return an error as
+        ;; preceding the active range does not return an error as
         ;; specified in the RFC.  What we instead get is the NOV entry
         ;; for the first available article.  Obviously, a client can
         ;; use that entry to avoid making unnecessary requests.  The

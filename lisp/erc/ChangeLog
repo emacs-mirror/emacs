@@ -1,3 +1,11 @@
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
+2011-03-04  Julien Danjou  <julien@danjou.info>
+
+	* erc-track.el (erc-track-visibility): Fix :type.  (Bug#6369)
+
 2011-02-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* erc-list.el (erc-list-menu-mode-map): Move initialization

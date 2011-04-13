@@ -35,13 +35,51 @@ Eshell commands implemented in Lisp."
 
 ;;; User Functions:
 
-(defmacro eshell-eval-using-options (name macro-args
-					  options &rest body-forms)
+(defmacro eshell-eval-using-options (name macro-args options &rest body-forms)
   "Process NAME's MACRO-ARGS using a set of command line OPTIONS.
-After doing so, settings will be stored in local symbols as declared
-by OPTIONS; FORMS will then be evaluated -- assuming all was OK.
+After doing so, stores settings in local symbols as declared by OPTIONS;
+then evaluates BODY-FORMS -- assuming all was OK.
 
-The syntax of OPTIONS is:
+OPTIONS is a list, beginning with one or more elements of the form:
+\(SHORT LONG VALUE SYMBOL HELP-STRING)
+Each of these elements represents a particular command-line switch.
+
+SHORT is either nil, or a character that can be used as a switch -SHORT.
+LONG is either nil, or a string that can be used as a switch --LONG.
+At least one of SHORT and LONG must be non-nil.
+VALUE is the value associated with the option.  It can be either:
+  t   - the option needs a value to be specified after the switch;
+  nil - the option is given the value t;
+  anything else - specifies the actual value for the option.
+SYMBOL is either nil, or the name of the Lisp symbol that will be bound
+to VALUE.  A nil SYMBOL calls `eshell-show-usage', and so is appropriate
+for a \"--help\" type option.
+HELP-STRING is a documentation string for the option.
+
+Any remaining elements of OPTIONS are :KEYWORD arguments.  Some take
+arguments, some do not.  The recognized :KEYWORDS are:
+
+:external STRING
+  STRING is an external command to run if there are unknown switches.
+
+:usage STRING
+  STRING is the initial part of the command's documentation string.
+  It appears before the options are listed.
+
+:post-usage STRING
+  STRING is an optional trailing part of the command's documentation string.
+  It appears after the options, but before the final part of the
+  documentation about the associated external command (if there is one).
+
+:show-usage
+  If present, then show the usage message if the command is called with no
+  arguments.
+
+:preserve-args
+  If present, do not pass MACRO-ARGS through `eshell-flatten-list'
+and `eshell-stringify-list'.
+
+For example, OPTIONS might look like:
 
   '((?C  nil         nil multi-column    \"multi-column display\")
     (nil \"help\"      nil nil             \"show this usage display\")
@@ -52,8 +90,9 @@ The syntax of OPTIONS is:
   Sort entries alphabetically across.\")
 
 `eshell-eval-using-options' returns the value of the last form in
-BODY-FORMS.  If instead an external command is run, the tag
-`eshell-external' will be thrown with the new process for its value.
+BODY-FORMS.  If instead an external command is run (because of
+an unknown option), the tag `eshell-external' will be thrown with
+the new process for its value.
 
 Lastly, any remaining arguments will be available in a locally
 interned variable `args' (created using a `let' form)."
@@ -63,10 +102,9 @@ interned variable `args' (created using a `let' form)."
 	       macro-args
 	     (list 'eshell-stringify-list
 		   (list 'eshell-flatten-list macro-args)))))
-     (let ,(append (mapcar (lambda (opt)
-			     (or (and (listp opt) (nth 3 opt))
-				 'eshell-option-stub))
-			   (cadr options))
+     (let ,(append (delq nil (mapcar (lambda (opt)
+				       (and (listp opt) (nth 3 opt)))
+				     (cadr options)))
 		   '(usage-msg last-value ext-command args))
        (eshell-do-opt ,name ,options (quote ,body-forms)))))
 
@@ -200,7 +238,7 @@ switch is unrecognized."
 
 (defun eshell-process-args (name args options)
   "Process the given ARGS using OPTIONS.
-This assumes that symbols have been intern'd by `eshell-with-options'."
+This assumes that symbols have been intern'd by `eshell-eval-using-options'."
   (let ((ai 0) arg)
     (while (< ai (length args))
       (setq arg (nth ai args))

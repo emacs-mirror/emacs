@@ -974,37 +974,6 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
     return make_number (next->position);
 }
 
-/* Return 1 if there's a change in some property between BEG and END.  */
-
-int
-property_change_between_p (EMACS_INT beg, EMACS_INT end)
-{
-  register INTERVAL i, next;
-  Lisp_Object object, pos;
-
-  XSETBUFFER (object, current_buffer);
-  XSETFASTINT (pos, beg);
-
-  i = validate_interval_range (object, &pos, &pos, soft);
-  if (NULL_INTERVAL_P (i))
-    return 0;
-
-  next = next_interval (i);
-  while (! NULL_INTERVAL_P (next) && intervals_equal (i, next))
-    {
-      next = next_interval (next);
-      if (NULL_INTERVAL_P (next))
-	return 0;
-      if (next->position >= end)
-	return 0;
-    }
-
-  if (NULL_INTERVAL_P (next))
-    return 0;
-
-  return 1;
-}
-
 DEFUN ("next-single-property-change", Fnext_single_property_change,
        Snext_single_property_change, 2, 4, 0,
        doc: /* Return the position of next property change for a specific property.
@@ -1410,8 +1379,8 @@ set_text_properties_1 (Lisp_Object start, Lisp_Object end, Lisp_Object propertie
       i = next_interval (i);
     }
 
-  /* We are starting at the beginning of an interval, I */
-  while (len > 0)
+  /* We are starting at the beginning of an interval I.  LEN is positive.  */
+  do
     {
       if (i == 0)
 	abort ();
@@ -1443,6 +1412,7 @@ set_text_properties_1 (Lisp_Object start, Lisp_Object end, Lisp_Object propertie
 
       i = next_interval (i);
     }
+  while (len > 0);
 }
 
 DEFUN ("remove-text-properties", Fremove_text_properties,
@@ -2331,4 +2301,3 @@ inherits it if NONSTICKINESS is nil.  The `front-sticky' and
 /*  defsubr (&Serase_text_properties); */
 /*  defsubr (&Scopy_text_properties); */
 }
-

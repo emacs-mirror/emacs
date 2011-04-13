@@ -57,9 +57,6 @@ Lisp_Object Qcodeset, Qdays, Qmonths, Qpaper;
 
 static int internal_equal (Lisp_Object , Lisp_Object, int, int);
 
-extern long get_random (void);
-extern void seed_random (long);
-
 #ifndef HAVE_UNISTD_H
 extern long time ();
 #endif
@@ -351,7 +348,7 @@ Symbols are also allowed; their print names are used instead.  */)
   return i1 < SCHARS (s2) ? Qt : Qnil;
 }
 
-static Lisp_Object concat (int nargs, Lisp_Object *args,
+static Lisp_Object concat (size_t nargs, Lisp_Object *args,
 			   enum Lisp_Type target_type, int last_special);
 
 /* ARGSUSED */
@@ -381,7 +378,7 @@ The result is a list whose elements are the elements of all the arguments.
 Each argument may be a list, vector or string.
 The last argument is not copied, just used as the tail of the new list.
 usage: (append &rest SEQUENCES)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   return concat (nargs, args, Lisp_Cons, 1);
 }
@@ -391,7 +388,7 @@ DEFUN ("concat", Fconcat, Sconcat, 0, MANY, 0,
 The result is a string whose elements are the elements of all the arguments.
 Each argument may be a string or a list or vector of characters (integers).
 usage: (concat &rest SEQUENCES)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   return concat (nargs, args, Lisp_String, 0);
 }
@@ -401,7 +398,7 @@ DEFUN ("vconcat", Fvconcat, Svconcat, 0, MANY, 0,
 The result is a vector whose elements are the elements of all the arguments.
 Each argument may be a list, vector or string.
 usage: (vconcat &rest SEQUENCES)   */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   return concat (nargs, args, Lisp_Vectorlike, 0);
 }
@@ -449,7 +446,8 @@ struct textprop_rec
 };
 
 static Lisp_Object
-concat (int nargs, Lisp_Object *args, enum Lisp_Type target_type, int last_special)
+concat (size_t nargs, Lisp_Object *args,
+	enum Lisp_Type target_type, int last_special)
 {
   Lisp_Object val;
   register Lisp_Object tail;
@@ -458,7 +456,7 @@ concat (int nargs, Lisp_Object *args, enum Lisp_Type target_type, int last_speci
   EMACS_INT toindex_byte = 0;
   register EMACS_INT result_len;
   register EMACS_INT result_len_byte;
-  register int argnum;
+  register size_t argnum;
   Lisp_Object last_tail;
   Lisp_Object prev;
   int some_multibyte;
@@ -512,7 +510,7 @@ concat (int nargs, Lisp_Object *args, enum Lisp_Type target_type, int last_speci
 	  Lisp_Object ch;
 	  EMACS_INT this_len_byte;
 
-	  if (VECTORP (this))
+	  if (VECTORP (this) || COMPILEDP (this))
 	    for (i = 0; i < len; i++)
 	      {
 		ch = AREF (this, i);
@@ -1078,7 +1076,7 @@ an error is signaled.  */)
       EMACS_INT converted = str_to_unibyte (SDATA (string), str, chars, 0);
 
       if (converted < chars)
-	error ("Can't convert the %dth character to unibyte", converted);
+	error ("Can't convert the %"pEd"th character to unibyte", converted);
       string = make_unibyte_string ((char *) str, chars);
       xfree (str);
     }
@@ -1249,17 +1247,10 @@ substring_both (Lisp_Object string, EMACS_INT from, EMACS_INT from_byte,
 {
   Lisp_Object res;
   EMACS_INT size;
-  EMACS_INT size_byte;
 
   CHECK_VECTOR_OR_STRING (string);
 
-  if (STRINGP (string))
-    {
-      size = SCHARS (string);
-      size_byte = SBYTES (string);
-    }
-  else
-    size = ASIZE (string);
+  size = STRINGP (string) ? SCHARS (string) : ASIZE (string);
 
   if (!(0 <= from && from <= to && to <= size))
     args_out_of_range_3 (string, make_number (from), make_number (to));
@@ -2136,15 +2127,15 @@ DEFUN ("fillarray", Ffillarray, Sfillarray, 2, 2, 0,
 ARRAY is a vector, string, char-table, or bool-vector.  */)
   (Lisp_Object array, Lisp_Object item)
 {
-  register EMACS_INT size, index;
+  register EMACS_INT size, idx;
   int charval;
 
   if (VECTORP (array))
     {
       register Lisp_Object *p = XVECTOR (array)->contents;
       size = ASIZE (array);
-      for (index = 0; index < size; index++)
-	p[index] = item;
+      for (idx = 0; idx < size; idx++)
+	p[idx] = item;
     }
   else if (CHAR_TABLE_P (array))
     {
@@ -2180,8 +2171,8 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
 	    *p++ = str[i % len];
 	}
       else
-	for (index = 0; index < size; index++)
-	  p[index] = charval;
+	for (idx = 0; idx < size; idx++)
+	  p[idx] = charval;
     }
   else if (BOOL_VECTOR_P (array))
     {
@@ -2191,14 +2182,14 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
 	   / BOOL_VECTOR_BITS_PER_CHAR);
 
       charval = (! NILP (item) ? -1 : 0);
-      for (index = 0; index < size_in_chars - 1; index++)
-	p[index] = charval;
-      if (index < size_in_chars)
+      for (idx = 0; idx < size_in_chars - 1; idx++)
+	p[idx] = charval;
+      if (idx < size_in_chars)
 	{
 	  /* Mask out bits beyond the vector size.  */
 	  if (XBOOL_VECTOR (array)->size % BOOL_VECTOR_BITS_PER_CHAR)
 	    charval &= (1 << (XBOOL_VECTOR (array)->size % BOOL_VECTOR_BITS_PER_CHAR)) - 1;
-	  p[index] = charval;
+	  p[idx] = charval;
 	}
     }
   else
@@ -2235,9 +2226,9 @@ DEFUN ("nconc", Fnconc, Snconc, 0, MANY, 0,
        doc: /* Concatenate any number of lists by altering them.
 Only the last argument is not altered, and need not be a list.
 usage: (nconc &rest LISTS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
-  register int argnum;
+  register size_t argnum;
   register Lisp_Object tail, tem, val;
 
   val = tail = Qnil;
@@ -2299,7 +2290,7 @@ mapcar1 (EMACS_INT leni, Lisp_Object *vals, Lisp_Object fn, Lisp_Object seq)
     1) lists are not relocated and 2) the list is marked via `seq' so will not
     be freed */
 
-  if (VECTORP (seq))
+  if (VECTORP (seq) || COMPILEDP (seq))
     {
       for (i = 0; i < leni; i++)
 	{
@@ -2601,9 +2592,9 @@ particular subfeatures supported in this version of FEATURE.  */)
 
 /* List of features currently being require'd, innermost first.  */
 
-Lisp_Object require_nesting_list;
+static Lisp_Object require_nesting_list;
 
-Lisp_Object
+static Lisp_Object
 require_unwind (Lisp_Object old_value)
 {
   return require_nesting_list = old_value;
@@ -2766,7 +2757,7 @@ DEFUN ("widget-apply", Fwidget_apply, Swidget_apply, 2, MANY, 0,
        doc: /* Apply the value of WIDGET's PROPERTY to the widget itself.
 ARGS are passed as extra arguments to the function.
 usage: (widget-apply WIDGET PROPERTY &rest ARGS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   /* This function can GC. */
   Lisp_Object newargs[3];
@@ -3370,7 +3361,7 @@ Lisp_Object Qhash_table_test, Qkey_or_value, Qkey_and_value;
 /* Function prototypes.  */
 
 static struct Lisp_Hash_Table *check_hash_table (Lisp_Object);
-static int get_key_arg (Lisp_Object, int, Lisp_Object *, char *);
+static size_t get_key_arg (Lisp_Object, size_t, Lisp_Object *, char *);
 static void maybe_resize_hash_table (struct Lisp_Hash_Table *);
 static int cmpfn_eql (struct Lisp_Hash_Table *, Lisp_Object, unsigned,
                       Lisp_Object, unsigned);
@@ -3425,27 +3416,23 @@ next_almost_prime (int n)
 /* Find KEY in ARGS which has size NARGS.  Don't consider indices for
    which USED[I] is non-zero.  If found at index I in ARGS, set
    USED[I] and USED[I + 1] to 1, and return I + 1.  Otherwise return
-   -1.  This function is used to extract a keyword/argument pair from
+   0.  This function is used to extract a keyword/argument pair from
    a DEFUN parameter list.  */
 
-static int
-get_key_arg (Lisp_Object key, int nargs, Lisp_Object *args, char *used)
+static size_t
+get_key_arg (Lisp_Object key, size_t nargs, Lisp_Object *args, char *used)
 {
-  int i;
+  size_t i;
 
-  for (i = 0; i < nargs - 1; ++i)
-    if (!used[i] && EQ (args[i], key))
-      break;
+  for (i = 1; i < nargs; i++)
+    if (!used[i - 1] && EQ (args[i - 1], key))
+      {
+	used[i - 1] = 1;
+	used[i] = 1;
+	return i;
+      }
 
-  if (i >= nargs - 1)
-    i = -1;
-  else
-    {
-      used[i++] = 1;
-      used[i] = 1;
-    }
-
-  return i;
+  return 0;
 }
 
 
@@ -4232,9 +4219,9 @@ sxhash (Lisp_Object obj, int depth)
       {
 	double val = XFLOAT_DATA (obj);
 	unsigned char *p = (unsigned char *) &val;
-	unsigned char *e = p + sizeof val;
-	for (hash = 0; p < e; ++p)
-	  hash = SXHASH_COMBINE (hash, *p);
+	size_t i;
+	for (hash = 0, i = 0; i < sizeof val; i++)
+	  hash = SXHASH_COMBINE (hash, p[i]);
 	break;
       }
 
@@ -4293,12 +4280,12 @@ WEAK.  WEAK t is equivalent to `key-and-value'.  Default value of WEAK
 is nil.
 
 usage: (make-hash-table &rest KEYWORD-ARGS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   Lisp_Object test, size, rehash_size, rehash_threshold, weak;
   Lisp_Object user_test, user_hash;
   char *used;
-  int i;
+  size_t i;
 
   /* The vector `used' is used to keep track of arguments that
      have been consumed.  */
@@ -4307,7 +4294,7 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
 
   /* See if there's a `:test TEST' among the arguments.  */
   i = get_key_arg (QCtest, nargs, args, used);
-  test = i < 0 ? Qeql : args[i];
+  test = i ? args[i] : Qeql;
   if (!EQ (test, Qeq) && !EQ (test, Qeql) && !EQ (test, Qequal))
     {
       /* See if it is a user-defined test.  */
@@ -4324,7 +4311,7 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
 
   /* See if there's a `:size SIZE' argument.  */
   i = get_key_arg (QCsize, nargs, args, used);
-  size = i < 0 ? Qnil : args[i];
+  size = i ? args[i] : Qnil;
   if (NILP (size))
     size = make_number (DEFAULT_HASH_SIZE);
   else if (!INTEGERP (size) || XINT (size) < 0)
@@ -4332,7 +4319,7 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
 
   /* Look for `:rehash-size SIZE'.  */
   i = get_key_arg (QCrehash_size, nargs, args, used);
-  rehash_size = i < 0 ? make_float (DEFAULT_REHASH_SIZE) : args[i];
+  rehash_size = i ? args[i] : make_float (DEFAULT_REHASH_SIZE);
   if (!NUMBERP (rehash_size)
       || (INTEGERP (rehash_size) && XINT (rehash_size) <= 0)
       || XFLOATINT (rehash_size) <= 1.0)
@@ -4340,7 +4327,7 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
 
   /* Look for `:rehash-threshold THRESHOLD'.  */
   i = get_key_arg (QCrehash_threshold, nargs, args, used);
-  rehash_threshold = i < 0 ? make_float (DEFAULT_REHASH_THRESHOLD) : args[i];
+  rehash_threshold = i ? args[i] : make_float (DEFAULT_REHASH_THRESHOLD);
   if (!FLOATP (rehash_threshold)
       || XFLOATINT (rehash_threshold) <= 0.0
       || XFLOATINT (rehash_threshold) > 1.0)
@@ -4348,7 +4335,7 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
 
   /* Look for `:weakness WEAK'.  */
   i = get_key_arg (QCweakness, nargs, args, used);
-  weak = i < 0 ? Qnil : args[i];
+  weak = i ? args[i] : Qnil;
   if (EQ (weak, Qt))
     weak = Qkey_and_value;
   if (!NILP (weak)

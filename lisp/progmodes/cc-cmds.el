@@ -2564,19 +2564,12 @@ be more \"DWIM:ey\"."
 		;; Are we about to move backwards into or out of a
 		;; preprocessor command?  If so, locate its beginning.
 		(when (eq (cdr res) 'macro-boundary)
-		  (setq macro-fence
-			(save-excursion
-			  (if macro-fence
-			      (progn
-				(end-of-line)
-				(and (not (eobp))
-				     (progn (c-skip-ws-forward)
-					    (c-beginning-of-macro))
-				     (progn (c-end-of-macro)
-					    (point))))
-			    (and (not (eobp))
-				 (c-beginning-of-macro)
-				 (progn (c-end-of-macro) (point)))))))
+		  (save-excursion
+		    (beginning-of-line)
+		    (setq macro-fence
+			  (and (not (bobp))
+			       (progn (c-skip-ws-backward) (c-beginning-of-macro))
+			       (point)))))
 		;; Are we about to move backwards into a literal?
 		(when (memq (cdr res) '(macro-boundary literal))
 		  (setq range (c-ascertain-preceding-literal)))

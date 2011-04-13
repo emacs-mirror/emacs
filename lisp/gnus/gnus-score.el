@@ -2151,7 +2151,7 @@ score in `gnus-newsgroup-scored' by SCORE."
     ;; Find fuzzy matches.
     (when fuzzies
       ;; Simplify the entire buffer for easy matching.
-      (gnus-simplify-buffer-fuzzy)
+      (gnus-simplify-buffer-fuzzy gnus-simplify-subject-fuzzy-regexp)
       (while (setq kill (cadaar fuzzies))
 	(let* ((match (nth 0 kill))
 	       (type (nth 3 kill))

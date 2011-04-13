@@ -158,6 +158,12 @@ This can be either \"inline\" or \"attachment\".")
      mm-uu-diff-extract
      nil
      mm-uu-diff-test)
+    (diff
+     "^=== modified file "
+     nil
+     mm-uu-diff-extract
+     nil
+     mm-uu-diff-test)
     (git-format-patch
      "^diff --git "
      "^-- "
@@ -699,6 +705,8 @@ Assume text has been decoded if DECODED is non-nil."
 		    ;; Mutt still uses application/pgp even though
 		    ;; it has already been withdrawn.
 		    (string-match "\\`text/\\|\\`application/pgp\\'" type)
+                    (equal (car (mm-handle-disposition handle))
+                           "inline")
 		    (setq
 		     children
 		     (with-current-buffer buffer

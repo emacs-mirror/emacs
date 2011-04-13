@@ -201,7 +201,7 @@ No problems result if this variable is not bound.
 		       name))))
        (unless (boundp ',map)
 	 (put ',map 'definition-name ',child))
-       (defvar ,map (make-sparse-keymap))
+       (with-no-warnings (defvar ,map (make-sparse-keymap)))
        (unless (get ',map 'variable-documentation)
 	 (put ',map 'variable-documentation
 	      (purecopy ,(format "Keymap for `%s'." child))))

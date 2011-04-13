@@ -758,18 +758,18 @@ while(0)
    buffer.  */
 #define CCL_WRITE_STRING(len)					\
   do {								\
-    int i;							\
+    int ccli;							\
     if (!dst)							\
       CCL_INVALID_CMD;						\
     else if (dst + len <= dst_end)				\
       {								\
 	if (XFASTINT (ccl_prog[ic]) & 0x1000000)		\
-	  for (i = 0; i < len; i++)				\
-	    *dst++ = XFASTINT (ccl_prog[ic + i]) & 0xFFFFFF;	\
+	  for (ccli = 0; ccli < len; ccli++)			\
+	    *dst++ = XFASTINT (ccl_prog[ic + ccli]) & 0xFFFFFF;	\
 	else							\
-	  for (i = 0; i < len; i++)				\
-	    *dst++ = ((XFASTINT (ccl_prog[ic + (i / 3)]))	\
-		      >> ((2 - (i % 3)) * 8)) & 0xFF;		\
+	  for (ccli = 0; ccli < len; ccli++)			\
+	    *dst++ = ((XFASTINT (ccl_prog[ic + (ccli / 3)]))	\
+		      >> ((2 - (ccli % 3)) * 8)) & 0xFF;	\
       }								\
     else							\
       CCL_SUSPEND (CCL_STAT_SUSPEND_BY_DST);			\
@@ -806,15 +806,15 @@ while(0)
 
 #define CCL_ENCODE_CHAR(c, charset_list, id, encoded)		\
   do {								\
-    unsigned code;						\
+    unsigned ncode;						\
 								\
-    charset = char_charset ((c), (charset_list), &code);	\
+    charset = char_charset ((c), (charset_list), &ncode);	\
     if (! charset && ! NILP (charset_list))			\
-      charset = char_charset ((c), Qnil, &code);	  	\
+      charset = char_charset ((c), Qnil, &ncode);	  	\
     if (charset)						\
       {								\
 	(id) = CHARSET_ID (charset);				\
-	(encoded) = code;					\
+	(encoded) = ncode;					\
       }								\
    } while (0)
 
@@ -2049,7 +2049,7 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
   Lisp_Object val;
   struct ccl_program ccl;
   int i;
-  int outbufsize;
+  EMACS_INT outbufsize;
   unsigned char *outbuf, *outp;
   EMACS_INT str_chars, str_bytes;
 #define CCL_EXECUTE_BUF_SIZE 1024
@@ -2092,22 +2092,22 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
     {
       const unsigned char *p = SDATA (str) + consumed_bytes;
       const unsigned char *endp = SDATA (str) + str_bytes;
-      int i = 0;
+      int j = 0;
       int *src, src_size;
 
       if (endp - p == str_chars - consumed_chars)
-	while (i < CCL_EXECUTE_BUF_SIZE && p < endp)
-	  source[i++] = *p++;
+	while (j < CCL_EXECUTE_BUF_SIZE && p < endp)
+	  source[j++] = *p++;
       else
-	while (i < CCL_EXECUTE_BUF_SIZE && p < endp)
-	  source[i++] = STRING_CHAR_ADVANCE (p);
-      consumed_chars += i;
+	while (j < CCL_EXECUTE_BUF_SIZE && p < endp)
+	  source[j++] = STRING_CHAR_ADVANCE (p);
+      consumed_chars += j;
       consumed_bytes = p - SDATA (str);
 
       if (consumed_bytes == str_bytes)
 	ccl.last_block = NILP (contin);
       src = source;
-      src_size = i;
+      src_size = j;
       while (1)
 	{
 	  ccl_driver (&ccl, src, destination, src_size, CCL_EXECUTE_BUF_SIZE,
@@ -2123,8 +2123,8 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
 		  outbuf = (unsigned char *) xrealloc (outbuf, outbufsize);
 		  outp = outbuf + offset;
 		}
-	      for (i = 0; i < ccl.produced; i++)
-		CHAR_STRING_ADVANCE (destination[i], outp);
+	      for (j = 0; j < ccl.produced; j++)
+		CHAR_STRING_ADVANCE (destination[j], outp);
 	    }
 	  else
 	    {
@@ -2135,8 +2135,8 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
 		  outbuf = (unsigned char *) xrealloc (outbuf, outbufsize);
 		  outp = outbuf + offset;
 		}
-	      for (i = 0; i < ccl.produced; i++)
-		*outp++ = destination[i];
+	      for (j = 0; j < ccl.produced; j++)
+		*outp++ = destination[j];
 	    }
 	  src += ccl.consumed;
 	  src_size -= ccl.consumed;
@@ -2253,7 +2253,7 @@ Return index number of the registered map.  */)
 {
   int len = ASIZE (Vcode_conversion_map_vector);
   int i;
-  Lisp_Object index;
+  Lisp_Object idx;
 
   CHECK_SYMBOL (symbol);
   CHECK_VECTOR (map);
@@ -2267,11 +2267,11 @@ Return index number of the registered map.  */)
 
       if (EQ (symbol, XCAR (slot)))
 	{
-	  index = make_number (i);
+	  idx = make_number (i);
 	  XSETCDR (slot, map);
 	  Fput (symbol, Qcode_conversion_map, map);
-	  Fput (symbol, Qcode_conversion_map_id, index);
-	  return index;
+	  Fput (symbol, Qcode_conversion_map_id, idx);
+	  return idx;
 	}
     }
 
@@ -2279,11 +2279,11 @@ Return index number of the registered map.  */)
     Vcode_conversion_map_vector = larger_vector (Vcode_conversion_map_vector,
 						 len * 2, Qnil);
 
-  index = make_number (i);
+  idx = make_number (i);
   Fput (symbol, Qcode_conversion_map, map);
-  Fput (symbol, Qcode_conversion_map_id, index);
+  Fput (symbol, Qcode_conversion_map_id, idx);
   ASET (Vcode_conversion_map_vector, i, Fcons (symbol, map));
-  return index;
+  return idx;
 }
 
 
@@ -2341,4 +2341,3 @@ used by CCL.  */);
   defsubr (&Sregister_ccl_program);
   defsubr (&Sregister_code_conversion_map);
 }
-

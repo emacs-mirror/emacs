@@ -88,8 +88,6 @@ extern void free_frame_menubar (struct frame *);
 extern int w32_codepage_for_font (char *fontname);
 extern Cursor w32_load_cursor (LPCTSTR name);
 
-extern Lisp_Object Vwindow_system;
-
 #define x_any_window_to_frame x_window_to_frame
 #define x_top_window_to_frame x_window_to_frame
 
@@ -138,13 +136,6 @@ BOOL (WINAPI *pfnSetLayeredWindowAttributes) (HWND, COLORREF, BYTE, DWORD);
 #define WS_EX_LAYERED 0x80000
 #endif
 
-/* Frame being updated by update_frame.  This is declared in term.c.
-   This is set by update_begin and looked at by all the
-   w32 functions.  It is zero while not inside an update.
-   In that case, the w32 functions assume that `SELECTED_FRAME ()'
-   is the frame to apply to.  */
-extern struct frame *updating_frame;
-
 /* This is a frame waiting to be autoraised, within w32_read_socket.  */
 struct frame *pending_autoraise_frame;
 
@@ -169,7 +160,6 @@ int last_scroll_bar_drag_pos;
 /* Where the mouse was last time we reported a mouse event.  */
 static RECT last_mouse_glyph;
 static FRAME_PTR last_mouse_glyph_frame;
-static Lisp_Object last_mouse_press_frame;
 
 /* The scroll bar in which the last motion event occurred.
 
@@ -1078,16 +1068,12 @@ x_set_glyph_string_clipping (struct glyph_string *s)
     w32_set_clip_rectangle (s->hdc, r);
   else if (n > 1)
     {
-      HRGN full_clip, clip1, clip2;
-      clip1 = CreateRectRgnIndirect (r);
-      clip2 = CreateRectRgnIndirect (r + 1);
-      if (CombineRgn (full_clip, clip1, clip2, RGN_OR) != ERROR)
-        {
-          SelectClipRgn (s->hdc, full_clip);
-        }
+      HRGN clip1 = CreateRectRgnIndirect (r);
+      HRGN clip2 = CreateRectRgnIndirect (r + 1);
+      if (CombineRgn (clip1, clip1, clip2, RGN_OR) != ERROR)
+        SelectClipRgn (s->hdc, clip1);
       DeleteObject (clip1);
       DeleteObject (clip2);
-      DeleteObject (full_clip);
     }
     s->num_clips = n;
 }
@@ -1303,7 +1289,6 @@ x_draw_composite_glyph_string_foreground (struct glyph_string *s)
   else if (! s->first_glyph->u.cmp.automatic)
     {
       int y = s->ybase;
-      int width = 0;
       HFONT old_font;
 
       old_font = SelectObject (s->hdc, FONT_HANDLE (font));
@@ -2536,8 +2521,7 @@ x_delete_glyphs (struct frame *f, register int n)
 }
 
 
-/* Clear entire frame.  If updating_frame is non-null, clear that
-   frame.  Otherwise clear the selected frame.  */
+/* Clear entire frame.  */
 
 static void
 x_clear_frame (struct frame *f)
@@ -4852,7 +4836,6 @@ w32_read_socket (struct terminal *terminal, int expected,
 static void
 w32_clip_to_row (struct window *w, struct glyph_row *row, int area, HDC hdc)
 {
-  struct frame *f = XFRAME (WINDOW_FRAME (w));
   RECT clip_rect;
   int window_x, window_y, window_width;
 
@@ -5941,7 +5924,7 @@ w32_initialize_display_info (Lisp_Object display_name)
 
 }
 
-/* Create an xrdb-style database of resources to supercede registry settings.
+/* Create an xrdb-style database of resources to supersede registry settings.
    The database is just a concatenation of C strings, finished by an additional
    \0.  The strings are submitted to some basic normalization, so
 
@@ -6060,7 +6043,7 @@ w32_create_terminal (struct w32_display_info *dpyinfo)
   terminal->mouse_position_hook = w32_mouse_position;
   terminal->frame_rehighlight_hook = w32_frame_rehighlight;
   terminal->frame_raise_lower_hook = w32_frame_raise_lower;
-  //  terminal->fullscreen_hook = XTfullscreen_hook;
+  /* terminal->fullscreen_hook = XTfullscreen_hook; */
   terminal->set_vertical_scroll_bar_hook = w32_set_vertical_scroll_bar;
   terminal->condemn_scroll_bars_hook = w32_condemn_scroll_bars;
   terminal->redeem_scroll_bar_hook = w32_redeem_scroll_bar;
@@ -6099,7 +6082,6 @@ static void
 x_delete_terminal (struct terminal *terminal)
 {
   struct w32_display_info *dpyinfo = terminal->display_info.w32;
-  int i;
 
   /* Protect against recursive calls.  delete_frame in
      delete_terminal calls us back when it deletes our last frame.  */

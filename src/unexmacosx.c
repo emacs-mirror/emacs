@@ -95,6 +95,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef malloc
 #undef realloc
 #undef free
+
+#include "unexec.h"
+
 #include <stdio.h>
 #include <fcntl.h>
 #include <stdarg.h>
@@ -828,6 +831,7 @@ copy_data_segment (struct load_command *lc)
 	}
       else if (strncmp (sectp->sectname, "__la_symbol_ptr", 16) == 0
 	       || strncmp (sectp->sectname, "__nl_symbol_ptr", 16) == 0
+	       || strncmp (sectp->sectname, "__got", 16) == 0
 	       || strncmp (sectp->sectname, "__la_sym_ptr2", 16) == 0
 	       || strncmp (sectp->sectname, "__dyld", 16) == 0
 	       || strncmp (sectp->sectname, "__const", 16) == 0
@@ -1223,7 +1227,7 @@ dump_it (void)
    from it.  The file names of the output and input files are outfile
    and infile, respectively.  The three other parameters are
    ignored.  */
-int
+void
 unexec (const char *outfile, const char *infile)
 {
   if (in_dumped_exec)
@@ -1254,7 +1258,6 @@ unexec (const char *outfile, const char *infile)
   dump_it ();
 
   close (outfd);
-  return 0;
 }
 
 
@@ -1379,4 +1382,3 @@ unexec_free (void *ptr)
   else
     malloc_zone_free (emacs_zone, (unexec_malloc_header_t *) ptr - 1);
 }
-

@@ -117,8 +117,9 @@ treated as a literal character."
 
 ;;; User Variables:
 
-(defcustom eshell-arg-load-hook '(eshell-arg-initialize)
+(defcustom eshell-arg-load-hook nil
   "A hook that gets run when `eshell-arg' is loaded."
+  :version "24.1"		       ; removed eshell-arg-initialize
   :type 'hook
   :group 'eshell-arg)
 

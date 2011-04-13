@@ -436,6 +436,7 @@ move to its line in dired."
                 (dired-omit-mode)
                 (dired-goto-file file)))))))
 
+;;;###autoload
 (defun dired-jump-other-window (&optional file-name)
   "Like \\[dired-jump] (`dired-jump') but in other window."
   (interactive
@@ -704,14 +705,25 @@ Also useful for `auto-mode-alist' like this:
                       (dired-current-directory)
                     default-directory)))
   "Alist of major modes and their opinion on `default-directory'.
-This is given as a Lisp expression to evaluate.  A resulting value of
-nil is ignored in favor of `default-directory'.")
+Each element has the form (MAJOR . EXPRESSION).
+The function `dired-default-directory' evaluates EXPRESSION to
+determine a default directory.")
+
+(put 'dired-default-directory-alist 'risky-local-variable t) ; gets eval'd
+(make-obsolete-variable 'dired-default-directory-alist
+                        "this feature is due to be removed." "24.1")
 
 (defun dired-default-directory ()
-  "Usage like variable `default-directory'.
-Knows about the special cases in variable `dired-default-directory-alist'."
+  "Return the `dired-default-directory-alist' entry for the current major-mode.
+If none, return `default-directory'."
   (or (eval (cdr (assq major-mode dired-default-directory-alist)))
       default-directory))
+
+;; It looks like this was intended to be something of a "general" feature,
+;; but it only ever seems to have been used in dired-smart-shell-command,
+;; and does not seem worth keeping around (?).
+(make-obsolete 'dired-default-directory
+               "this feature is due to be removed." "24.1")
 
 (defun dired-smart-shell-command (command &optional output-buffer error-buffer)
   "Like function `shell-command', but in the current Virtual Dired directory."
@@ -723,7 +735,9 @@ Knows about the special cases in variable `dired-default-directory-alist'."
 			 ((eq major-mode 'dired-mode) (dired-get-filename t t))))
     current-prefix-arg
     shell-command-default-error-buffer))
-  (let ((default-directory (dired-default-directory)))
+  (let ((default-directory (or (and (eq major-mode 'dired-mode)
+                                    (dired-current-directory))
+                               default-directory)))
     (shell-command command output-buffer error-buffer)))
 
 
@@ -785,7 +799,8 @@ See also `dired-enable-local-variables'."
 (make-obsolete 'dired-hack-local-variables
                'hack-dir-local-variables-non-file-buffer "24.1")
 
-;; Not sure this is worth having a dedicated command for...
+;; Does not seem worth a dedicated command.
+;; See the more general features in files-x.el.
 (defun dired-omit-here-always ()
   "Create `dir-locals-file' setting `dired-omit-mode' to t in `dired-mode'.
 If in a Dired buffer, reverts it."
@@ -798,13 +813,17 @@ replace it with a dir-locals-file `./%s'"
   (if (file-exists-p dir-locals-file)
       (message "File `./%s' already exists." dir-locals-file)
     (with-temp-buffer
-      (insert "((dired-mode . ((dired-omit-mode . t))))\n")
+      (insert "\
+\((dired-mode . ((subdirs . nil)
+                (dired-omit-mode . t))))\n")
       (write-file dir-locals-file))
     ;; Run extra-hooks and revert directory.
     (when (derived-mode-p 'dired-mode)
       (hack-dir-local-variables-non-file-buffer)
       (dired-extra-startup)
       (dired-revert))))
+
+(make-obsolete 'dired-omit-here-always 'add-dir-local-variable "24.1")
 
 
 ;;; GUESS SHELL COMMAND.
@@ -841,11 +860,11 @@ replace it with a dir-locals-file `./%s'"
 ;; NOTE: Use `gunzip -c' instead of `zcat' on `.gz' files.  Some do not
 ;; install GNU zip's version of zcat.
 
-(declare-function Man-support-local-filenames "man" ())
+(autoload 'Man-support-local-filenames "man")
 
 (defvar dired-guess-shell-alist-default
   (list
-   (list "\\.tar$"
+   (list "\\.tar\\'"
 	 '(if dired-guess-shell-gnutar
 	      (concat dired-guess-shell-gnutar " xvf")
 	    "tar xvf")
@@ -863,7 +882,7 @@ replace it with a dir-locals-file `./%s'"
 
    ;; REGEXPS for compressed archives must come before the .Z rule to
    ;; be recognized:
-   (list "\\.tar\\.Z$"
+   (list "\\.tar\\.Z\\'"
 	 ;; Untar it.
 	 '(if dired-guess-shell-gnutar
 	      (concat dired-guess-shell-gnutar " zxvf")
@@ -873,7 +892,7 @@ replace it with a dir-locals-file `./%s'"
 		  " " dired-guess-shell-znew-switches))
 
    ;; gzip'ed archives
-   (list "\\.t\\(ar\\.\\)?gz$"
+   (list "\\.t\\(ar\\.\\)?gz\\'"
 	 '(if dired-guess-shell-gnutar
 	      (concat dired-guess-shell-gnutar " zxvf")
 	    (concat "gunzip -qc * | tar xvf -"))
@@ -893,7 +912,7 @@ replace it with a dir-locals-file `./%s'"
 	    (concat "gunzip -qc * | tar tvf -")))
 
    ;; bzip2'ed archives
-   (list "\\.t\\(ar\\.bz2\\|bz\\)$"
+   (list "\\.t\\(ar\\.bz2\\|bz\\)\\'"
 	 "bunzip2 -c * | tar xvf -"
 	 ;; Extract files into a separate subdirectory
 	 '(concat "mkdir " (file-name-sans-extension file)
@@ -903,7 +922,7 @@ replace it with a dir-locals-file `./%s'"
 	 "bunzip2")
 
    ;; xz'ed archives
-   (list "\\.t\\(ar\\.\\)?xz$"
+   (list "\\.t\\(ar\\.\\)?xz\\'"
 	 "unxz -c * | tar xvf -"
 	 ;; Extract files into a separate subdirectory
 	 '(concat "mkdir " (file-name-sans-extension file)
@@ -912,94 +931,103 @@ replace it with a dir-locals-file `./%s'"
 	 ;; Optional decompression.
 	 "unxz")
 
-   '("\\.shar\\.Z$" "zcat * | unshar")
-   '("\\.shar\\.g?z$" "gunzip -qc * | unshar")
+   '("\\.shar\\.Z\\'" "zcat * | unshar")
+   '("\\.shar\\.g?z\\'" "gunzip -qc * | unshar")
 
-   '("\\.e?ps$" "ghostview" "xloadimage" "lpr")
-   (list "\\.e?ps\\.g?z$" "gunzip -qc * | ghostview -"
+   '("\\.e?ps\\'" "ghostview" "xloadimage" "lpr")
+   (list "\\.e?ps\\.g?z\\'" "gunzip -qc * | ghostview -"
 	 ;; Optional decompression.
 	 '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q")))
-   (list "\\.e?ps\\.Z$" "zcat * | ghostview -"
+   (list "\\.e?ps\\.Z\\'" "zcat * | ghostview -"
 	 ;; Optional conversion to gzip format.
 	 '(concat "znew" (if dired-guess-shell-gzip-quiet " -q")
 		  " " dired-guess-shell-znew-switches))
 
-   '("\\.patch$" "cat * | patch")
-   (list "\\.patch\\.g?z$" "gunzip -qc * | patch"
+   '("\\.patch\\'" "cat * | patch")
+   (list "\\.patch\\.g?z\\'" "gunzip -qc * | patch"
 	 ;; Optional decompression.
 	 '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q")))
-   (list "\\.patch\\.Z$" "zcat * | patch"
+   (list "\\.patch\\.Z\\'" "zcat * | patch"
 	 ;; Optional conversion to gzip format.
 	 '(concat "znew" (if dired-guess-shell-gzip-quiet " -q")
 		  " " dired-guess-shell-znew-switches))
 
    ;; The following four extensions are useful with dired-man ("N" key)
-   (list "\\.\\(?:[0-9]\\|man\\)$" '(progn (require 'man)
-					   (if (Man-support-local-filenames)
-					       "man -l"
-					     "cat * | tbl | nroff -man -h")))
-   (list "\\.\\(?:[0-9]\\|man\\)\\.g?z$" '(progn (require 'man)
-						 (if (Man-support-local-filenames)
-						     "man -l"
-						   "gunzip -qc * | tbl | nroff -man -h"))
+   ;; FIXME "man ./" does not work with dired-do-shell-command,
+   ;; because there seems to be no way for us to modify the filename,
+   ;; only the command.  Hmph.  `dired-man' works though.
+   (list "\\.\\(?:[0-9]\\|man\\)\\'" '(let ((loc (Man-support-local-filenames)))
+                                        (cond ((eq loc 'man-db) "man -l")
+                                              ((eq loc 'man) "man ./")
+                                              (t
+                                               "cat * | tbl | nroff -man -h"))))
+   (list "\\.\\(?:[0-9]\\|man\\)\\.g?z\\'"
+         '(let ((loc (Man-support-local-filenames)))
+            (cond ((eq loc 'man-db)
+                   "man -l")
+                  ((eq loc 'man)
+                   "man ./")
+                  (t "gunzip -qc * | tbl | nroff -man -h")))
 	 ;; Optional decompression.
 	 '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q")))
-   (list "\\.[0-9]\\.Z$" '(progn (require 'man)
-				 (if (Man-support-local-filenames)
-				     "man -l"
-				   "zcat * | tbl | nroff -man -h"))
+   (list "\\.[0-9]\\.Z\\'" '(let ((loc (Man-support-local-filenames)))
+                              (cond ((eq loc 'man-db) "man -l")
+                                    ((eq loc 'man) "man ./")
+                                    (t "zcat * | tbl | nroff -man -h")))
 	 ;; Optional conversion to gzip format.
 	 '(concat "znew" (if dired-guess-shell-gzip-quiet " -q")
 		  " " dired-guess-shell-znew-switches))
-   '("\\.pod$" "perldoc" "pod2man * | nroff -man")
+   '("\\.pod\\'" "perldoc" "pod2man * | nroff -man")
 
-   '("\\.dvi$" "xdvi" "dvips")		; preview and printing
-   '("\\.au$" "play")			; play Sun audiofiles
-   '("\\.mpe?g$\\|\\.avi$" "xine -p")
-   '("\\.ogg$" "ogg123")
-   '("\\.mp3$" "mpg123")
-   '("\\.wav$" "play")
-   '("\\.uu$" "uudecode")		; for uudecoded files
-   '("\\.hqx$" "mcvert")
-   '("\\.sh$" "sh")			; execute shell scripts
-   '("\\.xbm$" "bitmap")		; view X11 bitmaps
-   '("\\.gp$" "gnuplot")
-   '("\\.p[bgpn]m$" "xloadimage")
-   '("\\.gif$" "xloadimage")		; view gif pictures
-   '("\\.tif$" "xloadimage")
-   '("\\.png$" "display")		; xloadimage 4.1 doesn't grok PNG
-   '("\\.jpe?g$" "xloadimage")
-   '("\\.fig$" "xfig")			; edit fig pictures
-   '("\\.out$" "xgraph")		; for plotting purposes.
-   '("\\.tex$" "latex" "tex")
-   '("\\.texi\\(nfo\\)?$" "makeinfo" "texi2dvi")
-   '("\\.pdf$" "xpdf")
-   '("\\.doc$" "antiword" "strings")
-   '("\\.rpm$" "rpm -qilp" "rpm -ivh")
-   '("\\.dia$" "dia")
-   '("\\.mgp$" "mgp")
+   '("\\.dvi\\'" "xdvi" "dvips")		; preview and printing
+   '("\\.au\\'" "play")			; play Sun audiofiles
+   '("\\.mpe?g\\'\\|\\.avi\\'" "xine -p")
+   '("\\.ogg\\'" "ogg123")
+   '("\\.mp3\\'" "mpg123")
+   '("\\.wav\\'" "play")
+   '("\\.uu\\'" "uudecode")		; for uudecoded files
+   '("\\.hqx\\'" "mcvert")
+   '("\\.sh\\'" "sh")			; execute shell scripts
+   '("\\.xbm\\'" "bitmap")		; view X11 bitmaps
+   '("\\.gp\\'" "gnuplot")
+   '("\\.p[bgpn]m\\'" "xloadimage")
+   '("\\.gif\\'" "xloadimage")		; view gif pictures
+   '("\\.tif\\'" "xloadimage")
+   '("\\.png\\'" "display")		; xloadimage 4.1 doesn't grok PNG
+   '("\\.jpe?g\\'" "xloadimage")
+   '("\\.fig\\'" "xfig")			; edit fig pictures
+   '("\\.out\\'" "xgraph")		; for plotting purposes.
+   '("\\.tex\\'" "latex" "tex")
+   '("\\.texi\\(nfo\\)?\\'" "makeinfo" "texi2dvi")
+   '("\\.pdf\\'" "xpdf")
+   '("\\.doc\\'" "antiword" "strings")
+   '("\\.rpm\\'" "rpm -qilp" "rpm -ivh")
+   '("\\.dia\\'" "dia")
+   '("\\.mgp\\'" "mgp")
 
    ;; Some other popular archivers.
-   (list "\\.zip$" "unzip" "unzip -l"
+   (list "\\.zip\\'" "unzip" "unzip -l"
 	 ;; Extract files into a separate subdirectory
 	 '(concat "unzip" (if dired-guess-shell-gzip-quiet " -q")
 		  " -d " (file-name-sans-extension file)))
-   '("\\.zoo$" "zoo x//")
-   '("\\.lzh$" "lharc x")
-   '("\\.arc$" "arc x")
-   '("\\.shar$" "unshar")
+   '("\\.zoo\\'" "zoo x//")
+   '("\\.lzh\\'" "lharc x")
+   '("\\.arc\\'" "arc x")
+   '("\\.shar\\'" "unshar")
+   '("\\.rar\\'" "unrar x")
+   '("\\.7z\\'" "7z x")
 
    ;; Compression.
-   (list "\\.g?z$" '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q")))
-   (list "\\.dz$" "dictunzip")
-   (list "\\.bz2$" "bunzip2")
-   (list "\\.xz$" "unxz")
-   (list "\\.Z$" "uncompress"
+   (list "\\.g?z\\'" '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q")))
+   (list "\\.dz\\'" "dictunzip")
+   (list "\\.bz2\\'" "bunzip2")
+   (list "\\.xz\\'" "unxz")
+   (list "\\.Z\\'" "uncompress"
 	 ;; Optional conversion to gzip format.
 	 '(concat "znew" (if dired-guess-shell-gzip-quiet " -q")
 		  " " dired-guess-shell-znew-switches))
 
-   '("\\.sign?$" "gpg --verify"))
+   '("\\.sign?\\'" "gpg --verify"))
 
   "Default alist used for shell command guessing.
 See `dired-guess-shell-alist-user'.")

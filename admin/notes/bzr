@@ -65,21 +65,22 @@ removes a file, then remove the corresponding files by hand.
 The following description uses bound branches, presumably it works in
 a similar way with unbound ones.
 
-0) (First time only) Get the bzr changelog_merge plugin:
+0) (First time only) Get the bzr changelog_merge plugin
+(this will be included by default in bzr 2.4 onwards):
 
 cd ~/.bazaar/plugins
-bzr branch lp:bzr-changelog-merge
+# The following is an improved version of: lp:bzr-changelog-merge
+bzr branch lp:~spiv/bzr-changelog-merge/non-head-edits-723968
 mv bzr-changelog-merge changelog_merge
 
-This will make merging ChangeLogs a lot smoother.  It merges new
-entries to the top of the file, rather than trying to fit them in
-mid-way through.
+This should make merging ChangeLogs smoother.  It merges new entries
+to the top of the file, rather than trying to fit them in mid-way
+through.  Newer versions of the plugin should also be able to deal
+with changes to *old* ChangeLog entries, that should not be floated to
+the head of the file (see launchpad#723968).
 
-Sigh.  This plugin has a drawback.  People often like to edit older
-ChangeLog entries, not at the head of the file.  Frequently they do
-this in the same commit as making new entries.  Using this plugin
-will merge ALL changed entries (including older ones) to the top of
-the destination file.
+Maybe the default Emacs behavior without this plugin is better,
+though, it's not clear yet.
 
 1) Get clean, up-to-date copies of the emacs-23 and trunk branches.
 Check for any uncommitted changes with bzr status.

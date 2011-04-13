@@ -1,3 +1,59 @@
+2011-04-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedlibmk.inp: Update checklist.
+	(am_libgnu_a_OBJECTS): Remove careadlinkat.$(OBJEXT).
+	($(top_builddir)/config.status): Edit away, both as target and in
+	prerequisites.
+	(@am__fastdepCC_FALSE@): Fix editing.
+	(@GL_GENERATE_STDBOOL_H_TRUE@, @GL_GENERATE_STDBOOL_H_FALSE@)
+	(@GL_GENERATE_STDDEF_H_TRUE@, @GL_GENERATE_STDDEF_H_FALSE@)
+	(@GL_GENERATE_STDINT_H_TRUE@, @GL_GENERATE_STDINT_H_FALSE@): Edit
+	to either nothing or "#".
+
+2011-03-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedlibmk.inp: Adapt to addition of the gnulib stdio module.
+	Add a description of what needs to be done when a new gnulib
+	module is added.
+	(MKDIR_P): Fix replacement command.
+
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
+2011-02-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedlibmk.inp (BITSIZEOF_PTRDIFF_T, BITSIZEOF_SIG_ATOMIC_T)
+	(BITSIZEOF_SIZE_T, BITSIZEOF_WCHAR_T)
+	(BITSIZEOF_WINT_TGNULIB_FCHMODAT, GNULIB_FSTATAT, GNULIB_FUTIMENS)
+	(GNULIB_LCHMOD, GNULIB_LSTAT, GNULIB_MBTOWC, GNULIB_MKDIRAT)
+	(GNULIB_MKFIFO, GNULIB_MKFIFOAT, GNULIB_MKNOD, GNULIB_MKNODAT)
+	(GNULIB_STAT, GNULIB_UTIMENSAT, GNULIB_WCTOMB, HAVE_FCHMODAT)
+	(HAVE_FSTATAT, HAVE_FUTIMENS, HAVE_INTTYPES_H, HAVE_LCHMOD)
+	(HAVE_LONG_LONG_INT, HAVE_LSTAT, HAVE_MKDIRAT, HAVE_MKFIFO)
+	(HAVE_MKFIFOAT, HAVE_MKNOD, HAVE_MKNODAT)
+	(HAVE_SIGNED_SIG_ATOMIC_T, HAVE_SIGNED_WCHAR_T)
+	(HAVE_SIGNED_WINT_T, HAVE_STDINT_H, HAVE_SYS_BITYPES_H)
+	(HAVE_SYS_INTTYPES_H, HAVE_SYS_TYPES_H)
+	(HAVE_UNSIGNED_LONG_LONG_INT, HAVE_UTIMENSAT, HAVE_WCHAR_H)
+	(MKDIR_P, NEXT_AS_FIRST_DIRECTIVE_STDINT_H)
+	(NEXT_AS_FIRST_DIRECTIVE_SYS_STAT_H, NEXT_STDINT_H)
+	(NEXT_SYS_STAT_H, REPLACE_LSTAT, REPLACE_MBTOWC, REPLACE_MKDIR)
+	(REPLACE_MKFIFO, REPLACE_MKNOD, REPLACE_STAT, REPLACE_UTIMENSAT)
+	(REPLACE_WCTOMB, SIG_ATOMIC_T_SUFFIX, SIZE_T_SUFFIX, STDINT_H)
+	(WCHAR_T_SUFFIX, WINT_T_SUFFIX, APPLE_UNIVERSAL_BUILD): New edits.
+	($(MKDIR_P)): Replace with equivalent DOS command.
+	(gl_LIBOBJS): Add md5.o and filemode.o.
+
+	* sed2v2.inp (BITSIZEOF_PTRDIFF_T, BITSIZEOF_SIG_ATOMIC_T)
+	(BITSIZEOF_SIZE_T, BITSIZEOF_WCHAR_T, BITSIZEOF_WINT_T)
+	(HAVE_LONG_LONG_INT, HAVE_SIGNED_SIG_ATOMIC_T, HAVE_SIGNED_WINT_T)
+	(HAVE_UNSIGNED_LONG_LONG_INT, HAVE_WCHAR_H, HAVE_INTTYPES_H): New
+	edits.
+
+	* depfiles.bat: Create a dummy .Po file only if a file by the same
+	name does not already exist in the deps/ subdirectory.
+
 2011-02-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* depfiles.bat: New file.

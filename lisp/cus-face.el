@@ -348,7 +348,7 @@ FACE's list property `theme-face' \(using `custom-push-theme')."
 	      (put face 'face-override-spec nil)
 	      (face-spec-set face spec t))))))))
 
-;; XEmacs compability function.  In XEmacs, when you reset a Custom
+;; XEmacs compatibility function.  In XEmacs, when you reset a Custom
 ;; Theme, you have to specify the theme to reset it to.  We just apply
 ;; the next theme.
 (defun custom-theme-reset-faces (theme &rest args)

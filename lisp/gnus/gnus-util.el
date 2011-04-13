@@ -672,11 +672,9 @@ If N, return the Nth ancestor instead."
 	(when (string-match "\\(<[^<]+>\\)[ \t]*\\'" references)
 	  (match-string 1 references))))))
 
-(defun gnus-buffer-live-p (buffer)
+(defsubst gnus-buffer-live-p (buffer)
   "Say whether BUFFER is alive or not."
-  (and buffer
-       (get-buffer buffer)
-       (buffer-name (get-buffer buffer))))
+  (and buffer (buffer-live-p (get-buffer buffer))))
 
 (defun gnus-horizontal-recenter ()
   "Recenter the current buffer horizontally."

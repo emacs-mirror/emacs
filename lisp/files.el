@@ -983,7 +983,8 @@ accessible."
       nil)))
 
 (defun file-truename (filename &optional counter prev-dirs)
-  "Return the truename of FILENAME, which should be absolute.
+  "Return the truename of FILENAME.
+If FILENAME is not absolute, first expands it against `default-directory'.
 The truename of a file name is found by chasing symbolic links
 both at the level of the file and at the level of the directories
 containing it, until no links are left at any level.
@@ -1138,6 +1139,37 @@ it means chase no more than that many links and then stop."
 	(setq newname (expand-file-name tem (file-name-directory newname)))
 	(setq count (1+ count))))
     newname))
+
+;; A handy function to display file sizes in human-readable form.
+;; See http://en.wikipedia.org/wiki/Kibibyte for the reference.
+(defun file-size-human-readable (file-size &optional flavor)
+  "Produce a string showing FILE-SIZE in human-readable form.
+
+Optional second argument FLAVOR controls the units and the display format:
+
+ If FLAVOR is nil or omitted, each kilobyte is 1024 bytes and the produced
+    suffixes are \"k\", \"M\", \"G\", \"T\", etc.
+ If FLAVOR is `si', each kilobyte is 1000 bytes and the produced suffixes
+    are \"k\", \"M\", \"G\", \"T\", etc.
+ If FLAVOR is `iec', each kilobyte is 1024 bytes and the produced suffixes
+    are \"KiB\", \"MiB\", \"GiB\", \"TiB\", etc."
+  (let ((power (if (or (null flavor) (eq flavor 'iec))
+		   1024.0
+		 1000.0))
+	(post-fixes
+	 ;; none, kilo, mega, giga, tera, peta, exa, zetta, yotta
+	 (list "" "k" "M" "G" "T" "P" "E" "Z" "Y")))
+    (while (and (>= file-size power) (cdr post-fixes))
+      (setq file-size (/ file-size power)
+	    post-fixes (cdr post-fixes)))
+    (format (if (> (mod file-size 1.0) 0.05)
+		"%.1f%s%s"
+	      "%.0f%s%s")
+	    file-size
+	    (if (and (eq flavor 'iec) (string= (car post-fixes) "k"))
+		"K"
+	      (car post-fixes))
+	    (if (eq flavor 'iec) "iB" ""))))
 
 (defun make-temp-file (prefix &optional dir-flag suffix)
   "Create a temporary file.
@@ -1799,8 +1831,8 @@ the various files."
 			   (not nonexistent)
 			   ;; It is confusing to ask whether to visit
 			   ;; non-literally if they have the file in
-			   ;; hexl-mode.
-			   (not (eq major-mode 'hexl-mode)))
+			   ;; hexl-mode or image-mode.
+			   (not (memq major-mode '(hexl-mode image-mode))))
 		  (if (buffer-modified-p)
 		      (if (y-or-n-p
 			   (format
@@ -2005,10 +2037,8 @@ the file contents into it using `insert-file-contents-literally'."
   	  (confirm-nonexistent-file-or-buffer))))
   (switch-to-buffer (find-file-noselect filename nil t)))
 
-(defvar after-find-file-from-revert-buffer nil)
-
 (defun after-find-file (&optional error warn noauto
-				  after-find-file-from-revert-buffer
+				  _after-find-file-from-revert-buffer
 				  nomodes)
   "Called after finding a file and by the default revert function.
 Sets buffer mode, parses local variables.
@@ -2016,8 +2046,8 @@ Optional args ERROR, WARN, and NOAUTO: ERROR non-nil means there was an
 error in reading the file.  WARN non-nil means warn if there
 exists an auto-save file more recent than the visited file.
 NOAUTO means don't mess with auto-save mode.
-Fourth arg AFTER-FIND-FILE-FROM-REVERT-BUFFER non-nil
- means this call was from `revert-buffer'.
+Fourth arg AFTER-FIND-FILE-FROM-REVERT-BUFFER is ignored
+\(see `revert-buffer-in-progress-p' for similar functionality).
 Fifth arg NOMODES non-nil means don't alter the file's modes.
 Finishes by calling the functions in `find-file-hook'
 unless NOMODES is non-nil."
@@ -2774,18 +2804,19 @@ asking you for confirmation."
 ;;
 ;; For variables defined in the C source code the declaration should go here:
 
-(mapc (lambda (pair)
-	(put (car pair) 'safe-local-variable (cdr pair)))
-      '((buffer-read-only        . booleanp)   ;; C source code
-	(default-directory       . stringp)    ;; C source code
-	(fill-column             . integerp)   ;; C source code
-	(indent-tabs-mode        . booleanp)   ;; C source code
-	(left-margin             . integerp)   ;; C source code
-	(no-update-autoloads     . booleanp)
-	(tab-width               . integerp)   ;; C source code
-	(truncate-lines          . booleanp)   ;; C source code
-	(word-wrap               . booleanp) ;; C source code
-	(bidi-display-reordering . booleanp))) ;; C source code
+(dolist (pair
+	 '((buffer-read-only        . booleanp)	;; C source code
+	   (default-directory       . stringp)	;; C source code
+	   (fill-column             . integerp)	;; C source code
+	   (indent-tabs-mode        . booleanp)	;; C source code
+	   (left-margin             . integerp)	;; C source code
+	   (no-update-autoloads     . booleanp)
+	   (lexical-binding	 . booleanp)	  ;; C source code
+	   (tab-width               . integerp)	  ;; C source code
+	   (truncate-lines          . booleanp)	  ;; C source code
+	   (word-wrap               . booleanp)	  ;; C source code
+	   (bidi-display-reordering . booleanp))) ;; C source code
+  (put (car pair) 'safe-local-variable (cdr pair)))
 
 (put 'bidi-paragraph-direction 'safe-local-variable
      (lambda (v) (memq v '(nil right-to-left left-to-right))))
@@ -3300,8 +3331,19 @@ Return the new variables list."
                                  (cdr entry) root variables))))
              ((or (not key)
                   (derived-mode-p key))
-              (setq variables (dir-locals-collect-mode-variables
-                               (cdr entry) variables))))))
+              (let* ((alist (cdr entry))
+                     (subdirs (assq 'subdirs alist)))
+                (if (or (not subdirs)
+                        (progn
+                          (setq alist (delq subdirs alist))
+                          (cdr-safe subdirs))
+                        ;; TODO someone might want to extend this to allow
+                        ;; integer values for subdir, where N means
+                        ;; variables apply to this directory and N levels
+                        ;; below it (0 == nil).
+                        (equal root default-directory))
+                    (setq variables (dir-locals-collect-mode-variables
+                                     alist variables))))))))
       (error
        ;; The file's content might be invalid (e.g. have a merge conflict), but
        ;; that shouldn't prevent the user from opening the file.
@@ -3763,7 +3805,9 @@ BACKUPNAME is the backup file name, which is the old file renamed."
        (set-file-selinux-context to-name context)))
 
 (defvar file-name-version-regexp
-  "\\(?:~\\|\\.~[-[:alnum:]:#@^._]+~\\)"
+  "\\(?:~\\|\\.~[-[:alnum:]:#@^._]+\\(?:~[[:digit:]]+\\)?~\\)"
+  ;; The last ~[[:digit]]+ matches relative versions in git,
+  ;; e.g. `foo.js.~HEAD~1~'.
   "Regular expression matching the backup/version part of a file name.
 Used by `file-name-sans-versions'.")
 
@@ -3787,11 +3831,17 @@ See also `file-name-version-regexp'."
   (let ((handler (find-file-name-handler file 'file-ownership-preserved-p)))
     (if handler
 	(funcall handler 'file-ownership-preserved-p file)
-      (let ((attributes (file-attributes file)))
+      (let ((attributes (file-attributes file 'integer)))
 	;; Return t if the file doesn't exist, since it's true that no
 	;; information would be lost by an (attempted) delete and create.
 	(or (null attributes)
-	    (= (nth 2 attributes) (user-uid)))))))
+	    (= (nth 2 attributes) (user-uid))
+	    ;; Files created on Windows by Administrator (RID=500)
+	    ;; have the Administrators group (RID=544) recorded as
+	    ;; their owner.  Rewriting them will still preserve the
+	    ;; owner.
+	    (and (eq system-type 'windows-nt)
+		 (= (user-uid) 500) (= (nth 2 attributes) 544)))))))
 
 (defun file-name-sans-extension (filename)
   "Return FILENAME sans final \"extension\".
@@ -4492,6 +4542,9 @@ You can answer `y' to save, `n' not to save, `C-r' to look at the
 buffer in question with `view-buffer' before deciding or `d' to
 view the differences using `diff-buffer-with-file'.
 
+This command first saves any buffers where `buffer-save-without-query' is
+non-nil, without asking.
+
 Optional argument (the prefix) non-nil means save all with no questions.
 Optional second argument PRED determines which buffers are considered:
 If PRED is nil, all the file-visiting buffers are considered.
@@ -4503,14 +4556,14 @@ See `save-some-buffers-action-alist' if you want to
 change the additional actions you can take on files."
   (interactive "P")
   (save-window-excursion
-    (let* (queried some-automatic
+    (let* (queried autosaved-buffers
 	   files-done abbrevs-done)
       (dolist (buffer (buffer-list))
 	;; First save any buffers that we're supposed to save unconditionally.
 	;; That way the following code won't ask about them.
 	(with-current-buffer buffer
 	  (when (and buffer-save-without-query (buffer-modified-p))
-	    (setq some-automatic t)
+	    (push (buffer-name) autosaved-buffers)
 	    (save-buffer))))
       ;; Ask about those buffers that merit it,
       ;; and record the number thus saved.
@@ -4556,9 +4609,15 @@ change the additional actions you can take on files."
 	     (setq abbrevs-changed nil)
 	     (setq abbrevs-done t)))
       (or queried (> files-done 0) abbrevs-done
-	  (message (if some-automatic
-		       "(Some special files were saved without asking)"
-		     "(No files need saving)"))))))
+	  (cond
+	   ((null autosaved-buffers)
+	    (message "(No files need saving)"))
+	   ((= (length autosaved-buffers) 1)
+	    (message "(Saved %s)" (car autosaved-buffers)))
+	   (t
+	    (message "(Saved %d files: %s)"
+		     (length autosaved-buffers)
+		     (mapconcat 'identity autosaved-buffers ", "))))))))
 
 (defun not-modified (&optional arg)
   "Mark current buffer as unmodified, not needing to be saved.
@@ -4717,7 +4776,7 @@ given.  With a prefix argument, TRASH is nil."
    (let* ((trashing (and delete-by-moving-to-trash
 			 (null current-prefix-arg)))
 	  (dir (expand-file-name
-		(read-file-name
+		(read-directory-name
 		 (if trashing
 		     "Move directory to trash: "
 		   "Delete directory: ")
@@ -4785,7 +4844,7 @@ directly into NEWNAME instead."
    (let ((dir (read-directory-name
 	       "Copy directory: " default-directory default-directory t nil)))
      (list dir
-	   (read-file-name
+	   (read-directory-name
 	    (format "Copy directory %s to: " dir)
 	    default-directory default-directory nil nil)
 	   current-prefix-arg t nil)))
@@ -4880,6 +4939,10 @@ hook functions.
 If `revert-buffer-function' is used to override the normal revert
 mechanism, this hook is not used.")
 
+(defvar revert-buffer-in-progress-p nil
+  "Non-nil if a `revert-buffer' operation is in progress, nil otherwise.
+This is true even if a `revert-buffer-function' is being used.")
+
 (defvar revert-buffer-internal-hook)
 
 (defun revert-buffer (&optional ignore-auto noconfirm preserve-modes)
@@ -4922,10 +4985,12 @@ non-nil, it is called instead of rereading visited file contents."
   ;; interface, but leaving the programmatic interface the same.
   (interactive (list (not current-prefix-arg)))
   (if revert-buffer-function
-      (funcall revert-buffer-function ignore-auto noconfirm)
+      (let ((revert-buffer-in-progress-p t))
+        (funcall revert-buffer-function ignore-auto noconfirm))
     (with-current-buffer (or (buffer-base-buffer (current-buffer))
 			     (current-buffer))
-      (let* ((auto-save-p (and (not ignore-auto)
+      (let* ((revert-buffer-in-progress-p t)
+             (auto-save-p (and (not ignore-auto)
 			       (recent-auto-save-p)
 			       buffer-auto-save-file-name
 			       (file-readable-p buffer-auto-save-file-name)
@@ -5016,7 +5081,7 @@ non-nil, it is called instead of rereading visited file contents."
 		 ;; have changed the truename.
 		 (setq buffer-file-truename
 		       (abbreviate-file-name (file-truename buffer-file-name)))
-		 (after-find-file nil nil t t preserve-modes)
+		 (after-find-file nil nil t nil preserve-modes)
 		 ;; Run after-revert-hook as it was before we reverted.
 		 (setq-default revert-buffer-internal-hook global-hook)
 		 (if local-hook
@@ -5484,7 +5549,7 @@ Prefix arg (second arg if noninteractive) means supply -l switch to `ls'.
 Actions controlled by variables `list-directory-brief-switches'
 and `list-directory-verbose-switches'."
   (interactive (let ((pfx current-prefix-arg))
-		 (list (read-file-name (if pfx "List directory (verbose): "
+		 (list (read-directory-name (if pfx "List directory (verbose): "
 					 "List directory (brief): ")
 				       nil default-directory nil)
 		       pfx)))
@@ -5743,6 +5808,9 @@ normally equivalent short `-D' option is just passed on to
 				  (file-name-directory file)
 				(file-name-directory (expand-file-name file))))
 			    (pattern (file-name-nondirectory file)))
+			;; NB since switches is passed to the shell, be
+			;; careful of malicious values, eg "-l;reboot".
+			;; See eg dired-safe-switches-p.
 			(call-process
 			 shell-file-name nil t nil
 			 "-c"
@@ -6015,8 +6083,8 @@ With prefix ARG, silently save all file-visiting buffers, then kill."
 		    (setq active t))
 	       (setq processes (cdr processes)))
 	     (or (not active)
-		 (list-processes t)
-		 (yes-or-no-p "Active processes exist; kill them and exit anyway? "))))
+		 (progn (list-processes t)
+			(yes-or-no-p "Active processes exist; kill them and exit anyway? ")))))
        ;; Query the user for other things, perhaps.
        (run-hook-with-args-until-failure 'kill-emacs-query-functions)
        (or (null confirm-kill-emacs)

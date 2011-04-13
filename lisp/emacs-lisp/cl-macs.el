@@ -497,7 +497,7 @@ The result of the body appears to the compiler as a quoted constant."
 				    (symbol-function 'byte-compile-file-form)))
 			(list 'byte-compile-file-form (list 'quote set))
 			'(byte-compile-file-form form)))
-	  (print set (symbol-value 'bytecomp-outbuffer)))
+	  (print set (symbol-value 'byte-compile--outbuffer)))
 	(list 'symbol-value (list 'quote temp)))
     (list 'quote (eval form))))
 
@@ -597,27 +597,6 @@ called from BODY."
     (list 'cl-block-wrapper
 	  (list* 'catch (list 'quote (intern (format "--cl-block-%s--" name)))
 		 body))))
-
-(defvar cl-active-block-names nil)
-
-(put 'cl-block-wrapper 'byte-compile 'cl-byte-compile-block)
-(defun cl-byte-compile-block (cl-form)
-  (if (fboundp 'byte-compile-form-do-effect)  ; Check for optimizing compiler
-      (progn
-	(let* ((cl-entry (cons (nth 1 (nth 1 (nth 1 cl-form))) nil))
-	       (cl-active-block-names (cons cl-entry cl-active-block-names))
-	       (cl-body (byte-compile-top-level
-			 (cons 'progn (cddr (nth 1 cl-form))))))
-	  (if (cdr cl-entry)
-	      (byte-compile-form (list 'catch (nth 1 (nth 1 cl-form)) cl-body))
-	    (byte-compile-form cl-body))))
-    (byte-compile-form (nth 1 cl-form))))
-
-(put 'cl-block-throw 'byte-compile 'cl-byte-compile-throw)
-(defun cl-byte-compile-throw (cl-form)
-  (let ((cl-found (assq (nth 1 (nth 1 cl-form)) cl-active-block-names)))
-    (if cl-found (setcdr cl-found t)))
-  (byte-compile-normal-call (cons 'throw (cdr cl-form))))
 
 ;;;###autoload
 (defmacro return (&optional result)
@@ -1427,7 +1406,7 @@ by EXPANSION, and (setq NAME ...) will act like (setf EXPANSION ...).
   "Like `let', but lexically scoped.
 The main visible difference is that lambdas inside BODY will create
 lexical closures as in Common Lisp.
-\n(fn VARLIST BODY)"
+\n(fn BINDINGS BODY)"
   (let* ((cl-closure-vars cl-closure-vars)
 	 (vars (mapcar (function
 			(lambda (x)
@@ -1473,7 +1452,7 @@ The main visible difference is that lambdas inside BODY, and in
 successive bindings within BINDINGS, will create lexical closures
 as in Common Lisp.  This is similar to the behavior of `let*' in
 Common Lisp.
-\n(fn VARLIST BODY)"
+\n(fn BINDINGS BODY)"
   (if (null bindings) (cons 'progn body)
     (setq bindings (reverse bindings))
     (while bindings
@@ -2422,11 +2401,13 @@ value, that slot cannot be set via `setf'.
 	    (push (cons name t) side-eff))))
     (if print-auto (nconc print-func (list '(princ ")" cl-s) t)))
     (if print-func
-	(push (list 'push
-		       (list 'function
-			     (list 'lambda '(cl-x cl-s cl-n)
-				   (list 'and pred-form print-func)))
-		       'custom-print-functions) forms))
+	(push `(push
+                ;; The auto-generated function does not pay attention to
+                ;; the depth argument cl-n.
+                (lambda (cl-x cl-s ,(if print-auto '_cl-n 'cl-n))
+                  (and ,pred-form ,print-func))
+                custom-print-functions)
+              forms))
     (push (list 'setq tag-symbol (list 'list (list 'quote tag))) forms)
     (push (list* 'eval-when '(compile load eval)
 		    (list 'put (list 'quote name) '(quote cl-struct-slots)
@@ -2580,7 +2561,7 @@ and then returning foo."
 	(cl-transform-function-property
 	 func 'cl-compiler-macro
 	 (cons (if (memq '&whole args) (delq '&whole args)
-		 (cons '--cl-whole-arg-- args)) body))
+		 (cons '_cl-whole-arg args)) body))
 	(list 'or (list 'get (list 'quote func) '(quote byte-compile))
 	      (list 'progn
 		    (list 'put (list 'quote func) '(quote byte-compile)
@@ -2617,6 +2598,27 @@ and then returning foo."
   (if (eq form (setq form (compiler-macroexpand form)))
       (byte-compile-normal-call form)
     (byte-compile-form form)))
+
+;; Optimize away unused block-wrappers.
+
+(defvar cl-active-block-names nil)
+
+(define-compiler-macro cl-block-wrapper (cl-form)
+  (let* ((cl-entry (cons (nth 1 (nth 1 cl-form)) nil))
+         (cl-active-block-names (cons cl-entry cl-active-block-names))
+         (cl-body (macroexpand-all      ;Performs compiler-macro expansions.
+                   (cons 'progn (cddr cl-form))
+                   macroexpand-all-environment)))
+    ;; FIXME: To avoid re-applying macroexpand-all, we'd like to be able
+    ;; to indicate that this return value is already fully expanded.
+    (if (cdr cl-entry)
+        `(catch ,(nth 1 cl-form) ,@(cdr cl-body))
+      cl-body)))
+
+(define-compiler-macro cl-block-throw (cl-tag cl-value)
+  (let ((cl-found (assq (nth 1 cl-tag) cl-active-block-names)))
+    (if cl-found (setcdr cl-found t)))
+  `(throw ,cl-tag ,cl-value))
 
 ;;;###autoload
 (defmacro defsubst* (name args &rest body)

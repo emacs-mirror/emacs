@@ -309,7 +309,6 @@ The default value matches citations like `foo-bar>' plus whitespace."
     (define-key map [remap split-line] 'mail-split-line)
     (define-key map "\C-c\C-q" 'mail-fill-yanked-message)
     (define-key map "\C-c\C-w" 'mail-signature)
-    (define-key map "\C-c\C-v" 'mail-sent-via)
     (define-key map "\C-c\C-c" 'mail-send-and-exit)
     (define-key map "\C-c\C-s" 'mail-send)
     (define-key map "\C-c\C-i" 'mail-attach-file)
@@ -348,9 +347,6 @@ The default value matches citations like `foo-bar>' plus whitespace."
 
     (define-key map [menu-bar headers expand-aliases]
       '("Expand Aliases" . expand-mail-aliases))
-
-    (define-key map [menu-bar headers sent-via]
-      '("Sent-Via" . mail-sent-via))
 
     (define-key map [menu-bar headers mail-reply-to]
       '("Mail-Reply-To" . mail-mail-reply-to))
@@ -661,7 +657,6 @@ Here are commands that move to a header field (and create it if there isn't):
 \\[mail-signature]  mail-signature (insert `mail-signature-file' file).
 \\[mail-yank-original]  mail-yank-original (insert current message, in Rmail).
 \\[mail-fill-yanked-message]  mail-fill-yanked-message (fill what was yanked).
-\\[mail-sent-via]  mail-sent-via (add a sent-via field for each To or CC).
 Turning on Mail mode runs the normal hooks `text-mode-hook' and
 `mail-mode-hook' (in that order)."
   (make-local-variable 'mail-reply-action)
@@ -1342,6 +1337,9 @@ just append to the file, in Babyl format if necessary."
 				   (point)))))
 	  ;; Insert a copy, with altered header field name.
 	  (insert-before-markers "Sent-via:" to-line))))))
+
+(make-obsolete 'mail-sent-via "nobody can remember what it is for." "24.1")
+
 
 (defun mail-to ()
   "Move point to end of To field, creating it if necessary."

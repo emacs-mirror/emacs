@@ -1,3 +1,15 @@
+2011-03-23  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install): Use `install-sh -d' rather than mkinstalldirs.
+
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
+2011-02-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* quail/ethiopic.el ("ethiopic"): Fix tpo in docstring.
+
 2011-01-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Redo spelling of Makefile variables to conform to POSIX.
@@ -27,8 +39,8 @@
 
 2010-08-28  Kenichi Handa  <handa@m17n.org>
 
-	* quail/japanese.el (quail-japanese-update-translation): Fix
-	handling of invalid key.
+	* quail/japanese.el (quail-japanese-update-translation):
+	Fix handling of invalid key.
 
 2010-08-15  Andreas Schwab  <schwab@linux-m68k.org>
 
@@ -46,8 +58,7 @@
 
 2010-08-13  Kenichi Handa  <handa@m17n.org>
 
-	* quail/greek.el ("greek-postfix"): Add rules for Greek style
-	quotes.
+	* quail/greek.el ("greek-postfix"): Add rules for Greek style quotes.
 
 2010-08-09  Kenichi Handa  <handa@m17n.org>
 

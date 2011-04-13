@@ -1,3 +1,17 @@
+2011-04-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* mh-funcs.el (mh-undo-folder): Accept and ignore arguments,
+	for compatibility with `revert-buffer'.  Doc fix.  (Bug#8431)
+
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
+2011-03-05  Antoine Levitt  <antoine.levitt@gmail.com>
+
+	* mh-funcs.el (mh-store-msg, mh-store-buffer):
+	* mh-mime.el (mh-mime-save-parts): Use read-directory-name.
+
 2011-01-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mh-comp.el (mh-user-agent-compose): New arg RETURN-ACTION.

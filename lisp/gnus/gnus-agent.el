@@ -441,7 +441,7 @@ manipulated as follows:
                      (setf (gnus-agent-cat-groups old-category)
                            (delete group (gnus-agent-cat-groups
                                           old-category))))))
-               ;; Purge cache as preceeding loop invalidated it.
+               ;; Purge cache as preceding loop invalidated it.
                (setq gnus-category-group-cache nil))
 
              (setcdr (or (assq 'agent-groups category)
@@ -1195,7 +1195,7 @@ downloadable."
 	    (mapc #'gnus-summary-remove-process-mark
 		  (gnus-sorted-ndifference gnus-newsgroup-processable gnus-newsgroup-undownloaded))
 
-            ;; The preceeding call to (gnus-agent-summary-fetch-group)
+            ;; The preceding call to (gnus-agent-summary-fetch-group)
             ;; updated the temporary gnus-newsgroup-downloadable to
             ;; remove each article successfully fetched.  Now, I
             ;; update the real gnus-newsgroup-downloadable to only
@@ -1520,14 +1520,14 @@ downloaded into the agent."
            header-number)
       ;; Check each article
       (while (setq article (pop articles))
-        ;; Skip alist entries preceeding this article
+        ;; Skip alist entries preceding this article
         (while (> article (or (caar alist) (1+ article)))
           (setq alist (cdr alist)))
 
         ;; Prune off articles that we have already fetched.
         (unless (and (eq article (caar alist))
                      (cdar alist))
-          ;; Skip headers preceeding this article
+          ;; Skip headers preceding this article
           (while (> article
                     (setq header-number
                           (let* ((header (car headers)))
@@ -1925,9 +1925,10 @@ article numbers will be returned."
             (setq articles (gnus-list-range-intersection
                             articles (list (cons low high)))))))
 
-      (gnus-message
-       10 "gnus-agent-fetch-headers: undownloaded articles are '%s'"
-       (gnus-compress-sequence articles t))
+      (when articles
+	(gnus-message
+	 10 "gnus-agent-fetch-headers: undownloaded articles are '%s'"
+	 (gnus-compress-sequence articles t)))
 
       (with-current-buffer nntp-server-buffer
         (if articles
@@ -3437,7 +3438,7 @@ missing NOV entry.  Run gnus-agent-regenerate-group to restore it.")))
 
 		   ;; If considering all articles is set, I can only
 		   ;; expire article IDs that are no longer in the
-		   ;; active range (That is, articles that preceed the
+		   ;; active range (That is, articles that precede the
 		   ;; first article in the new alist).
 		   (if (and gnus-agent-consider-all-articles
 			    (>= article-number (car active)))
@@ -3715,7 +3716,7 @@ has been fetched."
 		   (gnus-agent-append-to-list tail-uncached v1))
                  (setq arts (cdr arts))
                  (setq ref (cdr ref)))
-                (t ; reference article (v2) preceeds the list being filtered
+                (t ; reference article (v2) precedes the list being filtered
                  (setq ref (cdr ref))))))
       (while arts
 	(gnus-agent-append-to-list tail-uncached (pop arts)))
@@ -4020,7 +4021,7 @@ If REREAD is not nil, downloaded articles are marked as unread."
 	;; article (with the exception of the last ID in the list - it's
 	;; special) that no longer appears in the overview.  In this
 	;; situtation, the last article ID in the list implies that it,
-	;; and every article ID preceeding it, have been fetched from the
+	;; and every article ID preceding it, have been fetched from the
 	;; server.
 
 	(if gnus-agent-consider-all-articles

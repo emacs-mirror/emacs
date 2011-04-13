@@ -1,4 +1,4 @@
-;;; server.el --- Lisp code for GNU Emacs running as server process
+;;; server.el --- Lisp code for GNU Emacs running as server process -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1986-1987, 1992, 1994-2011  Free Software Foundation, Inc.
 
@@ -335,9 +335,9 @@ If CLIENT is non-nil, add a description of it to the logged message."
       (goto-char (point-max))
       (insert (funcall server-log-time-function)
 	      (cond
-		((null client) " ")
-		((listp client) (format " %s: " (car client)))
-		(t (format " %s: " client)))
+	       ((null client) " ")
+	       ((listp client) (format " %s: " (car client)))
+	       (t (format " %s: " client)))
 	      string)
       (or (bolp) (newline)))))
 
@@ -355,7 +355,7 @@ If CLIENT is non-nil, add a description of it to the logged message."
   (and (process-contact proc :server)
        (eq (process-status proc) 'closed)
        (ignore-errors
-	(delete-file (process-get proc :server-file))))
+	 (delete-file (process-get proc :server-file))))
   (server-log (format "Status changed to %s: %s" (process-status proc) msg) proc)
   (server-delete-client proc))
 
@@ -410,18 +410,19 @@ If CLIENT is non-nil, add a description of it to the logged message."
 	       proc
 	       ;; See if this is the last frame for this client.
 	       (>= 1 (let ((frame-num 0))
-		      (dolist (f (frame-list))
-			(when (eq proc (frame-parameter f 'client))
-			  (setq frame-num (1+ frame-num))))
-		      frame-num)))
+		       (dolist (f (frame-list))
+			 (when (eq proc (frame-parameter f 'client))
+			   (setq frame-num (1+ frame-num))))
+		       frame-num)))
       (server-log (format "server-handle-delete-frame, frame %s" frame) proc)
       (server-delete-client proc 'noframe)))) ; Let delete-frame delete the frame later.
 
 (defun server-handle-suspend-tty (terminal)
-  "Notify the emacsclient process to suspend itself when its tty device is suspended."
+  "Notify the client process that its tty device is suspended."
   (dolist (proc (server-clients-with 'terminal terminal))
-    (server-log (format "server-handle-suspend-tty, terminal %s" terminal) proc)
-    (condition-case err
+    (server-log (format "server-handle-suspend-tty, terminal %s" terminal)
+                proc)
+    (condition-case nil
 	(server-send-string proc "-suspend \n")
       (file-error                       ;The pipe/socket was closed.
        (ignore-errors (server-delete-client proc))))))
@@ -485,7 +486,13 @@ See variable `server-auth-dir' for details."
 			      (file-name-as-directory dir))
 		      :warning)
 		     (throw :safe t))
-		   (unless (eql uid (user-uid)) ; is the dir ours?
+		   (unless (or (= uid (user-uid)) ; is the dir ours?
+			       (and w32
+				    ;; Files created on Windows by
+				    ;; Administrator (RID=500) have
+				    ;; the Administrators (RID=544)
+				    ;; group recorded as the owner.
+				    (= uid 544) (= (user-uid) 500)))
 		     (throw :safe nil))
 		   (when w32                    ; on NTFS?
 		     (throw :safe t))
@@ -534,8 +541,8 @@ To force-start a server, do \\[server-force-delete] and then
       (if (not (eq t (server-running-p server-name)))
 	  ;; Remove any leftover socket or authentication file
 	  (ignore-errors
-	   (let (delete-by-moving-to-trash)
-	     (delete-file server-file)))
+	    (let (delete-by-moving-to-trash)
+	      (delete-file server-file)))
 	(setq server-mode nil) ;; already set by the minor mode code
 	(display-warning
 	 'server
@@ -590,11 +597,11 @@ server or call `M-x server-force-delete' to forcibly disconnect it.")
 	  (when server-use-tcp
 	    (let ((auth-key
 		   (loop
-		      ;; The auth key is a 64-byte string of random chars in the
-		      ;; range `!'..`~'.
-		      repeat 64
-		      collect (+ 33 (random 94)) into auth
-		      finally return (concat auth))))
+		    ;; The auth key is a 64-byte string of random chars in the
+		    ;; range `!'..`~'.
+		    repeat 64
+		    collect (+ 33 (random 94)) into auth
+		    finally return (concat auth))))
 	      (process-put server-process :auth-key auth-key)
 	      (with-temp-file server-file
 		(set-buffer-multibyte nil)
@@ -689,31 +696,31 @@ Server mode runs a process that accepts commands from the
   (add-to-list 'frame-inherited-parameters 'client)
   (let ((frame
          (server-with-environment (process-get proc 'env)
-             '("LANG" "LC_CTYPE" "LC_ALL"
-               ;; For tgetent(3); list according to ncurses(3).
-               "BAUDRATE" "COLUMNS" "ESCDELAY" "HOME" "LINES"
-               "NCURSES_ASSUMED_COLORS" "NCURSES_NO_PADDING"
-               "NCURSES_NO_SETBUF" "TERM" "TERMCAP" "TERMINFO"
-               "TERMINFO_DIRS" "TERMPATH"
-               ;; rxvt wants these
-               "COLORFGBG" "COLORTERM")
-	     (make-frame `((window-system . nil)
-			   (tty . ,tty)
-			   (tty-type . ,type)
-			   ;; Ignore nowait here; we always need to
-			   ;; clean up opened ttys when the client dies.
-			   (client . ,proc)
-			   ;; This is a leftover from an earlier
-			   ;; attempt at making it possible for process
-			   ;; run in the server process to use the
-			   ;; environment of the client process.
-			   ;; It has no effect now and to make it work
-			   ;; we'd need to decide how to make
-			   ;; process-environment interact with client
-			   ;; envvars, and then to change the
-			   ;; C functions `child_setup' and
-			   ;; `getenv_internal' accordingly.
-			   (environment . ,(process-get proc 'env)))))))
+				  '("LANG" "LC_CTYPE" "LC_ALL"
+				    ;; For tgetent(3); list according to ncurses(3).
+				    "BAUDRATE" "COLUMNS" "ESCDELAY" "HOME" "LINES"
+				    "NCURSES_ASSUMED_COLORS" "NCURSES_NO_PADDING"
+				    "NCURSES_NO_SETBUF" "TERM" "TERMCAP" "TERMINFO"
+				    "TERMINFO_DIRS" "TERMPATH"
+				    ;; rxvt wants these
+				    "COLORFGBG" "COLORTERM")
+				  (make-frame `((window-system . nil)
+						(tty . ,tty)
+						(tty-type . ,type)
+						;; Ignore nowait here; we always need to
+						;; clean up opened ttys when the client dies.
+						(client . ,proc)
+						;; This is a leftover from an earlier
+						;; attempt at making it possible for process
+						;; run in the server process to use the
+						;; environment of the client process.
+						;; It has no effect now and to make it work
+						;; we'd need to decide how to make
+						;; process-environment interact with client
+						;; envvars, and then to change the
+						;; C functions `child_setup' and
+						;; `getenv_internal' accordingly.
+						(environment . ,(process-get proc 'env)))))))
 
     ;; ttys don't use the `display' parameter, but callproc.c does to set
     ;; the DISPLAY environment on subprocesses.
@@ -777,8 +784,7 @@ Server mode runs a process that accepts commands from the
     ;; frame because input from that display will be blocked (until exiting
     ;; the minibuffer).  Better exit this minibuffer right away.
     ;; Similarly with recursive-edits such as the splash screen.
-    (run-with-timer 0 nil (lexical-let ((proc proc))
-			    (lambda () (server-execute-continuation proc))))
+    (run-with-timer 0 nil (lambda () (server-execute-continuation proc)))
     (top-level)))
 
 ;; We use various special properties on process objects:
@@ -972,7 +978,7 @@ The following commands are accepted by the client:
 
                 ;; -resume:  Resume a suspended tty frame.
                 (`"-resume"
-                 (lexical-let ((terminal (process-get proc 'terminal)))
+                 (let ((terminal (process-get proc 'terminal)))
                    (setq dontkill t)
                    (push (lambda ()
                            (when (eq (terminal-live-p terminal) t)
@@ -983,7 +989,7 @@ The following commands are accepted by the client:
                 ;; get out of sync, and a C-z sends a SIGTSTP to
                 ;; emacsclient.)
                 (`"-suspend"
-                 (lexical-let ((terminal (process-get proc 'terminal)))
+                 (let ((terminal (process-get proc 'terminal)))
                    (setq dontkill t)
                    (push (lambda ()
                            (when (eq (terminal-live-p terminal) t)
@@ -1030,7 +1036,7 @@ The following commands are accepted by the client:
                 (`"-eval"
                  (if use-current-frame
                      (setq use-current-frame 'always))
-                 (lexical-let ((expr (pop args-left)))
+                 (let ((expr (pop args-left)))
                    (if coding-system
                        (setq expr (decode-coding-string expr coding-system)))
                    (push (lambda () (server-eval-and-print expr proc))
@@ -1075,23 +1081,15 @@ The following commands are accepted by the client:
 
             (process-put
              proc 'continuation
-             (lexical-let ((proc proc)
-                           (files files)
-                           (nowait nowait)
-                           (commands commands)
-                           (dontkill dontkill)
-                           (frame frame)
-                           (dir dir)
-                           (tty-name tty-name))
-               (lambda ()
-                 (with-current-buffer (get-buffer-create server-buffer)
-                   ;; Use the same cwd as the emacsclient, if possible, so
-                   ;; relative file names work correctly, even in `eval'.
-                   (let ((default-directory
-			  (if (and dir (file-directory-p dir))
-			      dir default-directory)))
-                     (server-execute proc files nowait commands
-                                     dontkill frame tty-name))))))
+             (lambda ()
+               (with-current-buffer (get-buffer-create server-buffer)
+                 ;; Use the same cwd as the emacsclient, if possible, so
+                 ;; relative file names work correctly, even in `eval'.
+                 (let ((default-directory
+                         (if (and dir (file-directory-p dir))
+                             dir default-directory)))
+                   (server-execute proc files nowait commands
+                                   dontkill frame tty-name)))))
 
             (when (or frame files)
               (server-goto-toplevel proc))
@@ -1216,7 +1214,10 @@ so don't mark these buffers specially, just visit them normally."
       (process-put proc 'buffers
                    (nconc (process-get proc 'buffers) client-record)))
     client-record))
-
+
+(defvar server-kill-buffer-running nil
+  "Non-nil while `server-kill-buffer' or `server-buffer-done' is running.")
+
 (defun server-buffer-done (buffer &optional for-killing)
   "Mark BUFFER as \"done\" for its client(s).
 This buries the buffer, then returns a list of the form (NEXT-BUFFER KILLED).
@@ -1338,9 +1339,6 @@ specifically for the clients and did not exist before their request for it."
 	    (setq live-client t))))
       (yes-or-no-p "This Emacs session has clients; exit anyway? ")))
 
-(defvar server-kill-buffer-running nil
-  "Non-nil while `server-kill-buffer' or `server-buffer-done' is running.")
-
 (defun server-kill-buffer ()
   "Remove the current buffer from its clients' buffer list.
 Designed to be added to `kill-buffer-hook'."
@@ -1368,12 +1366,12 @@ If invoked with a prefix argument, or if there is no server process running,
 starts server process and that is all.  Invoked by \\[server-edit]."
   (interactive "P")
   (cond
-    ((or arg
-         (not server-process)
-         (memq (process-status server-process) '(signal exit)))
-     (server-mode 1))
-    (server-clients (apply 'server-switch-buffer (server-done)))
-    (t (message "No server editing buffers exist"))))
+   ((or arg
+	(not server-process)
+	(memq (process-status server-process) '(signal exit)))
+    (server-mode 1))
+   (server-clients (apply 'server-switch-buffer (server-done)))
+   (t (message "No server editing buffers exist"))))
 
 (defun server-switch-buffer (&optional next-buffer killed-one filepos)
   "Switch to another buffer, preferably one that has a client.

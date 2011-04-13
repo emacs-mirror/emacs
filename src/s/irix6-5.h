@@ -60,6 +60,7 @@ char *_getpty();
 #define PTY_OPEN					    \
 {							    \
   struct sigaction ocstat, cstat;			    \
+  struct stat stb;					    \
   char * name;						    \
   sigemptyset(&cstat.sa_mask);				    \
   cstat.sa_handler = SIG_DFL;				    \
@@ -95,5 +96,3 @@ char *_getpty();
 /* Tested on Irix 6.5.  SCM worked on earlier versions.  */
 #define GC_SETJMP_WORKS 1
 #define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
-
-

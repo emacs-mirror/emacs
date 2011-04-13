@@ -81,6 +81,9 @@ extern int spawnve (int, const char *, char *const [], char *const []);
 #include <signal.h>
 #include "syssignal.h"
 
+#include "careadlinkat.h"
+#include "allocator.h"
+
 #ifndef SYSTEM_MALLOC
 
 #ifdef GNU_MALLOC
@@ -844,6 +847,7 @@ IT_set_face (int face)
 
 extern unsigned char *encode_terminal_code (struct glyph *, int,
 					    struct coding_system *);
+
 static void
 IT_write_glyphs (struct frame *f, struct glyph *str, int str_len)
 {
@@ -1389,8 +1393,6 @@ IT_delete_glyphs (struct frame *f, int n)
 void
 x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
-  extern void set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
-
   set_menu_bar_lines (f, value, oldval);
 }
 
@@ -3000,17 +3002,17 @@ XMenuCreate (Display *foo1, Window foo2, char *foo3)
    to do.  */
 
 int
-XMenuAddPane (Display *foo, XMenu *menu, char *txt, int enable)
+XMenuAddPane (Display *foo, XMenu *menu, const char *txt, int enable)
 {
   int len;
-  char *p;
+  const char *p;
 
   if (!enable)
     abort ();
 
   IT_menu_make_room (menu);
   menu->submenu[menu->count] = IT_menu_create ();
-  menu->text[menu->count] = txt;
+  menu->text[menu->count] = (char *)txt;
   menu->panenumber[menu->count] = ++menu->panecount;
   menu->help_text[menu->count] = NULL;
   menu->count++;
@@ -3922,6 +3924,53 @@ croak (char *badfunc)
  */
 int setpgrp (void) {return 0; }
 int setpriority (int x, int y, int z) { return 0; }
+
+#if __DJGPP__ == 2 && __DJGPP_MINOR__ < 4
+ssize_t
+readlink (const char *name, char *dummy1, size_t dummy2)
+{
+  /* `access' is much faster than `stat' on MS-DOS.  */
+  if (access (name, F_OK) == 0)
+    errno = EINVAL;
+  return -1;
+}
+#endif
+
+char *
+careadlinkat (int fd, char const *filename,
+              char *buffer, size_t buffer_size,
+              struct allocator const *alloc,
+              ssize_t (*preadlinkat) (int, char const *, char *, size_t))
+{
+  if (!buffer)
+    {
+      /* We don't support the fancy auto-allocation feature.  */
+      if (!buffer_size)
+	errno = ENOSYS;
+      else
+	errno = EINVAL;
+      buffer = NULL;
+    }
+  else
+    {
+      ssize_t len = preadlinkat (fd, filename, buffer, buffer_size);
+
+      if (len < 0 || len == buffer_size)
+	buffer = NULL;
+      else
+	buffer[len + 1] = '\0';
+    }
+  return buffer;
+}
+
+ssize_t
+careadlinkatcwd (int fd, char const *filename, char *buffer,
+                 size_t buffer_size)
+{
+  (void) fd;
+  return readlink (filename, buffer, buffer_size);
+}
+
 
 #if __DJGPP__ == 2 && __DJGPP_MINOR__ < 2
 
@@ -4236,4 +4285,3 @@ This variable is used only by MS-DOS terminals.  */);
 }
 
 #endif /* MSDOS */
-

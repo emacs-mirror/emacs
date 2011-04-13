@@ -662,13 +662,12 @@ digest_single_submenu (int start, int end, int top_level_items)
       else if (EQ (XVECTOR (menu_items)->contents[i], Qt))
 	{
 	  /* Create a new pane.  */
-	  Lisp_Object pane_name, prefix;
+	  Lisp_Object pane_name;
 	  const char *pane_string;
 
 	  panes_seen++;
 
 	  pane_name = XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_NAME];
-	  prefix = XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_PREFIX];
 
 #ifdef HAVE_NTGUI
 	  if (STRINGP (pane_name))
@@ -1341,7 +1340,7 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 
   UNGCPRO;
 
-  if (error_name) error (error_name);
+  if (error_name) error ("%s", error_name);
   return selection;
 }
 

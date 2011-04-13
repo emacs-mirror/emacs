@@ -28,11 +28,6 @@ Lisp_Object Qcase_table_p, Qcase_table;
 Lisp_Object Vascii_downcase_table, Vascii_upcase_table;
 Lisp_Object Vascii_canon_table, Vascii_eqv_table;
 
-/* Used as a temporary in DOWNCASE and other macros in lisp.h.  No
-   need to mark it, since it is used only very temporarily.  */
-int case_temp1;
-Lisp_Object case_temp2;
-
 static void set_canon (Lisp_Object case_table, Lisp_Object range, Lisp_Object elt);
 static void set_identity (Lisp_Object table, Lisp_Object c, Lisp_Object elt);
 static void shuffle (Lisp_Object table, Lisp_Object c, Lisp_Object elt);
@@ -196,7 +191,8 @@ set_identity (Lisp_Object table, Lisp_Object c, Lisp_Object elt)
 {
   if (NATNUMP (elt))
     {
-      int from, to;
+      int from;
+      unsigned to;
 
       if (CONSP (c))
 	{
@@ -205,7 +201,7 @@ set_identity (Lisp_Object table, Lisp_Object c, Lisp_Object elt)
 	}
       else
 	from = to = XINT (c);
-      for (; from <= to; from++)
+      for (to++; from < to; from++)
 	CHAR_TABLE_SET (table, from, make_number (from));
     }
 }
@@ -220,7 +216,8 @@ shuffle (Lisp_Object table, Lisp_Object c, Lisp_Object elt)
 {
   if (NATNUMP (elt))
     {
-      int from, to;
+      int from;
+      unsigned to;
 
       if (CONSP (c))
 	{
@@ -230,7 +227,7 @@ shuffle (Lisp_Object table, Lisp_Object c, Lisp_Object elt)
       else
 	from = to = XINT (c);
 
-      for (; from <= to; from++)
+      for (to++; from < to; from++)
 	{
 	  Lisp_Object tem = Faref (table, elt);
 	  Faset (table, elt, make_number (from));
@@ -302,4 +299,3 @@ syms_of_casetab (void)
   defsubr (&Sset_case_table);
   defsubr (&Sset_standard_case_table);
 }
-

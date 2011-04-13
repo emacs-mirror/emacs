@@ -31,7 +31,11 @@
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 
 (eval-and-compile
-  (require 'nnheader))
+  (require 'nnheader)
+  ;; In Emacs 24, `open-protocol-stream' is an autoloaded alias for
+  ;; `make-network-stream'.
+  (unless (fboundp 'open-protocol-stream)
+    (require 'proto-stream)))
 
 (eval-when-compile
   (require 'cl))
@@ -45,7 +49,6 @@
 (require 'tls)
 (require 'parse-time)
 (require 'nnmail)
-(require 'proto-stream)
 
 (autoload 'auth-source-forget+ "auth-source")
 (autoload 'auth-source-search "auth-source")
@@ -61,9 +64,12 @@ If nnimap-stream is `ssl', this will default to `imaps'.  If not,
 it will default to `imap'.")
 
 (defvoo nnimap-stream 'undecided
-  "How nnimap will talk to the IMAP server.
-Values are `ssl', `network', `starttls' or `shell'.
-The default is to try `ssl' first, and then `network'.")
+  "How nnimap talks to the IMAP server.
+The value should be either `undecided', `ssl' or `tls',
+`network', `starttls', `plain', or `shell'.
+
+If the value is `undecided', nnimap tries `ssl' first, then falls
+back on `network'.")
 
 (defvoo nnimap-shell-program (if (boundp 'imap-shell-program)
 				 (if (listp imap-shell-program)
@@ -278,16 +284,21 @@ textual parts.")
     (current-buffer)))
 
 (defun nnimap-credentials (address ports)
-  (let ((found (nth 0 (auth-source-search :max 1
-					  :host address
-					  :port ports
-					  :create t))))
+  (let* ((auth-source-creation-prompts
+          '((user  . "IMAP user at %h: ")
+            (secret . "IMAP password for %u@%h: ")))
+         (found (nth 0 (auth-source-search :max 1
+                                           :host address
+                                           :port ports
+                                           :require '(:user :secret)
+                                           :create t))))
     (if found
         (list (plist-get found :user)
 	      (let ((secret (plist-get found :secret)))
 		(if (functionp secret)
 		    (funcall secret)
-		  secret)))
+		  secret))
+	      (plist-get found :save-function))
       nil)))
 
 (defun nnimap-keepalive ()
@@ -333,11 +344,10 @@ textual parts.")
 	   (port nil)
 	   (ports
 	    (cond
-	     ((or (eq nnimap-stream 'network)
-		  (eq nnimap-stream 'starttls))
+	     ((memq nnimap-stream '(network plain starttls))
 	      (nnheader-message 7 "Opening connection to %s..."
 				nnimap-address)
-	      '("143" "imap"))
+	      '("imap" "143"))
 	     ((eq nnimap-stream 'shell)
 	      (nnheader-message 7 "Opening connection to %s via shell..."
 				nnimap-address)
@@ -345,24 +355,32 @@ textual parts.")
 	     ((memq nnimap-stream '(ssl tls))
 	      (nnheader-message 7 "Opening connection to %s via tls..."
 				nnimap-address)
-	      '("143" "993" "imap" "imaps"))
+	      '("imaps" "imap" "993" "143"))
 	     (t
 	      (error "Unknown stream type: %s" nnimap-stream))))
-	   (proto-stream-always-use-starttls t)
            login-result credentials)
       (when nnimap-server-port
-	(setq ports (append ports (list nnimap-server-port))))
-      (destructuring-bind (stream greeting capabilities stream-type)
-	  (open-protocol-stream
-	   "*nnimap*" (current-buffer) nnimap-address (car (last ports))
-	   :type nnimap-stream
-	   :shell-command nnimap-shell-program
-	   :capability-command "1 CAPABILITY\r\n"
-	   :success " OK "
-	   :starttls-function
-	   (lambda (capabilities)
-	     (when (gnus-string-match-p "STARTTLS" capabilities)
-	       "1 STARTTLS\r\n")))
+	(push nnimap-server-port ports))
+      (let* ((stream-list
+	      (open-protocol-stream
+	       "*nnimap*" (current-buffer) nnimap-address (car ports)
+	       :type nnimap-stream
+	       :return-list t
+	       :shell-command nnimap-shell-program
+	       :capability-command "1 CAPABILITY\r\n"
+	       :end-of-command "\r\n"
+	       :success " OK "
+	       :starttls-function
+	       (lambda (capabilities)
+		 (when (gnus-string-match-p "STARTTLS" capabilities)
+		   "1 STARTTLS\r\n"))))
+	     (stream (car stream-list))
+	     (props (cdr stream-list))
+	     (greeting (plist-get props :greeting))
+	     (capabilities (plist-get props :capabilities))
+	     (stream-type (plist-get props :type)))
+	(when (and stream (not (memq (process-status stream) '(open run))))
+	  (setq stream nil))
 	(setf (nnimap-process nnimap-object) stream)
 	(setf (nnimap-stream-type nnimap-object) stream-type)
 	(if (not stream)
@@ -395,7 +413,19 @@ textual parts.")
 		(let ((nnimap-inhibit-logging t))
 		  (setq login-result
 			(nnimap-login (car credentials) (cadr credentials))))
-		(unless (car login-result)
+		(if (car login-result)
+		    (progn
+                    ;; Save the credentials if a save function exists
+                    ;; (such a function will only be passed if a new
+                    ;; token was created).
+		      (when (functionp (nth 2 credentials))
+			(funcall (nth 2 credentials)))
+		      ;; See if CAPABILITY is set as part of login
+		      ;; response.
+		      (dolist (response (cddr login-result))
+			(when (string= "CAPABILITY" (upcase (car response)))
+			  (setf (nnimap-capabilities nnimap-object)
+				(mapcar #'upcase (cdr response))))))
 		  ;; If the login failed, then forget the credentials
 		  ;; that are now possibly cached.
 		  (dolist (host (list (nnoo-current-server 'nnimap)
@@ -1441,6 +1471,11 @@ textual parts.")
   ;; Change \Delete etc to %Delete, so that the reader can read it.
   (subst-char-in-region (point-min) (point-max)
 			?\\ ?% t)
+  ;; Remove any MODSEQ entries in the buffer, because they may contain
+  ;; numbers that are too large for 32-bit Emacsen.
+  (while (re-search-forward " MODSEQ ([0-9]+)" nil t)
+    (replace-match "" t t))
+  (goto-char (point-min))
   (let (start end articles groups uidnext elems permanent-flags
 	      uidvalidity vanished highestmodseq)
     (dolist (elem sequences)
@@ -1480,9 +1515,9 @@ textual parts.")
 			    (match-string 1)))
 		 (goto-char start)
 		 (setq highestmodseq
-		       (and (search-forward "HIGHESTMODSEQ "
+		       (and (re-search-forward "HIGHESTMODSEQ \\([0-9]+\\)"
 					    (or end (point-min)) t)
-			    (read (current-buffer))))
+			    (match-string 1)))
 		 (goto-char end)
 		 (forward-line -1))
 	       ;; The UID FETCH FLAGS was successful.
@@ -1495,10 +1530,11 @@ textual parts.")
 	    (setq start (point))
 	    (goto-char end))
 	  (while (re-search-forward "^\\* [0-9]+ FETCH " start t)
-	    (setq elems (read (current-buffer)))
-	    (push (cons (cadr (memq 'UID elems))
-			(cadr (memq 'FLAGS elems)))
-		  articles))
+	    (let ((p (point)))
+	      (setq elems (read (current-buffer)))
+	      (push (cons (cadr (memq 'UID elems))
+			  (cadr (memq 'FLAGS elems)))
+		    articles)))
 	  (push (nconc (list group uidnext totalp permanent-flags uidvalidity
 			     vanished highestmodseq)
 		       articles)
@@ -1532,10 +1568,11 @@ textual parts.")
 			       refid refid value)))))
 	 (result (with-current-buffer (nnimap-buffer)
 		   (nnimap-command  "UID SEARCH %s" cmd))))
-    (gnus-fetch-headers
-     (and (car result) (delete 0 (mapcar #'string-to-number
-					 (cdr (assoc "SEARCH" (cdr result))))))
-     nil t)))
+    (when result
+      (gnus-fetch-headers
+       (and (car result) (delete 0 (mapcar #'string-to-number
+					   (cdr (assoc "SEARCH" (cdr result))))))
+       nil t))))
 
 (defun nnimap-possibly-change-group (group server)
   (let ((open-result t))
@@ -1650,6 +1687,8 @@ textual parts.")
 	    (goto-char (point-max)))
           openp)
       (quit
+       (when debug-on-quit
+	 (debug "Quit"))
        ;; The user hit C-g while we were waiting: kill the process, in case
        ;; it's a gnutls-cli process that's stuck (tends to happen a lot behind
        ;; NAT routers).
@@ -1741,11 +1780,15 @@ textual parts.")
     (format "(UID %s%s)"
 	    (format
 	     (if (nnimap-ver4-p)
-		 "BODY.PEEK[HEADER] BODY.PEEK"
+		 "BODY.PEEK"
 	       "RFC822.PEEK"))
-	    (if nnimap-split-download-body-default
-		"[]"
-	      "[1]")))
+	    (cond
+	     (nnimap-split-download-body-default
+	      "[]")
+	     ((nnimap-ver4-p)
+	      "[HEADER]")
+	     (t
+	      "[1]"))))
    t))
 
 (defun nnimap-split-incoming-mail ()

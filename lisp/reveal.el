@@ -1,4 +1,4 @@
-;;; reveal.el --- Automatically reveal hidden text at point
+;;; reveal.el --- Automatically reveal hidden text at point -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2000-2011 Free Software Foundation, Inc.
 

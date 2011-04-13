@@ -671,7 +671,9 @@ C-w  Describe how there is no warranty for Calc."
   (interactive)
   (calc-do-prefix-help
    '("Quantity, DB level, Np level"
-     "+, -, *, /")
+     "+, -, *, /"
+     "Scientific pitch notation, Midi number, Frequency"
+     )
    "log units" ?l))
 
 (defun calc-v-prefix-help ()

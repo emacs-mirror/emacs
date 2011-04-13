@@ -72,7 +72,9 @@ SYMBOL should be one of `grep-command', `grep-template',
 
 Some grep programs are able to surround matches with special
 markers in grep output.  Such markers can be used to highlight
-matches in grep mode.
+matches in grep mode.  This requires `font-lock-mode' to be active
+in grep buffers, so if you have globally disabled font-lock-mode,
+you will not get highlighting.
 
 This option sets the environment variable GREP_COLORS to specify
 markers for highlighting and GREP_OPTIONS to add the --color
@@ -438,10 +440,11 @@ This variable's value takes effect when `grep-compute-defaults' is called.")
 
 ;;;###autoload
 (defvar grep-find-use-xargs nil
-  "Non-nil means that `grep-find' uses the `xargs' utility by default.
-If `exec', use `find -exec'.
+  "How to invoke find and grep.
+If `exec', use `find -exec {} ;'.
+If `exec-plus' use `find -exec {} +'.
 If `gnu', use `find -print0' and `xargs -0'.
-Any other non-nil value means to use `find -print' and `xargs'.
+Any other value means to use `find -print' and `xargs'.
 
 This variable's value takes effect when `grep-compute-defaults' is called.")
 
@@ -462,6 +465,8 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
   (when (eq grep-highlight-matches 'auto-detect)
     (grep-compute-defaults))
   (unless (or (eq grep-highlight-matches 'auto-detect)
+	      ;; Uses font-lock to parse color escapes.  (Bug#8084)
+	      (null font-lock-mode)
 	      (null grep-highlight-matches))
     ;; `setenv' modifies `process-environment' let-bound in `compilation-start'
     ;; Any TERM except "dumb" allows GNU grep to use `--color=auto'
@@ -557,6 +562,10 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
 	(unless grep-find-use-xargs
 	  (setq grep-find-use-xargs
 		(cond
+		 ((grep-probe find-program
+			      `(nil nil nil ,null-device "-exec" "echo"
+				    "{}" "+"))
+		  'exec-plus)
 		 ((and
 		   (grep-probe find-program `(nil nil nil ,null-device "-print0"))
 		   (grep-probe xargs-program `(nil nil nil "-0" "-e" "echo")))
@@ -571,13 +580,17 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
 		       ;; forward slashes as directory separators.
 		       (format "%s . -type f -print0 | \"%s\" -0 -e %s"
 			       find-program xargs-program grep-command))
-		      ((eq grep-find-use-xargs 'exec)
+		      ((memq grep-find-use-xargs '(exec exec-plus))
 		       (let ((cmd0 (format "%s . -type f -exec %s"
-					   find-program grep-command)))
+					   find-program grep-command))
+			     (null (if grep-use-null-device
+				       (format "%s " null-device)
+				     "")))
 			 (cons
-			  (format "%s {} %s %s"
-				  cmd0 null-device
-				  (shell-quote-argument ";"))
+			  (if (eq grep-find-use-xargs 'exec-plus)
+			      (format "%s %s{} +" cmd0 null)
+			    (format "%s {} %s%s" cmd0 null
+				    (shell-quote-argument ";")))
 			  (1+ (length cmd0)))))
 		      (t
 		       (format "%s . -type f -print | \"%s\" %s"
@@ -585,14 +598,20 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
 	(unless grep-find-template
 	  (setq grep-find-template
 		(let ((gcmd (format "%s <C> %s <R>"
-				    grep-program grep-options)))
+				    grep-program grep-options))
+		      (null (if grep-use-null-device
+				(format "%s " null-device)
+			      "")))
 		  (cond ((eq grep-find-use-xargs 'gnu)
 			 (format "%s . <X> -type f <F> -print0 | \"%s\" -0 -e %s"
 				 find-program xargs-program gcmd))
 			((eq grep-find-use-xargs 'exec)
-			 (format "%s . <X> -type f <F> -exec %s {} %s %s"
-				 find-program gcmd null-device
+			 (format "%s . <X> -type f <F> -exec %s {} %s%s"
+				 find-program gcmd null
 				 (shell-quote-argument ";")))
+			((eq grep-find-use-xargs 'exec-plus)
+			 (format "%s . <X> -type f <F> -exec %s %s{} +"
+				 find-program gcmd null))
 			(t
 			 (format "%s . <X> -type f <F> -print | \"%s\" %s"
 				 find-program xargs-program gcmd))))))))

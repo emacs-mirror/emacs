@@ -584,9 +584,9 @@
 
 	* debian/maint/conffiles.in: new file
 
-	* debian/maint/conffiles: superceded by conffiles.in
+	* debian/maint/conffiles: superseded by conffiles.in
 
-	* debian/scripts/startup: superceded by startup.erc
+	* debian/scripts/startup: superseded by startup.erc
 
 2001-10-25  Mario Lang  <mlang@delysid.org>
 
@@ -609,7 +609,7 @@
 
 	* debian/maint/postinst, debian/maint/prerm, debian/scripts/install, 
 	  debian/scripts/remove:
-	removed, superceded by it's .in counterpart
+	removed, superseded by its .in counterpart
 
 2001-10-25  Mario Lang  <mlang@delysid.org>
 

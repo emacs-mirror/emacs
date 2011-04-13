@@ -1,3 +1,17 @@
+2011-04-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* url-gw.el (url-open-stream): Use new open-network-stream
+	functionality to perform encryption.
+
+2011-04-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* url-cookie.el (url-cookie-handle-set-cookie):
+	Use `dolist' rather than `mapcar'.
+
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
 2011-02-12  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* url-parse.el (url-bit-for-url, url-user-for-url)
@@ -14,7 +28,7 @@
 	move point if the callback function has moved changed/killed the
 	process buffer.
 
-2010-12-16  Miles Bader  <Miles Bader <miles@gnu.org>>
+2010-12-16  Miles Bader  <miles@gnu.org>
 
 	* url-cookie.el: Require 'cl when compiling -- it's necessary for
 	defstruct.

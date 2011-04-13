@@ -433,18 +433,17 @@ expression, thus moving point forward one word.
 @cindex minibuffer history
 @cindex history list
 
-  A @dfn{minibuffer history list} records previous minibuffer inputs so
-the user can reuse them conveniently.  A history list is actually a
-symbol, not a list; it is a variable whose value is a list of strings
-(previous inputs), most recent first.
+  A @dfn{minibuffer history list} records previous minibuffer inputs
+so the user can reuse them conveniently.  It is a variable whose value
+is a list of strings (previous inputs), most recent first.
 
-  There are many separate history lists, used for different kinds of
-inputs.  It's the Lisp programmer's job to specify the right history
-list for each use of the minibuffer.
+  There are many separate minibuffer history lists, used for different
+kinds of inputs.  It's the Lisp programmer's job to specify the right
+history list for each use of the minibuffer.
 
-  You specify the history list with the optional @var{hist} argument
-to either @code{read-from-minibuffer} or @code{completing-read}.  Here
-are the possible values for it:
+  You specify a minibuffer history list with the optional @var{hist}
+argument to @code{read-from-minibuffer} or @code{completing-read}.
+Here are the possible values for it:
 
 @table @asis
 @item @var{variable}
@@ -646,9 +645,9 @@ higher-level completion features that do use the minibuffer.
 @defun try-completion string collection &optional predicate
 This function returns the longest common substring of all possible
 completions of @var{string} in @var{collection}.  The value of
-@var{collection} must be a list of strings or symbols, an alist, an
-obarray, a hash table, or a completion function (@pxref{Programmed
-Completion}).
+@var{collection} must be a list of strings, an alist whose keys are
+strings or symbols, an obarray, a hash table, or a completion function
+(@pxref{Programmed Completion}).
 
 Completion compares @var{string} against each of the permissible
 completions specified by @var{collection}.  If no permissible
@@ -659,11 +658,11 @@ to all possible matching completions.
 
 If @var{collection} is an alist (@pxref{Association Lists}), the
 permissible completions are the elements of the alist that are either
-strings, symbols, or conses whose @sc{car} is a string or symbol.
+strings, or conses whose @sc{car} is a string or symbol.
 Symbols are converted to strings using @code{symbol-name}.  Other
 elements of the alist are ignored. (Remember that in Emacs Lisp, the
 elements of alists do not @emph{have} to be conses.)  In particular, a
-list of strings or symbols is allowed, even though we usually do not
+list of strings is allowed, even though we usually do not
 think of such lists as alists.
 
 @cindex obarray in completion
@@ -679,7 +678,7 @@ Also, you cannot intern a given symbol in more than one obarray.
 If @var{collection} is a hash table, then the keys that are strings
 are the possible completions.  Other keys are ignored.
 
-You can also use a symbol that is a function as @var{collection}.
+You can also use a function as @var{collection}.
 Then the function is solely responsible for performing completion;
 @code{try-completion} returns whatever this function returns.  The
 function is called with three arguments: @var{string}, @var{predicate}
@@ -1633,12 +1632,12 @@ which performs completion according to the rules used in Emacs 21; and
 @subsection Programmed Completion
 @cindex programmed completion
 
-  Sometimes it is not possible to create an alist or an obarray
-containing all the intended possible completions.  In such a case, you
-can supply your own function to compute the completion of a given
-string.  This is called @dfn{programmed completion}.  Emacs uses
-programmed completion when completing file names (@pxref{File Name
-Completion}), among many other cases.
+  Sometimes it is not possible or convenient to create an alist or
+an obarray containing all the intended possible completions ahead
+of time.  In such a case, you can supply your own function to compute
+the completion of a given string.  This is called @dfn{programmed
+completion}.  Emacs uses programmed completion when completing file
+names (@pxref{File Name Completion}), among many other cases.
 
   To use this feature, pass a function as the @var{collection}
 argument to @code{completing-read}.  The function
@@ -1666,7 +1665,7 @@ specifies which method to run.
 @end itemize
 
   There are currently four methods, i.e. four flag values, one for
-  each of the four different basic operations:
+each of the four different basic operations:
 
 @itemize @bullet
 @item
@@ -1696,14 +1695,6 @@ START . END)} where START is the position of the beginning boundary in
 in the string to complete, and END is the position of the end boundary
 in SUFFIX.
 @end itemize
-
-  It would be consistent and clean for completion functions to allow
-lambda expressions (lists that are functions) as well as function
-symbols as @var{collection}, but this is impossible.  Lists as
-completion tables already have other meanings, and it would be
-unreliable to treat one differently just because it is also a possible
-function.  So you must arrange for any function you wish to use for
-completion to be encapsulated in a symbol.
 
 @defun completion-table-dynamic function
 This function is a convenient way to write a function that can act as

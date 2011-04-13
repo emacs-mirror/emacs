@@ -29,6 +29,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <limits.h>
 #include <sys/types.h>
 #include <setjmp.h>
 #include "lisp.h"
@@ -250,7 +251,7 @@ struct charset_map_entries
 static void
 load_charset_map (struct charset *charset, struct charset_map_entries *entries, int n_entries, int control_flag)
 {
-  Lisp_Object vec, table;
+  Lisp_Object vec IF_LINT (= Qnil), table IF_LINT (= Qnil);
   unsigned max_code = CHARSET_MAX_CODE (charset);
   int ascii_compatible_p = charset->ascii_compatible_p;
   int min_char, max_char, nonascii_min_char;
@@ -316,7 +317,7 @@ load_charset_map (struct charset *charset, struct charset_map_entries *entries, 
   for (i = 0; i < n_entries; i++)
     {
       unsigned from, to;
-      int from_index, to_index;
+      int from_index, to_index, lim_index;
       int from_c, to_c;
       int idx = i % 0x10000;
 
@@ -338,6 +339,7 @@ load_charset_map (struct charset *charset, struct charset_map_entries *entries, 
 	}
       if (from_index < 0 || to_index < 0)
 	continue;
+      lim_index = to_index + 1;
 
       if (to_c > max_char)
 	max_char = to_c;
@@ -347,10 +349,10 @@ load_charset_map (struct charset *charset, struct charset_map_entries *entries, 
       if (control_flag == 1)
 	{
 	  if (charset->method == CHARSET_METHOD_MAP)
-	    for (; from_index <= to_index; from_index++, from_c++)
+	    for (; from_index < lim_index; from_index++, from_c++)
 	      ASET (vec, from_index, make_number (from_c));
 	  else
-	    for (; from_index <= to_index; from_index++, from_c++)
+	    for (; from_index < lim_index; from_index++, from_c++)
 	      CHAR_TABLE_SET (Vchar_unify_table,
 			      CHARSET_CODE_OFFSET (charset) + from_index,
 			      make_number (from_c));
@@ -359,7 +361,7 @@ load_charset_map (struct charset *charset, struct charset_map_entries *entries, 
 	{
 	  if (charset->method == CHARSET_METHOD_MAP
 	      && CHARSET_COMPACT_CODES_P (charset))
-	    for (; from_index <= to_index; from_index++, from_c++)
+	    for (; from_index < lim_index; from_index++, from_c++)
 	      {
 		unsigned code = INDEX_TO_CODE_POINT (charset, from_index);
 
@@ -367,17 +369,17 @@ load_charset_map (struct charset *charset, struct charset_map_entries *entries, 
 		  CHAR_TABLE_SET (table, from_c, make_number (code));
 	      }
 	  else
-	    for (; from_index <= to_index; from_index++, from_c++)
+	    for (; from_index < lim_index; from_index++, from_c++)
 	      {
 		if (NILP (CHAR_TABLE_REF (table, from_c)))
 		  CHAR_TABLE_SET (table, from_c, make_number (from_index));
 	      }
 	}
       else if (control_flag == 3)
-	for (; from_index <= to_index; from_index++, from_c++)
+	for (; from_index < lim_index; from_index++, from_c++)
 	  SET_TEMP_CHARSET_WORK_DECODER (from_c, from_index);
       else if (control_flag == 4)
-	for (; from_index <= to_index; from_index++, from_c++)
+	for (; from_index < lim_index; from_index++, from_c++)
 	  SET_TEMP_CHARSET_WORK_ENCODER (from_c, from_index);
       else			/* control_flag == 0 */
 	{
@@ -492,7 +494,7 @@ load_charset_map_from_file (struct charset *charset, Lisp_Object mapfile, int co
   unbind_to (count, Qnil);
   if (fd < 0
       || ! (fp = fdopen (fd, "r")))
-    error ("Failure in loading charset map: %S", SDATA (mapfile));
+    error ("Failure in loading charset map: %s", SDATA (mapfile));
 
   /* Use SAFE_ALLOCA instead of alloca, as `charset_map_entries' is
      large (larger than MAX_ALLOCA).  */
@@ -629,8 +631,12 @@ load_charset (struct charset *charset, int control_flag)
 
   if (CHARSET_METHOD (charset) == CHARSET_METHOD_MAP)
     map = CHARSET_MAP (charset);
-  else if (CHARSET_UNIFIED_P (charset))
-    map = CHARSET_UNIFY_MAP (charset);
+  else
+    {
+      if (! CHARSET_UNIFIED_P (charset))
+	abort ();
+      map = CHARSET_UNIFY_MAP (charset);
+    }
   if (STRINGP (map))
     load_charset_map_from_file (charset, map, control_flag);
   else
@@ -668,9 +674,9 @@ map_charset_for_dump (void (*c_function) (Lisp_Object, Lisp_Object), Lisp_Object
 
   while (1)
     {
-      int index = GET_TEMP_CHARSET_WORK_ENCODER (c);
+      int idx = GET_TEMP_CHARSET_WORK_ENCODER (c);
 
-      if (index >= from_idx && index <= to_idx)
+      if (idx >= from_idx && idx <= to_idx)
 	{
 	  if (NILP (XCAR (range)))
 	    XSETCAR (range, make_number (c));
@@ -840,7 +846,7 @@ DEFUN ("define-charset-internal", Fdefine_charset_internal,
        Sdefine_charset_internal, charset_arg_max, MANY, 0,
        doc: /* For internal use only.
 usage: (define-charset-internal ...)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   /* Charset attr vector.  */
   Lisp_Object attrs;
@@ -995,7 +1001,7 @@ usage: (define-charset-internal ...)  */)
     {
       CHECK_NUMBER (val);
       if (XINT (val) < '0' || XINT (val) > 127)
-	error ("Invalid iso-final-char: %d", XINT (val));
+	error ("Invalid iso-final-char: %"pEd, XINT (val));
       charset.iso_final = XINT (val);
     }
 
@@ -1017,7 +1023,7 @@ usage: (define-charset-internal ...)  */)
     {
       CHECK_NATNUM (val);
       if ((XINT (val) > 0 && XINT (val) <= 128) || XINT (val) >= 256)
-	error ("Invalid emacs-mule-id: %d", XINT (val));
+	error ("Invalid emacs-mule-id: %"pEd, XINT (val));
       charset.emacs_mule_id = XINT (val);
     }
 
@@ -1435,11 +1441,17 @@ check_iso_charset_parameter (Lisp_Object dimension, Lisp_Object chars, Lisp_Obje
   CHECK_NATNUM (final_char);
 
   if (XINT (dimension) > 3)
-    error ("Invalid DIMENSION %d, it should be 1, 2, or 3", XINT (dimension));
+    error ("Invalid DIMENSION %"pEd", it should be 1, 2, or 3",
+	   XINT (dimension));
   if (XINT (chars) != 94 && XINT (chars) != 96)
-    error ("Invalid CHARS %d, it should be 94 or 96", XINT (chars));
+    error ("Invalid CHARS %"pEd", it should be 94 or 96", XINT (chars));
   if (XINT (final_char) < '0' || XINT (final_char) > '~')
-    error ("Invalid FINAL-CHAR %c, it should be `0'..`~'", XINT (chars));
+    {
+      unsigned char str[MAX_MULTIBYTE_LENGTH + 1];
+      int len = CHAR_STRING (XINT (chars), str);
+      str[len] = '\0';
+      error ("Invalid FINAL-CHAR %s, it should be `0'..`~'", str);
+    }
 }
 
 
@@ -2066,10 +2078,10 @@ that case, find the charset from what supported by that coding system.  */)
 
 	  for (; CONSP (restriction); restriction = XCDR (restriction))
 	    {
-	      struct charset *charset;
+	      struct charset *rcharset;
 
-	      CHECK_CHARSET_GET_CHARSET (XCAR (restriction), charset);
-	      if (ENCODE_CHAR (charset, c) != CHARSET_INVALID_CODE (charset))
+	      CHECK_CHARSET_GET_CHARSET (XCAR (restriction), rcharset);
+	      if (ENCODE_CHAR (rcharset, c) != CHARSET_INVALID_CODE (rcharset))
 		return XCAR (restriction);
 	    }
 	  return Qnil;
@@ -2133,7 +2145,7 @@ It should be called only from temacs invoked for dumping.  */)
 {
   if (temp_charset_work)
     {
-      free (temp_charset_work);
+      xfree (temp_charset_work);
       temp_charset_work = NULL;
     }
 
@@ -2166,11 +2178,12 @@ DEFUN ("set-charset-priority", Fset_charset_priority, Sset_charset_priority,
        1, MANY, 0,
        doc: /* Assign higher priority to the charsets given as arguments.
 usage: (set-charset-priority &rest charsets)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   Lisp_Object new_head, old_list, arglist[2];
   Lisp_Object list_2022, list_emacs_mule;
-  int i, id;
+  size_t i;
+  int id;
 
   old_list = Fcopy_sequence (Vcharset_ordered_list);
   new_head = Qnil;
@@ -2250,7 +2263,7 @@ See also `charset-priority-list' and `set-charset-priority'.  */)
   int n = XFASTINT (len), i, j, done;
   Lisp_Object tail, elt, attrs;
   struct charset_sort_data *sort_data;
-  int id, min_id, max_id;
+  int id, min_id = INT_MAX, max_id = INT_MIN;
   USE_SAFE_ALLOCA;
 
   if (n == 0)
@@ -2262,11 +2275,9 @@ See also `charset-priority-list' and `set-charset-priority'.  */)
       CHECK_CHARSET_GET_ATTR (elt, attrs);
       sort_data[i].charset = elt;
       sort_data[i].id = id = XINT (CHARSET_ATTR_ID (attrs));
-      if (i == 0)
-	min_id = max_id = id;
-      else if (id < min_id)
+      if (id < min_id)
 	min_id = id;
-      else if (id > max_id)
+      if (id > max_id)
 	max_id = id;
     }
   for (done = 0, tail = Vcharset_ordered_list, i = 0;

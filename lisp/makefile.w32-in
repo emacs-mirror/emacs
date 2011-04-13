@@ -27,9 +27,9 @@ lisp = $(CURDIR)
 srcdir = $(CURDIR)/..
 
 # You can specify a different executable on the make command line,
-# e.g. "make EMACS=../src/emacs ...".
+# e.g. "make EMACS=../bin/emacs ...".
 
-EMACS = $(THISDIR)/../bin/emacs.exe
+EMACS = ../src/$(BLD)/emacs.exe
 
 # Command line flags for Emacs.
 
@@ -66,6 +66,15 @@ AUTOGENEL = $(lisp)/loaddefs.el $(LOADDEFS) $(lisp)/cus-load.el \
 	$(lisp)/cedet/semantic/loaddefs.el $(lisp)/cedet/ede/loaddefs.el \
 	$(lisp)/cedet/srecode/loaddefs.el
 
+# Value of max-lisp-eval-depth when compiling initially.
+# During bootstrapping the byte-compiler is run interpreted when compiling
+# itself, and uses more stack than usual.
+#
+BIG_STACK_DEPTH = 1200
+BIG_STACK_OPTS = --eval "(setq max-lisp-eval-depth $(BIG_STACK_DEPTH))"
+
+BYTE_COMPILE_FLAGS = $(BIG_STACK_OPTS) $(BYTE_COMPILE_EXTRA_FLAGS)
+
 # Files to compile before others during a bootstrap.  This is done to
 # speed up the bootstrap process.  The CC files are compiled first
 # because CC mode tweaks the compilation process, and requiring
@@ -75,6 +84,8 @@ AUTOGENEL = $(lisp)/loaddefs.el $(LOADDEFS) $(lisp)/cus-load.el \
 COMPILE_FIRST = \
 	$(lisp)/emacs-lisp/byte-opt.el \
 	$(lisp)/emacs-lisp/bytecomp.el \
+	$(lisp)/emacs-lisp/macroexp.el \
+	$(lisp)/emacs-lisp/cconv.el \
 	$(lisp)/subr.el \
 	$(lisp)/progmodes/cc-mode.el \
 	$(lisp)/progmodes/cc-vars.el
@@ -287,7 +298,7 @@ TAGS-LISP-CMD: $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3) $(lisptagsf
 .SUFFIXES: .elc .el
 
 .el.elc:
-	-$(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $<
+	-$(emacs) $(BYTE_COMPILE_FLAGS) -f batch-byte-compile $<
 
 # Compile all Lisp files, but don't recompile those that are up to
 # date.  Some files don't actually get compiled because they set the
@@ -307,22 +318,22 @@ compile: $(lisp)/subdirs.el mh-autoloads compile-$(SHELLTYPE) doit
 compile-CMD:
 #	-for %%f in ($(lisp) $(WINS)) do for %%g in (%%f\*.elc) do @attrib -r %%g
 	for %%f in ($(COMPILE_FIRST)) do \
-	  $(emacs) -l loaddefs $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile-if-not-done %%f
+	  $(emacs) -l loaddefs $(BYTE_COMPILE_FLAGS) -f batch-byte-compile-if-not-done %%f
 	for %%f in (. $(WINS)) do for %%g in (%%f/*.el) do \
-	  $(emacs) -l loaddefs $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile-if-not-done %%f/%%g
+	  $(emacs) -l loaddefs $(BYTE_COMPILE_FLAGS) -f batch-byte-compile-if-not-done %%f/%%g
 
 compile-SH:
 #	for elc in $(lisp)/*.elc $(lisp)/*/*.elc; do attrib -r $$elc; done
 	for el in $(COMPILE_FIRST); do \
 	  echo Compiling $$el; \
-	  $(emacs) -l loaddefs $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile-if-not-done $$el; \
+	  $(emacs) -l loaddefs $(BYTE_COMPILE_FLAGS) -f batch-byte-compile-if-not-done $$el; \
 	done
 	for dir in $(lisp) $(WINS); do \
 	  for el in $$dir/*.el; do \
 	    if test -f $$el; \
 	    then \
 	      echo Compiling $$el; \
-	      $(emacs) -l loaddefs $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile-if-not-done $$el; \
+	      $(emacs) -l loaddefs $(BYTE_COMPILE_FLAGS) -f batch-byte-compile-if-not-done $$el; \
 	    fi \
 	  done; \
 	done
@@ -335,31 +346,31 @@ compile-always: $(lisp)/subdirs.el compile-always-$(SHELLTYPE) doit
 
 compile-always-CMD:
 #	-for %%f in ($(lisp) $(WINS)) do for %%g in (%%f\*.elc) do @attrib -r %%g
-	for %%f in ($(COMPILE_FIRST)) do $(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile %%f
-	for %%f in (. $(WINS)) do for %%g in (%%f/*.el) do $(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile %%f/%%g
+	for %%f in ($(COMPILE_FIRST)) do $(emacs) $(BYTE_COMPILE_FLAGS) -f batch-byte-compile %%f
+	for %%f in (. $(WINS)) do for %%g in (%%f/*.el) do $(emacs) $(BYTE_COMPILE_FLAGS) -f batch-byte-compile %%f/%%g
 
 compile-always-SH:
 #	for elc in $(lisp)/*.elc $(lisp)/*/*.elc; do attrib -r $$elc; done
 	for el in $(COMPILE_FIRST); do \
 	  echo Compiling $$el; \
-	  $(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $$el || exit 1; \
+	  $(emacs) $(BYTE_COMPILE_FLAGS) -f batch-byte-compile $$el || exit 1; \
 	done
 	for dir in $(lisp) $(WINS); do \
 	  for el in $$dir/*.el; do \
 	    echo Compiling $$el; \
-	    $(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $$el || exit 1; \
+	    $(emacs) $(BYTE_COMPILE_FLAGS) -f batch-byte-compile $$el || exit 1; \
 	  done; \
 	done
 
 compile-calc: compile-calc-$(SHELLTYPE)
 
 compile-calc-CMD:
-	for %%f in ($(lisp)/calc/*.el) do $(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile %%f
+	for %%f in ($(lisp)/calc/*.el) do $(emacs) $(BYTE_COMPILE_FLAGS) -f batch-byte-compile %%f
 
 compile-calc-SH:
 	for el in $(lisp)/calc/*.el; do \
 	  echo Compiling $$el; \
-	  $(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $$el || exit 1; \
+	  $(emacs) $(BYTE_COMPILE_FLAGS) -f batch-byte-compile $$el || exit 1; \
 	done
 
 # Backup compiled Lisp files in elc.tar.gz.  If that file already

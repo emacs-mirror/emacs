@@ -68,7 +68,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    Note: PTYs are broken on darwin <6.  Use at your own risk.  */
 #define HAVE_PTYS
 /* Run only once.  We need a `for'-loop because the code uses `continue'.  */
-#define PTY_ITERATION	for (i = 0; i < 1; i++)
+#define PTY_ITERATION	int i; for (i = 0; i < 1; i++)
 #define PTY_NAME_SPRINTF	/* none */
 #define PTY_TTY_NAME_SPRINTF	/* none */
 /* Note that openpty may fork via grantpt on Mac OS X 10.4/Darwin 8.
@@ -148,4 +148,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Use the GC_MAKE_GCPROS_NOOPS (see lisp.h) method for marking the stack.  */
 #define GC_MARK_STACK   GC_MAKE_GCPROS_NOOPS
-

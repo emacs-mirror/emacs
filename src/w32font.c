@@ -54,8 +54,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define JOHAB_CHARSET 130
 #endif
 
-extern struct font_driver w32font_driver;
-
 Lisp_Object Qgdi;
 Lisp_Object Quniscribe;
 static Lisp_Object QCformat;
@@ -64,7 +62,6 @@ static Lisp_Object Qserif, Qscript, Qdecorative;
 static Lisp_Object Qraster, Qoutline, Qunknown;
 
 /* antialiasing  */
-extern Lisp_Object QCantialias, QCotf, QClang; /* defined in font.c  */
 extern Lisp_Object Qnone; /* reuse from w32fns.c  */
 static Lisp_Object Qstandard, Qsubpixel, Qnatural;
 
@@ -536,6 +533,7 @@ w32font_draw (struct glyph_string *s, int from, int to,
 {
   UINT options;
   HRGN orig_clip = NULL;
+  int len = to - from;
   struct w32font_info *w32font = (struct w32font_info *) s->font;
 
   options = w32font->glyph_idx;
@@ -584,14 +582,14 @@ w32font_draw (struct glyph_string *s, int from, int to,
 
   if (s->padding_p)
     {
-      int len = to - from, i;
+      int i;
 
       for (i = 0; i < len; i++)
 	ExtTextOutW (s->hdc, x + i, y, options, NULL,
 		     s->char2b + from + i, 1, NULL);
     }
   else
-    ExtTextOutW (s->hdc, x, y, options, NULL, s->char2b + from, to - from, NULL);
+    ExtTextOutW (s->hdc, x, y, options, NULL, s->char2b + from, len, NULL);
 
   /* Restore clip region.  */
   if (s->num_clips > 0)
@@ -599,6 +597,8 @@ w32font_draw (struct glyph_string *s, int from, int to,
 
   if (orig_clip)
     DeleteObject (orig_clip);
+
+  return len;
 }
 
 /* w32 implementation of free_entity for font backend.
@@ -777,7 +777,7 @@ int
 w32font_open_internal (FRAME_PTR f, Lisp_Object font_entity,
 		       int pixel_size, Lisp_Object font_object)
 {
-  int len, size, i;
+  int len, size;
   LOGFONT logfont;
   HDC dc;
   HFONT hfont, old_font;
@@ -2421,6 +2421,7 @@ struct font_driver w32font_driver =
     NULL, /* check */
     NULL, /* get_variation_glyphs */
     w32font_filter_properties,
+    NULL, /* cached_font_ok */
   };
 
 

@@ -697,7 +697,8 @@ simple manner.")
   "M" gnus-group-list-all-matching
   "l" gnus-group-list-level
   "c" gnus-group-list-cached
-  "?" gnus-group-list-dormant)
+  "?" gnus-group-list-dormant
+  "!" gnus-group-list-ticked)
 
 (gnus-define-keys (gnus-group-list-limit-map "/" gnus-group-list-map)
   "k"  gnus-group-list-limit
@@ -849,7 +850,8 @@ simple manner.")
 	["List all groups matching..." gnus-group-list-all-matching t]
 	["List active file" gnus-group-list-active t]
 	["List groups with cached" gnus-group-list-cached t]
-	["List groups with dormant" gnus-group-list-dormant t])
+	["List groups with dormant" gnus-group-list-dormant t]
+	["List groups with ticked" gnus-group-list-ticked t])
        ("Sort"
 	["Default sort" gnus-group-sort-groups t]
 	["Sort by method" gnus-group-sort-groups-by-method t]
@@ -2313,9 +2315,10 @@ Return the name of the group if selection was successful."
 		       gnus-fetch-old-ephemeral-headers))
 		  (gnus-group-read-group (or number t) t group select-articles))
 	    group)
-	;;(error nil)
 	(quit
-	 (message "Quit reading the ephemeral group")
+	 (if debug-on-quit
+	     (debug "Quit")
+	   (message "Quit reading the ephemeral group"))
 	 nil)))))
 
 (defcustom gnus-gmane-group-download-format
@@ -3102,7 +3105,7 @@ The user will be prompted for a directory.  The contents of this
 directory will be used as a newsgroup.  The directory should contain
 mail messages or news articles in files that have numeric names."
   (interactive
-   (list (read-file-name "Create group from directory: ")))
+   (list (read-directory-name "Create group from directory: ")))
   (unless (file-exists-p dir)
     (error "No such directory"))
   (unless (file-directory-p dir)
@@ -4400,6 +4403,21 @@ and the second element is the address."
 (defun gnus-group-set-params-info (group params)
   (gnus-group-set-info params group 'params))
 
+;; Ad-hoc function for inserting data from a different newsrc.eld
+;; file.  Use with caution, if at all.
+(defun gnus-import-other-newsrc-file (file)
+  (with-temp-buffer
+    (insert-file file)
+    (let (form)
+      (while (ignore-errors
+	       (setq form (read (current-buffer))))
+	(when (and (consp form)
+		   (eq (cadr form) 'gnus-newsrc-alist))
+	  (let ((infos (cadr (nth 2 form))))
+	    (dolist (info infos)
+	      (when (gnus-get-info (car info))
+		(gnus-set-info (car info) info)))))))))
+
 (defun gnus-add-marked-articles (group type articles &optional info force)
   ;; Add ARTICLES of TYPE to the info of GROUP.
   ;; If INFO is non-nil, use that info.  If FORCE is non-nil, don't
@@ -4515,6 +4533,28 @@ This command may read the active file."
 	   #'(lambda (info)
 	       (let ((marks (gnus-info-marks info)))
 		 (assq 'dormant marks)))
+	   lowest
+	   'ignore)
+  (goto-char (point-min))
+  (gnus-group-position-point))
+
+(defun gnus-group-list-ticked (level &optional lowest)
+  "List all groups with ticked articles.
+If the prefix LEVEL is non-nil, it should be a number that says which
+level to cut off listing groups.
+If LOWEST, don't list groups with level lower than LOWEST.
+
+This command may read the active file."
+  (interactive "P")
+  (when level
+    (setq level (prefix-numeric-value level)))
+  (when (or (not level) (>= level gnus-level-zombie))
+    (gnus-cache-open))
+  (funcall gnus-group-prepare-function
+	   (or level gnus-level-subscribed)
+	   #'(lambda (info)
+	       (let ((marks (gnus-info-marks info)))
+		 (assq 'tick marks)))
 	   lowest
 	   'ignore)
   (goto-char (point-min))

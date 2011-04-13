@@ -586,7 +586,7 @@ split_interval_left (INTERVAL interval, EMACS_INT offset)
    Don't use this function on an interval which is the child
    of another interval!  */
 
-int
+static int
 interval_start_pos (INTERVAL source)
 {
   Lisp_Object parent;
@@ -777,7 +777,7 @@ update_interval (register INTERVAL i, EMACS_INT pos)
 	      i = i->right;		/* Move to the right child */
 	    }
 	  else if (NULL_PARENT (i))
-	    error ("Point %d after end of properties", pos);
+	    error ("Point %"pEd" after end of properties", pos);
 	  else
             i = INTERVAL_PARENT (i);
 	  continue;
@@ -1312,7 +1312,7 @@ delete_interval (register INTERVAL i)
    Do this by recursing down TREE to the interval in question, and
    deleting the appropriate amount of text.  */
 
-static EMACS_INT
+static EMACS_UINT
 interval_deletion_adjustment (register INTERVAL tree, register EMACS_INT from,
 			      register EMACS_INT amount)
 {
@@ -1324,7 +1324,7 @@ interval_deletion_adjustment (register INTERVAL tree, register EMACS_INT from,
   /* Left branch */
   if (relative_position < LEFT_TOTAL_LENGTH (tree))
     {
-      EMACS_INT subtract = interval_deletion_adjustment (tree->left,
+      EMACS_UINT subtract = interval_deletion_adjustment (tree->left,
 							  relative_position,
 							  amount);
       tree->total_length -= subtract;
@@ -1335,7 +1335,7 @@ interval_deletion_adjustment (register INTERVAL tree, register EMACS_INT from,
   else if (relative_position >= (TOTAL_LENGTH (tree)
 				 - RIGHT_TOTAL_LENGTH (tree)))
     {
-      EMACS_INT subtract;
+      EMACS_UINT subtract;
 
       relative_position -= (tree->total_length
 			    - RIGHT_TOTAL_LENGTH (tree));
@@ -1377,7 +1377,7 @@ static void
 adjust_intervals_for_deletion (struct buffer *buffer,
 			       EMACS_INT start, EMACS_INT length)
 {
-  register EMACS_INT left_to_delete = length;
+  register EMACS_UINT left_to_delete = length;
   register INTERVAL tree = BUF_INTERVALS (buffer);
   Lisp_Object parent;
   EMACS_INT offset;
@@ -1677,7 +1677,7 @@ graft_intervals_into_buffer (INTERVAL source, EMACS_INT position,
 			     EMACS_INT length, struct buffer *buffer,
 			     int inherit)
 {
-  register INTERVAL under, over, this, prev;
+  register INTERVAL under, over, this;
   register INTERVAL tree;
   EMACS_INT over_used;
 
@@ -1767,7 +1767,8 @@ graft_intervals_into_buffer (INTERVAL source, EMACS_INT position,
       /* This call may have some effect because previous_interval may
          update `position' fields of intervals.  Thus, don't ignore it
          for the moment.  Someone please tell me the truth (K.Handa).  */
-      prev = previous_interval (under);
+      INTERVAL prev = previous_interval (under);
+      (void) prev;
 #if 0
       /* But, this code surely has no effect.  And, anyway,
          END_NONSTICKY_P is unreliable now.  */
@@ -1892,8 +1893,7 @@ temp_set_point_both (struct buffer *buffer,
   if (charpos > BUF_ZV (buffer) || charpos < BUF_BEGV (buffer))
     abort ();
 
-  BUF_PT_BYTE (buffer) = bytepos;
-  BUF_PT (buffer) = charpos;
+  SET_BUF_PT_BOTH (buffer, charpos, bytepos);
 }
 
 /* Set point "temporarily", without checking any text properties.  */
@@ -2312,10 +2312,9 @@ get_local_map (register EMACS_INT position, register struct buffer *buffer,
   old_zv = BUF_ZV (buffer);
   old_begv_byte = BUF_BEGV_BYTE (buffer);
   old_zv_byte = BUF_ZV_BYTE (buffer);
-  BUF_BEGV (buffer) = BUF_BEG (buffer);
-  BUF_ZV (buffer) = BUF_Z (buffer);
-  BUF_BEGV_BYTE (buffer) = BUF_BEG_BYTE (buffer);
-  BUF_ZV_BYTE (buffer) = BUF_Z_BYTE (buffer);
+
+  SET_BUF_BEGV_BOTH (buffer, BUF_BEG (buffer), BUF_BEG_BYTE (buffer));
+  SET_BUF_ZV_BOTH (buffer, BUF_Z (buffer), BUF_Z_BYTE (buffer));
 
   XSETFASTINT (lispy_position, position);
   XSETBUFFER (lispy_buffer, buffer);
@@ -2329,10 +2328,8 @@ get_local_map (register EMACS_INT position, register struct buffer *buffer,
   if (NILP (prop))
     prop = get_pos_property (lispy_position, type, lispy_buffer);
 
-  BUF_BEGV (buffer) = old_begv;
-  BUF_ZV (buffer) = old_zv;
-  BUF_BEGV_BYTE (buffer) = old_begv_byte;
-  BUF_ZV_BYTE (buffer) = old_zv_byte;
+  SET_BUF_BEGV_BOTH (buffer, old_begv, old_begv_byte);
+  SET_BUF_ZV_BOTH (buffer, old_zv, old_zv_byte);
 
   /* Use the local map only if it is valid.  */
   prop = get_keymap (prop, 0, 0);
@@ -2563,4 +2560,3 @@ set_intervals_multibyte (int multi_flag)
     set_intervals_multibyte_1 (BUF_INTERVALS (current_buffer), multi_flag,
 			       BEG, BEG_BYTE, Z, Z_BYTE);
 }
-

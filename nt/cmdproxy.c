@@ -33,6 +33,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <malloc.h>  /* alloca */
 #include <stdlib.h>  /* getenv */
 #include <string.h>  /* strlen */
+#include <ctype.h>   /* isspace, isalpha */
 
 /* We don't want to include stdio.h because we are already duplicating
    lots of it here */
@@ -251,7 +252,6 @@ make_absolute (const char *prog)
   char curdir[MAX_PATH];
   char *p, *path;
   const char *fname;
-  int i;
 
   /* At least partial absolute path specified; search there.  */
   if ((isalpha (prog[0]) && prog[1] == ':') ||

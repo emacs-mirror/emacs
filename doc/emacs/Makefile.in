@@ -38,7 +38,7 @@ texinfodir = $(srcdir)/../misc
 # The makeinfo program is part of the Texinfo distribution.
 # Use --force so that it generates output even if there are errors.
 MAKEINFO = @MAKEINFO@
-MAKEINFO_OPTS = --force -I $(srcdir)
+MAKEINFO_OPTS = --force --enable-encoding -I $(srcdir)
 
 TEXI2DVI = texi2dvi
 TEXI2PDF = texi2pdf
@@ -111,7 +111,7 @@ EMACSSOURCES= \
 
 ## This seems pointless.  The info/ directory exists in both the
 ## repository and the release tarfiles.  We do not use any
-## equivalent of mkdir -p/mkinstalldirs, so this is not a general
+## equivalent of mkdir -p/install-sh -d, so this is not a general
 ## solution anyway.  The second test -d is for parallel builds.
 mkinfodir = @test -d ${infodir} || mkdir ${infodir} || test -d ${infodir}
 

@@ -45,6 +45,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #include <ctype.h>
+#include <limits.h>
+#include <intprops.h>
 #include <strftime.h>
 
 #include "intervals.h"
@@ -87,6 +89,7 @@ extern char **environ;
 extern Lisp_Object w32_get_internal_run_time (void);
 #endif
 
+static void time_overflow (void) NO_RETURN;
 static int tm_diff (struct tm *, struct tm *);
 static void find_field (Lisp_Object, Lisp_Object, Lisp_Object,
 			EMACS_INT *, Lisp_Object, EMACS_INT *);
@@ -98,7 +101,7 @@ static void general_insert_function (void (*) (const char *, EMACS_INT),
 				     void (*) (Lisp_Object, EMACS_INT,
 					       EMACS_INT, EMACS_INT,
 					       EMACS_INT, int),
-				     int, int, Lisp_Object *);
+				     int, size_t, Lisp_Object *);
 static Lisp_Object subst_char_in_region_unwind (Lisp_Object);
 static Lisp_Object subst_char_in_region_unwind_1 (Lisp_Object);
 static void transpose_markers (EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT,
@@ -119,7 +122,7 @@ Lisp_Object Qboundary;
 void
 init_editfns (void)
 {
-  char *user_name;
+  const char *user_name;
   register char *p;
   struct passwd *pw;	/* password entry for the current user */
   Lisp_Object tem;
@@ -133,7 +136,7 @@ init_editfns (void)
     return;
 #endif /* not CANNOT_DUMP */
 
-  pw = (struct passwd *) getpwuid (getuid ());
+  pw = getpwuid (getuid ());
 #ifdef MSDOS
   /* We let the real user name default to "root" because that's quite
      accurate on MSDOG and because it lets Emacs find the init file.
@@ -145,17 +148,17 @@ init_editfns (void)
 
   /* Get the effective user name, by consulting environment variables,
      or the effective uid if those are unset.  */
-  user_name = (char *) getenv ("LOGNAME");
+  user_name = getenv ("LOGNAME");
   if (!user_name)
 #ifdef WINDOWSNT
-    user_name = (char *) getenv ("USERNAME");	/* it's USERNAME on NT */
+    user_name = getenv ("USERNAME");	/* it's USERNAME on NT */
 #else  /* WINDOWSNT */
-    user_name = (char *) getenv ("USER");
+    user_name = getenv ("USER");
 #endif /* WINDOWSNT */
   if (!user_name)
     {
-      pw = (struct passwd *) getpwuid (geteuid ());
-      user_name = (char *) (pw ? pw->pw_name : "unknown");
+      pw = getpwuid (geteuid ());
+      user_name = pw ? pw->pw_name : "unknown";
     }
   Vuser_login_name = build_string (user_name);
 
@@ -747,7 +750,7 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */)
     /* It is possible that NEW_POS is not within the same field as
        OLD_POS; try to move NEW_POS so that it is.  */
     {
-      int shortage;
+      EMACS_INT shortage;
       Lisp_Object field_bound;
 
       if (fwd)
@@ -925,18 +928,21 @@ save_excursion_restore (Lisp_Object info)
   tem1 = BVAR (current_buffer, mark_active);
   BVAR (current_buffer, mark_active) = tem;
 
-  if (!NILP (Vrun_hooks))
+  /* If mark is active now, and either was not active
+     or was at a different place, run the activate hook.  */
+  if (! NILP (tem))
     {
-      /* If mark is active now, and either was not active
-	 or was at a different place, run the activate hook.  */
-      if (! NILP (BVAR (current_buffer, mark_active)))
-	{
-	  if (! EQ (omark, nmark))
-	    call1 (Vrun_hooks, intern ("activate-mark-hook"));
-	}
-      /* If mark has ceased to be active, run deactivate hook.  */
-      else if (! NILP (tem1))
-	call1 (Vrun_hooks, intern ("deactivate-mark-hook"));
+      if (! EQ (omark, nmark))
+        {
+          tem = intern ("activate-mark-hook");
+          Frun_hooks (1, &tem);
+        }
+    }
+  /* If mark has ceased to be active, run deactivate hook.  */
+  else if (! NILP (tem1))
+    {
+      tem = intern ("deactivate-mark-hook");
+      Frun_hooks (1, &tem);
     }
 
   /* If buffer was visible in a window, and a different window was
@@ -1263,9 +1269,9 @@ of the user with that uid, or nil if there is no such user.  */)
   if (NILP (uid))
     return Vuser_login_name;
 
-  id = (uid_t)XFLOATINT (uid);
+  id = XFLOATINT (uid);
   BLOCK_INPUT;
-  pw = (struct passwd *) getpwuid (id);
+  pw = getpwuid (id);
   UNBLOCK_INPUT;
   return (pw ? build_string (pw->pw_name) : Qnil);
 }
@@ -1297,7 +1303,7 @@ Value is an integer or a float, depending on the value.  */)
   /* Make sure we don't produce a negative UID due to signed integer
      overflow.  */
   if (euid < 0)
-    return make_float ((double)geteuid ());
+    return make_float (geteuid ());
   return make_fixnum_or_float (euid);
 }
 
@@ -1313,7 +1319,7 @@ Value is an integer or a float, depending on the value.  */)
   /* Make sure we don't produce a negative UID due to signed integer
      overflow.  */
   if (uid < 0)
-    return make_float ((double)getuid ());
+    return make_float (getuid ());
   return make_fixnum_or_float (uid);
 }
 
@@ -1336,14 +1342,15 @@ name, or nil if there is no such user.  */)
     return Vuser_full_name;
   else if (NUMBERP (uid))
     {
+      uid_t u = XFLOATINT (uid);
       BLOCK_INPUT;
-      pw = (struct passwd *) getpwuid ((uid_t) XFLOATINT (uid));
+      pw = getpwuid (u);
       UNBLOCK_INPUT;
     }
   else if (STRINGP (uid))
     {
       BLOCK_INPUT;
-      pw = (struct passwd *) getpwnam (SSDATA (uid));
+      pw = getpwnam (SSDATA (uid));
       UNBLOCK_INPUT;
     }
   else
@@ -1371,7 +1378,7 @@ name, or nil if there is no such user.  */)
       memcpy (r, p, q - p);
       r[q - p] = 0;
       strcat (r, SSDATA (login));
-      r[q - p] = UPCASE ((unsigned char) r[q - p]);
+      r[q - p] = upcase ((unsigned char) r[q - p]);
       strcat (r, q + 1);
       full = build_string (r);
     }
@@ -1386,8 +1393,6 @@ DEFUN ("system-name", Fsystem_name, Ssystem_name, 0, 0, 0,
 {
   return Vsystem_name;
 }
-
-/* For the benefit of callers who don't want to include lisp.h */
 
 const char *
 get_system_name (void)
@@ -1414,6 +1419,49 @@ DEFUN ("emacs-pid", Femacs_pid, Semacs_pid, 0, 0, 0,
   return make_number (getpid ());
 }
 
+
+
+#ifndef TIME_T_MIN
+# define TIME_T_MIN TYPE_MINIMUM (time_t)
+#endif
+#ifndef TIME_T_MAX
+# define TIME_T_MAX TYPE_MAXIMUM (time_t)
+#endif
+
+/* Report that a time value is out of range for Emacs.  */
+static void
+time_overflow (void)
+{
+  error ("Specified time is not representable");
+}
+
+/* Return the upper part of the time T (everything but the bottom 16 bits),
+   making sure that it is representable.  */
+static EMACS_INT
+hi_time (time_t t)
+{
+  time_t hi = t >> 16;
+
+  /* Check for overflow, helping the compiler for common cases where
+     no runtime check is needed, and taking care not to convert
+     negative numbers to unsigned before comparing them.  */
+  if (! ((! TYPE_SIGNED (time_t)
+	  || MOST_NEGATIVE_FIXNUM <= TIME_T_MIN >> 16
+	  || MOST_NEGATIVE_FIXNUM <= hi)
+	 && (TIME_T_MAX >> 16 <= MOST_POSITIVE_FIXNUM
+	     || hi <= MOST_POSITIVE_FIXNUM)))
+    time_overflow ();
+
+  return hi;
+}
+
+/* Return the bottom 16 bits of the time T.  */
+static EMACS_INT
+lo_time (time_t t)
+{
+  return t & ((1 << 16) - 1);
+}
+
 DEFUN ("current-time", Fcurrent_time, Scurrent_time, 0, 0, 0,
        doc: /* Return the current time, as the number of seconds since 1970-01-01 00:00:00.
 The time is returned as a list of three integers.  The first has the
@@ -1428,8 +1476,8 @@ resolution finer than a second.  */)
   EMACS_TIME t;
 
   EMACS_GET_TIME (t);
-  return list3 (make_number ((EMACS_SECS (t) >> 16) & 0xffff),
-		make_number ((EMACS_SECS (t) >> 0)  & 0xffff),
+  return list3 (make_number (hi_time (EMACS_SECS (t))),
+		make_number (lo_time (EMACS_SECS (t))),
 		make_number (EMACS_USECS (t)));
 }
 
@@ -1448,7 +1496,8 @@ on systems that do not provide resolution finer than a second.  */)
 {
 #ifdef HAVE_GETRUSAGE
   struct rusage usage;
-  int secs, usecs;
+  time_t secs;
+  int usecs;
 
   if (getrusage (RUSAGE_SELF, &usage) < 0)
     /* This shouldn't happen.  What action is appropriate?  */
@@ -1463,8 +1512,8 @@ on systems that do not provide resolution finer than a second.  */)
       secs++;
     }
 
-  return list3 (make_number ((secs >> 16) & 0xffff),
-		make_number ((secs >> 0)  & 0xffff),
+  return list3 (make_number (hi_time (secs)),
+		make_number (lo_time (secs)),
 		make_number (usecs));
 #else /* ! HAVE_GETRUSAGE  */
 #ifdef WINDOWSNT
@@ -1476,6 +1525,19 @@ on systems that do not provide resolution finer than a second.  */)
 }
 
 
+/* Make a Lisp list that represents the time T.  */
+Lisp_Object
+make_time (time_t t)
+{
+  return list2 (make_number (hi_time (t)),
+		make_number (lo_time (t)));
+}
+
+/* Decode a Lisp list SPECIFIED_TIME that represents a time.
+   If SPECIFIED_TIME is nil, use the current time.
+   Set *RESULT to seconds since the Epoch.
+   If USEC is not null, set *USEC to the microseconds component.
+   Return nonzero if successful.  */
 int
 lisp_time_argument (Lisp_Object specified_time, time_t *result, int *usec)
 {
@@ -1496,6 +1558,7 @@ lisp_time_argument (Lisp_Object specified_time, time_t *result, int *usec)
   else
     {
       Lisp_Object high, low;
+      EMACS_INT hi;
       high = Fcar (specified_time);
       CHECK_NUMBER (high);
       low = Fcdr (specified_time);
@@ -1519,8 +1582,21 @@ lisp_time_argument (Lisp_Object specified_time, time_t *result, int *usec)
       else if (usec)
         *usec = 0;
       CHECK_NUMBER (low);
-      *result = (XINT (high) << 16) + (XINT (low) & 0xffff);
-      return *result >> 16 == XINT (high);
+      hi = XINT (high);
+
+      /* Check for overflow, helping the compiler for common cases
+	 where no runtime check is needed, and taking care not to
+	 convert negative numbers to unsigned before comparing them.  */
+      if (! ((TYPE_SIGNED (time_t)
+	      ? (TIME_T_MIN >> 16 <= MOST_NEGATIVE_FIXNUM
+		 || TIME_T_MIN >> 16 <= hi)
+	      : 0 <= hi)
+	     && (MOST_POSITIVE_FIXNUM <= TIME_T_MAX >> 16
+		 || hi <= TIME_T_MAX >> 16)))
+	return 0;
+
+      *result = (hi << 16) + (XINT (low) & 0xffff);
+      return 1;
     }
 }
 
@@ -1648,7 +1724,7 @@ The modifiers are `E' and `O'.  For certain characters X,
 %OX is like %X, but uses the locale's number symbols.
 
 For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
-  (Lisp_Object format_string, Lisp_Object time, Lisp_Object universal)
+  (Lisp_Object format_string, Lisp_Object timeval, Lisp_Object universal)
 {
   time_t value;
   int size;
@@ -1659,7 +1735,7 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
 
   CHECK_STRING (format_string);
 
-  if (! (lisp_time_argument (time, &value, &usec)
+  if (! (lisp_time_argument (timeval, &value, &usec)
 	 && 0 <= usec && usec < 1000000))
     error ("Invalid time specification");
   ns = usec * 1000;
@@ -1674,7 +1750,7 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
   tm = ut ? gmtime (&value) : localtime (&value);
   UNBLOCK_INPUT;
   if (! tm)
-    error ("Specified time is not representable");
+    time_overflow ();
 
   synchronize_system_time_locale ();
 
@@ -1732,8 +1808,10 @@ DOW and ZONE.)  */)
   BLOCK_INPUT;
   decoded_time = localtime (&time_spec);
   UNBLOCK_INPUT;
-  if (! decoded_time)
-    error ("Specified time is not representable");
+  if (! (decoded_time
+	 && MOST_NEGATIVE_FIXNUM - TM_YEAR_BASE <= decoded_time->tm_year
+	 && decoded_time->tm_year <= MOST_POSITIVE_FIXNUM - TM_YEAR_BASE))
+    time_overflow ();
   XSETFASTINT (list_args[0], decoded_time->tm_sec);
   XSETFASTINT (list_args[1], decoded_time->tm_min);
   XSETFASTINT (list_args[2], decoded_time->tm_hour);
@@ -1755,6 +1833,20 @@ DOW and ZONE.)  */)
   else
     XSETINT (list_args[8], tm_diff (&save_tm, decoded_time));
   return Flist (9, list_args);
+}
+
+/* Return OBJ - OFFSET, checking that OBJ is a valid fixnum and that
+   the result is representable as an int.  Assume OFFSET is small and
+   nonnegative.  */
+static int
+check_tm_member (Lisp_Object obj, int offset)
+{
+  EMACS_INT n;
+  CHECK_NUMBER (obj);
+  n = XINT (obj);
+  if (! (INT_MIN + offset <= n && n - offset <= INT_MAX))
+    time_overflow ();
+  return n - offset;
 }
 
 DEFUN ("encode-time", Fencode_time, Sencode_time, 6, MANY, 0,
@@ -1779,25 +1871,18 @@ Years before 1970 are not guaranteed to work.  On some systems,
 year values as low as 1901 do work.
 
 usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
-  (int nargs, register Lisp_Object *args)
+  (size_t nargs, register Lisp_Object *args)
 {
-  time_t time;
+  time_t value;
   struct tm tm;
   Lisp_Object zone = (nargs > 6 ? args[nargs - 1] : Qnil);
 
-  CHECK_NUMBER (args[0]);	/* second */
-  CHECK_NUMBER (args[1]);	/* minute */
-  CHECK_NUMBER (args[2]);	/* hour */
-  CHECK_NUMBER (args[3]);	/* day */
-  CHECK_NUMBER (args[4]);	/* month */
-  CHECK_NUMBER (args[5]);	/* year */
-
-  tm.tm_sec = XINT (args[0]);
-  tm.tm_min = XINT (args[1]);
-  tm.tm_hour = XINT (args[2]);
-  tm.tm_mday = XINT (args[3]);
-  tm.tm_mon = XINT (args[4]) - 1;
-  tm.tm_year = XINT (args[5]) - TM_YEAR_BASE;
+  tm.tm_sec  = check_tm_member (args[0], 0);
+  tm.tm_min  = check_tm_member (args[1], 0);
+  tm.tm_hour = check_tm_member (args[2], 0);
+  tm.tm_mday = check_tm_member (args[3], 0);
+  tm.tm_mon  = check_tm_member (args[4], 1);
+  tm.tm_year = check_tm_member (args[5], TM_YEAR_BASE);
   tm.tm_isdst = -1;
 
   if (CONSP (zone))
@@ -1805,7 +1890,7 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
   if (NILP (zone))
     {
       BLOCK_INPUT;
-      time = mktime (&tm);
+      value = mktime (&tm);
       UNBLOCK_INPUT;
     }
   else
@@ -1833,7 +1918,7 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
       set_time_zone_rule (tzstring);
 
       BLOCK_INPUT;
-      time = mktime (&tm);
+      value = mktime (&tm);
       UNBLOCK_INPUT;
 
       /* Restore TZ to previous value.  */
@@ -1845,10 +1930,10 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
 #endif
     }
 
-  if (time == (time_t) -1)
-    error ("Specified time is not representable");
+  if (value == (time_t) -1)
+    time_overflow ();
 
-  return make_time (time);
+  return make_time (value);
 }
 
 DEFUN ("current-time-string", Fcurrent_time_string, Scurrent_time_string, 0, 1, 0,
@@ -1881,7 +1966,7 @@ but this is considered obsolete.  */)
   tm = localtime (&value);
   UNBLOCK_INPUT;
   if (! (tm && TM_YEAR_IN_ASCTIME_RANGE (tm->tm_year) && (tem = asctime (tm))))
-    error ("Specified time is not representable");
+    time_overflow ();
 
   /* Remove the trailing newline.  */
   tem[strlen (tem) - 1] = '\0';
@@ -2122,9 +2207,9 @@ general_insert_function (void (*insert_func)
 			 void (*insert_from_string_func)
 			      (Lisp_Object, EMACS_INT, EMACS_INT,
 			       EMACS_INT, EMACS_INT, int),
-			 int inherit, int nargs, Lisp_Object *args)
+			 int inherit, size_t nargs, Lisp_Object *args)
 {
-  register int argnum;
+  register size_t argnum;
   register Lisp_Object val;
 
   for (argnum = 0; argnum < nargs; argnum++)
@@ -2141,7 +2226,7 @@ general_insert_function (void (*insert_func)
 	    {
 	      str[0] = (ASCII_CHAR_P (XINT (val))
 			? XINT (val)
-			: multibyte_char_to_unibyte (XINT (val), Qnil));
+			: multibyte_char_to_unibyte (XINT (val)));
 	      len = 1;
 	    }
 	  (*insert_func) ((char *) str, len);
@@ -2187,7 +2272,7 @@ buffer; to accomplish this, apply `string-as-multibyte' to the string
 and insert the result.
 
 usage: (insert &rest ARGS)  */)
-  (int nargs, register Lisp_Object *args)
+  (size_t nargs, register Lisp_Object *args)
 {
   general_insert_function (insert, insert_from_string, 0, nargs, args);
   return Qnil;
@@ -2206,7 +2291,7 @@ If the current buffer is unibyte, multibyte strings are converted
 to unibyte for insertion.
 
 usage: (insert-and-inherit &rest ARGS)  */)
-  (int nargs, register Lisp_Object *args)
+  (size_t nargs, register Lisp_Object *args)
 {
   general_insert_function (insert_and_inherit, insert_from_string, 1,
 			   nargs, args);
@@ -2223,7 +2308,7 @@ If the current buffer is unibyte, multibyte strings are converted
 to unibyte for insertion.
 
 usage: (insert-before-markers &rest ARGS)  */)
-  (int nargs, register Lisp_Object *args)
+  (size_t nargs, register Lisp_Object *args)
 {
   general_insert_function (insert_before_markers,
 			   insert_from_string_before_markers, 0,
@@ -2242,7 +2327,7 @@ If the current buffer is unibyte, multibyte strings are converted
 to unibyte for insertion.
 
 usage: (insert-before-markers-and-inherit &rest ARGS)  */)
-  (int nargs, register Lisp_Object *args)
+  (size_t nargs, register Lisp_Object *args)
 {
   general_insert_function (insert_before_markers_and_inherit,
 			   insert_from_string_before_markers, 1,
@@ -2258,7 +2343,7 @@ from adjoining text, if those properties are sticky.  */)
   (Lisp_Object character, Lisp_Object count, Lisp_Object inherit)
 {
   register char *string;
-  register EMACS_INT strlen;
+  register EMACS_INT stringlen;
   register int i;
   register EMACS_INT n;
   int len;
@@ -2276,18 +2361,18 @@ from adjoining text, if those properties are sticky.  */)
   n = XINT (count) * len;
   if (n <= 0)
     return Qnil;
-  strlen = min (n, 256 * len);
-  string = (char *) alloca (strlen);
-  for (i = 0; i < strlen; i++)
+  stringlen = min (n, 256 * len);
+  string = (char *) alloca (stringlen);
+  for (i = 0; i < stringlen; i++)
     string[i] = str[i % len];
-  while (n >= strlen)
+  while (n >= stringlen)
     {
       QUIT;
       if (!NILP (inherit))
-	insert_and_inherit (string, strlen);
+	insert_and_inherit (string, stringlen);
       else
-	insert (string, strlen);
-      n -= strlen;
+	insert (string, stringlen);
+      n -= stringlen;
     }
   if (n > 0)
     {
@@ -2946,8 +3031,7 @@ It returns the number of characters changed.  */)
   EMACS_INT size;		/* Size of translate table. */
   EMACS_INT pos, pos_byte, end_pos;
   int multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
-  int string_multibyte;
-  Lisp_Object val;
+  int string_multibyte IF_LINT (= 0);
 
   validate_region (&start, &end);
   if (CHAR_TABLE_P (table))
@@ -3315,7 +3399,7 @@ any existing message; this lets the minibuffer contents show.  See
 also `current-message'.
 
 usage: (message FORMAT-STRING &rest ARGS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   if (NILP (args[0])
       || (STRINGP (args[0])
@@ -3343,7 +3427,7 @@ If the first argument is nil or the empty string, clear any existing
 message; let the minibuffer contents show.
 
 usage: (message-box FORMAT-STRING &rest ARGS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   if (NILP (args[0]))
     {
@@ -3360,12 +3444,12 @@ usage: (message-box FORMAT-STRING &rest ARGS)  */)
       if (FRAME_WINDOW_P (XFRAME (selected_frame))
 	  || FRAME_MSDOS_P (XFRAME (selected_frame)))
       {
-	Lisp_Object pane, menu, obj;
+	Lisp_Object pane, menu;
 	struct gcpro gcpro1;
 	pane = Fcons (Fcons (build_string ("OK"), Qt), Qnil);
 	GCPRO1 (pane);
 	menu = Fcons (val, pane);
-	obj = Fx_popup_dialog (Qt, menu, Qt);
+	Fx_popup_dialog (Qt, menu, Qt);
 	UNGCPRO;
 	return val;
       }
@@ -3400,7 +3484,7 @@ If the first argument is nil or the empty string, clear any existing
 message; let the minibuffer contents show.
 
 usage: (message-or-box FORMAT-STRING &rest ARGS)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
 #ifdef HAVE_MENUS
   if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
@@ -3424,14 +3508,14 @@ First argument is the string to copy.
 Remaining arguments form a sequence of PROPERTY VALUE pairs for text
 properties to add to the result.
 usage: (propertize STRING &rest PROPERTIES)  */)
-  (int nargs, Lisp_Object *args)
+  (size_t nargs, Lisp_Object *args)
 {
   Lisp_Object properties, string;
   struct gcpro gcpro1, gcpro2;
-  int i;
+  size_t i;
 
   /* Number of args must be odd.  */
-  if ((nargs & 1) == 0 || nargs < 1)
+  if ((nargs & 1) == 0)
     error ("Wrong number of arguments");
 
   properties = string = Qnil;
@@ -3506,10 +3590,10 @@ decimal point itself is omitted.  For %s and %S, the precision
 specifier truncates the string to the given width.
 
 usage: (format STRING &rest OBJECTS)  */)
-  (int nargs, register Lisp_Object *args)
+  (size_t nargs, register Lisp_Object *args)
 {
-  register int n;		/* The number of the next arg to substitute */
-  register EMACS_INT total;	/* An estimate of the final length */
+  register size_t n;		/* The number of the next arg to substitute */
+  register size_t total;	/* An estimate of the final length */
   char *buf, *p;
   register char *format, *end, *format_start;
   int nchars;
@@ -3523,7 +3607,7 @@ usage: (format STRING &rest OBJECTS)  */)
   int maybe_combine_byte;
   char *this_format;
   /* Precision for each spec, or -1, a flag value meaning no precision
-     was given in that spec.  Element 0, corresonding to the format
+     was given in that spec.  Element 0, corresponding to the format
      string itself, will not be used.  Element NARGS, corresponding to
      no argument, *will* be assigned to in the case that a `%' and `.'
      occur after the final format specifier.  */
@@ -3585,12 +3669,12 @@ usage: (format STRING &rest OBJECTS)  */)
 
   /* Allocate the info and discarded tables.  */
   {
-    int nbytes = (nargs+1) * sizeof *info;
-    int i;
+    size_t nbytes = (nargs+1) * sizeof *info;
+    size_t i;
     if (!info)
       info = (struct info *) alloca (nbytes);
     memset (info, 0, nbytes);
-    for (i = 0; i <= nargs; i++)
+    for (i = 0; i < nargs + 1; i++)
       info[i].start = -1;
     if (!discarded)
       SAFE_ALLOCA (discarded, char *, SBYTES (args[0]));
@@ -3846,7 +3930,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	      /* handle case (precision[n] >= 0) */
 
 	      int width, padding;
-	      EMACS_INT nbytes, start, end;
+	      EMACS_INT nbytes, start;
 	      EMACS_INT nchars_string;
 
 	      /* lisp_string_width ignores a precision of 0, but GNU
@@ -3878,7 +3962,6 @@ usage: (format STRING &rest OBJECTS)  */)
 
 	      info[n].start = start = nchars;
 	      nchars += nchars_string;
-	      end = nchars;
 
 	      if (p > buf
 		  && multibyte
@@ -4130,7 +4213,7 @@ Case is ignored if `case-fold-search' is non-nil in the current buffer.  */)
 {
   int i1, i2;
   /* Check they're chars, not just integers, otherwise we could get array
-     bounds violations in DOWNCASE.  */
+     bounds violations in downcase.  */
   CHECK_CHARACTER (c1);
   CHECK_CHARACTER (c2);
 
@@ -4139,9 +4222,6 @@ Case is ignored if `case-fold-search' is non-nil in the current buffer.  */)
   if (NILP (BVAR (current_buffer, case_fold_search)))
     return Qnil;
 
-  /* Do these in separate statements,
-     then compare the variables.
-     because of the way DOWNCASE uses temp variables.  */
   i1 = XFASTINT (c1);
   if (NILP (BVAR (current_buffer, enable_multibyte_characters))
       && ! ASCII_CHAR_P (i1))
@@ -4154,9 +4234,7 @@ Case is ignored if `case-fold-search' is non-nil in the current buffer.  */)
     {
       MAKE_CHAR_MULTIBYTE (i2);
     }
-  i1 = DOWNCASE (i1);
-  i2 = DOWNCASE (i2);
-  return (i1 == i2 ? Qt :  Qnil);
+  return (downcase (i1) == downcase (i2) ? Qt :  Qnil);
 }
 
 /* Transpose the markers in two regions of the current buffer, and

@@ -71,13 +71,23 @@ Detection of repeated words is not implemented in
   :type 'boolean)
 
 (defcustom flyspell-mark-duplications-exceptions
-  '(("francais" . ("nous" "vous")))
+  '((nil . ("that" "had")) ; Common defaults for English.
+    ("\\`francais" . ("nous" "vous")))
   "A list of exceptions for duplicated words.
-It should be a list of (LANGUAGE . EXCEPTION-LIST).  LANGUAGE is matched
-against the current dictionary and EXCEPTION-LIST is a list of strings.
-The duplicated word is downcased before it is compared with the exceptions."
+It should be a list of (LANGUAGE . EXCEPTION-LIST).
+
+LANGUAGE is nil, which means the exceptions apply regardless of
+the current dictionary, or a regular expression matching the
+dictionary name (`ispell-local-dictionary' or
+`ispell-dictionary') for which the exceptions should apply.
+
+EXCEPTION-LIST is a list of strings.  The checked word is
+downcased before comparing with these exceptions."
   :group 'flyspell
-  :type '(alist :key-type string :value-type (repeat string)))
+  :type '(alist :key-type (choice (const :tag "All dictionaries" nil)
+				  string)
+		:value-type (repeat string))
+  :version "24.1")
 
 (defcustom flyspell-sort-corrections nil
   "Non-nil means, sort the corrections alphabetically before popping them."
@@ -1044,12 +1054,14 @@ misspelling and skips redundant spell-checking step."
 			  (not (memq (char-after (1- start)) '(?\} ?\\)))))
 		 flyspell-mark-duplications-flag
 		 (not (catch 'exception
-			(dolist (except flyspell-mark-duplications-exceptions)
-			  (and (string= (or ispell-local-dictionary
-					    ispell-dictionary)
-					(car except))
-			       (member (downcase word) (cdr except))
-			       (throw 'exception t)))))
+			(let ((dict (or ispell-local-dictionary
+					ispell-dictionary)))
+			  (dolist (except flyspell-mark-duplications-exceptions)
+			    (and (or (null (car except))
+				     (and (stringp dict)
+					  (string-match (car except) dict)))
+				 (member (downcase word) (cdr except))
+				 (throw 'exception t))))))
 		 (save-excursion
 		   (goto-char start)
 		   (let* ((bound

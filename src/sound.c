@@ -344,7 +344,7 @@ sound_perror (const char *msg)
 static void
 sound_warning (const char *msg)
 {
-  message (msg);
+  message ("%s", msg);
 }
 
 
@@ -460,8 +460,8 @@ sound_cleanup (Lisp_Object arg)
     current_sound_device->close (current_sound_device);
   if (current_sound->fd > 0)
     emacs_close (current_sound->fd);
-  free (current_sound_device);
-  free (current_sound);
+  xfree (current_sound_device);
+  xfree (current_sound);
 
   return Qnil;
 }
@@ -595,12 +595,12 @@ wav_play (struct sound *s, struct sound_device *sd)
      files I found so far.  If someone feels inclined to implement the
      whole RIFF-WAVE spec, please do.  */
   if (STRINGP (s->data))
-    sd->write (sd, SDATA (s->data) + sizeof *header,
+    sd->write (sd, SSDATA (s->data) + sizeof *header,
 	       SBYTES (s->data) - sizeof *header);
   else
     {
       char *buffer;
-      int nbytes;
+      int nbytes = 0;
       int blksize = sd->period_size ? sd->period_size (sd) : 2048;
       int data_left = header->data_length;
 
@@ -686,7 +686,7 @@ au_play (struct sound *s, struct sound_device *sd)
   sd->configure (sd);
 
   if (STRINGP (s->data))
-    sd->write (sd, SDATA (s->data) + header->data_offset,
+    sd->write (sd, SSDATA (s->data) + header->data_offset,
 	       SBYTES (s->data) - header->data_offset);
   else
     {
@@ -897,7 +897,7 @@ vox_init (struct sound_device *sd)
 static void
 vox_write (struct sound_device *sd, const char *buffer, int nbytes)
 {
-  int nwritten = emacs_write (sd->fd, buffer, nbytes);
+  ssize_t nwritten = emacs_write (sd->fd, buffer, nbytes);
   if (nwritten < 0)
     sound_perror ("Error writing to sound device");
 }
@@ -1095,7 +1095,7 @@ alsa_close (struct sound_device *sd)
           snd_pcm_drain (p->handle);
           snd_pcm_close (p->handle);
         }
-      free (p);
+      xfree (p);
     }
 }
 
@@ -1104,7 +1104,6 @@ alsa_close (struct sound_device *sd)
 static void
 alsa_choose_format (struct sound_device *sd, struct sound *s)
 {
-  struct alsa_params *p = (struct alsa_params *) sd->data;
   if (s->type == RIFF)
     {
       struct wav_header *h = (struct wav_header *) s->header;
@@ -1410,7 +1409,7 @@ Internal use only, use `play-sound' instead.  */)
     {
       int len = SCHARS (attrs[SOUND_DEVICE]);
       current_sound_device->file = (char *) alloca (len + 1);
-      strcpy (current_sound_device->file, SDATA (attrs[SOUND_DEVICE]));
+      strcpy (current_sound_device->file, SSDATA (attrs[SOUND_DEVICE]));
     }
 
   if (INTEGERP (attrs[SOUND_VOLUME]))
@@ -1498,4 +1497,3 @@ init_sound (void)
 }
 
 #endif /* HAVE_SOUND */
-

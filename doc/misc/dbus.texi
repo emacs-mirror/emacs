@@ -893,10 +893,10 @@ applied, when the corresponding D-Bus message is created:
 @end example
 
 Other Lisp objects, like symbols or hash tables, are not accepted as
-input parameter.
+input parameters.
 
 If it is necessary to use another D-Bus type, a corresponding type
-symbol can be preceeded to the corresponding Lisp object. Basic D-Bus
+symbol can be prepended to the corresponding Lisp object.  Basic D-Bus
 types are represented by the type symbols @code{:byte},
 @code{:boolean}, @code{:int16}, @code{:uint16}, @code{:int32},
 @code{:uint32}, @code{:int64}, @code{:uint64}, @code{:double},

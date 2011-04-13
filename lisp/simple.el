@@ -28,8 +28,7 @@
 
 ;;; Code:
 
-;; This is for lexical-let in apply-partially.
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl))       ;For define-minor-mode.
 
 (declare-function widget-convert "wid-edit" (type &rest args))
 (declare-function shell-mode "shell" ())
@@ -583,7 +582,9 @@ If the region is active, only delete whitespace within the region."
             (if (looking-at ".*\f")
                 (goto-char (match-end 0))))
           (delete-region (point) (match-end 0)))
-        (set-marker end-marker nil)))))
+        (set-marker end-marker nil))))
+  ;; Return nil for the benefit of `write-file-functions'.
+  nil)
 
 (defun newline-and-indent ()
   "Insert a newline, then indent according to major mode.
@@ -945,7 +946,7 @@ When called interactively, the word count is printed in echo area."
         (goto-char (point-min))
         (while (forward-word 1)
           (setq count (1+ count)))))
-    (if (interactive-p)
+    (if (called-interactively-p 'interactive)
         (message "Region has %d words" count))
     count))
 
@@ -1165,12 +1166,12 @@ this command arranges for all errors to enter the debugger."
 	 current-prefix-arg))
 
   (if (null eval-expression-debug-on-error)
-      (setq values (cons (eval eval-expression-arg) values))
+      (push (eval eval-expression-arg lexical-binding) values)
     (let ((old-value (make-symbol "t")) new-value)
       ;; Bind debug-on-error to something unique so that we can
       ;; detect when evaled code changes it.
       (let ((debug-on-error old-value))
-	(setq values (cons (eval eval-expression-arg) values))
+	(push (eval eval-expression-arg lexical-binding) values)
 	(setq new-value debug-on-error))
       ;; If evaled code has changed the value of debug-on-error,
       ;; propagate that change to the global binding.
@@ -2575,7 +2576,7 @@ specifies the value of ERROR-BUFFER."
   (with-output-to-string
     (with-current-buffer
       standard-output
-      (call-process shell-file-name nil t nil shell-command-switch command))))
+      (process-file shell-file-name nil t nil shell-command-switch command))))
 
 (defun process-file (program &optional infile buffer display &rest args)
   "Process files synchronously in a separate process.
@@ -2636,7 +2637,95 @@ support pty association, if PROGRAM is nil."
   (let ((fh (find-file-name-handler default-directory 'start-file-process)))
     (if fh (apply fh 'start-file-process name buffer program program-args)
       (apply 'start-process name buffer program program-args))))
+
+;;;; Process menu
 
+(defvar tabulated-list-format)
+(defvar tabulated-list-entries)
+(defvar tabulated-list-sort-key)
+(declare-function tabulated-list-init-header  "tabulated-list" ())
+(declare-function tabulated-list-print "tabulated-list" ())
+
+(defvar process-menu-query-only nil)
+
+(define-derived-mode process-menu-mode tabulated-list-mode "Process Menu"
+  "Major mode for listing the processes called by Emacs."
+  (setq tabulated-list-format [("Process" 15 t)
+			       ("Status"   7 t)
+			       ("Buffer"  15 t)
+			       ("TTY"     12 t)
+			       ("Command"  0 t)])
+  (make-local-variable 'process-menu-query-only)
+  (setq tabulated-list-sort-key (cons "Process" nil))
+  (add-hook 'tabulated-list-revert-hook 'list-processes--refresh nil t)
+  (tabulated-list-init-header))
+
+(defun list-processes--refresh ()
+  "Recompute the list of processes for the Process List buffer."
+  (setq tabulated-list-entries nil)
+  (dolist (p (process-list))
+    (when (or (not process-menu-query-only)
+	      (process-query-on-exit-flag p))
+      (let* ((buf (process-buffer p))
+	     (type (process-type p))
+	     (name (process-name p))
+	     (status (symbol-name (process-status p)))
+	     (buf-label (if (buffer-live-p buf)
+			    `(,(buffer-name buf)
+			      face link
+			      help-echo ,(concat "Visit buffer `"
+						 (buffer-name buf) "'")
+			      follow-link t
+			      process-buffer ,buf
+			      action process-menu-visit-buffer)
+			  "--"))
+	     (tty (or (process-tty-name p) "--"))
+	     (cmd
+	      (if (memq type '(network serial))
+		  (let ((contact (process-contact p t)))
+		    (if (eq type 'network)
+			(format "(%s %s)"
+				(if (plist-get contact :type)
+				    "datagram"
+				  "network")
+				(if (plist-get contact :server)
+				    (format "server on %s"
+					    (plist-get contact :server))
+				  (format "connection to %s"
+					  (plist-get contact :host))))
+		      (format "(serial port %s%s)"
+			      (or (plist-get contact :port) "?")
+			      (let ((speed (plist-get contact :speed)))
+				(if speed
+				    (format " at %s b/s" speed)
+				  "")))))
+		(mapconcat 'identity (process-command p) " "))))
+	(push (list p (vector name status buf-label tty cmd))
+	      tabulated-list-entries)))))
+
+(defun process-menu-visit-buffer (button)
+  (display-buffer (button-get button 'process-buffer)))
+
+(defun list-processes (&optional query-only buffer)
+  "Display a list of all processes.
+If optional argument QUERY-ONLY is non-nil, only processes with
+the query-on-exit flag set are listed.
+Any process listed as exited or signaled is actually eliminated
+after the listing is made.
+Optional argument BUFFER specifies a buffer to use, instead of
+\"*Process List\".
+The return value is always nil."
+  (interactive)
+  (or (fboundp 'process-list)
+      (error "Asynchronous subprocesses are not supported on this system"))
+  (unless (bufferp buffer)
+    (setq buffer (get-buffer-create "*Process List*")))
+  (with-current-buffer buffer
+    (process-menu-mode)
+    (setq process-menu-query-only query-only)
+    (list-processes--refresh)
+    (tabulated-list-print))
+  (display-buffer buffer))
 
 (defvar universal-argument-map
   (let ((map (make-sparse-keymap)))
@@ -2774,51 +2863,6 @@ These commands include \\[set-mark-command] and \\[start-kbd-macro]."
   (reset-this-command-lengths)
   (restore-overriding-map))
 
-;; This function is here rather than in subr.el because it uses CL.
-(defmacro with-wrapper-hook (var args &rest body)
-  "Run BODY wrapped with the VAR hook.
-VAR is a special hook: its functions are called with a first argument
-which is the \"original\" code (the BODY), so the hook function can wrap
-the original function, or call it any number of times (including not calling
-it at all).  This is similar to an `around' advice.
-VAR is normally a symbol (a variable) in which case it is treated like
-a hook, with a buffer-local and a global part.  But it can also be an
-arbitrary expression.
-ARGS is a list of variables which will be passed as additional arguments
-to each function, after the initial argument, and which the first argument
-expects to receive when called."
-  (declare (indent 2) (debug t))
-  ;; We need those two gensyms because CL's lexical scoping is not available
-  ;; for function arguments :-(
-  (let ((funs (make-symbol "funs"))
-        (global (make-symbol "global"))
-        (argssym (make-symbol "args")))
-    ;; Since the hook is a wrapper, the loop has to be done via
-    ;; recursion: a given hook function will call its parameter in order to
-    ;; continue looping.
-    `(labels ((runrestofhook (,funs ,global ,argssym)
-                 ;; `funs' holds the functions left on the hook and `global'
-                 ;; holds the functions left on the global part of the hook
-                 ;; (in case the hook is local).
-                 (lexical-let ((funs ,funs)
-                               (global ,global))
-                   (if (consp funs)
-                       (if (eq t (car funs))
-                           (runrestofhook
-                            (append global (cdr funs)) nil ,argssym)
-                         (apply (car funs)
-                                (lambda (&rest ,argssym)
-				  (runrestofhook (cdr funs) global ,argssym))
-                                ,argssym))
-                     ;; Once there are no more functions on the hook, run
-                     ;; the original body.
-                     (apply (lambda ,args ,@body) ,argssym)))))
-       (runrestofhook ,var
-                      ;; The global part of the hook, if any.
-                      ,(if (symbolp var)
-                           `(if (local-variable-p ',var)
-                                (default-value ',var)))
-                      (list ,@args)))))
 
 (defvar filter-buffer-substring-functions nil
   "Wrapper hook around `filter-buffer-substring'.
@@ -3337,16 +3381,16 @@ and KILLP is t if a prefix arg was specified."
 		(delete-char 1)))
 	  (forward-char -1)
 	  (setq count (1- count))))))
-  (delete-backward-char
-   (let ((skip (cond ((eq backward-delete-char-untabify-method 'hungry) " \t")
+  (let* ((skip (cond ((eq backward-delete-char-untabify-method 'hungry) " \t")
                      ((eq backward-delete-char-untabify-method 'all)
-                      " \t\n\r"))))
-     (if skip
-         (let ((wh (- (point) (save-excursion (skip-chars-backward skip)
-					    (point)))))
-	 (+ arg (if (zerop wh) 0 (1- wh))))
-         arg))
-   killp))
+                      " \t\n\r")))
+         (n (if skip
+                (let ((wh (- (point) (save-excursion (skip-chars-backward skip)
+                                                     (point)))))
+                  (+ arg (if (zerop wh) 0 (1- wh))))
+              arg)))
+    ;; Avoid warning about delete-backward-char
+    (with-no-warnings (delete-backward-char n killp))))
 
 (defun zap-to-char (arg char)
   "Kill up to and including ARGth occurrence of CHAR.
@@ -6594,37 +6638,25 @@ saving the value of `buffer-invisibility-spec' and setting it to nil."
 	 buffer-invisibility-spec)
     (setq buffer-invisibility-spec nil)))
 
-;; Partial application of functions (similar to "currying").
-;; This function is here rather than in subr.el because it uses CL.
-(defun apply-partially (fun &rest args)
-  "Return a function that is a partial application of FUN to ARGS.
-ARGS is a list of the first N arguments to pass to FUN.
-The result is a new function which does the same as FUN, except that
-the first N arguments are fixed at the values with which this function
-was called."
-  (lexical-let ((fun fun) (args1 args))
-    (lambda (&rest args2) (apply fun (append args1 args2)))))
-
 ;; Minibuffer prompt stuff.
 
-;(defun minibuffer-prompt-modification (start end)
-;  (error "You cannot modify the prompt"))
-;
-;
-;(defun minibuffer-prompt-insertion (start end)
-;  (let ((inhibit-modification-hooks t))
-;    (delete-region start end)
-;    ;; Discard undo information for the text insertion itself
-;    ;; and for the text deletion.above.
-;    (when (consp buffer-undo-list)
-;      (setq buffer-undo-list (cddr buffer-undo-list)))
-;    (message "You cannot modify the prompt")))
-;
-;
-;(setq minibuffer-prompt-properties
-;  (list 'modification-hooks '(minibuffer-prompt-modification)
-;	'insert-in-front-hooks '(minibuffer-prompt-insertion)))
-;
+;;(defun minibuffer-prompt-modification (start end)
+;;  (error "You cannot modify the prompt"))
+;;
+;;
+;;(defun minibuffer-prompt-insertion (start end)
+;;  (let ((inhibit-modification-hooks t))
+;;    (delete-region start end)
+;;    ;; Discard undo information for the text insertion itself
+;;    ;; and for the text deletion.above.
+;;    (when (consp buffer-undo-list)
+;;      (setq buffer-undo-list (cddr buffer-undo-list)))
+;;    (message "You cannot modify the prompt")))
+;;
+;;
+;;(setq minibuffer-prompt-properties
+;;  (list 'modification-hooks '(minibuffer-prompt-modification)
+;;	'insert-in-front-hooks '(minibuffer-prompt-insertion)))
 
 
 ;;;; Problematic external packages.

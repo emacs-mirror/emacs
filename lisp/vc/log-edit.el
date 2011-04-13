@@ -1,4 +1,4 @@
-;;; log-edit.el --- Major mode for editing CVS commit messages
+;;; log-edit.el --- Major mode for editing CVS commit messages -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
@@ -329,7 +329,7 @@ automatically."
 (defconst log-edit-header-contents-regexp
   "[ \t]*\\(.*\\(\n[ \t].*\\)*\\)\n?")
 
-(defun log-edit-match-to-eoh (limit)
+(defun log-edit-match-to-eoh (_limit)
   ;; FIXME: copied from message-match-to-eoh.
   (let ((start (point)))
     (rfc822-goto-eoh)
@@ -361,7 +361,7 @@ automatically."
          nil lax)))))
 
 ;;;###autoload
-(defun log-edit (callback &optional setup params buffer mode &rest ignore)
+(defun log-edit (callback &optional setup params buffer mode &rest _ignore)
   "Setup a buffer to enter a log message.
 \\<log-edit-mode-map>The buffer will be put in mode MODE or `log-edit-mode'
 if MODE is nil.
@@ -531,13 +531,25 @@ If you want to abort the commit, simply delete the buffer."
 	(shrink-window-if-larger-than-buffer)
 	(selected-window)))))
 
+(defun log-edit-empty-buffer-p ()
+  "Return non-nil if the buffer is \"empty\"."
+  (or (= (point-min) (point-max))
+      (save-excursion
+        (goto-char (point-min))
+        (while (and (looking-at "^\\(Summary: \\)?$")
+                    (zerop (forward-line 1))))
+        (eobp))))
+
 (defun log-edit-insert-cvs-template ()
   "Insert the template specified by the CVS administrator, if any.
 This simply uses the local CVS/Template file."
   (interactive)
   (when (or (called-interactively-p 'interactive)
-	    (= (point-min) (point-max)))
+            (log-edit-empty-buffer-p))
+    ;; Should the template take precedence over an empty Summary:,
+    ;; ie should we first erase the buffer?
     (when (file-readable-p "CVS/Template")
+      (goto-char (point-max))
       (insert-file-contents "CVS/Template"))))
 
 (defun log-edit-insert-cvs-rcstemplate ()
@@ -546,8 +558,9 @@ This contacts the repository to get the rcstemplate file and
 can thus take some time."
   (interactive)
   (when (or (called-interactively-p 'interactive)
-	    (= (point-min) (point-max)))
+            (log-edit-empty-buffer-p))
     (when (file-readable-p "CVS/Root")
+      (goto-char (point-max))
       ;; Ignore the stderr stuff, even if it's an error.
       (call-process "cvs" nil '(t nil) nil
                     "checkout" "-p" "CVSROOT/rcstemplate"))))

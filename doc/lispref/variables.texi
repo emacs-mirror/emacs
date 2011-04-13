@@ -25,22 +25,22 @@ textual Lisp program is written using the read syntax for the symbol
 representing the variable.
 
 @menu
-* Global Variables::      Variable values that exist permanently, everywhere.
-* Constant Variables::    Certain "variables" have values that never change.
-* Local Variables::       Variable values that exist only temporarily.
-* Void Variables::        Symbols that lack values.
-* Defining Variables::    A definition says a symbol is used as a variable.
-* Tips for Defining::     Things you should think about when you
+* Global Variables::            Variable values that exist permanently, everywhere.
+* Constant Variables::          Certain "variables" have values that never change.
+* Local Variables::             Variable values that exist only temporarily.
+* Void Variables::              Symbols that lack values.
+* Defining Variables::          A definition says a symbol is used as a variable.
+* Tips for Defining::           Things you should think about when you
                             define a variable.
-* Accessing Variables::   Examining values of variables whose names
+* Accessing Variables::         Examining values of variables whose names
                             are known only at run time.
-* Setting Variables::     Storing new values in variables.
-* Variable Scoping::      How Lisp chooses among local and global values.
-* Buffer-Local Variables::  Variable values in effect only in one buffer.
-* File Local Variables::  Handling local variable lists in files.
-* Directory Local Variables:: Local variables common to all files in a directory.
-* Frame-Local Variables:: Frame-local bindings for variables.
-* Variable Aliases::      Variables that are aliases for other variables.
+* Setting Variables::           Storing new values in variables.
+* Variable Scoping::            How Lisp chooses among local and global values.
+* Buffer-Local Variables::      Variable values in effect only in one buffer.
+* File Local Variables::        Handling local variable lists in files.
+* Directory Local Variables::   Local variables common to all files in a directory.
+* Frame-Local Variables::       Frame-local bindings for variables.
+* Variable Aliases::            Variables that are aliases for other variables.
 * Variables with Restricted Values::  Non-constant variables whose value can
                                         @emph{not} be an arbitrary Lisp object.
 @end menu
@@ -437,14 +437,18 @@ this reason, user options must be defined with @code{defvar}.
 This special form defines @var{symbol} as a variable and can also
 initialize and document it.  The definition informs a person reading
 your code that @var{symbol} is used as a variable that might be set or
-changed.  Note that @var{symbol} is not evaluated; the symbol to be
-defined must appear explicitly in the @code{defvar}.
+changed.  It also declares this variable as @dfn{special}, meaning that it
+should always use dynamic scoping rules.  Note that @var{symbol} is not
+evaluated; the symbol to be defined must appear explicitly in the
+@code{defvar}.
 
 If @var{symbol} is void and @var{value} is specified, @code{defvar}
 evaluates it and sets @var{symbol} to the result.  But if @var{symbol}
 already has a value (i.e., it is not void), @var{value} is not even
-evaluated, and @var{symbol}'s value remains unchanged.  If @var{value}
-is omitted, the value of @var{symbol} is not changed in any case.
+evaluated, and @var{symbol}'s value remains unchanged.
+If @var{value} is omitted, the value of @var{symbol} is not changed in any
+case; instead, the only effect of @code{defvar} is to declare locally that this
+variable exists elsewhere and should hence always use dynamic scoping rules.
 
 If @var{symbol} has a buffer-local binding in the current buffer,
 @code{defvar} operates on the default value, which is buffer-independent,
@@ -881,7 +885,7 @@ the others.
 @cindex extent
 @cindex dynamic scoping
 @cindex lexical scoping
-  Local bindings in Emacs Lisp have @dfn{indefinite scope} and
+  By default, local bindings in Emacs Lisp have @dfn{indefinite scope} and
 @dfn{dynamic extent}.  @dfn{Scope} refers to @emph{where} textually in
 the source code the binding can be accessed.  ``Indefinite scope'' means
 that any part of the program can potentially access the variable
@@ -893,6 +897,8 @@ lasts as long as the activation of the construct that established it.
 @dfn{dynamic scoping}.  By contrast, most programming languages use
 @dfn{lexical scoping}, in which references to a local variable must be
 located textually within the function or block that binds the variable.
+Emacs can also support lexical scoping, upon request (@pxref{Lexical
+Binding}).
 
 @cindex CL note---special variables
 @quotation
@@ -901,11 +907,12 @@ dynamically scoped, like all variables in Emacs Lisp.
 @end quotation
 
 @menu
-* Scope::          Scope means where in the program a value is visible.
+* Scope::                       Scope means where in the program a value is visible.
                      Comparison with other languages.
-* Extent::         Extent means how long in time a value exists.
-* Impl of Scope::  Two ways to implement dynamic scoping.
-* Using Scoping::  How to use dynamic scoping carefully and avoid problems.
+* Extent::                      Extent means how long in time a value exists.
+* Impl of Scope::               Two ways to implement dynamic scoping.
+* Using Scoping::               How to use dynamic scoping carefully and avoid problems.
+* Lexical Binding::             Use of lexical scoping.
 @end menu
 
 @node Scope
@@ -969,12 +976,12 @@ Here, when @code{foo} is called by @code{binder}, it binds @code{x}.
 by @code{foo} instead of the one bound by @code{binder}.
 @end itemize
 
-Emacs Lisp uses dynamic scoping because simple implementations of
+Emacs Lisp used dynamic scoping by default because simple implementations of
 lexical scoping are slow.  In addition, every Lisp system needs to offer
-dynamic scoping at least as an option; if lexical scoping is the norm,
-there must be a way to specify dynamic scoping instead for a particular
-variable.  It might not be a bad thing for Emacs to offer both, but
-implementing it with dynamic scoping only was much easier.
+dynamic scoping at least as an option; if lexical scoping is the norm, there
+must be a way to specify dynamic scoping instead for a particular variable.
+Nowadays, Emacs offers both, but the default is still to use exclusively
+dynamic scoping.
 
 @node Extent
 @subsection Extent
@@ -1088,6 +1095,86 @@ for inter-function usage.  It also avoids a warning from the byte
 compiler.  Choose the variable's name to avoid name conflicts---don't
 use short names like @code{x}.
 
+
+@node Lexical Binding
+@subsection Use of Lexical Scoping
+
+Emacs Lisp can be evaluated in two different modes: in dynamic binding mode or
+lexical binding mode.  In dynamic binding mode, all local variables use dynamic
+scoping, whereas in lexical binding mode variables that have been declared
+@dfn{special} (i.e., declared with @code{defvar} or @code{defconst}) use
+dynamic scoping and all others use lexical scoping.
+
+@defvar lexical-binding
+When non-nil, evaluation of Lisp code uses lexical scoping for non-special
+local variables instead of dynamic scoping.  If nil, dynamic scoping is used
+for all local variables.  This variable is typically set for a whole Elisp file
+via file local variables (@pxref{File Local Variables}).
+@end defvar
+
+@defun special-variable-p SYMBOL
+Return whether SYMBOL has been declared as a special variable, via
+@code{defvar} or @code{defconst}.
+@end defun
+
+The use of a special variable as a formal argument in a function is generally
+discouraged and its behavior in lexical binding mode is unspecified (it may use
+lexical scoping sometimes and dynamic scoping other times).
+
+Functions like @code{symbol-value}, @code{boundp}, or @code{set} only know
+about dynamically scoped variables, so you cannot get the value of a lexical
+variable via @code{symbol-value} and neither can you change it via @code{set}.
+Another particularity is that code in the body of a @code{defun} or
+@code{defmacro} cannot refer to surrounding lexical variables.
+
+Evaluation of a @code{lambda} expression in lexical binding mode will not just
+return that lambda expression unchanged, as in the dynamic binding case, but
+will instead construct a new object that remembers the current lexical
+environment in which that lambda expression was defined, so that the function
+body can later be evaluated in the proper context.  Those objects are called
+@dfn{closures}.  They are also functions, in the sense that they are accepted
+by @code{funcall}, and they are represented by a cons cell whose @code{car} is
+the symbol @code{closure}.
+
+@menu
+* Converting to Lexical Binding:: How to start using lexical scoping
+@end menu
+
+@node Converting to Lexical Binding
+@subsubsection Converting a package to use lexical scoping
+
+Lexical scoping, as currently implemented, does not bring many significant
+benefits, unless you are a seasoned functional programmer addicted to
+higher-order functions.  But its importance will increase in the future:
+lexical scoping opens up a lot more opportunities for optimization, so
+lexically scoped code is likely to run faster in future Emacs versions, and it
+is much more friendly to concurrency, which we want to add in the near future.
+
+Converting a package to lexical binding is usually pretty easy and should not
+break backward compatibility: just add a file-local variable setting
+@code{lexical-binding} to @code{t} and add declarations of the form
+@code{(defvar @var{VAR})} for every variable which still needs to use
+dynamic scoping.
+
+To find which variables need this declaration, the simplest solution is to
+check the byte-compiler's warnings.  The byte-compiler will usually find those
+variables either because they are used outside of a let-binding (leading to
+warnings about reference or assignment to ``free variable @var{VAR}'') or
+because they are let-bound but not used within the let-binding (leading to
+warnings about ``unused lexical variable @var{VAR}'').
+
+In cases where a dynamically scoped variable was bound as a function argument,
+you will also need to move this binding to a @code{let}.  These cases are also
+flagged by the byte-compiler.
+
+To silence byte-compiler warnings about unused variables, just use a variable
+name that start with an underscore, which the byte-compiler interpret as an
+indication that this is a variable known not to be used.
+
+In most cases, the resulting code will then work with either setting of
+@code{lexical-binding}, so it can still be used with older Emacsen (which will
+simply ignore the @code{lexical-binding} variable setting).
+
 @node Buffer-Local Variables
 @section Buffer-Local Variables
 @cindex variable, buffer-local
@@ -1103,9 +1190,9 @@ local to each terminal, or to each frame.  @xref{Multiple Terminals},
 and @xref{Frame-Local Variables}.)
 
 @menu
-* Intro to Buffer-Local::      Introduction and concepts.
-* Creating Buffer-Local::      Creating and destroying buffer-local bindings.
-* Default Value::              The default value is seen in buffers
+* Intro to Buffer-Local::       Introduction and concepts.
+* Creating Buffer-Local::       Creating and destroying buffer-local bindings.
+* Default Value::               The default value is seen in buffers
                                  that don't have their own buffer-local values.
 @end menu
 
@@ -1718,7 +1805,8 @@ directory-local variables.  The name of the file is
 The MS-DOS version of Emacs uses @file{_dir-locals.el} instead, due to
 limitations of the DOS filesystems.
 }.  A file by that name in a directory causes Emacs to apply its
-settings to any file in that directory or any of its subdirectories.
+settings to any file in that directory or any of its subdirectories
+(optionally, you can exclude subdirectories; see below).
 If some of the subdirectories have their own @file{.dir-locals.el}
 files, Emacs uses the settings from the deepest file it finds starting
 from the file's directory and moving up the directory tree.  The file
@@ -1749,7 +1837,10 @@ file's buffer turns on a mode that is derived from @var{major-mode},
 then the all the variables in the associated @var{alist} are applied;
 @var{alist} should be of the form @code{(@var{name} . @var{value})}.
 A special value @code{nil} for @var{major-mode} means the settings are
-applicable to any mode.
+applicable to any mode.  In @var{alist}, you can use a special
+@var{name}: @code{subdirs}.  If the associated value is
+@code{nil}, the alist is only applied to files in the relevant
+directory, not to those in any subdirectories.
 
 With the second form of @var{variables}, if @var{directory} is the
 initial substring of the file's directory, then @var{list} is applied
@@ -1757,12 +1848,19 @@ recursively by following the above rules; @var{list} should be of one
 of the two forms accepted by this function in @var{variables}.
 @end defun
 
-@defun dir-locals-set-directory-class directory class
+@defun dir-locals-set-directory-class directory class &optional mtime
 This function assigns @var{class} to all the files in @code{directory}
 and its subdirectories.  Thereafter, all the variable settings
 specified for @var{class} will be applied to any visited file in
 @var{directory} and its children.  @var{class} must have been already
-defined by @code{dir-locals-set-class-variables}
+defined by @code{dir-locals-set-class-variables}.
+
+Emacs uses this function internally when it loads directory variables
+from a @code{.dir-locals.el} file.  In that case, the optional
+argument @var{mtime} holds the file modification time (as returned by
+@code{file-attributes}).  Emacs uses this time to check stored
+local variables are still valid.  If you are assigning a class
+directly, not via a file, this argument should be @code{nil}.
 @end defun
 
 @defvar dir-locals-class-alist
@@ -1772,8 +1870,9 @@ settings.  It is updated by @code{dir-locals-set-class-variables}.
 
 @defvar dir-locals-directory-cache
 This alist holds directory names, their assigned class names, and
-modification times of the associated directory local variables file.
-It is updated by @code{dir-locals-set-directory-class}.
+modification times of the associated directory local variables file
+(if there is one).  The function @code{dir-locals-set-directory-class}
+updates this list.
 @end defvar
 
 @node Frame-Local Variables

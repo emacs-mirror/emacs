@@ -3403,7 +3403,7 @@ Such pairs of precedences are sufficient to express left-associativity
 or right-associativity of infix operators, nesting of tokens like
 parentheses and many other cases.
 
-@c ¡Let's leave this undocumented to leave it more open for change!
+@c Let's leave this undocumented to leave it more open for change!
 @c @defvar smie-grammar
 @c The value of this variable is an alist specifying the left and right
 @c precedence of each token.  It is meant to be initialized by using one of

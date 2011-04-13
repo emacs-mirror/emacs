@@ -36,6 +36,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 Lisp_Object Qfunction_documentation;
 
+extern Lisp_Object Qclosure;
 /* Buffer used for reading from documentation file.  */
 static char *get_doc_string_buffer;
 static int get_doc_string_buffer_size;
@@ -153,7 +154,7 @@ get_doc_string (Lisp_Object filepos, int unibyte, int definition)
   if (0 > lseek (fd, position - offset, 0))
     {
       emacs_close (fd);
-      error ("Position %ld out of range in doc string file \"%s\"",
+      error ("Position %"pEd" out of range in doc string file \"%s\"",
 	     position, name);
     }
 
@@ -322,17 +323,20 @@ string is passed through `substitute-command-keys'.  */)
 {
   Lisp_Object fun;
   Lisp_Object funcar;
-  Lisp_Object tem, doc;
+  Lisp_Object doc;
   int try_reload = 1;
 
  documentation:
 
   doc = Qnil;
 
-  if (SYMBOLP (function)
-      && (tem = Fget (function, Qfunction_documentation),
-	  !NILP (tem)))
-    return Fdocumentation_property (function, Qfunction_documentation, raw);
+  if (SYMBOLP (function))
+    {
+      Lisp_Object tem = Fget (function, Qfunction_documentation);
+      if (!NILP (tem))
+	return Fdocumentation_property (function, Qfunction_documentation,
+					raw);
+    }
 
   fun = Findirect_function (function, Qnil);
   if (SUBRP (fun))
@@ -348,13 +352,16 @@ string is passed through `substitute-command-keys'.  */)
     {
       if ((ASIZE (fun) & PSEUDOVECTOR_SIZE_MASK) <= COMPILED_DOC_STRING)
 	return Qnil;
-      tem = AREF (fun, COMPILED_DOC_STRING);
-      if (STRINGP (tem))
-	doc = tem;
-      else if (NATNUMP (tem) || CONSP (tem))
-	doc = tem;
       else
-	return Qnil;
+	{
+	  Lisp_Object tem = AREF (fun, COMPILED_DOC_STRING);
+	  if (STRINGP (tem))
+	    doc = tem;
+	  else if (NATNUMP (tem) || CONSP (tem))
+	    doc = tem;
+	  else
+	    return Qnil;
+	}
     }
   else if (STRINGP (fun) || VECTORP (fun))
     {
@@ -368,11 +375,11 @@ string is passed through `substitute-command-keys'.  */)
       else if (EQ (funcar, Qkeymap))
 	return build_string ("Prefix command (definition is a keymap associating keystrokes with commands).");
       else if (EQ (funcar, Qlambda)
+	       || (EQ (funcar, Qclosure) && (fun = XCDR (fun), 1))
 	       || EQ (funcar, Qautoload))
 	{
-	  Lisp_Object tem1;
-	  tem1 = Fcdr (Fcdr (fun));
-	  tem = Fcar (tem1);
+	  Lisp_Object tem1 = Fcdr (Fcdr (fun));
+	  Lisp_Object tem = Fcar (tem1);
 	  if (STRINGP (tem))
 	    doc = tem;
 	  /* Handle a doc reference--but these never come last
@@ -475,7 +482,7 @@ aren't strings.  */)
     }
   else if (!STRINGP (tem))
     /* Feval protects its argument.  */
-    tem = Feval (tem);
+    tem = Feval (tem, Qnil);
 
   if (NILP (raw) && STRINGP (tem))
     tem = Fsubstitute_command_keys (tem);
@@ -502,7 +509,8 @@ store_function_docstring (Lisp_Object fun, EMACS_INT offset)
       Lisp_Object tem;
 
       tem = XCAR (fun);
-      if (EQ (tem, Qlambda) || EQ (tem, Qautoload))
+      if (EQ (tem, Qlambda) || EQ (tem, Qautoload)
+	  || (EQ (tem, Qclosure) && (fun = XCDR (fun), 1)))
 	{
 	  tem = Fcdr (Fcdr (fun));
 	  if (CONSP (tem) && INTEGERP (XCAR (tem)))
@@ -539,7 +547,7 @@ the same file name is found in the `doc-directory'.  */)
   char buf[1024 + 1];
   register EMACS_INT filled;
   register EMACS_INT pos;
-  register char *p, *end;
+  register char *p;
   Lisp_Object sym;
   char *name;
   int skip_file = 0;
@@ -598,6 +606,7 @@ the same file name is found in the `doc-directory'.  */)
   pos = 0;
   while (1)
     {
+      register char *end;
       if (filled < 512)
 	filled += emacs_read (fd, &buf[filled], sizeof buf - 1 - filled);
       if (!filled)
@@ -660,7 +669,7 @@ the same file name is found in the `doc-directory'.  */)
 		; /* Just a source file name boundary marker.  Ignore it.  */
 
 	      else
-		error ("DOC file invalid at position %d", pos);
+		error ("DOC file invalid at position %"pEd, pos);
 	    }
 	}
       pos += end - buf;

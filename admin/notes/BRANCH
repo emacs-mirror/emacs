@@ -23,3 +23,10 @@ on what branch at any time.
 If you are looking at this file in a branch other than the trunk,
 there may be some branch-specific documentation below this line.
 ________________________________________________________________________
+
+* elpa
+
+  This branch does not contain a copy of Emacs, but of the Emacs Lisp
+  package archive (elpa.gnu.org).  See admin/notes/elpa for further
+  explanation, and the README file in the branch for usage
+  instructions.

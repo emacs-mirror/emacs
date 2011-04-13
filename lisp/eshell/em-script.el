@@ -34,8 +34,9 @@ commands, as a script file."
 
 ;;; User Variables:
 
-(defcustom eshell-script-load-hook '(eshell-script-initialize)
+(defcustom eshell-script-load-hook nil
   "A list of functions to call when loading `eshell-script'."
+  :version "24.1"                       ; removed eshell-script-initialize
   :type 'hook
   :group 'eshell-script)
 

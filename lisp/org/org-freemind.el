@@ -1172,8 +1172,8 @@ PATH should be a list of steps, where each step has the form
     (when (< 0 (- level skip-levels))
       (dolist (attrib attributes)
         (case (car attrib)
-          ('TEXT (setq text (cdr attrib)))
-          ('text (setq text (cdr attrib)))))
+          (TEXT (setq text (cdr attrib)))
+          (text (setq text (cdr attrib)))))
       (unless text
         ;; There should be a richcontent node holding the text:
         (setq text (org-freemind-get-richcontent-node-text node)))
@@ -1193,7 +1193,7 @@ PATH should be a list of steps, where each step has the form
             (setq text (replace-regexp-in-string "\n $" "" text))
             (insert text))
         (case qname
-          ('node
+          (node
            (insert (make-string (- level skip-levels) ?*) " " text "\n")
            (when note
              (insert ":COMMENT:\n" note "\n:END:\n"))

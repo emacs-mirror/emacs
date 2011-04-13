@@ -1642,14 +1642,17 @@ line."
     (define-key map [down-mouse-2]
       (easy-menu-binding cal-menu-global-mouse-menu))
 
-    ;; Left-click moves us forward in time, right-click backwards.
     ;; cf scroll-bar.el.
-    (define-key map [vertical-scroll-bar mouse-1] 'calendar-scroll-left)
-    (define-key map [vertical-scroll-bar drag-mouse-1] 'calendar-scroll-left)
-    ;; down-mouse-2 stays as scroll-bar-drag.
-    (define-key map [vertical-scroll-bar mouse-3] 'calendar-scroll-right)
-    (define-key map [vertical-scroll-bar drag-mouse-3] 'calendar-scroll-right)
-
+    (if (and (boundp 'x-toolkit-scroll-bars) x-toolkit-scroll-bars)
+        (define-key map [vertical-scroll-bar mouse-1]
+          'calendar-scroll-toolkit-scroll)
+      ;; Left-click moves us forward in time, right-click backwards.
+      (define-key map [vertical-scroll-bar mouse-1] 'calendar-scroll-left)
+      (define-key map [vertical-scroll-bar drag-mouse-1] 'calendar-scroll-left)
+      ;; down-mouse-2 stays as scroll-bar-drag.
+      (define-key map [vertical-scroll-bar mouse-3] 'calendar-scroll-right)
+      (define-key map [vertical-scroll-bar drag-mouse-3]
+        'calendar-scroll-right))
     map)
   "Keymap for `calendar-mode'.")
 

@@ -26,9 +26,12 @@ AC_DEFUN([gl_EARLY],
   m4_pattern_allow([^gl_LIBOBJS$])dnl a variable
   m4_pattern_allow([^gl_LTLIBOBJS$])dnl a variable
   AC_REQUIRE([AC_PROG_RANLIB])
+  # Code from module allocator:
   # Code from module arg-nonnull:
   # Code from module c++defs:
+  # Code from module careadlinkat:
   # Code from module crypto/md5:
+  # Code from module dosname:
   # Code from module dtoastr:
   # Code from module extensions:
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
@@ -40,13 +43,20 @@ AC_DEFUN([gl_EARLY],
   # Code from module ignore-value:
   # Code from module include_next:
   # Code from module intprops:
+  # Code from module lstat:
   # Code from module mktime:
   # Code from module multiarch:
+  # Code from module readlink:
+  # Code from module socklen:
+  # Code from module ssize_t:
+  # Code from module stat:
   # Code from module stdbool:
   # Code from module stddef:
   # Code from module stdint:
+  # Code from module stdio:
   # Code from module stdlib:
   # Code from module strftime:
+  # Code from module symlink:
   # Code from module sys_stat:
   # Code from module time:
   # Code from module time_r:
@@ -70,10 +80,14 @@ AC_DEFUN([gl_INIT],
   m4_pushdef([gl_LIBSOURCES_DIR], [])
   gl_COMMON
   gl_source_base='lib'
+  # Code from module allocator:
   # Code from module arg-nonnull:
   # Code from module c++defs:
+  # Code from module careadlinkat:
+  AC_CHECK_FUNCS_ONCE([readlinkat])
   # Code from module crypto/md5:
   gl_MD5
+  # Code from module dosname:
   # Code from module dtoastr:
   AC_REQUIRE([gl_C99_STRTOLD])
   # Code from module extensions:
@@ -94,21 +108,39 @@ AC_DEFUN([gl_INIT],
   AC_REQUIRE([AC_C_INLINE])
   # Code from module include_next:
   # Code from module intprops:
+  # Code from module lstat:
+  gl_FUNC_LSTAT
+  gl_SYS_STAT_MODULE_INDICATOR([lstat])
   # Code from module mktime:
   gl_FUNC_MKTIME
   gl_TIME_MODULE_INDICATOR([mktime])
   # Code from module multiarch:
   gl_MULTIARCH
+  # Code from module readlink:
+  gl_FUNC_READLINK
+  gl_UNISTD_MODULE_INDICATOR([readlink])
+  # Code from module socklen:
+  gl_TYPE_SOCKLEN_T
+  # Code from module ssize_t:
+  gt_TYPE_SSIZE_T
+  # Code from module stat:
+  gl_FUNC_STAT
+  gl_SYS_STAT_MODULE_INDICATOR([stat])
   # Code from module stdbool:
   AM_STDBOOL_H
   # Code from module stddef:
   gl_STDDEF_H
   # Code from module stdint:
   gl_STDINT_H
+  # Code from module stdio:
+  gl_STDIO_H
   # Code from module stdlib:
   gl_STDLIB_H
   # Code from module strftime:
   gl_FUNC_GNU_STRFTIME
+  # Code from module symlink:
+  gl_FUNC_SYMLINK
+  gl_UNISTD_MODULE_INDICATOR([symlink])
   # Code from module sys_stat:
   gl_HEADER_SYS_STAT_H
   AC_PROG_MKDIR_P
@@ -263,6 +295,11 @@ AC_DEFUN([gl_FILE_LIST], [
   build-aux/arg-nonnull.h
   build-aux/c++defs.h
   build-aux/warn-on-use.h
+  lib/allocator.c
+  lib/allocator.h
+  lib/careadlinkat.c
+  lib/careadlinkat.h
+  lib/dosname.h
   lib/dtoastr.c
   lib/filemode.c
   lib/filemode.h
@@ -276,16 +313,21 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/gettext.h
   lib/ignore-value.h
   lib/intprops.h
+  lib/lstat.c
   lib/md5.c
   lib/md5.h
   lib/mktime-internal.h
   lib/mktime.c
+  lib/readlink.c
+  lib/stat.c
   lib/stdbool.in.h
   lib/stddef.in.h
   lib/stdint.in.h
+  lib/stdio.in.h
   lib/stdlib.in.h
   lib/strftime.c
   lib/strftime.h
+  lib/symlink.c
   lib/sys_stat.in.h
   lib/time.in.h
   lib/time_r.c
@@ -299,15 +341,22 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/gnulib-common.m4
   m4/include_next.m4
   m4/longlong.m4
+  m4/lstat.m4
   m4/md5.m4
   m4/mktime.m4
   m4/multiarch.m4
+  m4/readlink.m4
+  m4/socklen.m4
+  m4/ssize_t.m4
   m4/st_dm_mode.m4
+  m4/stat.m4
   m4/stdbool.m4
   m4/stddef_h.m4
   m4/stdint.m4
+  m4/stdio_h.m4
   m4/stdlib_h.m4
   m4/strftime.m4
+  m4/symlink.m4
   m4/sys_stat_h.m4
   m4/time_h.m4
   m4/time_r.m4

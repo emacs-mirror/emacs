@@ -1574,7 +1574,7 @@ If this can't be done, return NIL."
 	 (if calc-infinite-mode
 	     '(neg (var inf var-inf))
 	   (math-reject-arg x "*Logarithm of zero")))
-	(calc-symbolic-mode (signal 'inexact-result nil))
+        (calc-symbolic-mode (signal 'inexact-result nil))
 	((Math-numberp x)
 	 (math-with-extra-prec 2
 	   (let ((xf (math-float x)))

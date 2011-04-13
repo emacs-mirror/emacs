@@ -118,7 +118,7 @@ char_table_ascii (Lisp_Object table)
   return XSUB_CHAR_TABLE (sub)->contents[0];
 }
 
-Lisp_Object
+static Lisp_Object
 copy_sub_char_table (Lisp_Object table)
 {
   Lisp_Object copy;
@@ -215,17 +215,16 @@ sub_char_table_ref_and_range (Lisp_Object table, int c, int *from, int *to, Lisp
   struct Lisp_Sub_Char_Table *tbl = XSUB_CHAR_TABLE (table);
   int depth = XINT (tbl->depth);
   int min_char = XINT (tbl->min_char);
-  int max_char = min_char + chartab_chars[depth - 1] - 1;
-  int index = CHARTAB_IDX (c, depth, min_char), idx;
+  int chartab_idx = CHARTAB_IDX (c, depth, min_char), idx;
   Lisp_Object val;
 
-  val = tbl->contents[index];
+  val = tbl->contents[chartab_idx];
   if (SUB_CHAR_TABLE_P (val))
     val = sub_char_table_ref_and_range (val, c, from, to, defalt);
   else if (NILP (val))
     val = defalt;
 
-  idx = index;
+  idx = chartab_idx;
   while (idx > 0 && *from < min_char + idx * chartab_chars[depth])
     {
       Lisp_Object this_val;
@@ -244,13 +243,14 @@ sub_char_table_ref_and_range (Lisp_Object table, int c, int *from, int *to, Lisp
 	  break;
 	}
     }
-  while ((c = min_char + (index + 1) * chartab_chars[depth]) <= max_char
-	 && *to >= c)
+  while (((c = (chartab_idx + 1) * chartab_chars[depth])
+	  < chartab_chars[depth - 1])
+	 && (c += min_char) <= *to)
     {
       Lisp_Object this_val;
 
-      index++;
-      this_val = tbl->contents[index];
+      chartab_idx++;
+      this_val = tbl->contents[chartab_idx];
       if (SUB_CHAR_TABLE_P (this_val))
 	this_val = sub_char_table_ref_and_range (this_val, c, from, to, defalt);
       else if (NILP (this_val))
@@ -275,10 +275,10 @@ Lisp_Object
 char_table_ref_and_range (Lisp_Object table, int c, int *from, int *to)
 {
   struct Lisp_Char_Table *tbl = XCHAR_TABLE (table);
-  int index = CHARTAB_IDX (c, 0, 0), idx;
+  int chartab_idx = CHARTAB_IDX (c, 0, 0), idx;
   Lisp_Object val;
 
-  val = tbl->contents[index];
+  val = tbl->contents[chartab_idx];
   if (*from < 0)
     *from = 0;
   if (*to < 0)
@@ -288,7 +288,7 @@ char_table_ref_and_range (Lisp_Object table, int c, int *from, int *to)
   else if (NILP (val))
     val = tbl->defalt;
 
-  idx = index;
+  idx = chartab_idx;
   while (*from < idx * chartab_chars[0])
     {
       Lisp_Object this_val;
@@ -308,13 +308,13 @@ char_table_ref_and_range (Lisp_Object table, int c, int *from, int *to)
 	  break;
 	}
     }
-  while (*to >= (index + 1) * chartab_chars[0])
+  while (*to >= (chartab_idx + 1) * chartab_chars[0])
     {
       Lisp_Object this_val;
 
-      index++;
-      c = index * chartab_chars[0];
-      this_val = tbl->contents[index];
+      chartab_idx++;
+      c = chartab_idx * chartab_chars[0];
+      this_val = tbl->contents[chartab_idx];
       if (SUB_CHAR_TABLE_P (this_val))
 	this_val = sub_char_table_ref_and_range (this_val, c, from, to,
 						 tbl->defalt);
@@ -329,20 +329,6 @@ char_table_ref_and_range (Lisp_Object table, int c, int *from, int *to)
 
   return val;
 }
-
-
-#define ASET_RANGE(ARRAY, FROM, TO, LIMIT, VAL)				\
-  do {									\
-    int limit = (TO) < (LIMIT) ? (TO) : (LIMIT);			\
-    for (; (FROM) < limit; (FROM)++) (ARRAY)->contents[(FROM)] = (VAL);	\
-  } while (0)
-
-#define GET_SUB_CHAR_TABLE(TABLE, SUBTABLE, IDX, DEPTH, MIN_CHAR)	  \
-  do {									  \
-    (SUBTABLE) = (TABLE)->contents[(IDX)];				  \
-    if (!SUB_CHAR_TABLE_P (SUBTABLE))					  \
-      (SUBTABLE) = make_sub_char_table ((DEPTH), (MIN_CHAR), (SUBTABLE)); \
-  } while (0)
 
 
 static void
@@ -406,7 +392,8 @@ sub_char_table_set_range (Lisp_Object *table, int depth, int min_char, int from,
     *table = val;
   else
     {
-      int i, j;
+      int i;
+      unsigned j;
 
       depth++;
       if (! SUB_CHAR_TABLE_P (*table))
@@ -418,7 +405,7 @@ sub_char_table_set_range (Lisp_Object *table, int depth, int min_char, int from,
       i = CHARTAB_IDX (from, depth, min_char);
       j = CHARTAB_IDX (to, depth, min_char);
       min_char += chartab_chars[depth] * i;
-      for (; i <= j; i++, min_char += chartab_chars[depth])
+      for (j++; i < j; i++, min_char += chartab_chars[depth])
 	sub_char_table_set_range (XSUB_CHAR_TABLE (*table)->contents + i,
 				  depth, min_char, from, to, val);
     }
@@ -430,16 +417,16 @@ char_table_set_range (Lisp_Object table, int from, int to, Lisp_Object val)
 {
   struct Lisp_Char_Table *tbl = XCHAR_TABLE (table);
   Lisp_Object *contents = tbl->contents;
-  int i, min_char;
+  int i;
 
   if (from == to)
     char_table_set (table, from, val);
   else
     {
-      for (i = CHARTAB_IDX (from, 0, 0), min_char = i * chartab_chars[0];
-	   min_char <= to;
-	   i++, min_char += chartab_chars[0])
-	sub_char_table_set_range (contents + i, 0, min_char, from, to, val);
+      unsigned lim = to / chartab_chars[0] + 1;
+      for (i = CHARTAB_IDX (from, 0, 0); i < lim; i++)
+	sub_char_table_set_range (contents + i, 0, i * chartab_chars[0],
+				  from, to, val);
       if (ASCII_CHAR_P (from))
 	tbl->ascii = char_table_ascii (table);
     }
@@ -951,7 +938,7 @@ map_sub_char_table_for_charset (void (*c_function) (Lisp_Object, Lisp_Object),
    map_charset_chars.  */
 
 void
-map_char_table_for_charset (void (*c_function) (Lisp_Object, Lisp_Object), 
+map_char_table_for_charset (void (*c_function) (Lisp_Object, Lisp_Object),
 			    Lisp_Object function, Lisp_Object table, Lisp_Object arg,
 			    struct charset *charset,
 			    unsigned from, unsigned to)
@@ -1012,4 +999,3 @@ syms_of_chartab (void)
   defsubr (&Soptimize_char_table);
   defsubr (&Smap_char_table);
 }
-

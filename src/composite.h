@@ -126,27 +126,37 @@ extern Lisp_Object composition_temp;
 	->contents[(n) * 2 - 1])
 
 /* Decode encoded composition rule RULE_CODE into GREF (global
-   reference point code), NREF (new reference point code), XOFF
-   (horizontal offset) YOFF (vertical offset).  Don't check RULE_CODE,
+   reference point code), NREF (new ref. point code).  Don't check RULE_CODE;
    always set GREF and NREF to valid values.  By side effect,
    RULE_CODE is modified.  */
 
-#define COMPOSITION_DECODE_RULE(rule_code, gref, nref, xoff, yoff)	\
+#define COMPOSITION_DECODE_REFS(rule_code, gref, nref)			\
   do {									\
-    xoff = (rule_code) >> 16;						\
-    yoff = ((rule_code) >> 8) & 0xFF;					\
     rule_code &= 0xFF;							\
     gref = (rule_code) / 12;						\
     if (gref > 12) gref = 11;						\
     nref = (rule_code) % 12;						\
   } while (0)
 
+/* Like COMPOSITION_DECODE_REFS (RULE_CODE, GREF, NREF), but also
+   decode RULE_CODE into XOFF and YOFF (vertical offset).  */
+
+#define COMPOSITION_DECODE_RULE(rule_code, gref, nref, xoff, yoff)	\
+  do {									\
+    xoff = (rule_code) >> 16;						\
+    yoff = ((rule_code) >> 8) & 0xFF;					\
+    COMPOSITION_DECODE_REFS (rule_code, gref, nref);			\
+  } while (0)
+
+/* Nonzero if the global reference point GREF and new reference point NREF are
+   valid.  */
+#define COMPOSITION_ENCODE_RULE_VALID(gref, nref)	\
+  ((unsigned) (gref) < 12 && (unsigned) (nref) < 12)
+
 /* Return encoded composition rule for the pair of global reference
-   point GREF and new reference point NREF.  If arguments are invalid,
-   return -1. */
+   point GREF and new reference point NREF.  Arguments must be valid.  */
 #define COMPOSITION_ENCODE_RULE(gref, nref)		\
-  ((unsigned) (gref) < 12 && (unsigned) (nref) < 12	\
-   ? (gref) * 12 + (nref) : -1)
+  ((gref) * 12 + (nref))
 
 /* Data structure that records information about a composition
    currently used in some buffers or strings.
@@ -281,7 +291,7 @@ enum lglyph_indices
     else								\
       ASET ((g), LGLYPH_IX_CODE, make_number (val));			\
   } while (0)
-      
+
 #define LGLYPH_SET_WIDTH(g, val) ASET ((g), LGLYPH_IX_WIDTH, make_number (val))
 #define LGLYPH_SET_LBEARING(g, val) ASET ((g), LGLYPH_IX_LBEARING, make_number (val))
 #define LGLYPH_SET_RBEARING(g, val) ASET ((g), LGLYPH_IX_RBEARING, make_number (val))
@@ -300,7 +310,7 @@ struct composition_it;
 struct face;
 struct font_metrics;
 
-extern Lisp_Object composition_gstring_put_cache (Lisp_Object, int);
+extern Lisp_Object composition_gstring_put_cache (Lisp_Object, EMACS_INT);
 extern Lisp_Object composition_gstring_from_id (int);
 extern int composition_gstring_p (Lisp_Object);
 extern int composition_gstring_width (Lisp_Object, EMACS_INT, EMACS_INT,
@@ -321,4 +331,3 @@ extern EMACS_INT composition_adjust_point (EMACS_INT, EMACS_INT);
 EXFUN (Fcomposition_get_gstring, 4);
 
 #endif /* not EMACS_COMPOSITE_H */
-

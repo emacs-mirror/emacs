@@ -772,26 +772,29 @@ a previously found match."
     (define-key map "\C-c\C-f" 'next-error-follow-minor-mode)
     (define-key map [menu-bar] (make-sparse-keymap))
     (define-key map [menu-bar occur]
-      `(cons ,(purecopy "Occur") map))
+      (cons (purecopy "Occur") map))
     (define-key map [next-error-follow-minor-mode]
-      (menu-bar-make-mm-toggle next-error-follow-minor-mode
-			       "Auto Occurrence Display"
-			       "Display another occurrence when moving the cursor"))
+      `(menu-item ,(purecopy "Auto Occurrence Display")
+		  next-error-follow-minor-mode
+		  :help ,(purecopy
+			  "Display another occurrence when moving the cursor")
+		  :button (:toggle . (and (boundp 'next-error-follow-minor-mode)
+					  next-error-follow-minor-mode))))
     (define-key map [separator-1] menu-bar-separator)
     (define-key map [kill-this-buffer]
-      `(menu-item ,(purecopy "Kill occur buffer") kill-this-buffer
+      `(menu-item ,(purecopy "Kill Occur Buffer") kill-this-buffer
 		  :help ,(purecopy "Kill the current *Occur* buffer")))
     (define-key map [quit-window]
-      `(menu-item ,(purecopy "Quit occur window") quit-window
+      `(menu-item ,(purecopy "Quit Occur Window") quit-window
 		  :help ,(purecopy "Quit the current *Occur* buffer.  Bury it, and maybe delete the selected frame")))
     (define-key map [revert-buffer]
-      `(menu-item ,(purecopy "Revert occur buffer") revert-buffer
+      `(menu-item ,(purecopy "Revert Occur Buffer") revert-buffer
 		  :help ,(purecopy "Replace the text in the *Occur* buffer with the results of rerunning occur")))
     (define-key map [clone-buffer]
-      `(menu-item ,(purecopy "Clone occur buffer") clone-buffer
+      `(menu-item ,(purecopy "Clone Occur Buffer") clone-buffer
 		  :help ,(purecopy "Create and return a twin copy of the current *Occur* buffer")))
     (define-key map [occur-rename-buffer]
-      `(menu-item ,(purecopy "Rename occur buffer") occur-rename-buffer
+      `(menu-item ,(purecopy "Rename Occur Buffer") occur-rename-buffer
 		  :help ,(purecopy "Rename the current *Occur* buffer to *Occur: original-buffer-name*.")))
     (define-key map [separator-2] menu-bar-separator)
     (define-key map [occur-mode-goto-occurrence-other-window]
@@ -804,10 +807,10 @@ a previously found match."
       `(menu-item ,(purecopy "Display Occurrence") occur-mode-display-occurrence
 		  :help ,(purecopy "Display in another window the occurrence the current line describes")))
     (define-key map [occur-next]
-      `(menu-item ,(purecopy "Move to next match") occur-next
+      `(menu-item ,(purecopy "Move to Next Match") occur-next
 		  :help ,(purecopy "Move to the Nth (default 1) next match in an Occur mode buffer")))
     (define-key map [occur-prev]
-      `(menu-item ,(purecopy "Move to previous match") occur-prev
+      `(menu-item ,(purecopy "Move to Previous Match") occur-prev
 		  :help ,(purecopy "Move to the Nth (default 1) previous match in an Occur mode buffer")))
     map)
   "Keymap for `occur-mode'.")
@@ -1526,7 +1529,7 @@ N     (match-string N)           (where N is a string of digits)
 #&    (string-to-number (match-string 0))
 #     replace-count
 
-Note that these symbols must be preceeded by a backslash in order to
+Note that these symbols must be preceded by a backslash in order to
 type them using Lisp syntax."
   (while (consp n)
     (cond

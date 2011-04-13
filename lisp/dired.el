@@ -1,4 +1,4 @@
-;;; dired.el --- directory-browsing commands
+;;; dired.el --- directory-browsing commands -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1985-1986, 1992-1997, 2000-2011
 ;;   Free Software Foundation, Inc.
@@ -249,8 +249,18 @@ Local to each dired buffer.  May be a list, in which case the car is the
 directory name and the cdr is the list of files to mention.
 The directory name must be absolute, but need not be fully expanded.")
 
+;; Beware of "-l;reboot" etc.  See bug#3230.
+(defun dired-safe-switches-p (switches)
+  "Return non-nil if string SWITCHES does not look risky for dired."
+  (or (not switches)
+      (and (stringp switches)
+           (< (length switches) 100)    ; arbitrary
+           (string-match "\\` *-[- [:alnum:]]+\\'" switches))))
+
 (defvar dired-actual-switches nil
   "The value of `dired-listing-switches' used to make this buffer's text.")
+
+(put 'dired-actual-switches 'safe-local-variable 'dired-safe-switches-p)
 
 (defvar dired-re-inode-size "[0-9 \t]*"
   "Regexp for optional initial inode and file size as made by `ls -i -s'.")
@@ -601,9 +611,12 @@ Don't use that together with FILTER."
 	    (if current-prefix-arg
 		(read-string "Dired listing switches: "
 			     dired-listing-switches))
-	    ;; If a dialog is about to be used, call read-directory-name so
-	    ;; the dialog code knows we want directories.  Some dialogs can
-	    ;; only select directories or files when popped up, not both.
+	    ;; If a dialog is used, call `read-directory-name' so the
+	    ;; dialog code knows we want directories.  Some dialogs
+	    ;; can only select directories or files when popped up,
+	    ;; not both.  If no dialog is used, call `read-file-name'
+	    ;; because the user may want completion of file names for
+	    ;; use in a wildcard pattern.
 	    (if (next-read-file-uses-dialog-p)
 		(read-directory-name (format "Dired %s(directory): " str)
 				     nil default-directory nil)
@@ -1168,7 +1181,7 @@ If HDR is non-nil, insert a header line with the directory name."
 
 ;; Reverting a dired buffer
 
-(defun dired-revert (&optional arg noconfirm)
+(defun dired-revert (&optional _arg _noconfirm)
   "Reread the dired buffer.
 Must also be called after `dired-actual-switches' have changed.
 Should not fail even on completely garbaged buffers.
@@ -2131,7 +2144,7 @@ Optional arg GLOBAL means to replace all matches."
   ;; dired-get-filename.
   (concat (or dir default-directory) file))
 
-(defun dired-make-relative (file &optional dir ignore)
+(defun dired-make-relative (file &optional dir _ignore)
   "Convert FILE (an absolute file name) to a name relative to DIR.
 If this is impossible, return FILE unchanged.
 DIR must be a directory name, not a file name."
@@ -3207,7 +3220,7 @@ Type \\[help-command] at that time for help."
   (interactive "cRemove marks (RET means all): \nP")
   (save-excursion
     (let* ((count 0)
-	   (inhibit-read-only t) case-fold-search query
+	   (inhibit-read-only t) case-fold-search
 	   (string (format "\n%c" mark))
 	   (help-form "\
 Type SPC or `y' to unmark one file, DEL or `n' to skip to next,
@@ -3483,6 +3496,8 @@ Anything else means ask for each directory."
 (declare-function dnd-get-local-file-name "dnd" (uri &optional must-exist))
 (declare-function dnd-get-local-file-uri "dnd" (uri))
 
+(defvar dired-overwrite-confirmed)      ;Defined in dired-aux.
+
 (defun dired-dnd-handle-local-file (uri action)
   "Copy, move or link a file to the dired directory.
 URI is the file to handle, ACTION is one of copy, move, link or ask.
@@ -3544,38 +3559,38 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 
 (eval-when-compile (require 'desktop))
 
-(defun dired-desktop-buffer-misc-data (desktop-dirname)
+(defun dired-desktop-buffer-misc-data (dirname)
   "Auxiliary information to be saved in desktop file."
   (cons
    ;; Value of `dired-directory'.
    (if (consp dired-directory)
        ;; Directory name followed by list of files.
-       (cons (desktop-file-name (car dired-directory) desktop-dirname)
+       (cons (desktop-file-name (car dired-directory) dirname)
              (cdr dired-directory))
      ;; Directory name, optionally with shell wildcard.
-     (desktop-file-name dired-directory desktop-dirname))
+     (desktop-file-name dired-directory dirname))
    ;; Subdirectories in `dired-subdir-alist'.
    (cdr
      (nreverse
        (mapcar
-         (function (lambda (f) (desktop-file-name (car f) desktop-dirname)))
+         (function (lambda (f) (desktop-file-name (car f) dirname)))
          dired-subdir-alist)))))
 
-(defun dired-restore-desktop-buffer (desktop-buffer-file-name
-                                     desktop-buffer-name
-                                     desktop-buffer-misc)
+(defun dired-restore-desktop-buffer (_file-name
+                                     _buffer-name
+                                     misc-data)
   "Restore a dired buffer specified in a desktop file."
-  ;; First element of `desktop-buffer-misc' is the value of `dired-directory'.
+  ;; First element of `misc-data' is the value of `dired-directory'.
   ;; This value is a directory name, optionally with shell wildcard or
   ;; a directory name followed by list of files.
-  (let* ((dired-dir (car desktop-buffer-misc))
+  (let* ((dired-dir (car misc-data))
          (dir (if (consp dired-dir) (car dired-dir) dired-dir)))
     (if (file-directory-p (file-name-directory dir))
         (progn
           (dired dired-dir)
-          ;; The following elements of `desktop-buffer-misc' are the keys
+          ;; The following elements of `misc-data' are the keys
           ;; from `dired-subdir-alist'.
-          (mapc 'dired-maybe-insert-subdir (cdr desktop-buffer-misc))
+          (mapc 'dired-maybe-insert-subdir (cdr misc-data))
           (current-buffer))
       (message "Desktop: Directory %s no longer exists." dir)
       (when desktop-missing-file-warning (sit-for 1))
@@ -3602,7 +3617,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
 ;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
 ;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "9d6333fab9c0f1b49e0bf2a536b8f245")
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "0488aa71a7abdb8dcc9ce90201114ebc")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\
@@ -3739,7 +3754,7 @@ can be produced by `dired-get-marked-files', for example.
 \(fn COMMAND &optional ARG FILE-LIST)" t nil)
 
 (autoload 'dired-run-shell-command "dired-aux" "\
-Not documented
+
 
 \(fn COMMAND)" nil nil)
 
@@ -3758,7 +3773,7 @@ command with a prefix argument (the value does not matter).
 \(fn &optional ARG FMT)" t nil)
 
 (autoload 'dired-compress-file "dired-aux" "\
-Not documented
+
 
 \(fn FILE)" nil nil)
 
@@ -3807,12 +3822,12 @@ See Info node `(emacs)Subdir switches' for more details.
 \(fn &optional ARG TEST-FOR-SUBDIR)" t nil)
 
 (autoload 'dired-add-file "dired-aux" "\
-Not documented
+
 
 \(fn FILENAME &optional MARKER-CHAR)" nil nil)
 
 (autoload 'dired-remove-file "dired-aux" "\
-Not documented
+
 
 \(fn FILE)" nil nil)
 
@@ -3822,17 +3837,18 @@ Create or update the line for FILE in all Dired buffers it would belong in.
 \(fn FILE)" nil nil)
 
 (autoload 'dired-copy-file "dired-aux" "\
-Not documented
+
 
 \(fn FROM TO OK-FLAG)" nil nil)
 
 (autoload 'dired-rename-file "dired-aux" "\
-Not documented
+
 
 \(fn FILE NEWNAME OK-IF-ALREADY-EXISTS)" nil nil)
 
 (autoload 'dired-create-directory "dired-aux" "\
 Create a directory called DIRECTORY.
+If DIRECTORY already exists, signal an error.
 
 \(fn DIRECTORY)" t nil)
 
@@ -4060,8 +4076,8 @@ true then the type of the file linked to by FILE is printed instead.
 
 ;;;***
 
-;;;### (autoloads (dired-do-relsymlink dired-jump) "dired-x" "dired-x.el"
-;;;;;;  "c24f202ea049990539accfd4c2c73fe9")
+;;;### (autoloads (dired-do-relsymlink dired-jump-other-window dired-jump)
+;;;;;;  "dired-x" "dired-x.el" "87fd4ae2fdade7e0f11c4a0b1cfdeda2")
 ;;; Generated autoloads from dired-x.el
 
 (autoload 'dired-jump "dired-x" "\
@@ -4075,6 +4091,11 @@ Interactively with prefix argument, read FILE-NAME and
 move to its line in dired.
 
 \(fn &optional OTHER-WINDOW FILE-NAME)" t nil)
+
+(autoload 'dired-jump-other-window "dired-x" "\
+Like \\[dired-jump] (`dired-jump') but in other window.
+
+\(fn &optional FILE-NAME)" t nil)
 
 (autoload 'dired-do-relsymlink "dired-x" "\
 Relative symlink all marked (or next ARG) files into a directory.

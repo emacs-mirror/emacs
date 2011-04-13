@@ -25,6 +25,9 @@
 ;; Converts text to Morse code and back with M-x morse-region and
 ;; M-x unmorse-region (though Morse code is no longer official :-().
 
+;; Converts text to NATO phonetic alphabet and back with M-x
+;; nato-region and M-x denato-region.
+
 ;;; Code:
 
 (defvar morse-code '(("a" . ".-")
@@ -91,10 +94,64 @@
 		     ("@" . ".--.-."))
   "Morse code character set.")
 
+(defvar nato-alphabet '(("a" . "Alfa")
+			("b" . "Bravo")
+			("c" . "Charlie")
+			("d" . "Delta")
+			("e" . "Echo")
+			("f" . "Foxtrot")
+			("g" . "Golf")
+			("h" . "Hotel")
+			("i" . "India")
+			("j" . "Juliett")
+			("k" . "Kilo")
+			("l" . "Lima")
+			("m" . "Mike")
+			("n" . "November")
+			("o" . "Oscar")
+			("p" . "Papa")
+			("q" . "Quebec")
+			("r" . "Romeo")
+			("s" . "Sierra")
+			("t" . "Tango")
+			("u" . "Uniform")
+			("v" . "Victor")
+			("w" . "Whiskey")
+			("x" . "Xray")
+			("y" . "Yankee")
+			("z" . "Zulu")
+			;; Numbers
+			("0" . "Zero")
+			("1" . "One")
+			("2" . "Two")
+			("3" . "Three")
+			("4" . "Four")
+			("5" . "Five")
+			("6" . "Six")
+			("7" . "Seven")
+			("8" . "Eight")
+			("9" . "Niner")
+			;; Punctuation is not part of standard
+			("=" . "Equals")
+			("?" . "Query")
+			("/" . "Slash")
+			("," . "Comma")
+			("." . "Stop")
+			(":" . "Colon")
+			("'" . "Apostrophe")
+			("-" . "Dash")
+			("(" . "Open")
+			(")" . "Close")
+			("@" . "At"))
+  "NATO phonetic alphabet.
+See ''International Code of Signals'' (INTERCO), United States
+Edition, 1969 Edition (Revised 2003) available from National
+Geospatial-Intelligence Agency at http://www.nga.mil/")
+
 ;;;###autoload
 (defun morse-region (beg end)
   "Convert all text in a given region to morse code."
-  (interactive "r")
+  (interactive "*r")
   (if (integerp end)
       (setq end (copy-marker end)))
   (save-excursion
@@ -117,7 +174,7 @@
 ;;;###autoload
 (defun unmorse-region (beg end)
   "Convert morse coded text in region to ordinary ASCII text."
-  (interactive "r")
+  (interactive "*r")
   (if (integerp end)
       (setq end (copy-marker end)))
   (save-excursion
@@ -134,6 +191,53 @@
 		      (if (setq paren (null paren)) "(" ")")
 		    (car morse)) t)
 	    (if (looking-at "/")
+		(delete-char 1))))))))
+
+;;;###autoload
+(defun nato-region (beg end)
+  "Convert all text in a given region to NATO phonetic alphabet."
+  ;; Copied from morse-region. -- ashawley 2009-02-10
+  (interactive "*r")
+  (if (integerp end)
+      (setq end (copy-marker end)))
+  (save-excursion
+    (let ((sep "")
+	  str nato)
+      (goto-char beg)
+      (while (< (point) end)
+	(setq str (downcase (buffer-substring (point) (1+ (point)))))
+	(cond ((looking-at "\\s-+")
+	       (goto-char (match-end 0))
+	       (setq sep ""))
+	      ((setq nato (assoc str nato-alphabet))
+	       (delete-char 1)
+	       (insert sep (cdr nato))
+	       (setq sep "-"))
+	      (t
+	       (forward-char 1)
+	       (setq sep "")))))))
+
+;;;###autoload
+(defun denato-region (beg end)
+  "Convert NATO phonetic alphabet in region to ordinary ASCII text."
+  ;; Copied from unmorse-region. -- ashawley 2009-02-10
+  (interactive "*r")
+  (if (integerp end)
+      (setq end (copy-marker end)))
+  (save-excursion
+    (let (str paren nato)
+      (goto-char beg)
+      (while (< (point) end)
+	(if (null (looking-at "[a-z]+"))
+	    (forward-char 1)
+	  (setq str (buffer-substring (match-beginning 0) (match-end 0)))
+	  (if (null (setq nato (rassoc (capitalize str) nato-alphabet)))
+	      (goto-char (match-end 0))
+	    (replace-match
+		  (if (string-equal "(" (car nato))
+		      (if (setq paren (null paren)) "(" ")")
+		    (car nato)) t)
+	    (if (looking-at "-")
 		(delete-char 1))))))))
 
 (provide 'morse)

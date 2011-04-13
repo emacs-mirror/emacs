@@ -1,4 +1,5 @@
-;;; doc-view.el --- View PDF/PostScript/DVI files in Emacs
+;;; doc-view.el --- View PDF/PostScript/DVI files in Emacs -*- lexical-binding: t -*-
+
 
 ;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
 ;;
@@ -155,7 +156,7 @@
 
 (defcustom doc-view-ghostscript-options
   '("-dSAFER" ;; Avoid security problems when rendering files from untrusted
-	      ;; sources.
+    ;; sources.
     "-dNOPAUSE" "-sDEVICE=png16m" "-dTextAlphaBits=4"
     "-dBATCH" "-dGraphicsAlphaBits=4" "-dQUIET")
   "A list of options to give to ghostscript."
@@ -327,6 +328,10 @@ Can be `dvi', `pdf', or `ps'.")
     ;; Zoom in/out.
     (define-key map "+"               'doc-view-enlarge)
     (define-key map "-"               'doc-view-shrink)
+    ;; Fit the image to the window
+    (define-key map "W"               'doc-view-fit-width-to-window)
+    (define-key map "H"               'doc-view-fit-height-to-window)
+    (define-key map "P"               'doc-view-fit-page-to-window)
     ;; Killing the buffer (and the process)
     (define-key map (kbd "k")         'doc-view-kill-proc-and-buffer)
     (define-key map (kbd "K")         'doc-view-kill-proc)
@@ -442,9 +447,7 @@ Can be `dvi', `pdf', or `ps'.")
                  doc-view-current-converter-processes)
         ;; The PNG file hasn't been generated yet.
         (doc-view-pdf->png-1 doc-view-buffer-file-name file page
-                             (lexical-let ((page page)
-                                           (win (selected-window))
-                                           (file file))
+                             (let ((win (selected-window)))
                                (lambda ()
                                  (and (eq (current-buffer) (window-buffer win))
                                       ;; If we changed page in the mean
@@ -453,7 +456,7 @@ Can be `dvi', `pdf', or `ps'.")
                                       ;; Make sure we don't infloop.
                                       (file-readable-p file)
                                       (with-selected-window win
-                                        (doc-view-goto-page page))))))))
+							    (doc-view-goto-page page))))))))
     (overlay-put (doc-view-current-overlay)
                  'help-echo (doc-view-current-info))))
 
@@ -665,6 +668,78 @@ OpenDocument format)."
   (interactive (list doc-view-shrink-factor))
   (doc-view-enlarge (/ 1.0 factor)))
 
+(defun doc-view-fit-width-to-window ()
+  "Fit the image width to the window width."
+  (interactive)
+  (let ((win-width (- (nth 2 (window-inside-pixel-edges))
+                      (nth 0 (window-inside-pixel-edges))))
+        (slice (doc-view-current-slice)))
+    (if (not slice)
+        (let ((img-width (car (image-display-size
+                               (image-get-display-property) t))))
+          (doc-view-enlarge (/ (float win-width) (float img-width))))
+
+      ;; If slice is set
+      (let* ((slice-width (nth 2 slice))
+             (scale-factor (/ (float win-width) (float slice-width)))
+             (new-slice (mapcar (lambda (x) (ceiling (* scale-factor x))) slice)))
+
+        (doc-view-enlarge scale-factor)
+        (setf (doc-view-current-slice) new-slice)
+        (doc-view-goto-page (doc-view-current-page))))))
+
+(defun doc-view-fit-height-to-window ()
+  "Fit the image height to the window height."
+  (interactive)
+  (let ((win-height (- (nth 3 (window-inside-pixel-edges))
+                       (nth 1 (window-inside-pixel-edges))))
+        (slice (doc-view-current-slice)))
+    (if (not slice)
+        (let ((img-height (cdr (image-display-size
+                                (image-get-display-property) t))))
+          ;; When users call 'doc-view-fit-height-to-window',
+          ;; they might want to go to next page by typing SPC
+          ;; ONLY once. So I used '(- win-height 1)' instead of
+          ;; 'win-height'
+          (doc-view-enlarge (/ (float (- win-height 1)) (float img-height))))
+
+      ;; If slice is set
+      (let* ((slice-height (nth 3 slice))
+             (scale-factor (/ (float (- win-height 1)) (float slice-height)))
+             (new-slice (mapcar (lambda (x) (ceiling (* scale-factor x))) slice)))
+
+        (doc-view-enlarge scale-factor)
+        (setf (doc-view-current-slice) new-slice)
+        (doc-view-goto-page (doc-view-current-page))))))
+
+(defun doc-view-fit-page-to-window ()
+  "Fit the image to the window.
+More specifically, this function enlarges image by:
+
+min {(window-width / image-width), (window-height / image-height)} times."
+  (interactive)
+  (let ((win-width (- (nth 2 (window-inside-pixel-edges))
+                      (nth 0 (window-inside-pixel-edges))))
+        (win-height (- (nth 3 (window-inside-pixel-edges))
+                       (nth 1 (window-inside-pixel-edges))))
+        (slice (doc-view-current-slice)))
+    (if (not slice)
+        (let ((img-width (car (image-display-size
+                               (image-get-display-property) t)))
+              (img-height (cdr (image-display-size
+                                (image-get-display-property) t))))
+          (doc-view-enlarge (min (/ (float win-width) (float img-width))
+                                 (/ (float (- win-height 1)) (float img-height)))))
+      ;; If slice is set
+      (let* ((slice-width (nth 2 slice))
+             (slice-height (nth 3 slice))
+             (scale-factor (min (/ (float win-width) (float slice-width))
+                                (/ (float (- win-height 1)) (float slice-height))))
+             (new-slice (mapcar (lambda (x) (ceiling (* scale-factor x))) slice)))
+        (doc-view-enlarge scale-factor)
+        (setf (doc-view-current-slice) new-slice)
+        (doc-view-goto-page (doc-view-current-page))))))
+
 (defun doc-view-reconvert-doc ()
   "Reconvert the current document.
 Should be invoked when the cached images aren't up-to-date."
@@ -713,8 +788,8 @@ Should be invoked when the cached images aren't up-to-date."
   (if (and doc-view-dvipdf-program
 	   (executable-find doc-view-dvipdf-program))
       (doc-view-start-process "dvi->pdf" doc-view-dvipdf-program
-			    (list dvi pdf)
-			    callback)
+			      (list dvi pdf)
+			      callback)
     (doc-view-start-process "dvi->pdf" doc-view-dvipdfm-program
 			    (list "-o" pdf dvi)
 			    callback)))
@@ -735,7 +810,7 @@ is named like ODF with the extension turned to pdf."
            (list (format "-r%d" (round doc-view-resolution))
                  (concat "-sOutputFile=" png)
                  pdf-ps))
-   (lexical-let ((resolution doc-view-resolution))
+   (let ((resolution doc-view-resolution))
      (lambda ()
        ;; Only create the resolution file when it's all done, so it also
        ;; serves as a witness that the conversion is complete.
@@ -780,7 +855,7 @@ Start by converting PAGES, and then the rest."
     ;; (almost) consecutive, but since in 99% of the cases, there'll be only
     ;; a single page anyway, and of the remaining 1%, few cases will have
     ;; consecutive pages, it's not worth the trouble.
-    (lexical-let ((pdf pdf) (png png) (rest (cdr pages)))
+    (let ((rest (cdr pages)))
       (doc-view-pdf->png-1
        pdf (format png (car pages)) (car pages)
        (lambda ()
@@ -793,8 +868,8 @@ Start by converting PAGES, and then the rest."
            ;; not sufficient.
            (dolist (win (get-buffer-window-list (current-buffer) nil 'visible))
              (with-selected-window win
-               (when (stringp (get-char-property (point-min) 'display))
-                 (doc-view-goto-page (doc-view-current-page)))))
+				   (when (stringp (get-char-property (point-min) 'display))
+				     (doc-view-goto-page (doc-view-current-page)))))
            ;; Convert the rest of the pages.
            (doc-view-pdf/ps->png pdf png)))))))
 
@@ -816,10 +891,8 @@ Start by converting PAGES, and then the rest."
     (ps
      ;; Doc is a PS, so convert it to PDF (which will be converted to
      ;; TXT thereafter).
-     (lexical-let ((pdf (expand-file-name "doc.pdf"
-                                          (doc-view-current-cache-dir)))
-                   (txt txt)
-                   (callback callback))
+     (let ((pdf (expand-file-name "doc.pdf"
+				  (doc-view-current-cache-dir))))
        (doc-view-ps->pdf doc-view-buffer-file-name pdf
                          (lambda () (doc-view-pdf->txt pdf txt callback)))))
     (dvi
@@ -873,9 +946,7 @@ Those files are saved in the directory given by the function
       (dvi
        ;; DVI files have to be converted to PDF before Ghostscript can process
        ;; it.
-       (lexical-let
-           ((pdf (expand-file-name "doc.pdf" doc-view-current-cache-dir))
-            (png-file png-file))
+       (let ((pdf (expand-file-name "doc.pdf" doc-view-current-cache-dir)))
          (doc-view-dvi->pdf doc-view-buffer-file-name pdf
                             (lambda () (doc-view-pdf/ps->png pdf png-file)))))
       (odf
@@ -1026,8 +1097,8 @@ have the page we want to view."
 		    (and (not (member pagefile prev-pages))
 			 (member pagefile doc-view-current-files)))
 	    (with-selected-window win
-	      (assert (eq (current-buffer) buffer))
-	      (doc-view-goto-page page))))))))
+				  (assert (eq (current-buffer) buffer))
+				  (doc-view-goto-page page))))))))
 
 (defun doc-view-buffer-message ()
   ;; Only show this message initially, not when refreshing the buffer (in which
@@ -1470,9 +1541,9 @@ See the command `doc-view-mode' for more information on this mode."
       (when (not (eq major-mode 'doc-view-mode))
         (doc-view-toggle-display))
       (with-selected-window
-          (or (get-buffer-window (current-buffer) 0)
-              (selected-window))
-        (doc-view-goto-page page)))))
+       (or (get-buffer-window (current-buffer) 0)
+	   (selected-window))
+       (doc-view-goto-page page)))))
 
 
 (provide 'doc-view)

@@ -1,4 +1,4 @@
-;;; diff-mode.el --- a mode for viewing/editing context diffs
+;;; diff-mode.el --- a mode for viewing/editing context diffs -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1998-2011  Free Software Foundation, Inc.
 
@@ -122,8 +122,7 @@ when editing big diffs)."
     ("\C-m" . diff-goto-source)
     ([mouse-2] . diff-goto-source)
     ;; From XEmacs' diff-mode.
-    ;; Standard M-w is useful, so don't change M-W.
-    ;;("W" . widen)
+    ("W" . widen)
     ;;("." . diff-goto-source)		;display-buffer
     ;;("f" . diff-goto-source)		;find-file
     ("o" . diff-goto-source)		;other-window
@@ -135,17 +134,21 @@ when editing big diffs)."
     ;; Not useful if you have to metafy them.
     ;;(" " . scroll-up)
     ;;("\177" . scroll-down)
-    ;; Standard M-a is useful, so don't change M-A.
-    ;;("A" . diff-ediff-patch)
-    ;; Standard M-r is useful, so don't change M-r or M-R.
-    ;;("r" . diff-restrict-view)
-    ;;("R" . diff-reverse-direction)
-    )
+    ("A" . diff-ediff-patch)
+    ("r" . diff-restrict-view)
+    ("R" . diff-reverse-direction))
   "Basic keymap for `diff-mode', bound to various prefix keys."
   :inherit special-mode-map)
 
 (easy-mmode-defmap diff-mode-map
-  `(("\e" . ,diff-mode-shared-map)
+  `(("\e" . ,(let ((map (make-sparse-keymap)))
+               ;; We want to inherit most bindings from diff-mode-shared-map,
+               ;; but not all since they may hide useful M-<foo> global
+               ;; bindings when editing.
+               (set-keymap-parent map diff-mode-shared-map)
+               (dolist (key '("A" "r" "R" "g" "q" "W"))
+                 (define-key map key nil))
+               map))
     ;; From compilation-minor-mode.
     ("\C-c\C-c" . diff-goto-source)
     ;; By analogy with the global C-x 4 a binding.
@@ -811,7 +814,7 @@ PREFIX is only used internally: don't use it."
 (defun diff-ediff-patch ()
   "Call `ediff-patch-file' on the current buffer."
   (interactive)
-  (condition-case err
+  (condition-case nil
       (ediff-patch-file nil (current-buffer))
     (wrong-number-of-arguments (ediff-patch-file))))
 
@@ -1168,7 +1171,7 @@ else cover the whole buffer."
 ;; *-change-function is asking for trouble, whereas making them
 ;; from a post-command-hook doesn't pose much problems
 (defvar diff-unhandled-changes nil)
-(defun diff-after-change-function (beg end len)
+(defun diff-after-change-function (beg end _len)
   "Remember to fixup the hunk header.
 See `after-change-functions' for the meaning of BEG, END and LEN."
   ;; Ignoring changes when inhibit-read-only is set is strictly speaking
@@ -1266,7 +1269,7 @@ a diff with \\[diff-reverse-direction].
 
   ;; Set up `whitespace-mode' so that turning it on will show trailing
   ;; whitespace problems on the modified lines of the diff.
-  (set (make-local-variable 'whitespace-style) '(trailing))
+  (set (make-local-variable 'whitespace-style) '(face trailing))
   (set (make-local-variable 'whitespace-trailing-regexp)
        "^[-\+!<>].*?\\([\t ]+\\)$")
 
@@ -1278,7 +1281,7 @@ a diff with \\[diff-reverse-direction].
     (add-hook 'after-change-functions 'diff-after-change-function nil t)
     (add-hook 'post-command-hook 'diff-post-command-hook nil t))
   ;; Neat trick from Dave Love to add more bindings in read-only mode:
-  (lexical-let ((ro-bind (cons 'buffer-read-only diff-mode-shared-map)))
+  (let ((ro-bind (cons 'buffer-read-only diff-mode-shared-map)))
     (add-to-list 'minor-mode-overriding-map-alist ro-bind)
     ;; Turn off this little trick in case the buffer is put in view-mode.
     (add-hook 'view-mode-hook
@@ -1690,7 +1693,7 @@ With a prefix argument, REVERSE the hunk."
   "See whether it's possible to apply the current hunk.
 With a prefix argument, try to REVERSE the hunk."
   (interactive "P")
-  (destructuring-bind (buf line-offset pos src dst &optional switched)
+  (destructuring-bind (buf line-offset pos src _dst &optional switched)
       (diff-find-source-location nil reverse)
     (set-window-point (display-buffer buf) (+ (car pos) (cdr src)))
     (diff-hunk-status-msg line-offset (diff-xor reverse switched) t)))
@@ -1710,7 +1713,7 @@ then `diff-jump-to-old-file' is also set, for the next invocations."
   ;; This is a convenient detail when using smerge-diff.
   (if event (posn-set-point (event-end event)))
   (let ((rev (not (save-excursion (beginning-of-line) (looking-at "[-<]")))))
-    (destructuring-bind (buf line-offset pos src dst &optional switched)
+    (destructuring-bind (buf line-offset pos src _dst &optional switched)
 	(diff-find-source-location other-file rev)
       (pop-to-buffer buf)
       (goto-char (+ (car pos) (cdr src)))
@@ -1728,7 +1731,7 @@ For use in `add-log-current-defun-function'."
     (when (looking-at diff-hunk-header-re)
       (forward-line 1)
       (re-search-forward "^[^ ]" nil t))
-    (destructuring-bind (&optional buf line-offset pos src dst switched)
+    (destructuring-bind (&optional buf _line-offset pos src dst switched)
         ;; Use `noprompt' since this is used in which-func-mode and such.
 	(ignore-errors                ;Signals errors in place of prompting.
           (diff-find-source-location nil nil 'noprompt))
@@ -1876,28 +1879,27 @@ I.e. like `add-change-log-entry-other-window' but applied to all hunks."
   ;; good to call it for each change.
   (save-excursion
     (goto-char (point-min))
-    (let ((orig-buffer (current-buffer)))
-      (condition-case nil
-	  ;; Call add-change-log-entry-other-window for each hunk in
-	  ;; the diff buffer.
-	  (while (progn
-                   (diff-hunk-next)
-                   ;; Move to where the changes are,
-                   ;; `add-change-log-entry-other-window' works better in
-                   ;; that case.
-                   (re-search-forward
-                    (concat "\n[!+-<>]"
-                            ;; If the hunk is a context hunk with an empty first
-                            ;; half, recognize the "--- NNN,MMM ----" line
-                            "\\(-- [0-9]+\\(,[0-9]+\\)? ----\n"
-                            ;; and skip to the next non-context line.
-                            "\\( .*\n\\)*[+]\\)?")
-                    nil t))
-            (save-excursion
-              ;; FIXME: this pops up windows of all the buffers.
-              (add-change-log-entry nil nil t nil t)))
-        ;; When there's no more hunks, diff-hunk-next signals an error.
-	(error nil)))))
+    (condition-case nil
+        ;; Call add-change-log-entry-other-window for each hunk in
+        ;; the diff buffer.
+        (while (progn
+                 (diff-hunk-next)
+                 ;; Move to where the changes are,
+                 ;; `add-change-log-entry-other-window' works better in
+                 ;; that case.
+                 (re-search-forward
+                  (concat "\n[!+-<>]"
+                          ;; If the hunk is a context hunk with an empty first
+                          ;; half, recognize the "--- NNN,MMM ----" line
+                          "\\(-- [0-9]+\\(,[0-9]+\\)? ----\n"
+                          ;; and skip to the next non-context line.
+                          "\\( .*\n\\)*[+]\\)?")
+                  nil t))
+          (save-excursion
+            ;; FIXME: this pops up windows of all the buffers.
+            (add-change-log-entry nil nil t nil t)))
+      ;; When there's no more hunks, diff-hunk-next signals an error.
+      (error nil))))
 
 ;; provide the package
 (provide 'diff-mode)

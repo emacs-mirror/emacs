@@ -1,3 +1,20 @@
+2011-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/lexbind-tests.el: New file.
+
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
+2011-03-05  Glenn Morris  <rgm@gnu.org>
+
+	* eshell.el: Move here from lisp/eshell/esh-test.el.
+
+2011-03-03  Christian Ohler  <ohler@gnu.org>
+
+	* automated/ert-tests.el (ert-test-explain-not-equal-keymaps):
+	New test.
+
 2011-02-20  Ulf Jasper  <ulf.jasper@web.de>
 
 	* automated/icalendar-tests.el: Move from icalendar-testsuite.el;

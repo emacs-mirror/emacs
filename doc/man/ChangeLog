@@ -1,3 +1,7 @@
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
 2011-01-02  Jari Aalto  <jari.aalto@cante.net>  (tiny change)
 
 	* emacsclient.1: Arrange options alphabetically (Bug#7620).

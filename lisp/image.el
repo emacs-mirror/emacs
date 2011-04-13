@@ -60,7 +60,7 @@ IMAGE-TYPE must be a pair (PREDICATE . TYPE).  PREDICATE is called
 with one argument, a string containing the image data.  If PREDICATE returns
 a non-nil value, TYPE is the image's type.")
 
-(defconst image-type-file-name-regexps
+(defvar image-type-file-name-regexps
   '(("\\.png\\'" . png)
     ("\\.gif\\'" . gif)
     ("\\.jpe?g\\'" . jpeg)
@@ -710,17 +710,19 @@ shall be displayed."
 ;;;###autoload
 (defun imagemagick-register-types ()
   "Register the file types that ImageMagick is able to handle."
-  (let ((im-types (imagemagick-types)))
-    (dolist (im-inhibit imagemagick-types-inhibit)
-      (setq im-types (remove im-inhibit im-types)))
-    (dolist (im-type im-types)
-      (let ((extension (downcase (symbol-name im-type))))
-	(push
-	 (cons (concat "\\." extension "\\'") 'image-mode)
-	 auto-mode-alist)
-	(push
-	 (cons (concat "\\." extension "\\'") 'imagemagick)
-	 image-type-file-name-regexps)))))
+  (if (fboundp 'imagemagick-types)
+      (let ((im-types (imagemagick-types)))
+	(dolist (im-inhibit imagemagick-types-inhibit)
+	  (setq im-types (remove im-inhibit im-types)))
+	(dolist (im-type im-types)
+	  (let ((extension (downcase (symbol-name im-type))))
+	    (push
+	     (cons (concat "\\." extension "\\'") 'image-mode)
+	     auto-mode-alist)
+	    (push
+	     (cons (concat "\\." extension "\\'") 'imagemagick)
+	     image-type-file-name-regexps))))
+    (error "Emacs was not built with ImageMagick support")))
 
 (provide 'image)
 

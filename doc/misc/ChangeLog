@@ -1,3 +1,102 @@
+2011-03-19  Antoine Levitt  <antoine.levitt@gmail.com>
+
+	* gnus.texi (Listing Groups): Document gnus-group-list-ticked
+
+2011-03-17  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Logarithmic Units): Update the function names.
+
+2011-03-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* message.texi (Various Commands): Document format specs in the
+	ellipsis.
+
+2011-03-15  Antoine Levitt  <antoine.levitt@gmail.com>
+
+	* message.texi (Insertion Variables): Document message-cite-style.
+
+2011-03-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Remote processes): New subsection "Running shell on
+	a remote host".
+
+2011-03-12  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth.texi (Help for developers): Update docs to explain that the
+	:save-function will only run the first time.
+
+2011-03-12  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (emacs-faq.html): Fix some more cross-refs.
+	(emacs-faq.text): New target.
+	(clean): Add emacs-faq.
+
+2011-03-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.2.1.
+
+	* trampver.texi: Update release number.
+
+2011-03-11  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (HTML_TARGETS): New.
+	(clean): Delete $HTML_TARGETS.
+	(emacs-faq.html): New, for use with the gnu.org Emacs webpage.
+
+2011-03-08  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth.texi (Help for developers): Show example of using
+	`auth-source-search' with prompts and :save-function.
+
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
+2011-03-07  Antoine Levitt  <antoine.levitt@gmail.com>
+
+	* message.texi (Message Buffers): Update default value of
+	message-generate-new-buffers.
+
+2011-03-06  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Logarithmic Units): Rename calc-logunits-dblevel
+	and calc-logunits-nplevel to calc-dblevel and calc-nplevel,
+	respectively.
+	(Musical Notes): New section.
+	(Customizing Calc): Mention the customizable variable
+	calc-note-threshold.
+
+2011-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* url.texi (Dealing with HTTP documents): Remove reference to
+	function url-decode-text-part; never seems to have existed.  (Bug#6038)
+	(Configuration): Update url-configuration-directory description.
+
+2011-03-02  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.texi (Multiple Dired Directories): Remove mentions
+	of dired-default-directory-alist and dired-default-directory.
+	Move dired-smart-shell-command here...
+	(Miscellaneous Commands): ... from here.
+
+2011-03-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* texinfo.tex: Update to version 2011-02-24.09.
+
+2011-03-02  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.texi (Omitting Variables): Refer to add-dir-local-variable
+	instead of the obsoleted dired-omit-here-always.
+
+2011-02-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Frequently Asked Questions): Add Emacs 24 to
+	supported systems.
+
+2011-02-28  Glenn Morris  <rgm@gnu.org>
+
+	* dbus.texi (Type Conversion): Grammar fix.
+
 2011-02-23  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi: Use consistently "Emacs" (instead of "GNU Emacs") and

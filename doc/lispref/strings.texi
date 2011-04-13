@@ -554,8 +554,8 @@ strings and integers.  @code{format} (@pxref{Formatting Strings}) and
 @code{prin1-to-string} (@pxref{Output Functions}) can also convert
 Lisp objects into strings.  @code{read-from-string} (@pxref{Input
 Functions}) can ``convert'' a string representation of a Lisp object
-into an object.  The functions @code{string-make-multibyte} and
-@code{string-make-unibyte} convert the text representation of a string
+into an object.  The functions @code{string-to-multibyte} and
+@code{string-to-unibyte} convert the text representation of a string
 (@pxref{Converting Representations}).
 
   @xref{Documentation}, for functions that produce textual descriptions

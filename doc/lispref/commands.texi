@@ -91,8 +91,9 @@ and also when the command loop is first entered.  At that time,
 
   Quitting is suppressed while running @code{pre-command-hook} and
 @code{post-command-hook}.  If an error happens while executing one of
-these hooks, it terminates execution of the hook, and clears the hook
-variable to @code{nil} so as to prevent an infinite loop of errors.
+these hooks, it does not terminate execution of the hook; instead
+the error is silenced and the function in which the error occurred
+is removed from the hook.
 
   A request coming into the Emacs server (@pxref{Emacs Server,,,
 emacs, The GNU Emacs Manual}) runs these two hooks just as a keyboard

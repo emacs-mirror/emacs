@@ -90,7 +90,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-login-args           (("%h") ("-l" "%u")))
     (tramp-remote-sh            "/bin/sh")
     (tramp-copy-program         "rcp")
-    (tramp-copy-args            (("%k" "-p") ("-r")))
+    (tramp-copy-args            (("-p" "%k") ("-r")))
     (tramp-copy-keep-date       t)
     (tramp-copy-recursive       t)))
 ;;;###tramp-autoload
@@ -100,7 +100,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-login-args           (("%h") ("-l" "%u")))
     (tramp-remote-sh            "/bin/sh")
     (tramp-copy-program         "rcp")
-    (tramp-copy-args            (("%k" "-p")))
+    (tramp-copy-args            (("-p" "%k")))
     (tramp-copy-keep-date       t)))
 ;;;###tramp-autoload
 (add-to-list 'tramp-methods
@@ -110,7 +110,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
    (tramp-async-args           (("-q")))
    (tramp-remote-sh            "/bin/sh")
    (tramp-copy-program         "scp")
-   (tramp-copy-args            (("-P" "%p") ("%k" "-p")	("-q") ("-r")))
+   (tramp-copy-args            (("-P" "%p") ("-p" "%k")	("-q") ("-r")))
    (tramp-copy-keep-date       t)
    (tramp-copy-recursive       t)
    (tramp-gw-args              (("-o" "GlobalKnownHostsFile=/dev/null")
@@ -126,7 +126,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-async-args           (("-q")))
     (tramp-remote-sh            "/bin/sh")
     (tramp-copy-program         "scp")
-    (tramp-copy-args            (("-1") ("-P" "%p") ("%k" "-p") ("-q") ("-r")))
+    (tramp-copy-args            (("-1") ("-P" "%p") ("-p" "%k") ("-q") ("-r")))
     (tramp-copy-keep-date       t)
     (tramp-copy-recursive       t)
     (tramp-gw-args              (("-o" "GlobalKnownHostsFile=/dev/null")
@@ -142,7 +142,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-async-args           (("-q")))
     (tramp-remote-sh            "/bin/sh")
     (tramp-copy-program         "scp")
-    (tramp-copy-args            (("-2") ("-P" "%p") ("%k" "-p") ("-q") ("-r")))
+    (tramp-copy-args            (("-2") ("-P" "%p") ("-p" "%k") ("-q") ("-r")))
     (tramp-copy-keep-date       t)
     (tramp-copy-recursive       t)
     (tramp-gw-args              (("-o" "GlobalKnownHostsFile=/dev/null")
@@ -160,7 +160,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-async-args           (("-q")))
     (tramp-remote-sh            "/bin/sh")
     (tramp-copy-program         "scp")
-    (tramp-copy-args            (("-P" "%p") ("%k" "-p") ("-q") ("-r")
+    (tramp-copy-args            (("-P" "%p") ("-p" "%k") ("-q") ("-r")
 				 ("-o" "ControlPath=%t.%%r@%%h:%%p")
 				 ("-o" "ControlMaster=auto")))
     (tramp-copy-keep-date       t)
@@ -179,7 +179,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-async-args           (("-q")))
     (tramp-remote-sh            "/bin/sh")
     (tramp-copy-program         "scp")
-    (tramp-copy-args            (("-P" "%p") ("%k" "-p") ("-q") ("-r")))
+    (tramp-copy-args            (("-P" "%p") ("-p" "%k") ("-q") ("-r")))
     (tramp-copy-keep-date       t)
     (tramp-copy-recursive       t)
     (tramp-gw-args              (("-o" "GlobalKnownHostsFile=/dev/null")
@@ -202,7 +202,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-async-args           (("-q")))
     (tramp-remote-sh            "/bin/sh")
     (tramp-copy-program         "rsync")
-    (tramp-copy-args            (("-e" "ssh") ("%k" "-t") ("-r")))
+    (tramp-copy-args            (("-e" "ssh") ("-t" "%k") ("-r")))
     (tramp-copy-keep-date       t)
     (tramp-copy-keep-tmpfile    t)
     (tramp-copy-recursive       t)))
@@ -217,7 +217,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-async-args           (("-q")))
     (tramp-remote-sh            "/bin/sh")
     (tramp-copy-program         "rsync")
-    (tramp-copy-args            (("%k" "-t") ("-r")))
+    (tramp-copy-args            (("-t" "%k") ("-r")))
     (tramp-copy-env             (("RSYNC_RSH")
 				 (,(concat
 				    "ssh"
@@ -353,7 +353,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-login-args           (("-l" "%u") ("-P" "%p") ("-ssh") ("%h")))
     (tramp-remote-sh            "/bin/sh")
     (tramp-copy-program         "pscp")
-    (tramp-copy-args            (("-P" "%p") ("-scp") ("%k" "-p")
+    (tramp-copy-args            (("-P" "%p") ("-scp") ("-p" "%k")
 				 ("-q") ("-r")))
     (tramp-copy-keep-date       t)
     (tramp-copy-recursive       t)
@@ -366,7 +366,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-login-args           (("-l" "%u") ("-P" "%p") ("-ssh") ("%h")))
     (tramp-remote-sh            "/bin/sh")
     (tramp-copy-program         "pscp")
-    (tramp-copy-args            (("-P" "%p") ("-sftp") ("%k" "-p")
+    (tramp-copy-args            (("-P" "%p") ("-sftp") ("-p" "%k")
 				 ("-q") ("-r")))
     (tramp-copy-keep-date       t)
     (tramp-copy-recursive       t)
@@ -378,7 +378,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-login-args           (("%h") ("-l" "%u") ("sh" "-i")))
     (tramp-remote-sh            "/bin/sh -i")
     (tramp-copy-program         "fcp")
-    (tramp-copy-args            (("%k" "-p")))
+    (tramp-copy-args            (("-p" "%k")))
     (tramp-copy-keep-date       t)))
 
 ;;;###tramp-autoload
@@ -2251,11 +2251,15 @@ The method used must be an out-of-band method."
 			'identity)
 		      (if t2 (tramp-make-copy-program-file-name v) newname)))
 
-	;; Check for port number.  Until now, there's no need for handling
-	;; like method, user, host.
-	(setq host (tramp-file-name-real-host v)
-	      port (tramp-file-name-port v)
-	      port (or (and port (number-to-string port)) ""))
+	;; Check for host and port number.  We cannot use
+	;; `tramp-file-name-port', because this returns also
+	;; `tramp-default-port', which might clash with settings in
+	;; "~/.ssh/config".
+	(setq host (tramp-file-name-host v)
+	      port "")
+	(when (string-match tramp-host-with-port-regexp host)
+	  (setq host (string-to-number (match-string 1 host))
+		port (string-to-number (match-string 2 host))))
 
 	;; Compose copy command.
 	(setq spec (format-spec-make
@@ -2270,7 +2274,7 @@ The method used must be an out-of-band method."
 	      copy-args
 	      (delete
 	       ;; " " has either been a replacement of "%k" (when
-	       ;; keep-date argument is non-nil), or a replacemtent
+	       ;; keep-date argument is non-nil), or a replacement
 	       ;; for the whole keep-date sublist.
 	       " "
 	       (dolist
@@ -2281,7 +2285,7 @@ The method used must be an out-of-band method."
 		       (append
 			copy-args
 			(let ((y (mapcar (lambda (z) (format-spec z spec)) x)))
-			  (if (zerop (length (car y))) '(" ") y))))))
+			  (if (member "" y) '(" ") y))))))
 	      copy-env
 	      (delq
 	       nil

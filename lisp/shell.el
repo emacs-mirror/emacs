@@ -459,7 +459,12 @@ buffer."
   ;; shell-dependent assignments.
   (when (ring-empty-p comint-input-ring)
     (let ((shell (file-name-nondirectory (car
-		   (process-command (get-buffer-process (current-buffer)))))))
+		   (process-command (get-buffer-process (current-buffer))))))
+	  (hsize (getenv "HISTSIZE")))
+      (and (stringp hsize)
+	   (integerp (setq hsize (string-to-number hsize)))
+	   (> hsize 0)
+	   (set (make-local-variable 'comint-input-ring-size) hsize))
       (setq comint-input-ring-file-name
 	    (or (getenv "HISTFILE")
 		(cond ((string-equal shell "bash") "~/.bash_history")
@@ -569,15 +574,30 @@ Otherwise, one argument `-i' is passed to the shell.
                ;; of the current-buffer rather than of the *shell* buffer.
 	       (setq default-directory
 		     (expand-file-name
-		      (read-file-name
+		      (read-directory-name
 		       "Default directory: " default-directory default-directory
-		       t nil 'file-directory-p))))))))
+		       t nil))))))))
   (require 'ansi-color)
   (setq buffer (if (or buffer (not (derived-mode-p 'shell-mode))
                        (comint-check-proc (current-buffer)))
                    (get-buffer-create (or buffer "*shell*"))
                  ;; If the current buffer is a dead shell buffer, use it.
                  (current-buffer)))
+
+  ;; On remote hosts, the local `shell-file-name' might be useless.
+  (if (and (interactive-p)
+	   (file-remote-p default-directory)
+	   (null explicit-shell-file-name)
+	   (null (getenv "ESHELL")))
+      (with-current-buffer buffer
+	(set (make-local-variable 'explicit-shell-file-name)
+	     (file-remote-p
+	      (expand-file-name
+	       (read-file-name
+		"Remote shell path: " default-directory shell-file-name
+		t shell-file-name))
+	      'localname))))
+
   ;; Pop to buffer, so that the buffer's window will be correctly set
   ;; when we call comint (so that comint sets the COLUMNS env var properly).
   (pop-to-buffer-same-window buffer)

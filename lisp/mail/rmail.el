@@ -503,7 +503,7 @@ FIELD is the plain text name of a field in the message, such as
 \"subject\" or \"from\".  A FIELD of \"to\" will automatically include
 all text from the \"cc\" field as well.
 
-REGEXP is an expression to match in the preceeding specified FIELD.
+REGEXP is an expression to match in the preceding specified FIELD.
 FIELD/REGEXP pairs continue in the list.
 
 examples:
@@ -2306,11 +2306,11 @@ change; nil means current message."
 ;;;; *** Rmail Message Selection And Support ***
 
 (defun rmail-msgend (n)
-  "Return the start position for message number N."
+  "Return the end position for message number N."
   (marker-position (aref rmail-message-vector (1+ n))))
 
 (defun rmail-msgbeg (n)
-  "Return the end position for message number N."
+  "Return the start position for message number N."
   (marker-position (aref rmail-message-vector n)))
 
 (defun rmail-apply-in-message (msgnum function &rest args)

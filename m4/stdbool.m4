@@ -5,7 +5,7 @@ dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
 
-#serial 4
+#serial 5
 
 # Prepare for substituting <stdbool.h> if it is not supported.
 
@@ -21,6 +21,7 @@ AC_DEFUN([AM_STDBOOL_H],
     STDBOOL_H='stdbool.h'
   fi
   AC_SUBST([STDBOOL_H])
+  AM_CONDITIONAL([GL_GENERATE_STDBOOL_H], [test -n "$STDBOOL_H"])
 
   if test "$ac_cv_type__Bool" = yes; then
     HAVE__BOOL=1

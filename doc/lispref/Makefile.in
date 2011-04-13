@@ -31,7 +31,7 @@ texinfodir = $(srcdir)/../misc
 emacsdir =  $(srcdir)/../emacs
 
 MAKEINFO = @MAKEINFO@
-MAKEINFO_OPTS = --force -I $(emacsdir) -I $(srcdir)
+MAKEINFO_OPTS = --force --enable-encoding -I $(emacsdir) -I $(srcdir)
 TEXI2DVI = texi2dvi
 TEXI2PDF = texi2pdf
 DVIPS = dvips
@@ -80,6 +80,7 @@ srcs = \
   $(srcdir)/numbers.texi \
   $(srcdir)/objects.texi \
   $(srcdir)/os.texi \
+  $(srcdir)/package.texi \
   $(srcdir)/positions.texi \
   $(srcdir)/processes.texi \
   $(srcdir)/searching.texi \

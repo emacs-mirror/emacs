@@ -547,7 +547,7 @@ do { \
 #define WM_APPCOMMAND 0x319
 #define GET_APPCOMMAND_LPARAM(lParam)  (HIWORD(lParam) & 0x7fff)
 #endif
-#ifndef WM_UNICHAR 
+#ifndef WM_UNICHAR
 #define WM_UNICHAR 0x109
 #endif
 #ifndef UNICODE_NOCHAR
@@ -697,3 +697,7 @@ typedef BOOL (WINAPI * AppendMenuW_Proc) (
     IN UINT_PTR,
     IN LPCWSTR);
 
+extern HWND w32_system_caret_hwnd;
+extern int w32_system_caret_height;
+extern int w32_system_caret_x;
+extern int w32_system_caret_y;

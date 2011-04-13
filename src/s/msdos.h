@@ -80,6 +80,12 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
    strtold, so use _strtold in all versions.  */
 #define strtold _strtold
 
+#if __DJGPP__ > 2 || __DJGPP_MINOR__ > 3
+# define HAVE_LSTAT 1
+#else
+# define lstat stat
+#endif
+
 /* End of gnulib-related stuff.  */
 
 /* When $TERM is "internal" then this is substituted:  */

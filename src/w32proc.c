@@ -67,8 +67,6 @@ extern BOOL WINAPI IsValidLocale (LCID, DWORD);
 	    + ((DWORD)(var) - (section)->VirtualAddress)		\
 	    + (filedata).file_base))
 
-extern Lisp_Object Qlocal;
-
 Lisp_Object Qhigh, Qlow;
 
 #ifdef EMACSDEBUG
@@ -831,7 +829,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
 
      Note that using backslash to escape embedded quotes requires
      additional special handling if an embedded quote is already
-     preceeded by backslash, or if an arg requiring quoting ends with
+     preceded by backslash, or if an arg requiring quoting ends with
      backslash.  In such cases, the run of escape characters needs to be
      doubled.  For consistency, we apply this special handling as long
      as the escape character is not quote.
@@ -1053,7 +1051,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
    detect that we were woken up by C-g, we return -1 with errno set to
    EINTR as on Unix.  */
 
-/* From ntterm.c */
+/* From w32console.c */
 extern HANDLE keyboard_handle;
 
 /* From w32xfns.c */
@@ -1559,8 +1557,6 @@ sys_kill (int pid, int sig)
   return rc;
 }
 
-/* extern int report_file_error (char *, Lisp_Object); */
-
 /* The following two routines are used to manipulate stdin, stdout, and
    stderr of our child processes.
 
@@ -1660,7 +1656,7 @@ set_process_dir (char * dir)
    dial-up users to only be connected when they actually need to use
    socket services.  */
 
-/* From nt.c */
+/* From w32.c */
 extern HANDLE winsock_lib;
 extern BOOL term_winsock (void);
 extern BOOL init_winsock (int load_now);

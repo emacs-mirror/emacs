@@ -97,7 +97,6 @@ static Lisp_Object clean_local_selection_data (Lisp_Object);
 #define TRACE0(fmt)		(void) 0
 #define TRACE1(fmt, a0)		(void) 0
 #define TRACE2(fmt, a0, a1)	(void) 0
-#define TRACE3(fmt, a0, a1)	(void) 0
 #endif
 
 
@@ -330,7 +329,7 @@ x_own_selection (Lisp_Object selection_name, Lisp_Object selection_value)
   struct frame *sf = SELECTED_FRAME ();
   Window selecting_window;
   Display *display;
-  Time time = last_event_timestamp;
+  Time timestamp = last_event_timestamp;
   Atom selection_atom;
   struct x_display_info *dpyinfo;
 
@@ -346,7 +345,7 @@ x_own_selection (Lisp_Object selection_name, Lisp_Object selection_value)
 
   BLOCK_INPUT;
   x_catch_errors (display);
-  XSetSelectionOwner (display, selection_atom, selecting_window, time);
+  XSetSelectionOwner (display, selection_atom, selecting_window, timestamp);
   x_check_errors (display, "Can't set selection: %s");
   x_uncatch_errors ();
   UNBLOCK_INPUT;
@@ -357,7 +356,7 @@ x_own_selection (Lisp_Object selection_name, Lisp_Object selection_value)
     Lisp_Object selection_data;
     Lisp_Object prev_value;
 
-    selection_time = long_to_cons ((unsigned long) time);
+    selection_time = long_to_cons ((unsigned long) timestamp);
     selection_data = list4 (selection_name, selection_value,
 			    selection_time, selected_frame);
     prev_value = assq_no_quit (selection_name, Vselection_alist);
@@ -392,7 +391,7 @@ static Lisp_Object
 x_get_local_selection (Lisp_Object selection_symbol, Lisp_Object target_type, int local_request)
 {
   Lisp_Object local_value;
-  Lisp_Object handler_fn, value, type, check;
+  Lisp_Object handler_fn, value, check;
   int count;
 
   local_value = assq_no_quit (selection_symbol, Vselection_alist);
@@ -470,7 +469,6 @@ x_get_local_selection (Lisp_Object selection_symbol, Lisp_Object target_type, in
   check = value;
   if (CONSP (value)
       && SYMBOLP (XCAR (value)))
-    type = XCAR (value),
     check = XCDR (value);
 
   if (STRINGP (check)
@@ -501,22 +499,23 @@ x_get_local_selection (Lisp_Object selection_symbol, Lisp_Object target_type, in
 static void
 x_decline_selection_request (struct input_event *event)
 {
-  XSelectionEvent reply;
+  XEvent reply_base;
+  XSelectionEvent *reply = &(reply_base.xselection);
 
-  reply.type = SelectionNotify;
-  reply.display = SELECTION_EVENT_DISPLAY (event);
-  reply.requestor = SELECTION_EVENT_REQUESTOR (event);
-  reply.selection = SELECTION_EVENT_SELECTION (event);
-  reply.time = SELECTION_EVENT_TIME (event);
-  reply.target = SELECTION_EVENT_TARGET (event);
-  reply.property = None;
+  reply->type = SelectionNotify;
+  reply->display = SELECTION_EVENT_DISPLAY (event);
+  reply->requestor = SELECTION_EVENT_REQUESTOR (event);
+  reply->selection = SELECTION_EVENT_SELECTION (event);
+  reply->time = SELECTION_EVENT_TIME (event);
+  reply->target = SELECTION_EVENT_TARGET (event);
+  reply->property = None;
 
   /* The reason for the error may be that the receiver has
      died in the meantime.  Handle that case.  */
   BLOCK_INPUT;
-  x_catch_errors (reply.display);
-  XSendEvent (reply.display, reply.requestor, False, 0L, (XEvent *) &reply);
-  XFlush (reply.display);
+  x_catch_errors (reply->display);
+  XSendEvent (reply->display, reply->requestor, False, 0L, &reply_base);
+  XFlush (reply->display);
   x_uncatch_errors ();
   UNBLOCK_INPUT;
 }
@@ -619,7 +618,8 @@ static int x_reply_selection_request_cnt;
 static void
 x_reply_selection_request (struct input_event *event, int format, unsigned char *data, int size, Atom type)
 {
-  XSelectionEvent reply;
+  XEvent reply_base;
+  XSelectionEvent *reply = &(reply_base.xselection);
   Display *display = SELECTION_EVENT_DISPLAY (event);
   Window window = SELECTION_EVENT_REQUESTOR (event);
   int bytes_remaining;
@@ -631,15 +631,15 @@ x_reply_selection_request (struct input_event *event, int format, unsigned char 
   if (max_bytes > MAX_SELECTION_QUANTUM)
     max_bytes = MAX_SELECTION_QUANTUM;
 
-  reply.type = SelectionNotify;
-  reply.display = display;
-  reply.requestor = window;
-  reply.selection = SELECTION_EVENT_SELECTION (event);
-  reply.time = SELECTION_EVENT_TIME (event);
-  reply.target = SELECTION_EVENT_TARGET (event);
-  reply.property = SELECTION_EVENT_PROPERTY (event);
-  if (reply.property == None)
-    reply.property = reply.target;
+  reply->type = SelectionNotify;
+  reply->display = display;
+  reply->requestor = window;
+  reply->selection = SELECTION_EVENT_SELECTION (event);
+  reply->time = SELECTION_EVENT_TIME (event);
+  reply->target = SELECTION_EVENT_TARGET (event);
+  reply->property = SELECTION_EVENT_PROPERTY (event);
+  if (reply->property == None)
+    reply->property = reply->target;
 
   BLOCK_INPUT;
   /* The protected block contains wait_for_property_change, which can
@@ -650,8 +650,8 @@ x_reply_selection_request (struct input_event *event, int format, unsigned char 
 
 #ifdef TRACE_SELECTION
   {
-    char *sel = XGetAtomName (display, reply.selection);
-    char *tgt = XGetAtomName (display, reply.target);
+    char *sel = XGetAtomName (display, reply->selection);
+    char *tgt = XGetAtomName (display, reply->target);
     TRACE3 ("%s, target %s (%d)", sel, tgt, ++x_reply_selection_request_cnt);
     if (sel) XFree (sel);
     if (tgt) XFree (tgt);
@@ -666,10 +666,10 @@ x_reply_selection_request (struct input_event *event, int format, unsigned char 
     {
       /* Send all the data at once, with minimal handshaking.  */
       TRACE1 ("Sending all %d bytes", bytes_remaining);
-      XChangeProperty (display, window, reply.property, type, format,
+      XChangeProperty (display, window, reply->property, type, format,
 		       PropModeReplace, data, size);
       /* At this point, the selection was successfully stored; ack it.  */
-      XSendEvent (display, window, False, 0L, (XEvent *) &reply);
+      XSendEvent (display, window, False, 0L, &reply_base);
     }
   else
     {
@@ -695,19 +695,19 @@ x_reply_selection_request (struct input_event *event, int format, unsigned char 
 	error ("Attempt to transfer an INCR to ourself!");
 
       TRACE2 ("Start sending %d bytes incrementally (%s)",
-	      bytes_remaining,  XGetAtomName (display, reply.property));
-      wait_object = expect_property_change (display, window, reply.property,
+	      bytes_remaining,  XGetAtomName (display, reply->property));
+      wait_object = expect_property_change (display, window, reply->property,
 					    PropertyDelete);
 
       TRACE1 ("Set %s to number of bytes to send",
-	      XGetAtomName (display, reply.property));
+	      XGetAtomName (display, reply->property));
       {
         /* XChangeProperty expects an array of long even if long is more than
            32 bits.  */
         long value[1];
 
         value[0] = bytes_remaining;
-        XChangeProperty (display, window, reply.property, dpyinfo->Xatom_INCR,
+        XChangeProperty (display, window, reply->property, dpyinfo->Xatom_INCR,
                          32, PropModeReplace,
                          (unsigned char *) value, 1);
       }
@@ -716,7 +716,7 @@ x_reply_selection_request (struct input_event *event, int format, unsigned char 
 
       /* Tell 'em the INCR data is there...  */
       TRACE0 ("Send SelectionNotify event");
-      XSendEvent (display, window, False, 0L, (XEvent *) &reply);
+      XSendEvent (display, window, False, 0L, &reply_base);
       XFlush (display);
 
       had_errors = x_had_errors_p (display);
@@ -727,7 +727,7 @@ x_reply_selection_request (struct input_event *event, int format, unsigned char 
       if (! had_errors)
 	{
 	  TRACE1 ("Waiting for ACK (deletion of %s)",
-		  XGetAtomName (display, reply.property));
+		  XGetAtomName (display, reply->property));
 	  wait_for_property_change (wait_object);
 	}
       else
@@ -743,15 +743,15 @@ x_reply_selection_request (struct input_event *event, int format, unsigned char 
 	  BLOCK_INPUT;
 
 	  wait_object
-	    = expect_property_change (display, window, reply.property,
+	    = expect_property_change (display, window, reply->property,
 				      PropertyDelete);
 
 	  TRACE1 ("Sending increment of %d elements", i);
 	  TRACE1 ("Set %s to increment data",
-		  XGetAtomName (display, reply.property));
+		  XGetAtomName (display, reply->property));
 
 	  /* Append the next chunk of data to the property.  */
-	  XChangeProperty (display, window, reply.property, type, format,
+	  XChangeProperty (display, window, reply->property, type, format,
 			   PropModeAppend, data, i);
 	  bytes_remaining -= i * format_bytes;
 	  if (format == 32)
@@ -768,7 +768,7 @@ x_reply_selection_request (struct input_event *event, int format, unsigned char 
 	  /* Now wait for the requester to ack this chunk by deleting the
 	     property.  This can run random lisp code or signal.  */
 	  TRACE1 ("Waiting for increment ACK (deletion of %s)",
-		  XGetAtomName (display, reply.property));
+		  XGetAtomName (display, reply->property));
 	  wait_for_property_change (wait_object);
 	}
 
@@ -779,8 +779,8 @@ x_reply_selection_request (struct input_event *event, int format, unsigned char 
 	XSelectInput (display, window, 0L);
 
       TRACE1 ("Set %s to a 0-length chunk to indicate EOF",
-	      XGetAtomName (display, reply.property));
-      XChangeProperty (display, window, reply.property, type, format,
+	      XGetAtomName (display, reply->property));
+      XChangeProperty (display, window, reply->property, type, format,
 		       PropModeReplace, data, 0);
       TRACE0 ("Done sending incrementally");
     }
@@ -1204,9 +1204,9 @@ wait_for_property_change (struct prop_location *location)
 void
 x_handle_property_notify (XPropertyEvent *event)
 {
-  struct prop_location *prev = 0, *rest = property_change_wait_list;
+  struct prop_location *rest;
 
-  while (rest)
+  for (rest = property_change_wait_list; rest; rest = rest->next)
     {
       if (!rest->arrived
 	  && rest->property == event->atom
@@ -1227,9 +1227,6 @@ x_handle_property_notify (XPropertyEvent *event)
 
 	  return;
 	}
-
-      prev = rest;
-      rest = rest->next;
     }
 }
 
@@ -2085,7 +2082,7 @@ DEFUN ("x-disown-selection-internal", Fx_disown_selection_internal,
        Sx_disown_selection_internal, 1, 2, 0,
        doc: /* If we own the selection SELECTION, disown it.
 Disowning it means there is no such selection.  */)
-  (Lisp_Object selection, Lisp_Object time)
+  (Lisp_Object selection, Lisp_Object time_object)
 {
   Time timestamp;
   Atom selection_atom;
@@ -2104,10 +2101,10 @@ Disowning it means there is no such selection.  */)
   display = FRAME_X_DISPLAY (sf);
   dpyinfo = FRAME_X_DISPLAY_INFO (sf);
   CHECK_SYMBOL (selection);
-  if (NILP (time))
+  if (NILP (time_object))
     timestamp = last_event_timestamp;
   else
-    timestamp = cons_to_long (time);
+    timestamp = cons_to_long (time_object);
 
   if (NILP (assq_no_quit (selection, Vselection_alist)))
     return Qnil;  /* Don't disown the selection when we're not the owner.  */
@@ -2129,26 +2126,6 @@ Disowning it means there is no such selection.  */)
   x_handle_selection_clear (&event.ie);
 
   return Qt;
-}
-
-/* Get rid of all the selections in buffer BUFFER.
-   This is used when we kill a buffer.  */
-
-void
-x_disown_buffer_selections (Lisp_Object buffer)
-{
-  Lisp_Object tail;
-  struct buffer *buf = XBUFFER (buffer);
-
-  for (tail = Vselection_alist; CONSP (tail); tail = XCDR (tail))
-    {
-      Lisp_Object elt, value;
-      elt = XCAR (tail);
-      value = XCDR (elt);
-      if (CONSP (value) && MARKERP (XCAR (value))
-	  && XMARKER (XCAR (value))->buffer == buf)
-	Fx_disown_selection_internal (XCAR (elt), Qnil);
-    }
 }
 
 DEFUN ("x-selection-owner-p", Fx_selection_owner_p, Sx_selection_owner_p,
@@ -2211,7 +2188,8 @@ and t is the same as `SECONDARY'.  */)
 ***********************************************************************/
 /* Check that lisp values are of correct type for x_fill_property_data.
    That is, number, string or a cons with two numbers (low and high 16
-   bit parts of a 32 bit number).  */
+   bit parts of a 32 bit number).  Return the number of items in DATA,
+   or -1 if there is an error.  */
 
 int
 x_check_property_data (Lisp_Object data)
@@ -2219,15 +2197,16 @@ x_check_property_data (Lisp_Object data)
   Lisp_Object iter;
   int size = 0;
 
-  for (iter = data; CONSP (iter) && size != -1; iter = XCDR (iter), ++size)
+  for (iter = data; CONSP (iter); iter = XCDR (iter))
     {
       Lisp_Object o = XCAR (iter);
 
       if (! NUMBERP (o) && ! STRINGP (o) && ! CONSP (o))
-        size = -1;
+        return -1;
       else if (CONSP (o) &&
                (! NUMBERP (XCAR (o)) || ! NUMBERP (XCDR (o))))
-        size = -1;
+        return -1;
+      size++;
     }
 
   return size;
@@ -2455,7 +2434,6 @@ x_handle_dnd_message (struct frame *f, XClientMessageEvent *event, struct x_disp
 
   if (event->format == 32 && event->format < BITS_PER_LONG)
     {
-      int i;
       for (i = 0; i < 5; ++i) /* There are only 5 longs in a ClientMessage. */
         idata[i] = (int) event->data.l[i];
       data = (unsigned char *) idata;

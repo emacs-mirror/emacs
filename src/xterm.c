@@ -279,10 +279,6 @@ Lisp_Object Qx_gtk_map_stock;
 /* Some functions take this as char *, not const char *.  */
 static char emacs_class[] = EMACS_CLASS;
 
-/* XEmbed implementation.  */
-
-#define XEMBED_VERSION 0
-
 enum xembed_info
   {
     XEMBED_MAPPED = 1 << 0
@@ -321,6 +317,7 @@ static void XTframe_up_to_date (struct frame *);
 static void XTset_terminal_modes (struct terminal *);
 static void XTreset_terminal_modes (struct terminal *);
 static void x_clear_frame (struct frame *);
+static void x_ins_del_lines (struct frame *, int, int) NO_RETURN;
 static void frame_highlight (struct frame *);
 static void frame_unhighlight (struct frame *);
 static void x_new_focus_frame (struct x_display_info *, struct frame *);
@@ -352,7 +349,7 @@ static int handle_one_xevent (struct x_display_info *, XEvent *,
                               int *, struct input_event *);
 /* Don't declare this NO_RETURN because we want no
    interference with debugging failing X calls.  */
-static SIGTYPE x_connection_closed (Display *, const char *);
+static void x_connection_closed (Display *, const char *);
 
 
 /* Flush display of frame F, or of all frames if F is null.  */
@@ -877,6 +874,7 @@ static void x_draw_glyph_string_foreground (struct glyph_string *);
 static void x_draw_composite_glyph_string_foreground (struct glyph_string *);
 static void x_draw_glyph_string_box (struct glyph_string *);
 static void x_draw_glyph_string  (struct glyph_string *);
+static void x_delete_glyphs (struct frame *, int) NO_RETURN;
 static void x_compute_glyph_string_overhangs (struct glyph_string *);
 static void x_set_cursor_gc (struct glyph_string *);
 static void x_set_mode_line_face_gc (struct glyph_string *);
@@ -1791,27 +1789,6 @@ x_copy_color (struct frame *f, long unsigned int pixel)
 }
 
 
-/* Allocate color PIXEL on display DPY.  PIXEL must already be allocated.
-   It's necessary to do this instead of just using PIXEL directly to
-   get color reference counts right.  */
-
-unsigned long
-x_copy_dpy_color (Display *dpy, Colormap cmap, long unsigned int pixel)
-{
-  XColor color;
-
-  color.pixel = pixel;
-  BLOCK_INPUT;
-  XQueryColor (dpy, cmap, &color);
-  XAllocColor (dpy, cmap, &color);
-  UNBLOCK_INPUT;
-#ifdef DEBUG_X_COLORS
-  register_color (pixel);
-#endif
-  return color.pixel;
-}
-
-
 /* Brightness beyond which a color won't have its highlight brightness
    boosted.
 
@@ -2260,12 +2237,12 @@ x_draw_image_foreground (struct glyph_string *s)
 	     nothing here for mouse-face.  */
 	  if (s->hl == DRAW_CURSOR)
 	    {
-	      int r = s->img->relief;
-	      if (r < 0) r = -r;
+	      int relief = s->img->relief;
+	      if (relief < 0) relief = -relief;
 	      XDrawRectangle (s->display, s->window, s->gc,
-			      x - r, y - r,
-			      s->slice.width + r*2 - 1,
-			      s->slice.height + r*2 - 1);
+			      x - relief, y - relief,
+			      s->slice.width + relief*2 - 1,
+			      s->slice.height + relief*2 - 1);
 	    }
 	}
     }
@@ -2907,7 +2884,7 @@ x_draw_glyph_string (struct glyph_string *s)
 
 /* Shift display to make room for inserted glyphs.   */
 
-void
+static void
 x_shift_glyphs_for_insert (struct frame *f, int x, int y, int width, int height, int shift_by)
 {
   XCopyArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), FRAME_X_WINDOW (f),
@@ -2951,10 +2928,14 @@ x_clear_frame (struct frame *f)
   /* We don't set the output cursor here because there will always
      follow an explicit cursor_to.  */
   BLOCK_INPUT;
-  XClearWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
 
-  /* We have to clear the scroll bars, too.  If we have changed
-     colors or something like that, then they should be notified.  */
+  /* The following calls have been commented out because they do not
+     seem to accomplish anything, apart from causing flickering during
+     window resize.  */
+  /* XClearWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f)); */
+
+  /* We have to clear the scroll bars.  If we have changed colors or
+     something like that, then they should be notified.  */
   x_scroll_bar_clear (f);
 
 #if defined (USE_GTK) && defined (USE_TOOLKIT_SCROLL_BARS)
@@ -3011,7 +2992,7 @@ timeval_subtract (struct timeval *result, struct timeval x, struct timeval y)
   return x.tv_sec < y.tv_sec;
 }
 
-void
+static void
 XTflash (struct frame *f)
 {
   BLOCK_INPUT;
@@ -3021,6 +3002,17 @@ XTflash (struct frame *f)
     /* Use Gdk routines to draw.  This way, we won't draw over scroll bars
        when the scroll bars and the edit widget share the same X window.  */
     GdkWindow *window = gtk_widget_get_window (FRAME_GTK_WIDGET (f));
+#ifdef HAVE_GTK3
+    cairo_t *cr = gdk_cairo_create (window);
+    cairo_set_source_rgb (cr, 1, 1, 1);
+    cairo_set_operator (cr, CAIRO_OPERATOR_DIFFERENCE);
+#define XFillRectangle(d, win, gc, x, y, w, h) \
+    do {                                       \
+      cairo_rectangle (cr, x, y, w, h);        \
+      cairo_fill (cr);                         \
+    }                                          \
+    while (0)
+#else /* ! HAVE_GTK3 */
     GdkGCValues vals;
     GdkGC *gc;
     vals.foreground.pixel = (FRAME_FOREGROUND_PIXEL (f)
@@ -3030,7 +3022,8 @@ XTflash (struct frame *f)
                                  &vals, GDK_GC_FUNCTION | GDK_GC_FOREGROUND);
 #define XFillRectangle(d, win, gc, x, y, w, h) \
     gdk_draw_rectangle (window, gc, TRUE, x, y, w, h)
-#else
+#endif /* ! HAVE_GTK3 */
+#else /* ! USE_GTK */
     GC gc;
 
     /* Create a GC that will use the GXxor function to flip foreground
@@ -3151,7 +3144,11 @@ XTflash (struct frame *f)
 			width, height - 2 * FRAME_INTERNAL_BORDER_WIDTH (f));
 
 #ifdef USE_GTK
+#ifdef HAVE_GTK3
+      cairo_destroy (cr);
+#else
       g_object_unref (G_OBJECT (gc));
+#endif
 #undef XFillRectangle
 #else
       XFreeGC (FRAME_X_DISPLAY (f), gc);
@@ -3186,7 +3183,7 @@ XTtoggle_invisible_pointer (FRAME_PTR f, int invisible)
 
 /* Make audible bell.  */
 
-void
+static void
 XTring_bell (struct frame *f)
 {
   if (FRAME_X_DISPLAY (f))
@@ -3800,7 +3797,7 @@ redo_mouse_highlight (void)
    mouse is on, *BAR_WINDOW to nil, and *X and *Y to the character cell
    the mouse is over.
 
-   Set *TIME to the server time-stamp for the time at which the mouse
+   Set *TIMESTAMP to the server time-stamp for the time at which the mouse
    was at this position.
 
    Don't store anything if we don't have a valid set of values to report.
@@ -3809,14 +3806,16 @@ redo_mouse_highlight (void)
    movement.  */
 
 static void
-XTmouse_position (FRAME_PTR *fp, int insist, Lisp_Object *bar_window, enum scroll_bar_part *part, Lisp_Object *x, Lisp_Object *y, long unsigned int *time)
+XTmouse_position (FRAME_PTR *fp, int insist, Lisp_Object *bar_window,
+		  enum scroll_bar_part *part, Lisp_Object *x, Lisp_Object *y,
+		  long unsigned int *timestamp)
 {
   FRAME_PTR f1;
 
   BLOCK_INPUT;
 
   if (! NILP (last_mouse_scroll_bar) && insist == 0)
-    x_scroll_bar_report_motion (fp, bar_window, part, x, y, time);
+    x_scroll_bar_report_motion (fp, bar_window, part, x, y, timestamp);
   else
     {
       Window root;
@@ -3989,7 +3988,7 @@ XTmouse_position (FRAME_PTR *fp, int insist, Lisp_Object *bar_window, enum scrol
 	    *fp = f1;
 	    XSETINT (*x, win_x);
 	    XSETINT (*y, win_y);
-	    *time = last_mouse_movement_time;
+	    *timestamp = last_mouse_movement_time;
 	  }
       }
     }
@@ -4046,7 +4045,7 @@ x_window_to_scroll_bar (Display *display, Window window_id)
 	  return XSCROLL_BAR (bar);
     }
 
-  return 0;
+  return NULL;
 }
 
 
@@ -4166,7 +4165,7 @@ xt_action_hook (Widget widget, XtPointer client_data, String action_name,
    x_send_scroll_bar_event and x_scroll_bar_to_input_event.  */
 
 static struct window **scroll_bar_windows;
-static int scroll_bar_windows_size;
+static size_t scroll_bar_windows_size;
 
 
 /* Send a client message with message type Xatom_Scrollbar for a
@@ -4181,7 +4180,7 @@ x_send_scroll_bar_event (Lisp_Object window, int part, int portion, int whole)
   XClientMessageEvent *ev = (XClientMessageEvent *) &event;
   struct window *w = XWINDOW (window);
   struct frame *f = XFRAME (w->frame);
-  int i;
+  size_t i;
 
   BLOCK_INPUT;
 
@@ -4202,10 +4201,12 @@ x_send_scroll_bar_event (Lisp_Object window, int part, int portion, int whole)
 
   if (i == scroll_bar_windows_size)
     {
-      int new_size = max (10, 2 * scroll_bar_windows_size);
+      size_t new_size = max (10, 2 * scroll_bar_windows_size);
       size_t nbytes = new_size * sizeof *scroll_bar_windows;
       size_t old_nbytes = scroll_bar_windows_size * sizeof *scroll_bar_windows;
 
+      if ((size_t) -1 / sizeof *scroll_bar_windows < new_size)
+	memory_full ();
       scroll_bar_windows = (struct window **) xrealloc (scroll_bar_windows,
 							nbytes);
       memset (&scroll_bar_windows[i], 0, nbytes - old_nbytes);
@@ -4241,14 +4242,12 @@ x_scroll_bar_to_input_event (XEvent *event, struct input_event *ievent)
 {
   XClientMessageEvent *ev = (XClientMessageEvent *) event;
   Lisp_Object window;
-  struct frame *f;
   struct window *w;
 
   w = scroll_bar_windows[ev->data.l[0]];
   scroll_bar_windows[ev->data.l[0]] = NULL;
 
   XSETWINDOW (window, w);
-  f = XFRAME (w->frame);
 
   ievent->kind = SCROLL_BAR_CLICK_EVENT;
   ievent->frame_or_window = window;
@@ -4256,7 +4255,8 @@ x_scroll_bar_to_input_event (XEvent *event, struct input_event *ievent)
 #ifdef USE_GTK
   ievent->timestamp = CurrentTime;
 #else
-  ievent->timestamp = XtLastTimestampProcessed (FRAME_X_DISPLAY (f));
+  ievent->timestamp =
+    XtLastTimestampProcessed (FRAME_X_DISPLAY (XFRAME (w->frame)));
 #endif
   ievent->part = ev->data.l[1];
   ievent->code = ev->data.l[2];
@@ -5541,7 +5541,9 @@ x_scroll_bar_note_movement (struct scroll_bar *bar, XEvent *event)
    on the scroll bar.  */
 
 static void
-x_scroll_bar_report_motion (FRAME_PTR *fp, Lisp_Object *bar_window, enum scroll_bar_part *part, Lisp_Object *x, Lisp_Object *y, long unsigned int *time)
+x_scroll_bar_report_motion (FRAME_PTR *fp, Lisp_Object *bar_window,
+			    enum scroll_bar_part *part, Lisp_Object *x,
+			    Lisp_Object *y, long unsigned int *timestamp)
 {
   struct scroll_bar *bar = XSCROLL_BAR (last_mouse_scroll_bar);
   Window w = bar->x_window;
@@ -5601,7 +5603,7 @@ x_scroll_bar_report_motion (FRAME_PTR *fp, Lisp_Object *bar_window, enum scroll_
       last_mouse_scroll_bar = Qnil;
     }
 
-  *time = last_mouse_movement_time;
+  *timestamp = last_mouse_movement_time;
 
   UNBLOCK_INPUT;
 }
@@ -5775,7 +5777,8 @@ static void xembed_send_message (struct frame *f, Time time,
    We return the number of characters stored into the buffer. */
 
 static int
-handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventp, int *finish, struct input_event *hold_quit)
+handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
+		   int *finish, struct input_event *hold_quit)
 {
   union {
     struct input_event ie;
@@ -5786,7 +5789,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventp, int *finish, 
   int nbytes = 0;
   struct frame *f = NULL;
   struct coding_system coding;
-  XEvent event = *eventp;
+  XEvent event = *eventptr;
   Mouse_HLInfo *hlinfo = &dpyinfo->mouse_highlight;
 
   *finish = X_EVENT_NORMAL;
@@ -6005,7 +6008,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventp, int *finish, 
         goto OTHER;
 #endif /* USE_X_TOOLKIT */
       {
-        XSelectionClearEvent *eventp = (XSelectionClearEvent *) &event;
+        XSelectionClearEvent *eventp = &(event.xselectionclear);
 
         inev.ie.kind = SELECTION_CLEAR_EVENT;
         SELECTION_EVENT_DISPLAY (&inev.sie) = eventp->display;
@@ -6022,8 +6025,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventp, int *finish, 
         goto OTHER;
 #endif /* USE_X_TOOLKIT */
       {
-          XSelectionRequestEvent *eventp
-            = (XSelectionRequestEvent *) &event;
+	  XSelectionRequestEvent *eventp = &(event.xselectionrequest);
 
           inev.ie.kind = SELECTION_REQUEST_EVENT;
           SELECTION_EVENT_DISPLAY (&inev.sie) = eventp->display;
@@ -6486,7 +6488,6 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventp, int *finish, 
 
 	  {	/* Raw bytes, not keysym.  */
 	    register int i;
-	    register int c;
 	    int nchars, len;
 
 	    for (i = 0, nchars = 0; i < nbytes; i++)
@@ -6526,14 +6527,15 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventp, int *finish, 
 	       character events.  */
 	    for (i = 0; i < nbytes; i += len)
 	      {
+		int ch;
 		if (nchars == nbytes)
-		  c = copy_bufptr[i], len = 1;
+		  ch = copy_bufptr[i], len = 1;
 		else
-		  c = STRING_CHAR_AND_LENGTH (copy_bufptr + i, len);
-		inev.ie.kind = (SINGLE_BYTE_CHAR_P (c)
+		  ch = STRING_CHAR_AND_LENGTH (copy_bufptr + i, len);
+		inev.ie.kind = (SINGLE_BYTE_CHAR_P (ch)
 				? ASCII_KEYSTROKE_EVENT
 				: MULTIBYTE_CHAR_KEYSTROKE_EVENT);
-		inev.ie.code = c;
+		inev.ie.code = ch;
 		kbd_buffer_store_event_hold (&inev.ie, hold_quit);
 	      }
 
@@ -6972,7 +6974,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventp, int *finish, 
       count++;
     }
 
-  *eventp = event;
+  *eventptr = event;
   return count;
 }
 
@@ -7012,7 +7014,6 @@ static int
 XTread_socket (struct terminal *terminal, int expected, struct input_event *hold_quit)
 {
   int count = 0;
-  XEvent event;
   int event_found = 0;
 
   if (interrupt_input_blocked)
@@ -7046,6 +7047,7 @@ XTread_socket (struct terminal *terminal, int expected, struct input_event *hold
   while (XPending (terminal->display_info.x->display))
     {
       int finish;
+      XEvent event;
 
       XNextEvent (terminal->display_info.x->display, &event);
 
@@ -7062,6 +7064,8 @@ XTread_socket (struct terminal *terminal, int expected, struct input_event *hold
       if (finish == X_EVENT_GOTO_OUT)
         goto out;
     }
+
+ out:;
 
 #else /* USE_GTK */
 
@@ -7088,8 +7092,6 @@ XTread_socket (struct terminal *terminal, int expected, struct input_event *hold
         break;
     }
 #endif /* USE_GTK */
-
- out:;
 
   /* On some systems, an X bug causes Emacs to get no more events
      when the window is destroyed.  Detect that.  (1994.)  */
@@ -7226,9 +7228,9 @@ x_draw_bar_cursor (struct window *w, struct glyph_row *row, int width, enum text
      the bar might not be in the window.  */
   if (cursor_glyph->type == IMAGE_GLYPH)
     {
-      struct glyph_row *row;
-      row = MATRIX_ROW (w->current_matrix, w->phys_cursor.vpos);
-      draw_phys_cursor_glyph (w, row, DRAW_CURSOR);
+      struct glyph_row *r;
+      r = MATRIX_ROW (w->current_matrix, w->phys_cursor.vpos);
+      draw_phys_cursor_glyph (w, r, DRAW_CURSOR);
     }
   else
     {
@@ -7517,9 +7519,9 @@ static struct x_error_message_stack *x_error_message;
    x_catch_errors is in effect.  */
 
 static void
-x_error_catcher (Display *display, XErrorEvent *error)
+x_error_catcher (Display *display, XErrorEvent *event)
 {
-  XGetErrorText (display, error->error_code,
+  XGetErrorText (display, event->error_code,
 		 x_error_message->string,
 		 X_ERROR_MESSAGE_SIZE);
 }
@@ -7536,8 +7538,6 @@ x_error_catcher (Display *display, XErrorEvent *error)
    occurred since the last call to x_catch_errors or x_check_errors.
 
    Calling x_uncatch_errors resumes the normal error handling.  */
-
-void x_check_errors (Display *dpy, const char *format);
 
 void
 x_catch_errors (Display *dpy)
@@ -7648,7 +7648,7 @@ x_trace_wire (void)
    SIGPIPE will fail, causing Xlib to invoke the X IO error handler,
    which will do the appropriate cleanup for us.  */
 
-static SIGTYPE
+static void
 x_connection_signal (int signalnum)	/* If we don't have an argument, */
                    		/* some compilers complain in signal calls.  */
 {
@@ -7668,26 +7668,15 @@ x_connection_signal (int signalnum)	/* If we don't have an argument, */
 
 static char *error_msg;
 
-/* Function installed as fatal_error_signal_hook in
-   x_connection_closed.  Print the X error message, and exit normally,
-   instead of dumping core when XtCloseDisplay fails.  */
-
-static void
-x_fatal_error_signal (void)
-{
-  fprintf (stderr, "%s\n", error_msg);
-  exit (70);
-}
-
 /* Handle the loss of connection to display DPY.  ERROR_MESSAGE is
    the text of an error message that lead to the connection loss.  */
 
-static SIGTYPE
+static void
 x_connection_closed (Display *dpy, const char *error_message)
 {
   struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
   Lisp_Object frame, tail;
-  int index = SPECPDL_INDEX ();
+  int idx = SPECPDL_INDEX ();
 
   error_msg = (char *) alloca (strlen (error_message) + 1);
   strcpy (error_msg, error_message);
@@ -7782,8 +7771,12 @@ For details, see etc/PROBLEMS.\n",
   sigunblock (sigmask (SIGALRM));
   TOTALLY_UNBLOCK_INPUT;
 
-  unbind_to (index, Qnil);
+  unbind_to (idx, Qnil);
   clear_waiting_for_input ();
+
+  /* Tell GCC not to suggest attribute 'noreturn' for this function.  */
+  IF_LINT (if (! terminal_list) return; )
+
   /* Here, we absolutely have to use a non-local exit (e.g. signal, throw,
      longjmp), because returning from this function would get us back into
      Xlib's code which will directly call `exit'.  */
@@ -7798,12 +7791,12 @@ static void x_error_quitter (Display *, XErrorEvent *);
    It calls x_error_quitter or x_error_catcher.  */
 
 static int
-x_error_handler (Display *display, XErrorEvent *error)
+x_error_handler (Display *display, XErrorEvent *event)
 {
   if (x_error_message)
-    x_error_catcher (display, error);
+    x_error_catcher (display, event);
   else
-    x_error_quitter (display, error);
+    x_error_quitter (display, event);
   return 0;
 }
 
@@ -7817,22 +7810,22 @@ x_error_handler (Display *display, XErrorEvent *error)
    after x_error_handler prevents inlining into the former.  */
 
 static void NO_INLINE
-x_error_quitter (Display *display, XErrorEvent *error)
+x_error_quitter (Display *display, XErrorEvent *event)
 {
   char buf[256], buf1[356];
 
   /* Ignore BadName errors.  They can happen because of fonts
      or colors that are not defined.  */
 
-  if (error->error_code == BadName)
+  if (event->error_code == BadName)
     return;
 
   /* Note that there is no real way portable across R3/R4 to get the
      original error handler.  */
 
-  XGetErrorText (display, error->error_code, buf, sizeof (buf));
+  XGetErrorText (display, event->error_code, buf, sizeof (buf));
   sprintf (buf1, "X protocol error: %s on protocol request %d",
-	   buf, error->request_code);
+	   buf, event->request_code);
   x_connection_closed (display, buf1);
 }
 
@@ -8119,7 +8112,7 @@ xim_close_dpy (struct x_display_info *dpyinfo)
 /* Calculate the absolute position in frame F
    from its current recorded position values and gravity.  */
 
-void
+static void
 x_calc_absolute_position (struct frame *f)
 {
   int flags = f->size_hint_flags;
@@ -8862,31 +8855,6 @@ x_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y)
   UNBLOCK_INPUT;
 }
 
-/* focus shifting, raising and lowering.  */
-
-void
-x_focus_on_frame (struct frame *f)
-{
-#if 0
-  /* I don't think that the ICCCM allows programs to do things like this
-     without the interaction of the window manager.  Whatever you end up
-     doing with this code, do it to x_unfocus_frame too.  */
-  XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		  RevertToPointerRoot, CurrentTime);
-#endif /* ! 0 */
-}
-
-void
-x_unfocus_frame (struct frame *f)
-{
-#if 0
-  /* Look at the remarks in x_focus_on_frame.  */
-  if (FRAME_X_DISPLAY_INFO (f)->x_focus_frame == f)
-    XSetInputFocus (FRAME_X_DISPLAY (f), PointerRoot,
-		    RevertToPointerRoot, CurrentTime);
-#endif /* ! 0 */
-}
-
 /* Raise frame F.  */
 
 void
@@ -8947,6 +8915,12 @@ XTframe_raise_lower (FRAME_PTR f, int raise_flag)
 
 /* XEmbed implementation.  */
 
+#if defined USE_X_TOOLKIT || ! defined USE_GTK
+
+/* XEmbed implementation.  */
+
+#define XEMBED_VERSION 0
+
 static void
 xembed_set_info (struct frame *f, enum xembed_info flags)
 {
@@ -8960,9 +8934,11 @@ xembed_set_info (struct frame *f, enum xembed_info flags)
                    dpyinfo->Xatom_XEMBED_INFO, dpyinfo->Xatom_XEMBED_INFO,
 		   32, PropModeReplace, (unsigned char *) data, 2);
 }
+#endif /* defined USE_X_TOOLKIT || ! defined USE_GTK */
 
 static void
-xembed_send_message (struct frame *f, Time time, enum xembed_message message, long int detail, long int data1, long int data2)
+xembed_send_message (struct frame *f, Time t, enum xembed_message msg,
+		     long int detail, long int data1, long int data2)
 {
   XEvent event;
 
@@ -8970,8 +8946,8 @@ xembed_send_message (struct frame *f, Time time, enum xembed_message message, lo
   event.xclient.window = FRAME_X_OUTPUT (f)->parent_desc;
   event.xclient.message_type = FRAME_X_DISPLAY_INFO (f)->Xatom_XEMBED;
   event.xclient.format = 32;
-  event.xclient.data.l[0] = time;
-  event.xclient.data.l[1] = message;
+  event.xclient.data.l[0] = t;
+  event.xclient.data.l[1] = msg;
   event.xclient.data.l[2] = detail;
   event.xclient.data.l[3] = data1;
   event.xclient.data.l[4] = data2;
@@ -9143,7 +9119,7 @@ x_make_frame_visible (struct frame *f)
        unknown reason, the call to XtMapWidget is completely ignored.
        Mapping the widget a second time works.  */
 
-    if (!FRAME_VISIBLE_P (f) && --retry_count > 0)
+    if (!FRAME_VISIBLE_P (f) && --retry_count != 0)
       goto retry;
   }
 }
@@ -9212,7 +9188,9 @@ x_make_frame_invisible (struct frame *f)
 void
 x_iconify_frame (struct frame *f)
 {
+#ifdef USE_X_TOOLKIT
   int result;
+#endif
   Lisp_Object type;
 
   /* Don't keep the highlight on an invisible frame.  */
@@ -9295,19 +9273,19 @@ x_iconify_frame (struct frame *f)
   /* X11R4: send a ClientMessage to the window manager using the
      WM_CHANGE_STATE type.  */
   {
-    XEvent message;
+    XEvent msg;
 
-    message.xclient.window = FRAME_X_WINDOW (f);
-    message.xclient.type = ClientMessage;
-    message.xclient.message_type = FRAME_X_DISPLAY_INFO (f)->Xatom_wm_change_state;
-    message.xclient.format = 32;
-    message.xclient.data.l[0] = IconicState;
+    msg.xclient.window = FRAME_X_WINDOW (f);
+    msg.xclient.type = ClientMessage;
+    msg.xclient.message_type = FRAME_X_DISPLAY_INFO (f)->Xatom_wm_change_state;
+    msg.xclient.format = 32;
+    msg.xclient.data.l[0] = IconicState;
 
     if (! XSendEvent (FRAME_X_DISPLAY (f),
 		      DefaultRootWindow (FRAME_X_DISPLAY (f)),
 		      False,
 		      SubstructureRedirectMask | SubstructureNotifyMask,
-		      &message))
+		      &msg))
       {
 	UNBLOCK_INPUT_RESIGNAL;
 	error ("Can't notify window manager of iconification");
@@ -9339,9 +9317,11 @@ void
 x_free_frame_resources (struct frame *f)
 {
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  Mouse_HLInfo *hlinfo = &dpyinfo->mouse_highlight;
+#ifdef USE_X_TOOLKIT
   Lisp_Object bar;
   struct scroll_bar *b;
-  Mouse_HLInfo *hlinfo = &dpyinfo->mouse_highlight;
+#endif
 
   BLOCK_INPUT;
 
@@ -9744,7 +9724,7 @@ same_x_server (const char *name1, const char *name2)
   for (; *name1 != '\0' && *name1 == *name2; name1++, name2++)
     {
       if (*name1 == ':')
-	seen_colon++;
+	seen_colon = 1;
       if (seen_colon && *name1 == '.')
 	return 1;
     }
@@ -9797,10 +9777,11 @@ x_display_ok (const char *display)
 
 #ifdef USE_GTK
 static void
-my_log_handler (const gchar *log_domain, GLogLevelFlags log_level, const gchar *message, gpointer user_data)
+my_log_handler (const gchar *log_domain, GLogLevelFlags log_level,
+		const gchar *msg, gpointer user_data)
 {
-  if (!strstr (message, "g_set_prgname"))
-      fprintf (stderr, "%s-WARNING **: %s\n", log_domain, message);
+  if (!strstr (msg, "g_set_prgname"))
+      fprintf (stderr, "%s-WARNING **: %s\n", log_domain, msg);
 }
 #endif
 
@@ -9863,6 +9844,13 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
         XSetLocaleModifiers ("");
 
+        /* Emacs can only handle core input events, so make sure
+           Gtk doesn't use Xinput or Xinput2 extensions.  */
+        {
+          static char fix_events[] = "GDK_CORE_DEVICE_EVENTS=1";
+          putenv (fix_events);
+        }
+
         /* Work around GLib bug that outputs a faulty warning. See
            https://bugzilla.gnome.org/show_bug.cgi?id=563627.  */
         id = g_log_set_handler ("GLib", G_LOG_LEVEL_WARNING | G_LOG_FLAG_FATAL
@@ -9874,11 +9862,12 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
         fixup_locale ();
         xg_initialize ();
 
-        dpy = GDK_DISPLAY ();
+        dpy = DEFAULT_GDK_DISPLAY ();
 
         /* NULL window -> events for all windows go to our function */
         gdk_window_add_filter (NULL, event_handler_gdk, NULL);
 
+#if GTK_MAJOR_VERSION <= 2 && GTK_MINOR_VERSION <= 90
         /* Load our own gtkrc if it exists.  */
         {
           const char *file = "~/.emacs.d/gtkrc";
@@ -9890,6 +9879,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
           if (! NILP (abs_file) && !NILP (Ffile_readable_p (abs_file)))
             gtk_rc_parse (SSDATA (abs_file));
         }
+#endif
 
         XSetErrorHandler (x_error_handler);
         XSetIOErrorHandler (x_io_error_quitter);

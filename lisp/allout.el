@@ -234,7 +234,7 @@ Use vector format for the keys:
   - put literal keys after a '?' question mark, eg: '?a', '?.'
   - enclose control, shift, or meta-modified keys as sequences within
     parentheses, with the literal key, as above, preceded by the name(s)
-    of the modifers, eg: [(control ?a)]
+    of the modifiers, eg: [(control ?a)]
 See the existing keys for examples.
 
 Functions can be bound to multiple keys, but binding keys to
@@ -261,7 +261,7 @@ Use vector format for the keys:
   - put literal keys after a '?' question mark, eg: '?a', '?.'
   - enclose control, shift, or meta-modified keys as sequences within
     parentheses, with the literal key, as above, preceded by the name(s)
-    of the modifers, eg: [(control ?a)]
+    of the modifiers, eg: [(control ?a)]
 See the existing keys for examples."
   :type 'allout-keybindings-binding
   :group 'allout-keybindings
@@ -310,6 +310,7 @@ Auto-layout is not.
 
 With value nil, inhibit any automatic allout-mode activation."
   :set 'allout-auto-activation-helper
+  ;; FIXME: Using strings here is unusual and less efficient than symbols.
   :type '(choice (const :tag "On" t)
                 (const :tag "Ask about layout" "ask")
                 (const :tag "Mode only" "activate")
@@ -339,7 +340,7 @@ The types of elements in the layout specification are:
          -- positive numbers open to the relative depth indicated by the
             number, but do not force already opened subtopics to be closed.
          -- 0 means to close topic -- hide all subitems.
- :   -- repeat spec -- apply the preceeding element to all siblings at
+ :   -- repeat spec -- apply the preceding element to all siblings at
         current level, *up to* those siblings that would be covered by specs
         following the `:' on the list.  Ie, apply to all topics at level but
         trailing ones accounted for by trailing specs.  (Only the first of
@@ -752,7 +753,7 @@ Set this var to the bullet you want to use for file cross-references."
 
 ;;;_  = allout-flattened-numbering-abbreviation
 (define-obsolete-variable-alias 'allout-abbreviate-flattened-numbering
-  'allout-flattened-numbering-abbreviation "24.0")
+  'allout-flattened-numbering-abbreviation "24.1")
 (defcustom allout-flattened-numbering-abbreviation nil
   "If non-nil, `allout-flatten-exposed-to-buffer' abbreviates topic
 numbers to minimal amount with some context.  Otherwise, entire
@@ -1402,7 +1403,7 @@ their settings before allout-mode was started."
 (defvar allout-mode-deactivate-hook nil
   "*Hook that's run when allout mode ends.")
 (define-obsolete-variable-alias 'allout-mode-deactivate-hook
-  'allout-mode-off-hook "future")
+  'allout-mode-off-hook "24.1")
 ;;;_   = allout-exposure-category
 (defvar allout-exposure-category nil
   "Symbol for use as allout invisible-text overlay category.")
@@ -1642,7 +1643,7 @@ So `allout-post-command-business' should not reactivate it...")
 (defun allout-init (mode)
   "DEPRECATED - configure allout activation by customizing
 `allout-auto-activation'.  This function remains around, limited
-from what it did before, for backwards compatability.
+from what it did before, for backwards compatibility.
 
 MODE is the activation mode - see `allout-auto-activation' for
 valid values."
@@ -3125,7 +3126,7 @@ situation."
                  nil)
         ;; rationale: if any intervening items were at a lower depth, we
         ;; would now be on the first offspring at the target depth -- ie,
-        ;; the preceeding item (per the search direction) must be at a
+        ;; the preceding item (per the search direction) must be at a
         ;; lesser depth.  that's all we need to check.
         (if backward (allout-next-heading) (allout-previous-heading))
         (if (< allout-recent-depth target-depth)
@@ -3465,13 +3466,13 @@ Offer one suitable for current depth DEPTH as default."
 (defun allout-make-topic-prefix (&optional prior-bullet
                                             new
                                             depth
-                                            solicit
+                                            instead
                                             number-control
                                             index)
   ;; Depth null means use current depth, non-null means we're either
   ;; opening a new topic after current topic, lower or higher, or we're
   ;; changing level of current topic.
-  ;; Solicit dominates specified bullet-char.
+  ;; Instead dominates specified bullet-char.
 ;;;_    . Doc string:
   "Generate a topic prefix suitable for optional arg DEPTH, or current depth.
 
@@ -3492,15 +3493,18 @@ bullet or previous sibling.
 Third arg DEPTH forces the topic prefix to that depth, regardless of
 the current topics' depth.
 
-If SOLICIT is non-nil, then the choice of bullet is solicited from
-user.  If it's a character, then that character is offered as the
-default, otherwise the one suited to the context (according to
-distinction or depth) is offered.  (This overrides other options,
-including, eg, a distinctive PRIOR-BULLET.)  If non-nil, then the
-context-specific bullet is used.
+If INSTEAD is:
+
+- nil, then the bullet char for the context is used, per distinction or depth
+- a \(numeric) character, then character's string representation is used
+- a string, then the user is asked for bullet with the first char as default
+- anything else, the user is solicited with bullet char per context as default
+
+\(INSTEAD overrides other options, including, eg, a distinctive
+PRIOR-BULLET.)
 
 Fifth arg, NUMBER-CONTROL, matters only if `allout-numbered-bullet'
-is non-nil *and* soliciting was not explicitly invoked.  Then
+is non-nil *and* no specific INSTEAD was specified.  Then
 NUMBER-CONTROL non-nil forces prefix to either numbered or
 denumbered format, depending on the value of the sixth arg, INDEX.
 
@@ -3549,8 +3553,13 @@ index for each successive sibling)."
            ;; Solicitation overrides numbering and other cases:
            ((progn (setq body (make-string (- depth 2) ?\ ))
                    ;; The actual condition:
-                   solicit)
-            (let* ((got (allout-solicit-alternate-bullet depth solicit)))
+                   instead)
+            (let ((got (cond ((stringp instead)
+                              (if (> (length instead) 0)
+                                  (allout-solicit-alternate-bullet
+                                   depth (substring instead 0 1))))
+                             ((characterp instead) (char-to-string instead))
+                             (t (allout-solicit-alternate-bullet depth)))))
               ;; Gotta check whether we're numbering and got a numbered bullet:
               (setq numbering (and allout-numbered-bullet
                                    (not (and number-control (not index)))
@@ -3913,7 +3922,7 @@ Note that refill of indented paragraphs is not done."
 		      (allout-end-of-prefix)
                       (setq from allout-recent-prefix-beginning
                             to allout-recent-prefix-end)
-		      (allout-rebullet-heading t	;;; solicit
+		      (allout-rebullet-heading t	;;; instead
 						nil	;;; depth
 						nil	;;; number-control
 						nil	;;; index
@@ -3931,8 +3940,8 @@ Note that refill of indented paragraphs is not done."
     (message "Done.")
     (cond (on-bullet (goto-char (allout-current-bullet-pos)))
 	  (initial-col (move-to-column initial-col)))))
-;;;_    > allout-rebullet-heading (&optional solicit ...)
-(defun allout-rebullet-heading (&optional solicit
+;;;_    > allout-rebullet-heading (&optional instead ...)
+(defun allout-rebullet-heading (&optional instead
                                            new-depth
                                            number-control
                                            index
@@ -3942,11 +3951,11 @@ Note that refill of indented paragraphs is not done."
 
 All args are optional.
 
-If SOLICIT is non-nil, then the choice of bullet is solicited from
-user.  If it's a character, then that character is offered as the
-default, otherwise the one suited to the context (according to
-distinction or depth) is offered.  If non-nil, then the
-context-specific bullet is just used.
+If INSTEAD is:
+- nil, then the bullet char for the context is used, per distinction or depth
+- a \(numeric) character, then character's string representation is used
+- a string, then the user is asked for bullet with the first char as default
+- anything else, the user is solicited with bullet char per context as default
 
 Second arg DEPTH forces the topic prefix to that depth, regardless
 of the topic's current depth.
@@ -3981,7 +3990,7 @@ this function."
          (new-prefix (allout-make-topic-prefix current-bullet
                                                 nil
                                                 new-depth
-                                                solicit
+                                                instead
                                                 number-control
                                                 index)))
 
@@ -4028,7 +4037,7 @@ this function."
 		    (cond ((numberp index) (1+ index))
 			  ((not number-control)  (allout-sibling-index))))
 	      (if (allout-numbered-type-prefix)
-		  (allout-rebullet-heading nil		;;; solicit
+		  (allout-rebullet-heading nil		;;; instead
 					    new-depth	;;; new-depth
 					    number-control;;; number-control
 					    index	;;; index
@@ -4145,7 +4154,7 @@ a topic and its immediate offspring is greater than one.)"
            (when (< relative-depth 0)
              (save-excursion
                (goto-char local-point)
-               (allout-rebullet-heading nil               ;;; solicit
+               (allout-rebullet-heading nil               ;;; instead
                                         (+ starting-depth relative-depth)
                                         nil		;;; number
                                         starting-index
@@ -4203,7 +4212,7 @@ Returns final depth."
                                         ; Prime ascender for ascension:
       (setq ascender (1- allout-recent-depth))
       (if (>= allout-recent-depth depth)
-          (allout-rebullet-heading nil	;;; solicit
+          (allout-rebullet-heading nil	;;; instead
                                     nil	;;; depth
                                     nil	;;; number-control
                                     nil	;;; index
@@ -4230,7 +4239,7 @@ rebulleting each topic at this level."
           (use-bullet (equal '(16) denumber))
           (more t))
       (while more
-        (allout-rebullet-heading use-bullet		;;; solicit
+        (allout-rebullet-heading use-bullet		;;; instead
                                   depth			;;; depth
                                   t			;;; number-control
                                   index			;;; index
@@ -4246,7 +4255,7 @@ With a negative argument, the item is shifted out using
 
 With an argument greater than one, shift-in the item but not its
 offspring, making the item into a sibling of its former children,
-and a child of sibling that formerly preceeded it.
+and a child of sibling that formerly preceded it.
 
 You are not allowed to shift the first offspring of a topic
 inwards, because that would yield a \"containment
@@ -4480,8 +4489,9 @@ Topic exposure is marked with text-properties, to be used by
             ;; advance to just after end of this annotation:
             (setq next (allout-next-single-char-property-change
                         (point) 'allout-was-hidden nil end))
-            (overlay-put (make-overlay prev next nil 'front-advance)
-                         'category 'allout-exposure-category)
+            (let ((o (make-overlay prev next nil 'front-advance)))
+              (overlay-put o 'category 'allout-exposure-category)
+              (overlay-put o 'evaporate t))
             (allout-deannotate-hidden prev next)
             (setq prev next)
             (if next (goto-char next)))))
@@ -4577,32 +4587,20 @@ however, are left exactly like normal, non-allout-specific yanks."
                           (progn (widen)
                                  (forward-char -1)
                                  (narrow-to-region subj-beg (point))))))
-                  ;; Preserve new bullet if it's a distinctive one, otherwise
-                  ;; use old one:
-                  (if (string-match (regexp-quote prefix-bullet)
-                                    allout-distinctive-bullets-string)
-                                        ; Delete from bullet of old to
-                                        ; before bullet of new:
-                      (progn
-                        (beginning-of-line)
-                        (allout-unprotected
-                         (delete-region (point) subj-beg))
-                        (set-marker (allout-mark-marker t) subj-end)
-                        (goto-char subj-beg)
-                        (allout-end-of-prefix))
-                                        ; Delete base subj prefix,
-                                        ; leaving old one:
-                    (allout-unprotected
-                     (progn
-                       (delete-region (point) (+ (point)
-                                                 prefix-len
-                                                 (- adjust-to-depth
-                                                    subj-depth)))
+                  ;; Remove new heading prefix:
+                  (allout-unprotected
+                   (progn
+                     (delete-region (point) (+ (point)
+                                               prefix-len
+                                               (- adjust-to-depth
+                                                  subj-depth)))
                                         ; and delete residual subj
                                         ; prefix digits and space:
-                       (while (looking-at "[0-9]") (delete-char 1))
-                       (if (looking-at " ")
-                           (delete-char 1))))))
+                     (while (looking-at "[0-9]") (delete-char 1))
+                     (if (looking-at " ")
+                         (delete-char 1))))
+                  ;; Assert new topic's bullet - minimal effort if unchanged:
+                  (allout-rebullet-heading (string-to-char prefix-bullet)))
               (exchange-point-and-mark))))
       (if rectify-numbering
           (progn
@@ -4613,7 +4611,7 @@ however, are left exactly like normal, non-allout-specific yanks."
               (goto-char subj-beg)
               (if (allout-goto-prefix-doublechecked)
                   (allout-unprotected
-                   (allout-rebullet-heading nil          ;;; solicit
+                   (allout-rebullet-heading nil          ;;; instead
                                             (allout-depth) ;;; depth
                                             nil ;;; number-control
                                             nil ;;; index
@@ -5364,7 +5362,7 @@ header and body.  The elements of that list are:
 
       (goto-char start)
       (beginning-of-line)
-      ;; Goto initial topic, and register preceeding stuff, if any:
+      ;; Goto initial topic, and register preceding stuff, if any:
       (if (> (allout-goto-prefix-doublechecked) start)
 	  ;; First topic follows beginning point -- register preliminary stuff:
 	  (setq result

@@ -1,3 +1,4 @@
+@c -*- coding: iso-latin-1 -*-
 @c This is part of the Emacs manual.
 @c Copyright (C) 1994-1997, 1999-2011  Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
@@ -51,7 +52,7 @@ files.
 Michael Albinus wrote @file{dbus.el}, a package that implements the
 D-Bus message bus protocol; @file{zeroconf.el}, a mode for browsing
 Avahi services; and @file{xesam.el}, a Xesam-based search engine
-interface.  He and Kai Gro@ss{}johann wrote the Tramp package, which
+interface.  He and Kai Großjohann wrote the Tramp package, which
 provides transparent remote file editing using rcp, ssh, ftp, and
 other network protocols.  He and Daniel Pittman wrote
 @file{tramp-cache.el}.
@@ -190,7 +191,7 @@ prior to Emacs 23 for Mac OS.
 @item
 Chong Yidong was the Emacs co-maintainer for Emacs 23.  He made many
 improvements to the Emacs display engine; and, together with Kai
-Gro@ss{}johann and Alex Schroeder, wrote @file{longlines.el}, a minor
+Großjohann and Alex Schroeder, wrote @file{longlines.el}, a minor
 mode for wrapping long lines.
 
 @item
@@ -248,7 +249,7 @@ text replace the current selection.
 Eric Ding wrote @file{goto-addr.el},
 
 @item
-Jan Dj@"{a}rv added support for the GTK+ toolkit and X drag-and-drop.
+Jan Djärv added support for the GTK+ toolkit and X drag-and-drop.
 
 @item
 Carsten Dominik wrote Ref@TeX{}, a package for setting up labels and
@@ -283,7 +284,7 @@ folders have mail waiting in them; and @file{iswitchb.el}, a feature
 for incremental reading and completion of buffer names.
 
 @item
-Torbj@"orn Einarsson wrote @file{f90.el}, a mode for Fortran 90 files.
+Torbjörn Einarsson wrote @file{f90.el}, a mode for Fortran 90 files.
 
 @item
 Tsugutomo Enami co-wrote the support for international character sets.
@@ -349,7 +350,7 @@ Kevin Gallo added multiple-frame support for Windows NT and wrote
 @file{w32-win.el}, support functions for the MS-Windows window system.
 
 @item
-Juan Le@'{o}n Lahoz Garc@'{i}a wrote @file{wdired.el}, a package for
+Juan León Lahoz García wrote @file{wdired.el}, a package for
 performing file operations by directly editing Dired buffers.
 
 @item
@@ -483,8 +484,8 @@ Emacs: @file{dns.el} for Domain Name Service lookups;
 @file{netrc.el} for parsing of @file{.netrc} files; and
 @file{time-date.el} for general date and time handling.  Components of
 Gnus have also been written by: Nagy Andras, David Blacka, Scott Byer,
-Kevin Greiner, Kai Gro@ss{}johann, Joe Hildebrand, Paul Jarc, Sascha
-L@"{u}decke, David Moore, Jim Radford, Benjamin Rutt, Raymond Scholz,
+Kevin Greiner, Kai Großjohann, Joe Hildebrand, Paul Jarc, Sascha
+Lüdecke, David Moore, Jim Radford, Benjamin Rutt, Raymond Scholz,
 Thomas Steffen, Reiner Steib, Didier Verna, Ilja Weis, Katsumi Yamaoka,
 Teodor Zlatanov, and others (@pxref{Contributors,,,gnus, the Gnus Manual}).
 
@@ -524,7 +525,7 @@ S/MIME and Sieve components; and @file{tls.el} and @file{starttls.el}
 for the Transport Layer Security protocol.
 
 @item
-Arne J@o{}rgensen wrote @file{latexenc.el}, a package to
+Arne Jørgensen wrote @file{latexenc.el}, a package to
 automatically guess the correct coding system in LaTeX files.
 
 @item
@@ -576,7 +577,7 @@ files and running a PostScript interpreter interactively from within
 Emacs.
 
 @item
-Karel Kl@'{@dotless{i}}@v{c} contributed SELinux support, for preserving the
+Karel Klí@v{c} contributed SELinux support, for preserving the
 Security-Enchanced Linux context of files on backup and copy.
 
 @item
@@ -667,9 +668,8 @@ directory-local variables; and the @code{info-finder} feature that
 creates a virtual Info manual of package keywords.
 
 @item
-K@'{a}roly L@H{o}rentey wrote the ``multi-terminal'' code, which
-allows Emacs to run on graphical and text-only terminals
-simultaneously.
+Károly L@H{o}rentey wrote the ``multi-terminal'' code, which allows Emacs to
+run on graphical and text-only terminals simultaneously.
 
 @item
 Martin Lorentzon wrote @file{vc-annotate.el}, support for version
@@ -933,7 +933,7 @@ Fred Pierresteguy and Paul Reilly made Emacs work with X Toolkit
 widgets.
 
 @item
-Fran@,{c}ois Pinard, Greg McGary, and Bruno Haible wrote @file{po.el},
+François Pinard, Greg McGary, and Bruno Haible wrote @file{po.el},
 support for PO translation files.
 
 @item

@@ -79,11 +79,6 @@ extern struct direct *readdir (DIR *);
 #include "regex.h"
 #include "blockinput.h"
 
-/* Returns a search buffer, with a fastmap allocated and ready to go.  */
-extern struct re_pattern_buffer *compile_pattern (Lisp_Object,
-						  struct re_registers *,
-						  Lisp_Object, int, int);
-
 Lisp_Object Qdirectory_files;
 Lisp_Object Qdirectory_files_and_attributes;
 Lisp_Object Qfile_name_completion;
@@ -102,7 +97,7 @@ directory_files_internal_w32_unwind (Lisp_Object arg)
 }
 #endif
 
-Lisp_Object
+static Lisp_Object
 directory_files_internal_unwind (Lisp_Object dh)
 {
   DIR *d = (DIR *) XSAVE_VALUE (dh)->pointer;
@@ -233,11 +228,11 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full, Lisp_Object m
 	  int len;
 	  int wanted = 0;
 	  Lisp_Object name, finalname;
-	  struct gcpro gcpro1, gcpro2;
+	  struct gcpro inner_gcpro1, inner_gcpro2;
 
 	  len = NAMLEN (dp);
 	  name = finalname = make_unibyte_string (dp->d_name, len);
-	  GCPRO2 (finalname, name);
+	  GCPRO2_VAR (finalname, name, inner_gcpro);
 
 	  /* Note: DECODE_FILE can GC; it should protect its argument,
 	     though.  */
@@ -293,23 +288,23 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full, Lisp_Object m
 		  /* Construct an expanded filename for the directory entry.
 		     Use the decoded names for input to Ffile_attributes.  */
 		  Lisp_Object decoded_fullname, fileattrs;
-		  struct gcpro gcpro1, gcpro2;
+		  struct gcpro innermost_gcpro1, innermost_gcpro2;
 
 		  decoded_fullname = fileattrs = Qnil;
-		  GCPRO2 (decoded_fullname, fileattrs);
+		  GCPRO2_VAR (decoded_fullname, fileattrs, innermost_gcpro);
 
 		  /* Both Fexpand_file_name and Ffile_attributes can GC.  */
 		  decoded_fullname = Fexpand_file_name (name, directory);
 		  fileattrs = Ffile_attributes (decoded_fullname, id_format);
 
 		  list = Fcons (Fcons (finalname, fileattrs), list);
-		  UNGCPRO;
+		  UNGCPRO_VAR (innermost_gcpro);
 		}
 	      else
 		list = Fcons (finalname, list);
 	    }
 
-	  UNGCPRO;
+	  UNGCPRO_VAR (inner_gcpro);
 	}
     }
 
@@ -644,8 +639,6 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
 
       {
 	Lisp_Object regexps;
-	Lisp_Object zero;
-	XSETFASTINT (zero, 0);
 
 	/* Ignore this element if it fails to match all the regexps.  */
 	if (completion_ignore_case)
@@ -676,11 +669,11 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
       if (!NILP (predicate))
 	{
 	  Lisp_Object val;
-	  struct gcpro gcpro1;
+	  struct gcpro inner_gcpro1;
 
-	  GCPRO1 (name);
+	  GCPRO1_VAR (name, inner_gcpro);
 	  val = call1 (predicate, name);
-	  UNGCPRO;
+	  UNGCPRO_VAR (inner_gcpro);
 
 	  if (NILP (val))
 	    continue;
@@ -702,16 +695,16 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
 	  Lisp_Object zero = make_number (0);
 	  /* FIXME: This is a copy of the code in Ftry_completion.  */
 	  int compare = min (bestmatchsize, SCHARS (name));
-	  Lisp_Object tem
+	  Lisp_Object cmp
 	    = Fcompare_strings (bestmatch, zero,
 				make_number (compare),
 				name, zero,
 				make_number (compare),
 				completion_ignore_case ? Qt : Qnil);
 	  int matchsize
-	    = (EQ (tem, Qt)     ? compare
-	       : XINT (tem) < 0 ? - XINT (tem) - 1
-	       :                  XINT (tem) - 1);
+	    = (EQ (cmp, Qt)     ? compare
+	       : XINT (cmp) < 0 ? - XINT (cmp) - 1
+	       :                  XINT (cmp) - 1);
 
 	  if (completion_ignore_case)
 	    {
@@ -735,18 +728,18 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
 		  (((matchsize == SCHARS (name))
 		    ==
 		    (matchsize + !!directoryp == SCHARS (bestmatch)))
-		   && (tem = Fcompare_strings (name, zero,
+		   && (cmp = Fcompare_strings (name, zero,
 					       make_number (SCHARS (file)),
 					       file, zero,
 					       Qnil,
 					       Qnil),
-		       EQ (Qt, tem))
-		   && (tem = Fcompare_strings (bestmatch, zero,
+		       EQ (Qt, cmp))
+		   && (cmp = Fcompare_strings (bestmatch, zero,
 					       make_number (SCHARS (file)),
 					       file, zero,
 					       Qnil,
 					       Qnil),
-		       ! EQ (Qt, tem))))
+		       ! EQ (Qt, cmp))))
 		bestmatch = name;
 	    }
 	  bestmatchsize = matchsize;
@@ -795,8 +788,8 @@ scmp (const char *s1, const char *s2, int len)
   if (completion_ignore_case)
     {
       while (l
-	     && (DOWNCASE ((unsigned char) *s1++)
-		 == DOWNCASE ((unsigned char) *s2++)))
+	     && (downcase ((unsigned char) *s1++)
+		 == downcase ((unsigned char) *s2++)))
 	l--;
     }
   else
@@ -848,13 +841,6 @@ file_name_completion_stat (Lisp_Object dirname, DIRENTRY *dp, struct stat *st_ad
   return value;
 }
 
-Lisp_Object
-make_time (time_t time)
-{
-  return Fcons (make_number (time >> 16),
-		Fcons (make_number (time & 0177777), Qnil));
-}
-
 static char *
 stat_uname (struct stat *st)
 {
@@ -937,7 +923,11 @@ so last access time will always be midnight of that day.  */)
   Lisp_Object dirname;
   struct stat sdir;
 #endif /* BSD4_2 */
-  char modes[12];
+
+  /* An array to hold the mode string generated by filemodestring,
+     including its terminating space and null byte.  */
+  char modes[sizeof "-rwxr-xr-x "];
+
   Lisp_Object handler;
   struct gcpro gcpro1;
   char *uname = NULL, *gname = NULL;

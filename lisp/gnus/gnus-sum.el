@@ -1234,7 +1234,7 @@ For example: ((1 . cn-gb-2312) (2 . big5))."
   :type 'boolean
   :group 'gnus-summary-marks)
 
-(defcustom gnus-propagate-marks t
+(defcustom gnus-propagate-marks nil
   "If non-nil, Gnus will store and retrieve marks from the backends.
 This means that marks will be stored both in .newsrc.eld and in
 the backend, and will slow operation down somewhat."
@@ -1734,7 +1734,7 @@ If RE-ONLY is non-nil, strip leading `Re:'s only."
   (while (re-search-forward regexp nil t)
     (replace-match (or newtext ""))))
 
-(defun gnus-simplify-buffer-fuzzy ()
+(defun gnus-simplify-buffer-fuzzy (regexp)
   "Simplify string in the buffer fuzzily.
 The string in the accessible portion of the current buffer is simplified.
 It is assumed to be a single-line subject.
@@ -1748,11 +1748,10 @@ matter is removed.  Additional things can be deleted by setting
     (while (not (eq modified-tick (buffer-modified-tick)))
       (setq modified-tick (buffer-modified-tick))
       (cond
-       ((listp gnus-simplify-subject-fuzzy-regexp)
-	(mapc 'gnus-simplify-buffer-fuzzy-step
-	      gnus-simplify-subject-fuzzy-regexp))
-       (gnus-simplify-subject-fuzzy-regexp
-	(gnus-simplify-buffer-fuzzy-step gnus-simplify-subject-fuzzy-regexp)))
+       ((listp regexp)
+	(mapc 'gnus-simplify-buffer-fuzzy-step regexp))
+       (regexp
+	(gnus-simplify-buffer-fuzzy-step regexp)))
       (gnus-simplify-buffer-fuzzy-step "^ *\\[[-+?*!][-+?*!]\\] *")
       (gnus-simplify-buffer-fuzzy-step
        "^ *\\(re\\|fw\\|fwd\\)[[{(^0-9]*[])}]?[:;] *")
@@ -1767,15 +1766,16 @@ matter is removed.  Additional things can be deleted by setting
   "Simplify a subject string fuzzily.
 See `gnus-simplify-buffer-fuzzy' for details."
   (save-excursion
-    (gnus-set-work-buffer)
-    (let ((case-fold-search t))
-      ;; Remove uninteresting prefixes.
-      (when (and gnus-simplify-ignored-prefixes
-		 (string-match gnus-simplify-ignored-prefixes subject))
-	(setq subject (substring subject (match-end 0))))
-      (insert subject)
-      (inline (gnus-simplify-buffer-fuzzy))
-      (buffer-string))))
+    (let ((regexp gnus-simplify-subject-fuzzy-regexp))
+      (gnus-set-work-buffer)
+      (let ((case-fold-search t))
+	;; Remove uninteresting prefixes.
+	(when (and gnus-simplify-ignored-prefixes
+		   (string-match gnus-simplify-ignored-prefixes subject))
+	  (setq subject (substring subject (match-end 0))))
+	(insert subject)
+	(inline (gnus-simplify-buffer-fuzzy regexp))
+	(buffer-string)))))
 
 (defsubst gnus-simplify-subject-fully (subject)
   "Simplify a subject string according to `gnus-summary-gather-subject-limit'."
@@ -5510,12 +5510,17 @@ or a straight list of headers."
 	 (cdr (assq number gnus-newsgroup-scored))
 	 (memq number gnus-newsgroup-processable))))))
 
+(defun gnus-group-get-list-identifiers (group)
+  "Get list identifier regexp for GROUP."
+  (or (gnus-parameter-list-identifier group)
+      (if (consp gnus-list-identifiers)
+          (mapconcat 'identity gnus-list-identifiers " *\\|")
+        gnus-list-identifiers)))
+
 (defun gnus-summary-remove-list-identifiers ()
   "Remove list identifiers in `gnus-list-identifiers' from articles in the current group."
-  (let ((regexp (if (consp gnus-list-identifiers)
-		    (mapconcat 'identity gnus-list-identifiers " *\\|")
-		  gnus-list-identifiers))
-	changed subject)
+  (let ((regexp (gnus-group-get-list-identifiers gnus-newsgroup-name))
+        changed subject)
     (when regexp
       (setq regexp (concat "^\\(?:R[Ee]: +\\)*\\(" regexp " *\\)"))
       (dolist (header gnus-newsgroup-headers)
@@ -5707,8 +5712,7 @@ If SELECT-ARTICLES, only select those articles from GROUP."
       (when gnus-agent
 	(gnus-agent-get-undownloaded-list))
       ;; Remove list identifiers from subject
-      (when gnus-list-identifiers
-	(gnus-summary-remove-list-identifiers))
+      (gnus-summary-remove-list-identifiers)
       ;; Check whether auto-expire is to be done in this group.
       (setq gnus-newsgroup-auto-expire
 	    (gnus-group-auto-expirable-p group))
@@ -5798,7 +5802,8 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 
 (defun gnus-articles-to-read (group &optional read-all)
   "Find out what articles the user wants to read."
-  (let* ((articles
+  (let* ((only-read-p t)
+	 (articles
 	  ;; Select all articles if `read-all' is non-nil, or if there
 	  ;; are no unread articles.
 	  (if (or read-all
@@ -5822,6 +5827,7 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 		 (gnus-uncompress-range (gnus-active group)))
 	       (gnus-cache-articles-in-group group))
 	    ;; Select only the "normal" subset of articles.
+	    (setq only-read-p nil)
 	    (gnus-sorted-nunion
 	     (gnus-sorted-union gnus-newsgroup-dormant gnus-newsgroup-marked)
 	     gnus-newsgroup-unreads)))
@@ -5845,16 +5851,25 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 		  (let* ((cursor-in-echo-area nil)
 			 (initial (gnus-parameter-large-newsgroup-initial
 				   gnus-newsgroup-name))
+			 (default (if only-read-p
+				      (or initial gnus-large-newsgroup)
+				    number))
 			 (input
 			  (read-string
-			   (format
-			    "How many articles from %s (%s %d): "
-			    (gnus-group-decoded-name gnus-newsgroup-name)
-			    (if initial "max" "default")
-			    number)
-			   (if initial
-			       (cons (number-to-string initial)
-				     0)))))
+			   (if only-read-p
+			       (format
+			      "How many articles from %s (available %d, default %d): "
+			      (gnus-group-decoded-name
+			       (gnus-group-real-name gnus-newsgroup-name))
+			      number default)
+			     (format
+				"How many articles from %s (%d available): "
+				(gnus-group-decoded-name
+				 (gnus-group-real-name gnus-newsgroup-name))
+				default))
+			   nil
+			   nil
+			   (number-to-string default))))
 		    (if (string-match "^[ \t]*$" input) number input)))
 		 ((and (> scored marked) (< scored number)
 		       (> (- scored number) 20))
@@ -5862,7 +5877,8 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 			 (read-string
 			  (format "%s %s (%d scored, %d total): "
 				  "How many articles from"
-				  (gnus-group-decoded-name group)
+				  (gnus-group-decoded-name
+				   (gnus-group-real-name gnus-newsgroup-name))
 				  scored number))))
 		    (if (string-match "^[ \t]*$" input)
 			number input)))
@@ -6052,14 +6068,22 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 		    'request-set-mark gnus-newsgroup-name)
 		   (not (gnus-article-unpropagatable-p (cdr type))))
 	  (let* ((old (cdr (assq (cdr type) (gnus-info-marks info))))
-		 (del (gnus-remove-from-range (gnus-copy-sequence old) list))
-		 (add (gnus-remove-from-range
-		       (gnus-copy-sequence list) old)))
+		 ;; Don't do anything about marks for articles we
+		 ;; didn't actually get any headers for.
+		 (del
+		  (gnus-list-range-intersection
+		   gnus-newsgroup-articles
+		   (gnus-remove-from-range (gnus-copy-sequence old) list)))
+		 (add
+		  (gnus-list-range-intersection
+		   gnus-newsgroup-articles
+		   (gnus-remove-from-range
+		    (gnus-copy-sequence list) old))))
 	    (when add
 	      (push (list add 'add (list (cdr type))) delta-marks))
 	    (when del
-	      ;; Don't delete marks from outside the active range.  This
-	      ;; shouldn't happen, but is a sanity check.
+	      ;; Don't delete marks from outside the active range.
+	      ;; This shouldn't happen, but is a sanity check.
 	      (setq del (gnus-sorted-range-intersection
 			 (gnus-active gnus-newsgroup-name) del))
 	      (push (list del 'del (list (cdr type))) delta-marks))))
@@ -6564,9 +6588,8 @@ the subject line on."
 		  (1+ (point-at-eol))
 		(gnus-delete-line))))))
       ;; Remove list identifiers from subject.
-      (when gnus-list-identifiers
-	(let ((gnus-newsgroup-headers (list header)))
-	  (gnus-summary-remove-list-identifiers)))
+      (let ((gnus-newsgroup-headers (list header)))
+        (gnus-summary-remove-list-identifiers))
       (when old-header
 	(mail-header-set-number header (mail-header-number old-header)))
       (setq gnus-newsgroup-sparse
@@ -12127,10 +12150,7 @@ If REVERSE, save parts that do not match TYPE."
 		    mm-file-name-rewrite-functions
 		    (file-name-nondirectory
 		     (or
-		      (mail-content-type-get
-		       (mm-handle-disposition handle) 'filename)
-		      (mail-content-type-get
-		       (mm-handle-type handle) 'name)
+                      (mm-handle-filename handle)
 		      (format "%s.%d.%d" gnus-newsgroup-name
 			      (cdr gnus-article-current)
 			      gnus-summary-save-parts-counter))))
@@ -12435,7 +12455,10 @@ UNREAD is a sorted list."
 	(save-excursion
 	  (let (setmarkundo)
 	    ;; Propagate the read marks to the backend.
-	    (when (and gnus-propagate-marks
+	    (when (and (or gnus-propagate-marks
+			   (gnus-method-option-p
+			    (gnus-find-method-for-group group)
+			    'server-marks))
 		       (gnus-check-backend-function 'request-set-mark group))
 	      (let ((del (gnus-remove-from-range (gnus-info-read info) read))
 		    (add (gnus-remove-from-range read (gnus-info-read info))))
@@ -12667,8 +12690,7 @@ returned."
     (when gnus-agent
       (gnus-agent-get-undownloaded-list))
     ;; Remove list identifiers from subject
-    (when gnus-list-identifiers
-      (gnus-summary-remove-list-identifiers))
+    (gnus-summary-remove-list-identifiers)
     ;; First and last article in this newsgroup.
     (when gnus-newsgroup-headers
       (setq gnus-newsgroup-begin

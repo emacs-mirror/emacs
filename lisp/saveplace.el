@@ -285,7 +285,7 @@ may have changed\) back to `save-place-alist'."
   (let ((cell (assoc buffer-file-name save-place-alist)))
     (if cell
 	(progn
-	  (or after-find-file-from-revert-buffer
+	  (or revert-buffer-in-progress-p
 	      (goto-char (cdr cell)))
           ;; and make sure it will be saved again for later
           (setq save-place t)))))
@@ -300,7 +300,8 @@ may have changed\) back to `save-place-alist'."
 
 (add-hook 'find-file-hook 'save-place-find-file-hook t)
 
-(add-hook 'kill-emacs-hook 'save-place-kill-emacs-hook)
+(unless noninteractive
+  (add-hook 'kill-emacs-hook 'save-place-kill-emacs-hook))
 
 (add-hook 'kill-buffer-hook 'save-place-to-alist)
 

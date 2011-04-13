@@ -566,20 +566,20 @@ read_and_apply_settings (struct x_display_info *dpyinfo, int send_event_p)
           if (send_event_p)
             store_config_changed_event (Qtool_bar_style, dpyname);
         }
-      free (settings.tb_style);
+      xfree (settings.tb_style);
     }
 
   if (settings.seen & SEEN_FONT)
     {
       if (!current_font || strcmp (current_font, settings.font) != 0)
         {
-          free (current_font);
+          xfree (current_font);
           current_font = settings.font;
           if (send_event_p)
             store_config_changed_event (Qfont_name, dpyname);
         }
       else
-        free (settings.font);
+        xfree (settings.font);
     }
 }
 

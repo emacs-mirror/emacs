@@ -1,4 +1,4 @@
-;;; bs.el --- menu for selecting and displaying buffers
+;;; bs.el --- menu for selecting and displaying buffers -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1998-2011  Free Software Foundation, Inc.
 ;; Author: Olaf Sylvester <Olaf.Sylvester@netsurf.de>
@@ -40,7 +40,7 @@
 ;; |  % vc-hooks.el     43605  Emacs-Lisp    /usr/share/emacs/19.34/lisp$|
 ;; -----------------------------------------------------------------------
 
-;;; Quick Installation und Customization:
+;;; Quick Installation and Customization:
 
 ;; To display the bs menu, do
 ;;   M-x bs-show
@@ -693,7 +693,7 @@ Refresh whole Buffer Selection Menu."
   (call-interactively 'bs-set-configuration)
   (bs--redisplay t))
 
-(defun bs-refresh (&rest ignored)
+(defun bs-refresh (&rest _ignored)
   "Refresh whole Buffer Selection Menu.
 Arguments are IGNORED (for `revert-buffer')."
   (interactive)
@@ -1017,7 +1017,7 @@ A value of t means BUFFER belongs to no file.
 A value of nil means BUFFER belongs to a file."
   (not (buffer-file-name buffer)))
 
-(defun bs-sort-buffer-interns-are-last (b1 b2)
+(defun bs-sort-buffer-interns-are-last (_b1 b2)
   "Function for sorting internal buffers at the end of all buffers."
   (string-match-p "^\\*" (buffer-name b2)))
 
@@ -1083,7 +1083,7 @@ configuration."
 		  bs-dont-show-regexp     (nth 3 list)
 		  bs-dont-show-function   (nth 4 list)
 		  bs-buffer-sort-function (nth 5 list))
-	  ;; for backward compability
+	  ;; for backward compatibility
 	  (funcall (cdr list)))
       ;; else
       (ding)
@@ -1262,7 +1262,7 @@ or a string."
 	 fun)
 	(t (apply fun args))))
 
-(defun bs--get-marked-string (start-buffer all-buffers)
+(defun bs--get-marked-string (start-buffer _all-buffers)
   "Return a string which describes whether current buffer is marked.
 START-BUFFER is the buffer where we started buffer selection.
 ALL-BUFFERS is the list of buffers appearing in Buffer Selection Menu.
@@ -1287,25 +1287,25 @@ The result string is one of `bs-string-current', `bs-string-current-marked',
    (t
     bs-string-show-always)))
 
-(defun bs--get-modified-string (start-buffer all-buffers)
+(defun bs--get-modified-string (_start-buffer _all-buffers)
   "Return a string which describes whether current buffer is modified.
 START-BUFFER is the buffer where we started buffer selection.
 ALL-BUFFERS is the list of buffers appearing in Buffer Selection Menu."
   (if (buffer-modified-p) "*" " "))
 
-(defun bs--get-readonly-string (start-buffer all-buffers)
+(defun bs--get-readonly-string (_start-buffer _all-buffers)
   "Return a string which describes whether current buffer is read only.
 START-BUFFER is the buffer where we started buffer selection.
 ALL-BUFFERS is the list of buffers appearing in Buffer Selection Menu."
   (if buffer-read-only "%" " "))
 
-(defun bs--get-size-string (start-buffer all-buffers)
+(defun bs--get-size-string (_start-buffer _all-buffers)
   "Return a string which describes the size of current buffer.
 START-BUFFER is the buffer where we started buffer selection.
 ALL-BUFFERS is the list of buffers appearing in Buffer Selection Menu."
   (int-to-string (buffer-size)))
 
-(defun bs--get-name (start-buffer all-buffers)
+(defun bs--get-name (_start-buffer _all-buffers)
   "Return name of current buffer for Buffer Selection Menu.
 The name of current buffer gets additional text properties
 for mouse highlighting.
@@ -1315,13 +1315,13 @@ ALL-BUFFERS is the list of buffers appearing in Buffer Selection Menu."
               'help-echo "mouse-2: select this buffer, mouse-3: select in other frame"
               'mouse-face 'highlight))
 
-(defun bs--get-mode-name (start-buffer all-buffers)
+(defun bs--get-mode-name (start-buffer _all-buffers)
   "Return the name of mode of current buffer for Buffer Selection Menu.
 START-BUFFER is the buffer where we started buffer selection.
 ALL-BUFFERS is the list of buffers appearing in Buffer Selection Menu."
   (format-mode-line mode-name nil nil start-buffer))
 
-(defun bs--get-file-name (start-buffer all-buffers)
+(defun bs--get-file-name (_start-buffer _all-buffers)
   "Return string for column 'File' in Buffer Selection Menu.
 This is the variable `buffer-file-name' of current buffer.
 If not visiting a file, `list-buffers-directory' is returned instead.
@@ -1420,18 +1420,18 @@ for buffer selection."
       (bs-show-in-buffer liste)
       (bs-message-without-log "%s" (bs--current-config-message)))))
 
-(defun bs--configuration-name-for-prefix-arg (prefix-arg)
-  "Convert prefix argument PREFIX-ARG to a name of a buffer configuration.
-If PREFIX-ARG is nil return `bs-default-configuration'.
-If PREFIX-ARG is an integer return PREFIX-ARG element of `bs-configurations'.
+(defun bs--configuration-name-for-prefix-arg (prefix)
+  "Convert prefix argument PREFIX to a name of a buffer configuration.
+If PREFIX is nil return `bs-default-configuration'.
+If PREFIX is an integer return PREFIX element of `bs-configurations'.
 Otherwise return `bs-alternative-configuration'."
   (cond ;; usually activation
-   ((null prefix-arg)
+   ((null prefix)
     bs-default-configuration)
    ;; call with integer as prefix argument
-   ((integerp prefix-arg)
-    (if (and (< 0 prefix-arg) (<= prefix-arg (length bs-configurations)))
-	(car (nth (1- prefix-arg) bs-configurations))
+   ((integerp prefix)
+    (if (and (< 0 prefix) (<= prefix (length bs-configurations)))
+	(car (nth (1- prefix) bs-configurations))
       bs-default-configuration))
    ;; call by prefix argument C-u
    (t bs-alternative-configuration)))

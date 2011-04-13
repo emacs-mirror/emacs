@@ -2177,7 +2177,8 @@ This also runs `bookmark-exit-hook'."
        (bookmark-time-to-save-p t)
        (bookmark-save)))
 
-(add-hook 'kill-emacs-hook 'bookmark-exit-hook-internal)
+(unless noninteractive
+  (add-hook 'kill-emacs-hook 'bookmark-exit-hook-internal))
 
 (defun bookmark-unload-function ()
   "Unload the Bookmark library."

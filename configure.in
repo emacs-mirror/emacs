@@ -162,7 +162,7 @@ OPTION_DEFAULT_ON([m17n-flt],[don't use m17n-flt for text shaping])
 OPTION_DEFAULT_ON([toolkit-scroll-bars],[don't use Motif or Xaw3d scroll bars])
 OPTION_DEFAULT_ON([xaw3d],[don't use Xaw3d])
 OPTION_DEFAULT_ON([xim],[don't use X11 XIM])
-OPTION_DEFAULT_OFF([ns],[use nextstep (Cocoa or GNUstep) windowing system])
+OPTION_DEFAULT_OFF([ns],[use NeXTstep (Cocoa or GNUstep) windowing system])
 
 OPTION_DEFAULT_ON([gpm],[don't use -lgpm for mouse support on a GNU/Linux console])
 OPTION_DEFAULT_ON([dbus],[don't compile with D-Bus support])
@@ -229,7 +229,7 @@ AC_ARG_ENABLE(maintainer-mode,
                 [enable make rules and dependencies not useful (and sometimes
 		 confusing) to the casual installer])],
       USE_MAINTAINER_MODE=$enableval,
-      USE_MAINTAINER_MODE=no)
+      USE_MAINTAINER_MODE=yes)
 if test $USE_MAINTAINER_MODE = yes; then
   MAINT=
 else
@@ -664,11 +664,11 @@ if test x"$GCC" != xyes && test x"$emacs_check_sunpro_c" = xyes && \
  test x"$CPP" = x; then
   AC_MSG_CHECKING([whether we are using a Sun C compiler])
   AC_CACHE_VAL(emacs_cv_sunpro_c,
-  [AC_TRY_LINK([],
-[#ifndef __SUNPRO_C
+  [AC_LINK_IFELSE([AC_LANG_PROGRAM([[]],
+[[#ifndef __SUNPRO_C
 fail;
 #endif
-], emacs_cv_sunpro_c=yes, emacs_cv_sunpro_c=no)])
+]])], emacs_cv_sunpro_c=yes, emacs_cv_sunpro_c=no)])
   AC_MSG_RESULT($emacs_cv_sunpro_c)
 
   if test x"$emacs_cv_sunpro_c" = xyes; then
@@ -703,7 +703,7 @@ fi
 AC_MSG_CHECKING([whether gcc understands -Wdeclaration-after-statement])
 SAVE_CFLAGS="$CFLAGS"
 CFLAGS="$CFLAGS -Wdeclaration-after-statement"
-AC_TRY_COMPILE([], [], has_option=yes, has_option=no,)
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[]])], has_option=yes, has_option=no)
 if test $has_option = yes; then
    C_WARNINGS_SWITCH="-Wdeclaration-after-statement $C_WARNINGS_SWITCH"
 fi
@@ -717,7 +717,7 @@ unset SAVE_CFLAGS
 AC_MSG_CHECKING([whether gcc understands -Wold-style-definition])
 SAVE_CFLAGS="$CFLAGS"
 CFLAGS="$CFLAGS -Wold-style-definition"
-AC_TRY_COMPILE([], [], has_option=yes, has_option=no,)
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[]])], has_option=yes, has_option=no)
 if test $has_option = yes; then
    C_WARNINGS_SWITCH="-Wold-style-definition $C_WARNINGS_SWITCH"
 fi
@@ -730,7 +730,7 @@ unset SAVE_CFLAGS
 AC_MSG_CHECKING([whether gcc understands -Wimplicit-function-declaration])
 SAVE_CFLAGS="$CFLAGS"
 CFLAGS="$CFLAGS -Wimplicit-function-declaration"
-AC_TRY_COMPILE([], [], has_option=yes, has_option=no,)
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[]])], has_option=yes, has_option=no)
 if test $has_option = yes; then
    C_WARNINGS_SWITCH="-Wimplicit-function-declaration $C_WARNINGS_SWITCH"
 fi
@@ -1137,12 +1137,12 @@ if test "${with_sound}" != "no"; then
     SAVE_LDFLAGS="$LDFLAGS"
     CFLAGS="$ALSA_CFLAGS $CFLAGS"
     LDFLAGS="$ALSA_LIBS $LDFLAGS"
-    AC_TRY_COMPILE([#include <asoundlib.h>], [snd_lib_error_set_handler (0);],
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <asoundlib.h>]], [[snd_lib_error_set_handler (0);]])],
                     emacs_alsa_normal=yes,
 	            emacs_alsa_normal=no)
     if test "$emacs_alsa_normal" != yes; then
-      AC_TRY_COMPILE([#include <alsa/asoundlib.h>],
-                     [snd_lib_error_set_handler (0);],
+      AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <alsa/asoundlib.h>]],
+                     [[snd_lib_error_set_handler (0);]])],
                      emacs_alsa_subdir=yes,
 	             emacs_alsa_subdir=no)
       if test "$emacs_alsa_subdir" != yes; then
@@ -1181,7 +1181,7 @@ AC_CHECK_HEADERS(sys/select.h sys/time.h unistd.h utime.h \
   sys/utsname.h pwd.h utmp.h dirent.h util.h)
 
 AC_MSG_CHECKING(if personality LINUX32 can be set)
-AC_TRY_COMPILE([#include <sys/personality.h>], [personality (PER_LINUX32)],
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <sys/personality.h>]], [[personality (PER_LINUX32)]])],
                emacs_cv_personality_linux32=yes,
 	       emacs_cv_personality_linux32=no)
 AC_MSG_RESULT($emacs_cv_personality_linux32)
@@ -1209,7 +1209,7 @@ AC_HEADER_SYS_WAIT
 
 dnl Some systems have utime.h but don't declare the struct anyplace.
 AC_CACHE_CHECK(for struct utimbuf, emacs_cv_struct_utimbuf,
-AC_TRY_COMPILE([#ifdef TIME_WITH_SYS_TIME
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#ifdef TIME_WITH_SYS_TIME
 #include <sys/time.h>
 #include <time.h>
 #else
@@ -1221,18 +1221,15 @@ AC_TRY_COMPILE([#ifdef TIME_WITH_SYS_TIME
 #endif
 #ifdef HAVE_UTIME_H
 #include <utime.h>
-#endif], [static struct utimbuf x; x.actime = x.modtime;],
+#endif]], [[static struct utimbuf x; x.actime = x.modtime;]])],
   emacs_cv_struct_utimbuf=yes, emacs_cv_struct_utimbuf=no))
 if test $emacs_cv_struct_utimbuf = yes; then
   AC_DEFINE(HAVE_STRUCT_UTIMBUF, 1, [Define to 1 if `struct utimbuf' is declared by <utime.h>.])
 fi
 
-dnl checks for typedefs
-AC_TYPE_SIGNAL
-
 dnl Check for speed_t typedef.
 AC_CACHE_CHECK(for speed_t, emacs_cv_speed_t,
-  [AC_TRY_COMPILE([#include <termios.h>], [speed_t x = 1;],
+  [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <termios.h>]], [[speed_t x = 1;]])],
     emacs_cv_speed_t=yes, emacs_cv_speed_t=no)])
 if test $emacs_cv_speed_t = yes; then
   AC_DEFINE(HAVE_SPEED_T, 1,
@@ -1240,7 +1237,7 @@ if test $emacs_cv_speed_t = yes; then
 fi
 
 AC_CACHE_CHECK(for struct timeval, emacs_cv_struct_timeval,
-AC_TRY_COMPILE([#ifdef TIME_WITH_SYS_TIME
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#ifdef TIME_WITH_SYS_TIME
 #include <sys/time.h>
 #include <time.h>
 #else
@@ -1249,7 +1246,7 @@ AC_TRY_COMPILE([#ifdef TIME_WITH_SYS_TIME
 #else
 #include <time.h>
 #endif
-#endif], [static struct timeval x; x.tv_sec = x.tv_usec;],
+#endif]], [[static struct timeval x; x.tv_sec = x.tv_usec;]])],
   emacs_cv_struct_timeval=yes, emacs_cv_struct_timeval=no))
 HAVE_TIMEVAL=$emacs_cv_struct_timeval
 if test $emacs_cv_struct_timeval = yes; then
@@ -1257,15 +1254,14 @@ if test $emacs_cv_struct_timeval = yes; then
 fi
 
 AC_CACHE_CHECK(for struct exception, emacs_cv_struct_exception,
-AC_TRY_COMPILE([#include <math.h>],
-[static struct exception x; x.arg1 = x.arg2 = x.retval; x.name = ""; x.type = 1;],
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <math.h>]],
+[[static struct exception x; x.arg1 = x.arg2 = x.retval; x.name = ""; x.type = 1;]])],
   emacs_cv_struct_exception=yes, emacs_cv_struct_exception=no))
 HAVE_EXCEPTION=$emacs_cv_struct_exception
 if test $emacs_cv_struct_exception != yes; then
   AC_DEFINE(NO_MATHERR, 1, [Define to 1 if you don't have struct exception in math.h.])
 fi
 
-AC_CHECK_HEADERS(sys/socket.h)
 AC_CHECK_HEADERS(net/if.h, , , [AC_INCLUDES_DEFAULT
 #if HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
@@ -1302,7 +1298,7 @@ dnl This isn't useful because we can't turn on use of `inline' unless
 dnl the compiler groks `extern inline'.
 dnl AC_C_INLINE
 AC_CACHE_CHECK([for void * support], emacs_cv_void_star,
-  [AC_TRY_COMPILE(, [void * foo;],
+  [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [[void * foo;]])],
                    emacs_cv_void_star=yes, emacs_cv_void_star=no)])
 if test $emacs_cv_void_star = yes; then
   AC_DEFINE(POINTER_TYPE, void)
@@ -1350,7 +1346,7 @@ if test "$GCC" = yes && test "$ac_enable_autodepend" = yes; then
       AC_MSG_CHECKING([whether gcc understands -MMD -MF])
       SAVE_CFLAGS="$CFLAGS"
       CFLAGS="$CFLAGS -MMD -MF deps.d"
-      AC_TRY_COMPILE([], [], , ac_enable_autodepend=no)
+      AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[]])], , ac_enable_autodepend=no)
       CFLAGS="$SAVE_CFLAGS"
       test -f deps.d || ac_enable_autodepend=no
       rm -rf deps.d
@@ -1360,7 +1356,7 @@ if test "$GCC" = yes && test "$ac_enable_autodepend" = yes; then
       DEPFLAGS='-MMD -MF ${DEPDIR}/$*.d'
       ## In parallel builds, another make might create depdir between
       ## the first test and mkdir, so stick another test on the end.
-      ## Or use mkinstalldirs?  mkdir -p is not portable.
+      ## Or use install-sh -d?  mkdir -p is not portable.
       MKDEPDIR='test -d ${DEPDIR} || mkdir ${DEPDIR} || test -d ${DEPDIR}'
       deps_frag=autodeps.mk
    fi
@@ -1583,7 +1579,7 @@ AC_CHECK_FUNC(malloc_get_state, ,doug_lea_malloc=no)
 AC_CHECK_FUNC(malloc_set_state, ,doug_lea_malloc=no)
 AC_CACHE_CHECK(whether __after_morecore_hook exists,
 	       emacs_cv_var___after_morecore_hook,
-[AC_TRY_LINK([extern void (* __after_morecore_hook)();],[__after_morecore_hook = 0],
+[AC_LINK_IFELSE([AC_LANG_PROGRAM([[extern void (* __after_morecore_hook)();]],[[__after_morecore_hook = 0]])],
   emacs_cv_var___after_morecore_hook=yes,
   emacs_cv_var___after_morecore_hook=no)])
 if test $emacs_cv_var___after_morecore_hook = no; then
@@ -1681,7 +1677,7 @@ aix*)
     esac
 
     LDFLAGS=$LDFLAGS\ $gdb_cv_bigtoc
-    AC_TRY_LINK([], [int i;], [], [gdb_cv_bigtoc=])
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[int i;]])], [], [gdb_cv_bigtoc=])
   ])
   ;;
 esac
@@ -1711,8 +1707,8 @@ if test "${HAVE_X11}" = "yes"; then
 
   if test "${opsys}" = "gnu-linux"; then
     AC_MSG_CHECKING(whether X on GNU/Linux needs -b to link)
-    AC_TRY_LINK([],
-     [XOpenDisplay ("foo");],
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([[]],
+     [[XOpenDisplay ("foo");]])],
      [xlinux_first_failure=no],
      [xlinux_first_failure=yes])
     if test "${xlinux_first_failure}" = "yes"; then
@@ -1724,8 +1720,8 @@ if test "${HAVE_X11}" = "yes"; then
       C_SWITCH_X_SITE="$C_SWITCH_X_SITE -b i486-linuxaout"
       CPPFLAGS="$CPPFLAGS -b i486-linuxaout"
       LIBS="$LIBS -b i486-linuxaout"
-      AC_TRY_LINK([],
-       [XOpenDisplay ("foo");],
+      AC_LINK_IFELSE([AC_LANG_PROGRAM([[]],
+       [[XOpenDisplay ("foo");]])],
        [xlinux_second_failure=no],
        [xlinux_second_failure=yes])
       if test "${xlinux_second_failure}" = "yes"; then
@@ -1747,9 +1743,9 @@ if test "${HAVE_X11}" = "yes"; then
   # Reportedly, some broken Solaris systems have XKBlib.h but are missing
   # header files included from there.
   AC_MSG_CHECKING(for Xkb)
-  AC_TRY_LINK([#include <X11/Xlib.h>
-#include <X11/XKBlib.h>],
-	[XkbDescPtr kb = XkbGetKeyboard (0, XkbAllComponentsMask, XkbUseCoreKbd);],
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <X11/Xlib.h>
+#include <X11/XKBlib.h>]],
+	[[XkbDescPtr kb = XkbGetKeyboard (0, XkbAllComponentsMask, XkbUseCoreKbd);]])],
 	emacs_xkb=yes, emacs_xkb=no)
   AC_MSG_RESULT($emacs_xkb)
   if test $emacs_xkb = yes; then
@@ -1763,11 +1759,11 @@ fi
 if test "${window_system}" = "x11"; then
   AC_MSG_CHECKING(X11 version 6)
   AC_CACHE_VAL(emacs_cv_x11_version_6,
-  [AC_TRY_LINK([#include <X11/Xlib.h>],
-[#if XlibSpecificationRelease < 6
+  [AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <X11/Xlib.h>]],
+[[#if XlibSpecificationRelease < 6
 fail;
 #endif
-], emacs_cv_x11_version_6=yes, emacs_cv_x11_version_6=no)])
+]])], emacs_cv_x11_version_6=yes, emacs_cv_x11_version_6=no)])
   if test $emacs_cv_x11_version_6 = yes; then
     AC_MSG_RESULT(6 or newer)
     AC_DEFINE(HAVE_X11R6, 1,
@@ -1809,7 +1805,10 @@ fi
 HAVE_IMAGEMAGICK=no
 if test "${HAVE_X11}" = "yes"; then
   if test "${with_imagemagick}" != "no"; then
-    IMAGEMAGICK_MODULE="Wand"
+    ## 6.2.8 is the earliest version known to work, but earlier versions
+    ## might work - let us know if you find one.
+    ## 6.0.7 does not work.  See bug#7955.
+    IMAGEMAGICK_MODULE="Wand >= 6.2.8"
     PKG_CHECK_MODULES(IMAGEMAGICK, $IMAGEMAGICK_MODULE, HAVE_IMAGEMAGICK=yes, :)
     AC_SUBST(IMAGEMAGICK_CFLAGS)
     AC_SUBST(IMAGEMAGICK_LIBS)
@@ -1826,8 +1825,8 @@ fi
 
 HAVE_GTK=no
 if test "${with_gtk3}" = "yes"; then
-  GLIB_REQUIRED=2.6
-  GTK_REQUIRED=2.90
+  GLIB_REQUIRED=2.28
+  GTK_REQUIRED=3.0
   GTK_MODULES="gtk+-3.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
 
   dnl Checks for libraries.
@@ -1835,6 +1834,7 @@ if test "${with_gtk3}" = "yes"; then
   if test "$pkg_check_gtk" = "no" && test "$USE_X_TOOLKIT" != "maybe"; then
      AC_MSG_ERROR($GTK_PKG_ERRORS)
   fi
+  AC_DEFINE(HAVE_GTK3, 1, [Define to 1 if using GTK 3 or later.])
 fi
 
 if test "$pkg_check_gtk" != "yes"; then
@@ -1989,10 +1989,10 @@ if test x"${USE_X_TOOLKIT}" = xmaybe || test x"${USE_X_TOOLKIT}" = xLUCID; then
   if test "$with_xaw3d" != no; then
     AC_MSG_CHECKING(for xaw3d)
     AC_CACHE_VAL(emacs_cv_xaw3d,
-    [AC_TRY_LINK([
+    [AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #include <X11/Intrinsic.h>
-#include <X11/Xaw3d/Simple.h>],
-      [],
+#include <X11/Xaw3d/Simple.h>]],
+      [[]])],
       [AC_CHECK_LIB(Xaw3d, XawScrollbarSetThumb,
                     emacs_cv_xaw3d=yes, emacs_cv_xaw3d=no)],
       emacs_cv_xaw3d=no)])
@@ -2010,10 +2010,10 @@ if test x"${USE_X_TOOLKIT}" = xmaybe || test x"${USE_X_TOOLKIT}" = xLUCID; then
     AC_MSG_RESULT(no)
     AC_MSG_CHECKING(for libXaw)
     AC_CACHE_VAL(emacs_cv_xaw,
-    [AC_TRY_LINK([
+    [AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #include <X11/Intrinsic.h>
-#include <X11/Xaw/Simple.h>],
-      [],
+#include <X11/Xaw/Simple.h>]],
+      [[]])],
       emacs_cv_xaw=yes,
       emacs_cv_xaw=no)])
     if test $emacs_cv_xaw = yes; then
@@ -2035,11 +2035,11 @@ LIBXTR6=
 if test "${USE_X_TOOLKIT}" != "none"; then
   AC_MSG_CHECKING(X11 toolkit version)
   AC_CACHE_VAL(emacs_cv_x11_toolkit_version_6,
-  [AC_TRY_LINK([#include <X11/Intrinsic.h>],
-[#if XtSpecificationRelease < 6
+  [AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <X11/Intrinsic.h>]],
+[[#if XtSpecificationRelease < 6
 fail;
 #endif
-], emacs_cv_x11_toolkit_version_6=yes, emacs_cv_x11_toolkit_version_6=no)])
+]])], emacs_cv_x11_toolkit_version_6=yes, emacs_cv_x11_toolkit_version_6=no)])
   HAVE_X11XTR6=$emacs_cv_x11_toolkit_version_6
   if test $emacs_cv_x11_toolkit_version_6 = yes; then
     AC_MSG_RESULT(6 or newer)
@@ -2088,12 +2088,12 @@ fi
 LIBXP=
 if test "${USE_X_TOOLKIT}" = "MOTIF"; then
   AC_CACHE_CHECK(for Motif version 2.1, emacs_cv_motif_version_2_1,
-  [AC_TRY_COMPILE([#include <Xm/Xm.h>],
-    [#if XmVERSION > 2 || (XmVERSION == 2 && XmREVISION >= 1)
+  [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <Xm/Xm.h>]],
+    [[#if XmVERSION > 2 || (XmVERSION == 2 && XmREVISION >= 1)
 int x = 5;
 #else
 Motif version prior to 2.1.
-#endif],
+#endif]])],
     emacs_cv_motif_version_2_1=yes, emacs_cv_motif_version_2_1=no)])
   if test $emacs_cv_motif_version_2_1 = yes; then
     AC_CHECK_LIB(Xp, XpCreateContext, LIBXP=-lXp)
@@ -2106,8 +2106,8 @@ Motif version prior to 2.1.
     OLD_CFLAGS=$CFLAGS
     CPPFLAGS="-I/usr/X11R6/LessTif/Motif1.2/include $CPPFLAGS"
     CFLAGS="-I/usr/X11R6/LessTif/Motif1.2/include $CFLAGS"
-    [AC_TRY_COMPILE([#include </usr/X11R6/LessTif/Motif1.2/include/Xm/Xm.h>],
-      [int x = 5;],
+    [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include </usr/X11R6/LessTif/Motif1.2/include/Xm/Xm.h>]],
+      [[int x = 5;]])],
       emacs_cv_lesstif=yes, emacs_cv_lesstif=no)])
     if test $emacs_cv_lesstif = yes; then
       # Make sure this -I option remains in CPPFLAGS after it is set
@@ -2151,10 +2151,10 @@ if test "${with_toolkit_scroll_bars}" != "no"; then
 fi
 
 dnl See if XIM is available.
-AC_TRY_COMPILE([
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 	  #include <X11/Xlib.h>
-	  #include <X11/Xresource.h>],
-	 [XIMProc  callback;],
+	  #include <X11/Xresource.h>]],
+	 [[XIMProc  callback;]])],
 	 [HAVE_XIM=yes
 	 AC_DEFINE(HAVE_XIM, 1, [Define to 1 if XIM is available])],
 	 HAVE_XIM=no)
@@ -2172,10 +2172,10 @@ if test "${HAVE_XIM}" != "no"; then
   if test "$GCC" = yes; then
     CFLAGS="$CFLAGS --pedantic-errors"
   fi
-  AC_TRY_COMPILE([
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <X11/Xlib.h>
-#include <X11/Xresource.h>],
-[Display *display;
+#include <X11/Xresource.h>]],
+[[Display *display;
 XrmDatabase db;
 char *res_name;
 char *res_class;
@@ -2188,7 +2188,7 @@ extern Bool XRegisterIMInstantiateCallback(Display*, XrmDatabase, char*,
                                            char*, XIMProc, XPointer*);
 #endif
 (void)XRegisterIMInstantiateCallback(display, db, res_name, res_class, callback,
-   client_data);],
+   client_data);]])],
     [emacs_cv_arg6_star=yes])
   AH_TEMPLATE(XRegisterIMInstantiateCallback_arg6,
          [Define to the type of the 6th arg of XRegisterIMInstantiateCallback,
@@ -2244,14 +2244,22 @@ if test "${HAVE_X11}" = "yes"; then
       fi                          # "$HAVE_XFT" != no
     fi                            # "x${with_xft}" != "xno"
 
-    dnl For the "Does Emacs use" message at the end.
-    if test "$HAVE_XFT" != "yes"; then
-       HAVE_XFT=no
-    fi
-
     ## We used to allow building with FreeType and without Xft.
     ## However, the ftx font backend driver is not in good shape.
-    HAVE_FREETYPE=$HAVE_XFT
+    if test "$HAVE_XFT" != "yes"; then
+       dnl For the "Does Emacs use" message at the end.
+       HAVE_XFT=no
+       HAVE_FREETYPE=no
+    else
+       dnl Strict linkers fail with
+       dnl ftfont.o: undefined reference to symbol 'FT_New_Face'
+       dnl if -lfreetype is not specified.
+       dnl The following is needed to set FREETYPE_LIBS.
+       PKG_CHECK_MODULES(FREETYPE, freetype2, HAVE_FREETYPE=yes,
+			 HAVE_FREETYPE=no)
+
+       test "$HAVE_FREETYPE" = "no" && AC_MSG_ERROR(libxft requires libfreetype)
+    fi
 
     HAVE_LIBOTF=no
     if test "${HAVE_FREETYPE}" = "yes"; then
@@ -2532,8 +2540,8 @@ AC_SUBST(LIBXML2_CFLAGS)
 # If netdb.h doesn't declare h_errno, we must declare it by hand.
 AC_CACHE_CHECK(whether netdb declares h_errno,
 	       emacs_cv_netdb_declares_h_errno,
-[AC_TRY_LINK([#include <netdb.h>],
-  [return h_errno;],
+[AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <netdb.h>]],
+  [[return h_errno;]])],
   emacs_cv_netdb_declares_h_errno=yes, emacs_cv_netdb_declares_h_errno=no)])
 if test $emacs_cv_netdb_declares_h_errno = yes; then
   AC_DEFINE(HAVE_H_ERRNO, 1, [Define to 1 if netdb.h declares h_errno.])
@@ -2661,15 +2669,6 @@ gl_ASSERT_NO_GNULIB_POSIXCHECK
 gl_ASSERT_NO_GNULIB_TESTS
 gl_INIT
 
-# Emacs does not care about lstat's behavior on files whose names end in
-# trailing slashes, so it does not use the gnulib lstat module.
-# However, Emacs does want the "#define lstat stat" in sys/stat.h
-# when lstat does not exist, so it pretends to use the lstat module
-# even though it implements only the lstat-checking part of that module.
-AC_CHECK_FUNCS_ONCE([lstat])
-test $ac_cv_func_lstat = yes || HAVE_LSTAT=0
-gl_SYS_STAT_MODULE_INDICATOR([lstat])
-
 # UNIX98 PTYs.
 AC_CHECK_FUNCS(grantpt)
 
@@ -2723,11 +2722,11 @@ case "$opsys" in
   freebsd)
     AC_MSG_CHECKING([whether FreeBSD is new enough to use terminfo])
     AC_CACHE_VAL(emacs_cv_freebsd_terminfo,
-    [AC_TRY_LINK([#include <osreldate.h>],
-[#if __FreeBSD_version < 400000
+    [AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <osreldate.h>]],
+[[#if __FreeBSD_version < 400000
 fail;
 #endif
-], emacs_cv_freebsd_terminfo=yes, emacs_cv_freebsd_terminfo=no)])
+]])], emacs_cv_freebsd_terminfo=yes, emacs_cv_freebsd_terminfo=no)])
 
     AC_MSG_RESULT($emacs_cv_freebsd_terminfo)
 
@@ -2777,19 +2776,19 @@ AC_SUBST(TERMCAP_OBJ)
 
 # Do we have res_init, for detecting changes in /etc/resolv.conf?
 resolv=no
-AC_TRY_LINK([#include <netinet/in.h>
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <netinet/in.h>
 #include <arpa/nameser.h>
-#include <resolv.h>],
-    [return res_init();],
+#include <resolv.h>]],
+    [[return res_init();]])],
     have_res_init=yes, have_res_init=no)
 if test "$have_res_init" = no; then
   OLIBS="$LIBS"
   LIBS="$LIBS -lresolv"
   AC_MSG_CHECKING(for res_init with -lresolv)
-  AC_TRY_LINK([#include <netinet/in.h>
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <netinet/in.h>
 #include <arpa/nameser.h>
-#include <resolv.h>],
-    [return res_init();],
+#include <resolv.h>]],
+    [[return res_init();]])],
     have_res_init=yes, have_res_init=no)
   AC_MSG_RESULT($have_res_init)
   if test "$have_res_init" = yes ; then
@@ -2925,7 +2924,7 @@ AC_CHECK_LIB(intl, dgettext)
 AC_MSG_CHECKING(whether localtime caches TZ)
 AC_CACHE_VAL(emacs_cv_localtime_cache,
 [if test x$ac_cv_func_tzset = xyes; then
-AC_TRY_RUN([#include <time.h>
+AC_RUN_IFELSE([AC_LANG_SOURCE([[#include <time.h>
 char TZ_GMT0[] = "TZ=GMT0";
 char TZ_PST8[] = "TZ=PST8";
 main()
@@ -2945,7 +2944,7 @@ main()
   if (localtime (&now)->tm_hour != hour_unset)
     exit (1);
   exit (0);
-}], emacs_cv_localtime_cache=no, emacs_cv_localtime_cache=yes,
+}]])], emacs_cv_localtime_cache=no, emacs_cv_localtime_cache=yes,
 [# If we have tzset, assume the worst when cross-compiling.
 emacs_cv_localtime_cache=yes])
 else
@@ -2964,7 +2963,7 @@ if test "x$HAVE_TIMEVAL" = xyes; then
   if test $ac_cv_func_gettimeofday = yes; then
     AC_CACHE_CHECK(whether gettimeofday can accept two arguments,
 		   emacs_cv_gettimeofday_two_arguments,
-    [AC_TRY_COMPILE([
+    [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #ifdef TIME_WITH_SYS_TIME
 #include <sys/time.h>
 #include <time.h>
@@ -2974,9 +2973,9 @@ if test "x$HAVE_TIMEVAL" = xyes; then
 #else
 #include <time.h>
 #endif
-#endif],
-      [struct timeval time;
-       gettimeofday (&time, 0);],
+#endif]],
+      [[struct timeval time;
+       gettimeofday (&time, 0);]])],
       emacs_cv_gettimeofday_two_arguments=yes,
       emacs_cv_gettimeofday_two_arguments=no)])
     if test $emacs_cv_gettimeofday_two_arguments = no; then
@@ -3017,8 +3016,8 @@ AC_FUNC_FORK
 
 dnl Adapted from Haible's version.
 AC_CACHE_CHECK([for nl_langinfo and CODESET], emacs_cv_langinfo_codeset,
-  [AC_TRY_LINK([#include <langinfo.h>],
-    [char* cs = nl_langinfo(CODESET);],
+  [AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <langinfo.h>]],
+    [[char* cs = nl_langinfo(CODESET);]])],
     emacs_cv_langinfo_codeset=yes,
     emacs_cv_langinfo_codeset=no)
   ])
@@ -3032,7 +3031,7 @@ AC_CHECK_TYPES(size_t)
 AC_TYPE_MBSTATE_T
 
 AC_CACHE_CHECK([for C restricted array declarations], emacs_cv_c_restrict_arr,
-  [AC_TRY_COMPILE([void fred (int x[__restrict]);], [],
+  [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[void fred (int x[__restrict]);]], [[]])],
                   emacs_cv_c_restrict_arr=yes, emacs_cv_c_restrict_arr=no)])
 if test "$emacs_cv_c_restrict_arr" = yes; then
   AC_DEFINE(__restrict_arr, __restrict,
@@ -3494,11 +3493,6 @@ AH_BOTTOM([
 #  define SYSTEM_PURESIZE_EXTRA 30000
 #endif
 
-/* SIGTYPE is the macro we actually use.  */
-#ifndef SIGTYPE
-#define SIGTYPE RETSIGTYPE
-#endif
-
 #ifdef emacs /* Don't do this for lib-src.  */
 /* Tell regex.c to use a type compatible with Emacs.  */
 #define RE_TRANSLATE_TYPE Lisp_Object
@@ -3588,6 +3582,20 @@ typedef unsigned size_t;
 #define EXTERNALLY_VISIBLE __attribute__((externally_visible))
 #else
 #define EXTERNALLY_VISIBLE
+#endif
+
+#if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 7)
+# define ATTRIBUTE_FORMAT(spec) __attribute__ ((__format__ spec))
+#else
+# define ATTRIBUTE_FORMAT(spec) /* empty */
+#endif
+
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 4)
+# define ATTRIBUTE_FORMAT_PRINTF(formatstring_parameter, first_argument) \
+   ATTRIBUTE_FORMAT ((__gnu_printf__, formatstring_parameter, first_argument))
+#else
+# define ATTRIBUTE_FORMAT_PRINTF(formatstring_parameter, first_argument) \
+   ATTRIBUTE_FORMAT ((__printf__, formatstring_parameter, first_argument))
 #endif
 
 /* Some versions of GNU/Linux define noinline in their headers.  */

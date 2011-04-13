@@ -4,6 +4,106 @@
 	window-nest.
 	(Displaying Buffers): Replace other-visible-frame by other-frame.
 
+2011-03-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuf.texi (Basic Completion): Be a bit more precise about the
+	valid kinds of completion tables.
+	(Programmed Completion): Remove obsolete text about lambda expressions
+	not being valid completion tables.
+
+2011-03-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* positions.texi (Excursions): Explain the "save-excursion
+	defeated by set-buffer" warning.
+
+	* buffers.texi (Current Buffer): Copyedits.  Don't recommend using
+	save-excursion.  Suggested by Uday S Reddy.
+
+2011-04-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* variables.texi (Defining Variables): Mention the new meaning of `defvar'.
+	(Lexical Binding): New sub-section.
+
+	* eval.texi (Eval): Discourage the use of `eval'.
+	Document its new `lexical' argument.
+
+2011-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* commands.texi (Command Overview): `post-command-hook' is not reset to
+	nil any more.
+
+2011-03-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* strings.texi (String Conversion): Don't mention
+	string-make-(uni|multi)byte (bug#8262).
+	* nonascii.texi (Converting Representations): Fix up range.
+	* keymaps.texi (Key Binding Commands): Update code point, avoid
+	"unibyte character" and remove mention of unibyte bindings.
+
+2011-03-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* modes.texi (Operator Precedence Grammars): Don't use characters
+	outside ISO-8859-1.
+
+2011-03-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* intro.texi (Acknowledgements): Convert to ISO-8859-1 encoding.
+
+	* makefile.w32-in (MAKEINFO_OPTS): Add --enable-encoding.
+
+2011-03-08  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (MAKEINFO_OPTS): Add --enable-encoding.
+	* intro.texi (Acknowledgements): Names to UTF-8.
+	* elisp.texi: Set documentencoding.
+
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
+2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* package.texi: Update index keywords.
+	(Package Archives): New node contents.  Document package-x.el.
+
+2011-03-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (srcs): Add package.texi.
+
+2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* package.texi (Packaging, Packaging Basics, Simple Packages)
+	(Multi-file Packages): Expand and clarify.
+	(Package Archives): Temporary placeholder node.
+
+	* elisp.texi (Top): Update node listing.
+
+	* Makefile.in (srcs): Add package.texi.
+
+2011-03-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* processes.texi (Synchronous Processes): Minor clarification
+	(Bug#8149).
+
+2011-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* files.texi (Truenames): Minor clarification.  (Bug#2341)
+
+2011-03-01  Glenn Morris  <rgm@gnu.org>
+
+	* variables.texi (Directory Local Variables):
+	Mention `(subdirs . nil)' alist element.
+
+2011-02-28  Glenn Morris  <rgm@gnu.org>
+
+	* variables.texi (Directory Local Variables): Mention the optional
+	mtime argument of dir-locals-set-directory-class.  (Bug#3577)
+
+2011-02-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuf.texi (Minibuffer History): Clarify discussion of
+	minibuffer history lists (Bug#8085).
+
 2011-02-24  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Window Configurations): Fix typo.

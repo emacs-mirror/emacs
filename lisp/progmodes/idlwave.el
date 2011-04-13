@@ -428,7 +428,7 @@ path \(the value of !PATH).  However, under Windows and MacOS
 variable can be set to specify the paths where IDLWAVE can find PRO
 files.  The shell will only be asked for a list of paths when this
 variable is nil.  The value is a list of directories.  A directory
-preceeded by a `+' will be searched recursively.  If you set this
+preceded by a `+' will be searched recursively.  If you set this
 variable on a UNIX system, the shell will not be queried.  See also
 `idlwave-system-directory'."
   :group 'idlwave-routine-info
@@ -1197,7 +1197,7 @@ As a user, you should not set this to t.")
 	  (2 font-lock-function-name-face)))
 
        ;; Keyword parameters, like /xlog or ,xrange=[]
-       ;; This is anchored to the comma preceeding the keyword.
+       ;; This is anchored to the comma preceding the keyword.
        ;; Treats continuation lines, works only during whole buffer
        ;; fontification.  Slow, use it only in fancy fontification.
        (keyword-parameters
@@ -7068,10 +7068,9 @@ If these don't exist, a letter in the string is automatically selected."
         ;; No quick reply: Show help
         (save-window-excursion
           (with-output-to-temp-buffer "*Completions*"
-            (mapcar (lambda(x)
-                      (princ (nth 1 x))
-                      (princ "\n"))
-                    keys-alist))
+	    (dolist (x keys-alist)
+	      (princ (nth 1 x))
+	      (princ "\n")))
           (setq char (read-char)))
       (setq char (read-char)))
     (message nil)
@@ -9313,13 +9312,11 @@ This function was written since `list-abbrevs' looks terrible for IDLWAVE mode."
 	(princ "================================================\n\n")
 	(princ (format fmt "KEY" "ACTION" ""))
 	(princ (format fmt "---" "------" "")))
-      (mapcar
-       (lambda (list)
-	 (setq str (car list)
-	       rpl (nth 1 list)
-	       func (nth 2 list))
-	 (princ (format fmt str rpl func)))
-       abbrevs)))
+      (dolist (list abbrevs)
+	(setq str (car list)
+	      rpl (nth 1 list)
+	      func (nth 2 list))
+	(princ (format fmt str rpl func)))))
   ;; Make sure each abbreviation uses only one display line
   (with-current-buffer "*Help*"
     (setq truncate-lines t)))

@@ -62,8 +62,13 @@ longer have any effect.  (They were declared obsolete in Emacs 23.)
 ** New command line option `--no-site-lisp' removes site-lisp directories
 from load-path.  -Q now implies this.
 
+** On Windows, Emacs now warns when the obsolete _emacs init file is used.
+
 
 * Changes in Emacs 24.1
+
+** Completion in a non-minibuffer now tries to detect the end of completion
+and pops down the *Completions* buffer accordingly.
 
 ** emacsclient changes
 
@@ -71,10 +76,16 @@ from load-path.  -Q now implies this.
 client frame in parent X window ID, via XEmbed.  This works like the
 --parent-id argument to Emacs.
 
++++
+*** New emacsclient argument -q/--quiet suppresses some status messages.
+
 *** If emacsclient shuts down as a result of Emacs signalling an
 error, its exit status is 1.
 
 ** Completion can cycle, depending on completion-cycle-threshold.
+
+** `completing-read' can be customized using the new variable
+`completing-read-function'
 
 ** auto-mode-case-fold is now enabled by default.
 
@@ -120,8 +131,10 @@ for this.
 ** ImageMagick support.
 It is now possible to use the ImageMagick library to load many new
 image formats in Emacs.  By default, Emacs links with the ImageMagick
-libraries if they are present at build time.  To disable this, use
-the configure option `--without-imagemagick'.
+libraries if they are present at build time.  This needs ImageMagick
+6.2.8 or newer (versions newer than 6.0.7 _may_ work but have not been
+tested).  To disable ImageMagick support, use the configure option
+`--without-imagemagick'.  
 
 The new function `imagemagick-types' returns a list of image file
 extensions that your installation of ImageMagick supports.  The
@@ -154,6 +167,9 @@ cannot be encoded by the `terminal-coding-system'.
 
 ** On graphical displays, the mode-line no longer ends in dashes.
 
+** On Nextstep/OSX, the menu bar can be hidden by customizing
+   ns-auto-hide-menu-bar.
+
 ** Basic SELinux support has been added.
 This requires Emacs to be linked with libselinux at build time.
 
@@ -176,10 +192,12 @@ higher-resolution time stamps.
 and SIGHUP, and upon SIGINT in batch mode.
 
 ** kill-emacs-hook is now also run in batch mode.
+If you have code that adds something to kill-emacs-hook, you should
+consider if it is still appropriate to add it in the noninteractive case.
 
 ** New scrolling commands `scroll-up-command' and `scroll-down-command'
-(bound to C-v/[next] and M-v/[prior]) does not signal errors at top/bottom
-of buffer at first key-press (instead moves to top/bottom of buffer)
+(bound to C-v/[next] and M-v/[prior]) do not signal errors at top/bottom
+of buffer at first key-press (instead move to top/bottom of buffer)
 when a new variable `scroll-error-top-bottom' is non-nil.
 
 ** New scrolling commands `scroll-up-line' and `scroll-down-line'
@@ -187,6 +205,20 @@ scroll a line instead of full screen.
 
 ** New property `scroll-command' should be set on a command's symbol to
 define it as a scroll command affected by `scroll-preserve-screen-position'.
+
++++
+** If you customize `scroll-conservatively' to a value greater than 100,
+Emacs will never recenter point in the window when it scrolls due to
+cursor motion commands or commands that move point (e.f., `M-g M-g').
+Previously, you needed to use `most-positive-fixnum' as the value of
+`scroll-conservatively' to achieve the same effect.
+
+---
+** ``Aggressive'' scrolling now honors the scroll margins.
+If you customize `scroll-up-aggressively' or
+`scroll-down-aggressively' and move point off the window, Emacs now
+scrolls the window so as to avoid positioning point inside the scroll
+margin.
 
 ** Trash changes
 
@@ -241,6 +273,15 @@ replaced with Lisp commands `doc-file-to-man' and `doc-file-to-info'.
 
 
 * Editing Changes in Emacs 24.1
+
+** Search changes
+
++++
+*** C-y in Isearch is now bound to isearch-yank-kill, instead of
+isearch-yank-line.
+
++++
+*** M-s C-e in Isearch is now bound to isearch-yank-line.
 
 +++
 ** There is a new command `count-words-region', which does what you expect.
@@ -310,6 +351,7 @@ between applications.
 
 *** To return to the previous behavior, do the following:
 
+**** Change `select-active-regions' to nil.
 **** Change `mouse-drag-copy-region' to t.
 **** Change `x-select-enable-primary' to t (on X only).
 **** Change `x-select-enable-clipboard' to nil.
@@ -320,6 +362,10 @@ between applications.
 ** New command `rectangle-number-lines', bound to `C-x r N', numbers
 the lines in the current rectangle.  With an prefix argument, this
 prompts for a number to count from and for a format string.
+
+** The command shell prompts for the shell path name, when the default
+directory is a remote file name and neither environment variable
+$ESHELL nor variable `explicit-shell-file-name' is set.
 
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
@@ -345,13 +391,18 @@ Just set shell-dir-cookie-re to an appropriate regexp.
 ** Archive Mode has basic support to browse 7z archives.
 
 ** browse-url has gotten a new variable that is used for mailto: URLs,
-   `browse-url-mailto-function', which defaults to `browse-url-mail'.
+`browse-url-mailto-function', which defaults to `browse-url-mail'.
 
 ** Directory local variables can apply to file-less buffers, in certain modes
 (eg dired, vc-dir, log-edit).  For example, adding
 "(diff-mode . ((mode . whitespace)))" to your .dir-locals.el file,
 will turn on `whitespace-mode' for *vc-diff* buffers.  Modes should
 call `hack-dir-local-variables-non-file-buffer' to support this.
+
++++
+** You can prevent directory local variables from applying to subdirectories.
+Add an element (subdirs . nil) to the alist portion of any variables
+settings to indicate said section should not be applied to subdirectories.
 
 ** ERC changes
 
@@ -385,6 +436,8 @@ You can get a comparable behavior with:
 ** server can listen on a specific port using the server-port option.
 
 ** Calendar, Diary, and Appt
+
+*** New function `diary-hebrew-birthday'.
 
 ---
 *** The obsolete (since Emacs 22.1) method of enabling the appt package
@@ -624,11 +677,24 @@ binding `log-view-expanded-log-entry-function' to a suitable function.
 ---
 *** `copyright-fix-years' can optionally convert consecutive years to ranges.
 
+*** New command `nato-region' converts text to NATO phonetic alphabet.
+
+*** The new command `info-display-manual' will display an Info manual
+specified by its name.  If that manual is already visited in some Info
+buffer within the current session, the command will display that
+buffer.  Otherwise, it will load the manual and display it.  This is
+handy if you have many manuals in many Info buffers, and don't
+remember the name of the buffer visiting the manual you want to
+consult.
+
 
 * New Modes and Packages in Emacs 24.1
 
 ** New global minor modes electric-pair-mode, electric-indent-mode,
 and electric-layout-mode.
+
+** tabulated-list.el provides a generic major mode for tabulated data,
+from which other modes can be derived.
 
 ** pcase.el provides the ML-style pattern matching macro `pcase'.
 
@@ -643,6 +709,8 @@ Notifications API.  It requires D-Bus for communication.
 
 ** soap-client.el supports access to SOAP web services from Emacs.
 soap-inspect.el is an interactive inspector for SOAP WSDL structures.
+
+** xmodmap-generic-mode for xmodmap files.
 
 
 * Incompatible Lisp Changes in Emacs 24.1
@@ -671,15 +739,14 @@ FIXME: This only says what was changed, but not what are the
 programmer-visible consequences.
 
 ** Passing a nil argument to a minor mode function now turns the mode
-   ON unconditionally.
+ON unconditionally.
 
 ** During startup, Emacs no longer adds entries for `menu-bar-lines'
-and `tool-bar-lines' to `default-frame-alist' and
-`initial-frame-alist'.  With these alist entries omitted, `make-frame'
-checks the value of the variable `menu-bar-mode'/`tool-bar-mode' to
-determine whether to create a menu-bar or tool-bar, respectively.
-If the alist entries are added, they override the value of
-`menu-bar-mode'/`tool-bar-mode'.
+and `tool-bar-lines' to `default-frame-alist' and `initial-frame-alist'.
+With these alist entries omitted, `make-frame' checks the value of the
+variable `menu-bar-mode'/`tool-bar-mode' to determine whether to create
+a menu-bar or tool-bar, respectively.  If the alist entries are added,
+they override the value of `menu-bar-mode'/`tool-bar-mode'.
 
 ** Regions created by mouse dragging are now normal active regions,
 similar to the ones created by shift-selection.  In previous Emacs
@@ -712,7 +779,35 @@ sc.el, x-menu.el, rnews.el, rnewspost.el
 
 * Lisp changes in Emacs 24.1
 
+** `open-network-stream' can now be used to open an encrypted stream.
+It now accepts an optional `:type' parameter for initiating a TLS
+connection, directly or via STARTTLS.  To do STARTTLS, additional
+parameters (`:end-of-command', `:success', `:capabilities-command')
+must also be supplied.
+
+** Code can now use lexical scoping by default instead of dynamic scoping.
+The `lexical-binding' variable lets code use lexical scoping for local
+variables.  It is typically set via file-local variables, in which case it
+applies to all the code in that file.
+
+*** `eval' takes a new optional argument `lexical' to choose the new lexical
+binding instead of the old dynamic binding mode.
+
+*** Lexically scoped interpreted functions are represented with a new form
+of function value which looks like (closure ENV ARGS &rest BODY).
+
+*** New macro `letrec' to define recursive local functions.
+
+*** New function `special-variable-p' to check whether a variable is
+declared as dynamically bound.
+
+** pre/post-command-hook are not reset to nil upon error.
+Instead, the offending function is removed.
+
+** New low-level function run-hook-wrapped.
+
 ** byte-compile-disable-print-circle is obsolete.
+** deferred-action-list and deferred-action-function are obsolete.
 ** Removed the stack-trace-on-error variable.
 Also the debugger can now "continue" from an error, which means it will jump
 to the error handler as if the debugger had not been invoked instead of
@@ -796,16 +891,19 @@ time you call `progress-reporter-update' on that progress reporter,
 with a nil or omitted VALUE argument, the reporter message is
 displayed with a "spinning bar".
 
+** New variable `revert-buffer-in-progress-p' is true while a buffer is
+being reverted, even if the buffer has a local `revert-buffer-function'.
+
 
 * Changes in Emacs 24.1 on non-free operating systems
 
-** New configure.bat option --enable-checking builds emacs with extra
+** New configure.bat option --enable-checking builds Emacs with extra
 runtime checks.
 
 ** New configure.bat option --distfiles to specify files to be
-included in binary distribution
+included in binary distribution.
 
-** New make target `dist' to create binary distribution for MS Windows
+** New make target `dist' to create binary distribution for MS Windows.
 
 
 ----------------------------------------------------------------------

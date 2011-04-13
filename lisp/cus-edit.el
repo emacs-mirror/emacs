@@ -918,6 +918,8 @@ it were the arg to `interactive' (which see) to interactively read the value.
 
 If the variable has a `custom-type' property, it must be a widget and the
 `:prompt-value' property of that widget will be used for reading the value.
+If the variable also has a `custom-get' property, that is used for finding 
+the current value of the variable, otherwise `symbol-value' is used.
 
 If optional COMMENT argument is non-nil, also prompt for a comment and return
 it as the third element in the list."
@@ -939,7 +941,9 @@ it as the third element in the list."
 		   (widget-prompt-value type
 					prompt
 					(if (boundp var)
-					    (symbol-value var))
+                                            (funcall 
+                                             (or (get var 'custom-get) 'symbol-value) 
+                                             var))
 					(not (boundp var))))
 		  (t
 		   (eval-minibuffer prompt))))))
@@ -1599,7 +1603,7 @@ Otherwise use brackets."
 	       'editable-field
 	       :size 40 :help-echo echo
 	       :action `(lambda (widget &optional event)
-			  (customize-apropos (widget-value widget))))))
+			  (customize-apropos (split-string (widget-value widget)))))))
 	(widget-insert " ")
 	(widget-create-child-and-convert
 	 search-widget 'push-button
@@ -4752,6 +4756,12 @@ The format is suitable for use with `easy-menu-define'."
   "Invoke button at POS, or refuse to allow editing of Custom buffer."
   (interactive "@d")
   (let ((button (get-char-property pos 'button)))
+    ;; If there is no button at point, then use the one at the start
+    ;; of the line, if it is a custom-group-link (bug#2298).
+    (or button
+	(if (setq button (get-char-property (line-beginning-position) 'button))
+	    (or (eq (widget-type button) 'custom-group-link)
+		(setq button nil))))
     (if button
 	(widget-apply-action button event)
       (error "You can't edit this part of the Custom buffer"))))

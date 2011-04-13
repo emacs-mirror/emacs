@@ -368,7 +368,7 @@ text matching `comint-prompt-regexp', depending on the value of
 (defvar comint-dynamic-complete-functions
   '(comint-replace-by-expanded-history comint-dynamic-complete-filename)
   "List of functions called to perform completion.
-Functions should return non-nil if completion was performed.
+Works like `completion-at-point-functions'.
 See also `comint-dynamic-complete'.
 
 This is a good thing to set in mode hooks.")
@@ -1008,7 +1008,6 @@ See also `comint-read-input-ring'."
       (message "No history")
     (let ((history nil)
 	  (history-buffer " *Input History*")
-	  (index (1- (ring-length comint-input-ring)))
 	  (conf (current-window-configuration)))
       ;; We have to build up a list ourselves from the ring vector.
       (dotimes (index (ring-length comint-input-ring))
@@ -2946,13 +2945,22 @@ interpreter (e.g., the percent notation of cmd.exe on NT)."
 	      (setq name (replace-match env-var-val t t name))))))
     name))
 
-(defun comint-match-partial-filename ()
-  "Return the filename at point, or nil if none is found.
-Environment variables are substituted.  See `comint-word'."
-  (let ((filename (comint-word comint-file-name-chars)))
-    (and filename (comint-substitute-in-file-name
-		   (comint-unquote-filename filename)))))
+(defun comint--match-partial-filename ()
+  "Return the filename at point as-is, or nil if none is found.
+See `comint-word'."
+  (comint-word comint-file-name-chars))
 
+(defun comint--unquote&expand-filename (filename)
+  ;; FIXME: The code below does unquote-then-expand which means that "\\$HOME"
+  ;; gets expanded to the same as "$HOME"
+  (comint-substitute-in-file-name
+   (comint-unquote-filename filename)))
+
+(defun comint-match-partial-filename ()
+  "Return the unquoted&expanded filename at point, or nil if none is found.
+Environment variables are substituted.  See `comint-word'."
+  (let ((filename (comint--match-partial-filename)))
+    (and filename (comint--unquote&expand-filename filename))))
 
 (defun comint-quote-filename (filename)
   "Return FILENAME with magic characters quoted.
@@ -2987,13 +2995,13 @@ Calls the functions in `comint-dynamic-complete-functions' to perform
 completion until a function returns non-nil, at which point completion is
 assumed to have occurred."
   (interactive)
-  (run-hook-with-args-until-success 'comint-dynamic-complete-functions))
+  (let ((completion-at-point-functions comint-dynamic-complete-functions))
+    (completion-at-point)))
 
 
 (defun comint-dynamic-complete-filename ()
   "Dynamically complete the filename at point.
-Completes if after a filename.  See `comint-match-partial-filename' and
-`comint-dynamic-complete-as-filename'.
+Completes if after a filename.
 This function is similar to `comint-replace-by-expanded-filename', except that
 it won't change parts of the filename already entered in the buffer; it just
 adds completion characters to the end of the filename.  A completions listing
@@ -3005,7 +3013,7 @@ completions listing is dependent on the value of `comint-completion-autolist'.
 
 Returns t if successful."
   (interactive)
-  (when (comint-match-partial-filename)
+  (when (comint--match-partial-filename)
     (unless (window-minibuffer-p (selected-window))
       (message "Completing file name..."))
     (comint-dynamic-complete-as-filename)))
@@ -3021,18 +3029,12 @@ See `comint-dynamic-complete-filename'.  Returns t if successful."
 	 ;;(file-name-handler-alist nil)
 	 (minibuffer-p (window-minibuffer-p (selected-window)))
 	 (success t)
-	 (dirsuffix (cond ((not comint-completion-addsuffix)
-			   "")
-			  ((not (consp comint-completion-addsuffix))
-			   "/")
-			  (t
-			   (car comint-completion-addsuffix))))
-	 (filesuffix (cond ((not comint-completion-addsuffix)
-			    "")
-			   ((not (consp comint-completion-addsuffix))
-			    " ")
-			   (t
-			    (cdr comint-completion-addsuffix))))
+	 (dirsuffix (cond ((not comint-completion-addsuffix) "")
+			  ((not (consp comint-completion-addsuffix)) "/")
+			  (t (car comint-completion-addsuffix))))
+	 (filesuffix (cond ((not comint-completion-addsuffix) "")
+			   ((not (consp comint-completion-addsuffix)) " ")
+			   (t (cdr comint-completion-addsuffix))))
 	 (filename (comint-match-partial-filename))
 	 (filename-beg (if filename (match-beginning 0) (point)))
 	 (filename-end (if filename (match-end 0) (point)))

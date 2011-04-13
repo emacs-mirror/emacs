@@ -1,3 +1,84 @@
+2011-03-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Auto Scrolling): Fix scroll-up/scroll-down confusion.
+
+2011-03-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Auto Scrolling): Document the limit of 100 lines
+	for never-recentering scrolling with `scroll-conservatively'.
+	(Bug#6671)
+
+2011-03-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (Windows HOME): Fix the wording to clarify how Emacs sets
+	HOME on Windows and where it looks for init files.  (Bug#8221)
+
+2011-03-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* search.texi (Regexp Example):
+	* mule.texi (International Chars):
+	* building.texi (External Lisp): Don't use characters outside
+	ISO-8859-1.
+
+2011-03-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* ack.texi (Acknowledgments): Convert to ISO-8859-1 encoding.  Use
+	Texinfo @-commands for non Latin-1 characters.
+
+	* makefile.w32-in (MAKEINFO_OPTS): Add --enable-encoding.
+
+	* custom.texi (Init File): Add index entries for ".emacs".
+	(Bug#8210)
+
+2011-03-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xresources.texi (GTK resources): ~/.emacs.d/gtkrc does not work
+	for Gtk+ 3.
+
+2011-03-08  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (MAKEINFO_OPTS): Add --enable-encoding.
+	* emacs.texi (Acknowledgments):
+	* ack.texi (Acknowledgments): Names to UTF-8.
+	* emacs.texi: Set documentencoding.
+
+	* display.texi (Optional Mode Line): Don't mention exactly where
+	display-time appears.  (Bug#8193)
+
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
+2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* search.texi (Isearch Yank): C-y now bound to isearch-yank-kill.
+
+2011-03-03  Drake Wilson  <drake@begriffli.ch>  (tiny change)
+
+	* misc.texi (emacsclient Options): Add q/quiet.
+
+2011-03-02  Glenn Morris  <rgm@gnu.org>
+
+	* mule.texi (Communication Coding) <x-select-request-type>:
+	Remove duplicate (essentially) paragraph.  (Bug#8148)
+
+2011-03-01  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* maintaining.texi (Format of ChangeLog): Add reference to
+	add-log-full-name.
+	(Change Log Commands): Add documentation for combining multiple
+	symbols in one change.
+
+2011-03-01  Glenn Morris  <rgm@gnu.org>
+
+	* custom.texi (Directory Variables):
+	Give an example of excluding subdirectories.
+
+2011-02-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* search.texi (Regexp Search): Move index entries about regexps to the
+	"Regexps" node.  Add index entries for regexp search.  (Bug#8096)
+
 2011-02-19  Glenn Morris  <rgm@gnu.org>
 
 	* dired.texi (Dired): Dired-X version number was dropped.

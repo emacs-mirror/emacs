@@ -1,4 +1,4 @@
-;;; epa-file.el --- the EasyPG Assistant, transparent file encryption
+;;; epa-file.el --- the EasyPG Assistant, transparent file encryption -*- lexical-binding: t -*-
 ;; Copyright (C) 2006-2011 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>

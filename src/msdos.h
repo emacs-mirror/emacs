@@ -40,6 +40,11 @@ void mouse_init (void);
 void mouse_on (void);
 void mouse_off (void);
 void mouse_moveto (int, int);
+
+#if __DJGPP__ == 2 && __DJGPP_MINOR__ < 4
+int readlink (const char *, char *, size_t);
+#endif
+
 
 #ifndef HAVE_X_WINDOWS
 /* Dummy types.  */
@@ -100,7 +105,7 @@ typedef struct x_menu_struct
 } XMenu;
 
 XMenu *XMenuCreate (Display *, Window, char *);
-int XMenuAddPane (Display *, XMenu *, char *, int);
+int XMenuAddPane (Display *, XMenu *, const char *, int);
 int XMenuAddSelection (Display *, XMenu *, int, int, char *, int, char *);
 void XMenuLocate (Display *, XMenu *, int, int, int, int,
 		  int *, int *, int *, int *);

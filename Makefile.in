@@ -331,8 +331,9 @@ DOS_gnulib_comp.m4 = gl-comp.m4
 # $(gnulib_srcdir) (relative to $(srcdir) and should have build tools
 # as per $(gnulib_srcdir)/DEPENDENCIES.
 GNULIB_MODULES = \
-  crypto/md5 dtoastr filemode getloadavg getopt-gnu \
-  ignore-value mktime strftime sys_stat
+  careadlinkat crypto/md5 dtoastr filemode getloadavg getopt-gnu \
+  ignore-value intprops lstat mktime readlink \
+  socklen stdio strftime symlink sys_stat
 GNULIB_TOOL_FLAGS = \
  --import --no-changelog --no-vc-files --makefile-name=gnulib.mk
 sync-from-gnulib: $(gnulib_srcdir)
@@ -343,13 +344,9 @@ sync-from-gnulib: $(gnulib_srcdir)
 	cd $(srcdir)/m4 && mv gnulib-comp.m4 $(DOS_gnulib_comp.m4)
 	cp $(gnulib_srcdir)/build-aux/texinfo.tex $(srcdir)/doc/misc
 	cp \
-	  $(gnulib_srcdir)/build-aux/config.sub \
-	  $(gnulib_srcdir)/build-aux/config.guess \
-	  $(gnulib_srcdir)/build-aux/install-sh \
-	  $(gnulib_srcdir)/build-aux/mkinstalldirs \
 	  $(gnulib_srcdir)/build-aux/move-if-change \
 	  $(srcdir)
-	cd $(srcdir) && autoreconf -I m4
+	cd $(srcdir) && autoreconf -i -I m4
 .PHONY: sync-from-gnulib
 
 # These targets should be "${SUBDIR} without `src'".
@@ -677,7 +674,7 @@ install-strip:
 
 ### Build all the directories we're going to install Emacs in.	Since
 ### we may be creating several layers of directories (for example,
-### /usr/local/lib/emacs/19.0/mips-dec-ultrix4.2), we use mkinstalldirs
+### /usr/local/lib/emacs/19.0/mips-dec-ultrix4.2), we use install-sh -d
 ### instead of mkdir.  Not all systems' mkdir programs have the `-p' flag.
 ### We set the umask so that any created directories are world-readable.
 ### FIXME it would be good to warn about non-standard permissions of
@@ -691,7 +688,7 @@ mkdir: FRC
 	done ; \
 	icondirs=`echo "$${icondirs}" | sed 's,$(srcdir)/etc/images/icons,$(DESTDIR)${icondir},g'` ; \
 	umask 022 ; \
-	$(srcdir)/mkinstalldirs $(DESTDIR)${datadir} ${COPYDESTS} \
+	$(srcdir)/install-sh -d $(DESTDIR)${datadir} ${COPYDESTS} \
 	  $(DESTDIR)${infodir} $(DESTDIR)${man1dir} \
 	  $(DESTDIR)${bindir} $(DESTDIR)${docdir} $(DESTDIR)${libexecdir} \
 	  $(DESTDIR)${datadir}/emacs/site-lisp \

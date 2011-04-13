@@ -161,8 +161,13 @@ struct interval
    (INTERVAL_HAS_PARENT (i) ? INTERVAL_PARENT (i) : 0)
 
 /* Abort if interval I's size is negative.  */
-#define CHECK_TOTAL_LENGTH(i) \
-  if ((int) (i)->total_length < 0) abort (); else
+#define CHECK_TOTAL_LENGTH(i)	       \
+  do				       \
+    {				       \
+      if ((int) (i)->total_length < 0) \
+	abort ();		       \
+    }				       \
+  while (0)
 
 /* Reset this interval to its vanilla, or no-property state. */
 #define RESET_INTERVAL(i) \
@@ -339,4 +344,3 @@ extern Lisp_Object get_pos_property (Lisp_Object pos, Lisp_Object prop,
 extern void syms_of_textprop (void);
 
 #include "composite.h"
-
