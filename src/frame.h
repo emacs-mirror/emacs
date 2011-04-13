@@ -838,7 +838,6 @@ extern struct frame *last_nonminibuf_frame;
 
 extern void set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
 extern struct frame *make_initial_frame (void);
-extern struct frame *make_terminal_frame (struct terminal *);
 extern struct frame *make_frame (int);
 #ifdef HAVE_WINDOW_SYSTEM
 extern struct frame *make_minibuffer_frame (void);
@@ -1095,11 +1094,12 @@ extern Lisp_Object x_new_font (struct frame *, Lisp_Object, int);
 
 extern Lisp_Object Qface_set_after_frame_default;
 
+#ifdef WINDOWSNT
 extern void x_fullscreen_adjust (struct frame *f, int *, int *,
                                  int *, int *);
+#endif
 
 extern void x_set_frame_parameters (struct frame *, Lisp_Object);
-extern void x_report_frame_params (struct frame *, Lisp_Object *);
 
 extern void x_set_fullscreen (struct frame *, Lisp_Object, Lisp_Object);
 extern void x_set_line_spacing (struct frame *, Lisp_Object, Lisp_Object);
@@ -1132,10 +1132,6 @@ extern Lisp_Object display_x_get_resource (Display_Info *,
 					   Lisp_Object class,
 					   Lisp_Object component,
 					   Lisp_Object subclass);
-
-#if defined HAVE_X_WINDOWS && !defined USE_X_TOOLKIT
-extern char *x_get_resource_string (const char *, const char *);
-#endif
 
 /* In xmenu.c */
 extern void set_frame_menubar (FRAME_PTR, int, int);

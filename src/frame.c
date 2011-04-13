@@ -121,6 +121,10 @@ Lisp_Object Qface_set_after_frame_default;
 
 static Lisp_Object Qdelete_frame_functions;
 
+#ifdef HAVE_WINDOW_SYSTEM
+static void x_report_frame_params (struct frame *, Lisp_Object *);
+#endif
+
 
 static void
 set_menu_bar_lines_1 (Lisp_Object window, int n)
@@ -549,7 +553,7 @@ make_initial_frame (void)
 }
 
 
-struct frame *
+static struct frame *
 make_terminal_frame (struct terminal *terminal)
 {
   register struct frame *f;
@@ -2078,6 +2082,9 @@ See `redirect-frame-focus'.  */)
 
 /* Return the value of frame parameter PROP in frame FRAME.  */
 
+#if !HAVE_NS
+static
+#endif
 Lisp_Object
 get_frame_param (register struct frame *frame, Lisp_Object prop)
 {
@@ -2833,7 +2840,7 @@ static const struct frame_parm_table frame_parms[] =
   {"tool-bar-position",		&Qtool_bar_position},
 };
 
-#ifdef HAVE_WINDOW_SYSTEM
+#ifdef WINDOWSNT
 
 /* Calculate fullscreen size.  Return in *TOP_POS and *LEFT_POS the
    wanted positions of the WM window (not Emacs window).
@@ -2877,6 +2884,9 @@ x_fullscreen_adjust (struct frame *f, int *width, int *height, int *top_pos, int
   *height = newheight;
 }
 
+#endif /* WINDOWSNT */
+
+#ifdef HAVE_WINDOW_SYSTEM
 
 /* Change the parameters of frame F as specified by ALIST.
    If a parameter is not specially recognized, do nothing special;
@@ -3834,31 +3844,6 @@ display_x_get_resource (Display_Info *dpyinfo, Lisp_Object attribute, Lisp_Objec
   return xrdb_get_resource (dpyinfo->xrdb,
 			    attribute, class, component, subclass);
 }
-
-#if defined HAVE_X_WINDOWS && !defined USE_X_TOOLKIT
-/* Used when C code wants a resource value.  */
-/* Called from oldXMenu/Create.c.  */
-char *
-x_get_resource_string (const char *attribute, const char *class)
-{
-  char *name_key;
-  char *class_key;
-  struct frame *sf = SELECTED_FRAME ();
-
-  /* Allocate space for the components, the dots which separate them,
-     and the final '\0'.  */
-  name_key = (char *) alloca (SBYTES (Vinvocation_name)
-			      + strlen (attribute) + 2);
-  class_key = (char *) alloca ((sizeof (EMACS_CLASS) - 1)
-			       + strlen (class) + 2);
-
-  sprintf (name_key, "%s.%s", SDATA (Vinvocation_name), attribute);
-  sprintf (class_key, "%s.%s", EMACS_CLASS, class);
-
-  return x_get_string_resource (FRAME_X_DISPLAY_INFO (sf)->xrdb,
-				name_key, class_key);
-}
-#endif
 
 /* Return the value of parameter PARAM.
 

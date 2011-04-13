@@ -1,5 +1,15 @@
 2011-04-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* frame.c: Make symbols static if they're not exported.
+	(x_report_frame_params, make_terminal_frame): Now static.
+	(get_frame_param): Now static, unless HAVE_NS.
+	(x_fullscreen_adjust): Define if WINDOWSNT, not if HAVE_WINDOW_SYSTEM.
+	(x_get_resource_string): Remove; not used.
+	* frame.h (make_terminal_frame, x_report_frame_params):
+	(x_get_resource_string); Remove decls.
+	(x_fullscreen_adjust): Declare only if WINDOWSNT.
+	* lisp.h (get_frame_param): Declare only if HAVE_NS.
+
 	* font.c, fontset.c: Make symbols static if they're not exported.
 	* dispextern.h (FACE_SUITABLE_FOR_ASCII_CHAR_P): New macro.
 	(FACE_SUITABLE_FOR_CHAR_P): Use it.
