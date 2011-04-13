@@ -1,3 +1,13 @@
+2011-04-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* sound.c: Don't assume sizes fit in 'int'.
+	(struct sound_device.period_size, alsa_period_size):
+	Return size_t, not int.
+	(struct sound_device.write, vox_write, alsa_write):
+	Accept size_t, not int.
+	(wav_play, au_play): Use size_t to store sizes, and ssize_t to
+	record read return values.
+
 2011-04-12  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* charset.c (Fclear_charset_maps): Use xfree instead of free.
