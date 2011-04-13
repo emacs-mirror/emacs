@@ -388,7 +388,6 @@ extern struct x_display_info *x_display_list;
 extern Lisp_Object x_display_name_list;
 
 extern struct x_display_info *x_display_info_for_display (Display *);
-extern struct x_display_info *x_display_info_for_name (Lisp_Object);
 extern void x_set_frame_alpha (struct frame *);
 
 extern struct x_display_info *x_term_init (Lisp_Object, char *, char *);
@@ -965,19 +964,12 @@ extern void x_set_window_size (struct frame *, int, int, int);
 extern void x_set_mouse_position (struct frame *, int, int);
 extern void x_set_mouse_pixel_position (struct frame *, int, int);
 extern void x_ewmh_activate_frame (struct frame *);
-extern void x_raise_frame (struct frame *);
-extern void x_lower_frame (struct frame *);
 extern void x_make_frame_visible (struct frame *);
 extern void x_make_frame_invisible (struct frame *);
 extern void x_iconify_frame (struct frame *);
 extern void x_free_frame_resources (struct frame *);
-extern void x_destroy_window (struct frame *);
 extern void x_wm_set_size_hint (struct frame *, long, int);
-extern void x_wm_set_window_state (struct frame *, int);
-extern void x_wm_set_icon_pixmap (struct frame *, int);
-extern void x_delete_display (struct x_display_info *);
 extern void x_delete_terminal (struct terminal *terminal);
-extern void x_initialize (void);
 extern unsigned long x_copy_color (struct frame *, unsigned long);
 #ifdef USE_X_TOOLKIT
 extern XtAppContext Xt_app_con;
@@ -990,9 +982,13 @@ extern int x_alloc_nearest_color (struct frame *, Colormap, XColor *);
 extern void x_query_colors (struct frame *f, XColor *, int);
 extern void x_query_color (struct frame *f, XColor *);
 extern void x_clear_area (Display *, Window, int, int, int, int, int);
+#ifdef WINDOWSNT
 extern void x_mouse_leave (struct x_display_info *);
+#endif
 
+#if defined USE_MOTIF || defined USE_X_TOOLKIT
 extern int x_dispatch_event (XEvent *, Display *);
+#endif
 extern unsigned int x_x_to_emacs_modifiers (struct x_display_info *,
                                             unsigned);
 extern int x_display_pixel_height (struct x_display_info *);
@@ -1041,7 +1037,6 @@ extern int xg_set_icon_from_xpm_data (struct frame *, const char**);
 #endif /* USE_GTK */
 
 extern void x_real_positions (struct frame *, int *, int *);
-extern void x_set_border_pixel (struct frame *, int);
 extern void x_set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
 extern void x_implicitly_set_name (struct frame *, Lisp_Object, Lisp_Object);
 extern void xic_free_xfontset (struct frame *);
@@ -1054,12 +1049,13 @@ extern int x_pixel_width (struct frame *);
 extern int x_pixel_height (struct frame *);
 extern int x_char_width (struct frame *);
 extern int x_char_height (struct frame *);
-extern int x_screen_planes (struct frame *);
 extern void x_sync (struct frame *);
 extern int x_defined_color (struct frame *, const char *, XColor *, int);
 #ifdef HAVE_X_I18N
 extern void free_frame_xic (struct frame *);
+# if defined HAVE_X_WINDOWS && defined USE_X_TOOLKIT
 extern char * xic_create_fontsetname (const char *base_fontname, int motif);
+# endif
 #endif
 extern void x_set_tool_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
 
