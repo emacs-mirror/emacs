@@ -427,7 +427,7 @@ static unsigned short empty_line_bits[] = {
 /* NOTE:  The order of these bitmaps must match the sequence
    used in fringe.el to define the corresponding symbols.  */
 
-struct fringe_bitmap standard_bitmaps[] =
+static struct fringe_bitmap standard_bitmaps[] =
 {
   { NULL, 0, 0, 0, 0, 0 }, /* NO_FRINGE_BITMAP */
   { FRBITS (question_mark_bits),      8, 0, ALIGN_BITMAP_CENTER, 0 },
@@ -462,6 +462,9 @@ static struct fringe_bitmap **fringe_bitmaps;
 static Lisp_Object *fringe_faces;
 static int max_fringe_bitmaps;
 
+#ifndef HAVE_NS
+static
+#endif
 int max_used_fringe_bitmap = MAX_STANDARD_FRINGE_BITMAPS;
 
 

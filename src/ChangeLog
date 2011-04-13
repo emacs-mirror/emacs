@@ -1,5 +1,8 @@
 2011-04-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* fringe.c (standard_bitmaps): Now static.
+	(max_used_fringe_bitmap): Now static, unless HAVE_NS.
+
 	* frame.c: Make symbols static if they're not exported.
 	(x_report_frame_params, make_terminal_frame): Now static.
 	(get_frame_param): Now static, unless HAVE_NS.
