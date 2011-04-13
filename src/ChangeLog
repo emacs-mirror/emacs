@@ -1,5 +1,8 @@
 2011-04-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* sysdep.c (MAX_RW_COUNT): New macro, to work around kernel bugs.
+	(emacs_read, emacs_write): Use it.
+
 	* process.c (send_process): Count partial writes as successes.
 	See http://lists.gnu.org/archive/html/emacs-devel/2011-04/msg00483.html
 
