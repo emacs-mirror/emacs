@@ -56,7 +56,7 @@ struct backtrace
   char debug_on_exit : 1;
 };
 
-struct backtrace *backtrace_list;
+static struct backtrace *backtrace_list;
 
 #if !BYTE_MARK_STACK
 static
@@ -116,7 +116,7 @@ struct specbinding *specpdl_ptr;
 
 /* Depth in Lisp evaluations and function calls.  */
 
-EMACS_INT lisp_eval_depth;
+static EMACS_INT lisp_eval_depth;
 
 /* The value of num_nonmacro_input_events as of the last time we
    started to enter the debugger.  If we decide to enter the debugger
@@ -125,7 +125,7 @@ EMACS_INT lisp_eval_depth;
    signal the error instead of entering an infinite loop of debugger
    invocations.  */
 
-int when_entered_debugger;
+static int when_entered_debugger;
 
 /* The function from which the last `signal' was called.  Set in
    Fsignal.  */

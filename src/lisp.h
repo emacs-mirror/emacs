@@ -2005,8 +2005,6 @@ struct catchtag
   struct byte_stack *byte_stack;
 };
 
-extern struct backtrace *backtrace_list;
-
 extern Lisp_Object memory_signal_data;
 
 /* An address near the bottom of the stack.
