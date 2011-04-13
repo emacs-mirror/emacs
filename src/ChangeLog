@@ -1,3 +1,7 @@
+2011-04-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (init_xdisp): Initialize echo_area_window (Bug#6451).
+
 2011-04-10  Samuel Thibault  <sthibault@debian.org>  (tiny change)
 
 	* sysdep.c (wait_for_termination): On GNU Hurd, kill returns -1 on
