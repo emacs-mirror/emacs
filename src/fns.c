@@ -3351,7 +3351,7 @@ base64_decode_1 (const char *from, char *to, EMACS_INT length,
 
 /* The list of all weak hash tables.  Don't staticpro this one.  */
 
-struct Lisp_Hash_Table *weak_hash_tables;
+static struct Lisp_Hash_Table *weak_hash_tables;
 
 /* Various symbols.  */
 

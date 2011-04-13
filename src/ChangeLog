@@ -1,5 +1,7 @@
 2011-04-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* fns.c (weak_hash_tables): Now static.
+
 	* fileio.c: Make symbols static if they're not exported.
 	(auto_saving, auto_save_mode_bits, auto_save_error_occurred):
 	(Vwrite_region_annotation_buffers): Now static.
