@@ -238,7 +238,7 @@ fontset_id_valid_p (int id)
 /* Macros to access special values of (realized) FONTSET.  */
 #define FONTSET_BASE(fontset)		XCHAR_TABLE (fontset)->extras[2]
 #define FONTSET_FRAME(fontset)		XCHAR_TABLE (fontset)->extras[3]
-#define FONTSET_OBJLIST(fontset)	XCHAR_TABLE (fontset)->extras[4]
+/* #define FONTSET_OBJLIST(fontset)	XCHAR_TABLE (fontset)->extras[4] */
 #define FONTSET_NOFONT_FACE(fontset)	XCHAR_TABLE (fontset)->extras[5]
 /* #define FONTSET_REPERTORY(fontset)	XCHAR_TABLE (fontset)->extras[6] */
 #define FONTSET_DEFAULT(fontset)	XCHAR_TABLE (fontset)->extras[7]
@@ -838,6 +838,7 @@ fontset_ascii (int id)
 static void
 free_realized_fontset (FRAME_PTR f, Lisp_Object fontset)
 {
+#if 0
   Lisp_Object tail;
 
   if (0)
@@ -846,6 +847,7 @@ free_realized_fontset (FRAME_PTR f, Lisp_Object fontset)
 	xassert (FONT_OBJECT_P (XCAR (tail)));
 	font_close_object (f, XCAR (tail));
       }
+#endif
 }
 
 /* Free fontset of FACE defined on frame F.  Called from
@@ -881,6 +883,7 @@ free_face_fontset (FRAME_PTR f, struct face *face)
 }
 
 
+#if 0
 /* Return 1 if FACE is suitable for displaying character C.
    Otherwise return 0.  Called from the macro FACE_SUITABLE_FOR_CHAR_P
    when C is not an ASCII character.  */
@@ -896,6 +899,7 @@ face_suitable_for_char_p (struct face *face, int c)
 	  && INTEGERP (RFONT_DEF_FACE (rfont_def))
 	  && face->id == XINT (RFONT_DEF_FACE (rfont_def)));
 }
+#endif
 
 
 /* Return ID of face suitable for displaying character C on frame F.

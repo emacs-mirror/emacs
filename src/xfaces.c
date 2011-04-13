@@ -6179,7 +6179,7 @@ face_at_string_position (struct window *w, Lisp_Object string,
 	     if we don't have fonts, so we can stop here if not working
 	     on a window-system frame.  */
 	  || !FRAME_WINDOW_P (f)
-	  || FACE_SUITABLE_FOR_CHAR_P (base_face, 0)))
+	  || FACE_SUITABLE_FOR_ASCII_CHAR_P (base_face, 0)))
     return base_face->id;
 
   /* Begin with attributes from the base face.  */

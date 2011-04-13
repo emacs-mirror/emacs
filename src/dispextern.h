@@ -1733,9 +1733,12 @@ struct face_cache
 
 /* Non-zero if FACE is suitable for displaying character CHAR.  */
 
+#define FACE_SUITABLE_FOR_ASCII_CHAR_P(FACE, CHAR)	\
+  ((FACE) == (FACE)->ascii_face)
+
 #define FACE_SUITABLE_FOR_CHAR_P(FACE, CHAR)	\
   (ASCII_CHAR_P (CHAR)				\
-   ? (FACE) == (FACE)->ascii_face		\
+   ? FACE_SUITABLE_FOR_ASCII_CHAR_P(FACE)	\
    : face_suitable_for_char_p ((FACE), (CHAR)))
 
 /* Return the id of the realized face on frame F that is like the face

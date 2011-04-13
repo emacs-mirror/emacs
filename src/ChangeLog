@@ -1,5 +1,18 @@
 2011-04-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* font.c, fontset.c: Make symbols static if they're not exported.
+	* dispextern.h (FACE_SUITABLE_FOR_ASCII_CHAR_P): New macro.
+	(FACE_SUITABLE_FOR_CHAR_P): Use it.
+	* font.c (font_close_object): Now static.
+	* font.h (font_close_object): Remove.
+	* fontset.c (FONTSET_OBJLIST): Remove.
+	(free_realized_fontset) #if-0 the body, which does nothing.
+	(face_suitable_for_char_p): #if-0, as it's never called.
+	* fontset.h (face_suitable_for_char_p): Remove decl.
+	* xfaces.c (face_at_string_position): Use
+	FACE_SUITABLE_FOR_ASCII_CHAR_P, not FACE_SUITABLE_FOR_CHAR_P,
+	since 0 is always ASCII.
+
 	* fns.c (weak_hash_tables): Now static.
 
 	* fileio.c: Make symbols static if they're not exported.

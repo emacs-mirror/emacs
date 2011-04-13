@@ -2872,7 +2872,7 @@ font_open_entity (FRAME_PTR f, Lisp_Object entity, int pixel_size)
 
 /* Close FONT_OBJECT that is opened on frame F.  */
 
-void
+static void
 font_close_object (FRAME_PTR f, Lisp_Object font_object)
 {
   struct font *font = XFONT_OBJECT (font_object);

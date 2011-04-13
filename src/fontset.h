@@ -32,7 +32,6 @@ extern void (*check_window_system_func) (void);
 struct face;
 
 extern void free_face_fontset (FRAME_PTR, struct face *);
-extern int face_suitable_for_char_p (struct face *, int);
 extern int face_for_char (FRAME_PTR, struct face *, int,
                           int, Lisp_Object);
 extern Lisp_Object font_for_char (struct face *, int, int, Lisp_Object);
@@ -51,4 +50,3 @@ struct font;
 extern int face_for_font (struct frame *, Lisp_Object, struct face *);
 
 #endif /* EMACS_FONTSET_H */
-
