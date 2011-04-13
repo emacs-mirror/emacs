@@ -3179,8 +3179,9 @@ extern int display_arg;
 extern Lisp_Object decode_env_path (const char *, const char *);
 extern Lisp_Object empty_unibyte_string, empty_multibyte_string;
 extern Lisp_Object Qfile_name_handler_alist;
-extern void (*fatal_error_signal_hook) (void);
+#ifdef FLOAT_CATCH_SIGILL
 extern void fatal_error_signal (int);
+#endif
 EXFUN (Fkill_emacs, 1) NO_RETURN;
 #if HAVE_SETLOCALE
 void fixup_locale (void);

@@ -1,5 +1,15 @@
 2011-04-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* emacs.c: Make symbols static if they're not exported.
+	(malloc_state_ptr, malloc_using_checking, syms_of_emacs):
+	(fatal_error_code, fatal_error_signal_hook, standard_args):
+	Now static.
+	(fatal_error_signal): Now static, unless FLOAT_CATCH_SIGKILL.
+	(DEFINE_DUMMY_FUNCTION): Mark function as externally visible.
+	(__CTOR_LIST__, __DTOR_LIST__): Now externally visible.
+	* lisp.h (fatal_error_signal_hook): Remove decl.
+	(fatal_error_signal): Declare only if FLOAT_CATCH_SIGKILL.
+
 	* editfns.c: Move a (normally-unused) function to its only use.
 	* editfns.c, lisp.h (get_operating_system_release): Remove.
 	* process.c (init_process) [DARWIN_OS]: Do it inline, as it is not
