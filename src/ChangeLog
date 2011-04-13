@@ -1,5 +1,19 @@
 2011-04-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	emacs_write: Return size_t, not ssize_t, to avoid overflow issues.
+	* gnutls.c, gnutls.h (emacs_gnutls_write): Return size_t, not ssize_t.
+	* sysdep.c, lisp.h (emacs_write): Likewise.
+	Without the above change, emacs_gnutls_write and emacs_write had
+	undefined behavior and would typically mistakenly report an error
+	when writing a buffer whose size exceeds SSIZE_MAX.
+	(emacs_read, emacs_write): Remove check for negative size, as the
+	Emacs source code has been audited now.
+	(emacs_write): Adjust to new signature, making the code look more
+	like that of emacs_gnutls_write.
+	* process.c (send_process): Adjust to the new signatures of
+	emacs_write and emacs_gnutls_write.  Do not attempt to store
+	a byte offset into an 'int'; it might overflow.
+
 	* sound.c: Don't assume sizes fit in 'int'.
 	(struct sound_device.period_size, alsa_period_size):
 	Return size_t, not int.

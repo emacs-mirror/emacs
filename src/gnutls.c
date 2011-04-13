@@ -70,7 +70,7 @@ emacs_gnutls_handshake (struct Lisp_Process *proc)
     }
 }
 
-ssize_t
+size_t
 emacs_gnutls_write (int fildes, struct Lisp_Process *proc, const char *buf,
                     size_t nbyte)
 {
@@ -85,7 +85,7 @@ emacs_gnutls_write (int fildes, struct Lisp_Process *proc, const char *buf,
 #ifdef EAGAIN
     errno = EAGAIN;
 #endif
-    return -1;
+    return 0;
   }
 
   bytes_written = 0;
@@ -99,7 +99,7 @@ emacs_gnutls_write (int fildes, struct Lisp_Process *proc, const char *buf,
           if (rtnval == GNUTLS_E_AGAIN || rtnval == GNUTLS_E_INTERRUPTED)
             continue;
           else
-            return (bytes_written ? bytes_written : -1);
+            break;
         }
 
       buf += rtnval;

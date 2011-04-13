@@ -1825,18 +1825,13 @@ emacs_close (int fd)
   return rtnval;
 }
 
+/* Read from FILEDESC to a buffer BUF with size NBYTE, retrying if interrupted.
+   Return the number of bytes read, which might be less than NBYTE.
+   On error, set errno and return -1.  */
 ssize_t
 emacs_read (int fildes, char *buf, size_t nbyte)
 {
   register ssize_t rtnval;
-
-  /* Defend against the possibility that a buggy caller passes a negative NBYTE
-     argument, which would be converted to a large unsigned size_t NBYTE.  This
-     defense prevents callers from doing large writes, unfortunately.  This
-     size restriction can be removed once we have carefully checked that there
-     are no such callers.  */
-  if ((ssize_t) nbyte < 0)
-    abort ();
 
   while ((rtnval = read (fildes, buf, nbyte)) == -1
 	 && (errno == EINTR))
@@ -1844,22 +1839,22 @@ emacs_read (int fildes, char *buf, size_t nbyte)
   return (rtnval);
 }
 
-ssize_t
+/* Write to FILEDES from a buffer BUF with size NBYTE, retrying if interrupted
+   or if a partial write occurs.  Return the number of bytes written, setting
+   errno if this is less than NBYTE.  */
+size_t
 emacs_write (int fildes, const char *buf, size_t nbyte)
 {
-  register ssize_t rtnval, bytes_written;
-
-  /* Defend against negative NBYTE, as in emacs_read.  */
-  if ((ssize_t) nbyte < 0)
-    abort ();
+  ssize_t rtnval;
+  size_t bytes_written;
 
   bytes_written = 0;
 
-  while (nbyte != 0)
+  while (nbyte > 0)
     {
       rtnval = write (fildes, buf, nbyte);
 
-      if (rtnval == -1)
+      if (rtnval < 0)
 	{
 	  if (errno == EINTR)
 	    {
@@ -1871,13 +1866,14 @@ emacs_write (int fildes, const char *buf, size_t nbyte)
 	      continue;
 	    }
 	  else
-	    return (bytes_written ? bytes_written : -1);
+	    break;
 	}
 
       buf += rtnval;
       nbyte -= rtnval;
       bytes_written += rtnval;
     }
+
   return (bytes_written);
 }
 
