@@ -2123,7 +2123,7 @@ Results in --add-missing being passed to automake.
 @end deffn
 
 @deffn Method ede-proj-flush-autoconf :AFTER this
-Flush the configure file (current buffer) to accomodate @var{THIS}.
+Flush the configure file (current buffer) to accommodate @var{THIS}.
 By flushing, remove any cruft that may be in the file.  Subsequent
 calls to @dfn{ede-proj-tweak-autoconf} can restore items removed by flush.
 @end deffn
@@ -2174,7 +2174,7 @@ These are removed with make clean.
 @end deffn
 
 @deffn Method ede-proj-tweak-autoconf :AFTER this
-Tweak the configure file (current buffer) to accomodate @var{THIS}.
+Tweak the configure file (current buffer) to accommodate @var{THIS}.
 @end deffn
 
 @deffn Method ede-proj-compilers :AFTER obj
@@ -2684,7 +2684,7 @@ Bonus: Return a cons cell: (COMPILED . UPTODATE).
 @end deffn
 
 @deffn Method ede-proj-flush-autoconf :AFTER this
-Flush the configure file (current buffer) to accomodate @var{THIS}.
+Flush the configure file (current buffer) to accommodate @var{THIS}.
 @end deffn
 
 @deffn Method ede-buffer-mine :AFTER this buffer
@@ -2697,7 +2697,7 @@ Return the variable name for @var{THIS}'s sources.
 @end deffn
 
 @deffn Method ede-proj-tweak-autoconf :AFTER this
-Tweak the configure file (current buffer) to accomodate @var{THIS}.
+Tweak the configure file (current buffer) to accommodate @var{THIS}.
 @end deffn
 
 @deffn Method ede-update-version-in-source :AFTER this version
@@ -2777,7 +2777,7 @@ Create or update the autoload target.
 @end deffn
 
 @deffn Method ede-proj-flush-autoconf :AFTER this
-Flush the configure file (current buffer) to accomodate @var{THIS}.
+Flush the configure file (current buffer) to accommodate @var{THIS}.
 @end deffn
 
 @deffn Method ede-buffer-mine :AFTER this buffer
@@ -2796,7 +2796,7 @@ Argument @var{THIS} is the target which needs to insert an info file.
 @end deffn
 
 @deffn Method ede-proj-tweak-autoconf :AFTER this
-Tweak the configure file (current buffer) to accomodate @var{THIS}.
+Tweak the configure file (current buffer) to accommodate @var{THIS}.
 @end deffn
 
 @deffn Method ede-update-version-in-source :AFTER this version
@@ -3008,7 +3008,7 @@ The preferred interpreter for this code.
 @subsubsection Specialized Methods
 
 @deffn Method ede-proj-tweak-autoconf :AFTER this
-Tweak the configure file (current buffer) to accomodate @var{THIS}.
+Tweak the configure file (current buffer) to accommodate @var{THIS}.
 @end deffn
 
 
@@ -3536,7 +3536,7 @@ For example, C code uses .o on unix, and Emacs Lisp uses .elc.
 @subsubsection Specialized Methods
 
 @deffn Method ede-proj-flush-autoconf :AFTER this
-Flush the configure file (current buffer) to accomodate @var{THIS}.
+Flush the configure file (current buffer) to accommodate @var{THIS}.
 @end deffn
 
 @deffn Method ede-proj-makefile-insert-rules :AFTER this
@@ -3558,7 +3558,7 @@ Retrieves the slot @code{sourcetype} from an object of class @code{ede-compilati
 @end deffn
 
 @deffn Method ede-proj-tweak-autoconf :AFTER this
-Tweak the configure file (current buffer) to accomodate @var{THIS}.
+Tweak the configure file (current buffer) to accommodate @var{THIS}.
 @end deffn
 
 
