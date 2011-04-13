@@ -3096,7 +3096,7 @@ struct xpm_cached_color
    size.  */
 
 #define XPM_COLOR_CACHE_BUCKETS	1001
-struct xpm_cached_color **xpm_color_cache;
+static struct xpm_cached_color **xpm_color_cache;
 
 /* Initialize the color cache.  */
 
@@ -3312,7 +3312,7 @@ xpm_image_p (Lisp_Object object)
 
 #endif /* HAVE_XPM || HAVE_NS */
 
-#if defined (HAVE_XPM) && defined (HAVE_X_WINDOWS)
+#if defined HAVE_XPM && defined HAVE_X_WINDOWS && !defined USE_GTK
 int
 x_create_bitmap_from_xpm_data (struct frame *f, const char **bits)
 {
@@ -4136,11 +4136,11 @@ struct ct_color
 
 /* The color hash table.  */
 
-struct ct_color **ct_table;
+static struct ct_color **ct_table;
 
 /* Number of entries in the color table.  */
 
-int ct_colors_allocated;
+static int ct_colors_allocated;
 
 /* Initialize the color table.  */
 

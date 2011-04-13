@@ -1,5 +1,11 @@
 2011-04-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* image.c: Make symbols static if they're not exported.
+	* dispextern.h (x_create_bitmap_from_xpm_data): Do not declare
+	if USE_GTK.
+	* image.c (x_create_bitmap_from_xpm_data): Do not define if USE_GTK.
+	(xpm_color_cache, ct_table, ct_colors_allocated): Now static.
+
 	* fringe.c (standard_bitmaps): Now static.
 	(max_used_fringe_bitmap): Now static, unless HAVE_NS.
 
