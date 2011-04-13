@@ -7188,7 +7188,9 @@ init_process (void)
      processes.  As such, we only change the default value.  */
  if (initialized)
   {
-    const char *release = get_operating_system_release ();
+    char const *release = (STRINGP (Voperating_system_release)
+			   ? SSDATA (Voperating_system_release)
+			   : 0);
     if (!release || !release[0] || (release[0] < MIN_PTY_KERNEL_VERSION
 				    && release[1] == '.')) {
       Vprocess_connection_type = Qnil;

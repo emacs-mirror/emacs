@@ -1403,15 +1403,6 @@ get_system_name (void)
     return "";
 }
 
-const char *
-get_operating_system_release (void)
-{
-  if (STRINGP (Voperating_system_release))
-    return SSDATA (Voperating_system_release);
-  else
-    return "";
-}
-
 DEFUN ("emacs-pid", Femacs_pid, Semacs_pid, 0, 0, 0,
        doc: /* Return the process ID of Emacs, as an integer.  */)
   (void)

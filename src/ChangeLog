@@ -1,5 +1,10 @@
 2011-04-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* editfns.c: Move a (normally-unused) function to its only use.
+	* editfns.c, lisp.h (get_operating_system_release): Remove.
+	* process.c (init_process) [DARWIN_OS]: Do it inline, as it is not
+	worth the hassle of breaking this out.
+
 	* xterm.c: Make symbols static if they're not exported.
 	(x_raise_frame, x_lower_frame, x_wm_set_window_state):
 	(x_wm_set_icon_pixmap, x_initialize, XTread_socket_fake_io_error):

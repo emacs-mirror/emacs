@@ -2925,7 +2925,6 @@ extern Lisp_Object make_buffer_string_both (EMACS_INT, EMACS_INT, EMACS_INT,
 					    EMACS_INT, int);
 extern void init_editfns (void);
 const char *get_system_name (void);
-const char *get_operating_system_release (void);
 extern void syms_of_editfns (void);
 EXFUN (Fconstrain_to_field, 5);
 EXFUN (Ffield_end, 3);
