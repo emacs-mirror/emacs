@@ -503,36 +503,6 @@
 ;; exact structure of the original argument list as long as the new argument
 ;; list takes a compatible number/magnitude of actual arguments.
 
-;; @@@ Definition of subr argument lists:
-;; ======================================
-;; When advice constructs the advised definition of a function it has to
-;; know the argument list of the original function. For functions and macros
-;; the argument list can be determined from the actual definition, however,
-;; for subrs there is no such direct access available. In Lemacs and for some
-;; subrs in Emacs-19 the argument list of a subr can be determined from
-;; its documentation string, in a v18 Emacs even that is not possible. If
-;; advice cannot at all determine the argument list of a subr it uses
-;; `(&rest ad-subr-args)' which will always work but is inefficient because
-;; it conses up arguments. The macro `ad-define-subr-args' can be used by
-;; the advice programmer to explicitly tell advice about the argument list
-;; of a certain subr, for example,
-;;
-;;    (ad-define-subr-args 'fset '(sym newdef))
-;;
-;; is used by advice itself to tell a v18 Emacs about the arguments of `fset'.
-;; The following can be used to undo such a definition:
-;;
-;;    (ad-undefine-subr-args 'fset)
-;;
-;; The argument list definition is stored on the property list of the subr
-;; name symbol. When an argument list could be determined from the
-;; documentation string it will be cached under that property. The general
-;; mechanism for looking up the argument list of a subr is the following:
-;; 1) look for a definition stored on the property list
-;; 2) if that failed try to infer it from the documentation string and
-;;    if successful cache it on the property list
-;; 3) otherwise use `(&rest ad-subr-args)'
-
 ;; @@ Activation and deactivation:
 ;; ===============================
 ;; The definition of an advised function does not change until all its advice
@@ -1654,41 +1624,6 @@
 ;; (fii 3 2)
 ;; 5
 ;;
-;; @@ Specifying argument lists of subrs:
-;; ======================================
-;; The argument lists of subrs cannot be determined directly from Lisp.
-;; This means that Advice has to use `(&rest ad-subr-args)' as the
-;; argument list of the advised subr which is not very efficient. In Lemacs
-;; subr argument lists can be determined from their documentation string, in
-;; Emacs-19 this is the case for some but not all subrs. To accommodate
-;; for the cases where the argument lists cannot be determined (e.g., in a
-;; v18 Emacs) Advice comes with a specification mechanism that allows the
-;; advice programmer to tell advice what the argument list of a certain subr
-;; really is.
-;;
-;; In a v18 Emacs the following will return the &rest idiom:
-;;
-;; (ad-arglist (symbol-function 'car))
-;; (&rest ad-subr-args)
-;;
-;; To tell advice what the argument list of `car' really is we
-;; can do the following:
-;;
-;; (ad-define-subr-args 'car '(list))
-;; ((list))
-;;
-;; Now `ad-arglist' will return the proper argument list (this method is
-;; actually used by advice itself for the advised definition of `fset'):
-;;
-;; (ad-arglist (symbol-function 'car))
-;; (list)
-;;
-;; The defined argument list will be stored on the property list of the
-;; subr name symbol. When advice looks for a subr argument list it first
-;; checks for a definition on the property list, if that fails it tries
-;; to infer it from the documentation string and caches it on the property
-;; list if it was successful, otherwise `(&rest ad-subr-args)' will be used.
-;;
 ;; @@ Advising interactive subrs:
 ;; ==============================
 ;; For the most part there is no difference between advising functions and
@@ -2536,52 +2471,11 @@ See Info node `(elisp)Computed Advice' for detailed documentation."
 If DEFINITION could be from a subr then its NAME should be
 supplied to make subr arglist lookup more efficient."
   (require 'help-fns)
-  (cond
-   ((or (ad-macro-p definition) (ad-advice-p definition))
-    (help-function-arglist (cdr definition)))
-   (t (help-function-arglist definition))))
-
-;; Store subr-args as `((arg1 arg2 ...))' so I can distinguish
-;; a defined empty arglist `(nil)' from an undefined arglist:
-(defmacro ad-define-subr-args (subr arglist)
-  `(put ,subr 'ad-subr-arglist (list ,arglist)))
-(defmacro ad-undefine-subr-args (subr)
-  `(put ,subr 'ad-subr-arglist nil))
-(defmacro ad-subr-args-defined-p (subr)
-  `(get ,subr 'ad-subr-arglist))
-(defmacro ad-get-subr-args (subr)
-  `(car (get ,subr 'ad-subr-arglist)))
-
-(defun ad-subr-arglist (subr-name)
-  "Retrieve arglist of the subr with SUBR-NAME.
-Either use the one stored under the `ad-subr-arglist' property,
-or try to retrieve it from the docstring and cache it under
-that property, or otherwise use `(&rest ad-subr-args)'."
-  (if (ad-subr-args-defined-p subr-name)
-      (ad-get-subr-args subr-name)
-    ;; says jwz: Should use this for Lemacs 19.8 and above:
-    ;;((fboundp 'subr-min-args)
-    ;;  ...)
-    ;; says hans: I guess what Jamie means is that I should use the values
-    ;; of `subr-min-args' and `subr-max-args' to construct the subr arglist
-    ;; without having to look it up via parsing the docstring, e.g.,
-    ;; values 1 and 2 would suggest `(arg1 &optional arg2)' as an
-    ;; argument list.  However, that won't work because there is no
-    ;; way to distinguish a subr with args `(a &optional b &rest c)' from
-    ;; one with args `(a &rest c)' using that mechanism. Also, the argument
-    ;; names from the docstring are more meaningful. Hence, I'll stick with
-    ;; the old way of doing things.
-    (let ((doc (or (ad-real-documentation subr-name t) "")))
-      (if (not (string-match "\n\n\\((.+)\\)\\'" doc))
-	  ;; Signalling an error leads to bugs during bootstrapping because
-	  ;; the DOC file is not yet built (which is an error, BTW).
-	  ;; (error "The usage info is missing from the subr %s" subr-name)
-	  '(&rest ad-subr-args)
-	(ad-define-subr-args
-	 subr-name
-	 (cdr (car (read-from-string
-		    (downcase (match-string 1 doc))))))
-	(ad-get-subr-args subr-name)))))
+  (help-function-arglist
+   (if (or (ad-macro-p definition) (ad-advice-p definition))
+       (cdr definition)
+     definition)
+   'preserve-names))
 
 (defun ad-docstring (definition)
   "Return the unexpanded docstring of DEFINITION."
@@ -2629,17 +2523,16 @@ definition (see the code for `documentation')."
 
 (defun ad-definition-type (definition)
   "Return symbol that describes the type of DEFINITION."
-  (if (ad-macro-p definition)
-      'macro
-    (if (ad-subr-p definition)
-	(if (ad-special-form-p definition)
-	    'special-form
-	  'subr)
-      (if (or (ad-lambda-p definition)
-	      (ad-compiled-p definition))
-	  'function
-	(if (ad-advice-p definition)
-	    'advice)))))
+  (cond
+   ((ad-macro-p definition) 'macro)
+   ((ad-subr-p definition)
+    (if (ad-special-form-p definition)
+        'special-form
+      'subr))
+   ((or (ad-lambda-p definition)
+        (ad-compiled-p definition))
+    'function)
+   ((ad-advice-p definition) 'advice)))
 
 (defun ad-has-proper-definition (function)
   "True if FUNCTION is a symbol with a proper definition.
@@ -3920,10 +3813,6 @@ undone on exit of this macro."
 ;; ============================
 ;; Use the advice mechanism to advise `documentation' to make it
 ;; generate proper documentation strings for advised definitions:
-
-;; This makes sure we get the right arglist for `documentation'
-;; during bootstrapping.
-(ad-define-subr-args 'documentation '(function &optional raw))
 
 ;; @@ Starting, stopping and recovering from the advice package magic:
 ;; ===================================================================

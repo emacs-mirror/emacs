@@ -1,3 +1,14 @@
+2011-04-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Preserve arg names for advice of subr and lexical functions (bug#8457).
+	* help-fns.el (help-function-arglist): Consolidate the subr and
+	new-byte-code cases.  Add argument `preserve-names' to extract names
+	from the docstring when needed.
+	* emacs-lisp/advice.el (ad-define-subr-args, ad-undefine-subr-args)
+	(ad-subr-args-defined-p, ad-get-subr-args, ad-subr-arglist): Remove.
+	(ad-arglist): Use help-function-arglist's new arg.
+	(ad-definition-type): Use cond.
+
 2011-04-13  Juanma Barranquero  <lekktu@gmail.com>
 
 	* autorevert.el (auto-revert-handler):
