@@ -3660,7 +3660,7 @@ handle_invisible_prop (struct it *it)
 		 _after_ bidi iteration avoids affecting the visual
 		 order of the displayed text when invisible properties
 		 are added or removed.  */
-	      if (it->bidi_it.first_elt)
+	      if (it->bidi_it.first_elt && it->bidi_it.charpos < ZV)
 		{
 		  /* If we were `reseat'ed to a new paragraph,
 		     determine the paragraph base direction.  We need
