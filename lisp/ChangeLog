@@ -1,3 +1,8 @@
+2011-04-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image-mode.el (image-transform-set-scale):
+	Fix change in revno:103877 (2011-04-09).
+
 2011-04-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/network-stream.el (network-stream-open-starttls): Only do
