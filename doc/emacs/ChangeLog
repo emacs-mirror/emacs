@@ -1,3 +1,8 @@
+2011-04-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* mini.texi (Minibuffer Edit):
+	* screen.texi (Mode Line): Fix typo.
+
 2011-03-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* display.texi (Auto Scrolling): Fix scroll-up/scroll-down confusion.
