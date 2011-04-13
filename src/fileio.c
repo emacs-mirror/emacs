@@ -88,14 +88,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 /* Nonzero during writing of auto-save files */
-int auto_saving;
+static int auto_saving;
 
 /* Set by auto_save_1 to mode of original file so Fwrite_region will create
    a new file with the same mode as the original */
-int auto_save_mode_bits;
+static int auto_save_mode_bits;
 
 /* Set by auto_save_1 if an error occurred during the last auto-save. */
-int auto_save_error_occurred;
+static int auto_save_error_occurred;
 
 /* The symbol bound to coding-system-for-read when
    insert-file-contents is called for recovering a file.  This is not
@@ -118,7 +118,7 @@ static Lisp_Object Qafter_insert_file_set_coding;
 static Lisp_Object Qwrite_region_annotate_functions;
 /* Each time an annotation function changes the buffer, the new buffer
    is added here.  */
-Lisp_Object Vwrite_region_annotation_buffers;
+static Lisp_Object Vwrite_region_annotation_buffers;
 
 #ifdef HAVE_FSYNC
 #endif

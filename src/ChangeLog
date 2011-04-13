@@ -1,5 +1,9 @@
 2011-04-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* fileio.c: Make symbols static if they're not exported.
+	(auto_saving, auto_save_mode_bits, auto_save_error_occurred):
+	(Vwrite_region_annotation_buffers): Now static.
+
 	* eval.c: Make symbols static if they're not exported.
 	(backtrace_list, lisp_eval_depth, when_entered_debugger): Now static.
 	* lisp.h (backtrace_list): Remove decl.
