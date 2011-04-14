@@ -1,5 +1,7 @@
 2011-04-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* search.c (searchbufs, searchbuf_head): Now static.
+
 	* scroll.c (scroll_cost): Remove; unused.
 	* dispextern.h (scroll_cost): Remove decl.
 
