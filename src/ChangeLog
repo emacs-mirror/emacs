@@ -1,5 +1,7 @@
 2011-04-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* sound.c (current_sound_device, current_sound): Now static.
+
 	* search.c (searchbufs, searchbuf_head): Now static.
 
 	* scroll.c (scroll_cost): Remove; unused.

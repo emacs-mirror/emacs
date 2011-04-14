@@ -281,8 +281,8 @@ struct sound
 /* These are set during `play-sound-internal' so that sound_cleanup has
    access to them.  */
 
-struct sound_device *current_sound_device;
-struct sound *current_sound;
+static struct sound_device *current_sound_device;
+static struct sound *current_sound;
 
 /* Function prototypes.  */
 
