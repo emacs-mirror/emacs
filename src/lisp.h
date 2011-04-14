@@ -2743,7 +2743,6 @@ extern void syms_of_chartab (void);
 /* Defined in print.c */
 extern Lisp_Object Vprin1_to_string_buffer;
 extern void debug_print (Lisp_Object) EXTERNALLY_VISIBLE;
-extern void safe_debug_print (Lisp_Object) EXTERNALLY_VISIBLE;
 EXFUN (Fprin1, 2);
 EXFUN (Fprin1_to_string, 2);
 EXFUN (Fterpri, 1);
@@ -2751,7 +2750,6 @@ EXFUN (Fprint, 2);
 EXFUN (Ferror_message_string, 1);
 extern Lisp_Object Qstandard_output;
 extern Lisp_Object Qexternal_debugging_output;
-extern void debug_output_compilation_hack (int) EXTERNALLY_VISIBLE;
 extern void temp_output_buffer_setup (const char *);
 extern int print_level;
 extern Lisp_Object Qprint_escape_newlines;
@@ -2967,14 +2965,12 @@ extern EMACS_INT marker_byte_position (Lisp_Object);
 extern void clear_charpos_cache (struct buffer *);
 extern EMACS_INT charpos_to_bytepos (EMACS_INT);
 extern EMACS_INT buf_charpos_to_bytepos (struct buffer *, EMACS_INT);
-extern EMACS_INT verify_bytepos (EMACS_INT charpos) EXTERNALLY_VISIBLE;
 extern EMACS_INT buf_bytepos_to_charpos (struct buffer *, EMACS_INT);
 extern void unchain_marker (struct Lisp_Marker *marker);
 extern Lisp_Object set_marker_restricted (Lisp_Object, Lisp_Object, Lisp_Object);
 extern Lisp_Object set_marker_both (Lisp_Object, Lisp_Object, EMACS_INT, EMACS_INT);
 extern Lisp_Object set_marker_restricted_both (Lisp_Object, Lisp_Object,
                                                EMACS_INT, EMACS_INT);
-extern int count_markers (struct buffer *) EXTERNALLY_VISIBLE;
 extern void syms_of_marker (void);
 
 /* Defined in fileio.c */

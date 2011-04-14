@@ -738,6 +738,7 @@ to make it write to the debugging output.  */)
 /* This function is never called.  Its purpose is to prevent
    print_output_debug_flag from being optimized away.  */
 
+exterr void debug_output_compilation_hack (int) EXTERNALLY_VISIBLE;
 void
 debug_output_compilation_hack (int x)
 {
@@ -798,6 +799,7 @@ debug_print (Lisp_Object arg)
   fprintf (stderr, "\r\n");
 }
 
+void safe_debug_print (Lisp_Object) EXTERNALLY_VISIBLE;
 void
 safe_debug_print (Lisp_Object arg)
 {

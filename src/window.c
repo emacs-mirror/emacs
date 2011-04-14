@@ -2338,6 +2338,7 @@ window_loop (enum window_loop type, Lisp_Object obj, int mini, Lisp_Object frame
 
 /* Used for debugging.  Abort if any window has a dead buffer.  */
 
+extern void check_all_windows (void) EXTERNALLY_VISIBLE;
 void
 check_all_windows (void)
 {

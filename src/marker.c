@@ -242,6 +242,7 @@ buf_charpos_to_bytepos (struct buffer *b, EMACS_INT charpos)
 /* Used for debugging: recompute the bytepos corresponding to CHARPOS
    in the simplest, most reliable way.  */
 
+extern EMACS_INT verify_bytepos (EMACS_INT charpos) EXTERNALLY_VISIBLE;
 EMACS_INT
 verify_bytepos (EMACS_INT charpos)
 {
@@ -864,6 +865,7 @@ DEFUN ("buffer-has-markers-at", Fbuffer_has_markers_at, Sbuffer_has_markers_at,
 
 /* For debugging -- count the markers in buffer BUF.  */
 
+extern int count_markers (struct buffer *) EXTERNALLY_VISIBLE;
 int
 count_markers (struct buffer *buf)
 {
