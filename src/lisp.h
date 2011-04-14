@@ -2652,7 +2652,9 @@ extern void memory_full (void) NO_RETURN;
 extern void buffer_memory_full (void) NO_RETURN;
 extern int survives_gc_p (Lisp_Object);
 extern void mark_object (Lisp_Object);
+#if defined REL_ALLOC && !defined SYSTEM_MALLOC
 extern void refill_memory_reserve (void);
+#endif
 extern const char *pending_malloc_warning;
 extern Lisp_Object *stack_base;
 EXFUN (Fcons, 2);

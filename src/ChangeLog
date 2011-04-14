@@ -1,4 +1,8 @@
-2011-04-14  Paul Eggert  <eggert@cs.ucla.edu>
+ 2011-04-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c (refill_memory_reserve): Now static if
+	!defined REL_ALLOC || defined SYSTEM_MALLOC.
+	* lisp.h (refill_memory_reserve): Declare only if not static.
 
 	* xsettings.c, xsettings.h (xsettings_get_system_normal_font):
 	Define only if USE_LUCID.
