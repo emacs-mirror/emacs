@@ -3802,6 +3802,8 @@ variable `last-coding-system-used' to the coding system actually used.  */)
     /* For a special file, all we can do is guess.  */
     total = READ_BUF_SIZE;
 
+  /* FIXME: This if-statement is a no-op, because 'inserted' must be zero here
+     (Bug#8496).  */
   if (NILP (visit) && inserted > 0)
     {
 #ifdef CLASH_DETECTION
@@ -3912,6 +3914,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
   if (inserted == 0)
     {
 #ifdef CLASH_DETECTION
+      /* FIXME: This code is a no-op, too (Bug#8496).  */
       if (we_locked_file)
 	unlock_file (BVAR (current_buffer, file_truename));
 #endif
