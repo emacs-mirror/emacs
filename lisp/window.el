@@ -2117,21 +2117,26 @@ possible in the desired direction."
 		 (window-sizable-p left delta horizontal)
 		 (window-sizable-p right (- delta) horizontal))
 	    ;; For the window-splits nil case proceed conventionally.
-	    (progn
+	    (let ((parent-size
+		   (window-total-size (window-parent left) horizontal)))
 	      (resize-this-window left delta horizontal nil t)
-	      (resize-this-window right (- delta) horizontal nil t))
-	;; Try to enlarge LEFT first.
-	(setq this-delta (window-resizable left delta horizontal))
-	(unless (zerop this-delta)
-	  (resize-this-window left this-delta horizontal nil t 'left))
-	(unless (= this-delta delta)
-	  ;; We didn't get it all from LEFT, enlarge windows on left of
-	  ;; LEFT (for this purpose make `resize-other-windows' believe
-	  ;; that we shrink LEFT).
-	  (resize-other-windows
-	   left (- this-delta delta) horizontal nil 'left))
-	;; Shrink windows on right of LEFT.
-	(resize-other-windows left delta horizontal nil 'right))))
+	      (resize-this-window right (- delta) horizontal nil t)
+	      (resize-window-normal
+	       left (/ (float (window-new-total-size left)) parent-size))
+	      (resize-window-normal
+	       right (/ (float (window-new-total-size right)) parent-size)))
+	  ;; Try to enlarge LEFT first.
+	  (setq this-delta (window-resizable left delta horizontal))
+	  (unless (zerop this-delta)
+	    (resize-this-window left this-delta horizontal nil t 'left))
+	  (unless (= this-delta delta)
+	    ;; We didn't get it all from LEFT, enlarge windows on left of
+	    ;; LEFT (for this purpose make `resize-other-windows' believe
+	    ;; that we shrink LEFT).
+	    (resize-other-windows
+	     left (- this-delta delta) horizontal nil 'left))
+	  ;; Shrink windows on right of LEFT.
+	  (resize-other-windows left delta horizontal nil 'right))))
      ((< delta 0)
       (setq max-delta (window-max-delta-1 right 0 horizontal nil 'left))
       (setq min-delta (window-min-delta-1 left delta horizontal nil 'right))
@@ -2145,21 +2150,26 @@ possible in the desired direction."
 		 (window-sizable-p left delta horizontal)
 		 (window-sizable-p right (- delta) horizontal))
 	    ;; For the window-splits nil case proceed conventionally.
-	    (progn
+	    (let ((parent-size
+		   (window-total-size (window-parent left) horizontal)))
 	      (resize-this-window left delta horizontal nil t)
-	      (resize-this-window right (- delta) horizontal nil t))
-	;; Try to enlarge RIGHT.
-	(setq this-delta (window-resizable right (- delta) horizontal))
-	(unless (zerop this-delta)
-	  (resize-this-window right this-delta horizontal nil t 'right))
-	(unless (= (- this-delta) delta)
-	  ;; We didn't get it all from RIGHT, enlarge windows on right of
-	  ;; RIGHT (for this purpose make `resize-other-windows' believe
-	  ;; that we grow RIGHT).
-	  (resize-other-windows
-	   right (- this-delta delta) horizontal nil 'right))
-	;; Shrink windows on left of RIGHT.
-	(resize-other-windows right (- delta) horizontal nil 'left)))))
+	      (resize-this-window right (- delta) horizontal nil t)
+	      (resize-window-normal
+	       left (/ (float (window-new-total-size left)) parent-size))
+	      (resize-window-normal
+	       right (/ (float (window-new-total-size right)) parent-size)))
+	  ;; Try to enlarge RIGHT.
+	  (setq this-delta (window-resizable right (- delta) horizontal))
+	  (unless (zerop this-delta)
+	    (resize-this-window right this-delta horizontal nil t 'right))
+	  (unless (= (- this-delta) delta)
+	    ;; We didn't get it all from RIGHT, enlarge windows on right of
+	    ;; RIGHT (for this purpose make `resize-other-windows' believe
+	    ;; that we grow RIGHT).
+	    (resize-other-windows
+	     right (- this-delta delta) horizontal nil 'right))
+	  ;; Shrink windows on left of RIGHT.
+	  (resize-other-windows right (- delta) horizontal nil 'left)))))
     (unless (zerop delta)
       ;; Don't report an error in the standard case.
       (unless (resize-window-apply frame horizontal)
