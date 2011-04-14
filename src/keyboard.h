@@ -190,9 +190,6 @@ extern KBOARD *current_kboard;
 
 /* A list of all kboard objects, linked through next_kboard.  */
 extern KBOARD *all_kboards;
-
-/* Nonzero in the single-kboard state, 0 in the any-kboard state.  */
-extern int single_kboard;
 
 /* Total number of times read_char has returned, modulo SIZE_MAX + 1.  */
 extern size_t num_input_events;
@@ -429,7 +426,9 @@ extern int waiting_for_input;
    happens.  */
 extern EMACS_TIME *input_available_clear_time;
 
+#if defined HAVE_WINDOW_SYSTEM && !defined USE_GTK && !defined HAVE_NS
 extern int ignore_mouse_drag_p;
+#endif
 
 /* The primary selection.  */
 extern Lisp_Object QPRIMARY;
@@ -469,7 +468,6 @@ extern int timers_run;
 extern int menu_separator_name_p (const char *);
 extern int parse_menu_item (Lisp_Object, int);
 
-extern void echo_now (void);
 extern void init_kboard (KBOARD *);
 extern void delete_kboard (KBOARD *);
 extern void not_single_kboard_state (KBOARD *);
@@ -491,8 +489,6 @@ extern int make_ctrl_char (int);
 extern void stuff_buffered_input (Lisp_Object);
 extern void clear_waiting_for_input (void);
 extern void swallow_events (int);
-extern int help_char_p (Lisp_Object);
-extern void quit_throw_to_read_char (void) NO_RETURN;
 extern int lucid_event_type_list_p (Lisp_Object);
 extern void kbd_buffer_store_event (struct input_event *);
 extern void kbd_buffer_store_event_hold (struct input_event *,

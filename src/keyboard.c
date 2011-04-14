@@ -96,7 +96,9 @@ int pending_signals;
 KBOARD *initial_kboard;
 KBOARD *current_kboard;
 KBOARD *all_kboards;
-int single_kboard;
+
+/* Nonzero in the single-kboard state, 0 in the any-kboard state.  */
+static int single_kboard;
 
 /* Non-nil disable property on a command means
    do not execute it; call disabled-command-function's value instead.  */
@@ -104,9 +106,15 @@ Lisp_Object Qdisabled;
 static Lisp_Object Qdisabled_command_function;
 
 #define NUM_RECENT_KEYS (300)
-int recent_keys_index;	/* Index for storing next element into recent_keys */
-int total_keys;		/* Total number of elements stored into recent_keys */
-Lisp_Object recent_keys; /* Vector holds the last NUM_RECENT_KEYS keystrokes */
+
+/* Index for storing next element into recent_keys.  */
+static int recent_keys_index;
+
+/* Total number of elements stored into recent_keys.  */
+static int total_keys;
+
+/* This vector holds the last NUM_RECENT_KEYS keystrokes.  */
+static Lisp_Object recent_keys;
 
 /* Vector holding the key sequence that invoked the current command.
    It is reused for each command, and it may be longer than the current
@@ -118,12 +126,12 @@ int this_command_key_count;
 
 /* 1 after calling Freset_this_command_lengths.
    Usually it is 0.  */
-int this_command_key_count_reset;
+static int this_command_key_count_reset;
 
 /* This vector is used as a buffer to record the events that were actually read
    by read_key_sequence.  */
-Lisp_Object raw_keybuf;
-int raw_keybuf_count;
+static Lisp_Object raw_keybuf;
+static int raw_keybuf_count;
 
 #define GROW_RAW_KEYBUF							\
  if (raw_keybuf_count == XVECTOR (raw_keybuf)->size)			\
@@ -131,7 +139,7 @@ int raw_keybuf_count;
 
 /* Number of elements of this_command_keys
    that precede this key sequence.  */
-int this_single_command_key_start;
+static int this_single_command_key_start;
 
 /* Record values of this_command_key_count and echo_length ()
    before this command was read.  */
@@ -147,7 +155,7 @@ int waiting_for_input;
 
 /* True while displaying for echoing.   Delays C-g throwing.  */
 
-int echoing;
+static int echoing;
 
 /* Non-null means we can start echoing at the next input pause even
    though there is something in the echo area.  */
@@ -207,7 +215,7 @@ size_t num_input_events;
 
 /* Value of num_nonmacro_input_events as of last auto save.  */
 
-int last_auto_save;
+static int last_auto_save;
 
 /* This is like Vthis_command, except that commands never set it.  */
 Lisp_Object real_this_command;
@@ -243,7 +251,7 @@ static Lisp_Object Qtimer_event_handler;
 
 /* read_key_sequence stores here the command definition of the
    key sequence that it reads.  */
-Lisp_Object read_key_sequence_cmd;
+static Lisp_Object read_key_sequence_cmd;
 
 static Lisp_Object Qinput_method_function;
 
@@ -265,7 +273,7 @@ static Lisp_Object Qinput_method_use_echo_area;
 static Lisp_Object Qhelp_form_show;
 
 /* File in which we write all commands we read.  */
-FILE *dribble;
+static FILE *dribble;
 
 /* Nonzero if input is available.  */
 int input_pending;
@@ -358,11 +366,13 @@ Lisp_Object Qvertical_line;
 static Lisp_Object Qvertical_scroll_bar;
 Lisp_Object Qmenu_bar;
 
-Lisp_Object recursive_edit_unwind (Lisp_Object buffer), command_loop (void);
+static Lisp_Object recursive_edit_unwind (Lisp_Object buffer);
+static Lisp_Object command_loop (void);
 static Lisp_Object Qextended_command_history;
 EMACS_TIME timer_check (void);
 
 static void record_menu_key (Lisp_Object c);
+static void echo_now (void);
 static int echo_length (void);
 
 static Lisp_Object Qpolling_period;
@@ -418,7 +428,7 @@ static EMACS_TIME timer_last_idleness_start_time;
 #define READABLE_EVENTS_IGNORE_SQUEEZABLES	(1 << 2)
 
 /* Function for init_keyboard to call with no args (if nonzero).  */
-void (*keyboard_init_hook) (void);
+static void (*keyboard_init_hook) (void);
 
 static int read_avail_input (int);
 static void get_input_pending (int *, int);
@@ -438,6 +448,7 @@ static Lisp_Object modify_event_symbol (EMACS_INT, unsigned, Lisp_Object,
                                         Lisp_Object, const char *const *,
                                         Lisp_Object *, unsigned);
 static Lisp_Object make_lispy_switch_frame (Lisp_Object);
+static int help_char_p (Lisp_Object);
 static void save_getcjmp (jmp_buf);
 static void restore_getcjmp (jmp_buf);
 static Lisp_Object apply_modifiers (int, Lisp_Object);
@@ -449,6 +460,7 @@ static void input_available_signal (int signo);
 #endif
 INFUN (Fcommand_execute, 4);
 static void handle_interrupt (void);
+static void quit_throw_to_read_char (void) NO_RETURN;
 static void timer_start_idle (void);
 static void timer_stop_idle (void);
 static void timer_resume_idle (void);
@@ -592,7 +604,7 @@ echo_dash (void)
 /* Display the current echo string, and begin echoing if not already
    doing so.  */
 
-void
+static void
 echo_now (void)
 {
   if (!current_kboard->immediate_echo)
@@ -759,6 +771,7 @@ record_auto_save (void)
 
 /* Make an auto save happen as soon as possible at command level.  */
 
+#ifdef SIGDANGER
 void
 force_auto_save_soon (void)
 {
@@ -766,6 +779,7 @@ force_auto_save_soon (void)
 
   record_asynch_buffer_change ();
 }
+#endif
 
 DEFUE ("recursive-edit", Frecursive_edit, Srecursive_edit, 0, 0, "",
        doc: /* Invoke the editor command loop recursively.
@@ -1088,8 +1102,8 @@ cmd_error_internal (Lisp_Object data, const char *context)
 }
 
 Lisp_Object command_loop_1 (void);
-Lisp_Object command_loop_2 (Lisp_Object);
-Lisp_Object top_level_1 (Lisp_Object);
+static Lisp_Object command_loop_2 (Lisp_Object);
+static Lisp_Object top_level_1 (Lisp_Object);
 
 /* Entry to editor-command-loop.
    This level has the catches for exiting/returning to editor command loop.
@@ -1253,6 +1267,9 @@ usage: (track-mouse BODY...)  */)
    If ignore_mouse_drag_p is non-zero, ignore (implicit) mouse movement
    after resizing the tool-bar window.  */
 
+#if !defined HAVE_WINDOW_SYSTEM || defined USE_GTK || defined HAVE_NS
+static
+#endif
 int ignore_mouse_drag_p;
 
 static FRAME_PTR
@@ -1910,7 +1927,7 @@ int poll_suppress_count;
 
 /* Asynchronous timer for polling.  */
 
-struct atimer *poll_timer;
+static struct atimer *poll_timer;
 
 
 #ifdef POLL_FOR_INPUT
@@ -2177,7 +2194,6 @@ show_help_echo (Lisp_Object help, Lisp_Object window, Lisp_Object object,
 
 /* Input of single characters from keyboard */
 
-Lisp_Object print_help (Lisp_Object object);
 static Lisp_Object kbd_buffer_get_event (KBOARD **kbp, int *used_mouse_menu,
 					 struct timeval *end_time);
 static void record_char (Lisp_Object c);
@@ -3171,7 +3187,7 @@ record_menu_key (Lisp_Object c)
 
 /* Return 1 if should recognize C as "the help character".  */
 
-int
+static int
 help_char_p (Lisp_Object c)
 {
   Lisp_Object tail;
@@ -3320,17 +3336,6 @@ record_char (Lisp_Object c)
     }
 }
 
-Lisp_Object
-print_help (Lisp_Object object)
-{
-  struct buffer *old = current_buffer;
-  Fprinc (object, Qnil);
-  set_buffer_internal (XBUFFER (Vstandard_output));
-  call0 (intern ("help-mode"));
-  set_buffer_internal (old);
-  return Qnil;
-}
-
 /* Copy out or in the info on where C-g should throw to.
    This is used when running Lisp code from within get_char,
    in case get_char is called recursively.
@@ -3422,7 +3427,7 @@ readable_events (int flags)
 }
 
 /* Set this for debugging, to have a way to get out */
-int stop_character;
+int stop_character EXTERNALLY_VISIBLE;
 
 static KBOARD *
 event_to_kboard (struct input_event *event)
@@ -4218,7 +4223,7 @@ timer_resume_idle (void)
 }
 
 /* This is only for debugging.  */
-struct input_event last_timer_event;
+struct input_event last_timer_event EXTERNALLY_VISIBLE;
 
 /* List of elisp functions to call, delayed because they were generated in
    a context where Elisp could not be safely run (e.g. redisplay, signal,
@@ -5026,7 +5031,7 @@ static const char *const iso_lispy_function_keys[] =
 
 #endif /* not HAVE_NTGUI */
 
-Lisp_Object Vlispy_mouse_stem;
+static Lisp_Object Vlispy_mouse_stem;
 
 static const char *const lispy_wheel_names[] =
 {
@@ -5076,7 +5081,7 @@ static unsigned long button_down_time;
 
 /* The number of clicks in this multiple-click. */
 
-int double_click_count;
+static int double_click_count;
 
 /* X and Y are frame-relative coordinates for a click or wheel event.
    Return a Lisp-style event list.  */
@@ -10945,7 +10950,7 @@ handle_interrupt (void)
 
 /* Handle a C-g by making read_char return C-g.  */
 
-void
+static void
 quit_throw_to_read_char (void)
 {
   sigfree ();

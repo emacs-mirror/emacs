@@ -3093,7 +3093,6 @@ extern void syms_of_casetab (void);
 
 /* Defined in keyboard.c */
 
-extern int echoing;
 extern Lisp_Object echo_message_buffer;
 extern struct kboard *echo_kboard;
 extern void cancel_echoing (void);
@@ -3120,7 +3119,9 @@ extern void cmd_error_internal (Lisp_Object, const char *);
 extern Lisp_Object command_loop_1 (void);
 extern Lisp_Object recursive_edit_1 (void);
 extern void record_auto_save (void);
+#ifdef SIGDANGER
 extern void force_auto_save_soon (void);
+#endif
 extern void init_keyboard (void);
 extern void syms_of_keyboard (void);
 extern void keys_of_keyboard (void);

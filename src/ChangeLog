@@ -1,5 +1,28 @@
 2011-04-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* keyboard.c: Make symbols static if they're not exported.
+	(single_kboard, recent_keys_index, total_keys, recent_keys):
+	(this_command_key_count_reset, raw_keybuf, raw_keybuf_count):
+	(this_single_command_key_start, echoing, last_auto_save):
+	(read_key_sequence_cmd, dribble, recursive_edit_unwind):
+	(command_loop, echo_now, keyboard_init_hook, help_char_p):
+	(quit_throw_to_read_char, command_loop_2, top_level_1, poll_timer):
+	(Vlispy_mouse_stem, double_click_count):
+	Now static.
+	(force_auto_save_soon): Define only if SIGDANGER.
+	(ignore_mouse_drag_p): Now static if
+	!defined HAVE_WINDOW_SYSTEM || defined USE_GTK || defined HAVE_NS.
+	(print_help): Remove; unused.
+	(stop_character, last_timer_event): Mark as externally visible.
+	* keyboard.h (ignore_mouse_drag_p): Declare only if
+	defined HAVE_WINDOW_SYSTEM && !defined USE_GTK && !defined HAVE_NS.
+	(echo_now, help_char_p, quit_throw_to_read_char): Remove decls.
+	* lisp.h (echoing): Remove decl.
+	(force_auto_save_soon): Declare only if SIGDANGER.
+	* xdisp.c (redisplay_window): Simplify code, to make it more
+	obvious that ignore_mouse_drag_p is not accessed if !defined
+	USE_GTK && !defined HAVE_NS.
+
 	* intervals.c: Make symbols static if they're not exported.
 	(merge_properties_sticky, merge_interval_right, delete_interval):
 	Now static.

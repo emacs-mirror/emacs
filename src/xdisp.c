@@ -14429,7 +14429,6 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
       && EQ (FRAME_SELECTED_WINDOW (f), window))
     {
       int redisplay_menu_p = 0;
-      int redisplay_tool_bar_p = 0;
 
       if (FRAME_WINDOW_P (f))
 	{
@@ -14450,17 +14449,15 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
       if (FRAME_WINDOW_P (f))
         {
 #if defined (USE_GTK) || defined (HAVE_NS)
-          redisplay_tool_bar_p = FRAME_EXTERNAL_TOOL_BAR (f);
+	  if (FRAME_EXTERNAL_TOOL_BAR (f))
+	    redisplay_tool_bar (f);
 #else
-          redisplay_tool_bar_p = WINDOWP (f->tool_bar_window)
-            && (FRAME_TOOL_BAR_LINES (f) > 0
-                || !NILP (Vauto_resize_tool_bars));
+	  if (WINDOWP (f->tool_bar_window)
+	      && (FRAME_TOOL_BAR_LINES (f) > 0
+		  || !NILP (Vauto_resize_tool_bars))
+	      && redisplay_tool_bar (f))
+	    ignore_mouse_drag_p = 1;
 #endif
-
-          if (redisplay_tool_bar_p && redisplay_tool_bar (f))
-	    {
-	      ignore_mouse_drag_p = 1;
-	    }
         }
 #endif
     }
