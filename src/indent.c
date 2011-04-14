@@ -1044,7 +1044,7 @@ The return value is the current column.  */)
 
 /* compute_motion: compute buffer posn given screen posn and vice versa */
 
-struct position val_compute_motion;
+static struct position val_compute_motion;
 
 /* Scan the current buffer forward from offset FROM, pretending that
    this is at line FROMVPOS, column FROMHPOS, until reaching buffer
@@ -1818,7 +1818,7 @@ visible section of the buffer, and pass LINE and COL as TOPOS.  */)
 
 /* Fvertical_motion and vmotion */
 
-struct position val_vmotion;
+static struct position val_vmotion;
 
 struct position *
 vmotion (register EMACS_INT from, register EMACS_INT vtarget, struct window *w)

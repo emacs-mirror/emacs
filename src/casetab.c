@@ -24,9 +24,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include "character.h"
 
-Lisp_Object Qcase_table_p, Qcase_table;
-Lisp_Object Vascii_downcase_table, Vascii_upcase_table;
-Lisp_Object Vascii_canon_table, Vascii_eqv_table;
+static Lisp_Object Qcase_table_p, Qcase_table;
+Lisp_Object Vascii_downcase_table;
+static Lisp_Object Vascii_upcase_table;
+Lisp_Object Vascii_canon_table;
+static Lisp_Object Vascii_eqv_table;
 
 static void set_canon (Lisp_Object case_table, Lisp_Object range, Lisp_Object elt);
 static void set_identity (Lisp_Object table, Lisp_Object c, Lisp_Object elt);
@@ -101,7 +103,8 @@ EQUIVALENCES is a map that cyclicly permutes each equivalence class
   return set_case_table (table, 0);
 }
 
-DEFUN ("set-standard-case-table", Fset_standard_case_table, Sset_standard_case_table, 1, 1, 0,
+DEFUN ("set-standard-case-table", Fset_standard_case_table,
+       Sset_standard_case_table, 1, 1, 0,
        doc: /* Select a new standard case table for new buffers.
 See `set-case-table' for more info on case tables.  */)
   (Lisp_Object table)

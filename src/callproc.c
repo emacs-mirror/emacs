@@ -96,7 +96,7 @@ int synch_process_retcode;
 /* Nonzero if this is termination due to exit.  */
 static int call_process_exited;
 
-EXFUN (Fgetenv_internal, 2);
+static Lisp_Object Fgetenv_internal (Lisp_Object, Lisp_Object);
 
 static Lisp_Object
 call_process_kill (Lisp_Object fdpid)

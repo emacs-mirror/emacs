@@ -64,7 +64,7 @@ static int file_p (const char *filename);
 
 /* The string which gets substituted for the %C escape in XFILESEARCHPATH
    and friends, or zero if none was specified.  */
-char *x_customization_string;
+static char *x_customization_string;
 
 
 /* Return the value of the emacs.customization (Emacs.Customization)
@@ -466,7 +466,7 @@ get_environ_db (void)
 /* Types of values that we can find in a database */
 
 #define XrmStringType "String"	/* String representation */
-XrmRepresentation x_rm_string;	/* Quark representation */
+static XrmRepresentation x_rm_string;	/* Quark representation */
 
 /* Load X resources based on the display and a possible -xrm option. */
 

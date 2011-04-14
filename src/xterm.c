@@ -306,6 +306,8 @@ enum xembed_message
 
 static int x_alloc_nearest_color_1 (Display *, Colormap, XColor *);
 static void x_set_window_size_1 (struct frame *, int, int, int);
+static void x_raise_frame (struct frame *);
+static void x_lower_frame (struct frame *);
 static const XColor *x_color_cells (Display *, int *);
 static void x_update_window_end (struct window *, int, int);
 
@@ -347,9 +349,15 @@ static void x_check_expected_move (struct frame *, int, int);
 static void x_sync_with_move (struct frame *, int, int, int);
 static int handle_one_xevent (struct x_display_info *, XEvent *,
                               int *, struct input_event *);
+#if ! (defined USE_MOTIF || defined USE_X_TOOLKIT)
+static int x_dispatch_event (XEvent *, Display *);
+#endif
 /* Don't declare this NO_RETURN because we want no
    interference with debugging failing X calls.  */
 static void x_connection_closed (Display *, const char *);
+static void x_wm_set_window_state (struct frame *, int);
+static void x_wm_set_icon_pixmap (struct frame *, int);
+static void x_initialize (void);
 
 
 /* Flush display of frame F, or of all frames if F is null.  */
@@ -3451,14 +3459,6 @@ x_detect_focus_change (struct x_display_info *dpyinfo, XEvent *event, struct inp
 }
 
 
-/* Handle an event saying the mouse has moved out of an Emacs frame.  */
-
-void
-x_mouse_leave (struct x_display_info *dpyinfo)
-{
-  x_new_focus_frame (dpyinfo, dpyinfo->x_focus_event_frame);
-}
-
 /* The focus has changed, or we have redirected a frame's focus to
    another frame (this happens when a frame uses a surrogate
    mini-buffer frame).  Shift the highlight as appropriate.
@@ -5659,7 +5659,7 @@ static short temp_buffer[100];
 /* Set this to nonzero to fake an "X I/O error"
    on a particular display.  */
 
-struct x_display_info *XTread_socket_fake_io_error;
+static struct x_display_info *XTread_socket_fake_io_error;
 
 /* When we find no input here, we occasionally do a no-op command
    to verify that the X server is still running and we can still talk with it.
@@ -6984,6 +6984,9 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
    i.e. looping while a popup menu or a dialog is posted.
 
    Returns the value handle_one_xevent sets in the finish argument.  */
+#if ! (defined USE_MOTIF || defined USE_X_TOOLKIT)
+static
+#endif
 int
 x_dispatch_event (XEvent *event, Display *display)
 {
@@ -8870,7 +8873,7 @@ x_raise_frame (struct frame *f)
 
 /* Lower frame F.  */
 
-void
+static void
 x_lower_frame (struct frame *f)
 {
   if (f->async_visible)
@@ -9432,7 +9435,7 @@ x_free_frame_resources (struct frame *f)
 
 /* Destroy the X window of frame F.  */
 
-void
+static void
 x_destroy_window (struct frame *f)
 {
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
@@ -9556,7 +9559,7 @@ x_wm_set_size_hint (struct frame *f, long flags, int user_position)
 
 /* Used for IconicState or NormalState */
 
-void
+static void
 x_wm_set_window_state (struct frame *f, int state)
 {
 #ifdef USE_X_TOOLKIT
@@ -9574,7 +9577,7 @@ x_wm_set_window_state (struct frame *f, int state)
 #endif /* not USE_X_TOOLKIT */
 }
 
-void
+static void
 x_wm_set_icon_pixmap (struct frame *f, int pixmap_id)
 {
   Pixmap icon_pixmap, icon_mask;
@@ -10338,7 +10341,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 /* Get rid of display DPYINFO, deleting all frames on it,
    and without sending any more commands to the X server.  */
 
-void
+static void
 x_delete_display (struct x_display_info *dpyinfo)
 {
   struct terminal *t;

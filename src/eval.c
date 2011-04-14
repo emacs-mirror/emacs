@@ -56,8 +56,23 @@ struct backtrace
   char debug_on_exit : 1;
 };
 
-struct backtrace *backtrace_list;
+static struct backtrace *backtrace_list;
+
+#if !BYTE_MARK_STACK
+static
+#endif
 struct catchtag *catchlist;
+
+/* Chain of condition handlers currently in effect.
+   The elements of this chain are contained in the stack frames
+   of Fcondition_case and internal_condition_case.
+   When an error is signaled (by calling Fsignal, below),
+   this chain is searched for an element that applies.  */
+
+#if !BYTE_MARK_STACK
+static
+#endif
+struct handler *handlerlist;
 
 #ifdef DEBUG_GCPRO
 /* Count levels of GCPRO to detect failure to UNGCPRO.  */
@@ -66,12 +81,13 @@ int gcpro_level;
 
 Lisp_Object Qautoload, Qmacro, Qexit, Qinteractive, Qcommandp, Qdefun;
 Lisp_Object Qinhibit_quit;
-Lisp_Object Qand_rest, Qand_optional;
-Lisp_Object Qdebug_on_error;
-Lisp_Object Qdeclare;
+Lisp_Object Qand_rest;
+static Lisp_Object Qand_optional;
+static Lisp_Object Qdebug_on_error;
+static Lisp_Object Qdeclare;
 Lisp_Object Qinternal_interpreter_environment, Qclosure;
 
-Lisp_Object Qdebug;
+static Lisp_Object Qdebug;
 
 /* This holds either the symbol `run-hooks' or nil.
    It is nil at an early stage of startup, and when Emacs
@@ -100,7 +116,7 @@ struct specbinding *specpdl_ptr;
 
 /* Depth in Lisp evaluations and function calls.  */
 
-EMACS_INT lisp_eval_depth;
+static EMACS_INT lisp_eval_depth;
 
 /* The value of num_nonmacro_input_events as of the last time we
    started to enter the debugger.  If we decide to enter the debugger
@@ -109,7 +125,7 @@ EMACS_INT lisp_eval_depth;
    signal the error instead of entering an infinite loop of debugger
    invocations.  */
 
-int when_entered_debugger;
+static int when_entered_debugger;
 
 /* The function from which the last `signal' was called.  Set in
    Fsignal.  */
@@ -126,6 +142,7 @@ static Lisp_Object funcall_lambda (Lisp_Object, size_t, Lisp_Object *);
 static void unwind_to_catch (struct catchtag *, Lisp_Object) NO_RETURN;
 static int interactive_p (int);
 static Lisp_Object apply_lambda (Lisp_Object fun, Lisp_Object args);
+static Lisp_Object Ffetch_bytecode (Lisp_Object);
 
 void
 init_eval_once (void)
@@ -1343,14 +1360,6 @@ usage: (unwind-protect BODYFORM UNWINDFORMS...)  */)
   return unbind_to (count, val);
 }
 
-/* Chain of condition handlers currently in effect.
-   The elements of this chain are contained in the stack frames
-   of Fcondition_case and internal_condition_case.
-   When an error is signaled (by calling Fsignal, below),
-   this chain is searched for an element that applies.  */
-
-struct handler *handlerlist;
-
 DEFUN ("condition-case", Fcondition_case, Scondition_case, 2, UNEVALLED, 0,
        doc: /* Regain control when an error is signaled.
 Executes BODYFORM and returns its value if no error happens.
@@ -3627,6 +3636,7 @@ If NFRAMES is more than the number of frames, the value is nil.  */)
 }
 
 
+#if BYTE_MARK_STACK
 void
 mark_backtrace (void)
 {
@@ -3646,8 +3656,7 @@ mark_backtrace (void)
 	mark_object (backlist->args[i]);
     }
 }
-
-EXFUN (Funintern, 2);
+#endif
 
 void
 syms_of_eval (void)

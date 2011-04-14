@@ -139,10 +139,10 @@ char *gray_bitmap_bits = gray_bits;
 
 static int x_in_use;
 
-Lisp_Object Qnone;
-Lisp_Object Qsuppress_icon;
-Lisp_Object Qundefined_color;
-Lisp_Object Qcompound_text, Qcancel_timer;
+static Lisp_Object Qnone;
+static Lisp_Object Qsuppress_icon;
+static Lisp_Object Qundefined_color;
+static Lisp_Object Qcompound_text, Qcancel_timer;
 Lisp_Object Qfont_param;
 
 #if GLYPH_DEBUG
@@ -150,8 +150,10 @@ int image_cache_refcount, dpyinfo_refcount;
 #endif
 
 #if defined (USE_GTK) && defined (HAVE_FREETYPE)
-char *x_last_font_name;
+static char *x_last_font_name;
 #endif
+
+static struct x_display_info *x_display_info_for_name (Lisp_Object);
 
 
 /* Error if we are not connected to X.  */
@@ -417,35 +419,6 @@ x_top_window_to_frame (struct x_display_info *dpyinfo, int wdesc)
 }
 #endif /* USE_X_TOOLKIT || USE_GTK */
 
-
-
-static void x_default_font_parameter (struct frame *, Lisp_Object);
-
-static Lisp_Object unwind_create_frame (Lisp_Object);
-static Lisp_Object unwind_create_tip_frame (Lisp_Object);
-
-void x_set_foreground_color (struct frame *, Lisp_Object, Lisp_Object);
-static void x_set_wait_for_wm (struct frame *, Lisp_Object, Lisp_Object);
-void x_set_background_color (struct frame *, Lisp_Object, Lisp_Object);
-void x_set_mouse_color (struct frame *, Lisp_Object, Lisp_Object);
-void x_set_cursor_color (struct frame *, Lisp_Object, Lisp_Object);
-void x_set_border_color (struct frame *, Lisp_Object, Lisp_Object);
-void x_set_cursor_type (struct frame *, Lisp_Object, Lisp_Object);
-void x_set_icon_type (struct frame *, Lisp_Object, Lisp_Object);
-void x_set_icon_name (struct frame *, Lisp_Object, Lisp_Object);
-void x_explicitly_set_name (struct frame *, Lisp_Object, Lisp_Object);
-void x_set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
-void x_set_title (struct frame *, Lisp_Object, Lisp_Object);
-void x_set_tool_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
-void x_set_scroll_bar_foreground (struct frame *, Lisp_Object,
-                                  Lisp_Object);
-void x_set_scroll_bar_background (struct frame *, Lisp_Object,
-                                  Lisp_Object);
-static Lisp_Object x_default_scroll_bar_color_parameter (struct frame *,
-                                                         Lisp_Object,
-                                                         Lisp_Object,
-                                                         const char *, const char *,
-                                                         int);
 
 
 /* Store the screen positions of frame F into XPTR and YPTR.
@@ -766,7 +739,7 @@ xg_set_icon_from_xpm_data (FRAME_PTR f, const char **data)
    In that case, just record the parameter's new value
    in the standard place; do not attempt to change the window.  */
 
-void
+static void
 x_set_foreground_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   struct x_output *x = f->output_data.x;
@@ -802,7 +775,7 @@ x_set_foreground_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   unload_color (f, old_fg);
 }
 
-void
+static void
 x_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   struct x_output *x = f->output_data.x;
@@ -877,7 +850,7 @@ make_invisible_cursor (struct frame *f)
   return c;
 }
 
-void
+static void
 x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   struct x_output *x = f->output_data.x;
@@ -1022,7 +995,7 @@ x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   update_face_from_frame_parameter (f, Qmouse_color, arg);
 }
 
-void
+static void
 x_set_cursor_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   unsigned long fore_pixel, pixel;
@@ -1093,7 +1066,7 @@ x_set_cursor_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
    Note that this does not fully take effect if done before
    F has an x-window.  */
 
-void
+static void
 x_set_border_pixel (struct frame *f, int pix)
 {
   unload_color (f, f->output_data.x->border_pixel);
@@ -1122,7 +1095,7 @@ x_set_border_pixel (struct frame *f, int pix)
    Note: under X11, this is normally the province of the window manager,
    and so emacs' border colors may be overridden.  */
 
-void
+static void
 x_set_border_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   int pix;
@@ -1134,7 +1107,7 @@ x_set_border_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 }
 
 
-void
+static void
 x_set_cursor_type (FRAME_PTR f, Lisp_Object arg, Lisp_Object oldval)
 {
   set_frame_cursor_types (f, arg);
@@ -1143,7 +1116,7 @@ x_set_cursor_type (FRAME_PTR f, Lisp_Object arg, Lisp_Object oldval)
   cursor_type_changed = 1;
 }
 
-void
+static void
 x_set_icon_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   int result;
@@ -1175,7 +1148,7 @@ x_set_icon_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   UNBLOCK_INPUT;
 }
 
-void
+static void
 x_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   int result;
@@ -1398,7 +1371,7 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
    isn't a valid color name, do nothing.  OLDVAL is the old value of
    the frame parameter.  */
 
-void
+static void
 x_set_scroll_bar_foreground (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
   unsigned long pixel;
@@ -1431,7 +1404,7 @@ x_set_scroll_bar_foreground (struct frame *f, Lisp_Object value, Lisp_Object old
    valid color name, do nothing.  OLDVAL is the old value of the frame
    parameter.  */
 
-void
+static void
 x_set_scroll_bar_background (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
   unsigned long pixel;
@@ -1682,7 +1655,7 @@ x_set_name (struct frame *f, Lisp_Object name, int explicit)
 /* This function should be called when the user's lisp code has
    specified a name for the frame; the name will override any set by the
    redisplay code.  */
-void
+static void
 x_explicitly_set_name (FRAME_PTR f, Lisp_Object arg, Lisp_Object oldval)
 {
   x_set_name (f, arg, 1);
@@ -1700,7 +1673,7 @@ x_implicitly_set_name (FRAME_PTR f, Lisp_Object arg, Lisp_Object oldval)
 /* Change the title of frame F to NAME.
    If NAME is nil, use the frame name as the title.  */
 
-void
+static void
 x_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name)
 {
   /* Don't change the title if it's already NAME.  */
@@ -1888,9 +1861,10 @@ static XIMStyle supported_xim_styles[] =
 };
 
 
+#if defined HAVE_X_WINDOWS && defined USE_X_TOOLKIT
 /* Create an X fontset on frame F with base font name BASE_FONTNAME.  */
 
-const char xic_defaut_fontset[] = "-*-*-*-r-normal--14-*-*-*-*-*-*-*";
+static const char xic_defaut_fontset[] = "-*-*-*-r-normal--14-*-*-*-*-*-*-*";
 
 /* Create an Xt fontset spec from the name of a base font.
    If `motif' is True use the Motif syntax.  */
@@ -2016,6 +1990,7 @@ xic_create_fontsetname (const char *base_fontname, int motif)
     strcat (fontsetname, ":");
   return fontsetname;
 }
+#endif /* HAVE_X_WINDOWS && USE_X_TOOLKIT */
 
 #ifdef DEBUG_XIC_FONTSET
 static void
@@ -3887,12 +3862,6 @@ x_char_height (register struct frame *f)
   return FRAME_LINE_HEIGHT (f);
 }
 
-int
-x_screen_planes (register struct frame *f)
-{
-  return FRAME_X_DISPLAY_INFO (f)->n_planes;
-}
-
 
 
 /************************************************************************
@@ -4017,7 +3986,7 @@ select_visual (struct x_display_info *dpyinfo)
 /* Return the X display structure for the display named NAME.
    Open a new connection if necessary.  */
 
-struct x_display_info *
+static struct x_display_info *
 x_display_info_for_name (Lisp_Object name)
 {
   Lisp_Object names;
@@ -4538,13 +4507,13 @@ Lisp_Object tip_frame;
 /* If non-nil, a timer started that hides the last tooltip when it
    fires.  */
 
-Lisp_Object tip_timer;
+static Lisp_Object tip_timer;
 Window tip_window;
 
 /* If non-nil, a vector of 3 elements containing the last args
    with which x-show-tip was called.  See there.  */
 
-Lisp_Object last_show_tip_args;
+static Lisp_Object last_show_tip_args;
 
 
 static Lisp_Object

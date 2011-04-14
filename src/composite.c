@@ -152,13 +152,14 @@ int n_compositions;
    COMPOSITION-ID.  */
 Lisp_Object composition_hash_table;
 
-Lisp_Object Qauto_composed;
-Lisp_Object Qauto_composition_function;
+static Lisp_Object Qauto_composed;
+static Lisp_Object Qauto_composition_function;
 /* Maximum number of characters to look back for
    auto-compositions.  */
 #define MAX_AUTO_COMPOSITION_LOOKBACK 3
 
-EXFUN (Fremove_list_of_text_properties, 4);
+static Lisp_Object Fcomposition_get_gstring (Lisp_Object, Lisp_Object,
+					     Lisp_Object, Lisp_Object);
 
 /* Temporary variable used in macros COMPOSITION_XXX.  */
 Lisp_Object composition_temp;

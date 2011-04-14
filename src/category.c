@@ -48,11 +48,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    For the moment, we are not using this feature.  */
 static int category_table_version;
 
-Lisp_Object Qcategory_table, Qcategoryp, Qcategorysetp, Qcategory_table_p;
+static Lisp_Object Qcategory_table, Qcategoryp, Qcategorysetp, Qcategory_table_p;
 
 /* Temporary internal variable used in macro CHAR_HAS_CATEGORY.  */
 Lisp_Object _temp_category_set;
 
+/* Make CATEGORY_SET includes (if VAL is t) or excludes (if VAL is
+   nil) CATEGORY.  */
+#define SET_CATEGORY_SET(category_set, category, val) \
+  set_category_set (category_set, category, val)
+static void set_category_set (Lisp_Object, Lisp_Object, Lisp_Object);
 
 /* Category set staff.  */
 
@@ -111,7 +116,7 @@ those categories.  */)
 
 /* Category staff.  */
 
-Lisp_Object check_category_table (Lisp_Object table);
+static Lisp_Object check_category_table (Lisp_Object table);
 
 DEFUN ("define-category", Fdefine_category, Sdefine_category, 2, 3, 0,
        doc: /* Define CATEGORY as a category which is described by DOCSTRING.
@@ -185,7 +190,7 @@ DEFUN ("category-table-p", Fcategory_table_p, Scategory_table_p, 1, 1, 0,
    valid, return TABLE itself, but if not valid, signal an error of
    wrong-type-argument.  */
 
-Lisp_Object
+static Lisp_Object
 check_category_table (Lisp_Object table)
 {
   if (NILP (table))
@@ -325,7 +330,7 @@ The return value is a string containing those same categories.  */)
   return build_string (str);
 }
 
-void
+static void
 set_category_set (Lisp_Object category_set, Lisp_Object category, Lisp_Object val)
 {
   do {

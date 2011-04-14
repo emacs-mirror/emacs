@@ -30,53 +30,53 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 /* Subroutines.  */
-Lisp_Object Qdbus_init_bus;
-Lisp_Object Qdbus_close_bus;
-Lisp_Object Qdbus_get_unique_name;
-Lisp_Object Qdbus_call_method;
-Lisp_Object Qdbus_call_method_asynchronously;
-Lisp_Object Qdbus_method_return_internal;
-Lisp_Object Qdbus_method_error_internal;
-Lisp_Object Qdbus_send_signal;
-Lisp_Object Qdbus_register_service;
-Lisp_Object Qdbus_register_signal;
-Lisp_Object Qdbus_register_method;
+static Lisp_Object Qdbus_init_bus;
+static Lisp_Object Qdbus_close_bus;
+static Lisp_Object Qdbus_get_unique_name;
+static Lisp_Object Qdbus_call_method;
+static Lisp_Object Qdbus_call_method_asynchronously;
+static Lisp_Object Qdbus_method_return_internal;
+static Lisp_Object Qdbus_method_error_internal;
+static Lisp_Object Qdbus_send_signal;
+static Lisp_Object Qdbus_register_service;
+static Lisp_Object Qdbus_register_signal;
+static Lisp_Object Qdbus_register_method;
 
 /* D-Bus error symbol.  */
-Lisp_Object Qdbus_error;
+static Lisp_Object Qdbus_error;
 
 /* Lisp symbols of the system and session buses.  */
-Lisp_Object QCdbus_system_bus, QCdbus_session_bus;
+static Lisp_Object QCdbus_system_bus, QCdbus_session_bus;
 
 /* Lisp symbol for method call timeout.  */
-Lisp_Object QCdbus_timeout;
+static Lisp_Object QCdbus_timeout;
 
 /* Lisp symbols for name request flags.  */
-Lisp_Object QCdbus_request_name_allow_replacement;
-Lisp_Object QCdbus_request_name_replace_existing;
-Lisp_Object QCdbus_request_name_do_not_queue;
+static Lisp_Object QCdbus_request_name_allow_replacement;
+static Lisp_Object QCdbus_request_name_replace_existing;
+static Lisp_Object QCdbus_request_name_do_not_queue;
 
 /* Lisp symbols for name request replies.  */
-Lisp_Object QCdbus_request_name_reply_primary_owner;
-Lisp_Object QCdbus_request_name_reply_in_queue;
-Lisp_Object QCdbus_request_name_reply_exists;
-Lisp_Object QCdbus_request_name_reply_already_owner;
+static Lisp_Object QCdbus_request_name_reply_primary_owner;
+static Lisp_Object QCdbus_request_name_reply_in_queue;
+static Lisp_Object QCdbus_request_name_reply_exists;
+static Lisp_Object QCdbus_request_name_reply_already_owner;
 
 /* Lisp symbols of D-Bus types.  */
-Lisp_Object QCdbus_type_byte, QCdbus_type_boolean;
-Lisp_Object QCdbus_type_int16, QCdbus_type_uint16;
-Lisp_Object QCdbus_type_int32, QCdbus_type_uint32;
-Lisp_Object QCdbus_type_int64, QCdbus_type_uint64;
-Lisp_Object QCdbus_type_double, QCdbus_type_string;
-Lisp_Object QCdbus_type_object_path, QCdbus_type_signature;
+static Lisp_Object QCdbus_type_byte, QCdbus_type_boolean;
+static Lisp_Object QCdbus_type_int16, QCdbus_type_uint16;
+static Lisp_Object QCdbus_type_int32, QCdbus_type_uint32;
+static Lisp_Object QCdbus_type_int64, QCdbus_type_uint64;
+static Lisp_Object QCdbus_type_double, QCdbus_type_string;
+static Lisp_Object QCdbus_type_object_path, QCdbus_type_signature;
 #ifdef DBUS_TYPE_UNIX_FD
 Lisp_Object QCdbus_type_unix_fd;
 #endif
-Lisp_Object QCdbus_type_array, QCdbus_type_variant;
-Lisp_Object QCdbus_type_struct, QCdbus_type_dict_entry;
+static Lisp_Object QCdbus_type_array, QCdbus_type_variant;
+static Lisp_Object QCdbus_type_struct, QCdbus_type_dict_entry;
 
 /* Whether we are reading a D-Bus event.  */
-int xd_in_read_queued_messages = 0;
+static int xd_in_read_queued_messages = 0;
 
 
 /* We use "xd_" and "XD_" as prefix for all internal symbols, because

@@ -61,20 +61,21 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 /* hash table read constants */
-Lisp_Object Qhash_table, Qdata;
-Lisp_Object Qtest, Qsize;
-Lisp_Object Qweakness;
-Lisp_Object Qrehash_size;
-Lisp_Object Qrehash_threshold;
+static Lisp_Object Qhash_table, Qdata;
+static Lisp_Object Qtest, Qsize;
+static Lisp_Object Qweakness;
+static Lisp_Object Qrehash_size;
+static Lisp_Object Qrehash_threshold;
 
-Lisp_Object Qread_char, Qget_file_char, Qstandard_input, Qcurrent_load_list;
+static Lisp_Object Qread_char, Qget_file_char, Qcurrent_load_list;
+Lisp_Object Qstandard_input;
 Lisp_Object Qvariable_documentation;
-Lisp_Object Qascii_character, Qload, Qload_file_name;
+static Lisp_Object Qascii_character, Qload, Qload_file_name;
 Lisp_Object Qbackquote, Qcomma, Qcomma_at, Qcomma_dot, Qfunction;
-Lisp_Object Qinhibit_file_name_operation;
-Lisp_Object Qeval_buffer_list;
-Lisp_Object Qlexical_binding;
-Lisp_Object Qfile_truename, Qdo_after_load_evaluation; /* ACM 2006/5/16 */
+static Lisp_Object Qinhibit_file_name_operation;
+static Lisp_Object Qeval_buffer_list;
+static Lisp_Object Qlexical_binding;
+static Lisp_Object Qfile_truename, Qdo_after_load_evaluation; /* ACM 2006/5/16 */
 
 /* Used instead of Qget_file_char while loading *.elc files compiled
    by Emacs 21 or older.  */
@@ -90,7 +91,7 @@ static Lisp_Object Qload_in_progress;
    Each member of the list has the form (n . object), and is used to
    look up the object for the corresponding #n# construct.
    It must be set to nil before all top-level calls to read0.  */
-Lisp_Object read_objects;
+static Lisp_Object read_objects;
 
 /* Nonzero means READCHAR should read bytes one by one (not character)
    when READCHARFUN is Qget_file_char or Qget_emacs_mule_file_char.
@@ -3577,11 +3578,11 @@ read_list (int flag, register Lisp_Object readcharfun)
     }
 }
 
-Lisp_Object initial_obarray;
+static Lisp_Object initial_obarray;
 
 /* oblookup stores the bucket number here, for the sake of Funintern.  */
 
-int oblookup_last_bucket_number;
+static int oblookup_last_bucket_number;
 
 static int hash_string (const char *ptr, int len);
 
@@ -3640,18 +3641,6 @@ intern_c_string (const char *str)
     abort ();
 
   return Fintern (make_pure_c_string (str), obarray);
-}
-
-/* Create an uninterned symbol with name STR.  */
-
-Lisp_Object
-make_symbol (const char *str)
-{
-  int len = strlen (str);
-
-  return Fmake_symbol (!NILP (Vpurify_flag)
-		       ? make_pure_string (str, len, len, 0)
-		       : make_string (str, len));
 }
 
 DEFUN ("intern", Fintern, Sintern, 1, 2, 0,

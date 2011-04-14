@@ -80,7 +80,6 @@ Lisp_Object Qbyte_code_meter;
 
 
 Lisp_Object Qbytecode;
-extern Lisp_Object Qand_optional, Qand_rest;
 
 /*  Byte codes: */
 

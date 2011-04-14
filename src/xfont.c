@@ -739,7 +739,7 @@ xfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
 	 So, we try again with wildcards in RESX and RESY.  */
       Lisp_Object temp;
 
-      temp = Fcopy_font_spec (entity);
+      temp = copy_font_spec (entity);
       ASET (temp, FONT_DPI_INDEX, Qnil);
       len = font_unparse_xlfd (temp, pixel_size, name, 512);
       if (len <= 0 || (len = xfont_encode_coding_xlfd (name)) < 0)
