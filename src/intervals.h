@@ -266,8 +266,6 @@ extern INTERVAL find_interval (INTERVAL, EMACS_INT);
 extern INTERVAL next_interval (INTERVAL);
 extern INTERVAL previous_interval (INTERVAL);
 extern INTERVAL merge_interval_left (INTERVAL);
-extern INTERVAL merge_interval_right (INTERVAL);
-extern void delete_interval (INTERVAL);
 extern void offset_intervals (struct buffer *, EMACS_INT, EMACS_INT);
 extern void graft_intervals_into_buffer (INTERVAL, EMACS_INT, EMACS_INT,
                                          struct buffer *, int);

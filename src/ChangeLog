@@ -1,3 +1,10 @@
+2011-04-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* intervals.c: Make symbols static if they're not exported.
+	(merge_properties_sticky, merge_interval_right, delete_interval):
+	Now static.
+	* intervals.h (merge_interval_right, delete_interval): Remove decls.
+
 2011-04-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* insdel.c: Make symbols static if they're not exported.

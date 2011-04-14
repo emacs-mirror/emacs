@@ -51,7 +51,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define TMEM(sym, set) (CONSP (set) ? ! NILP (Fmemq (sym, set)) : ! NILP (set))
 
-Lisp_Object merge_properties_sticky (Lisp_Object pleft, Lisp_Object pright);
+static Lisp_Object merge_properties_sticky (Lisp_Object, Lisp_Object);
+static INTERVAL merge_interval_right (INTERVAL);
 static INTERVAL reproduce_tree (INTERVAL, INTERVAL);
 static INTERVAL reproduce_tree_obj (INTERVAL, Lisp_Object);
 
@@ -1089,7 +1090,7 @@ FR     8  9  A  B
        left rear-nonsticky = t,   right front-sticky = nil (inherit none)
 */
 
-Lisp_Object
+static Lisp_Object
 merge_properties_sticky (Lisp_Object pleft, Lisp_Object pright)
 {
   register Lisp_Object props, front, rear;
@@ -1258,7 +1259,7 @@ delete_node (register INTERVAL i)
    I is presumed to be empty; that is, no adjustments are made
    for the length of I.  */
 
-void
+static void
 delete_interval (register INTERVAL i)
 {
   register INTERVAL parent;
@@ -1446,7 +1447,7 @@ offset_intervals (struct buffer *buffer, EMACS_INT start, EMACS_INT length)
    The caller must verify that this is not the last (rightmost)
    interval.  */
 
-INTERVAL
+static INTERVAL
 merge_interval_right (register INTERVAL i)
 {
   register EMACS_INT absorb = LENGTH (i);
