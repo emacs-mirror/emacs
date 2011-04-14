@@ -23875,7 +23875,7 @@ x_clear_cursor (struct window *w)
 
 /* Implementation of draw_row_with_mouse_face for GUI sessions, GPM,
    and MSDOS.  */
-void
+static void
 draw_row_with_mouse_face (struct window *w, int start_x, struct glyph_row *row,
 			  int start_hpos, int end_hpos,
 			  enum draw_glyphs_face draw)

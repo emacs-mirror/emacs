@@ -3051,8 +3051,6 @@ extern void x_clear_window_mouse_face (struct window *);
 extern void cancel_mouse_face (struct frame *);
 extern int clear_mouse_face (Mouse_HLInfo *);
 extern int cursor_in_mouse_face_p (struct window *w);
-extern void draw_row_with_mouse_face (struct window *, int, struct glyph_row *,
-				      int, int, enum draw_glyphs_face);
 extern void tty_draw_row_with_mouse_face (struct window *, struct glyph_row *,
 					  int, int, enum draw_glyphs_face);
 

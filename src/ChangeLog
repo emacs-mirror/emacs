@@ -1,5 +1,8 @@
 2011-04-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xdisp.c (draw_row_with_mouse_face): Now static.
+	* dispextern.h (draw_row_with_mouse_fave): Remove decl.
+
 	* window.h (check_all_windows): Mark externally visible.
 
 	* window.c (window_deletion_count): Now static.
