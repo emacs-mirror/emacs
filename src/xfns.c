@@ -3495,7 +3495,7 @@ x_get_focus_frame (struct frame *frame)
    policy.  But I think it's okay to use when it's clearly done
    following a user-command.  */
 
-DEFUE ("x-focus-frame", Fx_focus_frame, Sx_focus_frame, 1, 1, 0,
+DEFUN ("x-focus-frame", Fx_focus_frame, Sx_focus_frame, 1, 1, 0,
        doc: /* Set the input focus to FRAME.
 FRAME nil means use the selected frame.  */)
   (Lisp_Object frame)
@@ -3548,7 +3548,7 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
     return Qnil;
 }
 
-DEFUE ("xw-display-color-p", Fxw_display_color_p, Sxw_display_color_p, 0, 1, 0,
+DEFUN ("xw-display-color-p", Fxw_display_color_p, Sxw_display_color_p, 0, 1, 0,
        doc: /* Internal function called by `display-color-p', which see.  */)
   (Lisp_Object terminal)
 {
@@ -3570,7 +3570,7 @@ DEFUE ("xw-display-color-p", Fxw_display_color_p, Sxw_display_color_p, 0, 1, 0,
     }
 }
 
-DEFUE ("x-display-grayscale-p", Fx_display_grayscale_p, Sx_display_grayscale_p,
+DEFUN ("x-display-grayscale-p", Fx_display_grayscale_p, Sx_display_grayscale_p,
        0, 1, 0,
        doc: /* Return t if the X display supports shades of gray.
 Note that color displays do support shades of gray.
@@ -5198,7 +5198,7 @@ Text larger than the specified size is clipped.  */)
 }
 
 
-DEFUE ("x-hide-tip", Fx_hide_tip, Sx_hide_tip, 0, 0, 0,
+DEFUN ("x-hide-tip", Fx_hide_tip, Sx_hide_tip, 0, 0, 0,
        doc: /* Hide the current tooltip window, if there is any.
 Value is t if tooltip was open, nil otherwise.  */)
   (void)

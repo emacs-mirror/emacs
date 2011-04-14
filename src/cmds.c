@@ -47,7 +47,7 @@ DEFUN ("forward-point", Fforward_point, Sforward_point, 1, 1, 0,
   return make_number (PT + XINT (n));
 }
 
-DEFUE ("forward-char", Fforward_char, Sforward_char, 0, 1, "^p",
+DEFUN ("forward-char", Fforward_char, Sforward_char, 0, 1, "^p",
        doc: /* Move point N characters forward (backward if N is negative).
 On reaching end or beginning of buffer, stop and signal error.
 
@@ -104,7 +104,7 @@ right or to the left on the screen.  This is in contrast with
   return Fforward_char (n);
 }
 
-DEFUE ("forward-line", Fforward_line, Sforward_line, 0, 1, "^p",
+DEFUN ("forward-line", Fforward_line, Sforward_line, 0, 1, "^p",
        doc: /* Move N lines forward (backward if N is negative).
 Precisely, if point is on line I, move to the start of line I + N
 \("start of line" in the logical order).
@@ -174,7 +174,7 @@ instead.  For instance, `(forward-line 0)' does the same thing as
   return Qnil;
 }
 
-DEFUE ("end-of-line", Fend_of_line, Send_of_line, 0, 1, "^p",
+DEFUN ("end-of-line", Fend_of_line, Send_of_line, 0, 1, "^p",
        doc: /* Move point to end of current line (in the logical order).
 With argument N not nil or 1, move forward N - 1 lines first.
 If point reaches the beginning or end of buffer, it stops there.

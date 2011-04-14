@@ -436,7 +436,7 @@ string_match_1 (Lisp_Object regexp, Lisp_Object string, Lisp_Object start, int p
   return make_number (string_byte_to_char (string, val));
 }
 
-DEFUE ("string-match", Fstring_match, Sstring_match, 2, 3, 0,
+DEFUN ("string-match", Fstring_match, Sstring_match, 2, 3, 0,
        doc: /* Return index of start of first match for REGEXP in STRING, or nil.
 Matching ignores case if `case-fold-search' is non-nil.
 If third arg START is non-nil, start search at that index in STRING.
@@ -2811,7 +2811,7 @@ match_limit (Lisp_Object num, int beginningp)
 		                    : search_regs.end[n]));
 }
 
-DEFUE ("match-beginning", Fmatch_beginning, Smatch_beginning, 1, 1, 0,
+DEFUN ("match-beginning", Fmatch_beginning, Smatch_beginning, 1, 1, 0,
        doc: /* Return position of start of text matched by last search.
 SUBEXP, a number, specifies which parenthesized expression in the last
   regexp.
@@ -2823,7 +2823,7 @@ Zero means the entire text matched by the whole regexp or whole string.  */)
   return match_limit (subexp, 1);
 }
 
-DEFUE ("match-end", Fmatch_end, Smatch_end, 1, 1, 0,
+DEFUN ("match-end", Fmatch_end, Smatch_end, 1, 1, 0,
        doc: /* Return position of end of text matched by last search.
 SUBEXP, a number, specifies which parenthesized expression in the last
   regexp.
@@ -2835,7 +2835,7 @@ Zero means the entire text matched by the whole regexp or whole string.  */)
   return match_limit (subexp, 0);
 }
 
-DEFUE ("match-data", Fmatch_data, Smatch_data, 0, 3, 0,
+DEFUN ("match-data", Fmatch_data, Smatch_data, 0, 3, 0,
        doc: /* Return a list containing all info on what the last search matched.
 Element 2N is `(match-beginning N)'; element 2N + 1 is `(match-end N)'.
 All the elements are markers or nil (nil if the Nth pair didn't match)
@@ -2950,7 +2950,7 @@ Return value is undefined if the last search failed.  */)
    But it was ill-conceived: those supposedly-internal markers get exposed via
    the undo-list, so freeing them here is unsafe.  */
 
-DEFUE ("set-match-data", Fset_match_data, Sset_match_data, 1, 2, 0,
+DEFUN ("set-match-data", Fset_match_data, Sset_match_data, 1, 2, 0,
        doc: /* Set internal data on last search match from elements of LIST.
 LIST should have been created by calling `match-data' previously.
 

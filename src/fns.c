@@ -62,7 +62,7 @@ static int internal_equal (Lisp_Object , Lisp_Object, int, int);
 extern long time ();
 #endif
 
-DEFUE ("identity", Fidentity, Sidentity, 1, 1, 0,
+DEFUN ("identity", Fidentity, Sidentity, 1, 1, 0,
        doc: /* Return the argument unchanged.  */)
   (Lisp_Object arg)
 {
@@ -106,7 +106,7 @@ Other values of LIMIT are ignored.  */)
 
 /* Random data-structure functions */
 
-DEFUE ("length", Flength, Slength, 1, 1, 0,
+DEFUN ("length", Flength, Slength, 1, 1, 0,
        doc: /* Return the length of vector, list or string SEQUENCE.
 A byte-code function object is also allowed.
 If the string contains multibyte characters, this is not necessarily
@@ -191,7 +191,7 @@ If STRING is multibyte, this may be greater than the length of STRING.  */)
   return make_number (SBYTES (string));
 }
 
-DEFUE ("string-equal", Fstring_equal, Sstring_equal, 2, 2, 0,
+DEFUN ("string-equal", Fstring_equal, Sstring_equal, 2, 2, 0,
        doc: /* Return t if two strings have identical contents.
 Case is significant, but text properties are ignored.
 Symbols are also allowed; their print names are used instead.  */)
@@ -211,7 +211,7 @@ Symbols are also allowed; their print names are used instead.  */)
   return Qt;
 }
 
-DEFUE ("compare-strings", Fcompare_strings, Scompare_strings, 6, 7, 0,
+DEFUN ("compare-strings", Fcompare_strings, Scompare_strings, 6, 7, 0,
        doc: /* Compare the contents of two strings, converting to multibyte if needed.
 In string STR1, skip the first START1 characters and stop at END1.
 In string STR2, skip the first START2 characters and stop at END2.
@@ -312,7 +312,7 @@ If string STR1 is greater, the value is a positive number N;
   return Qt;
 }
 
-DEFUE ("string-lessp", Fstring_lessp, Sstring_lessp, 2, 2, 0,
+DEFUN ("string-lessp", Fstring_lessp, Sstring_lessp, 2, 2, 0,
        doc: /* Return t if first arg string is less than second in lexicographic order.
 Case is significant.
 Symbols are also allowed; their print names are used instead.  */)
@@ -373,7 +373,7 @@ concat3 (Lisp_Object s1, Lisp_Object s2, Lisp_Object s3)
   return concat (3, args, Lisp_String, 0);
 }
 
-DEFUE ("append", Fappend, Sappend, 0, MANY, 0,
+DEFUN ("append", Fappend, Sappend, 0, MANY, 0,
        doc: /* Concatenate all the arguments and make the result a list.
 The result is a list whose elements are the elements of all the arguments.
 Each argument may be a list, vector or string.
@@ -384,7 +384,7 @@ usage: (append &rest SEQUENCES)  */)
   return concat (nargs, args, Lisp_Cons, 1);
 }
 
-DEFUE ("concat", Fconcat, Sconcat, 0, MANY, 0,
+DEFUN ("concat", Fconcat, Sconcat, 0, MANY, 0,
        doc: /* Concatenate all the arguments and make the result a string.
 The result is a string whose elements are the elements of all the arguments.
 Each argument may be a string or a list or vector of characters (integers).
@@ -394,7 +394,7 @@ usage: (concat &rest SEQUENCES)  */)
   return concat (nargs, args, Lisp_String, 0);
 }
 
-DEFUE ("vconcat", Fvconcat, Svconcat, 0, MANY, 0,
+DEFUN ("vconcat", Fvconcat, Svconcat, 0, MANY, 0,
        doc: /* Concatenate all the arguments and make the result a vector.
 The result is a vector whose elements are the elements of all the arguments.
 Each argument may be a list, vector or string.
@@ -405,7 +405,7 @@ usage: (vconcat &rest SEQUENCES)   */)
 }
 
 
-DEFUE ("copy-sequence", Fcopy_sequence, Scopy_sequence, 1, 1, 0,
+DEFUN ("copy-sequence", Fcopy_sequence, Scopy_sequence, 1, 1, 0,
        doc: /* Return a copy of a list, vector, string or char-table.
 The elements of a list or vector are not copied; they are shared
 with the original.  */)
@@ -945,7 +945,7 @@ string_make_unibyte (Lisp_Object string)
   return ret;
 }
 
-DEFUE ("string-make-multibyte", Fstring_make_multibyte, Sstring_make_multibyte,
+DEFUN ("string-make-multibyte", Fstring_make_multibyte, Sstring_make_multibyte,
        1, 1, 0,
        doc: /* Return the multibyte equivalent of STRING.
 If STRING is unibyte and contains non-ASCII characters, the function
@@ -963,7 +963,7 @@ string the same way whether it is unibyte or multibyte.)  */)
   return string_make_multibyte (string);
 }
 
-DEFUE ("string-make-unibyte", Fstring_make_unibyte, Sstring_make_unibyte,
+DEFUN ("string-make-unibyte", Fstring_make_unibyte, Sstring_make_unibyte,
        1, 1, 0,
        doc: /* Return the unibyte equivalent of STRING.
 Multibyte character codes are converted to unibyte according to
@@ -977,7 +977,7 @@ the low 8 bits of each character.  */)
   return string_make_unibyte (string);
 }
 
-DEFUE ("string-as-unibyte", Fstring_as_unibyte, Sstring_as_unibyte,
+DEFUN ("string-as-unibyte", Fstring_as_unibyte, Sstring_as_unibyte,
        1, 1, 0,
        doc: /* Return a unibyte string with the same individual bytes as STRING.
 If STRING is unibyte, the result is STRING itself.
@@ -1001,7 +1001,7 @@ If STRING is multibyte and contains a character of charset
   return string;
 }
 
-DEFUE ("string-as-multibyte", Fstring_as_multibyte, Sstring_as_multibyte,
+DEFUN ("string-as-multibyte", Fstring_as_multibyte, Sstring_as_multibyte,
        1, 1, 0,
        doc: /* Return a multibyte string with the same individual bytes as STRING.
 If STRING is multibyte, the result is STRING itself.
@@ -1039,7 +1039,7 @@ If you're not sure, whether to use `string-as-multibyte' or
   return string;
 }
 
-DEFUE ("string-to-multibyte", Fstring_to_multibyte, Sstring_to_multibyte,
+DEFUN ("string-to-multibyte", Fstring_to_multibyte, Sstring_to_multibyte,
        1, 1, 0,
        doc: /* Return a multibyte string with the same individual chars as STRING.
 If STRING is multibyte, the result is STRING itself.
@@ -1085,7 +1085,7 @@ an error is signaled.  */)
 }
 
 
-DEFUE ("copy-alist", Fcopy_alist, Scopy_alist, 1, 1, 0,
+DEFUN ("copy-alist", Fcopy_alist, Scopy_alist, 1, 1, 0,
        doc: /* Return a copy of ALIST.
 This is an alist which represents the same mapping from objects to objects,
 but does not share the alist structure with ALIST.
@@ -1111,7 +1111,7 @@ Elements of ALIST that are not conses are also shared.  */)
   return alist;
 }
 
-DEFUE ("substring", Fsubstring, Ssubstring, 2, 3, 0,
+DEFUN ("substring", Fsubstring, Ssubstring, 2, 3, 0,
        doc: /* Return a new string whose contents are a substring of STRING.
 The returned string consists of the characters between index FROM
 \(inclusive) and index TO (exclusive) of STRING.  FROM and TO are
@@ -1270,7 +1270,7 @@ substring_both (Lisp_Object string, EMACS_INT from, EMACS_INT from_byte,
   return res;
 }
 
-DEFUE ("nthcdr", Fnthcdr, Snthcdr, 2, 2, 0,
+DEFUN ("nthcdr", Fnthcdr, Snthcdr, 2, 2, 0,
        doc: /* Take cdr N times on LIST, return the result.  */)
   (Lisp_Object n, Lisp_Object list)
 {
@@ -1286,7 +1286,7 @@ DEFUE ("nthcdr", Fnthcdr, Snthcdr, 2, 2, 0,
   return list;
 }
 
-DEFUE ("nth", Fnth, Snth, 2, 2, 0,
+DEFUN ("nth", Fnth, Snth, 2, 2, 0,
        doc: /* Return the Nth element of LIST.
 N counts from zero.  If LIST is not that long, nil is returned.  */)
   (Lisp_Object n, Lisp_Object list)
@@ -1294,7 +1294,7 @@ N counts from zero.  If LIST is not that long, nil is returned.  */)
   return Fcar (Fnthcdr (n, list));
 }
 
-DEFUE ("elt", Felt, Selt, 2, 2, 0,
+DEFUN ("elt", Felt, Selt, 2, 2, 0,
        doc: /* Return element of SEQUENCE at index N.  */)
   (register Lisp_Object sequence, Lisp_Object n)
 {
@@ -1307,7 +1307,7 @@ DEFUE ("elt", Felt, Selt, 2, 2, 0,
   return Faref (sequence, n);
 }
 
-DEFUE ("member", Fmember, Smember, 2, 2, 0,
+DEFUN ("member", Fmember, Smember, 2, 2, 0,
        doc: /* Return non-nil if ELT is an element of LIST.  Comparison done with `equal'.
 The value is actually the tail of LIST whose car is ELT.  */)
   (register Lisp_Object elt, Lisp_Object list)
@@ -1325,7 +1325,7 @@ The value is actually the tail of LIST whose car is ELT.  */)
   return Qnil;
 }
 
-DEFUE ("memq", Fmemq, Smemq, 2, 2, 0,
+DEFUN ("memq", Fmemq, Smemq, 2, 2, 0,
        doc: /* Return non-nil if ELT is an element of LIST.  Comparison done with `eq'.
 The value is actually the tail of LIST whose car is ELT.  */)
   (register Lisp_Object elt, Lisp_Object list)
@@ -1373,7 +1373,7 @@ The value is actually the tail of LIST whose car is ELT.  */)
   return Qnil;
 }
 
-DEFUE ("assq", Fassq, Sassq, 2, 2, 0,
+DEFUN ("assq", Fassq, Sassq, 2, 2, 0,
        doc: /* Return non-nil if KEY is `eq' to the car of an element of LIST.
 The value is actually the first element of LIST whose car is KEY.
 Elements of LIST that are not conses are ignored.  */)
@@ -1419,7 +1419,7 @@ assq_no_quit (Lisp_Object key, Lisp_Object list)
   return CAR_SAFE (list);
 }
 
-DEFUE ("assoc", Fassoc, Sassoc, 2, 2, 0,
+DEFUN ("assoc", Fassoc, Sassoc, 2, 2, 0,
        doc: /* Return non-nil if KEY is `equal' to the car of an element of LIST.
 The value is actually the first element of LIST whose car equals KEY.  */)
   (Lisp_Object key, Lisp_Object list)
@@ -1470,7 +1470,7 @@ assoc_no_quit (Lisp_Object key, Lisp_Object list)
   return CONSP (list) ? XCAR (list) : Qnil;
 }
 
-DEFUE ("rassq", Frassq, Srassq, 2, 2, 0,
+DEFUN ("rassq", Frassq, Srassq, 2, 2, 0,
        doc: /* Return non-nil if KEY is `eq' to the cdr of an element of LIST.
 The value is actually the first element of LIST whose cdr is KEY.  */)
   (register Lisp_Object key, Lisp_Object list)
@@ -1501,7 +1501,7 @@ The value is actually the first element of LIST whose cdr is KEY.  */)
   return CAR (list);
 }
 
-DEFUE ("rassoc", Frassoc, Srassoc, 2, 2, 0,
+DEFUN ("rassoc", Frassoc, Srassoc, 2, 2, 0,
        doc: /* Return non-nil if KEY is `equal' to the cdr of an element of LIST.
 The value is actually the first element of LIST whose cdr equals KEY.  */)
   (Lisp_Object key, Lisp_Object list)
@@ -1537,7 +1537,7 @@ The value is actually the first element of LIST whose cdr equals KEY.  */)
   return CAR (list);
 }
 
-DEFUE ("delq", Fdelq, Sdelq, 2, 2, 0,
+DEFUN ("delq", Fdelq, Sdelq, 2, 2, 0,
        doc: /* Delete by side effect any occurrences of ELT as a member of LIST.
 The modified LIST is returned.  Comparison is done with `eq'.
 If the first member of LIST is ELT, there is no way to remove it by side effect;
@@ -1569,7 +1569,7 @@ to be sure of changing the value of `foo'.  */)
   return list;
 }
 
-DEFUE ("delete", Fdelete, Sdelete, 2, 2, 0,
+DEFUN ("delete", Fdelete, Sdelete, 2, 2, 0,
        doc: /* Delete by side effect any occurrences of ELT as a member of SEQ.
 SEQ must be a list, a vector, or a string.
 The modified SEQ is returned.  Comparison is done with `equal'.
@@ -1689,7 +1689,7 @@ to be sure of changing the value of `foo'.  */)
   return seq;
 }
 
-DEFUE ("nreverse", Fnreverse, Snreverse, 1, 1, 0,
+DEFUN ("nreverse", Fnreverse, Snreverse, 1, 1, 0,
        doc: /* Reverse LIST by modifying cdr pointers.
 Return the reversed list.  */)
   (Lisp_Object list)
@@ -1711,7 +1711,7 @@ Return the reversed list.  */)
   return prev;
 }
 
-DEFUE ("reverse", Freverse, Sreverse, 1, 1, 0,
+DEFUN ("reverse", Freverse, Sreverse, 1, 1, 0,
        doc: /* Reverse LIST, copying.  Return the reversed list.
 See also the function `nreverse', which is used more often.  */)
   (Lisp_Object list)
@@ -1729,7 +1729,7 @@ See also the function `nreverse', which is used more often.  */)
 
 Lisp_Object merge (Lisp_Object org_l1, Lisp_Object org_l2, Lisp_Object pred);
 
-DEFUE ("sort", Fsort, Ssort, 2, 2, 0,
+DEFUN ("sort", Fsort, Ssort, 2, 2, 0,
        doc: /* Sort LIST, stably, comparing elements using PREDICATE.
 Returns the sorted list.  LIST is modified by side effects.
 PREDICATE is called with two elements of LIST, and should return non-nil
@@ -1820,7 +1820,7 @@ merge (Lisp_Object org_l1, Lisp_Object org_l2, Lisp_Object pred)
 
 /* This does not check for quits.  That is safe since it must terminate.  */
 
-DEFUE ("plist-get", Fplist_get, Splist_get, 2, 2, 0,
+DEFUN ("plist-get", Fplist_get, Splist_get, 2, 2, 0,
        doc: /* Extract a value from a property list.
 PLIST is a property list, which is a list of the form
 \(PROP1 VALUE1 PROP2 VALUE2...).  This function returns the value
@@ -1853,7 +1853,7 @@ properties on the list.  This function never signals an error.  */)
   return Qnil;
 }
 
-DEFUE ("get", Fget, Sget, 2, 2, 0,
+DEFUN ("get", Fget, Sget, 2, 2, 0,
        doc: /* Return the value of SYMBOL's PROPNAME property.
 This is the last value stored with `(put SYMBOL PROPNAME VALUE)'.  */)
   (Lisp_Object symbol, Lisp_Object propname)
@@ -1862,7 +1862,7 @@ This is the last value stored with `(put SYMBOL PROPNAME VALUE)'.  */)
   return Fplist_get (XSYMBOL (symbol)->plist, propname);
 }
 
-DEFUE ("plist-put", Fplist_put, Splist_put, 3, 3, 0,
+DEFUN ("plist-put", Fplist_put, Splist_put, 3, 3, 0,
        doc: /* Change value in PLIST of PROP to VAL.
 PLIST is a property list, which is a list of the form
 \(PROP1 VALUE1 PROP2 VALUE2 ...).  PROP is a symbol and VAL is any object.
@@ -1895,7 +1895,7 @@ The PLIST is modified by side effects.  */)
   return plist;
 }
 
-DEFUE ("put", Fput, Sput, 3, 3, 0,
+DEFUN ("put", Fput, Sput, 3, 3, 0,
        doc: /* Store SYMBOL's PROPNAME property with value VALUE.
 It can be retrieved with `(get SYMBOL PROPNAME)'.  */)
   (Lisp_Object symbol, Lisp_Object propname, Lisp_Object value)
@@ -1975,7 +1975,7 @@ Floating-point numbers of equal value are `eql', but they may not be `eq'.  */)
     return EQ (obj1, obj2) ? Qt : Qnil;
 }
 
-DEFUE ("equal", Fequal, Sequal, 2, 2, 0,
+DEFUN ("equal", Fequal, Sequal, 2, 2, 0,
        doc: /* Return t if two Lisp objects have similar structure and contents.
 They must have the same data type.
 Conses are compared by comparing the cars and the cdrs.
@@ -2223,7 +2223,7 @@ nconc2 (Lisp_Object s1, Lisp_Object s2)
   return Fnconc (2, args);
 }
 
-DEFUE ("nconc", Fnconc, Snconc, 0, MANY, 0,
+DEFUN ("nconc", Fnconc, Snconc, 0, MANY, 0,
        doc: /* Concatenate any number of lists by altering them.
 Only the last argument is not altered, and need not be a list.
 usage: (nconc &rest LISTS)  */)
@@ -2343,7 +2343,7 @@ mapcar1 (EMACS_INT leni, Lisp_Object *vals, Lisp_Object fn, Lisp_Object seq)
   UNGCPRO;
 }
 
-DEFUE ("mapconcat", Fmapconcat, Smapconcat, 3, 3, 0,
+DEFUN ("mapconcat", Fmapconcat, Smapconcat, 3, 3, 0,
        doc: /* Apply FUNCTION to each element of SEQUENCE, and concat the results as strings.
 In between each pair of results, stick in SEPARATOR.  Thus, " " as
 SEPARATOR results in spaces between the values returned by FUNCTION.
@@ -2384,7 +2384,7 @@ SEQUENCE may be a list, a vector, a bool-vector, or a string.  */)
   return ret;
 }
 
-DEFUE ("mapcar", Fmapcar, Smapcar, 2, 2, 0,
+DEFUN ("mapcar", Fmapcar, Smapcar, 2, 2, 0,
        doc: /* Apply FUNCTION to each element of SEQUENCE, and make a list of the results.
 The result is a list just as long as SEQUENCE.
 SEQUENCE may be a list, a vector, a bool-vector, or a string.  */)
@@ -2562,7 +2562,7 @@ SUBFEATURE can be used to check a specific subfeature of FEATURE.  */)
   return (NILP (tem)) ? Qnil : Qt;
 }
 
-DEFUE ("provide", Fprovide, Sprovide, 1, 2, 0,
+DEFUN ("provide", Fprovide, Sprovide, 1, 2, 0,
        doc: /* Announce that FEATURE is a feature of the current Emacs.
 The optional argument SUBFEATURES should be a list of symbols listing
 particular subfeatures supported in this version of FEATURE.  */)
@@ -2700,7 +2700,7 @@ The normal messages at start and end of loading FILENAME are suppressed.  */)
    bottleneck of Widget operation.  Here is their translation to C,
    for the sole reason of efficiency.  */
 
-DEFUE ("plist-member", Fplist_member, Splist_member, 2, 2, 0,
+DEFUN ("plist-member", Fplist_member, Splist_member, 2, 2, 0,
        doc: /* Return non-nil if PLIST has the property PROP.
 PLIST is a property list, which is a list of the form
 \(PROP1 VALUE1 PROP2 VALUE2 ...\).  PROP is a symbol.
@@ -4250,7 +4250,7 @@ DEFUN ("sxhash", Fsxhash, Ssxhash, 1, 1, 0,
 }
 
 
-DEFUE ("make-hash-table", Fmake_hash_table, Smake_hash_table, 0, MANY, 0,
+DEFUN ("make-hash-table", Fmake_hash_table, Smake_hash_table, 0, MANY, 0,
        doc: /* Create and return a new hash table.
 
 Arguments are specified as keyword/argument pairs.  The following
@@ -4438,7 +4438,7 @@ DEFUN ("clrhash", Fclrhash, Sclrhash, 1, 1, 0,
 }
 
 
-DEFUE ("gethash", Fgethash, Sgethash, 2, 3, 0,
+DEFUN ("gethash", Fgethash, Sgethash, 2, 3, 0,
        doc: /* Look up KEY in TABLE and return its associated value.
 If KEY is not found, return DFLT which defaults to nil.  */)
   (Lisp_Object key, Lisp_Object table, Lisp_Object dflt)
@@ -4449,7 +4449,7 @@ If KEY is not found, return DFLT which defaults to nil.  */)
 }
 
 
-DEFUE ("puthash", Fputhash, Sputhash, 3, 3, 0,
+DEFUN ("puthash", Fputhash, Sputhash, 3, 3, 0,
        doc: /* Associate KEY with VALUE in hash table TABLE.
 If KEY is already present in table, replace its current value with
 VALUE.  */)
@@ -4469,7 +4469,7 @@ VALUE.  */)
 }
 
 
-DEFUE ("remhash", Fremhash, Sremhash, 2, 2, 0,
+DEFUN ("remhash", Fremhash, Sremhash, 2, 2, 0,
        doc: /* Remove KEY from TABLE.  */)
   (Lisp_Object key, Lisp_Object table)
 {

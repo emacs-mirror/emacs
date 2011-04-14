@@ -1806,12 +1806,8 @@ typedef struct {
  `doc' is documentation for the user.  */
 
 /* This version of DEFUN declares a function prototype with the right
-   arguments, so we can catch errors with maxargs at compile-time.
-   DEFUN defines an internal function, and DEFUE is similar but defines a
-   external function, which can be used in other C-language modules.  */
-#define DEFUN static DEFINE_FUNC
-#define DEFUE extern DEFINE_FUNC
-#define DEFINE_FUNC(lname, fnname, sname, minargs, maxargs, intspec, doc) \
+   arguments, so we can catch errors with maxargs at compile-time.  */
+#define DEFUN(lname, fnname, sname, minargs, maxargs, intspec, doc) \
   Lisp_Object fnname DEFUN_ARGS_ ## maxargs ;				\
   static DECL_ALIGN (struct Lisp_Subr, sname) =				\
     { PVEC_SUBR | (sizeof (struct Lisp_Subr) / sizeof (EMACS_INT)),	\

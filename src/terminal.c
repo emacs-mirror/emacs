@@ -305,7 +305,7 @@ delete_terminal (struct terminal *terminal)
 
 Lisp_Object Qrun_hook_with_args;
 static Lisp_Object Qdelete_terminal_functions;
-DEFUE ("delete-terminal", Fdelete_terminal, Sdelete_terminal, 0, 2, 0,
+DEFUN ("delete-terminal", Fdelete_terminal, Sdelete_terminal, 0, 2, 0,
        doc: /* Delete TERMINAL by deleting all frames on it and closing the terminal.
 TERMINAL may be a terminal object, a frame, or nil (meaning the
 selected frame's terminal).
@@ -348,7 +348,7 @@ but if the second argument FORCE is non-nil, you may do so. */)
 }
 
 
-DEFUE ("frame-terminal", Fframe_terminal, Sframe_terminal, 0, 1, 0,
+DEFUN ("frame-terminal", Fframe_terminal, Sframe_terminal, 0, 1, 0,
        doc: /* Return the terminal that FRAME is displayed on.
 If FRAME is nil, the selected frame is used.
 

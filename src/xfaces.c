@@ -564,7 +564,7 @@ unregister_colors (pixels, n)
 }
 
 
-DEFUE ("dump-colors", Fdump_colors, Sdump_colors, 0, 0, 0,
+DEFUN ("dump-colors", Fdump_colors, Sdump_colors, 0, 0, 0,
        doc: /* Dump currently allocated colors to stderr.  */)
   (void)
 {
@@ -883,7 +883,7 @@ clear_face_cache (int clear_fonts_p)
 }
 
 
-DEFUE ("clear-face-cache", Fclear_face_cache, Sclear_face_cache, 0, 1, 0,
+DEFUN ("clear-face-cache", Fclear_face_cache, Sclear_face_cache, 0, 1, 0,
        doc: /* Clear face caches on all frames.
 Optional THOROUGHLY non-nil means try to free unused fonts, too.  */)
   (Lisp_Object thoroughly)
@@ -6352,7 +6352,7 @@ dump_realized_face (face)
 }
 
 
-DEFUE ("dump-face", Fdump_face, Sdump_face, 0, 1, 0, doc: /* */)
+DEFUN ("dump-face", Fdump_face, Sdump_face, 0, 1, 0, doc: /* */)
   (Lisp_Object n)
 {
   if (NILP (n))
@@ -6385,7 +6385,7 @@ DEFUE ("dump-face", Fdump_face, Sdump_face, 0, 1, 0, doc: /* */)
 }
 
 
-DEFUE ("show-face-resources", Fshow_face_resources, Sshow_face_resources,
+DEFUN ("show-face-resources", Fshow_face_resources, Sshow_face_resources,
        0, 0, 0, doc: /* */)
   (void)
 {

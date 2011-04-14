@@ -16331,7 +16331,7 @@ dump_glyph_row (row, vpos, glyphs)
 }
 
 
-DEFUE ("dump-glyph-matrix", Fdump_glyph_matrix,
+DEFUN ("dump-glyph-matrix", Fdump_glyph_matrix,
        Sdump_glyph_matrix, 0, 1, "p",
        doc: /* Dump the current matrix of the selected window to stderr.
 Shows contents of glyph row structures.  With non-nil
@@ -16353,7 +16353,7 @@ glyphs in short form, otherwise show glyphs in long form.  */)
 }
 
 
-DEFUE ("dump-frame-glyph-matrix", Fdump_frame_glyph_matrix,
+DEFUN ("dump-frame-glyph-matrix", Fdump_frame_glyph_matrix,
        Sdump_frame_glyph_matrix, 0, 0, "", doc: /* */)
   (void)
 {
@@ -16363,7 +16363,7 @@ DEFUE ("dump-frame-glyph-matrix", Fdump_frame_glyph_matrix,
 }
 
 
-DEFUE ("dump-glyph-row", Fdump_glyph_row, Sdump_glyph_row, 1, 2, "",
+DEFUN ("dump-glyph-row", Fdump_glyph_row, Sdump_glyph_row, 1, 2, "",
        doc: /* Dump glyph row ROW to stderr.
 GLYPH 0 means don't dump glyphs.
 GLYPH 1 means dump glyphs in short form.
@@ -16384,7 +16384,7 @@ GLYPH > 1 or omitted means dump glyphs in long form.  */)
 }
 
 
-DEFUE ("dump-tool-bar-row", Fdump_tool_bar_row, Sdump_tool_bar_row, 1, 2, "",
+DEFUN ("dump-tool-bar-row", Fdump_tool_bar_row, Sdump_tool_bar_row, 1, 2, "",
        doc: /* Dump glyph row ROW of the tool-bar of the current frame to stderr.
 GLYPH 0 means don't dump glyphs.
 GLYPH 1 means dump glyphs in short form.
@@ -16404,7 +16404,7 @@ GLYPH > 1 or omitted means dump glyphs in long form.  */)
 }
 
 
-DEFUE ("trace-redisplay", Ftrace_redisplay, Strace_redisplay, 0, 1, "P",
+DEFUN ("trace-redisplay", Ftrace_redisplay, Strace_redisplay, 0, 1, "P",
        doc: /* Toggle tracing of redisplay.
 With ARG, turn tracing on if and only if ARG is positive.  */)
   (Lisp_Object arg)
@@ -16421,7 +16421,7 @@ With ARG, turn tracing on if and only if ARG is positive.  */)
 }
 
 
-DEFUE ("trace-to-stderr", Ftrace_to_stderr, Strace_to_stderr, 1, MANY, "",
+DEFUN ("trace-to-stderr", Ftrace_to_stderr, Strace_to_stderr, 1, MANY, "",
        doc: /* Like `format', but print result to stderr.
 usage: (trace-to-stderr STRING &rest OBJECTS)  */)
   (size_t nargs, Lisp_Object *args)

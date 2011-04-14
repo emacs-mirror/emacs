@@ -230,7 +230,7 @@ return values.  */)
 	  : Qnil);
 }
 
-DEFUE ("window-system", Fwindow_system, Swindow_system, 0, 1, 0,
+DEFUN ("window-system", Fwindow_system, Swindow_system, 0, 1, 0,
        doc: /* The name of the window system that FRAME is displaying through.
 The value is a symbol:
  nil for a termcap frame (a character-only terminal),
@@ -861,7 +861,7 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
   return frame;
 }
 
-DEFUE ("select-frame", Fselect_frame, Sselect_frame, 1, 2, "e",
+DEFUN ("select-frame", Fselect_frame, Sselect_frame, 1, 2, "e",
        doc: /* Select FRAME.
 Subsequent editing commands apply to its selected window.
 Optional argument NORECORD means to neither change the order of
@@ -899,14 +899,14 @@ to that frame.  */)
   return do_switch_frame (event, 0, 0, Qnil);
 }
 
-DEFUE ("selected-frame", Fselected_frame, Sselected_frame, 0, 0, 0,
+DEFUN ("selected-frame", Fselected_frame, Sselected_frame, 0, 0, 0,
        doc: /* Return the frame that is now selected.  */)
   (void)
 {
   return selected_frame;
 }
 
-DEFUE ("window-frame", Fwindow_frame, Swindow_frame, 1, 1, 0,
+DEFUN ("window-frame", Fwindow_frame, Swindow_frame, 1, 1, 0,
        doc: /* Return the frame object that window WINDOW is on.  */)
   (Lisp_Object window)
 {
@@ -914,7 +914,7 @@ DEFUE ("window-frame", Fwindow_frame, Swindow_frame, 1, 1, 0,
   return XWINDOW (window)->frame;
 }
 
-DEFUE ("frame-first-window", Fframe_first_window, Sframe_first_window, 0, 1, 0,
+DEFUN ("frame-first-window", Fframe_first_window, Sframe_first_window, 0, 1, 0,
        doc: /* Returns the topmost, leftmost window of FRAME.
 If omitted, FRAME defaults to the currently selected frame.  */)
   (Lisp_Object frame)
@@ -948,7 +948,7 @@ DEFUN ("active-minibuffer-window", Factive_minibuffer_window,
   return minibuf_level ? minibuf_window : Qnil;
 }
 
-DEFUE ("frame-root-window", Fframe_root_window, Sframe_root_window, 0, 1, 0,
+DEFUN ("frame-root-window", Fframe_root_window, Sframe_root_window, 0, 1, 0,
        doc: /* Returns the root-window of FRAME.
 If omitted, FRAME defaults to the currently selected frame.  */)
   (Lisp_Object frame)
@@ -985,7 +985,7 @@ FRAME defaults to the currently selected frame.  */)
   return window;
 }
 
-DEFUE ("set-frame-selected-window", Fset_frame_selected_window,
+DEFUN ("set-frame-selected-window", Fset_frame_selected_window,
        Sset_frame_selected_window, 2, 3, 0,
        doc: /* Set selected window of FRAME to WINDOW.
 If FRAME is nil, use the selected frame.  If FRAME is the
@@ -1781,7 +1781,7 @@ before calling this function on it, like this.
 
 static void make_frame_visible_1 (Lisp_Object);
 
-DEFUE ("make-frame-visible", Fmake_frame_visible, Smake_frame_visible,
+DEFUN ("make-frame-visible", Fmake_frame_visible, Smake_frame_visible,
        0, 1, "",
        doc: /* Make the frame FRAME visible (assuming it is an X window).
 If omitted, FRAME defaults to the currently selected frame.  */)
@@ -1881,7 +1881,7 @@ displayed in the terminal.  */)
   return Qnil;
 }
 
-DEFUE ("iconify-frame", Ficonify_frame, Siconify_frame,
+DEFUN ("iconify-frame", Ficonify_frame, Siconify_frame,
        0, 1, "",
        doc: /* Make the frame FRAME into an icon.
 If omitted, FRAME defaults to the currently selected frame.  */)
@@ -1966,7 +1966,7 @@ DEFUN ("visible-frame-list", Fvisible_frame_list, Svisible_frame_list,
 }
 
 
-DEFUE ("raise-frame", Fraise_frame, Sraise_frame, 0, 1, "",
+DEFUN ("raise-frame", Fraise_frame, Sraise_frame, 0, 1, "",
        doc: /* Bring FRAME to the front, so it occludes any frames it overlaps.
 If FRAME is invisible or iconified, make it visible.
 If you don't specify a frame, the selected frame is used.
@@ -2019,7 +2019,7 @@ doesn't support multiple overlapping frames, this function does nothing.  */)
 }
 
 
-DEFUE ("redirect-frame-focus", Fredirect_frame_focus, Sredirect_frame_focus,
+DEFUN ("redirect-frame-focus", Fredirect_frame_focus, Sredirect_frame_focus,
        1, 2, 0,
        doc: /* Arrange for keystrokes typed at FRAME to be sent to FOCUS-FRAME.
 In other words, switch-frame events caused by events in FRAME will
@@ -2400,7 +2400,7 @@ If FRAME is omitted, return information on the currently selected frame.  */)
 }
 
 
-DEFUE ("frame-parameter", Fframe_parameter, Sframe_parameter, 2, 2, 0,
+DEFUN ("frame-parameter", Fframe_parameter, Sframe_parameter, 2, 2, 0,
        doc: /* Return FRAME's value for parameter PARAMETER.
 If FRAME is nil, describe the currently selected frame.  */)
   (Lisp_Object frame, Lisp_Object parameter)
@@ -2478,7 +2478,7 @@ If FRAME is nil, describe the currently selected frame.  */)
 }
 
 
-DEFUE ("modify-frame-parameters", Fmodify_frame_parameters,
+DEFUN ("modify-frame-parameters", Fmodify_frame_parameters,
        Smodify_frame_parameters, 2, 2, 0,
        doc: /* Modify the parameters of frame FRAME according to ALIST.
 If FRAME is nil, it defaults to the selected frame.

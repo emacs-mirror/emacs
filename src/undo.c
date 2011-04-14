@@ -270,7 +270,7 @@ record_property_change (EMACS_INT beg, EMACS_INT length,
   current_buffer = obuf;
 }
 
-DEFUE ("undo-boundary", Fundo_boundary, Sundo_boundary, 0, 0, 0,
+DEFUN ("undo-boundary", Fundo_boundary, Sundo_boundary, 0, 0, 0,
        doc: /* Mark a boundary between units of undo.
 An undo command will stop at this point,
 but another undo command will undo to the previous boundary.  */)

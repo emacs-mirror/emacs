@@ -217,7 +217,7 @@ make_window (void)
   return val;
 }
 
-DEFUE ("selected-window", Fselected_window, Sselected_window, 0, 0, 0,
+DEFUN ("selected-window", Fselected_window, Sselected_window, 0, 0, 0,
        doc: /* Return the window that the cursor now appears in and commands apply to.  */)
   (void)
 {
@@ -236,7 +236,7 @@ used by that frame.  */)
   return FRAME_MINIBUF_WINDOW (XFRAME (frame));
 }
 
-DEFUE ("window-minibuffer-p", Fwindow_minibuffer_p,
+DEFUN ("window-minibuffer-p", Fwindow_minibuffer_p,
        Swindow_minibuffer_p, 0, 1, 0,
        doc: /* Return non-nil if WINDOW is a minibuffer window.
 WINDOW defaults to the selected window.  */)
@@ -247,7 +247,7 @@ WINDOW defaults to the selected window.  */)
 }
 
 
-DEFUE ("pos-visible-in-window-p", Fpos_visible_in_window_p,
+DEFUN ("pos-visible-in-window-p", Fpos_visible_in_window_p,
        Spos_visible_in_window_p, 0, 3, 0,
        doc: /* Return non-nil if position POS is currently on the frame in WINDOW.
 Return nil if that position is scrolled vertically out of view.
@@ -444,7 +444,7 @@ decode_any_window (register Lisp_Object window)
   return XWINDOW (window);
 }
 
-DEFUE ("window-buffer", Fwindow_buffer, Swindow_buffer, 0, 1, 0,
+DEFUN ("window-buffer", Fwindow_buffer, Swindow_buffer, 0, 1, 0,
        doc: /* Return the buffer that WINDOW is displaying.
 WINDOW defaults to the selected window.  */)
   (Lisp_Object window)
@@ -1198,7 +1198,7 @@ if it isn't already recorded.  */)
   return value;
 }
 
-DEFUE ("set-window-point", Fset_window_point, Sset_window_point, 2, 2, 0,
+DEFUN ("set-window-point", Fset_window_point, Sset_window_point, 2, 2, 0,
        doc: /* Make point value in WINDOW be at position POS in WINDOW's buffer.
 Return POS.  */)
   (Lisp_Object window, Lisp_Object pos)
@@ -1245,7 +1245,7 @@ overriding motion of point in order to display at this exact start.  */)
 }
 
 
-DEFUE ("window-dedicated-p", Fwindow_dedicated_p, Swindow_dedicated_p,
+DEFUN ("window-dedicated-p", Fwindow_dedicated_p, Swindow_dedicated_p,
        0, 1, 0,
        doc: /* Return non-nil when WINDOW is dedicated to its buffer.
 More precisely, return the value assigned by the last call of
@@ -1486,7 +1486,7 @@ and so is its new parent, we should make replacement's
 children be children of that parent instead.  ***/
 }
 
-DEFUE ("delete-window", Fdelete_window, Sdelete_window, 0, 1, "",
+DEFUN ("delete-window", Fdelete_window, Sdelete_window, 0, 1, "",
        doc: /* Remove WINDOW from its frame.
 WINDOW defaults to the selected window.  Return nil.
 Signal an error when WINDOW is the only window on its frame.  */)
@@ -1947,7 +1947,7 @@ next_window (Lisp_Object window, Lisp_Object minibuf, Lisp_Object all_frames, in
 }
 
 
-DEFUE ("next-window", Fnext_window, Snext_window, 0, 3, 0,
+DEFUN ("next-window", Fnext_window, Snext_window, 0, 3, 0,
        doc: /* Return window following WINDOW in cyclic ordering of windows.
 WINDOW defaults to the selected window. The optional arguments
 MINIBUF and ALL-FRAMES specify the set of windows to consider.
@@ -2398,7 +2398,7 @@ If FRAME is a frame, search only that frame.  */)
 		      frame);
 }
 
-DEFUE ("get-buffer-window", Fget_buffer_window, Sget_buffer_window, 0, 2, 0,
+DEFUN ("get-buffer-window", Fget_buffer_window, Sget_buffer_window, 0, 2, 0,
        doc: /* Return a window currently displaying BUFFER-OR-NAME, or nil if none.
 BUFFER-OR-NAME may be a buffer or a buffer name and defaults to the
 current buffer.
@@ -3445,7 +3445,7 @@ set_window_buffer (Lisp_Object window, Lisp_Object buffer, int run_hooks_p, int 
 }
 
 
-DEFUE ("set-window-buffer", Fset_window_buffer, Sset_window_buffer, 2, 3, 0,
+DEFUN ("set-window-buffer", Fset_window_buffer, Sset_window_buffer, 2, 3, 0,
        doc: /* Make WINDOW display BUFFER-OR-NAME as its contents.
 WINDOW defaults to the selected window.  BUFFER-OR-NAME must be a buffer
 or the name of an existing buffer.  Optional third argument KEEP-MARGINS
@@ -3575,7 +3575,7 @@ select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
 /* Note that selected_window can be nil when this is called from
    Fset_window_configuration.  */
 
-DEFUE ("select-window", Fselect_window, Sselect_window, 1, 2, 0,
+DEFUN ("select-window", Fselect_window, Sselect_window, 1, 2, 0,
        doc: /* Select WINDOW.  Most editing will apply to WINDOW's buffer.
 If WINDOW is not already selected, make WINDOW's buffer current
 and make WINDOW the frame's selected window.  Return WINDOW.
@@ -5503,7 +5503,7 @@ displayed_window_lines (struct window *w)
 }
 
 
-DEFUE ("recenter", Frecenter, Srecenter, 0, 1, "P",
+DEFUN ("recenter", Frecenter, Srecenter, 0, 1, "P",
        doc: /* Center point in selected window and maybe redisplay frame.
 With prefix argument ARG, recenter putting point on screen line ARG
 relative to the selected window.  If ARG is negative, it counts up from the
@@ -5856,7 +5856,7 @@ DEFUN ("window-configuration-frame", Fwindow_configuration_frame, Swindow_config
   return XWINDOW (SAVED_WINDOW_N (saved_windows, 0)->window)->frame;
 }
 
-DEFUE ("set-window-configuration", Fset_window_configuration,
+DEFUN ("set-window-configuration", Fset_window_configuration,
        Sset_window_configuration, 1, 1, 0,
        doc: /* Set the configuration of windows and buffers as specified by CONFIGURATION.
 CONFIGURATION must be a value previously returned
@@ -6353,7 +6353,7 @@ save_window_save (Lisp_Object window, struct Lisp_Vector *vector, int i)
   return i;
 }
 
-DEFUE ("current-window-configuration", Fcurrent_window_configuration,
+DEFUN ("current-window-configuration", Fcurrent_window_configuration,
        Scurrent_window_configuration, 0, 1, 0,
        doc: /* Return an object representing the current window configuration of FRAME.
 If FRAME is nil or omitted, use the selected frame.
@@ -6545,7 +6545,7 @@ as nil.  */)
 			    Fringes
  ***********************************************************************/
 
-DEFUE ("set-window-fringes", Fset_window_fringes, Sset_window_fringes,
+DEFUN ("set-window-fringes", Fset_window_fringes, Sset_window_fringes,
        2, 4, 0,
        doc: /* Set the fringe widths of window WINDOW.
 If WINDOW is nil, set the fringe widths of the currently selected
@@ -6611,7 +6611,7 @@ Value is a list of the form (LEFT-WIDTH RIGHT-WIDTH OUTSIDE-MARGINS).  */)
 			    Scroll bars
  ***********************************************************************/
 
-DEFUE ("set-window-scroll-bars", Fset_window_scroll_bars,
+DEFUN ("set-window-scroll-bars", Fset_window_scroll_bars,
        Sset_window_scroll_bars, 2, 4, 0,
        doc: /* Set width and type of scroll bars of window WINDOW.
 If window is nil, set scroll bars of the currently selected window.

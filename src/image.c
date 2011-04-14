@@ -7874,7 +7874,7 @@ static struct image_type imagemagick_type =
   };
 
 
-DEFUE ("imagemagick-types", Fimagemagick_types, Simagemagick_types, 0, 0, 0,
+DEFUN ("imagemagick-types", Fimagemagick_types, Simagemagick_types, 0, 0, 0,
        doc: /* Return the image types supported by ImageMagick.
 Note that ImageMagick recognizes many file-types that Emacs does not recognize
 as images, such as .c.  */)
@@ -8585,7 +8585,7 @@ x_kill_gs_process (Pixmap pixmap, struct frame *f)
 
 #if GLYPH_DEBUG
 
-DEFUE ("imagep", Fimagep, Simagep, 1, 1, 0,
+DEFUN ("imagep", Fimagep, Simagep, 1, 1, 0,
        doc: /* Value is non-nil if SPEC is a valid image specification.  */)
   (Lisp_Object spec)
 {
@@ -8593,7 +8593,7 @@ DEFUE ("imagep", Fimagep, Simagep, 1, 1, 0,
 }
 
 
-DEFUE ("lookup-image", Flookup_image, Slookup_image, 1, 1, 0, "")
+DEFUN ("lookup-image", Flookup_image, Slookup_image, 1, 1, 0, "")
   (Lisp_Object spec)
 {
   int id = -1;

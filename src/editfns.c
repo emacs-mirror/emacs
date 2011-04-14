@@ -185,7 +185,7 @@ init_editfns (void)
 #endif
 }
 
-DEFUE ("char-to-string", Fchar_to_string, Schar_to_string, 1, 1, 0,
+DEFUN ("char-to-string", Fchar_to_string, Schar_to_string, 1, 1, 0,
        doc: /* Convert arg CHAR to a string containing that character.
 usage: (char-to-string CHAR)  */)
   (Lisp_Object character)
@@ -239,7 +239,7 @@ buildmark (EMACS_INT charpos, EMACS_INT bytepos)
   return mark;
 }
 
-DEFUE ("point", Fpoint, Spoint, 0, 0, 0,
+DEFUN ("point", Fpoint, Spoint, 0, 0, 0,
        doc: /* Return value of point, as an integer.
 Beginning of buffer is position (point-min).  */)
   (void)
@@ -249,7 +249,7 @@ Beginning of buffer is position (point-min).  */)
   return temp;
 }
 
-DEFUE ("point-marker", Fpoint_marker, Spoint_marker, 0, 0, 0,
+DEFUN ("point-marker", Fpoint_marker, Spoint_marker, 0, 0, 0,
        doc: /* Return value of point, as a marker object.  */)
   (void)
 {
@@ -267,7 +267,7 @@ clip_to_bounds (EMACS_INT lower, EMACS_INT num, EMACS_INT upper)
     return num;
 }
 
-DEFUE ("goto-char", Fgoto_char, Sgoto_char, 1, 1, "NGoto char: ",
+DEFUN ("goto-char", Fgoto_char, Sgoto_char, 1, 1, "NGoto char: ",
        doc: /* Set point to POSITION, a number or marker.
 Beginning of buffer is position (point-min), end is (point-max).
 
@@ -663,7 +663,7 @@ is before LIMIT, then LIMIT will be returned instead.  */)
   return make_number (beg);
 }
 
-DEFUE ("field-end", Ffield_end, Sfield_end, 0, 3, 0,
+DEFUN ("field-end", Ffield_end, Sfield_end, 0, 3, 0,
        doc: /* Return the end of the field surrounding POS.
 A field is a region of text with the same `field' property.
 If POS is nil, the value of point is used for POS.
@@ -678,7 +678,7 @@ is after LIMIT, then LIMIT will be returned instead.  */)
   return make_number (end);
 }
 
-DEFUE ("constrain-to-field", Fconstrain_to_field, Sconstrain_to_field, 2, 5, 0,
+DEFUN ("constrain-to-field", Fconstrain_to_field, Sconstrain_to_field, 2, 5, 0,
        doc: /* Return the position closest to NEW-POS that is in the same field as OLD-POS.
 
 A field is a region of text with the same `field' property.
@@ -787,7 +787,7 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */)
 }
 
 
-DEFUE ("line-beginning-position",
+DEFUN ("line-beginning-position",
        Fline_beginning_position, Sline_beginning_position, 0, 1, 0,
        doc: /* Return the character position of the first character on the current line.
 With argument N not nil or 1, move forward N - 1 lines first.
@@ -829,7 +829,7 @@ This function does not move point.  */)
 			      Qt, Qnil);
 }
 
-DEFUE ("line-end-position", Fline_end_position, Sline_end_position, 0, 1, 0,
+DEFUN ("line-end-position", Fline_end_position, Sline_end_position, 0, 1, 0,
        doc: /* Return the character position of the last character on the current line.
 With argument N not nil or 1, move forward N - 1 lines first.
 If scan reaches end of buffer, return that position.
@@ -1048,7 +1048,7 @@ is in effect, in which case it is less.  */)
   return temp;
 }
 
-DEFUE ("point-max-marker", Fpoint_max_marker, Spoint_max_marker, 0, 0, 0,
+DEFUN ("point-max-marker", Fpoint_max_marker, Spoint_max_marker, 0, 0, 0,
        doc: /* Return a marker to the maximum permissible value of point in this buffer.
 This is (1+ (buffer-size)), unless narrowing (a buffer restriction)
 is in effect, in which case it is less.  */)
@@ -1099,7 +1099,7 @@ If BYTEPOS is out of range, the value is nil.  */)
   return make_number (BYTE_TO_CHAR (XINT (bytepos)));
 }
 
-DEFUE ("following-char", Ffollowing_char, Sfollowing_char, 0, 0, 0,
+DEFUN ("following-char", Ffollowing_char, Sfollowing_char, 0, 0, 0,
        doc: /* Return the character following point, as a number.
 At the end of the buffer or accessible region, return 0.  */)
   (void)
@@ -1112,7 +1112,7 @@ At the end of the buffer or accessible region, return 0.  */)
   return temp;
 }
 
-DEFUE ("preceding-char", Fprevious_char, Sprevious_char, 0, 0, 0,
+DEFUN ("preceding-char", Fprevious_char, Sprevious_char, 0, 0, 0,
        doc: /* Return the character preceding point, as a number.
 At the beginning of the buffer or accessible region, return 0.  */)
   (void)
@@ -1131,7 +1131,7 @@ At the beginning of the buffer or accessible region, return 0.  */)
   return temp;
 }
 
-DEFUE ("bobp", Fbobp, Sbobp, 0, 0, 0,
+DEFUN ("bobp", Fbobp, Sbobp, 0, 0, 0,
        doc: /* Return t if point is at the beginning of the buffer.
 If the buffer is narrowed, this means the beginning of the narrowed part.  */)
   (void)
@@ -1141,7 +1141,7 @@ If the buffer is narrowed, this means the beginning of the narrowed part.  */)
   return Qnil;
 }
 
-DEFUE ("eobp", Feobp, Seobp, 0, 0, 0,
+DEFUN ("eobp", Feobp, Seobp, 0, 0, 0,
        doc: /* Return t if point is at the end of the buffer.
 If the buffer is narrowed, this means the end of the narrowed part.  */)
   (void)
@@ -1151,7 +1151,7 @@ If the buffer is narrowed, this means the end of the narrowed part.  */)
   return Qnil;
 }
 
-DEFUE ("bolp", Fbolp, Sbolp, 0, 0, 0,
+DEFUN ("bolp", Fbolp, Sbolp, 0, 0, 0,
        doc: /* Return t if point is at the beginning of a line.  */)
   (void)
 {
@@ -1160,7 +1160,7 @@ DEFUE ("bolp", Fbolp, Sbolp, 0, 0, 0,
   return Qnil;
 }
 
-DEFUE ("eolp", Feolp, Seolp, 0, 0, 0,
+DEFUN ("eolp", Feolp, Seolp, 0, 0, 0,
        doc: /* Return t if point is at the end of a line.
 `End of a line' includes point being at the end of the buffer.  */)
   (void)
@@ -1170,7 +1170,7 @@ DEFUE ("eolp", Feolp, Seolp, 0, 0, 0,
   return Qnil;
 }
 
-DEFUE ("char-after", Fchar_after, Schar_after, 0, 1, 0,
+DEFUN ("char-after", Fchar_after, Schar_after, 0, 1, 0,
        doc: /* Return character in current buffer at position POS.
 POS is an integer or a marker and defaults to point.
 If POS is out of range, the value is nil.  */)
@@ -1247,7 +1247,7 @@ If POS is out of range, the value is nil.  */)
    return val;
 }
 
-DEFUE ("user-login-name", Fuser_login_name, Suser_login_name, 0, 1, 0,
+DEFUN ("user-login-name", Fuser_login_name, Suser_login_name, 0, 1, 0,
        doc: /* Return the name under which the user logged in, as a string.
 This is based on the effective uid, not the real uid.
 Also, if the environment variables LOGNAME or USER are set,
@@ -1387,7 +1387,7 @@ name, or nil if there is no such user.  */)
   return full;
 }
 
-DEFUE ("system-name", Fsystem_name, Ssystem_name, 0, 0, 0,
+DEFUN ("system-name", Fsystem_name, Ssystem_name, 0, 0, 0,
        doc: /* Return the host name of the machine you are running on, as a string.  */)
   (void)
 {
@@ -1453,7 +1453,7 @@ lo_time (time_t t)
   return t & ((1 << 16) - 1);
 }
 
-DEFUE ("current-time", Fcurrent_time, Scurrent_time, 0, 0, 0,
+DEFUN ("current-time", Fcurrent_time, Scurrent_time, 0, 0, 0,
        doc: /* Return the current time, as the number of seconds since 1970-01-01 00:00:00.
 The time is returned as a list of three integers.  The first has the
 most significant 16 bits of the seconds, while the second has the
@@ -1472,7 +1472,7 @@ resolution finer than a second.  */)
 		make_number (EMACS_USECS (t)));
 }
 
-DEFUE ("get-internal-run-time", Fget_internal_run_time, Sget_internal_run_time,
+DEFUN ("get-internal-run-time", Fget_internal_run_time, Sget_internal_run_time,
        0, 0, 0,
        doc: /* Return the current run time used by Emacs.
 The time is returned as a list of three integers.  The first has the
@@ -2246,7 +2246,7 @@ insert1 (Lisp_Object arg)
    not be used after calling insert or insert_from_string, so
    we don't care if it gets trashed.  */
 
-DEFUE ("insert", Finsert, Sinsert, 0, MANY, 0,
+DEFUN ("insert", Finsert, Sinsert, 0, MANY, 0,
        doc: /* Insert the arguments, either strings or characters, at point.
 Point and before-insertion markers move forward to end up
  after the inserted text.
@@ -2326,7 +2326,7 @@ usage: (insert-before-markers-and-inherit &rest ARGS)  */)
   return Qnil;
 }
 
-DEFUE ("insert-char", Finsert_char, Sinsert_char, 2, 3, 0,
+DEFUN ("insert-char", Finsert_char, Sinsert_char, 2, 3, 0,
        doc: /* Insert COUNT copies of CHARACTER.
 Point, and before-insertion markers, are relocated as in the function `insert'.
 The optional third arg INHERIT, if non-nil, says to inherit text properties
@@ -2500,7 +2500,7 @@ update_buffer_properties (EMACS_INT start, EMACS_INT end)
     }
 }
 
-DEFUE ("buffer-substring", Fbuffer_substring, Sbuffer_substring, 2, 2, 0,
+DEFUN ("buffer-substring", Fbuffer_substring, Sbuffer_substring, 2, 2, 0,
        doc: /* Return the contents of part of the current buffer as a string.
 The two arguments START and END are character positions;
 they can be in either order.
@@ -2536,7 +2536,7 @@ they can be in either order.  */)
   return make_buffer_string (b, e, 0);
 }
 
-DEFUE ("buffer-string", Fbuffer_string, Sbuffer_string, 0, 0, 0,
+DEFUN ("buffer-string", Fbuffer_string, Sbuffer_string, 0, 0, 0,
        doc: /* Return the contents of the current buffer as a string.
 If narrowing is in effect, this function returns only the visible part
 of the buffer.  */)
@@ -3174,7 +3174,7 @@ It returns the number of characters changed.  */)
   return make_number (cnt);
 }
 
-DEFUE ("delete-region", Fdelete_region, Sdelete_region, 2, 2, "r",
+DEFUN ("delete-region", Fdelete_region, Sdelete_region, 2, 2, "r",
        doc: /* Delete the text between point and mark.
 
 When called from a program, expects two arguments,
@@ -3197,7 +3197,7 @@ DEFUN ("delete-and-extract-region", Fdelete_and_extract_region,
   return del_range_1 (XINT (start), XINT (end), 1, 1);
 }
 
-DEFUE ("widen", Fwiden, Swiden, 0, 0, "",
+DEFUN ("widen", Fwiden, Swiden, 0, 0, "",
        doc: /* Remove restrictions (narrowing) from current buffer.
 This allows the buffer's full text to be seen and edited.  */)
   (void)
@@ -3212,7 +3212,7 @@ This allows the buffer's full text to be seen and edited.  */)
   return Qnil;
 }
 
-DEFUE ("narrow-to-region", Fnarrow_to_region, Snarrow_to_region, 2, 2, "r",
+DEFUN ("narrow-to-region", Fnarrow_to_region, Snarrow_to_region, 2, 2, "r",
        doc: /* Restrict editing in this buffer to the current region.
 The rest of the text becomes temporarily invisible and untouchable
 but is not deleted; if you save the buffer in a file, the invisible
@@ -3373,7 +3373,7 @@ static char *message_text;
 /* Allocated length of that buffer.  */
 static int message_length;
 
-DEFUE ("message", Fmessage, Smessage, 1, MANY, 0,
+DEFUN ("message", Fmessage, Smessage, 1, MANY, 0,
        doc: /* Display a message at the bottom of the screen.
 The message also goes into the `*Messages*' buffer.
 \(In keyboard macros, that's all it does.)
@@ -3485,7 +3485,7 @@ usage: (message-or-box FORMAT-STRING &rest ARGS)  */)
   return Fmessage (nargs, args);
 }
 
-DEFUE ("current-message", Fcurrent_message, Scurrent_message, 0, 0, 0,
+DEFUN ("current-message", Fcurrent_message, Scurrent_message, 0, 0, 0,
        doc: /* Return the string currently displayed in the echo area, or nil if none.  */)
   (void)
 {
@@ -3534,7 +3534,7 @@ usage: (propertize STRING &rest PROPERTIES)  */)
    ? count_size_as_multibyte (SDATA (STRING), SBYTES (STRING))		\
    : SBYTES (STRING))
 
-DEFUE ("format", Fformat, Sformat, 1, MANY, 0,
+DEFUN ("format", Fformat, Sformat, 1, MANY, 0,
        doc: /* Format a string out of a format-string and arguments.
 The first argument is a format control string.
 The other arguments are substituted into it to make the result, a string.

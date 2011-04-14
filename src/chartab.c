@@ -54,7 +54,7 @@ static const int chartab_bits[4] =
   (((c) - (min_char)) >> chartab_bits[(depth)])
 
 
-DEFUE ("make-char-table", Fmake_char_table, Smake_char_table, 1, 2, 0,
+DEFUN ("make-char-table", Fmake_char_table, Smake_char_table, 1, 2, 0,
        doc: /* Return a newly created char-table, with purpose PURPOSE.
 Each element is initialized to INIT, which defaults to nil.
 
@@ -459,7 +459,7 @@ then the actual applicable value is inherited from the parent char-table
   return XCHAR_TABLE (char_table)->parent;
 }
 
-DEFUE ("set-char-table-parent", Fset_char_table_parent, Sset_char_table_parent,
+DEFUN ("set-char-table-parent", Fset_char_table_parent, Sset_char_table_parent,
        2, 2, 0,
        doc: /* Set the parent char-table of CHAR-TABLE to PARENT.
 Return PARENT.  PARENT must be either nil or another char-table.  */)
@@ -483,7 +483,7 @@ Return PARENT.  PARENT must be either nil or another char-table.  */)
   return parent;
 }
 
-DEFUE ("char-table-extra-slot", Fchar_table_extra_slot, Schar_table_extra_slot,
+DEFUN ("char-table-extra-slot", Fchar_table_extra_slot, Schar_table_extra_slot,
        2, 2, 0,
        doc: /* Return the value of CHAR-TABLE's extra-slot number N.  */)
   (Lisp_Object char_table, Lisp_Object n)
@@ -497,7 +497,7 @@ DEFUE ("char-table-extra-slot", Fchar_table_extra_slot, Schar_table_extra_slot,
   return XCHAR_TABLE (char_table)->extras[XINT (n)];
 }
 
-DEFUE ("set-char-table-extra-slot", Fset_char_table_extra_slot,
+DEFUN ("set-char-table-extra-slot", Fset_char_table_extra_slot,
        Sset_char_table_extra_slot,
        3, 3, 0,
        doc: /* Set CHAR-TABLE's extra-slot number N to VALUE.  */)
@@ -541,7 +541,7 @@ a cons of character codes (for characters in the range), or a character code.  *
   return val;
 }
 
-DEFUE ("set-char-table-range", Fset_char_table_range, Sset_char_table_range,
+DEFUN ("set-char-table-range", Fset_char_table_range, Sset_char_table_range,
        3, 3, 0,
        doc: /* Set the value in CHAR-TABLE for a range of characters RANGE to VALUE.
 RANGE should be t (for all characters), nil (for the default value),
@@ -626,7 +626,7 @@ optimize_sub_char_table (Lisp_Object table, Lisp_Object test)
   return (optimizable ? elt : table);
 }
 
-DEFUE ("optimize-char-table", Foptimize_char_table, Soptimize_char_table,
+DEFUN ("optimize-char-table", Foptimize_char_table, Soptimize_char_table,
        1, 2, 0,
        doc: /* Optimize CHAR-TABLE.
 TEST is the comparison function used to decide whether two entries are

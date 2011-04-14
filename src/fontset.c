@@ -1176,7 +1176,7 @@ fs_query_fontset (Lisp_Object name, int name_pattern)
 }
 
 
-DEFUE ("query-fontset", Fquery_fontset, Squery_fontset, 1, 2, 0,
+DEFUN ("query-fontset", Fquery_fontset, Squery_fontset, 1, 2, 0,
        doc: /* Return the name of a fontset that matches PATTERN.
 The value is nil if there is no matching fontset.
 PATTERN can contain `*' or `?' as a wildcard
@@ -2142,7 +2142,7 @@ dump_fontset (Lisp_Object fontset)
   return vec;
 }
 
-DEFUE ("fontset-list-all", Ffontset_list_all, Sfontset_list_all, 0, 0, 0,
+DEFUN ("fontset-list-all", Ffontset_list_all, Sfontset_list_all, 0, 0, 0,
        doc: /* Return a brief summary of all fontsets for debug use.  */)
   (void)
 {

@@ -152,7 +152,7 @@ call_process_cleanup (Lisp_Object arg)
   return Qnil;
 }
 
-DEFUE ("call-process", Fcall_process, Scall_process, 1, MANY, 0,
+DEFUN ("call-process", Fcall_process, Scall_process, 1, MANY, 0,
        doc: /* Call PROGRAM synchronously in separate process.
 The remaining arguments are optional.
 The program's input comes from file INFILE (nil means `/dev/null').

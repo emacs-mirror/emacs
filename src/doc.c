@@ -681,7 +681,7 @@ the same file name is found in the `doc-directory'.  */)
   return Qnil;
 }
 
-DEFUE ("substitute-command-keys", Fsubstitute_command_keys,
+DEFUN ("substitute-command-keys", Fsubstitute_command_keys,
        Ssubstitute_command_keys, 1, 1, 0,
        doc: /* Substitute key descriptions for command names in STRING.
 Substrings of the form \\=\\[COMMAND] replaced by either: a keystroke

@@ -356,7 +356,7 @@ usage: (cond CLAUSES...)  */)
   return val;
 }
 
-DEFUE ("progn", Fprogn, Sprogn, 0, UNEVALLED, 0,
+DEFUN ("progn", Fprogn, Sprogn, 0, UNEVALLED, 0,
        doc: /* Eval BODY forms sequentially and return value of last one.
 usage: (progn BODY...)  */)
   (Lisp_Object args)
@@ -521,7 +521,7 @@ usage: (function ARG)  */)
 }
 
 
-DEFUE ("interactive-p", Finteractive_p, Sinteractive_p, 0, 0, 0,
+DEFUN ("interactive-p", Finteractive_p, Sinteractive_p, 0, 0, 0,
        doc: /* Return t if the containing function was run directly by user input.
 This means that the function was called with `call-interactively'
 \(which includes being called as the binding of a key)
@@ -1327,7 +1327,7 @@ unwind_to_catch (struct catchtag *catch, Lisp_Object value)
   _longjmp (catch->jmp, 1);
 }
 
-DEFUE ("throw", Fthrow, Sthrow, 2, 2, 0,
+DEFUN ("throw", Fthrow, Sthrow, 2, 2, 0,
        doc: /* Throw to the catch for TAG and return VALUE from it.
 Both TAG and VALUE are evalled.  */)
   (register Lisp_Object tag, Lisp_Object value)
@@ -1657,7 +1657,7 @@ static Lisp_Object find_handler_clause (Lisp_Object, Lisp_Object,
 static int maybe_call_debugger (Lisp_Object conditions, Lisp_Object sig,
 				Lisp_Object data);
 
-DEFUE ("signal", Fsignal, Ssignal, 2, 2, 0,
+DEFUN ("signal", Fsignal, Ssignal, 2, 2, 0,
        doc: /* Signal an error.  Args are ERROR-SYMBOL and associated DATA.
 This function does not return.
 
@@ -2041,7 +2041,7 @@ error (const char *m, ...)
   va_end (ap);
 }
 
-DEFUE ("commandp", Fcommandp, Scommandp, 1, 2, 0,
+DEFUN ("commandp", Fcommandp, Scommandp, 1, 2, 0,
        doc: /* Non-nil if FUNCTION makes provisions for interactive calling.
 This means it contains a description for how to read arguments to give it.
 The value is nil for an invalid function or a symbol with no function
@@ -2222,7 +2222,7 @@ do_autoload (Lisp_Object fundef, Lisp_Object funname)
 }
 
 
-DEFUE ("eval", Feval, Seval, 1, 2, 0,
+DEFUN ("eval", Feval, Seval, 1, 2, 0,
        doc: /* Evaluate FORM and return its value.
 If LEXICAL is t, evaluate using lexical scoping.  */)
   (Lisp_Object form, Lisp_Object lexical)
@@ -2458,7 +2458,7 @@ eval_sub (Lisp_Object form)
   return val;
 }
 
-DEFUE ("apply", Fapply, Sapply, 2, MANY, 0,
+DEFUN ("apply", Fapply, Sapply, 2, MANY, 0,
        doc: /* Call FUNCTION with our remaining args, using our last arg as list of args.
 Then return the value FUNCTION returns.
 Thus, (apply '+ 1 2 '(3 4)) returns 10.
@@ -2553,7 +2553,7 @@ funcall_nil (size_t nargs, Lisp_Object *args)
   return Qnil;
 }
 
-DEFUE ("run-hooks", Frun_hooks, Srun_hooks, 0, MANY, 0,
+DEFUN ("run-hooks", Frun_hooks, Srun_hooks, 0, MANY, 0,
        doc: /* Run each hook in HOOKS.
 Each argument should be a symbol, a hook variable.
 These symbols are processed in the order specified.
@@ -2582,7 +2582,7 @@ usage: (run-hooks &rest HOOKS)  */)
   return Qnil;
 }
 
-DEFUE ("run-hook-with-args", Frun_hook_with_args,
+DEFUN ("run-hook-with-args", Frun_hook_with_args,
        Srun_hook_with_args, 1, MANY, 0,
        doc: /* Run HOOK with the specified arguments ARGS.
 HOOK should be a symbol, a hook variable.  If HOOK has a non-nil
@@ -2628,7 +2628,7 @@ funcall_not (size_t nargs, Lisp_Object *args)
   return NILP (Ffuncall (nargs, args)) ? Qt : Qnil;
 }
 
-DEFUE ("run-hook-with-args-until-failure", Frun_hook_with_args_until_failure,
+DEFUN ("run-hook-with-args-until-failure", Frun_hook_with_args_until_failure,
        Srun_hook_with_args_until_failure, 1, MANY, 0,
        doc: /* Run HOOK with the specified arguments ARGS.
 HOOK should be a symbol, a hook variable.  If HOOK has a non-nil
@@ -2915,7 +2915,7 @@ call7 (Lisp_Object fn, Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3,
 
 /* The caller should GCPRO all the elements of ARGS.  */
 
-DEFUE ("functionp", Ffunctionp, Sfunctionp, 1, 1, 0,
+DEFUN ("functionp", Ffunctionp, Sfunctionp, 1, 1, 0,
        doc: /* Non-nil if OBJECT is a function.  */)
      (Lisp_Object object)
 {
@@ -2948,7 +2948,7 @@ DEFUE ("functionp", Ffunctionp, Sfunctionp, 1, 1, 0,
     return Qnil;
 }
 
-DEFUE ("funcall", Ffuncall, Sfuncall, 1, MANY, 0,
+DEFUN ("funcall", Ffuncall, Sfuncall, 1, MANY, 0,
        doc: /* Call first argument as a function, passing remaining arguments to it.
 Return the value that function returns.
 Thus, (funcall 'cons 'x 'y) returns (x . y).

@@ -3764,7 +3764,7 @@ which kind of font it is.  It must be one of `font-spec', `font-entity',
   wrong_type_argument (intern ("font-extra-type"), extra_type);
 }
 
-DEFUE ("font-spec", Ffont_spec, Sfont_spec, 0, MANY, 0,
+DEFUN ("font-spec", Ffont_spec, Sfont_spec, 0, MANY, 0,
        doc: /* Return a newly created font-spec with arguments as properties.
 
 ARGS must come in pairs KEY VALUE of font properties.  KEY must be a
@@ -3923,7 +3923,7 @@ merge_font_spec (Lisp_Object from, Lisp_Object to)
   return to;
 }
 
-DEFUE ("font-get", Ffont_get, Sfont_get, 2, 2, 0,
+DEFUN ("font-get", Ffont_get, Sfont_get, 2, 2, 0,
        doc: /* Return the value of FONT's property KEY.
 FONT is a font-spec, a font-entity, or a font-object.
 KEY is any symbol, but these are reserved for specific meanings:
@@ -4055,7 +4055,7 @@ are to be displayed on.  If omitted, the selected frame is used.  */)
 
 #endif
 
-DEFUE ("font-put", Ffont_put, Sfont_put, 3, 3, 0,
+DEFUN ("font-put", Ffont_put, Sfont_put, 3, 3, 0,
        doc: /* Set one property of FONT: give property KEY value VAL.
 FONT is a font-spec, a font-entity, or a font-object.
 
@@ -4089,7 +4089,7 @@ accepted by `font-spec'.  */)
   return val;
 }
 
-DEFUE ("list-fonts", Flist_fonts, Slist_fonts, 1, 4, 0,
+DEFUN ("list-fonts", Flist_fonts, Slist_fonts, 1, 4, 0,
        doc: /* List available fonts matching FONT-SPEC on the current frame.
 Optional 2nd argument FRAME specifies the target frame.
 Optional 3rd argument NUM, if non-nil, limits the number of returned fonts.
@@ -4183,7 +4183,7 @@ Optional 2nd argument FRAME, if non-nil, specifies the target frame.  */)
   return val;
 }
 
-DEFUE ("font-xlfd-name", Ffont_xlfd_name, Sfont_xlfd_name, 1, 2, 0,
+DEFUN ("font-xlfd-name", Ffont_xlfd_name, Sfont_xlfd_name, 1, 2, 0,
        doc: /*  Return XLFD name of FONT.
 FONT is a font-spec, font-entity, or font-object.
 If the name is too long for XLFD (maximum 255 chars), return nil.
@@ -4405,7 +4405,7 @@ where
 
 #if 0
 
-DEFUE ("font-drive-otf", Ffont_drive_otf, Sfont_drive_otf, 6, 6, 0,
+DEFUN ("font-drive-otf", Ffont_drive_otf, Sfont_drive_otf, 6, 6, 0,
        doc: /* Apply OpenType features on glyph-string GSTRING-IN.
 OTF-FEATURES specifies which features to apply in this format:
   (SCRIPT LANGSYS GSUB GPOS)
@@ -4475,7 +4475,7 @@ glyph-string.  */)
   return make_number (num);
 }
 
-DEFUE ("font-otf-alternates", Ffont_otf_alternates, Sfont_otf_alternates,
+DEFUN ("font-otf-alternates", Ffont_otf_alternates, Sfont_otf_alternates,
        3, 3, 0,
        doc: /* Return a list of alternate glyphs of CHARACTER in FONT-OBJECT.
 OTF-FEATURES specifies which features of the font FONT-OBJECT to apply

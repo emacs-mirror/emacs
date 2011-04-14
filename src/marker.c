@@ -420,7 +420,7 @@ buf_bytepos_to_charpos (struct buffer *b, EMACS_INT bytepos)
 
 /* Operations on markers. */
 
-DEFUE ("marker-buffer", Fmarker_buffer, Smarker_buffer, 1, 1, 0,
+DEFUN ("marker-buffer", Fmarker_buffer, Smarker_buffer, 1, 1, 0,
        doc: /* Return the buffer that MARKER points into, or nil if none.
 Returns nil if MARKER points into a dead buffer.  */)
   (register Lisp_Object marker)
@@ -440,7 +440,7 @@ Returns nil if MARKER points into a dead buffer.  */)
   return Qnil;
 }
 
-DEFUE ("marker-position", Fmarker_position, Smarker_position, 1, 1, 0,
+DEFUN ("marker-position", Fmarker_position, Smarker_position, 1, 1, 0,
        doc: /* Return the position MARKER points at, as a character number.
 Returns nil if MARKER points nowhere.  */)
   (Lisp_Object marker)
@@ -452,7 +452,7 @@ Returns nil if MARKER points nowhere.  */)
   return Qnil;
 }
 
-DEFUE ("set-marker", Fset_marker, Sset_marker, 2, 3, 0,
+DEFUN ("set-marker", Fset_marker, Sset_marker, 2, 3, 0,
        doc: /* Position MARKER before character number POSITION in BUFFER.
 BUFFER defaults to the current buffer.
 If POSITION is nil, makes marker point nowhere.
@@ -796,7 +796,7 @@ marker_byte_position (Lisp_Object marker)
   return i;
 }
 
-DEFUE ("copy-marker", Fcopy_marker, Scopy_marker, 0, 2, 0,
+DEFUN ("copy-marker", Fcopy_marker, Scopy_marker, 0, 2, 0,
        doc: /* Return a new marker pointing at the same place as MARKER.
 If argument is a number, makes a new marker pointing
 at that position in the current buffer.

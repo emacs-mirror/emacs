@@ -526,7 +526,7 @@ static void print_preprocess (Lisp_Object obj);
 static void print_preprocess_string (INTERVAL interval, Lisp_Object arg);
 static void print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag);
 
-DEFUE ("terpri", Fterpri, Sterpri, 0, 1, 0,
+DEFUN ("terpri", Fterpri, Sterpri, 0, 1, 0,
        doc: /* Output a newline to stream PRINTCHARFUN.
 If PRINTCHARFUN is omitted or nil, the value of `standard-output' is used.  */)
   (Lisp_Object printcharfun)
@@ -541,7 +541,7 @@ If PRINTCHARFUN is omitted or nil, the value of `standard-output' is used.  */)
   return Qt;
 }
 
-DEFUE ("prin1", Fprin1, Sprin1, 1, 2, 0,
+DEFUN ("prin1", Fprin1, Sprin1, 1, 2, 0,
        doc: /* Output the printed representation of OBJECT, any Lisp object.
 Quoting characters are printed when needed to make output that `read'
 can handle, whenever this is possible.  For complex objects, the behavior
@@ -579,7 +579,7 @@ is used instead.  */)
 /* a buffer which is used to hold output being built by prin1-to-string */
 Lisp_Object Vprin1_to_string_buffer;
 
-DEFUE ("prin1-to-string", Fprin1_to_string, Sprin1_to_string, 1, 2, 0,
+DEFUN ("prin1-to-string", Fprin1_to_string, Sprin1_to_string, 1, 2, 0,
        doc: /* Return a string containing the printed representation of OBJECT.
 OBJECT can be any Lisp object.  This function outputs quoting characters
 when necessary to make output that `read' can handle, whenever possible,
@@ -670,7 +670,7 @@ is used instead.  */)
   return object;
 }
 
-DEFUE ("print", Fprint, Sprint, 1, 2, 0,
+DEFUN ("print", Fprint, Sprint, 1, 2, 0,
        doc: /* Output the printed representation of OBJECT, with newlines around it.
 Quoting characters are printed when needed to make output that `read'
 can handle, whenever this is possible.  For complex objects, the behavior
@@ -813,7 +813,7 @@ safe_debug_print (Lisp_Object arg)
 }
 
 
-DEFUE ("error-message-string", Ferror_message_string, Serror_message_string,
+DEFUN ("error-message-string", Ferror_message_string, Serror_message_string,
        1, 1, 0,
        doc: /* Convert an error value (ERROR-SYMBOL . DATA) to an error message.
 See Info anchor `(elisp)Definition of signal' for some details on how this

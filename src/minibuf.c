@@ -872,7 +872,7 @@ read_minibuf_unwind (Lisp_Object data)
 }
 
 
-DEFUE ("read-from-minibuffer", Fread_from_minibuffer,
+DEFUN ("read-from-minibuffer", Fread_from_minibuffer,
        Sread_from_minibuffer, 1, 7, 0,
        doc: /* Read a string from the minibuffer, prompting with string PROMPT.
 The optional second arg INITIAL-CONTENTS is an obsolete alternative to
@@ -950,7 +950,7 @@ and some related functions, which use zero-indexing for POSITION.  */)
   return val;
 }
 
-DEFUE ("read-minibuffer", Fread_minibuffer, Sread_minibuffer, 1, 2, 0,
+DEFUN ("read-minibuffer", Fread_minibuffer, Sread_minibuffer, 1, 2, 0,
        doc: /* Return a Lisp object read using the minibuffer, unevaluated.
 Prompt with PROMPT.  If non-nil, optional second arg INITIAL-CONTENTS
 is a string to insert in the minibuffer before reading.
@@ -964,7 +964,7 @@ Such arguments are used as in `read-from-minibuffer'.)  */)
 		       make_number (0), Qnil, 0, 0);
 }
 
-DEFUE ("eval-minibuffer", Feval_minibuffer, Seval_minibuffer, 1, 2, 0,
+DEFUN ("eval-minibuffer", Feval_minibuffer, Seval_minibuffer, 1, 2, 0,
        doc: /* Return value of Lisp expression read using the minibuffer.
 Prompt with PROMPT.  If non-nil, optional second arg INITIAL-CONTENTS
 is a string to insert in the minibuffer before reading.
@@ -980,7 +980,7 @@ Such arguments are used as in `read-from-minibuffer'.)  */)
 
 /* Functions that use the minibuffer to read various things. */
 
-DEFUE ("read-string", Fread_string, Sread_string, 1, 5, 0,
+DEFUN ("read-string", Fread_string, Sread_string, 1, 5, 0,
        doc: /* Read a string from the minibuffer, prompting with string PROMPT.
 If non-nil, second arg INITIAL-INPUT is a string to insert before reading.
   This argument has been superseded by DEFAULT-VALUE and should normally
@@ -1057,7 +1057,7 @@ Prompt with PROMPT.  */)
 }
 #endif /* NOTDEF */
 
-DEFUE ("read-variable", Fread_variable, Sread_variable, 1, 2, 0,
+DEFUN ("read-variable", Fread_variable, Sread_variable, 1, 2, 0,
        doc: /* Read the name of a user variable and return it as a symbol.
 Prompt with PROMPT.  By default, return DEFAULT-VALUE or its first element
 if it is a list.
@@ -1081,7 +1081,7 @@ A user variable is one for which `user-variable-p' returns non-nil.  */)
   return Fintern (name, Qnil);
 }
 
-DEFUE ("read-buffer", Fread_buffer, Sread_buffer, 1, 3, 0,
+DEFUN ("read-buffer", Fread_buffer, Sread_buffer, 1, 3, 0,
        doc: /* Read the name of a buffer and return as a string.
 Prompt with PROMPT.
 Optional second arg DEF is value to return if user enters an empty line.
@@ -1617,7 +1617,7 @@ with a space are ignored unless STRING itself starts with a space.  */)
   return Fnreverse (allmatches);
 }
 
-DEFUE ("completing-read", Fcompleting_read, Scompleting_read, 2, 8, 0,
+DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 8, 0,
        doc: /* Read a string in the minibuffer, with completion.
 PROMPT is a string to prompt with; normally it ends in a colon and a space.
 COLLECTION can be a list of strings, an alist, an obarray or a hash table.
@@ -1918,7 +1918,7 @@ The arguments STRING and PREDICATE are as in `try-completion',
 
 /* Like assoc but assumes KEY is a string, and ignores case if appropriate.  */
 
-DEFUE ("assoc-string", Fassoc_string, Sassoc_string, 2, 3, 0,
+DEFUN ("assoc-string", Fassoc_string, Sassoc_string, 2, 3, 0,
        doc: /* Like `assoc' but specifically for strings (and symbols).
 
 This returns the first element of LIST whose car matches the string or
