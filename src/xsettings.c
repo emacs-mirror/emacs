@@ -691,11 +691,13 @@ xsettings_get_system_font (void)
   return current_mono_font;
 }
 
+#ifdef USE_LUCID
 const char *
 xsettings_get_system_normal_font (void)
 {
   return current_font;
 }
+#endif
 
 DEFUN ("font-get-system-normal-font", Ffont_get_system_normal_font,
        Sfont_get_system_normal_font,

@@ -1,5 +1,8 @@
 2011-04-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xsettings.c, xsettings.h (xsettings_get_system_normal_font):
+	Define only if USE_LUCID.
+
 	* xrdb.c (x_customization_string, x_rm_string): Now static.
 
 	* xmenu.c (x_menu_wait_for_event): Export only if USE_MOTIF.
