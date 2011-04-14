@@ -98,10 +98,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 static Lisp_Object Qsyntax_table_p;
 static Lisp_Object Qsyntax_table, Qscan_error;
 
+#ifndef __GNUC__
 /* Used as a temporary in SYNTAX_ENTRY and other macros in syntax.h,
    if not compiled with GCC.  No need to mark it, since it is used
    only very temporarily.  */
 Lisp_Object syntax_temp;
+#endif
 
 /* This is the internal form of the parse state used in parse-partial-sexp.  */
 

@@ -1,5 +1,7 @@
 2011-04-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* syntax.c (syntax_temp): Define only if !__GNUC__.
+
 	* sound.c (current_sound_device, current_sound): Now static.
 
 	* search.c (searchbufs, searchbuf_head): Now static.
