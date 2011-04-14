@@ -58,25 +58,25 @@ static Lisp_Object Qfloat_output_format;
 #endif
 
 /* Avoid actual stack overflow in print.  */
-int print_depth;
+static int print_depth;
 
 /* Level of nesting inside outputting backquote in new style.  */
-int new_backquote_output;
+static int new_backquote_output;
 
 /* Detect most circularities to print finite output.  */
 #define PRINT_CIRCLE 200
-Lisp_Object being_printed[PRINT_CIRCLE];
+static Lisp_Object being_printed[PRINT_CIRCLE];
 
 /* When printing into a buffer, first we put the text in this
    block, then insert it all at once.  */
-char *print_buffer;
+static char *print_buffer;
 
 /* Size allocated in print_buffer.  */
-EMACS_INT print_buffer_size;
+static EMACS_INT print_buffer_size;
 /* Chars stored in print_buffer.  */
-EMACS_INT print_buffer_pos;
+static EMACS_INT print_buffer_pos;
 /* Bytes stored in print_buffer.  */
-EMACS_INT print_buffer_pos_byte;
+static EMACS_INT print_buffer_pos_byte;
 
 Lisp_Object Qprint_escape_newlines;
 static Lisp_Object Qprint_escape_multibyte, Qprint_escape_nonascii;
@@ -89,8 +89,8 @@ static Lisp_Object Qprint_escape_multibyte, Qprint_escape_nonascii;
      N    the object has been printed so we can refer to it as #N#.
    print_number_index holds the largest N already used.
    N has to be striclty larger than 0 since we need to distinguish -N.  */
-int print_number_index;
-void print_interval (INTERVAL interval, Lisp_Object printcharfun);
+static int print_number_index;
+static void print_interval (INTERVAL interval, Lisp_Object printcharfun);
 
 /* GDB resets this to zero on W32 to disable OutputDebugString calls.  */
 int print_output_debug_flag EXTERNALLY_VISIBLE = 1;
@@ -636,7 +636,7 @@ A printed representation of an object is text which describes that object.  */)
   return unbind_to (count, object);
 }
 
-DEFUE ("princ", Fprinc, Sprinc, 1, 2, 0,
+DEFUN ("princ", Fprinc, Sprinc, 1, 2, 0,
        doc: /* Output the printed representation of OBJECT, any Lisp object.
 No quoting characters are used; no delimiters are printed around
 the contents of strings.
@@ -751,7 +751,7 @@ debug_output_compilation_hack (int x)
 
 #define WITH_REDIRECT_DEBUGGING_OUTPUT 1
 
-FILE *initial_stderr_stream = NULL;
+static FILE *initial_stderr_stream = NULL;
 
 DEFUN ("redirect-debugging-output", Fredirect_debugging_output, Sredirect_debugging_output,
        1, 2,
