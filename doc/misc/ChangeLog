@@ -1,3 +1,8 @@
+2011-04-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Frequently Asked Questions): New item for disabling
+	Tramp in other packages.
+
 2011-04-14  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus.texi (nnmairix caveats, Setup, Registry Article Refer Method)
