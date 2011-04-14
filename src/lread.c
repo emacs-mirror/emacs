@@ -91,7 +91,7 @@ static Lisp_Object Qload_in_progress;
    Each member of the list has the form (n . object), and is used to
    look up the object for the corresponding #n# construct.
    It must be set to nil before all top-level calls to read0.  */
-Lisp_Object read_objects;
+static Lisp_Object read_objects;
 
 /* Nonzero means READCHAR should read bytes one by one (not character)
    when READCHARFUN is Qget_file_char or Qget_emacs_mule_file_char.
@@ -3578,11 +3578,11 @@ read_list (int flag, register Lisp_Object readcharfun)
     }
 }
 
-Lisp_Object initial_obarray;
+static Lisp_Object initial_obarray;
 
 /* oblookup stores the bucket number here, for the sake of Funintern.  */
 
-int oblookup_last_bucket_number;
+static int oblookup_last_bucket_number;
 
 static int hash_string (const char *ptr, int len);
 
@@ -3641,18 +3641,6 @@ intern_c_string (const char *str)
     abort ();
 
   return Fintern (make_pure_c_string (str), obarray);
-}
-
-/* Create an uninterned symbol with name STR.  */
-
-Lisp_Object
-make_symbol (const char *str)
-{
-  int len = strlen (str);
-
-  return Fmake_symbol (!NILP (Vpurify_flag)
-		       ? make_pure_string (str, len, len, 0)
-		       : make_string (str, len));
 }
 
 DEFUE ("intern", Fintern, Sintern, 1, 2, 0,

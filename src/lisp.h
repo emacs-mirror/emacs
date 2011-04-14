@@ -2770,7 +2770,6 @@ extern void syms_of_print (void);
 /* Defined in lread.c.  */
 extern Lisp_Object Qvariable_documentation, Qstandard_input;
 extern Lisp_Object Qbackquote, Qcomma, Qcomma_at, Qcomma_dot, Qfunction;
-extern Lisp_Object initial_obarray;
 EXFUN (Fread, 1);
 EXFUN (Fread_from_string, 3);
 EXFUN (Fintern, 2);
@@ -2783,7 +2782,6 @@ EXFUN (Fread_event, 3);
 extern Lisp_Object check_obarray (Lisp_Object);
 extern Lisp_Object intern (const char *);
 extern Lisp_Object intern_c_string (const char *);
-extern Lisp_Object make_symbol (const char *);
 extern Lisp_Object oblookup (Lisp_Object, const char *, EMACS_INT, EMACS_INT);
 #define LOADHIST_ATTACH(x) \
   do {									\

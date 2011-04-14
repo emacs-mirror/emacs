@@ -1,5 +1,11 @@
 2011-04-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lread.c: Make symbols static if they're not exported.
+	(read_objects, initial_obarray, oblookup_last_bucket_number):
+	Now static.
+	(make_symbol): Remove; unused.
+	* lisp.h (initial_obarray, make_symbol): Remove decls.
+
 	* keyboard.c: Make symbols static if they're not exported.
 	(single_kboard, recent_keys_index, total_keys, recent_keys):
 	(this_command_key_count_reset, raw_keybuf, raw_keybuf_count):
