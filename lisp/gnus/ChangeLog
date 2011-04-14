@@ -1,3 +1,7 @@
+2011-04-14  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el: Updated gnus-registry docs.
+
 2011-04-12  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus-registry.el (gnus-registry--split-fancy-with-parent-internal):

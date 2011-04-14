@@ -1,3 +1,9 @@
+2011-04-14  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus.texi (nnmairix caveats, Setup, Registry Article Refer Method)
+	(Fancy splitting to parent, Store arbitrary data): Updated
+	gnus-registry docs.
+
 2011-04-13  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ede.texi: Fix typos.

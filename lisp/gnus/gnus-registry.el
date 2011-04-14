@@ -33,9 +33,10 @@
 ;; you, submit a bug report and I'll be glad to fix it.  It needs
 ;; documentation in the manual (also on my to-do list).
 
-;; Put this in your startup file (~/.gnus.el for instance)
+;; Put this in your startup file (~/.gnus.el for instance) or use Customize:
 
-;; (setq gnus-registry-max-entries 2500)
+;; (setq gnus-registry-max-entries 2500
+;;       gnus-registry-track-extra '(sender subject))
 
 ;; (gnus-registry-initialize)
 
