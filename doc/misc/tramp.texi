@@ -2812,7 +2812,6 @@ When @value{tramp} does not connect to the remote host, there are three
 reasons heading the bug mailing list:
 
 @itemize @minus
-
 @item
 Unknown characters in the prompt
 
@@ -2882,7 +2881,6 @@ checksum.
     (when (file-remote-p default-directory)
       (set (make-local-variable 'file-precious-flag) t))))
 @end lisp
-
 @end itemize
 
 
@@ -3377,14 +3375,43 @@ export EDITOR=/path/to/emacsclient.sh
 
 
 @item
-How can I disable @value{tramp}?
+There are packages which call @value{tramp} although I haven't entered
+a remote file name ever.  I dislike it, how could I disable it?
+
+In general, @value{tramp} functions are used only when
+you apply remote file name syntax.  However, some packages enable
+@value{tramp} on their own.
+
+@itemize @minus
+@item
+@file{ido.el}
+
+You could disable @value{tramp} file name completion:
+
+@lisp
+(custom-set-variables
+ '(ido-enable-tramp-completion nil))
+@end lisp
+
+@item
+@file{rlogin.el}
+
+You could disable remote directory tracking mode:
+
+@lisp
+(rlogin-directory-tracking-mode -1)
+@end lisp
+@end itemize
+
+
+@item
+How can I disable @value{tramp} at all?
 
 Shame on you, why did you read until now?
 
 @itemize @minus
-
-@item
 @ifset emacs
+@item
 If you just want to have @value{ftppackagename} as default remote
 files access package, you should apply the following code:
 

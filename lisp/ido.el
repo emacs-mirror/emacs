@@ -2176,9 +2176,7 @@ If cursor is not at the end of the user input, move to end of input."
 	   (ido-current-directory nil)
 	   (ido-directory-nonreadable nil)
 	   (ido-directory-too-big nil)
-	   (ido-use-virtual-buffers (if (eq method 'kill)
-					nil    ;; Don't consider virtual buffers for killing
-				      ido-use-virtual-buffers))
+	   (ido-use-virtual-buffers ido-use-virtual-buffers)
 	   (require-match (confirm-nonexistent-file-or-buffer))
 	   (buf (ido-read-internal 'buffer (or prompt "Buffer: ") 'ido-buffer-history default
 				   require-match initial))
@@ -3917,10 +3915,10 @@ If cursor is not at the end of the user input, delete to end of input."
     (let ((enable-recursive-minibuffers t)
 	  (buf (ido-name (car ido-matches)))
 	  (nextbuf (cadr ido-matches)))
-      (when (get-buffer buf)
+      (cond
+       ((get-buffer buf)
 	;; If next match names a buffer use the buffer object; buffer
-	;; name may be changed by packages such as uniquify; mindful
-	;; of virtual buffers.
+	;; name may be changed by packages such as uniquify.
 	(when (and nextbuf (get-buffer nextbuf))
 	  (setq nextbuf (get-buffer nextbuf)))
 	(if (null (kill-buffer buf))
@@ -3934,7 +3932,13 @@ If cursor is not at the end of the user input, delete to end of input."
 	  (setq ido-default-item nextbuf
 		ido-text-init ido-text
 		ido-exit 'refresh)
-	  (exit-minibuffer))))))
+	  (exit-minibuffer)))
+       ;; Handle virtual buffers
+       ((assoc buf ido-virtual-buffers)
+	(setq recentf-list
+	      (delete (cdr (assoc buf ido-virtual-buffers)) recentf-list))
+	(setq ido-cur-list (delete buf ido-cur-list))
+	(setq ido-rescan t))))))
 
 ;;; DELETE CURRENT FILE
 (defun ido-delete-file-at-head ()

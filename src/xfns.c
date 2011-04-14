@@ -2958,7 +2958,7 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
         {
           char *name = xstrdup (system_font);
           font = font_open_by_name (f, name);
-          free (name);
+          xfree (name);
         }
     }
 

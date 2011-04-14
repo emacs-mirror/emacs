@@ -3617,7 +3617,7 @@ handle_invisible_prop (struct it *it)
 		 _after_ bidi iteration avoids affecting the visual
 		 order of the displayed text when invisible properties
 		 are added or removed.  */
-	      if (it->bidi_it.first_elt)
+	      if (it->bidi_it.first_elt && it->bidi_it.charpos < ZV)
 		{
 		  /* If we were `reseat'ed to a new paragraph,
 		     determine the paragraph base direction.  We need
@@ -8374,10 +8374,13 @@ vmessage (const char *m, va_list ap)
 
 	      /* Do any truncation at a character boundary.  */
 	      if (! (0 <= len && len < bufsize))
-		for (len = strnlen (buf, bufsize);
-		     len && ! CHAR_HEAD_P (buf[len - 1]);
-		     len--)
-		  continue;
+		{
+		  char *end = memchr (buf, 0, bufsize);
+		  for (len = end ? end - buf : bufsize;
+		       len && ! CHAR_HEAD_P (buf[len - 1]);
+		       len--)
+		    continue;
+		}
 
 	      message2 (FRAME_MESSAGE_BUF (f), len, 0);
 	    }
@@ -14206,7 +14209,14 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 
       /* If there is a scroll margin at the top of the window, find
 	 its character position.  */
-      if (margin)
+      if (margin
+	  /* Cannot call start_display if startp is not in the
+	     accessible region of the buffer.  This can happen when we
+	     have just switched to a different buffer and/or changed
+	     its restriction.  In that case, startp is initialized to
+	     the character position 1 (BEG) because we did not yet
+	     have chance to display the buffer even once.  */
+	  && BEGV <= CHARPOS (startp) && CHARPOS (startp) <= ZV)
 	{
 	  struct it it1;
 

@@ -7035,7 +7035,7 @@ displayed, no centering will be performed."
 
 (defun gnus-summary-select-article-buffer ()
   "Reconfigure windows to show the article buffer.
-If `gnus-widen-article-buffer' is set, show only the article
+If `gnus-widen-article-window' is set, show only the article
 buffer."
   (interactive)
   (if (not (gnus-buffer-live-p gnus-article-buffer))

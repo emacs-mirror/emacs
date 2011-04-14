@@ -83,13 +83,6 @@ Likely values are `wget', `w3m', `lynx' and `curl'."
 
 ;;; Internal variables
 
-(defvar mm-url-package-name
-  (gnus-replace-in-string
-   (gnus-replace-in-string gnus-version " v.*$" "")
-   " " "-"))
-
-(defvar	mm-url-package-version gnus-version-number)
-
 ;; Stolen from w3.
 (defvar mm-url-html-entities
   '(
@@ -298,10 +291,6 @@ If `mm-url-use-external' is non-nil, use `mm-url-program'."
 	   (if (not (and (boundp 'url-version)
 			 (equal url-version "Emacs")))
 	       (list (cons "Connection" "Close"))))
-	  (url-package-name (or mm-url-package-name
-				url-package-name))
-	  (url-package-version (or mm-url-package-version
-				   url-package-version))
 	  result)
       (setq result (url-insert-file-contents url))
       (save-excursion

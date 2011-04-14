@@ -8270,7 +8270,7 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
         PROP (TOOL_BAR_ITEM_LABEL) = new_lbl;
       else
         PROP (TOOL_BAR_ITEM_LABEL) = make_string ("", 0);
-      free (buf);
+      xfree (buf);
     }
 
   /* If got a filter apply it on binding.  */

@@ -460,8 +460,8 @@ sound_cleanup (Lisp_Object arg)
     current_sound_device->close (current_sound_device);
   if (current_sound->fd > 0)
     emacs_close (current_sound->fd);
-  free (current_sound_device);
-  free (current_sound);
+  xfree (current_sound_device);
+  xfree (current_sound);
 
   return Qnil;
 }
@@ -897,7 +897,7 @@ vox_init (struct sound_device *sd)
 static void
 vox_write (struct sound_device *sd, const char *buffer, int nbytes)
 {
-  int nwritten = emacs_write (sd->fd, buffer, nbytes);
+  ssize_t nwritten = emacs_write (sd->fd, buffer, nbytes);
   if (nwritten < 0)
     sound_perror ("Error writing to sound device");
 }
@@ -1095,7 +1095,7 @@ alsa_close (struct sound_device *sd)
           snd_pcm_drain (p->handle);
           snd_pcm_close (p->handle);
         }
-      free (p);
+      xfree (p);
     }
 }
 

@@ -1,3 +1,23 @@
+2011-04-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Frequently Asked Questions): New item for disabling
+	Tramp in other packages.
+
+2011-04-14  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus.texi (nnmairix caveats, Setup, Registry Article Refer Method)
+	(Fancy splitting to parent, Store arbitrary data): Updated
+	gnus-registry docs.
+
+2011-04-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ede.texi: Fix typos.
+
+2011-04-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Window Layout): @itemize @code doesn't exist.
+	It's @table @code.
+
 2011-03-19  Antoine Levitt  <antoine.levitt@gmail.com>
 
 	* gnus.texi (Listing Groups): Document gnus-group-list-ticked

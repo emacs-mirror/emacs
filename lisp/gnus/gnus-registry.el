@@ -33,9 +33,10 @@
 ;; you, submit a bug report and I'll be glad to fix it.  It needs
 ;; documentation in the manual (also on my to-do list).
 
-;; Put this in your startup file (~/.gnus.el for instance)
+;; Put this in your startup file (~/.gnus.el for instance) or use Customize:
 
-;; (setq gnus-registry-max-entries 2500)
+;; (setq gnus-registry-max-entries 2500
+;;       gnus-registry-track-extra '(sender subject))
 
 ;; (gnus-registry-initialize)
 
@@ -258,7 +259,7 @@ the Bit Bucket."
 This is not required after changing `gnus-registry-cache-file'."
   (interactive (list (y-or-n-p "Remake and CLEAR the Gnus registry? ")))
   (when forsure
-    (gnus-message 1 "Remaking the Gnus registry")
+    (gnus-message 4 "Remaking the Gnus registry")
     (setq gnus-registry-db (gnus-registry-make-db))))
 
 (defun gnus-registry-read ()
@@ -294,11 +295,8 @@ This is not required after changing `gnus-registry-cache-file'."
 ;; article move/copy/spool/delete actions
 (defun gnus-registry-action (action data-header from &optional to method)
   (let* ((id (mail-header-id data-header))
-         (subject (gnus-string-remove-all-properties
-                   (gnus-registry-simplify-subject
-                    (mail-header-subject data-header))))
-         (sender (gnus-string-remove-all-properties
-                  (mail-header-from data-header)))
+         (subject (mail-header-subject data-header))
+         (sender (mail-header-from data-header))
          (from (gnus-group-guess-full-name-from-command-method from))
          (to (if to (gnus-group-guess-full-name-from-command-method to) nil))
          (to-name (if to to "the Bit Bucket")))
@@ -312,7 +310,9 @@ This is not required after changing `gnus-registry-cache-file'."
      to subject sender)))
 
 (defun gnus-registry-spool-action (id group &optional subject sender)
-  (let ((to (gnus-group-guess-full-name-from-command-method group)))
+  (let ((to (gnus-group-guess-full-name-from-command-method group))
+        (subject (or subject (message-fetch-field "subject")))
+        (sender (or sender (message-fetch-field "from"))))
     (when (and (stringp id) (string-match "\r$" id))
       (setq id (substring id 0 -1)))
     (gnus-message 7 "Gnus registry: article %s spooled to %s"
@@ -326,7 +326,10 @@ This is not required after changing `gnus-registry-cache-file'."
    "gnus-registry-handle-action %S" (list id from to subject sender))
   (let ((db gnus-registry-db)
         ;; safe if not found
-        (entry (gnus-registry-get-or-make-entry id)))
+        (entry (gnus-registry-get-or-make-entry id))
+        (subject (gnus-string-remove-all-properties
+                  (gnus-registry-simplify-subject subject)))
+        (sender (gnus-string-remove-all-properties sender)))
 
     ;; this could be done by calling `gnus-registry-set-id-key'
     ;; several times but it's better to bunch the transactions
@@ -426,9 +429,9 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
      (when (and (null found)
                 (memq 'sender gnus-registry-track-extra)
                 sender
-                (gnus-grep-in-list
-                 sender
-                 gnus-registry-unfollowed-addresses))
+                (not (gnus-grep-in-list
+                      sender
+                      gnus-registry-unfollowed-addresses)))
        (let ((groups (apply
                       'append
                       (mapcar
@@ -562,12 +565,12 @@ possible.  Uses `gnus-registry-split-strategy'."
      ((null out)
       (gnus-message
        5
-       "%s: no matches for %s %s."
-       log-agent out mode key)
+       "%s: no matches for %s '%s'."
+       log-agent mode key)
       nil)
      (t (gnus-message
          5
-         "%s: too many extra matches (%s) for %s %s.  Returning none."
+         "%s: too many extra matches (%s) for %s '%s'.  Returning none."
          log-agent out mode key)
         nil))))
 

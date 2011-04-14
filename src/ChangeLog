@@ -1,8 +1,6 @@
 2011-04-14  Paul Eggert  <eggert@cs.ucla.edu>
 
-	* lisp.h (INFUN): Remove.  Suggested by Dan Nicolaescu in
-	<http://lists.gnu.org/archive/html/emacs-devel/2011-04/msg00393.html>.
-	All uses spelled out.
+	Improve C-level modularity by making more things 'static'.
 
 	Don't publish debugger-only interfaces to other modules.
 	* lisp.h (safe_debug_print, debug_output_compilation_hack):
@@ -49,7 +47,7 @@
 	(get_tty_terminal): Now static.
 	(term_mouse_moveto): Do not define if HAVE_WINDOW_SYSTEM.
 	* termhooks.h (term_mouse_moveto): Do not declare if
-	HAVE_WINDOW_SYSTEMM.
+	HAVE_WINDOW_SYSTEM.
 	* dispextern.h (tty_set_terminal_modes, tty_reset_terminal_modes):
 	(tty_turn_off_highlight, get_tty_terminal): Remove decls.
 
@@ -131,8 +129,6 @@
 	(merge_properties_sticky, merge_interval_right, delete_interval):
 	Now static.
 	* intervals.h (merge_interval_right, delete_interval): Remove decls.
-
-2011-04-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* insdel.c: Make symbols static if they're not exported.
 	However, leave prepare_to_modify_buffer alone.  It's never
@@ -218,8 +214,6 @@
 	(xic_create_fontsetname): Declare only if HAVE_X_WINDOWS &&
 	USE_X_TOOLKIT.
 
-2011-04-12  Paul Eggert  <eggert@cs.ucla.edu>
-
 	* ftxfont.c: Make symbols static if they're not exported.
 	(ftxfont_driver): Export only if !defined HAVE_XFT && def8ined
 	HAVE_FREETYPE.
@@ -280,8 +274,6 @@
 
 	* lisp.h (circular_list_error, FOREACH): Remove; unused.
 	* data.c (circular_list_error): Remove.
-
-2011-04-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* commands.h (last_point_position, last_point_position_buffer):
 	(last_point_position_window): Remove decls.
@@ -370,11 +362,8 @@
 	to see whether these functions can be called from other modules.
 	DEFUN now defines a static function.  To make the function external
 	so that it can be used in other C modules, use the new macro DEFUE.
-	* lisp.h (DEFINE_FUNC): New macro, with the old contents of DEFUN.
-	(DEFUN): Rewrite in terms of DEFINE_FUNC.  It now generates a
-	static function definition.  Use DEFUE if you want an extern one.
-	(DEFUE, INFUN): New macros.
-	(Funibyte_char_to_multibyte, Fsyntax_table_p, Finit_image_library):
+	* lisp.h (Funibyte_char_to_multibyte, Fsyntax_table_p):
+	(Finit_image_library):
 	(Feval_region, Fbacktrace, Ffetch_bytecode, Fswitch_to_buffer):
 	(Ffile_executable_p, Fmake_symbolic_link, Fcommand_execute):
 	(Fget_process, Fdocumentation_property, Fbyte_code, Ffile_attributes):
@@ -423,11 +412,62 @@
 	(Fset_window_margins, Fset_window_vscroll): New forward static decls.
 	* window.h (Fset_window_vscroll, Fset_window_margins): Remove decls.
 
-2011-04-10  Paul Eggert  <eggert@cs.ucla.edu>
-
 	* editfns.c (Fformat): Remove unreachable code.
 
+2011-04-14  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* fileio.c (Finsert_file_contents): Fix typo in 2005-05-13
+	change.  (Bug#8496)
+
+2011-04-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (handle_invisible_prop): Don't call bidi_paragraph_init
+	when at ZV.  (Bug#8487)
+
+2011-04-12  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* charset.c (Fclear_charset_maps): Use xfree instead of free.
+	(Bug#8437)
+	* keyboard.c (parse_tool_bar_item): Likewise.
+	* sound.c (sound_cleanup, alsa_close): Likewise.
+	* termcap.c (tgetent): Likewise.
+	* xfns.c (x_default_font_parameter): Likewise.
+	* xsettings.c (read_and_apply_settings): Likewise.
+
+	* alloc.c (overrun_check_malloc, overrun_check_realloc)
+	(overrun_check_free): Protoize.
+
+2011-04-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* sysdep.c (emacs_read, emacs_write): Check for negative sizes
+	since callers should never pass a negative size.
+	Change the signature to match that of plain 'read' and 'write'; see
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-04/msg00397.html>.
+	* lisp.h: Update prototypes of emacs_write and emacs_read.
+
+2011-04-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (redisplay_window): Don't try to determine the character
+	position of the scroll margin if the window start point w->startp
+	is outside the buffer's accessible region.  (Bug#8468)
+
+2011-04-10  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix write-region and its subroutines for buffers > 2GB.
+	* fileio.c (a_write, e_write): Modify declaration of arguments and
+	local variables to support buffers larger than 2GB.
+	(Fcopy_file): Use EMACS_INT for return value of emacs_read.
+
+	* sysdep.c (emacs_write, emacs_read): Use ssize_t for last
+	argument, local variables, and return value.
+
+	* lisp.h: Update prototypes of emacs_write and emacs_read.
+
+	* sound.c (vox_write): Use ssize_t for return value of emacs_write.
+
 2011-04-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xdisp.c (vmessage): Use memchr, not strnlen, which some hosts lack.
 
 	Fix more problems found by GCC 4.6.0's static checks.
 
@@ -534,7 +574,7 @@
 	* xselect.c (x_decline_selection_request)
 	(x_reply_selection_request): Avoid type-punned deref of X events.
 
-2011-04-09  Eli Zaretskii  <eliz@emacstest.gnu.org>
+2011-04-09  Eli Zaretskii  <eliz@gnu.org>
 
 	Fix some uses of `int' instead of EMACS_INT.
 	* search.c (string_match_1, fast_string_match)

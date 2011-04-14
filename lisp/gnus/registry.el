@@ -77,14 +77,14 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+
 (eval-when-compile
   (when (null (ignore-errors (require 'ert)))
     (defmacro* ert-deftest (name () &body docstring-keys-and-body))))
 
 (ignore-errors
   (require 'ert))
-
-(eval-when-compile (require 'cl))
 (eval-and-compile
   (or (ignore-errors (progn
                        (require 'eieio)
