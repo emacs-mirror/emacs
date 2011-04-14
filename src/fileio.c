@@ -3800,7 +3800,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
     /* For a special file, all we can do is guess.  */
     total = READ_BUF_SIZE;
 
-  if (NILP (visit) && inserted > 0)
+  if (NILP (visit) && total > 0)
     {
 #ifdef CLASH_DETECTION
       if (!NILP (BVAR (current_buffer, file_truename))
