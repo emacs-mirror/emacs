@@ -1,5 +1,9 @@
 2011-04-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* minibuf.c: Make symbols static if they're not exported.
+	(minibuf_save_list, choose_minibuf_frame): Now static.
+	* lisp.h (choose_minibuf_frame): Remove decl.
+
 	* lisp.h (verify_bytepos, count_markers): Mark as externally visible.
 
 	* lread.c: Make symbols static if they're not exported.

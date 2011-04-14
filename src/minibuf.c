@@ -45,7 +45,7 @@ Lisp_Object Vminibuffer_list;
 
 /* Data to remember during recursive minibuffer invocations  */
 
-Lisp_Object minibuf_save_list;
+static Lisp_Object minibuf_save_list;
 
 /* Depth in minibuffer invocations.  */
 
@@ -97,7 +97,7 @@ static EMACS_INT minibuf_prompt_width;
    We do this whenever the user starts a new minibuffer
    or when a minibuffer exits.  */
 
-void
+static void
 choose_minibuf_frame (void)
 {
   if (FRAMEP (selected_frame)
