@@ -4964,7 +4964,7 @@
 	(Finternal_describe_syntax_value): Recognize new flag; use the
 	SYNTAX_FLAGS_* macros.
 	(scan_sexps_forward, Fparse_partial_sexp): Change representation of
-	comment style to accomodate the new styles.
+	comment style to accommodate the new styles.
 	(back_comment, forw_comment, Fforward_comment, scan_lists)
 	(scan_sexps_forward): Update code to obey the new comment style flag.
 

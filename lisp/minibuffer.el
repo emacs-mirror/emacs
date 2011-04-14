@@ -58,6 +58,10 @@
 
 ;;; Todo:
 
+;; - completion-insert-complete-hook (called after inserting a complete
+;;   completion), typically used for "complete-abbrev" where it would expand
+;;   the abbrev.  Tho we'd probably want to provide it from the
+;;   completion-table.
 ;; - extend `boundaries' to provide various other meta-data about the
 ;;   output of `all-completions':
 ;;   - preferred sorting order when displayed in *Completions*.
@@ -1249,12 +1253,22 @@ and PREDICATE, either by calling NEXT-FUN or by doing it themselves.")
 
 (defvar completion-in-region--data nil)
 
+(defvar completion-in-region-mode-predicate nil
+  "Predicate to tell `completion-in-region-mode' when to exit.
+It is called with no argument and should return nil when
+`completion-in-region-mode' should exit (and hence pop down
+the *Completions* buffer).")
+
+(defvar completion-in-region-mode--predicate nil
+  "Copy of the value of `completion-in-region-mode-predicate'.
+This holds the value `completion-in-region-mode-predicate' had when
+we entered `completion-in-region-mode'.")
+
 (defun completion-in-region (start end collection &optional predicate)
   "Complete the text between START and END using COLLECTION.
 Return nil if there is no valid completion, else t.
 Point needs to be somewhere between START and END."
   (assert (<= start (point)) (<= (point) end))
-  ;; FIXME: undisplay the *Completions* buffer once the completion is done.
   (with-wrapper-hook
       ;; FIXME: Maybe we should use this hook to provide a "display
       ;; completions" operation as well.
@@ -1263,9 +1277,10 @@ Point needs to be somewhere between START and END."
           (minibuffer-completion-predicate predicate)
           (ol (make-overlay start end nil nil t)))
       (overlay-put ol 'field 'completion)
-      (completion-in-region-mode 1)
-      (setq completion-in-region--data
-            (list (current-buffer) start end collection))
+      (when completion-in-region-mode-predicate
+        (completion-in-region-mode 1)
+        (setq completion-in-region--data
+            (list (current-buffer) start end collection)))
       (unwind-protect
           (call-interactively 'minibuffer-complete)
         (delete-overlay ol)))))
@@ -1294,13 +1309,8 @@ Point needs to be somewhere between START and END."
                     (save-excursion
                       (goto-char (nth 2 completion-in-region--data))
                       (line-end-position)))
-                (let ((comp-data (run-hook-wrapped
-                                  'completion-at-point-functions
-                                  ;; Only use the known-safe functions.
-                                  #'completion--capf-wrapper 'safe)))
-                  (eq (car comp-data)
-                      ;; We're still in the same completion field.
-                      (nth 1 completion-in-region--data)))))
+                (when completion-in-region-mode--predicate
+                  (funcall completion-in-region-mode--predicate))))
       (completion-in-region-mode -1)))
 
 ;; (defalias 'completion-in-region--prech 'completion-in-region--postch)
@@ -1315,9 +1325,12 @@ Point needs to be somewhere between START and END."
         (delq (assq 'completion-in-region-mode minor-mode-overriding-map-alist)
               minor-mode-overriding-map-alist))
   (if (null completion-in-region-mode)
-      (unless (equal "*Completions*" (buffer-name (window-buffer)))
+      (unless (or (equal "*Completions*" (buffer-name (window-buffer)))
+                  (null completion-in-region-mode--predicate))
 	(minibuffer-hide-completions))
     ;; (add-hook 'pre-command-hook #'completion-in-region--prech)
+    (set (make-local-variable 'completion-in-region-mode--predicate)
+         completion-in-region-mode-predicate)
     (add-hook 'post-command-hook #'completion-in-region--postch)
     (push `(completion-in-region-mode . ,completion-in-region-mode-map)
           minor-mode-overriding-map-alist)))
@@ -1361,7 +1374,7 @@ Currently supported properties are:
             (message
              "Completion function %S uses a deprecated calling convention" fun)
             (push fun completion--capf-misbehave-funs))))
-        res)))
+        (if res (cons fun res)))))
 
 (defun completion-at-point ()
   "Perform completion on the text around point.
@@ -1369,18 +1382,20 @@ The completion method is determined by `completion-at-point-functions'."
   (interactive)
   (let ((res (run-hook-wrapped 'completion-at-point-functions
                                #'completion--capf-wrapper 'all)))
-    (cond
-     ((functionp res) (funcall res))
-     ((consp res)
-      (let* ((plist (nthcdr 3 res))
-             (start (nth 0 res))
-             (end (nth 1 res))
-             (completion-annotate-function
+    (pcase res
+     (`(,_ . ,(and (pred functionp) f)) (funcall f))
+     (`(,hookfun . (,start ,end ,collection . ,plist))
+      (let* ((completion-annotate-function
               (or (plist-get plist :annotation-function)
-                  completion-annotate-function)))
-        (completion-in-region start end (nth 2 res)
+                  completion-annotate-function))
+             (completion-in-region-mode-predicate
+              (lambda ()
+                ;; We're still in the same completion field.
+                (eq (car (funcall hookfun)) start))))
+        (completion-in-region start end collection
                               (plist-get plist :predicate))))
-     (res))))  ;Maybe completion already happened and the function returned t.
+     ;; Maybe completion already happened and the function returned t.
+     (_ (cdr res)))))
 
 (defun completion-help-at-point ()
   "Display the completions on the text around point.
@@ -1389,29 +1404,36 @@ The completion method is determined by `completion-at-point-functions'."
   (let ((res (run-hook-wrapped 'completion-at-point-functions
                                ;; Ignore misbehaving functions.
                                #'completion--capf-wrapper 'optimist)))
-    (cond
-     ((functionp res)
-      (message "Don't know how to show completions for %S" res))
-     ((consp res)
-      (let* ((plist (nthcdr 3 res))
-             (minibuffer-completion-table (nth 2 res))
+    (pcase res
+      (`(,_ . ,(and (pred functionp) f))
+       (message "Don't know how to show completions for %S" f))
+     (`(,hookfun . (,start ,end ,collection . ,plist))
+      (let* ((minibuffer-completion-table collection)
              (minibuffer-completion-predicate (plist-get plist :predicate))
              (completion-annotate-function
               (or (plist-get plist :annotation-function)
                   completion-annotate-function))
-             (ol (make-overlay (nth 0 res) (nth 1 res) nil nil t)))
+             (completion-in-region-mode-predicate
+              (lambda ()
+                ;; We're still in the same completion field.
+                (eq (car (funcall hookfun)) start)))
+             (ol (make-overlay start end nil nil t)))
         ;; FIXME: We should somehow (ab)use completion-in-region-function or
         ;; introduce a corresponding hook (plus another for word-completion,
         ;; and another for force-completion, maybe?).
         (overlay-put ol 'field 'completion)
+        (completion-in-region-mode 1)
+        (setq completion-in-region--data
+            (list (current-buffer) start end collection))
         (unwind-protect
             (call-interactively 'minibuffer-completion-help)
           (delete-overlay ol))))
-     (res
+     (`(,hookfun . ,_)
       ;; The hook function already performed completion :-(
       ;; Not much we can do at this point.
+      (message "%s already performed completion!" hookfun)
       nil)
-     (t (message "Nothing to complete at point")))))
+     (_ (message "Nothing to complete at point")))))
 
 ;;; Key bindings.
 

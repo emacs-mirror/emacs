@@ -610,7 +610,7 @@ takes effect only if Emacs is compiled with ImageMagick support."
 This command has no effect unless Emacs is compiled with
 ImageMagick support."
   (interactive "nScale: ")
-  (setq image-transform-resize resize)
+  (setq image-transform-resize scale)
   (image-toggle-display-image))
 
 (defun image-transform-fit-to-height ()

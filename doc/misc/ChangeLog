@@ -1,3 +1,12 @@
+2011-04-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ede.texi: Fix typos.
+
+2011-04-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Window Layout): @itemize @code doesn't exist.
+	It's @table @code.
+
 2011-03-19  Antoine Levitt  <antoine.levitt@gmail.com>
 
 	* gnus.texi (Listing Groups): Document gnus-group-list-ticked

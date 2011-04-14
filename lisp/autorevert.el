@@ -434,9 +434,9 @@ This is an internal function used by Auto-Revert Mode."
 		     (file-readable-p buffer-file-name)
 		     (if auto-revert-tail-mode
 			 ;; Tramp caches the file attributes.  Setting
-			 ;; `tramp-cache-inhibit' forces Tramp to
-			 ;; reread the values.
-			 (let ((tramp-cache-inhibit-cache t))
+			 ;; `remote-file-name-inhibit-cache' forces Tramp
+			 ;; to reread the values.
+			 (let ((remote-file-name-inhibit-cache t))
 			   (/= auto-revert-tail-pos
 			       (setq size
 				     (nth 7 (file-attributes
@@ -460,10 +460,10 @@ This is an internal function used by Auto-Revert Mode."
 	(when buffer-file-name
 	  (setq eob (eobp))
 	  (walk-windows
-	   #'(lambda (window)
-	       (and (eq (window-buffer window) buffer)
-		    (= (window-point window) (point-max))
-		    (push window eoblist)))
+	   (lambda (window)
+	     (and (eq (window-buffer window) buffer)
+		  (= (window-point window) (point-max))
+		  (push window eoblist)))
 	   'no-mini t))
 	(if auto-revert-tail-mode
 	    (auto-revert-tail-handler size)

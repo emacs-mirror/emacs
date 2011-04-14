@@ -22836,7 +22836,7 @@ windows resized.
 Here's a list of most of the currently known window configurations,
 and when they're used:
 
-@itemize @code
+@table @code
 @item group
 The group buffer.
 
@@ -22903,7 +22903,7 @@ Composing a bounce message.
 @item mml-preview
 Previewing a @acronym{MIME} part.
 
-@end itemize
+@end table
 
 
 @subsection Example Window Configurations

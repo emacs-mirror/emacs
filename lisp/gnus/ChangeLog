@@ -1,4 +1,26 @@
+2011-04-12  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry--split-fancy-with-parent-internal):
+	Fix logic bug.
+	(gnus-registry-post-process-groups): Fix logging of no results and
+	quote sender and subject.
+
 2011-04-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-get-unread-articles): Slight cleanup.
+	(gnus-read-active-for-groups): Don't try to finish getting stuff where
+	we had no early-data returned.
+	(gnus-get-unread-articles): Add a sanity check so that we don't issue
+	two async commands to the same server at the same time.
+
+2011-04-12  Stig Sandbeck Mathisen  <ssm@fnord.no>  (tiny change)
+
+	* gnus-sum.el (gnus-summary-select-article-buffer): Doc fix.
+
+2011-04-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-registry.el (gnus-registry-remake-db): Put the warning on a
+	"warning" level.
 
 	* mm-url.el (mm-url-package-name): Removed to ease third-party reuse.
 	(mm-url-insert-file-contents): Don't set the package names.

@@ -1,3 +1,13 @@
+2011-04-14  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* fileio.c (Finsert_file_contents): Fix typo in 2005-05-13
+	change.  (Bug#8496)
+
+2011-04-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (handle_invisible_prop): Don't call bidi_paragraph_init
+	when at ZV.  (Bug#8487)
+
 2011-04-12  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* charset.c (Fclear_charset_maps): Use xfree instead of free.
