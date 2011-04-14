@@ -25958,8 +25958,8 @@ the general settings.
 The groups that will not be followed by
 @code{gnus-registry-split-fancy-with-parent}.  They will still be
 remembered by the registry.  This is a list of regular expressions.
-By default any group name that ends with ``delayed,'' ``drafts,''
-``queue,'' or ``INBOX'', belongs to the nnmairix backend, or contains
+By default any group name that ends with ``delayed'', ``drafts'',
+``queue'', or ``INBOX'', belongs to the nnmairix backend, or contains
 the word ``archive'' is not followed.
 @end defvar
 
