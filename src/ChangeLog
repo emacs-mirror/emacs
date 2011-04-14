@@ -1,5 +1,7 @@
 2011-04-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* region-cache.h (pp_cache): Mark as externally visible.
+
 	* process.c: Make symbols static if they're not exported.
 	(process_tick, update_tick, create_process, chan_process):
 	(Vprocess_alist, proc_buffered_char, datagram_access):
