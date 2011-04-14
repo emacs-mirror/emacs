@@ -1069,7 +1069,9 @@ extern void x_free_dpy_colors (Display *, Screen *, Colormap,
 /* Defined in xmenu.c */
 
 extern void x_menu_set_in_use (int);
+#ifdef USE_MOTIF
 extern void x_menu_wait_for_event (void *data);
+#endif
 extern void x_activate_menubar (struct frame *);
 extern int popup_activated (void);
 extern void initialize_frame_menubar (struct frame *);
