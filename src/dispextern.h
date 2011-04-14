@@ -3303,7 +3303,6 @@ extern struct terminal *init_tty (const char *, const char *, int);
 /* Defined in scroll.c */
 
 extern int scrolling_max_lines_saved (int, int, int *, int *, int *);
-extern int scroll_cost (struct frame *, int, int, int);
 extern void do_line_insertion_deletion_costs (struct frame *, const char *,
                                               const char *, const char *,
 					      const char *, const char *,

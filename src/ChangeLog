@@ -1,5 +1,8 @@
 2011-04-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* scroll.c (scroll_cost): Remove; unused.
+	* dispextern.h (scroll_cost): Remove decl.
+
 	* region-cache.h (pp_cache): Mark as externally visible.
 
 	* process.c: Make symbols static if they're not exported.

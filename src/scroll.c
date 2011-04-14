@@ -882,44 +882,6 @@ scrolling_max_lines_saved (int start, int end,
   return matchcount;
 }
 
-/* Return a measure of the cost of moving the lines starting with vpos
-   FROM, up to but not including vpos TO, down by AMOUNT lines (AMOUNT
-   may be negative).  */
-
-int
-scroll_cost (FRAME_PTR frame, int from, int to, int amount)
-{
-  /* Compute how many lines, at bottom of frame,
-     will not be involved in actual motion.  */
-  EMACS_INT limit = to;
-  EMACS_INT offset;
-  EMACS_INT height = FRAME_LINES (frame);
-
-  if (amount == 0)
-    return 0;
-
-  if (! FRAME_SCROLL_REGION_OK (frame))
-    limit = height;
-  else if (amount > 0)
-    limit += amount;
-
-  if (amount < 0)
-    {
-      int temp = to;
-      to = from + amount;
-      from = temp + amount;
-      amount = - amount;
-    }
-
-  offset = height - limit;
-
-  return
-    (FRAME_INSERT_COST (frame)[offset + from]
-     + (amount - 1) * FRAME_INSERTN_COST (frame)[offset + from]
-     + FRAME_DELETE_COST (frame)[offset + to]
-     + (amount - 1) * FRAME_DELETEN_COST (frame)[offset + to]);
-}
-
 /* Calculate the line insertion/deletion
    overhead and multiply factor values */
 
