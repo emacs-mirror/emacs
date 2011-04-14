@@ -1,5 +1,16 @@
 2011-04-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* term.c: Make symbols static if they're not exported.
+	(tty_turn_off_highlight, get_tty_terminal, max_frame_cols):
+	(max_frame_lines, tty_set_terminal_modes):
+	(tty_reset_terminal_modes, tty_turn_off_highlight):
+	(get_tty_terminal): Now static.
+	(term_mouse_moveto): Do not define if HAVE_WINDOW_SYSTEM.
+	* termhooks.h (term_mouse_moveto): Do not declare if
+	HAVE_WINDOW_SYSTEMM.
+	* dispextern.h (tty_set_terminal_modes, tty_reset_terminal_modes):
+	(tty_turn_off_highlight, get_tty_terminal): Remove decls.
+
 	* sysdep.c: Make symbols static if they're not exported.
 	(emacs_get_tty, emacs_set_tty, old_fcntl_flags, old_fcntl_owner):
 	Now static.
