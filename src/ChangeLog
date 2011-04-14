@@ -1,5 +1,11 @@
 2011-04-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* window.c (window_deletion_count): Now static.
+
+	* undo.c: Make symbols static if they're not exported.
+	(last_undo_buffer, last_boundary_position, pending_boundary):
+	Now static.
+
 	* textprop.c (interval_insert_behind_hooks): Now static.
 	(interval_insert_in_front_hooks): Likewise.
 
