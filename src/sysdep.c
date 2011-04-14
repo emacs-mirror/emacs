@@ -127,8 +127,6 @@ static const int baud_convert[] =
     1800, 2400, 4800, 9600, 19200, 38400
   };
 
-void croak (char *) NO_RETURN;
-
 /* Temporary used by `sigblock' when defined in terms of signprocmask.  */
 
 SIGMASKTYPE sigprocmask_set;
