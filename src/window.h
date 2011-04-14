@@ -776,7 +776,7 @@ extern void freeze_window_starts (struct frame *, int);
 extern void grow_mini_window (struct window *, int);
 extern void shrink_mini_window (struct window *);
 extern int window_relative_x_coord (struct window *, enum window_part, int);
-extern void check_all_windows (void);
+extern void check_all_windows (void) EXTERNALLY_VISIBLE;
 
 void run_window_configuration_change_hook (struct frame *f);
 

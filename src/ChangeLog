@@ -1,5 +1,7 @@
 2011-04-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* window.h (check_all_windows): Mark externally visible.
+
 	* window.c (window_deletion_count): Now static.
 
 	* undo.c: Make symbols static if they're not exported.
