@@ -4,10 +4,10 @@
 	However, leave prepare_to_modify_buffer alone.  It's never
 	called from outside this function, but that appears to be a bug.
 	(combine_after_change_list, combine_after_change_buffer):
-	(adjust_after_replace): Now static.
+	(adjust_after_replace, signal_before_change): Now static.
 	(adjust_after_replace_noundo): Remove; unused.
 	* lisp.h (adjust_after_replace, adjust_after_replace_noundo):
-	Remove decls.
+	(signal_before_change): Remove decls.
 
 	* indent.c (val_compute_motion, val_vmotion): Now static.
 

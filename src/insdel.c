@@ -66,6 +66,8 @@ static Lisp_Object combine_after_change_list;
 static Lisp_Object combine_after_change_buffer;
 
 Lisp_Object Qinhibit_modification_hooks;
+
+static void signal_before_change (EMACS_INT, EMACS_INT, EMACS_INT *);
 
 #define CHECK_MARKERS()				\
   do						\
@@ -1997,7 +1999,7 @@ reset_var_on_error (Lisp_Object val)
    If PRESERVE_PTR is nonzero, we relocate *PRESERVE_PTR
    by holding its value temporarily in a marker.  */
 
-void
+static void
 signal_before_change (EMACS_INT start_int, EMACS_INT end_int,
 		      EMACS_INT *preserve_ptr)
 {

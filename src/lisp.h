@@ -2568,7 +2568,6 @@ extern Lisp_Object del_range_2 (EMACS_INT, EMACS_INT,
 				EMACS_INT, EMACS_INT, int);
 extern void modify_region (struct buffer *, EMACS_INT, EMACS_INT, int);
 extern void prepare_to_modify_buffer (EMACS_INT, EMACS_INT, EMACS_INT *);
-extern void signal_before_change (EMACS_INT, EMACS_INT, EMACS_INT *);
 extern void signal_after_change (EMACS_INT, EMACS_INT, EMACS_INT);
 extern void adjust_after_insert (EMACS_INT, EMACS_INT, EMACS_INT,
 				 EMACS_INT, EMACS_INT);
