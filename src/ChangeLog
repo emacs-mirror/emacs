@@ -1,5 +1,7 @@
 2011-04-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xrdb.c (x_customization_string, x_rm_string): Now static.
+
 	* xmenu.c (x_menu_wait_for_event): Export only if USE_MOTIF.
 	* xterm.h (x_menu_wait_for_event): Declare only if USE_MOTIF.
 
