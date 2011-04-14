@@ -165,12 +165,10 @@ extern Lisp_Object QCfilter;
 extern int h_errno;
 #endif
 
-/* These next two vars are non-static since sysdep.c uses them in the
-   emulation of `select'.  */
 /* Number of events of change of status of a process.  */
-int process_tick;
+static int process_tick;
 /* Number of events for which the user or sentinel has been notified.  */
-int update_tick;
+static int update_tick;
 
 /* Define NON_BLOCKING_CONNECT if we can support non-blocking connects.  */
 
@@ -238,6 +236,7 @@ static int process_output_skip;
 #endif
 
 INFUN (Fget_process, 1);
+static void create_process (Lisp_Object, char **, Lisp_Object);
 static int keyboard_bit_set (SELECT_TYPE *);
 static void deactivate_process (Lisp_Object);
 static void status_notify (struct Lisp_Process *);
@@ -287,10 +286,10 @@ static int max_process_desc;
 static int max_input_desc;
 
 /* Indexed by descriptor, gives the process (if any) for that descriptor */
-Lisp_Object chan_process[MAXDESC];
+static Lisp_Object chan_process[MAXDESC];
 
 /* Alist of elements (NAME . PROCESS) */
-Lisp_Object Vprocess_alist;
+static Lisp_Object Vprocess_alist;
 
 /* Buffered-ahead input char from process, indexed by channel.
    -1 means empty (no char is buffered).
@@ -298,8 +297,7 @@ Lisp_Object Vprocess_alist;
    output from the process is to read at least one char.
    Always -1 on systems that support FIONREAD.  */
 
-/* Don't make static; need to access externally.  */
-int proc_buffered_char[MAXDESC];
+static int proc_buffered_char[MAXDESC];
 
 /* Table of `struct coding-system' for each process.  */
 static struct coding_system *proc_decode_coding_system[MAXDESC];
@@ -307,7 +305,7 @@ static struct coding_system *proc_encode_coding_system[MAXDESC];
 
 #ifdef DATAGRAM_SOCKETS
 /* Table of `partner address' for datagram sockets.  */
-struct sockaddr_and_len {
+static struct sockaddr_and_len {
   struct sockaddr *sa;
   int len;
 } datagram_address[MAXDESC];
@@ -323,7 +321,7 @@ static int pty_max_bytes;
 
 
 
-struct fd_callback_data
+static struct fd_callback_data
 {
   fd_callback func;
   void *data;
@@ -1521,7 +1519,7 @@ create_process_1 (struct atimer *timer)
 }
 
 
-void
+static void
 create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 {
   int inchannel, outchannel;
@@ -3793,7 +3791,7 @@ FLAGS is the current flags of the interface.  */)
 
 /* Turn off input and output for process PROC.  */
 
-void
+static void
 deactivate_process (Lisp_Object proc)
 {
   register int inchannel, outchannel;
@@ -5219,8 +5217,8 @@ read_process_output (Lisp_Object proc, register int channel)
 
 /* Sending data to subprocess */
 
-jmp_buf send_process_frame;
-Lisp_Object process_sent_to;
+static jmp_buf send_process_frame;
+static Lisp_Object process_sent_to;
 
 static void
 send_process_trap (int ignore)

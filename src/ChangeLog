@@ -1,5 +1,13 @@
 2011-04-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* process.c: Make symbols static if they're not exported.
+	(process_tick, update_tick, create_process, chan_process):
+	(Vprocess_alist, proc_buffered_char, datagram_access):
+	(fd_callback_data, send_process_frame, process_sent_to): Now static.
+	(deactivate_process): Mark defn as static, as well as decl.
+	* lisp.h (create_process): Remove decl.
+	* process.h (chan_process, Vprocess_alist): Remove decls.
+
 	* print.c: Make symbols static if they're not exported.
 	(print_depth, new_backquote_output, being_printed, print_buffer):
 	(print_buffer_size, print_buffer_pos, print_buffer_pos_byte):
