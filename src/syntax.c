@@ -141,7 +141,7 @@ static EMACS_INT find_start_begv;
 static int find_start_modiff;
 
 
-INFUN (Fsyntax_table_p, 1);
+static Lisp_Object Fsyntax_table_p (Lisp_Object);
 static Lisp_Object skip_chars (int, Lisp_Object, Lisp_Object, int);
 static Lisp_Object skip_syntaxes (int, Lisp_Object, Lisp_Object);
 static Lisp_Object scan_lists (EMACS_INT, EMACS_INT, EMACS_INT, int);

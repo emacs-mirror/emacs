@@ -76,7 +76,8 @@ static Lisp_Object interval_insert_behind_hooks;
 static Lisp_Object interval_insert_in_front_hooks;
 
 static void text_read_only (Lisp_Object) NO_RETURN;
-INFUN (Fprevious_property_change, 3);
+static Lisp_Object Fprevious_property_change (Lisp_Object, Lisp_Object,
+					      Lisp_Object);
 
 
 /* Signal a `text-read-only' error.  This function makes it easier

@@ -158,7 +158,8 @@ static Lisp_Object Qauto_composition_function;
    auto-compositions.  */
 #define MAX_AUTO_COMPOSITION_LOOKBACK 3
 
-INFUN (Fcomposition_get_gstring, 4);
+static Lisp_Object Fcomposition_get_gstring (Lisp_Object, Lisp_Object,
+					     Lisp_Object, Lisp_Object);
 
 /* Temporary variable used in macros COMPOSITION_XXX.  */
 Lisp_Object composition_temp;

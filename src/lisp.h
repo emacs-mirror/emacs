@@ -2276,8 +2276,6 @@ void staticpro (Lisp_Object *);
    appropriate prototype.  */
 #define EXFUN(fnname, maxargs) \
   extern Lisp_Object fnname DEFUN_ARGS_ ## maxargs
-#define INFUN(fnname, maxargs) \
-  static Lisp_Object fnname DEFUN_ARGS_ ## maxargs
 
 /* Forward declarations for prototypes.  */
 struct window;

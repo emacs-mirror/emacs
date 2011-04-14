@@ -108,7 +108,7 @@ static void transpose_markers (EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT,
 			       EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT);
 
 static Lisp_Object Qbuffer_access_fontify_functions;
-INFUN (Fuser_full_name, 1);
+static Lisp_Object Fuser_full_name (Lisp_Object);
 
 /* Symbol for the text property used to mark fields.  */
 

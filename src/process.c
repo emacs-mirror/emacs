@@ -235,7 +235,7 @@ static int process_output_skip;
 #define process_output_delay_count 0
 #endif
 
-INFUN (Fget_process, 1);
+static Lisp_Object Fget_process (Lisp_Object);
 static void create_process (Lisp_Object, char **, Lisp_Object);
 static int keyboard_bit_set (SELECT_TYPE *);
 static void deactivate_process (Lisp_Object);
@@ -1084,7 +1084,7 @@ DEFUN ("process-query-on-exit-flag",
 }
 
 #ifdef DATAGRAM_SOCKETS
-INFUN (Fprocess_datagram_address, 1);
+static Lisp_Object Fprocess_datagram_address (Lisp_Object);
 #endif
 
 DEFUN ("process-contact", Fprocess_contact, Sprocess_contact,

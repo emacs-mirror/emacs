@@ -137,7 +137,7 @@ static void free_color_table (void);
 static unsigned long *colors_in_color_table (int *n);
 static unsigned long lookup_pixel_color (struct frame *f, unsigned long p);
 #endif
-INFUN (Finit_image_library, 2);
+static Lisp_Object Finit_image_library (Lisp_Object, Lisp_Object);
 
 /* Code to deal with bitmaps.  Bitmaps are referenced by their bitmap
    id, which is just an int that this section returns.  Bitmaps are

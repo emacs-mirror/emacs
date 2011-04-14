@@ -3278,10 +3278,12 @@ change_window_heights (Lisp_Object window, int n)
 
 int window_select_count;
 
-INFUN (Fset_window_margins, 3);
-INFUN (Fset_window_fringes, 4);
-INFUN (Fset_window_scroll_bars, 4);
-INFUN (Fset_window_vscroll, 3);
+static Lisp_Object Fset_window_margins (Lisp_Object, Lisp_Object, Lisp_Object);
+static Lisp_Object Fset_window_fringes (Lisp_Object, Lisp_Object, Lisp_Object,
+					Lisp_Object);
+static Lisp_Object Fset_window_scroll_bars (Lisp_Object, Lisp_Object,
+					    Lisp_Object, Lisp_Object);
+static Lisp_Object Fset_window_vscroll (Lisp_Object, Lisp_Object, Lisp_Object);
 
 static void
 run_funs (Lisp_Object funs)

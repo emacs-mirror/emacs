@@ -1,5 +1,9 @@
 2011-04-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lisp.h (INFUN): Remove.  Suggested by Dan Nicolaescu in
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-04/msg00393.html>.
+	All uses spelled out.
+
 	Don't publish debugger-only interfaces to other modules.
 	* lisp.h (safe_debug_print, debug_output_compilation_hack):
 	(verify_bytepos, count_markers): Move decls to the only modules

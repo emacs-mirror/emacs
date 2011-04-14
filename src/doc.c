@@ -42,8 +42,9 @@ static char *get_doc_string_buffer;
 static int get_doc_string_buffer_size;
 
 static unsigned char *read_bytecode_pointer;
-INFUN (Fdocumentation_property, 3);
-INFUN (Fsnarf_documentation, 1);
+static Lisp_Object Fdocumentation_property (Lisp_Object, Lisp_Object,
+					    Lisp_Object);
+static Lisp_Object Fsnarf_documentation (Lisp_Object);
 
 /* readchar in lread.c calls back here to fetch the next byte.
    If UNREADFLAG is 1, we unread a byte.  */

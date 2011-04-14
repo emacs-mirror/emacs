@@ -87,7 +87,7 @@ static Lisp_Object Qfile_attributes;
 static Lisp_Object Qfile_attributes_lessp;
 
 static int scmp (const char *, const char *, int);
-INFUN (Ffile_attributes, 2);
+static Lisp_Object Ffile_attributes (Lisp_Object, Lisp_Object);
 
 #ifdef WINDOWSNT
 Lisp_Object

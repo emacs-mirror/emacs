@@ -458,7 +458,8 @@ static void interrupt_signal (int signalnum);
 #ifdef SIGIO
 static void input_available_signal (int signo);
 #endif
-INFUN (Fcommand_execute, 4);
+static Lisp_Object (Fcommand_execute) (Lisp_Object, Lisp_Object, Lisp_Object,
+				       Lisp_Object);
 static void handle_interrupt (void);
 static void quit_throw_to_read_char (void) NO_RETURN;
 static void timer_start_idle (void);
@@ -1193,7 +1194,7 @@ This also exits all active minibuffers.  */)
   Fthrow (Qtop_level, Qnil);
 }
 
-INFUN (Fexit_recursive_edit, 0) NO_RETURN;
+static Lisp_Object Fexit_recursive_edit (void) NO_RETURN;
 DEFUN ("exit-recursive-edit", Fexit_recursive_edit, Sexit_recursive_edit, 0, 0, "",
        doc: /* Exit from the innermost recursive edit or minibuffer.  */)
   (void)
@@ -1204,7 +1205,7 @@ DEFUN ("exit-recursive-edit", Fexit_recursive_edit, Sexit_recursive_edit, 0, 0, 
   error ("No recursive edit is in progress");
 }
 
-INFUN (Fabort_recursive_edit, 0) NO_RETURN;
+static Lisp_Object Fabort_recursive_edit (void) NO_RETURN;
 DEFUN ("abort-recursive-edit", Fabort_recursive_edit, Sabort_recursive_edit, 0, 0, "",
        doc: /* Abort the command that requested this recursive edit or minibuffer input.  */)
   (void)

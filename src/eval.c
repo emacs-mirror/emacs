@@ -142,7 +142,7 @@ static Lisp_Object funcall_lambda (Lisp_Object, size_t, Lisp_Object *);
 static void unwind_to_catch (struct catchtag *, Lisp_Object) NO_RETURN;
 static int interactive_p (int);
 static Lisp_Object apply_lambda (Lisp_Object fun, Lisp_Object args);
-INFUN (Ffetch_bytecode, 1);
+static Lisp_Object Ffetch_bytecode (Lisp_Object);
 
 void
 init_eval_once (void)

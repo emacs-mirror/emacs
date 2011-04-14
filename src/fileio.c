@@ -144,7 +144,7 @@ Lisp_Object Qfile_name_history;
 
 static Lisp_Object Qcar_less_than_car;
 
-INFUN (Fmake_symbolic_link, 3);
+static Lisp_Object Fmake_symbolic_link (Lisp_Object, Lisp_Object, Lisp_Object);
 static int a_write (int, Lisp_Object, int, int,
                     Lisp_Object *, struct coding_system *);
 static int e_write (int, Lisp_Object, int, int, struct coding_system *);
