@@ -1,4 +1,12 @@
-2011-04-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+2011-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-in-region-mode-predicate)
+	(completion-in-region-mode--predicate): New vars.
+	(completion-in-region, completion-in-region--postch)
+	(completion-in-region-mode): Use them.
+	(completion--capf-wrapper): Also return the hook function.
+	(completion-at-point, completion-help-at-point):
+	Adjust and provide a predicate.
 
 	Preserve arg names for advice of subr and lexical functions (bug#8457).
 	* help-fns.el (help-function-arglist): Consolidate the subr and
