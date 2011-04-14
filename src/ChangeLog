@@ -1,5 +1,7 @@
 2011-04-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* indent.c (val_compute_motion, val_vmotion): Now static.
+
 	* image.c: Make symbols static if they're not exported.
 	* dispextern.h (x_create_bitmap_from_xpm_data): Do not declare
 	if USE_GTK.
