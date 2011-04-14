@@ -1,4 +1,8 @@
- 2011-04-14  Paul Eggert  <eggert@cs.ucla.edu>
+2011-04-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* sysdep.c (croak): Now static, if
+	defined TIOCNOTTY || defined USG5 || defined CYGWIN.
+	* syssignal.h (croak): Declare only if not static.
 
 	* alloc.c (refill_memory_reserve): Now static if
 	!defined REL_ALLOC || defined SYSTEM_MALLOC.
