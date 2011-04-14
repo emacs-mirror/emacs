@@ -72,8 +72,8 @@ Lisp_Object Qfront_sticky, Qrear_nonsticky;
 
 /* verify_interval_modification saves insertion hooks here
    to be run later by report_interval_modification.  */
-Lisp_Object interval_insert_behind_hooks;
-Lisp_Object interval_insert_in_front_hooks;
+static Lisp_Object interval_insert_behind_hooks;
+static Lisp_Object interval_insert_in_front_hooks;
 
 static void text_read_only (Lisp_Object) NO_RETURN;
 INFUN (Fprevious_property_change, 3);

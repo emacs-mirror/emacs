@@ -1,5 +1,8 @@
 2011-04-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* textprop.c (interval_insert_behind_hooks): Now static.
+	(interval_insert_in_front_hooks): Likewise.
+
 	* term.c: Make symbols static if they're not exported.
 	(tty_turn_off_highlight, get_tty_terminal, max_frame_cols):
 	(max_frame_lines, tty_set_terminal_modes):
