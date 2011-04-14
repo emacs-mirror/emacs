@@ -1,5 +1,7 @@
 2011-04-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lisp.h (verify_bytepos, count_markers): Mark as externally visible.
+
 	* lread.c: Make symbols static if they're not exported.
 	(read_objects, initial_obarray, oblookup_last_bucket_number):
 	Now static.
