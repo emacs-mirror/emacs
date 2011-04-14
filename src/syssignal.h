@@ -35,8 +35,7 @@ extern void init_signals (void);
 #define SIGMASKTYPE sigset_t
 
 #define SIGEMPTYMASK (empty_mask)
-#define SIGFULLMASK (full_mask)
-extern sigset_t empty_mask, full_mask;
+extern sigset_t empty_mask;
 
 /* POSIX pretty much destroys any possibility of writing sigmask as a
    macro in standard C.  We always define our own version because the

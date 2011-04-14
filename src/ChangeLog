@@ -1,5 +1,13 @@
 2011-04-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* sysdep.c: Make symbols static if they're not exported.
+	(emacs_get_tty, emacs_set_tty, old_fcntl_flags, old_fcntl_owner):
+	Now static.
+	(sigprocmask_set, full_mask): Remove; unused.
+	(wait_debugging): Mark as visible.
+	* syssignal.h (SIGFULLMASK, full_mask): Remove decls.
+	* systty.h (emacs_get_tty, emacs_set_tty): Remove decls.
+
 	* syntax.c (syntax_temp): Define only if !__GNUC__.
 
 	* sound.c (current_sound_device, current_sound): Now static.

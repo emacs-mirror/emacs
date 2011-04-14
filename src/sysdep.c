@@ -118,6 +118,9 @@ struct utimbuf {
 #endif
 #endif
 
+static int emacs_get_tty (int, struct emacs_tty *);
+static int emacs_set_tty (int, struct emacs_tty *, int);
+
 /* Declare here, including term.h is problematic on some systems.  */
 extern void tputs (const char *, int, int (*)(int));
 
@@ -126,10 +129,6 @@ static const int baud_convert[] =
     0, 50, 75, 110, 135, 150, 200, 300, 600, 1200,
     1800, 2400, 4800, 9600, 19200, 38400
   };
-
-/* Temporary used by `sigblock' when defined in terms of signprocmask.  */
-
-SIGMASKTYPE sigprocmask_set;
 
 
 #if !defined (HAVE_GET_CURRENT_DIR_NAME) || defined (BROKEN_GET_CURRENT_DIR_NAME)
@@ -289,8 +288,9 @@ init_baud_rate (int fd)
 
 
 
-int wait_debugging;   /* Set nonzero to make following function work under dbx
-			 (at least for bsd).  */
+/* Set nonzero to make following function work under dbx
+   (at least for bsd).  */
+int wait_debugging EXTERNALLY_VISIBLE;
 
 #ifndef MSDOS
 /* Wait for subprocess with process id `pid' to terminate and
@@ -648,7 +648,7 @@ unrequest_sigio (void)
 #else
 #ifdef F_SETFL
 
-int old_fcntl_flags[MAXDESC];
+static int old_fcntl_flags[MAXDESC];
 
 void
 init_sigio (int fd)
@@ -807,7 +807,7 @@ emacs_set_tty (int fd, struct emacs_tty *settings, int flushp)
 
 
 #ifdef F_SETOWN
-int old_fcntl_owner[MAXDESC];
+static int old_fcntl_owner[MAXDESC];
 #endif /* F_SETOWN */
 
 /* This may also be defined in stdio,
@@ -1449,7 +1449,7 @@ init_system_name (void)
 /* POSIX signals support - DJB */
 /* Anyone with POSIX signals should have ANSI C declarations */
 
-sigset_t empty_mask, full_mask;
+sigset_t empty_mask;
 
 #ifndef WINDOWSNT
 
@@ -1538,7 +1538,6 @@ void
 init_signals (void)
 {
   sigemptyset (&empty_mask);
-  sigfillset (&full_mask);
 
 #if !defined HAVE_STRSIGNAL && !HAVE_DECL_SYS_SIGLIST
   if (! initialized)
