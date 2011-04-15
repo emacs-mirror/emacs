@@ -290,8 +290,7 @@ in order, to:\n
   :group 'htmlfontify
   :tag   "html-quote-map"
   :type  '(alist :key-type (string)))
-(eval-and-compile
-  (defconst hfy-e2x-etags-cmd "for src in `find . -type f`;
+(defconst hfy-e2x-etags-cmd "for src in `find . -type f`;
 do
   ETAGS=%s;
   case ${src} in
@@ -322,17 +321,17 @@ do
   esac;
 done;")
 
-  (defconst hfy-etags-cmd-alist-default
-    `(("emacs etags"     . ,hfy-e2x-etags-cmd)
-      ("exuberant ctags" . "%s -R -f -"   )))
+(defconst hfy-etags-cmd-alist-default
+  `(("emacs etags"     . ,hfy-e2x-etags-cmd)
+    ("exuberant ctags" . "%s -R -f -"   )))
 
-  (defcustom hfy-etags-cmd-alist
-    hfy-etags-cmd-alist-default
-    "Alist of possible shell commands that will generate etags output that
+(defcustom hfy-etags-cmd-alist
+  hfy-etags-cmd-alist-default
+  "Alist of possible shell commands that will generate etags output that
 `htmlfontify' can use.  '%s' will be replaced by `hfy-etags-bin'."
-    :group 'htmlfontify
-    :tag   "etags-cmd-alist"
-    :type  '(alist :key-type (string) :value-type (string)) ))
+  :group 'htmlfontify
+  :tag   "etags-cmd-alist"
+  :type  '(alist :key-type (string) :value-type (string)))
 
 (defcustom hfy-etags-bin "etags"
   "Location of etags binary (we begin by assuming it's in your path).\n
@@ -367,7 +366,13 @@ commands in `hfy-etags-cmd-alist'."
           ((string-match "GNU E" v) "emacs etags"    )) ))
 
 (defcustom hfy-etags-cmd
-  (eval-and-compile (cdr (assoc (hfy-which-etags) hfy-etags-cmd-alist)))
+  ;; We used to wrap this in a `eval-and-compile', but:
+  ;; - it had no effect because this expression was not seen by the
+  ;;   byte-compiler (defcustom used to quote this argument).
+  ;; - it signals an error (`hfy-which-etags' is not defined at compile-time).
+  ;; - we want this auto-detection to reflect the system on which Emacs is run
+  ;;   rather than the one on which it's compiled.
+  (cdr (assoc (hfy-which-etags) hfy-etags-cmd-alist))
   "The etags equivalent command to run in a source directory to generate a tags
 file for the whole source tree from there on down.  The command should emit
 the etags output on stdout.\n
@@ -375,11 +380,10 @@ Two canned commands are provided - they drive Emacs' etags and
 exuberant-ctags' etags respectively."
   :group 'htmlfontify
   :tag   "etags-command"
-  :type (eval-and-compile
-          (let ((clist (list '(string))))
-            (dolist (C hfy-etags-cmd-alist)
-              (push (list 'const :tag (car C) (cdr C)) clist))
-            (cons 'choice clist)) ))
+  :type (let ((clist (list '(string))))
+          (dolist (C hfy-etags-cmd-alist)
+            (push (list 'const :tag (car C) (cdr C)) clist))
+          (cons 'choice clist)))
 
 (defcustom hfy-istext-command "file %s | sed -e 's@^[^:]*:[ \t]*@@'"
   "Command to run with the name of a file, to see whether it is a text file
