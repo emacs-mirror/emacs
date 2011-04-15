@@ -1,3 +1,11 @@
+2011-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/gud.el (gud-gdb): Use completion-at-point instead of
+	gud-gdb-complete-command.
+	(gud-gdb-completions): New function, from gud-gdb-complete-command.
+	(gud-gdb-completion-at-point): New function.
+	(gud-gdb-completions): Remove.
+
 2011-04-14  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-sh-handle-file-attributes): Handle the
