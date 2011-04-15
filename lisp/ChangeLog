@@ -1,3 +1,7 @@
+2011-04-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* loadup.el: Use `string-to-number', not `string-to-int'.
+
 2011-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/gud.el (gud-gdb): Use completion-at-point instead of
@@ -8,11 +12,10 @@
 
 2011-04-14  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp-sh.el (tramp-sh-handle-file-attributes): Handle the
-	case when the scripts fail.  Use `tramp-do-file-attributes-with-ls'
-	then.
-	(tramp-do-copy-or-rename-file-out-of-band): Do not check any
-	longer, whether`executable-find' is bound.
+	* net/tramp-sh.el (tramp-sh-handle-file-attributes): Handle the case
+	when the scripts fail.  Use `tramp-do-file-attributes-with-ls' then.
+	(tramp-do-copy-or-rename-file-out-of-band): Do not check any longer
+	whether `executable-find' is bound.
 
 	* net/tramp-smb.el (tramp-smb-handle-copy-file): Fix docstring.
 
