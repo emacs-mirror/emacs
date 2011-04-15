@@ -83,6 +83,7 @@ Lisp_Object Qbytecode;
 
 /*  Byte codes: */
 
+#define Bstack_ref 0 /* Actually, Bstack_ref+0 is not implemented: use dup.  */
 #define Bvarref 010
 #define Bvarset 020
 #define Bvarbind 030
@@ -132,7 +133,7 @@ Lisp_Object Qbytecode;
 
 #define Bpoint 0140
 /* Was Bmark in v17.  */
-#define Bsave_current_buffer 0141
+#define Bsave_current_buffer 0141 /* Obsolete.  */
 #define Bgoto_char 0142
 #define Binsert 0143
 #define Bpoint_max 0144
@@ -158,7 +159,7 @@ Lisp_Object Qbytecode;
 #ifdef BYTE_CODE_SAFE
 #define Bset_mark 0163 /* this loser is no longer generated as of v18 */
 #endif
-#define Binteractive_p 0164 /* Needed since interactive-p takes unevalled args */
+#define Binteractive_p 0164 /* Obsolete since Emacs-24.1.  */
 
 #define Bforward_char 0165
 #define Bforward_word 0166
@@ -183,16 +184,16 @@ Lisp_Object Qbytecode;
 #define Bdup 0211
 
 #define Bsave_excursion 0212
-#define Bsave_window_excursion 0213
+#define Bsave_window_excursion 0213 /* Obsolete since Emacs-24.1.  */
 #define Bsave_restriction 0214
 #define Bcatch 0215
 
 #define Bunwind_protect 0216
 #define Bcondition_case 0217
-#define Btemp_output_buffer_setup 0220
-#define Btemp_output_buffer_show 0221
+#define Btemp_output_buffer_setup 0220 /* Obsolete since Emacs-24.1.  */
+#define Btemp_output_buffer_show 0221  /* Obsolete since Emacs-24.1.  */
 
-#define Bunbind_all 0222
+#define Bunbind_all 0222	/* Obsolete.  Never used.  */
 
 #define Bset_marker 0223
 #define Bmatch_beginning 0224
@@ -227,6 +228,11 @@ Lisp_Object Qbytecode;
 #define BlistN 0257
 #define BconcatN 0260
 #define BinsertN 0261
+
+/* Bstack_ref is code 0.  */
+#define Bstack_set  0262
+#define Bstack_set2 0263
+#define BdiscardN   0266
 
 #define Bconstant 0300
 
@@ -414,6 +420,21 @@ the third, MAXDEPTH, the maximum stack depth used in this function.
 If the third argument is incorrect, Emacs may crash.  */)
   (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth)
 {
+  return exec_byte_code (bytestr, vector, maxdepth, Qnil, 0, NULL);
+}
+
+/* Execute the byte-code in BYTESTR.  VECTOR is the constant vector, and
+   MAXDEPTH is the maximum stack depth used (if MAXDEPTH is incorrect,
+   emacs may crash!).  If ARGS_TEMPLATE is non-nil, it should be a lisp
+   argument list (including &rest, &optional, etc.), and ARGS, of size
+   NARGS, should be a vector of the actual arguments.  The arguments in
+   ARGS are pushed on the stack according to ARGS_TEMPLATE before
+   executing BYTESTR.  */
+
+Lisp_Object
+exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
+		Lisp_Object args_template, int nargs, Lisp_Object *args)
+{
   int count = SPECPDL_INDEX ();
 #ifdef BYTE_CODE_METER
   int this_op = 0;
@@ -425,8 +446,8 @@ If the third argument is incorrect, Emacs may crash.  */)
 #ifdef BYTE_CODE_SAFE
   int const_length = XVECTOR (vector)->size;
   Lisp_Object *stacke;
-#endif
   int bytestr_length;
+#endif
   struct byte_stack stack;
   Lisp_Object *top;
   Lisp_Object result;
@@ -453,7 +474,9 @@ If the third argument is incorrect, Emacs may crash.  */)
        convert them back to the originally intended unibyte form.  */
     bytestr = Fstring_as_unibyte (bytestr);
 
+#ifdef BYTE_CODE_SAFE
   bytestr_length = SBYTES (bytestr);
+#endif
   vectorp = XVECTOR (vector)->contents;
 
   stack.byte_string = bytestr;
@@ -472,6 +495,52 @@ If the third argument is incorrect, Emacs may crash.  */)
 #ifdef BYTE_CODE_SAFE
   stacke = stack.bottom - 1 + XFASTINT (maxdepth);
 #endif
+
+  if (INTEGERP (args_template))
+    {
+      int at = XINT (args_template);
+      int rest = at & 128;
+      int mandatory = at & 127;
+      int nonrest = at >> 8;
+      eassert (mandatory <= nonrest);
+      if (nargs <= nonrest)
+	{
+	  int i;
+	  for (i = 0 ; i < nargs; i++, args++)
+	    PUSH (*args);
+	  if (nargs < mandatory)
+	    /* Too few arguments.  */
+	    Fsignal (Qwrong_number_of_arguments,
+		     Fcons (Fcons (make_number (mandatory),
+				   rest ? Qand_rest : make_number (nonrest)),
+			    Fcons (make_number (nargs), Qnil)));
+	  else
+	    {
+	      for (; i < nonrest; i++)
+		PUSH (Qnil);
+	      if (rest)
+		PUSH (Qnil);
+	    }
+	}
+      else if (rest)
+	{
+	  int i;
+	  for (i = 0 ; i < nonrest; i++, args++)
+	    PUSH (*args);
+	  PUSH (Flist (nargs - nonrest, args));
+	}
+      else
+	/* Too many arguments.  */
+	Fsignal (Qwrong_number_of_arguments,
+		 Fcons (Fcons (make_number (mandatory),
+			       make_number (nonrest)),
+			Fcons (make_number (nargs), Qnil)));
+    }
+  else if (! NILP (args_template))
+    /* We should push some arguments on the stack.  */
+    {
+      error ("Unknown args template!");
+    }
 
   while (1)
     {
@@ -554,7 +623,16 @@ If the third argument is incorrect, Emacs may crash.  */)
 	  {
 	    Lisp_Object v1;
 	    v1 = TOP;
-	    TOP = CAR (v1);
+	    if (CONSP (v1))
+	      TOP = XCAR (v1);
+	    else if (NILP (v1))
+	      TOP = Qnil;
+	    else
+	      {
+		BEFORE_POTENTIAL_GC ();
+		wrong_type_argument (Qlistp, v1);
+		AFTER_POTENTIAL_GC ();
+	      }
 	    break;
 	  }
 
@@ -580,7 +658,17 @@ If the third argument is incorrect, Emacs may crash.  */)
 	  {
 	    Lisp_Object v1;
 	    v1 = TOP;
-	    TOP = CDR (v1);
+	    if (CONSP (v1))
+	      TOP = XCDR (v1);
+	    else if (NILP (v1))
+	      TOP = Qnil;
+	    else
+	      {
+		BEFORE_POTENTIAL_GC ();
+		wrong_type_argument (Qlistp, v1);
+		AFTER_POTENTIAL_GC ();
+	      }
+	    break;
 	    break;
 	  }
 
@@ -714,7 +802,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 	  AFTER_POTENTIAL_GC ();
 	  break;
 
-	case Bunbind_all:
+	case Bunbind_all:	/* Obsolete.  Never used.  */
 	  /* To unbind back to the beginning of this frame.  Not used yet,
 	     but will be needed for tail-recursion elimination.  */
 	  BEFORE_POTENTIAL_GC ();
@@ -842,37 +930,43 @@ If the third argument is incorrect, Emacs may crash.  */)
 				 save_excursion_save ());
 	  break;
 
-	case Bsave_current_buffer:
+	case Bsave_current_buffer: /* Obsolete since ??.  */
 	case Bsave_current_buffer_1:
 	  record_unwind_protect (set_buffer_if_live, Fcurrent_buffer ());
 	  break;
 
-	case Bsave_window_excursion:
-	  BEFORE_POTENTIAL_GC ();
-	  TOP = Fsave_window_excursion (TOP);
-	  AFTER_POTENTIAL_GC ();
-	  break;
+	case Bsave_window_excursion: /* Obsolete since 24.1.  */
+	  {
+	    register int count1 = SPECPDL_INDEX ();
+	    record_unwind_protect (Fset_window_configuration,
+				   Fcurrent_window_configuration (Qnil));
+	    BEFORE_POTENTIAL_GC ();
+	    TOP = Fprogn (TOP);
+	    unbind_to (count1, TOP);
+	    AFTER_POTENTIAL_GC ();
+	    break;
+	  }
 
 	case Bsave_restriction:
 	  record_unwind_protect (save_restriction_restore,
 				 save_restriction_save ());
 	  break;
 
-	case Bcatch:
+	case Bcatch:		/* FIXME: ill-suited for lexbind */
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
 	    v1 = POP;
-	    TOP = internal_catch (TOP, Feval, v1);
+	    TOP = internal_catch (TOP, eval_sub, v1);
 	    AFTER_POTENTIAL_GC ();
 	    break;
 	  }
 
-	case Bunwind_protect:
+	case Bunwind_protect:	/* FIXME: avoid closure for lexbind */
 	  record_unwind_protect (Fprogn, POP);
 	  break;
 
-	case Bcondition_case:
+	case Bcondition_case:	/* FIXME: ill-suited for lexbind */
 	  {
 	    Lisp_Object handlers, body;
 	    handlers = POP;
@@ -883,7 +977,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 	    break;
 	  }
 
-	case Btemp_output_buffer_setup:
+	case Btemp_output_buffer_setup: /* Obsolete since 24.1.  */
 	  BEFORE_POTENTIAL_GC ();
 	  CHECK_STRING (TOP);
 	  temp_output_buffer_setup (SSDATA (TOP));
@@ -891,7 +985,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 	  TOP = Vstandard_output;
 	  break;
 
-	case Btemp_output_buffer_show:
+	case Btemp_output_buffer_show: /* Obsolete since 24.1.  */
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
@@ -911,13 +1005,13 @@ If the third argument is incorrect, Emacs may crash.  */)
 	    v1 = POP;
 	    v2 = TOP;
 	    CHECK_NUMBER (v2);
-	    AFTER_POTENTIAL_GC ();
 	    op = XINT (v2);
 	    immediate_quit = 1;
 	    while (--op >= 0 && CONSP (v1))
 	      v1 = XCDR (v1);
 	    immediate_quit = 0;
 	    TOP = CAR (v1);
+	    AFTER_POTENTIAL_GC ();
 	    break;
 	  }
 
@@ -1363,7 +1457,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 	  AFTER_POTENTIAL_GC ();
 	  break;
 
-	case Binteractive_p:
+	case Binteractive_p:	/* Obsolete since 24.1.  */
 	  PUSH (Finteractive_p ());
 	  break;
 
@@ -1653,7 +1747,56 @@ If the third argument is incorrect, Emacs may crash.  */)
 #endif
 
 	case 0:
+	  /* Actually this is Bstack_ref with offset 0, but we use Bdup
+	     for that instead.  */
+	  /* case Bstack_ref: */
 	  abort ();
+
+	  /* Handy byte-codes for lexical binding.  */
+	case Bstack_ref+1:
+	case Bstack_ref+2:
+	case Bstack_ref+3:
+	case Bstack_ref+4:
+	case Bstack_ref+5:
+	  {
+	    Lisp_Object *ptr = top - (op - Bstack_ref);
+	    PUSH (*ptr);
+	    break;
+	  }
+	case Bstack_ref+6:
+	  {
+	    Lisp_Object *ptr = top - (FETCH);
+	    PUSH (*ptr);
+	    break;
+	  }
+	case Bstack_ref+7:
+	  {
+	    Lisp_Object *ptr = top - (FETCH2);
+	    PUSH (*ptr);
+	    break;
+	  }
+	  /* stack-set-0 = discard; stack-set-1 = discard-1-preserve-tos.  */
+	case Bstack_set:
+	  {
+	    Lisp_Object *ptr = top - (FETCH);
+	    *ptr = POP;
+	    break;
+	  }
+	case Bstack_set2:
+	  {
+	    Lisp_Object *ptr = top - (FETCH2);
+	    *ptr = POP;
+	    break;
+	  }
+	case BdiscardN:
+	  op = FETCH;
+	  if (op & 0x80)
+	    {
+	      op &= 0x7F;
+	      top[-op] = TOP;
+	    }
+	  DISCARD (op);
+	  break;
 
 	case 255:
 	default:

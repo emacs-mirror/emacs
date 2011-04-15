@@ -632,7 +632,7 @@ selecting FRAME-VAR."
 FRAME-VAR is the variable storing the currently active dedicated frame.
 If the current frame's buffer uses DESIRED-MAJOR-MODE, then use that frame."
   (if (not (eq (selected-frame) (symbol-value frame-var)))
-      (if (and (eq major-mode 'desired-major-mode)
+      (if (and (eq major-mode desired-major-mode)
 	       (get-buffer-window (current-buffer))
 	       (window-frame (get-buffer-window (current-buffer))))
 	  (window-frame (get-buffer-window (current-buffer)))

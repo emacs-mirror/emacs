@@ -31,6 +31,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif /* HAVE_LIMITS_H */
 #include <unistd.h>
 
+#include <allocator.h>
+#include <careadlinkat.h>
 #include <ignore-value.h>
 
 #include "lisp.h"
@@ -116,6 +118,12 @@ struct utimbuf {
 #endif
 #endif
 
+static int emacs_get_tty (int, struct emacs_tty *);
+static int emacs_set_tty (int, struct emacs_tty *, int);
+#if defined TIOCNOTTY || defined USG5 || defined CYGWIN
+static void croak (char *) NO_RETURN;
+#endif
+
 /* Declare here, including term.h is problematic on some systems.  */
 extern void tputs (const char *, int, int (*)(int));
 
@@ -124,12 +132,6 @@ static const int baud_convert[] =
     0, 50, 75, 110, 135, 150, 200, 300, 600, 1200,
     1800, 2400, 4800, 9600, 19200, 38400
   };
-
-void croak (char *) NO_RETURN;
-
-/* Temporary used by `sigblock' when defined in terms of signprocmask.  */
-
-SIGMASKTYPE sigprocmask_set;
 
 
 #if !defined (HAVE_GET_CURRENT_DIR_NAME) || defined (BROKEN_GET_CURRENT_DIR_NAME)
@@ -289,8 +291,9 @@ init_baud_rate (int fd)
 
 
 
-int wait_debugging;   /* Set nonzero to make following function work under dbx
-			 (at least for bsd).  */
+/* Set nonzero to make following function work under dbx
+   (at least for bsd).  */
+int wait_debugging EXTERNALLY_VISIBLE;
 
 #ifndef MSDOS
 /* Wait for subprocess with process id `pid' to terminate and
@@ -648,7 +651,7 @@ unrequest_sigio (void)
 #else
 #ifdef F_SETFL
 
-int old_fcntl_flags[MAXDESC];
+static int old_fcntl_flags[MAXDESC];
 
 void
 init_sigio (int fd)
@@ -807,7 +810,7 @@ emacs_set_tty (int fd, struct emacs_tty *settings, int flushp)
 
 
 #ifdef F_SETOWN
-int old_fcntl_owner[MAXDESC];
+static int old_fcntl_owner[MAXDESC];
 #endif /* F_SETOWN */
 
 /* This may also be defined in stdio,
@@ -1449,7 +1452,7 @@ init_system_name (void)
 /* POSIX signals support - DJB */
 /* Anyone with POSIX signals should have ANSI C declarations */
 
-sigset_t empty_mask, full_mask;
+sigset_t empty_mask;
 
 #ifndef WINDOWSNT
 
@@ -1538,7 +1541,6 @@ void
 init_signals (void)
 {
   sigemptyset (&empty_mask);
-  sigfillset (&full_mask);
 
 #if !defined HAVE_STRSIGNAL && !HAVE_DECL_SYS_SIGLIST
   if (! initialized)
@@ -1823,10 +1825,18 @@ emacs_close (int fd)
   return rtnval;
 }
 
-int
-emacs_read (int fildes, char *buf, unsigned int nbyte)
+ssize_t
+emacs_read (int fildes, char *buf, size_t nbyte)
 {
-  register int rtnval;
+  register ssize_t rtnval;
+
+  /* Defend against the possibility that a buggy caller passes a negative NBYTE
+     argument, which would be converted to a large unsigned size_t NBYTE.  This
+     defense prevents callers from doing large writes, unfortunately.  This
+     size restriction can be removed once we have carefully checked that there
+     are no such callers.  */
+  if ((ssize_t) nbyte < 0)
+    abort ();
 
   while ((rtnval = read (fildes, buf, nbyte)) == -1
 	 && (errno == EINTR))
@@ -1834,14 +1844,18 @@ emacs_read (int fildes, char *buf, unsigned int nbyte)
   return (rtnval);
 }
 
-int
-emacs_write (int fildes, const char *buf, unsigned int nbyte)
+ssize_t
+emacs_write (int fildes, const char *buf, size_t nbyte)
 {
-  register int rtnval, bytes_written;
+  register ssize_t rtnval, bytes_written;
+
+  /* Defend against negative NBYTE, as in emacs_read.  */
+  if ((ssize_t) nbyte < 0)
+    abort ();
 
   bytes_written = 0;
 
-  while (nbyte > 0)
+  while (nbyte != 0)
     {
       rtnval = write (fildes, buf, nbyte);
 
@@ -1865,6 +1879,22 @@ emacs_write (int fildes, const char *buf, unsigned int nbyte)
       bytes_written += rtnval;
     }
   return (bytes_written);
+}
+
+static struct allocator const emacs_norealloc_allocator =
+  { xmalloc, NULL, xfree, memory_full };
+
+/* Get the symbolic link value of FILENAME.  Return a pointer to a
+   NUL-terminated string.  If readlink fails, return NULL and set
+   errno.  If the value fits in INITIAL_BUF, return INITIAL_BUF.
+   Otherwise, allocate memory and return a pointer to that memory.  If
+   memory allocation fails, diagnose and fail without returning.  If
+   successful, store the length of the symbolic link into *LINKLEN.  */
+char *
+emacs_readlink (char const *filename, char initial_buf[READLINK_BUFSIZE])
+{
+  return careadlinkat (AT_FDCWD, filename, initial_buf, READLINK_BUFSIZE,
+		       &emacs_norealloc_allocator, careadlinkatcwd);
 }
 
 #ifdef USG
@@ -2343,7 +2373,8 @@ serial_configure (struct Lisp_Process *p,
   CHECK_NUMBER (tem);
   err = cfsetspeed (&attr, XINT (tem));
   if (err != 0)
-    error ("cfsetspeed(%d) failed: %s", XINT (tem), emacs_strerror (errno));
+    error ("cfsetspeed(%"pEd") failed: %s", XINT (tem),
+	   emacs_strerror (errno));
   childp2 = Fplist_put (childp2, QCspeed, tem);
 
   /* Configure bytesize.  */

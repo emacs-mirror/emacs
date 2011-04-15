@@ -88,64 +88,67 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 /* Nonzero during writing of auto-save files */
-int auto_saving;
+static int auto_saving;
 
 /* Set by auto_save_1 to mode of original file so Fwrite_region will create
    a new file with the same mode as the original */
-int auto_save_mode_bits;
+static int auto_save_mode_bits;
 
 /* Set by auto_save_1 if an error occurred during the last auto-save. */
-int auto_save_error_occurred;
+static int auto_save_error_occurred;
 
 /* The symbol bound to coding-system-for-read when
    insert-file-contents is called for recovering a file.  This is not
    an actual coding system name, but just an indicator to tell
    insert-file-contents to use `emacs-mule' with a special flag for
    auto saving and recovering a file.  */
-Lisp_Object Qauto_save_coding;
+static Lisp_Object Qauto_save_coding;
 
 /* Property name of a file name handler,
    which gives a list of operations it handles..  */
-Lisp_Object Qoperations;
+static Lisp_Object Qoperations;
 
 /* Lisp functions for translating file formats */
-Lisp_Object Qformat_decode, Qformat_annotate_function;
+static Lisp_Object Qformat_decode, Qformat_annotate_function;
 
 /* Lisp function for setting buffer-file-coding-system and the
    multibyteness of the current buffer after inserting a file.  */
-Lisp_Object Qafter_insert_file_set_coding;
+static Lisp_Object Qafter_insert_file_set_coding;
 
-Lisp_Object Qwrite_region_annotate_functions;
+static Lisp_Object Qwrite_region_annotate_functions;
 /* Each time an annotation function changes the buffer, the new buffer
    is added here.  */
-Lisp_Object Vwrite_region_annotation_buffers;
+static Lisp_Object Vwrite_region_annotation_buffers;
 
 #ifdef HAVE_FSYNC
 #endif
 
-Lisp_Object Qdelete_by_moving_to_trash;
+static Lisp_Object Qdelete_by_moving_to_trash;
 
 /* Lisp function for moving files to trash.  */
-Lisp_Object Qmove_file_to_trash;
+static Lisp_Object Qmove_file_to_trash;
 
 /* Lisp function for recursively copying directories.  */
-Lisp_Object Qcopy_directory;
+static Lisp_Object Qcopy_directory;
 
 /* Lisp function for recursively deleting directories.  */
-Lisp_Object Qdelete_directory;
+static Lisp_Object Qdelete_directory;
 
 #ifdef WINDOWSNT
 #endif
 
-Lisp_Object Qfile_error, Qfile_already_exists, Qfile_date_error;
-Lisp_Object Qexcl;
+Lisp_Object Qfile_error;
+static Lisp_Object Qfile_already_exists, Qfile_date_error;
+static Lisp_Object Qexcl;
 Lisp_Object Qfile_name_history;
 
-Lisp_Object Qcar_less_than_car;
+static Lisp_Object Qcar_less_than_car;
 
-static int a_write (int, Lisp_Object, int, int,
+static Lisp_Object Fmake_symbolic_link (Lisp_Object, Lisp_Object, Lisp_Object);
+static int a_write (int, Lisp_Object, EMACS_INT, EMACS_INT,
                     Lisp_Object *, struct coding_system *);
-static int e_write (int, Lisp_Object, int, int, struct coding_system *);
+static int e_write (int, Lisp_Object, EMACS_INT, EMACS_INT,
+		    struct coding_system *);
 
 
 void
@@ -204,42 +207,43 @@ restore_point_unwind (Lisp_Object location)
 }
 
 
-Lisp_Object Qexpand_file_name;
-Lisp_Object Qsubstitute_in_file_name;
-Lisp_Object Qdirectory_file_name;
-Lisp_Object Qfile_name_directory;
-Lisp_Object Qfile_name_nondirectory;
-Lisp_Object Qunhandled_file_name_directory;
-Lisp_Object Qfile_name_as_directory;
-Lisp_Object Qcopy_file;
-Lisp_Object Qmake_directory_internal;
-Lisp_Object Qmake_directory;
-Lisp_Object Qdelete_directory_internal;
+static Lisp_Object Qexpand_file_name;
+static Lisp_Object Qsubstitute_in_file_name;
+static Lisp_Object Qdirectory_file_name;
+static Lisp_Object Qfile_name_directory;
+static Lisp_Object Qfile_name_nondirectory;
+static Lisp_Object Qunhandled_file_name_directory;
+static Lisp_Object Qfile_name_as_directory;
+static Lisp_Object Qcopy_file;
+static Lisp_Object Qmake_directory_internal;
+static Lisp_Object Qmake_directory;
+static Lisp_Object Qdelete_directory_internal;
 Lisp_Object Qdelete_file;
-Lisp_Object Qrename_file;
-Lisp_Object Qadd_name_to_file;
-Lisp_Object Qmake_symbolic_link;
+static Lisp_Object Qrename_file;
+static Lisp_Object Qadd_name_to_file;
+static Lisp_Object Qmake_symbolic_link;
 Lisp_Object Qfile_exists_p;
-Lisp_Object Qfile_executable_p;
-Lisp_Object Qfile_readable_p;
-Lisp_Object Qfile_writable_p;
-Lisp_Object Qfile_symlink_p;
-Lisp_Object Qaccess_file;
+static Lisp_Object Qfile_executable_p;
+static Lisp_Object Qfile_readable_p;
+static Lisp_Object Qfile_writable_p;
+static Lisp_Object Qfile_symlink_p;
+static Lisp_Object Qaccess_file;
 Lisp_Object Qfile_directory_p;
-Lisp_Object Qfile_regular_p;
-Lisp_Object Qfile_accessible_directory_p;
-Lisp_Object Qfile_modes;
-Lisp_Object Qset_file_modes;
-Lisp_Object Qset_file_times;
-Lisp_Object Qfile_selinux_context;
-Lisp_Object Qset_file_selinux_context;
-Lisp_Object Qfile_newer_than_file_p;
+static Lisp_Object Qfile_regular_p;
+static Lisp_Object Qfile_accessible_directory_p;
+static Lisp_Object Qfile_modes;
+static Lisp_Object Qset_file_modes;
+static Lisp_Object Qset_file_times;
+static Lisp_Object Qfile_selinux_context;
+static Lisp_Object Qset_file_selinux_context;
+static Lisp_Object Qfile_newer_than_file_p;
 Lisp_Object Qinsert_file_contents;
 Lisp_Object Qwrite_region;
-Lisp_Object Qverify_visited_file_modtime;
-Lisp_Object Qset_visited_file_modtime;
+static Lisp_Object Qverify_visited_file_modtime;
+static Lisp_Object Qset_visited_file_modtime;
 
-DEFUN ("find-file-name-handler", Ffind_file_name_handler, Sfind_file_name_handler, 2, 2, 0,
+DEFUN ("find-file-name-handler", Ffind_file_name_handler,
+       Sfind_file_name_handler, 2, 2, 0,
        doc: /* Return FILENAME's handler function for OPERATION, if it has one.
 Otherwise, return nil.
 A file name is handled if one of the regular expressions in
@@ -271,7 +275,7 @@ use the standard functions without calling themselves recursively.  */)
       if (CONSP (elt))
 	{
 	  Lisp_Object string = XCAR (elt);
-	  int match_pos;
+	  EMACS_INT match_pos;
 	  Lisp_Object handler = XCDR (elt);
 	  Lisp_Object operations = Qnil;
 
@@ -1805,7 +1809,8 @@ If PRESERVE-SELINUX-CONTEXT is non-nil and SELinux is enabled
 on the system, we copy the SELinux context of FILE to NEWNAME.  */)
   (Lisp_Object file, Lisp_Object newname, Lisp_Object ok_if_already_exists, Lisp_Object keep_time, Lisp_Object preserve_uid_gid, Lisp_Object preserve_selinux_context)
 {
-  int ifd, ofd, n;
+  int ifd, ofd;
+  EMACS_INT n;
   char buf[16 * 1024];
   struct stat st, out_st;
   Lisp_Object handler;
@@ -2579,9 +2584,8 @@ points to a nonexistent file.  */)
 {
   Lisp_Object handler;
   char *buf;
-  int bufsize;
-  int valsize;
   Lisp_Object val;
+  char readlink_buf[READLINK_BUFSIZE];
 
   CHECK_STRING (filename);
   filename = Fexpand_file_name (filename, Qnil);
@@ -2594,36 +2598,15 @@ points to a nonexistent file.  */)
 
   filename = ENCODE_FILE (filename);
 
-  bufsize = 50;
-  buf = NULL;
-  do
-    {
-      bufsize *= 2;
-      buf = (char *) xrealloc (buf, bufsize);
-      memset (buf, 0, bufsize);
+  buf = emacs_readlink (SSDATA (filename), readlink_buf);
+  if (! buf)
+    return Qnil;
 
-      errno = 0;
-      valsize = readlink (SSDATA (filename), buf, bufsize);
-      if (valsize == -1)
-	{
-#ifdef ERANGE
-	  /* HP-UX reports ERANGE if buffer is too small.  */
-	  if (errno == ERANGE)
-	    valsize = bufsize;
-	  else
-#endif
-	    {
-	      xfree (buf);
-	      return Qnil;
-	    }
-	}
-    }
-  while (valsize >= bufsize);
-
-  val = make_string (buf, valsize);
+  val = build_string (buf);
   if (buf[0] == '/' && strchr (buf, ':'))
     val = concat2 (build_string ("/:"), val);
-  xfree (buf);
+  if (buf != readlink_buf)
+    xfree (buf);
   val = DECODE_FILE (val);
   return val;
 }
@@ -2653,7 +2636,8 @@ See `file-symlink-p' to distinguish symlinks.  */)
   return S_ISDIR (st.st_mode) ? Qt : Qnil;
 }
 
-DEFUN ("file-accessible-directory-p", Ffile_accessible_directory_p, Sfile_accessible_directory_p, 1, 1, 0,
+DEFUN ("file-accessible-directory-p", Ffile_accessible_directory_p,
+       Sfile_accessible_directory_p, 1, 1, 0,
        doc: /* Return t if file FILENAME names a directory you can open.
 For the value to be t, FILENAME must specify the name of a directory as a file,
 and the directory must allow you to open files in it.  In order to use a
@@ -3225,7 +3209,6 @@ variable `last-coding-system-used' to the coding system actually used.  */)
   if (stat (SSDATA (filename), &st) < 0)
 #endif /* WINDOWSNT */
     {
-      if (fd >= 0) emacs_close (fd);
     badopen:
       if (NILP (visit))
 	report_file_error ("Opening input file", Fcons (orig_filename, Qnil));
@@ -3261,9 +3244,16 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 
   record_unwind_protect (close_file_unwind, make_number (fd));
 
-  /* Can happen on any platform that uses long as type of off_t, but allows
-     file sizes to exceed 2Gb, so give a suitable message.  */
-  if (! not_regular && st.st_size < 0)
+
+  /* Arithmetic overflow can occur if an Emacs integer cannot represent the
+     file size, or if the calculations below overflow.  The calculations below
+     double the file size twice, so check that it can be multiplied by 4
+     safely.
+
+     Also check whether the size is negative, which can happen on a platform
+     that allows file sizes greater than the maximum off_t value.  */
+  if (! not_regular
+      && ! (0 <= st.st_size && st.st_size <= MOST_POSITIVE_FIXNUM / 4))
     error ("Maximum buffer size exceeded");
 
   /* Prevent redisplay optimizations.  */
@@ -3289,18 +3279,6 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       if (! not_regular)
 	{
 	  XSETINT (end, st.st_size);
-
-	  /* Arithmetic overflow can occur if an Emacs integer cannot
-	     represent the file size, or if the calculations below
-	     overflow.  The calculations below double the file size
-	     twice, so check that it can be multiplied by 4 safely.  */
-	  if (XINT (end) != st.st_size
-	      /* Actually, it should test either INT_MAX or LONG_MAX
-		 depending on which one is used for EMACS_INT.  But in
-		 any case, in practice, this test is redundant with the
-		 one above.
-		 || st.st_size > INT_MAX / 4 */)
-	    error ("Maximum buffer size exceeded");
 
 	  /* The file size returned from stat may be zero, but data
 	     may be readable nonetheless, for example when this is a
@@ -3635,6 +3613,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       EMACS_INT bufpos;
       unsigned char *decoded;
       EMACS_INT temp;
+      EMACS_INT this = 0;
       int this_count = SPECPDL_INDEX ();
       int multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
       Lisp_Object conversion_buffer;
@@ -3661,7 +3640,6 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	  /* try is reserved in some compilers (Microsoft C) */
 	  EMACS_INT trytry = min (total - how_much,
 				  READ_BUF_SIZE - unprocessed);
-	  EMACS_INT this;
 
 	  /* Allow quitting out of the actual I/O.  */
 	  immediate_quit = 1;
@@ -3670,11 +3648,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	  immediate_quit = 0;
 
 	  if (this <= 0)
-	    {
-	      if (this < 0)
-		how_much = this;
-	      break;
-	    }
+	    break;
 
 	  how_much += this;
 
@@ -3697,7 +3671,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       /* At this point, HOW_MUCH should equal TOTAL, or should be <= 0
 	 if we couldn't read the file.  */
 
-      if (how_much < 0)
+      if (this < 0)
 	error ("IO error reading %s: %s",
 	       SDATA (orig_filename), emacs_strerror (errno));
 
@@ -3830,7 +3804,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
     /* For a special file, all we can do is guess.  */
     total = READ_BUF_SIZE;
 
-  if (NILP (visit) && inserted > 0)
+  if (NILP (visit) && total > 0)
     {
 #ifdef CLASH_DETECTION
       if (!NILP (BVAR (current_buffer, file_truename))
@@ -4824,11 +4798,13 @@ build_annotations (Lisp_Object start, Lisp_Object end)
    The return value is negative in case of system call failure.  */
 
 static int
-a_write (int desc, Lisp_Object string, int pos, register int nchars, Lisp_Object *annot, struct coding_system *coding)
+a_write (int desc, Lisp_Object string, EMACS_INT pos,
+	 register EMACS_INT nchars, Lisp_Object *annot,
+	 struct coding_system *coding)
 {
   Lisp_Object tem;
-  int nextpos;
-  int lastpos = pos + nchars;
+  EMACS_INT nextpos;
+  EMACS_INT lastpos = pos + nchars;
 
   while (NILP (*annot) || CONSP (*annot))
     {
@@ -4868,7 +4844,8 @@ a_write (int desc, Lisp_Object string, int pos, register int nchars, Lisp_Object
    are indexes to the string STRING.  */
 
 static int
-e_write (int desc, Lisp_Object string, int start, int end, struct coding_system *coding)
+e_write (int desc, Lisp_Object string, EMACS_INT start, EMACS_INT end,
+	 struct coding_system *coding)
 {
   if (STRINGP (string))
     {
@@ -4899,8 +4876,8 @@ e_write (int desc, Lisp_Object string, int start, int end, struct coding_system 
 	}
       else
 	{
-	  int start_byte = CHAR_TO_BYTE (start);
-	  int end_byte = CHAR_TO_BYTE (end);
+	  EMACS_INT start_byte = CHAR_TO_BYTE (start);
+	  EMACS_INT end_byte = CHAR_TO_BYTE (end);
 
 	  coding->src_multibyte = (end - start) < (end_byte - start_byte);
 	  if (CODING_REQUIRE_ENCODING (coding))

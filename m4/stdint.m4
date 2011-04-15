@@ -1,4 +1,4 @@
-# stdint.m4 serial 39
+# stdint.m4 serial 40
 dnl Copyright (C) 2001-2011 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -305,6 +305,7 @@ static const char *macro_values[] =
     STDINT_H=stdint.h
   fi
   AC_SUBST([STDINT_H])
+  AM_CONDITIONAL([GL_GENERATE_STDINT_H], [test -n "$STDINT_H"])
 ])
 
 dnl gl_STDINT_BITSIZEOF(TYPES, INCLUDES)

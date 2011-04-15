@@ -107,8 +107,8 @@ static Lisp_Object subst_char_in_region_unwind_1 (Lisp_Object);
 static void transpose_markers (EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT,
 			       EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT);
 
-Lisp_Object Qbuffer_access_fontify_functions;
-Lisp_Object Fuser_full_name (Lisp_Object);
+static Lisp_Object Qbuffer_access_fontify_functions;
+static Lisp_Object Fuser_full_name (Lisp_Object);
 
 /* Symbol for the text property used to mark fields.  */
 
@@ -116,7 +116,7 @@ Lisp_Object Qfield;
 
 /* A special value for Qfield properties.  */
 
-Lisp_Object Qboundary;
+static Lisp_Object Qboundary;
 
 
 void
@@ -750,7 +750,7 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */)
     /* It is possible that NEW_POS is not within the same field as
        OLD_POS; try to move NEW_POS so that it is.  */
     {
-      int shortage;
+      EMACS_INT shortage;
       Lisp_Object field_bound;
 
       if (fwd)
@@ -1399,15 +1399,6 @@ get_system_name (void)
 {
   if (STRINGP (Vsystem_name))
     return SSDATA (Vsystem_name);
-  else
-    return "";
-}
-
-const char *
-get_operating_system_release (void)
-{
-  if (STRINGP (Voperating_system_release))
-    return SSDATA (Voperating_system_release);
   else
     return "";
 }
@@ -3674,7 +3665,7 @@ usage: (format STRING &rest OBJECTS)  */)
     if (!info)
       info = (struct info *) alloca (nbytes);
     memset (info, 0, nbytes);
-    for (i = 0; i <= nargs; i++)
+    for (i = 0; i < nargs + 1; i++)
       info[i].start = -1;
     if (!discarded)
       SAFE_ALLOCA (discarded, char *, SBYTES (args[0]));
@@ -3802,7 +3793,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	    if (*format == 'c')
 	      {
 		if (! ASCII_CHAR_P (XINT (args[n]))
-		    /* Note: No one can remeber why we have to treat
+		    /* Note: No one can remember why we have to treat
 		       the character 0 as a multibyte character here.
 		       But, until it causes a real problem, let's
 		       don't change it.  */
@@ -3814,12 +3805,6 @@ usage: (format STRING &rest OBJECTS)  */)
 			goto retry;
 		      }
 		    args[n] = Fchar_to_string (args[n]);
-		    thissize = SBYTES (args[n]);
-		  }
-		else if (! ASCII_BYTE_P (XINT (args[n])) && multibyte)
-		  {
-		    args[n]
-		      = Fchar_to_string (Funibyte_char_to_multibyte (args[n]));
 		    thissize = SBYTES (args[n]);
 		  }
 	      }

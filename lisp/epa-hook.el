@@ -1,4 +1,4 @@
-;;; epa-hook.el --- preloaded code to enable epa-file.el
+;;; epa-hook.el --- preloaded code to enable epa-file.el -*- lexical-binding: t -*-
 ;; Copyright (C) 2006-2011 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>

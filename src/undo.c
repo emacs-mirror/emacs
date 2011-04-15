@@ -26,11 +26,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Last buffer for which undo information was recorded.  */
 /* BEWARE: This is not traced by the GC, so never dereference it!  */
-struct buffer *last_undo_buffer;
+static struct buffer *last_undo_buffer;
 
 /* Position of point last time we inserted a boundary.  */
-struct buffer *last_boundary_buffer;
-EMACS_INT last_boundary_position;
+static struct buffer *last_boundary_buffer;
+static EMACS_INT last_boundary_position;
 
 Lisp_Object Qinhibit_read_only;
 
@@ -43,7 +43,7 @@ Lisp_Object Qapply;
    which will be added to the list at the end of the command.
    This ensures we can't run out of space while trying to make
    an undo-boundary.  */
-Lisp_Object pending_boundary;
+static Lisp_Object pending_boundary;
 
 /* Record point as it was at beginning of this command (if necessary)
    and prepare the undo info for recording a change.
@@ -711,4 +711,3 @@ so it must make sure not to do a lot of consing.  */);
 	       doc: /* Non-nil means do not record `point' in `buffer-undo-list'.  */);
   undo_inhibit_record_point = 0;
 }
-

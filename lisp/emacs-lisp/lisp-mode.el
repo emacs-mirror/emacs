@@ -699,7 +699,9 @@ If CHAR is not a character, return nil."
   "Evaluate sexp before point; print value in minibuffer.
 With argument, print output into current buffer."
   (let ((standard-output (if eval-last-sexp-arg-internal (current-buffer) t)))
-    (eval-last-sexp-print-value (eval (preceding-sexp)))))
+    ;; Setup the lexical environment if lexical-binding is enabled.
+    (eval-last-sexp-print-value
+     (eval (eval-sexp-add-defvars (preceding-sexp)) lexical-binding))))
 
 
 (defun eval-last-sexp-print-value (value)
@@ -726,6 +728,23 @@ With argument, print output into current buffer."
 
 
 (defvar eval-last-sexp-fake-value (make-symbol "t"))
+
+(defun eval-sexp-add-defvars (exp &optional pos)
+  "Prepend EXP with all the `defvar's that precede it in the buffer.
+POS specifies the starting position where EXP was found and defaults to point."
+  (if (not lexical-binding)
+      exp
+    (save-excursion
+      (unless pos (setq pos (point)))
+      (let ((vars ()))
+        (goto-char (point-min))
+        (while (re-search-forward
+                "^(def\\(?:var\\|const\\|custom\\)[ \t\n]+\\([^; '()\n\t]+\\)"
+                pos t)
+          (let ((var (intern (match-string 1))))
+            (unless (special-variable-p var)
+              (push var vars))))
+        `(progn ,@(mapcar (lambda (v) `(defvar ,v)) vars) ,exp)))))
 
 (defun eval-last-sexp (eval-last-sexp-arg-internal)
   "Evaluate sexp before point; print value in minibuffer.
@@ -763,16 +782,18 @@ Reinitialize the face according to the `defface' specification."
 	;; `defcustom' is now macroexpanded to
 	;; `custom-declare-variable' with a quoted value arg.
 	((and (eq (car form) 'custom-declare-variable)
-	      (default-boundp (eval (nth 1 form))))
+	      (default-boundp (eval (nth 1 form) lexical-binding)))
 	 ;; Force variable to be bound.
-	 (set-default (eval (nth 1 form)) (eval (nth 1 (nth 2 form))))
+	 (set-default (eval (nth 1 form) lexical-binding)
+                      (eval (nth 1 (nth 2 form)) lexical-binding))
 	 form)
 	;; `defface' is macroexpanded to `custom-declare-face'.
 	((eq (car form) 'custom-declare-face)
 	 ;; Reset the face.
 	 (setq face-new-frame-defaults
-	       (assq-delete-all (eval (nth 1 form)) face-new-frame-defaults))
-	 (put (eval (nth 1 form)) 'face-defface-spec nil)
+	       (assq-delete-all (eval (nth 1 form) lexical-binding)
+                                face-new-frame-defaults))
+	 (put (eval (nth 1 form) lexical-binding) 'face-defface-spec nil)
 	 ;; Setting `customized-face' to the new spec after calling
 	 ;; the form, but preserving the old saved spec in `saved-face',
 	 ;; imitates the situation when the new face spec is set
@@ -783,10 +804,11 @@ Reinitialize the face according to the `defface' specification."
 	 ;; `defface' change the spec, regardless of a saved spec.
 	 (prog1 `(prog1 ,form
 		   (put ,(nth 1 form) 'saved-face
-			',(get (eval (nth 1 form)) 'saved-face))
+			',(get (eval (nth 1 form) lexical-binding)
+                               'saved-face))
 		   (put ,(nth 1 form) 'customized-face
 			,(nth 2 form)))
-	   (put (eval (nth 1 form)) 'saved-face nil)))
+	   (put (eval (nth 1 form) lexical-binding) 'saved-face nil)))
 	((eq (car form) 'progn)
 	 (cons 'progn (mapcar 'eval-defun-1 (cdr form))))
 	(t form)))
@@ -1205,7 +1227,6 @@ This function also returns nil meaning don't specify the indentation."
 (put 'prog1 'lisp-indent-function 1)
 (put 'prog2 'lisp-indent-function 2)
 (put 'save-excursion 'lisp-indent-function 0)
-(put 'save-window-excursion 'lisp-indent-function 0)
 (put 'save-restriction 'lisp-indent-function 0)
 (put 'save-match-data 'lisp-indent-function 0)
 (put 'save-current-buffer 'lisp-indent-function 0)

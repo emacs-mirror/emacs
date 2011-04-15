@@ -85,91 +85,17 @@ This function returns @code{t} if @var{object} is a buffer,
 @cindex changing to another buffer
 @cindex current buffer
 
-  There are, in general, many buffers in an Emacs session.  At any time,
-one of them is designated as the @dfn{current buffer}.  This is the
-buffer in which most editing takes place, because most of the primitives
-for examining or changing text in a buffer operate implicitly on the
-current buffer (@pxref{Text}).  Normally the buffer that is displayed on
-the screen in the selected window is the current buffer, but this is not
-always so: a Lisp program can temporarily designate any buffer as
-current in order to operate on its contents, without changing what is
-displayed on the screen.
+  There are, in general, many buffers in an Emacs session.  At any
+time, one of them is designated the @dfn{current buffer}---the buffer
+in which most editing takes place.  Most of the primitives for
+examining or changing text operate implicitly on the current buffer
+(@pxref{Text}).
 
-  The way to designate a current buffer in a Lisp program is by calling
-@code{set-buffer}.  The specified buffer remains current until a new one
-is designated.
-
-  When an editing command returns to the editor command loop, the
-command loop designates the buffer displayed in the selected window as
-current, to prevent confusion: the buffer that the cursor is in when
-Emacs reads a command is the buffer that the command will apply to.
-(@xref{Command Loop}.)  Therefore, @code{set-buffer} is not the way to
-switch visibly to a different buffer so that the user can edit it.  For
-that, you must use the functions described in @ref{Displaying Buffers}.
-
-  @strong{Warning:} Lisp functions that change to a different current buffer
-should not depend on the command loop to set it back afterwards.
-Editing commands written in Emacs Lisp can be called from other programs
-as well as from the command loop; it is convenient for the caller if
-the subroutine does not change which buffer is current (unless, of
-course, that is the subroutine's purpose).  Therefore, you should
-normally use @code{set-buffer} within a @code{save-current-buffer} or
-@code{save-excursion} (@pxref{Excursions}) form that will restore the
-current buffer when your function is done.  Here, as an example, is a
-simplified version of the command @code{append-to-buffer}:
-
-@example
-@group
-(defun append-to-buffer (buffer start end)
-  "Append to specified buffer the text of the region."
-  (interactive "BAppend to buffer: \nr")
-  (let ((oldbuf (current-buffer)))
-    (save-current-buffer
-      (set-buffer (get-buffer-create buffer))
-      (insert-buffer-substring oldbuf start end))))
-@end group
-@end example
-
-@noindent
-This function binds a local variable to record the current buffer, and
-then @code{save-current-buffer} arranges to make it current again.
-Next, @code{set-buffer} makes the specified buffer current.  Finally,
-@code{insert-buffer-substring} copies the string from the original
-current buffer to the specified (and now current) buffer.
-
-  If the buffer appended to happens to be displayed in some window,
-the next redisplay will show how its text has changed.  Otherwise, you
-will not see the change immediately on the screen.  The buffer becomes
-current temporarily during the execution of the command, but this does
-not cause it to be displayed.
-
-  If you make local bindings (with @code{let} or function arguments) for
-a variable that may also have buffer-local bindings, make sure that the
-same buffer is current at the beginning and at the end of the local
-binding's scope.  Otherwise you might bind it in one buffer and unbind
-it in another!  There are two ways to do this.  In simple cases, you may
-see that nothing ever changes the current buffer within the scope of the
-binding.  Otherwise, use @code{save-current-buffer} or
-@code{save-excursion} to make sure that the buffer current at the
-beginning is current again whenever the variable is unbound.
-
-  Do not rely on using @code{set-buffer} to change the current buffer
-back, because that won't do the job if a quit happens while the wrong
-buffer is current.  For instance, in the previous example, it would
-have been wrong to do this:
-
-@example
-@group
-  (let ((oldbuf (current-buffer)))
-    (set-buffer (get-buffer-create buffer))
-    (insert-buffer-substring oldbuf start end)
-    (set-buffer oldbuf))
-@end group
-@end example
-
-@noindent
-Using @code{save-current-buffer}, as we did, handles quitting, errors,
-and @code{throw}, as well as ordinary evaluation.
+  Normally, the buffer displayed in the selected window is the current
+buffer, but this is not always so: a Lisp program can temporarily
+designate any buffer as current in order to operate on its contents,
+without changing what is displayed on the screen.  The most basic
+function for designating a current buffer is @code{set-buffer}.
 
 @defun current-buffer
 This function returns the current buffer.
@@ -191,6 +117,89 @@ This function does not display the buffer in any window, so the user
 cannot necessarily see the buffer.  But Lisp programs will now operate
 on it.
 @end defun
+
+  When an editing command returns to the editor command loop, Emacs
+automatically calls @code{set-buffer} on the buffer shown in the
+selected window.  This is to prevent confusion: it ensures that the
+buffer that the cursor is in, when Emacs reads a command, is the
+buffer to which that command applies (@pxref{Command Loop}).  Thus,
+you should not use @code{set-buffer} to switch visibly to a different
+buffer; for that, use the functions described in @ref{Displaying
+Buffers}.
+
+  When writing a Lisp function, do @emph{not} rely on this behavior of
+the command loop to restore the current buffer after an operation.
+Editing commands can also be called as Lisp functions by other
+programs, not just from the command loop; it is convenient for the
+caller if the subroutine does not change which buffer is current
+(unless, of course, that is the subroutine's purpose).
+
+  To operate temporarily on another buffer, put the @code{set-buffer}
+within a @code{save-current-buffer} form.  Here, as an example, is a
+simplified version of the command @code{append-to-buffer}:
+
+@example
+@group
+(defun append-to-buffer (buffer start end)
+  "Append the text of the region to BUFFER."
+  (interactive "BAppend to buffer: \nr")
+  (let ((oldbuf (current-buffer)))
+    (save-current-buffer
+      (set-buffer (get-buffer-create buffer))
+      (insert-buffer-substring oldbuf start end))))
+@end group
+@end example
+
+@noindent
+Here, we bind a local variable to record the current buffer, and then
+@code{save-current-buffer} arranges to make it current again later.
+Next, @code{set-buffer} makes the specified buffer current, and
+@code{insert-buffer-substring} copies the string from the original
+buffer to the specified (and now current) buffer.
+
+  Alternatively, we can use the @code{with-current-buffer} macro:
+
+@example
+@group
+(defun append-to-buffer (buffer start end)
+  "Append the text of the region to BUFFER."
+  (interactive "BAppend to buffer: \nr")
+  (let ((oldbuf (current-buffer)))
+    (with-current-buffer (get-buffer-create buffer)
+      (insert-buffer-substring oldbuf start end))))
+@end group
+@end example
+
+  In either case, if the buffer appended to happens to be displayed in
+some window, the next redisplay will show how its text has changed.
+If it is not displayed in any window, you will not see the change
+immediately on the screen.  The command causes the buffer to become
+current temporarily, but does not cause it to be displayed.
+
+  If you make local bindings (with @code{let} or function arguments)
+for a variable that may also have buffer-local bindings, make sure
+that the same buffer is current at the beginning and at the end of the
+local binding's scope.  Otherwise you might bind it in one buffer and
+unbind it in another!
+
+  Do not rely on using @code{set-buffer} to change the current buffer
+back, because that won't do the job if a quit happens while the wrong
+buffer is current.  For instance, in the previous example, it would
+have been wrong to do this:
+
+@example
+@group
+  (let ((oldbuf (current-buffer)))
+    (set-buffer (get-buffer-create buffer))
+    (insert-buffer-substring oldbuf start end)
+    (set-buffer oldbuf))
+@end group
+@end example
+
+@noindent
+Using @code{save-current-buffer} or @code{with-current-buffer}, as we
+did, correctly handles quitting, errors, and @code{throw}, as well as
+ordinary evaluation.
 
 @defspec save-current-buffer body@dots{}
 The @code{save-current-buffer} special form saves the identity of the

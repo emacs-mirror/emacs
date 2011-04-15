@@ -60,14 +60,9 @@
   :group 'rlogin)
 
 (defcustom rlogin-process-connection-type
-  (save-match-data
-    ;; Solaris 2.x `rlogin' will spew a bunch of ioctl error messages if
-    ;; stdin isn't a tty.
-    (cond ((and (boundp 'system-configuration)
-                (stringp system-configuration)
-                (string-match "-solaris2" system-configuration))
-           t)
-          (t nil)))
+  ;; Solaris 2.x `rlogin' will spew a bunch of ioctl error messages if
+  ;; stdin isn't a tty.
+  (and (string-match-p "-solaris2" system-configuration) t)
   "If non-nil, use a pty for the local rlogin process.
 If nil, use a pipe (if pipes are supported on the local system).
 
@@ -115,19 +110,19 @@ this variable is set from that."
   :type '(choice (const nil) string)
   :group 'rlogin)
 
-;; Initialize rlogin mode map.
-(defvar rlogin-mode-map '())
-(cond
- ((null rlogin-mode-map)
-  (setq rlogin-mode-map (if (consp shell-mode-map)
-                            (cons 'keymap shell-mode-map)
-                          (copy-keymap shell-mode-map)))
-  (define-key rlogin-mode-map "\C-c\C-c" 'rlogin-send-Ctrl-C)
-  (define-key rlogin-mode-map "\C-c\C-d" 'rlogin-send-Ctrl-D)
-  (define-key rlogin-mode-map "\C-c\C-z" 'rlogin-send-Ctrl-Z)
-  (define-key rlogin-mode-map "\C-c\C-\\" 'rlogin-send-Ctrl-backslash)
-  (define-key rlogin-mode-map "\C-d" 'rlogin-delchar-or-send-Ctrl-D)
-  (define-key rlogin-mode-map "\C-i" 'rlogin-tab-or-complete)))
+(defvar rlogin-mode-map
+  (let ((map (if (consp shell-mode-map)
+                 (cons 'keymap shell-mode-map)
+               (copy-keymap shell-mode-map))))
+    (define-key rlogin-mode-map "\C-c\C-c" 'rlogin-send-Ctrl-C)
+    (define-key rlogin-mode-map "\C-c\C-d" 'rlogin-send-Ctrl-D)
+    (define-key rlogin-mode-map "\C-c\C-z" 'rlogin-send-Ctrl-Z)
+    (define-key rlogin-mode-map "\C-c\C-\\" 'rlogin-send-Ctrl-backslash)
+    (define-key rlogin-mode-map "\C-d" 'rlogin-delchar-or-send-Ctrl-D)
+    (define-key rlogin-mode-map "\C-i" 'rlogin-tab-or-complete)
+    map)
+  "Keymap for `rlogin-mode'.")
+
 
 
 ;;;###autoload (add-hook 'same-window-regexps (purecopy "^\\*rlogin-.*\\*\\(\\|<[0-9]+>\\)"))
@@ -175,7 +170,6 @@ variable."
 		(read-from-minibuffer "rlogin arguments (hostname first): "
 				      nil nil nil 'rlogin-history)
 		current-prefix-arg))
-
   (let* ((process-connection-type rlogin-process-connection-type)
          (args (if rlogin-explicit-args
                    (append (split-string input-args)
@@ -192,7 +186,6 @@ variable."
          (buffer-name (if (string= user (user-login-name))
                           (format "*rlogin-%s*" host)
                         (format "*rlogin-%s@%s*" user host))))
-
     (cond ((null buffer))
 	  ((stringp buffer)
 	   (setq buffer-name buffer))
@@ -202,32 +195,26 @@ variable."
            (setq buffer-name (format "%s<%d>" buffer-name buffer)))
           (t
            (setq buffer-name (generate-new-buffer-name buffer-name))))
-
     (setq buffer (get-buffer-create buffer-name))
     (pop-to-buffer buffer-name)
-
     (unless (comint-check-proc buffer-name)
       (comint-exec buffer buffer-name rlogin-program nil args)
-
       (rlogin-mode)
-
       (make-local-variable 'rlogin-host)
       (setq rlogin-host host)
       (make-local-variable 'rlogin-remote-user)
       (setq rlogin-remote-user user)
-
-      (condition-case ()
-          (cond ((eq rlogin-directory-tracking-mode t)
-                 ;; Do this here, rather than calling the tracking mode
-                 ;; function, to avoid a gratuitous resync check; the default
-                 ;; should be the user's home directory, be it local or remote.
-                 (setq comint-file-name-prefix
-                       (concat "/" rlogin-remote-user "@" rlogin-host ":"))
-                 (cd-absolute comint-file-name-prefix))
-                ((null rlogin-directory-tracking-mode))
-                (t
-                 (cd-absolute (concat comint-file-name-prefix "~/"))))
-        (error nil)))))
+      (ignore-errors
+        (cond ((eq rlogin-directory-tracking-mode t)
+               ;; Do this here, rather than calling the tracking mode
+               ;; function, to avoid a gratuitous resync check; the default
+               ;; should be the user's home directory, be it local or remote.
+               (setq comint-file-name-prefix
+                     (concat "/" rlogin-remote-user "@" rlogin-host ":"))
+               (cd-absolute comint-file-name-prefix))
+              ((null rlogin-directory-tracking-mode))
+              (t
+               (cd-absolute (concat comint-file-name-prefix "~/"))))))))
 
 (put 'rlogin-mode 'mode-class 'special)
 
@@ -302,8 +289,7 @@ local one share the same directories (e.g. through NFS)."
   (process-send-string nil "\C-\\"))
 
 (defun rlogin-delchar-or-send-Ctrl-D (arg)
-  "\
-Delete ARG characters forward, or send a C-d to process if at end of buffer."
+  "Delete ARG characters forward, or send a C-d to process if at end of buffer."
   (interactive "p")
   (if (eobp)
       (rlogin-send-Ctrl-D)

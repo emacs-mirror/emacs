@@ -1587,6 +1587,16 @@ FINAL-SEPARATOR is non-nil."
 Insert the trailer to LaTeX document, pop to LaTeX buffer, add
 informative header, and run HOOK."
   (cal-tex-e-document)
+  (or (and cal-tex-preamble-extra
+           (string-match "inputenc" cal-tex-preamble-extra))
+      (not (re-search-backward "[^[:ascii:]]" nil 'move))
+      (progn
+        (goto-char (point-min))
+        (when (search-forward "documentclass" nil t)
+          (forward-line 1)
+          ;; Eg for some Bahai holidays.
+          ;; FIXME latin1 might not always be right.
+          (insert "\\usepackage[latin1]{inputenc}\n"))))
   (latex-mode)
   (pop-to-buffer cal-tex-buffer)
   (goto-char (point-min))

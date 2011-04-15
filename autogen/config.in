@@ -582,6 +582,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `readlink' function. */
 #undef HAVE_READLINK
 
+/* Define to 1 if you have the `readlinkat' function. */
+#undef HAVE_READLINKAT
+
 /* Define to 1 if you have the `recvfrom' function. */
 #undef HAVE_RECVFROM
 
@@ -1209,6 +1212,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* type to use in place of socklen_t if not defined */
 #undef socklen_t
 
+/* Define as a signed type of the same size as size_t. */
+#undef ssize_t
+
 /* Define to any substitute for sys_siglist. */
 #undef sys_siglist
 
@@ -1360,6 +1366,20 @@ typedef unsigned size_t;
 #define EXTERNALLY_VISIBLE __attribute__((externally_visible))
 #else
 #define EXTERNALLY_VISIBLE
+#endif
+
+#if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 7)
+# define ATTRIBUTE_FORMAT(spec) __attribute__ ((__format__ spec))
+#else
+# define ATTRIBUTE_FORMAT(spec) /* empty */
+#endif
+
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 4)
+# define ATTRIBUTE_FORMAT_PRINTF(formatstring_parameter, first_argument) \
+   ATTRIBUTE_FORMAT ((__gnu_printf__, formatstring_parameter, first_argument))
+#else
+# define ATTRIBUTE_FORMAT_PRINTF(formatstring_parameter, first_argument) \
+   ATTRIBUTE_FORMAT ((__printf__, formatstring_parameter, first_argument))
 #endif
 
 /* Some versions of GNU/Linux define noinline in their headers.  */

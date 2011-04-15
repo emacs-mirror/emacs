@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2011-02-24.09}
+\def\texinfoversion{2011-03-25.11}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -7053,12 +7053,14 @@ end
   % ... and for \example:
   \spaceisspace
   %
-  % The \empty here causes a following catcode 5 newline to be eaten
-  % as part of reading whitespace after a control sequence.  It does
-  % not eat a catcode 13 newline.  There's no good way to handle the
-  % two cases.  See the Macro Details node in the manual for the
-  % workaround we currently have to recommend for macros and
+  % The \empty here causes a following catcode 5 newline to be eaten as
+  % part of reading whitespace after a control sequence.  It does not
+  % eat a catcode 13 newline.  There's no good way to handle the two
+  % cases (untried: maybe e-TeX's \everyeof could help, though plain TeX
+  % would then have different behavior).  See the Macro Details node in
+  % the manual for the workaround we recommend for macros and
   % line-oriented commands.
+  % 
   \scantokens{#1\empty}%
 \endgroup}
 

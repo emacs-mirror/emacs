@@ -1,3 +1,7 @@
+2011-04-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: New variable `revert-buffer-in-progress-p'.
+
 2011-03-22  Sebastian Hermida  <sebas00@gmail.com>
 
 	* themes/misterioso-theme.el: New file.
@@ -15,6 +19,10 @@
 2011-03-08  Kristoffer Grönlund  <krig@koru.se>
 
 	* themes/wombat-theme.el: New file.
+
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
 
 2011-03-06  Juanma Barranquero  <lekktu@gmail.com>
 

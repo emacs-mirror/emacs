@@ -4,7 +4,7 @@
 
 ;; Author: Ryan Yeske <rcyeske@gmail.com>
 ;; Maintainers: Ryan Yeske <rcyeske@gmail.com>,
-;;              Deniz Dogan <deniz.a.m.dogan@gmail.com>
+;;              Deniz Dogan <deniz@dogan.se>
 ;; Keywords: comm
 
 ;; This file is part of GNU Emacs.
@@ -900,7 +900,6 @@ IRC command completion is performed only if '/' is the first input char."
     (define-key map (kbd "C-c C-m") 'rcirc-cmd-msg)
     (define-key map (kbd "C-c C-r") 'rcirc-cmd-nick) ; rename
     (define-key map (kbd "C-c C-o") 'rcirc-omit-mode)
-    (define-key map (kbd "M-o") 'rcirc-omit-mode)
     (define-key map (kbd "C-c C-p") 'rcirc-cmd-part)
     (define-key map (kbd "C-c C-q") 'rcirc-cmd-query)
     (define-key map (kbd "C-c C-t") 'rcirc-cmd-topic)
@@ -2454,7 +2453,15 @@ keywords when no KEYWORD is given."
     (setq rcirc-nick (car args))
     (rcirc-update-prompt)
     (if rcirc-auto-authenticate-flag
-        (if rcirc-authenticate-before-join
+        (if (and rcirc-authenticate-before-join
+		 ;; We have to ensure that there's an authentication
+		 ;; entry for that server.  Else,
+		 ;; rcirc-authenticated-hook won't be triggered, and
+		 ;; autojoin won't happen at all.
+		 (let (auth-required)
+		   (dolist (s rcirc-authinfo auth-required)
+		     (when (string-match (car s) rcirc-server-name)
+		       (setq auth-required t)))))
             (progn
 	      (add-hook 'rcirc-authenticated-hook 'rcirc-join-channels-post-auth t t)
               (rcirc-authenticate))

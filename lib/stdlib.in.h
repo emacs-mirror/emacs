@@ -255,9 +255,14 @@ _GL_WARN_ON_USE (ptsname, "grantpt is not portable - "
 # endif
 #endif
 
+/* If _GL_USE_STDLIB_ALLOC is nonzero, the including module does not
+   rely on GNU or POSIX semantics for malloc and realloc (for example,
+   by never specifying a zero size), so it does not need malloc or
+   realloc to be redefined.  */
 #if @GNULIB_MALLOC_POSIX@
 # if @REPLACE_MALLOC@
-#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#  if !((defined __cplusplus && defined GNULIB_NAMESPACE) \
+        || _GL_USE_STDLIB_ALLOC)
 #   undef malloc
 #   define malloc rpl_malloc
 #  endif
@@ -267,7 +272,7 @@ _GL_CXXALIAS_RPL (malloc, void *, (size_t size));
 _GL_CXXALIAS_SYS (malloc, void *, (size_t size));
 # endif
 _GL_CXXALIASWARN (malloc);
-#elif defined GNULIB_POSIXCHECK
+#elif defined GNULIB_POSIXCHECK && !_GL_USE_STDLIB_ALLOC
 # undef malloc
 /* Assume malloc is always declared.  */
 _GL_WARN_ON_USE (malloc, "malloc is not POSIX compliant everywhere - "
@@ -531,7 +536,8 @@ _GL_WARN_ON_USE (setstate_r, "setstate_r is unportable - "
 
 #if @GNULIB_REALLOC_POSIX@
 # if @REPLACE_REALLOC@
-#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#  if !((defined __cplusplus && defined GNULIB_NAMESPACE) \
+        || _GL_USE_STDLIB_ALLOC)
 #   undef realloc
 #   define realloc rpl_realloc
 #  endif
@@ -541,7 +547,7 @@ _GL_CXXALIAS_RPL (realloc, void *, (void *ptr, size_t size));
 _GL_CXXALIAS_SYS (realloc, void *, (void *ptr, size_t size));
 # endif
 _GL_CXXALIASWARN (realloc);
-#elif defined GNULIB_POSIXCHECK
+#elif defined GNULIB_POSIXCHECK && !_GL_USE_STDLIB_ALLOC
 # undef realloc
 /* Assume realloc is always declared.  */
 _GL_WARN_ON_USE (realloc, "realloc is not POSIX compliant everywhere - "

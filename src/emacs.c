@@ -127,14 +127,14 @@ int initialized;
 #ifdef DOUG_LEA_MALLOC
 /* Preserves a pointer to the memory allocated that copies that
    static data inside glibc's malloc.  */
-void *malloc_state_ptr;
+static void *malloc_state_ptr;
 /* From glibc, a routine that returns a copy of the malloc internal state.  */
 extern void *malloc_get_state (void);
 /* From glibc, a routine that overwrites the malloc internal state.  */
 extern int malloc_set_state (void*);
 /* Non-zero if the MALLOC_CHECK_ environment variable was set while
    dumping.  Used to work around a bug in glibc's malloc.  */
-int malloc_using_checking;
+static int malloc_using_checking;
 #endif
 
 Lisp_Object Qfile_name_handler_alist;
@@ -186,7 +186,7 @@ char **initial_argv;
 int initial_argc;
 
 static void sort_args (int argc, char **argv);
-void syms_of_emacs (void);
+static void syms_of_emacs (void);
 
 /* MSVC needs each string be shorter than 2048 bytes, so the usage
    strings below are split to not overflow this limit.  */
@@ -288,7 +288,7 @@ section of the Emacs manual or the file BUGS.\n"
 
 
 /* Signal code for the fatal signal that was received.  */
-int fatal_error_code;
+static int fatal_error_code;
 
 /* Nonzero if handling a fatal error already.  */
 int fatal_error_in_progress;
@@ -296,7 +296,7 @@ int fatal_error_in_progress;
 /* If non-null, call this function from fatal_error_signal before
    committing suicide.  */
 
-void (*fatal_error_signal_hook) (void);
+static void (*fatal_error_signal_hook) (void);
 
 #ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
 /* When compiled with GTK and running under Gnome,
@@ -308,6 +308,9 @@ pthread_t main_thread;
 
 
 /* Handle bus errors, invalid instruction, etc.  */
+#ifndef FLOAT_CATCH_SIGILL
+static
+#endif
 void
 fatal_error_signal (int sig)
 {
@@ -549,7 +552,8 @@ static char dump_tz[] = "UtC0";
 
 /* Define a dummy function F.  Declare F too, to pacify gcc
    -Wmissing-prototypes.  */
-#define DEFINE_DUMMY_FUNCTION(f) void f (void); void f (void) {}
+#define DEFINE_DUMMY_FUNCTION(f) \
+  void f (void) EXTERNALLY_VISIBLE; void f (void) {}
 
 #ifndef GCC_CTORS_IN_LIBC
 DEFINE_DUMMY_FUNCTION (__do_global_ctors)
@@ -557,9 +561,9 @@ DEFINE_DUMMY_FUNCTION (__do_global_ctors_aux)
 DEFINE_DUMMY_FUNCTION (__do_global_dtors)
 /* GNU/Linux has a bug in its library; avoid an error.  */
 #ifndef GNU_LINUX
-char * __CTOR_LIST__[2] = { (char *) (-1), 0 };
+char * __CTOR_LIST__[2] EXTERNALLY_VISIBLE = { (char *) (-1), 0 };
 #endif
-char * __DTOR_LIST__[2] = { (char *) (-1), 0 };
+char * __DTOR_LIST__[2] EXTERNALLY_VISIBLE = { (char *) (-1), 0 };
 #endif /* GCC_CTORS_IN_LIBC */
 DEFINE_DUMMY_FUNCTION (__main)
 #endif /* __GNUC__ */
@@ -1700,7 +1704,7 @@ struct standard_args
   int nargs;
 };
 
-const struct standard_args standard_args[] =
+static const struct standard_args standard_args[] =
 {
   { "-version", "--version", 150, 0 },
   { "-chdir", "--chdir", 130, 1 },

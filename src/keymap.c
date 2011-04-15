@@ -56,8 +56,9 @@ Lisp_Object control_x_map;	/* The keymap used for globally bound
 
 /* keymap used for minibuffers when doing completion */
 /* keymap used for minibuffers when doing completion and require a match */
-Lisp_Object Qkeymapp, Qkeymap, Qnon_ascii, Qmenu_item, Qremap;
-Lisp_Object QCadvertised_binding;
+static Lisp_Object Qkeymapp, Qnon_ascii;
+Lisp_Object Qkeymap, Qmenu_item, Qremap;
+static Lisp_Object QCadvertised_binding;
 
 /* Alist of elements like (DEL . "\d").  */
 static Lisp_Object exclude_keys;
@@ -70,6 +71,7 @@ static Lisp_Object where_is_cache;
 /* Which keymaps are reverse-stored in the cache.  */
 static Lisp_Object where_is_cache_keymaps;
 
+static Lisp_Object Flookup_key (Lisp_Object, Lisp_Object, Lisp_Object);
 static Lisp_Object store_in_keymap (Lisp_Object, Lisp_Object, Lisp_Object);
 static void fix_submap_inheritance (Lisp_Object, Lisp_Object, Lisp_Object);
 
@@ -658,7 +660,7 @@ map_keymap (Lisp_Object map, map_keymap_function_t fun, Lisp_Object args, void *
   UNGCPRO;
 }
 
-Lisp_Object Qkeymap_canonicalize;
+static Lisp_Object Qkeymap_canonicalize;
 
 /* Same as map_keymap, but does it right, properly eliminating duplicate
    bindings due to inheritance.   */
@@ -955,7 +957,7 @@ store_in_keymap (Lisp_Object keymap, register Lisp_Object idx, Lisp_Object def)
   return def;
 }
 
-EXFUN (Fcopy_keymap, 1);
+static Lisp_Object Fcopy_keymap (Lisp_Object);
 
 static Lisp_Object
 copy_keymap_item (Lisp_Object elt)
@@ -2174,7 +2176,7 @@ then the value includes only maps for prefixes that start with PREFIX.  */)
     }
   return maps;
 }
-Lisp_Object Qsingle_key_description, Qkey_description;
+static Lisp_Object Qsingle_key_description, Qkey_description;
 
 /* This function cannot GC.  */
 

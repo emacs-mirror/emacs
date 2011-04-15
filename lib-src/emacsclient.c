@@ -487,6 +487,7 @@ ttyname (int fd)
 
 /* Display a normal or error message.
    On Windows, use a message box if compiled as a Windows app.  */
+static void message (int, const char *, ...) ATTRIBUTE_FORMAT_PRINTF (2, 3);
 static void
 message (int is_error, const char *format, ...)
 {

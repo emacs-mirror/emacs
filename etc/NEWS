@@ -67,6 +67,9 @@ from load-path.  -Q now implies this.
 
 * Changes in Emacs 24.1
 
+** Completion in a non-minibuffer now tries to detect the end of completion
+and pops down the *Completions* buffer accordingly.
+
 ** emacsclient changes
 
 *** New emacsclient argument --parent-id ID can be used to open a
@@ -128,8 +131,10 @@ for this.
 ** ImageMagick support.
 It is now possible to use the ImageMagick library to load many new
 image formats in Emacs.  By default, Emacs links with the ImageMagick
-libraries if they are present at build time.  To disable this, use
-the configure option `--without-imagemagick'.
+libraries if they are present at build time.  This needs ImageMagick
+6.2.8 or newer (versions newer than 6.0.7 _may_ work but have not been
+tested).  To disable ImageMagick support, use the configure option
+`--without-imagemagick'.  
 
 The new function `imagemagick-types' returns a list of image file
 extensions that your installation of ImageMagick supports.  The
@@ -200,6 +205,20 @@ scroll a line instead of full screen.
 
 ** New property `scroll-command' should be set on a command's symbol to
 define it as a scroll command affected by `scroll-preserve-screen-position'.
+
++++
+** If you customize `scroll-conservatively' to a value greater than 100,
+Emacs will never recenter point in the window when it scrolls due to
+cursor motion commands or commands that move point (e.f., `M-g M-g').
+Previously, you needed to use `most-positive-fixnum' as the value of
+`scroll-conservatively' to achieve the same effect.
+
+---
+** ``Aggressive'' scrolling now honors the scroll margins.
+If you customize `scroll-up-aggressively' or
+`scroll-down-aggressively' and move point off the window, Emacs now
+scrolls the window so as to avoid positioning point inside the scroll
+margin.
 
 ** Trash changes
 
@@ -332,6 +351,7 @@ between applications.
 
 *** To return to the previous behavior, do the following:
 
+**** Change `select-active-regions' to nil.
 **** Change `mouse-drag-copy-region' to t.
 **** Change `x-select-enable-primary' to t (on X only).
 **** Change `x-select-enable-clipboard' to nil.
@@ -659,11 +679,22 @@ binding `log-view-expanded-log-entry-function' to a suitable function.
 
 *** New command `nato-region' converts text to NATO phonetic alphabet.
 
+*** The new command `info-display-manual' will display an Info manual
+specified by its name.  If that manual is already visited in some Info
+buffer within the current session, the command will display that
+buffer.  Otherwise, it will load the manual and display it.  This is
+handy if you have many manuals in many Info buffers, and don't
+remember the name of the buffer visiting the manual you want to
+consult.
+
 
 * New Modes and Packages in Emacs 24.1
 
 ** New global minor modes electric-pair-mode, electric-indent-mode,
 and electric-layout-mode.
+
+** tabulated-list.el provides a generic major mode for tabulated data,
+from which other modes can be derived.
 
 ** pcase.el provides the ML-style pattern matching macro `pcase'.
 
@@ -747,6 +778,28 @@ sc.el, x-menu.el, rnews.el, rnewspost.el
 
 
 * Lisp changes in Emacs 24.1
+
+** `open-network-stream' can now be used to open an encrypted stream.
+It now accepts an optional `:type' parameter for initiating a TLS
+connection, directly or via STARTTLS.  To do STARTTLS, additional
+parameters (`:end-of-command', `:success', `:capabilities-command')
+must also be supplied.
+
+** Code can now use lexical scoping by default instead of dynamic scoping.
+The `lexical-binding' variable lets code use lexical scoping for local
+variables.  It is typically set via file-local variables, in which case it
+applies to all the code in that file.
+
+*** `eval' takes a new optional argument `lexical' to choose the new lexical
+binding instead of the old dynamic binding mode.
+
+*** Lexically scoped interpreted functions are represented with a new form
+of function value which looks like (closure ENV ARGS &rest BODY).
+
+*** New macro `letrec' to define recursive local functions.
+
+*** New function `special-variable-p' to check whether a variable is
+declared as dynamically bound.
 
 ** pre/post-command-hook are not reset to nil upon error.
 Instead, the offending function is removed.
@@ -837,6 +890,9 @@ now be nil, or omitted.  This makes a "non-numeric" reporter.  Each
 time you call `progress-reporter-update' on that progress reporter,
 with a nil or omitted VALUE argument, the reporter message is
 displayed with a "spinning bar".
+
+** New variable `revert-buffer-in-progress-p' is true while a buffer is
+being reverted, even if the buffer has a local `revert-buffer-function'.
 
 
 * Changes in Emacs 24.1 on non-free operating systems

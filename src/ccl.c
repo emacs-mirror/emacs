@@ -38,16 +38,16 @@ Lisp_Object Qccl, Qcclp;
 
 /* This symbol is a property which associates with ccl program vector.
    Ex: (get 'ccl-big5-encoder 'ccl-program) returns ccl program vector.  */
-Lisp_Object Qccl_program;
+static Lisp_Object Qccl_program;
 
 /* These symbols are properties which associate with code conversion
    map and their ID respectively.  */
-Lisp_Object Qcode_conversion_map;
-Lisp_Object Qcode_conversion_map_id;
+static Lisp_Object Qcode_conversion_map;
+static Lisp_Object Qcode_conversion_map_id;
 
 /* Symbols of ccl program have this property, a value of the property
    is an index for Vccl_protram_table. */
-Lisp_Object Qccl_program_idx;
+static Lisp_Object Qccl_program_idx;
 
 /* Table of registered CCL programs.  Each element is a vector of
    NAME, CCL_PROG, RESOLVEDP, and UPDATEDP, where NAME (symbol) is the
@@ -56,7 +56,7 @@ Lisp_Object Qccl_program_idx;
    CCL_PROG is already resolved to index numbers or not, UPDATEDP (t
    or nil) is the flat to tell if the CCL program is updated after it
    was once used.  */
-Lisp_Object Vccl_program_table;
+static Lisp_Object Vccl_program_table;
 
 /* Return a hash table of id number ID.  */
 #define GET_HASH_TABLE(id) \
@@ -1929,30 +1929,6 @@ setup_ccl_program (struct ccl_program *ccl, Lisp_Object ccl_prog)
 }
 
 
-/* Check if CCL is updated or not.  If not, re-setup members of CCL.  */
-
-int
-check_ccl_update (struct ccl_program *ccl)
-{
-  Lisp_Object slot, ccl_prog;
-
-  if (ccl->idx < 0)
-    return 0;
-  slot = AREF (Vccl_program_table, ccl->idx);
-  if (NILP (AREF (slot, 3)))
-    return 0;
-  ccl_prog = ccl_get_compiled_code (AREF (slot, 0), &ccl->idx);
-  if (! VECTORP (ccl_prog))
-    return -1;
-  ccl->size = ASIZE (ccl_prog);
-  ccl->prog = XVECTOR (ccl_prog)->contents;
-  ccl->eof_ic = XINT (AREF (ccl_prog, CCL_HEADER_EOF));
-  ccl->buf_magnification = XINT (AREF (ccl_prog, CCL_HEADER_BUF_MAG));
-  ASET (slot, 3, Qnil);
-  return 0;
-}
-
-
 DEFUN ("ccl-program-p", Fccl_program_p, Sccl_program_p, 1, 1, 0,
        doc: /* Return t if OBJECT is a CCL program name or a compiled CCL program code.
 See the documentation of `define-ccl-program' for the detail of CCL program.  */)
@@ -2049,7 +2025,7 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
   Lisp_Object val;
   struct ccl_program ccl;
   int i;
-  int outbufsize;
+  EMACS_INT outbufsize;
   unsigned char *outbuf, *outp;
   EMACS_INT str_chars, str_bytes;
 #define CCL_EXECUTE_BUF_SIZE 1024

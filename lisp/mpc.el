@@ -1,4 +1,4 @@
-;;; mpc.el --- A client for the Music Player Daemon   -*- coding: utf-8 -*-
+;;; mpc.el --- A client for the Music Player Daemon   -*- coding: utf-8; lexical-binding: t -*-
 
 ;; Copyright (C) 2006-2011  Free Software Foundation, Inc.
 
@@ -341,9 +341,7 @@ CMD can be a string which is passed as-is to MPD or a list of strings
 which will be concatenated with proper quoting before passing them to MPD."
   (let ((proc (mpc-proc)))
     (if (and callback (not (process-get proc 'ready)))
-        (lexical-let ((old (process-get proc 'callback))
-                      (callback callback)
-                      (cmd cmd))
+        (let ((old (process-get proc 'callback)))
           (process-put proc 'callback
                        (lambda ()
                          (funcall old)
@@ -359,15 +357,14 @@ which will be concatenated with proper quoting before passing them to MPD."
                         (mapconcat 'mpc--proc-quote-string cmd " "))
                       "\n")))
       (if callback
-          (lexical-let ((buf (current-buffer))
-                        (callback callback))
+          ;; (let ((buf (current-buffer)))
             (process-put proc 'callback
                          callback
                          ;; (lambda ()
                          ;;   (funcall callback
                          ;;            (prog1 (current-buffer)
-                         ;;              (set-buffer buf))))
-                         ))
+                         ;;              (set-buffer buf)))))
+                         )
         ;; If `callback' is nil, we're executing synchronously.
         (process-put proc 'callback 'ignore)
         ;; This returns the process's buffer.
@@ -402,8 +399,7 @@ which will be concatenated with proper quoting before passing them to MPD."
 
 (defun mpc-proc-cmd-to-alist (cmd &optional callback)
   (if callback
-      (lexical-let ((buf (current-buffer))
-                    (callback callback))
+      (let ((buf (current-buffer)))
         (mpc-proc-cmd cmd (lambda ()
                             (funcall callback (prog1 (mpc-proc-buf-to-alist
                                                       (current-buffer))
@@ -522,7 +518,7 @@ to call FUN for any change whatsoever.")
 
 (defun mpc-status-refresh (&optional callback)
   "Refresh `mpc-status'."
-  (lexical-let ((cb callback))
+  (let ((cb callback))
     (mpc-proc-cmd (mpc-proc-cmd-list '("status" "currentsong"))
                   (lambda ()
                     (mpc--status-callback)
@@ -604,7 +600,7 @@ The songs are returned as alists."
                (cond
                 ((eq tag 'Playlist)
                  ;; Special case for pseudo-tag playlist.
-                 (let ((l (condition-case err
+                 (let ((l (condition-case nil
                               (mpc-proc-buf-to-alists
                                (mpc-proc-cmd (list "listplaylistinfo" value)))
                             (mpc-proc-error
@@ -637,7 +633,7 @@ The songs are returned as alists."
                    (mpc-union (mpc-cmd-find tag1 value)
                               (mpc-cmd-find tag2 value))))
                 (t
-                 (condition-case err
+                 (condition-case nil
                      (mpc-proc-buf-to-alists
                       (mpc-proc-cmd (list "find" (symbol-name tag) value)))
                    (mpc-proc-error
@@ -775,7 +771,7 @@ The songs are returned as alists."
 
 (defun mpc-cmd-pause (&optional arg callback)
   "Pause or resume playback of the queue of songs."
-  (lexical-let ((cb callback))
+  (let ((cb callback))
     (mpc-proc-cmd (list "pause" arg)
                   (lambda () (mpc-status-refresh) (if cb (funcall cb))))
     (unless callback (mpc-proc-sync))))
@@ -839,7 +835,7 @@ If PLAYLIST is t or nil or missing, use the main playlist."
         (puthash (cons 'Playlist playlist) nil mpc--find-memoize))))
 
 (defun mpc-cmd-update (&optional arg callback)
-  (lexical-let ((cb callback))
+  (let ((cb callback))
     (mpc-proc-cmd (if arg (list "update" arg) "update")
                   (lambda () (mpc-status-refresh) (if cb (funcall cb))))
     (unless callback (mpc-proc-sync))))
@@ -939,7 +935,7 @@ If PLAYLIST is t or nil or missing, use the main playlist."
 
 (defun mpc-tempfiles-clean ()
   (let ((live ()))
-    (maphash (lambda (k v) (push v live)) mpc-tempfiles-reftable)
+    (maphash (lambda (_k v) (push v live)) mpc-tempfiles-reftable)
     (dolist (f mpc-tempfiles)
       (unless (member f live) (ignore-errors (delete-file f))))
     (setq mpc-tempfiles live)))
@@ -1163,7 +1159,7 @@ If PLAYLIST is t or nil or missing, use the main playlist."
         (mpc-status-mode))
       (mpc-proc-buffer (mpc-proc) 'status buf))
     (if (null songs-win) (pop-to-buffer buf)
-      (let ((win (split-window songs-win 20 t)))
+      (let ((_win (split-window songs-win 20 t)))
         (set-window-dedicated-p songs-win nil)
         (set-window-buffer songs-win buf)
         (set-window-dedicated-p songs-win 'soft)))))
@@ -2351,8 +2347,7 @@ This is used so that they can be compared with `eq', which is needed for
               (mpc-proc-cmd (list "seekid" songid time)
                             'mpc-status-refresh))))
       (let ((status (mpc-cmd-status)))
-        (lexical-let* ((songid (cdr (assq 'songid status)))
-                       (step step)
+        (let* ((songid (cdr (assq 'songid status)))
                        (time (if songid (string-to-number
                                          (cdr (assq 'time status))))))
           (let ((timer (run-with-timer
@@ -2389,17 +2384,14 @@ This is used so that they can be compared with `eq', which is needed for
   (if mpc--faster-toggle-timer
       (mpc--faster-stop)
     (mpc-status-refresh) (mpc-proc-sync)
-    (lexical-let* ((speedup speedup)
-                   songid       ;The ID of the currently ffwd/rewinding song.
-                   songnb       ;The position of that song in the playlist.
-                   songduration ;The duration of that song.
-                   songtime     ;The time of the song last time we ran.
-                   oldtime      ;The timeoftheday last time we ran.
-                   prevsongid)  ;The song we're in the process leaving.
+    (let* (songid       ;The ID of the currently ffwd/rewinding song.
+           songduration ;The duration of that song.
+           songtime     ;The time of the song last time we ran.
+           oldtime      ;The timeoftheday last time we ran.
+           prevsongid)  ;The song we're in the process leaving.
       (let ((fun
              (lambda ()
-               (let ((newsongid (cdr (assq 'songid mpc-status)))
-                     (newsongnb (cdr (assq 'song mpc-status))))
+               (let ((newsongid (cdr (assq 'songid mpc-status))))
 
                  (if (and (equal prevsongid newsongid)
                           (not (equal prevsongid songid)))
@@ -2450,8 +2442,7 @@ This is used so that they can be compared with `eq', which is needed for
                            (mpc-proc-cmd
                             (list "seekid" songid songtime)
                             'mpc-status-refresh)
-                         (mpc-proc-error (mpc-status-refresh)))))))
-                 (setq songnb newsongnb)))))
+                         (mpc-proc-error (mpc-status-refresh)))))))))))
         (setq mpc--faster-toggle-forward (> step 0))
         (funcall fun)                   ;Initialize values.
         (setq mpc--faster-toggle-timer
@@ -2461,13 +2452,13 @@ This is used so that they can be compared with `eq', which is needed for
 
 (defvar mpc-faster-speedup 8)
 
-(defun mpc-ffwd (event)
+(defun mpc-ffwd (_event)
   "Fast forward."
   (interactive (list last-nonmenu-event))
   ;; (mpc--faster event 4.0 1)
   (mpc--faster-toggle mpc-faster-speedup 1))
 
-(defun mpc-rewind (event)
+(defun mpc-rewind (_event)
   "Fast rewind."
   (interactive (list last-nonmenu-event))
   ;; (mpc--faster event 4.0 -1)

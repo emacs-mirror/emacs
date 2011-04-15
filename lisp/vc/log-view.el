@@ -1,4 +1,4 @@
-;;; log-view.el --- Major mode for browsing RCS/CVS/SCCS log output
+;;; log-view.el --- Major mode for browsing RCS/CVS/SCCS log output -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
@@ -115,6 +115,7 @@
 (autoload 'vc-diff-internal "vc")
 
 (defvar cvs-minor-wrap-function)
+(defvar cvs-force-command)
 
 (defgroup log-view nil
   "Major mode for browsing log output of RCS/CVS/SCCS."

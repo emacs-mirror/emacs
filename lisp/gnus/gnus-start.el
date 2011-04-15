@@ -1699,31 +1699,43 @@ If SCAN, request a scan of that group as well."
 	  (gnus-read-active-file-1 method nil))))
 
     ;; Start early async retrieval of data.
-    (dolist (elem type-cache)
-      (destructuring-bind (method method-type infos dummy) elem
-	(when (and method infos
-		   (not (gnus-method-denied-p method)))
-	  ;; If the open-server method doesn't exist, then the method
-	  ;; itself doesn't exist, so we ignore it.
-	  (if (not (ignore-errors (gnus-get-function method 'open-server)))
-	      (setq type-cache (delq elem type-cache))
-	    (unless (gnus-server-opened method)
-	      (gnus-open-server method))
-	    (when (and
-		   (gnus-server-opened method)
-		   (gnus-check-backend-function
-		    'retrieve-group-data-early (car method)))
-	      (when (gnus-check-backend-function 'request-scan (car method))
-		(gnus-request-scan nil method))
-	      ;; Store the token we get back from -early so that we
-	      ;; can pass it to -finish later.
-	      (setcar (nthcdr 3 elem)
-		      (gnus-retrieve-group-data-early method infos)))))))
+    (let ((done-methods nil)
+	  sanity-spec)
+      (dolist (elem type-cache)
+	(destructuring-bind (method method-type infos dummy) elem
+	  (setq sanity-spec (list (car method) (cadr method)))
+	  (when (and method infos
+		     (not (gnus-method-denied-p method)))
+	    ;; If the open-server method doesn't exist, then the method
+	    ;; itself doesn't exist, so we ignore it.
+	    (if (not (ignore-errors (gnus-get-function method 'open-server)))
+		(setq type-cache (delq elem type-cache))
+	      (unless (gnus-server-opened method)
+		(gnus-open-server method))
+	      (when (and
+		     ;; This is a sanity check, so that we never
+		     ;; attempt to start two async requests to the
+		     ;; same server, because that will fail.  This
+		     ;; should never happen, since the methods should
+		     ;; be unique at this point, but apparently it
+		     ;; does happen in the wild with some setups.
+		     (not (member sanity-spec done-methods))
+		     (gnus-server-opened method)
+		     (gnus-check-backend-function
+		      'retrieve-group-data-early (car method)))
+		(push sanity-spec done-methods)
+		(when (gnus-check-backend-function 'request-scan (car method))
+		  (gnus-request-scan nil method))
+		;; Store the token we get back from -early so that we
+		;; can pass it to -finish later.
+		(setcar (nthcdr 3 elem)
+			(gnus-retrieve-group-data-early method infos))))))))
 
     ;; Do the rest of the retrieval.
     (dolist (elem type-cache)
       (destructuring-bind (method method-type infos early-data) elem
-	(when (and method infos)
+	(when (and method infos
+		   (not (gnus-method-denied-p method)))
 	  (let ((updatep (gnus-check-backend-function
 			  'request-update-info (car method))))
 	    ;; See if any of the groups from this method require updating.
@@ -1761,6 +1773,7 @@ If SCAN, request a scan of that group as well."
      ;; Finish up getting the data from the methods that have -early
      ;; methods.
      ((and
+       early-data
        (gnus-check-backend-function 'finish-retrieve-group-infos (car method))
        (or (not (gnus-agent-method-p method))
 	   (gnus-online method)))
@@ -2871,7 +2884,8 @@ If FORCE is non-nil, the .newsrc file is read."
       (pop list))
     (nreverse olist)))
 
-(defun gnus-gnus-to-newsrc-format ()
+(defun gnus-gnus-to-newsrc-format (&optional foreign-ok)
+  (interactive (list (gnus-y-or-n-p "write foreign groups too? ")))
   ;; Generate and save the .newsrc file.
   (with-current-buffer (create-file-buffer gnus-current-startup-file)
     (let ((newsrc (cdr gnus-newsrc-alist))
@@ -2893,7 +2907,8 @@ If FORCE is non-nil, the .newsrc file is read."
 	;; Don't write foreign groups to .newsrc.
 	(when (or (null (setq method (gnus-info-method info)))
 		  (equal method "native")
-		  (inline (gnus-server-equal method gnus-select-method)))
+		  (inline (gnus-server-equal method gnus-select-method))
+                  foreign-ok)
 	  (insert (gnus-info-group info)
 		  (if (> (gnus-info-level info) gnus-level-subscribed)
 		      "!" ":"))

@@ -33,36 +33,62 @@
   :group 'dired
   :prefix "find-")
 
+;; FIXME this option does not really belong in this file, it's more general.
+;; Eg cf some tests in grep.el.
+(defcustom find-exec-terminator
+  (if (eq 0
+	  (ignore-errors
+	    (process-file find-program nil nil nil
+			  null-device "-exec" "echo" "{}" "+")))
+      "+"
+    (shell-quote-argument ";"))
+  "String that terminates \"find -exec COMMAND {} \".
+The value should include any needed quoting for the shell.
+Common values are \"+\" and \"\\\\;\", with the former more efficient
+than the latter."
+  :version "24.1"
+  :group 'find-dired
+  :type 'string)
+
 ;; find's -ls corresponds to these switches.
 ;; Note -b, at least GNU find quotes spaces etc. in filenames
-;;;###autoload
 (defcustom find-ls-option
-  (if (eq system-type 'berkeley-unix) (purecopy '("-ls" . "-gilsb"))
-    (purecopy '("-exec ls -ld {} \\;" . "-ld")))
+  (if (eq 0
+	  (ignore-errors
+	    (process-file find-program nil nil nil null-device "-ls")))
+      (cons "-ls"
+	    (if (eq system-type 'berkeley-unix)
+		"-gilsb"
+	      "-dilsb"))
+    (cons
+     (format "-exec ls -ld {} %s" find-exec-terminator)
+     "-ld"))
   "Description of the option to `find' to produce an `ls -l'-type listing.
 This is a cons of two strings (FIND-OPTION . LS-SWITCHES).  FIND-OPTION
 gives the option (or options) to `find' that produce the desired output.
 LS-SWITCHES is a list of `ls' switches to tell dired how to parse the output."
+  :version "24.1"	       ; add tests for -ls and -exec + support
   :type '(cons (string :tag "Find Option")
 	       (string :tag "Ls Switches"))
   :group 'find-dired)
 
-;;;###autoload
-(defcustom find-ls-subdir-switches (purecopy "-al")
+(defcustom find-ls-subdir-switches
+  (if (string-match "-[a-z]*b" (cdr find-ls-option))
+      "-alb"
+    "-al")
   "`ls' switches for inserting subdirectories in `*Find*' buffers.
 This should contain the \"-l\" switch.
 Use the \"-F\" or \"-b\" switches if and only if you also use
 them for `find-ls-option'."
+  :version "24.1"			; add -b test
   :type 'string
-  :group 'find-dired
-  :version "22.1")
+  :group 'find-dired)
 
-;;;###autoload
 (defcustom find-grep-options
-  (purecopy (if (or (eq system-type 'berkeley-unix)
+  (if (or (eq system-type 'berkeley-unix)
 	  (string-match "solaris2" system-configuration)
 	  (string-match "irix" system-configuration))
-      "-s" "-q"))
+      "-s" "-q")
   "Option to grep to be as silent as possible.
 On Berkeley systems, this is `-s'; on Posix, and with GNU grep, `-q' does it.
 On other systems, the closest you can come is to use `-l'."
@@ -71,9 +97,9 @@ On other systems, the closest you can come is to use `-l'."
 
 ;; This used to be autoloaded (see bug#4387).
 (defcustom find-name-arg
-  (purecopy (if read-file-name-completion-ignore-case
+  (if read-file-name-completion-ignore-case
       "-iname"
-    "-name"))
+    "-name")
   "Argument used to specify file name pattern.
 If `read-file-name-completion-ignore-case' is non-nil, -iname is used so that
 find also ignores case.  Otherwise, -name is used."
@@ -92,12 +118,12 @@ find also ignores case.  Otherwise, -name is used."
 ;;;###autoload
 (defun find-dired (dir args)
   "Run `find' and go into Dired mode on a buffer of the output.
-The command run (after changing into DIR) is
+The command run (after changing into DIR) is essentially
 
     find . \\( ARGS \\) -ls
 
-except that the variable `find-ls-option' specifies what to use
-as the final argument."
+except that the car of the variable `find-ls-option' specifies what to
+use in place of \"-ls\" as the final argument."
   (interactive (list (read-directory-name "Run find in directory: " nil "" t)
 		     (read-string "Run find (with args): " find-args
 				  '(find-args-history . 1))))
@@ -138,11 +164,12 @@ as the final argument."
 			  " " args " "
 			  (shell-quote-argument ")")
 			  " "))
-		       (if (equal (car find-ls-option) "-exec ls -ld {} \\;")
-			   (concat "-exec ls -ld "
+		       (if (string-match "\\`\\(.*\\) {} \\(\\\\;\\|+\\)\\'"
+					 (car find-ls-option))
+			   (format "%s %s %s"
+				   (match-string 1 (car find-ls-option))
 				   (shell-quote-argument "{}")
-				   " "
-				   (shell-quote-argument ";"))
+				   find-exec-terminator)
 			 (car find-ls-option))))
     ;; Start the find process.
     (shell-command (concat args "&") (current-buffer))
@@ -216,9 +243,14 @@ The command run (after changing into DIR) is
   "Find files in DIR containing a regexp REGEXP and start Dired on output.
 The command run (after changing into DIR) is
 
-    find . -exec grep -s -e REGEXP {} \\\; -ls
+  find . \\( -type f -exec `grep-program' `find-grep-options' \\
+    -e REGEXP {} \\; \\) -ls
 
-Thus ARG can also contain additional grep options."
+where the car of the variable `find-ls-option' specifies what to
+use in place of \"-ls\" as the final argument."
+  ;; Doc used to say "Thus ARG can also contain additional grep options."
+  ;; i) Presumably ARG == REGEXP?
+  ;; ii) No it can't have options, since it gets shell-quoted.
   (interactive "DFind-grep (directory): \nsFind-grep (grep regexp): ")
   ;; find -exec doesn't allow shell i/o redirections in the command,
   ;; or we could use `grep -l >/dev/null'
@@ -231,6 +263,7 @@ Thus ARG can also contain additional grep options."
 		      " "
 		      (shell-quote-argument "{}")
 		      " "
+		      ;; Doesn't work with "+".
 		      (shell-quote-argument ";"))))
 
 (defun find-dired-filter (proc string)

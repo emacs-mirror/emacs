@@ -94,9 +94,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Symbols.  */
 
-Lisp_Object QCvolume, QCdevice;
-Lisp_Object Qsound;
-Lisp_Object Qplay_sound_functions;
+static Lisp_Object QCvolume, QCdevice;
+static Lisp_Object Qsound;
+static Lisp_Object Qplay_sound_functions;
 
 /* Indices of attributes in a sound attributes vector.  */
 
@@ -281,8 +281,8 @@ struct sound
 /* These are set during `play-sound-internal' so that sound_cleanup has
    access to them.  */
 
-struct sound_device *current_sound_device;
-struct sound *current_sound;
+static struct sound_device *current_sound_device;
+static struct sound *current_sound;
 
 /* Function prototypes.  */
 
@@ -344,7 +344,7 @@ sound_perror (const char *msg)
 static void
 sound_warning (const char *msg)
 {
-  message (msg);
+  message ("%s", msg);
 }
 
 
@@ -460,8 +460,8 @@ sound_cleanup (Lisp_Object arg)
     current_sound_device->close (current_sound_device);
   if (current_sound->fd > 0)
     emacs_close (current_sound->fd);
-  free (current_sound_device);
-  free (current_sound);
+  xfree (current_sound_device);
+  xfree (current_sound);
 
   return Qnil;
 }
@@ -897,7 +897,7 @@ vox_init (struct sound_device *sd)
 static void
 vox_write (struct sound_device *sd, const char *buffer, int nbytes)
 {
-  int nwritten = emacs_write (sd->fd, buffer, nbytes);
+  ssize_t nwritten = emacs_write (sd->fd, buffer, nbytes);
   if (nwritten < 0)
     sound_perror ("Error writing to sound device");
 }
@@ -1095,7 +1095,7 @@ alsa_close (struct sound_device *sd)
           snd_pcm_drain (p->handle);
           snd_pcm_close (p->handle);
         }
-      free (p);
+      xfree (p);
     }
 }
 

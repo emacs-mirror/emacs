@@ -1,4 +1,4 @@
-;;; macroexp.el --- Additional macro-expansion support
+;;; macroexp.el --- Additional macro-expansion support -*- lexical-binding: t -*-
 ;;
 ;; Copyright (C) 2004-2011 Free Software Foundation, Inc.
 ;;
@@ -28,6 +28,8 @@
 ;;
 
 ;;; Code:
+
+(eval-when-compile (require 'cl))
 
 ;; Bound by the top-level `macroexpand-all', and modified to include any
 ;; macros defined by `defmacro'.
@@ -106,7 +108,14 @@ Assumes the caller has bound `macroexpand-all-environment'."
       (macroexpand (macroexpand-all-forms form 1)
 		   macroexpand-all-environment)
     ;; Normal form; get its expansion, and then expand arguments.
-    (setq form (macroexpand form macroexpand-all-environment))
+    (let ((new-form (macroexpand form macroexpand-all-environment)))
+      (when (and (not (eq form new-form)) ;It was a macro call.
+                 (car-safe form)
+                 (symbolp (car form))
+                 (get (car form) 'byte-obsolete-info)
+                 (fboundp 'byte-compile-warn-obsolete))
+        (byte-compile-warn-obsolete (car form)))
+      (setq form new-form))
     (pcase form
       (`(cond . ,clauses)
        (maybe-cons 'cond (macroexpand-all-clauses clauses) form))
@@ -122,7 +131,16 @@ Assumes the caller has bound `macroexpand-all-environment'."
       (`(defmacro ,name . ,args-and-body)
        (push (cons name (cons 'lambda args-and-body))
              macroexpand-all-environment)
-       (macroexpand-all-forms form 3))
+       (let ((n 3))
+         ;; Don't macroexpand `declare' since it should really be "expanded"
+         ;; away when `defmacro' is expanded, but currently defmacro is not
+         ;; itself a macro.  So both `defmacro' and `declare' need to be
+         ;; handled directly in bytecomp.el.
+         ;; FIXME: Maybe a simpler solution is to (defalias 'declare 'quote).
+         (while (or (stringp (nth n form))
+                    (eq (car-safe (nth n form)) 'declare))
+           (setq n (1+ n)))
+         (macroexpand-all-forms form n)))
       (`(defun . ,_) (macroexpand-all-forms form 3))
       (`(,(or `defvar `defconst) . ,_) (macroexpand-all-forms form 2))
       (`(function ,(and f `(lambda . ,_)))
@@ -151,19 +169,34 @@ Assumes the caller has bound `macroexpand-all-environment'."
       ;; here, so that any code that cares about the difference will
       ;; see the same transformation.
       ;; First arg is a function:
-      (`(,(and fun (or `apply `mapcar `mapatoms `mapconcat `mapc)) ',f . ,args)
+      (`(,(and fun (or `apply `mapcar `mapatoms `mapconcat `mapc))
+         ',(and f `(lambda . ,_)) . ,args)
        ;; We don't use `maybe-cons' since there's clearly a change.
        (cons fun
              (cons (macroexpand-all-1 (list 'function f))
                    (macroexpand-all-forms args))))
       ;; Second arg is a function:
-      (`(,(and fun (or `sort)) ,arg1 ',f . ,args)
+      (`(,(and fun (or `sort)) ,arg1 ',(and f `(lambda . ,_)) . ,args)
        ;; We don't use `maybe-cons' since there's clearly a change.
        (cons fun
              (cons (macroexpand-all-1 arg1)
                    (cons (macroexpand-all-1
                           (list 'function f))
                          (macroexpand-all-forms args)))))
+      ;; Macro expand compiler macros.  This cannot be delayed to
+      ;; byte-optimize-form because the output of the compiler-macro can
+      ;; use macros.
+      ;; FIXME: Don't depend on CL.
+      (`(,(pred (lambda (fun)
+                  (and (symbolp fun)
+                       (eq (get fun 'byte-compile)
+                           'cl-byte-compile-compiler-macro)
+                       (functionp 'compiler-macroexpand))))
+         . ,_)
+       (let ((newform (with-no-warnings (compiler-macroexpand form))))
+         (if (eq form newform)
+             (macroexpand-all-forms form 1)
+           (macroexpand-all-1 newform))))
       (`(,_ . ,_)
        ;; For every other list, we just expand each argument (for
        ;; setq/setq-default this works alright because the variable names

@@ -254,8 +254,7 @@ Used in `bookmark-set' to get the default bookmark name."
   "Regular expression describing a manpage section within parentheses.")
 
 (defvar Man-page-header-regexp
-  (if (and (string-match "-solaris2\\." system-configuration)
-	   (not (string-match "-solaris2\\.[123435]$" system-configuration)))
+  (if (string-match "-solaris2\\." system-configuration)
       (concat "^[-A-Za-z0-9_].*[ \t]\\(" Man-name-regexp
 	      "(\\(" Man-section-regexp "\\))\\)$")
     (concat "^[ \t]*\\(" Man-name-regexp

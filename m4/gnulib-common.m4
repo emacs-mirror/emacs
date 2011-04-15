@@ -1,4 +1,4 @@
-# gnulib-common.m4 serial 23
+# gnulib-common.m4 serial 24
 dnl Copyright (C) 2007-2011 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -109,7 +109,8 @@ AC_DEFUN([gl_MODULE_INDICATOR_FOR_TESTS],
 AC_DEFUN([gl_ASSERT_NO_GNULIB_POSIXCHECK],
 [
   dnl Override gl_WARN_ON_USE_PREPARE.
-  AC_DEFUN([gl_WARN_ON_USE_PREPARE], [])
+  dnl But hide this definition from 'aclocal'.
+  AC_DEFUN([gl_W][ARN_ON_USE_PREPARE], [])
 ])
 
 # gl_ASSERT_NO_GNULIB_TESTS

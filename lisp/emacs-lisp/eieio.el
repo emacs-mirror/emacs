@@ -45,8 +45,7 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl)
-  (require 'eieio-comp))
+  (require 'cl))
 
 (defvar eieio-version "1.3"
   "Current version of EIEIO.")
@@ -97,6 +96,7 @@ default setting for optimization purposes.")
   "Non-nil means to optimize the method dispatch on primary methods.")
 
 ;; State Variables
+;; FIXME: These two constants below should have an `eieio-' prefix added!!
 (defvar this nil
   "Inside a method, this variable is the object in question.
 DO NOT SET THIS YOURSELF unless you are trying to simulate friendly slots.
@@ -123,6 +123,7 @@ execute a `call-next-method'.  DO NOT SET THIS YOURSELF!")
 ;; while it is being built itself.
 (defvar eieio-default-superclass nil)
 
+;; FIXME: The constants below should have an `eieio-' prefix added!!
 (defconst class-symbol 1 "Class's symbol (self-referencing.).")
 (defconst class-parent 2 "Class parent slot.")
 (defconst class-children 3 "Class children class slot.")
@@ -181,10 +182,6 @@ Stored outright without modifications or stripping.")
 	(t key) ;; already generic.. maybe.
 	))
 
-;; How to specialty compile stuff.
-(autoload 'byte-compile-file-form-defmethod "eieio-comp"
-  "This function is used to byte compile methods in a nice way.")
-(put 'defmethod 'byte-hunk-handler 'byte-compile-file-form-defmethod)
 
 ;;; Important macros used in eieio.
 ;;
@@ -1192,10 +1189,8 @@ IMPL is the symbol holding the method implementation."
   ;; is faster to execute this for not byte-compiled.  ie, install this,
   ;; then measure calls going through here.  I wonder why.
   (require 'bytecomp)
-  (let ((byte-compile-free-references nil)
-	(byte-compile-warnings nil)
-	)
-    (byte-compile-lambda
+  (let ((byte-compile-warnings nil))
+    (byte-compile
      `(lambda (&rest local-args)
 	,doc-string
 	;; This is a cool cheat.  Usually we need to look up in the
@@ -1205,7 +1200,8 @@ IMPL is the symbol holding the method implementation."
 	;; of that one implementation, then clearly, there is no method def.
 	(if (not (eieio-object-p (car local-args)))
 	    ;; Not an object.  Just signal.
-	    (signal 'no-method-definition (list ,(list 'quote method) local-args))
+	    (signal 'no-method-definition
+                    (list ,(list 'quote method) local-args))
 
 	  ;; We do have an object.  Make sure it is the right type.
 	  (if ,(if (eq class eieio-default-superclass)
@@ -1228,9 +1224,7 @@ IMPL is the symbol holding the method implementation."
 		  )
 	      (apply ,(list 'quote impl) local-args)
 	      ;(,impl local-args)
-	      ))))
-     )
-  ))
+	      )))))))
 
 (defsubst eieio-defgeneric-reset-generic-form-primary-only-one (method)
   "Setup METHOD to call the generic form."
@@ -1296,9 +1290,35 @@ Summary:
                      ((typearg class-name) arg2 &optional opt &rest rest)
     \"doc-string\"
      body)"
-  `(eieio-defmethod (quote ,method) (quote ,args)))
+  (let* ((key (cond ((or (eq ':BEFORE (car args))
+                         (eq ':before (car args)))
+                     (setq args (cdr args))
+                     :before)
+                    ((or (eq ':AFTER (car args))
+                         (eq ':after (car args)))
+                     (setq args (cdr args))
+                     :after)
+                    ((or (eq ':PRIMARY (car args))
+                         (eq ':primary (car args)))
+                     (setq args (cdr args))
+                     :primary)
+                    ((or (eq ':STATIC (car args))
+                         (eq ':static (car args)))
+                     (setq args (cdr args))
+                     :static)
+                    (t nil)))
+	 (params (car args))
+	 (lamparams
+          (mapcar (lambda (param) (if (listp param) (car param) param))
+                  params))
+	 (arg1 (car params))
+	 (class (if (listp arg1) (nth 1 arg1) nil)))
+    `(eieio-defmethod ',method
+                      '(,@(if key (list key))
+                        ,params)
+                      (lambda ,lamparams ,@(cdr args)))))
 
-(defun eieio-defmethod (method args)
+(defun eieio-defmethod (method args &optional code)
   "Work part of the `defmethod' macro defining METHOD with ARGS."
   (let ((key nil) (body nil) (firstarg nil) (argfix nil) (argclass nil) loopa)
     ;; find optional keys
@@ -1352,10 +1372,7 @@ Summary:
       ;; generics are higher
       (setq key (eieio-specialized-key-to-generic-key key)))
     ;; Put this lambda into the symbol so we can find it
-    (if (byte-code-function-p (car-safe body))
-	(eieiomt-add method (car-safe body) key argclass)
-      (eieiomt-add method (append (list 'lambda (reverse argfix)) body)
-		   key argclass))
+    (eieiomt-add method code key argclass)
     )
 
   (when eieio-optimize-primary-methods-flag

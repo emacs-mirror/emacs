@@ -1,4 +1,4 @@
-;;; byte-opt.el --- the optimization passes of the emacs-lisp byte compiler
+;;; byte-opt.el --- the optimization passes of the emacs-lisp byte compiler -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1991, 1994, 2000-2011  Free Software Foundation, Inc.
 
@@ -186,8 +186,10 @@
 (eval-when-compile (require 'cl))
 
 (defun byte-compile-log-lap-1 (format &rest args)
-  (if (aref byte-code-vector 0)
-      (error "The old version of the disassembler is loaded.  Reload new-bytecomp as well"))
+  ;; Newer byte codes for stack-ref make the slot 0 non-nil again.
+  ;; But the "old disassembler" is *really* ancient by now.
+  ;; (if (aref byte-code-vector 0)
+  ;;     (error "The old version of the disassembler is loaded.  Reload new-bytecomp as well"))
   (byte-compile-log-1
    (apply 'format format
      (let (c a)
@@ -242,58 +244,72 @@
 	       sexp)))
 	 (cdr form))))
 
-
-;; Splice the given lap code into the current instruction stream.
-;; If it has any labels in it, you're responsible for making sure there
-;; are no collisions, and that byte-compile-tag-number is reasonable
-;; after this is spliced in.  The provided list is destroyed.
-(defun byte-inline-lapcode (lap)
-  (setq byte-compile-output (nconc (nreverse lap) byte-compile-output)))
-
 (defun byte-compile-inline-expand (form)
   (let* ((name (car form))
-	 (fn (or (cdr (assq name byte-compile-function-environment))
-		 (and (fboundp name) (symbol-function name)))))
-    (if (null fn)
-	(progn
-	  (byte-compile-warn "attempt to inline `%s' before it was defined"
-			     name)
-	  form)
-      ;; else
-      (when (and (consp fn) (eq (car fn) 'autoload))
-	(load (nth 1 fn))
-	(setq fn (or (and (fboundp name) (symbol-function name))
-		     (cdr (assq name byte-compile-function-environment)))))
-      (if (and (consp fn) (eq (car fn) 'autoload))
-	  (error "File `%s' didn't define `%s'" (nth 1 fn) name))
-      (if (and (symbolp fn) (not (eq fn t)))
-	  (byte-compile-inline-expand (cons fn (cdr form)))
-	(if (byte-code-function-p fn)
-	    (let (string)
-	      (fetch-bytecode fn)
-	      (setq string (aref fn 1))
-	      ;; Isn't it an error for `string' not to be unibyte??  --stef
-	      (if (fboundp 'string-as-unibyte)
-		  (setq string (string-as-unibyte string)))
-	      ;; `byte-compile-splice-in-already-compiled-code'
-	      ;; takes care of inlining the body.
-	      (cons `(lambda ,(aref fn 0)
-		       (byte-code ,string ,(aref fn 2) ,(aref fn 3)))
-		    (cdr form)))
-	  (if (eq (car-safe fn) 'lambda)
-	      (cons fn (cdr form))
-	    ;; Give up on inlining.
-	    form))))))
+         (localfn (cdr (assq name byte-compile-function-environment)))
+	 (fn (or localfn (and (fboundp name) (symbol-function name)))))
+    (when (and (consp fn) (eq (car fn) 'autoload))
+      (load (nth 1 fn))
+      (setq fn (or (and (fboundp name) (symbol-function name))
+                   (cdr (assq name byte-compile-function-environment)))))
+    (pcase fn
+      (`nil
+       (byte-compile-warn "attempt to inline `%s' before it was defined"
+                          name)
+       form)
+      (`(autoload . ,_)
+       (error "File `%s' didn't define `%s'" (nth 1 fn) name))
+      ((and (pred symbolp) (guard (not (eq fn t)))) ;A function alias.
+       (byte-compile-inline-expand (cons fn (cdr form))))
+      ((pred byte-code-function-p)
+       ;; (message "Inlining byte-code for %S!" name)
+       ;; The byte-code will be really inlined in byte-compile-unfold-bcf.
+       `(,fn ,@(cdr form)))
+      ((or (and `(lambda ,args . ,body) (let env nil))
+           `(closure ,env ,args . ,body))
+       (if (not (or (eq fn localfn)     ;From the same file => same mode.
+                    (eq (not lexical-binding) (not env)))) ;Same mode.
+           ;; While byte-compile-unfold-bcf can inline dynbind byte-code into
+           ;; letbind byte-code (or any other combination for that matter), we
+           ;; can only inline dynbind source into dynbind source or letbind
+           ;; source into letbind source.
+           ;; FIXME: we could of course byte-compile the inlined function
+           ;; first, and then inline its byte-code.
+           form
+         (let ((renv ()))
+           ;; Turn the function's closed vars (if any) into local let bindings.
+           (dolist (binding env)
+             (cond
+              ((consp binding)
+               ;; We check shadowing by the args, so that the `let' can be
+               ;; moved within the lambda, which can then be unfolded.
+               ;; FIXME: Some of those bindings might be unused in `body'.
+               (unless (memq (car binding) args) ;Shadowed.
+                 (push `(,(car binding) ',(cdr binding)) renv)))
+              ((eq binding t))
+              (t (push `(defvar ,binding) body))))
+           (let ((newfn (byte-compile-preprocess
+                         (if (null renv)
+                             `(lambda ,args ,@body)
+                           `(lambda ,args (let ,(nreverse renv) ,@body))))))
+             (if (eq (car-safe newfn) 'function)
+                 (byte-compile-unfold-lambda `(,(cadr newfn) ,@(cdr form)))
+               (byte-compile-log-warning
+                (format "Inlining closure %S failed" name))
+               form)))))
+
+      (t ;; Give up on inlining.
+       form))))
 
 ;; ((lambda ...) ...)
 (defun byte-compile-unfold-lambda (form &optional name)
+  ;; In lexical-binding mode, let and functions don't bind vars in the same way
+  ;; (let obey special-variable-p, but functions don't).  But luckily, this
+  ;; doesn't matter here, because function's behavior is underspecified so it
+  ;; can safely be turned into a `let', even though the reverse is not true.
   (or name (setq name "anonymous lambda"))
   (let ((lambda (car form))
 	(values (cdr form)))
-    (if (byte-code-function-p lambda)
-	(setq lambda (list 'lambda (aref lambda 0)
-			   (list 'byte-code (aref lambda 1)
-				 (aref lambda 2) (aref lambda 3)))))
     (let ((arglist (nth 1 lambda))
 	  (body (cdr (cdr lambda)))
 	  optionalp restp
@@ -302,6 +318,7 @@
 	  (setq body (cdr body)))
       (if (and (consp (car body)) (eq 'interactive (car (car body))))
 	  (setq body (cdr body)))
+      ;; FIXME: The checks below do not belong in an optimization phase.
       (while arglist
 	(cond ((eq (car arglist) '&optional)
 	       ;; ok, I'll let this slide because funcall_lambda() does...
@@ -379,8 +396,7 @@
 	   (and (nth 1 form)
 		(not for-effect)
 		form))
-	  ((or (byte-code-function-p fn)
-	       (eq 'lambda (car-safe fn)))
+	  ((eq 'lambda (car-safe fn))
 	   (let ((newform (byte-compile-unfold-lambda form)))
 	     (if (eq newform form)
 		 ;; Some error occurred, avoid infinite recursion
@@ -455,8 +471,8 @@
 		(byte-optimize-form (nth 2 form) for-effect)
 		(byte-optimize-body (nthcdr 3 form) for-effect)))))
 
-	  ((memq fn '(and or))  ; remember, and/or are control structures.
-	   ;; take forms off the back until we can't any more.
+	  ((memq fn '(and or))  ; Remember, and/or are control structures.
+	   ;; Take forms off the back until we can't any more.
 	   ;; In the future it could conceivably be a problem that the
 	   ;; subexpressions of these forms are optimized in the reverse
 	   ;; order, but it's ok for now.
@@ -471,7 +487,8 @@
 		     (byte-compile-log
 		      "  all subforms of %s called for effect; deleted" form))
 		 (and backwards
-		      (cons fn (nreverse (mapcar 'byte-optimize-form backwards)))))
+		      (cons fn (nreverse (mapcar 'byte-optimize-form
+                                                 backwards)))))
 	     (cons fn (mapcar 'byte-optimize-form (cdr form)))))
 
 	  ((eq fn 'interactive)
@@ -479,8 +496,7 @@
 			      (prin1-to-string form))
 	   nil)
 
-	  ((memq fn '(defun defmacro function
-		      condition-case save-window-excursion))
+	  ((memq fn '(defun defmacro function condition-case))
 	   ;; These forms are compiled as constants or by breaking out
 	   ;; all the subexpressions and compiling them separately.
 	   form)
@@ -511,23 +527,11 @@
 	   ;; However, don't actually bother calling `ignore'.
 	   `(prog1 nil . ,(mapcar 'byte-optimize-form (cdr form))))
 
-	  ;; If optimization is on, this is the only place that macros are
-	  ;; expanded.  If optimization is off, then macroexpansion happens
-	  ;; in byte-compile-form.  Otherwise, the macros are already expanded
-	  ;; by the time that is reached.
-	  ((not (eq form
-		    (setq form (macroexpand form
-					    byte-compile-macro-environment))))
-	   (byte-optimize-form form for-effect))
+          ;; Neeeded as long as we run byte-optimize-form after cconv.
+          ((eq fn 'internal-make-closure) form)
 
-	  ;; Support compiler macros as in cl.el.
-	  ((and (fboundp 'compiler-macroexpand)
-		(symbolp (car-safe form))
-		(get (car-safe form) 'cl-compiler-macro)
-	        (not (eq form
-			 (with-no-warnings
-			  (setq form (compiler-macroexpand form))))))
-	   (byte-optimize-form form for-effect))
+          ((byte-code-function-p fn)
+           (cons fn (mapcar #'byte-optimize-form (cdr form))))
 
 	  ((not (symbolp fn))
 	   (byte-compile-warn "`%s' is a malformed function"
@@ -605,7 +609,7 @@
 
 
 (defun byte-optimize-body (forms all-for-effect)
-  ;; optimize the cdr of a progn or implicit progn; all forms is a list of
+  ;; Optimize the cdr of a progn or implicit progn; all forms is a list of
   ;; forms, all but the last of which are optimized with the assumption that
   ;; they are being called for effect.  the last is for-effect as well if
   ;; all-for-effect is true.  returns a new list of forms.
@@ -1085,7 +1089,7 @@
   (let ((fn (nth 1 form)))
     (if (memq (car-safe fn) '(quote function))
 	(cons (nth 1 fn) (cdr (cdr form)))
-	form)))
+      form)))
 
 (defun byte-optimize-apply (form)
   ;; If the last arg is a literal constant, turn this into a funcall.
@@ -1291,63 +1295,51 @@
     (put (car pure-fns) 'pure t)
     (setq pure-fns (cdr pure-fns)))
   nil)
-
-(defun byte-compile-splice-in-already-compiled-code (form)
-  ;; form is (byte-code "..." [...] n)
-  (if (not (memq byte-optimize '(t lap)))
-      (byte-compile-normal-call form)
-    (byte-inline-lapcode
-     (byte-decompile-bytecode-1 (nth 1 form) (nth 2 form) t))
-    (setq byte-compile-maxdepth (max (+ byte-compile-depth (nth 3 form))
-				     byte-compile-maxdepth))
-    (setq byte-compile-depth (1+ byte-compile-depth))))
-
-(put 'byte-code 'byte-compile 'byte-compile-splice-in-already-compiled-code)
-
 
 (defconst byte-constref-ops
   '(byte-constant byte-constant2 byte-varref byte-varset byte-varbind))
 
+;; Used and set dynamically in byte-decompile-bytecode-1.
+(defvar bytedecomp-op)
+(defvar bytedecomp-ptr)
+
 ;; This function extracts the bitfields from variable-length opcodes.
 ;; Originally defined in disass.el (which no longer uses it.)
-
-(defun disassemble-offset ()
+(defun disassemble-offset (bytes)
   "Don't call this!"
-  ;; fetch and return the offset for the current opcode.
-  ;; return nil if this opcode has no offset
-  ;; Used and set dynamically in byte-decompile-bytecode-1.
-  (defvar bytedecomp-op)
-  (defvar bytedecomp-ptr)
-  (defvar bytedecomp-bytes)
+  ;; Fetch and return the offset for the current opcode.
+  ;; Return nil if this opcode has no offset.
   (cond ((< bytedecomp-op byte-nth)
 	 (let ((tem (logand bytedecomp-op 7)))
 	   (setq bytedecomp-op (logand bytedecomp-op 248))
 	   (cond ((eq tem 6)
 		  ;; Offset in next byte.
 		  (setq bytedecomp-ptr (1+ bytedecomp-ptr))
-		  (aref bytedecomp-bytes bytedecomp-ptr))
+		  (aref bytes bytedecomp-ptr))
 		 ((eq tem 7)
 		  ;; Offset in next 2 bytes.
 		  (setq bytedecomp-ptr (1+ bytedecomp-ptr))
-		  (+ (aref bytedecomp-bytes bytedecomp-ptr)
+		  (+ (aref bytes bytedecomp-ptr)
 		     (progn (setq bytedecomp-ptr (1+ bytedecomp-ptr))
-			    (lsh (aref bytedecomp-bytes bytedecomp-ptr) 8))))
-		 (t tem))))		;offset was in opcode
+			    (lsh (aref bytes bytedecomp-ptr) 8))))
+		 (t tem))))		;Offset was in opcode.
 	((>= bytedecomp-op byte-constant)
-	 (prog1 (- bytedecomp-op byte-constant)	;offset in opcode
+	 (prog1 (- bytedecomp-op byte-constant)	;Offset in opcode.
 	   (setq bytedecomp-op byte-constant)))
-	((and (>= bytedecomp-op byte-constant2)
-	      (<= bytedecomp-op byte-goto-if-not-nil-else-pop))
+	((or (and (>= bytedecomp-op byte-constant2)
+                  (<= bytedecomp-op byte-goto-if-not-nil-else-pop))
+             (= bytedecomp-op byte-stack-set2))
 	 ;; Offset in next 2 bytes.
 	 (setq bytedecomp-ptr (1+ bytedecomp-ptr))
-	 (+ (aref bytedecomp-bytes bytedecomp-ptr)
+	 (+ (aref bytes bytedecomp-ptr)
 	    (progn (setq bytedecomp-ptr (1+ bytedecomp-ptr))
-		   (lsh (aref bytedecomp-bytes bytedecomp-ptr) 8))))
+		   (lsh (aref bytes bytedecomp-ptr) 8))))
 	((and (>= bytedecomp-op byte-listN)
-	      (<= bytedecomp-op byte-insertN))
-	 (setq bytedecomp-ptr (1+ bytedecomp-ptr)) ;offset in next byte
-	 (aref bytedecomp-bytes bytedecomp-ptr))))
+	      (<= bytedecomp-op byte-discardN))
+	 (setq bytedecomp-ptr (1+ bytedecomp-ptr)) ;Offset in next byte.
+	 (aref bytes bytedecomp-ptr))))
 
+(defvar byte-compile-tag-number)
 
 ;; This de-compiler is used for inline expansion of compiled functions,
 ;; and by the disassembler.
@@ -1369,27 +1361,26 @@
 ;; If MAKE-SPLICEABLE is nil, we are being called for the disassembler.
 ;; In that case, we put a pc value into the list
 ;; before each insn (or its label).
-(defun byte-decompile-bytecode-1 (bytedecomp-bytes constvec
-						   &optional make-spliceable)
-  (let ((length (length bytedecomp-bytes))
-	(bytedecomp-ptr 0) optr tags bytedecomp-op offset
+(defun byte-decompile-bytecode-1 (bytes constvec &optional make-spliceable)
+  (let ((length (length bytes))
+        (bytedecomp-ptr 0) optr tags bytedecomp-op offset
 	lap tmp
 	endtag)
     (while (not (= bytedecomp-ptr length))
       (or make-spliceable
-	  (setq lap (cons bytedecomp-ptr lap)))
-      (setq bytedecomp-op (aref bytedecomp-bytes bytedecomp-ptr)
+	  (push bytedecomp-ptr lap))
+      (setq bytedecomp-op (aref bytes bytedecomp-ptr)
 	    optr bytedecomp-ptr
-	    offset (disassemble-offset)) ; this does dynamic-scope magic
+            ;; This uses dynamic-scope magic.
+            offset (disassemble-offset bytes))
       (setq bytedecomp-op (aref byte-code-vector bytedecomp-op))
       (cond ((memq bytedecomp-op byte-goto-ops)
-	     ;; it's a pc
+	     ;; It's a pc.
 	     (setq offset
 		   (cdr (or (assq offset tags)
-			    (car (setq tags
-				       (cons (cons offset
-						   (byte-compile-make-tag))
-					     tags)))))))
+                            (let ((new (cons offset (byte-compile-make-tag))))
+                              (push new tags)
+                              new)))))
 	    ((cond ((eq bytedecomp-op 'byte-constant2)
 		    (setq bytedecomp-op 'byte-constant) t)
 		   ((memq bytedecomp-op byte-constref-ops)))
@@ -1399,36 +1390,36 @@
 		   offset (if (eq bytedecomp-op 'byte-constant)
 			      (byte-compile-get-constant tmp)
 			    (or (assq tmp byte-compile-variables)
-				(car (setq byte-compile-variables
-					   (cons (list tmp)
-						 byte-compile-variables)))))))
-	    ((and make-spliceable
-		  (eq bytedecomp-op 'byte-return))
-	     (if (= bytedecomp-ptr (1- length))
-		 (setq bytedecomp-op nil)
-	       (setq offset (or endtag (setq endtag (byte-compile-make-tag)))
-		     bytedecomp-op 'byte-goto))))
+                                (let ((new (list tmp)))
+                                  (push new byte-compile-variables)
+                                  new)))))
+	    ((eq bytedecomp-op 'byte-stack-set2)
+	     (setq bytedecomp-op 'byte-stack-set))
+	    ((and (eq bytedecomp-op 'byte-discardN) (>= offset #x80))
+	     ;; The top bit of the operand for byte-discardN is a flag,
+	     ;; saying whether the top-of-stack is preserved.  In
+	     ;; lapcode, we represent this by using a different opcode
+	     ;; (with the flag removed from the operand).
+	     (setq bytedecomp-op 'byte-discardN-preserve-tos)
+	     (setq offset (- offset #x80))))
       ;; lap = ( [ (pc . (op . arg)) ]* )
-      (setq lap (cons (cons optr (cons bytedecomp-op (or offset 0)))
-		      lap))
+      (push (cons optr (cons bytedecomp-op (or offset 0)))
+            lap)
       (setq bytedecomp-ptr (1+ bytedecomp-ptr)))
-    ;; take off the dummy nil op that we replaced a trailing "return" with.
     (let ((rest lap))
       (while rest
 	(cond ((numberp (car rest)))
 	      ((setq tmp (assq (car (car rest)) tags))
-	       ;; this addr is jumped to
+	       ;; This addr is jumped to.
 	       (setcdr rest (cons (cons nil (cdr tmp))
 				  (cdr rest)))
 	       (setq tags (delq tmp tags))
 	       (setq rest (cdr rest))))
 	(setq rest (cdr rest))))
     (if tags (error "optimizer error: missed tags %s" tags))
-    (if (null (car (cdr (car lap))))
-	(setq lap (cdr lap)))
     (if endtag
 	(setq lap (cons (cons nil endtag) lap)))
-    ;; remove addrs, lap = ( [ (op . arg) | (TAG tagno) ]* )
+    ;; Remove addrs, lap = ( [ (op . arg) | (TAG tagno) ]* )
     (mapcar (function (lambda (elt)
 			(if (numberp elt)
 			    elt
@@ -1463,7 +1454,7 @@
     byte-cdr-safe byte-cons byte-list1 byte-list2 byte-point byte-point-max
     byte-point-min byte-following-char byte-preceding-char
     byte-current-column byte-eolp byte-eobp byte-bolp byte-bobp
-    byte-current-buffer byte-interactive-p))
+    byte-current-buffer byte-stack-ref))
 
 (defconst byte-compile-side-effect-free-ops
   (nconc
@@ -1505,7 +1496,7 @@
 ;; The variable `byte-boolean-vars' is now primitive and updated
 ;; automatically by DEFVAR_BOOL.
 
-(defun byte-optimize-lapcode (lap &optional for-effect)
+(defun byte-optimize-lapcode (lap &optional _for-effect)
   "Simple peephole optimizer.  LAP is both modified and returned.
 If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
   (let (lap0
@@ -1580,9 +1571,14 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	      ;; const/dup varbind-X varref-X --> const/dup varbind-X const/dup
 	      ;; The latter two can enable other optimizations.
 	      ;;
+              ;; For lexical variables, we could do the same
+              ;;   stack-set-X+1 stack-ref-X  -->  dup stack-set-X+2
+              ;; but this is a very minor gain, since dup is stack-ref-0,
+              ;; i.e. it's only better if X>5, and even then it comes
+              ;; at the cost cost of an extra stack slot.  Let's not bother.
 	      ((and (eq 'byte-varref (car lap2))
-		    (eq (cdr lap1) (cdr lap2))
-		    (memq (car lap1) '(byte-varset byte-varbind)))
+                    (eq (cdr lap1) (cdr lap2))
+                    (memq (car lap1) '(byte-varset byte-varbind)))
 	       (if (and (setq tmp (memq (car (cdr lap2)) byte-boolean-vars))
 			(not (eq (car lap0) 'byte-constant)))
 		   nil
@@ -1611,14 +1607,17 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	      ;;
 	      ;; dup varset-X discard  -->  varset-X
 	      ;; dup varbind-X discard  -->  varbind-X
+              ;; dup stack-set-X discard  -->  stack-set-X-1
 	      ;; (the varbind variant can emerge from other optimizations)
 	      ;;
 	      ((and (eq 'byte-dup (car lap0))
 		    (eq 'byte-discard (car lap2))
-		    (memq (car lap1) '(byte-varset byte-varbind)))
+		    (memq (car lap1) '(byte-varset byte-varbind
+                                       byte-stack-set)))
 	       (byte-compile-log-lap "  dup %s discard\t-->\t%s" lap1 lap1)
 	       (setq keep-going t
 		     rest (cdr rest))
+               (if (eq 'byte-stack-set (car lap1)) (decf (cdr lap1)))
 	       (setq lap (delq lap0 (delq lap2 lap))))
 	      ;;
 	      ;; not goto-X-if-nil              -->  goto-X-if-non-nil
@@ -1627,8 +1626,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	      ;; it is wrong to do the same thing for the -else-pop variants.
 	      ;;
 	      ((and (eq 'byte-not (car lap0))
-		    (or (eq 'byte-goto-if-nil (car lap1))
-			(eq 'byte-goto-if-not-nil (car lap1))))
+		    (memq (car lap1) '(byte-goto-if-nil byte-goto-if-not-nil)))
 	       (byte-compile-log-lap "  not %s\t-->\t%s"
 				     lap1
 				     (cons
@@ -1647,8 +1645,8 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	      ;;
 	      ;; it is wrong to do the same thing for the -else-pop variants.
 	      ;;
-	      ((and (or (eq 'byte-goto-if-nil (car lap0))
-			(eq 'byte-goto-if-not-nil (car lap0)))	; gotoX
+	      ((and (memq (car lap0)
+                          '(byte-goto-if-nil byte-goto-if-not-nil))	; gotoX
 		    (eq 'byte-goto (car lap1))			; gotoY
 		    (eq (cdr lap0) lap2))			; TAG X
 	       (let ((inverse (if (eq 'byte-goto-if-nil (car lap0))
@@ -1663,40 +1661,51 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	      ;; const goto-if-* --> whatever
 	      ;;
 	      ((and (eq 'byte-constant (car lap0))
-		    (memq (car lap1) byte-conditional-ops))
-	       (cond ((if (or (eq (car lap1) 'byte-goto-if-nil)
-			      (eq (car lap1) 'byte-goto-if-nil-else-pop))
-			  (car (cdr lap0))
-			(not (car (cdr lap0))))
+		    (memq (car lap1) byte-conditional-ops)
+                    ;; If the `byte-constant's cdr is not a cons cell, it has
+                    ;; to be an index into the constant pool); even though
+                    ;; it'll be a constant, that constant is not known yet
+                    ;; (it's typically a free variable of a closure, so will
+                    ;; only be known when the closure will be built at
+                    ;; run-time).
+                    (consp (cdr lap0)))
+	       (cond ((if (memq (car lap1) '(byte-goto-if-nil
+                                             byte-goto-if-nil-else-pop))
+                          (car (cdr lap0))
+                        (not (car (cdr lap0))))
 		      (byte-compile-log-lap "  %s %s\t-->\t<deleted>"
 					    lap0 lap1)
 		      (setq rest (cdr rest)
 			    lap (delq lap0 (delq lap1 lap))))
 		     (t
-		      (if (memq (car lap1) byte-goto-always-pop-ops)
-			  (progn
-			    (byte-compile-log-lap "  %s %s\t-->\t%s"
-			     lap0 lap1 (cons 'byte-goto (cdr lap1)))
-			    (setq lap (delq lap0 lap)))
-			(byte-compile-log-lap "  %s %s\t-->\t%s" lap0 lap1
-			 (cons 'byte-goto (cdr lap1))))
+		      (byte-compile-log-lap "  %s %s\t-->\t%s"
+					    lap0 lap1
+					    (cons 'byte-goto (cdr lap1)))
+		      (when (memq (car lap1) byte-goto-always-pop-ops)
+			(setq lap (delq lap0 lap)))
 		      (setcar lap1 'byte-goto)))
-	       (setq keep-going t))
+               (setq keep-going t))
 	      ;;
 	      ;; varref-X varref-X  -->  varref-X dup
 	      ;; varref-X [dup ...] varref-X  -->  varref-X [dup ...] dup
+	      ;; stackref-X [dup ...] stackref-X+N --> stackref-X [dup ...] dup
 	      ;; We don't optimize the const-X variations on this here,
 	      ;; because that would inhibit some goto optimizations; we
 	      ;; optimize the const-X case after all other optimizations.
 	      ;;
-	      ((and (eq 'byte-varref (car lap0))
+	      ((and (memq (car lap0) '(byte-varref byte-stack-ref))
 		    (progn
 		      (setq tmp (cdr rest))
+                      (setq tmp2 0)
 		      (while (eq (car (car tmp)) 'byte-dup)
-			(setq tmp (cdr tmp)))
+			(setq tmp2 (1+ tmp2))
+                        (setq tmp (cdr tmp)))
 		      t)
-		    (eq (cdr lap0) (cdr (car tmp)))
-		    (eq 'byte-varref (car (car tmp))))
+		    (eq (if (eq 'byte-stack-ref (car lap0))
+                            (+ tmp2 1 (cdr lap0))
+                          (cdr lap0))
+                        (cdr (car tmp)))
+		    (eq (car lap0) (car (car tmp))))
 	       (if (memq byte-optimize-log '(t byte))
 		   (let ((str ""))
 		     (setq tmp2 (cdr rest))
@@ -1856,18 +1865,21 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 			    (cons 'byte-discard byte-conditional-ops)))
 		    (not (eq lap1 (car tmp))))
 	       (setq tmp2 (car tmp))
-	       (cond ((memq (car tmp2)
-			    (if (null (car (cdr lap0)))
-				'(byte-goto-if-nil byte-goto-if-nil-else-pop)
-			      '(byte-goto-if-not-nil
-				byte-goto-if-not-nil-else-pop)))
+	       (cond ((when (consp (cdr lap0))
+		        (memq (car tmp2)
+			      (if (null (car (cdr lap0)))
+				  '(byte-goto-if-nil byte-goto-if-nil-else-pop)
+				'(byte-goto-if-not-nil
+				  byte-goto-if-not-nil-else-pop))))
 		      (byte-compile-log-lap "  %s goto [%s]\t-->\t%s %s"
 					    lap0 tmp2 lap0 tmp2)
 		      (setcar lap1 (car tmp2))
 		      (setcdr lap1 (cdr tmp2))
 		      ;; Let next step fix the (const,goto-if*) sequence.
-		      (setq rest (cons nil rest)))
-		     (t
+		      (setq rest (cons nil rest))
+		      (setq keep-going t))
+		     ((or (consp (cdr lap0))
+			  (eq (car tmp2) 'byte-discard))
 		      ;; Jump one step further
 		      (byte-compile-log-lap
 		       "  %s goto [%s]\t-->\t<deleted> goto <skip>"
@@ -1876,13 +1888,18 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 			  (setcdr tmp (cons (byte-compile-make-tag)
 					    (cdr tmp))))
 		      (setcdr lap1 (car (cdr tmp)))
-		      (setq lap (delq lap0 lap))))
-	       (setq keep-going t))
+		      (setq lap (delq lap0 lap))
+		      (setq keep-going t))))
 	      ;;
 	      ;; X: varref-Y    ...     varset-Y goto-X  -->
 	      ;; X: varref-Y Z: ... dup varset-Y goto-Z
 	      ;; (varset-X goto-BACK, BACK: varref-X --> copy the varref down.)
 	      ;; (This is so usual for while loops that it is worth handling).
+              ;;
+              ;; Here again, we could do it for stack-ref/stack-set, but
+	      ;; that's replacing a stack-ref-Y with a stack-ref-0, which
+              ;; is a very minor improvement (if any), at the cost of
+	      ;; more stack use and more byte-code.  Let's not do it.
 	      ;;
 	      ((and (eq (car lap1) 'byte-varset)
 		    (eq (car lap2) 'byte-goto)
@@ -1955,16 +1972,16 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
     ;; Rebuild byte-compile-constants / byte-compile-variables.
     ;; Simple optimizations that would inhibit other optimizations if they
     ;; were done in the optimizing loop, and optimizations which there is no
-    ;;  need to do more than once.
+    ;; need to do more than once.
     (setq byte-compile-constants nil
 	  byte-compile-variables nil)
     (setq rest lap)
+    (byte-compile-log-lap "  ---- final pass")
     (while rest
       (setq lap0 (car rest)
 	    lap1 (nth 1 rest))
       (if (memq (car lap0) byte-constref-ops)
-	  (if (or (eq (car lap0) 'byte-constant)
-		  (eq (car lap0) 'byte-constant2))
+	  (if (memq (car lap0) '(byte-constant byte-constant2))
 	      (unless (memq (cdr lap0) byte-compile-constants)
 		(setq byte-compile-constants (cons (cdr lap0)
 						   byte-compile-constants)))
@@ -2008,10 +2025,86 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	     (byte-compile-log-lap "  %s %s\t-->\t%s" lap0 lap1
 				   (cons 'byte-unbind
 					 (+ (cdr lap0) (cdr lap1))))
-	     (setq keep-going t)
 	     (setq lap (delq lap0 lap))
 	     (setcdr lap1 (+ (cdr lap1) (cdr lap0))))
-	    )
+
+	    ;;
+	    ;; stack-set-M [discard/discardN ...]  -->  discardN-preserve-tos
+	    ;; stack-set-M [discard/discardN ...]  -->  discardN
+	    ;;
+	    ((and (eq (car lap0) 'byte-stack-set)
+	          (memq (car lap1) '(byte-discard byte-discardN))
+	          (progn
+	            ;; See if enough discard operations follow to expose or
+	            ;; destroy the value stored by the stack-set.
+	            (setq tmp (cdr rest))
+	            (setq tmp2 (1- (cdr lap0)))
+	            (setq tmp3 0)
+	            (while (memq (car (car tmp)) '(byte-discard byte-discardN))
+	              (setq tmp3
+                            (+ tmp3 (if (eq (car (car tmp)) 'byte-discard)
+                                        1
+                                      (cdr (car tmp)))))
+	              (setq tmp (cdr tmp)))
+	            (>= tmp3 tmp2)))
+	     ;; Do the optimization.
+	     (setq lap (delq lap0 lap))
+             (setcar lap1
+                     (if (= tmp2 tmp3)
+                         ;; The value stored is the new TOS, so pop one more
+                         ;; value (to get rid of the old value) using the
+                         ;; TOS-preserving discard operator.
+                         'byte-discardN-preserve-tos
+                       ;; Otherwise, the value stored is lost, so just use a
+                       ;; normal discard.
+                       'byte-discardN))
+             (setcdr lap1 (1+ tmp3))
+	     (setcdr (cdr rest) tmp)
+	     (byte-compile-log-lap "  %s [discard/discardN]...\t-->\t%s"
+	        		   lap0 lap1))
+
+	    ;;
+	    ;; discard/discardN/discardN-preserve-tos-X discard/discardN-Y  -->
+	    ;; discardN-(X+Y)
+	    ;;
+	    ((and (memq (car lap0)
+			'(byte-discard byte-discardN
+			  byte-discardN-preserve-tos))
+		  (memq (car lap1) '(byte-discard byte-discardN)))
+	     (setq lap (delq lap0 lap))
+	     (byte-compile-log-lap
+	      "  %s %s\t-->\t(discardN %s)"
+	      lap0 lap1
+	      (+ (if (eq (car lap0) 'byte-discard) 1 (cdr lap0))
+		 (if (eq (car lap1) 'byte-discard) 1 (cdr lap1))))
+	     (setcdr lap1 (+ (if (eq (car lap0) 'byte-discard) 1 (cdr lap0))
+			     (if (eq (car lap1) 'byte-discard) 1 (cdr lap1))))
+	     (setcar lap1 'byte-discardN))
+
+	    ;;
+	    ;; discardN-preserve-tos-X discardN-preserve-tos-Y  -->
+	    ;; discardN-preserve-tos-(X+Y)
+	    ;;
+	    ((and (eq (car lap0) 'byte-discardN-preserve-tos)
+		  (eq (car lap1) 'byte-discardN-preserve-tos))
+	     (setq lap (delq lap0 lap))
+	     (setcdr lap1 (+ (cdr lap0) (cdr lap1)))
+	     (byte-compile-log-lap "  %s %s\t-->\t%s" lap0 lap1 (car rest)))
+
+	    ;;
+	    ;; discardN-preserve-tos return  -->  return
+	    ;; dup return  -->  return
+	    ;; stack-set-N return  -->  return     ; where N is TOS-1
+	    ;;
+	    ((and (eq (car lap1) 'byte-return)
+	          (or (memq (car lap0) '(byte-discardN-preserve-tos byte-dup))
+	              (and (eq (car lap0) 'byte-stack-set)
+	        	   (= (cdr lap0) 1))))
+	     ;; The byte-code interpreter will pop the stack for us, so
+	     ;; we can just leave stuff on it.
+	     (setq lap (delq lap0 lap))
+	     (byte-compile-log-lap "  %s %s\t-->\t%s" lap0 lap1 lap1))
+            )
       (setq rest (cdr rest)))
     (setq byte-compile-maxdepth (+ byte-compile-maxdepth add-depth)))
   lap)

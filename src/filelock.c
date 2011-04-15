@@ -396,36 +396,16 @@ within_one_second (time_t a, time_t b)
 static int
 current_lock_owner (lock_info_type *owner, char *lfname)
 {
-  int len, ret;
+  int ret;
+  size_t len;
   int local_owner = 0;
   char *at, *dot, *colon;
-  char *lfinfo = 0;
-  int bufsize = 50;
-  /* Read arbitrarily-long contents of symlink.  Similar code in
-     file-symlink-p in fileio.c.  */
-  do
-    {
-      bufsize *= 2;
-      lfinfo = (char *) xrealloc (lfinfo, bufsize);
-      errno = 0;
-      len = readlink (lfname, lfinfo, bufsize);
-#ifdef ERANGE
-      /* HP-UX reports ERANGE if the buffer is too small.  */
-      if (len == -1 && errno == ERANGE)
-	len = bufsize;
-#endif
-    }
-  while (len >= bufsize);
+  char readlink_buf[READLINK_BUFSIZE];
+  char *lfinfo = emacs_readlink (lfname, readlink_buf);
 
   /* If nonexistent lock file, all is well; otherwise, got strange error. */
-  if (len == -1)
-    {
-      xfree (lfinfo);
-      return errno == ENOENT ? 0 : -1;
-    }
-
-  /* Link info exists, so `len' is its length.  Null terminate.  */
-  lfinfo[len] = 0;
+  if (!lfinfo)
+    return errno == ENOENT ? 0 : -1;
 
   /* Even if the caller doesn't want the owner info, we still have to
      read it to determine return value, so allocate it.  */
@@ -441,7 +421,8 @@ current_lock_owner (lock_info_type *owner, char *lfname)
   dot = strrchr (lfinfo, '.');
   if (!at || !dot)
     {
-      xfree (lfinfo);
+      if (lfinfo != readlink_buf)
+	xfree (lfinfo);
       return -1;
     }
   len = at - lfinfo;
@@ -467,7 +448,8 @@ current_lock_owner (lock_info_type *owner, char *lfname)
   owner->host[len] = 0;
 
   /* We're done looking at the link info.  */
-  xfree (lfinfo);
+  if (lfinfo != readlink_buf)
+    xfree (lfinfo);
 
   /* On current host?  */
   if (STRINGP (Fsystem_name ())

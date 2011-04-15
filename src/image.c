@@ -124,7 +124,7 @@ typedef struct ns_bitmap_record Bitmap_Record;
 
 /* The symbol `postscript' identifying images of this type.  */
 
-Lisp_Object Qpostscript;
+static Lisp_Object Qpostscript;
 
 static void x_disable_image (struct frame *, struct image *);
 static void x_edge_detection (struct frame *, struct image *, Lisp_Object,
@@ -137,6 +137,7 @@ static void free_color_table (void);
 static unsigned long *colors_in_color_table (int *n);
 static unsigned long lookup_pixel_color (struct frame *f, unsigned long p);
 #endif
+static Lisp_Object Finit_image_library (Lisp_Object, Lisp_Object);
 
 /* Code to deal with bitmaps.  Bitmaps are referenced by their bitmap
    id, which is just an int that this section returns.  Bitmaps are
@@ -561,17 +562,21 @@ static Lisp_Object Vimage_type_cache;
 
 /* The symbol `xbm' which is used as the type symbol for XBM images.  */
 
-Lisp_Object Qxbm;
+static Lisp_Object Qxbm;
 
 /* Keywords.  */
 
-Lisp_Object QCascent, QCmargin, QCrelief, Qcount, Qextension_data;
-Lisp_Object QCconversion, QCcolor_symbols, QCheuristic_mask;
-Lisp_Object QCindex, QCmatrix, QCcolor_adjustment, QCmask, QCgeometry, QCcrop, QCrotation;
+Lisp_Object QCascent, QCmargin, QCrelief;
+static Lisp_Object Qcount, Qextension_data;
+Lisp_Object QCconversion;
+static Lisp_Object QCheuristic_mask;
+static Lisp_Object QCcolor_symbols;
+static Lisp_Object QCindex, QCmatrix, QCcolor_adjustment, QCmask, QCgeometry;
+static Lisp_Object QCcrop, QCrotation;
 
 /* Other symbols.  */
 
-Lisp_Object Qlaplace, Qemboss, Qedge_detection, Qheuristic;
+static Lisp_Object Qlaplace, Qemboss, Qedge_detection, Qheuristic;
 
 /* Function prototypes.  */
 
@@ -831,9 +836,7 @@ parse_image_spec (Lisp_Object spec, struct image_keyword *keywords,
 
 	case IMAGE_FUNCTION_VALUE:
 	  value = indirect_function (value);
-	  if (SUBRP (value)
-	      || COMPILEDP (value)
-	      || (CONSP (value) && EQ (XCAR (value), Qlambda)))
+	  if (!NILP (Ffunctionp (value)))
 	    break;
 	  return 0;
 
@@ -1710,7 +1713,6 @@ postprocess_image (struct frame *f, struct image *img)
 int
 lookup_image (struct frame *f, Lisp_Object spec)
 {
-  struct image_cache *c;
   struct image *img;
   unsigned hash;
   EMACS_TIME now;
@@ -1719,8 +1721,6 @@ lookup_image (struct frame *f, Lisp_Object spec)
      specification.  */
   xassert (FRAME_WINDOW_P (f));
   xassert (valid_image_p (spec));
-
-  c = FRAME_IMAGE_CACHE (f);
 
   /* Look up SPEC in the hash table of the image cache.  */
   hash = sxhash (spec, 0);
@@ -2880,6 +2880,7 @@ xbm_load (struct frame *f, struct image *img)
       /* Parse the image specification.  */
       memcpy (fmt, xbm_format, sizeof fmt);
       parsed_p = parse_image_spec (img->spec, fmt, XBM_LAST, Qxbm);
+      (void) parsed_p;
       xassert (parsed_p);
 
       /* Get specified width, and height.  */
@@ -3004,7 +3005,7 @@ static int xpm_valid_color_symbols_p (Lisp_Object);
 #if defined (HAVE_XPM) || defined (HAVE_NS)
 /* The symbol `xpm' identifying XPM-format images.  */
 
-Lisp_Object Qxpm;
+static Lisp_Object Qxpm;
 
 /* Indices of image specification fields in xpm_format, below.  */
 
@@ -3095,7 +3096,7 @@ struct xpm_cached_color
    size.  */
 
 #define XPM_COLOR_CACHE_BUCKETS	1001
-struct xpm_cached_color **xpm_color_cache;
+static struct xpm_cached_color **xpm_color_cache;
 
 /* Initialize the color cache.  */
 
@@ -3311,7 +3312,7 @@ xpm_image_p (Lisp_Object object)
 
 #endif /* HAVE_XPM || HAVE_NS */
 
-#if defined (HAVE_XPM) && defined (HAVE_X_WINDOWS)
+#if defined HAVE_XPM && defined HAVE_X_WINDOWS && !defined USE_GTK
 int
 x_create_bitmap_from_xpm_data (struct frame *f, const char **bits)
 {
@@ -4135,11 +4136,11 @@ struct ct_color
 
 /* The color hash table.  */
 
-struct ct_color **ct_table;
+static struct ct_color **ct_table;
 
 /* Number of entries in the color table.  */
 
-int ct_colors_allocated;
+static int ct_colors_allocated;
 
 /* Initialize the color table.  */
 
@@ -4928,7 +4929,7 @@ static int pbm_scan_number (unsigned char **, unsigned char *);
 
 /* The symbol `pbm' identifying images of this type.  */
 
-Lisp_Object Qpbm;
+static Lisp_Object Qpbm;
 
 /* Indices of image specification fields in gs_format, below.  */
 
@@ -5345,7 +5346,7 @@ static int png_load (struct frame *f, struct image *img);
 
 /* The symbol `png' identifying images of this type.  */
 
-Lisp_Object Qpng;
+static Lisp_Object Qpng;
 
 /* Indices of image specification fields in png_format, below.  */
 
@@ -5959,7 +5960,7 @@ static int jpeg_load (struct frame *f, struct image *img);
 
 /* The symbol `jpeg' identifying images of this type.  */
 
-Lisp_Object Qjpeg;
+static Lisp_Object Qjpeg;
 
 /* Indices of image specification fields in gs_format, below.  */
 
@@ -6508,7 +6509,7 @@ static int tiff_load (struct frame *f, struct image *img);
 
 /* The symbol `tiff' identifying images of this type.  */
 
-Lisp_Object Qtiff;
+static Lisp_Object Qtiff;
 
 /* Indices of image specification fields in tiff_format, below.  */
 
@@ -6718,6 +6719,8 @@ tiff_size_of_memory (thandle_t data)
 }
 
 
+static void tiff_error_handler (const char *, const char *, va_list)
+  ATTRIBUTE_FORMAT_PRINTF (2, 0);
 static void
 tiff_error_handler (const char *title, const char *format, va_list ap)
 {
@@ -6730,6 +6733,8 @@ tiff_error_handler (const char *title, const char *format, va_list ap)
 }
 
 
+static void tiff_warning_handler (const char *, const char *, va_list)
+  ATTRIBUTE_FORMAT_PRINTF (2, 0);
 static void
 tiff_warning_handler (const char *title, const char *format, va_list ap)
 {
@@ -6761,8 +6766,8 @@ tiff_load (struct frame *f, struct image *img)
   specified_file = image_spec_value (img->spec, QCfile, NULL);
   specified_data = image_spec_value (img->spec, QCdata, NULL);
 
-  fn_TIFFSetErrorHandler (tiff_error_handler);
-  fn_TIFFSetWarningHandler (tiff_warning_handler);
+  fn_TIFFSetErrorHandler ((TIFFErrorHandler) tiff_error_handler);
+  fn_TIFFSetWarningHandler ((TIFFErrorHandler) tiff_warning_handler);
 
   if (NILP (specified_data))
     {
@@ -6932,7 +6937,7 @@ static void gif_clear_image (struct frame *f, struct image *img);
 
 /* The symbol `gif' identifying images of this type.  */
 
-Lisp_Object Qgif;
+static Lisp_Object Qgif;
 
 /* Indices of image specification fields in gif_format, below.  */
 
@@ -7370,14 +7375,13 @@ gif_load (struct frame *f, struct image *img)
 
 
 /***********************************************************************
-				 imagemagick
+				 ImageMagick
 ***********************************************************************/
 #if defined (HAVE_IMAGEMAGICK)
 
-/* The symbol `imagemagick' identifying images of this type.  */
-
 Lisp_Object Qimagemagick;
-/* Indices of image specification fields in imagemagick_format, below.  */
+
+/* Indices of image specification fields in imagemagick_format.  */
 
 enum imagemagick_keyword_index
   {
@@ -7418,6 +7422,7 @@ static struct image_keyword imagemagick_format[IMAGEMAGICK_LAST] =
     {":rotation",	IMAGE_NUMBER_VALUE,     		0},
     {":crop",		IMAGE_DONT_CHECK_VALUE_TYPE,		0}
   };
+
 /* Free X resources of imagemagick image IMG which is used on frame F.  */
 
 static void
@@ -7426,8 +7431,6 @@ imagemagick_clear_image (struct frame *f,
 {
   x_clear_image (f, img);
 }
-
-
 
 /* Return non-zero if OBJECT is a valid IMAGEMAGICK image specification.  Do
    this by calling parse_image_spec and supplying the keywords that
@@ -7457,7 +7460,7 @@ imagemagick_image_p (Lisp_Object object)
 
    Uses librimagemagick to do most of the image processing.
 
-   non-zero when successful.
+   Return non-zero if successful.
 */
 
 static int
@@ -7504,12 +7507,12 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
   Image * im_image;
 
 
-  /* Handle image index for image types who can contain more than one
-     image.  Interface :index is same as for GIF.  First we "ping" the
-     image to see how many sub-images it contains. Pinging is faster
-     than loading the image to find out things about it.  */
+  /* Handle image index for image types who can contain more than one image.
+     Interface :index is same as for GIF.  First we "ping" the image to see how
+     many sub-images it contains.  Pinging is faster than loading the image to
+     find out things about it.  */
 
-  /* `MagickWandGenesis' initializes the imagemagick environment.  */
+  /* Initialize the imagemagick environment.  */
   MagickWandGenesis ();
   image = image_spec_value (img->spec, QCindex, NULL);
   ino = INTEGERP (image) ? XFASTINT (image) : 0;
@@ -7541,7 +7544,7 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
   DestroyMagickWand (ping_wand);
 
   /* Now, after pinging, we know how many images are inside the
-     file. If its not a bundle, just one.  */
+     file.  If it's not a bundle, the number is one.  */
 
   if (filename != NULL)
     {
@@ -7572,7 +7575,7 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
   if (status == MagickFalse) goto imagemagick_error;
 
   /* If width and/or height is set in the display spec assume we want
-     to scale to those values.  if either h or w is unspecified, the
+     to scale to those values.  If either h or w is unspecified, the
      unspecified should be calculated from the specified to preserve
      aspect ratio.  */
 
@@ -7584,17 +7587,13 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
   height = MagickGetImageHeight (image_wand);
   width = MagickGetImageWidth (image_wand);
 
-  if(desired_width != -1 && desired_height == -1)
-    {
-      /* w known, calculate h.  */
-      desired_height = (double) desired_width / width * height;
-    }
-  if(desired_width == -1 && desired_height != -1)
-    {
-      /* h known, calculate w.  */
-      desired_width = (double) desired_height / height * width;
-    }
-  if(desired_width != -1 && desired_height != -1)
+  if (desired_width != -1 && desired_height == -1)
+    /* w known, calculate h.  */
+    desired_height = (double) desired_width / width * height;
+  if (desired_width == -1 && desired_height != -1)
+    /* h known, calculate w.  */
+    desired_width = (double) desired_height / height * width;
+  if (desired_width != -1 && desired_height != -1)
     {
       status = MagickScaleImage (image_wand, desired_width, desired_height);
       if (status == MagickFalse)
@@ -7604,19 +7603,17 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
 	}
     }
 
-
   /* crop behaves similar to image slicing in Emacs but is more memory
      efficient.  */
   crop = image_spec_value (img->spec, QCcrop, NULL);
 
   if (CONSP (crop) && INTEGERP (XCAR (crop)))
     {
-      /* After some testing, it seems MagickCropImage is the fastest
-         crop function in ImageMagick.  This crop function seems to do
-         less copying than the alternatives, but it still reads the
-         entire image into memory before croping, which is aparently
-         difficult to avoid when using imagemagick.  */
-
+      /* After some testing, it seems MagickCropImage is the fastest crop
+         function in ImageMagick.  This crop function seems to do less copying
+         than the alternatives, but it still reads the entire image into memory
+         before croping, which is aparently difficult to avoid when using
+         imagemagick.  */
       int w, h, x, y;
       w = XFASTINT (XCAR (crop));
       crop = XCDR (crop);
@@ -7877,12 +7874,10 @@ static struct image_type imagemagick_type =
   };
 
 
-
-
 DEFUN ("imagemagick-types", Fimagemagick_types, Simagemagick_types, 0, 0, 0,
-       doc: /* Return image file types supported by ImageMagick.
-Since ImageMagick recognizes a lot of file-types that clash with Emacs,
-such as .c, we want to be able to alter the list at the lisp level.  */)
+       doc: /* Return the image types supported by ImageMagick.
+Note that ImageMagick recognizes many file-types that Emacs does not recognize
+as images, such as .c.  */)
   (void)
 {
   Lisp_Object typelist = Qnil;
@@ -8311,7 +8306,7 @@ static void gs_clear_image (struct frame *f, struct image *img);
 
 /* Keyword symbols.  */
 
-Lisp_Object QCloader, QCbounding_box, QCpt_width, QCpt_height;
+static Lisp_Object QCloader, QCbounding_box, QCpt_width, QCpt_height;
 
 /* Indices of image specification fields in gs_format, below.  */
 

@@ -1,4 +1,4 @@
-;;; pcase.el --- ML-style pattern-matching macro for Elisp
+;;; pcase.el --- ML-style pattern-matching macro for Elisp -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2010-2011  Free Software Foundation, Inc.
 
@@ -27,16 +27,21 @@
 
 ;; Todo:
 
+;; - (pcase e (`(,x . ,x) foo)) signals an "x unused" warning if `foo' doesn't
+;;   use x, because x is bound separately for the equality constraint
+;;   (as well as any pred/guard) and for the body, so uses at one place don't
+;;   count for the other.
 ;; - provide ways to extend the set of primitives, with some kind of
 ;;   define-pcase-matcher.  We could easily make it so that (guard BOOLEXP)
 ;;   could be defined this way, as a shorthand for (pred (lambda (_) BOOLEXP)).
 ;;   But better would be if we could define new ways to match by having the
 ;;   extension provide its own `pcase--split-<foo>' thingy.
+;; - along these lines, provide patterns to match CL structs.
 ;; - provide something like (setq VAR) so a var can be set rather than
 ;;   let-bound.
-;; - provide a way to fallthrough to other cases.
+;; - provide a way to fallthrough to subsequent cases.
 ;; - try and be more clever to reduce the size of the decision tree, and
-;;   to reduce the number of leafs that need to be turned into function:
+;;   to reduce the number of leaves that need to be turned into function:
 ;;   - first, do the tests shared by all remaining branches (it will have
 ;;     to be performed anyway, so better so it first so it's shared).
 ;;   - then choose the test that discriminates more (?).
@@ -45,14 +50,12 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
 ;; Macro-expansion of pcase is reasonably fast, so it's not a problem
 ;; when byte-compiling a file, but when interpreting the code, if the pcase
 ;; is in a loop, the repeated macro-expansion becomes terribly costly, so we
 ;; memoize previous macro expansions to try and avoid recomputing them
 ;; over and over again.
-(defconst pcase-memoize (make-hash-table :weakness t :test 'equal))
+(defconst pcase--memoize (make-hash-table :weakness 'key :test 'eq))
 
 (defconst pcase--dontcare-upats '(t _ dontcare))
 
@@ -69,6 +72,7 @@ UPatterns can take the following forms:
   `QPAT		matches if the QPattern QPAT matches.
   (pred PRED)	matches if PRED applied to the object returns non-nil.
   (guard BOOLEXP)	matches if BOOLEXP evaluates to non-nil.
+  (let UPAT EXP)	matches if EXP matches UPAT.
 If a SYMBOL is used twice in the same pattern (i.e. the pattern is
 \"non-linear\"), then the second occurrence is turned into an `eq'uality test.
 
@@ -88,10 +92,21 @@ E.g. you can match pairs where the cdr is larger than the car with a pattern
 like `(,a . ,(pred (< a))) or, with more checks:
 `(,(and a (pred numberp)) . ,(and (pred numberp) (pred (< a))))"
   (declare (indent 1) (debug case))     ;FIXME: edebug `guard' and vars.
-  (or (gethash (cons exp cases) pcase-memoize)
-      (puthash (cons exp cases)
-               (pcase--expand exp cases)
-               pcase-memoize)))
+  ;; We want to use a weak hash table as a cache, but the key will unavoidably
+  ;; be based on `exp' and `cases', yet `cases' is a fresh new list each time
+  ;; we're called so it'll be immediately GC'd.  So we use (car cases) as key
+  ;; which does come straight from the source code and should hence not be GC'd
+  ;; so easily.
+  (let ((data (gethash (car cases) pcase--memoize)))
+    ;; data = (EXP CASES . EXPANSION)
+    (if (and (equal exp (car data)) (equal cases (cadr data)))
+        ;; We have the right expansion.
+        (cddr data)
+      (when data
+        (message "pcase-memoize: equal first branch, yet different"))
+      (let ((expansion (pcase--expand exp cases)))
+        (puthash (car cases) (cons exp (cons cases expansion)) pcase--memoize)
+        expansion))))
 
 ;;;###autoload
 (defmacro pcase-let* (bindings &rest body)
@@ -145,6 +160,8 @@ of the form (UPAT EXP)."
   (and (symbolp upat) (not (memq upat pcase--dontcare-upats))))
 
 (defun pcase--expand (exp cases)
+  ;; (message "pid=%S (pcase--expand %S ...hash=%S)"
+  ;;          (emacs-pid) exp (sxhash cases))
   (let* ((defs (if (symbolp exp) '()
                  (let ((sym (make-symbol "x")))
                    (prog1 `((,sym ,exp)) (setq exp sym)))))
@@ -165,7 +182,9 @@ of the form (UPAT EXP)."
                 ;; to a separate function if that number is too high.
                 ;;
                 ;; We've already used this branch.  So it is shared.
-                (destructuring-bind (code prevvars res) prev
+                (let* ((code (car prev))         (cdrprev (cdr prev))
+                       (prevvars (car cdrprev))  (cddrprev (cdr cdrprev))
+                       (res (car cddrprev)))
                   (unless (symbolp res)
                     ;; This is the first repeat, so we have to move
                     ;; the branch to a separate function.
@@ -269,7 +288,10 @@ MATCH is the pattern that needs to be matched, of the form:
   (and MATCH ...)
   (or MATCH ...)"
   (when (setq branches (delq nil branches))
-    (destructuring-bind (match code &rest vars) (car branches)
+    (let* ((carbranch (car branches))
+           (match (car carbranch)) (cdarbranch (cdr carbranch))
+           (code (car cdarbranch))
+           (vars (cdr cdarbranch)))
       (pcase--u1 (list match) code vars (cdr branches)))))
 
 (defun pcase--and (match matches)
@@ -281,19 +303,25 @@ MATCH is the pattern that needs to be matched, of the form:
     (symbolp . consp)
     (symbolp . arrayp)
     (symbolp . stringp)
+    (symbolp . byte-code-function-p)
     (integerp . consp)
     (integerp . arrayp)
     (integerp . stringp)
+    (integerp . byte-code-function-p)
     (numberp . consp)
     (numberp . arrayp)
     (numberp . stringp)
+    (numberp . byte-code-function-p)
     (consp . arrayp)
     (consp . stringp)
-    (arrayp . stringp)))
+    (consp . byte-code-function-p)
+    (arrayp . stringp)
+    (arrayp . byte-code-function-p)
+    (stringp . byte-code-function-p)))
 
 (defun pcase--split-match (sym splitter match)
-  (case (car match)
-    ((match)
+  (cond
+    ((eq (car match) 'match)
      (if (not (eq sym (cadr match)))
          (cons match match)
        (let ((pat (cddr match)))
@@ -307,7 +335,7 @@ MATCH is the pattern that needs to be matched, of the form:
                                              (cdr pat)))))
           (t (let ((res (funcall splitter (cddr match))))
                (cons (or (car res) match) (or (cdr res) match))))))))
-    ((or and)
+    ((memq (car match) '(or and))
      (let ((then-alts '())
            (else-alts '())
            (neutral-elem (if (eq 'or (car match))
@@ -474,53 +502,60 @@ Otherwise, it defers to REST which is a list of branches of the form
         (pcase--u1 (cons `(match ,var or . ,(nreverse simples)) (cdr matches))
                    code vars
                    (if (null others) rest
-                     (cons (list*
+                     (cons (cons
                             (pcase--and (if (cdr others)
                                             (cons 'or (nreverse others))
                                           (car others))
                                         (cdr matches))
-                            code vars)
+                            (cons code vars))
                            rest))))
        (t
         (pcase--u1 (cons (pop alts) (cdr matches)) code vars
                    (if (null alts) (progn (error "Please avoid it") rest)
-                     (cons (list*
+                     (cons (cons
                             (pcase--and (if (cdr alts)
                                             (cons 'or alts) (car alts))
                                         (cdr matches))
-                            code vars)
+                            (cons code vars))
                            rest)))))))
    ((eq 'match (caar matches))
-    (destructuring-bind (op sym &rest upat) (pop matches)
+    (let* ((popmatches (pop matches))
+           (_op (car popmatches))      (cdrpopmatches (cdr popmatches))
+           (sym (car cdrpopmatches))
+           (upat (cdr cdrpopmatches)))
       (cond
        ((memq upat '(t _)) (pcase--u1 matches code vars rest))
        ((eq upat 'dontcare) :pcase--dontcare)
-       ((functionp upat)  (error "Feature removed, use (pred %s)" upat))
        ((memq (car-safe upat) '(guard pred))
         (if (eq (car upat) 'pred) (put sym 'pcase-used t))
-        (destructuring-bind (then-rest &rest else-rest)
-            (pcase--split-rest
-             sym (apply-partially #'pcase--split-pred upat) rest)
+        (let* ((splitrest
+                (pcase--split-rest
+                 sym (apply-partially #'pcase--split-pred upat) rest))
+               (then-rest (car splitrest))
+               (else-rest (cdr splitrest)))
           (pcase--if (if (and (eq (car upat) 'pred) (symbolp (cadr upat)))
                          `(,(cadr upat) ,sym)
                        (let* ((exp (cadr upat))
                               ;; `vs' is an upper bound on the vars we need.
                               (vs (pcase--fgrep (mapcar #'car vars) exp))
-                              (call (cond
-                                     ((eq 'guard (car upat)) exp)
-                                     ((functionp exp) `(,exp ,sym))
-                                     (t `(,@exp ,sym)))))
+                              (env (mapcar (lambda (var)
+                                             (list var (cdr (assq var vars))))
+                                           vs))
+                              (call (if (eq 'guard (car upat))
+                                        exp
+                                      (when (memq sym vs)
+                                        ;; `sym' is shadowed by `env'.
+                                        (let ((newsym (make-symbol "x")))
+                                          (push (list newsym sym) env)
+                                          (setq sym newsym)))
+                                      (if (functionp exp) `(,exp ,sym)
+                                        `(,@exp ,sym)))))
                          (if (null vs)
                              call
                            ;; Let's not replace `vars' in `exp' since it's
                            ;; too difficult to do it right, instead just
                            ;; let-bind `vars' around `exp'.
-                           `(let ,(mapcar (lambda (var)
-                                            (list var (cdr (assq var vars))))
-                                          vs)
-                              ;; FIXME: `vars' can capture `sym'.  E.g.
-                              ;; (pcase x ((and `(,x . ,y) (pred (fun x)))))
-                              ,call))))
+                           `(let* ,env ,call))))
                      (pcase--u1 matches code vars then-rest)
                      (pcase--u else-rest))))
        ((symbolp upat)
@@ -531,6 +566,25 @@ Otherwise, it defers to REST which is a list of branches of the form
           (pcase--u1 (cons `(match ,sym . (pred (eq ,(cdr (assq upat vars)))))
                            matches)
                      code vars rest)))
+       ((eq (car-safe upat) 'let)
+        ;; A upat of the form (let VAR EXP).
+        ;; (pcase--u1 matches code
+        ;;            (cons (cons (nth 1 upat) (nth 2 upat)) vars) rest)
+        (let* ((exp
+                (let* ((exp (nth 2 upat))
+                       (found (assq exp vars)))
+                  (if found (cdr found)
+                    (let* ((vs (pcase--fgrep (mapcar #'car vars) exp))
+                           (env (mapcar (lambda (v) (list v (cdr (assq v vars))))
+                                        vs)))
+                      (if env `(let* ,env ,exp) exp)))))
+               (sym (if (symbolp exp) exp (make-symbol "x")))
+               (body
+                (pcase--u1 (cons `(match ,sym . ,(nth 1 upat)) matches)
+                           code vars rest)))
+          (if (eq sym exp)
+              body
+            `(let* ((,sym ,exp)) ,body))))
        ((eq (car-safe upat) '\`)
         (put sym 'pcase-used t)
         (pcase--q1 sym (cadr upat) matches code vars rest))
@@ -546,13 +600,15 @@ Otherwise, it defers to REST which is a list of branches of the form
                 (setq all nil))))
           (if all
               ;; Use memq for (or `a `b `c `d) rather than a big tree.
-              (let ((elems (mapcar 'cadr (cdr upat))))
-                (destructuring-bind (then-rest &rest else-rest)
-                    (pcase--split-rest
-                     sym (apply-partially #'pcase--split-member elems) rest)
-                  (pcase--if `(,(if memq-fine #'memq #'member) ,sym ',elems)
-                             (pcase--u1 matches code vars then-rest)
-                             (pcase--u else-rest))))
+              (let* ((elems (mapcar 'cadr (cdr upat)))
+                     (splitrest
+                      (pcase--split-rest
+                       sym (apply-partially #'pcase--split-member elems) rest))
+                     (then-rest (car splitrest))
+                     (else-rest (cdr splitrest)))
+                (pcase--if `(,(if memq-fine #'memq #'member) ,sym ',elems)
+                           (pcase--u1 matches code vars then-rest)
+                           (pcase--u else-rest)))
             (pcase--u1 (cons `(match ,sym ,@(cadr upat)) matches) code vars
                        (append (mapcar (lambda (upat)
                                          `((and (match ,sym . ,upat) ,@matches)
@@ -575,15 +631,14 @@ Otherwise, it defers to REST which is a list of branches of the form
         ;; `(PAT3 . PAT4)) which the programmer can easily rewrite
         ;; to the more efficient `(,(and PAT1 PAT3) . ,(and PAT2 PAT4))).
         (pcase--u1 `((match ,sym . ,(cadr upat)))
-                   (lexical-let ((rest rest))
-                     ;; FIXME: This codegen is not careful to share its
-                     ;; code if used several times: code blow up is likely.
-                     (lambda (vars)
-                       ;; `vars' will likely contain bindings which are
-                       ;; not always available in other paths to
-                       ;; `rest', so there' no point trying to pass
-                       ;; them down.
-                       (pcase--u rest)))
+                   ;; FIXME: This codegen is not careful to share its
+                   ;; code if used several times: code blow up is likely.
+                   (lambda (_vars)
+                     ;; `vars' will likely contain bindings which are
+                     ;; not always available in other paths to
+                     ;; `rest', so there' no point trying to pass
+                     ;; them down.
+                     (pcase--u rest))
                    vars
                    (list `((and . ,matches) ,code . ,vars))))
        (t (error "Unknown upattern `%s'" upat)))))
@@ -600,29 +655,33 @@ Otherwise, it defers to REST which is a list of branches of the form
     ;; FIXME.
     (error "Vector QPatterns not implemented yet"))
    ((consp qpat)
-    (let ((syma (make-symbol "xcar"))
-          (symd (make-symbol "xcdr")))
-      (destructuring-bind (then-rest &rest else-rest)
-          (pcase--split-rest sym
-                             (apply-partially #'pcase--split-consp syma symd)
-                             rest)
-        (let ((then-body (pcase--u1 `((match ,syma . ,(pcase--upat (car qpat)))
-                                      (match ,symd . ,(pcase--upat (cdr qpat)))
-                                      ,@matches)
-                                    code vars then-rest)))
-          (pcase--if
-           `(consp ,sym)
-           ;; We want to be careful to only add bindings that are used.
-           ;; The byte-compiler could do that for us, but it would have to pay
-           ;; attention to the `consp' test in order to figure out that car/cdr
-           ;; can't signal errors and our byte-compiler is not that clever.
-           `(let (,@(if (get syma 'pcase-used) `((,syma (car ,sym))))
-                  ,@(if (get symd 'pcase-used) `((,symd (cdr ,sym)))))
-              ,then-body)
-           (pcase--u else-rest))))))
+    (let* ((syma (make-symbol "xcar"))
+           (symd (make-symbol "xcdr"))
+           (splitrest (pcase--split-rest
+                       sym
+                       (apply-partially #'pcase--split-consp syma symd)
+                       rest))
+           (then-rest (car splitrest))
+           (else-rest (cdr splitrest))
+           (then-body (pcase--u1 `((match ,syma . ,(pcase--upat (car qpat)))
+                                   (match ,symd . ,(pcase--upat (cdr qpat)))
+                                   ,@matches)
+                                 code vars then-rest)))
+      (pcase--if
+       `(consp ,sym)
+       ;; We want to be careful to only add bindings that are used.
+       ;; The byte-compiler could do that for us, but it would have to pay
+       ;; attention to the `consp' test in order to figure out that car/cdr
+       ;; can't signal errors and our byte-compiler is not that clever.
+       `(let (,@(if (get syma 'pcase-used) `((,syma (car ,sym))))
+              ,@(if (get symd 'pcase-used) `((,symd (cdr ,sym)))))
+          ,then-body)
+       (pcase--u else-rest))))
    ((or (integerp qpat) (symbolp qpat) (stringp qpat))
-    (destructuring-bind (then-rest &rest else-rest)
-        (pcase--split-rest sym (apply-partially 'pcase--split-equal qpat) rest)
+      (let* ((splitrest (pcase--split-rest
+                         sym (apply-partially 'pcase--split-equal qpat) rest))
+             (then-rest (car splitrest))
+             (else-rest (cdr splitrest)))
       (pcase--if `(,(if (stringp qpat) #'equal #'eq) ,sym ',qpat)
                  (pcase--u1 matches code vars then-rest)
                  (pcase--u else-rest))))

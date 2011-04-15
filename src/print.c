@@ -39,11 +39,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 Lisp_Object Qstandard_output;
 
-Lisp_Object Qtemp_buffer_setup_hook;
+static Lisp_Object Qtemp_buffer_setup_hook;
 
 /* These are used to print like we read.  */
 
-Lisp_Object Qfloat_output_format;
+static Lisp_Object Qfloat_output_format;
 
 #include <math.h>
 
@@ -58,28 +58,28 @@ Lisp_Object Qfloat_output_format;
 #endif
 
 /* Avoid actual stack overflow in print.  */
-int print_depth;
+static int print_depth;
 
 /* Level of nesting inside outputting backquote in new style.  */
-int new_backquote_output;
+static int new_backquote_output;
 
 /* Detect most circularities to print finite output.  */
 #define PRINT_CIRCLE 200
-Lisp_Object being_printed[PRINT_CIRCLE];
+static Lisp_Object being_printed[PRINT_CIRCLE];
 
 /* When printing into a buffer, first we put the text in this
    block, then insert it all at once.  */
-char *print_buffer;
+static char *print_buffer;
 
 /* Size allocated in print_buffer.  */
-EMACS_INT print_buffer_size;
+static EMACS_INT print_buffer_size;
 /* Chars stored in print_buffer.  */
-EMACS_INT print_buffer_pos;
+static EMACS_INT print_buffer_pos;
 /* Bytes stored in print_buffer.  */
-EMACS_INT print_buffer_pos_byte;
+static EMACS_INT print_buffer_pos_byte;
 
 Lisp_Object Qprint_escape_newlines;
-Lisp_Object Qprint_escape_multibyte, Qprint_escape_nonascii;
+static Lisp_Object Qprint_escape_multibyte, Qprint_escape_nonascii;
 
 /* Vprint_number_table is a table, that keeps objects that are going to
    be printed, to allow use of #n= and #n# to express sharing.
@@ -89,8 +89,8 @@ Lisp_Object Qprint_escape_multibyte, Qprint_escape_nonascii;
      N    the object has been printed so we can refer to it as #N#.
    print_number_index holds the largest N already used.
    N has to be striclty larger than 0 since we need to distinguish -N.  */
-int print_number_index;
-void print_interval (INTERVAL interval, Lisp_Object printcharfun);
+static int print_number_index;
+static void print_interval (INTERVAL interval, Lisp_Object printcharfun);
 
 /* GDB resets this to zero on W32 to disable OutputDebugString calls.  */
 int print_output_debug_flag EXTERNALLY_VISIBLE = 1;
@@ -520,82 +520,6 @@ temp_output_buffer_setup (const char *bufname)
 
   specbind (Qstandard_output, buf);
 }
-
-Lisp_Object
-internal_with_output_to_temp_buffer (const char *bufname, Lisp_Object (*function) (Lisp_Object), Lisp_Object args)
-{
-  int count = SPECPDL_INDEX ();
-  Lisp_Object buf, val;
-  struct gcpro gcpro1;
-
-  GCPRO1 (args);
-  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
-  temp_output_buffer_setup (bufname);
-  buf = Vstandard_output;
-  UNGCPRO;
-
-  val = (*function) (args);
-
-  GCPRO1 (val);
-  temp_output_buffer_show (buf);
-  UNGCPRO;
-
-  return unbind_to (count, val);
-}
-
-DEFUN ("with-output-to-temp-buffer",
-       Fwith_output_to_temp_buffer, Swith_output_to_temp_buffer,
-       1, UNEVALLED, 0,
-       doc: /* Bind `standard-output' to buffer BUFNAME, eval BODY, then show that buffer.
-
-This construct makes buffer BUFNAME empty before running BODY.
-It does not make the buffer current for BODY.
-Instead it binds `standard-output' to that buffer, so that output
-generated with `prin1' and similar functions in BODY goes into
-the buffer.
-
-At the end of BODY, this marks buffer BUFNAME unmodifed and displays
-it in a window, but does not select it.  The normal way to do this is
-by calling `display-buffer', then running `temp-buffer-show-hook'.
-However, if `temp-buffer-show-function' is non-nil, it calls that
-function instead (and does not run `temp-buffer-show-hook').  The
-function gets one argument, the buffer to display.
-
-The return value of `with-output-to-temp-buffer' is the value of the
-last form in BODY.  If BODY does not finish normally, the buffer
-BUFNAME is not displayed.
-
-This runs the hook `temp-buffer-setup-hook' before BODY,
-with the buffer BUFNAME temporarily current.  It runs the hook
-`temp-buffer-show-hook' after displaying buffer BUFNAME, with that
-buffer temporarily current, and the window that was used to display it
-temporarily selected.  But it doesn't run `temp-buffer-show-hook'
-if it uses `temp-buffer-show-function'.
-
-usage: (with-output-to-temp-buffer BUFNAME BODY...)  */)
-  (Lisp_Object args)
-{
-  struct gcpro gcpro1;
-  Lisp_Object name;
-  int count = SPECPDL_INDEX ();
-  Lisp_Object buf, val;
-
-  GCPRO1(args);
-  name = Feval (Fcar (args));
-  CHECK_STRING (name);
-  temp_output_buffer_setup (SSDATA (name));
-  buf = Vstandard_output;
-  UNGCPRO;
-
-  val = Fprogn (XCDR (args));
-
-  GCPRO1 (val);
-  temp_output_buffer_show (buf);
-  UNGCPRO;
-
-  return unbind_to (count, val);
-}
-
 
 static void print (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag);
 static void print_preprocess (Lisp_Object obj);
@@ -814,6 +738,7 @@ to make it write to the debugging output.  */)
 /* This function is never called.  Its purpose is to prevent
    print_output_debug_flag from being optimized away.  */
 
+extern void debug_output_compilation_hack (int) EXTERNALLY_VISIBLE;
 void
 debug_output_compilation_hack (int x)
 {
@@ -827,7 +752,7 @@ debug_output_compilation_hack (int x)
 
 #define WITH_REDIRECT_DEBUGGING_OUTPUT 1
 
-FILE *initial_stderr_stream = NULL;
+static FILE *initial_stderr_stream = NULL;
 
 DEFUN ("redirect-debugging-output", Fredirect_debugging_output, Sredirect_debugging_output,
        1, 2,
@@ -874,6 +799,7 @@ debug_print (Lisp_Object arg)
   fprintf (stderr, "\r\n");
 }
 
+void safe_debug_print (Lisp_Object) EXTERNALLY_VISIBLE;
 void
 safe_debug_print (Lisp_Object arg)
 {
@@ -982,7 +908,7 @@ print_error_message (Lisp_Object data, Lisp_Object stream, const char *context,
   else
     write_string_1 ("peculiar error", -1, stream);
 
-  for (i = 0; CONSP (tail); tail = XCDR (tail), i++)
+  for (i = 0; CONSP (tail); tail = XCDR (tail), i = 1)
     {
       Lisp_Object obj;
 
@@ -1460,7 +1386,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	print_string (obj, printcharfun);
       else
 	{
-	  register EMACS_INT i, i_byte;
+	  register EMACS_INT i_byte;
 	  struct gcpro gcpro1;
 	  unsigned char *str;
 	  EMACS_INT size_byte;
@@ -1484,7 +1410,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	  str = SDATA (obj);
 	  size_byte = SBYTES (obj);
 
-	  for (i = 0, i_byte = 0; i_byte < size_byte;)
+	  for (i_byte = 0; i_byte < size_byte;)
 	    {
 	      /* Here, we must convert each multi-byte form to the
 		 corresponding character code before handing it to PRINTCHAR.  */
@@ -2289,6 +2215,4 @@ priorities.  */);
 
   print_prune_charset_plist = Qnil;
   staticpro (&print_prune_charset_plist);
-
-  defsubr (&Swith_output_to_temp_buffer);
 }

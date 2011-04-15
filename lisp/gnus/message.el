@@ -3712,22 +3712,9 @@ To use this automatically, you may add this function to
       (while (re-search-forward citexp nil t)
 	(replace-match (if remove "" "\n"))))))
 
-(defun message-yank-original (&optional arg)
-  "Insert the message being replied to, if any.
-Puts point before the text and mark after.
-Normally indents each nonblank line ARG spaces (default 3).  However,
-if `message-yank-prefix' is non-nil, insert that prefix on each line.
-
-This function uses `message-cite-function' to do the actual citing.
-
-Just \\[universal-argument] as argument means don't indent, insert no
-prefix, and don't delete any headers."
-  (interactive "P")
+(defun message--yank-original-internal (arg)
   (let ((modified (buffer-modified-p))
 	body-text)
-    ;; eval the let forms contained in message-cite-style
-    (eval
-     `(let ,message-cite-style
 	(when (and message-reply-buffer
 		   message-cite-function)
 	  (when (equal message-cite-reply-position 'above)
@@ -3767,7 +3754,23 @@ prefix, and don't delete any headers."
 	  ;; Add a `message-setup-very-last-hook' here?
 	  ;; Add `gnus-article-highlight-citation' here?
 	  (unless modified
-	    (setq message-checksum (message-checksum))))))))
+        (setq message-checksum (message-checksum))))))
+
+(defun message-yank-original (&optional arg)
+  "Insert the message being replied to, if any.
+Puts point before the text and mark after.
+Normally indents each nonblank line ARG spaces (default 3).  However,
+if `message-yank-prefix' is non-nil, insert that prefix on each line.
+
+This function uses `message-cite-function' to do the actual citing.
+
+Just \\[universal-argument] as argument means don't indent, insert no
+prefix, and don't delete any headers."
+  (interactive "P")
+  ;; eval the let forms contained in message-cite-style
+  (eval
+   `(let ,message-cite-style
+      (message--yank-original-internal ',arg))))
 
 (defun message-yank-buffer (buffer)
   "Insert BUFFER into the current buffer and quote it."

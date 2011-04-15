@@ -113,7 +113,7 @@ parse_region (Lisp_Object start, Lisp_Object end, Lisp_Object base_url, int html
     doc = xmlReadMemory ((char *) BYTE_POS_ADDR (CHAR_TO_BYTE (istart)),
 			 bytes, burl, "utf-8",
 			 XML_PARSE_NONET|XML_PARSE_NOWARNING|
-			 XML_PARSE_NOERROR);
+			 XML_PARSE_NOBLANKS |XML_PARSE_NOERROR);
 
   if (doc != NULL)
     {

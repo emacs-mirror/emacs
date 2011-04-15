@@ -50,10 +50,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "nsterm.h"
 #endif
 
-Lisp_Object Qwindowp, Qwindow_live_p, Qwindow_configuration_p;
-Lisp_Object Qdisplay_buffer;
-Lisp_Object Qscroll_up, Qscroll_down, Qscroll_command;
-Lisp_Object Qwindow_size_fixed;
+Lisp_Object Qwindowp, Qwindow_live_p;
+static Lisp_Object Qwindow_configuration_p;
+static Lisp_Object Qdisplay_buffer;
+static Lisp_Object Qscroll_up, Qscroll_down, Qscroll_command;
+static Lisp_Object Qwindow_size_fixed;
 
 static int displayed_window_lines (struct window *);
 static struct window *decode_window (Lisp_Object);
@@ -116,7 +117,7 @@ Lisp_Object minibuf_selected_window;
 
 /* Hook run at end of temp_output_buffer_show.  */
 
-Lisp_Object Qtemp_buffer_show_hook;
+static Lisp_Object Qtemp_buffer_show_hook;
 
 /* Incremented for each window created.  */
 
@@ -131,7 +132,7 @@ static int window_initialized;
 static Lisp_Object Qwindow_configuration_change_hook;
 /* Incremented by 1 whenever a window is deleted.  */
 
-int window_deletion_count;
+static int window_deletion_count;
 
 /* Used by the function window_scroll_pixel_based */
 
@@ -235,7 +236,8 @@ used by that frame.  */)
   return FRAME_MINIBUF_WINDOW (XFRAME (frame));
 }
 
-DEFUN ("window-minibuffer-p", Fwindow_minibuffer_p, Swindow_minibuffer_p, 0, 1, 0,
+DEFUN ("window-minibuffer-p", Fwindow_minibuffer_p,
+       Swindow_minibuffer_p, 0, 1, 0,
        doc: /* Return non-nil if WINDOW is a minibuffer window.
 WINDOW defaults to the selected window.  */)
   (Lisp_Object window)
@@ -2336,6 +2338,7 @@ window_loop (enum window_loop type, Lisp_Object obj, int mini, Lisp_Object frame
 
 /* Used for debugging.  Abort if any window has a dead buffer.  */
 
+extern void check_all_windows (void) EXTERNALLY_VISIBLE;
 void
 check_all_windows (void)
 {
@@ -3275,8 +3278,12 @@ change_window_heights (Lisp_Object window, int n)
 
 int window_select_count;
 
-EXFUN (Fset_window_fringes, 4);
-EXFUN (Fset_window_scroll_bars, 4);
+static Lisp_Object Fset_window_margins (Lisp_Object, Lisp_Object, Lisp_Object);
+static Lisp_Object Fset_window_fringes (Lisp_Object, Lisp_Object, Lisp_Object,
+					Lisp_Object);
+static Lisp_Object Fset_window_scroll_bars (Lisp_Object, Lisp_Object,
+					    Lisp_Object, Lisp_Object);
+static Lisp_Object Fset_window_vscroll (Lisp_Object, Lisp_Object, Lisp_Object);
 
 static void
 run_funs (Lisp_Object funs)
@@ -3664,9 +3671,6 @@ temp_output_buffer_show (register Lisp_Object buf)
   BEGV = BEG;
   ZV = Z;
   SET_PT (BEG);
-#if 0  /* rms: there should be no reason for this.  */
-  XBUFFER (buf)->prevent_redisplay_optimizations_p = 1;
-#endif
   set_buffer_internal (old);
 
   if (!NILP (Vtemp_buffer_show_function))
@@ -3704,6 +3708,16 @@ temp_output_buffer_show (register Lisp_Object buf)
         unbind_to (count, Qnil);
       }
     }
+}
+
+DEFUN ("internal-temp-output-buffer-show",
+       Ftemp_output_buffer_show, Stemp_output_buffer_show,
+       1, 1, 0,
+       doc: /* Internal function for `with-output-to-temp-buffer''.  */)
+     (Lisp_Object buf)
+{
+  temp_output_buffer_show (buf);
+  return Qnil;
 }
 
 static void
@@ -3794,7 +3808,7 @@ See Info node `(elisp)Splitting Windows' for more details and examples.  */)
 	error ("Window height %d too small (after splitting)", size_int);
       if (size_int + window_safe_height > XFASTINT (o->total_lines))
 	error ("Window height %d too small (after splitting)",
-	       XFASTINT (o->total_lines) - size_int);
+	       (int) (XFASTINT (o->total_lines) - size_int));
       if (NILP (o->parent)
 	  || NILP (XWINDOW (o->parent)->vchild))
 	{
@@ -3811,7 +3825,7 @@ See Info node `(elisp)Splitting Windows' for more details and examples.  */)
 	error ("Window width %d too small (after splitting)", size_int);
       if (size_int + window_safe_width > XFASTINT (o->total_cols))
 	error ("Window width %d too small (after splitting)",
-	       XFASTINT (o->total_cols) - size_int);
+	       (int) (XFASTINT (o->total_cols) - size_int));
       if (NILP (o->parent)
 	  || NILP (XWINDOW (o->parent)->hchild))
 	{
@@ -4858,7 +4872,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
 	     looking at an image that is taller that the window height.  */
 	  while (start_pos == IT_CHARPOS (it)
 		 && start_pos > BEGV)
-	    move_it_by_lines (&it, -1, 1);
+	    move_it_by_lines (&it, -1);
 	}
       else if (dy > 0)
 	{
@@ -4868,11 +4882,11 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
 	     looking at an image that is taller that the window height.  */
 	  while (start_pos == IT_CHARPOS (it)
 		 && start_pos < ZV)
-	    move_it_by_lines (&it, 1, 1);
+	    move_it_by_lines (&it, 1);
 	}
     }
   else
-    move_it_by_lines (&it, n, 1);
+    move_it_by_lines (&it, n);
 
   /* We failed if we find ZV is already on the screen (scrolling up,
      means there's nothing past the end), or if we can't start any
@@ -4983,7 +4997,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
 	  while (it.current_y < this_scroll_margin)
 	    {
 	      int prev = it.current_y;
-	      move_it_by_lines (&it, 1, 1);
+	      move_it_by_lines (&it, 1);
 	      if (prev == it.current_y)
 		break;
 	    }
@@ -5017,7 +5031,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
 	partial_p = it.current_y + it.ascent + it.descent > it.last_visible_y;
       else
 	{
-	  move_it_by_lines (&it, 1, 1);
+	  move_it_by_lines (&it, 1);
 	  partial_p = it.current_y > it.last_visible_y;
 	}
 
@@ -5044,7 +5058,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
 	    /* The last line was only partially visible, so back up two
 	       lines to make sure we're on a fully visible line.  */
 	    {
-	      move_it_by_lines (&it, -2, 0);
+	      move_it_by_lines (&it, -2);
 	      SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
 	    }
 	  else
@@ -5587,14 +5601,14 @@ and redisplay normally--don't erase and redraw the frame.  */)
 	  start_display (&it, w, pt);
 
 	  /* Be sure we have the exact height of the full line containing PT.  */
-	  move_it_by_lines (&it, 0, 1);
+	  move_it_by_lines (&it, 0);
 
 	  /* The amount of pixels we have to move back is the window
 	     height minus what's displayed in the line containing PT,
 	     and the lines below.  */
 	  it.current_y = 0;
 	  it.vpos = 0;
-	  move_it_by_lines (&it, nlines, 1);
+	  move_it_by_lines (&it, nlines);
 
 	  if (it.vpos == nlines)
 	    h -= it.current_y;
@@ -5633,7 +5647,7 @@ and redisplay normally--don't erase and redraw the frame.  */)
 	  */
 	  h += extra_line_spacing;
 	  while (-it.current_y > h)
-	    move_it_by_lines (&it, 1, 1);
+	    move_it_by_lines (&it, 1);
 
 	  charpos = IT_CHARPOS (it);
 	  bytepos = IT_BYTEPOS (it);
@@ -6390,28 +6404,6 @@ redirection (see `redirect-frame-focus').  */)
   return (tem);
 }
 
-DEFUN ("save-window-excursion", Fsave_window_excursion, Ssave_window_excursion,
-       0, UNEVALLED, 0,
-       doc: /* Execute BODY, preserving window sizes and contents.
-Return the value of the last form in BODY.
-Restore which buffer appears in which window, where display starts,
-and the value of point and mark for each window.
-Also restore the choice of selected window.
-Also restore which buffer is current.
-Does not restore the value of point in current buffer.
-usage: (save-window-excursion BODY...)  */)
-  (Lisp_Object args)
-{
-  register Lisp_Object val;
-  register int count = SPECPDL_INDEX ();
-
-  record_unwind_protect (Fset_window_configuration,
-			 Fcurrent_window_configuration (Qnil));
-  val = Fprogn (args);
-  return unbind_to (count, val);
-}
-
-
 
 /***********************************************************************
 			    Window Split Tree
@@ -6622,8 +6614,8 @@ Value is a list of the form (LEFT-WIDTH RIGHT-WIDTH OUTSIDE-MARGINS).  */)
 			    Scroll bars
  ***********************************************************************/
 
-DEFUN ("set-window-scroll-bars", Fset_window_scroll_bars, Sset_window_scroll_bars,
-       2, 4, 0,
+DEFUN ("set-window-scroll-bars", Fset_window_scroll_bars,
+       Sset_window_scroll_bars, 2, 4, 0,
        doc: /* Set width and type of scroll bars of window WINDOW.
 If window is nil, set scroll bars of the currently selected window.
 Second parameter WIDTH specifies the pixel width for the scroll bar;
@@ -7167,6 +7159,7 @@ frame to be redrawn only if it is a tty frame.  */);
   defsubr (&Sset_window_buffer);
   defsubr (&Sselect_window);
   defsubr (&Sforce_window_update);
+  defsubr (&Stemp_output_buffer_show);
   defsubr (&Ssplit_window);
   defsubr (&Senlarge_window);
   defsubr (&Sshrink_window);
@@ -7185,7 +7178,6 @@ frame to be redrawn only if it is a tty frame.  */);
   defsubr (&Swindow_configuration_frame);
   defsubr (&Sset_window_configuration);
   defsubr (&Scurrent_window_configuration);
-  defsubr (&Ssave_window_excursion);
   defsubr (&Swindow_tree);
   defsubr (&Sset_window_margins);
   defsubr (&Swindow_margins);

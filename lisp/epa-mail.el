@@ -1,4 +1,4 @@
-;;; epa-mail.el --- the EasyPG Assistant, minor-mode for mail composer
+;;; epa-mail.el --- the EasyPG Assistant, minor-mode for mail composer -*- lexical-binding: t -*-
 ;; Copyright (C) 2006-2011 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
@@ -117,7 +117,7 @@ Don't use this command in Lisp programs!"
    (save-excursion
      (let ((verbose current-prefix-arg)
 	   (context (epg-make-context epa-protocol))
-	   recipients-string recipients recipient-key)
+	   recipients-string recipients recipient-key sign)
        (goto-char (point-min))
        (save-restriction
 	 (narrow-to-region (point)

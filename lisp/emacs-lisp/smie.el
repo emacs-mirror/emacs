@@ -1,4 +1,4 @@
-;;; smie.el --- Simple Minded Indentation Engine
+;;; smie.el --- Simple Minded Indentation Engine -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2010-2011  Free Software Foundation, Inc.
 
@@ -178,7 +178,7 @@ one of those elements share the same precedence level and associativity."
   ;; Maybe also add (or <elem1> <elem2>...) for things like
   ;; (exp (exp (or "+" "*" "=" ..) exp)).
   ;; Basically, make it EBNF (except for the specification of a separator in
-  ;; the repetition).
+  ;; the repetition, maybe).
   (let ((nts (mapcar 'car bnf))         ;Non-terminals
         (first-ops-table ())
         (last-ops-table ())

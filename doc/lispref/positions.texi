@@ -797,69 +797,72 @@ is zero or less.
 @cindex excursion
 
   It is often useful to move point ``temporarily'' within a localized
-portion of the program, or to switch buffers temporarily.  This is
-called an @dfn{excursion}, and it is done with the @code{save-excursion}
-special form.  This construct initially remembers the identity of the
-current buffer, and its values of point and the mark, and restores them
-after the completion of the excursion.
+portion of the program.  This is called an @dfn{excursion}, and it is
+done with the @code{save-excursion} special form.  This construct
+remembers the initial identity of the current buffer, and its values
+of point and the mark, and restores them after the excursion
+completes.  It is the standard way to move point within one part of a
+program and avoid affecting the rest of the program, and is used
+thousands of times in the Lisp sources of Emacs.
 
-  The forms for saving and restoring the configuration of windows are
-described elsewhere (see @ref{Window Configurations}, and @pxref{Frame
-Configurations}).  When only the identity of the current buffer needs
-to be saved and restored, it is preferable to use
-@code{save-current-buffer} instead.
+  If you only need to save and restore the identity of the current
+buffer, use @code{save-current-buffer} or @code{with-current-buffer}
+instead (@pxref{Current Buffer}).  If you need to save or restore
+window configurations, see the forms described in @ref{Window
+Configurations} and in @ref{Frame Configurations}.
 
 @defspec save-excursion body@dots{}
 @cindex mark excursion
 @cindex point excursion
-The @code{save-excursion} special form saves the identity of the current
-buffer and the values of point and the mark in it, evaluates
-@var{body}, and finally restores the buffer and its saved values of
-point and the mark.  All three saved values are restored even in case of
-an abnormal exit via @code{throw} or error (@pxref{Nonlocal Exits}).
+This special form saves the identity of the current buffer and the
+values of point and the mark in it, evaluates @var{body}, and finally
+restores the buffer and its saved values of point and the mark.  All
+three saved values are restored even in case of an abnormal exit via
+@code{throw} or error (@pxref{Nonlocal Exits}).
 
-The @code{save-excursion} special form is the standard way to move
-point within one part of a program and avoid affecting the rest of the
-program.  It is used more than 4000 times in the Lisp sources
-of Emacs.
+The value returned by @code{save-excursion} is the result of the last
+form in @var{body}, or @code{nil} if no body forms were given.
+@end defspec
 
-@code{save-excursion} does not save the values of point and the mark for
-other buffers, so changes in other buffers remain in effect after
-@code{save-excursion} exits.
+  Because @code{save-excursion} only saves point and mark for the
+buffer that was current at the start of the excursion, any changes
+made to point and/or mark in other buffers, during the excursion, will
+remain in effect afterward.  This frequently leads to unintended
+consequences, so the byte compiler warns if you call @code{set-buffer}
+during an excursion:
+
+@example
+Warning: @code{save-excursion} defeated by @code{set-buffer}
+@end example
+
+@noindent
+To avoid such problems, you should call @code{save-excursion} only
+after setting the desired current buffer, as in the following example:
+
+@example
+@group
+(defun append-string-to-buffer (string buffer)
+  "Append STRING to the end of BUFFER."
+  (with-current-buffer buffer
+    (save-excursion
+      (goto-char (point-max))
+      (insert string))))
+@end group
+@end example
 
 @cindex window excursions
-Likewise, @code{save-excursion} does not restore window-buffer
+  Likewise, @code{save-excursion} does not restore window-buffer
 correspondences altered by functions such as @code{switch-to-buffer}.
 One way to restore these correspondences, and the selected window, is to
 use @code{save-window-excursion} inside @code{save-excursion}
 (@pxref{Window Configurations}).
 
-The value returned by @code{save-excursion} is the result of the last
-form in @var{body}, or @code{nil} if no body forms were given.
-
-@example
-@group
-(save-excursion @var{forms})
-@equiv{}
-(let ((old-buf (current-buffer))
-      (old-pnt (point-marker))
-@end group
-      (old-mark (copy-marker (mark-marker))))
-  (unwind-protect
-      (progn @var{forms})
-    (set-buffer old-buf)
-@group
-    (goto-char old-pnt)
-    (set-marker (mark-marker) old-mark)))
-@end group
-@end example
-@end defspec
-
   @strong{Warning:} Ordinary insertion of text adjacent to the saved
-point value relocates the saved value, just as it relocates all markers.
-More precisely, the saved value is a marker with insertion type
-@code{nil}.  @xref{Marker Insertion Types}.  Therefore, when the saved
-point value is restored, it normally comes before the inserted text.
+point value relocates the saved value, just as it relocates all
+markers.  More precisely, the saved value is a marker with insertion
+type @code{nil}.  @xref{Marker Insertion Types}.  Therefore, when the
+saved point value is restored, it normally comes before the inserted
+text.
 
   Although @code{save-excursion} saves the location of the mark, it does
 not prevent functions which modify the buffer from setting

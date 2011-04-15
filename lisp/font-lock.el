@@ -1765,8 +1765,7 @@ variables directly.
 Note: This function will erase modifications done by
 `font-lock-add-keywords' or `font-lock-remove-keywords', but will
 preserve `hi-lock-mode' highlighting patterns."
-  (let ((hi-lock--inhibit-font-lock-hook t))
-    (font-lock-mode -1))
+  (font-lock-mode -1)
   (kill-local-variable 'font-lock-set-defaults)
   (font-lock-mode 1))
 

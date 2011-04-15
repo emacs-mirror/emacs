@@ -1925,9 +1925,10 @@ article numbers will be returned."
             (setq articles (gnus-list-range-intersection
                             articles (list (cons low high)))))))
 
-      (gnus-message
-       10 "gnus-agent-fetch-headers: undownloaded articles are '%s'"
-       (gnus-compress-sequence articles t))
+      (when articles
+	(gnus-message
+	 10 "gnus-agent-fetch-headers: undownloaded articles are '%s'"
+	 (gnus-compress-sequence articles t)))
 
       (with-current-buffer nntp-server-buffer
         (if articles

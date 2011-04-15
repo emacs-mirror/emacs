@@ -1,3 +1,166 @@
+2011-04-14  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el: Updated gnus-registry docs.
+
+2011-04-12  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry--split-fancy-with-parent-internal):
+	Fix logic bug.
+	(gnus-registry-post-process-groups): Fix logging of no results and
+	quote sender and subject.
+
+2011-04-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-get-unread-articles): Slight cleanup.
+	(gnus-read-active-for-groups): Don't try to finish getting stuff where
+	we had no early-data returned.
+	(gnus-get-unread-articles): Add a sanity check so that we don't issue
+	two async commands to the same server at the same time.
+
+2011-04-12  Stig Sandbeck Mathisen  <ssm@fnord.no>  (tiny change)
+
+	* gnus-sum.el (gnus-summary-select-article-buffer): Doc fix.
+
+2011-04-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-registry.el (gnus-registry-remake-db): Put the warning on a
+	"warning" level.
+
+	* mm-url.el (mm-url-package-name): Removed to ease third-party reuse.
+	(mm-url-insert-file-contents): Don't set the package names.
+
+2011-04-11  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-action): Remove properties and
+	simplify subject in `gnus-registry-handle-action'.
+	(gnus-registry-spool-action): Get subject and sender from message if
+	they are not passed in.
+	(gnus-registry-handle-action): Remove properties and simplify subject
+	consistently.
+
+2011-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* registry.el: Require CL before using defmacro*.
+
+2011-04-11  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (article-treat-date): Assume that
+	gnus-article-date-headers may be a group parameter.
+
+2011-04-07  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-handle-action): More debugging.
+
+	* gnus-start.el (gnus-gnus-to-newsrc-format): Add a way to run
+	interactively so the newsrc file can contain foreign groups too.
+	Useful for debugging but not much for users.
+
+2011-04-07  David Engster  <dengste@eml.cc>
+
+	* registry.el (registry-usage-test): Only do
+	`registry-lookup-breaks-before-lexbind' testing for Emacs24 with
+	lexical binding.
+
+2011-04-06  David Engster  <dengste@eml.cc>
+
+	* registry.el, gnus-registry.el: Use `ignore-errors' instead of third
+	argument NOERROR for `require', since XEmacs 21.4 does not support it.
+
+2011-04-06  David Engster  <dengste@eml.cc>
+
+	* registry.el (initialize-instance): Change :after to :AFTER to be
+	compatible with old EIEIO version in XEmacs.
+
+2011-04-06  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-post-process-groups)
+	(gnus-registry--split-fancy-with-parent-internal): Fix splitting bugs
+	and provide better messaging.
+
+2011-04-06  David Engster  <dengste@eml.cc>
+
+	* Makefile.in (fail-on-warning): New rule to compile with warnings as
+	errors.
+
+	* dgnushack.el (dgnushack-compile-error-on-warn): New function to call
+	dgnushack-compile with error-on-warn enabled, and to signal an error if
+	clean compilation failed.
+	(dgnushack-compile): New argument 'error-on-warn'.  If non-nil, compile
+	with `byte-compile-error-on-warn'.  Return nil if errors occured.
+
+2011-04-06  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el: Don't use ERT if it's not available.  Load it
+	unconditionally anyway, discarding errors.
+	(gnus-registry-delete-entries): New convenience function.
+	(gnus-registry-import-eld): Import from old .eld registry.
+
+	* registry.el: Don't use ERT if it's not available.  Load it
+	unconditionally anyway, discarding errors.
+
+	* proto-stream.el (gnutls-negotiate): Revert inadvertent commit of the
+	version from the Claudio Bley GnuTLS patch (extra optional parameters
+	and host name).
+
+2011-04-05  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-fixup-registry): New function to
+	fixup the parameters that can be customized by the user between
+	save/read cycles.
+	(gnus-registry-read): Use it.
+	(gnus-registry-make-db): Use it.
+	(gnus-registry-spool-action, gnus-registry-handle-action): Fix
+	messaging.
+	(gnus-registry--split-fancy-with-parent-internal): Fix loop.  Map
+	references to actual group names with sender and subject tracking.
+	(gnus-registry-post-process-groups): Use `cond' for better messaging.
+	(gnus-registry-usage-test): Add subject lookup test.
+
+	* registry.el (registry-db, initialize-instance): Set up constructor
+	instead of :initform arguments for the sake of older Emacsen.
+	(registry-lookup-breaks-before-lexbind): New method to demonstrate
+	pre-lexbind merge bug.
+	(registry-usage-test): Use it.
+	(initialize-instance, registry-db): Move the non-function initforms
+	back to the class definition.
+
+2011-04-03  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* registry.el: New library to manage gnus-registry-style data.
+
+	* gnus-registry.el: Use it (major rewrite).
+
+	* nnregistry.el: Use it.
+
+	* spam.el: Use it.
+
+2011-04-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-update-marks): Reinstate the code to not alter
+	marks on non-selected articles.
+
+2011-04-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* proto-stream.el: Move to Emacs core, at net/network-stream.el.
+
+	* nnimap.el (nnimap-open-connection-1): Pass explicit :end-of-command
+	parameter to open-protocol-stream.
+
+2011-04-01  Julien Danjou  <julien@danjou.info>
+
+	* mm-view.el (mm-display-inline-fontify): Do not fontify with
+	fundamental-mode.
+
+2011-04-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-get-unread-articles): Don't try to contact denied
+	servers.
+
+2011-03-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-update-marks): Revert intersection change, which
+	made marks not propagate, again.
+
 2011-03-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* proto-stream.el (open-protocol-stream): Bring back `network' type.
@@ -14,6 +177,59 @@
 	values are not functions but are instead handled specially.  Recognize
 	nntp-open-plain-stream value.
 	(nntp-open-connection): Recognize that value.
+
+2011-03-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gssapi.el (open-gssapi-stream): Remove the last mentions of the IMAP
+	stuff.
+
+	* gnus-score.el (gnus-score-string): Fix calling convention of
+	`gnus-simplify-buffer-fuzzy' after last patches.
+
+	* gnus-sum.el (gnus-update-marks): Don't send any marks updates to the
+	server for articles we didn't get any headers for.  This is a sanity
+	check.
+
+2011-03-29  Michael Welsh Duggan  <md5i@md5i.com>
+
+	* nnimap.el (nnimap-open-connection-1): Is the login responds with a
+	new CAPABILITY, use it.
+
+2011-03-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-agent.el (gnus-agent-fetch-headers): Don't message if we're not
+	downloading anything.
+
+	* gnus.el (gnus-splash-svg-color-symbols): Removed superfluous `and'.
+
+2011-03-29  Adam Sjøgren  <asjo@koldfront.dk>
+
+	* gnus.el (gnus-group-startup-message): Prefer svg file and replace
+	colors.
+	(gnus-splash-svg-color-symbols): New function.
+
+2011-03-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-simplify-buffer-fuzzy): Take the regexp explicitly
+	instead of using the global gnus-simplify-subject-fuzzy-regexp.
+	(gnus-simplify-subject-fuzzy): Use the local
+	gnus-simplify-subject-fuzzy-regex instead of the global one.  This
+	makes using this variable in group parameters work.
+
+2011-03-29  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-unfollowed-groups): Add
+	"archive:sent" to the unfollowed group regex (for the recent Gnus
+	archive:sent-YYYY-MM-DD groups).
+	(gnus-registry-split-fancy-with-parent): Bail out early in sender
+	tracking if there are more than `gnus-registry-max-track-groups'
+	matches.
+
+2011-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* message.el (message--yank-original-internal): New function to do the
+	insertion cleanly inside eval in `message-yank-original'.
+	(message-yank-original): Use it.
 
 2011-03-29  Julien Danjou  <julien@danjou.info>
 
@@ -246,6 +462,10 @@
 	default prompts for user, host, port, and secret.
 	(auth-source-netrc-saver): New function, intended to be wrapped for
 	:save-function.
+
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
 
 2011-03-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -15043,7 +15263,7 @@
 	* smime-ldap.el (smime-ldap-search): Add compatibility for XEmacs.
 
 	* smime.el (smime-cert-by-ldap-1): Handle certificates distributed
-	in PEM format.  Adjust to the XEmacs compability.
+	in PEM format.  Adjust to the XEmacs compatibility.
 
 2005-05-30  Reiner Steib  <Reiner.Steib@gmx.de>
 

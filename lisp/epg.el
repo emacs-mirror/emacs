@@ -1,4 +1,4 @@
-;;; epg.el --- the EasyPG Library
+;;; epg.el --- the EasyPG Library -*- lexical-binding: t -*-
 ;; Copyright (C) 1999-2000, 2002-2011 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
@@ -1223,7 +1223,7 @@ This function is for internal use only."
       (defalias 'epg--decode-coding-string 'decode-coding-string)
     (defalias 'epg--decode-coding-string 'identity)))
 
-(defun epg--status-USERID_HINT (context string)
+(defun epg--status-USERID_HINT (_context string)
   (if (string-match "\\`\\([^ ]+\\) \\(.*\\)" string)
       (let* ((key-id (match-string 1 string))
 	     (user-id (match-string 2 string))
@@ -1238,14 +1238,14 @@ This function is for internal use only."
 	  (setq epg-user-id-alist (cons (cons key-id user-id)
 					epg-user-id-alist))))))
 
-(defun epg--status-NEED_PASSPHRASE (context string)
+(defun epg--status-NEED_PASSPHRASE (_context string)
   (if (string-match "\\`\\([^ ]+\\)" string)
       (setq epg-key-id (match-string 1 string))))
 
-(defun epg--status-NEED_PASSPHRASE_SYM (context string)
+(defun epg--status-NEED_PASSPHRASE_SYM (_context _string)
   (setq epg-key-id 'SYM))
 
-(defun epg--status-NEED_PASSPHRASE_PIN (context string)
+(defun epg--status-NEED_PASSPHRASE_PIN (_context _string)
   (setq epg-key-id 'PIN))
 
 (eval-and-compile
@@ -1308,11 +1308,11 @@ This function is for internal use only."
 	(if encoded-passphrase-with-new-line
 	    (epg--clear-string encoded-passphrase-with-new-line))))))
 
-(defun epg--prompt-GET_BOOL (context string)
+(defun epg--prompt-GET_BOOL (_context string)
   (let ((entry (assoc string epg-prompt-alist)))
     (y-or-n-p (if entry (cdr entry) (concat string "? ")))))
 
-(defun epg--prompt-GET_BOOL-untrusted_key.override (context string)
+(defun epg--prompt-GET_BOOL-untrusted_key.override (_context _string)
   (y-or-n-p (if (and (equal (car epg-last-status) "USERID_HINT")
 		     (string-match "\\`\\([^ ]+\\) \\(.*\\)"
 				   (cdr epg-last-status)))
@@ -1467,31 +1467,31 @@ This function is for internal use only."
        signature
        (string-to-number (match-string 7 string) 16)))))
 
-(defun epg--status-TRUST_UNDEFINED (context string)
+(defun epg--status-TRUST_UNDEFINED (context _string)
   (let ((signature (car (epg-context-result-for context 'verify))))
     (if (and signature
 	     (eq (epg-signature-status signature) 'good))
 	(epg-signature-set-validity signature 'undefined))))
 
-(defun epg--status-TRUST_NEVER (context string)
+(defun epg--status-TRUST_NEVER (context _string)
   (let ((signature (car (epg-context-result-for context 'verify))))
     (if (and signature
 	     (eq (epg-signature-status signature) 'good))
 	(epg-signature-set-validity signature 'never))))
 
-(defun epg--status-TRUST_MARGINAL (context string)
+(defun epg--status-TRUST_MARGINAL (context _string)
   (let ((signature (car (epg-context-result-for context 'verify))))
     (if (and signature
 	     (eq (epg-signature-status signature) 'marginal))
 	(epg-signature-set-validity signature 'marginal))))
 
-(defun epg--status-TRUST_FULLY (context string)
+(defun epg--status-TRUST_FULLY (context _string)
   (let ((signature (car (epg-context-result-for context 'verify))))
     (if (and signature
 	     (eq (epg-signature-status signature) 'good))
 	(epg-signature-set-validity signature 'full))))
 
-(defun epg--status-TRUST_ULTIMATE (context string)
+(defun epg--status-TRUST_ULTIMATE (context _string)
   (let ((signature (car (epg-context-result-for context 'verify))))
     (if (and signature
 	     (eq (epg-signature-status signature) 'good))
@@ -1541,10 +1541,10 @@ This function is for internal use only."
 		   (string-to-number (match-string 3 string)))
 	     (epg-context-result-for context 'encrypted-to)))))
 
-(defun epg--status-DECRYPTION_FAILED (context string)
+(defun epg--status-DECRYPTION_FAILED (context _string)
   (epg-context-set-result-for context 'decryption-failed t))
 
-(defun epg--status-DECRYPTION_OKAY (context string)
+(defun epg--status-DECRYPTION_OKAY (context _string)
   (epg-context-set-result-for context 'decryption-okay t))
 
 (defun epg--status-NODATA (context string)
@@ -1566,13 +1566,13 @@ This function is for internal use only."
 				  (epg--time-from-seconds string)))
 	 (epg-context-result-for context 'error))))
 
-(defun epg--status-KEYREVOKED (context string)
+(defun epg--status-KEYREVOKED (context _string)
   (epg-context-set-result-for
    context 'key
    (cons '(key-revoked)
 	 (epg-context-result-for context 'error))))
 
-(defun epg--status-BADARMOR (context string)
+(defun epg--status-BADARMOR (context _string)
   (epg-context-set-result-for
    context 'error
    (cons '(bad-armor)
@@ -1589,7 +1589,7 @@ This function is for internal use only."
 			 (match-string 2 string)))
 	     (epg-context-result-for context 'error)))))
 
-(defun epg--status-NO_RECP (context string)
+(defun epg--status-NO_RECP (context _string)
   (epg-context-set-result-for
    context 'error
    (cons '(no-recipients)
@@ -1626,13 +1626,13 @@ This function is for internal use only."
 		   (cons 'fingerprint (match-string 2 string)))
 	     (epg-context-result-for context 'generate-key)))))
 
-(defun epg--status-KEY_NOT_CREATED (context string)
+(defun epg--status-KEY_NOT_CREATED (context _string)
   (epg-context-set-result-for
    context 'error
    (cons '(key-not-created)
 	 (epg-context-result-for context 'error))))
 
-(defun epg--status-IMPORTED (context string)
+(defun epg--status-IMPORTED (_context string)
   (if (string-match "\\`\\([^ ]+\\) \\(.*\\)" string)
       (let* ((key-id (match-string 1 string))
 	     (user-id (match-string 2 string))
@@ -1694,7 +1694,7 @@ This function is for internal use only."
 			     (epg-context-result-for context 'import-status)))
     (epg-context-set-result-for context 'import-status nil)))
 
-(defun epg-passphrase-callback-function (context key-id handback)
+(defun epg-passphrase-callback-function (context key-id _handback)
   (if (eq key-id 'SYM)
       (read-passwd "Passphrase for symmetric encryption: "
 		   (eq (epg-context-operation context) 'encrypt))

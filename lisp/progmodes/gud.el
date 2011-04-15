@@ -767,7 +767,9 @@ directory and source-file directory for your debugger."
   (gud-def gud-until  "until %l" "\C-u" "Continue to current line.")
   (gud-def gud-run    "run"	 nil    "Run the program.")
 
-  (local-set-key "\C-i" 'gud-gdb-complete-command)
+  (add-hook 'completion-at-point-functions #'gud-gdb-completion-at-point
+            nil 'local)
+  (local-set-key "\C-i" 'completion-at-point)
   (setq comint-prompt-regexp "^(.*gdb[+]?) *")
   (setq paragraph-start comint-prompt-regexp)
   (setq gdb-first-prompt t)
@@ -791,26 +793,28 @@ directory and source-file directory for your debugger."
 ;; The completion list is constructed by the process filter.
 (defvar gud-gdb-fetched-lines)
 
-(defun gud-gdb-complete-command (&optional command a b)
-  "Perform completion on the GDB command preceding point.
-This is implemented using the GDB `complete' command which isn't
-available with older versions of GDB."
-  (interactive)
-  (if command
-      ;; Used by gud-watch in mini-buffer.
-      (setq command (concat "p " command))
-    ;; Used in GUD buffer.
-    (let ((end (point)))
-      (setq command (buffer-substring (comint-line-beginning-position) end))))
-  (let* ((command-word
-	  ;; Find the word break.  This match will always succeed.
-	  (and (string-match "\\(\\`\\| \\)\\([^ ]*\\)\\'" command)
-	       (substring command (match-beginning 2))))
-	 (complete-list
-	  (gud-gdb-run-command-fetch-lines (concat "complete " command)
+(defun gud-gdb-completions (context command)
+  "Completion table for GDB commands.
+COMMAND is the prefix for which we seek completion.
+CONTEXT is the text before COMMAND on the line."
+  (let* ((start (- (point) (field-beginning)))
+         (complete-list
+	  (gud-gdb-run-command-fetch-lines (concat "complete " context command)
 					   (current-buffer)
 					   ;; From string-match above.
-					   (match-beginning 2))))
+					   (length context))))
+    ;; `gud-gdb-run-command-fetch-lines' has some nasty side-effects on the
+    ;; buffer (via `gud-delete-prompt-marker'): it removes the prompt and then
+    ;; re-adds it later, thus messing up markers and overlays along the way.
+    ;; This is a problem for completion-in-region which uses an overlay to
+    ;; create a field.
+    ;; So we restore completion-in-region's field if needed.
+    ;; FIXME: change gud-gdb-run-command-fetch-lines so it doesn't modify the
+    ;; buffer at all.
+    (when (/= start (- (point) (field-beginning)))
+      (dolist (ol (overlays-at (1- (point))))
+        (when (eq (overlay-get ol 'field) 'completion)
+          (move-overlay ol (- (point) start) (overlay-end ol)))))
     ;; Protect against old versions of GDB.
     (and complete-list
 	 (string-match "^Undefined command: \"complete\"" (car complete-list))
@@ -836,8 +840,27 @@ available with older versions of GDB."
 		   pos (match-end 0)))
 	   (and (= (mod count 2) 1)
 		(setq complete-list (list (concat str "'"))))))
-    ;; Let comint handle the rest.
-    (comint-dynamic-simple-complete command-word complete-list)))
+    complete-list))
+
+(defun gud-gdb-completion-at-point ()
+  "Return the data to complete the GDB command before point."
+  (let ((end (point))
+        (start
+         (save-excursion
+           (skip-chars-backward "^ " (comint-line-beginning-position))
+           (point))))
+    (list start end
+          (completion-table-dynamic
+           (apply-partially #'gud-gdb-completions
+                            (buffer-substring (comint-line-beginning-position)
+                                              start))))))
+
+;; (defun gud-gdb-complete-command ()
+;;   "Perform completion on the GDB command preceding point.
+;; This is implemented using the GDB `complete' command which isn't
+;; available with older versions of GDB."
+;;   (interactive)
+;;   (apply #'completion-in-region (gud-gdb-completion-at-point)))
 
 ;; The completion process filter is installed temporarily to slurp the
 ;; output of GDB up to the next prompt and build the completion list.
@@ -3061,6 +3084,7 @@ class of the file (using s to separate nested class ids)."
           ;; syntactic information chain and collect any 'inclass
           ;; symbols until 'topmost-intro is reached to find out if
           ;; point is within a nested class
+	  ;; FIXME: Yuck!!!  cc-mode should provide a function instead.
           (if (and fbuffer (equal (symbol-file 'java-mode) "cc-mode"))
               (with-current-buffer fbuffer
                 (let ((nclass) (syntax))
@@ -3457,14 +3481,14 @@ This function must return nil if it doesn't handle EVENT."
 so they have been disabled."))
 	      (unless (null cmd) ; CMD can be nil if unknown debugger
 		(if (eq gud-minor-mode 'gdbmi)
-		      (if gdb-macro-info
-			  (gdb-input
-			   (list (concat
-				  "server macro expand " expr "\n")
-				 `(lambda () (gdb-tooltip-print-1 ,expr))))
-			(gdb-input
-			 (list  (concat cmd "\n")
- 				 `(lambda () (gdb-tooltip-print ,expr)))))
+                    (if gdb-macro-info
+                        (gdb-input
+                         (list (concat
+                                "server macro expand " expr "\n")
+                               `(lambda () (gdb-tooltip-print-1 ,expr))))
+                      (gdb-input
+                       (list  (concat cmd "\n")
+                              `(lambda () (gdb-tooltip-print ,expr)))))
 		  (setq gud-tooltip-original-filter (process-filter process))
 		  (set-process-filter process 'gud-tooltip-process-output)
 		  (gud-basic-call cmd))

@@ -8,6 +8,10 @@
 	* ob-exp.el (org-babel-exp-do-export, org-babel-exp-code):
 	* ob-ref.el (org-babel-ref-resolve): Fix use of case.
 
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
 2011-03-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* org.el (org-blank-before-new-entry, org-context-in-file-links)

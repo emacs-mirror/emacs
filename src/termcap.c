@@ -1,6 +1,6 @@
 /* Work-alike for termcap, plus extra features.
    Copyright (C) 1985, 1986, 1993, 1994, 1995, 2000, 2001, 2002, 2003,
-                 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+                 2004, 2005, 2006, 2007, 2008, 2011 Free Software Foundation, Inc.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -468,15 +468,15 @@ tgetent (char *bp, const char *name)
       if (scan_file (term, fd, &buf) == 0)
 	{
 	  close (fd);
-	  free (buf.beg);
+	  xfree (buf.beg);
 	  if (malloc_size)
-	    free (bp);
+	    xfree (bp);
 	  return 0;
 	}
 
       /* Free old `term' if appropriate.  */
       if (term != name)
-	free (term);
+	xfree (term);
 
       /* If BP is malloc'd by us, make sure it is big enough.  */
       if (malloc_size)
@@ -506,7 +506,7 @@ tgetent (char *bp, const char *name)
     }
 
   close (fd);
-  free (buf.beg);
+  xfree (buf.beg);
 
   if (malloc_size)
     bp = (char *) xrealloc (bp, bp1 - bp + 1);

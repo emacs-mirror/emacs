@@ -36,7 +36,7 @@ const int chartab_size[4] =
 
 /* Number of characters each element of Nth level char-table
    covers.  */
-const int chartab_chars[4] =
+static const int chartab_chars[4] =
   { (1 << (CHARTAB_SIZE_BITS_1 + CHARTAB_SIZE_BITS_2 + CHARTAB_SIZE_BITS_3)),
     (1 << (CHARTAB_SIZE_BITS_2 + CHARTAB_SIZE_BITS_3)),
     (1 << CHARTAB_SIZE_BITS_3),
@@ -44,7 +44,7 @@ const int chartab_chars[4] =
 
 /* Number of characters (in bits) each element of Nth level char-table
    covers.  */
-const int chartab_bits[4] =
+static const int chartab_bits[4] =
   { (CHARTAB_SIZE_BITS_1 + CHARTAB_SIZE_BITS_2 + CHARTAB_SIZE_BITS_3),
     (CHARTAB_SIZE_BITS_2 + CHARTAB_SIZE_BITS_3),
     CHARTAB_SIZE_BITS_3,
@@ -392,7 +392,8 @@ sub_char_table_set_range (Lisp_Object *table, int depth, int min_char, int from,
     *table = val;
   else
     {
-      int i, j;
+      int i;
+      unsigned j;
 
       depth++;
       if (! SUB_CHAR_TABLE_P (*table))
@@ -404,7 +405,7 @@ sub_char_table_set_range (Lisp_Object *table, int depth, int min_char, int from,
       i = CHARTAB_IDX (from, depth, min_char);
       j = CHARTAB_IDX (to, depth, min_char);
       min_char += chartab_chars[depth] * i;
-      for (; i <= j; i++, min_char += chartab_chars[depth])
+      for (j++; i < j; i++, min_char += chartab_chars[depth])
 	sub_char_table_set_range (XSUB_CHAR_TABLE (*table)->contents + i,
 				  depth, min_char, from, to, val);
     }
@@ -416,16 +417,16 @@ char_table_set_range (Lisp_Object table, int from, int to, Lisp_Object val)
 {
   struct Lisp_Char_Table *tbl = XCHAR_TABLE (table);
   Lisp_Object *contents = tbl->contents;
-  int i, min_char;
+  int i;
 
   if (from == to)
     char_table_set (table, from, val);
   else
     {
-      for (i = CHARTAB_IDX (from, 0, 0), min_char = i * chartab_chars[0];
-	   min_char <= to;
-	   i++, min_char += chartab_chars[0])
-	sub_char_table_set_range (contents + i, 0, min_char, from, to, val);
+      unsigned lim = to / chartab_chars[0] + 1;
+      for (i = CHARTAB_IDX (from, 0, 0); i < lim; i++)
+	sub_char_table_set_range (contents + i, 0, i * chartab_chars[0],
+				  from, to, val);
       if (ASCII_CHAR_P (from))
 	tbl->ascii = char_table_ascii (table);
     }

@@ -31,7 +31,11 @@
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 
 (eval-and-compile
-  (require 'nnheader))
+  (require 'nnheader)
+  ;; In Emacs 24, `open-protocol-stream' is an autoloaded alias for
+  ;; `make-network-stream'.
+  (unless (fboundp 'open-protocol-stream)
+    (require 'proto-stream)))
 
 (eval-when-compile
   (require 'cl))
@@ -45,7 +49,6 @@
 (require 'tls)
 (require 'parse-time)
 (require 'nnmail)
-(require 'proto-stream)
 
 (autoload 'auth-source-forget+ "auth-source")
 (autoload 'auth-source-search "auth-source")
@@ -365,6 +368,7 @@ textual parts.")
 	       :return-list t
 	       :shell-command nnimap-shell-program
 	       :capability-command "1 CAPABILITY\r\n"
+	       :end-of-command "\r\n"
 	       :success " OK "
 	       :starttls-function
 	       (lambda (capabilities)
@@ -410,11 +414,18 @@ textual parts.")
 		  (setq login-result
 			(nnimap-login (car credentials) (cadr credentials))))
 		(if (car login-result)
-                    ;; save the credentials if a save function exists
+		    (progn
+                    ;; Save the credentials if a save function exists
                     ;; (such a function will only be passed if a new
-                    ;; token was created)
-                    (when (functionp (nth 2 credentials))
-                      (funcall (nth 2 credentials)))
+                    ;; token was created).
+		      (when (functionp (nth 2 credentials))
+			(funcall (nth 2 credentials)))
+		      ;; See if CAPABILITY is set as part of login
+		      ;; response.
+		      (dolist (response (cddr login-result))
+			(when (string= "CAPABILITY" (upcase (car response)))
+			  (setf (nnimap-capabilities nnimap-object)
+				(mapcar #'upcase (cdr response))))))
 		  ;; If the login failed, then forget the credentials
 		  ;; that are now possibly cached.
 		  (dolist (host (list (nnoo-current-server 'nnimap)

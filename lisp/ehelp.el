@@ -1,4 +1,4 @@
-;;; ehelp.el --- bindings for electric-help mode
+;;; ehelp.el --- bindings for electric-help mode -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1986, 1995, 2000-2011  Free Software Foundation, Inc.
 
@@ -347,14 +347,14 @@ will select it.)"
 
 ;; This is to be bound to M-x in ehelp mode. Retains ehelp buffer and then
 ;; continues with execute-extended-command.
-(defun electric-help-execute-extended (prefixarg)
+(defun electric-help-execute-extended (_prefixarg)
   (interactive "p")
   (setq electric-help-form-to-execute '(execute-extended-command nil))
   (electric-help-retain))
 
 ;; This is to be buond to C-x in ehelp mode. Retains ehelp buffer and then
 ;; continues with ctrl-x prefix.
-(defun electric-help-ctrl-x-prefix (prefixarg)
+(defun electric-help-ctrl-x-prefix (_prefixarg)
   (interactive "p")
   (setq electric-help-form-to-execute '(progn (message nil) (setq unread-command-char ?\C-x)))
   (electric-help-retain))

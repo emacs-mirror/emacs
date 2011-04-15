@@ -138,6 +138,9 @@ typedef struct _PROCESS_MEMORY_COUNTERS_EX {
 #include "dispextern.h"		/* for xstrcasecmp */
 #include "coding.h"		/* for Vlocale_coding_system */
 
+#include "careadlinkat.h"
+#include "allocator.h"
+
 /* For serial_configure and serial_open.  */
 #include "process.h"
 
@@ -3610,8 +3613,8 @@ utime (const char *name, struct utimbuf *times)
 }
 
 
-/* Symlink-related functions that always fail.  Used in fileio.c to
-   avoid #ifdef's.  */
+/* Symlink-related functions that always fail.  Used in fileio.c and in
+   sysdep.c to avoid #ifdef's.  */
 int
 symlink (char const *dummy1, char const *dummy2)
 {
@@ -3626,6 +3629,24 @@ readlink (const char *name, char *dummy1, size_t dummy2)
   if (sys_access (name, 0) == 0)
     errno = EINVAL;
   return -1;
+}
+
+char *
+careadlinkat (int fd, char const *filename,
+              char *buffer, size_t buffer_size,
+              struct allocator const *alloc,
+              ssize_t (*preadlinkat) (int, char const *, char *, size_t))
+{
+  errno = ENOSYS;
+  return NULL;
+}
+
+ssize_t
+careadlinkatcwd (int fd, char const *filename, char *buffer,
+                 size_t buffer_size)
+{
+  (void) fd;
+  return readlink (filename, buffer, buffer_size);
 }
 
 

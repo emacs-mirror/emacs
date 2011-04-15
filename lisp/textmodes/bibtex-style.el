@@ -1,4 +1,4 @@
-;;; bibtex-style.el --- Major mode for BibTeX Style files
+;;; bibtex-style.el --- Major mode for BibTeX Style files -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2005, 2007-2011  Free Software Foundation, Inc.
 
@@ -141,7 +141,7 @@
 		(looking-at "if\\$"))
 	    (scan-error nil))))
      (save-excursion
-       (condition-case err
+       (condition-case nil
 	   (while (progn
 		    (backward-sexp 1)
 		    (save-excursion (skip-chars-backward " \t{") (not (bolp)))))

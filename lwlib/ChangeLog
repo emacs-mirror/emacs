@@ -1,3 +1,7 @@
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
 2011-02-14  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xlwmenu.h: Remove Xt[CN]faceName and Xt[NC]defaultFace.

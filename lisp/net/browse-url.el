@@ -1111,8 +1111,7 @@ URL in a new window."
 		 browse-url-firefox-program
 		 (append
 		  browse-url-firefox-arguments
-		  (if (or (featurep 'dos-w32)
-			  (string-match "win32" system-configuration))
+		  (if (memq system-type '(windows-nt ms-dos))
 		      (list url)
 		    (list "-remote"
 			  (concat "openURL("

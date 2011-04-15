@@ -271,14 +271,13 @@ skip_invisible (EMACS_INT pos, EMACS_INT *next_boundary_p, EMACS_INT to, Lisp_Ob
 
    DP is a display table or NULL.
 
-   This macro is used in current_column_1, Fmove_to_column, and
+   This macro is used in scan_for_column and in
    compute_motion.  */
 
 #define MULTIBYTE_BYTES_WIDTH(p, dp, bytes, width)			\
   do {									\
     int ch;								\
     									\
-    wide_column = 0;							\
     ch = STRING_CHAR_AND_LENGTH (p, bytes);				\
     if (BYTES_BY_CHAR_HEAD (*p) != bytes)				\
       width = bytes * 4;						\
@@ -288,8 +287,6 @@ skip_invisible (EMACS_INT pos, EMACS_INT *next_boundary_p, EMACS_INT to, Lisp_Ob
 	  width = XVECTOR (DISP_CHAR_VECTOR (dp, ch))->size;		\
 	else								\
 	  width = CHAR_WIDTH (ch);					\
-	if (width > 1)							\
-	  wide_column = width;						\
       }									\
   } while (0)
 
@@ -666,7 +663,7 @@ scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
 	    {
 	      /* Start of multi-byte form.  */
 	      unsigned char *ptr;
-	      int bytes, width, wide_column;
+	      int bytes, width;
 
 	      ptr = BYTE_POS_ADDR (scan_byte);
 	      MULTIBYTE_BYTES_WIDTH (ptr, dp, bytes, width);
@@ -1047,7 +1044,7 @@ The return value is the current column.  */)
 
 /* compute_motion: compute buffer posn given screen posn and vice versa */
 
-struct position val_compute_motion;
+static struct position val_compute_motion;
 
 /* Scan the current buffer forward from offset FROM, pretending that
    this is at line FROMVPOS, column FROMHPOS, until reaching buffer
@@ -1657,14 +1654,14 @@ compute_motion (EMACS_INT from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
 		{
 		  /* Start of multi-byte form.  */
 		  unsigned char *ptr;
-		  int mb_bytes, mb_width, wide_column;
+		  int mb_bytes, mb_width;
 
 		  pos_byte--;	/* rewind POS_BYTE */
 		  ptr = BYTE_POS_ADDR (pos_byte);
 		  MULTIBYTE_BYTES_WIDTH (ptr, dp, mb_bytes, mb_width);
 		  pos_byte += mb_bytes;
-		  if (wide_column)
-		    wide_column_end_hpos = hpos + wide_column;
+		  if (mb_width > 1 && BYTES_BY_CHAR_HEAD (*ptr) == mb_bytes)
+		    wide_column_end_hpos = hpos + mb_width;
 		  hpos += mb_width;
 		}
 	      else if (VECTORP (charvec))
@@ -1821,7 +1818,7 @@ visible section of the buffer, and pass LINE and COL as TOPOS.  */)
 
 /* Fvertical_motion and vmotion */
 
-struct position val_vmotion;
+static struct position val_vmotion;
 
 struct position *
 vmotion (register EMACS_INT from, register EMACS_INT vtarget, struct window *w)
@@ -2072,7 +2069,7 @@ whether or not it is currently displayed in some window.  */)
 	  /* Do this even if LINES is 0, so that we move back to the
 	     beginning of the current line as we ought.  */
 	  if (XINT (lines) == 0 || IT_CHARPOS (it) > 0)
-	    move_it_by_lines (&it, XINT (lines), 0);
+	    move_it_by_lines (&it, XINT (lines));
 	}
       else
 	{
@@ -2090,9 +2087,9 @@ whether or not it is currently displayed in some window.  */)
 		  || (it_overshoot_expected < 0
 		      && it.method == GET_FROM_BUFFER
 		      && it.c == '\n'))
-		move_it_by_lines (&it, -1, 0);
+		move_it_by_lines (&it, -1);
 	      it.vpos = 0;
-	      move_it_by_lines (&it, XINT (lines), 0);
+	      move_it_by_lines (&it, XINT (lines));
 	    }
 	  else
 	    {
@@ -2105,15 +2102,15 @@ whether or not it is currently displayed in some window.  */)
 		  while (IT_CHARPOS (it) <= it_start)
 		    {
 		      it.vpos = 0;
-		      move_it_by_lines (&it, 1, 0);
+		      move_it_by_lines (&it, 1);
 		    }
 		  if (XINT (lines) > 1)
-		    move_it_by_lines (&it, XINT (lines) - 1, 0);
+		    move_it_by_lines (&it, XINT (lines) - 1);
 		}
 	      else
 		{
 		  it.vpos = 0;
-		  move_it_by_lines (&it, XINT (lines), 0);
+		  move_it_by_lines (&it, XINT (lines));
 		}
 	    }
 	}

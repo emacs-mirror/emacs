@@ -1,4 +1,4 @@
-;;; smerge-mode.el --- Minor mode to resolve diff3 conflicts
+;;; smerge-mode.el --- Minor mode to resolve diff3 conflicts -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
 

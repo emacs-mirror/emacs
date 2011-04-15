@@ -1,4 +1,4 @@
-;;; hexl.el --- edit a file in a hex dump format using the hexl filter
+;;; hexl.el --- edit a file in a hex dump format using the hexl filter -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1989, 1994, 1998, 2001-2011 Free Software Foundation, Inc.
 
@@ -355,7 +355,7 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
 
     (hexl-mode--setq-local 'require-final-newline nil)
 
-    
+
     (hexl-mode--setq-local 'font-lock-defaults '(hexl-font-lock-keywords t))
 
     (hexl-mode--setq-local 'revert-buffer-function
@@ -437,7 +437,7 @@ and edit the file in `hexl-mode'."
   (if (not (eq major-mode 'hexl-mode))
       (hexl-mode)))
 
-(defun hexl-revert-buffer-function (ignore-auto noconfirm)
+(defun hexl-revert-buffer-function (_ignore-auto _noconfirm)
   (let ((coding-system-for-read 'no-conversion)
 	revert-buffer-function)
     ;; Call the original `revert-buffer' without code conversion; also
@@ -492,7 +492,7 @@ With arg, don't unhexlify buffer."
     ;; since some of them may affect the minor modes.
     (dolist (mm mms)
       (funcall (car mm) (if (cdr mm) 1 -1))))
-  
+
   (force-mode-line-update))
 
 (defun hexl-maybe-dehexlify-buffer ()

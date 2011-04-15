@@ -1,3 +1,12 @@
+2011-04-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix more problems found by GCC 4.6.0's static checks.
+
+	* emacsclient.c (message): Mark it as a printf-like function.
+
+	* make-docfile.c (IF_LINT): New macro, copied from emacsclient.c.
+	(write_c_args): Use it to suppress GCC warning.
+
 2011-03-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix a problem found by GCC 4.6.0's static checks.
@@ -45,6 +54,10 @@
 	* Makefile.in (fakemail${EXEEXT}): Do not depend on ignore-value.h.
 	* fakemail.c: Do not include ignore-value.h.
 	(put_line): Do not use ignore_value.
+
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
 
 2011-03-03  Drake Wilson  <drake@begriffli.ch>  (tiny change)
 

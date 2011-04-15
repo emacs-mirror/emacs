@@ -1,4 +1,4 @@
-;;; help-fns.el --- Complex help functions
+;;; help-fns.el --- Complex help functions -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1985-1986, 1993-1994, 1998-2011
 ;;   Free Software Foundation, Inc.
@@ -76,15 +76,18 @@ DEF is the function whose usage we're looking for in DOCSTRING."
 		  ;; Replace `fn' with the actual function name.
 		  (if (consp def) "anonymous" def)
 		  (match-string 1 docstring))
-	  (substring docstring 0 (match-beginning 0)))))
+	  (unless (zerop (match-beginning 0))
+            (substring docstring 0 (match-beginning 0))))))
 
+;; FIXME: Move to subr.el?
 (defun help-add-fundoc-usage (docstring arglist)
   "Add the usage info to DOCSTRING.
 If DOCSTRING already has a usage info, then just return it unchanged.
 The usage info is built from ARGLIST.  DOCSTRING can be nil.
 ARGLIST can also be t or a string of the form \"(FUN ARG1 ARG2 ...)\"."
-  (unless (stringp docstring) (setq docstring "Not documented"))
-  (if (or (string-match "\n\n(fn\\(\\( .*\\)?)\\)\\'" docstring) (eq arglist t))
+  (unless (stringp docstring) (setq docstring ""))
+  (if (or (string-match "\n\n(fn\\(\\( .*\\)?)\\)\\'" docstring)
+          (eq arglist t))
       docstring
     (concat docstring
 	    (if (string-match "\n?\n\\'" docstring)
@@ -95,18 +98,61 @@ ARGLIST can also be t or a string of the form \"(FUN ARG1 ARG2 ...)\"."
 		(concat "(fn" (match-string 1 arglist) ")")
 	      (format "%S" (help-make-usage 'fn arglist))))))
 
-(defun help-function-arglist (def)
+;; FIXME: Move to subr.el?
+(defun help-function-arglist (def &optional preserve-names)
+  "Return a formal argument list for the function DEF.
+IF PRESERVE-NAMES is non-nil, return a formal arglist that uses
+the same names as used in the original source code, when possible."
   ;; Handle symbols aliased to other symbols.
   (if (and (symbolp def) (fboundp def)) (setq def (indirect-function def)))
   ;; If definition is a macro, find the function inside it.
   (if (eq (car-safe def) 'macro) (setq def (cdr def)))
   (cond
-   ((byte-code-function-p def) (aref def 0))
+   ((and (byte-code-function-p def) (listp (aref def 0))) (aref def 0))
    ((eq (car-safe def) 'lambda) (nth 1 def))
+   ((eq (car-safe def) 'closure) (nth 2 def))
+   ((or (and (byte-code-function-p def) (integerp (aref def 0)))
+        (subrp def))
+    (or (when preserve-names
+          (let* ((doc (condition-case nil (documentation def) (error nil)))
+                 (docargs (if doc (car (help-split-fundoc doc nil))))
+                 (arglist (if docargs
+                              (cdar (read-from-string (downcase docargs)))))
+                 (valid t))
+            ;; Check validity.
+            (dolist (arg arglist)
+              (unless (and (symbolp arg)
+                           (let ((name (symbol-name arg)))
+                             (if (eq (aref name 0) ?&)
+                                 (memq arg '(&rest &optional))
+                               (not (string-match "\\." name)))))
+                (setq valid nil)))
+            (when valid arglist)))
+        (let* ((args-desc (if (not (subrp def))
+                              (aref def 0)
+                            (let ((a (subr-arity def)))
+                              (logior (car a)
+                                      (if (numberp (cdr a))
+                                          (lsh (cdr a) 8)
+                                        (lsh 1 7))))))
+               (max (lsh args-desc -8))
+               (min (logand args-desc 127))
+               (rest (logand args-desc 128))
+               (arglist ()))
+          (dotimes (i min)
+            (push (intern (concat "arg" (number-to-string (1+ i)))) arglist))
+          (when (> max min)
+            (push '&optional arglist)
+            (dotimes (i (- max min))
+              (push (intern (concat "arg" (number-to-string (+ 1 i min))))
+                    arglist)))
+          (unless (zerop rest) (push '&rest arglist) (push 'rest arglist))
+          (nreverse arglist))))
    ((and (eq (car-safe def) 'autoload) (not (eq (nth 4 def) 'keymap)))
     "[Arg list not available until function definition is loaded.]")
    (t t)))
 
+;; FIXME: Move to subr.el?
 (defun help-make-usage (function arglist)
   (cons (if (symbolp function) function 'anonymous)
 	(mapcar (lambda (arg)
@@ -117,8 +163,11 @@ ARGLIST can also be t or a string of the form \"(FUN ARG1 ARG2 ...)\"."
 				(cdr arg))
 			arg)
 		    (let ((name (symbol-name arg)))
-		      (if (string-match "\\`&" name) arg
-			(intern (upcase name))))))
+		      (cond
+                       ((string-match "\\`&" name) arg)
+                       ((string-match "\\`_" name)
+                        (intern (upcase (substring name 1))))
+                       (t (intern (upcase name)))))))
 		arglist)))
 
 ;; Could be this, if we make symbol-file do the work below.
@@ -190,7 +239,7 @@ if the variable `help-downcase-arguments' is non-nil."
                  doc t t 1)))))
 
 (defun help-highlight-arguments (usage doc &rest args)
-  (when usage
+  (when (and usage (string-match "^(" usage))
     (with-temp-buffer
       (insert usage)
       (goto-char (point-min))
@@ -353,8 +402,7 @@ suitable file is found, return nil."
          (pt1 (with-current-buffer (help-buffer) (point)))
 	 errtype)
     (setq string
-	  (cond ((or (stringp def)
-		     (vectorp def))
+	  (cond ((or (stringp def) (vectorp def))
 		 "a keyboard macro")
 		((subrp def)
 		 (if (eq 'unevalled (cdr (subr-arity def)))
@@ -373,6 +421,8 @@ suitable file is found, return nil."
 		 (concat beg "Lisp function"))
 		((eq (car-safe def) 'macro)
 		 "a Lisp macro")
+		((eq (car-safe def) 'closure)
+		 (concat beg "Lisp closure"))
 		((eq (car-safe def) 'autoload)
 		 (format "%s autoloaded %s"
 			 (if (commandp def) "an interactive" "an")
@@ -593,10 +643,9 @@ it is displayed along with the global value."
 				     "Describe variable (default %s): " v)
 				  "Describe variable: ")
 				obarray
-                                (lambda (vv)
-                                  (and (not (keywordp vv))
-                                       (or (boundp vv)
-                                           (get vv 'variable-documentation))))
+				(lambda (vv)
+                                  (or (get vv 'variable-documentation)
+                                      (and (boundp vv) (not (keywordp vv)))))
 				t nil nil
 				(if (symbolp v) (symbol-name v))))
      (list (if (equal val "")
@@ -839,7 +888,7 @@ BUFFER defaults to the current buffer."
   (insert (cond
 	   ((null value) "default")
 	   ((char-table-p value) "deeper char-table ...")
-	   (t (condition-case err
+	   (t (condition-case nil
 		  (category-set-mnemonics value)
 		(error "invalid"))))))
 

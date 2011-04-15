@@ -53,10 +53,10 @@ struct regexp_cache
 };
 
 /* The instances of that struct.  */
-struct regexp_cache searchbufs[REGEXP_CACHE_SIZE];
+static struct regexp_cache searchbufs[REGEXP_CACHE_SIZE];
 
 /* The head of the linked list; points to the most recently used buffer.  */
-struct regexp_cache *searchbuf_head;
+static struct regexp_cache *searchbuf_head;
 
 
 /* Every call to re_match, etc., must pass &search_regs as the regs
@@ -85,10 +85,10 @@ static Lisp_Object last_thing_searched;
 
 /* error condition signaled when regexp compile_pattern fails */
 
-Lisp_Object Qinvalid_regexp;
+static Lisp_Object Qinvalid_regexp;
 
 /* Error condition used for failing searches */
-Lisp_Object Qsearch_failed;
+static Lisp_Object Qsearch_failed;
 
 static void set_search_regs (EMACS_INT, EMACS_INT);
 static void save_search_regs (void);
@@ -368,7 +368,7 @@ data if you want to preserve them.  */)
 static Lisp_Object
 string_match_1 (Lisp_Object regexp, Lisp_Object string, Lisp_Object start, int posix)
 {
-  int val;
+  EMACS_INT val;
   struct re_pattern_buffer *bufp;
   EMACS_INT pos, pos_byte;
   int i;
@@ -468,10 +468,10 @@ matched by parenthesis constructs in the pattern.  */)
    and return the index of the match, or negative on failure.
    This does not clobber the match data.  */
 
-int
+EMACS_INT
 fast_string_match (Lisp_Object regexp, Lisp_Object string)
 {
-  int val;
+  EMACS_INT val;
   struct re_pattern_buffer *bufp;
 
   bufp = compile_pattern (regexp, 0, Qnil,
@@ -491,10 +491,10 @@ fast_string_match (Lisp_Object regexp, Lisp_Object string)
    This does not clobber the match data.
    We assume that STRING contains single-byte characters.  */
 
-int
+EMACS_INT
 fast_c_string_match_ignore_case (Lisp_Object regexp, const char *string)
 {
-  int val;
+  EMACS_INT val;
   struct re_pattern_buffer *bufp;
   size_t len = strlen (string);
 
@@ -511,10 +511,10 @@ fast_c_string_match_ignore_case (Lisp_Object regexp, const char *string)
 
 /* Like fast_string_match but ignore case.  */
 
-int
+EMACS_INT
 fast_string_match_ignore_case (Lisp_Object regexp, Lisp_Object string)
 {
-  int val;
+  EMACS_INT val;
   struct re_pattern_buffer *bufp;
 
   bufp = compile_pattern (regexp, 0, Vascii_canon_table,
@@ -643,7 +643,7 @@ newline_cache_on_off (struct buffer *buf)
 
 EMACS_INT
 scan_buffer (register int target, EMACS_INT start, EMACS_INT end,
-	     EMACS_INT count, int *shortage, int allow_quit)
+	     EMACS_INT count, EMACS_INT *shortage, int allow_quit)
 {
   struct region_cache *newline_cache;
   int direction;
@@ -933,7 +933,7 @@ scan_newline (EMACS_INT start, EMACS_INT start_byte,
 EMACS_INT
 find_next_newline_no_quit (EMACS_INT from, EMACS_INT cnt)
 {
-  return scan_buffer ('\n', from, 0, cnt, (int *) 0, 0);
+  return scan_buffer ('\n', from, 0, cnt, (EMACS_INT *) 0, 0);
 }
 
 /* Like find_next_newline, but returns position before the newline,
@@ -943,7 +943,7 @@ find_next_newline_no_quit (EMACS_INT from, EMACS_INT cnt)
 EMACS_INT
 find_before_next_newline (EMACS_INT from, EMACS_INT to, EMACS_INT cnt)
 {
-  int shortage;
+  EMACS_INT shortage;
   EMACS_INT pos = scan_buffer ('\n', from, to, cnt, &shortage, 1);
 
   if (shortage == 0)
@@ -958,9 +958,9 @@ static Lisp_Object
 search_command (Lisp_Object string, Lisp_Object bound, Lisp_Object noerror,
 		Lisp_Object count, int direction, int RE, int posix)
 {
-  register int np;
+  register EMACS_INT np;
   EMACS_INT lim, lim_byte;
-  int n = direction;
+  EMACS_INT n = direction;
 
   if (!NILP (count))
     {
@@ -1674,7 +1674,6 @@ boyer_moore (EMACS_INT n, unsigned char *base_pat,
   int translate_prev_byte1 = 0;
   int translate_prev_byte2 = 0;
   int translate_prev_byte3 = 0;
-  int translate_prev_byte4 = 0;
 
   /* The general approach is that we are going to maintain that we know
      the first (closest to the present position, in whatever direction
@@ -1730,11 +1729,7 @@ boyer_moore (EMACS_INT n, unsigned char *base_pat,
 	{
 	  translate_prev_byte2 = str[cblen - 3];
 	  if (cblen > 3)
-	    {
-	      translate_prev_byte3 = str[cblen - 4];
-	      if (cblen > 4)
-		translate_prev_byte4 = str[cblen - 5];
-	    }
+	    translate_prev_byte3 = str[cblen - 4];
 	}
     }
 
@@ -2091,7 +2086,7 @@ set_search_regs (EMACS_INT beg_byte, EMACS_INT nbytes)
 static Lisp_Object
 wordify (Lisp_Object string, int lax)
 {
-  register unsigned char *p, *o;
+  register unsigned char *o;
   register EMACS_INT i, i_byte, len, punct_count = 0, word_count = 0;
   Lisp_Object val;
   int prev_c = 0;
@@ -2099,7 +2094,6 @@ wordify (Lisp_Object string, int lax)
   int whitespace_at_end;
 
   CHECK_STRING (string);
-  p = SDATA (string);
   len = SCHARS (string);
 
   for (i = 0, i_byte = 0; i < len; )
@@ -2111,7 +2105,7 @@ wordify (Lisp_Object string, int lax)
       if (SYNTAX (c) != Sword)
 	{
 	  punct_count++;
-	  if (i > 0 && SYNTAX (prev_c) == Sword)
+	  if (SYNTAX (prev_c) == Sword)
 	    word_count++;
 	}
 
@@ -2124,10 +2118,11 @@ wordify (Lisp_Object string, int lax)
       whitespace_at_end = 0;
     }
   else
-    whitespace_at_end = 1;
-
-  if (!word_count)
-    return empty_unibyte_string;
+    {
+      whitespace_at_end = 1;
+      if (!word_count)
+	return empty_unibyte_string;
+    }
 
   adjust = - punct_count + 5 * (word_count - 1)
     + ((lax && !whitespace_at_end) ? 2 : 4);
@@ -2155,7 +2150,7 @@ wordify (Lisp_Object string, int lax)
 	  memcpy (o, SDATA (string) + i_byte_orig, i_byte - i_byte_orig);
 	  o += i_byte - i_byte_orig;
 	}
-      else if (i > 0 && SYNTAX (prev_c) == Sword && --word_count)
+      else if (SYNTAX (prev_c) == Sword && --word_count)
 	{
 	  *o++ = '\\';
 	  *o++ = 'W';
@@ -2529,7 +2524,7 @@ since only regular expressions have distinguished subexpressions.  */)
 	  /* We build up the substituted string in ACCUM.  */
 	  Lisp_Object accum;
 	  Lisp_Object middle;
-	  int length = SBYTES (newtext);
+	  EMACS_INT length = SBYTES (newtext);
 
 	  accum = Qnil;
 
@@ -2885,7 +2880,7 @@ Return value is undefined if the last search failed.  */)
   len = 0;
   for (i = 0; i < search_regs.num_regs; i++)
     {
-      int start = search_regs.start[i];
+      EMACS_INT start = search_regs.start[i];
       if (start >= 0)
 	{
 	  if (EQ (last_thing_searched, Qt)

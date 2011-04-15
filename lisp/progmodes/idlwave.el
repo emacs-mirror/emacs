@@ -7068,10 +7068,9 @@ If these don't exist, a letter in the string is automatically selected."
         ;; No quick reply: Show help
         (save-window-excursion
           (with-output-to-temp-buffer "*Completions*"
-            (mapcar (lambda(x)
-                      (princ (nth 1 x))
-                      (princ "\n"))
-                    keys-alist))
+	    (dolist (x keys-alist)
+	      (princ (nth 1 x))
+	      (princ "\n")))
           (setq char (read-char)))
       (setq char (read-char)))
     (message nil)
@@ -9313,13 +9312,11 @@ This function was written since `list-abbrevs' looks terrible for IDLWAVE mode."
 	(princ "================================================\n\n")
 	(princ (format fmt "KEY" "ACTION" ""))
 	(princ (format fmt "---" "------" "")))
-      (mapcar
-       (lambda (list)
-	 (setq str (car list)
-	       rpl (nth 1 list)
-	       func (nth 2 list))
-	 (princ (format fmt str rpl func)))
-       abbrevs)))
+      (dolist (list abbrevs)
+	(setq str (car list)
+	      rpl (nth 1 list)
+	      func (nth 2 list))
+	(princ (format fmt str rpl func)))))
   ;; Make sure each abbreviation uses only one display line
   (with-current-buffer "*Help*"
     (setq truncate-lines t)))

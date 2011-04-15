@@ -306,6 +306,8 @@ enum xembed_message
 
 static int x_alloc_nearest_color_1 (Display *, Colormap, XColor *);
 static void x_set_window_size_1 (struct frame *, int, int, int);
+static void x_raise_frame (struct frame *);
+static void x_lower_frame (struct frame *);
 static const XColor *x_color_cells (Display *, int *);
 static void x_update_window_end (struct window *, int, int);
 
@@ -347,9 +349,15 @@ static void x_check_expected_move (struct frame *, int, int);
 static void x_sync_with_move (struct frame *, int, int, int);
 static int handle_one_xevent (struct x_display_info *, XEvent *,
                               int *, struct input_event *);
+#if ! (defined USE_MOTIF || defined USE_X_TOOLKIT)
+static int x_dispatch_event (XEvent *, Display *);
+#endif
 /* Don't declare this NO_RETURN because we want no
    interference with debugging failing X calls.  */
 static void x_connection_closed (Display *, const char *);
+static void x_wm_set_window_state (struct frame *, int);
+static void x_wm_set_icon_pixmap (struct frame *, int);
+static void x_initialize (void);
 
 
 /* Flush display of frame F, or of all frames if F is null.  */
@@ -3451,14 +3459,6 @@ x_detect_focus_change (struct x_display_info *dpyinfo, XEvent *event, struct inp
 }
 
 
-/* Handle an event saying the mouse has moved out of an Emacs frame.  */
-
-void
-x_mouse_leave (struct x_display_info *dpyinfo)
-{
-  x_new_focus_frame (dpyinfo, dpyinfo->x_focus_event_frame);
-}
-
 /* The focus has changed, or we have redirected a frame's focus to
    another frame (this happens when a frame uses a surrogate
    mini-buffer frame).  Shift the highlight as appropriate.
@@ -4045,7 +4045,7 @@ x_window_to_scroll_bar (Display *display, Window window_id)
 	  return XSCROLL_BAR (bar);
     }
 
-  return 0;
+  return NULL;
 }
 
 
@@ -4165,7 +4165,7 @@ xt_action_hook (Widget widget, XtPointer client_data, String action_name,
    x_send_scroll_bar_event and x_scroll_bar_to_input_event.  */
 
 static struct window **scroll_bar_windows;
-static int scroll_bar_windows_size;
+static size_t scroll_bar_windows_size;
 
 
 /* Send a client message with message type Xatom_Scrollbar for a
@@ -4180,7 +4180,7 @@ x_send_scroll_bar_event (Lisp_Object window, int part, int portion, int whole)
   XClientMessageEvent *ev = (XClientMessageEvent *) &event;
   struct window *w = XWINDOW (window);
   struct frame *f = XFRAME (w->frame);
-  int i;
+  size_t i;
 
   BLOCK_INPUT;
 
@@ -4201,10 +4201,12 @@ x_send_scroll_bar_event (Lisp_Object window, int part, int portion, int whole)
 
   if (i == scroll_bar_windows_size)
     {
-      int new_size = max (10, 2 * scroll_bar_windows_size);
+      size_t new_size = max (10, 2 * scroll_bar_windows_size);
       size_t nbytes = new_size * sizeof *scroll_bar_windows;
       size_t old_nbytes = scroll_bar_windows_size * sizeof *scroll_bar_windows;
 
+      if ((size_t) -1 / sizeof *scroll_bar_windows < new_size)
+	memory_full ();
       scroll_bar_windows = (struct window **) xrealloc (scroll_bar_windows,
 							nbytes);
       memset (&scroll_bar_windows[i], 0, nbytes - old_nbytes);
@@ -4240,14 +4242,12 @@ x_scroll_bar_to_input_event (XEvent *event, struct input_event *ievent)
 {
   XClientMessageEvent *ev = (XClientMessageEvent *) event;
   Lisp_Object window;
-  struct frame *f;
   struct window *w;
 
   w = scroll_bar_windows[ev->data.l[0]];
   scroll_bar_windows[ev->data.l[0]] = NULL;
 
   XSETWINDOW (window, w);
-  f = XFRAME (w->frame);
 
   ievent->kind = SCROLL_BAR_CLICK_EVENT;
   ievent->frame_or_window = window;
@@ -4255,7 +4255,8 @@ x_scroll_bar_to_input_event (XEvent *event, struct input_event *ievent)
 #ifdef USE_GTK
   ievent->timestamp = CurrentTime;
 #else
-  ievent->timestamp = XtLastTimestampProcessed (FRAME_X_DISPLAY (f));
+  ievent->timestamp =
+    XtLastTimestampProcessed (FRAME_X_DISPLAY (XFRAME (w->frame)));
 #endif
   ievent->part = ev->data.l[1];
   ievent->code = ev->data.l[2];
@@ -5658,7 +5659,7 @@ static short temp_buffer[100];
 /* Set this to nonzero to fake an "X I/O error"
    on a particular display.  */
 
-struct x_display_info *XTread_socket_fake_io_error;
+static struct x_display_info *XTread_socket_fake_io_error;
 
 /* When we find no input here, we occasionally do a no-op command
    to verify that the X server is still running and we can still talk with it.
@@ -6007,7 +6008,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
         goto OTHER;
 #endif /* USE_X_TOOLKIT */
       {
-        XSelectionClearEvent *eventp = (XSelectionClearEvent *) &event;
+        XSelectionClearEvent *eventp = &(event.xselectionclear);
 
         inev.ie.kind = SELECTION_CLEAR_EVENT;
         SELECTION_EVENT_DISPLAY (&inev.sie) = eventp->display;
@@ -6024,8 +6025,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
         goto OTHER;
 #endif /* USE_X_TOOLKIT */
       {
-          XSelectionRequestEvent *eventp
-            = (XSelectionRequestEvent *) &event;
+	  XSelectionRequestEvent *eventp = &(event.xselectionrequest);
 
           inev.ie.kind = SELECTION_REQUEST_EVENT;
           SELECTION_EVENT_DISPLAY (&inev.sie) = eventp->display;
@@ -6984,6 +6984,9 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
    i.e. looping while a popup menu or a dialog is posted.
 
    Returns the value handle_one_xevent sets in the finish argument.  */
+#if ! (defined USE_MOTIF || defined USE_X_TOOLKIT)
+static
+#endif
 int
 x_dispatch_event (XEvent *event, Display *display)
 {
@@ -7538,8 +7541,6 @@ x_error_catcher (Display *display, XErrorEvent *event)
    occurred since the last call to x_catch_errors or x_check_errors.
 
    Calling x_uncatch_errors resumes the normal error handling.  */
-
-void x_check_errors (Display *dpy, const char *format);
 
 void
 x_catch_errors (Display *dpy)
@@ -8872,7 +8873,7 @@ x_raise_frame (struct frame *f)
 
 /* Lower frame F.  */
 
-void
+static void
 x_lower_frame (struct frame *f)
 {
   if (f->async_visible)
@@ -9434,7 +9435,7 @@ x_free_frame_resources (struct frame *f)
 
 /* Destroy the X window of frame F.  */
 
-void
+static void
 x_destroy_window (struct frame *f)
 {
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
@@ -9558,7 +9559,7 @@ x_wm_set_size_hint (struct frame *f, long flags, int user_position)
 
 /* Used for IconicState or NormalState */
 
-void
+static void
 x_wm_set_window_state (struct frame *f, int state)
 {
 #ifdef USE_X_TOOLKIT
@@ -9576,7 +9577,7 @@ x_wm_set_window_state (struct frame *f, int state)
 #endif /* not USE_X_TOOLKIT */
 }
 
-void
+static void
 x_wm_set_icon_pixmap (struct frame *f, int pixmap_id)
 {
   Pixmap icon_pixmap, icon_mask;
@@ -10340,7 +10341,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 /* Get rid of display DPYINFO, deleting all frames on it,
    and without sending any more commands to the X server.  */
 
-void
+static void
 x_delete_display (struct x_display_info *dpyinfo)
 {
   struct terminal *t;

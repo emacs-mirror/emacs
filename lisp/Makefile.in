@@ -70,12 +70,35 @@ AUTOGENEL = loaddefs.el \
 	cedet/ede/loaddefs.el \
 	cedet/srecode/loaddefs.el
 
+# Versioned files that are the value of someone's `generated-autoload-file'.
+# Note that update_loaddefs parses this.
+AUTOGEN_VCS = \
+	ps-print.el \
+	emulation/tpu-edt.el \
+	emacs-lisp/cl-loaddefs.el \
+	mail/rmail.el \
+	dired.el \
+	ibuffer.el \
+	htmlfontify.el \
+	emacs-lisp/eieio.el
+
+# Value of max-lisp-eval-depth when compiling initially.
+# During bootstrapping the byte-compiler is run interpreted when compiling
+# itself, and uses more stack than usual.
+#
+BIG_STACK_DEPTH = 1200
+BIG_STACK_OPTS = --eval "(setq max-lisp-eval-depth $(BIG_STACK_DEPTH))"
+
+BYTE_COMPILE_FLAGS = $(BIG_STACK_OPTS) $(BYTE_COMPILE_EXTRA_FLAGS)
+
 # Files to compile before others during a bootstrap.  This is done to
 # speed up the bootstrap process.
 
 COMPILE_FIRST = \
 	$(lisp)/emacs-lisp/bytecomp.elc \
 	$(lisp)/emacs-lisp/byte-opt.elc \
+	$(lisp)/emacs-lisp/macroexp.elc \
+	$(lisp)/emacs-lisp/cconv.elc \
 	$(lisp)/emacs-lisp/autoload.elc
 
 # The actual Emacs command run in the targets below.
@@ -142,13 +165,9 @@ finder-data: doit
 	echo Directories: $$wins; \
 	$(emacs) -l finder --eval '(setq generated-finder-keywords-file "$(lisp)/finder-inf.el")' -f finder-compile-keywords-make-dist $$wins
 
-# The chmod +w is to handle env var CVSREAD=1.  Files named
-# are identified by being the value of `generated-autoload-file'.
+# The chmod +w is to handle env var CVSREAD=1.
 autoloads: $(LOADDEFS) doit
-	chmod +w $(lisp)/ps-print.el $(lisp)/emulation/tpu-edt.el \
-	  $(lisp)/emacs-lisp/cl-loaddefs.el $(lisp)/mail/rmail.el \
-	  $(lisp)/dired.el $(lisp)/ibuffer.el $(lisp)/htmlfontify.el \
-	  $(lisp)/emacs-lisp/eieio.el
+	cd $(lisp) && chmod +w $(AUTOGEN_VCS)
 	cd $(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
 	$(emacs) -l autoload --eval '(setq generated-autoload-file "$(lisp)/loaddefs.el")' -f batch-update-autoloads $$wins
@@ -195,7 +214,9 @@ compile-onefile:
 	@echo Compiling $(THEFILE)
 	@# Use byte-compile-refresh-preloaded to try and work around some of
 	@# the most common bootstrapping problems.
-	@$(emacs) -l bytecomp -f byte-compile-refresh-preloaded $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $(THEFILE)
+	@$(emacs) $(BYTE_COMPILE_FLAGS) \
+		-l bytecomp -f byte-compile-refresh-preloaded \
+		-f batch-byte-compile $(THEFILE)
 
 # Files MUST be compiled one by one. If we compile several files in a
 # row (i.e., in the same instance of Emacs) we can't make sure that
@@ -210,7 +231,11 @@ compile-onefile:
 # cannot have prerequisites.
 .el.elc:
 	@echo Compiling $<
-	@$(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $<
+	@# The BIG_STACK_OPTS are only needed to byte-compile the byte-compiler
+	@# files, which is normally done in compile-first, but may also be
+	@# recompiled via this rule.
+	@$(emacs) $(BYTE_COMPILE_FLAGS) \
+		-f batch-byte-compile $<
 
 .PHONY: compile-first compile-main compile compile-always
 
@@ -275,7 +300,7 @@ compile-always: doit
 compile-calc:
 	for el in $(lisp)/calc/*.el; do \
 	  echo Compiling $$el; \
-	  $(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $$el || exit 1; \
+	  $(emacs) $(BYTE_COMPILE_FLAGS) -f batch-byte-compile $$el || exit 1;\
 	done
 
 # Backup compiled Lisp files in elc.tar.gz.  If that file already
@@ -302,7 +327,8 @@ compile-after-backup: backup-compiled-files compile-always
 # since the environment of later files is affected by definitions in
 # earlier ones.
 recompile: doit $(LOADDEFS) compile-first $(lisp)/progmodes/cc-mode.elc
-	$(emacs) --eval "(batch-byte-recompile-directory 0)" $(lisp)
+	$(emacs) $(BYTE_COMPILE_FLAGS) \
+	    --eval "(batch-byte-recompile-directory 0)" $(lisp)
 
 # Update MH-E internal autoloads. These are not to be confused with
 # the autoloads for the MH-E entry points, which are already in loaddefs.el.

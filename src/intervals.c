@@ -51,7 +51,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define TMEM(sym, set) (CONSP (set) ? ! NILP (Fmemq (sym, set)) : ! NILP (set))
 
-Lisp_Object merge_properties_sticky (Lisp_Object pleft, Lisp_Object pright);
+static Lisp_Object merge_properties_sticky (Lisp_Object, Lisp_Object);
+static INTERVAL merge_interval_right (INTERVAL);
 static INTERVAL reproduce_tree (INTERVAL, INTERVAL);
 static INTERVAL reproduce_tree_obj (INTERVAL, Lisp_Object);
 
@@ -777,7 +778,7 @@ update_interval (register INTERVAL i, EMACS_INT pos)
 	      i = i->right;		/* Move to the right child */
 	    }
 	  else if (NULL_PARENT (i))
-	    error ("Point %d after end of properties", pos);
+	    error ("Point %"pEd" after end of properties", pos);
 	  else
             i = INTERVAL_PARENT (i);
 	  continue;
@@ -1089,7 +1090,7 @@ FR     8  9  A  B
        left rear-nonsticky = t,   right front-sticky = nil (inherit none)
 */
 
-Lisp_Object
+static Lisp_Object
 merge_properties_sticky (Lisp_Object pleft, Lisp_Object pright)
 {
   register Lisp_Object props, front, rear;
@@ -1258,7 +1259,7 @@ delete_node (register INTERVAL i)
    I is presumed to be empty; that is, no adjustments are made
    for the length of I.  */
 
-void
+static void
 delete_interval (register INTERVAL i)
 {
   register INTERVAL parent;
@@ -1312,7 +1313,7 @@ delete_interval (register INTERVAL i)
    Do this by recursing down TREE to the interval in question, and
    deleting the appropriate amount of text.  */
 
-static EMACS_INT
+static EMACS_UINT
 interval_deletion_adjustment (register INTERVAL tree, register EMACS_INT from,
 			      register EMACS_INT amount)
 {
@@ -1324,7 +1325,7 @@ interval_deletion_adjustment (register INTERVAL tree, register EMACS_INT from,
   /* Left branch */
   if (relative_position < LEFT_TOTAL_LENGTH (tree))
     {
-      EMACS_INT subtract = interval_deletion_adjustment (tree->left,
+      EMACS_UINT subtract = interval_deletion_adjustment (tree->left,
 							  relative_position,
 							  amount);
       tree->total_length -= subtract;
@@ -1335,7 +1336,7 @@ interval_deletion_adjustment (register INTERVAL tree, register EMACS_INT from,
   else if (relative_position >= (TOTAL_LENGTH (tree)
 				 - RIGHT_TOTAL_LENGTH (tree)))
     {
-      EMACS_INT subtract;
+      EMACS_UINT subtract;
 
       relative_position -= (tree->total_length
 			    - RIGHT_TOTAL_LENGTH (tree));
@@ -1377,7 +1378,7 @@ static void
 adjust_intervals_for_deletion (struct buffer *buffer,
 			       EMACS_INT start, EMACS_INT length)
 {
-  register EMACS_INT left_to_delete = length;
+  register EMACS_UINT left_to_delete = length;
   register INTERVAL tree = BUF_INTERVALS (buffer);
   Lisp_Object parent;
   EMACS_INT offset;
@@ -1446,7 +1447,7 @@ offset_intervals (struct buffer *buffer, EMACS_INT start, EMACS_INT length)
    The caller must verify that this is not the last (rightmost)
    interval.  */
 
-INTERVAL
+static INTERVAL
 merge_interval_right (register INTERVAL i)
 {
   register EMACS_INT absorb = LENGTH (i);
@@ -1677,7 +1678,7 @@ graft_intervals_into_buffer (INTERVAL source, EMACS_INT position,
 			     EMACS_INT length, struct buffer *buffer,
 			     int inherit)
 {
-  register INTERVAL under, over, this, prev;
+  register INTERVAL under, over, this;
   register INTERVAL tree;
   EMACS_INT over_used;
 
@@ -1767,7 +1768,8 @@ graft_intervals_into_buffer (INTERVAL source, EMACS_INT position,
       /* This call may have some effect because previous_interval may
          update `position' fields of intervals.  Thus, don't ignore it
          for the moment.  Someone please tell me the truth (K.Handa).  */
-      prev = previous_interval (under);
+      INTERVAL prev = previous_interval (under);
+      (void) prev;
 #if 0
       /* But, this code surely has no effect.  And, anyway,
          END_NONSTICKY_P is unreliable now.  */

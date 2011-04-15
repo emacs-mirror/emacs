@@ -1145,13 +1145,15 @@ target of the symlink differ."
 	(save-excursion
 	  (tramp-convert-file-attributes
 	   v
-	   (cond
-	    ((tramp-get-remote-stat v)
-	     (tramp-do-file-attributes-with-stat v localname id-format))
-	    ((tramp-get-remote-perl v)
-	     (tramp-do-file-attributes-with-perl v localname id-format))
-	    (t
-	     (tramp-do-file-attributes-with-ls v localname id-format)))))))))
+	   (or
+	    (cond
+	     ((tramp-get-remote-stat v)
+	      (tramp-do-file-attributes-with-stat v localname id-format))
+	     ((tramp-get-remote-perl v)
+	      (tramp-do-file-attributes-with-perl v localname id-format))
+	     (t nil))
+	    ;; The scripts could fail, for example with huge file size.
+	    (tramp-do-file-attributes-with-ls v localname id-format))))))))
 
 (defun tramp-do-file-attributes-with-ls (vec localname &optional id-format)
   "Implement `file-attributes' for Tramp files using the ls(1) command."
@@ -2296,10 +2298,9 @@ The method used must be an out-of-band method."
 		(tramp-get-method-parameter method 'tramp-copy-env))))
 
 	;; Check for program.
-	(when (and (fboundp 'executable-find)
-		   (not (let ((default-directory
-				(tramp-compat-temporary-file-directory)))
-			  (executable-find copy-program))))
+	(unless (let ((default-directory
+			(tramp-compat-temporary-file-directory)))
+		  (executable-find copy-program))
 	  (tramp-error
 	   v 'file-error "Cannot find copy program: %s" copy-program))
 

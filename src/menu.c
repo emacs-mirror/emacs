@@ -1340,7 +1340,7 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 
   UNGCPRO;
 
-  if (error_name) error (error_name);
+  if (error_name) error ("%s", error_name);
   return selection;
 }
 

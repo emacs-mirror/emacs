@@ -64,7 +64,7 @@ static void set_alarm (void);
 static void schedule_atimer (struct atimer *);
 static struct atimer *append_atimer_lists (struct atimer *,
                                            struct atimer *);
-void alarm_signal_handler (int signo);
+static void alarm_signal_handler (int signo);
 
 
 /* Start a new atimer of type TYPE.  TIME specifies when the timer is
@@ -246,7 +246,7 @@ stop_other_atimers (struct atimer *t)
 /* Run all timers again, if some have been stopped with a call to
    stop_other_atimers.  */
 
-void
+static void
 run_all_atimers (void)
 {
   if (stopped_atimers)
@@ -270,7 +270,7 @@ run_all_atimers (void)
 }
 
 
-/* A version of run_all_timers suitable for a record_unwind_protect.  */
+/* A version of run_all_atimers suitable for a record_unwind_protect.  */
 
 Lisp_Object
 unwind_stop_other_atimers (Lisp_Object dummy)

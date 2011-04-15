@@ -30,14 +30,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 Lisp_Object Qminus, Qplus;
 Lisp_Object Qcall_interactively;
-Lisp_Object Qcommand_debug_status;
-Lisp_Object Qenable_recursive_minibuffers;
+static Lisp_Object Qcommand_debug_status;
+static Lisp_Object Qenable_recursive_minibuffers;
 
-Lisp_Object Qhandle_shift_selection;
+static Lisp_Object Qhandle_shift_selection;
 
 Lisp_Object Qmouse_leave_buffer_hook;
 
-Lisp_Object Qlist, Qlet, Qletx, Qsave_excursion, Qprogn, Qif, Qwhen;
+static Lisp_Object Qlist, Qlet, Qletx, Qsave_excursion, Qprogn, Qif;
+Lisp_Object Qwhen;
 static Lisp_Object preserved_fns;
 
 /* Marker used within call-interactively to refer to point.  */
@@ -121,8 +122,9 @@ usage: (interactive &optional ARGS)  */)
 static Lisp_Object
 quotify_arg (register Lisp_Object exp)
 {
-  if (!INTEGERP (exp) && !STRINGP (exp)
-      && !NILP (exp) && !EQ (exp, Qt))
+  if (CONSP (exp)
+      || (SYMBOLP (exp)
+	  && !NILP (exp) && !EQ (exp, Qt)))
     return Fcons (Qquote, Fcons (exp, Qnil));
 
   return exp;
@@ -169,6 +171,9 @@ check_mark (int for_region)
 static void
 fix_command (Lisp_Object input, Lisp_Object values)
 {
+  /* FIXME: Instead of this ugly hack, we should provide a way for an
+     interactive spec to return an expression/function that will re-build the
+     args without user intervention.  */
   if (CONSP (input))
     {
       Lisp_Object car;
@@ -265,8 +270,8 @@ invoke it.  If KEYS is omitted or nil, the return value of
      recorded as a call to the function named callint_argfuns[varies[i]].  */
   int *varies;
 
-  register size_t i, j;
-  size_t count;
+  register size_t i;
+  size_t nargs;
   int foo;
   char prompt1[100];
   char *tem1;
@@ -332,11 +337,14 @@ invoke it.  If KEYS is omitted or nil, the return value of
   else
     {
       Lisp_Object input;
+      Lisp_Object funval = Findirect_function (function, Qt);
       i = num_input_events;
       input = specs;
       /* Compute the arg values using the user's expression.  */
       GCPRO2 (input, filter_specs);
-      specs = Feval (specs);
+      specs = Feval (specs,
+		     CONSP (funval) && EQ (Qclosure, XCAR (funval))
+		     ? Qt : Qnil);
       UNGCPRO;
       if (i != num_input_events || !NILP (record_flag))
 	{
@@ -438,30 +446,29 @@ invoke it.  If KEYS is omitted or nil, the return value of
       else break;
     }
 
-  /* Count the number of arguments the interactive spec would have
-     us give to the function.  */
+  /* Count the number of arguments, which is one plus the number of arguments
+     the interactive spec would have us give to the function.  */
   tem = string;
-  for (j = 0; *tem;)
+  for (nargs = 1; *tem; )
     {
       /* 'r' specifications ("point and mark as 2 numeric args")
 	 produce *two* arguments.  */
       if (*tem == 'r')
-	j += 2;
+	nargs += 2;
       else
-	j++;
+	nargs++;
       tem = strchr (tem, '\n');
       if (tem)
 	++tem;
       else
 	break;
     }
-  count = j;
 
-  args = (Lisp_Object *) alloca ((count + 1) * sizeof (Lisp_Object));
-  visargs = (Lisp_Object *) alloca ((count + 1) * sizeof (Lisp_Object));
-  varies = (int *) alloca ((count + 1) * sizeof (int));
+  args = (Lisp_Object *) alloca (nargs * sizeof (Lisp_Object));
+  visargs = (Lisp_Object *) alloca (nargs * sizeof (Lisp_Object));
+  varies = (int *) alloca (nargs * sizeof (int));
 
-  for (i = 0; i < (count + 1); i++)
+  for (i = 0; i < nargs; i++)
     {
       args[i] = Qnil;
       visargs[i] = Qnil;
@@ -469,8 +476,8 @@ invoke it.  If KEYS is omitted or nil, the return value of
     }
 
   GCPRO5 (prefix_arg, function, *args, *visargs, up_event);
-  gcpro3.nvars = (count + 1);
-  gcpro4.nvars = (count + 1);
+  gcpro3.nvars = nargs;
+  gcpro4.nvars = nargs;
 
   if (!NILP (enable))
     specbind (Qenable_recursive_minibuffers, Qt);
@@ -802,14 +809,14 @@ invoke it.  If KEYS is omitted or nil, the return value of
   if (arg_from_tty || !NILP (record_flag))
     {
       visargs[0] = function;
-      for (i = 1; i < count + 1; i++)
+      for (i = 1; i < nargs; i++)
 	{
 	  if (varies[i] > 0)
 	    visargs[i] = Fcons (intern (callint_argfuns[varies[i]]), Qnil);
 	  else
 	    visargs[i] = quotify_arg (args[i]);
 	}
-      Vcommand_history = Fcons (Flist (count + 1, visargs),
+      Vcommand_history = Fcons (Flist (nargs, visargs),
 				Vcommand_history);
       /* Don't keep command history around forever.  */
       if (INTEGERP (Vhistory_length) && XINT (Vhistory_length) > 0)
@@ -822,7 +829,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
   /* If we used a marker to hold point, mark, or an end of the region,
      temporarily, convert it to an integer now.  */
-  for (i = 1; i <= count; i++)
+  for (i = 1; i < nargs; i++)
     if (varies[i] >= 1 && varies[i] <= 4)
       XSETINT (args[i], marker_position (args[i]));
 
@@ -839,7 +846,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
     specbind (Qcommand_debug_status, Qnil);
 
     temporarily_switch_to_single_kboard (NULL);
-    val = Ffuncall (count + 1, args);
+    val = Ffuncall (nargs, args);
     UNGCPRO;
     return unbind_to (speccount, val);
   }

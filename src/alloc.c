@@ -212,6 +212,9 @@ static int malloc_hysteresis;
    remapping on more recent systems because this is less important
    nowadays than in the days of small memories and timesharing.  */
 
+#ifndef VIRT_ADDR_VARIES
+static
+#endif
 EMACS_INT pure[(PURESIZE + sizeof (EMACS_INT) - 1) / sizeof (EMACS_INT)] = {1,};
 #define PUREBEG (char *) pure
 
@@ -264,11 +267,12 @@ static size_t stack_copy_size;
 
 static int ignore_warnings;
 
-Lisp_Object Qgc_cons_threshold, Qchar_table_extra_slots;
+static Lisp_Object Qgc_cons_threshold;
+Lisp_Object Qchar_table_extra_slots;
 
 /* Hook run after GC has finished.  */
 
-Lisp_Object Qpost_gc_hook;
+static Lisp_Object Qpost_gc_hook;
 
 static void mark_buffer (Lisp_Object);
 static void mark_terminals (void);
@@ -276,12 +280,14 @@ static void gc_sweep (void);
 static void mark_glyph_matrix (struct glyph_matrix *);
 static void mark_face_cache (struct face_cache *);
 
+#if !defined REL_ALLOC || defined SYSTEM_MALLOC
+static void refill_memory_reserve (void);
+#endif
 static struct Lisp_String *allocate_string (void);
 static void compact_small_strings (void);
 static void free_large_strings (void);
 static void sweep_strings (void);
-
-extern int message_enable_multibyte;
+static void free_misc (Lisp_Object);
 
 /* When scanning the C stack for live Lisp objects, Emacs keeps track
    of what memory allocated via lisp_malloc is intended for what
@@ -559,8 +565,7 @@ static int check_depth;
 /* Like malloc, but wraps allocated block with header and trailer.  */
 
 POINTER_TYPE *
-overrun_check_malloc (size)
-     size_t size;
+overrun_check_malloc (size_t size)
 {
   register unsigned char *val;
   size_t overhead = ++check_depth == 1 ? XMALLOC_OVERRUN_CHECK_SIZE*2 : 0;
@@ -584,11 +589,9 @@ overrun_check_malloc (size)
    with header and trailer.  */
 
 POINTER_TYPE *
-overrun_check_realloc (block, size)
-     POINTER_TYPE *block;
-     size_t size;
+overrun_check_realloc (POINTER_TYPE *block, size_t size)
 {
-  register unsigned char *val = (unsigned char *)block;
+  register unsigned char *val = (unsigned char *) block;
   size_t overhead = ++check_depth == 1 ? XMALLOC_OVERRUN_CHECK_SIZE*2 : 0;
 
   if (val
@@ -624,10 +627,9 @@ overrun_check_realloc (block, size)
 /* Like free, but checks block for overrun.  */
 
 void
-overrun_check_free (block)
-     POINTER_TYPE *block;
+overrun_check_free (POINTER_TYPE *block)
 {
-  unsigned char *val = (unsigned char *)block;
+  unsigned char *val = (unsigned char *) block;
 
   ++check_depth;
   if (val
@@ -1340,7 +1342,7 @@ static int total_free_intervals, total_intervals;
 
 /* List of free intervals.  */
 
-INTERVAL interval_free_list;
+static INTERVAL interval_free_list;
 
 /* Total number of interval blocks now in use.  */
 
@@ -2459,19 +2461,19 @@ struct float_block
 
 /* Current float_block.  */
 
-struct float_block *float_block;
+static struct float_block *float_block;
 
 /* Index of first unused Lisp_Float in the current float_block.  */
 
-int float_block_index;
+static int float_block_index;
 
 /* Total number of float blocks now in use.  */
 
-int n_float_blocks;
+static int n_float_blocks;
 
 /* Free-list of Lisp_Floats.  */
 
-struct Lisp_Float *float_free_list;
+static struct Lisp_Float *float_free_list;
 
 
 /* Initialize float allocation.  */
@@ -2571,15 +2573,15 @@ struct cons_block
 
 /* Current cons_block.  */
 
-struct cons_block *cons_block;
+static struct cons_block *cons_block;
 
 /* Index of first unused Lisp_Cons in the current block.  */
 
-int cons_block_index;
+static int cons_block_index;
 
 /* Free-list of Lisp_Cons structures.  */
 
-struct Lisp_Cons *cons_free_list;
+static struct Lisp_Cons *cons_free_list;
 
 /* Total number of cons blocks now in use.  */
 
@@ -2940,10 +2942,19 @@ usage: (vector &rest OBJECTS)  */)
 
 DEFUN ("make-byte-code", Fmake_byte_code, Smake_byte_code, 4, MANY, 0,
        doc: /* Create a byte-code object with specified arguments as elements.
-The arguments should be the arglist, bytecode-string, constant vector,
-stack size, (optional) doc string, and (optional) interactive spec.
+The arguments should be the ARGLIST, bytecode-string BYTE-CODE, constant
+vector CONSTANTS, maximum stack size DEPTH, (optional) DOCSTRING,
+and (optional) INTERACTIVE-SPEC.
 The first four arguments are required; at most six have any
 significance.
+The ARGLIST can be either like the one of `lambda', in which case the arguments
+will be dynamically bound before executing the byte code, or it can be an
+integer of the form NNNNNNNRMMMMMMM where the 7bit MMMMMMM specifies the
+minimum number of arguments, the 7-bit NNNNNNN specifies the maximum number
+of arguments (ignoring &rest) and the R bit specifies whether there is a &rest
+argument to catch the left-over arguments.  If such an integer is used, the
+arguments will not be dynamically bound but will be instead pushed on the
+stack before executing the byte-code.
 usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INTERACTIVE-SPEC &rest ELEMENTS)  */)
   (register size_t nargs, Lisp_Object *args)
 {
@@ -3071,6 +3082,7 @@ Its value and function definition are void, and its property list is nil.  */)
   p->gcmarkbit = 0;
   p->interned = SYMBOL_UNINTERNED;
   p->constant = 0;
+  p->declared_special = 0;
   consing_since_gc += sizeof (struct Lisp_Symbol);
   symbols_consed++;
   return val;
@@ -3157,7 +3169,7 @@ allocate_misc (void)
 
 /* Free a Lisp_Misc object */
 
-void
+static void
 free_misc (Lisp_Object misc)
 {
   XMISCTYPE (misc) = Lisp_Misc_Free;
@@ -5205,13 +5217,13 @@ mark_face_cache (struct face_cache *c)
 
 #define LAST_MARKED_SIZE 500
 static Lisp_Object last_marked[LAST_MARKED_SIZE];
-int last_marked_index;
+static int last_marked_index;
 
 /* For debugging--call abort when we cdr down this many
    links of a list, in mark_object.  In debugging,
    the call to abort will hit a breakpoint.
    Normally this is zero and the check never goes off.  */
-static int mark_object_loop_halt;
+static size_t mark_object_loop_halt;
 
 static void
 mark_vectorlike (struct Lisp_Vector *ptr)
@@ -5268,7 +5280,7 @@ mark_object (Lisp_Object arg)
   void *po;
   struct mem_node *m;
 #endif
-  int cdr_count = 0;
+  size_t cdr_count = 0;
 
  loop:
 
@@ -6097,6 +6109,7 @@ Frames, windows, buffers, and subprocesses count as vectors
   return Flist (8, consed);
 }
 
+#ifdef ENABLE_CHECKING
 int suppress_checking;
 
 void
@@ -6106,6 +6119,7 @@ die (const char *msg, const char *file, int line)
 	   file, line, msg);
   abort ();
 }
+#endif
 
 /* Initialization */
 

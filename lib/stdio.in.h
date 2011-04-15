@@ -67,7 +67,24 @@
 #else
 # define _GL_ATTRIBUTE_FORMAT(spec) /* empty */
 #endif
-#define _GL_ATTRIBUTE_FORMAT_PRINTF(formatstring_parameter, first_argument) \
+
+/* _GL_ATTRIBUTE_FORMAT_PRINTF
+   indicates to GCC that the function takes a format string and arguments,
+   where the format string directives are the ones standardized by ISO C99
+   and POSIX.  */
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 4)
+# define _GL_ATTRIBUTE_FORMAT_PRINTF(formatstring_parameter, first_argument) \
+   _GL_ATTRIBUTE_FORMAT ((__gnu_printf__, formatstring_parameter, first_argument))
+#else
+# define _GL_ATTRIBUTE_FORMAT_PRINTF(formatstring_parameter, first_argument) \
+   _GL_ATTRIBUTE_FORMAT ((__printf__, formatstring_parameter, first_argument))
+#endif
+
+/* _GL_ATTRIBUTE_FORMAT_PRINTF_SYSTEM is like _GL_ATTRIBUTE_FORMAT_PRINTF,
+   except that it indicates to GCC that the supported format string directives
+   are the ones of the system printf(), rather than the ones standardized by
+   ISO C99 and POSIX.  */
+#define _GL_ATTRIBUTE_FORMAT_PRINTF_SYSTEM(formatstring_parameter, first_argument) \
   _GL_ATTRIBUTE_FORMAT ((__printf__, formatstring_parameter, first_argument))
 
 /* Solaris 10 declares renameat in <unistd.h>, not in <stdio.h>.  */
@@ -191,9 +208,15 @@ _GL_WARN_ON_USE (fopen, "fopen on Win32 platforms is not POSIX compatible - "
 #   define fprintf rpl_fprintf
 #  endif
 #  define GNULIB_overrides_fprintf 1
+#  if @GNULIB_FPRINTF_POSIX@ || @GNULIB_VFPRINTF_POSIX@
 _GL_FUNCDECL_RPL (fprintf, int, (FILE *fp, const char *format, ...)
                                 _GL_ATTRIBUTE_FORMAT_PRINTF (2, 3)
                                 _GL_ARG_NONNULL ((1, 2)));
+#  else
+_GL_FUNCDECL_RPL (fprintf, int, (FILE *fp, const char *format, ...)
+                                _GL_ATTRIBUTE_FORMAT_PRINTF_SYSTEM (2, 3)
+                                _GL_ARG_NONNULL ((1, 2)));
+#  endif
 _GL_CXXALIAS_RPL (fprintf, int, (FILE *fp, const char *format, ...));
 # else
 _GL_CXXALIAS_SYS (fprintf, int, (FILE *fp, const char *format, ...));
@@ -694,12 +717,21 @@ _GL_WARN_ON_USE (popen, "popen is buggy on some platforms - "
 /* Don't break __attribute__((format(printf,M,N))).  */
 #    define printf __printf__
 #   endif
+#   if @GNULIB_PRINTF_POSIX@ || @GNULIB_VFPRINTF_POSIX@
 _GL_FUNCDECL_RPL_1 (__printf__, int,
                     (const char *format, ...)
                     __asm__ (@ASM_SYMBOL_PREFIX@
                              _GL_STDIO_MACROEXPAND_AND_STRINGIZE(rpl_printf))
                     _GL_ATTRIBUTE_FORMAT_PRINTF (1, 2)
                     _GL_ARG_NONNULL ((1)));
+#   else
+_GL_FUNCDECL_RPL_1 (__printf__, int,
+                    (const char *format, ...)
+                    __asm__ (@ASM_SYMBOL_PREFIX@
+                             _GL_STDIO_MACROEXPAND_AND_STRINGIZE(rpl_printf))
+                    _GL_ATTRIBUTE_FORMAT_PRINTF_SYSTEM (1, 2)
+                    _GL_ARG_NONNULL ((1)));
+#   endif
 _GL_CXXALIAS_RPL_1 (printf, __printf__, int, (const char *format, ...));
 #  else
 #   if !(defined __cplusplus && defined GNULIB_NAMESPACE)
@@ -1004,9 +1036,15 @@ _GL_WARN_ON_USE (vdprintf, "vdprintf is unportable - "
 #   define vfprintf rpl_vfprintf
 #  endif
 #  define GNULIB_overrides_vfprintf 1
+#  if @GNULIB_VFPRINTF_POSIX@
 _GL_FUNCDECL_RPL (vfprintf, int, (FILE *fp, const char *format, va_list args)
                                  _GL_ATTRIBUTE_FORMAT_PRINTF (2, 0)
                                  _GL_ARG_NONNULL ((1, 2)));
+#  else
+_GL_FUNCDECL_RPL (vfprintf, int, (FILE *fp, const char *format, va_list args)
+                                 _GL_ATTRIBUTE_FORMAT_PRINTF_SYSTEM (2, 0)
+                                 _GL_ARG_NONNULL ((1, 2)));
+#  endif
 _GL_CXXALIAS_RPL (vfprintf, int, (FILE *fp, const char *format, va_list args));
 # else
 /* Need to cast, because on Solaris, the third parameter is
@@ -1034,9 +1072,15 @@ _GL_WARN_ON_USE (vfprintf, "vfprintf is not always POSIX compliant - "
 #   define vprintf rpl_vprintf
 #  endif
 #  define GNULIB_overrides_vprintf 1
+#  if @GNULIB_VPRINTF_POSIX@ || @GNULIB_VFPRINTF_POSIX@
 _GL_FUNCDECL_RPL (vprintf, int, (const char *format, va_list args)
                                 _GL_ATTRIBUTE_FORMAT_PRINTF (1, 0)
                                 _GL_ARG_NONNULL ((1)));
+#  else
+_GL_FUNCDECL_RPL (vprintf, int, (const char *format, va_list args)
+                                _GL_ATTRIBUTE_FORMAT_PRINTF_SYSTEM (1, 0)
+                                _GL_ARG_NONNULL ((1)));
+#  endif
 _GL_CXXALIAS_RPL (vprintf, int, (const char *format, va_list args));
 # else
 /* Need to cast, because on Solaris, the second parameter is
