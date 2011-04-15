@@ -5424,7 +5424,7 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
 		       that may allow the program
 		       to finish doing output and read more.  */
 		    {
-		      size_t offset = 0;
+		      EMACS_INT offset = 0;
 
 #ifdef BROKEN_PTY_READ_AFTER_EAGAIN
 		      /* A gross hack to work around a bug in FreeBSD.
