@@ -1,3 +1,7 @@
+2011-04-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* mouse-drag.el (mouse-drag-throw): Fix typo in docstring.
+
 2011-04-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* minibuffer.el (completion--do-completion): Avoid the "Next char
