@@ -1,3 +1,17 @@
+2011-04-15  Ben Key  <bkey76@gmail.com>
+
+	* configure.bat: Modified the code that parses the --cflags and
+	--ldflags options to support parameters that include the =
+	character as long as they are enclosed in quotes.  This
+	functionality depends on command extensions.  Configure.bat now
+	attempts to enable command extensions and displays a warning
+	message if they could not be enabled.  If configure.bat could
+	not enable command extensions the old parsing code is used that
+	does not support parameters that include the = character.
+
+	* INSTALL: Updated the file to describe the new functionality
+	using text provided by Eli Zaretskii.
+
 2011-04-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.nt (NO_INLINE, ATTRIBUTE_FORMAT)

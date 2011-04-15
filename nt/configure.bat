@@ -75,6 +75,19 @@ goto end
 
 :start
 rem ----------------------------------------------------------------------
+rem   Attempt to enable command extensions.  Set use_extensions to 1 if
+rem   they are available and 0 if they are not available.
+set use_extensions=1
+setlocal ENABLEEXTENSIONS
+if "%CMDEXTVERSION%" == "" set use_extensions=0
+if "%use_extensions%" == "1" goto afterext
+
+echo. Command extensions are not available.  Using parameters that include the =
+echo. character by enclosing them in quotes will not be supported.
+
+:afterext
+
+rem ----------------------------------------------------------------------
 rem   Default settings.
 set prefix=
 set nodebug=N
@@ -136,6 +149,20 @@ echo.   --without-tiff          do not use TIFF library even if it is installed
 echo.   --without-xpm           do not use XPM library even if it is installed
 echo.   --with-svg              use the RSVG library (experimental)
 echo.   --distfiles             path to files for make dist, e.g. libXpm.dll
+if "%use_extensions%" == "0" goto end
+echo.
+echo. The cflags and ldflags arguments support parameters that include the =
+echo. character.  However, since the = character is normally treated as a
+echo. separator character you will need to enclose any parameter that includes
+echo. the = character in quotes.  For example, to include
+echo. -DSITELOAD_PURESIZE_EXTRA=100000 as one of the cflags you would run
+echo. configure.bat as follows:
+echo. configure.bat --cflags "-DSITELOAD_PURESIZE_EXTRA=100000"
+echo.
+echo. Note that this capability of processing parameters that include the =
+echo. character depends on command extensions.  This batch file attempts to
+echo. enable command extensions.  If command extensions cannot be enabled, a
+echo. warning message will be displayed.
 goto end
 
 rem ----------------------------------------------------------------------
@@ -198,6 +225,17 @@ goto again
 rem ----------------------------------------------------------------------
 
 :usercflags
+if "%use_extensions%" == "1" goto ucflagex
+goto ucflagne
+
+:ucflagex
+shift
+set usercflags=%usercflags%%sep1%%~1
+set sep1= %nothing%
+shift
+goto again
+
+:ucflagne
 shift
 set usercflags=%usercflags%%sep1%%1
 set sep1= %nothing%
@@ -207,6 +245,17 @@ goto again
 rem ----------------------------------------------------------------------
 
 :userldflags
+if "%use_extensions%" == "1" goto ulflagex
+goto ulflagne
+
+:ulflagex
+shift
+set userldflags=%userldflags%%sep2%%~1
+set sep2= %nothing%
+shift
+goto again
+
+:ulflagne
 shift
 set userldflags=%userldflags%%sep2%%1
 set sep2= %nothing%
