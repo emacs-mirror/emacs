@@ -3194,12 +3194,13 @@ extern int inhibit_window_system;
 /* Nonzero means that a filter or a sentinel is running.  */
 extern int running_asynch_code;
 
-/* Defined in process.c */
+/* Defined in process.c.  */
 extern Lisp_Object QCtype, Qlocal;
 EXFUN (Fget_buffer_process, 1);
 EXFUN (Fprocess_status, 1);
 EXFUN (Fkill_process, 2);
 EXFUN (Fwaiting_for_user_input_p, 0);
+extern Lisp_Object Qprocessp;
 extern void kill_buffer_processes (Lisp_Object);
 extern int wait_reading_process_output (int, int, int, int,
                                         Lisp_Object,

@@ -1,3 +1,8 @@
+2011-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* process.c (Qprocessp): Don't declare static.
+	* lisp.h (Qprocessp): Declare again.
+
 2011-04-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Improve C-level modularity by making more things 'static'.

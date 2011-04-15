@@ -24,7 +24,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 #include <errno.h>
 #include <setjmp.h>
-#include <sys/types.h>		/* some typedefs are used in sys/file.h */
+#include <sys/types.h>		/* Some typedefs are used in sys/file.h.  */
 #include <sys/file.h>
 #include <sys/stat.h>
 #include <setjmp.h>
@@ -127,7 +127,7 @@ int inhibit_sentinels;
 
 #ifdef subprocesses
 
-static Lisp_Object Qprocessp;
+Lisp_Object Qprocessp;
 static Lisp_Object Qrun, Qstop, Qsignal;
 static Lisp_Object Qopen, Qclosed, Qconnect, Qfailed, Qlisten;
 Lisp_Object Qlocal;
