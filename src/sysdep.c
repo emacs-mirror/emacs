@@ -1839,8 +1839,8 @@ emacs_close (int fd)
 /* Read from FILEDESC to a buffer BUF with size NBYTE, retrying if interrupted.
    Return the number of bytes read, which might be less than NBYTE.
    On error, set errno and return -1.  */
-ssize_t
-emacs_read (int fildes, char *buf, size_t nbyte)
+EMACS_INT
+emacs_read (int fildes, char *buf, EMACS_INT nbyte)
 {
   register ssize_t rtnval;
 
@@ -1853,11 +1853,11 @@ emacs_read (int fildes, char *buf, size_t nbyte)
 /* Write to FILEDES from a buffer BUF with size NBYTE, retrying if interrupted
    or if a partial write occurs.  Return the number of bytes written, setting
    errno if this is less than NBYTE.  */
-size_t
-emacs_write (int fildes, const char *buf, size_t nbyte)
+EMACS_INT
+emacs_write (int fildes, const char *buf, EMACS_INT nbyte)
 {
   ssize_t rtnval;
-  size_t bytes_written;
+  EMACS_INT bytes_written;
 
   bytes_written = 0;
 
