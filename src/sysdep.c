@@ -1844,7 +1844,10 @@ emacs_read (int fildes, char *buf, EMACS_INT nbyte)
 {
   register ssize_t rtnval;
 
-  while ((rtnval = read (fildes, buf, min (nbyte, MAX_RW_COUNT))) == -1
+  /* There is no need to check against MAX_RW_COUNT, since no caller ever
+     passes a size that large to emacs_read.  */
+
+  while ((rtnval = read (fildes, buf, nbyte)) == -1
 	 && (errno == EINTR))
     QUIT;
   return (rtnval);

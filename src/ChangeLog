@@ -1,5 +1,7 @@
 2011-04-15  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* sysdep.c (emacs_read): Remove unnecessary check vs MAX_RW_COUNT.
+
 	emacs_write: Accept and return EMACS_INT for sizes.
 	See http://lists.gnu.org/archive/html/emacs-devel/2011-04/msg00514.html
 	et seq.
