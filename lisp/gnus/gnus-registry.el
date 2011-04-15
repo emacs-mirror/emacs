@@ -425,6 +425,31 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
       (setq found (gnus-registry-post-process-groups
                    "references" refstr found)))
 
+     ;; else: there were no matches, now try the extra tracking by subject
+     (when (and (null found)
+                (memq 'subject gnus-registry-track-extra)
+                subject
+                (< gnus-registry-minimum-subject-length (length subject)))
+       (let ((groups (apply
+                      'append
+                      (mapcar
+                       (lambda (reference)
+                         (gnus-registry-get-id-key reference 'group))
+                       (registry-lookup-secondary-value db 'subject subject)))))
+         (setq found
+               (loop for group in groups
+                     when (gnus-registry-follow-group-p group)
+                     do (gnus-message
+                         ;; warn more if gnus-registry-track-extra
+                         (if gnus-registry-track-extra 7 9)
+                         "%s (extra tracking) traced subject '%s' to %s"
+                         log-agent subject group)
+                     collect group))
+         ;; filter the found groups and return them
+         ;; the found groups are NOT the full groups
+         (setq found (gnus-registry-post-process-groups
+                      "subject" subject found))))
+
      ;; else: there were no matches, try the extra tracking by sender
      (when (and (null found)
                 (memq 'sender gnus-registry-track-extra)
@@ -453,30 +478,6 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
        (setq found (gnus-registry-post-process-groups
                     "sender" sender found)))
 
-     ;; else: there were no matches, now try the extra tracking by subject
-     (when (and (null found)
-                (memq 'subject gnus-registry-track-extra)
-                subject
-                (< gnus-registry-minimum-subject-length (length subject)))
-       (let ((groups (apply
-                      'append
-                      (mapcar
-                       (lambda (reference)
-                         (gnus-registry-get-id-key reference 'group))
-                       (registry-lookup-secondary-value db 'subject subject)))))
-         (setq found
-               (loop for group in groups
-                     when (gnus-registry-follow-group-p group)
-                     do (gnus-message
-                         ;; warn more if gnus-registry-track-extra
-                         (if gnus-registry-track-extra 7 9)
-                         "%s (extra tracking) traced subject '%s' to %s"
-                         log-agent subject group)
-                     collect group))
-         ;; filter the found groups and return them
-         ;; the found groups are NOT the full groups
-         (setq found (gnus-registry-post-process-groups
-                      "subject" subject found))))
      ;; after the (cond) we extract the actual value safely
      (car-safe found)))
 

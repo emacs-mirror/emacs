@@ -1,8 +1,14 @@
+2011-04-15  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry--split-fancy-with-parent-internal):
+	Track by subject first, then sender.
+
 2011-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* message.el (message-bogus-system-names): Replace ^...$ => \`...\'.
 
-	* gnus.el (gnus-splash-svg-color-symbols): Don't use insert-file from Lisp.
+	* gnus.el (gnus-splash-svg-color-symbols): Don't use insert-file from
+	Lisp.
 
 	* gnus-draft.el (gnus-draft-setup): New arg `dont-pop'.
 	(gnus-draft-send): Use it to avoid popping
