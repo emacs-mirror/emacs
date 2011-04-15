@@ -48,7 +48,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "nsterm.h"
 #endif /* HAVE_NS */
 
-static Lisp_Object Qopentype;
+Lisp_Object Qopentype;
 
 /* Important character set strings.  */
 Lisp_Object Qascii_0, Qiso8859_1, Qiso10646_1, Qunicode_bmp, Qunicode_sip;
