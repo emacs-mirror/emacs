@@ -1,5 +1,7 @@
 2011-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/lisp-mode.el (eval-defun-2): Use eval-sexp-add-defvars.
+
 	* htmlfontify.el (hfy-etags-cmd): Remove inoperant eval-and-compile.
 	(hfy-e2x-etags-cmd, hfy-etags-cmd-alist-default)
 	(hfy-etags-cmd-alist): Don't eval-and-compile any more.
