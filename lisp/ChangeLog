@@ -1,5 +1,16 @@
 2011-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* mail/sendmail.el (mail-mode-map): Use completion-at-point.
+	(mail-mode): Setup mailalias completion here instead.
+	* mail/mailalias.el: Use lexical-binding.
+	(pattern, mailalias-done): Declare dynamic.
+	(mail-completion-at-point-function): New function, from mail-complete.
+	(mail-complete): Use it.
+	(mail-completion-expand): New function.
+	(mail-get-names): Use it.
+	(mail-directory, mail-directory-process, mail-directory-stream):
+	Don't use `pattern' for lexically bound arg.
+
 	* emacs-lisp/lisp-mode.el (eval-defun-2): Use eval-sexp-add-defvars.
 
 	* htmlfontify.el (hfy-etags-cmd): Remove inoperant eval-and-compile.
@@ -89,8 +100,8 @@
 
 	* minibuffer.el (completion-show-inline-help): New var.
 	(completion--do-completion, minibuffer-complete)
-	(minibuffer-force-complete, minibuffer-complete-word): Inhibit
-	minibuffer messages if completion-show-inline-help is nil.
+	(minibuffer-force-complete, minibuffer-complete-word):
+	Inhibit minibuffer messages if completion-show-inline-help is nil.
 
 	* icomplete.el (icomplete-mode): Bind completion-show-inline-help
 	to avoid interference from inline help (Bug#5849).
@@ -106,7 +117,7 @@
 	not in Image mode.
 	(image-transform-mode, image-transform-resize)
 	(image-transform-set-rotation): Doc fix.
-	(image-transform-set-resize): Deleted.
+	(image-transform-set-resize): Delete.
 	(image-transform-set-scale, image-transform-fit-to-height)
 	(image-transform-fit-to-width): Handle image-toggle-display-image
 	and image-transform-resize directly.
@@ -196,7 +207,7 @@
 	(package-menu--generate): Use package--push.  Renamed from
 	package--generate-package-list.
 	(package-menu-refresh, list-packages): Use it.
-	(package-menu--print-info): Renamed from package-print-package.
+	(package-menu--print-info): Rename from package-print-package.
 	Return insertion data instead of inserting it directly.
 	(package-menu-describe-package, package-menu-execute):
 	Use tabulated-list-get-id.
@@ -313,8 +324,8 @@
 	* dired-aux.el (dired-create-files): Add docstring (Bug#7970).
 
 	* textmodes/flyspell.el (flyspell-word): Recognize default
-	dictionary case for flyspell-mark-duplications-exceptions.  Use
-	regexp matching for languages.
+	dictionary case for flyspell-mark-duplications-exceptions.
+	Use regexp matching for languages.
 	(flyspell-mark-duplications-exceptions): Add "that" and "had" for
 	default dictionary (Bug#7926).
 
