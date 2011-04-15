@@ -5368,7 +5368,7 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
 	  /* Send this batch, using one or more write calls.  */
 	  while (this > 0)
 	    {
-	      size_t written = 0;
+	      EMACS_INT written = 0;
 	      int outfd = p->outfd;
 	      old_sigpipe = (void (*) (int)) signal (SIGPIPE, send_process_trap);
 #ifdef DATAGRAM_SOCKETS
