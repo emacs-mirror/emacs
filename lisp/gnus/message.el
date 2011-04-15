@@ -1882,7 +1882,7 @@ You must have the \"hashcash\" binary installed, see `hashcash-path'."
 (defvar message-send-mail-real-function nil
   "Internal send mail function.")
 
-(defvar message-bogus-system-names "^localhost\\.\\|\\.local$"
+(defvar message-bogus-system-names "\\`localhost\\.\\|\\.local\\'"
   "The regexp of bogus system names.")
 
 (defcustom message-valid-fqdn-regexp
