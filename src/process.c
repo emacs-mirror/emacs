@@ -5368,6 +5368,7 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
 	  /* Send this batch, using one or more write calls.  */
 	  while (this > 0)
 	    {
+	      EMACS_INT written = 0;
 	      int outfd = p->outfd;
 	      old_sigpipe = (void (*) (int)) signal (SIGPIPE, send_process_trap);
 #ifdef DATAGRAM_SOCKETS
@@ -5376,7 +5377,9 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
 		  rv = sendto (outfd, buf, this,
 			       0, datagram_address[outfd].sa,
 			       datagram_address[outfd].len);
-		  if (rv < 0 && errno == EMSGSIZE)
+		  if (0 <= rv)
+		    written = rv;
+		  else if (errno == EMSGSIZE)
 		    {
 		      signal (SIGPIPE, old_sigpipe);
 		      report_file_error ("sending datagram",
@@ -5388,12 +5391,13 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
 		{
 #ifdef HAVE_GNUTLS
 		  if (XPROCESS (proc)->gnutls_p)
-		    rv = emacs_gnutls_write (outfd,
-					     XPROCESS (proc),
-					     buf, this);
+		    written = emacs_gnutls_write (outfd,
+						 XPROCESS (proc),
+						 buf, this);
 		  else
 #endif
-		    rv = emacs_write (outfd, buf, this);
+		    written = emacs_write (outfd, buf, this);
+		  rv = (written ? 0 : -1);
 #ifdef ADAPTIVE_READ_BUFFERING
 		  if (p->read_output_delay > 0
 		      && p->adaptive_read_buffering == 1)
@@ -5420,7 +5424,7 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
 		       that may allow the program
 		       to finish doing output and read more.  */
 		    {
-		      int offset = 0;
+		      EMACS_INT offset = 0;
 
 #ifdef BROKEN_PTY_READ_AFTER_EAGAIN
 		      /* A gross hack to work around a bug in FreeBSD.
@@ -5466,16 +5470,14 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
 							 offset);
 		      else if (STRINGP (object))
 			buf = offset + SSDATA (object);
-
-		      rv = 0;
 		    }
 		  else
 		    /* This is a real error.  */
 		    report_file_error ("writing to process", Fcons (proc, Qnil));
 		}
-	      buf += rv;
-	      len -= rv;
-	      this -= rv;
+	      buf += written;
+	      len -= written;
+	      this -= written;
 	    }
 	}
     }

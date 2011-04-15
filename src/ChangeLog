@@ -1,3 +1,30 @@
+2011-04-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	emacs_write: Accept and return EMACS_INT for sizes.
+	See http://lists.gnu.org/archive/html/emacs-devel/2011-04/msg00514.html
+	et seq.
+	* gnutls.c, gnutls.h (emacs_gnutls_read, emacs_gnutls_write):
+	Accept and return EMACS_INT.
+	(emacs_gnutls_write): Return the number of bytes written on
+	partial writes.
+	* sysdep.c, lisp.h (emacs_read, emacs_write): Likewise.
+	(emacs_read, emacs_write): Remove check for negative size, as the
+	Emacs source code has been audited now.
+	* sysdep.c (MAX_RW_COUNT): New macro, to work around kernel bugs.
+	(emacs_read, emacs_write): Use it.
+	* process.c (send_process): Adjust to the new signatures of
+	emacs_write and emacs_gnutls_write.  Do not attempt to store
+	a byte offset into an 'int'; it might overflow.
+	See http://lists.gnu.org/archive/html/emacs-devel/2011-04/msg00483.html
+
+	* sound.c: Don't assume sizes fit in 'int'.
+	(struct sound_device.period_size, alsa_period_size):
+	Return EMACS_INT, not int.
+	(struct sound_device.write, vox_write, alsa_write):
+	Accept EMACS_INT, not int.
+	(wav_play, au_play): Use EMACS_INT to store sizes and to
+	record read return values.
+
 2011-04-15  Ben Key  <bkey76@gmail.com>
 
 	* keyboard.c (Qundefined):  Don't declare static since it is

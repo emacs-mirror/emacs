@@ -1825,41 +1825,47 @@ emacs_close (int fd)
   return rtnval;
 }
 
-ssize_t
-emacs_read (int fildes, char *buf, size_t nbyte)
+/* Maximum number of bytes to read or write in a single system call.
+   This works around a serious bug in Linux kernels before 2.6.16; see
+   <https://bugzilla.redhat.com/show_bug.cgi?format=multiple&id=612839>.
+   It's likely to work around similar bugs in other operating systems, so do it
+   on all platforms.  Round INT_MAX down to a page size, with the conservative
+   assumption that page sizes are at most 2**18 bytes (any kernel with a
+   page size larger than that shouldn't have the bug).  */
+#ifndef MAX_RW_COUNT
+#define MAX_RW_COUNT (INT_MAX >> 18 << 18)
+#endif
+
+/* Read from FILEDESC to a buffer BUF with size NBYTE, retrying if interrupted.
+   Return the number of bytes read, which might be less than NBYTE.
+   On error, set errno and return -1.  */
+EMACS_INT
+emacs_read (int fildes, char *buf, EMACS_INT nbyte)
 {
   register ssize_t rtnval;
 
-  /* Defend against the possibility that a buggy caller passes a negative NBYTE
-     argument, which would be converted to a large unsigned size_t NBYTE.  This
-     defense prevents callers from doing large writes, unfortunately.  This
-     size restriction can be removed once we have carefully checked that there
-     are no such callers.  */
-  if ((ssize_t) nbyte < 0)
-    abort ();
-
-  while ((rtnval = read (fildes, buf, nbyte)) == -1
+  while ((rtnval = read (fildes, buf, min (nbyte, MAX_RW_COUNT))) == -1
 	 && (errno == EINTR))
     QUIT;
   return (rtnval);
 }
 
-ssize_t
-emacs_write (int fildes, const char *buf, size_t nbyte)
+/* Write to FILEDES from a buffer BUF with size NBYTE, retrying if interrupted
+   or if a partial write occurs.  Return the number of bytes written, setting
+   errno if this is less than NBYTE.  */
+EMACS_INT
+emacs_write (int fildes, const char *buf, EMACS_INT nbyte)
 {
-  register ssize_t rtnval, bytes_written;
-
-  /* Defend against negative NBYTE, as in emacs_read.  */
-  if ((ssize_t) nbyte < 0)
-    abort ();
+  ssize_t rtnval;
+  EMACS_INT bytes_written;
 
   bytes_written = 0;
 
-  while (nbyte != 0)
+  while (nbyte > 0)
     {
-      rtnval = write (fildes, buf, nbyte);
+      rtnval = write (fildes, buf, min (nbyte, MAX_RW_COUNT));
 
-      if (rtnval == -1)
+      if (rtnval < 0)
 	{
 	  if (errno == EINTR)
 	    {
@@ -1871,13 +1877,14 @@ emacs_write (int fildes, const char *buf, size_t nbyte)
 	      continue;
 	    }
 	  else
-	    return (bytes_written ? bytes_written : -1);
+	    break;
 	}
 
       buf += rtnval;
       nbyte -= rtnval;
       bytes_written += rtnval;
     }
+
   return (bytes_written);
 }
 
