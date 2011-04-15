@@ -246,7 +246,7 @@ Lisp_Object QPRIMARY;
 static Lisp_Object Qself_insert_command;
 static Lisp_Object Qforward_char;
 static Lisp_Object Qbackward_char;
-static Lisp_Object Qundefined;
+Lisp_Object Qundefined;
 static Lisp_Object Qtimer_event_handler;
 
 /* read_key_sequence stores here the command definition of the

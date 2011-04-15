@@ -317,11 +317,15 @@ static Lisp_Object QCfontset;
 /* Symbols used for attribute values.  */
 
 Lisp_Object Qnormal;
-static Lisp_Object Qbold, Qultra_light, Qextra_light, Qlight;
+Lisp_Object Qbold;
+static Lisp_Object Qultra_light, Qextra_light, Qlight;
 static Lisp_Object Qsemi_light, Qsemi_bold, Qextra_bold, Qultra_bold;
-static Lisp_Object Qoblique, Qitalic, Qreverse_oblique, Qreverse_italic;
-static Lisp_Object Qultra_condensed, Qextra_condensed, Qcondensed;
-static Lisp_Object Qsemi_condensed, Qsemi_expanded, Qexpanded, Qextra_expanded;
+static Lisp_Object Qoblique, Qreverse_oblique, Qreverse_italic;
+Lisp_Object Qitalic;
+static Lisp_Object Qultra_condensed, Qextra_condensed;
+Lisp_Object Qcondensed;
+static Lisp_Object Qsemi_condensed, Qsemi_expanded, Qextra_expanded;
+Lisp_Object Qexpanded;
 static Lisp_Object Qultra_expanded;
 static Lisp_Object Qreleased_button, Qpressed_button;
 static Lisp_Object QCstyle, QCcolor, QCline_width;
