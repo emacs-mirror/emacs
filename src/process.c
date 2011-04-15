@@ -24,7 +24,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 #include <errno.h>
 #include <setjmp.h>
-#include <sys/types.h>		/* some typedefs are used in sys/file.h */
+#include <sys/types.h>		/* Some typedefs are used in sys/file.h.  */
 #include <sys/file.h>
 #include <sys/stat.h>
 #include <setjmp.h>
@@ -128,21 +128,23 @@ int inhibit_sentinels;
 #ifdef subprocesses
 
 Lisp_Object Qprocessp;
-Lisp_Object Qrun, Qstop, Qsignal;
-Lisp_Object Qopen, Qclosed, Qconnect, Qfailed, Qlisten;
-Lisp_Object Qlocal, Qipv4, Qdatagram, Qseqpacket;
-Lisp_Object Qreal, Qnetwork, Qserial;
+static Lisp_Object Qrun, Qstop, Qsignal;
+static Lisp_Object Qopen, Qclosed, Qconnect, Qfailed, Qlisten;
+Lisp_Object Qlocal;
+static Lisp_Object Qipv4, Qdatagram, Qseqpacket;
+static Lisp_Object Qreal, Qnetwork, Qserial;
 #ifdef AF_INET6
-Lisp_Object Qipv6;
+static Lisp_Object Qipv6;
 #endif
-Lisp_Object QCport, QCspeed, QCprocess;
+static Lisp_Object QCport, QCprocess;
+Lisp_Object QCspeed;
 Lisp_Object QCbytesize, QCstopbits, QCparity, Qodd, Qeven;
 Lisp_Object QCflowcontrol, Qhw, Qsw, QCsummary;
-Lisp_Object QCbuffer, QChost, QCservice;
-Lisp_Object QClocal, QCremote, QCcoding;
-Lisp_Object QCserver, QCnowait, QCnoquery, QCstop;
-Lisp_Object QCsentinel, QClog, QCoptions, QCplist;
-Lisp_Object Qlast_nonmenu_event;
+static Lisp_Object QCbuffer, QChost, QCservice;
+static Lisp_Object QClocal, QCremote, QCcoding;
+static Lisp_Object QCserver, QCnowait, QCnoquery, QCstop;
+static Lisp_Object QCsentinel, QClog, QCoptions, QCplist;
+static Lisp_Object Qlast_nonmenu_event;
 /* QCfamily is declared and initialized in xfaces.c,
    QCfilter in keyboard.c.  */
 extern Lisp_Object QCfamily, QCfilter;
@@ -163,12 +165,10 @@ extern Lisp_Object QCfilter;
 extern int h_errno;
 #endif
 
-/* These next two vars are non-static since sysdep.c uses them in the
-   emulation of `select'.  */
 /* Number of events of change of status of a process.  */
-int process_tick;
+static int process_tick;
 /* Number of events for which the user or sentinel has been notified.  */
-int update_tick;
+static int update_tick;
 
 /* Define NON_BLOCKING_CONNECT if we can support non-blocking connects.  */
 
@@ -235,6 +235,8 @@ static int process_output_skip;
 #define process_output_delay_count 0
 #endif
 
+static Lisp_Object Fget_process (Lisp_Object);
+static void create_process (Lisp_Object, char **, Lisp_Object);
 static int keyboard_bit_set (SELECT_TYPE *);
 static void deactivate_process (Lisp_Object);
 static void status_notify (struct Lisp_Process *);
@@ -284,10 +286,10 @@ static int max_process_desc;
 static int max_input_desc;
 
 /* Indexed by descriptor, gives the process (if any) for that descriptor */
-Lisp_Object chan_process[MAXDESC];
+static Lisp_Object chan_process[MAXDESC];
 
 /* Alist of elements (NAME . PROCESS) */
-Lisp_Object Vprocess_alist;
+static Lisp_Object Vprocess_alist;
 
 /* Buffered-ahead input char from process, indexed by channel.
    -1 means empty (no char is buffered).
@@ -295,8 +297,7 @@ Lisp_Object Vprocess_alist;
    output from the process is to read at least one char.
    Always -1 on systems that support FIONREAD.  */
 
-/* Don't make static; need to access externally.  */
-int proc_buffered_char[MAXDESC];
+static int proc_buffered_char[MAXDESC];
 
 /* Table of `struct coding-system' for each process.  */
 static struct coding_system *proc_decode_coding_system[MAXDESC];
@@ -304,7 +305,7 @@ static struct coding_system *proc_encode_coding_system[MAXDESC];
 
 #ifdef DATAGRAM_SOCKETS
 /* Table of `partner address' for datagram sockets.  */
-struct sockaddr_and_len {
+static struct sockaddr_and_len {
   struct sockaddr *sa;
   int len;
 } datagram_address[MAXDESC];
@@ -320,7 +321,7 @@ static int pty_max_bytes;
 
 
 
-struct fd_callback_data
+static struct fd_callback_data
 {
   fd_callback func;
   void *data;
@@ -1083,7 +1084,7 @@ DEFUN ("process-query-on-exit-flag",
 }
 
 #ifdef DATAGRAM_SOCKETS
-Lisp_Object Fprocess_datagram_address (Lisp_Object process);
+static Lisp_Object Fprocess_datagram_address (Lisp_Object);
 #endif
 
 DEFUN ("process-contact", Fprocess_contact, Sprocess_contact,
@@ -1518,7 +1519,7 @@ create_process_1 (struct atimer *timer)
 }
 
 
-void
+static void
 create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 {
   int inchannel, outchannel;
@@ -3790,7 +3791,7 @@ FLAGS is the current flags of the interface.  */)
 
 /* Turn off input and output for process PROC.  */
 
-void
+static void
 deactivate_process (Lisp_Object proc)
 {
   register int inchannel, outchannel;
@@ -5216,8 +5217,8 @@ read_process_output (Lisp_Object proc, register int channel)
 
 /* Sending data to subprocess */
 
-jmp_buf send_process_frame;
-Lisp_Object process_sent_to;
+static jmp_buf send_process_frame;
+static Lisp_Object process_sent_to;
 
 static void
 send_process_trap (int ignore)
@@ -6984,8 +6985,8 @@ kill_buffer_processes (Lisp_Object buffer)
 #endif /* subprocesses */
 }
 
-DEFUN ("waiting-for-user-input-p", Fwaiting_for_user_input_p, Swaiting_for_user_input_p,
-       0, 0, 0,
+DEFUN ("waiting-for-user-input-p", Fwaiting_for_user_input_p,
+       Swaiting_for_user_input_p, 0, 0, 0,
        doc: /* Returns non-nil if Emacs is waiting for input from the user.
 This is intended for use by asynchronous process output filters and sentinels.  */)
   (void)
@@ -7187,7 +7188,9 @@ init_process (void)
      processes.  As such, we only change the default value.  */
  if (initialized)
   {
-    const char *release = get_operating_system_release ();
+    char const *release = (STRINGP (Voperating_system_release)
+			   ? SSDATA (Voperating_system_release)
+			   : 0);
     if (!release || !release[0] || (release[0] < MIN_PTY_KERNEL_VERSION
 				    && release[1] == '.')) {
       Vprocess_connection_type = Qnil;

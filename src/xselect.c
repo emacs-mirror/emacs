@@ -100,14 +100,14 @@ static Lisp_Object clean_local_selection_data (Lisp_Object);
 #endif
 
 
-Lisp_Object QSECONDARY, QSTRING, QINTEGER, QCLIPBOARD, QTIMESTAMP,
+static Lisp_Object QSECONDARY, QSTRING, QINTEGER, QCLIPBOARD, QTIMESTAMP,
   QTEXT, QDELETE, QMULTIPLE, QINCR, QEMACS_TMP, QTARGETS, QATOM, QNULL,
   QATOM_PAIR;
 
-Lisp_Object QCOMPOUND_TEXT;	/* This is a type of selection.  */
-Lisp_Object QUTF8_STRING;	/* This is a type of selection.  */
+static Lisp_Object QCOMPOUND_TEXT;	/* This is a type of selection.  */
+static Lisp_Object QUTF8_STRING;	/* This is a type of selection.  */
 
-Lisp_Object Qcompound_text_with_extensions;
+static Lisp_Object Qcompound_text_with_extensions;
 
 static Lisp_Object Qforeign_selection;
 

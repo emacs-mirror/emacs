@@ -47,16 +47,19 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 /* Types of hooks.  */
-Lisp_Object Qmouse_left;
-Lisp_Object Qmouse_entered;
+static Lisp_Object Qmouse_left;
+static Lisp_Object Qmouse_entered;
 Lisp_Object Qpoint_left;
 Lisp_Object Qpoint_entered;
 Lisp_Object Qcategory;
 Lisp_Object Qlocal_map;
 
 /* Visual properties text (including strings) may have.  */
-Lisp_Object Qforeground, Qbackground, Qfont, Qunderline, Qstipple;
-Lisp_Object Qinvisible, Qread_only, Qintangible, Qmouse_face;
+static Lisp_Object Qforeground, Qbackground, Qunderline;
+Lisp_Object Qfont;
+static Lisp_Object Qstipple;
+Lisp_Object Qinvisible, Qintangible, Qmouse_face;
+static Lisp_Object Qread_only;
 Lisp_Object Qminibuffer_prompt;
 
 /* Sticky properties */
@@ -69,10 +72,12 @@ Lisp_Object Qfront_sticky, Qrear_nonsticky;
 
 /* verify_interval_modification saves insertion hooks here
    to be run later by report_interval_modification.  */
-Lisp_Object interval_insert_behind_hooks;
-Lisp_Object interval_insert_in_front_hooks;
+static Lisp_Object interval_insert_behind_hooks;
+static Lisp_Object interval_insert_in_front_hooks;
 
 static void text_read_only (Lisp_Object) NO_RETURN;
+static Lisp_Object Fprevious_property_change (Lisp_Object, Lisp_Object,
+					      Lisp_Object);
 
 
 /* Signal a `text-read-only' error.  This function makes it easier

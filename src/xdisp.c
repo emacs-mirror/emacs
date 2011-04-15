@@ -318,29 +318,31 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 Lisp_Object Qoverriding_local_map, Qoverriding_terminal_local_map;
 Lisp_Object Qwindow_scroll_functions;
-Lisp_Object Qwindow_text_change_functions;
-Lisp_Object Qredisplay_end_trigger_functions;
+static Lisp_Object Qwindow_text_change_functions;
+static Lisp_Object Qredisplay_end_trigger_functions;
 Lisp_Object Qinhibit_point_motion_hooks;
-Lisp_Object QCeval, QCfile, QCdata, QCpropertize;
-Lisp_Object Qfontified;
-Lisp_Object Qgrow_only;
-Lisp_Object Qinhibit_eval_during_redisplay;
-Lisp_Object Qbuffer_position, Qposition, Qobject;
-Lisp_Object Qright_to_left, Qleft_to_right;
+static Lisp_Object QCeval, QCpropertize;
+Lisp_Object QCfile, QCdata;
+static Lisp_Object Qfontified;
+static Lisp_Object Qgrow_only;
+static Lisp_Object Qinhibit_eval_during_redisplay;
+static Lisp_Object Qbuffer_position, Qposition, Qobject;
+static Lisp_Object Qright_to_left, Qleft_to_right;
 
 /* Cursor shapes */
 Lisp_Object Qbar, Qhbar, Qbox, Qhollow;
 
 /* Pointer shapes */
-Lisp_Object Qarrow, Qhand, Qtext;
+static Lisp_Object Qarrow, Qhand;
+Lisp_Object Qtext;
 
 /* Holds the list (error).  */
-Lisp_Object list_of_error;
+static Lisp_Object list_of_error;
 
-Lisp_Object Qfontification_functions;
+static Lisp_Object Qfontification_functions;
 
-Lisp_Object Qwrap_prefix;
-Lisp_Object Qline_prefix;
+static Lisp_Object Qwrap_prefix;
+static Lisp_Object Qline_prefix;
 
 /* Non-nil means don't actually do any redisplay.  */
 
@@ -350,12 +352,14 @@ Lisp_Object Qinhibit_redisplay;
 
 Lisp_Object Qdisplay;
 
-Lisp_Object Qspace, QCalign_to, QCrelative_width, QCrelative_height;
-Lisp_Object Qleft_margin, Qright_margin, Qspace_width, Qraise;
-Lisp_Object Qslice;
+Lisp_Object Qspace, QCalign_to;
+static Lisp_Object QCrelative_width, QCrelative_height;
+Lisp_Object Qleft_margin, Qright_margin;
+static Lisp_Object Qspace_width, Qraise;
+static Lisp_Object Qslice;
 Lisp_Object Qcenter;
-Lisp_Object Qmargin, Qpointer;
-Lisp_Object Qline_height;
+static Lisp_Object Qmargin, Qpointer;
+static Lisp_Object Qline_height;
 
 #ifdef HAVE_WINDOW_SYSTEM
 
@@ -383,15 +387,15 @@ Lisp_Object Qline_height;
 
 /* Name of the face used to highlight trailing whitespace.  */
 
-Lisp_Object Qtrailing_whitespace;
+static Lisp_Object Qtrailing_whitespace;
 
 /* Name and number of the face used to highlight escape glyphs.  */
 
-Lisp_Object Qescape_glyph;
+static Lisp_Object Qescape_glyph;
 
 /* Name and number of the face used to highlight non-breaking spaces.  */
 
-Lisp_Object Qnobreak_space;
+static Lisp_Object Qnobreak_space;
 
 /* The symbol `image' which is the car of the lists used to represent
    images in Lisp.  Also a tool bar style.  */
@@ -399,8 +403,9 @@ Lisp_Object Qnobreak_space;
 Lisp_Object Qimage;
 
 /* The image map types.  */
-Lisp_Object QCmap, QCpointer;
-Lisp_Object Qrect, Qcircle, Qpoly;
+Lisp_Object QCmap;
+static Lisp_Object QCpointer;
+static Lisp_Object Qrect, Qcircle, Qpoly;
 
 /* Tool bar styles */
 Lisp_Object Qboth, Qboth_horiz, Qtext_image_horiz;
@@ -460,12 +465,12 @@ static struct buffer *this_line_buffer;
    Voverlay_arrow_position is a marker, last-arrow-position is its
    numerical position.  */
 
-Lisp_Object Qlast_arrow_position, Qlast_arrow_string;
+static Lisp_Object Qlast_arrow_position, Qlast_arrow_string;
 
 /* Alternative overlay-arrow-string and overlay-arrow-bitmap
    properties on a symbol in overlay-arrow-variable-list.  */
 
-Lisp_Object Qoverlay_arrow_string, Qoverlay_arrow_bitmap;
+static Lisp_Object Qoverlay_arrow_string, Qoverlay_arrow_bitmap;
 
 Lisp_Object Qmenu_bar_update_hook;
 
@@ -494,12 +499,12 @@ Lisp_Object echo_area_window;
    message_enable_multibyte on the stack, the function restore_message
    pops the stack and displays MESSAGE again.  */
 
-Lisp_Object Vmessage_stack;
+static Lisp_Object Vmessage_stack;
 
 /* Nonzero means multibyte characters were enabled when the echo area
    message was specified.  */
 
-int message_enable_multibyte;
+static int message_enable_multibyte;
 
 /* Nonzero if we should redraw the mode lines on the next redisplay.  */
 
@@ -517,7 +522,7 @@ int cursor_type_changed;
 /* Nonzero after display_mode_line if %l was used and it displayed a
    line number.  */
 
-int line_number_displayed;
+static int line_number_displayed;
 
 /* The name of the *Messages* buffer, a string.  */
 
@@ -544,12 +549,12 @@ static int display_last_displayed_message_p;
 /* Nonzero if echo area is being used by print; zero if being used by
    message.  */
 
-int message_buf_print;
+static int message_buf_print;
 
 /* The symbol `inhibit-menubar-update' and its DEFVAR_BOOL variable.  */
 
-Lisp_Object Qinhibit_menubar_update;
-Lisp_Object Qmessage_truncate_lines;
+static Lisp_Object Qinhibit_menubar_update;
+static Lisp_Object Qmessage_truncate_lines;
 
 /* Set to 1 in clear_message to make redisplay_internal aware
    of an emptied echo area.  */
@@ -560,7 +565,7 @@ static int message_cleared_p;
    glyphs.  Also used in direct_output_for_insert.  */
 
 #define MAX_SCRATCH_GLYPHS 100
-struct glyph_row scratch_glyph_row;
+static struct glyph_row scratch_glyph_row;
 static struct glyph scratch_glyphs[MAX_SCRATCH_GLYPHS];
 
 /* Ascent and height of the last line processed by move_it_to.  */
@@ -603,11 +608,11 @@ int trace_move;
 #define TRACE_MOVE(x)	(void) 0
 #endif
 
-Lisp_Object Qauto_hscroll_mode;
+static Lisp_Object Qauto_hscroll_mode;
 
 /* Buffer being redisplayed -- for redisplay_window_error.  */
 
-struct buffer *displayed_buffer;
+static struct buffer *displayed_buffer;
 
 /* Value returned from text property handlers (see below).  */
 
@@ -708,7 +713,7 @@ static struct glyph_slice null_glyph_slice = { 0, 0, 0, 0 };
 
 int redisplaying_p;
 
-Lisp_Object Qinhibit_free_realized_faces;
+static Lisp_Object Qinhibit_free_realized_faces;
 
 /* If a string, XTread_socket generates an event to display that string.
    (The display is done in read_char.)  */
@@ -735,7 +740,7 @@ struct atimer *hourglass_atimer;
 Lisp_Object Qglyphless_char;
 
 /* Symbol for the purpose of Vglyphless_char_display.  */
-Lisp_Object Qglyphless_char_display;
+static Lisp_Object Qglyphless_char_display;
 
 /* Method symbols for Vglyphless_char_display.  */
 static Lisp_Object Qhex_code, Qempty_box, Qthin_space, Qzero_width;
@@ -751,6 +756,7 @@ static Lisp_Object Qhex_code, Qempty_box, Qthin_space, Qzero_width;
 /* Function prototypes.  */
 
 static void setup_for_ellipsis (struct it *, int);
+static void set_iterator_to_next (struct it *, int);
 static void mark_window_display_accurate_1 (struct window *, int);
 static int single_display_spec_string_p (Lisp_Object, Lisp_Object);
 static int display_prop_string_p (Lisp_Object, Lisp_Object);
@@ -783,7 +789,9 @@ static int with_echo_area_buffer (struct window *, int,
                                   EMACS_INT, Lisp_Object, EMACS_INT, EMACS_INT);
 static void clear_garbaged_frames (void);
 static int current_message_1 (EMACS_INT, Lisp_Object, EMACS_INT, EMACS_INT);
+static void pop_message (void);
 static int truncate_message_1 (EMACS_INT, Lisp_Object, EMACS_INT, EMACS_INT);
+static void set_message (const char *, Lisp_Object, EMACS_INT, int);
 static int set_message_1 (EMACS_INT, Lisp_Object, EMACS_INT, EMACS_INT);
 static int display_echo_area (struct window *);
 static int display_echo_area_1 (EMACS_INT, Lisp_Object, EMACS_INT, EMACS_INT);
@@ -815,6 +823,9 @@ static void redisplay_window (Lisp_Object, int);
 static Lisp_Object redisplay_window_error (Lisp_Object);
 static Lisp_Object redisplay_window_0 (Lisp_Object);
 static Lisp_Object redisplay_window_1 (Lisp_Object);
+static int set_cursor_from_row (struct window *, struct glyph_row *,
+				struct glyph_matrix *, EMACS_INT, EMACS_INT,
+				int, int);
 static int update_menu_bar (struct frame *, int, int);
 static int try_window_reusing_current_matrix (struct window *);
 static int try_window_id (struct window *);
@@ -852,6 +863,7 @@ static int init_from_display_pos (struct it *, struct window *,
                                   struct display_pos *);
 static void reseat_to_string (struct it *, const char *,
                               Lisp_Object, EMACS_INT, EMACS_INT, int, int);
+static int get_next_display_element (struct it *);
 static enum move_it_result
        move_it_in_display_line_to (struct it *, EMACS_INT, int,
 				   enum move_operation_enum);
@@ -899,6 +911,7 @@ static void append_stretch_glyph (struct it *, Lisp_Object,
 
 #endif /* HAVE_WINDOW_SYSTEM */
 
+static void show_mouse_face (Mouse_HLInfo *, enum draw_glyphs_face);
 static int coords_in_mouse_face_p (struct window *, int, int);
 
 
@@ -1115,7 +1128,7 @@ window_box (struct window *w, int area, int *box_x, int *box_y,
    *BOTTOM_RIGHT_Y the coordinates of the bottom-right corner of the
    box.  */
 
-INLINE void
+static INLINE void
 window_box_edges (struct window *w, int area, int *top_left_x, int *top_left_y,
 		   int *bottom_right_x, int *bottom_right_y)
 {
@@ -1533,61 +1546,6 @@ pixel_to_glyph_coords (FRAME_PTR f, register int pix_x, register int pix_y,
 }
 
 
-/* Given HPOS/VPOS in the current matrix of W, return corresponding
-   frame-relative pixel positions in *FRAME_X and *FRAME_Y.  If we
-   can't tell the positions because W's display is not up to date,
-   return 0.  */
-
-int
-glyph_to_pixel_coords (struct window *w, int hpos, int vpos,
-		       int *frame_x, int *frame_y)
-{
-#ifdef HAVE_WINDOW_SYSTEM
-  if (FRAME_WINDOW_P (XFRAME (WINDOW_FRAME (w))))
-    {
-      int success_p;
-
-      xassert (hpos >= 0 && hpos < w->current_matrix->matrix_w);
-      xassert (vpos >= 0 && vpos < w->current_matrix->matrix_h);
-
-      if (display_completed)
-	{
-	  struct glyph_row *row = MATRIX_ROW (w->current_matrix, vpos);
-	  struct glyph *glyph = row->glyphs[TEXT_AREA];
-	  struct glyph *end = glyph + min (hpos, row->used[TEXT_AREA]);
-
-	  hpos = row->x;
-	  vpos = row->y;
-	  while (glyph < end)
-	    {
-	      hpos += glyph->pixel_width;
-	      ++glyph;
-	    }
-
-	  /* If first glyph is partially visible, its first visible position is still 0.  */
-	  if (hpos < 0)
-	    hpos = 0;
-
-	  success_p = 1;
-	}
-      else
-	{
-	  hpos = vpos = 0;
-	  success_p = 0;
-	}
-
-      *frame_x = WINDOW_TO_FRAME_PIXEL_X (w, hpos);
-      *frame_y = WINDOW_TO_FRAME_PIXEL_Y (w, vpos);
-      return success_p;
-    }
-#endif
-
-  *frame_x = hpos;
-  *frame_y = vpos;
-  return 1;
-}
-
-
 /* Find the glyph under window-relative coordinates X/Y in window W.
    Consider only glyphs from buffer text, i.e. no glyphs from overlay
    strings.  Return in *HPOS and *VPOS the row and column number of
@@ -1670,11 +1628,10 @@ x_y_to_hpos_vpos (struct window *w, int x, int y, int *hpos, int *vpos,
   return glyph;
 }
 
-/* EXPORT:
-   Convert frame-relative x/y to coordinates relative to window W.
+/* Convert frame-relative x/y to coordinates relative to window W.
    Takes pseudo-windows into account.  */
 
-void
+static void
 frame_to_window_pixel_xy (struct window *w, int *x, int *y)
 {
   if (w->pseudo_window_p)
@@ -3660,7 +3617,7 @@ handle_invisible_prop (struct it *it)
 		 _after_ bidi iteration avoids affecting the visual
 		 order of the displayed text when invisible properties
 		 are added or removed.  */
-	      if (it->bidi_it.first_elt)
+	      if (it->bidi_it.first_elt && it->bidi_it.charpos < ZV)
 		{
 		  /* If we were `reseat'ed to a new paragraph,
 		     determine the paragraph base direction.  We need
@@ -5632,7 +5589,7 @@ struct frame *last_glyphless_glyph_frame = NULL;
 unsigned last_glyphless_glyph_face_id = (1 << FACE_ID_BITS);
 int last_glyphless_glyph_merged_face_id = 0;
 
-int
+static int
 get_next_display_element (struct it *it)
 {
   /* Non-zero means that we found a display element.  Zero means that
@@ -9095,7 +9052,7 @@ pop_message_unwind (Lisp_Object dummy)
 
 /* Pop the top-most entry off Vmessage_stack.  */
 
-void
+static void
 pop_message (void)
 {
   xassert (CONSP (Vmessage_stack));
@@ -9165,7 +9122,7 @@ truncate_message_1 (EMACS_INT nchars, Lisp_Object a2, EMACS_INT a3, EMACS_INT a4
    to t before calling set_message_1 (which calls insert).
   */
 
-void
+static void
 set_message (const char *s, Lisp_Object string,
 	     EMACS_INT nbytes, int multibyte_p)
 {
@@ -11315,7 +11272,7 @@ overlay_arrow_at_row (struct it *it, struct glyph_row *row)
    return 0.  PREV_BUF and PREV_PT are the last point buffer and
    position.  BUF and PT are the current point buffer and position.  */
 
-int
+static int
 check_point_in_composition (struct buffer *prev_buf, EMACS_INT prev_pt,
 			    struct buffer *buf, EMACS_INT pt)
 {
@@ -12402,7 +12359,7 @@ redisplay_window_1 (Lisp_Object window)
 
    Return 0 if cursor is not on this row, 1 otherwise.  */
 
-int
+static int
 set_cursor_from_row (struct window *w, struct glyph_row *row,
 		     struct glyph_matrix *matrix,
 		     EMACS_INT delta, EMACS_INT delta_bytes,
@@ -13673,7 +13630,7 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
   return rc;
 }
 
-void
+static void
 set_vertical_scroll_bar (struct window *w)
 {
   EMACS_INT start, end, whole;
@@ -14482,7 +14439,6 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
       && EQ (FRAME_SELECTED_WINDOW (f), window))
     {
       int redisplay_menu_p = 0;
-      int redisplay_tool_bar_p = 0;
 
       if (FRAME_WINDOW_P (f))
 	{
@@ -14503,17 +14459,15 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
       if (FRAME_WINDOW_P (f))
         {
 #if defined (USE_GTK) || defined (HAVE_NS)
-          redisplay_tool_bar_p = FRAME_EXTERNAL_TOOL_BAR (f);
+	  if (FRAME_EXTERNAL_TOOL_BAR (f))
+	    redisplay_tool_bar (f);
 #else
-          redisplay_tool_bar_p = WINDOWP (f->tool_bar_window)
-            && (FRAME_TOOL_BAR_LINES (f) > 0
-                || !NILP (Vauto_resize_tool_bars));
+	  if (WINDOWP (f->tool_bar_window)
+	      && (FRAME_TOOL_BAR_LINES (f) > 0
+		  || !NILP (Vauto_resize_tool_bars))
+	      && redisplay_tool_bar (f))
+	    ignore_mouse_drag_p = 1;
 #endif
-
-          if (redisplay_tool_bar_p && redisplay_tool_bar (f))
-	    {
-	      ignore_mouse_drag_p = 1;
-	    }
         }
 #endif
     }
@@ -16989,7 +16943,7 @@ trailing_whitespace_p (EMACS_INT charpos)
 
 /* Highlight trailing whitespace, if any, in ROW.  */
 
-void
+static void
 highlight_trailing_whitespace (struct frame *f, struct glyph_row *row)
 {
   int used = row->used[TEXT_AREA];
@@ -23931,7 +23885,7 @@ x_clear_cursor (struct window *w)
 
 /* Implementation of draw_row_with_mouse_face for GUI sessions, GPM,
    and MSDOS.  */
-void
+static void
 draw_row_with_mouse_face (struct window *w, int start_x, struct glyph_row *row,
 			  int start_hpos, int end_hpos,
 			  enum draw_glyphs_face draw)
@@ -23948,10 +23902,9 @@ draw_row_with_mouse_face (struct window *w, int start_x, struct glyph_row *row,
 #endif
 }
 
-/* EXPORT:
-   Display the active region described by mouse_face_* according to DRAW.  */
+/* Display the active region described by mouse_face_* according to DRAW.  */
 
-void
+static void
 show_mouse_face (Mouse_HLInfo *hlinfo, enum draw_glyphs_face draw)
 {
   struct window *w = XWINDOW (hlinfo->mouse_face_window);

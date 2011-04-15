@@ -1,4 +1,4 @@
-2011-04-13  Paul Eggert  <eggert@cs.ucla.edu>
+2011-04-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* sysdep.c (MAX_RW_COUNT): New macro, to work around kernel bugs.
 	(emacs_read, emacs_write): Use it.
@@ -27,6 +27,448 @@
 	Accept size_t, not int.
 	(wav_play, au_play): Use size_t to store sizes, and ssize_t to
 	record read return values.
+
+2011-04-15  Ben Key  <bkey76@gmail.com>
+
+	* keyboard.c (Qundefined):  Don't declare static since it is
+	used in nsfns.m.
+	* xfaces.c (Qbold, Qexpanded, Qitalic, Qcondensed):  Don't
+	declare static since they are used in nsfont.m.
+
+2011-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* process.c (Qprocessp): Don't declare static.
+	* lisp.h (Qprocessp): Declare again.
+
+2011-04-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* font.c (Qopentype): Don't make static (used from w32uniscribe.c).
+
+2011-04-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve C-level modularity by making more things 'static'.
+
+	Don't publish debugger-only interfaces to other modules.
+	* lisp.h (safe_debug_print, debug_output_compilation_hack):
+	(verify_bytepos, count_markers): Move decls to the only modules
+	that need them.
+	* region-cache.h (pp_cache): Likewise.
+	* window.h (check_all_windows): Likewise.
+	* marker.c, print.c, region-cache.c, window.c: Decls moved here.
+
+	* sysdep.c (croak): Now static, if
+	defined TIOCNOTTY || defined USG5 || defined CYGWIN.
+	* syssignal.h (croak): Declare only if not static.
+
+	* alloc.c (refill_memory_reserve): Now static if
+	!defined REL_ALLOC || defined SYSTEM_MALLOC.
+	* lisp.h (refill_memory_reserve): Declare only if not static.
+
+	* xsettings.c, xsettings.h (xsettings_get_system_normal_font):
+	Define only if USE_LUCID.
+
+	* xrdb.c (x_customization_string, x_rm_string): Now static.
+
+	* xmenu.c (x_menu_wait_for_event): Export only if USE_MOTIF.
+	* xterm.h (x_menu_wait_for_event): Declare only if USE_MOTIF.
+
+	* xdisp.c (draw_row_with_mouse_face): Now static.
+	* dispextern.h (draw_row_with_mouse_fave): Remove decl.
+
+	* window.h (check_all_windows): Mark externally visible.
+
+	* window.c (window_deletion_count): Now static.
+
+	* undo.c: Make symbols static if they're not exported.
+	(last_undo_buffer, last_boundary_position, pending_boundary):
+	Now static.
+
+	* textprop.c (interval_insert_behind_hooks): Now static.
+	(interval_insert_in_front_hooks): Likewise.
+
+	* term.c: Make symbols static if they're not exported.
+	(tty_turn_off_highlight, get_tty_terminal, max_frame_cols):
+	(max_frame_lines, tty_set_terminal_modes):
+	(tty_reset_terminal_modes, tty_turn_off_highlight):
+	(get_tty_terminal): Now static.
+	(term_mouse_moveto): Do not define if HAVE_WINDOW_SYSTEM.
+	* termhooks.h (term_mouse_moveto): Do not declare if
+	HAVE_WINDOW_SYSTEM.
+	* dispextern.h (tty_set_terminal_modes, tty_reset_terminal_modes):
+	(tty_turn_off_highlight, get_tty_terminal): Remove decls.
+
+	* sysdep.c: Make symbols static if they're not exported.
+	(emacs_get_tty, emacs_set_tty, old_fcntl_flags, old_fcntl_owner):
+	Now static.
+	(sigprocmask_set, full_mask): Remove; unused.
+	(wait_debugging): Mark as visible.
+	* syssignal.h (SIGFULLMASK, full_mask): Remove decls.
+	* systty.h (emacs_get_tty, emacs_set_tty): Remove decls.
+
+	* syntax.c (syntax_temp): Define only if !__GNUC__.
+
+	* sound.c (current_sound_device, current_sound): Now static.
+
+	* search.c (searchbufs, searchbuf_head): Now static.
+
+	* scroll.c (scroll_cost): Remove; unused.
+	* dispextern.h (scroll_cost): Remove decl.
+
+	* region-cache.h (pp_cache): Mark as externally visible.
+
+	* process.c: Make symbols static if they're not exported.
+	(process_tick, update_tick, create_process, chan_process):
+	(Vprocess_alist, proc_buffered_char, datagram_access):
+	(fd_callback_data, send_process_frame, process_sent_to): Now static.
+	(deactivate_process): Mark defn as static, as well as decl.
+	* lisp.h (create_process): Remove decl.
+	* process.h (chan_process, Vprocess_alist): Remove decls.
+
+	* print.c: Make symbols static if they're not exported.
+	(print_depth, new_backquote_output, being_printed, print_buffer):
+	(print_buffer_size, print_buffer_pos, print_buffer_pos_byte):
+	(print_interval, print_number_index, initial_stderr_stream):
+	Now static.
+	* lisp.h (Fprinc): Remove decl.
+	(debug_output_compilation_hack): Mark as externally visible.
+
+	* sysdep.c (croak): Move decl from here to syssignal.h.
+	* syssignal.h (croak): Put it here, so the API can be checked when
+	'croak' is called from dissociate_if_controlling_tty.
+
+	* minibuf.c: Make symbols static if they're not exported.
+	(minibuf_save_list, choose_minibuf_frame): Now static.
+	* lisp.h (choose_minibuf_frame): Remove decl.
+
+	* lisp.h (verify_bytepos, count_markers): Mark as externally visible.
+
+	* lread.c: Make symbols static if they're not exported.
+	(read_objects, initial_obarray, oblookup_last_bucket_number):
+	Now static.
+	(make_symbol): Remove; unused.
+	* lisp.h (initial_obarray, make_symbol): Remove decls.
+
+	* keyboard.c: Make symbols static if they're not exported.
+	(single_kboard, recent_keys_index, total_keys, recent_keys):
+	(this_command_key_count_reset, raw_keybuf, raw_keybuf_count):
+	(this_single_command_key_start, echoing, last_auto_save):
+	(read_key_sequence_cmd, dribble, recursive_edit_unwind):
+	(command_loop, echo_now, keyboard_init_hook, help_char_p):
+	(quit_throw_to_read_char, command_loop_2, top_level_1, poll_timer):
+	(Vlispy_mouse_stem, double_click_count):
+	Now static.
+	(force_auto_save_soon): Define only if SIGDANGER.
+	(ignore_mouse_drag_p): Now static if
+	!defined HAVE_WINDOW_SYSTEM || defined USE_GTK || defined HAVE_NS.
+	(print_help): Remove; unused.
+	(stop_character, last_timer_event): Mark as externally visible.
+	* keyboard.h (ignore_mouse_drag_p): Declare only if
+	defined HAVE_WINDOW_SYSTEM && !defined USE_GTK && !defined HAVE_NS.
+	(echo_now, help_char_p, quit_throw_to_read_char): Remove decls.
+	* lisp.h (echoing): Remove decl.
+	(force_auto_save_soon): Declare only if SIGDANGER.
+	* xdisp.c (redisplay_window): Simplify code, to make it more
+	obvious that ignore_mouse_drag_p is not accessed if !defined
+	USE_GTK && !defined HAVE_NS.
+
+	* intervals.c: Make symbols static if they're not exported.
+	(merge_properties_sticky, merge_interval_right, delete_interval):
+	Now static.
+	* intervals.h (merge_interval_right, delete_interval): Remove decls.
+
+	* insdel.c: Make symbols static if they're not exported.
+	However, leave prepare_to_modify_buffer alone.  It's never
+	called from outside this function, but that appears to be a bug.
+	(combine_after_change_list, combine_after_change_buffer):
+	(adjust_after_replace, signal_before_change): Now static.
+	(adjust_after_replace_noundo): Remove; unused.
+	* lisp.h (adjust_after_replace, adjust_after_replace_noundo):
+	(signal_before_change): Remove decls.
+
+	* indent.c (val_compute_motion, val_vmotion): Now static.
+
+	* image.c: Make symbols static if they're not exported.
+	* dispextern.h (x_create_bitmap_from_xpm_data): Do not declare
+	if USE_GTK.
+	* image.c (x_create_bitmap_from_xpm_data): Do not define if USE_GTK.
+	(xpm_color_cache, ct_table, ct_colors_allocated): Now static.
+
+	* fringe.c (standard_bitmaps): Now static.
+	(max_used_fringe_bitmap): Now static, unless HAVE_NS.
+
+	* frame.c: Make symbols static if they're not exported.
+	(x_report_frame_params, make_terminal_frame): Now static.
+	(get_frame_param): Now static, unless HAVE_NS.
+	(x_fullscreen_adjust): Define if WINDOWSNT, not if HAVE_WINDOW_SYSTEM.
+	(x_get_resource_string): Remove; not used.
+	* frame.h (make_terminal_frame, x_report_frame_params):
+	(x_get_resource_string); Remove decls.
+	(x_fullscreen_adjust): Declare only if WINDOWSNT.
+	* lisp.h (get_frame_param): Declare only if HAVE_NS.
+
+	* font.c, fontset.c: Make symbols static if they're not exported.
+	* dispextern.h (FACE_SUITABLE_FOR_ASCII_CHAR_P): New macro.
+	(FACE_SUITABLE_FOR_CHAR_P): Use it.
+	* font.c (font_close_object): Now static.
+	* font.h (font_close_object): Remove.
+	* fontset.c (FONTSET_OBJLIST): Remove.
+	(free_realized_fontset) #if-0 the body, which does nothing.
+	(face_suitable_for_char_p): #if-0, as it's never called.
+	* fontset.h (face_suitable_for_char_p): Remove decl.
+	* xfaces.c (face_at_string_position): Use
+	FACE_SUITABLE_FOR_ASCII_CHAR_P, not FACE_SUITABLE_FOR_CHAR_P,
+	since 0 is always ASCII.
+
+	* fns.c (weak_hash_tables): Now static.
+
+	* fileio.c: Make symbols static if they're not exported.
+	(auto_saving, auto_save_mode_bits, auto_save_error_occurred):
+	(Vwrite_region_annotation_buffers): Now static.
+
+	* eval.c: Make symbols static if they're not exported.
+	(backtrace_list, lisp_eval_depth, when_entered_debugger): Now static.
+	* lisp.h (backtrace_list): Remove decl.
+
+	* emacs.c: Make symbols static if they're not exported.
+	(malloc_state_ptr, malloc_using_checking, syms_of_emacs):
+	(fatal_error_code, fatal_error_signal_hook, standard_args):
+	Now static.
+	(fatal_error_signal): Now static, unless FLOAT_CATCH_SIGKILL.
+	(DEFINE_DUMMY_FUNCTION): Mark function as externally visible.
+	(__CTOR_LIST__, __DTOR_LIST__): Now externally visible.
+	* lisp.h (fatal_error_signal_hook): Remove decl.
+	(fatal_error_signal): Declare only if FLOAT_CATCH_SIGKILL.
+
+	* editfns.c: Move a (normally-unused) function to its only use.
+	* editfns.c, lisp.h (get_operating_system_release): Remove.
+	* process.c (init_process) [DARWIN_OS]: Do it inline, as it is not
+	worth the hassle of breaking this out.
+
+	* xterm.c: Make symbols static if they're not exported.
+	(x_raise_frame, x_lower_frame, x_wm_set_window_state):
+	(x_wm_set_icon_pixmap, x_initialize, XTread_socket_fake_io_error):
+	(x_destroy_window, x_delete_display):
+	Now static.
+	(x_dispatch_event): Now static if ! (USE_MOTIF || USE_X_TOOLKIT).
+	(x_mouse_leave): Remove; unused.
+	* xterm.h (x_display_info_for_name, x_raise_frame, x_lower_frame):
+	(x_destroy_window, x_wm_set_window_state, x_wm_set_icon_pixmap):
+	(x_delete_display, x_initialize, x_set_border_pixel, x_screen_planes):
+	Remove decls.
+	(x_mouse_leave): Declare only if WINDOWSNT.
+	(x_dispatch_event): Declare only if USE_MOTIF or USE_X_TOOLKIT.
+	(xic_create_fontsetname): Declare only if HAVE_X_WINDOWS &&
+	USE_X_TOOLKIT.
+
+	* ftxfont.c: Make symbols static if they're not exported.
+	(ftxfont_driver): Export only if !defined HAVE_XFT && def8ined
+	HAVE_FREETYPE.
+	* font.h (ftxfont_driver): Likewise.
+
+	* xfns.c: Make symbols static if they're not exported.
+	(x_last_font_name, x_display_info_for_name):
+	(x_set_foreground_color, x_set_background_color, x_set_mouse_color):
+	(x_set_cursor_color, x_set_border_pixel, x_set_border_color):
+	(x_set_cursor_type, x_set_icon_type, x_set_icon_name):
+	(x_set_scroll_bar_foreground, x_set_scroll_bar_background):
+	(x_explicitly_set_name, x_set_title, xic_defaut_fontset, tip_timer):
+	(last_show_tip_args): Now static.
+	(xic_defaut_fontset, xic_create_fontsetname): Define only if
+	defined HAVE_X_WINDOWS && defined USE_X_TOOLKIT
+	(x_screen_planes): Remove; unused.
+	* dispextern.h (x_screen_planes): Remove decl.
+
+	* dispnew.c: Make symbols static if they're not exported.
+	* dispextern.h (redraw_garbaged_frames, scrolling):
+	(increment_row_positions): Remove.
+	* dispnew.c (new_glyph_matrix, increment_row_positions, scrolling):
+	(delayed_size_change, glyph_matrix_count, glyph_pool_count):
+	Now static.
+	(redraw_garbaged_frames): Remove; unused.
+
+	* xfaces.c: Make symbols static if they're not exported.
+	* dispextern.h (ascii_face_of_lisp_face, free_realized_face):
+	Remove decls.
+	* xterm.h (defined_color): Remove decls.
+	(x_free_dpy_colors): Declare only if USE_X_TOOLKIT.
+	* xfaces.c (tty_suppress_bold_inverse_default_colors_p):
+	(menu_face_changed_default, defined_color, free_realized_face):
+	(x_free_dpy_colors): Define only if USE_X_TOOLKIT.
+	(ascii_face_of_lisp_face): Remove; unused.
+
+	* xdisp.c: Make symbols static if they're not exported.
+	* dispextern.h (scratch_glyph_row, window_box_edges):
+	(glyph_to_pixel_coords, set_cursor_from_row):
+	(get_next_display_element, set_iterator_to_next):
+	(highlight_trailing_whitespace, frame_to_window_pixel_xy):
+	(show_mouse_face): Remove decls
+	* frame.h (message_buf_print): Likewise.
+	* lisp.h (pop_message, set_message, check_point_in_composition):
+	Likewise.
+	* xterm.h (set_vertical_scroll_bar): Likewise.
+	* xdisp.c (list_of_error, Vmessage_stack, line_number_displayed):
+	(message_buf_print, scratch_glyph_row, displayed_buffer):
+	(set_iterator_to_next, pop_message, set_message, set_cursor_from_row):
+	(get_next_display_element, show_mouse_face, window_box_edges):
+	(frame_to_window_pixel_xy, check_point_in_composition):
+	(set_vertical_scroll_bar, highlight_trailing_whitespace): Now static.
+	(glyph_to_pixel_coords): Remove; unused.
+
+	* dired.c (file_name_completion): Now static.
+
+	* dbusbind.c (xd_in_read_queued_messages): Now static.
+
+	* lisp.h (circular_list_error, FOREACH): Remove; unused.
+	* data.c (circular_list_error): Remove.
+
+	* commands.h (last_point_position, last_point_position_buffer):
+	(last_point_position_window): Remove decls.
+	* keyboard.c: Make these variables static.
+
+	* coding.h (coding, code_convert_region, encode_coding_gap): Remove
+	decls.
+	* coding.c (Vsjis_coding_system, Vbig5_coding_system):
+	(iso_code_class, detect_coding, code_convert_region): Now static.
+	(encode_coding_gap): Remove; unused.
+
+	* chartab.c (chartab_chars, chartab_bits): Now static.
+
+	* charset.h (charset_iso_8859_1): Remove decl.
+	* charset.c (charset_iso_8859_1, charset_emacs, map_charset_for_dump):
+	Now static.
+
+	* ccl.h (check_ccl_update, Vccl_program_table): Remove decls.
+	* ccl.c (Vccl_program_table): Now static.
+	(check_ccl_update): Remove; unused.
+
+	* category.c (SET_CATEGORY_SET, set_category_set): Move here.
+	* category.h: ... from here.
+	* category.c (check_category_table, set_category_set): Now static.
+
+	* casetab.c (Vascii_upcase_table, Vascii_eqv_table): Now static.
+	* lisp.h: Remove these decls.
+
+	* buffer.c (buffer_count): Remove unused var.
+
+	* bidi.c (bidi_dump_cached_states): Mark as externally visible,
+	so that it's not optimized away.
+	(bidi_ignore_explicit_marks_for_paragraph_level): Likewise.
+	* dispextern.h (bidi_dump_cached_states): Remove, since it's
+	exported only to the debugger.
+
+	* atimer.c (alarm_signal_handler, run_all_atimers): Now static.
+	* atimer.h (run_all_atimers): Removed; not exported.
+
+	font.c: Make copy_font_spec and merge_font_spec ordinary C functions.
+	* font.c (copy_font_spec): Rename from Fcopy_font_spec, since it
+	was inaccessible from Lisp.
+	(merge_font_spec): Likewise, renaming from Fmerge_font_spec.
+	* font.c, font.h, fontset.c, xfaces.c, xfont.c: Change all uses.
+
+	alloc.c: Import and export fewer symbols, and remove unused items.
+	* lisp.h (suppress_checking, die): Declare only if ENABLE_CHECKING
+	is defined.
+	(suppress_checking): Add EXTERNALLY_VISIBLE attribute, so that
+	it's not optimized away by whole-program optimization.
+	(message_enable_multibyte, free_misc): Remove.
+	(catchlist, handlerlist, mark_backtrace):
+	Declare only if BYTE_MARK_STACK.
+	(mark_byte_stack): Likewise, fixing a ifdef-vs-if typo.
+	* alloc.c (pure): Export only if VIRT_ADDR_VARIES is defined.
+	(message_enable_multibyte): Remove decl.
+	(free_misc, interval_free_list, float_block, float_block_index):
+	(n_float_blocks, float_free_list, cons_block, cons_block_index):
+	(cons_free_list, last_marked_index):
+	Now static.
+	(suppress_checking, die): Define only if ENABLE_CHECKING is defined.
+	* eval.c (catchlist, handlerlist): Export only if BYTE_MARK_STACK.
+	(mark_backtrace): Define only if BYTE_MARK_STACK.
+	* xdisp.c (message_enable_multibyte): Now static.
+
+	Declare Lisp_Object Q* variables to be 'static' if not exproted.
+	This makes it easier for human readers (and static analyzers)
+	to see whether these variables are used from other modules.
+	* alloc.c, buffer.c, bytecode.c, callint.c, casetab.c, category.c:
+	* ccl.c, character.c, charset.c, cmds.c, coding.c, composite.c:
+	* data.c, dbusbind.c, dired.c, editfns.c, eval.c, fileio.c, fns.c:
+	* font.c, frame.c, fringe.c, ftfont.c, image.c, keyboard.c, keymap.c:
+	* lread.c, macros.c, minibuf.c, print.c, process.c, search.c:
+	* sound.c, syntax.c, textprop.c, window.c, xdisp.c, xfaces.c, xfns.c:
+	* xmenu.c, xselect.c:
+	Declare Q* vars static if they are not used in other modules.
+	* ccl.h, character.h, charset.h, coding.h, composite.h, font.h:
+	* frame.h, intervals.h, keyboard.h, lisp.h, process.h, syntax.h:
+	Remove decls of unexported vars.
+	* keyboard.h (EVENT_HEAD_UNMODIFIED): Remove now-unused macro.
+
+	* lisp.h (DEFINE_FUNC): Make sname 'static'.
+
+	Make Emacs functions such as Fatom 'static' by default.
+	This makes it easier for human readers (and static analyzers)
+	to see whether these functions can be called from other modules.
+	DEFUN now defines a static function.  To make the function external
+	so that it can be used in other C modules, use the new macro DEFUE.
+	* lisp.h (Funibyte_char_to_multibyte, Fsyntax_table_p):
+	(Finit_image_library):
+	(Feval_region, Fbacktrace, Ffetch_bytecode, Fswitch_to_buffer):
+	(Ffile_executable_p, Fmake_symbolic_link, Fcommand_execute):
+	(Fget_process, Fdocumentation_property, Fbyte_code, Ffile_attributes):
+	Remove decls, since these functions are now static.
+	(Funintern, Fget_internal_run_time): New decls, since these functions
+	were already external.
+
+	* alloc.c, buffer.c, callint.c, callproc.c, casefiddle.c, casetab.c:
+	* ccl.c, character.c, chartab.c, cmds.c, coding.c, data.c, dispnew.c:
+	* doc.c, editfns.c, emacs.c, eval.c, fileio.c, filelock.c, floatfns.c:
+	* fns.c, font.c, fontset.c, frame.c, image.c, indent.c:
+	* keyboard.c, keymap.c, lread.c:
+	* macros.c, marker.c, menu.c, minibuf.c, print.c, process.c, search.c:
+	* syntax.c, term.c, terminal.c, textprop.c, undo.c:
+	* window.c, xdisp.c, xfaces.c, xfns.c, xmenu.c, xsettings.c:
+	Mark functions with DEFUE instead of DEFUN,
+	if they are used in other modules.
+	* buffer.c (Fset_buffer_major_mode, Fdelete_overlay): New forward
+	decls for now-static functions.
+	* buffer.h (Fdelete_overlay): Remove decl.
+	* callproc.c (Fgetenv_internal): Mark as internal.
+	* composite.c (Fremove_list_of_text_properties): Remove decl.
+	(Fcomposition_get_gstring): New forward static decl.
+	* composite.h (Fcomposite_get_gstring): Remove decl.
+	* dired.c (Ffile_attributes): New forward static decl.
+	* doc.c (Fdocumntation_property): New forward static decl.
+	* eval.c (Ffetch_bytecode): New forward static decl.
+	(Funintern): Remove extern decl; now in .h file where it belongs.
+	* fileio.c (Fmake_symbolic_link): New forward static decl.
+	* image.c (Finit_image_library): New forward static decl.
+	* insdel.c (Fcombine_after_change_execute): Make forward decl static.
+	* intervals.h (Fprevious_property_change):
+	(Fremove_list_of_text_properties): Remove decls.
+	* keyboard.c (Fthis_command_keys): Remove decl.
+	(Fcommand_execute): New forward static decl.
+	* keymap.c (Flookup_key): New forward static decl.
+	(Fcopy_keymap): Now static.
+	* keymap.h (Flookup_key): Remove decl.
+	* process.c (Fget_process): New forward static decl.
+	(Fprocess_datagram_address): Mark as internal.
+	* syntax.c (Fsyntax_table_p): New forward static decl.
+	(skip_chars): Remove duplicate decl.
+	* textprop.c (Fprevious_property_change): New forward static decl.
+	* window.c (Fset_window_fringes, Fset_window_scroll_bars):
+	Now internal.
+	(Fset_window_margins, Fset_window_vscroll): New forward static decls.
+	* window.h (Fset_window_vscroll, Fset_window_margins): Remove decls.
+
+	* editfns.c (Fformat): Remove unreachable code.
+
+2011-04-14  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* fileio.c (Finsert_file_contents): Fix typo in 2005-05-13
+	change.  (Bug#8496)
+
+2011-04-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (handle_invisible_prop): Don't call bidi_paragraph_init
+	when at ZV.  (Bug#8487)
 
 2011-04-12  Andreas Schwab  <schwab@linux-m68k.org>
 

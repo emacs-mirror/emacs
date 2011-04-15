@@ -781,6 +781,7 @@ int region_cache_backward (struct buffer *buf, struct region_cache *c,
 
 /* Debugging: pretty-print a cache to the standard error output.  */
 
+void pp_cache (struct region_cache *) EXTERNALLY_VISIBLE;
 void
 pp_cache (struct region_cache *c)
 {

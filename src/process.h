@@ -143,12 +143,6 @@ struct Lisp_Process
 
 #define ChannelMask(n) (1<<(n))
 
-/* Indexed by descriptor, gives the process (if any) for that descriptor.  */
-extern Lisp_Object chan_process[];
-
-/* Alist of elements (NAME . PROCESS).  */
-extern Lisp_Object Vprocess_alist;
-
 /* True if we are about to fork off a synchronous process or if we
    are waiting for it.  */
 extern int synch_process_alive;
@@ -181,7 +175,7 @@ extern Lisp_Object Qminflt, Qmajflt, Qcminflt, Qcmajflt, Qutime, Qstime;
 extern Lisp_Object Qcutime, Qpri, Qnice, Qthcount, Qstart, Qvsize, Qrss, Qargs;
 extern Lisp_Object Quser, Qgroup, Qetime, Qpcpu, Qpmem, Qtpgid, Qcstime;
 extern Lisp_Object Qtime, Qctime;
-extern Lisp_Object QCport, QCspeed, QCprocess;
+extern Lisp_Object QCspeed;
 extern Lisp_Object QCbytesize, QCstopbits, QCparity, Qodd, Qeven;
 extern Lisp_Object QCflowcontrol, Qhw, Qsw, QCsummary;
 
@@ -198,4 +192,3 @@ extern void add_read_fd (int fd, fd_callback func, void *data);
 extern void delete_read_fd (int fd);
 extern void add_write_fd (int fd, fd_callback func, void *data);
 extern void delete_write_fd (int fd);
-

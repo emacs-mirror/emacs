@@ -77,9 +77,11 @@ static int been_here = -1;
 static void tty_set_scroll_region (struct frame *f, int start, int stop);
 static void turn_on_face (struct frame *, int face_id);
 static void turn_off_face (struct frame *, int face_id);
+static void tty_turn_off_highlight (struct tty_display_info *);
 static void tty_show_cursor (struct tty_display_info *);
 static void tty_hide_cursor (struct tty_display_info *);
 static void tty_background_highlight (struct tty_display_info *tty);
+static struct terminal *get_tty_terminal (Lisp_Object, int);
 static void clear_tty_hooks (struct terminal *terminal);
 static void set_tty_hooks (struct terminal *terminal);
 static void dissociate_if_controlling_tty (int fd);
@@ -133,11 +135,11 @@ enum no_color_bit
 
 /* The largest frame width in any call to calculate_costs.  */
 
-int max_frame_cols;
+static int max_frame_cols;
 
 /* The largest frame height in any call to calculate_costs.  */
 
-int max_frame_lines;
+static int max_frame_lines;
 
 /* Non-zero if we have dropped our controlling tty and therefore
    should not open a frame on stdout. */
@@ -173,7 +175,7 @@ tty_ring_bell (struct frame *f)
 
 /* Set up termcap modes for Emacs. */
 
-void
+static void
 tty_set_terminal_modes (struct terminal *terminal)
 {
   struct tty_display_info *tty = terminal->display_info.tty;
@@ -201,7 +203,7 @@ tty_set_terminal_modes (struct terminal *terminal)
 
 /* Reset termcap modes before exiting Emacs. */
 
-void
+static void
 tty_reset_terminal_modes (struct terminal *terminal)
 {
   struct tty_display_info *tty = terminal->display_info.tty;
@@ -286,7 +288,7 @@ tty_turn_off_insert (struct tty_display_info *tty)
 
 /* Handle highlighting.  */
 
-void
+static void
 tty_turn_off_highlight (struct tty_display_info *tty)
 {
   if (tty->standout_mode)
@@ -2368,7 +2370,7 @@ set_tty_color_mode (struct tty_display_info *tty, struct frame *f)
 
 /* Return the tty display object specified by TERMINAL. */
 
-struct terminal *
+static struct terminal *
 get_tty_terminal (Lisp_Object terminal, int throw)
 {
   struct terminal *t = get_terminal (terminal, throw);
@@ -2614,6 +2616,8 @@ frame's terminal). */)
  ***********************************************************************/
 
 #ifdef HAVE_GPM
+
+#ifndef HAVE_WINDOW_SYSTEM
 void
 term_mouse_moveto (int x, int y)
 {
@@ -2627,6 +2631,7 @@ term_mouse_moveto (int x, int y)
   last_mouse_x = x;
   last_mouse_y = y;  */
 }
+#endif /* HAVE_WINDOW_SYSTEM */
 
 /* Implementation of draw_row_with_mouse_face for TTY/GPM.  */
 void

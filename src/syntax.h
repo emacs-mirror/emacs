@@ -19,7 +19,6 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
-extern Lisp_Object Qsyntax_table_p;
 extern void update_syntax_table (EMACS_INT, int, int, Lisp_Object);
 
 /* The standard syntax table is stored where it will automatically
@@ -300,4 +299,3 @@ struct gl_state_s
 
 extern struct gl_state_s gl_state;
 extern EMACS_INT scan_words (EMACS_INT, EMACS_INT);
-

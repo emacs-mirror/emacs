@@ -125,14 +125,16 @@ Lisp_Object QCfoundry;
 static Lisp_Object QCadstyle, QCregistry;
 /* Symbols representing keys of font extra info.  */
 Lisp_Object QCspacing, QCdpi, QCscalable, QCotf, QClang, QCscript, QCavgwidth;
-Lisp_Object QCantialias, QCfont_entity, QCfc_unknown_spec;
+Lisp_Object QCantialias, QCfont_entity;
+static Lisp_Object QCfc_unknown_spec;
 /* Symbols representing values of font spacing property.  */
-Lisp_Object Qc, Qm, Qp, Qd;
+static Lisp_Object Qc, Qm, Qd;
+Lisp_Object Qp;
 /* Special ADSTYLE properties to avoid fonts used for Latin
    characters; used in xfont.c and ftfont.c.  */
 Lisp_Object Qja, Qko;
 
-Lisp_Object QCuser_spec;
+static Lisp_Object QCuser_spec;
 
 /* Alist of font registry symbol and the corresponding charsets
    information.  The information is retrieved from
@@ -2725,7 +2727,7 @@ font_list_entities (Lisp_Object frame, Lisp_Object spec)
 	      val = null_vector;
 	    else
 	      val = Fvconcat (1, &val);
-	    copy = Fcopy_font_spec (scratch_font_spec);
+	    copy = copy_font_spec (scratch_font_spec);
 	    ASET (copy, FONT_TYPE_INDEX, driver_list->driver->type);
 	    XSETCDR (cache, Fcons (Fcons (copy, val), XCDR (cache)));
 	  }
@@ -2753,7 +2755,7 @@ font_matching_entity (FRAME_PTR f, Lisp_Object *attrs, Lisp_Object spec)
   struct font_driver_list *driver_list = f->font_driver_list;
   Lisp_Object ftype, size, entity;
   Lisp_Object frame;
-  Lisp_Object work = Fcopy_font_spec (spec);
+  Lisp_Object work = copy_font_spec (spec);
 
   XSETFRAME (frame, f);
   ftype = AREF (spec, FONT_TYPE_INDEX);
@@ -2780,7 +2782,7 @@ font_matching_entity (FRAME_PTR f, Lisp_Object *attrs, Lisp_Object spec)
 	else
 	  {
 	    entity = driver_list->driver->match (frame, work);
-	    copy = Fcopy_font_spec (work);
+	    copy = copy_font_spec (work);
 	    ASET (copy, FONT_TYPE_INDEX, driver_list->driver->type);
 	    XSETCDR (cache, Fcons (Fcons (copy, entity), XCDR (cache)));
 	  }
@@ -2870,7 +2872,7 @@ font_open_entity (FRAME_PTR f, Lisp_Object entity, int pixel_size)
 
 /* Close FONT_OBJECT that is opened on frame F.  */
 
-void
+static void
 font_close_object (FRAME_PTR f, Lisp_Object font_object)
 {
   struct font *font = XFONT_OBJECT (font_object);
@@ -2974,7 +2976,7 @@ font_clear_prop (Lisp_Object *attrs, enum font_property_index prop)
 
   if (! NILP (Ffont_get (font, QCname)))
     {
-      font = Fcopy_font_spec (font);
+      font = copy_font_spec (font);
       font_put_extra (font, QCname, Qnil);
     }
 
@@ -2985,7 +2987,7 @@ font_clear_prop (Lisp_Object *attrs, enum font_property_index prop)
       && prop != FONT_SIZE_INDEX)
     return;
   if (EQ (font, attrs[LFACE_FONT_INDEX]))
-    font = Fcopy_font_spec (font);
+    font = copy_font_spec (font);
   ASET (font, prop, Qnil);
   if (prop == FONT_FAMILY_INDEX || prop == FONT_FOUNDRY_INDEX)
     {
@@ -3096,7 +3098,7 @@ font_find_for_lface (FRAME_PTR f, Lisp_Object *attrs, Lisp_Object spec, int c)
 	return Qnil;
     }
 
-  work = Fcopy_font_spec (spec);
+  work = copy_font_spec (spec);
   ASET (work, FONT_TYPE_INDEX, AREF (spec, FONT_TYPE_INDEX));
   XSETFRAME (frame, f);
   pixel_size = font_pixel_size (f, spec);
@@ -3866,9 +3868,9 @@ usage: (font-spec ARGS...)  */)
   return spec;
 }
 
-DEFUN ("copy-font-spec", Fcopy_font_spec, Scopy_font_spec, 1, 1, 0,
-       doc: /* Return a copy of FONT as a font-spec.  */)
-  (Lisp_Object font)
+/* Return a copy of FONT as a font-spec.  */
+Lisp_Object
+copy_font_spec (Lisp_Object font)
 {
   Lisp_Object new_spec, tail, prev, extra;
   int i;
@@ -3892,18 +3894,18 @@ DEFUN ("copy-font-spec", Fcopy_font_spec, Scopy_font_spec, 1, 1, 0,
   return new_spec;
 }
 
-DEFUN ("merge-font-spec", Fmerge_font_spec, Smerge_font_spec, 2, 2, 0,
-       doc: /* Merge font-specs FROM and TO, and return a new font-spec.
-Every specified properties in FROM override the corresponding
-properties in TO.  */)
-  (Lisp_Object from, Lisp_Object to)
+/* Merge font-specs FROM and TO, and return a new font-spec.
+   Every specified property in FROM overrides the corresponding
+   property in TO.  */
+Lisp_Object
+merge_font_spec (Lisp_Object from, Lisp_Object to)
 {
   Lisp_Object extra, tail;
   int i;
 
   CHECK_FONT (from);
   CHECK_FONT (to);
-  to = Fcopy_font_spec (to);
+  to = copy_font_spec (to);
   for (i = 0; i < FONT_EXTRA_INDEX; i++)
     ASET (to, i, AREF (from, i));
   extra = AREF (to, FONT_EXTRA_INDEX);

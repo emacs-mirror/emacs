@@ -100,6 +100,8 @@ static char buffer_permanent_local_flags[MAX_PER_BUFFER_VARS];
 
 int last_per_buffer_idx;
 
+static Lisp_Object Fset_buffer_major_mode (Lisp_Object);
+static Lisp_Object Fdelete_overlay (Lisp_Object);
 static void call_overlay_mod_hooks (Lisp_Object list, Lisp_Object overlay,
                                     int after, Lisp_Object arg1,
                                     Lisp_Object arg2, Lisp_Object arg3);
@@ -111,30 +113,31 @@ static void reset_buffer_local_variables (struct buffer *b, int permanent_too);
  to prevent lossage due to user rplac'ing this alist or its elements.  */
 Lisp_Object Vbuffer_alist;
 
-Lisp_Object Qkill_buffer_query_functions;
+static Lisp_Object Qkill_buffer_query_functions;
 
 /* Hook run before changing a major mode.  */
-Lisp_Object Qchange_major_mode_hook;
+static Lisp_Object Qchange_major_mode_hook;
 
 Lisp_Object Qfirst_change_hook;
 Lisp_Object Qbefore_change_functions;
 Lisp_Object Qafter_change_functions;
-Lisp_Object Qucs_set_table_for_input;
+static Lisp_Object Qucs_set_table_for_input;
 
-Lisp_Object Qfundamental_mode, Qmode_class, Qpermanent_local;
-Lisp_Object Qpermanent_local_hook;
+static Lisp_Object Qfundamental_mode, Qmode_class, Qpermanent_local;
+static Lisp_Object Qpermanent_local_hook;
 
-Lisp_Object Qprotected_field;
+static Lisp_Object Qprotected_field;
 
-Lisp_Object QSFundamental;	/* A string "Fundamental" */
+static Lisp_Object QSFundamental;	/* A string "Fundamental" */
 
-Lisp_Object Qkill_buffer_hook;
+static Lisp_Object Qkill_buffer_hook;
 
-Lisp_Object Qget_file_buffer;
+static Lisp_Object Qget_file_buffer;
 
-Lisp_Object Qoverlayp;
+static Lisp_Object Qoverlayp;
 
-Lisp_Object Qpriority, Qevaporate, Qbefore_string, Qafter_string;
+Lisp_Object Qpriority, Qbefore_string, Qafter_string;
+static Lisp_Object Qevaporate;
 
 Lisp_Object Qmodification_hooks;
 Lisp_Object Qinsert_in_front_hooks;
@@ -290,9 +293,6 @@ get_truename_buffer (register Lisp_Object filename)
     }
   return Qnil;
 }
-
-/* Incremented for each buffer created, to assign the buffer number. */
-int buffer_count;
 
 DEFUN ("get-buffer-create", Fget_buffer_create, Sget_buffer_create, 1, 1, 0,
        doc: /* Return the buffer specified by BUFFER-OR-NAME, creating a new one if needed.
@@ -830,8 +830,8 @@ reset_buffer_local_variables (register struct buffer *b, int permanent_too)
    and set-visited-file-name ought to be able to use this to really
    rename the buffer properly.  */
 
-DEFUN ("generate-new-buffer-name", Fgenerate_new_buffer_name, Sgenerate_new_buffer_name,
-       1, 2, 0,
+DEFUN ("generate-new-buffer-name", Fgenerate_new_buffer_name,
+       Sgenerate_new_buffer_name, 1, 2, 0,
        doc: /* Return a string that is the name of no existing buffer based on NAME.
 If there is no live buffer named NAME, then return NAME.
 Otherwise modify name by appending `<NUMBER>', incrementing NUMBER
@@ -1276,7 +1276,6 @@ If no other buffer exists, the buffer `*scratch*' is returned.
 If BUFFER is omitted or nil, some interesting buffer is returned.  */)
   (register Lisp_Object buffer, Lisp_Object visible_ok, Lisp_Object frame)
 {
-  Lisp_Object Fset_buffer_major_mode (Lisp_Object buffer);
   register Lisp_Object tail, buf, notsogood, tem, pred, add_ons;
   notsogood = Qnil;
 
@@ -2501,8 +2500,8 @@ current buffer is cleared.  */)
   return flag;
 }
 
-DEFUN ("kill-all-local-variables", Fkill_all_local_variables, Skill_all_local_variables,
-       0, 0, 0,
+DEFUN ("kill-all-local-variables", Fkill_all_local_variables,
+       Skill_all_local_variables, 0, 0, 0,
        doc: /* Switch to Fundamental mode by killing current buffer's local variables.
 Most local variable bindings are eliminated so that the default values
 become effective once more.  Also, the syntax table is set from
