@@ -580,7 +580,7 @@ Each element is (INDEX . VALUE)")
 (byte-defop 114  0 byte-save-current-buffer
   "To make a binding to record the current buffer")
 (byte-defop 115  0 byte-set-mark-OBSOLETE)
-;; (byte-defop 116  1 byte-interactive-p) ;Let's not use it any more.
+(byte-defop 116  1 byte-interactive-p-OBSOLETE)
 
 ;; These ops are new to v19
 (byte-defop 117  0 byte-forward-char)
@@ -616,8 +616,8 @@ otherwise pop it")
 
 (byte-defop 138  0 byte-save-excursion
   "to make a binding to record the buffer, point and mark")
-;; (byte-defop 139  0 byte-save-window-excursion ; Obsolete: It's a macro now.
-;;   "to make a binding to record entire window configuration")
+(byte-defop 139  0 byte-save-window-excursion-OBSOLETE
+  "to make a binding to record entire window configuration")
 (byte-defop 140  0 byte-save-restriction
   "to make a binding to record the current buffer clipping restrictions")
 (byte-defop 141 -1 byte-catch
@@ -629,9 +629,8 @@ otherwise pop it")
 ;; an expression for the body, and a list of clauses.
 (byte-defop 143 -2 byte-condition-case)
 
-;; Obsolete: `with-output-to-temp-buffer' is a macro now.
-;; (byte-defop 144  0 byte-temp-output-buffer-setup)
-;; (byte-defop 145 -1 byte-temp-output-buffer-show)
+(byte-defop 144  0 byte-temp-output-buffer-setup-OBSOLETE)
+(byte-defop 145 -1 byte-temp-output-buffer-show-OBSOLETE)
 
 ;; these ops are new to v19
 
