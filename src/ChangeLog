@@ -1,5 +1,8 @@
 2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* sysdep.c (_FILE_OFFSET_BITS): Make this hack even uglier
+	by pacifying GCC about it.  Maybe it's time to retire it?
+
 	* dispextern.h (struct redisplay_interface): Rename param
 	to avoid shadowing.
 
