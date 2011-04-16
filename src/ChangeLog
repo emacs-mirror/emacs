@@ -1,6 +1,7 @@
 2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xterm.c (x_alloc_nearest_color_for_widget): Remove; unused.
+	(x_term_init): Remove local to avoid shadowing.
 
 	* xfns.c, xterm.c (_XEditResCheckMessages): Protoize decl.
 

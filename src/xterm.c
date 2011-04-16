@@ -10260,10 +10260,10 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
 #ifdef USE_LUCID
   {
-    Display *dpy = dpyinfo->display;
     XrmValue d, fr, to;
     Font font;
 
+    dpy = dpyinfo->display;
     d.addr = (XPointer)&dpy;
     d.size = sizeof (Display *);
     fr.addr = XtDefaultFont;
