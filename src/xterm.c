@@ -1451,19 +1451,6 @@ x_frame_of_widget (Widget widget)
 }
 
 
-/* Allocate the color COLOR->pixel on the screen and display of
-   widget WIDGET in colormap CMAP.  If an exact match cannot be
-   allocated, try the nearest color available.  Value is non-zero
-   if successful.  This is called from lwlib.  */
-
-int
-x_alloc_nearest_color_for_widget (Widget widget, Colormap cmap, XColor *color)
-{
-  struct frame *f = x_frame_of_widget (widget);
-  return x_alloc_nearest_color (f, cmap, color);
-}
-
-
 /* Allocate a color which is lighter or darker than *PIXEL by FACTOR
    or DELTA.  Try a color with RGB values multiplied by FACTOR first.
    If this produces the same color as PIXEL, try a color where all RGB

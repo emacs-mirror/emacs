@@ -1,5 +1,7 @@
 2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xterm.c (x_alloc_nearest_color_for_widget): Remove; unused.
+
 	* xfns.c, xterm.c (_XEditResCheckMessages): Protoize decl.
 
 	* xdisp.c, dispextern.h (set_vertical_scroll_bar): Now extern if
