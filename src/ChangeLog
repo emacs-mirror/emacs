@@ -1,5 +1,8 @@
 2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* dispextern.h (struct redisplay_interface): Rename param
+	to avoid shadowing.
+
 	* insdel.c (make_gap_smaller): Define only if
 	USE_MMAP_FOR_BUFFERS || REL_ALLOC || DOUG_LEA_MALLOC.
 
