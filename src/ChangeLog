@@ -9,7 +9,7 @@
 	Remove unused var.
 	(gdk_x11_set_sm_client_id) [!USE_GTK]: Don't define.
 
-	* xrdb.c (x_load_resources) [!USE_MOTIF]: Omit unused local.
+	* xrdb.c (x_load_resources): Omit unused local.
 
 	* xfns.c (free_frame_menubar, atof): Remove duplicate decls.
 	(x_window): Rename locals to avoid shadowing.
