@@ -5205,7 +5205,6 @@ Value is t if tooltip was open, nil otherwise.  */)
   int count;
   Lisp_Object deleted, frame, timer;
   struct gcpro gcpro1, gcpro2;
-  struct frame *f;
 
   /* Return quickly if nothing to do.  */
   if (NILP (tip_timer) && NILP (tip_frame))
@@ -5224,11 +5223,13 @@ Value is t if tooltip was open, nil otherwise.  */)
     call1 (Qcancel_timer, timer);
 
 #ifdef USE_GTK
-  /* When using system tooltip, tip_frame is the Emacs frame on which
-     the tip is shown.  */
-  f = XFRAME (frame);
-  if (FRAME_LIVE_P (f) && xg_hide_tooltip (f))
-    frame = Qnil;
+  {
+    /* When using system tooltip, tip_frame is the Emacs frame on which
+       the tip is shown.  */
+    struct frame *f = XFRAME (frame);
+    if (FRAME_LIVE_P (f) && xg_hide_tooltip (f))
+      frame = Qnil;
+  }
 #endif
 
   if (FRAMEP (frame))
@@ -5242,7 +5243,7 @@ Value is t if tooltip was open, nil otherwise.  */)
 	 items is unmapped.  Redisplay the menu manually...  */
       {
         Widget w;
-	f = SELECTED_FRAME ();
+	struct frame *f = SELECTED_FRAME ();
 	w = f->output_data.x->menubar_widget;
 
 	if (!DoesSaveUnders (FRAME_X_DISPLAY_INFO (f)->screen)

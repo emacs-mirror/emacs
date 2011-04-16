@@ -1,5 +1,7 @@
 2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xfns.c (Fx_hide_tip): Move locals to avoid shadowing.
+
 	* menu.c (push_submenu_start, push_submenu_end): Do not define unless
 	USE_X_TOOLKIT || USE_GTK || HAVE_NS || defined HAVE_NTGUI.
 	(single_menu_item): Rename local to avoid shadowing.
