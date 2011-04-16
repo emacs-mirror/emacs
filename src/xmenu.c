@@ -108,7 +108,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifndef TRUE
 #define TRUE 1
-#define FALSE 0
 #endif /* no TRUE */
 
 static Lisp_Object Qdebug_on_next_call;
@@ -117,8 +116,6 @@ static Lisp_Object Qdebug_on_next_call;
 static Lisp_Object xdialog_show (FRAME_PTR, int, Lisp_Object, Lisp_Object,
                                  const char **);
 #endif
-
-static int update_frame_menubar (struct frame *);
 
 /* Flag which when set indicates a dialog or menu has been posted by
    Xt on behalf of one of the widget sets.  */
@@ -2185,7 +2182,7 @@ static struct frame *menu_help_frame;
    keyboard events.  */
 
 static void
-menu_help_callback (char *help_string, int pane, int item)
+menu_help_callback (char const *help_string, int pane, int item)
 {
   Lisp_Object *first_item;
   Lisp_Object pane_name;
@@ -2358,32 +2355,29 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 	{
 	  /* Create a new item within current pane.  */
 	  Lisp_Object item_name, enable, descrip, help;
-	  unsigned char *item_data;
-	  char *help_string;
+	  char *item_data;
+	  char const *help_string;
 
 	  item_name = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_NAME];
 	  enable = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_ENABLE];
 	  descrip
 	    = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_EQUIV_KEY];
 	  help = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_HELP];
-	  help_string = STRINGP (help) ? SDATA (help) : NULL;
+	  help_string = STRINGP (help) ? SSDATA (help) : NULL;
 
 	  if (!NILP (descrip))
 	    {
-	      int gap = maxwidth - SBYTES (item_name);
 	      /* if alloca is fast, use that to make the space,
 		 to reduce gc needs.  */
-	      item_data
-		= (unsigned char *) alloca (maxwidth
-					    + SBYTES (descrip) + 1);
-	      memcpy (item_data, SDATA (item_name), SBYTES (item_name));
+	      item_data = (char *) alloca (maxwidth + SBYTES (descrip) + 1);
+	      memcpy (item_data, SSDATA (item_name), SBYTES (item_name));
 	      for (j = SCHARS (item_name); j < maxwidth; j++)
 		item_data[j] = ' ';
-	      memcpy (item_data + j, SDATA (descrip), SBYTES (descrip));
+	      memcpy (item_data + j, SSDATA (descrip), SBYTES (descrip));
 	      item_data[j + SBYTES (descrip)] = 0;
 	    }
 	  else
-	    item_data = SDATA (item_name);
+	    item_data = SSDATA (item_name);
 
 	  if (XMenuAddSelection (FRAME_X_DISPLAY (f),
 				 menu, lpane, 0, item_data,

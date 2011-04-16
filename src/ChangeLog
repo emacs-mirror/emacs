@@ -1,5 +1,11 @@
 2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xmenu.c (menu_help_callback): Pointer type fixes.
+	Use const pointers when pointing at readonly data.  Avoid pointer
+	signedness clashes.
+	(FALSE): Remove unused macro.
+	(update_frame_menubar): Remove unused decl.
+
 	* xfns.c (Fx_hide_tip): Move locals to avoid shadowing.
 
 	* menu.c (push_submenu_start, push_submenu_end): Do not define unless
