@@ -1,5 +1,8 @@
 2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* insdel.c (make_gap_smaller): Define only if
+	USE_MMAP_FOR_BUFFERS || REL_ALLOC || DOUG_LEA_MALLOC.
+
 	* keyboard.c (read_char): Make a var volatile so longjmp won't clobber
 	it.
 
