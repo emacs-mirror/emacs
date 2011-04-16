@@ -2,6 +2,7 @@
 
 	* xfns.c (free_frame_menubar, atof): Remove duplicate decls.
 	(x_window): Rename locals to avoid shadowing.
+	(USG): Use the kludged USG macro, to pacify gcc.
 
 	* xterm.c (x_alloc_nearest_color_for_widget): Remove; unused.
 	(x_term_init): Remove local to avoid shadowing.

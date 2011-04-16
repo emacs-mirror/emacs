@@ -83,6 +83,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef USG	/* ####KLUDGE for Solaris 2.2 and up */
 #include <X11/Xos.h>
 #define USG
+#ifdef USG /* Pacify gcc -Wunused-macros.  */
+#endif
 #else
 #include <X11/Xos.h>
 #endif
