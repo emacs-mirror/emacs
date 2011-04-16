@@ -22712,7 +22712,7 @@ x_produce_glyphs (struct it *it)
 	  int lbearing, rbearing;
 	  int i, width, ascent, descent;
 	  int left_padded = 0, right_padded = 0;
-	  int c = 0; /* FIXME: Is 0 right here, when cmp->glyph_len == 0?  */
+	  int c IF_LINT (= 0); /* cmp->glyph_len can't be zero; see Bug#8512 */
 	  XChar2b char2b;
 	  struct font_metrics *pcm;
 	  int font_not_found_p;
