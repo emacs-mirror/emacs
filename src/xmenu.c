@@ -2299,7 +2299,8 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
   y += f->top_pos;
 
   /* Create all the necessary panes and their items.  */
-  maxlines = lines = i = 0;
+  maxwidth = maxlines = lines = i = 0;
+  lpane = XM_FAILURE;
   while (i < menu_items_used)
     {
       if (EQ (XVECTOR (menu_items)->contents[i], Qt))
@@ -2327,7 +2328,6 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 	  i += MENU_ITEMS_PANE_LENGTH;
 
 	  /* Find the width of the widest item in this pane.  */
-	  maxwidth = 0;
 	  j = i;
 	  while (j < menu_items_used)
 	    {
@@ -2379,10 +2379,11 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 	  else
 	    item_data = SSDATA (item_name);
 
-	  if (XMenuAddSelection (FRAME_X_DISPLAY (f),
-				 menu, lpane, 0, item_data,
-				 !NILP (enable), help_string)
-	      == XM_FAILURE)
+	  if (lpane == XM_FAILURE
+	      || (XMenuAddSelection (FRAME_X_DISPLAY (f),
+				     menu, lpane, 0, item_data,
+				     !NILP (enable), help_string)
+		  == XM_FAILURE))
 	    {
 	      XMenuDestroy (FRAME_X_DISPLAY (f), menu);
 	      *error_name = "Can't add selection to menu";
@@ -2462,6 +2463,7 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
   status = XMenuActivate (FRAME_X_DISPLAY (f), menu, &pane, &selidx,
                           x, y, ButtonReleaseMask, &datap,
                           menu_help_callback);
+  entry = pane_prefix = Qnil;
 
   switch (status)
     {
@@ -2508,14 +2510,12 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
     case XM_FAILURE:
       *error_name = "Can't activate menu";
     case XM_IA_SELECT:
-      entry = Qnil;
       break;
     case XM_NO_SELECT:
       /* Make "Cancel" equivalent to C-g unless FOR_CLICK (which means
 	 the menu was invoked with a mouse event as POSITION).  */
       if (! for_click)
         Fsignal (Qquit, Qnil);
-      entry = Qnil;
       break;
     }
 

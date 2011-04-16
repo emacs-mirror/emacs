@@ -1,5 +1,7 @@
 2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xmenu.c (xmenu_show): Don't use uninitialized vars.
+
 	* xterm.c: Fix problems found by static analysis with other toolkits.
 	(toolkit_scroll_bar_interaction): Define and use only if USE_X_TOOLKIT.
 	(x_dispatch_event): Declare static only if !USE_GTK && USE_X_TOOLKIT.
