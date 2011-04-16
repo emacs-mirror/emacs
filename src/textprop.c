@@ -514,7 +514,7 @@ erase_properties (INTERVAL i)
    POSITION is BEG-based.  */
 
 INTERVAL
-interval_of (int position, Lisp_Object object)
+interval_of (EMACS_INT position, Lisp_Object object)
 {
   register INTERVAL i;
   EMACS_INT beg, end;
@@ -2012,7 +2012,8 @@ call_mod_hooks (Lisp_Object list, Lisp_Object start, Lisp_Object end)
    those hooks in order, with START and END - 1 as arguments.  */
 
 void
-verify_interval_modification (struct buffer *buf, int start, int end)
+verify_interval_modification (struct buffer *buf,
+			      EMACS_INT start, EMACS_INT end)
 {
   register INTERVAL intervals = BUF_INTERVALS (buf);
   register INTERVAL i;

@@ -161,12 +161,12 @@ struct interval
    (INTERVAL_HAS_PARENT (i) ? INTERVAL_PARENT (i) : 0)
 
 /* Abort if interval I's size is negative.  */
-#define CHECK_TOTAL_LENGTH(i)	       \
-  do				       \
-    {				       \
-      if ((int) (i)->total_length < 0) \
-	abort ();		       \
-    }				       \
+#define CHECK_TOTAL_LENGTH(i)		     \
+  do					     \
+    {					     \
+      if ((EMACS_INT) (i)->total_length < 0) \
+	abort ();			     \
+    }					     \
   while (0)
 
 /* Reset this interval to its vanilla, or no-property state. */
@@ -269,7 +269,8 @@ extern INTERVAL merge_interval_left (INTERVAL);
 extern void offset_intervals (struct buffer *, EMACS_INT, EMACS_INT);
 extern void graft_intervals_into_buffer (INTERVAL, EMACS_INT, EMACS_INT,
                                          struct buffer *, int);
-extern void verify_interval_modification (struct buffer *, int, int);
+extern void verify_interval_modification (struct buffer *,
+					  EMACS_INT, EMACS_INT);
 extern INTERVAL balance_intervals (INTERVAL);
 extern void copy_intervals_to_string (Lisp_Object, struct buffer *,
                                              EMACS_INT, EMACS_INT);
@@ -285,7 +286,7 @@ extern INTERVAL update_interval (INTERVAL, EMACS_INT);
 extern void set_intervals_multibyte (int);
 extern INTERVAL validate_interval_range (Lisp_Object, Lisp_Object *,
                                          Lisp_Object *, int);
-extern INTERVAL interval_of (int, Lisp_Object);
+extern INTERVAL interval_of (EMACS_INT, Lisp_Object);
 
 /* Defined in xdisp.c */
 extern int invisible_p (Lisp_Object, Lisp_Object);

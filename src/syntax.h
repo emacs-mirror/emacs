@@ -19,7 +19,7 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
-extern void update_syntax_table (EMACS_INT, int, int, Lisp_Object);
+extern void update_syntax_table (EMACS_INT, EMACS_INT, int, Lisp_Object);
 
 /* The standard syntax table is stored where it will automatically
    be used in all new buffers.  */
@@ -276,15 +276,15 @@ while (0)
 struct gl_state_s
 {
   Lisp_Object object;			/* The object we are scanning. */
-  int start;				/* Where to stop. */
-  int stop;				/* Where to stop. */
+  EMACS_INT start;			/* Where to stop. */
+  EMACS_INT stop;			/* Where to stop. */
   int use_global;			/* Whether to use global_code
 					   or c_s_t. */
   Lisp_Object global_code;		/* Syntax code of current char. */
   Lisp_Object current_syntax_table;	/* Syntax table for current pos. */
   Lisp_Object old_prop;			/* Syntax-table prop at prev pos. */
-  int b_property;			/* First index where c_s_t is valid. */
-  int e_property;			/* First index where c_s_t is
+  EMACS_INT b_property;			/* First index where c_s_t is valid. */
+  EMACS_INT e_property;			/* First index where c_s_t is
 					   not valid. */
   INTERVAL forward_i;			/* Where to start lookup on forward */
   INTERVAL backward_i;			/* or backward movement.  The
@@ -294,7 +294,7 @@ struct gl_state_s
 					   intervals too, depending
 					   on: */
   /* Offset for positions specified to UPDATE_SYNTAX_TABLE.  */
-  int offset;
+  EMACS_INT offset;
 };
 
 extern struct gl_state_s gl_state;

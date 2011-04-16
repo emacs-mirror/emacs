@@ -175,7 +175,7 @@ struct gl_state_s gl_state;		/* Global state of syntax parser.  */
    start/end of OBJECT.  */
 
 void
-update_syntax_table (EMACS_INT charpos, int count, int init,
+update_syntax_table (EMACS_INT charpos, EMACS_INT count, int init,
 		     Lisp_Object object)
 {
   Lisp_Object tmp_table;

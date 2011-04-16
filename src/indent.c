@@ -2026,7 +2026,8 @@ whether or not it is currently displayed in some window.  */)
     }
   else
     {
-      int it_start, first_x, it_overshoot_expected IF_LINT (= 0);
+      EMACS_INT it_start;
+      int first_x, it_overshoot_expected IF_LINT (= 0);
 
       SET_TEXT_POS (pt, PT, PT_BYTE);
       start_display (&it, w, pt);

@@ -805,9 +805,9 @@ update_interval (register INTERVAL i, EMACS_INT pos)
 static INTERVAL
 adjust_intervals_for_insertion (tree, position, length)
      INTERVAL tree;
-     int position, length;
+     EMACS_INT position, length;
 {
-  register int relative_position;
+  register EMACS_INT relative_position;
   register INTERVAL this;
 
   if (TOTAL_LENGTH (tree) == 0)	/* Paranoia */
