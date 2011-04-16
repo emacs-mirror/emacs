@@ -979,7 +979,7 @@ lw_destroy_all_pop_ups (void)
 }
 
 #ifdef USE_MOTIF
-extern Widget first_child (/* Widget */);	/* garbage */
+extern Widget first_child (Widget);	/* garbage */
 #endif
 
 Widget
