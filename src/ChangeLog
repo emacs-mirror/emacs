@@ -1,5 +1,9 @@
 2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* process.c (keyboard_bit_set): Define only if SIGIO.
+	(send_process_trap): Mark it with NO_RETURN if it doesn't return.
+	(send_process): Repair possible setjmp clobbering.
+
 	* s/usg5-4-common.h (SETUP_SLAVE_PTY): Don't pass extra arg to 'fatal'.
 
 	* eval.c: Include <stdio.h>, for vsnprintf on non-GNU/Linux hosts.
