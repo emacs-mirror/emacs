@@ -1,5 +1,8 @@
 2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* fakemail.c (xmalloc, xreallc): Use standard C prototypes
+	with void *.  This avoids warnings about pointer casts.
+
 	* emacsclient.c (main): Don't use uninitialized var.
 	(IS_ANY_SEP): Remove; unused.
 	(get_current_dir_name): Add an extern decl.
