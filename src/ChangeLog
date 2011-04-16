@@ -1,5 +1,8 @@
 2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* frame.c, frame.h (x_get_resource_string): Bring this back, but
+	only if HAVE_X_WINDOWS && !USE_X_TOOLKIT.
+
 	* bitmaps: Change bitmaps from unsigned char back to the X11
 	compatible char.  Avoid the old compiler warnings about
 	out-of-range initializers by using, for example, '\xab' rather

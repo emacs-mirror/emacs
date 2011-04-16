@@ -1133,6 +1133,10 @@ extern Lisp_Object display_x_get_resource (Display_Info *,
 					   Lisp_Object component,
 					   Lisp_Object subclass);
 
+#if defined HAVE_X_WINDOWS && !defined USE_X_TOOLKIT
+extern char *x_get_resource_string (const char *, const char *);
+#endif
+
 /* In xmenu.c */
 extern void set_frame_menubar (FRAME_PTR, int, int);
 
