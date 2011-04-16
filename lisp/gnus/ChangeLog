@@ -1,3 +1,23 @@
+2011-04-16  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* registry.el (registry-reindex): New method to recreate the secondary
+	registry indices.
+
+	* gnus-registry.el (gnus-registry-fixup-registry): Use it if the
+	tracked field changes.
+	(gnus-registry-unfollowed-addresses, gnus-registry-track-extra)
+	(gnus-registry-action, gnus-registry-spool-action)
+	(gnus-registry-handle-action)
+	(gnus-registry--split-fancy-with-parent-internal)
+	(gnus-registry-split-fancy-with-parent)
+	(gnus-registry-register-message-ids): Add recipient tracking on spool,
+	move, and delete actions, and for fancy splitting with parent.
+	(gnus-registry-extract-addresses)
+	(gnus-registry-fetch-recipients-fast)
+	(gnus-registry-fetch-header-fast): Convenience functions.
+	(gnus-registry-misc-test): ERT test of
+	`gnus-registry-extract-addresses'.
+
 2011-04-15  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus-registry.el (gnus-registry--split-fancy-with-parent-internal):
