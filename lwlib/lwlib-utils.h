@@ -15,7 +15,4 @@ Widget *XtCompositeChildren (Widget, unsigned int *);
 Boolean
 XtWidgetBeingDestroyedP (Widget widget);
 
-void XtSafelyDestroyWidget (Widget);
-
 #endif /* _LWLIB_UTILS_H_ */
-

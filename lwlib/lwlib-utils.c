@@ -141,29 +141,3 @@ XtWidgetBeingDestroyedP (Widget widget)
 {
   return widget->core.being_destroyed;
 }
-
-void
-XtSafelyDestroyWidget (Widget widget)
-{
-#if 0
-
-  /* this requires IntrinsicI.h (actually, InitialI.h) */
-
-  XtAppContext app = XtWidgetToApplicationContext(widget);
-
-  if (app->dispatch_level == 0)
-    {
-      app->dispatch_level = 1;
-      XtDestroyWidget (widget);
-      /* generates an event so that the event loop will be called */
-      XChangeProperty (XtDisplay (widget), XtWindow (widget),
-		       XA_STRING, XA_STRING, 32, PropModeAppend, NULL, 0);
-      app->dispatch_level = 0;
-    }
-  else
-    XtDestroyWidget (widget);
-
-#else
-  abort ();
-#endif
-}

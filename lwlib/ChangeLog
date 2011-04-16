@@ -1,5 +1,7 @@
 2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lwlib-utils.h, lwlib-utils.c (XtSafelyDestroyWidget): Remove; unused.
+
 	* xlwmenu.c (XlwMenuSetValues): Rename/ move locals to avoid shadowing.
 	(MINL): Define only if not emacs.
 
