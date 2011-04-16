@@ -112,9 +112,6 @@ extern void _XEditResCheckMessages (Widget, XtPointer, XEvent *, Boolean *);
 
 extern LWLIB_ID widget_id_tick;
 
-extern void free_frame_menubar ();
-extern double atof ();
-
 #ifdef USE_MOTIF
 
 #endif /* USE_MOTIF */
