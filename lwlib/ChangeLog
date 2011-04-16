@@ -1,5 +1,8 @@
 2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lwlib-Xm.c (make_dialog): Rename local to avoid shadowing.
+	(make_menu_in_widget): Add cast to avoid warning.
+
 	* lwlib.c (EXPLAIN, destroy_one_instance): Avoid "else;".
 	(first_child) [USE_MOTIF]: Protoize.
 
