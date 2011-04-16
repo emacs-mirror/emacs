@@ -5462,12 +5462,12 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
   /* Get the result.  */
   if (result == XmCR_OK)
     {
-      XmString text;
+      XmString text_string;
       String data;
 
-      XtVaGetValues (dialog, XmNtextString, &text, NULL);
-      XmStringGetLtoR (text, XmFONTLIST_DEFAULT_TAG, &data);
-      XmStringFree (text);
+      XtVaGetValues (dialog, XmNtextString, &text_string, NULL);
+      XmStringGetLtoR (text_string, XmFONTLIST_DEFAULT_TAG, &data);
+      XmStringFree (text_string);
       file = build_string (data);
       XtFree (data);
     }
