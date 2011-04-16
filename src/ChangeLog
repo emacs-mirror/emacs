@@ -1,5 +1,8 @@
 2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xterm.c (x_create_toolkit_scroll_bar): Use const * for pointers
+	to read-only memory.
+
 	* fns.c (vector): Remove; this old hack is no longer needed.
 
 	* xsmfns.c (create_client_leader_window): Rename shadowing arg.

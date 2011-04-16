@@ -4522,7 +4522,7 @@ x_create_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
   Widget widget;
   Arg av[20];
   int ac = 0;
-  char *scroll_bar_name = SCROLL_BAR_NAME;
+  char const *scroll_bar_name = SCROLL_BAR_NAME;
   unsigned long pixel;
 
   BLOCK_INPUT;
@@ -4674,8 +4674,8 @@ x_create_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
 			   f->output_data.x->edit_widget, av, ac);
 
   {
-    char *initial = "";
-    char *val = initial;
+    char const *initial = "";
+    char const *val = initial;
     XtVaGetValues (widget, XtNscrollVCursor, (XtPointer) &val,
 #ifdef XtNarrowScrollbars
 		   XtNarrowScrollbars, (XtPointer) &xaw3d_arrow_scroll,
