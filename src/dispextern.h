@@ -2953,6 +2953,9 @@ int line_bottom_y (struct it *);
 int display_prop_intangible_p (Lisp_Object);
 void resize_echo_area_exactly (void);
 int resize_mini_window (struct window *, int);
+#if defined USE_TOOLKIT_SCROLL_BARS && !defined USE_GTK
+void set_vertical_scroll_bar (struct window *);
+#endif
 int try_window (Lisp_Object, struct text_pos, int);
 void window_box (struct window *, int, int *, int *, int *, int *);
 int window_box_height (struct window *);

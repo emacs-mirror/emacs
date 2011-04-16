@@ -13630,7 +13630,10 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
   return rc;
 }
 
-static void
+#if !defined USE_TOOLKIT_SCROLL_BARS || defined USE_GTK
+static
+#endif
+void
 set_vertical_scroll_bar (struct window *w)
 {
   EMACS_INT start, end, whole;

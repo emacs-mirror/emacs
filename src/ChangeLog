@@ -1,3 +1,8 @@
+2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xdisp.c, dispextern.h (set_vertical_scroll_bar): Now extern if
+	USE_TOOLKIT_SCROLL_BARS && !USE_GTK, as xterm.c needs it then.
+
 2011-04-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* sysdep.c (emacs_read): Remove unnecessary check vs MAX_RW_COUNT.
