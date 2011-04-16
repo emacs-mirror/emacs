@@ -1,5 +1,8 @@
 2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* emacs.c (MAX_HEAP_BSS_DIFF, my_edata): Move to where they're used,
+	so that we aren't warned about unused symbols.
+
 	* xfns.c (Fx_file_dialog): Rename local to avoid shadowing.
 
 	* xdisp.c (x_produce_glyphs): Avoid possibly-uninitialized
