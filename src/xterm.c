@@ -187,11 +187,11 @@ static struct {
 /* The application context for Xt use.  */
 XtAppContext Xt_app_con;
 static String Xt_default_resources[] = {0};
-#endif /* USE_X_TOOLKIT */
 
 /* Non-zero means user is interacting with a toolkit scroll bar.  */
 
 static int toolkit_scroll_bar_interaction;
+#endif /* USE_X_TOOLKIT */
 
 /* Non-zero timeout value means ignore next mouse click if it arrives
    before that timeout elapses (i.e. as part of the same sequence of
@@ -349,7 +349,7 @@ static void x_check_expected_move (struct frame *, int, int);
 static void x_sync_with_move (struct frame *, int, int, int);
 static int handle_one_xevent (struct x_display_info *, XEvent *,
                               int *, struct input_event *);
-#if ! (defined USE_MOTIF || defined USE_X_TOOLKIT)
+#if !defined USE_GTK && defined USE_X_TOOLKIT
 static int x_dispatch_event (XEvent *, Display *);
 #endif
 /* Don't declare this NO_RETURN because we want no
@@ -3446,6 +3446,16 @@ x_detect_focus_change (struct x_display_info *dpyinfo, XEvent *event, struct inp
 }
 
 
+#if defined HAVE_MENUS && !defined USE_X_TOOLKIT && !defined USE_GTK
+/* Handle an event saying the mouse has moved out of an Emacs frame.  */
+
+void
+x_mouse_leave (struct x_display_info *dpyinfo)
+{
+  x_new_focus_frame (dpyinfo, dpyinfo->x_focus_event_frame);
+}
+#endif
+
 /* The focus has changed, or we have redirected a frame's focus to
    another frame (this happens when a frame uses a surrogate
    mini-buffer frame).  Shift the highlight as appropriate.
@@ -4208,8 +4218,8 @@ x_send_scroll_bar_event (Lisp_Object window, int part, int portion, int whole)
   ev->data.l[4] = (long) whole;
 
   /* Make Xt timeouts work while the scroll bar is active.  */
-  toolkit_scroll_bar_interaction = 1;
 #ifdef USE_X_TOOLKIT
+  toolkit_scroll_bar_interaction = 1;
   x_activate_timeout_atimer ();
 #endif
 
@@ -5655,6 +5665,7 @@ static struct x_display_info *XTread_socket_fake_io_error;
 
 static struct x_display_info *next_noop_dpyinfo;
 
+#if defined USE_X_TOOLKIT || defined USE_GTK
 #define SET_SAVED_BUTTON_EVENT                                          \
      do									\
        {								\
@@ -5666,6 +5677,7 @@ static struct x_display_info *next_noop_dpyinfo;
 	 XSETFRAME (inev.ie.frame_or_window, f);			\
        }								\
      while (0)
+#endif
 
 enum
 {
@@ -6965,15 +6977,13 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
   return count;
 }
 
+#if defined USE_GTK || (defined HAVE_MENUS && defined USE_X_TOOLKIT)
 
 /* Handles the XEvent EVENT on display DISPLAY.
    This is used for event loops outside the normal event handling,
    i.e. looping while a popup menu or a dialog is posted.
 
    Returns the value handle_one_xevent sets in the finish argument.  */
-#if ! (defined USE_MOTIF || defined USE_X_TOOLKIT)
-static
-#endif
 int
 x_dispatch_event (XEvent *event, Display *display)
 {
@@ -6987,6 +6997,7 @@ x_dispatch_event (XEvent *event, Display *display)
 
   return finish;
 }
+#endif
 
 
 /* Read events coming from the X server.

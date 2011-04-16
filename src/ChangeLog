@@ -1,5 +1,16 @@
 2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xterm.c: Fix problems found by static analysis with other toolkits.
+	(toolkit_scroll_bar_interaction): Define and use only if USE_X_TOOLKIT.
+	(x_dispatch_event): Declare static only if !USE_GTK && USE_X_TOOLKIT.
+	Define if USE_GTK || (HAVE_MENUS && USE_X_TOOLKIT); USE_MOTIF need
+	not be part of this test.
+	(SET_SAVED_BUTTON_EVENT): Define only if USE_X_TOOLKIT || USE_GTK.
+	* xterm.h (x_dispatch_event): Use USE_GTK, not USE_MOTIF, when testing
+	whether to declare.
+	* xterm.c, xterm.h (x_mouse_leave): Bring this function back, but only if
+	defined HAVE_MENUS && !defined USE_X_TOOLKIT && !defined USE_GTK.
+
 	* xmenu.c (menu_help_callback): Pointer type fixes.
 	Use const pointers when pointing at readonly data.  Avoid pointer
 	signedness clashes.
