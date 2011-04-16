@@ -1,5 +1,7 @@
 2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* fns.c (vector): Remove; this old hack is no longer needed.
+
 	* xsmfns.c (create_client_leader_window): Rename shadowing arg.
 	Remove unused var.
 	(gdk_x11_set_sm_client_id) [!USE_GTK]: Don't define.

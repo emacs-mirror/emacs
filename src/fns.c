@@ -23,11 +23,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <time.h>
 #include <setjmp.h>
 
-/* Note on some machines this defines `vector' as a typedef,
-   so make sure we don't use that name in this file.  */
-#undef vector
-#define vector *****
-
 #include "lisp.h"
 #include "commands.h"
 #include "character.h"
