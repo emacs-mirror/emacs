@@ -465,7 +465,7 @@ struct terminal
                                enum scroll_bar_part *part,
                                Lisp_Object *x,
                                Lisp_Object *y,
-                               unsigned long *time);
+                               unsigned long *);
 
   /* The window system handling code should set this if the mouse has
      moved since the last call to the mouse_position_hook.  Calling that
@@ -484,10 +484,10 @@ struct terminal
      support overlapping frames, so there's no need to raise or lower
      anything.
 
-     If RAISE is non-zero, F is brought to the front, before all other
-     windows.  If RAISE is zero, F is sent to the back, behind all other
+     If RAISE_FLAG is non-zero, F is brought to the front, before all other
+     windows.  If RAISE_FLAG is zero, F is sent to the back, behind all other
      windows.  */
-  void (*frame_raise_lower_hook) (struct frame *f, int raise);
+  void (*frame_raise_lower_hook) (struct frame *f, int raise_flag);
 
   /* If the value of the frame parameter changed, whis hook is called.
      For example, if going from fullscreen to not fullscreen this hook

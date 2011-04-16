@@ -5,6 +5,7 @@
 
 	* dispextern.h (struct redisplay_interface): Rename param
 	to avoid shadowing.
+	* termhooks.h (struct terminal): Likewise.
 
 	* insdel.c (make_gap_smaller): Define only if
 	USE_MMAP_FOR_BUFFERS || REL_ALLOC || DOUG_LEA_MALLOC.
