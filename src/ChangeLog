@@ -534,7 +534,7 @@
 	(mark_backtrace): Define only if BYTE_MARK_STACK.
 	* xdisp.c (message_enable_multibyte): Now static.
 
-	Declare Lisp_Object Q* variables to be 'static' if not exproted.
+	Declare Lisp_Object Q* variables to be 'static' if not exported.
 	This makes it easier for human readers (and static analyzers)
 	to see whether these variables are used from other modules.
 	* alloc.c, buffer.c, bytecode.c, callint.c, casetab.c, category.c:
