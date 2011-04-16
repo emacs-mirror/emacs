@@ -5763,8 +5763,8 @@ event_handler_gdk (GdkXEvent *gxev, GdkEvent *ev, gpointer data)
 #endif /* USE_GTK */
 
 
-static void xembed_send_message (struct frame *f, Time time,
-                                 enum xembed_message message,
+static void xembed_send_message (struct frame *f, Time,
+                                 enum xembed_message,
                                  long detail, long data1, long data2);
 
 /* Handles the XEvent EVENT on display DPYINFO.
