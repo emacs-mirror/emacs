@@ -1,3 +1,8 @@
+2011-04-16  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/f90.el: Use lexical-binding.
+	(f90-get-correct-indent): Remove unnecessary local variable `cont'.
+
 2011-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mail/sendmail.el (mail-mode-map): Use completion-at-point.
