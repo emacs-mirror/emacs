@@ -1,5 +1,8 @@
 2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* keyboard.c (read_char): Make a var volatile so longjmp won't clobber
+	it.
+
 	* emacs.c (MAX_HEAP_BSS_DIFF, my_edata): Move to where they're used,
 	so that we aren't warned about unused symbols.
 
