@@ -2,6 +2,7 @@
 
 	* sysdep.c (_FILE_OFFSET_BITS): Make this hack even uglier
 	by pacifying GCC about it.  Maybe it's time to retire it?
+	* xfaces.c (USG, __TIMEVAL__): Likewise.
 
 	* dispextern.h (struct redisplay_interface): Rename param
 	to avoid shadowing.
