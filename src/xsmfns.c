@@ -42,7 +42,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keyboard.h"
 
 #ifndef HAVE_GTK3
-#define gdk_x11_set_sm_client_id(w) gdk_set_sm_client_id (w) 
+#define gdk_x11_set_sm_client_id(w) gdk_set_sm_client_id (w)
 #endif
 
 /* This is the event used when SAVE_SESSION_EVENT occurs.  */
@@ -250,7 +250,7 @@ smc_save_yourself_CB (SmcConn smcConn,
       props[props_idx]->vals[vp_idx++].value = chdir_opt;
     }
 
-  for (i = 1; i < initial_argc; ++i) 
+  for (i = 1; i < initial_argc; ++i)
     {
       props[props_idx]->vals[vp_idx].length = strlen (initial_argv[i]);
       props[props_idx]->vals[vp_idx++].value = initial_argv[i];
@@ -365,7 +365,7 @@ ice_conn_watch_CB (IceConn iceConn, IcePointer clientData,
 
 #ifndef USE_GTK
 static void
-create_client_leader_window (struct x_display_info *dpyinfo, char *client_id)
+create_client_leader_window (struct x_display_info *dpyinfo, char *client_ID)
 {
   Window w;
   XClassHint class_hints;
@@ -383,7 +383,7 @@ create_client_leader_window (struct x_display_info *dpyinfo, char *client_id)
 
   XChangeProperty (dpyinfo->display, w, dpyinfo->Xatom_SM_CLIENT_ID,
                    XA_STRING, 8, PropModeReplace,
-                   (unsigned char *)client_id, strlen (client_id));
+                   (unsigned char *) client_ID, strlen (client_ID));
 
   dpyinfo->client_leader_window = w;
 }
