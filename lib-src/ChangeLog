@@ -1,5 +1,9 @@
 2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* movemail.c (mail_spool_name): Protoize.
+	(main): Remove unused var.  Mark var as initialized.
+	Move locals to avoid shadowing, and use time_t for times.
+
 	* fakemail.c (xmalloc, xreallc): Use standard C prototypes
 	with void *.  This avoids warnings about pointer casts.
 
