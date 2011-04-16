@@ -456,7 +456,7 @@ one trustfile (usually a CA bundle).  */)
           else
             {
               error ("Sorry, GnuTLS can't use non-string trustfile %s",
-                     trustfile);
+                     SDATA (trustfile));
             }
         }
 
@@ -478,7 +478,7 @@ one trustfile (usually a CA bundle).  */)
           else
             {
               error ("Sorry, GnuTLS can't use non-string keyfile %s",
-                     keyfile);
+                     SDATA (keyfile));
             }
         }
     }
