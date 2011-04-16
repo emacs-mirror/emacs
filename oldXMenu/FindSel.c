@@ -31,6 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "XMenuInt.h"
+#include <string.h>
 
 int
 XMenuFindSelection(register XMenu *menu, int p_num, register char *label)
@@ -83,4 +84,3 @@ XMenuFindSelection(register XMenu *menu, int p_num, register char *label)
     _XMErrorCode = XME_S_NOT_FOUND;
     return (XM_FAILURE);
 }
-

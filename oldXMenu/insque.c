@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
    their callers have been renamed to emacs_mumble to allow us to
    include this file in the menu library on all systems.  */
 
+#include "XMenuInt.h"
 
 struct qelem {
   struct    qelem *q_forw;
@@ -29,8 +30,10 @@ struct qelem {
 /* Insert ELEM into a doubly-linked list, after PREV.  */
 
 void
-emacs_insque (struct qelem *elem, struct qelem *prev)
+emacs_insque (void *velem, void *vprev)
 {
+  struct qelem *elem = velem;
+  struct qelem *prev = vprev;
   struct qelem *next = prev->q_forw;
   prev->q_forw = elem;
   if (next)
@@ -41,8 +44,10 @@ emacs_insque (struct qelem *elem, struct qelem *prev)
 
 /* Unlink ELEM from the doubly-linked list that it is in.  */
 
-emacs_remque (struct qelem *elem)
+void
+emacs_remque (void *velem)
 {
+  struct qelem *elem = velem;
   struct qelem *next = elem->q_forw;
   struct qelem *prev = elem->q_back;
   if (next)
@@ -50,4 +55,3 @@ emacs_remque (struct qelem *elem)
   if (prev)
     prev->q_forw = next;
 }
-

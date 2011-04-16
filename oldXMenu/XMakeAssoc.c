@@ -4,21 +4,13 @@
 
 
 #include <config.h>
-#include <X11/Xlib.h>
+#include "XMenuInt.h"
 #include <X11/Xresource.h>
-#include "X10.h"
 #include <errno.h>
 
 #ifndef NULL
 #define NULL 0
 #endif
-
-struct qelem {
-	struct    qelem *q_forw;
-	struct    qelem *q_back;
-	char q_data[1];
-};
-void emacs_insque (struct qelem *elem, struct qelem *prev);
 
 /*
  * XMakeAssoc - Insert data into an XAssocTable keyed on an XId.
@@ -27,7 +19,7 @@ void emacs_insque (struct qelem *elem, struct qelem *prev);
  * bucket is sorted (lowest XId to highest XId).
  */
 void
-XMakeAssoc(register Display *dpy, register XAssocTable *table, register XID x_id, register caddr_t data)
+XMakeAssoc(register Display *dpy, register XAssocTable *table, register XID x_id, register void *data)
 {
 	int hash;
 	register XAssoc *bucket;
@@ -85,4 +77,3 @@ XMakeAssoc(register Display *dpy, register XAssocTable *table, register XID x_id
 	/* Insert the new entry. */
 	emacs_insque((struct qelem *)new_entry, (struct qelem *)Entry->prev);
 }
-
