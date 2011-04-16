@@ -442,6 +442,7 @@ make_gap_larger (EMACS_INT nbytes_added)
   Vinhibit_quit = tem;
 }
 
+#if defined USE_MMAP_FOR_BUFFERS || defined REL_ALLOC || defined DOUG_LEA_MALLOC
 
 /* Make the gap NBYTES_REMOVED bytes shorter.  */
 
@@ -500,6 +501,8 @@ make_gap_smaller (EMACS_INT nbytes_removed)
 
   Vinhibit_quit = tem;
 }
+
+#endif /* USE_MMAP_FOR_BUFFERS || REL_ALLOC || DOUG_LEA_MALLOC */
 
 void
 make_gap (EMACS_INT nbytes_added)

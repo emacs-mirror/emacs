@@ -273,6 +273,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <X11/Xos.h>
 #define USG
 #define __TIMEVAL__
+#if defined USG || defined __TIMEVAL__ /* Don't warn about unused macros.  */
+#endif
 #else /* not XOS_NEEDS_TIME_H */
 #include <X11/Xos.h>
 #endif /* not XOS_NEEDS_TIME_H */

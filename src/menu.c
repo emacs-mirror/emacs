@@ -180,6 +180,9 @@ grow_menu_items (void)
   menu_items = larger_vector (menu_items, menu_items_allocated, Qnil);
 }
 
+#if (defined USE_X_TOOLKIT || defined USE_GTK || defined HAVE_NS \
+     || defined HAVE_NTGUI)
+
 /* Begin a submenu.  */
 
 static void
@@ -203,6 +206,8 @@ push_submenu_end (void)
   XVECTOR (menu_items)->contents[menu_items_used++] = Qlambda;
   menu_items_submenu_depth--;
 }
+
+#endif /* USE_X_TOOLKIT || USE_GTK || HAVE_NS || defined HAVE_NTGUI */
 
 /* Indicate boundary between left and right.  */
 
@@ -368,34 +373,34 @@ single_menu_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy, void *sk
 	if (skp->notbuttons)
 	  /* The first button. Line up previous items in this menu.  */
 	  {
-	    int index = skp->notbuttons; /* Index for first item this menu.  */
+	    int idx = skp->notbuttons; /* Index for first item this menu.  */
 	    int submenu = 0;
 	    Lisp_Object tem;
-	    while (index < menu_items_used)
+	    while (idx < menu_items_used)
 	      {
 		tem
-		  = XVECTOR (menu_items)->contents[index + MENU_ITEMS_ITEM_NAME];
+		  = XVECTOR (menu_items)->contents[idx + MENU_ITEMS_ITEM_NAME];
 		if (NILP (tem))
 		  {
-		    index++;
+		    idx++;
 		    submenu++;		/* Skip sub menu.  */
 		  }
 		else if (EQ (tem, Qlambda))
 		  {
-		    index++;
+		    idx++;
 		    submenu--;		/* End sub menu.  */
 		  }
 		else if (EQ (tem, Qt))
-		  index += 3;		/* Skip new pane marker. */
+		  idx += 3;		/* Skip new pane marker. */
 		else if (EQ (tem, Qquote))
-		  index++;		/* Skip a left, right divider. */
+		  idx++;		/* Skip a left, right divider. */
 		else
 		  {
 		    if (!submenu && SREF (tem, 0) != '\0'
 			&& SREF (tem, 0) != '-')
-		      XVECTOR (menu_items)->contents[index + MENU_ITEMS_ITEM_NAME]
+		      XVECTOR (menu_items)->contents[idx + MENU_ITEMS_ITEM_NAME]
 			= concat2 (build_string ("    "), tem);
-		    index += MENU_ITEMS_ITEM_LENGTH;
+		    idx += MENU_ITEMS_ITEM_LENGTH;
 		  }
 	      }
 	    skp->notbuttons = 0;

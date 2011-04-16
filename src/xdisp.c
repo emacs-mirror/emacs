@@ -13630,7 +13630,10 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
   return rc;
 }
 
-static void
+#if !defined USE_TOOLKIT_SCROLL_BARS || defined USE_GTK
+static
+#endif
+void
 set_vertical_scroll_bar (struct window *w)
 {
   EMACS_INT start, end, whole;
@@ -22709,7 +22712,7 @@ x_produce_glyphs (struct it *it)
 	  int lbearing, rbearing;
 	  int i, width, ascent, descent;
 	  int left_padded = 0, right_padded = 0;
-	  int c;
+	  int c IF_LINT (= 0); /* cmp->glyph_len can't be zero; see Bug#8512 */
 	  XChar2b char2b;
 	  struct font_metrics *pcm;
 	  int font_not_found_p;

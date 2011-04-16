@@ -139,10 +139,6 @@ static pthread_mutex_t alloc_mutex;
 #endif /* ! defined HAVE_GTK_AND_PTHREAD */
 #endif /* ! defined SYSTEM_MALLOC && ! defined SYNC_INPUT */
 
-/* Value of _bytes_used, when spare_memory was freed.  */
-
-static __malloc_size_t bytes_used_when_full;
-
 /* Mark, unmark, query mark bit of a Lisp string.  S must be a pointer
    to a struct Lisp_String.  */
 
@@ -198,9 +194,11 @@ static int total_free_floats, total_floats;
 
 static char *spare_memory[7];
 
+#ifndef SYSTEM_MALLOC
 /* Amount of spare memory to keep in large reserve block.  */
 
 #define SPARE_MEMORY (1 << 14)
+#endif
 
 /* Number of extra blocks malloc should get when it needs more core.  */
 
@@ -469,13 +467,6 @@ display_malloc_warning (void)
 	 intern ("emergency"));
   pending_malloc_warning = 0;
 }
-
-
-#ifdef DOUG_LEA_MALLOC
-#  define BYTES_USED (mallinfo ().uordblks)
-#else
-#  define BYTES_USED _bytes_used
-#endif
 
 /* Called if we can't allocate relocatable space for a buffer.  */
 
@@ -1096,7 +1087,17 @@ static void * (*old_malloc_hook) (size_t, const void *);
 static void * (*old_realloc_hook) (void *,  size_t, const void*);
 static void (*old_free_hook) (void*, const void*);
 
+#ifdef DOUG_LEA_MALLOC
+#  define BYTES_USED (mallinfo ().uordblks)
+#else
+#  define BYTES_USED _bytes_used
+#endif
+
 static __malloc_size_t bytes_used_when_reconsidered;
+
+/* Value of _bytes_used, when spare_memory was freed.  */
+
+static __malloc_size_t bytes_used_when_full;
 
 /* This function is used as the hook for free to call.  */
 
@@ -3296,7 +3297,7 @@ memory_full (void)
 
   /* Record the space now used.  When it decreases substantially,
      we can refill the memory reserve.  */
-#ifndef SYSTEM_MALLOC
+#if !defined SYSTEM_MALLOC && !defined SYNC_INPUT
   bytes_used_when_full = BYTES_USED;
 #endif
 

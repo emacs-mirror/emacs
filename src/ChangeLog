@@ -1,3 +1,107 @@
+2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Static checks with GCC 4.6.0 and non-default toolkits.
+
+	* s/sol2-6.h, s/unixware.h (PTY_TTY_NAME_SPRINTF): Protoize decl.
+
+	* process.c (keyboard_bit_set): Define only if SIGIO.
+	(send_process_trap): Mark it with NO_RETURN if it doesn't return.
+	(send_process): Repair possible setjmp clobbering.
+
+	* s/usg5-4-common.h (SETUP_SLAVE_PTY): Don't pass extra arg to 'fatal'.
+
+	* eval.c: Include <stdio.h>, for vsnprintf on non-GNU/Linux hosts.
+
+	* data.c (arith_error): Mark with NO_RETURN if it doesn't return.
+
+	* alloc.c (bytes_used_when_full, SPARE_MEMORY, BYTES_USED):
+	Define only if needed.
+
+	* sysdep.c (_FILE_OFFSET_BITS): Make this hack even uglier
+	by pacifying GCC about it.  Maybe it's time to retire it?
+	* xfaces.c (USG, __TIMEVAL__): Likewise.
+
+	* dispextern.h (struct redisplay_interface): Rename param
+	to avoid shadowing.
+	* termhooks.h (struct terminal): Likewise.
+	* xterm.c (xembed_send_message): Likewise.
+
+	* insdel.c (make_gap_smaller): Define only if
+	USE_MMAP_FOR_BUFFERS || REL_ALLOC || DOUG_LEA_MALLOC.
+
+	* keyboard.c (read_char): Make a var volatile so longjmp won't clobber
+	it.
+
+	* emacs.c (MAX_HEAP_BSS_DIFF, my_edata): Move to where they're used,
+	so that we aren't warned about unused symbols.
+
+	* xfns.c (Fx_file_dialog): Rename local to avoid shadowing.
+
+	* xdisp.c (x_produce_glyphs): Mark var as initialized (Bug#8512).
+
+	* xfns.c (x_real_positions): Mark locals as initialized.
+
+	* xmenu.c (xmenu_show): Don't use uninitialized vars.
+
+	* xterm.c: Fix problems found by static analysis with other toolkits.
+	(toolkit_scroll_bar_interaction): Define and use only if USE_X_TOOLKIT.
+	(x_dispatch_event): Declare static if USE_GTK, and
+	define if USE_GTK || USE_X_TOOLKIT.
+	(SET_SAVED_BUTTON_EVENT): Define only if USE_X_TOOLKIT || USE_GTK.
+	* xterm.h (x_dispatch_event): Extern only if USE_X_TOOLKIT.
+	* xterm.c, xterm.h (x_mouse_leave): Bring this function back, but only if
+	defined HAVE_MENUS && !defined USE_X_TOOLKIT && !defined USE_GTK.
+
+	* xmenu.c (menu_help_callback): Pointer type fixes.
+	Use const pointers when pointing at readonly data.  Avoid pointer
+	signedness clashes.
+	(FALSE): Remove unused macro.
+	(update_frame_menubar): Remove unused decl.
+
+	* xfns.c (Fx_hide_tip): Move locals to avoid shadowing.
+
+	* menu.c (push_submenu_start, push_submenu_end): Do not define unless
+	USE_X_TOOLKIT || USE_GTK || HAVE_NS || defined HAVE_NTGUI.
+	(single_menu_item): Rename local to avoid shadowing.
+
+	* keyboard.c (make_lispy_event): Remove unused local var.
+
+	* frame.c, frame.h (x_get_resource_string): Bring this back, but
+	only if HAVE_X_WINDOWS && !USE_X_TOOLKIT.
+
+	* bitmaps: Change bitmaps from unsigned char back to the X11
+	compatible char.  Avoid the old compiler warnings about
+	out-of-range initializers by using, for example, '\xab' rather
+	than 0xab.
+
+	* xgselect.c (xgselect_initialize): Check vs interface
+	even if ! (defined (USE_GTK) || defined (HAVE_GCONF)).
+
+	* xmenu.c (xmenu_show): Rename parm to avoid shadowing.
+
+	* xterm.c (x_create_toolkit_scroll_bar): Use const * for pointers
+	to read-only memory.
+
+	* fns.c (vector): Remove; this old hack is no longer needed.
+
+	* xsmfns.c (create_client_leader_window): Rename shadowing arg.
+	Remove unused var.
+	(gdk_x11_set_sm_client_id) [!USE_GTK]: Don't define.
+
+	* xrdb.c (x_load_resources): Omit unused local.
+
+	* xfns.c (free_frame_menubar, atof): Remove duplicate decls.
+	(x_window): Rename locals to avoid shadowing.
+	(USG): Use the kludged USG macro, to pacify gcc.
+
+	* xterm.c (x_alloc_nearest_color_for_widget): Remove; unused.
+	(x_term_init): Remove local to avoid shadowing.
+
+	* xfns.c, xterm.c (_XEditResCheckMessages): Protoize decl.
+
+	* xdisp.c, dispextern.h (set_vertical_scroll_bar): Now extern if
+	USE_TOOLKIT_SCROLL_BARS && !USE_GTK, as xterm.c needs it then.
+
 2011-04-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* gnutls.c (Fgnutls_boot): Don't pass Lisp_Object to `error'.

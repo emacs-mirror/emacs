@@ -2650,9 +2650,9 @@ struct redisplay_interface
                               int cursor_type, int cursor_width,
                               int on_p, int active_p);
 
-/* Draw vertical border for window W from (X,Y0) to (X,Y1).  */
+/* Draw vertical border for window W from (X,Y_0) to (X,Y_1).  */
   void (*draw_vertical_window_border) (struct window *w,
-                                       int x, int y0, int y1);
+                                       int x, int y_0, int y_1);
 
 /* Shift display of frame F to make room for inserted glyphs.
    The area at pixel (X,Y) of width WIDTH and height HEIGHT is
@@ -2953,6 +2953,9 @@ int line_bottom_y (struct it *);
 int display_prop_intangible_p (Lisp_Object);
 void resize_echo_area_exactly (void);
 int resize_mini_window (struct window *, int);
+#if defined USE_TOOLKIT_SCROLL_BARS && !defined USE_GTK
+void set_vertical_scroll_bar (struct window *);
+#endif
 int try_window (Lisp_Object, struct text_pos, int);
 void window_box (struct window *, int, int *, int *, int *, int *);
 int window_box_height (struct window *);

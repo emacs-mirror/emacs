@@ -31,7 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include "XMenuInt.h"
-
+#include <stdlib.h>
 
 #ifdef EMACS_BITMAP_FILES
 #include "../src/bitmaps/dimple1.xbm"
@@ -71,7 +71,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #define DEF_MENU_STYLE		LEFT
 #define DEF_MENU_MODE		BOX
 #define DEF_INACT_PNUM		3
-#define MAX_INACT_PNUM		4
 
 #define DEF_P_STYLE		CENTER
 
@@ -88,16 +87,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define XASSOC_TABLE_SIZE	64
 
-#define TILE_BUF_SIZE		5
-
-int atoi(const char *);
-double atof(const char *);
-char *x_get_resource_string (char *attribute, char *class);
+char *x_get_resource_string (char const *, char const *);
 
 
 
 static Status
-XAllocDisplayColor(Display *display, Colormap map, char *colorName, XColor *color, XColor *junk)
+XAllocDisplayColor(Display *display, Colormap map, char const *colorName,
+		   XColor *color, XColor *junk)
 {
   return (colorName!=0 &&
 	  XParseColor(display, map, colorName, color) &&
@@ -106,13 +102,11 @@ XAllocDisplayColor(Display *display, Colormap map, char *colorName, XColor *colo
 
 
 XMenu *
-XMenuCreate(Display *display, Window parent, register char *def_env)
+XMenuCreate(Display *display, Window parent, register char const *def_env)
                                 /* ID of previously opened display */
                   		/* Window ID of the menu's parent window. */
                            	/* X Defaults program environment name. */
 {
-  register int i;		/* Loop counter. */
-  register int j;		/* Loop counter. */
   register char *def_val;	/* X Default value temp variable. */
 
   register XMenu *menu;		/* Pointer to the new menu. */
@@ -125,7 +119,7 @@ XMenuCreate(Display *display, Window parent, register char *def_env)
   int reverse;			/* Reverse video mode. */
 
   XMStyle p_style;		/* Pane display style. */
-  char *p_fnt_name;		/* Flag font name. */
+  char const *p_fnt_name;	/* Flag font name. */
   XFontStruct *p_fnt_info;	/* Flag font structure */
   int p_fnt_pad;		/* Flag font padding in pixels. */
   double p_spread;		/* Pane spread in flag height fractions. */
@@ -138,7 +132,7 @@ XMenuCreate(Display *display, Window parent, register char *def_env)
   GC pane_GC;			/* Pane graphics context. */
 
   XMStyle s_style;		/* Selection display style. */
-  char *s_fnt_name;		/* Selection font name. */
+  char const *s_fnt_name;	/* Selection font name. */
   XFontStruct *s_fnt_info;	/* Selection font structure. */
   int s_fnt_pad;		/* Selection font padding in pixels. */
   int s_fnt_height;		/* Selection font character height */
@@ -151,10 +145,8 @@ XMenuCreate(Display *display, Window parent, register char *def_env)
   GC inverse_select_GC;		/* GC used for inverse video selection. */
   GC inact_GC;			/* GC for inactive pane header and */
   /* selections. */
-  GC inact_GC_noexpose;
 
   XColor color_def;		/* Temp color definition holder. */
-  XColor screen_def;		/* Temp screen color definition holder */
   XColor p_bdr_color;		/* Color of border. */
   XColor s_bdr_color;		/* Color of highlight. */
   XColor p_frg_color;		/* Color of pane foreground color. */
@@ -165,17 +157,6 @@ XMenuCreate(Display *display, Window parent, register char *def_env)
   Pixmap inact_bitmap;		/* Menu inactive pixmap. */
 
   int inact_pnum;		/* Inactive background pattern number. */
-
-  Pixel p_bdr_pixel;	        /* Pane border pixel. */
-  Pixel s_bdr_pixel;	        /* Selection border pixel. */
-  Pixel p_frg_pixel;	        /* Pane foreground pixel. */
-  Pixel s_frg_pixel;	        /* Selection foreground pixel. */
-  Pixel bkgnd_pixel;	        /* Menu background pixel. */
-
-  int *width, *height;
-  Pixmap *bitmap;
-  int *x_hot, *y_hot;
-  int status;			/* Return code from XReadBitmapFile. */
 
   Pixmap cursor;		/* Cursor pixmap holder. */
   Pixmap cursor_mask;		/* Cursor mask pixmap holder. */
@@ -282,7 +263,7 @@ XMenuCreate(Display *display, Window parent, register char *def_env)
 			      &mouse_color, &color_def)
 	   );
 
-  else ;
+  else {}
 
   def_val = x_get_resource_string ("menuBackground", "MenuBackground");
   if (
@@ -304,7 +285,7 @@ XMenuCreate(Display *display, Window parent, register char *def_env)
 			      "white",
 			      &bkgnd_color, &color_def)
 	   );
-  else;
+  else {}
 
   def_val = x_get_resource_string ("menuInactivePattern", "MenuInactivePattern");
   if (def_val != NULL) {
@@ -401,7 +382,7 @@ XMenuCreate(Display *display, Window parent, register char *def_env)
 			      "black",
 			      &s_frg_color, &color_def)
 	   ) ;
-  else ;
+  else {}
 
 
   def_val = x_get_resource_string ("selectionBorder", "SelectionBorder");
@@ -424,7 +405,7 @@ XMenuCreate(Display *display, Window parent, register char *def_env)
 			      "black",
 			      &s_bdr_color, &color_def)
 	   ) ;
-  else ;
+  else {}
 
   def_val = x_get_resource_string ("selectionBorderWidth", "SelectionBorderWidth");
   if (def_val != NULL) s_bdr_width = atoi(def_val);
@@ -681,9 +662,6 @@ XMenuCreate(Display *display, Window parent, register char *def_env)
 
   valuemask |= (GCGraphicsExposures);
   values->graphics_exposures = False;
-  inact_GC_noexpose = XCreateGC (display,
-				 root,
-				 valuemask, values);
 
 
   /*
@@ -752,4 +730,3 @@ XMenuCreate(Display *display, Window parent, register char *def_env)
   _XMErrorCode = XME_NO_ERROR;
   return(menu);
 }
-

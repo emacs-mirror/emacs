@@ -237,7 +237,9 @@ static int process_output_skip;
 
 static Lisp_Object Fget_process (Lisp_Object);
 static void create_process (Lisp_Object, char **, Lisp_Object);
+#ifdef SIGIO
 static int keyboard_bit_set (SELECT_TYPE *);
+#endif
 static void deactivate_process (Lisp_Object);
 static void status_notify (struct Lisp_Process *);
 static int read_process_output (Lisp_Object, int);
@@ -5220,6 +5222,10 @@ read_process_output (Lisp_Object proc, register int channel)
 static jmp_buf send_process_frame;
 static Lisp_Object process_sent_to;
 
+#ifndef FORWARD_SIGNAL_TO_MAIN_THREAD
+static void send_process_trap (int) NO_RETURN;
+#endif
+
 static void
 send_process_trap (int ignore)
 {
@@ -5360,6 +5366,8 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
      when returning with longjmp despite being declared volatile.  */
   if (!setjmp (send_process_frame))
     {
+      p = XPROCESS (proc);  /* Repair any setjmp clobbering.  */
+
       process_sent_to = proc;
       while (len > 0)
 	{
@@ -6583,6 +6591,8 @@ delete_gpm_wait_descriptor (int desc)
   delete_keyboard_wait_descriptor (desc);
 }
 
+# ifdef SIGIO
+
 /* Return nonzero if *MASK has a bit set
    that corresponds to one of the keyboard input descriptors.  */
 
@@ -6598,6 +6608,7 @@ keyboard_bit_set (fd_set *mask)
 
   return 0;
 }
+# endif
 
 #else  /* not subprocesses */
 

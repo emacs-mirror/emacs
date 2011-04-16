@@ -88,11 +88,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Push various streams modules onto a PTY channel.  */
 #define SETUP_SLAVE_PTY \
   if (ioctl (xforkin, I_PUSH, "ptem") == -1)	\
-    fatal ("ioctl I_PUSH ptem", errno);		\
+    fatal ("ioctl I_PUSH ptem");		\
   if (ioctl (xforkin, I_PUSH, "ldterm") == -1)	\
-    fatal ("ioctl I_PUSH ldterm", errno);	\
+    fatal ("ioctl I_PUSH ldterm");	\
   if (ioctl (xforkin, I_PUSH, "ttcompat") == -1) \
-    fatal ("ioctl I_PUSH ttcompat", errno);
+    fatal ("ioctl I_PUSH ttcompat");
 
 /* This definition was suggested for next release.  So give it a try.  */
 #define HAVE_SOCKETS

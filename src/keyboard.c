@@ -2259,7 +2259,7 @@ read_char (int commandflag, int nmaps, Lisp_Object *maps, Lisp_Object prev_event
   volatile Lisp_Object also_record;
   volatile int reread;
   struct gcpro gcpro1, gcpro2;
-  int polling_stopped_here = 0;
+  int volatile polling_stopped_here = 0;
   struct kboard *orig_kboard = current_kboard;
 
   also_record = Qnil;
@@ -5455,7 +5455,6 @@ make_lispy_event (struct input_event *event)
 		&& (event->modifiers & down_modifier))
 	      {
 		Lisp_Object items, item;
-		int i;
 
 		/* Find the menu bar item under `column'.  */
 		item = Qnil;

@@ -83,6 +83,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef USG	/* ####KLUDGE for Solaris 2.2 and up */
 #include <X11/Xos.h>
 #define USG
+#ifdef USG /* Pacify gcc -Wunused-macros.  */
+#endif
 #else
 #include <X11/Xos.h>
 #endif
@@ -105,15 +107,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #if !defined(NO_EDITRES)
 #define HACK_EDITRES
-extern void _XEditResCheckMessages ();
+extern void _XEditResCheckMessages (Widget, XtPointer, XEvent *, Boolean *);
 #endif /* not defined NO_EDITRES */
 
 /* Unique id counter for widgets created by the Lucid Widget Library.  */
 
 extern LWLIB_ID widget_id_tick;
-
-extern void free_frame_menubar ();
-extern double atof ();
 
 #ifdef USE_MOTIF
 
@@ -428,7 +427,7 @@ x_top_window_to_frame (struct x_display_info *dpyinfo, int wdesc)
 void
 x_real_positions (FRAME_PTR f, int *xptr, int *yptr)
 {
-  int win_x, win_y, outer_x, outer_y;
+  int win_x, win_y, outer_x IF_LINT (= 0), outer_y IF_LINT (= 0);
   int real_x = 0, real_y = 0;
   int had_errors = 0;
   Window win = f->output_data.x->parent_desc;
@@ -2430,8 +2429,8 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
   {
     int len;
     char *tem, shell_position[32];
-    Arg al[10];
-    int ac = 0;
+    Arg gal[10];
+    int gac = 0;
     int extra_borders = 0;
     int menubar_size
       = (f->output_data.x->menubar_widget
@@ -2492,8 +2491,8 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
              If Emacs had just one program position, we could set it in
              fallback resources, but since each make-frame call can specify
              different program positions, this is easier.  */
-          XtSetArg (al[ac], XtNx, left); ac++;
-          XtSetArg (al[ac], XtNy, top); ac++;
+          XtSetArg (gal[gac], XtNx, left); gac++;
+          XtSetArg (gal[gac], XtNy, top); gac++;
         }
     }
 
@@ -2504,8 +2503,8 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
        when the frame is deleted.  */
     tem = (char *) xmalloc (len);
     strncpy (tem, shell_position, len);
-    XtSetArg (al[ac], XtNgeometry, tem); ac++;
-    XtSetValues (shell_widget, al, ac);
+    XtSetArg (gal[gac], XtNgeometry, tem); gac++;
+    XtSetValues (shell_widget, gal, gac);
   }
 
   XtManageChild (pane_widget);
@@ -5206,7 +5205,6 @@ Value is t if tooltip was open, nil otherwise.  */)
   int count;
   Lisp_Object deleted, frame, timer;
   struct gcpro gcpro1, gcpro2;
-  struct frame *f;
 
   /* Return quickly if nothing to do.  */
   if (NILP (tip_timer) && NILP (tip_frame))
@@ -5225,11 +5223,13 @@ Value is t if tooltip was open, nil otherwise.  */)
     call1 (Qcancel_timer, timer);
 
 #ifdef USE_GTK
-  /* When using system tooltip, tip_frame is the Emacs frame on which
-     the tip is shown.  */
-  f = XFRAME (frame);
-  if (FRAME_LIVE_P (f) && xg_hide_tooltip (f))
-    frame = Qnil;
+  {
+    /* When using system tooltip, tip_frame is the Emacs frame on which
+       the tip is shown.  */
+    struct frame *f = XFRAME (frame);
+    if (FRAME_LIVE_P (f) && xg_hide_tooltip (f))
+      frame = Qnil;
+  }
 #endif
 
   if (FRAMEP (frame))
@@ -5243,7 +5243,7 @@ Value is t if tooltip was open, nil otherwise.  */)
 	 items is unmapped.  Redisplay the menu manually...  */
       {
         Widget w;
-	f = SELECTED_FRAME ();
+	struct frame *f = SELECTED_FRAME ();
 	w = f->output_data.x->menubar_widget;
 
 	if (!DoesSaveUnders (FRAME_X_DISPLAY_INFO (f)->screen)
@@ -5462,12 +5462,12 @@ Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories.  */)
   /* Get the result.  */
   if (result == XmCR_OK)
     {
-      XmString text;
+      XmString text_string;
       String data;
 
-      XtVaGetValues (dialog, XmNtextString, &text, NULL);
-      XmStringGetLtoR (text, XmFONTLIST_DEFAULT_TAG, &data);
-      XmStringFree (text);
+      XtVaGetValues (dialog, XmNtextString, &text_string, NULL);
+      XmStringGetLtoR (text_string, XmFONTLIST_DEFAULT_TAG, &data);
+      XmStringFree (text_string);
       file = build_string (data);
       XtFree (data);
     }

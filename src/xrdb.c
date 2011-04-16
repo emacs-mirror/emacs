@@ -479,7 +479,9 @@ x_load_resources (Display *display, const char *xrm_string,
   XrmDatabase db;
   char line[256];
 
+#if defined USE_MOTIF || !defined HAVE_XFT || !defined USE_LUCID
   const char *helv = "-*-helvetica-medium-r-*--*-120-*-*-*-*-iso8859-1";
+#endif
 
 #ifdef USE_MOTIF
   const char *courier = "-*-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1";

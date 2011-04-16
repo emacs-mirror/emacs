@@ -178,20 +178,20 @@ fatal (const char *s1)
 
 /* Like malloc but get fatal error if memory is exhausted.  */
 
-static long *
-xmalloc (int size)
+static void *
+xmalloc (size_t size)
 {
-  long *result = (long *) malloc (((unsigned) size));
-  if (result == ((long *) NULL))
+  void *result = malloc (size);
+  if (! result)
     fatal ("virtual memory exhausted");
   return result;
 }
 
-static long *
-xrealloc (long int *ptr, int size)
+static void *
+xrealloc (void *ptr, size_t size)
 {
-  long *result = (long *) realloc (ptr, ((unsigned) size));
-  if (result == ((long *) NULL))
+  void *result = realloc (ptr, size);
+  if (! result)
     fatal ("virtual memory exhausted");
   return result;
 }
@@ -221,7 +221,7 @@ readline (struct linebuffer *linebuffer, FILE *stream)
       if (p == end)
 	{
 	  linebuffer->size *= 2;
-	  buffer = ((char *) xrealloc ((long *)buffer, linebuffer->size));
+	  buffer = (char *) xrealloc (buffer, linebuffer->size);
 	  p = buffer + (p - linebuffer->buffer);
 	  end = buffer + linebuffer->size;
 	  linebuffer->buffer = buffer;

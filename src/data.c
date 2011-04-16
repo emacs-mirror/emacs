@@ -3305,6 +3305,10 @@ syms_of_data (void)
   XSYMBOL (intern_c_string ("most-negative-fixnum"))->constant = 1;
 }
 
+#ifndef FORWARD_SIGNAL_TO_MAIN_THREAD
+static void arith_error (int) NO_RETURN;
+#endif
+
 static void
 arith_error (int signo)
 {

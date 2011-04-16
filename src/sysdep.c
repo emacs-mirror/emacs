@@ -2966,6 +2966,8 @@ system_process_attributes (Lisp_Object pid)
 
 #if PROCFS_FILE_OFFSET_BITS_HACK ==  1
 #define _FILE_OFFSET_BITS 64
+#ifdef _FILE_OFFSET_BITS /* Avoid unused-macro warnings.  */
+#endif
 #endif /* PROCFS_FILE_OFFSET_BITS_HACK ==  1 */
 
 Lisp_Object
