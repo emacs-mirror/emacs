@@ -414,8 +414,12 @@ struct re_pattern_buffer
 
 typedef struct re_pattern_buffer regex_t;
 
-/* Type for byte offsets within the string.  POSIX mandates this.  */
-typedef int regoff_t;
+/* Type for byte offsets within the string.  POSIX mandates this to be an int,
+   but the Open Group has signalled its intention to change the requirement to
+   be that regoff_t be at least as wide as ptrdiff_t and ssize_t.  Current
+   gnulib sources also use ssize_t, and we need this for supporting buffers and
+   strings > 2GB on 64-bit hosts.  */
+typedef ssize_t regoff_t;
 
 
 /* This is the structure we store register match data in.  See
@@ -486,31 +490,33 @@ extern int re_compile_fastmap _RE_ARGS ((struct re_pattern_buffer *buffer));
    characters.  Return the starting position of the match, -1 for no
    match, or -2 for an internal error.  Also return register
    information in REGS (if REGS and BUFFER->no_sub are nonzero).  */
-extern int re_search
+extern regoff_t re_search
   _RE_ARGS ((struct re_pattern_buffer *buffer, const char *string,
-            int length, int start, int range, struct re_registers *regs));
+	     size_t length, ssize_t start, ssize_t range,
+	     struct re_registers *regs));
 
 
 /* Like `re_search', but search in the concatenation of STRING1 and
    STRING2.  Also, stop searching at index START + STOP.  */
-extern int re_search_2
+extern regoff_t re_search_2
   _RE_ARGS ((struct re_pattern_buffer *buffer, const char *string1,
-             int length1, const char *string2, int length2,
-             int start, int range, struct re_registers *regs, int stop));
+             size_t length1, const char *string2, size_t length2,
+             ssize_t start, ssize_t range, struct re_registers *regs,
+	     ssize_t stop));
 
 
 /* Like `re_search', but return how many characters in STRING the regexp
    in BUFFER matched, starting at position START.  */
-extern int re_match
+extern regoff_t re_match
   _RE_ARGS ((struct re_pattern_buffer *buffer, const char *string,
-             int length, int start, struct re_registers *regs));
+             size_t length, ssize_t start, struct re_registers *regs));
 
 
 /* Relates to `re_match' as `re_search_2' relates to `re_search'.  */
-extern int re_match_2
+extern regoff_t re_match_2
   _RE_ARGS ((struct re_pattern_buffer *buffer, const char *string1,
-             int length1, const char *string2, int length2,
-             int start, struct re_registers *regs, int stop));
+             size_t length1, const char *string2, size_t length2,
+             ssize_t start, struct re_registers *regs, ssize_t stop));
 
 
 /* Set REGS to hold NUM_REGS registers, storing them in STARTS and
@@ -556,14 +562,15 @@ extern int re_exec _RE_ARGS ((const char *));
 #endif
 
 /* POSIX compatibility.  */
-extern int regcomp _RE_ARGS ((regex_t *__restrict __preg,
-			      const char *__restrict __pattern,
-			      int __cflags));
+extern reg_errcode_t regcomp _RE_ARGS ((regex_t *__restrict __preg,
+					const char *__restrict __pattern,
+					int __cflags));
 
-extern int regexec _RE_ARGS ((const regex_t *__restrict __preg,
-			      const char *__restrict __string, size_t __nmatch,
-			      regmatch_t __pmatch[__restrict_arr],
-			      int __eflags));
+extern reg_errcode_t regexec _RE_ARGS ((const regex_t *__restrict __preg,
+					const char *__restrict __string,
+					size_t __nmatch,
+					regmatch_t __pmatch[__restrict_arr],
+					int __eflags));
 
 extern size_t regerror _RE_ARGS ((int __errcode, const regex_t *__preg,
 				  char *__errbuf, size_t __errbuf_size));

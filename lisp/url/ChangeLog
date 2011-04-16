@@ -1,3 +1,8 @@
+2011-04-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url-http.el (url-http-wait-for-headers-change-function): Protect
+	against malformed headerless responses from servers.
+
 2011-04-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* url-gw.el (url-open-stream): Use new open-network-stream

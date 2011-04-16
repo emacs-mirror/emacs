@@ -1077,6 +1077,10 @@ the end of the document."
 		(downcase url-http-transfer-encoding)))
 
 	(cond
+	 ((null url-http-response-status)
+	  ;; We got back a headerless malformed response from the
+	  ;; server.
+	  (url-http-activate-callback))
 	 ((or (= url-http-response-status 204)
 	      (= url-http-response-status 205))
 	  (url-http-debug "%d response must have headers only (%s)."

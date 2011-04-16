@@ -281,6 +281,25 @@ Errors out if the key exists already."
         (registry-lookup-secondary-value db tr val value-keys))))
   entry)
 
+(defmethod registry-reindex ((db registry-db))
+  "Rebuild the secondary indices of registry-db THIS."
+  (let ((count 0)
+        (expected (* (length (oref db :tracked)) (registry-size db))))
+    (dolist (tr (oref db :tracked))
+      (let (values)
+        (maphash
+         (lambda (key v)
+           (incf count)
+           (when (and (< 0 expected)
+                      (= 0 (mod count 1000)))
+             (message "reindexing: %d of %d (%.2f%%)"
+                      count expected (/ (* 1000 count) expected)))
+           (dolist (val (cdr-safe (assq tr v)))
+             (let* ((value-keys (registry-lookup-secondary-value db tr val)))
+               (push key value-keys)
+               (registry-lookup-secondary-value db tr val value-keys))))
+         (oref db :data))))))
+
 (defmethod registry-size ((db registry-db))
   "Returns the size of the registry-db object THIS.
 This is the key count of the :data slot."
@@ -360,10 +379,11 @@ Removes only entries without the :precious keys."
     (when (boundp 'lexical-binding)
       (message "Individual lookup (breaks before lexbind)")
       (should (= 58
-		 (caadr (registry-lookup-breaks-before-lexbind db '(1 58 99)))))
+                 (caadr (registry-lookup-breaks-before-lexbind db '(1 58 99)))))
       (message "Grouped individual lookup (breaks before lexbind)")
       (should (= 3
-		 (length (registry-lookup-breaks-before-lexbind db '(1 58 99))))))
+                 (length (registry-lookup-breaks-before-lexbind db
+                                                                '(1 58 99))))))
     (message "Search")
     (should (= n (length (registry-search db :all t))))
     (should (= n (length (registry-search db :member '((sender "me"))))))

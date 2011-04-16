@@ -101,6 +101,52 @@
 	* xdisp.c, dispextern.h (set_vertical_scroll_bar): Now extern if
 	USE_TOOLKIT_SCROLL_BARS && !USE_GTK, as xterm.c needs it then.
 
+2011-04-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* gnutls.c (Fgnutls_boot): Don't pass Lisp_Object to `error'.
+
+	Fix regex.c, syntax.c and friends for buffers > 2GB.
+	* syntax.h (struct gl_state_s): Declare character position members
+	EMACS_INT.
+
+	* syntax.c (update_syntax_table): Declare 2nd argument EMACS_INT.
+
+	* textprop.c (verify_interval_modification, interval_of): Declare
+	arguments EMACS_INT.
+
+	* intervals.c (adjust_intervals_for_insertion): Declare arguments
+	EMACS_INT.
+
+	* intervals.h (CHECK_TOTAL_LENGTH): Cast to EMACS_INT, not `int'.
+
+	* indent.c (Fvertical_motion): Local variable it_start is now
+	EMACS_INT.
+
+	* regex.c (re_match, re_match_2, re_match_2_internal)
+	(bcmp_translate, regcomp, regexec, print_double_string)
+	(group_in_compile_stack, re_search, re_search_2, regex_compile)
+	(re_compile_pattern, re_exec): Declare arguments and local
+	variables `size_t' and `ssize_t' and return values `regoff_t', as
+	appropriate.
+	(POP_FAILURE_REG_OR_COUNT) <pfreg>: Declare `long'.
+	(CHECK_INFINITE_LOOP) <failure>: Declare `ssize_t'.
+	<compile_stack_type>: `size' and `avail' are now `size_t'.
+
+	* regex.h <regoff_t>: Use ssize_t, not int.
+	(re_search, re_search_2, re_match, re_match_2): Arguments that
+	specify buffer/string position and length are now ssize_t and
+	size_t.  Return type is regoff_t.
+
+2011-04-16  Ben Key  <bkey76@gmail.com>
+
+	* nsfont.m: Fixed bugs in ns_get_family and
+	ns_descriptor_to_entity that were caused by using free to
+	deallocate memory blocks that were allocated by xmalloc (via
+	xstrdup).  This caused Emacs to crash when compiled with
+	XMALLOC_OVERRUN_CHECK defined (when Emacs was configured with
+	--enable-checking=xmallocoverrun).  xfree is now used to
+	deallocate these memory blocks.
+
 2011-04-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* sysdep.c (emacs_read): Remove unnecessary check vs MAX_RW_COUNT.
@@ -132,10 +178,10 @@
 
 2011-04-15  Ben Key  <bkey76@gmail.com>
 
-	* keyboard.c (Qundefined):  Don't declare static since it is
-	used in nsfns.m.
-	* xfaces.c (Qbold, Qexpanded, Qitalic, Qcondensed):  Don't
-	declare static since they are used in nsfont.m.
+	* keyboard.c (Qundefined): Don't declare static since it is used
+	in nsfns.m.
+	* xfaces.c (Qbold, Qexpanded, Qitalic, Qcondensed): Don't declare
+	static since they are used in nsfont.m.
 
 2011-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 

@@ -104,7 +104,7 @@ ns_get_family (Lisp_Object font_spec)
       NSString *family;
       ns_unescape_name (tmp);
       family = [NSString stringWithUTF8String: tmp];
-      free (tmp);
+      xfree (tmp);
       return family;
     }
 }
@@ -217,7 +217,7 @@ ns_descriptor_to_entity (NSFontDescriptor *desc,
 	debug_print (font_entity);
       }
 
-    free (escapedFamily);
+    xfree (escapedFamily);
     return font_entity;
 }
 
