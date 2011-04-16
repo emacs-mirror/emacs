@@ -41,7 +41,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "process.h"
 #include "keyboard.h"
 
-#ifndef HAVE_GTK3
+#if defined USE_GTK && !defined HAVE_GTK3
 #define gdk_x11_set_sm_client_id(w) gdk_set_sm_client_id (w)
 #endif
 
