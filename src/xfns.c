@@ -2427,8 +2427,8 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
   {
     int len;
     char *tem, shell_position[32];
-    Arg al[10];
-    int ac = 0;
+    Arg gal[10];
+    int gac = 0;
     int extra_borders = 0;
     int menubar_size
       = (f->output_data.x->menubar_widget
@@ -2489,8 +2489,8 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
              If Emacs had just one program position, we could set it in
              fallback resources, but since each make-frame call can specify
              different program positions, this is easier.  */
-          XtSetArg (al[ac], XtNx, left); ac++;
-          XtSetArg (al[ac], XtNy, top); ac++;
+          XtSetArg (gal[gac], XtNx, left); gac++;
+          XtSetArg (gal[gac], XtNy, top); gac++;
         }
     }
 
@@ -2501,8 +2501,8 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
        when the frame is deleted.  */
     tem = (char *) xmalloc (len);
     strncpy (tem, shell_position, len);
-    XtSetArg (al[ac], XtNgeometry, tem); ac++;
-    XtSetValues (shell_widget, al, ac);
+    XtSetArg (gal[gac], XtNgeometry, tem); gac++;
+    XtSetValues (shell_widget, gal, gac);
   }
 
   XtManageChild (pane_widget);
