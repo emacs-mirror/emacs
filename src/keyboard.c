@@ -5455,7 +5455,6 @@ make_lispy_event (struct input_event *event)
 		&& (event->modifiers & down_modifier))
 	      {
 		Lisp_Object items, item;
-		int i;
 
 		/* Find the menu bar item under `column'.  */
 		item = Qnil;

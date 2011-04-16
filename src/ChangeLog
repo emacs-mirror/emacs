@@ -1,5 +1,7 @@
 2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* keyboard.c (make_lispy_event): Remove unused local var.
+
 	* frame.c, frame.h (x_get_resource_string): Bring this back, but
 	only if HAVE_X_WINDOWS && !USE_X_TOOLKIT.
 
