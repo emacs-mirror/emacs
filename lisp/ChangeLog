@@ -228,7 +228,7 @@
 2011-04-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* files.el (after-find-file-from-revert-buffer): Remove variable.
-	(after-find-file): Dont' bind it.
+	(after-find-file): Don't bind it.
 	(revert-buffer-in-progress-p): New variable.
 	(revert-buffer): Bind it.
 	Pass nil for `after-find-file-from-revert-buffer'.

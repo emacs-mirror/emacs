@@ -39,10 +39,10 @@
 
 2011-04-15  Ben Key  <bkey76@gmail.com>
 
-	* keyboard.c (Qundefined):  Don't declare static since it is
-	used in nsfns.m.
-	* xfaces.c (Qbold, Qexpanded, Qitalic, Qcondensed):  Don't
-	declare static since they are used in nsfont.m.
+	* keyboard.c (Qundefined): Don't declare static since it is used
+	in nsfns.m.
+	* xfaces.c (Qbold, Qexpanded, Qitalic, Qcondensed): Don't declare
+	static since they are used in nsfont.m.
 
 2011-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
