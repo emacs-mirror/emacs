@@ -102,7 +102,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef USE_X_TOOLKIT
 #if !defined(NO_EDITRES)
 #define HACK_EDITRES
-extern void _XEditResCheckMessages ();
+extern void _XEditResCheckMessages (Widget, XtPointer, XEvent *, Boolean *);
 #endif /* not NO_EDITRES */
 
 /* Include toolkit specific headers for the scroll bar widget.  */

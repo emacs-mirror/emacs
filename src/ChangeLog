@@ -1,5 +1,7 @@
 2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xfns.c, xterm.c (_XEditResCheckMessages): Protoize decl.
+
 	* xdisp.c, dispextern.h (set_vertical_scroll_bar): Now extern if
 	USE_TOOLKIT_SCROLL_BARS && !USE_GTK, as xterm.c needs it then.
 
