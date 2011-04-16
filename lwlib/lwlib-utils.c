@@ -129,7 +129,7 @@ XtCompositeChildren (Widget widget, unsigned int *number)
       return NULL;
     }
   n = cw->composite.num_children;
-  result = (Widget*)XtMalloc (n * sizeof (Widget));
+  result = (Widget*)(void*)XtMalloc (n * sizeof (Widget));
   *number = n;
   for (i = 0; i < n; i++)
     result [i] = cw->composite.children [i];
