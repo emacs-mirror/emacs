@@ -1,5 +1,7 @@
 2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* eval.c: Include <stdio.h>, for vsnprintf on non-GNU/Linux hosts.
+
 	* data.c (arith_error): Mark with NO_RETURN if it doesn't return.
 
 	* alloc.c (bytes_used_when_full, SPARE_MEMORY, BYTES_USED):
