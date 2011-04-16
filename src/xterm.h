@@ -986,7 +986,7 @@ extern void x_clear_area (Display *, Window, int, int, int, int, int);
 extern void x_mouse_leave (struct x_display_info *);
 #endif
 
-#if defined USE_GTK || defined USE_X_TOOLKIT
+#ifdef USE_X_TOOLKIT
 extern int x_dispatch_event (XEvent *, Display *);
 #endif
 extern unsigned int x_x_to_emacs_modifiers (struct x_display_info *,

@@ -349,7 +349,7 @@ static void x_check_expected_move (struct frame *, int, int);
 static void x_sync_with_move (struct frame *, int, int, int);
 static int handle_one_xevent (struct x_display_info *, XEvent *,
                               int *, struct input_event *);
-#if !defined USE_GTK && defined USE_X_TOOLKIT
+#ifdef USE_GTK
 static int x_dispatch_event (XEvent *, Display *);
 #endif
 /* Don't declare this NO_RETURN because we want no
@@ -6977,7 +6977,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
   return count;
 }
 
-#if defined USE_GTK || (defined HAVE_MENUS && defined USE_X_TOOLKIT)
+#if defined USE_GTK || defined USE_X_TOOLKIT
 
 /* Handles the XEvent EVENT on display DISPLAY.
    This is used for event loops outside the normal event handling,

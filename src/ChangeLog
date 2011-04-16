@@ -6,12 +6,10 @@
 
 	* xterm.c: Fix problems found by static analysis with other toolkits.
 	(toolkit_scroll_bar_interaction): Define and use only if USE_X_TOOLKIT.
-	(x_dispatch_event): Declare static only if !USE_GTK && USE_X_TOOLKIT.
-	Define if USE_GTK || (HAVE_MENUS && USE_X_TOOLKIT); USE_MOTIF need
-	not be part of this test.
+	(x_dispatch_event): Declare static if USE_GTK, and
+	define if USE_GTK || USE_X_TOOLKIT.
 	(SET_SAVED_BUTTON_EVENT): Define only if USE_X_TOOLKIT || USE_GTK.
-	* xterm.h (x_dispatch_event): Use USE_GTK, not USE_MOTIF, when testing
-	whether to declare.
+	* xterm.h (x_dispatch_event): Extern only if USE_X_TOOLKIT.
 	* xterm.c, xterm.h (x_mouse_leave): Bring this function back, but only if
 	defined HAVE_MENUS && !defined USE_X_TOOLKIT && !defined USE_GTK.
 
