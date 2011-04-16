@@ -1,5 +1,8 @@
 2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xgselect.c (xgselect_initialize): Check vs interface
+	even if ! (defined (USE_GTK) || defined (HAVE_GCONF)).
+
 	* xmenu.c (xmenu_show): Rename parm to avoid shadowing.
 
 	* xterm.c (x_create_toolkit_scroll_bar): Use const * for pointers
