@@ -1,6 +1,7 @@
 2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xsmfns.c (create_client_leader_window): Rename shadowing arg.
+	Remove unused var.
 
 	* xrdb.c (x_load_resources) [!USE_MOTIF]: Omit unused local.
 

@@ -369,7 +369,6 @@ create_client_leader_window (struct x_display_info *dpyinfo, char *client_ID)
 {
   Window w;
   XClassHint class_hints;
-  Atom sm_id;
 
   w = XCreateSimpleWindow (dpyinfo->display,
                            dpyinfo->root_window,
