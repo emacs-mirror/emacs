@@ -1,5 +1,10 @@
 2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* bitmaps: Change bitmaps from unsigned char back to the X11
+	compatible char.  Avoid the old compiler warnings about
+	out-of-range initializers by using, for example, '\xab' rather
+	than 0xab.
+
 	* xgselect.c (xgselect_initialize): Check vs interface
 	even if ! (defined (USE_GTK) || defined (HAVE_GCONF)).
 
