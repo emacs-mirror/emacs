@@ -1,5 +1,7 @@
 2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xfns.c (x_real_positions): Mark locals as initialized.
+
 	* xmenu.c (xmenu_show): Don't use uninitialized vars.
 
 	* xterm.c: Fix problems found by static analysis with other toolkits.

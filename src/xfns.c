@@ -427,7 +427,7 @@ x_top_window_to_frame (struct x_display_info *dpyinfo, int wdesc)
 void
 x_real_positions (FRAME_PTR f, int *xptr, int *yptr)
 {
-  int win_x, win_y, outer_x, outer_y;
+  int win_x, win_y, outer_x IF_LINT (= 0), outer_y IF_LINT (= 0);
   int real_x = 0, real_y = 0;
   int had_errors = 0;
   Window win = f->output_data.x->parent_desc;
