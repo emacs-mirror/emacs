@@ -1,5 +1,8 @@
 2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* alloc.c (bytes_used_when_full, SPARE_MEMORY, BYTES_USED):
+	Define only if needed.
+
 	* sysdep.c (_FILE_OFFSET_BITS): Make this hack even uglier
 	by pacifying GCC about it.  Maybe it's time to retire it?
 	* xfaces.c (USG, __TIMEVAL__): Likewise.
