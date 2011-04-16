@@ -2,7 +2,8 @@
 
 	* xfns.c (Fx_file_dialog): Rename local to avoid shadowing.
 
-	* xdisp.c (x_produce_glyphs): Avoid possibly-uninitialized var.
+	* xdisp.c (x_produce_glyphs): Avoid possibly-uninitialized
+	var (Bug#8512).
 
 	* xfns.c (x_real_positions): Mark locals as initialized.
 
