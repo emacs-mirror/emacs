@@ -1693,8 +1693,10 @@ release_drawing_gcs (XlwMenuWidget mw)
   mw->menu.background_gc = (GC) -1;
 }
 
+#ifndef emacs
 #define MINL(x,y) ((((unsigned long) (x)) < ((unsigned long) (y))) \
 		   ? ((unsigned long) (x)) : ((unsigned long) (y)))
+#endif
 
 static void
 make_shadow_gcs (XlwMenuWidget mw)

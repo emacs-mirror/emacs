@@ -1,6 +1,7 @@
 2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xlwmenu.c (XlwMenuSetValues): Rename/ move locals to avoid shadowing.
+	(MINL): Define only if not emacs.
 
 2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
 
