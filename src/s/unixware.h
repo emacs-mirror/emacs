@@ -35,7 +35,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    within, it should be caught after sigrelse(2).  */
 #define PTY_TTY_NAME_SPRINTF			\
   {						\
-    char *ptsname(), *ptyname;			\
+    char *ptsname (int), *ptyname;		\
 						\
     sigblock(sigmask(SIGCLD));			\
     if (grantpt(fd) == -1)			\

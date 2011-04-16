@@ -1,5 +1,7 @@
 2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* s/sol2-6.h, s/unixware.h (PTY_TTY_NAME_SPRINTF): Protoize decl.
+
 	* process.c (keyboard_bit_set): Define only if SIGIO.
 	(send_process_trap): Mark it with NO_RETURN if it doesn't return.
 	(send_process): Repair possible setjmp clobbering.
