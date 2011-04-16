@@ -2245,7 +2245,7 @@ pop_down_menu (Lisp_Object arg)
 
 Lisp_Object
 xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
-	    Lisp_Object title, const char **error, EMACS_UINT timestamp)
+	    Lisp_Object title, const char **error_name, EMACS_UINT timestamp)
 {
   Window root;
   XMenu *menu;
@@ -2263,13 +2263,13 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
   if (! FRAME_X_P (f) && ! FRAME_MSDOS_P (f))
     abort ();
 
-  *error = 0;
+  *error_name = 0;
   if (menu_items_n_panes == 0)
     return Qnil;
 
   if (menu_items_used <= MENU_ITEMS_PANE_LENGTH)
     {
-      *error = "Empty menu";
+      *error_name = "Empty menu";
       return Qnil;
     }
 
@@ -2282,7 +2282,7 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
   menu = XMenuCreate (FRAME_X_DISPLAY (f), root, "emacs");
   if (menu == NULL)
     {
-      *error = "Can't create menu";
+      *error_name = "Can't create menu";
       return Qnil;
     }
 
@@ -2324,7 +2324,7 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 	  if (lpane == XM_FAILURE)
 	    {
 	      XMenuDestroy (FRAME_X_DISPLAY (f), menu);
-	      *error = "Can't create pane";
+	      *error_name = "Can't create pane";
 	      return Qnil;
 	    }
 	  i += MENU_ITEMS_PANE_LENGTH;
@@ -2391,7 +2391,7 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 	      == XM_FAILURE)
 	    {
 	      XMenuDestroy (FRAME_X_DISPLAY (f), menu);
-	      *error = "Can't add selection to menu";
+	      *error_name = "Can't add selection to menu";
 	      return Qnil;
 	    }
 	  i += MENU_ITEMS_ITEM_LENGTH;
@@ -2512,7 +2512,7 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
       break;
 
     case XM_FAILURE:
-      *error = "Can't activate menu";
+      *error_name = "Can't activate menu";
     case XM_IA_SELECT:
       entry = Qnil;
       break;

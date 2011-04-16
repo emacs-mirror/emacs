@@ -1,5 +1,7 @@
 2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xmenu.c (xmenu_show): Rename parm to avoid shadowing.
+
 	* xterm.c (x_create_toolkit_scroll_bar): Use const * for pointers
 	to read-only memory.
 
