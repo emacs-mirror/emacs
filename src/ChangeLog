@@ -1,3 +1,13 @@
+2011-04-16  Ben Key  <bkey76@gmail.com>
+
+	* nsfont.m: Fixed bugs in ns_get_family and
+	ns_descriptor_to_entity that were caused by using free to
+	deallocate memory blocks that were allocated by xmalloc (via
+	xstrdup).  This caused Emacs to crash when compiled with
+	XMALLOC_OVERRUN_CHECK defined (when Emacs was configured with
+	--enable-checking=xmallocoverrun).  xfree is now used to
+	deallocate these memory blocks.
+
 2011-04-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* sysdep.c (emacs_read): Remove unnecessary check vs MAX_RW_COUNT.
