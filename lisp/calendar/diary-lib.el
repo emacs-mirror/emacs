@@ -1353,7 +1353,7 @@ diary entries."
 (defun diary-sexp-entry (sexp entry date)
   "Process a SEXP diary ENTRY for DATE."
   (let ((result (if calendar-debug-sexp
-                    (let ((stack-trace-on-error t))
+                    (let ((debug-on-error t))
                       (eval (car (read-from-string sexp))))
                   (condition-case nil
                       (eval (car (read-from-string sexp)))

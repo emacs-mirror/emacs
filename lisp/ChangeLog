@@ -1,3 +1,9 @@
+2011-04-17  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-sexp-entry):
+	* calendar/holidays.el (holiday-sexp):
+	Set debug-on-error rather than the removed stack-trace-on-error.
+
 2011-04-16  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/f90.el: Use lexical-binding.

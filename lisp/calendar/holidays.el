@@ -462,7 +462,7 @@ The holidays are those in the list `calendar-holidays'."
     (sort
      (dolist (p calendar-holidays res)
        (if (setq h (if calendar-debug-sexp
-                       (let ((stack-trace-on-error t))
+                       (let ((debug-on-error t))
                          (eval p))
                      (condition-case nil
                          (eval p)
