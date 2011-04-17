@@ -5861,7 +5861,6 @@ get_next_display_element (struct it *it)
 	}
     }
 
-#ifdef HAVE_WINDOW_SYSTEM
   /* Adjust face id for a multibyte character.  There are no multibyte
      character in unibyte text.  */
   if ((it->what == IT_CHARACTER || it->what == IT_COMPOSITION)
@@ -5888,7 +5887,6 @@ get_next_display_element (struct it *it)
 				       it->string);
 	}
     }
-#endif
 
  done:
   /* Is this character the last one of a run of characters with

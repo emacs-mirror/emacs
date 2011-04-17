@@ -633,19 +633,6 @@ extern struct terminal *terminal_list;
 
 #define FRAME_TERMINAL(f) ((f)->terminal)
 
-/* FRAME_WINDOW_P tests whether the frame is a window, and is
-   defined to be the predicate for the window system being used.  */
-
-#ifdef HAVE_X_WINDOWS
-#define FRAME_WINDOW_P(f) FRAME_X_P (f)
-#endif
-#ifdef HAVE_NTGUI
-#define FRAME_WINDOW_P(f) FRAME_W32_P (f)
-#endif
-#ifndef FRAME_WINDOW_P
-#define FRAME_WINDOW_P(f) (0)
-#endif
-
 /* Return true if the terminal device is not suspended. */
 #define TERMINAL_ACTIVE_P(d) (((d)->type != output_termcap && (d)->type !=output_msdos_raw) || (d)->display_info.tty->input)
 

@@ -1752,6 +1752,7 @@ struct face_cache
 
 #else /* not HAVE_WINDOW_SYSTEM */
 
+#define FACE_SUITABLE_FOR_ASCII_CHAR_P(FACE, CHAR) 1
 #define FACE_SUITABLE_FOR_CHAR_P(FACE, CHAR) 1
 #define FACE_FOR_CHAR(F, FACE, CHAR, POS, OBJECT) ((FACE)->id)
 
