@@ -1936,6 +1936,8 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
 	{
 	  if (! STRINGP (acronym) && CHAR_TABLE_P (Vglyphless_char_display))
 	    acronym = CHAR_TABLE_REF (Vglyphless_char_display, it->c);
+	  if (CONSP (acronym))
+	    acronym = XCDR (acronym);
 	  buf[0] = '[';
 	  str = STRINGP (acronym) ? SSDATA (acronym) : "";
 	  for (len = 0; len < 6 && str[len] && ASCII_BYTE_P (str[len]); len++)

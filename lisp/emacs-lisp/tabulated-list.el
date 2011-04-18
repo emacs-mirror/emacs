@@ -143,6 +143,15 @@ If ADVANCE is non-nil, move forward by one line afterwards."
     map)
   "Local keymap for `tabulated-list-mode' sort buttons.")
 
+(defvar tabulated-list-glyphless-char-display
+  (let ((table (make-char-table 'glyphless-char-display nil)))
+    (set-char-table-parent table glyphless-char-display)
+    ;; Some text terminals can't display the unicode arrows; be safe.
+    (aset table 9650 (cons nil "^"))
+    (aset table 9660 (cons nil "v"))
+    table)
+  "The `glyphless-char-display' table in Tabulated List buffers.")
+
 (defun tabulated-list-init-header ()
   "Set up header line for the Tabulated List buffer."
   (let ((x tabulated-list-padding)
@@ -341,7 +350,9 @@ as the ewoc pretty-printer."
   (setq truncate-lines t)
   (setq buffer-read-only t)
   (set (make-local-variable 'revert-buffer-function)
-       'tabulated-list-revert))
+       'tabulated-list-revert)
+  (set (make-local-variable 'glyphless-char-display)
+       tabulated-list-glyphless-char-display))
 
 (put 'tabulated-list-mode 'mode-class 'special)
 

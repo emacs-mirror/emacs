@@ -1,3 +1,9 @@
+2011-04-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/tabulated-list.el (tabulated-list-mode): Use a custom
+	glyphless-char-display table.
+	(tabulated-list-glyphless-char-display): New var.
+
 2011-04-18  Sam Steingold  <sds@gnu.org>
 
 	* vc/add-log.el (change-log-font-lock-keywords): Add "Thanks to"

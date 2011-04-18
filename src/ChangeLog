@@ -1,3 +1,13 @@
+2011-04-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (lookup_glyphless_char_display)
+	(produce_glyphless_glyph): Handle cons cell entry in
+	glyphless-char-display.
+	(Vglyphless_char_display): Document it.
+
+	* term.c (produce_glyphless_glyph): Handle cons cell entry in
+	glyphless-char-display.
+
 2011-04-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (get_next_display_element): Remove unnecessary ifdefs.
