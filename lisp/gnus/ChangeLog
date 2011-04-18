@@ -1,3 +1,18 @@
+2011-04-18  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-registry.el: Eliminate cl functions.
+	(gnus-registry-sort-addresses): New function that replaces mapcan.
+	(gnus-registry-action, gnus-registry-spool-action)
+	(gnus-registry-split-fancy-with-parent)
+	(gnus-registry-fetch-recipients-fast): Use it.
+	(gnus-registry-import-eld): Replace delete* with dolist + delq.
+
+	* registry.el (initialize-instance, registry-lookup)
+	(registry-lookup-breaks-before-lexbind, registry-lookup-secondary)
+	(registry-lookup-secondary-value, registry-search, registry-delete)
+	(registry-insert, registry-reindex, registry-size, registry-prune):
+	Use eval-and-compile.
+
 2011-04-16  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* registry.el (registry-reindex): New method to recreate the secondary
