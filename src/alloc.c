@@ -1517,6 +1517,7 @@ struct sdata
 
 #define SDATA_NBYTES(S)	(S)->nbytes
 #define SDATA_DATA(S)	(S)->data
+#define SDATA_SELECTOR(member) member
 
 #else /* not GC_CHECK_STRING_BYTES */
 
@@ -1531,8 +1532,11 @@ struct sdata
 
 #define SDATA_NBYTES(S)	(S)->u.nbytes
 #define SDATA_DATA(S)	(S)->u.data
+#define SDATA_SELECTOR(member) u.member
 
 #endif /* not GC_CHECK_STRING_BYTES */
+
+#define SDATA_DATA_OFFSET offsetof (struct sdata, SDATA_SELECTOR (data))
 };
 
 
@@ -1608,18 +1612,7 @@ static EMACS_INT total_string_size;
    a pointer to the `u.data' member of its sdata structure; the
    structure starts at a constant offset in front of that.  */
 
-#ifdef GC_CHECK_STRING_BYTES
-
-#define SDATA_OF_STRING(S) \
-     ((struct sdata *) ((S)->data - sizeof (struct Lisp_String *) \
-			- sizeof (EMACS_INT)))
-
-#else /* not GC_CHECK_STRING_BYTES */
-
-#define SDATA_OF_STRING(S) \
-     ((struct sdata *) ((S)->data - sizeof (struct Lisp_String *)))
-
-#endif /* not GC_CHECK_STRING_BYTES */
+#define SDATA_OF_STRING(S) ((struct sdata *) ((S)->data - SDATA_DATA_OFFSET))
 
 
 #ifdef GC_CHECK_STRING_OVERRUN
@@ -1643,17 +1636,16 @@ static char const string_overrun_cookie[GC_STRING_OVERRUN_COOKIE_SIZE] =
 #ifdef GC_CHECK_STRING_BYTES
 
 #define SDATA_SIZE(NBYTES)			\
-     ((sizeof (struct Lisp_String *)		\
+     ((SDATA_DATA_OFFSET			\
        + (NBYTES) + 1				\
-       + sizeof (EMACS_INT)			\
        + sizeof (EMACS_INT) - 1)		\
       & ~(sizeof (EMACS_INT) - 1))
 
 #else /* not GC_CHECK_STRING_BYTES */
 
 #define SDATA_SIZE(NBYTES)			\
-     ((sizeof (struct Lisp_String *)		\
-       + (NBYTES) + 1				\
+     ((SDATA_DATA_OFFSET			\
+       + max (NBYTES, sizeof (EMACS_INT) - 1) + 1 \
        + sizeof (EMACS_INT) - 1)		\
       & ~(sizeof (EMACS_INT) - 1))
 
@@ -1877,7 +1869,7 @@ allocate_string_data (struct Lisp_String *s,
 
   if (nbytes > LARGE_STRING_BYTES)
     {
-      size_t size = sizeof *b - sizeof (struct sdata) + needed;
+      size_t size = offsetof (struct sblock, first_data) + needed;
 
 #ifdef DOUG_LEA_MALLOC
       /* Prevent mmap'ing the chunk.  Lisp data may not be mmap'ed
@@ -2807,7 +2799,8 @@ allocate_vectorlike (EMACS_INT len)
   /* This gets triggered by code which I haven't bothered to fix.  --Stef  */
   /* eassert (!handling_signal); */
 
-  nbytes = sizeof *p + (len - 1) * sizeof p->contents[0];
+  nbytes = (offsetof (struct Lisp_Vector, contents)
+	    + len * sizeof p->contents[0]);
   p = (struct Lisp_Vector *) lisp_malloc (nbytes, MEM_TYPE_VECTORLIKE);
 
 #ifdef DOUG_LEA_MALLOC
@@ -4735,7 +4728,8 @@ make_pure_vector (EMACS_INT len)
 {
   Lisp_Object new;
   struct Lisp_Vector *p;
-  size_t size = sizeof *p + (len - 1) * sizeof (Lisp_Object);
+  size_t size = (offsetof (struct Lisp_Vector, contents)
+		 + len * sizeof (Lisp_Object));
 
   p = (struct Lisp_Vector *) pure_alloc (size, Lisp_Vectorlike);
   XSETVECTOR (new, p);
