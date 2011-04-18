@@ -1,3 +1,8 @@
+2011-04-18  Sam Steingold  <sds@gnu.org>
+
+	* vc/add-log.el (change-log-font-lock-keywords): Add "Thanks to"
+	to acknowledgments.
+
 2011-04-17  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/diary-lib.el (diary-sexp-entry):
