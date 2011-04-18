@@ -1,3 +1,10 @@
+2011-04-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* s/ms-w32.h (localtime): Redirect to sys_localtime.
+
+	* w32.c: Include <time.h>.
+	(sys_localtime): New function.
+
 2011-04-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (init_xdisp): Initialize echo_area_window (Bug#6451).
