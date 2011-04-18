@@ -18,6 +18,7 @@
 	(allocate_buffer): Don't assume sizeof (struct buffer) is a
 	multiple of sizeof (EMACS_INT); it need not be, if
 	alignof(EMACS_INT) < sizeof (EMACS_INT).
+	(check_sblock, check_string_bytes, check_string_free_list): Protoize.
 
 2011-04-17  Chong Yidong  <cyd@stupidchicken.com>
 
