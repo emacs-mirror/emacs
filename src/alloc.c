@@ -1628,8 +1628,8 @@ static EMACS_INT total_string_size;
    presence of this cookie during GC.  */
 
 #define GC_STRING_OVERRUN_COOKIE_SIZE	4
-static char string_overrun_cookie[GC_STRING_OVERRUN_COOKIE_SIZE] =
-  { 0xde, 0xad, 0xbe, 0xef };
+static char const string_overrun_cookie[GC_STRING_OVERRUN_COOKIE_SIZE] =
+  { '\xde', '\xad', '\xbe', '\xef' };
 
 #else
 #define GC_STRING_OVERRUN_COOKIE_SIZE 0

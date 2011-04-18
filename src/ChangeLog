@@ -2,6 +2,8 @@
 
 	* alloc.c (BLOCK BYTES): Fix typo by changing "ablock" to "ablocks".
 	This doesn't fix a bug but makes the code clearer.
+	(string_overrun_cookie): Now const.  Use initializers that
+	don't formally overflow signed char, to avoid warnings.
 
 2011-04-17  Chong Yidong  <cyd@stupidchicken.com>
 
