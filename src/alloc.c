@@ -1521,13 +1521,12 @@ struct sdata
 
   union
   {
-    /* When STRING in non-null.  */
+    /* When STRING is non-null.  */
     unsigned char data[1];
 
     /* When STRING is null.  */
     EMACS_INT nbytes;
   } u;
-
 
 #define SDATA_NBYTES(S)	(S)->u.nbytes
 #define SDATA_DATA(S)	(S)->u.data
