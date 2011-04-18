@@ -6,6 +6,9 @@
 	don't formally overflow signed char, to avoid warnings.
 	(allocate_string_data) [GC_CHECK_STRING_OVERRUN]: Fix typo that
 	can cause Emacs to crash when string overrun checking is enabled.
+	(allocate_buffer): Don't assume sizeof (struct buffer) is a
+	multiple of sizeof (EMACS_INT); it need not be, if
+	alignof(EMACS_INT) < sizeof (EMACS_INT).
 
 2011-04-17  Chong Yidong  <cyd@stupidchicken.com>
 

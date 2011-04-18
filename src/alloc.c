@@ -1055,7 +1055,8 @@ allocate_buffer (void)
   struct buffer *b
     = (struct buffer *) lisp_malloc (sizeof (struct buffer),
 				     MEM_TYPE_BUFFER);
-  b->size = sizeof (struct buffer) / sizeof (EMACS_INT);
+  b->size = ((sizeof (struct buffer) + sizeof (EMACS_INT) - 1)
+	     / sizeof (EMACS_INT));
   XSETPVECTYPE (b, PVEC_BUFFER);
   return b;
 }
