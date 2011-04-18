@@ -1,3 +1,8 @@
+2011-04-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c (BLOCK BYTES): Fix typo by changing "ablock" to "ablocks".
+	This doesn't fix a bug but makes the code clearer.
+
 2011-04-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (get_next_display_element): Remove unnecessary ifdefs.

@@ -835,7 +835,7 @@ lisp_free (POINTER_TYPE *block)
    nothing else.  */
 #define BLOCK_PADDING 0
 #define BLOCK_BYTES \
-  (BLOCK_ALIGN - sizeof (struct ablock *) - BLOCK_PADDING)
+  (BLOCK_ALIGN - sizeof (struct ablocks *) - BLOCK_PADDING)
 
 /* Internal data structures and constants.  */
 
