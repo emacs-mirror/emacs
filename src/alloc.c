@@ -1937,7 +1937,8 @@ allocate_string_data (struct Lisp_String *s,
   s->size_byte = nbytes;
   s->data[nbytes] = '\0';
 #ifdef GC_CHECK_STRING_OVERRUN
-  memcpy (data + needed, string_overrun_cookie, GC_STRING_OVERRUN_COOKIE_SIZE);
+  memcpy ((char *) data + needed, string_overrun_cookie,
+	  GC_STRING_OVERRUN_COOKIE_SIZE);
 #endif
 
   /* If S had already data assigned, mark that as free by setting its
