@@ -1,5 +1,10 @@
 2011-04-18  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* frame.c (frame_name_fnn_p): Get rid of strtol, which isn't right
+	here, since it parses constructs like leading '-' and spaces,
+	which are not wanted; and it overflows with large numbers.
+	Instead, simply match F[0-9]+, which is what is wanted anyway.
+
 	* alloc.c: Remove unportable assumptions about struct layout.
 	(SDATA_SELECTOR, SDATA_DATA_OFFSET): New macros.
 	(SDATA_OF_STRING, SDATA_SIZE, allocate_string_data):
