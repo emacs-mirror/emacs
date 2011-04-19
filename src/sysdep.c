@@ -2383,7 +2383,7 @@ serial_configure (struct Lisp_Process *p,
   CHECK_NUMBER (tem);
   err = cfsetspeed (&attr, XINT (tem));
   if (err != 0)
-    error ("cfsetspeed(%"pEd") failed: %s", XINT (tem),
+    error ("cfsetspeed(%"pI"d) failed: %s", XINT (tem),
 	   emacs_strerror (errno));
   childp2 = Fplist_put (childp2, QCspeed, tem);
 

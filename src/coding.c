@@ -9037,14 +9037,14 @@ Return the corresponding character.  */)
 
       if (c1 < 0x81 || (c1 > 0x9F && c1 < 0xE0) || c1 > 0xEF
 	  || c2 < 0x40 || c2 == 0x7F || c2 > 0xFC)
-	error ("Invalid code: %"pEd, ch);
+	error ("Invalid code: %"pI"d", ch);
       c = ch;
       SJIS_TO_JIS (c);
       charset = charset_kanji;
     }
   c = DECODE_CHAR (charset, c);
   if (c < 0)
-    error ("Invalid code: %"pEd, ch);
+    error ("Invalid code: %"pI"d", ch);
   return make_number (c);
 }
 
@@ -9111,13 +9111,13 @@ Return the corresponding character.  */)
       int b2 = ch & 0x7F;
       if (b1 < 0xA1 || b1 > 0xFE
 	  || b2 < 0x40 || (b2 > 0x7E && b2 < 0xA1) || b2 > 0xFE)
-	error ("Invalid code: %"pEd, ch);
+	error ("Invalid code: %"pI"d", ch);
       c = ch;
       charset = charset_big5;
     }
   c = DECODE_CHAR (charset, c);
   if (c < 0)
-    error ("Invalid code: %"pEd, ch);
+    error ("Invalid code: %"pI"d", ch);
   return make_number (c);
 }
 
@@ -9289,7 +9289,7 @@ usage: (find-operation-coding-system OPERATION ARGUMENTS...)  */)
 	|| (EQ (operation, Qinsert_file_contents) && CONSP (target)
 	    && STRINGP (XCAR (target)) && BUFFERP (XCDR (target)))
 	|| (EQ (operation, Qopen_network_stream) && INTEGERP (target))))
-    error ("Invalid %"pEd"th argument", XFASTINT (target_idx) + 1);
+    error ("Invalid %"pI"dth argument", XFASTINT (target_idx) + 1);
   if (CONSP (target))
     target = XCAR (target);
 
@@ -9765,7 +9765,7 @@ usage: (define-coding-system-internal ...)  */)
 	  CHECK_CHARSET_GET_ID (tmp1, id);
 	  CHECK_NATNUM_CDR (val);
 	  if (XINT (XCDR (val)) >= 4)
-	    error ("Invalid graphic register number: %"pEd, XINT (XCDR (val)));
+	    error ("Invalid graphic register number: %"pI"d", XINT (XCDR (val)));
 	  XSETCAR (val, make_number (id));
 	}
 

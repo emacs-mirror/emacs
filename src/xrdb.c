@@ -536,10 +536,10 @@ x_load_resources (Display *display, const char *xrm_string,
      dialog from `double-click-time'.  */
   if (INTEGERP (Vdouble_click_time) && XINT (Vdouble_click_time) > 0)
     {
-      sprintf (line, "%s*fsb*DirList.doubleClickInterval: %d",
+      sprintf (line, "%s*fsb*DirList.doubleClickInterval: %"pI"d",
 	       myclass, XFASTINT (Vdouble_click_time));
       XrmPutLineResource (&rdb, line);
-      sprintf (line, "%s*fsb*ItemsList.doubleClickInterval: %d",
+      sprintf (line, "%s*fsb*ItemsList.doubleClickInterval: %"pI"d",
 	       myclass, XFASTINT (Vdouble_click_time));
       XrmPutLineResource (&rdb, line);
     }

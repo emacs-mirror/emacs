@@ -1271,9 +1271,9 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
     f[XLFD_SPACING_INDEX] = "*", len += 2;
   if (INTEGERP (AREF (font,  FONT_AVGWIDTH_INDEX)))
     {
-      f[XLFD_AVGWIDTH_INDEX] = p = alloca (11);
-      len += sprintf (p, "%ld",
-                      (long) XINT (AREF (font, FONT_AVGWIDTH_INDEX))) + 1;
+      f[XLFD_AVGWIDTH_INDEX] = p = alloca (22);
+      len += sprintf (p, "%"pI"d",
+		      XINT (AREF (font, FONT_AVGWIDTH_INDEX))) + 1;
     }
   else
     f[XLFD_AVGWIDTH_INDEX] = "*", len += 2;
@@ -1598,7 +1598,7 @@ font_unparse_fcname (Lisp_Object font, int pixel_size, char *name, int nbytes)
     }
 
   if (INTEGERP (AREF (font, FONT_DPI_INDEX)))
-    len += sprintf (work, ":dpi=%ld", (long)XINT (AREF (font, FONT_DPI_INDEX)));
+    len += sprintf (work, ":dpi=%"pI"d", XINT (AREF (font, FONT_DPI_INDEX)));
   if (INTEGERP (AREF (font, FONT_SPACING_INDEX)))
     len += strlen (":spacing=100");
   if (INTEGERP (AREF (font, FONT_AVGWIDTH_INDEX)))
@@ -1611,7 +1611,7 @@ font_unparse_fcname (Lisp_Object font, int pixel_size, char *name, int nbytes)
       if (STRINGP (value))
 	len += SBYTES (value);
       else if (INTEGERP (value))
-	len += sprintf (work, "%ld", (long) XINT (value));
+	len += sprintf (work, "%"pI"d", XINT (value));
       else if (SYMBOLP (value))
 	len += (NILP (value) ? 5 : 4); /* for "false" or "true" */
     }
@@ -1638,10 +1638,9 @@ font_unparse_fcname (Lisp_Object font, int pixel_size, char *name, int nbytes)
       p += sprintf (p, ":%s=%s", style_names[i],
 		    SDATA (SYMBOL_NAME (styles[i])));
   if (INTEGERP (AREF (font, FONT_DPI_INDEX)))
-    p += sprintf (p, ":dpi=%ld", (long) XINT (AREF (font, FONT_DPI_INDEX)));
+    p += sprintf (p, ":dpi=%"pI"d", XINT (AREF (font, FONT_DPI_INDEX)));
   if (INTEGERP (AREF (font, FONT_SPACING_INDEX)))
-    p += sprintf (p, ":spacing=%ld",
-                  (long) XINT (AREF (font, FONT_SPACING_INDEX)));
+    p += sprintf (p, ":spacing=%"pI"d", XINT (AREF (font, FONT_SPACING_INDEX)));
   if (INTEGERP (AREF (font, FONT_AVGWIDTH_INDEX)))
     {
       if (XINT (AREF (font, FONT_AVGWIDTH_INDEX)) == 0)

@@ -1072,7 +1072,7 @@ an error is signaled.  */)
       EMACS_INT converted = str_to_unibyte (SDATA (string), str, chars, 0);
 
       if (converted < chars)
-	error ("Can't convert the %"pEd"th character to unibyte", converted);
+	error ("Can't convert the %"pI"dth character to unibyte", converted);
       string = make_unibyte_string ((char *) str, chars);
       xfree (str);
     }

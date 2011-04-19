@@ -506,7 +506,7 @@ xd_append_arg (unsigned int dtype, Lisp_Object object, DBusMessageIter *iter)
 	CHECK_NUMBER (object);
 	{
 	  dbus_uint64_t val = XUINT (object);
-	  XD_DEBUG_MESSAGE ("%c %u", dtype, (unsigned int) val);
+	  XD_DEBUG_MESSAGE ("%c %"pI"u", dtype, XUINT (object));
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
 	    XD_SIGNAL2 (build_string ("Unable to append argument"), object);
 	  return;
@@ -1377,7 +1377,7 @@ usage: (dbus-method-return-internal BUS SERIAL SERVICE &rest ARGS)  */)
   CHECK_STRING (service);
   GCPRO3 (bus, serial, service);
 
-  XD_DEBUG_MESSAGE ("%lu %s ", (unsigned long) XUINT (serial), SDATA (service));
+  XD_DEBUG_MESSAGE ("%"pI"u %s ", XUINT (serial), SDATA (service));
 
   /* Open a connection to the bus.  */
   connection = xd_initialize (bus, TRUE);
@@ -1465,7 +1465,7 @@ usage: (dbus-method-error-internal BUS SERIAL SERVICE &rest ARGS)  */)
   CHECK_STRING (service);
   GCPRO3 (bus, serial, service);
 
-  XD_DEBUG_MESSAGE ("%lu %s ", (unsigned long) XUINT (serial), SDATA (service));
+  XD_DEBUG_MESSAGE ("%"pI"u %s ", XUINT (serial), SDATA (service));
 
   /* Open a connection to the bus.  */
   connection = xd_initialize (bus, TRUE);

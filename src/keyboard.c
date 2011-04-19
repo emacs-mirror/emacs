@@ -3313,7 +3313,7 @@ record_char (Lisp_Object c)
 	  if (XUINT (c) < 0x100)
 	    putc (XINT (c), dribble);
 	  else
-	    fprintf (dribble, " 0x%x", (int) XUINT (c));
+	    fprintf (dribble, " 0x%"pI"x", XUINT (c));
 	}
       else
 	{
@@ -6443,8 +6443,8 @@ modify_event_symbol (EMACS_INT symbol_num, unsigned int modifiers, Lisp_Object s
 	{
 	  int len = SBYTES (name_alist_or_stem);
 	  char *buf = (char *) alloca (len + 50);
-          sprintf (buf, "%s-%ld", SDATA (name_alist_or_stem),
-                   (long) XINT (symbol_int) + 1);
+          sprintf (buf, "%s-%"pI"d", SDATA (name_alist_or_stem),
+                   XINT (symbol_int) + 1);
 	  value = intern (buf);
 	}
       else if (name_table != 0 && name_table[symbol_num])
@@ -6462,7 +6462,7 @@ modify_event_symbol (EMACS_INT symbol_num, unsigned int modifiers, Lisp_Object s
       if (NILP (value))
 	{
 	  char buf[20];
-	  sprintf (buf, "key-%ld", (long)symbol_num);
+	  sprintf (buf, "key-%"pI"d", symbol_num);
 	  value = intern (buf);
 	}
 

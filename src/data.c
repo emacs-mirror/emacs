@@ -2374,12 +2374,7 @@ NUMBER may be an integer or a floating point number.  */)
       return build_string (pigbuf);
     }
 
-  if (sizeof (int) == sizeof (EMACS_INT))
-    sprintf (buffer, "%d", (int) XINT (number));
-  else if (sizeof (long) == sizeof (EMACS_INT))
-    sprintf (buffer, "%ld", (long) XINT (number));
-  else
-    abort ();
+  sprintf (buffer, "%"pI"d", XINT (number));
   return build_string (buffer);
 }
 

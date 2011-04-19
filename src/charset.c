@@ -999,7 +999,7 @@ usage: (define-charset-internal ...)  */)
     {
       CHECK_NUMBER (val);
       if (XINT (val) < '0' || XINT (val) > 127)
-	error ("Invalid iso-final-char: %"pEd, XINT (val));
+	error ("Invalid iso-final-char: %"pI"d", XINT (val));
       charset.iso_final = XINT (val);
     }
 
@@ -1021,7 +1021,7 @@ usage: (define-charset-internal ...)  */)
     {
       CHECK_NATNUM (val);
       if ((XINT (val) > 0 && XINT (val) <= 128) || XINT (val) >= 256)
-	error ("Invalid emacs-mule-id: %"pEd, XINT (val));
+	error ("Invalid emacs-mule-id: %"pI"d", XINT (val));
       charset.emacs_mule_id = XINT (val);
     }
 
@@ -1439,10 +1439,10 @@ check_iso_charset_parameter (Lisp_Object dimension, Lisp_Object chars, Lisp_Obje
   CHECK_NATNUM (final_char);
 
   if (XINT (dimension) > 3)
-    error ("Invalid DIMENSION %"pEd", it should be 1, 2, or 3",
+    error ("Invalid DIMENSION %"pI"d, it should be 1, 2, or 3",
 	   XINT (dimension));
   if (XINT (chars) != 94 && XINT (chars) != 96)
-    error ("Invalid CHARS %"pEd", it should be 94 or 96", XINT (chars));
+    error ("Invalid CHARS %"pI"d, it should be 94 or 96", XINT (chars));
   if (XINT (final_char) < '0' || XINT (final_char) > '~')
     {
       unsigned char str[MAX_MULTIBYTE_LENGTH + 1];

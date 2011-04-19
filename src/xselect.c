@@ -169,7 +169,7 @@ x_queue_event (struct input_event *event)
     {
       if (!memcmp (&queue_tmp->event, event, sizeof (*event)))
 	{
-	  TRACE1 ("DECLINE DUP SELECTION EVENT %08lx", (unsigned long)queue_tmp);
+	  TRACE1 ("DECLINE DUP SELECTION EVENT %08p", queue_tmp);
 	  x_decline_selection_request (event);
 	  return;
 	}
@@ -180,7 +180,7 @@ x_queue_event (struct input_event *event)
 
   if (queue_tmp != NULL)
     {
-      TRACE1 ("QUEUE SELECTION EVENT %08lx", (unsigned long)queue_tmp);
+      TRACE1 ("QUEUE SELECTION EVENT %08p", queue_tmp);
       queue_tmp->event = *event;
       queue_tmp->next = selection_queue;
       selection_queue = queue_tmp;
@@ -213,7 +213,7 @@ x_stop_queuing_selection_requests (void)
   while (selection_queue != NULL)
     {
       struct selection_event_queue *queue_tmp = selection_queue;
-      TRACE1 ("RESTORE SELECTION EVENT %08lx", (unsigned long)queue_tmp);
+      TRACE1 ("RESTORE SELECTION EVENT %08p", queue_tmp);
       kbd_buffer_unget_event (&queue_tmp->event);
       selection_queue = queue_tmp->next;
       xfree ((char *)queue_tmp);
@@ -1444,7 +1444,7 @@ x_get_window_property (Display *display, Window window, Atom property,
   while (bytes_remaining)
     {
 #ifdef TRACE_SELECTION
-      int last = bytes_remaining;
+      unsigned long last = bytes_remaining;
 #endif
       result
 	= XGetWindowProperty (display, window, property,
@@ -1454,7 +1454,7 @@ x_get_window_property (Display *display, Window window, Atom property,
 			      actual_type_ret, actual_format_ret,
 			      actual_size_ret, &bytes_remaining, &tmp_data);
 
-      TRACE2 ("Read %ld bytes from property %s",
+      TRACE2 ("Read %lu bytes from property %s",
 	      last - bytes_remaining,
 	      XGetAtomName (display, property));
 

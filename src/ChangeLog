@@ -1,4 +1,33 @@
-2011-04-18  Paul Eggert  <eggert@cs.ucla.edu>
+2011-04-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Replace pEd with more-general pI, and fix some printf arg casts.
+	* lisp.h (pI): New macro, generalizing old pEd macro to other
+	conversion specifiers.  For example, use "...%"pI"d..." rather
+	than "...%"pEd"...".
+	(pEd): Remove.  All uses replaced with similar uses of pI.
+	* src/m/amdx86-64.h, src/m/ia64.h, src/m/ibms390x.h: Likewise.
+	* alloc.c (check_pure_size): Don't overflow by converting size to int.
+	* bidi.c (bidi_dump_cached_states): Use pI to avoid cast.
+	* data.c (Fnumber_to_string): Use pI instead of if-then-else-abort.
+	* dbusbind.c (xd_append_arg): Use pI to avoid cast.
+	(Fdbus_method_return_internal, Fdbus_method_error_internal): Likewise.
+	* font.c (font_unparse_xlfd): Avoid potential buffer overrun on
+	64-bit hosts.
+	(font_unparse_xlfd, font_unparse_fcname): Use pI to avoid casts.
+	* keyboard.c (record_char, modify_event_symbol): Use pI to avoid casts.
+	* print.c (safe_debug_print, print_object): Likewise.
+	(print_object): Don't overflow by converting EMACS_INT or EMACS_UINT
+	to int.
+	Use pI instead of if-then-else-abort.  Use %p to avoid casts.
+	* process.c (Fmake_network_process): Use pI to avoid cast.
+	* region-cache.c (pp_cache): Likewise.
+	* xdisp.c (decode_mode_spec): Likewise.
+	* xrdb.c (x_load_resources) [USE_MOTIF]: Use pI to avoid undefined
+	behavior on 64-bit hosts with printf arg.
+	* xselect.c (x_queue_event): Use %p to avoid casts.
+	(x_stop_queuing_selection_requests): Likewise.
+	(x_get_window_property): Don't truncate byte count to an 'int'
+	when tracing.
 
 	* frame.c (frame_name_fnn_p): Get rid of strtol, which isn't right
 	here, since it parses constructs like leading '-' and spaces,

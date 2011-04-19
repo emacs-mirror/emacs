@@ -19564,7 +19564,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 	       so get us a 2-digit number that is close.  */
 	    if (total == 100)
 	      total = 99;
-	    sprintf (decode_mode_spec_buf, "%2ld%%", (long)total);
+	    sprintf (decode_mode_spec_buf, "%2"pI"d%%", total);
 	    return decode_mode_spec_buf;
 	  }
       }
@@ -19595,9 +19595,9 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 	    if (total == 100)
 	      total = 99;
 	    if (toppos <= BUF_BEGV (b))
-	      sprintf (decode_mode_spec_buf, "Top%2ld%%", (long)total);
+	      sprintf (decode_mode_spec_buf, "Top%2"pI"d%%", total);
 	    else
-	      sprintf (decode_mode_spec_buf, "%2ld%%", (long)total);
+	      sprintf (decode_mode_spec_buf, "%2"pI"d%%", total);
 	    return decode_mode_spec_buf;
 	  }
       }

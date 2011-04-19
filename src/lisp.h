@@ -38,7 +38,7 @@ extern void check_cons_list (void);
 #ifndef EMACS_INT
 #define EMACS_INT long
 #define BITS_PER_EMACS_INT BITS_PER_LONG
-#define pEd "ld"
+#define pI "l"
 #endif
 #ifndef EMACS_UINT
 #define EMACS_UINT unsigned long
@@ -47,7 +47,7 @@ extern void check_cons_list (void);
 #ifndef EMACS_INT
 #define EMACS_INT int
 #define BITS_PER_EMACS_INT BITS_PER_INT
-#define pEd "d"
+#define pI ""
 #endif
 #ifndef EMACS_UINT
 #define EMACS_UINT unsigned int

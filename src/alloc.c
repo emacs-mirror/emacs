@@ -4563,8 +4563,9 @@ void
 check_pure_size (void)
 {
   if (pure_bytes_used_before_overflow)
-    message ("emacs:0:Pure Lisp storage overflow (approx. %d bytes needed)",
-	     (int) (pure_bytes_used + pure_bytes_used_before_overflow));
+    message (("emacs:0:Pure Lisp storage overflow (approx. %"pI"d"
+	      " bytes needed)"),
+	     pure_bytes_used + pure_bytes_used_before_overflow);
 }
 
 

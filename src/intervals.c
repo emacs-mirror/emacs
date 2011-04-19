@@ -778,7 +778,7 @@ update_interval (register INTERVAL i, EMACS_INT pos)
 	      i = i->right;		/* Move to the right child */
 	    }
 	  else if (NULL_PARENT (i))
-	    error ("Point %"pEd" after end of properties", pos);
+	    error ("Point %"pI"d after end of properties", pos);
 	  else
             i = INTERVAL_PARENT (i);
 	  continue;
