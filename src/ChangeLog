@@ -1,5 +1,8 @@
 2011-04-19  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* process.c (Fnetwork_interface_info): Avoid left-shift undefined
+	behavior with 1 << 31.  GCC 4.6.0 warns about this on 32-bit hosts.
+
 	* xfns.c (Fx_window_property): Simplify a bit,
 	to make a bit faster and to avoid GCC 4.6.0 warning.
 	* xselect.c (x_get_window_property, x_handle_dnd_message): Likewise.

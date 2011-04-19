@@ -3723,9 +3723,9 @@ FLAGS is the current flags of the interface.  */)
 	      flags -= fp->flag_bit;
 	    }
 	}
-      for (fnum = 0; flags && fnum < 32; fnum++)
+      for (fnum = 0; flags && fnum < 32; flags >>= 1, fnum++)
 	{
-	  if (flags & (1 << fnum))
+	  if (flags & 1)
 	    {
 	      elt = Fcons (make_number (fnum), elt);
 	    }
