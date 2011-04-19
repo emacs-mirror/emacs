@@ -1411,16 +1411,16 @@ int
 openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *storeptr, Lisp_Object predicate)
 {
   register int fd;
-  int fn_size = 100;
+  EMACS_INT fn_size = 100;
   char buf[100];
   register char *fn = buf;
   int absolute = 0;
-  int want_size;
+  EMACS_INT want_length;
   Lisp_Object filename;
   struct stat st;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
   Lisp_Object string, tail, encoded_fn;
-  int max_suffix_len = 0;
+  EMACS_INT max_suffix_len = 0;
 
   CHECK_STRING (str);
 
@@ -1454,11 +1454,11 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *sto
 	    continue;
 	}
 
-      /* Calculate maximum size of any filename made from
+      /* Calculate maximum length of any filename made from
 	 this path element/specified file name and any possible suffix.  */
-      want_size = max_suffix_len + SBYTES (filename) + 1;
-      if (fn_size < want_size)
-	fn = (char *) alloca (fn_size = 100 + want_size);
+      want_length = max_suffix_len + SBYTES (filename);
+      if (fn_size <= want_length)
+	fn = (char *) alloca (fn_size = 100 + want_length);
 
       /* Loop over suffixes.  */
       for (tail = NILP (suffixes) ? Fcons (empty_unibyte_string, Qnil) : suffixes;

@@ -1,5 +1,9 @@
 2011-04-19  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lread.c (openp): Don't stuff size_t into an 'int'.
+	Use <= on length, not < on length + 1, to avoid GCC 4.6.0 warning
+	about possible signed overflow.
+
 	* gtkutil.c: Fix problems found by GCC 4.6.0 on Ubuntu 10.10.
 	(GDK_KEY_g): Don't define if already defined.
 	(xg_prepare_tooltip): Avoid pointer signedness problem.
