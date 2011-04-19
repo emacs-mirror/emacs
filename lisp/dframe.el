@@ -243,6 +243,9 @@ Local to those buffers, as a function called that created it.")
   "Return non-nil if FRAME is currently available."
   (and frame (frame-live-p frame) (frame-visible-p frame)))
 
+(defvar x-sensitive-text-pointer-shape)
+(defvar x-pointer-shape)
+
 (defun dframe-frame-mode (arg frame-var cache-var buffer-var frame-name
 			      local-mode-fn
 			      &optional
@@ -503,7 +506,7 @@ a cons cell indicating a position of the form (LEFT . TOP)."
 			       (list (cons 'left newleft)
 				     (cons 'top newtop))))))
 
-(defun dframe-reposition-frame-xemacs (new-frame parent-frame location)
+(defun dframe-reposition-frame-xemacs (_new-frame _parent-frame _location)
   "Move NEW-FRAME to be relative to PARENT-FRAME.
 LOCATION can be one of 'random, 'left-right, or 'top-bottom."
   ;; Not yet implemented
@@ -713,13 +716,12 @@ Argument PROMPT is the prompt to use."
 (defvar dframe-client-functions nil
   "List of client functions using the dframe timer.")
 
-(defun dframe-set-timer (timeout fn &optional null-on-error)
+(defun dframe-set-timer (timeout fn &optional _null-on-error)
   "Apply a timer with TIMEOUT, to call FN, or remove a timer if TIMEOUT is nil.
 TIMEOUT is the number of seconds until the dframe controled program
 timer is called again.  When TIMEOUT is nil, turn off all timeouts.
 This function must be called from the buffer belonging to the program
-who requested the timer.
-If NULL-ON-ERROR is a symbol, set it to nil if we cannot create a timer."
+who requested the timer.  NULL-ON-ERROR is ignored."
   ;; First, fix up our list of client functions
   (if timeout
       (add-to-list 'dframe-client-functions fn)
@@ -732,9 +734,9 @@ If NULL-ON-ERROR is a symbol, set it to nil if we cannot create a timer."
        ;; functions are left, shut er down.
        (and dframe-timer (not timeout) dframe-client-functions))
       ;; Only call the low level function if we are changing the state.
-      (dframe-set-timer-internal timeout null-on-error)))
+      (dframe-set-timer-internal timeout)))
 
-(defun dframe-set-timer-internal (timeout &optional null-on-error)
+(defun dframe-set-timer-internal (timeout &optional _null-on-error)
   "Apply a timer with TIMEOUT to call the dframe timer manager."
   (when dframe-timer
     (if (featurep 'xemacs)
@@ -838,7 +840,7 @@ Must be bound to event E."
   (if dframe-track-mouse-function
       (funcall dframe-track-mouse-function event)))
 
-(defun dframe-help-echo (window &optional buffer position)
+(defun dframe-help-echo (_window &optional buffer position)
   "Display help based context.
 The context is in WINDOW, viewing BUFFER, at POSITION.
 BUFFER and POSITION are optional because XEmacs doesn't use them."
@@ -933,7 +935,7 @@ redirected into a window on the attached frame."
 	 (mapcar (function (lambda (hook) (funcall hook buffer)))
 		 temp-buffer-show-hook))))
 
-(defun dframe-hack-buffer-menu (e)
+(defun dframe-hack-buffer-menu (_e)
   "Control mouse 1 is buffer menu.
 This hack overrides it so that the right thing happens in the main
 Emacs frame, not in the dedicated frame.

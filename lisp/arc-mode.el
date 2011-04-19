@@ -1386,7 +1386,7 @@ as a relative change like \"g+rw\" as for chmod(2)."
       (error "Renaming is not supported for this archive type"))))
 
 ;; Revert the buffer and recompute the dired-like listing.
-(defun archive-mode-revert (&optional no-auto-save no-confirm)
+(defun archive-mode-revert (&optional _no-auto-save _no-confirm)
   (let ((no (archive-get-lineno)))
     (setq archive-files nil)
     (let ((revert-buffer-function nil)

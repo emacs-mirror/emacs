@@ -31,6 +31,10 @@
 
 (declare-function texinfo-format-refill "texinfmt" ())
 
+;; From texinfmt.el
+(defvar texinfo-command-start)
+(defvar texinfo-command-end)
+
 ;;;###autoload
 (defun Info-tagify (&optional input-buffer-name)
   "Create or update Info file tag table in current buffer or in a region."

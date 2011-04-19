@@ -198,7 +198,7 @@ This might return nil if the event did not occur over a buffer."
   (setq tooltip-timeout-id
 	(add-timeout (tooltip-delay) 'tooltip-timeout nil)))
 
-(defun tooltip-timeout (object)
+(defun tooltip-timeout (_object)
   "Function called when timer with id `tooltip-timeout-id' fires."
   (run-hook-with-args-until-success 'tooltip-functions
 				    tooltip-last-mouse-motion-event))
@@ -256,7 +256,7 @@ in echo area."
 
 (declare-function x-hide-tip "xfns.c" ())
 
-(defun tooltip-hide (&optional ignored-arg)
+(defun tooltip-hide (&optional _ignored-arg)
   "Hide a tooltip, if one is displayed.
 Value is non-nil if tooltip was open."
   (tooltip-cancel-delayed-tip)
@@ -373,7 +373,7 @@ MSG is either a help string to display, or nil to cancel the display."
     ;; On text-only displays, try `tooltip-show-help-non-mode'.
     (tooltip-show-help-non-mode msg)))
 
-(defun tooltip-help-tips (event)
+(defun tooltip-help-tips (_event)
   "Hook function to display a help tooltip.
 This is installed on the hook `tooltip-functions', which
 is run when the timer with id `tooltip-timeout-id' fires.

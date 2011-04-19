@@ -127,7 +127,7 @@ use this command, and then save the file."
 		     (delete-region (point) (1+ (point)))
 		     (insert "\\M-\\C-?"))))))
       (if (vectorp definition)
-	  (let ((len (length definition)) (i 0) char mods)
+	  (let ((len (length definition)) (i 0) char)
 	    (while (< i len)
 	      (insert (if (zerop i) ?\[ ?\s))
 	      (setq char (aref definition i)

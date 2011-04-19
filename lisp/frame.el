@@ -31,7 +31,7 @@
   (list (cons nil
 	      (if (fboundp 'tty-create-frame-with-faces)
 		  'tty-create-frame-with-faces
-                (lambda (parameters)
+                (lambda (_parameters)
                   (error "Can't create multiple frames without a window system")))))
   "Alist of window-system dependent functions to call to create a new frame.
 The window system startup file should add its frame creation
@@ -1430,7 +1430,7 @@ Examples (measures in pixels) -
 
 In the 3rd, 4th, and 6th examples, the returned value is relative to
 the opposite frame edge from the edge indicated in the input spec."
-  (cons (car spec) (frame-geom-value-cons (car spec) (cdr spec))))
+  (cons (car spec) (frame-geom-value-cons (car spec) (cdr spec) frame)))
 
 
 (defun delete-other-frames (&optional frame)

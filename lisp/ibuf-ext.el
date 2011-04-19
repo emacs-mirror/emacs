@@ -1219,12 +1219,10 @@ mean move backwards, non-negative integers mean move forwards."
     (setq direction 1))
   ;; Skip the title
   (ibuffer-forward-line 0)
-  (let ((opos (point))
-	curmark)
+  (let ((opos (point)))
     (ibuffer-forward-line direction)
     (while (not (or (= (point) opos)
-		    (eq (setq curmark (ibuffer-current-mark))
-			mark)))
+		    (eq (ibuffer-current-mark) mark)))
       (ibuffer-forward-line direction))
     (when (and (= (point) opos)
 	       (not (eq (ibuffer-current-mark) mark)))
@@ -1247,7 +1245,7 @@ to move by.  The default is `ibuffer-marked-char'."
       (message "No buffers marked; use 'm' to mark a buffer")
     (let ((count
 	   (ibuffer-map-marked-lines
-	    #'(lambda (buf mark)
+	    #'(lambda (_buf _mark)
 		'kill))))
       (message "Killed %s lines" count))))
 
@@ -1279,7 +1277,7 @@ a prefix argument reverses the meaning of that variable."
     (let (buf-point)
       ;; Blindly search for our buffer: it is very likely that it is
       ;; not in a hidden filter group.
-      (ibuffer-map-lines #'(lambda (buf marks)
+      (ibuffer-map-lines #'(lambda (buf _marks)
 			     (when (string= (buffer-name buf) name)
 			       (setq buf-point (point))
 			       nil))
@@ -1293,7 +1291,7 @@ a prefix argument reverses the meaning of that variable."
 	  (dolist (group ibuffer-hidden-filter-groups)
 	    (ibuffer-jump-to-filter-group group)
 	    (ibuffer-toggle-filter-group)
-	    (ibuffer-map-lines #'(lambda (buf marks)
+	    (ibuffer-map-lines #'(lambda (buf _marks)
 				   (when (string= (buffer-name buf) name)
 				     (setq buf-point (point))
 				     nil))
@@ -1336,8 +1334,7 @@ a prefix argument reverses the meaning of that variable."
 					 (format "Buffer %s" (buffer-name buffer)))))
 		       ,(shell-quote-argument (or oldtmp old))
 		       ,(shell-quote-argument (or newtmp new)))
-		     " "))
-		   proc)
+		     " ")))
 	      (let ((inhibit-read-only t))
 		(insert command "\n")
 		(diff-sentinel
@@ -1396,7 +1393,7 @@ You can then feed the file name(s) to other commands with \\[yank]."
 		      (t
 		       'name))))
       (ibuffer-map-marked-lines
-       #'(lambda (buf mark)
+       #'(lambda (buf _mark)
 	   (setq ibuffer-copy-filename-as-kill-result
 		 (concat ibuffer-copy-filename-as-kill-result
 			 (let ((name (buffer-file-name buf)))
@@ -1417,7 +1414,7 @@ You can then feed the file name(s) to other commands with \\[yank]."
 (defun ibuffer-mark-on-buffer (func &optional ibuffer-mark-on-buffer-mark group)
   (let ((count
 	 (ibuffer-map-lines
-	  #'(lambda (buf mark)
+	  #'(lambda (buf _mark)
 	      (when (funcall func buf)
 		(ibuffer-set-mark-1 (or ibuffer-mark-on-buffer-mark
 					ibuffer-marked-char))
@@ -1585,7 +1582,7 @@ defaults to one."
   (let ((ibuffer-do-occur-bufs nil))
     ;; Accumulate a list of marked buffers
     (ibuffer-map-marked-lines
-     #'(lambda (buf mark)
+     #'(lambda (buf _mark)
 	 (push buf ibuffer-do-occur-bufs)))
     (occur-1 regexp nlines ibuffer-do-occur-bufs)))
 

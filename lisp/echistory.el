@@ -27,6 +27,9 @@
 (require 'electric)			; command loop
 (require 'chistory)			; history lister
 
+;; Dynamically bound in electric-command-history
+(defvar electric-history-in-progress)
+
 ;;;###autoload
 (defun Electric-command-history-redo-expression (&optional noconfirm)
   "Edit current history line in minibuffer and execute result.
@@ -84,6 +87,8 @@ With prefix arg NOCONFIRM, execute current line as-is without editing."
 
 (defvar electric-command-history-hook nil
   "If non-nil, its value is called by `electric-command-history'.")
+
+(defvar Helper-return-blurb) ; from helper.el
 
 (defun electric-command-history ()
   "\\<electric-history-map>Major mode for examining and redoing commands from `command-history'.

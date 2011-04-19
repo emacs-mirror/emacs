@@ -1,4 +1,4 @@
-;;; savehist.el --- Save minibuffer history.
+;;; savehist.el --- Save minibuffer history
 
 ;; Copyright (C) 1997, 2005-2011  Free Software Foundation, Inc.
 
@@ -253,6 +253,10 @@ Normally invoked by calling `savehist-mode' to unset the minor mode."
 	(delete-itimer savehist-timer)
       (cancel-timer savehist-timer))
     (setq savehist-timer nil)))
+
+;; From XEmacs?
+(defvar print-readably)
+(defvar print-string-length)
 
 (defun savehist-save (&optional auto-save)
   "Save the values of minibuffer history variables.

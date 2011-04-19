@@ -1,4 +1,4 @@
-;;; w32-fns.el --- Lisp routines for Windows NT
+;;; w32-fns.el --- Lisp routines for 32-bit Windows
 
 ;; Copyright (C) 1994, 2001-2011  Free Software Foundation, Inc.
 
@@ -285,7 +285,7 @@ Note that on MS-Windows, primary and secondary selections set by Emacs
 are not available to other programs."
   (put 'x-selections (or type 'PRIMARY) data))
 
-(defun x-get-selection (&optional type data-type)
+(defun x-get-selection (&optional type _data-type)
   "Return the value of an X Windows selection.
 The argument TYPE (default `PRIMARY') says which selection,
 and the argument DATA-TYPE (default `STRING') says
@@ -431,6 +431,11 @@ Consult the selection.  Treat empty strings as if they were unset."
 
 
 ;;;; Support for build process
+
+;; From autoload.el
+(defvar autoload-make-program)
+(defvar generated-autoload-file)
+
 (defun w32-batch-update-autoloads ()
   "Like `batch-update-autoloads', but takes the name of the autoloads file
 from the command line.

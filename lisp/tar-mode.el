@@ -1,4 +1,4 @@
-;;; tar-mode.el --- simple editing of tar files from GNU emacs
+;;; tar-mode.el --- simple editing of tar files from GNU Emacs
 
 ;; Copyright (C) 1990-1991, 1993-2011  Free Software Foundation, Inc.
 
@@ -1152,7 +1152,6 @@ to make your changes permanent."
         subfile-size)
     (with-current-buffer tar-superior-buffer
       (let* ((start (tar-header-data-start descriptor))
-             (name (tar-header-name descriptor))
              (size (tar-header-size descriptor))
              (head (memq descriptor tar-parse-info)))
         (if (not head)
@@ -1232,7 +1231,7 @@ Leaves the region wide."
 
 
 ;; Used in write-region-annotate-functions to write tar-files out correctly.
-(defun tar-write-region-annotate (start end)
+(defun tar-write-region-annotate (start _end)
   ;; When called from write-file (and auto-save), `start' is nil.
   ;; When called from M-x write-region, we assume the user wants to save
   ;; (part of) the summary, not the tar data.

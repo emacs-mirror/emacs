@@ -264,14 +264,14 @@ Letters do not insert themselves; instead, they are commands.
   (set (make-local-variable 'revert-buffer-function)
        'Buffer-menu-revert-function)
   (set (make-local-variable 'buffer-stale-function)
-       #'(lambda (&optional noconfirm) 'fast))
+       (lambda (&optional _noconfirm) 'fast))
   (setq truncate-lines t)
   (setq buffer-read-only t))
 
 (define-obsolete-variable-alias 'buffer-menu-mode-hook
   'Buffer-menu-mode-hook "23.1")
 
-(defun Buffer-menu-revert-function (ignore1 ignore2)
+(defun Buffer-menu-revert-function (_ignore1 _ignore2)
   (or (eq buffer-undo-list t)
       (setq buffer-undo-list nil))
   ;; We can not use save-excursion here.  The buffer gets erased.

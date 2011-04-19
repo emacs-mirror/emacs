@@ -710,7 +710,7 @@ STYLE is the inline CSS stylesheet (or tag referring to an external sheet)."
   <body onload=\"stripe('index'); return true;\">\n"
           file style))
 
-(defun hfy-default-footer (file)
+(defun hfy-default-footer (_file)
   "Default value for `hfy-page-footer'.
 FILE is the name of the file being rendered, in case it is needed."
   "\n </body>\n</html>\n")
@@ -825,7 +825,7 @@ regular specifiers."
        ((stringp  box) (list (cons "border" (format "solid %s 1px" box))))
        ((listp    box) (hfy-box-to-style box)                            ))) )
 
-(defun hfy-decor (tag val)
+(defun hfy-decor (tag _val)
   "Derive CSS text-decoration specifiers from various Emacs font attributes.
 TAG is an Emacs font attribute key (eg :underline).
 VAL is ignored."
@@ -836,7 +836,7 @@ VAL is ignored."
      (:overline       (cons "text-decoration" "overline"    ))
      (:strike-through (cons "text-decoration" "line-through")))))
 
-(defun hfy-invisible (&optional val)
+(defun hfy-invisible (&optional _val)
   "This text should be invisible.
 Do something in CSS to make that happen.
 VAL is ignored here."
@@ -1149,7 +1149,7 @@ See also `hfy-face-to-style'."
         (setq p (next-char-property-change p)))
       ;; still invisible at buffer end?
       (when i
-        (setq invisible (cons (cons s (point-max)) invisible))) 
+        (setq invisible (cons (cons s (point-max)) invisible)))
       invisible)))
 
 (defun hfy-invisible-name (point map)
@@ -1759,7 +1759,7 @@ hyperlinks as appropriate."
   (if (not (hfy-opt 'skip-refontification))
       (save-excursion ;; Keep region
         (hfy-force-fontification)))
-  (if (interactive-p) ;; display the buffer in interactive mode:
+  (if (called-interactively-p 'any) ;; display the buffer in interactive mode:
       (switch-to-buffer (hfy-fontify-buffer srcdir file))
     (hfy-fontify-buffer srcdir file)))
 
@@ -2061,7 +2061,7 @@ FILE is the specific file we are rendering."
                   (puthash tag-string hash-entry cache-hash)))) )))
 
     ;; cache a list of tags in descending length order:
-    (maphash (lambda (K V) (push K tags-list)) cache-hash)
+    (maphash (lambda (K _V) (push K tags-list)) cache-hash)
     (setq tags-list (sort tags-list (lambda (A B) (< (length B) (length A)))))
 
     ;; put the tag list into the cache:
@@ -2092,7 +2092,7 @@ DSTDIR is the output directory, where files will be written."
                   (setq cache-hash (cadr cache-entry))
                   (setq index-buf  (get-buffer-create index-file))))
         nil ;; noop
-      (maphash (lambda (K V) (push K tag-list)) cache-hash)
+      (maphash (lambda (K _V) (push K tag-list)) cache-hash)
       (setq tag-list (sort tag-list 'string<))
       (set-buffer index-buf)
       (erase-buffer)
@@ -2136,7 +2136,7 @@ SRCDIR and DSTDIR are the source and output directories respectively."
           (cache-entry  (assoc srcdir hfy-tags-cache)))
       (if (and cache-entry (setq cache-hash (cadr cache-entry)))
           (maphash
-           (lambda (K V)
+           (lambda (K _V)
              (let ((stub (upcase (substring K 0 1))))
                (if (member stub stub-list)
                    nil ;; seen this already: NOOP
@@ -2169,7 +2169,7 @@ See also `hfy-prepare-index', `hfy-split-index'."
 
       (if (and cache-entry (setq cache-hash (cadr cache-entry)))
           (maphash
-           (lambda (K V)
+           (lambda (K _V)
              (let ((stub (upcase (substring K 0 1))))
                (if (member stub stub-list)
                    nil ;; seen this already: NOOP

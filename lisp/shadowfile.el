@@ -88,7 +88,7 @@
 
 (defcustom shadow-noquery nil
   "If t, always copy shadow files without asking.
-If nil \(the default), always ask.  If not nil and not t, ask only if there
+If nil (the default), always ask.  If not nil and not t, ask only if there
 is no buffer currently visiting the file."
   :type '(choice (const t) (const nil) (other :tag "Ask if no buffer" maybe))
   :group 'shadow)
@@ -125,7 +125,7 @@ Default: ~/.shadow_todo"
 
 ;;; The following two variables should in most cases initialize themselves
 ;;; correctly.  They are provided as variables in case the defaults are wrong
-;;; on your machine \(and for efficiency).
+;;; on your machine (and for efficiency).
 
 (defvar shadow-system-name (system-name)
   "The complete hostname of this machine.")
@@ -138,7 +138,7 @@ Default: ~/.shadow_todo"
 ;;;
 
 (defvar shadow-clusters nil
-  "List of host clusters \(see `shadow-define-cluster').")
+  "List of host clusters (see `shadow-define-cluster').")
 
 (defvar shadow-literal-groups nil
   "List of files that are shared between hosts.
@@ -259,7 +259,7 @@ information defining the cluster.  For interactive use, call
 ;;; SITES
 
 (defun shadow-site-cluster (site)
-  "Given a SITE \(hostname or cluster name), return cluster it is in, or nil."
+  "Given a SITE (hostname or cluster name), return cluster it is in, or nil."
   (or (assoc site shadow-clusters)
       (shadow-find
        (function (lambda (x)
@@ -295,7 +295,7 @@ be matched against the primary of SITE2."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun shadow-parse-fullname (fullname)
-  "Parse FULLNAME into \(site user path) list.
+  "Parse FULLNAME into (site user path) list.
 Leave it alone if it already is one.  Return nil if the argument is
 not a full ange-ftp pathname."
   (if (listp fullname)
@@ -303,7 +303,7 @@ not a full ange-ftp pathname."
     (ange-ftp-ftp-name fullname)))
 
 (defun shadow-parse-name (name)
-  "Parse any NAME into \(site user name) list.
+  "Parse any NAME into (site user name) list.
 Argument can be a simple name, full ange-ftp name, or already a hup list."
   (or (shadow-parse-fullname name)
       (list shadow-system-name
@@ -337,8 +337,7 @@ return nil."
 (defun shadow-expand-cluster-in-file-name (file)
   "If hostname part of FILE is a cluster, expand it to cluster's primary hostname.
 Will return the name bare if it is a local file."
-  (let ((hup (shadow-parse-name file))
-	cluster)
+  (let ((hup (shadow-parse-name file)))
     (cond ((null hup) file)
 	  ((shadow-local-file hup))
 	  ((shadow-make-fullname (shadow-site-primary (nth 0 hup))
@@ -405,10 +404,10 @@ filename expansion or contraction, you must do that yourself first."
 
 ;;;###autoload
 (defun shadow-define-cluster (name)
-  "Edit \(or create) the definition of a cluster NAME.
+  "Edit (or create) the definition of a cluster NAME.
 This is a group of hosts that share directories, so that copying to or from
 one of them is sufficient to update the file on all of them.  Clusters are
-defined by a name, the network address of a primary host \(the one we copy
+defined by a name, the network address of a primary host (the one we copy
 files to), and a regular expression that matches the hostnames of all the
 sites in the cluster."
   (interactive (list (completing-read "Cluster name: " shadow-clusters () ())))
@@ -442,7 +441,7 @@ sites in the cluster."
   "Declare a single file to be shared between sites.
 It may have different filenames on each site.  When this file is edited, the
 new version will be copied to each of the other locations.  Sites can be
-specific hostnames, or names of clusters \(see `shadow-define-cluster')."
+specific hostnames, or names of clusters (see `shadow-define-cluster')."
   (interactive)
   (let* ((hup (shadow-parse-fullname
 	       (shadow-contract-file-name (buffer-file-name))))
@@ -466,8 +465,8 @@ specific hostnames, or names of clusters \(see `shadow-define-cluster')."
   "Make each of a group of files be shared between hosts.
 Prompts for regular expression; files matching this are shared between a list
 of sites, which are also prompted for.  The filenames must be identical on all
-hosts \(if they aren't, use `shadow-define-literal-group' instead of this
-function).  Each site can be either a hostname or the name of a cluster \(see
+hosts (if they aren't, use `shadow-define-literal-group' instead of this
+function).  Each site can be either a hostname or the name of a cluster (see
 `shadow-define-cluster')."
   (interactive)
   (let ((regexp (read-string
@@ -545,7 +544,7 @@ permanently, remove the group from `shadow-literal-groups' or
 
 (defun shadow-make-group (regexp sites usernames)
   "Make a description of a file group---
-actually a list of regexp ange-ftp file names---from REGEXP \(name of file to
+actually a list of regexp ange-ftp file names---from REGEXP (name of file to
 be shadowed), list of SITES, and corresponding list of USERNAMES for each
 site."
   (if sites
@@ -572,7 +571,7 @@ site."
 	 (to (shadow-expand-cluster-in-file-name (cdr s))))
     (when buffer
       (set-buffer buffer)
-      (condition-case i
+      (condition-case nil
 	  (progn
             (write-region nil nil to)
             (shadow-remove-from-todo s))
@@ -581,7 +580,7 @@ site."
 (defun shadow-shadows-of (file)
   "Return copy operations needed to update FILE.
 Filename should have clusters expanded, but otherwise can have any format.
-Return value is a list of dotted pairs like \(from . to), where from
+Return value is a list of dotted pairs like (from . to), where from
 and to are absolute file names."
   (or (symbol-value (intern-soft file shadow-hashtable))
       (let* ((absolute-file (shadow-expand-file-name

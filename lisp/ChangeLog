@@ -1,3 +1,412 @@
+2011-04-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	Lexical-binding cleanup.
+
+	* arc-mode.el (archive-mode-revert):
+	* cmuscheme.el (scheme-interactively-start-process):
+	* custom.el (custom-initialize-delay):
+	* dnd.el (dnd-open-local-file, dnd-open-remote-url):
+	* dos-w32.el (direct-print-region-helper, direct-print-region-function):
+	* emacs-lock.el (emacs-lock-clear-sentinel):
+	* ezimage.el (defezimage):
+	* follow.el (follow-avoid-tail-recenter):
+	* fringe.el (set-fringe-mode-1):
+	* generic-x.el (bat-generic-mode-compile):
+	* help-mode.el (help-info-variable, help-do-xref)
+	(help-mode-revert-buffer):
+	* help.el (view-emacs-todo):
+	* iswitchb.el (iswitchb-completion-help):
+	* jka-compr.el (jka-compr-make-temp-name, jka-compr-load):
+	* kmacro.el (kmacro-cycle-ring-next, kmacro-cycle-ring-previous)
+	(kmacro-delete-ring-head, kmacro-bind-to-key, kmacro-view-macro):
+	* locate.el (locate-update):
+	* longlines.el (longlines-encode-region)
+	(longlines-after-change-function):
+	* outline.el (outline-isearch-open-invisible):
+	* ps-def.el (declare-function, charset-dimension, char-width)
+	(encode-char):
+	* ps-mule.el (ps-mule-plot-string):
+	* recentf.el (recentf-make-menu-items, recentf-cancel-dialog)
+	(recentf-edit-list-select, recentf-edit-list-validate)
+	(recentf-open-files-action):
+	* rect.el (delete-whitespace-rectangle-line)
+	(rectangle-number-line-callback):
+	* register.el (window-configuration-to-register)
+	(frame-configuration-to-register):
+	* scroll-bar.el (scroll-bar-mode, toggle-horizontal-scroll-bar):
+	* select.el (xselect-convert-to-string, xselect-convert-to-length)
+	(xselect-convert-to-targets, xselect-convert-to-delete)
+	(xselect-convert-to-filename, xselect-convert-to-charpos)
+	(xselect-convert-to-lineno, xselect-convert-to-colno)
+	(xselect-convert-to-os, xselect-convert-to-host)
+	(xselect-convert-to-user, xselect-convert-to-class)
+	(xselect-convert-to-name, xselect-convert-to-integer)
+	(xselect-convert-to-atom, xselect-convert-to-identity):
+	* subr.el (declare, ignore, process-kill-without-query)
+	(text-clone-maintain):
+	* terminal.el (te-get-char, te-tic-sentinel):
+	* tool-bar.el (tool-bar-make-keymap):
+	* tooltip.el (tooltip-timeout, tooltip-hide, tooltip-help-tips):
+	* type-break.el (type-break-mode, type-break-noninteractive-query):
+	* view.el (View-back-to-mark):
+	* wid-browse.el (widget-browse-action, widget-browse-widget)
+	(widget-browse-widgets, widget-browse-sexp):
+	* widget.el (define-widget-keywords):
+	* xt-mouse.el (xterm-mouse-translate, turn-off-xterm-mouse-tracking):
+	Mark unused parameters.
+
+	* align.el (align-adjust-col-for-rule): Mark unused parameter.
+	(align-areas): Remove unused variable `look'.
+	(align-region): Remove unused variables `real-end' and `pos-list'.
+
+	* apropos.el (apropos-score-doc): Remove unused variable `i'.
+
+	* bindings.el (mode-line-modified, mode-line-remote):
+	Mark unused parameters.
+	(mode-line-mule-info): Mark unused parameter; don't quote `lambda'.
+
+	* buff-menu.el (Buffer-menu-revert-function): Mark unused parameters.
+	(Buffer-menu-mode): Mark unused parameter; don't quote `lambda'.
+
+	* comint.el (comint-history-isearch-pop-state)
+	(comint-postoutput-scroll-to-bottom, comint-truncate-buffer)
+	(comint-strip-ctrl-m, comint-read-noecho): Mark unused parameters.
+	(comint-substitute-in-file-name): Doc fix.
+
+	* completion.el (cmpl-statistics-block): Mark unused parameter.
+	(add-completions-from-tags-table, add-completions-from-lisp-buffer)
+	(save-completions-to-file, load-completions-from-file):
+	Remove unused local variable `e'.
+
+	* composite.el (compose-chars): Remove unused variable `len'.
+	(lgstring-insert-glyph): Remove unused variable `g'.
+	(compose-glyph-string): Remove unused variables `ascent',
+	`descent', `lbearing' and `rbearing'.
+	(compose-glyph-string-relative): Remove unused variables
+	`lbearing', `rbearing' and `wadjust'.
+	(compose-gstring-for-graphic): Remove unused variables `header',
+	`wadjust', `xoff' and `yoff'.  Use `let', not `let*'.
+	(compose-gstring-for-terminal): Remove unused variables `header'
+	and `nchars'.  Use `let', not `let*'.
+
+	* cus-edit.el (Custom-set, Custom-save, custom-reset)
+	(Custom-reset-current, Custom-reset-saved, Custom-reset-standard)
+	(Custom-buffer-done, custom-buffer-create-internal)
+	(custom-browse-visibility-action, custom-browse-group-tag-action)
+	(custom-browse-variable-tag-action, custom-browse-face-tag-action)
+	(widget-magic-mouse-down-action, custom-toggle-parent)
+	(custom-add-parent-links, custom-toggle-hide-variable)
+	(custom-face-edit-value-visibility-action, custom-face-edit-fix-value)
+	(custom-toggle-hide-face, face, hook, custom-group-link-action)
+	(custom-face-menu-create, custom-variable-menu-create, get)
+	(custom-group-menu-create, Custom-no-edit): Mark unused parameters.
+	(custom-reset-standard-save-and-update): Remove unused variable `value'.
+	(customize-apropos): Remove unused variable `tests'.
+	(custom-group-value-create): Remove unused variable `hidden-p'.
+	(sort-fold-case): Declare.
+
+	* cus-theme.el (custom-reset-standard-faces-list)
+	(custom-reset-standard-variables-list): Declare.
+	(customize-create-theme, custom-theme-revert, custom-theme-write)
+	(custom-theme-choose-mode, customize-themes, custom-theme-save):
+	Mark unused parameters.
+
+	* dabbrev.el (dabbrev-completion): Remove unused variable `init'.
+
+	* delim-col.el (delimit-columns-max): Move defvar before first use.
+
+	* descr-text.el (describe-char-categories): Don't quote `lambda'.
+	(describe-char): Don't quote `lambda'.	Mark unused parameter.
+
+	* desktop.el (desktop-save-buffer-p): Mark unused parameter.
+	(auto-insert): Declare.
+	(desktop-restore-file-buffer): Rename desktop-* parameters;
+	mark unused ones.
+	(desktop-create-buffer): Rename desktop-* parameters and bind them.
+	(desktop-buffer): Rename desktop-* parameters.
+
+	* dframe.el (x-sensitive-text-pointer-shape, x-pointer-shape): Declare.
+	(dframe-reposition-frame-xemacs, dframe-help-echo)
+	(dframe-hack-buffer-menu, dframe-set-timer, dframe-set-timer-internal):
+	Mark unused parameters.
+
+	* dired-aux.el (backup-extract-version-start, overwrite-query)
+	(overwrite-backup-query, rename-regexp-query)
+	(rename-non-directory-query): Declare.
+	(dired-shell-stuff-it, dired-do-create-files): Mark unused parameters.
+	(dired-add-entry): Remove unused variable `orig-file-name'.
+	(dired-copy-file-recursive): Remove unused variable `dirfailed'.
+	Use parameter PRESERVE-TIME instead of accessing dynamic variable
+	`dired-copy-preserve-time' directly.
+	(dired-do-create-files-regexp): Remove unused variable `fn-count'.
+	(dired-insert-subdir-newpos): Rename unused variable `pos'.
+
+	* dired-x.el (dired-omit-size-limit): Move defcustom before first use.
+	(dired-virtual-revert, dired-make-relative-symlink):
+	Mark unused parameters.
+	(manual-program): Declare.
+	(dired-x-hands-off-my-keys): Rename parameters of lambda expression.
+	(inode, s, mode, nlink, uid, gid, size, time, name, sym): Declare them,
+	wrapped in `with-no-warnings' to avoid replacing one warning by another.
+
+	* dirtrack.el (dirtrack): Remove unused variable `multi-line'.
+
+	* dos-fns.el (dos-8+3-filename): Remove unused variable `i'.
+
+	* echistory.el (electric-history-in-progress, Helper-return-blurb):
+	Declare.
+
+	* edmacro.el (edmacro-finish-edit): Remove unused variable `kmacro'.
+
+	* electric.el (Electric-command-loop): Rename parameter
+	INHIBIT-QUIT to INHIBIT-QUITTING and bind `inhibit-quit'.
+
+	* expand.el (expand-in-literal): Remove unused variable `here'.
+
+	* facemenu.el (facemenu-add-new-color):
+	Remove unused variable `docstring'.
+
+	* faces.el (face-id, make-face-bold, make-face-unbold, make-face-italic)
+	(make-face-unitalic, make-face-bold-italic): Mark unused parameters.
+	(face-attr-construct): Mark unused parameter.  Doc fix.
+	(read-color): Remove unused variable `hex-string'.
+
+	* files.el (parse-colon-path): Rename argument CD-PATH to SEARCH-PATH.
+	(locate-dominating-file): Remove unused vars `prev-file' and `user'.
+	(remote-file-name-inhibit-cache, revert-buffer): Clean up docstrings.
+	(display-buffer-other-frame): Remove unused variable `old-window'.
+	(kill-buffer-hook): Declare.
+	(insert-file-contents-literally, set-auto-mode, risky-local-variable-p):
+	Mark unused parameters.
+	(after-find-file): Pass 1 to `auto-save-mode', not t.
+
+	* files-x.el (auto-insert): Declare.
+	(modify-file-local-variable-prop-line): Remove unused variable `val'.
+
+	* find-lisp.el (find-lisp-find-dired-internal): Remove unused
+	variable `buf'.	 Mark unused parameter.
+	(find-lisp-insert-directory): Mark unused parameter.
+
+	* format.el (format-decode-run-method): Mark unused parameter; doc fix.
+	(format-encode-region): Remove unused variables `cur-buf' and `result'.
+	(format-common-tail): Remove, unused.
+	(format-deannotate-region): Remove unused variable `loc'.
+	(format-annotate-region): Remove unused variable `p'.
+	(format-annotate-single-property-change): Remove unused variables
+	`default' and `tail'.
+
+	* forms.el (read-file-filter): Declare.
+	(forms--iif-hook, forms--revert-buffer): Mark unused parameters.
+
+	* frame.el (frame-creation-function-alist): Mark unused parameter.
+	(frame-geom-spec-cons): Pass FRAME to `frame-geom-value-cons'.
+
+	* hilit-chg.el (hilit-chg-cust-fix-changes-face-list, hilit-chg-clear):
+	Remove unused parameters.
+	(hilit-chg-set-face-on-change): Remove unused variable `beg-decr'.
+	(highlight-compare-with-file): Remove unused variable `buf-b-read-only'.
+
+	* htmlfontify.el (hfy-default-footer, hfy-decor, hfy-invisible)
+	(hfy-parse-tags-buffer, hfy-prepare-index-i, hfy-prepare-index)
+	(hfy-prepare-tag-map): Mark unused parameters.
+	(htmlfontify-buffer): Use `called-interactively-p'.
+
+	* ibuf-ext.el (ibuffer-do-kill-lines, ibuffer-jump-to-buffer)
+	(ibuffer-copy-filename-as-kill, ibuffer-mark-on-buffer)
+	(ibuffer-do-occur): Mark unused parameters.
+	(ibuffer-forward-next-marked): Remove unused variable `curmark'.
+	(ibuffer-diff-buffer-with-file-1): Remove unused variable `proc'.
+
+	* ibuffer.el: Don't quote `lambda'.
+	(ibuffer-count-marked-lines, ibuffer-count-deletion-lines)
+	(ibuffer-unmark-all, ibuffer-toggle-marks, ibuffer-redisplay-engine):
+	Mark unused parameters.
+
+	* ido.el (ido-mode, ido-wide-find-dir-or-delete-dir)
+	(ido-completing-read): Mark unused parameters.
+	(ido-copy-current-word): Mark unused parameters;
+	remove unused variable `name'.
+	(ido-sort-merged-list): Remove unused parameter `dirs'.
+
+	* ielm.el (ielm-input-sender): Mark unused parameter.
+	(ielm-string, ielm-form, ielm-pos, ielm-result, ielm-error-type)
+	(ielm-output, ielm-wbuf, ielm-pmark): Declare.
+	(ielm-eval-input): Rename argument IELM-STRING to INPUT-STRING to keep
+	`ielm-string' as a dynamic variable accessible from the IELM prompt.
+	Bind `ielm-string' to INPUT-STRING.  Remove unused variable `err'.
+
+	* image-dired.el (image-dired-display-thumbs): Remove unused
+	variables `curr-file' and `count'.
+	(image-dired-remove-tag): Remove unused variable `start'.
+	(image-dired-tag-files, image-dired-create-thumbs): Remove unused
+	variable `curr-file'
+	(image-dired-rotate-original): Remove unused variable `temp-file'.
+	(image-dired-mouse-select-thumbnail, image-dired-mouse-toggle-mark):
+	Remove unused variable `file'.
+	(image-dired-gallery-generate): Remove unused variable `curr'.
+	(image-dired-dired-edit-comment-and-tags): Mark unused parameters.
+
+	* indent.el (tab-to-tab-stop): Remove unused variable `opoint'.
+
+	* info-xref.el (info-xref-goto-node-p): Remove unused variable `err'.
+
+	* informat.el (texinfo-command-start, texinfo-command-end): Declare.
+
+	* isearch.el (minibuffer-history-symbol): Declare.
+	(isearch-edit-string): Remove unused variable `err'.
+	(isearch-message-prefix, isearch-message-suffix):
+	Mark unused parameters.
+
+	* ls-lisp.el (ls-lisp-insert-directory): Remove unused variable `fil'.
+
+	* macros.el (insert-kbd-macro): Remove unused variable `mods'.
+
+	* makesum.el (double-column): Remove unused variable `cnt'.
+
+	* misearch.el (multi-isearch-pop-state): Mark unused parameter.
+	(ido-ignore-item-temp-list): Declare.
+
+	* mouse-drag.el (mouse-drag-throw): Remove unused variables
+	`mouse-delta', `window-last-row', `mouse-col-delta', `window-last-col',
+	`adjusted-mouse-col-delta' and `adjusted-mouse-delta'.
+	(mouse-drag-drag): Remove unused variables `mouse-delta' and
+	`mouse-col-delta'.
+
+	* mouse-sel.el (mouse-extend-internal):
+	Remove unused variable `orig-window-frame'.
+
+	* pcomplete.el (pcomplete-args, pcomplete-begins, pcomplete-last)
+	(pcomplete-index, pcomplete-stub, pcomplete-seen, pcomplete-norm-func):
+	Move declarations before first use.
+	(pcomplete-opt): Mark unused parameters; doc fix.
+
+	* proced.el (proced-revert): Mark unused parameter.
+	(proced-send-signal): Remove unused variable `err'.
+
+	* ps-print.el (ps-print-preprint-region, ps-print-preprint):
+	Rename parameter PREFIX-ARG to ARG.
+	(ps-basic-plot-string, ps-basic-plot-whitespace):
+	Mark unused parameters.
+
+	* replace.el (replace-count): Define.
+	(occur-revert-function): Mark unused parameters.
+	(ido-ignore-item-temp-list, isearch-error, isearch-forward)
+	(isearch-case-fold-search, isearch-string): Declare.
+	(occur-engine): Rename parameter CASE-FOLD-SEARCH to CASE-FOLD and
+	bind `case-fold-search'.  Remove unused variables `beg' and `end',
+	and simplify.
+	(replace-eval-replacement): Rename parameter REPLACE-COUNT to
+	COUNT and bind `replace-count'.
+	(replace-loop-through-replacements): Rename parameter REPLACE-COUNT
+	to COUNT.
+
+	* savehist.el (print-readably, print-string-length): Declare.
+
+	* shadowfile.el (shadow-expand-cluster-in-file-name):
+	Remove unused variable `cluster'.
+	(shadow-copy-file): Remove unused variable `i'.
+	(shadow-noquery, shadow-clusters, shadow-site-cluster)
+	(shadow-parse-fullname, shadow-parse-name, shadow-define-cluster)
+	(shadow-define-literal-group, shadow-define-regexp-group)
+	(shadow-make-group, shadow-shadows-of): Clean up docstrings.
+
+	* shell.el (shell-filter-ctrl-a-ctrl-b): Mark unused parameter.
+	(shell): Use `called-interactively-p'.
+	(shell-directory-tracker): Remove unused variable `chdir-failure'.
+
+	* simple.el (compilation-context-lines, comint-file-name-quote-list)
+	(comint-file-name-chars, comint-delimiter-argument-list): Declare.
+	(delete-backward-char): Remove unused variable `ocol'.
+	(minibuffer-avoid-prompt, minibuffer-history-isearch-pop-state)
+	(line-move-1, event-apply-alt-modifier, event-apply-super-modifier)
+	(event-apply-hyper-modifier, event-apply-shift-modifier)
+	(event-apply-control-modifier, event-apply-meta-modifier):
+	Mark unused parameters.
+	(undo-make-selective-list): Remove duplicate variable `undo-elt'.
+	(normal-erase-is-backspace-mode): Remove unused variable `old-state'.
+
+	* speedbar.el (speedbar-ignored-directory-expressions)
+	(speedbar-supported-extension-expressions, speedbar-directory-buttons)
+	(speedbar-find-file, speedbar-dir-follow)
+	(speedbar-directory-buttons-follow, speedbar-tag-find)
+	(speedbar-buffer-buttons, speedbar-buffer-buttons-temp)
+	(speedbar-buffers-line-directory, speedbar-buffer-click):
+	Mark unused parameters.
+	(speedbar-tag-file): Remove unused variable `mode'.
+	(speedbar-buffers-tail-notes): Remove unused variable `mod'; simplify.
+
+	* strokes.el (strokes-decode-buffer): Remove unused variable `ext'.
+
+	* talk.el (talk): Remove unused variable `display'.
+
+	* tar-mode.el (tar-subfile-save-buffer): Remove unused variable `name'.
+	(tar-write-region-annotate): Mark unused parameter.
+
+	* time.el (now, time, load, mail, 24-hours, hour, 12-hours, am-pm)
+	(minutes, seconds, time-zone, day, year, monthname, month, dayname):
+	Declare them, wrapped in `with-no-warnings' to avoid replacing one
+	warning by another.
+
+	* time-stamp.el (time-stamp-string-preprocess):
+	Remove unused variable `require-padding'.
+
+	* tree-widget.el (widget-glyph-enable): Declare.
+	(tree-widget-action): Mark unused parameter.
+
+	* w32-fns.el (x-get-selection): Mark unused parameter.
+	(autoload-make-program, generated-autoload-file): Declare.
+
+	* wdired.el (wdired-revert): Mark unused parameters.
+	(wdired-xcase-word): Remove unused variable `err'.
+
+	* whitespace.el (whitespace-buffer-changed): Mark unused parameters.
+	(whitespace-help-scroll): Remove unused variable `data-help'.
+
+	* wid-edit.el (widget-mouse-help, widget-overlay-inactive)
+	(widget-image-insert, widget-after-change, default)
+	(widget-default-format-handler, widget-default-notify)
+	(widget-default-prompt-value, widget-info-link-action)
+	(widget-url-link-action, widget-function-link-action)
+	(widget-variable-link-action, widget-file-link-action)
+	(widget-emacs-library-link-action, widget-emacs-commentary-link-action)
+	(widget-field-prompt-internal, widget-field-action, widget-field-match)
+	(widget-choice-mouse-down-action, toggle, widget-radio-button-notify)
+	(widget-insert-button-action, widget-delete-button-action, visibility)
+	(widget-documentation-link-action, widget-documentation-string-action)
+	(widget-const-prompt-value, widget-regexp-match, symbol)
+	(widget-coding-system-prompt-value)
+	(widget-key-sequence-value-to-external, sexp)
+	(widget-sexp-value-to-internal, character, vector, cons)
+	(widget-choice-prompt-value, widget-boolean-prompt-value)
+	(widget-color--choose-action): Mark unused parameters.
+	(widget-item-match-inline, widget-choice-match-inline)
+	(widget-checklist-match, widget-checklist-match-inline)
+	(widget-group-match): Rename parameter VALUES to VALS.
+	(widget-field-value-set): Remove unused variable `size'.
+	(widget-color-action): Remove unused variables `value' and `start'.
+
+	* windmove.el (windmove-wrap-loc-for-movement): Remove unused
+	variable `dir'.	 Doc fix.
+	(windmove-find-other-window): Don't pass it.
+
+	* window.el (count-windows): Mark unused parameter.
+	(bw-adjust-window): Remove unused variable `err'.
+
+	* woman.el (woman-file-name): Remove unused variable `default'.
+	(woman-expand-directory-path): Rename parameters WOMAN-MANPATH and
+	WOMAN-PATH to PATH-DIRS and PATH-REGEXPS, respectively.
+	(global-font-lock-mode): Declare.
+	(woman-decode-region): Mark unused parameter.
+	(woman-get-tab-stop): Rename parameter TAB-STOP-LIST to TAB-STOPS.
+
+	* x-dnd.el (x-dnd-default-test-function, x-dnd-handle-old-kde)
+	(x-dnd-handle-xdnd, x-dnd-handle-motif): Mark unused parameters.
+	(x-dnd-handle-moz-url): Remove unused variable `title'.
+	(x-dnd-handle-xdnd): Remove unused variables `x', `y' and `ret-action'.
+
+	* xml.el (xml-parse-tag, xml-parse-attlist):
+	Remove unused variable `pos'.
+
 2011-04-19  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/cal-tex.el (cal-tex-list-holidays, cal-tex-cursor-month)

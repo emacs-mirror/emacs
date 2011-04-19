@@ -245,7 +245,7 @@ the return value (nil if RESULT is omitted).
            (setq ,(car spec) (1+ ,(car spec))))
          ,@(cdr (cdr spec))))))
 
-(defmacro declare (&rest specs)
+(defmacro declare (&rest _specs)
   "Do not evaluate any arguments and return nil.
 Treated as a declaration when used at the right place in a
 `defmacro' form.  \(See Info anchor `(elisp)Definition of declare'.)"
@@ -260,7 +260,7 @@ Otherwise, return result of last form in BODY."
 
 ;;;; Basic Lisp functions.
 
-(defun ignore (&rest ignore)
+(defun ignore (&rest _ignore)
   "Do nothing and return nil.
 This function accepts any number of arguments, but ignores them."
   (interactive)
@@ -1798,7 +1798,7 @@ Signal an error if the program returns with a non-zero exit status."
  'process-kill-without-query
  "use `process-query-on-exit-flag' or `set-process-query-on-exit-flag'."
  "22.1")
-(defun process-kill-without-query (process &optional flag)
+(defun process-kill-without-query (process &optional _flag)
   "Say no query needed if PROCESS is running when Emacs is exited.
 Optional second argument if non-nil says to require a query.
 Value is t if a query was formerly required."
@@ -3445,7 +3445,7 @@ If SYNTAX is nil, return nil."
 
 ;;;; Text clones
 
-(defun text-clone-maintain (ol1 after beg end &optional len)
+(defun text-clone-maintain (ol1 after beg end &optional _len)
   "Propagate the changes made under the overlay OL1 to the other clones.
 This is used on the `modification-hooks' property of text clones."
   (when (and after (not undo-in-progress) (overlay-start ol1))

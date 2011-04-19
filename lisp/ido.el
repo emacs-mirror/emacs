@@ -1,4 +1,4 @@
-;;; ido.el --- interactively do things with buffers and files.
+;;; ido.el --- interactively do things with buffers and files
 
 ;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
 
@@ -350,7 +350,7 @@ should be enabled.  The following values are possible:
 
 Setting this variable directly does not take effect;
 use either \\[customize] or the function `ido-mode'."
-  :set #'(lambda (symbol value)
+  :set #'(lambda (_symbol value)
 	   (ido-mode value))
   :initialize 'custom-initialize-default
   :require 'ido
@@ -1133,6 +1133,9 @@ Only used if `ido-use-virtual-buffers' is non-nil.")
 
 ;; Set to 'ignore to inhibit switching between find-file/switch-buffer.
 (defvar ido-context-switch-command)
+
+;; Dynamically bound in ido-read-internal.
+(defvar ido-completing-read)
 
 ;;; FUNCTIONS
 
@@ -2912,7 +2915,7 @@ If no buffer or file exactly matching the prompt exists, maybe create a new one.
     (setq ido-rotate-temp t)
     (exit-minibuffer)))
 
-(defun ido-wide-find-dir-or-delete-dir (&optional dir)
+(defun ido-wide-find-dir-or-delete-dir (&optional _dir)
   "Prompt for DIR to search for using find, starting from current directory.
 If input stack is non-empty, delete current directory component."
   (interactive)
@@ -3021,11 +3024,11 @@ If repeated, insert text from buffer instead."
 	    ido-try-merged-list nil)
       (exit-minibuffer))))
 
-(defun ido-copy-current-word (all)
+(defun ido-copy-current-word (_all)
   "Insert current word (file or directory name) from current buffer."
   (interactive "P")
   (let ((word (with-current-buffer ido-entry-buffer
-		(let ((p (point)) start-line end-line start-name name)
+		(let ((p (point)) start-line end-line start-name)
 		  (if (and mark-active (/= p (mark)))
 		      (setq start-name (mark))
 		    (beginning-of-line)
@@ -3232,7 +3235,7 @@ for first matching file."
   ;; Input is list of ("file" . "dir") cons cells.
   ;; Output is sorted list of ("file "dir" ...) lists
   (let ((l (sort items (lambda (a b) (string-lessp (car b) (car a)))))
-	res a cur dirs)
+	res a cur)
     (while l
       (setq a (car l)
 	    l (cdr l))
@@ -4734,7 +4737,8 @@ See `read-directory-name' for additional parameters."
 	  (concat ido-current-directory filename)))))
 
 ;;;###autoload
-(defun ido-completing-read (prompt choices &optional predicate require-match initial-input hist def inherit-input-method)
+(defun ido-completing-read (prompt choices &optional _predicate require-match
+                            initial-input hist def _inherit-input-method)
   "Ido replacement for the built-in `completing-read'.
 Read a string in the minibuffer with ido-style completion.
 PROMPT is a string to prompt with; normally it ends in a colon and a space.

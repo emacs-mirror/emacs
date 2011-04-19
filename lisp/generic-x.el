@@ -543,7 +543,7 @@ like an INI file.  You can add this hook to `find-file-hook'."
   (interactive)
   (let ((compilation-buffer-name-function
 	 (function
-	  (lambda(ign)
+	  (lambda (_ign)
 	    (concat "*" (buffer-file-name) "*")))))
     (compile
      (concat (w32-shell-name) " -c " (buffer-file-name)))))

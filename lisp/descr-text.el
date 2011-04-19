@@ -364,13 +364,13 @@ This function is semi-obsolete.  Use `get-char-code-property'."
   (let ((mnemonics (category-set-mnemonics category-set)))
     (unless (eq mnemonics "")
       (list (mapconcat
-	     #'(lambda (x)
-		 (let* ((c (category-docstring x))
-			(doc (if (string-match "\\`\\(.*?\\)\n\\(.*\\)\\'" c)
-				 (propertize (match-string 1 c)
-					     'help-echo (match-string 2 c))
-			       c)))
-		   (format "%c:%s" x doc)))
+	     (lambda (x)
+	       (let* ((c (category-docstring x))
+		      (doc (if (string-match "\\`\\(.*?\\)\n\\(.*\\)\\'" c)
+			       (propertize (match-string 1 c)
+					   'help-echo (match-string 2 c))
+			     c)))
+		 (format "%c:%s" x doc)))
 	     mnemonics ", ")))))
 
 ;;;###autoload
@@ -399,7 +399,7 @@ as well as widgets, buttons, overlays, and text properties."
                               standard-display-table))
            (disp-vector (and display-table (aref display-table char)))
            (multibyte-p enable-multibyte-characters)
-           (overlays (mapcar #'(lambda (o) (overlay-properties o))
+           (overlays (mapcar (lambda (o) (overlay-properties o))
                              (overlays-at pos)))
            (char-description (if (not multibyte-p)
                                  (single-key-description char)
@@ -582,8 +582,8 @@ as well as widgets, buttons, overlays, and text properties."
                                  pos (glyph-char (aref disp-vector i))))))
                   (format "by display table entry [%s] (see below)"
                           (mapconcat
-                           #'(lambda (x)
-                               (format "?%c" (glyph-char (car x))))
+                           (lambda (x)
+                             (format "?%c" (glyph-char (car x))))
                            disp-vector " ")))
                  (composition
                   (cadr composition))
@@ -650,11 +650,11 @@ as well as widgets, buttons, overlays, and text properties."
               (goto-char (point-min))
               (re-search-forward "character:[ \t\n]+")
               (let ((end (+ (point) (length char-description))))
-                (mapc #'(lambda (props)
-                          (let ((o (make-overlay (point) end)))
-                            (while props
-                              (overlay-put o (car props) (nth 1 props))
-                              (setq props (cddr props)))))
+                (mapc (lambda (props)
+                        (let ((o (make-overlay (point) end)))
+                          (while props
+                            (overlay-put o (car props) (nth 1 props))
+                            (setq props (cddr props)))))
                       overlays))))
 
           (when disp-vector
@@ -745,7 +745,7 @@ as well as widgets, buttons, overlays, and text properties."
                       "\nCharacter code properties: "))
             (insert-text-button
              "customize what to show"
-             'action (lambda (&rest ignore)
+             'action (lambda (&rest _ignore)
                        (customize-variable
                         'describe-char-unidata-list))
              'follow-link t)
