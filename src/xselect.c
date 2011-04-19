@@ -1477,7 +1477,7 @@ x_get_window_property (Display *display, Window window, Atom property,
          The bytes and offsets passed to XGetWindowProperty refers to the
          property and those are indeed in 32 bit quantities if format is 32.  */
 
-      if (*actual_format_ret == 32 && *actual_format_ret < BITS_PER_LONG)
+      if (32 < BITS_PER_LONG && *actual_format_ret == 32)
         {
           unsigned long i;
           int  *idata = (int *) ((*data_ret) + offset);
@@ -2432,7 +2432,7 @@ x_handle_dnd_message (struct frame *f, XClientMessageEvent *event, struct x_disp
      function expects them to be of size int (i.e. 32).  So to be able to
      use that function, put the data in the form it expects if format is 32. */
 
-  if (event->format == 32 && event->format < BITS_PER_LONG)
+  if (32 < BITS_PER_LONG && event->format == 32)
     {
       for (i = 0; i < 5; ++i) /* There are only 5 longs in a ClientMessage. */
         idata[i] = (int) event->data.l[i];
