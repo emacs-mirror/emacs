@@ -88,7 +88,7 @@ Define this locally to override the global tool bar.")
 
 (defconst tool-bar-keymap-cache (make-hash-table :weakness t :test 'equal))
 
-(defun tool-bar-make-keymap (&optional ignore)
+(defun tool-bar-make-keymap (&optional _ignore)
   "Generate an actual keymap from `tool-bar-map'.
 Its main job is to figure out which images to use based on the display's
 color capability and based on the available image libraries."

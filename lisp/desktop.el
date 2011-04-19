@@ -811,7 +811,7 @@ which means to truncate VAR's value to at most MAX-SIZE elements
 	      ")\n"))))
 
 ;; ----------------------------------------------------------------------------
-(defun desktop-save-buffer-p (filename bufname mode &rest dummy)
+(defun desktop-save-buffer-p (filename bufname mode &rest _dummy)
   "Return t if buffer should have its state saved in the desktop file.
 FILENAME is the visited file name, BUFNAME is the buffer name, and
 MODE is the major mode.
@@ -1076,15 +1076,16 @@ directory DIRNAME."
 
 (defvar desktop-buffer-major-mode)
 (defvar desktop-buffer-locals)
+(defvar auto-insert)  ; from autoinsert.el
 ;; ----------------------------------------------------------------------------
-(defun desktop-restore-file-buffer (desktop-buffer-file-name
-                                    desktop-buffer-name
-                                    desktop-buffer-misc)
+(defun desktop-restore-file-buffer (buffer-filename
+                                    _buffer-name
+                                    _buffer-misc)
   "Restore a file buffer."
-  (when desktop-buffer-file-name
-    (if (or (file-exists-p desktop-buffer-file-name)
+  (when buffer-filename
+    (if (or (file-exists-p buffer-filename)
 	    (let ((msg (format "Desktop: File \"%s\" no longer exists."
-			       desktop-buffer-file-name)))
+			       buffer-filename)))
 	      (if desktop-missing-file-warning
 		  (y-or-n-p (concat msg " Re-create buffer? "))
 		(message "%s" msg)
@@ -1094,7 +1095,7 @@ directory DIRNAME."
 		(or coding-system-for-read
 		    (cdr (assq 'buffer-file-coding-system
 			       desktop-buffer-locals))))
-	       (buf (find-file-noselect desktop-buffer-file-name)))
+	       (buf (find-file-noselect buffer-filename)))
 	  (condition-case nil
 	      (switch-to-buffer buf)
 	    (error (pop-to-buffer buf)))
@@ -1125,104 +1126,114 @@ directory DIRNAME."
 (defvar desktop-buffer-fail-count)
 
 (defun desktop-create-buffer
-  (desktop-file-version
-   desktop-buffer-file-name
-   desktop-buffer-name
-   desktop-buffer-major-mode
-   desktop-buffer-minor-modes
-   desktop-buffer-point
-   desktop-buffer-mark
-   desktop-buffer-read-only
-   desktop-buffer-misc
-   &optional
-   desktop-buffer-locals)
-  ;; To make desktop files with relative file names possible, we cannot
-  ;; allow `default-directory' to change. Therefore we save current buffer.
-  (save-current-buffer
-    ;; Give major mode module a chance to add a handler.
-    (desktop-load-file desktop-buffer-major-mode)
-    (let ((buffer-list (buffer-list))
-          (result
-           (condition-case-no-debug err
-               (funcall (or (cdr (assq desktop-buffer-major-mode
-                                       desktop-buffer-mode-handlers))
-                            'desktop-restore-file-buffer)
-                        desktop-buffer-file-name
-                        desktop-buffer-name
-                        desktop-buffer-misc)
-             (error
-              (message "Desktop: Can't load buffer %s: %s"
-                       desktop-buffer-name
-                       (error-message-string err))
-              (when desktop-missing-file-warning (sit-for 1))
-              nil))))
-      (if (bufferp result)
-          (setq desktop-buffer-ok-count (1+ desktop-buffer-ok-count))
-        (setq desktop-buffer-fail-count (1+ desktop-buffer-fail-count))
-        (setq result nil))
-      ;; Restore buffer list order with new buffer at end. Don't change
-      ;; the order for old desktop files (old desktop module behaviour).
-      (unless (< desktop-file-version 206)
-        (mapc 'bury-buffer buffer-list)
-        (when result (bury-buffer result)))
-      (when result
-        (unless (or desktop-first-buffer (< desktop-file-version 206))
-          (setq desktop-first-buffer result))
-        (set-buffer result)
-        (unless (equal (buffer-name) desktop-buffer-name)
-          (rename-buffer desktop-buffer-name t))
-        ;; minor modes
-        (cond ((equal '(t) desktop-buffer-minor-modes) ; backwards compatible
-               (auto-fill-mode 1))
-              ((equal '(nil) desktop-buffer-minor-modes) ; backwards compatible
-               (auto-fill-mode 0))
-              (t
-               (dolist (minor-mode desktop-buffer-minor-modes)
-                 ;; Give minor mode module a chance to add a handler.
-                 (desktop-load-file minor-mode)
-                 (let ((handler (cdr (assq minor-mode desktop-minor-mode-handlers))))
-                   (if handler
-                       (funcall handler desktop-buffer-locals)
-                     (when (functionp minor-mode)
-                       (funcall minor-mode 1)))))))
-        ;; Even though point and mark are non-nil when written by
-        ;; `desktop-save', they may be modified by handlers wanting to set
-        ;; point or mark themselves.
-        (when desktop-buffer-point
-          (goto-char
-            (condition-case err
-                ;; Evaluate point.  Thus point can be something like
-                ;; '(search-forward ...
-                (eval desktop-buffer-point)
-              (error (message "%s" (error-message-string err)) 1))))
-        (when desktop-buffer-mark
-          (if (consp desktop-buffer-mark)
-	      (progn
-		(set-mark (car desktop-buffer-mark))
-		(setq mark-active (car (cdr desktop-buffer-mark))))
-            (set-mark desktop-buffer-mark)))
-        ;; Never override file system if the file really is read-only marked.
-        (when desktop-buffer-read-only (setq buffer-read-only desktop-buffer-read-only))
-        (while desktop-buffer-locals
-          (let ((this (car desktop-buffer-locals)))
-            (if (consp this)
-		;; an entry of this form `(symbol . value)'
+    (file-version
+     buffer-filename
+     buffer-name
+     buffer-majormode
+     buffer-minormodes
+     buffer-point
+     buffer-mark
+     buffer-readonly
+     buffer-misc
+     &optional
+     buffer-locals)
+
+  (let ((desktop-file-version	    file-version)
+	(desktop-buffer-file-name   buffer-filename)
+	(desktop-buffer-name	    buffer-name)
+	(desktop-buffer-major-mode  buffer-majormode)
+	(desktop-buffer-minor-modes buffer-minormodes)
+	(desktop-buffer-point	    buffer-point)
+	(desktop-buffer-mark	    buffer-mark)
+	(desktop-buffer-read-only   buffer-readonly)
+	(desktop-buffer-misc	    buffer-misc)
+	(desktop-buffer-locals	    buffer-locals))
+    ;; To make desktop files with relative file names possible, we cannot
+    ;; allow `default-directory' to change. Therefore we save current buffer.
+    (save-current-buffer
+      ;; Give major mode module a chance to add a handler.
+      (desktop-load-file desktop-buffer-major-mode)
+      (let ((buffer-list (buffer-list))
+	    (result
+	     (condition-case-no-debug err
+		 (funcall (or (cdr (assq desktop-buffer-major-mode
+					 desktop-buffer-mode-handlers))
+			      'desktop-restore-file-buffer)
+			  desktop-buffer-file-name
+			  desktop-buffer-name
+			  desktop-buffer-misc)
+	       (error
+		(message "Desktop: Can't load buffer %s: %s"
+			 desktop-buffer-name
+			 (error-message-string err))
+		(when desktop-missing-file-warning (sit-for 1))
+		nil))))
+	(if (bufferp result)
+	    (setq desktop-buffer-ok-count (1+ desktop-buffer-ok-count))
+	  (setq desktop-buffer-fail-count (1+ desktop-buffer-fail-count))
+	  (setq result nil))
+	;; Restore buffer list order with new buffer at end. Don't change
+	;; the order for old desktop files (old desktop module behaviour).
+	(unless (< desktop-file-version 206)
+	  (mapc 'bury-buffer buffer-list)
+	  (when result (bury-buffer result)))
+	(when result
+	  (unless (or desktop-first-buffer (< desktop-file-version 206))
+	    (setq desktop-first-buffer result))
+	  (set-buffer result)
+	  (unless (equal (buffer-name) desktop-buffer-name)
+	    (rename-buffer desktop-buffer-name t))
+	  ;; minor modes
+	  (cond ((equal '(t) desktop-buffer-minor-modes) ; backwards compatible
+		 (auto-fill-mode 1))
+		((equal '(nil) desktop-buffer-minor-modes) ; backwards compatible
+		 (auto-fill-mode 0))
+		(t
+		 (dolist (minor-mode desktop-buffer-minor-modes)
+		   ;; Give minor mode module a chance to add a handler.
+		   (desktop-load-file minor-mode)
+		   (let ((handler (cdr (assq minor-mode desktop-minor-mode-handlers))))
+		     (if handler
+			 (funcall handler desktop-buffer-locals)
+		       (when (functionp minor-mode)
+			 (funcall minor-mode 1)))))))
+	  ;; Even though point and mark are non-nil when written by
+	  ;; `desktop-save', they may be modified by handlers wanting to set
+	  ;; point or mark themselves.
+	  (when desktop-buffer-point
+	    (goto-char
+	     (condition-case err
+		 ;; Evaluate point.  Thus point can be something like
+		 ;; '(search-forward ...
+		 (eval desktop-buffer-point)
+	       (error (message "%s" (error-message-string err)) 1))))
+	  (when desktop-buffer-mark
+	    (if (consp desktop-buffer-mark)
 		(progn
-		  (make-local-variable (car this))
-		  (set (car this) (cdr this)))
-              ;; an entry of the form `symbol'
-              (make-local-variable this)
-              (makunbound this)))
-          (setq desktop-buffer-locals (cdr desktop-buffer-locals)))))))
+		  (set-mark (car desktop-buffer-mark))
+		  (setq mark-active (car (cdr desktop-buffer-mark))))
+	      (set-mark desktop-buffer-mark)))
+	  ;; Never override file system if the file really is read-only marked.
+	  (when desktop-buffer-read-only (setq buffer-read-only desktop-buffer-read-only))
+	  (while desktop-buffer-locals
+	    (let ((this (car desktop-buffer-locals)))
+	      (if (consp this)
+		  ;; an entry of this form `(symbol . value)'
+		  (progn
+		    (make-local-variable (car this))
+		    (set (car this) (cdr this)))
+		;; an entry of the form `symbol'
+		(make-local-variable this)
+		(makunbound this)))
+	    (setq desktop-buffer-locals (cdr desktop-buffer-locals))))))))
 
 ;; ----------------------------------------------------------------------------
 ;; Backward compatibility -- update parameters to 205 standards.
-(defun desktop-buffer (desktop-buffer-file-name desktop-buffer-name
-		       desktop-buffer-major-mode
-		       mim pt mk ro tl fc cfs cr desktop-buffer-misc)
-  (desktop-create-buffer 205 desktop-buffer-file-name desktop-buffer-name
-			 desktop-buffer-major-mode (cdr mim) pt mk ro
-			 desktop-buffer-misc
+(defun desktop-buffer (buffer-filename buffer-name buffer-majormode
+		       mim pt mk ro tl fc cfs cr buffer-misc)
+  (desktop-create-buffer 205 buffer-filename buffer-name
+			 buffer-majormode (cdr mim) pt mk ro
+			 buffer-misc
 			 (list (cons 'truncate-lines tl)
 			       (cons 'fill-column fc)
 			       (cons 'case-fold-search cfs)

@@ -109,7 +109,7 @@ For the standard setting, use `set-default'."
 (defvar custom-delayed-init-variables nil
   "List of variables whose initialization is pending.")
 
-(defun custom-initialize-delay (symbol value)
+(defun custom-initialize-delay (symbol _value)
   "Delay initialization of SYMBOL to the next Emacs start.
 This is used in files that are preloaded (or for autoloaded
 variables), so that the initialization is done in the run-time

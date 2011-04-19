@@ -1137,15 +1137,15 @@ a new window in the current frame, splitting vertically."
 			     (frame-height)))
 		       (1+ (length marked-bufs)))))
 	(mapcar (if (eq type 'other-frame)
-		    #'(lambda (buf)
-			(let ((curframe (selected-frame)))
-			  (select-frame (make-frame))
-			  (switch-to-buffer buf)
-			  (select-frame curframe)))
-		  #'(lambda (buf)
-		      (split-window nil height (eq type 'horizontally))
-		      (other-window 1)
-		      (switch-to-buffer buf)))
+		    (lambda (buf)
+		      (let ((curframe (selected-frame)))
+			(select-frame (make-frame))
+			(switch-to-buffer buf)
+			(select-frame curframe)))
+		  (lambda (buf)
+		    (split-window nil height (eq type 'horizontally))
+		    (other-window 1)
+		    (switch-to-buffer buf)))
 		marked-bufs)))))
 
 (defun ibuffer-do-view-other-frame ()
@@ -1214,10 +1214,10 @@ a new window in the current frame, splitting vertically."
 (defun ibuffer-buffer-names-with-mark (mark)
   (let ((ibuffer-buffer-names-with-mark-result nil))
     (ibuffer-map-lines-nomodify
-     #'(lambda (buf mk)
-	 (when (char-equal mark mk)
-	   (push (buffer-name buf)
-		 ibuffer-buffer-names-with-mark-result))))
+     (lambda (buf mk)
+       (when (char-equal mark mk)
+	 (push (buffer-name buf)
+	       ibuffer-buffer-names-with-mark-result))))
     ibuffer-buffer-names-with-mark-result))
 
 (defsubst ibuffer-marked-buffer-names ()
@@ -1229,16 +1229,16 @@ a new window in the current frame, splitting vertically."
 (defun ibuffer-count-marked-lines (&optional all)
   (if all
       (ibuffer-map-lines-nomodify
-       #'(lambda (buf mark)
-	   (not (char-equal mark ?\s))))
+       (lambda (_buf mark)
+	 (not (char-equal mark ?\s))))
     (ibuffer-map-lines-nomodify
-     #'(lambda (buf mark)
-	 (char-equal mark ibuffer-marked-char)))))
+     (lambda (_buf mark)
+       (char-equal mark ibuffer-marked-char)))))
 
 (defsubst ibuffer-count-deletion-lines ()
   (ibuffer-map-lines-nomodify
-   #'(lambda (buf mark)
-       (char-equal mark ibuffer-deletion-char))))
+   (lambda (_buf mark)
+     (char-equal mark ibuffer-deletion-char))))
 
 (defsubst ibuffer-map-deletion-lines (func)
   (ibuffer-map-on-mark ibuffer-deletion-char func))
@@ -1317,20 +1317,20 @@ With optional ARG, make read-only only if ARG is positive."
     (cond
      ((char-equal mark ibuffer-marked-char)
       (ibuffer-map-marked-lines
-       #'(lambda (buf mark)
-	   (ibuffer-set-mark-1 ?\s)
-	   t)))
+       (lambda (_buf _mark)
+	 (ibuffer-set-mark-1 ?\s)
+	 t)))
      ((char-equal mark ibuffer-deletion-char)
       (ibuffer-map-deletion-lines
-       #'(lambda (buf mark)
-	   (ibuffer-set-mark-1 ?\s)
-	   t)))
+       (lambda (_buf _mark)
+	 (ibuffer-set-mark-1 ?\s)
+	 t)))
      (t
       (ibuffer-map-lines
-       #'(lambda (buf mark)
-	   (when (not (char-equal mark ?\s))
-	     (ibuffer-set-mark-1 ?\s))
-	   t)))))
+       (lambda (_buf mark)
+	 (when (not (char-equal mark ?\s))
+	   (ibuffer-set-mark-1 ?\s))
+	 t)))))
   (ibuffer-redisplay t))
 
 (defun ibuffer-toggle-marks (&optional group)
@@ -1344,15 +1344,15 @@ group."
       (setq group it))
   (let ((count
 	 (ibuffer-map-lines
-	  #'(lambda (buf mark)
-	      (cond ((eq mark ibuffer-marked-char)
-		     (ibuffer-set-mark-1 ?\s)
-		     nil)
-		    ((eq mark ?\s)
-		     (ibuffer-set-mark-1 ibuffer-marked-char)
-		     t)
-		    (t
-		     nil)))
+	  (lambda (_buf mark)
+	    (cond ((eq mark ibuffer-marked-char)
+		   (ibuffer-set-mark-1 ?\s)
+		   nil)
+		  ((eq mark ?\s)
+		   (ibuffer-set-mark-1 ibuffer-marked-char)
+		   t)
+		  (t
+		   nil)))
 	  nil group)))
     (message "%s buffers marked" count))
   (ibuffer-redisplay t))
@@ -1663,11 +1663,11 @@ If point is on a group name, this function operates on that group."
 	(mapcar #'ibuffer-compile-format ibuffer-formats))
   (when (boundp 'ibuffer-filter-format-alist)
     (setq ibuffer-compiled-filter-formats
-	  (mapcar #'(lambda (entry)
-		      (cons (car entry)
-			    (mapcar #'(lambda (formats)
-					(mapcar #'ibuffer-compile-format formats))
-				    (cdr entry))))
+	  (mapcar (lambda (entry)
+		    (cons (car entry)
+			  (mapcar (lambda (formats)
+				    (mapcar #'ibuffer-compile-format formats))
+				  (cdr entry))))
 		  ibuffer-filter-format-alist))))
 
 (defun ibuffer-clear-summary-columns (format)
@@ -1864,10 +1864,10 @@ If point is on a group name, this function operates on that group."
 
 (defun ibuffer-map-on-mark (mark func)
   (ibuffer-map-lines
-   #'(lambda (buf mk)
-       (if (char-equal mark mk)
-	   (funcall func buf mark)
-	 nil))))
+   (lambda (buf mk)
+     (if (char-equal mark mk)
+	 (funcall func buf mark)
+       nil))))
 
 (defun ibuffer-map-lines (function &optional nomodify group)
   "Call FUNCTION for each buffer.
@@ -1939,9 +1939,9 @@ the buffer object itself and the current mark symbol."
 (defun ibuffer-get-marked-buffers ()
   "Return a list of buffer objects currently marked."
   (delq nil
-	(mapcar #'(lambda (e)
-		    (when (eq (cdr e) ibuffer-marked-char)
-		      (car e)))
+	(mapcar (lambda (e)
+		  (when (eq (cdr e) ibuffer-marked-char)
+		    (car e)))
 		(ibuffer-current-state-list))))
 
 (defun ibuffer-current-state-list (&optional pos)
@@ -1953,22 +1953,22 @@ the value of point at the beginning of the line for that buffer."
     ;; break later.  Don't blame me.
     (if pos
 	(ibuffer-map-lines-nomodify
-	 #'(lambda (buf mark)
-	     (when (buffer-live-p buf)
-	       (push (list buf mark (point)) ibuffer-current-state-list-tmp))))
-      (ibuffer-map-lines-nomodify
-       #'(lambda (buf mark)
+	 (lambda (buf mark)
 	   (when (buffer-live-p buf)
-	     (push (cons buf mark) ibuffer-current-state-list-tmp)))))
+	     (push (list buf mark (point)) ibuffer-current-state-list-tmp))))
+      (ibuffer-map-lines-nomodify
+       (lambda (buf mark)
+	 (when (buffer-live-p buf)
+	   (push (cons buf mark) ibuffer-current-state-list-tmp)))))
     (nreverse ibuffer-current-state-list-tmp)))
 
 (defun ibuffer-current-buffers-with-marks (curbufs)
   "Return a list like (BUF . MARK) of all open buffers."
   (let ((bufs (ibuffer-current-state-list)))
-    (mapcar #'(lambda (buf) (let ((e (assq buf bufs)))
-			      (if e
-				  e
-				(cons buf ?\s))))
+    (mapcar (lambda (buf) (let ((e (assq buf bufs)))
+			    (if e
+				e
+			      (cons buf ?\s))))
 	    curbufs)))
 
 (defun ibuffer-buf-matches-predicates (buf predicates)
@@ -1986,17 +1986,17 @@ the value of point at the beginning of the line for that buffer."
     (delq nil
 	  (mapcar
 	   ;; element should be like (BUFFER . MARK)
-	   #'(lambda (e)
-	       (let* ((buf (car e)))
-		 (when
-		     ;; This takes precedence over anything else
-		     (or (and ibuffer-always-show-last-buffer
-			      (eq last buf))
-			 (funcall (if ext-loaded
-				      #'ibuffer-ext-visible-p
-				    #'ibuffer-visible-p)
-				  buf all ibuffer-buf))
-		   e)))
+	   (lambda (e)
+	     (let* ((buf (car e)))
+	       (when
+		   ;; This takes precedence over anything else
+		   (or (and ibuffer-always-show-last-buffer
+			    (eq last buf))
+		       (funcall (if ext-loaded
+				    #'ibuffer-ext-visible-p
+				  #'ibuffer-visible-p)
+				buf all ibuffer-buf))
+		 e)))
 	   bmarklist))))
 
 (defun ibuffer-visible-p (buf all &optional ibuffer-buf)
@@ -2084,11 +2084,11 @@ the value of point at the beginning of the line for that buffer."
 		      (beginning-of-line)
 		      (buffer-substring (point) (line-end-position)))))
 	   (apply #'insert (mapcar
-			    #'(lambda (c)
-				(if (not (or (char-equal c ?\s)
-					     (char-equal c ?\n)))
-				    ?-
-				  ?\s))
+			    (lambda (c)
+			      (if (not (or (char-equal c ?\s)
+					   (char-equal c ?\n)))
+				  ?-
+				?\s))
 			    str)))
 	 (insert "\n"))
        (point))
@@ -2244,7 +2244,7 @@ If optional arg SILENT is non-nil, do not display progress messages."
      'ibuffer-filter-group
      name)))
 
-(defun ibuffer-redisplay-engine (bmarklist &optional ignore)
+(defun ibuffer-redisplay-engine (bmarklist &optional _ignore)
   (ibuffer-assert-ibuffer-mode)
   (let* ((--ibuffer-insert-buffers-and-marks-format
 	  (ibuffer-current-format))
@@ -2345,7 +2345,7 @@ FORMATS is the value to use for `ibuffer-formats'.
   (setq ibuffer-prev-window-config (current-window-configuration))
   (let ((buf (get-buffer-create (or name "*Ibuffer*"))))
     (if other-window-p
-	(funcall (if noselect #'(lambda (buf) (display-buffer buf t)) #'pop-to-buffer) buf)
+	(funcall (if noselect (lambda (buf) (display-buffer buf t)) #'pop-to-buffer) buf)
       (funcall (if noselect #'display-buffer #'switch-to-buffer) buf))
     (with-current-buffer buf
       (save-selected-window
@@ -2648,7 +2648,7 @@ will be inserted before the group at point."
 ;;;;;;  ibuffer-backward-filter-group ibuffer-forward-filter-group
 ;;;;;;  ibuffer-toggle-filter-group ibuffer-mouse-toggle-filter-group
 ;;;;;;  ibuffer-interactive-filter-by-mode ibuffer-mouse-filter-by-mode
-;;;;;;  ibuffer-auto-mode) "ibuf-ext" "ibuf-ext.el" "eb3de21aef70e4ca75f611f1c3c56aa1")
+;;;;;;  ibuffer-auto-mode) "ibuf-ext" "ibuf-ext.el" "001cd83e8e1ff27c9a61097c840a984d")
 ;;; Generated autoloads from ibuf-ext.el
 
 (autoload 'ibuffer-auto-mode "ibuf-ext" "\
@@ -2701,7 +2701,7 @@ Move point backwards by COUNT filtering groups.
  (autoload 'ibuffer-do-print "ibuf-ext")
 
 (autoload 'ibuffer-included-in-filters-p "ibuf-ext" "\
-Not documented
+
 
 \(fn BUF FILTERS)" nil nil)
 

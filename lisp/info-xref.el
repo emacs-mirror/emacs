@@ -151,7 +151,7 @@ overall good/bad count summary inserted at the very end."
      (unless info-xref-in-progress
        (info-xref-output "done, %d good, %d bad, %d unavailable"
                          info-xref-good info-xref-bad info-xref-unavail))))
-  
+
 (defun info-xref-output (fmt &rest args)
   "Emit a `format'-ed message FMT+ARGS to the `info-xref-output-buffer'."
   (with-current-buffer info-xref-output-buffer
@@ -200,7 +200,7 @@ buffer's line and column of point."
     (save-excursion
       (save-window-excursion
         (prog1
-            (condition-case err
+            (condition-case nil
                 (progn
                   (Info-goto-node node
                                   (when (get-buffer "*info*")

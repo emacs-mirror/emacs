@@ -90,7 +90,7 @@
 	   ,(purecopy "diac") iso-iso2duden t nil)
     (de646 ,(purecopy "German ASCII (ISO 646)")
 	   nil
-	   ,(purecopy "recode -f iso646-ge:latin1") 
+	   ,(purecopy "recode -f iso646-ge:latin1")
 	   ,(purecopy "recode -f latin1:iso646-ge") t nil)
     (denet ,(purecopy "net German")
 	   nil
@@ -167,10 +167,10 @@ BUFFER should be the buffer that the output originally came from."
 	  (error "Format encoding failed")))
     (funcall method from to buffer)))
 
-(defun format-decode-run-method (method from to &optional buffer)
+(defun format-decode-run-method (method from to &optional _buffer)
   "Decode using METHOD the text from FROM to TO.
 If METHOD is a string, it is a shell command (including options); otherwise,
-it should be a Lisp function.  Decoding is done for the given BUFFER."
+it should be a Lisp function.  BUFFER is currently ignored."
   (if (stringp method)
       (let ((error-buff (get-buffer-create "*Format Errors*"))
 	    (coding-system-for-write 'no-conversion)
@@ -356,13 +356,11 @@ one of the formats defined in `format-alist', or a list of such symbols."
   (if (symbolp format) (setq format (list format)))
   (save-excursion
     (goto-char end)
-    (let ((cur-buf (current-buffer))
-	  (end (point-marker)))
+    (let ((end (point-marker)))
       (while format
 	(let* ((info (assq (car format) format-alist))
 	       (to-fn  (nth 4 info))
-	       (modify (nth 5 info))
-	       result)
+	       (modify (nth 5 info)))
 	  (if to-fn
 	      (if modify
 		  (setq end (format-encode-run-method to-fn beg end
@@ -539,22 +537,6 @@ Compare using `equal'."
 	(setq tail next)))
     (cons acopy bcopy)))
 
-(defun format-common-tail (a b)
-  "Given two lists that have a common tail, return it.
-Compare with `equal', and return the part of A that is equal to the
-equivalent part of B.  If even the last items of the two are not equal,
-return nil."
-  (let ((la (length a))
-	(lb (length b)))
-    ;; Make sure they are the same length
-    (if (> la lb)
-	(setq a (nthcdr (- la lb) a))
-      (setq b (nthcdr (- lb la) b))))
-  (while (not (equal a b))
-    (setq a (cdr a)
-	  b (cdr b)))
-  a)
-
 (defun format-proper-list-p (list)
   "Return t if LIST is a proper list.
 A proper list is a list ending with a nil cdr, not with an atom "
@@ -641,7 +623,7 @@ to write these unknown annotations back into the file."
     (save-restriction
       (narrow-to-region (point-min) to)
       (goto-char from)
-      (let (next open-ans todo loc unknown-ans)
+      (let (next open-ans todo unknown-ans)
 	(while (setq next (funcall next-fn))
 	  (let* ((loc      (nth 0 next))
 		 (end      (nth 1 next))
@@ -932,12 +914,11 @@ The same TRANSLATIONS structure can be used in reverse for reading files."
 		  all-ans))
 	  (setq neg-ans (cdr neg-ans)))
 	;; Now deal with positive (opening) annotations
-	(let ((p pos-ans))
-	  (while pos-ans
-	    (push (car pos-ans) open-ans)
-	    (push (cons loc (funcall format-fn (car pos-ans) t))
-		  all-ans)
-	    (setq pos-ans (cdr pos-ans))))))
+        (while pos-ans
+          (push (car pos-ans) open-ans)
+          (push (cons loc (funcall format-fn (car pos-ans) t))
+                all-ans)
+          (setq pos-ans (cdr pos-ans)))))
 
     ;; Close any annotations still open
     (while open-ans
@@ -1016,8 +997,7 @@ They can be whatever the FORMAT-FN in `format-annotate-region'
 can handle.  If that is `enriched-make-annotation', they can be
 either strings, or lists of the form (PARAMETER VALUE)."
 
-  (let ((prop-alist (cdr (assoc prop translations)))
-	default)
+  (let ((prop-alist (cdr (assoc prop translations))))
     (if (not prop-alist)
 	nil
       ;; If either old or new is a list, have to treat both that way.
@@ -1028,7 +1008,6 @@ either strings, or lists of the form (PARAMETER VALUE)."
 	      (format-annotate-atomic-property-change prop-alist old new)
 	    (let* ((old (if (listp old) old (list old)))
 		   (new (if (listp new) new (list new)))
-		   (tail (format-common-tail old new))
 		   close open)
 	      (while old
 		(setq close

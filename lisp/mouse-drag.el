@@ -214,13 +214,10 @@ To test this function, evaluate:
 	 (start-row (cdr (posn-col-row start-posn)))
 	 (start-col (car (posn-col-row start-posn)))
 	 (old-selected-window (selected-window))
-	 event end row mouse-delta scroll-delta
+	 event end row scroll-delta
 	 have-scrolled
-	 window-last-row
-	 col mouse-col-delta window-last-col
+	 col
 	 (scroll-col-delta 0)
-	 adjusted-mouse-col-delta
-	 adjusted-mouse-delta
 	 ;; be conservative about allowing horizontal scrolling
 	 (col-scrolling-p (mouse-drag-should-do-col-scrolling)))
     (select-window start-window)
@@ -275,10 +272,10 @@ To test this function, evaluate:
 	 (start-row (cdr (posn-col-row start-posn)))
 	 (start-col (car (posn-col-row start-posn)))
 	 (old-selected-window (selected-window))
-	 event end row mouse-delta scroll-delta
+	 event end row scroll-delta
 	 have-scrolled
 	 window-last-row
-	 col mouse-col-delta window-last-col
+	 col window-last-col
 	 (scroll-col-delta 0)
 	 ;; be conservative about allowing horizontal scrolling
 	 (col-scrolling-p (mouse-drag-should-do-col-scrolling)))

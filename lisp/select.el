@@ -213,7 +213,7 @@ two markers or an overlay.  Otherwise, it is nil."
 (defun xselect--int-to-cons (n)
   (cons (ash n -16) (logand n 65535)))
 
-(defun xselect-convert-to-string (selection type value)
+(defun xselect-convert-to-string (_selection type value)
   (let (str coding)
     ;; Get the actual string from VALUE.
     (cond ((stringp value)
@@ -279,7 +279,7 @@ two markers or an overlay.  Otherwise, it is nil."
       (setq next-selection-coding-system nil)
       (cons type str))))
 
-(defun xselect-convert-to-length (selection type value)
+(defun xselect-convert-to-length (_selection _type value)
   (let ((len (cond ((stringp value)
 		    (length value))
 		   ((setq value (xselect--selection-bounds value))
@@ -287,7 +287,7 @@ two markers or an overlay.  Otherwise, it is nil."
     (if len
 	(xselect--int-to-cons len))))
 
-(defun xselect-convert-to-targets (selection type value)
+(defun xselect-convert-to-targets (_selection _type _value)
   ;; return a vector of atoms, but remove duplicates first.
   (let* ((all (cons 'TIMESTAMP (mapcar 'car selection-converter-alist)))
 	 (rest all))
@@ -300,25 +300,25 @@ two markers or an overlay.  Otherwise, it is nil."
 	     (setq rest (cdr rest)))))
     (apply 'vector all)))
 
-(defun xselect-convert-to-delete (selection type value)
+(defun xselect-convert-to-delete (selection _type _value)
   (x-disown-selection-internal selection)
   ;; A return value of nil means that we do not know how to do this conversion,
   ;; and replies with an "error".  A return value of NULL means that we have
   ;; done the conversion (and any side-effects) but have no value to return.
   'NULL)
 
-(defun xselect-convert-to-filename (selection type value)
+(defun xselect-convert-to-filename (_selection _type value)
   (when (setq value (xselect--selection-bounds value))
     (buffer-file-name (nth 2 value))))
 
-(defun xselect-convert-to-charpos (selection type value)
+(defun xselect-convert-to-charpos (_selection _type value)
   (when (setq value (xselect--selection-bounds value))
     (let ((beg (1- (nth 0 value))) ; zero-based
 	  (end (1- (nth 1 value))))
       (cons 'SPAN (vector (xselect--int-to-cons (min beg end))
 			  (xselect--int-to-cons (max beg end)))))))
 
-(defun xselect-convert-to-lineno (selection type value)
+(defun xselect-convert-to-lineno (_selection _type value)
   (when (setq value (xselect--selection-bounds value))
     (with-current-buffer (nth 2 value)
       (let ((beg (line-number-at-pos (nth 0 value)))
@@ -326,7 +326,7 @@ two markers or an overlay.  Otherwise, it is nil."
 	(cons 'SPAN (vector (xselect--int-to-cons (min beg end))
 			    (xselect--int-to-cons (max beg end))))))))
 
-(defun xselect-convert-to-colno (selection type value)
+(defun xselect-convert-to-colno (_selection _type value)
   (when (setq value (xselect--selection-bounds value))
     (with-current-buffer (nth 2 value)
       (let ((beg (progn (goto-char (nth 0 value)) (current-column)))
@@ -334,35 +334,35 @@ two markers or an overlay.  Otherwise, it is nil."
 	(cons 'SPAN (vector (xselect--int-to-cons (min beg end))
 			    (xselect--int-to-cons (max beg end))))))))
 
-(defun xselect-convert-to-os (selection type size)
+(defun xselect-convert-to-os (_selection _type _size)
   (symbol-name system-type))
 
-(defun xselect-convert-to-host (selection type size)
+(defun xselect-convert-to-host (_selection _type _size)
   (system-name))
 
-(defun xselect-convert-to-user (selection type size)
+(defun xselect-convert-to-user (_selection _type _size)
   (user-full-name))
 
-(defun xselect-convert-to-class (selection type size)
+(defun xselect-convert-to-class (_selection _type _size)
   "Convert selection to class.
 This function returns the string \"Emacs\"."
   "Emacs")
 
 ;; We do not try to determine the name Emacs was invoked with,
 ;; because it is not clean for a program's behavior to depend on that.
-(defun xselect-convert-to-name (selection type size)
+(defun xselect-convert-to-name (_selection _type _size)
   "Convert selection to name.
 This function returns the string \"emacs\"."
   "emacs")
 
-(defun xselect-convert-to-integer (selection type value)
+(defun xselect-convert-to-integer (_selection _type value)
   (and (integerp value)
        (xselect--int-to-cons value)))
 
-(defun xselect-convert-to-atom (selection type value)
+(defun xselect-convert-to-atom (_selection _type value)
   (and (symbolp value) value))
 
-(defun xselect-convert-to-identity (selection type value) ; used internally
+(defun xselect-convert-to-identity (_selection _type value) ; used internally
   (vector value))
 
 (setq selection-converter-alist

@@ -348,6 +348,16 @@ modified to be an empty string, or the desired separation string."
 (defvar pcomplete-show-list nil)
 (defvar pcomplete-expand-only-p nil)
 
+;; for the sake of the bye-compiler, when compiling other files that
+;; contain completion functions
+(defvar pcomplete-args nil)
+(defvar pcomplete-begins nil)
+(defvar pcomplete-last nil)
+(defvar pcomplete-index nil)
+(defvar pcomplete-stub nil)
+(defvar pcomplete-seen nil)
+(defvar pcomplete-norm-func nil)
+
 ;;; User Functions:
 
 ;;; Alternative front-end using the standard completion facilities.
@@ -439,7 +449,7 @@ in the same way as TABLE completes strings of the form (concat S2 S)."
                               (if (string-match re c)
                                   (substring c (match-end 0))))
                             res))))))))))
-        
+
 ;; I don't think such commands are usable before first setting up buffer-local
 ;; variables to parse args, so there's no point autoloading it.
 ;; ;;;###autoload
@@ -468,7 +478,7 @@ Same as `pcomplete' but using the standard completion UI."
            ;; pcomplete-parse-arguments-function does, that connection
            ;; might not be that close.  E.g. in eshell,
            ;; pcomplete-parse-arguments-function expands envvars.
-           ;; 
+           ;;
            ;; Since we use minibuffer-complete, which doesn't know
            ;; pcomplete-stub and works from the buffer's text instead,
            ;; we need to trick minibuffer-complete, into using
@@ -647,17 +657,6 @@ This will modify the current buffer."
 ;;; Internal Functions:
 
 ;; argument handling
-
-;; for the sake of the bye-compiler, when compiling other files that
-;; contain completion functions
-(defvar pcomplete-args nil)
-(defvar pcomplete-begins nil)
-(defvar pcomplete-last nil)
-(defvar pcomplete-index nil)
-(defvar pcomplete-stub nil)
-(defvar pcomplete-seen nil)
-(defvar pcomplete-norm-func nil)
-
 (defun pcomplete-arg (&optional index offset)
   "Return the textual content of the INDEXth argument.
 INDEX is based from the current processing position.  If INDEX is
@@ -995,13 +994,14 @@ component, `default-directory' is used as the basis for completion."
 	   (pcomplete-next-arg)
 	   (funcall sym)))))))
 
-(defun pcomplete-opt (options &optional prefix no-ganging args-follow)
+(defun pcomplete-opt (options &optional prefix _no-ganging _args-follow)
   "Complete a set of OPTIONS, each beginning with PREFIX (?- by default).
 PREFIX may be t, in which case no PREFIX character is necessary.
 If NO-GANGING is non-nil, each option is separate (-xy is not allowed).
 If ARGS-FOLLOW is non-nil, then options which take arguments may have
 the argument appear after a ganged set of options.  This is how tar
-behaves, for example."
+behaves, for example.
+Arguments NO-GANGING and ARGS-FOLLOW are currently ignored."
   (if (and (= pcomplete-index pcomplete-last)
 	   (string= (pcomplete-arg) "-"))
       (let ((len (length options))

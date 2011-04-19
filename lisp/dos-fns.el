@@ -159,7 +159,7 @@ sure to obey the 8.3 limitations."
 	       (string (copy-sequence (file-name-nondirectory filename)))
 	       (strlen (length string))
 	       (lastchar (aref string (1- strlen)))
-	       i firstdot)
+	       firstdot)
 	  (setq firstdot (string-match "\\." string))
 	  (cond
 	   (firstdot

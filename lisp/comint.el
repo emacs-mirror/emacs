@@ -1529,7 +1529,7 @@ in the search status stack."
   `(lambda (cmd)
      (comint-history-isearch-pop-state cmd ,comint-input-ring-index)))
 
-(defun comint-history-isearch-pop-state (cmd hist-pos)
+(defun comint-history-isearch-pop-state (_cmd hist-pos)
   "Restore the input history search state.
 Go to the history element by the absolute history position HIST-POS."
   (comint-goto-input hist-pos))
@@ -2053,7 +2053,7 @@ This function should be a pre-command hook."
                        (select-window selected))))
 	       nil t))))))
 
-(defun comint-postoutput-scroll-to-bottom (string)
+(defun comint-postoutput-scroll-to-bottom (_string)
   "Go to the end of buffer in some or all windows showing it.
 Does not scroll if the current line is the last line in the buffer.
 Depends on the value of `comint-move-point-for-output' and
@@ -2090,7 +2090,7 @@ This function should be in the list `comint-output-filter-functions'."
 	     nil t))
       (set-buffer current))))
 
-(defun comint-truncate-buffer (&optional string)
+(defun comint-truncate-buffer (&optional _string)
   "Truncate the buffer to `comint-buffer-maximum-size'.
 This function could be on `comint-output-filter-functions' or bound to a key."
   (interactive)
@@ -2101,7 +2101,7 @@ This function could be on `comint-output-filter-functions' or bound to a key."
     (let ((inhibit-read-only t))
       (delete-region (point-min) (point)))))
 
-(defun comint-strip-ctrl-m (&optional string)
+(defun comint-strip-ctrl-m (&optional _string)
   "Strip trailing `^M' characters from the current output group.
 This function could be on `comint-output-filter-functions' or bound to a key."
   (interactive)
@@ -2207,7 +2207,7 @@ a buffer local variable."
     (goto-char (comint-line-beginning-position))))
 
 ;; For compatibility.
-(defun comint-read-noecho (prompt &optional ignore)
+(defun comint-read-noecho (prompt &optional _ignore)
   (read-passwd prompt))
 
 ;; These three functions are for entering text you don't want echoed or
@@ -2933,7 +2933,7 @@ inside of a \"[...]\" (see `skip-chars-forward'), plus all non-ASCII characters.
 (defun comint-substitute-in-file-name (filename)
   "Return FILENAME with environment variables substituted.
 Supports additional environment variable syntax of the command
-interpreter (e.g., the percent notation of cmd.exe on NT)."
+interpreter (e.g., the percent notation of cmd.exe on Windows)."
   (let ((name (substitute-in-file-name filename)))
     (if (memq system-type '(ms-dos windows-nt))
 	(let (env-var-name

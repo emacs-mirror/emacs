@@ -503,7 +503,7 @@ See variable `scheme-buffer'."
                           (current-buffer)
                         scheme-buffer)))
 
-(defun scheme-interactively-start-process (&optional cmd)
+(defun scheme-interactively-start-process (&optional _cmd)
   "Start an inferior Scheme process.  Return the process started.
 Since this command is run implicitly, always ask the user for the
 command to run."

@@ -36,7 +36,7 @@
 ;; Doing this is unnecessary in Emacs 20.  Kept as dummy in case
 ;; external libraries call it.  We save a kb or two of purespace by
 ;; dummying-out such definitions generally.
-(defmacro define-widget-keywords (&rest keys)
+(defmacro define-widget-keywords (&rest _keys)
   ;; ;; Don't use backquote, since that makes trouble trying to
   ;; ;; re-bootstrap from just the .el files.
   ;; (list 'eval-and-compile

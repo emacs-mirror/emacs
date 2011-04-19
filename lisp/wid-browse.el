@@ -189,7 +189,7 @@ The :value of the widget shuld be the widget to be browsed."
   :value-create 'widget-browse-value-create
   :action 'widget-browse-action)
 
-(defun widget-browse-action (widget &optional event)
+(defun widget-browse-action (widget &optional _event)
   ;; Create widget browser for WIDGET's :value.
   (widget-browse (widget-get widget :value)))
 
@@ -205,12 +205,12 @@ The :value of the widget shuld be the widget to be browsed."
 
 ;;; Keyword Printer Functions.
 
-(defun widget-browse-widget (widget key value)
+(defun widget-browse-widget (_widget _key value)
   "Insert description of WIDGET's KEY VALUE.
 VALUE is assumed to be a widget."
   (widget-create 'widget-browse value))
 
-(defun widget-browse-widgets (widget key value)
+(defun widget-browse-widgets (_widget _key value)
   "Insert description of WIDGET's KEY VALUE.
 VALUE is assumed to be a list of widgets."
   (while value
@@ -220,7 +220,7 @@ VALUE is assumed to be a list of widgets."
     (when value
       (widget-insert " "))))
 
-(defun widget-browse-sexp (widget key value)
+(defun widget-browse-sexp (_widget _key value)
   "Insert description of WIDGET's KEY VALUE.
 Nothing is assumed about value."
   (let ((pp (condition-case signal
@@ -236,7 +236,7 @@ Nothing is assumed about value."
 	(widget-insert pp)
       (widget-create 'push-button
 		     :tag "show"
-		     :action (lambda (widget &optional event)
+		     :action (lambda (widget &optional _event)
 			       (with-output-to-temp-buffer
 				   "*Pp Eval Output*"
 				 (princ (widget-get widget :value))))

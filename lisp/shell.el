@@ -494,7 +494,7 @@ buffer."
 		'shell-dir-cookie-watcher nil t))
     (comint-read-input-ring t)))
 
-(defun shell-filter-ctrl-a-ctrl-b (string)
+(defun shell-filter-ctrl-a-ctrl-b (_string)
   "Remove `^A' and `^B' characters from comint output.
 
 Bash uses these characters as internal quoting characters in its
@@ -585,7 +585,7 @@ Otherwise, one argument `-i' is passed to the shell.
                  (current-buffer)))
 
   ;; On remote hosts, the local `shell-file-name' might be useless.
-  (if (and (interactive-p)
+  (if (and (called-interactively-p 'any)
 	   (file-remote-p default-directory)
 	   (null explicit-shell-file-name)
 	   (null (getenv "ESHELL")))
@@ -692,7 +692,7 @@ and `shell-pushd-dunique' control the behavior of the relevant command.
 Environment variables are expanded, see function `substitute-in-file-name'."
   (if shell-dirtrackp
       ;; We fail gracefully if we think the command will fail in the shell.
-      (condition-case chdir-failure
+      (condition-case nil
 	  (let ((start (progn (string-match
 			       (concat "^" shell-command-separator-regexp)
 			       str) ; skip whitespace

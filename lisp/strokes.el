@@ -1631,7 +1631,7 @@ Optional FORCE non-nil will ignore the buffer's read-only status."
       (let ((inhibit-read-only t))
 	(message "Strokifying %s..." buffer)
 	(goto-char (point-min))
-	(let (ext string image)
+	(let (string image)
 	  ;; The comment below is what I'd have to do if I wanted to
 	  ;; deal with random newlines in the midst of the compressed
 	  ;; strings.  If I do this, I'll also have to change

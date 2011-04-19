@@ -33,7 +33,13 @@
 (declare-function widget-convert "wid-edit" (type &rest args))
 (declare-function shell-mode "shell" ())
 
+;;; From compile.el
 (defvar compilation-current-error)
+(defvar compilation-context-lines)
+;;; From comint.el
+(defvar comint-file-name-quote-list)
+(defvar comint-file-name-chars)
+(defvar comint-delimiter-argument-list)
 
 (defcustom idle-update-delay 0.5
   "Idle time delay before updating various things on the screen.
@@ -889,8 +895,8 @@ the end of the line."
 		   (memq (char-before) '(?\t ?\n))
 		   (eobp)
 		   (eq (char-after) ?\n)))
-	 (let* ((ocol (current-column))
-		(val (delete-char (- n) killflag)))
+	 (let ((ocol (current-column)))
+           (delete-char (- n) killflag)
 	   (save-excursion
 	     (insert-char ?\s (- ocol (current-column)) nil))))
 	;; Otherwise, do simple deletion.
@@ -1365,7 +1371,7 @@ in this use of the minibuffer.")
 (defun minibuffer-history-initialize ()
   (setq minibuffer-text-before-history nil))
 
-(defun minibuffer-avoid-prompt (new old)
+(defun minibuffer-avoid-prompt (_new _old)
   "A point-motion hook for the minibuffer, that moves point out of the prompt."
   (constrain-to-field nil (point-max)))
 
@@ -1731,7 +1737,7 @@ in the search status stack."
   `(lambda (cmd)
      (minibuffer-history-isearch-pop-state cmd ,minibuffer-history-position)))
 
-(defun minibuffer-history-isearch-pop-state (cmd hist-pos)
+(defun minibuffer-history-isearch-pop-state (_cmd hist-pos)
   "Restore the minibuffer history search state.
 Go to the history element by the absolute history position HIST-POS."
   (goto-history-element hist-pos))
@@ -1923,7 +1929,7 @@ we stop and ignore all further elements."
 	(undo-list (list nil))
 	undo-adjusted-markers
 	some-rejected
-	undo-elt undo-elt temp-undo-list delta)
+	undo-elt temp-undo-list delta)
     (while undo-list-copy
       (setq undo-elt (car undo-list-copy))
       (let ((keep-this
@@ -4404,7 +4410,7 @@ If nil, `line-move' moves point by logical lines."
 ;; This is the guts of next-line and previous-line.
 ;; Arg says how many lines to move.
 ;; The value is t if we can move the specified number of lines.
-(defun line-move-1 (arg &optional noerror to-end)
+(defun line-move-1 (arg &optional noerror _to-end)
   ;; Don't run any point-motion hooks, and disregard intangibility,
   ;; for intermediate positions.
   (let ((inhibit-point-motion-hooks t)
@@ -6265,27 +6271,27 @@ select the completion near point.\n\n"))))))
 ;; These functions -- which are not commands -- each add one modifier
 ;; to the following event.
 
-(defun event-apply-alt-modifier (ignore-prompt)
+(defun event-apply-alt-modifier (_ignore-prompt)
   "\\<function-key-map>Add the Alt modifier to the following event.
 For example, type \\[event-apply-alt-modifier] & to enter Alt-&."
   (vector (event-apply-modifier (read-event) 'alt 22 "A-")))
-(defun event-apply-super-modifier (ignore-prompt)
+(defun event-apply-super-modifier (_ignore-prompt)
   "\\<function-key-map>Add the Super modifier to the following event.
 For example, type \\[event-apply-super-modifier] & to enter Super-&."
   (vector (event-apply-modifier (read-event) 'super 23 "s-")))
-(defun event-apply-hyper-modifier (ignore-prompt)
+(defun event-apply-hyper-modifier (_ignore-prompt)
   "\\<function-key-map>Add the Hyper modifier to the following event.
 For example, type \\[event-apply-hyper-modifier] & to enter Hyper-&."
   (vector (event-apply-modifier (read-event) 'hyper 24 "H-")))
-(defun event-apply-shift-modifier (ignore-prompt)
+(defun event-apply-shift-modifier (_ignore-prompt)
   "\\<function-key-map>Add the Shift modifier to the following event.
 For example, type \\[event-apply-shift-modifier] & to enter Shift-&."
   (vector (event-apply-modifier (read-event) 'shift 25 "S-")))
-(defun event-apply-control-modifier (ignore-prompt)
+(defun event-apply-control-modifier (_ignore-prompt)
   "\\<function-key-map>Add the Ctrl modifier to the following event.
 For example, type \\[event-apply-control-modifier] & to enter Ctrl-&."
   (vector (event-apply-modifier (read-event) 'control 26 "C-")))
-(defun event-apply-meta-modifier (ignore-prompt)
+(defun event-apply-meta-modifier (_ignore-prompt)
   "\\<function-key-map>Add the Meta modifier to the following event.
 For example, type \\[event-apply-meta-modifier] & to enter Meta-&."
   (vector (event-apply-modifier (read-event) 'meta 27 "M-")))
@@ -6636,11 +6642,10 @@ See also `normal-erase-is-backspace'."
 
     (cond ((or (memq window-system '(x w32 ns pc))
 	       (memq system-type '(ms-dos windows-nt)))
-	   (let* ((bindings
-		   `(([M-delete] [M-backspace])
-		     ([C-M-delete] [C-M-backspace])
-		     ([?\e C-delete] [?\e C-backspace])))
-		  (old-state (lookup-key local-function-key-map [delete])))
+	   (let ((bindings
+		  `(([M-delete] [M-backspace])
+		    ([C-M-delete] [C-M-backspace])
+		    ([?\e C-delete] [?\e C-backspace]))))
 
 	     (if enabled
 		 (progn

@@ -160,7 +160,7 @@ Return nil if URI is not a local file."
       (setq f nil))
     f))
 
-(defun dnd-open-local-file (uri action)
+(defun dnd-open-local-file (uri _action)
   "Open a local file.
 The file is opened in the current window, or a new window if
 `dnd-open-file-other-window' is set.  URI is the url for the file,
@@ -180,7 +180,7 @@ An alternative for systems that do not support unc file names is
 	  'private)
       (error "Can not read %s" uri))))
 
-(defun dnd-open-remote-url (uri action)
+(defun dnd-open-remote-url (uri _action)
   "Open a remote file with `find-file' and `url-handler-mode'.
 Turns `url-handler-mode' on if not on before.  The file is opened in the
 current window, or a new window if `dnd-open-file-other-window' is set.

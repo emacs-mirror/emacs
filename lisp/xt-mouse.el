@@ -50,7 +50,7 @@
 			      M-down-mouse-1 M-down-mouse-2 M-down-mouse-3))
   (put event-type 'event-kind 'mouse-click))
 
-(defun xterm-mouse-translate (event)
+(defun xterm-mouse-translate (_event)
   "Read a click and release event from XTerm."
   (save-excursion
     (save-window-excursion
@@ -228,7 +228,7 @@ down the SHIFT key while pressing the mouse button."
   (dolist (terminal (terminal-list))
     (turn-on-xterm-mouse-tracking-on-terminal terminal)))
 
-(defun turn-off-xterm-mouse-tracking (&optional force)
+(defun turn-off-xterm-mouse-tracking (&optional _force)
   "Disable Emacs mouse tracking in xterm."
   (dolist (terminal (terminal-list))
     (turn-off-xterm-mouse-tracking-on-terminal terminal)))

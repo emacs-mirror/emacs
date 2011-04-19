@@ -85,8 +85,7 @@ Previous contents of that buffer are killed first."
 
 (defun double-column (start end)
   (interactive "r")
-  (let (half cnt
-        line lines nlines
+  (let (half line lines nlines
 	(from-end (- (point-max) end)))
     (setq nlines (count-lines start end))
     (if (<= nlines 1)

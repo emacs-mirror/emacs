@@ -2046,7 +2046,7 @@ can't split window to display whitespace toggle options"))
   "Scroll help window, if it exists.
 
 If UP is non-nil, scroll up; otherwise, scroll down."
-  (condition-case data-help
+  (condition-case nil
       (let ((buffer (get-buffer whitespace-help-buffer-name)))
 	(if buffer
 	    (with-selected-window (get-buffer-window buffer)
@@ -2494,7 +2494,7 @@ buffer."
     r))
 
 
-(defun whitespace-buffer-changed (beg end)
+(defun whitespace-buffer-changed (_beg _end)
   "Set `whitespace-buffer-changed' variable to t."
   (setq whitespace-buffer-changed t))
 

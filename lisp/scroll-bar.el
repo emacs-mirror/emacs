@@ -105,7 +105,7 @@ Setting the variable with a customization buffer also takes effect."
   ;; The default value for :initialize would try to use :set
   ;; when processing the file in cus-dep.el.
   :initialize 'custom-initialize-default
-  :set (lambda (sym val) (set-scroll-bar-mode val)))
+  :set (lambda (_sym val) (set-scroll-bar-mode val)))
 
 ;; We just set scroll-bar-mode, but that was the default.
 ;; If it is set again, that is for real.
@@ -141,7 +141,7 @@ when they are turned on; if it is nil, they go on the left."
 	       (if (> arg 0)
 		   (or scroll-bar-mode default-frame-scroll-bars))))))
 
-(defun toggle-horizontal-scroll-bar (arg)
+(defun toggle-horizontal-scroll-bar (_arg)
   "Toggle whether or not the selected frame has horizontal scroll bars.
 With arg, turn horizontal scroll bars on if and only if arg is positive.
 Horizontal scroll bars aren't implemented yet."
@@ -204,7 +204,7 @@ EVENT should be a scroll bar click or drag event."
   (let* ((start-position (event-start event))
 	 (window (nth 0 start-position))
 	 (portion-whole (nth 2 start-position)))
-    (save-excursion 
+    (save-excursion
       (with-current-buffer (window-buffer window)
 	;; Calculate position relative to the accessible part of the buffer.
 	(goto-char (+ (point-min)

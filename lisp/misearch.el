@@ -201,7 +201,7 @@ search status stack."
   `(lambda (cmd)
      (multi-isearch-pop-state cmd ,(current-buffer))))
 
-(defun multi-isearch-pop-state (cmd buffer)
+(defun multi-isearch-pop-state (_cmd buffer)
   "Restore the multiple buffers search state.
 Switch to the buffer restored from the search status stack."
   (unless (equal buffer (current-buffer))
@@ -223,6 +223,8 @@ set in `multi-isearch-buffers' or `multi-isearch-buffers-regexp'."
     (if wrap
 	(car buffers)
       (cadr (member buffer buffers)))))
+
+(defvar ido-ignore-item-temp-list)  ; from ido.el
 
 (defun multi-isearch-read-buffers ()
   "Return a list of buffers specified interactively, one by one."

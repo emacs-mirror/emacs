@@ -845,7 +845,7 @@ Commands:                        Equivalent keys in read-only mode:
 (defvar forms--iif-properties nil
   "Original properties of the character being overridden.")
 
-(defun forms--iif-hook (begin end)
+(defun forms--iif-hook (_begin _end)
   "`insert-in-front-hooks' function for read-only segments."
 
   ;; Note start location.  By making it a marker that points one
@@ -1197,6 +1197,8 @@ Commands:                        Equivalent keys in read-only mode:
       (setq forms--field nil)))
    ))
 
+(defvar read-file-filter) ; bound in forms--intuit-from-file
+
 (defun forms--intuit-from-file ()
   "Get number of fields and a default form using the data file."
 
@@ -1919,7 +1921,7 @@ after writing out the data."
     (forms-jump-record cur))
   t)
 
-(defun forms--revert-buffer (&optional arg noconfirm)
+(defun forms--revert-buffer (&optional _arg noconfirm)
   "Reverts current form to un-modified."
   (interactive "P")
   (if (or noconfirm

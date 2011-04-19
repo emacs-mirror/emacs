@@ -469,7 +469,6 @@ This is used only in conjunction with `expand-add-abbrevs'."
 		      (beginning-of-defun)
 		      (point))
 		    (point-min)))
-	   (here (point))
 	   (state (parse-partial-sexp lim (point))))
       (cond
        ((nth 3 state) 'string)

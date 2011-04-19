@@ -371,8 +371,8 @@ Value is a list of offsets of the words into the string."
   "Return apropos score for documentation string DOC."
   (let ((l (length doc)))
     (if (> l 0)
-	(let ((score 0) i)
-	  (when (setq i (string-match apropos-pattern-quoted doc))
+	(let ((score 0))
+	  (when (string-match apropos-pattern-quoted doc)
 	    (setq score 10000))
 	  (dolist (s (apropos-calc-scores doc apropos-all-words) score)
 	    (setq score (+ score 50 (/ (* (- l s) 50) l)))))

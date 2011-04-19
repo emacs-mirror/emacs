@@ -225,7 +225,7 @@ or nil, use a compact 80-column format."
      "This command is valid only in buffers created by `edit-kbd-macro'"))
   (run-hooks 'edmacro-finish-hook)
   (let ((cmd nil) (keys nil) (no-keys nil)
-	(mac-counter nil) (mac-format nil) (kmacro nil)
+	(mac-counter nil) (mac-format nil)
 	(top (point-min)))
     (goto-char top)
     (let ((case-fold-search nil))
@@ -240,7 +240,7 @@ or nil, use a compact 80-column format."
 			(setq cmd (and (not (equal str "none"))
 				       (intern str)))
 			(and (fboundp cmd) (not (arrayp (symbol-function cmd)))
-			     (not (setq kmacro (get cmd 'kmacro)))
+			     (not (get cmd 'kmacro))
 			     (not (y-or-n-p
 				   (format "Command %s is already defined; %s"
 					   cmd "proceed? ")))

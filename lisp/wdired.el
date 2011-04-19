@@ -540,7 +540,7 @@ and proceed depending on the answer."
   (interactive)
   (customize-apropos "wdired" 'groups))
 
-(defun wdired-revert (&optional arg noconfirm)
+(defun wdired-revert (&optional _arg _noconfirm)
   "Discard changes in the buffer and update it based on changes on disk.
 Optional arguments are ignored."
   (wdired-change-to-dired-mode)
@@ -648,7 +648,7 @@ If OLD, return the old target.  If MOVE, move point before it."
   (if (< arg 0)
       (funcall command arg)
     (while (> arg 0)
-      (condition-case err
+      (condition-case nil
           (progn
             (funcall command 1)
             (setq arg (1- arg)))
