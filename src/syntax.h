@@ -203,7 +203,7 @@ extern char syntax_code_spec[16];
 do									\
   {									\
     gl_state.use_global = 0;						\
-    gl_state.current_syntax_table = BVAR (current_buffer, syntax_table);	\
+    gl_state.current_syntax_table = BVAR (current_buffer, syntax_table);\
   } while (0)
 
 /* This macro should be called with FROM at the start of forward
@@ -230,7 +230,8 @@ do									\
 while (0)
 
 /* Same as above, but in OBJECT.  If OBJECT is nil, use current buffer.
-   If it is t, ignore properties altogether.
+   If it is t (which is only used in fast_c_string_match_ignore_case),
+   ignore properties altogether.
 
    This is meant for regex.c to use.  For buffers, regex.c passes arguments
    to the UPDATE_SYNTAX_TABLE macros which are relative to BEGV.
@@ -257,7 +258,7 @@ do									\
     else if (EQ (gl_state.object, Qt))					\
       {									\
 	gl_state.b_property = 0;					\
-	gl_state.e_property = 1500000000;				\
+	gl_state.e_property = MOST_POSITIVE_FIXNUM;			\
 	gl_state.offset = 0;						\
       }									\
     else								\

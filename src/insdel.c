@@ -404,11 +404,7 @@ make_gap_larger (EMACS_INT nbytes_added)
   { EMACS_INT total_size = Z_BYTE - BEG_BYTE + GAP_SIZE + nbytes_added;
     if (total_size < 0
 	/* Don't allow a buffer size that won't fit in a Lisp integer.  */
-	|| total_size != XINT (make_number (total_size))
-	/* Don't allow a buffer size that won't fit in an int
-	   even if it will fit in a Lisp integer.
-	   That won't work because so many places still use `int'.  */
-	|| total_size != (EMACS_INT) (int) total_size)
+	|| total_size != XINT (make_number (total_size)))
       error ("Buffer exceeds maximum size");
   }
 
