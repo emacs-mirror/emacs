@@ -1,5 +1,7 @@
 2011-04-19  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* alloc.c (compact_small_strings): Tighten assertion a little.
+
 	Replace pEd with more-general pI, and fix some printf arg casts.
 	* lisp.h (pI): New macro, generalizing old pEd macro to other
 	conversion specifiers.  For example, use "...%"pI"d..." rather
