@@ -2162,7 +2162,6 @@ frame_name_fnn_p (char *str, EMACS_INT len)
       if (p == str + len)
 	return 1;
     }
-
   return 0;
 }
 
