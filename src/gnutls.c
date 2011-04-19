@@ -140,9 +140,9 @@ emacs_gnutls_read (int fildes, struct Lisp_Process *proc, char *buf,
    simply the integer value of the error.  GNUTLS_E_SUCCESS is mapped
    to Qt.  */
 static Lisp_Object
-gnutls_make_error (int error)
+gnutls_make_error (int err)
 {
-  switch (error)
+  switch (err)
     {
     case GNUTLS_E_SUCCESS:
       return Qt;
@@ -154,7 +154,7 @@ gnutls_make_error (int error)
       return Qgnutls_e_invalid_session;
     }
 
-  return make_number (error);
+  return make_number (err);
 }
 
 DEFUN ("gnutls-get-initstage", Fgnutls_get_initstage, Sgnutls_get_initstage, 1, 1, 0,
@@ -274,6 +274,7 @@ gnutls_emacs_global_init (void)
   return gnutls_make_error (ret);
 }
 
+#if 0
 /* Deinitializes global GnuTLS state.
 See also `gnutls-global-init'.  */
 static Lisp_Object
@@ -286,6 +287,7 @@ gnutls_emacs_global_deinit (void)
 
   return gnutls_make_error (GNUTLS_E_SUCCESS);
 }
+#endif
 
 static void
 gnutls_log_function (int level, const char* string)
@@ -341,14 +343,14 @@ one trustfile (usually a CA bundle).  */)
   gnutls_certificate_credentials_t x509_cred;
   gnutls_anon_client_credentials_t anon_cred;
   Lisp_Object global_init;
-  char* priority_string_ptr = "NORMAL"; /* default priority string.  */
+  char const *priority_string_ptr = "NORMAL"; /* default priority string.  */
   Lisp_Object tail;
 
   /* Placeholders for the property list elements.  */
   Lisp_Object priority_string;
   Lisp_Object trustfiles;
   Lisp_Object keyfiles;
-  Lisp_Object callbacks;
+  /* Lisp_Object callbacks; */
   Lisp_Object loglevel;
 
   CHECK_PROCESS (proc);
@@ -358,7 +360,7 @@ one trustfile (usually a CA bundle).  */)
   priority_string = Fplist_get (proplist, Qgnutls_bootprop_priority);
   trustfiles      = Fplist_get (proplist, Qgnutls_bootprop_trustfiles);
   keyfiles        = Fplist_get (proplist, Qgnutls_bootprop_keyfiles);
-  callbacks       = Fplist_get (proplist, Qgnutls_bootprop_callbacks);
+  /* callbacks       = Fplist_get (proplist, Qgnutls_bootprop_callbacks); */
   loglevel        = Fplist_get (proplist, Qgnutls_bootprop_loglevel);
 
   state = XPROCESS (proc)->gnutls_state;
@@ -444,10 +446,10 @@ one trustfile (usually a CA bundle).  */)
           if (STRINGP (trustfile))
             {
               GNUTLS_LOG2 (1, max_log_level, "setting the trustfile: ",
-                           SDATA (trustfile));
+                           SSDATA (trustfile));
               ret = gnutls_certificate_set_x509_trust_file
                 (x509_cred,
-                 SDATA (trustfile),
+                 SSDATA (trustfile),
                  file_format);
 
               if (ret < GNUTLS_E_SUCCESS)
@@ -466,10 +468,10 @@ one trustfile (usually a CA bundle).  */)
           if (STRINGP (keyfile))
             {
               GNUTLS_LOG2 (1, max_log_level, "setting the keyfile: ",
-                           SDATA (keyfile));
+                           SSDATA (keyfile));
               ret = gnutls_certificate_set_x509_crl_file
                 (x509_cred,
-                 SDATA (keyfile),
+                 SSDATA (keyfile),
                  file_format);
 
               if (ret < GNUTLS_E_SUCCESS)

@@ -1,5 +1,11 @@
 2011-04-19  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* gnutls.c: Fix problems found by GCC 4.6.0 on Ubuntu 10.10.
+	(gnutls_make_error): Rename local to avoid shadowing.
+	(gnutls_emacs_global_deinit): ifdef out; not used.
+	(Fgnutls_boot): Use const for pointer to readonly storage.
+	Comment out unused local.  Fix pointer signedness problems.
+
 	* lread.c (openp): Don't stuff size_t into an 'int'.
 	Use <= on length, not < on length + 1, to avoid GCC 4.6.0 warning
 	about possible signed overflow.
