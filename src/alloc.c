@@ -1643,10 +1643,18 @@ static char const string_overrun_cookie[GC_STRING_OVERRUN_COOKIE_SIZE] =
 
 #else /* not GC_CHECK_STRING_BYTES */
 
-#define SDATA_SIZE(NBYTES)			\
-     ((SDATA_DATA_OFFSET			\
-       + max (NBYTES, sizeof (EMACS_INT) - 1) + 1 \
-       + sizeof (EMACS_INT) - 1)		\
+/* The 'max' reserves space for the nbytes union member even when NBYTES + 1 is
+   less than the size of that member.  The 'max' is not needed when
+   SDATA_DATA_OFFSET is a multiple of sizeof (EMACS_INT), because then the
+   alignment code reserves enough space.  */
+
+#define SDATA_SIZE(NBYTES)				      \
+     ((SDATA_DATA_OFFSET				      \
+       + (SDATA_DATA_OFFSET % sizeof (EMACS_INT) == 0	      \
+	  ? NBYTES					      \
+	  : max (NBYTES, sizeof (EMACS_INT) - 1))	      \
+       + 1						      \
+       + sizeof (EMACS_INT) - 1)			      \
       & ~(sizeof (EMACS_INT) - 1))
 
 #endif /* not GC_CHECK_STRING_BYTES */

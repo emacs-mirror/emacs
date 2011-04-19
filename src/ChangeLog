@@ -1,5 +1,9 @@
 2011-04-19  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* alloc.c (SDATA_SIZE) [!GC_CHECK_STRING_BYTES]: Avoid runtime check
+	in the common case where SDATA_DATA_OFFSET is a multiple of Emacs
+	word size.
+
 	* gnutls.c: Fix problems found by GCC 4.6.0 on Ubuntu 10.10.
 	(gnutls_make_error): Rename local to avoid shadowing.
 	(gnutls_emacs_global_deinit): ifdef out; not used.
