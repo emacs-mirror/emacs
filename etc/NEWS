@@ -779,6 +779,9 @@ sc.el, x-menu.el, rnews.el, rnewspost.el
 
 * Lisp changes in Emacs 24.1
 
+** `glyphless-char-table' can now distinguish between graphical and
+text terminal display, via a char-table entry that is a cons cell.
+
 ** `open-network-stream' can now be used to open an encrypted stream.
 It now accepts an optional `:type' parameter for initiating a TLS
 connection, directly or via STARTTLS.  To do STARTTLS, additional

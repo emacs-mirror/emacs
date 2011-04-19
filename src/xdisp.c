@@ -5540,9 +5540,19 @@ lookup_glyphless_char_display (int c, struct it *it)
 
   if (CHAR_TABLE_P (Vglyphless_char_display)
       && CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (Vglyphless_char_display)) >= 1)
-    glyphless_method = (c >= 0
-			? CHAR_TABLE_REF (Vglyphless_char_display, c)
-			: XCHAR_TABLE (Vglyphless_char_display)->extras[0]);
+    {
+      if (c >= 0)
+	{
+	  glyphless_method = CHAR_TABLE_REF (Vglyphless_char_display, c);
+	  if (CONSP (glyphless_method))
+	    glyphless_method = FRAME_WINDOW_P (it->f)
+	      ? XCAR (glyphless_method)
+	      : XCDR (glyphless_method);
+	}
+      else
+	glyphless_method = XCHAR_TABLE (Vglyphless_char_display)->extras[0];
+    }
+
  retry:
   if (NILP (glyphless_method))
     {
@@ -22315,6 +22325,8 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
 	{
 	  if (! STRINGP (acronym) && CHAR_TABLE_P (Vglyphless_char_display))
 	    acronym = CHAR_TABLE_REF (Vglyphless_char_display, it->c);
+	  if (CONSP (acronym))
+	    acronym = XCAR (acronym);
 	  str = STRINGP (acronym) ? SSDATA (acronym) : "";
 	}
       else
@@ -26950,17 +26962,21 @@ cursor shapes.  */);
   Fput (Qglyphless_char_display, Qchar_table_extra_slots, make_number (1));
 
   DEFVAR_LISP ("glyphless-char-display", Vglyphless_char_display,
-	       doc: /* Char-table to control displaying of glyphless characters.
-Each element, if non-nil, is an ASCII acronym string (displayed in a box)
-or one of these symbols:
-  hex-code:   display the hexadecimal code of a character in a box
-  empty-box:  display as an empty box
-  thin-space: display as 1-pixel width space
-  zero-width: don't display
+	       doc: /* Char-table defining glyphless characters.
+Each element, if non-nil, should be one of the following:
+  an ASCII acronym string: display this string in a box
+  `hex-code':   display the hexadecimal code of a character in a box
+  `empty-box':  display as an empty box
+  `thin-space': display as 1-pixel width space
+  `zero-width': don't display
+An element may also be a cons cell (GRAPHICAL . TEXT), which specifies the
+display method for graphical terminals and text terminals respectively.
+GRAPHICAL and TEXT should each have one of the values listed above.
 
-It has one extra slot to control the display of a character for which
-no font is found.  The value of the slot is `hex-code' or `empty-box'.
-The default is `empty-box'.  */);
+The char-table has one extra slot to control the display of a character for
+which no font is found.  This slot only takes effect on graphical terminals.
+Its value should be an ASCII acronym string, `hex-code', `empty-box', or
+`thin-space'.  The default is `empty-box'.  */);
   Vglyphless_char_display = Fmake_char_table (Qglyphless_char_display, Qnil);
   Fset_char_table_extra_slot (Vglyphless_char_display, make_number (0),
 			      Qempty_box);

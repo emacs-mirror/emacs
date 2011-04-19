@@ -1,3 +1,37 @@
+2011-04-19  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-tex.el (cal-tex-list-holidays, cal-tex-cursor-month)
+	(cal-tex-cursor-week, cal-tex-cursor-week2, cal-tex-cursor-week-iso)
+	(cal-tex-cursor-filofax-2week, cal-tex-cursor-filofax-week)
+	(cal-tex-cursor-filofax-daily, cal-tex-mini-calendar)
+	* calendar/cal-html.el (cal-html-insert-minical):
+	* calendar/diary-lib.el (diary-list-entries-1, diary-list-entries)
+	(calendar-mark-date-pattern):
+	Prefix "unused" locals.
+
+	* calendar/cal-dst.el (dst-adjust-time): Remove never-implemented
+	optional argument `style'.
+
+	* calendar/appt.el (appt-make-list):
+	* calendar/cal-china.el (calendar-chinese-date-string):
+	* calendar/cal-hebrew.el (calendar-hebrew-list-yahrzeits)
+	(diary-hebrew-yahrzeit):
+	* calendar/cal-tex.el (cal-tex-last-blank-p, cal-tex-cursor-week2):
+	* calendar/calendar.el (calendar-generate-window):
+	* calendar/time-date.el (time-to-days):
+	Remove unused local variables.
+
+2011-04-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/tabulated-list.el (tabulated-list-mode): Use a custom
+	glyphless-char-display table.
+	(tabulated-list-glyphless-char-display): New var.
+
+2011-04-18  Sam Steingold  <sds@gnu.org>
+
+	* vc/add-log.el (change-log-font-lock-keywords): Add "Thanks to"
+	to acknowledgments.
+
 2011-04-17  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/diary-lib.el (diary-sexp-entry):

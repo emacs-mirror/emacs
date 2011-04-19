@@ -303,15 +303,9 @@ This is not required after changing `gnus-registry-cache-file'."
 (defun gnus-registry-action (action data-header from &optional to method)
   (let* ((id (mail-header-id data-header))
          (subject (mail-header-subject data-header))
-         (recipients (sort (mapcan 'gnus-registry-extract-addresses
-                                   (list
-                                    (or (ignore-errors
-                                          (mail-header "Cc" data-header))
-                                        "")
-                                    (or (ignore-errors
-                                          (mail-header "To" data-header))
-                                        "")))
-                           'string-lessp))
+         (recipients (gnus-registry-sort-addresses
+		      (or (ignore-errors (mail-header "Cc" data-header)) "")
+		      (or (ignore-errors (mail-header "To" data-header)) "")))
          (sender (nth 0 (gnus-registry-extract-addresses
                          (mail-header-from data-header))))
          (from (gnus-group-guess-full-name-from-command-method from))
@@ -329,11 +323,9 @@ This is not required after changing `gnus-registry-cache-file'."
 (defun gnus-registry-spool-action (id group &optional subject sender recipients)
   (let ((to (gnus-group-guess-full-name-from-command-method group))
         (recipients (or recipients
-                        (sort (mapcan 'gnus-registry-extract-addresses
-                                      (list
-                                       (or (message-fetch-field "cc") "")
-                                       (or (message-fetch-field "to") "")))
-                              'string-lessp)))
+			(gnus-registry-sort-addresses
+			 (or (message-fetch-field "cc") "")
+			 (or (message-fetch-field "to") ""))))
         (subject (or subject (message-fetch-field "subject")))
         (sender (or sender (message-fetch-field "from"))))
     (when (and (stringp id) (string-match "\r$" id))
@@ -409,11 +401,9 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
          ;; these may not be used, but the code is cleaner having them up here
          (sender (gnus-string-remove-all-properties
                   (message-fetch-field "from")))
-         (recipients (sort (mapcan 'gnus-registry-extract-addresses
-                                   (list
-                                    (or (message-fetch-field "cc") "")
-                                    (or (message-fetch-field "to") "")))
-                           'string-lessp))
+         (recipients (gnus-registry-sort-addresses
+		      (or (message-fetch-field "cc") "")
+		      (or (message-fetch-field "to") "")))
          (subject (gnus-string-remove-all-properties
                    (gnus-registry-simplify-subject
                     (message-fetch-field "subject"))))
@@ -719,6 +709,11 @@ Addresses without a name will say \"noname\"."
                (format "%s <%s>" name addr))))
           (mail-extract-address-components text t)))
 
+(defun gnus-registry-sort-addresses (&rest addresses)
+  "Return a normalized and sorted list of ADDRESSES."
+  (sort (apply 'nconc (mapcar 'gnus-registry-extract-addresses addresses))
+	'string-lessp))
+
 (defun gnus-registry-simplify-subject (subject)
   (if (stringp subject)
       (gnus-simplify-subject subject)
@@ -738,15 +733,9 @@ Addresses without a name will say \"noname\"."
   (gnus-registry-fetch-header-fast "from" article))
 
 (defun gnus-registry-fetch-recipients-fast (article)
-  (sort (mapcan 'gnus-registry-extract-addresses
-                (list
-                 (or (ignore-errors
-                       (gnus-registry-fetch-header-fast "Cc" article))
-                     "")
-                 (or (ignore-errors
-                       (gnus-registry-fetch-header-fast "To" article))
-                     "")))
-        'string-lessp))
+  (gnus-registry-sort-addresses
+   (or (ignore-errors (gnus-registry-fetch-header-fast "Cc" article)) "")
+   (or (ignore-errors (gnus-registry-fetch-header-fast "To" article)) "")))
 
 (defun gnus-registry-fetch-header-fast (article header)
   "Fetch the HEADER quickly, using the internal gnus-data-list function"
@@ -982,7 +971,8 @@ only the last one's marks are returned."
                              collect p))
                extra-cell key val)
           ;; remove all the strings from the entry
-          (delete* nil rest :test (lambda (a b) (stringp b)))
+          (dolist (elem rest)
+	    (if (stringp elem) (setq rest (delq elem rest))))
           (gnus-registry-set-id-key id 'group groups)
           ;; just use the first extra element
           (setq rest (car-safe rest))

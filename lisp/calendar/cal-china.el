@@ -575,8 +575,7 @@ Defaults to today's date if DATE is not given."
                             ;; Remainder of (1+(floor month))/12, with
                             ;; 12 instead of 0.
                             (1+ (mod (floor month) 12))
-                            1)))
-         (m-cycle (% (+ (* year 5) (floor month)) 60)))
+                            1))))
     (format "Cycle %s, year %s (%s), %smonth %s%s, day %s (%s)"
             cycle
             year (calendar-chinese-sexagesimal-name year)

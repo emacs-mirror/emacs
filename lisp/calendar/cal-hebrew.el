@@ -764,8 +764,6 @@ from the cursor position."
   (message "Computing Yahrzeits...")
   (let* ((h-date (calendar-hebrew-from-absolute
                   (calendar-absolute-from-gregorian death-date)))
-         (h-month (calendar-extract-month h-date))
-         (h-day (calendar-extract-day h-date))
          (h-year (calendar-extract-year h-date))
          (i (1- start-year)))
     (calendar-in-read-only-buffer calendar-hebrew-yahrzeit-buffer
@@ -900,8 +898,6 @@ use when highlighting the day in the calendar."
                   (+ (calendar-absolute-from-gregorian
                       (diary-make-date death-month death-day death-year))
                      (if after-sunset 1 0))))
-         (h-month (calendar-extract-month h-date))
-         (h-day (calendar-extract-day h-date))
          (h-year (calendar-extract-year h-date))
          (d (calendar-absolute-from-gregorian date))
          (yr (calendar-extract-year (calendar-hebrew-from-absolute d)))
