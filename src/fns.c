@@ -2063,14 +2063,12 @@ internal_equal (register Lisp_Object o1, register Lisp_Object o2, int depth, int
 	/* Boolvectors are compared much like strings.  */
 	if (BOOL_VECTOR_P (o1))
 	  {
-	    int size_in_chars
-	      = ((XBOOL_VECTOR (o1)->size + BOOL_VECTOR_BITS_PER_CHAR - 1)
-		 / BOOL_VECTOR_BITS_PER_CHAR);
-
 	    if (XBOOL_VECTOR (o1)->size != XBOOL_VECTOR (o2)->size)
 	      return 0;
 	    if (memcmp (XBOOL_VECTOR (o1)->data, XBOOL_VECTOR (o2)->data,
-			size_in_chars))
+			((XBOOL_VECTOR (o1)->size
+			  + BOOL_VECTOR_BITS_PER_CHAR - 1)
+			 / BOOL_VECTOR_BITS_PER_CHAR)))
 	      return 0;
 	    return 1;
 	  }

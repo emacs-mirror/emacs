@@ -1,5 +1,7 @@
 2011-04-19  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* fns.c (internal_equal): Don't assume size_t fits in int.
+
 	* alloc.c (compact_small_strings): Tighten assertion a little.
 
 	Replace pEd with more-general pI, and fix some printf arg casts.
