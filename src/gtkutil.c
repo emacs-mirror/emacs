@@ -81,7 +81,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   gdk_window_get_geometry (w, a, b, c, d, 0)
 #define gdk_x11_window_lookup_for_display(d, w) \
   gdk_xid_table_lookup_for_display (d, w)
+#ifndef GDK_KEY_g
 #define GDK_KEY_g GDK_g
+#endif
 #endif
 
 #define XG_BIN_CHILD(x) gtk_bin_get_child (GTK_BIN (x))
@@ -703,7 +705,7 @@ xg_prepare_tooltip (FRAME_PTR f,
      hierarchy-changed.  */
   gtk_tooltip_set_custom (x->ttip_widget, widget);
 
-  gtk_tooltip_set_text (x->ttip_widget, SDATA (encoded_string));
+  gtk_tooltip_set_text (x->ttip_widget, SSDATA (encoded_string));
   gtk_widget_get_preferred_size (GTK_WIDGET (x->ttip_window), NULL, &req);
   if (width) *width = req.width;
   if (height) *height = req.height;
@@ -3527,6 +3529,7 @@ xg_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar,
       gdouble shown;
       gdouble top;
       int size, value;
+      int old_size;
       int new_step;
       int changed = 0;
 
@@ -3559,15 +3562,19 @@ xg_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar,
       /* Assume all lines are of equal size.  */
       new_step = size / max (1, FRAME_LINES (f));
 
-      if ((int) gtk_adjustment_get_page_size (adj) != size
-          || (int) gtk_adjustment_get_step_increment (adj) != new_step)
-        {
-          gtk_adjustment_set_page_size (adj, size);
-          gtk_adjustment_set_step_increment (adj, new_step);
-          /* Assume a page increment is about 95% of the page size  */
-          gtk_adjustment_set_page_increment (adj,(int) (0.95*size));
-          changed = 1;
-        }
+      old_size = gtk_adjustment_get_page_size (adj);
+      if (old_size != size)
+	{
+	  int old_step = gtk_adjustment_get_step_increment (adj);
+	  if (old_step != new_step)
+	    {
+	      gtk_adjustment_set_page_size (adj, size);
+	      gtk_adjustment_set_step_increment (adj, new_step);
+	      /* Assume a page increment is about 95% of the page size  */
+	      gtk_adjustment_set_page_increment (adj,(int) (0.95*size));
+	      changed = 1;
+	    }
+	}
 
       if (changed || int_gtk_range_get_value (GTK_RANGE (wscroll)) != value)
       {

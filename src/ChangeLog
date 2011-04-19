@@ -1,5 +1,10 @@
 2011-04-19  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* gtkutil.c: Fix problems found by GCC 4.6.0 on Ubuntu 10.10.
+	(GDK_KEY_g): Don't define if already defined.
+	(xg_prepare_tooltip): Avoid pointer signedness problem.
+	(xg_set_toolkit_scroll_bar_thumb): Redo to avoid two casts.
+
 	* process.c (Fnetwork_interface_info): Avoid left-shift undefined
 	behavior with 1 << 31.  GCC 4.6.0 warns about this on 32-bit hosts.
 
