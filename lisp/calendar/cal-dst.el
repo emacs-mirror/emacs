@@ -445,15 +445,11 @@ Fractional part of DATE is local standard time of day."
            (or (<= dst-starts date) (< date dst-ends))))))
 
 ;; used by calc, lunar, solar.
-(defun dst-adjust-time (date time &optional style)
+(defun dst-adjust-time (date time)
   "Adjust, to account for dst on DATE, decimal fraction standard TIME.
 Returns a list (date adj-time zone) where `date' and `adj-time' are the values
 adjusted for `zone'; here `date' is a list (month day year), `adj-time' is a
 decimal fraction time, and `zone' is a string.
-
-Optional parameter STYLE forces the result time to be standard time when its
-value is 'standard and daylight saving time (if available) when its value is
-'daylight.
 
 Conversion to daylight saving time is done according to
 `calendar-daylight-savings-starts', `calendar-daylight-savings-ends',

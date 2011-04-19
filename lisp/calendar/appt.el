@@ -509,7 +509,6 @@ Any appointments made with `appt-add' are not affected by this function."
             ;; entry begins with a time, add it to the
             ;; appt-time-msg-list.  Then sort the list.
             (let ((entry-list diary-entries-list)
-                  (new-time-string "")
                   time-string)
               ;; Below, we assume diary-entries-list was in date
               ;; order.  It is, unless something on

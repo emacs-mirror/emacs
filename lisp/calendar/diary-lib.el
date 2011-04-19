@@ -710,7 +710,7 @@ MONTHS is an array of month names.  SYMBOL marks diary entries of the type
 in question.  ABSFUNC is a function that converts absolute dates to dates
 of the appropriate type."
   (let ((gdate original-date))
-    (dotimes (idummy number)
+    (dotimes (_idummy number)
       (diary-list-entries-2
        (funcall absfunc (calendar-absolute-from-gregorian gdate))
        diary-nonmarking-symbol file-glob-attrs list-only months symbol gdate)
@@ -820,7 +820,7 @@ LIST-ONLY is non-nil, in which case it just returns the list."
                         (set (make-local-variable 'diary-selective-display) t)
                         (overlay-put ol 'invisible 'diary)
                         (overlay-put ol 'evaporate t)))
-                    (dotimes (idummy number)
+                    (dotimes (_idummy number)
                       (let ((sexp-found (diary-list-sexp-entries date))
                             (entry-found (diary-list-entries-2
                                           date diary-nonmarking-symbol
@@ -1509,7 +1509,7 @@ passed to `calendar-mark-visible-date' as MARK."
     (let ((m displayed-month)
           (y displayed-year))
       (calendar-increment-month m y -1)
-      (dotimes (idummy 3)
+      (dotimes (_idummy 3)
         (calendar-mark-month m y month day year color)
         (calendar-increment-month m y 1)))))
 
