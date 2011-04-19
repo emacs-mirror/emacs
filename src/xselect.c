@@ -169,7 +169,7 @@ x_queue_event (struct input_event *event)
     {
       if (!memcmp (&queue_tmp->event, event, sizeof (*event)))
 	{
-	  TRACE1 ("DECLINE DUP SELECTION EVENT %08p", queue_tmp);
+	  TRACE1 ("DECLINE DUP SELECTION EVENT %p", queue_tmp);
 	  x_decline_selection_request (event);
 	  return;
 	}
@@ -180,7 +180,7 @@ x_queue_event (struct input_event *event)
 
   if (queue_tmp != NULL)
     {
-      TRACE1 ("QUEUE SELECTION EVENT %08p", queue_tmp);
+      TRACE1 ("QUEUE SELECTION EVENT %p", queue_tmp);
       queue_tmp->event = *event;
       queue_tmp->next = selection_queue;
       selection_queue = queue_tmp;
@@ -213,7 +213,7 @@ x_stop_queuing_selection_requests (void)
   while (selection_queue != NULL)
     {
       struct selection_event_queue *queue_tmp = selection_queue;
-      TRACE1 ("RESTORE SELECTION EVENT %08p", queue_tmp);
+      TRACE1 ("RESTORE SELECTION EVENT %p", queue_tmp);
       kbd_buffer_unget_event (&queue_tmp->event);
       selection_queue = queue_tmp->next;
       xfree ((char *)queue_tmp);

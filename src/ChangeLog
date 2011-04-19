@@ -29,13 +29,14 @@
 	* print.c (safe_debug_print, print_object): Likewise.
 	(print_object): Don't overflow by converting EMACS_INT or EMACS_UINT
 	to int.
-	Use pI instead of if-then-else-abort.  Use %p to avoid casts.
+	Use pI instead of if-then-else-abort.  Use %p to avoid casts,
+	avoiding the 0 flag, which is not portable.
 	* process.c (Fmake_network_process): Use pI to avoid cast.
 	* region-cache.c (pp_cache): Likewise.
 	* xdisp.c (decode_mode_spec): Likewise.
 	* xrdb.c (x_load_resources) [USE_MOTIF]: Use pI to avoid undefined
 	behavior on 64-bit hosts with printf arg.
-	* xselect.c (x_queue_event): Use %p to avoid casts.
+	* xselect.c (x_queue_event): Use %p to avoid casts, avoiding 0 flag.
 	(x_stop_queuing_selection_requests): Likewise.
 	(x_get_window_property): Don't truncate byte count to an 'int'
 	when tracing.
