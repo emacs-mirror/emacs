@@ -1348,15 +1348,18 @@ set_text_properties_1 (Lisp_Object start, Lisp_Object end, Lisp_Object propertie
   register EMACS_INT s, len;
   INTERVAL unchanged;
 
-  s = XINT (start);
-  len = XINT (end) - s;
-  if (len == 0)
-    return;
-  if (len < 0)
+  if (XINT (start) < XINT (end))
     {
-      s = s + len;
-      len = - len;
+      s = XINT (start);
+      len = XINT (end) - s;
     }
+  else if (XINT (end) < XINT (start))
+    {
+      s = XINT (end);
+      len = XINT (start) - s;
+    }
+  else
+    return;
 
   if (i == 0)
     i = find_interval (BUF_INTERVALS (XBUFFER (buffer)), s);
