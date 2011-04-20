@@ -1,3 +1,9 @@
+2011-04-20  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* vc/vc.el (vc-diff-build-argument-list-internal)
+	(vc-version-ediff, vc-ediff): New functions.
+	(vc-version-diff): Use vc-diff-build-argument-list-internal.
+
 2011-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/byte-opt.el (byte-decompile-bytecode-1): Remove dead code,
