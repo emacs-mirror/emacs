@@ -6,6 +6,7 @@
 ;; Maintainer: FSF
 ;; Keywords: faces files
 ;; Version: 3.14
+;; Obsolete-since: 22.1
 
 ;; This file is part of GNU Emacs.
 
@@ -23,8 +24,6 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-
-;; This file has been obsolete since Emacs 22.1.
 
 ;; Fast Lock mode is a Font Lock support mode.
 ;; It makes visiting a file in Font Lock mode faster by restoring its face text

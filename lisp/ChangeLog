@@ -1,3 +1,8 @@
+2011-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* obsolete/erc-hecomplete.el: Make obsolete.
+	* obsolete/: Standardize obsolescence info in the header.
+
 2011-04-20  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/solar.el (solar-horizontal-coordinates):

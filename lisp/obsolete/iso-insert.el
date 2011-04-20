@@ -5,6 +5,7 @@
 ;; Author: Howard Gayle
 ;; Maintainer: FSF
 ;; Keywords: i18n
+;; Obsolete-since: 22.1
 
 ;; This file is part of GNU Emacs.
 
@@ -22,8 +23,6 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-
-;; This file has been obsolete since Emacs 22.1.
 
 ;; Provides keys for inserting ISO Latin-1 characters.  They use the
 ;; prefix key C-x 8.  Type C-x 8 C-h for a list.
