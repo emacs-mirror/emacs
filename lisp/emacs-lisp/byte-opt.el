@@ -1364,8 +1364,7 @@
 (defun byte-decompile-bytecode-1 (bytes constvec &optional make-spliceable)
   (let ((length (length bytes))
         (bytedecomp-ptr 0) optr tags bytedecomp-op offset
-	lap tmp
-	endtag)
+	lap tmp)
     (while (not (= bytedecomp-ptr length))
       (or make-spliceable
 	  (push bytedecomp-ptr lap))
@@ -1373,7 +1372,9 @@
 	    optr bytedecomp-ptr
             ;; This uses dynamic-scope magic.
             offset (disassemble-offset bytes))
-      (setq bytedecomp-op (aref byte-code-vector bytedecomp-op))
+      (let ((opcode (aref byte-code-vector bytedecomp-op)))
+	(assert opcode)
+	(setq bytedecomp-op opcode))
       (cond ((memq bytedecomp-op byte-goto-ops)
 	     ;; It's a pc.
 	     (setq offset
@@ -1417,8 +1418,6 @@
 	       (setq rest (cdr rest))))
 	(setq rest (cdr rest))))
     (if tags (error "optimizer error: missed tags %s" tags))
-    (if endtag
-	(setq lap (cons (cons nil endtag) lap)))
     ;; Remove addrs, lap = ( [ (op . arg) | (TAG tagno) ]* )
     (mapcar (function (lambda (elt)
 			(if (numberp elt)

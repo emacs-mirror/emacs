@@ -1,5 +1,8 @@
 2011-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/byte-opt.el (byte-decompile-bytecode-1): Remove dead code,
+	add sanity check.
+
 	* obsolete/erc-hecomplete.el: Make obsolete.
 	* obsolete/: Standardize obsolescence info in the header.
 
