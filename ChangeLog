@@ -1,3 +1,7 @@
+2011-04-20  Ken Brown  <kbrown@cornell.edu>
+
+	* configure.in (use_mmap_for_buffers): Set to yes on Cygwin.
+
 2011-04-12  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in: Require ImageMagick >= 6.2.8.  (Bug#7955)

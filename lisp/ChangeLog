@@ -1,3 +1,9 @@
+2011-04-20  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/solar.el (solar-horizontal-coordinates):
+	Use the longitude argument rather than `calendar-longitude'.
+	(solar-date-next-longitude): Remove unused locals.
+
 2011-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/octave-mod.el (octave-in-comment-p, octave-in-string-p)
