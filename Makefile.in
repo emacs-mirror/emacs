@@ -402,8 +402,15 @@ Makefile: config.status $(srcdir)/src/config.in \
           $(srcdir)/test/automated/Makefile.in
 	./config.status
 
+# Don't erase config.status if make is interrupted while refreshing it.
+.PRECIOUS: config.status
+
 config.status: ${srcdir}/configure ${srcdir}/lisp/version.el
-	./config.status --recheck
+	if [ -x ./config.status ]; then	\
+	    ./config.status --recheck;	\
+	else				\
+	    ./configure;		\
+	fi
 
 AUTOCONF_INPUTS = @MAINT@ $(srcdir)/configure.in $(srcdir)/aclocal.m4
 

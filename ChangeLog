@@ -1,3 +1,8 @@
+2011-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (config.status): Don't erase in case of error.
+	In case it disappeared, rebuild it with `configure'.
+
 2011-04-20  Ken Brown  <kbrown@cornell.edu>
 
 	* configure.in (use_mmap_for_buffers): Set to yes on Cygwin.
