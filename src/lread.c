@@ -3006,85 +3006,32 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	if (!quoted && !uninterned_symbol)
 	  {
 	    register char *p1;
+	    Lisp_Object result;
 	    p1 = read_buffer;
 	    if (*p1 == '+' || *p1 == '-') p1++;
 	    /* Is it an integer? */
-	    if (p1 != p)
+	    if ('0' <= *p1 && *p1 <= '9')
 	      {
-		while (p1 != p && (c = *p1) >= '0' && c <= '9') p1++;
+		do
+		  p1++;
+		while ('0' <= *p1 && *p1 <= '9');
+
 		/* Integers can have trailing decimal points.  */
-		if (p1 > read_buffer && p1 < p && *p1 == '.') p1++;
+		p1 += (*p1 == '.');
 		if (p1 == p)
-		  /* It is an integer. */
 		  {
-		    if (p1[-1] == '.')
-		      p1[-1] = '\0';
-		    {
-		      /* EMACS_INT n = atol (read_buffer); */
-		      char *endptr = NULL;
-		      EMACS_INT n = (errno = 0,
-				     strtol (read_buffer, &endptr, 10));
-		      if (errno == ERANGE && endptr)
-			{
-			  Lisp_Object args
-			    = Fcons (make_string (read_buffer,
-						  endptr - read_buffer),
-				     Qnil);
-			  xsignal (Qoverflow_error, args);
-			}
-		      return make_fixnum_or_float (n);
-		    }
+		    /* It is an integer. */
+		    EMACS_INT n = strtol (read_buffer, NULL, 10);
+		    if (FIXNUM_OVERFLOW_P (n))
+		      xsignal (Qoverflow_error,
+			       list1 (build_string (read_buffer)));
+		    return make_number (n);
 		  }
 	      }
-	    if (isfloat_string (read_buffer, 0))
-	      {
-		/* Compute NaN and infinities using 0.0 in a variable,
-		   to cope with compilers that think they are smarter
-		   than we are.  */
-		double zero = 0.0;
 
-		double value;
-
-		/* Negate the value ourselves.  This treats 0, NaNs,
-		   and infinity properly on IEEE floating point hosts,
-		   and works around a common bug where atof ("-0.0")
-		   drops the sign.  */
-		int negative = read_buffer[0] == '-';
-
-		/* The only way p[-1] can be 'F' or 'N', after isfloat_string
-		   returns 1, is if the input ends in e+INF or e+NaN.  */
-		switch (p[-1])
-		  {
-		  case 'F':
-		    value = 1.0 / zero;
-		    break;
-		  case 'N':
-		    value = zero / zero;
-
-		    /* If that made a "negative" NaN, negate it.  */
-
-		    {
-		      int i;
-		      union { double d; char c[sizeof (double)]; } u_data, u_minus_zero;
-
-		      u_data.d = value;
-		      u_minus_zero.d = - 0.0;
-		      for (i = 0; i < sizeof (double); i++)
-			if (u_data.c[i] & u_minus_zero.c[i])
-			  {
-			    value = - value;
-			    break;
-			  }
-		    }
-		    /* Now VALUE is a positive NaN.  */
-		    break;
-		  default:
-		    value = atof (read_buffer + negative);
-		    break;
-		  }
-
-		return make_float (negative ? - value : value);
-	      }
+	    result = string_to_float (read_buffer, 0);
+	    if (FLOATP (result))
+	      return result;
 	  }
 	{
 	  Lisp_Object name, result;
@@ -3242,20 +3189,40 @@ substitute_in_interval (INTERVAL interval, Lisp_Object arg)
 }
 
 
+/* Return the length of the floating-point number that is the prefix of CP, or
+   zero if there is none.  */
+
 #define LEAD_INT 1
 #define DOT_CHAR 2
 #define TRAIL_INT 4
 #define E_CHAR 8
 #define EXP_INT 16
 
-int
-isfloat_string (const char *cp, int ignore_trailing)
+
+/* Convert CP to a floating point number.  Return a non-float value if CP does
+   not have valid floating point syntax.  If IGNORE_TRAILING is nonzero,
+   consider just the longest prefix of CP that has valid floating point
+   syntax.  */
+
+Lisp_Object
+string_to_float (char const *cp, int ignore_trailing)
 {
   int state;
   const char *start = cp;
 
+  /* Compute NaN and infinities using a variable, to cope with compilers that
+     think they are smarter than we are.  */
+  double zero = 0;
+
+  /* Negate the value ourselves.  This treats 0, NaNs, and infinity properly on
+     IEEE floating point hosts, and works around a formerly-common bug where
+     atof ("-0.0") drops the sign.  */
+  int negative = *cp == '-';
+
+  double value = 0;
+
   state = 0;
-  if (*cp == '+' || *cp == '-')
+  if (negative || *cp == '+')
     cp++;
 
   if (*cp >= '0' && *cp <= '9')
@@ -3295,21 +3262,43 @@ isfloat_string (const char *cp, int ignore_trailing)
     {
       state |= EXP_INT;
       cp += 3;
+      value = 1.0 / zero;
     }
   else if (cp[-1] == '+' && cp[0] == 'N' && cp[1] == 'a' && cp[2] == 'N')
     {
       state |= EXP_INT;
       cp += 3;
+      value = zero / zero;
+
+      /* If that made a "negative" NaN, negate it.  */
+      {
+	int i;
+	union { double d; char c[sizeof (double)]; } u_data, u_minus_zero;
+
+	u_data.d = value;
+	u_minus_zero.d = - 0.0;
+	for (i = 0; i < sizeof (double); i++)
+	  if (u_data.c[i] & u_minus_zero.c[i])
+	    {
+	      value = - value;
+	      break;
+	    }
+      }
+      /* Now VALUE is a positive NaN.  */
     }
 
-  return ((ignore_trailing
-	   || *cp == 0 || *cp == ' ' || *cp == '\t' || *cp == '\n'
-	   || *cp == '\r' || *cp == '\f')
-	  && (state == (LEAD_INT|DOT_CHAR|TRAIL_INT)
-	      || state == (DOT_CHAR|TRAIL_INT)
-	      || state == (LEAD_INT|E_CHAR|EXP_INT)
-	      || state == (LEAD_INT|DOT_CHAR|TRAIL_INT|E_CHAR|EXP_INT)
-	      || state == (DOT_CHAR|TRAIL_INT|E_CHAR|EXP_INT)));
+  if (! (state == (LEAD_INT|DOT_CHAR|TRAIL_INT)
+	 || state == (DOT_CHAR|TRAIL_INT)
+	 || state == (LEAD_INT|E_CHAR|EXP_INT)
+	 || state == (LEAD_INT|DOT_CHAR|TRAIL_INT|E_CHAR|EXP_INT)
+	 || state == (DOT_CHAR|TRAIL_INT|E_CHAR|EXP_INT)))
+    return make_number (0); /* Any non-float value will do.  */
+
+  if (! value)
+    value = atof (start + negative);
+  if (negative)
+    value = - value;
+  return make_float (value);
 }
 
 

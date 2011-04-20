@@ -1,3 +1,9 @@
+2011-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/octave-mod.el (octave-in-comment-p, octave-in-string-p)
+	(octave-not-in-string-or-comment-p): Use syntax-ppss so it works with
+	multi-line comments as well.
+
 2011-04-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	Lexical-binding cleanup.

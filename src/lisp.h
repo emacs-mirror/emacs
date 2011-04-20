@@ -2782,7 +2782,7 @@ extern Lisp_Object oblookup (Lisp_Object, const char *, EMACS_INT, EMACS_INT);
   } while (0)
 extern int openp (Lisp_Object, Lisp_Object, Lisp_Object,
                   Lisp_Object *, Lisp_Object);
-extern int isfloat_string (const char *, int);
+Lisp_Object string_to_float (char const *, int);
 extern void map_obarray (Lisp_Object, void (*) (Lisp_Object, Lisp_Object),
                          Lisp_Object);
 extern void dir_warning (const char *, Lisp_Object);

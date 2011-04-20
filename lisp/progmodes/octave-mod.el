@@ -182,7 +182,7 @@ parenthetical grouping.")
   (goto-char start)
   (octave-syntax-propertize-sqs end)
   (funcall (syntax-propertize-rules
-  ;; Try to distinguish the string-quotes from the transpose-quotes.
+            ;; Try to distinguish the string-quotes from the transpose-quotes.
             ("[[({,; ]\\('\\)"
              (1 (prog1 "\"'" (octave-syntax-propertize-sqs end)))))
            (point) end))
@@ -190,15 +190,15 @@ parenthetical grouping.")
 (defun octave-syntax-propertize-sqs (end)
   "Propertize the content/end of single-quote strings."
   (when (eq (nth 3 (syntax-ppss)) ?\')
-        ;; A '..' string.
+    ;; A '..' string.
     (when (re-search-forward
            "\\(?:\\=\\|[^']\\)\\(?:''\\)*\\('\\)\\($\\|[^']\\)" end 'move)
       (goto-char (match-beginning 2))
-            (when (eq (char-before (match-beginning 1)) ?\\)
-              ;; Backslash cannot escape a single quote.
-              (put-text-property (1- (match-beginning 1)) (match-beginning 1)
-                                 'syntax-table (string-to-syntax ".")))
-            (put-text-property (match-beginning 1) (match-end 1)
+      (when (eq (char-before (match-beginning 1)) ?\\)
+        ;; Backslash cannot escape a single quote.
+        (put-text-property (1- (match-beginning 1)) (match-beginning 1)
+                           'syntax-table (string-to-syntax ".")))
+      (put-text-property (match-beginning 1) (match-end 1)
                          'syntax-table (string-to-syntax "\"'")))))
 
 (defcustom inferior-octave-buffer "*Inferior Octave*"
@@ -668,20 +668,15 @@ Look up symbol in the function, operator and variable indices of the info files.
 
 (defsubst octave-in-comment-p ()
   "Return t if point is inside an Octave comment."
-  (save-excursion
-    ;; FIXME: use syntax-ppss?
-    (nth 4 (parse-partial-sexp (line-beginning-position) (point)))))
+  (nth 4 (syntax-ppss)))
 
 (defsubst octave-in-string-p ()
   "Return t if point is inside an Octave string."
-  (save-excursion
-    ;; FIXME: use syntax-ppss?
-    (nth 3 (parse-partial-sexp (line-beginning-position) (point)))))
+  (nth 3 (syntax-ppss)))
 
 (defsubst octave-not-in-string-or-comment-p ()
   "Return t if point is not inside an Octave string or comment."
-  ;; FIXME: Use syntax-ppss?
-  (let ((pps (parse-partial-sexp (line-beginning-position) (point))))
+  (let ((pps (syntax-ppss)))
     (not (or (nth 3 pps) (nth 4 pps)))))
 
 
@@ -698,7 +693,6 @@ Look up symbol in the function, operator and variable indices of the info files.
       nil
     (delete-horizontal-space)
     (insert (concat " " octave-continuation-string))))
-
 
 ;;; Indentation
 
