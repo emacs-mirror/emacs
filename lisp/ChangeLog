@@ -1,5 +1,31 @@
 2011-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* shell.el: Use lexical-binding and std completion UI.
+	(shell-filter-ctrl-a-ctrl-b): Work as a preoutput filter.
+	(shell-mode): Put shell-filter-ctrl-a-ctrl-b on
+	comint-preoutput-filter-functions rather than on
+	comint-output-filter-functions.
+	(shell-command-completion, shell--command-completion-data)
+	(shell-filename-completion, shell-environment-variable-completion)
+	(shell-c-a-p-replace-by-expanded-directory): New functions.
+	(shell-dynamic-complete-functions, shell-dynamic-complete-command)
+	(shell-dynamic-complete-filename, shell-replace-by-expanded-directory)
+	(shell-dynamic-complete-environment-variable): Use them.
+	(shell-dynamic-complete-as-environment-variable)
+	(shell-dynamic-complete-as-command): Remove.
+	(shell-match-partial-variable): Match past point.
+	* comint.el: Clean up use of completion-at-point-functions.
+	(comint-completion-at-point): New function.
+	(comint-mode): Use it completion-at-point-functions.
+	(comint-dynamic-complete): Make it obsolete.
+	(comint-replace-by-expanded-history-before-point): Add dry-run arg.
+	(comint-c-a-p-replace-by-expanded-history): New function.
+	(comint-dynamic-complete-functions)
+	(comint-replace-by-expanded-history): Use it.
+	* minibuffer.el (completion-table-with-terminator): Allow dynamic
+	termination strings.  Try harder to avoid second try-completion.
+	(completion-in-region-mode-map): Disable bindings that don't work yet.
+
 	* comint.el: Use lexical-binding.  Require CL.
 	(comint-dynamic-complete-functions): Use comint-filename-completion.
 	(comint-completion-addsuffix): Tweak custom type.
@@ -9,6 +35,7 @@
 	(comint-dynamic-complete-as-filename, comint-dynamic-complete-filename)
 	(comint-dynamic-list-filename-completions): Use them.
 	(comint-dynamic-simple-complete): Make obsolete.
+
 	* minibuffer.el (completion-in-region-mode):
 	Keep completion-in-region-mode--predicate global.
 	(completion-in-region--postch):

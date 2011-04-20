@@ -370,6 +370,8 @@ $ESHELL nor variable `explicit-shell-file-name' is set.
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
 
+** comint and modes derived from it use the generic completion code.
+
 ** The compile.el mode can be used without font-lock-mode.
 `compilation-parse-errors-function' is now obsolete.
 

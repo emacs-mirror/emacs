@@ -247,7 +247,9 @@ TERMINATOR can also be a cons cell (TERMINATOR . TERMINATOR-REGEXP)
 in which case TERMINATOR-REGEXP is a regular expression whose submatch
 number 1 should match TERMINATOR.  This is used when there is a need to
 distinguish occurrences of the TERMINATOR strings which are really terminators
-from others (e.g. escaped)."
+from others (e.g. escaped).  In this form, the car of TERMINATOR can also be,
+instead of a string, a function that takes the completion and returns the
+\"terminated\" string."
   ;; FIXME: This implementation is not right since it only adds the terminator
   ;; in try-completion, so any completion-style that builds the completion via
   ;; all-completions won't get the terminator, and selecting an entry in
@@ -258,22 +260,28 @@ from others (e.g. escaped)."
            (bounds (completion-boundaries string table pred suffix))
            (terminator-regexp (if (consp terminator)
                                   (cdr terminator) (regexp-quote terminator)))
-           (max (string-match terminator-regexp suffix)))
+           (max (and terminator-regexp
+                     (string-match terminator-regexp suffix))))
       (list* 'boundaries (car bounds)
              (min (cdr bounds) (or max (length suffix))))))
    ((eq action nil)
     (let ((comp (try-completion string table pred)))
       (if (consp terminator) (setq terminator (car terminator)))
       (if (eq comp t)
-          (concat string terminator)
-        (if (and (stringp comp)
-                 ;; FIXME: Try to avoid this second call, especially since
+          (if (functionp terminator)
+              (funcall terminator string)
+            (concat string terminator))
+        (if (and (stringp comp) (not (zerop (length comp)))
+                 ;; Try to avoid the second call to try-completion, since
                  ;; it may be very inefficient (because `comp' made us
                  ;; jump to a new boundary, so we complete in that
                  ;; boundary with an empty start string).
-                 ;; completion-boundaries might help.
+                 (let ((newbounds (completion-boundaries comp table pred "")))
+                   (< (car newbounds) (length comp)))
                  (eq (try-completion comp table pred) t))
-            (concat comp terminator)
+            (if (functionp terminator)
+                (funcall terminator comp)
+              (concat comp terminator))
           comp))))
    ((eq action t)
     ;; FIXME: We generally want the `try' and `all' behaviors to be
@@ -1294,6 +1302,8 @@ Point needs to be somewhere between START and END."
 
 (defvar completion-in-region-mode-map
   (let ((map (make-sparse-keymap)))
+    ;; FIXME: Only works if completion-in-region-mode was activated via
+    ;; completion-at-point called directly.
     (define-key map "?" 'completion-help-at-point)
     (define-key map "\t" 'completion-at-point)
     map)

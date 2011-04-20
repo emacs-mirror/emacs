@@ -367,7 +367,7 @@ text matching `comint-prompt-regexp', depending on the value of
 `comint-use-prompt-regexp'.")
 
 (defvar comint-dynamic-complete-functions
-  '(comint-replace-by-expanded-history comint-filename-completion)
+  '(comint-c-a-p-replace-by-expanded-history comint-filename-completion)
   "List of functions called to perform completion.
 Works like `completion-at-point-functions'.
 See also `comint-dynamic-complete'.
@@ -493,7 +493,7 @@ executed once when the buffer is created."
     (define-key map [menu-bar completion complete-file]
       '("Complete File Name" . comint-dynamic-complete-filename))
     (define-key map [menu-bar completion complete]
-      '("Complete Before Point" . comint-dynamic-complete))
+      '("Complete at Point" . completion-at-point))
     ;; Input history:
     (define-key map [menu-bar inout]
       (cons "In/Out" (make-sparse-keymap "In/Out")))
@@ -683,6 +683,7 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (setq font-lock-defaults '(nil t))
   (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
   (add-hook 'isearch-mode-hook 'comint-history-isearch-setup nil t)
+  (add-hook 'completion-at-point-functions 'comint-completion-at-point nil t)
   ;; This behavior is not useful in comint buffers, and is annoying
   (set (make-local-variable 'next-line-add-newlines) nil))
 
@@ -1231,6 +1232,12 @@ See `comint-magic-space' and `comint-replace-by-expanded-history-before-point'.
 
 Returns t if successful."
   (interactive)
+  (let ((f (comint-c-a-p-replace-by-expanded-history silent start)))
+    (if f (funcall f))))
+
+(defun comint-c-a-p-replace-by-expanded-history (&optional silent start)
+  "Expand input command history at point.
+For use on `completion-at-point-functions'."
   (if (and comint-input-autoexpand
 	   (if comint-use-prompt-regexp
 	       ;; Use comint-prompt-regexp
@@ -1240,20 +1247,28 @@ Returns t if successful."
 	     ;; Use input fields.  User input that hasn't been entered
 	     ;; yet, at the end of the buffer, has a nil `field' property.
 	     (and (null (get-char-property (point) 'field))
-		  (string-match "!\\|^\\^" (field-string)))))
-      ;; Looks like there might be history references in the command.
-      (let ((previous-modified-tick (buffer-modified-tick)))
-	(comint-replace-by-expanded-history-before-point silent start)
-	(/= previous-modified-tick (buffer-modified-tick)))))
+		  (string-match "!\\|^\\^" (field-string))))
+           (catch 'dry-run
+             (comint-replace-by-expanded-history-before-point
+              silent start 'dry-run)))
+      (lambda ()
+        ;; Looks like there might be history references in the command.
+        (let ((previous-modified-tick (buffer-modified-tick)))
+          (comint-replace-by-expanded-history-before-point silent start)
+          (/= previous-modified-tick (buffer-modified-tick))))))
 
 
-(defun comint-replace-by-expanded-history-before-point (silent &optional start)
+(defun comint-replace-by-expanded-history-before-point
+  (silent &optional start dry-run)
   "Expand directory stack reference before point.
 See `comint-replace-by-expanded-history'.  Returns t if successful.
 
 If the optional argument START is non-nil, that specifies the
 start of the text to scan for history references, rather
-than the logical beginning of line."
+than the logical beginning of line.
+
+If DRY-RUN is non-nil, throw to DRY-RUN before performing any
+actual side-effect."
   (save-excursion
     (let ((toend (- (line-end-position) (point)))
 	  (start (or start (comint-line-beginning-position))))
@@ -1274,10 +1289,12 @@ than the logical beginning of line."
 	       (goto-char (1+ (point))))
 	      ((looking-at "![0-9]+\\($\\|[^-]\\)")
 	       ;; We cannot know the interpreter's idea of input line numbers.
+               (if dry-run (throw dry-run 'message))
 	       (goto-char (match-end 0))
 	       (message "Absolute reference cannot be expanded"))
 	      ((looking-at "!-\\([0-9]+\\)\\(:?[0-9^$*-]+\\)?")
 	       ;; Just a number of args from `number' lines backward.
+               (if dry-run (throw dry-run 'history))
 	       (let ((number (1- (string-to-number
 				  (buffer-substring (match-beginning 1)
 						    (match-end 1))))))
@@ -1293,6 +1310,7 @@ than the logical beginning of line."
 		   (message "Relative reference exceeds input history size"))))
 	      ((or (looking-at "!!?:?\\([0-9^$*-]+\\)") (looking-at "!!"))
 	       ;; Just a number of args from the previous input line.
+               (if dry-run (throw dry-run 'expand))
 	       (replace-match (comint-args (comint-previous-input-string 0)
 					   (match-beginning 1) (match-end 1))
 			      t t)
@@ -1301,6 +1319,7 @@ than the logical beginning of line."
 		"!\\??\\({\\(.+\\)}\\|\\(\\sw+\\)\\)\\(:?[0-9^$*-]+\\)?")
 	       ;; Most recent input starting with or containing (possibly
 	       ;; protected) string, maybe just a number of args.  Phew.
+               (if dry-run (throw dry-run 'expand))
 	       (let* ((mb1 (match-beginning 1)) (me1 (match-end 1))
 		      (mb2 (match-beginning 2)) (me2 (match-end 2))
 		      (exp (buffer-substring (or mb2 mb1) (or me2 me1)))
@@ -1322,6 +1341,7 @@ than the logical beginning of line."
 		   (message "History item: %d" (1+ pos)))))
 	      ((looking-at "\\^\\([^^]+\\)\\^?\\([^^]*\\)\\^?")
 	       ;; Quick substitution on the previous input line.
+               (if dry-run (throw dry-run 'expand))
 	       (let ((old (buffer-substring (match-beginning 1) (match-end 1)))
 		     (new (buffer-substring (match-beginning 2) (match-end 2)))
 		     (pos nil))
@@ -1334,7 +1354,8 @@ than the logical beginning of line."
 		   (replace-match new t t)
 		   (message "History item: substituted"))))
 	      (t
-	       (forward-char 1)))))))
+	       (forward-char 1)))))
+    nil))
 
 
 (defun comint-magic-space (arg)
@@ -1740,9 +1761,9 @@ Similarly for Soar, Scheme, etc."
                         (insert copy)
                         copy)))
              (input (if (not (eq comint-input-autoexpand 'input))
-                        ;; Just whatever's already there
+                        ;; Just whatever's already there.
                         intxt
-                      ;; Expand and leave it visible in buffer
+                      ;; Expand and leave it visible in buffer.
                       (comint-replace-by-expanded-history t pmark)
                       (buffer-substring pmark (point))))
              (history (if (not (eq comint-input-autoexpand 'history))
@@ -2990,16 +3011,12 @@ Magic characters are those in `comint-file-name-quote-list'."
 	  (setq i (+ 1 (match-beginning 0)))))
       filename)))
 
+(defun comint-completion-at-point ()
+  (run-hook-with-args-until-success 'comint-dynamic-complete-functions))
 
-(defun comint-dynamic-complete ()
-  "Dynamically perform completion at point.
-Calls the functions in `comint-dynamic-complete-functions' to perform
-completion until a function returns non-nil, at which point completion is
-assumed to have occurred."
-  (interactive)
-  (let ((completion-at-point-functions comint-dynamic-complete-functions))
-    (completion-at-point)))
-
+(define-obsolete-function-alias
+  'comint-dynamic-complete
+  'completion-at-point "24.1")
 
 (defun comint-dynamic-complete-filename ()
   "Dynamically complete the filename at point.
