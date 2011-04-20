@@ -304,8 +304,8 @@ This is not required after changing `gnus-registry-cache-file'."
   (let* ((id (mail-header-id data-header))
          (subject (mail-header-subject data-header))
          (recipients (gnus-registry-sort-addresses
-		      (or (ignore-errors (mail-header "Cc" data-header)) "")
-		      (or (ignore-errors (mail-header "To" data-header)) "")))
+		      (or (cdr (assq "Cc" data-header)) "")
+		      (or (cdr (assq "To" data-header)) "")))
          (sender (nth 0 (gnus-registry-extract-addresses
                          (mail-header-from data-header))))
          (from (gnus-group-guess-full-name-from-command-method from))
@@ -742,8 +742,8 @@ Addresses without a name will say \"noname\"."
   (if (and (numberp article)
            (assoc article (gnus-data-list nil)))
       (gnus-string-remove-all-properties
-       (mail-header header (gnus-data-header
-                            (assoc article (gnus-data-list nil)))))
+       (cdr (assq header (gnus-data-header
+			  (assoc article (gnus-data-list nil))))))
     nil))
 
 ;; registry marks glue

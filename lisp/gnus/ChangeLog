@@ -1,3 +1,9 @@
+2011-04-20  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-registry.el (gnus-registry-action)
+	(gnus-registry-fetch-header-fast):
+	Don't use mail-header that looks an internal function of mailheader.el.
+
 2011-04-18  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-registry.el: Eliminate cl functions.
