@@ -746,10 +746,10 @@ current directory and its subdirectories.
 
 @findex vc-ediff
 The function @code{vc-ediff} works like @code{vc-diff} and provides a way to
-visually compare two revisions of a file an Ediff session, @pxref{Top, Ediff,
-ediff, The Ediff Manual}.  It compares the file associated with the current
-buffer with the last repository revision.  To compare two arbitrary revisions
-of the current file, call @code{vc-ediff} with a prefix argument.
+visually compare two revisions of a file in an Ediff session, @pxref{Top,
+Ediff, ediff, The Ediff Manual}.  It compares the file associated with the
+current buffer with the last repository revision.  To compare two arbitrary
+revisions of the current file, call @code{vc-ediff} with a prefix argument.
 
 @vindex vc-diff-switches
 @vindex vc-rcs-diff-switches

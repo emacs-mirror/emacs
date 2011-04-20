@@ -1704,10 +1704,8 @@ repository history using ediff."
    ;; We could spin off an ediff session per file in the file set.
    ((= (length files) 1)
     (ediff-load-version-control)
-    (find-file (car files))
-    (funcall
-     (intern (format "ediff-%S-internal" ediff-version-control-package))
-     rev1 rev2 nil))
+    (find-file (car files))             ;FIXME: find-file from Elisp is bad.
+    (ediff-vc-internal rev1 rev2 nil))
    (t
     (error "More than one file is not supported"))))
 

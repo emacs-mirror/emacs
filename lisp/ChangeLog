@@ -1,7 +1,12 @@
+2011-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/vc.el (vc-version-ediff): Call ediff-vc-internal directly, since
+	we're in VC after all.
+
 2011-04-20  Christoph Scholtes  <cschol2112@googlemail.com>
 
 	* vc/vc.el (vc-diff-build-argument-list-internal)
-	(vc-version-ediff, vc-ediff): New functions.
+	(vc-version-ediff, vc-ediff): New commands.
 	(vc-version-diff): Use vc-diff-build-argument-list-internal.
 
 2011-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
