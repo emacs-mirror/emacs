@@ -1684,6 +1684,8 @@ saving the buffer."
     (vc-diff-internal t (vc-deduce-fileset t) nil nil
 		      (called-interactively-p 'interactive))))
 
+(declare-function ediff-vc-internal (rev1 rev2 &optional startup-hooks))
+
 ;;;###autoload
 (defun vc-version-ediff (files rev1 rev2)
   "Show differences between revisions of the fileset in the

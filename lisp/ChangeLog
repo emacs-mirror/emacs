@@ -1,3 +1,7 @@
+2011-04-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* vc/vc.el (ediff-vc-internal): Declare function.
+
 2011-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* shell.el: Use lexical-binding and std completion UI.
