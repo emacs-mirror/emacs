@@ -137,6 +137,16 @@ nnmairix groups are specifically excluded because they are ephemeral."
   :group 'gnus-registry
   :type '(repeat regexp))
 
+(defcustom gnus-registry-ignored-groups
+  '("delayed$" "drafts$" "queue$" "INBOX$" "^nnmairix:" "archive")
+  "List of groups that the Gnus Registry will ignore.
+The group names are matched, they don't have to be fully
+qualified.
+
+nnmairix groups are specifically excluded because they are ephemeral."
+  :group 'gnus-registry
+  :type '(repeat regexp))
+
 (defcustom gnus-registry-install 'ask
   "Whether the registry should be installed."
   :group 'gnus-registry
@@ -341,6 +351,8 @@ This is not required after changing `gnus-registry-cache-file'."
    10
    "gnus-registry-handle-action %S" (list id from to subject sender recipients))
   (let ((db gnus-registry-db)
+        ;; if the group is ignored, set the destination to nil (same as delete)
+        (to (if (gnus-registry-ignore-group-p to) nil to))
         ;; safe if not found
         (entry (gnus-registry-get-or-make-entry id))
         (subject (gnus-string-remove-all-properties
@@ -442,8 +454,10 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
         (gnus-message 9 "%s is looking up %s" log-agent reference)
         (loop for group in (gnus-registry-get-id-key reference 'group)
               when (gnus-registry-follow-group-p group)
-              do (gnus-message 7 "%s traced %s to %s" log-agent reference group)
-              do (push group found)))
+              do
+              (progn
+                (gnus-message 7 "%s traced %s to %s" log-agent reference group)
+                (push group found))))
       ;; filter the found groups and return them
       ;; the found groups are the full groups
       (setq found (gnus-registry-post-process-groups
@@ -468,7 +482,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
                          (if gnus-registry-track-extra 7 9)
                          "%s (extra tracking) traced subject '%s' to %s"
                          log-agent subject group)
-                     collect group))
+                    and collect group))
          ;; filter the found groups and return them
          ;; the found groups are NOT the full groups
          (setq found (gnus-registry-post-process-groups
@@ -495,7 +509,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
                          (if gnus-registry-track-extra 7 9)
                          "%s (extra tracking) traced sender '%s' to %s"
                          log-agent sender group)
-                     collect group)))
+                     and collect group)))
 
        ;; filter the found groups and return them
        ;; the found groups are NOT the full groups
@@ -525,7 +539,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
                              (if gnus-registry-track-extra 7 9)
                              "%s (extra tracking) traced recipient '%s' to %s"
                              log-agent recp group)
-                         collect group)))))
+                        and collect group)))))
 
        ;; filter the found groups and return them
        ;; the found groups are NOT the full groups
@@ -637,6 +651,18 @@ Consults `gnus-registry-unfollowed-groups' and
        (not (or (gnus-grep-in-list
                  group
                  gnus-registry-unfollowed-groups)
+                (gnus-grep-in-list
+                 group
+                 nnmail-split-fancy-with-parent-ignore-groups)))))
+
+(defun gnus-registry-ignore-group-p (group)
+  "Determines if a group name should be ignored.
+Consults `gnus-registry-ignored-groups' and
+`nnmail-split-fancy-with-parent-ignore-groups'."
+  (and group
+       (not (or (gnus-grep-in-list
+                 group
+                 gnus-registry-ignored-groups)
                 (gnus-grep-in-list
                  group
                  nnmail-split-fancy-with-parent-ignore-groups)))))

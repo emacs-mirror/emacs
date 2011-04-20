@@ -1,3 +1,12 @@
+2011-04-20  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el
+	(gnus-registry--split-fancy-with-parent-internal): Fix loop bugs.
+	(gnus-registry-ignored-groups): New variable.
+	(gnus-registry-ignore-group-p): Use it.
+	(gnus-registry-handle-action): Use `gnus-registry-ignore-group-p' and
+	set the destination group to nil (same as delete) if it's ignored.
+
 2011-04-20  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-registry.el (gnus-registry-action)
