@@ -1,5 +1,19 @@
 2011-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* comint.el: Use lexical-binding.  Require CL.
+	(comint-dynamic-complete-functions): Use comint-filename-completion.
+	(comint-completion-addsuffix): Tweak custom type.
+	(comint-filename-completion, comint--common-suffix)
+	(comint--common-quoted-suffix, comint--table-subvert)
+	(comint--complete-file-name-data): New functions.
+	(comint-dynamic-complete-as-filename, comint-dynamic-complete-filename)
+	(comint-dynamic-list-filename-completions): Use them.
+	(comint-dynamic-simple-complete): Make obsolete.
+	* minibuffer.el (completion-in-region-mode):
+	Keep completion-in-region-mode--predicate global.
+	(completion-in-region--postch):
+	Assume completion-in-region-mode--predicate is not null.
+
 	* progmodes/flymake.el (flymake-start-syntax-check-process):
 	Obey `dir'.  Simplify.
 

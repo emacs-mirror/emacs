@@ -58,6 +58,8 @@
 
 ;;; Todo:
 
+;; - Make things like icomplete-mode or lightning-completion work with
+;;   completion-in-region-mode.
 ;; - completion-insert-complete-hook (called after inserting a complete
 ;;   completion), typically used for "complete-abbrev" where it would expand
 ;;   the abbrev.  Tho we'd probably want to provide it from the
@@ -1314,8 +1316,7 @@ Point needs to be somewhere between START and END."
                     (save-excursion
                       (goto-char (nth 2 completion-in-region--data))
                       (line-end-position)))
-                (when completion-in-region-mode--predicate
-                  (funcall completion-in-region-mode--predicate))))
+		(funcall completion-in-region-mode--predicate)))
       (completion-in-region-mode -1)))
 
 ;; (defalias 'completion-in-region--prech 'completion-in-region--postch)
@@ -1330,12 +1331,12 @@ Point needs to be somewhere between START and END."
         (delq (assq 'completion-in-region-mode minor-mode-overriding-map-alist)
               minor-mode-overriding-map-alist))
   (if (null completion-in-region-mode)
-      (unless (or (equal "*Completions*" (buffer-name (window-buffer)))
-                  (null completion-in-region-mode--predicate))
+      (unless (equal "*Completions*" (buffer-name (window-buffer)))
 	(minibuffer-hide-completions))
     ;; (add-hook 'pre-command-hook #'completion-in-region--prech)
-    (set (make-local-variable 'completion-in-region-mode--predicate)
-         completion-in-region-mode-predicate)
+    (assert completion-in-region-mode-predicate)
+    (setq completion-in-region-mode--predicate
+	  completion-in-region-mode-predicate)
     (add-hook 'post-command-hook #'completion-in-region--postch)
     (push `(completion-in-region-mode . ,completion-in-region-mode-map)
           minor-mode-overriding-map-alist)))
