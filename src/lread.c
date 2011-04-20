@@ -3189,9 +3189,6 @@ substitute_in_interval (INTERVAL interval, Lisp_Object arg)
 }
 
 
-/* Return the length of the floating-point number that is the prefix of CP, or
-   zero if there is none.  */
-
 #define LEAD_INT 1
 #define DOT_CHAR 2
 #define TRAIL_INT 4
