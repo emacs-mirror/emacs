@@ -6,6 +6,8 @@
 	(CHECK_TOTAL_LENGTH): Remove cast to EMACS_INT; no longer needed.
 	* intervals.c (interval_deletion_adjustment): Now returns EMACS_INT.
 	All uses changed.
+	(offset_intervals): Tell GCC not to worry about length overflow
+	when negating a negative length.
 
 	* alloc.c (overrun_check_malloc, overrun_check_realloc): Now static.
 	(overrun_check_free): Likewise.

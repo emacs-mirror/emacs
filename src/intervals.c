@@ -39,6 +39,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <setjmp.h>
+#include <intprops.h>
 #include "lisp.h"
 #include "intervals.h"
 #include "buffer.h"
@@ -1435,7 +1436,10 @@ offset_intervals (struct buffer *buffer, EMACS_INT start, EMACS_INT length)
   if (length > 0)
     adjust_intervals_for_insertion (BUF_INTERVALS (buffer), start, length);
   else
-    adjust_intervals_for_deletion (buffer, start, -length);
+    {
+      IF_LINT (if (length < - TYPE_MAXIMUM (EMACS_INT)) abort ();)
+      adjust_intervals_for_deletion (buffer, start, -length);
+    }
 }
 
 /* Merge interval I with its lexicographic successor. The resulting
