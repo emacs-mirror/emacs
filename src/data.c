@@ -48,10 +48,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <math.h>
 
-#if !defined (atof)
-extern double atof (const char *);
-#endif /* !atof */
-
 Lisp_Object Qnil, Qt, Qquote, Qlambda, Qunbound;
 static Lisp_Object Qsubr;
 Lisp_Object Qerror_conditions, Qerror_message, Qtop_level;
@@ -2415,8 +2411,7 @@ If the base used is not 10, STRING is always parsed as integer.  */)
 {
   register char *p;
   register int b;
-  int sign = 1;
-  Lisp_Object val;
+  EMACS_INT n;
 
   CHECK_STRING (string);
 
@@ -2430,38 +2425,23 @@ If the base used is not 10, STRING is always parsed as integer.  */)
 	xsignal1 (Qargs_out_of_range, base);
     }
 
-  /* Skip any whitespace at the front of the number.  Some versions of
-     atoi do this anyway, so we might as well make Emacs lisp consistent.  */
+  /* Skip any whitespace at the front of the number.  Typically strtol does
+     this anyway, so we might as well be consistent.  */
   p = SSDATA (string);
   while (*p == ' ' || *p == '\t')
     p++;
 
-  if (*p == '-')
+  if (b == 10)
     {
-      sign = -1;
-      p++;
-    }
-  else if (*p == '+')
-    p++;
-
-  if (isfloat_string (p, 1) && b == 10)
-    val = make_float (sign * atof (p));
-  else
-    {
-      double v = 0;
-
-      while (1)
-	{
-	  int digit = digit_to_number (*p++, b);
-	  if (digit < 0)
-	    break;
-	  v = v * b + digit;
-	}
-
-      val = make_fixnum_or_float (sign * v);
+      Lisp_Object val = string_to_float (p, 1);
+      if (FLOATP (val))
+	return val;
     }
 
-  return val;
+  n = strtol (p, NULL, b);
+  if (FIXNUM_OVERFLOW_P (n))
+    xsignal (Qoverflow_error, list1 (string));
+  return make_number (n);
 }
 
 
