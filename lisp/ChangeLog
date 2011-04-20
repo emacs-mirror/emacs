@@ -1,5 +1,8 @@
 2011-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/flymake.el (flymake-start-syntax-check-process):
+	Obey `dir'.  Simplify.
+
 	* vc/vc.el (vc-version-ediff): Call ediff-vc-internal directly, since
 	we're in VC after all.
 
