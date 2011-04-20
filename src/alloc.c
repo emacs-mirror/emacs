@@ -555,7 +555,7 @@ static int check_depth;
 
 /* Like malloc, but wraps allocated block with header and trailer.  */
 
-POINTER_TYPE *
+static POINTER_TYPE *
 overrun_check_malloc (size_t size)
 {
   register unsigned char *val;
@@ -579,7 +579,7 @@ overrun_check_malloc (size_t size)
 /* Like realloc, but checks old block for overrun, and wraps new block
    with header and trailer.  */
 
-POINTER_TYPE *
+static POINTER_TYPE *
 overrun_check_realloc (POINTER_TYPE *block, size_t size)
 {
   register unsigned char *val = (unsigned char *) block;
@@ -617,7 +617,7 @@ overrun_check_realloc (POINTER_TYPE *block, size_t size)
 
 /* Like free, but checks block for overrun.  */
 
-void
+static void
 overrun_check_free (POINTER_TYPE *block)
 {
   unsigned char *val = (unsigned char *) block;

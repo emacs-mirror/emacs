@@ -1,5 +1,8 @@
 2011-04-20  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* alloc.c (overrun_check_malloc, overrun_check_realloc): Now static.
+	(overrun_check_free): Likewise.
+
 	Make the Lisp reader and string-to-float more consistent.
 	* data.c (atof): Remove decl; no longer used or needed.
 	(Fstring_to_number): Use new string_to_float function, to be
