@@ -19,6 +19,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -3226,7 +3227,6 @@ string_to_number (char const *string, int base, int ignore_trailing)
 	++cp;
       while (0 <= digit_to_number (*cp, base));
     }
-
   if (*cp == '.')
     {
       state |= DOT_CHAR;
@@ -3300,47 +3300,45 @@ string_to_number (char const *string, int base, int ignore_trailing)
 	 : (!*cp && ((state & ~DOT_CHAR) == LEAD_INT || float_syntax))))
     return Qnil;
 
-  /* If the number does not use float syntax, and fits into a fixnum, return
-     the fixnum.  */
+  /* If the number uses integer and not float syntax, and is in C-language
+     range, use its value, preferably as a fixnum.  */
   if (0 <= leading_digit && ! float_syntax)
     {
-      /* Convert string to EMACS_INT.  Do not use strtol, to avoid assuming
-	 that EMACS_INT is no wider than 'long', and because when BASE is 16
-	 strtol might accept numbers like "0x1" that are not allowed here.  */
-      EMACS_INT n = leading_digit;
-      EMACS_INT abs_bound =
-	(negative ? -MOST_NEGATIVE_FIXNUM : MOST_POSITIVE_FIXNUM);
-      EMACS_INT abs_bound_over_base = abs_bound / base;
+      uintmax_t n;
 
-      for (cp = string + signedp + 1; ; cp++)
+      /* Fast special case for single-digit integers.  This also avoids a
+	 glitch when BASE is 16 and IGNORE_TRAILING is nonzero, because in that
+	 case some versions of strtoumax accept numbers like "0x1" that Emacs
+	 does not allow.  */
+      if (digit_to_number (string[signedp + 1], base) < 0)
+	return make_number (negative ? -leading_digit : leading_digit);
+
+      errno = 0;
+      n = strtoumax (string + signedp, NULL, base);
+      if (errno == ERANGE)
 	{
-	  int d = digit_to_number (*cp, base);
-	  if (d < 0)
-	    {
-	      if (n <= abs_bound)
-		return make_number (negative ? -n : n);
-	      break;
-	    }
-	  if (abs_bound_over_base < n)
-	    break;
-	  n = base * n + d;
+	  /* Unfortunately there's no simple and accurate way to convert
+	     non-base-10 numbers that are out of C-language range.  */
+	  if (base != 10)
+	    xsignal (Qoverflow_error, list1 (build_string (string)));
 	}
-
-      /* Unfortunately there's no simple and reliable way to convert
-	 non-base-10 to floating point.  */
-      if (base != 10)
-	xsignal (Qoverflow_error, list1 (build_string (string)));
+      else if (n <= (negative ? -MOST_NEGATIVE_FIXNUM : MOST_POSITIVE_FIXNUM))
+	{
+	  EMACS_INT signed_n = n;
+	  return make_number (negative ? -signed_n : signed_n);
+	}
+      else
+	value = n;
     }
 
   /* Either the number uses float syntax, or it does not fit into a fixnum.
      Convert it from string to floating point, unless the value is already
-     known because it is an infinity or a NAN.  */
+     known because it is an infinity, a NAN, or its absolute value fits in
+     uintmax_t.  */
   if (! value)
     value = atof (string + signedp);
 
-  if (negative)
-    value = -value;
-  return make_float (value);
+  return make_float (negative ? -value : value);
 }
 
 
