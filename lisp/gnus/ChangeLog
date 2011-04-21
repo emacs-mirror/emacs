@@ -1,3 +1,7 @@
+2011-04-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-expand-url): Protect against null urls.
+
 2011-04-20  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-base): New binding.

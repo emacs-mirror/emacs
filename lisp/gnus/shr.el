@@ -397,7 +397,8 @@ redirects somewhere else."
 (defun shr-expand-url (url)
   (cond
    ;; Absolute URL.
-   ((or (string-match "\\`[a-z]*:" url)
+   ((or (not url)
+	(string-match "\\`[a-z]*:" url)
 	(not shr-base))
     url)
    ((and (not (string-match "/\\'" shr-base))
