@@ -3005,32 +3005,8 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 
 	if (!quoted && !uninterned_symbol)
 	  {
-	    register char *p1;
-	    Lisp_Object result;
-	    p1 = read_buffer;
-	    if (*p1 == '+' || *p1 == '-') p1++;
-	    /* Is it an integer? */
-	    if ('0' <= *p1 && *p1 <= '9')
-	      {
-		do
-		  p1++;
-		while ('0' <= *p1 && *p1 <= '9');
-
-		/* Integers can have trailing decimal points.  */
-		p1 += (*p1 == '.');
-		if (p1 == p)
-		  {
-		    /* It is an integer. */
-		    EMACS_INT n = strtol (read_buffer, NULL, 10);
-		    if (FIXNUM_OVERFLOW_P (n))
-		      xsignal (Qoverflow_error,
-			       list1 (build_string (read_buffer)));
-		    return make_number (n);
-		  }
-	      }
-
-	    result = string_to_float (read_buffer, 0);
-	    if (FLOATP (result))
+	    Lisp_Object result = string_to_number (read_buffer, 10, 0);
+	    if (! NILP (result))
 	      return result;
 	  }
 	{
@@ -3189,23 +3165,44 @@ substitute_in_interval (INTERVAL interval, Lisp_Object arg)
 }
 
 
+static inline int
+digit_to_number (int character, int base)
+{
+  int digit;
+
+  if ('0' <= character && character <= '9')
+    digit = character - '0';
+  else if ('a' <= character && character <= 'z')
+    digit = character - 'a' + 10;
+  else if ('A' <= character && character <= 'Z')
+    digit = character - 'A' + 10;
+  else
+    return -1;
+
+  return digit < base ? digit : -1;
+}
+
 #define LEAD_INT 1
 #define DOT_CHAR 2
 #define TRAIL_INT 4
-#define E_CHAR 8
-#define EXP_INT 16
+#define E_EXP 16
 
 
-/* Convert CP to a floating point number.  Return a non-float value if CP does
-   not have valid floating point syntax.  If IGNORE_TRAILING is nonzero,
-   consider just the longest prefix of CP that has valid floating point
-   syntax.  */
+/* Convert STRING to a number, assuming base BASE.  Return a fixnum if CP has
+   integer syntax and fits in a fixnum, else return the nearest float if CP has
+   either floating point or integer syntax and BASE is 10, else return nil.  If
+   IGNORE_TRAILING is nonzero, consider just the longest prefix of CP that has
+   valid floating point syntax.  Signal an overflow if BASE is not 10 and the
+   number has integer syntax but does not fit.  */
 
 Lisp_Object
-string_to_float (char const *cp, int ignore_trailing)
+string_to_number (char const *string, int base, int ignore_trailing)
 {
   int state;
-  const char *start = cp;
+  char const *cp = string;
+  int leading_digit;
+  int float_syntax = 0;
+  double value = 0;
 
   /* Compute NaN and infinities using a variable, to cope with compilers that
      think they are smarter than we are.  */
@@ -3216,87 +3213,136 @@ string_to_float (char const *cp, int ignore_trailing)
      atof ("-0.0") drops the sign.  */
   int negative = *cp == '-';
 
-  double value = 0;
+  int signedp = negative || *cp == '+';
+  cp += signedp;
 
   state = 0;
-  if (negative || *cp == '+')
-    cp++;
 
-  if (*cp >= '0' && *cp <= '9')
+  leading_digit = digit_to_number (*cp, base);
+  if (0 <= leading_digit)
     {
       state |= LEAD_INT;
-      while (*cp >= '0' && *cp <= '9')
-	cp++;
+      do
+	++cp;
+      while (0 <= digit_to_number (*cp, base));
     }
+
   if (*cp == '.')
     {
       state |= DOT_CHAR;
       cp++;
     }
-  if (*cp >= '0' && *cp <= '9')
-    {
-      state |= TRAIL_INT;
-      while (*cp >= '0' && *cp <= '9')
-	cp++;
-    }
-  if (*cp == 'e' || *cp == 'E')
-    {
-      state |= E_CHAR;
-      cp++;
-      if (*cp == '+' || *cp == '-')
-	cp++;
-    }
 
-  if (*cp >= '0' && *cp <= '9')
+  if (base == 10)
     {
-      state |= EXP_INT;
-      while (*cp >= '0' && *cp <= '9')
-	cp++;
-    }
-  else if (cp == start)
-    ;
-  else if (cp[-1] == '+' && cp[0] == 'I' && cp[1] == 'N' && cp[2] == 'F')
-    {
-      state |= EXP_INT;
-      cp += 3;
-      value = 1.0 / zero;
-    }
-  else if (cp[-1] == '+' && cp[0] == 'N' && cp[1] == 'a' && cp[2] == 'N')
-    {
-      state |= EXP_INT;
-      cp += 3;
-      value = zero / zero;
-
-      /* If that made a "negative" NaN, negate it.  */
-      {
-	int i;
-	union { double d; char c[sizeof (double)]; } u_data, u_minus_zero;
-
-	u_data.d = value;
-	u_minus_zero.d = - 0.0;
-	for (i = 0; i < sizeof (double); i++)
-	  if (u_data.c[i] & u_minus_zero.c[i])
+      if ('0' <= *cp && *cp <= '9')
+	{
+	  state |= TRAIL_INT;
+	  do
+	    cp++;
+	  while ('0' <= *cp && *cp <= '9');
+	}
+      if (*cp == 'e' || *cp == 'E')
+	{
+	  char const *ecp = cp;
+	  cp++;
+	  if (*cp == '+' || *cp == '-')
+	    cp++;
+	  if ('0' <= *cp && *cp <= '9')
 	    {
-	      value = - value;
+	      state |= E_EXP;
+	      do
+		cp++;
+	      while ('0' <= *cp && *cp <= '9');
+	    }
+	  else if (cp[-1] == '+'
+		   && cp[0] == 'I' && cp[1] == 'N' && cp[2] == 'F')
+	    {
+	      state |= E_EXP;
+	      cp += 3;
+	      value = 1.0 / zero;
+	    }
+	  else if (cp[-1] == '+'
+		   && cp[0] == 'N' && cp[1] == 'a' && cp[2] == 'N')
+	    {
+	      state |= E_EXP;
+	      cp += 3;
+	      value = zero / zero;
+
+	      /* If that made a "negative" NaN, negate it.  */
+	      {
+		int i;
+		union { double d; char c[sizeof (double)]; }
+		  u_data, u_minus_zero;
+		u_data.d = value;
+		u_minus_zero.d = -0.0;
+		for (i = 0; i < sizeof (double); i++)
+		  if (u_data.c[i] & u_minus_zero.c[i])
+		    {
+		      value = -value;
+		      break;
+		    }
+	      }
+	      /* Now VALUE is a positive NaN.  */
+	    }
+	  else
+	    cp = ecp;
+	}
+
+      float_syntax = ((state & (DOT_CHAR|TRAIL_INT)) == (DOT_CHAR|TRAIL_INT)
+		      || state == (LEAD_INT|E_EXP));
+    }
+
+  /* Return nil if the number uses invalid syntax.  If IGNORE_TRAILING, accept
+     any prefix that matches.  Otherwise, the entire string must match.  */
+  if (! (ignore_trailing
+	 ? ((state & LEAD_INT) != 0 || float_syntax)
+	 : (!*cp && ((state & ~DOT_CHAR) == LEAD_INT || float_syntax))))
+    return Qnil;
+
+  /* If the number does not use float syntax, and fits into a fixnum, return
+     the fixnum.  */
+  if (0 <= leading_digit && ! float_syntax)
+    {
+      /* Convert string to EMACS_INT.  Do not use strtol, to avoid assuming
+	 that EMACS_INT is no wider than 'long', and because when BASE is 16
+	 strtol might accept numbers like "0x1" that are not allowed here.  */
+      EMACS_INT n = leading_digit;
+      EMACS_INT abs_bound =
+	(negative ? -MOST_NEGATIVE_FIXNUM : MOST_POSITIVE_FIXNUM);
+      EMACS_INT abs_bound_over_base = abs_bound / base;
+
+      for (cp = string + signedp + 1; ; cp++)
+	{
+	  int d = digit_to_number (*cp, base);
+	  if (d < 0)
+	    {
+	      if (n <= abs_bound)
+		return make_number (negative ? -n : n);
 	      break;
 	    }
-      }
-      /* Now VALUE is a positive NaN.  */
+	  if (abs_bound_over_base < n)
+	    break;
+	  n = base * n + d;
+	}
+
+      /* Unfortunately there's no simple and reliable way to convert
+	 non-base-10 to floating point.  */
+      if (base != 10)
+	xsignal (Qoverflow_error, list1 (build_string (string)));
     }
 
-  if (! (state == (LEAD_INT|DOT_CHAR|TRAIL_INT)
-	 || state == (DOT_CHAR|TRAIL_INT)
-	 || state == (LEAD_INT|E_CHAR|EXP_INT)
-	 || state == (LEAD_INT|DOT_CHAR|TRAIL_INT|E_CHAR|EXP_INT)
-	 || state == (DOT_CHAR|TRAIL_INT|E_CHAR|EXP_INT)))
-    return make_number (0); /* Any non-float value will do.  */
-
+  /* Either the number uses float syntax, or it does not fit into a fixnum.
+     Convert it from string to floating point, unless the value is already
+     known because it is an infinity or a NAN.  */
   if (! value)
-    value = atof (start + negative);
+    value = atof (string + signedp);
+
   if (negative)
-    value = - value;
+    value = -value;
   return make_float (value);
 }
+
 
 
 static Lisp_Object

@@ -1,3 +1,32 @@
+2011-04-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Make the Lisp reader and string-to-float more consistent.
+	* data.c (atof): Remove decl; no longer used or needed.
+	(digit_to_number): Move to lread.c.
+	(Fstring_to_number): Use new string_to_number function, to be
+	consistent with how the Lisp reader treats infinities and NaNs.
+	Do not assume that floating-point numbers represent EMACS_INT
+	without losing information; this is not true on most 64-bit hosts.
+	Avoid double-rounding errors, by insisting on integers when
+	parsing non-base-10 numbers, as the documentation specifies.
+	* lisp.h (string_to_number): New decl, replacing ...
+	(isfloat_string): Remove.
+	* lread.c (read1): Do not accept +. and -. as integers; this
+	appears to have been a coding error.  Similarly, do not accept
+	strings like +-1e0 as floating point numbers.  Do not report
+	overflow for integer overflows unless the base is not 10 which
+	means we have no simple and reliable way to continue.
+	Break out the floating-point parsing into a new
+	function string_to_number, so that Fstring_to_number parses
+	floating point numbers consistently with the Lisp reader.
+	(digit_to_number): Moved here from data.c.  Make it static inline.
+	(E_CHAR, EXP_INT): Remove, replacing with ...
+	(E_EXP): New macro, to solve the "1.0e+" problem mentioned below.
+	(string_to_number): New function, replacing isfloat_string.
+	This function checks for valid syntax and produces the resulting
+	Lisp float number too.  Rework it so that string-to-number
+	no longer mishandles examples like "1.0e+".
+
 2011-04-20  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* textprop.c (set_text_properties_1): Rewrite for clarity,
@@ -14,29 +43,6 @@
 
 	* alloc.c (overrun_check_malloc, overrun_check_realloc): Now static.
 	(overrun_check_free): Likewise.
-
-	Make the Lisp reader and string-to-float more consistent.
-	* data.c (atof): Remove decl; no longer used or needed.
-	(Fstring_to_number): Use new string_to_float function, to be
-	consistent with how the Lisp reader treats infinities and NaNs.
-	Do not assume that floating-point numbers represent EMACS_INT
-	without losing information; this is not true on most 64-bit hosts.
-	Avoid double-rounding errors, by insisting on integers when
-	parsing non-base-10 numbers, as the documentation specifies.
-	Report integer overflow instead of silently converting to
-	integers.
-	* lisp.h (string_to_float): New decl, replacing ...
-	(isfloat_string): Remove.
-	* lread.c (read1): Do not accept +. and -. as integers; this
-	appears to have been a coding error.  Similarly, do not accept
-	strings like +-1e0 as floating point numbers.  Do not report
-	overflow for some integer overflows and not others; instead,
-	report them all.  Break out the floating-point parsing into a new
-	function string_to_float, so that Fstring_to_number parses
-	floating point numbers consistently with the Lisp reader.
-	(string_to_float): New function, replacing isfloat_string.
-	This function checks for valid syntax and produces the resulting
-	Lisp float number too.
 
 	* alloc.c (SDATA_SIZE) [!GC_CHECK_STRING_BYTES]: Avoid runtime check
 	in the common case where SDATA_DATA_OFFSET is a multiple of Emacs

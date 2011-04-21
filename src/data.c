@@ -2374,26 +2374,6 @@ NUMBER may be an integer or a floating point number.  */)
   return build_string (buffer);
 }
 
-INLINE static int
-digit_to_number (int character, int base)
-{
-  int digit;
-
-  if (character >= '0' && character <= '9')
-    digit = character - '0';
-  else if (character >= 'a' && character <= 'z')
-    digit = character - 'a' + 10;
-  else if (character >= 'A' && character <= 'Z')
-    digit = character - 'A' + 10;
-  else
-    return -1;
-
-  if (digit >= base)
-    return -1;
-  else
-    return digit;
-}
-
 DEFUN ("string-to-number", Fstring_to_number, Sstring_to_number, 1, 2, 0,
        doc: /* Parse STRING as a decimal number and return the number.
 This parses both integers and floating point numbers.
@@ -2406,7 +2386,7 @@ If the base used is not 10, STRING is always parsed as integer.  */)
 {
   register char *p;
   register int b;
-  EMACS_INT n;
+  Lisp_Object val;
 
   CHECK_STRING (string);
 
@@ -2420,25 +2400,13 @@ If the base used is not 10, STRING is always parsed as integer.  */)
 	xsignal1 (Qargs_out_of_range, base);
     }
 
-  /* Skip any whitespace at the front of the number.  Typically strtol does
-     this anyway, so we might as well be consistent.  */
   p = SSDATA (string);
   while (*p == ' ' || *p == '\t')
     p++;
 
-  if (b == 10)
-    {
-      Lisp_Object val = string_to_float (p, 1);
-      if (FLOATP (val))
-	return val;
-    }
-
-  n = strtol (p, NULL, b);
-  if (FIXNUM_OVERFLOW_P (n))
-    xsignal (Qoverflow_error, list1 (string));
-  return make_number (n);
+  val = string_to_number (p, b, 1);
+  return NILP (val) ? make_number (0) : val;
 }
-
 
 enum arithop
   {
