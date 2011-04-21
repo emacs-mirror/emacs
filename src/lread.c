@@ -3341,7 +3341,6 @@ string_to_number (char const *string, int base, int ignore_trailing)
   return make_float (negative ? -value : value);
 }
 
-
 
 static Lisp_Object
 read_vector (Lisp_Object readcharfun, int bytecodeflag)
