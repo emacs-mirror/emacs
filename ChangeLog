@@ -1,3 +1,16 @@
+2011-04-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (GNULIB_MODULES): Add strtoumax.
+	This is needed for the new integer-reading code in lread.c.
+	It automatically pulls in the following gnulib files, which
+	are used on old-fashioned platforms that don't have strtoumax:
+	lib/inttypes.h, lib/inttypes.in.h, lib/strtoimax.c, lib/strtol.c,
+	lib/strtoll.c, lib/strtoul.c, lib/strtoull.c, lib/strtoumax.c,
+	lib/verify.h, lib/wchar.h, lib/wchar.in.h, m4/inttypes-pri.m4,
+	m4/inttypes.m4, m4/strtoimax.m4, m4/strtol.m4, m4/strtoll.m4,
+	m4/strtoul.m4, m4/strtoull.m4, m4/strtoumax.m4, m4/wchar_h.m4,
+	m4/wint_t.m4.
+
 2011-04-20  Ken Brown  <kbrown@cornell.edu>
 
 	* configure.in (use_mmap_for_buffers): Set to yes on Cygwin.
