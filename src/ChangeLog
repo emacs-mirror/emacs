@@ -11,7 +11,7 @@
 	parsing non-base-10 numbers, as the documentation specifies.
 	* lisp.h (string_to_number): New decl, replacing ...
 	(isfloat_string): Remove.
-	* lread.c: Include <inttypes.h>, for uintmax_t and strtoimax.
+	* lread.c: Include <inttypes.h>, for uintmax_t and strtoumax.
 	(read1): Do not accept +. and -. as integers; this
 	appears to have been a coding error.  Similarly, do not accept
 	strings like +-1e0 as floating point numbers.  Do not report
@@ -26,7 +26,7 @@
 	(string_to_number): New function, replacing isfloat_string.
 	This function checks for valid syntax and produces the resulting
 	Lisp float number too.  Rework it so that string-to-number
-	no longer mishandles examples like "1.0e+".  Use strtoimax,
+	no longer mishandles examples like "1.0e+".  Use strtoumax,
 	so that overflow for non-base-10 numbers is reported only when
 	there's no portable and simple way to convert to floating point.
 
