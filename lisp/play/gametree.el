@@ -258,23 +258,20 @@ This value is simply the outline heading level of the current line."
 
 (defun gametree-children-shown-p ()
   (save-excursion
-    (condition-case nil
+    (ignore-errors
         (let ((depth (gametree-current-branch-depth)))
           (outline-next-visible-heading 1)
-          (< depth (gametree-current-branch-depth)))
-      (error nil))))
+          (< depth (gametree-current-branch-depth))))))
 
-(defun gametree-current-layout (depth &optional top-level)
+(defun gametree-current-layout (depth &optional from-top-level)
   (let ((layout nil) (first-time t))
     (while (save-excursion
-             (condition-case nil
-                 (progn
-                   (or (and first-time top-level
-                            (bolp) (looking-at outline-regexp))
-                       (setq first-time nil)
-                       (outline-next-visible-heading 1))
-                   (< depth (gametree-current-branch-depth)))
-               (error nil)))
+             (ignore-errors
+               (or (and first-time from-top-level
+                        (bolp) (looking-at outline-regexp))
+                   (setq first-time nil)
+                   (outline-next-visible-heading 1))
+               (< depth (gametree-current-branch-depth))))
       (if (not first-time)
           (outline-next-visible-heading 1))
       (setq first-time nil)
@@ -297,18 +294,16 @@ This value is simply the outline heading level of the current line."
     (goto-char (point-min))
     (setq gametree-local-layout (gametree-current-layout 0 t))))
 
-(defun gametree-apply-layout (layout depth &optional top-level)
+(defun gametree-apply-layout (layout depth &optional from-top-level)
   (let ((first-time t))
     (while (and layout
                 (save-excursion
-                  (condition-case nil
-                      (progn
-                        (or (and first-time top-level
-                                 (bolp) (looking-at outline-regexp))
-                            (setq first-time nil)
-                            (outline-next-visible-heading 1))
-                        (< depth (gametree-current-branch-depth)))
-                    (error nil))))
+                  (ignore-errors
+                    (or (and first-time from-top-level
+                             (bolp) (looking-at outline-regexp))
+                        (setq first-time nil)
+                        (outline-next-visible-heading 1))
+                    (< depth (gametree-current-branch-depth)))))
       (if (not first-time)
           (outline-next-visible-heading 1))
       (setq first-time nil)
@@ -375,9 +370,7 @@ Subnodes which have been manually scored are honored."
             (while (not done)           ;handle subheadings
               (setq running (funcall minmax running
                                      (gametree-compute-reduced-score)))
-              (setq done (condition-case nil
-                             (outline-forward-same-level 1)
-                           (error nil)))))
+              (setq done (ignore-errors (outline-forward-same-level 1)))))
           running)))))
 
 ;;;; Commands

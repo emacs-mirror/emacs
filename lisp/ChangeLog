@@ -1,3 +1,51 @@
+2011-04-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	Lexical-binding cleanup.
+
+	* play/5x5.el (5x5-make-random-solution, 5x5-make-mutate-current)
+	(5x5-make-mutate-best):
+	* play/fortune.el (fortune-in-buffer):
+	* play/gomoku.el (gomoku-init-display):
+	* play/solitaire.el (solitaire, solitaire-do-check):
+	* play/tetris.el (tetris-default-update-speed-function):
+	Mark unused parameters.
+
+	* play/bubbles.el (bubbles-mode): Set `show-trailing-whitespace'.
+	(bubbles--shift): Remove unused variable `char-org'.
+	(bubbles--set-faces): Remove unused variable `fg-col'.  Simplify.
+	(bubbles--show-images): Remove unused variable `char'.
+
+	* play/decipher.el (decipher-keypress, decipher-alphabet-keypress)
+	(decipher-get-undo, decipher-set-map, decipher-complete-alphabet)
+	(decipher-resync, decipher-loop-with-breaks, decipher--analyze)
+	(decipher-analyze-buffer): Use ?\s.
+	(decipher-make-checkpoint): Remove unused variable `mapping'.
+
+	* play/doctor.el (doctor-doc): Rename parameter DOCTOR-SENT to SENT.
+
+	* play/gamegrid.el (gamegrid-add-score-with-update-game-score):
+	Remove unused variable `result'; use `let'.
+
+	* play/gametree.el (gametree-current-layout, gametree-apply-layout):
+	Rename parameter TOP-LEVEL to FROM-TOP-LEVEL; use `ignore-errors'.
+	(gametree-children-shown-p, gametree-compute-reduced-score):
+	Use `ignore-errors'.
+
+	* play/handwrite.el (ps-lpr-switches): Declare.
+	(handwrite): Remove unused variables `pmin' and `lastp'.
+
+	* play/hanoi.el (hanoi-move-ring): Remove unused variable `total-steps'.
+
+	* play/landmark.el (landmark-init-display)
+	(landmark-update-naught-weights): Mark unused parameters.
+	(landmark-y): Remove unused variable `noise'.  Simplify.
+	(landmark-human-plays): Remove unused variable `score'.
+
+	* play/mpuz.el (mpuz-try-letter): Remove unused variable `message'.
+	(mpuz-try-proposal): Remove unused variable `game'.
+
+	* play/zone.el (life-patterns): Declare.
+
 2011-04-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* vc/vc.el (ediff-vc-internal): Declare function.

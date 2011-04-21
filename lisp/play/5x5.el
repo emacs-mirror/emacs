@@ -368,15 +368,15 @@ should return a grid vector array that is the new solution."
                                       (5x5-copy-grid best-solution)))))
   (setq 5x5-cracking nil))
 
-(defun 5x5-make-random-solution (&rest ignore)
+(defun 5x5-make-random-solution (&rest _ignore)
   "Make a random solution."
   (5x5-make-random-grid))
 
-(defun 5x5-make-mutate-current (current best)
+(defun 5x5-make-mutate-current (current _best)
   "Mutate the current solution."
   (5x5-mutate-solution current))
 
-(defun 5x5-make-mutate-best (current best)
+(defun 5x5-make-mutate-best (_current best)
   "Mutate the best solution."
   (5x5-mutate-solution best))
 

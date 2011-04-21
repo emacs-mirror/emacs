@@ -425,7 +425,7 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
   "Propose a digit for a letter in puzzle."
   (interactive)
   (if mpuz-in-progress
-      (let (letter-char digit digit-char message)
+      (let (letter-char digit digit-char)
 	(setq letter-char (upcase last-command-event)
 	      digit (mpuz-to-digit (- letter-char ?A)))
 	(cond ((mpuz-digit-solved-p digit)
@@ -454,8 +454,7 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
   "Propose LETTER-CHAR as code for DIGIT-CHAR."
   (let* ((letter (- letter-char ?A))
 	 (digit (- digit-char ?0))
-	 (correct-digit (mpuz-to-digit letter))
-	 (game mpuz-nb-completed-games))
+	 (correct-digit (mpuz-to-digit letter)))
     (cond ((mpuz-digit-solved-p correct-digit)
 	   (message "%c has already been found." (+ correct-digit ?0)))
 	  ((mpuz-digit-solved-p digit)
