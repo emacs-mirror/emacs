@@ -402,7 +402,7 @@ redirects somewhere else."
 	(not shr-base))
     url)
    ((and (not (string-match "/\\'" shr-base))
-	 (not (string-match "\\`" url)))
+	 (not (string-match "\\`/" url)))
     (concat shr-base "/" url))
    (t
     (concat shr-base url))))
