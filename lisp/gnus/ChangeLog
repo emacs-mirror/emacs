@@ -1,3 +1,9 @@
+2011-04-20  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-base): New binding.
+	(shr-tag-base): Keep track of <base>.
+	(shr-expand-url): New function used throughout.
+
 2011-04-20  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus-registry.el
