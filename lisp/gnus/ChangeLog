@@ -1,3 +1,18 @@
+2011-04-21  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus.el (gnus-registry-ignored-groups): Provide default in gnus.el,
+	not gnus-registry.el.
+
+	* gnus-registry.el (gnus-registry-ignored-groups): Remove defcustom.
+	Explain why in comments.
+	(gnus-registry-action): Fix data-header reference to use the extra
+	headers.  Explain in package commentary how to add To and Cc headers to
+	the gnus-extra-headers.
+	(gnus-registry-ignored-groups): Adjust defaults to match the parameter.
+	(gnus-registry-ignore-group-p): Adjust to take either a group/topic
+	parameter list or a string list in `gnus-registry-ignored-groups'.  Fix
+	logic error.
+
 2011-04-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-expand-url): Protect against null urls.

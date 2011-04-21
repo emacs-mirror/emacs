@@ -31,7 +31,16 @@
 ;; gnus-registry.el intercepts article respooling, moving, deleting,
 ;; and copying for all backends.  If it doesn't work correctly for
 ;; you, submit a bug report and I'll be glad to fix it.  It needs
-;; documentation in the manual (also on my to-do list).
+;; better documentation in the manual (also on my to-do list).
+
+;; If you want to track recipients (and you should to make the
+;; gnus-registry splitting work better), you need the To and Cc
+;; headers collected by Gnus:
+
+;; ;;; you may also want Gcc Newsgroups Keywords X-Face
+;; (add-to-list 'gnus-extra-headers 'To)
+;; (add-to-list 'gnus-extra-headers 'Cc)
+;; (setq nnmail-extra-headers gnus-extra-headers)
 
 ;; Put this in your startup file (~/.gnus.el for instance) or use Customize:
 
@@ -132,16 +141,6 @@ The group names are matched, they don't have to be fully
 qualified.  This parameter tells the Gnus registry 'never split a
 message into a group that matches one of these, regardless of
 references.'
-
-nnmairix groups are specifically excluded because they are ephemeral."
-  :group 'gnus-registry
-  :type '(repeat regexp))
-
-(defcustom gnus-registry-ignored-groups
-  '("delayed$" "drafts$" "queue$" "INBOX$" "^nnmairix:" "archive")
-  "List of groups that the Gnus Registry will ignore.
-The group names are matched, they don't have to be fully
-qualified.
 
 nnmairix groups are specifically excluded because they are ephemeral."
   :group 'gnus-registry
@@ -313,9 +312,10 @@ This is not required after changing `gnus-registry-cache-file'."
 (defun gnus-registry-action (action data-header from &optional to method)
   (let* ((id (mail-header-id data-header))
          (subject (mail-header-subject data-header))
+         (extra (mail-header-extra data-header))
          (recipients (gnus-registry-sort-addresses
-		      (or (cdr (assq "Cc" data-header)) "")
-		      (or (cdr (assq "To" data-header)) "")))
+                      (or (cdr-safe (assq 'Cc extra)) "")
+                      (or (cdr-safe (assq 'To extra)) "")))
          (sender (nth 0 (gnus-registry-extract-addresses
                          (mail-header-from data-header))))
          (from (gnus-group-guess-full-name-from-command-method from))
@@ -333,9 +333,9 @@ This is not required after changing `gnus-registry-cache-file'."
 (defun gnus-registry-spool-action (id group &optional subject sender recipients)
   (let ((to (gnus-group-guess-full-name-from-command-method group))
         (recipients (or recipients
-			(gnus-registry-sort-addresses
-			 (or (message-fetch-field "cc") "")
-			 (or (message-fetch-field "to") ""))))
+                        (gnus-registry-sort-addresses
+                         (or (message-fetch-field "cc") "")
+                         (or (message-fetch-field "to") ""))))
         (subject (or subject (message-fetch-field "subject")))
         (sender (or sender (message-fetch-field "from"))))
     (when (and (stringp id) (string-match "\r$" id))
@@ -414,8 +414,8 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
          (sender (gnus-string-remove-all-properties
                   (message-fetch-field "from")))
          (recipients (gnus-registry-sort-addresses
-		      (or (message-fetch-field "cc") "")
-		      (or (message-fetch-field "to") "")))
+                      (or (message-fetch-field "cc") "")
+                      (or (message-fetch-field "to") "")))
          (subject (gnus-string-remove-all-properties
                    (gnus-registry-simplify-subject
                     (message-fetch-field "subject"))))
@@ -655,17 +655,28 @@ Consults `gnus-registry-unfollowed-groups' and
                  group
                  nnmail-split-fancy-with-parent-ignore-groups)))))
 
+;; note that gnus-registry-ignored-groups is defined in gnus.el as a
+;; group/topic parameter and an associated variable!
+
+;; we do special logic for ignoring to accept regular expressions and
+;; nnmail-split-fancy-with-parent-ignore-groups as well
 (defun gnus-registry-ignore-group-p (group)
   "Determines if a group name should be ignored.
 Consults `gnus-registry-ignored-groups' and
 `nnmail-split-fancy-with-parent-ignore-groups'."
   (and group
-       (not (or (gnus-grep-in-list
-                 group
-                 gnus-registry-ignored-groups)
-                (gnus-grep-in-list
-                 group
-                 nnmail-split-fancy-with-parent-ignore-groups)))))
+       (or (gnus-parameter-registry-ignore group)
+           (gnus-grep-in-list
+            group
+            (delq nil (mapcar (lambda (g)
+                                (cond
+                                 ((stringp g) g)
+                                 ((and (listp g) (nth 1 g))
+                                  (nth 0 g))
+                                 (t nil))) gnus-registry-ignored-groups)))
+           (gnus-grep-in-list
+            group
+            nnmail-split-fancy-with-parent-ignore-groups))))
 
 (defun gnus-registry-wash-for-keywords (&optional force)
   "Get the keywords of the current article.
@@ -738,7 +749,7 @@ Addresses without a name will say \"noname\"."
 (defun gnus-registry-sort-addresses (&rest addresses)
   "Return a normalized and sorted list of ADDRESSES."
   (sort (apply 'nconc (mapcar 'gnus-registry-extract-addresses addresses))
-	'string-lessp))
+        'string-lessp))
 
 (defun gnus-registry-simplify-subject (subject)
   (if (stringp subject)
@@ -769,7 +780,7 @@ Addresses without a name will say \"noname\"."
            (assoc article (gnus-data-list nil)))
       (gnus-string-remove-all-properties
        (cdr (assq header (gnus-data-header
-			  (assoc article (gnus-data-list nil))))))
+                          (assoc article (gnus-data-list nil))))))
     nil))
 
 ;; registry marks glue
@@ -998,7 +1009,7 @@ only the last one's marks are returned."
                extra-cell key val)
           ;; remove all the strings from the entry
           (dolist (elem rest)
-	    (if (stringp elem) (setq rest (delq elem rest))))
+            (if (stringp elem) (setq rest (delq elem rest))))
           (gnus-registry-set-id-key id 'group groups)
           ;; just use the first extra element
           (setq rest (car-safe rest))
