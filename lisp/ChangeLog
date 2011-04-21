@@ -1,5 +1,11 @@
 2011-04-21  Juanma Barranquero  <lekktu@gmail.com>
 
+	* play/mpuz.el (mpuz-silent): Doc fix.
+	(mpuz-mode-map): Move initialization into declaration.
+	(mpuz-put-number-on-board): Rename parameter L to COLUMNS.
+	(mpuz-letter-to-digit, mpuz-check-all-solved, mpuz-create-buffer):
+	Fix typos in docstrings.
+
 	* play/doctor.el (doc$, doctor-$, doctor-read-print, doctor-read-token)
 	(doctor-nounp, doctor-pronounp): Fix typos in docstrings.
 

@@ -40,7 +40,7 @@
 
 (defcustom mpuz-silent 'error
   "Set this to nil if you want dings on inputs.
-t means never ding, and `error' means only ding on wrong input."
+The value t means never ding, and `error' means only ding on wrong input."
   :type '(choice (const :tag "No" nil)
 		 (const :tag "Yes" t)
 		 (const :tag "If correct" error))
@@ -87,33 +87,15 @@ t means never ding, and `error' means only ding on wrong input."
   :type 'hook
   :group 'mpuz)
 
-(defvar mpuz-mode-map nil
+(defvar mpuz-mode-map
+  (let ((map (make-sparse-keymap)))
+    (mapc (lambda (ch)
+            (define-key map (char-to-string ch) 'mpuz-try-letter))
+          "abcdefghijABCDEFGHIJ")
+    (define-key map "\C-g" 'mpuz-offer-abort)
+    (define-key map "?" 'describe-mode)
+    map)
   "Local keymap to use in Mult Puzzle.")
-
-(if mpuz-mode-map nil
-  (setq mpuz-mode-map (make-sparse-keymap))
-  (define-key mpuz-mode-map "a" 'mpuz-try-letter)
-  (define-key mpuz-mode-map "b" 'mpuz-try-letter)
-  (define-key mpuz-mode-map "c" 'mpuz-try-letter)
-  (define-key mpuz-mode-map "d" 'mpuz-try-letter)
-  (define-key mpuz-mode-map "e" 'mpuz-try-letter)
-  (define-key mpuz-mode-map "f" 'mpuz-try-letter)
-  (define-key mpuz-mode-map "g" 'mpuz-try-letter)
-  (define-key mpuz-mode-map "h" 'mpuz-try-letter)
-  (define-key mpuz-mode-map "i" 'mpuz-try-letter)
-  (define-key mpuz-mode-map "j" 'mpuz-try-letter)
-  (define-key mpuz-mode-map "A" 'mpuz-try-letter)
-  (define-key mpuz-mode-map "B" 'mpuz-try-letter)
-  (define-key mpuz-mode-map "C" 'mpuz-try-letter)
-  (define-key mpuz-mode-map "D" 'mpuz-try-letter)
-  (define-key mpuz-mode-map "E" 'mpuz-try-letter)
-  (define-key mpuz-mode-map "F" 'mpuz-try-letter)
-  (define-key mpuz-mode-map "G" 'mpuz-try-letter)
-  (define-key mpuz-mode-map "H" 'mpuz-try-letter)
-  (define-key mpuz-mode-map "I" 'mpuz-try-letter)
-  (define-key mpuz-mode-map "J" 'mpuz-try-letter)
-  (define-key mpuz-mode-map "\C-g" 'mpuz-offer-abort)
-  (define-key mpuz-mode-map "?" 'describe-mode))
 
 (defun mpuz-mode ()
   "Multiplication puzzle mode.
@@ -171,7 +153,7 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
   "A permutation from [0..9] to [0..9].")
 
 (defvar mpuz-letter-to-digit (make-vector 10 0)
-  "The inverse of mpuz-digit-to-letter.")
+  "The inverse of `mpuz-digit-to-letter'.")
 
 (defmacro mpuz-to-digit (letter)
   (list 'aref 'mpuz-letter-to-digit letter))
@@ -198,17 +180,16 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 (defvar mpuz-board (make-vector 10 nil)
   "The board associates to any digit the list of squares where it appears.")
 
-(defun mpuz-put-number-on-board (number row &rest l)
+(defun mpuz-put-number-on-board (number row &rest columns)
   "Put (last digit of) NUMBER on ROW and COLUMNS of the puzzle board."
   (let (digit)
-    (while l
+    (dolist (column columns)
       (setq digit (% number 10)
-	    number (/ number 10))
-      (aset mpuz-board digit `((,row . ,(car l)) ,@(aref mpuz-board digit)))
-      (setq l (cdr l)))))
+            number (/ number 10))
+      (aset mpuz-board digit `((,row . ,column) ,@(aref mpuz-board digit))))))
 
 (defun mpuz-check-all-solved (&optional row col)
-  "Check whether all digits have been solved. Return t if yes."
+  "Check whether all digits have been solved.  Return t if yes."
   (catch 'solved
     (let (A B1 B2 C D E squares)
       (and mpuz-solve-when-trivial
@@ -294,7 +275,7 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
   "The general picture of the puzzle screen, as a string.")
 
 (defun mpuz-create-buffer ()
-  "Create (or recreate) the puzzle buffer. Return it."
+  "Create (or recreate) the puzzle buffer.  Return it."
   (let ((buf (get-buffer-create "*Mult Puzzle*"))
 	(face '(face mpuz-text))
 	buffer-read-only)
