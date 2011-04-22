@@ -7,6 +7,7 @@
 	lib/inttypes.in.h, lib/strtoimax.c, lib/strtol.c, lib/strtoul.c,
 	lib/strtoull.c, lib/strtoumax.c, lib/verify.h, m4/inttypes.m4,
 	m4/strtoull.m4, m4/strtoumax.m4.
+	* .bzrignore: Add lib/inttypes.h.
 
 2011-04-20  Ken Brown  <kbrown@cornell.edu>
 
