@@ -45,6 +45,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module intprops:
   # Code from module inttypes:
   # Code from module lstat:
+  # Code from module manywarnings:
   # Code from module mktime:
   # Code from module multiarch:
   # Code from module readlink:
@@ -57,11 +58,6 @@ AC_DEFUN([gl_EARLY],
   # Code from module stdio:
   # Code from module stdlib:
   # Code from module strftime:
-  # Code from module strtoimax:
-  # Code from module strtol:
-  # Code from module strtoll:
-  # Code from module strtoul:
-  # Code from module strtoull:
   # Code from module strtoumax:
   # Code from module symlink:
   # Code from module sys_stat:
@@ -70,7 +66,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module unistd:
   # Code from module verify:
   # Code from module warn-on-use:
-  # Code from module wchar:
+  # Code from module warnings:
 ])
 
 # This macro should be invoked from ./configure.in, in the section
@@ -122,6 +118,7 @@ AC_DEFUN([gl_INIT],
   # Code from module lstat:
   gl_FUNC_LSTAT
   gl_SYS_STAT_MODULE_INDICATOR([lstat])
+  # Code from module manywarnings:
   # Code from module mktime:
   gl_FUNC_MKTIME
   gl_TIME_MODULE_INDICATOR([mktime])
@@ -149,19 +146,6 @@ AC_DEFUN([gl_INIT],
   gl_STDLIB_H
   # Code from module strftime:
   gl_FUNC_GNU_STRFTIME
-  # Code from module strtoimax:
-  gl_FUNC_STRTOIMAX
-  gl_INTTYPES_MODULE_INDICATOR([strtoimax])
-  # Code from module strtol:
-  gl_FUNC_STRTOL
-  # Code from module strtoll:
-  gl_FUNC_STRTOLL
-  gl_STDLIB_MODULE_INDICATOR([strtoll])
-  # Code from module strtoul:
-  gl_FUNC_STRTOUL
-  # Code from module strtoull:
-  gl_FUNC_STRTOULL
-  gl_STDLIB_MODULE_INDICATOR([strtoull])
   # Code from module strtoumax:
   gl_FUNC_STRTOUMAX
   gl_INTTYPES_MODULE_INDICATOR([strtoumax])
@@ -180,8 +164,8 @@ AC_DEFUN([gl_INIT],
   gl_UNISTD_H
   # Code from module verify:
   # Code from module warn-on-use:
-  # Code from module wchar:
-  gl_WCHAR_H
+  # Code from module warnings:
+  AC_SUBST([WARN_CFLAGS])
   # End of code from modules
   m4_ifval(gl_LIBSOURCES_LIST, [
     m4_syscmd([test ! -d ]m4_defn([gl_LIBSOURCES_DIR])[ ||
@@ -360,7 +344,6 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/strftime.h
   lib/strtoimax.c
   lib/strtol.c
-  lib/strtoll.c
   lib/strtoul.c
   lib/strtoull.c
   lib/strtoumax.c
@@ -370,7 +353,6 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/time_r.c
   lib/unistd.in.h
   lib/verify.h
-  lib/wchar.in.h
   m4/00gnulib.m4
   m4/c-strtod.m4
   m4/extensions.m4
@@ -379,10 +361,10 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/getopt.m4
   m4/gnulib-common.m4
   m4/include_next.m4
-  m4/inttypes-pri.m4
   m4/inttypes.m4
   m4/longlong.m4
   m4/lstat.m4
+  m4/manywarnings.m4
   m4/md5.m4
   m4/mktime.m4
   m4/multiarch.m4
@@ -397,10 +379,6 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/stdio_h.m4
   m4/stdlib_h.m4
   m4/strftime.m4
-  m4/strtoimax.m4
-  m4/strtol.m4
-  m4/strtoll.m4
-  m4/strtoul.m4
   m4/strtoull.m4
   m4/strtoumax.m4
   m4/symlink.m4
@@ -410,7 +388,6 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/tm_gmtoff.m4
   m4/unistd_h.m4
   m4/warn-on-use.m4
-  m4/wchar_h.m4
+  m4/warnings.m4
   m4/wchar_t.m4
-  m4/wint_t.m4
 ])

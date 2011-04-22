@@ -186,9 +186,8 @@
 # define LOCALE_PARAM_PROTO
 #endif
 
-#include <wchar.h>
-
 #ifdef USE_WIDE_CHAR
+# include <wchar.h>
 # include <wctype.h>
 # define L_(Ch) L##Ch
 # define UCHAR_TYPE wint_t
