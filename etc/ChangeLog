@@ -1,3 +1,9 @@
+2011-04-22  Noah Friedman  <friedman@splode.com>
+
+	* emacs-buffer.gdb: Add trailing underscores to appropriate member
+	names, per change tromey@redhat.com-20110214153919-bxkckrdmmg4qhyyj
+	of src/lisp.h.
+
 2011-04-08  Christoph Scholtes  <cschol2112@googlemail.com>
 
 	* NEWS: Document new function `vc-ediff'.
