@@ -32,6 +32,7 @@ AC_DEFUN([gl_FUNC_STRTOUMAX],
 
 # Prerequisites of lib/strtoumax.c.
 AC_DEFUN([gl_PREREQ_STRTOUMAX], [
+  AC_CHECK_DECLS([strtoull])
   AC_REQUIRE([AC_TYPE_UNSIGNED_LONG_LONG_INT])
   gl_FUNC_STRTOULL
 ])

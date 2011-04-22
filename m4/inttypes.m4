@@ -10,10 +10,13 @@ dnl Test whether <inttypes.h> is supported or must be substituted.
 AC_DEFUN([gl_INTTYPES_H],
 [
   AC_REQUIRE([gl_STDINT_H])
+  AC_CHECK_HEADERS_ONCE([inttypes.h])
 
   dnl Override <inttypes.h> always, so that the portability warnings work.
   AC_REQUIRE([gl_INTTYPES_H_DEFAULTS])
   gl_CHECK_NEXT_HEADERS([inttypes.h])
+
+  AC_REQUIRE([gl_MULTIARCH])
 
   dnl Ensure that <stdint.h> defines the limit macros, since gnulib's
   dnl <inttypes.h> relies on them.  This macro is only needed when a
