@@ -1,5 +1,11 @@
 2011-04-22  Juanma Barranquero  <lekktu@gmail.com>
 
+	* eshell/esh-mode.el (find-tag-interactive): Declare function.
+	(eshell-find-tag): Remove `with-no-warnings', unneeded now.
+	Pass argument NO-DEFAULT to `find-tag-interactive'.
+
+2011-04-22  Juanma Barranquero  <lekktu@gmail.com>
+
 	Lexical-binding cleanup.
 
 	* progmodes/ada-mode.el (ada-after-change-function, ada-loose-case-word)
