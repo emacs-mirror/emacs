@@ -1,3 +1,10 @@
+2011-04-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.in: Suppress unnecessary checks for size_t.
+	(AC_TYPE_SIZE_T): Define an empty macro, to suppress obsolescent test.
+	(size_t): Do not check for this, and do not typedef.  This code
+	is never exercised now.
+
 2011-04-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in (GNULIB_MODULES): Add strtoumax.

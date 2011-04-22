@@ -987,6 +987,9 @@ else
   CPPFLAGS="$C_SWITCH_SYSTEM $C_SWITCH_MACHINE $CPPFLAGS"
 fi
 
+# Suppress obsolescent Autoconf test for size_t; Emacs assumes C89 or better.
+AC_DEFUN([AC_TYPE_SIZE_T])
+
 dnl Do this early because it can frob feature test macros for Unix-98 &c.
 AC_SYS_LARGEFILE
 
@@ -3026,8 +3029,6 @@ if test $emacs_cv_langinfo_codeset = yes; then
     [Define if you have <langinfo.h> and nl_langinfo(CODESET).])
 fi
 
-AC_CHECK_TYPES(size_t)
-
 AC_TYPE_MBSTATE_T
 
 AC_CACHE_CHECK([for C restricted array declarations], emacs_cv_c_restrict_arr,
@@ -3551,10 +3552,6 @@ AH_BOTTOM([
 extern "C"
 # endif
 void *alloca (size_t);
-#endif
-
-#ifndef HAVE_SIZE_T
-typedef unsigned size_t;
 #endif
 
 #ifndef HAVE_STRCHR
