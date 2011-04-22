@@ -1,3 +1,12 @@
+2011-04-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package--builtins, package-alist)
+	(package-load-descriptor, package-built-in-p, package-activate)
+	(define-package, package-installed-p)
+	(package-compute-transaction, package-buffer-info)
+	(package--push): Doc fix.  Distinguish more clearly between
+	version strings and version lists.
+
 2011-04-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	Lexical-binding cleanup.
