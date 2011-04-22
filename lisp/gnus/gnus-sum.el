@@ -1128,7 +1128,7 @@ which it may alter in any way."
   'mail-decode-encoded-address-string
   "Function used to decode addresses with encoded words.")
 
-(defcustom gnus-extra-headers '(To Newsgroups)
+(defcustom gnus-extra-headers '(To Cc Keywords Gcc Newsgroups)
   "*Extra headers to parse."
   :version "21.1"
   :group 'gnus-summary

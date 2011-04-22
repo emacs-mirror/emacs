@@ -1,9 +1,15 @@
 2011-04-21  Teodor Zlatanov  <tzz@lifelogs.com>
 
+	* gnus-sum.el (gnus-extra-headers): Add Keywords, Cc, and Gcc to
+	default.
+
 	* gnus.el (gnus-registry-ignored-groups): Provide default in gnus.el,
 	not gnus-registry.el.
 
-	* gnus-registry.el (gnus-registry-ignored-groups): Remove defcustom.
+	* gnus-registry.el: Mention in comments how to modify
+	`gnus-extra-headers' for proper recipient tracking and that it may
+	already have To and Cc recently, which it does as of this commit.
+	(gnus-registry-ignored-groups): Remove defcustom.
 	Explain why in comments.
 	(gnus-registry-action): Fix data-header reference to use the extra
 	headers.  Explain in package commentary how to add To and Cc headers to

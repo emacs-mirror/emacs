@@ -35,7 +35,8 @@
 
 ;; If you want to track recipients (and you should to make the
 ;; gnus-registry splitting work better), you need the To and Cc
-;; headers collected by Gnus:
+;; headers collected by Gnus.  Note that in more recent Gnus versions
+;; this is already the case: look at `gnus-extra-headers' to be sure.
 
 ;; ;;; you may also want Gcc Newsgroups Keywords X-Face
 ;; (add-to-list 'gnus-extra-headers 'To)
