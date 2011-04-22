@@ -1,3 +1,7 @@
+2011-04-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* buff-menu.el (Buffer-menu--buffers): Fix typo in docstring (bug#8535).
+
 2011-04-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* play/mpuz.el (mpuz-silent): Doc fix.
