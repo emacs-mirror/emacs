@@ -1,3 +1,161 @@
+2011-04-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	Lexical-binding cleanup.
+
+	* progmodes/ada-mode.el (ada-after-change-function, ada-loose-case-word)
+	(ada-no-auto-case, ada-capitalize-word, ada-untab, ada-narrow-to-defun):
+	* progmodes/ada-prj.el (ada-prj-initialize-values)
+	(ada-prj-display-page, ada-prj-field-modified, ada-prj-display-help)
+	(ada-prj-show-value):
+	* progmodes/ada-xref.el (ada-find-any-references, ada-gdb-application):
+	* progmodes/antlr-mode.el (antlr-with-displaying-help-buffer)
+	(antlr-invalidate-context-cache, antlr-options-menu-filter)
+	(antlr-language-option-extra, antlr-c++-mode-extra, antlr-run-tool):
+	* progmodes/bug-reference.el (bug-reference-push-button):
+	* progmodes/fortran.el (fortran-line-length):
+	* progmodes/glasses.el (glasses-change):
+	* progmodes/octave-mod.el (octave-fill-paragraph):
+	* progmodes/python.el (python-mode, python-pdbtrack-track-stack-file)
+	(python-pdbtrack-grub-for-buffer, python-sentinel):
+	* progmodes/sql.el (sql-save-connection):
+	* progmodes/tcl.el (tcl-indent-command, tcl-popup-menu):
+	* progmodes/xscheme.el (xscheme-enter-debugger-mode):
+	Mark unused parameters.
+
+	* progmodes/compile.el (compilation--flush-directory-cache)
+	(compilation--flush-parse, compile-internal): Mark unused parameters.
+	(compilation-buffer-name): Rename parameter MODE-NAME to NAME-OF-MODE.
+	(compilation-next-error-function): Remove unused variable `timestamp'.
+
+	* progmodes/cpp.el (cpp-parse-close): Remove unused variable `begin'.
+	(cpp-signal-read-only, cpp-grow-overlay): Mark unused parameters.
+
+	* progmodes/dcl-mode.el (dcl-end-of-command):
+	Remove unused variable `start'.
+	(dcl-calc-command-indent-multiple, dcl-calc-cont-indent-relative)
+	(dcl-option-value-basic, dcl-option-value-offset)
+	(dcl-option-value-margin-offset, dcl-option-value-comment-line):
+	Mark unused parameters.
+	(dcl-save-local-variable): Remove unused variable `val'.
+	(mode): Declare.
+
+	* progmodes/delphi.el (delphi-save-state, delphi-after-change):
+	Mark unused parameters.
+	(delphi-ignore-changes): Move before first use.
+	(delphi-charset-token-at): Remove unused variable `start'.
+	(delphi-else-start): Remove unused variable `if-count'.
+	(delphi-comment-block-start, delphi-comment-block-end):
+	Remove unused variable `kind'.
+	(delphi-indent-line): Remove unused variable `new-point'.
+
+	* progmodes/ebrowse.el (ebrowse-files-list)
+	(ebrowse-list-of-matching-members, ebrowse-tags-list-members-in-file):
+	Mark unused parameters.  Don't quote `lambda'.
+	(ebrowse-sort-tree-list, ebrowse-same-tree-member-buffer-list):
+	Don't quote `lambda'.
+	(ebrowse-revert-tree-buffer-from-file, ebrowse-tags-choose-class)
+	(ebrowse-goto-visible-member/all-member-lists): Mark unused parameters.
+	(ebrowse-create-tree-buffer): Rename parameter OBARRAY to CLASSES.
+	(ebrowse-toggle-mark-at-point): Remove unused variable `pnt'.
+	Use `ignore-errors'.
+	(ebrowse-frozen-tree-buffer-name, ebrowse-find-source-file)
+	(ebrowse-view/find-file-and-search-pattern)
+	(ebrowse-view/find-member-declaration/definition):
+	Rename parameter TAGS-FILE-NAME to TAGS-FILE.
+	(ebrowse-find-class-declaration, ebrowse-view-class-declaration):
+	Rename parameter PREFIX-ARG to PREFIX.
+	(ebrowse-tags-read-name): Remove unused variables `start' and
+	`member-info'.
+	(ebrowse-display-member-buffer): Rename variable `tags-file-name'
+	to `tags-file'.
+
+	* progmodes/etags.el (local-find-tag-hook): Declare.
+	(tag-partial-file-name-match-p, tag-any-match-p, list-tags):
+	Mark unused parameters.
+
+	* progmodes/executable.el (compilation-error-regexp-alist): Declare.
+	(executable-interpret): Mark unused parameter.
+
+	* progmodes/flymake.el (flymake-process-sentinel)
+	(flymake-after-change-function)
+	(flymake-create-temp-with-folder-structure)
+	(flymake-get-include-dirs-dot): Mark unused parameters.
+	(flymake-safe-delete-directory): Remove unused variable `err'.
+
+	* progmodes/gdb-mi.el (speedbar-change-initial-expansion-list)
+	(speedbar-timer-fn, speedbar-line-text)
+	(speedbar-change-expand-button-char, speedbar-delete-subblock)
+	(speedbar-center-buffer-smartly): Declare functions.
+	(gdb-find-watch-expression): Remove unused variable `array'.
+	(gdb-edit-value, gdb-gdb, gdb-ignored-notification, gdb-thread-created)
+	(gdb-starting): Mark unused parameters.
+	(gud-gdbmi-marker-filter): Remove unused variable `output-record'.
+	(gdb-table-string): Remove unused variable `res'.
+	(gdb-place-breakpoints): Remove unused variables `flag' and `bptno'.
+	(gdb-disassembly-handler-custom): Remove unused variable `pos'.
+	(gdb-display-buffer): Remove unused variable `cur-size'.
+
+	* progmodes/gud.el (gud-def): Use `defalias' instead of `defun' to
+	allow lexical-binding compilation.
+	(gud-expansion-speedbar-buttons, gud-gdb-goto-stackframe)
+	(gud-dbx-massage-args, gud-xdb-massage-args, gud-perldb-massage-args)
+	(gud-jdb-massage-args, gud-jdb-find-source, gud-find-class):
+	Mark unused parameters.
+	(gud-gdb-marker-filter): Remove unused variable `match'.
+	(gud-find-class): Bind `syntax-symbol' and `syntax-point' to suitable
+	lambda expressions and funcall them, instead of using `fset'.
+
+	* progmodes/hideif.el (hif-parse-if-exp): Rename parameter
+	HIF-TOKEN-LIST to TOKEN-LIST and let-bind `hif-token-list'.
+
+	* progmodes/hideshow.el (hs-hide-block-at-point): Remove unused
+	variable `header-beg'; use `let'.
+
+	* progmodes/icon.el (indent-icon-exp): Remove unused variables
+	`restart', `last-sexp' and `at-do'.
+
+	* progmodes/js.el (js--debug): Mark unused parameter.
+	(js--parse-state-at-point): Remove unused variable `bound'; use `let'.
+	(js--splice-into-items): Remove unused variable `item'.
+	(js--read-symbol, js--read-tab): Pass 1/-1 to `ido-mode', not t/nil.
+
+	* progmodes/make-mode.el (makefile-make-font-lock-keywords):
+	Rename parameter FONT-LOCK-KEYWORDS to FL-KEYWORDS.
+	(makefile-complete): Remove unused variable `try'.
+	(makefile-fill-paragraph, makefile-match-function-end):
+	Mark unused parameters.
+
+	* progmodes/octave-inf.el (inferior-octave-complete):
+	Remove unused variable `proc'.
+	(inferior-octave-output-digest): Mark unused parameter.
+
+	* progmodes/perl-mode.el (perl-calculate-indent):
+	Remove unused variable `err'.
+
+	* progmodes/prolog.el (prolog-mode-keybindings-inferior)
+	(prolog-indent-line): Mark unused parameters.
+	(prolog-indent-line): Remove unused variable `beg'.
+
+	* progmodes/ps-mode.el (reporter-prompt-for-summary-p)
+	(reporter-dont-compact-list): Declare.
+
+	* progmodes/sh-script.el (sh-font-lock-quoted-subshell):
+	Remove unused variable `char'.
+	(sh-debug): Mark unused parameter.
+	(sh-get-indent-info): Remove unused variable `start'.
+	(sh-calculate-indent): Remove unused variable `var'.
+
+	* progmodes/simula.el (simula-popup-menu): Mark unused parameter.
+	(simula-electric-keyword): Remove unused variable `null'.
+	(simula-search-backward, simula-search-forward): Remove unused
+	variables `begin' and `end'.
+
+	* progmodes/vera-mode.el (vera-guess-basic-syntax):
+	Remove unused variable `pos'.
+	(vera-electric-tab, vera-comment-uncomment-region):
+	Mark unused parameters.
+	(vera-electric-tab): Rename parameter PREFIX-ARG to PREFIX.
+
 2011-04-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/package.el (package--builtins, package-alist)

@@ -596,7 +596,7 @@ It's flymake process filter."
       (with-current-buffer source-buffer
         (flymake-parse-output-and-residual output)))))
 
-(defun flymake-process-sentinel (process event)
+(defun flymake-process-sentinel (process _event)
   "Sentinel for syntax check buffers."
   (when (memq (process-status process) '(signal exit))
     (let* ((exit-status       (process-exit-status process))
@@ -1110,7 +1110,7 @@ For the format of LINE-ERR-INFO, see `flymake-ler-make-ler'."
     (flymake-log 1 "deleted file %s" file-name)))
 
 (defun flymake-safe-delete-directory (dir-name)
-  (condition-case err
+  (condition-case nil
       (progn
 	(delete-directory dir-name)
 	(flymake-log 1 "deleted dir %s" dir-name))
@@ -1386,7 +1386,7 @@ With arg, turn Flymake mode on if and only if arg is positive."
   :group 'flymake
   :type 'boolean)
 
-(defun flymake-after-change-function (start stop len)
+(defun flymake-after-change-function (start stop _len)
   "Start syntax check for current buffer if it isn't already running."
   ;;+(flymake-log 0 "setting change time to %s" (flymake-float-time))
   (let((new-text (buffer-substring start stop)))
@@ -1496,7 +1496,7 @@ With arg, turn Flymake mode on if and only if arg is positive."
     (flymake-log 3 "create-temp-inplace: file=%s temp=%s" file-name temp-name)
     temp-name))
 
-(defun flymake-create-temp-with-folder-structure (file-name prefix)
+(defun flymake-create-temp-with-folder-structure (file-name _prefix)
   (unless (stringp file-name)
     (error "Invalid file-name"))
 
@@ -1763,7 +1763,7 @@ Use CREATE-TEMP-F for creating temp copy."
     (when temp-master-file-name
       (flymake-get-tex-args temp-master-file-name))))
 
-(defun flymake-get-include-dirs-dot (base-dir)
+(defun flymake-get-include-dirs-dot (_base-dir)
   '("."))
 
 ;;;; xml-specific init-cleanup routines

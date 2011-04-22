@@ -92,7 +92,7 @@ If there is none, opens a new project file."
       (ada-customize)
     (ada-prj-new)))
 
-(defun ada-prj-initialize-values (symbol ada-buffer filename)
+(defun ada-prj-initialize-values (symbol _ada-buffer filename)
   "Set SYMBOL to the property list of the project file FILENAME.
 If FILENAME is null, read the file associated with ADA-BUFFER.
 If no project file is found, return the default values."
@@ -257,19 +257,19 @@ The current buffer must be the project editing buffer."
   (widget-insert "\n               Project configuration.\n
   ___________    ____________    ____________    ____________    ____________\n / ")
   (widget-create 'push-button :notify
-		 (lambda (&rest dummy) (ada-prj-display-page 1)) "General")
+		 (lambda (&rest _dummy) (ada-prj-display-page 1)) "General")
   (widget-insert " \\  /   ")
   (widget-create 'push-button :notify
-		 (lambda (&rest dummy) (ada-prj-display-page 2)) "Paths")
+		 (lambda (&rest _dummy) (ada-prj-display-page 2)) "Paths")
   (widget-insert "  \\  / ")
   (widget-create 'push-button :notify
-		 (lambda (&rest dummy) (ada-prj-display-page 3)) "Switches")
+		 (lambda (&rest _dummy) (ada-prj-display-page 3)) "Switches")
   (widget-insert " \\  / ")
   (widget-create 'push-button :notify
-		 (lambda (&rest dummy) (ada-prj-display-page 4)) "Ada Menu")
+		 (lambda (&rest _dummy) (ada-prj-display-page 4)) "Ada Menu")
   (widget-insert " \\  / ")
   (widget-create 'push-button :notify
-		 (lambda (&rest dummy) (ada-prj-display-page 5)) "Debugger")
+		 (lambda (&rest _dummy) (ada-prj-display-page 5)) "Debugger")
   (widget-insert " \\\n")
 
   ;;  Display the currently selected page
@@ -458,15 +458,15 @@ connect to the target when working with cross-environments" t)
 
   (widget-insert "______________________________________________________________________\n\n       ")
   (widget-create 'push-button
-		 :notify (lambda (&rest ignore)
+		 :notify (lambda (&rest _ignore)
 			   (setq ada-prj-current-values (ada-default-prj-properties))
 			   (ada-prj-display-page 1))
 		 "Reset to Default Values")
   (widget-insert "         ")
-  (widget-create 'push-button :notify (lambda (&rest ignore) (kill-buffer nil))
+  (widget-create 'push-button :notify (lambda (&rest _ignore) (kill-buffer nil))
 		 "Cancel")
   (widget-insert "         ")
-  (widget-create 'push-button :notify (lambda (&rest ignore) (ada-prj-save))
+  (widget-create 'push-button :notify (lambda (&rest _ignore) (ada-prj-save))
 		 "Save")
   (widget-insert "\n\n")
 
@@ -546,7 +546,7 @@ converted to a directory name."
 	     ada-list "\n"))
 
 
-(defun ada-prj-field-modified (widget &rest dummy)
+(defun ada-prj-field-modified (widget &rest _dummy)
   "Callback for modification of WIDGET.
 Remaining args DUMMY are ignored.
 Save the change in `ada-prj-current-values' so that selecting
@@ -556,7 +556,7 @@ another page and coming back keeps the new value."
 		  (widget-get widget ':prj-field)
 		  (widget-value widget))))
 
-(defun ada-prj-display-help (widget widget-modified event)
+(defun ada-prj-display-help (widget _widget-modified event)
   "Callback for help button in WIDGET.
 Parameters WIDGET-MODIFIED, EVENT match :notify for the widget."
   (let ((text (widget-get widget 'prj-help)))
@@ -572,7 +572,7 @@ Parameters WIDGET-MODIFIED, EVENT match :notify for the widget."
        (concat "*****Help*****\n" text "\n**************\n")
        (point-at-bol 2)))))
 
-(defun ada-prj-show-value (widget widget-modified event)
+(defun ada-prj-show-value (widget _widget-modified event)
   "Show the current field value in WIDGET.
 Parameters WIDGET-MODIFIED, EVENT match :notify for the widget."
   (let* ((field (widget-get widget ':prj-field))

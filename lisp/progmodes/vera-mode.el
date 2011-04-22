@@ -1,4 +1,4 @@
-;;; vera-mode.el --- major mode for editing Vera files.
+;;; vera-mode.el --- major mode for editing Vera files
 
 ;; Copyright (C) 1997-2011 Free Software Foundation, Inc.
 
@@ -1077,7 +1077,7 @@ try to increase performance by using this macro."
   (save-excursion
     (beginning-of-line)
     (let ((indent-point (point))
-	  syntax state placeholder pos)
+	  syntax state placeholder)
       ;; determine syntax state
       (setq state (parse-partial-sexp (point-min) (point)))
       (cond
@@ -1240,7 +1240,7 @@ Calls `indent-region' for whole buffer."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; electrifications
 
-(defun vera-electric-tab (&optional prefix-arg)
+(defun vera-electric-tab (&optional prefix)
   "Do what I mean (indent, expand, tab, change indent, etc..).
 If preceding character is part of a word or a paren then `hippie-expand',
 else if right of non whitespace on line then `tab-to-tab-stop',
@@ -1260,7 +1260,7 @@ If `vera-intelligent-tab' is nil, always indent line."
 		      (or (and (boundp 'hippie-expand-only-buffers)
 			       hippie-expand-only-buffers)
 			  '(vera-mode))))
-		 (vera-expand-abbrev prefix-arg)))
+		 (vera-expand-abbrev prefix)))
 	      ((> (current-column) (current-indentation))
 	       (tab-to-tab-stop))
 	      ((and (or (eq last-command 'vera-electric-tab)
@@ -1402,7 +1402,7 @@ If `vera-intelligent-tab' is nil, always indent line."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Comments
 
-(defun vera-comment-uncomment-region (beg end &optional arg)
+(defun vera-comment-uncomment-region (beg end &optional _arg)
   "Comment region if not commented, uncomment region if already commented."
   (interactive "r\nP")
   (goto-char beg)

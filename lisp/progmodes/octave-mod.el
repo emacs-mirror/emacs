@@ -893,7 +893,7 @@ otherwise."
 	    (setq give-up t))))
       (not give-up))))
 
-(defun octave-fill-paragraph (&optional arg)
+(defun octave-fill-paragraph (&optional _arg)
   "Fill paragraph of Octave code, handling Octave comments."
   ;; FIXME: difference with generic fill-paragraph:
   ;; - code lines are only split, never joined.

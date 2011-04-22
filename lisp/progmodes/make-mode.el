@@ -343,7 +343,7 @@ not be enclosed in { } or ( )."
 
 (defun makefile-make-font-lock-keywords (var keywords space
 					     &optional negation
-					     &rest font-lock-keywords)
+					     &rest fl-keywords)
   `(;; Do macro assignments.  These get the "variable-name" face.
     (,makefile-macroassign-regex
      (1 font-lock-variable-name-face)
@@ -393,7 +393,7 @@ not be enclosed in { } or ( )."
 	    ;; They can make a tab fail to be effective.
 	    ("^\\( +\\)\t" 1 makefile-space)))
 
-    ,@font-lock-keywords
+    ,@fl-keywords
 
     ;; Do dependencies.
     (makefile-match-dependency
@@ -491,7 +491,7 @@ not be enclosed in { } or ( )."
    '("^[ \t]*\\.for[ \t].+[ \t]\\(in\\)\\>" 1 font-lock-keyword-face)))
 
 (defconst makefile-imake-font-lock-keywords
-  (append 
+  (append
    (makefile-make-font-lock-keywords
     makefile-var-use-regex
     makefile-statements
@@ -1155,7 +1155,6 @@ The context determines which are considered."
   (let* ((beg (save-excursion
 		(skip-chars-backward "^$(){}:#= \t\n")
 		(point)))
-	 (try (buffer-substring beg (point)))
 	 (paren nil)
 	 (do-macros
           (save-excursion
@@ -1262,7 +1261,7 @@ definition and conveniently use this command."
 
 ;; Filling
 
-(defun makefile-fill-paragraph (arg)
+(defun makefile-fill-paragraph (_arg)
   ;; Fill comments, backslashed lines, and variable definitions
   ;; specially.
   (save-excursion
@@ -1680,7 +1679,7 @@ Then prompts for all required parameters."
 ;;; Utility functions
 ;;; ------------------------------------------------------------
 
-(defun makefile-match-function-end (end)
+(defun makefile-match-function-end (_end)
   "To be called as an anchored matcher by font-lock.
 The anchor must have matched the opening parens in the first group."
   (let ((s (match-string-no-properties 1)))

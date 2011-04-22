@@ -987,8 +987,7 @@ subshells can nest."
   ;; rather flakey.
   (when (eq ?\" (nth 3 (syntax-ppss))) ; Check we matched an opening quote.
     ;; bingo we have a $( or a ` inside a ""
-    (let ((char (char-after (point)))
-          ;; `state' can be: double-quote, backquote, code.
+    (let (;; `state' can be: double-quote, backquote, code.
           (state (if (eq (char-before) ?`) 'backquote 'code))
           ;; Stacked states in the context.
           (states '(double-quote)))
@@ -1212,7 +1211,7 @@ a number means align to that column, e.g. 0 means first column."
 ;;   "For debugging:  display message ARGS if variable SH-DEBUG is non-nil."
 ;;   (if sh-debug
 ;;       (apply 'message args)))
-(defmacro sh-debug (&rest args))
+(defmacro sh-debug (&rest _args))
 
 (defconst sh-symbol-list
   '((const :tag "+ "  :value +
@@ -2138,7 +2137,6 @@ STRING	     This is ignored for the purposes of calculating
   (save-excursion
     (let ((have-result nil)
 	  this-kw
-	  start
 	  val
 	  (result nil)
 	  (align-point nil)
@@ -2209,7 +2207,6 @@ STRING	     This is ignored for the purposes of calculating
 	    ;; We start off at beginning of this line.
 	    ;; Scan previous statements while this is <=
 	    ;; start of previous line.
-	    (setq start (point)) ;; for debug only
 	    (goto-char prev-line-end)
 	    (setq x t)
 	    (while (and x (setq x  (sh-prev-thing)))
@@ -2614,7 +2611,7 @@ can be represented by a symbol then do so."
 If INFO is supplied it is used, else it is calculated from current line."
   (let ((ofs 0)
 	(base-value 0)
-	elt a b var val)
+	elt a b val)
     (or info
 	(setq info (sh-get-indent-info)))
     (when info

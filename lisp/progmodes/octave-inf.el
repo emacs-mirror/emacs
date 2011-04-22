@@ -268,8 +268,7 @@ is NOT available with versions of Octave prior to 2.0."
 	 (command
 	  (save-excursion
 	    (skip-syntax-backward "w_" (comint-line-beginning-position))
-	    (buffer-substring-no-properties (point) end)))
-	 (proc (get-buffer-process inferior-octave-buffer)))
+	    (buffer-substring-no-properties (point) end))))
     (cond (inferior-octave-complete-impossible
 	   (error (concat
 		   "Your Octave does not have `completion_matches'.  "
@@ -336,7 +335,7 @@ Ring Emacs bell if process output starts with an ASCII bell, and pass
 the rest to `comint-output-filter'."
   (comint-output-filter proc (inferior-octave-strip-ctrl-g string)))
 
-(defun inferior-octave-output-digest (proc string)
+(defun inferior-octave-output-digest (_proc string)
   "Special output filter for the inferior Octave process.
 Save all output between newlines into `inferior-octave-output-list', and
 the rest to `inferior-octave-output-string'."

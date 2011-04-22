@@ -173,6 +173,8 @@ non-executable files."
 				     (file-modes buffer-file-name)))))))
 
 
+(defvar compilation-error-regexp-alist) ; from compile.el
+
 ;;;###autoload
 (defun executable-interpret (command)
   "Run script with user-specified args, and collect output in a buffer.
@@ -186,7 +188,7 @@ command to find the next error.  The buffer is also in `comint-mode' and
   (save-some-buffers (not compilation-ask-about-save))
   (set (make-local-variable 'executable-command) command)
   (let ((compilation-error-regexp-alist executable-error-regexp-alist))
-    (compilation-start command t (lambda (x) "*interpretation*"))))
+    (compilation-start command t (lambda (_x) "*interpretation*"))))
 
 
 

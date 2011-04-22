@@ -862,7 +862,7 @@ Optional argument PARSE-START should be the position of `beginning-of-defun'."
 		 ;;         );
 		 (progn
 		   (skip-syntax-backward "(")
-		   (condition-case err
+		   (condition-case nil
 		       (while (save-excursion
 				(skip-syntax-backward " ") (not (bolp)))
 			 (forward-sexp -1))

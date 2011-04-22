@@ -82,7 +82,7 @@
 
 ;;; Code:
 
-(eval-when-compile 
+(eval-when-compile
   (require 'cl))
 
 (require 'easymenu)
@@ -93,7 +93,7 @@
 (declare-function cond-emacs-xemacs-macfn "antlr-mode" (args &optional msg))
 
 ;; General Emacs/XEmacs-compatibility compile-time macros
-(eval-when-compile 
+(eval-when-compile
   (defmacro cond-emacs-xemacs (&rest args)
     (cond-emacs-xemacs-macfn
      args "`cond-emacs-xemacs' must return exactly one element"))
@@ -1073,7 +1073,7 @@ Used for `antlr-slow-syntactic-context'.")
   (read-from-minibuffer prompt initial-input nil nil
 			(or history 'shell-command-history)))
 
-(defunx antlr-with-displaying-help-buffer (thunk &optional name)
+(defunx antlr-with-displaying-help-buffer (thunk &optional _name)
   :xemacs-and-try with-displaying-help-buffer
   "Make a help buffer and call `thunk' there."
   (with-output-to-temp-buffer "*Help*"
@@ -1092,7 +1092,7 @@ Used for `antlr-slow-syntactic-context'.")
 ;;;(defvar antlr-statistics-cache 0)
 ;;;(defvar antlr-statistics-inval 0)
 
-(defunx antlr-invalidate-context-cache (&rest dummies)
+(defunx antlr-invalidate-context-cache (&rest _dummies)
 ;; checkdoc-params: (dummies)
   "Invalidate context cache for syntactical context information."
   :XEMACS				; XEmacs bug workaround
@@ -1670,7 +1670,7 @@ Return \(LEVEL OPTION LOCATION)."
 				     table)))
 	(list level input (cdr kind))))))
 
-(defun antlr-options-menu-filter (level menu-items)
+(defun antlr-options-menu-filter (level _menu-items)
   "Return items for options submenu of level LEVEL."
   ;; checkdoc-params: (menu-items)
   (let ((active (if buffer-read-only
@@ -2072,7 +2072,7 @@ Used inside `antlr-options-alists'."
 		    nil
 		    table '(("false") ("true"))))
 
-(defun antlr-language-option-extra (phase &rest dummies)
+(defun antlr-language-option-extra (phase &rest _dummies)
 ;; checkdoc-params: (dummies)
   "Change language according to the new value of the \"language\" option.
 Call `antlr-mode' if the new language would be different from the value
@@ -2088,7 +2088,7 @@ Called in PHASE `after-insertion', see `antlr-options-alists'."
 	    (antlr-mode)
 	    (and font-lock (null font-lock-mode) (font-lock-mode 1)))))))
 
-(defun antlr-c++-mode-extra (phase option &rest dummies)
+(defun antlr-c++-mode-extra (phase option &rest _dummies)
 ;; checkdoc-params: (option dummies)
   "Warn if C++ option is used with the wrong language.
 Ask user \(\"y or n\"), if a C++ only option is going to be inserted but
@@ -2260,7 +2260,7 @@ called interactively, the buffers are always saved, see also variable
   (or saved (save-some-buffers (not antlr-ask-about-save)))
   (let ((default-directory (file-name-directory file)))
     (compilation-start (concat command " " (file-name-nondirectory file))
-		       nil #'(lambda (mode-name) "*Antlr-Run*"))))
+		       nil (lambda (_mode-name) "*Antlr-Run*"))))
 
 (defun antlr-run-tool-interactive ()
   ;; code in `interactive' is not compiled
@@ -2592,7 +2592,7 @@ the default language."
   ;; FIXME: Since it uses cc-mode, it bumps into c-update-modeline's
   ;; limitation to mode-name being a string.
   ;; '("Antlr." (:eval (cadr (assq antlr-language antlr-language-alist))))
-  "Antlr" 
+  "Antlr"
   "Major mode for editing ANTLR grammar files."
   :abbrev-table antlr-mode-abbrev-table
   (c-initialize-cc-mode)		; cc-mode is required

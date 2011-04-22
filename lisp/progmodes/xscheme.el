@@ -511,7 +511,7 @@ Commands:
   (interactive)
   (xscheme-send-char last-command-event))
 
-(defun xscheme-enter-debugger-mode (prompt-string)
+(defun xscheme-enter-debugger-mode (_prompt-string)
   (with-current-buffer (xscheme-process-buffer)
     (if (not (derived-mode-p 'scheme-debugger-mode))
 	(progn
@@ -1024,8 +1024,7 @@ the remaining input.")
 	  (xscheme-goto-output-point)
 	  (let ((old-point (point)))
 	    (while (string-match "\\(\007\\|\f\\)" string)
-	      (let ((start (match-beginning 0))
-		    (end (match-end 0)))
+	      (let ((start (match-beginning 0)))
 		(insert-before-markers (substring string 0 start))
 		(if (= ?\f (aref string start))
 		    (progn

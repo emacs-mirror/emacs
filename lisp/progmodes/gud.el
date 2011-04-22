@@ -379,13 +379,13 @@ step (if we're in the GUD buffer).
 source file) or the source line number at the last break or step (if
 we're in the GUD buffer)."
   `(progn
-     (defun ,func (arg)
+     (defalias ',func (lambda (arg)
        ,@(if doc (list doc))
        (interactive "p")
        (if (not gud-running)
 	 ,(if (stringp cmd)
 	      `(gud-call ,cmd arg)
-	    cmd)))
+	    cmd))))
      ,(if key `(local-set-key ,(concat "\C-c" key) ',func))
      ,(if key `(global-set-key (vconcat gud-key-prefix ,key) ',func))))
 
@@ -491,7 +491,7 @@ The value t means that there is no stack, and we are in display-file mode.")
     (gud-install-speedbar-variables)
   (add-hook 'speedbar-load-hook 'gud-install-speedbar-variables))
 
-(defun gud-expansion-speedbar-buttons (directory zero)
+(defun gud-expansion-speedbar-buttons (_directory _zero)
   "Wrapper for call to `speedbar-add-expansion-list'.
 DIRECTORY and ZERO are not used, but are required by the caller."
   (gud-speedbar-buttons gud-comint-buffer))
@@ -657,17 +657,15 @@ The option \"--fullname\" must be included in this value."
        gud-marker-acc (substring gud-marker-acc (match-end 0))))
 
     (while (string-match "\n\032\032\\(.*\\)\n" gud-marker-acc)
-      (let ((match (match-string 1 gud-marker-acc)))
+      (setq
+       ;; Append any text before the marker to the output we're going
+       ;; to return - we don't include the marker in this text.
+       output (concat output
+		      (substring gud-marker-acc 0 (match-beginning 0)))
 
-	(setq
-	 ;; Append any text before the marker to the output we're going
-	 ;; to return - we don't include the marker in this text.
-	 output (concat output
-			(substring gud-marker-acc 0 (match-beginning 0)))
+       ;; Set the accumulator to the remaining text.
 
-	 ;; Set the accumulator to the remaining text.
-
-	 gud-marker-acc (substring gud-marker-acc (match-end 0)))))
+       gud-marker-acc (substring gud-marker-acc (match-end 0))))
 
     ;; Does the remaining text look like it might end with the
     ;; beginning of another marker?  If it does, then keep it in
@@ -884,7 +882,7 @@ It is passed through FILTER before we look at it."
 
 ;; gdb speedbar functions
 
-(defun gud-gdb-goto-stackframe (text token indent)
+(defun gud-gdb-goto-stackframe (_text token _indent)
   "Goto the stackframe described by TEXT, TOKEN, and INDENT."
   (speedbar-with-attached-buffer
    (gud-basic-call (concat "server frame " (nth 1 token)))
@@ -1074,7 +1072,7 @@ containing the executable being debugged."
 			 directory))
   :group 'gud)
 
-(defun gud-dbx-massage-args (file args)
+(defun gud-dbx-massage-args (_file args)
   (nconc (let ((directories gud-dbx-directories)
 	       (result nil))
 	   (while directories
@@ -1386,7 +1384,7 @@ containing the executable being debugged."
 			 directory))
   :group 'gud)
 
-(defun gud-xdb-massage-args (file args)
+(defun gud-xdb-massage-args (_file args)
   (nconc (let ((directories gud-xdb-directories)
 	       (result nil))
 	   (while directories
@@ -1450,7 +1448,7 @@ directories if your program contains sources from more than one directory."
 ;; History of argument lists passed to perldb.
 (defvar gud-perldb-history nil)
 
-(defun gud-perldb-massage-args (file args)
+(defun gud-perldb-massage-args (_file args)
   "Convert a command line as would be typed normally to run perldb
 into one that invokes an Emacs-enabled debugging session.
 \"-emacs\" is inserted where it will be $ARGV[0] (see perl5db.pl)."
@@ -2072,7 +2070,7 @@ extension EXTN.  Normally EXTN is given as the regular expression
 
 ;; Change what was given in the minibuffer to something that can be used to
 ;; invoke the debugger.
-(defun gud-jdb-massage-args (file args)
+(defun gud-jdb-massage-args (_file args)
   ;; The jdb executable must have whitespace between "-classpath" and
   ;; its value while gud-common-init expects all switch values to
   ;; follow the switch keyword without intervening whitespace.  We
@@ -2151,7 +2149,7 @@ relative to a classpath directory."
       (setq cplist (cdr cplist)))
     (if found-file (concat (car cplist) "/" filename)))))
 
-(defun gud-jdb-find-source (string)
+(defun gud-jdb-find-source (_string)
   "Alias for function used to locate source files.
 Set to `gud-jdb-find-source-using-classpath' or `gud-jdb-find-source-file'
 during jdb initialization depending on the value of
@@ -3047,7 +3045,7 @@ Link exprs of the form:
 (declare-function syntax-symbol  "gud"     (x))
 (declare-function syntax-point   "gud"     (x))
 
-(defun gud-find-class (f line)
+(defun gud-find-class (f _line)
   "Find fully qualified class in file F at line LINE.
 This function uses the `gud-jdb-classpath' (and optional
 `gud-jdb-sourcepath') list(s) to derive a file
@@ -3063,13 +3061,13 @@ class of the file (using s to separate nested class ids)."
       (save-match-data
         (let ((cplist (append gud-jdb-sourcepath gud-jdb-classpath))
               (fbuffer (get-file-buffer f))
-              syntax-symbol syntax-point class-found)
+              class-found
+              ;; Syntax-symbol returns the symbol of the *first* element
+              ;; in the syntactical analysis result list, syntax-point
+              ;; returns the buffer position of same
+              (syntax-symbol (lambda (x) (c-langelem-sym (car x))))
+              (syntax-point (lambda (x) (c-langelem-pos (car x)))))
           (setq f (file-name-sans-extension (file-truename f)))
-          ;; Syntax-symbol returns the symbol of the *first* element
-          ;; in the syntactical analysis result list, syntax-point
-          ;; returns the buffer position of same
-          (fset 'syntax-symbol (lambda (x) (c-langelem-sym (car x))))
-          (fset 'syntax-point (lambda (x) (c-langelem-pos (car x))))
           ;; Search through classpath list for an entry that is
           ;; contained in f
           (while (and cplist (not class-found))
@@ -3092,17 +3090,17 @@ class of the file (using s to separate nested class ids)."
                   ;; with the 'topmost-intro symbol, there may be
                   ;; nested classes...
                   (while (not (eq 'topmost-intro
-                                  (syntax-symbol (c-guess-basic-syntax))))
+                                  (funcall syntax-symbol (c-guess-basic-syntax))))
                     ;; Check if the current position c-syntactic
                     ;; analysis has 'inclass
                     (setq syntax (c-guess-basic-syntax))
                     (while
-                        (and (not (eq 'inclass (syntax-symbol syntax)))
+                        (and (not (eq 'inclass (funcall syntax-symbol syntax)))
                              (cdr syntax))
                       (setq syntax (cdr syntax)))
-                    (if (eq 'inclass (syntax-symbol syntax))
+                    (if (eq 'inclass (funcall syntax-symbol syntax))
                         (progn
-                          (goto-char (syntax-point syntax))
+                          (goto-char (funcall syntax-point syntax))
                           ;; Now we're at the beginning of a class
                           ;; definition.  Find class name
                           (looking-at
@@ -3111,9 +3109,9 @@ class of the file (using s to separate nested class ids)."
                                 (append (list (match-string-no-properties 1))
                                         nclass)))
                       (setq syntax (c-guess-basic-syntax))
-                      (while (and (not (syntax-point syntax)) (cdr syntax))
+                      (while (and (not (funcall syntax-point syntax)) (cdr syntax))
                         (setq syntax (cdr syntax)))
-                      (goto-char (syntax-point syntax))
+                      (goto-char (funcall syntax-point syntax))
                       ))
                   (string-match (concat (car nclass) "$") class-found)
                   (setq class-found
