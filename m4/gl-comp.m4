@@ -43,9 +43,8 @@ AC_DEFUN([gl_EARLY],
   # Code from module ignore-value:
   # Code from module include_next:
   # Code from module intprops:
-  # Code from module inttypes:
+  # Code from module inttypes-h:
   # Code from module lstat:
-  # Code from module manywarnings:
   # Code from module mktime:
   # Code from module multiarch:
   # Code from module readlink:
@@ -66,7 +65,6 @@ AC_DEFUN([gl_EARLY],
   # Code from module unistd:
   # Code from module verify:
   # Code from module warn-on-use:
-  # Code from module warnings:
 ])
 
 # This macro should be invoked from ./configure.in, in the section
@@ -113,12 +111,11 @@ AC_DEFUN([gl_INIT],
   AC_REQUIRE([AC_C_INLINE])
   # Code from module include_next:
   # Code from module intprops:
-  # Code from module inttypes:
+  # Code from module inttypes-h:
   gl_INTTYPES_H
   # Code from module lstat:
   gl_FUNC_LSTAT
   gl_SYS_STAT_MODULE_INDICATOR([lstat])
-  # Code from module manywarnings:
   # Code from module mktime:
   gl_FUNC_MKTIME
   gl_TIME_MODULE_INDICATOR([mktime])
@@ -164,8 +161,6 @@ AC_DEFUN([gl_INIT],
   gl_UNISTD_H
   # Code from module verify:
   # Code from module warn-on-use:
-  # Code from module warnings:
-  AC_SUBST([WARN_CFLAGS])
   # End of code from modules
   m4_ifval(gl_LIBSOURCES_LIST, [
     m4_syscmd([test ! -d ]m4_defn([gl_LIBSOURCES_DIR])[ ||
@@ -364,7 +359,6 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/inttypes.m4
   m4/longlong.m4
   m4/lstat.m4
-  m4/manywarnings.m4
   m4/md5.m4
   m4/mktime.m4
   m4/multiarch.m4
@@ -388,6 +382,5 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/tm_gmtoff.m4
   m4/unistd_h.m4
   m4/warn-on-use.m4
-  m4/warnings.m4
   m4/wchar_t.m4
 ])

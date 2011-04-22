@@ -1076,6 +1076,7 @@ _GL_WARN_ON_USE (imaxdiv, "imaxdiv is unportable - "
 
 #if @GNULIB_STRTOIMAX@
 # if !@HAVE_DECL_STRTOIMAX@
+#  undef strtoimax
 extern intmax_t strtoimax (const char *, char **, int) _GL_ARG_NONNULL ((1));
 # endif
 #elif defined GNULIB_POSIXCHECK
@@ -1088,6 +1089,7 @@ _GL_WARN_ON_USE (strtoimax, "strtoimax is unportable - "
 
 #if @GNULIB_STRTOUMAX@
 # if !@HAVE_DECL_STRTOUMAX@
+#  undef strtoumax
 extern uintmax_t strtoumax (const char *, char **, int) _GL_ARG_NONNULL ((1));
 # endif
 #elif defined GNULIB_POSIXCHECK
