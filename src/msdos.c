@@ -842,7 +842,7 @@ IT_set_face (int face)
 
 /* According to RBIL (INTERRUP.A, V-1000), 160 is the maximum possible
    width of a DOS display in any known text mode.  We multiply by 2 to
-   accomodate the screen attribute byte.  */
+   accommodate the screen attribute byte.  */
 #define MAX_SCREEN_BUF 160*2
 
 extern unsigned char *encode_terminal_code (struct glyph *, int,

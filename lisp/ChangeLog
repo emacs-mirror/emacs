@@ -1,3 +1,34 @@
+2011-04-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* buff-menu.el (Buffer-menu--buffers): Fix typo in docstring (bug#8535).
+
+	* play/mpuz.el (mpuz-silent): Doc fix.
+	(mpuz-mode-map): Use mapc.
+	(mpuz-put-number-on-board): Rename parameter L to COLUMNS.
+	(mpuz-letter-to-digit, mpuz-check-all-solved, mpuz-create-buffer):
+	Fix typos in docstrings.
+
+	* play/doctor.el (doc$, doctor-$, doctor-read-print, doctor-read-token)
+	(doctor-nounp, doctor-pronounp): Fix typos in docstrings.
+
+	* mouse-drag.el (mouse-drag-throw): Fix typo in docstring.
+
+2011-04-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuffer.el (completion--do-completion): Avoid the "Next char
+	not unique" prompt if icomplete-mode is enabled (Bug#5849).
+
+	* mouse.el (mouse-drag-mode-line-1): Make sure that if we push
+	mouse-2 into unread-command-events, it is interpreted correctly.
+
+	* image-mode.el (image-type, image-mode-map, image-minor-mode-map)
+	(image-toggle-display): Doc fix.
+
+2011-04-23  Stephen Berman <stephen.berman@gmx.net>
+
+	* textmodes/page.el (what-page): Use line-number-at-pos to
+	calculate line number (Bug#6825).
+
 2011-04-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* eshell/esh-mode.el (find-tag-interactive): Declare function.

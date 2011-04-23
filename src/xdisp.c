@@ -26997,6 +26997,7 @@ init_xdisp (void)
 
   mini_w = XWINDOW (minibuf_window);
   root_window = FRAME_ROOT_WINDOW (XFRAME (WINDOW_FRAME (mini_w)));
+  echo_area_window = minibuf_window;
 
   if (!noninteractive)
     {

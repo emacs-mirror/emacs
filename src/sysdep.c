@@ -304,7 +304,7 @@ wait_for_termination (int pid)
 {
   while (1)
     {
-#if defined (BSD_SYSTEM) || defined (HPUX)
+#if (defined (BSD_SYSTEM) || defined (HPUX)) && !defined(__GNU__)
       /* Note that kill returns -1 even if the process is just a zombie now.
 	 But inevitably a SIGCHLD interrupt should be generated
 	 and child_sig will do wait3 and make the process go away. */

@@ -1,3 +1,8 @@
+2011-04-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* mini.texi (Minibuffer Edit):
+	* screen.texi (Mode Line): Fix typo.
+
 2011-04-20  Christoph Scholtes  <cschol2112@googlemail.com>
 
 	* maintaining.texi (Old Revisions): Mention new function vc-ediff.

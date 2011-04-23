@@ -1014,7 +1014,7 @@ a window only if the space taken up by that window can accommodate two
 windows one above the other that are both at least
 @code{window-min-height} lines tall.  Moreover, if the window that shall
 be split has a mode line, @code{split-window-sensibly} does not split
-the window unless the new window can accomodate a mode line too.
+the window unless the new window can accommodate a mode line too.
 @end defopt
 
 @defopt split-width-threshold

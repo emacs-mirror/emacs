@@ -657,7 +657,8 @@ E = after completion we now have an Exact match.
               (minibuffer-hide-completions))
              ;; Show the completion table, if requested.
              ((not exact)
-	      (if (cond ((null completion-show-inline-help) t)
+	      (if (cond (icomplete-mode t)
+			((null completion-show-inline-help) t)
 			((eq completion-auto-help 'lazy)
 			 (eq this-command last-command))
 			(t completion-auto-help))
