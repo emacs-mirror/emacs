@@ -1,3 +1,7 @@
+2011-04-23  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-sum.el (gnus-extra-headers): Bump :version.
+
 2011-04-22  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus-registry.el (gnus-registry-ignore-group-p): Test specifically

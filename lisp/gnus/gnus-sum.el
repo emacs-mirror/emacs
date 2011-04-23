@@ -1130,7 +1130,7 @@ which it may alter in any way."
 
 (defcustom gnus-extra-headers '(To Cc Keywords Gcc Newsgroups)
   "*Extra headers to parse."
-  :version "21.1"
+  :version "24.1"                       ; added Cc Keywords Gcc
   :group 'gnus-summary
   :type '(repeat symbol))
 
