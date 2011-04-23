@@ -666,8 +666,7 @@ Consults `gnus-registry-unfollowed-groups' and
 Consults `gnus-registry-ignored-groups' and
 `nnmail-split-fancy-with-parent-ignore-groups'."
   (and group
-       (or (gnus-parameter-registry-ignore group)
-           (gnus-grep-in-list
+       (or (gnus-grep-in-list
             group
             (delq nil (mapcar (lambda (g)
                                 (cond
@@ -675,6 +674,11 @@ Consults `gnus-registry-ignored-groups' and
                                  ((and (listp g) (nth 1 g))
                                   (nth 0 g))
                                  (t nil))) gnus-registry-ignored-groups)))
+           ;; only use `gnus-parameter-registry-ignore' if
+           ;; `gnus-registry-ignored-groups' is a list of lists
+           ;; (it can be a list of regexes)
+           (and (listp (nth 0 gnus-registry-ignored-groups))
+                (gnus-parameter-registry-ignore group))
            (gnus-grep-in-list
             group
             nnmail-split-fancy-with-parent-ignore-groups))))

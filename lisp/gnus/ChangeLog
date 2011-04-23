@@ -1,5 +1,11 @@
 2011-04-22  Teodor Zlatanov  <tzz@lifelogs.com>
 
+	* gnus-registry.el (gnus-registry-ignore-group-p): Test specifically
+	for the case where `gnus-registry-ignored-groups' is a list of lists,
+	and don't call `gnus-parameter-registry-ignore' otherwise.
+
+2011-04-21  Teodor Zlatanov  <tzz@lifelogs.com>
+
 	* nnimap.el (nnimap-user): New backend variable.
 	(nnimap-open-connection-1): Use it.
 	(nnimap-credentials): Accept user parameter so it's explicit what user
