@@ -162,11 +162,11 @@ char_string (unsigned int c, unsigned char *p)
 }
 
 
-/* Return a character whose multibyte form is at P.  Set LEN is not
+/* Return a character whose multibyte form is at P.  If LEN is not
    NULL, it must be a pointer to integer.  In that case, set *LEN to
-   the byte length of the multibyte form.  If ADVANCED is not NULL, is
+   the byte length of the multibyte form.  If ADVANCED is not NULL, it
    must be a pointer to unsigned char.  In that case, set *ADVANCED to
-   the ending address (i.e. the starting address of the next
+   the ending address (i.e., the starting address of the next
    character) of the multibyte form.  */
 
 int
@@ -206,11 +206,10 @@ string_char (const unsigned char *p, const unsigned char **advanced, int *len)
 }
 
 
-/* Translate character C by translation table TABLE.  If C is
-   negative, translate a character specified by CHARSET and CODE.  If
-   no translation is found in TABLE, return the untranslated
-   character.  If TABLE is a list, elements are char tables.  In this
-   case, translace C by all tables.  */
+/* Translate character C by translation table TABLE.  If no translation is
+   found in TABLE, return the untranslated character.  If TABLE is a list,
+   elements are char tables.  In that case, recursively translate C by all the
+   tables in the list.  */
 
 int
 translate_char (Lisp_Object table, int c)

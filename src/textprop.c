@@ -233,7 +233,7 @@ interval_has_all_properties (Lisp_Object plist, INTERVAL i)
 	    if (! EQ (Fcar (XCDR (tail1)), Fcar (XCDR (tail2))))
 	      return 0;
 
-	    /* Property has same value on both lists;  go to next one.  */
+	    /* Property has same value on both lists; go to next one.  */
 	    found = 1;
 	    break;
 	  }
