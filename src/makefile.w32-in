@@ -469,6 +469,7 @@ $(BLD)/callint.$(O) : \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(LISP_H) \
 	$(SRC)/buffer.h \
+	$(SRC)/character.h \
 	$(SRC)/coding.h \
 	$(SRC)/commands.h \
 	$(SRC)/composite.h \

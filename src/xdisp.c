@@ -8373,22 +8373,10 @@ vmessage (const char *m, va_list ap)
 	{
 	  if (m)
 	    {
-	      char *buf = FRAME_MESSAGE_BUF (f);
-	      size_t bufsize = FRAME_MESSAGE_BUF_SIZE (f);
-	      int len;
+	      size_t len;
 
-	      memset (buf, 0, bufsize);
-	      len = vsnprintf (buf, bufsize, m, ap);
-
-	      /* Do any truncation at a character boundary.  */
-	      if (! (0 <= len && len < bufsize))
-		{
-		  char *end = memchr (buf, 0, bufsize);
-		  for (len = end ? end - buf : bufsize;
-		       len && ! CHAR_HEAD_P (buf[len - 1]);
-		       len--)
-		    continue;
-		}
+	      len = doprnt (FRAME_MESSAGE_BUF (f),
+			    FRAME_MESSAGE_BUF_SIZE (f), m, (char *)0, ap);
 
 	      message2 (FRAME_MESSAGE_BUF (f), len, 0);
 	    }

@@ -9071,7 +9071,7 @@ Return the corresponding code in SJIS.  */)
   charset_list = CODING_ATTR_CHARSET_LIST (attrs);
   charset = char_charset (c, charset_list, &code);
   if (code == CHARSET_INVALID_CODE (charset))
-    error ("Can't encode by shift_jis encoding: %d", c);
+    error ("Can't encode by shift_jis encoding: %c", c);
   JIS_TO_SJIS (code);
 
   return make_number (code);
@@ -9142,7 +9142,7 @@ Return the corresponding character code in Big5.  */)
   charset_list = CODING_ATTR_CHARSET_LIST (attrs);
   charset = char_charset (c, charset_list, &code);
   if (code == CHARSET_INVALID_CODE (charset))
-    error ("Can't encode by Big5 encoding: %d", c);
+    error ("Can't encode by Big5 encoding: %c", c);
 
   return make_number (code);
 }

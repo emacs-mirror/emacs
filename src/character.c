@@ -156,7 +156,7 @@ char_string (unsigned int c, unsigned char *p)
       bytes = BYTE8_STRING (c, p);
     }
   else
-    error ("Invalid character: %d", c);
+    error ("Invalid character: %x", c);
 
   return bytes;
 }

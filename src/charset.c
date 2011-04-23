@@ -1436,7 +1436,7 @@ check_iso_charset_parameter (Lisp_Object dimension, Lisp_Object chars, Lisp_Obje
 {
   CHECK_NATNUM (dimension);
   CHECK_NATNUM (chars);
-  CHECK_NATNUM (final_char);
+  CHECK_CHARACTER (final_char);
 
   if (XINT (dimension) > 3)
     error ("Invalid DIMENSION %"pEd", it should be 1, 2, or 3",
@@ -1444,12 +1444,8 @@ check_iso_charset_parameter (Lisp_Object dimension, Lisp_Object chars, Lisp_Obje
   if (XINT (chars) != 94 && XINT (chars) != 96)
     error ("Invalid CHARS %"pEd", it should be 94 or 96", XINT (chars));
   if (XINT (final_char) < '0' || XINT (final_char) > '~')
-    {
-      unsigned char str[MAX_MULTIBYTE_LENGTH + 1];
-      int len = CHAR_STRING (XINT (chars), str);
-      str[len] = '\0';
-      error ("Invalid FINAL-CHAR %s, it should be `0'..`~'", str);
-    }
+    error ("Invalid FINAL-CHAR %c, it should be `0'..`~'",
+	   (int)XINT (final_char));
 }
 
 

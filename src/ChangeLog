@@ -1,5 +1,53 @@
 2011-04-23  Eli Zaretskii  <eliz@gnu.org>
 
+	Fix doprnt so it could be used again safely in `verror'.  (Bug#8435)
+	* doprnt.c: Include limits.h.
+	(SIZE_MAX): New macro.
+	(doprnt): Return a size_t value.  2nd arg is now size_t.  Many
+	local variables are now size_t instead of int or unsigned.
+	Improve overflow protection.  Support `l' modifier for integer
+	conversions.  Support %l conversion.  Don't assume an EMACS_INT
+	argument for integer conversions and for %c.
+
+	* lisp.h (doprnt): Restore prototype.
+
+	* makefile.w32-in ($(BLD)/callint.$(O)): Depend on
+	$(SRC)/character.h.
+
+	* Makefile.in (base_obj): Add back doprnt.o.
+
+	* deps.mk (doprnt.o): Add back prerequisites.
+	(callint.o): Depend on character.h.
+
+	* eval.c (internal_lisp_condition_case): Include the handler
+	representation in the error message.
+	(verror): Call doprnt instead of vsnprintf.  Fix an off-by-one bug
+	when breaking from the loop.
+
+	* xdisp.c (vmessage): Call doprnt instead of vsnprintf.
+
+	* callint.c (Fcall_interactively): When displaying error message
+	about invalid control letter, pass the character's codepoint, not
+	a pointer to its multibyte form.  Improve display of the character
+	in octal and display also its hex code.
+
+	* character.c (char_string): Use %x to display the (unsigned)
+	codepoint of an invalid character, to avoid displaying a bogus
+	negative value.
+
+	* font.c (check_otf_features): Pass SDATA of SYMBOL_NAME to
+	`error', not SYMBOL_NAME itself.
+
+	* coding.c (Fencode_sjis_char, Fencode_big5_char): Use %c for
+	character arguments to `error'.
+
+	* charset.c (check_iso_charset_parameter): Fix incorrect argument
+	to `error' in error message about FINAL_CHAR argument.  Make sure
+	FINAL_CHAR is a character, and use %c when it is passed as
+	argument to `error'.
+
+2011-04-23  Eli Zaretskii  <eliz@gnu.org>
+
 	* s/ms-w32.h (localtime): Redirect to sys_localtime.
 
 	* w32.c: Include <time.h>.
