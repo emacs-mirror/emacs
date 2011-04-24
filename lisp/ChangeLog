@@ -1,5 +1,7 @@
 2011-04-24  Chong Yidong  <cyd@stupidchicken.com>
 
+	* files.el (auto-mode-alist): Use js-mode for .json (Bug#8529).
+
 	* apropos.el (apropos-label-face): Avoid variable-pitch face.
 	(apropos-accumulator): Doc fix.
 	(apropos-function, apropos-macro, apropos-command)
