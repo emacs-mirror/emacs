@@ -1,3 +1,15 @@
+2011-04-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* apropos.el (apropos-label-face): Avoid variable-pitch face.
+	(apropos-accumulator): Doc fix.
+	(apropos-function, apropos-macro, apropos-command)
+	(apropos-variable, apropos-face, apropos-group, apropos-widget)
+	(apropos-plist): Add face property.
+	(apropos-symbols-internal): Fix indentation.
+	(apropos-print): Simplify help, and recognize apropos-multi-type.
+	(apropos-print-doc): Use button-type-get to extract the button's
+	face property.  Fill docstring (Bug#8352).
+
 2011-04-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* buff-menu.el (Buffer-menu--buffers): Fix typo in docstring (bug#8535).
