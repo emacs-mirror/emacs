@@ -1,3 +1,9 @@
+2011-04-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc/vc-annotate.el (vc-annotate-goto-line): New command.  Based
+	on a previous implementation by Juanma Barranquero (Bug#8366).
+	(vc-annotate-mode-map): Bind it to RET.
+
 2011-04-24  Uday S Reddy  <u.s.reddy@cs.bham.ac.uk>  (tiny change)
 
 	* progmodes/etags.el (next-file): Don't use set-buffer to change
