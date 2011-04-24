@@ -1,6 +1,6 @@
 /* Output like sprintf to a buffer of specified size.
-   Also takes args differently: pass one pointer to an array of strings
-   in addition to the format string which is separate.
+   Also takes args differently: pass one pointer to the end
+   of the format string in addition to the format string itself.
    Copyright (C) 1985, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -18,6 +18,35 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
+/* If you think about replacing this with some similar standard C function of
+   the printf family (such as vsnprintf), please note that this function
+   supports the following Emacs-specific features:
+
+   . For %c conversions, it produces a string with the multibyte representation
+     of the (`int') argument, suitable for display in an Emacs buffer.
+
+   . For %s and %c, when field width is specified (e.g., %25s), it accounts for
+     the diplay width of each character, according to char-width-table.  That
+     is, it does not assume that each character takes one column on display.
+
+   . If the size of the buffer is not enough to produce the formatted string in
+     its entirety, it makes sure that truncation does not chop the last
+     character in the middle of its multibyte sequence, producing an invalid
+     sequence.
+
+   . It accepts a pointer to the end of the format string, so the format string
+     could include embedded null characters.
+
+   . It signals an error if the length of the formatted string is about to
+     overflow MOST_POSITIVE_FIXNUM, to avoid producing strings longer than what
+     Emacs can handle.
+
+   OTOH, this function supports only a small subset of the standard C formatted
+   output facilities.  E.g., %u and %ll are not supported, and precision is
+   largely ignored except for converting floating-point values.  However, this
+   is okay, as this function is supposed to be called from `error' and similar
+   functions, and thus does not need to support features beyond those in
+   `Fformat', which is used by `error' on the Lisp level.  */
 
 #include <config.h>
 #include <stdio.h>

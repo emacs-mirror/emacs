@@ -330,7 +330,7 @@ cleanall:	clean
 ##
 ## This works only with GNU Make.
 
-TAGS: $(OBJ0) $(OBJ1) $(OBJ2)
+TAGS: $(OBJ0) $(OBJ1) $(OBJ2) $(CURDIR)/m/intel386.h $(CURDIR)/s/ms-w32.h
 	$(MAKE) $(MFLAGS) TAGS-$(MAKETYPE)
 
 TAGS-LISP: $(OBJ0) $(OBJ1) $(OBJ2)
@@ -344,7 +344,7 @@ TAGS-gmake:
 	  $(patsubst $(BLD)%.$(O),$(CURDIR)%.c,$(OBJ1))
 	../lib-src/$(BLD)/etags.exe -a --regex=@../nt/emacs-src.tags \
 	  $(patsubst $(BLD)%.$(O),$(CURDIR)%.c,$(OBJ2)) \
-	  $(CURDIR)/*.h
+	  $(CURDIR)/*.h $(CURDIR)/m/intel386.h $(CURDIR)/s/ms-w32.h
 
 TAGS-nmake:
 	echo This target is not supported with NMake
