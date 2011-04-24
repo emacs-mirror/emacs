@@ -1,5 +1,10 @@
 2011-04-24  Eli Zaretskii  <eliz@gnu.org>
 
+	* textprop.c (syms_of_textprop): Remove dead code.
+	(copy_text_properties): Delete obsolete commentary about an
+	interface that was deleted long ago.  Fix typos in the description
+	of arguments.
+
 	* msdos.c (XMenuActivate, XMenuAddSelection): Adjust argument list
 	to changes in oldXMenu/XMenu.h from 2011-04-16.
 	<menu_help_message, prev_menu_help_message>: Constify.
