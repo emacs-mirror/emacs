@@ -1,3 +1,8 @@
+2011-04-24  Uday S Reddy  <u.s.reddy@cs.bham.ac.uk>  (tiny change)
+
+	* progmodes/etags.el (next-file): Don't use set-buffer to change
+	buffers (Bug#8478).
+
 2011-04-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.el (auto-mode-alist): Use js-mode for .json (Bug#8529).

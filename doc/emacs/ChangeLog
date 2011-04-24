@@ -1,3 +1,8 @@
+2011-04-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* maintaining.texi (List Tags): Document next-file.  Suggested by
+	Uday S Reddy.
+
 2011-04-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* mini.texi (Minibuffer Edit):

@@ -2326,6 +2326,12 @@ details.
   You can also use the collection of tag names to complete a symbol
 name in the buffer.  @xref{Symbol Completion}.
 
+  You can use @kbd{M-x next-file} to visit the files in the selected
+tags table.  The first time this command is called, it visits the
+first file in the tags table.  Each subsequent call visits the next
+file in the table, unless a prefix argument is supplied, in which case
+it returns to the first file.
+
 @node EDE
 @section Emacs Development Environment
 @cindex EDE (Emacs Development Environment)
