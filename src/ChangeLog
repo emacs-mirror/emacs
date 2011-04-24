@@ -1,5 +1,10 @@
 2011-04-24  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (handle_single_display_spec): Rename the
+	display_replaced_before_p argument into display_replaced_p, to
+	make it consistent with the commentary.  Fix typos in the
+	commentary.
+
 	* textprop.c (syms_of_textprop): Remove dead code.
 	(copy_text_properties): Delete obsolete commentary about an
 	interface that was deleted long ago.  Fix typos in the description

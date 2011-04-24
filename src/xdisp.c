@@ -3855,7 +3855,7 @@ display_prop_end (struct it *it, Lisp_Object object, struct text_pos start_pos)
 }
 
 
-/* Set up IT from a single `display' specification PROP.  OBJECT
+/* Set up IT from a single `display' property specification SPEC.  OBJECT
    is the object in which the `display' property was found.  *POSITION
    is the position at which it was found.  DISPLAY_REPLACED_P non-zero
    means that we previously saw a display specification which already
@@ -3865,7 +3865,7 @@ display_prop_end (struct it *it, Lisp_Object object, struct text_pos start_pos)
    OVERLAY is the overlay this `display' property came from,
    or nil if it was a text property.
 
-   If PROP is a `space' or `image' specification, and in some other
+   If SPEC is a `space' or `image' specification, and in some other
    cases too, set *POSITION to the position where the `display'
    property ends.
 
@@ -3875,7 +3875,7 @@ display_prop_end (struct it *it, Lisp_Object object, struct text_pos start_pos)
 static int
 handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 			    Lisp_Object overlay, struct text_pos *position,
-			    int display_replaced_before_p)
+			    int display_replaced_p)
 {
   Lisp_Object form;
   Lisp_Object location, value;
@@ -4171,7 +4171,7 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 #endif /* not HAVE_WINDOW_SYSTEM */
              || (CONSP (value) && EQ (XCAR (value), Qspace)));
 
-  if (valid_p && !display_replaced_before_p)
+  if (valid_p && !display_replaced_p)
     {
       /* Save current settings of IT so that we can restore them
 	 when we are finished with the glyph property value.  */
