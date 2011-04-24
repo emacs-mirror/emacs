@@ -1,3 +1,7 @@
+2011-04-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* bytecode.c (exec_byte_code): Don't use XVECTOR before CHECK_VECTOR.
+
 2011-04-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Make the Lisp reader and string-to-float more consistent.

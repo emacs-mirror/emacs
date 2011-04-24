@@ -444,7 +444,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
   /* Lisp_Object v1, v2; */
   Lisp_Object *vectorp;
 #ifdef BYTE_CODE_SAFE
-  int const_length = XVECTOR (vector)->size;
+  int const_length;
   Lisp_Object *stacke;
   int bytestr_length;
 #endif
@@ -465,6 +465,10 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
   CHECK_STRING (bytestr);
   CHECK_VECTOR (vector);
   CHECK_NUMBER (maxdepth);
+
+#ifdef BYTE_CODE_SAFE
+  const_length = XVECTOR (vector)->size;
+#endif
 
   if (STRING_MULTIBYTE (bytestr))
     /* BYTESTR must have been produced by Emacs 20.2 or the earlier
