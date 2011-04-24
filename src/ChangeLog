@@ -1,5 +1,20 @@
 2011-04-24  Eli Zaretskii  <eliz@gnu.org>
 
+	* msdos.c (XMenuActivate, XMenuAddSelection): Adjust argument list
+	to changes in oldXMenu/XMenu.h from 2011-04-16.
+	<menu_help_message, prev_menu_help_message>: Constify.
+	(IT_menu_make_room): menu->help_text is now `const char **';
+	adjust.
+
+	* msdos.h (XMenuActivate, XMenuAddSelection): Adjust prototypes
+	to changes in oldXMenu/XMenu.h from 2011-04-16.
+	(struct XMenu): Declare `help_text' `const char **'.
+
+	* xfaces.c <Qunspecified>: Make extern again.
+
+	* syntax.c: Include sys/types.h before including regex.h, as
+	required by Posix.
+
 	* doc.c (get_doc_string): Improve the format passed to `error'.
 
 	* doprnt.c (doprnt): Improve commentary.
