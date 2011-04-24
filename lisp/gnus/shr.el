@@ -734,6 +734,16 @@ ones, in case fg and bg are nil."
 (defun shr-tag-script (cont)
   )
 
+(defun shr-tag-sup (cont)
+  (let ((start (point)))
+    (shr-generic cont)
+    (put-text-property start (point) 'display '(raise 0.5))))
+
+(defun shr-tag-sub (cont)
+  (let ((start (point)))
+    (shr-generic cont)
+    (put-text-property start (point) 'display '(raise -0.5))))
+
 (defun shr-tag-label (cont)
   (shr-generic cont)
   (shr-ensure-paragraph))
