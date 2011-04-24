@@ -1,5 +1,8 @@
 2011-04-24  Eli Zaretskii  <eliz@gnu.org>
 
+	* makefile.w32-in (globals.h): Add a dummy recipe, to make any
+	changes in globals.h immediately force recompilation.
+
 	* character.c (Fchar_direction): Function deleted.
 	(syms_of_character): Don't defsubr it.
 	<char-direction-table>: Deleted.

@@ -225,6 +225,7 @@ SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
 obj = $(GLOBAL_SOURCES:.c=.o)
 
 globals.h: gl-stamp
+	@cmd /c rem true
 
 gl-stamp: ../lib-src/$(BLD)/make-docfile.exe $(GLOBAL_SOURCES)
 	- $(DEL) gl-tmp
