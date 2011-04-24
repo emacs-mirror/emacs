@@ -84,10 +84,6 @@
 ;;    can see what packages are available.  This will automatically
 ;;    fetch the latest list of packages from ELPA.
 ;;
-;; M-x package-list-packages-no-fetch
-;;    Like package-list-packages, but does not automatically fetch the
-;;    new list of packages.
-;;
 ;; M-x package-install-from-buffer
 ;;    Install a package consisting of a single .el file that appears
 ;;    in the current buffer.  This only works for packages which
@@ -462,7 +458,7 @@ Optional arg MIN-VERSION, if non-nil, should be a version list
 specifying the minimum acceptable version."
   (require 'finder-inf nil t) ; For `package--builtins'.
   (let ((elt (assq package package--builtins)))
-    (and elt (min-version-<= min-version (package-desc-vers (cdr elt))))))
+    (and elt (version-list-<= min-version (package-desc-vers (cdr elt))))))
 
 ;; This function goes ahead and activates a newer version of a package
 ;; if an older one was already activated.  This is not ideal; we'd at
@@ -1344,38 +1340,45 @@ a symbol and VERSION-LIST is a version list."
      (unless (assoc key ,listname)
        (push (list key ,status (package-desc-doc ,desc)) ,listname))))
 
-(defun package-menu--generate (&optional remember-pos)
+(defun package-menu--generate (remember-pos packages)
   "Populate the Package Menu.
-Optional argument REMEMBER-POS, if non-nil, means to move point
-to the entry as before."
+If REMEMBER-POS is non-nil, keep point on the same entry.
+PACKAGES should be t, which means to display all known packages,
+or a list of package names (symbols) to display."
   ;; Construct list of ((PACKAGE . VERSION) STATUS DESCRIPTION).
   (let (info-list name builtin)
     ;; Installed packages:
     (dolist (elt package-alist)
       (setq name (car elt))
-      (package--push name (cdr elt)
-		     (if (stringp (cadr (assq name package-load-list)))
-			 "held" "installed")
-		     info-list))
+      (when (or (eq packages t) (memq name packages))
+	(package--push name (cdr elt)
+		       (if (stringp (cadr (assq name package-load-list)))
+			   "held" "installed")
+		       info-list)))
 
     ;; Built-in packages:
     (dolist (elt package--builtins)
       (setq name (car elt))
-      (unless (eq name 'emacs) ; Hide the `emacs' package.
+      (when (and (not (eq name 'emacs)) ; Hide the `emacs' package.
+		 (or (eq packages t) (memq name packages)))
     	(package--push name (cdr elt) "built-in" info-list)))
 
     ;; Available and disabled packages:
     (dolist (elt package-archive-contents)
       (setq name (car elt))
-      (let ((hold (assq name package-load-list)))
-	(package--push name (cdr elt)
-		       (if (and hold (null (cadr hold))) "disabled" "available")
-		       info-list)))
+      (when (or (eq packages t) (memq name packages))
+	(let ((hold (assq name package-load-list)))
+	  (package--push name (cdr elt)
+			 (if (and hold (null (cadr hold)))
+			     "disabled"
+			   "available")
+			 info-list))))
 
     ;; Obsolete packages:
     (dolist (elt package-obsolete-alist)
       (dolist (inner-elt (cdr elt))
-	(package--push (car elt) (cdr inner-elt) "obsolete" info-list)))
+	(when (or (eq packages t) (memq (car elt) packages))
+	  (package--push (car elt) (cdr inner-elt) "obsolete" info-list))))
 
     ;; Print the result.
     (setq tabulated-list-entries (mapcar 'package-menu--print-info info-list))
@@ -1416,7 +1419,7 @@ This fetches the contents of each archive specified in
   (unless (eq major-mode 'package-menu-mode)
     (error "The current buffer is not a Package Menu"))
   (package-refresh-contents)
-  (package-menu--generate t))
+  (package-menu--generate t t))
 
 (defun package-menu-describe-package (&optional button)
   "Describe the current package.
@@ -1531,7 +1534,7 @@ packages marked for deletion are removed."
     (and delete-list (null install-list)
 	 (package-initialize))
     (if (or delete-list install-list)
-	(package-menu--generate t)
+	(package-menu--generate t t)
       (message "No operations specified."))))
 
 (defun package-menu--version-predicate (A B)
@@ -1585,13 +1588,26 @@ The list is displayed in a buffer named `*Packages*'."
   (let ((buf (get-buffer-create "*Packages*")))
     (with-current-buffer buf
       (package-menu-mode)
-      (package-menu--generate))
+      (package-menu--generate nil t))
     ;; The package menu buffer has keybindings.  If the user types
     ;; `M-x list-packages', that suggests it should become current.
     (switch-to-buffer buf)))
 
 ;;;###autoload
 (defalias 'package-list-packages 'list-packages)
+
+;; Used in finder.el
+(defun package-show-package-list (packages)
+  "Display PACKAGES in a *Packages* buffer.
+This is similar to `list-packages', but it does not fetch the
+updated list of packages, and it only displays packages with
+names in PACKAGES (which should be a list of symbols)."
+  (require 'finder-inf nil t)
+  (let ((buf (get-buffer-create "*Packages*")))
+    (with-current-buffer buf
+      (package-menu-mode)
+      (package-menu--generate nil packages))
+    (switch-to-buffer buf)))
 
 (defun package-list-packages-no-fetch ()
   "Display a list of packages.

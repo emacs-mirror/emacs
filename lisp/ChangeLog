@@ -1,5 +1,15 @@
 2011-04-24  Chong Yidong  <cyd@stupidchicken.com>
 
+	* emacs-lisp/package.el (package-built-in-p): Fix typo.
+	(package-menu--generate): New arg specifying packages to show.
+	(package-menu-refresh, package-menu-execute, list-packages):
+	Callers changed.
+	(package-show-package-list): New function, replacing deleted
+	package--list-packages (renamed because it is non-internal).
+
+	* finder.el (finder-list-matches): Use package-show-package-list
+	instead of deleted package--list-packages.
+
 	* vc/vc-annotate.el (vc-annotate-goto-line): New command.  Based
 	on a previous implementation by Juanma Barranquero (Bug#8366).
 	(vc-annotate-mode-map): Bind it to RET.

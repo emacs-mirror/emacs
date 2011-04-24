@@ -316,7 +316,7 @@ not `finder-known-keywords'."
 	 (packages (gethash id finder-keywords-hash)))
     (unless packages
       (error "No packages matching key `%s'" key))
-    (package--list-packages packages)))
+    (package-show-package-list packages)))
 
 (define-button-type 'finder-xref 'action #'finder-goto-xref)
 
