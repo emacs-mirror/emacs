@@ -1,5 +1,8 @@
 2011-04-25  Eli Zaretskii  <eliz@gnu.org>
 
+	* gnutls.c (emacs_gnutls_handshake): Avoid compiler warnings about
+	"cast to pointer from integer of different size".
+
 	Improve doprnt and its use in verror.  (Bug#8545)
 	* doprnt.c (doprnt): Document the set of format control sequences
 	supported by the function.  Use SAFE_ALLOCA instead of always
