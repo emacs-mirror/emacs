@@ -5361,7 +5361,7 @@ mark_object (Lisp_Object arg)
 	  if (po != &buffer_defaults && po != &buffer_local_symbols)
 	    {
 	      struct buffer *b;
-	      for (b = all_buffers; b && b != po; b = b->header.next)
+	      for (b = all_buffers; b && b != po; b = b->header.next.buffer)
 		;
 	      if (b == NULL)
 		abort ();

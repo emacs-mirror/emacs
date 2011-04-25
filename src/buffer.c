@@ -43,7 +43,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 struct buffer *current_buffer;		/* the current buffer */
 
 /* First buffer in chain of all buffers (in reverse order of creation).
-   Threaded through ->header.next.  */
+   Threaded through ->header.next.buffer.  */
 
 struct buffer *all_buffers;
 
