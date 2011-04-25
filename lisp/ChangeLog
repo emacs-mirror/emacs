@@ -1,3 +1,8 @@
+2011-04-24  Daniel Colascione <dan.colascione@gmail.com>
+
+	* progmodes/cc-engine.el (c-forward-decl-or-cast-1): Use
+	correct match group (bug#8438).
+
 2011-04-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* buff-menu.el (Buffer-menu--buffers): Fix typo in docstring (bug#8535).
