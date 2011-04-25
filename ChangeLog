@@ -1,3 +1,7 @@
+2011-04-24  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* configure.in: Check for GnuTLS certificate verify callbacks.
+
 2011-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* Makefile.in (config.status): Don't erase in case of error.

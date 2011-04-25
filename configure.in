@@ -1972,12 +1972,22 @@ fi
 AC_SUBST(LIBSELINUX_LIBS)
 
 HAVE_GNUTLS=no
+HAVE_GNUTLS_CALLBACK_CERTIFICATE_VERIFY=no
 if test "${with_gnutls}" = "yes" ; then
   PKG_CHECK_MODULES([LIBGNUTLS], [gnutls >= 2.2.4], HAVE_GNUTLS=yes, HAVE_GNUTLS=no)
   if test "${HAVE_GNUTLS}" = "yes"; then
     AC_DEFINE(HAVE_GNUTLS, 1, [Define if using GnuTLS.])
   fi
+
+  CFLAGS="$CFLAGS $LIBGNUTLS_CFLAGS"
+  LIBS="$LIBGNUTLS_LIBS $LIBS"
+  AC_CHECK_FUNCS(gnutls_certificate_set_verify_function, HAVE_GNUTLS_CALLBACK_CERTIFICATE_VERIFY=yes)
+
+  if test "${HAVE_GNUTLS_CALLBACK_CERTIFICATE_VERIFY}" = "yes"; then
+    AC_DEFINE(HAVE_GNUTLS_CALLBACK_CERTIFICATE_VERIFY, 1, [Define if using GnuTLS certificate verification callbacks.])
+  fi
 fi
+
 AC_SUBST(LIBGNUTLS_LIBS)
 AC_SUBST(LIBGNUTLS_CFLAGS)
 
