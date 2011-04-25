@@ -1,3 +1,8 @@
+2011-04-25  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-ignore-group-p): Don't call
+	`gnus-parameter-registry-ignore' if the *Group* buffer doesn't exist.
+
 2011-04-23  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-sum.el (gnus-extra-headers): Bump :version.

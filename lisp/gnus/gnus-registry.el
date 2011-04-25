@@ -678,6 +678,7 @@ Consults `gnus-registry-ignored-groups' and
            ;; `gnus-registry-ignored-groups' is a list of lists
            ;; (it can be a list of regexes)
            (and (listp (nth 0 gnus-registry-ignored-groups))
+                (get-buffer "*Group*")  ; in automatic tests this is false
                 (gnus-parameter-registry-ignore group))
            (gnus-grep-in-list
             group
