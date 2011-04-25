@@ -1,3 +1,7 @@
+2011-04-25  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* w32.c (emacs_gnutls_push): Fix typo.
+
 2011-04-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* gnutls.c (emacs_gnutls_handshake): Avoid compiler warnings about

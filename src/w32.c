@@ -6176,7 +6176,7 @@ ssize_t
 emacs_gnutls_push (gnutls_transport_ptr_t p, const void* buf, size_t sz)
 {
   struct Lisp_Process *process = (struct Lisp_Process *)p;
-  int fd = proc->outfd;
+  int fd = process->outfd;
   ssize_t n = sys_write(fd, buf, sz);
 
   /* 0 or more bytes written means everything went fine.  */
