@@ -1,3 +1,8 @@
+2011-04-25  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* alloc.c (check_sblock, check_string_bytes)
+	(check_string_free_list): Convert to standard C.
+
 2011-04-25  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* w32.c (emacs_gnutls_push): Fix typo.

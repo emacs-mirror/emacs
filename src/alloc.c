@@ -1706,8 +1706,7 @@ string_bytes (struct Lisp_String *s)
 /* Check validity of Lisp strings' string_bytes member in B.  */
 
 static void
-check_sblock (b)
-     struct sblock *b;
+check_sblock (struct sblock *b)
 {
   struct sdata *from, *end, *from_end;
 
@@ -1740,8 +1739,7 @@ check_sblock (b)
    recently allocated strings.  Used for hunting a bug.  */
 
 static void
-check_string_bytes (all_p)
-     int all_p;
+check_string_bytes (int all_p)
 {
   if (all_p)
     {
@@ -1769,7 +1767,7 @@ check_string_bytes (all_p)
    This may catch buffer overrun from a previous string.  */
 
 static void
-check_string_free_list ()
+check_string_free_list (void)
 {
   struct Lisp_String *s;
 
