@@ -1,3 +1,14 @@
+2011-04-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-process-actions): Add POS argument.  Delete
+	region between POS and (pos).
+	(tramp-do-copy-or-rename-file-out-of-band): Use `nil' position in
+	`tramp-process-actions' call.
+	(tramp-maybe-open-connection): Call `tramp-process-actions' with pos.
+
+	* net/tramp-smb.el (tramp-smb-maybe-open-connection): Use `nil'
+	position in `tramp-process-actions' call.
+
 2011-04-24  Daniel Colascione <dan.colascione@gmail.com>
 
 	* progmodes/cc-engine.el (c-forward-decl-or-cast-1): Use
