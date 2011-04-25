@@ -4772,7 +4772,7 @@ Does not copy symbols.  Copies strings without text properties.  */)
       register EMACS_INT i;
       EMACS_INT size;
 
-      size = XVECTOR_SIZE (obj);
+      size = ASIZE (obj);
       if (size & PSEUDOVECTOR_FLAG)
 	size &= PSEUDOVECTOR_SIZE_MASK;
       vec = XVECTOR (make_pure_vector (size));

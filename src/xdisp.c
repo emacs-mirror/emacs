@@ -18136,7 +18136,7 @@ display_menu_bar (struct window *w)
 
   /* Display all items of the menu bar.  */
   items = FRAME_MENU_BAR_ITEMS (it.f);
-  for (i = 0; i < XVECTOR_SIZE (items); i += 4)
+  for (i = 0; i < ASIZE (items); i += 4)
     {
       Lisp_Object string;
 

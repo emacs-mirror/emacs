@@ -2359,7 +2359,7 @@ xbm_image_p (Lisp_Object object)
 	  int i;
 
 	  /* Number of elements of the vector must be >= height.  */
-	  if (XVECTOR_SIZE (data) < height)
+	  if (ASIZE (data) < height)
 	    return 0;
 
 	  /* Each string or bool-vector in data must be large enough
@@ -8398,7 +8398,7 @@ gs_image_p (Lisp_Object object)
     }
   else if (VECTORP (tem))
     {
-      if (XVECTOR_SIZE (tem) != 4)
+      if (ASIZE (tem) != 4)
 	return 0;
       for (i = 0; i < 4; ++i)
 	if (!INTEGERP (XVECTOR (tem)->contents[i]))

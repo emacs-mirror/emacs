@@ -4178,7 +4178,7 @@ static int last_overlay_modification_hooks_used;
 static void
 add_overlay_mod_hooklist (Lisp_Object functionlist, Lisp_Object overlay)
 {
-  int oldsize = XVECTOR_SIZE (last_overlay_modification_hooks);
+  int oldsize = ASIZE (last_overlay_modification_hooks);
 
   if (last_overlay_modification_hooks_used == oldsize)
     last_overlay_modification_hooks = larger_vector

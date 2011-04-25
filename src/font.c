@@ -253,7 +253,7 @@ font_intern_prop (const char *str, int len, int force_symbol)
   /* The following code is copied from the function intern (in
      lread.c), and modified to suite our purpose.  */
   obarray = Vobarray;
-  if (!VECTORP (obarray) || XVECTOR_SIZE (obarray) == 0)
+  if (!VECTORP (obarray) || ASIZE (obarray) == 0)
     obarray = check_obarray (obarray);
   parse_str_as_multibyte ((unsigned char *) str, len, &nchars, &nbytes);
   if (len == nchars || len != nbytes)

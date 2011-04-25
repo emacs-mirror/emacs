@@ -554,9 +554,8 @@ extern Lisp_Object make_number (EMACS_INT);
 #define XSYMBOL(a) (eassert (SYMBOLP(a)),(struct Lisp_Symbol *) XPNTR(a))
 #define XFLOAT(a) (eassert (FLOATP(a)),(struct Lisp_Float *) XPNTR(a))
 
-/* Extract the size field of a vector or vector-like object.  */
+/* Extract the size field of a vector-like object.  */
 
-#define XVECTOR_SIZE(a) (XVECTOR (a)->header.size + 0)
 #define XVECTORLIKE_HEADER_SIZE(a) \
   (((struct vectorlike_header *) XPNTR (a))->size + 0)
 
@@ -634,7 +633,7 @@ extern Lisp_Object make_number (EMACS_INT);
 /* Convenience macros for dealing with Lisp arrays.  */
 
 #define AREF(ARRAY, IDX)	XVECTOR ((ARRAY))->contents[IDX]
-#define ASIZE(ARRAY)		XVECTOR_SIZE (ARRAY)
+#define ASIZE(ARRAY)		XVECTOR ((ARRAY))->header.size
 /* The IDX==IDX tries to detect when the macro argument is side-effecting.  */
 #define ASET(ARRAY, IDX, VAL)	\
   (eassert ((IDX) == (IDX)),				\
@@ -1222,7 +1221,7 @@ struct Lisp_Hash_Table
 
 /* Value is the size of hash table H.  */
 
-#define HASH_TABLE_SIZE(H) XVECTOR_SIZE ((H)->next)
+#define HASH_TABLE_SIZE(H) ASIZE ((H)->next)
 
 /* Default size for hash tables if not specified.  */
 
@@ -1640,7 +1639,7 @@ typedef struct {
 #define CONSP(x) (XTYPE ((x)) == Lisp_Cons)
 
 #define FLOATP(x) (XTYPE ((x)) == Lisp_Float)
-#define VECTORP(x)    (VECTORLIKEP (x) && !(XVECTOR_SIZE (x) & PSEUDOVECTOR_FLAG))
+#define VECTORP(x) (VECTORLIKEP (x) && !(ASIZE (x) & PSEUDOVECTOR_FLAG))
 #define OVERLAYP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Overlay)
 #define MARKERP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Marker)
 #define SAVE_VALUEP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Save_Value)

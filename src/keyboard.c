@@ -134,7 +134,7 @@ static Lisp_Object raw_keybuf;
 static int raw_keybuf_count;
 
 #define GROW_RAW_KEYBUF							\
- if (raw_keybuf_count == XVECTOR_SIZE (raw_keybuf))			\
+ if (raw_keybuf_count == ASIZE (raw_keybuf))				\
    raw_keybuf = larger_vector (raw_keybuf, raw_keybuf_count * 2, Qnil)  \
 
 /* Number of elements of this_command_keys
@@ -2898,7 +2898,7 @@ read_char (int commandflag, int nmaps, Lisp_Object *maps, Lisp_Object prev_event
       if ((STRINGP (KVAR (current_kboard, Vkeyboard_translate_table))
 	   && SCHARS (KVAR (current_kboard, Vkeyboard_translate_table)) > (unsigned) XFASTINT (c))
 	  || (VECTORP (KVAR (current_kboard, Vkeyboard_translate_table))
-	      && XVECTOR_SIZE (KVAR (current_kboard, Vkeyboard_translate_table)) > (unsigned) XFASTINT (c))
+	      && ASIZE (KVAR (current_kboard, Vkeyboard_translate_table)) > (unsigned) XFASTINT (c))
 	  || (CHAR_TABLE_P (KVAR (current_kboard, Vkeyboard_translate_table))
 	      && CHARACTERP (c)))
 	{
@@ -4198,7 +4198,7 @@ timer_start_idle (void)
 
       timer = XCAR (timers);
 
-      if (!VECTORP (timer) || XVECTOR_SIZE (timer) != 8)
+      if (!VECTORP (timer) || ASIZE (timer) != 8)
 	continue;
       XVECTOR (timer)->contents[0] = Qnil;
     }
@@ -4293,7 +4293,7 @@ timer_check_2 (void)
       if (CONSP (timers))
 	{
 	  timer = XCAR (timers);
-	  if (!VECTORP (timer) || XVECTOR_SIZE (timer) != 8)
+	  if (!VECTORP (timer) || ASIZE (timer) != 8)
 	    {
 	      timers = XCDR (timers);
 	      continue;
@@ -4311,7 +4311,7 @@ timer_check_2 (void)
       if (CONSP (idle_timers))
 	{
 	  timer = XCAR (idle_timers);
-	  if (!VECTORP (timer) || XVECTOR_SIZE (timer) != 8)
+	  if (!VECTORP (timer) || ASIZE (timer) != 8)
 	    {
 	      idle_timers = XCDR (idle_timers);
 	      continue;
@@ -5459,7 +5459,7 @@ make_lispy_event (struct input_event *event)
 		/* Find the menu bar item under `column'.  */
 		item = Qnil;
 		items = FRAME_MENU_BAR_ITEMS (f);
-		for (i = 0; i < XVECTOR_SIZE (items); i += 4)
+		for (i = 0; i < ASIZE (items); i += 4)
 		  {
 		    Lisp_Object pos, string;
 		    string = AREF (items, i + 1);
@@ -5652,7 +5652,7 @@ make_lispy_event (struct input_event *event)
 				      Qmouse_click, Vlispy_mouse_stem,
 				      NULL,
 				      &mouse_syms,
-				      XVECTOR_SIZE (mouse_syms));
+				      ASIZE (mouse_syms));
 	  if (event->modifiers & drag_modifier)
 	    return Fcons (head,
 			  Fcons (start_pos,
@@ -5823,7 +5823,7 @@ make_lispy_event (struct input_event *event)
 				    Qmouse_click,
 				    Vlispy_mouse_stem,
 				    NULL, &mouse_syms,
-				    XVECTOR_SIZE (mouse_syms));
+				    ASIZE (mouse_syms));
 	return Fcons (head, Fcons (position, Qnil));
       }
 
@@ -5943,7 +5943,7 @@ make_lispy_event (struct input_event *event)
 				    Qmouse_click, Vlispy_mouse_stem,
 				    NULL,
 				    &mouse_syms,
-				    XVECTOR_SIZE (mouse_syms));
+				    ASIZE (mouse_syms));
 
 	if (event->modifiers & drag_modifier)
 	  return Fcons (head,
@@ -6422,7 +6422,7 @@ modify_event_symbol (EMACS_INT symbol_num, unsigned int modifiers, Lisp_Object s
   else
     {
       if (! VECTORP (*symbol_table)
-	  || XVECTOR_SIZE (*symbol_table) != table_size)
+	  || ASIZE (*symbol_table) != table_size)
 	{
 	  Lisp_Object size;
 
@@ -7479,7 +7479,7 @@ menu_bar_items (Lisp_Object old)
   /* Add nil, nil, nil, nil at the end.  */
   {
     int i = menu_bar_items_index;
-    if (i + 4 > XVECTOR_SIZE (menu_bar_items_vector))
+    if (i + 4 > ASIZE (menu_bar_items_vector))
       menu_bar_items_vector =
 	larger_vector (menu_bar_items_vector, 2 * i, Qnil);
     /* Add this item.  */
@@ -7551,7 +7551,7 @@ menu_bar_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy1, void *dumm
   if (i == menu_bar_items_index)
     {
       /* If vector is too small, get a bigger one.  */
-      if (i + 4 > XVECTOR_SIZE (menu_bar_items_vector))
+      if (i + 4 > ASIZE (menu_bar_items_vector))
 	menu_bar_items_vector = larger_vector (menu_bar_items_vector, 2 * i, Qnil);
       /* Add this item.  */
       XVECTOR (menu_bar_items_vector)->contents[i++] = key;
@@ -8219,7 +8219,7 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
 	}
       else if (EQ (ikey, QCimage)
 	       && (CONSP (value)
-		   || (VECTORP (value) && XVECTOR_SIZE (value) == 4)))
+		   || (VECTORP (value) && ASIZE (value) == 4)))
 	/* Value is either a single image specification or a vector
 	   of 4 such specifications for the different button states.  */
 	PROP (TOOL_BAR_ITEM_IMAGES) = value;
@@ -8323,10 +8323,10 @@ append_tool_bar_item (void)
 
   /* Enlarge tool_bar_items_vector if necessary.  */
   if (ntool_bar_items + TOOL_BAR_ITEM_NSLOTS
-      >= XVECTOR_SIZE (tool_bar_items_vector))
+      >= ASIZE (tool_bar_items_vector))
     tool_bar_items_vector
       = larger_vector (tool_bar_items_vector,
-		       2 * XVECTOR_SIZE (tool_bar_items_vector), Qnil);
+		       2 * ASIZE (tool_bar_items_vector), Qnil);
 
   /* Append entries from tool_bar_item_properties to the end of
      tool_bar_items_vector.  */
@@ -8648,7 +8648,7 @@ read_char_minibuf_menu_prompt (int commandflag, int nmaps, Lisp_Object *maps)
 		}
 
 	      /* Move past this element.  */
-	      if (idx >= 0 && idx + 1 >= XVECTOR_SIZE (vector))
+	      if (idx >= 0 && idx + 1 >= ASIZE (vector))
 		/* Handle reaching end of dense table.  */
 		idx = -1;
 	      if (idx >= 0)
@@ -10292,7 +10292,7 @@ give to the command you invoke, if it asks for an argument.  */)
     this_single_command_key_start = 0;
 
     keys = XVECTOR (saved_keys)->contents;
-    for (i = 0; i < XVECTOR_SIZE (saved_keys); i++)
+    for (i = 0; i < ASIZE (saved_keys); i++)
       add_command_key (keys[i]);
 
     for (i = 0; i < SCHARS (function); i++)
@@ -10585,7 +10585,7 @@ KEEP-RECORD is non-nil.  */)
 
   if (NILP (keep_record))
     {
-      for (i = 0; i < XVECTOR_SIZE (recent_keys); ++i)
+      for (i = 0; i < ASIZE (recent_keys); ++i)
 	XVECTOR (recent_keys)->contents[i] = Qnil;
       total_keys = 0;
       recent_keys_index = 0;

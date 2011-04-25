@@ -359,7 +359,7 @@ Return PARENT.  PARENT should be nil or another keymap.  */)
 				XCDR (XCAR (list)));
 
       if (VECTORP (XCAR (list)))
-	for (i = 0; i < XVECTOR_SIZE (XCAR (list)); i++)
+	for (i = 0; i < ASIZE (XCAR (list)); i++)
 	  if (CONSP (XVECTOR (XCAR (list))->contents[i]))
 	    fix_submap_inheritance (keymap, make_number (i),
 				    XVECTOR (XCAR (list))->contents[i]);
@@ -2226,7 +2226,7 @@ spaces are put between sequence elements, etc.  */)
   if (STRINGP (list))
     size = SCHARS (list);
   else if (VECTORP (list))
-    size = XVECTOR_SIZE (list);
+    size = ASIZE (list);
   else if (CONSP (list))
     size = XINT (Flength (list));
   else
@@ -3125,7 +3125,7 @@ key             binding\n\
 
 	  elt = XCAR (list);
 	  elt_prefix = Fcar (elt);
-	  if (XVECTOR_SIZE (elt_prefix) >= 1)
+	  if (ASIZE (elt_prefix) >= 1)
 	    {
 	      tem = Faref (elt_prefix, make_number (0));
 	      if (EQ (tem, Qmenu_bar))
@@ -3168,7 +3168,7 @@ key             binding\n\
 	  /* If the sequence by which we reach this keymap is zero-length,
 	     then the shadow map for this keymap is just SHADOW.  */
 	  if ((STRINGP (elt_prefix) && SCHARS (elt_prefix) == 0)
-	      || (VECTORP (elt_prefix) && XVECTOR_SIZE (elt_prefix) == 0))
+	      || (VECTORP (elt_prefix) && ASIZE (elt_prefix) == 0))
 	    ;
 	  /* If the sequence by which we reach this keymap actually has
 	     some elements, then the sequence's definition in SHADOW is
@@ -3592,7 +3592,7 @@ describe_vector (Lisp_Object vector, Lisp_Object prefix, Lisp_Object args,
   if (CHAR_TABLE_P (vector))
     stop = MAX_5_BYTE_CHAR + 1, to = MAX_CHAR + 1;
   else
-    stop = to = XVECTOR_SIZE (vector);
+    stop = to = ASIZE (vector);
 
   for (i = from; ; i++)
     {

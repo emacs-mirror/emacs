@@ -1198,7 +1198,7 @@ print_preprocess (Lisp_Object obj)
 	  goto loop;
 
 	case Lisp_Vectorlike:
-	  size = XVECTOR_SIZE (obj);
+	  size = ASIZE (obj);
 	  if (size & PSEUDOVECTOR_FLAG)
 	    size &= PSEUDOVECTOR_SIZE_MASK;
 	  for (i = 0; i < size; i++)
@@ -1786,7 +1786,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	      strout (SDATA (SYMBOL_NAME (h->weak)), -1, -1, printcharfun);
 	      PRINTCHAR (' ');
 	      sprintf (buf, "%ld/%ld", (long) h->count,
-		       (long) XVECTOR_SIZE (h->next));
+		       (long) ASIZE (h->next));
 	      strout (buf, -1, -1, printcharfun);
 	    }
 	  sprintf (buf, " 0x%lx", (unsigned long) h);
@@ -1797,7 +1797,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	    #s(hash-table size 2 test equal data (k1 v1 k2 v2)) */
 	  /* Always print the size. */
 	  sprintf (buf, "#s(hash-table size %ld",
-		   (long) XVECTOR_SIZE (h->next));
+		   (long) ASIZE (h->next));
 	  strout (buf, -1, -1, printcharfun);
 
 	  if (!NILP (h->test))
@@ -1909,7 +1909,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	}
       else
 	{
-	  EMACS_INT size = XVECTOR_SIZE (obj);
+	  EMACS_INT size = ASIZE (obj);
 	  if (COMPILEDP (obj))
 	    {
 	      PRINTCHAR ('#');
@@ -2025,7 +2025,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	if (MISCP (obj))
 	  sprintf (buf, "(MISC 0x%04x)", (int) XMISCTYPE (obj));
 	else if (VECTORLIKEP (obj))
-	  sprintf (buf, "(PVEC 0x%08lx)", (unsigned long) XVECTOR_SIZE (obj));
+	  sprintf (buf, "(PVEC 0x%08lx)", (unsigned long) ASIZE (obj));
 	else
 	  sprintf (buf, "(0x%02x)", (int) XTYPE (obj));
 	strout (buf, -1, -1, printcharfun);

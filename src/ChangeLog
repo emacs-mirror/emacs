@@ -1,5 +1,9 @@
 2011-04-25  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lisp.h: (XVECTOR_SIZE): Remove.  All uses replaced with ASIZE.
+	(ASIZE): Now contains previous implementation of XVECTOR_SIZE
+	instead of invoking XVECTOR_SIZE.
+
 	* lisp.h: Say "vectorlike header" rather than "vector header.
 	(struct vectorlike_header): Rename from struct vector_header.
 	(XVECTORLIKE_HEADER_SIZE): Renamed from XVECTOR_HEADER_SIZE.

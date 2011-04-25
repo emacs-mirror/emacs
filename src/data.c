@@ -2093,9 +2093,9 @@ or a byte-code object.  IDX starts at 0.  */)
     {
       int size = 0;
       if (VECTORP (array))
-	size = XVECTOR_SIZE (array);
+	size = ASIZE (array);
       else if (COMPILEDP (array))
-	size = XVECTOR_SIZE (array) & PSEUDOVECTOR_SIZE_MASK;
+	size = ASIZE (array) & PSEUDOVECTOR_SIZE_MASK;
       else
 	wrong_type_argument (Qarrayp, array);
 
@@ -2120,7 +2120,7 @@ bool-vector.  IDX starts at 0.  */)
 
   if (VECTORP (array))
     {
-      if (idxval < 0 || idxval >= XVECTOR_SIZE (array))
+      if (idxval < 0 || idxval >= ASIZE (array))
 	args_out_of_range (array, idx);
       XVECTOR (array)->contents[idxval] = newelt;
     }

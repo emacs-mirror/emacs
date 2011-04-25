@@ -93,7 +93,7 @@ character_width (int c, struct Lisp_Char_Table *dp)
   /* Everything can be handled by the display table, if it's
      present and the element is right.  */
   if (dp && (elt = DISP_CHAR_VECTOR (dp, c), VECTORP (elt)))
-    return XVECTOR_SIZE (elt);
+    return ASIZE (elt);
 
   /* Some characters are special.  */
   if (c == '\n' || c == '\t' || c == '\015')
@@ -284,7 +284,7 @@ skip_invisible (EMACS_INT pos, EMACS_INT *next_boundary_p, EMACS_INT to, Lisp_Ob
     else								\
       {									\
 	if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, ch)))		\
-	  width = XVECTOR_SIZE (DISP_CHAR_VECTOR (dp, ch));		\
+	  width = ASIZE (DISP_CHAR_VECTOR (dp, ch));			\
 	else								\
 	  width = CHAR_WIDTH (ch);					\
       }									\
@@ -766,7 +766,7 @@ string_display_width (string, beg, end)
 
       c = *--ptr;
       if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))
-	col += XVECTOR_SIZE (DISP_CHAR_VECTOR (dp, c));
+	col += ASIZE (DISP_CHAR_VECTOR (dp, c));
       else if (c >= 040 && c < 0177)
 	col++;
       else if (c == '\n')
@@ -1127,7 +1127,7 @@ compute_motion (EMACS_INT from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
        : !NILP (BVAR (current_buffer, selective_display)) ? -1 : 0);
   int selective_rlen
     = (selective && dp && VECTORP (DISP_INVIS_VECTOR (dp))
-       ? XVECTOR_SIZE (DISP_INVIS_VECTOR (dp)) : 0);
+       ? ASIZE (DISP_INVIS_VECTOR (dp)) : 0);
   /* The next location where the `invisible' property changes, or an
      overlay starts or ends.  */
   EMACS_INT next_boundary = from;

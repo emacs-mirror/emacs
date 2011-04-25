@@ -1227,7 +1227,7 @@ is used to further constrain the set of candidates.  */)
   if (type == obarray_table)
     {
       collection = check_obarray (collection);
-      obsize = XVECTOR_SIZE (collection);
+      obsize = ASIZE (collection);
       bucket = XVECTOR (collection)->contents[idx];
     }
 
@@ -1490,7 +1490,7 @@ with a space are ignored unless STRING itself starts with a space.  */)
   if (type == 2)
     {
       collection = check_obarray (collection);
-      obsize = XVECTOR_SIZE (collection);
+      obsize = ASIZE (collection);
       bucket = XVECTOR (collection)->contents[idx];
     }
 
@@ -1804,7 +1804,7 @@ the values STRING, PREDICATE and `lambda'.  */)
 
       if (completion_ignore_case && !SYMBOLP (tem))
 	{
-	  for (i = XVECTOR_SIZE (collection) - 1; i >= 0; i--)
+	  for (i = ASIZE (collection) - 1; i >= 0; i--)
 	    {
 	      tail = XVECTOR (collection)->contents[i];
 	      if (SYMBOLP (tail))

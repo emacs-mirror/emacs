@@ -7125,7 +7125,7 @@ handle_composition_annotation (EMACS_INT pos, EMACS_INT limit,
 	      components = COMPOSITION_COMPONENTS (prop);
 	      if (VECTORP (components))
 		{
-		  len = XVECTOR_SIZE (components);
+		  len = ASIZE (components);
 		  for (i = 0; i < len; i++)
 		    *buf++ = XINT (AREF (components, i));
 		}

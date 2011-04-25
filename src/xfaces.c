@@ -1848,7 +1848,7 @@ the WIDTH times as wide as FACE on FRAME.  */)
 
 #define LFACEP(LFACE)					\
      (VECTORP (LFACE)					\
-      && XVECTOR_SIZE (LFACE) == LFACE_VECTOR_SIZE	\
+      && ASIZE (LFACE) == LFACE_VECTOR_SIZE		\
       && EQ (AREF (LFACE, 0), Qface))
 #endif
 
