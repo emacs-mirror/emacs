@@ -1,5 +1,7 @@
 2011-04-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* custom.el (defcustom): Obey lexical-binding.
+
 	Fix octave-inf completion problems reported by Alexander Klimov.
 	* progmodes/octave-inf.el (inferior-octave-mode-syntax-table):
 	Inherit from octave-mode-syntax-table.
