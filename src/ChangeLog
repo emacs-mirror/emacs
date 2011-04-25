@@ -1,3 +1,38 @@
+2011-04-24  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnutls.h: Add GNUTLS_STAGE_CALLBACKS enum to denote we're in the
+	callbacks stage.
+
+	* gnutls.c: Renamed global_initialized to
+	gnutls_global_initialized.  Added internals for the
+	:verify-hostname-error, :verify-error, and :verify-flags
+	parameters of `gnutls-boot' and documented those parameters in the
+	docstring.  Start callback support.
+	(emacs_gnutls_handshake): Add Woe32 support. Retry handshake
+	unless a fatal error occured. Call gnutls_alert_send_appropriate
+	on error. Return error code.
+	(emacs_gnutls_write): Call emacs_gnutls_handle_error.
+	(emacs_gnutls_read): Likewise.
+	(Fgnutls_boot): Return handshake error code.
+	(emacs_gnutls_handle_error): New function.
+	(wsaerror_to_errno): Likewise.
+
+	* w32.h (emacs_gnutls_pull): Add prototype.
+	(emacs_gnutls_push): Likewise.
+
+	* w32.c (emacs_gnutls_pull): New function for GnuTLS on Woe32.
+	(emacs_gnutls_push): Likewise.
+
+2011-04-24  Claudio Bley  <claudio.bley@gmail.com>  (tiny change)
+
+	* process.c (wait_reading_process_output): Check if GnuTLS
+	buffered some data internally if no FDs are set for TLS
+	connections.
+
+	* makefile.w32-in (OBJ2): Add gnutls.$(O).
+	(LIBS): Link to USER_LIBS.
+	($(BLD)/gnutls.$(0)): New target.
+
 2011-04-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (handle_single_display_spec): Rename the

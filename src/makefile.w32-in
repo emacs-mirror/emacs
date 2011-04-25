@@ -105,6 +105,7 @@ OBJ2 =  $(BLD)/sysdep.$(O)		\
 	$(BLD)/floatfns.$(O)		\
 	$(BLD)/frame.$(O)		\
 	$(BLD)/gmalloc.$(O)		\
+	$(BLD)/gnutls.$(O)		\
 	$(BLD)/intervals.$(O)		\
 	$(BLD)/composite.$(O)		\
 	$(BLD)/ralloc.$(O)		\
@@ -150,6 +151,7 @@ LIBS =  $(TLIB0)	\
 	$(OLE32)	\
 	$(COMCTL32)	\
 	$(UNISCRIBE)    \
+	$(USER_LIBS)    \
 	$(libc)
 
 #
@@ -949,6 +951,14 @@ $(BLD)/gmalloc.$(O) : \
 	$(CONFIG_H) \
 	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(SRC)/getpagesize.h
+
+$(BLD)/gnutls.$(O) : \
+	$(SRC)/gnutls.h \
+	$(SRC)/gnutls.c \
+	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/sys/socket.h \
+	$(SRC)/lisp.h \
+	$(SRC)/process.h
 
 $(BLD)/image.$(O) : \
 	$(SRC)/image.c \

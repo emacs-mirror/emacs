@@ -4532,6 +4532,22 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
              &Available,
              (check_write ? &Writeok : (SELECT_TYPE *)0),
              (SELECT_TYPE *)0, &timeout);
+
+#ifdef HAVE_GNUTLS
+          /* GnuTLS buffers data internally.  In lowat mode it leaves
+             some data in the TCP buffers so that select works, but
+             with custom pull/push functions we need to check if some
+             data is available in the buffers manually.  */
+          if (nfds == 0 && 
+              wait_proc && wait_proc->gnutls_p /* Check for valid process.  */
+              /* Do we have pending data?  */
+              && gnutls_record_check_pending (wait_proc->gnutls_state) > 0)
+          {
+              nfds = 1;
+              /* Set to Available.  */
+              FD_SET (wait_proc->infd, &Available);
+          }
+#endif
 	}
 
       xerrno = errno;
