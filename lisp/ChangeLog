@@ -1,3 +1,16 @@
+2011-04-24  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/gnutls.el (gnutls-negotiate): Add hostname, verify-flags,
+	verify-error, and verify-hostname-error parameters.  Check whether
+	default trustfile exists before going to use it. Add missing
+	argument to gnutls-message-maybe call. Return return value.
+	Reported by Claudio Bley <claudio.bley@gmail.com>.
+	(open-gnutls-stream): Add usage example.
+
+	* net/network-stream.el (network-stream-open-starttls): Give host
+	parameter to `gnutls-negotiate'.
+	(gnutls-negotiate): Adjust `gnutls-negotiate' declaration.
+
 2011-04-24  Daniel Colascione <dan.colascione@gmail.com>
 
 	* progmodes/cc-engine.el (c-forward-decl-or-cast-1): Use
