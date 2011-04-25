@@ -1,3 +1,19 @@
+2011-04-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Fix octave-inf completion problems reported by Alexander Klimov.
+	* progmodes/octave-inf.el (inferior-octave-mode-syntax-table):
+	Inherit from octave-mode-syntax-table.
+	(inferior-octave-mode): Set info-lookup-mode.
+	(inferior-octave-completion-at-point): New function.
+	(inferior-octave-complete): Use it and completion-in-region.
+	(inferior-octave-dynamic-complete-functions): Use it as well, and use
+	comint-filename-completion.
+	* progmodes/octave-mod.el (octave-mode-syntax-table): Use _ syntax for
+	symbol elements which shouldn't be word elements.
+	(octave-font-lock-keywords, octave-beginning-of-defun)
+	(octave-function-header-regexp): Adjust regexps accordingly.
+	(octave-mode-map): Also use info-lookup-symbol for C-c C-h.
+
 2011-04-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* net/gnutls.el (gnutls-errorp): Declare before first use.
@@ -32,8 +48,8 @@
 	* finder.el (finder-list-matches): Use package-show-package-list
 	instead of deleted package--list-packages.
 
-	* vc/vc-annotate.el (vc-annotate-goto-line): New command.  Based
-	on a previous implementation by Juanma Barranquero (Bug#8366).
+	* vc/vc-annotate.el (vc-annotate-goto-line): New command.
+	Based on a previous implementation by Juanma Barranquero (Bug#8366).
 	(vc-annotate-mode-map): Bind it to RET.
 
 2011-04-24  Uday S Reddy  <u.s.reddy@cs.bham.ac.uk>  (tiny change)
