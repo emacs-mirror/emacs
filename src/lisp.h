@@ -554,11 +554,6 @@ extern Lisp_Object make_number (EMACS_INT);
 #define XSYMBOL(a) (eassert (SYMBOLP(a)),(struct Lisp_Symbol *) XPNTR(a))
 #define XFLOAT(a) (eassert (FLOATP(a)),(struct Lisp_Float *) XPNTR(a))
 
-/* Extract the size field of a vector-like object.  */
-
-#define XVECTORLIKE_HEADER_SIZE(a) \
-  (((struct vectorlike_header *) XPNTR (a))->size + 0)
-
 /* Misc types.  */
 
 #define XMISC(a)   ((union Lisp_Misc *) XPNTR(a))
@@ -612,7 +607,9 @@ extern Lisp_Object make_number (EMACS_INT);
 #define XSETPVECTYPESIZE(v, code, sizeval) \
   ((v)->header.size = PSEUDOVECTOR_FLAG | (code) | (sizeval))
 #define XSETPSEUDOVECTOR(a, b, code) \
-  XSETTYPED_PSEUDOVECTOR(a, b, XVECTORLIKE_HEADER_SIZE (a), code)
+  XSETTYPED_PSEUDOVECTOR(a, b,       \
+			 ((struct vectorlike_header *) XPNTR (a))->size, \
+			 code)
 #define XSETTYPED_PSEUDOVECTOR(a, b, size, code)			\
   (XSETVECTOR (a, b),							\
    eassert ((size & (PSEUDOVECTOR_FLAG | PVEC_TYPE_MASK))		\
