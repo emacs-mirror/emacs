@@ -3098,8 +3098,11 @@ The terminal type can be configured with `tramp-terminal-type'."
 	  (setq found (funcall action proc vec)))))
     found))
 
-(defun tramp-process-actions (proc vec actions &optional timeout)
-  "Perform actions until success or TIMEOUT."
+(defun tramp-process-actions (proc vec pos actions &optional timeout)
+  "Perform ACTIONS until success or TIMEOUT.
+PROC and VEC indicate the remote connection to be used.  POS, if
+set, is the starting point of the region to be deleted in the
+connection buffer."
   ;; Preserve message for `progress-reporter'.
   (tramp-compat-with-temp-message ""
     ;; Enable auth-source and password-cache.
@@ -3124,7 +3127,10 @@ The terminal type can be configured with `tramp-terminal-type'."
 	   (cond
 	    ((eq exit 'permission-denied) "Permission denied")
 	    ((eq exit 'process-died) "Process died")
-	    (t "Login failed"))))))))
+	    (t "Login failed"))))
+	(when (numberp pos)
+	  (with-current-buffer (tramp-get-connection-buffer vec)
+	    (let (buffer-read-only) (delete-region pos (point)))))))))
 
 :;; Utility functions:
 

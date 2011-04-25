@@ -1,3 +1,17 @@
+2011-04-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-process-actions): Add POS argument.  Delete
+	region between POS and (pos).
+
+	* net/tramp-sh.el (tramp-do-copy-or-rename-file-out-of-band): Use
+	`nil' position in `tramp-process-actions' call.
+	(tramp-maybe-open-connection): Call `tramp-process-actions' with pos.
+
+	* net/tramp-smb.el (tramp-smb-maybe-open-connection): Use `nil'
+	position in `tramp-process-actions' call.
+
+	* net/trampver.el: Update release number.
+
 2011-04-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* custom.el (defcustom): Obey lexical-binding.
