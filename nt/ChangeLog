@@ -1,3 +1,11 @@
+2011-04-24  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* configure.bat: New options --without-gnutls and --lib, new build
+	variable USER_LIBS, automatically detect GnuTLS.  Copies the PNG
+	library setup with trivial modifications.
+	* INSTALL: Add instructions for GnuTLS support.
+	* gmake.defs: Prefix USER_LIBS with -l.
+
 2011-04-15  Ben Key  <bkey76@gmail.com>
 
 	* configure.bat: Modified the code that parses the --cflags and
