@@ -43,10 +43,54 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
    OTOH, this function supports only a small subset of the standard C formatted
    output facilities.  E.g., %u and %ll are not supported, and precision is
-   largely ignored except for converting floating-point values.  However, this
-   is okay, as this function is supposed to be called from `error' and similar
-   functions, and thus does not need to support features beyond those in
-   `Fformat', which is used by `error' on the Lisp level.  */
+   ignored %s and %c conversions.  (See below for the detailed documentation of
+   what is supported.)  However, this is okay, as this function is supposed to
+   be called from `error' and similar functions, and thus does not need to
+   support features beyond those in `Fformat', which is used by `error' on the
+   Lisp level.  */
+
+/* This function supports the following %-sequences in the `format'
+   argument:
+
+   %s means print a string argument.
+   %S is silently treated as %s, for loose compatibility with `Fformat'.
+   %d means print a `signed int' argument in decimal.
+   %l means print a `long int' argument in decimal.
+   %o means print an `unsigned int' argument in octal.
+   %x means print an `unsigned int' argument in hex.
+   %e means print a `double' argument in exponential notation.
+   %f means print a `double' argument in decimal-point notation.
+   %g means print a `double' argument in exponential notation
+      or in decimal-point notation, whichever uses fewer characters.
+   %c means print a `signed int' argument as a single character.
+   %% means produce a literal % character.
+
+   A %-sequence may contain optional flag, width, and precision specifiers, as
+   follows:
+
+     %<flags><width><precision>character
+
+   where flags is [+ -0l], width is [0-9]+, and precision is .[0-9]+
+
+   The + flag character inserts a + before any positive number, while a space
+   inserts a space before any positive number; these flags only affect %d, %l,
+   %o, %x, %e, %f, and %g sequences.  The - and 0 flags affect the width
+   specifier, as described below.
+
+   The l (lower-case letter ell) flag is a `long' data type modifier: it is
+   supported for %d, %o, and %x conversions of integral arguments, and means
+   that the respective argument is to be treated as `long int' or `unsigned
+   long int'.  The EMACS_INT data type should use this modifier.
+
+   The width specifier supplies a lower limit for the length of the printed
+   representation.  The padding, if any, normally goes on the left, but it goes
+   on the right if the - flag is present.  The padding character is normally a
+   space, but (for numerical arguments only) it is 0 if the 0 flag is present.
+   The - flag takes precedence over the 0 flag.
+
+   For %e, %f, and %g sequences, the number after the "." in the precision
+   specifier says how many decimal places to show; if zero, the decimal point
+   itself is omitted.  For %s and %S, the precision specifier is ignored.  */
 
 #include <config.h>
 #include <stdio.h>
@@ -79,9 +123,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    terminated at position FORMAT_END.
    Output goes in BUFFER, which has room for BUFSIZE chars.
    If the output does not fit, truncate it to fit.
-   Returns the number of bytes stored into BUFFER.
-   ARGS points to the vector of arguments, and NARGS says how many.
-   A double counts as two arguments.
+   Returns the number of bytes stored into BUFFER, excluding
+   the terminating null byte.  Output is always null-terminated.
    String arguments are passed as C strings.
    Integers are passed as C integers.  */
 
@@ -110,6 +153,7 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
   char *fmtcpy;
   int minlen;
   char charbuf[MAX_MULTIBYTE_LENGTH + 1];	/* Used for %c.  */
+  USE_SAFE_ALLOCA;
 
   if (format_end == 0)
     format_end = format + strlen (format);
@@ -117,7 +161,7 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
   if ((format_end - format + 1) < sizeof (fixed_buffer))
     fmtcpy = fixed_buffer;
   else
-    fmtcpy = (char *) alloca (format_end - format + 1);
+    SAFE_ALLOCA (fmtcpy, char *, format_end - format + 1);
 
   bufsize--;
 
@@ -342,5 +386,7 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
   xfree (big_buffer);
 
   *bufptr = 0;		/* Make sure our string ends with a '\0' */
+
+  SAFE_FREE ();
   return bufptr - buffer;
 }

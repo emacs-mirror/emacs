@@ -2012,15 +2012,14 @@ verror (const char *m, va_list ap)
 	break;
       if (size <= size_max / 2)
 	size *= 2;
-      else if (size < size_max - 1)
-	size = size_max - 1;
+      else if (size < size_max)
+	size = size_max;
       else
 	break;	/* and leave the message truncated */
 
-      if (buffer == buf)
-	buffer = (char *) xmalloc (size);
-      else
-	buffer = (char *) xrealloc (buffer, size);
+      if (buffer != buf)
+	xfree (buffer);
+      buffer = (char *) xmalloc (size);
     }
 
   string = make_string (buffer, used);

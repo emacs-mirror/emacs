@@ -1,3 +1,14 @@
+2011-04-25  Eli Zaretskii  <eliz@gnu.org>
+
+	Improve doprnt and its use in verror.  (Bug#8545)
+	* doprnt.c (doprnt): Document the set of format control sequences
+	supported by the function.  Use SAFE_ALLOCA instead of always
+	using `alloca'.
+
+	* eval.c (verror): Don't limit the buffer size at size_max-1, that
+	is one byte too soon.  Don't use xrealloc; instead xfree and
+	xmalloc anew.
+
 2011-04-24  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnutls.h: Add GNUTLS_STAGE_CALLBACKS enum to denote we're in the
