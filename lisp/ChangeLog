@@ -1,9 +1,13 @@
+2011-04-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* net/gnutls.el (gnutls-errorp): Declare before first use.
+
 2011-04-24  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* net/gnutls.el (gnutls-negotiate): Add hostname, verify-flags,
 	verify-error, and verify-hostname-error parameters.  Check whether
-	default trustfile exists before going to use it. Add missing
-	argument to gnutls-message-maybe call. Return return value.
+	default trustfile exists before going to use it.  Add missing
+	argument to gnutls-message-maybe call.  Return return value.
 	Reported by Claudio Bley <claudio.bley@gmail.com>.
 	(open-gnutls-stream): Add usage example.
 
@@ -13,8 +17,8 @@
 
 2011-04-24  Daniel Colascione <dan.colascione@gmail.com>
 
-	* progmodes/cc-engine.el (c-forward-decl-or-cast-1): Use
-	correct match group (bug#8438).
+	* progmodes/cc-engine.el (c-forward-decl-or-cast-1):
+	Use correct match group (bug#8438).
 
 2011-04-24  Chong Yidong  <cyd@stupidchicken.com>
 

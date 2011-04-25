@@ -83,6 +83,7 @@ trust and key files, and priority string."
      'error-message "GnuTLS error")
 
 (declare-function gnutls-boot "gnutls.c" (proc type proplist))
+(declare-function gnutls-errorp "gnutls.c" (error))
 
 (defun gnutls-negotiate (proc type hostname &optional priority-string
                               trustfiles keyfiles verify-flags
@@ -157,7 +158,6 @@ defaults to GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT."
 
     proc))
 
-(declare-function gnutls-errorp "gnutls.c" (error))
 (declare-function gnutls-error-string "gnutls.c" (error))
 
 (defun gnutls-message-maybe (doit format &rest params)
