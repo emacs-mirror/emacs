@@ -5794,7 +5794,7 @@ zero means top of window, negative means relative to bottom of window.  */)
 
 struct save_window_data
   {
-    struct vector_header header;
+    struct vectorlike_header header;
     Lisp_Object selected_frame;
     Lisp_Object current_window;
     Lisp_Object current_buffer;
@@ -5816,7 +5816,7 @@ struct save_window_data
 /* This is saved as a Lisp_Vector  */
 struct saved_window
 {
-  struct vector_header header;
+  struct vectorlike_header header;
   Lisp_Object window;
   Lisp_Object buffer, start, pointm, mark;
   Lisp_Object left_col, top_line, total_cols, total_lines;

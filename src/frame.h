@@ -82,7 +82,7 @@ struct font_driver_list;
 
 struct frame
 {
-  struct vector_header header;
+  struct vectorlike_header header;
 
   /* All Lisp_Object components must come first.
      That ensures they are all aligned normally.  */

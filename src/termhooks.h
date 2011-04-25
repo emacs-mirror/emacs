@@ -323,7 +323,7 @@ struct w32_display_info;
 struct terminal
 {
   /* This is for Lisp; the terminal code does not refer to it.  */
-  struct vector_header header;
+  struct vectorlike_header header;
 
   /* Parameter alist of this terminal.  */
   Lisp_Object param_alist;

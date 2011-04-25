@@ -254,7 +254,7 @@ extern Lisp_Object Qja, Qko;
 
 struct font_spec
 {
-  struct vector_header header;
+  struct vectorlike_header header;
   Lisp_Object props[FONT_SPEC_MAX];
 };
 
@@ -262,7 +262,7 @@ struct font_spec
 
 struct font_entity
 {
-  struct vector_header header;
+  struct vectorlike_header header;
   Lisp_Object props[FONT_ENTITY_MAX];
 };
 
@@ -275,7 +275,7 @@ struct font_entity
 
 struct font
 {
-  struct vector_header header;
+  struct vectorlike_header header;
 
   /* All Lisp_Object components must come first.
      That ensures they are all aligned normally.  */

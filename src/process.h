@@ -34,7 +34,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 struct Lisp_Process
   {
-    struct vector_header header;
+    struct vectorlike_header header;
 
     /* Name of subprocess terminal.  */
     Lisp_Object tty_name;

@@ -505,7 +505,7 @@ struct buffer
      collect killed buffers properly.
      Note that vectors and most pseudovectors are all on one chain,
      but buffers are on a separate chain of their own.  */
-  struct vector_header header;
+  struct vectorlike_header header;
 
   /* This structure holds the coordinates of the buffer contents
      in ordinary buffers.  In indirect buffers, this is not used.  */
