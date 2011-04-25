@@ -2430,7 +2430,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	    {
 	      Lisp_Object tmp;
 	      tmp = read_vector (readcharfun, 0);
-	      if (XVECTOR (tmp)->size < CHAR_TABLE_STANDARD_SLOTS)
+	      if (XVECTOR_SIZE (tmp) < CHAR_TABLE_STANDARD_SLOTS)
 		error ("Invalid size char-table");
 	      XSETPVECTYPE (XVECTOR (tmp), PVEC_CHAR_TABLE);
 	      return tmp;
@@ -2449,7 +2449,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 		  depth = XINT (AREF (tmp, 0));
 		  if (depth < 1 || depth > 3)
 		    error ("Invalid depth in char-table");
-		  size = XVECTOR (tmp)->size - 2;
+		  size = XVECTOR_SIZE (tmp) - 2;
 		  if (chartab_size [depth] != size)
 		    error ("Invalid size char-table");
 		  XSETPVECTYPE (XVECTOR (tmp), PVEC_SUB_CHAR_TABLE);
@@ -2499,7 +2499,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	     build them using function calls.  */
 	  Lisp_Object tmp;
 	  tmp = read_vector (readcharfun, 1);
-	  return Fmake_byte_code (XVECTOR (tmp)->size,
+	  return Fmake_byte_code (XVECTOR_SIZE (tmp),
 				  XVECTOR (tmp)->contents);
 	}
       if (c == '(')
@@ -3356,7 +3356,7 @@ read_vector (Lisp_Object readcharfun, int bytecodeflag)
   len = Flength (tem);
   vector = (read_pure ? make_pure_vector (XINT (len)) : Fmake_vector (len, Qnil));
 
-  size = XVECTOR (vector)->size;
+  size = XVECTOR_SIZE (vector);
   ptr = XVECTOR (vector)->contents;
   for (i = 0; i < size; i++)
     {
@@ -3621,7 +3621,7 @@ static int hash_string (const char *ptr, int len);
 Lisp_Object
 check_obarray (Lisp_Object obarray)
 {
-  if (!VECTORP (obarray) || XVECTOR (obarray)->size == 0)
+  if (!VECTORP (obarray) || XVECTOR_SIZE (obarray) == 0)
     {
       /* If Vobarray is now invalid, force it to be valid.  */
       if (EQ (Vobarray, obarray)) Vobarray = initial_obarray;
@@ -3641,7 +3641,7 @@ intern (const char *str)
   Lisp_Object obarray;
 
   obarray = Vobarray;
-  if (!VECTORP (obarray) || XVECTOR (obarray)->size == 0)
+  if (!VECTORP (obarray) || XVECTOR_SIZE (obarray) == 0)
     obarray = check_obarray (obarray);
   tem = oblookup (obarray, str, len, len);
   if (SYMBOLP (tem))
@@ -3657,7 +3657,7 @@ intern_c_string (const char *str)
   Lisp_Object obarray;
 
   obarray = Vobarray;
-  if (!VECTORP (obarray) || XVECTOR (obarray)->size == 0)
+  if (!VECTORP (obarray) || XVECTOR_SIZE (obarray) == 0)
     obarray = check_obarray (obarray);
   tem = oblookup (obarray, str, len, len);
   if (SYMBOLP (tem))
@@ -3830,10 +3830,10 @@ oblookup (Lisp_Object obarray, register const char *ptr, EMACS_INT size, EMACS_I
   Lisp_Object bucket, tem;
 
   if (!VECTORP (obarray)
-      || (obsize = XVECTOR (obarray)->size) == 0)
+      || (obsize = XVECTOR_SIZE (obarray)) == 0)
     {
       obarray = check_obarray (obarray);
-      obsize = XVECTOR (obarray)->size;
+      obsize = XVECTOR_SIZE (obarray);
     }
   /* This is sometimes needed in the middle of GC.  */
   obsize &= ~ARRAY_MARK_FLAG;
@@ -3881,7 +3881,7 @@ map_obarray (Lisp_Object obarray, void (*fn) (Lisp_Object, Lisp_Object), Lisp_Ob
   register int i;
   register Lisp_Object tail;
   CHECK_VECTOR (obarray);
-  for (i = XVECTOR (obarray)->size - 1; i >= 0; i--)
+  for (i = XVECTOR_SIZE (obarray) - 1; i >= 0; i--)
     {
       tail = XVECTOR (obarray)->contents[i];
       if (SYMBOLP (tail))
@@ -3961,7 +3961,7 @@ defsubr (struct Lisp_Subr *sname)
 {
   Lisp_Object sym;
   sym = intern_c_string (sname->symbol_name);
-  XSETPVECTYPE (sname, PVEC_SUBR);
+  XSETTYPED_PVECTYPE (sname, size, PVEC_SUBR);
   XSETSUBR (XSYMBOL (sym)->function, sname);
 }
 

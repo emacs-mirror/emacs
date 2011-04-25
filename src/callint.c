@@ -293,7 +293,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
   else
     {
       CHECK_VECTOR (keys);
-      key_count = XVECTOR (keys)->size;
+      key_count = XVECTOR_SIZE (keys);
     }
 
   /* Save this now, since use of minibuffer will clobber it. */

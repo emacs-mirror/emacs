@@ -427,11 +427,11 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 
       menu_items = f->menu_bar_vector;
       menu_items_allocated = VECTORP (menu_items) ? ASIZE (menu_items) : 0;
-      submenu_start = (int *) alloca (XVECTOR (items)->size * sizeof (int *));
-      submenu_end = (int *) alloca (XVECTOR (items)->size * sizeof (int *));
-      submenu_n_panes = (int *) alloca (XVECTOR (items)->size * sizeof (int));
+      submenu_start = (int *) alloca (XVECTOR_SIZE (items) * sizeof (int *));
+      submenu_end = (int *) alloca (XVECTOR_SIZE (items) * sizeof (int *));
+      submenu_n_panes = (int *) alloca (XVECTOR_SIZE (items) * sizeof (int));
       submenu_top_level_items
-	= (int *) alloca (XVECTOR (items)->size * sizeof (int *));
+	= (int *) alloca (XVECTOR_SIZE (items) * sizeof (int *));
       init_menu_items ();
       for (i = 0; i < ASIZE (items); i += 4)
 	{

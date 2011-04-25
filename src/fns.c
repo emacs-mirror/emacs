@@ -3681,9 +3681,9 @@ copy_hash_table (struct Lisp_Hash_Table *h1)
   struct Lisp_Vector *next;
 
   h2 = allocate_hash_table ();
-  next = h2->vec_next;
+  next = h2->header.next.vector;
   memcpy (h2, h1, sizeof *h2);
-  h2->vec_next = next;
+  h2->header.next.vector = next;
   h2->key_and_value = Fcopy_sequence (h1->key_and_value);
   h2->hash = Fcopy_sequence (h1->hash);
   h2->next = Fcopy_sequence (h1->next);
@@ -4026,7 +4026,7 @@ sweep_weak_hash_tables (void)
       marked = 0;
       for (h = weak_hash_tables; h; h = h->next_weak)
 	{
-	  if (h->size & ARRAY_MARK_FLAG)
+	  if (h->header.size & ARRAY_MARK_FLAG)
 	    marked |= sweep_weak_table (h, 0);
 	}
     }
@@ -4037,7 +4037,7 @@ sweep_weak_hash_tables (void)
     {
       next = h->next_weak;
 
-      if (h->size & ARRAY_MARK_FLAG)
+      if (h->header.size & ARRAY_MARK_FLAG)
 	{
 	  /* TABLE is marked as used.  Sweep its contents.  */
 	  if (h->count > 0)
@@ -4153,7 +4153,7 @@ sxhash_bool_vector (Lisp_Object vec)
   unsigned hash = XBOOL_VECTOR (vec)->size;
   int i, n;
 
-  n = min (SXHASH_MAX_LEN, XBOOL_VECTOR (vec)->vector_size);
+  n = min (SXHASH_MAX_LEN, XBOOL_VECTOR (vec)->header.size);
   for (i = 0; i < n; ++i)
     hash = SXHASH_COMBINE (hash, XBOOL_VECTOR (vec)->data[i]);
 

@@ -5794,8 +5794,7 @@ zero means top of window, negative means relative to bottom of window.  */)
 
 struct save_window_data
   {
-    EMACS_UINT size;
-    struct Lisp_Vector *next_from_Lisp_Vector_struct;
+    struct vector_header header;
     Lisp_Object selected_frame;
     Lisp_Object current_window;
     Lisp_Object current_buffer;
@@ -5817,10 +5816,7 @@ struct save_window_data
 /* This is saved as a Lisp_Vector  */
 struct saved_window
 {
-  /* these first two must agree with struct Lisp_Vector in lisp.h */
-  EMACS_UINT size;
-  struct Lisp_Vector *next_from_Lisp_Vector_struct;
-
+  struct vector_header header;
   Lisp_Object window;
   Lisp_Object buffer, start, pointm, mark;
   Lisp_Object left_col, top_line, total_cols, total_lines;
@@ -6001,7 +5997,7 @@ the return value is nil.  Otherwise the value is t.  */)
 	 dead.  */
       delete_all_subwindows (XWINDOW (FRAME_ROOT_WINDOW (f)));
 
-      for (k = 0; k < saved_windows->size; k++)
+      for (k = 0; k < saved_windows->header.size; k++)
 	{
 	  p = SAVED_WINDOW_N (saved_windows, k);
 	  w = XWINDOW (p->window);
@@ -6884,10 +6880,10 @@ compare_window_configurations (Lisp_Object c1, Lisp_Object c2, int ignore_positi
     return 0;
 
   /* Verify that the two confis have the same number of windows.  */
-  if (sw1->size != sw2->size)
+  if (sw1->header.size != sw2->header.size)
     return 0;
 
-  for (i = 0; i < sw1->size; i++)
+  for (i = 0; i < sw1->header.size; i++)
     {
       struct saved_window *p1, *p2;
       int w1_is_current, w2_is_current;

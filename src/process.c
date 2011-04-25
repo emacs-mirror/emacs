@@ -1188,25 +1188,26 @@ Returns nil if format of ADDRESS is invalid.  */)
   if (VECTORP (address))  /* AF_INET or AF_INET6 */
     {
       register struct Lisp_Vector *p = XVECTOR (address);
+      EMACS_UINT size = p->header.size;
       Lisp_Object args[10];
       int nargs, i;
 
-      if (p->size == 4 || (p->size == 5 && !NILP (omit_port)))
+      if (size == 4 || (size == 5 && !NILP (omit_port)))
 	{
 	  args[0] = build_string ("%d.%d.%d.%d");
 	  nargs = 4;
 	}
-      else if (p->size == 5)
+      else if (size == 5)
 	{
 	  args[0] = build_string ("%d.%d.%d.%d:%d");
 	  nargs = 5;
 	}
-      else if (p->size == 8 || (p->size == 9 && !NILP (omit_port)))
+      else if (size == 8 || (size == 9 && !NILP (omit_port)))
 	{
 	  args[0] = build_string ("%x:%x:%x:%x:%x:%x:%x:%x");
 	  nargs = 8;
 	}
-      else if (p->size == 9)
+      else if (size == 9)
 	{
 	  args[0] = build_string ("[%x:%x:%x:%x:%x:%x:%x:%x]:%d");
 	  nargs = 9;
@@ -2064,13 +2065,13 @@ get_lisp_to_sockaddr_size (Lisp_Object address, int *familyp)
   if (VECTORP (address))
     {
       p = XVECTOR (address);
-      if (p->size == 5)
+      if (p->header.size == 5)
 	{
 	  *familyp = AF_INET;
 	  return sizeof (struct sockaddr_in);
 	}
 #ifdef AF_INET6
-      else if (p->size == 9)
+      else if (p->header.size == 9)
 	{
 	  *familyp = AF_INET6;
 	  return sizeof (struct sockaddr_in6);
@@ -2089,7 +2090,7 @@ get_lisp_to_sockaddr_size (Lisp_Object address, int *familyp)
       struct sockaddr *sa;
       *familyp = XINT (XCAR (address));
       p = XVECTOR (XCDR (address));
-      return p->size + sizeof (sa->sa_family);
+      return p->header.size + sizeof (sa->sa_family);
     }
   return 0;
 }

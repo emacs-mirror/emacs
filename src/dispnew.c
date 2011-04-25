@@ -6073,7 +6073,7 @@ pass nil for VARIABLE.  */)
     state = frame_and_buffer_state;
 
   vecp = XVECTOR (state)->contents;
-  end = vecp + XVECTOR (state)->size;
+  end = vecp + XVECTOR_SIZE (state);
 
   FOR_EACH_FRAME (tail, frame)
     {
@@ -6124,8 +6124,8 @@ pass nil for VARIABLE.  */)
   /* Reallocate the vector if data has grown to need it,
      or if it has shrunk a lot.  */
   if (! VECTORP (state)
-      || n > XVECTOR (state)->size
-      || n + 20 < XVECTOR (state)->size / 2)
+      || n > XVECTOR_SIZE (state)
+      || n + 20 < XVECTOR_SIZE (state) / 2)
     /* Add 20 extra so we grow it less often.  */
     {
       state = Fmake_vector (make_number (n + 20), Qlambda);
@@ -6155,11 +6155,11 @@ pass nil for VARIABLE.  */)
   /* Fill up the vector with lambdas (always at least one).  */
   *vecp++ = Qlambda;
   while (vecp - XVECTOR (state)->contents
-	 < XVECTOR (state)->size)
+	 < XVECTOR_SIZE (state))
     *vecp++ = Qlambda;
   /* Make sure we didn't overflow the vector.  */
   if (vecp - XVECTOR (state)->contents
-      > XVECTOR (state)->size)
+      > XVECTOR_SIZE (state))
     abort ();
   return Qt;
 }

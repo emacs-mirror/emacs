@@ -322,10 +322,8 @@ struct w32_display_info;
 /* Terminal-local parameters. */
 struct terminal
 {
-  /* The first two fields are really the header of a vector */
-  /* The terminal code does not refer to them.  */
-  EMACS_UINT size;
-  struct Lisp_Vector *vec_next;
+  /* This is for Lisp; the terminal code does not refer to it.  */
+  struct vector_header header;
 
   /* Parameter alist of this terminal.  */
   Lisp_Object param_alist;

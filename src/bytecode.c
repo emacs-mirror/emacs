@@ -467,7 +467,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
   CHECK_NUMBER (maxdepth);
 
 #ifdef BYTE_CODE_SAFE
-  const_length = XVECTOR (vector)->size;
+  const_length = XVECTOR_SIZE (vector);
 #endif
 
   if (STRING_MULTIBYTE (bytestr))

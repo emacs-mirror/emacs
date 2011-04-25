@@ -146,9 +146,9 @@ static pthread_mutex_t alloc_mutex;
 #define UNMARK_STRING(S)	((S)->size &= ~ARRAY_MARK_FLAG)
 #define STRING_MARKED_P(S)	(((S)->size & ARRAY_MARK_FLAG) != 0)
 
-#define VECTOR_MARK(V)		((V)->size |= ARRAY_MARK_FLAG)
-#define VECTOR_UNMARK(V)	((V)->size &= ~ARRAY_MARK_FLAG)
-#define VECTOR_MARKED_P(V)	(((V)->size & ARRAY_MARK_FLAG) != 0)
+#define VECTOR_MARK(V)		((V)->header.size |= ARRAY_MARK_FLAG)
+#define VECTOR_UNMARK(V)	((V)->header.size &= ~ARRAY_MARK_FLAG)
+#define VECTOR_MARKED_P(V)	(((V)->header.size & ARRAY_MARK_FLAG) != 0)
 
 /* Value is the number of bytes of S, a pointer to a struct Lisp_String.
    Be careful during GC, because S->size contains the mark bit for
@@ -1055,9 +1055,9 @@ allocate_buffer (void)
   struct buffer *b
     = (struct buffer *) lisp_malloc (sizeof (struct buffer),
 				     MEM_TYPE_BUFFER);
-  b->size = ((sizeof (struct buffer) + sizeof (EMACS_INT) - 1)
-	     / sizeof (EMACS_INT));
-  XSETPVECTYPE (b, PVEC_BUFFER);
+  XSETPVECTYPESIZE (b, PVEC_BUFFER,
+		    ((sizeof (struct buffer) + sizeof (EMACS_INT) - 1)
+		     / sizeof (EMACS_INT)));
   return b;
 }
 
@@ -2244,10 +2244,8 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
      slot `size' of the struct Lisp_Bool_Vector.  */
   val = Fmake_vector (make_number (length_in_elts + 1), Qnil);
 
-  /* Get rid of any bits that would cause confusion.  */
-  XVECTOR (val)->size = 0;	/* No Lisp_Object to trace in there.  */
-  /* Use  XVECTOR (val) rather than `p' because p->size is not TRT. */
-  XSETPVECTYPE (XVECTOR (val), PVEC_BOOL_VECTOR);
+  /* No Lisp_Object to trace in there.  */
+  XSETPVECTYPESIZE (XVECTOR (val), PVEC_BOOL_VECTOR, 0);
 
   p = XBOOL_VECTOR (val);
   p->size = XFASTINT (length);
@@ -2814,7 +2812,7 @@ allocate_vectorlike (EMACS_INT len)
   consing_since_gc += nbytes;
   vector_cells_consed += len;
 
-  p->next = all_vectors;
+  p->header.next.vector = all_vectors;
   all_vectors = p;
 
   MALLOC_UNBLOCK_INPUT;
@@ -2830,7 +2828,7 @@ struct Lisp_Vector *
 allocate_vector (EMACS_INT nslots)
 {
   struct Lisp_Vector *v = allocate_vectorlike (nslots);
-  v->size = nslots;
+  v->header.size = nslots;
   return v;
 }
 
@@ -2844,11 +2842,10 @@ allocate_pseudovector (int memlen, int lisplen, EMACS_INT tag)
   EMACS_INT i;
 
   /* Only the first lisplen slots will be traced normally by the GC.  */
-  v->size = lisplen;
   for (i = 0; i < lisplen; ++i)
     v->contents[i] = Qnil;
 
-  XSETPVECTYPE (v, tag);	/* Add the appropriate tag.  */
+  XSETPVECTYPESIZE (v, tag, lisplen);
   return v;
 }
 
@@ -4737,7 +4734,7 @@ make_pure_vector (EMACS_INT len)
 
   p = (struct Lisp_Vector *) pure_alloc (size, Lisp_Vectorlike);
   XSETVECTOR (new, p);
-  XVECTOR (new)->size = len;
+  XVECTOR (new)->header.size = len;
   return new;
 }
 
@@ -4775,7 +4772,7 @@ Does not copy symbols.  Copies strings without text properties.  */)
       register EMACS_INT i;
       EMACS_INT size;
 
-      size = XVECTOR (obj)->size;
+      size = XVECTOR_SIZE (obj);
       if (size & PSEUDOVECTOR_FLAG)
 	size &= PSEUDOVECTOR_SIZE_MASK;
       vec = XVECTOR (make_pure_vector (size));
@@ -4899,7 +4896,7 @@ returns nil, because real GC can't be done.  */)
 	      }
 	  }
 
-	nextb = nextb->next;
+	nextb = nextb->header.next.buffer;
       }
   }
 
@@ -5054,7 +5051,7 @@ returns nil, because real GC can't be done.  */)
 	   undo_list any more, we can finally mark the list.  */
 	mark_object (nextb->BUFFER_INTERNAL_FIELD (undo_list));
 
-	nextb = nextb->next;
+	nextb = nextb->header.next.buffer;
       }
   }
 
@@ -5228,7 +5225,7 @@ static size_t mark_object_loop_halt;
 static void
 mark_vectorlike (struct Lisp_Vector *ptr)
 {
-  register EMACS_UINT size = ptr->size;
+  register EMACS_UINT size = ptr->header.size;
   register EMACS_UINT i;
 
   eassert (!VECTOR_MARKED_P (ptr));
@@ -5251,7 +5248,7 @@ mark_vectorlike (struct Lisp_Vector *ptr)
 static void
 mark_char_table (struct Lisp_Vector *ptr)
 {
-  register EMACS_UINT size = ptr->size & PSEUDOVECTOR_SIZE_MASK;
+  register EMACS_UINT size = ptr->header.size & PSEUDOVECTOR_SIZE_MASK;
   register EMACS_UINT i;
 
   eassert (!VECTOR_MARKED_P (ptr));
@@ -5364,7 +5361,7 @@ mark_object (Lisp_Object arg)
 	  if (po != &buffer_defaults && po != &buffer_local_symbols)
 	    {
 	      struct buffer *b;
-	      for (b = all_buffers; b && b != po; b = b->next)
+	      for (b = all_buffers; b && b != po; b = b->header.next)
 		;
 	      if (b == NULL)
 		abort ();
@@ -5380,7 +5377,7 @@ mark_object (Lisp_Object arg)
 	   recursion there.  */
 	{
 	  register struct Lisp_Vector *ptr = XVECTOR (obj);
-	  register EMACS_UINT size = ptr->size;
+	  register EMACS_UINT size = ptr->header.size;
 	  register EMACS_UINT i;
 
 	  CHECK_LIVE (live_vector_p);
@@ -6012,10 +6009,10 @@ gc_sweep (void)
       if (!VECTOR_MARKED_P (buffer))
 	{
 	  if (prev)
-	    prev->next = buffer->next;
+	    prev->header.next = buffer->header.next;
 	  else
-	    all_buffers = buffer->next;
-	  next = buffer->next;
+	    all_buffers = buffer->header.next.buffer;
+	  next = buffer->header.next.buffer;
 	  lisp_free (buffer);
 	  buffer = next;
 	}
@@ -6023,7 +6020,7 @@ gc_sweep (void)
 	{
 	  VECTOR_UNMARK (buffer);
 	  UNMARK_BALANCE_INTERVALS (BUF_INTERVALS (buffer));
-	  prev = buffer, buffer = buffer->next;
+	  prev = buffer, buffer = buffer->header.next.buffer;
 	}
   }
 
@@ -6036,10 +6033,10 @@ gc_sweep (void)
       if (!VECTOR_MARKED_P (vector))
 	{
 	  if (prev)
-	    prev->next = vector->next;
+	    prev->header.next = vector->header.next;
 	  else
-	    all_vectors = vector->next;
-	  next = vector->next;
+	    all_vectors = vector->header.next.vector;
+	  next = vector->header.next.vector;
 	  lisp_free (vector);
 	  n_vectors--;
 	  vector = next;
@@ -6048,11 +6045,11 @@ gc_sweep (void)
       else
 	{
 	  VECTOR_UNMARK (vector);
-	  if (vector->size & PSEUDOVECTOR_FLAG)
-	    total_vector_size += (PSEUDOVECTOR_SIZE_MASK & vector->size);
+	  if (vector->header.size & PSEUDOVECTOR_FLAG)
+	    total_vector_size += PSEUDOVECTOR_SIZE_MASK & vector->header.size;
 	  else
-	    total_vector_size += vector->size;
-	  prev = vector, vector = vector->next;
+	    total_vector_size += vector->header.size;
+	  prev = vector, vector = vector->header.next.vector;
 	}
   }
 

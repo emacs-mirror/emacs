@@ -1531,7 +1531,7 @@ If BITMAP already exists, the existing definition is replaced.  */)
   if (STRINGP (bits))
     h = SCHARS (bits);
   else if (VECTORP (bits))
-    h = XVECTOR (bits)->size;
+    h = XVECTOR_SIZE (bits);
   else
     wrong_type_argument (Qsequencep, bits);
 

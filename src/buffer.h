@@ -499,14 +499,13 @@ struct buffer
 
      Check out mark_buffer (alloc.c) to see why.  */
 
-  EMACS_UINT size;
-
-  /* Next buffer, in chain of all buffers including killed buffers.
+  /* HEADER.NEXT is the next buffer, in chain of all buffers,
+     including killed buffers.
      This chain is used only for garbage collection, in order to
      collect killed buffers properly.
      Note that vectors and most pseudovectors are all on one chain,
      but buffers are on a separate chain of their own.  */
-  struct buffer *next;
+  struct vector_header header;
 
   /* This structure holds the coordinates of the buffer contents
      in ordinary buffers.  In indirect buffers, this is not used.  */
