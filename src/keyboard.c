@@ -7228,12 +7228,29 @@ handle_user_signal (int sig)
 {
   int old_errno = errno;
   struct user_signal_info *p;
+  const char* special_event_name = NULL;
 
   SIGNAL_THREAD_CHECK (sig);
-
+  
+  if (SYMBOLP (Vdebug_on_event))
+    special_event_name = SDATA (SYMBOL_NAME (Vdebug_on_event));
+  
   for (p = user_signals; p; p = p->next)
     if (p->sig == sig)
       {
+        if (special_event_name &&
+            strcmp (special_event_name, p->name) == 0)
+          {
+            /* Enter the debugger in many ways.  */
+            debug_on_next_call = 1;
+            debug_on_quit = 1;
+            Vquit_flag = Qt;
+            Vinhibit_quit = Qnil;
+
+            /* Eat the event.  */
+            break;
+          }
+        
 	p->npending++;
 #ifdef SIGIO
 	if (interrupt_input)
@@ -12164,6 +12181,17 @@ If `select-active-regions' is non-nil, Emacs sets this to the
 text in the region before modifying the buffer.  The next
 `deactivate-mark' call uses this to set the window selection.  */);
   Vsaved_region_selection = Qnil;
+
+  DEFVAR_LISP ("debug-on-event",
+               Vdebug_on_event,
+               doc: /* Enter debugger on this event.  When Emacs
+receives the special event specifed by this variable, it will try to
+break into the debugger as soon as possible instead of processing the
+event normally through `special-event-map'.
+
+Currently, the only supported values for this
+variable are `sigusr1' and `sigusr2'.  */);
+  Vdebug_on_event = intern_c_string ("sigusr2");
 
   /* Create the initial keyboard. */
   initial_kboard = (KBOARD *) xmalloc (sizeof (KBOARD));

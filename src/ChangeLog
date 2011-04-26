@@ -1,3 +1,11 @@
+2011-04-26  Daniel Colascione <dan.colascione@gmail.com>
+
+	* lisp.h (Qdebug): List symbol.
+	* eval.c (Qdebug): restore global linkage.
+	* keyboard.c (debug-on-event): New variable.
+	(handle_user_signal): Break into debugger when debug-on-event
+	matches the current signal symbol.
+
 2011-04-25  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* alloc.c (check_sblock, check_string_bytes)
