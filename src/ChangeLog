@@ -1,3 +1,7 @@
+2011-04-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsfns.m (Fns_read_file_name): Doc fix (Bug#8534).
+
 2011-04-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* s/ms-w32.h (localtime): Redirect to sys_localtime.
