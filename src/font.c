@@ -1794,14 +1794,16 @@ check_otf_features (otf_features)
     {
       CHECK_SYMBOL (Fcar (val));
       if (SBYTES (SYMBOL_NAME (XCAR (val))) > 4)
-	error ("Invalid OTF GSUB feature: %s", SYMBOL_NAME (XCAR (val)));
+	error ("Invalid OTF GSUB feature: %s",
+	       SDATA (SYMBOL_NAME (XCAR (val))));
     }
   otf_features = XCDR (otf_features);
   for (val = Fcar (otf_features); ! NILP (val);  val = Fcdr (val))
     {
       CHECK_SYMBOL (Fcar (val));
       if (SBYTES (SYMBOL_NAME (XCAR (val))) > 4)
-	error ("Invalid OTF GPOS feature: %s", SYMBOL_NAME (XCAR (val)));
+	error ("Invalid OTF GPOS feature: %s",
+	       SDATA (SYMBOL_NAME (XCAR (val))));
     }
 }
 

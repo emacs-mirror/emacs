@@ -21,6 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef HAVE_GNUTLS
 #include <gnutls/gnutls.h>
+#include <gnutls/x509.h>
 
 typedef enum
 {
@@ -28,6 +29,7 @@ typedef enum
   GNUTLS_STAGE_EMPTY = 0,
   GNUTLS_STAGE_CRED_ALLOC,
   GNUTLS_STAGE_FILES,
+  GNUTLS_STAGE_CALLBACKS,
   GNUTLS_STAGE_INIT,
   GNUTLS_STAGE_PRIORITY,
   GNUTLS_STAGE_CRED_SET,

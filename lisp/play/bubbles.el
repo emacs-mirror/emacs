@@ -1,4 +1,4 @@
-;;; bubbles.el --- Puzzle game for Emacs.
+;;; bubbles.el --- Puzzle game for Emacs
 
 ;; Copyright (C) 2007-2011  Free Software Foundation, Inc.
 
@@ -921,7 +921,8 @@ static char * dot3d_xpm[] = {
 (define-derived-mode bubbles-mode nil "Bubbles"
   "Major mode for playing bubbles.
 \\{bubbles-mode-map}"
-  (setq buffer-read-only t)
+  (setq buffer-read-only t
+        show-trailing-whitespace nil)
   (buffer-disable-undo)
   (force-mode-line-update)
   (redisplay)
@@ -1317,8 +1318,7 @@ Use optional parameter POS instead of point if given."
 Return t if new char is non-empty."
   (save-excursion
     (when (bubbles--goto row col)
-      (let ((char-org (char-after (point)))
-            (char-new (bubbles--empty-char))
+      (let ((char-new (bubbles--empty-char))
             (removed nil)
             (trow row)
             (tcol col)
@@ -1416,9 +1416,8 @@ Return t if new char is non-empty."
           (dotimes (i (bubbles--grid-height))
             (dotimes (j (bubbles--grid-width))
               (bubbles--goto i j)
-              (let* ((index (get-text-property (point) 'index))
-                     (face (nth index bubbles--faces))
-                     (fg-col (face-foreground face)))
+              (let ((face (nth (get-text-property (point) 'index)
+                               bubbles--faces)))
                 (when (get-text-property (point) 'active)
                   (set-face-foreground 'bubbles--highlight-face "#ff0000")
                   (setq face 'bubbles--highlight-face))
@@ -1434,8 +1433,7 @@ Return t if new char is non-empty."
       (save-excursion
         (goto-char (point-min))
         (forward-line 1)
-        (let ((inhibit-read-only t)
-              char)
+        (let ((inhibit-read-only t))
           (dotimes (i (bubbles--grid-height))
             (dotimes (j (bubbles--grid-width))
               (forward-char 1)

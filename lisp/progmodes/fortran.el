@@ -291,7 +291,7 @@ buffer).  This corresponds to the g77 compiler option
   :type 'integer
   :safe 'integerp
   :initialize 'custom-initialize-default
-  :set (lambda (symbol value)
+  :set (lambda (_symbol value)
          ;; Do all fortran buffers, and the default.
          (fortran-line-length value t))
   :version "23.1"

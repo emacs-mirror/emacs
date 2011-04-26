@@ -1416,7 +1416,8 @@ internal_lisp_condition_case (volatile Lisp_Object var, Lisp_Object bodyform,
 	     || (CONSP (tem)
 		 && (SYMBOLP (XCAR (tem))
 		     || CONSP (XCAR (tem))))))
-	error ("Invalid condition handler");
+	error ("Invalid condition handler: %s",
+	       SDATA (Fprin1_to_string (tem, Qt)));
     }
 
   c.tag = Qnil;
@@ -1995,27 +1996,26 @@ verror (const char *m, va_list ap)
   size_t size = sizeof buf;
   size_t size_max =
     min (MOST_POSITIVE_FIXNUM, min (INT_MAX, SIZE_MAX - 1)) + 1;
+  size_t mlen = strlen (m);
   char *buffer = buf;
-  int used;
+  size_t used;
   Lisp_Object string;
 
   while (1)
     {
-      used = vsnprintf (buffer, size, m, ap);
+      used = doprnt (buffer, size, m, m + mlen, ap);
 
-      if (used < 0)
-	{
-	  /* Non-C99 vsnprintf, such as w32, returns -1 when SIZE is too small.
-	     Guess a larger USED to work around the incompatibility.  */
-	  used = (size <= size_max / 2 ? 2 * size
-		  : size < size_max ? size_max - 1
-		  : size_max);
-	}
-      else if (used < size)
+      /* Note: the -1 below is because `doprnt' returns the number of bytes
+	 excluding the terminating null byte, and it always terminates with a
+	 null byte, even when producing a truncated message.  */
+      if (used < size - 1)
 	break;
-      if (size_max <= used)
-	memory_full ();
-      size = used + 1;
+      if (size <= size_max / 2)
+	size *= 2;
+      else if (size < size_max)
+	size = size_max;
+      else
+	break;	/* and leave the message truncated */
 
       if (buffer != buf)
 	xfree (buffer);

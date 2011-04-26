@@ -104,6 +104,13 @@
 (require 'bindat)
 (eval-when-compile (require 'cl))
 
+(declare-function speedbar-change-initial-expansion-list "speedbar" (new-default))
+(declare-function speedbar-timer-fn "speedbar" ())
+(declare-function speedbar-line-text "speedbar" (&optional p))
+(declare-function speedbar-change-expand-button-char "speedbar" (char))
+(declare-function speedbar-delete-subblock "speedbar" (indent))
+(declare-function speedbar-center-buffer-smartly "speedbar" ())
+
 (defvar tool-bar-map)
 (defvar speedbar-initial-expansion-list-name)
 (defvar speedbar-frame)
@@ -544,7 +551,7 @@ the list) is deleted every time a new one is added (at the front)."
 
 (defun gdb-find-watch-expression ()
   (let* ((var (nth (- (line-number-at-pos (point)) 2) gdb-var-list))
-	 (varnum (car var)) expr array)
+	 (varnum (car var)) expr)
     (string-match "\\(var[0-9]+\\)\\.\\(.*\\)" varnum)
     (let ((var1 (assoc (match-string 1 varnum) gdb-var-list)) var2 varnumlet
 	  (component-list (split-string (match-string 2 varnum) "\\." t)))
@@ -1151,7 +1158,7 @@ With arg, enter name of variable to be watched in the minibuffer."
   (gdb-input
    (list (concat "-var-delete -c " varnum) 'ignore)))
 
-(defun gdb-edit-value (text token indent)
+(defun gdb-edit-value (_text _token _indent)
   "Assign a value to a variable displayed in the speedbar."
   (let* ((var (nth (- (count-lines (point-min) (point)) 2) gdb-var-list))
 	 (varnum (car var)) (value))
@@ -1820,7 +1827,7 @@ is running."
 
   ;; Start accumulating output for the GUD buffer
   (setq gdb-filter-output "")
-  (let ((output-record) (output-record-list))
+  (let (output-record-list)
 
     ;; Process all the complete markers in this chunk.
     (dolist (gdbmi-record gdbmi-record-list)
@@ -1860,17 +1867,17 @@ is running."
 
     gdb-filter-output))
 
-(defun gdb-gdb (output-field))
+(defun gdb-gdb (_output-field))
 
 (defun gdb-shell (output-field)
   (let ((gdb-output-sink gdb-output-sink))
     (setq gdb-filter-output
           (concat output-field gdb-filter-output))))
 
-(defun gdb-ignored-notification (output-field))
+(defun gdb-ignored-notification (_output-field))
 
 ;; gdb-invalidate-threads is defined to accept 'update-threads signal
-(defun gdb-thread-created (output-field))
+(defun gdb-thread-created (_output-field))
 (defun gdb-thread-exited (output-field)
   "Handle =thread-exited async record: unset `gdb-thread-number'
  if current thread exited and update threads list."
@@ -1918,7 +1925,7 @@ Sets `gdb-thread-number' to new id."
   (setq gdb-active-process t)
   (gdb-emit-signal gdb-buf-publisher 'update-threads))
 
-(defun gdb-starting (output-field)
+(defun gdb-starting (_output-field)
   ;; CLI commands don't emit ^running at the moment so use gdb-running too.
   (setq gdb-inferior-status "running")
   (gdb-force-mode-line-update
@@ -2219,8 +2226,7 @@ calling `gdb-table-string'."
 
 (defun gdb-table-string (table &optional sep)
   "Return TABLE as a string with columns separated with SEP."
-  (let ((column-sizes (gdb-table-column-sizes table))
-        (res ""))
+  (let ((column-sizes (gdb-table-column-sizes table)))
     (mapconcat
      'identity
      (gdb-mapcar*
@@ -2375,38 +2381,37 @@ HANDLER-NAME handler uses customization of CUSTOM-DEFUN. See
 
 ;; Put breakpoint icons in relevant margins (even those set in the GUD buffer).
 (defun gdb-place-breakpoints ()
-  (let ((flag) (bptno))
-    ;; Remove all breakpoint-icons in source buffers but not assembler buffer.
-    (dolist (buffer (buffer-list))
-      (with-current-buffer buffer
-	(if (and (eq gud-minor-mode 'gdbmi)
-		 (not (string-match "\\` ?\\*.+\\*\\'" (buffer-name))))
-	    (gdb-remove-breakpoint-icons (point-min) (point-max)))))
-    (dolist (breakpoint gdb-breakpoints-list)
-      (let* ((breakpoint (cdr breakpoint)) ; gdb-breakpoints-list is
-                                           ; an associative list
-             (line (bindat-get-field breakpoint 'line)))
-        (when line
-          (let ((file (bindat-get-field breakpoint 'fullname))
-                (flag (bindat-get-field breakpoint 'enabled))
-                (bptno (bindat-get-field breakpoint 'number)))
-            (unless (file-exists-p file)
-              (setq file (cdr (assoc bptno gdb-location-alist))))
-            (if (and file
-                     (not (string-equal file "File not found")))
-                (with-current-buffer
-                    (find-file-noselect file 'nowarn)
-                  (gdb-init-buffer)
-                  ;; Only want one breakpoint icon at each location.
-                  (gdb-put-breakpoint-icon (string-equal flag "y") bptno
-                                           (string-to-number line)))
-              (gdb-input
-               (list (concat "list " file ":1")
-                     'ignore))
-              (gdb-input
-               (list "-file-list-exec-source-file"
-                     `(lambda () (gdb-get-location
-                                  ,bptno ,line ,flag)))))))))))
+  ;; Remove all breakpoint-icons in source buffers but not assembler buffer.
+  (dolist (buffer (buffer-list))
+    (with-current-buffer buffer
+      (if (and (eq gud-minor-mode 'gdbmi)
+               (not (string-match "\\` ?\\*.+\\*\\'" (buffer-name))))
+          (gdb-remove-breakpoint-icons (point-min) (point-max)))))
+  (dolist (breakpoint gdb-breakpoints-list)
+    (let* ((breakpoint (cdr breakpoint)) ; gdb-breakpoints-list is
+                                         ; an associative list
+           (line (bindat-get-field breakpoint 'line)))
+      (when line
+        (let ((file (bindat-get-field breakpoint 'fullname))
+              (flag (bindat-get-field breakpoint 'enabled))
+              (bptno (bindat-get-field breakpoint 'number)))
+          (unless (file-exists-p file)
+            (setq file (cdr (assoc bptno gdb-location-alist))))
+          (if (and file
+                   (not (string-equal file "File not found")))
+              (with-current-buffer
+                  (find-file-noselect file 'nowarn)
+                (gdb-init-buffer)
+                ;; Only want one breakpoint icon at each location.
+                (gdb-put-breakpoint-icon (string-equal flag "y") bptno
+                                         (string-to-number line)))
+            (gdb-input
+             (list (concat "list " file ":1")
+                   'ignore))
+            (gdb-input
+             (list "-file-list-exec-source-file"
+                   `(lambda () (gdb-get-location
+                                ,bptno ,line ,flag))))))))))
 
 (defvar gdb-source-file-regexp "fullname=\"\\(.*?\\)\"")
 
@@ -3276,7 +3281,6 @@ DOC is an optional documentation string."
 (defun gdb-disassembly-handler-custom ()
   (let* ((instructions (bindat-get-field (gdb-json-partial-output) 'asm_insns))
          (address (bindat-get-field (gdb-current-buffer-frame) 'addr))
-         (pos 1)
          (table (make-gdb-table))
          (marked-line nil))
       (dolist (instr instructions)
@@ -3806,8 +3810,7 @@ already, in which case that window is splitted first."
       (let ((window (get-lru-window)))
 	(if (eq (buffer-local-value 'gud-minor-mode (window-buffer window))
 		  'gdbmi)
-	    (let* ((largest (get-largest-window))
-		   (cur-size (window-height largest)))
+	    (let ((largest (get-largest-window)))
 	      (setq answer (split-window largest))
 	      (set-window-buffer answer buf)
 	      (set-window-dedicated-p answer dedicated)

@@ -290,7 +290,7 @@ recognized according to the current value of the variable `glasses-separator'."
   nil)
 
 
-(defun glasses-change (beg end &optional old-len)
+(defun glasses-change (beg end &optional _old-len)
   "After-change function updating glass overlays."
   (let ((beg-line (save-excursion (goto-char beg) (line-beginning-position)))
 	(end-line (save-excursion (goto-char end) (line-end-position))))

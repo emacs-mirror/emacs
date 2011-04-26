@@ -3,6 +3,7 @@
 ;; Copyright (C) 1985, 2001-2011 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
+;; Obsolete-since: 22.1
 
 ;; This file is part of GNU Emacs.
 
@@ -20,8 +21,6 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-
-;; This file has been obsolete since Emacs 22.1.
 
 ;; This code provides functions to list and edit the values of all global
 ;; option variables known to loaded Emacs Lisp code.  There are two entry

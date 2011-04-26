@@ -1,11 +1,9 @@
-2011-04-22  Paul Eggert  <eggert@cs.ucla.edu>
+2011-04-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.in: Suppress unnecessary checks for size_t.
 	(AC_TYPE_SIZE_T): Define an empty macro, to suppress obsolescent test.
 	(size_t): Do not check for this, and do not typedef.  This code
 	is never exercised now.
-
-2011-04-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in (GNULIB_MODULES): Add strtoumax.
 	This is needed for the new integer-reading code in lread.c.
@@ -15,6 +13,15 @@
 	lib/strtoull.c, lib/strtoumax.c, lib/verify.h, m4/inttypes.m4,
 	m4/strtoull.m4, m4/strtoumax.m4.
 	* .bzrignore: Add lib/inttypes.h.
+
+2011-04-24  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* configure.in: Check for GnuTLS certificate verify callbacks.
+
+2011-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (config.status): Don't erase in case of error.
+	In case it disappeared, rebuild it with `configure'.
 
 2011-04-20  Ken Brown  <kbrown@cornell.edu>
 

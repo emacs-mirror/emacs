@@ -316,6 +316,15 @@
   `dynamic-library-alist' and the value of `libpng-version', and
   download compatible DLLs if needed.
 
+* Optional GnuTLS support
+
+  You can build Emacs with GnuTLS support.  Put the gnutls/gnutls.h header in
+  the include path and link to the appropriate libraries (gnutls.dll and
+  gcrypt.dll) with the --lib option.
+
+  You can get pre-built binaries and an installer at
+  http://josefsson.org/gnutls4win/.
+
 * Experimental SVG support
 
   SVG support is currently experimental, and not built by default.

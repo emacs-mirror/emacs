@@ -34,6 +34,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <mbstring.h>	/* for _mbspbrk */
 #include <math.h>
 #include <setjmp.h>
+#include <time.h>
 
 /* must include CRT headers *before* config.h */
 
@@ -61,6 +62,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef write
 
 #undef strerror
+
+#undef localtime
 
 #include "lisp.h"
 
@@ -1942,6 +1945,12 @@ gettimeofday (struct timeval *tv, struct timezone *tz)
 
   tv->tv_sec = tb.time;
   tv->tv_usec = tb.millitm * 1000L;
+  /* Implementation note: _ftime sometimes doesn't update the dstflag
+     according to the new timezone when the system timezone is
+     changed.  We could fix that by using GetSystemTime and
+     GetTimeZoneInformation, but that doesn't seem necessary, since
+     Emacs always calls gettimeofday with the 2nd argument NULL (see
+     EMACS_GET_TIME).  */
   if (tz)
     {
       tz->tz_minuteswest = tb.timezone;	/* minutes west of Greenwich  */
@@ -5678,6 +5687,19 @@ sys_write (int fd, const void * buffer, unsigned int count)
   return nchars;
 }
 
+/* The Windows CRT functions are "optimized for speed", so they don't
+   check for timezone and DST changes if they were last called less
+   than 1 minute ago (see http://support.microsoft.com/kb/821231).  So
+   all Emacs features that repeatedly call time functions (e.g.,
+   display-time) are in real danger of missing timezone and DST
+   changes.  Calling tzset before each localtime call fixes that.  */
+struct tm *
+sys_localtime (const time_t *t)
+{
+  tzset ();
+  return localtime (t);
+}
+
 static void
 check_windows_init_file (void)
 {
@@ -6102,5 +6124,72 @@ serial_configure (struct Lisp_Process *p, Lisp_Object contact)
   p->childp = childp2;
 }
 
-/* end of w32.c */
+#ifdef HAVE_GNUTLS
 
+ssize_t
+emacs_gnutls_pull (gnutls_transport_ptr_t p, void* buf, size_t sz)
+{
+  int n, sc, err;
+  SELECT_TYPE fdset;
+  EMACS_TIME timeout;
+  struct Lisp_Process *process = (struct Lisp_Process *)p;
+  int fd = process->infd;
+
+  for (;;)
+    {
+      n = sys_read(fd, (char*)buf, sz);
+
+      if (n >= 0)
+        return n;
+
+      err = errno;
+
+      if (err == EWOULDBLOCK)
+        {
+          /* Set a small timeout.  */
+          EMACS_SET_SECS_USECS(timeout, 1, 0);
+          FD_ZERO (&fdset);
+          FD_SET ((int)fd, &fdset);
+
+          /* Use select with the timeout to poll the selector.  */
+          sc = select (fd + 1, &fdset, (SELECT_TYPE *)0, (SELECT_TYPE *)0,
+                       &timeout);
+
+          if (sc > 0)
+            continue;  /* Try again.  */
+
+          /* Translate the WSAEWOULDBLOCK alias EWOULDBLOCK to EAGAIN.
+             Also accept select return 0 as an indicator to EAGAIN.  */
+          if (sc == 0 || errno == EWOULDBLOCK)
+            err = EAGAIN;
+          else
+            err = errno; /* Other errors are just passed on.  */
+        }
+
+      gnutls_transport_set_errno (process->gnutls_state, err);
+
+      return -1;
+    }
+}
+
+ssize_t
+emacs_gnutls_push (gnutls_transport_ptr_t p, const void* buf, size_t sz)
+{
+  struct Lisp_Process *process = (struct Lisp_Process *)p;
+  int fd = process->outfd;
+  ssize_t n = sys_write(fd, buf, sz);
+
+  /* 0 or more bytes written means everything went fine.  */
+  if (n >= 0)
+    return n;
+
+  /* Negative bytes written means we got an error in errno.
+     Translate the WSAEWOULDBLOCK alias EWOULDBLOCK to EAGAIN.  */
+  gnutls_transport_set_errno (process->gnutls_state,
+                              errno == EWOULDBLOCK ? EAGAIN : errno);
+
+  return -1;
+}
+#endif /* HAVE_GNUTLS */
+
+/* end of w32.c */

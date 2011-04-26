@@ -25,7 +25,8 @@
 ;;; Commentary:
 
 ;; This package provides language bindings for the GnuTLS library
-;; using the corresponding core functions in gnutls.c.
+;; using the corresponding core functions in gnutls.c.  It should NOT
+;; be used directly, only through open-protocol-stream.
 
 ;; Simple test:
 ;;
@@ -59,26 +60,77 @@ Third arg is name of the host to connect to, or its IP address.
 Fourth arg SERVICE is name of the service desired, or an integer
 specifying a port number to connect to.
 
+Usage example:
+
+  \(with-temp-buffer
+    \(open-gnutls-stream \"tls\"
+                        \(current-buffer)
+                        \"your server goes here\"
+                        \"imaps\"))
+
 This is a very simple wrapper around `gnutls-negotiate'.  See its
 documentation for the specific parameters you can use to open a
 GnuTLS connection, including specifying the credential type,
 trust and key files, and priority string."
-  (let ((proc (open-network-stream name buffer host service)))
-    (gnutls-negotiate proc 'gnutls-x509pki)))
+  (gnutls-negotiate (open-network-stream name buffer host service)
+                    'gnutls-x509pki
+                    host))
+
+(put 'gnutls-error
+     'error-conditions
+     '(error gnutls-error))
+(put 'gnutls-error
+     'error-message "GnuTLS error")
 
 (declare-function gnutls-boot "gnutls.c" (proc type proplist))
+(declare-function gnutls-errorp "gnutls.c" (error))
 
-(defun gnutls-negotiate (proc type &optional priority-string
-                              trustfiles keyfiles)
-  "Negotiate a SSL/TLS connection.
+(defun gnutls-negotiate (proc type hostname &optional priority-string
+                              trustfiles keyfiles verify-flags
+                              verify-error verify-hostname-error)
+  "Negotiate a SSL/TLS connection.  Returns proc. Signals gnutls-error.
 TYPE is `gnutls-x509pki' (default) or `gnutls-anon'.  Use nil for the default.
 PROC is a process returned by `open-network-stream'.
+HOSTNAME is the remote hostname.  It must be a valid string.
 PRIORITY-STRING is as per the GnuTLS docs, default is \"NORMAL\".
 TRUSTFILES is a list of CA bundles.
-KEYFILES is a list of client keys."
+KEYFILES is a list of client keys.
+
+When VERIFY-HOSTNAME-ERROR is not nil, an error will be raised
+when the hostname does not match the presented certificate's host
+name.  The exact verification algorithm is a basic implementation
+of the matching described in RFC2818 (HTTPS), which takes into
+account wildcards, and the DNSName/IPAddress subject alternative
+name PKIX extension.  See GnuTLS' gnutls_x509_crt_check_hostname
+for details.  When VERIFY-HOSTNAME-ERROR is nil, only a warning
+will be issued.
+
+When VERIFY-ERROR is not nil, an error will be raised when the
+peer certificate verification fails as per GnuTLS'
+gnutls_certificate_verify_peers2.  Otherwise, only warnings will
+be shown about the verification failure.
+
+VERIFY-FLAGS is a numeric OR of verification flags only for
+`gnutls-x509pki' connections.  See GnuTLS' x509.h for details;
+here's a recent version of the list.
+
+    GNUTLS_VERIFY_DISABLE_CA_SIGN = 1,
+    GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT = 2,
+    GNUTLS_VERIFY_DO_NOT_ALLOW_SAME = 4,
+    GNUTLS_VERIFY_ALLOW_ANY_X509_V1_CA_CRT = 8,
+    GNUTLS_VERIFY_ALLOW_SIGN_RSA_MD2 = 16,
+    GNUTLS_VERIFY_ALLOW_SIGN_RSA_MD5 = 32,
+    GNUTLS_VERIFY_DISABLE_TIME_CHECKS = 64,
+    GNUTLS_VERIFY_DISABLE_TRUSTED_TIME_CHECKS = 128,
+    GNUTLS_VERIFY_DO_NOT_ALLOW_X509_V1_CA_CRT = 256
+
+It must be omitted, a number, or nil; if omitted or nil it
+defaults to GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT."
   (let* ((type (or type 'gnutls-x509pki))
+         (default-trustfile "/etc/ssl/certs/ca-certificates.crt")
          (trustfiles (or trustfiles
-                        '("/etc/ssl/certs/ca-certificates.crt")))
+                         (when (file-exists-p default-trustfile)
+                           (list default-trustfile))))
          (priority-string (or priority-string
                               (cond
                                ((eq type 'gnutls-anon)
@@ -86,19 +138,26 @@ KEYFILES is a list of client keys."
                                ((eq type 'gnutls-x509pki)
                                 "NORMAL"))))
          (params `(:priority ,priority-string
+                             :hostname ,hostname
                              :loglevel ,gnutls-log-level
                              :trustfiles ,trustfiles
                              :keyfiles ,keyfiles
+                             :verify-flags ,verify-flags
+                             :verify-error ,verify-error
+                             :verify-hostname-error ,verify-hostname-error
                              :callbacks nil))
          ret)
 
     (gnutls-message-maybe
      (setq ret (gnutls-boot proc type params))
-     "boot: %s")
+     "boot: %s" params)
+
+    (when (gnutls-errorp ret)
+      ;; This is a error from the underlying C code.
+      (signal 'gnutls-error (list proc ret)))
 
     proc))
 
-(declare-function gnutls-errorp "gnutls.c" (error))
 (declare-function gnutls-error-string "gnutls.c" (error))
 
 (defun gnutls-message-maybe (doit format &rest params)

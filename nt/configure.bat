@@ -99,10 +99,13 @@ set COMPILER=
 set usercflags=
 set docflags=
 set userldflags=
+set extrauserlibs=
 set doldflags=
+set doextralibs=
 set sep1=
 set sep2=
 set sep3=
+set sep4=
 set distfiles=
 
 rem ----------------------------------------------------------------------
@@ -120,10 +123,12 @@ if "%1" == "--profile" goto profile
 if "%1" == "--no-cygwin" goto nocygwin
 if "%1" == "--cflags" goto usercflags
 if "%1" == "--ldflags" goto userldflags
+if "%1" == "--lib" goto extrauserlibs
 if "%1" == "--without-png" goto withoutpng
 if "%1" == "--without-jpeg" goto withoutjpeg
 if "%1" == "--without-gif" goto withoutgif
 if "%1" == "--without-tiff" goto withouttiff
+if "%1" == "--without-gnutls" goto withoutgnutls
 if "%1" == "--without-xpm" goto withoutxpm
 if "%1" == "--with-svg" goto withsvg
 if "%1" == "--distfiles" goto distfiles
@@ -142,11 +147,13 @@ echo.   --profile               enable profiling
 echo.   --no-cygwin             use -mno-cygwin option with GCC
 echo.   --cflags FLAG           pass FLAG to compiler
 echo.   --ldflags FLAG          pass FLAG to compiler when linking
+echo.   --lib LIB               link to extra library LIB
 echo.   --without-png           do not use PNG library even if it is installed
 echo.   --without-jpeg          do not use JPEG library even if it is installed
 echo.   --without-gif           do not use GIF library even if it is installed
 echo.   --without-tiff          do not use TIFF library even if it is installed
 echo.   --without-xpm           do not use XPM library even if it is installed
+echo.   --without-gnutls        do not use GNUTLS library even if it is installed
 echo.   --with-svg              use the RSVG library (experimental)
 echo.   --distfiles             path to files for make dist, e.g. libXpm.dll
 if "%use_extensions%" == "0" goto end
@@ -242,6 +249,14 @@ set sep1= %nothing%
 shift
 goto again
 
+:extrauserlibs
+shift
+echo. extrauserlibs: %extrauserlibs%
+set extrauserlibs=%extrauserlibs%%sep4%%1
+set sep4= %nothing%
+shift
+goto again
+
 rem ----------------------------------------------------------------------
 
 :userldflags
@@ -283,6 +298,14 @@ rem ----------------------------------------------------------------------
 :withoutgif
 set gifsupport=N
 set HAVE_GIF=
+shift
+goto again
+
+rem ----------------------------------------------------------------------
+
+:withoutgnutls
+set tlssupport=N
+set HAVE_GNUTLS=
 shift
 goto again
 
@@ -516,6 +539,30 @@ set HAVE_PNG=1
 :pngDone
 rm -f junk.c junk.obj
 
+if (%tlssupport%) == (N) goto tlsDone
+
+rem this is a copy of the PNG detection
+echo Checking for libgnutls...
+echo #include "gnutls/gnutls.h" >junk.c
+echo main (){} >>junk.c
+rem   -o option is ignored with cl, but allows result to be consistent.
+echo %COMPILER% %usercflags% %mingwflag% -c junk.c -o junk.obj >>config.log
+%COMPILER% %usercflags% %mingwflag% -c junk.c -o junk.obj >junk.out 2>>config.log
+if exist junk.obj goto haveTls
+
+echo ...gnutls.h not found, building without TLS support.
+echo The failed program was: >>config.log
+type junk.c >>config.log
+set HAVE_GNUTLS=
+goto :tlsDone
+
+:haveTls
+echo ...GNUTLS header available, building with GNUTLS support.
+set HAVE_GNUTLS=1
+
+:tlsDone
+rm -f junk.c junk.obj
+
 if (%jpegsupport%) == (N) goto jpegDone
 
 echo Checking for jpeg-6b...
@@ -688,6 +735,8 @@ for %%v in (%usercflags%) do if not (%%v)==() set docflags=Y
 if (%docflags%)==(Y) echo USER_CFLAGS=%usercflags%>>config.settings
 for %%v in (%userldflags%) do if not (%%v)==() set doldflags=Y
 if (%doldflags%)==(Y) echo USER_LDFLAGS=%userldflags%>>config.settings
+for %%v in (%extrauserlibs%) do if not (%%v)==() set doextralibs=Y
+if (%doextralibs%)==(Y) echo USER_LIBS=%extrauserlibs%>>config.settings
 echo # End of settings from configure.bat>>config.settings
 echo. >>config.settings
 
@@ -700,6 +749,7 @@ if (%docflags%) == (Y) echo #define USER_CFLAGS " %usercflags%">>config.tmp
 if (%doldflags%) == (Y) echo #define USER_LDFLAGS " %userldflags%">>config.tmp
 if (%profile%) == (Y) echo #define PROFILING 1 >>config.tmp
 if not "(%HAVE_PNG%)" == "()" echo #define HAVE_PNG 1 >>config.tmp
+if not "(%HAVE_GNUTLS%)" == "()" echo #define HAVE_GNUTLS 1 >>config.tmp
 if not "(%HAVE_JPEG%)" == "()" echo #define HAVE_JPEG 1 >>config.tmp
 if not "(%HAVE_GIF%)" == "()" echo #define HAVE_GIF 1 >>config.tmp
 if not "(%HAVE_TIFF%)" == "()" echo #define HAVE_TIFF 1 >>config.tmp
@@ -838,6 +888,7 @@ set distfiles=
 set HAVE_DISTFILES=
 set distFilesOk=
 set pngsupport=
+set tlssupport=
 set jpegsupport=
 set gifsupport=
 set tiffsupport=

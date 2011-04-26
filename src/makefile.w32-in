@@ -105,6 +105,7 @@ OBJ2 =  $(BLD)/sysdep.$(O)		\
 	$(BLD)/floatfns.$(O)		\
 	$(BLD)/frame.$(O)		\
 	$(BLD)/gmalloc.$(O)		\
+	$(BLD)/gnutls.$(O)		\
 	$(BLD)/intervals.$(O)		\
 	$(BLD)/composite.$(O)		\
 	$(BLD)/ralloc.$(O)		\
@@ -150,6 +151,7 @@ LIBS =  $(TLIB0)	\
 	$(OLE32)	\
 	$(COMCTL32)	\
 	$(UNISCRIBE)    \
+	$(USER_LIBS)    \
 	$(libc)
 
 #
@@ -225,6 +227,7 @@ SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
 obj = $(GLOBAL_SOURCES:.c=.o)
 
 globals.h: gl-stamp
+	@cmd /c rem true
 
 gl-stamp: ../lib-src/$(BLD)/make-docfile.exe $(GLOBAL_SOURCES)
 	- $(DEL) gl-tmp
@@ -329,7 +332,7 @@ cleanall:	clean
 ##
 ## This works only with GNU Make.
 
-TAGS: $(OBJ0) $(OBJ1) $(OBJ2)
+TAGS: $(OBJ0) $(OBJ1) $(OBJ2) $(CURDIR)/m/intel386.h $(CURDIR)/s/ms-w32.h
 	$(MAKE) $(MFLAGS) TAGS-$(MAKETYPE)
 
 TAGS-LISP: $(OBJ0) $(OBJ1) $(OBJ2)
@@ -343,7 +346,7 @@ TAGS-gmake:
 	  $(patsubst $(BLD)%.$(O),$(CURDIR)%.c,$(OBJ1))
 	../lib-src/$(BLD)/etags.exe -a --regex=@../nt/emacs-src.tags \
 	  $(patsubst $(BLD)%.$(O),$(CURDIR)%.c,$(OBJ2)) \
-	  $(CURDIR)/*.h
+	  $(CURDIR)/*.h $(CURDIR)/m/intel386.h $(CURDIR)/s/ms-w32.h
 
 TAGS-nmake:
 	echo This target is not supported with NMake
@@ -469,6 +472,7 @@ $(BLD)/callint.$(O) : \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(LISP_H) \
 	$(SRC)/buffer.h \
+	$(SRC)/character.h \
 	$(SRC)/coding.h \
 	$(SRC)/commands.h \
 	$(SRC)/composite.h \
@@ -947,6 +951,14 @@ $(BLD)/gmalloc.$(O) : \
 	$(CONFIG_H) \
 	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(SRC)/getpagesize.h
+
+$(BLD)/gnutls.$(O) : \
+	$(SRC)/gnutls.h \
+	$(SRC)/gnutls.c \
+	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/sys/socket.h \
+	$(SRC)/lisp.h \
+	$(SRC)/process.h
 
 $(BLD)/image.$(O) : \
 	$(SRC)/image.c \

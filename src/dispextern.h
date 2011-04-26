@@ -62,7 +62,7 @@ typedef HDC XImagePtr_or_DC;
 
 #ifdef HAVE_NS
 #include "nsgui.h"
-/* following typedef needed to accomodate the MSDOS port, believe it or not */
+/* Following typedef needed to accommodate the MSDOS port, believe it or not.  */
 typedef struct ns_display_info Display_Info;
 typedef Pixmap XImagePtr;
 typedef XImagePtr XImagePtr_or_DC;

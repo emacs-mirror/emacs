@@ -484,9 +484,9 @@ Returns nil if line starts inside a string, t if in a comment."
   (let ((indent-stack (list nil))
 	(contain-stack (list (point)))
 	(case-fold-search nil)
-	restart outer-loop-done inner-loop-done state ostate
-	this-indent last-sexp last-depth
-	at-else at-brace at-do
+	outer-loop-done inner-loop-done state ostate
+	this-indent last-depth
+	at-else at-brace
 	(opoint (point))
 	(next-depth 0))
     (save-excursion
@@ -506,9 +506,6 @@ Returns nil if line starts inside a string, t if in a comment."
 	  (setq state (parse-partial-sexp (point) (progn (end-of-line) (point))
 					  nil nil state))
 	  (setq next-depth (car state))
-	  (if (and (car (cdr (cdr state)))
-		   (>= (car (cdr (cdr state))) 0))
-	      (setq last-sexp (car (cdr (cdr state)))))
 	  (if (or (nth 4 ostate))
 	      (icon-indent-line))
 	  (if (or (nth 3 state))
@@ -518,8 +515,6 @@ Returns nil if line starts inside a string, t if in a comment."
 	    (setq outer-loop-done t))
 	(if outer-loop-done
 	    nil
-	  (if (/= last-depth next-depth)
-	      (setq last-sexp nil))
 	  (while (> last-depth next-depth)
 	    (setq indent-stack (cdr indent-stack)
 		  contain-stack (cdr contain-stack)

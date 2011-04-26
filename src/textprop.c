@@ -233,7 +233,7 @@ interval_has_all_properties (Lisp_Object plist, INTERVAL i)
 	    if (! EQ (Fcar (XCDR (tail1)), Fcar (XCDR (tail2))))
 	      return 0;
 
-	    /* Property has same value on both lists;  go to next one.  */
+	    /* Property has same value on both lists; go to next one.  */
 	    found = 1;
 	    break;
 	  }
@@ -1759,15 +1759,9 @@ text_property_stickiness (Lisp_Object prop, Lisp_Object pos, Lisp_Object buffer)
 }
 
 
-/* I don't think this is the right interface to export; how often do you
-   want to do something like this, other than when you're copying objects
-   around?
+/* Copying properties between objects. */
 
-   I think it would be better to have a pair of functions, one which
-   returns the text properties of a region as a list of ranges and
-   plists, and another which applies such a list to another object.  */
-
-/* Add properties from SRC to SRC of SRC, starting at POS in DEST.
+/* Add properties from START to END of SRC, starting at POS in DEST.
    SRC and DEST may each refer to strings or buffers.
    Optional sixth argument PROP causes only that property to be copied.
    Properties are copied to DEST as if by `add-text-properties'.
@@ -2307,6 +2301,4 @@ inherits it if NONSTICKINESS is nil.  The `front-sticky' and
   defsubr (&Sremove_list_of_text_properties);
   defsubr (&Stext_property_any);
   defsubr (&Stext_property_not_all);
-/*  defsubr (&Serase_text_properties); */
-/*  defsubr (&Scopy_text_properties); */
 }

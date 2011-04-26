@@ -9323,7 +9323,7 @@ fi
 
 use_mmap_for_buffers=no
 case "$opsys" in
-  freebsd|irix6-5) use_mmap_for_buffers=yes ;;
+  cygwin|freebsd|irix6-5) use_mmap_for_buffers=yes ;;
 esac
 
 
@@ -10813,6 +10813,7 @@ fi
 
 
 HAVE_GNUTLS=no
+HAVE_GNUTLS_CALLBACK_CERTIFICATE_VERIFY=no
 if test "${with_gnutls}" = "yes" ; then
 
   succeeded=no
@@ -10913,7 +10914,28 @@ $as_echo "no" >&6; }
 $as_echo "#define HAVE_GNUTLS 1" >>confdefs.h
 
   fi
+
+  CFLAGS="$CFLAGS $LIBGNUTLS_CFLAGS"
+  LIBS="$LIBGNUTLS_LIBS $LIBS"
+  for ac_func in gnutls_certificate_set_verify_function
+do :
+  ac_fn_c_check_func "$LINENO" "gnutls_certificate_set_verify_function" "ac_cv_func_gnutls_certificate_set_verify_function"
+if test "x$ac_cv_func_gnutls_certificate_set_verify_function" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_GNUTLS_CERTIFICATE_SET_VERIFY_FUNCTION 1
+_ACEOF
+ HAVE_GNUTLS_CALLBACK_CERTIFICATE_VERIFY=yes
 fi
+done
+
+
+  if test "${HAVE_GNUTLS_CALLBACK_CERTIFICATE_VERIFY}" = "yes"; then
+
+$as_echo "#define HAVE_GNUTLS_CALLBACK_CERTIFICATE_VERIFY 1" >>confdefs.h
+
+  fi
+fi
+
 
 
 

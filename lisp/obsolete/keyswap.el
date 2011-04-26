@@ -4,6 +4,7 @@
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Keywords: terminals
+;; Obsolete-since: 22.1
 
 ;; This file is part of GNU Emacs.
 
@@ -21,8 +22,6 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-
-;; This file has been obsolete since Emacs 22.1.
 
 ;; This package is meant to be called by other terminal packages.
 

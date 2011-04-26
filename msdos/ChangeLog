@@ -1,3 +1,9 @@
+2011-04-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedlibmk.inp (am_libgnu_a_OBJECTS): Edit out
+	allocator.$(OBJEXT).  Add editing for the new GNULIB_* and
+	REPLACE_* variables.
+
 2011-04-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* sedlibmk.inp: Update checklist.

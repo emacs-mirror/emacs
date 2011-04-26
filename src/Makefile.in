@@ -354,7 +354,7 @@ base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	syntax.o $(UNEXEC_OBJ) bytecode.o \
 	process.o gnutls.o callproc.o \
 	region-cache.o sound.o atimer.o \
-	intervals.o textprop.o composite.o xml.o \
+	doprnt.o intervals.o textprop.o composite.o xml.o \
 	$(MSDOS_OBJ) $(MSDOS_X_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_OBJ)
 obj = $(base_obj) $(NS_OBJC_OBJ)
 
@@ -748,10 +748,10 @@ extraclean: distclean
 ctagsfiles1 = [xyzXYZ]*.[hcm]
 ctagsfiles2 = [a-wA-W]*.[hcm]
 
-TAGS: $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2)
+TAGS: $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) $(M_FILE) $(S_FILE)
 	../lib-src/etags --include=TAGS-LISP --include=$(lwlibdir)/TAGS \
 	  --regex='/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' \
-	  $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2)
+	  $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) $(M_FILE) $(S_FILE)
 frc:
 TAGS-LISP: frc
 	$(MAKE) -f $(lispdir)/Makefile TAGS-LISP ETAGS=../lib-src/etags

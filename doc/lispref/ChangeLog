@@ -1,3 +1,13 @@
+2011-04-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* windows.texi (Choosing Window): Fix typo.
+
+2011-04-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frames.texi (Layout Parameters): Note the difference between
+	querying and setting parameters for left-fringe and right-fringe
+	(Bug#6930).
+
 2011-03-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuf.texi (Basic Completion): Be a bit more precise about the

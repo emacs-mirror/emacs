@@ -3,10 +3,6 @@
 # Copyright (C) 2005-2011 Free Software Foundation, Inc.
 
 # Maintainer: Noah Friedman <friedman@splode.com>
-# Status: Works with Emacs 22.0.51.1 (prerelease) as of 2006-01-12.
-#         Older cvs snapshots, and released versions, will not work due to
-#         changes in lisp data structures.  But there are older versions of
-#         this gdb script which work with those versions.
 # Created: 2005-04-28
 
 # This file is part of GNU Emacs.
@@ -36,6 +32,10 @@
 # The main commands of interest are `ybuffer-list', `yfile-buffers',
 # `ysave-buffer', and `ybuffer-contents'.  The `y' prefix avoids any
 # namespace collisions with emacs/src/.gdbinit.
+
+# Since the internal data structures in Emacs occasionally from time to
+# time, you should use the version of this file that came with your
+# particular Emacs version; older versions might not work anymore.
 
 # Example usage:
 #
@@ -107,16 +107,16 @@ define ybuffer-list
     ygetptr $buf
     set $buf = (struct buffer *) $ptr
 
-    if ! ($files_only && $buf->filename == Qnil)
-      ygetptr $buf->name
+    if ! ($files_only && $buf->filename_ == Qnil)
+      ygetptr $buf->name_
       set $name = ((struct Lisp_String *) $ptr)->data
       set $modp = ($buf->text->modiff > $buf->text->save_modiff) ? '*' : ' '
 
-      ygetptr $buf->mode_name
+      ygetptr $buf->mode_name_
       set $mode = ((struct Lisp_String *) $ptr)->data
 
-      if $buf->filename != Qnil
-        ygetptr $buf->filename
+      if $buf->filename_ != Qnil
+        ygetptr $buf->filename_
         printf "%2d %c  %9d %-20s %-10s %s\n", \
                $i, $modp, ($buf->text->z_byte - 1), $name, $mode, \
                ((struct Lisp_String *) $ptr)->data
@@ -193,7 +193,7 @@ document yget-buffer-pointers
 end
 
 define yget-current-buffer-name
-  set $this = $ycurrent_buffer->name
+  set $this = $ycurrent_buffer->name_
   ygetptr $this
   set $ycurrent_buffer_name = ((struct Lisp_String *) $ptr)->data
 end
@@ -267,4 +267,3 @@ end
 # local variables:
 # mode: gdb-script
 # end:
-

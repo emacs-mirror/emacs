@@ -1,4 +1,4 @@
-2011-04-25  Paul Eggert  <eggert@cs.ucla.edu>
+2011-04-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	lisp.h: Fix a problem with aliasing and vector headers.
 	GCC 4.6.0 optimizes based on type-based alias analysis.  For
@@ -50,11 +50,7 @@
 	* process.c (Fformat_network_address): Use local var for size,
 	for brevity.
 
-2011-04-24  Paul Eggert  <eggert@cs.ucla.edu>
-
 	* bytecode.c (exec_byte_code): Don't use XVECTOR before CHECK_VECTOR.
-
-2011-04-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Make the Lisp reader and string-to-float more consistent.
 	* data.c (atof): Remove decl; no longer used or needed.
@@ -85,8 +81,6 @@
 	no longer mishandles examples like "1.0e+".  Use strtoumax,
 	so that overflow for non-base-10 numbers is reported only when
 	there's no portable and simple way to convert to floating point.
-
-2011-04-20  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* textprop.c (set_text_properties_1): Rewrite for clarity,
 	and to avoid GCC warning about integer overflow.
@@ -187,6 +181,176 @@
 	multiple of sizeof (EMACS_INT); it need not be, if
 	alignof(EMACS_INT) < sizeof (EMACS_INT).
 	(check_sblock, check_string_bytes, check_string_free_list): Protoize.
+
+2011-04-25  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* alloc.c (check_sblock, check_string_bytes)
+	(check_string_free_list): Convert to standard C.
+
+2011-04-25  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* w32.c (emacs_gnutls_push): Fix typo.
+
+2011-04-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* gnutls.c (emacs_gnutls_handshake): Avoid compiler warnings about
+	"cast to pointer from integer of different size".
+
+	Improve doprnt and its use in verror.  (Bug#8545)
+	* doprnt.c (doprnt): Document the set of format control sequences
+	supported by the function.  Use SAFE_ALLOCA instead of always
+	using `alloca'.
+
+	* eval.c (verror): Don't limit the buffer size at size_max-1, that
+	is one byte too soon.  Don't use xrealloc; instead xfree and
+	xmalloc anew.
+
+2011-04-24  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnutls.h: Add GNUTLS_STAGE_CALLBACKS enum to denote we're in the
+	callbacks stage.
+
+	* gnutls.c: Renamed global_initialized to
+	gnutls_global_initialized.  Added internals for the
+	:verify-hostname-error, :verify-error, and :verify-flags
+	parameters of `gnutls-boot' and documented those parameters in the
+	docstring.  Start callback support.
+	(emacs_gnutls_handshake): Add Woe32 support. Retry handshake
+	unless a fatal error occured. Call gnutls_alert_send_appropriate
+	on error. Return error code.
+	(emacs_gnutls_write): Call emacs_gnutls_handle_error.
+	(emacs_gnutls_read): Likewise.
+	(Fgnutls_boot): Return handshake error code.
+	(emacs_gnutls_handle_error): New function.
+	(wsaerror_to_errno): Likewise.
+
+	* w32.h (emacs_gnutls_pull): Add prototype.
+	(emacs_gnutls_push): Likewise.
+
+	* w32.c (emacs_gnutls_pull): New function for GnuTLS on Woe32.
+	(emacs_gnutls_push): Likewise.
+
+2011-04-24  Claudio Bley  <claudio.bley@gmail.com>  (tiny change)
+
+	* process.c (wait_reading_process_output): Check if GnuTLS
+	buffered some data internally if no FDs are set for TLS
+	connections.
+
+	* makefile.w32-in (OBJ2): Add gnutls.$(O).
+	(LIBS): Link to USER_LIBS.
+	($(BLD)/gnutls.$(0)): New target.
+
+2011-04-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (handle_single_display_spec): Rename the
+	display_replaced_before_p argument into display_replaced_p, to
+	make it consistent with the commentary.  Fix typos in the
+	commentary.
+
+	* textprop.c (syms_of_textprop): Remove dead code.
+	(copy_text_properties): Delete obsolete commentary about an
+	interface that was deleted long ago.  Fix typos in the description
+	of arguments.
+
+	* msdos.c (XMenuActivate, XMenuAddSelection): Adjust argument list
+	to changes in oldXMenu/XMenu.h from 2011-04-16.
+	<menu_help_message, prev_menu_help_message>: Constify.
+	(IT_menu_make_room): menu->help_text is now `const char **';
+	adjust.
+
+	* msdos.h (XMenuActivate, XMenuAddSelection): Adjust prototypes
+	to changes in oldXMenu/XMenu.h from 2011-04-16.
+	(struct XMenu): Declare `help_text' `const char **'.
+
+	* xfaces.c <Qunspecified>: Make extern again.
+
+	* syntax.c: Include sys/types.h before including regex.h, as
+	required by Posix.
+
+	* doc.c (get_doc_string): Improve the format passed to `error'.
+
+	* doprnt.c (doprnt): Improve commentary.
+
+	* term.c (init_tty) [MSDOS]: Fix 1st argument to maybe_fatal.
+
+	* Makefile.in (TAGS): Depend on $(M_FILE) and $(S_FILE), and scan
+	them with etags.
+
+	* makefile.w32-in (globals.h): Add a dummy recipe, to make any
+	changes in globals.h immediately force recompilation.
+	(TAGS): Depend on $(CURDIR)/m/intel386.h and
+	$(CURDIR)/s/ms-w32.h.
+	(TAGS-gmake): Scan $(CURDIR)/m/intel386.h and $(CURDIR)/s/ms-w32.h.
+
+	* character.c (Fchar_direction): Function deleted.
+	(syms_of_character): Don't defsubr it.
+	<char-direction-table>: Deleted.
+
+2011-04-23  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix doprnt so it could be used again safely in `verror'.  (Bug#8435)
+	* doprnt.c: Include limits.h.
+	(SIZE_MAX): New macro.
+	(doprnt): Return a size_t value.  2nd arg is now size_t.  Many
+	local variables are now size_t instead of int or unsigned.
+	Improve overflow protection.  Support `l' modifier for integer
+	conversions.  Support %l conversion.  Don't assume an EMACS_INT
+	argument for integer conversions and for %c.
+
+	* lisp.h (doprnt): Restore prototype.
+
+	* makefile.w32-in ($(BLD)/callint.$(O)): Depend on
+	$(SRC)/character.h.
+
+	* Makefile.in (base_obj): Add back doprnt.o.
+
+	* deps.mk (doprnt.o): Add back prerequisites.
+	(callint.o): Depend on character.h.
+
+	* eval.c (internal_lisp_condition_case): Include the handler
+	representation in the error message.
+	(verror): Call doprnt instead of vsnprintf.  Fix an off-by-one bug
+	when breaking from the loop.
+
+	* xdisp.c (vmessage): Call doprnt instead of vsnprintf.
+
+	* callint.c (Fcall_interactively): When displaying error message
+	about invalid control letter, pass the character's codepoint, not
+	a pointer to its multibyte form.  Improve display of the character
+	in octal and display also its hex code.
+
+	* character.c (char_string): Use %x to display the (unsigned)
+	codepoint of an invalid character, to avoid displaying a bogus
+	negative value.
+
+	* font.c (check_otf_features): Pass SDATA of SYMBOL_NAME to
+	`error', not SYMBOL_NAME itself.
+
+	* coding.c (Fencode_sjis_char, Fencode_big5_char): Use %c for
+	character arguments to `error'.
+
+	* charset.c (check_iso_charset_parameter): Fix incorrect argument
+	to `error' in error message about FINAL_CHAR argument.  Make sure
+	FINAL_CHAR is a character, and use %c when it is passed as
+	argument to `error'.
+
+2011-04-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* s/ms-w32.h (localtime): Redirect to sys_localtime.
+
+	* w32.c: Include <time.h>.
+	(sys_localtime): New function.
+
+2011-04-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (init_xdisp): Initialize echo_area_window (Bug#6451).
+
+	* buffer.c (syms_of_buffer): Doc fix (Bug#6902).
+
+2011-04-23  Samuel Thibault  <sthibault@debian.org>  (tiny change)
+
+	* sysdep.c (wait_for_termination): On GNU Hurd, kill returns -1 on
+	zombies (Bug#8467).
 
 2011-04-19  Eli Zaretskii  <eliz@gnu.org>
 

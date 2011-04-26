@@ -2336,7 +2336,8 @@ The method used must be an out-of-band method."
 		   orig-vec 6 "%s"
 		   (mapconcat 'identity (process-command p) " "))
 		  (tramp-compat-set-process-query-on-exit-flag p nil)
-		  (tramp-process-actions p v tramp-actions-copy-out-of-band)))
+		  (tramp-process-actions
+		   p v nil tramp-actions-copy-out-of-band)))
 
 	    ;; Reset the transfer process properties.
 	    (tramp-message orig-vec 6 "%s" (buffer-string))
@@ -4212,7 +4213,8 @@ connection if a previous connection has died for some reason."
   (catch 'uname-changed
     (let ((p (tramp-get-connection-process vec))
 	  (process-name (tramp-get-connection-property vec "process-name" nil))
-	  (process-environment (copy-sequence process-environment)))
+	  (process-environment (copy-sequence process-environment))
+	  (pos (with-current-buffer (tramp-get-connection-buffer vec) (point))))
 
       ;; If too much time has passed since last command was sent, look
       ;; whether process is still alive.  If it isn't, kill it.  When
@@ -4366,7 +4368,7 @@ connection if a previous connection has died for some reason."
 		;; Send the command.
 		(tramp-message vec 3 "Sending command `%s'" command)
 		(tramp-send-command vec command t t)
-		(tramp-process-actions p vec tramp-actions-before-shell 60)
+		(tramp-process-actions p vec pos tramp-actions-before-shell 60)
 		(tramp-message
 		 vec 3 "Found remote shell prompt on `%s'" l-host))
 	      ;; Next hop.

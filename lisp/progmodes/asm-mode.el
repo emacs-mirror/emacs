@@ -90,7 +90,7 @@
   "Keymap for Asm mode.")
 
 (defconst asm-font-lock-keywords
-  (append 
+  (append
    '(("^\\(\\(\\sw\\|\\s_\\)+\\)\\>:?[ \t]*\\(\\sw+\\(\\.\\sw+\\)*\\)?"
       (1 font-lock-function-name-face) (3 font-lock-keyword-face nil t))
      ;; label started from ".".

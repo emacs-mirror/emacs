@@ -3121,7 +3121,7 @@ init_tty (const char *name, const char *terminal_type, int must_succeed)
   terminal = create_terminal ();
 #ifdef MSDOS
   if (been_here > 0)
-    maybe_fatal (1, 0, "Attempt to create another terminal %s", "",
+    maybe_fatal (0, 0, "Attempt to create another terminal %s", "",
 		 name, "");
   been_here = 1;
   tty = &the_only_display_info;
@@ -3627,7 +3627,7 @@ vfatal (const char *str, va_list ap)
 
 /* Auxiliary error-handling function for init_tty.
    Delete TERMINAL, then call error or fatal with str1 or str2,
-   respectively, according to MUST_SUCCEED.  */
+   respectively, according to whether MUST_SUCCEED is zero or not.  */
 
 static void
 maybe_fatal (int must_succeed, struct terminal *terminal,

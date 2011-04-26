@@ -134,7 +134,7 @@ image formats in Emacs.  By default, Emacs links with the ImageMagick
 libraries if they are present at build time.  This needs ImageMagick
 6.2.8 or newer (versions newer than 6.0.7 _may_ work but have not been
 tested).  To disable ImageMagick support, use the configure option
-`--without-imagemagick'.  
+`--without-imagemagick'.
 
 The new function `imagemagick-types' returns a list of image file
 extensions that your installation of ImageMagick supports.  The
@@ -369,6 +369,8 @@ $ESHELL nor variable `explicit-shell-file-name' is set.
 
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
+
+** comint and modes derived from it use the generic completion code.
 
 ** The compile.el mode can be used without font-lock-mode.
 `compilation-parse-errors-function' is now obsolete.
@@ -672,6 +674,9 @@ use this to display the full log entry for the revision at point.
 **** Packages using Log View mode can enable this functionality by
 binding `log-view-expanded-log-entry-function' to a suitable function.
 
+*** New command `vc-ediff' allows visual comparison of two revisions
+of a file similar to `vc-diff', but using ediff backend.
+
 ** Miscellaneous
 
 ---
@@ -714,6 +719,13 @@ soap-inspect.el is an interactive inspector for SOAP WSDL structures.
 
 
 * Incompatible Lisp Changes in Emacs 24.1
+
+---
+** `char-direction-table' and the associated function `char-direction'
+were deleted.  They were buggy and inferior to the new support of
+bidirectional editing introduced in Emacs 24.  If you need the
+bidirectional properties of a character, use `get-char-code-property'
+with the last argument `bidi-class'.
 
 ** `copy-directory' now copies the source directory as a subdirectory
 of the target directory, if the latter is an existing directory.  The

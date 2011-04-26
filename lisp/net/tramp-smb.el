@@ -1314,7 +1314,7 @@ connection if a previous connection has died for some reason."
 
 	      ;; Play login scenario.
 	      (tramp-process-actions
-	       p vec
+	       p vec nil
 	       (if share
 		   tramp-smb-actions-with-share
 		 tramp-smb-actions-without-share))

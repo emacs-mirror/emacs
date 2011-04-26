@@ -833,7 +833,7 @@ returned RES, i.e. there is no change of `compilation-directory' between
 POS and RES.")
 (make-variable-buffer-local 'compilation--previous-directory-cache)
 
-(defun compilation--flush-directory-cache (start end)
+(defun compilation--flush-directory-cache (start _end)
   (cond
    ((or (not compilation--previous-directory-cache)
         (<= (car compilation--previous-directory-cache) start)))
@@ -1307,7 +1307,7 @@ to `compilation-error-regexp-alist' if RULES is nil."
           (compilation--parse-region (point) compilation--parsed)))))
   nil)
 
-(defun compilation--flush-parse (start end)
+(defun compilation--flush-parse (start _end)
   "Mark the region between START and END for re-parsing."
   (if (markerp compilation--parsed)
       (move-marker compilation--parsed (min start compilation--parsed))))
@@ -1399,31 +1399,31 @@ point on its location in the *compilation* buffer."
   :group 'compilation)
 
 
-(defun compilation-buffer-name (mode-name mode-command name-function)
+(defun compilation-buffer-name (name-of-mode mode-command name-function)
   "Return the name of a compilation buffer to use.
-If NAME-FUNCTION is non-nil, call it with one argument MODE-NAME
+If NAME-FUNCTION is non-nil, call it with one argument NAME-OF-MODE
 to determine the buffer name.
 Likewise if `compilation-buffer-name-function' is non-nil.
 If current buffer has the major mode MODE-COMMAND,
 return the name of the current buffer, so that it gets reused.
-Otherwise, construct a buffer name from MODE-NAME."
+Otherwise, construct a buffer name from NAME-OF-MODE."
   (cond (name-function
-	 (funcall name-function mode-name))
+	 (funcall name-function name-of-mode))
 	(compilation-buffer-name-function
-	 (funcall compilation-buffer-name-function mode-name))
+	 (funcall compilation-buffer-name-function name-of-mode))
 	((eq mode-command major-mode)
 	 (buffer-name))
 	(t
-	 (concat "*" (downcase mode-name) "*"))))
+	 (concat "*" (downcase name-of-mode) "*"))))
 
 ;; This is a rough emulation of the old hack, until the transition to new
 ;; compile is complete.
 (defun compile-internal (command error-message
-				 &optional name-of-mode parser
+				 &optional _name-of-mode parser
 				 error-regexp-alist name-function
-				 enter-regexp-alist leave-regexp-alist
-				 file-regexp-alist nomessage-regexp-alist
-				 no-async highlight-regexp local-map)
+				 _enter-regexp-alist _leave-regexp-alist
+				 file-regexp-alist _nomessage-regexp-alist
+				 _no-async highlight-regexp _local-map)
   (if parser
       (error "Compile now works very differently, see `compilation-error-regexp-alist'"))
   (let ((compilation-error-regexp-alist
@@ -2229,7 +2229,7 @@ This is the value of `next-error-function' in Compilation buffers."
   (when reset
     (setq compilation-current-error nil))
   (let* ((columns compilation-error-screen-columns) ; buffer's local value
-	 (last 1) timestamp
+	 (last 1)
 	 (msg (compilation-next-error (or n 1) nil
 				      (or compilation-current-error
 					  compilation-messages-start

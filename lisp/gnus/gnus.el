@@ -1875,7 +1875,10 @@ total number of articles in the group.")
  :function-document
  "Whether this group should be ignored by the registry."
  :variable gnus-registry-ignored-groups
- :variable-default nil
+ :variable-default (mapcar
+                    (lambda (g) (list g t))
+                    '("delayed$" "drafts$" "queue$" "INBOX$"
+                      "^nnmairix:" "archive"))
  :variable-document
  "*Groups in which the registry should be turned off."
  :variable-group gnus-registry

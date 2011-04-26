@@ -328,7 +328,7 @@ routine.")
          (after-change-functions nil)
          (modified (buffer-modified-p)))
      ;; Disable any queries about editing obsolete files.
-     (fset 'ask-user-about-supersession-threat (lambda (fn)))
+     (fset 'ask-user-about-supersession-threat (lambda (_fn)))
      (unwind-protect
          (progn ,@forms)
        (set-buffer-modified-p modified)
@@ -443,6 +443,12 @@ routine.")
     (setq next (min (1+ (point)) (point-max)))
     (goto-char curr-point)
     next))
+
+(defvar delphi-ignore-changes t
+  "Internal flag to control if the Delphi mode responds to buffer changes.
+Defaults to t in case the `delphi-after-change' function is called on a
+non-Delphi buffer.  Set to nil in a Delphi buffer.  To override, just do:
+ (let ((delphi-ignore-changes t)) ...)")
 
 (defun delphi-set-text-properties (from to properties)
   ;; Like `set-text-properties', except we do not consider this to be a buffer
@@ -590,7 +596,6 @@ routine.")
   ;; character set.
   (let ((currp (point))
         (end nil)
-        (start nil)
         (token nil))
     (goto-char p)
     (when (> (skip-chars-forward charset) 0)
@@ -720,13 +725,7 @@ routine.")
         (delphi-step-progress p "Fontifying" delphi-fontifying-progress-step))
       (delphi-progress-done)))))
 
-(defvar delphi-ignore-changes t
-  "Internal flag to control if the Delphi mode responds to buffer changes.
-Defaults to t in case the `delphi-after-change' function is called on a
-non-Delphi buffer.  Set to nil in a Delphi buffer.  To override, just do:
- (let ((delphi-ignore-changes t)) ...)")
-
-(defun delphi-after-change (change-start change-end old-length)
+(defun delphi-after-change (change-start change-end _old-length)
   ;; Called when the buffer has changed. Reparses the changed region.
   (unless delphi-ignore-changes
     (let ((delphi-ignore-changes t)) ; Prevent recursive calls.
@@ -922,8 +921,7 @@ non-Delphi buffer.  Set to nil in a Delphi buffer.  To override, just do:
   ;; Returns the token of the if or case statement.
   (let ((token (delphi-previous-token from-else))
         (token-kind nil)
-        (semicolon-count 0)
-        (if-count 0))
+        (semicolon-count 0))
     (catch 'done
       (while token
         (setq token-kind (delphi-token-kind token))
@@ -971,8 +969,7 @@ non-Delphi buffer.  Set to nil in a Delphi buffer.  To override, just do:
       comment
     ;; Scan until we run out of // comments.
     (let ((prev-comment comment)
-          (start-comment comment)
-          (kind nil))
+          (start-comment comment))
       (while (let ((kind (delphi-token-kind prev-comment)))
                (cond ((eq kind 'space))
                      ((eq kind 'comment-single-line)
@@ -989,8 +986,7 @@ non-Delphi buffer.  Set to nil in a Delphi buffer.  To override, just do:
       comment
     ;; Scan until we run out of // comments.
     (let ((next-comment comment)
-          (end-comment comment)
-          (kind nil))
+          (end-comment comment))
       (while (let ((kind (delphi-token-kind next-comment)))
                (cond ((eq kind 'space))
                      ((eq kind 'comment-single-line)
@@ -1527,7 +1523,6 @@ If before the indent, the point is moved to the indent."
   (interactive)
   (delphi-save-match-data
    (let ((marked-point (point-marker))  ; Maintain our position reliably.
-         (new-point nil)
          (line-start nil)
          (old-indent 0)
          (new-indent 0))

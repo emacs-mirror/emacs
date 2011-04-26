@@ -4,6 +4,7 @@
 
 ;; Maintainer: FSF
 ;; Keywords: unix, languages
+;; Obsolete-since: 22.1
 
 ;; This file is part of GNU Emacs.
 
@@ -21,8 +22,6 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-
-;; This file has been obsolete since Emacs 22.1.
 
 ;; Sets up C-mode with support for awk-style #-comments and a lightly
 ;; hacked syntax table.

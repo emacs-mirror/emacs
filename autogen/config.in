@@ -279,6 +279,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define if using GnuTLS. */
 #undef HAVE_GNUTLS
 
+/* Define if using GnuTLS certificate verification callbacks. */
+#undef HAVE_GNUTLS_CALLBACK_CERTIFICATE_VERIFY
+
+/* Define to 1 if you have the `gnutls_certificate_set_verify_function'
+   function. */
+#undef HAVE_GNUTLS_CERTIFICATE_SET_VERIFY_FUNCTION
+
 /* Define to 1 if you have the gpm library (-lgpm). */
 #undef HAVE_GPM
 

@@ -331,7 +331,7 @@ Lisp_Object Qexpanded;
 static Lisp_Object Qultra_expanded;
 static Lisp_Object Qreleased_button, Qpressed_button;
 static Lisp_Object QCstyle, QCcolor, QCline_width;
-static Lisp_Object Qunspecified;
+Lisp_Object Qunspecified;	/* used in dosfns.c */
 static Lisp_Object Qignore_defface;
 
 char unspecified_fg[] = "unspecified-fg", unspecified_bg[] = "unspecified-bg";

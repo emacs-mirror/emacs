@@ -943,11 +943,11 @@ mouse-1: get robot moving, mouse-2: play on this square")))
       (insert-char ?\n landmark-square-height))
     (or (eq (char-after 1) ?.)
 	(put-text-property 1 2 'point-entered
-			   (lambda (x y) (if (bobp) (forward-char)))))
+			   (lambda (_x _y) (if (bobp) (forward-char)))))
     (or intangible
 	(put-text-property point (point) 'intangible 2))
     (put-text-property point (point) 'point-entered
-		       (lambda (x y) (if (eobp) (backward-char))))
+		       (lambda (_x _y) (if (eobp) (backward-char))))
     (put-text-property (point-min) (point) 'category 'landmark-mode))
   (landmark-goto-xy (/ (1+ n) 2) (/ (1+ m) 2)) ; center of the board
   (sit-for 0))				; Display NOW
@@ -1377,11 +1377,11 @@ After this limit is reached, landmark-random-move is called to push him out of i
    (t x)))
 
 (defun landmark-y (direction)
-  (let ((noise (put direction 'noise (landmark-noise))))
-    (put direction 'y_t
-	 (if (> (get direction 's) 0.0)
-	     1.0
-	   0.0))))
+  (put direction 'noise (landmark-noise))
+  (put direction 'y_t
+       (if (> (get direction 's) 0.0)
+           1.0
+         0.0)))
 
 (defun landmark-update-normal-weights (direction)
   (mapc (lambda (target-direction)
@@ -1395,7 +1395,7 @@ After this limit is reached, landmark-random-move is called to push him out of i
 	  landmark-directions))
 
 (defun landmark-update-naught-weights (direction)
-  (mapc (lambda (target-direction)
+  (mapc (lambda (_target-direction)
 	     (put direction 'w0
 		  (landmark-f
 		   (+
@@ -1513,7 +1513,7 @@ If the game is finished, this command requests for another game."
    ((not landmark-game-in-progress)
     (landmark-prompt-for-other-game))
    (t
-    (let (square score)
+    (let (square)
       (setq square (landmark-point-square))
       (cond ((null square)
 	     (error "Your point is not on a square. Retry!"))

@@ -259,7 +259,7 @@ the buffer.  Minor modes are optional editing modes that provide
 additional features on top of the major mode.  @xref{Minor Modes}.
 
   Some features are listed together with the minor modes whenever they
-are turned on, even through they are not really minor modes.
+are turned on, even though they are not really minor modes.
 @samp{Narrow} means that the buffer being displayed has editing
 restricted to only a portion of its text (@pxref{Narrowing}).
 @samp{Def} means that a keyboard macro is currently being defined

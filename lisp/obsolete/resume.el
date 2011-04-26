@@ -5,6 +5,7 @@
 ;; Author: Joe Wells <jbw@bucsf.bu.edu>
 ;; Adapted-By: ESR
 ;; Keywords: processes
+;; Obsolete-since: 23.1
 
 ;; This file is part of GNU Emacs.
 
@@ -22,8 +23,6 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-
-;; This file has been obsolete since Emacs 23.1.
 
 ;; The purpose of this library is to handle command line arguments
 ;; when you resume an existing Emacs job.

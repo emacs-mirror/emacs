@@ -1,3 +1,68 @@
+2011-04-25  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-ignore-group-p): Don't call
+	`gnus-parameter-registry-ignore' if the *Group* buffer doesn't exist.
+
+2011-04-23  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-sum.el (gnus-extra-headers): Bump :version.
+
+2011-04-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-tag-sup): New function.
+	(shr-tag-sub): Ditto.
+
+2011-04-22  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-ignore-group-p): Test specifically
+	for the case where `gnus-registry-ignored-groups' is a list of lists,
+	and don't call `gnus-parameter-registry-ignore' otherwise.
+
+2011-04-21  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* nnimap.el (nnimap-user): New backend variable.
+	(nnimap-open-connection-1): Use it.
+	(nnimap-credentials): Accept user parameter so it's explicit what user
+	name is desired.
+
+	* gnus-sum.el (gnus-extra-headers): Add Keywords, Cc, and Gcc to
+	default.
+
+	* gnus.el (gnus-registry-ignored-groups): Provide default in gnus.el,
+	not gnus-registry.el.
+
+	* gnus-registry.el: Mention in comments how to modify
+	`gnus-extra-headers' for proper recipient tracking and that it may
+	already have To and Cc recently, which it does as of this commit.
+	(gnus-registry-ignored-groups): Remove defcustom.
+	Explain why in comments.
+	(gnus-registry-action): Fix data-header reference to use the extra
+	headers.  Explain in package commentary how to add To and Cc headers to
+	the gnus-extra-headers.
+	(gnus-registry-ignored-groups): Adjust defaults to match the parameter.
+	(gnus-registry-ignore-group-p): Adjust to take either a group/topic
+	parameter list or a string list in `gnus-registry-ignored-groups'.  Fix
+	logic error.
+
+2011-04-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-expand-url): Protect against null urls.
+
+2011-04-20  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-base): New binding.
+	(shr-tag-base): Keep track of <base>.
+	(shr-expand-url): New function used throughout.
+
+2011-04-20  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el
+	(gnus-registry--split-fancy-with-parent-internal): Fix loop bugs.
+	(gnus-registry-ignored-groups): New variable.
+	(gnus-registry-ignore-group-p): Use it.
+	(gnus-registry-handle-action): Use `gnus-registry-ignore-group-p' and
+	set the destination group to nil (same as delete) if it's ignored.
+
 2011-04-20  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-registry.el (gnus-registry-action)

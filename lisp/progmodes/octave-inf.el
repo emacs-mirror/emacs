@@ -73,10 +73,7 @@ mode, set this to (\"-q\" \"--traditional\")."
   "Keymap used in Inferior Octave mode.")
 
 (defvar inferior-octave-mode-syntax-table
-  (let ((table (make-syntax-table)))
-    (modify-syntax-entry ?\` "w" table)
-    (modify-syntax-entry ?\# "<" table)
-    (modify-syntax-entry ?\n ">" table)
+  (let ((table (make-syntax-table octave-mode-syntax-table)))
     table)
   "Syntax table in use in inferior-octave-mode buffers.")
 
@@ -115,10 +112,12 @@ the regular expression `comint-prompt-regexp', a buffer local variable."
   "Non-nil means that Octave has built-in variables.")
 
 (defvar inferior-octave-dynamic-complete-functions
-  '(inferior-octave-complete comint-dynamic-complete-filename)
+  '(inferior-octave-completion-at-point comint-filename-completion)
   "List of functions called to perform completion for inferior Octave.
 This variable is used to initialize `comint-dynamic-complete-functions'
 in the Inferior Octave buffer.")
+
+(defvar info-lookup-mode)
 
 (define-derived-mode inferior-octave-mode comint-mode "Inferior Octave"
   "Major mode for interacting with an inferior Octave process.
@@ -138,6 +137,8 @@ Entry to this mode successively runs the hooks `comint-mode-hook' and
 
   (set (make-local-variable 'font-lock-defaults)
        '(inferior-octave-font-lock-keywords nil nil))
+
+  (set (make-local-variable 'info-lookup-mode) 'octave-mode)
 
   (setq comint-input-ring-file-name
 	(or (getenv "OCTAVE_HISTFILE") "~/.octave_hist")
@@ -259,40 +260,38 @@ startup file, `~/.emacs-octave'."
     (inferior-octave-resync-dirs)))
 
 
+(defun inferior-octave-completion-at-point ()
+  "Return the data to complete the Octave symbol at point."
+  (let* ((end (point))
+	 (start
+	  (save-excursion
+	    (skip-syntax-backward "w_" (comint-line-beginning-position))
+            (point))))
+    (cond (inferior-octave-complete-impossible nil)
+	  ((eq start end) nil)
+	  (t
+           (list
+            start end
+            (completion-table-dynamic
+             (lambda (command)
+               (inferior-octave-send-list-and-digest
+                (list (concat "completion_matches (\"" command "\");\n")))
+               (sort (delete-dups inferior-octave-output-list)
+                     'string-lessp))))))))
+
 (defun inferior-octave-complete ()
   "Perform completion on the Octave symbol preceding point.
 This is implemented using the Octave command `completion_matches' which
 is NOT available with versions of Octave prior to 2.0."
   (interactive)
-  (let* ((end (point))
-	 (command
-	  (save-excursion
-	    (skip-syntax-backward "w_" (comint-line-beginning-position))
-	    (buffer-substring-no-properties (point) end)))
-	 (proc (get-buffer-process inferior-octave-buffer)))
-    (cond (inferior-octave-complete-impossible
-	   (error (concat
-		   "Your Octave does not have `completion_matches'.  "
-		   "Please upgrade to version 2.X.")))
-	  ((string-equal command "")
-	   (message "Cannot complete an empty string"))
-	  (t
-	   (inferior-octave-send-list-and-digest
-	    (list (concat "completion_matches (\"" command "\");\n")))
-	   ;; Sort the list
-	   (setq inferior-octave-output-list
-		 (sort inferior-octave-output-list 'string-lessp))
-	   ;; Remove duplicates
-	   (let* ((x inferior-octave-output-list)
-		  (y (cdr x)))
-	     (while y
-	       (if (string-equal (car x) (car y))
-		   (setcdr x (setq y (cdr y)))
-		 (setq x y
-		       y (cdr y)))))
-	   ;; And let comint handle the rest
-	   (comint-dynamic-simple-complete
-	    command inferior-octave-output-list)))))
+  (if inferior-octave-complete-impossible
+      (error (concat
+              "Your Octave does not have `completion_matches'.  "
+              "Please upgrade to version 2.X."))
+    (let ((data (inferior-octave-completion-at-point)))
+      (if (null data)
+          (message "Cannot complete an empty string")
+        (apply #'completion-in-region data)))))
 
 (defun inferior-octave-dynamic-list-input-ring ()
   "List the buffer's input history in a help buffer."
@@ -336,7 +335,7 @@ Ring Emacs bell if process output starts with an ASCII bell, and pass
 the rest to `comint-output-filter'."
   (comint-output-filter proc (inferior-octave-strip-ctrl-g string)))
 
-(defun inferior-octave-output-digest (proc string)
+(defun inferior-octave-output-digest (_proc string)
   "Special output filter for the inferior Octave process.
 Save all output between newlines into `inferior-octave-output-list', and
 the rest to `inferior-octave-output-string'."
