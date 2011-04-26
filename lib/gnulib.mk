@@ -174,7 +174,7 @@ EXTRA_DIST += intprops.h
 
 ## end   gnulib module intprops
 
-## begin gnulib module inttypes-h
+## begin gnulib module inttypes-incomplete
 
 BUILT_SOURCES += inttypes.h
 
@@ -214,7 +214,7 @@ MOSTLYCLEANFILES += inttypes.h inttypes.h-t
 
 EXTRA_DIST += inttypes.in.h
 
-## end   gnulib module inttypes-h
+## end   gnulib module inttypes-incomplete
 
 ## begin gnulib module lstat
 
@@ -574,12 +574,21 @@ EXTRA_libgnu_a_SOURCES += strftime.c
 
 ## end   gnulib module strftime
 
+## begin gnulib module strtoull
+
+
+EXTRA_DIST += strtol.c strtoul.c strtoull.c
+
+EXTRA_libgnu_a_SOURCES += strtol.c strtoul.c strtoull.c
+
+## end   gnulib module strtoull
+
 ## begin gnulib module strtoumax
 
 
-EXTRA_DIST += strtoimax.c strtol.c strtoul.c strtoull.c strtoumax.c
+EXTRA_DIST += strtoimax.c strtoumax.c
 
-EXTRA_libgnu_a_SOURCES += strtoimax.c strtol.c strtoul.c strtoull.c strtoumax.c
+EXTRA_libgnu_a_SOURCES += strtoimax.c strtoumax.c
 
 ## end   gnulib module strtoumax
 

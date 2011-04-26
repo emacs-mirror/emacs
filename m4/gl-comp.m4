@@ -43,7 +43,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module ignore-value:
   # Code from module include_next:
   # Code from module intprops:
-  # Code from module inttypes-h:
+  # Code from module inttypes-incomplete:
   # Code from module lstat:
   # Code from module mktime:
   # Code from module multiarch:
@@ -57,6 +57,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module stdio:
   # Code from module stdlib:
   # Code from module strftime:
+  # Code from module strtoull:
   # Code from module strtoumax:
   # Code from module symlink:
   # Code from module sys_stat:
@@ -111,8 +112,8 @@ AC_DEFUN([gl_INIT],
   AC_REQUIRE([AC_C_INLINE])
   # Code from module include_next:
   # Code from module intprops:
-  # Code from module inttypes-h:
-  gl_INTTYPES_H
+  # Code from module inttypes-incomplete:
+  gl_INTTYPES_INCOMPLETE
   # Code from module lstat:
   gl_FUNC_LSTAT
   gl_SYS_STAT_MODULE_INDICATOR([lstat])
@@ -143,6 +144,9 @@ AC_DEFUN([gl_INIT],
   gl_STDLIB_H
   # Code from module strftime:
   gl_FUNC_GNU_STRFTIME
+  # Code from module strtoull:
+  gl_FUNC_STRTOULL
+  gl_STDLIB_MODULE_INDICATOR([strtoull])
   # Code from module strtoumax:
   gl_FUNC_STRTOUMAX
   gl_INTTYPES_MODULE_INDICATOR([strtoumax])
