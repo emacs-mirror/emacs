@@ -73,9 +73,6 @@ emacs_gnutls_handshake (struct Lisp_Process *proc)
   gnutls_session_t state = proc->gnutls_state;
   int ret;
 
-  if (proc->gnutls_initstage < GNUTLS_STAGE_HANDSHAKE_CANDO)
-    return;
-
   if (proc->gnutls_initstage < GNUTLS_STAGE_TRANSPORT_POINTERS_SET)
     {
 #ifdef WINDOWSNT
@@ -179,7 +176,8 @@ emacs_gnutls_read (int fildes, struct Lisp_Process *proc, char *buf,
 
   if (proc->gnutls_initstage != GNUTLS_STAGE_READY)
     {
-      emacs_gnutls_handshake (proc);
+      if (GNUTLS_STAGE_HANDSHAKE_CANDO <= proc->gnutls_initstage)
+	emacs_gnutls_handshake (proc);
       return -1;
     }
   rtnval = gnutls_read (state, buf, nbyte);
