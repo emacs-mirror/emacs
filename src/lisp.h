@@ -606,6 +606,8 @@ extern Lisp_Object make_number (EMACS_INT);
   ((v)->size_member |= PSEUDOVECTOR_FLAG | (code))
 #define XSETPVECTYPESIZE(v, code, sizeval) \
   ((v)->header.size = PSEUDOVECTOR_FLAG | (code) | (sizeval))
+
+/* The cast to struct vectorlike_header * avoids aliasing issues.  */
 #define XSETPSEUDOVECTOR(a, b, code) \
   XSETTYPED_PSEUDOVECTOR(a, b,       \
 			 ((struct vectorlike_header *) XPNTR (a))->size, \
@@ -614,11 +616,13 @@ extern Lisp_Object make_number (EMACS_INT);
   (XSETVECTOR (a, b),							\
    eassert ((size & (PSEUDOVECTOR_FLAG | PVEC_TYPE_MASK))		\
 	    == (PSEUDOVECTOR_FLAG | (code))))
+
 #define XSETWINDOW_CONFIGURATION(a, b) \
   (XSETPSEUDOVECTOR (a, b, PVEC_WINDOW_CONFIGURATION))
 #define XSETPROCESS(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_PROCESS))
 #define XSETWINDOW(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_WINDOW))
 #define XSETTERMINAL(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_TERMINAL))
+/* XSETSUBR is special since Lisp_Subr lacks struct vectorlike_header.  */
 #define XSETSUBR(a, b) \
   XSETTYPED_PSEUDOVECTOR (a, b, XSUBR (a)->size, PVEC_SUBR)
 #define XSETCOMPILED(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_COMPILED))
@@ -787,12 +791,21 @@ struct Lisp_String
     unsigned char *data;
   };
 
-/* Header of vector-like objects.  This type documents the constraints on
-   layout of vectors and pseudovectors, and helps optimizing compilers not get
-   fooled by Emacs's type punning.  */
+/* Header of vector-like objects.  This documents the layout constraints on
+   vectors and pseudovectors other than struct Lisp_Subr.  It also prevents
+   compilers from being fooled by Emacs's type punning: the XSETPSEUDOVECTOR
+   and PSEUDOVECTORP macros cast their pointers to struct vectorlike_header *,
+   because when two such pointers potentially alias, a compiler won't
+   incorrectly reorder loads and stores to their size fields.  See
+   <http://debbugs.gnu.org/cgi/bugreport.cgi?bug=8546>.  */
 struct vectorlike_header
   {
     EMACS_UINT size;
+
+    /* Pointer to the next vector-like object.  It is generally a buffer or a
+       Lisp_Vector alias, so for convenience it is a union instead of a
+       pointer: this way, one can write P->next.vector instead of ((struct
+       Lisp_Vector *) P->next).  */
     union {
       struct buffer *buffer;
       struct Lisp_Vector *vector;
@@ -1647,7 +1660,8 @@ typedef struct {
 #define BUFFER_OBJFWDP(x) (XFWDTYPE (x) == Lisp_Fwd_Buffer_Obj)
 #define KBOARD_OBJFWDP(x) (XFWDTYPE (x) == Lisp_Fwd_Kboard_Obj)
 
-/* True if object X is a pseudovector whose code is CODE.  */
+/* True if object X is a pseudovector whose code is CODE.  The cast to struct
+   vectorlike_header * avoids aliasing issues.  */
 #define PSEUDOVECTORP(x, code)					\
   TYPED_PSEUDOVECTORP(x, vectorlike_header, code)
 
@@ -1664,6 +1678,7 @@ typedef struct {
 #define PROCESSP(x) PSEUDOVECTORP (x, PVEC_PROCESS)
 #define WINDOWP(x) PSEUDOVECTORP (x, PVEC_WINDOW)
 #define TERMINALP(x) PSEUDOVECTORP (x, PVEC_TERMINAL)
+/* SUBRP is special since Lisp_Subr lacks struct vectorlike_header.  */
 #define SUBRP(x) TYPED_PSEUDOVECTORP (x, Lisp_Subr, PVEC_SUBR)
 #define COMPILEDP(x) PSEUDOVECTORP (x, PVEC_COMPILED)
 #define BUFFERP(x) PSEUDOVECTORP (x, PVEC_BUFFER)
