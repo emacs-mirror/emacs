@@ -7228,13 +7228,13 @@ handle_user_signal (int sig)
 {
   int old_errno = errno;
   struct user_signal_info *p;
-  const char* special_event_name = NULL;
+  const char *special_event_name = NULL;
 
   SIGNAL_THREAD_CHECK (sig);
-  
+
   if (SYMBOLP (Vdebug_on_event))
-    special_event_name = SDATA (SYMBOL_NAME (Vdebug_on_event));
-  
+    special_event_name = SSDATA (SYMBOL_NAME (Vdebug_on_event));
+
   for (p = user_signals; p; p = p->next)
     if (p->sig == sig)
       {
@@ -7250,7 +7250,7 @@ handle_user_signal (int sig)
             /* Eat the event.  */
             break;
           }
-        
+
 	p->npending++;
 #ifdef SIGIO
 	if (interrupt_input)

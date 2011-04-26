@@ -1,5 +1,7 @@
 2011-04-26  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* keyboard.c (handle_user_signal): Fix pointer signedness problem.
+
 	* gnutls.c (emacs_gnutls_handle_error): Remove unused local.
 	(Fgnutls_boot): gnutls_certificate_verify_peers2 wants unsigned *.
 	Remove unused local.
