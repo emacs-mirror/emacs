@@ -7923,7 +7923,7 @@ static int ntool_bar_items;
 /* The symbols `:image' and `:rtl'.  */
 
 static Lisp_Object QCimage;
-static Lisp_Object Qrtl;
+static Lisp_Object QCrtl;
 
 /* Function prototypes.  */
 
@@ -8240,7 +8240,7 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
 	/* Value is either a single image specification or a vector
 	   of 4 such specifications for the different button states.  */
 	PROP (TOOL_BAR_ITEM_IMAGES) = value;
-      else if (EQ (ikey, Qrtl))
+      else if (EQ (ikey, QCrtl))
         /* ':rtl STRING' */
 	PROP (TOOL_BAR_ITEM_RTL_IMAGE) = value;
     }
@@ -11475,7 +11475,7 @@ syms_of_keyboard (void)
   /* Tool-bars.  */
   DEFSYM (QCimage, ":image");
   DEFSYM (Qhelp_echo, "help-echo");
-  DEFSYM (Qrtl, ":rtl");
+  DEFSYM (QCrtl, ":rtl");
 
   staticpro (&item_properties);
   item_properties = Qnil;

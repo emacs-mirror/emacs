@@ -1,3 +1,7 @@
+2011-04-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* keyboard.c (QCrtl): Rename from Qrtl.  All uses changed.
+
 2011-04-26  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnutls.c (emacs_gnutls_handshake): Return an error if we're not
@@ -7,7 +11,7 @@
 2011-04-26  Daniel Colascione <dan.colascione@gmail.com>
 
 	* lisp.h (Qdebug): List symbol.
-	* eval.c (Qdebug): restore global linkage.
+	* eval.c (Qdebug): Restore global linkage.
 	* keyboard.c (debug-on-event): New variable.
 	(handle_user_signal): Break into debugger when debug-on-event
 	matches the current signal symbol.
@@ -2530,7 +2534,7 @@
 	Call gdk_x11_window_lookup_for_display.
 	(xg_set_widget_bg): New function.
 	(delete_cb): New function.
-	(xg_create_frame_widgets): connect delete-event to delete_cb.
+	(xg_create_frame_widgets): Connect delete-event to delete_cb.
 	Call xg_set_widget_bg.  Only set backgrund pixmap for ! HAVE_GTK3
 	(xg_set_background_color): Call xg_set_widget_bg.
 	(xg_set_frame_icon): Call xg_get_pixbuf_from_pix_and_mask.
