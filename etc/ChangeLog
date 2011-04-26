@@ -1,6 +1,6 @@
 2011-04-26  Daniel Colascione  <dan.colascione@gmail.com>
 
-	* Document debug-on-event default behavior and utility for
+	* DEBUG: Document debug-on-event default behavior and utility for
 	debugging.
 
 2011-04-22  Noah Friedman  <friedman@splode.com>

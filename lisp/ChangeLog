@@ -549,7 +549,7 @@
 	* delim-col.el (delimit-columns-max): Move defvar before first use.
 
 	* descr-text.el (describe-char-categories): Don't quote `lambda'.
-	(describe-char): Don't quote `lambda'.	Mark unused parameter.
+	(describe-char): Don't quote `lambda'.  Mark unused parameter.
 
 	* desktop.el (desktop-save-buffer-p): Mark unused parameter.
 	(auto-insert): Declare.
@@ -617,7 +617,7 @@
 	(modify-file-local-variable-prop-line): Remove unused variable `val'.
 
 	* find-lisp.el (find-lisp-find-dired-internal): Remove unused
-	variable `buf'.	 Mark unused parameter.
+	variable `buf'.  Mark unused parameter.
 	(find-lisp-insert-directory): Mark unused parameter.
 
 	* format.el (format-decode-run-method): Mark unused parameter; doc fix.
@@ -819,7 +819,7 @@
 	(widget-color-action): Remove unused variables `value' and `start'.
 
 	* windmove.el (windmove-wrap-loc-for-movement): Remove unused
-	variable `dir'.	 Doc fix.
+	variable `dir'.  Doc fix.
 	(windmove-find-other-window): Don't pass it.
 
 	* window.el (count-windows): Mark unused parameter.
