@@ -259,6 +259,11 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (suggest-key-bindings keyboard (choice (const :tag "off" nil)
 						    (integer :tag "time" 2)
 						    (other :tag "on")))
+             (debug-on-event debug
+                             (choice (const :tag "None" nil)
+                                     (const :tag "When sent SIGUSR1" sigusr1)
+                                     (const :tag "When sent SIGUSR2" sigusr2))
+                             "24.1")
 
 ;; This is not good news because it will use the wrong
 ;; version-specific directories when you upgrade.  We need

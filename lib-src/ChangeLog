@@ -1,6 +1,6 @@
 2011-04-24  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* makefile.w32-in (obj): Added gnutls.o.
+	* makefile.w32-in (obj): Add gnutls.o.
 
 2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 

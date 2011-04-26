@@ -1110,7 +1110,7 @@ which the local user typed."
     (define-key map "\C-c\C-u" 'erc-kill-input)
     (define-key map "\C-c\C-x" 'erc-quit-server)
     (define-key map "\M-\t" 'ispell-complete-word)
-    (define-key map "\t" 'erc-complete-word)
+    (define-key map "\t" 'completion-at-point)
 
     ;; Suppress `font-lock-fontify-block' key binding since it
     ;; destroys face properties.
@@ -1447,7 +1447,8 @@ Defaults to the server buffer."
   (set (make-local-variable 'paragraph-separate)
        (concat "\C-l\\|\\(^" (regexp-quote (erc-prompt)) "\\)"))
   (set (make-local-variable 'paragraph-start)
-       (concat "\\(" (regexp-quote (erc-prompt)) "\\)")))
+       (concat "\\(" (regexp-quote (erc-prompt)) "\\)"))
+  (add-hook 'completion-at-point-functions 'erc-complete-word-at-point nil t))
 
 ;; activation
 
@@ -3803,13 +3804,10 @@ This places `point' just after the prompt, or at the beginning of the line."
 	(setq erc-input-ring-index nil))
     (kill-line)))
 
-(defun erc-complete-word ()
-  "Complete the word before point.
+(defun erc-complete-word-at-point ()
+  (run-hook-with-args-until-success 'erc-complete-functions))
 
-This function uses `erc-complete-functions'."
-  (interactive)
-  (unless (run-hook-with-args-until-success 'erc-complete-functions)
-    (beep)))
+(define-obsolete-function-alias 'erc-complete-word 'completion-at-point "24.1")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;

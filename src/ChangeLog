@@ -1,11 +1,6 @@
 2011-04-26  Paul Eggert  <eggert@cs.ucla.edu>
 
-	* gnutls.c (emacs_gnutls_handshake): Don't return a garbage value.
-	Expect the caller to check whether GNUTLS_STAGE_HANDSHAKE_CANDO <=
-	proc->gnutls_initstage, if the check is needed.  The check isn't
-	needed for one caller, Fgnutls_boot.  (Bug#8556)
-	(emacs_gnutls_read): Do that check.  This is the other caller.
-	(emacs_gnutls_handle_error): Remove unused local.
+	* gnutls.c (emacs_gnutls_handle_error): Remove unused local.
 	(Fgnutls_boot): gnutls_certificate_verify_peers2 wants unsigned *.
 	Remove unused local.
 	(emacs_gnutls_write): Don't use uninitialized rtnval if nbyte <= 0.
@@ -191,6 +186,24 @@
 	multiple of sizeof (EMACS_INT); it need not be, if
 	alignof(EMACS_INT) < sizeof (EMACS_INT).
 	(check_sblock, check_string_bytes, check_string_free_list): Protoize.
+
+2011-04-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* keyboard.c (QCrtl): Rename from Qrtl.  All uses changed.
+
+2011-04-26  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnutls.c (emacs_gnutls_handshake): Return an error if we're not
+	supposed to be handshaking.  (Bug#8556)
+	Reported by Paul Eggert <eggert@cs.ucla.edu>.
+
+2011-04-26  Daniel Colascione <dan.colascione@gmail.com>
+
+	* lisp.h (Qdebug): List symbol.
+	* eval.c (Qdebug): Restore global linkage.
+	* keyboard.c (debug-on-event): New variable.
+	(handle_user_signal): Break into debugger when debug-on-event
+	matches the current signal symbol.
 
 2011-04-25  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -2710,7 +2723,7 @@
 	Call gdk_x11_window_lookup_for_display.
 	(xg_set_widget_bg): New function.
 	(delete_cb): New function.
-	(xg_create_frame_widgets): connect delete-event to delete_cb.
+	(xg_create_frame_widgets): Connect delete-event to delete_cb.
 	Call xg_set_widget_bg.  Only set backgrund pixmap for ! HAVE_GTK3
 	(xg_set_background_color): Call xg_set_widget_bg.
 	(xg_set_frame_icon): Call xg_get_pixbuf_from_pix_and_mask.

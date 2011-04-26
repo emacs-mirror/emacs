@@ -1094,7 +1094,7 @@ Possible values are: ask, auto, ignore."
 (defvar erc-dcc-chat-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "RET") 'erc-send-current-line)
-    (define-key map "\t" 'erc-complete-word)
+    (define-key map "\t" 'completion-at-point)
     map)
   "Keymap for `erc-dcc-mode'.")
 
@@ -1102,7 +1102,8 @@ Possible values are: ask, auto, ignore."
   "Major mode for wasting time via DCC chat."
   (setq mode-line-process '(":%s")
         erc-send-input-line-function 'erc-dcc-chat-send-input-line
-        erc-default-recipients '(dcc)))
+        erc-default-recipients '(dcc))
+  (add-hook 'completion-at-point-functions 'erc-complete-word-at-point nil t))
 
 (defun erc-dcc-chat-send-input-line (recipient line &optional force)
   "Send LINE to the remote end.
