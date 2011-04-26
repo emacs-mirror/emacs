@@ -130,7 +130,7 @@ EMACS_INT
 emacs_gnutls_write (int fildes, struct Lisp_Process *proc, const char *buf,
                     EMACS_INT nbyte)
 {
-  ssize_t rtnval;
+  ssize_t rtnval = 0;
   EMACS_INT bytes_written;
   gnutls_session_t state = proc->gnutls_state;
 

@@ -8,6 +8,7 @@
 	(emacs_gnutls_handle_error): Remove unused local.
 	(Fgnutls_boot): gnutls_certificate_verify_peers2 wants unsigned *.
 	Remove unused local.
+	(emacs_gnutls_write): Don't use uninitialized rtnval if nbyte <= 0.
 
 	lisp.h: Fix a problem with aliasing and vector headers.
 	GCC 4.6.0 optimizes based on type-based alias analysis.  For
