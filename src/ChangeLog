@@ -3,14 +3,14 @@
 	* gnutls.c (emacs_gnutls_handshake): Don't return a garbage value.
 	Expect the caller to check whether GNUTLS_STAGE_HANDSHAKE_CANDO <=
 	proc->gnutls_initstage, if the check is needed.  The check isn't
-	needed for one caller, Fgnutls_boot.
+	needed for one caller, Fgnutls_boot.  (Bug#8556)
 	(emacs_gnutls_read): Do that check.  This is the other caller.
 	(emacs_gnutls_handle_error): Remove unused local.
 	(Fgnutls_boot): gnutls_certificate_verify_peers2 wants unsigned *.
 	Remove unused local.
 	(emacs_gnutls_write): Don't use uninitialized rtnval if nbyte <= 0.
 
-	lisp.h: Fix a problem with aliasing and vector headers.
+	lisp.h: Fix a problem with aliasing and vector headers.  (Bug#8546)
 	GCC 4.6.0 optimizes based on type-based alias analysis.  For
 	example, if b is of type struct buffer * and v of type struct
 	Lisp_Vector *, then gcc -O2 was incorrectly assuming that &b->size
@@ -62,7 +62,7 @@
 
 	* bytecode.c (exec_byte_code): Don't use XVECTOR before CHECK_VECTOR.
 
-	Make the Lisp reader and string-to-float more consistent.
+	Make the Lisp reader and string-to-float more consistent (Bug#8525)
 	* data.c (atof): Remove decl; no longer used or needed.
 	(digit_to_number): Move to lread.c.
 	(Fstring_to_number): Use new string_to_number function, to be
