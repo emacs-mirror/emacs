@@ -463,7 +463,7 @@ one trustfile (usually a CA bundle).  */)
   Lisp_Object global_init;
   char const *priority_string_ptr = "NORMAL"; /* default priority string.  */
   Lisp_Object tail;
-  int peer_verification;
+  unsigned int peer_verification;
   char* c_hostname;
 
   /* Placeholders for the property list elements.  */
