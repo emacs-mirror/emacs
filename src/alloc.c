@@ -146,9 +146,9 @@ static pthread_mutex_t alloc_mutex;
 #define UNMARK_STRING(S)	((S)->size &= ~ARRAY_MARK_FLAG)
 #define STRING_MARKED_P(S)	(((S)->size & ARRAY_MARK_FLAG) != 0)
 
-#define VECTOR_MARK(V)		((V)->size |= ARRAY_MARK_FLAG)
-#define VECTOR_UNMARK(V)	((V)->size &= ~ARRAY_MARK_FLAG)
-#define VECTOR_MARKED_P(V)	(((V)->size & ARRAY_MARK_FLAG) != 0)
+#define VECTOR_MARK(V)		((V)->header.size |= ARRAY_MARK_FLAG)
+#define VECTOR_UNMARK(V)	((V)->header.size &= ~ARRAY_MARK_FLAG)
+#define VECTOR_MARKED_P(V)	(((V)->header.size & ARRAY_MARK_FLAG) != 0)
 
 /* Value is the number of bytes of S, a pointer to a struct Lisp_String.
    Be careful during GC, because S->size contains the mark bit for
@@ -555,7 +555,7 @@ static int check_depth;
 
 /* Like malloc, but wraps allocated block with header and trailer.  */
 
-POINTER_TYPE *
+static POINTER_TYPE *
 overrun_check_malloc (size_t size)
 {
   register unsigned char *val;
@@ -579,7 +579,7 @@ overrun_check_malloc (size_t size)
 /* Like realloc, but checks old block for overrun, and wraps new block
    with header and trailer.  */
 
-POINTER_TYPE *
+static POINTER_TYPE *
 overrun_check_realloc (POINTER_TYPE *block, size_t size)
 {
   register unsigned char *val = (unsigned char *) block;
@@ -617,7 +617,7 @@ overrun_check_realloc (POINTER_TYPE *block, size_t size)
 
 /* Like free, but checks block for overrun.  */
 
-void
+static void
 overrun_check_free (POINTER_TYPE *block)
 {
   unsigned char *val = (unsigned char *) block;
@@ -835,7 +835,7 @@ lisp_free (POINTER_TYPE *block)
    nothing else.  */
 #define BLOCK_PADDING 0
 #define BLOCK_BYTES \
-  (BLOCK_ALIGN - sizeof (struct ablock *) - BLOCK_PADDING)
+  (BLOCK_ALIGN - sizeof (struct ablocks *) - BLOCK_PADDING)
 
 /* Internal data structures and constants.  */
 
@@ -1055,8 +1055,9 @@ allocate_buffer (void)
   struct buffer *b
     = (struct buffer *) lisp_malloc (sizeof (struct buffer),
 				     MEM_TYPE_BUFFER);
-  b->size = sizeof (struct buffer) / sizeof (EMACS_INT);
-  XSETPVECTYPE (b, PVEC_BUFFER);
+  XSETPVECTYPESIZE (b, PVEC_BUFFER,
+		    ((sizeof (struct buffer) + sizeof (EMACS_INT) - 1)
+		     / sizeof (EMACS_INT)));
   return b;
 }
 
@@ -1516,23 +1517,26 @@ struct sdata
 
 #define SDATA_NBYTES(S)	(S)->nbytes
 #define SDATA_DATA(S)	(S)->data
+#define SDATA_SELECTOR(member) member
 
 #else /* not GC_CHECK_STRING_BYTES */
 
   union
   {
-    /* When STRING in non-null.  */
+    /* When STRING is non-null.  */
     unsigned char data[1];
 
     /* When STRING is null.  */
     EMACS_INT nbytes;
   } u;
 
-
 #define SDATA_NBYTES(S)	(S)->u.nbytes
 #define SDATA_DATA(S)	(S)->u.data
+#define SDATA_SELECTOR(member) u.member
 
 #endif /* not GC_CHECK_STRING_BYTES */
+
+#define SDATA_DATA_OFFSET offsetof (struct sdata, SDATA_SELECTOR (data))
 };
 
 
@@ -1608,18 +1612,7 @@ static EMACS_INT total_string_size;
    a pointer to the `u.data' member of its sdata structure; the
    structure starts at a constant offset in front of that.  */
 
-#ifdef GC_CHECK_STRING_BYTES
-
-#define SDATA_OF_STRING(S) \
-     ((struct sdata *) ((S)->data - sizeof (struct Lisp_String *) \
-			- sizeof (EMACS_INT)))
-
-#else /* not GC_CHECK_STRING_BYTES */
-
-#define SDATA_OF_STRING(S) \
-     ((struct sdata *) ((S)->data - sizeof (struct Lisp_String *)))
-
-#endif /* not GC_CHECK_STRING_BYTES */
+#define SDATA_OF_STRING(S) ((struct sdata *) ((S)->data - SDATA_DATA_OFFSET))
 
 
 #ifdef GC_CHECK_STRING_OVERRUN
@@ -1629,8 +1622,8 @@ static EMACS_INT total_string_size;
    presence of this cookie during GC.  */
 
 #define GC_STRING_OVERRUN_COOKIE_SIZE	4
-static char string_overrun_cookie[GC_STRING_OVERRUN_COOKIE_SIZE] =
-  { 0xde, 0xad, 0xbe, 0xef };
+static char const string_overrun_cookie[GC_STRING_OVERRUN_COOKIE_SIZE] =
+  { '\xde', '\xad', '\xbe', '\xef' };
 
 #else
 #define GC_STRING_OVERRUN_COOKIE_SIZE 0
@@ -1643,18 +1636,25 @@ static char string_overrun_cookie[GC_STRING_OVERRUN_COOKIE_SIZE] =
 #ifdef GC_CHECK_STRING_BYTES
 
 #define SDATA_SIZE(NBYTES)			\
-     ((sizeof (struct Lisp_String *)		\
+     ((SDATA_DATA_OFFSET			\
        + (NBYTES) + 1				\
-       + sizeof (EMACS_INT)			\
        + sizeof (EMACS_INT) - 1)		\
       & ~(sizeof (EMACS_INT) - 1))
 
 #else /* not GC_CHECK_STRING_BYTES */
 
-#define SDATA_SIZE(NBYTES)			\
-     ((sizeof (struct Lisp_String *)		\
-       + (NBYTES) + 1				\
-       + sizeof (EMACS_INT) - 1)		\
+/* The 'max' reserves space for the nbytes union member even when NBYTES + 1 is
+   less than the size of that member.  The 'max' is not needed when
+   SDATA_DATA_OFFSET is a multiple of sizeof (EMACS_INT), because then the
+   alignment code reserves enough space.  */
+
+#define SDATA_SIZE(NBYTES)				      \
+     ((SDATA_DATA_OFFSET				      \
+       + (SDATA_DATA_OFFSET % sizeof (EMACS_INT) == 0	      \
+	  ? NBYTES					      \
+	  : max (NBYTES, sizeof (EMACS_INT) - 1))	      \
+       + 1						      \
+       + sizeof (EMACS_INT) - 1)			      \
       & ~(sizeof (EMACS_INT) - 1))
 
 #endif /* not GC_CHECK_STRING_BYTES */
@@ -1681,9 +1681,6 @@ init_strings (void)
 #ifdef GC_CHECK_STRING_BYTES
 
 static int check_string_bytes_count;
-
-static void check_string_bytes (int);
-static void check_sblock (struct sblock *);
 
 #define CHECK_STRING_BYTES(S)	STRING_BYTES (S)
 
@@ -1875,7 +1872,7 @@ allocate_string_data (struct Lisp_String *s,
 
   if (nbytes > LARGE_STRING_BYTES)
     {
-      size_t size = sizeof *b - sizeof (struct sdata) + needed;
+      size_t size = offsetof (struct sblock, first_data) + needed;
 
 #ifdef DOUG_LEA_MALLOC
       /* Prevent mmap'ing the chunk.  Lisp data may not be mmap'ed
@@ -1936,7 +1933,8 @@ allocate_string_data (struct Lisp_String *s,
   s->size_byte = nbytes;
   s->data[nbytes] = '\0';
 #ifdef GC_CHECK_STRING_OVERRUN
-  memcpy (data + needed, string_overrun_cookie, GC_STRING_OVERRUN_COOKIE_SIZE);
+  memcpy ((char *) data + needed, string_overrun_cookie,
+	  GC_STRING_OVERRUN_COOKIE_SIZE);
 #endif
 
   /* If S had already data assigned, mark that as free by setting its
@@ -2150,7 +2148,7 @@ compact_small_strings (void)
 	      /* Copy, and update the string's `data' pointer.  */
 	      if (from != to)
 		{
-		  xassert (tb != b || to <= from);
+		  xassert (tb != b || to < from);
 		  memmove (to, from, nbytes + GC_STRING_EXTRA);
 		  to->string->data = SDATA_DATA (to);
 		}
@@ -2246,10 +2244,8 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
      slot `size' of the struct Lisp_Bool_Vector.  */
   val = Fmake_vector (make_number (length_in_elts + 1), Qnil);
 
-  /* Get rid of any bits that would cause confusion.  */
-  XVECTOR (val)->size = 0;	/* No Lisp_Object to trace in there.  */
-  /* Use  XVECTOR (val) rather than `p' because p->size is not TRT. */
-  XSETPVECTYPE (XVECTOR (val), PVEC_BOOL_VECTOR);
+  /* No Lisp_Object to trace in there.  */
+  XSETPVECTYPESIZE (XVECTOR (val), PVEC_BOOL_VECTOR, 0);
 
   p = XBOOL_VECTOR (val);
   p->size = XFASTINT (length);
@@ -2804,7 +2800,8 @@ allocate_vectorlike (EMACS_INT len)
   /* This gets triggered by code which I haven't bothered to fix.  --Stef  */
   /* eassert (!handling_signal); */
 
-  nbytes = sizeof *p + (len - 1) * sizeof p->contents[0];
+  nbytes = (offsetof (struct Lisp_Vector, contents)
+	    + len * sizeof p->contents[0]);
   p = (struct Lisp_Vector *) lisp_malloc (nbytes, MEM_TYPE_VECTORLIKE);
 
 #ifdef DOUG_LEA_MALLOC
@@ -2815,7 +2812,7 @@ allocate_vectorlike (EMACS_INT len)
   consing_since_gc += nbytes;
   vector_cells_consed += len;
 
-  p->next = all_vectors;
+  p->header.next.vector = all_vectors;
   all_vectors = p;
 
   MALLOC_UNBLOCK_INPUT;
@@ -2831,7 +2828,7 @@ struct Lisp_Vector *
 allocate_vector (EMACS_INT nslots)
 {
   struct Lisp_Vector *v = allocate_vectorlike (nslots);
-  v->size = nslots;
+  v->header.size = nslots;
   return v;
 }
 
@@ -2845,11 +2842,10 @@ allocate_pseudovector (int memlen, int lisplen, EMACS_INT tag)
   EMACS_INT i;
 
   /* Only the first lisplen slots will be traced normally by the GC.  */
-  v->size = lisplen;
   for (i = 0; i < lisplen; ++i)
     v->contents[i] = Qnil;
 
-  XSETPVECTYPE (v, tag);	/* Add the appropriate tag.  */
+  XSETPVECTYPESIZE (v, tag, lisplen);
   return v;
 }
 
@@ -4572,8 +4568,9 @@ void
 check_pure_size (void)
 {
   if (pure_bytes_used_before_overflow)
-    message ("emacs:0:Pure Lisp storage overflow (approx. %d bytes needed)",
-	     (int) (pure_bytes_used + pure_bytes_used_before_overflow));
+    message (("emacs:0:Pure Lisp storage overflow (approx. %"pI"d"
+	      " bytes needed)"),
+	     pure_bytes_used + pure_bytes_used_before_overflow);
 }
 
 
@@ -4732,11 +4729,12 @@ make_pure_vector (EMACS_INT len)
 {
   Lisp_Object new;
   struct Lisp_Vector *p;
-  size_t size = sizeof *p + (len - 1) * sizeof (Lisp_Object);
+  size_t size = (offsetof (struct Lisp_Vector, contents)
+		 + len * sizeof (Lisp_Object));
 
   p = (struct Lisp_Vector *) pure_alloc (size, Lisp_Vectorlike);
   XSETVECTOR (new, p);
-  XVECTOR (new)->size = len;
+  XVECTOR (new)->header.size = len;
   return new;
 }
 
@@ -4774,7 +4772,7 @@ Does not copy symbols.  Copies strings without text properties.  */)
       register EMACS_INT i;
       EMACS_INT size;
 
-      size = XVECTOR (obj)->size;
+      size = ASIZE (obj);
       if (size & PSEUDOVECTOR_FLAG)
 	size &= PSEUDOVECTOR_SIZE_MASK;
       vec = XVECTOR (make_pure_vector (size));
@@ -4898,7 +4896,7 @@ returns nil, because real GC can't be done.  */)
 	      }
 	  }
 
-	nextb = nextb->next;
+	nextb = nextb->header.next.buffer;
       }
   }
 
@@ -5053,7 +5051,7 @@ returns nil, because real GC can't be done.  */)
 	   undo_list any more, we can finally mark the list.  */
 	mark_object (nextb->BUFFER_INTERNAL_FIELD (undo_list));
 
-	nextb = nextb->next;
+	nextb = nextb->header.next.buffer;
       }
   }
 
@@ -5227,7 +5225,7 @@ static size_t mark_object_loop_halt;
 static void
 mark_vectorlike (struct Lisp_Vector *ptr)
 {
-  register EMACS_UINT size = ptr->size;
+  register EMACS_UINT size = ptr->header.size;
   register EMACS_UINT i;
 
   eassert (!VECTOR_MARKED_P (ptr));
@@ -5250,7 +5248,7 @@ mark_vectorlike (struct Lisp_Vector *ptr)
 static void
 mark_char_table (struct Lisp_Vector *ptr)
 {
-  register EMACS_UINT size = ptr->size & PSEUDOVECTOR_SIZE_MASK;
+  register EMACS_UINT size = ptr->header.size & PSEUDOVECTOR_SIZE_MASK;
   register EMACS_UINT i;
 
   eassert (!VECTOR_MARKED_P (ptr));
@@ -5363,7 +5361,7 @@ mark_object (Lisp_Object arg)
 	  if (po != &buffer_defaults && po != &buffer_local_symbols)
 	    {
 	      struct buffer *b;
-	      for (b = all_buffers; b && b != po; b = b->next)
+	      for (b = all_buffers; b && b != po; b = b->header.next.buffer)
 		;
 	      if (b == NULL)
 		abort ();
@@ -5379,7 +5377,7 @@ mark_object (Lisp_Object arg)
 	   recursion there.  */
 	{
 	  register struct Lisp_Vector *ptr = XVECTOR (obj);
-	  register EMACS_UINT size = ptr->size;
+	  register EMACS_UINT size = ptr->header.size;
 	  register EMACS_UINT i;
 
 	  CHECK_LIVE (live_vector_p);
@@ -6011,10 +6009,10 @@ gc_sweep (void)
       if (!VECTOR_MARKED_P (buffer))
 	{
 	  if (prev)
-	    prev->next = buffer->next;
+	    prev->header.next = buffer->header.next;
 	  else
-	    all_buffers = buffer->next;
-	  next = buffer->next;
+	    all_buffers = buffer->header.next.buffer;
+	  next = buffer->header.next.buffer;
 	  lisp_free (buffer);
 	  buffer = next;
 	}
@@ -6022,7 +6020,7 @@ gc_sweep (void)
 	{
 	  VECTOR_UNMARK (buffer);
 	  UNMARK_BALANCE_INTERVALS (BUF_INTERVALS (buffer));
-	  prev = buffer, buffer = buffer->next;
+	  prev = buffer, buffer = buffer->header.next.buffer;
 	}
   }
 
@@ -6035,10 +6033,10 @@ gc_sweep (void)
       if (!VECTOR_MARKED_P (vector))
 	{
 	  if (prev)
-	    prev->next = vector->next;
+	    prev->header.next = vector->header.next;
 	  else
-	    all_vectors = vector->next;
-	  next = vector->next;
+	    all_vectors = vector->header.next.vector;
+	  next = vector->header.next.vector;
 	  lisp_free (vector);
 	  n_vectors--;
 	  vector = next;
@@ -6047,11 +6045,11 @@ gc_sweep (void)
       else
 	{
 	  VECTOR_UNMARK (vector);
-	  if (vector->size & PSEUDOVECTOR_FLAG)
-	    total_vector_size += (PSEUDOVECTOR_SIZE_MASK & vector->size);
+	  if (vector->header.size & PSEUDOVECTOR_FLAG)
+	    total_vector_size += PSEUDOVECTOR_SIZE_MASK & vector->header.size;
 	  else
-	    total_vector_size += vector->size;
-	  prev = vector, vector = vector->next;
+	    total_vector_size += vector->header.size;
+	  prev = vector, vector = vector->header.next.vector;
 	}
   }
 

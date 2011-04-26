@@ -39,6 +39,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <setjmp.h>
+#include <intprops.h>
 #include "lisp.h"
 #include "intervals.h"
 #include "buffer.h"
@@ -778,7 +779,7 @@ update_interval (register INTERVAL i, EMACS_INT pos)
 	      i = i->right;		/* Move to the right child */
 	    }
 	  else if (NULL_PARENT (i))
-	    error ("Point %"pEd" after end of properties", pos);
+	    error ("Point %"pI"d after end of properties", pos);
 	  else
             i = INTERVAL_PARENT (i);
 	  continue;
@@ -1313,7 +1314,7 @@ delete_interval (register INTERVAL i)
    Do this by recursing down TREE to the interval in question, and
    deleting the appropriate amount of text.  */
 
-static EMACS_UINT
+static EMACS_INT
 interval_deletion_adjustment (register INTERVAL tree, register EMACS_INT from,
 			      register EMACS_INT amount)
 {
@@ -1325,9 +1326,9 @@ interval_deletion_adjustment (register INTERVAL tree, register EMACS_INT from,
   /* Left branch */
   if (relative_position < LEFT_TOTAL_LENGTH (tree))
     {
-      EMACS_UINT subtract = interval_deletion_adjustment (tree->left,
-							  relative_position,
-							  amount);
+      EMACS_INT subtract = interval_deletion_adjustment (tree->left,
+							 relative_position,
+							 amount);
       tree->total_length -= subtract;
       CHECK_TOTAL_LENGTH (tree);
       return subtract;
@@ -1336,7 +1337,7 @@ interval_deletion_adjustment (register INTERVAL tree, register EMACS_INT from,
   else if (relative_position >= (TOTAL_LENGTH (tree)
 				 - RIGHT_TOTAL_LENGTH (tree)))
     {
-      EMACS_UINT subtract;
+      EMACS_INT subtract;
 
       relative_position -= (tree->total_length
 			    - RIGHT_TOTAL_LENGTH (tree));
@@ -1378,7 +1379,7 @@ static void
 adjust_intervals_for_deletion (struct buffer *buffer,
 			       EMACS_INT start, EMACS_INT length)
 {
-  register EMACS_UINT left_to_delete = length;
+  register EMACS_INT left_to_delete = length;
   register INTERVAL tree = BUF_INTERVALS (buffer);
   Lisp_Object parent;
   EMACS_INT offset;
@@ -1435,7 +1436,10 @@ offset_intervals (struct buffer *buffer, EMACS_INT start, EMACS_INT length)
   if (length > 0)
     adjust_intervals_for_insertion (BUF_INTERVALS (buffer), start, length);
   else
-    adjust_intervals_for_deletion (buffer, start, -length);
+    {
+      IF_LINT (if (length < - TYPE_MAXIMUM (EMACS_INT)) abort ();)
+      adjust_intervals_for_deletion (buffer, start, -length);
+    }
 }
 
 /* Merge interval I with its lexicographic successor. The resulting

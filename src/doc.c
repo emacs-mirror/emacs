@@ -156,7 +156,7 @@ get_doc_string (Lisp_Object filepos, int unibyte, int definition)
   if (0 > lseek (fd, position - offset, 0))
     {
       emacs_close (fd);
-      error ("Position %"pEd" out of range in doc string file \"%s\"",
+      error ("Position %"pI"d out of range in doc string file \"%s\"",
 	     position, name);
     }
 
@@ -673,7 +673,7 @@ the same file name is found in the `doc-directory'.  */)
 		; /* Just a source file name boundary marker.  Ignore it.  */
 
 	      else
-		error ("DOC file invalid at position %"pEd, pos);
+		error ("DOC file invalid at position %"pI"d", pos);
 	    }
 	}
       pos += end - buf;
@@ -789,7 +789,7 @@ a new string, without any text properties, is returned.  */)
 	do_remap:
 	  tem = Fwhere_is_internal (name, keymap, Qt, Qnil, Qnil);
 
-	  if (VECTORP (tem) && XVECTOR (tem)->size > 1
+	  if (VECTORP (tem) && ASIZE (tem) > 1
 	      && EQ (AREF (tem, 0), Qremap) && SYMBOLP (AREF (tem, 1))
 	      && follow_remap)
 	    {

@@ -216,7 +216,7 @@ check_x_display_info (Lisp_Object object)
       struct terminal *t = get_terminal (object, 1);
 
       if (t->type != output_x_window)
-        error ("Terminal %"pEd" is not an X display", XINT (object));
+        error ("Terminal %"pI"d is not an X display", XINT (object));
 
       dpyinfo = t->display_info.x;
     }
@@ -4352,7 +4352,7 @@ no value of TYPE (always string in the MS Windows case).  */)
              property and those are indeed in 32 bit quantities if format is
              32.  */
 
-          if (actual_format == 32 && actual_format < BITS_PER_LONG)
+          if (32 < BITS_PER_LONG && actual_format == 32)
             {
               unsigned long i;
               int  *idata = (int *) tmp_data;

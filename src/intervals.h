@@ -27,8 +27,8 @@ struct interval
 {
   /* The first group of entries deal with the tree structure.  */
 
-  EMACS_UINT total_length;      /* Length of myself and both children.  */
-  EMACS_UINT position;	        /* Cache of interval's character position.  */
+  EMACS_INT total_length;       /* Length of myself and both children.  */
+  EMACS_INT position;	        /* Cache of interval's character position.  */
 				/* This field is usually updated
 				   simultaneously with an interval
 				   traversal, there is no guarantee
@@ -164,7 +164,7 @@ struct interval
 #define CHECK_TOTAL_LENGTH(i)		     \
   do					     \
     {					     \
-      if ((EMACS_INT) (i)->total_length < 0) \
+      if ((i)->total_length < 0)	     \
 	abort ();			     \
     }					     \
   while (0)

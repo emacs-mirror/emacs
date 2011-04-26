@@ -38,7 +38,7 @@ extern void check_cons_list (void);
 #ifndef EMACS_INT
 #define EMACS_INT long
 #define BITS_PER_EMACS_INT BITS_PER_LONG
-#define pEd "ld"
+#define pI "l"
 #endif
 #ifndef EMACS_UINT
 #define EMACS_UINT unsigned long
@@ -47,7 +47,7 @@ extern void check_cons_list (void);
 #ifndef EMACS_INT
 #define EMACS_INT int
 #define BITS_PER_EMACS_INT BITS_PER_INT
-#define pEd "d"
+#define pI ""
 #endif
 #ifndef EMACS_UINT
 #define EMACS_UINT unsigned int
@@ -601,17 +601,30 @@ extern Lisp_Object make_number (EMACS_INT);
 
 /* Pseudovector types.  */
 
-#define XSETPVECTYPE(v,code) ((v)->size |= PSEUDOVECTOR_FLAG | (code))
+#define XSETPVECTYPE(v, code) XSETTYPED_PVECTYPE(v, header.size, code)
+#define XSETTYPED_PVECTYPE(v, size_member, code) \
+  ((v)->size_member |= PSEUDOVECTOR_FLAG | (code))
+#define XSETPVECTYPESIZE(v, code, sizeval) \
+  ((v)->header.size = PSEUDOVECTOR_FLAG | (code) | (sizeval))
+
+/* The cast to struct vectorlike_header * avoids aliasing issues.  */
 #define XSETPSEUDOVECTOR(a, b, code) \
+  XSETTYPED_PSEUDOVECTOR(a, b,       \
+			 ((struct vectorlike_header *) XPNTR (a))->size, \
+			 code)
+#define XSETTYPED_PSEUDOVECTOR(a, b, size, code)			\
   (XSETVECTOR (a, b),							\
-   eassert ((XVECTOR (a)->size & (PSEUDOVECTOR_FLAG | PVEC_TYPE_MASK))	\
+   eassert ((size & (PSEUDOVECTOR_FLAG | PVEC_TYPE_MASK))		\
 	    == (PSEUDOVECTOR_FLAG | (code))))
+
 #define XSETWINDOW_CONFIGURATION(a, b) \
   (XSETPSEUDOVECTOR (a, b, PVEC_WINDOW_CONFIGURATION))
 #define XSETPROCESS(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_PROCESS))
 #define XSETWINDOW(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_WINDOW))
 #define XSETTERMINAL(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_TERMINAL))
-#define XSETSUBR(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_SUBR))
+/* XSETSUBR is special since Lisp_Subr lacks struct vectorlike_header.  */
+#define XSETSUBR(a, b) \
+  XSETTYPED_PSEUDOVECTOR (a, b, XSUBR (a)->size, PVEC_SUBR)
 #define XSETCOMPILED(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_COMPILED))
 #define XSETBUFFER(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_BUFFER))
 #define XSETCHAR_TABLE(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_CHAR_TABLE))
@@ -621,7 +634,7 @@ extern Lisp_Object make_number (EMACS_INT);
 /* Convenience macros for dealing with Lisp arrays.  */
 
 #define AREF(ARRAY, IDX)	XVECTOR ((ARRAY))->contents[IDX]
-#define ASIZE(ARRAY)		XVECTOR ((ARRAY))->size
+#define ASIZE(ARRAY)		XVECTOR ((ARRAY))->header.size
 /* The IDX==IDX tries to detect when the macro argument is side-effecting.  */
 #define ASET(ARRAY, IDX, VAL)	\
   (eassert ((IDX) == (IDX)),				\
@@ -778,10 +791,30 @@ struct Lisp_String
     unsigned char *data;
   };
 
-struct Lisp_Vector
+/* Header of vector-like objects.  This documents the layout constraints on
+   vectors and pseudovectors other than struct Lisp_Subr.  It also prevents
+   compilers from being fooled by Emacs's type punning: the XSETPSEUDOVECTOR
+   and PSEUDOVECTORP macros cast their pointers to struct vectorlike_header *,
+   because when two such pointers potentially alias, a compiler won't
+   incorrectly reorder loads and stores to their size fields.  See
+   <http://debbugs.gnu.org/cgi/bugreport.cgi?bug=8546>.  */
+struct vectorlike_header
   {
     EMACS_UINT size;
-    struct Lisp_Vector *next;
+
+    /* Pointer to the next vector-like object.  It is generally a buffer or a
+       Lisp_Vector alias, so for convenience it is a union instead of a
+       pointer: this way, one can write P->next.vector instead of ((struct
+       Lisp_Vector *) P->next).  */
+    union {
+      struct buffer *buffer;
+      struct Lisp_Vector *vector;
+    } next;
+  };
+
+struct Lisp_Vector
+  {
+    struct vectorlike_header header;
     Lisp_Object contents[1];
   };
 
@@ -817,7 +850,7 @@ struct Lisp_Vector
 /* Return the number of "extra" slots in the char table CT.  */
 
 #define CHAR_TABLE_EXTRA_SLOTS(CT)	\
-  (((CT)->size & PSEUDOVECTOR_SIZE_MASK) - CHAR_TABLE_STANDARD_SLOTS)
+  (((CT)->header.size & PSEUDOVECTOR_SIZE_MASK) - CHAR_TABLE_STANDARD_SLOTS)
 
 #ifdef __GNUC__
 
@@ -882,12 +915,11 @@ struct Lisp_Sub_Char_Table;
 
 struct Lisp_Char_Table
   {
-    /* This is the vector's size field, which also holds the
+    /* HEADER.SIZE is the vector's size field, which also holds the
        pseudovector type information.  It holds the size, too.
        The size counts the defalt, parent, purpose, ascii,
        contents, and extras slots.  */
-    EMACS_UINT size;
-    struct Lisp_Vector *next;
+    struct vectorlike_header header;
 
     /* This holds a default value,
        which is used whenever the value for a specific character is nil.  */
@@ -914,10 +946,9 @@ struct Lisp_Char_Table
 
 struct Lisp_Sub_Char_Table
   {
-    /* This is the vector's size field, which also holds the
+    /* HEADER.SIZE is the vector's size field, which also holds the
        pseudovector type information.  It holds the size, too.  */
-    EMACS_INT size;
-    struct Lisp_Vector *next;
+    struct vectorlike_header header;
 
     /* Depth of this sub char-table.  It should be 1, 2, or 3.  A sub
        char-table of depth 1 contains 16 elements, and each element
@@ -936,10 +967,9 @@ struct Lisp_Sub_Char_Table
 /* A boolvector is a kind of vectorlike, with contents are like a string.  */
 struct Lisp_Bool_Vector
   {
-    /* This is the vector's size field.  It doesn't have the real size,
+    /* HEADER.SIZE is the vector's size field.  It doesn't have the real size,
        just the subtype information.  */
-    EMACS_UINT vector_size;
-    struct Lisp_Vector *next;
+    struct vectorlike_header header;
     /* This is the size in bits.  */
     EMACS_UINT size;
     /* This contains the actual bits, packed into bytes.  */
@@ -952,7 +982,7 @@ struct Lisp_Bool_Vector
 
    This type is treated in most respects as a pseudovector,
    but since we never dynamically allocate or free them,
-   we don't need a next-vector field.  */
+   we don't need a struct vectorlike_header and its 'next' field.  */
 
 struct Lisp_Subr
   {
@@ -1099,9 +1129,8 @@ struct Lisp_Symbol
 
 struct Lisp_Hash_Table
 {
-  /* Vector fields.  The hash table code doesn't refer to these.  */
-  EMACS_UINT size;
-  struct Lisp_Vector *vec_next;
+  /* This is for Lisp; the hash table code does not refer to it.  */
+  struct vectorlike_header header;
 
   /* Function used to compare keys.  */
   Lisp_Object test;
@@ -1202,7 +1231,7 @@ struct Lisp_Hash_Table
 
 /* Value is the size of hash table H.  */
 
-#define HASH_TABLE_SIZE(H) XVECTOR ((H)->next)->size
+#define HASH_TABLE_SIZE(H) ASIZE ((H)->next)
 
 /* Default size for hash tables if not specified.  */
 
@@ -1620,7 +1649,7 @@ typedef struct {
 #define CONSP(x) (XTYPE ((x)) == Lisp_Cons)
 
 #define FLOATP(x) (XTYPE ((x)) == Lisp_Float)
-#define VECTORP(x)    (VECTORLIKEP (x) && !(XVECTOR (x)->size & PSEUDOVECTOR_FLAG))
+#define VECTORP(x) (VECTORLIKEP (x) && !(ASIZE (x) & PSEUDOVECTOR_FLAG))
 #define OVERLAYP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Overlay)
 #define MARKERP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Marker)
 #define SAVE_VALUEP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Save_Value)
@@ -1631,10 +1660,17 @@ typedef struct {
 #define BUFFER_OBJFWDP(x) (XFWDTYPE (x) == Lisp_Fwd_Buffer_Obj)
 #define KBOARD_OBJFWDP(x) (XFWDTYPE (x) == Lisp_Fwd_Kboard_Obj)
 
-/* True if object X is a pseudovector whose code is CODE.  */
+/* True if object X is a pseudovector whose code is CODE.  The cast to struct
+   vectorlike_header * avoids aliasing issues.  */
 #define PSEUDOVECTORP(x, code)					\
+  TYPED_PSEUDOVECTORP(x, vectorlike_header, code)
+
+/* True if object X, with internal type struct T *, is a pseudovector whose
+   code is CODE.  */
+#define TYPED_PSEUDOVECTORP(x, t, code)				\
   (VECTORLIKEP (x)						\
-   && (((XVECTOR (x)->size & (PSEUDOVECTOR_FLAG | (code))))	\
+   && (((((struct t *) XPNTR (x))->size				\
+	 & (PSEUDOVECTOR_FLAG | (code))))			\
        == (PSEUDOVECTOR_FLAG | (code))))
 
 /* Test for specific pseudovector types.  */
@@ -1642,7 +1678,8 @@ typedef struct {
 #define PROCESSP(x) PSEUDOVECTORP (x, PVEC_PROCESS)
 #define WINDOWP(x) PSEUDOVECTORP (x, PVEC_WINDOW)
 #define TERMINALP(x) PSEUDOVECTORP (x, PVEC_TERMINAL)
-#define SUBRP(x) PSEUDOVECTORP (x, PVEC_SUBR)
+/* SUBRP is special since Lisp_Subr lacks struct vectorlike_header.  */
+#define SUBRP(x) TYPED_PSEUDOVECTORP (x, Lisp_Subr, PVEC_SUBR)
 #define COMPILEDP(x) PSEUDOVECTORP (x, PVEC_COMPILED)
 #define BUFFERP(x) PSEUDOVECTORP (x, PVEC_BUFFER)
 #define CHAR_TABLE_P(x) PSEUDOVECTORP (x, PVEC_CHAR_TABLE)
@@ -2785,7 +2822,7 @@ extern Lisp_Object oblookup (Lisp_Object, const char *, EMACS_INT, EMACS_INT);
   } while (0)
 extern int openp (Lisp_Object, Lisp_Object, Lisp_Object,
                   Lisp_Object *, Lisp_Object);
-extern int isfloat_string (const char *, int);
+Lisp_Object string_to_number (char const *, int, int);
 extern void map_obarray (Lisp_Object, void (*) (Lisp_Object, Lisp_Object),
                          Lisp_Object);
 extern void dir_warning (const char *, Lisp_Object);

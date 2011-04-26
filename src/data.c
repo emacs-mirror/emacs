@@ -48,10 +48,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <math.h>
 
-#if !defined (atof)
-extern double atof (const char *);
-#endif /* !atof */
-
 Lisp_Object Qnil, Qt, Qquote, Qlambda, Qunbound;
 static Lisp_Object Qsubr;
 Lisp_Object Qerror_conditions, Qerror_message, Qtop_level;
@@ -1393,7 +1389,7 @@ for this variable.  */)
 	      {
 		struct buffer *b;
 
-		for (b = all_buffers; b; b = b->next)
+		for (b = all_buffers; b; b = b->header.next.buffer)
 		  if (!PER_BUFFER_VALUE_P (b, idx))
 		    PER_BUFFER_VALUE (b, offset) = value;
 	      }
@@ -2097,9 +2093,9 @@ or a byte-code object.  IDX starts at 0.  */)
     {
       int size = 0;
       if (VECTORP (array))
-	size = XVECTOR (array)->size;
+	size = ASIZE (array);
       else if (COMPILEDP (array))
-	size = XVECTOR (array)->size & PSEUDOVECTOR_SIZE_MASK;
+	size = ASIZE (array) & PSEUDOVECTOR_SIZE_MASK;
       else
 	wrong_type_argument (Qarrayp, array);
 
@@ -2124,7 +2120,7 @@ bool-vector.  IDX starts at 0.  */)
 
   if (VECTORP (array))
     {
-      if (idxval < 0 || idxval >= XVECTOR (array)->size)
+      if (idxval < 0 || idxval >= ASIZE (array))
 	args_out_of_range (array, idx);
       XVECTOR (array)->contents[idxval] = newelt;
     }
@@ -2374,33 +2370,8 @@ NUMBER may be an integer or a floating point number.  */)
       return build_string (pigbuf);
     }
 
-  if (sizeof (int) == sizeof (EMACS_INT))
-    sprintf (buffer, "%d", (int) XINT (number));
-  else if (sizeof (long) == sizeof (EMACS_INT))
-    sprintf (buffer, "%ld", (long) XINT (number));
-  else
-    abort ();
+  sprintf (buffer, "%"pI"d", XINT (number));
   return build_string (buffer);
-}
-
-INLINE static int
-digit_to_number (int character, int base)
-{
-  int digit;
-
-  if (character >= '0' && character <= '9')
-    digit = character - '0';
-  else if (character >= 'a' && character <= 'z')
-    digit = character - 'a' + 10;
-  else if (character >= 'A' && character <= 'Z')
-    digit = character - 'A' + 10;
-  else
-    return -1;
-
-  if (digit >= base)
-    return -1;
-  else
-    return digit;
 }
 
 DEFUN ("string-to-number", Fstring_to_number, Sstring_to_number, 1, 2, 0,
@@ -2415,7 +2386,6 @@ If the base used is not 10, STRING is always parsed as integer.  */)
 {
   register char *p;
   register int b;
-  int sign = 1;
   Lisp_Object val;
 
   CHECK_STRING (string);
@@ -2430,40 +2400,13 @@ If the base used is not 10, STRING is always parsed as integer.  */)
 	xsignal1 (Qargs_out_of_range, base);
     }
 
-  /* Skip any whitespace at the front of the number.  Some versions of
-     atoi do this anyway, so we might as well make Emacs lisp consistent.  */
   p = SSDATA (string);
   while (*p == ' ' || *p == '\t')
     p++;
 
-  if (*p == '-')
-    {
-      sign = -1;
-      p++;
-    }
-  else if (*p == '+')
-    p++;
-
-  if (isfloat_string (p, 1) && b == 10)
-    val = make_float (sign * atof (p));
-  else
-    {
-      double v = 0;
-
-      while (1)
-	{
-	  int digit = digit_to_number (*p++, b);
-	  if (digit < 0)
-	    break;
-	  v = v * b + digit;
-	}
-
-      val = make_fixnum_or_float (sign * v);
-    }
-
-  return val;
+  val = string_to_number (p, b, 1);
+  return NILP (val) ? make_number (0) : val;
 }
-
 
 enum arithop
   {

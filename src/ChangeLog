@@ -1,3 +1,194 @@
+2011-04-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* keyboard.c (handle_user_signal): Fix pointer signedness problem.
+
+	* gnutls.c (emacs_gnutls_handle_error): Remove unused local.
+	(Fgnutls_boot): gnutls_certificate_verify_peers2 wants unsigned *.
+	Remove unused local.
+	(emacs_gnutls_write): Don't use uninitialized rtnval if nbyte <= 0.
+
+	lisp.h: Fix a problem with aliasing and vector headers.  (Bug#8546)
+	GCC 4.6.0 optimizes based on type-based alias analysis.  For
+	example, if b is of type struct buffer * and v of type struct
+	Lisp_Vector *, then gcc -O2 was incorrectly assuming that &b->size
+	!= &v->size, and therefore "v->size = 1; b->size = 2; return
+	v->size;" must therefore return 1.  This assumption is incorrect
+	for Emacs, since it type-puns struct Lisp_Vector * with many other
+	types.  To fix this problem, this patch adds a new type struct
+	vectorlike_header that documents the constraints on layout of vectors
+	and pseudovectors, and helps optimizing compilers not get fooled
+	by Emacs's type punning.  It also adds the macros XSETTYPED_PVECTYPE
+	XSETTYPED_PSEUDOVECTOR, TYPED_PSEUDOVECTORP, for similar reasons.
+	* lisp.h (XSETTYPED_PVECTYPE): New macro, specifying the name of
+	the size member.
+	(XSETPVECTYPE): Rewrite in terms of new macro.
+	(XSETPVECTYPESIZE): New macro, specifying both type and size.
+	This is a bit clearer, and further avoids the possibility of
+	undesirable aliasing.
+	(XSETTYPED_PSEUDOVECTOR): New macro, specifying the size.
+	(XSETPSEUDOVECTOR): Rewrite in terms of XSETTYPED_PSEUDOVECTOR.
+	(XSETSUBR): Rewrite in terms of XSETTYPED_PSEUDOVECTOR and XSIZE,
+	since Lisp_Subr is a special case (no "next" field).
+	(ASIZE): Now uses header.size rather than size.  All
+	previous uses of XVECTOR (foo)->size replaced to use this macro,
+	to avoid the hassle of writing XVECTOR (foo)->header.size.
+	(struct vectorlike_header): New type.
+	(TYPED_PSEUDOVECTORP): New macro, also specifying the C type of the
+	object, to help avoid aliasing.
+	(PSEUDOVECTORP): Rewrite in terms of TYPED_PSEUDOVECTORP.
+	(SUBRP): Likewise, since Lisp_Subr is a special case.
+	* lisp.h (struct Lisp_Vector, struct Lisp_Char_Table):
+	(struct Lisp_Sub_Char_Table, struct Lisp_Bool_Vector):
+	(struct Lisp_Hash_Table): Combine first two members into a single
+	struct vectorlike_header member.  All uses of "size" and "next" members
+	changed to be "header.size" and "header.next".
+	* buffer.h (struct buffer): Likewise.
+	* font.h (struct font_spec, struct font_entity, struct font): Likewise.
+	* frame.h (struct frame): Likewise.
+	* process.h (struct Lisp_Process): Likewise.
+	* termhooks.h (struct terminal): Likewise.
+	* window.c (struct save_window_data, struct saved_window): Likewise.
+	* window.h (struct window): Likewise.
+	* alloc.c (allocate_buffer, Fmake_bool_vector, allocate_pseudovector):
+	Use XSETPVECTYPESIZE, not XSETPVECTYPE, to avoid aliasing problems.
+	* buffer.c (init_buffer_once): Likewise.
+	* lread.c (defsubr): Use XSETTYPED_PVECTYPE, since Lisp_Subr is a
+	special case.
+	* process.c (Fformat_network_address): Use local var for size,
+	for brevity.
+
+	* bytecode.c (exec_byte_code): Don't use XVECTOR before CHECK_VECTOR.
+
+	Make the Lisp reader and string-to-float more consistent (Bug#8525)
+	* data.c (atof): Remove decl; no longer used or needed.
+	(digit_to_number): Move to lread.c.
+	(Fstring_to_number): Use new string_to_number function, to be
+	consistent with how the Lisp reader treats infinities and NaNs.
+	Do not assume that floating-point numbers represent EMACS_INT
+	without losing information; this is not true on most 64-bit hosts.
+	Avoid double-rounding errors, by insisting on integers when
+	parsing non-base-10 numbers, as the documentation specifies.
+	* lisp.h (string_to_number): New decl, replacing ...
+	(isfloat_string): Remove.
+	* lread.c: Include <inttypes.h>, for uintmax_t and strtoumax.
+	(read1): Do not accept +. and -. as integers; this
+	appears to have been a coding error.  Similarly, do not accept
+	strings like +-1e0 as floating point numbers.  Do not report
+	overflow for integer overflows unless the base is not 10 which
+	means we have no simple and reliable way to continue.
+	Break out the floating-point parsing into a new
+	function string_to_number, so that Fstring_to_number parses
+	floating point numbers consistently with the Lisp reader.
+	(digit_to_number): Moved here from data.c.  Make it static inline.
+	(E_CHAR, EXP_INT): Remove, replacing with ...
+	(E_EXP): New macro, to solve the "1.0e+" problem mentioned below.
+	(string_to_number): New function, replacing isfloat_string.
+	This function checks for valid syntax and produces the resulting
+	Lisp float number too.  Rework it so that string-to-number
+	no longer mishandles examples like "1.0e+".  Use strtoumax,
+	so that overflow for non-base-10 numbers is reported only when
+	there's no portable and simple way to convert to floating point.
+
+	* textprop.c (set_text_properties_1): Rewrite for clarity,
+	and to avoid GCC warning about integer overflow.
+
+	* intervals.h (struct interval): Use EMACS_INT for members
+	where EMACS_UINT might cause problems.  See
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-04/msg00514.html>.
+	(CHECK_TOTAL_LENGTH): Remove cast to EMACS_INT; no longer needed.
+	* intervals.c (interval_deletion_adjustment): Now returns EMACS_INT.
+	All uses changed.
+	(offset_intervals): Tell GCC not to worry about length overflow
+	when negating a negative length.
+
+	* alloc.c (overrun_check_malloc, overrun_check_realloc): Now static.
+	(overrun_check_free): Likewise.
+
+	* alloc.c (SDATA_SIZE) [!GC_CHECK_STRING_BYTES]: Avoid runtime check
+	in the common case where SDATA_DATA_OFFSET is a multiple of Emacs
+	word size.
+
+	* gnutls.c: Fix problems found by GCC 4.6.0 on Ubuntu 10.10.
+	(gnutls_make_error): Rename local to avoid shadowing.
+	(gnutls_emacs_global_deinit): ifdef out; not used.
+	(Fgnutls_boot): Use const for pointer to readonly storage.
+	Comment out unused local.  Fix pointer signedness problems.
+
+	* lread.c (openp): Don't stuff size_t into an 'int'.
+	Use <= on length, not < on length + 1, to avoid GCC 4.6.0 warning
+	about possible signed overflow.
+
+	* gtkutil.c: Fix problems found by GCC 4.6.0 on Ubuntu 10.10.
+	(GDK_KEY_g): Don't define if already defined.
+	(xg_prepare_tooltip): Avoid pointer signedness problem.
+	(xg_set_toolkit_scroll_bar_thumb): Redo to avoid two casts.
+
+	* process.c (Fnetwork_interface_info): Avoid left-shift undefined
+	behavior with 1 << 31.  GCC 4.6.0 warns about this on 32-bit hosts.
+
+	* xfns.c (Fx_window_property): Simplify a bit,
+	to make a bit faster and to avoid GCC 4.6.0 warning.
+	* xselect.c (x_get_window_property, x_handle_dnd_message): Likewise.
+
+	* fns.c (internal_equal): Don't assume size_t fits in int.
+
+	* alloc.c (compact_small_strings): Tighten assertion a little.
+
+	Replace pEd with more-general pI, and fix some printf arg casts.
+	* lisp.h (pI): New macro, generalizing old pEd macro to other
+	conversion specifiers.  For example, use "...%"pI"d..." rather
+	than "...%"pEd"...".
+	(pEd): Remove.  All uses replaced with similar uses of pI.
+	* src/m/amdx86-64.h, src/m/ia64.h, src/m/ibms390x.h: Likewise.
+	* alloc.c (check_pure_size): Don't overflow by converting size to int.
+	* bidi.c (bidi_dump_cached_states): Use pI to avoid cast.
+	* data.c (Fnumber_to_string): Use pI instead of if-then-else-abort.
+	* dbusbind.c (xd_append_arg): Use pI to avoid cast.
+	(Fdbus_method_return_internal, Fdbus_method_error_internal): Likewise.
+	* font.c (font_unparse_xlfd): Avoid potential buffer overrun on
+	64-bit hosts.
+	(font_unparse_xlfd, font_unparse_fcname): Use pI to avoid casts.
+	* keyboard.c (record_char, modify_event_symbol): Use pI to avoid casts.
+	* print.c (safe_debug_print, print_object): Likewise.
+	(print_object): Don't overflow by converting EMACS_INT or EMACS_UINT
+	to int.
+	Use pI instead of if-then-else-abort.  Use %p to avoid casts,
+	avoiding the 0 flag, which is not portable.
+	* process.c (Fmake_network_process): Use pI to avoid cast.
+	* region-cache.c (pp_cache): Likewise.
+	* xdisp.c (decode_mode_spec): Likewise.
+	* xrdb.c (x_load_resources) [USE_MOTIF]: Use pI to avoid undefined
+	behavior on 64-bit hosts with printf arg.
+	* xselect.c (x_queue_event): Use %p to avoid casts, avoiding 0 flag.
+	(x_stop_queuing_selection_requests): Likewise.
+	(x_get_window_property): Don't truncate byte count to an 'int'
+	when tracing.
+
+	* frame.c (frame_name_fnn_p): Get rid of strtol, which isn't right
+	here, since it parses constructs like leading '-' and spaces,
+	which are not wanted; and it overflows with large numbers.
+	Instead, simply match F[0-9]+, which is what is wanted anyway.
+
+	* alloc.c: Remove unportable assumptions about struct layout.
+	(SDATA_SELECTOR, SDATA_DATA_OFFSET): New macros.
+	(SDATA_OF_STRING, SDATA_SIZE, allocate_string_data):
+	(allocate_vectorlike, make_pure_vector): Use the new macros,
+	plus offsetof, to remove unportable assumptions about struct layout.
+	These assumptions hold on all porting targets that I know of, but
+	they are not guaranteed, they're easy to remove, and removing them
+	makes further changes easier.
+
+	* alloc.c (BLOCK BYTES): Fix typo by changing "ablock" to "ablocks".
+	This doesn't fix a bug but makes the code clearer.
+	(string_overrun_cookie): Now const.  Use initializers that
+	don't formally overflow signed char, to avoid warnings.
+	(allocate_string_data) [GC_CHECK_STRING_OVERRUN]: Fix typo that
+	can cause Emacs to crash when string overrun checking is enabled.
+	(allocate_buffer): Don't assume sizeof (struct buffer) is a
+	multiple of sizeof (EMACS_INT); it need not be, if
+	alignof(EMACS_INT) < sizeof (EMACS_INT).
+	(check_sblock, check_string_bytes, check_string_free_list): Protoize.
+
 2011-04-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* keyboard.c (QCrtl): Rename from Qrtl.  All uses changed.
@@ -5,7 +196,7 @@
 2011-04-26  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnutls.c (emacs_gnutls_handshake): Return an error if we're not
-	supposed to be handshaking.
+	supposed to be handshaking.  (Bug#8556)
 	Reported by Paul Eggert <eggert@cs.ucla.edu>.
 
 2011-04-26  Daniel Colascione <dan.colascione@gmail.com>

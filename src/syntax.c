@@ -981,7 +981,7 @@ text property.  */)
 	break;
       }
 
-  if (val < XVECTOR (Vsyntax_code_object)->size && NILP (match))
+  if (val < ASIZE (Vsyntax_code_object) && NILP (match))
     return XVECTOR (Vsyntax_code_object)->contents[val];
   else
     /* Since we can't use a shared object, let's make a new one.  */
@@ -3372,7 +3372,7 @@ init_syntax_once (void)
 
   /* Create objects which can be shared among syntax tables.  */
   Vsyntax_code_object = Fmake_vector (make_number (Smax), Qnil);
-  for (i = 0; i < XVECTOR (Vsyntax_code_object)->size; i++)
+  for (i = 0; i < ASIZE (Vsyntax_code_object); i++)
     XVECTOR (Vsyntax_code_object)->contents[i]
       = Fcons (make_number (i), Qnil);
 

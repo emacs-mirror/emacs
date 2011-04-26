@@ -3705,7 +3705,7 @@ setup_for_ellipsis (struct it *it, int len)
     {
       struct Lisp_Vector *v = XVECTOR (DISP_INVIS_VECTOR (it->dp));
       it->dpvec = v->contents;
-      it->dpend = v->contents + v->size;
+      it->dpend = v->contents + v->header.size;
     }
   else
     {
@@ -5659,11 +5659,11 @@ get_next_display_element (struct it *it)
 	      /* Return the first character from the display table
 		 entry, if not empty.  If empty, don't display the
 		 current character.  */
-	      if (v->size)
+	      if (v->header.size)
 		{
 		  it->dpvec_char_len = it->len;
 		  it->dpvec = v->contents;
-		  it->dpend = v->contents + v->size;
+		  it->dpend = v->contents + v->header.size;
 		  it->current.dpvec_index = 0;
 		  it->dpvec_face_id = -1;
 		  it->saved_face_id = it->face_id;
@@ -18124,7 +18124,7 @@ display_menu_bar (struct window *w)
 
   /* Display all items of the menu bar.  */
   items = FRAME_MENU_BAR_ITEMS (it.f);
-  for (i = 0; i < XVECTOR (items)->size; i += 4)
+  for (i = 0; i < ASIZE (items); i += 4)
     {
       Lisp_Object string;
 
@@ -19562,7 +19562,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 	       so get us a 2-digit number that is close.  */
 	    if (total == 100)
 	      total = 99;
-	    sprintf (decode_mode_spec_buf, "%2ld%%", (long)total);
+	    sprintf (decode_mode_spec_buf, "%2"pI"d%%", total);
 	    return decode_mode_spec_buf;
 	  }
       }
@@ -19593,9 +19593,9 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 	    if (total == 100)
 	      total = 99;
 	    if (toppos <= BUF_BEGV (b))
-	      sprintf (decode_mode_spec_buf, "Top%2ld%%", (long)total);
+	      sprintf (decode_mode_spec_buf, "Top%2"pI"d%%", total);
 	    else
-	      sprintf (decode_mode_spec_buf, "%2ld%%", (long)total);
+	      sprintf (decode_mode_spec_buf, "%2"pI"d%%", total);
 	    return decode_mode_spec_buf;
 	  }
       }
@@ -24816,7 +24816,7 @@ on_hot_spot_p (Lisp_Object hot_spot, int x, int y)
 	{
 	  struct Lisp_Vector *v = XVECTOR (XCDR (hot_spot));
 	  Lisp_Object *poly = v->contents;
-	  int n = v->size;
+	  int n = v->header.size;
 	  int i;
 	  int inside = 0;
 	  Lisp_Object lx, ly;

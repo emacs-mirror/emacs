@@ -24,7 +24,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define the type to use.  */
 #define EMACS_INT long
-#define pEd "ld"
+#define pI "l"
 #define EMACS_UINT unsigned long
 
 /* On the 64 bit architecture, we can use 60 bits for addresses */
