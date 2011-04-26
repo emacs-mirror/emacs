@@ -64,10 +64,16 @@ the most recent speakers are listed first."
 (define-erc-module pcomplete Completion
   "In ERC Completion mode, the TAB key does completion whenever possible."
   ((add-hook 'erc-mode-hook 'pcomplete-erc-setup)
-   (add-hook 'erc-complete-functions 'erc-pcomplete)
+   (add-hook 'erc-complete-functions 'erc-pcompletions-at-point)
    (erc-buffer-list #'pcomplete-erc-setup))
   ((remove-hook 'erc-mode-hook 'pcomplete-erc-setup)
-   (remove-hook 'erc-complete-functions 'erc-pcomplete)))
+   (remove-hook 'erc-complete-functions 'erc-pcompletions-at-point)))
+
+(defun erc-pcompletions-at-point ()
+  "ERC completion data from pcomplete.
+for use on `completion-at-point-function'."
+  (when (> (point) (erc-beg-of-input-line))
+    (pcomplete-completions-at-point)))
 
 (defun erc-pcomplete ()
   "Complete the nick before point."

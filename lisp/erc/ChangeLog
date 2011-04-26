@@ -1,3 +1,18 @@
+2011-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc.el (erc-mode-map): Use completion-at-point.
+	(erc-mode): Tell completion-at-point to obey erc-complete-functions.
+	(erc-complete-word-at-point): New function.
+	(erc-complete-word): Make it obsolete.
+	* erc-pcomplete.el (erc-pcompletions-at-point): New function.
+	(pcomplete): Use it.
+	* erc-dcc.el (erc-dcc-chat-mode-map): Use completion-at-point.
+	(erc-dcc-chat-mode): Tell completion-at-point to obey
+	erc-complete-functions.
+	* erc-button.el (erc-button-next-function): New function extracted from
+	erc-button-next.
+	(button, erc-button-next): Use it.
+
 2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 23.3 released.
