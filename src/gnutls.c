@@ -474,7 +474,7 @@ one trustfile (usually a CA bundle).  */)
   Lisp_Object loglevel;
   Lisp_Object hostname;
   Lisp_Object verify_flags;
-  Lisp_Object verify_error;
+  /* Lisp_Object verify_error; */
   Lisp_Object verify_hostname_error;
 
   CHECK_PROCESS (proc);
@@ -488,7 +488,7 @@ one trustfile (usually a CA bundle).  */)
   /* callbacks          = Fplist_get (proplist, Qgnutls_bootprop_callbacks); */
   loglevel              = Fplist_get (proplist, Qgnutls_bootprop_loglevel);
   verify_flags          = Fplist_get (proplist, Qgnutls_bootprop_verify_flags);
-  verify_error          = Fplist_get (proplist, Qgnutls_bootprop_verify_error);
+  /* verify_error    = Fplist_get (proplist, Qgnutls_bootprop_verify_error); */
   verify_hostname_error = Fplist_get (proplist, Qgnutls_bootprop_verify_hostname_error);
 
   if (!STRINGP (hostname))
