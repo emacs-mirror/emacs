@@ -74,7 +74,7 @@ emacs_gnutls_handshake (struct Lisp_Process *proc)
   int ret;
 
   if (proc->gnutls_initstage < GNUTLS_STAGE_HANDSHAKE_CANDO)
-    return;
+    return -1;
 
   if (proc->gnutls_initstage < GNUTLS_STAGE_TRANSPORT_POINTERS_SET)
     {

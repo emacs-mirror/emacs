@@ -1,3 +1,9 @@
+2011-04-26  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnutls.c (emacs_gnutls_handshake): Return an error if we're not
+	supposed to be handshaking.
+	Reported by Paul Eggert <eggert@cs.ucla.edu>.
+
 2011-04-26  Daniel Colascione <dan.colascione@gmail.com>
 
 	* lisp.h (Qdebug): List symbol.
