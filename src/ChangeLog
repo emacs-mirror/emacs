@@ -1,3 +1,7 @@
+2011-04-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* doprnt.c (doprnt): Support "ll" length modifier, for long long.
+
 2011-04-27  Yoshiaki Kasahara  <kasahara@nc.kyushu-u.ac.jp>  (tiny change)
 
 	* buffer.c (init_buffer) [USE_MMAP_FOR_BUFFERS]: Adjust to aliasing
