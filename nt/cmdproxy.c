@@ -362,10 +362,20 @@ try_dequote_cmdline (char* cmdline)
           state = NORMAL;
           break;
         case INSIDE_QUOTE:
-          *new_pos++ = c;
-          if (c == '"')
-            state = NORMAL;
-          
+          switch (c)
+            {
+            case '"':
+              *new_pos++ = c;
+              state = NORMAL;
+              break;
+            case '%':
+            case '!':
+              /* Variable substitution inside quote.  Bail out.  */
+              return 0;
+            default:
+              *new_pos++ = c;
+              break;
+            }
           break;
         }
     }
