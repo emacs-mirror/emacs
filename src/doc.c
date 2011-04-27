@@ -347,6 +347,8 @@ string is passed through `substitute-command-keys'.  */)
     {
       if (XSUBR (fun)->doc == 0)
 	return Qnil;
+      /* FIXME: This is not portable, as it assumes that string
+	 pointers have the top bit clear.  */
       else if ((EMACS_INT) XSUBR (fun)->doc >= 0)
 	doc = build_string (XSUBR (fun)->doc);
       else

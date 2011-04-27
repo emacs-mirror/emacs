@@ -70,7 +70,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
      %<flags><width><precision><length>character
 
    where flags is [+ -0], width is [0-9]+, precision is .[0-9]+, and length
-   modifier is l.
+   modifier is empty or l or ll.
 
    The + flag character inserts a + before any positive number, while a space
    inserts a space before any positive number; these flags only affect %d, %o,
@@ -81,9 +81,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
    The l (lower-case letter ell) length modifier is a `long' data type
    modifier: it is supported for %d, %o, and %x conversions of integral
-   arguments, must immediately preced the conversion specifier, and means that
+   arguments, must immediately precede the conversion specifier, and means that
    the respective argument is to be treated as `long int' or `unsigned long
-   int'.  The EMACS_INT data type should use this modifier.
+   int'.  Similarly, ll (two letter ells) means to use `long long int' or
+   `unsigned long long int'; this can be used only on hosts that have
+   these two types.  The empty length modifier means to use `int' or
+   `unsigned int'.  EMACS_INT arguments should use the pI macro, which
+   expands to whatever length modifier is needed for the target host.
 
    The width specifier supplies a lower limit for the length of the printed
    representation.  The padding, if any, normally goes on the left, but it goes
@@ -208,8 +212,8 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
 		;
 	      else if (*fmt == 'l')
 		{
-		  long_flag = 1;
-		  fmt++;
+		  long_flag = 1 + (fmt + 1 < format_end && fmt[1] == 'l');
+		  fmt += long_flag;
 		  break;
 		}
 	      else
@@ -240,7 +244,7 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
 	    {
 	    default:
 	      error ("Invalid format operation %%%s%c",
-		     long_flag ? "l" : "", fmt[-1]);
+		     "ll" + 2 - long_flag, fmt[-1]);
 
 /*	    case 'b': */
 	    case 'l':
@@ -249,7 +253,16 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
 		int i;
 		long l;
 
-		if (long_flag)
+		if (1 < long_flag)
+		  {
+#ifdef HAVE_LONG_LONG_INT
+		    long long ll = va_arg (ap, long long);
+		    sprintf (sprintf_buffer, fmtcpy, ll);
+#else
+		    abort ();
+#endif
+		  }
+		else if (long_flag)
 		  {
 		    l = va_arg(ap, long);
 		    sprintf (sprintf_buffer, fmtcpy, l);
@@ -270,7 +283,16 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
 		unsigned u;
 		unsigned long ul;
 
-		if (long_flag)
+		if (1 < long_flag)
+		  {
+#ifdef HAVE_UNSIGNED_LONG_LONG_INT
+		    unsigned long long ull = va_arg (ap, unsigned long long);
+		    sprintf (sprintf_buffer, fmtcpy, ull);
+#else
+		    abort ();
+#endif
+		  }
+		else if (long_flag)
 		  {
 		    ul = va_arg(ap, unsigned long);
 		    sprintf (sprintf_buffer, fmtcpy, ul);
