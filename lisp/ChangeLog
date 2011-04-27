@@ -1,3 +1,8 @@
+2011-04-27  Daniel Colascione  <dan.colascione@gmail.com>
+
+	* subr.el (shell-quote-argument): Use alternate escaping strategy
+	when we spot a variable reference in a string.
+
 2011-04-26  Daniel Colascione  <dan.colascione@gmail.com>
 
 	* cus-start.el (all): Define customization for debug-on-event.
