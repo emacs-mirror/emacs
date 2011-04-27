@@ -1,3 +1,16 @@
+2011-04-27  Eli Zaretskii  <eliz@gnu.org>
+
+	Improve `doprnt' and its usage.  (Bug#8545)
+	* doprnt.c (doprnt): Make sure `format' is never accessed beyond
+	`format_end'.  Remove support for %l as a conversion specifier.
+	Don't use xrealloc.  Improve diagnostics when the %l size modifier
+	is used.  Update the commentary.
+
+	* eval.c (verror): Simplify calculation of size_t.
+
+	* coding.c (Ffind_operation_coding_system): Fix diagnostic error
+	messages.
+
 2011-04-27  Yoshiaki Kasahara  <kasahara@nc.kyushu-u.ac.jp>  (tiny change)
 
 	* buffer.c (init_buffer) [USE_MMAP_FOR_BUFFERS]: Adjust to aliasing

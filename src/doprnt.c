@@ -55,7 +55,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    %s means print a string argument.
    %S is silently treated as %s, for loose compatibility with `Fformat'.
    %d means print a `signed int' argument in decimal.
-   %l means print a `long int' argument in decimal.
    %o means print an `unsigned int' argument in octal.
    %x means print an `unsigned int' argument in hex.
    %e means print a `double' argument in exponential notation.
@@ -65,22 +64,26 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    %c means print a `signed int' argument as a single character.
    %% means produce a literal % character.
 
-   A %-sequence may contain optional flag, width, and precision specifiers, as
-   follows:
+   A %-sequence may contain optional flag, width, and precision specifiers, and
+   a length modifier, as follows:
 
-     %<flags><width><precision>character
+     %<flags><width><precision><length>character
 
-   where flags is [+ -0l], width is [0-9]+, and precision is .[0-9]+
+   where flags is [+ -0], width is [0-9]+, precision is .[0-9]+, and length
+   modifier is l.
 
    The + flag character inserts a + before any positive number, while a space
-   inserts a space before any positive number; these flags only affect %d, %l,
-   %o, %x, %e, %f, and %g sequences.  The - and 0 flags affect the width
-   specifier, as described below.
+   inserts a space before any positive number; these flags only affect %d, %o,
+   %x, %e, %f, and %g sequences.  The - and 0 flags affect the width specifier,
+   as described below.  For signed numerical arguments only, the ` ' (space)
+   flag causes the result to be prefixed with a space character if it does not
+   start with a sign (+ or -).
 
-   The l (lower-case letter ell) flag is a `long' data type modifier: it is
-   supported for %d, %o, and %x conversions of integral arguments, and means
-   that the respective argument is to be treated as `long int' or `unsigned
-   long int'.  The EMACS_INT data type should use this modifier.
+   The l (lower-case letter ell) length modifier is a `long' data type
+   modifier: it is supported for %d, %o, and %x conversions of integral
+   arguments, must immediately preced the conversion specifier, and means that
+   the respective argument is to be treated as `long int' or `unsigned long
+   int'.  The EMACS_INT data type should use this modifier.
 
    The width specifier supplies a lower limit for the length of the printed
    representation.  The padding, if any, normally goes on the left, but it goes
@@ -166,7 +169,7 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
   bufsize--;
 
   /* Loop until end of format string or buffer full. */
-  while (fmt != format_end && bufsize > 0)
+  while (fmt < format_end && bufsize > 0)
     {
       if (*fmt == '%')	/* Check for a '%' character */
 	{
@@ -178,7 +181,7 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
 	  /* Copy this one %-spec into fmtcpy.  */
 	  string = fmtcpy;
 	  *string++ = '%';
-	  while (1)
+	  while (fmt < format_end)
 	    {
 	      *string++ = *fmt;
 	      if ('0' <= *fmt && *fmt <= '9')
@@ -188,7 +191,8 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
 		     %1.1000f and %1000.1f both might need 1000+ bytes.
 		     Parse the width or precision, checking for overflow.  */
 		  size_t n = *fmt - '0';
-		  while ('0' <= fmt[1] && fmt[1] <= '9')
+		  while (fmt < format_end
+			 && '0' <= fmt[1] && fmt[1] <= '9')
 		    {
 		      if (n >= SIZE_MAX / 10
 			  || n * 10 > SIZE_MAX - (fmt[1] - '0'))
@@ -205,14 +209,15 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
 	      else if (*fmt == 'l')
 		{
 		  long_flag = 1;
-		  if (!strchr ("dox", fmt[1]))
-		    /* %l as conversion specifier, not as modifier.  */
-		    break;
+		  fmt++;
+		  break;
 		}
 	      else
 		break;
 	      fmt++;
 	    }
+	  if (fmt > format_end)
+	    fmt = format_end;
 	  *string = 0;
 
 	  /* Make the size bound large enough to handle floating point formats
@@ -225,9 +230,8 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
 	  if (size_bound > size_allocated)
 	    {
 	      if (big_buffer)
-		big_buffer = (char *) xrealloc (big_buffer, size_bound);
-	      else
-		big_buffer = (char *) xmalloc (size_bound);
+		xfree (big_buffer);
+	      big_buffer = (char *) xmalloc (size_bound);
 	      sprintf_buffer = big_buffer;
 	      size_allocated = size_bound;
 	    }
@@ -235,7 +239,8 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
 	  switch (*fmt++)
 	    {
 	    default:
-	      error ("Invalid format operation %%%c", fmt[-1]);
+	      error ("Invalid format operation %%%s%c",
+		     long_flag ? "l" : "", fmt[-1]);
 
 /*	    case 'b': */
 	    case 'l':
@@ -373,7 +378,7 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
 	char *save_bufptr = bufptr;
 
 	do { *bufptr++ = *fmt++; }
-	while (--bufsize > 0 && !CHAR_HEAD_P (*fmt));
+	while (fmt < format_end && --bufsize > 0 && !CHAR_HEAD_P (*fmt));
 	if (!CHAR_HEAD_P (*fmt))
 	  {
 	    bufptr = save_bufptr;

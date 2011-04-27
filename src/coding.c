@@ -9282,14 +9282,15 @@ usage: (find-operation-coding-system OPERATION ARGUMENTS...)  */)
       || !NATNUMP (target_idx = Fget (operation, Qtarget_idx)))
     error ("Invalid first argument");
   if (nargs < 1 + XFASTINT (target_idx))
-    error ("Too few arguments for operation: %s",
+    error ("Too few arguments for operation `%s'",
 	   SDATA (SYMBOL_NAME (operation)));
   target = args[XFASTINT (target_idx) + 1];
   if (!(STRINGP (target)
 	|| (EQ (operation, Qinsert_file_contents) && CONSP (target)
 	    && STRINGP (XCAR (target)) && BUFFERP (XCDR (target)))
 	|| (EQ (operation, Qopen_network_stream) && INTEGERP (target))))
-    error ("Invalid %"pI"dth argument", XFASTINT (target_idx) + 1);
+    error ("Invalid argument %"pI"d of operation `%s'",
+	   XFASTINT (target_idx) + 1, SDATA (SYMBOL_NAME (operation)));
   if (CONSP (target))
     target = XCAR (target);
 
