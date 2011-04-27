@@ -2543,7 +2543,7 @@ Note: :data and :device are currently not supported on Windows."
             "\\1\\1\\\\\""
             argument)))
 
-    (if (string-match "\"" argument)
+    (if (string-match "[%!\"]" argument)
         (concat
          "^\""
          (replace-regexp-in-string
