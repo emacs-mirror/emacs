@@ -498,7 +498,7 @@ system, including many technical ones.  Examples:
  ("\\Vert" ?‖)
  ("\\Vvdash" ?⊪)
  ("\\Xi" ?Ξ)
- ("\\aleph" ?א)
+ ("\\aleph" ?ℵ)
  ("\\alpha" ?α)
  ("\\amalg" ?∐)
  ("\\angle" ?∠)

@@ -1,3 +1,8 @@
+2011-04-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* quail/latin-ltx.el <\aleph>: Produce ALEF SYMBOL instead of
+	HEBREW LETTER ALEF.  (Bug#8563)
+
 2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 23.3 released.
