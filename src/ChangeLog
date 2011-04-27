@@ -2,6 +2,19 @@
 
 	* doprnt.c (doprnt): Support "ll" length modifier, for long long.
 
+2011-04-27  Eli Zaretskii  <eliz@gnu.org>
+
+	Improve `doprnt' and its usage.  (Bug#8545)
+	* doprnt.c (doprnt): Make sure `format' is never accessed beyond
+	`format_end'.  Remove support for %l as a conversion specifier.
+	Don't use xrealloc.  Improve diagnostics when the %l size modifier
+	is used.  Update the commentary.
+
+	* eval.c (verror): Simplify calculation of size_t.
+
+	* coding.c (Ffind_operation_coding_system): Fix diagnostic error
+	messages.
+
 2011-04-27  Yoshiaki Kasahara  <kasahara@nc.kyushu-u.ac.jp>  (tiny change)
 
 	* buffer.c (init_buffer) [USE_MMAP_FOR_BUFFERS]: Adjust to aliasing
@@ -21,7 +34,7 @@
 	Remove unused local.
 	(emacs_gnutls_write): Don't use uninitialized rtnval if nbyte <= 0.
 
-	lisp.h: Fix a problem with aliasing and vector headers.  (Bug#8546)
+	* lisp.h: Fix a problem with aliasing and vector headers.  (Bug#8546)
 	GCC 4.6.0 optimizes based on type-based alias analysis.  For
 	example, if b is of type struct buffer * and v of type struct
 	Lisp_Vector *, then gcc -O2 was incorrectly assuming that &b->size
@@ -213,7 +226,7 @@
 	supposed to be handshaking.  (Bug#8556)
 	Reported by Paul Eggert <eggert@cs.ucla.edu>.
 
-2011-04-26  Daniel Colascione <dan.colascione@gmail.com>
+2011-04-26  Daniel Colascione  <dan.colascione@gmail.com>
 
 	* lisp.h (Qdebug): List symbol.
 	* eval.c (Qdebug): Restore global linkage.
@@ -469,8 +482,8 @@
 	define if USE_GTK || USE_X_TOOLKIT.
 	(SET_SAVED_BUTTON_EVENT): Define only if USE_X_TOOLKIT || USE_GTK.
 	* xterm.h (x_dispatch_event): Extern only if USE_X_TOOLKIT.
-	* xterm.c, xterm.h (x_mouse_leave): Bring this function back, but only if
-	defined HAVE_MENUS && !defined USE_X_TOOLKIT && !defined USE_GTK.
+	* xterm.c, xterm.h (x_mouse_leave): Bring this function back, but only
+	if defined HAVE_MENUS && !defined USE_X_TOOLKIT && !defined USE_GTK.
 
 	* xmenu.c (menu_help_callback): Pointer type fixes.
 	Use const pointers when pointing at readonly data.  Avoid pointer

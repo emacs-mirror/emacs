@@ -1,3 +1,13 @@
+2011-04-27  Niels Giesen  <niels.giesen@gmail.com>
+
+	* calendar/icalendar.el (diary-lib): Add require statement.
+	(icalendar--create-uid): Read out a uid from a text-property on
+	the first character in the entry.  This allows for code to add its
+	own uid to the entry.
+	(icalendar--convert-float-to-ical): Add export of
+	`diary-float'-entries save for those with the optional DAY
+	argument.
+
 2011-04-27  Daniel Colascione  <dan.colascione@gmail.com>
 
 	* subr.el (shell-quote-argument): Use alternate escaping strategy
@@ -7,7 +17,7 @@
 
 	* cus-start.el (all): Define customization for debug-on-event.
 
-2011-04-26  Daniel Colascione <dan.colascione@gmail.com>
+2011-04-26  Daniel Colascione  <dan.colascione@gmail.com>
 
 	* subr.el (shell-quote-argument): Escape correctly under Windows.
 
@@ -65,7 +75,7 @@
 	(gnutls-negotiate): Adjust `gnutls-negotiate' declaration.
 	* subr.el (shell-quote-argument): Escape correctly under Windows.
 
-2011-04-24  Daniel Colascione <dan.colascione@gmail.com>
+2011-04-24  Daniel Colascione  <dan.colascione@gmail.com>
 
 	* progmodes/cc-engine.el (c-forward-decl-or-cast-1):
 	Use correct match group (bug#8438).
@@ -131,7 +141,7 @@
 	* image-mode.el (image-type, image-mode-map, image-minor-mode-map)
 	(image-toggle-display): Doc fix.
 
-2011-04-23  Stephen Berman <stephen.berman@gmx.net>
+2011-04-23  Stephen Berman  <stephen.berman@gmx.net>
 
 	* textmodes/page.el (what-page): Use line-number-at-pos to
 	calculate line number (Bug#6825).
