@@ -3,7 +3,7 @@
 	* cmdproxy.c (try_dequote_cmdline): Notice variable substitutions
 	inside quotation marks and bail out.
 
-2011-04-26  Daniel Colascione <dan.colascione@gmail.com>
+2011-04-26  Daniel Colascione  <dan.colascione@gmail.com>
 
 	* cmdproxy.c (try_dequote_cmdline): New function.
 	(main): Use it.
