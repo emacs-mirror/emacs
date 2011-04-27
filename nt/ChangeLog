@@ -1,3 +1,10 @@
+2011-04-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/inttypes.h: New file.
+
+	* config.nt (HAVE_DECL_STRTOULL, HAVE_DECL_STRTOUMAX)
+	(HAVE_STRTOULL, HAVE_STRTOUMAX): New macros.
+
 2011-04-27  Daniel Colascione  <dan.colascione@gmail.com>
 
 	* cmdproxy.c (try_dequote_cmdline): Notice variable substitutions
