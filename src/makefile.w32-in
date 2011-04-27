@@ -953,12 +953,12 @@ $(BLD)/gmalloc.$(O) : \
 	$(SRC)/getpagesize.h
 
 $(BLD)/gnutls.$(O) : \
-	$(SRC)/gnutls.h \
 	$(SRC)/gnutls.c \
 	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/socket.h \
-	$(SRC)/lisp.h \
-	$(SRC)/process.h
+	$(EMACS_ROOT)/nt/inc/unistd.h \
+	$(LISP_H) \
+	$(PROCESS_H) \
+	$(SRC)/w32.h
 
 $(BLD)/image.$(O) : \
 	$(SRC)/image.c \
@@ -1026,6 +1026,7 @@ $(BLD)/intervals.$(O) : \
 	$(SRC)/intervals.c \
 	$(CONFIG_H) \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
+	$(EMACS_ROOT)/lib/intprops.h \
 	$(LISP_H) \
 	$(SRC)/buffer.h \
 	$(SRC)/coding.h \
@@ -1102,6 +1103,8 @@ $(BLD)/lastfile.$(O) : \
 $(BLD)/lread.$(O) : \
 	$(SRC)/lread.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/inttypes.h \
+	$(EMACS_ROOT)/nt/inc/stdint.h \
 	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
@@ -1196,6 +1199,8 @@ $(BLD)/w32.$(O) : \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
 	$(EMACS_ROOT)/nt/inc/sys/socket.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
+	$(EMACS_ROOT)/lib/allocator.h \
+	$(EMACS_ROOT)/lib/careadlinkat.h \
 	$(LISP_H) \
 	$(PROCESS_H) \
 	$(SRC)/coding.h \
@@ -1434,6 +1439,8 @@ $(BLD)/sysdep.$(O) : \
 	$(EMACS_ROOT)/nt/inc/sys/ioctl.h \
 	$(EMACS_ROOT)/nt/inc/sys/socket.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
+	$(EMACS_ROOT)/lib/allocator.h \
+	$(EMACS_ROOT)/lib/careadlinkat.h \
 	$(EMACS_ROOT)/lib/ignore-value.h \
 	$(LISP_H) \
 	$(PROCESS_H) \
