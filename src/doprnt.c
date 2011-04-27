@@ -210,7 +210,7 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
 		;
 	      else if (*fmt == 'l')
 		{
-		  long_flag = 1 + (fmt + 1 < fmt_end && fmt[1] == 'l');
+		  long_flag = 1 + (fmt + 1 < format_end && fmt[1] == 'l');
 		  fmt += long_flag;
 		  break;
 		}
@@ -242,7 +242,7 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
 	    {
 	    default:
 	      error ("Invalid format operation %%%s%c",
-		     long_flag ? "l" : "", fmt[-1]);
+		     "ll" + 2 - long_flag, fmt[-1]);
 
 /*	    case 'b': */
 	    case 'l':
