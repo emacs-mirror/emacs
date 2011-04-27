@@ -1,3 +1,13 @@
+2011-04-27  Niels Giesen <niels.giesen@gmail.com>
+
+	* calendar/icalendar.el (diary-lib): Added require statement.
+	(icalendar--create-uid): Read out a uid from a text-property on
+	the first character in the entry. This allows for code to add its
+	own uid to the entry.
+	(icalendar--convert-float-to-ical): Add export of
+	`diary-float'-entries save for those with the optional DAY
+	argument.
+
 2011-04-27  Daniel Colascione  <dan.colascione@gmail.com>
 
 	* subr.el (shell-quote-argument): Use alternate escaping strategy
