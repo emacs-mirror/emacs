@@ -1,3 +1,8 @@
+2011-04-27  Ben Key  <bkey76@gmail.com>
+
+	* configure.in: Fixed a bug that caused configure with
+	--enable-checking=stringoverrun to have no effect.
+
 2011-04-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.in: Suppress unnecessary checks for size_t.
