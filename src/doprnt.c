@@ -69,7 +69,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
      %<flags><width><precision><length>character
 
-   where flags is [+ -0l], width is [0-9]+, and precision is .[0-9]+
+   where flags is [+ -0], width is [0-9]+, precision is .[0-9]+, and length
+   modifier is empty or l or ll.
 
    The + flag character inserts a + before any positive number, while a space
    inserts a space before any positive number; these flags only affect %d, %o,
@@ -83,7 +84,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    arguments, must immediately precede the conversion specifier, and means that
    the respective argument is to be treated as `long int' or `unsigned long
    int'.  Similarly, ll (two letter ells) means to use `long long int' or
-   `unsigned long long int'.  The empty length modifier means to use `int' or
+   `unsigned long long int'; this can be used only on hosts that have
+   these two types.  The empty length modifier means to use `int' or
    `unsigned int'.  EMACS_INT arguments should use the pI macro, which
    expands to whatever length modifier is needed for the target host.
 
