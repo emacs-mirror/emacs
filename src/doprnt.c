@@ -70,7 +70,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
      %<flags><width><precision><length>character
 
    where flags is [+ -0], width is [0-9]+, precision is .[0-9]+, and length
-   modifier is empty or l or ll.
+   is empty or l or ll.  Also, %% in a format stands for a single % in the
+   output.  A % that does not introduce a valid %-sequence causes
+   undefined behavior.
 
    The + flag character inserts a + before any positive number, while a space
    inserts a space before any positive number; these flags only affect %d, %o,
@@ -111,9 +113,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 
 #include <limits.h>
-#ifndef SIZE_MAX
-# define SIZE_MAX ((size_t) -1)
-#endif
 
 #include "lisp.h"
 
@@ -122,14 +121,21 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    another macro.  */
 #include "character.h"
 
+#ifndef SIZE_MAX
+# define SIZE_MAX ((size_t) -1)
+#endif
+
 #ifndef DBL_MAX_10_EXP
 #define DBL_MAX_10_EXP 308 /* IEEE double */
 #endif
 
 /* Generate output from a format-spec FORMAT,
    terminated at position FORMAT_END.
+   (*FORMAT_END is not part of the format, but must exist and be readable.)
    Output goes in BUFFER, which has room for BUFSIZE chars.
-   If the output does not fit, truncate it to fit.
+   BUFSIZE must be positive.  If the output does not fit, truncate it
+   to fit and return BUFSIZE - 1; if this truncates a multibyte
+   sequence, store '\0' into the sequence's first byte.
    Returns the number of bytes stored into BUFFER, excluding
    the terminating null byte.  Output is always null-terminated.
    String arguments are passed as C strings.
@@ -198,8 +204,12 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
 		  while (fmt < format_end
 			 && '0' <= fmt[1] && fmt[1] <= '9')
 		    {
-		      if (n >= SIZE_MAX / 10
-			  || n * 10 > SIZE_MAX - (fmt[1] - '0'))
+		      /* Avoid size_t overflow.  Avoid int overflow too, as
+			 many sprintfs mishandle widths greater than INT_MAX.
+			 This test is simple but slightly conservative: e.g.,
+			 (INT_MAX - INT_MAX % 10) is reported as an overflow
+			 even when it's not.  */
+		      if (n >= min (INT_MAX, SIZE_MAX) / 10)
 			error ("Format width or precision too large");
 		      n = n * 10 + fmt[1] - '0';
 		      *string++ = *++fmt;
