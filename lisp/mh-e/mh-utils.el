@@ -596,6 +596,7 @@ Expects FOLDER to have already been normalized with
                   (setq name (substring name 0 (1- (length name)))))
                 (push
                  (cons name
+                       ;; FIXME: what is this used for?  --Stef
                        (search-forward "(others)" (mh-line-end-position) t))
                  results))))
           (forward-line 1))))
@@ -702,32 +703,33 @@ See Info node `(elisp) Programmed Completion' for details."
          (remainder (cond (last-complete (substring name (1+ last-slash)))
                           (name (substring name 1))
                           (t ""))))
-    (cond ((eq flag nil)
+    (cond ((eq (car-safe flag) 'boundaries)
+           (list* 'boundaries
+                  (let ((slash (mh-search-from-end ?/ orig-name)))
+                    (if slash (1+ slash)
+                      (if (string-match "\\`\\+" orig-name) 1 0)))
+                  (if (cdr flag) (string-match "/" (cdr flag)))))
+          ((eq flag nil)
            (let ((try-res
                   (try-completion
-                   name
-                   (mapcar (lambda (x)
-                             (cons (concat (or last-complete "+") (car x))
-                                   (cdr x)))
-                    (mh-sub-folders last-complete t))
+                   remainder
+                   (mh-sub-folders last-complete t)
                    predicate)))
              (cond ((eq try-res nil) nil)
                    ((and (eq try-res t) (equal name orig-name)) t)
                    ((eq try-res t) name)
-                   (t try-res))))
+                   (t (concat (or last-complete "+") try-res)))))
           ((eq flag t)
-           (mapcar (lambda (x)
-                     (concat (or last-complete "+") x))
-                   (all-completions
-                    remainder (mh-sub-folders last-complete t) predicate)))
+           (all-completions
+            remainder (mh-sub-folders last-complete t) predicate))
           ((eq flag 'lambda)
            (let ((path (concat (unless (and (> (length name) 1)
                                             (eq (aref name 1) ?/))
                                  mh-user-path)
                                (substring name 1))))
-             (cond (mh-allow-root-folder-flag (file-exists-p path))
+             (cond (mh-allow-root-folder-flag (file-directory-p path))
                    ((equal path mh-user-path) nil)
-                   (t (file-exists-p path))))))))
+                   (t (file-directory-p path))))))))
 
 ;; Shush compiler.
 (defvar completion-root-regexp)          ; XEmacs
