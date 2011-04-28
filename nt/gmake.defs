@@ -149,7 +149,7 @@ ARCH		= alpha
     ifeq "$(PROCESSOR_ARCHITECTURE)" "PPC"
 ARCH		= ppc
     else
-error Unknown architecture type "$(PROCESSOR_ARCHITECTURE)"
+     $(error Unknown architecture type "$(PROCESSOR_ARCHITECTURE)")
     endif
    endif
   endif

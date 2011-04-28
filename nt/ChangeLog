@@ -1,3 +1,8 @@
+2011-04-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* gmake.defs (ARCH): Fix error message in case of unknown
+	architecture.
+
 2011-04-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/inttypes.h: New file.
