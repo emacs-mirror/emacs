@@ -1561,6 +1561,7 @@ init_environment (char ** argv)
     char locale_name[32];
     struct stat ignored;
     char default_home[MAX_PATH];
+    int appdata = 0;
 
     static const struct env_entry
     {
@@ -1614,7 +1615,10 @@ init_environment (char ** argv)
 
 	    /* If we can't get the appdata dir, revert to old behavior.	 */
 	    if (profile_result == S_OK)
-	      env_vars[0].def_value = default_home;
+	      {
+		env_vars[0].def_value = default_home;
+		appdata = 1;
+	      }
 	  }
       }
 
@@ -1701,6 +1705,14 @@ init_environment (char ** argv)
 		lpval = env_vars[i].def_value;
 		dwType = REG_EXPAND_SZ;
 		dont_free = 1;
+		if (!strcmp (env_vars[i].name, "HOME") && !appdata)
+		  {
+		    Lisp_Object warning[2];
+		    warning[0] = intern ("initialization");
+		    warning[1] = build_string ("Setting HOME to C:\\ by default is deprecated");
+		    Vdelayed_warnings_list = Fcons (Flist (2, warning),
+						    Vdelayed_warnings_list);
+		  }
 	      }
 
 	    if (lpval)

@@ -1,5 +1,9 @@
 2011-04-28  Juanma Barranquero  <lekktu@gmail.com>
 
+	* w32.c (init_environment): Warn about defaulting HOME to C:\.
+
+2011-04-28  Juanma Barranquero  <lekktu@gmail.com>
+
 	* keyboard.c (Qdelayed_warnings_hook): Define.
 	(command_loop_1): Run `delayed-warnings-hook'
 	if Vdelayed_warnings_list is non-nil.
