@@ -1,5 +1,13 @@
 2011-04-28  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lread.c (hash_string): Use size_t, not int, for hash computation.
+	Normally we prefer signed values; but hashing is special, because
+	it's better to use unsigned division on hash table sizes so that
+	the remainder is nonnegative.  Also, size_t is the natural width
+	for hashing into memory.  The previous code used 'int', which doesn't
+	retain enough info to hash well into very large tables.
+	(oblookup, oblookup_last_bucket_number, Funintern): Likewise.
+
 	* dbusbind.c: Don't possibly lose pointer info when converting.
 	(xd_remove_watch, Fdbus_init_bus, xd_read_queued_messages):
 	Use XPNTR rather than XHASH, so that the high-order bits of

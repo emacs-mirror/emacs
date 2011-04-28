@@ -3611,9 +3611,9 @@ static Lisp_Object initial_obarray;
 
 /* oblookup stores the bucket number here, for the sake of Funintern.  */
 
-static int oblookup_last_bucket_number;
+static size_t oblookup_last_bucket_number;
 
-static int hash_string (const char *ptr, int len);
+static size_t hash_string (const char *ptr, size_t len);
 
 /* Get an error if OBARRAY is not an obarray.
    If it is one, return it.  */
@@ -3755,7 +3755,7 @@ OBARRAY defaults to the value of the variable `obarray'.  */)
   (Lisp_Object name, Lisp_Object obarray)
 {
   register Lisp_Object string, tem;
-  int hash;
+  size_t hash;
 
   if (NILP (obarray)) obarray = Vobarray;
   obarray = check_obarray (obarray);
@@ -3824,8 +3824,8 @@ OBARRAY defaults to the value of the variable `obarray'.  */)
 Lisp_Object
 oblookup (Lisp_Object obarray, register const char *ptr, EMACS_INT size, EMACS_INT size_byte)
 {
-  int hash;
-  int obsize;
+  size_t hash;
+  size_t obsize;
   register Lisp_Object tail;
   Lisp_Object bucket, tem;
 
@@ -3858,21 +3858,21 @@ oblookup (Lisp_Object obarray, register const char *ptr, EMACS_INT size, EMACS_I
   return tem;
 }
 
-static int
-hash_string (const char *ptr, int len)
+static size_t
+hash_string (const char *ptr, size_t len)
 {
   register const char *p = ptr;
   register const char *end = p + len;
   register unsigned char c;
-  register int hash = 0;
+  register size_t hash = 0;
 
   while (p != end)
     {
       c = *p++;
       if (c >= 0140) c -= 40;
-      hash = ((hash<<3) + (hash>>28) + c);
+      hash = (hash << 3) + (hash >> (CHAR_BIT * sizeof hash - 4)) + c;
     }
-  return hash & 07777777777;
+  return hash;
 }
 
 void
