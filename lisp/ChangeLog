@@ -1,5 +1,8 @@
 2011-04-28  Juanma Barranquero  <lekktu@gmail.com>
 
+	* calc/calccomp.el (math-comp-to-string-flat-term): Simplify by
+	removing code that has been dead since 1991 or so.
+
 	* startup.el (command-line): When warning about "_emacs", use a
 	delayed warning to allow the user to filter it out.
 
