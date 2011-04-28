@@ -1377,6 +1377,10 @@ Currently supported properties are:
   "List of well-behaved functions found on `completion-at-point-functions'.")
 
 (defun completion--capf-wrapper (fun which)
+  ;; FIXME: The safe/misbehave handling assumes that a given function will
+  ;; always return the same kind of data, but this breaks down with functions
+  ;; like comint-completion-at-point or mh-letter-completion-at-point, which
+  ;; could be sometimes safe and sometimes misbehaving (and sometimes neither).
   (if (case which
         (all t)
         (safe (member fun completion--capf-safe-funs))
@@ -1408,7 +1412,7 @@ The completion method is determined by `completion-at-point-functions'."
              (completion-in-region-mode-predicate
               (lambda ()
                 ;; We're still in the same completion field.
-                (eq (car (funcall hookfun)) start))))
+                (eq (car-safe (funcall hookfun)) start))))
         (completion-in-region start end collection
                               (plist-get plist :predicate))))
      ;; Maybe completion already happened and the function returned t.
@@ -1433,7 +1437,7 @@ The completion method is determined by `completion-at-point-functions'."
              (completion-in-region-mode-predicate
               (lambda ()
                 ;; We're still in the same completion field.
-                (eq (car (funcall hookfun)) start)))
+                (eq (car-safe (funcall hookfun)) start)))
              (ol (make-overlay start end nil nil t)))
         ;; FIXME: We should somehow (ab)use completion-in-region-function or
         ;; introduce a corresponding hook (plus another for word-completion,

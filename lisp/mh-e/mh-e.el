@@ -1179,7 +1179,7 @@ lowercase for mailing lists and uppercase for people."
   "*Non-nil means to expand aliases entered in the minibuffer.
 
 In other words, aliases entered in the minibuffer will be
-expanded to the full address in the message draft. By default,
+expanded to the full address in the message draft.  By default,
 this expansion is not performed."
   :type 'boolean
   :group 'mh-alias

@@ -403,7 +403,9 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
 	while (fmt < format_end && --bufsize > 0 && !CHAR_HEAD_P (*fmt));
 	if (!CHAR_HEAD_P (*fmt))
 	  {
-	    bufptr = save_bufptr;
+	    /* Truncate, but return value that will signal to caller
+	       that the buffer was too small.  */
+	    *save_bufptr = 0;
 	    break;
 	  }
       }

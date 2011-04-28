@@ -296,16 +296,28 @@ Blind aliases or users from /etc/passwd are not expanded."
 (defun mh-alias-letter-expand-alias ()
   "Expand mail alias before point."
   (mh-alias-reload-maybe)
-  (let* ((end (point))
-         (begin (mh-beginning-of-word))
-         (input (buffer-substring-no-properties begin end)))
-    (mh-complete-word input mh-alias-alist begin end)
-    (when mh-alias-expand-aliases-flag
-      (let* ((end (point))
-             (expansion (mh-alias-expand (buffer-substring begin end))))
-        (delete-region begin end)
-        (insert expansion)))))
-
+  (let* ((begin (mh-beginning-of-word))
+         (end (save-excursion
+                (goto-char begin)
+                (mh-beginning-of-word -1))))
+    (when (>= end (point))
+      (list
+       begin (if (fboundp 'completion-at-point) end (point))
+       (if (not mh-alias-expand-aliases-flag)
+           mh-alias-alist
+         (lambda (string pred action)
+           (case action
+             ((nil)
+              (let ((res (try-completion string mh-alias-alist pred)))
+                (if (or (eq res t)
+                        (and (stringp res)
+                             (eq t (try-completion res mh-alias-alist pred))))
+                    (or (mh-alias-expand (if (stringp res) res string))
+                        res)
+                  res)))
+             ((t) (all-completions string mh-alias-alist pred))
+             ((lambda) (if (fboundp 'test-completion)
+                      (test-completion string mh-alias-alist pred))))))))))
 
 
 ;;; Alias File Updating
