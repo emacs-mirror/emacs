@@ -198,8 +198,12 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
 		  while (fmt < format_end
 			 && '0' <= fmt[1] && fmt[1] <= '9')
 		    {
-		      if (n >= SIZE_MAX / 10
-			  || n * 10 > SIZE_MAX - (fmt[1] - '0'))
+		      /* Avoid int overflow, because many sprintfs seriously
+			 mess up with widths or precisions greater than
+			 INT_MAX.  Avoid size_t overflow, since our counters
+			 use size_t.  This test is slightly conservative, for
+			 speed and simplicity.  */
+		      if (n >= min (INT_MAX, SIZE_MAX) / 10)
 			error ("Format width or precision too large");
 		      n = n * 10 + fmt[1] - '0';
 		      *string++ = *++fmt;
