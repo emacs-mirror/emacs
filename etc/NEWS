@@ -48,7 +48,7 @@ This is only useful for Emacs developers to debug certain types of bugs.
 This is not a new feature; only the configure flag is new.
 
 ---
-** New translation of the Emacs Tutorial in Hebrew is available
+** New translation of the Emacs Tutorial in Hebrew is available.
 Type `C-u C-h t' to choose it in case your language setup doesn't
 automatically select it.
 
@@ -85,7 +85,7 @@ error, its exit status is 1.
 ** Completion can cycle, depending on completion-cycle-threshold.
 
 ** `completing-read' can be customized using the new variable
-`completing-read-function'
+`completing-read-function'.
 
 ** auto-mode-case-fold is now enabled by default.
 
@@ -154,7 +154,7 @@ with Xft.  To change font, use the X resource font, for example:
 Emacs.pane.menubar.font:  Courier-12
 
 +++
-** Enhanced support for characters that have no glyphs in available fonts
+** Enhanced support for characters that have no glyphs in available fonts.
 If a character has no glyphs in any of the available fonts, Emacs by
 default will display it either as a hexadecimal code in a box or as a
 thin 1-pixel space.  In addition to these two methods, Emacs can
@@ -168,7 +168,7 @@ cannot be encoded by the `terminal-coding-system'.
 ** On graphical displays, the mode-line no longer ends in dashes.
 
 ** On Nextstep/OSX, the menu bar can be hidden by customizing
-   ns-auto-hide-menu-bar.
+ns-auto-hide-menu-bar.
 
 ** Basic SELinux support has been added.
 This requires Emacs to be linked with libselinux at build time.
@@ -791,7 +791,7 @@ sc.el, x-menu.el, rnews.el, rnewspost.el
 
 * Lisp changes in Emacs 24.1
 
-** `glyphless-char-table' can now distinguish between graphical and
+** `glyphless-char-display' can now distinguish between graphical and
 text terminal display, via a char-table entry that is a cons cell.
 
 ** `open-network-stream' can now be used to open an encrypted stream.
