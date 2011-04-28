@@ -1,3 +1,8 @@
+2011-04-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* startup.el (command-line): When warning about "_emacs", use a
+	delayed warning to allow the user to filter it out.
+
 2011-04-28  Deniz Dogan  <deniz@dogan.se>
 
 	* net/rcirc.el (rcirc-handler-353): Fix bug for channels which the
