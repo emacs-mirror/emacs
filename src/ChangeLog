@@ -1,6 +1,7 @@
 2011-04-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* doprnt.c (doprnt): Omit useless test; int overflow check (Bug#8545).
+	(SIZE_MAX): Move defn after all includes, as they might #define it.
 
 2011-04-28  Juanma Barranquero  <lekktu@gmail.com>
 

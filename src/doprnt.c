@@ -111,9 +111,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 
 #include <limits.h>
-#ifndef SIZE_MAX
-# define SIZE_MAX ((size_t) -1)
-#endif
 
 #include "lisp.h"
 
@@ -121,6 +118,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    don't have to include others because CHAR_HEAD_P does not contains
    another macro.  */
 #include "character.h"
+
+#ifndef SIZE_MAX
+# define SIZE_MAX ((size_t) -1)
+#endif
 
 #ifndef DBL_MAX_10_EXP
 #define DBL_MAX_10_EXP 308 /* IEEE double */
