@@ -1,5 +1,11 @@
 2011-04-28  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* sysdep.c (get_random): Don't assume EMACS_INT is no wider than long.
+	Also, don't assume VALBITS / RAND_BITS is less than 5,
+	and don't rely on undefined behavior when shifting a 1 left into
+	the sign bit.
+	* lisp.h (get_random): Change signature to match.
+
 	* lread.c (hash_string): Use size_t, not int, for hash computation.
 	Normally we prefer signed values; but hashing is special, because
 	it's better to use unsigned division on hash table sizes so that
