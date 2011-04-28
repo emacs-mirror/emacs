@@ -1,5 +1,10 @@
 2011-04-28  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* dbusbind.c: Don't possibly lose pointer info when converting.
+	(xd_remove_watch, Fdbus_init_bus, xd_read_queued_messages):
+	Use XPNTR rather than XHASH, so that the high-order bits of
+	the pointer aren't lost when converting through void *.
+
 	* eval.c (Fautoload): Don't double-shift a pointer.
 
 	* fns.c (Frandom): Let EMACS_UINT be wider than unsigned long.

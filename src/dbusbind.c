@@ -892,7 +892,7 @@ xd_remove_watch (DBusWatch *watch, void *data)
     return;
 
   /* Unset session environment.  */
-  if (data != NULL && data == (void*) XHASH (QCdbus_session_bus))
+  if (data != NULL && data == (void *) XPNTR (QCdbus_session_bus))
     {
       XD_DEBUG_MESSAGE ("unsetenv DBUS_SESSION_BUS_ADDRESS");
       unsetenv ("DBUS_SESSION_BUS_ADDRESS");
@@ -929,7 +929,7 @@ DEFUN ("dbus-init-bus", Fdbus_init_bus, Sdbus_init_bus, 1, 1, 0,
 					    xd_add_watch,
 					    xd_remove_watch,
                                             xd_toggle_watch,
-					    (void*) XHASH (bus), NULL))
+					    (void *) XPNTR (bus), NULL))
     XD_SIGNAL1 (build_string ("Cannot add watch functions"));
 
   /* Add bus to list of registered buses.  */
@@ -1824,7 +1824,7 @@ xd_read_queued_messages (int fd, void *data, int for_read)
   if (data != NULL)
     while (!NILP (busp))
       {
-	if (data == (void*) XHASH (CAR_SAFE (busp)))
+	if (data == (void *) XPNTR (CAR_SAFE (busp)))
 	  bus = CAR_SAFE (busp);
 	busp = CDR_SAFE (busp);
       }
