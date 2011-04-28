@@ -1,4 +1,23 @@
+2011-04-28  Deniz Dogan  <deniz@dogan.se>
+
+	* net/rcirc.el (rcirc-handler-353): Fix bug for channels which the
+	user has not joined.
+
 2011-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcomplete.el (pcomplete-completions-at-point): Return nil if there
+	aren't any completions at point.
+
+2011-04-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (display-delayed-warnings): New function.
+	(delayed-warnings-hook): New variable.
+
+2011-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-at-point, completion-help-at-point):
+	Don't presume that a given completion-at-point-function will always
+	use the same calling convention.
 
 	* pcomplete.el (pcomplete-completions-at-point):
 	Obey pcomplete-ignore-case.  Don't call pcomplete-norm-func unless

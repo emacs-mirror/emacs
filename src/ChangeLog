@@ -23,6 +23,23 @@
 
 	* fns.c (Frandom): Let EMACS_UINT be wider than unsigned long.
 
+2011-04-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* doprnt.c (doprnt): Omit useless test; int overflow check (Bug#8545).
+	(SIZE_MAX): Move defn after all includes, as they might #define it.
+
+2011-04-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32.c (init_environment): Warn about defaulting HOME to C:\.
+
+2011-04-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* keyboard.c (Qdelayed_warnings_hook): Define.
+	(command_loop_1): Run `delayed-warnings-hook'
+	if Vdelayed_warnings_list is non-nil.
+	(syms_of_keyboard) <delayed-warnings-hook>: DEFSYM it.
+	(syms_of_keyboard) <delayed-warnings-list>: DEFVAR_LISP it.
+
 2011-04-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* doprnt.c (doprnt): Don't return value smaller than the buffer
