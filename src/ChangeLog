@@ -1,5 +1,7 @@
 2011-04-28  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* eval.c (Fautoload): Don't double-shift a pointer.
+
 	* fns.c (Frandom): Let EMACS_UINT be wider than unsigned long.
 
 2011-04-27  Paul Eggert  <eggert@cs.ucla.edu>
