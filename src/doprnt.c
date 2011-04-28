@@ -199,11 +199,11 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
 		  while (fmt < format_end
 			 && '0' <= fmt[1] && fmt[1] <= '9')
 		    {
-		      /* Avoid int overflow, because many sprintfs seriously
-			 mess up with widths or precisions greater than
-			 INT_MAX.  Avoid size_t overflow, since our counters
-			 use size_t.  This test is slightly conservative, for
-			 speed and simplicity.  */
+		      /* Avoid size_t overflow.  Avoid int overflow too, as
+			 many sprintfs mishandle widths greater than INT_MAX.
+			 This test is simple but slightly conservative: e.g.,
+			 (INT_MAX - INT_MAX % 10) is reported as an overflow
+			 even when it's not.  */
 		      if (n >= min (INT_MAX, SIZE_MAX) / 10)
 			error ("Format width or precision too large");
 		      n = n * 10 + fmt[1] - '0';
