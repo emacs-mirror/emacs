@@ -2741,10 +2741,13 @@ the only argument."
 
 (defun rcirc-handler-353 (process sender args text)
   "RPL_NAMREPLY"
-  (let ((channel (caddr args)))
+  (let ((channel (nth 2 args))
+	(names (or (nth 3 args) "")))
     (mapc (lambda (nick)
             (rcirc-put-nick-channel process nick channel))
-          (split-string (cadddr args) " " t))
+          (split-string names " " t))
+    ;; create a temporary buffer to insert the names into
+    ;; rcirc-handler-366 (RPL_ENDOFNAMES) will handle it
     (with-current-buffer (rcirc-get-temp-buffer-create process channel)
       (goto-char (point-max))
       (insert (car (last args)) " "))))
