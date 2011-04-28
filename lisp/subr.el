@@ -1772,6 +1772,19 @@ This makes or adds to an entry on `after-load-alist'.
 FILE should be the name of a library, with no directory name."
   (eval-after-load file (read)))
 (make-obsolete 'eval-next-after-load `eval-after-load "23.2")
+
+(defun display-delayed-warnings ()
+  "Display delayed warnings from `delayed-warnings-list'.
+This is the default value of `delayed-warnings-hook'."
+  (dolist (warning (nreverse delayed-warnings-list))
+    (apply 'display-warning warning))
+  (setq delayed-warnings-list nil))
+
+(defvar delayed-warnings-hook '(display-delayed-warnings)
+  "Normal hook run to process delayed warnings.
+Functions in this hook should access the `delayed-warnings-list'
+variable (which see) and remove from it the warnings they process.")
+
 
 ;;;; Process stuff.
 
@@ -2522,7 +2535,7 @@ Note: :data and :device are currently not supported on Windows."
       (concat "\"" result (substring argument start) "\"")))
 
    ((and (eq system-type 'windows-nt) (w32-shell-dos-semantics))
-    
+
     ;; First, quote argument so that CommandLineToArgvW will
     ;; understand it.  See
     ;; http://msdn.microsoft.com/en-us/library/17w5ykft%28v=vs.85%29.aspx

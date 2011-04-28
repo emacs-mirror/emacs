@@ -1,3 +1,8 @@
+2011-04-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (display-delayed-warnings): New function.
+	(delayed-warnings-hook): New variable.
+
 2011-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* pcomplete.el (pcomplete-completions-at-point):

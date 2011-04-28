@@ -909,6 +909,9 @@ displayed with a "spinning bar".
 ** New variable `revert-buffer-in-progress-p' is true while a buffer is
 being reverted, even if the buffer has a local `revert-buffer-function'.
 
+** New variables `delayed-warnings-list' and `delayed-warnings-hook' allow
+deferring warnings until the main command loop is executed.
+
 
 * Changes in Emacs 24.1 on non-free operating systems
 

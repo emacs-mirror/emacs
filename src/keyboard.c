@@ -267,6 +267,8 @@ static Lisp_Object Qpost_command_hook;
 
 static Lisp_Object Qdeferred_action_function;
 
+static Lisp_Object Qdelayed_warnings_hook;
+
 static Lisp_Object Qinput_method_exit_on_first_char;
 static Lisp_Object Qinput_method_use_echo_area;
 
@@ -1356,6 +1358,10 @@ command_loop_1 (void)
       if (!NILP (echo_area_buffer[0]))
 	resize_echo_area_exactly ();
 
+      /* If there are warnings waiting, process them.  */
+      if (!NILP (Vdelayed_warnings_list))
+        safe_run_hooks (Qdelayed_warnings_hook);
+
       if (!NILP (Vdeferred_action_list))
 	safe_run_hooks (Qdeferred_action_function);
     }
@@ -1572,6 +1578,10 @@ command_loop_1 (void)
 	 that message's size exactly.  */
       if (!NILP (echo_area_buffer[0]))
 	resize_echo_area_exactly ();
+
+      /* If there are warnings waiting, process them.  */
+      if (!NILP (Vdelayed_warnings_list))
+        safe_run_hooks (Qdelayed_warnings_hook);
 
       safe_run_hooks (Qdeferred_action_function);
 
@@ -11498,6 +11508,7 @@ syms_of_keyboard (void)
   DEFSYM (Qpre_command_hook, "pre-command-hook");
   DEFSYM (Qpost_command_hook, "post-command-hook");
   DEFSYM (Qdeferred_action_function, "deferred-action-function");
+  DEFSYM (Qdelayed_warnings_hook, "delayed-warnings-hook");
   DEFSYM (Qfunction_key, "function-key");
   DEFSYM (Qmouse_click, "mouse-click");
   DEFSYM (Qdrag_n_drop, "drag-n-drop");
@@ -12068,6 +12079,14 @@ The precise format isn't relevant here; we just check whether it is nil.  */);
 This function is called with no arguments after each command
 whenever `deferred-action-list' is non-nil.  */);
   Vdeferred_action_function = Qnil;
+
+  DEFVAR_LISP ("delayed-warnings-list", Vdelayed_warnings_list,
+               doc: /* List of warnings to be displayed as soon as possible.
+Each element must be a list (TYPE MESSAGE [LEVEL [BUFFER-NAME]]),
+as per the args of `display-warning' (which see).
+If this variable is non-nil, `delayed-warnings-hook' will be run
+immediately after running `post-command-hook'.  */);
+  Vdelayed_warnings_list = Qnil;
 
   DEFVAR_LISP ("suggest-key-bindings", Vsuggest_key_bindings,
 	       doc: /* *Non-nil means show the equivalent key-binding when M-x command has one.
