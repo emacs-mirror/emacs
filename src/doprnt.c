@@ -70,7 +70,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
      %<flags><width><precision><length>character
 
    where flags is [+ -0], width is [0-9]+, precision is .[0-9]+, and length
-   is empty or l or ll.
+   is empty or l or ll.  Also, %% in a format stands for a single % in the
+   output.  A % that does not introduce a valid %-sequence causes
+   undefined behavior.
 
    The + flag character inserts a + before any positive number, while a space
    inserts a space before any positive number; these flags only affect %d, %o,
@@ -129,8 +131,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Generate output from a format-spec FORMAT,
    terminated at position FORMAT_END.
+   (*FORMAT_END is not part of the format, but must exist and be readable.)
    Output goes in BUFFER, which has room for BUFSIZE chars.
-   If the output does not fit, truncate it to fit.
+   BUFSIZE must be positive.  If the output does not fit, truncate it
+   to fit and return BUFSIZE - 1; if this truncates a multibyte
+   sequence, store '\0' into the sequence's first byte.
    Returns the number of bytes stored into BUFFER, excluding
    the terminating null byte.  Output is always null-terminated.
    String arguments are passed as C strings.
