@@ -489,57 +489,57 @@ Same as `pcomplete' but using the standard completion UI."
            ;; prefix from pcomplete-stub.
            (beg (max (- (point) (length pcomplete-stub))
                      (pcomplete-begin)))
-           (buftext (buffer-substring beg (point)))
-           (table
-            (cond
-             ((null completions) nil)
-             ((not (equal pcomplete-stub buftext))
-              ;; This isn't always strictly right (e.g. if
-              ;; FOO="toto/$FOO", then completion of /$FOO/bar may
-              ;; result in something incorrect), but given the lack of
-              ;; any other info, it's about as good as it gets, and in
-              ;; practice it should work just fine (fingers crossed).
-              (let ((prefixes (pcomplete--common-quoted-suffix
-                               pcomplete-stub buftext)))
-                (apply-partially
-                 'pcomplete--table-subvert
-                 completions
-                 (cdr prefixes) (car prefixes))))
-             (t
-              (lexical-let ((completions completions))
-                (lambda (string pred action)
-                  (let ((res (complete-with-action
-                              action completions string pred)))
-                    (if (stringp res)
-                        (pcomplete-quote-argument res)
-                      res)))))))
-           (pred
-            ;; pare it down, if applicable
-            (when (and table pcomplete-use-paring pcomplete-seen)
-              (setq pcomplete-seen
-                    (mapcar (lambda (f)
-                              (funcall pcomplete-norm-func
-                                       (directory-file-name f)))
-                            pcomplete-seen))
-              (lambda (f)
-                (not (when pcomplete-seen
-                       (member
-                        (funcall pcomplete-norm-func
-                                 (directory-file-name f))
-                        pcomplete-seen)))))))
-      (unless (zerop (length pcomplete-termination-string))
-        ;; Add a space at the end of completion.  Use a terminator-regexp
-        ;; that never matches since the terminator cannot appear
-        ;; within the completion field anyway.
-        (setq table
-              (apply-partially #'completion-table-with-terminator
-                               (cons pcomplete-termination-string
-                                     "\\`a\\`")
-                               table)))
-      (when pcomplete-ignore-case
-        (setq table
-              (apply-partially #'completion-table-case-fold table)))
-      (list beg (point) table :predicate pred))))
+           (buftext (buffer-substring beg (point))))
+      (when completions
+        (let ((table
+               (cond
+                ((not (equal pcomplete-stub buftext))
+                 ;; This isn't always strictly right (e.g. if
+                 ;; FOO="toto/$FOO", then completion of /$FOO/bar may
+                 ;; result in something incorrect), but given the lack of
+                 ;; any other info, it's about as good as it gets, and in
+                 ;; practice it should work just fine (fingers crossed).
+                 (let ((prefixes (pcomplete--common-quoted-suffix
+                                  pcomplete-stub buftext)))
+                   (apply-partially
+                    'pcomplete--table-subvert
+                    completions
+                    (cdr prefixes) (car prefixes))))
+                (t
+                 (lexical-let ((completions completions))
+                   (lambda (string pred action)
+                     (let ((res (complete-with-action
+                                 action completions string pred)))
+                       (if (stringp res)
+                           (pcomplete-quote-argument res)
+                         res)))))))
+              (pred
+               ;; Pare it down, if applicable.
+               (when (and pcomplete-use-paring pcomplete-seen)
+                 (setq pcomplete-seen
+                       (mapcar (lambda (f)
+                                 (funcall pcomplete-norm-func
+                                          (directory-file-name f)))
+                               pcomplete-seen))
+                 (lambda (f)
+                   (not (when pcomplete-seen
+                          (member
+                           (funcall pcomplete-norm-func
+                                    (directory-file-name f))
+                           pcomplete-seen)))))))
+          (unless (zerop (length pcomplete-termination-string))
+            ;; Add a space at the end of completion.  Use a terminator-regexp
+            ;; that never matches since the terminator cannot appear
+            ;; within the completion field anyway.
+            (setq table
+                  (apply-partially #'completion-table-with-terminator
+                                   (cons pcomplete-termination-string
+                                         "\\`a\\`")
+                                   table)))
+          (when pcomplete-ignore-case
+            (setq table
+                  (apply-partially #'completion-table-case-fold table)))
+          (list beg (point) table :predicate pred))))))
 
  ;; I don't think such commands are usable before first setting up buffer-local
  ;; variables to parse args, so there's no point autoloading it.
