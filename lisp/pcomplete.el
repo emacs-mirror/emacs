@@ -522,23 +522,24 @@ Same as `pcomplete' but using the standard completion UI."
                                        (directory-file-name f)))
                             pcomplete-seen))
               (lambda (f)
-                (not (member
-                      (funcall pcomplete-norm-func
-                               (directory-file-name f))
-                      pcomplete-seen))))))
-
-      (list
-       beg (point)
-       ;; Add a space at the end of completion.  Use a terminator-regexp
-       ;; that never matches since the terminator cannot appear
-       ;; within the completion field anyway.
-       (if (zerop (length pcomplete-termination-string))
-           table
-         (apply-partially 'completion-table-with-terminator
-                          (cons pcomplete-termination-string
-                                "\\`a\\`")
-                          table))
-       :predicate pred))))
+                (not (when pcomplete-seen
+                       (member
+                        (funcall pcomplete-norm-func
+                                 (directory-file-name f))
+                        pcomplete-seen)))))))
+      (unless (zerop (length pcomplete-termination-string))
+        ;; Add a space at the end of completion.  Use a terminator-regexp
+        ;; that never matches since the terminator cannot appear
+        ;; within the completion field anyway.
+        (setq table
+              (apply-partially #'completion-table-with-terminator
+                               (cons pcomplete-termination-string
+                                     "\\`a\\`")
+                               table)))
+      (when pcomplete-ignore-case
+        (setq table
+              (apply-partially #'completion-table-case-fold table)))
+      (list beg (point) table :predicate pred))))
 
  ;; I don't think such commands are usable before first setting up buffer-local
  ;; variables to parse args, so there's no point autoloading it.
@@ -781,7 +782,9 @@ this is `comint-dynamic-complete-functions'."
   (set (make-local-variable completef-sym)
        (copy-sequence (symbol-value completef-sym)))
   (let* ((funs (symbol-value completef-sym))
-	 (elem (or (memq 'shell-dynamic-complete-filename funs)
+	 (elem (or (memq 'comint-filename-completion funs)
+                   (memq 'shell-filename-completion funs)
+                   (memq 'shell-dynamic-complete-filename funs)
 		   (memq 'comint-dynamic-complete-filename funs))))
     (if elem
 	(setcar elem 'pcomplete)
@@ -1248,11 +1251,12 @@ extra checking, and munging of the COMPLETIONS list."
       (setq completions
             (apply-partially 'completion-table-with-predicate
                              completions
-                             (lambda (f)
-                               (not (member
-                                     (funcall pcomplete-norm-func
-                                              (directory-file-name f))
-                                     pcomplete-seen)))
+                             (when pcomplete-seen
+                               (lambda (f)
+                                 (not (member
+                                       (funcall pcomplete-norm-func
+                                                (directory-file-name f))
+                                       pcomplete-seen))))
                              'strict)))
     ;; OK, we've got a list of completions.
     (if pcomplete-show-list

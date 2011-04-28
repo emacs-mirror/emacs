@@ -1,3 +1,13 @@
+2011-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcomplete.el (pcomplete-completions-at-point):
+	Obey pcomplete-ignore-case.  Don't call pcomplete-norm-func unless
+	pcomplete-seen is non-nil.
+	(pcomplete-comint-setup): Also recognize the new comint/shell
+	completion functions.
+	(pcomplete-do-complete): Don't call pcomplete-norm-func unless
+	pcomplete-seen is non-nil.
+
 2011-04-27  Niels Giesen  <niels.giesen@gmail.com>
 
 	* calendar/icalendar.el (diary-lib): Add require statement.
