@@ -1,3 +1,8 @@
+2011-04-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* doprnt.c (doprnt): Don't return value smaller than the buffer
+	size if the message was truncated.  (Bug#8545).
+
 2011-04-28  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32fns.c (Fx_change_window_property, Fx_delete_window_property)
