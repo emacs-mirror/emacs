@@ -14,7 +14,8 @@
   use the normal installation instructions, ../INSTALL.
 
   If you have a Cygwin or MSYS port of Bash on your Path, you will be
-  better off removing it from PATH.
+  better off removing it from PATH.  (For details, search for "MSYS
+  sh.exe" below.)
 
   1. Change to the `nt' directory (the directory of this file):
 
@@ -132,11 +133,14 @@
   for example).  Also see the Trouble-shooting section below if you
   decide to go ahead and use Cygwin make.
 
-  In addition, using 4NT or TCC as your shell is known to fail the build
-  process, at least since 4NT version 3.01.  Use CMD.EXE, the default
-  Windows shell, instead.  MSYS sh.exe also appears to cause various
-  problems.  If you have MSYS installed, try "make SHELL=cmd.exe" to
-  force the use of cmd.exe instead of sh.exe.
+  In addition, using 4NT or TCC as your shell is known to fail the
+  build process, at least since 4NT version 3.01.  Use CMD.EXE, the
+  default Windows shell, instead.  MSYS sh.exe also appears to cause
+  various problems, e.g., it is known to cause failures in commands
+  like "cmd /c FOO" in the Makefiles, because it thinks "/c" is a
+  Unix-style file name that needs conversion to the Windows format.
+  If you have MSYS installed, try "make SHELL=cmd.exe" to force the
+  use of cmd.exe instead of the MSYS sh.exe.
 
                                          sh exists     no sh
 
