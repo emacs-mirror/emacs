@@ -1,5 +1,10 @@
 2011-04-29  Eli Zaretskii  <eliz@gnu.org>
 
+	* doprnt.c (doprnt) [!HAVE_LONG_LONG_INT]: Error out instead of
+	aborting when %lld or %lll format is passed.
+	[!HAVE_UNSIGNED_LONG_LONG_INT]: Error out instead of aborting when
+	%llo or %llx format is passed.  (Bug#8545)
+
 	* window.c (window_scroll_line_based): Use a marker instead of
 	simple variables to record original value of point.  (Bug#7952)
 

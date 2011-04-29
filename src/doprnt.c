@@ -269,7 +269,7 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
 		    long long ll = va_arg (ap, long long);
 		    sprintf (sprintf_buffer, fmtcpy, ll);
 #else
-		    abort ();
+		    error ("Invalid format operation %%ll%c", fmt[-1]);
 #endif
 		  }
 		else if (long_flag)
@@ -299,7 +299,7 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
 		    unsigned long long ull = va_arg (ap, unsigned long long);
 		    sprintf (sprintf_buffer, fmtcpy, ull);
 #else
-		    abort ();
+		    error ("Invalid format operation %%ll%c", fmt[-1]);
 #endif
 		  }
 		else if (long_flag)
