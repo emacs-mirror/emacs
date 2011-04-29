@@ -44,7 +44,16 @@ extern void check_cons_list (void);
 #ifndef EMACS_UINT
 #define EMACS_UINT unsigned long
 #endif
-#else /* not _LP64 */
+#elif /* !_LP64 && */ BITS_PER_LONG < BITS_PER_LONG_LONG
+#ifndef EMACS_INT
+#define EMACS_INT long long
+#define BITS_PER_EMACS_INT BITS_PER_LONG_LONG
+#define pI "ll"
+#endif
+#ifndef EMACS_UINT
+#define EMACS_UINT unsigned long long
+#endif
+#else /* ! (_LP64 || BITS_PER_LONG < BITS_PER_LONG_LONG) */
 #ifndef EMACS_INT
 #define EMACS_INT int
 #define BITS_PER_EMACS_INT BITS_PER_INT
