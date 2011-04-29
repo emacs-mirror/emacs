@@ -1,5 +1,7 @@
 2011-04-29  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lread.c, process.c: Do not include <inttypes.h>; lisp.h does it now.
+
 	Prefer intptr_t/uintptr_t for integers the same widths as pointers.
 	This removes an assumption that EMACS_INT and long are the same
 	width as pointers.  The assumption is true for Emacs porting targets
