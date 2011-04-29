@@ -1,5 +1,8 @@
 2011-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/pascal.el: Use lexical binding.
+	(pascal-mode-map): Remove author preferences.
+
 	* pcomplete.el (pcomplete-std-complete): Don't abuse
 	completion-at-point.
 
