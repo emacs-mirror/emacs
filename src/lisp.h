@@ -22,6 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <stdarg.h>
 #include <stddef.h>
+#include <inttypes.h>
 
 /* Use the configure flag --enable-checking[=LIST] to enable various
    types of run time checks for Lisp objects.  */
@@ -52,6 +53,18 @@ extern void check_cons_list (void);
 #ifndef EMACS_UINT
 #define EMACS_UINT unsigned int
 #endif
+#endif
+
+/* Integers large enough to hold casted pointers without losing info.  */
+#ifdef INTPTR_MAX
+# define EMACS_INTPTR intptr_t
+#else
+# define EMACS_INTPTR EMACS_INT
+#endif
+#ifdef UINTPTR_MAX
+# define EMACS_UINTPTR uintptr_t
+#else
+# define EMACS_UINTPTR EMACS_UINT
 #endif
 
 /* Extra internal type checking?  */
@@ -398,7 +411,7 @@ enum pvec_type
 #ifdef USE_LSB_TAG
 
 #define TYPEMASK ((((EMACS_INT) 1) << GCTYPEBITS) - 1)
-#define XTYPE(a) ((enum Lisp_Type) (((EMACS_UINT) (a)) & TYPEMASK))
+#define XTYPE(a) ((enum Lisp_Type) ((a) & TYPEMASK))
 #ifdef USE_2_TAGS_FOR_INTS
 # define XINT(a) (((EMACS_INT) (a)) >> (GCTYPEBITS - 1))
 # define XUINT(a) (((EMACS_UINT) (a)) >> (GCTYPEBITS - 1))
@@ -408,11 +421,11 @@ enum pvec_type
 # define XUINT(a) (((EMACS_UINT) (a)) >> GCTYPEBITS)
 # define make_number(N) (((EMACS_INT) (N)) << GCTYPEBITS)
 #endif
-#define XSET(var, type, ptr)					\
-    (eassert (XTYPE (ptr) == 0), /* Check alignment.  */	\
-     (var) = ((EMACS_INT) (type)) | ((EMACS_INT) (ptr)))
+#define XSET(var, type, ptr)						\
+    (eassert (XTYPE ((EMACS_INTPTR) (ptr)) == 0), /* Check alignment.  */ \
+     (var) = (type) | (EMACS_INTPTR) (ptr))
 
-#define XPNTR(a) ((EMACS_INT) ((a) & ~TYPEMASK))
+#define XPNTR(a) ((EMACS_INTPTR) ((a) & ~TYPEMASK))
 
 #else  /* not USE_LSB_TAG */
 
@@ -446,14 +459,14 @@ enum pvec_type
 
 #define XSET(var, type, ptr)				  \
    ((var) = ((EMACS_INT) ((EMACS_UINT) (type) << VALBITS) \
-	     + ((EMACS_INT) (ptr) & VALMASK)))
+	     + ((EMACS_INTPTR) (ptr) & VALMASK)))
 
 #ifdef DATA_SEG_BITS
 /* DATA_SEG_BITS forces extra bits to be or'd in with any pointers
    which were stored in a Lisp_Object */
-#define XPNTR(a) ((EMACS_UINT) (((a) & VALMASK) | DATA_SEG_BITS))
+#define XPNTR(a) ((EMACS_UINTPTR) (((a) & VALMASK)) | DATA_SEG_BITS))
 #else
-#define XPNTR(a) ((EMACS_UINT) ((a) & VALMASK))
+#define XPNTR(a) ((EMACS_UINTPTR) ((a) & VALMASK))
 #endif
 
 #endif /* not USE_LSB_TAG */
@@ -479,7 +492,7 @@ enum pvec_type
 /* Some versions of gcc seem to consider the bitfield width when issuing
    the "cast to pointer from integer of different size" warning, so the
    cast is here to widen the value back to its natural size.  */
-# define XPNTR(v) ((EMACS_INT)((v).s.val) << GCTYPEBITS)
+# define XPNTR(v) ((EMACS_INTPTR) (v).s.val << GCTYPEBITS)
 
 #else  /* !USE_LSB_TAG */
 
@@ -495,9 +508,9 @@ enum pvec_type
 #ifdef DATA_SEG_BITS
 /* DATA_SEG_BITS forces extra bits to be or'd in with any pointers
    which were stored in a Lisp_Object */
-#define XPNTR(a) (XUINT (a) | DATA_SEG_BITS)
+#define XPNTR(a) ((EMACS_INTPTR) (XUINT (a) | DATA_SEG_BITS))
 #else
-#define XPNTR(a) ((EMACS_INT) XUINT (a))
+#define XPNTR(a) ((EMACS_INTPTR) XUINT (a))
 #endif
 
 #endif	/* !USE_LSB_TAG */
@@ -1814,8 +1827,8 @@ typedef struct {
     XSETCDR ((x), tmp);			\
   } while (0)
 
-/* Cast pointers to this type to compare them.  Some machines want int.  */
-#define PNTR_COMPARISON_TYPE EMACS_UINT
+/* Cast pointers to this type to compare them.  */
+#define PNTR_COMPARISON_TYPE EMACS_UINTPTR
 
 /* Define a built-in function for calling from Lisp.
  `lname' should be the name to give the function in Lisp,

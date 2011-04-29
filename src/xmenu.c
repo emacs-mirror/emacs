@@ -1139,9 +1139,9 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 	  wv->help = Qnil;
 	  /* This prevents lwlib from assuming this
 	     menu item is really supposed to be empty.  */
-	  /* The EMACS_INT cast avoids a warning.
+	  /* The EMACS_INTPTR cast avoids a warning.
 	     This value just has to be different from small integers.  */
-	  wv->call_data = (void *) (EMACS_INT) (-1);
+	  wv->call_data = (void *) (EMACS_INTPTR) (-1);
 
 	  if (prev_wv)
 	    prev_wv->next = wv;
@@ -1876,9 +1876,9 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 static void
 dialog_selection_callback (GtkWidget *widget, gpointer client_data)
 {
-  /* The EMACS_INT cast avoids a warning.  There's no problem
+  /* Treat the pointer as an integer.  There's no problem
      as long as pointers have enough bits to hold small integers.  */
-  if ((int) (EMACS_INT) client_data != -1)
+  if ((EMACS_INTPTR) client_data != -1)
     menu_item_selection = (Lisp_Object *) client_data;
 
   popup_activated_flag = 0;

@@ -1,3 +1,35 @@
+2011-04-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Prefer intptr_t/uintptr_t for integers the same widths as pointers.
+	This removes an assumption that EMACS_INT and long are the same
+	width as pointers.  The assumption is true for Emacs porting targets
+	now, but we want to make other targets possible.
+	* lisp.h: Include <inttypes.h>, for INTPTR_MAX, UINTPTR_MAX.
+	(EMACS_INTPTR, EMACS_UINTPTR): New macros.
+	In the rest of the code, change types of integers that hold casted
+	pointers to EMACS_INTPTR and EMACS_UINTPTR, systematically
+	replacing EMACS_INT, long, EMACS_UINT, and unsigned long.
+	(XTYPE): Don't cast arg to EMACS_UINT; normally is not needed.
+	(XSET): Cast type of XTYPE arg to EMACS_INTPTR; it is needed here.
+	No need to cast type when ORing.
+	(XPNTR): Return a value of type EMACS_INTPTR or EMACS_UINTPTR.
+	* alloc.c (lisp_align_malloc): Remove a no-longer-needed cast.
+	* doc.c (store_function_docstring): Use EMACS_INTPTR, so as not to
+	assume EMACS_INT is the same width as char *.
+	* gtkutil.c (xg_gtk_scroll_destroy, xg_tool_bar_button_cb):
+	(xg_tool_bar_callback, xg_tool_bar_help_callback, xg_make_tool_item):
+	Remove no-longer-needed casts.
+	(xg_create_scroll_bar, xg_tool_bar_button_cb, xg_tool_bar_callback):
+	(xg_tool_bar_help_callback, xg_make_tool_item):
+	Use EMACS_INTPTR to hold an integer
+	that will be cast to void *; this can avoid a GCC warning
+	if EMACS_INT is not the same width as void *.
+	* menu.c (find_and_call_menu_selection): Remove no-longer-needed cast.
+	* xdisp.c (display_echo_area_1, resize_mini_window_1):
+	(current_message_1, set_message_1):
+	Use a local to convert to proper width without a cast.
+	* xmenu.c (dialog_selection_callback): Likewise.
+
 2011-04-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* sysdep.c (get_random): Don't assume EMACS_INT is no wider than long.

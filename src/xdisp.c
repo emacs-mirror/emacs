@@ -8737,7 +8737,7 @@ display_echo_area (struct window *w)
   window_height_changed_p
     = with_echo_area_buffer (w, display_last_displayed_message_p,
 			     display_echo_area_1,
-			     (EMACS_INT) w, Qnil, 0, 0);
+			     (EMACS_INTPTR) w, Qnil, 0, 0);
 
   if (no_message_p)
     echo_area_buffer[i] = Qnil;
@@ -8756,7 +8756,8 @@ display_echo_area (struct window *w)
 static int
 display_echo_area_1 (EMACS_INT a1, Lisp_Object a2, EMACS_INT a3, EMACS_INT a4)
 {
-  struct window *w = (struct window *) a1;
+  EMACS_INTPTR i1 = a1;
+  struct window *w = (struct window *) i1;
   Lisp_Object window;
   struct text_pos start;
   int window_height_changed_p = 0;
@@ -8798,7 +8799,8 @@ resize_echo_area_exactly (void)
 	resize_exactly = Qnil;
 
       resized_p = with_echo_area_buffer (w, 0, resize_mini_window_1,
-					 (EMACS_INT) w, resize_exactly, 0, 0);
+					 (EMACS_INTPTR) w, resize_exactly,
+					 0, 0);
       if (resized_p)
 	{
 	  ++windows_or_buffers_changed;
@@ -8818,7 +8820,8 @@ resize_echo_area_exactly (void)
 static int
 resize_mini_window_1 (EMACS_INT a1, Lisp_Object exactly, EMACS_INT a3, EMACS_INT a4)
 {
-  return resize_mini_window ((struct window *) a1, !NILP (exactly));
+  EMACS_INTPTR i1 = a1;
+  return resize_mini_window ((struct window *) i1, !NILP (exactly));
 }
 
 
@@ -8984,7 +8987,7 @@ current_message (void)
   else
     {
       with_echo_area_buffer (0, 0, current_message_1,
-			     (EMACS_INT) &msg, Qnil, 0, 0);
+			     (EMACS_INTPTR) &msg, Qnil, 0, 0);
       if (NILP (msg))
 	echo_area_buffer[0] = Qnil;
     }
@@ -8996,7 +8999,8 @@ current_message (void)
 static int
 current_message_1 (EMACS_INT a1, Lisp_Object a2, EMACS_INT a3, EMACS_INT a4)
 {
-  Lisp_Object *msg = (Lisp_Object *) a1;
+  EMACS_INTPTR i1 = a1;
+  Lisp_Object *msg = (Lisp_Object *) i1;
 
   if (Z > BEG)
     *msg = make_buffer_string (BEG, Z, 1);
@@ -9127,7 +9131,7 @@ set_message (const char *s, Lisp_Object string,
        || (STRINGP (string) && STRING_MULTIBYTE (string)));
 
   with_echo_area_buffer (0, -1, set_message_1,
-			 (EMACS_INT) s, string, nbytes, multibyte_p);
+			 (EMACS_INTPTR) s, string, nbytes, multibyte_p);
   message_buf_print = 0;
   help_echo_showing_p = 0;
 }
@@ -9141,7 +9145,8 @@ set_message (const char *s, Lisp_Object string,
 static int
 set_message_1 (EMACS_INT a1, Lisp_Object a2, EMACS_INT nbytes, EMACS_INT multibyte_p)
 {
-  const char *s = (const char *) a1;
+  EMACS_INTPTR i1 = a1;
+  const char *s = (const char *) i1;
   const unsigned char *msg = (const unsigned char *) s;
   Lisp_Object string = a2;
 
