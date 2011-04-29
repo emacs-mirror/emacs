@@ -545,8 +545,9 @@ Same as `pcomplete' but using the standard completion UI."
  ;; variables to parse args, so there's no point autoloading it.
  ;; ;;;###autoload
 (defun pcomplete-std-complete ()
-  (let ((completion-at-point-functions '(pcomplete-completions-at-point)))
-    (completion-at-point)))
+  (let ((data pcomplete-completions-at-point))
+    (completion-in-region (nth 0 data) (nth 1 data) (nth 2 data)
+                          (plist-get :predicate (nthcdr 3 data)))))
 
 ;;; Pcomplete's native UI.
 
