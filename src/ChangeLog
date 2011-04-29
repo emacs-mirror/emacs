@@ -1,4 +1,18 @@
-2011-04-29  Eli Zaretskii  <eliz@gnu.org>
+2011-04-21  Eli Zaretskii  <eliz@gnu.org>
+
+	Lift the MOST_POSITIVE_FIXNUM/4 limitation on visited files.
+	* fileio.c (Finsert_file_contents): Don't limit file size to 1/4
+	of MOST_POSITIVE_FIXNUM.  (Bug#8528)
+
+	* coding.c (coding_alloc_by_realloc): Error out if destination
+	will grow beyond MOST_POSITIVE_FIXNUM.
+	(decode_coding_emacs_mule): Abort if there isn't enough place in
+	charbuf for the composition carryover bytes.  Reserve an extra
+	space for up to 2 characters produced in a loop.
+	(decode_coding_iso_2022): Abort if there isn't enough place in
+	charbuf for the composition carryover bytes.
+
+2011-04-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* doprnt.c (doprnt) [!HAVE_LONG_LONG_INT]: Error out instead of
 	aborting when %lld or %lll format is passed.

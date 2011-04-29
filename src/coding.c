@@ -1071,6 +1071,8 @@ coding_set_destination (struct coding_system *coding)
 static void
 coding_alloc_by_realloc (struct coding_system *coding, EMACS_INT bytes)
 {
+  if (coding->dst_bytes >= MOST_POSITIVE_FIXNUM - bytes)
+    error ("Maximum size of buffer or string exceeded");
   coding->destination = (unsigned char *) xrealloc (coding->destination,
 						    coding->dst_bytes + bytes);
   coding->dst_bytes += bytes;
@@ -2333,7 +2335,9 @@ decode_coding_emacs_mule (struct coding_system *coding)
   /* We may produce two annotations (charset and composition) in one
      loop and one more charset annotation at the end.  */
   int *charbuf_end
-    = coding->charbuf + coding->charbuf_size - (MAX_ANNOTATION_LENGTH * 3);
+    = coding->charbuf + coding->charbuf_size - (MAX_ANNOTATION_LENGTH * 3)
+      /* We can produce up to 2 characters in a loop.  */
+      - 1;
   EMACS_INT consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
   EMACS_INT char_offset = coding->produced_char;
@@ -2348,6 +2352,8 @@ decode_coding_emacs_mule (struct coding_system *coding)
     {
       int i;
 
+      if (charbuf_end - charbuf < cmp_status->length)
+	abort ();
       for (i = 0; i < cmp_status->length; i++)
 	*charbuf++ = cmp_status->carryover[i];
       coding->annotated = 1;
@@ -3479,6 +3485,8 @@ decode_coding_iso_2022 (struct coding_system *coding)
 
   if (cmp_status->state != COMPOSING_NO)
     {
+      if (charbuf_end - charbuf < cmp_status->length)
+	abort ();
       for (i = 0; i < cmp_status->length; i++)
 	*charbuf++ = cmp_status->carryover[i];
       coding->annotated = 1;
