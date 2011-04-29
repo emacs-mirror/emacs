@@ -1,5 +1,8 @@
 2011-04-29  Eli Zaretskii  <eliz@gnu.org>
 
+	* window.c (window_scroll_line_based): Use a marker instead of
+	simple variables to record original value of point.  (Bug#7952)
+
 	* doprnt.c (doprnt): Fix the case where a multibyte sequence
 	produced by %s or %c overflows available buffer space.  (Bug#8545)
 
