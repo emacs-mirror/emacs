@@ -3354,7 +3354,7 @@ xg_get_scroll_id_for_window (Display *dpy, Window wid)
 static void
 xg_gtk_scroll_destroy (GtkWidget *widget, gpointer data)
 {
-  int id = (EMACS_INTPTR) data;
+  int id = (intptr_t) data;
   xg_remove_widget_from_map (id);
 }
 
@@ -3375,7 +3375,7 @@ xg_create_scroll_bar (FRAME_PTR f,
 {
   GtkWidget *wscroll;
   GtkWidget *webox;
-  EMACS_INTPTR scroll_id;
+  intptr_t scroll_id;
 #ifdef HAVE_GTK3
   GtkAdjustment *vadj;
 #else
@@ -3662,7 +3662,7 @@ xg_tool_bar_button_cb (GtkWidget *widget,
                        GdkEventButton *event,
                        gpointer user_data)
 {
-  EMACS_INTPTR state = event->state;
+  intptr_t state = event->state;
   gpointer ptr = (gpointer) state;
   g_object_set_data (G_OBJECT (widget), XG_TOOL_BAR_LAST_MODIFIER, ptr);
   return FALSE;
@@ -3677,9 +3677,9 @@ xg_tool_bar_button_cb (GtkWidget *widget,
 static void
 xg_tool_bar_callback (GtkWidget *w, gpointer client_data)
 {
-  EMACS_INTPTR idx = (EMACS_INTPTR) client_data;
+  intptr_t idx = (intptr_t) client_data;
   gpointer gmod = g_object_get_data (G_OBJECT (w), XG_TOOL_BAR_LAST_MODIFIER);
-  EMACS_INTPTR mod = (EMACS_INTPTR) gmod;
+  intptr_t mod = (intptr_t) gmod;
 
   FRAME_PTR f = (FRAME_PTR) g_object_get_data (G_OBJECT (w), XG_FRAME_DATA);
   Lisp_Object key, frame;
@@ -3958,7 +3958,7 @@ xg_tool_bar_help_callback (GtkWidget *w,
                            GdkEventCrossing *event,
                            gpointer client_data)
 {
-  EMACS_INTPTR idx = (EMACS_INTPTR) client_data;
+  intptr_t idx = (intptr_t) client_data;
   FRAME_PTR f = (FRAME_PTR) g_object_get_data (G_OBJECT (w), XG_FRAME_DATA);
   Lisp_Object help, frame;
 
@@ -4152,7 +4152,7 @@ xg_make_tool_item (FRAME_PTR f,
 
   if (wimage)
     {
-      EMACS_INTPTR ii = i;
+      intptr_t ii = i;
       gpointer gi = (gpointer) ii;
 
       g_signal_connect (G_OBJECT (ti), "create-menu-proxy",

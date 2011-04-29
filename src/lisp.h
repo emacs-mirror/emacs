@@ -64,18 +64,6 @@ extern void check_cons_list (void);
 #endif
 #endif
 
-/* Integers large enough to hold casted pointers without losing info.  */
-#ifdef INTPTR_MAX
-# define EMACS_INTPTR intptr_t
-#else
-# define EMACS_INTPTR EMACS_INT
-#endif
-#ifdef UINTPTR_MAX
-# define EMACS_UINTPTR uintptr_t
-#else
-# define EMACS_UINTPTR EMACS_UINT
-#endif
-
 /* Extra internal type checking?  */
 
 #ifdef ENABLE_CHECKING
@@ -431,10 +419,10 @@ enum pvec_type
 # define make_number(N) (((EMACS_INT) (N)) << GCTYPEBITS)
 #endif
 #define XSET(var, type, ptr)						\
-    (eassert (XTYPE ((EMACS_INTPTR) (ptr)) == 0), /* Check alignment.  */ \
-     (var) = (type) | (EMACS_INTPTR) (ptr))
+    (eassert (XTYPE ((intptr_t) (ptr)) == 0), /* Check alignment.  */ \
+     (var) = (type) | (intptr_t) (ptr))
 
-#define XPNTR(a) ((EMACS_INTPTR) ((a) & ~TYPEMASK))
+#define XPNTR(a) ((intptr_t) ((a) & ~TYPEMASK))
 
 #else  /* not USE_LSB_TAG */
 
@@ -468,14 +456,14 @@ enum pvec_type
 
 #define XSET(var, type, ptr)				  \
    ((var) = ((EMACS_INT) ((EMACS_UINT) (type) << VALBITS) \
-	     + ((EMACS_INTPTR) (ptr) & VALMASK)))
+	     + ((intptr_t) (ptr) & VALMASK)))
 
 #ifdef DATA_SEG_BITS
 /* DATA_SEG_BITS forces extra bits to be or'd in with any pointers
    which were stored in a Lisp_Object */
-#define XPNTR(a) ((EMACS_UINTPTR) (((a) & VALMASK)) | DATA_SEG_BITS))
+#define XPNTR(a) ((uintptr_t) (((a) & VALMASK)) | DATA_SEG_BITS))
 #else
-#define XPNTR(a) ((EMACS_UINTPTR) ((a) & VALMASK))
+#define XPNTR(a) ((uintptr_t) ((a) & VALMASK))
 #endif
 
 #endif /* not USE_LSB_TAG */
@@ -501,7 +489,7 @@ enum pvec_type
 /* Some versions of gcc seem to consider the bitfield width when issuing
    the "cast to pointer from integer of different size" warning, so the
    cast is here to widen the value back to its natural size.  */
-# define XPNTR(v) ((EMACS_INTPTR) (v).s.val << GCTYPEBITS)
+# define XPNTR(v) ((intptr_t) (v).s.val << GCTYPEBITS)
 
 #else  /* !USE_LSB_TAG */
 
@@ -517,9 +505,9 @@ enum pvec_type
 #ifdef DATA_SEG_BITS
 /* DATA_SEG_BITS forces extra bits to be or'd in with any pointers
    which were stored in a Lisp_Object */
-#define XPNTR(a) ((EMACS_INTPTR) (XUINT (a) | DATA_SEG_BITS))
+#define XPNTR(a) ((intptr_t) (XUINT (a) | DATA_SEG_BITS))
 #else
-#define XPNTR(a) ((EMACS_INTPTR) XUINT (a))
+#define XPNTR(a) ((intptr_t) XUINT (a))
 #endif
 
 #endif	/* !USE_LSB_TAG */
@@ -1837,7 +1825,7 @@ typedef struct {
   } while (0)
 
 /* Cast pointers to this type to compare them.  */
-#define PNTR_COMPARISON_TYPE EMACS_UINTPTR
+#define PNTR_COMPARISON_TYPE uintptr_t
 
 /* Define a built-in function for calling from Lisp.
  `lname' should be the name to give the function in Lisp,

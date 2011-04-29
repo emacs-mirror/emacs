@@ -349,10 +349,10 @@ string is passed through `substitute-command-keys'.  */)
 	return Qnil;
       /* FIXME: This is not portable, as it assumes that string
 	 pointers have the top bit clear.  */
-      else if ((EMACS_INTPTR) XSUBR (fun)->doc >= 0)
+      else if ((intptr_t) XSUBR (fun)->doc >= 0)
 	doc = build_string (XSUBR (fun)->doc);
       else
-	doc = make_number ((EMACS_INTPTR) XSUBR (fun)->doc);
+	doc = make_number ((intptr_t) XSUBR (fun)->doc);
     }
   else if (COMPILEDP (fun))
     {
@@ -508,7 +508,7 @@ store_function_docstring (Lisp_Object fun, EMACS_INT offset)
   /* Lisp_Subrs have a slot for it.  */
    if (SUBRP (fun))
      {
-       EMACS_INTPTR negative_offset = - offset;
+       intptr_t negative_offset = - offset;
        XSUBR (fun)->doc = (char *) negative_offset;
      }
 

@@ -1,5 +1,8 @@
 2011-04-29  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lisp.h (EMACS_INTPTR): Remove.  All uses changed to intptr_t.
+	(EMACS_UINTPTR): Likewise, with uintptr_t.
+
 	* lisp.h: Prefer 64-bit EMACS_INT if available.
 	(EMACS_INT, EMACS_UINT, BITS_PER_EMACS_INT, pI): Define to 64-bit
 	on 32-bit hosts that have 64-bit int, so that they can access
