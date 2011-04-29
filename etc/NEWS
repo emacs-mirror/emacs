@@ -139,6 +139,11 @@ starting from the first line of text below the header line.
 ** The nextstep port can have different modifiers for the left and right
 alt/option key by customizing the value for ns-right-alternate-modifier.
 
+** The MS-Windows port can now use more than 500MB of heap.
+Depending on the available virtual memory, Emacs on Windows can now
+have up to 2GB of heap space.  This allows, e.g., to visit several
+large (> 256MB) files in the same session.
+
 
 * Installation Changes in Emacs 23.2
 
