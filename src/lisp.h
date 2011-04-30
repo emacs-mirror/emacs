@@ -35,33 +35,23 @@ extern void check_cons_list (void);
 #endif
 
 /* These are default choices for the types to use.  */
-#ifdef _LP64
 #ifndef EMACS_INT
-#define EMACS_INT long
-#define BITS_PER_EMACS_INT BITS_PER_LONG
-#define pI "l"
+# if BITS_PER_LONG < BITS_PER_LONG_LONG
+#  define EMACS_INT long long
+#  define BITS_PER_EMACS_INT BITS_PER_LONG_LONG
+#  define pI "ll"
+# elif BITS_PER_INT < BITS_PER_LONG
+#  define EMACS_INT long
+#  define BITS_PER_EMACS_INT BITS_PER_LONG
+#  define pI "l"
+# else
+#  define EMACS_INT int
+#  define BITS_PER_EMACS_INT BITS_PER_INT
+#  define pI ""
+# endif
 #endif
 #ifndef EMACS_UINT
-#define EMACS_UINT unsigned long
-#endif
-#elif /* !_LP64 && */ BITS_PER_LONG < BITS_PER_LONG_LONG
-#ifndef EMACS_INT
-#define EMACS_INT long long
-#define BITS_PER_EMACS_INT BITS_PER_LONG_LONG
-#define pI "ll"
-#endif
-#ifndef EMACS_UINT
-#define EMACS_UINT unsigned long long
-#endif
-#else /* ! (_LP64 || BITS_PER_LONG < BITS_PER_LONG_LONG) */
-#ifndef EMACS_INT
-#define EMACS_INT int
-#define BITS_PER_EMACS_INT BITS_PER_INT
-#define pI ""
-#endif
-#ifndef EMACS_UINT
-#define EMACS_UINT unsigned int
-#endif
+# define EMACS_UINT unsigned EMACS_INT
 #endif
 
 /* Extra internal type checking?  */

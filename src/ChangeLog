@@ -1,5 +1,7 @@
 2011-04-30  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lisp.h (EMACS_INT, EMACS_UINT, BITS_PER_EMACS_INT, pI): Simplify.
+
 	* dbusbind.c: Do not use XPNTR on a value that may be an integer.
 	Reported by Stefan Monnier in
 	<http://lists.gnu.org/archive/html/emacs-devel/2011-04/msg00919.html>.
