@@ -470,14 +470,21 @@ extern char *getenv ();
 #define BITS_PER_LONG 32
 #endif
 
-#if defined __MINGW32__ || 1400 <= _MSC_VER
-/* C99-style long long and "%lld" both work, so use them.  */
-# define BITS_PER_LONG_LONG 64
-#elif 1200 <= _MSC_VER
+#if defined(__MINGW32__) || _MSC_VER >= 1400
+
+/* Define to 1 if the system has the type `long long int'. */
+# define HAVE_LONG_LONG_INT 1
+
+/* Define to 1 if the system has the type `unsigned long long int'. */
+# define HAVE_UNSIGNED_LONG_LONG_INT 1
+
+#elif _MSC_VER >= 1200
+
 /* Use pre-C99-style 64-bit integers.  */
 # define EMACS_INT __int64
 # define BITS_PER_EMACS_INT 64
 # define pI "I64"
+
 #endif
 
 #ifndef POINTER_TYPE

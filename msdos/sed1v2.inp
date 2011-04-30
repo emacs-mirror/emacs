@@ -28,7 +28,8 @@ s/\.h\.in/.h-in/
 /^CPP *=/s/@[^@\n]*@/gcc -e/
 /^CFLAGS *=/s/@[^@\n]*@/-O2 -gcoff/
 /^ALL_CFLAGS *=/s/@[^@\n]*@//g
-/^CPPFLAGS *=/s/@[^@\n]*@//
+/^ALL_CFLAGS *=/s/ -I\.//g
+/^CPPFLAGS *=/s|@[^@\n]*@|-I../msdos|
 /^LDFLAGS *=/s/@[^@\n]*@//
 /^LD_FIRSTFLAG *=/s/@[^@\n]*@//
 /^LIBS *=/s/@[^@\n]*@//
@@ -193,3 +194,5 @@ s/\$(LIBOTF_CFLAGS) \$(M17N_FLT_CFLAGS) \$(DEPFLAGS) //
 s/ \$(C_SWITCH_X_SITE)//
 s/ \$(DBUS_CFLAGS)//
 s| -I\$(srcdir)/../lib||
+# Add our local inttypes.h to prerequisites where needed
+/^lread\.o:/s|lread\.c|& ../msdos/inttypes.h|

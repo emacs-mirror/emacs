@@ -12,8 +12,6 @@
 	(xd_remove_watch, Fdbus_init_bus, xd_read_queued_messages): Use
 	SYMBOLP-guarded XSYMBOL, not XPNTR.
 
-2011-04-29  Paul Eggert  <eggert@cs.ucla.edu>
-
 	* lisp.h (EMACS_INTPTR): Remove.  All uses changed to intptr_t.
 	(EMACS_UINTPTR): Likewise, with uintptr_t.
 
@@ -54,8 +52,6 @@
 	Use a local to convert to proper width without a cast.
 	* xmenu.c (dialog_selection_callback): Likewise.
 
-2011-04-28  Paul Eggert  <eggert@cs.ucla.edu>
-
 	* sysdep.c (get_random): Don't assume EMACS_INT is no wider than long.
 	Also, don't assume VALBITS / RAND_BITS is less than 5,
 	and don't rely on undefined behavior when shifting a 1 left into
@@ -78,6 +74,42 @@
 	* eval.c (Fautoload): Don't double-shift a pointer.
 
 	* fns.c (Frandom): Let EMACS_UINT be wider than unsigned long.
+
+2011-04-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* dosfns.c (Fint86, Fdos_memget, Fdos_memput): Use `ASIZE (FOO)'
+	rather than `XVECTOR (FOO)->size'.
+
+	* process.c: Remove HAVE_INTTYPES_H condition from inclusion of
+	inttypes.h, as a gnulib replacement is used if it not available in
+	system headers.
+
+2011-04-21  Eli Zaretskii  <eliz@gnu.org>
+
+	Lift the MOST_POSITIVE_FIXNUM/4 limitation on visited files.
+	* fileio.c (Finsert_file_contents): Don't limit file size to 1/4
+	of MOST_POSITIVE_FIXNUM.  (Bug#8528)
+
+	* coding.c (coding_alloc_by_realloc): Error out if destination
+	will grow beyond MOST_POSITIVE_FIXNUM.
+	(decode_coding_emacs_mule): Abort if there isn't enough place in
+	charbuf for the composition carryover bytes.  Reserve an extra
+	space for up to 2 characters produced in a loop.
+	(decode_coding_iso_2022): Abort if there isn't enough place in
+	charbuf for the composition carryover bytes.
+
+2011-04-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* doprnt.c (doprnt) [!HAVE_LONG_LONG_INT]: Error out instead of
+	aborting when %lld or %lll format is passed.
+	[!HAVE_UNSIGNED_LONG_LONG_INT]: Error out instead of aborting when
+	%llo or %llx format is passed.  (Bug#8545)
+
+	* window.c (window_scroll_line_based): Use a marker instead of
+	simple variables to record original value of point.  (Bug#7952)
+
+	* doprnt.c (doprnt): Fix the case where a multibyte sequence
+	produced by %s or %c overflows available buffer space.  (Bug#8545)
 
 2011-04-28  Paul Eggert  <eggert@cs.ucla.edu>
 

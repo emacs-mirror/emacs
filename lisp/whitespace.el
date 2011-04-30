@@ -5,7 +5,7 @@
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: data, wp
-;; Version: 13.2
+;; Version: 13.2.1
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 ;; This file is part of GNU Emacs.
@@ -311,6 +311,9 @@
 ;;
 ;; Acknowledgements
 ;; ----------------
+;;
+;; Thanks to felix (EmacsWiki) for keeping highlight when switching between
+;; major modes on a file.
 ;;
 ;; Thanks to David Reitter <david.reitter@gmail.com> for suggesting a
 ;; `whitespace-newline' initialization with low contrast relative to
@@ -1132,6 +1135,7 @@ See also `whitespace-style', `whitespace-newline' and
    (global-whitespace-mode		; global-whitespace-mode on
     (save-excursion
       (add-hook 'find-file-hook 'whitespace-turn-on-if-enabled)
+      (add-hook 'after-change-major-mode-hook 'whitespace-turn-on-if-enabled)
       (dolist (buffer (buffer-list))	; adjust all local mode
 	(set-buffer buffer)
 	(unless whitespace-mode
@@ -1139,6 +1143,7 @@ See also `whitespace-style', `whitespace-newline' and
    (t					; global-whitespace-mode off
     (save-excursion
       (remove-hook 'find-file-hook 'whitespace-turn-on-if-enabled)
+      (remove-hook 'after-change-major-mode-hook 'whitespace-turn-on-if-enabled)
       (dolist (buffer (buffer-list))	; adjust all local mode
 	(set-buffer buffer)
 	(unless whitespace-mode

@@ -1,3 +1,24 @@
+2011-04-30  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* faces.el (face-spec-set-match-display): Don't match toolkit
+	options on terminal frames.
+
+2011-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/pascal.el: Use lexical binding.
+	(pascal-mode-map): Remove author preferences.
+
+	* pcomplete.el (pcomplete-std-complete): Don't abuse
+	completion-at-point.
+
+2011-04-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* calc/calccomp.el (math-comp-to-string-flat-term): Simplify by
+	removing code that has been dead since 1991 or so.
+
+	* startup.el (command-line): When warning about "_emacs", use a
+	delayed warning to allow the user to filter it out.
+
 2011-04-28  Deniz Dogan  <deniz@dogan.se>
 
 	* net/rcirc.el (rcirc-handler-353): Fix bug for channels which the
@@ -468,6 +489,15 @@
 	* calendar/solar.el (solar-horizontal-coordinates):
 	Use the longitude argument rather than `calendar-longitude'.
 	(solar-date-next-longitude): Remove unused locals.
+
+2011-04-20  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* whitespace.el: New version 13.2.1.
+
+2011-04-20  felix  <EmacsWiki>  (tiny change)
+
+	* whitespace.el (global-whitespace-mode): keep highlight when
+	switching between major modes on a file.
 
 2011-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 

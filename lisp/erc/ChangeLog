@@ -1,3 +1,10 @@
+2011-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc-pcomplete.el (erc-pcomplete-nick-postfix): Remove the " " in the
+	suffix that's added by pcomplete-termination-string anyway.
+	(pcomplete-erc-setup): Remove pcomplete-suffix-list setting now that
+	it's not needed any more.
+
 2011-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* erc.el (erc-mode-map): Use completion-at-point.

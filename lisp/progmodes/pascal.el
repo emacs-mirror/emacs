@@ -1,4 +1,4 @@
-;;; pascal.el --- major mode for editing pascal source in Emacs
+;;; pascal.el --- major mode for editing pascal source in Emacs -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1993-2011  Free Software Foundation, Inc.
 
@@ -76,8 +76,9 @@
     (define-key map ":"        'electric-pascal-colon)
     (define-key map "="        'electric-pascal-equal)
     (define-key map "#"        'electric-pascal-hash)
-    (define-key map "\r"       'electric-pascal-terminate-line)
-    (define-key map "\t"       'electric-pascal-tab)
+    ;; These are user preferences, so not to set by default.
+    ;;(define-key map "\r"       'electric-pascal-terminate-line)
+    ;;(define-key map "\t"       'electric-pascal-tab)
     (define-key map "\M-\t"    'pascal-complete-word)
     (define-key map "\M-?"     'pascal-show-completions)
     (define-key map "\177"     'backward-delete-char-untabify)

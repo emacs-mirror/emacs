@@ -100,6 +100,10 @@ s/^#undef POINTER_TYPE *$/#define POINTER_TYPE void/
 #else\
 #undef HAVE_STDINT_H\
 #endif
+s/^#undef HAVE_DECL_STRTOULL *$/#define HAVE_DECL_STRTOULL 1/
+s/^#undef HAVE_DECL_STRTOUMAX *$/#define HAVE_DECL_STRTOUMAX 1/
+s/^#undef HAVE_STRTOULL *$/#define HAVE_STRTOULL 1/
+s/^#undef HAVE_STRTOULL *$/#define HAVE_STRTOULL 1/
 
 # Comment out any remaining undef directives, because some of them
 # might be defined in sys/config.h we include at the top of config.h.

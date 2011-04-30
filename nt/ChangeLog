@@ -1,9 +1,13 @@
 2011-04-30  Paul Eggert  <eggert@cs.ucla.edu>
 
-	* config.nt: Configure 64-bit integers.
-	(BITS_PER_LONG_LONG): Define if C99-style long long and "%lld" work.
-	(EMACS_INT, BITS_PER_EMACS_INT, pI): Otherwise, define these if
-	__int64 and "%I64d" work.
+	* config.nt: Configure 64-bit integers for older compilers.
+	(EMACS_INT, BITS_PER_EMACS_INT, pI): Define these if __int64 and
+	"%I64d" work but long long and "%lld" do not.
+
+2011-04-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (HAVE_LONG_LONG_INT, HAVE_UNSIGNED_LONG_LONG_INT):
+	Define to 1 for MinGW of MSVC versions >= 1400.
 
 2011-04-28  Eli Zaretskii  <eliz@gnu.org>
 

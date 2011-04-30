@@ -87,6 +87,10 @@ used."
 This is used for cid: URLs, and the function is called with the
 cid: URL as the argument.")
 
+(defface shr-strike-through '((t (:strike-through t)))
+  "Font for <s> elements."
+  :group 'shr)
+
 ;;; Internal variables.
 
 (defvar shr-folding-mode nil)
@@ -760,6 +764,9 @@ ones, in case fg and bg are nil."
   (shr-generic cont)
   (shr-ensure-newline))
 
+(defun shr-tag-s (cont)
+  (shr-fontize-cont cont 'shr-strike-through))
+
 (defun shr-tag-b (cont)
   (shr-fontize-cont cont 'bold))
 
@@ -774,9 +781,6 @@ ones, in case fg and bg are nil."
 
 (defun shr-tag-u (cont)
   (shr-fontize-cont cont 'underline))
-
-(defun shr-tag-s (cont)
-  (shr-fontize-cont cont 'strike-through))
 
 (defun shr-parse-style (style)
   (when style

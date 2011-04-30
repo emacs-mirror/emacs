@@ -5076,7 +5076,12 @@ static void
 window_scroll_line_based (Lisp_Object window, int n, int whole, int noerror)
 {
   register struct window *w = XWINDOW (window);
-  register EMACS_INT opoint = PT, opoint_byte = PT_BYTE;
+  /* Fvertical_motion enters redisplay, which can trigger
+     fontification, which in turn can modify buffer text (e.g., if the
+     fontification functions replace escape sequences with faces, as
+     in `grep-mode-font-lock-keywords').  So we use a marker to record
+     the old point position, to prevent crashes in SET_PT_BOTH.  */
+  Lisp_Object opoint_marker = Fpoint_marker ();
   register EMACS_INT pos, pos_byte;
   register int ht = window_internal_height (w);
   register Lisp_Object tem;
@@ -5126,7 +5131,8 @@ window_scroll_line_based (Lisp_Object window, int n, int whole, int noerror)
   pos = PT;
   pos_byte = PT_BYTE;
   bolp = Fbolp ();
-  SET_PT_BOTH (opoint, opoint_byte);
+  SET_PT_BOTH (marker_position (opoint_marker),
+	       marker_byte_position (opoint_marker));
 
   if (lose)
     {
@@ -5177,8 +5183,9 @@ window_scroll_line_based (Lisp_Object window, int n, int whole, int noerror)
 	  else
 	    top_margin = pos;
 
-	  if (top_margin <= opoint)
-	    SET_PT_BOTH (opoint, opoint_byte);
+	  if (top_margin <= marker_position (opoint_marker))
+	    SET_PT_BOTH (marker_position (opoint_marker),
+			 marker_byte_position (opoint_marker));
 	  else if (!NILP (Vscroll_preserve_screen_position))
 	    {
 	      SET_PT_BOTH (pos, pos_byte);
@@ -5200,8 +5207,9 @@ window_scroll_line_based (Lisp_Object window, int n, int whole, int noerror)
 	  else
 	    bottom_margin = PT + 1;
 
-	  if (bottom_margin > opoint)
-	    SET_PT_BOTH (opoint, opoint_byte);
+	  if (bottom_margin > marker_position (opoint_marker))
+	    SET_PT_BOTH (marker_position (opoint_marker),
+			 marker_byte_position (opoint_marker));
 	  else
 	    {
 	      if (!NILP (Vscroll_preserve_screen_position))

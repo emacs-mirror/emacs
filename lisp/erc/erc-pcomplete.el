@@ -48,7 +48,7 @@
   "Programmable completion for ERC"
   :group 'erc)
 
-(defcustom erc-pcomplete-nick-postfix ": "
+(defcustom erc-pcomplete-nick-postfix ":"
   "*When `pcomplete' is used in the first word after the prompt,
 add this string to nicks completed."
   :group 'erc-pcomplete
@@ -93,8 +93,6 @@ for use on `completion-at-point-function'."
        t)
   (set (make-local-variable 'pcomplete-use-paring)
        nil)
-  (set (make-local-variable 'pcomplete-suffix-list)
-       '(?  ?:))
   (set (make-local-variable 'pcomplete-parse-arguments-function)
        'pcomplete-parse-erc-arguments)
   (set (make-local-variable 'pcomplete-command-completion-function)
