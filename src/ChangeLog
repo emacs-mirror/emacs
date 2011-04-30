@@ -1,3 +1,11 @@
+2011-04-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* dbusbind.c: Do not use XPNTR on a value that may be an integer.
+	Reported by Stefan Monnier in
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-04/msg00919.html>.
+	(xd_remove_watch, Fdbus_init_bus, xd_read_queued_messages): Use
+	SYMBOLP-guarded XSYMBOL, not XPNTR.
+
 2011-04-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* lisp.h (EMACS_INTPTR): Remove.  All uses changed to intptr_t.
