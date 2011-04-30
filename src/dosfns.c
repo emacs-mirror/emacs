@@ -62,7 +62,7 @@ REGISTERS should be a vector produced by `make-register' and
   CHECK_NUMBER (interrupt);
   no = (unsigned long) XINT (interrupt);
   CHECK_VECTOR (registers);
-  if (no < 0 || no > 0xff || XVECTOR (registers)-> size != 8)
+  if (no < 0 || no > 0xff || ASIZE (registers) != 8)
     return Qnil;
   for (i = 0; i < 8; i++)
     CHECK_NUMBER (XVECTOR (registers)->contents[i]);
@@ -102,7 +102,7 @@ Return the updated VECTOR.  */)
   CHECK_NUMBER (address);
   offs = (unsigned long) XINT (address);
   CHECK_VECTOR (vector);
-  len = XVECTOR (vector)-> size;
+  len = ASIZE (vector);
   if (len < 1 || len > 2048 || offs < 0 || offs > 0xfffff - len)
     return Qnil;
   buf = alloca (len);
@@ -125,7 +125,7 @@ DEFUN ("msdos-memput", Fdos_memput, Sdos_memput, 2, 2, 0,
   CHECK_NUMBER (address);
   offs = (unsigned long) XINT (address);
   CHECK_VECTOR (vector);
-  len = XVECTOR (vector)-> size;
+  len = ASIZE (vector);
   if (len < 1 || len > 2048 || offs < 0 || offs > 0xfffff - len)
     return Qnil;
   buf = alloca (len);

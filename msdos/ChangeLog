@@ -1,3 +1,15 @@
+2011-04-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* inttypes.h: New file.
+
+	* sed2v2.inp (HAVE_DECL_STRTOULL, HAVE_DECL_STRTOUMAX)
+	(HAVE_STRTOULL, HAVE_STRTOULL): Define to 1.
+
+	* sedlibmk.inp (BUILT_SOURCES): Edit out inttypes.h.
+
+	* sed1v2.inp (CPPFLAGS): Edit to "-I../msdos".
+	Add ../msdos/inttypes.h to prerequisites of lread.o.
+
 2011-04-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* sedlibmk.inp (am_libgnu_a_OBJECTS): Edit out

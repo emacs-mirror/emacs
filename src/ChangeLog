@@ -1,5 +1,8 @@
 2011-04-30  Eli Zaretskii  <eliz@gnu.org>
 
+	* dosfns.c (Fint86, Fdos_memget, Fdos_memput): Use `ASIZE (FOO)'
+	rather than `XVECTOR (FOO)->size'.
+
 	* process.c: Remove HAVE_INTTYPES_H condition from inclusion of
 	inttypes.h, as a gnulib replacement is used if it not available in
 	system headers.
