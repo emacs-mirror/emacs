@@ -1,3 +1,10 @@
+2011-04-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* config.nt: Configure 64-bit integers.
+	(BITS_PER_LONG_LONG): Define if C99-style long long and "%lld" work.
+	(EMACS_INT, BITS_PER_EMACS_INT, pI): Otherwise, define these if
+	__int64 and "%I64d" work.
+
 2011-04-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* gmake.defs (ARCH): Fix error message in case of unknown
@@ -2062,4 +2069,3 @@
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-

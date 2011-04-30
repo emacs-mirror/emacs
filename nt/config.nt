@@ -470,6 +470,17 @@ extern char *getenv ();
 #define BITS_PER_LONG 32
 #endif
 
+#if (defined __MINGW32__ \
+     || 1400 <= _MSC_VER || (1310 <= _MSC_VER && defined _MSC_EXTENSIONS))
+/* C99-style long long and "%lld" both work, so use them.  */
+# define BITS_PER_LONG_LONG 64
+#elif 1200 <= _MSC_VER
+/* Use pre-C99-style 64-bit integers.  */
+# define EMACS_INT __int64
+# define BITS_PER_EMACS_INT 64
+# define pI "I64"
+#endif
+
 #ifndef POINTER_TYPE
 #define POINTER_TYPE void
 #endif
@@ -508,4 +519,3 @@ void w32_abort (void) NO_RETURN;
 
 /* Make a leaner executable.  */
 #define WIN32_LEAN_AND_MEAN 1
-
