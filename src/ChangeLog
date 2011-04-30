@@ -1,3 +1,9 @@
+2011-04-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* process.c: Remove HAVE_INTTYPES_H condition from inclusion of
+	inttypes.h, as a gnulib replacement is used if it not available in
+	system headers.
+
 2011-04-21  Eli Zaretskii  <eliz@gnu.org>
 
 	Lift the MOST_POSITIVE_FIXNUM/4 limitation on visited files.

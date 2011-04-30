@@ -28,9 +28,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/file.h>
 #include <sys/stat.h>
 #include <setjmp.h>
-#ifdef HAVE_INTTYPES_H
 #include <inttypes.h>
-#endif
 
 #include <unistd.h>
 #include <fcntl.h>
