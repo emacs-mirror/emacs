@@ -485,6 +485,15 @@
 	Use the longitude argument rather than `calendar-longitude'.
 	(solar-date-next-longitude): Remove unused locals.
 
+2011-04-20  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* whitespace.el: New version 13.2.1.
+
+2011-04-20  felix  <EmacsWiki>  (tiny change)
+
+	* whitespace.el (global-whitespace-mode): keep highlight when
+	switching between major modes on a file.
+
 2011-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/octave-mod.el (octave-in-comment-p, octave-in-string-p)
