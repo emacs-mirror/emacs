@@ -470,8 +470,7 @@ extern char *getenv ();
 #define BITS_PER_LONG 32
 #endif
 
-#if (defined __MINGW32__ \
-     || 1400 <= _MSC_VER || (1310 <= _MSC_VER && defined _MSC_EXTENSIONS))
+#if defined __MINGW32__ || 1400 <= _MSC_VER
 /* C99-style long long and "%lld" both work, so use them.  */
 # define BITS_PER_LONG_LONG 64
 #elif 1200 <= _MSC_VER
