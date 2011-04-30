@@ -1,5 +1,9 @@
 2011-04-30  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* dispnew.c (scrolling_window): Return 1 if we scrolled,
+	to match comment at start of function.  This also removes a
+	GCC warning about overflow in a 32+64-bit port.
+
 	* lisp.h (EMACS_INT, EMACS_UINT, BITS_PER_EMACS_INT, pI): Simplify.
 
 	* dbusbind.c: Do not use XPNTR on a value that may be an integer.
