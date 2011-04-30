@@ -1,5 +1,7 @@
 2011-04-30  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* doprnt.c (doprnt): Support arbitrary pI values, such as "I64".
+
 	* dispnew.c (scrolling_window): Return 1 if we scrolled,
 	to match comment at start of function.  This also removes a
 	GCC warning about overflow in a 32+64-bit port.
