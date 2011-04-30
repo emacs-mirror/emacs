@@ -1,3 +1,8 @@
+2011-04-30  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* faces.el (face-spec-set-match-display): Don't match toolkit
+	options on terminal frames.
+
 2011-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/pascal.el: Use lexical binding.
