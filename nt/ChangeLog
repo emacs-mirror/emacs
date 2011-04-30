@@ -1,3 +1,8 @@
+2011-04-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (HAVE_LONG_LONG_INT, HAVE_UNSIGNED_LONG_LONG_INT):
+	Define to 1 for MinGW of MSVC versions >= 1400.
+
 2011-04-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* gmake.defs (ARCH): Fix error message in case of unknown
