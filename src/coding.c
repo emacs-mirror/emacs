@@ -5368,8 +5368,8 @@ detect_coding_charset (struct coding_system *coding,
 	      if (src == src_end)
 		goto too_short;
 	      ONE_MORE_BYTE (c);
-	      if (c < charset->code_space[(dim - 1 - idx) * 2]
-		  || c > charset->code_space[(dim - 1 - idx) * 2 + 1])
+	      if (c < charset->code_space[(dim - 1 - idx) * 4]
+		  || c > charset->code_space[(dim - 1 - idx) * 4 + 1])
 		break;
 	    }
 	  if (idx < dim)
