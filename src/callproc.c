@@ -156,8 +156,9 @@ DEFUN ("call-process", Fcall_process, Scall_process, 1, MANY, 0,
        doc: /* Call PROGRAM synchronously in separate process.
 The remaining arguments are optional.
 The program's input comes from file INFILE (nil means `/dev/null').
-Insert output in BUFFER before point; t means current buffer;
- nil for BUFFER means discard it; 0 means discard and don't wait.
+Insert output in BUFFER before point; t means current buffer; nil for BUFFER
+ means discard it; 0 means discard and don't wait; and `(:file FILE)', where
+ FILE is a file name string, means that it should be written to that file.
 BUFFER can also have the form (REAL-BUFFER STDERR-FILE); in that case,
 REAL-BUFFER says what to do with standard output, as above,
 while STDERR-FILE says what to do with standard error in the child.
@@ -196,14 +197,17 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   /* File to use for stderr in the child.
      t means use same as standard output.  */
   Lisp_Object error_file;
+  Lisp_Object output_file = Qnil;
 #ifdef MSDOS	/* Demacs 1.1.1 91/10/16 HIRANO Satoshi */
   char *outf, *tempfile;
   int outfilefd;
 #endif
+  int fd_output = -1;
   struct coding_system process_coding; /* coding-system of process output */
   struct coding_system argument_coding;	/* coding-system of arguments */
   /* Set to the return value of Ffind_operation_coding_system.  */
   Lisp_Object coding_systems;
+  int output_to_buffer = 1;
 
   /* Qt denotes that Ffind_operation_coding_system is not yet called.  */
   coding_systems = Qt;
@@ -273,9 +277,12 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     {
       buffer = args[2];
 
-      /* If BUFFER is a list, its meaning is
-	 (BUFFER-FOR-STDOUT FILE-FOR-STDERR).  */
-      if (CONSP (buffer))
+      /* If BUFFER is a list, its meaning is (BUFFER-FOR-STDOUT
+	 FILE-FOR-STDERR), unless the first element is :file, in which case see
+	 the next paragraph. */
+      if (CONSP (buffer) &&
+	  (! SYMBOLP (XCAR (buffer)) ||
+	   strcmp (SSDATA (SYMBOL_NAME (XCAR (buffer))), ":file")))
 	{
 	  if (CONSP (XCDR (buffer)))
 	    {
@@ -289,6 +296,17 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	    }
 
 	  buffer = XCAR (buffer);
+	}
+
+      /* If the buffer is (still) a list, it might be a (:file "file") spec. */
+      if (CONSP (buffer) &&
+	  SYMBOLP (XCAR (buffer)) &&
+	  ! strcmp (SSDATA (SYMBOL_NAME (XCAR (buffer))), ":file"))
+	{
+	  output_file = Fexpand_file_name (XCAR (XCDR (buffer)),
+					   BVAR (current_buffer, directory));
+	  CHECK_STRING (output_file);
+	  buffer = Qnil;
 	}
 
       if (!(EQ (buffer, Qnil)
@@ -318,11 +336,11 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
      protected by the caller, so all we really have to worry about is
      buffer.  */
   {
-    struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+    struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
 
     current_dir = BVAR (current_buffer, directory);
 
-    GCPRO4 (infile, buffer, current_dir, error_file);
+    GCPRO5 (infile, buffer, current_dir, error_file, output_file);
 
     current_dir = Funhandled_file_name_directory (current_dir);
     if (NILP (current_dir))
@@ -342,6 +360,8 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
       current_dir = ENCODE_FILE (current_dir);
     if (STRINGP (error_file) && STRING_MULTIBYTE (error_file))
       error_file = ENCODE_FILE (error_file);
+    if (STRINGP (output_file) && STRING_MULTIBYTE (output_file))
+      output_file = ENCODE_FILE (output_file);
     UNGCPRO;
   }
 
@@ -353,6 +373,26 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
       infile = DECODE_FILE (infile);
       report_file_error ("Opening process input file", Fcons (infile, Qnil));
     }
+
+  if (STRINGP (output_file))
+    {
+#ifdef DOS_NT
+      fd_output = emacs_open (SSDATA (output_file),
+			      O_WRONLY | O_TRUNC | O_CREAT | O_TEXT,
+			      S_IREAD | S_IWRITE);
+#else  /* not DOS_NT */
+      fd_output = creat (SSDATA (output_file), 0666);
+#endif /* not DOS_NT */
+      if (fd_output < 0)
+	{
+	  output_file = DECODE_FILE (output_file);
+	  report_file_error ("Opening process output file",
+			     Fcons (output_file, Qnil));
+        }
+      if (STRINGP (error_file) || NILP (error_file))
+        output_to_buffer = 0;
+    }
+
   /* Search for program; barf if not found.  */
   {
     struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
@@ -413,13 +453,18 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   strcat (tempfile, "detmp.XXX");
   mktemp (tempfile);
 
-  outfilefd = creat (tempfile, S_IREAD | S_IWRITE);
-  if (outfilefd < 0)
+  /* If we're redirecting STDOUT to a file, this is already opened. */
+  if (fd_output < 0)
     {
-      emacs_close (filefd);
-      report_file_error ("Opening process output file",
-			 Fcons (build_string (tempfile), Qnil));
+      outfilefd = creat (tempfile, S_IREAD | S_IWRITE);
+      if (outfilefd < 0) {
+	emacs_close (filefd);
+	report_file_error ("Opening process output file",
+			   Fcons (build_string (tempfile), Qnil));
+      }
     }
+  else
+    outfilefd = fd_output;
   fd[0] = filefd;
   fd[1] = outfilefd;
 #endif /* MSDOS */
@@ -450,6 +495,8 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     struct sigaction sigpipe_action;
 #endif
 
+    if (fd_output >= 0)
+      fd1 = fd_output;
 #if 0  /* Some systems don't have sigblock.  */
     mask = sigblock (sigmask (SIGCHLD));
 #endif
@@ -591,6 +638,8 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     /* Close most of our fd's, but not fd[0]
        since we will use that to read input from.  */
     emacs_close (filefd);
+    if (fd_output >= 0)
+      emacs_close (fd_output);
     if (fd1 >= 0 && fd1 != fd_error)
       emacs_close (fd1);
   }
@@ -673,6 +722,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   immediate_quit = 1;
   QUIT;
 
+  if (output_to_buffer)
   {
     register EMACS_INT nread;
     int first = 1;
@@ -802,7 +852,10 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
 #ifndef MSDOS
   /* Wait for it to terminate, unless it already has.  */
-  wait_for_termination (pid);
+  if (output_to_buffer)
+    wait_for_termination (pid);
+  else
+    interruptible_wait_for_termination (pid);
 #endif
 
   immediate_quit = 0;
@@ -850,8 +903,10 @@ DEFUN ("call-process-region", Fcall_process_region, Scall_process_region,
 The remaining arguments are optional.
 Delete the text if fourth arg DELETE is non-nil.
 
-Insert output in BUFFER before point; t means current buffer;
- nil for BUFFER means discard it; 0 means discard and don't wait.
+Insert output in BUFFER before point; t means current buffer; nil for
+ BUFFER means discard it; 0 means discard and don't wait; and `(:file
+ FILE)', where FILE is a file name string, means that it should be
+ written to that file.
 BUFFER can also have the form (REAL-BUFFER STDERR-FILE); in that case,
 REAL-BUFFER says what to do with standard output, as above,
 while STDERR-FILE says what to do with standard error in the child.

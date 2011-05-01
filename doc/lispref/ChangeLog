@@ -1,3 +1,8 @@
+2011-04-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* processes.texi (Synchronous Processes): Document the (:file
+	"/file-name") syntax for `call-process'.
+
 2011-04-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* windows.texi (Choosing Window): Fix typo.

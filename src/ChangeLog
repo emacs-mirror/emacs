@@ -1,3 +1,13 @@
+2011-05-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* sysdep.c (interruptible_wait_for_termination): New function
+	which is like wait_for_termination, but allows keyboard
+	interruptions.
+
+	* callproc.c (Fcall_process): Add (:file "file") as an option for
+	the STDOUT buffer.
+	(Fcall_process_region): Ditto.
+
 2011-04-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* dosfns.c (Fint86, Fdos_memget, Fdos_memput): Use `ASIZE (FOO)'

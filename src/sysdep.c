@@ -302,6 +302,19 @@ int wait_debugging EXTERNALLY_VISIBLE;
 void
 wait_for_termination (int pid)
 {
+  wait_for_termination_1 (pid, 0);
+}
+
+/* Like the above, but allow keyboard interruption. */
+void
+interruptible_wait_for_termination (int pid)
+{
+  wait_for_termination_1 (pid, 1);
+}
+
+void
+wait_for_termination_1 (int pid, int interruptible)
+{
   while (1)
     {
 #if (defined (BSD_SYSTEM) || defined (HPUX)) && !defined(__GNU__)
@@ -339,6 +352,8 @@ wait_for_termination (int pid)
       sigsuspend (&empty_mask);
 #endif /* not WINDOWSNT */
 #endif /* not BSD_SYSTEM, and not HPUX version >= 6 */
+      if (interruptible)
+	QUIT;
     }
 }
 
