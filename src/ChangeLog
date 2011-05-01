@@ -3,7 +3,7 @@
 	* charset.h (struct charset.code_space): Now has 15 elements, not 16.
 	* charset.c (Fdefine_charset_internal): Don't initialize
 	charset.code_space[15].  The value was garbage, on hosts with
-	32-bit int.
+	32-bit int (Bug#8600).
 
 2011-04-30  Eli Zaretskii  <eliz@gnu.org>
 
