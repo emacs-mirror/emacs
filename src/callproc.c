@@ -1,6 +1,6 @@
 /* Synchronous subprocess invocation for GNU Emacs.
    Copyright (C) 1985-1988, 1993-1995, 1999-2011
-                 Free Software Foundation, Inc.
+		 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -280,9 +280,9 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
       /* If BUFFER is a list, its meaning is (BUFFER-FOR-STDOUT
 	 FILE-FOR-STDERR), unless the first element is :file, in which case see
 	 the next paragraph. */
-      if (CONSP (buffer) &&
-	  (! SYMBOLP (XCAR (buffer)) ||
-	   strcmp (SSDATA (SYMBOL_NAME (XCAR (buffer))), ":file")))
+      if (CONSP (buffer)
+	  && (! SYMBOLP (XCAR (buffer))
+	      || strcmp (SSDATA (SYMBOL_NAME (XCAR (buffer))), ":file")))
 	{
 	  if (CONSP (XCDR (buffer)))
 	    {
@@ -299,9 +299,9 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	}
 
       /* If the buffer is (still) a list, it might be a (:file "file") spec. */
-      if (CONSP (buffer) &&
-	  SYMBOLP (XCAR (buffer)) &&
-	  ! strcmp (SSDATA (SYMBOL_NAME (XCAR (buffer))), ":file"))
+      if (CONSP (buffer)
+	  && SYMBOLP (XCAR (buffer))
+	  && ! strcmp (SSDATA (SYMBOL_NAME (XCAR (buffer))), ":file"))
 	{
 	  output_file = Fexpand_file_name (XCAR (XCDR (buffer)),
 					   BVAR (current_buffer, directory));
@@ -388,9 +388,9 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	  output_file = DECODE_FILE (output_file);
 	  report_file_error ("Opening process output file",
 			     Fcons (output_file, Qnil));
-        }
+	}
       if (STRINGP (error_file) || NILP (error_file))
-        output_to_buffer = 0;
+	output_to_buffer = 0;
     }
 
   /* Search for program; barf if not found.  */
@@ -599,12 +599,12 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	if (fd[0] >= 0)
 	  emacs_close (fd[0]);
 #ifdef HAVE_SETSID
-        setsid ();
+	setsid ();
 #endif
 #if defined (USG)
-        setpgrp ();
+	setpgrp ();
 #else
-        setpgrp (pid, pid);
+	setpgrp (pid, pid);
 #endif /* USG */
 
 	/* GConf causes us to ignore SIGPIPE, make sure it is restored
@@ -723,132 +723,132 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   QUIT;
 
   if (output_to_buffer)
-  {
-    register EMACS_INT nread;
-    int first = 1;
-    EMACS_INT total_read = 0;
-    int carryover = 0;
-    int display_p = display_p_volatile;
-    int display_on_the_fly = display_p;
-    struct coding_system saved_coding;
+    {
+      register EMACS_INT nread;
+      int first = 1;
+      EMACS_INT total_read = 0;
+      int carryover = 0;
+      int display_p = display_p_volatile;
+      int display_on_the_fly = display_p;
+      struct coding_system saved_coding;
 
-    saved_coding = process_coding;
-    while (1)
-      {
-	/* Repeatedly read until we've filled as much as possible
-	   of the buffer size we have.  But don't read
-	   less than 1024--save that for the next bufferful.  */
-	nread = carryover;
-	while (nread < bufsize - 1024)
-	  {
-	    int this_read = emacs_read (fd[0], buf + nread,
-					bufsize - nread);
+      saved_coding = process_coding;
+      while (1)
+	{
+	  /* Repeatedly read until we've filled as much as possible
+	     of the buffer size we have.  But don't read
+	     less than 1024--save that for the next bufferful.  */
+	  nread = carryover;
+	  while (nread < bufsize - 1024)
+	    {
+	      int this_read = emacs_read (fd[0], buf + nread,
+					  bufsize - nread);
 
-	    if (this_read < 0)
-	      goto give_up;
+	      if (this_read < 0)
+		goto give_up;
 
-	    if (this_read == 0)
-	      {
-		process_coding.mode |= CODING_MODE_LAST_BLOCK;
+	      if (this_read == 0)
+		{
+		  process_coding.mode |= CODING_MODE_LAST_BLOCK;
+		  break;
+		}
+
+	      nread += this_read;
+	      total_read += this_read;
+
+	      if (display_on_the_fly)
 		break;
-	      }
+	    }
 
-	    nread += this_read;
-	    total_read += this_read;
+	  /* Now NREAD is the total amount of data in the buffer.  */
+	  immediate_quit = 0;
 
-	    if (display_on_the_fly)
-	      break;
-	  }
+	  if (!NILP (buffer))
+	    {
+	      if (NILP (BVAR (current_buffer, enable_multibyte_characters))
+		  && ! CODING_MAY_REQUIRE_DECODING (&process_coding))
+		insert_1_both (buf, nread, nread, 0, 1, 0);
+	      else
+		{			/* We have to decode the input.  */
+		  Lisp_Object curbuf;
+		  int count1 = SPECPDL_INDEX ();
 
-	/* Now NREAD is the total amount of data in the buffer.  */
-	immediate_quit = 0;
+		  XSETBUFFER (curbuf, current_buffer);
+		  /* We cannot allow after-change-functions be run
+		     during decoding, because that might modify the
+		     buffer, while we rely on process_coding.produced to
+		     faithfully reflect inserted text until we
+		     TEMP_SET_PT_BOTH below.  */
+		  specbind (Qinhibit_modification_hooks, Qt);
+		  decode_coding_c_string (&process_coding,
+					  (unsigned char *) buf, nread, curbuf);
+		  unbind_to (count1, Qnil);
+		  if (display_on_the_fly
+		      && CODING_REQUIRE_DETECTION (&saved_coding)
+		      && ! CODING_REQUIRE_DETECTION (&process_coding))
+		    {
+		      /* We have detected some coding system.  But,
+			 there's a possibility that the detection was
+			 done by insufficient data.  So, we give up
+			 displaying on the fly.  */
+		      if (process_coding.produced > 0)
+			del_range_2 (process_coding.dst_pos,
+				     process_coding.dst_pos_byte,
+				     process_coding.dst_pos
+				     + process_coding.produced_char,
+				     process_coding.dst_pos_byte
+				     + process_coding.produced, 0);
+		      display_on_the_fly = 0;
+		      process_coding = saved_coding;
+		      carryover = nread;
+		      /* This is to make the above condition always
+			 fails in the future.  */
+		      saved_coding.common_flags
+			&= ~CODING_REQUIRE_DETECTION_MASK;
+		      continue;
+		    }
 
-	if (!NILP (buffer))
-	  {
-	    if (NILP (BVAR (current_buffer, enable_multibyte_characters))
-		&& ! CODING_MAY_REQUIRE_DECODING (&process_coding))
-	      insert_1_both (buf, nread, nread, 0, 1, 0);
-	    else
-	      {			/* We have to decode the input.  */
-		Lisp_Object curbuf;
-		int count1 = SPECPDL_INDEX ();
+		  TEMP_SET_PT_BOTH (PT + process_coding.produced_char,
+				    PT_BYTE + process_coding.produced);
+		  carryover = process_coding.carryover_bytes;
+		  if (carryover > 0)
+		    memcpy (buf, process_coding.carryover,
+			    process_coding.carryover_bytes);
+		}
+	    }
 
-		XSETBUFFER (curbuf, current_buffer);
-		/* We cannot allow after-change-functions be run
-		   during decoding, because that might modify the
-		   buffer, while we rely on process_coding.produced to
-		   faithfully reflect inserted text until we
-		   TEMP_SET_PT_BOTH below.  */
-		specbind (Qinhibit_modification_hooks, Qt);
-		decode_coding_c_string (&process_coding, (unsigned char *) buf,
-					nread, curbuf);
-		unbind_to (count1, Qnil);
-		if (display_on_the_fly
-		    && CODING_REQUIRE_DETECTION (&saved_coding)
-		    && ! CODING_REQUIRE_DETECTION (&process_coding))
-		  {
-		    /* We have detected some coding system.  But,
-		       there's a possibility that the detection was
-		       done by insufficient data.  So, we give up
-		       displaying on the fly.  */
-		    if (process_coding.produced > 0)
-		      del_range_2 (process_coding.dst_pos,
-				   process_coding.dst_pos_byte,
-				   process_coding.dst_pos
-				   + process_coding.produced_char,
-				   process_coding.dst_pos_byte
-				   + process_coding.produced, 0);
-		    display_on_the_fly = 0;
-		    process_coding = saved_coding;
-		    carryover = nread;
-		    /* This is to make the above condition always
-		       fails in the future.  */
-		    saved_coding.common_flags
-		      &= ~CODING_REQUIRE_DETECTION_MASK;
-		    continue;
-		  }
+	  if (process_coding.mode & CODING_MODE_LAST_BLOCK)
+	    break;
 
-		TEMP_SET_PT_BOTH (PT + process_coding.produced_char,
-				  PT_BYTE + process_coding.produced);
-		carryover = process_coding.carryover_bytes;
-		if (carryover > 0)
-		  memcpy (buf, process_coding.carryover,
-			  process_coding.carryover_bytes);
-	      }
-	  }
+	  /* Make the buffer bigger as we continue to read more data,
+	     but not past CALLPROC_BUFFER_SIZE_MAX.  */
+	  if (bufsize < CALLPROC_BUFFER_SIZE_MAX && total_read > 32 * bufsize)
+	    if ((bufsize *= 2) > CALLPROC_BUFFER_SIZE_MAX)
+	      bufsize = CALLPROC_BUFFER_SIZE_MAX;
 
-	if (process_coding.mode & CODING_MODE_LAST_BLOCK)
-	  break;
+	  if (display_p)
+	    {
+	      if (first)
+		prepare_menu_bars ();
+	      first = 0;
+	      redisplay_preserve_echo_area (1);
+	      /* This variable might have been set to 0 for code
+		 detection.  In that case, we set it back to 1 because
+		 we should have already detected a coding system.  */
+	      display_on_the_fly = 1;
+	    }
+	  immediate_quit = 1;
+	  QUIT;
+	}
+    give_up: ;
 
-	/* Make the buffer bigger as we continue to read more data,
-	   but not past CALLPROC_BUFFER_SIZE_MAX.  */
-	if (bufsize < CALLPROC_BUFFER_SIZE_MAX && total_read > 32 * bufsize)
-	  if ((bufsize *= 2) > CALLPROC_BUFFER_SIZE_MAX)
-	    bufsize = CALLPROC_BUFFER_SIZE_MAX;
-
-	if (display_p)
-	  {
-	    if (first)
-	      prepare_menu_bars ();
-	    first = 0;
-	    redisplay_preserve_echo_area (1);
-	    /* This variable might have been set to 0 for code
-	       detection.  In that case, we set it back to 1 because
-	       we should have already detected a coding system.  */
-	    display_on_the_fly = 1;
-	  }
-	immediate_quit = 1;
-	QUIT;
-      }
-  give_up: ;
-
-    Vlast_coding_system_used = CODING_ID_NAME (process_coding.id);
-    /* If the caller required, let the buffer inherit the
-       coding-system used to decode the process output.  */
-    if (inherit_process_coding_system)
-      call1 (intern ("after-insert-file-set-buffer-file-coding-system"),
-	     make_number (total_read));
-  }
+      Vlast_coding_system_used = CODING_ID_NAME (process_coding.id);
+      /* If the caller required, let the buffer inherit the
+	 coding-system used to decode the process output.  */
+      if (inherit_process_coding_system)
+	call1 (intern ("after-insert-file-set-buffer-file-coding-system"),
+	       make_number (total_read));
+    }
 
 #ifndef MSDOS
   /* Wait for it to terminate, unless it already has.  */
@@ -875,7 +875,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
       signame = strsignal (synch_process_termsig);
 
       if (signame == 0)
-        signame = "unknown";
+	signame = "unknown";
 
       synch_process_death = signame;
     }
@@ -1058,18 +1058,18 @@ add_env (char **env, char **new_env, char *string)
     {
       char *p = *ep, *q = string;
       while (ok)
-        {
-          if (*q != *p)
-            break;
-          if (*q == 0)
-            /* The string is a lone variable name; keep it for now, we
-               will remove it later.  It is a placeholder for a
-               variable that is not to be included in the environment.  */
-            break;
-          if (*q == '=')
-            ok = 0;
-          p++, q++;
-        }
+	{
+	  if (*q != *p)
+	    break;
+	  if (*q == 0)
+	    /* The string is a lone variable name; keep it for now, we
+	       will remove it later.  It is a placeholder for a
+	       variable that is not to be included in the environment.  */
+	    break;
+	  if (*q == '=')
+	    ok = 0;
+	  p++, q++;
+	}
     }
   if (ok)
     *new_env++ = string;
@@ -1173,8 +1173,8 @@ child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, L
     new_length = 0;
 
     for (tem = Vprocess_environment;
-         CONSP (tem) && STRINGP (XCAR (tem));
-         tem = XCDR (tem))
+	 CONSP (tem) && STRINGP (XCAR (tem));
+	 tem = XCDR (tem))
       {
 	if (strncmp (SSDATA (XCAR (tem)), "DISPLAY", 7) == 0
 	    && (SDATA (XCAR (tem)) [7] == '\0'
@@ -1227,11 +1227,11 @@ child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, L
     p = q = env;
     while (*p != 0)
       {
-        while (*q != 0 && strchr (*q, '=') == NULL)
-          q++;
-        *p = *q++;
-        if (*p != 0)
-          p++;
+	while (*q != 0 && strchr (*q, '=') == NULL)
+	  q++;
+	*p = *q++;
+	if (*p != 0)
+	  p++;
       }
   }
 
