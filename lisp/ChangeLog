@@ -1,3 +1,9 @@
+2011-05-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/network-stream.el (open-network-stream): Take a :nowait
+	parameter and pass it on to `make-network-process'.
+	(network-stream-open-plain): Ditto.
+
 2011-04-30  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* faces.el (face-spec-set-match-display): Don't match toolkit
