@@ -1,3 +1,21 @@
+2011-05-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* pop3.el (pop3-open-server): Upgrade opportunistically to STARTTLS.
+	(open-tls-stream): Remove superfluous tls/starttls autoloads.
+
+2011-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-sum.el (gnus-summary-next-article): Don't bug out if the summary
+	buffer has moved to a different frame.
+
+2011-05-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-request-article): Use nntp-insert-buffer-substring
+	to get the conversion from unibyte to multibyte buffers to work on
+	Emacs 22.
+
+	* nntp.el (nntp-request-article): Slight clean-up.
+
 2011-04-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-strike-through): New face.

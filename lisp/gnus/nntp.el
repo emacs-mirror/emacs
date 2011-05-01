@@ -1028,16 +1028,15 @@ command whose response triggered the error."
 
 (deffoo nntp-request-article (article &optional group server buffer command)
   (nntp-with-open-group
-    group server
+      group server
     (when (nntp-send-command-and-decode
            "\r?\n\\.\r?\n" "ARTICLE"
            (if (numberp article) (int-to-string article) article))
-      (if (and buffer
-               (not (equal buffer nntp-server-buffer)))
-          (with-current-buffer nntp-server-buffer
-            (copy-to-buffer buffer (point-min) (point-max))
-            (nntp-find-group-and-number group))
-        (nntp-find-group-and-number group)))))
+      (when (and buffer
+		 (not (equal buffer nntp-server-buffer)))
+	(with-current-buffer nntp-server-buffer
+	  (copy-to-buffer buffer (point-min) (point-max))))
+      (nntp-find-group-and-number group))))
 
 (deffoo nntp-request-head (article &optional group server)
   (nntp-with-open-group

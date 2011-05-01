@@ -7783,7 +7783,8 @@ If BACKWARD, the previous article is selected instead of the next."
 	  ;; Somehow or other, we may now have selected a different
 	  ;; window.  Make point go back to the summary buffer.
 	  (when (eq current-summary (current-buffer))
-	    (select-window (get-buffer-window current-summary)))
+            ;; FIXME: This burps when get-buffer-window returns nil.
+	    (select-window (get-buffer-window current-summary 0)))
 	  (gnus-summary-walk-group-buffer
 	   gnus-newsgroup-name cmd unread backward point))))))))
 
