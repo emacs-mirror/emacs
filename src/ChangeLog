@@ -1,3 +1,9 @@
+2011-05-01  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* sysdep.c (wait_for_termination_1): Make static.
+	(wait_for_termination, interruptible_wait_for_termination): Move
+	after wait_for_termination_1.
+
 2011-05-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* sysdep.c (interruptible_wait_for_termination): New function

@@ -296,23 +296,8 @@ init_baud_rate (int fd)
 int wait_debugging EXTERNALLY_VISIBLE;
 
 #ifndef MSDOS
-/* Wait for subprocess with process id `pid' to terminate and
-   make sure it will get eliminated (not remain forever as a zombie) */
 
-void
-wait_for_termination (int pid)
-{
-  wait_for_termination_1 (pid, 0);
-}
-
-/* Like the above, but allow keyboard interruption. */
-void
-interruptible_wait_for_termination (int pid)
-{
-  wait_for_termination_1 (pid, 1);
-}
-
-void
+static void
 wait_for_termination_1 (int pid, int interruptible)
 {
   while (1)
@@ -355,6 +340,22 @@ wait_for_termination_1 (int pid, int interruptible)
       if (interruptible)
 	QUIT;
     }
+}
+
+/* Wait for subprocess with process id `pid' to terminate and
+   make sure it will get eliminated (not remain forever as a zombie) */
+
+void
+wait_for_termination (int pid)
+{
+  wait_for_termination_1 (pid, 0);
+}
+
+/* Like the above, but allow keyboard interruption. */
+void
+interruptible_wait_for_termination (int pid)
+{
+  wait_for_termination_1 (pid, 1);
 }
 
 /*
