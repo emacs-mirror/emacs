@@ -1,3 +1,7 @@
+2011-05-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url-queue.el: New file.
+
 2011-04-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* url-http.el (url-http-wait-for-headers-change-function): Protect
