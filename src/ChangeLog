@@ -6,7 +6,7 @@
 	for example, #x1fffffffffffffff was misread as -2305843009213693952.
 	(digit_to_number): Move earlier, for benefit of read_integer.
 	Return -1 if the digit is out of range for the base, -2 if it is
-	not a digit in any supported base.
+	not a digit in any supported base.  (Bug#8602)
 
 2011-04-30  Paul Eggert  <eggert@cs.ucla.edu>
 
