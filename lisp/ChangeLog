@@ -1,3 +1,7 @@
+2011-05-02  Leo Liu  <sdl.web@gmail.com>
+
+	* vc/diff.el: Fix description.
+
 2011-05-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* server.el (server-eval-at): New function.
