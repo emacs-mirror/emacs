@@ -1,3 +1,7 @@
+2011-05-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* server.el (server-eval-at): New function.
+
 2011-05-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/network-stream.el (open-network-stream): Take a :nowait

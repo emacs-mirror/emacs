@@ -1495,6 +1495,15 @@ server-name @key{RET} foo @key{RET}} sets the server name to
 @samp{foo}.  The @code{emacsclient} program can specify a server by
 name, using the @samp{-s} option (@pxref{emacsclient Options}).
 
+@findex server-eval-at
+  If you have defined a server by a unique server name, you can
+connect to this server from other Emacs instances and evaluate forms
+on it by using the @code{server-eval-at} function.
+
+@code{(server-eval-at "foo" '(+ 1 2))} gives the result @code{3}, if
+there's a server with that name that is listening.  If not, an error
+will be signaled.
+
 @menu
 * Invoking emacsclient:: Connecting to the Emacs server.
 * emacsclient Options::  Emacs client startup options.
