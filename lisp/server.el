@@ -1487,8 +1487,8 @@ only these files will be asked to be saved."
 (defun server-eval-at (server form)
   "Eval FORM on Emacs Server SERVER."
   (let ((auth-file (expand-file-name server server-auth-dir))
-	;;(coding-system-for-read 'binary)
-	;;(coding-system-for-write 'binary)
+	(coding-system-for-read 'binary)
+	(coding-system-for-write 'binary)
 	address port secret process)
     (unless (file-exists-p auth-file)
       (error "No such server definition: %s" auth-file))
@@ -1516,8 +1516,12 @@ only these files will be asked to be saved."
       (goto-char (point-min))
       ;; If the result is nil, there's nothing in the buffer.  If the
       ;; result is non-nil, it's after "-print ".
-      (and (search-forward "\n-print" nil t)
-	   (read (current-buffer))))))
+      (when (search-forward "\n-print" nil t)
+	(let ((start (point)))
+	  (while (search-forward "&_" nil t)
+	    (replace-match " " t t))
+	  (goto-char start)
+	  (read (current-buffer)))))))
 
 
 (provide 'server)
