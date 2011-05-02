@@ -1,5 +1,9 @@
 2011-05-02  Juanma Barranquero  <lekktu@gmail.com>
 
+	* sysdep.c (get_tty_size) [WINDOWSNT]: Implement.  (Bug#8596)
+
+2011-05-02  Juanma Barranquero  <lekktu@gmail.com>
+
 	* gnutls.c (Qgnutls_log_level, Qgnutls_code, Qgnutls_anon)
 	(Qgnutls_x509pki, Qgnutls_e_interrupted, Qgnutls_e_again)
 	(Qgnutls_e_invalid_session, Qgnutls_e_not_ready_for_handshake)

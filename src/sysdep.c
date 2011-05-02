@@ -1125,8 +1125,7 @@ tabs_safe_p (int fd)
 void
 get_tty_size (int fd, int *widthp, int *heightp)
 {
-
-#ifdef TIOCGWINSZ
+#if defined TIOCGWINSZ
 
   /* BSD-style.  */
   struct winsize size;
@@ -1139,8 +1138,7 @@ get_tty_size (int fd, int *widthp, int *heightp)
       *heightp = size.ws_row;
     }
 
-#else
-#ifdef TIOCGSIZE
+#elif defined TIOCGSIZE
 
   /* SunOS - style.  */
   struct ttysize size;
@@ -1153,16 +1151,28 @@ get_tty_size (int fd, int *widthp, int *heightp)
       *heightp = size.ts_lines;
     }
 
-#else
-#ifdef MSDOS
+#elif defined WINDOWSNT
+
+  CONSOLE_SCREEN_BUFFER_INFO info;
+  if (GetConsoleScreenBufferInfo (GetStdHandle (STD_OUTPUT_HANDLE), &info))
+    {
+      *widthp = info.srWindow.Right - info.srWindow.Left + 1;
+      *heightp = info.srWindow.Bottom - info.srWindow.Top + 1;
+    }
+  else
+    *widthp = *heightp = 0;
+
+#elif defined MSDOS
+
   *widthp = ScreenCols ();
   *heightp = ScreenRows ();
+
 #else /* system doesn't know size */
+
   *widthp = 0;
   *heightp = 0;
+
 #endif
-#endif /* not SunOS-style */
-#endif /* not BSD-style */
 }
 
 /* Set the logical window size associated with descriptor FD
