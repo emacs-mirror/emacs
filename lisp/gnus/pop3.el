@@ -306,7 +306,7 @@ Returns the process associated with the connection."
 		    (t
 		     (or pop3-stream-type 'network)))
 	     :capability-command "CAPA\r\n"
-	     :end-of-command "^\\.\r?\n\\|^\\+[A-Z]+ .*\n"
+	     :end-of-command "^\\.\r?\n\\|^\\(-ERR\\|+OK \\).*\n"
 	     :success "^\\+OK.*\n"
 	     :return-list t
 	     :starttls-function
