@@ -302,7 +302,7 @@ Returns the process associated with the connection."
 		    ((or (eq pop3-stream-type 'ssl)
 			 (and (not pop3-stream-type)
 			      (member port '(995 "pop3s"))))
-		     :tls)
+		     'tls)
 		    (t
 		     (or pop3-stream-type 'network)))
 	     :capability-command "CAPA\r\n"
