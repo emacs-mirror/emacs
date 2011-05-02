@@ -67,9 +67,11 @@ controls the level of parallelism via the
   (let ((running 0)
 	waiting)
     (dolist (entry url-queue)
-      (if (url-queue-start-time entry)
-	  (incf running)
-	(setq waiting entry)))
+      (cond
+       ((url-queue-start-time entry)
+	(incf running))
+       ((not waiting)
+	(setq waiting entry))))
     (when (and waiting
 	       (< running url-queue-parallel-processes))
       (setf (url-queue-start-time waiting) (float-time))
