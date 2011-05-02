@@ -871,10 +871,13 @@ ones, in case fg and bg are nil."
 	  (shr-put-image (shr-get-image-data url) alt))
 	 (t
 	  (insert alt)
-	  (ignore-errors
-	    (url-retrieve (shr-encode-url url) 'shr-image-fetched
-			  (list (current-buffer) start (point-marker))
-			  t))))
+	  (funcall
+	   (if (fboundp 'url-queue-retrieve)
+	       'url-queue-retrieve
+	     'url-retrieve)
+	   (shr-encode-url url) 'shr-image-fetched
+	   (list (current-buffer) start (point-marker))
+	   t)))
 	(put-text-property start (point) 'keymap shr-map)
 	(put-text-property start (point) 'shr-alt alt)
 	(put-text-property start (point) 'image-url url)
