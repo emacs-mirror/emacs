@@ -396,6 +396,9 @@ Just set shell-dir-cookie-re to an appropriate regexp.
 ** browse-url has gotten a new variable that is used for mailto: URLs,
 `browse-url-mailto-function', which defaults to `browse-url-mail'.
 
+** `url-queue-retrieve' downloads web pages asynchronously, but allow
+controlling the degree of parallelism.
+
 ** Directory local variables can apply to file-less buffers, in certain modes
 (eg dired, vc-dir, log-edit).  For example, adding
 "(diff-mode . ((mode . whitespace)))" to your .dir-locals.el file,
@@ -821,6 +824,12 @@ declared as dynamically bound.
 Instead, the offending function is removed.
 
 ** New low-level function run-hook-wrapped.
+
+** `server-eval-at' is provided to allow evaluating forms on different
+Emacs server instances.
+
+** `call-process' allows a `(:file "file")' spec to redirect STDOUT to
+a file.
 
 ** byte-compile-disable-print-circle is obsolete.
 ** deferred-action-list and deferred-action-function are obsolete.

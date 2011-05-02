@@ -1,3 +1,8 @@
+2011-05-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* NEWS: Mention `url-retrieve-queue', (:file "file") and
+	`server-eval-at'.
+
 2011-04-28  Juanma Barranquero  <lekktu@gmail.com>
 
 	* NEWS: Document `delayed-warnings-list' and `delayed-warnings-hook'.
