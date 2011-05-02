@@ -93,15 +93,16 @@ controls the level of parallelism via the
 (defun url-queue-prune-old-entries ()
   (let (dead-jobs)
     (dolist (job url-queue)
-      ;; Kill jobs that have lasted longer than five seconds.
+      ;; Kill jobs that have lasted longer than the timeout.
       (when (and (url-queue-start-time job)
 		 (> (- (float-time) (url-queue-start-time job))
 		    url-queue-timeout))
 	(push job dead-jobs)))
     (dolist (job dead-jobs)
       (when (bufferp (url-queue-buffer job))
-	(ignore-errors
-	  (delete-process (get-buffer-process (url-queue-buffer job))))
+	(while (get-buffer-process (url-queue-buffer job))
+	  (ignore-errors
+	    (delete-process (get-buffer-process (url-queue-buffer job)))))
 	(ignore-errors
 	  (kill-buffer (url-queue-buffer job))))
       (setq url-queue (delq job url-queue)))))
