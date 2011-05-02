@@ -31,7 +31,7 @@
 (eval-when-compile (require 'cl))
 (require 'browse-url)
 
-(defcustom url-queue-parallel-processes 4
+(defcustom url-queue-parallel-processes 2
   "The number of concurrent processes."
   :type 'integer
   :group 'url)
@@ -47,8 +47,9 @@
 
 (defstruct url-queue
   url callback cbargs silentp
-  process start-time)
+  buffer start-time)
 
+;;;###autoload
 (defun url-queue-retrieve (url callback &optional cbargs silent)
   "Retrieve URL asynchronously and call CALLBACK with CBARGS when finished.
 Like `url-retrieve' (which see for details of the arguments), but
@@ -83,7 +84,7 @@ controls the level of parallelism via the
   (apply (url-queue-callback job) (cons status (url-queue-cbargs job))))
 
 (defun url-queue-start-retrieve (job)
-  (setf (url-queue-process job)
+  (setf (url-queue-buffer job)
 	(ignore-errors
 	  (url-retrieve (url-queue-url job)
 			#'url-queue-callback-function (list job)
@@ -98,12 +99,12 @@ controls the level of parallelism via the
 		    url-queue-timeout))
 	(push job dead-jobs)))
     (dolist (job dead-jobs)
-      (when (processp (url-queue-process job))
+      (when (bufferp (url-queue-buffer job))
 	(ignore-errors
-	  (delete-process (url-queue-process job)))
+	  (delete-process (get-buffer-process (url-queue-buffer job))))
 	(ignore-errors
-	  (kill-buffer (process-buffer (url-queue-process job))))
-	(setq url-queue (delq job url-queue))))))
+	  (kill-buffer (url-queue-buffer job))))
+      (setq url-queue (delq job url-queue)))))
 
 (provide 'url-queue)
 
