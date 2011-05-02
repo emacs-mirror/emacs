@@ -364,19 +364,6 @@ be restored and the command retried."
 
   (throw 'nntp-with-open-group-error t))
 
-(defmacro nntp-insert-buffer-substring (buffer &optional start end)
-  "Copy string from unibyte buffer to multibyte current buffer."
-  (if (featurep 'xemacs)
-      `(insert-buffer-substring ,buffer ,start ,end)
-    `(if enable-multibyte-characters
-	 (insert (with-current-buffer ,buffer
-		   (mm-string-to-multibyte
-		    ,(if (or start end)
-			 `(buffer-substring (or ,start (point-min))
-					    (or ,end (point-max)))
-		       '(buffer-string)))))
-       (insert-buffer-substring ,buffer ,start ,end))))
-
 (defmacro nntp-copy-to-buffer (buffer start end)
   "Copy string from unibyte current buffer to multibyte buffer."
   (if (featurep 'xemacs)
@@ -434,7 +421,7 @@ be restored and the command retried."
 	  (unless discard
 	    (with-current-buffer buffer
 	      (goto-char (point-max))
-	      (nntp-insert-buffer-substring (process-buffer process))
+	      (nnheader-insert-buffer-substring (process-buffer process))
 	      ;; Nix out "nntp reading...." message.
 	      (when nntp-have-messaged
 		(setq nntp-have-messaged nil)
@@ -996,7 +983,7 @@ command whose response triggered the error."
           (narrow-to-region
            (setq point (goto-char (point-max)))
            (progn
-	     (nntp-insert-buffer-substring buf last-point (cdr entry))
+	     (nnheader-insert-buffer-substring buf last-point (cdr entry))
              (point-max)))
           (setq last-point (cdr entry))
           (nntp-decode-text)
@@ -1472,7 +1459,7 @@ password contained in '~/.nntp-authinfo'."
 		(goto-char (point-max))
 		(save-restriction
 		  (narrow-to-region (point) (point))
-		  (nntp-insert-buffer-substring buf start)
+		  (nnheader-insert-buffer-substring buf start)
 		  (when decode
 		    (nntp-decode-text))))))
 	  ;; report it.
@@ -1700,7 +1687,7 @@ password contained in '~/.nntp-authinfo'."
 	(when in-process-buffer-p
 	  (set-buffer buf)
 	  (goto-char (point-max))
-	  (nntp-insert-buffer-substring process-buffer)
+	  (nnheader-insert-buffer-substring process-buffer)
 	  (set-buffer process-buffer)
 	  (erase-buffer)
 	  (set-buffer buf))

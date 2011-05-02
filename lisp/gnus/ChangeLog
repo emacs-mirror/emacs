@@ -1,5 +1,8 @@
 2011-05-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* nnheader.el (nnheader-insert-buffer-substring): Renamed from nntp-
+	and moved from that file for reuse.
+
 	* pop3.el (pop3-open-server): Error messages are "-ERR".
 
 2011-05-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>

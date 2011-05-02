@@ -545,7 +545,7 @@ textual parts.")
 		  (nnimap-get-whole-article article))
 	    (let ((buffer (current-buffer)))
 	      (with-current-buffer (or to-buffer nntp-server-buffer)
-		(nntp-insert-buffer-substring buffer)
+		(nnheader-insert-buffer-substring buffer)
 		(nnheader-ms-strip-cr)))
 	    (cons group article)))))))
 
