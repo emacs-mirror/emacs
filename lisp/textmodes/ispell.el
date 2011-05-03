@@ -3915,14 +3915,18 @@ Both should not be used to define a buffer-local dictionary."
 		  (progn
 		    (open-line 1)
 		    (unless found (newline))
-		    (insert (if (fboundp 'comment-padright)
-                                ;; Try and use the proper comment marker,
-                                ;; e.g. ";;" rather than ";".
-                                (comment-padright comment-start
-                                                  (comment-add nil))
-                              comment-start)
-                            " " ispell-words-keyword)
-		    (if (> (length comment-end) 0)
+		    (insert (if comment-start
+                                (progn
+                                  (if (fboundp 'comment-padright)
+                                      ;; Try and use the proper comment marker,
+                                      ;; e.g. ";;" rather than ";".
+                                      (comment-padright comment-start
+                                                        (comment-add nil))
+                                    comment-start)
+                                  " ")
+                              "")
+                            ispell-words-keyword)
+                    (if (and comment-end (> (length comment-end) 0))
 			(save-excursion
 			  (newline)
 			  (insert comment-end)))))
