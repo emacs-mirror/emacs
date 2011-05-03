@@ -35,10 +35,18 @@
 (eval-when-compile (require 'cl))
 
 (defvar generated-autoload-file "loaddefs.el"
-   "*File \\[update-file-autoloads] puts autoloads into.
-A `.el' file can set this in its local variables section to make its
-autoloads go somewhere else.  The autoload file is assumed to contain a
-trailer starting with a FormFeed character.")
+   "File \\[update-file-autoloads] puts autoloads into.
+A Lisp file can set this in its local variables section to make
+its autoloads go somewhere else.
+
+If this is a relative file name, the directory is determined as
+follows:
+ - If a Lisp file defined `generated-autoload-file' as a
+   file-local variable, use its containing directory.
+ - Otherwise use the \"lisp\" subdirectory of `source-directory'.
+
+The autoload file is assumed to contain a trailer starting with a
+FormFeed character.")
 ;;;###autoload
 (put 'generated-autoload-file 'safe-local-variable 'stringp)
 
