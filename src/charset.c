@@ -869,7 +869,7 @@ usage: (define-charset-internal ...)  */)
   ASET (attrs, charset_name, args[charset_arg_name]);
 
   val = args[charset_arg_code_space];
-  for (i = 0, dimension = 0, nchars = 1; i < 4; i++)
+  for (i = 0, dimension = 0, nchars = 1; ; i++)
     {
       int min_byte, max_byte;
 
@@ -880,10 +880,12 @@ usage: (define-charset-internal ...)  */)
       charset.code_space[i * 4] = min_byte;
       charset.code_space[i * 4 + 1] = max_byte;
       charset.code_space[i * 4 + 2] = max_byte - min_byte + 1;
-      nchars *= charset.code_space[i * 4 + 2];
-      charset.code_space[i * 4 + 3] = nchars;
       if (max_byte > 0)
 	dimension = i + 1;
+      if (i == 3)
+	break;
+      nchars *= charset.code_space[i * 4 + 2];
+      charset.code_space[i * 4 + 3] = nchars;
     }
 
   val = args[charset_arg_dimension];

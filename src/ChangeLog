@@ -1,4 +1,11 @@
-2011-05-02  Paul Eggert  <eggert@cs.ucla.edu>
+2011-05-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* coding.c (detect_coding_charset): Fix typo: * 2 -> *4 (Bug#8601).
+
+	* charset.h (struct charset.code_space): Now has 15 elements, not 16.
+	* charset.c (Fdefine_charset_internal): Don't initialize
+	charset.code_space[15].  The value was garbage, on hosts with
+	32-bit int (Bug#8600).
 
 	* lread.c (read_integer): Be more consistent with string-to-number.
 	Use string_to_number to do the actual conversion; this avoids
@@ -7,8 +14,6 @@
 	(digit_to_number): Move earlier, for benefit of read_integer.
 	Return -1 if the digit is out of range for the base, -2 if it is
 	not a digit in any supported base.  (Bug#8602)
-
-2011-04-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* doprnt.c (doprnt): Support arbitrary pI values, such as "I64".
 
