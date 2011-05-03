@@ -1,3 +1,8 @@
+2011-05-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/ispell.el (lookup-words): Use with-temp-buffer; signal
+	error directly rather via storing it into `results'.
+
 2011-05-02  Leo Liu  <sdl.web@gmail.com>
 
 	* vc/diff.el: Fix description.
