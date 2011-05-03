@@ -903,7 +903,21 @@ Emacs Lisp parse tree.
 
 FIXME: These should be front-ended by xml.el.
 
-** FIXME GnuTLS
+** GnuTLS
+
+*** Emacs can be compiled with libgnutls support
+This is the default.  You will then be able to use the functionality
+in gnutls.el, namely the `open-gnutls-stream' and `gnutls-negotiate'
+functions.  It's easiest to use these functions through
+`open-network-stream' because it can upgrade connections through
+STARTTLS opportunistically or use plain SSL, depending on your needs.
+
+Only versions 2.8.x and higher or GnuTLS have been tested.
+
+*** gnutls-log-level
+Set `gnutls-log-level' higher than 0 to get debug output.  1 is for
+important messages, 2 is for debug data, and higher numbers are as per
+the GnuTLS logging conventions.  The output is in *Messages*.
 
 ** Isearch
 
@@ -930,6 +944,12 @@ runtime checks.
 
 ** New configure.bat option --distfiles to specify files to be
 included in binary distribution.
+
+** New configure.bat option --without-gnutls to disable automatic
+GnuTLS detection.
+
+** New configure.bat option --lib for general library linkage, works
+with the USER_LIBS build variable.
 
 ** New make target `dist' to create binary distribution for MS Windows.
 

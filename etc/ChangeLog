@@ -1,3 +1,9 @@
+2011-05-03  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* NEWS: Mention new library gnutls.el and explain GnuTLS
+	functionality.  Mention new configure.bat options --without-gnutls
+	and --lib for W32.
+
 2011-05-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* NEWS: Mention `url-retrieve-queue', (:file "file") and
