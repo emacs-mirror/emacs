@@ -7,6 +7,7 @@
 	(arith_driver, Fadd1, Fsub1): Use floating point if the result is
 	out of Emacs fixnum range.
 	* bytecode.c (exec_byte_code): Likewise, for Bsub1, Badd1, Bnegate.
+	* floatfns.c (Fexpt): Likewise.
 
 	* callproc.c (Fcall_process): Use 'volatile' to avoid vfork clobbering.
 
