@@ -1,5 +1,7 @@
 2011-05-03  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xmenu.c (set_frame_menubar): Fix typo: int * -> int (3 times).
+
 	* coding.c (detect_coding_charset): Fix typo: * 2 -> *4 (Bug#8601).
 
 	* charset.h (struct charset.code_space): Now has 15 elements, not 16.
