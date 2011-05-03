@@ -1,12 +1,18 @@
+2011-05-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/bibtex.el (bibtex-fill-field-bounds, bibtex-fill-entry):
+	Avoid open-line which runs post-self-insert-hook.
+	(bibtex-fill-entry): Remove unused `end' var.
+
 2011-05-03  Dirk Ullrich  <dirk.ullrich@googlemail.com>  (tiny change)
 
-        * textmodes/ispell.el (ispell-add-per-file-word-list):
-        Protect against `nil' value of `comment-start' (Bug#8579).
+	* textmodes/ispell.el (ispell-add-per-file-word-list):
+	Protect against `nil' value of `comment-start' (Bug#8579).
 
 2011-05-03  Leo Liu  <sdl.web@gmail.com>
 
 	* isearch.el (isearch-yank-pop): New command.
-	(isearch-mode-map): bind it to `M-y'.
+	(isearch-mode-map): Bind it to `M-y'.
 	(isearch-forward): Mention it.
 
 2011-05-03  Stefan Monnier  <monnier@iro.umontreal.ca>
