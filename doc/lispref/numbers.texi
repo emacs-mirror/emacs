@@ -507,9 +507,9 @@ commonly used.
   All of these functions except @code{%} return a floating point value
 if any argument is floating.
 
-  It is important to note that in Emacs Lisp, arithmetic functions
-do not check for overflow.  Thus @code{(1+ 268435455)} may evaluate to
-@minus{}268435456, depending on your hardware.
+  If integer arithmetic overflows, the resulting value is converted
+to floating point.  Thus @code{(1+ 536870911)} may evaluate to
+536870912.0, depending on your hardware.
 
 @defun 1+ number-or-marker
 This function returns @var{number-or-marker} plus 1.
@@ -826,7 +826,7 @@ On the other hand, shifting one place to the right looks like this:
 As the example illustrates, shifting one place to the right divides the
 value of a positive integer by two, rounding downward.
 
-The function @code{lsh}, like all Emacs Lisp arithmetic functions, does
+The function @code{lsh} does
 not check for overflow, so shifting left can discard significant bits
 and change the sign of the number.  For example, left shifting
 536,870,911 produces @minus{}2 on a 30-bit machine:
@@ -1169,8 +1169,8 @@ approximately.
 
 @defun expt x y
 This function returns @var{x} raised to power @var{y}.  If both
-arguments are integers and @var{y} is positive, the result is an
-integer; in this case, overflow causes truncation, so watch out.
+arguments are integers and @var{y} is nonnegative, the result is an
+integer if it is in Emacs integer range.
 @end defun
 
 @defun sqrt arg

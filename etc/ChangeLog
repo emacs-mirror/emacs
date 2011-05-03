@@ -1,3 +1,8 @@
+2011-05-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* NEWS: Integer overflow now yields floating-point instead of
+	wrapping around.
+
 2011-05-03  Leo Liu  <sdl.web@gmail.com>
 
 	* NEWS: Mention the new command isearch-yank-pop.

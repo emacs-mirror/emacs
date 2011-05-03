@@ -1,6 +1,9 @@
 2011-05-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* numbers.texi (Integer Basics): Large integers are treated as floats.
+	(Arithmetic Operations, Math Functions): Large integers go to
+	floats instead of wrapping around.
+	* objects.texi (Integer Type): Likewise.
 
 2011-04-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
