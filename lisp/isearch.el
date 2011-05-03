@@ -473,7 +473,7 @@ This is like `describe-bindings', but displays only Isearch keys."
 
     (define-key map "\M-n" 'isearch-ring-advance)
     (define-key map "\M-p" 'isearch-ring-retreat)
-    (define-key map "\M-y" 'isearch-yank-kill)
+    (define-key map "\M-y" 'isearch-yank-pop)
 
     (define-key map "\M-\t" 'isearch-complete)
 
@@ -637,6 +637,8 @@ Type \\[isearch-yank-char] to yank char from buffer onto end of search\
 Type \\[isearch-yank-line] to yank rest of line onto end of search string\
  and search for it.
 Type \\[isearch-yank-kill] to yank the last string of killed text.
+Type \\[isearch-yank-pop] to replace string just yanked into search prompt
+ with string killed before it.
 Type \\[isearch-quote-char] to quote control character to search for it.
 \\[isearch-abort] while searching or when search has failed cancels input\
  back to what has
@@ -1496,6 +1498,18 @@ If search string is empty, just beep."
   "Pull string from kill ring into search string."
   (interactive)
   (isearch-yank-string (current-kill 0)))
+
+(defun isearch-yank-pop ()
+  "Replace just-yanked search string with previously killed string."
+  (interactive)
+  (if (not (memq last-command '(isearch-yank-kill isearch-yank-pop)))
+      ;; Fall back on `isearch-yank-kill' for the benefits of people
+      ;; who are used to the old behavior of `M-y' in isearch mode. In
+      ;; future, this fallback may be changed if we ever change
+      ;; `yank-pop' to do something like the kill-ring-browser.
+      (isearch-yank-kill)
+    (isearch-pop-state)
+    (isearch-yank-string (current-kill 1))))
 
 (defun isearch-yank-x-selection ()
   "Pull current X selection into search string."

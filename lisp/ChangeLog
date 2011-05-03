@@ -1,3 +1,9 @@
+2011-05-03  Leo Liu  <sdl.web@gmail.com>
+
+	* isearch.el (isearch-yank-pop): New command.
+	(isearch-mode-map): bind it to `M-y'.
+	(isearch-forward): Mention it.
+
 2011-05-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (minibuffer-complete-shell-command): Remove.
