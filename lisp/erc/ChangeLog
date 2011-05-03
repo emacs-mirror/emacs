@@ -1,3 +1,8 @@
+2011-05-03  Debarshi Ray  <rishi@gnu.org>
+
+	* erc-backend.el (671): New response handler.
+	* erc.el (english): Add 671 to catalog.
+
 2011-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* erc-pcomplete.el (erc-pcomplete-nick-postfix): Remove the " " in the
