@@ -1,6 +1,7 @@
 2011-05-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Arithmetic overflows now return float rather than wrapping around.
+	(Bug#8611).
 	* data.c: Include <intprops.h>.
 	(arith_driver): Use floating point if the accumulator would otherwise
 	go out of EMACS_INT range.

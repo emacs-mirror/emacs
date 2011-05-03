@@ -1,7 +1,7 @@
 2011-05-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* NEWS: Integer overflow now yields floating-point instead of
-	wrapping around.
+	wrapping around.  (Bug#8611)
 
 2011-05-03  Leo Liu  <sdl.web@gmail.com>
 
