@@ -1384,7 +1384,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
       {
 	if (EQ (coding_systems, Qt))
 	  {
-	    args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof args2);
+	    args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof *args2);
 	    args2[0] = Qstart_process;
 	    for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
 	    GCPRO2 (proc, current_dir);
