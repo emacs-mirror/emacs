@@ -1,3 +1,7 @@
+2011-05-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* numbers.texi (Integer Basics): Large integers are treated as floats.
+
 2011-04-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* processes.texi (Synchronous Processes): Document the (:file

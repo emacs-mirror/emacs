@@ -55,14 +55,15 @@ chapter assume an integer has 30 bits.
 @cindex overflow
 
   The Lisp reader reads an integer as a sequence of digits with optional
-initial sign and optional final period.
+initial sign and optional final period.  An integer that is out of the
+Emacs range is treated as a floating-point number.
 
 @example
  1               ; @r{The integer 1.}
  1.              ; @r{The integer 1.}
 +1               ; @r{Also the integer 1.}
 -1               ; @r{The integer @minus{}1.}
- 1073741825      ; @r{Also the integer 1, due to overflow.}
+ 1073741825      ; @r{The floating point number 1073741825.0.}
  0               ; @r{The integer 0.}
 -0               ; @r{The integer 0.}
 @end example
@@ -195,7 +196,7 @@ point values:
 @samp{1.0e+INF}
 @item negative infinity
 @samp{-1.0e+INF}
-@item Not-a-number 
+@item Not-a-number
 @samp{0.0e+NaN} or @samp{-0.0e+NaN}.
 @end table
 
