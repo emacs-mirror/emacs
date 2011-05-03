@@ -1154,6 +1154,9 @@ in *Help* buffer.  See also the command `describe-char'."
 ;; Initialize read-expression-map.  It is defined at C level.
 (let ((m (make-sparse-keymap)))
   (define-key m "\M-\t" 'lisp-complete-symbol)
+  ;; Might as well bind TAB to completion, since inserting a TAB char is much
+  ;; too rarely useful.
+  (define-key m "\t" 'lisp-complete-symbol)
   (set-keymap-parent m minibuffer-local-map)
   (setq read-expression-map m))
 
@@ -2168,19 +2171,10 @@ to the end of the list of defaults just after the default value."
 (defvar shell-file-name-chars)
 (defvar shell-file-name-quote-list)
 
-(defun minibuffer-complete-shell-command ()
-  "Dynamically complete shell command at point."
-  (interactive)
-  (require 'shell)
-  (let ((comint-delimiter-argument-list shell-delimiter-argument-list)
-	(comint-file-name-chars shell-file-name-chars)
-	(comint-file-name-quote-list shell-file-name-quote-list))
-    (run-hook-with-args-until-success 'shell-dynamic-complete-functions)))
-
 (defvar minibuffer-local-shell-command-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map minibuffer-local-map)
-    (define-key map "\t" 'minibuffer-complete-shell-command)
+    (define-key map "\t" 'completion-at-point)
     map)
   "Keymap used for completing shell commands in minibuffer.")
 
@@ -2189,8 +2183,18 @@ to the end of the list of defaults just after the default value."
 The arguments are the same as the ones of `read-from-minibuffer',
 except READ and KEYMAP are missing and HIST defaults
 to `shell-command-history'."
+  (require 'shell)
   (minibuffer-with-setup-hook
       (lambda ()
+	(set (make-local-variable 'comint-delimiter-argument-list)
+	     shell-delimiter-argument-list)
+	(set (make-local-variable 'comint-file-name-chars) shell-file-name-chars)
+	(set (make-local-variable 'comint-file-name-quote-list)
+	     shell-file-name-quote-list)
+	(set (make-local-variable 'comint-dynamic-complete-functions)
+	     shell-dynamic-complete-functions)
+	(add-hook 'completion-at-point-functions
+		  'comint-completion-at-point nil 'local)
 	(set (make-local-variable 'minibuffer-default-add-function)
 	     'minibuffer-default-add-shell-commands))
     (apply 'read-from-minibuffer prompt initial-contents

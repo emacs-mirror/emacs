@@ -1,5 +1,10 @@
 2011-05-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* simple.el (minibuffer-complete-shell-command): Remove.
+	(minibuffer-local-shell-command-map): Use completion-at-point.
+	(read-shell-command): Setup completion vars here instead.
+	(read-expression-map): Bind TAB to symbol completion.
+
 	* textmodes/ispell.el (lookup-words): Use with-temp-buffer; signal
 	error directly rather via storing it into `results'.
 
