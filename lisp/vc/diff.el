@@ -1,4 +1,4 @@
-;;; diff.el --- run `diff' in compilation-mode
+;;; diff.el --- run `diff'
 
 ;; Copyright (C) 1992, 1994, 1996, 2001-2011 Free Software Foundation, Inc.
 

@@ -281,6 +281,10 @@ replaced with Lisp commands `doc-file-to-man' and `doc-file-to-info'.
 *** C-y in Isearch is now bound to isearch-yank-kill, instead of
 isearch-yank-line.
 
+---
+*** M-y in Isearch is now bound to isearch-yank-pop, instead of
+isearch-yank-kill.
+
 +++
 *** M-s C-e in Isearch is now bound to isearch-yank-line.
 
@@ -395,6 +399,9 @@ Just set shell-dir-cookie-re to an appropriate regexp.
 
 ** browse-url has gotten a new variable that is used for mailto: URLs,
 `browse-url-mailto-function', which defaults to `browse-url-mail'.
+
+** `url-queue-retrieve' downloads web pages asynchronously, but allow
+controlling the degree of parallelism.
 
 ** Directory local variables can apply to file-less buffers, in certain modes
 (eg dired, vc-dir, log-edit).  For example, adding
@@ -822,6 +829,12 @@ Instead, the offending function is removed.
 
 ** New low-level function run-hook-wrapped.
 
+** `server-eval-at' is provided to allow evaluating forms on different
+Emacs server instances.
+
+** `call-process' allows a `(:file "file")' spec to redirect STDOUT to
+a file.
+
 ** byte-compile-disable-print-circle is obsolete.
 ** deferred-action-list and deferred-action-function are obsolete.
 ** Removed the stack-trace-on-error variable.
@@ -894,7 +907,21 @@ Emacs Lisp parse tree.
 
 FIXME: These should be front-ended by xml.el.
 
-** FIXME GnuTLS
+** GnuTLS
+
+*** Emacs can be compiled with libgnutls support
+This is the default.  You will then be able to use the functionality
+in gnutls.el, namely the `open-gnutls-stream' and `gnutls-negotiate'
+functions.  It's easiest to use these functions through
+`open-network-stream' because it can upgrade connections through
+STARTTLS opportunistically or use plain SSL, depending on your needs.
+
+Only versions 2.8.x and higher or GnuTLS have been tested.
+
+*** gnutls-log-level
+Set `gnutls-log-level' higher than 0 to get debug output.  1 is for
+important messages, 2 is for debug data, and higher numbers are as per
+the GnuTLS logging conventions.  The output is in *Messages*.
 
 ** Isearch
 
@@ -921,6 +948,12 @@ runtime checks.
 
 ** New configure.bat option --distfiles to specify files to be
 included in binary distribution.
+
+** New configure.bat option --without-gnutls to disable automatic
+GnuTLS detection.
+
+** New configure.bat option --lib for general library linkage, works
+with the USER_LIBS build variable.
 
 ** New make target `dist' to create binary distribution for MS Windows.
 

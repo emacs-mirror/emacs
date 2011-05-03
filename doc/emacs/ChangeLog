@@ -1,3 +1,7 @@
+2011-05-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* misc.texi (Emacs Server): Document `server-eval-at'.
+
 2011-04-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* maintaining.texi (List Tags): Document next-file.  Suggested by

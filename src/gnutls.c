@@ -34,26 +34,26 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 static int
 emacs_gnutls_handle_error (gnutls_session_t, int err);
 
-Lisp_Object Qgnutls_log_level;
-Lisp_Object Qgnutls_code;
-Lisp_Object Qgnutls_anon, Qgnutls_x509pki;
-Lisp_Object Qgnutls_e_interrupted, Qgnutls_e_again,
+static Lisp_Object Qgnutls_log_level;
+static Lisp_Object Qgnutls_code;
+static Lisp_Object Qgnutls_anon, Qgnutls_x509pki;
+static Lisp_Object Qgnutls_e_interrupted, Qgnutls_e_again,
   Qgnutls_e_invalid_session, Qgnutls_e_not_ready_for_handshake;
-int gnutls_global_initialized;
+static int gnutls_global_initialized;
 
 /* The following are for the property list of `gnutls-boot'.  */
-Lisp_Object Qgnutls_bootprop_priority;
-Lisp_Object Qgnutls_bootprop_trustfiles;
-Lisp_Object Qgnutls_bootprop_keyfiles;
-Lisp_Object Qgnutls_bootprop_callbacks;
-Lisp_Object Qgnutls_bootprop_loglevel;
-Lisp_Object Qgnutls_bootprop_hostname;
-Lisp_Object Qgnutls_bootprop_verify_flags;
-Lisp_Object Qgnutls_bootprop_verify_error;
-Lisp_Object Qgnutls_bootprop_verify_hostname_error;
+static Lisp_Object Qgnutls_bootprop_priority;
+static Lisp_Object Qgnutls_bootprop_trustfiles;
+static Lisp_Object Qgnutls_bootprop_keyfiles;
+static Lisp_Object Qgnutls_bootprop_callbacks;
+static Lisp_Object Qgnutls_bootprop_loglevel;
+static Lisp_Object Qgnutls_bootprop_hostname;
+static Lisp_Object Qgnutls_bootprop_verify_flags;
+static Lisp_Object Qgnutls_bootprop_verify_error;
+static Lisp_Object Qgnutls_bootprop_verify_hostname_error;
 
 /* Callback keys for `gnutls-boot'.  Unused currently.  */
-Lisp_Object Qgnutls_bootprop_callbacks_verify;
+static Lisp_Object Qgnutls_bootprop_callbacks_verify;
 
 static void
 gnutls_log_function (int level, const char* string)
@@ -490,7 +490,7 @@ one trustfile (usually a CA bundle).  */)
   /* callbacks          = Fplist_get (proplist, Qgnutls_bootprop_callbacks); */
   loglevel              = Fplist_get (proplist, Qgnutls_bootprop_loglevel);
   verify_flags          = Fplist_get (proplist, Qgnutls_bootprop_verify_flags);
-  /* verify_error    = Fplist_get (proplist, Qgnutls_bootprop_verify_error); */
+  /* verify_error       = Fplist_get (proplist, Qgnutls_bootprop_verify_error); */
   verify_hostname_error = Fplist_get (proplist, Qgnutls_bootprop_verify_hostname_error);
 
   if (!STRINGP (hostname))
@@ -918,4 +918,5 @@ syms_of_gnutls (void)
   defsubr (&Sgnutls_deinit);
   defsubr (&Sgnutls_bye);
 }
-#endif
+
+#endif /* HAVE_GNUTLS */

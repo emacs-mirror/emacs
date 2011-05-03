@@ -3349,6 +3349,7 @@ extern void reset_sys_modes (struct tty_display_info *);
 extern void init_all_sys_modes (void);
 extern void reset_all_sys_modes (void);
 extern void wait_for_termination (int);
+extern void interruptible_wait_for_termination (int);
 extern void flush_pending_output (int);
 extern void child_setup_tty (int);
 extern void setup_pty (int);

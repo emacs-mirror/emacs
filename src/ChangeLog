@@ -92,6 +92,40 @@
 
 	* fns.c (Frandom): Let EMACS_UINT be wider than unsigned long.
 
+2011-05-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* sysdep.c (get_tty_size) [WINDOWSNT]: Implement.  (Bug#8596)
+
+2011-05-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnutls.c (Qgnutls_log_level, Qgnutls_code, Qgnutls_anon)
+	(Qgnutls_x509pki, Qgnutls_e_interrupted, Qgnutls_e_again)
+	(Qgnutls_e_invalid_session, Qgnutls_e_not_ready_for_handshake)
+	(gnutls_global_initialized, Qgnutls_bootprop_priority)
+	(Qgnutls_bootprop_trustfiles, Qgnutls_bootprop_keyfiles)
+	(Qgnutls_bootprop_callbacks, Qgnutls_bootprop_loglevel)
+	(Qgnutls_bootprop_hostname, Qgnutls_bootprop_verify_flags)
+	(Qgnutls_bootprop_verify_error, Qgnutls_bootprop_verify_hostname_error)
+	(Qgnutls_bootprop_callbacks_verify): Make static.
+
+2011-05-01  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* callproc.c: Indentation fixup.
+
+	* sysdep.c (wait_for_termination_1): Make static.
+	(wait_for_termination, interruptible_wait_for_termination): Move
+	after wait_for_termination_1.
+
+2011-05-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* sysdep.c (interruptible_wait_for_termination): New function
+	which is like wait_for_termination, but allows keyboard
+	interruptions.
+
+	* callproc.c (Fcall_process): Add (:file "file") as an option for
+	the STDOUT buffer.
+	(Fcall_process_region): Ditto.
+
 2011-04-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* dosfns.c (Fint86, Fdos_memget, Fdos_memput): Use `ASIZE (FOO)'

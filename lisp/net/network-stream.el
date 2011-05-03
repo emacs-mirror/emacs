@@ -109,7 +109,10 @@ values:
 :starttls-function specifies a function for handling STARTTLS.
   This function should take one parameter, the response to the
   capability command, and should return the command to switch on
-  STARTTLS if the server supports STARTTLS, and nil otherwise."
+  STARTTLS if the server supports STARTTLS, and nil otherwise.
+
+:nowait is a boolean that says the connection should be made
+asynchronously, if possible."
   (unless (featurep 'make-network-process)
     (error "Emacs was compiled without networking support"))
   (let ((type (plist-get parameters :type))
@@ -121,7 +124,8 @@ values:
 				(plist-get parameters :capability-command))))))
 	;; The simplest case: wrapper around `make-network-process'.
 	(make-network-process :name name :buffer buffer
-			      :host host :service service)
+			      :host host :service service
+			      :nowait (plist-get parameters :nowait))
       (let ((work-buffer (or buffer
 			     (generate-new-buffer " *stream buffer*")))
 	    (fun (cond ((eq type 'plain) 'network-stream-open-plain)
@@ -150,10 +154,11 @@ values:
 (defun network-stream-open-plain (name buffer host service parameters)
   (let ((start (with-current-buffer buffer (point)))
 	(stream (make-network-process :name name :buffer buffer
-				      :host host :service service)))
+				      :host host :service service
+				      :nowait (plist-get parameters :nowait))))
     (list stream
 	  (network-stream-get-response stream start
-				     (plist-get parameters :end-of-command))
+				       (plist-get parameters :end-of-command))
 	  nil
 	  'plain)))
 
