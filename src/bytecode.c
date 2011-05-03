@@ -1186,7 +1186,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  {
 	    Lisp_Object v1;
 	    v1 = TOP;
-	    if (INTEGERP (v1))
+	    if (INTEGERP (v1) && MOST_NEGATIVE_FIXNUM < XINT (v1))
 	      {
 		XSETINT (v1, XINT (v1) - 1);
 		TOP = v1;
@@ -1204,7 +1204,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  {
 	    Lisp_Object v1;
 	    v1 = TOP;
-	    if (INTEGERP (v1))
+	    if (INTEGERP (v1) && XINT (v1) < MOST_POSITIVE_FIXNUM)
 	      {
 		XSETINT (v1, XINT (v1) + 1);
 		TOP = v1;
@@ -1290,7 +1290,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  {
 	    Lisp_Object v1;
 	    v1 = TOP;
-	    if (INTEGERP (v1))
+	    if (INTEGERP (v1) && - MOST_POSITIVE_FIXNUM <= XINT (v1))
 	      {
 		XSETINT (v1, - XINT (v1));
 		TOP = v1;
