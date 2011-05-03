@@ -1,3 +1,8 @@
+2011-05-03  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_set_frame_alpha): Do not set property on anything
+	else than FRAME_X_OUTER_WINDOW (Bug#8608).
+
 2011-05-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* sysdep.c (get_tty_size) [WINDOWSNT]: Implement.  (Bug#8596)
