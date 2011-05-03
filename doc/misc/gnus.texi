@@ -4953,7 +4953,7 @@ Download mark.
 Desired cursor position (instead of after first colon).
 @item &user-date;
 Age sensitive date format.  Various date format is defined in
-@code{gnus-summary-user-date-format-alist}.
+@code{gnus-user-date-format-alist}.
 @item u
 User defined specifier.  The next character in the format string should
 be a letter.  Gnus will call the function
@@ -7340,7 +7340,9 @@ predicate functions include @code{gnus-thread-sort-by-number},
 
 Each function takes two threads and returns non-@code{nil} if the first
 thread should be sorted before the other.  Note that sorting really is
-normally done by looking only at the roots of each thread.
+normally done by looking only at the roots of each thread.  Exceptions
+to this rule are @code{gnus-thread-sort-by-most-recent-number} and
+@code{gnus-thread-sort-by-most-recent-date}.
 
 If you use more than one function, the primary sort key should be the
 last function in the list.  You should probably always include

@@ -1,3 +1,9 @@
+2011-05-03  Peter Münster  <pmlists@free.fr>
+
+	* gnus.texi (Summary Buffer Lines):
+	gnus-summary-user-date-format-alist does not exist.
+	(Sorting the Summary Buffer): More about sorting threads.
+
 2011-04-25  Michael Albinus  <michael.albinus@gmx.de>
 
 	* trampver.texi: Update release number.
