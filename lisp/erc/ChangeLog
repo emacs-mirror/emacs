@@ -1,4 +1,4 @@
-2011-05-03  Debarshi Ray  <rishi@gnu.org>
+2011-05-03  Debarshi Ray  <rishi@gnu.org>  (tiny change)
 
 	* erc-backend.el (671): New response handler.
 	* erc.el (english): Add 671 to catalog.
