@@ -1,7 +1,7 @@
 2011-05-03  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el (ispell-add-per-file-word-list):
-	Use `concat' for string.
+	Use `concat' to create string for insertion.
 
 2011-05-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
