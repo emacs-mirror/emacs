@@ -1,5 +1,7 @@
 2011-05-03  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* callproc.c (Fcall_process): Use 'volatile' to avoid vfork clobbering.
+
 	* process.c (Fformat_network_address): Fix typo: args2 -> *args2.
 
 	* xmenu.c (set_frame_menubar): Fix typo: int * -> int (3 times).
