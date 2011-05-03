@@ -3916,7 +3916,7 @@ Both should not be used to define a buffer-local dictionary."
 		    (open-line 1)
 		    (unless found (newline))
 		    (insert (if comment-start
-                                (progn
+                                (concat
                                   (if (fboundp 'comment-padright)
                                       ;; Try and use the proper comment marker,
                                       ;; e.g. ";;" rather than ";".

@@ -1,3 +1,8 @@
+2011-05-03  Agustín Martín Domingo  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-add-per-file-word-list):
+	Use `concat' for string.
+
 2011-05-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/bibtex.el (bibtex-fill-field-bounds, bibtex-fill-entry):
