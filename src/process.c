@@ -4952,7 +4952,7 @@ read_process_output (Lisp_Object proc, register int channel)
 	}
 #ifdef HAVE_GNUTLS
       if (XPROCESS (proc)->gnutls_p)
-	nbytes = emacs_gnutls_read (channel, XPROCESS (proc),
+	nbytes = emacs_gnutls_read (XPROCESS (proc),
 				    chars + carryover + buffered,
 				    readmax - buffered);
       else
@@ -5415,9 +5415,8 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
 		{
 #ifdef HAVE_GNUTLS
 		  if (XPROCESS (proc)->gnutls_p)
-		    written = emacs_gnutls_write (outfd,
-						 XPROCESS (proc),
-						 buf, this);
+		    written = emacs_gnutls_write (XPROCESS (proc),
+                                                  buf, this);
 		  else
 #endif
 		    written = emacs_write (outfd, buf, this);

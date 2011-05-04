@@ -319,8 +319,7 @@ emacs_gnutls_transport_set_errno (gnutls_session_t state, int err)
 }
 
 EMACS_INT
-emacs_gnutls_write (int fildes, struct Lisp_Process *proc, const char *buf,
-                    EMACS_INT nbyte)
+emacs_gnutls_write (struct Lisp_Process *proc, const char *buf, EMACS_INT nbyte)
 {
   ssize_t rtnval = 0;
   EMACS_INT bytes_written;
@@ -360,8 +359,7 @@ emacs_gnutls_write (int fildes, struct Lisp_Process *proc, const char *buf,
 }
 
 EMACS_INT
-emacs_gnutls_read (int fildes, struct Lisp_Process *proc, char *buf,
-                   EMACS_INT nbyte)
+emacs_gnutls_read (struct Lisp_Process *proc, char *buf, EMACS_INT nbyte)
 {
   ssize_t rtnval;
   gnutls_session_t state = proc->gnutls_state;
