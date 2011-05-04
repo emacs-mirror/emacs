@@ -1,5 +1,7 @@
 2011-05-04  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* term.c: Don't include <stdarg.h>, as <lisp.h> does that.
+
 	Arithmetic overflows now return float rather than wrapping around.
 	(Bug#8611).
 	* data.c: Include <intprops.h>.
