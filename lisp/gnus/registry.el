@@ -272,7 +272,7 @@ Errors out if the key exists already."
     (assert (< (registry-size db)
 	       (oref db :max-hard))
 	    nil
-	    "max-hard size limit reached")
+	    "registry max-hard size limit reached")
 
     ;; store the entry
     (puthash key entry (oref db :data))

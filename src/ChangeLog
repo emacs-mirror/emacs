@@ -1,4 +1,4 @@
-2011-05-03  Paul Eggert  <eggert@cs.ucla.edu>
+2011-05-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Arithmetic overflows now return float rather than wrapping around.
 	(Bug#8611).
@@ -107,6 +107,11 @@
 	* eval.c (Fautoload): Don't double-shift a pointer.
 
 	* fns.c (Frandom): Let EMACS_UINT be wider than unsigned long.
+
+2011-05-03  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_set_frame_alpha): Do not set property on anything
+	else than FRAME_X_OUTER_WINDOW (Bug#8608).
 
 2011-05-02  Juanma Barranquero  <lekktu@gmail.com>
 

@@ -6351,7 +6351,8 @@ All windows are opened in the current frame."
    (s485   . "You're not the original channel operator")
    (s491   . "No O-lines for your host")
    (s501   . "Unknown MODE flag")
-   (s502   . "You can't change modes for other users")))
+   (s502   . "You can't change modes for other users")
+   (s671   . "%n %a")))
 
 (defun erc-message-english-PART (&rest args)
   "Format a proper PART message.

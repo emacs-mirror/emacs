@@ -1,3 +1,10 @@
+2011-05-03  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* shr.el: Add shr-link face for links.
+	(shr-urlify): Use it.
+
+	* registry.el (registry-insert): Make error message more helpful.
+
 2011-05-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-html.el (gnus-html-schedule-image-fetching): Use

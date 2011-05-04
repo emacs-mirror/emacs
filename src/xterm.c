@@ -454,11 +454,6 @@ x_set_frame_alpha (struct frame *f)
   double alpha_min = 1.0;
   unsigned long opac;
 
-  if (FRAME_X_DISPLAY_INFO (f)->root_window != FRAME_X_OUTPUT (f)->parent_desc)
-    /* Since the WM decoration lies under the FRAME_OUTER_WINDOW,
-       we must treat the former instead of the latter. */
-    win = FRAME_X_OUTPUT (f)->parent_desc;
-
   if (dpyinfo->x_highlight_frame == f)
     alpha = f->alpha[0];
   else
