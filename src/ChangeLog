@@ -1,5 +1,8 @@
 2011-05-04  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* term.c (vfatal): Remove stray call to va_end.
+	It's not needed and the C Standard doesn't allow it here anyway.
+
 	Use C99's va_copy to avoid undefined behavior on x86-64 GNU/Linux.
 	* eval.c (verror): doprnt a copy of ap, not the original.  (Bug#8545)
 
