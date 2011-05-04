@@ -1,3 +1,14 @@
+2011-05-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/autoload.el (generated-autoload-file): Set to nil.
+	(autoload-find-generated-file): New function.
+	(generate-file-autoloads): Bind generated-autoload-file to
+	buffer-file-name.
+	(update-file-autoloads, update-directory-autoloads): Use
+	autoload-find-generated-file.  If called interactively, prompt for
+	output file (Bug#7989).
+	(batch-update-autoloads): Doc fix.
+
 2011-05-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* term/w32-win.el (dynamic-library-alist): Add `gnutls'.
