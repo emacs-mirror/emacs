@@ -1,5 +1,8 @@
 2011-05-04  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* eval.c (verror): OK to create a string of up to MOST_POSITIVE_FIXNUM
+	bytes.
+
 	* term.c: Don't include <stdarg.h>, as <lisp.h> does that.
 
 	Arithmetic overflows now return float rather than wrapping around.
