@@ -1,5 +1,11 @@
 2011-05-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* minibuffer.el (completion--message): New function.
+	(completion--do-completion, minibuffer-complete)
+	(minibuffer-force-complete, minibuffer-complete-word): Use it.
+	(completion--do-completion): Don't ignore completion-auto-help when in
+	icomplete-mode.
+
 	* whitespace.el (whitespace-trailing-regexp): Don't rely on the
 	internal encoding (e.g. tibetan zero is not whitespace).
 	(global-whitespace-mode): Prefer save-current-buffer.
