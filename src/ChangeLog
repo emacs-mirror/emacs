@@ -1,5 +1,8 @@
 2011-05-04  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Use C99's va_copy to avoid undefined behavior on x86-64 GNU/Linux.
+	* eval.c (verror): doprnt a copy of ap, not the original.  (Bug#8545)
+
 	* eval.c (verror): OK to create a string of up to MOST_POSITIVE_FIXNUM
 	bytes.
 

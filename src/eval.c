@@ -2002,7 +2002,10 @@ verror (const char *m, va_list ap)
 
   while (1)
     {
-      used = doprnt (buffer, size, m, m + mlen, ap);
+      va_list ap_copy;
+      va_copy (ap_copy, ap);
+      used = doprnt (buffer, size, m, m + mlen, ap_copy);
+      va_end (ap_copy);
 
       /* Note: the -1 below is because `doprnt' returns the number of bytes
 	 excluding the terminating null byte, and it always terminates with a

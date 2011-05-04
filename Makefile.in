@@ -333,7 +333,7 @@ DOS_gnulib_comp.m4 = gl-comp.m4
 GNULIB_MODULES = \
   careadlinkat crypto/md5 dtoastr filemode getloadavg getopt-gnu \
   ignore-value intprops lstat mktime readlink \
-  socklen stdio strftime strtoumax symlink sys_stat
+  socklen stdarg stdio strftime strtoumax symlink sys_stat
 GNULIB_TOOL_FLAGS = \
  --conditional-dependencies --import --no-changelog --no-vc-files \
  --makefile-name=gnulib.mk

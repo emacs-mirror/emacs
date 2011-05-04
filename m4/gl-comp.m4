@@ -51,6 +51,12 @@ AC_DEFUN([gl_EARLY],
   # Code from module socklen:
   # Code from module ssize_t:
   # Code from module stat:
+  # Code from module stdarg:
+  dnl Some compilers (e.g., AIX 5.3 cc) need to be in c99 mode
+  dnl for the builtin va_copy to work.  With Autoconf 2.60 or later,
+  dnl AC_PROG_CC_STDC arranges for this.  With older Autoconf AC_PROG_CC_STDC
+  dnl shouldn't hurt, though installers are on their own to set c99 mode.
+  AC_REQUIRE([AC_PROG_CC_STDC])
   # Code from module stdbool:
   # Code from module stddef:
   # Code from module stdint:
@@ -104,6 +110,7 @@ gl_FUNC_READLINK
 gl_UNISTD_MODULE_INDICATOR([readlink])
 gl_TYPE_SOCKLEN_T
 gt_TYPE_SSIZE_T
+gl_STDARG_H
 AM_STDBOOL_H
 gl_STDDEF_H
 gl_STDINT_H
@@ -358,6 +365,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/mktime.c
   lib/readlink.c
   lib/stat.c
+  lib/stdarg.in.h
   lib/stdbool.in.h
   lib/stddef.in.h
   lib/stdint.in.h
@@ -395,6 +403,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/ssize_t.m4
   m4/st_dm_mode.m4
   m4/stat.m4
+  m4/stdarg.m4
   m4/stdbool.m4
   m4/stddef_h.m4
   m4/stdint.m4

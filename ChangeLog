@@ -1,5 +1,9 @@
 2011-05-04  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Use C99's va_copy to avoid undefined behavior on x86-64 GNU/Linux.
+	* Makefile.in (GNULIB_MODULES): Add stdarg, for va_copy.
+	* lib/stdarg.in.h, m4/stdarg.m4: New files, from gnulib.
+
 	* Makefile.in (GNULIB_TOOL_FLAG): Add --conditional-dependencies.
 	This new gnulib-tool option saves 'configure' the trouble of
 	checking for strtoull when strtoumax exists.
