@@ -325,12 +325,17 @@
 
 * Optional GnuTLS support
 
-  You can build Emacs with GnuTLS support.  Put the gnutls/gnutls.h header in
-  the include path and link to the appropriate libraries (gnutls.dll and
-  gcrypt.dll) with the --lib option.
+  If configure.bat finds the gnutls/gnutls.h file in the include path,
+  Emacs is built with GnuTLS support by default; to avoid that you can
+  pass the argument --without-gnutls.
 
-  You can get pre-built binaries and an installer at
-  http://josefsson.org/gnutls4win/.
+  In order to support GnuTLS at runtime, a GnuTLS-enabled Emacs must
+  be able to find the relevant DLLs during startup; failure to do so
+  is not an error, but GnuTLS won't be available to the running
+  session.
+
+  You can get pre-built binaries (including any required DLL and the
+  gnutls.h file) and an installer at http://josefsson.org/gnutls4win/.
 
 * Experimental SVG support
 

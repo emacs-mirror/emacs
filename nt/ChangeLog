@@ -1,3 +1,7 @@
+2011-05-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* INSTALL: Clarify GnuTLS support.
+
 2011-04-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.nt (HAVE_LONG_LONG_INT, HAVE_UNSIGNED_LONG_LONG_INT):

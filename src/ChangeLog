@@ -1,3 +1,48 @@
+2011-05-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	Implement dynamic loading of GnuTLS on Windows.
+
+	* gnutls.h (GNUTLS_EMACS_ERROR_NOT_LOADED): New macro.
+	(emacs_gnutls_write, emacs_gnutls_read): Mark as extern.
+	(emacs_gnutls_record_check_pending, emacs_gnutls_transport_set_errno):
+	Declare.
+
+	* gnutls.c (Qgnutls_dll): Define.
+	(DEF_GNUTLS_FN, LOAD_GNUTLS_FN): New macros.
+	(gnutls_*): Declare function pointers.
+	(init_gnutls_functions): New function to initialize function pointers.
+	(emacs_gnutls_handshake, Fgnutls_error_string, Fgnutls_deinit)
+	(emacs_gnutls_global_init, Fgnutls_bye): Use function pointers.
+	(emacs_gnutls_record_check_pending, emacs_gnutls_transport_set_errno):
+	Wrappers for gnutls_record_check_pending and gnutls_transport_set_errno.
+	(emacs_gnutls_write, emacs_gnutls_read)
+	(emacs_gnutls_handle_error, Fgnutls_error_fatalp)
+	(Fgnutls_available_p): New function.
+	(Fgnutls_boot): Call Fgnutls_available_p.  Use function pointers.
+	(syms_of_gnutls) <Qgnutls_dll>: Initialize and staticpro it.
+	(syms_of_gnutls) <Sgnutls_available_p>: defsubr it.
+
+	* image.c: Include w32.h.
+	(Vimage_type_cache): Delete.
+	(syms_of_image) <Vimage_type_cache>: Don't initialize and staticpro it.
+	(CACHE_IMAGE_TYPE, Finit_image_library): Use Vlibrary_cache instead.
+	(w32_delayed_load): Move to w32.c.
+
+	* w32.h (VlibraryCache, QCloaded_from, w32_delayed_load): Declare.
+
+	* w32.c (QCloaded_from, Vlibrary_cache): Define.
+	(w32_delayed_load): Move from image.c.  When loading a library, record
+	its filename in the :loaded-from property of the library id.
+	(globals_of_w32) <QCloaded_from, Vlibrary_cache>:
+	Initialize and staticpro them.
+	(emacs_gnutls_pull, emacs_gnutls_push): Call emacs_gnutls_* functions.
+
+	* process.c: Include lisp.h before w32.h, not after.
+	(wait_reading_process_output): Call emacs_gnutls_record_check_pending
+	instead of gnutls_record_check_pending.
+
+	* callproc.c, emacs.c: Include lisp.h before w32.h, not after.
+
 2011-05-04  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnutls.c (Fgnutls_boot): Support :keylist and :crlfiles options

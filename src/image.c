@@ -67,6 +67,7 @@ typedef struct x_bitmap_record Bitmap_Record;
 
 
 #ifdef HAVE_NTGUI
+#include "w32.h"
 #include "w32term.h"
 
 /* W32_TODO : Color tables on W32.  */
@@ -556,10 +557,6 @@ x_create_bitmap_mask (struct frame *f, int id)
 
 static struct image_type *image_types;
 
-/* Cache for delayed-loading image types.  */
-
-static Lisp_Object Vimage_type_cache;
-
 /* The symbol `xbm' which is used as the type symbol for XBM images.  */
 
 static Lisp_Object Qxbm;
@@ -589,7 +586,7 @@ static int x_build_heuristic_mask (struct frame *, struct image *,
                                    Lisp_Object);
 
 #define CACHE_IMAGE_TYPE(type, status) \
-  do { Vimage_type_cache = Fcons (Fcons (type, status), Vimage_type_cache); } while (0)
+  do { Vlibrary_cache = Fcons (Fcons (type, status), Vlibrary_cache); } while (0)
 
 #define ADD_IMAGE_TYPE(type) \
   do { Vimage_types = Fcons (type, Vimage_types); } while (0)
@@ -1899,34 +1896,6 @@ mark_image_cache (struct image_cache *c)
     fn_##func = (void *) GetProcAddress (lib, #func);			\
     if (!fn_##func) return 0;						\
   }
-
-/* Load a DLL implementing an image type.
-   The argument LIBRARIES is usually the variable
-   `dynamic-library-alist', which associates a symbol, identifying
-   an external DLL library, to a list of possible filenames.
-   The function returns NULL if no library could be loaded for
-   the given symbol, or if the library was previously loaded;
-   else the handle of the DLL.  */
-static HMODULE
-w32_delayed_load (Lisp_Object libraries, Lisp_Object type)
-{
-  HMODULE library = NULL;
-
-  if (CONSP (libraries) && NILP (Fassq (type, Vimage_type_cache)))
-    {
-      Lisp_Object dlls = Fassq (type, libraries);
-
-      if (CONSP (dlls))
-        for (dlls = XCDR (dlls); CONSP (dlls); dlls = XCDR (dlls))
-          {
-            CHECK_STRING_CAR (dlls);
-            if (library = LoadLibrary (SDATA (XCAR (dlls))))
-              break;
-          }
-    }
-
-  return library;
-}
 
 #endif /* HAVE_NTGUI */
 
@@ -5452,7 +5421,6 @@ init_png_functions (Lisp_Object libraries)
 {
   HMODULE library;
 
-  /* Try loading libpng under probable names.  */
   if (!(library = w32_delayed_load (libraries, Qpng)))
     return 0;
 
@@ -8634,7 +8602,7 @@ of `dynamic-library-alist', which see).  */)
   Lisp_Object tested;
 
   /* Don't try to reload the library.  */
-  tested = Fassq (type, Vimage_type_cache);
+  tested = Fassq (type, Vlibrary_cache);
   if (CONSP (tested))
     return XCDR (tested);
 
@@ -8713,9 +8681,6 @@ point number, it specifies the maximum image height and width
 as a ratio to the frame height and width.  If the value is
 non-numeric, there is no explicit limit on the size of images.  */);
   Vmax_image_size = make_float (MAX_IMAGE_SIZE);
-
-  Vimage_type_cache = Qnil;
-  staticpro (&Vimage_type_cache);
 
   Qpbm = intern_c_string ("pbm");
   staticpro (&Qpbm);

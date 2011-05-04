@@ -29,6 +29,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/file.h>
 #include <fcntl.h>
 
+#include "lisp.h"
+
 #ifdef WINDOWSNT
 #define NOMINMAX
 #include <windows.h>
@@ -41,7 +43,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/param.h>
 #endif /* MSDOS */
 
-#include "lisp.h"
 #include "commands.h"
 #include "buffer.h"
 #include "character.h"

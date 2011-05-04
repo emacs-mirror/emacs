@@ -42,6 +42,7 @@ typedef enum
   GNUTLS_STAGE_READY,
 } gnutls_initstage_t;
 
+#define GNUTLS_EMACS_ERROR_NOT_LOADED GNUTLS_E_APPLICATION_ERROR_MIN + 1
 #define GNUTLS_EMACS_ERROR_INVALID_TYPE GNUTLS_E_APPLICATION_ERROR_MIN
 
 #define GNUTLS_INITSTAGE(proc) (XPROCESS (proc)->gnutls_initstage)
@@ -52,12 +53,15 @@ typedef enum
 
 #define GNUTLS_LOG2(level, max, string, extra) if (level <= max) { gnutls_log_function2 (level, "(Emacs) " string, extra); }
 
-EMACS_INT
+extern EMACS_INT
 emacs_gnutls_write (int fildes, struct Lisp_Process *proc, const char *buf,
                     EMACS_INT nbyte);
-EMACS_INT
+extern EMACS_INT
 emacs_gnutls_read (int fildes, struct Lisp_Process *proc, char *buf,
                    EMACS_INT nbyte);
+
+extern int emacs_gnutls_record_check_pending (gnutls_session_t state);
+extern void emacs_gnutls_transport_set_errno (gnutls_session_t state, int err);
 
 extern void syms_of_gnutls (void);
 

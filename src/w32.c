@@ -150,6 +150,8 @@ typedef struct _PROCESS_MEMORY_COUNTERS_EX {
 typedef HRESULT (WINAPI * ShGetFolderPath_fn)
   (IN HWND, IN int, IN HANDLE, IN DWORD, OUT char *);
 
+Lisp_Object QCloaded_from;
+
 void globals_of_w32 (void);
 static DWORD get_rid (PSID);
 
@@ -5712,6 +5714,54 @@ sys_localtime (const time_t *t)
   return localtime (t);
 }
 
+
+
+/* Delayed loading of libraries.  */
+
+Lisp_Object Vlibrary_cache;
+
+/* The argument LIBRARIES is an alist that associates a symbol
+   LIBRARY_ID, identifying an external DLL library known to Emacs, to
+   a list of filenames under which the library is usually found.  In
+   most cases, the argument passed as LIBRARIES is the variable
+   `dynamic-library-alist', which is initialized to a list of common
+   library names.  If the function loads the library successfully, it
+   returns the handle of the DLL, and records the filename in the
+   property :loaded-from of LIBRARY_ID; it returns NULL if the library
+   could not be found, or when it was already loaded (because the
+   handle is not recorded anywhere, and so is lost after use).  It
+   would be trivial to save the handle too in :loaded-from, but
+   currently there's no use case for it.  */
+HMODULE
+w32_delayed_load (Lisp_Object libraries, Lisp_Object library_id)
+{
+  HMODULE library_dll = NULL;
+
+  CHECK_SYMBOL (library_id);
+
+  if (CONSP (libraries) && NILP (Fassq (library_id, Vlibrary_cache)))
+    {
+      Lisp_Object found = Qnil;
+      Lisp_Object dlls = Fassq (library_id, libraries);
+
+      if (CONSP (dlls))
+        for (dlls = XCDR (dlls); CONSP (dlls); dlls = XCDR (dlls))
+          {
+            CHECK_STRING_CAR (dlls);
+            if (library_dll = LoadLibrary (SDATA (XCAR (dlls))))
+              {
+                found = XCAR (dlls);
+                break;
+              }
+          }
+
+      Fput (library_id, QCloaded_from, found);
+    }
+
+  return library_dll;
+}
+
+
 static void
 check_windows_init_file (void)
 {
@@ -5909,6 +5959,12 @@ globals_of_w32 (void)
 
   get_process_times_fn = (GetProcessTimes_Proc)
     GetProcAddress (kernel32, "GetProcessTimes");
+
+  QCloaded_from = intern_c_string (":loaded-from");
+  staticpro (&QCloaded_from);
+
+  Vlibrary_cache = Qnil;
+  staticpro (&Vlibrary_cache);
 
   g_b_init_is_windows_9x = 0;
   g_b_init_open_process_token = 0;
@@ -6178,7 +6234,7 @@ emacs_gnutls_pull (gnutls_transport_ptr_t p, void* buf, size_t sz)
             err = errno; /* Other errors are just passed on.  */
         }
 
-      gnutls_transport_set_errno (process->gnutls_state, err);
+      emacs_gnutls_transport_set_errno (process->gnutls_state, err);
 
       return -1;
     }
@@ -6197,8 +6253,8 @@ emacs_gnutls_push (gnutls_transport_ptr_t p, const void* buf, size_t sz)
 
   /* Negative bytes written means we got an error in errno.
      Translate the WSAEWOULDBLOCK alias EWOULDBLOCK to EAGAIN.  */
-  gnutls_transport_set_errno (process->gnutls_state,
-                              errno == EWOULDBLOCK ? EAGAIN : errno);
+  emacs_gnutls_transport_set_errno (process->gnutls_state,
+                                    errno == EWOULDBLOCK ? EAGAIN : errno);
 
   return -1;
 }
