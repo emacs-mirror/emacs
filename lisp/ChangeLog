@@ -1,3 +1,11 @@
+2011-05-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* whitespace.el (whitespace-trailing-regexp): Don't rely on the
+	internal encoding (e.g. tibetan zero is not whitespace).
+	(global-whitespace-mode): Prefer save-current-buffer.
+	(whitespace-trailing-regexp): Remove useless save-match-data.
+	(whitespace-empty-at-bob-regexp): Minor simplification.
+
 2011-05-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/autoload.el (generated-autoload-file): Doc fix (Bug#7989).
