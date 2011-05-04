@@ -1,3 +1,13 @@
+2011-05-04  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/gnutls.el (gnutls-negotiate): Use CL-style keyword arguments
+	instead of positional arguments.  Allow :keylist and :crlfiles
+	arguments.
+	(open-gnutls-stream): Call it.
+
+	* net/network-stream.el (network-stream-open-starttls): Adjust to
+	call `gnutls-negotiate' with :process and :hostname arguments.
+
 2011-05-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion--message): New function.
