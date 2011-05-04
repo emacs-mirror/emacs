@@ -1,3 +1,9 @@
+2011-05-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (GNULIB_TOOL_FLAG): Add --conditional-dependencies.
+	This new gnulib-tool option saves 'configure' the trouble of
+	checking for strtoull when strtoumax exists.
+
 2011-04-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.in (BITS_PER_LONG_LONG): New macro.

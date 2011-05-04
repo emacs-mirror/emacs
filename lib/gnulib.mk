@@ -96,7 +96,9 @@ EXTRA_libgnu_a_SOURCES += md5.c
 
 ## begin gnulib module dosname
 
+if gl_GNULIB_ENABLED_dosname
 
+endif
 EXTRA_DIST += dosname.h
 
 ## end   gnulib module dosname
@@ -157,8 +159,10 @@ EXTRA_libgnu_a_SOURCES += getopt.c getopt1.c
 
 ## begin gnulib module gettext-h
 
+if gl_GNULIB_ENABLED_be453cec5eecf5731a274f2de7f2db36
 libgnu_a_SOURCES += gettext.h
 
+endif
 ## end   gnulib module gettext-h
 
 ## begin gnulib module ignore-value
@@ -245,7 +249,9 @@ EXTRA_libgnu_a_SOURCES += readlink.c
 
 ## begin gnulib module stat
 
+if gl_GNULIB_ENABLED_stat
 
+endif
 EXTRA_DIST += stat.c
 
 EXTRA_libgnu_a_SOURCES += stat.c
@@ -576,7 +582,9 @@ EXTRA_libgnu_a_SOURCES += strftime.c
 
 ## begin gnulib module strtoull
 
+if gl_GNULIB_ENABLED_strtoull
 
+endif
 EXTRA_DIST += strtol.c strtoul.c strtoull.c
 
 EXTRA_libgnu_a_SOURCES += strtol.c strtoul.c strtoull.c
@@ -847,8 +855,10 @@ EXTRA_DIST += unistd.in.h
 
 ## begin gnulib module verify
 
+if gl_GNULIB_ENABLED_verify
 libgnu_a_SOURCES += verify.h
 
+endif
 ## end   gnulib module verify
 
 ## begin gnulib module warn-on-use

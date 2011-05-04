@@ -1,4 +1,4 @@
-# stdio_h.m4 serial 36
+# stdio_h.m4 serial 37
 dnl Copyright (C) 2007-2011 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -14,8 +14,6 @@ AC_DEFUN([gl_STDIO_H],
   dnl <stdio.h> likely needs them.
   GNULIB_FSCANF=1
   GNULIB_SCANF=1
-  GNULIB_VFSCANF=1
-  GNULIB_VSCANF=1
   GNULIB_FGETC=1
   GNULIB_GETC=1
   GNULIB_GETCHAR=1
