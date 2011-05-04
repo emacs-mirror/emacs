@@ -1,3 +1,8 @@
+2011-05-04  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-fancy-date-pattern): Do not use
+	non-numbers for `year' etc pseudo-variables.  (Bug#8583)
+
 2011-05-04  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* net/gnutls.el (gnutls-negotiate): Use CL-style keyword arguments

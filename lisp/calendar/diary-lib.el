@@ -2090,7 +2090,7 @@ Optional symbol TYPE is either `monthly' or `yearly'."
                                   '(day " " monthname))
                                  (t '(monthname " " day))))
         ;; Iso cannot contain "-", because this form used eg by
-        ;; insert-anniversary-diary-entry.
+        ;; diary-insert-anniversary-entry.
         (t (cond ((eq calendar-date-style 'iso)
                  '((format "%s %.2d %.2d" year
                            (string-to-number month) (string-to-number day))))
@@ -2369,13 +2369,20 @@ return a font-lock pattern matching array of MONTHS and marking SYMBOL."
   (concat
    (let ((dayname (diary-name-pattern calendar-day-name-array nil t))
          (monthname (diary-name-pattern calendar-month-name-array nil t))
-         (day "[0-9]+")
-         (month "[0-9]+")
-         (year "-?[0-9]+"))
-     (mapconcat 'eval calendar-date-display-form ""))
+         (day "1")
+         (month "2")
+         ;; FIXME? This used to be "-?[0-9]+" - what was the "-?" for?
+         (year "3"))
+     ;; This is ugly.  c-d-d-form expects `day' etc to be "numbers in
+     ;; string form"; eg the iso version calls string-to-number on some.
+     ;; Therefore we cannot eg just let day = "[0-9]+".  (Bug#8583).
+     ;; Assumes no integers in c-day/month-name-array.
+     (replace-regexp-in-string "[0-9]+" "[0-9]+"
+                               (mapconcat 'eval calendar-date-display-form "")
+                               nil t))
    ;; Optional ": holiday name" after the date.
    "\\(: .*\\)?")
-  "Regular expression matching a date header in Fancy Diary.")
+  "Regular expression matching the first line of a fancy diary date header.")
 
 (define-obsolete-variable-alias 'fancy-diary-font-lock-keywords
   'diary-fancy-font-lock-keywords "23.1")
