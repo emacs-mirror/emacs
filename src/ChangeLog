@@ -1,5 +1,11 @@
 2011-05-04  Juanma Barranquero  <lekktu@gmail.com>
 
+	Fix previous change: the library cache is defined in w32.c.
+	* image.c (CACHE_IMAGE_TYPE) [!HAVE_NTGUI]: Define to noop.
+	(Finit_image_library): Wrap Vlibrary_cache on "#ifdef HAVE_NTGUI".
+
+2011-05-04  Juanma Barranquero  <lekktu@gmail.com>
+
 	Implement dynamic loading of GnuTLS on Windows.
 
 	* gnutls.h (GNUTLS_EMACS_ERROR_NOT_LOADED): New macro.

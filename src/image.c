@@ -584,9 +584,12 @@ static void x_laplace (struct frame *, struct image *);
 static void x_emboss (struct frame *, struct image *);
 static int x_build_heuristic_mask (struct frame *, struct image *,
                                    Lisp_Object);
-
+#ifdef HAVE_NTGUI
 #define CACHE_IMAGE_TYPE(type, status) \
   do { Vlibrary_cache = Fcons (Fcons (type, status), Vlibrary_cache); } while (0)
+#else
+#define CACHE_IMAGE_TYPE(type, status)
+#endif
 
 #define ADD_IMAGE_TYPE(type) \
   do { Vimage_types = Fcons (type, Vimage_types); } while (0)
@@ -8601,10 +8604,12 @@ of `dynamic-library-alist', which see).  */)
 {
   Lisp_Object tested;
 
+#ifdef HAVE_NTGUI
   /* Don't try to reload the library.  */
   tested = Fassq (type, Vlibrary_cache);
   if (CONSP (tested))
     return XCDR (tested);
+#endif
 
 #if defined (HAVE_XPM) || defined (HAVE_NS)
   if (EQ (type, Qxpm))
