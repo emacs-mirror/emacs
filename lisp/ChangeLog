@@ -1,5 +1,12 @@
 2011-05-04  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/diary-lib.el (diary-fancy-date-pattern): Turn it into a
+	function, so it follows changes in calendar-date-style.
+	(diary-fancy-date-matcher): New function.
+	(diary-fancy-font-lock-keywords): Use diary-fancy-date-matcher.
+	(diary-fancy-font-lock-fontify-region-function):
+	Use diary-fancy-date-pattern as a function.
+
 	* calendar/diary-lib.el (diary-fancy-date-pattern): Do not use
 	non-numbers for `year' etc pseudo-variables.  (Bug#8583)
 

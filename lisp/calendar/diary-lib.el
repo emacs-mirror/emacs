@@ -2364,8 +2364,9 @@ return a font-lock pattern matching array of MONTHS and marking SYMBOL."
 
 ;;; Fancy Diary Mode.
 
-;; FIXME does not update upon changes to the name-arrays.
-(defvar diary-fancy-date-pattern
+(defun diary-fancy-date-pattern ()
+  "Return a regexp matching the first line of a fancy diary date header.
+This depends on the calendar date style."
   (concat
    (let ((dayname (diary-name-pattern calendar-day-name-array nil t))
          (monthname (diary-name-pattern calendar-month-name-array nil t))
@@ -2381,26 +2382,27 @@ return a font-lock pattern matching array of MONTHS and marking SYMBOL."
                                (mapconcat 'eval calendar-date-display-form "")
                                nil t))
    ;; Optional ": holiday name" after the date.
-   "\\(: .*\\)?")
-  "Regular expression matching the first line of a fancy diary date header.")
+   "\\(: .*\\)?"))
+
+(defun diary-fancy-date-matcher (limit)
+  "Search for a fancy diary data header, up to LIMIT."
+  ;; Any number of " other holiday name" lines, followed by "==" line.
+  (when (re-search-forward
+         (format "%s\\(\n +.*\\)*\n=+$" (diary-fancy-date-pattern)) limit t)
+    (put-text-property (match-beginning 0) (match-end 0) 'font-lock-multiline t)
+    t))
 
 (define-obsolete-variable-alias 'fancy-diary-font-lock-keywords
   'diary-fancy-font-lock-keywords "23.1")
 
 (defvar diary-fancy-font-lock-keywords
-  (list
-   (list
-    ;; Any number of " other holiday name" lines, followed by "==" line.
-    (concat diary-fancy-date-pattern "\\(\n +.*\\)*\n=+$")
-    '(0 (progn (put-text-property (match-beginning 0) (match-end 0)
-                                  'font-lock-multiline t)
-               diary-face)))
-   '("^.*\\([aA]nniversary\\|[bB]irthday\\).*$" . 'diary-anniversary)
-   '("^.*Yahrzeit.*$" . font-lock-reference-face)
-   '("^\\(Erev \\)?Rosh Hodesh.*" . font-lock-function-name-face)
-   '("^Day.*omer.*$" . font-lock-builtin-face)
-   '("^Parashat.*$" . font-lock-comment-face)
-   `(,(format "\\(^\\|\\s-\\)%s\\(-%s\\)?" diary-time-regexp
+  `((diary-fancy-date-matcher . diary-face)
+    ("^.*\\([aA]nniversary\\|[bB]irthday\\).*$" . 'diary-anniversary)
+    ("^.*Yahrzeit.*$" . font-lock-reference-face)
+    ("^\\(Erev \\)?Rosh Hodesh.*" . font-lock-function-name-face)
+    ("^Day.*omer.*$" . font-lock-builtin-face)
+    ("^Parashat.*$" . font-lock-comment-face)
+    (,(format "\\(^\\|\\s-\\)%s\\(-%s\\)?" diary-time-regexp
               diary-time-regexp) . 'diary-time))
   "Keywords to highlight in fancy diary display.")
 
@@ -2416,7 +2418,7 @@ Fontify the region between BEG and END, quietly unless VERBOSE is non-nil."
   (while (and (looking-at " +[^ ]")
               (zerop (forward-line -1))))
   ;; This check not essential.
-  (if (looking-at diary-fancy-date-pattern)
+  (if (looking-at (diary-fancy-date-pattern))
       (setq beg (line-beginning-position)))
   (goto-char end)
   (forward-line 0)
