@@ -35,6 +35,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+
 (defgroup gnutls nil
   "Emacs interface to the GnuTLS library."
   :prefix "gnutls-"
@@ -72,9 +74,9 @@ This is a very simple wrapper around `gnutls-negotiate'.  See its
 documentation for the specific parameters you can use to open a
 GnuTLS connection, including specifying the credential type,
 trust and key files, and priority string."
-  (gnutls-negotiate (open-network-stream name buffer host service)
-                    'gnutls-x509pki
-                    host))
+  (gnutls-negotiate :process (open-network-stream name buffer host service)
+                    :type 'gnutls-x509pki
+                    :hostname host))
 
 (put 'gnutls-error
      'error-conditions
@@ -85,16 +87,23 @@ trust and key files, and priority string."
 (declare-function gnutls-boot "gnutls.c" (proc type proplist))
 (declare-function gnutls-errorp "gnutls.c" (error))
 
-(defun gnutls-negotiate (proc type hostname &optional priority-string
-                              trustfiles keyfiles verify-flags
-                              verify-error verify-hostname-error)
+(defun* gnutls-negotiate
+    (&rest spec
+           &key process type hostname priority-string
+           trustfiles crlfiles keylist verify-flags
+           verify-error verify-hostname-error
+           &allow-other-keys)
   "Negotiate a SSL/TLS connection.  Returns proc. Signals gnutls-error.
+
+Note arguments are passed CL style, :type TYPE instead of just TYPE.
+
 TYPE is `gnutls-x509pki' (default) or `gnutls-anon'.  Use nil for the default.
-PROC is a process returned by `open-network-stream'.
+PROCESS is a process returned by `open-network-stream'.
 HOSTNAME is the remote hostname.  It must be a valid string.
 PRIORITY-STRING is as per the GnuTLS docs, default is \"NORMAL\".
 TRUSTFILES is a list of CA bundles.
-KEYFILES is a list of client keys.
+CRLFILES is a list of CRL files.
+KEYLIST is an alist of (client key file, client cert file) pairs.
 
 When VERIFY-HOSTNAME-ERROR is not nil, an error will be raised
 when the hostname does not match the presented certificate's host
@@ -141,7 +150,8 @@ defaults to GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT."
                              :hostname ,hostname
                              :loglevel ,gnutls-log-level
                              :trustfiles ,trustfiles
-                             :keyfiles ,keyfiles
+                             :crlfiles ,crlfiles
+                             :keylist ,keylist
                              :verify-flags ,verify-flags
                              :verify-error ,verify-error
                              :verify-hostname-error ,verify-hostname-error
@@ -149,14 +159,14 @@ defaults to GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT."
          ret)
 
     (gnutls-message-maybe
-     (setq ret (gnutls-boot proc type params))
+     (setq ret (gnutls-boot process type params))
      "boot: %s" params)
 
     (when (gnutls-errorp ret)
       ;; This is a error from the underlying C code.
-      (signal 'gnutls-error (list proc ret)))
+      (signal 'gnutls-error (list process ret)))
 
-    proc))
+    process))
 
 (declare-function gnutls-error-string "gnutls.c" (error))
 

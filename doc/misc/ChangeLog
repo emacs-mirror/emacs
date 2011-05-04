@@ -1,4 +1,4 @@
-2011-05-03  Peter Münster  <pmlists@free.fr>
+2011-05-03  Peter Münster  <pmlists@free.fr>  (tiny change)
 
 	* gnus.texi (Summary Buffer Lines):
 	gnus-summary-user-date-format-alist does not exist.

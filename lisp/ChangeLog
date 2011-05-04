@@ -1,3 +1,39 @@
+2011-05-04  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-fancy-date-pattern): Turn it into a
+	function, so it follows changes in calendar-date-style.
+	(diary-fancy-date-matcher): New function.
+	(diary-fancy-font-lock-keywords): Use diary-fancy-date-matcher.
+	(diary-fancy-font-lock-fontify-region-function):
+	Use diary-fancy-date-pattern as a function.
+
+	* calendar/diary-lib.el (diary-fancy-date-pattern): Do not use
+	non-numbers for `year' etc pseudo-variables.  (Bug#8583)
+
+2011-05-04  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/gnutls.el (gnutls-negotiate): Use CL-style keyword arguments
+	instead of positional arguments.  Allow :keylist and :crlfiles
+	arguments.
+	(open-gnutls-stream): Call it.
+
+	* net/network-stream.el (network-stream-open-starttls): Adjust to
+	call `gnutls-negotiate' with :process and :hostname arguments.
+
+2011-05-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion--message): New function.
+	(completion--do-completion, minibuffer-complete)
+	(minibuffer-force-complete, minibuffer-complete-word): Use it.
+	(completion--do-completion): Don't ignore completion-auto-help when in
+	icomplete-mode.
+
+	* whitespace.el (whitespace-trailing-regexp): Don't rely on the
+	internal encoding (e.g. tibetan zero is not whitespace).
+	(global-whitespace-mode): Prefer save-current-buffer.
+	(whitespace-trailing-regexp): Remove useless save-match-data.
+	(whitespace-empty-at-bob-regexp): Minor simplification.
+
 2011-05-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/autoload.el (generated-autoload-file): Doc fix (Bug#7989).

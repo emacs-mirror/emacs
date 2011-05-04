@@ -108,6 +108,12 @@
 
 	* fns.c (Frandom): Let EMACS_UINT be wider than unsigned long.
 
+2011-05-04  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnutls.c (Fgnutls_boot): Support :keylist and :crlfiles options
+	instead of :keyfiles.  Give GnuTLS the keylist and the CRL lists
+	as passed in.
+
 2011-05-03  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_set_frame_alpha): Do not set property on anything
