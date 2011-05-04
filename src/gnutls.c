@@ -44,7 +44,8 @@ static int gnutls_global_initialized;
 /* The following are for the property list of `gnutls-boot'.  */
 static Lisp_Object Qgnutls_bootprop_priority;
 static Lisp_Object Qgnutls_bootprop_trustfiles;
-static Lisp_Object Qgnutls_bootprop_keyfiles;
+static Lisp_Object Qgnutls_bootprop_keylist;
+static Lisp_Object Qgnutls_bootprop_crlfiles;
 static Lisp_Object Qgnutls_bootprop_callbacks;
 static Lisp_Object Qgnutls_bootprop_loglevel;
 static Lisp_Object Qgnutls_bootprop_hostname;
@@ -412,7 +413,10 @@ PROPLIST is a property list with the following keys:
 
 :trustfiles is a list of PEM-encoded trust files for `gnutls-x509pki'.
 
-:keyfiles is a list of PEM-encoded key files for `gnutls-x509pki'.
+:crlfiles is a list of PEM-encoded CRL lists for `gnutls-x509pki'.
+
+:keylist is an alist of PEM-encoded key files and PEM-encoded
+certificates for `gnutls-x509pki'.
 
 :callbacks is an alist of callback functions, see below.
 
@@ -471,7 +475,8 @@ one trustfile (usually a CA bundle).  */)
   /* Placeholders for the property list elements.  */
   Lisp_Object priority_string;
   Lisp_Object trustfiles;
-  Lisp_Object keyfiles;
+  Lisp_Object crlfiles;
+  Lisp_Object keylist;
   /* Lisp_Object callbacks; */
   Lisp_Object loglevel;
   Lisp_Object hostname;
@@ -486,7 +491,8 @@ one trustfile (usually a CA bundle).  */)
   hostname              = Fplist_get (proplist, Qgnutls_bootprop_hostname);
   priority_string       = Fplist_get (proplist, Qgnutls_bootprop_priority);
   trustfiles            = Fplist_get (proplist, Qgnutls_bootprop_trustfiles);
-  keyfiles              = Fplist_get (proplist, Qgnutls_bootprop_keyfiles);
+  keylist               = Fplist_get (proplist, Qgnutls_bootprop_keylist);
+  crlfiles              = Fplist_get (proplist, Qgnutls_bootprop_crlfiles);
   /* callbacks          = Fplist_get (proplist, Qgnutls_bootprop_callbacks); */
   loglevel              = Fplist_get (proplist, Qgnutls_bootprop_loglevel);
   verify_flags          = Fplist_get (proplist, Qgnutls_bootprop_verify_flags);
@@ -614,15 +620,41 @@ one trustfile (usually a CA bundle).  */)
             }
         }
 
-      for (tail = keyfiles; !NILP (tail); tail = Fcdr (tail))
+      for (tail = crlfiles; !NILP (tail); tail = Fcdr (tail))
 	{
-	  Lisp_Object keyfile = Fcar (tail);
-          if (STRINGP (keyfile))
+	  Lisp_Object crlfile = Fcar (tail);
+          if (STRINGP (crlfile))
             {
-              GNUTLS_LOG2 (1, max_log_level, "setting the keyfile: ",
-                           SSDATA (keyfile));
+              GNUTLS_LOG2 (1, max_log_level, "setting the CRL file: ",
+                           SSDATA (crlfile));
               ret = gnutls_certificate_set_x509_crl_file
                 (x509_cred,
+                 SSDATA (crlfile),
+                 file_format);
+
+              if (ret < GNUTLS_E_SUCCESS)
+                return gnutls_make_error (ret);
+            }
+          else
+            {
+              error ("Sorry, GnuTLS can't use non-string CRL file %s",
+                     SDATA (crlfile));
+            }
+        }
+
+      for (tail = keylist; !NILP (tail); tail = Fcdr (tail))
+	{
+	  Lisp_Object keyfile = Fcar (Fcar (tail));
+	  Lisp_Object certfile = Fcar (Fcdr (tail));
+          if (STRINGP (keyfile) && STRINGP (certfile))
+            {
+              GNUTLS_LOG2 (1, max_log_level, "setting the client key file: ",
+                           SSDATA (keyfile));
+              GNUTLS_LOG2 (1, max_log_level, "setting the client cert file: ",
+                           SSDATA (certfile));
+              ret = gnutls_certificate_set_x509_key_file
+                (x509_cred,
+                 SSDATA (certfile),
                  SSDATA (keyfile),
                  file_format);
 
@@ -631,8 +663,12 @@ one trustfile (usually a CA bundle).  */)
             }
           else
             {
-              error ("Sorry, GnuTLS can't use non-string keyfile %s",
-                     SDATA (keyfile));
+              if (STRINGP (keyfile))
+                error ("Sorry, GnuTLS can't use non-string client cert file %s",
+                       SDATA (certfile));
+              else
+                error ("Sorry, GnuTLS can't use non-string client key file %s",
+                       SDATA (keyfile));
             }
         }
     }
@@ -868,8 +904,11 @@ syms_of_gnutls (void)
   Qgnutls_bootprop_trustfiles = intern_c_string (":trustfiles");
   staticpro (&Qgnutls_bootprop_trustfiles);
 
-  Qgnutls_bootprop_keyfiles = intern_c_string (":keyfiles");
-  staticpro (&Qgnutls_bootprop_keyfiles);
+  Qgnutls_bootprop_keylist = intern_c_string (":keylist");
+  staticpro (&Qgnutls_bootprop_keylist);
+
+  Qgnutls_bootprop_crlfiles = intern_c_string (":crlfiles");
+  staticpro (&Qgnutls_bootprop_crlfiles);
 
   Qgnutls_bootprop_callbacks = intern_c_string (":callbacks");
   staticpro (&Qgnutls_bootprop_callbacks);
