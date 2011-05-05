@@ -3205,7 +3205,7 @@ example, when a change alters the syntactic meaning of text on an
 earlier line.
 
   You can enlarge (or even reduce) the region to fontify by setting
-one the following variables:
+the following variable:
 
 @defvar font-lock-extend-after-change-region-function
 This buffer-local variable is either @code{nil} or a function for
