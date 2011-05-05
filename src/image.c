@@ -8602,11 +8602,9 @@ Libraries to load are specified in alist LIBRARIES (usually, the value
 of `dynamic-library-alist', which see).  */)
   (Lisp_Object type, Lisp_Object libraries)
 {
-  Lisp_Object tested;
-
 #ifdef HAVE_NTGUI
   /* Don't try to reload the library.  */
-  tested = Fassq (type, Vlibrary_cache);
+  Lisp_Object tested = Fassq (type, Vlibrary_cache);
   if (CONSP (tested))
     return XCDR (tested);
 #endif

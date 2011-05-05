@@ -1,5 +1,7 @@
 2011-05-05  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* image.c (Finit_image_library) [!HAVE_NTGUI]: Omit unused local.
+
 	* term.c (vfatal): Remove stray call to va_end.
 	It's not needed and the C Standard doesn't allow it here anyway.
 
