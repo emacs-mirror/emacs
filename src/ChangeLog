@@ -11,16 +11,6 @@
 
 	* term.c: Don't include <stdarg.h>, as <lisp.h> does that.
 
-	Arithmetic overflows now return float rather than wrapping around.
-	(Bug#8611).
-	* data.c: Include <intprops.h>.
-	(arith_driver): Use floating point if the accumulator would otherwise
-	go out of EMACS_INT range.
-	(arith_driver, Fadd1, Fsub1): Use floating point if the result is
-	out of Emacs fixnum range.
-	* bytecode.c (exec_byte_code): Likewise, for Bsub1, Badd1, Bnegate.
-	* floatfns.c (Fexpt): Likewise.
-
 	* callproc.c (Fcall_process): Use 'volatile' to avoid vfork clobbering.
 
 	* process.c (Fformat_network_address): Fix typo: args2 -> *args2.

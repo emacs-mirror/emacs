@@ -22,9 +22,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <signal.h>
 #include <stdio.h>
 #include <setjmp.h>
-
-#include <intprops.h>
-
 #include "lisp.h"
 #include "puresize.h"
 #include "character.h"
@@ -2429,8 +2426,10 @@ static Lisp_Object float_arith_driver (double, size_t, enum arithop,
 static Lisp_Object
 arith_driver (enum arithop code, size_t nargs, register Lisp_Object *args)
 {
+  register Lisp_Object val;
   register size_t argnum;
   register EMACS_INT accum = 0;
+  register EMACS_INT next;
 
   switch (SWITCH_ENUM_CAST (code))
     {
@@ -2452,89 +2451,58 @@ arith_driver (enum arithop code, size_t nargs, register Lisp_Object *args)
 
   for (argnum = 0; argnum < nargs; argnum++)
     {
-      EMACS_INT a = accum;
-      int use_float = 0;
-
       /* Using args[argnum] as argument to CHECK_NUMBER_... */
-      Lisp_Object val = args[argnum];
+      val = args[argnum];
       CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (val);
-      args[argnum] = val;
 
       if (FLOATP (val))
-	use_float = 1;
-      else
+	return float_arith_driver ((double) accum, argnum, code,
+				   nargs, args);
+      args[argnum] = val;
+      next = XINT (args[argnum]);
+      switch (SWITCH_ENUM_CAST (code))
 	{
-	  EMACS_INT next = XINT (val);
-	  switch (SWITCH_ENUM_CAST (code))
+	case Aadd:
+	  accum += next;
+	  break;
+	case Asub:
+	  accum = argnum ? accum - next : nargs == 1 ? - next : next;
+	  break;
+	case Amult:
+	  accum *= next;
+	  break;
+	case Adiv:
+	  if (!argnum)
+	    accum = next;
+	  else
 	    {
-	    case Aadd:
-	      if (next < 0
-		  ? a < TYPE_MINIMUM (EMACS_INT) - next
-		  : TYPE_MAXIMUM (EMACS_INT) - next < a)
-		use_float = 1;
-	      else
-		a += next;
-	      break;
-	    case Asub:
-	      if (argnum == 0 && nargs != 1)
-		a = next;
-	      else if (next < 0
-		       ? TYPE_MAXIMUM (EMACS_INT) + next < a
-		       : a < TYPE_MINIMUM (EMACS_INT) + next)
-		use_float = 1;
-	      else
-		a -= next;
-	      break;
-	    case Amult:
-	      if (next < 0
-		  ? (a < 0
-		     ? a < TYPE_MAXIMUM (EMACS_INT) / next
-		     : next != -1 && TYPE_MINIMUM (EMACS_INT) / next < a)
-		  : (next != 0
-		     && (a < 0
-			 ? a < TYPE_MINIMUM (EMACS_INT) / next
-			 : TYPE_MAXIMUM (EMACS_INT) / next < a)))
-		use_float = 1;
-	      else
-		a *= next;
-	      break;
-	    case Adiv:
-	      if (!argnum)
-		a = next;
-	      else
-		{
-		  if (next == 0)
-		    xsignal0 (Qarith_error);
-		  a /= next;
-		}
-	      break;
-	    case Alogand:
-	      a &= next;
-	      break;
-	    case Alogior:
-	      a |= next;
-	      break;
-	    case Alogxor:
-	      a ^= next;
-	      break;
-	    case Amax:
-	      if (!argnum || a < next)
-		a = next;
-	      break;
-	    case Amin:
-	      if (!argnum || next < a)
-		a = next;
-	      break;
+	      if (next == 0)
+		xsignal0 (Qarith_error);
+	      accum /= next;
 	    }
+	  break;
+	case Alogand:
+	  accum &= next;
+	  break;
+	case Alogior:
+	  accum |= next;
+	  break;
+	case Alogxor:
+	  accum ^= next;
+	  break;
+	case Amax:
+	  if (!argnum || next > accum)
+	    accum = next;
+	  break;
+	case Amin:
+	  if (!argnum || next < accum)
+	    accum = next;
+	  break;
 	}
-
-      if (use_float)
-	return float_arith_driver (accum, argnum, code, nargs, args);
-
-      accum = a;
     }
 
-  return make_fixnum_or_float (accum);
+  XSETINT (val, accum);
+  return val;
 }
 
 #undef isnan
@@ -2809,8 +2777,7 @@ Markers are converted to integers.  */)
 
   if (FLOATP (number))
     return (make_float (1.0 + XFLOAT_DATA (number)));
-  if (XINT (number) + 1 == MOST_POSITIVE_FIXNUM + 1)
-    return make_float (XINT (number) + 1);
+
   XSETINT (number, XINT (number) + 1);
   return number;
 }
@@ -2824,8 +2791,7 @@ Markers are converted to integers.  */)
 
   if (FLOATP (number))
     return (make_float (-1.0 + XFLOAT_DATA (number)));
-  if (XINT (number) - 1 == MOST_NEGATIVE_FIXNUM - 1)
-    return make_float (XINT (number) - 1);
+
   XSETINT (number, XINT (number) - 1);
   return number;
 }

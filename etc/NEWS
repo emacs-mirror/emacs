@@ -728,12 +728,6 @@ soap-inspect.el is an interactive inspector for SOAP WSDL structures.
 
 * Incompatible Lisp Changes in Emacs 24.1
 
-+++
-** Integer arithmetic overflow now yields the nearest floating-piont
-value rather than wrapping around.  For example, on a 32-bit machine,
-(1+ 536870911) yields 536870912.0, instead of the -536870912 it
-yielded in Emacs 23.3, or the 0 it yielded in Emacs 23.1.
-
 ---
 ** `char-direction-table' and the associated function `char-direction'
 were deleted.  They were buggy and inferior to the new support of

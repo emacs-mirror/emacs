@@ -491,39 +491,27 @@ DEFUN ("expt", Fexpt, Sexpt, 2, 2, 0,
       y = XINT (arg2);
       acc = 1;
 
-      if ((x == 0 && y != 0) || x == 1 || (x == -1 && (y & 1)))
-	return arg1;
-      if (x == -1)
-	y = 0;
-
-      while (1)
+      if (y < 0)
 	{
-	  if (y & 1)
-	    {
-	      if (x < 0
-		  ? (acc < 0
-		     ? acc < MOST_POSITIVE_FIXNUM / x
-		     : MOST_NEGATIVE_FIXNUM / x < acc)
-		  : (acc < 0
-		     ? acc < MOST_NEGATIVE_FIXNUM / x
-		     : MOST_POSITIVE_FIXNUM / x < acc))
-		break;
-	      acc *= x;
-	    }
-
-	  y >>= 1;
-	  if (y == 0)
-	    {
-	      XSETINT (val, acc);
-	      return val;
-	    }
-
-	  if (x < 0
-	      ? x < MOST_POSITIVE_FIXNUM / x
-	      : MOST_POSITIVE_FIXNUM / x < x)
-	    break;
-	  x *= x;
+	  if (x == 1)
+	    acc = 1;
+	  else if (x == -1)
+	    acc = (y & 1) ? -1 : 1;
+	  else
+	    acc = 0;
 	}
+      else
+	{
+	  while (y > 0)
+	    {
+	      if (y & 1)
+		acc *= x;
+	      x *= x;
+	      y = (unsigned)y >> 1;
+	    }
+	}
+      XSETINT (val, acc);
+      return val;
     }
   f1 = FLOATP (arg1) ? XFLOAT_DATA (arg1) : XINT (arg1);
   f2 = FLOATP (arg2) ? XFLOAT_DATA (arg2) : XINT (arg2);
