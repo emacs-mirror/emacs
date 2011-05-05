@@ -1,3 +1,8 @@
+2011-05-05  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (bootstrap-clean): Save config.log.  (Bug#765)
+	(top_distclean): Delete config.log~.
+
 2011-04-27  Ben Key  <bkey76@gmail.com>
 
 	* configure.in: Fixed a bug that caused configure with
