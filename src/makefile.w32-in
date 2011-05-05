@@ -978,6 +978,7 @@ $(BLD)/image.$(O) : \
 	$(SRC)/frame.h \
 	$(SRC)/systime.h \
 	$(SRC)/termhooks.h \
+	$(SRC)/w32.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32term.h \
 	$(SRC)/window.h
@@ -1304,7 +1305,9 @@ $(BLD)/print.$(O) : \
 $(BLD)/process.$(O) : \
 	$(SRC)/process.c \
 	$(CONFIG_H) \
+	$(EMACS_ROOT)/nt/inc/inttypes.h \
 	$(EMACS_ROOT)/nt/inc/netdb.h \
+	$(EMACS_ROOT)/nt/inc/stdint.h \
 	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/arpa/inet.h \
 	$(EMACS_ROOT)/nt/inc/netinet/in.h \
