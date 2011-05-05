@@ -1,3 +1,8 @@
+2011-05-05  Milan Zamazal  <pdm@zamazal.org>
+
+	* progmodes/glasses.el (glasses-separate-capital-groups): New option.
+	(glasses-make-readable): Use glasses-separate-capital-groups.
+
 2011-05-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/warnings.el (warning-level-aliases): Reflow docstring.
