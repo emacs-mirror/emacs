@@ -1,3 +1,11 @@
+2011-05-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* quail/latin-ltx.el <\beth, \gimel, \daleth>: Produce
+	corresponding symbols rather than Hebrew letters.  (Bug#8563)
+
+	* quail/latin-ltx.el <\aleph>: Produce ALEF SYMBOL instead of
+	HEBREW LETTER ALEF.  (Bug#8563)
+
 2011-03-23  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (install): Use `install-sh -d' rather than mkinstalldirs.

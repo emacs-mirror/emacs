@@ -1,3 +1,12 @@
+2011-05-05 Eli Zaretskii  <eliz@gnu.org>
+
+	* w32heap.c (allocate_heap) [USE_LISP_UNION_TYPE || USE_LSB_TAG]:
+	New version that can reserve upto 2GB of heap space.
+
+2011-05-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsfns.m (Fns_read_file_name): Doc fix (Bug#8534).
+
 2011-05-05  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnutls.c (fn_gnutls_certificate_set_x509_key_file): Add alias to

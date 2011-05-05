@@ -1,3 +1,8 @@
+2011-05-05  Daniel Colascione <dan.colascione@gmail.com>
+
+	* progmodes/cc-engine.el (c-forward-decl-or-cast-1): Use
+	correct match group (bug#8438).
+
 2011-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Fix earlier half-done eieio-defmethod change (bug#8338).
