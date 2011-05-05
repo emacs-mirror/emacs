@@ -830,13 +830,17 @@ lisp_file_lexically_bound_p (Lisp_Object readcharfun)
 	    ch = READCHAR;
 
 	  i = 0;
-	  while (ch != ':' && ch != '\n' && ch != EOF)
+	  while (ch != ':' && ch != '\n' && ch != EOF && in_file_vars)
 	    {
 	      if (i < sizeof var - 1)
 		var[i++] = ch;
 	      UPDATE_BEG_END_STATE (ch);
 	      ch = READCHAR;
 	    }
+
+	  /* Stop scanning if no colon was found before end marker.  */
+	  if (!in_file_vars)
+	    break;
 
 	  while (i > 0 && (var[i - 1] == ' ' || var[i - 1] == '\t'))
 	    i--;
