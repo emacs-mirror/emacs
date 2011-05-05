@@ -1,3 +1,8 @@
+2011-05-05  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* shr.el (shr-urlify, shr-link): Still broken but at least doesn't
+	error out because the face is not a list.
+
 2011-05-05  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-start.el (gnus-propagate-marks): Declare.
