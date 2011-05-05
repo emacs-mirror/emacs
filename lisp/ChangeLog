@@ -1,3 +1,9 @@
+2011-05-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/warnings.el (warning-level-aliases): Reflow docstring.
+	(warning-series): Doc fix.
+	(display-warning): Don't try to create the buffer if we just found it.
+
 2011-05-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/autoload.el (generated-autoload-file): Set to nil.
