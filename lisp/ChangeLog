@@ -1,5 +1,8 @@
 2011-05-05  Glenn Morris  <rgm@gnu.org>
 
+	* simple.el (shell-dynamic-complete-functions)
+	(comint-dynamic-complete-functions): Declare.
+
 	* net/network-stream.el (gnutls-negotiate):
 	* simple.el (tabulated-list-print): Fix declarations.
 

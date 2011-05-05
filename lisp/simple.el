@@ -2170,6 +2170,9 @@ to the end of the list of defaults just after the default value."
 (defvar shell-delimiter-argument-list)
 (defvar shell-file-name-chars)
 (defvar shell-file-name-quote-list)
+(defvar shell-dynamic-complete-functions)
+;; shell requires comint.
+(defvar comint-dynamic-complete-functions)
 
 (defvar minibuffer-local-shell-command-map
   (let ((map (make-sparse-keymap)))
