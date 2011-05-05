@@ -1,5 +1,7 @@
 2011-05-05  Glenn Morris  <rgm@gnu.org>
 
+	* allout-widgets.el (allout-widgets-mode-inhibit): Declare before use.
+
 	* simple.el (shell-dynamic-complete-functions)
 	(comint-dynamic-complete-functions): Declare.
 
