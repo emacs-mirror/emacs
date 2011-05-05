@@ -245,6 +245,20 @@
   be displayed informing you that "using parameters that include the =
   character by enclosing them in quotes will not be supported."
 
+  You may also use the --cflags and --ldflags options to pass
+  additional parameters to the compiler and linker, respectively; they
+  are frequently used to pass -I and -L flags to specify supplementary
+  include and library directories.  If a directory name includes
+  spaces, you will need to enclose it in quotes, as follows
+  -I"C:/Program Files/GnuTLS-2.10.1/include".  Note that only the
+  directory name is enclosed in quotes, not the entire argument.  Also
+  note that this functionality is only supported if command extensions
+  are available.  If command extensions are disabled and you attempt to
+  use this functionality you may see the following warning message
+  "Error in --cflags argument: ... Backslashes and quotes cannot be
+  used with --cflags.  Please use forward slashes for filenames and
+  paths (e.g. when passing directories to -I)."
+  
   N.B.  It is normal to see a few error messages output while configure
   is running, when gcc support is being tested.  These cannot be
   suppressed because of limitations in the Windows 9X command.com shell.
@@ -325,12 +339,17 @@
 
 * Optional GnuTLS support
 
-  You can build Emacs with GnuTLS support.  Put the gnutls/gnutls.h header in
-  the include path and link to the appropriate libraries (gnutls.dll and
-  gcrypt.dll) with the --lib option.
+  If configure.bat finds the gnutls/gnutls.h file in the include path,
+  Emacs is built with GnuTLS support by default; to avoid that you can
+  pass the argument --without-gnutls.
 
-  You can get pre-built binaries and an installer at
-  http://josefsson.org/gnutls4win/.
+  In order to support GnuTLS at runtime, a GnuTLS-enabled Emacs must
+  be able to find the relevant DLLs during startup; failure to do so
+  is not an error, but GnuTLS won't be available to the running
+  session.
+
+  You can get pre-built binaries (including any required DLL and the
+  gnutls.h file) and an installer at http://josefsson.org/gnutls4win/.
 
 * Experimental SVG support
 

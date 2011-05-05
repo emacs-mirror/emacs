@@ -656,14 +656,14 @@ See `defclass' for more information."
 	;; so that users can `setf' the space returned by this function
 	(if acces
 	    (progn
-	      (eieio-defmethod acces
-		(list (if (eq alloc :class) :static :primary)
-		      (list (list 'this cname))
-		      (format
+	      (eieio--defmethod
+               acces (if (eq alloc :class) :static :primary) cname
+               `(lambda (this)
+                  ,(format
 		       "Retrieves the slot `%s' from an object of class `%s'"
 		       name cname)
-		      (list 'if (list 'slot-boundp 'this (list 'quote name))
-			    (list 'eieio-oref 'this (list 'quote name))
+                  (if (slot-boundp this ',name)
+                      (eieio-oref this ',name)
 			    ;; Else - Some error?  nil?
 			    nil)))
 
@@ -683,22 +683,21 @@ See `defclass' for more information."
 	;; If a writer is defined, then create a generic method of that
 	;; name whose purpose is to set the value of the slot.
 	(if writer
-	    (progn
-	      (eieio-defmethod writer
-		(list (list (list 'this cname) 'value)
-		      (format "Set the slot `%s' of an object of class `%s'"
+            (eieio--defmethod
+             writer nil cname
+             `(lambda (this value)
+                ,(format "Set the slot `%s' of an object of class `%s'"
 			      name cname)
-		      `(setf (slot-value this ',name) value)))
-	      ))
+                (setf (slot-value this ',name) value))))
 	;; If a reader is defined, then create a generic method
 	;; of that name whose purpose is to access this slot value.
 	(if reader
-	    (progn
-	      (eieio-defmethod reader
-		(list (list (list 'this cname))
-		      (format "Access the slot `%s' from object of class `%s'"
+            (eieio--defmethod
+             reader nil cname
+             `(lambda (this)
+                ,(format "Access the slot `%s' from object of class `%s'"
 			      name cname)
-		      `(slot-value this ',name)))))
+                (slot-value this ',name))))
 	)
       (setq slots (cdr slots)))
 
@@ -1290,83 +1289,48 @@ Summary:
                      ((typearg class-name) arg2 &optional opt &rest rest)
     \"doc-string\"
      body)"
-  (let* ((key (cond ((or (eq ':BEFORE (car args))
-                         (eq ':before (car args)))
-                     (setq args (cdr args))
-                     :before)
-                    ((or (eq ':AFTER (car args))
-                         (eq ':after (car args)))
-                     (setq args (cdr args))
-                     :after)
-                    ((or (eq ':PRIMARY (car args))
-                         (eq ':primary (car args)))
-                     (setq args (cdr args))
-                     :primary)
-                    ((or (eq ':STATIC (car args))
-                         (eq ':static (car args)))
-                     (setq args (cdr args))
-                     :static)
-                    (t nil)))
+  (let* ((key (if (keywordp (car args)) (pop args)))
 	 (params (car args))
-	 (lamparams
-          (mapcar (lambda (param) (if (listp param) (car param) param))
-                  params))
 	 (arg1 (car params))
-	 (class (if (listp arg1) (nth 1 arg1) nil)))
-    `(eieio-defmethod ',method
-                      '(,@(if key (list key))
-                        ,params)
-                      (lambda ,lamparams ,@(cdr args)))))
+	 (class (if (consp arg1) (nth 1 arg1))))
+    `(eieio--defmethod ',method ',key ',class
+                       (lambda ,(if (consp arg1)
+                               (cons (car arg1) (cdr params))
+                             params)
+                         ,@(cdr args)))))
 
-(defun eieio-defmethod (method args &optional code)
+(defun eieio--defmethod (method kind argclass code)
   "Work part of the `defmethod' macro defining METHOD with ARGS."
-  (let ((key nil) (body nil) (firstarg nil) (argfix nil) (argclass nil) loopa)
+  (let ((key
     ;; find optional keys
-    (setq key
-	  (cond ((or (eq ':BEFORE (car args))
-		     (eq ':before (car args)))
-		 (setq args (cdr args))
+         (cond ((or (eq ':BEFORE kind)
+                    (eq ':before kind))
 		 method-before)
-		((or (eq ':AFTER (car args))
-		     (eq ':after (car args)))
-		 (setq args (cdr args))
+               ((or (eq ':AFTER kind)
+                    (eq ':after kind))
 		 method-after)
-		((or (eq ':PRIMARY (car args))
-		     (eq ':primary (car args)))
-		 (setq args (cdr args))
+               ((or (eq ':PRIMARY kind)
+                    (eq ':primary kind))
 		 method-primary)
-		((or (eq ':STATIC (car args))
-		     (eq ':static (car args)))
-		 (setq args (cdr args))
+               ((or (eq ':STATIC kind)
+                    (eq ':static kind))
 		 method-static)
 		;; Primary key
-		(t method-primary)))
-    ;; get body, and fix contents of args to be the arguments of the fn.
-    (setq body (cdr args)
-	  args (car args))
-    (setq loopa args)
-    ;; Create a fixed version of the arguments
-    (while loopa
-      (setq argfix (cons (if (listp (car loopa)) (car (car loopa)) (car loopa))
-			 argfix))
-      (setq loopa (cdr loopa)))
+               (t method-primary))))
     ;; make sure there is a generic
     (eieio-defgeneric
      method
-     (if (stringp (car body))
-	 (car body) (format "Generically created method `%s'." method)))
+     (or (documentation code)
+         (format "Generically created method `%s'." method)))
     ;; create symbol for property to bind to.  If the first arg is of
     ;; the form (varname vartype) and `vartype' is a class, then
     ;; that class will be the type symbol.  If not, then it will fall
     ;; under the type `primary' which is a non-specific calling of the
     ;; function.
-    (setq firstarg (car args))
-    (if (listp firstarg)
-	(progn
-	  (setq argclass  (nth 1 firstarg))
+    (if argclass
 	  (if (not (class-p argclass))
 	      (error "Unknown class type %s in method parameters"
-		     (nth 1 firstarg))))
+                   argclass))
       (if (= key -1)
 	  (signal 'wrong-type-argument (list :static 'non-class-arg)))
       ;; generics are higher
@@ -1884,11 +1848,11 @@ OBJECT can be an instance or a class."
   ;; Skip typechecking while retrieving this value.
   (let ((eieio-skip-typecheck t))
     ;; Return nil if the magic symbol is in there.
-    (if (eieio-object-p object)
-	(if (eq (eieio-oref object slot) eieio-unbound) nil t)
-      (if (class-p object)
-	  (if (eq (eieio-oref-default object slot) eieio-unbound) nil t)
-	(signal 'wrong-type-argument (list 'eieio-object-p object))))))
+    (not (eq (cond
+	      ((eieio-object-p object) (eieio-oref object slot))
+	      ((class-p object)        (eieio-oref-default object slot))
+	      (t (signal 'wrong-type-argument (list 'eieio-object-p object))))
+	     eieio-unbound))))
 
 (defun slot-makeunbound (object slot)
   "In OBJECT, make SLOT unbound."

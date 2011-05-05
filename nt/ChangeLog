@@ -1,8 +1,23 @@
-2011-04-30  Paul Eggert  <eggert@cs.ucla.edu>
+2011-05-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* config.nt: Configure 64-bit integers for older compilers.
 	(EMACS_INT, BITS_PER_EMACS_INT, pI): Define these if __int64 and
 	"%I64d" work but long long and "%lld" do not.
+
+2011-05-05  Ben Key  <bkey76@gmail.com>
+
+	* configure.bat: Added support for --cflags and --ldflags
+	options that include quotes as long as command extensions are
+	enabled.  Specifically when -I, -L, and similar flags are used
+	to specify supplementary include and library directories a
+	directory name that includes spaces may now be used if it is
+	enclosed in quotes.
+
+	* INSTALL: Documented the change to configure.bat.
+
+2011-05-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* INSTALL: Clarify GnuTLS support.
 
 2011-04-30  Eli Zaretskii  <eliz@gnu.org>
 

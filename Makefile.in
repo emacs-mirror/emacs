@@ -799,7 +799,7 @@ top_bootclean=\
 ###      distribution.
 top_distclean=\
 	${top_bootclean}; \
-	rm -f config.status Makefile stamp-h1 ${SUBDIR_MAKEFILES}
+	rm -f config.status config.log~ Makefile stamp-h1 ${SUBDIR_MAKEFILES}
 distclean: FRC
 	(cd src;      $(MAKE) $(MFLAGS) distclean)
 	(cd oldXMenu; $(MAKE) $(MFLAGS) distclean)
@@ -829,7 +829,10 @@ bootstrap-clean: FRC
 	-(cd doc/lispintro &&   $(MAKE) $(MFLAGS) maintainer-clean)
 	(cd leim;     $(MAKE) $(MFLAGS) maintainer-clean)
 	(cd lisp;     $(MAKE) $(MFLAGS) bootstrap-clean)
+	[ ! -e config.log ] || mv -f config.log config.log~
 	${top_bootclean}
+## configure; make bootstrap replaces the real config.log from configure
+## with the truncated one from config.status.  The former is more useful.
 
 ### `maintainer-clean'
 ###      Delete everything from the current directory that can be
@@ -928,6 +931,8 @@ dvi:
 
 .PHONY: bootstrap
 
+## configure; make boostrap replaces the real config.log from configure
+## with the truncated one from config.status.  The former is more useful.
 bootstrap: bootstrap-clean FRC
 	if [ -x ./config.status ]; then           \
 	    ./config.status;                      \

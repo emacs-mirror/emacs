@@ -143,6 +143,9 @@ extern void syms_of_fontset (void);
 extern int _sys_read_ahead (int fd);
 extern int _sys_wait_accept (int fd);
 
+extern Lisp_Object Vlibrary_cache, QCloaded_from;
+extern HMODULE w32_delayed_load (Lisp_Object, Lisp_Object);
+
 #ifdef HAVE_GNUTLS
 #include <gnutls/gnutls.h>
 

@@ -1,3 +1,44 @@
+2011-05-05  Daniel Colascione <dan.colascione@gmail.com>
+
+	* progmodes/cc-engine.el (c-forward-decl-or-cast-1): Use
+	correct match group (bug#8438).
+
+2011-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Fix earlier half-done eieio-defmethod change (bug#8338).
+	* emacs-lisp/eieio.el (eieio--defmethod): Rename from eieio-defmethod.
+	Streamline and change calling convention.
+	(defmethod): Adjust accordingly and simplify.
+	(eieio-defclass): Fix broken calls to eieio-defmethod and redirect to
+	new eieio--defmethod.
+	(slot-boundp): Minor CSE simplification.
+
+2011-05-05  Milan Zamazal  <pdm@zamazal.org>
+
+	* progmodes/glasses.el (glasses-separate-capital-groups): New option.
+	(glasses-make-readable): Use glasses-separate-capital-groups.
+
+2011-05-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/warnings.el (warning-level-aliases): Reflow docstring.
+	(warning-series): Doc fix.
+	(display-warning): Don't try to create the buffer if we just found it.
+
+2011-05-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/autoload.el (generated-autoload-file): Set to nil.
+	(autoload-find-generated-file): New function.
+	(generate-file-autoloads): Bind generated-autoload-file to
+	buffer-file-name.
+	(update-file-autoloads, update-directory-autoloads):
+	Use autoload-find-generated-file.  If called interactively, prompt for
+	output file (Bug#7989).
+	(batch-update-autoloads): Doc fix.
+
+2011-05-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* term/w32-win.el (dynamic-library-alist): Add `gnutls'.
+
 2011-05-04  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/diary-lib.el (diary-fancy-date-pattern): Turn it into a

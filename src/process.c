@@ -32,6 +32,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 #include <fcntl.h>
 
+#include "lisp.h"
+
 /* Only MS-DOS does not define `subprocesses'.  */
 #ifdef subprocesses
 
@@ -76,7 +78,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #endif	/* subprocesses */
 
-#include "lisp.h"
 #include "systime.h"
 #include "systty.h"
 
@@ -4539,7 +4540,7 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
           if (nfds == 0 &&
               wait_proc && wait_proc->gnutls_p /* Check for valid process.  */
               /* Do we have pending data?  */
-              && gnutls_record_check_pending (wait_proc->gnutls_state) > 0)
+              && emacs_gnutls_record_check_pending (wait_proc->gnutls_state) > 0)
           {
               nfds = 1;
               /* Set to Available.  */
@@ -4950,7 +4951,7 @@ read_process_output (Lisp_Object proc, register int channel)
 	}
 #ifdef HAVE_GNUTLS
       if (XPROCESS (proc)->gnutls_p)
-	nbytes = emacs_gnutls_read (channel, XPROCESS (proc),
+	nbytes = emacs_gnutls_read (XPROCESS (proc),
 				    chars + carryover + buffered,
 				    readmax - buffered);
       else
@@ -5413,9 +5414,8 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
 		{
 #ifdef HAVE_GNUTLS
 		  if (XPROCESS (proc)->gnutls_p)
-		    written = emacs_gnutls_write (outfd,
-						 XPROCESS (proc),
-						 buf, this);
+		    written = emacs_gnutls_write (XPROCESS (proc),
+                                                  buf, this);
 		  else
 #endif
 		    written = emacs_write (outfd, buf, this);

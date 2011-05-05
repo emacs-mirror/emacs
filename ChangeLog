@@ -1,4 +1,4 @@
-2011-05-04  Paul Eggert  <eggert@cs.ucla.edu>
+2011-05-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use C99's va_copy to avoid undefined behavior on x86-64 GNU/Linux.
 	* Makefile.in (GNULIB_MODULES): Add stdarg, for va_copy.
@@ -8,9 +8,12 @@
 	This new gnulib-tool option saves 'configure' the trouble of
 	checking for strtoull when strtoumax exists.
 
-2011-04-29  Paul Eggert  <eggert@cs.ucla.edu>
-
 	* configure.in (BITS_PER_LONG_LONG): New macro.
+
+2011-05-05  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (bootstrap-clean): Save config.log.  (Bug#765)
+	(top_distclean): Delete config.log~.
 
 2011-04-27  Ben Key  <bkey76@gmail.com>
 

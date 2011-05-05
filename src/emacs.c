@@ -29,6 +29,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <setjmp.h>
 #include <unistd.h>
 
+#include "lisp.h"
+
 #ifdef WINDOWSNT
 #include <fcntl.h>
 #include <windows.h> /* just for w32.h */
@@ -41,7 +43,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <GNUstepBase/GSConfig.h>
 #endif
 
-#include "lisp.h"
 #include "commands.h"
 #include "intervals.h"
 #include "buffer.h"
