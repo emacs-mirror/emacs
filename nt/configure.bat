@@ -97,8 +97,10 @@ set profile=N
 set nocygwin=N
 set COMPILER=
 set usercflags=
+set fusercflags=
 set docflags=
 set userldflags=
+set fuserldflags=
 set extrauserlibs=
 set doldflags=
 set doextralibs=
@@ -238,6 +240,7 @@ goto ucflagne
 :ucflagex
 shift
 set usercflags=%usercflags%%sep1%%~1
+set fusercflags=%usercflags:"=\"%
 set sep1= %nothing%
 shift
 goto again
@@ -245,6 +248,7 @@ goto again
 :ucflagne
 shift
 set usercflags=%usercflags%%sep1%%1
+set fusercflags=%usercflags%
 set sep1= %nothing%
 shift
 goto again
@@ -266,6 +270,7 @@ goto ulflagne
 :ulflagex
 shift
 set userldflags=%userldflags%%sep2%%~1
+set fuserldflags=%userldflags:"=\"%
 set sep2= %nothing%
 shift
 goto again
@@ -273,6 +278,7 @@ goto again
 :ulflagne
 shift
 set userldflags=%userldflags%%sep2%%1
+set fuserldflags=%userldflags%
 set sep2= %nothing%
 shift
 goto again
@@ -437,7 +443,7 @@ goto nocompiler
 :chkuser
 rm -f junk.o
 echo int main (int argc, char *argv[]) {>junk.c
-echo char *usercflags = "%usercflags%";>>junk.c
+echo char *usercflags = "%fusercflags%";>>junk.c
 echo }>>junk.c
 echo gcc -Werror -c junk.c >>config.log
 gcc -Werror -c junk.c >>config.log 2>&1
@@ -745,8 +751,8 @@ echo. >>config.tmp
 echo /* Start of settings from configure.bat.  */ >>config.tmp
 rem   We write USER_CFLAGS and USER_LDFLAGS starting with a space to simplify
 rem   processing of compiler options in w32.c:get_emacs_configuration_options
-if (%docflags%) == (Y) echo #define USER_CFLAGS " %usercflags%">>config.tmp
-if (%doldflags%) == (Y) echo #define USER_LDFLAGS " %userldflags%">>config.tmp
+if (%docflags%) == (Y) echo #define USER_CFLAGS " %fusercflags%">>config.tmp
+if (%doldflags%) == (Y) echo #define USER_LDFLAGS " %fuserldflags%">>config.tmp
 if (%profile%) == (Y) echo #define PROFILING 1 >>config.tmp
 if not "(%HAVE_PNG%)" == "()" echo #define HAVE_PNG 1 >>config.tmp
 if not "(%HAVE_GNUTLS%)" == "()" echo #define HAVE_GNUTLS 1 >>config.tmp
