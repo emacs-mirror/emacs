@@ -1,5 +1,11 @@
 2011-05-05  Glenn Morris  <rgm@gnu.org>
 
+	* net/network-stream.el (gnutls-negotiate):
+	* simple.el (tabulated-list-print): Fix declarations.
+
+	* progmodes/gud.el (syntax-symbol, syntax-point):
+	Remove unnecessary and incorrect declarations.
+
 	* emacs-lisp/check-declare.el (check-declare-scan):
 	Handle byte-compile-initial-macro-environment in bytecomp.el
 

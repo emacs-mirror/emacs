@@ -2707,7 +2707,8 @@ support pty association, if PROGRAM is nil."
 (defvar tabulated-list-entries)
 (defvar tabulated-list-sort-key)
 (declare-function tabulated-list-init-header  "tabulated-list" ())
-(declare-function tabulated-list-print "tabulated-list" ())
+(declare-function tabulated-list-print "tabulated-list"
+                  (&optional remember-pos))
 
 (defvar process-menu-query-only nil)
 

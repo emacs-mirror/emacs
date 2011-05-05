@@ -3042,8 +3042,6 @@ Link exprs of the form:
 
 (declare-function c-langelem-sym "cc-defs" (langelem))
 (declare-function c-langelem-pos "cc-defs" (langelem))
-(declare-function syntax-symbol  "gud"     (x))
-(declare-function syntax-point   "gud"     (x))
 
 (defun gud-find-class (f _line)
   "Find fully qualified class in file F at line LINE.
