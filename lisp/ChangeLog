@@ -1,3 +1,8 @@
+2011-05-05  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/check-declare.el (check-declare-scan):
+	Handle byte-compile-initial-macro-environment in bytecomp.el
+
 2011-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Fix earlier half-done eieio-defmethod change (bug#8338).
