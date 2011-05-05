@@ -1,5 +1,13 @@
 2011-05-05  Michael Albinus  <michael.albinus@gmx.de>
 
+	* net/ange-ftp.el (ange-ftp-binary-file-name-regexp): Set default
+	to "".
+	(ange-ftp-write-region, ange-ftp-insert-file-contents)
+	(ange-ftp-copy-file-internal): Use only `ange-ftp-binary-file' for
+	determining of binary transfer.  (Bug#7383)
+
+2011-05-05  Michael Albinus  <michael.albinus@gmx.de>
+
 	* net/tramp-sh.el (tramp-do-copy-or-rename-file-out-of-band): Fix
 	port computation bug.  (Bug#8618)
 
