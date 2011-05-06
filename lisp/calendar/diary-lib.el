@@ -651,9 +651,7 @@ Also removes the region between `diary-comment-start' and
         ;; Preserve the value with the comments.
         (or literal (setq literal string))
         (setq string (replace-regexp-in-string
-                      (format "%s.*%s" cstart
-                              (if (zerop (length diary-comment-end)) "$"
-                                (regexp-quote diary-comment-end)))
+                      (format "%s.*%s" cstart (regexp-quote diary-comment-end))
                       "" string)))
       (setq diary-entries-list
             (append diary-entries-list
