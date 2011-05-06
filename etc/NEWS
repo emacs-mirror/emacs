@@ -447,6 +447,10 @@ You can get a comparable behavior with:
 
 ** Calendar, Diary, and Appt
 
++++
+*** Diary entries can contain non-printing `comments'.
+See the variable `diary-comment-start'.
+
 *** New function `diary-hebrew-birthday'.
 
 ---

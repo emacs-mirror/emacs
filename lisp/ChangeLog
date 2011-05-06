@@ -1,5 +1,10 @@
 2011-05-06  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/diary-lib.el (diary-comment-start, diary-comment-end):
+	New options.
+	(diary-add-to-list): Strip comments from the displayed string.
+	(diary-mode): Set comment-start and comment-end.
+
 	* vc/diff-mode.el (smerge-refine-subst): Declare.
 	(diff-refine-hunk): Don't require smerge-mode when compiling.
 

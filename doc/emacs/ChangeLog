@@ -1,3 +1,7 @@
+2011-05-06  Glenn Morris  <rgm@gnu.org>
+
+	* cal-xtra.texi (Fancy Diary Display): Mention diary comments.
+
 2011-05-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* misc.texi (Emacs Server): Document `server-eval-at'.

@@ -142,6 +142,25 @@ See the documentation for the function `diary-list-sexp-entries'."
   :type 'string
   :group 'diary)
 
+(defcustom diary-comment-start nil
+  "String marking the start of a comment in the diary, or nil.
+Nil means there are no comments.  The diary does not display
+parts of entries that are inside comments.  You can use comments
+for whatever you like, e.g. for meta-data that packages such as
+`appt.el' can use.
+See also `diary-comment-end'."
+  :version "24.1"
+  :type '(choice (const :tag "No comment" nil) string)
+  :group 'diary)
+
+(defcustom diary-comment-end ""
+  "String marking the end of a comment in the diary.
+The empty string means comments finish at the end of a line.
+See also `diary-comment-start'."
+  :version "24.1"
+  :type 'string
+  :group 'diary)
+
 (defcustom diary-hook nil
   "List of functions called after the display of the diary.
 Used for example by the appointment package - see `appt-activate'."
@@ -610,10 +629,15 @@ If LITERAL is nil, it is taken to be the same as STRING.
 
 The entry is added to the list as (DATE STRING SPECIFIER LOCATOR
 GLOBCOLOR), where LOCATOR has the form (MARKER FILENAME LITERAL),
-FILENAME being the file containing the diary entry."
+FILENAME being the file containing the diary entry.
+
+Modifies STRING using `diary-modify-entry-list-string-function', if non-nil.
+Also removes the region between `diary-comment-start' and
+`diary-comment-end', if the former is non-nil."
   (when (and date string)
     ;; b-f-n is nil if we are visiting an include file in a temp-buffer.
-    (let ((dfile (or (buffer-file-name) diary-file)))
+    (let ((dfile (or (buffer-file-name) diary-file))
+          cstart)
       (if diary-file-name-prefix
           (let ((prefix (funcall diary-file-name-prefix-function dfile)))
             (or (string-equal prefix "")
@@ -621,6 +645,16 @@ FILENAME being the file containing the diary entry."
       (and diary-modify-entry-list-string-function
            (setq string (funcall diary-modify-entry-list-string-function
                                  string)))
+      (when (and diary-comment-start
+                 (string-match (setq cstart (regexp-quote diary-comment-start))
+                               string))
+        ;; Preserve the value with the comments.
+        (or literal (setq literal string))
+        (setq string (replace-regexp-in-string
+                      (format "%s.*%s" cstart
+                              (if (zerop (length diary-comment-end)) "$"
+                                (regexp-quote diary-comment-end)))
+                      "" string)))
       (setq diary-entries-list
             (append diary-entries-list
                     (list (list date string specifier
@@ -2353,6 +2387,8 @@ return a font-lock pattern matching array of MONTHS and marking SYMBOL."
   "Major mode for editing the diary file."
   (set (make-local-variable 'font-lock-defaults)
        '(diary-font-lock-keywords t))
+  (set (make-local-variable 'comment-start) diary-comment-start)
+  (set (make-local-variable 'comment-end) diary-comment-end)
   (add-to-invisibility-spec '(diary . nil))
   (add-hook 'after-save-hook 'diary-redraw-calendar nil t)
   ;; In case the file was modified externally, refresh the calendar
