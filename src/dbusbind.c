@@ -70,7 +70,7 @@ static Lisp_Object QCdbus_type_int64, QCdbus_type_uint64;
 static Lisp_Object QCdbus_type_double, QCdbus_type_string;
 static Lisp_Object QCdbus_type_object_path, QCdbus_type_signature;
 #ifdef DBUS_TYPE_UNIX_FD
-Lisp_Object QCdbus_type_unix_fd;
+static Lisp_Object QCdbus_type_unix_fd;
 #endif
 static Lisp_Object QCdbus_type_array, QCdbus_type_variant;
 static Lisp_Object QCdbus_type_struct, QCdbus_type_dict_entry;
@@ -892,7 +892,7 @@ xd_remove_watch (DBusWatch *watch, void *data)
     return;
 
   /* Unset session environment.  */
-  if (SYMBOLP (QCdbus_session_bus) && XSYMBOL (QCdbus_session_bus) == data)
+  if (XSYMBOL (QCdbus_session_bus) == data)
     {
       XD_DEBUG_MESSAGE ("unsetenv DBUS_SESSION_BUS_ADDRESS");
       unsetenv ("DBUS_SESSION_BUS_ADDRESS");
@@ -919,8 +919,15 @@ DEFUN ("dbus-init-bus", Fdbus_init_bus, Sdbus_init_bus, 1, 1, 0,
   (Lisp_Object bus)
 {
   DBusConnection *connection;
+  void *busp;
 
-  CHECK_SYMBOL (bus);
+  /* Check parameter.  */
+  if (SYMBOLP (bus))
+    busp = XSYMBOL (bus);
+  else if (STRINGP (bus))
+    busp = XSTRING (bus);
+  else
+    wrong_type_argument (intern ("D-Bus"), bus);
 
   /* Open a connection to the bus.  */
   connection = xd_initialize (bus, TRUE);
@@ -931,7 +938,7 @@ DEFUN ("dbus-init-bus", Fdbus_init_bus, Sdbus_init_bus, 1, 1, 0,
 					    xd_add_watch,
 					    xd_remove_watch,
                                             xd_toggle_watch,
-					    XSYMBOL (bus), NULL))
+					    busp, NULL))
     XD_SIGNAL1 (build_string ("Cannot add watch functions"));
 
   /* Add bus to list of registered buses.  */
@@ -1261,7 +1268,7 @@ usage: (dbus-call-method-asynchronously BUS SERVICE PATH INTERFACE METHOD HANDLE
   CHECK_STRING (interface);
   CHECK_STRING (method);
   if (!NILP (handler) && !FUNCTIONP (handler))
-    wrong_type_argument (intern ("functionp"), handler);
+    wrong_type_argument (Qinvalid_function, handler);
   GCPRO6 (bus, service, path, interface, method, handler);
 
   XD_DEBUG_MESSAGE ("%s %s %s %s",
@@ -1758,8 +1765,8 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
 	      EVENT_INIT (event);
 	      event.kind = DBUS_EVENT;
 	      event.frame_or_window = Qnil;
-	      event.arg = Fcons (CAR_SAFE (CDR_SAFE (CDR_SAFE (CDR_SAFE (key)))),
-				 args);
+	      event.arg
+		= Fcons (CAR_SAFE (CDR_SAFE (CDR_SAFE (CDR_SAFE (key)))), args);
 	      break;
 	    }
 	  value = CDR_SAFE (value);
@@ -1826,7 +1833,8 @@ xd_read_queued_messages (int fd, void *data, int for_read)
   if (data != NULL)
     while (!NILP (busp))
       {
-	if (SYMBOLP (CAR_SAFE (busp)) && XSYMBOL (CAR_SAFE (busp)) == data)
+	if ((SYMBOLP (CAR_SAFE (busp)) && XSYMBOL (CAR_SAFE (busp)) == data)
+	    || (STRINGP (CAR_SAFE (busp)) && XSTRING (CAR_SAFE (busp)) == data))
 	  bus = CAR_SAFE (busp);
 	busp = CDR_SAFE (busp);
       }
@@ -2011,7 +2019,7 @@ usage: (dbus-register-signal BUS SERVICE PATH INTERFACE SIGNAL HANDLER &rest ARG
   CHECK_STRING (interface);
   CHECK_STRING (signal);
   if (!FUNCTIONP (handler))
-    wrong_type_argument (intern ("functionp"), handler);
+    wrong_type_argument (Qinvalid_function, handler);
   GCPRO6 (bus, service, path, interface, signal, handler);
 
   /* Retrieve unique name of service.  If service is a known name, we
@@ -2132,7 +2140,7 @@ discovering the still incomplete interface.*/)
   CHECK_STRING (interface);
   CHECK_STRING (method);
   if (!FUNCTIONP (handler))
-    wrong_type_argument (intern ("functionp"), handler);
+    wrong_type_argument (Qinvalid_function, handler);
   /* TODO: We must check for a valid service name, otherwise there is
      a segmentation fault.  */
 
@@ -2174,11 +2182,13 @@ syms_of_dbusbind (void)
   staticpro (&Qdbus_call_method);
   defsubr (&Sdbus_call_method);
 
-  Qdbus_call_method_asynchronously = intern_c_string ("dbus-call-method-asynchronously");
+  Qdbus_call_method_asynchronously
+    = intern_c_string ("dbus-call-method-asynchronously");
   staticpro (&Qdbus_call_method_asynchronously);
   defsubr (&Sdbus_call_method_asynchronously);
 
-  Qdbus_method_return_internal = intern_c_string ("dbus-method-return-internal");
+  Qdbus_method_return_internal
+    = intern_c_string ("dbus-method-return-internal");
   staticpro (&Qdbus_method_return_internal);
   defsubr (&Sdbus_method_return_internal);
 
@@ -2215,7 +2225,8 @@ syms_of_dbusbind (void)
   QCdbus_session_bus = intern_c_string (":session");
   staticpro (&QCdbus_session_bus);
 
-  QCdbus_request_name_allow_replacement = intern_c_string (":allow-replacement");
+  QCdbus_request_name_allow_replacement
+    = intern_c_string (":allow-replacement");
   staticpro (&QCdbus_request_name_allow_replacement);
 
   QCdbus_request_name_replace_existing = intern_c_string (":replace-existing");

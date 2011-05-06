@@ -1,3 +1,13 @@
+2011-05-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (QCdbus_type_unix_fd): Declare static.
+	(xd_remove_watch): Don't check QCdbus_type_unix_fd for SYMBOLP, it
+	is a constant.
+	(Fdbus_init_bus, xd_read_queued_messages): Bus can be a symbol or
+	a string.  Handle both cases.
+	(Fdbus_call_method_asynchronously, Fdbus_register_signal)
+	(Fdbus_register_method): Use Qinvalid_function.
+
 2011-05-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in: Update dependencies.
