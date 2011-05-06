@@ -1,3 +1,8 @@
+2011-05-06  Glenn Morris  <rgm@gnu.org>
+
+	* vc/diff-mode.el (smerge-refine-subst): Declare.
+	(diff-refine-hunk): Don't require smerge-mode when compiling.
+
 2011-05-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* simple.el (list-processes): Return nil as the docstring says.

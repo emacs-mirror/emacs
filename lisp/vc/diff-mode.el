@@ -1825,10 +1825,13 @@ For use in `add-log-current-defun-function'."
     (replace-match (cdr (assq (char-before) '((?+ . "-") (?> . "<"))))))
   )
 
+(declare-function smerge-refine-subst "smerge-mode"
+                  (beg1 end1 beg2 end2 props &optional preproc))
+
 (defun diff-refine-hunk ()
   "Highlight changes of hunk at point at a finer granularity."
   (interactive)
-  (eval-and-compile (require 'smerge-mode))
+  (require 'smerge-mode)
   (save-excursion
     (diff-beginning-of-hunk 'try-harder)
     (let* ((start (point))
