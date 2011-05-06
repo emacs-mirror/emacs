@@ -1133,7 +1133,9 @@ If non-nil TEXT is a string that will be printed as a heading."
 	    (put-text-property opoint (point) 'font-lock-face 'shadow))
 	;; The labeling buttons might make the line too long, so fill it if
 	;; necessary.
-	(let ((fill-column (+ 5 emacs-lisp-docstring-fill-column))
+	(let ((fill-column (+ 5 (if (integerp emacs-lisp-docstring-fill-column)
+                                    emacs-lisp-docstring-fill-column
+                                  fill-column)))
 	      (fill-prefix (make-string ocol ?\s)))
 	  (fill-region opoint (point) nil t)))
       (or (bolp) (terpri)))))
