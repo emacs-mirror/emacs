@@ -480,10 +480,18 @@ extern char *getenv ();
 
 #elif _MSC_VER >= 1200
 
+/* Temporarily disable wider-than-pointer integers until they're tested more.
+   Build with CFLAGS='-DWIDE_EMACS_INT' to try them out.  */
+/* #undef WIDE_EMACS_INT */
+
+# ifdef WIDE_EMACS_INT
+
 /* Use pre-C99-style 64-bit integers.  */
 # define EMACS_INT __int64
 # define BITS_PER_EMACS_INT 64
 # define pI "I64"
+
+# endif
 
 #endif
 

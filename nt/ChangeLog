@@ -1,6 +1,8 @@
-2011-05-05  Paul Eggert  <eggert@cs.ucla.edu>
+2011-05-06  Paul Eggert  <eggert@cs.ucla.edu>
 
-	* config.nt: Configure 64-bit integers for older compilers.
+	* config.nt: Prepare to configure 64-bit integers for older compilers.
+	However, temporarily disable this change unless the temporary
+	symbol WIDE_EMACS_INT is defined.
 	(EMACS_INT, BITS_PER_EMACS_INT, pI): Define these if __int64 and
 	"%I64d" work but long long and "%lld" do not.
 

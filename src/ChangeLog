@@ -55,6 +55,8 @@
 	(EMACS_INT, EMACS_UINT, BITS_PER_EMACS_INT, pI): Define to 64-bit
 	on 32-bit hosts that have 64-bit int, so that they can access
 	large files.
+	However, temporarily disable this change unless the temporary
+	symbol WIDE_EMACS_INT is defined.
 
 	* lread.c, process.c: Do not include <inttypes.h>; lisp.h does it now.
 
