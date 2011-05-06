@@ -2792,7 +2792,8 @@ The return value is always nil."
     (setq process-menu-query-only query-only)
     (list-processes--refresh)
     (tabulated-list-print))
-  (display-buffer buffer))
+  (display-buffer buffer)
+  nil)
 
 (defvar universal-argument-map
   (let ((map (make-sparse-keymap)))
