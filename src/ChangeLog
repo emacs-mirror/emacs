@@ -1,3 +1,9 @@
+2011-05-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in: Update dependencies.
+	(LISP_H): Add inttypes.h and stdin.h.
+	(PROCESS_H): Add unistd.h.
+
 2011-05-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* lread.c: Include limits.h (fixes the MS-Windows build broken by

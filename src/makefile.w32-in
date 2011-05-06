@@ -380,13 +380,17 @@ CONFIG_H   = $(EMACS_ROOT)/src/s/ms-w32.h \
 	     $(EMACS_ROOT)/src/m/intel386.h \
 	     $(EMACS_ROOT)/src/config.h \
 	     $(EMACS_ROOT)/nt/inc/sys/stat.h
-LISP_H     = $(SRC)/lisp.h $(SRC)/globals.h
-PROCESS_H  = $(SRC)/process.h $(SRC)/gnutls.h
+LISP_H     = $(SRC)/lisp.h \
+	     $(SRC)/globals.h \
+	     $(EMACS_ROOT)/nt/inc/inttypes.h \
+	     $(EMACS_ROOT)/nt/inc/stdint.h
+PROCESS_H  = $(SRC)/process.h \
+	     $(EMACS_ROOT)/nt/inc/unistd.h \
+	     $(SRC)/gnutls.h
 
 $(BLD)/alloc.$(O) : \
 	$(SRC)/alloc.c \
 	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(LISP_H) \
 	$(PROCESS_H) \
@@ -486,7 +490,6 @@ $(BLD)/callint.$(O) : \
 $(BLD)/callproc.$(O) : \
 	$(SRC)/callproc.c \
 	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
 	$(EMACS_ROOT)/nt/inc/sys/ioctl.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
@@ -675,7 +678,6 @@ $(BLD)/dired.$(O) : \
 $(BLD)/dispnew.$(O) : \
 	$(SRC)/dispnew.c \
 	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(LISP_H) \
 	$(PROCESS_H) \
@@ -750,7 +752,6 @@ $(BLD)/editfns.$(O) : \
 $(BLD)/emacs.$(O) : \
 	$(SRC)/emacs.c \
 	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
 	$(EMACS_ROOT)/nt/inc/sys/ioctl.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
@@ -843,7 +844,6 @@ $(BLD)/fns.$(O) : \
 	$(CONFIG_H) \
 	$(EMACS_ROOT)/nt/inc/langinfo.h \
 	$(EMACS_ROOT)/nt/inc/nl_types.h \
-	$(EMACS_ROOT)/nt/inc/stdint.h \
 	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(EMACS_ROOT)/lib/md5.h \
@@ -955,7 +955,6 @@ $(BLD)/gmalloc.$(O) : \
 $(BLD)/gnutls.$(O) : \
 	$(SRC)/gnutls.c \
 	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(LISP_H) \
 	$(PROCESS_H) \
 	$(SRC)/w32.h
@@ -1043,7 +1042,6 @@ $(BLD)/intervals.$(O) : \
 $(BLD)/keyboard.$(O) : \
 	$(SRC)/keyboard.c \
 	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/ioctl.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(LISP_H) \
@@ -1104,8 +1102,6 @@ $(BLD)/lastfile.$(O) : \
 $(BLD)/lread.$(O) : \
 	$(SRC)/lread.c \
 	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/inttypes.h \
-	$(EMACS_ROOT)/nt/inc/stdint.h \
 	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
@@ -1196,7 +1192,6 @@ $(BLD)/w32.$(O) : \
 	$(CONFIG_H) \
 	$(EMACS_ROOT)/nt/inc/grp.h \
 	$(EMACS_ROOT)/nt/inc/pwd.h \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
 	$(EMACS_ROOT)/nt/inc/sys/socket.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
@@ -1242,7 +1237,6 @@ $(BLD)/w32proc.$(O) : \
 	$(CONFIG_H) \
 	$(EMACS_ROOT)/nt/inc/langinfo.h \
 	$(EMACS_ROOT)/nt/inc/nl_types.h \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(LISP_H) \
@@ -1277,7 +1271,6 @@ $(BLD)/w32console.$(O) : \
 $(BLD)/print.$(O) : \
 	$(SRC)/print.c \
 	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(EMACS_ROOT)/lib/ftoastr.h \
 	$(EMACS_ROOT)/lib/intprops.h \
@@ -1305,10 +1298,7 @@ $(BLD)/print.$(O) : \
 $(BLD)/process.$(O) : \
 	$(SRC)/process.c \
 	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/inttypes.h \
 	$(EMACS_ROOT)/nt/inc/netdb.h \
-	$(EMACS_ROOT)/nt/inc/stdint.h \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/arpa/inet.h \
 	$(EMACS_ROOT)/nt/inc/netinet/in.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
@@ -1437,7 +1427,6 @@ $(BLD)/sysdep.$(O) : \
 	$(EMACS_ROOT)/nt/inc/grp.h \
 	$(EMACS_ROOT)/nt/inc/netdb.h \
 	$(EMACS_ROOT)/nt/inc/pwd.h \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
 	$(EMACS_ROOT)/nt/inc/sys/ioctl.h \
 	$(EMACS_ROOT)/nt/inc/sys/socket.h \
@@ -1582,7 +1571,6 @@ $(BLD)/window.$(O) : \
 $(BLD)/xdisp.$(O) : \
 	$(SRC)/xdisp.c \
 	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(LISP_H) \
 	$(PROCESS_H) \
@@ -1695,7 +1683,6 @@ $(BLD)/w32menu.$(O) : \
 $(BLD)/w32term.$(O) : \
 	$(SRC)/w32term.c \
 	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/ioctl.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(LISP_H) \
