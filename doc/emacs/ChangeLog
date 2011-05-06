@@ -1,5 +1,7 @@
 2011-05-06  Glenn Morris  <rgm@gnu.org>
 
+	* calendar.texi (Appointments): Mention appt-warning-time-regexp.
+
 	* cal-xtra.texi (Fancy Diary Display): Mention diary comments.
 
 2011-05-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>

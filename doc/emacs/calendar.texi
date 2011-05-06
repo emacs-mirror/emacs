@@ -1489,11 +1489,15 @@ Monday
 @end example
 
 @vindex appt-message-warning-time
+@vindex appt-warning-time-regexp
 @noindent
 Then on Mondays, you will be reminded at around 9:20am about your
 coffee break and at around 11:50am about lunch.  The variable
 @code{appt-message-warning-time} specifies how many minutes (default 12)
-in advance to warn you.
+in advance to warn you.  This is a default warning time.  Each
+appointment can specify a different warning time by adding a piece
+matching @code{appt-warning-time-regexp} (see that variable's
+documentation for details).
 
   You can write times in am/pm style (with @samp{12:00am} standing
 for midnight and @samp{12:00pm} standing for noon), or 24-hour

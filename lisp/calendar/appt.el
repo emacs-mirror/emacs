@@ -84,8 +84,20 @@
   :group 'calendar)
 
 (defcustom appt-message-warning-time 12
-  "Time in minutes before an appointment that the warning begins."
+  "Default time in minutes before an appointment that the warning begins."
   :type 'integer
+  :group 'appt)
+
+(defcustom appt-warning-time-regexp "warntime \\([0-9]+\\)"
+  "Regexp matching a string giving the warning time for an appointment.
+The first subexpression matches the time in minutes (an integer).
+This overrides the default `appt-message-warning-time'.
+You may want to put this inside a diary comment (see `diary-comment-start').
+For example, to be warned 30 minutes in advance of an appointment:
+   2011/06/01 12:00 Do something ## warntime 30
+"
+  :version "24.1"
+  :type 'regexp
   :group 'appt)
 
 (defcustom appt-audible t
@@ -509,7 +521,7 @@ Any appointments made with `appt-add' are not affected by this function."
             ;; entry begins with a time, add it to the
             ;; appt-time-msg-list.  Then sort the list.
             (let ((entry-list diary-entries-list)
-                  time-string)
+                  time-string literal)
               ;; Below, we assume diary-entries-list was in date
               ;; order.  It is, unless something on
               ;; diary-list-entries-hook has changed it, eg
@@ -530,7 +542,10 @@ Any appointments made with `appt-add' are not affected by this function."
               (while (and entry-list
                           (calendar-date-equal
                            (calendar-current-date) (caar entry-list)))
-                (setq time-string (cadr (car entry-list)))
+                (setq time-string (cadr (car entry-list))
+                      ;; Including any comments.
+                      literal (or (nth 2 (nth 3 (car entry-list)))
+                                  time-string))
                 (while (string-match appt-time-regexp time-string)
                   (let* ((beg (match-beginning 0))
                          ;; Get just the time for this appointment.
@@ -541,17 +556,30 @@ Any appointments made with `appt-add' are not affected by this function."
                                (concat "\n[ \t]*" appt-time-regexp)
                                time-string
                                (match-end 0)))
+                         (warntime
+                          (if (string-match appt-warning-time-regexp literal)
+                              (string-to-number (match-string 1 literal))))
                          ;; Get the whole string for this appointment.
                          (appt-time-string
                           (substring time-string beg end))
                          (appt-time (list (appt-convert-time only-time)))
-                         (time-msg (list appt-time appt-time-string)))
+                         (time-msg (append
+                                    (list appt-time appt-time-string)
+                                    (if warntime (list nil warntime)))))
                     ;; Add this appointment to appt-time-msg-list.
                     (setq appt-time-msg-list
                           (nconc appt-time-msg-list (list time-msg))
                           ;; Discard this appointment from the string.
+                          ;; (This allows for multiple appts per entry.)
                           time-string
-                          (if end (substring time-string end) ""))))
+                          (if end (substring time-string end) ""))
+                    ;; Similarly, discard the start of literal.
+                    (and (> (length time-string) 0)
+                         (string-match appt-time-regexp literal)
+                         (setq end (string-match
+                                    (concat "\n[ \t]*" appt-time-regexp)
+                                    literal (match-end 0)))
+                         (setq literal (substring literal end)))))
                 (setq entry-list (cdr entry-list)))))
         (setq appt-time-msg-list (appt-sort-list appt-time-msg-list))
         ;; Convert current time to minutes after midnight (12:01am = 1),

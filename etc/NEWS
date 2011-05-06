@@ -451,6 +451,10 @@ You can get a comparable behavior with:
 *** Diary entries can contain non-printing `comments'.
 See the variable `diary-comment-start'.
 
++++
+*** Appointments can specify their individual warning times.
+See the variable `appt-warning-time-regexp'.
+
 *** New function `diary-hebrew-birthday'.
 
 ---

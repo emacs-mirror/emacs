@@ -1,5 +1,9 @@
 2011-05-06  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/appt.el (appt-message-warning-time): Doc fix.
+	(appt-warning-time-regexp): New option.
+	(appt-make-list): Respect appt-message-warning-time.
+
 	* calendar/diary-lib.el (diary-comment-start, diary-comment-end):
 	New options.
 	(diary-add-to-list): Strip comments from the displayed string.
