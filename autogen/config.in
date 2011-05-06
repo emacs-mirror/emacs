@@ -1195,6 +1195,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
 
+/* A replacement for va_copy, if needed.  */
+#define gl_va_copy(a,b) ((a) = (b))
+
 /* Define to `__inline__' or `__inline' if that's what the C compiler
    calls it, or to nothing if 'inline' is not supported under any name.  */
 #ifndef __cplusplus
@@ -1259,6 +1262,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define _UNUSED_PARAMETER_ _GL_UNUSED
 
 
+/* Define as a macro for copying va_list variables. */
+#undef va_copy
+
 /* Define as `fork' if `vfork' does not work. */
 #undef vfork
 
@@ -1319,7 +1325,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 /* These default definitions are good for almost all machines.
-   The exceptions override them in m/MACHINE.h.  */
+   Any exceptions should override them in m/MACHINE.h.
+   They must be usable in preprocessor conditionals.  */
 
 #ifndef BITS_PER_CHAR
 #define BITS_PER_CHAR 8
@@ -1329,9 +1336,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define BITS_PER_SHORT 16
 #endif
 
-/* Note that lisp.h uses this in a preprocessor conditional, so it
-   would not work to use sizeof.  That being so, we do all of them
-   without sizeof, for uniformity's sake.  */
 #ifndef BITS_PER_INT
 #define BITS_PER_INT 32
 #endif
@@ -1342,6 +1346,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #else
 #define BITS_PER_LONG 32
 #endif
+#endif
+
+#if !defined BITS_PER_LONG_LONG && HAVE_LONG_LONG_INT
+#define BITS_PER_LONG_LONG 64
 #endif
 
 /* Define if the compiler supports function prototypes.  It may do so but
