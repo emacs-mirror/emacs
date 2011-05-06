@@ -1,3 +1,8 @@
+2011-05-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnutls.c (DEF_GNUTLS_FN):
+	* image.c (DEF_IMGLIB_FN): Make function pointers static.
+
 2011-05-05  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* lread.c (lisp_file_lexically_bound_p): Stop scanning at end

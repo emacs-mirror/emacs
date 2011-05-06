@@ -1892,7 +1892,7 @@ mark_image_cache (struct image_cache *c)
 #ifdef HAVE_NTGUI
 
 /* Macro for defining functions that will be loaded from image DLLs.  */
-#define DEF_IMGLIB_FN(rettype,func,args) rettype (FAR CDECL *fn_##func)args
+#define DEF_IMGLIB_FN(rettype,func,args) static rettype (FAR CDECL *fn_##func)args
 
 /* Macro for loading those image functions from the library.  */
 #define LOAD_IMGLIB_FN(lib,func) {					\
