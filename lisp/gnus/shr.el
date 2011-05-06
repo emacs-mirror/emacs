@@ -91,9 +91,8 @@ cid: URL as the argument.")
   "Font for <s> elements."
   :group 'shr)
 
-(defface shr-link '((t (:underline t)
-                       (:foreground "yellow")
-                       (:background "black")))
+(defface shr-link
+  '((t (:underline t :foreground "yellow" :background "black")))
   "Font for link elements."
   :group 'shr)
 
@@ -597,7 +596,7 @@ START, and END.  Note that START and END should be merkers."
    :help-echo (if title (format "%s (%s)" url title) url)
    :keymap shr-map
    url)
-  (put-text-property start (point) 'face '(shr-link))
+  (put-text-property start (point) 'face 'shr-link)
   (put-text-property start (point) 'shr-url url))
 
 (defun shr-encode-url (url)

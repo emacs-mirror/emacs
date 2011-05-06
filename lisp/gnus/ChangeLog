@@ -1,3 +1,7 @@
+2011-05-06  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* shr.el (shr-urlify, shr-link): Fix shr-link face.
+
 2011-05-05  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* shr.el (shr-urlify, shr-link): Still broken but at least doesn't
