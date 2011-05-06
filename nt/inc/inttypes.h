@@ -23,7 +23,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef __MINGW32__
 #include_next <inttypes.h>
 #else  /* !__MINGW32__ */
-#define uintmax_t unsigned __int64
+#include "stdint.h"
 #define strtoumax _strtoui64
 #endif	/* !__MINGW32__ */
 

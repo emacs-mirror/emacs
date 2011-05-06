@@ -1,3 +1,10 @@
+2011-05-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/inttypes.h [!__MINGW32__]: Include stdint.h.  Move the
+	definition of uintmax_t from here...
+	* inc/stdint.h (uintmax_t): ...to here.
+	(intptr_t) [!__GNUC__]: New typedef.
+
 2011-05-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* config.nt: Prepare to configure 64-bit integers for older compilers.
