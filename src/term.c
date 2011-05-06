@@ -26,7 +26,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/file.h>
 #include <unistd.h>
 #include <signal.h>
-#include <stdarg.h>
 #include <setjmp.h>
 
 #include "lisp.h"
@@ -3619,7 +3618,6 @@ vfatal (const char *str, va_list ap)
   vfprintf (stderr, str, ap);
   if (!(strlen (str) > 0 && str[strlen (str) - 1] == '\n'))
     fprintf (stderr, "\n");
-  va_end (ap);
   fflush (stderr);
   exit (1);
 }

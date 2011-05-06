@@ -1,3 +1,11 @@
+2011-05-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* config.nt: Prepare to configure 64-bit integers for older compilers.
+	However, temporarily disable this change unless the temporary
+	symbol WIDE_EMACS_INT is defined.
+	(EMACS_INT, BITS_PER_EMACS_INT, pI): Define these if __int64 and
+	"%I64d" work but long long and "%lld" do not.
+
 2011-05-05  Ben Key  <bkey76@gmail.com>
 
 	* configure.bat: Added support for --cflags and --ldflags
@@ -2082,4 +2090,3 @@
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-

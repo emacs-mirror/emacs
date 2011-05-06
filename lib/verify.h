@@ -17,42 +17,37 @@
 
 /* Written by Paul Eggert, Bruno Haible, and Jim Meyering.  */
 
-#ifndef VERIFY_H
-# define VERIFY_H 1
+#ifndef _GL_VERIFY_H
+# define _GL_VERIFY_H
 
-/* Define HAVE__STATIC_ASSERT to 1 if _Static_assert works as per the
+
+/* Define _GL_HAVE__STATIC_ASSERT to 1 if _Static_assert works as per the
    C1X draft N1548 section 6.7.10.  This is supported by GCC 4.6.0 and
    later, in C mode, and its use here generates easier-to-read diagnostics
    when verify (R) fails.
 
-   Define HAVE_STATIC_ASSERT to 1 if static_assert works as per the
-   C1X draft N1548 section 7.2 or the C++0X draft N3242 section 7.(4).
+   Define _GL_HAVE_STATIC_ASSERT to 1 if static_assert works as per the
+   C++0X draft N3242 section 7.(4).
    This will likely be supported by future GCC versions, in C++ mode.
 
-   For now, use this only with GCC.  Eventually whether _Static_assert
-   and static_assert works should be determined by 'configure'.  */
+   Use this only with GCC.  If we were willing to slow 'configure'
+   down we could also use it with other compilers, but since this
+   affects only the quality of diagnostics, why bother?  */
 # if (4 < __GNUC__ || (__GNUC__ == 4 && 6 <= __GNUC_MINOR__)) && !defined __cplusplus
-#  define HAVE__STATIC_ASSERT 1
+#  define _GL_HAVE__STATIC_ASSERT 1
 # endif
 /* The condition (99 < __GNUC__) is temporary, until we know about the
    first G++ release that supports static_assert.  */
 # if (99 < __GNUC__) && defined __cplusplus
-#  define HAVE_STATIC_ASSERT 1
+#  define _GL_HAVE_STATIC_ASSERT 1
 # endif
 
 /* Each of these macros verifies that its argument R is nonzero.  To
    be portable, R should be an integer constant expression.  Unlike
    assert (R), there is no run-time overhead.
 
-   There are two macros, since no single macro can be used in all
-   contexts in C.  verify_true (R) is for scalar contexts, including
-   integer constant expression contexts.  verify (R) is for declaration
-   contexts, e.g., the top level.
-
-   Symbols ending in "__" are private to this header.
-
    If _Static_assert works, verify (R) uses it directly.  Similarly,
-   verify_true (R) works by packaging a _Static_assert inside a struct
+   _GL_VERIFY_TRUE works by packaging a _Static_assert inside a struct
    that is an operand of sizeof.
 
    The code below uses several ideas for C++ compilers, and for C
@@ -64,7 +59,9 @@
      constant and nonnegative.
 
    * Next this expression W is wrapped in a type
-     struct verify_type__ { unsigned int verify_error_if_negative_size__: W; }.
+     struct _gl_verify_type {
+       unsigned int _gl_verify_error_if_negative: W;
+     }.
      If W is negative, this yields a compile-time error.  No compiler can
      deal with a bit-field of negative size.
 
@@ -78,7 +75,7 @@
 
        void function (int n) { verify (n < 0); }
 
-   * For the verify macro, the struct verify_type__ will need to
+   * For the verify macro, the struct _gl_verify_type will need to
      somehow be embedded into a declaration.  To be portable, this
      declaration must declare an object, a constant, a function, or a
      typedef name.  If the declared entity uses the type directly,
@@ -116,11 +113,11 @@
      Which of the following alternatives can be used?
 
        extern int dummy [sizeof (struct {...})];
-       extern int dummy [sizeof (struct verify_type__ {...})];
+       extern int dummy [sizeof (struct _gl_verify_type {...})];
        extern void dummy (int [sizeof (struct {...})]);
-       extern void dummy (int [sizeof (struct verify_type__ {...})]);
+       extern void dummy (int [sizeof (struct _gl_verify_type {...})]);
        extern int (*dummy (void)) [sizeof (struct {...})];
-       extern int (*dummy (void)) [sizeof (struct verify_type__ {...})];
+       extern int (*dummy (void)) [sizeof (struct _gl_verify_type {...})];
 
      In the second and sixth case, the struct type is exported to the
      outer scope; two such declarations therefore collide.  GCC warns
@@ -159,44 +156,75 @@
    possible.  */
 # define _GL_GENSYM(prefix) _GL_CONCAT (prefix, _GL_COUNTER)
 
-/* Verify requirement R at compile-time, as an integer constant expression.
-   Return 1.  */
+/* Verify requirement R at compile-time, as an integer constant expression
+   that returns 1.  If R is false, fail at compile-time, preferably
+   with a diagnostic that includes the string-literal DIAGNOSTIC.  */
+
+# define _GL_VERIFY_TRUE(R, DIAGNOSTIC) \
+    (!!sizeof (_GL_VERIFY_TYPE (R, DIAGNOSTIC)))
 
 # ifdef __cplusplus
 template <int w>
-  struct verify_type__ { unsigned int verify_error_if_negative_size__: w; };
-#  define verify_true(R) \
-     (!!sizeof (verify_type__<(R) ? 1 : -1>))
-# elif HAVE__STATIC_ASSERT
-#  define verify_true(R) \
-     (!!sizeof \
-      (struct { \
-        _Static_assert (R, "verify_true (" #R ")"); \
-        int verify_dummy__; \
-       }))
-# elif HAVE_STATIC_ASSERT
-#  define verify_true(R) \
-     (!!sizeof \
-      (struct { \
-        static_assert (R, "verify_true (" #R ")"); \
-        int verify_dummy__; \
-       }))
+  struct _gl_verify_type {
+    unsigned int _gl_verify_error_if_negative: w;
+  };
+#  define _GL_VERIFY_TYPE(R, DIAGNOSTIC) \
+    _gl_verify_type<(R) ? 1 : -1>
+# elif defined _GL_HAVE__STATIC_ASSERT
+#  define _GL_VERIFY_TYPE(R, DIAGNOSTIC) \
+     struct {                                   \
+       _Static_assert (R, DIAGNOSTIC);          \
+       int _gl_dummy;                          \
+     }
 # else
-#  define verify_true(R) \
-     (!!sizeof \
-      (struct { unsigned int verify_error_if_negative_size__: (R) ? 1 : -1; }))
+#  define _GL_VERIFY_TYPE(R, DIAGNOSTIC) \
+     struct { unsigned int _gl_verify_error_if_negative: (R) ? 1 : -1; }
 # endif
+
+/* Verify requirement R at compile-time, as a declaration without a
+   trailing ';'.  If R is false, fail at compile-time, preferably
+   with a diagnostic that includes the string-literal DIAGNOSTIC.
+
+   Unfortunately, unlike C1X, this implementation must appear as an
+   ordinary declaration, and cannot appear inside struct { ... }.  */
+
+# ifdef _GL_HAVE__STATIC_ASSERT
+#  define _GL_VERIFY _Static_assert
+# else
+#  define _GL_VERIFY(R, DIAGNOSTIC)				       \
+     extern int (*_GL_GENSYM (_gl_verify_function) (void))	       \
+       [_GL_VERIFY_TRUE (R, DIAGNOSTIC)]
+# endif
+
+/* _GL_STATIC_ASSERT_H is defined if this code is copied into assert.h.  */
+# ifdef _GL_STATIC_ASSERT_H
+#  if !defined _GL_HAVE__STATIC_ASSERT && !defined _Static_assert
+#   define _Static_assert(R, DIAGNOSTIC) _GL_VERIFY (R, DIAGNOSTIC)
+#  endif
+#  if !defined _GL_HAVE_STATIC_ASSERT && !defined static_assert
+#   define static_assert _Static_assert /* Draft C1X requires this #define.  */
+#  endif
+# else
+
+/* Each of these macros verifies that its argument R is nonzero.  To
+   be portable, R should be an integer constant expression.  Unlike
+   assert (R), there is no run-time overhead.
+
+   There are two macros, since no single macro can be used in all
+   contexts in C.  verify_true (R) is for scalar contexts, including
+   integer constant expression contexts.  verify (R) is for declaration
+   contexts, e.g., the top level.  */
+
+/* Verify requirement R at compile-time, as an integer constant expression.
+   Return 1.  */
+
+#  define verify_true(R) _GL_VERIFY_TRUE (R, "verify_true (" #R ")")
 
 /* Verify requirement R at compile-time, as a declaration without a
    trailing ';'.  */
 
-# if HAVE__STATIC_ASSERT
-#  define verify(R) _Static_assert (R, "verify (" #R ")")
-# elif HAVE_STATIC_ASSERT
-#  define verify(R) static_assert (R, "verify (" #R ")")
-# else
-#  define verify(R) \
-    extern int (* _GL_GENSYM (verify_function) (void)) [verify_true (R)]
+#  define verify(R) _GL_VERIFY (R, "verify (" #R ")")
+
 # endif
 
 #endif

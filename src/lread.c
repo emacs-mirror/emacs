@@ -19,7 +19,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
-#include <inttypes.h>
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -2250,6 +2249,26 @@ read_escape (Lisp_Object readcharfun, int stringp)
     }
 }
 
+/* Return the digit that CHARACTER stands for in the given BASE.
+   Return -1 if CHARACTER is out of range for BASE,
+   and -2 if CHARACTER is not valid for any supported BASE.  */
+static inline int
+digit_to_number (int character, int base)
+{
+  int digit;
+
+  if ('0' <= character && character <= '9')
+    digit = character - '0';
+  else if ('a' <= character && character <= 'z')
+    digit = character - 'a' + 10;
+  else if ('A' <= character && character <= 'Z')
+    digit = character - 'A' + 10;
+  else
+    return -2;
+
+  return digit < base ? digit : -1;
+}
+
 /* Read an integer in radix RADIX using READCHARFUN to read
    characters.  RADIX must be in the interval [2..36]; if it isn't, a
    read error is signaled .  Value is the integer read.  Signals an
@@ -2259,59 +2278,64 @@ read_escape (Lisp_Object readcharfun, int stringp)
 static Lisp_Object
 read_integer (Lisp_Object readcharfun, int radix)
 {
-  int ndigits = 0, invalid_p, c, sign = 0;
-  /* We use a floating point number because  */
-  double number = 0;
+  /* Room for sign, leading 0, other digits, trailing null byte.  */
+  char buf[1 + 1 + sizeof (uintmax_t) * CHAR_BIT + 1];
+
+  int valid = -1; /* 1 if valid, 0 if not, -1 if incomplete.  */
 
   if (radix < 2 || radix > 36)
-    invalid_p = 1;
+    valid = 0;
   else
     {
-      number = ndigits = invalid_p = 0;
-      sign = 1;
+      char *p = buf;
+      int c, digit;
 
       c = READCHAR;
-      if (c == '-')
+      if (c == '-' || c == '+')
 	{
+	  *p++ = c;
 	  c = READCHAR;
-	  sign = -1;
 	}
-      else if (c == '+')
-	c = READCHAR;
 
-      while (c >= 0)
+      if (c == '0')
 	{
-	  int digit;
+	  *p++ = c;
+	  valid = 1;
 
-	  if (c >= '0' && c <= '9')
-	    digit = c - '0';
-	  else if (c >= 'a' && c <= 'z')
-	    digit = c - 'a' + 10;
-	  else if (c >= 'A' && c <= 'Z')
-	    digit = c - 'A' + 10;
+	  /* Ignore redundant leading zeros, so the buffer doesn't
+	     fill up with them.  */
+	  do
+	    c = READCHAR;
+	  while (c == '0');
+	}
+
+      while (-1 <= (digit = digit_to_number (c, radix)))
+	{
+	  if (digit == -1)
+	    valid = 0;
+	  if (valid < 0)
+	    valid = 1;
+
+	  if (p < buf + sizeof buf - 1)
+	    *p++ = c;
 	  else
-	    {
-	      UNREAD (c);
-	      break;
-	    }
+	    valid = 0;
 
-	  if (digit < 0 || digit >= radix)
-	    invalid_p = 1;
-
-	  number = radix * number + digit;
-	  ++ndigits;
 	  c = READCHAR;
 	}
+
+      if (c >= 0)
+	UNREAD (c);
+      *p = '\0';
     }
 
-  if (ndigits == 0 || invalid_p)
+  if (! valid)
     {
-      char buf[50];
       sprintf (buf, "integer, radix %d", radix);
       invalid_syntax (buf, 0);
     }
 
-  return make_fixnum_or_float (sign * number);
+  return string_to_number (buf, radix, 0);
 }
 
 
@@ -3170,23 +3194,6 @@ substitute_in_interval (INTERVAL interval, Lisp_Object arg)
 }
 
 
-static inline int
-digit_to_number (int character, int base)
-{
-  int digit;
-
-  if ('0' <= character && character <= '9')
-    digit = character - '0';
-  else if ('a' <= character && character <= 'z')
-    digit = character - 'a' + 10;
-  else if ('A' <= character && character <= 'Z')
-    digit = character - 'A' + 10;
-  else
-    return -1;
-
-  return digit < base ? digit : -1;
-}
-
 #define LEAD_INT 1
 #define DOT_CHAR 2
 #define TRAIL_INT 4
@@ -3615,9 +3622,9 @@ static Lisp_Object initial_obarray;
 
 /* oblookup stores the bucket number here, for the sake of Funintern.  */
 
-static int oblookup_last_bucket_number;
+static size_t oblookup_last_bucket_number;
 
-static int hash_string (const char *ptr, int len);
+static size_t hash_string (const char *ptr, size_t len);
 
 /* Get an error if OBARRAY is not an obarray.
    If it is one, return it.  */
@@ -3759,7 +3766,7 @@ OBARRAY defaults to the value of the variable `obarray'.  */)
   (Lisp_Object name, Lisp_Object obarray)
 {
   register Lisp_Object string, tem;
-  int hash;
+  size_t hash;
 
   if (NILP (obarray)) obarray = Vobarray;
   obarray = check_obarray (obarray);
@@ -3828,8 +3835,8 @@ OBARRAY defaults to the value of the variable `obarray'.  */)
 Lisp_Object
 oblookup (Lisp_Object obarray, register const char *ptr, EMACS_INT size, EMACS_INT size_byte)
 {
-  int hash;
-  int obsize;
+  size_t hash;
+  size_t obsize;
   register Lisp_Object tail;
   Lisp_Object bucket, tem;
 
@@ -3862,21 +3869,21 @@ oblookup (Lisp_Object obarray, register const char *ptr, EMACS_INT size, EMACS_I
   return tem;
 }
 
-static int
-hash_string (const char *ptr, int len)
+static size_t
+hash_string (const char *ptr, size_t len)
 {
   register const char *p = ptr;
   register const char *end = p + len;
   register unsigned char c;
-  register int hash = 0;
+  register size_t hash = 0;
 
   while (p != end)
     {
       c = *p++;
       if (c >= 0140) c -= 40;
-      hash = ((hash<<3) + (hash>>28) + c);
+      hash = (hash << 3) + (hash >> (CHAR_BIT * sizeof hash - 4)) + c;
     }
-  return hash & 07777777777;
+  return hash;
 }
 
 void

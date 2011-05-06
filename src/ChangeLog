@@ -1,3 +1,118 @@
+2011-05-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* image.c (Finit_image_library) [!HAVE_NTGUI]: Omit unused local.
+
+	* term.c (vfatal): Remove stray call to va_end.
+	It's not needed and the C Standard doesn't allow it here anyway.
+
+	Use C99's va_copy to avoid undefined behavior on x86-64 GNU/Linux.
+	* eval.c (verror): doprnt a copy of ap, not the original.  (Bug#8545)
+
+	* eval.c (verror): OK to create a string of up to MOST_POSITIVE_FIXNUM
+	bytes.
+
+	* term.c: Don't include <stdarg.h>, as <lisp.h> does that.
+
+	* callproc.c (Fcall_process): Use 'volatile' to avoid vfork clobbering.
+
+	* process.c (Fformat_network_address): Fix typo: args2 -> *args2.
+
+	* xmenu.c (set_frame_menubar): Fix typo: int * -> int (3 times).
+
+	* coding.c (detect_coding_charset): Fix typo: * 2 -> *4 (Bug#8601).
+
+	* charset.h (struct charset.code_space): Now has 15 elements, not 16.
+	* charset.c (Fdefine_charset_internal): Don't initialize
+	charset.code_space[15].  The value was garbage, on hosts with
+	32-bit int (Bug#8600).
+
+	* lread.c (read_integer): Be more consistent with string-to-number.
+	Use string_to_number to do the actual conversion; this avoids
+	rounding errors and fixes some other screwups.  Without this fix,
+	for example, #x1fffffffffffffff was misread as -2305843009213693952.
+	(digit_to_number): Move earlier, for benefit of read_integer.
+	Return -1 if the digit is out of range for the base, -2 if it is
+	not a digit in any supported base.  (Bug#8602)
+
+	* doprnt.c (doprnt): Support arbitrary pI values, such as "I64".
+
+	* dispnew.c (scrolling_window): Return 1 if we scrolled,
+	to match comment at start of function.  This also removes a
+	GCC warning about overflow in a 32+64-bit port.
+
+	* lisp.h (EMACS_INT, EMACS_UINT, BITS_PER_EMACS_INT, pI): Simplify.
+
+	* dbusbind.c: Do not use XPNTR on a value that may be an integer.
+	Reported by Stefan Monnier in
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-04/msg00919.html>.
+	(xd_remove_watch, Fdbus_init_bus, xd_read_queued_messages): Use
+	SYMBOLP-guarded XSYMBOL, not XPNTR.
+
+	* lisp.h (EMACS_INTPTR): Remove.  All uses changed to intptr_t.
+	(EMACS_UINTPTR): Likewise, with uintptr_t.
+
+	* lisp.h: Prefer 64-bit EMACS_INT if available.
+	(EMACS_INT, EMACS_UINT, BITS_PER_EMACS_INT, pI): Define to 64-bit
+	on 32-bit hosts that have 64-bit int, so that they can access
+	large files.
+	However, temporarily disable this change unless the temporary
+	symbol WIDE_EMACS_INT is defined.
+
+	* lread.c, process.c: Do not include <inttypes.h>; lisp.h does it now.
+
+	Prefer intptr_t/uintptr_t for integers the same widths as pointers.
+	This removes an assumption that EMACS_INT and long are the same
+	width as pointers.  The assumption is true for Emacs porting targets
+	now, but we want to make other targets possible.
+	* lisp.h: Include <inttypes.h>, for INTPTR_MAX, UINTPTR_MAX.
+	(EMACS_INTPTR, EMACS_UINTPTR): New macros.
+	In the rest of the code, change types of integers that hold casted
+	pointers to EMACS_INTPTR and EMACS_UINTPTR, systematically
+	replacing EMACS_INT, long, EMACS_UINT, and unsigned long.
+	(XTYPE): Don't cast arg to EMACS_UINT; normally is not needed.
+	(XSET): Cast type of XTYPE arg to EMACS_INTPTR; it is needed here.
+	No need to cast type when ORing.
+	(XPNTR): Return a value of type EMACS_INTPTR or EMACS_UINTPTR.
+	* alloc.c (lisp_align_malloc): Remove a no-longer-needed cast.
+	* doc.c (store_function_docstring): Use EMACS_INTPTR, so as not to
+	assume EMACS_INT is the same width as char *.
+	* gtkutil.c (xg_gtk_scroll_destroy, xg_tool_bar_button_cb):
+	(xg_tool_bar_callback, xg_tool_bar_help_callback, xg_make_tool_item):
+	Remove no-longer-needed casts.
+	(xg_create_scroll_bar, xg_tool_bar_button_cb, xg_tool_bar_callback):
+	(xg_tool_bar_help_callback, xg_make_tool_item):
+	Use EMACS_INTPTR to hold an integer
+	that will be cast to void *; this can avoid a GCC warning
+	if EMACS_INT is not the same width as void *.
+	* menu.c (find_and_call_menu_selection): Remove no-longer-needed cast.
+	* xdisp.c (display_echo_area_1, resize_mini_window_1):
+	(current_message_1, set_message_1):
+	Use a local to convert to proper width without a cast.
+	* xmenu.c (dialog_selection_callback): Likewise.
+
+	* sysdep.c (get_random): Don't assume EMACS_INT is no wider than long.
+	Also, don't assume VALBITS / RAND_BITS is less than 5,
+	and don't rely on undefined behavior when shifting a 1 left into
+	the sign bit.
+	* lisp.h (get_random): Change signature to match.
+
+	* lread.c (hash_string): Use size_t, not int, for hash computation.
+	Normally we prefer signed values; but hashing is special, because
+	it's better to use unsigned division on hash table sizes so that
+	the remainder is nonnegative.  Also, size_t is the natural width
+	for hashing into memory.  The previous code used 'int', which doesn't
+	retain enough info to hash well into very large tables.
+	(oblookup, oblookup_last_bucket_number, Funintern): Likewise.
+
+	* dbusbind.c: Don't possibly lose pointer info when converting.
+	(xd_remove_watch, Fdbus_init_bus, xd_read_queued_messages):
+	Use XPNTR rather than XHASH, so that the high-order bits of
+	the pointer aren't lost when converting through void *.
+
+	* eval.c (Fautoload): Don't double-shift a pointer.
+
+	* fns.c (Frandom): Let EMACS_UINT be wider than unsigned long.
+
 2011-05-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* gnutls.c (DEF_GNUTLS_FN):

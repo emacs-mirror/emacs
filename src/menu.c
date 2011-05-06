@@ -800,9 +800,9 @@ digest_single_submenu (int start, int end, int top_level_items)
 	  if (!NILP (descrip))
 	    wv->lkey = descrip;
 	  wv->value = 0;
-	  /* The EMACS_INT cast avoids a warning.  There's no problem
+	  /* The intptr_t cast avoids a warning.  There's no problem
 	     as long as pointers have enough bits to hold small integers.  */
-	  wv->call_data = (!NILP (def) ? (void *) (EMACS_INT) i : 0);
+	  wv->call_data = (!NILP (def) ? (void *) (intptr_t) i : 0);
 	  wv->enabled = !NILP (enable);
 
 	  if (NILP (type))
@@ -911,9 +911,9 @@ find_and_call_menu_selection (FRAME_PTR f, int menu_bar_items_used, Lisp_Object 
       else
 	{
 	  entry = XVECTOR (vector)->contents[i + MENU_ITEMS_ITEM_VALUE];
-	  /* The EMACS_INT cast avoids a warning.  There's no problem
+	  /* Treat the pointer as an integer.  There's no problem
 	     as long as pointers have enough bits to hold small integers.  */
-	  if ((int) (EMACS_INT) client_data == i)
+	  if ((intptr_t) client_data == i)
 	    {
 	      int j;
 	      struct input_event buf;

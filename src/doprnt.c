@@ -70,9 +70,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
      %<flags><width><precision><length>character
 
    where flags is [+ -0], width is [0-9]+, precision is .[0-9]+, and length
-   is empty or l or ll.  Also, %% in a format stands for a single % in the
-   output.  A % that does not introduce a valid %-sequence causes
-   undefined behavior.
+   is empty or l or the value of the pI macro.  Also, %% in a format
+   stands for a single % in the output.  A % that does not introduce a
+   valid %-sequence causes undefined behavior.
 
    The + flag character inserts a + before any positive number, while a space
    inserts a space before any positive number; these flags only affect %d, %o,
@@ -85,11 +85,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    modifier: it is supported for %d, %o, and %x conversions of integral
    arguments, must immediately precede the conversion specifier, and means that
    the respective argument is to be treated as `long int' or `unsigned long
-   int'.  Similarly, ll (two letter ells) means to use `long long int' or
-   `unsigned long long int'; this can be used only on hosts that have
-   these two types.  The empty length modifier means to use `int' or
-   `unsigned int'.  EMACS_INT arguments should use the pI macro, which
-   expands to whatever length modifier is needed for the target host.
+   int'.  Similarly, the value of the pI macro means to use EMACS_INT or
+   EMACS_UINT and the empty length modifier means `int' or `unsigned int'.
 
    The width specifier supplies a lower limit for the length of the printed
    representation.  The padding, if any, normally goes on the left, but it goes
@@ -186,6 +183,7 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
 	  size_t size_bound = 0;
 	  EMACS_INT width;  /* Columns occupied by STRING on display.  */
 	  int long_flag = 0;
+	  int pIlen = sizeof pI - 1;
 
 	  fmt++;
 	  /* Copy this one %-spec into fmtcpy.  */
@@ -201,7 +199,7 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
 		     %1.1000f and %1000.1f both might need 1000+ bytes.
 		     Parse the width or precision, checking for overflow.  */
 		  size_t n = *fmt - '0';
-		  while (fmt < format_end
+		  while (fmt + 1 < format_end
 			 && '0' <= fmt[1] && fmt[1] <= '9')
 		    {
 		      /* Avoid size_t overflow.  Avoid int overflow too, as
@@ -218,20 +216,25 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
 		  if (size_bound < n)
 		    size_bound = n;
 		}
-	      else if (*fmt == '-' || *fmt == ' ' || *fmt == '.' || *fmt == '+')
-		;
-	      else if (*fmt == 'l')
-		{
-		  long_flag = 1 + (fmt + 1 < format_end && fmt[1] == 'l');
-		  fmt += long_flag;
-		  break;
-		}
-	      else
+	      else if (! (*fmt == '-' || *fmt == ' ' || *fmt == '.'
+			  || *fmt == '+'))
 		break;
 	      fmt++;
 	    }
-	  if (fmt > format_end)
-	    fmt = format_end;
+
+	  if (0 < pIlen && pIlen <= format_end - fmt
+	      && memcmp (fmt, pI, pIlen) == 0)
+	    {
+	      long_flag = 2;
+	      memcpy (string, fmt + 1, pIlen);
+	      string += pIlen;
+	      fmt += pIlen;
+	    }
+	  else if (fmt < format_end && *fmt == 'l')
+	    {
+	      long_flag = 1;
+	      *string++ = *++fmt;
+	    }
 	  *string = 0;
 
 	  /* Make the size bound large enough to handle floating point formats
@@ -253,8 +256,7 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
 	  switch (*fmt++)
 	    {
 	    default:
-	      error ("Invalid format operation %%%s%c",
-		     "ll" + 2 - long_flag, fmt[-1]);
+	      error ("Invalid format operation %s", fmtcpy);
 
 /*	    case 'b': */
 	    case 'l':
@@ -265,12 +267,8 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
 
 		if (1 < long_flag)
 		  {
-#ifdef HAVE_LONG_LONG_INT
-		    long long ll = va_arg (ap, long long);
+		    EMACS_INT ll = va_arg (ap, EMACS_INT);
 		    sprintf (sprintf_buffer, fmtcpy, ll);
-#else
-		    error ("Invalid format operation %%ll%c", fmt[-1]);
-#endif
 		  }
 		else if (long_flag)
 		  {
@@ -295,12 +293,8 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
 
 		if (1 < long_flag)
 		  {
-#ifdef HAVE_UNSIGNED_LONG_LONG_INT
-		    unsigned long long ull = va_arg (ap, unsigned long long);
+		    EMACS_UINT ull = va_arg (ap, EMACS_UINT);
 		    sprintf (sprintf_buffer, fmtcpy, ull);
-#else
-		    error ("Invalid format operation %%ll%c", fmt[-1]);
-#endif
 		  }
 		else if (long_flag)
 		  {

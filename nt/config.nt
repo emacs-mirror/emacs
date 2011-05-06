@@ -478,7 +478,22 @@ extern char *getenv ();
 /* Define to 1 if the system has the type `unsigned long long int'. */
 # define HAVE_UNSIGNED_LONG_LONG_INT 1
 
-#endif	/* __MINGW32__ || _MSC_VER >= 1400 */
+#elif _MSC_VER >= 1200
+
+/* Temporarily disable wider-than-pointer integers until they're tested more.
+   Build with CFLAGS='-DWIDE_EMACS_INT' to try them out.  */
+/* #undef WIDE_EMACS_INT */
+
+# ifdef WIDE_EMACS_INT
+
+/* Use pre-C99-style 64-bit integers.  */
+# define EMACS_INT __int64
+# define BITS_PER_EMACS_INT 64
+# define pI "I64"
+
+# endif
+
+#endif
 
 #ifndef POINTER_TYPE
 #define POINTER_TYPE void
@@ -518,4 +533,3 @@ void w32_abort (void) NO_RETURN;
 
 /* Make a leaner executable.  */
 #define WIN32_LEAN_AND_MEAN 1
-

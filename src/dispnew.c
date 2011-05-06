@@ -4576,8 +4576,8 @@ scrolling_window (struct window *w, int header_line_p)
   for (i = 0; i < row_entry_idx; ++i)
     row_table[row_entry_pool[i].bucket] = NULL;
 
-  /* Value is > 0 to indicate that we scrolled the display.  */
-  return nruns;
+  /* Value is 1 to indicate that we scrolled the display.  */
+  return 0 < nruns;
 }
 
 

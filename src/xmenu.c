@@ -1012,10 +1012,10 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
       menu_items = f->menu_bar_vector;
       menu_items_allocated = VECTORP (menu_items) ? ASIZE (menu_items) : 0;
       subitems = ASIZE (items) / 4;
-      submenu_start = (int *) alloca (subitems * sizeof (int *));
-      submenu_end = (int *) alloca (subitems * sizeof (int *));
+      submenu_start = (int *) alloca (subitems * sizeof (int));
+      submenu_end = (int *) alloca (subitems * sizeof (int));
       submenu_n_panes = (int *) alloca (subitems * sizeof (int));
-      submenu_top_level_items = (int *) alloca (subitems * sizeof (int *));
+      submenu_top_level_items = (int *) alloca (subitems * sizeof (int));
       init_menu_items ();
       for (i = 0; i < subitems; i++)
 	{
@@ -1139,9 +1139,9 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 	  wv->help = Qnil;
 	  /* This prevents lwlib from assuming this
 	     menu item is really supposed to be empty.  */
-	  /* The EMACS_INT cast avoids a warning.
+	  /* The intptr_t cast avoids a warning.
 	     This value just has to be different from small integers.  */
-	  wv->call_data = (void *) (EMACS_INT) (-1);
+	  wv->call_data = (void *) (intptr_t) (-1);
 
 	  if (prev_wv)
 	    prev_wv->next = wv;
@@ -1876,9 +1876,9 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 static void
 dialog_selection_callback (GtkWidget *widget, gpointer client_data)
 {
-  /* The EMACS_INT cast avoids a warning.  There's no problem
+  /* Treat the pointer as an integer.  There's no problem
      as long as pointers have enough bits to hold small integers.  */
-  if ((int) (EMACS_INT) client_data != -1)
+  if ((intptr_t) client_data != -1)
     menu_item_selection = (Lisp_Object *) client_data;
 
   popup_activated_flag = 0;

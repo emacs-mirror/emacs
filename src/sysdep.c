@@ -1786,23 +1786,14 @@ seed_random (long int arg)
  * Build a full Emacs-sized word out of whatever we've got.
  * This suffices even for a 64-bit architecture with a 15-bit rand.
  */
-long
+EMACS_INT
 get_random (void)
 {
-  long val = random ();
-#if VALBITS > RAND_BITS
-  val = (val << RAND_BITS) ^ random ();
-#if VALBITS > 2*RAND_BITS
-  val = (val << RAND_BITS) ^ random ();
-#if VALBITS > 3*RAND_BITS
-  val = (val << RAND_BITS) ^ random ();
-#if VALBITS > 4*RAND_BITS
-  val = (val << RAND_BITS) ^ random ();
-#endif /* need at least 5 */
-#endif /* need at least 4 */
-#endif /* need at least 3 */
-#endif /* need at least 2 */
-  return val & ((1L << VALBITS) - 1);
+  EMACS_UINT val = 0;
+  int i;
+  for (i = 0; i < (VALBITS + RAND_BITS - 1) / RAND_BITS; i++)
+    val = (val << RAND_BITS) ^ random ();
+  return val & (((EMACS_INT) 1 << VALBITS) - 1);
 }
 
 #ifndef HAVE_STRERROR

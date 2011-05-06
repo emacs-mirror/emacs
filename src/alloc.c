@@ -438,7 +438,7 @@ static POINTER_TYPE *pure_alloc (size_t, int);
    ALIGNMENT must be a power of 2.  */
 
 #define ALIGN(ptr, ALIGNMENT) \
-  ((POINTER_TYPE *) ((((EMACS_UINT)(ptr)) + (ALIGNMENT) - 1) \
+  ((POINTER_TYPE *) ((((uintptr_t) (ptr)) + (ALIGNMENT) - 1) \
 		     & ~((ALIGNMENT) - 1)))
 
 
@@ -876,7 +876,7 @@ struct ablocks
 #define ABLOCKS_BYTES (sizeof (struct ablocks) - BLOCK_PADDING)
 
 #define ABLOCK_ABASE(block) \
-  (((unsigned long) (block)->abase) <= (1 + 2 * ABLOCKS_SIZE)   \
+  (((uintptr_t) (block)->abase) <= (1 + 2 * ABLOCKS_SIZE)	\
    ? (struct ablocks *)(block)					\
    : (block)->abase)
 
@@ -888,7 +888,7 @@ struct ablocks
 #define ABLOCKS_BASE(abase) (abase)
 #else
 #define ABLOCKS_BASE(abase) \
-  (1 & (long) ABLOCKS_BUSY (abase) ? abase : ((void**)abase)[-1])
+  (1 & (intptr_t) ABLOCKS_BUSY (abase) ? abase : ((void**)abase)[-1])
 #endif
 
 /* The list of free ablock.   */
@@ -914,7 +914,7 @@ lisp_align_malloc (size_t nbytes, enum mem_type type)
   if (!free_ablock)
     {
       int i;
-      EMACS_INT aligned; /* int gets warning casting to 64-bit pointer.  */
+      intptr_t aligned; /* int gets warning casting to 64-bit pointer.  */
 
 #ifdef DOUG_LEA_MALLOC
       /* Prevent mmap'ing the chunk.  Lisp data may not be mmap'ed
@@ -977,17 +977,18 @@ lisp_align_malloc (size_t nbytes, enum mem_type type)
 	  abase->blocks[i].x.next_free = free_ablock;
 	  free_ablock = &abase->blocks[i];
 	}
-      ABLOCKS_BUSY (abase) = (struct ablocks *) (long) aligned;
+      ABLOCKS_BUSY (abase) = (struct ablocks *) aligned;
 
-      eassert (0 == ((EMACS_UINT)abase) % BLOCK_ALIGN);
+      eassert (0 == ((uintptr_t) abase) % BLOCK_ALIGN);
       eassert (ABLOCK_ABASE (&abase->blocks[3]) == abase); /* 3 is arbitrary */
       eassert (ABLOCK_ABASE (&abase->blocks[0]) == abase);
       eassert (ABLOCKS_BASE (abase) == base);
-      eassert (aligned == (long) ABLOCKS_BUSY (abase));
+      eassert (aligned == (intptr_t) ABLOCKS_BUSY (abase));
     }
 
   abase = ABLOCK_ABASE (free_ablock);
-  ABLOCKS_BUSY (abase) = (struct ablocks *) (2 + (long) ABLOCKS_BUSY (abase));
+  ABLOCKS_BUSY (abase) =
+    (struct ablocks *) (2 + (intptr_t) ABLOCKS_BUSY (abase));
   val = free_ablock;
   free_ablock = free_ablock->x.next_free;
 
@@ -1000,7 +1001,7 @@ lisp_align_malloc (size_t nbytes, enum mem_type type)
   if (!val && nbytes)
     memory_full ();
 
-  eassert (0 == ((EMACS_UINT)val) % BLOCK_ALIGN);
+  eassert (0 == ((uintptr_t) val) % BLOCK_ALIGN);
   return val;
 }
 
@@ -1018,11 +1019,12 @@ lisp_align_free (POINTER_TYPE *block)
   ablock->x.next_free = free_ablock;
   free_ablock = ablock;
   /* Update busy count.  */
-  ABLOCKS_BUSY (abase) = (struct ablocks *) (-2 + (long) ABLOCKS_BUSY (abase));
+  ABLOCKS_BUSY (abase) =
+    (struct ablocks *) (-2 + (intptr_t) ABLOCKS_BUSY (abase));
 
-  if (2 > (long) ABLOCKS_BUSY (abase))
+  if (2 > (intptr_t) ABLOCKS_BUSY (abase))
     { /* All the blocks are free.  */
-      int i = 0, aligned = (long) ABLOCKS_BUSY (abase);
+      int i = 0, aligned = (intptr_t) ABLOCKS_BUSY (abase);
       struct ablock **tem = &free_ablock;
       struct ablock *atop = &abase->blocks[aligned ? ABLOCKS_SIZE : ABLOCKS_SIZE - 1];
 
@@ -1039,7 +1041,7 @@ lisp_align_free (POINTER_TYPE *block)
       eassert ((aligned & 1) == aligned);
       eassert (i == (aligned ? ABLOCKS_SIZE : ABLOCKS_SIZE - 1));
 #ifdef USE_POSIX_MEMALIGN
-      eassert ((unsigned long)ABLOCKS_BASE (abase) % BLOCK_ALIGN == 0);
+      eassert ((uintptr_t) ABLOCKS_BASE (abase) % BLOCK_ALIGN == 0);
 #endif
       free (ABLOCKS_BASE (abase));
     }
@@ -1772,7 +1774,7 @@ check_string_free_list (void)
   s = string_free_list;
   while (s != NULL)
     {
-      if ((unsigned long)s < 1024)
+      if ((uintptr_t) s < 1024)
 	abort();
       s = NEXT_FREE_LISP_STRING (s);
     }
@@ -2432,10 +2434,10 @@ make_uninit_multibyte_string (EMACS_INT nchars, EMACS_INT nbytes)
   &= ~(1 << ((n) % (sizeof(int) * CHAR_BIT)))
 
 #define FLOAT_BLOCK(fptr) \
-  ((struct float_block *)(((EMACS_UINT)(fptr)) & ~(BLOCK_ALIGN - 1)))
+  ((struct float_block *) (((uintptr_t) (fptr)) & ~(BLOCK_ALIGN - 1)))
 
 #define FLOAT_INDEX(fptr) \
-  ((((EMACS_UINT)(fptr)) & (BLOCK_ALIGN - 1)) / sizeof (struct Lisp_Float))
+  ((((uintptr_t) (fptr)) & (BLOCK_ALIGN - 1)) / sizeof (struct Lisp_Float))
 
 struct float_block
 {
@@ -2544,10 +2546,10 @@ make_float (double float_value)
    / (sizeof (struct Lisp_Cons) * CHAR_BIT + 1))
 
 #define CONS_BLOCK(fptr) \
-  ((struct cons_block *)(((EMACS_UINT)(fptr)) & ~(BLOCK_ALIGN - 1)))
+  ((struct cons_block *) ((uintptr_t) (fptr) & ~(BLOCK_ALIGN - 1)))
 
 #define CONS_INDEX(fptr) \
-  ((((EMACS_UINT)(fptr)) & (BLOCK_ALIGN - 1)) / sizeof (struct Lisp_Cons))
+  (((uintptr_t) (fptr) & (BLOCK_ALIGN - 1)) / sizeof (struct Lisp_Cons))
 
 struct cons_block
 {
@@ -4021,7 +4023,7 @@ mark_maybe_pointer (void *p)
   struct mem_node *m;
 
   /* Quickly rule out some values which can't point to Lisp data.  */
-  if ((EMACS_INT) p %
+  if ((intptr_t) p %
 #ifdef USE_LSB_TAG
       8 /* USE_LSB_TAG needs Lisp data to be aligned on multiples of 8.  */
 #else
@@ -6072,7 +6074,7 @@ We divide the value by 1024 to make sure it fits in a Lisp integer.  */)
 {
   Lisp_Object end;
 
-  XSETINT (end, (EMACS_INT) (char *) sbrk (0) / 1024);
+  XSETINT (end, (intptr_t) (char *) sbrk (0) / 1024);
 
   return end;
 }

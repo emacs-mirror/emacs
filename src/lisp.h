@@ -22,6 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <stdarg.h>
 #include <stddef.h>
+#include <inttypes.h>
 
 /* Use the configure flag --enable-checking[=LIST] to enable various
    types of run time checks for Lisp objects.  */
@@ -33,25 +34,28 @@ extern void check_cons_list (void);
 #define CHECK_CONS_LIST() ((void) 0)
 #endif
 
+/* Temporarily disable wider-than-pointer integers until they're tested more.
+   Build with CFLAGS='-DWIDE_EMACS_INT' to try them out.  */
+/* #undef WIDE_EMACS_INT */
+
 /* These are default choices for the types to use.  */
-#ifdef _LP64
 #ifndef EMACS_INT
-#define EMACS_INT long
-#define BITS_PER_EMACS_INT BITS_PER_LONG
-#define pI "l"
+# if BITS_PER_LONG < BITS_PER_LONG_LONG && defined WIDE_EMACS_INT
+#  define EMACS_INT long long
+#  define BITS_PER_EMACS_INT BITS_PER_LONG_LONG
+#  define pI "ll"
+# elif BITS_PER_INT < BITS_PER_LONG
+#  define EMACS_INT long
+#  define BITS_PER_EMACS_INT BITS_PER_LONG
+#  define pI "l"
+# else
+#  define EMACS_INT int
+#  define BITS_PER_EMACS_INT BITS_PER_INT
+#  define pI ""
+# endif
 #endif
 #ifndef EMACS_UINT
-#define EMACS_UINT unsigned long
-#endif
-#else /* not _LP64 */
-#ifndef EMACS_INT
-#define EMACS_INT int
-#define BITS_PER_EMACS_INT BITS_PER_INT
-#define pI ""
-#endif
-#ifndef EMACS_UINT
-#define EMACS_UINT unsigned int
-#endif
+# define EMACS_UINT unsigned EMACS_INT
 #endif
 
 /* Extra internal type checking?  */
@@ -398,7 +402,7 @@ enum pvec_type
 #ifdef USE_LSB_TAG
 
 #define TYPEMASK ((((EMACS_INT) 1) << GCTYPEBITS) - 1)
-#define XTYPE(a) ((enum Lisp_Type) (((EMACS_UINT) (a)) & TYPEMASK))
+#define XTYPE(a) ((enum Lisp_Type) ((a) & TYPEMASK))
 #ifdef USE_2_TAGS_FOR_INTS
 # define XINT(a) (((EMACS_INT) (a)) >> (GCTYPEBITS - 1))
 # define XUINT(a) (((EMACS_UINT) (a)) >> (GCTYPEBITS - 1))
@@ -408,11 +412,11 @@ enum pvec_type
 # define XUINT(a) (((EMACS_UINT) (a)) >> GCTYPEBITS)
 # define make_number(N) (((EMACS_INT) (N)) << GCTYPEBITS)
 #endif
-#define XSET(var, type, ptr)					\
-    (eassert (XTYPE (ptr) == 0), /* Check alignment.  */	\
-     (var) = ((EMACS_INT) (type)) | ((EMACS_INT) (ptr)))
+#define XSET(var, type, ptr)						\
+    (eassert (XTYPE ((intptr_t) (ptr)) == 0), /* Check alignment.  */ \
+     (var) = (type) | (intptr_t) (ptr))
 
-#define XPNTR(a) ((EMACS_INT) ((a) & ~TYPEMASK))
+#define XPNTR(a) ((intptr_t) ((a) & ~TYPEMASK))
 
 #else  /* not USE_LSB_TAG */
 
@@ -446,14 +450,14 @@ enum pvec_type
 
 #define XSET(var, type, ptr)				  \
    ((var) = ((EMACS_INT) ((EMACS_UINT) (type) << VALBITS) \
-	     + ((EMACS_INT) (ptr) & VALMASK)))
+	     + ((intptr_t) (ptr) & VALMASK)))
 
 #ifdef DATA_SEG_BITS
 /* DATA_SEG_BITS forces extra bits to be or'd in with any pointers
    which were stored in a Lisp_Object */
-#define XPNTR(a) ((EMACS_UINT) (((a) & VALMASK) | DATA_SEG_BITS))
+#define XPNTR(a) ((uintptr_t) (((a) & VALMASK)) | DATA_SEG_BITS))
 #else
-#define XPNTR(a) ((EMACS_UINT) ((a) & VALMASK))
+#define XPNTR(a) ((uintptr_t) ((a) & VALMASK))
 #endif
 
 #endif /* not USE_LSB_TAG */
@@ -479,7 +483,7 @@ enum pvec_type
 /* Some versions of gcc seem to consider the bitfield width when issuing
    the "cast to pointer from integer of different size" warning, so the
    cast is here to widen the value back to its natural size.  */
-# define XPNTR(v) ((EMACS_INT)((v).s.val) << GCTYPEBITS)
+# define XPNTR(v) ((intptr_t) (v).s.val << GCTYPEBITS)
 
 #else  /* !USE_LSB_TAG */
 
@@ -495,9 +499,9 @@ enum pvec_type
 #ifdef DATA_SEG_BITS
 /* DATA_SEG_BITS forces extra bits to be or'd in with any pointers
    which were stored in a Lisp_Object */
-#define XPNTR(a) (XUINT (a) | DATA_SEG_BITS)
+#define XPNTR(a) ((intptr_t) (XUINT (a) | DATA_SEG_BITS))
 #else
-#define XPNTR(a) ((EMACS_INT) XUINT (a))
+#define XPNTR(a) ((intptr_t) XUINT (a))
 #endif
 
 #endif	/* !USE_LSB_TAG */
@@ -1814,8 +1818,8 @@ typedef struct {
     XSETCDR ((x), tmp);			\
   } while (0)
 
-/* Cast pointers to this type to compare them.  Some machines want int.  */
-#define PNTR_COMPARISON_TYPE EMACS_UINT
+/* Cast pointers to this type to compare them.  */
+#define PNTR_COMPARISON_TYPE uintptr_t
 
 /* Define a built-in function for calling from Lisp.
  `lname' should be the name to give the function in Lisp,
@@ -3354,7 +3358,7 @@ extern void flush_pending_output (int);
 extern void child_setup_tty (int);
 extern void setup_pty (int);
 extern int set_window_size (int, int, int);
-extern long get_random (void);
+extern EMACS_INT get_random (void);
 extern void seed_random (long);
 extern int emacs_open (const char *, int, int);
 extern int emacs_close (int);

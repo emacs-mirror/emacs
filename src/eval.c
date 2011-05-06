@@ -1994,7 +1994,7 @@ verror (const char *m, va_list ap)
 {
   char buf[4000];
   size_t size = sizeof buf;
-  size_t size_max = min (MOST_POSITIVE_FIXNUM, SIZE_MAX);
+  size_t size_max = min (MOST_POSITIVE_FIXNUM + 1, SIZE_MAX);
   size_t mlen = strlen (m);
   char *buffer = buf;
   size_t used;
@@ -2002,7 +2002,10 @@ verror (const char *m, va_list ap)
 
   while (1)
     {
-      used = doprnt (buffer, size, m, m + mlen, ap);
+      va_list ap_copy;
+      va_copy (ap_copy, ap);
+      used = doprnt (buffer, size, m, m + mlen, ap_copy);
+      va_end (ap_copy);
 
       /* Note: the -1 below is because `doprnt' returns the number of bytes
 	 excluding the terminating null byte, and it always terminates with a
@@ -2144,7 +2147,7 @@ this does nothing and returns nil.  */)
        We used to use 0 here, but that leads to accidental sharing in
        purecopy's hash-consing, so we use a (hopefully) unique integer
        instead.  */
-    docstring = make_number (XHASH (function));
+    docstring = make_number (XPNTR (function));
   return Ffset (function,
 		Fpurecopy (list5 (Qautoload, file, docstring,
 				  interactive, type)));

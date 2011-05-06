@@ -193,7 +193,6 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   int count = SPECPDL_INDEX ();
   volatile USE_SAFE_ALLOCA;
 
-  const unsigned char **volatile new_argv_volatile;
   register const unsigned char **new_argv;
   /* File to use for stderr in the child.
      t means use same as standard output.  */
@@ -416,7 +415,6 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
   SAFE_ALLOCA (new_argv, const unsigned char **,
 	       (nargs > 4 ? nargs - 2 : 2) * sizeof *new_argv);
-  new_argv_volatile = new_argv;
   if (nargs > 4)
     {
       register size_t i;
@@ -591,9 +589,20 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
     BLOCK_INPUT;
 
-    pid = vfork ();
+    /* vfork, and prevent local vars from being clobbered by the vfork.  */
+    {
+      int volatile fd_error_volatile = fd_error;
+      int volatile fd_output_volatile = fd_output;
+      int volatile output_to_buffer_volatile = output_to_buffer;
+      unsigned char const **volatile new_argv_volatile = new_argv;
 
-    new_argv = new_argv_volatile;
+      pid = vfork ();
+
+      fd_error = fd_error_volatile;
+      fd_output = fd_output_volatile;
+      output_to_buffer = output_to_buffer_volatile;
+      new_argv = new_argv_volatile;
+    }
 
     if (pid == 0)
       {
