@@ -1,4 +1,4 @@
-2011-05-05  Paul Eggert  <eggert@cs.ucla.edu>
+2011-05-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* image.c (Finit_image_library) [!HAVE_NTGUI]: Omit unused local.
 
@@ -112,6 +112,16 @@
 	* eval.c (Fautoload): Don't double-shift a pointer.
 
 	* fns.c (Frandom): Let EMACS_UINT be wider than unsigned long.
+
+2011-05-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnutls.c (DEF_GNUTLS_FN):
+	* image.c (DEF_IMGLIB_FN): Make function pointers static.
+
+2011-05-05  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* lread.c (lisp_file_lexically_bound_p): Stop scanning at end
+	marker.  (Bug#8610)
 
 2011-05-05 Eli Zaretskii  <eliz@gnu.org>
 

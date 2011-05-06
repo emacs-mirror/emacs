@@ -64,7 +64,7 @@ static void gnutls_log_function2 (int, const char*, const char*);
 #ifdef WINDOWSNT
 
 /* Macro for defining functions that will be loaded from the GnuTLS DLL.  */
-#define DEF_GNUTLS_FN(rettype,func,args) rettype (FAR CDECL *fn_##func)args
+#define DEF_GNUTLS_FN(rettype,func,args) static rettype (FAR CDECL *fn_##func)args
 
 /* Macro for loading GnuTLS functions from the library.  */
 #define LOAD_GNUTLS_FN(lib,func) {					\

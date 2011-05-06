@@ -88,9 +88,11 @@ don't know how to recognize (e.g. some macros)."
       ;; FIXME we could theoretically be inside a string.
       (while (re-search-forward "^[ \t]*\\((declare-function\\)[ \t\n]" nil t)
         (goto-char (match-beginning 1))
-        (if (and (setq form (ignore-errors (read (current-buffer)))
-                       len (length form))
-                 (> len 2) (< len 6)
+        (if (and (setq form (ignore-errors (read (current-buffer))))
+                 ;; Exclude element of byte-compile-initial-macro-environment.
+                 (or (listp (cdr form)) (setq form nil))
+                 (> (setq len (length form)) 2)
+                 (< len 6)
                  (symbolp (setq fn (cadr form)))
                  (setq fn (symbol-name fn)) ; later we use as a search string
                  (stringp (setq fnfile (nth 2 form)))
@@ -104,7 +106,7 @@ don't know how to recognize (e.g. some macros)."
                  (symbolp (setq fileonly (nth 4 form))))
             (setq alist (cons (list fnfile fn arglist fileonly) alist))
           ;; FIXME make this more noticeable.
-          (message "Malformed declaration for `%s'" (cadr form)))))
+          (if form (message "Malformed declaration for `%s'" (cadr form))))))
     (message "%sdone" m)
     alist))
 

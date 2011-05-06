@@ -2260,8 +2260,8 @@ The method used must be an out-of-band method."
 	(setq host (tramp-file-name-host v)
 	      port "")
 	(when (string-match tramp-host-with-port-regexp host)
-	  (setq host (string-to-number (match-string 1 host))
-		port (string-to-number (match-string 2 host))))
+	  (setq port (string-to-number (match-string 2 host))
+		host (string-to-number (match-string 1 host))))
 
 	;; Compose copy command.
 	(setq spec (format-spec-make

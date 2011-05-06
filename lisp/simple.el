@@ -2170,6 +2170,9 @@ to the end of the list of defaults just after the default value."
 (defvar shell-delimiter-argument-list)
 (defvar shell-file-name-chars)
 (defvar shell-file-name-quote-list)
+(defvar shell-dynamic-complete-functions)
+;; shell requires comint.
+(defvar comint-dynamic-complete-functions)
 
 (defvar minibuffer-local-shell-command-map
   (let ((map (make-sparse-keymap)))
@@ -2707,7 +2710,8 @@ support pty association, if PROGRAM is nil."
 (defvar tabulated-list-entries)
 (defvar tabulated-list-sort-key)
 (declare-function tabulated-list-init-header  "tabulated-list" ())
-(declare-function tabulated-list-print "tabulated-list" ())
+(declare-function tabulated-list-print "tabulated-list"
+                  (&optional remember-pos))
 
 (defvar process-menu-query-only nil)
 
@@ -2788,7 +2792,8 @@ The return value is always nil."
     (setq process-menu-query-only query-only)
     (list-processes--refresh)
     (tabulated-list-print))
-  (display-buffer buffer))
+  (display-buffer buffer)
+  nil)
 
 (defvar universal-argument-map
   (let ((map (make-sparse-keymap)))

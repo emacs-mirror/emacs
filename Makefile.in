@@ -931,7 +931,7 @@ dvi:
 
 .PHONY: bootstrap
 
-## configure; make boostrap replaces the real config.log from configure
+## configure; make bootstrap replaces the real config.log from configure
 ## with the truncated one from config.status.  The former is more useful.
 bootstrap: bootstrap-clean FRC
 	if [ -x ./config.status ]; then           \
