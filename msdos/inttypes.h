@@ -20,11 +20,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef _REPL_INTTYPES_H
 #define _REPL_INTTYPES_H
 
+/* As of May 2011, DJGPP v2.04 does not include stdint.h in its
+   inttypes.h, although it should.  Therefore, include stdint.h
+   unconditionally.  */
+#include <stdint.h>
+
 #if __DJGPP__ > 2 || __DJGPP_MINOR__ >= 4
 #include_next <inttypes.h>
 #else  /* __DJGPP__ < 2.04 */
 #include <stdlib.h>
-#define uintmax_t unsigned long long
 #define strtoumax strtoull
 #endif	/* __DJGPP__ < 2.04 */
 

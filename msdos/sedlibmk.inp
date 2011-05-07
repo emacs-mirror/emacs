@@ -401,6 +401,7 @@ am__cd = cd
 # MKDIR_P lines are edited further below
 /^MKDIR_P *=/s/@MKDIR_P@//
 /^NEXT_AS_FIRST_DIRECTIVE_GETOPT_H *=/s/@[^@\n]*@/<getopt.h>/
+/^NEXT_AS_FIRST_DIRECTIVE_STDARG_H *=/s/@[^@\n]*@//
 /^NEXT_AS_FIRST_DIRECTIVE_STDDEF_H *=/s/@[^@\n]*@//
 /^NEXT_AS_FIRST_DIRECTIVE_STDINT_H *=/s/@[^@\n]*@/<stdint.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_STDIO_H *=/s/@[^@\n]*@/<stdio.h>/
@@ -409,6 +410,7 @@ am__cd = cd
 /^NEXT_AS_FIRST_DIRECTIVE_TIME_H *=/s/@[^@\n]*@/<time.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_UNISTD_H *=/s/@[^@\n]*@/<unistd.h>/
 /^NEXT_GETOPT_H *=/s/@[^@\n]*@/<getopt.h>/
+/^NEXT_STDARG_H *=/s/@[^@\n]*@//
 /^NEXT_STDDEF_H *=/s/@[^@\n]*@//
 /^NEXT_STDIO_H *=/s/@[^@\n]*@/<stdio.h>/
 /^NEXT_STDINT_H *=/s/@[^@\n]*@/<stdint.h>/
@@ -506,6 +508,7 @@ am__cd = cd
 /^SIG_ATOMIC_T_SUFFIX *=/s/@SIG_ATOMIC_T_SUFFIX@//
 /^SIZE_T_SUFFIX *=/s/@SIZE_T_SUFFIX@/u/
 /^STDBOOL_H *=/s/@[^@\n]*@//
+/^STDARG_H *=/s/@[^@\n]*@//
 /^STDDEF_H *=/s/@[^@\n]*@//
 /^STDINT_H *=/s/@[^@\n]*@/stdint.h/
 /^SYS_TIME_H_DEFINES_STRUCT_TIMESPEC *=/s/@[^@\n]*@/0/
@@ -514,6 +517,8 @@ am__cd = cd
 /^UNISTD_H_HAVE_WINSOCK2_H_AND_USE_SOCKETS *=/s/@[^@\n]*@/0/
 /^WCHAR_T_SUFFIX *=/s/@WCHAR_T_SUFFIX@/h/
 /^WINT_T_SUFFIX *=/s/@WINT_T_SUFFIX@//
+/am__append_1 *=.*gettext\.h/s/@[^@\n]*@/\#/
+/am__append_2 *=.*verify\.h/s/@[^@\n]*@//
 /^gl_LIBOBJS *=/s/@[^@\n]*@/getopt.o getopt1.o strftime.o time_r.o getloadavg.o md5.o filemode.o/
 /^BUILT_SOURCES *=/s/ *inttypes\.h//
 /^am_libgnu_a_OBJECTS *=/s/careadlinkat\.\$(OBJEXT)//
@@ -554,8 +559,10 @@ s/@echo /@djecho/
 # Fix the recipes for header files
 s/^@GL_GENERATE_STDBOOL_H_TRUE@/\#/
 s/^@GL_GENERATE_STDBOOL_H_FALSE@//
+s/^@GL_GENERATE_STDARG_H_TRUE@/\#/
+s/^@GL_GENERATE_STDARG_H_FALSE@/\#/
 s/^@GL_GENERATE_STDDEF_H_TRUE@/\#/
-s/^@GL_GENERATE_STDDEF_H_FALSE@//
+s/^@GL_GENERATE_STDDEF_H_FALSE@/\#/
 s/^@GL_GENERATE_STDINT_H_TRUE@//
 s/^@GL_GENERATE_STDINT_H_FALSE@/\#/
 /^arg-nonnull\.h:/,/^[ 	][ 	]*mv /c\
