@@ -1,5 +1,8 @@
 2011-05-07  Eli Zaretskii  <eliz@gnu.org>
 
+	* mail/sendmail.el (send-mail-function): On MS-Windows, default to
+	mailclient-send-it even if window-system is nil.  (Bug#8595)
+
 	* term/w32console.el (terminal-init-w32console): Call
 	get-screen-color and use its output to set the frame
 	background-mode.  (Bug#8597)

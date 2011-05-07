@@ -141,14 +141,18 @@ Otherwise, let mailer send back a message to report errors."
 ;; standard value.
 ;;;###autoload
 (put 'send-mail-function 'standard-value
-     '((if (and window-system (memq system-type '(darwin windows-nt)))
+     ;; MS-Windows can access the clipboard even under -nw.
+     '((if (or (and window-system (eq system-type 'darwin))
+	       (eq system-type 'windows-nt))
 	   'mailclient-send-it
 	 'sendmail-send-it)))
 
 ;; Useful to set in site-init.el
 ;;;###autoload
 (defcustom send-mail-function
-  (if (and window-system (memq system-type '(darwin windows-nt)))
+  (if (or (and window-system (eq system-type 'darwin))
+	  ;; MS-Windows can access the clipboard even under -nw.
+	  (eq system-type 'windows-nt))
       'mailclient-send-it
     'sendmail-send-it)
   "Function to call to send the current buffer as mail.
