@@ -1,3 +1,15 @@
+2011-05-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* inttypes.h: Include stdint.h.
+	(uintmax_t): Don't define, it is defined in stdint.h.
+
+	* sedlibmk.inp (am__append_1): Edit to comment out.
+	(am__append_2): Edit to expose.
+	(NEXT_AS_FIRST_DIRECTIVE_STDARG_H, NEXT_STDARG_H, STDARG_H): Edit
+	to empty.
+	(@GL_GENERATE_STDARG_H_TRUE@, @GL_GENERATE_STDARG_H_FALSE@): Edit
+	to comment out corresponding lines.
+
 2011-04-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* inttypes.h: New file.

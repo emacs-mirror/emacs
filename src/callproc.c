@@ -114,6 +114,7 @@ call_process_cleanup (Lisp_Object arg)
   Lisp_Object fdpid = Fcdr (arg);
 #if defined (MSDOS)
   Lisp_Object file;
+  int fd;
 #else
   int pid;
 #endif
@@ -122,9 +123,13 @@ call_process_cleanup (Lisp_Object arg)
 
 #if defined (MSDOS)
   /* for MSDOS fdpid is really (fd . tempfile)  */
+  fd = XFASTINT (Fcar (fdpid));
   file = Fcdr (fdpid);
-  emacs_close (XFASTINT (Fcar (fdpid)));
-  if (strcmp (SDATA (file), NULL_DEVICE) != 0)
+  /* FD is -1 and FILE is "" when we didn't actually create a
+     temporary file in call-process.  */
+  if (fd >= 0)
+    emacs_close (fd);
+  if (!(strcmp (SDATA (file), NULL_DEVICE) == 0 || SREF (file, 0) == '\0'))
     unlink (SDATA (file));
 #else /* not MSDOS */
   pid = XFASTINT (Fcdr (fdpid));
@@ -199,7 +204,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   Lisp_Object error_file;
   Lisp_Object output_file = Qnil;
 #ifdef MSDOS	/* Demacs 1.1.1 91/10/16 HIRANO Satoshi */
-  char *outf, *tempfile;
+  char *outf, *tempfile = NULL;
   int outfilefd;
 #endif
   int fd_output = -1;
@@ -439,22 +444,23 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   new_argv[0] = SDATA (path);
 
 #ifdef MSDOS /* MW, July 1993 */
-  if ((outf = egetenv ("TMPDIR")))
-    strcpy (tempfile = alloca (strlen (outf) + 20), outf);
-  else
-    {
-      tempfile = alloca (20);
-      *tempfile = '\0';
-    }
-  dostounix_filename (tempfile);
-  if (*tempfile == '\0' || tempfile[strlen (tempfile) - 1] != '/')
-    strcat (tempfile, "/");
-  strcat (tempfile, "detmp.XXX");
-  mktemp (tempfile);
 
-  /* If we're redirecting STDOUT to a file, this is already opened. */
+  /* If we're redirecting STDOUT to a file, that file is already open
+     on fd_output.  */
   if (fd_output < 0)
     {
+      if ((outf = egetenv ("TMPDIR")))
+	strcpy (tempfile = alloca (strlen (outf) + 20), outf);
+      else
+	{
+	  tempfile = alloca (20);
+	  *tempfile = '\0';
+	}
+      dostounix_filename (tempfile);
+      if (*tempfile == '\0' || tempfile[strlen (tempfile) - 1] != '/')
+	strcat (tempfile, "/");
+      strcat (tempfile, "detmp.XXX");
+      mktemp (tempfile);
       outfilefd = creat (tempfile, S_IREAD | S_IWRITE);
       if (outfilefd < 0) {
 	emacs_close (filefd);
@@ -561,15 +567,21 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     if (fd_error != outfilefd)
       emacs_close (fd_error);
     fd1 = -1; /* No harm in closing that one!  */
-    /* Since CRLF is converted to LF within `decode_coding', we can
-       always open a file with binary mode.  */
-    fd[0] = emacs_open (tempfile, O_RDONLY | O_BINARY, 0);
-    if (fd[0] < 0)
+    if (tempfile)
       {
-	unlink (tempfile);
-	emacs_close (filefd);
-	report_file_error ("Cannot re-open temporary file", Qnil);
+	/* Since CRLF is converted to LF within `decode_coding', we
+	   can always open a file with binary mode.  */
+	fd[0] = emacs_open (tempfile, O_RDONLY | O_BINARY, 0);
+	if (fd[0] < 0)
+	  {
+	    unlink (tempfile);
+	    emacs_close (filefd);
+	    report_file_error ("Cannot re-open temporary file",
+			       Fcons (tempfile, Qnil));
+	  }
       }
+    else
+      fd[0] = -1; /* We are not going to read from tempfile.   */
 #else /* not MSDOS */
 #ifdef WINDOWSNT
     pid = child_setup (filefd, fd1, fd_error, (char **) new_argv,
@@ -676,7 +688,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   record_unwind_protect (call_process_cleanup,
 			 Fcons (Fcurrent_buffer (),
 				Fcons (make_number (fd[0]),
-				       build_string (tempfile))));
+				       build_string (tempfile ? tempfile : ""))));
 #else
   record_unwind_protect (call_process_cleanup,
 			 Fcons (Fcurrent_buffer (),

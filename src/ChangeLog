@@ -1,3 +1,13 @@
+2011-05-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* callproc.c (call_process_cleanup): Don't close and unlink the
+	temporary file if Fcall_process didn't create it in the first
+	place.
+	(Fcall_process): Don't create tempfile if stdout of the child
+	process will be redirected to a file specified with `:file'.
+	Don't try to re-open tempfile in that case, and set fd[0] to -1 as
+	cue to call_process_cleanup not to close that handle.
+
 2011-05-07  Ben Key  <bkey76@gmail.com>
 
 	* makefile.w32-in: The bootstrap-temacs rule now makes use of
