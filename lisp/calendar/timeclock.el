@@ -1025,11 +1025,10 @@ lists:
   timeclock-current-debt LOG-DATA
 
 See the documentation for the given function if more info is needed."
-  (let* ((log-data (list 0.0 nil nil))
-	 (now (current-time))
-	 (todays-date (timeclock-time-to-date now))
-	 last-date-limited last-date-seconds last-date
-	 (line 0) last beg day entry event)
+  (let ((log-data (list 0.0 nil nil))
+	(now (current-time))
+	last-date-limited last-date-seconds last-date
+	(line 0) last beg day entry event)
     (with-temp-buffer
       (insert-file-contents (or filename timeclock-file))
       (when recent-only
@@ -1115,7 +1114,7 @@ discrepancy, today's discrepancy, and the time worked today."
   (let* ((now (current-time))
 	 (todays-date (timeclock-time-to-date now))
 	 (first t) (accum 0) (elapsed 0)
-	 event beg last-date avg
+	 event beg last-date
 	 last-date-limited last-date-seconds)
     (unless timeclock-discrepancy
       (when (file-readable-p timeclock-file)

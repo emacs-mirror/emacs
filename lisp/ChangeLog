@@ -1,5 +1,9 @@
 2011-05-07  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/timeclock.el (timeclock-log-data): Remove unused local.
+	Use let rather than let*.
+	(timeclock-find-discrep): Remove unused local.
+
 	* calendar/diary-lib.el (diary-comment-start): Doc fix.
 
 	* calendar/appt.el (appt-time-msg-list): Doc fix.
