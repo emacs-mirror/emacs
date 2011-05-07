@@ -4173,6 +4173,7 @@ binding slots have been popped."
 
 ;; Compile normally, but deal with warnings for the function being defined.
 (put 'defalias 'byte-hunk-handler 'byte-compile-file-form-defalias)
+;; Used for eieio--defalias as well.
 (defun byte-compile-file-form-defalias (form)
   (if (and (consp (cdr form)) (consp (nth 1 form))
 	   (eq (car (nth 1 form)) 'quote)

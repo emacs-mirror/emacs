@@ -1,3 +1,12 @@
+2011-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Make bytecomp.el understand that defmethod defines funs (bug#8631).
+	* emacs-lisp/eieio.el (eieio--defalias, eieio--defgeneric-init-form):
+	New functions.
+	(defgeneric, eieio--defmethod): Use them.
+	(eieio-defgeneric): Remove.
+	(defmethod): Call defgeneric in a way visible to the byte-compiler.
+
 2011-05-07  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/timeclock.el (timeclock-log-data): Remove unused local.
@@ -17,7 +26,7 @@
 2011-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lpr.el (print-region-1): Echo lpr-program's output, so error messages
-	and warnings are not silently discarded (e.g. use "-d" instead of "-P").
+	and warnings are not silently discarded (e.g. use -d instead of -P).
 
 2011-05-06  Glenn Morris  <rgm@gnu.org>
 
