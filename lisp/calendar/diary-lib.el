@@ -147,7 +147,8 @@ See the documentation for the function `diary-list-sexp-entries'."
 Nil means there are no comments.  The diary does not display
 parts of entries that are inside comments.  You can use comments
 for whatever you like, e.g. for meta-data that packages such as
-`appt.el' can use.
+`appt.el' can use.  Comments may not span mutliple lines, and there
+can be only one comment on any line.
 See also `diary-comment-end'."
   :version "24.1"
   :type '(choice (const :tag "No comment" nil) string)
@@ -650,6 +651,8 @@ Also removes the region between `diary-comment-start' and
                                string))
         ;; Preserve the value with the comments.
         (or literal (setq literal string))
+        ;; Handles multiple comments per entry, so long as each is on
+        ;; a single line, and each line has no more than one comment.
         (setq string (replace-regexp-in-string
                       (format "%s.*%s" cstart (regexp-quote diary-comment-end))
                       "" string)))

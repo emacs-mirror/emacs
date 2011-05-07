@@ -1,5 +1,7 @@
 2011-05-07  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/diary-lib.el (diary-comment-start): Doc fix.
+
 	* calendar/appt.el (appt-time-msg-list): Doc fix.
 
 2011-05-06  Noah Friedman  <friedman@splode.com>
