@@ -97,10 +97,10 @@ set profile=N
 set nocygwin=N
 set COMPILER=
 set usercflags=
-set fusercflags=
+set escusercflags=
 set docflags=
 set userldflags=
-set fuserldflags=
+set escuserldflags=
 set extrauserlibs=
 set doldflags=
 set doextralibs=
@@ -240,7 +240,7 @@ goto ucflagne
 :ucflagex
 shift
 set usercflags=%usercflags%%sep1%%~1
-set fusercflags=%usercflags:"=\"%
+set escusercflags=%usercflags:"=\"%
 set sep1= %nothing%
 shift
 goto again
@@ -248,7 +248,7 @@ goto again
 :ucflagne
 shift
 set usercflags=%usercflags%%sep1%%1
-set fusercflags=%usercflags%
+set escusercflags=%usercflags%
 set sep1= %nothing%
 shift
 goto again
@@ -270,7 +270,7 @@ goto ulflagne
 :ulflagex
 shift
 set userldflags=%userldflags%%sep2%%~1
-set fuserldflags=%userldflags:"=\"%
+set escuserldflags=%userldflags:"=\"%
 set sep2= %nothing%
 shift
 goto again
@@ -278,7 +278,7 @@ goto again
 :ulflagne
 shift
 set userldflags=%userldflags%%sep2%%1
-set fuserldflags=%userldflags%
+set escuserldflags=%userldflags%
 set sep2= %nothing%
 shift
 goto again
@@ -443,7 +443,7 @@ goto nocompiler
 :chkuser
 rm -f junk.o
 echo int main (int argc, char *argv[]) {>junk.c
-echo char *usercflags = "%fusercflags%";>>junk.c
+echo char *usercflags = "%escusercflags%";>>junk.c
 echo }>>junk.c
 echo gcc -Werror -c junk.c >>config.log
 gcc -Werror -c junk.c >>config.log 2>&1
@@ -739,6 +739,7 @@ rem We go thru docflags because usercflags could be "-DFOO=bar" -something
 rem and the if command cannot cope with this
 for %%v in (%usercflags%) do if not (%%v)==() set docflags=Y
 if (%docflags%)==(Y) echo USER_CFLAGS=%usercflags%>>config.settings
+if (%docflags%)==(Y) echo ESC_USER_CFLAGS=%escusercflags%>>config.settings
 for %%v in (%userldflags%) do if not (%%v)==() set doldflags=Y
 if (%doldflags%)==(Y) echo USER_LDFLAGS=%userldflags%>>config.settings
 for %%v in (%extrauserlibs%) do if not (%%v)==() set doextralibs=Y
@@ -751,8 +752,8 @@ echo. >>config.tmp
 echo /* Start of settings from configure.bat.  */ >>config.tmp
 rem   We write USER_CFLAGS and USER_LDFLAGS starting with a space to simplify
 rem   processing of compiler options in w32.c:get_emacs_configuration_options
-if (%docflags%) == (Y) echo #define USER_CFLAGS " %fusercflags%">>config.tmp
-if (%doldflags%) == (Y) echo #define USER_LDFLAGS " %fuserldflags%">>config.tmp
+if (%docflags%) == (Y) echo #define USER_CFLAGS " %escusercflags%">>config.tmp
+if (%doldflags%) == (Y) echo #define USER_LDFLAGS " %escuserldflags%">>config.tmp
 if (%profile%) == (Y) echo #define PROFILING 1 >>config.tmp
 if not "(%HAVE_PNG%)" == "()" echo #define HAVE_PNG 1 >>config.tmp
 if not "(%HAVE_GNUTLS%)" == "()" echo #define HAVE_GNUTLS 1 >>config.tmp

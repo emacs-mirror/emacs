@@ -1,3 +1,20 @@
+2011-05-07  Ben Key  <bkey76@gmail.com>
+
+	* makefile.w32-in: The bootstrap-temacs rule now makes use of
+	one of two shell specific rules, either bootstrap-temacs-CMD or
+	bootstrap-temacs-SH.  The bootstrap-temacs-SH rule is identical
+	to the previous implementation of the bootstrap-temacs rule.
+	The bootstrap-temacs-CMD rule is similar to the previous
+	implementation of the bootstrap-temacs rule except that it
+	makes use of the ESC_CFLAGS variable instead of the CFLAGS
+	variable.
+
+	These changes, along with some changes to nt/configure.bat,
+	nt/gmake.defs, and nt/nmake.defs, are required to extend my
+	earlier fix to add support for --cflags and --ldflags options
+	that include quotes so that it works whether make uses cmd or
+	sh as the shell.
+
 2011-05-06  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (QCdbus_type_unix_fd): Declare static.

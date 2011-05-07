@@ -244,8 +244,14 @@ bootstrap: bootstrap-emacs
 #
 # WARNING: Do NOT split the part inside $(ARGQUOTE)s into multiple lines as
 #          this can break with GNU Make 3.81 and later if sh.exe is used.
-bootstrap-temacs:
+bootstrap-temacs-CMD:
+	$(MAKE) $(MFLAGS) $(XMFLAGS) temacs CFLAGS=$(ARGQUOTE)$(ESC_CFLAGS) -DPURESIZE=5000000$(ARGQUOTE)
+
+bootstrap-temacs-SH:
 	$(MAKE) $(MFLAGS) $(XMFLAGS) temacs CFLAGS=$(ARGQUOTE)$(CFLAGS) -DPURESIZE=5000000$(ARGQUOTE)
+
+bootstrap-temacs:
+	$(MAKE) $(MFLAGS) bootstrap-temacs-$(SHELLTYPE)
 
 #
 # Dump an Emacs executable named bootstrap-emacs containing the
