@@ -1,5 +1,9 @@
 2011-05-07  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32console.c (Fset_screen_color): Doc fix.
+	(Fget_screen_color): New function.
+	(syms_of_ntterm): Defsubr it.
+
 	* callproc.c (call_process_cleanup): Don't close and unlink the
 	temporary file if Fcall_process didn't create it in the first
 	place.

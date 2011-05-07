@@ -1,3 +1,9 @@
+2011-05-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* term/w32console.el (terminal-init-w32console): Call
+	get-screen-color and use its output to set the frame
+	background-mode.  (Bug#8597)
+
 2011-05-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Make bytecomp.el understand that defmethod defines funs (bug#8631).

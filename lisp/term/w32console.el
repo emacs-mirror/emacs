@@ -59,6 +59,19 @@
       (setq colors (cdr colors)
             color (car colors))))
   (clear-face-cache)
+  ;; Figure out what are the colors of the console window, and set up
+  ;; the background-mode correspondingly.
+  (let* ((screen-color (get-screen-color))
+	 (bg (cadr screen-color))
+	 (descr (tty-color-by-index bg))
+	 r g b bg-mode)
+    (setq r (nth 2 descr)
+	  g (nth 3 descr)
+	  b (nth 4 descr))
+    (if (< (+ r g b) (* .6 (+ 65535 65535 65535)))
+	(setq bg-mode 'dark)
+      (setq bg-mode 'light))
+    (set-terminal-parameter nil 'background-mode bg-mode))
   (tty-set-up-initial-frame-faces)
   (run-hooks 'terminal-init-w32-hook))
 

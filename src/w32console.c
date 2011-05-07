@@ -705,13 +705,27 @@ initialize_w32_display (struct terminal *term)
 
 
 DEFUN ("set-screen-color", Fset_screen_color, Sset_screen_color, 2, 2, 0,
-       doc: /* Set screen colors.  */)
+       doc: /* Set screen foreground and background colors.
+
+Arguments should be indices between 0 and 15, see w32console.el.  */)
   (Lisp_Object foreground, Lisp_Object background)
 {
   char_attr_normal = XFASTINT (foreground) + (XFASTINT (background) << 4);
 
   Frecenter (Qnil);
   return Qt;
+}
+
+DEFUN ("get-screen-color", Fget_screen_color, Sget_screen_color, 0, 0, 0,
+       doc: /* Get color indices of the current screen foreground and background.
+
+The colors are returned as a list of 2 indices (FOREGROUND BACKGROUND).
+See w32console.el and `tty-defined-color-alist' for mapping of indices
+to colors.  */)
+  (void)
+{
+  return Fcons (make_number (char_attr_normal & 0x000f),
+		Fcons (make_number ((char_attr_normal >> 4) & 0x000f), Qnil));
 }
 
 DEFUN ("set-cursor-size", Fset_cursor_size, Sset_cursor_size, 1, 1, 0,
@@ -739,6 +753,7 @@ scroll-back buffer.  */);
   w32_use_full_screen_buffer = 0;
 
   defsubr (&Sset_screen_color);
+  defsubr (&Sget_screen_color);
   defsubr (&Sset_cursor_size);
   defsubr (&Sset_message_beep);
 }
