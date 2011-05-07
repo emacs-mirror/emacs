@@ -663,6 +663,9 @@ on a D-Bus without simultaneously registering a property or a method.
 *** The following access methods are discontinued: "ssh1_old",
 "ssh2_old", "scp1_old", "scp2_old", "imap", "imaps" and "fish".
 
+*** The option `ange-ftp-binary-file-name-regexp' has changed its
+default value to "".
+
 ** VC and related modes
 
 *** Support for pulling on distributed version control systems.
