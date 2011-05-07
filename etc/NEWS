@@ -455,6 +455,7 @@ See the variable `diary-comment-start'.
 *** Appointments can specify their individual warning times.
 See the variable `appt-warning-time-regexp'.
 
++++
 *** New function `diary-hebrew-birthday'.
 
 ---
