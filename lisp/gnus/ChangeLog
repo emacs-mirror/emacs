@@ -1,3 +1,7 @@
+2011-05-07  Julien Danjou  <julien@danjou.info>
+
+	* shr.el (shr-link): Make shr-link inherit from link by default.
+
 2011-05-06  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* shr.el (shr-urlify, shr-link): Fix shr-link face.

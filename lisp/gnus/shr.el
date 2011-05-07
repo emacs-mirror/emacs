@@ -92,7 +92,7 @@ cid: URL as the argument.")
   :group 'shr)
 
 (defface shr-link
-  '((t (:underline t :foreground "yellow" :background "black")))
+  '((t (:inherit link)))
   "Font for link elements."
   :group 'shr)
 
