@@ -1974,7 +1974,7 @@
 	(emerge-protect-metachars): Quote correctly for ms-dos and
 	windows-nt systems.
 
-2011-03-19  Ralph Schleicher  <rs@ralph-schleicher.de>  (tiny change)
+2011-03-19  Ralph Schleicher  <rs@ralph-schleicher.de>
 
 	* info.el (info-initialize): Replace all uses of `:' with
 	path-separator for compatibility with non-Unix systems.
