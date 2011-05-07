@@ -179,11 +179,10 @@ Each element of the generated list has the form
 \(MINUTES STRING [FLAG] [WARNTIME])
 where MINUTES is the time in minutes of the appointment after midnight,
 and STRING is the description of the appointment.
-FLAG and WARNTIME can only be present if the element was made
-with `appt-add'.  A non-nil FLAG indicates that the element was made
-with `appt-add', so calling `appt-make-list' again should preserve it.
-If WARNTIME is non-nil, it is an integer to use in place
-of `appt-message-warning-time'.")
+FLAG and WARNTIME are not always present.  A non-nil FLAG
+indicates that the element was made with `appt-add', so calling
+`appt-make-list' again should preserve it.  If WARNTIME is non-nil,
+it is an integer to use in place of `appt-message-warning-time'.")
 
 (defconst appt-max-time (1- (* 24 60))
   "11:59pm in minutes - number of minutes in a day minus 1.")
