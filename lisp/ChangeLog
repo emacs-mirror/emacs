@@ -3,6 +3,9 @@
 	* progmodes/perl-mode.el (perl-imenu-generic-expression): Only
 	match variables declared via `my' or `our' (Bug#8261).
 
+	* net/browse-url.el (browse-url-of-dired-file): Allow browsing of
+	special file names `.' and `..' (Bug#8259).
+
 2011-05-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/grep.el (grep-mode-font-lock-keywords): Remove
