@@ -1,3 +1,8 @@
+2011-05-08  Ralph Schleicher  <rs@ralph-schleicher.de>
+
+	* progmodes/perl-mode.el (perl-imenu-generic-expression): Only
+	match variables declared via `my' or `our' (Bug#8261).
+
 2011-05-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/grep.el (grep-mode-font-lock-keywords): Remove

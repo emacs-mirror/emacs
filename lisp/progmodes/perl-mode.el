@@ -166,7 +166,7 @@ The expansion is entirely correct because it uses the C preprocessor."
   '(;; Functions
     (nil "^sub\\s-+\\([-A-Za-z0-9+_:]+\\)" 1)
     ;;Variables
-    ("Variables" "^\\([$@%][-A-Za-z0-9+_:]+\\)\\s-*=" 1)
+    ("Variables" "^\\(?:my\\|our\\)\\s-+\\([$@%][-A-Za-z0-9+_:]+\\)\\s-*=" 1)
     ("Packages" "^package\\s-+\\([-A-Za-z0-9+_:]+\\);" 1)
     ("Doc sections" "^=head[0-9][ \t]+\\(.*\\)" 1))
   "Imenu generic expression for Perl mode.  See `imenu-generic-expression'.")
