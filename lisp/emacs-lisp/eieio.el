@@ -1298,11 +1298,11 @@ Summary:
   (let* ((key (if (keywordp (car args)) (pop args)))
 	 (params (car args))
 	 (arg1 (car params))
-         (args (if (consp arg1)
+         (fargs (if (consp arg1)
                    (cons (car arg1) (cdr params))
                  params))
 	 (class (if (consp arg1) (nth 1 arg1)))
-         (code `(lambda ,args ,@(cdr args))))
+         (code `(lambda ,fargs ,@(cdr args))))
     `(progn
        ;; Make sure there is a generic and the byte-compiler sees it.
        (defgeneric ,method ,args
