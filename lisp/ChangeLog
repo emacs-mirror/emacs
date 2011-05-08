@@ -1,3 +1,15 @@
+2011-05-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/grep.el (grep-mode-font-lock-keywords): Remove
+	buffer-changing entries.
+	(grep-filter): New function.
+	(grep-mode): Add it to compilation-filter-hook.
+
+	* progmodes/compile.el (compilation-filter-hook)
+	(compilation-filter-start): New defvars.
+	(compilation-filter): Call compilation-filter-hook prior to
+	updating the process mark.
+
 2011-05-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/eieio.el (defmethod): Fix typo in last change.

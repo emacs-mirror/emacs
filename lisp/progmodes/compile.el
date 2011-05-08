@@ -64,6 +64,16 @@ the compilation to be killed, you can use this hook:
 		 integer)
   :group 'compilation)
 
+(defvar compilation-filter-hook nil
+  "Hook run after `compilation-filter' has inserted a string into the buffer.
+It is called with the variable `compilation-filter-start' bound
+to the position of the start of the inserted text, and point at
+its end.")
+
+(defvar compilation-filter-start nil
+  "Start of the text inserted by `compilation-filter'.
+This is bound to a buffer position before running `compilation-filter-hook'.")
+
 (defvar compilation-first-column 1
   "*This is how compilers number the first column, usually 1 or 0.")
 
@@ -2038,11 +2048,12 @@ and runs `compilation-filter-hook'."
             ;; If we are inserting at the end of the accessible part of the
             ;; buffer, keep the inserted text visible.
 	    (min (point-min-marker))
-	    (max (copy-marker (point-max) t)))
+	    (max (copy-marker (point-max) t))
+	    (compilation-filter-start (marker-position (process-mark proc))))
         (unwind-protect
             (progn
 	      (widen)
-              (goto-char (process-mark proc))
+	      (goto-char compilation-filter-start)
               ;; We used to use `insert-before-markers', so that windows with
               ;; point at `process-mark' scroll along with the output, but we
               ;; now use window-point-insertion-type instead.

@@ -377,8 +377,14 @@ $ESHELL nor variable `explicit-shell-file-name' is set.
 
 ** comint and modes derived from it use the generic completion code.
 
-** The compile.el mode can be used without font-lock-mode.
+** Compilation mode
+
+*** Compilation mode can be used without font-lock-mode.
 `compilation-parse-errors-function' is now obsolete.
+
+*** `compilation-filter-start' is let-bound to the start of the text
+inserted by the compilation filter function, when calling
+compilation-filter-hook.
 
 ** The Landmark game is now invoked with `landmark', not `lm'.
 
