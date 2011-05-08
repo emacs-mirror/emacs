@@ -1,3 +1,8 @@
+2011-05-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-face.el (custom-declare-face): Call custom-theme-recalc-face
+	if the face has existing theme settings (Bug#8454).
+
 2011-05-08  Ralph Schleicher  <rs@ralph-schleicher.de>
 
 	* progmodes/perl-mode.el (perl-imenu-generic-expression): Only
