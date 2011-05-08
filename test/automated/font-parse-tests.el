@@ -158,4 +158,8 @@ expected font properties from parsing NAME.")
 	(insert "\n"))))
   (goto-char (point-min)))
 
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
+
 ;;; font-parse-tests.el ends here.

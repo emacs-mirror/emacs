@@ -1,3 +1,9 @@
+2011-05-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* automated/font-parse-tests.el: Don't byte-compile.
+
+	* automated/comint-testsuite.el: Move from test/.  Convert to ERT.
+
 2011-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* automated/lexbind-tests.el: New file.
