@@ -1,3 +1,7 @@
+2011-05-09  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* w32menu.c (set_frame_menubar): Fix submenu allocation.
+
 2011-05-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32console.c (Fset_screen_color): Doc fix.
