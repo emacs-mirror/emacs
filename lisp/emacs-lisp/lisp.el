@@ -624,7 +624,8 @@ considered."
   (interactive)
   (let* ((data (lisp-completion-at-point predicate))
          (plist (nthcdr 3 data)))
-    (let ((completion-annotate-function (plist-get plist :annotate-function)))
+    (let ((completion-annotate-function
+           (plist-get plist :annotation-function)))
       (completion-in-region (nth 0 data) (nth 1 data) (nth 2 data)
                             (plist-get plist :predicate)))))
 
@@ -660,7 +661,7 @@ considered."
                       'fboundp))))))
       (list beg end obarray
             :predicate predicate
-            :annotate-function
+            :annotation-function
             (unless (eq predicate 'fboundp)
               (lambda (str) (if (fboundp (intern-soft str)) " <f>")))))))
 
