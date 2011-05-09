@@ -1,3 +1,10 @@
+2011-05-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist): Fix
+	the ant regexp to handle end-line and end-column info from jikes.
+	Re-introduce maven regexp.  Give the ruby-Test::Unit regexp a
+	higher priority to avoid clobbering by gnu.
+
 2011-05-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cus-face.el (custom-declare-face): Call custom-theme-recalc-face
