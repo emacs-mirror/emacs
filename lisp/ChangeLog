@@ -1,3 +1,9 @@
+2011-05-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/compile.el (compilation-start): Run
+	compilation-filter-hook for the async case too.
+	(compilation-filter-hook): Doc fix.
+
 2011-05-09  Deniz Dogan  <deniz@dogan.se>
 
 	* wdired.el: Remove outdated installation comment.  Fix usage

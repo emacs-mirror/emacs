@@ -68,7 +68,10 @@ the compilation to be killed, you can use this hook:
   "Hook run after `compilation-filter' has inserted a string into the buffer.
 It is called with the variable `compilation-filter-start' bound
 to the position of the start of the inserted text, and point at
-its end.")
+its end.
+
+If Emacs lacks asynchronous process support, this hook is run
+after `call-process' inserts the grep output into the buffer.")
 
 (defvar compilation-filter-start nil
   "Start of the text inserted by `compilation-filter'.
@@ -1629,8 +1632,10 @@ Returns the compilation buffer created."
 	    ;; regardless of where the user sees point.
 	    (goto-char (point-max))
 	    (let* ((inhibit-read-only t) ; call-process needs to modify outbuf
+		   (compilation-filter-start (point))
 		   (status (call-process shell-file-name nil outbuf nil "-c"
 					 command)))
+	      (run-hooks 'compilation-filter-hook)
 	      (cond ((numberp status)
 		     (compilation-handle-exit
 		      'exit status
