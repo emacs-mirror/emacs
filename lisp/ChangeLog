@@ -1,3 +1,10 @@
+2011-05-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* misc.el: Implement new command `list-dynamic-libraries'.
+	(list-dynamic-libraries--loaded-only-p): New variable.
+	(list-dynamic-libraries--refresh): New function.
+	(list-dynamic-libraries): New command.
+
 2011-05-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist): Fix
