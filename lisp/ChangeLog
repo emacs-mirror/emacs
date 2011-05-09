@@ -1,3 +1,7 @@
+2011-05-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* misc.el: Require tabulated-list.el during compilation.
+
 2011-05-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/compile.el (compilation-start): Run

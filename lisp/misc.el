@@ -25,6 +25,9 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'tabulated-list))
+
 (defun copy-from-above-command (&optional arg)
   "Copy characters from previous nonblank line, starting just above point.
 Copy ARG characters, but not past the end of that line.
@@ -181,7 +184,6 @@ The return value is always nil."
     (tabulated-list-print))
   (display-buffer buffer)
   nil)
-
 
 (provide 'misc)
 
