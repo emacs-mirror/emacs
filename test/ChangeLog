@@ -1,3 +1,7 @@
+2011-05-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* automated/compile-tests.el: New file.
+
 2011-05-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* automated/font-parse-tests.el: Don't byte-compile.
