@@ -1,3 +1,7 @@
+2011-05-09  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* xmenu.c (set_frame_menubar): Fix submenu loops.
+
 2011-05-09  Eli Zaretskii  <eliz@gnu.org>
 
 	Backport revisions 103939.1.41..103939.1.44 (inclusive) from trunk.

@@ -1058,21 +1058,20 @@ set_frame_menubar (f, first_time, deep_p)
       menu_items = f->menu_bar_vector;
       menu_items_allocated = VECTORP (menu_items) ? ASIZE (menu_items) : 0;
       subitems = XVECTOR_SIZE (items) / 4;
-      submenu_start = (int *) alloca (subitems * sizeof (int *));
-      submenu_end = (int *) alloca (subitems * sizeof (int *));
+      submenu_start = (int *) alloca (subitems * sizeof (int));
+      submenu_end = (int *) alloca (subitems * sizeof (int));
       submenu_n_panes = (int *) alloca (subitems * sizeof (int));
-      submenu_top_level_items
-	= (int *) alloca (subitems * sizeof (int *));
+      submenu_top_level_items = (int *) alloca (subitems * sizeof (int));
       init_menu_items ();
-      for (i = 0; i < subitems; i += 4)
+      for (i = 0; i < subitems; i++)
 	{
 	  Lisp_Object key, string, maps;
 
 	  last_i = i;
 
-	  key = XVECTOR (items)->contents[i];
-	  string = XVECTOR (items)->contents[i + 1];
-	  maps = XVECTOR (items)->contents[i + 2];
+	  key = XVECTOR (items)->contents[i * 4];
+	  string = XVECTOR (items)->contents[i * 4 + 1];
+	  maps = XVECTOR (items)->contents[i * 4 + 2];
 	  if (NILP (string))
 	    break;
 
@@ -1099,7 +1098,7 @@ set_frame_menubar (f, first_time, deep_p)
       wv->help = Qnil;
       first_wv = wv;
 
-      for (i = 0; i < last_i; i += 4)
+      for (i = 0; i < last_i; i++)
 	{
 	  menu_items_n_panes = submenu_n_panes[i];
 	  wv = digest_single_submenu (submenu_start[i], submenu_end[i],
