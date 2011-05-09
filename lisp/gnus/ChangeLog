@@ -2,6 +2,17 @@
 
 	* nntp.el (nntp-open-connection): Set TCP keepalive option.
 
+2011-05-09  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* registry.el (registry-full): Add convenience method.  Fix logic.
+	(registry-insert): Use it.  Fix logic here too.
+
+	* gnus-registry.el (gnus-registry-insert): Add wrapper that calls
+	`registry-prune' if `registry-full' returns t.
+	(gnus-registry-handle-action)
+	(gnus-registry-get-or-make-entry, gnus-registry-set-id-key)
+	(gnus-registry-usage-test): Use it.
+
 2011-05-07  Julien Danjou  <julien@danjou.info>
 
 	* shr.el (shr-link): Make shr-link inherit from link by default.

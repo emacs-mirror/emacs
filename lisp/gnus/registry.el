@@ -261,6 +261,11 @@ With assert non-nil, errors out if the key does not exist already."
 	  (remhash key data)))
       keys))
 
+  (defmethod registry-full ((db registry-db))
+    "Checks if registry-db THIS is full."
+    (>= (registry-size db)
+       (oref db :max-hard)))
+
   (defmethod registry-insert ((db registry-db) key entry)
     "Insert ENTRY under KEY into the registry-db THIS.
 Updates the secondary ('tracked') indices as well.
@@ -269,8 +274,7 @@ Errors out if the key exists already."
     (assert (not (gethash key (oref db :data))) nil
 	    "Key already exists in database")
 
-    (assert (< (registry-size db)
-	       (oref db :max-hard))
+    (assert (not (registry-full db))
 	    nil
 	    "registry max-hard size limit reached")
 

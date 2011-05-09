@@ -383,7 +383,7 @@ This is not required after changing `gnus-registry-cache-file'."
     (gnus-message 10 "Gnus registry: new entry for %s is %S"
                   id
                   entry)
-    (registry-insert db id entry)))
+    (gnus-registry-insert db id entry)))
 
 ;; Function for nn{mail|imap}-split-fancy: look up all references in
 ;; the cache and if a match is found, return that group.
@@ -962,8 +962,8 @@ only the last one's marks are returned."
          (entries (registry-lookup db (list id))))
 
     (when (null entries)
-      (registry-insert db id (list (list 'creation-time (current-time))
-                                   '(group) '(sender) '(subject)))
+      (gnus-registry-insert db id (list (list 'creation-time (current-time))
+                                        '(group) '(sender) '(subject)))
       (setq entries (registry-lookup db (list id))))
 
     (nth 1 (assoc id entries))))
@@ -979,8 +979,16 @@ only the last one's marks are returned."
          (entry (gnus-registry-get-or-make-entry id)))
     (registry-delete db (list id) nil)
     (setq entry (cons (cons key vals) (assq-delete-all key entry)))
-    (registry-insert db id entry)
+    (gnus-registry-insert db id entry)
     entry))
+
+(defun gnus-registry-insert (db id entry)
+  "Just like `registry-insert' but tries to prune on error."
+  (when (registry-full db)
+    (message "Trying to prune the registry because it's full")
+    (registry-prune db))
+  (registry-insert db id entry)
+  entry)
 
 (defun gnus-registry-import-eld (file)
   (interactive "fOld registry file to import? ")
@@ -1075,7 +1083,7 @@ only the last one's marks are returned."
     (should (equal (gnus-registry-get-id-key "34" 'group) '("togroup")))
     (should (equal (gnus-registry-get-id-key "34" 'subject) '("subject 4")))
     (message "Trying to insert a duplicate key")
-    (should-error (registry-insert db "55" '()))
+    (should-error (gnus-registry-insert db "55" '()))
     (message "Looking up individual keys (gnus-registry-get-or-make-entry)")
     (should (gnus-registry-get-or-make-entry "22"))
     (message "Saving the Gnus registry to %s" tempfile)
