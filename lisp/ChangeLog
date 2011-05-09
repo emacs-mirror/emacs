@@ -1,3 +1,8 @@
+2011-05-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* smerge-mode.el (smerge-resolve): Use null-device rather than a
+	literal "/dev/null".
+
 2011-05-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/lisp.el (lisp-complete-symbol, lisp-completion-at-point):
