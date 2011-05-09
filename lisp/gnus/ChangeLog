@@ -1,3 +1,7 @@
+2011-05-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* nntp.el (nntp-open-connection): Set TCP keepalive option.
+
 2011-05-07  Julien Danjou  <julien@danjou.info>
 
 	* shr.el (shr-link): Make shr-link inherit from link by default.
@@ -28,8 +32,8 @@
 
 2011-05-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* gnus-html.el (gnus-html-schedule-image-fetching): Use
-	url-queue-retrieve, if it exists.
+	* gnus-html.el (gnus-html-schedule-image-fetching):
+	Use url-queue-retrieve, if it exists.
 
 	* shr.el (shr-tag-img): Ditto.
 
@@ -43,7 +47,7 @@
 
 	* gnus-agent.el (gnus-agent-store-article): New function.
 
-	* nnheader.el (nnheader-insert-buffer-substring): Renamed from nntp-
+	* nnheader.el (nnheader-insert-buffer-substring): Rename from nntp-
 	and moved from that file for reuse.
 
 	* pop3.el (pop3-open-server): Error messages are "-ERR".
@@ -115,8 +119,8 @@
 	the gnus-extra-headers.
 	(gnus-registry-ignored-groups): Adjust defaults to match the parameter.
 	(gnus-registry-ignore-group-p): Adjust to take either a group/topic
-	parameter list or a string list in `gnus-registry-ignored-groups'.  Fix
-	logic error.
+	parameter list or a string list in `gnus-registry-ignored-groups'.
+	Fix logic error.
 
 2011-04-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -222,7 +226,7 @@
 	* gnus-registry.el (gnus-registry-remake-db): Put the warning on a
 	"warning" level.
 
-	* mm-url.el (mm-url-package-name): Removed to ease third-party reuse.
+	* mm-url.el (mm-url-package-name): Remove to ease third-party reuse.
 	(mm-url-insert-file-contents): Don't set the package names.
 
 2011-04-11  Teodor Zlatanov  <tzz@lifelogs.com>
@@ -305,10 +309,10 @@
 	save/read cycles.
 	(gnus-registry-read): Use it.
 	(gnus-registry-make-db): Use it.
-	(gnus-registry-spool-action, gnus-registry-handle-action): Fix
-	messaging.
-	(gnus-registry--split-fancy-with-parent-internal): Fix loop.  Map
-	references to actual group names with sender and subject tracking.
+	(gnus-registry-spool-action, gnus-registry-handle-action):
+	Fix messaging.
+	(gnus-registry--split-fancy-with-parent-internal): Fix loop.
+	Map references to actual group names with sender and subject tracking.
 	(gnus-registry-post-process-groups): Use `cond' for better messaging.
 	(gnus-registry-usage-test): Add subject lookup test.
 
@@ -370,8 +374,8 @@
 	value.
 
 	* nntp.el (nntp-open-connection-function): Document the fact that some
-	values are not functions but are instead handled specially.  Recognize
-	nntp-open-plain-stream value.
+	values are not functions but are instead handled specially.
+	Recognize nntp-open-plain-stream value.
 	(nntp-open-connection): Recognize that value.
 
 2011-03-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
@@ -396,7 +400,7 @@
 	* gnus-agent.el (gnus-agent-fetch-headers): Don't message if we're not
 	downloading anything.
 
-	* gnus.el (gnus-splash-svg-color-symbols): Removed superfluous `and'.
+	* gnus.el (gnus-splash-svg-color-symbols): Remove superfluous `and'.
 
 2011-03-29  Adam Sjøgren  <asjo@koldfront.dk>
 
@@ -409,13 +413,13 @@
 	* gnus-sum.el (gnus-simplify-buffer-fuzzy): Take the regexp explicitly
 	instead of using the global gnus-simplify-subject-fuzzy-regexp.
 	(gnus-simplify-subject-fuzzy): Use the local
-	gnus-simplify-subject-fuzzy-regex instead of the global one.  This
-	makes using this variable in group parameters work.
+	gnus-simplify-subject-fuzzy-regex instead of the global one.
+	This makes using this variable in group parameters work.
 
 2011-03-29  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* gnus-registry.el (gnus-registry-unfollowed-groups): Add
-	"archive:sent" to the unfollowed group regex (for the recent Gnus
+	* gnus-registry.el (gnus-registry-unfollowed-groups):
+	Add "archive:sent" to the unfollowed group regex (for the recent Gnus
 	archive:sent-YYYY-MM-DD groups).
 	(gnus-registry-split-fancy-with-parent): Bail out early in sender
 	tracking if there are more than `gnus-registry-max-track-groups'
@@ -445,7 +449,7 @@
 	Handle the no-parameter case exactly as open-network-stream, with no
 	additional stream processing.  Search plists using plist-get.
 	Explicitly add :end-of-commend parameter if it is missing.
-	(proto-stream-open-default): Renamed from
+	(proto-stream-open-default): Rename from
 	proto-stream-open-network-only.  Return 'default as the type.
 	(proto-stream-open-starttls): Rename from proto-stream-open-network.
 	Use plist-get.  Don't return `tls' as the type if STARTTLS negotiation
@@ -526,15 +530,15 @@
 	* mm-uu.el (mm-uu-dissect-text-parts): Only dissect handle that are
 	inline.
 
-	* gnus-art.el (article-hide-list-identifiers): Use
-	gnus-group-get-list-identifiers.
+	* gnus-art.el (article-hide-list-identifiers):
+	Use gnus-group-get-list-identifiers.
 
 	* gnus-sum.el (gnus-group-get-list-identifiers): New function.
-	(gnus-summary-remove-list-identifiers): Use
-	gnus-group-get-list-identifiers to get regexp.
+	(gnus-summary-remove-list-identifiers):
+	Use gnus-group-get-list-identifiers to get regexp.
 	(gnus-select-newsgroup, gnus-summary-insert-subject)
-	(gnus-summary-insert-articles): Call
-	gnus-summary-remove-list-identifiers unconditionally.
+	(gnus-summary-insert-articles):
+	Call gnus-summary-remove-list-identifiers unconditionally.
 
 2011-03-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 

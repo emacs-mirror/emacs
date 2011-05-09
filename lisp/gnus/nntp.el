@@ -1362,6 +1362,11 @@ password contained in '~/.nntp-authinfo'."
       (nntp-kill-buffer pbuffer))
     (when (and (buffer-name pbuffer)
 	       process)
+      (when (and (fboundp 'set-network-process-option)
+                 (eq (process-type process) 'network))
+        ;; Use TCP-keepalive so that connections that pass through a NAT router
+        ;; don't hang when left idle.
+        (set-network-process-option process :keepalive t))
       (gnus-set-process-query-on-exit-flag process nil)
       (if (and (nntp-wait-for process "^2.*\n" buffer nil t)
 	       (memq (process-status process) '(open run)))
