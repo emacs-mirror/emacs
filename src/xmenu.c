@@ -1012,6 +1012,7 @@ set_frame_menubar (f, first_time, deep_p)
       Lisp_Object *previous_items
 	= (Lisp_Object *) alloca (previous_menu_items_used
 				  * sizeof (Lisp_Object));
+      EMACS_UINT subitems;
 
       /* If we are making a new widget, its contents are empty,
 	 do always reinitialize them.  */
@@ -1056,13 +1057,14 @@ set_frame_menubar (f, first_time, deep_p)
 
       menu_items = f->menu_bar_vector;
       menu_items_allocated = VECTORP (menu_items) ? ASIZE (menu_items) : 0;
-      submenu_start = (int *) alloca (XVECTOR (items)->size * sizeof (int *));
-      submenu_end = (int *) alloca (XVECTOR (items)->size * sizeof (int *));
-      submenu_n_panes = (int *) alloca (XVECTOR (items)->size * sizeof (int));
+      subitems = XVECTOR_SIZE (items) / 4;
+      submenu_start = (int *) alloca (subitems * sizeof (int *));
+      submenu_end = (int *) alloca (subitems * sizeof (int *));
+      submenu_n_panes = (int *) alloca (subitems * sizeof (int));
       submenu_top_level_items
-	= (int *) alloca (XVECTOR (items)->size * sizeof (int *));
+	= (int *) alloca (subitems * sizeof (int *));
       init_menu_items ();
-      for (i = 0; i < XVECTOR (items)->size; i += 4)
+      for (i = 0; i < subitems; i += 4)
 	{
 	  Lisp_Object key, string, maps;
 
@@ -1142,7 +1144,7 @@ set_frame_menubar (f, first_time, deep_p)
       /* Now GC cannot happen during the lifetime of the widget_value,
 	 so it's safe to store data from a Lisp_String.  */
       wv = first_wv->contents;
-      for (i = 0; i < XVECTOR (items)->size; i += 4)
+      for (i = 0; i < XVECTOR_SIZE (items); i += 4)
 	{
 	  Lisp_Object string;
 	  string = XVECTOR (items)->contents[i + 1];
@@ -1168,7 +1170,7 @@ set_frame_menubar (f, first_time, deep_p)
       first_wv = wv;
 
       items = FRAME_MENU_BAR_ITEMS (f);
-      for (i = 0; i < XVECTOR (items)->size; i += 4)
+      for (i = 0; i < XVECTOR_SIZE (items); i += 4)
 	{
 	  Lisp_Object string;
 

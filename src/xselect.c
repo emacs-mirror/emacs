@@ -486,7 +486,7 @@ x_get_local_selection (selection_symbol, target_type, local_request)
       int size;
       int i;
       pairs = XCDR (target_type);
-      size = XVECTOR (pairs)->size;
+      size = XVECTOR_SIZE (pairs);
       /* If the target is MULTIPLE, then target_type looks like
 	  (MULTIPLE . [[SELECTION1 TARGET1] [SELECTION2 TARGET2] ... ])
 	 We modify the second element of each pair in the vector and
@@ -1351,12 +1351,12 @@ copy_multiple_data (obj)
     return Fcons (XCAR (obj), copy_multiple_data (XCDR (obj)));
 
   CHECK_VECTOR (obj);
-  vec = Fmake_vector (size = XVECTOR (obj)->size, Qnil);
+  vec = Fmake_vector (size = XVECTOR_SIZE (obj), Qnil);
   for (i = 0; i < size; i++)
     {
       Lisp_Object vec2 = XVECTOR (obj)->contents [i];
       CHECK_VECTOR (vec2);
-      if (XVECTOR (vec2)->size != 2)
+      if (XVECTOR_SIZE (vec2) != 2)
 	/* ??? Confusing error message */
 	signal_error ("Vectors must be of length 2", vec2);
       XVECTOR (vec)->contents [i] = Fmake_vector (2, Qnil);
@@ -1996,7 +1996,7 @@ lisp_data_to_selection_data (display, obj,
 	/* This vector is an ATOM set */
 	{
 	  if (NILP (type)) type = QATOM;
-	  *size_ret = XVECTOR (obj)->size;
+	  *size_ret = XVECTOR_SIZE (obj);
 	  *format_ret = 32;
 	  *data_ret = (unsigned char *) xmalloc ((*size_ret) * sizeof (Atom));
 	  for (i = 0; i < *size_ret; i++)
@@ -2011,7 +2011,7 @@ lisp_data_to_selection_data (display, obj,
 	/* This vector is an ATOM_PAIR set */
 	{
 	  if (NILP (type)) type = QATOM_PAIR;
-	  *size_ret = XVECTOR (obj)->size;
+	  *size_ret = XVECTOR_SIZE (obj);
 	  *format_ret = 32;
 	  *data_ret = (unsigned char *)
 	    xmalloc ((*size_ret) * sizeof (Atom) * 2);
@@ -2019,7 +2019,7 @@ lisp_data_to_selection_data (display, obj,
 	    if (VECTORP (XVECTOR (obj)->contents [i]))
 	      {
 		Lisp_Object pair = XVECTOR (obj)->contents [i];
-		if (XVECTOR (pair)->size != 2)
+		if (XVECTOR_SIZE (pair) != 2)
 		  signal_error (
 	"Elements of the vector must be vectors of exactly two elements",
 				pair);
@@ -2041,7 +2041,7 @@ lisp_data_to_selection_data (display, obj,
 	/* This vector is an INTEGER set, or something like it */
 	{
           int data_size = 2;
-	  *size_ret = XVECTOR (obj)->size;
+	  *size_ret = XVECTOR_SIZE (obj);
 	  if (NILP (type)) type = QINTEGER;
 	  *format_ret = 16;
 	  for (i = 0; i < *size_ret; i++)
@@ -2095,7 +2095,7 @@ clean_local_selection_data (obj)
   if (VECTORP (obj))
     {
       int i;
-      int size = XVECTOR (obj)->size;
+      int size = XVECTOR_SIZE (obj);
       Lisp_Object copy;
       if (size == 1)
 	return clean_local_selection_data (XVECTOR (obj)->contents [0]);

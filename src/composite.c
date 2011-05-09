@@ -300,7 +300,7 @@ get_composition_id (charpos, bytepos, nchars, prop, string)
     }
   else if (VECTORP (components) || CONSP (components))
     {
-      int len = XVECTOR (key)->size;
+      EMACS_UINT len = XVECTOR_SIZE (key);
 
       /* The number of elements should be odd.  */
       if ((len % 2) == 0)
@@ -333,8 +333,8 @@ get_composition_id (charpos, bytepos, nchars, prop, string)
 		    : COMPOSITION_WITH_RULE_ALTCHARS));
   cmp->hash_index = hash_index;
   glyph_len = (cmp->method == COMPOSITION_WITH_RULE_ALTCHARS
-	       ? (XVECTOR (key)->size + 1) / 2
-	       : XVECTOR (key)->size);
+	       ? (XVECTOR_SIZE (key) + 1) / 2
+	       : XVECTOR_SIZE (key));
   cmp->glyph_len = glyph_len;
   cmp->offsets = (short *) xmalloc (sizeof (short) * glyph_len * 2);
   cmp->font = NULL;

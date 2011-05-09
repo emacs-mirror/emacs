@@ -53,7 +53,7 @@ extern int errno;
 struct buffer *current_buffer;		/* the current buffer */
 
 /* First buffer in chain of all buffers (in reverse order of creation).
-   Threaded through ->next.  */
+   Threaded through ->header.next.buffer.  */
 
 struct buffer *all_buffers;
 
@@ -400,7 +400,7 @@ even if it is dead.  The return value is never nil.  */)
   b->prevent_redisplay_optimizations_p = 1;
 
   /* Put this on the chain of all buffers including killed ones.  */
-  b->next = all_buffers;
+  b->header.next.buffer = all_buffers;
   all_buffers = b;
 
   /* An ordinary buffer normally doesn't need markers
@@ -633,7 +633,7 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
   b->width_table = Qnil;
 
   /* Put this on the chain of all buffers including killed ones.  */
-  b->next = all_buffers;
+  b->header.next.buffer = all_buffers;
   all_buffers = b;
 
   name = Fcopy_sequence (name);
@@ -1544,7 +1544,7 @@ with SIGHUP.  */)
 
       GCPRO1 (buffer);
 
-      for (other = all_buffers; other; other = other->next)
+      for (other = all_buffers; other; other = other->header.next.buffer)
 	/* all_buffers contains dead buffers too;
 	   don't re-kill them.  */
 	if (other->base_buffer == b && !NILP (other->name))
@@ -2214,7 +2214,7 @@ DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
 
   { /* This is probably harder to make work.  */
     struct buffer *other;
-    for (other = all_buffers; other; other = other->next)
+    for (other = all_buffers; other; other = other->header.next.buffer)
       if (other->base_buffer == other_buffer
 	  || other->base_buffer == current_buffer)
 	error ("One of the buffers to swap has indirect buffers");
@@ -2585,7 +2585,7 @@ current buffer is cleared.  */)
 
   /* Copy this buffer's new multibyte status
      into all of its indirect buffers.  */
-  for (other = all_buffers; other; other = other->next)
+  for (other = all_buffers; other; other = other->header.next.buffer)
     if (other->base_buffer == current_buffer && !NILP (other->name))
       {
 	other->enable_multibyte_characters
@@ -4346,7 +4346,7 @@ static void
 add_overlay_mod_hooklist (functionlist, overlay)
      Lisp_Object functionlist, overlay;
 {
-  int oldsize = XVECTOR (last_overlay_modification_hooks)->size;
+  int oldsize = XVECTOR_SIZE (last_overlay_modification_hooks);
 
   if (last_overlay_modification_hooks_used == oldsize)
     last_overlay_modification_hooks = larger_vector 
@@ -5150,9 +5150,9 @@ init_buffer_once ()
   buffer_local_symbols.text = &buffer_local_symbols.own_text;
   BUF_INTERVALS (&buffer_defaults) = 0;
   BUF_INTERVALS (&buffer_local_symbols) = 0;
-  XSETPVECTYPE (&buffer_defaults, PVEC_BUFFER);
+  XSETPVECTYPESIZE (&buffer_defaults, PVEC_BUFFER, 0);
   XSETBUFFER (Vbuffer_defaults, &buffer_defaults);
-  XSETPVECTYPE (&buffer_local_symbols, PVEC_BUFFER);
+  XSETPVECTYPESIZE (&buffer_local_symbols, PVEC_BUFFER, 0);
   XSETBUFFER (Vbuffer_local_symbols, &buffer_local_symbols);
 
   /* Set up the default values of various buffer slots.  */

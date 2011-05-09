@@ -1,3 +1,71 @@
+2011-05-09  Eli Zaretskii  <eliz@gnu.org>
+
+	Backport revisions 103939.1.41..103939.1.44 (inclusive) from trunk.
+	(bug#8623)
+	The next log entry shows the actual changes by Paul Eggert.
+
+2011-05-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix a problem with aliasing and vector headers.
+	GCC 4.6.0 optimizes based on type-based alias analysis.  For
+	example, if b is of type struct buffer * and v of type struct
+	Lisp_Vector *, then gcc -O2 was incorrectly assuming that &b->size
+	!= &v->size, and therefore "v->size = 1; b->size = 2; return
+	v->size;" must therefore return 1.  This assumption is incorrect
+	for Emacs, since it type-puns struct Lisp_Vector * with many other
+	types.  To fix this problem, this patch adds a new type struct
+	vector_header that documents the constraints on layout of vectors
+	and pseudovectors, and helps optimizing compilers not get fooled
+	by Emacs's type punning.  It also adds the macros XSETTYPED_PVECTYPE
+	XSETTYPED_PSEUDOVECTOR, TYPED_PSEUDOVECTORP, for similar reasons.
+	* lisp.h (XVECTOR_SIZE): New convenience macro.  All previous uses of
+	XVECTOR (foo)->size replaced to use this macro, to avoid the hassle
+	of writing XVECTOR (foo)->header.size.
+	* lisp.h: Say "vectorlike header" rather than "vector header.
+	(struct vectorlike_header): Rename from struct vector_header.
+	(XVECTORLIKE_HEADER_SIZE): Renamed from XVECTOR_HEADER_SIZE.
+	All uses changed.
+	(XVECTOR_HEADER_SIZE): New macro, for use in XSETPSEUDOVECTOR.
+	(XSETTYPED_PVECTYPE): New macro, specifying the name of the size
+	member.
+	(XSETPVECTYPE): Rewrite in terms of new macro.
+	(XSETPVECTYPESIZE): New macro, specifying both type and size.
+	This is a bit clearer, and further avoids the possibility of
+	undesirable aliasing.
+	(XSETTYPED_PSEUDOVECTOR): New macro, specifying the size.
+	(XSETPSEUDOVECTOR): Rewrite in terms of XSETTYPED_PSEUDOVECTOR
+	and XVECTOR_HEADER_SIZE.
+	(XSETSUBR): Rewrite in terms of XSETTYPED_PSEUDOVECTOR and XSIZE,
+	since Lisp_Subr is a special case (no "next" field).
+	(ASIZE): Rewrite in terms of XVECTOR_SIZE.
+	(struct vector_header): New type.
+	(TYPED_PSEUDOVECTORP): New macro, also specifying the C type of the
+	object, to help avoid aliasing.
+	(PSEUDOVECTORP): Rewrite in terms of TYPED_PSEUDOVECTORP.
+	(SUBRP): Likewise, since Lisp_Subr is a special case.
+
+	* lisp.h (struct Lisp_Vector, struct Lisp_Char_Table):
+	(struct Lisp_Sub_Char_Table, struct Lisp_Bool_Vector):
+	(struct Lisp_Hash_Table): Combine first two members into a single
+	struct vector_header member.  All uses of "size" and "next" members
+	changed to be "header.size" and "header.next".
+	* buffer.h (struct buffer): Likewise.
+	* font.h (struct font_spec, struct font_entity, struct font): Likewise.
+	* frame.h (struct frame): Likewise.
+	* process.h (struct Lisp_Process): Likewise.
+	* termhooks.h (struct terminal): Likewise.
+	* window.c (struct save_window_data, struct saved_window): Likewise.
+	* window.h (struct window): Likewise.
+	* alloc.c (allocate_buffer, Fmake_bool_vector, allocate_pseudovector):
+	Use XSETPVECTYPESIZE, not XSETPVECTYPE, to avoid aliasing problems.
+	* buffer.c (init_buffer_once): Likewise.
+	* lread.c (defsubr): Use XSETTYPED_PVECTYPE, since Lisp_Subr is a
+	special case.
+	* process.c (Fformat_network_address): Use local var for size,
+	for brevity.
+	* fns.c (vector): Remove; this old hack is no longer needed.
+	* bytecode.c (exec_byte_code): Don't use XVECTOR before CHECK_VECTOR.
+
 2011-04-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32heap.c (allocate_heap) [USE_LISP_UNION_TYPE || USE_LSB_TAG]:
