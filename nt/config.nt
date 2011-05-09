@@ -337,6 +337,17 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 # define restrict
 #endif
 
+/* A va_copy replacement for MSVC.  */
+#ifdef _MSC_VER
+# ifdef _WIN64
+#  ifndef va_copy
+#   error "va_copy is needed, but not defined!"
+#  endif
+# else	/* not _WIN64 */
+#  define va_copy(d,s) ((d) = (s))
+# endif	 /* not _WIN64 */
+#endif	 /* _MSC_VER */
+
 /* Define as a marker that can be attached to declarations that might not
     be used.  This helps to reduce warnings, such as from
     GCC -Wunused-parameter.  */

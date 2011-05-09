@@ -1,3 +1,7 @@
+2011-05-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt [_MSC_VER] (va_copy): Replacement for the MS compiler.
+
 2011-05-07  Ben Key  <bkey76@gmail.com>
 
 	* configure.bat: Renamed the fusercflags variable to escusercflags
