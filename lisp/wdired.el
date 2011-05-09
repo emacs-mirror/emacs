@@ -58,39 +58,13 @@
 ;;
 ;; - To mark files for deletion, by deleting their whole filename.
 
-;;; Installation:
-
-;; Add this file (byte-compiling it is recommended) to your load-path.
-;; Then add one of these set of lines (or similar ones) to your config:
-;;
-;; This is the easy way:
-;;
-;; (require 'wdired)
-;; (define-key dired-mode-map "r" 'wdired-change-to-wdired-mode)
-;;
-;; This is the recommended way for faster Emacs startup time and lower
-;; memory consumption:
-;;
-;; (autoload 'wdired-change-to-wdired-mode "wdired")
-;; (eval-after-load "dired"
-;;           '(lambda ()
-;;              (define-key dired-mode-map "r" 'wdired-change-to-wdired-mode)
-;;              (define-key dired-mode-map
-;;                [menu-bar immediate wdired-change-to-wdired-mode]
-;;                '("Edit File Names" . wdired-change-to-wdired-mode))))
-;;
-;; Type "M-x customize-group RET wdired" if you want to make changes
-;; to the default behavior.
-
 ;;; Usage:
 
-;; Then, you can start editing the names of the files by typing "r"
-;; (or whatever key you choose, or M-x wdired-change-to-wdired-mode).
-;; Use C-c C-c when finished or C-c C-k to abort. You can use also the
-;; menu options: in dired mode, "Edit File Names" under "Immediate".
-;; While editing the names, a new submenu "WDired" is available at top
-;; level. You can customize the behavior of this package from this
-;; menu.
+;; You can edit the names of the files by typing C-x C-q or by
+;; executing M-x wdired-change-to-wdired-mode.  Use C-c C-c when
+;; finished or C-c C-k to abort.  While editing filenames, a new
+;; submenu "WDired" is available at top level.  You can customize the
+;; behavior of this package from this menu.
 
 ;;; Change Log:
 
