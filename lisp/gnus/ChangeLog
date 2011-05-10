@@ -1,5 +1,8 @@
 2011-05-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* gnus-art.el (gnus-article-mode): Move binding of
+	shr-put-image-function here from gnus-article-prepare-display.
+
 	* shr.el (shr-put-image-function): New variable.
 	(shr-image-fetched, shr-image-displayer, shr-tag-img): Funcall it.
 	(shr-put-image): Return scaled image.

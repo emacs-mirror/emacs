@@ -4418,6 +4418,7 @@ If variable `gnus-use-long-file-name' is non-nil, it is
     (gnus-run-hooks 'gnus-article-menu-hook)))
 
 (defvar bookmark-make-record-function)
+(defvar shr-put-image-function)
 
 (defun gnus-article-mode ()
   "Major mode for displaying an article.
@@ -4461,6 +4462,8 @@ commands:
   ;; Prevent Emacs 22 from displaying non-break space with `nobreak-space'
   ;; face.
   (set (make-local-variable 'nobreak-char-display) nil)
+  ;; Enable `gnus-article-remove-images' to delete images shr.el renders.
+  (set (make-local-variable 'shr-put-image-function) 'gnus-shr-put-image)
   (setq cursor-in-non-selected-windows nil)
   (gnus-set-default-directory)
   (buffer-disable-undo)
@@ -4656,8 +4659,6 @@ If ALL-HEADERS is non-nil, no headers are hidden."
 	    (gnus-run-hooks 'gnus-article-prepare-hook)
 	    t))))))
 
-(defvar shr-put-image-function)
-
 ;;;###autoload
 (defun gnus-article-prepare-display ()
   "Make the current buffer look like a nice article."
@@ -4671,7 +4672,6 @@ If ALL-HEADERS is non-nil, no headers are hidden."
     (setq buffer-read-only nil
 	  gnus-article-wash-types nil
 	  gnus-article-image-alist nil)
-    (set (make-local-variable 'shr-put-image-function) 'gnus-shr-put-image)
     (gnus-run-hooks 'gnus-tmp-internal-hook)
     (when gnus-display-mime-function
       (funcall gnus-display-mime-function))))
