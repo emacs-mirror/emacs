@@ -1,4 +1,4 @@
-;;; footnote.el --- footnote support for message mode  -*- coding: iso-latin-1;-*-
+;;; footnote.el --- footnote support for message mode  -*- coding: utf-8;-*-
 
 ;; Copyright (C) 1997, 2000-2011 Free Software Foundation, Inc.
 
@@ -278,7 +278,7 @@ Wrapping around the alphabet implies successive repetitions of letters."
 
 ;; Latin-1
 
-(defconst footnote-latin-string "¹²³ºª§¶"
+(defconst footnote-latin-string "Â¹Â²Â³ÂºÂªÂ§Â¶"
   "String of Latin-1 footnoting characters.")
 
 ;; Note not [...]+, because this style cycles.
@@ -312,7 +312,7 @@ english-lower == a, b, c, ...
 english-upper == A, B, C, ...
 roman-lower == i, ii, iii, iv, v, ...
 roman-upper == I, II, III, IV, V, ...
-latin == ¹ ² ³ º ª § ¶
+latin == Â¹ Â² Â³ Âº Âª Â§ Â¶
 See also variables `footnote-start-tag' and `footnote-end-tag'.
 
 Customizing this variable has no effect on buffers already

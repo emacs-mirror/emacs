@@ -1,3 +1,7 @@
+2011-05-10  Leo Liu  <sdl.web@gmail.com>
+
+	* mail/footnote.el: Convert to utf-8 encoding.
+
 2011-05-10  Glenn Morris  <rgm@gnu.org>
 	   Stefan Monnier  <monnier@iro.umontreal.ca>
 
