@@ -1,3 +1,8 @@
+2011-05-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image.c (Finit_image_library): Return t for built-in image types,
+	like pbm and xbm.  (Bug#8640)
+
 2011-05-09  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* w32menu.c (set_frame_menubar): Fix submenu allocation.

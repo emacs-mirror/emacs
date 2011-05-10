@@ -8609,6 +8609,10 @@ of `dynamic-library-alist', which see).  */)
     return XCDR (tested);
 #endif
 
+  /* Types pbm and xbm are built-in and always available.  */
+  if (EQ (type, Qpbm) || EQ (type, Qxbm))
+    return Qt;
+
 #if defined (HAVE_XPM) || defined (HAVE_NS)
   if (EQ (type, Qxpm))
     return CHECK_LIB_AVAILABLE (&xpm_type, init_xpm_functions, libraries);
@@ -8641,10 +8645,8 @@ of `dynamic-library-alist', which see).  */)
 
 #if defined (HAVE_IMAGEMAGICK)
   if (EQ (type, Qimagemagick))
-    {
-      return CHECK_LIB_AVAILABLE (&imagemagick_type, init_imagemagick_functions,
-				  libraries);
-    }
+    return CHECK_LIB_AVAILABLE (&imagemagick_type, init_imagemagick_functions,
+                                libraries);
 #endif
 
 #ifdef HAVE_GHOSTSCRIPT
