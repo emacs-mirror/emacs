@@ -1,6 +1,10 @@
 2011-05-10  Leo Liu  <sdl.web@gmail.com>
 
 	* mail/footnote.el: Convert to utf-8 encoding.
+	(footnote-unicode-string, footnote-unicode-regexp): New variable.
+	(Footnote-unicode): New function.
+	(footnote-style-alist): Add unicode style to the list.
+	(footnote-style): Doc fix.
 
 2011-05-10  Glenn Morris  <rgm@gnu.org>
 	   Stefan Monnier  <monnier@iro.umontreal.ca>
