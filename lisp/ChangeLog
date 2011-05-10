@@ -1,5 +1,8 @@
 2011-05-10  Leo Liu  <sdl.web@gmail.com>
 
+	* bookmark.el (bookmark-bmenu-mode-map): Bind
+	bookmark-bmenu-search to `/'.
+
 	* mail/footnote.el: Convert to utf-8 encoding.
 	(footnote-unicode-string, footnote-unicode-regexp): New variable.
 	(Footnote-unicode): New function.
