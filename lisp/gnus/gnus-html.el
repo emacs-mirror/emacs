@@ -215,16 +215,16 @@ CHARS is a regexp-like character alternative (e.g., \"[)$]\")."
 			     (mm-with-part handle (buffer-string))
 			     nil t))))
 	      (if image
-		  (progn
-		    (gnus-put-image
-		     (gnus-rescale-image
-		      image (gnus-html-maximum-image-size))
-		     (gnus-string-or (prog1
-					 (buffer-substring start end)
-				       (delete-region start end))
-				     "*")
-		     'cid)
-		    (gnus-add-image 'cid image))
+		  (gnus-add-image
+		   'cid
+		   (gnus-put-image
+		    (gnus-rescale-image
+		     image (gnus-html-maximum-image-size))
+		    (gnus-string-or (prog1
+					(buffer-substring start end)
+				      (delete-region start end))
+				    "*")
+		    'cid))
 		(widget-convert-button
 		 'link start end
 		 :action 'gnus-html-insert-image

@@ -1,3 +1,15 @@
+2011-05-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* shr.el (shr-put-image-function): New variable.
+	(shr-image-fetched, shr-image-displayer, shr-tag-img): Funcall it.
+	(shr-put-image): Return scaled image.
+
+	* gnus-art.el (gnus-shr-put-image): New function.
+	(gnus-article-prepare-display): Bind shr-put-image-function to it.
+
+	* gnus-html.el (gnus-html-wash-images): Register scaled images, not
+	original ones, as deletable.
+
 2011-05-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* nntp.el (nntp-open-connection): Set TCP keepalive option.

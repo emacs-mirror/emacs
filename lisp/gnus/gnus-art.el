@@ -4656,6 +4656,8 @@ If ALL-HEADERS is non-nil, no headers are hidden."
 	    (gnus-run-hooks 'gnus-article-prepare-hook)
 	    t))))))
 
+(defvar shr-put-image-function)
+
 ;;;###autoload
 (defun gnus-article-prepare-display ()
   "Make the current buffer look like a nice article."
@@ -4669,6 +4671,7 @@ If ALL-HEADERS is non-nil, no headers are hidden."
     (setq buffer-read-only nil
 	  gnus-article-wash-types nil
 	  gnus-article-image-alist nil)
+    (set (make-local-variable 'shr-put-image-function) 'gnus-shr-put-image)
     (gnus-run-hooks 'gnus-tmp-internal-hook)
     (when gnus-display-mime-function
       (funcall gnus-display-mime-function))))
@@ -6138,6 +6141,15 @@ Provided for backwards compatibility."
 			gnus-have-all-headers)))
 	     (not gnus-inhibit-hiding))
     (gnus-article-hide-headers)))
+
+(declare-function shr-put-image "shr" (data alt))
+
+(defun gnus-shr-put-image (data alt)
+  "Put image DATA with a string ALT.  Enable image to be deleted."
+  (let ((image (shr-put-image data (propertize (or alt "*")
+					       'gnus-image-category 'shr))))
+    (when image
+      (gnus-add-image 'shr image))))
 
 ;;; Article savers.
 

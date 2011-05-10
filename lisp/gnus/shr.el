@@ -87,6 +87,9 @@ used."
 This is used for cid: URLs, and the function is called with the
 cid: URL as the argument.")
 
+(defvar shr-put-image-function 'shr-put-image
+  "Function called to put image and alt string.")
+
 (defface shr-strike-through '((t (:strike-through t)))
   "Font for <s> elements."
   :group 'shr)
@@ -500,10 +503,11 @@ redirects somewhere else."
 		  (inhibit-read-only t))
 	      (delete-region start end)
 	      (goto-char start)
-	      (shr-put-image data alt)))))))
+	      (funcall shr-put-image-function data alt)))))))
   (kill-buffer (current-buffer)))
 
 (defun shr-put-image (data alt)
+  "Put image DATA with a string ALT.  Return image."
   (if (display-graphic-p)
       (let ((image (ignore-errors
                      (shr-rescale-image data))))
@@ -513,7 +517,8 @@ redirects somewhere else."
 	  (when (and (> (current-column) 0)
 		     (> (car (image-size image t)) 400))
 	    (insert "\n"))
-	  (insert-image image (or alt "*"))))
+	  (insert-image image (or alt "*")))
+	image)
     (insert alt)))
 
 (defun shr-rescale-image (data)
@@ -576,8 +581,8 @@ START, and END.  Note that START and END should be merkers."
 				     (substring url (match-end 0)))))
 		 (when image
 		   (goto-char start)
-		   (shr-put-image image
-				  (buffer-substring-no-properties start end))
+		   (funcall shr-put-image-function
+			    image (buffer-substring-no-properties start end))
 		   (delete-region (point) end))))
 	 (url-retrieve url 'shr-image-fetched
 		       (list (current-buffer) start end)
@@ -864,7 +869,7 @@ ones, in case fg and bg are nil."
 	    (if (or (not shr-content-function)
 		    (not (setq image (funcall shr-content-function url))))
 		(insert alt)
-	      (shr-put-image image alt))))
+	      (funcall shr-put-image-function image alt))))
 	 ((or shr-inhibit-images
 	      (and shr-blocked-images
 		   (string-match shr-blocked-images url)))
@@ -874,7 +879,7 @@ ones, in case fg and bg are nil."
 		(shr-insert (truncate-string-to-width alt 8))
 	      (shr-insert alt))))
 	 ((url-is-cached (shr-encode-url url))
-	  (shr-put-image (shr-get-image-data url) alt))
+	  (funcall shr-put-image-function (shr-get-image-data url) alt))
 	 (t
 	  (insert alt)
 	  (funcall
