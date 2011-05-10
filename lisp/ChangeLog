@@ -1,3 +1,11 @@
+2011-05-10  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-list-entries-hook)
+	(diary-mark-entries-hook, diary-nongregorian-listing-hook)
+	(diary-nongregorian-marking-hook, diary-list-entries)
+	(diary-include-other-diary-files, diary-mark-entries)
+	(diary-mark-included-diary-files): Doc fixes.
+
 2011-05-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* misc.el: Require tabulated-list.el during compilation.
