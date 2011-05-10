@@ -62,15 +62,8 @@ static int bidi_initialized = 0;
 
 static Lisp_Object bidi_type_table, bidi_mirror_table;
 
-/* FIXME: Remove these when bidi_explicit_dir_char uses a lookup table.  */
 #define LRM_CHAR   0x200E
 #define RLM_CHAR   0x200F
-#define LRE_CHAR   0x202A
-#define RLE_CHAR   0x202B
-#define PDF_CHAR   0x202C
-#define LRO_CHAR   0x202D
-#define RLO_CHAR   0x202E
-
 #define BIDI_EOB   -1
 
 /* Local data structures.  (Look in dispextern.h for the rest.)  */
@@ -258,7 +251,7 @@ bidi_copy_it (struct bidi_it *to, struct bidi_it *from)
   int i;
 
   /* Copy everything except the level stack and beyond.  */
-  memcpy (to, from, ((size_t)&((struct bidi_it *)0)->level_stack[0]));
+  memcpy (to, from, offsetof (struct bidi_it, level_stack[0]));
 
   /* Copy the active part of the level stack.  */
   to->level_stack[0] = from->level_stack[0]; /* level zero is always in use */
@@ -319,10 +312,17 @@ bidi_cache_search (EMACS_INT charpos, int level, int dir)
   if (bidi_cache_idx)
     {
       if (charpos < bidi_cache[bidi_cache_last_idx].charpos)
-	dir = -1;
-      else if (charpos > bidi_cache[bidi_cache_last_idx].charpos)
-	dir = 1;
-      if (dir)
+	{
+	  dir = -1;
+	  i_start = bidi_cache_last_idx - 1;
+	}
+      else if (charpos > (bidi_cache[bidi_cache_last_idx].charpos
+			  + bidi_cache[bidi_cache_last_idx].nchars - 1))
+	{
+	  dir = 1;
+	  i_start = bidi_cache_last_idx + 1;
+	}
+      else if (dir)
 	i_start = bidi_cache_last_idx;
       else
 	{
@@ -334,14 +334,16 @@ bidi_cache_search (EMACS_INT charpos, int level, int dir)
 	{
 	  /* Linear search for now; FIXME!  */
 	  for (i = i_start; i >= 0; i--)
-	    if (bidi_cache[i].charpos == charpos
+	    if (bidi_cache[i].charpos <= charpos
+		&& charpos < bidi_cache[i].charpos + bidi_cache[i].nchars
 		&& (level == -1 || bidi_cache[i].resolved_level <= level))
 	      return i;
 	}
       else
 	{
 	  for (i = i_start; i < bidi_cache_idx; i++)
-	    if (bidi_cache[i].charpos == charpos
+	    if (bidi_cache[i].charpos <= charpos
+		&& charpos < bidi_cache[i].charpos + bidi_cache[i].nchars
 		&& (level == -1 || bidi_cache[i].resolved_level <= level))
 	      return i;
 	}
@@ -426,7 +428,8 @@ bidi_cache_iterator_state (struct bidi_it *bidi_it, int resolved)
 	 If we are outside the range of cached positions, the cache is
 	 useless and must be reset.  */
       if (idx > 0 &&
-	  (bidi_it->charpos > bidi_cache[idx - 1].charpos + 1
+	  (bidi_it->charpos > (bidi_cache[idx - 1].charpos
+			       + bidi_cache[idx - 1].nchars)
 	   || bidi_it->charpos < bidi_cache[0].charpos))
 	{
 	  bidi_cache_reset ();
@@ -548,6 +551,7 @@ bidi_set_sor_type (struct bidi_it *bidi_it, int level_before, int level_after)
   bidi_it->ignore_bn_limit = 0; /* meaning it's unknown */
 }
 
+/* Perform initializations for reordering a new line of bidi text.  */
 static void
 bidi_line_init (struct bidi_it *bidi_it)
 {
@@ -565,6 +569,77 @@ bidi_line_init (struct bidi_it *bidi_it)
   bidi_cache_reset ();
 }
 
+/* Fetch and return the character at BYTEPOS.  If that character is
+   covered by a display string, treat the entire run of covered
+   characters as a single character u+FFFC, and return their combined
+   length in CH_LEN and NCHARS.  DISP_POS specifies the byte position
+   of the next display string, or -1 if not yet computed.  When the
+   next character is at or beyond that position, the function updates
+   DISP_POS with the position of the next display string.  */
+static INLINE int
+bidi_fetch_char (EMACS_INT bytepos, EMACS_INT *disp_pos,
+		 EMACS_INT *ch_len, EMACS_INT *nchars)
+{
+  int ch;
+
+  /* FIXME: Support strings in addition to buffers.  */
+  /* If we got past the last known position of display string, compute
+     the position of the next one.  That position could be at BYTEPOS.  */
+  if (bytepos < ZV_BYTE && bytepos > *disp_pos)
+    *disp_pos = compute_display_string_pos (bytepos);
+  if (bytepos >= ZV_BYTE)
+    {
+      ch = BIDI_EOB;
+      *ch_len = 1;
+      *nchars = 1;
+    }
+#if 0
+  else if (bytepos >= *disp_pos)
+    {
+      /* support characters covered by a display string */
+      ch = 0xFFFC;	/* Unicode Object Replacement Character */
+    }
+#endif
+  else
+    {
+      ch = FETCH_MULTIBYTE_CHAR (bytepos);
+      *ch_len = CHAR_BYTES (ch);
+      *nchars = 1;
+    }
+
+  /* If we just entered a run of characters covered by a display
+     string, compute the position of the next display string.  */
+  if (bytepos + *ch_len <= ZV_BYTE && bytepos + *ch_len > *disp_pos)
+    *disp_pos = compute_display_string_pos (bytepos + *ch_len);
+
+  return ch;
+}
+
+/* Looks like we won't need this one.  */
+#if 0
+/* Fetch character at CHARPOS/BYTEPOS.  Return the character, and
+   advance CHARPOS and BYTEPOS to the next character in logical
+   order.  */
+static INLINE int
+bidi_fetch_char_advance (EMACS_INT *charpos, EMACS_INT *bytepos)
+{
+  int ch;
+
+  /* FIXME: Support strings in addition to buffers.  */
+  FETCH_CHAR_ADVANCE_NO_CHECK (ch, charpos, bytepos);
+
+#if 0
+  if (...)
+    {
+      /* FIXME: Support characters covered by display strings.  */
+      ch = 0xFFFC;
+    }
+#endif
+
+  return ch;
+}
+#endif
+
 /* Find the beginning of this paragraph by looking back in the buffer.
    Value is the byte position of the paragraph's beginning.  */
 static EMACS_INT
@@ -576,6 +651,10 @@ bidi_find_paragraph_start (EMACS_INT pos, EMACS_INT pos_byte)
   while (pos_byte > BEGV_BYTE
 	 && fast_looking_at (re, pos, pos_byte, limit, limit_byte, Qnil) < 0)
     {
+      /* FIXME: What if the paragraph beginning is covered by a
+	 display string?  And what if a display string covering some
+	 of the text over which we scan back includes
+	 paragraph_start_re?  */
       pos = find_next_newline_no_quit (pos - 1, -1);
       pos_byte = CHAR_TO_BYTE (pos);
     }
@@ -587,7 +666,7 @@ bidi_find_paragraph_start (EMACS_INT pos, EMACS_INT pos_byte)
    R2L, just use that.  Otherwise, determine the paragraph direction
    from the first strong directional character of the paragraph.
 
-   NO_DEFAULT_P non-nil means don't default to L2R if the paragraph
+   NO_DEFAULT_P non-zero means don't default to L2R if the paragraph
    has no strong directional characters and both DIR and
    bidi_it->paragraph_dir are NEUTRAL_DIR.  In that case, search back
    in the buffer until a paragraph is found with a strong character,
@@ -622,8 +701,9 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, int no_default_p)
     }
   else if (dir == NEUTRAL_DIR)	/* P2 */
     {
-      int ch, ch_len;
-      EMACS_INT pos;
+      int ch;
+      EMACS_INT ch_len, nchars;
+      EMACS_INT pos, disp_pos = -1;
       bidi_type_t type;
 
       if (!bidi_initialized)
@@ -658,12 +738,11 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, int no_default_p)
 	 is non-zero.  */
       do {
 	bytepos = pstartbyte;
-	ch = FETCH_CHAR (bytepos);
-	ch_len = CHAR_BYTES (ch);
+	ch = bidi_fetch_char (bytepos, &ch_len, &nchars, &disp_pos);
 	pos = BYTE_TO_CHAR (bytepos);
 	type = bidi_get_type (ch, NEUTRAL_DIR);
 
-	for (pos++, bytepos += ch_len;
+	for (pos += nchars, bytepos += ch_len;
 	     /* NOTE: UAX#9 says to search only for L, AL, or R types
 		of characters, and ignore RLE, RLO, LRE, and LRO.
 		However, I'm not sure it makes sense to omit those 4;
@@ -683,7 +762,9 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, int no_default_p)
 		type = NEUTRAL_B;
 		break;
 	      }
-	    FETCH_CHAR_ADVANCE (ch, pos, bytepos);
+	    ch = bidi_fetch_char (bytepos, &ch_len, &nchars, &disp_pos);
+	    pos += nchars;
+	    bytepos += ch_len;
 	  }
 	if (type == STRONG_R || type == STRONG_AL) /* P3 */
 	  bidi_it->paragraph_dir = R2L;
@@ -702,6 +783,9 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, int no_default_p)
 		/* Find the beginning of the previous paragraph, if any.  */
 		while (pbyte > BEGV_BYTE && prevpbyte >= pstartbyte)
 		  {
+		    /* FXIME: What if p is covered by a display
+		       string?  See also a FIXME inside
+		       bidi_find_paragraph_start.  */
 		    p--;
 		    pbyte = CHAR_TO_BYTE (p);
 		    prevpbyte = bidi_find_paragraph_start (p, pbyte);
@@ -738,7 +822,7 @@ bidi_set_paragraph_end (struct bidi_it *bidi_it)
   bidi_it->resolved_level = bidi_it->level_stack[0].level;
 }
 
-/* Initialize the bidi iterator from buffer position CHARPOS.  */
+/* Initialize the bidi iterator from buffer/string position CHARPOS.  */
 void
 bidi_init_it (EMACS_INT charpos, EMACS_INT bytepos, struct bidi_it *bidi_it)
 {
@@ -746,6 +830,7 @@ bidi_init_it (EMACS_INT charpos, EMACS_INT bytepos, struct bidi_it *bidi_it)
     bidi_initialize ();
   bidi_it->charpos = charpos;
   bidi_it->bytepos = bytepos;
+  bidi_it->nchars = -1;	/* to be computed in bidi_resolve_explicit_1 */
   bidi_it->first_elt = 1;
   bidi_set_paragraph_end (bidi_it);
   bidi_it->new_paragraph = 1;
@@ -767,6 +852,7 @@ bidi_init_it (EMACS_INT charpos, EMACS_INT bytepos, struct bidi_it *bidi_it)
     bidi_it->prev_for_neutral.type_after_w1 =
     bidi_it->prev_for_neutral.orig_type = UNKNOWN_BT;
   bidi_it->sor = L2R;	 /* FIXME: should it be user-selectable? */
+  bidi_it->disp_pos = -1;	/* invalid/unknown */
   bidi_cache_shrink ();
 }
 
@@ -829,12 +915,16 @@ bidi_resolve_neutral_1 (bidi_type_t prev_type, bidi_type_t next_type, int lev)
 }
 
 static INLINE int
-bidi_explicit_dir_char (int c)
+bidi_explicit_dir_char (int ch)
 {
-  /* FIXME: this should be replaced with a lookup table with suitable
-     bits set, like standard C ctype macros do.  */
-  return (c == LRE_CHAR || c == LRO_CHAR
-	  || c == RLE_CHAR || c == RLO_CHAR || c == PDF_CHAR);
+  bidi_type_t ch_type;
+
+  if (!bidi_initialized)
+    abort ();
+  ch_type = (bidi_type_t) XINT (CHAR_TABLE_REF (bidi_type_table, ch));
+  return (ch_type == LRE || ch_type == LRO
+	  || ch_type == RLE || ch_type == RLO
+	  || ch_type == PDF);
 }
 
 /* A helper function for bidi_resolve_explicit.  It advances to the
@@ -850,7 +940,10 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
   int new_level;
   bidi_dir_t override;
 
-  if (bidi_it->bytepos < BEGV_BYTE	/* after reseat to BEGV? */
+  /* If reseat()'ed, don't advance, so as to start iteration from the
+     position where we were reseated.  bidi_it->bytepos can be less
+     than BEGV_BYTE after reseat to BEGV.  */
+  if (bidi_it->bytepos < BEGV_BYTE
       || bidi_it->first_elt)
     {
       bidi_it->first_elt = 0;
@@ -860,7 +953,9 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
     }
   else if (bidi_it->bytepos < ZV_BYTE)	/* don't move at ZV */
     {
-      bidi_it->charpos++;
+      /* Advance to the next character, skipping characters covered by
+	 display strings (nchars > 1).  */
+      bidi_it->charpos += bidi_it->nchars;
       if (bidi_it->ch_len == 0)
 	abort ();
       bidi_it->bytepos += bidi_it->ch_len;
@@ -870,17 +965,20 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
   override = bidi_it->level_stack[bidi_it->stack_idx].override;
   new_level = current_level;
 
-  /* in case it is a unibyte character (not yet implemented) */
-  /* _fetch_multibyte_char_len = 1; */
   if (bidi_it->bytepos >= ZV_BYTE)
     {
       curchar = BIDI_EOB;
       bidi_it->ch_len = 1;
+      bidi_it->nchars = 1;
+      bidi_it->disp_pos = ZV_BYTE;
     }
   else
     {
-      curchar = FETCH_CHAR (bidi_it->bytepos);
-      bidi_it->ch_len = CHAR_BYTES (curchar);
+      /* Fetch the character at BYTEPOS.  If it is covered by a
+	 display string, treat the entire run of covered characters as
+	 a single character u+FFFC.  */
+      curchar = bidi_fetch_char (bidi_it->bytepos, &bidi_it->ch_len,
+				 &bidi_it->nchars, &bidi_it->disp_pos);
     }
   bidi_it->ch = curchar;
 
@@ -1006,10 +1104,10 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
 }
 
 /* Given an iterator state in BIDI_IT, advance one character position
-   in the buffer to the next character (in the logical order), resolve
-   any explicit embeddings and directional overrides, and return the
-   embedding level of the character after resolving explicit
-   directives and ignoring empty embeddings.  */
+   in the buffer/string to the next character (in the logical order),
+   resolve any explicit embeddings and directional overrides, and
+   return the embedding level of the character after resolving
+   explicit directives and ignoring empty embeddings.  */
 static int
 bidi_resolve_explicit (struct bidi_it *bidi_it)
 {
@@ -1020,8 +1118,8 @@ bidi_resolve_explicit (struct bidi_it *bidi_it)
       && bidi_it->type == WEAK_BN
       && bidi_it->ignore_bn_limit == 0 /* only if not already known */
       && bidi_it->bytepos < ZV_BYTE    /* not already at EOB */
-      && bidi_explicit_dir_char (FETCH_CHAR (bidi_it->bytepos
-					     + bidi_it->ch_len)))
+      && bidi_explicit_dir_char (FETCH_MULTIBYTE_CHAR (bidi_it->bytepos
+						       + bidi_it->ch_len)))
     {
       /* Avoid pushing and popping embedding levels if the level run
 	 is empty, as this breaks level runs where it shouldn't.
@@ -1033,14 +1131,16 @@ bidi_resolve_explicit (struct bidi_it *bidi_it)
 
       bidi_copy_it (&saved_it, bidi_it);
 
-      while (bidi_explicit_dir_char (FETCH_CHAR (bidi_it->bytepos
-						 + bidi_it->ch_len)))
+      while (bidi_explicit_dir_char (FETCH_MULTIBYTE_CHAR (bidi_it->bytepos
+							   + bidi_it->ch_len)))
 	{
+	  /* This advances to the next character, skipping any
+	     characters covered by display strings.  */
 	  level = bidi_resolve_explicit_1 (bidi_it);
 	}
 
       if (level == prev_level)	/* empty embedding */
-	saved_it.ignore_bn_limit = bidi_it->charpos + 1;
+	saved_it.ignore_bn_limit = bidi_it->charpos + bidi_it->nchars;
       else			/* this embedding is non-empty */
 	saved_it.ignore_bn_limit = -1;
 
@@ -1076,8 +1176,8 @@ bidi_resolve_explicit (struct bidi_it *bidi_it)
   return new_level;
 }
 
-/* Advance in the buffer, resolve weak types and return the type of
-   the next character after weak type resolution.  */
+/* Advance in the buffer/string, resolve weak types and return the
+   type of the next character after weak type resolution.  */
 static bidi_type_t
 bidi_resolve_weak (struct bidi_it *bidi_it)
 {
@@ -1156,7 +1256,8 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
 	{
 	  next_char =
 	    bidi_it->bytepos + bidi_it->ch_len >= ZV_BYTE
-	    ? BIDI_EOB : FETCH_CHAR (bidi_it->bytepos + bidi_it->ch_len);
+	    ? BIDI_EOB : FETCH_MULTIBYTE_CHAR (bidi_it->bytepos
+					       + bidi_it->ch_len);
 	  type_of_next = bidi_get_type (next_char, override);
 
 	  if (type_of_next == WEAK_BN
@@ -1204,11 +1305,12 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
 	    type = WEAK_EN;
 	  else			/* W5: ET/BN with EN after it.  */
 	    {
-	      EMACS_INT en_pos = bidi_it->charpos + 1;
+	      EMACS_INT en_pos = bidi_it->charpos + bidi_it->nchars;
 
 	      next_char =
 		bidi_it->bytepos + bidi_it->ch_len >= ZV_BYTE
-		? BIDI_EOB : FETCH_CHAR (bidi_it->bytepos + bidi_it->ch_len);
+		? BIDI_EOB : FETCH_MULTIBYTE_CHAR (bidi_it->bytepos
+						   + bidi_it->ch_len);
 	      type_of_next = bidi_get_type (next_char, override);
 
 	      if (type_of_next == WEAK_ET
@@ -1299,8 +1401,8 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 	  /* Arrrgh!!  The UAX#9 algorithm is too deeply entrenched in
 	     the assumption of batch-style processing; see clauses W4,
 	     W5, and especially N1, which require to look far forward
-	     (as well as back) in the buffer.  May the fleas of a
-	     thousand camels infest the armpits of those who design
+	     (as well as back) in the buffer/string.  May the fleas of
+	     a thousand camels infest the armpits of those who design
 	     supposedly general-purpose algorithms by looking at their
 	     own implementations, and fail to consider other possible
 	     implementations!  */
@@ -1391,8 +1493,9 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 }
 
 /* Given an iterator state in BIDI_IT, advance one character position
-   in the buffer to the next character (in the logical order), resolve
-   the bidi type of that next character, and return that type.  */
+   in the buffer/string to the next character (in the logical order),
+   resolve the bidi type of that next character, and return that
+   type.  */
 static bidi_type_t
 bidi_type_of_next_char (struct bidi_it *bidi_it)
 {
@@ -1416,15 +1519,16 @@ bidi_type_of_next_char (struct bidi_it *bidi_it)
 }
 
 /* Given an iterator state BIDI_IT, advance one character position in
-   the buffer to the next character (in the logical order), resolve
-   the embedding and implicit levels of that next character, and
-   return the resulting level.  */
+   the buffer/string to the next character (in the current scan
+   direction), resolve the embedding and implicit levels of that next
+   character, and return the resulting level.  */
 static int
 bidi_level_of_next_char (struct bidi_it *bidi_it)
 {
   bidi_type_t type;
   int level, prev_level = -1;
   struct bidi_saved_info next_for_neutral;
+  EMACS_INT next_char_pos;
 
   if (bidi_it->scan_dir == 1)
     {
@@ -1466,8 +1570,14 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
     }
   next_for_neutral = bidi_it->next_for_neutral;
 
-  /* Perhaps it is already cached.  */
-  type = bidi_cache_find (bidi_it->charpos + bidi_it->scan_dir, -1, bidi_it);
+  /* Perhaps the character we want is already cached.  If it is, the
+     call to bidi_cache_find below will return a type other than
+     UNKNOWN_BT.  */
+  if (bidi_it->scan_dir > 0)
+    next_char_pos = bidi_it->charpos + bidi_it->nchars;
+  else
+    next_char_pos = bidi_it->charpos - 1;
+  type = bidi_cache_find (next_char_pos, -1, bidi_it);
   if (type != UNKNOWN_BT)
     {
       /* Don't lose the information for resolving neutrals!  The
@@ -1529,14 +1639,13 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
       int clen = bidi_it->ch_len;
       EMACS_INT bpos = bidi_it->bytepos;
       EMACS_INT cpos = bidi_it->charpos;
+      EMACS_INT disp_pos = bidi_it->disp_pos;
+      EMACS_INT nc;
       bidi_type_t chtype;
 
       do {
-	/*_fetch_multibyte_char_len = 1;*/
-	ch = bpos + clen >= ZV_BYTE ? BIDI_EOB : FETCH_CHAR (bpos + clen);
-	bpos += clen;
-	cpos++;
-	clen = (ch == BIDI_EOB ? 1 : CHAR_BYTES (ch));
+	ch = bidi_fetch_char (bpos += clen, &clen, &nc, &disp_pos);
+	cpos += nc;
 	if (ch == '\n' || ch == BIDI_EOB /* || ch == LINESEP_CHAR */)
 	  chtype = NEUTRAL_B;
 	else
@@ -1615,8 +1724,8 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
 
    If this level's other edge is cached, we simply jump to it, filling
    the iterator structure with the iterator state on the other edge.
-   Otherwise, we walk the buffer until we come back to the same level
-   as LEVEL.
+   Otherwise, we walk the buffer or string until we come back to the
+   same level as LEVEL.
 
    Note: we are not talking here about a ``level run'' in the UAX#9
    sense of the term, but rather about a ``level'' which includes
@@ -1680,6 +1789,7 @@ bidi_move_to_visually_next (struct bidi_it *bidi_it)
 	  sentinel.bytepos--;
 	  sentinel.ch = '\n';	/* doesn't matter, but why not? */
 	  sentinel.ch_len = 1;
+	  sentinel.nchars = 1;
 	}
       bidi_cache_iterator_state (&sentinel, 1);
     }
@@ -1750,14 +1860,15 @@ bidi_move_to_visually_next (struct bidi_it *bidi_it)
       && bidi_it->bytepos < ZV_BYTE)
     {
       EMACS_INT sep_len =
-	bidi_at_paragraph_end (bidi_it->charpos + 1,
+	bidi_at_paragraph_end (bidi_it->charpos + bidi_it->nchars,
 			       bidi_it->bytepos + bidi_it->ch_len);
       if (sep_len >= 0)
 	{
 	  bidi_it->new_paragraph = 1;
 	  /* Record the buffer position of the last character of the
 	     paragraph separator.  */
-	  bidi_it->separator_limit = bidi_it->charpos + 1 + sep_len;
+	  bidi_it->separator_limit =
+	    bidi_it->charpos + bidi_it->nchars + sep_len;
 	}
     }
 
@@ -1767,7 +1878,8 @@ bidi_move_to_visually_next (struct bidi_it *bidi_it)
 	 last cached position, the cache's job is done and we can
 	 discard it.  */
       if (bidi_it->resolved_level == bidi_it->level_stack[0].level
-	  && bidi_it->charpos > bidi_cache[bidi_cache_idx - 1].charpos)
+	  && bidi_it->charpos > (bidi_cache[bidi_cache_idx - 1].charpos
+				 + bidi_cache[bidi_cache_idx - 1].nchars - 1))
 	bidi_cache_reset ();
 	/* But as long as we are caching during forward scan, we must
 	   cache each state, or else the cache integrity will be

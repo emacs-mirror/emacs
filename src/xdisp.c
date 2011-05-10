@@ -3085,6 +3085,20 @@ next_overlay_change (EMACS_INT pos)
   return endpos;
 }
 
+/* Return the byte position of a display string at or after BYTEPOS.
+   If no display string exist at or after BYTEPOS, return ZV_BYTE.  A
+   display string is either an overlay with `display' property whose
+   value is a string or a `display' text property whose value is a
+   string.  */
+EMACS_INT
+compute_display_string_pos (EMACS_INT bytepos)
+{
+  if (bytepos >= ZV_BYTE)
+    return ZV_BYTE;
+  /* FIXME! */
+  return ZV_BYTE;
+}
+
 
 
 /***********************************************************************
@@ -5382,6 +5396,7 @@ reseat_1 (struct it *it, struct text_pos pos, int set_stop_p)
     {
       it->bidi_it.first_elt = 1;
       it->bidi_it.paragraph_dir = NEUTRAL_DIR;
+      it->bidi_it.disp_pos = -1;
     }
 
   if (set_stop_p)
