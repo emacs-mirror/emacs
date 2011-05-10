@@ -34,7 +34,7 @@
 
 (defun reftex-view-crossref (&optional arg auto-how fail-quietly)
   "View cross reference of macro at point.  Point must be on the KEY
-argument.  When at at `\\ref' macro, show corresponding `\\label'
+argument.  When at a `\\ref' macro, show corresponding `\\label'
 definition, also in external documents (`xr').  When on a label, show
 a locations where KEY is referenced.  Subsequent calls find additional
 locations.  When on a `\\cite', show the associated `\\bibitem' macro or

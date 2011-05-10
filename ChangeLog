@@ -1,3 +1,34 @@
+2011-05-10  Jim Meyering  <meyering@redhat.com>
+
+	fix doubled-word typos
+	* admin/notes/exit-value: the the -> the
+	* doc/lispref/minibuf.texi: in in -> in
+	* doc/misc/ede.texi: or or -> or
+	* etc/MH-E-NEWS: the the -> the
+	* etc/PROBLEMS: Likewise.
+	* lisp/cedet/ede/pmake.el (ede-proj-makefile-garbage-patterns): Likewise.
+	* lisp/cedet/semantic/complete.el
+	(semantic-complete-read-tag-local-members): Likewise.
+	* lisp/cedet/ede.el (ede-auto-add-method): then then -> then
+	* lisp/gnus/shr.el (shr-colorize-region): on on -> on
+	* lisp/international/quail.el (quail-insert-kbd-layout): and and -> and
+	* lisp/kermit.el: and and -> and
+	* lisp/mh-e/mh-alias.el (mh-alias-minibuffer-confirm-address):
+	if if -> if it
+	* lisp/mh-e/mh-scan.el (mh-scan-destination-width): in in -> in
+	* lisp/net/ldap.el (ldap-search-internal): to to -> to
+	* lisp/org/org-agenda.el (org-agenda-entry-types): the the -> the
+	* lisp/org/org-table.el (org-table-get-remote-range): or or -> or
+	* lisp/org/org-wl.el (org-wl-folder-type): the the -> the
+	* lisp/org/org.el (org-goto, org-inside-LaTeX-fragment-p): Likewise.
+	* lisp/progmodes/vhdl-mode.el (vhdl-offsets-alist): Likewise.
+	* lisp/progmodes/js.el (js-mode): and and -> and
+	* lisp/textmodes/artist.el (artist-move-to-xy): at at -> at
+	(artist-draw-region-trim-line-endings): if if -> if
+	And Safetyc -> Safety.
+	* lisp/textmodes/reftex-dcr.el (reftex-view-crossref): at at -> at a
+	* src/xdisp.c (x_intersect_rectangles): the the -> the
+
 2011-05-09  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* configure.in: Require GnuTLS 2.6.x or higher.

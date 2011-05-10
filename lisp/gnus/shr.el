@@ -643,7 +643,7 @@ ones, in case fg and bg are nil."
 	  (shr-put-color start end :background (car new-colors))))
       new-colors)))
 
-;; Put a color in the region, but avoid putting colors on on blank
+;; Put a color in the region, but avoid putting colors on blank
 ;; text at the start of the line, and the newline at the end, to avoid
 ;; ugliness.  Also, don't overwrite any existing color information,
 ;; since this can be called recursively, and we want the "inner" color

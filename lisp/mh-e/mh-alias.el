@@ -286,7 +286,7 @@ Blind aliases or users from /etc/passwd are not expanded."
              (the-name (buffer-substring-no-properties beg (point))))
         (if (mh-assoc-string the-name mh-alias-alist t)
             (message "%s -> %s" the-name (mh-alias-expand the-name))
-          ;; Check if if was a single word likely to be an alias
+          ;; Check if it was a single word likely to be an alias
           (if (and (equal mh-alias-flash-on-comma 1)
                    (not (string-match " " the-name)))
               (message "No alias for %s" the-name))))))

@@ -254,7 +254,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    still left to right, i.e. the iterator "thinks" the first character
    is at the leftmost pixel position.  The iterator does not know that
    PRODUCE_GLYPHS reverses the order of the glyphs that the iterator
-   delivers.  This is important when functions from the the move_it_*
+   delivers.  This is important when functions from the move_it_*
    family are used to get to certain screen position or to match
    screen coordinates with buffer coordinates: these functions use the
    iterator geometry, which is left to right even in R2L paragraphs.
@@ -26254,7 +26254,7 @@ x_intersect_rectangles (XRectangle *r1, XRectangle *r2, XRectangle *result)
     {
       result->x = right->x;
 
-      /* The right end of the intersection is the minimum of the
+      /* The right end of the intersection is the minimum of
 	 the right ends of left and right.  */
       result->width = (min (left->x + left->width, right->x + right->width)
 		       - result->x);

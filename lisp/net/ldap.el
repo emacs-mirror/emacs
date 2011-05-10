@@ -498,7 +498,7 @@ but if you have more than one in your netrc file, only the first
 matching one will be used.  Note the \"port ldap\" part is NOT
 required.
 
-  `host' is a string naming one or more (blank-separated) LDAP servers to
+  `host' is a string naming one or more (blank-separated) LDAP servers
 to try to connect to.  Each host name may optionally be of the form HOST:PORT.
   `filter' is a filter string for the search as described in RFC 1558.
   `attributes' is a list of strings indicating which attributes to retrieve

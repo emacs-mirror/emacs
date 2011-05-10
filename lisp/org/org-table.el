@@ -4341,7 +4341,7 @@ a \"#+TBLNAME:\" directive.  The first table following this line
 will then be used.  Alternatively, it may be an ID referring to
 any entry, also in a different file.  In this case, the first table
 in that entry will be referenced.
-FORM is a field or range descriptor like \"@2$3\" or or \"B3\" or
+FORM is a field or range descriptor like \"@2$3\" or \"B3\" or
 \"@I$2..@II$2\".  All the references must be absolute, not relative.
 
 The return value is either a single string for a single field, or a

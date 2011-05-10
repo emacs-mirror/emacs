@@ -63,7 +63,7 @@
 ;; the -c (connect) command line option, which means you also have to specify a
 ;; line and baud on the command line, as in "kermit -l /dev/tty53 -b 9600 -c".
 ;; However, this will cause kermit to exit when the connection is closed.  So
-;; in order to do a file transfer, you have to think ahead and and add -r
+;; in order to do a file transfer, you have to think ahead and add -r
 ;; (receive) to the command line.  This means that you can't use the server
 ;; feature.  The only fix I can see is to muck around with the source code for
 ;; kermit, although this probably wouldn't be too hard.  What is needed is an

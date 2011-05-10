@@ -308,7 +308,7 @@ This column will have one of \" \", \"%\", \"-\", \"t\", \"c\", \"b\", or \"n\"
 in it.
 
   \" \" blank space is the default character.
-  \"%\" indicates that the message in in a named MH sequence.
+  \"%\" indicates that the message in a named MH sequence.
   \"-\" indicates that the message has been annotated with a replied field.
   \"t\" indicates that the message contains mymbox in the To: field.
   \"c\" indicates that the message contains mymbox in the Cc: field.

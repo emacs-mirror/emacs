@@ -3347,7 +3347,7 @@ If one hasn't been set, or if it's stale, prompt for a new one."
   ;; Important to fontify the whole buffer syntactically! If we don't,
   ;; then we might have regular expression literals that aren't marked
   ;; as strings, which will screw up parse-partial-sexp, scan-lists,
-  ;; etc. and and produce maddening "unbalanced parenthesis" errors.
+  ;; etc. and produce maddening "unbalanced parenthesis" errors.
   ;; When we attempt to find the error and scroll to the portion of
   ;; the buffer containing the problem, JIT-lock will apply the
   ;; correct syntax to the regular expresion literal and the problem
