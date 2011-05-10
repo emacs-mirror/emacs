@@ -1,3 +1,8 @@
+2011-05-10  Julien Danjou  <julien@danjou.info>
+
+	* shr.el (shr-put-color-1): Do not bug out when old-props is a face
+	symbol and not a list.
+
 2011-05-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-article-mode): Move binding of

@@ -716,7 +716,8 @@ ones, in case fg and bg are nil."
 
 (defun shr-put-color-1 (start end type color)
   (let* ((old-props (get-text-property start 'face))
-	 (do-put (not (memq type old-props)))
+	 (do-put (and (listp old-props)
+                      (not (memq type old-props))))
 	 change)
     (while (< start end)
       (setq change (next-single-property-change start 'face nil end))
@@ -724,7 +725,8 @@ ones, in case fg and bg are nil."
 	(put-text-property start change 'face
 			   (nconc (list type color) old-props)))
       (setq old-props (get-text-property change 'face))
-      (setq do-put (not (memq type old-props)))
+      (setq do-put (and (listp old-props)
+                        (not (memq type old-props))))
       (setq start change))
     (when (and do-put
 	       (> end start))
