@@ -1,4 +1,10 @@
 2011-05-10  Glenn Morris  <rgm@gnu.org>
+	   Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (hack-one-local-variable-eval-safep):
+	Consider "eval: (foo-mode)" to be safe.  (Bug#8613)
+
+2011-05-10  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/diary-lib.el (diary-list-entries-hook)
 	(diary-mark-entries-hook, diary-nongregorian-listing-hook)

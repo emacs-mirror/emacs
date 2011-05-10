@@ -1,3 +1,8 @@
+2011-05-10  Glenn Morris  <rgm@gnu.org>
+
+	* custom.texi (Specifying File Variables):
+	Deprecate using mode: for minor modes.
+
 2011-05-07  Glenn Morris  <rgm@gnu.org>
 
 	* cal-xtra.texi (Sexp Diary Entries): Mention diary-hebrew-birthday.

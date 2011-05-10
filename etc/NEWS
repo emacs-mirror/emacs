@@ -267,6 +267,10 @@ default, all themes included in Emacs are treated as safe.
 ** The user option `remote-file-name-inhibit-cache' controls whether
 the remote file-name cache is used for read access.
 
++++
+** The use of a "mode: minor" specification in a file local variables section
+to enable a minor-mode is deprecated.  Instead, use "eval: (minor-mode)".
+
 ** The standalone programs lib-src/digest-doc and sorted-doc have been
 replaced with Lisp commands `doc-file-to-man' and `doc-file-to-info'.
 
