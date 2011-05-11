@@ -1,3 +1,15 @@
+2011-05-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* w32term.c (w32_draw_fringe_bitmap): Rename local vars `left' and
+	`width' to `bar_area_x' and `bar_area_width', respectively.
+	(x_scroll_run): Take account of fringe background extension.
+
+	* xterm.c (x_draw_fringe_bitmap) [USE_TOOLKIT_SCROLL_BARS]: Rename
+	local vars `left' and `width' to `bar_area_x' and
+	`bar_area_width', respectively.
+	(x_scroll_run) [USE_TOOLKIT_SCROLL_BARS]: Take account of fringe
+	background extension.
+
 2011-05-09  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* xmenu.c (set_frame_menubar): Fix submenu loops.
