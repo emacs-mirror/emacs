@@ -1,3 +1,7 @@
+2011-05-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* window.c (size_window): Avoid needless test at loop start.
+
 2011-05-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* image.c (Finit_image_library): Return t for built-in image types,
