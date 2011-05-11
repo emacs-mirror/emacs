@@ -46,6 +46,7 @@
 "A list of VGA console colors, their indices and 16-bit RGB values.")
 
 (declare-function x-setup-function-keys "term/common-win" (frame))
+(declare-function get-screen-color "w32console.c" ())
 
 (defun terminal-init-w32console ()
   "Terminal initialization function for w32 console."

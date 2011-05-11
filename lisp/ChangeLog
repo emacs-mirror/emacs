@@ -1,5 +1,7 @@
 2011-05-11  Glenn Morris  <rgm@gnu.org>
 
+	* term/w32console.el (get-screen-color): Declare.
+
 	* emacs-lisp/bytecomp.el (byte-compile-arglist-warn):
 	Handle symbol elements of byte-compile-initial-macro-environment.
 
