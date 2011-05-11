@@ -1,3 +1,8 @@
+2011-05-11  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-arglist-warn):
+	Handle symbol elements of byte-compile-initial-macro-environment.
+
 2011-05-10  Leo Liu  <sdl.web@gmail.com>
 
 	* bookmark.el (bookmark-bmenu-mode-map): Bind

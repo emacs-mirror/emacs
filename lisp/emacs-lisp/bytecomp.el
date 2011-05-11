@@ -1314,7 +1314,15 @@ extra args."
 ;; number of arguments.
 (defun byte-compile-arglist-warn (form macrop)
   (let* ((name (nth 1 form))
-         (old (byte-compile-fdefinition name macrop)))
+         (old (byte-compile-fdefinition name macrop))
+         (initial (and macrop
+                       (cdr (assq name
+                                  byte-compile-initial-macro-environment)))))
+    ;; Assumes an element of b-c-i-macro-env that is a symbol points
+    ;; to a defined function.  (Bug#8646)
+    (and initial (symbolp initial)
+         (setq old (byte-compile-fdefinition initial nil)
+               initial 'yes))
     (if (and old (not (eq old t)))
 	(progn
 	  (and (eq 'macro (car-safe old))
