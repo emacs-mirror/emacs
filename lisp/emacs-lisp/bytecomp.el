@@ -1321,8 +1321,7 @@ extra args."
     ;; Assumes an element of b-c-i-macro-env that is a symbol points
     ;; to a defined function.  (Bug#8646)
     (and initial (symbolp initial)
-         (setq old (byte-compile-fdefinition initial nil)
-               initial 'yes))
+         (setq old (byte-compile-fdefinition initial nil)))
     (if (and old (not (eq old t)))
 	(progn
 	  (and (eq 'macro (car-safe old))
