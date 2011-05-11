@@ -1,5 +1,10 @@
 2011-05-11  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lisp.h (XINT) [USE_LISP_UNION_TYPE]: Cast to EMACS_INT.
+	(XUINT) [USE_LISP_UNION_TYPE]: Cast to EMACS_UINT.
+	Otherwise, GCC 4.6.0 warns about printf (pI, XINT (...)),
+	presumably because the widths might not match.
+
 	* window.c (size_window): Avoid needless test at loop start.
 
 2011-05-10  Juanma Barranquero  <lekktu@gmail.com>
