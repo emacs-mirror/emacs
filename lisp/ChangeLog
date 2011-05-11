@@ -1,5 +1,7 @@
 2011-05-11  Glenn Morris  <rgm@gnu.org>
 
+	* newcomment.el (comment-kill): Prefix "unused" local.
+
 	* term/w32console.el (get-screen-color): Declare.
 
 	* emacs-lisp/bytecomp.el (byte-compile-arglist-warn):
