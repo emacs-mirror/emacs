@@ -1,3 +1,7 @@
+2011-05-11  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* registry.el (registry-usage-test): Disable pruning test.
+
 2011-05-10  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* registry.el (registry-prune-hard-candidates)
