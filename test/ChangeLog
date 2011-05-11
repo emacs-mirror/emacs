@@ -1,6 +1,7 @@
 2011-05-11  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* automated/gnus-tests.el: Add wrapper for Gnus tests.
+	Require CL.
 
 2011-05-09  Juri Linkov  <juri@jurta.org>
 
