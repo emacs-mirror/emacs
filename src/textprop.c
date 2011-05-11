@@ -874,8 +874,8 @@ In a buffer, it runs to (point-min), and the value cannot be less than that.
 The property values are compared with `eq'.
 If the property is constant all the way to the start of OBJECT, return the
 first valid position in OBJECT.
-If the optional fourth argument LIMIT is non-nil, don't search
-back past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
+If the optional fourth argument LIMIT is non-nil, don't search back past
+position LIMIT; return LIMIT if nothing is found before reaching LIMIT.  */)
      (position, prop, object, limit)
      Lisp_Object prop, position, object, limit;
 {
