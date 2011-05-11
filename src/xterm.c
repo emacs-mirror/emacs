@@ -3609,23 +3609,23 @@ x_find_modifier_meanings (struct x_display_info *dpyinfo)
 /* Convert between the modifier bits X uses and the modifier bits
    Emacs uses.  */
 
-unsigned int
-x_x_to_emacs_modifiers (struct x_display_info *dpyinfo, unsigned int state)
+EMACS_INT
+x_x_to_emacs_modifiers (struct x_display_info *dpyinfo, int state)
 {
-  EMACS_UINT mod_meta = meta_modifier;
-  EMACS_UINT mod_alt  = alt_modifier;
-  EMACS_UINT mod_hyper = hyper_modifier;
-  EMACS_UINT mod_super = super_modifier;
+  EMACS_INT mod_meta = meta_modifier;
+  EMACS_INT mod_alt  = alt_modifier;
+  EMACS_INT mod_hyper = hyper_modifier;
+  EMACS_INT mod_super = super_modifier;
   Lisp_Object tem;
 
   tem = Fget (Vx_alt_keysym, Qmodifier_value);
-  if (! EQ (tem, Qnil)) mod_alt = XUINT (tem);
+  if (INTEGERP (tem)) mod_alt = XINT (tem);
   tem = Fget (Vx_meta_keysym, Qmodifier_value);
-  if (! EQ (tem, Qnil)) mod_meta = XUINT (tem);
+  if (INTEGERP (tem)) mod_meta = XINT (tem);
   tem = Fget (Vx_hyper_keysym, Qmodifier_value);
-  if (! EQ (tem, Qnil)) mod_hyper = XUINT (tem);
+  if (INTEGERP (tem)) mod_hyper = XINT (tem);
   tem = Fget (Vx_super_keysym, Qmodifier_value);
-  if (! EQ (tem, Qnil)) mod_super = XUINT (tem);
+  if (INTEGERP (tem)) mod_super = XINT (tem);
 
 
   return (  ((state & (ShiftMask | dpyinfo->shift_lock_mask)) ? shift_modifier : 0)
@@ -3636,24 +3636,24 @@ x_x_to_emacs_modifiers (struct x_display_info *dpyinfo, unsigned int state)
             | ((state & dpyinfo->hyper_mod_mask)	? mod_hyper	: 0));
 }
 
-static unsigned int
-x_emacs_to_x_modifiers (struct x_display_info *dpyinfo, unsigned int state)
+static int
+x_emacs_to_x_modifiers (struct x_display_info *dpyinfo, EMACS_INT state)
 {
-  EMACS_UINT mod_meta = meta_modifier;
-  EMACS_UINT mod_alt  = alt_modifier;
-  EMACS_UINT mod_hyper = hyper_modifier;
-  EMACS_UINT mod_super = super_modifier;
+  int mod_meta = meta_modifier;
+  int mod_alt  = alt_modifier;
+  int mod_hyper = hyper_modifier;
+  int mod_super = super_modifier;
 
   Lisp_Object tem;
 
   tem = Fget (Vx_alt_keysym, Qmodifier_value);
-  if (! EQ (tem, Qnil)) mod_alt = XUINT (tem);
+  if (INTEGERP (tem)) mod_alt = XINT (tem);
   tem = Fget (Vx_meta_keysym, Qmodifier_value);
-  if (! EQ (tem, Qnil)) mod_meta = XUINT (tem);
+  if (INTEGERP (tem)) mod_meta = XINT (tem);
   tem = Fget (Vx_hyper_keysym, Qmodifier_value);
-  if (! EQ (tem, Qnil)) mod_hyper = XUINT (tem);
+  if (INTEGERP (tem)) mod_hyper = XINT (tem);
   tem = Fget (Vx_super_keysym, Qmodifier_value);
-  if (! EQ (tem, Qnil)) mod_super = XUINT (tem);
+  if (INTEGERP (tem)) mod_super = XINT (tem);
 
 
   return (  ((state & mod_alt)		? dpyinfo->alt_mod_mask   : 0)

@@ -1,5 +1,14 @@
 2011-05-11  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xterm.c: Use EMACS_INT for Emacs modifiers, and int for X modifiers.
+	Before, the code was not consistent.  These values cannot exceed
+	2**31 - 1 so there's no need to make them unsigned.
+	(x_x_to_emacs_modifiers): Accept int and return EMACS_INT.
+	(x_emacs_to_x_modifiers): Accept EMACS_INT and return int.
+	(x_x_to_emacs_modifiers, x_emacs_to_x_modifiers): Reject non-integers
+	as modifiers.
+	* xterm.h (x_x_to_emacs_modifiers): Adjust to signature change.
+
 	* lisp.h (XINT) [USE_LISP_UNION_TYPE]: Cast to EMACS_INT.
 	(XUINT) [USE_LISP_UNION_TYPE]: Cast to EMACS_UINT.
 	Otherwise, GCC 4.6.0 warns about printf (pI, XINT (...)),
