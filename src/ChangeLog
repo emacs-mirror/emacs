@@ -1,5 +1,7 @@
 2011-05-12  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xselect.c (last_event_timestamp): Remove duplicate decl.
+
 	* xmenu.c (set_frame_menubar): Use int, not EMACS_UINT, for indexes
 	that always fit in int.  Use a sentinel instead of a counter, to
 	avoid a temp and to allay GCC's concerns about possible int overflow.
