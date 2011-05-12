@@ -1,5 +1,14 @@
 2011-05-12  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* keyboard.c (make_lispy_event): Fix problem in integer overflow.
+	Don't assume that the difference between two unsigned long values
+	can fit into an integer.  At this point, we know button_down_time
+	<= event->timestamp, so the difference must be nonnegative, so
+	there's no need to cast the result if double-click-time is
+	nonnegative, as it should be; check that it's nonnegative, just in
+	case.  This bug is triggered when events are more than 2**31 ms
+	apart (about 25 days).
+
 	* xselect.c (last_event_timestamp): Remove duplicate decl.
 	(x_own_selection): Remove needless cast to unsigned long.
 

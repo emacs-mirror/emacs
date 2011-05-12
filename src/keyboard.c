@@ -5556,9 +5556,9 @@ make_lispy_event (struct input_event *event)
 		       && (eabs (XINT (event->y) - last_mouse_y) <= fuzz)
 		       && button_down_time != 0
 		       && (EQ (Vdouble_click_time, Qt)
-			   || (INTEGERP (Vdouble_click_time)
-			       && ((int)(event->timestamp - button_down_time)
-				   < XINT (Vdouble_click_time)))));
+			   || (NATNUMP (Vdouble_click_time)
+			       && (event->timestamp - button_down_time
+				   < XFASTINT (Vdouble_click_time)))));
 	}
 
 	last_mouse_button = button;
@@ -5742,9 +5742,9 @@ make_lispy_event (struct input_event *event)
 		       && (eabs (XINT (event->y) - last_mouse_y) <= fuzz)
 		       && button_down_time != 0
 		       && (EQ (Vdouble_click_time, Qt)
-			   || (INTEGERP (Vdouble_click_time)
-			       && ((int)(event->timestamp - button_down_time)
-				   < XINT (Vdouble_click_time)))));
+			   || (NATNUMP (Vdouble_click_time)
+			       && (event->timestamp - button_down_time
+				   < XFASTINT (Vdouble_click_time)))));
 	  if (is_double)
 	    {
 	      double_click_count++;
