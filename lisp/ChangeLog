@@ -1,3 +1,21 @@
+2011-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/rcirc.el: Add support for SSL/TLS connections.
+	(rcirc-server-alist): New field `encryption'.
+	(rcirc): Check `encryption' settings.
+	(rcirc-connect): New arg `encryption'.  Use open-network-stream.
+	Merge make-local-variable into `set'.
+	(rcirc--connection-open-p): New function.
+	(rcirc-send-string, rcirc-clean-up-buffer): Use it to handle case where
+	the process is not a network process (e.g. running gnutls-cli).
+	(set-rcirc-decode-coding-system, set-rcirc-encode-coding-system):
+	Make rcirc-(en|de)code-coding-system local here.
+	(rcirc-mode): Merge make-local-variable into `set'.
+	(rcirc-parent-buffer): Make permanent buffer-local.
+	(rcirc-multiline-minor-mode): Don't do it here.
+	(rcirc-switch-to-server-buffer): Don't switch to a random buffer if
+	there's no server buffer.
+
 2011-05-11  Glenn Morris  <rgm@gnu.org>
 
 	* newcomment.el (comment-kill): Prefix "unused" local.
@@ -9,8 +27,8 @@
 
 2011-05-10  Leo Liu  <sdl.web@gmail.com>
 
-	* bookmark.el (bookmark-bmenu-mode-map): Bind
-	bookmark-bmenu-search to `/'.
+	* bookmark.el (bookmark-bmenu-mode-map):
+	Bind bookmark-bmenu-search to `/'.
 
 	* mail/footnote.el: Convert to utf-8 encoding.
 	(footnote-unicode-string, footnote-unicode-regexp): New variable.
@@ -38,8 +56,8 @@
 
 2011-05-09  Chong Yidong  <cyd@stupidchicken.com>
 
-	* progmodes/compile.el (compilation-start): Run
-	compilation-filter-hook for the async case too.
+	* progmodes/compile.el (compilation-start):
+	Run compilation-filter-hook for the async case too.
 	(compilation-filter-hook): Doc fix.
 
 2011-05-09  Deniz Dogan  <deniz@dogan.se>
@@ -56,8 +74,8 @@
 
 2011-05-09  Chong Yidong  <cyd@stupidchicken.com>
 
-	* progmodes/compile.el (compilation-error-regexp-alist-alist): Fix
-	the ant regexp to handle end-line and end-column info from jikes.
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Fix the ant regexp to handle end-line and end-column info from jikes.
 	Re-introduce maven regexp.  Give the ruby-Test::Unit regexp a
 	higher priority to avoid clobbering by gnu.
 
@@ -68,16 +86,16 @@
 
 2011-05-08  Ralph Schleicher  <rs@ralph-schleicher.de>
 
-	* progmodes/perl-mode.el (perl-imenu-generic-expression): Only
-	match variables declared via `my' or `our' (Bug#8261).
+	* progmodes/perl-mode.el (perl-imenu-generic-expression):
+	Only match variables declared via `my' or `our' (Bug#8261).
 
 	* net/browse-url.el (browse-url-of-dired-file): Allow browsing of
 	special file names `.' and `..' (Bug#8259).
 
 2011-05-08  Chong Yidong  <cyd@stupidchicken.com>
 
-	* progmodes/grep.el (grep-mode-font-lock-keywords): Remove
-	buffer-changing entries.
+	* progmodes/grep.el (grep-mode-font-lock-keywords):
+	Remove buffer-changing entries.
 	(grep-filter): New function.
 	(grep-mode): Add it to compilation-filter-hook.
 
