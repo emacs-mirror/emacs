@@ -1,5 +1,7 @@
 2011-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/grep.el (grep-filter): Don't trip on partial lines.
+
 	* shell.el (shell-completion-vars): New function.
 	(shell-mode):
 	* simple.el (read-shell-command): Use it.

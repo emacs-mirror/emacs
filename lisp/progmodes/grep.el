@@ -476,17 +476,23 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
   "Handle match highlighting escape sequences inserted by the grep process.
 This function is called from `compilation-filter-hook'."
   (save-excursion
-    (let ((end (point-marker)))
-      ;; Highlight grep matches and delete marking sequences.
+    (forward-line 0)
+    (let ((end (point)))
       (goto-char compilation-filter-start)
-      (while (re-search-forward "\033\\[01;31m\\(.*?\\)\033\\[[0-9]*m" end 1)
-	(replace-match (propertize (match-string 1)
-				   'face nil 'font-lock-face grep-match-face)
-		       t t))
-      ;; Delete all remaining escape sequences
-      (goto-char compilation-filter-start)
-      (while (re-search-forward "\033\\[[0-9;]*[mK]" end 1)
-	(replace-match "" t t)))))
+      (forward-line 0)
+      ;; Only operate on whole lines so we don't get caught with part of an
+      ;; escape sequence in one chunk and the rest in another.
+      (when (< (point) end)
+        (setq end (copy-marker end))
+        ;; Highlight grep matches and delete marking sequences.
+        (while (re-search-forward "\033\\[01;31m\\(.*?\\)\033\\[[0-9]*m" end 1)
+          (replace-match (propertize (match-string 1)
+                                     'face nil 'font-lock-face grep-match-face)
+                         t t))
+        ;; Delete all remaining escape sequences
+        (goto-char compilation-filter-start)
+        (while (re-search-forward "\033\\[[0-9;]*[mK]" end 1)
+          (replace-match "" t t))))))
 
 (defun grep-probe (command args &optional func result)
   (let (process-file-side-effects)
