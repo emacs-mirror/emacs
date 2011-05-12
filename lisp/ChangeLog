@@ -1,3 +1,8 @@
+2011-05-12  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* progmodes/ld-script.el (ld-script-keywords)
+	(ld-script-builtins): Update keywords list.
+
 2011-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/grep.el (grep-filter): Don't trip on partial lines.
