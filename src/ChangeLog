@@ -7,7 +7,7 @@
 	there's no need to cast the result if double-click-time is
 	nonnegative, as it should be; check that it's nonnegative, just in
 	case.  This bug is triggered when events are more than 2**31 ms
-	apart (about 25 days).
+	apart (about 25 days).  (Bug#8664)
 
 	* xselect.c (last_event_timestamp): Remove duplicate decl.
 	(x_own_selection): Remove needless cast to unsigned long.
