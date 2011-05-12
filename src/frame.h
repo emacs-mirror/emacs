@@ -192,7 +192,7 @@ struct frame
   struct face_cache *face_cache;
 
   /* Number of elements in `menu_bar_vector' that have meaningful data.  */
-  EMACS_INT menu_bar_items_used;
+  int menu_bar_items_used;
 
   /* A buffer to hold the frame's name.  We can't use the Lisp
      string's pointer (`name', above) because it might get relocated.  */
