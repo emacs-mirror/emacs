@@ -1,5 +1,7 @@
 2011-05-12  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* term.c (term_mouse_position): Don't assume time_t wraparound.
+
 	Be more systematic about user-interface timestamps.
 	Before, the code sometimes used 'Time', sometimes 'unsigned long',
 	and sometimes 'EMACS_UINT', to represent these timestamps.  This
@@ -14,6 +16,7 @@
 	* menu.c (Fx_popup_menu) [!HAVE_X_WINDOWS]: Likewise.
 	* menu.h (xmenu_show): Likewise.
 	* term.c (term_mouse_position): Likewise.
+
 	* termhooks.h (struct input_event.timestamp): Likewise.
 	(struct terminal.mouse_position_hook): Likewise.
 	* xmenu.c (create_and_show_popup_menu, xmenu_show): Likewise.

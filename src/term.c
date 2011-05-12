@@ -2701,6 +2701,7 @@ term_mouse_position (FRAME_PTR *fp, int insist, Lisp_Object *bar_window,
 		     Lisp_Object *y, Time *timeptr)
 {
   struct timeval now;
+  Time sec, usec;
 
   *fp = SELECTED_FRAME ();
   (*fp)->mouse_moved = 0;
@@ -2711,7 +2712,9 @@ term_mouse_position (FRAME_PTR *fp, int insist, Lisp_Object *bar_window,
   XSETINT (*x, last_mouse_x);
   XSETINT (*y, last_mouse_y);
   gettimeofday(&now, 0);
-  *timeptr = (now.tv_sec * 1000) + (now.tv_usec / 1000);
+  sec = now.tv_sec;
+  usec = now.tv_usec;
+  *timeptr = (sec * 1000) + (usec / 1000);
 }
 
 /* Prepare a mouse-event in *RESULT for placement in the input queue.
