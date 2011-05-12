@@ -1,5 +1,7 @@
 2011-05-12  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* menu.c (grow_menu_items): Check for int overflow.
+
 	* xmenu.c (set_frame_menubar): Don't mishandle vectors with no nils.
 
 2011-05-11  Paul Eggert  <eggert@cs.ucla.edu>
