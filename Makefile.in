@@ -373,7 +373,7 @@ src: Makefile FRC
 	      LDFLAGS='${LDFLAGS}' MAKE='${MAKE}' BOOTSTRAPEMACS="$$boot"; \
 	fi;
 	if [ -r .bzr/checkout/dirstate ]; then 			\
-	    vcswitness="$$(pwd)/.bzr/checkout/dirstate"; 	\
+	    vcswitness="`pwd`/.bzr/checkout/dirstate"; 	\
 	fi; 							\
 	cd $@; $(MAKE) all $(MFLAGS)                           \
 	  CC='${CC}' CFLAGS='${CFLAGS}' CPPFLAGS='${CPPFLAGS}' \
@@ -623,7 +623,7 @@ install-arch-indep: mkdir info install-etc
 	   fi; \
 	   cd ${srcdir}/info ; \
 	   for elt in $(INFO_FILES); do \
-	      test "$(HAVE_MAKEINFO)" = "no" && ! test -e $$elt && continue; \
+	      test "$(HAVE_MAKEINFO)" = "no" && test ! -f $$elt && continue; \
 	      for f in `ls $$elt $$elt-[1-9] $$elt-[1-9][0-9] 2>/dev/null`; do \
 	        ${INSTALL_DATA} $$f $(DESTDIR)${infodir}/$$f; \
 	        chmod a+r $(DESTDIR)${infodir}/$$f; \
@@ -639,7 +639,7 @@ install-arch-indep: mkdir info install-etc
 	if [ `(cd ${srcdir}/info && /bin/pwd)` != `(cd $(DESTDIR)${infodir} && /bin/pwd)` ]; \
 	then \
 	  for elt in $(INFO_FILES); do \
-	    test "$(HAVE_MAKEINFO)" = "no" && ! test -e $$elt && continue; \
+	    test "$(HAVE_MAKEINFO)" = "no" && test ! -f $$elt && continue; \
 	    (cd $${thisdir}; \
 	     ${INSTALL_INFO} --info-dir=$(DESTDIR)${infodir} $(DESTDIR)${infodir}/$$elt); \
 	  done; \
@@ -829,7 +829,7 @@ bootstrap-clean: FRC
 	-(cd doc/lispintro &&   $(MAKE) $(MFLAGS) maintainer-clean)
 	(cd leim;     $(MAKE) $(MFLAGS) maintainer-clean)
 	(cd lisp;     $(MAKE) $(MFLAGS) bootstrap-clean)
-	[ ! -e config.log ] || mv -f config.log config.log~
+	[ ! -f config.log ] || mv -f config.log config.log~
 	${top_bootclean}
 ## configure; make bootstrap replaces the real config.log from configure
 ## with the truncated one from config.status.  The former is more useful.
@@ -944,7 +944,7 @@ bootstrap: bootstrap-clean FRC
 .PHONY: check-declare
 
 check-declare:
-	@if [ ! -e $(srcdir)/src/emacs ]; then \
+	@if [ ! -f $(srcdir)/src/emacs ]; then \
 	  echo "You must build Emacs to use this command"; \
 	  exit 1; \
 	fi

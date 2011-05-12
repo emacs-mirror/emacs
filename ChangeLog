@@ -1,6 +1,11 @@
+2011-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (src, install-arch-indep, bootstrap-clean)
+	(check-declare): Shell portability fixes.  (Bug#8642)
+
 2011-05-10  Jim Meyering  <meyering@redhat.com>
 
-	fix doubled-word typos
+	Fix doubled-word typos.
 	* admin/notes/exit-value: the the -> the
 	* doc/lispref/minibuf.texi: in in -> in
 	* doc/misc/ede.texi: or or -> or
