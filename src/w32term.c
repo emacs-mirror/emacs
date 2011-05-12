@@ -715,22 +715,22 @@ w32_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 
 	  if (sb_width > 0)
 	    {
-	      int left = WINDOW_SCROLL_BAR_AREA_X (w);
-	      int width = (WINDOW_CONFIG_SCROLL_BAR_COLS (w)
-			   * FRAME_COLUMN_WIDTH (f));
+	      int bar_area_x = WINDOW_SCROLL_BAR_AREA_X (w);
+	      int bar_area_width = (WINDOW_CONFIG_SCROLL_BAR_COLS (w)
+				    * FRAME_COLUMN_WIDTH (f));
 
 	      if (bx < 0)
 		{
 		  /* Bitmap fills the fringe.  */
-		  if (left + width == p->x)
-		    bx = left + sb_width;
-		  else if (p->x + p->wd == left)
-		    bx = left;
+		  if (bar_area_x + bar_area_width == p->x)
+		    bx = bar_area_x + sb_width;
+		  else if (p->x + p->wd == bar_area_x)
+		    bx = bar_area_x;
 		  if (bx >= 0)
 		    {
 		      int header_line_height = WINDOW_HEADER_LINE_HEIGHT (w);
 
-		      nx = width - sb_width;
+		      nx = bar_area_width - sb_width;
 		      by = WINDOW_TO_FRAME_PIXEL_Y (w, max (header_line_height,
 							    row->y));
 		      ny = row->visible_height;
@@ -738,13 +738,13 @@ w32_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 		}
 	      else
 		{
-		  if (left + width == bx)
+		  if (bar_area_x + bar_area_width == bx)
 		    {
-		      bx = left + sb_width;
-		      nx += width - sb_width;
+		      bx = bar_area_x + sb_width;
+		      nx += bar_area_width - sb_width;
 		    }
-		  else if (bx + nx == left)
-		    nx += width - sb_width;
+		  else if (bx + nx == bar_area_x)
+		    nx += bar_area_width - sb_width;
 		}
 	    }
 	}
@@ -2618,6 +2618,32 @@ x_scroll_run (struct window *w, struct run *run)
      without mode lines.  Include in this box the left and right
      fringes of W.  */
   window_box (w, -1, &x, &y, &width, &height);
+
+  /* If the fringe is adjacent to the left (right) scroll bar of a
+     leftmost (rightmost, respectively) window, then extend its
+     background to the gap between the fringe and the bar.  */
+  if ((WINDOW_LEFTMOST_P (w)
+       && WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w))
+      || (WINDOW_RIGHTMOST_P (w)
+	  && WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_RIGHT (w)))
+    {
+      int sb_width = WINDOW_CONFIG_SCROLL_BAR_WIDTH (w);
+
+      if (sb_width > 0)
+	{
+	  int bar_area_x = WINDOW_SCROLL_BAR_AREA_X (w);
+	  int bar_area_width = (WINDOW_CONFIG_SCROLL_BAR_COLS (w)
+				* FRAME_COLUMN_WIDTH (f));
+
+	  if (bar_area_x + bar_area_width == x)
+	    {
+	      x = bar_area_x + sb_width;
+	      width += bar_area_width - sb_width;
+	    }
+	  else if (x + width == bar_area_x)
+	    width += bar_area_width - sb_width;
+	}
+    }
 
   from_y = WINDOW_TO_FRAME_PIXEL_Y (w, run->current_y);
   to_y = WINDOW_TO_FRAME_PIXEL_Y (w, run->desired_y);

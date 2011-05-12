@@ -1,3 +1,15 @@
+2011-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* modes.texi (Region to Refontify): Rename from "Region to Fontify".
+	(Multiline Font Lock):
+	* vol2.texi (Top):
+	* vol1.texi (Top):
+	* elisp.texi (Top): Update menu accordingly.
+
+2011-05-12  Drew Adams  <drew.adams@oracle.com>
+
+	* modes.texi (Region to Fontify): Fix typo.
+
 2011-05-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* numbers.texi (Integer Basics): Large integers are treated as floats.

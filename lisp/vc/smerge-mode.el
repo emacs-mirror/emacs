@@ -566,7 +566,7 @@ major modes.  Uses `smerge-resolve-function' to do the actual work."
 	      (with-current-buffer buf
 		(zerop (call-process-region
 			(point-min) (point-max) "patch" t nil nil
-			"-r" "/dev/null" "--no-backup-if-mismatch"
+			"-r" null-device "--no-backup-if-mismatch"
 			"-fl" o))))
 	    (save-restriction
 	      (narrow-to-region m0b m0e)
@@ -582,7 +582,7 @@ major modes.  Uses `smerge-resolve-function' to do the actual work."
 	      (with-current-buffer buf
 		(zerop (call-process-region
 			(point-min) (point-max) "patch" t nil nil
-			"-r" "/dev/null" "--no-backup-if-mismatch"
+			"-r" null-device "--no-backup-if-mismatch"
 			"-fl" m))))
 	    (save-restriction
 	      (narrow-to-region m0b m0e)

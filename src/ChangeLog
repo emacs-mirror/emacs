@@ -1,3 +1,19 @@
+2011-05-12  Drew Adams  <drew.adams@oracle.com>
+
+	* textprop.c (Fprevious_single_char_property_change): Doc fix (bug#8655).
+
+2011-05-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* w32term.c (w32_draw_fringe_bitmap): Rename local vars `left' and
+	`width' to `bar_area_x' and `bar_area_width', respectively.
+	(x_scroll_run): Take account of fringe background extension.
+
+	* xterm.c (x_draw_fringe_bitmap) [USE_TOOLKIT_SCROLL_BARS]: Rename
+	local vars `left' and `width' to `bar_area_x' and
+	`bar_area_width', respectively.
+	(x_scroll_run) [USE_TOOLKIT_SCROLL_BARS]: Take account of fringe
+	background extension.
+
 2011-05-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* image.c (Finit_image_library): Return t for built-in image types,
