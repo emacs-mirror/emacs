@@ -1,3 +1,8 @@
+2011-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/appt.el (appt-now-displayed): Remove pointless variable.
+	(appt-check): Simplify.
+
 2011-05-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* smerge-mode.el (smerge-resolve): Use null-device rather than a
