@@ -342,7 +342,7 @@ static struct scroll_bar *x_window_to_scroll_bar (Display *, Window);
 static void x_scroll_bar_report_motion (struct frame **, Lisp_Object *,
                                         enum scroll_bar_part *,
                                         Lisp_Object *, Lisp_Object *,
-                                        unsigned long *);
+                                        Time *);
 static void x_handle_net_wm_state (struct frame *, XPropertyEvent *);
 static void x_check_fullscreen (struct frame *);
 static void x_check_expected_move (struct frame *, int, int);
@@ -3799,7 +3799,7 @@ redo_mouse_highlight (void)
 static void
 XTmouse_position (FRAME_PTR *fp, int insist, Lisp_Object *bar_window,
 		  enum scroll_bar_part *part, Lisp_Object *x, Lisp_Object *y,
-		  long unsigned int *timestamp)
+		  Time *timestamp)
 {
   FRAME_PTR f1;
 
@@ -5534,7 +5534,7 @@ x_scroll_bar_note_movement (struct scroll_bar *bar, XEvent *event)
 static void
 x_scroll_bar_report_motion (FRAME_PTR *fp, Lisp_Object *bar_window,
 			    enum scroll_bar_part *part, Lisp_Object *x,
-			    Lisp_Object *y, long unsigned int *timestamp)
+			    Lisp_Object *y, Time *timestamp)
 {
   struct scroll_bar *bar = XSCROLL_BAR (last_mouse_scroll_bar);
   Window w = bar->x_window;

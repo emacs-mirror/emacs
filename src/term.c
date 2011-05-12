@@ -2698,7 +2698,7 @@ term_mouse_movement (FRAME_PTR frame, Gpm_Event *event)
 static void
 term_mouse_position (FRAME_PTR *fp, int insist, Lisp_Object *bar_window,
 		     enum scroll_bar_part *part, Lisp_Object *x,
-		     Lisp_Object *y, unsigned long *timeptr)
+		     Lisp_Object *y, Time *timeptr)
 {
   struct timeval now;
 

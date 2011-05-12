@@ -1147,13 +1147,13 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 #else /* not HAVE_X_WINDOWS */
 	Lisp_Object bar_window;
 	enum scroll_bar_part part;
-	unsigned long time;
+	Time time;
         void (*mouse_position_hook) (struct frame **, int,
                                      Lisp_Object *,
                                      enum scroll_bar_part *,
                                      Lisp_Object *,
                                      Lisp_Object *,
-                                     unsigned long *) =
+                                     Time *) =
 	  FRAME_TERMINAL (new_f)->mouse_position_hook;
 
 	if (mouse_position_hook)
