@@ -14,6 +14,10 @@
 
 	* modes.texi (Region to Fontify): Fix typo.
 
+2011-05-10  Jim Meyering  <meyering@redhat.com>
+
+	* minibuf.texi: Fix typo "in in -> in".
+
 2011-05-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* numbers.texi (Integer Basics): Large integers are treated as floats.

@@ -14,6 +14,10 @@
 	(x_scroll_run) [USE_TOOLKIT_SCROLL_BARS]: Take account of fringe
 	background extension.
 
+2011-05-10  Jim Meyering  <meyering@redhat.com>
+
+	* xdisp.c (x_intersect_rectangles): Fix typo "the the -> the".
+
 2011-05-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* image.c (Finit_image_library): Return t for built-in image types,

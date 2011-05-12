@@ -1,3 +1,9 @@
+2011-05-10  Jim Meyering  <meyering@redhat.com>
+
+	Fix doubled-word typos.
+	* mh-alias.el (mh-alias-minibuffer-confirm-address): if if -> if it
+	* mh-scan.el (mh-scan-destination-width): in in -> in
+
 2011-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mh-utils.el (mh-folder-completion-function): Make it work like

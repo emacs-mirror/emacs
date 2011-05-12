@@ -1,3 +1,7 @@
+2011-05-10  Jim Meyering  <meyering@redhat.com>
+
+	* ede.texi: Fix typo "or or -> or".
+
 2011-05-03  Peter Münster  <pmlists@free.fr>  (tiny change)
 
 	* gnus.texi (Summary Buffer Lines):

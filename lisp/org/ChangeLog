@@ -1,3 +1,11 @@
+2011-05-10  Jim Meyering  <meyering@redhat.com>
+
+	Fix doubled-word typos.
+	* org-agenda.el (org-agenda-entry-types): the the -> the
+	* org-table.el (org-table-get-remote-range): or or -> or
+	* org-wl.el (org-wl-folder-type): the the -> the
+	* org.el (org-goto, org-inside-LaTeX-fragment-p): Likewise.
+
 2011-03-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* org-src.el (org-src-switch-to-buffer):
