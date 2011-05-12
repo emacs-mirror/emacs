@@ -1,3 +1,8 @@
+2011-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-file-form-defmumble):
+	Let byte-compile-initial-macro-environment always take precedence.
+
 2011-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* net/rcirc.el: Add support for SSL/TLS connections.

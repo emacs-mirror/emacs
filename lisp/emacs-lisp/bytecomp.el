@@ -2421,7 +2421,11 @@ by side-effects."
 
     (let* ((code (byte-compile-lambda (nthcdr 2 form) t)))
       (if this-one
-	  (setcdr this-one code)
+	  ;; A definition in b-c-initial-m-e should always take precedence
+	  ;; during compilation, so don't let it be redefined.  (Bug#8647)
+	  (or (and macrop
+		   (assq name byte-compile-initial-macro-environment))
+	      (setcdr this-one code))
 	(set this-kind
 	     (cons (cons name code)
 		   (symbol-value this-kind))))
