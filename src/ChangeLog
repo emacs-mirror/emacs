@@ -1,6 +1,7 @@
 2011-05-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xselect.c (last_event_timestamp): Remove duplicate decl.
+	(x_own_selection): Remove needless cast to unsigned long.
 
 	* xmenu.c (set_frame_menubar): Use int, not EMACS_UINT, for indexes
 	that always fit in int.  Use a sentinel instead of a counter, to

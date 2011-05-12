@@ -352,7 +352,7 @@ x_own_selection (Lisp_Object selection_name, Lisp_Object selection_value)
     Lisp_Object selection_data;
     Lisp_Object prev_value;
 
-    selection_time = long_to_cons ((unsigned long) timestamp);
+    selection_time = long_to_cons (timestamp);
     selection_data = list4 (selection_name, selection_value,
 			    selection_time, selected_frame);
     prev_value = assq_no_quit (selection_name, Vselection_alist);
