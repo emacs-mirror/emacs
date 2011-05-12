@@ -1,3 +1,10 @@
+2011-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* shell.el (shell-completion-vars): New function.
+	(shell-mode):
+	* simple.el (read-shell-command): Use it.
+	(blink-matching-open): No need for " [...]" in minibuffer-message.
+
 2011-05-12  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/appt.el (appt-now-displayed): Remove pointless variable.

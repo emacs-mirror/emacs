@@ -380,6 +380,25 @@ to `dirtrack-mode'."
   :group 'shell
   :type '(choice (const nil) regexp))
 
+(defun shell-completion-vars ()
+  "Setup completion vars for `shell-mode' and `read-shell-command'."
+  (set (make-local-variable 'comint-completion-fignore)
+       shell-completion-fignore)
+  (set (make-local-variable 'comint-delimiter-argument-list)
+       shell-delimiter-argument-list)
+  (set (make-local-variable 'comint-file-name-chars) shell-file-name-chars)
+  (set (make-local-variable 'comint-file-name-quote-list)
+       shell-file-name-quote-list)
+  (set (make-local-variable 'comint-dynamic-complete-functions)
+       shell-dynamic-complete-functions)
+  (set (make-local-variable 'pcomplete-parse-arguments-function)
+       ;; FIXME: This function should be moved to shell.el.
+       #'pcomplete-parse-comint-arguments)
+  (setq comint-input-autoexpand shell-input-autoexpand)
+  ;; Not needed in shell-mode because it's inherited from comint-mode, but
+  ;; placed here for read-shell-command.
+  (add-hook 'completion-at-point-functions 'comint-completion-at-point nil t))
+
 (put 'shell-mode 'mode-class 'special)
 
 (define-derived-mode shell-mode comint-mode "Shell"
@@ -437,22 +456,12 @@ Variables `comint-output-filter-functions', a hook, and
 control whether input and output cause the window to scroll to the end of the
 buffer."
   (setq comint-prompt-regexp shell-prompt-pattern)
-  (setq comint-completion-fignore shell-completion-fignore)
-  (setq comint-delimiter-argument-list shell-delimiter-argument-list)
-  (setq comint-file-name-chars shell-file-name-chars)
-  (setq comint-file-name-quote-list shell-file-name-quote-list)
-  (set (make-local-variable 'comint-dynamic-complete-functions)
-       shell-dynamic-complete-functions)
+  (shell-completion-vars)
   (set (make-local-variable 'paragraph-separate) "\\'")
-  (make-local-variable 'paragraph-start)
-  (setq paragraph-start comint-prompt-regexp)
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(shell-font-lock-keywords t))
-  (make-local-variable 'shell-dirstack)
-  (setq shell-dirstack nil)
-  (make-local-variable 'shell-last-dir)
-  (setq shell-last-dir nil)
-  (setq comint-input-autoexpand shell-input-autoexpand)
+  (set (make-local-variable 'paragraph-start) comint-prompt-regexp)
+  (set (make-local-variable 'font-lock-defaults) '(shell-font-lock-keywords t))
+  (set (make-local-variable 'shell-dirstack) nil)
+  (set (make-local-variable 'shell-last-dir) nil)
   (shell-dirtrack-mode 1)
   ;; This is not really correct, since the shell buffer does not really
   ;; edit this directory.  But it is useful in the buffer list and menus.

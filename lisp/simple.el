@@ -36,10 +36,6 @@
 ;;; From compile.el
 (defvar compilation-current-error)
 (defvar compilation-context-lines)
-;;; From comint.el
-(defvar comint-file-name-quote-list)
-(defvar comint-file-name-chars)
-(defvar comint-delimiter-argument-list)
 
 (defcustom idle-update-delay 0.5
   "Idle time delay before updating various things on the screen.
@@ -2167,12 +2163,7 @@ to the end of the list of defaults just after the default value."
 	(append minibuffer-default commands)
       (cons minibuffer-default commands))))
 
-(defvar shell-delimiter-argument-list)
-(defvar shell-file-name-chars)
-(defvar shell-file-name-quote-list)
-(defvar shell-dynamic-complete-functions)
-;; shell requires comint.
-(defvar comint-dynamic-complete-functions)
+(declare-function shell-completion-vars "shell" ())
 
 (defvar minibuffer-local-shell-command-map
   (let ((map (make-sparse-keymap)))
@@ -2189,15 +2180,7 @@ to `shell-command-history'."
   (require 'shell)
   (minibuffer-with-setup-hook
       (lambda ()
-	(set (make-local-variable 'comint-delimiter-argument-list)
-	     shell-delimiter-argument-list)
-	(set (make-local-variable 'comint-file-name-chars) shell-file-name-chars)
-	(set (make-local-variable 'comint-file-name-quote-list)
-	     shell-file-name-quote-list)
-	(set (make-local-variable 'comint-dynamic-complete-functions)
-	     shell-dynamic-complete-functions)
-	(add-hook 'completion-at-point-functions
-		  'comint-completion-at-point nil 'local)
+        (shell-completion-vars)
 	(set (make-local-variable 'minibuffer-default-add-function)
 	     'minibuffer-default-add-shell-commands))
     (apply 'read-from-minibuffer prompt initial-contents
@@ -5589,10 +5572,10 @@ The function should return non-nil if the two tokens do not match.")
        (mismatch
         (if blinkpos
             (if (minibufferp)
-                (minibuffer-message " [Mismatched parentheses]")
+                (minibuffer-message "Mismatched parentheses")
               (message "Mismatched parentheses"))
           (if (minibufferp)
-              (minibuffer-message " [Unmatched parenthesis]")
+              (minibuffer-message "Unmatched parenthesis")
             (message "Unmatched parenthesis"))))
        ((not blinkpos) nil)
        ((pos-visible-in-window-p blinkpos)
