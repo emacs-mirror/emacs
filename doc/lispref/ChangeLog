@@ -1,3 +1,7 @@
+2011-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (Image Descriptors): Fix typo.  (Bug#8495)
+
 2011-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* modes.texi (Region to Refontify): Rename from "Region to Fontify".
