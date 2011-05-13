@@ -1312,22 +1312,16 @@ Feeds the buffer to it."
 			 (mapconcat 'identity addr-listoid " "))))))
 
 
+(defvar sendmail-program)
+
 (defun feedmail-buffer-to-sendmail (prepped errors-to addr-listoid)
   "Function which actually calls sendmail as a subprocess.
 Feeds the buffer to it.  Probably has some flaws for Resent-* and other
 complicated cases."
+  (require 'sendmail)
   (set-buffer prepped)
   (apply 'call-process-region
-	 (append (list (point-min) (point-max)
-		       (cond ((boundp 'sendmail-program)
-			      sendmail-program)
-			     ((file-exists-p "/usr/sbin/sendmail")
-			      "/usr/sbin/sendmail")
-			     ((file-exists-p "/usr/lib/sendmail")
-			      "/usr/lib/sendmail")
-			     ((file-exists-p "/usr/ucblib/sendmail")
-			      "/usr/ucblib/sendmail")
-			     (t "fakemail"))
+	 (append (list (point-min) (point-max) sendmail-program
 		       nil errors-to nil "-oi" "-t")
 		 ;; provide envelope "from" to sendmail; results will vary
 		 (list "-f" user-mail-address)

@@ -1,5 +1,7 @@
 2011-05-13  Glenn Morris  <rgm@gnu.org>
 
+	* mail/feedmail.el (feedmail-buffer-to-sendmail): Require sendmail.
+
 	* mail/sendmail.el (sendmail-program): Try executable-find first.
 	(sendmail-send-it): sendmail-program cannot be unbound.
 
