@@ -1,5 +1,8 @@
 2011-05-13  Glenn Morris  <rgm@gnu.org>
 
+	* mail/sendmail.el (sendmail-program): Try executable-find first.
+	(sendmail-send-it): sendmail-program cannot be unbound.
+
 	* calendar/appt.el (appt-make-list): Simplify.
 	(appt-time-msg-list): Doc fix.
 	(appt-check): Change mode-line message at the time of the appointment.

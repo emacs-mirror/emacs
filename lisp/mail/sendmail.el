@@ -43,12 +43,14 @@
   :version "22.1")
 
 (defcustom sendmail-program
-  (cond
-    ((file-exists-p "/usr/sbin/sendmail") "/usr/sbin/sendmail")
-    ((file-exists-p "/usr/lib/sendmail") "/usr/lib/sendmail")
-    ((file-exists-p "/usr/ucblib/sendmail") "/usr/ucblib/sendmail")
-    (t "fakemail"))			;In ../etc, to interface to /bin/mail.
+  (or (executable-find "sendmail")
+      (cond
+       ((file-exists-p "/usr/sbin/sendmail") "/usr/sbin/sendmail")
+       ((file-exists-p "/usr/lib/sendmail") "/usr/lib/sendmail")
+       ((file-exists-p "/usr/ucblib/sendmail") "/usr/ucblib/sendmail")
+       (t "fakemail")))	       ; in lib-src, to interface to /bin/mail
   "Program used to send messages."
+  :version "24.1"			; added executable-find
   :group 'mail
   :type 'file)
 
@@ -1037,9 +1039,6 @@ external program defined by `sendmail-program'."
 	delimline
 	fcc-was-found
 	(mailbuf (current-buffer))
-	(program (if (boundp 'sendmail-program)
-		     sendmail-program
-		   "/usr/lib/sendmail"))
 	;; Examine these variables now, so that
 	;; local binding in the mail buffer will take effect.
 	(envelope-from
@@ -1165,7 +1164,7 @@ external program defined by `sendmail-program'."
 		     (coding-system-for-write selected-coding)
 		     (args
 		      (append (list (point-min) (point-max)
-				    program
+				    sendmail-program
 				    nil errbuf nil "-oi")
 			      (and envelope-from
 				   (list "-f" envelope-from))
