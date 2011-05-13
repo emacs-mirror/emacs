@@ -4621,6 +4621,8 @@ If you always want Gnus to send messages in one piece, set
     (set-buffer mailbuf)
     (push 'mail message-sent-message-via)))
 
+(defvar sendmail-program)
+
 (defun message-send-mail-with-sendmail ()
   "Send off the prepared buffer with sendmail."
   (require 'sendmail)
