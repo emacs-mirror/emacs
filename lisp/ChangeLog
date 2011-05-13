@@ -1,3 +1,19 @@
+2011-05-13  Didier Verna  <didier@xemacs.org>
+
+	Common Lisp indentation improvements on defmethod and lambda-lists.
+	* cl-indent.el: Advertise the changes and remove obsolete TODO entries.
+	(lisp-lambda-list-keyword-parameter-indentation)
+	(lisp-lambda-list-keyword-parameter-alignment)
+	(lisp-lambda-list-keyword-alignment): New customizable user options.
+	(lisp-indent-defun-method): Improve docstring.
+	(extended-loop-p): Fix comment.
+	(lisp-indent-lambda-list-keywords-regexp): New variable.
+	(lisp-indent-lambda-list): New function.
+	(lisp-indent-259): Use it.
+	(lisp-indent-defmethod): Support for more than one
+	method qualifier and properly indent methods lambda-lists.
+	(defgeneric): Provide a missing common-lisp-indent-function property.
+
 2011-05-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* thingatpt.el (bounds-of-thing-at-point): Return nil rather than
