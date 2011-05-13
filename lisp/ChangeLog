@@ -1,3 +1,25 @@
+2011-05-13  Ulf Jasper  <ulf.jasper@web.de>
+
+	* net/newst-treeview.el (newsticker-treeview-face): Changed default
+	family from helvetica to sans.
+	(newsticker-treeview-tool-bar-map): Moved tool-bar icons to
+	etc/images/newsticker.
+
+	* net/newst-reader.el (newsticker-feed-face): Changed default
+	family from helvetica to sans.
+
+	* net/newst-plainview.el (newsticker-new-item-face)
+	(newsticker-old-item-face, newsticker-immortal-item-face)
+	(newsticker-obsolete-item-face, newsticker-date-face)
+	(newsticker-statistics-face): Changed default family from
+	helvetica to sans.
+	(newsticker--plainview-tool-bar-map): Moved tool-bar icons to
+	etc/images/newsticker.
+
+	* net/newst-backend.el (newsticker--do-run-auto-mark-filter),
+	(newsticker--process-auto-mark-filter-match): : Tell user about
+	auto-marking.
+
 2011-05-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* thingatpt.el (bounds-of-thing-at-point): Return nil rather than
