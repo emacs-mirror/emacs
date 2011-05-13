@@ -569,15 +569,12 @@ Any appointments made with `appt-add' are not affected by this function."
                 (setq entry-list (cdr entry-list)))))
         (setq appt-time-msg-list (appt-sort-list appt-time-msg-list))
         ;; Convert current time to minutes after midnight (12:01am = 1),
-        ;; so that elements in the list that are earlier than the
-        ;; present time can be removed.
+        ;; and remove elements in the list that are in the past.
         (let* ((now (decode-time))
-               (cur-comp-time (+ (* 60 (nth 2 now)) (nth 1 now)))
-               (appt-comp-time (caar (car appt-time-msg-list))))
-          (while (and appt-time-msg-list (< appt-comp-time cur-comp-time))
-            (setq appt-time-msg-list (cdr appt-time-msg-list))
-            (if appt-time-msg-list
-                (setq appt-comp-time (caar (car appt-time-msg-list)))))))))
+               (now-mins (+ (* 60 (nth 2 now)) (nth 1 now))))
+          (while (and appt-time-msg-list
+                      (< (caar (car appt-time-msg-list)) now-mins))
+            (setq appt-time-msg-list (cdr appt-time-msg-list)))))))
 
 
 (defun appt-sort-list (appt-list)
