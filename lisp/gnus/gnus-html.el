@@ -488,7 +488,7 @@ Return a string with image data."
 			 ,url
 			 image-displayer
 			 (lambda (url start end)
-			   (gnus-html-display-image ,url ,start ,(point)
+			   (gnus-html-display-image url start end
 						    ,alt-text)))))
                     (gnus-add-image 'external image)
                     t)
