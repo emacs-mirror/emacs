@@ -1523,7 +1523,7 @@ clear_image_cache (struct frame *f, Lisp_Object filter)
 	{
 	  /* Free cache based on timestamp.  */
 	  EMACS_TIME t;
-	  unsigned long old;
+	  time_t old;
 	  int delay, nimages = 0;
 
 	  for (i = 0; i < c->used; ++i)
