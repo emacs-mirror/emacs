@@ -1,3 +1,8 @@
+2011-05-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/python.el (python-font-lock-keywords):
+	Add the Python 3.X keyword "nonlocal" (bug#8639).
+
 2011-05-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* smerge-mode.el (smerge-resolve): Use null-device rather than a
