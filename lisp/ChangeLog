@@ -1,6 +1,7 @@
 2011-05-13  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/appt.el (appt-make-list): Simplify.
+	(appt-time-msg-list): Doc fix.
 
 2011-05-12  Andreas Schwab  <schwab@linux-m68k.org>
 

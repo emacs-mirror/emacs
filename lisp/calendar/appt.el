@@ -167,16 +167,16 @@ Only relevant if reminders are being displayed in a window."
 
 ;; TODO Turn this into an alist?  It would be easier to add more
 ;; optional elements.
-;; TODO There should be a way to set WARNTIME (and other properties)
-;; from the diary-file.  Implementing that would be a good reason
-;; to change this to an alist.
+;; Why is the first element (MINUTES) rather than just MINUTES?
+;; It may just inherit from diary-entries-list, where we have
+;; ((MONTH DAY YEAR) ENTRY)
 (defvar appt-time-msg-list nil
   "The list of appointments for today.
 Use `appt-add' and `appt-delete' to add and delete appointments.
 The original list is generated from today's `diary-entries-list', and
 can be regenerated using the function `appt-check'.
 Each element of the generated list has the form
-\(MINUTES STRING [FLAG] [WARNTIME])
+\((MINUTES) STRING [FLAG] [WARNTIME])
 where MINUTES is the time in minutes of the appointment after midnight,
 and STRING is the description of the appointment.
 FLAG and WARNTIME are not always present.  A non-nil FLAG
@@ -548,6 +548,8 @@ Any appointments made with `appt-add' are not affected by this function."
                          ;; Get the whole string for this appointment.
                          (appt-time-string
                           (substring time-string beg end))
+                         ;; FIXME why the list?  It makes the first
+                         ;; element (MINUTES) rather than MINUTES.
                          (appt-time (list (appt-convert-time only-time)))
                          (time-msg (append
                                     (list appt-time appt-time-string)
