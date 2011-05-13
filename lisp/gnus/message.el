@@ -4656,16 +4656,7 @@ If you always want Gnus to send messages in one piece, set
 		 (cpr (apply
 		       'call-process-region
 		       (append
-			(list (point-min) (point-max)
-			      (cond ((boundp 'sendmail-program)
-				     sendmail-program)
-				    ((file-exists-p "/usr/sbin/sendmail")
-				     "/usr/sbin/sendmail")
-				    ((file-exists-p "/usr/lib/sendmail")
-				     "/usr/lib/sendmail")
-				    ((file-exists-p "/usr/ucblib/sendmail")
-				     "/usr/ucblib/sendmail")
-				    (t "fakemail"))
+			(list (point-min) (point-max) sendmail-program
 			      nil errbuf nil "-oi")
 			message-sendmail-extra-arguments
 			;; Always specify who from,

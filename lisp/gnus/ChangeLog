@@ -1,3 +1,8 @@
+2011-05-13  Glenn Morris  <rgm@gnu.org>
+
+	* message.el (message-send-mail-with-sendmail): Assume sendmail-program
+	is bound, since this function requires sendmail.
+
 2011-05-11  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* registry.el (registry-usage-test): Disable pruning test.
