@@ -482,8 +482,14 @@ Return a string with image data."
                     (gnus-put-text-property start (point)
 					    'gnus-alt-text alt-text)
                     (when url
-                      (gnus-put-text-property start (point)
-					      'image-url url))
+		      (gnus-add-text-properties
+		       start (point)
+		       `(image-url
+			 ,url
+			 image-displayer
+			 (lambda (url start end)
+			   (gnus-html-display-image ,url ,start ,(point)
+						    ,alt-text)))))
                     (gnus-add-image 'external image)
                     t)
                 ;; Bad image, try to show something else

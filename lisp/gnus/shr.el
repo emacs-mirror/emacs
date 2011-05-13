@@ -582,7 +582,7 @@ START, and END.  Note that START and END should be merkers."
 		 (when image
 		   (goto-char start)
 		   (funcall shr-put-image-function
-			    image (buffer-substring-no-properties start end))
+			    image (buffer-substring start end))
 		   (delete-region (point) end))))
 	 (url-retrieve url 'shr-image-fetched
 		       (list (current-buffer) start end)

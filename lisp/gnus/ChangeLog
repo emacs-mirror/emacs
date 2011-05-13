@@ -1,3 +1,9 @@
+2011-05-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-html.el (gnus-html-put-image): Register a displayer.
+
+	* shr.el (shr-image-displayer): Don't remove text props from alt text.
+
 2011-05-13  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* registry.el (prune-factor): New initialization parameter defaulting
