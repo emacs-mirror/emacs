@@ -1,9 +1,14 @@
+2011-05-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* thingatpt.el (bounds-of-thing-at-point): Return nil rather than
+	bounds for the empty string (bug#8667).
+
 2011-05-13  Glenn Morris  <rgm@gnu.org>
 
 	* mail/feedmail.el (feedmail-buffer-to-sendmail): Require sendmail.
 
 	* mail/sendmail.el (sendmail-program): Try executable-find first.
-	(sendmail-send-it): sendmail-program cannot be unbound.
+	(sendmail-send-it): `sendmail-program' cannot be unbound.
 
 	* calendar/appt.el (appt-make-list): Simplify.
 	(appt-time-msg-list): Doc fix.

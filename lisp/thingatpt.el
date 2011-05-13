@@ -89,18 +89,19 @@ of the textual entity that was found."
              (or (get thing 'beginning-op)
                  (lambda () (forward-thing thing -1))))
 	    (let ((beg (point)))
-	      (if (not (and beg (> beg orig)))
+	      (if (<= beg orig)
 		  ;; If that brings us all the way back to ORIG,
 		  ;; it worked.  But END may not be the real end.
 		  ;; So find the real end that corresponds to BEG.
+                  ;; FIXME: in which cases can `real-end' differ from `end'?
 		  (let ((real-end
 			 (progn
 			   (funcall
 			    (or (get thing 'end-op)
                                 (lambda () (forward-thing thing 1))))
 			   (point))))
-		    (if (and beg real-end (<= beg orig) (<= orig real-end))
-			(cons beg real-end)))
+		    (when (and (<= orig real-end) (< beg real-end))
+                      (cons beg real-end)))
 		(goto-char orig)
 		;; Try a second time, moving backward first and then forward,
 		;; so that we can find a thing that ends at ORIG.
@@ -117,7 +118,7 @@ of the textual entity that was found."
 			  (or (get thing 'beginning-op)
                               (lambda () (forward-thing thing -1))))
 			 (point))))
-		  (if (and real-beg end (<= real-beg orig) (<= orig end))
+		  (if (and (<= real-beg orig) (<= orig end) (< real-beg end))
 		      (cons real-beg end))))))
 	(error nil)))))
 
