@@ -1,5 +1,14 @@
 2011-05-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* editfns.c (Fformat): Fix several integer overflow problems.
+	For example, without this change, (format "%2147483648d" 1) dumps
+	core on x86-64 GNU/Linux.  Use EMACS_INT, not size_t, for sizes,
+	since we prefer using signed values, and EMACS_INT will be big
+	enough soon, even on 32-bit hosts.  Also, prefer EMACS_INT to int
+	for sizes.  Don't assume that pI is either "l" or ""; it might be
+	"ll" or "I64".  Check for width and precision greater than
+	INT_MAX, as this can make sprintf go kaflooey.  (Bug#8668)
+
 	* dispextern.h (struct image): Don't assume time_t <= unsigned long.
 	* image.c (clear_image_cache): Likewise.
 

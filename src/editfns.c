@@ -3583,11 +3583,12 @@ specifier truncates the string to the given width.
 usage: (format STRING &rest OBJECTS)  */)
   (size_t nargs, register Lisp_Object *args)
 {
-  register size_t n;		/* The number of the next arg to substitute */
-  register size_t total;	/* An estimate of the final length */
+  register EMACS_INT n;		/* The number of the next arg to substitute */
+  register EMACS_INT total;	/* An estimate of the final length */
+  int pIlen = sizeof pI - 1;
   char *buf, *p;
   register char *format, *end, *format_start;
-  int nchars;
+  EMACS_INT nchars;
   /* Nonzero if the output should be a multibyte string,
      which is true if any of the inputs is one.  */
   int multibyte = 0;
@@ -3603,7 +3604,7 @@ usage: (format STRING &rest OBJECTS)  */)
      no argument, *will* be assigned to in the case that a `%' and `.'
      occur after the final format specifier.  */
   int *precision = (int *) (alloca ((nargs + 1) * sizeof (int)));
-  int longest_format;
+  EMACS_INT longest_format;
   Lisp_Object val;
   int arg_intervals = 0;
   USE_SAFE_ALLOCA;
@@ -3619,7 +3620,8 @@ usage: (format STRING &rest OBJECTS)  */)
      info[0] is unused.  Unused elements have -1 for start.  */
   struct info
   {
-    int start, end, intervals;
+    EMACS_INT start, end;
+    int intervals;
   } *info = 0;
 
   /* It should not be necessary to GCPRO ARGS, because
@@ -3660,8 +3662,8 @@ usage: (format STRING &rest OBJECTS)  */)
 
   /* Allocate the info and discarded tables.  */
   {
-    size_t nbytes = (nargs+1) * sizeof *info;
-    size_t i;
+    EMACS_INT nbytes = (nargs + 1) * sizeof *info;
+    EMACS_INT i;
     if (!info)
       info = (struct info *) alloca (nbytes);
     memset (info, 0, nbytes);
@@ -3706,25 +3708,33 @@ usage: (format STRING &rest OBJECTS)  */)
 		   || * format == ' ' || *format == '+'))
 	  ++format;
 
+	/* Parse width and precision, limiting them to the range of 'int'
+	   because otherwise the underyling sprintf may go kaflooey.  */
+
 	if (*format >= '0' && *format <= '9')
 	  {
-	    for (field_width = 0; *format >= '0' && *format <= '9'; ++format)
-	      field_width = 10 * field_width + *format - '0';
+	    char *width_end;
+	    unsigned long width = strtoul (format, &width_end, 10);
+	    if (INT_MAX < width)
+	      error ("Format string field width too large");
+	    field_width = width;
+	    format = width_end;
 	  }
 
 	/* N is not incremented for another few lines below, so refer to
 	   element N+1 (which might be precision[NARGS]). */
 	if (*format == '.')
 	  {
-	    ++format;
-	    for (precision[n+1] = 0; *format >= '0' && *format <= '9'; ++format)
-	      precision[n+1] = 10 * precision[n+1] + *format - '0';
+	    char *prec_end;
+	    unsigned long prec = strtoul (format + 1, &prec_end, 10);
+	    if (INT_MAX < prec)
+	      error ("Format string precision too large");
+	    precision[n + 1] = prec;
+	    format = prec_end;
 	  }
 
-	/* Extra +1 for 'l' that we may need to insert into the
-	   format.  */
-	if (format - this_format_start + 2 > longest_format)
-	  longest_format = format - this_format_start + 2;
+	if (longest_format < format - this_format_start + pIlen + 1)
+	  longest_format = format - this_format_start + pIlen + 1;
 
 	if (format == end)
 	  error ("Format string ends in middle of format specifier");
@@ -3975,24 +3985,22 @@ usage: (format STRING &rest OBJECTS)  */)
 	    }
 	  else if (INTEGERP (args[n]) || FLOATP (args[n]))
 	    {
-	      int this_nchars;
+	      EMACS_INT this_nchars;
+	      EMACS_INT this_format_len = format - this_format_start;
 
-	      memcpy (this_format, this_format_start,
-		      format - this_format_start);
-	      this_format[format - this_format_start] = 0;
+	      memcpy (this_format, this_format_start, this_format_len);
+	      this_format[this_format_len] = 0;
 
 	      if (format[-1] == 'e' || format[-1] == 'f' || format[-1] == 'g')
 		sprintf (p, this_format, XFLOAT_DATA (args[n]));
 	      else
 		{
-		  if (sizeof (EMACS_INT) > sizeof (int)
-		      && format[-1] != 'c')
+		  if (pIlen && format[-1] != 'c')
 		    {
-		      /* Insert 'l' before format spec.  */
-		      this_format[format - this_format_start]
-			= this_format[format - this_format_start - 1];
-		      this_format[format - this_format_start - 1] = 'l';
-		      this_format[format - this_format_start + 1] = 0;
+		      /* Insert pI before format spec.  */
+		      memcpy (&this_format[this_format_len - 1], pI, pIlen);
+		      this_format[this_format_len + pIlen - 1] = format[-1];
+		      this_format[this_format_len + pIlen] = 0;
 		    }
 
 		  if (INTEGERP (args[n]))
@@ -4089,7 +4097,7 @@ usage: (format STRING &rest OBJECTS)  */)
       if (CONSP (props))
 	{
 	  EMACS_INT bytepos = 0, position = 0, translated = 0;
-	  int argn = 1;
+	  EMACS_INT argn = 1;
 	  Lisp_Object list;
 
 	  /* Adjust the bounds of each text property
