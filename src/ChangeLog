@@ -21,7 +21,6 @@
 	* menu.c (Fx_popup_menu) [!HAVE_X_WINDOWS]: Likewise.
 	* menu.h (xmenu_show): Likewise.
 	* term.c (term_mouse_position): Likewise.
-
 	* termhooks.h (struct input_event.timestamp): Likewise.
 	(struct terminal.mouse_position_hook): Likewise.
 	* xmenu.c (create_and_show_popup_menu, xmenu_show): Likewise.
