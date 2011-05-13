@@ -116,6 +116,12 @@
              :type integer
              :custom integer
              :documentation "Prune as much as possible to get to this size.")
+   (prune-factor
+    :initarg :prune-factor
+    :initform 0.1
+    :type float
+    :custom float
+    :documentation "At the max-hard limit, prune size * this entries.")
    (tracked :initarg :tracked
             :initform nil
             :type t
@@ -357,11 +363,12 @@ Proposes only entries without the :precious keys."
 
   (defmethod registry-prune-hard-candidates ((db registry-db))
     "Collects pruning candidates from the registry-db object THIS.
-Proposes any entries over the max-hard limit minus 10."
+Proposes any entries over the max-hard limit minus size * prune-factor."
     (let* ((data (oref db :data))
-           ;; prune to 10 below the max-hard limit so we're not
-           ;; pruning all the time
-	   (limit (- (oref db :max-hard) 10))
+           ;; prune to (size * prune-factor) below the max-hard limit so
+           ;; we're not pruning all the time
+	   (limit (max 0 (- (oref db :max-hard)
+                            (* (registry-size db) (oref db :prune-factor)))))
 	   (candidates (loop for k being the hash-keys of data
 			     collect k)))
       (list limit candidates))))

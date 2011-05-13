@@ -1,3 +1,12 @@
+2011-05-13  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* registry.el (prune-factor): New initialization parameter defaulting
+	to 0.1.
+	(registry-prune-hard): Use it.
+
+	* gnus-registry.el (gnus-registry-fixup-registry): Set prune-factor to
+	0.1 expicitly.
+
 2011-05-13  Glenn Morris  <rgm@gnu.org>
 
 	* message.el (message-send-mail-with-sendmail): Assume sendmail-program

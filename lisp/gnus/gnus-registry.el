@@ -244,6 +244,8 @@ the Bit Bucket."
       (oset db :max-hard
             (or gnus-registry-max-entries
                 most-positive-fixnum))
+      (oset db :prune-factor
+            0.1)
       (oset db :max-soft
             (or gnus-registry-max-pruned-entries
                 most-positive-fixnum))
