@@ -342,7 +342,9 @@ displayed in a window:
           (when appt-display-mode-line
             (setq appt-mode-string
                   (concat " " (propertize
-                               (format "App't in %s min." min-to-app)
+                               (format "App't %s"
+                                       (if (zerop min-to-app) "NOW"
+                                         (format "in %s min." min-to-app)))
                                'face 'mode-line-emphasis))))
           ;; When an appointment is reached, delete it from the
           ;; list.  Reset the count to 0 in case we display another

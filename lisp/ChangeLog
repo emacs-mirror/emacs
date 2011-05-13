@@ -2,6 +2,7 @@
 
 	* calendar/appt.el (appt-make-list): Simplify.
 	(appt-time-msg-list): Doc fix.
+	(appt-check): Change mode-line message at the time of the appointment.
 
 2011-05-12  Andreas Schwab  <schwab@linux-m68k.org>
 
