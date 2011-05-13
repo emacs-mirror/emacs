@@ -5,7 +5,7 @@
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-plainview.el
 ;; URL:         http://www.nongnu.org/newsticker
-;; Time-stamp:  "6. Dezember 2009, 19:17:02 (ulf)"
+;; Time-stamp:  "13. Mai 2011, 19:28:34 (ulf)"
 ;; Package:     newsticker
 
 ;; ======================================================================
@@ -157,49 +157,49 @@ The following printf-like specifiers can be used:
 
 (defface newsticker-new-item-face
   '((((class color) (background dark))
-     (:family "helvetica" :bold t))
+     (:family "sans" :bold t))
     (((class color) (background light))
-     (:family "helvetica" :bold t)))
+     (:family "sans" :bold t)))
   "Face for new news items."
   :group 'newsticker-faces)
 
 (defface newsticker-old-item-face
   '((((class color) (background dark))
-     (:family "helvetica" :bold t :foreground "orange3"))
+     (:family "sans" :bold t :foreground "orange3"))
     (((class color) (background light))
-     (:family "helvetica" :bold t :foreground "red4")))
+     (:family "sans" :bold t :foreground "red4")))
   "Face for old news items."
   :group 'newsticker-faces)
 
 (defface newsticker-immortal-item-face
   '((((class color) (background dark))
-     (:family "helvetica" :bold t :italic t :foreground "orange"))
+     (:family "sans" :bold t :italic t :foreground "orange"))
     (((class color) (background light))
-     (:family "helvetica" :bold t :italic t :foreground "blue")))
+     (:family "sans" :bold t :italic t :foreground "blue")))
   "Face for immortal news items."
   :group 'newsticker-faces)
 
 (defface newsticker-obsolete-item-face
   '((((class color) (background dark))
-     (:family "helvetica" :bold t :strike-through t))
+     (:family "sans" :bold t :strike-through t))
     (((class color) (background light))
-     (:family "helvetica" :bold t :strike-through t)))
+     (:family "sans" :bold t :strike-through t)))
   "Face for old news items."
   :group 'newsticker-faces)
 
 (defface newsticker-date-face
   '((((class color) (background dark))
-     (:family "helvetica" :italic t :height 0.8))
+     (:family "sans" :italic t :height 0.8))
     (((class color) (background light))
-     (:family "helvetica" :italic t :height 0.8)))
+     (:family "sans" :italic t :height 0.8)))
   "Face for newsticker dates."
   :group 'newsticker-faces)
 
 (defface newsticker-statistics-face
   '((((class color) (background dark))
-     (:family "helvetica" :italic t :height 0.8))
+     (:family "sans" :italic t :height 0.8))
     (((class color) (background light))
-     (:family "helvetica" :italic t :height 0.8)))
+     (:family "sans" :italic t :height 0.8)))
   "Face for newsticker dates."
   :group 'newsticker-faces)
 
@@ -300,70 +300,56 @@ images."
       nil
     (if (boundp 'tool-bar-map)
         (let ((tool-bar-map (make-sparse-keymap)))
+          (tool-bar-add-item "newsticker/prev-feed"
+                             'newsticker-previous-feed
+                             'newsticker-previous-feed
+                             :help "Go to previous feed"
+                             :enable '(newsticker-previous-feed-available-p))
+          (tool-bar-add-item "newsticker/prev-item"
+                             'newsticker-previous-item
+                             'newsticker-previous-item
+                             :help "Go to previous item"
+                             :enable '(newsticker-previous-item-available-p))
+          (tool-bar-add-item "newsticker/next-item"
+                             'newsticker-next-item
+                             'newsticker-next-item
+                             :help "Go to next item"
+                             :enable '(newsticker-next-item-available-p))
+          (tool-bar-add-item "newsticker/next-feed"
+                             'newsticker-next-feed
+                             'newsticker-next-feed
+                             :help "Go to next feed"
+                             :enable '(newsticker-next-feed-available-p))
+          (tool-bar-add-item "newsticker/narrow"
+                             'newsticker-toggle-auto-narrow-to-feed
+                             'newsticker-toggle-auto-narrow-to-feed
+                             :help "Toggle visibility of other feeds")
+          (tool-bar-add-item "newsticker/mark-immortal"
+                             'newsticker-mark-item-at-point-as-immortal
+                             'newsticker-mark-item-at-point-as-immortal
+                             :help "Mark current item as immortal"
+                             :enable '(newsticker-item-not-immortal-p))
+          (tool-bar-add-item "newsticker/mark-read"
+                             'newsticker-mark-item-at-point-as-read
+                             'newsticker-mark-item-at-point-as-read
+                             :help "Mark current item as read"
+                             :enable '(newsticker-item-not-old-p))
+          (tool-bar-add-item "newsticker/get-all-news"
+                             'newsticker-get-all-news
+                             'newsticker-get-all-news
+                             :help "Get news for all feeds")
+          (tool-bar-add-item "newsticker/update"
+                             'newsticker-buffer-force-update
+                             'newsticker-buffer-force-update
+                             :help "Update newsticker buffer"
+                             :enable '(not newsticker--buffer-uptodate-p))
+          (tool-bar-add-item "newsticker/browse-url"
+                             'newsticker-browse-url
+                             'newsticker-browse-url
+                             :help "Browse URL for item at point")
+          ;; standard icons / actions
           (define-key tool-bar-map [newsticker-sep-1]
             (list 'menu-item "--double-line"))
-          (define-key tool-bar-map [newsticker-browse-url]
-            (list 'menu-item "newsticker-browse-url" 'newsticker-browse-url
-                  :visible t
-                  :help "Browse URL for item at point"
-                  :image newsticker--browse-image))
-          (define-key tool-bar-map [newsticker-buffer-force-update]
-            (list 'menu-item "newsticker-buffer-force-update"
-                  'newsticker-buffer-force-update
-                  :visible t
-                  :help "Update newsticker buffer"
-                  :image newsticker--update-image
-                  :enable '(not newsticker--buffer-uptodate-p)))
-          (define-key tool-bar-map [newsticker-get-all-news]
-            (list 'menu-item "newsticker-get-all-news" 'newsticker-get-all-news
-                  :visible t
-                  :help "Get news for all feeds"
-                  :image newsticker--get-all-image))
-          (define-key tool-bar-map [newsticker-mark-item-at-point-as-read]
-            (list 'menu-item "newsticker-mark-item-at-point-as-read"
-                  'newsticker-mark-item-at-point-as-read
-                  :visible t
-                  :image newsticker--mark-read-image
-                  :help "Mark current item as read"
-                  :enable '(newsticker-item-not-old-p)))
-          (define-key tool-bar-map [newsticker-mark-item-at-point-as-immortal]
-            (list 'menu-item "newsticker-mark-item-at-point-as-immortal"
-                  'newsticker-mark-item-at-point-as-immortal
-                  :visible t
-                  :image newsticker--mark-immortal-image
-                  :help "Mark current item as immortal"
-                  :enable '(newsticker-item-not-immortal-p)))
-          (define-key tool-bar-map [newsticker-toggle-auto-narrow-to-feed]
-            (list 'menu-item "newsticker-toggle-auto-narrow-to-feed"
-                  'newsticker-toggle-auto-narrow-to-feed
-                  :visible t
-                  :help "Toggle visibility of other feeds"
-                  :image newsticker--narrow-image))
-          (define-key tool-bar-map [newsticker-next-feed]
-            (list 'menu-item "newsticker-next-feed" 'newsticker-next-feed
-                  :visible t
-                  :help "Go to next feed"
-                  :image newsticker--next-feed-image
-                  :enable '(newsticker-next-feed-available-p)))
-          (define-key tool-bar-map [newsticker-next-item]
-            (list 'menu-item "newsticker-next-item" 'newsticker-next-item
-                  :visible t
-                  :help "Go to next item"
-                  :image newsticker--next-item-image
-                  :enable '(newsticker-next-item-available-p)))
-          (define-key tool-bar-map [newsticker-previous-item]
-            (list 'menu-item "newsticker-previous-item" 'newsticker-previous-item
-                  :visible t
-                  :help "Go to previous item"
-                  :image newsticker--previous-item-image
-                  :enable '(newsticker-previous-item-available-p)))
-          (define-key tool-bar-map [newsticker-previous-feed]
-            (list 'menu-item "newsticker-previous-feed" 'newsticker-previous-feed
-                  :visible t
-                  :help "Go to previous feed"
-                  :image newsticker--previous-feed-image
-                  :enable '(newsticker-previous-feed-available-p)))
-          ;; standard icons / actions
           (tool-bar-add-item "close"
                              'newsticker-close-buffer
                              'newsticker-close-buffer
