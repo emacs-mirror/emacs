@@ -237,7 +237,7 @@ Note: The search is conducted only within 10%, at the beginning of the file."
 (defvar change-log-font-lock-keywords
   `(;;
     ;; Date lines, new (2000-01-01) and old (Sat Jan  1 00:00:00 2000) styles.
-    ;; Fixme: this regepx is just an approximate one and may match
+    ;; Fixme: this regexp is just an approximate one and may match
     ;; wrongly with a non-date line existing as a random note.  In
     ;; addition, using any kind of fixed setting like this doesn't
     ;; work if a user customizes add-log-time-format.
@@ -865,8 +865,12 @@ non-nil, otherwise in local time."
         (if (and (not add-log-always-start-new-record)
                  (let ((hit nil))
                    (dolist (entry new-entries hit)
-                     (when (looking-at (regexp-quote entry))
-                       (setq hit t)))))
+                     (and (looking-at (regexp-quote entry))
+			  ;; Reject multiple author entries.  (Bug#8645)
+			  (save-excursion
+			    (forward-line 1)
+			    (not (looking-at "[ \t]+.*<.*>$")))
+			  (setq hit t)))))
             (forward-line 1)
           (insert (nth (random (length new-entries))
                        new-entries)

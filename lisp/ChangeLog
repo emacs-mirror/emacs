@@ -1,5 +1,8 @@
 2011-05-14  Glenn Morris  <rgm@gnu.org>
 
+	* vc/add-log.el (add-change-log-entry): Don't start adding a new entry
+	in the middle of an existing one with multiple authors.  (Bug#8645)
+
 	* calendar/appt.el (appt-check): Rename some local variables.
 	Some simplification/reordering.
 
