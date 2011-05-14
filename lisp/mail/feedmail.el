@@ -348,8 +348,8 @@
 ;;         feedmail-queue-express-hook
 ;;         added example function feedmail-spray-via-bbdb
 ;;         use expand-file-name for setting default directory names
-;;         define feedmail-binmail-linuxish-template as a suggestion for
-;;           the value of feedmail-binmail-template on Linux and maybe other
+;;         define feedmail-binmail-gnulinuxish-template as a suggestion for
+;;           the value of feedmail-binmail-template on GNU/Linux and maybe other
 ;;           systems with non-classic /bin/[r]mail behavior
 ;;         guard against nil user-mail-address in generating MESSAGE-ID:
 ;;         feedmail-queue-slug-suspect-regexp is now a variable to
@@ -441,6 +441,7 @@ If a positive number, it's a timeout before sending.  If a negative
 number, it's a timeout before not sending.  This will not work if your
 version of Emacs doesn't include the function `y-or-n-p-with-timeout'
 \(e.g., some versions of XEmacs\)."
+  :version "24.1"
   :group 'feedmail-misc
   :type '(choice (const nil) integer)
   )
@@ -648,6 +649,7 @@ option when calling sendmail.  If it doesn't think sendmail will sell you out,
 it will use the \"-f\" \(since it is a handy feature\).  You control what
 feedmail thinks with this variable.  The default is nil, meaning that feedmail
 will believe that sendmail will sell you out."
+  :version "24.1"
   :group 'feedmail-headers
   :type 'boolean
 )
@@ -909,6 +911,12 @@ you are at accomplishing inherently inefficient things."
   :type 'sexp ; too complex to be described accurately
   )
 
+;; FIXME this is a macro?
+(declare-function bbdb-search "ext:bbdb-com"
+		  (records &optional name company net notes phone))
+
+(declare-function bbdb-records "ext:bbdb"
+		  (&optional dont-check-disk already-in-db-buffer))
 
 (defun feedmail-spray-via-bbdb ()
   "Example function for use with feedmail spray mode.
@@ -1204,6 +1212,7 @@ tweak this regular expression to reflect local or personal language
 conventions.  Substitutions are done repeatedly until the regular expression
 no longer matches to transformed string.  Used by function
 feedmail-tidy-up-slug and indirectly by feedmail-queue-subject-slug-maker."
+  :version "24.1"
   :group 'feedmail-queue
   :type 'string
 )
@@ -1273,6 +1282,7 @@ the file without bothering you."
   "If non-nil, blat a debug messages and such in the mini-buffer.
 This is intended as an aid to tracing what's going on but is probably
 of casual real use only to the feedmail developer."
+  :version "24.1"
   :group 'feedmail-debug
   :type 'boolean
 )
@@ -1285,6 +1295,7 @@ something else obliterates them.  This value controls the duration of
 the pause.  If the value is nil or 0, the sit-for is not done, which
 has the effect of not pausing at all.  Debug messages can be seen after
 the fact in the messages buffer."
+  :version "24.1"
   :group 'feedmail-debug
   :type 'integer
 )
@@ -1406,6 +1417,7 @@ Run by feedmail-queue-express-to-queue and feedmail-queue-express-to-draft.
 For example, you might want to run vm-mime-encode-composition to take
 care of attachments.  If you subsequently edit the message buffer, you
 can undo the encoding."
+  :version "24.1"
   :group 'feedmail-queue
   :type 'hook
 )
@@ -1474,6 +1486,7 @@ your chance to have something different.  The default value is just a
 wrapper function which discards the optional argument and calls
 mail-send.  If you are a VM user, you might like vm-mail-send, though
 you really don't need that.  Called with funcall, not call-interactively."
+  :version "24.1"			; changed default
   :group 'feedmail-queue
   :type 'function
   )
@@ -1523,12 +1536,12 @@ If you use the binmail form, check the value of `feedmail-binmail-template'."
   :type 'function
   )
 
-(defconst feedmail-binmail-linuxish-template
+(defconst feedmail-binmail-gnulinuxish-template
   (concat
    "(echo From "
    (if (boundp 'user-login-name) user-login-name "feedmail")
    " ; cat -) | /usr/bin/rmail %s")
-  "Good candidate for Linux systems and maybe others.
+  "Good candidate for GNU/Linux systems and maybe others.
 You may need to modify this if your \"rmail\" is in a different place.
 For example, I hear that in some Debian systems, it's /usr/sbin/rmail.
 See feedmail-binmail-template documentation."
@@ -1558,17 +1571,18 @@ consult, stick with /bin/mail or use one of the other buffer eating
 functions.
 
 The above description applies to \"classic\" UNIX /bin/mail and /bin/rmail.
-On most Linux systems and perhaps other places, /bin/mail behaves
+On most GNU/Linux systems and perhaps other places, /bin/mail behaves
 completely differently and shouldn't be used at all in this template.
 Instead of /bin/rmail, there is a /usr/bin/rmail, and it can be used
 with a wrapper.  The wrapper is necessary because /usr/bin/rmail on such
 systems requires that the first line of the message appearing on standard
 input have a UNIX-style From_ postmark.  If you have such a system, the
 wrapping can be accomplished by setting the value of `feedmail-binmail-template'
-to `feedmail-binmail-linuxish-template'.  You should then send some test
+to `feedmail-binmail-gnulinuxish-template'.  You should then send some test
 messages to make sure it works as expected."
-    :group 'feedmail-misc
-    :type 'string
+  :version "24.1"			; changed default
+  :group 'feedmail-misc
+  :type 'string
   )
 
 
@@ -1638,6 +1652,9 @@ local gurus."
 		    (insert "\n\n"))))
 	   (buffer-list))))))
 
+(declare-function smtp-via-smtp "ext:smtp" (sender recipients smtp-text-buffer))
+(defvar smtp-server)
+
 ;; FLIM's smtp.el pointed out to me by Kenichi Handa <handa@etl.go.jp>
 (defun feedmail-buffer-to-smtp (prepped errors-to addr-listoid)
   "Function which actually calls smtp-via-smtp to send buffer as e-mail."
@@ -1656,7 +1673,7 @@ local gurus."
 			  (if (string-match tracer (buffer-name buffy))
 				  (progn
 					(insert "SMTP Trace from " (buffer-name buffy) "\n---------------")
-					(insert-buffer buffy)
+					(insert-buffer-substring buffy)
 					(insert "\n\n"))))
 		   (buffer-list))))))
 
@@ -1730,7 +1747,7 @@ this:
   (let ((the-buf (current-buffer)))
     (vm-mail)
     (delete-region (point-min) (point-max))
-    (insert-buffer the-buf)
+    (insert-buffer-substring the-buf)
     (setq buffer-file-name (buffer-file-name the-buf))
     (set-buffer-modified-p (buffer-modified-p the-buf))
     ;; For some versions of emacs, saving the message to a queue

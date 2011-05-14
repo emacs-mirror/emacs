@@ -1,3 +1,16 @@
+2011-05-14  Glenn Morris  <rgm@gnu.org>
+
+	* mail/feedmail.el (feedmail-confirm-outgoing-timeout)
+	(feedmail-sendmail-f-doesnt-sell-me-out)
+	(feedmail-queue-slug-suspect-regexp, feedmail-debug)
+	(feedmail-debug-sit-for, feedmail-queue-express-hook)
+	(feedmail-queue-runner-message-sender): Set :version.
+	(bbdb-search, bbdb-records, smtp-via-smtp, smtp-server): Declare.
+	(feedmail-binmail-gnulinuxish-template):
+	Rename from feedmail-binmail-linuxish-template.
+	(feedmail-buffer-to-smtp, feedmail-vm-mail-mode):
+	Use insert-buffer-substring.
+
 2011-05-14  Bill Carpenter  <bill@carpenter.org>
 
 	* mail/feedmail.el (feedmail-patch-level): Increase.
