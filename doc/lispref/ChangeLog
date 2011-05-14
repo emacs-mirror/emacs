@@ -1,5 +1,8 @@
 2011-05-14  Eli Zaretskii  <eliz@gnu.org>
 
+	* nonascii.texi (Character Properties): Fix inconsistencies with
+	implementation.
+
 	* text.texi (Special Properties): Move @defvar's out of the
 	@table.  (Bug#8652)
 
