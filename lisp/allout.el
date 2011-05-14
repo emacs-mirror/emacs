@@ -6507,7 +6507,7 @@ If BEG is bigger than END we return 0."
 (defun allout-mark-marker (&optional force buffer)
   "Accommodate the different signature for `mark-marker' across Emacsen.
 
-XEmacs takes two optional args, while mainline GNU Emacs does not,
+XEmacs takes two optional args, while Emacs does not,
 so pass them along when appropriate."
   (if (featurep 'xemacs)
       (apply 'mark-marker force buffer)
