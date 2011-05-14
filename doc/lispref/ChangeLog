@@ -1,3 +1,8 @@
+2011-05-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* text.texi (Special Properties): Move @defvar's out of the
+	@table.  (Bug#8652)
+
 2011-05-12  Glenn Morris  <rgm@gnu.org>
 
 	* display.texi (Image Descriptors): Fix typo.  (Bug#8495)
