@@ -1,7 +1,17 @@
 2011-05-14  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (compute_display_string_pos): Non-trivial implementation.
+	(compute_display_string_end): New function.
+
+	* dispextern.h (compute_display_string_end): Declare prototype.
+
+	* bidi.c (bidi_resolve_explicit_1): Use ZV for disp_pos.
+	(bidi_fetch_char): Implement support for runs of characters
+	covered by display strings.
+
 	* bidi.c (bidi_fetch_char): Accept also character position
-	corresponding to BYTEPOS.  All callers changed.
+	corresponding to BYTEPOS.  DISP_POS is now a character position,
+	not a byte position.  All callers changed.
 	(bidi_cache_iterator_state, bidi_resolve_explicit_1)
 	(bidi_resolve_explicit, bidi_resolve_weak)
 	(bidi_level_of_next_char, bidi_move_to_visually_next): Abort if

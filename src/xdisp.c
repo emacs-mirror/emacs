@@ -3093,11 +3093,55 @@ next_overlay_change (EMACS_INT pos)
 EMACS_INT
 compute_display_string_pos (EMACS_INT charpos)
 {
-  /* FIXME: Support display properties on strings.  */
+  /* FIXME: Support display properties on strings (object = Qnil means
+     current buffer).  */
+  Lisp_Object object = Qnil;
+  Lisp_Object pos = make_number (charpos);
+
   if (charpos >= ZV)
     return ZV;
-  /* FIXME! */
-  return ZV;
+
+  /* If the character at CHARPOS is where the display string begins,
+     return CHARPOS.  */
+  if (!NILP (Fget_char_property (pos, Qdisplay, object))
+      && (charpos <= BEGV
+	  || NILP (Fget_char_property (make_number (charpos - 1), Qdisplay,
+				       object))))
+    return charpos;
+
+  /* Look forward for the first character where the `display' property
+     changes from nil to non-nil.  */
+  do {
+    pos = Fnext_single_char_property_change (pos, Qdisplay, object, Qnil);
+  } while (XFASTINT (pos) < ZV
+	   && NILP (Fget_char_property (pos, Qdisplay, object)));
+
+  return XFASTINT (pos);
+}
+
+/* Return the character position of the end of the display string that
+   started at CHARPOS.  A display string is either an overlay with
+   `display' property whose value is a string or a `display' text
+   property whose value is a string.  */
+EMACS_INT
+compute_display_string_end (EMACS_INT charpos)
+{
+  /* FIXME: Support display properties on strings (object = Qnil means
+     current buffer).  */
+  Lisp_Object object = Qnil;
+  Lisp_Object pos = make_number (charpos);
+
+  if (charpos >= ZV)
+    return ZV;
+
+  if (NILP (Fget_char_property (pos, Qdisplay, object)))
+    abort ();
+
+  /* Look forward for the first character where the `display' property
+     changes.  */
+  pos = Fnext_single_char_property_change (pos, Qdisplay, object, Qnil);
+
+  return XFASTINT (pos);
 }
 
 

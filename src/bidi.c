@@ -597,19 +597,29 @@ bidi_fetch_char (EMACS_INT bytepos, EMACS_INT charpos, EMACS_INT *disp_pos,
       ch = BIDI_EOB;
       *ch_len = 1;
       *nchars = 1;
+      *disp_pos = ZV;
     }
-#if 0
   else if (charpos >= *disp_pos)
     {
-      /* support characters covered by a display string */
-      ch = 0xFFFC;	/* Unicode Object Replacement Character */
+      EMACS_INT disp_end_pos;
+
+      /* We don't expect to find ourselves in the middle of a display
+	 property.  Hopefully, it will never be needed.  */
+      if (charpos > *disp_pos)
+	abort ();
+      /* Return the Unicode Object Replacement Character to represent
+	 the entire run of characters covered by the display
+	 string.  */
+      ch = 0xFFFC;
+      disp_end_pos = compute_display_string_end (*disp_pos);
+      *nchars = disp_end_pos - *disp_pos;
+      *ch_len = CHAR_TO_BYTE (disp_end_pos) - bytepos;
     }
-#endif
   else
     {
       ch = FETCH_MULTIBYTE_CHAR (bytepos);
-      *ch_len = CHAR_BYTES (ch);
       *nchars = 1;
+      *ch_len = CHAR_BYTES (ch);
     }
 
   /* If we just entered a run of characters covered by a display
@@ -978,7 +988,7 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
       curchar = BIDI_EOB;
       bidi_it->ch_len = 1;
       bidi_it->nchars = 1;
-      bidi_it->disp_pos = ZV_BYTE;
+      bidi_it->disp_pos = ZV;
     }
   else
     {
