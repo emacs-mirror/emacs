@@ -3085,18 +3085,19 @@ next_overlay_change (EMACS_INT pos)
   return endpos;
 }
 
-/* Return the byte position of a display string at or after BYTEPOS.
-   If no display string exist at or after BYTEPOS, return ZV_BYTE.  A
+/* Return the character position of a display string at or after CHARPOS.
+   If no display string exist at or after CHARPOS, return ZV.  A
    display string is either an overlay with `display' property whose
    value is a string or a `display' text property whose value is a
    string.  */
 EMACS_INT
-compute_display_string_pos (EMACS_INT bytepos)
+compute_display_string_pos (EMACS_INT charpos)
 {
-  if (bytepos >= ZV_BYTE)
-    return ZV_BYTE;
+  /* FIXME: Support display properties on strings.  */
+  if (charpos >= ZV)
+    return ZV;
   /* FIXME! */
-  return ZV_BYTE;
+  return ZV;
 }
 
 
