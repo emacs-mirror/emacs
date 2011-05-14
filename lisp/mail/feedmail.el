@@ -914,9 +914,9 @@ you are at accomplishing inherently inefficient things."
 ;; FIXME this is a macro?
 (declare-function bbdb-search "ext:bbdb-com"
 		  (records &optional name company net notes phone))
-
 (declare-function bbdb-records "ext:bbdb"
 		  (&optional dont-check-disk already-in-db-buffer))
+(declare-function bbdb-dwim-net-address "ext:bbdb-com" (record &optional net))
 
 (defun feedmail-spray-via-bbdb ()
   "Example function for use with feedmail spray mode.
@@ -1732,6 +1732,8 @@ for ACTION (default is `supplement'):
 FOLDING can be nil, in which case VALUE is used as-is.  If FOLDING is
 non-nil, feedmail \"smart filling\" is done on VALUE just before
 insertion.")
+
+(declare-function vm-mail "ext:vm" (&optional to subject))
 
 (defun feedmail-vm-mail-mode (&optional arg)
   "Make something like a buffer that has been created via `vm-mail'.

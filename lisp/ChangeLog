@@ -5,7 +5,8 @@
 	(feedmail-queue-slug-suspect-regexp, feedmail-debug)
 	(feedmail-debug-sit-for, feedmail-queue-express-hook)
 	(feedmail-queue-runner-message-sender): Set :version.
-	(bbdb-search, bbdb-records, smtp-via-smtp, smtp-server): Declare.
+	(bbdb-search, bbdb-records, smtp-via-smtp, smtp-server)
+	(bbdb-dwim-net-address, vm-mail): Declare.
 	(feedmail-binmail-gnulinuxish-template):
 	Rename from feedmail-binmail-linuxish-template.
 	(feedmail-buffer-to-smtp, feedmail-vm-mail-mode):
