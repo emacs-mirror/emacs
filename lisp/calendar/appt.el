@@ -282,15 +282,15 @@ displayed in a window:
   (let* ((min-to-app -1)
          (prev-appt-mode-string appt-mode-string)
          (prev-appt-display-count (or appt-display-count 0))
-         now cur-comp-time appt-comp-time appt-warn-time)
+         now now-mins appt-mins appt-warn-time)
     (save-excursion                   ; FIXME ?
       ;; Convert current time to minutes after midnight (12.01am = 1).
       (setq now (decode-time)
-            cur-comp-time (+ (* 60 (nth 2 now)) (nth 1 now)))
+            now-mins (+ (* 60 (nth 2 now)) (nth 1 now)))
       ;; At first check in any day, update appointments to today's list.
       (if (or force                      ; eg initialize, diary save
               (null appt-prev-comp-time) ; first check
-              (< cur-comp-time appt-prev-comp-time)) ; new day
+              (< now-mins appt-prev-comp-time)) ; new day
           (ignore-errors
             (let ((diary-hook (if (assoc 'appt-make-list diary-hook)
                                   diary-hook
@@ -301,22 +301,24 @@ displayed in a window:
                 ;; diary-number-of-entries.  Since appt.el only
                 ;; works on a daily basis, no need for more entries.
                 (diary-list-entries (calendar-current-date) 1 t)))))
-      (setq appt-prev-comp-time cur-comp-time
+      (setq appt-prev-comp-time now-mins
             appt-mode-string nil
             appt-display-count nil)
+      ;; Remove any entries that are in the past.
+      ;; FIXME how can there be any such entries, given that this
+      ;; function removes entries when they hit zero minutes,
+      ;; and appt-make-list doesn't add any in the past in the first place?
+      (while (and appt-time-msg-list
+                  (< (setq appt-mins (caar (car appt-time-msg-list)))
+                     now-mins))
+        (setq appt-time-msg-list (cdr appt-time-msg-list)))
       ;; If there are entries in the list, and the user wants a
       ;; message issued, get the first time off of the list and
       ;; calculate the number of minutes until the appointment.
       (when appt-time-msg-list
-        (setq appt-comp-time (caar (car appt-time-msg-list))
-              appt-warn-time (or (nth 3 (car appt-time-msg-list))
+        (setq appt-warn-time (or (nth 3 (car appt-time-msg-list))
                                  appt-message-warning-time)
-              min-to-app (- appt-comp-time cur-comp-time))
-        (while (and appt-time-msg-list
-                    (< appt-comp-time cur-comp-time))
-          (setq appt-time-msg-list (cdr appt-time-msg-list))
-          (if appt-time-msg-list
-              (setq appt-comp-time (caar (car appt-time-msg-list)))))
+              min-to-app (- appt-mins now-mins))
         ;; If we have an appointment between midnight and
         ;; `appt-warn-time' minutes after midnight, we
         ;; must begin to issue a message before midnight.  Midnight
@@ -325,16 +327,17 @@ displayed in a window:
         ;; appointment variable.  It is equal to the number of
         ;; minutes before midnight plus the number of minutes after
         ;; midnight our appointment is.
-        (if (and (< appt-comp-time appt-warn-time)
-                 (> (+ cur-comp-time appt-warn-time)
-                    appt-max-time))
-            (setq min-to-app (+ (- (1+ appt-max-time) cur-comp-time)
-                                appt-comp-time)))
+        ;; FIXME but appt-make-list constructs appt-time-msg-list to only
+        ;; contain entries with today's date, so this cannot work?
+        ;; Also above we just removed anything with appt-mins < now-mins.
+        (if (and (< appt-mins appt-warn-time)
+                 (> (+ now-mins appt-warn-time) appt-max-time))
+            (setq min-to-app (+ (- (1+ appt-max-time) now-mins)
+                                appt-mins)))
         ;; Issue warning if the appointment time is within
         ;; appt-message-warning time.
         (when (and (<= min-to-app appt-warn-time)
                    (>= min-to-app 0))
-          (setq appt-display-count (1+ prev-appt-display-count))
           ;; This is true every appt-display-interval minutes.
           (and (zerop (mod prev-appt-display-count appt-display-interval))
                (appt-display-message (cadr (car appt-time-msg-list))
@@ -351,11 +354,11 @@ displayed in a window:
           ;; appointment on the next cycle.
           (if (zerop min-to-app)
               (setq appt-time-msg-list (cdr appt-time-msg-list)
-                    appt-display-count nil))))
+                    appt-display-count nil)
+            (setq appt-display-count (1+ prev-appt-display-count)))))
       ;; If we have changed the mode line string, redisplay all mode lines.
       (and appt-display-mode-line
-           (not (string-equal appt-mode-string
-                              prev-appt-mode-string))
+           (not (string-equal appt-mode-string prev-appt-mode-string))
            (progn
              (force-mode-line-update t)
              ;; If the string now has a notification, redisplay right now.
