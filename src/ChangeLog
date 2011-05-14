@@ -3,6 +3,8 @@
 	Fixups, following up to the user-interface timestamp change.
 	* nsterm.m (last_mouse_movement_time, ns_mouse_position): Use Time
 	for UI timestamps, instead of unsigned long.
+	* msdos.c (mouse_get_pos): Likewise.
+	* w32inevt.c (movement_time, w32_console_mouse_position): Likewise.
 	* w32gui.h (Time): Define by including "systime.h" rather than by
 	declaring it ourselves.  (Bug#8664)
 
