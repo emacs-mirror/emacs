@@ -452,7 +452,9 @@ then put
 @end example
 
 @noindent
-in the @code{dired-load-hook} (@pxref{Installation}).
+in the @code{dired-load-hook} (@pxref{Installation}).  (Of course, a
+better way to achieve this particular goal is simply to omit @samp{-a} from
+@code{dired-listing-switches}.)
 
 @end itemize
 
