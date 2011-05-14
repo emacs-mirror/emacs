@@ -1,3 +1,96 @@
+2011-05-14  Bill Carpenter  <bill@carpenter.org>
+
+	* mail/feedmail.el (feedmail-patch-level): Increase.
+	(feedmail-debug): New custom group.
+	(feedmail-confirm-outgoing-timeout)
+	(feedmail-sendmail-f-doesnt-sell-me-out)
+	(feedmail-queue-slug-suspect-regexp, feedmail-debug)
+	(feedmail-debug-sit-for, feedmail-queue-express-hook): New options.
+	(feedmail-sender-line, feedmail-from-line)
+	(feedmail-fiddle-headers-upwardly, feedmail-enable-spray)
+	(feedmail-spray-this-address, )
+	(feedmail-spray-address-fiddle-plex-list)
+	(feedmail-queue-use-send-time-for-date)
+	(feedmail-queue-use-send-time-for-message-id)
+	(feedmail-last-chance-hook, feedmail-queue-runner-mode-setter)
+	(feedmail-buffer-eating-function):
+	Doc fixes.
+	(feedmail-spray-via-bbdb, feedmail-buffer-to-smtp)
+	(feedmail-vm-mail-mode, feedmail-message-action-scroll-up)
+	(feedmail-message-action-scroll-down): New functions.
+	(feedmail-queue-directory, feedmail-queue-draft-directory):
+	Use expand-file-name.
+	(feedmail-prompt-before-queue-standard-alist): Add scroll entries.
+	Remove C-v help entry.
+	(feedmail-queue-buffer-file-name): New variable.
+	(feedmail-mail-send-hook-splitter, feedmail-buffer-to-binmail)
+	(feedmail-buffer-to-smtpmail, feedmail-queue-express-to-draft)
+	(feedmail-message-action-send-strong, feedmail-message-action-edit)
+	(feedmail-message-action-draft, feedmail-message-action-draft-strong)
+	(feedmail-message-action-queue, feedmail-message-action-queue-strong)
+	(feedmail-message-action-toggle-spray)
+	(feedmail-run-the-queue-no-prompts)
+	(feedmail-run-the-queue-global-prompt, feedmail-queue-reminder)
+	(feedmail-look-at-queue-directory, feedmail-queue-subject-slug-maker)
+	(feedmail-create-queue-filename, feedmail-rfc822-time-zone):
+	(feedmail-fiddle-header, feedmail-give-it-to-buffer-eater)
+	(feedmail-envelope-deducer, feedmail-fiddle-from)
+	(feedmail-fiddle-sender, feedmail-default-date-generator)
+	(feedmail-fiddle-date, feedmail-fiddle-message-id)
+	(feedmail-fiddle-spray-address)
+	(feedmail-fiddle-list-of-spray-fiddle-plexes)
+	(feedmail-fiddle-list-of-fiddle-plexes)
+	(feedmail-fill-to-cc-function, feedmail-fill-this-one)
+	(feedmail-one-last-look, feedmail-fqm-p): Add debug calls.
+	(feedmail-queue-runner-message-sender, feedmail-binmail-template):
+	Change default.  Doc fix.
+	(feedmail-queue-runner-cleaner-upper): Use feedmail-say-chatter.
+	(feedmail-binmail-linuxish-template): New constant.
+	(feedmail-buffer-to-sendmail): Doc fix.  Add debug call.
+	Respect feedmail-sendmail-f-doesnt-sell-me-out.
+	(feedmail-send-it): Add debug call.
+	Use feedmail-queue-buffer-file-name, and
+	feedmail-send-it-immediately-wrapper.
+	(feedmail-message-action-send): Add debug call.
+	Use feedmail-send-it-immediately-wrapper.
+	(feedmail-queue-express-to-queue): Add debug call.
+	Run feedmail-queue-express-hook.
+	(feedmail-message-action-help): Add debug call.  Use feedmail-p-h-b-n.
+	(feedmail-message-action-help-blat):
+	Rename from feedmail-queue-send-edit-prompt-help-first.
+	(feedmail-run-the-queue): Add debug call.  Set buffer-file-type.
+	Check line-endings.  Handle errors better.
+	(feedmail-queue-reminder-brief, feedmail-queue-reminder-medium):
+	Doc fix.  Add debug call.
+	(feedmail-queue-send-edit-prompt): Doc fix.  Add debug call.
+	Use feedmail-queue-send-edit-prompt-inner.
+	(feedmail-queue-runner-prompt, feedmail-scroll-buffer): New functions.
+	(feedmail-queue-send-edit-prompt-inner): New function, extracted
+	from feedmail-queue-send-edit-prompt.
+	(feedmail-queue-send-edit-prompt-help)
+	(feedmail-queue-send-edit-prompt-help-later): Remove functions.
+	(feedmail-tidy-up-slug): Add debug call.
+	Respect feedmail-queue-slug-suspect-regexp.
+	(feedmail-queue-subject-slug-maker): Use buffer-substring-no-properties.
+	(feedmail-dump-message-to-queue): Add debug call.
+	Expand queue-directory.
+	(feedmail-dump-message-to-queue): Change message slightly.
+	Use feedmail-say-chatter.
+	(feedmail-rfc822-date): Add debug call.  Bind system-time-locale.
+	(feedmail-send-it-immediately-wrapper): New function.
+	(feedmail-send-it-immediately): Add debug calls.  Use let not let*.
+	Insert empty string rather than newline.  Handle full-frame case.
+	Use catch/throw.  Use feedmail-say-chatter.
+	(feedmail-fiddle-from): Try mail-host-address.
+	(feedmail-default-message-id-generator): Doc fix.
+	Bind system-time-locale.  Handle missing end.
+	(feedmail-fiddle-x-mailer): Add debug call.
+	Handle feedmail-x-mailer-line being nil.
+	(feedmail-accume-n-nuke-header, feedmail-deduce-address-list):
+	Add debug call.  Use buffer-substring-no-properties.
+	(feedmail-say-debug, feedmail-say-chatter): New functions.
+	(feedmail-find-eoh): Give an explicit error.
+
 2011-05-13  Ulf Jasper  <ulf.jasper@web.de>
 
 	* net/newst-treeview.el (newsticker-treeview-face): Changed default
