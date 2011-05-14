@@ -1,3 +1,11 @@
+2011-05-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fixups, following up to the user-interface timestamp change.
+	* nsterm.m (last_mouse_movement_time, ns_mouse_position): Use Time
+	for UI timestamps, instead of unsigned long.
+	* w32gui.h (Time): Define by including "systime.h" rather than by
+	declaring it ourselves.  (Bug#8664)
+
 2011-05-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* editfns.c (Fformat): Fix several integer overflow problems.
