@@ -2036,8 +2036,11 @@ if test x"${USE_X_TOOLKIT}" = xmaybe || test x"${USE_X_TOOLKIT}" = xLUCID; then
     elif test x"${USE_X_TOOLKIT}" = xLUCID; then
       AC_MSG_ERROR([Lucid toolkit requires X11/Xaw include files])
     else
-      AC_MSG_RESULT([no; do not use toolkit by default])
-      USE_X_TOOLKIT=none
+      AC_MSG_ERROR([No X toolkit could be found.
+If you are sure you want Emacs compiled without an X toolkit, pass
+  --with-x-toolkit=no
+to configure.  Otherwise, install the development libraries for the toolkit
+that you want to use (e.g. Gtk+) and re-run configure.])
     fi
   fi
 fi
