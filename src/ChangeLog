@@ -2,6 +2,8 @@
 
 	* xdisp.c (compute_display_string_pos): Non-trivial implementation.
 	(compute_display_string_end): New function.
+	(push_it): Accept second argument POSITION, where pop_it should
+	jump to continue iteration.
 
 	* dispextern.h (compute_display_string_end): Declare prototype.
 

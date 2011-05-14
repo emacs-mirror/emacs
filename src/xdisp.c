@@ -812,7 +812,7 @@ static int try_scrolling (Lisp_Object, int, EMACS_INT, EMACS_INT, int, int);
 static int try_cursor_movement (Lisp_Object, struct text_pos, int *);
 static int trailing_whitespace_p (EMACS_INT);
 static unsigned long int message_log_check_duplicate (EMACS_INT, EMACS_INT);
-static void push_it (struct it *);
+static void push_it (struct it *, struct text_pos *);
 static void pop_it (struct it *);
 static void sync_frame_with_window_matrix_rows (struct window *);
 static void select_frame_for_redisplay (Lisp_Object);
@@ -3938,7 +3938,7 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 {
   Lisp_Object form;
   Lisp_Object location, value;
-  struct text_pos start_pos, save_pos;
+  struct text_pos start_pos;
   int valid_p;
 
   /* If SPEC is a list of the form `(when FORM . VALUE)', evaluate FORM.
@@ -4155,11 +4155,7 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 
       /* Save current settings of IT so that we can restore them
 	 when we are finished with the glyph property value.  */
-
-      save_pos = it->position;
-      it->position = *position;
-      push_it (it);
-      it->position = save_pos;
+      push_it (it, position);
 
       it->area = TEXT_AREA;
       it->what = IT_IMAGE;
@@ -4234,10 +4230,7 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
     {
       /* Save current settings of IT so that we can restore them
 	 when we are finished with the glyph property value.  */
-      save_pos = it->position;
-      it->position = *position;
-      push_it (it);
-      it->position = save_pos;
+      push_it (it, position);
       it->from_overlay = overlay;
 
       if (NILP (location))
@@ -4911,7 +4904,7 @@ get_overlay_strings_1 (struct it *it, EMACS_INT charpos, int compute_stop_p)
       /* When called from handle_stop, there might be an empty display
          string loaded.  In that case, don't bother saving it.  */
       if (!STRINGP (it->string) || SCHARS (it->string))
-	push_it (it);
+	push_it (it, NULL);
 
       /* Set up IT to deliver display elements from the first overlay
 	 string.  */
@@ -4953,10 +4946,11 @@ get_overlay_strings (struct it *it, EMACS_INT charpos)
 /* Save current settings of IT on IT->stack.  Called, for example,
    before setting up IT for an overlay string, to be able to restore
    IT's settings to what they were after the overlay string has been
-   processed.  */
+   processed.  If POSITION is non-NULL, it is the position to save on
+   the stack instead of IT->position.  */
 
 static void
-push_it (struct it *it)
+push_it (struct it *it, struct text_pos *position)
 {
   struct iterator_stack_entry *p;
 
@@ -4983,7 +4977,7 @@ push_it (struct it *it)
       p->u.stretch.object = it->object;
       break;
     }
-  p->position = it->position;
+  p->position = position ? *position : it->position;
   p->current = it->current;
   p->end_charpos = it->end_charpos;
   p->string_nchars = it->string_nchars;
@@ -17157,7 +17151,7 @@ cursor_row_p (struct glyph_row *row)
 static int
 push_display_prop (struct it *it, Lisp_Object prop)
 {
-  push_it (it);
+  push_it (it, NULL);
 
   if (STRINGP (prop))
     {
