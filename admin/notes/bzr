@@ -76,9 +76,8 @@ a similar way with unbound ones.
 (this will be included by default in bzr 2.4 onwards):
 
 cd ~/.bazaar/plugins
-# The following is an improved version of: lp:bzr-changelog-merge
-bzr branch lp:~spiv/bzr-changelog-merge/non-head-edits-723968
-mv bzr-changelog-merge changelog_merge
+bzr branch http://bazaar.launchpad.net/~spiv/bzr-changelog-merge/trunk 
+mv trunk changelog_merge
 
 This should make merging ChangeLogs smoother.  It merges new entries
 to the top of the file, rather than trying to fit them in mid-way
