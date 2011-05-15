@@ -1,3 +1,8 @@
+2011-05-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc/vc-annotate.el (vc-annotate-mode-map): Bind = to
+	vc-annotate-show-diff-revision-at-line (Bug#8671).
+
 2011-05-14  Glenn Morris  <rgm@gnu.org>
 
 	* vc/add-log.el (add-change-log-entry): Don't start adding a new entry

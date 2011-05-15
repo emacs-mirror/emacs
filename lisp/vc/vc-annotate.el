@@ -120,6 +120,7 @@ List of factors, used to expand/compress the time scale.  See `vc-annotate'."
   (let ((m (make-sparse-keymap)))
     (define-key m "a" 'vc-annotate-revision-previous-to-line)
     (define-key m "d" 'vc-annotate-show-diff-revision-at-line)
+    (define-key m "=" 'vc-annotate-show-diff-revision-at-line)
     (define-key m "D" 'vc-annotate-show-changeset-diff-revision-at-line)
     (define-key m "f" 'vc-annotate-find-revision-at-line)
     (define-key m "j" 'vc-annotate-revision-at-line)
