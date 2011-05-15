@@ -1,3 +1,8 @@
+2011-05-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc/diff-mode.el (diff-fixup-modifs): Locate correct position for
+	hunk-end tags (Bug#8672).
+
 2011-05-13  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/python.el (python-font-lock-keywords):
