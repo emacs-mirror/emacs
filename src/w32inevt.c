@@ -45,7 +45,7 @@ extern HANDLE keyboard_handle;
 
 /* Info for last mouse motion */
 static COORD movement_pos;
-static DWORD movement_time;
+static Time movement_time;
 
 /* from w32fns.c */
 extern unsigned int map_keypad_keys (unsigned int, unsigned int);
@@ -544,7 +544,7 @@ w32_console_mouse_position (FRAME_PTR *f,
 			    enum scroll_bar_part *part,
 			    Lisp_Object *x,
 			    Lisp_Object *y,
-			    unsigned long *time)
+			    Time *time)
 {
   BLOCK_INPUT;
 
@@ -756,4 +756,3 @@ w32_console_read_socket (struct terminal *terminal,
   UNBLOCK_INPUT;
   return ret;
 }
-

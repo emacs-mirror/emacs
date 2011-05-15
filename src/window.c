@@ -3094,11 +3094,14 @@ size_window (Lisp_Object window, int size, int width_p, int nodelete_p, int firs
       Lisp_Object last_child;
       int child_size;
 
-      for (child = *forward; !NILP (child); child = c->next)
+      child = *forward;
+      do
 	{
 	  c = XWINDOW (child);
 	  last_child = child;
+	  child = c->next;
 	}
+      while (!NILP (child));
 
       child_size = WINDOW_TOTAL_SIZE (c, width_p);
       size_window (last_child, size - old_size + child_size,

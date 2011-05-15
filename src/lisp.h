@@ -470,8 +470,8 @@ enum pvec_type
 
 #define XHASH(a) ((a).i)
 #define XTYPE(a) ((enum Lisp_Type) (a).u.type)
-#define XINT(a) ((a).s.val)
-#define XUINT(a) ((a).u.val)
+#define XINT(a) ((EMACS_INT) (a).s.val)
+#define XUINT(a) ((EMACS_UINT) (a).u.val)
 
 #ifdef USE_LSB_TAG
 

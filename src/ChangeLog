@@ -1,3 +1,79 @@
+2011-05-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fixups, following up to the user-interface timestamp change.
+	* nsterm.m (last_mouse_movement_time, ns_mouse_position): Use Time
+	for UI timestamps, instead of unsigned long.
+	* msdos.c (mouse_get_pos): Likewise.
+	* w32inevt.c (movement_time, w32_console_mouse_position): Likewise.
+	* w32gui.h (Time): Define by including "systime.h" rather than by
+	declaring it ourselves.  (Bug#8664)
+
+	* dispextern.h (struct image): Don't assume time_t <= unsigned long.
+	* image.c (clear_image_cache): Likewise.
+
+	* term.c (term_mouse_position): Don't assume time_t wraparound.
+
+	Be more systematic about user-interface timestamps.
+	Before, the code sometimes used 'Time', sometimes 'unsigned long',
+	and sometimes 'EMACS_UINT', to represent these timestamps.  This
+	change causes it to use 'Time' uniformly, as that's what X uses.
+	This makes the code easier to follow, and makes it easier to catch
+	integer overflow bugs such as Bug#8664.
+	* frame.c (Fmouse_position, Fmouse_pixel_position):
+	Use Time, not unsigned long, for user-interface timestamps.
+	* keyboard.c (last_event_timestamp, kbd_buffer_get_event): Likewise.
+	(button_down_time, make_lispy_position, make_lispy_movement): Likewise.
+	* keyboard.h (last_event_timestamp): Likewise.
+	* menu.c (Fx_popup_menu) [!HAVE_X_WINDOWS]: Likewise.
+	* menu.h (xmenu_show): Likewise.
+	* term.c (term_mouse_position): Likewise.
+	* termhooks.h (struct input_event.timestamp): Likewise.
+	(struct terminal.mouse_position_hook): Likewise.
+	* xmenu.c (create_and_show_popup_menu, xmenu_show): Likewise.
+	* xterm.c (XTmouse_position, x_scroll_bar_report_motion): Likewise.
+	* systime.h (Time): New decl.  Pull it in from <X11/X.h> if
+	HAVE_X_WINDOWS, otherwise define it as unsigned long, which is
+	what it was before.
+	* menu.h, termhooks.h: Include "systime.h", for Time.
+
+	* keyboard.c (make_lispy_event): Fix problem in integer overflow.
+	Don't assume that the difference between two unsigned long values
+	can fit into an integer.  At this point, we know button_down_time
+	<= event->timestamp, so the difference must be nonnegative, so
+	there's no need to cast the result if double-click-time is
+	nonnegative, as it should be; check that it's nonnegative, just in
+	case.  This bug is triggered when events are more than 2**31 ms
+	apart (about 25 days).  (Bug#8664)
+
+	* xselect.c (last_event_timestamp): Remove duplicate decl.
+	(x_own_selection): Remove needless cast to unsigned long.
+
+	* xmenu.c (set_frame_menubar): Use int, not EMACS_UINT, for indexes
+	that always fit in int.  Use a sentinel instead of a counter, to
+	avoid a temp and to allay GCC's concerns about possible int overflow.
+	* frame.h (struct frame): Use int for menu_bar_items_used
+	instead of EMACS_INT, since it always fits in int.
+
+	* menu.c (grow_menu_items): Check for int overflow.
+
+	* xmenu.c (set_frame_menubar): Don't mishandle vectors with no nils.
+
+	* xterm.c: Use EMACS_INT for Emacs modifiers, and int for X modifiers.
+	Before, the code was not consistent.  These values cannot exceed
+	2**31 - 1 so there's no need to make them unsigned.
+	(x_x_to_emacs_modifiers): Accept int and return EMACS_INT.
+	(x_emacs_to_x_modifiers): Accept EMACS_INT and return int.
+	(x_x_to_emacs_modifiers, x_emacs_to_x_modifiers): Reject non-integers
+	as modifiers.
+	* xterm.h (x_x_to_emacs_modifiers): Adjust to signature change.
+
+	* lisp.h (XINT) [USE_LISP_UNION_TYPE]: Cast to EMACS_INT.
+	(XUINT) [USE_LISP_UNION_TYPE]: Cast to EMACS_UINT.
+	Otherwise, GCC 4.6.0 warns about printf (pI, XINT (...)),
+	presumably because the widths might not match.
+
+	* window.c (size_window): Avoid needless test at loop start.
+
 2011-05-12  Drew Adams  <drew.adams@oracle.com>
 
 	* textprop.c (Fprevious_single_char_property_change): Doc fix (bug#8655).
