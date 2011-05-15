@@ -1585,16 +1585,8 @@ listed below:
 @item -a @var{command}
 @itemx --alternate-editor=@var{command}
 Specify a command to run if @code{emacsclient} fails to contact Emacs.
-This is useful when running @code{emacsclient} in a script.  For
-example, the following setting for the @env{EDITOR} environment
-variable will always give you an editor, even if no Emacs server is
-running:
+This is useful when running @code{emacsclient} in a script.
 
-@example
-EDITOR="emacsclient --alternate-editor emacs +%d %s"
-@end example
-
-@noindent
 As a special exception, if @var{command} is the empty string, then
 @code{emacsclient} starts Emacs in daemon mode and then tries
 connecting again.
@@ -2490,9 +2482,8 @@ also use the command @kbd{M-x scroll-all-mode} or set the variable
 @item EDT (DEC VMS editor)
 @findex edt-emulation-on
 @findex edt-emulation-off
-Turn on EDT emulation with the command @kbd{M-x edt-emulation-on},
-while @kbd{M-x edt-emulation-off} restores normal Emacs command
-bindings.
+Turn on EDT emulation @kbd{M-x edt-emulation-on}; use @kbd{M-x
+edt-emulation-off} to restore normal Emacs command bindings.
 
 Most of the EDT emulation commands are keypad keys, and most standard
 Emacs key bindings are still available.  The EDT emulation rebindings

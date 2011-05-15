@@ -1,3 +1,33 @@
+2011-05-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	Fixes for fitting text into 7x9 printed manual.
+	* building.texi (Flymake, Breakpoints Buffer):
+	* calendar.texi (Appointments):
+	* cmdargs.texi (General Variables, Display X):
+	* custom.texi (Saving Customizations, Face Customization)
+	(Directory Variables, Minibuffer Maps, Init Rebinding):
+	* display.texi (Font Lock, Font Lock, Useless Whitespace):
+	* fixit.texi (Spelling):
+	* frames.texi (Creating Frames, Fonts):
+	* help.texi (Help Files):
+	* mini.texi (Minibuffer File):
+	* misc.texi (emacsclient Options, Emulation):
+	* msdog.texi (Windows Startup, Windows HOME, Windows Fonts):
+	* mule.texi (International Chars, Language Environments)
+	(Select Input Method, Modifying Fontsets, Charsets):
+	* programs.texi (Custom C Indent):
+	* rmail.texi (Rmail Labels):
+	* text.texi (Table Conversion):
+	* trouble.texi (Known Problems, Known Problems):
+	* windows.texi (Change Window):
+	* xresources.texi (GTK resources): Reflow text and re-indent code
+	examples to avoid TeX overflows and underflows on 7x9 paper.
+
+	* emacs.texi: Fix the (commented out) smallbook command.
+
+	* macos.texi (Mac / GNUstep Events):
+	* xresources.texi (Lucid Resources): Remove extraneous examples.
+
 2011-04-13  Juanma Barranquero  <lekktu@gmail.com>
 
 	* mini.texi (Minibuffer Edit):
