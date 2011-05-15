@@ -1118,45 +1118,47 @@ else cover the whole buffer."
     (save-excursion
       (goto-char end) (diff-end-of-hunk nil 'donttrustheader)
       (let ((plus 0) (minus 0) (space 0) (bang 0))
-	(while (and (= (forward-line -1) 0) (<= start (point)))
-	  (if (not (looking-at
-		    (concat diff-hunk-header-re-unified
-			    "\\|[-*][-*][-*] [0-9,]+ [-*][-*][-*][-*]$"
-			    "\\|--- .+\n\\+\\+\\+ ")))
-	      (case (char-after)
-		(?\s (incf space))
-		(?+ (incf plus))
-		(?- (incf minus))
-		(?! (incf bang))
-		((?\\ ?#) nil)
-		(t  (setq space 0 plus 0 minus 0 bang 0)))
-	    (cond
-	     ((looking-at diff-hunk-header-re-unified)
-	      (let* ((old1 (match-string 2))
-		     (old2 (match-string 4))
-		     (new1 (number-to-string (+ space minus)))
-		     (new2 (number-to-string (+ space plus))))
-                (if old2
-                    (unless (string= new2 old2) (replace-match new2 t t nil 4))
-                  (goto-char (match-end 4)) (insert "," new2))
-                (if old1
-                    (unless (string= new1 old1) (replace-match new1 t t nil 2))
-                  (goto-char (match-end 2)) (insert "," new1))))
-	     ((looking-at diff-context-mid-hunk-header-re)
-	      (when (> (+ space bang plus) 0)
-		(let* ((old1 (match-string 1))
-		       (old2 (match-string 2))
-		       (new (number-to-string
-			     (+ space bang plus -1 (string-to-number old1)))))
-		  (unless (string= new old2) (replace-match new t t nil 2)))))
-	     ((looking-at "\\*\\*\\* \\([0-9]+\\),\\(-?[0-9]*\\) \\*\\*\\*\\*$")
-	      (when (> (+ space bang minus) 0)
-		(let* ((old (match-string 1))
-		       (new (format
-			     (concat "%0" (number-to-string (length old)) "d")
-			     (+ space bang minus -1 (string-to-number old)))))
-		  (unless (string= new old) (replace-match new t t nil 2))))))
-	    (setq space 0 plus 0 minus 0 bang 0)))))))
+	while (and (= (forward-line -1) 0) (<= start (point)))
+	(if (not (looking-at
+		  (concat diff-hunk-header-re-unified
+			  "\\|[-*][-*][-*] [0-9,]+ [-*][-*][-*][-*]$"
+			  "\\|--- .+\n\\+\\+\\+ ")))
+	    (case (char-after)
+	      (?\s (incf space))
+	      (?+ (incf plus))
+	      (?- (incf minus))
+	      (?! (incf bang))
+	      ((?\\ ?#) nil)
+	      (t  (setq space 0 plus 0 minus 0 bang 0)))
+	  (cond
+	   ((looking-at diff-hunk-header-re-unified)
+	    (let* ((old1 (match-string 2))
+		   (old2 (match-string 4))
+		   (new1 (number-to-string (+ space minus)))
+		   (new2 (number-to-string (+ space plus))))
+	      (if old2
+		  (unless (string= new2 old2) (replace-match new2 t t nil 4))
+		(goto-char (match-end 3))
+		(insert "," new2))
+	      (if old1
+		  (unless (string= new1 old1) (replace-match new1 t t nil 2))
+		(goto-char (match-end 1))
+		(insert "," new1))))
+	   ((looking-at diff-context-mid-hunk-header-re)
+	    (when (> (+ space bang plus) 0)
+	      (let* ((old1 (match-string 1))
+		     (old2 (match-string 2))
+		     (new (number-to-string
+			   (+ space bang plus -1 (string-to-number old1)))))
+		(unless (string= new old2) (replace-match new t t nil 2)))))
+	   ((looking-at "\\*\\*\\* \\([0-9]+\\),\\(-?[0-9]*\\) \\*\\*\\*\\*$")
+	    (when (> (+ space bang minus) 0)
+	      (let* ((old (match-string 1))
+		     (new (format
+			   (concat "%0" (number-to-string (length old)) "d")
+			   (+ space bang minus -1 (string-to-number old)))))
+		(unless (string= new old) (replace-match new t t nil 2))))))
+	  (setq space 0 plus 0 minus 0 bang 0)))))))
 
 ;;;;
 ;;;; Hooks

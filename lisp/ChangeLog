@@ -1,5 +1,8 @@
 2011-05-15  Chong Yidong  <cyd@stupidchicken.com>
 
+	* vc/diff-mode.el (diff-fixup-modifs): Locate correct position for
+	hunk-end tags (Bug#8672).
+
 	* vc/vc-annotate.el (vc-annotate-mode-map): Bind = to
 	vc-annotate-show-diff-revision-at-line (Bug#8671).
 
