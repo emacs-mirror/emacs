@@ -11395,9 +11395,11 @@ $as_echo "yes; using Lucid toolkit" >&6; }
     elif test x"${USE_X_TOOLKIT}" = xLUCID; then
       as_fn_error "Lucid toolkit requires X11/Xaw include files" "$LINENO" 5
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no; do not use toolkit by default" >&5
-$as_echo "no; do not use toolkit by default" >&6; }
-      USE_X_TOOLKIT=none
+      as_fn_error "No X toolkit could be found.
+If you are sure you want Emacs compiled without an X toolkit, pass
+  --with-x-toolkit=no
+to configure.  Otherwise, install the development libraries for the toolkit
+that you want to use (e.g. Gtk+) and re-run configure." "$LINENO" 5
     fi
   fi
 fi
