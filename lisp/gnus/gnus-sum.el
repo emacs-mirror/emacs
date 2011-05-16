@@ -11533,8 +11533,12 @@ will not be hidden."
   (interactive)
   (save-excursion
     (goto-char (point-min))
-    (let ((end nil))
+    (let ((end nil)
+          (count 0))
       (while (not end)
+        (incf count)
+        (when (zerop (mod count 1000))
+          (message "Hiding all threads... %d" count))
 	(when (or (not predicate)
 		  (gnus-map-articles
 		   predicate (gnus-summary-article-children)))
