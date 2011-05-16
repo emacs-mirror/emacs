@@ -476,7 +476,7 @@ lisp_string_width (Lisp_Object string, EMACS_INT precision,
       i += chars;
       i_byte += bytes;
       width += thiswidth;
-  }
+    }
 
   if (precision > 0)
     {
@@ -683,7 +683,7 @@ parse_str_to_multibyte (const unsigned char *str, EMACS_INT len)
 }
 
 
-/* Convert unibyte text at STR of NBYTES bytes to a multibyte text
+/* Convert unibyte text at STR of BYTES bytes to a multibyte text
    that contains the same single-byte characters.  It actually
    converts all 8-bit characters to multibyte forms.  It is assured
    that we can use LEN bytes at STR as a work area and that is
@@ -844,6 +844,7 @@ string_escape_byte8 (Lisp_Object string)
     {
       if ((MOST_POSITIVE_FIXNUM - nchars) / 3 < byte8_count)
 	string_overflow ();
+
       /* Convert 1-byte sequence of byte8 chars to 4-byte octal.  */
       val = make_uninit_string (nbytes + byte8_count * 3);
     }
