@@ -1,3 +1,7 @@
+2011-05-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/eieio.el (defmethod): Fix quoting of code (bug#8677).
+
 2011-05-16  Kevin Ryde  <user42@zip.com.au>
 
 	* info-look.el (makefile-automake-mode): New setups, looking in

@@ -1308,7 +1308,7 @@ Summary:
        (defgeneric ,method ,args
          ,(or (documentation code)
               (format "Generically created method `%s'." method)))
-       (eieio--defmethod ',method ',key ',class ',code))))
+       (eieio--defmethod ',method ',key ',class #',code))))
 
 (defun eieio--defmethod (method kind argclass code)
   "Work part of the `defmethod' macro defining METHOD with ARGS."
