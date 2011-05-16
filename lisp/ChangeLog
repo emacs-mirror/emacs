@@ -1,3 +1,228 @@
+2012-09-18  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el Add and revise various doc strings, remove
+	further commented out code; add further comments; further code
+	rearrangement.
+	(todos-file-do, todos-archive-file, todos-mode-hook)
+	(todos-edit-mode-hook, todos-exclusion-start, todos-exclusion-end)
+	(todos-view-archive, todos-search-string)
+	(todos-jump-to-category-noninteractively, todos-initial-setup):
+	Remove.
+	(todos-files): Remove this defcustom.
+	(todos-initial-category, todos-display-categories-first)
+	(todos-auto-switch-todos-file, todos-default-todos-file)
+	(todos-categories-category-label, todos-categories-todo-label)
+	(todos-categories-diary-label, todos-categories-done-label)
+	(todos-categories-archived-label)
+	(todos-categories-number-separator, todos-categories-align)
+	(todos-ignore-archived-categories, todos-nondiary-marker):
+	New defcustoms.
+	(todos-prefix, todos-done-separator, todos-file-top)
+	(todos-categories-buffer, todos-archived-categories-buffer)
+	(todos-edit-buffer, todos-always-add-time-string, todos-button):
+	Change default value.
+	(todos-done-string): Add todos-reset-done-string as :set function,
+	but keep this commented out.
+	(todos-files, todos-archives, todos-insertion-map)
+	(todos-category-done, todos-nondiary-start, todos-nondiary-end)
+	(todos-show-done-only, todos-date-string-start)
+	(todos-done-string-start): New variables.
+	(todos-files-directory, todos-files-function, todos-merged-files)
+	(todos-prompt-merged-files, todos-files, todos-modes-set-1)
+	(todos-modes-set-2, todos-reset-done-string, todos-reset-categories)
+	(todos-toggle-switch-todos-file-noninteractively)
+	(todos-switch-todos-file, todos-counts, todos-get-count)
+	(todos-set-count, todos-set-categories)
+	(todos-truncate-categories-list, todos-update-categories-sexp)
+	(todos-read-file-name, todos-sort, todos-display-sorted)
+	(todos-label-to-key, todos-insert-sort-button): New functions.
+	(todos-display-categories-sorted-by-todo)
+	(todos-display-categories-sorted-by-diary)
+	(todos-display-categories-sorted-by-done)
+	(todos-display-categories-sorted-by-archived)
+	(todos-update-merged-files, todos-switch-to-archive)
+	(todos-choose-archive, todos-merged-top-priorities)
+	(todos-jump-to-category-other-file, todos-clear-matches)
+	(todos-add-file, todos-change-default-file, todos-move-category)
+	(todos-merge-category, todos-merge-categories)
+	(todos-edit-item-time, todos-move-item-to-file)
+	(todos-unarchive-category, todos-toggle-item-diary-nonmarking)
+	(todos-toggle-diary-nonmarking): New commands.
+	(todos-toggle-show-done-only): New command replacing todos-view-archive.
+	(todos-faces): New defgroup; use in all face definitions.
+	(todos-sorted-column, todos-archived-only, todos-search): New faces.
+	(todos-font-lock-keywords): Use subexpression 1 with matcher
+	todos-category-string-match.
+	(todos-mode-map, todos-archive-mode-map, todos-edit-mode-map)
+	(todos-categories-mode-map): Add new key bindings; change some
+	existing bindings.
+	(todos-top-priorities-mode-map): New keymap.
+	(todos-menu): Add submenues and new entries.
+	(auto-mode-alist): Add extension of Todos and Todos archive files.
+	(todos-mode, todos-archive-mode): Make derived mode; use
+	todos-modes-set-1, todos-modes-set-2, todos-auto-switch-todos-file
+	and todos-switch-todos-file; make todos-show-done-only local
+	variable.
+	(todos-edit-mode): Make derived mode; use todos-modes-set-1.
+	(todos-categories-mode): Make derived mode.
+	(todos-top-priorities-mode): New derived major mode.
+	(todos-save): Remove unused code.
+	(todos-quit): Handle todos-categories-mode; save archive buffer.
+	(todos-show): Add optional argument to prompt for a Todos file; if
+	called interactively or with prefix arg or from an archive, don't
+	make a no-op but reset todos-current-todos-file, todos-categories
+	and todos-category-number; use todos-read-file-name,
+	todos-display-categories-first, todos-ignore-archived-categories.
+	(todos-display-categories): Change argument name; refactor code
+	for inserting table labels and lines, using
+	todos-ignore-archived-categories, todos-sort,
+	todos-categories-number-separator, todos-insert-sort-button,
+	todos-categories-*-labels, and todos-insert-category-line.
+	(todos-display-categories-alphabetically): Use todos-display-sorted.
+	(todos-toggle-view-done-items): Use todos-done-string-start and
+	todos-get-count.
+	(todos-toggle-display-date-time): Use todos-done-string-start.
+	(todos-top-priorities): Remove autoload cookie; partially rewrite:
+	new argument list; allow combining top priorities of multiple
+	Todos files; change display to include category (and file) name as
+	part of item header; use todos-top-priorities-mode.
+	(todos-diary-items): Reimplement using only todos-top-priorities.
+	(todos-forward-category, todos-backward-category): Accommodate to
+	1-based numbering of categories; move point to top of category.
+	(todos-jump-to-category): Rewrite, adding optional arguments to
+	provide a category in non-interactive uses and to prompt for which
+	Todos file to jump to.
+	(todos-search): Reimplement; highlight each match as found, say
+	how many matches remain and prompt whether to go to next one; at
+	end of search prompt whether to remove highlighting.
+	(todos-add-category): Remove autoload cookie; assign new category
+	the highest category number; associate zero-initialized vector of
+	item counts, instead of property list, with new category; use
+	todos-validate-category-name and todos-update-categories-sexp.
+	(todos-rename-category): Use todos-validate-category-name and
+	todos-update-categories-sexp; take archive files into account.
+	(todos-delete-category): Use todos-get-count and
+	todos-update-categories-sexp, let-bind variable that were
+	mistakenly global; use delete-region instead of kill-region;
+	accommodate to 1-based numbering of categories; move point to top
+	of category.
+	(todos-raise-category): Handle item count vectors; use
+	todos-insert-category-line and todos-update-categories-sexp.
+	(todos-insert-item): Use nil time-string argument to omit time
+	string; use todos-nondiary-start and todos-nondiary-end and
+	todos-update-categories-sexp; if category named to insert into
+	does not exist, add it; take new diary items into account.
+	(todos-insert-item-ask-date, todos-insert-item-ask-date-time)
+	(todos-insert-item-ask-date-time-for-diary)
+	(todos-insert-item-ask-date-time-for-diary-here)
+	(todos-insert-item-ask-date-time-here)
+	(todos-insert-item-ask-date-maybe-notime)
+	(todos-insert-item-ask-date-maybe-notime-for-diary)
+	(todos-insert-item-ask-date-maybe-notime-for-diary-here)
+	(todos-insert-item-ask-date-maybe-notime-here)
+	(todos-insert-item-ask-date-for-diary)
+	(todos-insert-item-ask-date-for-diary-here)
+	(todos-insert-item-ask-date-here, todos-insert-item-ask-dayname)
+	(todos-insert-item-ask-dayname-time)
+	(todos-insert-item-ask-dayname-time-for-diary)
+	(todos-insert-item-ask-dayname-time-for-diary-here)
+	(todos-insert-item-ask-dayname-time-here)
+	(todos-insert-item-ask-dayname-maybe-notime)
+	(todos-insert-item-ask-dayname-maybe-notime-for-diary)
+	(todos-insert-item-ask-dayname-maybe-notime-for-diary-here)
+	(todos-insert-item-ask-dayname-maybe-notime-here)
+	(todos-insert-item-ask-dayname-for-diary)
+	(todos-insert-item-ask-dayname-for-diary-here)
+	(todos-insert-item-ask-dayname-here, todos-insert-item-ask-time)
+	(todos-insert-item-ask-time-for-diary)
+	(todos-insert-item-ask-time-for-diary-here)
+	(todos-insert-item-ask-time-here)
+	(todos-insert-item-maybe-notime)
+	(todos-insert-item-maybe-notime-for-diary)
+	(todos-insert-item-maybe-notime-for-diary-here)
+	(todos-insert-item-maybe-notime-here)
+	(todos-insert-item-for-diary, todos-insert-item-for-diary-here):
+	New insertion commands.
+	(todos-insert-item-from-calendar): Use todos-current-todos-file.
+	(todos-delete-item): Handle diary items;
+	use todos-update-categories-sexp.
+	(todos-edit-item): Check if point is with item string;
+	use read-string instead of read-from-minibuffer;
+	use todos-date-string-start; after editing put point at start of
+	item text.
+	(todos-edit-multiline): Narrow to item before invoking
+	todos-edit-mode; show key binding of todos-edit-quit in a message.
+	(todos-edit-quit): Use todos-save; kill buffer.
+	(todos-edit-item-header): Add optional argument to prompt for
+	editing only date string or only time string;
+	use todos-date-string-start.
+	(todos-edit-item-date, todos-edit-item-date-is-today)
+	(todos-raise-item-priority, todos-lower-item-priority): Rename
+	from todos-{raise, lower}-item and make them DTRT in
+	todos-top-priorities-mode.
+	(todos-set-item-priority): Make interactive; use todos-get-count
+	and todos-insert-with-overlays; interactively, just relocate the
+	item within its category.
+	(todos-move-item): Add optional argument to prompt for a category
+	in another Todos file; handle diary items; fix restoration after
+	cancelling before inserting.
+	(todos-item-done): Handle diary items; simplify handling of
+	insertion in done items section.
+	(todos-item-undo): Handle diary items.
+	(todos-archive-done-items): Accommodate to new handling of archive
+	files (in parallel with Todos files); handle diary items; use
+	todos-done-string-start.
+	(todos-toggle-item-diary-inclusion): Use todos-nondiary-start,
+	todos-nondiary-end and todos-item-counts.
+	(todos-toggle-diary-inclusion): Use todos-category-done instead of
+	todos-category-end.
+	(todos-print): Remove autoload cookie; rewrite to make overlays,
+	line wrapping and wrap prefixes printable.
+	(todos-date-pattern): Make parenthesized groups shy.
+	(todos-date-string-match): Use todos-date-string-start; make
+	todos-date-pattern an explicitly numbered group.
+	(todos-time-string-match): Use todos-date-string-start.
+	(todos-done-string-match): Use todos-done-string-start.
+	(todos-category-string-match): Rewrite to match new category and
+	category+filename patterns in todos-top-priorities-mode.
+	(todos-prefix-overlays): Use todos-done-string-start and
+	todos-category-done.
+	(todos-reset-prefix): Handle archive files; restore point after
+	changing prefix.
+	(todos-reset-separator): Handle archive files.
+	(todos-category-number): Make category number one more than its
+	list index.
+	(todos-current-category): Accommodate to 1-based numbering of
+	categories.
+	(todos-category-select): Simplify handling of done items and done
+	separator string overlay.
+	(todos-item-start): Use todos-date-string-start and
+	todos-done-string-start.
+	(todos-item-start, todos-item-end): Fix wrong parenthesizing.
+	(todos-item-string): Restore point after getting item bounds; use
+	buffer-substring-no-properties.
+	(todos-done-item-p): Use todos-done-string-start.
+	(todos-make-categories-list): Add optional argument to force
+	looping through file to get categories and their item counts,
+	otherwise set todos-categories from sexp in first line; use
+	vectors of item counts instead of plists; count diary items.
+	(todos-item-counts): Use todos-counts, todos-set-counts,
+	todos-get-counts, and todos-update-categories-sexp instead of
+	getting and setting properties; handle diary items.
+	(todos-read-category): Add argument to set prompt; don't offer
+	default category.
+	(todos-validate-category-name): Rename from
+	todos-check-category-name; take into account whether there are
+	already categories or not.
+	(todos-read-date): Accept `*' as an unspecified month, day, or year.
+	(todos-padded-string): Accommodate new structure of
+	todos-categories as alists; use todos-categories-align.
+	(todos-descending-counts-store): New variable.
+	(todos-insert-category-line): Rename from
+	todos-insert-category-name and reimplement using labels and
+	todos-get-counts instead of properties; use
+	todos-ignore-archived-categories; highlight sorted column.
+
 2012-09-14  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el Remove lots of commented out code; add various
