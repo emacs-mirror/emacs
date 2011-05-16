@@ -1,3 +1,7 @@
+2011-05-16  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nntp.el (nntp-open-connection): Check if process-type is available.
+
 2011-05-16  Julien Danjou  <julien@danjou.info>
 
 	* shr.el (shr-tag-del): Add support for del tag.
