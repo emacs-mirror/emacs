@@ -1,8 +1,8 @@
 2011-05-16  Eli Zaretskii  <eliz@gnu.org>
 
-	* Makefile.in (OTHERS): Add $(srcdir)/quail/georgian.elc.
+	* Makefile.in (OTHERS): Add $(srcdir)/quail/persian.elc.
 
-	* makefile.w32-in (MISC): Add $(srcdir)/quail/georgian.elc.
+	* makefile.w32-in (MISC): Add $(srcdir)/quail/persian.elc.
 
 2011-05-16  Mohsen BANAN  <libre@mohsen.banan.1.byname.net>
 
