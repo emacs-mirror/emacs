@@ -90,8 +90,10 @@ error, its exit status is 1.
 
 ** auto-mode-case-fold is now enabled by default.
 
+** Internationalization changes
+
 +++
-** Emacs now supports display and editing of bidirectional text.
+*** Emacs now supports display and editing of bidirectional text.
 
 See the node "Bidirectional Editing" in the Emacs Manual for some
 initial documentation.
@@ -116,6 +118,20 @@ Algorithm.
 Note that some advanced display features, such as overlay strings and
 `display' text properties, do not yet work correctly when
 bidirectional text is reordered for display.
+
++++
+*** Enhanced support for characters that have no glyphs in available fonts.
+If a character has no glyphs in any of the available fonts, Emacs by
+default will display it either as a hexadecimal code in a box or as a
+thin 1-pixel space.  In addition to these two methods, Emacs can
+display these characters as empty box, as an acronym, or not display
+them at all.  To change how these characters are displayed, customize
+the variable `glyphless-char-display-control'.
+
+On character terminals these methods are used for characters that
+cannot be encoded by the `terminal-coding-system'.
+
+*** There are two new input methods for Persian/Farsi: farsi and farsi-translit.
 
 ** GTK scroll-bars are now placed on the right by default.
 Use `set-scroll-bar-mode' to change this.
@@ -153,18 +169,6 @@ off by customizing x-gtk-use-system-tooltips.
 ** Lucid menus and dialogs can display antialiased fonts if Emacs is built
 with Xft.  To change font, use the X resource font, for example:
 Emacs.pane.menubar.font:  Courier-12
-
-+++
-** Enhanced support for characters that have no glyphs in available fonts.
-If a character has no glyphs in any of the available fonts, Emacs by
-default will display it either as a hexadecimal code in a box or as a
-thin 1-pixel space.  In addition to these two methods, Emacs can
-display these characters as empty box, as an acronym, or not display
-them at all.  To change how these characters are displayed, customize
-the variable `glyphless-char-display-control'.
-
-On character terminals these methods are used for characters that
-cannot be encoded by the `terminal-coding-system'.
 
 ** On graphical displays, the mode-line no longer ends in dashes.
 
