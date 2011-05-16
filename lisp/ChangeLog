@@ -1,3 +1,14 @@
+2011-05-16  Kevin Ryde  <user42@zip.com.au>
+
+	* info-look.el (makefile-automake-mode): New setups, looking in
+	automake manual, then makefile-mode.
+	(makefile-mode): Remove automake manual, have it just in
+	makefile-automake-mode since there's various things different or
+	not relevant to plain make.
+	(makefile-mode): Remove "other-modes" non-existent automake-mode,
+	believe a hypothetical automake-mode would go to makefile-mode,
+	not the other way around.
+
 2011-05-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* vc/diff-mode.el (diff-fixup-modifs): Locate correct position for
