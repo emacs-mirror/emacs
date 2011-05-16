@@ -1,3 +1,11 @@
+2011-05-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c (string_overflow): New function.
+	(Fmake_string): Use it.  This doesn't change behavior, but saves
+	a few bytes and will simplify future changes.
+	* character.c (string_escape_byte8): Likewise.
+	* lisp.h (string_overflow): New decl.
+
 2011-05-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fixups, following up to the user-interface timestamp change.

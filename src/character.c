@@ -823,7 +823,7 @@ string_escape_byte8 (Lisp_Object string)
     {
       if ((MOST_POSITIVE_FIXNUM - nchars) / 3 < byte8_count
 	  || (MOST_POSITIVE_FIXNUM - nbytes) / 2 < byte8_count)
-	error ("Maximum string size exceeded");
+	string_overflow ();
 
       /* Convert 2-byte sequence of byte8 chars to 4-byte octal.  */
       val = make_uninit_multibyte_string (nchars + byte8_count * 3,
@@ -832,7 +832,7 @@ string_escape_byte8 (Lisp_Object string)
   else
     {
       if ((MOST_POSITIVE_FIXNUM - nchars) / 3 < byte8_count)
-	error ("Maximum string size exceeded");
+	string_overflow ();
       /* Convert 1-byte sequence of byte8 chars to 4-byte octal.  */
       val = make_uninit_string (nbytes + byte8_count * 3);
     }

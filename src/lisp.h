@@ -2710,6 +2710,7 @@ EXFUN (Fmake_vector, 2);
 EXFUN (Fvector, MANY);
 EXFUN (Fmake_symbol, 1);
 EXFUN (Fmake_marker, 0);
+extern void string_overflow (void) NO_RETURN;
 EXFUN (Fmake_string, 2);
 extern Lisp_Object build_string (const char *);
 extern Lisp_Object make_string (const char *, EMACS_INT);
