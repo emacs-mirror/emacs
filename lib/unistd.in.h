@@ -871,6 +871,22 @@ _GL_WARN_ON_USE (endusershell, "endusershell is unportable - "
 #endif
 
 
+#if @GNULIB_GROUP_MEMBER@
+/* Determine whether group id is in calling user's group list.  */
+# if !@HAVE_GROUP_MEMBER@
+_GL_FUNCDECL_SYS (group_member, int, (gid_t gid));
+# endif
+_GL_CXXALIAS_SYS (group_member, int, (gid_t gid));
+_GL_CXXALIASWARN (group_member);
+#elif defined GNULIB_POSIXCHECK
+# undef group_member
+# if HAVE_RAW_DECL_GROUP_MEMBER
+_GL_WARN_ON_USE (group_member, "group_member is unportable - "
+                 "use gnulib module group-member for portability");
+# endif
+#endif
+
+
 #if @GNULIB_LCHOWN@
 /* Change the owner of FILE to UID (if UID is not -1) and the group of FILE
    to GID (if GID is not -1).  Do not follow symbolic links.
