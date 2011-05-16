@@ -1,3 +1,7 @@
+2011-05-16  Julien Danjou  <julien@danjou.info>
+
+	* shr.el (shr-tag-del): Add support for del tag.
+
 2011-05-13  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-html.el (gnus-html-put-image): Register a displayer.
