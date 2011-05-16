@@ -1,5 +1,14 @@
 2011-05-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* character.c (lisp_string_width): Check for string overflow.
+	Use EMACS_INT, not int, for string indexes and lengths; in
+	particular, 2nd arg is now EMACS_INT, not int.  Do not crash if
+	the resulting string length overflows an EMACS_INT; instead,
+	report a string overflow if no precision given.  When checking for
+	precision exhaustion, use a check that cannot possibly have
+	integer overflow.  (Bug#8675)
+	* character.h (lisp_string_width): Adjust to new signature.
+
 	* alloc.c (string_overflow): New function.
 	(Fmake_string): Use it.  This doesn't change behavior, but saves
 	a few bytes and will simplify future changes.
