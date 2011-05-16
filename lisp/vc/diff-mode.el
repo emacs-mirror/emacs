@@ -1158,7 +1158,7 @@ else cover the whole buffer."
 			   (concat "%0" (number-to-string (length old)) "d")
 			   (+ space bang minus -1 (string-to-number old)))))
 		(unless (string= new old) (replace-match new t t nil 2))))))
-	  (setq space 0 plus 0 minus 0 bang 0)))))))
+	  (setq space 0 plus 0 minus 0 bang 0))))))
 
 ;;;;
 ;;;; Hooks

@@ -1,3 +1,7 @@
+2011-05-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* vc/diff-mode.el (diff-fixup-modifs): Remove stray ')' (Bug#8672).
+
 2011-05-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* vc/diff-mode.el (diff-fixup-modifs): Locate correct position for
