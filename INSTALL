@@ -208,7 +208,8 @@ The names of the packages that you need varies according to the
 GNU/Linux distribution that you use, and the options that you want to
 configure Emacs with.  On Debian-based systems, you can install all the
 packages needed to build the installed version of Emacs with a command
-like `apt-get build-dep emacs23'.
+like `apt-get build-dep emacs23'.  On Red Hat systems, the
+corresponding command is `yum-builddep emacs'.
 
 
 DETAILED BUILDING AND INSTALLATION:
