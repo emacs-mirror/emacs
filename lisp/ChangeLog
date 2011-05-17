@@ -1,5 +1,7 @@
 2011-05-17  Glenn Morris  <rgm@gnu.org>
 
+	* mail/mail-utils.el (mail-dont-reply-to): Silence compiler.
+
 	* progmodes/idlw-shell.el (idlwave-shell-complete-filename):
 	Replace obsolete function.
 

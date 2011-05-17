@@ -236,7 +236,7 @@ comma-separated list, and return the pruned list."
       (setq mail-dont-reply-to-names
 	    (concat
 	     ;; `rmail-default-dont-reply-to-names' is obsolete.
-	     (if rmail-default-dont-reply-to-names
+	     (if (bound-and-true-p rmail-default-dont-reply-to-names)
 		 (concat rmail-default-dont-reply-to-names "\\|")
 	       "")
 	     (if (and user-mail-address
