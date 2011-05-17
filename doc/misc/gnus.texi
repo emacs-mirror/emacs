@@ -23501,7 +23501,7 @@ specifications.
 The @code{gnus-face-properties-alist} variable affects the appearance of
 displayed Face images.  @xref{X-Face}.
 
-Viewing an @code{Face} header requires an Emacs that is able to display
+Viewing a @code{Face} header requires an Emacs that is able to display
 PNG images.
 @c Maybe add this:
 @c (if (featurep 'xemacs)
