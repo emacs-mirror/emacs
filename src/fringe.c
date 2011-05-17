@@ -64,9 +64,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    must specify physical bitmap symbols.
 */
 
-Lisp_Object Qtruncation, Qcontinuation, Qoverlay_arrow;
-Lisp_Object Qempty_line, Qtop_bottom;
-Lisp_Object Qhollow_small;
+static Lisp_Object Qtruncation, Qcontinuation, Qoverlay_arrow;
+static Lisp_Object Qempty_line, Qtop_bottom;
+static Lisp_Object Qhollow_small;
 
 enum fringe_bitmap_align
 {
@@ -427,7 +427,7 @@ static unsigned short empty_line_bits[] = {
 /* NOTE:  The order of these bitmaps must match the sequence
    used in fringe.el to define the corresponding symbols.  */
 
-struct fringe_bitmap standard_bitmaps[] =
+static struct fringe_bitmap standard_bitmaps[] =
 {
   { NULL, 0, 0, 0, 0, 0 }, /* NO_FRINGE_BITMAP */
   { FRBITS (question_mark_bits),      8, 0, ALIGN_BITMAP_CENTER, 0 },
@@ -462,6 +462,9 @@ static struct fringe_bitmap **fringe_bitmaps;
 static Lisp_Object *fringe_faces;
 static int max_fringe_bitmaps;
 
+#ifndef HAVE_NS
+static
+#endif
 int max_used_fringe_bitmap = MAX_STANDARD_FRINGE_BITMAPS;
 
 
@@ -1528,7 +1531,7 @@ If BITMAP already exists, the existing definition is replaced.  */)
   if (STRINGP (bits))
     h = SCHARS (bits);
   else if (VECTORP (bits))
-    h = XVECTOR (bits)->size;
+    h = ASIZE (bits);
   else
     wrong_type_argument (Qsequencep, bits);
 

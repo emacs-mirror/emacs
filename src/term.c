@@ -26,7 +26,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/file.h>
 #include <unistd.h>
 #include <signal.h>
-#include <stdarg.h>
 #include <setjmp.h>
 
 #include "lisp.h"
@@ -77,9 +76,11 @@ static int been_here = -1;
 static void tty_set_scroll_region (struct frame *f, int start, int stop);
 static void turn_on_face (struct frame *, int face_id);
 static void turn_off_face (struct frame *, int face_id);
+static void tty_turn_off_highlight (struct tty_display_info *);
 static void tty_show_cursor (struct tty_display_info *);
 static void tty_hide_cursor (struct tty_display_info *);
 static void tty_background_highlight (struct tty_display_info *tty);
+static struct terminal *get_tty_terminal (Lisp_Object, int);
 static void clear_tty_hooks (struct terminal *terminal);
 static void set_tty_hooks (struct terminal *terminal);
 static void dissociate_if_controlling_tty (int fd);
@@ -133,11 +134,11 @@ enum no_color_bit
 
 /* The largest frame width in any call to calculate_costs.  */
 
-int max_frame_cols;
+static int max_frame_cols;
 
 /* The largest frame height in any call to calculate_costs.  */
 
-int max_frame_lines;
+static int max_frame_lines;
 
 /* Non-zero if we have dropped our controlling tty and therefore
    should not open a frame on stdout. */
@@ -173,7 +174,7 @@ tty_ring_bell (struct frame *f)
 
 /* Set up termcap modes for Emacs. */
 
-void
+static void
 tty_set_terminal_modes (struct terminal *terminal)
 {
   struct tty_display_info *tty = terminal->display_info.tty;
@@ -201,7 +202,7 @@ tty_set_terminal_modes (struct terminal *terminal)
 
 /* Reset termcap modes before exiting Emacs. */
 
-void
+static void
 tty_reset_terminal_modes (struct terminal *terminal)
 {
   struct tty_display_info *tty = terminal->display_info.tty;
@@ -286,7 +287,7 @@ tty_turn_off_insert (struct tty_display_info *tty)
 
 /* Handle highlighting.  */
 
-void
+static void
 tty_turn_off_highlight (struct tty_display_info *tty)
 {
   if (tty->standout_mode)
@@ -1934,6 +1935,8 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
 	{
 	  if (! STRINGP (acronym) && CHAR_TABLE_P (Vglyphless_char_display))
 	    acronym = CHAR_TABLE_REF (Vglyphless_char_display, it->c);
+	  if (CONSP (acronym))
+	    acronym = XCDR (acronym);
 	  buf[0] = '[';
 	  str = STRINGP (acronym) ? SSDATA (acronym) : "";
 	  for (len = 0; len < 6 && str[len] && ASCII_BYTE_P (str[len]); len++)
@@ -2368,7 +2371,7 @@ set_tty_color_mode (struct tty_display_info *tty, struct frame *f)
 
 /* Return the tty display object specified by TERMINAL. */
 
-struct terminal *
+static struct terminal *
 get_tty_terminal (Lisp_Object terminal, int throw)
 {
   struct terminal *t = get_terminal (terminal, throw);
@@ -2614,6 +2617,8 @@ frame's terminal). */)
  ***********************************************************************/
 
 #ifdef HAVE_GPM
+
+#ifndef HAVE_WINDOW_SYSTEM
 void
 term_mouse_moveto (int x, int y)
 {
@@ -2627,6 +2632,7 @@ term_mouse_moveto (int x, int y)
   last_mouse_x = x;
   last_mouse_y = y;  */
 }
+#endif /* HAVE_WINDOW_SYSTEM */
 
 /* Implementation of draw_row_with_mouse_face for TTY/GPM.  */
 void
@@ -3114,7 +3120,7 @@ init_tty (const char *name, const char *terminal_type, int must_succeed)
   terminal = create_terminal ();
 #ifdef MSDOS
   if (been_here > 0)
-    maybe_fatal (1, 0, "Attempt to create another terminal %s", "",
+    maybe_fatal (0, 0, "Attempt to create another terminal %s", "",
 		 name, "");
   been_here = 1;
   tty = &the_only_display_info;
@@ -3612,7 +3618,6 @@ vfatal (const char *str, va_list ap)
   vfprintf (stderr, str, ap);
   if (!(strlen (str) > 0 && str[strlen (str) - 1] == '\n'))
     fprintf (stderr, "\n");
-  va_end (ap);
   fflush (stderr);
   exit (1);
 }
@@ -3620,7 +3625,7 @@ vfatal (const char *str, va_list ap)
 
 /* Auxiliary error-handling function for init_tty.
    Delete TERMINAL, then call error or fatal with str1 or str2,
-   respectively, according to MUST_SUCCEED.  */
+   respectively, according to whether MUST_SUCCEED is zero or not.  */
 
 static void
 maybe_fatal (int must_succeed, struct terminal *terminal,

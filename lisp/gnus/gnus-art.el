@@ -4418,6 +4418,7 @@ If variable `gnus-use-long-file-name' is non-nil, it is
     (gnus-run-hooks 'gnus-article-menu-hook)))
 
 (defvar bookmark-make-record-function)
+(defvar shr-put-image-function)
 
 (defun gnus-article-mode ()
   "Major mode for displaying an article.
@@ -4461,6 +4462,8 @@ commands:
   ;; Prevent Emacs 22 from displaying non-break space with `nobreak-space'
   ;; face.
   (set (make-local-variable 'nobreak-char-display) nil)
+  ;; Enable `gnus-article-remove-images' to delete images shr.el renders.
+  (set (make-local-variable 'shr-put-image-function) 'gnus-shr-put-image)
   (setq cursor-in-non-selected-windows nil)
   (gnus-set-default-directory)
   (buffer-disable-undo)
@@ -6139,6 +6142,15 @@ Provided for backwards compatibility."
 	     (not gnus-inhibit-hiding))
     (gnus-article-hide-headers)))
 
+(declare-function shr-put-image "shr" (data alt))
+
+(defun gnus-shr-put-image (data alt)
+  "Put image DATA with a string ALT.  Enable image to be deleted."
+  (let ((image (shr-put-image data (propertize (or alt "*")
+					       'gnus-image-category 'shr))))
+    (when image
+      (gnus-add-image 'shr image))))
+
 ;;; Article savers.
 
 (defun gnus-output-to-file (file-name)
@@ -6841,7 +6853,10 @@ If given a prefix, show the hidden text instead."
 					      gnus-summary-buffer)
 		    (when gnus-keep-backlog
 		      (gnus-backlog-enter-article
-		       group article (current-buffer))))
+		       group article (current-buffer)))
+		    (when (and gnus-agent
+			       (gnus-agent-group-covered-p group))
+		      (gnus-agent-store-article article group)))
 		  (setq result 'article))
 		 (methods
 		  (setq gnus-override-method (pop methods)))

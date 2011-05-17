@@ -21,6 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef HAVE_GNUTLS
 #include <gnutls/gnutls.h>
+#include <gnutls/x509.h>
 
 typedef enum
 {
@@ -28,6 +29,7 @@ typedef enum
   GNUTLS_STAGE_EMPTY = 0,
   GNUTLS_STAGE_CRED_ALLOC,
   GNUTLS_STAGE_FILES,
+  GNUTLS_STAGE_CALLBACKS,
   GNUTLS_STAGE_INIT,
   GNUTLS_STAGE_PRIORITY,
   GNUTLS_STAGE_CRED_SET,
@@ -40,6 +42,7 @@ typedef enum
   GNUTLS_STAGE_READY,
 } gnutls_initstage_t;
 
+#define GNUTLS_EMACS_ERROR_NOT_LOADED GNUTLS_E_APPLICATION_ERROR_MIN + 1
 #define GNUTLS_EMACS_ERROR_INVALID_TYPE GNUTLS_E_APPLICATION_ERROR_MIN
 
 #define GNUTLS_INITSTAGE(proc) (XPROCESS (proc)->gnutls_initstage)
@@ -50,12 +53,13 @@ typedef enum
 
 #define GNUTLS_LOG2(level, max, string, extra) if (level <= max) { gnutls_log_function2 (level, "(Emacs) " string, extra); }
 
-ssize_t
-emacs_gnutls_write (int fildes, struct Lisp_Process *proc, const char *buf,
-                    size_t nbyte);
-ssize_t
-emacs_gnutls_read (int fildes, struct Lisp_Process *proc, char *buf,
-                   size_t nbyte);
+extern EMACS_INT
+emacs_gnutls_write (struct Lisp_Process *proc, const char *buf, EMACS_INT nbyte);
+extern EMACS_INT
+emacs_gnutls_read (struct Lisp_Process *proc, char *buf, EMACS_INT nbyte);
+
+extern int emacs_gnutls_record_check_pending (gnutls_session_t state);
+extern void emacs_gnutls_transport_set_errno (gnutls_session_t state, int err);
 
 extern void syms_of_gnutls (void);
 

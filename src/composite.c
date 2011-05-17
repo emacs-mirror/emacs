@@ -152,13 +152,14 @@ int n_compositions;
    COMPOSITION-ID.  */
 Lisp_Object composition_hash_table;
 
-Lisp_Object Qauto_composed;
-Lisp_Object Qauto_composition_function;
+static Lisp_Object Qauto_composed;
+static Lisp_Object Qauto_composition_function;
 /* Maximum number of characters to look back for
    auto-compositions.  */
 #define MAX_AUTO_COMPOSITION_LOOKBACK 3
 
-EXFUN (Fremove_list_of_text_properties, 4);
+static Lisp_Object Fcomposition_get_gstring (Lisp_Object, Lisp_Object,
+					     Lisp_Object, Lisp_Object);
 
 /* Temporary variable used in macros COMPOSITION_XXX.  */
 Lisp_Object composition_temp;
@@ -292,7 +293,7 @@ get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
     }
   else if (VECTORP (components) || CONSP (components))
     {
-      EMACS_UINT len = XVECTOR (key)->size;
+      EMACS_UINT len = ASIZE (key);
 
       /* The number of elements should be odd.  */
       if ((len % 2) == 0)
@@ -325,8 +326,8 @@ get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
 		    : COMPOSITION_WITH_RULE_ALTCHARS));
   cmp->hash_index = hash_index;
   glyph_len = (cmp->method == COMPOSITION_WITH_RULE_ALTCHARS
-	       ? (XVECTOR (key)->size + 1) / 2
-	       : XVECTOR (key)->size);
+	       ? (ASIZE (key) + 1) / 2
+	       : ASIZE (key));
   cmp->glyph_len = glyph_len;
   cmp->offsets = (short *) xmalloc (sizeof (short) * glyph_len * 2);
   cmp->font = NULL;

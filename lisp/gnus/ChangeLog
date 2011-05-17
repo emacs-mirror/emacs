@@ -1,3 +1,290 @@
+2011-05-17  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-group.el (gnus-import-other-newsrc-file):
+	Use insert-file-contents.
+
+2011-05-16  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-sum.el (gnus-summary-hide-all-threads): Add update message every
+	1000 iterations.
+
+2011-05-16  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nntp.el (nntp-open-connection): Check if process-type is available.
+
+2011-05-16  Julien Danjou  <julien@danjou.info>
+
+	* shr.el (shr-tag-del): Add support for del tag.
+
+2011-05-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-html.el (gnus-html-put-image): Register a displayer.
+
+	* shr.el (shr-image-displayer): Don't remove text props from alt text.
+
+2011-05-13  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* registry.el (prune-factor): New initialization parameter defaulting
+	to 0.1.
+	(registry-prune-hard): Use it.
+
+	* gnus-registry.el (gnus-registry-fixup-registry): Set prune-factor to
+	0.1 expicitly.
+
+2011-05-13  Glenn Morris  <rgm@gnu.org>
+
+	* message.el (message-send-mail-with-sendmail): Assume sendmail-program
+	is bound, since this function requires sendmail.
+
+2011-05-11  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* registry.el (registry-usage-test): Disable pruning test.
+
+2011-05-10  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* registry.el (registry-prune-hard-candidates)
+	(registry-prune-soft-candidates): Helper methods for registry pruning.
+	(registry-prune): Use them.  Make the sort function optional.
+
+2011-05-10  Jim Meyering  <meyering@redhat.com>
+
+	* shr.el (shr-colorize-region): Fix typo "on on -> on".
+
+2011-05-10  Julien Danjou  <julien@danjou.info>
+
+	* shr.el (shr-put-color-1): Do not bug out when old-props is a face
+	symbol and not a list.
+
+2011-05-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-mode): Move binding of
+	shr-put-image-function here from gnus-article-prepare-display.
+
+	* shr.el (shr-put-image-function): New variable.
+	(shr-image-fetched, shr-image-displayer, shr-tag-img): Funcall it.
+	(shr-put-image): Return scaled image.
+
+	* gnus-art.el (gnus-shr-put-image): New function.
+	(gnus-article-prepare-display): Bind shr-put-image-function to it.
+
+	* gnus-html.el (gnus-html-wash-images): Register scaled images, not
+	original ones, as deletable.
+
+2011-05-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* nntp.el (nntp-open-connection): Set TCP keepalive option.
+
+2011-05-09  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* registry.el (registry-full): Add convenience method.  Fix logic.
+	(registry-insert): Use it.  Fix logic here too.
+
+	* gnus-registry.el (gnus-registry-insert): Add wrapper that calls
+	`registry-prune' if `registry-full' returns t.
+	(gnus-registry-handle-action)
+	(gnus-registry-get-or-make-entry, gnus-registry-set-id-key)
+	(gnus-registry-usage-test): Use it.
+
+2011-05-07  Julien Danjou  <julien@danjou.info>
+
+	* shr.el (shr-link): Make shr-link inherit from link by default.
+
+2011-05-06  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* shr.el (shr-urlify, shr-link): Fix shr-link face.
+
+2011-05-05  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* shr.el (shr-urlify, shr-link): Still broken but at least doesn't
+	error out because the face is not a list.
+
+2011-05-05  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-start.el (gnus-propagate-marks): Declare.
+
+2011-05-04  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* registry.el (registry-reindex): Fix percentage message.
+
+2011-05-03  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* shr.el: Add shr-link face for links.
+	(shr-urlify): Use it.
+
+	* registry.el (registry-insert): Make error message more helpful.
+
+2011-05-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-html.el (gnus-html-schedule-image-fetching):
+	Use url-queue-retrieve, if it exists.
+
+	* shr.el (shr-tag-img): Ditto.
+
+	* gnus.el: Autoload more gnus-agent functions.
+
+	* gnus-art.el (gnus-request-article-this-buffer): Store articles in the
+	agent if we haven't already (bug#8502).
+
+	* gnus-async.el (gnus-async-article-callback): Put prefetched articles
+	into the Agent, too.
+
+	* gnus-agent.el (gnus-agent-store-article): New function.
+
+	* nnheader.el (nnheader-insert-buffer-substring): Rename from nntp-
+	and moved from that file for reuse.
+
+	* pop3.el (pop3-open-server): Error messages are "-ERR".
+
+2011-05-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* pop3.el (pop3-open-server): Upgrade opportunistically to STARTTLS.
+	(open-tls-stream): Remove superfluous tls/starttls autoloads.
+
+2011-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-sum.el (gnus-summary-next-article): Don't bug out if the summary
+	buffer has moved to a different frame.
+
+2011-05-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-request-article): Use nntp-insert-buffer-substring
+	to get the conversion from unibyte to multibyte buffers to work on
+	Emacs 22.
+
+	* nntp.el (nntp-request-article): Slight clean-up.
+
+2011-04-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-strike-through): New face.
+	(shr-tag-s): Use it to provide <s> support.
+	(shr-tag-s): Remove duplicate definition.
+
+2011-04-25  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-ignore-group-p): Don't call
+	`gnus-parameter-registry-ignore' if the *Group* buffer doesn't exist.
+
+2011-04-23  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-sum.el (gnus-extra-headers): Bump :version.
+
+2011-04-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-tag-sup): New function.
+	(shr-tag-sub): Ditto.
+
+2011-04-22  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-ignore-group-p): Test specifically
+	for the case where `gnus-registry-ignored-groups' is a list of lists,
+	and don't call `gnus-parameter-registry-ignore' otherwise.
+
+2011-04-21  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* nnimap.el (nnimap-user): New backend variable.
+	(nnimap-open-connection-1): Use it.
+	(nnimap-credentials): Accept user parameter so it's explicit what user
+	name is desired.
+
+	* gnus-sum.el (gnus-extra-headers): Add Keywords, Cc, and Gcc to
+	default.
+
+	* gnus.el (gnus-registry-ignored-groups): Provide default in gnus.el,
+	not gnus-registry.el.
+
+	* gnus-registry.el: Mention in comments how to modify
+	`gnus-extra-headers' for proper recipient tracking and that it may
+	already have To and Cc recently, which it does as of this commit.
+	(gnus-registry-ignored-groups): Remove defcustom.
+	Explain why in comments.
+	(gnus-registry-action): Fix data-header reference to use the extra
+	headers.  Explain in package commentary how to add To and Cc headers to
+	the gnus-extra-headers.
+	(gnus-registry-ignored-groups): Adjust defaults to match the parameter.
+	(gnus-registry-ignore-group-p): Adjust to take either a group/topic
+	parameter list or a string list in `gnus-registry-ignored-groups'.
+	Fix logic error.
+
+2011-04-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-expand-url): Protect against null urls.
+
+2011-04-20  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-base): New binding.
+	(shr-tag-base): Keep track of <base>.
+	(shr-expand-url): New function used throughout.
+
+2011-04-20  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el
+	(gnus-registry--split-fancy-with-parent-internal): Fix loop bugs.
+	(gnus-registry-ignored-groups): New variable.
+	(gnus-registry-ignore-group-p): Use it.
+	(gnus-registry-handle-action): Use `gnus-registry-ignore-group-p' and
+	set the destination group to nil (same as delete) if it's ignored.
+
+2011-04-20  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-registry.el (gnus-registry-action)
+	(gnus-registry-fetch-header-fast):
+	Don't use mail-header that looks an internal function of mailheader.el.
+
+2011-04-18  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-registry.el: Eliminate cl functions.
+	(gnus-registry-sort-addresses): New function that replaces mapcan.
+	(gnus-registry-action, gnus-registry-spool-action)
+	(gnus-registry-split-fancy-with-parent)
+	(gnus-registry-fetch-recipients-fast): Use it.
+	(gnus-registry-import-eld): Replace delete* with dolist + delq.
+
+	* registry.el (initialize-instance, registry-lookup)
+	(registry-lookup-breaks-before-lexbind, registry-lookup-secondary)
+	(registry-lookup-secondary-value, registry-search, registry-delete)
+	(registry-insert, registry-reindex, registry-size, registry-prune):
+	Use eval-and-compile.
+
+2011-04-16  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* registry.el (registry-reindex): New method to recreate the secondary
+	registry indices.
+
+	* gnus-registry.el (gnus-registry-fixup-registry): Use it if the
+	tracked field changes.
+	(gnus-registry-unfollowed-addresses, gnus-registry-track-extra)
+	(gnus-registry-action, gnus-registry-spool-action)
+	(gnus-registry-handle-action)
+	(gnus-registry--split-fancy-with-parent-internal)
+	(gnus-registry-split-fancy-with-parent)
+	(gnus-registry-register-message-ids): Add recipient tracking on spool,
+	move, and delete actions, and for fancy splitting with parent.
+	(gnus-registry-extract-addresses)
+	(gnus-registry-fetch-recipients-fast)
+	(gnus-registry-fetch-header-fast): Convenience functions.
+	(gnus-registry-misc-test): ERT test of
+	`gnus-registry-extract-addresses'.
+
+2011-04-15  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry--split-fancy-with-parent-internal):
+	Track by subject first, then sender.
+
+2011-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* message.el (message-bogus-system-names): Replace ^...$ => \`...\'.
+
+	* gnus.el (gnus-splash-svg-color-symbols): Don't use insert-file from
+	Lisp.
+
+	* gnus-draft.el (gnus-draft-setup): New arg `dont-pop'.
+	(gnus-draft-send): Use it to avoid popping
+	up frames from gnus-group-send-queue.
+
+2011-04-14  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el: Updated gnus-registry docs.
+
 2011-04-12  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus-registry.el (gnus-registry--split-fancy-with-parent-internal):
@@ -22,7 +309,7 @@
 	* gnus-registry.el (gnus-registry-remake-db): Put the warning on a
 	"warning" level.
 
-	* mm-url.el (mm-url-package-name): Removed to ease third-party reuse.
+	* mm-url.el (mm-url-package-name): Remove to ease third-party reuse.
 	(mm-url-insert-file-contents): Don't set the package names.
 
 2011-04-11  Teodor Zlatanov  <tzz@lifelogs.com>
@@ -105,10 +392,10 @@
 	save/read cycles.
 	(gnus-registry-read): Use it.
 	(gnus-registry-make-db): Use it.
-	(gnus-registry-spool-action, gnus-registry-handle-action): Fix
-	messaging.
-	(gnus-registry--split-fancy-with-parent-internal): Fix loop.  Map
-	references to actual group names with sender and subject tracking.
+	(gnus-registry-spool-action, gnus-registry-handle-action):
+	Fix messaging.
+	(gnus-registry--split-fancy-with-parent-internal): Fix loop.
+	Map references to actual group names with sender and subject tracking.
 	(gnus-registry-post-process-groups): Use `cond' for better messaging.
 	(gnus-registry-usage-test): Add subject lookup test.
 
@@ -170,8 +457,8 @@
 	value.
 
 	* nntp.el (nntp-open-connection-function): Document the fact that some
-	values are not functions but are instead handled specially.  Recognize
-	nntp-open-plain-stream value.
+	values are not functions but are instead handled specially.
+	Recognize nntp-open-plain-stream value.
 	(nntp-open-connection): Recognize that value.
 
 2011-03-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
@@ -196,7 +483,7 @@
 	* gnus-agent.el (gnus-agent-fetch-headers): Don't message if we're not
 	downloading anything.
 
-	* gnus.el (gnus-splash-svg-color-symbols): Removed superfluous `and'.
+	* gnus.el (gnus-splash-svg-color-symbols): Remove superfluous `and'.
 
 2011-03-29  Adam Sjøgren  <asjo@koldfront.dk>
 
@@ -209,13 +496,13 @@
 	* gnus-sum.el (gnus-simplify-buffer-fuzzy): Take the regexp explicitly
 	instead of using the global gnus-simplify-subject-fuzzy-regexp.
 	(gnus-simplify-subject-fuzzy): Use the local
-	gnus-simplify-subject-fuzzy-regex instead of the global one.  This
-	makes using this variable in group parameters work.
+	gnus-simplify-subject-fuzzy-regex instead of the global one.
+	This makes using this variable in group parameters work.
 
 2011-03-29  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* gnus-registry.el (gnus-registry-unfollowed-groups): Add
-	"archive:sent" to the unfollowed group regex (for the recent Gnus
+	* gnus-registry.el (gnus-registry-unfollowed-groups):
+	Add "archive:sent" to the unfollowed group regex (for the recent Gnus
 	archive:sent-YYYY-MM-DD groups).
 	(gnus-registry-split-fancy-with-parent): Bail out early in sender
 	tracking if there are more than `gnus-registry-max-track-groups'
@@ -245,7 +532,7 @@
 	Handle the no-parameter case exactly as open-network-stream, with no
 	additional stream processing.  Search plists using plist-get.
 	Explicitly add :end-of-commend parameter if it is missing.
-	(proto-stream-open-default): Renamed from
+	(proto-stream-open-default): Rename from
 	proto-stream-open-network-only.  Return 'default as the type.
 	(proto-stream-open-starttls): Rename from proto-stream-open-network.
 	Use plist-get.  Don't return `tls' as the type if STARTTLS negotiation
@@ -326,15 +613,15 @@
 	* mm-uu.el (mm-uu-dissect-text-parts): Only dissect handle that are
 	inline.
 
-	* gnus-art.el (article-hide-list-identifiers): Use
-	gnus-group-get-list-identifiers.
+	* gnus-art.el (article-hide-list-identifiers):
+	Use gnus-group-get-list-identifiers.
 
 	* gnus-sum.el (gnus-group-get-list-identifiers): New function.
-	(gnus-summary-remove-list-identifiers): Use
-	gnus-group-get-list-identifiers to get regexp.
+	(gnus-summary-remove-list-identifiers):
+	Use gnus-group-get-list-identifiers to get regexp.
 	(gnus-select-newsgroup, gnus-summary-insert-subject)
-	(gnus-summary-insert-articles): Call
-	gnus-summary-remove-list-identifiers unconditionally.
+	(gnus-summary-insert-articles):
+	Call gnus-summary-remove-list-identifiers unconditionally.
 
 2011-03-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 

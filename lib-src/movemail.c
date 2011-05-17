@@ -131,7 +131,7 @@ extern int lk_open (), lk_close ();
    files appear in. */
 #ifdef MAILDIR
 #define MAIL_USE_MAILLOCK
-static char *mail_spool_name ();
+static char *mail_spool_name (char *);
 #endif
 #endif
 
@@ -167,7 +167,6 @@ main (int argc, char **argv)
 
 #ifndef MAIL_USE_SYSTEM_LOCK
   struct stat st;
-  long now;
   int tem;
   char *lockname, *p;
   char *tempname;
@@ -259,7 +258,13 @@ main (int argc, char **argv)
 #ifndef MAIL_USE_SYSTEM_LOCK
 #ifdef MAIL_USE_MAILLOCK
   spool_name = mail_spool_name (inname);
-  if (! spool_name)
+  if (spool_name)
+    {
+#ifdef lint
+      lockname = 0;
+#endif
+    }
+  else
 #endif
     {
       #ifndef DIRECTORY_SEP
@@ -336,7 +341,7 @@ main (int argc, char **argv)
 	     by time differences between machines.  */
 	  if (stat (lockname, &st) >= 0)
 	    {
-	      now = time (0);
+	      time_t now = time (0);
 	      if (st.st_ctime < now - 300)
 		unlink (lockname);
 	    }
@@ -352,7 +357,10 @@ main (int argc, char **argv)
       int lockcount = 0;
       int status = 0;
 #if defined (MAIL_USE_MAILLOCK) && defined (HAVE_TOUCHLOCK)
-      time_t touched_lock, now;
+      time_t touched_lock;
+# ifdef lint
+      touched_lock = 0;
+# endif
 #endif
 
       if (setuid (getuid ()) < 0 || setregid (-1, real_gid) < 0)
@@ -462,7 +470,7 @@ main (int argc, char **argv)
 #if defined (MAIL_USE_MAILLOCK) && defined (HAVE_TOUCHLOCK)
 	    if (spool_name)
 	      {
-		now = time (0);
+		time_t now = time (0);
 		if (now - touched_lock > 60)
 		  {
 		    touchlock ();

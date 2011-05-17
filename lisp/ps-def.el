@@ -32,7 +32,7 @@
 ;;; Code:
 
 (eval-and-compile
-  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest _r))))
 
 (declare-function ps-plot-with-face "ps-print" (from to face))
 (declare-function ps-plot-string    "ps-print" (string))
@@ -60,13 +60,13 @@
   ;; ps-mule
 
   (or (fboundp 'charset-dimension)
-      (defun charset-dimension (charset) 1)) ; ascii
+      (defun charset-dimension (_charset) 1)) ; ascii
 
   (or (fboundp 'char-width)
-      (defun char-width (char) 1))	; ascii
+      (defun char-width (_char) 1))	; ascii
 
   (or (fboundp 'encode-char)
-      (defun encode-char (ch ccs)
+      (defun encode-char (ch _ccs)
 	ch))
 
   ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

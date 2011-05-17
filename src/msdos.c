@@ -842,7 +842,7 @@ IT_set_face (int face)
 
 /* According to RBIL (INTERRUP.A, V-1000), 160 is the maximum possible
    width of a DOS display in any known text mode.  We multiply by 2 to
-   accomodate the screen attribute byte.  */
+   accommodate the screen attribute byte.  */
 #define MAX_SCREEN_BUF 160*2
 
 extern unsigned char *encode_terminal_code (struct glyph *, int,
@@ -2812,7 +2812,7 @@ dos_keyread (void)
    left), but I don't think it's worth the effort.  */
 
 /* These hold text of the current and the previous menu help messages.  */
-static char *menu_help_message, *prev_menu_help_message;
+static const char *menu_help_message, *prev_menu_help_message;
 /* Pane number and item number of the menu item which generated the
    last menu help message.  */
 static int menu_help_paneno, menu_help_itemno;
@@ -2839,7 +2839,7 @@ IT_menu_make_room (XMenu *menu)
       menu->text = (char **) xmalloc (count * sizeof (char *));
       menu->submenu = (XMenu **) xmalloc (count * sizeof (XMenu *));
       menu->panenumber = (int *) xmalloc (count * sizeof (int));
-      menu->help_text = (char **) xmalloc (count * sizeof (char *));
+      menu->help_text = (const char **) xmalloc (count * sizeof (char *));
     }
   else if (menu->allocated == menu->count)
     {
@@ -2851,7 +2851,7 @@ IT_menu_make_room (XMenu *menu)
       menu->panenumber
 	= (int *) xrealloc (menu->panenumber, count * sizeof (int));
       menu->help_text
-	= (char **) xrealloc (menu->help_text, count * sizeof (char *));
+	= (const char **) xrealloc (menu->help_text, count * sizeof (char *));
     }
 }
 
@@ -3033,7 +3033,7 @@ XMenuAddPane (Display *foo, XMenu *menu, const char *txt, int enable)
 
 int
 XMenuAddSelection (Display *bar, XMenu *menu, int pane,
-		   int foo, char *txt, int enable, char *help_text)
+		   int foo, char *txt, int enable, char const *help_text)
 {
   int len;
   char *p;
@@ -3086,7 +3086,7 @@ struct IT_menu_state
 int
 XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
 	       int x0, int y0, unsigned ButtonMask, char **txt,
-	       void (*help_callback)(char *, int, int))
+	       void (*help_callback)(char const *, int, int))
 {
   struct IT_menu_state *state;
   int statecount, x, y, i, b, screensize, leave, result, onepane;

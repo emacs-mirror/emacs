@@ -31,11 +31,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Nonzero means there is at least one garbaged frame. */
 extern int frame_garbaged;
 
-/* Nonzero means FRAME_MESSAGE_BUF (selected_frame) is being used by
-   print.  */
-
-extern int message_buf_print;
-
 
 /* The structure representing a frame.  */
 
@@ -87,8 +82,7 @@ struct font_driver_list;
 
 struct frame
 {
-  EMACS_UINT size;
-  struct Lisp_Vector *next;
+  struct vectorlike_header header;
 
   /* All Lisp_Object components must come first.
      That ensures they are all aligned normally.  */
@@ -843,7 +837,6 @@ extern struct frame *last_nonminibuf_frame;
 
 extern void set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
 extern struct frame *make_initial_frame (void);
-extern struct frame *make_terminal_frame (struct terminal *);
 extern struct frame *make_frame (int);
 #ifdef HAVE_WINDOW_SYSTEM
 extern struct frame *make_minibuffer_frame (void);
@@ -1047,7 +1040,7 @@ extern Lisp_Object selected_frame;
 
 extern Lisp_Object Qauto_raise, Qauto_lower;
 extern Lisp_Object Qborder_color, Qborder_width;
-extern Lisp_Object Qbuffer_predicate, Qbuffer_list, Qburied_buffer_list;
+extern Lisp_Object Qbuffer_predicate;
 extern Lisp_Object Qcursor_color, Qcursor_type;
 extern Lisp_Object Qfont;
 extern Lisp_Object Qbackground_color, Qforeground_color;
@@ -1076,7 +1069,6 @@ extern Lisp_Object Qminibuffer, Qmodeline;
 extern Lisp_Object Qx, Qw32, Qmac, Qpc, Qns;
 extern Lisp_Object Qvisible;
 extern Lisp_Object Qdisplay_type;
-extern Lisp_Object Qbackground_mode;
 
 extern Lisp_Object Qx_resource_name;
 
@@ -1101,11 +1093,12 @@ extern Lisp_Object x_new_font (struct frame *, Lisp_Object, int);
 
 extern Lisp_Object Qface_set_after_frame_default;
 
+#ifdef WINDOWSNT
 extern void x_fullscreen_adjust (struct frame *f, int *, int *,
                                  int *, int *);
+#endif
 
 extern void x_set_frame_parameters (struct frame *, Lisp_Object);
-extern void x_report_frame_params (struct frame *, Lisp_Object *);
 
 extern void x_set_fullscreen (struct frame *, Lisp_Object, Lisp_Object);
 extern void x_set_line_spacing (struct frame *, Lisp_Object, Lisp_Object);

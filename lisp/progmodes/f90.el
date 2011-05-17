@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1995-1997, 2000-2011  Free Software Foundation, Inc.
 
-;; Author: Torbj\"orn Einarsson <Torbjorn.Einarsson@era.ericsson.se>
+;; Author: Torbjörn Einarsson <Torbjorn.Einarsson@era.ericsson.se>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
 ;; Keywords: fortran, f90, languages
 
@@ -1355,11 +1355,10 @@ if all else fails."
 (defun f90-get-correct-indent ()
   "Get correct indent for a line starting with line number.
 Does not check type and subprogram indentation."
-  (let ((epnt (line-end-position)) icol cont)
+  (let ((epnt (line-end-position)) icol)
     (save-excursion
       (while (and (f90-previous-statement)
-                  (or (memq (setq cont (f90-present-statement-cont))
-                            '(middle end))
+                  (or (memq (f90-present-statement-cont) '(middle end))
                       (looking-at "[ \t]*[0-9]"))))
       (setq icol (current-indentation))
       (beginning-of-line)
@@ -2222,5 +2221,10 @@ escape character."
 
 
 (provide 'f90)
+
+;; Local Variables:
+;; coding: utf-8
+;; lexical-binding: t
+;; End:
 
 ;;; f90.el ends here

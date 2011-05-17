@@ -29,6 +29,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <setjmp.h>
 #include <unistd.h>
 
+#include "lisp.h"
+
 #ifdef WINDOWSNT
 #include <fcntl.h>
 #include <windows.h> /* just for w32.h */
@@ -41,7 +43,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <GNUstepBase/GSConfig.h>
 #endif
 
-#include "lisp.h"
 #include "commands.h"
 #include "intervals.h"
 #include "buffer.h"
@@ -127,14 +128,14 @@ int initialized;
 #ifdef DOUG_LEA_MALLOC
 /* Preserves a pointer to the memory allocated that copies that
    static data inside glibc's malloc.  */
-void *malloc_state_ptr;
+static void *malloc_state_ptr;
 /* From glibc, a routine that returns a copy of the malloc internal state.  */
 extern void *malloc_get_state (void);
 /* From glibc, a routine that overwrites the malloc internal state.  */
 extern int malloc_set_state (void*);
 /* Non-zero if the MALLOC_CHECK_ environment variable was set while
    dumping.  Used to work around a bug in glibc's malloc.  */
-int malloc_using_checking;
+static int malloc_using_checking;
 #endif
 
 Lisp_Object Qfile_name_handler_alist;
@@ -164,10 +165,6 @@ static void *my_heap_start;
 /* The gap between BSS end and heap start as far as we can tell.  */
 static unsigned long heap_bss_diff;
 
-/* If the gap between BSS end and heap start is larger than this
-   output a warning in dump-emacs.  */
-#define MAX_HEAP_BSS_DIFF (1024*1024)
-
 /* Nonzero means running Emacs without interactive terminal.  */
 int noninteractive;
 
@@ -186,7 +183,7 @@ char **initial_argv;
 int initial_argc;
 
 static void sort_args (int argc, char **argv);
-void syms_of_emacs (void);
+static void syms_of_emacs (void);
 
 /* MSVC needs each string be shorter than 2048 bytes, so the usage
    strings below are split to not overflow this limit.  */
@@ -288,7 +285,7 @@ section of the Emacs manual or the file BUGS.\n"
 
 
 /* Signal code for the fatal signal that was received.  */
-int fatal_error_code;
+static int fatal_error_code;
 
 /* Nonzero if handling a fatal error already.  */
 int fatal_error_in_progress;
@@ -296,7 +293,7 @@ int fatal_error_in_progress;
 /* If non-null, call this function from fatal_error_signal before
    committing suicide.  */
 
-void (*fatal_error_signal_hook) (void);
+static void (*fatal_error_signal_hook) (void);
 
 #ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
 /* When compiled with GTK and running under Gnome,
@@ -308,6 +305,9 @@ pthread_t main_thread;
 
 
 /* Handle bus errors, invalid instruction, etc.  */
+#ifndef FLOAT_CATCH_SIGILL
+static
+#endif
 void
 fatal_error_signal (int sig)
 {
@@ -549,7 +549,8 @@ static char dump_tz[] = "UtC0";
 
 /* Define a dummy function F.  Declare F too, to pacify gcc
    -Wmissing-prototypes.  */
-#define DEFINE_DUMMY_FUNCTION(f) void f (void); void f (void) {}
+#define DEFINE_DUMMY_FUNCTION(f) \
+  void f (void) EXTERNALLY_VISIBLE; void f (void) {}
 
 #ifndef GCC_CTORS_IN_LIBC
 DEFINE_DUMMY_FUNCTION (__do_global_ctors)
@@ -557,9 +558,9 @@ DEFINE_DUMMY_FUNCTION (__do_global_ctors_aux)
 DEFINE_DUMMY_FUNCTION (__do_global_dtors)
 /* GNU/Linux has a bug in its library; avoid an error.  */
 #ifndef GNU_LINUX
-char * __CTOR_LIST__[2] = { (char *) (-1), 0 };
+char * __CTOR_LIST__[2] EXTERNALLY_VISIBLE = { (char *) (-1), 0 };
 #endif
-char * __DTOR_LIST__[2] = { (char *) (-1), 0 };
+char * __DTOR_LIST__[2] EXTERNALLY_VISIBLE = { (char *) (-1), 0 };
 #endif /* GCC_CTORS_IN_LIBC */
 DEFINE_DUMMY_FUNCTION (__main)
 #endif /* __GNUC__ */
@@ -1700,7 +1701,7 @@ struct standard_args
   int nargs;
 };
 
-const struct standard_args standard_args[] =
+static const struct standard_args standard_args[] =
 {
   { "-version", "--version", 150, 0 },
   { "-chdir", "--chdir", 130, 1 },
@@ -2096,7 +2097,6 @@ This is used in the file `loadup.el' when building Emacs.
 You must run Emacs in batch mode in order to dump it.  */)
   (Lisp_Object filename, Lisp_Object symfile)
 {
-  extern char my_edata[];
   Lisp_Object tem;
   Lisp_Object symbol;
   int count = SPECPDL_INDEX ();
@@ -2107,6 +2107,10 @@ You must run Emacs in batch mode in order to dump it.  */)
     error ("Dumping Emacs works only in batch mode");
 
 #ifdef GNU_LINUX
+
+  /* Warn if the gap between BSS end and heap start is larger than this.  */
+# define MAX_HEAP_BSS_DIFF (1024*1024)
+
   if (heap_bss_diff > MAX_HEAP_BSS_DIFF)
     {
       fprintf (stderr, "**************************************************\n");
@@ -2153,7 +2157,10 @@ You must run Emacs in batch mode in order to dump it.  */)
 #ifndef WINDOWSNT
   /* On Windows, this was done before dumping, and that once suffices.
      Meanwhile, my_edata is not valid on Windows.  */
-  memory_warnings (my_edata, malloc_warning);
+  {
+    extern char my_edata[];
+    memory_warnings (my_edata, malloc_warning);
+  }
 #endif /* not WINDOWSNT */
 #if defined (HAVE_GTK_AND_PTHREAD) && !defined SYNC_INPUT
   /* Pthread may call malloc before main, and then we will get an endless

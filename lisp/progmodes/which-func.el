@@ -270,7 +270,7 @@ It calls them sequentially, and if any returns non-nil,
 (defun which-function ()
   "Return current function name based on point.
 Uses `which-func-functions', `imenu--index-alist'
-or `add-log-current-defun-function'.
+or `add-log-current-defun'.
 If no function name is found, return nil."
   (let ((name
 	 ;; Try the `which-func-functions' functions first.
@@ -320,9 +320,8 @@ If no function name is found, return nil."
                               (reverse (cons (car pair) namestack))))))))))))
 
     ;; Try using add-log support.
-    (when (and (null name) (boundp 'add-log-current-defun-function)
-	       add-log-current-defun-function)
-      (setq name (funcall add-log-current-defun-function)))
+    (when (null name)
+      (setq name (add-log-current-defun)))
     ;; Filter the name if requested.
     (when name
       (if which-func-cleanup-function

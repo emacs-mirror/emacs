@@ -3540,7 +3540,7 @@ optionally is saved to the user's init file."
               (append (list name)
                       (sql-for-each-login
                        `(product ,@login)
-                       (lambda (token plist)
+                       (lambda (token _plist)
                          (cond
                           ((eq token 'product)  `(sql-product  ',sql-product))
                           ((eq token 'user)     `(sql-user     ,sql-user))

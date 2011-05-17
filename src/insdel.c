@@ -48,7 +48,7 @@ static void adjust_markers_for_replace (EMACS_INT, EMACS_INT, EMACS_INT,
 					EMACS_INT, EMACS_INT, EMACS_INT);
 static void adjust_point (EMACS_INT nchars, EMACS_INT nbytes);
 
-Lisp_Object Fcombine_after_change_execute (void);
+static Lisp_Object Fcombine_after_change_execute (void);
 
 /* List of elements of the form (BEG-UNCHANGED END-UNCHANGED CHANGE-AMOUNT)
    describing changes which happened while combine_after_change_calls
@@ -60,12 +60,14 @@ Lisp_Object Fcombine_after_change_execute (void);
    END-UNCHANGED is the number of chars after the changed range,
    and CHANGE-AMOUNT is the number of characters inserted by the change
    (negative for a deletion).  */
-Lisp_Object combine_after_change_list;
+static Lisp_Object combine_after_change_list;
 
 /* Buffer which combine_after_change_list is about.  */
-Lisp_Object combine_after_change_buffer;
+static Lisp_Object combine_after_change_buffer;
 
 Lisp_Object Qinhibit_modification_hooks;
+
+static void signal_before_change (EMACS_INT, EMACS_INT, EMACS_INT *);
 
 #define CHECK_MARKERS()				\
   do						\
@@ -402,11 +404,7 @@ make_gap_larger (EMACS_INT nbytes_added)
   { EMACS_INT total_size = Z_BYTE - BEG_BYTE + GAP_SIZE + nbytes_added;
     if (total_size < 0
 	/* Don't allow a buffer size that won't fit in a Lisp integer.  */
-	|| total_size != XINT (make_number (total_size))
-	/* Don't allow a buffer size that won't fit in an int
-	   even if it will fit in a Lisp integer.
-	   That won't work because so many places still use `int'.  */
-	|| total_size != (EMACS_INT) (int) total_size)
+	|| total_size != XINT (make_number (total_size)))
       error ("Buffer exceeds maximum size");
   }
 
@@ -440,6 +438,7 @@ make_gap_larger (EMACS_INT nbytes_added)
   Vinhibit_quit = tem;
 }
 
+#if defined USE_MMAP_FOR_BUFFERS || defined REL_ALLOC || defined DOUG_LEA_MALLOC
 
 /* Make the gap NBYTES_REMOVED bytes shorter.  */
 
@@ -498,6 +497,8 @@ make_gap_smaller (EMACS_INT nbytes_removed)
 
   Vinhibit_quit = tem;
 }
+
+#endif /* USE_MMAP_FOR_BUFFERS || REL_ALLOC || DOUG_LEA_MALLOC */
 
 void
 make_gap (EMACS_INT nbytes_added)
@@ -1222,7 +1223,7 @@ insert_from_buffer_1 (struct buffer *buf,
 
    PREV_TEXT nil means the new text was just inserted.  */
 
-void
+static void
 adjust_after_replace (EMACS_INT from, EMACS_INT from_byte,
 		      Lisp_Object prev_text, EMACS_INT len, EMACS_INT len_byte)
 {
@@ -1260,58 +1261,6 @@ adjust_after_replace (EMACS_INT from, EMACS_INT from_byte,
 	record_delete (from, prev_text);
       record_insert (from, len);
     }
-
-  if (len > nchars_del)
-    adjust_overlays_for_insert (from, len - nchars_del);
-  else if (len < nchars_del)
-    adjust_overlays_for_delete (from, nchars_del - len);
-  if (BUF_INTERVALS (current_buffer) != 0)
-    {
-      offset_intervals (current_buffer, from, len - nchars_del);
-    }
-
-  if (from < PT)
-    adjust_point (len - nchars_del, len_byte - nbytes_del);
-
-  /* As byte combining will decrease Z, we must check this again. */
-  if (Z - GPT < END_UNCHANGED)
-    END_UNCHANGED = Z - GPT;
-
-  CHECK_MARKERS ();
-
-  if (len == 0)
-    evaporate_overlays (from);
-  MODIFF++;
-  CHARS_MODIFF = MODIFF;
-}
-
-/* Like adjust_after_replace, but doesn't require PREV_TEXT.
-   This is for use when undo is not enabled in the current buffer.  */
-
-void
-adjust_after_replace_noundo (EMACS_INT from, EMACS_INT from_byte,
-			     EMACS_INT nchars_del, EMACS_INT nbytes_del,
-			     EMACS_INT len, EMACS_INT len_byte)
-{
-#ifdef BYTE_COMBINING_DEBUG
-  if (count_combining_before (GPT_ADDR, len_byte, from, from_byte)
-      || count_combining_after (GPT_ADDR, len_byte, from, from_byte))
-    abort ();
-#endif
-
-  /* Update various buffer positions for the new text.  */
-  GAP_SIZE -= len_byte;
-  ZV += len; Z+= len;
-  ZV_BYTE += len_byte; Z_BYTE += len_byte;
-  GPT += len; GPT_BYTE += len_byte;
-  if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor. */
-
-  if (nchars_del > 0)
-    adjust_markers_for_replace (from, from_byte, nchars_del, nbytes_del,
-				len, len_byte);
-  else
-    adjust_markers_for_insert (from, from_byte,
-			       from + len, from_byte + len_byte, 0);
 
   if (len > nchars_del)
     adjust_overlays_for_insert (from, len - nchars_del);
@@ -2049,7 +1998,7 @@ reset_var_on_error (Lisp_Object val)
    If PRESERVE_PTR is nonzero, we relocate *PRESERVE_PTR
    by holding its value temporarily in a marker.  */
 
-void
+static void
 signal_before_change (EMACS_INT start_int, EMACS_INT end_int,
 		      EMACS_INT *preserve_ptr)
 {

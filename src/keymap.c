@@ -56,8 +56,9 @@ Lisp_Object control_x_map;	/* The keymap used for globally bound
 
 /* keymap used for minibuffers when doing completion */
 /* keymap used for minibuffers when doing completion and require a match */
-Lisp_Object Qkeymapp, Qkeymap, Qnon_ascii, Qmenu_item, Qremap;
-Lisp_Object QCadvertised_binding;
+static Lisp_Object Qkeymapp, Qnon_ascii;
+Lisp_Object Qkeymap, Qmenu_item, Qremap;
+static Lisp_Object QCadvertised_binding;
 
 /* Alist of elements like (DEL . "\d").  */
 static Lisp_Object exclude_keys;
@@ -70,6 +71,7 @@ static Lisp_Object where_is_cache;
 /* Which keymaps are reverse-stored in the cache.  */
 static Lisp_Object where_is_cache_keymaps;
 
+static Lisp_Object Flookup_key (Lisp_Object, Lisp_Object, Lisp_Object);
 static Lisp_Object store_in_keymap (Lisp_Object, Lisp_Object, Lisp_Object);
 static void fix_submap_inheritance (Lisp_Object, Lisp_Object, Lisp_Object);
 
@@ -357,7 +359,7 @@ Return PARENT.  PARENT should be nil or another keymap.  */)
 				XCDR (XCAR (list)));
 
       if (VECTORP (XCAR (list)))
-	for (i = 0; i < XVECTOR (XCAR (list))->size; i++)
+	for (i = 0; i < ASIZE (XCAR (list)); i++)
 	  if (CONSP (XVECTOR (XCAR (list))->contents[i]))
 	    fix_submap_inheritance (keymap, make_number (i),
 				    XVECTOR (XCAR (list))->contents[i]);
@@ -658,7 +660,7 @@ map_keymap (Lisp_Object map, map_keymap_function_t fun, Lisp_Object args, void *
   UNGCPRO;
 }
 
-Lisp_Object Qkeymap_canonicalize;
+static Lisp_Object Qkeymap_canonicalize;
 
 /* Same as map_keymap, but does it right, properly eliminating duplicate
    bindings due to inheritance.   */
@@ -955,7 +957,7 @@ store_in_keymap (Lisp_Object keymap, register Lisp_Object idx, Lisp_Object def)
   return def;
 }
 
-EXFUN (Fcopy_keymap, 1);
+static Lisp_Object Fcopy_keymap (Lisp_Object);
 
 static Lisp_Object
 copy_keymap_item (Lisp_Object elt)
@@ -2174,7 +2176,7 @@ then the value includes only maps for prefixes that start with PREFIX.  */)
     }
   return maps;
 }
-Lisp_Object Qsingle_key_description, Qkey_description;
+static Lisp_Object Qsingle_key_description, Qkey_description;
 
 /* This function cannot GC.  */
 
@@ -2224,7 +2226,7 @@ spaces are put between sequence elements, etc.  */)
   if (STRINGP (list))
     size = SCHARS (list);
   else if (VECTORP (list))
-    size = XVECTOR (list)->size;
+    size = ASIZE (list);
   else if (CONSP (list))
     size = XINT (Flength (list));
   else
@@ -3123,7 +3125,7 @@ key             binding\n\
 
 	  elt = XCAR (list);
 	  elt_prefix = Fcar (elt);
-	  if (XVECTOR (elt_prefix)->size >= 1)
+	  if (ASIZE (elt_prefix) >= 1)
 	    {
 	      tem = Faref (elt_prefix, make_number (0));
 	      if (EQ (tem, Qmenu_bar))
@@ -3166,7 +3168,7 @@ key             binding\n\
 	  /* If the sequence by which we reach this keymap is zero-length,
 	     then the shadow map for this keymap is just SHADOW.  */
 	  if ((STRINGP (elt_prefix) && SCHARS (elt_prefix) == 0)
-	      || (VECTORP (elt_prefix) && XVECTOR (elt_prefix)->size == 0))
+	      || (VECTORP (elt_prefix) && ASIZE (elt_prefix) == 0))
 	    ;
 	  /* If the sequence by which we reach this keymap actually has
 	     some elements, then the sequence's definition in SHADOW is
@@ -3590,7 +3592,7 @@ describe_vector (Lisp_Object vector, Lisp_Object prefix, Lisp_Object args,
   if (CHAR_TABLE_P (vector))
     stop = MAX_5_BYTE_CHAR + 1, to = MAX_CHAR + 1;
   else
-    stop = to = XVECTOR (vector)->size;
+    stop = to = ASIZE (vector);
 
   for (i = from; ; i++)
     {

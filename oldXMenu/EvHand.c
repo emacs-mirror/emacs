@@ -15,6 +15,7 @@
 
 #include "XMenuInt.h"
 
+void
 XMenuEventHandler(int (*handler) (XEvent*))
 {
     /*
@@ -22,4 +23,3 @@ XMenuEventHandler(int (*handler) (XEvent*))
      */
     _XMEventHandler = handler;
 }
-

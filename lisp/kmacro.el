@@ -479,7 +479,7 @@ without repeating the prefix."
     (kmacro-display (car (car kmacro-ring)) "2nd macro")))
 
 
-(defun kmacro-cycle-ring-next (&optional arg)
+(defun kmacro-cycle-ring-next (&optional _arg)
   "Move to next keyboard macro in keyboard macro ring.
 Displays the selected macro in the echo area."
   (interactive)
@@ -498,7 +498,7 @@ Displays the selected macro in the echo area."
 (put 'kmacro-cycle-ring-next 'kmacro-repeat 'ring)
 
 
-(defun kmacro-cycle-ring-previous (&optional arg)
+(defun kmacro-cycle-ring-previous (&optional _arg)
   "Move to previous keyboard macro in keyboard macro ring.
 Displays the selected macro in the echo area."
   (interactive)
@@ -526,7 +526,7 @@ Displays the selected macro in the echo area."
     (kmacro-display last-kbd-macro t)))
 
 
-(defun kmacro-delete-ring-head (&optional arg)
+(defun kmacro-delete-ring-head (&optional _arg)
   "Delete current macro from keyboard macro ring."
   (interactive)
   (unless (kmacro-ring-empty-p t)
@@ -777,7 +777,7 @@ If kbd macro currently being defined end it before activating it."
        mac))
 
 
-(defun kmacro-bind-to-key (arg)
+(defun kmacro-bind-to-key (_arg)
   "When not defining or executing a macro, offer to bind last macro to a key.
 The key sequences [C-x C-k 0] through [C-x C-k 9] and [C-x C-k A]
 through [C-x C-k Z] are reserved for user bindings, and to bind to
@@ -837,7 +837,7 @@ Such a \"function\" cannot be called from Lisp, but it is a valid editor command
   (put symbol 'kmacro t))
 
 
-(defun kmacro-view-macro (&optional arg)
+(defun kmacro-view-macro (&optional _arg)
   "Display the last keyboard macro.
 If repeated, it shows previous elements in the macro ring."
   (interactive)

@@ -115,11 +115,11 @@
 (defun doc// (x) x)
 
 (defmacro doc$ (what)
-  "quoted arg form of doctor-$"
+  "Quoted arg form of doctor-$."
   `(doctor-$ ',what))
 
 (defun doctor-$ (what)
-  "Return the car of a list, rotating the list each time"
+  "Return the car of a list, rotating the list each time."
   (let* ((vv (symbol-value what))
 	(first (car vv))
 	(ww (append (cdr vv) (list first))))
@@ -268,7 +268,7 @@ reads the sentence before point, and prints the Doctor's answer."
 	 (you seem to dwell on (doc// doctor-owner) family \.)
 	 ((doc$ doctor--areyou) hung up on (doc// doctor-owner) family \?)))
   (set (make-local-variable 'doctor--huhlst)
-       '(((doc$ doctor--whysay)(doc// doctor-sent) \?)
+       '(((doc$ doctor--whysay) (doc// doctor-sent) \?)
 	 (is it because of (doc$ doctor--things) that you say (doc// doctor-sent) \?)))
   (set (make-local-variable 'doctor--longhuhlst)
        '(((doc$ doctor--whysay) that \?)
@@ -371,8 +371,8 @@ reads the sentence before point, and prints the Doctor's answer."
 	 (did you watch a lot of crime and violence on television as a child \?)))
   (set (make-local-variable 'doctor--sexlst)
        '(((doc$ doctor--areyou) (doc$ doctor--afraidof) sex \?)
-	 ((doc$ doctor--describe)(doc$ doctor--something) about your sexual history \.)
-	 ((doc$ doctor--please)(doc$ doctor--describe) your sex life \.\.\.)
+	 ((doc$ doctor--describe) (doc$ doctor--something) about your sexual history \.)
+	 ((doc$ doctor--please) (doc$ doctor--describe) your sex life \.\.\.)
 	 ((doc$ doctor--describe) your (doc$ doctor--feelings-about) your sexual partner \.)
 	 ((doc$ doctor--describe) your most (doc$ doctor--random-adjective) sexual experience \.)
 	 ((doc$ doctor--areyou) satisfied with (doc// doctor--lover) \.\.\. \?)))
@@ -384,11 +384,11 @@ reads the sentence before point, and prints the Doctor's answer."
 				       ((doc$ doctor--bother) i ask that \?)))
   (set (make-local-variable 'doctor--beclst)
        '((is it because (doc// doctor-sent) that you came to me \?)
-	 ((doc$ doctor--bother)(doc// doctor-sent) \?)
+	 ((doc$ doctor--bother) (doc// doctor-sent) \?)
 	 (when did you first know that (doc// doctor-sent) \?)
 	 (is the fact that (doc// doctor-sent) the real reason \?)
 	 (does the fact that (doc// doctor-sent) explain anything else \?)
-	 ((doc$ doctor--areyou)(doc$ doctor--sure)(doc// doctor-sent) \? )))
+	 ((doc$ doctor--areyou) (doc$ doctor--sure) (doc// doctor-sent) \? )))
   (set (make-local-variable 'doctor--shortbeclst)
    '(((doc$ doctor--bother) i ask you that \?)
      (that\'s not much of an answer!)
@@ -398,15 +398,15 @@ reads the sentence before point, and prints the Doctor's answer."
      (don\'t be (doc$ doctor--afraidof) elaborating \.)
      ((doc$ doctor--please) go into more detail \.)))
   (set (make-local-variable 'doctor--thlst)
-       '(((doc$ doctor--maybe)(doc$ doctor--thing)(doc$ doctor--isrelated) this \.)
-	 ((doc$ doctor--maybe)(doc$ doctor--things)(doc$ doctor--arerelated) this \.)
+       '(((doc$ doctor--maybe) (doc$ doctor--thing) (doc$ doctor--isrelated) this \.)
+	 ((doc$ doctor--maybe) (doc$ doctor--things) (doc$ doctor--arerelated) this \.)
 	 (is it because of (doc$ doctor--things) that you are going through all this \?)
 	 (how do you reconcile (doc$ doctor--things) \? )
-	 ((doc$ doctor--maybe) this (doc$ doctor--isrelated)(doc$ doctor--things) \?)))
+	 ((doc$ doctor--maybe) this (doc$ doctor--isrelated) (doc$ doctor--things) \?)))
   (set (make-local-variable 'doctor--remlst)
        '((earlier you said (doc$ doctor--history) \?)
 	 (you mentioned that (doc$ doctor--history) \?)
-	 ((doc$ doctor--whysay)(doc$ doctor--history) \? )))
+	 ((doc$ doctor--whysay) (doc$ doctor--history) \? )))
   (set (make-local-variable 'doctor--toklst)
        '((is this how you relax \?)
 	 (how long have you been smoking	grass \?)
@@ -415,7 +415,7 @@ reads the sentence before point, and prints the Doctor's answer."
        '((do you get (doc// doctor-found) often \?)
 	 (do you enjoy being (doc// doctor-found) \?)
 	 (what makes you (doc// doctor-found) \?)
-	 (how often (doc$ doctor--areyou)(doc// doctor-found) \?)
+	 (how often (doc$ doctor--areyou) (doc// doctor-found) \?)
 	 (when were you last (doc// doctor-found) \?)))
   (set (make-local-variable 'doctor--replist) '((i . (you))
 					(my . (your))
@@ -832,7 +832,7 @@ Otherwise call the Doctor to parse preceding sentence."
     (newline arg)))
 
 (defun doctor-read-print nil
-  "top level loop"
+  "Top level loop."
   (interactive)
   (let ((sent (doctor-readin)))
     (insert "\n")
@@ -850,7 +850,7 @@ Otherwise call the Doctor to parse preceding sentence."
     sentence))
 
 (defun doctor-read-token ()
-  "read one word from buffer"
+  "Read one word from buffer."
   (prog1 (intern (downcase (buffer-substring (point)
 					     (progn
 					       (forward-word 1)
@@ -859,25 +859,25 @@ Otherwise call the Doctor to parse preceding sentence."
 
 ;; Main processing function for sentences that have been read.
 
-(defun doctor-doc (doctor-sent)
+(defun doctor-doc (sent)
   (cond
-   ((equal doctor-sent '(foo))
-    (doctor-type '(bar! (doc$ doctor--please)(doc$ doctor--continue) \.)))
-   ((member doctor-sent doctor--howareyoulst)
+   ((equal sent '(foo))
+    (doctor-type '(bar! (doc$ doctor--please) (doc$ doctor--continue) \.)))
+   ((member sent doctor--howareyoulst)
     (doctor-type '(i\'m ok \.  (doc$ doctor--describe) yourself \.)))
-   ((or (member doctor-sent '((good bye) (see you later) (i quit) (so long)
+   ((or (member sent '((good bye) (see you later) (i quit) (so long)
 		       (go away) (get lost)))
-	(memq (car doctor-sent)
+	(memq (car sent)
 	      '(bye halt break quit done exit goodbye
 		    bye\, stop pause goodbye\, stop pause)))
     (doctor-type (doc$ doctor--bye)))
-   ((and (eq (car doctor-sent) 'you)
-	 (memq (cadr doctor-sent) doctor--abusewords))
-    (setq doctor-found (cadr doctor-sent))
+   ((and (eq (car sent) 'you)
+	 (memq (cadr sent) doctor--abusewords))
+    (setq doctor-found (cadr sent))
     (doctor-type (doc$ doctor--abuselst)))
-   ((eq (car doctor-sent) 'whatmeans)
-    (doctor-def (cadr doctor-sent)))
-   ((equal doctor-sent '(parse))
+   ((eq (car sent) 'whatmeans)
+    (doctor-def (cadr sent)))
+   ((equal sent '(parse))
     (doctor-type (list  'subj '= doctor-subj ",  "
 			'verb '= doctor-verb "\n"
 			'object 'phrase '= doctor-obj ","
@@ -889,29 +889,29 @@ Otherwise call the Doctor to parse preceding sentence."
 			'sentence 'used 'was
 			"..."
 			'(doc// doctor--bak))))
-   ((memq (car doctor-sent) '(are is do has have how when where who why))
+   ((memq (car sent) '(are is do has have how when where who why))
     (doctor-type (doc$ doctor--qlist)))
-   ;;   ((eq (car doctor-sent) 'forget)
-   ;;    (set (cadr doctor-sent) nil)
-   ;;    (doctor-type '((doc$ doctor--isee)(doc$ doctor--please)
+   ;;   ((eq (car sent) 'forget)
+   ;;    (set (cadr sent) nil)
+   ;;    (doctor-type '((doc$ doctor--isee) (doc$ doctor--please)
    ;;     (doc$ doctor--continue)\.)))
    (t
-    (if (doctor-defq doctor-sent) (doctor-define doctor-sent doctor-found))
-    (if (> (length doctor-sent) 12)(setq doctor-sent (doctor-shorten doctor-sent)))
-    (setq doctor-sent (doctor-correct-spelling (doctor-replace doctor-sent doctor--replist)))
-    (cond ((and (not (memq 'me doctor-sent))(not (memq 'i doctor-sent))
-		(memq 'am doctor-sent))
-	   (setq doctor-sent (doctor-replace doctor-sent '((am . (are)))))))
-    (cond ((equal (car doctor-sent) 'yow) (doctor-zippy))
-	  ((< (length doctor-sent) 2)
-	   (cond ((eq (doctor-meaning (car doctor-sent)) 'howdy)
+    (if (doctor-defq sent) (doctor-define sent doctor-found))
+    (if (> (length sent) 12) (setq sent (doctor-shorten sent)))
+    (setq sent (doctor-correct-spelling (doctor-replace sent doctor--replist)))
+    (cond ((and (not (memq 'me sent)) (not (memq 'i sent))
+		(memq 'am sent))
+	   (setq sent (doctor-replace sent '((am . (are)))))))
+    (cond ((equal (car sent) 'yow) (doctor-zippy))
+	  ((< (length sent) 2)
+	   (cond ((eq (doctor-meaning (car sent)) 'howdy)
 		  (doctor-howdy))
 		 (t (doctor-short))))
 	  (t
-	   (if (memq 'am doctor-sent)
-	       (setq doctor-sent (doctor-replace doctor-sent '((me . (i))))))
-	   (setq doctor-sent (doctor-fixup doctor-sent))
-	   (if (and (eq (car doctor-sent) 'do) (eq (cadr doctor-sent) 'not))
+	   (if (memq 'am sent)
+	       (setq sent (doctor-replace sent '((me . (i))))))
+	   (setq sent (doctor-fixup sent))
+	   (if (and (eq (car sent) 'do) (eq (cadr sent) 'not))
 	       (cond ((zerop (random 3))
 		      (doctor-type '(are you (doc$ doctor--afraidof) that \?)))
 		     ((zerop (random 2))
@@ -920,9 +920,9 @@ Otherwise call the Doctor to parse preceding sentence."
 		      (doctor-rthing))
 		     (t
 		      (doctor-type '((doc$ doctor--whysay) that i shouldn\'t
-				     (cddr doctor-sent)
+				     (cddr sent)
 				     \?))))
-	     (doctor-go (doctor-wherego doctor-sent))))))))
+	     (doctor-go (doctor-wherego sent))))))))
 
 ;; Things done to process sentences once read.
 
@@ -1020,7 +1020,7 @@ the subject noun, and return the portion of the sentence following it."
 	   nil))))
 
 (defun doctor-nounp (x)
-  "Returns t if the symbol argument is a noun."
+  "Return t if the symbol argument is a noun."
 	(or (doctor-pronounp x)
 	    (not (or (doctor-verbp x)
 		     (equal x 'not)
@@ -1028,7 +1028,7 @@ the subject noun, and return the portion of the sentence following it."
 		     (doctor-modifierp x) )) ))
 
 (defun doctor-pronounp (x)
-  "Returns t if the symbol argument is a pronoun."
+  "Return t if the symbol argument is a pronoun."
   (memq x '(
 	i me mine myself
 	we us ours ourselves ourself
@@ -1130,8 +1130,8 @@ the subject noun, and return the portion of the sentence following it."
 	  (t 'something))))
 
 (defun doctor-getnoun (x)
-  (cond ((null x)(setq doctor-object 'something))
-	((atom x)(setq doctor-object x))
+  (cond ((null x) (setq doctor-object 'something))
+	((atom x) (setq doctor-object x))
 	((eq (length x) 1)
 	 (setq doctor-object (cond
 		       ((doctor-nounp (setq doctor-object (car x))) doctor-object)
@@ -1304,7 +1304,7 @@ element pair in RLIST."
 	   sent)))
 
 (defun doctor-wherego (sent)
-  (cond ((null sent)(doc$ doctor--whereoutp))
+  (cond ((null sent) (doc$ doctor--whereoutp))
 	((null (doctor-meaning (car sent)))
 	 (doctor-wherego (cond ((zerop (random 2))
 				(reverse (cdr sent)))
@@ -1327,8 +1327,8 @@ and DOCTOR-OBJ."
       (setq foo (cdr foo)))
     (setq doctor-verb (car foo))
     (setq doctor-obj (doctor-getnoun (cdr foo)))
-    (cond ((eq doctor-object 'i)(setq doctor-object 'me))
-	  ((eq doctor-subj 'me)(setq doctor-subj 'i)))
+    (cond ((eq doctor-object 'i) (setq doctor-object 'me))
+	  ((eq doctor-subj 'me) (setq doctor-subj 'i)))
     (cond (mem (doctor-remember (list doctor-subj doctor-verb doctor-obj))))))
 
 (defun doctor-possess (sent key)
@@ -1414,7 +1414,7 @@ Hack on previous word, setting global variable DOCTOR-OWNER to correct result."
 
 (defun doctor-rthing () (doctor-type (doc$ doctor--thlst)))
 
-(defun doctor-remem () (cond ((null doctor--history)(doctor-huh))
+(defun doctor-remem () (cond ((null doctor--history) (doctor-huh))
 			     ((doctor-type (doc$ doctor--remlst)))))
 
 (defun doctor-howdy ()
@@ -1426,14 +1426,14 @@ Hack on previous word, setting global variable DOCTOR-OWNER to correct result."
 	 (doctor-type '((doc$ doctor--please) (doc$ doctor--describe) (doc$ doctor--things) \.)))))
 
 (defun doctor-when ()
-  (cond ((< (length (memq doctor-found doctor-sent)) 3)(doctor-short))
+  (cond ((< (length (memq doctor-found doctor-sent)) 3) (doctor-short))
 	(t
 	 (setq doctor-sent (cdr (memq doctor-found doctor-sent)))
 	 (setq doctor-sent (doctor-fixup doctor-sent))
-	 (doctor-type '((doc$ doctor--whatwhen)(doc// doctor-sent) \?)))))
+	 (doctor-type '((doc$ doctor--whatwhen) (doc// doctor-sent) \?)))))
 
 (defun doctor-conj ()
-  (cond ((< (length (memq doctor-found doctor-sent)) 4)(doctor-short))
+  (cond ((< (length (memq doctor-found doctor-sent)) 4) (doctor-short))
 	(t
 	 (setq doctor-sent (cdr (memq doctor-found doctor-sent)))
 	 (setq doctor-sent (doctor-fixup doctor-sent))
@@ -1497,10 +1497,10 @@ Hack on previous word, setting global variable DOCTOR-OWNER to correct result."
   (doctor-type (doc$ doctor--toklst)))
 
 (defun doctor-state ()
-  (doctor-type (doc$ doctor--states))(doctor-remember (list 'you 'were doctor-found)))
+  (doctor-type (doc$ doctor--states)) (doctor-remember (list 'you 'were doctor-found)))
 
 (defun doctor-mood ()
-  (doctor-type (doc$ doctor--moods))(doctor-remember (list 'you 'felt doctor-found)))
+  (doctor-type (doc$ doctor--moods)) (doctor-remember (list 'you 'felt doctor-found)))
 
 (defun doctor-fear ()
   (setq doctor--feared (doctor-setprep doctor-sent doctor-found))
@@ -1511,8 +1511,8 @@ Hack on previous word, setting global variable DOCTOR-OWNER to correct result."
   (doctor-svo doctor-sent doctor-found 1 t)
   (cond ((memq 'not doctor-sent) (doctor-forget) (doctor-huh))
 	((equal doctor-subj 'you)
-	 (doctor-type '(why do you (doc// doctor-verb)(doc// doctor-obj) \?)))
-	(t (doctor-type '((doc$ doctor--whysay)(list doctor-subj doctor-verb doctor-obj))))))
+	 (doctor-type '(why do you (doc// doctor-verb) (doc// doctor-obj) \?)))
+	(t (doctor-type '((doc$ doctor--whysay) (list doctor-subj doctor-verb doctor-obj))))))
 
 (defun doctor-symptoms ()
   (doctor-type '((doc$ doctor--maybe) you should consult a medical doctor\;
@@ -1523,14 +1523,14 @@ Hack on previous word, setting global variable DOCTOR-OWNER to correct result."
   (doctor-hates1))
 
 (defun doctor-hates1 ()
-  (doctor-type '((doc$ doctor--whysay)(list doctor-subj doctor-verb doctor-obj) \?)))
+  (doctor-type '((doc$ doctor--whysay) (list doctor-subj doctor-verb doctor-obj) \?)))
 
 (defun doctor-loves ()
   (doctor-svo doctor-sent doctor-found 1 t)
   (doctor-qloves))
 
 (defun doctor-qloves ()
-  (doctor-type '((doc$ doctor--bother)(list doctor-subj doctor-verb doctor-obj) \?)))
+  (doctor-type '((doc$ doctor--bother) (list doctor-subj doctor-verb doctor-obj) \?)))
 
 (defun doctor-love ()
   (doctor-svo doctor-sent doctor-found 1 t)
@@ -1564,7 +1564,7 @@ Hack on previous word, setting global variable DOCTOR-OWNER to correct result."
 (defun doctor-sexnoun () (doctor-sexverb))
 
 (defun doctor-sexverb ()
-  (if (or (memq 'me doctor-sent)(memq 'myself doctor-sent)(memq 'i doctor-sent))
+  (if (or (memq 'me doctor-sent) (memq 'myself doctor-sent) (memq 'i doctor-sent))
       (doctor-foul)
     (doctor-type (doc$ doctor--sexlst))))
 

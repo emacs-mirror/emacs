@@ -5,6 +5,53 @@
 	(Splitting Windows): New nomenclature for window splitting
 	commands.
 
+2011-05-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* nonascii.texi (Character Properties): Fix inconsistencies with
+	implementation.
+
+	* text.texi (Special Properties): Move @defvar's out of the
+	@table.  (Bug#8652)
+
+2011-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (Image Descriptors): Fix typo.  (Bug#8495)
+
+2011-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* modes.texi (Region to Refontify): Rename from "Region to Fontify".
+	(Multiline Font Lock):
+	* vol2.texi (Top):
+	* vol1.texi (Top):
+	* elisp.texi (Top): Update menu accordingly.
+
+2011-05-12  Drew Adams  <drew.adams@oracle.com>
+
+	* modes.texi (Region to Fontify): Fix typo.
+
+2011-05-10  Jim Meyering  <meyering@redhat.com>
+
+	* minibuf.texi: Fix typo "in in -> in".
+
+2011-05-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* numbers.texi (Integer Basics): Large integers are treated as floats.
+
+2011-04-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* processes.texi (Synchronous Processes): Document the (:file
+	"/file-name") syntax for `call-process'.
+
+2011-04-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* windows.texi (Choosing Window): Fix typo.
+
+2011-04-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frames.texi (Layout Parameters): Note the difference between
+	querying and setting parameters for left-fringe and right-fringe
+	(Bug#6930).
+
 2011-04-09  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Splitting Windows): Explain window-splits and

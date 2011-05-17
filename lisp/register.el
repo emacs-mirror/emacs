@@ -88,7 +88,7 @@ Argument is a character, naming the register."
 		(if arg (list (current-frame-configuration) (point-marker))
 		  (point-marker))))
 
-(defun window-configuration-to-register (register &optional arg)
+(defun window-configuration-to-register (register &optional _arg)
   "Store the window configuration of the selected frame in register REGISTER.
 Use \\[jump-to-register] to restore the configuration.
 Argument is a character, naming the register."
@@ -97,7 +97,7 @@ Argument is a character, naming the register."
   ;; of point in the current buffer, so record that separately.
   (set-register register (list (current-window-configuration) (point-marker))))
 
-(defun frame-configuration-to-register (register &optional arg)
+(defun frame-configuration-to-register (register &optional _arg)
   "Store the window configuration of all frames in register REGISTER.
 Use \\[jump-to-register] to restore the configuration.
 Argument is a character, naming the register."

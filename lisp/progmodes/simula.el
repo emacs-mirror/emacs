@@ -324,7 +324,7 @@ for SIMULA mode to function correctly."
   "Keymap used in `simula-mode'.")
 
 ;; menus for Lucid
-(defun simula-popup-menu (e)
+(defun simula-popup-menu (_e)
   "Pops up the SIMULA menu."
   (interactive "@e")
   (popup-menu (cons (concat mode-name " Mode Commands") simula-mode-menu)))
@@ -1202,9 +1202,8 @@ If COUNT is negative, move backward instead."
        ((eq simula-abbrev-keyword 'downcase) (downcase-word -1))
        ((eq simula-abbrev-keyword 'capitalize) (capitalize-word -1)))
       (let ((pos (- (point-max) (point)))
-	    (case-fold-search t)
-	    null)
-	(condition-case null
+	    (case-fold-search t))
+	(condition-case nil
 	    (progn
 	      ;; check if the expanded word is on the beginning of the line.
 	      (if (and (eq (char-syntax (preceding-char)) ?w)
@@ -1244,8 +1243,9 @@ An optional second argument BOUND bounds the search, it is a buffer position.
 The match found must not extend after that position.  Optional third argument
 NOERROR, if t, means if fail just return nil (no error).
 If not nil and not t, move to limit of search and return nil."
-  (let (begin end context (comb-regexp (concat regexp "\\|\\<end\\>"))
-	      match (start-point (point)))
+  (let ((comb-regexp (concat regexp "\\|\\<end\\>"))
+        (start-point (point))
+        context match)
     (catch 'simula-backward
       (while (re-search-backward comb-regexp bound 1)
 	;; We have a match, check SIMULA context at match-beginning
@@ -1306,8 +1306,9 @@ An optional second argument BOUND bounds the search, it is a buffer position.
 The match found must not extend after that position.  Optional third argument
 NOERROR, if t, means if fail just return nil (no error).
 If not nil and not t, move to limit of search and return nil."
-  (let (begin end context (comb-regexp (concat regexp "\\|\\<begin\\>"))
-	      match (start-point (point)))
+  (let ((comb-regexp (concat regexp "\\|\\<begin\\>"))
+        (start-point (point))
+	context match)
     (catch 'simula-forward
       (while (re-search-forward comb-regexp bound 1)
 	;; We have a match, check SIMULA context at match-beginning

@@ -79,14 +79,15 @@ extern struct direct *readdir (DIR *);
 #include "regex.h"
 #include "blockinput.h"
 
-Lisp_Object Qdirectory_files;
-Lisp_Object Qdirectory_files_and_attributes;
-Lisp_Object Qfile_name_completion;
-Lisp_Object Qfile_name_all_completions;
-Lisp_Object Qfile_attributes;
-Lisp_Object Qfile_attributes_lessp;
+static Lisp_Object Qdirectory_files;
+static Lisp_Object Qdirectory_files_and_attributes;
+static Lisp_Object Qfile_name_completion;
+static Lisp_Object Qfile_name_all_completions;
+static Lisp_Object Qfile_attributes;
+static Lisp_Object Qfile_attributes_lessp;
 
 static int scmp (const char *, const char *, int);
+static Lisp_Object Ffile_attributes (Lisp_Object, Lisp_Object);
 
 #ifdef WINDOWSNT
 Lisp_Object
@@ -380,7 +381,9 @@ which see.  */)
 }
 
 
-Lisp_Object file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int ver_flag, Lisp_Object predicate);
+static Lisp_Object file_name_completion
+  (Lisp_Object file, Lisp_Object dirname, int all_flag, int ver_flag,
+   Lisp_Object predicate);
 
 DEFUN ("file-name-completion", Ffile_name_completion, Sfile_name_completion,
        2, 3, 0,
@@ -438,9 +441,9 @@ These are all file names in directory DIRECTORY which begin with FILE.  */)
 }
 
 static int file_name_completion_stat (Lisp_Object dirname, DIRENTRY *dp, struct stat *st_addr);
-Lisp_Object Qdefault_directory;
+static Lisp_Object Qdefault_directory;
 
-Lisp_Object
+static Lisp_Object
 file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int ver_flag, Lisp_Object predicate)
 {
   DIR *d;

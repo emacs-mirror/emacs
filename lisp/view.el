@@ -655,7 +655,7 @@ Also set the mark at the position where point was."
   (forward-line (1- line))
   (view-recenter))
 
-(defun View-back-to-mark (&optional ignore)
+(defun View-back-to-mark (&optional _ignore)
   "Return to last mark set in View mode, else beginning of file.
 Display that line at the center of the window.
 This command pops the mark ring, so that successive

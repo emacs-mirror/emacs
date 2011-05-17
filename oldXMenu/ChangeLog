@@ -1,3 +1,43 @@
+2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Static checks with GCC 4.6.0 and non-default toolkits.
+
+	Modernize to C89, for better static checking.
+	* Activate.c (XMenuActivate): Callback's first arg is readonly.
+	* AddPane.c (XMenuAddPane): Label is readonly.  Rename local
+	to avoid shadowing.
+	* AddSel.c (XMenuAddSelection): Help arg is readonly.  Rename local.
+	* Create.c (atoi, atof): Remove decls; include <stdlib.h>.
+	(MAX_INACT_PNUM, TILE_BUF_SIZE): Remove; unused.
+	(x_get_resource_string): Args are readonly.
+	(XAllocDisplayColor): colorName is readonly.
+	(XMenuCreate): def_env is readonly.  Remove unused locals.  Avoid
+	"else;".
+	* Destroy.c (XMenuDestroy): Return void.
+	* Error.c (XMenuError): Remove const pointer.
+	* EvHand.c (XMenuEventHandler): Return void.
+	* FindPane.c, FindSel.c: Include <string.h>.
+	* InsPane.c (XMenuInsertPane): Rename local to avoid shadowing.
+	* InsSel.c (XMenuInsertSelection): Likewise.
+	* Internal.c (toggle_color, BUFFER_SIZE): Remove; unused.
+	(_XMErrorList): Now const.
+	(_XMWinQueInit, _XMRecomputeGlobals, _XMTransToOrigin, _XMRefreshPane):
+	(_XMRefreshSelection): Return void.
+	(_XMWinQueFlush, _XMRefreshSelection): Rename locals to avoid
+	shadowing.
+	(_XMWinQueFlush): Use stack, not heap.  Don't use uninitialized var.
+	* SetAEQ.c (XMenuSetAEQ): Now returns void.
+	* SetFrz.c (XMenuSetFreeze): Likewise.
+	* X10.h (XAssoc): Use void * for generic pointer.
+	* XDelAssoc.c: Include XMenuInt.h rather than duplicating part of it.
+	* XDestAssoc.c, XMakeAssoc.c: Likewise.
+	* XDestAssoc.c (XDestroyAssocTable): Return void.
+	* XMakeAssoc.c (XMakeAssoc): Use void * for generic pointer.
+	* XMenu.h, XMenuInt.h: Adjust to signature changes.  Use const
+	for pointers to readonly storage.
+	* insque.c: Include XMenuInt.h, to check our own signature.
+	(emacs_insque, emacs_remque): Use void * for generic pointers.
+
 2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 23.3 released.

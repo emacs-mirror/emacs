@@ -80,7 +80,7 @@ project file, all targets are queried to see if it should be added.
 If the value is 'always, then the new file is added to the first
 target encountered.  If the value is 'multi-ask, then if more than one
 target wants the file, the user is asked.  If only one target wants
-the file, then then it is automatically added to that target.  If the
+the file, then it is automatically added to that target.  If the
 value is 'ask, then the user is always asked, unless there is no
 target willing to take the file.  'never means never perform the check."
   :group 'ede

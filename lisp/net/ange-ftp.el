@@ -856,15 +856,11 @@ If nil, prompt the user for a password."
   :type '(choice (const :tag "Default" nil)
 		 string))
 
-(defcustom ange-ftp-binary-file-name-regexp
-  (concat "TAGS\\'\\|\\.\\(?:"
-          (eval-when-compile
-            (regexp-opt '("z" "Z" "lzh" "arc" "zip" "zoo" "tar" "dvi"
-                          "ps" "elc" "gif" "gz" "taz" "tgz")))
-	  "\\|EXE\\(;[0-9]+\\)?\\|[zZ]-part-..\\)\\'")
+(defcustom ange-ftp-binary-file-name-regexp ""
   "If a file matches this regexp then it is transferred in binary mode."
   :group 'ange-ftp
-  :type 'regexp)
+  :type 'regexp
+  :version "24.1")
 
 (defcustom ange-ftp-gateway-host nil
   "Name of host to use as gateway machine when local FTP isn't possible."
@@ -3213,11 +3209,7 @@ system TYPE.")
 	       ;; What we REALLY need here is a way to determine if the mode
 	       ;; of the transfer is irrelevant, i.e. we can use binary mode
 	       ;; regardless. Maybe a system-type to host-type lookup?
-	       (binary (or (ange-ftp-binary-file filename)
-			   (and (not (memq system-type
-					   '(ms-dos windows-nt)))
-				(memq (ange-ftp-host-type host user)
-				      '(unix dumb-unix)))))
+	       (binary (ange-ftp-binary-file filename))
 	       (cmd (if append 'append 'put))
 	       (abbr (ange-ftp-abbreviate-filename filename))
 	       ;; we need to reset `last-coding-system-used' to its
@@ -3289,9 +3281,7 @@ system TYPE.")
 		     (user (nth 1 parsed))
 		     (name (ange-ftp-quote-string (nth 2 parsed)))
 		     (temp (ange-ftp-make-tmp-name host))
-		     (binary (or (ange-ftp-binary-file filename)
-				 (memq (ange-ftp-host-type host user)
-				       '(unix dumb-unix))))
+		     (binary (ange-ftp-binary-file filename))
 		     (abbr (ange-ftp-abbreviate-filename filename))
 		     (coding-system-used last-coding-system-used)
 		     size)
@@ -3673,11 +3663,7 @@ so return the size on the remote host exactly. See RFC 3659."
 	     (t-name (and t-parsed (ange-ftp-quote-string (nth 2 t-parsed))))
 	     (t-abbr (ange-ftp-abbreviate-filename newname filename))
 	     (binary (or (ange-ftp-binary-file filename)
-			 (ange-ftp-binary-file newname)
-			 (and (memq (ange-ftp-host-type f-host f-user)
-				    '(unix dumb-unix))
-			      (memq (ange-ftp-host-type t-host t-user)
-				    '(unix dumb-unix)))))
+			 (ange-ftp-binary-file newname)))
 	     temp1
 	     temp2)
 

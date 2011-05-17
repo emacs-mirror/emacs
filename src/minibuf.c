@@ -45,7 +45,7 @@ Lisp_Object Vminibuffer_list;
 
 /* Data to remember during recursive minibuffer invocations  */
 
-Lisp_Object minibuf_save_list;
+static Lisp_Object minibuf_save_list;
 
 /* Depth in minibuffer invocations.  */
 
@@ -53,35 +53,35 @@ int minibuf_level;
 
 /* The maximum length of a minibuffer history.  */
 
-Lisp_Object Qhistory_length;
+static Lisp_Object Qhistory_length;
 
 /* Fread_minibuffer leaves the input here as a string. */
 
 Lisp_Object last_minibuf_string;
 
-Lisp_Object Qminibuffer_history, Qbuffer_name_history;
+static Lisp_Object Qminibuffer_history, Qbuffer_name_history;
 
-Lisp_Object Qread_file_name_internal;
+static Lisp_Object Qread_file_name_internal;
 
 /* Normal hooks for entry to and exit from minibuffer.  */
 
-Lisp_Object Qminibuffer_setup_hook;
-Lisp_Object Qminibuffer_exit_hook;
+static Lisp_Object Qminibuffer_setup_hook;
+static Lisp_Object Qminibuffer_exit_hook;
 
 Lisp_Object Qcompletion_ignore_case;
-Lisp_Object Qminibuffer_completion_table;
-Lisp_Object Qminibuffer_completion_predicate;
-Lisp_Object Qminibuffer_completion_confirm;
-Lisp_Object Qcompleting_read_default;
-Lisp_Object Quser_variable_p;
+static Lisp_Object Qminibuffer_completion_table;
+static Lisp_Object Qminibuffer_completion_predicate;
+static Lisp_Object Qminibuffer_completion_confirm;
+static Lisp_Object Qcompleting_read_default;
+static Lisp_Object Quser_variable_p;
 
-Lisp_Object Qminibuffer_default;
+static Lisp_Object Qminibuffer_default;
 
-Lisp_Object Qcurrent_input_method, Qactivate_input_method;
+static Lisp_Object Qcurrent_input_method, Qactivate_input_method;
 
-Lisp_Object Qcase_fold_search;
+static Lisp_Object Qcase_fold_search;
 
-Lisp_Object Qread_expression_history;
+static Lisp_Object Qread_expression_history;
 
 /* Prompt to display in front of the mini-buffer contents.  */
 
@@ -97,7 +97,7 @@ static EMACS_INT minibuf_prompt_width;
    We do this whenever the user starts a new minibuffer
    or when a minibuffer exits.  */
 
-void
+static void
 choose_minibuf_frame (void)
 {
   if (FRAMEP (selected_frame)
@@ -880,7 +880,8 @@ read_minibuf_unwind (Lisp_Object data)
 }
 
 
-DEFUN ("read-from-minibuffer", Fread_from_minibuffer, Sread_from_minibuffer, 1, 7, 0,
+DEFUN ("read-from-minibuffer", Fread_from_minibuffer,
+       Sread_from_minibuffer, 1, 7, 0,
        doc: /* Read a string from the minibuffer, prompting with string PROMPT.
 The optional second arg INITIAL-CONTENTS is an obsolete alternative to
   DEFAULT-VALUE.  It normally should be nil in new code, except when
@@ -1234,7 +1235,7 @@ is used to further constrain the set of candidates.  */)
   if (type == obarray_table)
     {
       collection = check_obarray (collection);
-      obsize = XVECTOR (collection)->size;
+      obsize = ASIZE (collection);
       bucket = XVECTOR (collection)->contents[idx];
     }
 
@@ -1497,7 +1498,7 @@ with a space are ignored unless STRING itself starts with a space.  */)
   if (type == 2)
     {
       collection = check_obarray (collection);
-      obsize = XVECTOR (collection)->size;
+      obsize = ASIZE (collection);
       bucket = XVECTOR (collection)->contents[idx];
     }
 
@@ -1811,7 +1812,7 @@ the values STRING, PREDICATE and `lambda'.  */)
 
       if (completion_ignore_case && !SYMBOLP (tem))
 	{
-	  for (i = XVECTOR (collection)->size - 1; i >= 0; i--)
+	  for (i = ASIZE (collection) - 1; i >= 0; i--)
 	    {
 	      tail = XVECTOR (collection)->contents[i];
 	      if (SYMBOLP (tail))

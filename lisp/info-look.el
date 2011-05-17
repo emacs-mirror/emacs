@@ -720,11 +720,31 @@ Return nil if there is nothing appropriate in the buffer near point."
  :mode 'makefile-mode
  :regexp "\\$[^({]\\|\\.[_A-Z]*\\|[_a-zA-Z][_a-zA-Z0-9-]*"
  :doc-spec '(("(make)Name Index" nil
-	      "^[ \t]*`" "'")
-	     ("(automake)Macro and Variable Index" nil
 	      "^[ \t]*`" "'"))
- :parse-rule "\\$[^({]\\|\\.[_A-Z]*\\|[_a-zA-Z0-9-]+"
- :other-modes '(automake-mode))
+ :parse-rule "\\$[^({]\\|\\.[_A-Z]*\\|[_a-zA-Z0-9-]+")
+
+(info-lookup-maybe-add-help
+ :topic      'symbol
+ :mode       'makefile-automake-mode
+ ;; similar regexp/parse-rule as makefile-mode, but also the following
+ ;; (which have index entries),
+ ;;   "##" special automake comment
+ ;;   "+=" append operator, separate from the GNU make one
+ :regexp     "\\$[^({]\\|\\.[_A-Z]*\\|[_a-zA-Z][_a-zA-Z0-9-]*\\|##\\|\\+="
+ :parse-rule "\\$[^({]\\|\\.[_A-Z]*\\|[_a-zA-Z0-9-]+\\|##\\|\\+="
+ :doc-spec   '(
+               ;; "(automake)Macro Index" is autoconf macros used in
+               ;; configure.in, not Makefile.am, so don't have that here.
+               ("(automake)Variable Index" nil "^[ \t]*`" "'")
+               ;; In automake 1.4 macros and variables were a combined node.
+               ("(automake)Macro and Variable Index" nil "^[ \t]*`" "'")
+               ;; Directives like "if" are in the "General Index".
+               ;; Prefix "`" since the text for say `+=' isn't always an
+               ;; @item etc and so not always at the start of a line.
+               ("(automake)General Index" nil "`" "'")
+               ;; In automake 1.3 there was just a single "Index" node.
+               ("(automake)Index" nil "`" "'"))
+ :other-modes '(makefile-mode))
 
 (info-lookup-maybe-add-help
  :mode 'texinfo-mode

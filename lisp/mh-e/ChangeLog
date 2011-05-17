@@ -1,3 +1,23 @@
+2011-05-10  Jim Meyering  <meyering@redhat.com>
+
+	Fix doubled-word typos.
+	* mh-alias.el (mh-alias-minibuffer-confirm-address): if if -> if it
+	* mh-scan.el (mh-scan-destination-width): in in -> in
+
+2011-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mh-utils.el (mh-folder-completion-function): Make it work like
+	file-name completion, so partial-completion can do its job.
+
+	* mh-letter.el (mh-letter-completion-at-point): New function, extracted
+	from mh-letter-complete
+	(mh-letter-mode, mh-letter-complete, mh-letter-complete-or-space):
+	Use it.
+	(mh-complete-word): Only use the common-substring arg when it works.
+	(mh-folder-expand-at-point):
+	* mh-alias.el (mh-alias-letter-expand-alias): Return data suitable for
+	completion-at-point-functions.
+
 2011-04-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* mh-funcs.el (mh-undo-folder): Accept and ignore arguments,

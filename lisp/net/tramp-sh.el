@@ -1145,13 +1145,15 @@ target of the symlink differ."
 	(save-excursion
 	  (tramp-convert-file-attributes
 	   v
-	   (cond
-	    ((tramp-get-remote-stat v)
-	     (tramp-do-file-attributes-with-stat v localname id-format))
-	    ((tramp-get-remote-perl v)
-	     (tramp-do-file-attributes-with-perl v localname id-format))
-	    (t
-	     (tramp-do-file-attributes-with-ls v localname id-format)))))))))
+	   (or
+	    (cond
+	     ((tramp-get-remote-stat v)
+	      (tramp-do-file-attributes-with-stat v localname id-format))
+	     ((tramp-get-remote-perl v)
+	      (tramp-do-file-attributes-with-perl v localname id-format))
+	     (t nil))
+	    ;; The scripts could fail, for example with huge file size.
+	    (tramp-do-file-attributes-with-ls v localname id-format))))))))
 
 (defun tramp-do-file-attributes-with-ls (vec localname &optional id-format)
   "Implement `file-attributes' for Tramp files using the ls(1) command."
@@ -2258,8 +2260,8 @@ The method used must be an out-of-band method."
 	(setq host (tramp-file-name-host v)
 	      port "")
 	(when (string-match tramp-host-with-port-regexp host)
-	  (setq host (string-to-number (match-string 1 host))
-		port (string-to-number (match-string 2 host))))
+	  (setq port (string-to-number (match-string 2 host))
+		host (string-to-number (match-string 1 host))))
 
 	;; Compose copy command.
 	(setq spec (format-spec-make
@@ -2296,10 +2298,9 @@ The method used must be an out-of-band method."
 		(tramp-get-method-parameter method 'tramp-copy-env))))
 
 	;; Check for program.
-	(when (and (fboundp 'executable-find)
-		   (not (let ((default-directory
-				(tramp-compat-temporary-file-directory)))
-			  (executable-find copy-program))))
+	(unless (let ((default-directory
+			(tramp-compat-temporary-file-directory)))
+		  (executable-find copy-program))
 	  (tramp-error
 	   v 'file-error "Cannot find copy program: %s" copy-program))
 
@@ -2335,7 +2336,8 @@ The method used must be an out-of-band method."
 		   orig-vec 6 "%s"
 		   (mapconcat 'identity (process-command p) " "))
 		  (tramp-compat-set-process-query-on-exit-flag p nil)
-		  (tramp-process-actions p v tramp-actions-copy-out-of-band)))
+		  (tramp-process-actions
+		   p v nil tramp-actions-copy-out-of-band)))
 
 	    ;; Reset the transfer process properties.
 	    (tramp-message orig-vec 6 "%s" (buffer-string))
@@ -4211,7 +4213,8 @@ connection if a previous connection has died for some reason."
   (catch 'uname-changed
     (let ((p (tramp-get-connection-process vec))
 	  (process-name (tramp-get-connection-property vec "process-name" nil))
-	  (process-environment (copy-sequence process-environment)))
+	  (process-environment (copy-sequence process-environment))
+	  (pos (with-current-buffer (tramp-get-connection-buffer vec) (point))))
 
       ;; If too much time has passed since last command was sent, look
       ;; whether process is still alive.  If it isn't, kill it.  When
@@ -4365,7 +4368,7 @@ connection if a previous connection has died for some reason."
 		;; Send the command.
 		(tramp-message vec 3 "Sending command `%s'" command)
 		(tramp-send-command vec command t t)
-		(tramp-process-actions p vec tramp-actions-before-shell 60)
+		(tramp-process-actions p vec pos tramp-actions-before-shell 60)
 		(tramp-message
 		 vec 3 "Found remote shell prompt on `%s'" l-host))
 	      ;; Next hop.

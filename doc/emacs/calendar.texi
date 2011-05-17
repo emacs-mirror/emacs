@@ -1473,12 +1473,12 @@ give the names of functions used to create and destroy the window,
 respectively.
 
 @findex appt-activate
-  To enable appointment notification, use the command @kbd{M-x
-appt-activate}.  With a positive argument, it enables notification;
-with a negative argument, it disables notification; with no argument,
-it toggles.  Enabling notification also sets up an appointment list
-for today from the diary file, giving all diary entries found with
-recognizable times of day, and reminds you just before each of them.
+  To enable appointment notification, type @kbd{M-x appt-activate}.
+With a positive argument, it enables notification; with a negative
+argument, it disables notification; with no argument, it toggles.
+Enabling notification also sets up an appointment list for today from
+the diary file, giving all diary entries found with recognizable times
+of day, and reminds you just before each of them.
 
   For example, suppose the diary file contains these lines:
 
@@ -1489,11 +1489,15 @@ Monday
 @end example
 
 @vindex appt-message-warning-time
+@vindex appt-warning-time-regexp
 @noindent
 Then on Mondays, you will be reminded at around 9:20am about your
 coffee break and at around 11:50am about lunch.  The variable
 @code{appt-message-warning-time} specifies how many minutes (default 12)
-in advance to warn you.
+in advance to warn you.  This is a default warning time.  Each
+appointment can specify a different warning time by adding a piece
+matching @code{appt-warning-time-regexp} (see that variable's
+documentation for details).
 
   You can write times in am/pm style (with @samp{12:00am} standing
 for midnight and @samp{12:00pm} standing for noon), or 24-hour

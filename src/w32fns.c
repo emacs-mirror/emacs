@@ -4868,6 +4868,8 @@ If TERMINAL is omitted or nil, that stands for the selected frame's display.  */
                            Window properties
  ***********************************************************************/
 
+#if 0 /* TODO : port window properties to W32 */
+
 DEFUN ("x-change-window-property", Fx_change_window_property,
        Sx_change_window_property, 2, 6, 0,
        doc: /* Change window property PROP to VALUE on the X window of FRAME.
@@ -4887,7 +4889,6 @@ If OUTER_P is non-nil, the property is changed for the outer X window of
 FRAME.  Default is to change on the edit X window.  */)
   (Lisp_Object prop, Lisp_Object value, Lisp_Object frame, Lisp_Object type, Lisp_Object format, Lisp_Object outer_p)
 {
-#if 0 /* TODO : port window properties to W32 */
   struct frame *f = check_x_frame (frame);
   Atom prop_atom;
 
@@ -4904,8 +4905,6 @@ FRAME.  Default is to change on the edit X window.  */)
   XFlush (FRAME_W32_DISPLAY (f));
   UNBLOCK_INPUT;
 
-#endif /* TODO */
-
   return value;
 }
 
@@ -4916,8 +4915,6 @@ DEFUN ("x-delete-window-property", Fx_delete_window_property,
 FRAME nil or omitted means use the selected frame.  Value is PROP.  */)
   (Lisp_Object prop, Lisp_Object frame)
 {
-#if 0 /* TODO : port window properties to W32 */
-
   struct frame *f = check_x_frame (frame);
   Atom prop_atom;
 
@@ -4929,7 +4926,6 @@ FRAME nil or omitted means use the selected frame.  Value is PROP.  */)
   /* Make sure the property is removed when we return.  */
   XFlush (FRAME_W32_DISPLAY (f));
   UNBLOCK_INPUT;
-#endif  /* TODO */
 
   return prop;
 }
@@ -4954,8 +4950,6 @@ Value is nil if FRAME hasn't a property with name PROP or if PROP has
 no value of TYPE (always string in the MS Windows case).  */)
   (Lisp_Object prop, Lisp_Object frame)
 {
-#if 0 /* TODO : port window properties to W32 */
-
   struct frame *f = check_x_frame (frame);
   Atom prop_atom;
   int rc;
@@ -4995,10 +4989,10 @@ no value of TYPE (always string in the MS Windows case).  */)
 
   return prop_value;
 
-#endif /* TODO */
   return Qnil;
 }
 
+#endif /* TODO */
 
 
 /***********************************************************************

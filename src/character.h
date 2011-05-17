@@ -615,7 +615,7 @@ extern EMACS_INT c_string_width (const unsigned char *, EMACS_INT, int,
 extern EMACS_INT lisp_string_width (Lisp_Object, int,
 				    EMACS_INT *, EMACS_INT *);
 
-extern Lisp_Object Qcharacterp, Qauto_fill_chars;
+extern Lisp_Object Qcharacterp;
 extern Lisp_Object Vchar_unify_table;
 extern Lisp_Object string_escape_byte8 (Lisp_Object);
 

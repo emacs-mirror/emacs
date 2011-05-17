@@ -34,28 +34,30 @@
 (defun custom-declare-face (face spec doc &rest args)
   "Like `defface', but FACE is evaluated as a normal argument."
   (unless (get face 'face-defface-spec)
-    (when (fboundp 'facep)
-      (unless (facep face)
-	;; If the user has already created the face, respect that.
-	(let ((value (or (get face 'saved-face) spec))
-	      (have-window-system (memq initial-window-system '(x w32))))
-	  ;; Create global face.
-	  (make-empty-face face)
-	  ;; Create frame-local faces
-	  (dolist (frame (frame-list))
-	    (face-spec-set-2 face frame value)
-	    (when (memq (window-system frame) '(x w32 ns))
-	      (setq have-window-system t)))
-	  ;; When making a face after frames already exist
-	  (if have-window-system
-	      (make-face-x-resource-internal face)))))
+    (unless (facep face)
+      ;; If the user has already created the face, respect that.
+      (let ((value (or (get face 'saved-face) spec))
+	    (have-window-system (memq initial-window-system '(x w32))))
+	;; Create global face.
+	(make-empty-face face)
+	;; Create frame-local faces
+	(dolist (frame (frame-list))
+	  (face-spec-set-2 face frame value)
+	  (when (memq (window-system frame) '(x w32 ns))
+	    (setq have-window-system t)))
+	;; When making a face after frames already exist
+	(if have-window-system
+	    (make-face-x-resource-internal face))))
     ;; Don't record SPEC until we see it causes no errors.
     (put face 'face-defface-spec (purecopy spec))
     (push (cons 'defface face) current-load-list)
     (when (and doc (null (face-documentation face)))
       (set-face-documentation face (purecopy doc)))
     (custom-handle-all-keywords face args 'custom-face)
-    (run-hooks 'custom-define-hook))
+    (run-hooks 'custom-define-hook)
+    ;; If the face has an existing theme setting, recalculate it.
+    (if (get face 'theme-face)
+	(custom-theme-recalc-face face)))
   face)
 
 ;;; Face attributes.

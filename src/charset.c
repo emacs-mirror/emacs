@@ -68,17 +68,17 @@ Lisp_Object Qcharsetp;
 
 /* Special charset symbols.  */
 Lisp_Object Qascii;
-Lisp_Object Qeight_bit;
-Lisp_Object Qiso_8859_1;
-Lisp_Object Qunicode;
-Lisp_Object Qemacs;
+static Lisp_Object Qeight_bit;
+static Lisp_Object Qiso_8859_1;
+static Lisp_Object Qunicode;
+static Lisp_Object Qemacs;
 
 /* The corresponding charsets.  */
 int charset_ascii;
 int charset_eight_bit;
-int charset_iso_8859_1;
+static int charset_iso_8859_1;
 int charset_unicode;
-int charset_emacs;
+static int charset_emacs;
 
 /* The other special charsets.  */
 int charset_jisx0201_roman;
@@ -87,7 +87,7 @@ int charset_jisx0208;
 int charset_ksc5601;
 
 /* Value of charset attribute `charset-iso-plane'.  */
-Lisp_Object Qgl, Qgr;
+static Lisp_Object Qgl, Qgr;
 
 /* Charset of unibyte characters.  */
 int charset_unibyte;
@@ -652,12 +652,10 @@ DEFUN ("charsetp", Fcharsetp, Scharsetp, 1, 1, 0,
 }
 
 
-void map_charset_for_dump (void (*c_function) (Lisp_Object, Lisp_Object),
-                           Lisp_Object function, Lisp_Object arg,
-                           unsigned from, unsigned to);
-
-void
-map_charset_for_dump (void (*c_function) (Lisp_Object, Lisp_Object), Lisp_Object function, Lisp_Object arg, unsigned int from, unsigned int to)
+static void
+map_charset_for_dump (void (*c_function) (Lisp_Object, Lisp_Object),
+		      Lisp_Object function, Lisp_Object arg,
+		      unsigned int from, unsigned int to)
 {
   int from_idx = CODE_POINT_TO_INDEX (temp_charset_work->current, from);
   int to_idx = CODE_POINT_TO_INDEX (temp_charset_work->current, to);
@@ -871,7 +869,7 @@ usage: (define-charset-internal ...)  */)
   ASET (attrs, charset_name, args[charset_arg_name]);
 
   val = args[charset_arg_code_space];
-  for (i = 0, dimension = 0, nchars = 1; i < 4; i++)
+  for (i = 0, dimension = 0, nchars = 1; ; i++)
     {
       int min_byte, max_byte;
 
@@ -882,10 +880,12 @@ usage: (define-charset-internal ...)  */)
       charset.code_space[i * 4] = min_byte;
       charset.code_space[i * 4 + 1] = max_byte;
       charset.code_space[i * 4 + 2] = max_byte - min_byte + 1;
-      nchars *= charset.code_space[i * 4 + 2];
-      charset.code_space[i * 4 + 3] = nchars;
       if (max_byte > 0)
 	dimension = i + 1;
+      if (i == 3)
+	break;
+      nchars *= charset.code_space[i * 4 + 2];
+      charset.code_space[i * 4 + 3] = nchars;
     }
 
   val = args[charset_arg_dimension];
@@ -1001,7 +1001,7 @@ usage: (define-charset-internal ...)  */)
     {
       CHECK_NUMBER (val);
       if (XINT (val) < '0' || XINT (val) > 127)
-	error ("Invalid iso-final-char: %"pEd, XINT (val));
+	error ("Invalid iso-final-char: %"pI"d", XINT (val));
       charset.iso_final = XINT (val);
     }
 
@@ -1023,7 +1023,7 @@ usage: (define-charset-internal ...)  */)
     {
       CHECK_NATNUM (val);
       if ((XINT (val) > 0 && XINT (val) <= 128) || XINT (val) >= 256)
-	error ("Invalid emacs-mule-id: %"pEd, XINT (val));
+	error ("Invalid emacs-mule-id: %"pI"d", XINT (val));
       charset.emacs_mule_id = XINT (val);
     }
 
@@ -1438,20 +1438,16 @@ check_iso_charset_parameter (Lisp_Object dimension, Lisp_Object chars, Lisp_Obje
 {
   CHECK_NATNUM (dimension);
   CHECK_NATNUM (chars);
-  CHECK_NATNUM (final_char);
+  CHECK_CHARACTER (final_char);
 
   if (XINT (dimension) > 3)
-    error ("Invalid DIMENSION %"pEd", it should be 1, 2, or 3",
+    error ("Invalid DIMENSION %"pI"d, it should be 1, 2, or 3",
 	   XINT (dimension));
   if (XINT (chars) != 94 && XINT (chars) != 96)
-    error ("Invalid CHARS %"pEd", it should be 94 or 96", XINT (chars));
+    error ("Invalid CHARS %"pI"d, it should be 94 or 96", XINT (chars));
   if (XINT (final_char) < '0' || XINT (final_char) > '~')
-    {
-      unsigned char str[MAX_MULTIBYTE_LENGTH + 1];
-      int len = CHAR_STRING (XINT (chars), str);
-      str[len] = '\0';
-      error ("Invalid FINAL-CHAR %s, it should be `0'..`~'", str);
-    }
+    error ("Invalid FINAL-CHAR %c, it should be `0'..`~'",
+	   (int)XINT (final_char));
 }
 
 

@@ -67,6 +67,7 @@ typedef struct x_bitmap_record Bitmap_Record;
 
 
 #ifdef HAVE_NTGUI
+#include "w32.h"
 #include "w32term.h"
 
 /* W32_TODO : Color tables on W32.  */
@@ -124,7 +125,7 @@ typedef struct ns_bitmap_record Bitmap_Record;
 
 /* The symbol `postscript' identifying images of this type.  */
 
-Lisp_Object Qpostscript;
+static Lisp_Object Qpostscript;
 
 static void x_disable_image (struct frame *, struct image *);
 static void x_edge_detection (struct frame *, struct image *, Lisp_Object,
@@ -137,6 +138,7 @@ static void free_color_table (void);
 static unsigned long *colors_in_color_table (int *n);
 static unsigned long lookup_pixel_color (struct frame *f, unsigned long p);
 #endif
+static Lisp_Object Finit_image_library (Lisp_Object, Lisp_Object);
 
 /* Code to deal with bitmaps.  Bitmaps are referenced by their bitmap
    id, which is just an int that this section returns.  Bitmaps are
@@ -555,23 +557,23 @@ x_create_bitmap_mask (struct frame *f, int id)
 
 static struct image_type *image_types;
 
-/* Cache for delayed-loading image types.  */
-
-static Lisp_Object Vimage_type_cache;
-
 /* The symbol `xbm' which is used as the type symbol for XBM images.  */
 
-Lisp_Object Qxbm;
+static Lisp_Object Qxbm;
 
 /* Keywords.  */
 
-Lisp_Object QCascent, QCmargin, QCrelief, Qcount, Qextension_data;
-Lisp_Object QCconversion, QCcolor_symbols, QCheuristic_mask;
-Lisp_Object QCindex, QCmatrix, QCcolor_adjustment, QCmask, QCgeometry, QCcrop, QCrotation;
+Lisp_Object QCascent, QCmargin, QCrelief;
+static Lisp_Object Qcount, Qextension_data;
+Lisp_Object QCconversion;
+static Lisp_Object QCheuristic_mask;
+static Lisp_Object QCcolor_symbols;
+static Lisp_Object QCindex, QCmatrix, QCcolor_adjustment, QCmask, QCgeometry;
+static Lisp_Object QCcrop, QCrotation;
 
 /* Other symbols.  */
 
-Lisp_Object Qlaplace, Qemboss, Qedge_detection, Qheuristic;
+static Lisp_Object Qlaplace, Qemboss, Qedge_detection, Qheuristic;
 
 /* Function prototypes.  */
 
@@ -582,9 +584,12 @@ static void x_laplace (struct frame *, struct image *);
 static void x_emboss (struct frame *, struct image *);
 static int x_build_heuristic_mask (struct frame *, struct image *,
                                    Lisp_Object);
-
+#ifdef HAVE_NTGUI
 #define CACHE_IMAGE_TYPE(type, status) \
-  do { Vimage_type_cache = Fcons (Fcons (type, status), Vimage_type_cache); } while (0)
+  do { Vlibrary_cache = Fcons (Fcons (type, status), Vlibrary_cache); } while (0)
+#else
+#define CACHE_IMAGE_TYPE(type, status)
+#endif
 
 #define ADD_IMAGE_TYPE(type) \
   do { Vimage_types = Fcons (type, Vimage_types); } while (0)
@@ -1887,41 +1892,13 @@ mark_image_cache (struct image_cache *c)
 #ifdef HAVE_NTGUI
 
 /* Macro for defining functions that will be loaded from image DLLs.  */
-#define DEF_IMGLIB_FN(rettype,func,args) rettype (FAR CDECL *fn_##func)args
+#define DEF_IMGLIB_FN(rettype,func,args) static rettype (FAR CDECL *fn_##func)args
 
 /* Macro for loading those image functions from the library.  */
 #define LOAD_IMGLIB_FN(lib,func) {					\
     fn_##func = (void *) GetProcAddress (lib, #func);			\
     if (!fn_##func) return 0;						\
   }
-
-/* Load a DLL implementing an image type.
-   The argument LIBRARIES is usually the variable
-   `dynamic-library-alist', which associates a symbol, identifying
-   an external DLL library, to a list of possible filenames.
-   The function returns NULL if no library could be loaded for
-   the given symbol, or if the library was previously loaded;
-   else the handle of the DLL.  */
-static HMODULE
-w32_delayed_load (Lisp_Object libraries, Lisp_Object type)
-{
-  HMODULE library = NULL;
-
-  if (CONSP (libraries) && NILP (Fassq (type, Vimage_type_cache)))
-    {
-      Lisp_Object dlls = Fassq (type, libraries);
-
-      if (CONSP (dlls))
-        for (dlls = XCDR (dlls); CONSP (dlls); dlls = XCDR (dlls))
-          {
-            CHECK_STRING_CAR (dlls);
-            if (library = LoadLibrary (SDATA (XCAR (dlls))))
-              break;
-          }
-    }
-
-  return library;
-}
 
 #endif /* HAVE_NTGUI */
 
@@ -2354,7 +2331,7 @@ xbm_image_p (Lisp_Object object)
 	  int i;
 
 	  /* Number of elements of the vector must be >= height.  */
-	  if (XVECTOR (data)->size < height)
+	  if (ASIZE (data) < height)
 	    return 0;
 
 	  /* Each string or bool-vector in data must be large enough
@@ -3000,7 +2977,7 @@ static int xpm_valid_color_symbols_p (Lisp_Object);
 #if defined (HAVE_XPM) || defined (HAVE_NS)
 /* The symbol `xpm' identifying XPM-format images.  */
 
-Lisp_Object Qxpm;
+static Lisp_Object Qxpm;
 
 /* Indices of image specification fields in xpm_format, below.  */
 
@@ -3091,7 +3068,7 @@ struct xpm_cached_color
    size.  */
 
 #define XPM_COLOR_CACHE_BUCKETS	1001
-struct xpm_cached_color **xpm_color_cache;
+static struct xpm_cached_color **xpm_color_cache;
 
 /* Initialize the color cache.  */
 
@@ -3307,7 +3284,7 @@ xpm_image_p (Lisp_Object object)
 
 #endif /* HAVE_XPM || HAVE_NS */
 
-#if defined (HAVE_XPM) && defined (HAVE_X_WINDOWS)
+#if defined HAVE_XPM && defined HAVE_X_WINDOWS && !defined USE_GTK
 int
 x_create_bitmap_from_xpm_data (struct frame *f, const char **bits)
 {
@@ -4131,11 +4108,11 @@ struct ct_color
 
 /* The color hash table.  */
 
-struct ct_color **ct_table;
+static struct ct_color **ct_table;
 
 /* Number of entries in the color table.  */
 
-int ct_colors_allocated;
+static int ct_colors_allocated;
 
 /* Initialize the color table.  */
 
@@ -4924,7 +4901,7 @@ static int pbm_scan_number (unsigned char **, unsigned char *);
 
 /* The symbol `pbm' identifying images of this type.  */
 
-Lisp_Object Qpbm;
+static Lisp_Object Qpbm;
 
 /* Indices of image specification fields in gs_format, below.  */
 
@@ -5341,7 +5318,7 @@ static int png_load (struct frame *f, struct image *img);
 
 /* The symbol `png' identifying images of this type.  */
 
-Lisp_Object Qpng;
+static Lisp_Object Qpng;
 
 /* Indices of image specification fields in png_format, below.  */
 
@@ -5447,7 +5424,6 @@ init_png_functions (Lisp_Object libraries)
 {
   HMODULE library;
 
-  /* Try loading libpng under probable names.  */
   if (!(library = w32_delayed_load (libraries, Qpng)))
     return 0;
 
@@ -5955,7 +5931,7 @@ static int jpeg_load (struct frame *f, struct image *img);
 
 /* The symbol `jpeg' identifying images of this type.  */
 
-Lisp_Object Qjpeg;
+static Lisp_Object Qjpeg;
 
 /* Indices of image specification fields in gs_format, below.  */
 
@@ -6504,7 +6480,7 @@ static int tiff_load (struct frame *f, struct image *img);
 
 /* The symbol `tiff' identifying images of this type.  */
 
-Lisp_Object Qtiff;
+static Lisp_Object Qtiff;
 
 /* Indices of image specification fields in tiff_format, below.  */
 
@@ -6932,7 +6908,7 @@ static void gif_clear_image (struct frame *f, struct image *img);
 
 /* The symbol `gif' identifying images of this type.  */
 
-Lisp_Object Qgif;
+static Lisp_Object Qgif;
 
 /* Indices of image specification fields in gif_format, below.  */
 
@@ -8301,7 +8277,7 @@ static void gs_clear_image (struct frame *f, struct image *img);
 
 /* Keyword symbols.  */
 
-Lisp_Object QCloader, QCbounding_box, QCpt_width, QCpt_height;
+static Lisp_Object QCloader, QCbounding_box, QCpt_width, QCpt_height;
 
 /* Indices of image specification fields in gs_format, below.  */
 
@@ -8393,7 +8369,7 @@ gs_image_p (Lisp_Object object)
     }
   else if (VECTORP (tem))
     {
-      if (XVECTOR (tem)->size != 4)
+      if (ASIZE (tem) != 4)
 	return 0;
       for (i = 0; i < 4; ++i)
 	if (!INTEGERP (XVECTOR (tem)->contents[i]))
@@ -8626,12 +8602,16 @@ Libraries to load are specified in alist LIBRARIES (usually, the value
 of `dynamic-library-alist', which see).  */)
   (Lisp_Object type, Lisp_Object libraries)
 {
-  Lisp_Object tested;
-
+#ifdef HAVE_NTGUI
   /* Don't try to reload the library.  */
-  tested = Fassq (type, Vimage_type_cache);
+  Lisp_Object tested = Fassq (type, Vlibrary_cache);
   if (CONSP (tested))
     return XCDR (tested);
+#endif
+
+  /* Types pbm and xbm are built-in and always available.  */
+  if (EQ (type, Qpbm) || EQ (type, Qxbm))
+    return Qt;
 
 #if defined (HAVE_XPM) || defined (HAVE_NS)
   if (EQ (type, Qxpm))
@@ -8665,10 +8645,8 @@ of `dynamic-library-alist', which see).  */)
 
 #if defined (HAVE_IMAGEMAGICK)
   if (EQ (type, Qimagemagick))
-    {
-      return CHECK_LIB_AVAILABLE (&imagemagick_type, init_imagemagick_functions,
-				  libraries);
-    }
+    return CHECK_LIB_AVAILABLE (&imagemagick_type, init_imagemagick_functions,
+                                libraries);
 #endif
 
 #ifdef HAVE_GHOSTSCRIPT
@@ -8708,9 +8686,6 @@ point number, it specifies the maximum image height and width
 as a ratio to the frame height and width.  If the value is
 non-numeric, there is no explicit limit on the size of images.  */);
   Vmax_image_size = make_float (MAX_IMAGE_SIZE);
-
-  Vimage_type_cache = Qnil;
-  staticpro (&Vimage_type_cache);
 
   Qpbm = intern_c_string ("pbm");
   staticpro (&Qpbm);

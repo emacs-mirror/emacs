@@ -499,14 +499,13 @@ struct buffer
 
      Check out mark_buffer (alloc.c) to see why.  */
 
-  EMACS_UINT size;
-
-  /* Next buffer, in chain of all buffers including killed buffers.
+  /* HEADER.NEXT is the next buffer, in chain of all buffers,
+     including killed buffers.
      This chain is used only for garbage collection, in order to
      collect killed buffers properly.
      Note that vectors and most pseudovectors are all on one chain,
      but buffers are on a separate chain of their own.  */
-  struct buffer *next;
+  struct vectorlike_header header;
 
   /* This structure holds the coordinates of the buffer contents
      in ordinary buffers.  In indirect buffers, this is not used.  */
@@ -917,7 +916,6 @@ extern void mmap_set_vars (int);
 EXFUN (Fbuffer_live_p, 1);
 EXFUN (Fbuffer_name, 1);
 EXFUN (Fnext_overlay_change, 1);
-EXFUN (Fdelete_overlay, 1);
 EXFUN (Fbuffer_local_value, 2);
 
 extern Lisp_Object Qbefore_change_functions;

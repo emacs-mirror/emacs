@@ -470,7 +470,7 @@ and all `time-stamp-format' compatibility."
 	(result "")
 	field-width
 	field-result
-	alt-form change-case require-padding
+	alt-form change-case
 	(paren-level 0))
     (while (< ind fmt-len)
       (setq cur-char (aref format ind))
@@ -480,7 +480,7 @@ and all `time-stamp-format' compatibility."
       (cond
        ((eq cur-char ?%)
 	;; eat any additional args to allow for future expansion
-	(setq alt-form nil change-case nil require-padding nil field-width "")
+	(setq alt-form nil change-case nil field-width "")
 	(while (progn
 		 (setq ind (1+ ind))
 		 (setq cur-char (if (< ind fmt-len)

@@ -1,3 +1,22 @@
+2011-04-24  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* makefile.w32-in (obj): Add gnutls.o.
+
+2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Static checks with GCC 4.6.0 and non-default toolkits.
+
+	* movemail.c (mail_spool_name): Protoize.
+	(main): Remove unused var.  Mark var as initialized.
+	Move locals to avoid shadowing, and use time_t for times.
+
+	* fakemail.c (xmalloc, xreallc): Use standard C prototypes
+	with void *.  This avoids warnings about pointer casts.
+
+	* emacsclient.c (main): Don't use uninitialized var.
+	(IS_ANY_SEP): Remove; unused.
+	(get_current_dir_name): Add an extern decl.
+
 2011-04-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix more problems found by GCC 4.6.0's static checks.

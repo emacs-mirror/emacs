@@ -48,30 +48,33 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <math.h>
 
-#if !defined (atof)
-extern double atof (const char *);
-#endif /* !atof */
-
-Lisp_Object Qnil, Qt, Qquote, Qlambda, Qsubr, Qunbound;
+Lisp_Object Qnil, Qt, Qquote, Qlambda, Qunbound;
+static Lisp_Object Qsubr;
 Lisp_Object Qerror_conditions, Qerror_message, Qtop_level;
-Lisp_Object Qerror, Qquit, Qwrong_type_argument, Qargs_out_of_range;
-Lisp_Object Qvoid_variable, Qvoid_function, Qcyclic_function_indirection;
-Lisp_Object Qcyclic_variable_indirection, Qcircular_list;
-Lisp_Object Qsetting_constant, Qinvalid_read_syntax;
+Lisp_Object Qerror, Qquit, Qargs_out_of_range;
+static Lisp_Object Qwrong_type_argument;
+Lisp_Object Qvoid_variable, Qvoid_function;
+static Lisp_Object Qcyclic_function_indirection;
+static Lisp_Object Qcyclic_variable_indirection;
+Lisp_Object Qcircular_list;
+static Lisp_Object Qsetting_constant;
+Lisp_Object Qinvalid_read_syntax;
 Lisp_Object Qinvalid_function, Qwrong_number_of_arguments, Qno_catch;
 Lisp_Object Qend_of_file, Qarith_error, Qmark_inactive;
 Lisp_Object Qbeginning_of_buffer, Qend_of_buffer, Qbuffer_read_only;
 Lisp_Object Qtext_read_only;
 
-Lisp_Object Qintegerp, Qnatnump, Qwholenump, Qsymbolp, Qlistp, Qconsp;
+Lisp_Object Qintegerp, Qwholenump, Qsymbolp, Qlistp, Qconsp;
+static Lisp_Object Qnatnump;
 Lisp_Object Qstringp, Qarrayp, Qsequencep, Qbufferp;
 Lisp_Object Qchar_or_string_p, Qmarkerp, Qinteger_or_marker_p, Qvectorp;
-Lisp_Object Qbuffer_or_string_p, Qkeywordp;
-Lisp_Object Qboundp, Qfboundp;
+Lisp_Object Qbuffer_or_string_p;
+static Lisp_Object Qkeywordp, Qboundp;
+Lisp_Object Qfboundp;
 Lisp_Object Qchar_table_p, Qvector_or_char_table_p;
 
 Lisp_Object Qcdr;
-Lisp_Object Qad_advice_info, Qad_activate_internal;
+static Lisp_Object Qad_advice_info, Qad_activate_internal;
 
 Lisp_Object Qrange_error, Qdomain_error, Qsingularity_error;
 Lisp_Object Qoverflow_error, Qunderflow_error;
@@ -83,7 +86,7 @@ Lisp_Object Qinteger;
 static Lisp_Object Qsymbol, Qstring, Qcons, Qmarker, Qoverlay;
 Lisp_Object Qwindow;
 static Lisp_Object Qfloat, Qwindow_configuration;
-Lisp_Object Qprocess;
+static Lisp_Object Qprocess;
 static Lisp_Object Qcompiled_function, Qbuffer, Qframe, Qvector;
 static Lisp_Object Qchar_table, Qbool_vector, Qhash_table;
 static Lisp_Object Qsubrp, Qmany, Qunevalled;
@@ -92,13 +95,6 @@ Lisp_Object Qfont_spec, Qfont_entity, Qfont_object;
 Lisp_Object Qinteractive_form;
 
 static void swap_in_symval_forwarding (struct Lisp_Symbol *, struct Lisp_Buffer_Local_Value *);
-
-
-void
-circular_list_error (Lisp_Object list)
-{
-  xsignal (Qcircular_list, list);
-}
 
 
 Lisp_Object
@@ -1393,7 +1389,7 @@ for this variable.  */)
 	      {
 		struct buffer *b;
 
-		for (b = all_buffers; b; b = b->next)
+		for (b = all_buffers; b; b = b->header.next.buffer)
 		  if (!PER_BUFFER_VALUE_P (b, idx))
 		    PER_BUFFER_VALUE (b, offset) = value;
 	      }
@@ -1479,8 +1475,8 @@ make_blv (struct Lisp_Symbol *sym, int forwarded, union Lisp_Val_Fwd valcontents
   return blv;
 }
 
-DEFUN ("make-variable-buffer-local", Fmake_variable_buffer_local, Smake_variable_buffer_local,
-       1, 1, "vMake Variable Buffer Local: ",
+DEFUN ("make-variable-buffer-local", Fmake_variable_buffer_local,
+       Smake_variable_buffer_local, 1, 1, "vMake Variable Buffer Local: ",
        doc: /* Make VARIABLE become buffer-local whenever it is set.
 At any time, the value for the current buffer is in effect,
 unless the variable has never been set in this buffer,
@@ -1955,7 +1951,8 @@ If the current binding is global (the default), the value is nil.  */)
 #if 0
 extern struct terminal *get_terminal (Lisp_Object display, int);
 
-DEFUN ("terminal-local-value", Fterminal_local_value, Sterminal_local_value, 2, 2, 0,
+DEFUN ("terminal-local-value", Fterminal_local_value,
+       Sterminal_local_value, 2, 2, 0,
        doc: /* Return the terminal-local value of SYMBOL on TERMINAL.
 If SYMBOL is not a terminal-local variable, then return its normal
 value, like `symbol-value'.
@@ -1972,7 +1969,8 @@ selected frame's terminal device).  */)
   return result;
 }
 
-DEFUN ("set-terminal-local-value", Fset_terminal_local_value, Sset_terminal_local_value, 3, 3, 0,
+DEFUN ("set-terminal-local-value", Fset_terminal_local_value,
+       Sset_terminal_local_value, 3, 3, 0,
        doc: /* Set the terminal-local binding of SYMBOL on TERMINAL to VALUE.
 If VARIABLE is not a terminal-local variable, then set its normal
 binding, like `set'.
@@ -2095,9 +2093,9 @@ or a byte-code object.  IDX starts at 0.  */)
     {
       int size = 0;
       if (VECTORP (array))
-	size = XVECTOR (array)->size;
+	size = ASIZE (array);
       else if (COMPILEDP (array))
-	size = XVECTOR (array)->size & PSEUDOVECTOR_SIZE_MASK;
+	size = ASIZE (array) & PSEUDOVECTOR_SIZE_MASK;
       else
 	wrong_type_argument (Qarrayp, array);
 
@@ -2122,7 +2120,7 @@ bool-vector.  IDX starts at 0.  */)
 
   if (VECTORP (array))
     {
-      if (idxval < 0 || idxval >= XVECTOR (array)->size)
+      if (idxval < 0 || idxval >= ASIZE (array))
 	args_out_of_range (array, idx);
       XVECTOR (array)->contents[idxval] = newelt;
     }
@@ -2372,33 +2370,8 @@ NUMBER may be an integer or a floating point number.  */)
       return build_string (pigbuf);
     }
 
-  if (sizeof (int) == sizeof (EMACS_INT))
-    sprintf (buffer, "%d", (int) XINT (number));
-  else if (sizeof (long) == sizeof (EMACS_INT))
-    sprintf (buffer, "%ld", (long) XINT (number));
-  else
-    abort ();
+  sprintf (buffer, "%"pI"d", XINT (number));
   return build_string (buffer);
-}
-
-INLINE static int
-digit_to_number (int character, int base)
-{
-  int digit;
-
-  if (character >= '0' && character <= '9')
-    digit = character - '0';
-  else if (character >= 'a' && character <= 'z')
-    digit = character - 'a' + 10;
-  else if (character >= 'A' && character <= 'Z')
-    digit = character - 'A' + 10;
-  else
-    return -1;
-
-  if (digit >= base)
-    return -1;
-  else
-    return digit;
 }
 
 DEFUN ("string-to-number", Fstring_to_number, Sstring_to_number, 1, 2, 0,
@@ -2413,7 +2386,6 @@ If the base used is not 10, STRING is always parsed as integer.  */)
 {
   register char *p;
   register int b;
-  int sign = 1;
   Lisp_Object val;
 
   CHECK_STRING (string);
@@ -2428,40 +2400,13 @@ If the base used is not 10, STRING is always parsed as integer.  */)
 	xsignal1 (Qargs_out_of_range, base);
     }
 
-  /* Skip any whitespace at the front of the number.  Some versions of
-     atoi do this anyway, so we might as well make Emacs lisp consistent.  */
   p = SSDATA (string);
   while (*p == ' ' || *p == '\t')
     p++;
 
-  if (*p == '-')
-    {
-      sign = -1;
-      p++;
-    }
-  else if (*p == '+')
-    p++;
-
-  if (isfloat_string (p, 1) && b == 10)
-    val = make_float (sign * atof (p));
-  else
-    {
-      double v = 0;
-
-      while (1)
-	{
-	  int digit = digit_to_number (*p++, b);
-	  if (digit < 0)
-	    break;
-	  v = v * b + digit;
-	}
-
-      val = make_fixnum_or_float (sign * v);
-    }
-
-  return val;
+  val = string_to_number (p, b, 1);
+  return NILP (val) ? make_number (0) : val;
 }
-
 
 enum arithop
   {
@@ -3302,6 +3247,10 @@ syms_of_data (void)
   Vmost_negative_fixnum = make_number (MOST_NEGATIVE_FIXNUM);
   XSYMBOL (intern_c_string ("most-negative-fixnum"))->constant = 1;
 }
+
+#ifndef FORWARD_SIGNAL_TO_MAIN_THREAD
+static void arith_error (int) NO_RETURN;
+#endif
 
 static void
 arith_error (int signo)

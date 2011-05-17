@@ -87,6 +87,25 @@
 #define _GL_ATTRIBUTE_FORMAT_PRINTF_SYSTEM(formatstring_parameter, first_argument) \
   _GL_ATTRIBUTE_FORMAT ((__printf__, formatstring_parameter, first_argument))
 
+/* _GL_ATTRIBUTE_FORMAT_SCANF
+   indicates to GCC that the function takes a format string and arguments,
+   where the format string directives are the ones standardized by ISO C99
+   and POSIX.  */
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 4)
+# define _GL_ATTRIBUTE_FORMAT_SCANF(formatstring_parameter, first_argument) \
+   _GL_ATTRIBUTE_FORMAT ((__gnu_scanf__, formatstring_parameter, first_argument))
+#else
+# define _GL_ATTRIBUTE_FORMAT_SCANF(formatstring_parameter, first_argument) \
+   _GL_ATTRIBUTE_FORMAT ((__scanf__, formatstring_parameter, first_argument))
+#endif
+
+/* _GL_ATTRIBUTE_FORMAT_SCANF_SYSTEM is like _GL_ATTRIBUTE_FORMAT_SCANF,
+   except that it indicates to GCC that the supported format string directives
+   are the ones of the system scanf(), rather than the ones standardized by
+   ISO C99 and POSIX.  */
+#define _GL_ATTRIBUTE_FORMAT_SCANF_SYSTEM(formatstring_parameter, first_argument) \
+  _GL_ATTRIBUTE_FORMAT ((__scanf__, formatstring_parameter, first_argument))
+
 /* Solaris 10 declares renameat in <unistd.h>, not in <stdio.h>.  */
 /* But in any case avoid namespace pollution on glibc systems.  */
 #if (@GNULIB_RENAMEAT@ || defined GNULIB_POSIXCHECK) && defined __sun \
@@ -175,11 +194,34 @@ _GL_WARN_ON_USE (fflush, "fflush is not always POSIX compliant - "
                  "use gnulib module fflush for portable POSIX compliance");
 #endif
 
-/* It is very rare that the developer ever has full control of stdin,
-   so any use of gets warrants an unconditional warning.  Assume it is
-   always declared, since it is required by C89.  */
-#undef gets
-_GL_WARN_ON_USE (gets, "gets is a security hole - use fgets instead");
+#if @GNULIB_FGETC@
+# if @REPLACE_STDIO_READ_FUNCS@ && @GNULIB_STDIO_H_NONBLOCKING@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef fgetc
+#   define fgetc rpl_fgetc
+#  endif
+_GL_FUNCDECL_RPL (fgetc, int, (FILE *stream) _GL_ARG_NONNULL ((1)));
+_GL_CXXALIAS_RPL (fgetc, int, (FILE *stream));
+# else
+_GL_CXXALIAS_SYS (fgetc, int, (FILE *stream));
+# endif
+_GL_CXXALIASWARN (fgetc);
+#endif
+
+#if @GNULIB_FGETS@
+# if @REPLACE_STDIO_READ_FUNCS@ && @GNULIB_STDIO_H_NONBLOCKING@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef fgets
+#   define fgets rpl_fgets
+#  endif
+_GL_FUNCDECL_RPL (fgets, char *, (char *s, int n, FILE *stream)
+                                 _GL_ARG_NONNULL ((1, 3)));
+_GL_CXXALIAS_RPL (fgets, char *, (char *s, int n, FILE *stream));
+# else
+_GL_CXXALIAS_SYS (fgets, char *, (char *s, int n, FILE *stream));
+# endif
+_GL_CXXALIASWARN (fgets);
+#endif
 
 #if @GNULIB_FOPEN@
 # if @REPLACE_FOPEN@
@@ -203,7 +245,7 @@ _GL_WARN_ON_USE (fopen, "fopen on Win32 platforms is not POSIX compatible - "
 
 #if @GNULIB_FPRINTF_POSIX@ || @GNULIB_FPRINTF@
 # if (@GNULIB_FPRINTF_POSIX@ && @REPLACE_FPRINTF@) \
-     || (@GNULIB_FPRINTF@ && @REPLACE_STDIO_WRITE_FUNCS@ && @GNULIB_STDIO_H_SIGPIPE@)
+     || (@GNULIB_FPRINTF@ && @REPLACE_STDIO_WRITE_FUNCS@ && (@GNULIB_STDIO_H_NONBLOCKING@ || @GNULIB_STDIO_H_SIGPIPE@))
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   define fprintf rpl_fprintf
 #  endif
@@ -262,7 +304,7 @@ _GL_WARN_ON_USE (fpurge, "fpurge is not always present - "
 #endif
 
 #if @GNULIB_FPUTC@
-# if @REPLACE_STDIO_WRITE_FUNCS@ && @GNULIB_STDIO_H_SIGPIPE@
+# if @REPLACE_STDIO_WRITE_FUNCS@ && (@GNULIB_STDIO_H_NONBLOCKING@ || @GNULIB_STDIO_H_SIGPIPE@)
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   undef fputc
 #   define fputc rpl_fputc
@@ -276,7 +318,7 @@ _GL_CXXALIASWARN (fputc);
 #endif
 
 #if @GNULIB_FPUTS@
-# if @REPLACE_STDIO_WRITE_FUNCS@ && @GNULIB_STDIO_H_SIGPIPE@
+# if @REPLACE_STDIO_WRITE_FUNCS@ && (@GNULIB_STDIO_H_NONBLOCKING@ || @GNULIB_STDIO_H_SIGPIPE@)
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   undef fputs
 #   define fputs rpl_fputs
@@ -288,6 +330,21 @@ _GL_CXXALIAS_RPL (fputs, int, (const char *string, FILE *stream));
 _GL_CXXALIAS_SYS (fputs, int, (const char *string, FILE *stream));
 # endif
 _GL_CXXALIASWARN (fputs);
+#endif
+
+#if @GNULIB_FREAD@
+# if @REPLACE_STDIO_READ_FUNCS@ && @GNULIB_STDIO_H_NONBLOCKING@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef fread
+#   define fread rpl_fread
+#  endif
+_GL_FUNCDECL_RPL (fread, size_t, (void *ptr, size_t s, size_t n, FILE *stream)
+                                 _GL_ARG_NONNULL ((4)));
+_GL_CXXALIAS_RPL (fread, size_t, (void *ptr, size_t s, size_t n, FILE *stream));
+# else
+_GL_CXXALIAS_SYS (fread, size_t, (void *ptr, size_t s, size_t n, FILE *stream));
+# endif
+_GL_CXXALIASWARN (fread);
 #endif
 
 #if @GNULIB_FREOPEN@
@@ -312,6 +369,22 @@ _GL_CXXALIASWARN (freopen);
 _GL_WARN_ON_USE (freopen,
                  "freopen on Win32 platforms is not POSIX compatible - "
                  "use gnulib module freopen for portability");
+#endif
+
+#if @GNULIB_FSCANF@
+# if @REPLACE_STDIO_READ_FUNCS@ && @GNULIB_STDIO_H_NONBLOCKING@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef fscanf
+#   define fscanf rpl_fscanf
+#  endif
+_GL_FUNCDECL_RPL (fscanf, int, (FILE *stream, const char *format, ...)
+                               _GL_ATTRIBUTE_FORMAT_SCANF_SYSTEM (2, 3)
+                               _GL_ARG_NONNULL ((1, 2)));
+_GL_CXXALIAS_RPL (fscanf, int, (FILE *stream, const char *format, ...));
+# else
+_GL_CXXALIAS_SYS (fscanf, int, (FILE *stream, const char *format, ...));
+# endif
+_GL_CXXALIASWARN (fscanf);
 #endif
 
 
@@ -506,7 +579,7 @@ _GL_WARN_ON_USE (ftell, "ftell cannot handle files larger than 4 GB "
 
 
 #if @GNULIB_FWRITE@
-# if @REPLACE_STDIO_WRITE_FUNCS@ && @GNULIB_STDIO_H_SIGPIPE@
+# if @REPLACE_STDIO_WRITE_FUNCS@ && (@GNULIB_STDIO_H_NONBLOCKING@ || @GNULIB_STDIO_H_SIGPIPE@)
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   undef fwrite
 #   define fwrite rpl_fwrite
@@ -538,6 +611,34 @@ rpl_fwrite (const void *ptr, size_t s, size_t n, FILE *stream)
 #  endif
 # endif
 _GL_CXXALIASWARN (fwrite);
+#endif
+
+#if @GNULIB_GETC@
+# if @REPLACE_STDIO_READ_FUNCS@ && @GNULIB_STDIO_H_NONBLOCKING@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef getc
+#   define getc rpl_fgetc
+#  endif
+_GL_FUNCDECL_RPL (fgetc, int, (FILE *stream) _GL_ARG_NONNULL ((1)));
+_GL_CXXALIAS_RPL_1 (getc, rpl_fgetc, int, (FILE *stream));
+# else
+_GL_CXXALIAS_SYS (getc, int, (FILE *stream));
+# endif
+_GL_CXXALIASWARN (getc);
+#endif
+
+#if @GNULIB_GETCHAR@
+# if @REPLACE_STDIO_READ_FUNCS@ && @GNULIB_STDIO_H_NONBLOCKING@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef getchar
+#   define getchar rpl_getchar
+#  endif
+_GL_FUNCDECL_RPL (getchar, int, (void));
+_GL_CXXALIAS_RPL (getchar, int, (void));
+# else
+_GL_CXXALIAS_SYS (getchar, int, (void));
+# endif
+_GL_CXXALIASWARN (getchar);
 #endif
 
 #if @GNULIB_GETDELIM@
@@ -615,6 +716,26 @@ _GL_WARN_ON_USE (getline, "getline is unportable - "
                  "use gnulib module getline for portability");
 # endif
 #endif
+
+#if @GNULIB_GETS@
+# if @REPLACE_STDIO_READ_FUNCS@ && @GNULIB_STDIO_H_NONBLOCKING@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef gets
+#   define gets rpl_gets
+#  endif
+_GL_FUNCDECL_RPL (gets, char *, (char *s) _GL_ARG_NONNULL ((1)));
+_GL_CXXALIAS_RPL (gets, char *, (char *s));
+# else
+_GL_CXXALIAS_SYS (gets, char *, (char *s));
+#  undef gets
+# endif
+_GL_CXXALIASWARN (gets);
+/* It is very rare that the developer ever has full control of stdin,
+   so any use of gets warrants an unconditional warning.  Assume it is
+   always declared, since it is required by C89.  */
+_GL_WARN_ON_USE (gets, "gets is a security hole - use fgets instead");
+#endif
+
 
 #if @GNULIB_OBSTACK_PRINTF@ || @GNULIB_OBSTACK_PRINTF_POSIX@
 struct obstack;
@@ -711,7 +832,7 @@ _GL_WARN_ON_USE (popen, "popen is buggy on some platforms - "
 
 #if @GNULIB_PRINTF_POSIX@ || @GNULIB_PRINTF@
 # if (@GNULIB_PRINTF_POSIX@ && @REPLACE_PRINTF@) \
-     || (@GNULIB_PRINTF@ && @REPLACE_STDIO_WRITE_FUNCS@ && @GNULIB_STDIO_H_SIGPIPE@)
+     || (@GNULIB_PRINTF@ && @REPLACE_STDIO_WRITE_FUNCS@ && (@GNULIB_STDIO_H_NONBLOCKING@ || @GNULIB_STDIO_H_SIGPIPE@))
 #  if defined __GNUC__
 #   if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 /* Don't break __attribute__((format(printf,M,N))).  */
@@ -760,7 +881,7 @@ _GL_WARN_ON_USE (printf, "printf is not always POSIX compliant - "
 #endif
 
 #if @GNULIB_PUTC@
-# if @REPLACE_STDIO_WRITE_FUNCS@ && @GNULIB_STDIO_H_SIGPIPE@
+# if @REPLACE_STDIO_WRITE_FUNCS@ && (@GNULIB_STDIO_H_NONBLOCKING@ || @GNULIB_STDIO_H_SIGPIPE@)
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   undef putc
 #   define putc rpl_fputc
@@ -774,7 +895,7 @@ _GL_CXXALIASWARN (putc);
 #endif
 
 #if @GNULIB_PUTCHAR@
-# if @REPLACE_STDIO_WRITE_FUNCS@ && @GNULIB_STDIO_H_SIGPIPE@
+# if @REPLACE_STDIO_WRITE_FUNCS@ && (@GNULIB_STDIO_H_NONBLOCKING@ || @GNULIB_STDIO_H_SIGPIPE@)
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   undef putchar
 #   define putchar rpl_putchar
@@ -788,7 +909,7 @@ _GL_CXXALIASWARN (putchar);
 #endif
 
 #if @GNULIB_PUTS@
-# if @REPLACE_STDIO_WRITE_FUNCS@ && @GNULIB_STDIO_H_SIGPIPE@
+# if @REPLACE_STDIO_WRITE_FUNCS@ && (@GNULIB_STDIO_H_NONBLOCKING@ || @GNULIB_STDIO_H_SIGPIPE@)
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   undef puts
 #   define puts rpl_puts
@@ -870,6 +991,37 @@ _GL_CXXALIASWARN (renameat);
 _GL_WARN_ON_USE (renameat, "renameat is not portable - "
                  "use gnulib module renameat for portability");
 # endif
+#endif
+
+#if @GNULIB_SCANF@
+# if @REPLACE_STDIO_READ_FUNCS@ && @GNULIB_STDIO_H_NONBLOCKING@
+#  if defined __GNUC__
+#   if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#    undef scanf
+/* Don't break __attribute__((format(scanf,M,N))).  */
+#    define scanf __scanf__
+#   endif
+_GL_FUNCDECL_RPL_1 (__scanf__, int,
+                    (const char *format, ...)
+                    __asm__ (@ASM_SYMBOL_PREFIX@
+                             _GL_STDIO_MACROEXPAND_AND_STRINGIZE(rpl_scanf))
+                    _GL_ATTRIBUTE_FORMAT_SCANF_SYSTEM (1, 2)
+                    _GL_ARG_NONNULL ((1)));
+_GL_CXXALIAS_RPL_1 (scanf, __scanf__, int, (const char *format, ...));
+#  else
+#   if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#    undef scanf
+#    define scanf rpl_scanf
+#   endif
+_GL_FUNCDECL_RPL (scanf, int, (const char *format, ...)
+                              _GL_ATTRIBUTE_FORMAT_SCANF_SYSTEM (1, 2)
+                              _GL_ARG_NONNULL ((1)));
+_GL_CXXALIAS_RPL (scanf, int, (const char *format, ...));
+#  endif
+# else
+_GL_CXXALIAS_SYS (scanf, int, (const char *format, ...));
+# endif
+_GL_CXXALIASWARN (scanf);
 #endif
 
 #if @GNULIB_SNPRINTF@
@@ -1031,7 +1183,7 @@ _GL_WARN_ON_USE (vdprintf, "vdprintf is unportable - "
 
 #if @GNULIB_VFPRINTF_POSIX@ || @GNULIB_VFPRINTF@
 # if (@GNULIB_VFPRINTF_POSIX@ && @REPLACE_VFPRINTF@) \
-     || (@GNULIB_VFPRINTF@ && @REPLACE_STDIO_WRITE_FUNCS@ && @GNULIB_STDIO_H_SIGPIPE@)
+     || (@GNULIB_VFPRINTF@ && @REPLACE_STDIO_WRITE_FUNCS@ && (@GNULIB_STDIO_H_NONBLOCKING@ || @GNULIB_STDIO_H_SIGPIPE@))
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   define vfprintf rpl_vfprintf
 #  endif
@@ -1065,9 +1217,28 @@ _GL_WARN_ON_USE (vfprintf, "vfprintf is not always POSIX compliant - "
                       "POSIX compliance");
 #endif
 
+#if @GNULIB_VFSCANF@
+# if @REPLACE_STDIO_READ_FUNCS@ && @GNULIB_STDIO_H_NONBLOCKING@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef vfscanf
+#   define vfscanf rpl_vfscanf
+#  endif
+_GL_FUNCDECL_RPL (vfscanf, int,
+                  (FILE *stream, const char *format, va_list args)
+                  _GL_ATTRIBUTE_FORMAT_SCANF_SYSTEM (2, 0)
+                  _GL_ARG_NONNULL ((1, 2)));
+_GL_CXXALIAS_RPL (vfscanf, int,
+                  (FILE *stream, const char *format, va_list args));
+# else
+_GL_CXXALIAS_SYS (vfscanf, int,
+                  (FILE *stream, const char *format, va_list args));
+# endif
+_GL_CXXALIASWARN (vfscanf);
+#endif
+
 #if @GNULIB_VPRINTF_POSIX@ || @GNULIB_VPRINTF@
 # if (@GNULIB_VPRINTF_POSIX@ && @REPLACE_VPRINTF@) \
-     || (@GNULIB_VPRINTF@ && @REPLACE_STDIO_WRITE_FUNCS@ && @GNULIB_STDIO_H_SIGPIPE@)
+     || (@GNULIB_VPRINTF@ && @REPLACE_STDIO_WRITE_FUNCS@ && (@GNULIB_STDIO_H_NONBLOCKING@ || @GNULIB_STDIO_H_SIGPIPE@))
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   define vprintf rpl_vprintf
 #  endif
@@ -1098,6 +1269,22 @@ _GL_CXXALIASWARN (vprintf);
 _GL_WARN_ON_USE (vprintf, "vprintf is not always POSIX compliant - "
                  "use gnulib module vprintf-posix for portable "
                  "POSIX compliance");
+#endif
+
+#if @GNULIB_VSCANF@
+# if @REPLACE_STDIO_READ_FUNCS@ && @GNULIB_STDIO_H_NONBLOCKING@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef vscanf
+#   define vscanf rpl_vscanf
+#  endif
+_GL_FUNCDECL_RPL (vscanf, int, (const char *format, va_list args)
+                               _GL_ATTRIBUTE_FORMAT_SCANF_SYSTEM (1, 0)
+                               _GL_ARG_NONNULL ((1)));
+_GL_CXXALIAS_RPL (vscanf, int, (const char *format, va_list args));
+# else
+_GL_CXXALIAS_SYS (vscanf, int, (const char *format, va_list args));
+# endif
+_GL_CXXALIASWARN (vscanf);
 #endif
 
 #if @GNULIB_VSNPRINTF@

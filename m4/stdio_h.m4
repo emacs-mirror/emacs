@@ -1,4 +1,4 @@
-# stdio_h.m4 serial 33
+# stdio_h.m4 serial 37
 dnl Copyright (C) 2007-2011 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -9,6 +9,30 @@ AC_DEFUN([gl_STDIO_H],
   AC_REQUIRE([gl_STDIO_H_DEFAULTS])
   AC_REQUIRE([AC_C_INLINE])
   gl_NEXT_HEADERS([stdio.h])
+
+  dnl No need to create extra modules for these functions. Everyone who uses
+  dnl <stdio.h> likely needs them.
+  GNULIB_FSCANF=1
+  GNULIB_SCANF=1
+  GNULIB_FGETC=1
+  GNULIB_GETC=1
+  GNULIB_GETCHAR=1
+  GNULIB_FGETS=1
+  GNULIB_GETS=1
+  GNULIB_FREAD=1
+  dnl This ifdef is necessary to avoid an error "missing file lib/stdio-read.c"
+  dnl "expected source file, required through AC_LIBSOURCES, not found". It is
+  dnl also an optimization, to avoid performing a configure check whose result
+  dnl is not used. But it does not make the test of GNULIB_STDIO_H_NONBLOCKING
+  dnl or GNULIB_NONBLOCKING redundant.
+  m4_ifdef([gl_NONBLOCKING_IO], [
+    gl_NONBLOCKING_IO
+    if test $gl_cv_have_nonblocking != yes; then
+      REPLACE_STDIO_READ_FUNCS=1
+      AC_LIBOBJ([stdio-read])
+    fi
+  ])
+
   dnl No need to create extra modules for these functions. Everyone who uses
   dnl <stdio.h> likely needs them.
   GNULIB_FPRINTF=1
@@ -21,12 +45,26 @@ AC_DEFUN([gl_STDIO_H],
   GNULIB_FPUTS=1
   GNULIB_PUTS=1
   GNULIB_FWRITE=1
-  dnl This ifdef is just an optimization, to avoid performing a configure
-  dnl check whose result is not used. It does not make the test of
-  dnl GNULIB_STDIO_H_SIGPIPE or GNULIB_SIGPIPE redundant.
+  dnl This ifdef is necessary to avoid an error "missing file lib/stdio-write.c"
+  dnl "expected source file, required through AC_LIBSOURCES, not found". It is
+  dnl also an optimization, to avoid performing a configure check whose result
+  dnl is not used. But it does not make the test of GNULIB_STDIO_H_SIGPIPE or
+  dnl GNULIB_SIGPIPE redundant.
   m4_ifdef([gl_SIGNAL_SIGPIPE], [
     gl_SIGNAL_SIGPIPE
     if test $gl_cv_header_signal_h_SIGPIPE != yes; then
+      REPLACE_STDIO_WRITE_FUNCS=1
+      AC_LIBOBJ([stdio-write])
+    fi
+  ])
+  dnl This ifdef is necessary to avoid an error "missing file lib/stdio-write.c"
+  dnl "expected source file, required through AC_LIBSOURCES, not found". It is
+  dnl also an optimization, to avoid performing a configure check whose result
+  dnl is not used. But it does not make the test of GNULIB_STDIO_H_NONBLOCKING
+  dnl or GNULIB_NONBLOCKING redundant.
+  m4_ifdef([gl_NONBLOCKING_IO], [
+    gl_NONBLOCKING_IO
+    if test $gl_cv_have_nonblocking != yes; then
       REPLACE_STDIO_WRITE_FUNCS=1
       AC_LIBOBJ([stdio-write])
     fi
@@ -54,20 +92,27 @@ AC_DEFUN([gl_STDIO_H_DEFAULTS],
   GNULIB_DPRINTF=0;              AC_SUBST([GNULIB_DPRINTF])
   GNULIB_FCLOSE=0;               AC_SUBST([GNULIB_FCLOSE])
   GNULIB_FFLUSH=0;               AC_SUBST([GNULIB_FFLUSH])
+  GNULIB_FGETC=0;                AC_SUBST([GNULIB_FGETC])
+  GNULIB_FGETS=0;                AC_SUBST([GNULIB_FGETS])
   GNULIB_FOPEN=0;                AC_SUBST([GNULIB_FOPEN])
   GNULIB_FPRINTF=0;              AC_SUBST([GNULIB_FPRINTF])
   GNULIB_FPRINTF_POSIX=0;        AC_SUBST([GNULIB_FPRINTF_POSIX])
   GNULIB_FPURGE=0;               AC_SUBST([GNULIB_FPURGE])
   GNULIB_FPUTC=0;                AC_SUBST([GNULIB_FPUTC])
   GNULIB_FPUTS=0;                AC_SUBST([GNULIB_FPUTS])
+  GNULIB_FREAD=0;                AC_SUBST([GNULIB_FREAD])
   GNULIB_FREOPEN=0;              AC_SUBST([GNULIB_FREOPEN])
+  GNULIB_FSCANF=0;               AC_SUBST([GNULIB_FSCANF])
   GNULIB_FSEEK=0;                AC_SUBST([GNULIB_FSEEK])
   GNULIB_FSEEKO=0;               AC_SUBST([GNULIB_FSEEKO])
   GNULIB_FTELL=0;                AC_SUBST([GNULIB_FTELL])
   GNULIB_FTELLO=0;               AC_SUBST([GNULIB_FTELLO])
   GNULIB_FWRITE=0;               AC_SUBST([GNULIB_FWRITE])
+  GNULIB_GETC=0;                 AC_SUBST([GNULIB_GETC])
+  GNULIB_GETCHAR=0;              AC_SUBST([GNULIB_GETCHAR])
   GNULIB_GETDELIM=0;             AC_SUBST([GNULIB_GETDELIM])
   GNULIB_GETLINE=0;              AC_SUBST([GNULIB_GETLINE])
+  GNULIB_GETS=0;                 AC_SUBST([GNULIB_GETS])
   GNULIB_OBSTACK_PRINTF=0;       AC_SUBST([GNULIB_OBSTACK_PRINTF])
   GNULIB_OBSTACK_PRINTF_POSIX=0; AC_SUBST([GNULIB_OBSTACK_PRINTF_POSIX])
   GNULIB_PERROR=0;               AC_SUBST([GNULIB_PERROR])
@@ -80,11 +125,15 @@ AC_DEFUN([gl_STDIO_H_DEFAULTS],
   GNULIB_REMOVE=0;               AC_SUBST([GNULIB_REMOVE])
   GNULIB_RENAME=0;               AC_SUBST([GNULIB_RENAME])
   GNULIB_RENAMEAT=0;             AC_SUBST([GNULIB_RENAMEAT])
+  GNULIB_SCANF=0;                AC_SUBST([GNULIB_SCANF])
   GNULIB_SNPRINTF=0;             AC_SUBST([GNULIB_SNPRINTF])
   GNULIB_SPRINTF_POSIX=0;        AC_SUBST([GNULIB_SPRINTF_POSIX])
+  GNULIB_STDIO_H_NONBLOCKING=0;  AC_SUBST([GNULIB_STDIO_H_NONBLOCKING])
   GNULIB_STDIO_H_SIGPIPE=0;      AC_SUBST([GNULIB_STDIO_H_SIGPIPE])
   GNULIB_TMPFILE=0;              AC_SUBST([GNULIB_TMPFILE])
   GNULIB_VASPRINTF=0;            AC_SUBST([GNULIB_VASPRINTF])
+  GNULIB_VFSCANF=0;              AC_SUBST([GNULIB_VFSCANF])
+  GNULIB_VSCANF=0;               AC_SUBST([GNULIB_VSCANF])
   GNULIB_VDPRINTF=0;             AC_SUBST([GNULIB_VDPRINTF])
   GNULIB_VFPRINTF=0;             AC_SUBST([GNULIB_VFPRINTF])
   GNULIB_VFPRINTF_POSIX=0;       AC_SUBST([GNULIB_VFPRINTF_POSIX])
@@ -129,6 +178,7 @@ AC_DEFUN([gl_STDIO_H_DEFAULTS],
   REPLACE_RENAMEAT=0;            AC_SUBST([REPLACE_RENAMEAT])
   REPLACE_SNPRINTF=0;            AC_SUBST([REPLACE_SNPRINTF])
   REPLACE_SPRINTF=0;             AC_SUBST([REPLACE_SPRINTF])
+  REPLACE_STDIO_READ_FUNCS=0;    AC_SUBST([REPLACE_STDIO_READ_FUNCS])
   REPLACE_STDIO_WRITE_FUNCS=0;   AC_SUBST([REPLACE_STDIO_WRITE_FUNCS])
   REPLACE_TMPFILE=0;             AC_SUBST([REPLACE_TMPFILE])
   REPLACE_VASPRINTF=0;           AC_SUBST([REPLACE_VASPRINTF])

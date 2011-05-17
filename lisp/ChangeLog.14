@@ -4287,7 +4287,7 @@
 	(proced-descend): New variable.
 	(proced-sort): New arg descend.
 	(proced-sort-interactive): Repeated calls toggle sort order.
-	(proced-format): Accomodate changes of proced-format-alist.
+	(proced-format): Accommodate changes of proced-format-alist.
 	Undefined attributes are displayed as "?".
 	(proced-process-attributes): New optional arg pid-list.
 	Ignore processes with empty attribute list.

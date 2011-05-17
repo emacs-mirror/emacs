@@ -1549,7 +1549,7 @@ See the command `doc-view-mode' for more information on this mode."
 (provide 'doc-view)
 
 ;; Local Variables:
-;; mode: outline-minor
+;; eval: (outline-minor-mode)
 ;; End:
 
 ;;; doc-view.el ends here

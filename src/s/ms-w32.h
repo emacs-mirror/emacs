@@ -204,6 +204,7 @@ struct sigaction {
 #define dup2    sys_dup2
 #define fopen   sys_fopen
 #define link    sys_link
+#define localtime sys_localtime
 #define mkdir   sys_mkdir
 #undef mktemp
 #define mktemp  sys_mktemp

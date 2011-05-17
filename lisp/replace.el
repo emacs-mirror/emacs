@@ -98,6 +98,10 @@ is highlighted lazily using isearch lazy highlighting (see
   :group 'matching
   :version "22.1")
 
+(defvar replace-count 0
+  "Number of replacements done so far.
+See `replace-regexp' and `query-replace-regexp-eval'.")
+
 (defun query-replace-descr (string)
   (mapconcat 'isearch-text-char-description string ""))
 
@@ -849,7 +853,7 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
   (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
   (setq next-error-function 'occur-next-error))
 
-(defun occur-revert-function (ignore1 ignore2)
+(defun occur-revert-function (_ignore1 _ignore2)
   "Handle `revert-buffer' for Occur mode buffers."
   (apply 'occur-1 (append occur-revert-arguments (list (buffer-name)))))
 
@@ -1064,6 +1068,8 @@ are not modified."
   (interactive (occur-read-primary-args))
   (occur-1 regexp nlines (list (current-buffer))))
 
+(defvar ido-ignore-item-temp-list)
+
 (defun multi-occur (bufs regexp &optional nlines)
   "Show all lines in buffers BUFS containing a match for REGEXP.
 This function acts on multiple buffers; otherwise, it is exactly like
@@ -1199,11 +1205,12 @@ See also `multi-occur'."
             (set-buffer-modified-p nil)
             (run-hooks 'occur-hook)))))))
 
-(defun occur-engine (regexp buffers out-buf nlines case-fold-search
+(defun occur-engine (regexp buffers out-buf nlines case-fold
 			    title-face prefix-face match-face keep-props)
   (with-current-buffer out-buf
     (let ((globalcount 0)
-	  (coding nil))
+	  (coding nil)
+	  (case-fold-search case-fold))
       ;; Map over all the buffers
       (dolist (buf buffers)
 	(when (buffer-live-p buf)
@@ -1303,8 +1310,7 @@ See also `multi-occur'."
 			      (nth 0 ret))))
 		      ;; Actually insert the match display data
 		      (with-current-buffer out-buf
-			(let ((beg (point))
-			      (end (progn (insert data) (point)))))))
+			(insert data)))
 		    (goto-char endpt))
 		  (if endpt
 		      (progn
@@ -1552,8 +1558,9 @@ type them using Lisp syntax."
 	  (setcar n 'replace-count))))))
     (setq n (cdr n))))
 
-(defun replace-eval-replacement (expression replace-count)
-  (let ((replacement (eval expression)))
+(defun replace-eval-replacement (expression count)
+  (let* ((replace-count count)
+         (replacement (eval expression)))
     (if (stringp replacement)
         replacement
       (prin1-to-string replacement t))))
@@ -1573,15 +1580,15 @@ with the `noescape' argument set.
 				(prin1-to-string replacement t))
 			      t t)))
 
-(defun replace-loop-through-replacements (data replace-count)
+(defun replace-loop-through-replacements (data count)
   ;; DATA is a vector contaning the following values:
   ;;   0 next-rotate-count
   ;;   1 repeat-count
   ;;   2 next-replacement
   ;;   3 replacements
-  (if (= (aref data 0) replace-count)
+  (if (= (aref data 0) count)
       (progn
-        (aset data 0 (+ replace-count (aref data 1)))
+        (aset data 0 (+ count (aref data 1)))
         (let ((next (cdr (aref data 2))))
           (aset data 2 (if (consp next) next (aref data 3))))))
   (car (aref data 2)))
@@ -2005,6 +2012,11 @@ make, or the user didn't cancel the call."
 		 replace-count
 		 (if (= replace-count 1) "" "s")))
     (or (and keep-going stack) multi-buffer)))
+
+(defvar isearch-error)
+(defvar isearch-forward)
+(defvar isearch-case-fold-search)
+(defvar isearch-string)
 
 (defvar replace-overlay nil)
 

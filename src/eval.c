@@ -20,6 +20,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <limits.h>
 #include <setjmp.h>
+#include <stdio.h>
 #include "lisp.h"
 #include "blockinput.h"
 #include "commands.h"
@@ -56,8 +57,23 @@ struct backtrace
   char debug_on_exit : 1;
 };
 
-struct backtrace *backtrace_list;
+static struct backtrace *backtrace_list;
+
+#if !BYTE_MARK_STACK
+static
+#endif
 struct catchtag *catchlist;
+
+/* Chain of condition handlers currently in effect.
+   The elements of this chain are contained in the stack frames
+   of Fcondition_case and internal_condition_case.
+   When an error is signaled (by calling Fsignal, below),
+   this chain is searched for an element that applies.  */
+
+#if !BYTE_MARK_STACK
+static
+#endif
+struct handler *handlerlist;
 
 #ifdef DEBUG_GCPRO
 /* Count levels of GCPRO to detect failure to UNGCPRO.  */
@@ -66,9 +82,10 @@ int gcpro_level;
 
 Lisp_Object Qautoload, Qmacro, Qexit, Qinteractive, Qcommandp, Qdefun;
 Lisp_Object Qinhibit_quit;
-Lisp_Object Qand_rest, Qand_optional;
-Lisp_Object Qdebug_on_error;
-Lisp_Object Qdeclare;
+Lisp_Object Qand_rest;
+static Lisp_Object Qand_optional;
+static Lisp_Object Qdebug_on_error;
+static Lisp_Object Qdeclare;
 Lisp_Object Qinternal_interpreter_environment, Qclosure;
 
 Lisp_Object Qdebug;
@@ -100,7 +117,7 @@ struct specbinding *specpdl_ptr;
 
 /* Depth in Lisp evaluations and function calls.  */
 
-EMACS_INT lisp_eval_depth;
+static EMACS_INT lisp_eval_depth;
 
 /* The value of num_nonmacro_input_events as of the last time we
    started to enter the debugger.  If we decide to enter the debugger
@@ -109,7 +126,7 @@ EMACS_INT lisp_eval_depth;
    signal the error instead of entering an infinite loop of debugger
    invocations.  */
 
-int when_entered_debugger;
+static int when_entered_debugger;
 
 /* The function from which the last `signal' was called.  Set in
    Fsignal.  */
@@ -126,6 +143,7 @@ static Lisp_Object funcall_lambda (Lisp_Object, size_t, Lisp_Object *);
 static void unwind_to_catch (struct catchtag *, Lisp_Object) NO_RETURN;
 static int interactive_p (int);
 static Lisp_Object apply_lambda (Lisp_Object fun, Lisp_Object args);
+static Lisp_Object Ffetch_bytecode (Lisp_Object);
 
 void
 init_eval_once (void)
@@ -1343,14 +1361,6 @@ usage: (unwind-protect BODYFORM UNWINDFORMS...)  */)
   return unbind_to (count, val);
 }
 
-/* Chain of condition handlers currently in effect.
-   The elements of this chain are contained in the stack frames
-   of Fcondition_case and internal_condition_case.
-   When an error is signaled (by calling Fsignal, below),
-   this chain is searched for an element that applies.  */
-
-struct handler *handlerlist;
-
 DEFUN ("condition-case", Fcondition_case, Scondition_case, 2, UNEVALLED, 0,
        doc: /* Regain control when an error is signaled.
 Executes BODYFORM and returns its value if no error happens.
@@ -1406,7 +1416,8 @@ internal_lisp_condition_case (volatile Lisp_Object var, Lisp_Object bodyform,
 	     || (CONSP (tem)
 		 && (SYMBOLP (XCAR (tem))
 		     || CONSP (XCAR (tem))))))
-	error ("Invalid condition handler");
+	error ("Invalid condition handler: %s",
+	       SDATA (Fprin1_to_string (tem, Qt)));
     }
 
   c.tag = Qnil;
@@ -1983,29 +1994,30 @@ verror (const char *m, va_list ap)
 {
   char buf[4000];
   size_t size = sizeof buf;
-  size_t size_max =
-    min (MOST_POSITIVE_FIXNUM, min (INT_MAX, SIZE_MAX - 1)) + 1;
+  size_t size_max = min (MOST_POSITIVE_FIXNUM + 1, SIZE_MAX);
+  size_t mlen = strlen (m);
   char *buffer = buf;
-  int used;
+  size_t used;
   Lisp_Object string;
 
   while (1)
     {
-      used = vsnprintf (buffer, size, m, ap);
+      va_list ap_copy;
+      va_copy (ap_copy, ap);
+      used = doprnt (buffer, size, m, m + mlen, ap_copy);
+      va_end (ap_copy);
 
-      if (used < 0)
-	{
-	  /* Non-C99 vsnprintf, such as w32, returns -1 when SIZE is too small.
-	     Guess a larger USED to work around the incompatibility.  */
-	  used = (size <= size_max / 2 ? 2 * size
-		  : size < size_max ? size_max - 1
-		  : size_max);
-	}
-      else if (used < size)
+      /* Note: the -1 below is because `doprnt' returns the number of bytes
+	 excluding the terminating null byte, and it always terminates with a
+	 null byte, even when producing a truncated message.  */
+      if (used < size - 1)
 	break;
-      if (size_max <= used)
-	memory_full ();
-      size = used + 1;
+      if (size <= size_max / 2)
+	size *= 2;
+      else if (size < size_max)
+	size = size_max;
+      else
+	break;	/* and leave the message truncated */
 
       if (buffer != buf)
 	xfree (buffer);
@@ -2135,7 +2147,7 @@ this does nothing and returns nil.  */)
        We used to use 0 here, but that leads to accidental sharing in
        purecopy's hash-consing, so we use a (hopefully) unique integer
        instead.  */
-    docstring = make_number (XHASH (function));
+    docstring = make_number (XPNTR (function));
   return Ffset (function,
 		Fpurecopy (list5 (Qautoload, file, docstring,
 				  interactive, type)));
@@ -3627,6 +3639,7 @@ If NFRAMES is more than the number of frames, the value is nil.  */)
 }
 
 
+#if BYTE_MARK_STACK
 void
 mark_backtrace (void)
 {
@@ -3646,8 +3659,7 @@ mark_backtrace (void)
 	mark_object (backlist->args[i]);
     }
 }
-
-EXFUN (Funintern, 2);
+#endif
 
 void
 syms_of_eval (void)

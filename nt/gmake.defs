@@ -149,7 +149,7 @@ ARCH		= alpha
     ifeq "$(PROCESSOR_ARCHITECTURE)" "PPC"
 ARCH		= ppc
     else
-error Unknown architecture type "$(PROCESSOR_ARCHITECTURE)"
+     $(error Unknown architecture type "$(PROCESSOR_ARCHITECTURE)")
     endif
    endif
   endif
@@ -206,6 +206,7 @@ CHECKING_CFLAGS	=
 endif
 
 CFLAGS          = -I. $(ARCH_CFLAGS) $(DEBUG_CFLAGS) $(CHECKING_CFLAGS) $(PROFILE_CFLAGS) $(USER_CFLAGS) $(LOCAL_FLAGS)
+ESC_CFLAGS      = -I. $(ARCH_CFLAGS) $(DEBUG_CFLAGS) $(CHECKING_CFLAGS) $(PROFILE_CFLAGS) $(ESC_USER_CFLAGS) $(LOCAL_FLAGS)
 EMACS_EXTRA_C_FLAGS = -DUSE_CRT_DLL=1
 
 ifdef PROFILE
@@ -277,6 +278,10 @@ endif
 
 ifdef NOCYGWIN
 NOCYGWIN = -mno-cygwin
+endif
+
+ifdef USER_LIBS
+USER_LIBS := $(patsubst %,-l%,$(USER_LIBS))
 endif
 
 ifeq "$(ARCH)" "i386"

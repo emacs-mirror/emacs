@@ -306,7 +306,9 @@ enum {
 #ifdef HAVE_GPM
 #include <gpm.h>
 extern int handle_one_term_event (struct tty_display_info *, Gpm_Event *, struct input_event *);
+#ifndef HAVE_WINDOW_SYSTEM
 extern void term_mouse_moveto (int, int);
+#endif
 
 /* The device for which we have enabled gpm support.  */
 extern struct tty_display_info *gpm_tty;
@@ -320,10 +322,8 @@ struct w32_display_info;
 /* Terminal-local parameters. */
 struct terminal
 {
-  /* The first two fields are really the header of a vector */
-  /* The terminal code does not refer to them.  */
-  EMACS_UINT size;
-  struct Lisp_Vector *vec_next;
+  /* This is for Lisp; the terminal code does not refer to it.  */
+  struct vectorlike_header header;
 
   /* Parameter alist of this terminal.  */
   Lisp_Object param_alist;
@@ -463,7 +463,7 @@ struct terminal
                                enum scroll_bar_part *part,
                                Lisp_Object *x,
                                Lisp_Object *y,
-                               unsigned long *time);
+                               unsigned long *);
 
   /* The window system handling code should set this if the mouse has
      moved since the last call to the mouse_position_hook.  Calling that
@@ -482,10 +482,10 @@ struct terminal
      support overlapping frames, so there's no need to raise or lower
      anything.
 
-     If RAISE is non-zero, F is brought to the front, before all other
-     windows.  If RAISE is zero, F is sent to the back, behind all other
+     If RAISE_FLAG is non-zero, F is brought to the front, before all other
+     windows.  If RAISE_FLAG is zero, F is sent to the back, behind all other
      windows.  */
-  void (*frame_raise_lower_hook) (struct frame *f, int raise);
+  void (*frame_raise_lower_hook) (struct frame *f, int raise_flag);
 
   /* If the value of the frame parameter changed, whis hook is called.
      For example, if going from fullscreen to not fullscreen this hook
@@ -631,19 +631,6 @@ extern struct terminal *terminal_list;
 
 #define FRAME_TERMINAL(f) ((f)->terminal)
 
-/* FRAME_WINDOW_P tests whether the frame is a window, and is
-   defined to be the predicate for the window system being used.  */
-
-#ifdef HAVE_X_WINDOWS
-#define FRAME_WINDOW_P(f) FRAME_X_P (f)
-#endif
-#ifdef HAVE_NTGUI
-#define FRAME_WINDOW_P(f) FRAME_W32_P (f)
-#endif
-#ifndef FRAME_WINDOW_P
-#define FRAME_WINDOW_P(f) (0)
-#endif
-
 /* Return true if the terminal device is not suspended. */
 #define TERMINAL_ACTIVE_P(d) (((d)->type != output_termcap && (d)->type !=output_msdos_raw) || (d)->display_info.tty->input)
 
@@ -660,4 +647,3 @@ extern unsigned char *encode_terminal_code (struct glyph *, int,
 #ifdef HAVE_GPM
 extern void close_gpm (int gpm_fd);
 #endif
-

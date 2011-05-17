@@ -1,4 +1,4 @@
-;;; comint.el --- general command interpreter in a window stuff
+;;; comint.el --- general command interpreter in a window stuff -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1988, 1990, 1992-2011  Free Software Foundation, Inc.
 
@@ -101,6 +101,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
 (require 'ring)
 
 ;; Buffer Local Variables:
@@ -366,7 +367,7 @@ text matching `comint-prompt-regexp', depending on the value of
 `comint-use-prompt-regexp'.")
 
 (defvar comint-dynamic-complete-functions
-  '(comint-replace-by-expanded-history comint-dynamic-complete-filename)
+  '(comint-c-a-p-replace-by-expanded-history comint-filename-completion)
   "List of functions called to perform completion.
 Works like `completion-at-point-functions'.
 See also `comint-dynamic-complete'.
@@ -492,7 +493,7 @@ executed once when the buffer is created."
     (define-key map [menu-bar completion complete-file]
       '("Complete File Name" . comint-dynamic-complete-filename))
     (define-key map [menu-bar completion complete]
-      '("Complete Before Point" . comint-dynamic-complete))
+      '("Complete at Point" . completion-at-point))
     ;; Input history:
     (define-key map [menu-bar inout]
       (cons "In/Out" (make-sparse-keymap "In/Out")))
@@ -682,6 +683,7 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (setq font-lock-defaults '(nil t))
   (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
   (add-hook 'isearch-mode-hook 'comint-history-isearch-setup nil t)
+  (add-hook 'completion-at-point-functions 'comint-completion-at-point nil t)
   ;; This behavior is not useful in comint buffers, and is annoying
   (set (make-local-variable 'next-line-add-newlines) nil))
 
@@ -1230,6 +1232,12 @@ See `comint-magic-space' and `comint-replace-by-expanded-history-before-point'.
 
 Returns t if successful."
   (interactive)
+  (let ((f (comint-c-a-p-replace-by-expanded-history silent start)))
+    (if f (funcall f))))
+
+(defun comint-c-a-p-replace-by-expanded-history (&optional silent start)
+  "Expand input command history at point.
+For use on `completion-at-point-functions'."
   (if (and comint-input-autoexpand
 	   (if comint-use-prompt-regexp
 	       ;; Use comint-prompt-regexp
@@ -1239,20 +1247,28 @@ Returns t if successful."
 	     ;; Use input fields.  User input that hasn't been entered
 	     ;; yet, at the end of the buffer, has a nil `field' property.
 	     (and (null (get-char-property (point) 'field))
-		  (string-match "!\\|^\\^" (field-string)))))
-      ;; Looks like there might be history references in the command.
-      (let ((previous-modified-tick (buffer-modified-tick)))
-	(comint-replace-by-expanded-history-before-point silent start)
-	(/= previous-modified-tick (buffer-modified-tick)))))
+		  (string-match "!\\|^\\^" (field-string))))
+           (catch 'dry-run
+             (comint-replace-by-expanded-history-before-point
+              silent start 'dry-run)))
+      (lambda ()
+        ;; Looks like there might be history references in the command.
+        (let ((previous-modified-tick (buffer-modified-tick)))
+          (comint-replace-by-expanded-history-before-point silent start)
+          (/= previous-modified-tick (buffer-modified-tick))))))
 
 
-(defun comint-replace-by-expanded-history-before-point (silent &optional start)
+(defun comint-replace-by-expanded-history-before-point
+  (silent &optional start dry-run)
   "Expand directory stack reference before point.
 See `comint-replace-by-expanded-history'.  Returns t if successful.
 
 If the optional argument START is non-nil, that specifies the
 start of the text to scan for history references, rather
-than the logical beginning of line."
+than the logical beginning of line.
+
+If DRY-RUN is non-nil, throw to DRY-RUN before performing any
+actual side-effect."
   (save-excursion
     (let ((toend (- (line-end-position) (point)))
 	  (start (or start (comint-line-beginning-position))))
@@ -1273,10 +1289,12 @@ than the logical beginning of line."
 	       (goto-char (1+ (point))))
 	      ((looking-at "![0-9]+\\($\\|[^-]\\)")
 	       ;; We cannot know the interpreter's idea of input line numbers.
+               (if dry-run (throw dry-run 'message))
 	       (goto-char (match-end 0))
 	       (message "Absolute reference cannot be expanded"))
 	      ((looking-at "!-\\([0-9]+\\)\\(:?[0-9^$*-]+\\)?")
 	       ;; Just a number of args from `number' lines backward.
+               (if dry-run (throw dry-run 'history))
 	       (let ((number (1- (string-to-number
 				  (buffer-substring (match-beginning 1)
 						    (match-end 1))))))
@@ -1292,6 +1310,7 @@ than the logical beginning of line."
 		   (message "Relative reference exceeds input history size"))))
 	      ((or (looking-at "!!?:?\\([0-9^$*-]+\\)") (looking-at "!!"))
 	       ;; Just a number of args from the previous input line.
+               (if dry-run (throw dry-run 'expand))
 	       (replace-match (comint-args (comint-previous-input-string 0)
 					   (match-beginning 1) (match-end 1))
 			      t t)
@@ -1300,6 +1319,7 @@ than the logical beginning of line."
 		"!\\??\\({\\(.+\\)}\\|\\(\\sw+\\)\\)\\(:?[0-9^$*-]+\\)?")
 	       ;; Most recent input starting with or containing (possibly
 	       ;; protected) string, maybe just a number of args.  Phew.
+               (if dry-run (throw dry-run 'expand))
 	       (let* ((mb1 (match-beginning 1)) (me1 (match-end 1))
 		      (mb2 (match-beginning 2)) (me2 (match-end 2))
 		      (exp (buffer-substring (or mb2 mb1) (or me2 me1)))
@@ -1321,6 +1341,7 @@ than the logical beginning of line."
 		   (message "History item: %d" (1+ pos)))))
 	      ((looking-at "\\^\\([^^]+\\)\\^?\\([^^]*\\)\\^?")
 	       ;; Quick substitution on the previous input line.
+               (if dry-run (throw dry-run 'expand))
 	       (let ((old (buffer-substring (match-beginning 1) (match-end 1)))
 		     (new (buffer-substring (match-beginning 2) (match-end 2)))
 		     (pos nil))
@@ -1333,7 +1354,8 @@ than the logical beginning of line."
 		   (replace-match new t t)
 		   (message "History item: substituted"))))
 	      (t
-	       (forward-char 1)))))))
+	       (forward-char 1)))))
+    nil))
 
 
 (defun comint-magic-space (arg)
@@ -1529,7 +1551,7 @@ in the search status stack."
   `(lambda (cmd)
      (comint-history-isearch-pop-state cmd ,comint-input-ring-index)))
 
-(defun comint-history-isearch-pop-state (cmd hist-pos)
+(defun comint-history-isearch-pop-state (_cmd hist-pos)
   "Restore the input history search state.
 Go to the history element by the absolute history position HIST-POS."
   (comint-goto-input hist-pos))
@@ -1739,9 +1761,9 @@ Similarly for Soar, Scheme, etc."
                         (insert copy)
                         copy)))
              (input (if (not (eq comint-input-autoexpand 'input))
-                        ;; Just whatever's already there
+                        ;; Just whatever's already there.
                         intxt
-                      ;; Expand and leave it visible in buffer
+                      ;; Expand and leave it visible in buffer.
                       (comint-replace-by-expanded-history t pmark)
                       (buffer-substring pmark (point))))
              (history (if (not (eq comint-input-autoexpand 'history))
@@ -2053,7 +2075,7 @@ This function should be a pre-command hook."
                        (select-window selected))))
 	       nil t))))))
 
-(defun comint-postoutput-scroll-to-bottom (string)
+(defun comint-postoutput-scroll-to-bottom (_string)
   "Go to the end of buffer in some or all windows showing it.
 Does not scroll if the current line is the last line in the buffer.
 Depends on the value of `comint-move-point-for-output' and
@@ -2090,7 +2112,7 @@ This function should be in the list `comint-output-filter-functions'."
 	     nil t))
       (set-buffer current))))
 
-(defun comint-truncate-buffer (&optional string)
+(defun comint-truncate-buffer (&optional _string)
   "Truncate the buffer to `comint-buffer-maximum-size'.
 This function could be on `comint-output-filter-functions' or bound to a key."
   (interactive)
@@ -2101,7 +2123,7 @@ This function could be on `comint-output-filter-functions' or bound to a key."
     (let ((inhibit-read-only t))
       (delete-region (point-min) (point)))))
 
-(defun comint-strip-ctrl-m (&optional string)
+(defun comint-strip-ctrl-m (&optional _string)
   "Strip trailing `^M' characters from the current output group.
 This function could be on `comint-output-filter-functions' or bound to a key."
   (interactive)
@@ -2207,7 +2229,7 @@ a buffer local variable."
     (goto-char (comint-line-beginning-position))))
 
 ;; For compatibility.
-(defun comint-read-noecho (prompt &optional ignore)
+(defun comint-read-noecho (prompt &optional _ignore)
   (read-passwd prompt))
 
 ;; These three functions are for entering text you don't want echoed or
@@ -2831,10 +2853,9 @@ its response can be seen."
 ;; comint-dynamic-list-filename-completions List completions in help buffer.
 ;; comint-replace-by-expanded-filename	Expand and complete filename at point;
 ;;					replace with expanded/completed name.
-;; comint-dynamic-simple-complete	Complete stub given candidates.
 
-;; These are not installed in the comint-mode keymap. But they are
-;; available for people who want them. Shell-mode installs them:
+;; These are not installed in the comint-mode keymap.  But they are
+;; available for people who want them.  Shell-mode installs them:
 ;; (define-key shell-mode-map "\t" 'comint-dynamic-complete)
 ;; (define-key shell-mode-map "\M-?"
 ;;             'comint-dynamic-list-filename-completions)))
@@ -2849,14 +2870,16 @@ This mirrors the optional behavior of tcsh."
   :group 'comint-completion)
 
 (defcustom comint-completion-addsuffix t
-  "If non-nil, add a `/' to completed directories, ` ' to file names.
-If a cons pair, it should be of the form (DIRSUFFIX . FILESUFFIX) where
-DIRSUFFIX and FILESUFFIX are strings added on unambiguous or exact completion.
+  "If non-nil, add ` ' to file names.
+It can either be a string FILESUFFIX or a cons (DIRSUFFIX . FILESUFFIX)
+where DIRSUFFIX is ignored and FILESUFFIX is a string added on unambiguous
+or exact completion.
 This mirrors the optional behavior of tcsh."
   :type '(choice (const :tag "None" nil)
-		 (const :tag "Add /" t)
-		 (cons :tag "Suffix pair"
-		       (string :tag "Directory suffix")
+		 (const :tag "Add SPC" t)
+                 (string :tag "File suffix")
+		 (cons :tag "Obsolete suffix pair"
+		       (string :tag "Ignored")
 		       (string :tag "File suffix")))
   :group 'comint-completion)
 
@@ -2933,7 +2956,7 @@ inside of a \"[...]\" (see `skip-chars-forward'), plus all non-ASCII characters.
 (defun comint-substitute-in-file-name (filename)
   "Return FILENAME with environment variables substituted.
 Supports additional environment variable syntax of the command
-interpreter (e.g., the percent notation of cmd.exe on NT)."
+interpreter (e.g., the percent notation of cmd.exe on Windows)."
   (let ((name (substitute-in-file-name filename)))
     (if (memq system-type '(ms-dos windows-nt))
 	(let (env-var-name
@@ -2988,16 +3011,12 @@ Magic characters are those in `comint-file-name-quote-list'."
 	  (setq i (+ 1 (match-beginning 0)))))
       filename)))
 
+(defun comint-completion-at-point ()
+  (run-hook-with-args-until-success 'comint-dynamic-complete-functions))
 
-(defun comint-dynamic-complete ()
-  "Dynamically perform completion at point.
-Calls the functions in `comint-dynamic-complete-functions' to perform
-completion until a function returns non-nil, at which point completion is
-assumed to have occurred."
-  (interactive)
-  (let ((completion-at-point-functions comint-dynamic-complete-functions))
-    (completion-at-point)))
-
+(define-obsolete-function-alias
+  'comint-dynamic-complete
+  'completion-at-point "24.1")
 
 (defun comint-dynamic-complete-filename ()
   "Dynamically complete the filename at point.
@@ -3016,73 +3035,125 @@ Returns t if successful."
   (when (comint--match-partial-filename)
     (unless (window-minibuffer-p (selected-window))
       (message "Completing file name..."))
-    (comint-dynamic-complete-as-filename)))
+    (apply #'completion-in-region (comint--complete-file-name-data))))
+
+(defun comint-filename-completion ()
+  "Return completion data for filename at point, if any."
+  (when (comint--match-partial-filename)
+    (comint--complete-file-name-data)))
+
+;; FIXME: comint--common-suffix, comint--common-quoted-suffix, and
+;; comint--table-subvert copied from pcomplete.  And they don't fully solve
+;; the problem, since selecting a file from *Completions* won't quote it.
+
+(defun comint--common-suffix (s1 s2)
+  (assert (not (or (string-match "\n" s1) (string-match "\n" s2))))
+  ;; Since S2 is expected to be the "unquoted/expanded" version of S1,
+  ;; there shouldn't be any case difference, even if the completion is
+  ;; case-insensitive.
+  (let ((case-fold-search nil))
+    (string-match ".*?\\(.*\\)\n.*\\1\\'" (concat s1 "\n" s2))
+    (- (match-end 1) (match-beginning 1))))
+
+(defun comint--common-quoted-suffix (s1 s2)
+  "Find the common suffix between S1 and S2 where S1 is the expanded S2.
+S1 is expected to be the unquoted and expanded version of S1.
+Returns (PS1 . PS2), i.e. the shortest prefixes of S1 and S2, such that
+S1 = (concat PS1 SS1) and S2 = (concat PS2 SS2) and
+SS1 = (unquote SS2)."
+  (let* ((cs (comint--common-suffix s1 s2))
+         (ss1 (substring s1 (- (length s1) cs)))
+         (qss1 (comint-quote-filename ss1))
+         qc)
+    (if (and (not (equal ss1 qss1))
+             (setq qc (comint-quote-filename (substring ss1 0 1)))
+             (eq t (compare-strings s2 (- (length s2) cs (length qc) -1)
+                                    (- (length s2) cs -1)
+                                    qc nil nil)))
+        ;; The difference found is just that one char is quoted in S2
+        ;; but not in S1, keep looking before this difference.
+        (comint--common-quoted-suffix
+         (substring s1 0 (- (length s1) cs))
+         (substring s2 0 (- (length s2) cs (length qc) -1)))
+      (cons (substring s1 0 (- (length s1) cs))
+            (substring s2 0 (- (length s2) cs))))))
+
+(defun comint--table-subvert (table s1 s2 string pred action)
+  "Completion table that replaces the prefix S1 with S2 in STRING.
+When TABLE, S1 and S2 are provided by `apply-partially', the result
+is a completion table which completes strings of the form (concat S1 S)
+in the same way as TABLE completes strings of the form (concat S2 S)."
+  (let* ((str (if (eq t (compare-strings string 0 (length s1) s1 nil nil
+                                         completion-ignore-case))
+                  (concat s2 (comint-unquote-filename
+                              (substring string (length s1))))))
+         (res (if str (complete-with-action action table str pred))))
+    (when res
+      (cond
+       ((and (eq (car-safe action) 'boundaries))
+        (let ((beg (or (and (eq (car-safe res) 'boundaries) (cadr res)) 0)))
+          (list* 'boundaries
+                 (max (length s1)
+                      ;; FIXME: Adjust because of quoting/unquoting.
+                      (+ beg (- (length s1) (length s2))))
+                 (and (eq (car-safe res) 'boundaries) (cddr res)))))
+       ((stringp res)
+        (if (eq t (compare-strings res 0 (length s2) s2 nil nil
+                                   completion-ignore-case))
+            (concat s1 (comint-quote-filename
+                        (substring res (length s2))))))
+       ((eq action t)
+        (let ((bounds (completion-boundaries str table pred "")))
+          (if (>= (car bounds) (length s2))
+              res
+            (let ((re (concat "\\`"
+                              (regexp-quote (substring s2 (car bounds))))))
+              (delq nil
+                    (mapcar (lambda (c)
+                              (if (string-match re c)
+                                  (substring c (match-end 0))))
+                            res))))))
+       ;; E.g. action=nil and it's the only completion.
+       (res)))))
+
+(defun comint--complete-file-name-data ()
+  "Return the completion data for file name at point."
+  (let* ((filesuffix (cond ((not comint-completion-addsuffix) "")
+			   ((stringp comint-completion-addsuffix)
+                            comint-completion-addsuffix)
+			   ((not (consp comint-completion-addsuffix)) " ")
+			   (t (cdr comint-completion-addsuffix))))
+	 (filename (comint--match-partial-filename))
+	 (filename-beg (if filename (match-beginning 0) (point)))
+	 (filename-end (if filename (match-end 0) (point)))
+         (unquoted (if filename (comint--unquote&expand-filename filename) ""))
+         (table
+          (let ((prefixes (comint--common-quoted-suffix
+                           unquoted filename)))
+            (apply-partially
+             #'comint--table-subvert
+             #'completion-file-name-table
+             (cdr prefixes) (car prefixes)))))
+    (list
+     filename-beg filename-end
+     (lambda (string pred action)
+       (let ((completion-ignore-case read-file-name-completion-ignore-case)
+             (completion-ignored-extensions comint-completion-fignore))
+         (if (zerop (length filesuffix))
+             (complete-with-action action table string pred)
+           ;; Add a space at the end of completion.  Use a terminator-regexp
+           ;; that never matches since the terminator cannot appear
+           ;; within the completion field anyway.
+           (completion-table-with-terminator
+            (cons filesuffix "\\`a\\`")
+            table string pred action)))))))
 
 (defun comint-dynamic-complete-as-filename ()
   "Dynamically complete at point as a filename.
 See `comint-dynamic-complete-filename'.  Returns t if successful."
-  (let* ((completion-ignore-case read-file-name-completion-ignore-case)
-	 (completion-ignored-extensions comint-completion-fignore)
-	 ;; If we bind this, it breaks remote directory tracking in rlogin.el.
-	 ;; I think it was originally bound to solve file completion problems,
-	 ;; but subsequent changes may have made this unnecessary.  sm.
-	 ;;(file-name-handler-alist nil)
-	 (minibuffer-p (window-minibuffer-p (selected-window)))
-	 (success t)
-	 (dirsuffix (cond ((not comint-completion-addsuffix) "")
-			  ((not (consp comint-completion-addsuffix)) "/")
-			  (t (car comint-completion-addsuffix))))
-	 (filesuffix (cond ((not comint-completion-addsuffix) "")
-			   ((not (consp comint-completion-addsuffix)) " ")
-			   (t (cdr comint-completion-addsuffix))))
-	 (filename (comint-match-partial-filename))
-	 (filename-beg (if filename (match-beginning 0) (point)))
-	 (filename-end (if filename (match-end 0) (point)))
-	 (filename (or filename ""))
-	 (filedir (file-name-directory filename))
-	 (filenondir (file-name-nondirectory filename))
-	 (directory (if filedir (comint-directory filedir) default-directory))
-	 (completion (file-name-completion filenondir directory)))
-    (cond ((null completion)
-	   (if minibuffer-p
-	       (minibuffer-message "No completions of %s" filename)
-	     (message "No completions of %s" filename))
-	   (setq success nil))
-	  ((eq completion t)            ; Means already completed "file".
-	   (insert filesuffix)
-	   (unless minibuffer-p
-	     (message "Sole completion")))
-	  ((string-equal completion "") ; Means completion on "directory/".
-	   (comint-dynamic-list-filename-completions))
-	  (t                            ; Completion string returned.
-	   (let ((file (concat (file-name-as-directory directory) completion)))
-	     ;; Insert completion.  Note that the completion string
-	     ;; may have a different case than what's in the prompt,
-	     ;; if read-file-name-completion-ignore-case is non-nil,
-	     (delete-region filename-beg filename-end)
-	     (if filedir (insert (comint-quote-filename filedir)))
-	     (insert (comint-quote-filename (directory-file-name completion)))
-	     (cond ((symbolp (file-name-completion completion directory))
-		    ;; We inserted a unique completion.
-		    (insert (if (file-directory-p file) dirsuffix filesuffix))
-		    (unless minibuffer-p
-		      (message "Completed")))
-		   ((and comint-completion-recexact comint-completion-addsuffix
-			 (string-equal filenondir completion)
-			 (file-exists-p file))
-		    ;; It's not unique, but user wants shortest match.
-		    (insert (if (file-directory-p file) dirsuffix filesuffix))
-		    (unless minibuffer-p
-		      (message "Completed shortest")))
-		   ((or comint-completion-autolist
-			(string-equal filenondir completion))
-		    ;; It's not unique, list possible completions.
-		    (comint-dynamic-list-filename-completions))
-		   (t
-		    (unless minibuffer-p
-		      (message "Partially completed")))))))
-    success))
-
+  (apply #'completion-in-region (comint--complete-file-name-data)))
+(make-obsolete 'comint-dynamic-complete-as-filename
+               'comint-filename-completion "24.1")
 
 (defun comint-replace-by-expanded-filename ()
   "Dynamically expand and complete the filename at point.
@@ -3155,28 +3226,20 @@ See also `comint-dynamic-complete-filename'."
 		    (unless minibuffer-p
 		      (message "Partially completed"))
 		    'partial)))))))
+(make-obsolete 'comint-dynamic-simple-complete 'completion-in-region "24.1")
 
 
 (defun comint-dynamic-list-filename-completions ()
   "Display a list of possible completions for the filename at point."
   (interactive)
-  (let* ((completion-ignore-case read-file-name-completion-ignore-case)
-	 ;; If we bind this, it breaks remote directory tracking in rlogin.el.
-	 ;; I think it was originally bound to solve file completion problems,
-	 ;; but subsequent changes may have made this unnecessary.  sm.
-	 ;;(file-name-handler-alist nil)
-	 (filename (or (comint-match-partial-filename) ""))
-	 (filedir (file-name-directory filename))
-	 (filenondir (file-name-nondirectory filename))
-	 (directory (if filedir (comint-directory filedir) default-directory))
-	 (completions (file-name-all-completions filenondir directory)))
-    (if (not completions)
-	(if (window-minibuffer-p (selected-window))
-	    (minibuffer-message "No completions of %s" filename)
-	  (message "No completions of %s" filename))
-      (comint-dynamic-list-completions
-       (mapcar 'comint-quote-filename completions)
-       (comint-quote-filename filenondir)))))
+  (let* ((data (comint--complete-file-name-data))
+         (minibuffer-completion-table (nth 2 data))
+         (minibuffer-completion-predicate nil)
+         (ol (make-overlay (nth 0 data) (nth 1 data) nil nil t)))
+    (overlay-put ol 'field 'completion)
+    (unwind-protect
+        (call-interactively 'minibuffer-completion-help)
+      (delete-overlay ol))))
 
 
 ;; This is bound locally in a *Completions* buffer to the list of
@@ -3244,7 +3307,6 @@ Typing SPC flushes the completions buffer."
 	(if (eq first ?\s)
 	    (set-window-configuration comint-dynamic-list-completions-config)
 	  (setq unread-command-events (listify-key-sequence key)))))))
-
 
 (defun comint-get-next-from-history ()
   "After fetching a line from input history, this fetches the following line.
@@ -3742,9 +3804,8 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
 ;;
 ;; For modes that use comint-mode, comint-dynamic-complete-functions is the
 ;; hook to add completion functions to.  Functions on this list should return
-;; non-nil if completion occurs (i.e., further completion should not occur).
-;; You could use comint-dynamic-simple-complete to do the bulk of the
-;; completion job.
+;; the completion data according to the documentation of
+;; `completion-at-point-functions'
 
 
 (provide 'comint)

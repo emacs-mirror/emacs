@@ -245,7 +245,7 @@ the return value (nil if RESULT is omitted).
            (setq ,(car spec) (1+ ,(car spec))))
          ,@(cdr (cdr spec))))))
 
-(defmacro declare (&rest specs)
+(defmacro declare (&rest _specs)
   "Do not evaluate any arguments and return nil.
 Treated as a declaration when used at the right place in a
 `defmacro' form.  \(See Info anchor `(elisp)Definition of declare'.)"
@@ -260,7 +260,7 @@ Otherwise, return result of last form in BODY."
 
 ;;;; Basic Lisp functions.
 
-(defun ignore (&rest ignore)
+(defun ignore (&rest _ignore)
   "Do nothing and return nil.
 This function accepts any number of arguments, but ignores them."
   (interactive)
@@ -1772,6 +1772,19 @@ This makes or adds to an entry on `after-load-alist'.
 FILE should be the name of a library, with no directory name."
   (eval-after-load file (read)))
 (make-obsolete 'eval-next-after-load `eval-after-load "23.2")
+
+(defun display-delayed-warnings ()
+  "Display delayed warnings from `delayed-warnings-list'.
+This is the default value of `delayed-warnings-hook'."
+  (dolist (warning (nreverse delayed-warnings-list))
+    (apply 'display-warning warning))
+  (setq delayed-warnings-list nil))
+
+(defvar delayed-warnings-hook '(display-delayed-warnings)
+  "Normal hook run to process delayed warnings.
+Functions in this hook should access the `delayed-warnings-list'
+variable (which see) and remove from it the warnings they process.")
+
 
 ;;;; Process stuff.
 
@@ -1798,7 +1811,7 @@ Signal an error if the program returns with a non-zero exit status."
  'process-kill-without-query
  "use `process-query-on-exit-flag' or `set-process-query-on-exit-flag'."
  "22.1")
-(defun process-kill-without-query (process &optional flag)
+(defun process-kill-without-query (process &optional _flag)
   "Say no query needed if PROCESS is running when Emacs is exited.
 Optional second argument if non-nil says to require a query.
 Value is t if a query was formerly required."
@@ -2505,27 +2518,63 @@ Note: :data and :device are currently not supported on Windows."
 
 (defun shell-quote-argument (argument)
   "Quote ARGUMENT for passing as argument to an inferior shell."
-  (if (or (eq system-type 'ms-dos)
-          (and (eq system-type 'windows-nt) (w32-shell-dos-semantics)))
-      ;; Quote using double quotes, but escape any existing quotes in
-      ;; the argument with backslashes.
-      (let ((result "")
-	    (start 0)
-	    end)
-	(if (or (null (string-match "[^\"]" argument))
-		(< (match-end 0) (length argument)))
-	    (while (string-match "[\"]" argument start)
-	      (setq end (match-beginning 0)
-		    result (concat result (substring argument start end)
-				   "\\" (substring argument end (1+ end)))
-		    start (1+ end))))
-	(concat "\"" result (substring argument start) "\""))
+  (cond
+   ((eq system-type 'ms-dos)
+    ;; Quote using double quotes, but escape any existing quotes in
+    ;; the argument with backslashes.
+    (let ((result "")
+          (start 0)
+          end)
+      (if (or (null (string-match "[^\"]" argument))
+              (< (match-end 0) (length argument)))
+          (while (string-match "[\"]" argument start)
+            (setq end (match-beginning 0)
+                  result (concat result (substring argument start end)
+                                 "\\" (substring argument end (1+ end)))
+                  start (1+ end))))
+      (concat "\"" result (substring argument start) "\"")))
+
+   ((and (eq system-type 'windows-nt) (w32-shell-dos-semantics))
+
+    ;; First, quote argument so that CommandLineToArgvW will
+    ;; understand it.  See
+    ;; http://msdn.microsoft.com/en-us/library/17w5ykft%28v=vs.85%29.aspx
+    ;; After we perform that level of quoting, escape shell
+    ;; metacharacters so that cmd won't mangle our argument.  If the
+    ;; argument contains no double quote characters, we can just
+    ;; surround it with double quotes.  Otherwise, we need to prefix
+    ;; each shell metacharacter with a caret.
+
+    (setq argument
+          ;; escape backslashes at end of string
+          (replace-regexp-in-string
+           "\\(\\\\*\\)$"
+           "\\1\\1"
+           ;; escape backslashes and quotes in string body
+           (replace-regexp-in-string
+            "\\(\\\\*\\)\""
+            "\\1\\1\\\\\""
+            argument)))
+
+    (if (string-match "[%!\"]" argument)
+        (concat
+         "^\""
+         (replace-regexp-in-string
+          "\\([%!()\"<>&|^]\\)"
+          "^\\1"
+          argument)
+         "^\"")
+      (concat "\"" argument "\"")))
+
+   (t
     (if (equal argument "")
         "''"
       ;; Quote everything except POSIX filename characters.
       ;; This should be safe enough even for really weird shells.
-      (replace-regexp-in-string "\n" "'\n'"
-       (replace-regexp-in-string "[^-0-9a-zA-Z_./\n]" "\\\\\\&" argument)))))
+      (replace-regexp-in-string
+       "\n" "'\n'"
+       (replace-regexp-in-string "[^-0-9a-zA-Z_./\n]" "\\\\\\&" argument))))
+   ))
 
 (defun string-or-null-p (object)
   "Return t if OBJECT is a string or nil.
@@ -3445,7 +3494,7 @@ If SYNTAX is nil, return nil."
 
 ;;;; Text clones
 
-(defun text-clone-maintain (ol1 after beg end &optional len)
+(defun text-clone-maintain (ol1 after beg end &optional _len)
   "Propagate the changes made under the overlay OL1 to the other clones.
 This is used on the `modification-hooks' property of text clones."
   (when (and after (not undo-in-progress) (overlay-start ol1))

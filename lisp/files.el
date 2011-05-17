@@ -635,22 +635,22 @@ the value of `default-directory'."
   "Value of the CDPATH environment variable, as a list.
 Not actually set up until the first time you use it.")
 
-(defun parse-colon-path (cd-path)
+(defun parse-colon-path (search-path)
   "Explode a search path into a list of directory names.
 Directories are separated by occurrences of `path-separator'
 \(which is colon in GNU and GNU-like systems)."
   ;; We could use split-string here.
-  (and cd-path
+  (and search-path
        (let (cd-list (cd-start 0) cd-colon)
-	 (setq cd-path (concat cd-path path-separator))
-	 (while (setq cd-colon (string-match path-separator cd-path cd-start))
+	 (setq search-path (concat search-path path-separator))
+	 (while (setq cd-colon (string-match path-separator search-path cd-start))
 	   (setq cd-list
 		 (nconc cd-list
 			(list (if (= cd-start cd-colon)
 				   nil
 				(substitute-in-file-name
 				 (file-name-as-directory
-				  (substring cd-path cd-start cd-colon)))))))
+				  (substring search-path cd-start cd-colon)))))))
 	   (setq cd-start (+ cd-colon 1)))
 	 cd-list)))
 
@@ -866,11 +866,10 @@ and return the directory.  Return nil if not found."
   ;; `name' in /home or in /.
   (setq file (abbreviate-file-name file))
   (let ((root nil)
-        (prev-file file)
         ;; `user' is not initialized outside the loop because
         ;; `file' may not exist, so we may have to walk up part of the
-        ;; hierarchy before we find the "initial UID".
-        (user nil)
+        ;; hierarchy before we find the "initial UID".  Note: currently unused
+        ;; (user nil)
         try)
     (while (not (or root
                     (null file)
@@ -887,8 +886,7 @@ and return the directory.  Return nil if not found."
                     (string-match locate-dominating-stop-dir-regexp file)))
       (setq try (file-exists-p (expand-file-name name file)))
       (cond (try (setq root file))
-            ((equal file (setq prev-file file
-                               file (file-name-directory
+            ((equal file (setq file (file-name-directory
                                      (directory-file-name file))))
              (setq file nil))))
     root))
@@ -958,10 +956,10 @@ reasonable to let-bind this variable to a value less then the
 time period between two checks.
 Example:
 
-  \(defun display-time-file-nonempty-p \(file)
-    \(let \(\(remote-file-name-inhibit-cache \(- display-time-interval 5)))
-      \(and \(file-exists-p file)
-           \(< 0 \(nth 7 \(file-attributes \(file-chase-links file)))))))"
+  (defun display-time-file-nonempty-p (file)
+    (let ((remote-file-name-inhibit-cache (- display-time-interval 5)))
+      (and (file-exists-p file)
+           (< 0 (nth 7 (file-attributes (file-chase-links file)))))))"
   :group 'files
   :version "24.1"
   :type `(choice
@@ -1481,6 +1479,8 @@ expand wildcards (if any) and replace the file with multiple files."
       (other-window 1)
       (find-alternate-file filename wildcards))))
 
+(defvar kill-buffer-hook)  ; from buffer.c
+
 (defun find-alternate-file (filename &optional wildcards)
   "Find file FILENAME, select its buffer, kill previous buffer.
 If the current buffer now contains an empty file that you just visited
@@ -1979,7 +1979,7 @@ This function ensures that none of these modifications will take place."
         (inhibit-file-name-operation 'insert-file-contents))
     (unwind-protect
          (progn
-           (fset 'find-buffer-file-type (lambda (filename) t))
+           (fset 'find-buffer-file-type (lambda (_filename) t))
            (insert-file-contents filename visit beg end replace))
       (if find-buffer-file-type-function
 	  (fset 'find-buffer-file-type find-buffer-file-type-function)
@@ -2088,7 +2088,7 @@ unless NOMODES is non-nil."
 	(message "%s" msg)
 	(or not-serious (sit-for 1 t))))
     (when (and auto-save-default (not noauto))
-      (auto-save-mode t)))
+      (auto-save-mode 1)))
   ;; Make people do a little extra work (C-x C-q)
   ;; before altering a backup file.
   (when (backup-file-name-p buffer-file-name)
@@ -2292,6 +2292,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'" . archive-mode)
      ("\\.dtd\\'" . sgml-mode)
      ("\\.ds\\(ss\\)?l\\'" . dsssl-mode)
      ("\\.js\\'" . js-mode)		; javascript-mode would be better
+     ("\\.json\\'" . js-mode)
      ("\\.[ds]?vh?\\'" . verilog-mode)
      ;; .emacs or .gnus or .viper following a directory delimiter in
      ;; Unix, MSDOG or VMS syntax.
@@ -2597,7 +2598,7 @@ we don't actually set it to the same mode the buffer already has."
 					   (min (point-max)
 						(+ (point-min) magic-mode-regexp-match-limit)))
 			 (assoc-default nil magic-mode-alist
-					(lambda (re dummy)
+					(lambda (re _dummy)
 					  (if (functionp re)
 					      (funcall re)
 					    (looking-at re)))))))
@@ -2650,7 +2651,7 @@ we don't actually set it to the same mode the buffer already has."
 					   (min (point-max)
 						(+ (point-min) magic-mode-regexp-match-limit)))
 			 (assoc-default nil magic-fallback-mode-alist
-					(lambda (re dummy)
+					(lambda (re _dummy)
 					  (if (functionp re)
 					      (funcall re)
 					    (looking-at re)))))))
@@ -3175,7 +3176,7 @@ It is safe if any of these conditions are met:
              ;; can't assure us that the value is safe.
              (with-demoted-errors (funcall safep val))))))
 
-(defun risky-local-variable-p (sym &optional ignored)
+(defun risky-local-variable-p (sym &optional _ignored)
   "Non-nil if SYM could be dangerous as a file-local variable.
 It is dangerous if either of these conditions are met:
 
@@ -3232,21 +3233,25 @@ It is dangerous if either of these conditions are met:
       ;; Certain functions can be allowed with safe arguments
       ;; or can specify verification functions to try.
       (and (symbolp (car exp))
-	   (let ((prop (get (car exp) 'safe-local-eval-function)))
-	     (cond ((eq prop t)
-		    (let ((ok t))
-		      (dolist (arg (cdr exp))
-			(unless (hack-one-local-variable-constantp arg)
-			  (setq ok nil)))
-		      ok))
-		   ((functionp prop)
-		    (funcall prop exp))
-		   ((listp prop)
-		    (let ((ok nil))
-		      (dolist (function prop)
-			(if (funcall function exp)
-			    (setq ok t)))
-		      ok)))))))
+	   ;; Allow (minor)-modes calls with no arguments.
+	   ;; This obsoletes the use of "mode:" for such things.  (Bug#8613)
+	   (or (and (null (cdr exp))
+		    (string-match "-mode\\'" (symbol-name (car exp))))
+	       (let ((prop (get (car exp) 'safe-local-eval-function)))
+		 (cond ((eq prop t)
+			(let ((ok t))
+			  (dolist (arg (cdr exp))
+			    (unless (hack-one-local-variable-constantp arg)
+			      (setq ok nil)))
+			  ok))
+		       ((functionp prop)
+			(funcall prop exp))
+		       ((listp prop)
+			(let ((ok nil))
+			  (dolist (function prop)
+			    (if (funcall function exp)
+				(setq ok t)))
+			  ok))))))))
 
 (defun hack-one-local-variable (var val)
   "Set local variable VAR with value VAL.
@@ -4965,7 +4970,7 @@ sake of backward compatibility.  IGNORE-AUTO is optional, defaulting
 to nil.
 
 Optional second argument NOCONFIRM means don't ask for confirmation
-at all.  \(The variable `revert-without-query' offers another way to
+at all.  (The variable `revert-without-query' offers another way to
 revert buffers without querying for confirmation.)
 
 Optional third argument PRESERVE-MODES non-nil means don't alter

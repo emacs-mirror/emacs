@@ -339,7 +339,7 @@ pass to the OPERATION."
 	    preserve-uid-gid preserve-selinux-context)
   "Like `copy-file' for Tramp files.
 KEEP-DATE is not handled in case NEWNAME resides on an SMB server.
-PRESERVE-UID-GID is completely ignored."
+PRESERVE-UID-GID and PRESERVE-SELINUX-CONTEXT are completely ignored."
   (setq filename (expand-file-name filename)
 	newname (expand-file-name newname))
   (with-progress-reporter
@@ -1314,7 +1314,7 @@ connection if a previous connection has died for some reason."
 
 	      ;; Play login scenario.
 	      (tramp-process-actions
-	       p vec
+	       p vec nil
 	       (if share
 		   tramp-smb-actions-with-share
 		 tramp-smb-actions-without-share))

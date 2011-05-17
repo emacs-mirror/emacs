@@ -1,4 +1,4 @@
-;;; grep.el --- run Grep as inferior of Emacs, parse match messages
+;;; grep.el --- run `grep' and display the results
 
 ;; Copyright (C) 1985-1987, 1993-1999, 2001-2011
 ;;   Free Software Foundation, Inc.
@@ -33,7 +33,7 @@
 
 
 (defgroup grep nil
-  "Run grep as inferior of Emacs, parse error messages."
+  "Run `grep' and display the results."
   :group 'tools
   :group 'processes)
 
@@ -399,26 +399,7 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
       (0 '(face nil compilation-message nil help-echo nil mouse-face nil) t)
       (1 grep-error-face)
       (2 grep-error-face nil t))
-     ("^.+?-[0-9]+-.*\n" (0 grep-context-face))
-     ;; Highlight grep matches and delete markers.
-     ;; FIXME: Modifying the buffer text from font-lock is a bad idea!
-     ("\\(\033\\[01;31m\\)\\(.*?\\)\\(\033\\[[0-9]*m\\)"
-      ;; Refontification does not work after the markers have been
-      ;; deleted.  So we use the font-lock-face property here as Font
-      ;; Lock does not clear that.
-      (2 (list 'face nil 'font-lock-face grep-match-face))
-      ((lambda (bound))
-       (progn
-	 ;; Delete markers with `replace-match' because it updates
-	 ;; the match-data, whereas `delete-region' would render it obsolete.
-	 (syntax-ppss-flush-cache (match-beginning 0))
-	 (replace-match "" t t nil 3)
-	 (replace-match "" t t nil 1))))
-     ("\033\\[[0-9;]*[mK]"
-      ;; Delete all remaining escape sequences
-      ((lambda (bound))
-       (syntax-ppss-flush-cache (match-beginning 0))
-       (replace-match "" t t))))
+     ("^.+?-[0-9]+-.*\n" (0 grep-context-face)))
    "Additional things to highlight in grep output.
 This gets tacked on the end of the generated expressions.")
 
@@ -490,6 +471,28 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
 		    (cons msg code)))
 	   (cons msg code))))
   (run-hooks 'grep-setup-hook))
+
+(defun grep-filter ()
+  "Handle match highlighting escape sequences inserted by the grep process.
+This function is called from `compilation-filter-hook'."
+  (save-excursion
+    (forward-line 0)
+    (let ((end (point)))
+      (goto-char compilation-filter-start)
+      (forward-line 0)
+      ;; Only operate on whole lines so we don't get caught with part of an
+      ;; escape sequence in one chunk and the rest in another.
+      (when (< (point) end)
+        (setq end (copy-marker end))
+        ;; Highlight grep matches and delete marking sequences.
+        (while (re-search-forward "\033\\[01;31m\\(.*?\\)\033\\[[0-9]*m" end 1)
+          (replace-match (propertize (match-string 1)
+                                     'face nil 'font-lock-face grep-match-face)
+                         t t))
+        ;; Delete all remaining escape sequences
+        (goto-char compilation-filter-start)
+        (while (re-search-forward "\033\\[[0-9;]*[mK]" end 1)
+          (replace-match "" t t))))))
 
 (defun grep-probe (command args &optional func result)
   (let (process-file-side-effects)
@@ -697,7 +700,8 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
        grep-regexp-alist)
   (set (make-local-variable 'compilation-process-setup-function)
        'grep-process-setup)
-  (set (make-local-variable 'compilation-disable-input) t))
+  (set (make-local-variable 'compilation-disable-input) t)
+  (add-hook 'compilation-filter-hook 'grep-filter nil t))
 
 
 ;;;###autoload

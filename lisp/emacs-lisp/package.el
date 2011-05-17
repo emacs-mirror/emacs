@@ -84,10 +84,6 @@
 ;;    can see what packages are available.  This will automatically
 ;;    fetch the latest list of packages from ELPA.
 ;;
-;; M-x package-list-packages-no-fetch
-;;    Like package-list-packages, but does not automatically fetch the
-;;    new list of packages.
-;;
 ;; M-x package-install-from-buffer
 ;;    Install a package consisting of a single .el file that appears
 ;;    in the current buffer.  This only works for packages which
@@ -290,9 +286,11 @@ function `package-built-in-p'.
 
 Each element has the form (PKG . DESC), where PKG is a package
 name (a symbol) and DESC is a vector that describes the package.
-The vector DESC has the form [VERSION REQS DOCSTRING].
-  VERSION is a version list.
-  REQS is a list of packages (symbols) required by the package.
+The vector DESC has the form [VERSION-LIST REQS DOCSTRING].
+  VERSION-LIST is a version list.
+  REQS is a list of packages required by the package, each
+   requirement having the form (NAME VL), where NAME is a string
+   and VL is a version list.
   DOCSTRING is a brief description of the package.")
 (put 'package--builtins 'risky-local-variable t)
 
@@ -301,9 +299,11 @@ The vector DESC has the form [VERSION REQS DOCSTRING].
 Each element has the form (PKG . DESC), where PKG is a package
 name (a symbol) and DESC is a vector that describes the package.
 
-The vector DESC has the form [VERSION REQS DOCSTRING].
-  VERSION is a version list.
-  REQS is a list of packages (symbols) required by the package.
+The vector DESC has the form [VERSION-LIST REQS DOCSTRING].
+  VERSION-LIST is a version list.
+  REQS is a list of packages required by the package, each
+   requirement having the form (NAME VL) where NAME is a string
+   and VL is a version list.
   DOCSTRING is a brief description of the package.
 
 This variable is set automatically by `package-load-descriptor',
@@ -358,8 +358,8 @@ E.g., if given \"quux-23.0\", will return \"quux\""
 
 (defun package-load-descriptor (dir package)
   "Load the description file in directory DIR for package PACKAGE.
-Here, PACKAGE is a string of the form NAME-VER, where NAME is the
-package name and VER is its version."
+Here, PACKAGE is a string of the form NAME-VERSION, where NAME is
+the package name and VERSION is its version."
   (let* ((pkg-dir (expand-file-name package dir))
 	 (pkg-file (expand-file-name
 		    (concat (package-strip-version package) "-pkg")
@@ -452,18 +452,21 @@ NAME and VERSION are both strings."
     ;; Don't return nil.
     t))
 
-(defun package-built-in-p (package &optional version)
-  "Return true if PACKAGE, of VERSION or newer, is built-in to Emacs."
+(defun package-built-in-p (package &optional min-version)
+  "Return true if PACKAGE is built-in to Emacs.
+Optional arg MIN-VERSION, if non-nil, should be a version list
+specifying the minimum acceptable version."
   (require 'finder-inf nil t) ; For `package--builtins'.
   (let ((elt (assq package package--builtins)))
-    (and elt (version-list-<= version (package-desc-vers (cdr elt))))))
+    (and elt (version-list-<= min-version (package-desc-vers (cdr elt))))))
 
 ;; This function goes ahead and activates a newer version of a package
 ;; if an older one was already activated.  This is not ideal; we'd at
 ;; least need to check to see if the package has actually been loaded,
 ;; and not merely activated.
-(defun package-activate (package version)
-  "Activate package PACKAGE, of version VERSION or newer.
+(defun package-activate (package min-version)
+  "Activate package PACKAGE, of version MIN-VERSION or newer.
+MIN-VERSION should be a version list.
 If PACKAGE has any dependencies, recursively activate them.
 Return nil if the package could not be activated."
   (let ((pkg-vec (cdr (assq package package-alist)))
@@ -471,11 +474,11 @@ Return nil if the package could not be activated."
     ;; Check if PACKAGE is available in `package-alist'.
     (when pkg-vec
       (setq available-version (package-desc-vers pkg-vec)
-	    found (version-list-<= version available-version)))
+	    found (version-list-<= min-version available-version)))
     (cond
      ;; If no such package is found, maybe it's built-in.
      ((null found)
-      (package-built-in-p package version))
+      (package-built-in-p package min-version))
      ;; If the package is already activated, just return t.
      ((memq package package-activated-list)
       t)
@@ -512,11 +515,11 @@ Required package `%s-%s' is unavailable"
 				&rest extra-properties)
   "Define a new package.
 NAME-STRING is the name of the package, as a string.
-VERSION-STRING is the version of the package, as a list of
-integers of the form produced by `version-to-list'.
+VERSION-STRING is the version of the package, as a string.
 DOCSTRING is a short description of the package, a string.
 REQUIREMENTS is a list of dependencies on other packages.
-Each requirement is of the form (OTHER-PACKAGE \"VERSION\").
+ Each requirement is of the form (OTHER-PACKAGE OTHER-VERSION),
+ where OTHER-VERSION is a string.
 
 EXTRA-PROPERTIES is currently unused."
   (let* ((name (intern name-string))
@@ -703,8 +706,8 @@ It will move point to somewhere in the headers."
       (package-unpack name version))))
 
 (defun package-installed-p (package &optional min-version)
-  "Return true if PACKAGE, of VERSION or newer, is installed.
-Built-in packages also qualify."
+  "Return true if PACKAGE, of MIN-VERSION or newer, is installed.
+MIN-VERSION should be a version list."
   (let ((pkg-desc (assq package package-alist)))
     (if pkg-desc
 	(version-list-<= min-version
@@ -717,9 +720,9 @@ Built-in packages also qualify."
 PACKAGE-LIST should be a list of package names (symbols).
 
 REQUIREMENTS should be a list of additional requirements; each
-element in this list should have the form (PACKAGE VERSION),
-where PACKAGE is a package name and VERSION is the required
-version of that package (as a list).
+element in this list should have the form (PACKAGE VERSION-LIST),
+where PACKAGE is a package name and VERSION-LIST is the required
+version of that package.
 
 This function recursively computes the requirements of the
 packages in REQUIREMENTS, and returns a list of all the packages
@@ -890,7 +893,8 @@ The vector has the form
    [FILENAME REQUIRES DESCRIPTION VERSION COMMENTARY]
 
 FILENAME is the file name, a string, sans the \".el\" extension.
-REQUIRES is a requires list, or nil.
+REQUIRES is a list of requirements, each requirement having the
+ form (NAME VER); NAME is a string and VER is a version list.
 DESCRIPTION is the package description, a string.
 VERSION is the version, a string.
 COMMENTARY is the commentary section, a string, or nil if none.
@@ -1329,45 +1333,52 @@ Letters do not insert themselves; instead, they are commands.
   "Convenience macro for `package-menu--generate'.
 If the alist stored in the symbol LISTNAME lacks an entry for a
 package PACKAGE with descriptor DESC, add one.  The alist is
-keyed with cons cells (PACKAGE . VERSION), where PACKAGE is a
-symbol and VERSION is a version list."
+keyed with cons cells (PACKAGE . VERSION-LIST), where PACKAGE is
+a symbol and VERSION-LIST is a version list."
   `(let* ((version (package-desc-vers ,desc))
 	  (key (cons ,package version)))
      (unless (assoc key ,listname)
        (push (list key ,status (package-desc-doc ,desc)) ,listname))))
 
-(defun package-menu--generate (&optional remember-pos)
+(defun package-menu--generate (remember-pos packages)
   "Populate the Package Menu.
-Optional argument REMEMBER-POS, if non-nil, means to move point
-to the entry as before."
+If REMEMBER-POS is non-nil, keep point on the same entry.
+PACKAGES should be t, which means to display all known packages,
+or a list of package names (symbols) to display."
   ;; Construct list of ((PACKAGE . VERSION) STATUS DESCRIPTION).
   (let (info-list name builtin)
     ;; Installed packages:
     (dolist (elt package-alist)
       (setq name (car elt))
-      (package--push name (cdr elt)
-		     (if (stringp (cadr (assq name package-load-list)))
-			 "held" "installed")
-		     info-list))
+      (when (or (eq packages t) (memq name packages))
+	(package--push name (cdr elt)
+		       (if (stringp (cadr (assq name package-load-list)))
+			   "held" "installed")
+		       info-list)))
 
     ;; Built-in packages:
     (dolist (elt package--builtins)
       (setq name (car elt))
-      (unless (eq name 'emacs) ; Hide the `emacs' package.
+      (when (and (not (eq name 'emacs)) ; Hide the `emacs' package.
+		 (or (eq packages t) (memq name packages)))
     	(package--push name (cdr elt) "built-in" info-list)))
 
     ;; Available and disabled packages:
     (dolist (elt package-archive-contents)
       (setq name (car elt))
-      (let ((hold (assq name package-load-list)))
-	(package--push name (cdr elt)
-		       (if (and hold (null (cadr hold))) "disabled" "available")
-		       info-list)))
+      (when (or (eq packages t) (memq name packages))
+	(let ((hold (assq name package-load-list)))
+	  (package--push name (cdr elt)
+			 (if (and hold (null (cadr hold)))
+			     "disabled"
+			   "available")
+			 info-list))))
 
     ;; Obsolete packages:
     (dolist (elt package-obsolete-alist)
       (dolist (inner-elt (cdr elt))
-	(package--push (car elt) (cdr inner-elt) "obsolete" info-list)))
+	(when (or (eq packages t) (memq (car elt) packages))
+	  (package--push (car elt) (cdr inner-elt) "obsolete" info-list))))
 
     ;; Print the result.
     (setq tabulated-list-entries (mapcar 'package-menu--print-info info-list))
@@ -1408,7 +1419,7 @@ This fetches the contents of each archive specified in
   (unless (eq major-mode 'package-menu-mode)
     (error "The current buffer is not a Package Menu"))
   (package-refresh-contents)
-  (package-menu--generate t))
+  (package-menu--generate t t))
 
 (defun package-menu-describe-package (&optional button)
   "Describe the current package.
@@ -1523,7 +1534,7 @@ packages marked for deletion are removed."
     (and delete-list (null install-list)
 	 (package-initialize))
     (if (or delete-list install-list)
-	(package-menu--generate t)
+	(package-menu--generate t t)
       (message "No operations specified."))))
 
 (defun package-menu--version-predicate (A B)
@@ -1577,13 +1588,26 @@ The list is displayed in a buffer named `*Packages*'."
   (let ((buf (get-buffer-create "*Packages*")))
     (with-current-buffer buf
       (package-menu-mode)
-      (package-menu--generate))
+      (package-menu--generate nil t))
     ;; The package menu buffer has keybindings.  If the user types
     ;; `M-x list-packages', that suggests it should become current.
     (switch-to-buffer buf)))
 
 ;;;###autoload
 (defalias 'package-list-packages 'list-packages)
+
+;; Used in finder.el
+(defun package-show-package-list (packages)
+  "Display PACKAGES in a *Packages* buffer.
+This is similar to `list-packages', but it does not fetch the
+updated list of packages, and it only displays packages with
+names in PACKAGES (which should be a list of symbols)."
+  (require 'finder-inf nil t)
+  (let ((buf (get-buffer-create "*Packages*")))
+    (with-current-buffer buf
+      (package-menu-mode)
+      (package-menu--generate nil packages))
+    (switch-to-buffer buf)))
 
 (defun package-list-packages-no-fetch ()
   "Display a list of packages.

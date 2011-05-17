@@ -96,18 +96,8 @@ struct ccl_spec {
    execution of ccl program CCL_PROG (symbol or vector).  */
 extern int setup_ccl_program (struct ccl_program *, Lisp_Object);
 
-/* Check if CCL is updated or not.  If not, re-setup members of CCL.  */
-extern int check_ccl_update (struct ccl_program *);
-
 extern void ccl_driver (struct ccl_program *, int *, int *, int, int,
                         Lisp_Object);
-
-/* Vector of CCL program names vs corresponding program data.  */
-extern Lisp_Object Vccl_program_table;
-
-/* Symbols of ccl program have this property, a value of the property
-   is an index for Vccl_protram_table. */
-extern Lisp_Object Qccl_program_idx;
 
 extern Lisp_Object Qccl, Qcclp;
 
@@ -120,4 +110,3 @@ EXFUN (Fccl_program_p, 1);
   } while (0);
 
 #endif /* EMACS_CCL_H */
-

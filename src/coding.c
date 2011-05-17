@@ -300,27 +300,30 @@ encode_coding_XXX (struct coding_system *coding)
 
 Lisp_Object Vcoding_system_hash_table;
 
-Lisp_Object Qcoding_system, Qcoding_aliases, Qeol_type;
+static Lisp_Object Qcoding_system, Qeol_type;
+static Lisp_Object Qcoding_aliases;
 Lisp_Object Qunix, Qdos;
 Lisp_Object Qbuffer_file_coding_system;
-Lisp_Object Qpost_read_conversion, Qpre_write_conversion;
-Lisp_Object Qdefault_char;
+static Lisp_Object Qpost_read_conversion, Qpre_write_conversion;
+static Lisp_Object Qdefault_char;
 Lisp_Object Qno_conversion, Qundecided;
-Lisp_Object Qcharset, Qiso_2022, Qutf_8, Qutf_16, Qshift_jis, Qbig5;
-Lisp_Object Qbig, Qlittle;
-Lisp_Object Qcoding_system_history;
-Lisp_Object Qvalid_codes;
-Lisp_Object QCcategory, QCmnemonic, QCdefault_char;
-Lisp_Object QCdecode_translation_table, QCencode_translation_table;
-Lisp_Object QCpost_read_conversion, QCpre_write_conversion;
-Lisp_Object QCascii_compatible_p;
+Lisp_Object Qcharset, Qutf_8;
+static Lisp_Object Qiso_2022;
+static Lisp_Object Qutf_16, Qshift_jis, Qbig5;
+static Lisp_Object Qbig, Qlittle;
+static Lisp_Object Qcoding_system_history;
+static Lisp_Object Qvalid_codes;
+static Lisp_Object QCcategory, QCmnemonic, QCdefault_char;
+static Lisp_Object QCdecode_translation_table, QCencode_translation_table;
+static Lisp_Object QCpost_read_conversion, QCpre_write_conversion;
+static Lisp_Object QCascii_compatible_p;
 
 Lisp_Object Qcall_process, Qcall_process_region;
 Lisp_Object Qstart_process, Qopen_network_stream;
-Lisp_Object Qtarget_idx;
+static Lisp_Object Qtarget_idx;
 
-Lisp_Object Qinsufficient_source, Qinconsistent_eol, Qinvalid_source;
-Lisp_Object Qinterrupted, Qinsufficient_memory;
+static Lisp_Object Qinsufficient_source, Qinconsistent_eol, Qinvalid_source;
+static Lisp_Object Qinterrupted, Qinsufficient_memory;
 
 /* If a symbol has this property, evaluate the value to define the
    symbol as a coding system.  */
@@ -351,12 +354,12 @@ struct coding_system safe_terminal_coding;
 
 Lisp_Object Qtranslation_table;
 Lisp_Object Qtranslation_table_id;
-Lisp_Object Qtranslation_table_for_decode;
-Lisp_Object Qtranslation_table_for_encode;
+static Lisp_Object Qtranslation_table_for_decode;
+static Lisp_Object Qtranslation_table_for_encode;
 
 /* Two special coding systems.  */
-Lisp_Object Vsjis_coding_system;
-Lisp_Object Vbig5_coding_system;
+static Lisp_Object Vsjis_coding_system;
+static Lisp_Object Vbig5_coding_system;
 
 /* ISO2022 section */
 
@@ -1068,6 +1071,8 @@ coding_set_destination (struct coding_system *coding)
 static void
 coding_alloc_by_realloc (struct coding_system *coding, EMACS_INT bytes)
 {
+  if (coding->dst_bytes >= MOST_POSITIVE_FIXNUM - bytes)
+    error ("Maximum size of buffer or string exceeded");
   coding->destination = (unsigned char *) xrealloc (coding->destination,
 						    coding->dst_bytes + bytes);
   coding->dst_bytes += bytes;
@@ -2330,7 +2335,9 @@ decode_coding_emacs_mule (struct coding_system *coding)
   /* We may produce two annotations (charset and composition) in one
      loop and one more charset annotation at the end.  */
   int *charbuf_end
-    = coding->charbuf + coding->charbuf_size - (MAX_ANNOTATION_LENGTH * 3);
+    = coding->charbuf + coding->charbuf_size - (MAX_ANNOTATION_LENGTH * 3)
+      /* We can produce up to 2 characters in a loop.  */
+      - 1;
   EMACS_INT consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
   EMACS_INT char_offset = coding->produced_char;
@@ -2345,6 +2352,8 @@ decode_coding_emacs_mule (struct coding_system *coding)
     {
       int i;
 
+      if (charbuf_end - charbuf < cmp_status->length)
+	abort ();
       for (i = 0; i < cmp_status->length; i++)
 	*charbuf++ = cmp_status->carryover[i];
       coding->annotated = 1;
@@ -2859,7 +2868,7 @@ encode_coding_emacs_mule (struct coding_system *coding)
   COMPOSITION_WITH_RULE_ALTCHARS:
 	ESC 4 ALTCHAR [ RULE ALTCHAR ] ESC 0 CHAR [ CHAR ] ESC 1 */
 
-enum iso_code_class_type iso_code_class[256];
+static enum iso_code_class_type iso_code_class[256];
 
 #define SAFE_CHARSET_P(coding, id)	\
   ((id) <= (coding)->max_charset_id	\
@@ -3476,6 +3485,8 @@ decode_coding_iso_2022 (struct coding_system *coding)
 
   if (cmp_status->state != COMPOSING_NO)
     {
+      if (charbuf_end - charbuf < cmp_status->length)
+	abort ();
       for (i = 0; i < cmp_status->length; i++)
 	*charbuf++ = cmp_status->carryover[i];
       coding->annotated = 1;
@@ -5357,8 +5368,8 @@ detect_coding_charset (struct coding_system *coding,
 	      if (src == src_end)
 		goto too_short;
 	      ONE_MORE_BYTE (c);
-	      if (c < charset->code_space[(dim - 1 - idx) * 2]
-		  || c > charset->code_space[(dim - 1 - idx) * 2 + 1])
+	      if (c < charset->code_space[(dim - 1 - idx) * 4]
+		  || c > charset->code_space[(dim - 1 - idx) * 4 + 1])
 		break;
 	    }
 	  if (idx < dim)
@@ -6209,7 +6220,7 @@ adjust_coding_eol_type (struct coding_system *coding, int eol_seen)
    system is detected, update fields of CODING by the detected coding
    system.  */
 
-void
+static void
 detect_coding (struct coding_system *coding)
 {
   const unsigned char *src, *src_end;
@@ -7122,7 +7133,7 @@ handle_composition_annotation (EMACS_INT pos, EMACS_INT limit,
 	      components = COMPOSITION_COMPONENTS (prop);
 	      if (VECTORP (components))
 		{
-		  len = XVECTOR (components)->size;
+		  len = ASIZE (components);
 		  for (i = 0; i < len; i++)
 		    *buf++ = XINT (AREF (components, i));
 		}
@@ -7522,30 +7533,6 @@ decode_coding_gap (struct coding_system *coding,
       coding->produced_char += Z - prev_Z;
       coding->produced += Z_BYTE - prev_Z_BYTE;
     }
-
-  unbind_to (count, Qnil);
-  return coding->result;
-}
-
-int
-encode_coding_gap (struct coding_system *coding,
-		   EMACS_INT chars, EMACS_INT bytes)
-{
-  int count = SPECPDL_INDEX ();
-
-  code_conversion_save (0, 0);
-
-  coding->src_object = Fcurrent_buffer ();
-  coding->src_chars = chars;
-  coding->src_bytes = bytes;
-  coding->src_pos = -chars;
-  coding->src_pos_byte = -bytes;
-  coding->src_multibyte = chars < bytes;
-  coding->dst_object = coding->src_object;
-  coding->dst_pos = PT;
-  coding->dst_pos_byte = PT_BYTE;
-
-  encode_coding (coding);
 
   unbind_to (count, Qnil);
   return coding->result;
@@ -8831,7 +8818,7 @@ is nil.  */)
 }
 
 
-Lisp_Object
+static Lisp_Object
 code_convert_region (Lisp_Object start, Lisp_Object end,
 		     Lisp_Object coding_system, Lisp_Object dst_object,
 		     int encodep, int norecord)
@@ -9058,14 +9045,14 @@ Return the corresponding character.  */)
 
       if (c1 < 0x81 || (c1 > 0x9F && c1 < 0xE0) || c1 > 0xEF
 	  || c2 < 0x40 || c2 == 0x7F || c2 > 0xFC)
-	error ("Invalid code: %"pEd, ch);
+	error ("Invalid code: %"pI"d", ch);
       c = ch;
       SJIS_TO_JIS (c);
       charset = charset_kanji;
     }
   c = DECODE_CHAR (charset, c);
   if (c < 0)
-    error ("Invalid code: %"pEd, ch);
+    error ("Invalid code: %"pI"d", ch);
   return make_number (c);
 }
 
@@ -9092,7 +9079,7 @@ Return the corresponding code in SJIS.  */)
   charset_list = CODING_ATTR_CHARSET_LIST (attrs);
   charset = char_charset (c, charset_list, &code);
   if (code == CHARSET_INVALID_CODE (charset))
-    error ("Can't encode by shift_jis encoding: %d", c);
+    error ("Can't encode by shift_jis encoding: %c", c);
   JIS_TO_SJIS (code);
 
   return make_number (code);
@@ -9132,13 +9119,13 @@ Return the corresponding character.  */)
       int b2 = ch & 0x7F;
       if (b1 < 0xA1 || b1 > 0xFE
 	  || b2 < 0x40 || (b2 > 0x7E && b2 < 0xA1) || b2 > 0xFE)
-	error ("Invalid code: %"pEd, ch);
+	error ("Invalid code: %"pI"d", ch);
       c = ch;
       charset = charset_big5;
     }
   c = DECODE_CHAR (charset, c);
   if (c < 0)
-    error ("Invalid code: %"pEd, ch);
+    error ("Invalid code: %"pI"d", ch);
   return make_number (c);
 }
 
@@ -9163,7 +9150,7 @@ Return the corresponding character code in Big5.  */)
   charset_list = CODING_ATTR_CHARSET_LIST (attrs);
   charset = char_charset (c, charset_list, &code);
   if (code == CHARSET_INVALID_CODE (charset))
-    error ("Can't encode by Big5 encoding: %d", c);
+    error ("Can't encode by Big5 encoding: %c", c);
 
   return make_number (code);
 }
@@ -9303,14 +9290,15 @@ usage: (find-operation-coding-system OPERATION ARGUMENTS...)  */)
       || !NATNUMP (target_idx = Fget (operation, Qtarget_idx)))
     error ("Invalid first argument");
   if (nargs < 1 + XFASTINT (target_idx))
-    error ("Too few arguments for operation: %s",
+    error ("Too few arguments for operation `%s'",
 	   SDATA (SYMBOL_NAME (operation)));
   target = args[XFASTINT (target_idx) + 1];
   if (!(STRINGP (target)
 	|| (EQ (operation, Qinsert_file_contents) && CONSP (target)
 	    && STRINGP (XCAR (target)) && BUFFERP (XCDR (target)))
 	|| (EQ (operation, Qopen_network_stream) && INTEGERP (target))))
-    error ("Invalid %"pEd"th argument", XFASTINT (target_idx) + 1);
+    error ("Invalid argument %"pI"d of operation `%s'",
+	   XFASTINT (target_idx) + 1, SDATA (SYMBOL_NAME (operation)));
   if (CONSP (target))
     target = XCAR (target);
 
@@ -9786,7 +9774,7 @@ usage: (define-coding-system-internal ...)  */)
 	  CHECK_CHARSET_GET_ID (tmp1, id);
 	  CHECK_NATNUM_CDR (val);
 	  if (XINT (XCDR (val)) >= 4)
-	    error ("Invalid graphic register number: %"pEd, XINT (XCDR (val)));
+	    error ("Invalid graphic register number: %"pI"d", XINT (XCDR (val)));
 	  XSETCAR (val, make_number (id));
 	}
 

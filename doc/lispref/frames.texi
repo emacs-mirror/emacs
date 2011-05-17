@@ -679,17 +679,20 @@ use the default width.
 @itemx right-fringe
 The default width of the left and right fringes of windows in this
 frame (@pxref{Fringes}).  If either of these is zero, that effectively
-removes the corresponding fringe.  A value of @code{nil} stands for
-the standard fringe width, which is the width needed to display the
-fringe bitmaps.
+removes the corresponding fringe.
+
+When you use @code{frame-parameter} to query the value of either of
+these two frame parameters, the return value is always an integer.
+When using @code{set-frame-parameter}, passing a @code{nil} value
+imposes an actual default value of 8 pixels.
 
 The combined fringe widths must add up to an integral number of
-columns, so the actual default fringe widths for the frame may be
-larger than the specified values.  The extra width needed to reach an
-acceptable total is distributed evenly between the left and right
-fringe.  However, you can force one fringe or the other to a precise
-width by specifying that width as a negative integer.  If both widths are
-negative, only the left fringe gets the specified width.
+columns, so the actual default fringe widths for the frame, as
+reported by @code{frame-parameter}, may be larger than what you
+specify.  Any extra width is distributed evenly between the left and
+right fringe.  However, you can force one fringe or the other to a
+precise width by specifying that width as a negative integer.  If both
+widths are negative, only the left fringe gets the specified width.
 
 @vindex menu-bar-lines, a frame parameter
 @item menu-bar-lines

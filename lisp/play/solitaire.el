@@ -126,7 +126,7 @@ the game is over, or off, if you are working on a slow machine."
   '(solitaire-left solitaire-right solitaire-up solitaire-down))
 
 ;;;###autoload
-(defun solitaire (arg)
+(defun solitaire (_arg)
   "Play Solitaire.
 
 To play Solitaire, type \\[solitaire].
@@ -393,7 +393,7 @@ which a stone will be taken away) and target."
 		solitaire-valid-directions)))
 	count))))
 
-(defun solitaire-do-check (&optional arg)
+(defun solitaire-do-check (&optional _arg)
   "Check for any possible moves in Solitaire."
   (interactive "P")
   (let ((moves (solitaire-check)))

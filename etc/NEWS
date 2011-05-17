@@ -48,7 +48,7 @@ This is only useful for Emacs developers to debug certain types of bugs.
 This is not a new feature; only the configure flag is new.
 
 ---
-** New translation of the Emacs Tutorial in Hebrew is available
+** New translation of the Emacs Tutorial in Hebrew is available.
 Type `C-u C-h t' to choose it in case your language setup doesn't
 automatically select it.
 
@@ -62,7 +62,8 @@ longer have any effect.  (They were declared obsolete in Emacs 23.)
 ** New command line option `--no-site-lisp' removes site-lisp directories
 from load-path.  -Q now implies this.
 
-** On Windows, Emacs now warns when the obsolete _emacs init file is used.
+** On Windows, Emacs now warns when the obsolete _emacs init file is used,
+and also when HOME is set to C:\ by default.
 
 
 * Changes in Emacs 24.1
@@ -85,12 +86,14 @@ error, its exit status is 1.
 ** Completion can cycle, depending on completion-cycle-threshold.
 
 ** `completing-read' can be customized using the new variable
-`completing-read-function'
+`completing-read-function'.
 
 ** auto-mode-case-fold is now enabled by default.
 
+** Internationalization changes
+
 +++
-** Emacs now supports display and editing of bidirectional text.
+*** Emacs now supports display and editing of bidirectional text.
 
 See the node "Bidirectional Editing" in the Emacs Manual for some
 initial documentation.
@@ -116,6 +119,20 @@ Note that some advanced display features, such as overlay strings and
 `display' text properties, do not yet work correctly when
 bidirectional text is reordered for display.
 
++++
+*** Enhanced support for characters that have no glyphs in available fonts.
+If a character has no glyphs in any of the available fonts, Emacs by
+default will display it either as a hexadecimal code in a box or as a
+thin 1-pixel space.  In addition to these two methods, Emacs can
+display these characters as empty box, as an acronym, or not display
+them at all.  To change how these characters are displayed, customize
+the variable `glyphless-char-display-control'.
+
+On character terminals these methods are used for characters that
+cannot be encoded by the `terminal-coding-system'.
+
+*** There are two new input methods for Persian/Farsi: farsi and farsi-translit.
+
 ** GTK scroll-bars are now placed on the right by default.
 Use `set-scroll-bar-mode' to change this.
 
@@ -134,7 +151,7 @@ image formats in Emacs.  By default, Emacs links with the ImageMagick
 libraries if they are present at build time.  This needs ImageMagick
 6.2.8 or newer (versions newer than 6.0.7 _may_ work but have not been
 tested).  To disable ImageMagick support, use the configure option
-`--without-imagemagick'.  
+`--without-imagemagick'.
 
 The new function `imagemagick-types' returns a list of image file
 extensions that your installation of ImageMagick supports.  The
@@ -153,22 +170,10 @@ off by customizing x-gtk-use-system-tooltips.
 with Xft.  To change font, use the X resource font, for example:
 Emacs.pane.menubar.font:  Courier-12
 
-+++
-** Enhanced support for characters that have no glyphs in available fonts
-If a character has no glyphs in any of the available fonts, Emacs by
-default will display it either as a hexadecimal code in a box or as a
-thin 1-pixel space.  In addition to these two methods, Emacs can
-display these characters as empty box, as an acronym, or not display
-them at all.  To change how these characters are displayed, customize
-the variable `glyphless-char-display-control'.
-
-On character terminals these methods are used for characters that
-cannot be encoded by the `terminal-coding-system'.
-
 ** On graphical displays, the mode-line no longer ends in dashes.
 
 ** On Nextstep/OSX, the menu bar can be hidden by customizing
-   ns-auto-hide-menu-bar.
+ns-auto-hide-menu-bar.
 
 ** Basic SELinux support has been added.
 This requires Emacs to be linked with libselinux at build time.
@@ -266,6 +271,10 @@ default, all themes included in Emacs are treated as safe.
 ** The user option `remote-file-name-inhibit-cache' controls whether
 the remote file-name cache is used for read access.
 
++++
+** The use of a "mode: minor" specification in a file local variables section
+to enable a minor-mode is deprecated.  Instead, use "eval: (minor-mode)".
+
 ** The standalone programs lib-src/digest-doc and sorted-doc have been
 replaced with Lisp commands `doc-file-to-man' and `doc-file-to-info'.
 
@@ -279,6 +288,10 @@ replaced with Lisp commands `doc-file-to-man' and `doc-file-to-info'.
 +++
 *** C-y in Isearch is now bound to isearch-yank-kill, instead of
 isearch-yank-line.
+
+---
+*** M-y in Isearch is now bound to isearch-yank-pop, instead of
+isearch-yank-kill.
 
 +++
 *** M-s C-e in Isearch is now bound to isearch-yank-line.
@@ -370,8 +383,16 @@ $ESHELL nor variable `explicit-shell-file-name' is set.
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
 
-** The compile.el mode can be used without font-lock-mode.
+** comint and modes derived from it use the generic completion code.
+
+** Compilation mode
+
+*** Compilation mode can be used without font-lock-mode.
 `compilation-parse-errors-function' is now obsolete.
+
+*** `compilation-filter-start' is let-bound to the start of the text
+inserted by the compilation filter function, when calling
+compilation-filter-hook.
 
 ** The Landmark game is now invoked with `landmark', not `lm'.
 
@@ -392,6 +413,9 @@ Just set shell-dir-cookie-re to an appropriate regexp.
 
 ** browse-url has gotten a new variable that is used for mailto: URLs,
 `browse-url-mailto-function', which defaults to `browse-url-mail'.
+
+** `url-queue-retrieve' downloads web pages asynchronously, but allow
+controlling the degree of parallelism.
 
 ** Directory local variables can apply to file-less buffers, in certain modes
 (eg dired, vc-dir, log-edit).  For example, adding
@@ -437,6 +461,15 @@ You can get a comparable behavior with:
 
 ** Calendar, Diary, and Appt
 
++++
+*** Diary entries can contain non-printing `comments'.
+See the variable `diary-comment-start'.
+
++++
+*** Appointments can specify their individual warning times.
+See the variable `appt-warning-time-regexp'.
+
++++
 *** New function `diary-hebrew-birthday'.
 
 ---
@@ -644,6 +677,9 @@ on a D-Bus without simultaneously registering a property or a method.
 *** The following access methods are discontinued: "ssh1_old",
 "ssh2_old", "scp1_old", "scp2_old", "imap", "imaps" and "fish".
 
+*** The option `ange-ftp-binary-file-name-regexp' has changed its
+default value to "".
+
 ** VC and related modes
 
 *** Support for pulling on distributed version control systems.
@@ -671,6 +707,9 @@ use this to display the full log entry for the revision at point.
 
 **** Packages using Log View mode can enable this functionality by
 binding `log-view-expanded-log-entry-function' to a suitable function.
+
+*** New command `vc-ediff' allows visual comparison of two revisions
+of a file similar to `vc-diff', but using ediff backend.
 
 ** Miscellaneous
 
@@ -714,6 +753,13 @@ soap-inspect.el is an interactive inspector for SOAP WSDL structures.
 
 
 * Incompatible Lisp Changes in Emacs 24.1
+
+---
+** `char-direction-table' and the associated function `char-direction'
+were deleted.  They were buggy and inferior to the new support of
+bidirectional editing introduced in Emacs 24.  If you need the
+bidirectional properties of a character, use `get-char-code-property'
+with the last argument `bidi-class'.
 
 ** `copy-directory' now copies the source directory as a subdirectory
 of the target directory, if the latter is an existing directory.  The
@@ -779,6 +825,9 @@ sc.el, x-menu.el, rnews.el, rnewspost.el
 
 * Lisp changes in Emacs 24.1
 
+** `glyphless-char-display' can now distinguish between graphical and
+text terminal display, via a char-table entry that is a cons cell.
+
 ** `open-network-stream' can now be used to open an encrypted stream.
 It now accepts an optional `:type' parameter for initiating a TLS
 connection, directly or via STARTTLS.  To do STARTTLS, additional
@@ -805,6 +854,12 @@ declared as dynamically bound.
 Instead, the offending function is removed.
 
 ** New low-level function run-hook-wrapped.
+
+** `server-eval-at' is provided to allow evaluating forms on different
+Emacs server instances.
+
+** `call-process' allows a `(:file "file")' spec to redirect STDOUT to
+a file.
 
 ** byte-compile-disable-print-circle is obsolete.
 ** deferred-action-list and deferred-action-function are obsolete.
@@ -878,7 +933,21 @@ Emacs Lisp parse tree.
 
 FIXME: These should be front-ended by xml.el.
 
-** FIXME GnuTLS
+** GnuTLS
+
+*** Emacs can be compiled with libgnutls support
+This is the default.  You will then be able to use the functionality
+in gnutls.el, namely the `open-gnutls-stream' and `gnutls-negotiate'
+functions.  It's easiest to use these functions through
+`open-network-stream' because it can upgrade connections through
+STARTTLS opportunistically or use plain SSL, depending on your needs.
+
+Only versions 2.8.x and higher or GnuTLS have been tested.
+
+*** gnutls-log-level
+Set `gnutls-log-level' higher than 0 to get debug output.  1 is for
+important messages, 2 is for debug data, and higher numbers are as per
+the GnuTLS logging conventions.  The output is in *Messages*.
 
 ** Isearch
 
@@ -894,6 +963,9 @@ displayed with a "spinning bar".
 ** New variable `revert-buffer-in-progress-p' is true while a buffer is
 being reverted, even if the buffer has a local `revert-buffer-function'.
 
+** New variables `delayed-warnings-list' and `delayed-warnings-hook' allow
+deferring warnings until the main command loop is executed.
+
 
 * Changes in Emacs 24.1 on non-free operating systems
 
@@ -902,6 +974,12 @@ runtime checks.
 
 ** New configure.bat option --distfiles to specify files to be
 included in binary distribution.
+
+** New configure.bat option --without-gnutls to disable automatic
+GnuTLS detection.
+
+** New configure.bat option --lib for general library linkage, works
+with the USER_LIBS build variable.
 
 ** New make target `dist' to create binary distribution for MS Windows.
 

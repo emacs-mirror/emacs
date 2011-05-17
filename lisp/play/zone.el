@@ -626,6 +626,8 @@ If the element is a function or a list of a function and a number,
   "*Seconds to wait between successive `life' generations.
 If nil, `zone-pgm-random-life' chooses a value from 0-3 (inclusive).")
 
+(defvar life-patterns) ; from life.el
+
 (defun zone-pgm-random-life ()
   (require 'life)
   (zone-fill-out-screen (1- (window-width)) (1- (window-height)))

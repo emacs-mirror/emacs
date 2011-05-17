@@ -1676,7 +1676,7 @@ After updating a displayed Proced buffer run the normal hook
         (message (if revert "Updating process information...done."
                    "Updating process display...done.")))))
 
-(defun proced-revert (&rest args)
+(defun proced-revert (&rest _args)
   "Reevaluate the process listing based on the currently running processes.
 Preserves point and marks."
   (proced-update t))
@@ -1771,7 +1771,7 @@ After sending the signal, this command runs the normal hook
                                       (number-to-string signal) signal))))
           (dolist (process process-alist)
             (with-temp-buffer
-              (condition-case err
+              (condition-case nil
                   (if (zerop (call-process
                               proced-signal-function nil t nil
                               signal (number-to-string (car process))))

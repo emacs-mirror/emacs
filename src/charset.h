@@ -155,10 +155,11 @@ struct charset
      byte code of the (N+1)th dimension, <code_space>[4N+1] is a
      maximum byte code of the (N+1)th dimension, <code_space>[4N+2] is
      (<code_space>[4N+1] - <code_space>[4N] + 1), <code_space>[4N+3]
-     is a number of characters containd in the first to (N+1)th
-     dismesions.  We get `char-index' of a `code-point' from this
+     is the number of characters contained in the first through (N+1)th
+     dimensions, except that there is no <code_space>[15].
+     We get `char-index' of a `code-point' from this
      information.  */
-  int code_space[16];
+  int code_space[15];
 
   /* If B is a byte of Nth dimension of a code-point, the (N-1)th bit
      of code_space_mask[B] is set.  This array is used to quickly
@@ -517,9 +518,8 @@ extern int iso_charset_table[ISO_MAX_DIMENSION][ISO_MAX_CHARS][ISO_MAX_FINAL];
 
 extern Lisp_Object Qcharsetp;
 
-extern Lisp_Object Qascii, Qunicode;
+extern Lisp_Object Qascii;
 extern int charset_ascii, charset_eight_bit;
-extern int charset_iso_8859_1;
 extern int charset_unicode;
 extern int charset_jisx0201_roman;
 extern int charset_jisx0208_1978;

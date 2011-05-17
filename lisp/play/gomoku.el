@@ -1043,11 +1043,11 @@ If the game is finished, this command requests for another game."
       (insert-char ?\n gomoku-square-height))
     (or (eq (char-after 1) ?.)
 	(put-text-property 1 2 'point-entered
-			   (lambda (x y) (if (bobp) (forward-char)))))
+			   (lambda (_x _y) (if (bobp) (forward-char)))))
     (or intangible
 	(put-text-property point (point) 'intangible 2))
     (put-text-property point (point) 'point-entered
-		       (lambda (x y) (if (eobp) (backward-char))))
+		       (lambda (_x _y) (if (eobp) (backward-char))))
     (put-text-property (point-min) (point) 'category 'gomoku-mode))
   (gomoku-goto-xy (/ (1+ n) 2) (/ (1+ m) 2)) ; center of the board
   (sit-for 0))				; Display NOW

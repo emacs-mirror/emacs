@@ -1027,10 +1027,9 @@ opening the first frame (e.g. open a connection to an X server).")
 			      "~/.emacs")
 			     ((directory-files "~" nil "^_emacs\\(\\.elc?\\)?$")
 			      ;; Also support _emacs for compatibility, but warn about it.
-			      (display-warning
-			       'initialization
-			       "`_emacs' init file is deprecated, please use `.emacs'"
-			       :warning)
+			      (push '(initialization
+				      "`_emacs' init file is deprecated, please use `.emacs'")
+				    delayed-warnings-list)
 			      "~/_emacs")
 			     (t ;; But default to .emacs if _emacs does not exist.
 			      "~/.emacs"))))

@@ -33,17 +33,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "XMenuInt.h"
 
 /*
- * Toggle color macro.
- */
-#define toggle_color(x) \
-	((x) == menu->bkgnd_color ? menu->s_frg_color : menu->bkgnd_color)
-
-/*
  * Internal Window creation queue sizes.
  */
 #define S_QUE_SIZE	300
 #define P_QUE_SIZE	20
-#define BUFFER_SIZE	(S_QUE_SIZE >= P_QUE_SIZE ? S_QUE_SIZE : P_QUE_SIZE)
 
 
 /*
@@ -71,7 +64,7 @@ int _XMErrorCode = XME_NO_ERROR;
 /*
  * _XMErrorList - Global XMenu error code description strings.
  */
-char *
+char const *const
 _XMErrorList[XME_CODE_COUNT] = {
     "No error",				/* XME_NO_ERROR */
     "Menu not initialized",		/* XME_NOT_INIT */
@@ -103,6 +96,7 @@ int (*_XMEventHandler)(XEvent*) = NULL;
  * _XMWinQueInit - Internal routine to initialize the window
  *		   queue.
  */
+void
 _XMWinQueInit(void)
 {
     /*
@@ -138,7 +132,7 @@ _XMWinQueInit(void)
  */
 int
 _XMWinQueAddPane(register Display *display, register XMenu *menu, register XMPane *p_ptr)
-                              
+
                          	/* Menu being manipulated. */
                            	/* XMPane being queued. */
 {
@@ -172,7 +166,7 @@ _XMWinQueAddPane(register Display *display, register XMenu *menu, register XMPan
  */
 int
 _XMWinQueAddSelection(register Display *display, register XMenu *menu, register XMSelect *s_ptr)
-                              
+
                          	/* Menu being manipulated. */
                              	/* XMSelection being queued. */
 {
@@ -205,8 +199,8 @@ _XMWinQueAddSelection(register Display *display, register XMenu *menu, register 
  *		    selection window queues.
  */
 int
-_XMWinQueFlush(register Display *display, register XMenu *menu, register XMPane *pane, XMSelect *select)
-                              
+_XMWinQueFlush(register Display *display, register XMenu *menu, register XMPane *pane, XMSelect *sel)
+
                          		/* Menu being manipulated. */
                           		/* Current pane. */
 {
@@ -215,7 +209,8 @@ _XMWinQueFlush(register Display *display, register XMenu *menu, register XMPane 
     register XMPane *p_ptr;		/* XMPane pointer. */
     register XMSelect *s_ptr;   	/* XMSelect pointer. */
     unsigned long valuemask;    	/* Which attributes to set. */
-    XSetWindowAttributes *attributes; 	/* Attributes to be set. */
+    XSetWindowAttributes attributes_buf; /* Attributes to be set. */
+    XSetWindowAttributes *attributes = &attributes_buf;
 
     /*
      * If the pane window queue is not empty...
@@ -226,7 +221,6 @@ _XMWinQueFlush(register Display *display, register XMenu *menu, register XMPane 
 	 * set up attributes for pane window to be created.
 	 */
 	valuemask = (CWBackPixmap | CWBorderPixel | CWOverrideRedirect);
-	attributes = (XSetWindowAttributes *)malloc(sizeof(XSetWindowAttributes));
 	attributes->border_pixel = menu->p_bdr_color;
 	attributes->background_pixmap = menu->inact_pixmap;
 	attributes->override_redirect = True;
@@ -415,6 +409,7 @@ _XMGetSelectionPtr(register XMPane *p_ptr, register int s_num)
  * _XMRecomputeGlobals - Internal subroutine to recompute menu wide
  *			 global values.
  */
+void
 _XMRecomputeGlobals(register Display *display, register XMenu *menu)
                                /*X11 display variable. */
                          	/* Menu object to compute from. */
@@ -681,7 +676,7 @@ _XMRecomputePane(register Display *display, register XMenu *menu, register XMPan
  */
 int
 _XMRecomputeSelection(register Display *display, register XMenu *menu, register XMSelect *s_ptr, register int s_num)
-                              
+
                          	/* Menu object being recomputed. */
                              	/* Selection pointer. */
                        		/* Selection sequence number. */
@@ -810,6 +805,7 @@ _XMRecomputeSelection(register Display *display, register XMenu *menu, register 
  *			recomputed before calling this routine or
  *			unpredictable results will follow.
  */
+void
 _XMTransToOrigin(Display *display, register XMenu *menu, register XMPane *p_ptr, register XMSelect *s_ptr, int x_pos, int y_pos, int *orig_x, int *orig_y)
                      		/* Not used. Included for consistency. */
                          	/* Menu being computed against. */
@@ -870,6 +866,7 @@ _XMTransToOrigin(Display *display, register XMenu *menu, register XMPane *p_ptr,
  * _XMRefreshPane - Internal subroutine to completely refresh
  *		    the contents of a pane.
  */
+void
 _XMRefreshPane(register Display *display, register XMenu *menu, register XMPane *pane)
 {
     register XMSelect *s_list = pane->s_list;
@@ -937,34 +934,35 @@ _XMRefreshPane(register Display *display, register XMenu *menu, register XMPane 
  * _XMRefreshSelection - Internal subroutine that refreshes
  *			 a single selection window.
  */
-_XMRefreshSelection(register Display *display, register XMenu *menu, register XMSelect *select)
+void
+_XMRefreshSelection(register Display *display, register XMenu *menu, register XMSelect *sel)
 {
-    register int width = select->window_w;
-    register int height = select->window_h;
+    register int width = sel->window_w;
+    register int height = sel->window_h;
     register int bdr_width = menu->s_bdr_width;
 
-    if (select->type == SEPARATOR) {
+    if (sel->type == SEPARATOR) {
         XDrawLine(display,
-                  select->parent_p->window,
+                  sel->parent_p->window,
                   menu->normal_select_GC,
-                  select->window_x,
-                  select->window_y + height / 2,
-                  select->window_x + width,
-                  select->window_y + height / 2);
+                  sel->window_x,
+                  sel->window_y + height / 2,
+                  sel->window_x + width,
+                  sel->window_y + height / 2);
     }
-    else if (select->activated) {
+    else if (sel->activated) {
 	if (menu->menu_mode == INVERT) {
 	    XFillRectangle(display,
-			   select->parent_p->window,
+			   sel->parent_p->window,
 			   menu->normal_select_GC,
-			   select->window_x, select->window_y,
+			   sel->window_x, sel->window_y,
 			   width, height);
 	    XDrawString(display,
-			select->parent_p->window,
+			sel->parent_p->window,
 			menu->inverse_select_GC,
-			select->label_x,
-			select->label_y,
-			select->label, select->label_length);
+			sel->label_x,
+			sel->label_y,
+			sel->label, sel->label_length);
 	}
         else {
             /*
@@ -975,42 +973,41 @@ _XMRefreshSelection(register Display *display, register XMenu *menu, register XM
              */
 
 	    XDrawRectangle(display,
-			   select->parent_p->window,
+			   sel->parent_p->window,
 			   menu->normal_select_GC,
-			   select->window_x + (bdr_width >> 1),
-			   select->window_y + (bdr_width >> 1 ),
+			   sel->window_x + (bdr_width >> 1),
+			   sel->window_y + (bdr_width >> 1 ),
 			   width - bdr_width,
 			   height - bdr_width);
 	    XDrawString(display,
-			select->parent_p->window,
+			sel->parent_p->window,
 			menu->normal_select_GC,
-			select->label_x,
-			select->label_y,
-			select->label, select->label_length);
+			sel->label_x,
+			sel->label_y,
+			sel->label, sel->label_length);
         }
     }
     else {
 	XClearArea(display,
-		   select->parent_p->window,
-		   select->window_x, select->window_y,
+		   sel->parent_p->window,
+		   sel->window_x, sel->window_y,
 		   width, height,
 		   False);
-	if (select->active) {
+	if (sel->active) {
 	    XDrawString(display,
-			select->parent_p->window,
+			sel->parent_p->window,
 			menu->normal_select_GC,
-			select->label_x,
-			select->label_y,
-			select->label, select->label_length);
+			sel->label_x,
+			sel->label_y,
+			sel->label, sel->label_length);
 	}
 	else {
 	    XDrawString(display,
-			select->parent_p->window,
+			sel->parent_p->window,
 			menu->inact_GC,
-			select->label_x,
-			select->label_y,
-			select->label, select->label_length);
+			sel->label_x,
+			sel->label_y,
+			sel->label, sel->label_length);
 	}
     }
 }
-

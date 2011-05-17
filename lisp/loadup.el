@@ -263,7 +263,7 @@
     (let* ((base (concat "emacs-" emacs-version "."))
 	   (files (file-name-all-completions base default-directory))
 	   (versions (mapcar (function (lambda (name)
-					 (string-to-int (substring name (length base)))))
+					 (string-to-number (substring name (length base)))))
 			     files)))
       ;; `emacs-version' is a constant, so we shouldn't change it with `setq'.
       (defconst emacs-version

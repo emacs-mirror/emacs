@@ -63,11 +63,12 @@
 ;; conditions for any error that occurred or nil if none.
 
 (defun Electric-command-loop (return-tag
-			      &optional prompt inhibit-quit
+			      &optional prompt inhibit-quitting
 					loop-function loop-state)
 
   (let (cmd
         (err nil)
+        (inhibit-quit inhibit-quitting)
         (prompt-string prompt))
     (while t
       (if (functionp prompt)

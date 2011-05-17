@@ -1,3 +1,24 @@
+2011-05-11  Glenn Morris  <rgm@gnu.org>
+
+	* semantic/wisent/javascript.el (semantic-get-local-variables):
+	Use define-mode-local-override rather than its obsolete alias.
+
+2011-05-10  Jim Meyering  <meyering@redhat.com>
+
+	Fix doubled-word typos.
+	* ede/pmake.el (ede-proj-makefile-garbage-patterns): the the -> the
+	* semantic/complete.el (semantic-complete-read-tag-local-members):
+	Likewise.
+	* ede.el (ede-auto-add-method): then then -> then
+
+2011-04-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ede/pconf.el (ede-proj-tweak-autoconf, ede-proj-flush-autoconf):
+	* ede/proj-comp.el (ede-proj-tweak-autoconf, ede-proj-flush-autoconf):
+	* ede/proj-elisp.el (ede-proj-tweak-autoconf, ede-proj-flush-autoconf)
+	(ede-proj-tweak-autoconf, ede-proj-flush-autoconf):
+	* ede/proj-scheme.el (ede-proj-tweak-autoconf): Fix typos in docstrings.
+
 2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 23.3 released.

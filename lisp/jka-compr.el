@@ -247,7 +247,7 @@ There should be no more than seven characters after the final `/'."
   :type 'string
   :group 'jka-compr)
 
-(defun jka-compr-make-temp-name (&optional local-copy)
+(defun jka-compr-make-temp-name (&optional _local-copy)
   "This routine will return the name of a new file."
   (make-temp-file jka-compr-temp-name-template))
 
@@ -572,7 +572,7 @@ There should be no more than seven characters after the final `/'."
 
 
 ;; Support for loading compressed files.
-(defun jka-compr-load (file &optional noerror nomessage nosuffix)
+(defun jka-compr-load (file &optional noerror nomessage _nosuffix)
   "Documented as original."
 
   (let* ((local-copy (jka-compr-file-local-copy file))

@@ -100,14 +100,14 @@ static Lisp_Object clean_local_selection_data (Lisp_Object);
 #endif
 
 
-Lisp_Object QSECONDARY, QSTRING, QINTEGER, QCLIPBOARD, QTIMESTAMP,
+static Lisp_Object QSECONDARY, QSTRING, QINTEGER, QCLIPBOARD, QTIMESTAMP,
   QTEXT, QDELETE, QMULTIPLE, QINCR, QEMACS_TMP, QTARGETS, QATOM, QNULL,
   QATOM_PAIR;
 
-Lisp_Object QCOMPOUND_TEXT;	/* This is a type of selection.  */
-Lisp_Object QUTF8_STRING;	/* This is a type of selection.  */
+static Lisp_Object QCOMPOUND_TEXT;	/* This is a type of selection.  */
+static Lisp_Object QUTF8_STRING;	/* This is a type of selection.  */
 
-Lisp_Object Qcompound_text_with_extensions;
+static Lisp_Object Qcompound_text_with_extensions;
 
 static Lisp_Object Qforeign_selection;
 
@@ -169,7 +169,7 @@ x_queue_event (struct input_event *event)
     {
       if (!memcmp (&queue_tmp->event, event, sizeof (*event)))
 	{
-	  TRACE1 ("DECLINE DUP SELECTION EVENT %08lx", (unsigned long)queue_tmp);
+	  TRACE1 ("DECLINE DUP SELECTION EVENT %p", queue_tmp);
 	  x_decline_selection_request (event);
 	  return;
 	}
@@ -180,7 +180,7 @@ x_queue_event (struct input_event *event)
 
   if (queue_tmp != NULL)
     {
-      TRACE1 ("QUEUE SELECTION EVENT %08lx", (unsigned long)queue_tmp);
+      TRACE1 ("QUEUE SELECTION EVENT %p", queue_tmp);
       queue_tmp->event = *event;
       queue_tmp->next = selection_queue;
       selection_queue = queue_tmp;
@@ -213,7 +213,7 @@ x_stop_queuing_selection_requests (void)
   while (selection_queue != NULL)
     {
       struct selection_event_queue *queue_tmp = selection_queue;
-      TRACE1 ("RESTORE SELECTION EVENT %08lx", (unsigned long)queue_tmp);
+      TRACE1 ("RESTORE SELECTION EVENT %p", queue_tmp);
       kbd_buffer_unget_event (&queue_tmp->event);
       selection_queue = queue_tmp->next;
       xfree ((char *)queue_tmp);
@@ -423,7 +423,7 @@ x_get_local_selection (Lisp_Object selection_symbol, Lisp_Object target_type, in
       int size;
       int i;
       pairs = XCDR (target_type);
-      size = XVECTOR (pairs)->size;
+      size = ASIZE (pairs);
       /* If the target is MULTIPLE, then target_type looks like
 	  (MULTIPLE . [[SELECTION1 TARGET1] [SELECTION2 TARGET2] ... ])
 	 We modify the second element of each pair in the vector and
@@ -1261,12 +1261,12 @@ copy_multiple_data (obj)
     return Fcons (XCAR (obj), copy_multiple_data (XCDR (obj)));
 
   CHECK_VECTOR (obj);
-  vec = Fmake_vector (size = XVECTOR (obj)->size, Qnil);
+  vec = Fmake_vector (size = ASIZE (obj), Qnil);
   for (i = 0; i < size; i++)
     {
       Lisp_Object vec2 = XVECTOR (obj)->contents [i];
       CHECK_VECTOR (vec2);
-      if (XVECTOR (vec2)->size != 2)
+      if (ASIZE (vec2) != 2)
 	/* ??? Confusing error message */
 	signal_error ("Vectors must be of length 2", vec2);
       XVECTOR (vec)->contents [i] = Fmake_vector (2, Qnil);
@@ -1444,7 +1444,7 @@ x_get_window_property (Display *display, Window window, Atom property,
   while (bytes_remaining)
     {
 #ifdef TRACE_SELECTION
-      int last = bytes_remaining;
+      unsigned long last = bytes_remaining;
 #endif
       result
 	= XGetWindowProperty (display, window, property,
@@ -1454,7 +1454,7 @@ x_get_window_property (Display *display, Window window, Atom property,
 			      actual_type_ret, actual_format_ret,
 			      actual_size_ret, &bytes_remaining, &tmp_data);
 
-      TRACE2 ("Read %ld bytes from property %s",
+      TRACE2 ("Read %lu bytes from property %s",
 	      last - bytes_remaining,
 	      XGetAtomName (display, property));
 
@@ -1477,7 +1477,7 @@ x_get_window_property (Display *display, Window window, Atom property,
          The bytes and offsets passed to XGetWindowProperty refers to the
          property and those are indeed in 32 bit quantities if format is 32.  */
 
-      if (*actual_format_ret == 32 && *actual_format_ret < BITS_PER_LONG)
+      if (32 < BITS_PER_LONG && *actual_format_ret == 32)
         {
           unsigned long i;
           int  *idata = (int *) ((*data_ret) + offset);
@@ -1878,7 +1878,7 @@ lisp_data_to_selection_data (Display *display, Lisp_Object obj,
 	/* This vector is an ATOM set */
 	{
 	  if (NILP (type)) type = QATOM;
-	  *size_ret = XVECTOR (obj)->size;
+	  *size_ret = ASIZE (obj);
 	  *format_ret = 32;
 	  *data_ret = (unsigned char *) xmalloc ((*size_ret) * sizeof (Atom));
 	  for (i = 0; i < *size_ret; i++)
@@ -1893,7 +1893,7 @@ lisp_data_to_selection_data (Display *display, Lisp_Object obj,
 	/* This vector is an ATOM_PAIR set */
 	{
 	  if (NILP (type)) type = QATOM_PAIR;
-	  *size_ret = XVECTOR (obj)->size;
+	  *size_ret = ASIZE (obj);
 	  *format_ret = 32;
 	  *data_ret = (unsigned char *)
 	    xmalloc ((*size_ret) * sizeof (Atom) * 2);
@@ -1901,7 +1901,7 @@ lisp_data_to_selection_data (Display *display, Lisp_Object obj,
 	    if (VECTORP (XVECTOR (obj)->contents [i]))
 	      {
 		Lisp_Object pair = XVECTOR (obj)->contents [i];
-		if (XVECTOR (pair)->size != 2)
+		if (ASIZE (pair) != 2)
 		  signal_error (
 	"Elements of the vector must be vectors of exactly two elements",
 				pair);
@@ -1923,7 +1923,7 @@ lisp_data_to_selection_data (Display *display, Lisp_Object obj,
 	/* This vector is an INTEGER set, or something like it */
 	{
           int data_size = 2;
-	  *size_ret = XVECTOR (obj)->size;
+	  *size_ret = ASIZE (obj);
 	  if (NILP (type)) type = QINTEGER;
 	  *format_ret = 16;
 	  for (i = 0; i < *size_ret; i++)
@@ -1976,7 +1976,7 @@ clean_local_selection_data (Lisp_Object obj)
   if (VECTORP (obj))
     {
       int i;
-      int size = XVECTOR (obj)->size;
+      int size = ASIZE (obj);
       Lisp_Object copy;
       if (size == 1)
 	return clean_local_selection_data (XVECTOR (obj)->contents [0]);
@@ -2432,7 +2432,7 @@ x_handle_dnd_message (struct frame *f, XClientMessageEvent *event, struct x_disp
      function expects them to be of size int (i.e. 32).  So to be able to
      use that function, put the data in the form it expects if format is 32. */
 
-  if (event->format == 32 && event->format < BITS_PER_LONG)
+  if (32 < BITS_PER_LONG && event->format == 32)
     {
       for (i = 0; i < 5; ++i) /* There are only 5 longs in a ClientMessage. */
         idata[i] = (int) event->data.l[i];

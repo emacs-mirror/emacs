@@ -526,7 +526,8 @@ files for different Emacs versions, like this:
 (cond ((< emacs-major-version 22)
        ;; @r{Emacs 21 customization.}
        (setq custom-file "~/.custom-21.el"))
-      ((and (= emacs-major-version 22) (< emacs-minor-version 3))
+      ((and (= emacs-major-version 22)
+            (< emacs-minor-version 3))
        ;; @r{Emacs 22 customization, before version 22.3.}
        (setq custom-file "~/.custom-22.el"))
       (t
@@ -582,15 +583,15 @@ means that it's disabled.  You can enable or disable the attribute by
 clicking that button.  When the attribute is enabled, you can change
 the attribute value in the usual ways.
 
-  For the colors, you can specify a color name (use @kbd{M-x
-list-colors-display} for a list of them) or a hexadecimal color
-specification of the form @samp{#@var{rr}@var{gg}@var{bb}}.
-(@samp{#000000} is black, @samp{#ff0000} is red, @samp{#00ff00} is
-green, @samp{#0000ff} is blue, and @samp{#ffffff} is white.)  On a
-black-and-white display, the colors you can use for the background are
-@samp{black}, @samp{white}, @samp{gray}, @samp{gray1}, and
-@samp{gray3}.  Emacs supports these shades of gray by using background
-stipple patterns instead of a color.
+  You can specify a color name (use @kbd{M-x list-colors-display} for
+a list of them) or a hexadecimal color specification of the form
+@samp{#@var{rr}@var{gg}@var{bb}}.  (@samp{#000000} is black,
+@samp{#ff0000} is red, @samp{#00ff00} is green, @samp{#0000ff} is
+blue, and @samp{#ffffff} is white.)  On a black-and-white display, the
+colors you can use for the background are @samp{black}, @samp{white},
+@samp{gray}, @samp{gray1}, and @samp{gray3}.  Emacs supports these
+shades of gray by using background stipple patterns instead of a
+color.
 
   Setting, saving and resetting a face work like the same operations for
 variables (@pxref{Changing a Variable}).
@@ -1085,9 +1086,8 @@ first line:
 You can specify any number of variable/value pairs in this way, each
 pair with a colon and semicolon as shown above.  The special
 variable/value pair @code{mode: @var{modename};}, if present,
-specifies a major or minor mode; if you use this to specify a major
-mode, it should come first in the line.  The @var{value}s are used
-literally, and not evaluated.
+specifies a major mode, and should come first in the line.  The
+@var{value}s are used literally, and not evaluated.
 
 @findex add-file-local-variable-prop-line
 @findex delete-file-local-variable-prop-line
@@ -1186,7 +1186,7 @@ list:
 
 @itemize
 @item
-@code{mode} enables the specified major or minor mode.
+@code{mode} enables the specified major mode.
 
 @item
 @code{eval} evaluates the specified Lisp expression (the value
@@ -1213,10 +1213,11 @@ variables as part of their initialization.
   You can use the @code{mode} ``variable'' to enable minor modes as
 well as the major modes; in fact, you can use it more than once, first
 to set the major mode and then to enable minor modes which are
-specific to particular buffers.
+specific to particular buffers.  Using @code{mode} for minor modes
+is deprecated, though---instead, use @code{eval: (minor-mode)}. 
 
-  Often, however, it is a mistake to enable minor modes this way.
-Most minor modes, like Auto Fill mode, represent individual user
+  Often, however, it is a mistake to enable minor modes in file local
+variables.  Most minor modes, like Auto Fill mode, represent individual user
 preferences.  If you want to use a minor mode, it is better to set up
 major mode hooks with your init file to turn that minor mode on for
 yourself alone (@pxref{Init File}), instead of using a local variable
@@ -1334,7 +1335,8 @@ corresponding alist applies to all the files in that subdirectory.
  (java-mode . ((c-file-style . "BSD")
                (subdirs . nil)))
  ("src/imported"
-  . ((nil . ((change-log-default-name . "ChangeLog.local"))))))
+  . ((nil . ((change-log-default-name .
+              "ChangeLog.local"))))))
 @end example
 
 @noindent
@@ -1563,7 +1565,7 @@ just like @key{RET}.
 @code{minibuffer-local-must-match-map} is for strict completion and
 for cautious completion.
 @item
-Finally, @code{minibuffer-local-filename-completion-map} and
+@code{minibuffer-local-filename-completion-map} and
 @code{minibuffer-local-must-match-filename-map} are like the two
 previous ones, but they are specifically for file name completion.
 They do not bind @key{SPC}.
@@ -1694,7 +1696,6 @@ and mouse events:
 (global-set-key (kbd "C-<f5>") 'linum-mode)
 (global-set-key (kbd "C-<right>") 'forward-sentence)
 (global-set-key (kbd "<mouse-2>") 'mouse-save-then-kill)
-(global-set-key (kbd "C-<down-mouse-3>") 'mouse-yank-at-click)
 @end example
 
   Instead of using the @code{kbd} macro, you can use a Lisp string or
@@ -1758,8 +1759,10 @@ and @kbd{C-c p} in Texinfo mode:
 @example
 (add-hook 'texinfo-mode-hook
           '(lambda ()
-             (define-key texinfo-mode-map "\C-cp" 'backward-paragraph)
-             (define-key texinfo-mode-map "\C-cn" 'forward-paragraph)))
+             (define-key texinfo-mode-map "\C-cp"
+                         'backward-paragraph)
+             (define-key texinfo-mode-map "\C-cn"
+                         'forward-paragraph)))
 @end example
 
 @node Modifier Keys

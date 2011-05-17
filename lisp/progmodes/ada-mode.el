@@ -966,7 +966,7 @@ are treated as numbers instead of gnatprep comments."
     (unless modified
       (restore-buffer-modified-p nil))))
 
-(defun ada-after-change-function (beg end old-len)
+(defun ada-after-change-function (beg end _old-len)
   "Called when the region between BEG and END was changed in the buffer.
 OLD-LEN indicates what the length of the replaced text was."
   (save-excursion
@@ -1675,7 +1675,7 @@ ARG is the prefix the user entered with \\[universal-argument]."
 	  '( ?` ?_ ?# ?% ?& ?* ?( ?) ?- ?= ?+
 		?| ?\; ?: ?' ?\" ?< ?, ?. ?> ?/ ?\n 32 ?\r )))
 
-(defun ada-loose-case-word (&optional arg)
+(defun ada-loose-case-word (&optional _arg)
   "Upcase first letter and letters following `_' in the following word.
 No other letter is modified.
 ARG is ignored, and is there for compatibility with `capitalize-word' only."
@@ -1691,7 +1691,7 @@ ARG is ignored, and is there for compatibility with `capitalize-word' only."
 	(insert-char (upcase (following-char)) 1)
 	(delete-char 1)))))
 
-(defun ada-no-auto-case (&optional arg)
+(defun ada-no-auto-case (&optional _arg)
   "Do nothing.  ARG is ignored.
 This function can be used for the auto-casing variables in Ada mode, to
 adapt to unusal auto-casing schemes.  Since it does nothing, you can for
@@ -1700,7 +1700,7 @@ auto-casing for identifiers, whereas keywords have to be lower-cased.
 See also `ada-auto-case' to disable auto casing altogether."
   nil)
 
-(defun ada-capitalize-word (&optional arg)
+(defun ada-capitalize-word (&optional _arg)
   "Upcase first letter and letters following '_', lower case other letters.
 ARG is ignored, and is there for compatibility with `capitalize-word' only."
   (interactive)
@@ -4219,7 +4219,7 @@ of the region.  Otherwise, operate only on the current line."
 	((eq ada-tab-policy 'always-tab) (error "Not implemented"))
 	))
 
-(defun ada-untab (arg)
+(defun ada-untab (_arg)
   "Delete leading indenting according to `ada-tab-policy'."
   ;; FIXME: ARG is ignored
   (interactive "P")
@@ -5250,7 +5250,7 @@ Return nil if no body was found."
 ;;  Support for narrow-to-region
 ;; ---------------------------------------------------------
 
-(defun ada-narrow-to-defun (&optional arg)
+(defun ada-narrow-to-defun (&optional _arg)
   "Make text outside current subprogram invisible.
 The subprogram visible is the one that contains or follow point.
 Optional ARG is ignored.

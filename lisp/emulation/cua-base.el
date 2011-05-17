@@ -1627,7 +1627,11 @@ shifted movement key, set `cua-highlight-region-shift-only'."
   "Enable CUA selection mode without the C-z/C-x/C-c/C-v bindings."
   (interactive "P")
   (setq-default cua-enable-cua-keys nil)
-  (cua-mode arg))
+  (if (not (called-interactively-p 'any))
+      (cua-mode arg)
+    ;; Use call-interactive to turn a nil prefix arg into `toggle'.
+    (call-interactively 'cua-mode)
+    (customize-mark-as-set 'cua-enable-cua-keys)))
 
 
 (defun cua-debug ()

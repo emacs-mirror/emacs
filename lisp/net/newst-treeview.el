@@ -7,7 +7,7 @@
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Created:     2007
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "6. Dezember 2009, 19:17:28 (ulf)"
+;; Time-stamp:  "13. Mai 2011, 20:56:49 (ulf)"
 ;; Package:     newsticker
 
 ;; ======================================================================
@@ -36,7 +36,6 @@
 ;;; History:
 ;;
 
-
 ;; ======================================================================
 ;;; Code:
 (require 'newst-reader)
@@ -53,9 +52,9 @@
 
 (defface newsticker-treeview-face
   '((((class color) (background dark))
-     (:family "helvetica" :foreground "misty rose" :bold nil))
+     (:family "sans" :foreground "white" :bold nil))
     (((class color) (background light))
-     (:family "helvetica" :foreground "black" :bold nil)))
+     (:family "sans" :foreground "black" :bold nil)))
   "Face for newsticker tree."
   :group 'newsticker-treeview)
 
@@ -1069,86 +1068,63 @@ Arguments IGNORE are ignored."
 ;; ======================================================================
 ;;; Toolbar
 ;; ======================================================================
-;;(makunbound 'newsticker-treeview-tool-bar-map)
 (defvar newsticker-treeview-tool-bar-map
   (if (featurep 'xemacs)
       nil
     (if (boundp 'tool-bar-map)
         (let ((tool-bar-map (make-sparse-keymap)))
+          (tool-bar-add-item "newsticker/prev-feed"
+                             'newsticker-treeview-prev-feed
+                             'newsticker-treeview-prev-feed
+                             :help "Go to previous feed"
+                             ;;:enable '(newsticker-previous-feed-available-p) FIXME
+                             )
+          (tool-bar-add-item "newsticker/prev-item"
+                             'newsticker-treeview-prev-item
+                             'newsticker-treeview-prev-item
+                             :help "Go to previous item"
+                             ;;:enable '(newsticker-previous-item-available-p) FIXME
+                             )
+          (tool-bar-add-item "newsticker/next-item"
+                             'newsticker-treeview-next-item
+                             'newsticker-treeview-next-item
+                             :visible t
+                             :help "Go to next item"
+                             ;;:enable '(newsticker-next-item-available-p) FIXME
+                             )
+          (tool-bar-add-item "newsticker/next-feed"
+                             'newsticker-treeview-next-feed
+                             'newsticker-treeview-next-feed
+                             :help "Go to next feed"
+                             ;;:enable '(newsticker-next-feed-available-p) FIXME
+                             )
+          (tool-bar-add-item "newsticker/mark-immortal"
+                             'newsticker-treeview-toggle-item-immortal
+                             'newsticker-treeview-toggle-item-immortal
+                             :help "Toggle current item as immortal"
+                             ;;:enable '(newsticker-item-not-immortal-p) FIXME
+                             )
+          (tool-bar-add-item "newsticker/mark-read"
+                             'newsticker-treeview-mark-item-old
+                             'newsticker-treeview-mark-item-old
+                             :help "Mark current item as read"
+                             ;;:enable '(newsticker-item-not-old-p) FIXME
+                             )
+          (tool-bar-add-item "newsticker/get-all"
+                             'newsticker-get-all-news
+                             'newsticker-get-all-news
+                             :help "Get news for all feeds")
+          (tool-bar-add-item "newsticker/update"
+                             'newsticker-treeview-update
+                             'newsticker-treeview-update
+                             :help "Update newsticker buffer")
+          (tool-bar-add-item "newsticker/browse-url"
+                             'newsticker-browse-url
+                             'newsticker-browse-url
+                             :help "Browse URL for item at point")
+          ;; standard icons / actions
           (define-key tool-bar-map [newsticker-sep-1]
             (list 'menu-item "--double-line"))
-          (define-key tool-bar-map [newsticker-browse-url]
-            (list 'menu-item "newsticker-browse-url"
-                  'newsticker-browse-url
-                  :visible t
-                  :help "Browse URL for item at point"
-                  :image newsticker--browse-image))
-          (define-key tool-bar-map [newsticker-buffer-force-update]
-            (list 'menu-item "newsticker-treeview-update"
-                  'newsticker-treeview-update
-                  :visible t
-                  :help "Update newsticker buffer"
-                  :image newsticker--update-image
-                  :enable t))
-          (define-key tool-bar-map [newsticker-get-all-news]
-            (list 'menu-item "newsticker-get-all-news" 'newsticker-get-all-news
-                  :visible t
-                  :help "Get news for all feeds"
-                  :image newsticker--get-all-image))
-          (define-key tool-bar-map [newsticker-mark-item-at-point-as-read]
-            (list 'menu-item "newsticker-treeview-mark-item-old"
-                  'newsticker-treeview-mark-item-old
-                  :visible t
-                  :image newsticker--mark-read-image
-                  :help "Mark current item as read"
-                  ;;:enable '(newsticker-item-not-old-p) FIXME
-                  ))
-          (define-key tool-bar-map [newsticker-mark-item-at-point-as-immortal]
-            (list 'menu-item "newsticker-treeview-toggle-item-immortal"
-                  'newsticker-treeview-toggle-item-immortal
-                  :visible t
-                  :image newsticker--mark-immortal-image
-                  :help "Toggle current item as immortal"
-                  :enable t
-                  ;;'(newsticker-item-not-immortal-p) FIXME
-                  ))
-          (define-key tool-bar-map [newsticker-next-feed]
-            (list 'menu-item "newsticker-treeview-next-feed"
-                  'newsticker-treeview-next-feed
-                  :visible t
-                  :help "Go to next feed"
-                  :image newsticker--next-feed-image
-                  :enable t
-                  ;;'(newsticker-next-feed-available-p) FIXME
-                  ))
-          (define-key tool-bar-map [newsticker-treeview-next-item]
-            (list 'menu-item "newsticker-treeview-next-item"
-                  'newsticker-treeview-next-item
-                  :visible t
-                  :help "Go to next item"
-                  :image newsticker--next-item-image
-                  :enable t
-                  ;;'(newsticker-next-item-available-p) FIXME
-                  ))
-          (define-key tool-bar-map [newsticker-treeview-prev-item]
-            (list 'menu-item "newsticker-treeview-prev-item"
-                  'newsticker-treeview-prev-item
-                  :visible t
-                  :help "Go to previous item"
-                  :image newsticker--previous-item-image
-                  :enable t
-                  ;;'(newsticker-previous-item-available-p) FIXME
-                  ))
-          (define-key tool-bar-map [newsticker-treeview-prev-feed]
-            (list 'menu-item "newsticker-treeview-prev-feed"
-                  'newsticker-treeview-prev-feed
-                  :visible t
-                  :help "Go to previous feed"
-                  :image newsticker--previous-feed-image
-                  :enable t
-                  ;;'(newsticker-previous-feed-available-p) FIXME
-                  ))
-          ;; standard icons / actions
           (tool-bar-add-item "close"
                              'newsticker-treeview-quit
                              'newsticker-treeview-quit

@@ -1825,7 +1825,7 @@ HISTORY is a symbol representing a variable to store the history in."
 							initial-input
 							history)
   "Ask for a tag by name from the local type members.
-Available tags are from the the current scope.
+Available tags are from the current scope.
 Completion options are presented in a traditional way, with highlighting
 to resolve same-name collisions.
 PROMPT is a string to prompt with.

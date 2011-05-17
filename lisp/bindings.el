@@ -153,17 +153,17 @@ mouse-3: Describe current input method"))
     ,(propertize
       "%z"
       'help-echo
-      #'(lambda (window object point)
-	  (with-current-buffer (window-buffer window)
-	    ;; Don't show this tip if the coding system is nil,
-	    ;; it reads like a bug, and is not useful anyway.
-	    (when buffer-file-coding-system
-	      (format "Buffer coding system %s\nmouse-1: describe coding system"
-		      (if enable-multibyte-characters
-			  (concat "(multi-byte): "
-				  (symbol-name buffer-file-coding-system))
-			(concat "(unibyte): "
-				(symbol-name buffer-file-coding-system)))))))
+      (lambda (window _object _point)
+	(with-current-buffer (window-buffer window)
+	  ;; Don't show this tip if the coding system is nil,
+	  ;; it reads like a bug, and is not useful anyway.
+	  (when buffer-file-coding-system
+	    (format "Buffer coding system %s\nmouse-1: describe coding system"
+		    (if enable-multibyte-characters
+			(concat "(multi-byte): "
+				(symbol-name buffer-file-coding-system))
+		      (concat "(unibyte): "
+			      (symbol-name buffer-file-coding-system)))))))
       'mouse-face 'mode-line-highlight
       'local-map mode-line-coding-system-map)
     (:eval (mode-line-eol-desc)))
@@ -209,7 +209,7 @@ Normally nil in most modes, since there is no process to display.")
 (defvar mode-line-modified
   (list (propertize
 	 "%1*"
-	 'help-echo (purecopy (lambda (window object point)
+	 'help-echo (purecopy (lambda (window _object _point)
  				(format "Buffer is %s\nmouse-1 toggles"
 					(save-selected-window
 					  (select-window window)
@@ -222,7 +222,7 @@ Normally nil in most modes, since there is no process to display.")
 	 'mouse-face 'mode-line-highlight)
 	(propertize
 	 "%1+"
-	 'help-echo  (purecopy (lambda (window object point)
+	 'help-echo  (purecopy (lambda (window _object _point)
 				 (format "Buffer is %sodified\nmouse-1 toggles modified state"
 					 (save-selected-window
 					   (select-window window)
@@ -242,7 +242,7 @@ Normally nil in most modes, since there is no process to display.")
   (list (propertize
 	 "%1@"
 	 'mouse-face 'mode-line-highlight
-	 'help-echo (purecopy (lambda (window object point)
+	 'help-echo (purecopy (lambda (window _object _point)
  				(format "%s"
 					(save-selected-window
 					  (select-window window)

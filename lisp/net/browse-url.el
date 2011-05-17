@@ -769,7 +769,10 @@ narrowed."
 (defun browse-url-of-dired-file ()
   "In Dired, ask a WWW browser to display the file named on this line."
   (interactive)
-  (browse-url-of-file (dired-get-filename)))
+  (let ((tem (dired-get-filename t t)))
+    (if tem
+	(browse-url-of-file (expand-file-name tem))
+      (error "No file on this line"))))
 
 ;;;###autoload
 (defun browse-url-of-region (min max)

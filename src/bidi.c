@@ -91,6 +91,7 @@ typedef enum {
   STRONG
 } bidi_category_t;
 
+extern int bidi_ignore_explicit_marks_for_paragraph_level EXTERNALLY_VISIBLE;
 int bidi_ignore_explicit_marks_for_paragraph_level = 1;
 
 static Lisp_Object paragraph_start_re, paragraph_separate_re;
@@ -1779,6 +1780,7 @@ bidi_move_to_visually_next (struct bidi_it *bidi_it)
 
 /* This is meant to be called from within the debugger, whenever you
    wish to examine the cache contents.  */
+void bidi_dump_cached_states (void) EXTERNALLY_VISIBLE;
 void
 bidi_dump_cached_states (void)
 {
@@ -1805,6 +1807,6 @@ bidi_dump_cached_states (void)
   fputs ("\n", stderr);
   fputs ("pos ", stderr);
   for (i = 0; i < bidi_cache_idx; i++)
-    fprintf (stderr, "%*ld", ndigits, (long)bidi_cache[i].charpos);
+    fprintf (stderr, "%*"pI"d", ndigits, bidi_cache[i].charpos);
   fputs ("\n", stderr);
 }

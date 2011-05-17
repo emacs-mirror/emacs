@@ -13,6 +13,10 @@
   Do not use this recipe with Cygwin.  For building on Cygwin,
   use the normal installation instructions, ../INSTALL.
 
+  If you have a Cygwin or MSYS port of Bash on your Path, you will be
+  better off removing it from PATH.  (For details, search for "MSYS
+  sh.exe" below.)
+
   1. Change to the `nt' directory (the directory of this file):
 
        cd nt
@@ -129,11 +133,14 @@
   for example).  Also see the Trouble-shooting section below if you
   decide to go ahead and use Cygwin make.
 
-  In addition, using 4NT or TCC as your shell is known to fail the build
-  process, at least since 4NT version 3.01.  Use CMD.EXE, the default
-  Windows shell, instead.  MSYS sh.exe also appears to cause various
-  problems.  If you have MSYS installed, try "make SHELL=cmd.exe" to
-  force the use of cmd.exe instead of sh.exe.
+  In addition, using 4NT or TCC as your shell is known to fail the
+  build process, at least since 4NT version 3.01.  Use CMD.EXE, the
+  default Windows shell, instead.  MSYS sh.exe also appears to cause
+  various problems, e.g., it is known to cause failures in commands
+  like "cmd /c FOO" in the Makefiles, because it thinks "/c" is a
+  Unix-style file name that needs conversion to the Windows format.
+  If you have MSYS installed, try "make SHELL=cmd.exe" to force the
+  use of cmd.exe instead of the MSYS sh.exe.
 
                                          sh exists     no sh
 
@@ -220,14 +227,38 @@
   absolutely sure the produced binaries will never need to be run under
   a debugger.
 
-  Because of limitations of the stock Windows command shell, certain
-  characters (quotes, backslashes and equal signs) can be problematic
-  and should not be used in arguments to configure.  That means that
-  forward slashes must be used in paths passed to the compiler and
-  linker via the --cflags and --ldflags options, and that it is
-  currently not possible to pass a macro like -DFOO=BAR (though -DFOO
-  is perfectly valid).
+  Because of limitations of the stock Windows command shells, special
+  care is needed to pass some characters in the arguments of the
+  --cflags and --ldflags options.  Backslashes should not be used in
+  file names passed to the compiler and linker via these options.  Use
+  forward slashes instead.  If the arguments to these two options
+  include the `=' character, like when passing a -DFOO=bar preprocessor
+  option, the argument with the `=' character should be enclosed in
+  quotes, like this:
 
+    configure --cflags "-DFOO=bar"
+
+  Support for options that include the `=' character require "command
+  extensions" to be enabled.  (They are enabled by default, but your
+  system administrator could have changed that.  See "cmd /?" for
+  details.)  If command extensions are disabled, a warning message might
+  be displayed informing you that "using parameters that include the =
+  character by enclosing them in quotes will not be supported."
+
+  You may also use the --cflags and --ldflags options to pass
+  additional parameters to the compiler and linker, respectively; they
+  are frequently used to pass -I and -L flags to specify supplementary
+  include and library directories.  If a directory name includes
+  spaces, you will need to enclose it in quotes, as follows
+  -I"C:/Program Files/GnuTLS-2.10.1/include".  Note that only the
+  directory name is enclosed in quotes, not the entire argument.  Also
+  note that this functionality is only supported if command extensions
+  are available.  If command extensions are disabled and you attempt to
+  use this functionality you may see the following warning message
+  "Error in --cflags argument: ... Backslashes and quotes cannot be
+  used with --cflags.  Please use forward slashes for filenames and
+  paths (e.g. when passing directories to -I)."
+  
   N.B.  It is normal to see a few error messages output while configure
   is running, when gcc support is being tested.  These cannot be
   suppressed because of limitations in the Windows 9X command.com shell.
@@ -305,6 +336,20 @@
   installed, check the name of the installed DLL against
   `dynamic-library-alist' and the value of `libpng-version', and
   download compatible DLLs if needed.
+
+* Optional GnuTLS support
+
+  If configure.bat finds the gnutls/gnutls.h file in the include path,
+  Emacs is built with GnuTLS support by default; to avoid that you can
+  pass the argument --without-gnutls.
+
+  In order to support GnuTLS at runtime, a GnuTLS-enabled Emacs must
+  be able to find the relevant DLLs during startup; failure to do so
+  is not an error, but GnuTLS won't be available to the running
+  session.
+
+  You can get pre-built binaries (including any required DLL and the
+  gnutls.h file) and an installer at http://josefsson.org/gnutls4win/.
 
 * Experimental SVG support
 

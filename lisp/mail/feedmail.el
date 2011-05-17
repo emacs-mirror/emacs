@@ -4,7 +4,7 @@
 ;; This file is part of GNU Emacs.
 
 ;; Author: Bill Carpenter <bill@carpenter.ORG>
-;; Version: 8
+;; Version: 11
 ;; Keywords: email, queue, mail, sendmail, message, spray, smtp, draft
 ;; X-URL: <URL:http://www.carpenter.org/feedmail/feedmail.html>
 
@@ -15,12 +15,19 @@
 ;; mode).  See below for a list of additional features, including the
 ;; ability to queue messages for later sending.  If you are using
 ;; fakemail as a subprocess, you can switch to feedmail and eliminate
-;; the use of fakemail.  feedmail works with recent versions of
-;; Emacs (mostly, but not exclusively, tested against 19.34 on
-;; Win95; some testing on 20.x) and XEmacs (tested with 20.4 and
-;; later betas).  It probably no longer works with Emacs 18,
-;; though I haven't tried that in a long time.  Sorry, no manual yet
-;; in this release.  Look for one with the next release.
+;; the use of fakemail.
+
+;; feedmail works with recent versions of Emacs (20.x series) and
+;; XEmacs (tested with 20.4 and later betas).  It probably no longer
+;; works with Emacs v18, though I haven't tried that in a long
+;; time.  Makoto.Nakagawa@jp.compaq.com reports: "I have a report
+;; that with a help of APEL library, feedmail works fine under emacs
+;; 19.28.  You can get APEL from ftp://ftp.m17n.org/pub/mule/apel/.
+;; you need apel-10.2 or later to make feedmail work under emacs
+;; 19.28."
+
+;; Sorry, no manual yet in this release.  Look for one with the next
+;; release.  Or the one after that.  Or maybe later.
 
 ;; As far as I'm concerned, anyone can do anything they want with
 ;; this specific piece of code.  No warranty or promise of support is
@@ -68,7 +75,8 @@
 ;; This file requires the mail-utils library.
 ;;
 ;; This file requires the smtpmail library if you use
-;; feedmail-buffer-to-smtpmail.
+;; feedmail-buffer-to-smtpmail.  It requires the smtp library if
+;; you use feedmail-buffer-smtp.
 ;;
 ;; This file requires the custom library.  Unfortunately, there are
 ;; two incompatible versions of the custom library.  If you don't have
@@ -147,6 +155,32 @@
 ;;     (autoload 'feedmail-run-the-queue-no-prompts "feedmail")
 ;;     (setq auto-mode-alist (cons '("\\.fqm$" . mail-mode) auto-mode-alist))
 ;;
+;; though VM users might find it more comfortable to use this instead of
+;; the above example's last line:
+;;
+;;     (setq auto-mode-alist (cons '("\\.fqm$" . feedmail-vm-mail-mode) auto-mode-alist))
+;;
+;; If you end up getting asked about killing modified buffers all the time
+;; you are probably being prompted from outside feedmail.  You can probably
+;; get cured by doing the defadvice stuff described in the documentation
+;; for the variable feedmail-queue-buffer-file-name below.
+;;
+;; If you are wondering how to send your messages to some SMTP server
+;; (which is not really a feedmail-specific issue), you are probably
+;; looking for smtpmail.el, and it is probably already present in your
+;; emacs installation.  Look at smtpmail.el for how to set that up, and
+;; then do this to hook it into feedmail:
+;;
+;;     (autoload 'feedmail-buffer-to-smtpmail "feedmail" nil t)
+;;     (setq feedmail-buffer-eating-function 'feedmail-buffer-to-smtpmail)
+;;
+;; Alternatively, the FLIM <http://www.m17n.org/FLIM/> project
+;; provides a library called smtp.el.  If you want to use that, the above lines
+;; would be:
+;;
+;;     (autoload 'feedmail-buffer-to-smtp "feedmail" nil t)
+;;     (setq feedmail-buffer-eating-function 'feedmail-buffer-to-smtp)
+;;
 ;; If you are using the desktop.el library to restore your sessions, you might
 ;; like to add the suffix ".fqm" to the list of non-saved things via the variable
 ;; desktop-files-not-to-save.
@@ -174,13 +208,27 @@
 ;;     (setq message-send-mail-function 'feedmail-send-it)
 ;;     (add-hook 'message-mail-send-hook 'feedmail-mail-send-hook-splitter)
 ;;
+;; If you use message-mode and you make use of feedmail's queueing
+;; stuff, you might also like to adjust these variables to appropriate
+;; values for message-mode:
+;;
+;;     feedmail-queue-runner-mode-setter
+;;     feedmail-queue-runner-message-sender
+;;
+;; If you are using the "cmail" email package, there is some built-in
+;; support for feedmail in recent versions.  To enable it, you should:
+;;
+;;     (setq cmail-use-feedmail t)
+;;
+;;;;;;;;
+;;
 ;; I think the LCD is no longer being updated, but if it were, this
 ;; would be a proper LCD record.  There is an old version of
 ;; feedmail.el in the LCD archive.  It works but is missing a lot of
 ;; features.
 ;;
 ;; LCD record:
-;; feedmail|Bill Carpenter|bill@bubblegum.net,bill@carpenter.ORG|Outbound mail queue handling|98-06-15|8|feedmail.el
+;; feedmail|WJCarpenter|bill-feedmail@carpenter.ORG|Outbound mail queue handling|01-??-??|11-beta-??|feedmail.el
 ;;
 ;; Change log:
 ;; original,      31 March 1991
@@ -277,14 +325,51 @@
 ;;         feedmail-queue-auto-file-nuke
 ;;         feedmail-queue-express-to-queue and feedmail-queue-express-to-draft
 ;;         strong versions of "q"ueue and "d"raft answers (always make a new file)
+;; patchlevel 9, 23 March 2001
+;;         feedmail-queue-buffer-file-name to work around undesirable mail-send prompt
+;;         at message action prompt, can scroll message buffer with "<" and ">";
+;;           C-v no longer scrolls help buffer
+;;         conditionalize (discard-input) in message action prompt to avoid killing
+;;           define-kbd-macro
+;;         fixed error if feedmail-x-mailer-line was nil
+;;         feedmail-binmail-template only uses /bin/rmail if it exists
+;;         relocate feedmail-queue-alternative-mail-header-separator stuff
+;;         added feedmail-vm-mail-mode, which make a good auto-mode-alist entry
+;;           for FQM files if you're a VM user
+;;         change buffer-substring calls to buffer-substring-no-properties for
+;;           speed-up (suggested by Howard Melman <howard@silverstream.com>)
+;;         feedmail-sendmail-f-doesnt-sell-me-out to contol "-f" in call to sendmail
+;;           in feedmail-buffer-to-sendmail
+;;         better trapping of odd conditions during the running of the queue;
+;;           thanks to Yigal Hochberg for helping me test much of this by remote
+;;           control
+;;         feedmail-debug and feedmail-debug-sit-for
+;;         feedmail-display-full-frame
+;;         feedmail-queue-express-hook
+;;         added example function feedmail-spray-via-bbdb
+;;         use expand-file-name for setting default directory names
+;;         define feedmail-binmail-gnulinuxish-template as a suggestion for
+;;           the value of feedmail-binmail-template on GNU/Linux and maybe other
+;;           systems with non-classic /bin/[r]mail behavior
+;;         guard against nil user-mail-address in generating MESSAGE-ID:
+;;         feedmail-queue-slug-suspect-regexp is now a variable to
+;;           accomodate non-ASCII environments (thanks to
+;;           Makoto.Nakagawa@jp.compaq.com for this suggestion)
+;;         feedmail-buffer-to-smtp, to parallel feedmail-buffer-to-smtpmail
+;; patchlevel 10, 22 April 2001
+;;         DATE: and MESSAGE-ID stuff now forces system-time-locale to "C"
+;;           (brought to my attention by Makoto.Nakagawa@jp.compaq.com)
+;; patchlevel 11
+;;         tweak default FROM: calculation to look at mail-host-address
+;;           (suggested by "Jason Eisner" <jason@cs.jhu.edu>)
 ;;
-;; todo (probably in patchlevel 9):
+;; todo:
 ;;         write texinfo manual
 ;;         maybe partition into multiple files, including files of examples
 ;;
 ;;; Code:
 
-(defconst feedmail-patch-level "8")
+(defconst feedmail-patch-level "11-beta-1")
 
 (require 'mail-utils)		     ; pick up mail-strip-quoted-names
 
@@ -312,6 +397,10 @@
   "Options related to queuing messages for later sending."
   :group 'feedmail)
 
+(defgroup feedmail-debug nil
+  "Options related to debug messages for later sending."
+  :group 'feedmail)
+
 
 (defcustom feedmail-confirm-outgoing nil
   "If non-nil, give a y-or-n confirmation prompt before sending mail.
@@ -329,12 +418,30 @@ cases.  You can give a timeout for the prompt; see variable
   )
 
 
+(defcustom feedmail-display-full-frame 'queued
+  "If non-nil, show prepped messages in a full frame.
+If nil, the prepped message will be shown, for confirmation or
+otherwise, in some window in the current frame without resizing
+anything.  That may or may not display enough of the message to
+distinguish it from others.  If set to the symbol 'queued, take
+this action only when running the queue.  If set to the symbol
+'immediate, take this action only when sending immediately.  For
+any other non-nil value, take the action in both cases.  Even if
+you're not confirming the sending of immediate or queued messages,
+it can still be interesting to see a lot about them as they are
+shuttled robotically onward."
+  :group 'feedmail-misc
+  :type 'boolean
+  )
+
+
 (defcustom feedmail-confirm-outgoing-timeout nil
   "If non-nil, a timeout in seconds at the send confirmation prompt.
 If a positive number, it's a timeout before sending.  If a negative
 number, it's a timeout before not sending.  This will not work if your
 version of Emacs doesn't include the function `y-or-n-p-with-timeout'
 \(e.g., some versions of XEmacs\)."
+  :version "24.1"
   :group 'feedmail-misc
   :type '(choice (const nil) integer)
   )
@@ -472,11 +579,11 @@ itself nor the trailing newline.  If a function, it will be called
 with no arguments.  For an explanation of fiddle-plexes, see the
 documentation for the variable `feedmail-fiddle-plex-blurb'.  In all
 cases the name element of the fiddle-plex is ignored and is hardwired
-by feedmail to either \"X-Sender\" or \"X-Resent-Sender\".
+by feedmail to either \"Sender\" or \"Resent-Sender\".
 
 You can probably leave this nil, but if you feel like using it, a good
 value would be a string of a fully-qualified domain name form of your
-address.  For example, \"bill@bubblegum.net (WJCarpenter)\".  The Sender:
+address.  For example, \"bill@example.net (WJCarpenter)\".  The Sender:
 header is fiddled after the From: header is fiddled."
   :group 'feedmail-headers
   :type '(choice (const nil) string)
@@ -511,10 +618,10 @@ itself nor the trailing newline.  If a function, it will be called
 with no arguments.  For an explanation of fiddle-plexes, see the
 documentation for the variable `feedmail-fiddle-plex-blurb'.  In all
 cases the name element of the fiddle-plex is ignored and is hardwired
-by feedmail to either \"X-From\" or \"X-Resent-From\".
+by feedmail to either \"From\" or \"Resent-From\".
 
 A good value would be a string fully-qualified domain name form of
-your address.  For example, \"bill@bubblegum.net (WJCarpenter)\".  The
+your address.  For example, \"bill@example.net (WJCarpenter)\".  The
 default value of this variable uses the standard elisp variable
 `user-mail-address' which should be set on every system but has a decent
 chance of being wrong.  It also honors `mail-from-style'.  Better to set
@@ -523,6 +630,29 @@ to arrange for the message to get a From: line."
   :group 'feedmail-headers
   :type '(choice (const t) (const nil) string)
   )
+
+
+(defcustom feedmail-sendmail-f-doesnt-sell-me-out nil
+  "Says whether the sendmail program issues a warning header if called with \"-f\".
+The sendmail program has a useful feature to let you set the envelope FROM
+address via a command line option, \"-f\".  Unfortunately, it also has a widely
+disliked default behavior of selling you out if you do that by inserting
+an unattractive warning in the headers.  It looks something like this:
+
+  X-Authentication-Warning: u1.example.com: niceguy set sender to niceguy@example.com using -f
+
+It is possible to configure sendmail to not do this, but such a reconfiguration
+is not an option for many users.  As this is the default behavior of most
+sendmail installations, one can mostly only wish it were otherwise.  If feedmail
+believes the sendmail program will sell you out this way, it won't use the \"-f\"
+option when calling sendmail.  If it doesn't think sendmail will sell you out,
+it will use the \"-f\" \(since it is a handy feature\).  You control what
+feedmail thinks with this variable.  The default is nil, meaning that feedmail
+will believe that sendmail will sell you out."
+  :version "24.1"
+  :group 'feedmail-headers
+  :type 'boolean
+)
 
 
 (defcustom feedmail-deduce-envelope-from t
@@ -674,7 +804,7 @@ in the saved message if you use Fcc:."
   "Non-nil means fiddled header fields should go at the top of the header.
 nil means insert them at the bottom.  This is mostly a novelty issue since
 the standards define the ordering of header fields to be immaterial and it's
-fairly likely that some MTA along the way will have its own idea of what the
+fairly likely that some MTA/MUA along the way will have its own idea of what the
 order should be, regardless of what you specify."
   :group 'feedmail-headers
   :type 'boolean
@@ -718,19 +848,21 @@ headers of a message.  Another use is to do a crude form of mailmerge, for
 which see `feedmail-spray-address-fiddle-plex-list'.
 
 If one of the calls to the buffer-eating function results in an error,
-what happens next is carelessly defined, so beware."
+what happens next is carelessly defined, so beware.  This should get ironed
+out in some future release, and there could be other API changes for spraying
+as well."
   :group 'feedmail-spray
   :type 'boolean
   )
 
 (defvar feedmail-spray-this-address nil
-  "Do not set or change this variable.  See `feedmail-spray-address-fiddle-plex-list'.")
+  "Do not set this variable, except via `feedmail-spray-address-fiddle-plex-list'.")
 
 (defcustom feedmail-spray-address-fiddle-plex-list nil
   "User-supplied specification for a crude form of mailmerge capability.
 When spraying is enabled, feedmail composes a list of envelope addresses.
 In turn, `feedmail-spray-this-address' is temporarily set to each address
-\(stripped of any comments and angle brackets\) and calls a function which
+\(stripped of any comments and angle brackets\) and a function is called which
 fiddles message headers according to this variable.  See the documentation for
 `feedmail-fiddle-plex-blurb', for an overview of fiddle-plex data structures.
 
@@ -747,16 +879,20 @@ The fiddle-plex operator is 'supplement.
 
 May be a function, in which case it is called with no arguments and is
 expected to return nil, t, a string, another function, or a fiddle-plex.
-The result is used recursively.
+The result is used recursively.  The function may alter the value of the
+variable feedmail-spray-this-address, perhaps to embellish it with a
+human name.  It would be logical in such a case to return as a value a
+string naming a message header like \"TO\" or an appropriately constructed
+fiddle-plex.  For an example, see feedmail-spray-via-bbdb.
 
-May be a list of any combination of the foregoing and fiddle-plexes.  (A
-value for this variable which consists of a single fiddle-plex must be
-nested inside another list to avoid ambiguity.)  If a list, each item
-is acted on in turn as described above.
+May be a list of any combination of the foregoing and/or
+fiddle-plexes.  (A value for this variable which consists of a single
+fiddle-plex must be nested inside another list to avoid ambiguity.)
+If a list, each item is acted on in turn as described above.
 
 For example,
 
-  (setq feedmail-spray-address-fiddle-plex-list 'my-address-embellisher)
+  (setq feedmail-spray-address-fiddle-plex-list 'feedmail-spray-via-bbdb)
 
 The idea of the example is that, during spray mode, as each message is
 about to be transmitted to an individual address, the function will be
@@ -774,6 +910,28 @@ you are at accomplishing inherently inefficient things."
   :group 'feedmail-spray
   :type 'sexp ; too complex to be described accurately
   )
+
+;; FIXME this is a macro?
+(declare-function bbdb-search "ext:bbdb-com"
+		  (records &optional name company net notes phone))
+(declare-function bbdb-records "ext:bbdb"
+		  (&optional dont-check-disk already-in-db-buffer))
+(declare-function bbdb-dwim-net-address "ext:bbdb-com" (record &optional net))
+
+(defun feedmail-spray-via-bbdb ()
+  "Example function for use with feedmail spray mode.
+NB: it's up to the user to have the BBDB environment already set up properly
+before using this."
+  (let (net-rec q-net-addy embellish)
+	(setq q-net-addy (concat "^" (regexp-quote feedmail-spray-this-address) "$"))
+	(setq net-rec (bbdb-search (bbdb-records) nil nil q-net-addy))
+	(if (and (car net-rec) (not (cdr net-rec)))
+		(setq net-rec (car net-rec))
+	  (setq net-rec nil))
+	(if net-rec (setq embellish (bbdb-dwim-net-address net-rec)))
+	(if embellish
+		(list "To" embellish 'supplement)
+	  (list "To" feedmail-spray-this-address 'supplement))))
 
 
 (defcustom feedmail-enable-queue nil
@@ -813,20 +971,20 @@ without having to answer no to the individual message prompts."
 
 
 (defcustom feedmail-queue-directory
-  (concat (getenv "HOME") "/mail/q")
+  (expand-file-name "~/mail/q")
   "Name of a directory where messages will be queued.
 Directory will be created if necessary.  Should be a string that
-doesn't end with a slash.  Default is \"$HOME/mail/q\"."
+doesn't end with a slash.  Default is \"~/mail/q\"."
   :group 'feedmail-queue
   :type 'string
   )
 
 
 (defcustom feedmail-queue-draft-directory
-  (concat (getenv "HOME") "/mail/draft")
+  (expand-file-name "~/mail/draft")
   "Name of a directory where draft messages will be queued.
 Directory will be created if necessary.  Should be a string that
-doesn't end with a slash.  Default is \"$HOME/mail/draft\"."
+doesn't end with a slash.  Default is \"~/mail/draft\"."
   :group 'feedmail-queue
   :type 'string
   )
@@ -894,7 +1052,10 @@ the help for the message action prompt."
 
     (?* . feedmail-message-action-toggle-spray)
 
-    (?\C-v . feedmail-message-action-help)
+    (?> . feedmail-message-action-scroll-up)
+    (?< . feedmail-message-action-scroll-down)
+    (?  . feedmail-message-action-scroll-up)
+    ;;	(?\C-v . feedmail-message-action-help)
     (?? . feedmail-message-action-help))
   "An alist of choices for the message action prompt.
 All of the values are function names, except help, which is a special
@@ -987,7 +1148,10 @@ This variable is used by the default date generating function,
 feedmail-default-date-generator.  If nil, the default, the
 last-modified timestamp of the queue file is used to create the
 message Date: header; if there is no queue file, the current time is
-used."
+used. If you are using VM, it might be supplying this header for
+you.  To suppress VM's version
+
+	(setq vm-mail-header-insert-date nil)"
   :group 'feedmail-queue
   :type 'boolean
   )
@@ -999,7 +1163,10 @@ This variable is used by the default Message-Id: generating function,
 `feedmail-default-message-id-generator'.  If nil, the default, the
 last-modified timestamp of the queue file is used to create the
 message Message-Id: header; if there is no queue file, the current time is
-used."
+used.  If you are using VM, it might be supplying this header for
+you.  To suppress VM's version
+
+	(setq vm-mail-header-insert-date nil)"
   :group 'feedmail-queue
   :type 'boolean
   )
@@ -1033,6 +1200,22 @@ any."
   :group 'feedmail-queue
   :type '(choice (const nil) function)
   )
+
+
+(defcustom feedmail-queue-slug-suspect-regexp "[^a-z0-9-]+"
+  "Regular expression for characters/substrings to be replaced.
+When feedmail creates a filename from a subject string, it puts hyphens
+in place of strings which may cause problems in filenames.  By default,
+only alphanumeric and hyphen characters are kept, and all others are
+converted.  In non-ASCII environments, it may be more helpful to
+tweak this regular expression to reflect local or personal language
+conventions.  Substitutions are done repeatedly until the regular expression
+no longer matches to transformed string.  Used by function
+feedmail-tidy-up-slug and indirectly by feedmail-queue-subject-slug-maker."
+  :version "24.1"
+  :group 'feedmail-queue
+  :type 'string
+)
 
 
 (defcustom feedmail-queue-default-file-slug t
@@ -1095,6 +1278,61 @@ the file without bothering you."
   )
 
 
+(defcustom feedmail-debug nil
+  "If non-nil, blat a debug messages and such in the mini-buffer.
+This is intended as an aid to tracing what's going on but is probably
+of casual real use only to the feedmail developer."
+  :version "24.1"
+  :group 'feedmail-debug
+  :type 'boolean
+)
+
+
+(defcustom feedmail-debug-sit-for 0
+  "Duration of pause after feedmail-debug messages.
+After some messages are divulged, it may be helpful to pause before
+something else obliterates them.  This value controls the duration of
+the pause.  If the value is nil or 0, the sit-for is not done, which
+has the effect of not pausing at all.  Debug messages can be seen after
+the fact in the messages buffer."
+  :version "24.1"
+  :group 'feedmail-debug
+  :type 'integer
+)
+
+
+(defvar feedmail-queue-buffer-file-name nil
+  "If non-nil, has the value normally expected of 'buffer-file-name'.
+You are not intended to set this to something in your configuration.  Rather,
+you might programmatically set it to something via a hook or function
+advice or whatever.  You might like to do this if you are using a mail
+composition program that eventually uses sendmail.el's 'mail-send'
+function to process the message.  If there is a filename associated
+with the message buffer, 'mail-send' will ask you for confirmation.
+There's no trivial way to avoid it.  It's unwise to just set the value
+of 'buffer-file-name' to nil because that will defeat feedmail's file
+management features.  Instead, arrange for this variable to be set to
+the value of 'buffer-file-name' before setting that to nil.  An easy way
+to do that would be with defadvice on 'mail-send' \(undoing the
+assignments in a later advice\).
+
+feedmail will pretend that 'buffer-file-name', if nil, has the value
+assigned of 'feedmail-queue-buffer-file-name' and carry out its normal
+activities.  feedmail does not restore the non-nil value of
+'buffer-file-name'.  For safe bookkeeping, the user should insure that
+feedmail-queue-buffer-file-name is restored to nil.
+
+Example 'defadvice' for mail-send:
+
+   (defadvice mail-send (before feedmail-mail-send-before-advice activate)
+     (setq feedmail-queue-buffer-file-name buffer-file-name)
+     (setq buffer-file-name nil))
+
+   (defadvice mail-send (after feedmail-mail-send-after-advice activate)
+     (if feedmail-queue-buffer-file-name (setq buffer-file-name feedmail-queue-buffer-file-name))
+     (setq feedmail-queue-buffer-file-name nil))
+")
+
 ;; defvars to make byte-compiler happy(er)
 (defvar feedmail-error-buffer        nil)
 (defvar feedmail-prepped-text-buffer nil)
@@ -1126,6 +1364,7 @@ buffer (typically by typing C-c C-c), whether the message is sent immediately
 or placed in the queue or drafts directory.  `feedmail-mail-send-hook-queued' is
 called when messages are being sent from the queue directory, typically via a
 call to `feedmail-run-the-queue'."
+  (feedmail-say-debug ">in-> feedmail-mail-send-hook-splitter %s" feedmail-queue-runner-is-active)
   (if feedmail-queue-runner-is-active
       (run-hooks 'feedmail-mail-send-hook-queued)
     (run-hooks 'feedmail-mail-send-hook))
@@ -1155,21 +1394,33 @@ It shows the simple addresses and gets a confirmation.  Use as:
 
 (defcustom feedmail-last-chance-hook nil
   "User's last opportunity to modify the message on its way out.
-It has already had all the header prepping from the standard package.
-The next step after running the hook will be to push the buffer into a
-subprocess that mails the mail.  The hook might be interested in
-these: (1) `feedmail-prepped-text-buffer' contains the header and body
-of the message, ready to go; (2) `feedmail-address-list' contains a list
+When this hook runs, the current buffer is already the appropriate
+buffer.  It has already had all the header prepping from the standard
+package.  The next step after running the hook will be to save the
+message via FCC: processing. The hook might be interested in these:
+\(1) `feedmail-prepped-text-buffer' contains the header and body of the
+message, ready to go; (2) `feedmail-address-list' contains a list
 of simplified recipients of addresses which are to be given to the
 subprocess (the hook may change the list); (3) `feedmail-error-buffer'
 is an empty buffer intended to soak up errors for display to the user.
 If the hook allows interactive activity, the user should not send more
 mail while in the hook since some of the internal buffers will be
-reused and things will get confused."
+reused and things will get confused.  It's not necessary to
+arrange for the undoing of any changes you make to the buffer."
   :group 'feedmail-misc
   :type 'hook
   )
 
+(defcustom feedmail-queue-express-hook nil
+  "Chance to modify a message being sent directly to a queue.
+Run by feedmail-queue-express-to-queue and feedmail-queue-express-to-draft.
+For example, you might want to run vm-mime-encode-composition to take
+care of attachments.  If you subsequently edit the message buffer, you
+can undo the encoding."
+  :version "24.1"
+  :group 'feedmail-queue
+  :type 'hook
+)
 
 (defcustom feedmail-before-fcc-hook nil
   "User's last opportunity to modify the message before Fcc action.
@@ -1197,6 +1448,9 @@ argument, the optional argument used in the call to
 Most people want `mail-mode', so the default value is an anonymous
 function which is just a wrapper to ignore the supplied argument when
 calling it, but here's your chance to have something different.
+If you are a VM user, you might like feedmail-vm-mail-mode, though you
+really don't need that (and it's not particularly well-tested).
+
 Called with funcall, not `call-interactively'."
   :group 'feedmail-queue
   :type 'function
@@ -1220,15 +1474,19 @@ set `mail-header-separator' to the value of
   )
 
 
-(defcustom feedmail-queue-runner-message-sender 'mail-send-and-exit
+(defcustom feedmail-queue-runner-message-sender
+  '(lambda (&optional arg) (mail-send))
   "Function to initiate sending a message file.
 Called for each message read back out of the queue directory with a
 single argument, the optional argument used in the call to
 `feedmail-run-the-queue' or `feedmail-run-the-queue-no-prompts'.
-Interactively, that argument will be the prefix argument.  Most people
-want `mail-send-and-exit' (bound to C-c C-c in mail-mode), but here's
-your chance to have something different.  Called with `funcall', not
-`call-interactively'."
+Interactively, that argument will be the prefix argument.
+Most people want `mail-send' (bound to C-c C-s in mail-mode), but here's
+your chance to have something different.  The default value is just a
+wrapper function which discards the optional argument and calls
+mail-send.  If you are a VM user, you might like vm-mail-send, though
+you really don't need that.  Called with funcall, not call-interactively."
+  :version "24.1"			; changed default
   :group 'feedmail-queue
   :type 'function
   )
@@ -1237,7 +1495,7 @@ your chance to have something different.  Called with `funcall', not
 (defcustom feedmail-queue-runner-cleaner-upper
   '(lambda (fqm-file &optional arg)
      (delete-file fqm-file)
-     (if (and arg feedmail-queue-chatty) (message "FQM: Nuked %s" fqm-file)))
+     (if arg (feedmail-say-chatter "Nuked %s" fqm-file)))
   "Function that will be called after a message has been sent.
 Not called in the case of errors.  This function is called with two
 arguments: the name of the message queue file for the message just sent,
@@ -1269,29 +1527,60 @@ variable, but may depend on its value as described here.")
 The function's three (mandatory) arguments are: (1) the buffer
 containing the prepped message; (2) a buffer where errors should be
 directed; and (3) a list containing the addresses individually as
-strings.  Three popular choices for this are
-`feedmail-buffer-to-binmail', `feedmail-buffer-to-smtpmail', and
-`feedmail-buffer-to-sendmail'.  If you use the sendmail form, you
-probably want to set `feedmail-nuke-bcc' and/or `feedmail-nuke-resent-bcc'
-to nil.  If you use the binmail form, check the value of
-`feedmail-binmail-template'."
+strings.  Popular choices for this are `feedmail-buffer-to-binmail',
+`feedmail-buffer-to-smtpmail', `feedmail-buffer-to-sendmail', and
+`feedmail-buffer-to-smtp'.  If you use the sendmail form, you probably
+want to set `feedmail-nuke-bcc' and/or `feedmail-nuke-resent-bcc to nil'.
+If you use the binmail form, check the value of `feedmail-binmail-template'."
   :group 'feedmail-misc
   :type 'function
   )
 
+(defconst feedmail-binmail-gnulinuxish-template
+  (concat
+   "(echo From "
+   (if (boundp 'user-login-name) user-login-name "feedmail")
+   " ; cat -) | /usr/bin/rmail %s")
+  "Good candidate for GNU/Linux systems and maybe others.
+You may need to modify this if your \"rmail\" is in a different place.
+For example, I hear that in some Debian systems, it's /usr/sbin/rmail.
+See feedmail-binmail-template documentation."
+  )
 
-(defcustom feedmail-binmail-template (if mail-interactive "/bin/mail %s" "/bin/rmail %s")
+(defcustom feedmail-binmail-template (if mail-interactive "/bin/mail %s"
+				       (if (file-exists-p "/bin/rmail")
+					   "/bin/rmail %s" "/bin/mail %s"))
   "Command template for the subprocess which will get rid of the mail.
 It can result in any command understandable by /bin/sh.  Might not
-work at all in non-Unix environments.  The single '%s', if present,
+work at all in non-UNIX environments.  The single '%s', if present,
 gets replaced by the space-separated, simplified list of addressees.
 Used in `feedmail-buffer-to-binmail' to form the shell command which
-will receive the contents of the prepped buffer as stdin.  If you'd
-like your errors to come back as mail instead of immediately in a
-buffer, try /bin/rmail instead of /bin/mail (this can be accomplished
-by keeping the default nil setting of `mail-interactive').  You might
-also like to consult local mail experts for any other interesting
-command line possibilities."
+will receive the contents of the prepped buffer as stdin.  The default
+value uses /bin/rmail (if it exists) unless `mail-interactive' has been
+set non-nil.
+
+If you'd like your errors to come back as mail instead of immediately
+in a buffer, try /bin/rmail instead of /bin/mail.  If /bin/rmail
+exists, this can be accomplished by keeping the default nil setting of
+`mail-interactive'.  You might also like to consult local mail experts
+for any other interesting command line possibilities.  Some versions
+of UNIX have an rmail program which behaves differently than
+/bin/rmail and complains if feedmail gives it a message on stdin.  If
+you don't know about such things and if there is no local expert to
+consult, stick with /bin/mail or use one of the other buffer eating
+functions.
+
+The above description applies to \"classic\" UNIX /bin/mail and /bin/rmail.
+On most GNU/Linux systems and perhaps other places, /bin/mail behaves
+completely differently and shouldn't be used at all in this template.
+Instead of /bin/rmail, there is a /usr/bin/rmail, and it can be used
+with a wrapper.  The wrapper is necessary because /usr/bin/rmail on such
+systems requires that the first line of the message appearing on standard
+input have a UNIX-style From_ postmark.  If you have such a system, the
+wrapping can be accomplished by setting the value of `feedmail-binmail-template'
+to `feedmail-binmail-gnulinuxish-template'.  You should then send some test
+messages to make sure it works as expected."
+  :version "24.1"			; changed default
   :group 'feedmail-misc
   :type 'string
   )
@@ -1304,6 +1593,7 @@ command line possibilities."
 (defun feedmail-buffer-to-binmail (prepped errors-to addr-listoid)
   "Function which actually calls /bin/mail as a subprocess.
 Feeds the buffer to it."
+  (feedmail-say-debug ">in-> feedmail-buffer-to-binmail %s" addr-listoid)
   (set-buffer prepped)
   (apply
    'call-process-region
@@ -1312,25 +1602,23 @@ Feeds the buffer to it."
 			 (mapconcat 'identity addr-listoid " "))))))
 
 
+(defvar sendmail-program)
+
 (defun feedmail-buffer-to-sendmail (prepped errors-to addr-listoid)
   "Function which actually calls sendmail as a subprocess.
 Feeds the buffer to it.  Probably has some flaws for Resent-* and other
-complicated cases."
+complicated cases.  Takes addresses from message headers and
+might disappoint you with BCC: handling.  In case of odd results, consult
+local gurus."
+  (require 'sendmail)
+  (feedmail-say-debug ">in-> feedmail-buffer-to-sendmail %s" addr-listoid)
   (set-buffer prepped)
   (apply 'call-process-region
-	 (append (list (point-min) (point-max)
-		       (cond ((boundp 'sendmail-program)
-			      sendmail-program)
-			     ((file-exists-p "/usr/sbin/sendmail")
-			      "/usr/sbin/sendmail")
-			     ((file-exists-p "/usr/lib/sendmail")
-			      "/usr/lib/sendmail")
-			     ((file-exists-p "/usr/ucblib/sendmail")
-			      "/usr/ucblib/sendmail")
-			     (t "fakemail"))
+	 (append (list (point-min) (point-max) sendmail-program
 		       nil errors-to nil "-oi" "-t")
 		 ;; provide envelope "from" to sendmail; results will vary
-		 (list "-f" user-mail-address)
+		 (if feedmail-sendmail-f-doesnt-sell-me-out
+		     (list "-f" user-mail-address))
 		 ;; These mean "report errors by mail" and "deliver in background".
 		 (if (null mail-interactive) '("-oem" "-odb")))))
 
@@ -1345,6 +1633,7 @@ complicated cases."
   ;; I'm not sure smtpmail.el is careful about the following
   ;; return value, but it also uses it internally, so I will fear
   ;; no evil.
+  (feedmail-say-debug ">in-> feedmail-buffer-to-smtpmail %s" addr-listoid)
   (require 'smtpmail)
   (if (not (smtpmail-via-smtp addr-listoid prepped))
       (progn
@@ -1363,6 +1652,30 @@ complicated cases."
 		    (insert "\n\n"))))
 	   (buffer-list))))))
 
+(declare-function smtp-via-smtp "ext:smtp" (sender recipients smtp-text-buffer))
+(defvar smtp-server)
+
+;; FLIM's smtp.el pointed out to me by Kenichi Handa <handa@etl.go.jp>
+(defun feedmail-buffer-to-smtp (prepped errors-to addr-listoid)
+  "Function which actually calls smtp-via-smtp to send buffer as e-mail."
+  (feedmail-say-debug ">in-> feedmail-buffer-to-smtp %s" addr-listoid)
+  (require 'smtp)
+  (if (not (smtp-via-smtp user-mail-address addr-listoid prepped))
+	  (progn
+		(set-buffer errors-to)
+		(insert "Send via smtp failed.  Probable SMTP protocol error.\n")
+		(insert "Look for details below or in the *Messages* buffer.\n\n")
+		(let ((case-fold-search t)
+			  ;; don't be overconfident about the name of the trace buffer
+			  (tracer (concat "trace.*smtp.*" (regexp-quote smtp-server))))
+		  (mapcar
+		   '(lambda (buffy)
+			  (if (string-match tracer (buffer-name buffy))
+				  (progn
+					(insert "SMTP Trace from " (buffer-name buffy) "\n---------------")
+					(insert-buffer-substring buffy)
+					(insert "\n\n"))))
+		   (buffer-list))))))
 
 ;; just a place to park a docstring
 (defconst feedmail-fiddle-plex-blurb nil
@@ -1420,34 +1733,80 @@ FOLDING can be nil, in which case VALUE is used as-is.  If FOLDING is
 non-nil, feedmail \"smart filling\" is done on VALUE just before
 insertion.")
 
+(declare-function vm-mail "ext:vm" (&optional to subject))
+
+(defun feedmail-vm-mail-mode (&optional arg)
+  "Make something like a buffer that has been created via `vm-mail'.
+The optional argument is ignored and is just for argument compatibility with
+`feedmail-queue-runner-mode-setter'.  This function is suitable for being
+applied to a file after you've just read it from disk: for example, a
+feedmail FQM message file from a queue.  You could use something like
+this:
+
+\(setq auto-mode-alist \(cons \'\(\"\\\\.fqm$\" . feedmail-vm-mail-mode\) auto-mode-alist\)\)
+"
+  (feedmail-say-debug ">in-> feedmail-vm-mail-mode")
+  (let ((the-buf (current-buffer)))
+    (vm-mail)
+    (delete-region (point-min) (point-max))
+    (insert-buffer-substring the-buf)
+    (setq buffer-file-name (buffer-file-name the-buf))
+    (set-buffer-modified-p (buffer-modified-p the-buf))
+    ;; For some versions of emacs, saving the message to a queue
+    ;; triggers running the mode function on the buffer, and that
+    ;; leads (through a series of events I don't really understand)
+    ;; to this function being called while the buffer is still
+    ;; marked modified even though it is in the process of being
+    ;; saved.  I guess the function gets called during the renaming
+    ;; that takes place en route to the save.
+    ;;
+    ;; This clearing of the marker probably wastes a buffer copy
+    ;; but it's easy to do and more reliable than figuring out what
+    ;; each variant of emacs does in this strange case.
+    (with-current-buffer the-buf
+      (set-buffer-modified-p nil))
+    (kill-buffer the-buf)
+    ))
+
 ;;;###autoload
 (defun feedmail-send-it ()
   "Send the current mail buffer using the Feedmail package.
 This is a suitable value for `send-mail-function'.  It can be used
 with various lower-level mechanisms to provide features such as queueing."
-
+  (feedmail-say-debug ">in-> feedmail-send-it")
+  (save-excursion
+	(let ((bfn-jiggle nil))
+	  ;; if buffer-file-name is nil, temporarily use the stashed value
+	  (if (and (not buffer-file-name) feedmail-queue-buffer-file-name)
+		  (setq buffer-file-name feedmail-queue-buffer-file-name
+				bfn-jiggle t))
   ;; avoid matching trouble over slash vs backslash by getting canonical
   (if feedmail-queue-directory
       (setq feedmail-queue-directory (expand-file-name feedmail-queue-directory)))
   (if feedmail-queue-draft-directory
       (setq feedmail-queue-draft-directory (expand-file-name feedmail-queue-draft-directory)))
-  (if (not feedmail-enable-queue) (feedmail-send-it-immediately)
+  (if (not feedmail-enable-queue) (feedmail-send-it-immediately-wrapper)
     ;; else, queuing is enabled, should we ask about it or just do it?
     (if feedmail-ask-before-queue
 	(funcall (feedmail-queue-send-edit-prompt))
-      (feedmail-dump-message-to-queue feedmail-queue-directory 'after-queue))))
-
+      (feedmail-dump-message-to-queue feedmail-queue-directory 'after-queue)))
+  ;; put this back
+  (if bfn-jiggle (setq feedmail-queue-buffer-file-name buffer-file-name))
+  )))
 
 (defun feedmail-message-action-send ()
   ;; hooks can make this take a while so clear the prompt
+  (feedmail-say-debug ">in-> feedmail-message-action-send")
   (message "FQM: Immediate send...")
-  (feedmail-send-it-immediately))
+  (feedmail-send-it-immediately-wrapper))
 
 
 ;; From a VM mailing list discussion and some suggestions from Samuel Mikes <smikes@alumni.hmc.edu>
 (defun feedmail-queue-express-to-queue ()
   "Send message directly to the queue, with a minimum of fuss and bother."
   (interactive)
+  (feedmail-say-debug ">in-> feedmail-queue-express-to-queue")
+  (run-hooks 'feedmail-queue-express-hook)
   (let ((feedmail-enable-queue t)
 	(feedmail-ask-before-queue nil)
 	(feedmail-queue-reminder-alist nil)
@@ -1460,6 +1819,7 @@ with various lower-level mechanisms to provide features such as queueing."
 (defun feedmail-queue-express-to-draft ()
   "Send message directly to the draft queue, with a minimum of fuss and bother."
   (interactive)
+  (feedmail-say-debug ">in-> feedmail-queue-express-to-draft")
   (let ((feedmail-queue-directory feedmail-queue-draft-directory))
     (feedmail-queue-express-to-queue)
     )
@@ -1467,32 +1827,39 @@ with various lower-level mechanisms to provide features such as queueing."
 
 
 (defun feedmail-message-action-send-strong ()
+  (feedmail-say-debug ">in-> feedmail-message-action-send-strong")
   (let ((feedmail-confirm-outgoing nil)) (feedmail-message-action-send)))
 
 
 (defun feedmail-message-action-edit ()
+  (feedmail-say-debug ">in-> feedmail-message-action-edit")
   (error "FQM: Message not queued; returning to edit"))
 
 
 (defun feedmail-message-action-draft ()
+  (feedmail-say-debug ">in-> feedmail-message-action-draft")
   (feedmail-dump-message-to-queue feedmail-queue-draft-directory 'after-draft))
 
 
 (defun feedmail-message-action-draft-strong ()
+  (feedmail-say-debug ">in-> feedmail-message-action-draft-strong")
   (let ((buffer-file-name nil))
     (feedmail-message-action-draft)))
 
 
 (defun feedmail-message-action-queue ()
+  (feedmail-say-debug ">in-> feedmail-message-action-queue")
   (feedmail-dump-message-to-queue feedmail-queue-directory 'after-queue))
 
 
 (defun feedmail-message-action-queue-strong ()
+  (feedmail-say-debug ">in-> feedmail-message-action-queue-strong")
   (let ((buffer-file-name nil))
     (feedmail-message-action-queue)))
 
 
 (defun feedmail-message-action-toggle-spray ()
+  (feedmail-say-debug ">in-> feedmail-message-action-toggle-spray")
   (let ((feedmail-enable-spray (not feedmail-enable-spray)))
     (if feedmail-enable-spray
 	(message "FQM: For this message, spray toggled ON")
@@ -1502,20 +1869,79 @@ with various lower-level mechanisms to provide features such as queueing."
     (feedmail-send-it)))
 
 
+(defconst feedmail-p-h-b-n "*FQM Help*")
+
 (defun feedmail-message-action-help ()
-  (let ((d-string " "))
+  (feedmail-say-debug ">in-> feedmail-message-action-help")
+  (let ((d-string " ")
+	(fqm-help (get-buffer feedmail-p-h-b-n)))
     (if (stringp feedmail-ask-before-queue-default)
 	(setq d-string feedmail-ask-before-queue-default)
       (setq d-string  (char-to-string feedmail-ask-before-queue-default)))
-    (feedmail-queue-send-edit-prompt-help d-string)
+ 	(if (and fqm-help (get-buffer-window fqm-help))
+	    (feedmail-scroll-buffer 'up fqm-help)
+ 	  (feedmail-message-action-help-blat d-string))
     ;; recursive, but no worries (it goes deeper on user action)
     (feedmail-send-it)))
+
+(defun feedmail-message-action-help-blat (d-string)
+  (feedmail-say-debug ">in-> feedmail-message-action-help-blat")
+  (with-output-to-temp-buffer feedmail-p-h-b-n
+    (princ "You're dispatching a message and feedmail queuing is enabled.
+Typing ? again will normally scroll this help buffer.
+
+Choices:
+   q  QUEUE        for later sending \(via feedmail-run-the-queue\)
+   Q  QUEUE!       like \"q\", but always make a new file
+   i  IMMEDIATELY  send this \(but not the other queued messages\)
+   I  IMMEDIATELY! like \"i\", but skip following confirmation prompt
+   d  DRAFT        queue in the draft directory
+   D  DRAFT!       like \"d\", but always make a new file
+   e  EDIT         return to the message edit buffer \(don't send or queue\)
+   *  SPRAY        toggle spray mode \(individual message transmissions\)
+   >  SCROLL UP    scroll message up \(toward end of message\)
+   <  SCROLL DOWN  scroll message down \(toward beginning of message\)
+   ?  HELP         show or scroll this help buffer
+
+Synonyms:
+   s  SEND         immediately \(same as \"i\"\)
+   S  SEND!        immediately \(same as \"I\"\)
+   r  ROUGH        draft \(same as \"d\"\)
+   R  ROUGH!       draft \(same as \"D\"\)
+   n  NOPE         didn't mean it \(same as \"e\"\)
+   y  YUP          do the default behavior \(same as \"C-m\"\)
+  SPC SCROLL UP    \(same as \">\"\)
+
+The user-configurable default is currently \"")
+	(princ d-string)
+	(princ "\".  For other possibilities,
+see the variable feedmail-prompt-before-queue-user-alist.
+")
+	(and (stringp feedmail-prompt-before-queue-help-supplement)
+		 (princ feedmail-prompt-before-queue-help-supplement))
+    (with-current-buffer standard-output
+      (if (fboundp 'help-mode) (help-mode)))))
+
+
+(defun feedmail-message-action-scroll-up ()
+  (feedmail-say-debug ">in-> feedmail-message-action-scroll-up")
+  (feedmail-scroll-buffer 'up)
+  ;; recursive, but no worries (it goes deeper on user action)
+  (feedmail-send-it))
+
+
+(defun feedmail-message-action-scroll-down ()
+  (feedmail-say-debug ">in-> feedmail-message-action-scroll-down")
+  (feedmail-scroll-buffer 'down)
+  ;; recursive, but no worries (it goes deeper on user action)
+  (feedmail-send-it))
 
 
 ;;;###autoload
 (defun feedmail-run-the-queue-no-prompts (&optional arg)
   "Like `feedmail-run-the-queue', but suppress confirmation prompts."
   (interactive "p")
+  (feedmail-say-debug ">in-> feedmail-run-the-queue-no-prompts")
   (let ((feedmail-confirm-outgoing nil)) (feedmail-run-the-queue arg)))
 
 ;;;###autoload
@@ -1524,6 +1950,7 @@ with various lower-level mechanisms to provide features such as queueing."
 This is generally most useful if run non-interactively, since you can
 bail out with an appropriate answer to the global confirmation prompt."
   (interactive "p")
+  (feedmail-say-debug ">in-> feedmail-run-the-queue-global-prompts")
   (let ((feedmail-queue-runner-confirm-global t)) (feedmail-run-the-queue arg)))
 
 ;; letf fools the byte-compiler.
@@ -1536,6 +1963,7 @@ Return value is a list of three things: number of messages sent, number of
 messages skipped, and number of non-message things in the queue (commonly
 backup file names and the like)."
   (interactive "p")
+  (feedmail-say-debug ">in-> feedmail-run-the-queue")
   ;; avoid matching trouble over slash vs backslash by getting canonical
   (if feedmail-queue-directory
       (setq feedmail-queue-directory (expand-file-name feedmail-queue-directory)))
@@ -1552,7 +1980,6 @@ backup file names and the like)."
 	 (messages-skipped 0)
 	 (blobby-buffer)
 	 (already-buffer)
-	 (this-mhsep)
 	 (do-the-run t)
 	 (list-of-possible-fqms))
     (if (and (> q-cnt 0) feedmail-queue-runner-confirm-global)
@@ -1596,38 +2023,34 @@ backup file names and the like)."
 	      (setq buffer-offer-save nil)
 	      (buffer-disable-undo blobby-buffer)
 	      (insert-file-contents-literally maybe-file)
-	      ;; work around text-vs-binary weirdness and also around rmail-resend's creative
-	      ;; manipulation of mail-header-separator
-	      ;;
-	      ;; if we don't find the normal M-H-S, and the alternative is defined but also
-	      ;; not found, try reading the file a different way
-	      ;;
-	      ;; if M-H-S not found and (a-M-H-S is nil or not found)
-	      (if (and (not (feedmail-find-eoh t))
-		       (or (not feedmail-queue-alternative-mail-header-separator)
-			   (not
-			    (let ((mail-header-separator feedmail-queue-alternative-mail-header-separator))
-			      (feedmail-find-eoh t)))))
-		  (letf ((file-name-buffer-file-type-alist nil)
-                         ((default-value 'buffer-file-type) nil))
-		    (erase-buffer) (insert-file-contents maybe-file)))
-	      ;; if M-H-S not found and (a-M-H-S is non-nil and is found)
-	      ;; temporarily set M-H-S to the value of a-M-H-S
-	      (if (and (not (feedmail-find-eoh t))
-		       feedmail-queue-alternative-mail-header-separator
-		       (let ((mail-header-separator feedmail-queue-alternative-mail-header-separator))
-			 (feedmail-find-eoh t)))
-		  (setq this-mhsep feedmail-queue-alternative-mail-header-separator)
-		(setq this-mhsep mail-header-separator))
+	      (setq buffer-file-type t) ; binary
+	      (goto-char (point-min))
+	      ;; if at least two line-endings with CRLF, translate the file
+	      (if (looking-at ".*\r\n.*\r\n")
+		  (while (search-forward "\r\n" nil t)
+		    (replace-match "\n" nil t)))
+;;		   ;; work around text-vs-binary wierdness
+;;		   ;; if we don't find the normal M-H-S, try reading the file a different way
+;; 		   (if (not (feedmail-find-eoh t))
+;;			   (let ((file-name-buffer-file-type-alist nil) (default-buffer-file-type nil))
+;;				 (erase-buffer)
+;;				 (insert-file-contents maybe-file)))
 	      (funcall feedmail-queue-runner-mode-setter arg)
-	      (condition-case nil	; don't give up the loop if user skips some
+	      (condition-case signal-stuff ; don't give up the loop if user skips some
 		  (let ((feedmail-enable-queue nil)
-			(mail-header-separator this-mhsep)
 			(feedmail-queue-runner-is-active maybe-file))
-		    (funcall feedmail-queue-runner-message-sender arg)
+		    ;; if can't find EOH, this is no message!
+		    (unless (feedmail-find-eoh t)
+		      (feedmail-say-chatter "Skipping %s; no mail-header-separator" maybe-file)
+		      (error "FQM: you should never see this message"))
+		    (feedmail-say-debug "Prepping %s" maybe-file)
+		    ;; the catch is a way out for users to voluntarily skip sending a message
+		    (catch 'skip-me-q (funcall feedmail-queue-runner-message-sender arg))
 		    (set-buffer blobby-buffer)
 		    (if (buffer-modified-p) ; still modified, means wasn't sent
-			(setq messages-skipped (1+ messages-skipped))
+			(progn
+			  (setq messages-skipped (1+ messages-skipped))
+			  (feedmail-say-chatter "%s wasn't sent by %s" maybe-file feedmail-buffer-eating-function))
 		      (setq messages-sent (1+ messages-sent))
 		      (funcall feedmail-queue-runner-cleaner-upper maybe-file arg)
 		      (if (and already-buffer (not (file-exists-p maybe-file)))
@@ -1635,20 +2058,25 @@ backup file names and the like)."
 			  ;; buffer, so update the buffer's notion of that
 			  (with-current-buffer already-buffer
 			    (setq buffer-file-name nil)))))
-		(error (setq messages-skipped (1+ messages-skipped))))
+		;; the handler for the condition-case
+		(error (setq messages-skipped (1+ messages-skipped))
+		       (ding t)
+		       (message "FQM: Trapped '%s', message left in queue." (car signal-stuff))
+		       (sit-for 3)
+		       (message "FQM: Trap details: \"%s\""
+				(mapconcat 'identity (cdr signal-stuff) "\" \""))
+		       (sit-for 3)))
 	      (kill-buffer blobby-buffer)
-	      (if feedmail-queue-chatty
-		  (progn
-		    (message "FQM: %d to go, %d sent, %d skipped (%d other files ignored)"
-			     (- q-cnt messages-sent messages-skipped)
-			     messages-sent messages-skipped q-oth)
-		    (sit-for feedmail-queue-chatty-sit-for))))))
+	      (feedmail-say-chatter
+	       "%d to go, %d sent, %d skipped (%d other files ignored)"
+	       (- q-cnt messages-sent messages-skipped)
+	       messages-sent messages-skipped q-oth)
+	      )))
 	 list-of-possible-fqms)))
     (if feedmail-queue-chatty
 	(progn
-	  (message "FQM: %d sent, %d skipped (%d other files ignored)"
-		   messages-sent messages-skipped q-oth)
-	  (sit-for feedmail-queue-chatty-sit-for)
+	  (feedmail-say-chatter "%d sent, %d skipped (%d other files ignored)"
+				messages-sent messages-skipped q-oth)
 	  (feedmail-queue-reminder 'after-run)
 	  (sit-for feedmail-queue-chatty-sit-for)))
     (list messages-sent messages-skipped q-oth)))
@@ -1674,6 +2102,7 @@ to perform the reminder activity.  You can supply your own reminder functions
 by redefining `feedmail-queue-reminder-alist'.  If you don't want any reminders,
 you can set `feedmail-queue-reminder-alist' to nil."
   (interactive "p")
+  (feedmail-say-debug ">in-> feedmail-queue-reminder %s" what-event)
   (let ((key (if (and what-event (symbolp what-event)) what-event 'on-demand)) entry reminder)
     (setq entry (assoc key feedmail-queue-reminder-alist))
     (setq reminder (cdr entry))
@@ -1682,8 +2111,9 @@ you can set `feedmail-queue-reminder-alist' to nil."
 
 
 (defun feedmail-queue-reminder-brief ()
-  "Brief display of draft and queued message counts in modeline."
+  "Brief display of draft and queued message counts in minibuffer."
   (interactive)
+  (feedmail-say-debug ">in-> feedmail-queue-reminder-brief")
   (let (q-cnt d-cnt q-lis d-lis)
     (setq q-lis (feedmail-look-at-queue-directory feedmail-queue-directory))
     (setq d-lis (feedmail-look-at-queue-directory feedmail-queue-draft-directory))
@@ -1696,8 +2126,9 @@ you can set `feedmail-queue-reminder-alist' to nil."
 
 
 (defun feedmail-queue-reminder-medium ()
-  "Verbose display of draft and queued message counts in modeline."
+  "Verbose display of draft and queued message counts in minibuffer."
   (interactive)
+  (feedmail-say-debug ">in-> feedmail-queue-reminder-medium")
   (let (q-cnt d-cnt q-oth d-oth q-lis d-lis)
     (setq q-lis (feedmail-look-at-queue-directory feedmail-queue-directory))
     (setq d-lis (feedmail-look-at-queue-directory feedmail-queue-draft-directory))
@@ -1714,25 +2145,49 @@ you can set `feedmail-queue-reminder-alist' to nil."
 
 
 (defun feedmail-queue-send-edit-prompt ()
-  "Ask whether to queue, send immediately, or return to editing a message."
+  "Ask whether to queue, send immediately, or return to editing a message, etc."
+  (feedmail-say-debug ">in-> feedmail-queue-send-edit-prompt")
+  (feedmail-queue-send-edit-prompt-inner
+   feedmail-ask-before-queue-default
+   feedmail-ask-before-queue-prompt
+   feedmail-ask-before-queue-reprompt
+   'feedmail-message-action-help
+   feedmail-prompt-before-queue-standard-alist
+   feedmail-prompt-before-queue-user-alist
+   ))
+
+(defun feedmail-queue-runner-prompt ()
+  "Ask whether to queue, send immediately, or return to editing a message, etc."
+  (feedmail-say-debug ">in-> feedmail-queue-runner-prompt")
+  (feedmail-queue-send-edit-prompt-inner
+   feedmail-ask-before-queue-default
+   feedmail-ask-before-queue-prompt
+   feedmail-ask-before-queue-reprompt
+   'feedmail-message-action-help
+   feedmail-prompt-before-queue-standard-alist
+   feedmail-prompt-before-queue-user-alist
+   ))
+(defun feedmail-queue-send-edit-prompt-inner (default prompt reprompt helper
+					       standard-alist user-alist)
+  (feedmail-say-debug ">in-> feedmail-queue-send-edit-prompt-inner")
   ;; Some implementation ideas here came from the userlock.el code
-  (discard-input)
+  (or defining-kbd-macro (discard-input))
   (save-window-excursion
     (let ((answer) (d-char) (d-string " "))
-      (if (stringp feedmail-ask-before-queue-default)
+      (if (stringp default)
 	  (progn
-	    (setq d-char   (string-to-char feedmail-ask-before-queue-default))
-	    (setq d-string feedmail-ask-before-queue-default))
-	(setq d-string  (char-to-string feedmail-ask-before-queue-default))
-	(setq d-char    feedmail-ask-before-queue-default)
+	    (setq d-char   (string-to-char default)
+		  d-string default))
+	(setq d-string  (char-to-string default))
+	(setq d-char    default)
 	)
       (while (null answer)
-	(message feedmail-ask-before-queue-prompt d-string)
+	(message prompt d-string)
 	(let ((user-sez
 	       (let ((inhibit-quit t) (cursor-in-echo-area t) (echo-keystrokes 0))
 		 (read-char-exclusive))))
 	  (if (= user-sez help-char)
-	      (setq answer '(^ . feedmail-message-action-help))
+	      (setq answer '(^ . helper))
 	    (if (or (eq user-sez ?\C-m) (eq user-sez ?\C-j) (eq user-sez ?y))
 		(setq user-sez d-char))
 	    ;; these char-to-int things are because of some
@@ -1740,73 +2195,39 @@ you can set `feedmail-queue-reminder-alist' to nil."
 	    ;; byte-compiled stuff between Emacs and XEmacs
 	    ;; (well, I'm sure someone could comprehend it,
 	    ;; but I say 'uncle')
-	    (setq answer (or (assoc user-sez feedmail-prompt-before-queue-user-alist)
+	    (setq answer (or (assoc user-sez user-alist)
 			     (and (fboundp 'char-to-int)
-				  (assoc (char-to-int user-sez) feedmail-prompt-before-queue-user-alist))
-			     (assoc user-sez feedmail-prompt-before-queue-standard-alist)
+				  (assoc (char-to-int user-sez) user-alist))
+			     (assoc user-sez standard-alist)
 			     (and (fboundp 'char-to-int)
-				  (assoc (char-to-int user-sez) feedmail-prompt-before-queue-standard-alist))))
+				  (assoc (char-to-int user-sez) standard-alist))))
 	    (if (or (null answer) (null (cdr answer)))
 		(progn
 		  (beep)
-		  (message feedmail-ask-before-queue-reprompt d-string)
+		  (message reprompt d-string)
 		  (sit-for 3)))
 	    )))
       (cdr answer)
       )))
 
-(defconst feedmail-p-h-b-n "*FQM Help*")
-
-(defun feedmail-queue-send-edit-prompt-help (d-string)
-  (let ((fqm-help (get-buffer feedmail-p-h-b-n)))
-    (if (and fqm-help (get-buffer-window fqm-help 'visible))
-	(feedmail-queue-send-edit-prompt-help-later fqm-help d-string)
-      (feedmail-queue-send-edit-prompt-help-first d-string))))
-
-(defun feedmail-queue-send-edit-prompt-help-later (fqm-help d-string)
+(defun feedmail-scroll-buffer (direction &optional buffy)
   ;; scrolling fun
+  ;; emacs convention is that scroll-up moves text up, window down
+  (feedmail-say-debug ">in-> feedmail-scroll-buffer %s" direction)
   (save-selected-window
     (let ((signal-error-on-buffer-boundary nil)
-	  (fqm-window (display-buffer fqm-help)))
+	  (fqm-window (display-buffer (if buffy buffy (current-buffer)))))
       (select-window fqm-window)
+      (if (eq direction 'up)
       (if (pos-visible-in-window-p (point-max) fqm-window)
-	  (feedmail-queue-send-edit-prompt-help-first d-string)
-	;;(goto-char (point-min))
-	(scroll-up nil)
-	))))
+	  ;; originally just (goto-char (point-min)), but
+	  ;; pos-visible-in-window-p seems oblivious to that
+	  (scroll-down 999999)
+	(scroll-up))
+      (if (pos-visible-in-window-p (point-min) fqm-window)
+	  (scroll-up 999999)
+	(scroll-down))))))
 
-(defun feedmail-queue-send-edit-prompt-help-first (d-string)
-  (with-output-to-temp-buffer feedmail-p-h-b-n
-    (princ "You're dispatching a message and feedmail queuing is enabled.
-Typing ? or C-v will normally scroll this help buffer.
-
-Choices:
-   q  QUEUE        for later sending (via feedmail-run-the-queue)
-   Q  QUEUE!       like \"q\", but always make a new file
-   i  IMMEDIATELY  send this (but not the other queued messages)
-   I  IMMEDIATELY! like \"i\", but skip following confirmation prompt
-   d  DRAFT        queue in the draft directory
-   D  DRAFT!       like \"d\", but always make a new file
-   e  EDIT         return to the message edit buffer (don't send or queue)
-   *  SPRAY        toggle spray mode (individual message transmissions)
-
-Synonyms:
-   s  SEND         immediately (same as \"i\")
-   S  SEND!        immediately (same as \"I\")
-   r  ROUGH        draft (same as \"d\")
-   R  ROUGH!       draft (same as \"D\")
-   n  NOPE         didn't mean it (same as \"e\")
-   y  YUP          do the default behavior (same as \"C-m\")
-
-The user-configurable default is currently \"")
-    (princ d-string)
-    (princ "\".  For other possibilities,
-see the variable feedmail-prompt-before-queue-user-alist.
-")
-    (and (stringp feedmail-prompt-before-queue-help-supplement)
-	 (princ feedmail-prompt-before-queue-help-supplement))
-    (with-current-buffer standard-output
-      (if (fboundp 'help-mode) (help-mode)))))
 
 (defun feedmail-look-at-queue-directory (queue-directory)
   "Find out some things about a queue directory.
@@ -1814,6 +2235,7 @@ Result is a list containing a count of queued messages in the
 directory, a count of other files in the directory, and a high water
 mark for prefix sequence numbers.  Subdirectories are not included in
 the counts."
+  (feedmail-say-debug ">in-> feedmail-look-at-queue-directory %s" queue-directory)
   (let ((q-cnt 0) (q-oth 0) (high-water 0) (blobbet))
     ;; iterate, counting things we find along the way in the directory
     (if (file-directory-p queue-directory)
@@ -1835,10 +2257,11 @@ the counts."
 
 (defun feedmail-tidy-up-slug (slug)
   "Utility for mapping out suspect characters in a potential filename."
+  (feedmail-say-debug ">in-> feedmail-tidy-up-slug %s" slug)
   ;; even programmers deserve a break sometimes, so cover nil for them
   (if (null slug) (setq slug ""))
   ;; replace all non-alphanumerics with hyphen for safety
-  (while (string-match "[^a-z0-9-]+" slug) (setq slug (replace-match "-" nil nil slug)))
+  (while (string-match feedmail-queue-slug-suspect-regexp slug) (setq slug (replace-match "-" nil nil slug)))
   ;; collapse multiple hyphens to one
   (while (string-match "--+" slug) (setq slug (replace-match "-" nil nil slug)))
   ;; for tidyness, peel off leading hyphens
@@ -1855,6 +2278,7 @@ file will be placed.  The name is based on the Subject: header (if
 there is one).  If there is no subject,
 `feedmail-queue-default-file-slug' is consulted.  Special characters are
 mapped to mostly alphanumerics for safety."
+  (feedmail-say-debug ">in-> feedmail-queue-subject-slug-maker %s" queue-directory)
   (let ((eoh-marker) (case-fold-search t) (subject "") (s-point))
     (setq eoh-marker (feedmail-find-eoh))
     (goto-char (point-min))
@@ -1862,7 +2286,7 @@ mapped to mostly alphanumerics for safety."
     (if (re-search-forward "^Subject:" eoh-marker t)
 	(progn (setq s-point (point))
 	       (end-of-line)
-	       (setq subject (buffer-substring s-point (point)))))
+	       (setq subject (buffer-substring-no-properties s-point (point)))))
     (setq subject (feedmail-tidy-up-slug subject))
     (if (zerop (length subject))
 	(setq subject
@@ -1882,6 +2306,7 @@ mapped to mostly alphanumerics for safety."
 
 
 (defun feedmail-create-queue-filename (queue-directory)
+  (feedmail-say-debug ">in-> feedmail-create-queue-filename %s" queue-directory)
   (let ((slug "wjc"))
     (cond
      (feedmail-queue-slug-maker
@@ -1900,6 +2325,7 @@ mapped to mostly alphanumerics for safety."
 
 
 (defun feedmail-dump-message-to-queue (queue-directory what-event)
+  (feedmail-say-debug ">in-> feedmail-dump-message-to-queue %s %s" queue-directory what-event)
   (or (file-accessible-directory-p queue-directory)
       ;; progn to get nil result no matter what
       (progn (make-directory queue-directory t) nil)
@@ -1913,7 +2339,8 @@ mapped to mostly alphanumerics for safety."
 	(progn
 	  (setq is-fqm (feedmail-fqm-p buffer-file-name))
 	  (setq is-in-this-dir (string-equal
-				(directory-file-name queue-directory)
+				(directory-file-name
+				 (expand-file-name queue-directory))
 				(directory-file-name (expand-file-name (file-name-directory buffer-file-name)))))))
     ;; if visiting a queued message, just save
     (if (and is-fqm is-in-this-dir)
@@ -1924,7 +2351,14 @@ mapped to mostly alphanumerics for safety."
       (write-file filename))
     ;; convenient for moving from draft to q, for example
     (if (and previous-buffer-file-name (or (not is-fqm) (not is-in-this-dir))
-	     (y-or-n-p (format "FQM: Was previously %s; delete that? " previous-buffer-file-name)))
+	     (let (d b s)
+	       (setq b (file-name-nondirectory previous-buffer-file-name))
+	       (setq d (file-name-directory previous-buffer-file-name))
+	       (setq s (substring d (1- (length d))))
+	       (setq d (substring d 0 (1- (length d))))
+	       (setq d (file-name-nondirectory d))
+	       (y-or-n-p (format "FQM: Was previously %s%s%s; delete that? "
+				 d s b))))
 	(delete-file previous-buffer-file-name))
     (if feedmail-nuke-buffer-after-queue
 	(let ((a-s-file-name buffer-auto-save-file-name))
@@ -1933,9 +2367,7 @@ mapped to mostly alphanumerics for safety."
 	       delete-auto-save-files
 	       (file-exists-p a-s-file-name)
 	       (delete-file a-s-file-name))))
-    (if feedmail-queue-chatty
-	(progn (message "%s" (concat "FQM: Queued in " filename))
-	       (sit-for feedmail-queue-chatty-sit-for)))
+    (feedmail-say-chatter "Queued in %s" filename)
     (if feedmail-queue-chatty
 	(progn
 	  (feedmail-queue-reminder what-event)
@@ -1944,37 +2376,46 @@ mapped to mostly alphanumerics for safety."
 
 ;; from a similar function in mail-utils.el
 (defun feedmail-rfc822-time-zone (time)
+  (feedmail-say-debug ">in-> feedmail-rfc822-time-zone %s" time)
   (let* ((sec (or (car (current-time-zone time)) 0))
 	 (absmin (/ (abs sec) 60)))
     (format "%c%02d%02d" (if (< sec 0) ?- ?+) (/ absmin 60) (% absmin 60))))
 
 (defun feedmail-rfc822-date (arg-time)
-  (let ((time (if arg-time arg-time (current-time))))
+  (feedmail-say-debug ">in-> feedmail-rfc822-date %s" arg-time)
+  (let ((time (if arg-time arg-time (current-time)))
+	(system-time-locale "C"))
     (concat
      (format-time-string "%a, %e %b %Y %T " time)
      (feedmail-rfc822-time-zone time)
      )))
 
+(defun feedmail-send-it-immediately-wrapper ()
+  "Wrapper to catch skip-me-i"
+  (if (eq 'skip-me-i (catch 'skip-me-i (feedmail-send-it-immediately)))
+      (error "FQM: Sending...abandoned!")))
+
 (declare-function expand-mail-aliases "mailalias" (beg end &optional exclude))
 
 (defun feedmail-send-it-immediately ()
   "Handle immediate sending, including during a queue run."
-  (let* ((feedmail-error-buffer (get-buffer-create " *FQM Outgoing Email Errors*"))
-	 (feedmail-prepped-text-buffer (get-buffer-create " *FQM Outgoing Email Text*"))
-	 (feedmail-raw-text-buffer (current-buffer))
-	 (feedmail-address-list)
-	 (eoh-marker)
-	 (bcc-holder)
-	 (resent-bcc-holder)
-	 (a-re-rtcb  "^Resent-\\(To\\|Cc\\|Bcc\\):")
-	 (a-re-rtc   "^Resent-\\(To\\|Cc\\):")
-	 (a-re-rb    "^Resent-Bcc:")
-	 (a-re-dtcb  "^\\(To\\|Cc\\|Bcc\\):")
-	 (a-re-dtc   "^\\(To\\|Cc\\):")
-	 (a-re-db    "^Bcc:")
-	 ;; to get a temporary changable copy
-	 (mail-header-separator mail-header-separator)
-	 )
+  (feedmail-say-debug ">in-> feedmail-send-it-immediately")
+  (let ((feedmail-error-buffer (get-buffer-create " *FQM Outgoing Email Errors*"))
+	(feedmail-prepped-text-buffer (get-buffer-create " *FQM Outgoing Email Text*"))
+	(feedmail-raw-text-buffer (current-buffer))
+	(feedmail-address-list)
+	(eoh-marker)
+	(bcc-holder)
+	(resent-bcc-holder)
+	(a-re-rtcb  "^Resent-\\(To\\|Cc\\|Bcc\\):")
+	(a-re-rtc   "^Resent-\\(To\\|Cc\\):")
+	(a-re-rb    "^Resent-Bcc:")
+	(a-re-dtcb  "^\\(To\\|Cc\\|Bcc\\):")
+	(a-re-dtc   "^\\(To\\|Cc\\):")
+	(a-re-db    "^Bcc:")
+	;; to get a temporary changable copy
+	(mail-header-separator mail-header-separator)
+	)
     (unwind-protect
 	(save-current-buffer
 	  (set-buffer feedmail-error-buffer) (erase-buffer)
@@ -1990,11 +2431,16 @@ mapped to mostly alphanumerics for safety."
 	  (let ((case-fold-search nil))
 	    ;; Change header-delimiter to be what mailers expect (empty line).
 	    ;; leaves match data in place or signals error
+	    (feedmail-say-debug "looking for m-h-s \"%s\""
+				mail-header-separator)
 	    (setq eoh-marker (feedmail-find-eoh))
-	    (replace-match "\n")
-	    (setq mail-header-separator ""))
+	    (feedmail-say-debug "found m-h-s %s" eoh-marker)
+	    (setq mail-header-separator "")
+	    (replace-match ""))
+;;	  (replace-match "\\1")) ;; might be empty or "\r"
 
 	  ;; mail-aliases nil = mail-abbrevs.el
+	  (feedmail-say-debug "expanding mail aliases")
 	  (if (or feedmail-force-expand-mail-aliases
 		  (and (fboundp 'expand-mail-aliases) mail-aliases))
 	      (expand-mail-aliases (point-min) eoh-marker))
@@ -2066,18 +2512,31 @@ mapped to mostly alphanumerics for safety."
 		 (while (re-search-forward "^[A-Za-z0-9-]+:[ \t]*\n" eoh-marker t)
 		   (replace-match ""))))
 
+	  (feedmail-say-debug "last chance hook: %s" feedmail-last-chance-hook)
 	  (run-hooks 'feedmail-last-chance-hook)
 
+	  (save-window-excursion
 	  (let ((fcc (feedmail-accume-n-nuke-header eoh-marker "^Fcc:"))
 		(also-file)
 		(confirm (cond
 			  ((eq feedmail-confirm-outgoing 'immediate)
 			   (not feedmail-queue-runner-is-active))
 			  ((eq feedmail-confirm-outgoing 'queued) feedmail-queue-runner-is-active)
-			  (t feedmail-confirm-outgoing))))
+			  (t feedmail-confirm-outgoing)))
+		(fullframe (cond
+			    ((eq feedmail-display-full-frame 'immediate)
+			     (not feedmail-queue-runner-is-active))
+			    ((eq feedmail-display-full-frame 'queued) feedmail-queue-runner-is-active)
+			    (t feedmail-display-full-frame))))
+	    (if fullframe
+		(progn
+		  (switch-to-buffer feedmail-prepped-text-buffer t)
+		  (delete-other-windows)))
 	    (if (or (not confirm) (feedmail-one-last-look feedmail-prepped-text-buffer))
 		(let ((user-mail-address (feedmail-envelope-deducer eoh-marker)))
+		  (feedmail-say-debug "give it to buffer-eater")
 		  (feedmail-give-it-to-buffer-eater)
+		  (feedmail-say-debug "gave it to buffer-eater")
 		  (if (and (not feedmail-queue-runner-is-active) (setq also-file (buffer-file-name feedmail-raw-text-buffer)))
 		      (progn		; if a file but not running the queue, offer to delete it
 			(setq also-file (expand-file-name also-file))
@@ -2111,8 +2570,11 @@ mapped to mostly alphanumerics for safety."
 				       ))
 			    (mail-do-fcc eoh-marker)
 			    )))
-	      (error "FQM: Sending...abandoned") ; user bailed out of one-last-look
-	      )))			; unwind-protect body (save-excursion)
+	      ;; user bailed out of one-last-look
+	      (if feedmail-queue-runner-is-active
+		  (throw 'skip-me-q 'skip-me-q)
+		(throw 'skip-me-i 'skip-me-i))
+	      )))) ; unwind-protect body (save-excursion)
 
       ;; unwind-protect cleanup forms
       (kill-buffer feedmail-prepped-text-buffer)
@@ -2120,8 +2582,10 @@ mapped to mostly alphanumerics for safety."
       (if (zerop (buffer-size)) (kill-buffer feedmail-error-buffer)
 	(progn (display-buffer feedmail-error-buffer)
 	       ;; read fast ... the meter is running
-	       (if (and feedmail-queue-runner-is-active feedmail-queue-chatty)
-		   (progn (message "FQM: Sending...failed") (ding t) (sit-for 3)))
+	       (if feedmail-queue-runner-is-active
+		   (progn
+		     (ding t)
+		     (feedmail-say-chatter "Sending...failed")))
 	       (error "FQM: Sending...failed")))
       (set-buffer feedmail-raw-text-buffer))
     )					; let
@@ -2137,6 +2601,8 @@ mapped to mostly alphanumerics for safety."
 NAME, VALUE, ACTION, and FOLDING are the four elements of a
 fiddle-plex, as described in the documentation for the variable
 `feedmail-fiddle-plex-blurb'."
+  (feedmail-say-debug ">in-> feedmail-fiddle-header %s %s %s %s"
+		      name value action folding)
   (let ((case-fold-search t)
 	(header-colon (concat (regexp-quote name) ":"))
 	header-regexp eoh-marker has-like ag-like val-like that-point)
@@ -2197,6 +2663,7 @@ fiddle-plex, as described in the documentation for the variable
     ))
 
 (defun feedmail-give-it-to-buffer-eater ()
+  (feedmail-say-debug ">in-> feedmail-give-it-to-buffer-eater")
   (save-excursion
     (if feedmail-enable-spray
 	(mapcar
@@ -2227,6 +2694,8 @@ fiddle-plex, as described in the documentation for the variable
 	      (kill-buffer spray-buffer)
 	      ))
 	 feedmail-address-list)
+      (feedmail-say-debug "calling buffer-eater %s"
+			  feedmail-buffer-eating-function)
       (funcall feedmail-buffer-eating-function
 	       feedmail-prepped-text-buffer
 	       feedmail-error-buffer
@@ -2237,6 +2706,7 @@ fiddle-plex, as described in the documentation for the variable
   "If `feedmail-deduce-envelope-from' is false, simply return `user-mail-address'.
 Else, look for Sender: or From: (or Resent-*) and
 return that value."
+  (feedmail-say-debug ">in-> feedmail-envelope-deducer %s" eoh-marker)
   (if (not feedmail-deduce-envelope-from)
       user-mail-address
     (let ((from-list))
@@ -2254,6 +2724,7 @@ return that value."
 
 (defun feedmail-fiddle-from ()
   "Fiddle From:."
+  (feedmail-say-debug ">in-> feedmail-fiddle-from")
   ;; default is to fall off the end of the list and do nothing
   (cond
    ;; nil means do nothing
@@ -2262,10 +2733,14 @@ return that value."
    ;; user-full-name suggested by kpc@ptolemy.arc.nasa.gov (=Kimball Collins)
    ;; improvement using user-mail-address suggested by
    ;;   gray@austin.apc.slb.com (Douglas Gray Stephens)
+   ;; improvement using mail-host-address suggested by "Jason Eisner" <jason@cs.jhu.edu>
+   ;; ((this situation really is hopeless, though)
    ((eq t feedmail-from-line)
     (let ((feedmail-from-line
 	   (let ((at-stuff
-		  (if user-mail-address user-mail-address (concat (user-login-name) "@" (system-name)))))
+		  (if user-mail-address user-mail-address
+		    (concat (user-login-name) "@"
+			    (or mail-host-address (system-name))))))
 	     (cond
 	      ((eq mail-from-style nil) at-stuff)
 	      ((eq mail-from-style 'parens) (concat at-stuff " (" (user-full-name) ")"))
@@ -2294,6 +2769,7 @@ return that value."
 
 (defun feedmail-fiddle-sender ()
   "Fiddle Sender:."
+  (feedmail-say-debug ">in-> feedmail-fiddle-sender")
   ;; default is to fall off the end of the list and do nothing
   (cond
    ;; nil means do nothing
@@ -2322,6 +2798,11 @@ return that value."
 
 (defun feedmail-default-date-generator (maybe-file)
   "Default function for generating Date: header contents."
+  (feedmail-say-debug ">in-> feedmail-default-date-generator")
+  (when maybe-file
+    (feedmail-say-debug (concat "4 cre " (feedmail-rfc822-date (nth 4 (file-attributes maybe-file)))))
+    (feedmail-say-debug (concat "5 mod " (feedmail-rfc822-date (nth 5 (file-attributes maybe-file)))))
+    (feedmail-say-debug (concat "6 sta " (feedmail-rfc822-date (nth 6 (file-attributes maybe-file))))))
   (let ((date-time))
     (if (and (not feedmail-queue-use-send-time-for-date) maybe-file)
 	(setq date-time (nth 5 (file-attributes maybe-file))))
@@ -2331,6 +2812,7 @@ return that value."
 
 (defun feedmail-fiddle-date (maybe-file)
   "Fiddle Date:.  See documentation of `feedmail-date-generator'."
+  (feedmail-say-debug ">in-> feedmail-fiddle-date")
   ;; default is to fall off the end of the list and do nothing
   (cond
    ;; nil means do nothing
@@ -2363,9 +2845,14 @@ return that value."
   "Default function for generating Message-Id: header contents.
 Based on a date and a sort of random number for tie breaking.  Unless
 `feedmail-message-id-suffix' is defined, uses `user-mail-address', so be
-sure it's set."
+sure it's set.  If both are nil, creates a quasi-random suffix that is
+probably not appropriate for you."
+  (feedmail-say-debug ">in-> feedmail-default-message-id-generator %s"
+		      maybe-file)
   (let ((date-time)
+	(system-time-locale "C")
 	(end-stuff (if feedmail-message-id-suffix feedmail-message-id-suffix user-mail-address)))
+    (if (not end-stuff) (setq end-stuff (format "%d.example.com" (random))))
     (if (string-match "^\\(.*\\)@" end-stuff)
 	(setq end-stuff
 	      (concat (if (equal (match-beginning 1) (match-end 1)) "" "-") end-stuff))
@@ -2381,6 +2868,7 @@ sure it's set."
 
 (defun feedmail-fiddle-message-id (maybe-file)
   "Fiddle Message-Id:.  See documentation of `feedmail-message-id-generator'."
+  (feedmail-say-debug ">in-> feedmail-fiddle-message-id %s" maybe-file)
   ;; default is to fall off the end of the list and do nothing
   (cond
    ;; nil means do nothing
@@ -2422,8 +2910,11 @@ sure it's set."
 
 (defun feedmail-fiddle-x-mailer ()
   "Fiddle X-Mailer:.  See documentation of `feedmail-x-mailer-line'."
+  (feedmail-say-debug ">in-> feedmail-fiddle-x-mailer")
   ;; default is to fall off the end of the list and do nothing
   (cond
+   ;; nil means do nothing
+   ((eq nil feedmail-x-mailer-line) nil)
    ;; t is the same a using the function feedmail-default-x-mailer-generator, so let it and recurse
    ((eq t feedmail-x-mailer-line)
     (let ((feedmail-x-mailer-line (feedmail-default-x-mailer-generator)))
@@ -2450,6 +2941,7 @@ sure it's set."
 
 (defun feedmail-fiddle-spray-address (addy-plex)
   "Fiddle header for single spray address.  Uses `feedmail-spray-this-address'."
+  (feedmail-say-debug ">in-> feedmail-fiddle-spray-address %s" addy-plex)
   ;; default is to fall off the end of the list and do nothing
   (cond
    ;; nil means do nothing
@@ -2481,6 +2973,7 @@ sure it's set."
 
 (defun feedmail-fiddle-list-of-spray-fiddle-plexes (list-of-fiddle-plexes)
   "Fiddling based on a list of fiddle-plexes for spraying."
+  (feedmail-say-debug ">in-> feedmail-fiddle-list-of-spray-fiddle-plexes")
   ;; default is to fall off the end of the list and do nothing
   (let ((lofp list-of-fiddle-plexes) fp)
     (if (listp lofp)
@@ -2493,6 +2986,7 @@ sure it's set."
 
 (defun feedmail-fiddle-list-of-fiddle-plexes (list-of-fiddle-plexes)
   "Fiddling based on a list of fiddle-plexes.  Values t, nil, and string are pointless."
+  (feedmail-say-debug ">in-> feedmail-fiddle-list-of-fiddle-plexes")
   ;; default is to fall off the end of the list and do nothing
   (let ((lofp list-of-fiddle-plexes) fp)
     (while lofp
@@ -2518,18 +3012,20 @@ sure it's set."
 There may be multiple such lines, and each may have arbitrarily
 many continuation lines.  Return an accumulation of the deleted
 headers, including the intervening newlines."
+  (feedmail-say-debug ">in-> feedmail-accume-n-nuke-header %s %s"
+		      header-end header-regexp)
   (let ((case-fold-search t) (dropout))
     (save-excursion
       (goto-char (point-min))
       ;; iterate over all matching lines
       (while (re-search-forward header-regexp header-end t)
 	(forward-line 1)
-	(setq dropout (concat dropout (buffer-substring (match-beginning 0) (point))))
+	(setq dropout (concat dropout (buffer-substring-no-properties (match-beginning 0) (point))))
 	(delete-region (match-beginning 0) (point))
 	;; get rid of any continuation lines
 	(while (and (looking-at "^[ \t].*\n") (< (point) header-end))
 	  (forward-line 1)
-	  (setq dropout (concat dropout (buffer-substring (match-beginning 0) (point))))
+	  (setq dropout (concat dropout (buffer-substring-no-properties (match-beginning 0) (point))))
 	  (replace-match ""))))
     (identity dropout)))
 
@@ -2539,6 +3035,7 @@ The filling tries to avoid splitting lines except at commas.  This
 avoids, in particular, splitting within parenthesized comments in
 addresses.  Headers filled include From:, Reply-To:, To:, Cc:, Bcc:,
 Resent-To:, Resent-Cc:, and Resent-Bcc:."
+  (feedmail-say-debug ">in-> feedmail-fill-to-cc-function")
   (let ((case-fold-search t)
 	this-line
 	this-line-end)
@@ -2563,6 +3060,7 @@ Resent-To:, Resent-Cc:, and Resent-Bcc:."
 
 (defun feedmail-fill-this-one (this-line this-line-end)
   "In-place smart filling of the region bounded by the two arguments."
+  (feedmail-say-debug ">in-> feedmail-fill-this-one")
   (let ((fill-prefix "\t")
 	(fill-column feedmail-fill-to-cc-fill-column))
     ;; The general idea is to break only on commas.  Collapse
@@ -2593,6 +3091,7 @@ Resent-To:, Resent-Cc:, and Resent-Bcc:."
 Addresses are collected only from headers whose names match the fourth
 argument.  Returns a list of strings.  Duplicate addresses will have
 been weeded out."
+  (feedmail-say-debug ">in-> feedmail-deduce-address-list %s %s" addr-regexp address-list)
   (let ((simple-address)
 	(address-blob)
 	(this-line)
@@ -2613,7 +3112,7 @@ been weeded out."
 	      (setq this-line-end (point-marker))
 	      ;; only keep if we don't have it already
 	      (setq address-blob
-		    (mail-strip-quoted-names (buffer-substring this-line this-line-end)))
+		    (mail-strip-quoted-names (buffer-substring-no-properties this-line this-line-end)))
 	      (while (string-match "\\([, \t\n\r]*\\)\\([^, \t\n\r]+\\)" address-blob)
 		(setq simple-address (substring address-blob (match-beginning 2) (match-end 2)))
 		(setq address-blob (replace-match "" t t address-blob))
@@ -2626,6 +3125,7 @@ been weeded out."
 
 (defun feedmail-one-last-look (feedmail-prepped-text-buffer)
   "Offer the user one last chance to give it up."
+  (feedmail-say-debug ">in-> feedmail-one-last-look")
   (save-excursion
     (save-window-excursion
       (switch-to-buffer feedmail-prepped-text-buffer)
@@ -2639,26 +3139,43 @@ been weeded out."
 
 (defun feedmail-fqm-p (might-be)
   "Internal; does filename end with FQM suffix?"
+  (feedmail-say-debug ">in-> feedmail-fqm-p %s" might-be)
   (string-match (concat (regexp-quote feedmail-queue-fqm-suffix) "$") might-be))
 
+(defun feedmail-say-debug (format &optional a1 a2 a3 a4 a5 a6 a7 a8 a9)
+  "Internal; emits debug messages in standard format."
+  (when feedmail-debug
+    (funcall 'message (concat "FQM DB: " format) a1 a2 a3 a4 a5 a6 a7 a8 a9)
+    (and feedmail-debug-sit-for (not (= 0 feedmail-debug-sit-for))
+	 (sit-for feedmail-debug-sit-for))))
+
+(defun feedmail-say-chatter (format &optional a1 a2 a3 a4 a5 a6 a7 a8 a9)
+  "Internal; emits queue chatter messages in standard format."
+  (when feedmail-queue-chatty
+    (funcall 'message (concat "FQM: " format) a1 a2 a3 a4 a5 a6 a7 a8 a9)
+    (and feedmail-queue-chatty-sit-for (not (= 0 feedmail-queue-chatty-sit-for))
+	 (sit-for feedmail-queue-chatty-sit-for))))
 
 (defun feedmail-find-eoh (&optional noerror)
   "Internal; finds the end of message header fields, returns mark just before it"
+  ;; all this funny business with line endings is to account for CRLF
+  ;; weirdness that I don't think I'll ever figure out
+  (feedmail-say-debug ">in-> feedmail-find-eoh %s" noerror)
+  (let ((mhs mail-header-separator)
+		(alt-mhs feedmail-queue-alternative-mail-header-separator)
+		r-mhs r-alt-mhs)
+	(setq r-mhs (concat "^" (regexp-quote mhs) "$"))
+	(setq r-alt-mhs (concat "^" (regexp-quote (or alt-mhs "")) "$"))
   (save-excursion
     (goto-char (point-min))
-    (when (or (re-search-forward (concat "^"
-					 (regexp-quote mail-header-separator)
-					 "\n")
-				 nil noerror)
-	      (and feedmail-queue-alternative-mail-header-separator
-		   (re-search-forward
-		    (concat "^"
-			    (regexp-quote
-			     feedmail-queue-alternative-mail-header-separator)
-			    "\n")
-		    nil noerror)))
-      (forward-line -1)
-      (point-marker))))
+    (if (or (re-search-forward r-mhs nil t)
+	      (and alt-mhs (re-search-forward r-alt-mhs nil t)))
+	(progn
+	  (beginning-of-line)
+	  (point-marker))
+      (if noerror
+	  nil
+	(error "FQM: Can't find message-header-separator or alternate"))))))
 
 (provide 'feedmail)
 

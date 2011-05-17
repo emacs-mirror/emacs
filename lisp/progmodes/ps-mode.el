@@ -541,6 +541,10 @@ Typing \\<ps-run-mode-map>\\[ps-run-goto-error] when the cursor is at the number
   (interactive)
   (message " *** PostScript Mode (ps-mode) Version %s *** " ps-mode-version))
 
+;; From reporter.el
+(defvar reporter-prompt-for-summary-p)
+(defvar reporter-dont-compact-list)
+
 (defun ps-mode-submit-bug-report ()
   "Submit via mail a bug report on PostScript mode."
   (interactive)

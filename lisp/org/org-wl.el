@@ -118,7 +118,7 @@ googlegroups otherwise."
 (defun org-wl-folder-type (folder)
   "Return symbol that indicates the type of FOLDER.
 FOLDER is the wanderlust folder name.  The first character of the
-folder name determines the the folder type."
+folder name determines the folder type."
   (let* ((indicator (substring folder 0 1))
 	 (type (cdr (assoc indicator org-wl-folder-types))))
     ;; maybe access or file folder

@@ -230,9 +230,9 @@ function `dirtrack-debug-mode' to turn on debugging output."
     (let (prompt-path
 	  (current-dir default-directory)
 	  (dirtrack-regexp    (nth 0 dirtrack-list))
-	  (match-num	      (nth 1 dirtrack-list))
+	  (match-num	      (nth 1 dirtrack-list)))
           ;; Currently unimplemented, it seems.  --Stef
-	  (multi-line	      (nth 2 dirtrack-list)))
+	  ;; (multi-line      (nth 2 dirtrack-list)))
       (save-excursion
         ;; No match
         (if (not (string-match dirtrack-regexp input))

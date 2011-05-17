@@ -39,7 +39,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "ftfont.h"
 
 /* Symbolic type of this font-driver.  */
-Lisp_Object Qfreetype;
+static Lisp_Object Qfreetype;
 
 /* Fontconfig's generic families and their aliases.  */
 static Lisp_Object Qmonospace, Qsans_serif, Qserif, Qmono, Qsans, Qsans__serif;

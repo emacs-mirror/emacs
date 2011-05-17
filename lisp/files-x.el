@@ -299,11 +299,11 @@ from the -*- line ignoring the input argument VALUE."
 	      (or (looking-at "[ \t]*\\([^ \t\n:]+\\)[ \t]*:[ \t]*")
 		  (throw 'exit (message "Malformed -*- line")))
 	      (goto-char (match-end 0))
-	      (let ((key (intern (match-string 1)))
-		    (val (save-restriction
-			   (narrow-to-region (point) end)
-			   (let ((read-circle nil))
-			     (read (current-buffer))))))
+	      (let ((key (intern (match-string 1))))
+                (save-restriction
+                  (narrow-to-region (point) end)
+                  (let ((read-circle nil))
+                    (read (current-buffer))))
 		(skip-chars-forward " \t;")
 		(when (eq key variable)
 		  (delete-region (match-beginning 0) (point))
@@ -343,6 +343,8 @@ then this function adds it."
   (interactive
    (list (read-file-local-variable "Delete -*- file-local variable")))
   (modify-file-local-variable-prop-line variable nil 'delete))
+
+(defvar auto-insert) ; from autoinsert.el
 
 (defun modify-dir-local-variable (mode variable value op)
   "Modify directory-local VARIABLE in .dir-locals.el depending on operation OP.

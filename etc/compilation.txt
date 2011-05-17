@@ -45,9 +45,9 @@ symbol: aix
 
 symbol: ant
 
-The regexps found on http://ant.apache.org/faq.html, and since integrated in
-both Emacsen, were hairy.  Why so many numbers for jikes -- is one a column
-number?
+The regexps found on http://ant.apache.org/faq.html, and since
+integrated in both Emacsen, were hairy.  The extra two numbers for
+jikes are the ending line and ending column.
 
     [javac] /src/DataBaseTestCase.java:27: unreported exception ...
     [javac] /src/DataBaseTestCase.java:49: warning: finally clause cannot complete normally

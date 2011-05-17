@@ -695,7 +695,7 @@ Returns nil if there isn't one longer than `completion-min-length'."
 ;; Conditionalizing code on *record-cmpl-statistics-p*
 ;;-----------------------------------------------
 ;; All statistics code outside this block should use this
-(defmacro cmpl-statistics-block (&rest body))
+(defmacro cmpl-statistics-block (&rest _body))
 ;;  "Only executes body if we are recording statistics."
 ;;  (list 'cond
 ;;	(list* '*record-cmpl-statistics-p* body)
@@ -1751,7 +1751,7 @@ Prefix args ::
   (save-excursion
     (goto-char (point-min))
     (let (string)
-      (condition-case e
+      (condition-case nil
 	   (while t
 	     (search-forward "\177")
 	     (backward-char 3)
@@ -1788,7 +1788,7 @@ Prefix args ::
   (let (string)
     (save-excursion
       (goto-char (point-min))
-      (condition-case e
+      (condition-case nil
 	   (while t
 	     (re-search-forward *lisp-def-regexp*)
 	     (and (setq string (symbol-under-point))
@@ -2042,7 +2042,7 @@ If file name is not specified, use `save-completions-file-name'."
 						    last-use-time)) "\n"))))
 
 	    ;; write the buffer
-	    (condition-case e
+	    (condition-case nil
 		(let ((file-exists-p (file-exists-p filename)))
 		  (if file-exists-p
 		      (progn
@@ -2108,7 +2108,7 @@ If file is not specified, then use `save-completions-file-name'."
 		    (aref completion-add-count-vector cmpl-source-file-parsing)))
 		  (total-in-file 0) (total-perm 0))
 	      ;; insert the file into a buffer
-	      (condition-case e
+	      (condition-case nil
 		  (progn (insert-file-contents filename t)
 			 (setq insert-okay-p t))
 
@@ -2120,7 +2120,7 @@ If file is not specified, then use `save-completions-file-name'."
 		  (progn
 		    (goto-char (point-min))
 
-		    (condition-case e
+		    (condition-case nil
 			(while t
 			  (setq entry (read buffer))
 			  (setq total-in-file (1+ total-in-file))

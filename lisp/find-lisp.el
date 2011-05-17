@@ -192,7 +192,6 @@ It is a function which takes two arguments, the directory and its parent."
 					  directory-predicate buffer-name)
   "Run find (Lisp version) and go into Dired mode on a buffer of the output."
   (let ((dired-buffers dired-buffers)
-	buf
 	(regexp find-lisp-regexp))
     ;; Expand DIR ("" means default-directory), and make sure it has a
     ;; trailing slash.
@@ -203,7 +202,7 @@ It is a function which takes two arguments, the directory and its parent."
     (or
      (and (buffer-name)
 	  (string= buffer-name (buffer-name)))
-	(switch-to-buffer (setq buf (get-buffer-create buffer-name))))
+	(switch-to-buffer (get-buffer-create buffer-name)))
     (widen)
     (kill-all-local-variables)
     (setq buffer-read-only nil)
@@ -223,7 +222,7 @@ It is a function which takes two arguments, the directory and its parent."
     (make-local-variable 'revert-buffer-function)
     (setq revert-buffer-function
 	  (function
-	   (lambda(ignore1 ignore2)
+	   (lambda (_ignore1 _ignore2)
 	     (find-lisp-insert-directory
 	      default-directory
 	      find-lisp-file-predicate
@@ -246,10 +245,10 @@ It is a function which takes two arguments, the directory and its parent."
     (goto-char (point-min))
     (dired-goto-next-file)))
 
-(defun find-lisp-insert-directory  (dir
-				    file-predicate
-				    directory-predicate
-				    sort-function)
+(defun find-lisp-insert-directory (dir
+                                   file-predicate
+                                   directory-predicate
+				   _sort-function)
   "Insert the results of `find-lisp-find-files' in the current buffer."
   (let ((buffer-read-only nil)
 	(files (find-lisp-find-files-internal
@@ -269,7 +268,7 @@ It is a function which takes two arguments, the directory and its parent."
     ;; Run the find function
     (mapc
      (function
-      (lambda(file)
+      (lambda (file)
 	(find-lisp-find-dired-insert-file
 	 (substring file len)
 	 (current-buffer))))

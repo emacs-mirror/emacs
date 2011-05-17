@@ -126,6 +126,12 @@ files not writable by you are visited read-only."
 		 (other :tag "non-writable only" if-file-read-only))
   :group 'dired-x)
 
+(defcustom dired-omit-size-limit 30000
+  "Maximum size for the \"omitting\" feature.
+If nil, there is no maximum size."
+  :type '(choice (const :tag "no maximum" nil) integer)
+  :group 'dired-x)
+
 (define-minor-mode dired-omit-mode
   "Toggle Dired-Omit mode.
 With numeric ARG, enable Dired-Omit mode if ARG is positive, disable
@@ -177,12 +183,6 @@ Dired avoids switching to the current buffer, so that if you have
 a normal and a wildcard buffer for the same directory, \\[dired] will
 toggle between those two."
   :type 'boolean
-  :group 'dired-x)
-
-(defcustom dired-omit-size-limit 30000
-  "Maximum size for the \"omitting\" feature.
-If nil, there is no maximum size."
-  :type '(choice (const :tag "no maximum" nil) integer)
   :group 'dired-x)
 
 (defcustom dired-enable-local-variables t
@@ -659,7 +659,7 @@ nil."
            nil))))
 
 
-(defun dired-virtual-revert (&optional arg noconfirm)
+(defun dired-virtual-revert (&optional _arg _noconfirm)
   (if (not
        (y-or-n-p "Cannot revert a Virtual Dired buffer - switch to Real Dired mode? "))
       (error "Cannot revert a Virtual Dired buffer")
@@ -1180,7 +1180,7 @@ results in
           (setq count (1+ count)
                 start (1+ start)))
         ;; ... and prepend a "../" for each slash found:
-        (dotimes (n count)
+        (dotimes (_n count)
           (setq name1 (concat "../" name1)))))
     (make-symbolic-link
      (directory-file-name name1)        ; must not link to foo/
@@ -1293,6 +1293,8 @@ NOSELECT the files are merely found but not selected."
 
 (declare-function Man-getpage-in-background "man" (topic))
 
+(defvar manual-program) ; from man.el
+
 (defun dired-man ()
   "Run `man' on this file."
 ;; Used also to say: "Display old buffer if buffer name matches filename."
@@ -1382,6 +1384,23 @@ Considers buffers closer to the car of `buffer-list' to be more recent."
 
 ;; Does anyone use this? - lrd 6/29/93.
 ;; Apparently people do use it. - lrd 12/22/97.
+
+(with-no-warnings
+  ;; Warnings are suppresed to avoid "global/dynamic var `X' lacks a prefix".
+  ;; This is unbearably ugly, but not more than having global variables
+  ;; named size, time, name or s, however practical it can be while writing
+  ;; `dired-mark-sexp' predicates.
+  (defvar inode)
+  (defvar s)
+  (defvar mode)
+  (defvar nlink)
+  (defvar uid)
+  (defvar gid)
+  (defvar size)
+  (defvar time)
+  (defvar name)
+  (defvar sym))
+
 (defun dired-mark-sexp (predicate &optional unflag-p)
   "Mark files for which PREDICATE returns non-nil.
 With a prefix arg, unflag those files instead.
@@ -1487,8 +1506,8 @@ If you change this variable without using \\[customize] after `dired-x.el'
 is loaded then call \\[dired-x-bind-find-file]."
   :type 'boolean
   :initialize 'custom-initialize-default
-  :set (lambda (sym val)
-         (set sym val)
+  :set (lambda (symbol value)
+         (set symbol value)
          (dired-x-bind-find-file))
   :group 'dired-x)
 

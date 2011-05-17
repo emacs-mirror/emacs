@@ -4,6 +4,7 @@
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcCompletion
+;; Obsolete-since: 24.1
 
 ;; This file is part of GNU Emacs.
 
@@ -108,16 +109,14 @@ add this string when a unique expansion was found."
 This is a function to put on `hippie-expand-try-functions-list'.
 Then use \\[hippie-expand] to expand nicks.
 The type of completion depends on `erc-nick-completion'."
-  (cond ((eq erc-nick-completion 'pals)
-	 (try-complete-erc-nick old erc-pals))
-	((eq erc-nick-completion 'all)
-	 (try-complete-erc-nick old (append
+  (try-complete-erc-nick old (cond ((eq erc-nick-completion 'pals) erc-pals)
+				   ((eq erc-nick-completion 'all)
+				    (append
 				     (erc-get-channel-nickname-list)
-				     (erc-command-list))))
-	((functionp erc-nick-completion)
-	 (try-complete-erc-nick old (funcall erc-nick-completion)))
-	(t
-	 (try-complete-erc-nick old erc-nick-completion))))
+				     (erc-command-list)))
+				   ((functionp erc-nick-completion)
+				    (funcall erc-nick-completion))
+				   (t erc-nick-completion))))
 
 (defvar try-complete-erc-nick-window-configuration nil
   "The window configuration for `try-complete-erc-nick'.

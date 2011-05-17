@@ -1010,7 +1010,7 @@ VERSION is of the format (Major . Minor)"
   (define-key map "\C-c\C-l" 'prolog-consult-file)
   (define-key map "\C-c\C-z" 'switch-to-prolog))
 
-(defun prolog-mode-keybindings-inferior (map)
+(defun prolog-mode-keybindings-inferior (_map)
   "Define keybindings for inferior Prolog mode in MAP."
   ;; No inferior mode specific keybindings now.
   )
@@ -2012,15 +2012,14 @@ Argument BOUND is a buffer position limiting searching."
 
 ;; NB: This function *MUST* have this optional argument since XEmacs
 ;; assumes it. This does not mean we have to use it...
-(defun prolog-indent-line (&optional whole-exp)
+(defun prolog-indent-line (&optional _whole-exp)
   "Indent current line as Prolog code.
 With argument, indent any additional lines of the same clause
 rigidly along with this one (not yet)."
   (interactive "p")
   (let ((indent (prolog-indent-level))
-        (pos (- (point-max) (point))) beg)
+        (pos (- (point-max) (point))))
     (beginning-of-line)
-    (setq beg (point))
     (skip-chars-forward " \t")
     (indent-line-to indent)
     (if (> (- (point-max) pos) (point))

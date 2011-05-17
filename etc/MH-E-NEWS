@@ -320,7 +320,7 @@ changes for MH-E functions are listed here.
 
 Most of the changes have to do with the renaming of the functions with
 "mhn" in them to "mh" because nmh doesn't use `mhn'. The names were
-also made consistent with the the family of "mml" functions.
+also made consistent with the family of "mml" functions.
 
 The type of signing or encryption has been generalized so the method
 is now an option rather than a part of the function's name. The option

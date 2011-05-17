@@ -63,7 +63,7 @@ to this variable NAME."
 ;; These methods override aspects of how semantic-tools can access
 ;; the tags created by the javascript parser.
 ;; Local context
-(define-mode-overload-implementation semantic-get-local-variables
+(define-mode-local-override semantic-get-local-variables
   javascript-mode ()
   "Get local values from a specific context.
 This function overrides `get-local-variables'."

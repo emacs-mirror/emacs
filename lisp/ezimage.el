@@ -71,7 +71,7 @@ IMAGESPEC is the image data, and DOCSTRING is documentation for the image."
   ;; XEmacs.
   (if (not (fboundp 'make-glyph))
 
-      (defmacro defezimage (variable imagespec docstring)
+      (defmacro defezimage (variable _imagespec docstring)
 	"Don't bother loading up an image...
 Argument VARIABLE is the variable to define.
 Argument IMAGESPEC is the list defining the image to create.

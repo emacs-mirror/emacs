@@ -43,6 +43,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module ignore-value:
   # Code from module include_next:
   # Code from module intprops:
+  # Code from module inttypes-incomplete:
   # Code from module lstat:
   # Code from module mktime:
   # Code from module multiarch:
@@ -50,17 +51,26 @@ AC_DEFUN([gl_EARLY],
   # Code from module socklen:
   # Code from module ssize_t:
   # Code from module stat:
+  # Code from module stdarg:
+  dnl Some compilers (e.g., AIX 5.3 cc) need to be in c99 mode
+  dnl for the builtin va_copy to work.  With Autoconf 2.60 or later,
+  dnl AC_PROG_CC_STDC arranges for this.  With older Autoconf AC_PROG_CC_STDC
+  dnl shouldn't hurt, though installers are on their own to set c99 mode.
+  AC_REQUIRE([AC_PROG_CC_STDC])
   # Code from module stdbool:
   # Code from module stddef:
   # Code from module stdint:
   # Code from module stdio:
   # Code from module stdlib:
   # Code from module strftime:
+  # Code from module strtoull:
+  # Code from module strtoumax:
   # Code from module symlink:
   # Code from module sys_stat:
   # Code from module time:
   # Code from module time_r:
   # Code from module unistd:
+  # Code from module verify:
   # Code from module warn-on-use:
 ])
 
@@ -80,78 +90,111 @@ AC_DEFUN([gl_INIT],
   m4_pushdef([gl_LIBSOURCES_DIR], [])
   gl_COMMON
   gl_source_base='lib'
-  # Code from module allocator:
-  # Code from module arg-nonnull:
-  # Code from module c++defs:
-  # Code from module careadlinkat:
-  AC_CHECK_FUNCS_ONCE([readlinkat])
-  # Code from module crypto/md5:
-  gl_MD5
-  # Code from module dosname:
-  # Code from module dtoastr:
-  AC_REQUIRE([gl_C99_STRTOLD])
-  # Code from module extensions:
-  # Code from module filemode:
-  gl_FILEMODE
-  # Code from module getloadavg:
-  gl_GETLOADAVG([$gl_source_base])
-  gl_STDLIB_MODULE_INDICATOR([getloadavg])
-  # Code from module getopt-gnu:
-  gl_FUNC_GETOPT_GNU
-  gl_MODULE_INDICATOR_FOR_TESTS([getopt-gnu])
-  # Code from module getopt-posix:
-  gl_FUNC_GETOPT_POSIX
-  # Code from module gettext-h:
-  AC_SUBST([LIBINTL])
-  AC_SUBST([LTLIBINTL])
-  # Code from module ignore-value:
-  AC_REQUIRE([AC_C_INLINE])
-  # Code from module include_next:
-  # Code from module intprops:
-  # Code from module lstat:
-  gl_FUNC_LSTAT
-  gl_SYS_STAT_MODULE_INDICATOR([lstat])
-  # Code from module mktime:
-  gl_FUNC_MKTIME
-  gl_TIME_MODULE_INDICATOR([mktime])
-  # Code from module multiarch:
-  gl_MULTIARCH
-  # Code from module readlink:
-  gl_FUNC_READLINK
-  gl_UNISTD_MODULE_INDICATOR([readlink])
-  # Code from module socklen:
-  gl_TYPE_SOCKLEN_T
-  # Code from module ssize_t:
-  gt_TYPE_SSIZE_T
-  # Code from module stat:
-  gl_FUNC_STAT
-  gl_SYS_STAT_MODULE_INDICATOR([stat])
-  # Code from module stdbool:
-  AM_STDBOOL_H
-  # Code from module stddef:
-  gl_STDDEF_H
-  # Code from module stdint:
-  gl_STDINT_H
-  # Code from module stdio:
-  gl_STDIO_H
-  # Code from module stdlib:
-  gl_STDLIB_H
-  # Code from module strftime:
-  gl_FUNC_GNU_STRFTIME
-  # Code from module symlink:
-  gl_FUNC_SYMLINK
-  gl_UNISTD_MODULE_INDICATOR([symlink])
-  # Code from module sys_stat:
-  gl_HEADER_SYS_STAT_H
-  AC_PROG_MKDIR_P
-  # Code from module time:
-  gl_HEADER_TIME_H
-  # Code from module time_r:
-  gl_TIME_R
-  gl_TIME_MODULE_INDICATOR([time_r])
-  # Code from module unistd:
-  gl_UNISTD_H
-  # Code from module warn-on-use:
+AC_CHECK_FUNCS_ONCE([readlinkat])
+gl_MD5
+AC_REQUIRE([gl_C99_STRTOLD])
+gl_FILEMODE
+gl_GETLOADAVG([$gl_source_base])
+gl_STDLIB_MODULE_INDICATOR([getloadavg])
+gl_FUNC_GETOPT_GNU
+gl_MODULE_INDICATOR_FOR_TESTS([getopt-gnu])
+gl_FUNC_GETOPT_POSIX
+AC_REQUIRE([AC_C_INLINE])
+gl_INTTYPES_INCOMPLETE
+gl_FUNC_LSTAT
+gl_SYS_STAT_MODULE_INDICATOR([lstat])
+gl_FUNC_MKTIME
+gl_TIME_MODULE_INDICATOR([mktime])
+gl_MULTIARCH
+gl_FUNC_READLINK
+gl_UNISTD_MODULE_INDICATOR([readlink])
+gl_TYPE_SOCKLEN_T
+gt_TYPE_SSIZE_T
+gl_STDARG_H
+AM_STDBOOL_H
+gl_STDDEF_H
+gl_STDINT_H
+gl_STDIO_H
+gl_STDLIB_H
+gl_FUNC_GNU_STRFTIME
+gl_FUNC_STRTOUMAX
+gl_INTTYPES_MODULE_INDICATOR([strtoumax])
+gl_FUNC_SYMLINK
+gl_UNISTD_MODULE_INDICATOR([symlink])
+gl_HEADER_SYS_STAT_H
+AC_PROG_MKDIR_P
+gl_HEADER_TIME_H
+gl_TIME_R
+gl_TIME_MODULE_INDICATOR([time_r])
+gl_UNISTD_H
+  gl_gnulib_enabled_dosname=false
+  gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36=false
+  gl_gnulib_enabled_stat=false
+  gl_gnulib_enabled_strtoull=false
+  gl_gnulib_enabled_verify=false
+  func_gl_gnulib_m4code_dosname ()
+  {
+    if ! $gl_gnulib_enabled_dosname; then
+      gl_gnulib_enabled_dosname=true
+    fi
+  }
+  func_gl_gnulib_m4code_be453cec5eecf5731a274f2de7f2db36 ()
+  {
+    if ! $gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36; then
+AC_SUBST([LIBINTL])
+AC_SUBST([LTLIBINTL])
+      gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36=true
+    fi
+  }
+  func_gl_gnulib_m4code_stat ()
+  {
+    if ! $gl_gnulib_enabled_stat; then
+gl_FUNC_STAT
+gl_SYS_STAT_MODULE_INDICATOR([stat])
+      gl_gnulib_enabled_stat=true
+      if $condition; then
+        func_gl_gnulib_m4code_dosname
+      fi
+    fi
+  }
+  func_gl_gnulib_m4code_strtoull ()
+  {
+    if ! $gl_gnulib_enabled_strtoull; then
+gl_FUNC_STRTOULL
+gl_STDLIB_MODULE_INDICATOR([strtoull])
+      gl_gnulib_enabled_strtoull=true
+    fi
+  }
+  func_gl_gnulib_m4code_verify ()
+  {
+    if ! $gl_gnulib_enabled_verify; then
+      gl_gnulib_enabled_verify=true
+    fi
+  }
+  if test $GNULIB_UNISTD_H_GETOPT = 1; then
+    func_gl_gnulib_m4code_be453cec5eecf5731a274f2de7f2db36
+  fi
+  if test $REPLACE_LSTAT = 1; then
+    func_gl_gnulib_m4code_dosname
+  fi
+  if test $REPLACE_LSTAT = 1; then
+    func_gl_gnulib_m4code_stat
+  fi
+  if test $HAVE_READLINK = 0 || test $REPLACE_READLINK = 1; then
+    func_gl_gnulib_m4code_stat
+  fi
+  if test "$ac_cv_have_decl_strtoumax" != yes && test $ac_cv_func_strtoumax = no; then
+    func_gl_gnulib_m4code_verify
+  fi
+  if test "$ac_cv_have_decl_strtoumax" != yes && test $ac_cv_func_strtoumax = no && test $ac_cv_type_unsigned_long_long_int = yes; then
+    func_gl_gnulib_m4code_strtoull
+  fi
+  m4_pattern_allow([^gl_GNULIB_ENABLED_])
+  AM_CONDITIONAL([gl_GNULIB_ENABLED_dosname], [$gl_gnulib_enabled_dosname])
+  AM_CONDITIONAL([gl_GNULIB_ENABLED_be453cec5eecf5731a274f2de7f2db36], [$gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36])
+  AM_CONDITIONAL([gl_GNULIB_ENABLED_stat], [$gl_gnulib_enabled_stat])
+  AM_CONDITIONAL([gl_GNULIB_ENABLED_strtoull], [$gl_gnulib_enabled_strtoull])
+  AM_CONDITIONAL([gl_GNULIB_ENABLED_verify], [$gl_gnulib_enabled_verify])
   # End of code from modules
   m4_ifval(gl_LIBSOURCES_LIST, [
     m4_syscmd([test ! -d ]m4_defn([gl_LIBSOURCES_DIR])[ ||
@@ -198,6 +241,7 @@ changequote([, ])dnl
   AC_SUBST([gltests_WITNESS])
   gl_module_indicator_condition=$gltests_WITNESS
   m4_pushdef([gl_MODULE_INDICATOR_CONDITION], [$gl_module_indicator_condition])
+  m4_pattern_allow([^gl_GNULIB_ENABLED_])
   m4_popdef([gl_MODULE_INDICATOR_CONDITION])
   m4_ifval(gltests_LIBSOURCES_LIST, [
     m4_syscmd([test ! -d ]m4_defn([gltests_LIBSOURCES_DIR])[ ||
@@ -313,6 +357,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/gettext.h
   lib/ignore-value.h
   lib/intprops.h
+  lib/inttypes.in.h
   lib/lstat.c
   lib/md5.c
   lib/md5.h
@@ -320,6 +365,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/mktime.c
   lib/readlink.c
   lib/stat.c
+  lib/stdarg.in.h
   lib/stdbool.in.h
   lib/stddef.in.h
   lib/stdint.in.h
@@ -327,11 +373,17 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/stdlib.in.h
   lib/strftime.c
   lib/strftime.h
+  lib/strtoimax.c
+  lib/strtol.c
+  lib/strtoul.c
+  lib/strtoull.c
+  lib/strtoumax.c
   lib/symlink.c
   lib/sys_stat.in.h
   lib/time.in.h
   lib/time_r.c
   lib/unistd.in.h
+  lib/verify.h
   m4/00gnulib.m4
   m4/c-strtod.m4
   m4/extensions.m4
@@ -340,6 +392,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/getopt.m4
   m4/gnulib-common.m4
   m4/include_next.m4
+  m4/inttypes.m4
   m4/longlong.m4
   m4/lstat.m4
   m4/md5.m4
@@ -350,12 +403,15 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/ssize_t.m4
   m4/st_dm_mode.m4
   m4/stat.m4
+  m4/stdarg.m4
   m4/stdbool.m4
   m4/stddef_h.m4
   m4/stdint.m4
   m4/stdio_h.m4
   m4/stdlib_h.m4
   m4/strftime.m4
+  m4/strtoull.m4
+  m4/strtoumax.m4
   m4/symlink.m4
   m4/sys_stat_h.m4
   m4/time_h.m4

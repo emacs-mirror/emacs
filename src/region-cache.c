@@ -781,6 +781,7 @@ int region_cache_backward (struct buffer *buf, struct region_cache *c,
 
 /* Debugging: pretty-print a cache to the standard error output.  */
 
+void pp_cache (struct region_cache *) EXTERNALLY_VISIBLE;
 void
 pp_cache (struct region_cache *c)
 {
@@ -789,9 +790,9 @@ pp_cache (struct region_cache *c)
   EMACS_INT end_u = c->buffer_end - c->end_unchanged;
 
   fprintf (stderr,
-           "basis: %ld..%ld    modified: %ld..%ld\n",
-           (long)c->buffer_beg, (long)c->buffer_end,
-           (long)beg_u, (long)end_u);
+           "basis: %"pI"d..%"pI"d    modified: %"pI"d..%"pI"d\n",
+           c->buffer_beg, c->buffer_end,
+           beg_u, end_u);
 
   for (i = 0; i < c->cache_len; i++)
     {
@@ -805,6 +806,6 @@ pp_cache (struct region_cache *c)
              : (pos == end_u) ? '-'
              : ' '),
             stderr);
-      fprintf (stderr, "%ld : %d\n", (long)pos, BOUNDARY_VALUE (c, i));
+      fprintf (stderr, "%"pI"d : %d\n", pos, BOUNDARY_VALUE (c, i));
     }
 }

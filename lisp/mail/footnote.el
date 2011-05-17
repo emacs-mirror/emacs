@@ -1,4 +1,4 @@
-;;; footnote.el --- footnote support for message mode  -*- coding: iso-latin-1;-*-
+;;; footnote.el --- footnote support for message mode  -*- coding: utf-8;-*-
 
 ;; Copyright (C) 1997, 2000-2011 Free Software Foundation, Inc.
 
@@ -278,7 +278,7 @@ Wrapping around the alphabet implies successive repetitions of letters."
 
 ;; Latin-1
 
-(defconst footnote-latin-string "¹²³ºª§¶"
+(defconst footnote-latin-string "Â¹Â²Â³ÂºÂªÂ§Â¶"
   "String of Latin-1 footnoting characters.")
 
 ;; Note not [...]+, because this style cycles.
@@ -291,6 +291,25 @@ Use a range of Latin-1 non-ASCII characters for footnoting."
   (string (aref footnote-latin-string
 		(mod (1- n) (length footnote-latin-string)))))
 
+;; Unicode
+
+(defconst footnote-unicode-string "â°Â¹Â²Â³â´âµâ¶â·â¸â¹"
+  "String of unicode footnoting characters.")
+
+(defconst footnote-unicode-regexp (concat "[" footnote-unicode-string "]+")
+  "Regexp for unicode footnoting characters.")
+
+(defun Footnote-unicode (n)
+  "Unicode footnote style.
+Use unicode characters for footnoting."
+  (let (modulus result done)
+    (while (not done)
+      (setq modulus (mod n 10)
+            n (truncate n 10))
+      (and (zerop n) (setq done t))
+      (push (aref footnote-unicode-string modulus) result))
+    (apply #'string result)))
+
 ;;; list of all footnote styles
 (defvar footnote-style-alist
   `((numeric Footnote-numeric ,footnote-numeric-regexp)
@@ -298,7 +317,8 @@ Use a range of Latin-1 non-ASCII characters for footnoting."
     (english-upper Footnote-english-upper ,footnote-english-upper-regexp)
     (roman-lower Footnote-roman-lower ,footnote-roman-lower-regexp)
     (roman-upper Footnote-roman-upper ,footnote-roman-upper-regexp)
-    (latin Footnote-latin ,footnote-latin-regexp))
+    (latin Footnote-latin ,footnote-latin-regexp)
+    (unicode Footnote-unicode ,footnote-unicode-regexp))
   "Styles of footnote tags available.
 By default only boring Arabic numbers, English letters and Roman Numerals
 are available.
@@ -312,8 +332,12 @@ english-lower == a, b, c, ...
 english-upper == A, B, C, ...
 roman-lower == i, ii, iii, iv, v, ...
 roman-upper == I, II, III, IV, V, ...
-latin == ¹ ² ³ º ª § ¶
+latin == Â¹ Â² Â³ Âº Âª Â§ Â¶
+unicode == Â¹, Â², Â³, ...
 See also variables `footnote-start-tag' and `footnote-end-tag'.
+
+Note: some characters in the unicode style may not show up
+properly if the default font does not contain those characters.
 
 Customizing this variable has no effect on buffers already
 displaying footnotes.  To change the style of footnotes in such a

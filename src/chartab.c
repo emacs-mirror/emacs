@@ -36,7 +36,7 @@ const int chartab_size[4] =
 
 /* Number of characters each element of Nth level char-table
    covers.  */
-const int chartab_chars[4] =
+static const int chartab_chars[4] =
   { (1 << (CHARTAB_SIZE_BITS_1 + CHARTAB_SIZE_BITS_2 + CHARTAB_SIZE_BITS_3)),
     (1 << (CHARTAB_SIZE_BITS_2 + CHARTAB_SIZE_BITS_3)),
     (1 << CHARTAB_SIZE_BITS_3),
@@ -44,7 +44,7 @@ const int chartab_chars[4] =
 
 /* Number of characters (in bits) each element of Nth level char-table
    covers.  */
-const int chartab_bits[4] =
+static const int chartab_bits[4] =
   { (CHARTAB_SIZE_BITS_1 + CHARTAB_SIZE_BITS_2 + CHARTAB_SIZE_BITS_3),
     (CHARTAB_SIZE_BITS_2 + CHARTAB_SIZE_BITS_3),
     CHARTAB_SIZE_BITS_3,
@@ -146,7 +146,7 @@ Lisp_Object
 copy_char_table (Lisp_Object table)
 {
   Lisp_Object copy;
-  int size = XCHAR_TABLE (table)->size & PSEUDOVECTOR_SIZE_MASK;
+  int size = XCHAR_TABLE (table)->header.size & PSEUDOVECTOR_SIZE_MASK;
   int i;
 
   copy = Fmake_vector (make_number (size), Qnil);

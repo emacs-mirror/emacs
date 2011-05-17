@@ -10,7 +10,7 @@ different dispatch model that is not explained further here).
 From the point of view of the program, nowadays stdlib.h on both type of
 systems provides macros `EXIT_SUCCESS' and `EXIT_FAILURE' that should DTRT.
 
-NB: The numerical values of these macros DO NOT need to fulfill the the exit
+NB: The numerical values of these macros DO NOT need to fulfill the exit
 value requirements outlined in the first paragraph!  That is the job of the
 `exit' function.  Thus, this kind of construct shows misunderstanding:
 

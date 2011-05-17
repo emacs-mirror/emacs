@@ -19,8 +19,7 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
-extern Lisp_Object Qsyntax_table_p;
-extern void update_syntax_table (EMACS_INT, int, int, Lisp_Object);
+extern void update_syntax_table (EMACS_INT, EMACS_INT, int, Lisp_Object);
 
 /* The standard syntax table is stored where it will automatically
    be used in all new buffers.  */
@@ -204,7 +203,7 @@ extern char syntax_code_spec[16];
 do									\
   {									\
     gl_state.use_global = 0;						\
-    gl_state.current_syntax_table = BVAR (current_buffer, syntax_table);	\
+    gl_state.current_syntax_table = BVAR (current_buffer, syntax_table);\
   } while (0)
 
 /* This macro should be called with FROM at the start of forward
@@ -231,7 +230,8 @@ do									\
 while (0)
 
 /* Same as above, but in OBJECT.  If OBJECT is nil, use current buffer.
-   If it is t, ignore properties altogether.
+   If it is t (which is only used in fast_c_string_match_ignore_case),
+   ignore properties altogether.
 
    This is meant for regex.c to use.  For buffers, regex.c passes arguments
    to the UPDATE_SYNTAX_TABLE macros which are relative to BEGV.
@@ -258,7 +258,7 @@ do									\
     else if (EQ (gl_state.object, Qt))					\
       {									\
 	gl_state.b_property = 0;					\
-	gl_state.e_property = 1500000000;				\
+	gl_state.e_property = MOST_POSITIVE_FIXNUM;			\
 	gl_state.offset = 0;						\
       }									\
     else								\
@@ -277,15 +277,15 @@ while (0)
 struct gl_state_s
 {
   Lisp_Object object;			/* The object we are scanning. */
-  int start;				/* Where to stop. */
-  int stop;				/* Where to stop. */
+  EMACS_INT start;			/* Where to stop. */
+  EMACS_INT stop;			/* Where to stop. */
   int use_global;			/* Whether to use global_code
 					   or c_s_t. */
   Lisp_Object global_code;		/* Syntax code of current char. */
   Lisp_Object current_syntax_table;	/* Syntax table for current pos. */
   Lisp_Object old_prop;			/* Syntax-table prop at prev pos. */
-  int b_property;			/* First index where c_s_t is valid. */
-  int e_property;			/* First index where c_s_t is
+  EMACS_INT b_property;			/* First index where c_s_t is valid. */
+  EMACS_INT e_property;			/* First index where c_s_t is
 					   not valid. */
   INTERVAL forward_i;			/* Where to start lookup on forward */
   INTERVAL backward_i;			/* or backward movement.  The
@@ -295,9 +295,8 @@ struct gl_state_s
 					   intervals too, depending
 					   on: */
   /* Offset for positions specified to UPDATE_SYNTAX_TABLE.  */
-  int offset;
+  EMACS_INT offset;
 };
 
 extern struct gl_state_s gl_state;
 extern EMACS_INT scan_words (EMACS_INT, EMACS_INT);
-

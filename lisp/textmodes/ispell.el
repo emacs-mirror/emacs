@@ -2300,48 +2300,42 @@ if defined."
 	 (wild-p (string-match "\\*" word))
 	 (look-p (and ispell-look-p	; Only use look for an exact match.
 		      (or ispell-have-new-look (not wild-p))))
-	 (ispell-grep-buffer (get-buffer-create "*Ispell-Temp*")) ; result buf
 	 (prog (if look-p ispell-look-command ispell-grep-command))
 	 (args (if look-p ispell-look-options ispell-grep-options))
 	 status results loc)
-    (unwind-protect
-	(save-window-excursion
-	  (message "Starting \"%s\" process..." (file-name-nondirectory prog))
-	  (set-buffer ispell-grep-buffer)
-	  (if look-p
-	      nil
-	    ;; convert * to .*
-	    (insert "^" word "$")
-	    (while (search-backward "*" nil t) (insert "."))
-	    (setq word (buffer-string))
-	    (erase-buffer))
-	  (setq status (apply 'ispell-call-process prog nil t nil
-			      (nconc (if (and args (> (length args) 0))
-					 (list args)
-				       (if look-p nil
-					 (list "-e")))
-				     (list word)
-				     (if lookup-dict (list lookup-dict)))))
-	  ;; grep returns status 1 and no output when word not found, which
-	  ;; is a perfectly normal thing.
-	  (if (stringp status)
-	      (setq results (cons (format "error: %s exited with signal %s"
-					  (file-name-nondirectory prog) status)
-				  results))
-	    ;; else collect words into `results' in FIFO order
-	    (goto-char (point-max))
-	    ;; assure we've ended with \n
-	    (or (bobp) (= (preceding-char) ?\n) (insert ?\n))
-	    (while (not (bobp))
-	      (setq loc (point))
-	      (forward-line -1)
-	      (setq results (cons (buffer-substring-no-properties (point)
-								  (1- loc))
-				  results)))))
-      ;; protected
-      (kill-buffer ispell-grep-buffer)
-      (if (and results (string-match ".+: " (car results)))
-	  (error "%s error: %s" ispell-grep-command (car results))))
+    (with-temp-buffer
+      (message "Starting \"%s\" process..." (file-name-nondirectory prog))
+      (if look-p
+          nil
+        ;; Convert * to .*
+        (insert "^" word "$")
+        (while (search-backward "*" nil t) (insert "."))
+        (setq word (buffer-string))
+        (erase-buffer))
+      (setq status (apply 'ispell-call-process prog nil t nil
+                          (nconc (if (and args (> (length args) 0))
+                                     (list args)
+                                   (if look-p nil
+                                     (list "-e")))
+                                 (list word)
+                                 (if lookup-dict (list lookup-dict)))))
+      ;; `grep' returns status 1 and no output when word not found, which
+      ;; is a perfectly normal thing.
+      (if (stringp status)
+          (error "error: %s exited with signal %s"
+                 (file-name-nondirectory prog) status)
+        ;; Else collect words into `results' in FIFO order.
+        (goto-char (point-max))
+        ;; Assure we've ended with \n.
+        (or (bobp) (= (preceding-char) ?\n) (insert ?\n))
+        (while (not (bobp))
+          (setq loc (point))
+          (forward-line -1)
+          (push (buffer-substring-no-properties (point)
+                                                (1- loc))
+                results))))
+    (if (and results (string-match ".+: " (car results)))
+        (error "%s error: %s" ispell-grep-command (car results)))
     results))
 
 
@@ -3921,14 +3915,18 @@ Both should not be used to define a buffer-local dictionary."
 		  (progn
 		    (open-line 1)
 		    (unless found (newline))
-		    (insert (if (fboundp 'comment-padright)
-                                ;; Try and use the proper comment marker,
-                                ;; e.g. ";;" rather than ";".
-                                (comment-padright comment-start
-                                                  (comment-add nil))
-                              comment-start)
-                            " " ispell-words-keyword)
-		    (if (> (length comment-end) 0)
+		    (insert (if comment-start
+                                (concat
+                                  (if (fboundp 'comment-padright)
+                                      ;; Try and use the proper comment marker,
+                                      ;; e.g. ";;" rather than ";".
+                                      (comment-padright comment-start
+                                                        (comment-add nil))
+                                    comment-start)
+                                  " ")
+                              "")
+                            ispell-words-keyword)
+                    (if (and comment-end (> (length comment-end) 0))
 			(save-excursion
 			  (newline)
 			  (insert comment-end)))))

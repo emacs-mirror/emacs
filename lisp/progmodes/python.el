@@ -99,7 +99,9 @@
 	     "import" "in" "is" "lambda" "not" "or" "pass" "print"
 	     "raise" "return" "try" "while" "with" "yield"
              ;; Not real keywords, but close enough to be fontified as such
-             "self" "True" "False")
+             "self" "True" "False"
+             ;; Python 3
+             "nonlocal")
 	 symbol-end)
     (,(rx symbol-start "None" symbol-end)	; see § Keywords in 2.7 manual
      . font-lock-constant-face)
@@ -2491,7 +2493,7 @@ with skeleton expansions for compound statement templates.
   ;; doesn't seem to work properly.
   (add-to-list 'hs-special-modes-alist
 	       `(python-mode "^\\s-*\\(?:def\\|class\\)\\>" nil "#"
-		 ,(lambda (arg)
+		 ,(lambda (_arg)
 		    (python-end-of-defun)
 		    (skip-chars-backward " \t\n"))
 		 nil))
@@ -2550,7 +2552,7 @@ Runs `jython-mode-hook' after `python-mode-hook'."
     (setq overlay-arrow-position nil
           python-pdbtrack-is-tracking-p nil)))
 
-(defun python-pdbtrack-track-stack-file (text)
+(defun python-pdbtrack-track-stack-file (_text)
   "Show the file indicated by the pdb stack entry line, in a separate window.
 
 Activity is disabled if the buffer-local variable
@@ -2662,8 +2664,8 @@ problem."
     )
   )
 
-(defun python-pdbtrack-grub-for-buffer (funcname lineno)
-  "Find recent python-mode buffer named, or having function named funcname."
+(defun python-pdbtrack-grub-for-buffer (funcname _lineno)
+  "Find recent Python mode buffer named, or having function named FUNCNAME."
   (let ((buffers (buffer-list))
         buf
         got)
@@ -2721,7 +2723,7 @@ comint believe the user typed this string so that
   (interactive)
   (python-pdbtrack-toggle-stack-tracking 0))
 
-(defun python-sentinel (proc msg)
+(defun python-sentinel (_proc _msg)
   (setq overlay-arrow-position nil))
 
 (provide 'python)

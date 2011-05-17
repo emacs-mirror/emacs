@@ -391,8 +391,7 @@ then it searches *all* buffers."
 			       dabbrev-case-fold-search)
 			     (or (not dabbrev-upcase-means-case-search)
 				 (string= abbrev (downcase abbrev)))))
-	 (my-obarray dabbrev--last-obarray)
-	 init)
+	 (my-obarray dabbrev--last-obarray))
     (save-excursion
       ;;--------------------------------
       ;; New abbreviation to expand.

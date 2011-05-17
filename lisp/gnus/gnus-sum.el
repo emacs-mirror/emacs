@@ -1128,9 +1128,9 @@ which it may alter in any way."
   'mail-decode-encoded-address-string
   "Function used to decode addresses with encoded words.")
 
-(defcustom gnus-extra-headers '(To Newsgroups)
+(defcustom gnus-extra-headers '(To Cc Keywords Gcc Newsgroups)
   "*Extra headers to parse."
-  :version "21.1"
+  :version "24.1"                       ; added Cc Keywords Gcc
   :group 'gnus-summary
   :type '(repeat symbol))
 
@@ -7783,7 +7783,8 @@ If BACKWARD, the previous article is selected instead of the next."
 	  ;; Somehow or other, we may now have selected a different
 	  ;; window.  Make point go back to the summary buffer.
 	  (when (eq current-summary (current-buffer))
-	    (select-window (get-buffer-window current-summary)))
+            ;; FIXME: This burps when get-buffer-window returns nil.
+	    (select-window (get-buffer-window current-summary 0)))
 	  (gnus-summary-walk-group-buffer
 	   gnus-newsgroup-name cmd unread backward point))))))))
 
@@ -11532,8 +11533,12 @@ will not be hidden."
   (interactive)
   (save-excursion
     (goto-char (point-min))
-    (let ((end nil))
+    (let ((end nil)
+          (count 0))
       (while (not end)
+        (incf count)
+        (when (zerop (mod count 1000))
+          (message "Hiding all threads... %d" count))
 	(when (or (not predicate)
 		  (gnus-map-articles
 		   predicate (gnus-summary-article-children)))

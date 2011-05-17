@@ -121,11 +121,12 @@ static int required_matrix_width (struct window *);
 static void allocate_matrices_for_window_redisplay (struct window *);
 static int realloc_glyph_pool (struct glyph_pool *, struct dim);
 static void adjust_frame_glyphs (struct frame *);
-struct glyph_matrix *new_glyph_matrix (struct glyph_pool *);
+static struct glyph_matrix *new_glyph_matrix (struct glyph_pool *);
 static void free_glyph_matrix (struct glyph_matrix *);
 static void adjust_glyph_matrix (struct window *, struct glyph_matrix *,
                                  int, int, struct dim);
 static void change_frame_size_1 (struct frame *, int, int, int, int, int);
+static void increment_row_positions (struct glyph_row *, EMACS_INT, EMACS_INT);
 static void swap_glyph_pointers (struct glyph_row *, struct glyph_row *);
 #if GLYPH_DEBUG
 static int glyph_row_slice_p (struct glyph_row *, struct glyph_row *);
@@ -163,6 +164,7 @@ static void mirror_line_dance (struct window *, int, int, int *, char *);
 static int update_window_tree (struct window *, int);
 static int update_window (struct window *, int);
 static int update_frame_1 (struct frame *, int, int);
+static int scrolling (struct frame *);
 static void set_window_cursor_after_update (struct window *);
 static void adjust_frame_glyphs_for_window_redisplay (struct frame *);
 static void adjust_frame_glyphs_for_frame_redisplay (struct frame *);
@@ -212,7 +214,7 @@ struct frame *last_nonminibuf_frame;
 
 /* 1 means SIGWINCH happened when not safe.  */
 
-int delayed_size_change;
+static int delayed_size_change;
 
 /* 1 means glyph initialization has been completed at startup.  */
 
@@ -234,8 +236,8 @@ struct glyph space_glyph;
 /* Counts of allocated structures.  These counts serve to diagnose
    memory leaks and double frees.  */
 
-int glyph_matrix_count;
-int glyph_pool_count;
+static int glyph_matrix_count;
+static int glyph_pool_count;
 
 /* If non-null, the frame whose frame matrices are manipulated.  If
    null, window matrices are worked on.  */
@@ -383,7 +385,7 @@ safe_bcopy (const char *from, char *to, int size)
    member `pool' of the glyph matrix structure returned is set to
    POOL, the structure is otherwise zeroed.  */
 
-struct glyph_matrix *
+static struct glyph_matrix *
 new_glyph_matrix (struct glyph_pool *pool)
 {
   struct glyph_matrix *result;
@@ -1021,7 +1023,7 @@ blank_row (struct window *w, struct glyph_row *row, int y)
    the used count of the text area is zero.  Such rows display line
    ends.  */
 
-void
+static void
 increment_row_positions (struct glyph_row *row,
 			 EMACS_INT delta, EMACS_INT delta_bytes)
 {
@@ -3200,21 +3202,6 @@ DEFUN ("redraw-display", Fredraw_display, Sredraw_display, 0, 0, "",
 }
 
 
-/* This is used when frame_garbaged is set.  Call Fredraw_frame on all
-   visible frames marked as garbaged.  */
-
-void
-redraw_garbaged_frames (void)
-{
-  Lisp_Object tail, frame;
-
-  FOR_EACH_FRAME (tail, frame)
-    if (FRAME_VISIBLE_P (XFRAME (frame))
-	&& FRAME_GARBAGED_P (XFRAME (frame)))
-      Fredraw_frame (frame);
-}
-
-
 
 /***********************************************************************
 			     Frame Update
@@ -4589,8 +4576,8 @@ scrolling_window (struct window *w, int header_line_p)
   for (i = 0; i < row_entry_idx; ++i)
     row_table[row_entry_pool[i].bucket] = NULL;
 
-  /* Value is > 0 to indicate that we scrolled the display.  */
-  return nruns;
+  /* Value is 1 to indicate that we scrolled the display.  */
+  return 0 < nruns;
 }
 
 
@@ -4818,7 +4805,7 @@ update_frame_1 (struct frame *f, int force_p, int inhibit_id_p)
 
 /* Do line insertions/deletions on frame F for frame-based redisplay.  */
 
-int
+static int
 scrolling (struct frame *frame)
 {
   int unchanged_at_top, unchanged_at_bottom;
@@ -6067,7 +6054,7 @@ pass nil for VARIABLE.  */)
     state = frame_and_buffer_state;
 
   vecp = XVECTOR (state)->contents;
-  end = vecp + XVECTOR (state)->size;
+  end = vecp + ASIZE (state);
 
   FOR_EACH_FRAME (tail, frame)
     {
@@ -6118,8 +6105,8 @@ pass nil for VARIABLE.  */)
   /* Reallocate the vector if data has grown to need it,
      or if it has shrunk a lot.  */
   if (! VECTORP (state)
-      || n > XVECTOR (state)->size
-      || n + 20 < XVECTOR (state)->size / 2)
+      || n > ASIZE (state)
+      || n + 20 < ASIZE (state) / 2)
     /* Add 20 extra so we grow it less often.  */
     {
       state = Fmake_vector (make_number (n + 20), Qlambda);
@@ -6149,11 +6136,11 @@ pass nil for VARIABLE.  */)
   /* Fill up the vector with lambdas (always at least one).  */
   *vecp++ = Qlambda;
   while (vecp - XVECTOR (state)->contents
-	 < XVECTOR (state)->size)
+	 < ASIZE (state))
     *vecp++ = Qlambda;
   /* Make sure we didn't overflow the vector.  */
   if (vecp - XVECTOR (state)->contents
-      > XVECTOR (state)->size)
+      > ASIZE (state))
     abort ();
   return Qt;
 }

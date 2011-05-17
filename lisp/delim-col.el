@@ -240,6 +240,11 @@ column (column 0) is located at left corner."
 ;; User Commands:
 
 
+;; to avoid compilation gripes
+(defvar delimit-columns-max nil)
+(defvar delimit-columns-limit nil)
+
+
 ;;;###autoload
 (defun delimit-columns-customize ()
   "Customization of `columns' group."
@@ -354,12 +359,7 @@ START and END delimits the corners of text rectangle."
 ;; Internal Variables and Functions:
 
 
-;; to avoid compilation gripes
-(defvar delimit-columns-max nil)
-(defvar delimit-columns-limit nil)
-
-
-(defun delimit-columns-rectangle-max (startpos &optional ignore1 ignore2)
+(defun delimit-columns-rectangle-max (startpos &optional _ignore1 _ignore2)
   (set-marker delimit-columns-limit (point))
   (goto-char startpos)
   (let ((ncol 1)
@@ -392,7 +392,7 @@ START and END delimits the corners of text rectangle."
       (setq values (cdr values)))))
 
 
-(defun delimit-columns-rectangle-line (startpos &optional ignore1 ignore2)
+(defun delimit-columns-rectangle-line (startpos &optional _ignore1 _ignore2)
   (let ((len  (length delimit-columns-max))
 	(ncol 0)
 	origin)

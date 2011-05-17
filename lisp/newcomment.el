@@ -722,7 +722,7 @@ With any other arg, set comment column to indentation of the previous comment
 With prefix ARG, kill comments on that many lines starting with this one."
   (interactive "P")
   (comment-normalize-vars)
-  (dotimes (i (prefix-numeric-value arg))
+  (dotimes (_i (prefix-numeric-value arg))
     (save-excursion
       (beginning-of-line)
       (let ((cs (comment-search-forward (line-end-position) t)))

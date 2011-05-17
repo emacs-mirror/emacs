@@ -569,12 +569,12 @@ typedef char boolean;
 #define false 0
 #define true 1
 
-static int re_match_2_internal _RE_ARGS ((struct re_pattern_buffer *bufp,
-					re_char *string1, int size1,
-					re_char *string2, int size2,
-					int pos,
-					struct re_registers *regs,
-					int stop));
+static regoff_t re_match_2_internal _RE_ARGS ((struct re_pattern_buffer *bufp,
+					       re_char *string1, size_t size1,
+					       re_char *string2, size_t size2,
+					       ssize_t pos,
+					       struct re_registers *regs,
+					       ssize_t stop));
 
 /* These are the command codes that appear in compiled regular
    expressions.  Some opcodes are followed by argument bytes.  A
@@ -1230,10 +1230,10 @@ print_double_string (where, string1, size1, string2, size2)
     re_char *where;
     re_char *string1;
     re_char *string2;
-    int size1;
-    int size2;
+    ssize_t size1;
+    ssize_t size2;
 {
-  int this_char;
+  ssize_t this_char;
 
   if (where == NULL)
     printf ("(null)");
@@ -1546,7 +1546,7 @@ do {									\
 /* Pop a saved register off the stack.  */
 #define POP_FAILURE_REG_OR_COUNT()					\
 do {									\
-  int pfreg = POP_FAILURE_INT ();					\
+  long pfreg = POP_FAILURE_INT ();					\
   if (pfreg == -1)							\
     {									\
       /* It's a counter.  */						\
@@ -1568,7 +1568,7 @@ do {									\
 /* Check that we are not stuck in an infinite loop.  */
 #define CHECK_INFINITE_LOOP(pat_cur, string_place)			\
 do {									\
-  int failure = TOP_FAILURE_HANDLE ();					\
+  ssize_t failure = TOP_FAILURE_HANDLE ();				\
   /* Check for infinite matching loops */				\
   while (failure > 0							\
 	 && (FAILURE_STR (failure) == string_place			\
@@ -1876,8 +1876,8 @@ typedef struct
 typedef struct
 {
   compile_stack_elt_t *stack;
-  unsigned size;
-  unsigned avail;			/* Offset of next open position.  */
+  size_t size;
+  size_t avail;			/* Offset of next open position.  */
 } compile_stack_type;
 
 
@@ -2779,7 +2779,7 @@ regex_compile (const re_char *pattern, size_t size, reg_syntax_t syntax, struct 
 		if (many_times_ok)
 		  {
 		    boolean simple = skip_one_char (laststart) == b;
-		    unsigned int startoffset = 0;
+		    size_t startoffset = 0;
 		    re_opcode_t ofj =
 		      /* Check if the loop can match the empty string.  */
 		      (simple || !analyse_first (laststart, b, NULL, 0))
@@ -3361,7 +3361,7 @@ regex_compile (const re_char *pattern, size_t size, reg_syntax_t syntax, struct 
 			  _____ _____
 			  |   | |   |
 			  |   v |   v
-			 a | b	 | c
+			a | b	| c
 
 		 If we are at `b', then fixup_alt_jump right now points to a
 		 three-byte space after `a'.  We'll put in the jump, set
@@ -3905,7 +3905,7 @@ at_endline_loc_p (const re_char *p, const re_char *pend, reg_syntax_t syntax)
 static boolean
 group_in_compile_stack (compile_stack_type compile_stack, regnum_t regnum)
 {
-  int this_element;
+  ssize_t this_element;
 
   for (this_element = compile_stack.avail - 1;
        this_element >= 0;
@@ -4291,8 +4291,9 @@ WEAK_ALIAS (__re_set_registers, re_set_registers)
 /* Like re_search_2, below, but only one string is specified, and
    doesn't let you say where to stop matching. */
 
-int
-re_search (struct re_pattern_buffer *bufp, const char *string, int size, int startpos, int range, struct re_registers *regs)
+regoff_t
+re_search (struct re_pattern_buffer *bufp, const char *string, size_t size,
+	   ssize_t startpos, ssize_t range, struct re_registers *regs)
 {
   return re_search_2 (bufp, NULL, 0, string, size, startpos, range,
 		      regs, size);
@@ -4328,16 +4329,18 @@ WEAK_ALIAS (__re_search, re_search)
    found, -1 if no match, or -2 if error (such as failure
    stack overflow).  */
 
-int
-re_search_2 (struct re_pattern_buffer *bufp, const char *str1, int size1, const char *str2, int size2, int startpos, int range, struct re_registers *regs, int stop)
+regoff_t
+re_search_2 (struct re_pattern_buffer *bufp, const char *str1, size_t size1,
+	     const char *str2, size_t size2, ssize_t startpos, ssize_t range,
+	     struct re_registers *regs, ssize_t stop)
 {
-  int val;
+  regoff_t val;
   re_char *string1 = (re_char*) str1;
   re_char *string2 = (re_char*) str2;
   register char *fastmap = bufp->fastmap;
   register RE_TRANSLATE_TYPE translate = bufp->translate;
-  int total_size = size1 + size2;
-  int endpos = startpos + range;
+  size_t total_size = size1 + size2;
+  ssize_t endpos = startpos + range;
   boolean anchored_start;
   /* Nonzero if we are searching multibyte string.  */
   const boolean multibyte = RE_TARGET_MULTIBYTE_P (bufp);
@@ -4385,7 +4388,7 @@ re_search_2 (struct re_pattern_buffer *bufp, const char *str1, int size1, const 
 #ifdef emacs
   gl_state.object = re_match_object; /* Used by SYNTAX_TABLE_BYTE_TO_CHAR. */
   {
-    int charpos = SYNTAX_TABLE_BYTE_TO_CHAR (POS_AS_IN_BUFFER (startpos));
+    ssize_t charpos = SYNTAX_TABLE_BYTE_TO_CHAR (POS_AS_IN_BUFFER (startpos));
 
     SETUP_SYNTAX_TABLE_FOR_OBJECT (re_match_object, charpos, 1);
   }
@@ -4420,7 +4423,7 @@ re_search_2 (struct re_pattern_buffer *bufp, const char *str1, int size1, const 
 	  if (range > 0)	/* Searching forwards.  */
 	    {
 	      register int lim = 0;
-	      int irange = range;
+	      ssize_t irange = range;
 
 	      if (startpos < size1 && startpos + range >= size1)
 		lim = range - (size1 - startpos);
@@ -4571,7 +4574,7 @@ WEAK_ALIAS (__re_search_2, re_search_2)
 /* Declarations and macros for re_match_2.  */
 
 static int bcmp_translate _RE_ARGS((re_char *s1, re_char *s2,
-				    register int len,
+				    register ssize_t len,
 				    RE_TRANSLATE_TYPE translate,
 				    const int multibyte));
 
@@ -4873,11 +4876,11 @@ mutually_exclusive_p (struct re_pattern_buffer *bufp, const re_char *p1, const r
 			   && ((p2[2 + idx] & ~ p1[2 + idx]) == 0))))
 		  break;
 
-		if (idx == p2[1])
-		  {
-		    DEBUG_PRINT1 ("	 No match => fast loop.\n");
-		    return 1;
-		  }
+	      if (idx == p2[1])
+		{
+		  DEBUG_PRINT1 ("	 No match => fast loop.\n");
+		  return 1;
+		}
 	      }
 	  }
       }
@@ -4941,12 +4944,12 @@ mutually_exclusive_p (struct re_pattern_buffer *bufp, const re_char *p1, const r
 #ifndef emacs	/* Emacs never uses this.  */
 /* re_match is like re_match_2 except it takes only a single string.  */
 
-int
+regoff_t
 re_match (struct re_pattern_buffer *bufp, const char *string,
-	  int size, int pos, struct re_registers *regs)
+	  size_t size, ssize_t pos, struct re_registers *regs)
 {
-  int result = re_match_2_internal (bufp, NULL, 0, (re_char*) string, size,
-				    pos, regs, size);
+  regoff_t result = re_match_2_internal (bufp, NULL, 0, (re_char*) string,
+					 size, pos, regs, size);
   return result;
 }
 WEAK_ALIAS (__re_match, re_match)
@@ -4971,13 +4974,15 @@ Lisp_Object re_match_object;
    failure stack overflowing).  Otherwise, we return the length of the
    matched substring.  */
 
-int
-re_match_2 (struct re_pattern_buffer *bufp, const char *string1, int size1, const char *string2, int size2, int pos, struct re_registers *regs, int stop)
+regoff_t
+re_match_2 (struct re_pattern_buffer *bufp, const char *string1,
+	    size_t size1, const char *string2, size_t size2, ssize_t pos,
+	    struct re_registers *regs, ssize_t stop)
 {
-  int result;
+  regoff_t result;
 
 #ifdef emacs
-  int charpos;
+  ssize_t charpos;
   gl_state.object = re_match_object; /* Used by SYNTAX_TABLE_BYTE_TO_CHAR. */
   charpos = SYNTAX_TABLE_BYTE_TO_CHAR (POS_AS_IN_BUFFER (pos));
   SETUP_SYNTAX_TABLE_FOR_OBJECT (re_match_object, charpos, 1);
@@ -4993,11 +4998,13 @@ WEAK_ALIAS (__re_match_2, re_match_2)
 
 /* This is a separate function so that we can force an alloca cleanup
    afterwards.  */
-static int
-re_match_2_internal (struct re_pattern_buffer *bufp, const re_char *string1, int size1, const re_char *string2, int size2, int pos, struct re_registers *regs, int stop)
+static regoff_t
+re_match_2_internal (struct re_pattern_buffer *bufp, const re_char *string1,
+		     size_t size1, const re_char *string2, size_t size2,
+		     ssize_t pos, struct re_registers *regs, ssize_t stop)
 {
   /* General temporaries.  */
-  int mcnt;
+  ssize_t mcnt;
   size_t reg;
 
   /* Just past the end of the corresponding string.  */
@@ -5996,8 +6003,8 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const re_char *string1, int
 		int s1, s2;
 		int dummy;
 #ifdef emacs
-		int offset = PTR_TO_OFFSET (d - 1);
-		int charpos = SYNTAX_TABLE_BYTE_TO_CHAR (offset);
+		ssize_t offset = PTR_TO_OFFSET (d - 1);
+		ssize_t charpos = SYNTAX_TABLE_BYTE_TO_CHAR (offset);
 		UPDATE_SYNTAX_TABLE (charpos);
 #endif
 		GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
@@ -6038,8 +6045,8 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const re_char *string1, int
 	      int s1, s2;
 	      int dummy;
 #ifdef emacs
-	      int offset = PTR_TO_OFFSET (d);
-	      int charpos = SYNTAX_TABLE_BYTE_TO_CHAR (offset);
+	      ssize_t offset = PTR_TO_OFFSET (d);
+	      ssize_t charpos = SYNTAX_TABLE_BYTE_TO_CHAR (offset);
 	      UPDATE_SYNTAX_TABLE (charpos);
 #endif
 	      PREFETCH ();
@@ -6083,8 +6090,8 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const re_char *string1, int
 	      int s1, s2;
 	      int dummy;
 #ifdef emacs
-	      int offset = PTR_TO_OFFSET (d) - 1;
-	      int charpos = SYNTAX_TABLE_BYTE_TO_CHAR (offset);
+	      ssize_t offset = PTR_TO_OFFSET (d) - 1;
+	      ssize_t charpos = SYNTAX_TABLE_BYTE_TO_CHAR (offset);
 	      UPDATE_SYNTAX_TABLE (charpos);
 #endif
 	      GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
@@ -6127,8 +6134,8 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const re_char *string1, int
 	      re_wchar_t c1, c2;
 	      int s1, s2;
 #ifdef emacs
-	      int offset = PTR_TO_OFFSET (d);
-	      int charpos = SYNTAX_TABLE_BYTE_TO_CHAR (offset);
+	      ssize_t offset = PTR_TO_OFFSET (d);
+	      ssize_t charpos = SYNTAX_TABLE_BYTE_TO_CHAR (offset);
 	      UPDATE_SYNTAX_TABLE (charpos);
 #endif
 	      PREFETCH ();
@@ -6170,8 +6177,8 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const re_char *string1, int
 	      re_wchar_t c1, c2;
 	      int s1, s2;
 #ifdef emacs
-	      int offset = PTR_TO_OFFSET (d) - 1;
-	      int charpos = SYNTAX_TABLE_BYTE_TO_CHAR (offset);
+	      ssize_t offset = PTR_TO_OFFSET (d) - 1;
+	      ssize_t charpos = SYNTAX_TABLE_BYTE_TO_CHAR (offset);
 	      UPDATE_SYNTAX_TABLE (charpos);
 #endif
 	      GET_CHAR_BEFORE_2 (c1, d, string1, end1, string2, end2);
@@ -6207,8 +6214,8 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const re_char *string1, int
 	    PREFETCH ();
 #ifdef emacs
 	    {
-	      int offset = PTR_TO_OFFSET (d);
-	      int pos1 = SYNTAX_TABLE_BYTE_TO_CHAR (offset);
+	      ssize_t offset = PTR_TO_OFFSET (d);
+	      ssize_t pos1 = SYNTAX_TABLE_BYTE_TO_CHAR (offset);
 	      UPDATE_SYNTAX_TABLE (pos1);
 	    }
 #endif
@@ -6331,7 +6338,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const re_char *string1, int
    bytes; nonzero otherwise.  */
 
 static int
-bcmp_translate (const re_char *s1, const re_char *s2, register int len,
+bcmp_translate (const re_char *s1, const re_char *s2, register ssize_t len,
 		RE_TRANSLATE_TYPE translate, const int target_multibyte)
 {
   register re_char *p1 = s1, *p2 = s2;
@@ -6373,7 +6380,8 @@ bcmp_translate (const re_char *s1, const re_char *s2, register int len,
    We call regex_compile to do the actual compilation.  */
 
 const char *
-re_compile_pattern (const char *pattern, size_t length, struct re_pattern_buffer *bufp)
+re_compile_pattern (const char *pattern, size_t length,
+		    struct re_pattern_buffer *bufp)
 {
   reg_errcode_t ret;
 
@@ -6449,14 +6457,13 @@ re_comp (s)
 }
 
 
-int
+regoff_t
 # ifdef _LIBC
 weak_function
 # endif
-re_exec (s)
-    const char *s;
+re_exec (const char *s)
 {
-  const int len = strlen (s);
+  const size_t len = strlen (s);
   return
     0 <= re_search (&re_comp_buf, s, len, 0, len, (struct re_registers *) 0);
 }
@@ -6500,7 +6507,7 @@ re_exec (s)
    It returns 0 if it succeeds, nonzero if it doesn't.  (See regex.h for
    the return codes and their meanings.)  */
 
-int
+reg_errcode_t
 regcomp (regex_t *__restrict preg, const char *__restrict pattern,
 	 int cflags)
 {
@@ -6564,7 +6571,7 @@ regcomp (regex_t *__restrict preg, const char *__restrict pattern,
 	  preg->fastmap = NULL;
 	}
     }
-  return (int) ret;
+  return ret;
 }
 WEAK_ALIAS (__regcomp, regcomp)
 
@@ -6583,14 +6590,14 @@ WEAK_ALIAS (__regcomp, regcomp)
 
    We return 0 if we find a match and REG_NOMATCH if not.  */
 
-int
+reg_errcode_t
 regexec (const regex_t *__restrict preg, const char *__restrict string,
 	 size_t nmatch, regmatch_t pmatch[__restrict_arr], int eflags)
 {
-  int ret;
+  reg_errcode_t ret;
   struct re_registers regs;
   regex_t private_preg;
-  int len = strlen (string);
+  size_t len = strlen (string);
   boolean want_reg_info = !preg->no_sub && nmatch > 0 && pmatch;
 
   private_preg = *preg;
@@ -6608,7 +6615,7 @@ regexec (const regex_t *__restrict preg, const char *__restrict string,
       regs.num_regs = nmatch;
       regs.start = TALLOC (nmatch * 2, regoff_t);
       if (regs.start == NULL)
-	return (int) REG_NOMATCH;
+	return REG_NOMATCH;
       regs.end = regs.start + nmatch;
     }
 
@@ -6645,7 +6652,7 @@ regexec (const regex_t *__restrict preg, const char *__restrict string,
     }
 
   /* We want zero return to mean success, unlike `re_search'.  */
-  return ret >= 0 ? (int) REG_NOERROR : (int) REG_NOMATCH;
+  return ret >= 0 ? REG_NOERROR : REG_NOMATCH;
 }
 WEAK_ALIAS (__regexec, regexec)
 

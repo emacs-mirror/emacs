@@ -109,7 +109,7 @@ For the standard setting, use `set-default'."
 (defvar custom-delayed-init-variables nil
   "List of variables whose initialization is pending.")
 
-(defun custom-initialize-delay (symbol value)
+(defun custom-initialize-delay (symbol _value)
   "Delay initialization of SYMBOL to the next Emacs start.
 This is used in files that are preloaded (or for autoloaded
 variables), so that the initialization is done in the run-time
@@ -313,11 +313,19 @@ for more information."
   ;; It is better not to use backquote in this file,
   ;; because that makes a bootstrapping problem
   ;; if you need to recompile all the Lisp files using interpreted code.
-  (nconc (list 'custom-declare-variable
-	       (list 'quote symbol)
-	       (list 'quote value)
-	       doc)
-	 args))
+  `(custom-declare-variable
+    ',symbol
+    ,(if lexical-binding    ;FIXME: This is not reliable, but is all we have.
+         ;; The `default' arg should be an expression that evaluates to
+         ;; the value to use.  The use of `eval' for it is spread over
+         ;; many different places and hence difficult to eliminate, yet
+         ;; we want to make sure that the `value' expression is checked by the
+         ;; byte-compiler, and that lexical-binding is obeyed, so quote the
+         ;; expression with `lambda' rather than with `quote'.
+         `(list (lambda () ,value))
+       `',value)
+    ,doc
+    ,@args))
 
 ;;; The `defface' Macro.
 

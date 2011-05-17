@@ -247,7 +247,7 @@ Contains links to previous and next month and year, and current minical."
     (insert cal-html-e-tablerow-string)
     ;; Initial empty slots.
     (insert cal-html-b-tablerow-string)
-    (dotimes (i blank-days)
+    (dotimes (_i blank-days)
       (insert
        cal-html-b-tabledata-string
        cal-html-e-tabledata-string))

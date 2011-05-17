@@ -36,7 +36,7 @@
 #       /^STDDEF_H *=/s/@[^@\n]*@//          -- stddef.h is not needed
 #
 #  . Some of the headers are generated conditionally, and the
-#    corresponding recipes are guarder by @GL_GENERATE_xxxx_H_TRUE@
+#    corresponding recipes are guarded by @GL_GENERATE_xxxx_H_TRUE@
 #    and @GL_GENERATE_xxxx_H_FALSE@.  Depending on whether DJGPP uses
 #    the corresponding header, these should be edited either to
 #    nothing (thus exposing the recipe) or to #, which comments the
@@ -160,13 +160,17 @@ am__cd = cd
 /^GNULIB_FCHMODAT *=/s/@GNULIB_FCHMODAT@/0/
 /^GNULIB_FCLOSE *=/s/@GNULIB_FCLOSE@/0/
 /^GNULIB_FFLUSH *=/s/@GNULIB_FFLUSH@/0/
+/^GNULIB_FGETC *=/s/@GNULIB_FGETC@/0/
+/^GNULIB_FGETS *=/s/@GNULIB_FGETS@/0/
 /^GNULIB_FOPEN *=/s/@GNULIB_FOPEN@/0/
 /^GNULIB_FPRINTF *=/s/@GNULIB_FPRINTF@/0/
 /^GNULIB_FPRINTF_POSIX *=/s/@GNULIB_FPRINTF_POSIX@/0/
 /^GNULIB_FPURGE *=/s/@GNULIB_FPURGE@/0/
 /^GNULIB_FPUTC *=/s/@GNULIB_FPUTC@/0/
 /^GNULIB_FPUTS *=/s/@GNULIB_FPUTS@/0/
+/^GNULIB_FREAD *=/s/@GNULIB_FREAD@/0/
 /^GNULIB_FREOPEN *=/s/@GNULIB_FREOPEN@/0/
+/^GNULIB_FSCANF *=/s/@GNULIB_FSCANF@/0/
 /^GNULIB_FSEEK *=/s/@GNULIB_FSEEK@/0/
 /^GNULIB_FSEEKO *=/s/@GNULIB_FSEEKO@/0/
 /^GNULIB_FSTATAT *=/s/@GNULIB_FSTATAT@/0/
@@ -176,6 +180,8 @@ am__cd = cd
 /^GNULIB_FTRUNCATE *=/s/@GNULIB_FTRUNCATE@/0/
 /^GNULIB_FUTIMENS *=/s/@GNULIB_FUTIMENS@/0/
 /^GNULIB_FWRITE *=/s/@GNULIB_FWRITE@/0/
+/^GNULIB_GETC *=/s/@GNULIB_GETC@/0/
+/^GNULIB_GETCHAR *=/s/@GNULIB_GETCHAR@/0/
 /^GNULIB_GETCWD *=/s/@GNULIB_GETCWD@/0/
 /^GNULIB_GETDELIM *=/s/@GNULIB_GETDELIM@/0/
 /^GNULIB_GETDOMAINNAME *=/s/@GNULIB_GETDOMAINNAME@/0/
@@ -187,6 +193,7 @@ am__cd = cd
 /^GNULIB_GETLOGIN *=/s/@GNULIB_GETLOGIN@/0/
 /^GNULIB_GETLOGIN_R *=/s/@GNULIB_GETLOGIN_R@/0/
 /^GNULIB_GETPAGESIZE *=/s/@GNULIB_GETPAGESIZE@/0/
+/^GNULIB_GETS *=/s/@GNULIB_GETS@/0/
 /^GNULIB_GETSUBOPT *=/s/@GNULIB_GETSUBOPT@/0/
 /^GNULIB_GETUSERSHELL *=/s/@GNULIB_GETUSERSHELL@/0/
 /^GNULIB_GRANTPT *=/s/@GNULIB_GRANTPT@/0/
@@ -226,6 +233,7 @@ am__cd = cd
 /^GNULIB_PUTS *=/s/@GNULIB_PUTS@/0/
 /^GNULIB_PWRITE *=/s/@GNULIB_PWRITE@/0/
 /^GNULIB_RANDOM_R *=/s/@GNULIB_RANDOM_R@/0/
+/^GNULIB_READ *=/s/@GNULIB_READ@/0/
 /^GNULIB_READLINK *=/s/@GNULIB_READLINK@/0/
 /^GNULIB_READLINKAT *=/s/@GNULIB_READLINKAT@/0/
 /^GNULIB_REALLOC_POSIX *=/s/@GNULIB_REALLOC_POSIX@/0/
@@ -235,11 +243,13 @@ am__cd = cd
 /^GNULIB_RENAMEAT *=/s/@GNULIB_RENAMEAT@/0/
 /^GNULIB_RMDIR *=/s/@GNULIB_RMDIR@/0/
 /^GNULIB_RPMATCH *=/s/@GNULIB_RPMATCH@/0/
+/^GNULIB_SCANF *=/s/@GNULIB_SCANF@/0/
 /^GNULIB_SETENV *=/s/@GNULIB_SETENV@/0/
 /^GNULIB_SLEEP *=/s/@GNULIB_SLEEP@/0/
 /^GNULIB_SNPRINTF *=/s/@GNULIB_SNPRINTF@/0/
 /^GNULIB_SPRINTF_POSIX *=/s/@GNULIB_SPRINTF_POSIX@/0/
 /^GNULIB_STAT *=/s/@GNULIB_STAT@/0/
+/^GNULIB_STDIO_H_NONBLOCKING *=/s/@GNULIB_STDIO_H_NONBLOCKING@/0/
 /^GNULIB_STDIO_H_SIGPIPE *=/s/@GNULIB_STDIO_H_SIGPIPE@/0/
 /^GNULIB_STRPTIME *=/s/@GNULIB_STRPTIME@/0/
 /^GNULIB_STRTOD *=/s/@GNULIB_STRTOD@/0/
@@ -253,6 +263,7 @@ am__cd = cd
 /^GNULIB_TMPFILE *=/s/@GNULIB_TMPFILE@/0/
 /^GNULIB_TTYNAME_R *=/s/@GNULIB_TTYNAME_R@/0/
 /^GNULIB_UNISTD_H_GETOPT *=/s/@GNULIB_UNISTD_H_GETOPT@/1/
+/^GNULIB_UNISTD_H_NONBLOCKING *=/s/@GNULIB_UNISTD_H_NONBLOCKING@/0/
 /^GNULIB_UNISTD_H_SIGPIPE *=/s/@GNULIB_UNISTD_H_SIGPIPE@/0/
 /^GNULIB_UNLINK *=/s/@GNULIB_UNLINK@/0/
 /^GNULIB_UNLINKAT *=/s/@GNULIB_UNLINKAT@/0/
@@ -264,8 +275,10 @@ am__cd = cd
 /^GNULIB_VDPRINTF *=/s/@GNULIB_VDPRINTF@/0/
 /^GNULIB_VFPRINTF *=/s/@GNULIB_VFPRINTF@/0/
 /^GNULIB_VFPRINTF_POSIX *=/s/@GNULIB_VFPRINTF_POSIX@/0/
+/^GNULIB_VFSCANF *=/s/@GNULIB_VFSCANF@/0/
 /^GNULIB_VPRINTF *=/s/@GNULIB_VPRINTF@/0/
 /^GNULIB_VPRINTF_POSIX *=/s/@GNULIB_VPRINTF_POSIX@/0/
+/^GNULIB_VSCANF *=/s/@GNULIB_VSCANF@/0/
 /^GNULIB_VSNPRINTF *=/s/@GNULIB_VSNPRINTF@/0/
 /^GNULIB_VSPRINTF_POSIX *=/s/@GNULIB_VSPRINTF_POSIX@/0/
 /^GNULIB_WCTOMB *=/s/@GNULIB_WCTOMB@/0/
@@ -388,6 +401,7 @@ am__cd = cd
 # MKDIR_P lines are edited further below
 /^MKDIR_P *=/s/@MKDIR_P@//
 /^NEXT_AS_FIRST_DIRECTIVE_GETOPT_H *=/s/@[^@\n]*@/<getopt.h>/
+/^NEXT_AS_FIRST_DIRECTIVE_STDARG_H *=/s/@[^@\n]*@//
 /^NEXT_AS_FIRST_DIRECTIVE_STDDEF_H *=/s/@[^@\n]*@//
 /^NEXT_AS_FIRST_DIRECTIVE_STDINT_H *=/s/@[^@\n]*@/<stdint.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_STDIO_H *=/s/@[^@\n]*@/<stdio.h>/
@@ -396,6 +410,7 @@ am__cd = cd
 /^NEXT_AS_FIRST_DIRECTIVE_TIME_H *=/s/@[^@\n]*@/<time.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_UNISTD_H *=/s/@[^@\n]*@/<unistd.h>/
 /^NEXT_GETOPT_H *=/s/@[^@\n]*@/<getopt.h>/
+/^NEXT_STDARG_H *=/s/@[^@\n]*@//
 /^NEXT_STDDEF_H *=/s/@[^@\n]*@//
 /^NEXT_STDIO_H *=/s/@[^@\n]*@/<stdio.h>/
 /^NEXT_STDINT_H *=/s/@[^@\n]*@/<stdint.h>/
@@ -457,6 +472,7 @@ am__cd = cd
 /^REPLACE_PRINTF *=/s/@REPLACE_PRINTF@/0/
 /^REPLACE_PUTENV *=/s/@REPLACE_PUTENV@/0/
 /^REPLACE_PWRITE *=/s/@REPLACE_PWRITE@/0/
+/^REPLACE_READ *=/s/@REPLACE_READ@/0/
 /^REPLACE_READLINK *=/s/@REPLACE_READLINK@/0/
 /^REPLACE_REALLOC *=/s/@REPLACE_REALLOC@/0/
 /^REPLACE_REALPATH *=/s/@REPLACE_REALPATH@/0/
@@ -469,6 +485,7 @@ am__cd = cd
 /^REPLACE_SNPRINTF *=/s/@REPLACE_SNPRINTF@/0/
 /^REPLACE_SPRINTF *=/s/@REPLACE_SPRINTF@/0/
 /^REPLACE_STAT *=/s/@REPLACE_STAT@/0/
+/^REPLACE_STDIO_READ_FUNCS *=/s/@REPLACE_STDIO_READ_FUNCS@/0/
 /^REPLACE_STDIO_WRITE_FUNCS *=/s/@REPLACE_STDIO_WRITE_FUNCS@/0/
 /^REPLACE_STRTOD *=/s/@REPLACE_STRTOD@/0/
 /^REPLACE_SYMLINK *=/s/@REPLACE_SYMLINK@/0/
@@ -491,6 +508,7 @@ am__cd = cd
 /^SIG_ATOMIC_T_SUFFIX *=/s/@SIG_ATOMIC_T_SUFFIX@//
 /^SIZE_T_SUFFIX *=/s/@SIZE_T_SUFFIX@/u/
 /^STDBOOL_H *=/s/@[^@\n]*@//
+/^STDARG_H *=/s/@[^@\n]*@//
 /^STDDEF_H *=/s/@[^@\n]*@//
 /^STDINT_H *=/s/@[^@\n]*@/stdint.h/
 /^SYS_TIME_H_DEFINES_STRUCT_TIMESPEC *=/s/@[^@\n]*@/0/
@@ -499,8 +517,12 @@ am__cd = cd
 /^UNISTD_H_HAVE_WINSOCK2_H_AND_USE_SOCKETS *=/s/@[^@\n]*@/0/
 /^WCHAR_T_SUFFIX *=/s/@WCHAR_T_SUFFIX@/h/
 /^WINT_T_SUFFIX *=/s/@WINT_T_SUFFIX@//
+/am__append_1 *=.*gettext\.h/s/@[^@\n]*@/\#/
+/am__append_2 *=.*verify\.h/s/@[^@\n]*@//
 /^gl_LIBOBJS *=/s/@[^@\n]*@/getopt.o getopt1.o strftime.o time_r.o getloadavg.o md5.o filemode.o/
-/^am_libgnu_a_OBJECTS *=/s/careadlinkat.\$(OBJEXT)//
+/^BUILT_SOURCES *=/s/ *inttypes\.h//
+/^am_libgnu_a_OBJECTS *=/s/careadlinkat\.\$(OBJEXT)//
+/^am_libgnu_a_OBJECTS *=/s/allocator\.\$(OBJEXT)//
 /^srcdir *=/s/@[^@\n]*@/./
 /^top_srcdir *=/s/@[^@\n]*@/../
 /^top_builddir *=/s/@[^@\n]*@/../
@@ -537,8 +559,10 @@ s/@echo /@djecho/
 # Fix the recipes for header files
 s/^@GL_GENERATE_STDBOOL_H_TRUE@/\#/
 s/^@GL_GENERATE_STDBOOL_H_FALSE@//
+s/^@GL_GENERATE_STDARG_H_TRUE@/\#/
+s/^@GL_GENERATE_STDARG_H_FALSE@/\#/
 s/^@GL_GENERATE_STDDEF_H_TRUE@/\#/
-s/^@GL_GENERATE_STDDEF_H_FALSE@//
+s/^@GL_GENERATE_STDDEF_H_FALSE@/\#/
 s/^@GL_GENERATE_STDINT_H_TRUE@//
 s/^@GL_GENERATE_STDINT_H_FALSE@/\#/
 /^arg-nonnull\.h:/,/^[ 	][ 	]*mv /c\

@@ -847,7 +847,7 @@ Font Lock Mode
 Multiline Font Lock Constructs
 
 * Font Lock Multiline::     Marking multiline chunks with a text property.
-* Region to Fontify::       Controlling which region gets refontified
+* Region to Refontify::     Controlling which region gets refontified
                               after a buffer change.
 
 Documentation

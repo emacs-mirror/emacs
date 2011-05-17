@@ -33,6 +33,13 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
+
+(eval-and-compile
+  ;; In Emacs 24, `open-protocol-stream' is an autoloaded alias for
+  ;; `make-network-stream'.
+  (unless (fboundp 'open-protocol-stream)
+    (require 'proto-stream)))
+
 (require 'mail-utils)
 (defvar parse-time-months)
 
@@ -257,10 +264,6 @@ Use streaming commands."
     (pop3-quit process)
     message-count))
 
-(autoload 'open-tls-stream "tls")
-(autoload 'starttls-open-stream "starttls")
-(autoload 'starttls-negotiate "starttls") ; avoid warning
-
 (defcustom pop3-stream-type nil
   "*Transport security type for POP3 connexions.
 This may be either nil (plain connexion), `ssl' (use an
@@ -286,64 +289,37 @@ this is nil, `ssl' is assumed for connexions to port
 Returns the process associated with the connection."
   (let ((coding-system-for-read 'binary)
 	(coding-system-for-write 'binary)
-	process)
+	result)
     (with-current-buffer
         (get-buffer-create (concat " trace of POP session to "
                                    mailhost))
       (erase-buffer)
       (setq pop3-read-point (point-min))
-      (setq process
-	    (cond
-	     ((or (eq pop3-stream-type 'ssl)
-		  (and (not pop3-stream-type) (member port '(995 "pop3s"))))
-	      ;; gnutls-cli, openssl don't accept service names
-	      (if (or (equal port "pop3s")
-		      (null port))
-		  (setq port 995))
-	      (let ((process (open-tls-stream "POP" (current-buffer)
-					      mailhost port)))
-		(when process
-		  ;; There's a load of info printed that needs deleting.
-		  (let ((again 't))
-		    ;; repeat until
-		    ;; - either we received the +OK line
-		    ;; - or accept-process-output timed out without getting
-		    ;;   anything
-		    (while (and again
-				(setq again (memq (process-status process)
-						  '(open run))))
-		      (setq again (pop3-accept-process-output process))
-		      (goto-char (point-max))
-		      (forward-line -1)
-		      (cond ((looking-at "\\+OK")
-			     (setq again nil)
-			     (delete-region (point-min) (point)))
-			    ((not again)
-			     (pop3-quit process)
-			     (error "POP SSL connexion failed")))))
-		  process)))
-	     ((eq pop3-stream-type 'starttls)
-	      ;; gnutls-cli, openssl don't accept service names
-	      (if (equal port "pop3")
-		  (setq port 110))
-	      ;; Delay STLS until server greeting is read (Bug#7438).
-	      (starttls-open-stream "POP" (current-buffer)
-				    mailhost (or port 110)))
-	     (t
-	      (open-network-stream "POP" (current-buffer) mailhost port))))
-      (let ((response (pop3-read-response process t)))
-	(setq pop3-timestamp
-	      (substring response (or (string-match "<" response) 0)
-			 (+ 1 (or (string-match ">" response) -1)))))
-      (when (eq pop3-stream-type 'starttls)
-	(pop3-send-command process "STLS")
-	(let ((response (pop3-read-response process t)))
-	  (if (and response (string-match "+OK" response))
-	      (starttls-negotiate process)
-	    (pop3-quit process)
-	    (error "POP server doesn't support starttls"))))
-      (pop3-set-process-query-on-exit-flag process nil)
-      process)))
+      (setq result
+	    (open-protocol-stream
+	     "POP" (current-buffer) mailhost port
+	     :type (cond
+		    ((or (eq pop3-stream-type 'ssl)
+			 (and (not pop3-stream-type)
+			      (member port '(995 "pop3s"))))
+		     'tls)
+		    (t
+		     (or pop3-stream-type 'network)))
+	     :capability-command "CAPA\r\n"
+	     :end-of-command "^\\.\r?\n\\|^\\(-ERR\\|+OK \\).*\n"
+	     :success "^\\+OK.*\n"
+	     :return-list t
+	     :starttls-function
+	     (lambda (capabilities)
+	       (and (string-match "\\bSTLS\\b" capabilities)
+		    "STLS\r\n"))))
+      (when result
+	(let ((response (plist-get (cdr result) :greeting)))
+	  (setq pop3-timestamp
+		(substring response (or (string-match "<" response) 0)
+			   (+ 1 (or (string-match ">" response) -1)))))
+	(pop3-set-process-query-on-exit-flag (car result) nil)
+	(car result)))))
 
 ;; Support functions
 

@@ -68,10 +68,10 @@ the default directory.  If you now type @kbd{buffer.c} as input, that
 specifies the file @file{/u2/emacs/src/buffer.c}.  @xref{File Names},
 for information about the default directory.
 
-  You can specify the parent directory by adding @file{..}: for
-example, @file{/u2/emacs/src/../lisp/simple.el} is equivalent to
-@file{/u2/emacs/lisp/simple.el}.  Alternatively, you can use
-@kbd{M-@key{DEL}} to kill directory names backwards (@pxref{Words}).
+  You can specify the parent directory with @file{..}:
+@file{/a/b/../foo.el} is equivalent to @file{/a/foo.el}.
+Alternatively, you can use @kbd{M-@key{DEL}} to kill directory names
+backwards (@pxref{Words}).
 
   To specify a file in a completely different directory, you can kill
 the entire default with @kbd{C-a C-k} (@pxref{Minibuffer Edit}).
@@ -164,7 +164,7 @@ however: for instance, you cannot split it.  @xref{Windows}.
 @vindex resize-mini-windows
   Normally, the minibuffer window occupies a single screen line.
 However, if you add two or more lines' worth of text into the
-minibuffer, it expands automatically to accomodate the text.  The
+minibuffer, it expands automatically to accommodate the text.  The
 variable @code{resize-mini-windows} controls the resizing of the
 minibuffer.  The default value is @code{grow-only}, which means the
 behavior we have just described.  If the value is @code{t}, the

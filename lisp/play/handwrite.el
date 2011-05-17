@@ -67,8 +67,10 @@
 
 ;;; Code:
 
+;; From ps-print.el
 (defvar ps-printer-name)
 (defvar ps-lpr-command)
+(defvar ps-lpr-switches)
 
 
 ;; Variables
@@ -157,8 +159,7 @@ Variables: `handwrite-linespace'     (default 12)
            `handwrite-pagenumbering' (default nil)"
   (interactive)
   (let
-      ((pmin)				; thanks, Havard
-       (lastp)
+      (;(pmin)				; thanks, Havard
        (cur-buf (current-buffer))
        (tpoint (point))
        (ps-ypos 63)

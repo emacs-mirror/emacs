@@ -6475,7 +6475,7 @@ comment at the start of cc-engine.el for more info."
       ;; `c-font-lock-declarators'.)
       (while (and (looking-at c-type-decl-prefix-key)
 		  (if (and (c-major-mode-is 'c++-mode)
-			   (match-beginning 2))
+			   (match-beginning 3))
 		      ;; If the second submatch matches in C++ then
 		      ;; we're looking at an identifier that's a
 		      ;; prefix only if it specifies a member pointer.

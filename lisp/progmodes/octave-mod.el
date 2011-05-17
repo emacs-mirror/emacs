@@ -150,8 +150,8 @@ All Octave abbrevs start with a grave accent (`)."
   "Builtin variables in Octave.")
 
 (defvar octave-function-header-regexp
-  (concat "^\\s-*\\<\\(function\\)\\>"
-	  "\\([^=;\n]*=[ \t]*\\|[ \t]*\\)\\(\\w+\\)\\>")
+  (concat "^\\s-*\\_<\\(function\\)\\_>"
+	  "\\([^=;\n]*=[ \t]*\\|[ \t]*\\)\\(\\(?:\\w\\|\\s_\\)+\\)\\_>")
   "Regexp to match an Octave function header.
 The string `function' and its name are given by the first and third
 parenthetical grouping.")
@@ -159,10 +159,10 @@ parenthetical grouping.")
 (defvar octave-font-lock-keywords
   (list
    ;; Fontify all builtin keywords.
-   (cons (concat "\\<\\("
+   (cons (concat "\\_<\\("
 		 (regexp-opt (append octave-reserved-words
                                      octave-text-functions))
-		 "\\)\\>")
+		 "\\)\\_>")
 	 'font-lock-keyword-face)
    ;; Fontify all builtin operators.
    (cons "\\(&\\||\\|<=\\|>=\\|==\\|<\\|>\\|!=\\|!\\)"
@@ -170,7 +170,7 @@ parenthetical grouping.")
 	     'font-lock-builtin-face
 	   'font-lock-preprocessor-face))
    ;; Fontify all builtin variables.
-   (cons (concat "\\<" (regexp-opt octave-variables) "\\>")
+   (cons (concat "\\_<" (regexp-opt octave-variables) "\\_>")
 	 'font-lock-variable-name-face)
    ;; Fontify all function declarations.
    (list octave-function-header-regexp
@@ -182,7 +182,7 @@ parenthetical grouping.")
   (goto-char start)
   (octave-syntax-propertize-sqs end)
   (funcall (syntax-propertize-rules
-  ;; Try to distinguish the string-quotes from the transpose-quotes.
+            ;; Try to distinguish the string-quotes from the transpose-quotes.
             ("[[({,; ]\\('\\)"
              (1 (prog1 "\"'" (octave-syntax-propertize-sqs end)))))
            (point) end))
@@ -190,15 +190,15 @@ parenthetical grouping.")
 (defun octave-syntax-propertize-sqs (end)
   "Propertize the content/end of single-quote strings."
   (when (eq (nth 3 (syntax-ppss)) ?\')
-        ;; A '..' string.
+    ;; A '..' string.
     (when (re-search-forward
            "\\(?:\\=\\|[^']\\)\\(?:''\\)*\\('\\)\\($\\|[^']\\)" end 'move)
       (goto-char (match-beginning 2))
-            (when (eq (char-before (match-beginning 1)) ?\\)
-              ;; Backslash cannot escape a single quote.
-              (put-text-property (1- (match-beginning 1)) (match-beginning 1)
-                                 'syntax-table (string-to-syntax ".")))
-            (put-text-property (match-beginning 1) (match-end 1)
+      (when (eq (char-before (match-beginning 1)) ?\\)
+        ;; Backslash cannot escape a single quote.
+        (put-text-property (1- (match-beginning 1)) (match-beginning 1)
+                           'syntax-table (string-to-syntax ".")))
+      (put-text-property (match-beginning 1) (match-end 1)
                          'syntax-table (string-to-syntax "\"'")))))
 
 (defcustom inferior-octave-buffer "*Inferior Octave*"
@@ -223,7 +223,7 @@ parenthetical grouping.")
     (define-key map "\C-c]" 'smie-close-block)
     (define-key map "\C-c/" 'smie-close-block)
     (define-key map "\C-c\C-f" 'octave-insert-defun)
-    (define-key map "\C-c\C-h" 'octave-help)
+    (define-key map "\C-c\C-h" 'info-lookup-symbol)
     (define-key map "\C-c\C-il" 'octave-send-line)
     (define-key map "\C-c\C-ib" 'octave-send-block)
     (define-key map "\C-c\C-if" 'octave-send-defun)
@@ -299,8 +299,8 @@ parenthetical grouping.")
     ;; Was "w" for abbrevs, but now that it's not necessary any more,
     (modify-syntax-entry ?\` "."  table)
     (modify-syntax-entry ?\" "\"" table)
-    (modify-syntax-entry ?. "w"   table)
-    (modify-syntax-entry ?_ "w"   table)
+    (modify-syntax-entry ?. "_"   table)
+    (modify-syntax-entry ?_ "_"   table)
     ;; The "b" flag only applies to the second letter of the comstart
     ;; and the first letter of the comend, i.e. the "4b" below is ineffective.
     ;; If we try to put `b' on the single-line comments, we get a similar
@@ -668,20 +668,15 @@ Look up symbol in the function, operator and variable indices of the info files.
 
 (defsubst octave-in-comment-p ()
   "Return t if point is inside an Octave comment."
-  (save-excursion
-    ;; FIXME: use syntax-ppss?
-    (nth 4 (parse-partial-sexp (line-beginning-position) (point)))))
+  (nth 4 (syntax-ppss)))
 
 (defsubst octave-in-string-p ()
   "Return t if point is inside an Octave string."
-  (save-excursion
-    ;; FIXME: use syntax-ppss?
-    (nth 3 (parse-partial-sexp (line-beginning-position) (point)))))
+  (nth 3 (syntax-ppss)))
 
 (defsubst octave-not-in-string-or-comment-p ()
   "Return t if point is not inside an Octave string or comment."
-  ;; FIXME: Use syntax-ppss?
-  (let ((pps (parse-partial-sexp (line-beginning-position) (point))))
+  (let ((pps (syntax-ppss)))
     (not (or (nth 3 pps) (nth 4 pps)))))
 
 
@@ -698,7 +693,6 @@ Look up symbol in the function, operator and variable indices of the info files.
       nil
     (delete-horizontal-space)
     (insert (concat " " octave-continuation-string))))
-
 
 ;;; Indentation
 
@@ -824,11 +818,11 @@ Returns t unless search stops at the beginning or end of the buffer."
 	 (found nil)
          (case-fold-search nil))
     (and (not (eobp))
-	 (not (and (> arg 0) (looking-at "\\<function\\>")))
+	 (not (and (> arg 0) (looking-at "\\_<function\\_>")))
 	 (skip-syntax-forward "w"))
     (while (and (/= arg 0)
 		(setq found
-		      (re-search-backward "\\<function\\>" inc)))
+		      (re-search-backward "\\_<function\\_>" inc)))
       (if (octave-not-in-string-or-comment-p)
 	  (setq arg (- arg inc))))
     (if found
@@ -899,7 +893,7 @@ otherwise."
 	    (setq give-up t))))
       (not give-up))))
 
-(defun octave-fill-paragraph (&optional arg)
+(defun octave-fill-paragraph (&optional _arg)
   "Fill paragraph of Octave code, handling Octave comments."
   ;; FIXME: difference with generic fill-paragraph:
   ;; - code lines are only split, never joined.
@@ -981,12 +975,12 @@ otherwise."
 
 (defun octave-completion-at-point-function ()
   "Find the text to complete and the corresponding table."
-  (let* ((beg (save-excursion (backward-sexp 1) (point)))
+  (let* ((beg (save-excursion (skip-syntax-backward "w_") (point)))
          (end (point)))
     (if (< beg (point))
         ;; Extend region past point, if applicable.
-        (save-excursion (goto-char beg) (forward-sexp 1)
-                        (setq end (max end (point)))))
+        (save-excursion (skip-syntax-forward "w_")
+                        (setq end (point))))
     (list beg end octave-completion-alist)))
 
 (defun octave-complete-symbol ()

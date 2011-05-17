@@ -58,6 +58,9 @@
 (defvoo nnimap-address nil
   "The address of the IMAP server.")
 
+(defvoo nnimap-user nil
+  "Username to use for authentication to the IMAP server.")
+
 (defvoo nnimap-server-port nil
   "The IMAP port used.
 If nnimap-stream is `ssl', this will default to `imaps'.  If not,
@@ -283,13 +286,14 @@ textual parts.")
     (push (current-buffer) nnimap-process-buffers)
     (current-buffer)))
 
-(defun nnimap-credentials (address ports)
+(defun nnimap-credentials (address ports user)
   (let* ((auth-source-creation-prompts
           '((user  . "IMAP user at %h: ")
             (secret . "IMAP password for %u@%h: ")))
          (found (nth 0 (auth-source-search :max 1
                                            :host address
                                            :port ports
+                                           :user user
                                            :require '(:user :secret)
                                            :create t))))
     (if found
@@ -408,7 +412,8 @@ textual parts.")
 				 (list
 				  nnimap-address
 				  (nnoo-current-server 'nnimap)))
-                                ports))))
+                                ports
+                                nnimap-user))))
 		  (setq nnimap-object nil)
 		(let ((nnimap-inhibit-logging t))
 		  (setq login-result
@@ -540,10 +545,9 @@ textual parts.")
 		  (nnimap-get-whole-article article))
 	    (let ((buffer (current-buffer)))
 	      (with-current-buffer (or to-buffer nntp-server-buffer)
-		(erase-buffer)
-		(insert-buffer-substring buffer)
-		(nnheader-ms-strip-cr)
-		(cons group article)))))))))
+		(nnheader-insert-buffer-substring buffer)
+		(nnheader-ms-strip-cr)))
+	    (cons group article)))))))
 
 (deffoo nnimap-request-head (article &optional group server to-buffer)
   (when (nnimap-possibly-change-group group server)

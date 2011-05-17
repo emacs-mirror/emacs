@@ -1,3 +1,68 @@
+2011-05-14  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Treat failure to find an X toolkit the same way we treat
+	failure to find X and image support.
+
+2011-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (src, install-arch-indep, bootstrap-clean)
+	(check-declare): Shell portability fixes.  (Bug#8642)
+
+2011-05-09  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* configure.in: Require GnuTLS 2.6.x or higher.
+
+2011-05-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use C99's va_copy to avoid undefined behavior on x86-64 GNU/Linux.
+	* Makefile.in (GNULIB_MODULES): Add stdarg, for va_copy.
+	* lib/stdarg.in.h, m4/stdarg.m4: New files, from gnulib.
+
+	* Makefile.in (GNULIB_TOOL_FLAG): Add --conditional-dependencies.
+	This new gnulib-tool option saves 'configure' the trouble of
+	checking for strtoull when strtoumax exists.
+
+	* configure.in (BITS_PER_LONG_LONG): New macro.
+
+2011-05-05  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (bootstrap-clean): Save config.log.  (Bug#765)
+	(top_distclean): Delete config.log~.
+
+2011-04-27  Ben Key  <bkey76@gmail.com>
+
+	* configure.in: Fixed a bug that caused configure with
+	--enable-checking=stringoverrun to have no effect.
+
+2011-04-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.in: Suppress unnecessary checks for size_t.
+	(AC_TYPE_SIZE_T): Define an empty macro, to suppress obsolescent test.
+	(size_t): Do not check for this, and do not typedef.  This code
+	is never exercised now.
+
+	* Makefile.in (GNULIB_MODULES): Add strtoumax.
+	This is needed for the new integer-reading code in lread.c.
+	It automatically pulls in the following gnulib files, which
+	are used on old-fashioned platforms that don't have strtoumax:
+	lib/inttypes.in.h, lib/strtoimax.c, lib/strtol.c, lib/strtoul.c,
+	lib/strtoull.c, lib/strtoumax.c, lib/verify.h, m4/inttypes.m4,
+	m4/strtoull.m4, m4/strtoumax.m4.
+	* .bzrignore: Add lib/inttypes.h.
+
+2011-04-24  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* configure.in: Check for GnuTLS certificate verify callbacks.
+
+2011-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (config.status): Don't erase in case of error.
+	In case it disappeared, rebuild it with `configure'.
+
+2011-04-20  Ken Brown  <kbrown@cornell.edu>
+
+	* configure.in (use_mmap_for_buffers): Set to yes on Cygwin.
+
 2011-04-12  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in: Require ImageMagick >= 6.2.8.  (Bug#7955)

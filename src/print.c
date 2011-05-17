@@ -39,11 +39,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 Lisp_Object Qstandard_output;
 
-Lisp_Object Qtemp_buffer_setup_hook;
+static Lisp_Object Qtemp_buffer_setup_hook;
 
 /* These are used to print like we read.  */
 
-Lisp_Object Qfloat_output_format;
+static Lisp_Object Qfloat_output_format;
 
 #include <math.h>
 
@@ -58,28 +58,28 @@ Lisp_Object Qfloat_output_format;
 #endif
 
 /* Avoid actual stack overflow in print.  */
-int print_depth;
+static int print_depth;
 
 /* Level of nesting inside outputting backquote in new style.  */
-int new_backquote_output;
+static int new_backquote_output;
 
 /* Detect most circularities to print finite output.  */
 #define PRINT_CIRCLE 200
-Lisp_Object being_printed[PRINT_CIRCLE];
+static Lisp_Object being_printed[PRINT_CIRCLE];
 
 /* When printing into a buffer, first we put the text in this
    block, then insert it all at once.  */
-char *print_buffer;
+static char *print_buffer;
 
 /* Size allocated in print_buffer.  */
-EMACS_INT print_buffer_size;
+static EMACS_INT print_buffer_size;
 /* Chars stored in print_buffer.  */
-EMACS_INT print_buffer_pos;
+static EMACS_INT print_buffer_pos;
 /* Bytes stored in print_buffer.  */
-EMACS_INT print_buffer_pos_byte;
+static EMACS_INT print_buffer_pos_byte;
 
 Lisp_Object Qprint_escape_newlines;
-Lisp_Object Qprint_escape_multibyte, Qprint_escape_nonascii;
+static Lisp_Object Qprint_escape_multibyte, Qprint_escape_nonascii;
 
 /* Vprint_number_table is a table, that keeps objects that are going to
    be printed, to allow use of #n= and #n# to express sharing.
@@ -89,8 +89,8 @@ Lisp_Object Qprint_escape_multibyte, Qprint_escape_nonascii;
      N    the object has been printed so we can refer to it as #N#.
    print_number_index holds the largest N already used.
    N has to be striclty larger than 0 since we need to distinguish -N.  */
-int print_number_index;
-void print_interval (INTERVAL interval, Lisp_Object printcharfun);
+static int print_number_index;
+static void print_interval (INTERVAL interval, Lisp_Object printcharfun);
 
 /* GDB resets this to zero on W32 to disable OutputDebugString calls.  */
 int print_output_debug_flag EXTERNALLY_VISIBLE = 1;
@@ -738,6 +738,7 @@ to make it write to the debugging output.  */)
 /* This function is never called.  Its purpose is to prevent
    print_output_debug_flag from being optimized away.  */
 
+extern void debug_output_compilation_hack (int) EXTERNALLY_VISIBLE;
 void
 debug_output_compilation_hack (int x)
 {
@@ -751,7 +752,7 @@ debug_output_compilation_hack (int x)
 
 #define WITH_REDIRECT_DEBUGGING_OUTPUT 1
 
-FILE *initial_stderr_stream = NULL;
+static FILE *initial_stderr_stream = NULL;
 
 DEFUN ("redirect-debugging-output", Fredirect_debugging_output, Sredirect_debugging_output,
        1, 2,
@@ -798,6 +799,7 @@ debug_print (Lisp_Object arg)
   fprintf (stderr, "\r\n");
 }
 
+void safe_debug_print (Lisp_Object) EXTERNALLY_VISIBLE;
 void
 safe_debug_print (Lisp_Object arg)
 {
@@ -806,10 +808,9 @@ safe_debug_print (Lisp_Object arg)
   if (valid > 0)
     debug_print (arg);
   else
-    fprintf (stderr, "#<%s_LISP_OBJECT 0x%08lx>\r\n",
+    fprintf (stderr, "#<%s_LISP_OBJECT 0x%08"pI"x>\r\n",
 	     !valid ? "INVALID" : "SOME",
-	     (unsigned long) XHASH (arg)
-	     );
+	     XHASH (arg));
 }
 
 
@@ -1197,7 +1198,7 @@ print_preprocess (Lisp_Object obj)
 	  goto loop;
 
 	case Lisp_Vectorlike:
-	  size = XVECTOR (obj)->size;
+	  size = ASIZE (obj);
 	  if (size & PSEUDOVECTOR_FLAG)
 	    size &= PSEUDOVECTOR_SIZE_MASK;
 	  for (i = 0; i < size; i++)
@@ -1336,11 +1337,11 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	  Lisp_Object num = Fgethash (obj, Vprint_number_table, Qnil);
 	  if (INTEGERP (num))
 	    {
-	      int n = XINT (num);
+	      EMACS_INT n = XINT (num);
 	      if (n < 0)
 		{ /* Add a prefix #n= if OBJ has not yet been printed;
 		     that is, its status field is nil.  */
-		  sprintf (buf, "#%d=", -n);
+		  sprintf (buf, "#%"pI"d=", -n);
 		  strout (buf, -1, -1, printcharfun);
 		  /* OBJ is going to be printed.  Remember that fact.  */
 		  Fputhash (obj, make_number (- n), Vprint_number_table);
@@ -1348,7 +1349,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	      else
 		{
 		  /* Just print #n# if OBJ has already been printed.  */
-		  sprintf (buf, "#%d#", n);
+		  sprintf (buf, "#%"pI"d#", n);
 		  strout (buf, -1, -1, printcharfun);
 		  return;
 		}
@@ -1361,12 +1362,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
   switch (XTYPE (obj))
     {
     case_Lisp_Int:
-      if (sizeof (int) == sizeof (EMACS_INT))
-	sprintf (buf, "%d", (int) XINT (obj));
-      else if (sizeof (long) == sizeof (EMACS_INT))
-	sprintf (buf, "%ld", (long) XINT (obj));
-      else
-	abort ();
+      sprintf (buf, "%"pI"d", XINT (obj));
       strout (buf, -1, -1, printcharfun);
       break;
 
@@ -1699,7 +1695,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 
 	  PRINTCHAR ('#');
 	  PRINTCHAR ('&');
-	  sprintf (buf, "%ld", (long) XBOOL_VECTOR (obj)->size);
+	  sprintf (buf, "%"pI"d", XBOOL_VECTOR (obj)->size);
 	  strout (buf, -1, -1, printcharfun);
 	  PRINTCHAR ('\"');
 
@@ -1752,7 +1748,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
       else if (WINDOWP (obj))
 	{
 	  strout ("#<window ", -1, -1, printcharfun);
-	  sprintf (buf, "%ld", (long) XFASTINT (XWINDOW (obj)->sequence_number));
+	  sprintf (buf, "%"pI"d", XFASTINT (XWINDOW (obj)->sequence_number));
 	  strout (buf, -1, -1, printcharfun);
 	  if (!NILP (XWINDOW (obj)->buffer))
 	    {
@@ -1790,7 +1786,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	      strout (SDATA (SYMBOL_NAME (h->weak)), -1, -1, printcharfun);
 	      PRINTCHAR (' ');
 	      sprintf (buf, "%ld/%ld", (long) h->count,
-		       (long) XVECTOR (h->next)->size);
+		       (long) ASIZE (h->next));
 	      strout (buf, -1, -1, printcharfun);
 	    }
 	  sprintf (buf, " 0x%lx", (unsigned long) h);
@@ -1801,7 +1797,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	    #s(hash-table size 2 test equal data (k1 v1 k2 v2)) */
 	  /* Always print the size. */
 	  sprintf (buf, "#s(hash-table size %ld",
-		   (long) XVECTOR (h->next)->size);
+		   (long) ASIZE (h->next));
 	  strout (buf, -1, -1, printcharfun);
 
 	  if (!NILP (h->test))
@@ -1879,7 +1875,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 		   ? "#<frame " : "#<dead frame "),
 		  -1, -1, printcharfun);
 	  print_string (XFRAME (obj)->name, printcharfun);
-	  sprintf (buf, " 0x%lx", (unsigned long) (XFRAME (obj)));
+	  sprintf (buf, " %p", XFRAME (obj));
 	  strout (buf, -1, -1, printcharfun);
 	  PRINTCHAR ('>');
 	}
@@ -1913,7 +1909,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	}
       else
 	{
-	  EMACS_INT size = XVECTOR (obj)->size;
+	  EMACS_INT size = ASIZE (obj);
 	  if (COMPILEDP (obj))
 	    {
 	      PRINTCHAR ('#');
@@ -1976,7 +1972,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	    strout ("in no buffer", -1, -1, printcharfun);
 	  else
 	    {
-	      sprintf (buf, "at %ld", (long)marker_position (obj));
+	      sprintf (buf, "at %"pI"d", marker_position (obj));
 	      strout (buf, -1, -1, printcharfun);
 	      strout (" in ", -1, -1, printcharfun);
 	      print_string (BVAR (XMARKER (obj)->buffer, name), printcharfun);
@@ -1990,9 +1986,9 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	    strout ("in no buffer", -1, -1, printcharfun);
 	  else
 	    {
-	      sprintf (buf, "from %ld to %ld in ",
-		       (long)marker_position (OVERLAY_START (obj)),
-		       (long)marker_position (OVERLAY_END   (obj)));
+	      sprintf (buf, "from %"pI"d to %"pI"d in ",
+		       marker_position (OVERLAY_START (obj)),
+		       marker_position (OVERLAY_END   (obj)));
 	      strout (buf, -1, -1, printcharfun);
 	      print_string (BVAR (XMARKER (OVERLAY_START (obj))->buffer, name),
 			    printcharfun);
@@ -2008,8 +2004,8 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 
 	case Lisp_Misc_Save_Value:
 	  strout ("#<save_value ", -1, -1, printcharfun);
-	  sprintf(buf, "ptr=0x%08lx int=%d",
-		  (unsigned long) XSAVE_VALUE (obj)->pointer,
+	  sprintf(buf, "ptr=%p int=%d",
+		  XSAVE_VALUE (obj)->pointer,
 		  XSAVE_VALUE (obj)->integer);
 	  strout (buf, -1, -1, printcharfun);
 	  PRINTCHAR ('>');
@@ -2029,7 +2025,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	if (MISCP (obj))
 	  sprintf (buf, "(MISC 0x%04x)", (int) XMISCTYPE (obj));
 	else if (VECTORLIKEP (obj))
-	  sprintf (buf, "(PVEC 0x%08x)", (int) XVECTOR (obj)->size);
+	  sprintf (buf, "(PVEC 0x%08lx)", (unsigned long) ASIZE (obj));
 	else
 	  sprintf (buf, "(0x%02x)", (int) XTYPE (obj));
 	strout (buf, -1, -1, printcharfun);

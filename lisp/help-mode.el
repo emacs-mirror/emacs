@@ -162,7 +162,7 @@ The format is (FUNCTION ARGS...).")
 (define-button-type 'help-info-variable
   :supertype 'help-xref
   ;; the name of the variable is put before the argument to Info
-  'help-function (lambda (a v) (info v))
+  'help-function (lambda (_a v) (info v))
   'help-echo (purecopy "mouse-2, RET: read this Info node"))
 
 (define-button-type 'help-info
@@ -761,7 +761,7 @@ help buffer."
       (help-xref-go-forward (current-buffer))
     (error "No next help buffer")))
 
-(defun help-do-xref (pos function args)
+(defun help-do-xref (_pos function args)
   "Call the help cross-reference function FUNCTION with args ARGS.
 Things are set up properly so that the resulting help-buffer has
 a proper [back] button."
@@ -802,7 +802,7 @@ Show all docs for that symbol as either a variable, function or face."
 	      (fboundp sym) (facep sym))
       (help-do-xref pos #'help-xref-interned (list sym)))))
 
-(defun help-mode-revert-buffer (ignore-auto noconfirm)
+(defun help-mode-revert-buffer (_ignore-auto noconfirm)
   (when (or noconfirm (yes-or-no-p "Revert help buffer? "))
     (let ((pos (point))
 	  (item help-xref-stack-item)

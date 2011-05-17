@@ -17,6 +17,7 @@
 
 #include "XMenuInt.h"
 
+void
 XMenuSetFreeze(register XMenu *menu, register int freeze)
                          	/* Menu object to be modified. */
                         	/* Freeze mode? */
@@ -26,4 +27,3 @@ XMenuSetFreeze(register XMenu *menu, register int freeze)
      */
     menu->freeze = freeze;
 }
-

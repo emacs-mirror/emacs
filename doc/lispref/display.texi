@@ -4222,14 +4222,14 @@ Laplace edge-detection currently uses a matrix of
 @tex
 $$\pmatrix{1 & 0 & 0 \cr
    0&  0 &  0 \cr
-   9 & 9 & -1 \cr}$$
+   0 & 0 & -1 \cr}$$
 @end tex
 @end iftex
 @ifnottex
 @display
   (1  0  0
    0  0  0
-   9  9 -1)
+   0  0 -1)
 @end display
 @end ifnottex
 

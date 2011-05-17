@@ -3272,15 +3272,28 @@ functions (which may be the same function).  In any case, all the
 @code{point-left} functions are called first, followed by all the
 @code{point-entered} functions.
 
-It is possible with @code{char-after} to examine characters at various
+It is possible to use @code{char-after} to examine characters at various
 buffer positions without moving point to those positions.  Only an
 actual change in the value of point runs these hook functions.
 
+The variable @code{inhibit-point-motion-hooks} can inhibit running the
+@code{point-left} and @code{point-entered} hooks, see @ref{Inhibit
+point motion hooks}.
+
+@item composition
+@kindex composition @r{(text property)}
+This text property is used to display a sequence of characters as a
+single glyph composed from components.  But the value of the property
+itself is completely internal to Emacs and should not be manipulated
+directly by, for instance, @code{put-text-property}.
+
+@end table
+
 @defvar inhibit-point-motion-hooks
-When this variable is non-@code{nil}, @code{point-left} and
-@code{point-entered} hooks are not run, and the @code{intangible}
-property has no effect.  Do not set this variable globally; bind it with
-@code{let}.
+@anchor{Inhibit point motion hooks} When this variable is
+non-@code{nil}, @code{point-left} and @code{point-entered} hooks are
+not run, and the @code{intangible} property has no effect.  Do not set
+this variable globally; bind it with @code{let}.
 @end defvar
 
 @defvar show-help-function
@@ -3292,15 +3305,6 @@ Bar}).  The specified function is called with one argument, the help
 string to display.  Tooltip mode (@pxref{Tooltips,,, emacs, The GNU Emacs
 Manual}) provides an example.
 @end defvar
-
-@item composition
-@kindex composition @r{(text property)}
-This text property is used to display a sequence of characters as a
-single glyph composed from components.  But the value of the property
-itself is completely internal to Emacs and should not be manipulated
-directly by, for instance, @code{put-text-property}.
-
-@end table
 
 @node Format Properties
 @subsection Formatted Text Properties

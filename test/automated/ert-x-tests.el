@@ -3,7 +3,7 @@
 ;; Copyright (C) 2008, 2010-2011 Free Software Foundation, Inc.
 
 ;; Author: Phil Hagelberg
-;; Author: Christian Ohler <ohler@gnu.org>
+;; 	   Christian Ohler <ohler@gnu.org>
 
 ;; This file is part of GNU Emacs.
 

@@ -551,7 +551,7 @@ Create the thumbnails directory if it does not exist."
     ))
 
 (defun image-dired-insert-thumbnail (file original-file-name
-                                    associated-dired-buffer)
+                                     associated-dired-buffer)
   "Insert thumbnail image FILE.
 Add text properties ORIGINAL-FILE-NAME and ASSOCIATED-DIRED-BUFFER."
   (let (beg end)
@@ -816,7 +816,7 @@ used or not.  If non-nil, use `display-buffer' instead of
 thumbnail buffer to be selected."
   (interactive "P")
   (let ((buf (image-dired-create-thumbnail-buffer))
-        curr-file thumb-name files count dired-buf beg)
+        thumb-name files dired-buf)
     (if arg
         (setq files (list (dired-get-filename)))
       (setq files (dired-get-marked-files)))
@@ -918,7 +918,7 @@ FILE-TAGS is an alist in the following form:
   "For all FILES, remove TAG from the image database."
   (image-dired-sane-db-file)
   (save-excursion
-    (let (end buf start)
+    (let (end buf)
       (setq buf (find-file image-dired-db-file))
       (if (not (listp files))
           (if (stringp files)
@@ -974,7 +974,7 @@ FILE-TAGS is an alist in the following form:
   "Tag marked file(s) in dired.  With prefix ARG, tag file at point."
   (interactive "P")
   (let ((tag (read-string "Tags to add (separate tags with a semicolon): "))
-        curr-file files)
+        files)
     (if arg
         (setq files (list (dired-get-filename)))
       (setq files (dired-get-marked-files)))
@@ -1598,7 +1598,7 @@ Note that n, p and <down> and <up> will be hijacked and bound to
 With prefix argument ARG, create thumbnails even if they already exist
 \(i.e. use this to refresh your thumbnails)."
   (interactive "P")
-  (let (curr-file thumb-name files count)
+  (let (thumb-name files)
     (setq files (dired-get-marked-files))
     (mapcar
      (lambda (curr-file)
@@ -1906,7 +1906,7 @@ overwritten.  This confirmation can be turned off using
   (if (not (image-dired-image-at-point-p))
       (message "No image at point")
     (let ((file (image-dired-original-file-name))
-          command temp-file)
+          command)
       (if (not (string-match "\.[jJ][pP[eE]?[gG]$" file))
           (error "Only JPEG images can be rotated!"))
       (setq command (format-spec
@@ -2209,11 +2209,10 @@ non-nil."
 Track this in associated dired buffer if `image-dired-track-movement' is
 non-nil."
   (interactive "e")
-  (let (file)
-    (mouse-set-point event)
-    (goto-char (posn-point (event-end event)))
-    (if image-dired-track-movement
-        (image-dired-track-original-file)))
+  (mouse-set-point event)
+  (goto-char (posn-point (event-end event)))
+  (if image-dired-track-movement
+      (image-dired-track-original-file))
   (image-dired-display-thumb-properties))
 
 (defun image-dired-mouse-toggle-mark (event)
@@ -2221,11 +2220,10 @@ non-nil."
 Track this in associated dired buffer if `image-dired-track-movement' is
 non-nil."
   (interactive "e")
-  (let (file)
-    (mouse-set-point event)
-    (goto-char (posn-point (event-end event)))
-    (if image-dired-track-movement
-        (image-dired-track-original-file)))
+  (mouse-set-point event)
+  (goto-char (posn-point (event-end event)))
+  (if image-dired-track-movement
+      (image-dired-track-original-file))
   (image-dired-toggle-mark-thumb-original-file))
 
 (defun image-dired-dired-display-properties ()
@@ -2374,7 +2372,7 @@ it easier to generate, then HTML-files are created in
 when using per-directory thumbnail file storage"))
   (image-dired-create-gallery-lists)
   (let ((tags image-dired-tag-file-list)
-        count curr tag index-buf tag-buf
+        count tag index-buf tag-buf
         comment file-tags tag-link tag-link-list)
     ;; Make sure gallery root exist
     (if (file-exists-p image-dired-gallery-dir)
@@ -2533,7 +2531,7 @@ the operation by activating the Cancel button.\n\n")
     (widget-insert "\n")
     (widget-create 'push-button
                  :notify
-                 (lambda (&rest ignore)
+                 (lambda (&rest _ignore)
                    (image-dired-save-information-from-widgets)
                    (bury-buffer)
                    (message "Done."))
@@ -2541,7 +2539,7 @@ the operation by activating the Cancel button.\n\n")
     (widget-insert " ")
     (widget-create 'push-button
                    :notify
-                   (lambda (&rest ignore)
+                   (lambda (&rest _ignore)
                      (bury-buffer)
                      (message "Operation canceled."))
                    "Cancel")

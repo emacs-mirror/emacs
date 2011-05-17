@@ -1099,6 +1099,19 @@ See `find-file-noselect' for the arguments."
 	       backend-marks)))))
   backend-marks)
 
+(defmacro nnheader-insert-buffer-substring (buffer &optional start end)
+  "Copy string from unibyte buffer to multibyte current buffer."
+  (if (featurep 'xemacs)
+      `(insert-buffer-substring ,buffer ,start ,end)
+    `(if enable-multibyte-characters
+	 (insert (with-current-buffer ,buffer
+		   (mm-string-to-multibyte
+		    ,(if (or start end)
+			 `(buffer-substring (or ,start (point-min))
+					    (or ,end (point-max)))
+		       '(buffer-string)))))
+       (insert-buffer-substring ,buffer ,start ,end))))
+
 (when (featurep 'xemacs)
   (require 'nnheaderxm))
 

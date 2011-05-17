@@ -402,7 +402,7 @@ With argument, display info only for the selected version."
 	   (beginning-of-line)
 	   (point)))))))
 
-(defun view-emacs-todo (&optional arg)
+(defun view-emacs-todo (&optional _arg)
   "Display the Emacs TODO list."
   (interactive "P")
   (view-help-file "TODO"))

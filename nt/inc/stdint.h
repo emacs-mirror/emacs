@@ -29,6 +29,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 typedef unsigned int uint32_t;
 
+#ifdef _WIN64
+  typedef __int64 intptr_t;
+#else
+  typedef int intptr_t;
+#endif
+
+#define uintmax_t unsigned __int64
+
 #endif	/* !__GNUC__ */
 
 #endif /* _NT_STDINT_H_ */

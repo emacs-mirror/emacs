@@ -239,7 +239,7 @@ enum font_property_index
   ASET ((font), prop, make_number (font_style_to_value (prop, val, 1)))
 
 extern Lisp_Object QCspacing, QCdpi, QCscalable, QCotf, QClang, QCscript;
-extern Lisp_Object QCavgwidth, QCantialias, QCfont_entity, QCfc_unknown_spec;
+extern Lisp_Object QCavgwidth, QCantialias, QCfont_entity;
 extern Lisp_Object Qp;
 
 
@@ -254,8 +254,7 @@ extern Lisp_Object Qja, Qko;
 
 struct font_spec
 {
-  EMACS_UINT size;
-  struct Lisp_Vector *next;
+  struct vectorlike_header header;
   Lisp_Object props[FONT_SPEC_MAX];
 };
 
@@ -263,8 +262,7 @@ struct font_spec
 
 struct font_entity
 {
-  EMACS_UINT size;
-  struct Lisp_Vector *next;
+  struct vectorlike_header header;
   Lisp_Object props[FONT_ENTITY_MAX];
 };
 
@@ -277,8 +275,7 @@ struct font_entity
 
 struct font
 {
-  EMACS_UINT size;
-  struct Lisp_Vector *next;
+  struct vectorlike_header header;
 
   /* All Lisp_Object components must come first.
      That ensures they are all aligned normally.  */
@@ -737,8 +734,8 @@ struct font_data_list
 };
 
 EXFUN (Ffont_spec, MANY);
-EXFUN (Fcopy_font_spec, 1);
-EXFUN (Fmerge_font_spec, 2);
+extern Lisp_Object copy_font_spec (Lisp_Object);
+extern Lisp_Object merge_font_spec (Lisp_Object, Lisp_Object);
 EXFUN (Ffont_get, 2);
 EXFUN (Ffont_put, 3);
 EXFUN (Flist_fonts, 4);
@@ -779,7 +776,6 @@ extern void font_done_for_face (FRAME_PTR f, struct face *face);
 
 extern Lisp_Object font_open_by_spec (FRAME_PTR f, Lisp_Object spec);
 extern Lisp_Object font_open_by_name (FRAME_PTR f, const char *name);
-extern void font_close_object (FRAME_PTR f, Lisp_Object font_object);
 
 extern Lisp_Object font_intern_prop (const char *str, int len, int force_symbol);
 extern void font_update_sort_order (int *order);
@@ -821,13 +817,14 @@ extern void syms_of_ftfont (void);
 #endif	/* HAVE_FREETYPE */
 #ifdef HAVE_X_WINDOWS
 extern struct font_driver xfont_driver;
-extern struct font_driver ftxfont_driver;
 extern void syms_of_xfont (void);
 extern void syms_of_ftxfont (void);
 #ifdef HAVE_XFT
 extern struct font_driver xftfont_driver;
 extern void syms_of_xftfont (void);
-#endif	/* HAVE_XFT */
+#elif defined HAVE_FREETYPE
+extern struct font_driver ftxfont_driver;
+#endif
 #ifdef HAVE_BDFFONT
 extern void syms_of_bdffont (void);
 #endif	/* HAVE_BDFFONT */
@@ -871,4 +868,3 @@ extern void font_deferred_log (const char *, Lisp_Object, Lisp_Object);
 #endif	/* not FONT_DEBUG */
 
 #endif	/* not EMACS_FONT_H */
-

@@ -1282,12 +1282,7 @@
 		 (let ((prefix "") mrg wid)
 		   (setq mrg (aref math-comp-buf-margin i))
 		   (if (> mrg 12)  ; indenting too far, go back to far left
-		       (let ((j i) (new (if calc-line-numbering 5 1)))
-			 '(while (<= j math-comp-level)
-			   (aset math-comp-buf-margin j
-				 (+ (aref math-comp-buf-margin j) (- new mrg)))
-			   (setq j (1+ j)))
-			 (setq mrg new)))
+		       (setq mrg (if calc-line-numbering 5 1)))
 		   (setq wid (+ (length str) math-comp-margin))
 		   (and (> (length str) 0) (= (aref str 0) ? )
 			(> (length math-comp-buf) 0)

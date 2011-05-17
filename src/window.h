@@ -88,10 +88,8 @@ struct cursor_pos
 
 struct window
   {
-    /* The first two fields are really the header of a vector */
-    /* The window code does not refer to them.  */
-    EMACS_UINT size;
-    struct Lisp_Vector *vec_next;
+    /* This is for Lisp; the terminal code does not refer to it.  */
+    struct vectorlike_header header;
 
     /* The frame this window is on.  */
     Lisp_Object frame;
@@ -824,8 +822,6 @@ extern Lisp_Object Vmouse_event;
 EXFUN (Fnext_window, 3);
 EXFUN (Fselect_window, 2);
 EXFUN (Fset_window_buffer, 3);
-EXFUN (Fset_window_vscroll, 3);
-EXFUN (Fset_window_margins, 3);
 EXFUN (Fset_window_point, 2);
 extern Lisp_Object make_window (void);
 extern Lisp_Object window_from_coordinates (struct frame *, int, int,
@@ -839,7 +835,6 @@ extern void freeze_window_starts (struct frame *, int);
 extern void grow_mini_window (struct window *, int);
 extern void shrink_mini_window (struct window *);
 extern int window_relative_x_coord (struct window *, enum window_part, int);
-extern void check_all_windows (void);
 
 void run_window_configuration_change_hook (struct frame *f);
 

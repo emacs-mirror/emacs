@@ -34,6 +34,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <mbstring.h>	/* for _mbspbrk */
 #include <math.h>
 #include <setjmp.h>
+#include <time.h>
 
 /* must include CRT headers *before* config.h */
 
@@ -61,6 +62,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef write
 
 #undef strerror
+
+#undef localtime
 
 #include "lisp.h"
 
@@ -146,6 +149,8 @@ typedef struct _PROCESS_MEMORY_COUNTERS_EX {
 
 typedef HRESULT (WINAPI * ShGetFolderPath_fn)
   (IN HWND, IN int, IN HANDLE, IN DWORD, OUT char *);
+
+Lisp_Object QCloaded_from;
 
 void globals_of_w32 (void);
 static DWORD get_rid (PSID);
@@ -1558,6 +1563,7 @@ init_environment (char ** argv)
     char locale_name[32];
     struct stat ignored;
     char default_home[MAX_PATH];
+    int appdata = 0;
 
     static const struct env_entry
     {
@@ -1611,7 +1617,10 @@ init_environment (char ** argv)
 
 	    /* If we can't get the appdata dir, revert to old behavior.	 */
 	    if (profile_result == S_OK)
-	      env_vars[0].def_value = default_home;
+	      {
+		env_vars[0].def_value = default_home;
+		appdata = 1;
+	      }
 	  }
       }
 
@@ -1698,6 +1707,14 @@ init_environment (char ** argv)
 		lpval = env_vars[i].def_value;
 		dwType = REG_EXPAND_SZ;
 		dont_free = 1;
+		if (!strcmp (env_vars[i].name, "HOME") && !appdata)
+		  {
+		    Lisp_Object warning[2];
+		    warning[0] = intern ("initialization");
+		    warning[1] = build_string ("Setting HOME to C:\\ by default is deprecated");
+		    Vdelayed_warnings_list = Fcons (Flist (2, warning),
+						    Vdelayed_warnings_list);
+		  }
 	      }
 
 	    if (lpval)
@@ -1942,6 +1959,12 @@ gettimeofday (struct timeval *tv, struct timezone *tz)
 
   tv->tv_sec = tb.time;
   tv->tv_usec = tb.millitm * 1000L;
+  /* Implementation note: _ftime sometimes doesn't update the dstflag
+     according to the new timezone when the system timezone is
+     changed.  We could fix that by using GetSystemTime and
+     GetTimeZoneInformation, but that doesn't seem necessary, since
+     Emacs always calls gettimeofday with the 2nd argument NULL (see
+     EMACS_GET_TIME).  */
   if (tz)
     {
       tz->tz_minuteswest = tb.timezone;	/* minutes west of Greenwich  */
@@ -5678,6 +5701,67 @@ sys_write (int fd, const void * buffer, unsigned int count)
   return nchars;
 }
 
+/* The Windows CRT functions are "optimized for speed", so they don't
+   check for timezone and DST changes if they were last called less
+   than 1 minute ago (see http://support.microsoft.com/kb/821231).  So
+   all Emacs features that repeatedly call time functions (e.g.,
+   display-time) are in real danger of missing timezone and DST
+   changes.  Calling tzset before each localtime call fixes that.  */
+struct tm *
+sys_localtime (const time_t *t)
+{
+  tzset ();
+  return localtime (t);
+}
+
+
+
+/* Delayed loading of libraries.  */
+
+Lisp_Object Vlibrary_cache;
+
+/* The argument LIBRARIES is an alist that associates a symbol
+   LIBRARY_ID, identifying an external DLL library known to Emacs, to
+   a list of filenames under which the library is usually found.  In
+   most cases, the argument passed as LIBRARIES is the variable
+   `dynamic-library-alist', which is initialized to a list of common
+   library names.  If the function loads the library successfully, it
+   returns the handle of the DLL, and records the filename in the
+   property :loaded-from of LIBRARY_ID; it returns NULL if the library
+   could not be found, or when it was already loaded (because the
+   handle is not recorded anywhere, and so is lost after use).  It
+   would be trivial to save the handle too in :loaded-from, but
+   currently there's no use case for it.  */
+HMODULE
+w32_delayed_load (Lisp_Object libraries, Lisp_Object library_id)
+{
+  HMODULE library_dll = NULL;
+
+  CHECK_SYMBOL (library_id);
+
+  if (CONSP (libraries) && NILP (Fassq (library_id, Vlibrary_cache)))
+    {
+      Lisp_Object found = Qnil;
+      Lisp_Object dlls = Fassq (library_id, libraries);
+
+      if (CONSP (dlls))
+        for (dlls = XCDR (dlls); CONSP (dlls); dlls = XCDR (dlls))
+          {
+            CHECK_STRING_CAR (dlls);
+            if (library_dll = LoadLibrary (SDATA (XCAR (dlls))))
+              {
+                found = XCAR (dlls);
+                break;
+              }
+          }
+
+      Fput (library_id, QCloaded_from, found);
+    }
+
+  return library_dll;
+}
+
+
 static void
 check_windows_init_file (void)
 {
@@ -5875,6 +5959,12 @@ globals_of_w32 (void)
 
   get_process_times_fn = (GetProcessTimes_Proc)
     GetProcAddress (kernel32, "GetProcessTimes");
+
+  QCloaded_from = intern_c_string (":loaded-from");
+  staticpro (&QCloaded_from);
+
+  Vlibrary_cache = Qnil;
+  staticpro (&Vlibrary_cache);
 
   g_b_init_is_windows_9x = 0;
   g_b_init_open_process_token = 0;
@@ -6102,5 +6192,72 @@ serial_configure (struct Lisp_Process *p, Lisp_Object contact)
   p->childp = childp2;
 }
 
-/* end of w32.c */
+#ifdef HAVE_GNUTLS
 
+ssize_t
+emacs_gnutls_pull (gnutls_transport_ptr_t p, void* buf, size_t sz)
+{
+  int n, sc, err;
+  SELECT_TYPE fdset;
+  EMACS_TIME timeout;
+  struct Lisp_Process *process = (struct Lisp_Process *)p;
+  int fd = process->infd;
+
+  for (;;)
+    {
+      n = sys_read(fd, (char*)buf, sz);
+
+      if (n >= 0)
+        return n;
+
+      err = errno;
+
+      if (err == EWOULDBLOCK)
+        {
+          /* Set a small timeout.  */
+          EMACS_SET_SECS_USECS(timeout, 1, 0);
+          FD_ZERO (&fdset);
+          FD_SET ((int)fd, &fdset);
+
+          /* Use select with the timeout to poll the selector.  */
+          sc = select (fd + 1, &fdset, (SELECT_TYPE *)0, (SELECT_TYPE *)0,
+                       &timeout);
+
+          if (sc > 0)
+            continue;  /* Try again.  */
+
+          /* Translate the WSAEWOULDBLOCK alias EWOULDBLOCK to EAGAIN.
+             Also accept select return 0 as an indicator to EAGAIN.  */
+          if (sc == 0 || errno == EWOULDBLOCK)
+            err = EAGAIN;
+          else
+            err = errno; /* Other errors are just passed on.  */
+        }
+
+      emacs_gnutls_transport_set_errno (process->gnutls_state, err);
+
+      return -1;
+    }
+}
+
+ssize_t
+emacs_gnutls_push (gnutls_transport_ptr_t p, const void* buf, size_t sz)
+{
+  struct Lisp_Process *process = (struct Lisp_Process *)p;
+  int fd = process->outfd;
+  ssize_t n = sys_write(fd, buf, sz);
+
+  /* 0 or more bytes written means everything went fine.  */
+  if (n >= 0)
+    return n;
+
+  /* Negative bytes written means we got an error in errno.
+     Translate the WSAEWOULDBLOCK alias EWOULDBLOCK to EAGAIN.  */
+  emacs_gnutls_transport_set_errno (process->gnutls_state,
+                                    errno == EWOULDBLOCK ? EAGAIN : errno);
+
+  return -1;
+}
+#endif /* HAVE_GNUTLS */
+
+/* end of w32.c */

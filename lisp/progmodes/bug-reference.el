@@ -109,7 +109,7 @@ so that it is considered safe, see `enable-local-variables'.")
                              (funcall bug-reference-url-format))))))))))
 
 ;; Taken from button.el.
-(defun bug-reference-push-button (&optional pos use-mouse-action)
+(defun bug-reference-push-button (&optional pos _use-mouse-action)
   "Open URL corresponding to the bug reference at POS."
   (interactive
    (list (if (integerp last-command-event) (point) last-command-event)))

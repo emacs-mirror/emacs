@@ -88,64 +88,66 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 /* Nonzero during writing of auto-save files */
-int auto_saving;
+static int auto_saving;
 
 /* Set by auto_save_1 to mode of original file so Fwrite_region will create
    a new file with the same mode as the original */
-int auto_save_mode_bits;
+static int auto_save_mode_bits;
 
 /* Set by auto_save_1 if an error occurred during the last auto-save. */
-int auto_save_error_occurred;
+static int auto_save_error_occurred;
 
 /* The symbol bound to coding-system-for-read when
    insert-file-contents is called for recovering a file.  This is not
    an actual coding system name, but just an indicator to tell
    insert-file-contents to use `emacs-mule' with a special flag for
    auto saving and recovering a file.  */
-Lisp_Object Qauto_save_coding;
+static Lisp_Object Qauto_save_coding;
 
 /* Property name of a file name handler,
    which gives a list of operations it handles..  */
-Lisp_Object Qoperations;
+static Lisp_Object Qoperations;
 
 /* Lisp functions for translating file formats */
-Lisp_Object Qformat_decode, Qformat_annotate_function;
+static Lisp_Object Qformat_decode, Qformat_annotate_function;
 
 /* Lisp function for setting buffer-file-coding-system and the
    multibyteness of the current buffer after inserting a file.  */
-Lisp_Object Qafter_insert_file_set_coding;
+static Lisp_Object Qafter_insert_file_set_coding;
 
-Lisp_Object Qwrite_region_annotate_functions;
+static Lisp_Object Qwrite_region_annotate_functions;
 /* Each time an annotation function changes the buffer, the new buffer
    is added here.  */
-Lisp_Object Vwrite_region_annotation_buffers;
+static Lisp_Object Vwrite_region_annotation_buffers;
 
 #ifdef HAVE_FSYNC
 #endif
 
-Lisp_Object Qdelete_by_moving_to_trash;
+static Lisp_Object Qdelete_by_moving_to_trash;
 
 /* Lisp function for moving files to trash.  */
-Lisp_Object Qmove_file_to_trash;
+static Lisp_Object Qmove_file_to_trash;
 
 /* Lisp function for recursively copying directories.  */
-Lisp_Object Qcopy_directory;
+static Lisp_Object Qcopy_directory;
 
 /* Lisp function for recursively deleting directories.  */
-Lisp_Object Qdelete_directory;
+static Lisp_Object Qdelete_directory;
 
 #ifdef WINDOWSNT
 #endif
 
-Lisp_Object Qfile_error, Qfile_already_exists, Qfile_date_error;
-Lisp_Object Qexcl;
+Lisp_Object Qfile_error;
+static Lisp_Object Qfile_already_exists, Qfile_date_error;
+static Lisp_Object Qexcl;
 Lisp_Object Qfile_name_history;
 
-Lisp_Object Qcar_less_than_car;
+static Lisp_Object Qcar_less_than_car;
 
+static Lisp_Object Fmake_symbolic_link (Lisp_Object, Lisp_Object, Lisp_Object);
 static int a_write (int, Lisp_Object, EMACS_INT, EMACS_INT,
                     Lisp_Object *, struct coding_system *);
-static int e_write (int, Lisp_Object, EMACS_INT, EMACS_INT, 
+static int e_write (int, Lisp_Object, EMACS_INT, EMACS_INT,
 		    struct coding_system *);
 
 
@@ -205,42 +207,43 @@ restore_point_unwind (Lisp_Object location)
 }
 
 
-Lisp_Object Qexpand_file_name;
-Lisp_Object Qsubstitute_in_file_name;
-Lisp_Object Qdirectory_file_name;
-Lisp_Object Qfile_name_directory;
-Lisp_Object Qfile_name_nondirectory;
-Lisp_Object Qunhandled_file_name_directory;
-Lisp_Object Qfile_name_as_directory;
-Lisp_Object Qcopy_file;
-Lisp_Object Qmake_directory_internal;
-Lisp_Object Qmake_directory;
-Lisp_Object Qdelete_directory_internal;
+static Lisp_Object Qexpand_file_name;
+static Lisp_Object Qsubstitute_in_file_name;
+static Lisp_Object Qdirectory_file_name;
+static Lisp_Object Qfile_name_directory;
+static Lisp_Object Qfile_name_nondirectory;
+static Lisp_Object Qunhandled_file_name_directory;
+static Lisp_Object Qfile_name_as_directory;
+static Lisp_Object Qcopy_file;
+static Lisp_Object Qmake_directory_internal;
+static Lisp_Object Qmake_directory;
+static Lisp_Object Qdelete_directory_internal;
 Lisp_Object Qdelete_file;
-Lisp_Object Qrename_file;
-Lisp_Object Qadd_name_to_file;
-Lisp_Object Qmake_symbolic_link;
+static Lisp_Object Qrename_file;
+static Lisp_Object Qadd_name_to_file;
+static Lisp_Object Qmake_symbolic_link;
 Lisp_Object Qfile_exists_p;
-Lisp_Object Qfile_executable_p;
-Lisp_Object Qfile_readable_p;
-Lisp_Object Qfile_writable_p;
-Lisp_Object Qfile_symlink_p;
-Lisp_Object Qaccess_file;
+static Lisp_Object Qfile_executable_p;
+static Lisp_Object Qfile_readable_p;
+static Lisp_Object Qfile_writable_p;
+static Lisp_Object Qfile_symlink_p;
+static Lisp_Object Qaccess_file;
 Lisp_Object Qfile_directory_p;
-Lisp_Object Qfile_regular_p;
-Lisp_Object Qfile_accessible_directory_p;
-Lisp_Object Qfile_modes;
-Lisp_Object Qset_file_modes;
-Lisp_Object Qset_file_times;
-Lisp_Object Qfile_selinux_context;
-Lisp_Object Qset_file_selinux_context;
-Lisp_Object Qfile_newer_than_file_p;
+static Lisp_Object Qfile_regular_p;
+static Lisp_Object Qfile_accessible_directory_p;
+static Lisp_Object Qfile_modes;
+static Lisp_Object Qset_file_modes;
+static Lisp_Object Qset_file_times;
+static Lisp_Object Qfile_selinux_context;
+static Lisp_Object Qset_file_selinux_context;
+static Lisp_Object Qfile_newer_than_file_p;
 Lisp_Object Qinsert_file_contents;
 Lisp_Object Qwrite_region;
-Lisp_Object Qverify_visited_file_modtime;
-Lisp_Object Qset_visited_file_modtime;
+static Lisp_Object Qverify_visited_file_modtime;
+static Lisp_Object Qset_visited_file_modtime;
 
-DEFUN ("find-file-name-handler", Ffind_file_name_handler, Sfind_file_name_handler, 2, 2, 0,
+DEFUN ("find-file-name-handler", Ffind_file_name_handler,
+       Sfind_file_name_handler, 2, 2, 0,
        doc: /* Return FILENAME's handler function for OPERATION, if it has one.
 Otherwise, return nil.
 A file name is handled if one of the regular expressions in
@@ -2633,7 +2636,8 @@ See `file-symlink-p' to distinguish symlinks.  */)
   return S_ISDIR (st.st_mode) ? Qt : Qnil;
 }
 
-DEFUN ("file-accessible-directory-p", Ffile_accessible_directory_p, Sfile_accessible_directory_p, 1, 1, 0,
+DEFUN ("file-accessible-directory-p", Ffile_accessible_directory_p,
+       Sfile_accessible_directory_p, 1, 1, 0,
        doc: /* Return t if file FILENAME names a directory you can open.
 For the value to be t, FILENAME must specify the name of a directory as a file,
 and the directory must allow you to open files in it.  In order to use a
@@ -3241,15 +3245,10 @@ variable `last-coding-system-used' to the coding system actually used.  */)
   record_unwind_protect (close_file_unwind, make_number (fd));
 
 
-  /* Arithmetic overflow can occur if an Emacs integer cannot represent the
-     file size, or if the calculations below overflow.  The calculations below
-     double the file size twice, so check that it can be multiplied by 4
-     safely.
-
-     Also check whether the size is negative, which can happen on a platform
-     that allows file sizes greater than the maximum off_t value.  */
+  /* Check whether the size is too large or negative, which can happen on a
+     platform that allows file sizes greater than the maximum off_t value.  */
   if (! not_regular
-      && ! (0 <= st.st_size && st.st_size <= MOST_POSITIVE_FIXNUM / 4))
+      && ! (0 <= st.st_size && st.st_size <= MOST_POSITIVE_FIXNUM))
     error ("Maximum buffer size exceeded");
 
   /* Prevent redisplay optimizations.  */

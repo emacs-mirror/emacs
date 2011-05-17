@@ -93,7 +93,7 @@ character_width (int c, struct Lisp_Char_Table *dp)
   /* Everything can be handled by the display table, if it's
      present and the element is right.  */
   if (dp && (elt = DISP_CHAR_VECTOR (dp, c), VECTORP (elt)))
-    return XVECTOR (elt)->size;
+    return ASIZE (elt);
 
   /* Some characters are special.  */
   if (c == '\n' || c == '\t' || c == '\015')
@@ -121,7 +121,7 @@ disptab_matches_widthtab (struct Lisp_Char_Table *disptab, struct Lisp_Vector *w
 {
   int i;
 
-  if (widthtab->size != 256)
+  if (widthtab->header.size != 256)
     abort ();
 
   for (i = 0; i < 256; i++)
@@ -143,7 +143,7 @@ recompute_width_table (struct buffer *buf, struct Lisp_Char_Table *disptab)
   if (!VECTORP (BVAR (buf, width_table)))
     BVAR (buf, width_table) = Fmake_vector (make_number (256), make_number (0));
   widthtab = XVECTOR (BVAR (buf, width_table));
-  if (widthtab->size != 256)
+  if (widthtab->header.size != 256)
     abort ();
 
   for (i = 0; i < 256; i++)
@@ -284,7 +284,7 @@ skip_invisible (EMACS_INT pos, EMACS_INT *next_boundary_p, EMACS_INT to, Lisp_Ob
     else								\
       {									\
 	if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, ch)))		\
-	  width = XVECTOR (DISP_CHAR_VECTOR (dp, ch))->size;		\
+	  width = ASIZE (DISP_CHAR_VECTOR (dp, ch));			\
 	else								\
 	  width = CHAR_WIDTH (ch);					\
       }									\
@@ -766,7 +766,7 @@ string_display_width (string, beg, end)
 
       c = *--ptr;
       if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))
-	col += XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;
+	col += ASIZE (DISP_CHAR_VECTOR (dp, c));
       else if (c >= 040 && c < 0177)
 	col++;
       else if (c == '\n')
@@ -1044,7 +1044,7 @@ The return value is the current column.  */)
 
 /* compute_motion: compute buffer posn given screen posn and vice versa */
 
-struct position val_compute_motion;
+static struct position val_compute_motion;
 
 /* Scan the current buffer forward from offset FROM, pretending that
    this is at line FROMVPOS, column FROMHPOS, until reaching buffer
@@ -1127,7 +1127,7 @@ compute_motion (EMACS_INT from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
        : !NILP (BVAR (current_buffer, selective_display)) ? -1 : 0);
   int selective_rlen
     = (selective && dp && VECTORP (DISP_INVIS_VECTOR (dp))
-       ? XVECTOR (DISP_INVIS_VECTOR (dp))->size : 0);
+       ? ASIZE (DISP_INVIS_VECTOR (dp)) : 0);
   /* The next location where the `invisible' property changes, or an
      overlay starts or ends.  */
   EMACS_INT next_boundary = from;
@@ -1818,7 +1818,7 @@ visible section of the buffer, and pass LINE and COL as TOPOS.  */)
 
 /* Fvertical_motion and vmotion */
 
-struct position val_vmotion;
+static struct position val_vmotion;
 
 struct position *
 vmotion (register EMACS_INT from, register EMACS_INT vtarget, struct window *w)
@@ -2026,7 +2026,8 @@ whether or not it is currently displayed in some window.  */)
     }
   else
     {
-      int it_start, first_x, it_overshoot_expected IF_LINT (= 0);
+      EMACS_INT it_start;
+      int first_x, it_overshoot_expected IF_LINT (= 0);
 
       SET_TEXT_POS (pt, PT, PT_BYTE);
       start_display (&it, w, pt);

@@ -73,9 +73,12 @@ Every patch must have several pieces of information before we
 can properly evaluate it.
 
 When you have all these pieces, bundle them up in a mail message and
-send it to bug-gnu-emacs@gnu.org or emacs-devel@gnu.org.
-
-All subsequent discussion should be sent to the same mailing list.
+send it to the developers.  Sending it to bug-gnu-emacs@gnu.org
+(which is the bug/feature list) is recommended, because that list
+is coupled to a tracking system that makes it easier to locate patches.
+If your patch is not complete and you think it needs more discussion,
+you might want to send it to emacs-devel@gnu.org instead.  If you
+revise your patch, send it as a followup to the initial topic.
 
 ** Description
 
@@ -155,12 +158,12 @@ giving you write access to the Bazaar repository.
 
 Discussion about Emacs development takes place on emacs-devel@gnu.org.
 
-Bug reports and feature requests are sent to bug-gnu-emacs@gnu.org.
+Bug reports and fixes, feature requests and implementations should be
+sent to bug-gnu-emacs@gnu.org, the bug/feature list.  This is coupled
+to the tracker at http://debbugs.gnu.org .
 
-You can subscribe to the mailing lists at savannah.gnu.org/projects/emacs.
-
-You can find the mailing lists archives at lists.gnu.org or gmane.org.
-
+You can subscribe to the mailing lists, or see the list archives,
+by following links from http://savannah.gnu.org/mail/?group=emacs .
 
 ** Document your changes.
 

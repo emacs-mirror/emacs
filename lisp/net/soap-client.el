@@ -1745,7 +1745,7 @@ operations in a WSDL document."
 
 
 ;;; Local Variables:
-;;; mode: outline-minor
+;;; eval: (outline-minor-mode)
 ;;; outline-regexp: ";;;;+"
 ;;; End:
 

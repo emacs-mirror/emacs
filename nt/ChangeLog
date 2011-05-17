@@ -1,3 +1,110 @@
+2011-05-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt [_MSC_VER] (va_copy): Replacement for the MS compiler.
+
+2011-05-07  Ben Key  <bkey76@gmail.com>
+
+	* configure.bat: Renamed the fusercflags variable to escusercflags
+	so that the variable name better matches its purpose, to be
+	identical to usercflags with the exception that all quotes are
+	escaped by the \ character.
+
+	Renamed the fuserldflags variable to escuserldflags so that the
+	variable name better matches its purpose, to be identical to
+	userldflags with the exception that all quotes are escaped by
+	the \ character.
+
+	A new ESC_USER_CFLAGS variable is written to config.settings.
+	This variable has the same value as the escusercflags variable.
+
+	* gmake.defs, nmake.defs: Added the variable ESC_CFLAGS.  This
+	variable is identical to the CFLAGS variable except that it
+	includes the new ESC_USER_CFLAGS variable instead of USER_CFLAGS.
+
+	These changes, along with some changes to src/makefile.w32-in,
+	are required to extend my earlier fix to add support for
+	--cflags and --ldflags options that include quotes so that it
+	works whether make uses cmd or sh as the shell.
+
+2011-05-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/inttypes.h [!__MINGW32__]: Include stdint.h.  Move the
+	definition of uintmax_t from here...
+	* inc/stdint.h (uintmax_t): ...to here.
+	(intptr_t) [!__GNUC__]: New typedef.
+
+2011-05-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* config.nt: Prepare to configure 64-bit integers for older compilers.
+	However, temporarily disable this change unless the temporary
+	symbol WIDE_EMACS_INT is defined.
+	(EMACS_INT, BITS_PER_EMACS_INT, pI): Define these if __int64 and
+	"%I64d" work but long long and "%lld" do not.
+
+2011-05-05  Ben Key  <bkey76@gmail.com>
+
+	* configure.bat: Added support for --cflags and --ldflags
+	options that include quotes as long as command extensions are
+	enabled.  Specifically when -I, -L, and similar flags are used
+	to specify supplementary include and library directories a
+	directory name that includes spaces may now be used if it is
+	enclosed in quotes.
+
+	* INSTALL: Documented the change to configure.bat.
+
+2011-05-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* INSTALL: Clarify GnuTLS support.
+
+2011-04-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (HAVE_LONG_LONG_INT, HAVE_UNSIGNED_LONG_LONG_INT):
+	Define to 1 for MinGW of MSVC versions >= 1400.
+
+2011-04-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* gmake.defs (ARCH): Fix error message in case of unknown
+	architecture.
+
+2011-04-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/inttypes.h: New file.
+
+	* config.nt (HAVE_DECL_STRTOULL, HAVE_DECL_STRTOUMAX)
+	(HAVE_STRTOULL, HAVE_STRTOUMAX): New macros.
+
+2011-04-27  Daniel Colascione  <dan.colascione@gmail.com>
+
+	* cmdproxy.c (try_dequote_cmdline): Notice variable substitutions
+	inside quotation marks and bail out.
+
+2011-04-26  Daniel Colascione  <dan.colascione@gmail.com>
+
+	* cmdproxy.c (try_dequote_cmdline): New function.
+	(main): Use it.
+
+2011-04-24  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* configure.bat: New options --without-gnutls and --lib, new build
+	variable USER_LIBS, automatically detect GnuTLS.  Copies the PNG
+	library setup with trivial modifications.
+	* INSTALL: Add instructions for GnuTLS support.
+	* gmake.defs: Prefix USER_LIBS with -l.
+
+2011-04-15  Ben Key  <bkey76@gmail.com>
+
+	* configure.bat: Modified the code that parses the --cflags and
+	--ldflags options to support parameters that include the =
+	character as long as they are enclosed in quotes.  This
+	functionality depends on command extensions.  Configure.bat now
+	attempts to enable command extensions and displays a warning
+	message if they could not be enabled.  If configure.bat could
+	not enable command extensions the old parsing code is used that
+	does not support parameters that include the = character.
+
+	* INSTALL: Updated the file to describe the new functionality
+	using text provided by Eli Zaretskii.
+
 2011-04-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.nt (NO_INLINE, ATTRIBUTE_FORMAT)
@@ -2018,4 +2125,3 @@
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-

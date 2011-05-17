@@ -291,7 +291,7 @@ buffer).  This corresponds to the g77 compiler option
   :type 'integer
   :safe 'integerp
   :initialize 'custom-initialize-default
-  :set (lambda (symbol value)
+  :set (lambda (_symbol value)
          ;; Do all fortran buffers, and the default.
          (fortran-line-length value t))
   :version "23.1"
@@ -492,7 +492,7 @@ This varies according to the value of LINE-LENGTH.
 This is used to fontify fixed-format Fortran comments."
   ;; This results in a non-byte-compiled function.  We could pass it through
   ;; `byte-compile', but simple benchmarks indicate that it's probably not
-  ;; worth the trouble (about ½% of slow down).
+  ;; worth the trouble (about 0.5% of slow down).
   (eval                         ;I hate `eval', but it's hard to avoid it here.
    `(syntax-propertize-rules
      ("^[cd\\*]" (0 "<"))

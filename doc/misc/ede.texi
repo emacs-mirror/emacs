@@ -241,7 +241,7 @@ To add the current file to an existing target, type @kbd{C-c . a}
 You can add a file to more than one target; this is OK.
 
 To remove the current file from a target, type @kbd{C-c . d}
-(@code{ede-remove-file}), or or use the @samp{Remove File} menu item
+(@code{ede-remove-file}), or use the @samp{Remove File} menu item
 in the @samp{Target Options} submenu.  If the file belongs to multiple
 targets, this command prompts for each target it could be removed
 from.

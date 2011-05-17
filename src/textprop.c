@@ -47,16 +47,19 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 /* Types of hooks.  */
-Lisp_Object Qmouse_left;
-Lisp_Object Qmouse_entered;
+static Lisp_Object Qmouse_left;
+static Lisp_Object Qmouse_entered;
 Lisp_Object Qpoint_left;
 Lisp_Object Qpoint_entered;
 Lisp_Object Qcategory;
 Lisp_Object Qlocal_map;
 
 /* Visual properties text (including strings) may have.  */
-Lisp_Object Qforeground, Qbackground, Qfont, Qunderline, Qstipple;
-Lisp_Object Qinvisible, Qread_only, Qintangible, Qmouse_face;
+static Lisp_Object Qforeground, Qbackground, Qunderline;
+Lisp_Object Qfont;
+static Lisp_Object Qstipple;
+Lisp_Object Qinvisible, Qintangible, Qmouse_face;
+static Lisp_Object Qread_only;
 Lisp_Object Qminibuffer_prompt;
 
 /* Sticky properties */
@@ -69,10 +72,12 @@ Lisp_Object Qfront_sticky, Qrear_nonsticky;
 
 /* verify_interval_modification saves insertion hooks here
    to be run later by report_interval_modification.  */
-Lisp_Object interval_insert_behind_hooks;
-Lisp_Object interval_insert_in_front_hooks;
+static Lisp_Object interval_insert_behind_hooks;
+static Lisp_Object interval_insert_in_front_hooks;
 
 static void text_read_only (Lisp_Object) NO_RETURN;
+static Lisp_Object Fprevious_property_change (Lisp_Object, Lisp_Object,
+					      Lisp_Object);
 
 
 /* Signal a `text-read-only' error.  This function makes it easier
@@ -228,7 +233,7 @@ interval_has_all_properties (Lisp_Object plist, INTERVAL i)
 	    if (! EQ (Fcar (XCDR (tail1)), Fcar (XCDR (tail2))))
 	      return 0;
 
-	    /* Property has same value on both lists;  go to next one.  */
+	    /* Property has same value on both lists; go to next one.  */
 	    found = 1;
 	    break;
 	  }
@@ -509,7 +514,7 @@ erase_properties (INTERVAL i)
    POSITION is BEG-based.  */
 
 INTERVAL
-interval_of (int position, Lisp_Object object)
+interval_of (EMACS_INT position, Lisp_Object object)
 {
   register INTERVAL i;
   EMACS_INT beg, end;
@@ -833,8 +838,8 @@ In a buffer, it runs to (point-min), and the value cannot be less than that.
 The property values are compared with `eq'.
 If the property is constant all the way to the start of OBJECT, return the
 first valid position in OBJECT.
-If the optional fourth argument LIMIT is non-nil, don't search
-back past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
+If the optional fourth argument LIMIT is non-nil, don't search back past
+position LIMIT; return LIMIT if nothing is found before reaching LIMIT.  */)
   (Lisp_Object position, Lisp_Object prop, Lisp_Object object, Lisp_Object limit)
 {
   if (STRINGP (object))
@@ -1343,15 +1348,18 @@ set_text_properties_1 (Lisp_Object start, Lisp_Object end, Lisp_Object propertie
   register EMACS_INT s, len;
   INTERVAL unchanged;
 
-  s = XINT (start);
-  len = XINT (end) - s;
-  if (len == 0)
-    return;
-  if (len < 0)
+  if (XINT (start) < XINT (end))
     {
-      s = s + len;
-      len = - len;
+      s = XINT (start);
+      len = XINT (end) - s;
     }
+  else if (XINT (end) < XINT (start))
+    {
+      s = XINT (end);
+      len = XINT (start) - s;
+    }
+  else
+    return;
 
   if (i == 0)
     i = find_interval (BUF_INTERVALS (XBUFFER (buffer)), s);
@@ -1751,15 +1759,9 @@ text_property_stickiness (Lisp_Object prop, Lisp_Object pos, Lisp_Object buffer)
 }
 
 
-/* I don't think this is the right interface to export; how often do you
-   want to do something like this, other than when you're copying objects
-   around?
+/* Copying properties between objects. */
 
-   I think it would be better to have a pair of functions, one which
-   returns the text properties of a region as a list of ranges and
-   plists, and another which applies such a list to another object.  */
-
-/* Add properties from SRC to SRC of SRC, starting at POS in DEST.
+/* Add properties from START to END of SRC, starting at POS in DEST.
    SRC and DEST may each refer to strings or buffers.
    Optional sixth argument PROP causes only that property to be copied.
    Properties are copied to DEST as if by `add-text-properties'.
@@ -2007,7 +2009,8 @@ call_mod_hooks (Lisp_Object list, Lisp_Object start, Lisp_Object end)
    those hooks in order, with START and END - 1 as arguments.  */
 
 void
-verify_interval_modification (struct buffer *buf, int start, int end)
+verify_interval_modification (struct buffer *buf,
+			      EMACS_INT start, EMACS_INT end)
 {
   register INTERVAL intervals = BUF_INTERVALS (buf);
   register INTERVAL i;
@@ -2298,6 +2301,4 @@ inherits it if NONSTICKINESS is nil.  The `front-sticky' and
   defsubr (&Sremove_list_of_text_properties);
   defsubr (&Stext_property_any);
   defsubr (&Stext_property_not_all);
-/*  defsubr (&Serase_text_properties); */
-/*  defsubr (&Scopy_text_properties); */
 }

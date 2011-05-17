@@ -299,6 +299,20 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `localtime_r' function. */
 #undef HAVE_LOCALTIME_R
 
+/* Define to 1 if you have the declaration of `strtoull', and to 0 if you
+   don't. */
+#define HAVE_DECL_STRTOULL 1
+
+/* Define to 1 if you have the declaration of `strtoumax', and to 0 if you
+   don't. */
+#define HAVE_DECL_STRTOUMAX 1
+
+/* Define to 1 if you have the `strtoull' function. */
+#define HAVE_STRTOULL 1
+
+/* Define to 1 if you have the `strtoumax' function. */
+#define HAVE_STRTOUMAX 1
+
 /* Define if you have the 'wchar_t' type. */
 #define HAVE_WCHAR_T 1
 
@@ -322,6 +336,17 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #else
 # define restrict
 #endif
+
+/* A va_copy replacement for MSVC.  */
+#ifdef _MSC_VER
+# ifdef _WIN64
+#  ifndef va_copy
+#   error "va_copy is needed, but not defined!"
+#  endif
+# else	/* not _WIN64 */
+#  define va_copy(d,s) ((d) = (s))
+# endif	 /* not _WIN64 */
+#endif	 /* _MSC_VER */
 
 /* Define as a marker that can be attached to declarations that might not
     be used.  This helps to reduce warnings, such as from
@@ -456,6 +481,31 @@ extern char *getenv ();
 #define BITS_PER_LONG 32
 #endif
 
+#if defined(__MINGW32__) || _MSC_VER >= 1400
+
+/* Define to 1 if the system has the type `long long int'. */
+# define HAVE_LONG_LONG_INT 1
+
+/* Define to 1 if the system has the type `unsigned long long int'. */
+# define HAVE_UNSIGNED_LONG_LONG_INT 1
+
+#elif _MSC_VER >= 1200
+
+/* Temporarily disable wider-than-pointer integers until they're tested more.
+   Build with CFLAGS='-DWIDE_EMACS_INT' to try them out.  */
+/* #undef WIDE_EMACS_INT */
+
+# ifdef WIDE_EMACS_INT
+
+/* Use pre-C99-style 64-bit integers.  */
+# define EMACS_INT __int64
+# define BITS_PER_EMACS_INT 64
+# define pI "I64"
+
+# endif
+
+#endif
+
 #ifndef POINTER_TYPE
 #define POINTER_TYPE void
 #endif
@@ -494,4 +544,3 @@ void w32_abort (void) NO_RETURN;
 
 /* Make a leaner executable.  */
 #define WIN32_LEAN_AND_MEAN 1
-

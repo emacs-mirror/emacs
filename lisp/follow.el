@@ -1260,7 +1260,7 @@ should be a member of WINDOWS, starts at position START."
 ;; especially if it is placed in the debug filter section.  I must
 ;; investigate this further...
 
-(defun follow-avoid-tail-recenter (&rest rest)
+(defun follow-avoid-tail-recenter (&rest _rest)
   "Make sure windows displaying the end of a buffer aren't recentered.
 
 This is done by reading and rewriting the start position of

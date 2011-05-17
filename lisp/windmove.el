@@ -373,14 +373,12 @@ Returns the constrained coordinate."
 ;; otherwise would be.  the only complication is that we need to check
 ;; if the minibuffer is active, and, if not, pretend that it's not
 ;; even part of the frame.
-(defun windmove-wrap-loc-for-movement (coord window dir)
+(defun windmove-wrap-loc-for-movement (coord window)
   "Takes the constrained COORD and wraps it around for the movement.
 This makes an out-of-range x or y coordinate and wraps it around the
 frame, giving a coordinate (hopefully) in the window on the other edge
 of the frame.  WINDOW is the window that movement is relative to (nil
-means the currently selected window); DIR is the direction of the
-movement, one of `left', `up', `right',or `down'.
-Returns the wrapped coordinate."
+means the currently selected window).  Returns the wrapped coordinate."
   (let* ((frame-edges (windmove-frame-edges window))
          (frame-minibuffer (minibuffer-window (if window
                                                   (window-frame window)
@@ -474,8 +472,7 @@ DIR, ARG, and WINDOW are handled as by `windmove-other-window-loc'."
          (other-window-loc
           (if windmove-wrap-around
             (windmove-wrap-loc-for-movement constrained-other-window-loc
-                                            actual-current-window
-                                            dir)
+                                            actual-current-window)
             constrained-other-window-loc)))
     (window-at (car other-window-loc)
                (cdr other-window-loc))))

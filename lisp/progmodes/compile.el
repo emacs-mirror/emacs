@@ -64,6 +64,19 @@ the compilation to be killed, you can use this hook:
 		 integer)
   :group 'compilation)
 
+(defvar compilation-filter-hook nil
+  "Hook run after `compilation-filter' has inserted a string into the buffer.
+It is called with the variable `compilation-filter-start' bound
+to the position of the start of the inserted text, and point at
+its end.
+
+If Emacs lacks asynchronous process support, this hook is run
+after `call-process' inserts the grep output into the buffer.")
+
+(defvar compilation-filter-start nil
+  "Start of the text inserted by `compilation-filter'.
+This is bound to a buffer position before running `compilation-filter-hook'.")
+
 (defvar compilation-first-column 1
   "*This is how compilers number the first column, usually 1 or 0.")
 
@@ -116,6 +129,9 @@ and a string describing how the process finished.")
 
 (defvar compilation-num-errors-found)
 
+;; If you make any changes to `compilation-error-regexp-alist-alist',
+;; be sure to run the ERT test in test/automated/compile-tests.el.
+
 (defvar compilation-error-regexp-alist-alist
   '((absoft
      "^\\(?:[Ee]rror on \\|[Ww]arning on\\( \\)\\)?[Ll]ine[ \t]+\\([0-9]+\\)[ \t]+\
@@ -128,8 +144,8 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      " in line \\([0-9]+\\) of file \\([^ \n]+[^. \n]\\)\\.? " 2 1)
 
     (ant
-     "^[ \t]*\\[[^] \n]+\\][ \t]*\\([^: \n]+\\):\\([0-9]+\\):\\(?:\\([0-9]+\\):[0-9]+:[0-9]+:\\)?\
-\\( warning\\)?" 1 2 3 (4))
+     "^[ \t]*\\[[^] \n]+\\][ \t]*\\([^: \n]+\\):\\([0-9]+\\):\\(?:\\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\):\\)?\
+\\( warning\\)?" 1 (2 . 4) (3 . 5) (4))
 
     (bash
      "^\\([^: \n\t]+\\): line \\([0-9]+\\):" 1 2)
@@ -184,6 +200,14 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
 
     (jikes-file
      "^\\(?:Found\\|Issued\\) .* compiling \"\\(.+\\)\":$" 1 nil nil 0)
+
+
+    ;; This used to be pathologically slow on long lines (Bug#3441),
+    ;; due to matching filenames via \\(.*?\\).  This might be faster.
+    (maven
+     ;; Maven is a popular free software build tool for Java.
+     "\\([0-9]*[^0-9\n]\\(?:[^\n :]\\| [^-/\n]\\|:[^ \n]\\)*?\\):\\[\\([0-9]+\\),\\([0-9]+\\)\\] " 1 2 3)
+
     (jikes-line
      "^ *\\([0-9]+\\)\\.[ \t]+.*\n +\\(<-*>\n\\*\\*\\* \\(?:Error\\|Warnin\\(g\\)\\)\\)"
      nil 1 nil 2 0
@@ -194,6 +218,9 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
 \\([0-9]*[^0-9\n]\\(?:[^\n :]\\| [^-/\n]\\|:[^ \n]\\)*?\\):\
 \\([0-9]+\\)\\(?::\\([0-9]+\\)\\)?\\(?:\\(:\\)\\|\\(,\\|$\\)\\)?"
      1 2 3 (4 . 5))
+
+    (ruby-Test::Unit
+     "^[\t ]*\\[\\([^\(].*\\):\\([1-9][0-9]*\\)\\(\\]\\)?:in " 1 2)
 
     (gnu
      ;; The first line matches the program name for
@@ -247,11 +274,6 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
                (end-of-line)
                nil)))
 
-    ;; This regexp is pathologically slow on long lines (Bug#3441).
-    ;; (maven
-    ;;  ;; Maven is a popular build tool for Java.  Maven is Free Software.
-    ;;  "\\(.*?\\):\\[\\([0-9]+\\),\\([0-9]+\\)\\]" 1 2 3)
-
     ;; Should be lint-1, lint-2 (SysV lint)
     (mips-1
      " (\\([0-9]+\\)) in \\([^ \n]+\\)" 2 1)
@@ -291,9 +313,6 @@ during global destruction\\.$\\)" 1 2)
     (php
      "\\(?:Parse\\|Fatal\\) error: \\(.*\\) in \\(.*\\) on line \\([0-9]+\\)"
      2 3 nil nil)
-
-    (ruby-Test::Unit
-     "[\t ]*\\[\\([^\(].*\\):\\([1-9][0-9]*\\)\\(\\]\\)?:$" 1 2)
 
     (rxp
      "^\\(?:Error\\|Warnin\\(g\\)\\):.*\n.* line \\([0-9]+\\) char\
@@ -833,7 +852,7 @@ returned RES, i.e. there is no change of `compilation-directory' between
 POS and RES.")
 (make-variable-buffer-local 'compilation--previous-directory-cache)
 
-(defun compilation--flush-directory-cache (start end)
+(defun compilation--flush-directory-cache (start _end)
   (cond
    ((or (not compilation--previous-directory-cache)
         (<= (car compilation--previous-directory-cache) start)))
@@ -1307,7 +1326,7 @@ to `compilation-error-regexp-alist' if RULES is nil."
           (compilation--parse-region (point) compilation--parsed)))))
   nil)
 
-(defun compilation--flush-parse (start end)
+(defun compilation--flush-parse (start _end)
   "Mark the region between START and END for re-parsing."
   (if (markerp compilation--parsed)
       (move-marker compilation--parsed (min start compilation--parsed))))
@@ -1399,31 +1418,31 @@ point on its location in the *compilation* buffer."
   :group 'compilation)
 
 
-(defun compilation-buffer-name (mode-name mode-command name-function)
+(defun compilation-buffer-name (name-of-mode mode-command name-function)
   "Return the name of a compilation buffer to use.
-If NAME-FUNCTION is non-nil, call it with one argument MODE-NAME
+If NAME-FUNCTION is non-nil, call it with one argument NAME-OF-MODE
 to determine the buffer name.
 Likewise if `compilation-buffer-name-function' is non-nil.
 If current buffer has the major mode MODE-COMMAND,
 return the name of the current buffer, so that it gets reused.
-Otherwise, construct a buffer name from MODE-NAME."
+Otherwise, construct a buffer name from NAME-OF-MODE."
   (cond (name-function
-	 (funcall name-function mode-name))
+	 (funcall name-function name-of-mode))
 	(compilation-buffer-name-function
-	 (funcall compilation-buffer-name-function mode-name))
+	 (funcall compilation-buffer-name-function name-of-mode))
 	((eq mode-command major-mode)
 	 (buffer-name))
 	(t
-	 (concat "*" (downcase mode-name) "*"))))
+	 (concat "*" (downcase name-of-mode) "*"))))
 
 ;; This is a rough emulation of the old hack, until the transition to new
 ;; compile is complete.
 (defun compile-internal (command error-message
-				 &optional name-of-mode parser
+				 &optional _name-of-mode parser
 				 error-regexp-alist name-function
-				 enter-regexp-alist leave-regexp-alist
-				 file-regexp-alist nomessage-regexp-alist
-				 no-async highlight-regexp local-map)
+				 _enter-regexp-alist _leave-regexp-alist
+				 file-regexp-alist _nomessage-regexp-alist
+				 _no-async highlight-regexp _local-map)
   (if parser
       (error "Compile now works very differently, see `compilation-error-regexp-alist'"))
   (let ((compilation-error-regexp-alist
@@ -1615,8 +1634,10 @@ Returns the compilation buffer created."
 	    ;; regardless of where the user sees point.
 	    (goto-char (point-max))
 	    (let* ((inhibit-read-only t) ; call-process needs to modify outbuf
+		   (compilation-filter-start (point))
 		   (status (call-process shell-file-name nil outbuf nil "-c"
 					 command)))
+	      (run-hooks 'compilation-filter-hook)
 	      (cond ((numberp status)
 		     (compilation-handle-exit
 		      'exit status
@@ -2040,11 +2061,12 @@ and runs `compilation-filter-hook'."
             ;; If we are inserting at the end of the accessible part of the
             ;; buffer, keep the inserted text visible.
 	    (min (point-min-marker))
-	    (max (copy-marker (point-max) t)))
+	    (max (copy-marker (point-max) t))
+	    (compilation-filter-start (marker-position (process-mark proc))))
         (unwind-protect
             (progn
 	      (widen)
-              (goto-char (process-mark proc))
+	      (goto-char compilation-filter-start)
               ;; We used to use `insert-before-markers', so that windows with
               ;; point at `process-mark' scroll along with the output, but we
               ;; now use window-point-insertion-type instead.
@@ -2231,7 +2253,7 @@ This is the value of `next-error-function' in Compilation buffers."
   (when reset
     (setq compilation-current-error nil))
   (let* ((columns compilation-error-screen-columns) ; buffer's local value
-	 (last 1) timestamp
+	 (last 1)
 	 (msg (compilation-next-error (or n 1) nil
 				      (or compilation-current-error
 					  compilation-messages-start

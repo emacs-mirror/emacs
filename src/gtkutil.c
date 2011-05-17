@@ -81,7 +81,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   gdk_window_get_geometry (w, a, b, c, d, 0)
 #define gdk_x11_window_lookup_for_display(d, w) \
   gdk_xid_table_lookup_for_display (d, w)
+#ifndef GDK_KEY_g
 #define GDK_KEY_g GDK_g
+#endif
 #endif
 
 #define XG_BIN_CHILD(x) gtk_bin_get_child (GTK_BIN (x))
@@ -703,7 +705,7 @@ xg_prepare_tooltip (FRAME_PTR f,
      hierarchy-changed.  */
   gtk_tooltip_set_custom (x->ttip_widget, widget);
 
-  gtk_tooltip_set_text (x->ttip_widget, SDATA (encoded_string));
+  gtk_tooltip_set_text (x->ttip_widget, SSDATA (encoded_string));
   gtk_widget_get_preferred_size (GTK_WIDGET (x->ttip_window), NULL, &req);
   if (width) *width = req.width;
   if (height) *height = req.height;
@@ -3352,7 +3354,7 @@ xg_get_scroll_id_for_window (Display *dpy, Window wid)
 static void
 xg_gtk_scroll_destroy (GtkWidget *widget, gpointer data)
 {
-  int id = (int) (EMACS_INT) data; /* The EMACS_INT cast avoids a warning. */
+  int id = (intptr_t) data;
   xg_remove_widget_from_map (id);
 }
 
@@ -3373,7 +3375,7 @@ xg_create_scroll_bar (FRAME_PTR f,
 {
   GtkWidget *wscroll;
   GtkWidget *webox;
-  int scroll_id;
+  intptr_t scroll_id;
 #ifdef HAVE_GTK3
   GtkAdjustment *vadj;
 #else
@@ -3395,11 +3397,10 @@ xg_create_scroll_bar (FRAME_PTR f,
 
   scroll_id = xg_store_widget_in_map (wscroll);
 
-  /* The EMACS_INT cast avoids a warning. */
   g_signal_connect (G_OBJECT (wscroll),
                     "destroy",
                     G_CALLBACK (xg_gtk_scroll_destroy),
-                    (gpointer) (EMACS_INT) scroll_id);
+                    (gpointer) scroll_id);
   g_signal_connect (G_OBJECT (wscroll),
                     "change-value",
                     scroll_callback,
@@ -3527,6 +3528,7 @@ xg_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar,
       gdouble shown;
       gdouble top;
       int size, value;
+      int old_size;
       int new_step;
       int changed = 0;
 
@@ -3559,15 +3561,19 @@ xg_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar,
       /* Assume all lines are of equal size.  */
       new_step = size / max (1, FRAME_LINES (f));
 
-      if ((int) gtk_adjustment_get_page_size (adj) != size
-          || (int) gtk_adjustment_get_step_increment (adj) != new_step)
-        {
-          gtk_adjustment_set_page_size (adj, size);
-          gtk_adjustment_set_step_increment (adj, new_step);
-          /* Assume a page increment is about 95% of the page size  */
-          gtk_adjustment_set_page_increment (adj,(int) (0.95*size));
-          changed = 1;
-        }
+      old_size = gtk_adjustment_get_page_size (adj);
+      if (old_size != size)
+	{
+	  int old_step = gtk_adjustment_get_step_increment (adj);
+	  if (old_step != new_step)
+	    {
+	      gtk_adjustment_set_page_size (adj, size);
+	      gtk_adjustment_set_step_increment (adj, new_step);
+	      /* Assume a page increment is about 95% of the page size  */
+	      gtk_adjustment_set_page_increment (adj,(int) (0.95*size));
+	      changed = 1;
+	    }
+	}
 
       if (changed || int_gtk_range_get_value (GTK_RANGE (wscroll)) != value)
       {
@@ -3656,8 +3662,8 @@ xg_tool_bar_button_cb (GtkWidget *widget,
                        GdkEventButton *event,
                        gpointer user_data)
 {
-  /* Casts to avoid warnings when gpointer is 64 bits and int is 32 bits */
-  gpointer ptr = (gpointer) (EMACS_INT) event->state;
+  intptr_t state = event->state;
+  gpointer ptr = (gpointer) state;
   g_object_set_data (G_OBJECT (widget), XG_TOOL_BAR_LAST_MODIFIER, ptr);
   return FALSE;
 }
@@ -3671,10 +3677,9 @@ xg_tool_bar_button_cb (GtkWidget *widget,
 static void
 xg_tool_bar_callback (GtkWidget *w, gpointer client_data)
 {
-  /* The EMACS_INT cast avoids a warning. */
-  int idx = (int) (EMACS_INT) client_data;
+  intptr_t idx = (intptr_t) client_data;
   gpointer gmod = g_object_get_data (G_OBJECT (w), XG_TOOL_BAR_LAST_MODIFIER);
-  int mod = (int) (EMACS_INT) gmod;
+  intptr_t mod = (intptr_t) gmod;
 
   FRAME_PTR f = (FRAME_PTR) g_object_get_data (G_OBJECT (w), XG_FRAME_DATA);
   Lisp_Object key, frame;
@@ -3953,8 +3958,7 @@ xg_tool_bar_help_callback (GtkWidget *w,
                            GdkEventCrossing *event,
                            gpointer client_data)
 {
-  /* The EMACS_INT cast avoids a warning. */
-  int idx = (int) (EMACS_INT) client_data;
+  intptr_t idx = (intptr_t) client_data;
   FRAME_PTR f = (FRAME_PTR) g_object_get_data (G_OBJECT (w), XG_FRAME_DATA);
   Lisp_Object help, frame;
 
@@ -4148,14 +4152,16 @@ xg_make_tool_item (FRAME_PTR f,
 
   if (wimage)
     {
-      /* The EMACS_INT cast avoids a warning. */
+      intptr_t ii = i;
+      gpointer gi = (gpointer) ii;
+
       g_signal_connect (G_OBJECT (ti), "create-menu-proxy",
                         G_CALLBACK (xg_tool_bar_menu_proxy),
-                        (gpointer) (EMACS_INT) i);
+                        gi);
 
       g_signal_connect (G_OBJECT (wb), "clicked",
                         G_CALLBACK (xg_tool_bar_callback),
-                        (gpointer) (EMACS_INT) i);
+                        gi);
 
       g_object_set_data (G_OBJECT (weventbox), XG_FRAME_DATA, (gpointer)f);
 
@@ -4186,11 +4192,11 @@ xg_make_tool_item (FRAME_PTR f,
       g_signal_connect (G_OBJECT (weventbox),
                         "enter-notify-event",
                         G_CALLBACK (xg_tool_bar_help_callback),
-                        (gpointer) (EMACS_INT) i);
+                        gi);
       g_signal_connect (G_OBJECT (weventbox),
                         "leave-notify-event",
                         G_CALLBACK (xg_tool_bar_help_callback),
-                        (gpointer) (EMACS_INT) i);
+                        gi);
     }
 
   if (wbutton) *wbutton = wb;

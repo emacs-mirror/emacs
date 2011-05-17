@@ -1,3 +1,33 @@
+2011-05-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* inttypes.h: Include stdint.h.
+	(uintmax_t): Don't define, it is defined in stdint.h.
+
+	* sedlibmk.inp (am__append_1): Edit to comment out.
+	(am__append_2): Edit to expose.
+	(NEXT_AS_FIRST_DIRECTIVE_STDARG_H, NEXT_STDARG_H, STDARG_H): Edit
+	to empty.
+	(@GL_GENERATE_STDARG_H_TRUE@, @GL_GENERATE_STDARG_H_FALSE@): Edit
+	to comment out corresponding lines.
+
+2011-04-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* inttypes.h: New file.
+
+	* sed2v2.inp (HAVE_DECL_STRTOULL, HAVE_DECL_STRTOUMAX)
+	(HAVE_STRTOULL, HAVE_STRTOULL): Define to 1.
+
+	* sedlibmk.inp (BUILT_SOURCES): Edit out inttypes.h.
+
+	* sed1v2.inp (CPPFLAGS): Edit to "-I../msdos".
+	Add ../msdos/inttypes.h to prerequisites of lread.o.
+
+2011-04-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedlibmk.inp (am_libgnu_a_OBJECTS): Edit out
+	allocator.$(OBJEXT).  Add editing for the new GNULIB_* and
+	REPLACE_* variables.
+
 2011-04-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* sedlibmk.inp: Update checklist.

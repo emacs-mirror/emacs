@@ -64,7 +64,7 @@ static int file_p (const char *filename);
 
 /* The string which gets substituted for the %C escape in XFILESEARCHPATH
    and friends, or zero if none was specified.  */
-char *x_customization_string;
+static char *x_customization_string;
 
 
 /* Return the value of the emacs.customization (Emacs.Customization)
@@ -466,7 +466,7 @@ get_environ_db (void)
 /* Types of values that we can find in a database */
 
 #define XrmStringType "String"	/* String representation */
-XrmRepresentation x_rm_string;	/* Quark representation */
+static XrmRepresentation x_rm_string;	/* Quark representation */
 
 /* Load X resources based on the display and a possible -xrm option. */
 
@@ -479,7 +479,9 @@ x_load_resources (Display *display, const char *xrm_string,
   XrmDatabase db;
   char line[256];
 
+#if defined USE_MOTIF || !defined HAVE_XFT || !defined USE_LUCID
   const char *helv = "-*-helvetica-medium-r-*--*-120-*-*-*-*-iso8859-1";
+#endif
 
 #ifdef USE_MOTIF
   const char *courier = "-*-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1";
@@ -534,10 +536,10 @@ x_load_resources (Display *display, const char *xrm_string,
      dialog from `double-click-time'.  */
   if (INTEGERP (Vdouble_click_time) && XINT (Vdouble_click_time) > 0)
     {
-      sprintf (line, "%s*fsb*DirList.doubleClickInterval: %d",
+      sprintf (line, "%s*fsb*DirList.doubleClickInterval: %"pI"d",
 	       myclass, XFASTINT (Vdouble_click_time));
       XrmPutLineResource (&rdb, line);
-      sprintf (line, "%s*fsb*ItemsList.doubleClickInterval: %d",
+      sprintf (line, "%s*fsb*ItemsList.doubleClickInterval: %"pI"d",
 	       myclass, XFASTINT (Vdouble_click_time));
       XrmPutLineResource (&rdb, line);
     }

@@ -405,6 +405,11 @@ stepping, you will see where the loop starts and ends.  Also, examine
 the data being used in the loop and try to determine why the loop does
 not exit when it should.
 
+You can also trying sending Emacs SIGUSR2, which, if `debug-on-event'
+has its default value, will cause Emacs to attempt to break it out of
+its current loop and into the Lisp debugger.  This feature is useful
+when a C-level debugger is not conveniently available.
+
 ** If certain operations in Emacs are slower than they used to be, here
 is some advice for how to find out why.
 

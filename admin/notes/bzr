@@ -12,10 +12,17 @@ difficult.
 
 http://lists.gnu.org/archive/html/emacs-devel/2010-03/msg01124.html
 
+The exception is, if you know that the change will be difficult to
+merge to the trunk (eg because the trunk code has changed a lot).
+In that case, it's helpful if you can apply the change to both trunk
+and branch yourself (when committing the branch change, indicate
+in the commit log that it should not be merged to the trunk; see below).
+
 * Backporting a bug-fix from the trunk to a branch (e.g. "emacs-23").
-Label the commit as a backport, e.g. by starting the commit message with
-"Backport:".  This is helpful for the person merging the release branch
-to the trunk.
+Indicate in the commit log that there is no need to merge the commit
+to the trunk.  Anything that matches `bzrmerge-skip-regexp' will do;
+eg start the commit message with "Backport:".  This is helpful for the
+person merging the release branch to the trunk.
 
 http://lists.gnu.org/archive/html/emacs-devel/2010-05/msg00262.html
 
@@ -69,9 +76,8 @@ a similar way with unbound ones.
 (this will be included by default in bzr 2.4 onwards):
 
 cd ~/.bazaar/plugins
-# The following is an improved version of: lp:bzr-changelog-merge
-bzr branch lp:~spiv/bzr-changelog-merge/non-head-edits-723968
-mv bzr-changelog-merge changelog_merge
+bzr branch http://bazaar.launchpad.net/~spiv/bzr-changelog-merge/trunk 
+mv trunk changelog_merge
 
 This should make merging ChangeLogs smoother.  It merges new entries
 to the top of the file, rather than trying to fit them in mid-way

@@ -3533,7 +3533,7 @@ Changing this globally has no effect.")
 Arguments WINDOW, DELTA and HORIZONTAL are passed on to that function."
   ;; `resize-window' may fail if delta is too large.
   (while (>= (abs delta) 1)
-    (condition-case err
+    (condition-case nil
         (progn
           (resize-window window delta horizontal)
           (setq delta 0))

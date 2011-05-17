@@ -207,7 +207,7 @@ Value is FACE."
 ;; of realized faces.  The ID assigned to Lisp faces is used to
 ;; support faces in display table entries.
 
-(defun face-id (face &optional frame)
+(defun face-id (face &optional _frame)
   "Return the internal ID of face with name FACE.
 If FACE is a face-alias, return the ID of the target face.
 The optional argument FRAME is ignored, since the internal face ID
@@ -724,7 +724,7 @@ like an underlying face would be, with higher priority than underlying faces."
 					  where))
       (setq args (cddr args)))))
 
-(defun make-face-bold (face &optional frame noerror)
+(defun make-face-bold (face &optional frame _noerror)
   "Make the font of FACE be bold, if possible.
 FRAME nil or not specified means change face on all frames.
 Argument NOERROR is ignored and retained for compatibility.
@@ -733,7 +733,7 @@ Use `set-face-attribute' for finer control of the font weight."
   (set-face-attribute face frame :weight 'bold))
 
 
-(defun make-face-unbold (face &optional frame noerror)
+(defun make-face-unbold (face &optional frame _noerror)
   "Make the font of FACE be non-bold, if possible.
 FRAME nil or not specified means change face on all frames.
 Argument NOERROR is ignored and retained for compatibility."
@@ -741,7 +741,7 @@ Argument NOERROR is ignored and retained for compatibility."
   (set-face-attribute face frame :weight 'normal))
 
 
-(defun make-face-italic (face &optional frame noerror)
+(defun make-face-italic (face &optional frame _noerror)
   "Make the font of FACE be italic, if possible.
 FRAME nil or not specified means change face on all frames.
 Argument NOERROR is ignored and retained for compatibility.
@@ -750,7 +750,7 @@ Use `set-face-attribute' for finer control of the font slant."
   (set-face-attribute face frame :slant 'italic))
 
 
-(defun make-face-unitalic (face &optional frame noerror)
+(defun make-face-unitalic (face &optional frame _noerror)
   "Make the font of FACE be non-italic, if possible.
 FRAME nil or not specified means change face on all frames.
 Argument NOERROR is ignored and retained for compatibility."
@@ -758,7 +758,7 @@ Argument NOERROR is ignored and retained for compatibility."
   (set-face-attribute face frame :slant 'normal))
 
 
-(defun make-face-bold-italic (face &optional frame noerror)
+(defun make-face-bold-italic (face &optional frame _noerror)
   "Make the font of FACE be bold and italic, if possible.
 FRAME nil or not specified means change face on all frames.
 Argument NOERROR is ignored and retained for compatibility.
@@ -1413,11 +1413,12 @@ If FRAME is omitted or nil, use the selected frame."
 ;; Parameter FRAME Is kept for call compatibility to with previous
 ;; face implementation.
 
-(defun face-attr-construct (face &optional frame)
-  "Return a `defface'-style attribute list for FACE on FRAME.
+(defun face-attr-construct (face &optional _frame)
+  "Return a `defface'-style attribute list for FACE.
 Value is a property list of pairs ATTRIBUTE VALUE for all specified
 face attributes of FACE where ATTRIBUTE is the attribute name and
-VALUE is the specified value of that attribute."
+VALUE is the specified value of that attribute.
+Argument FRAME is ignored and retained for compatibility."
   (let (result)
     (dolist (entry face-attribute-name-alist result)
       (let* ((attribute (car entry))
@@ -1450,18 +1451,18 @@ If FRAME is nil, the current FRAME is used."
 			     ;; of supported colors, and all defface's
 			     ;; are changed to look at number of colors
 			     ;; instead of (type graphic) etc.
-			     (and (null (window-system frame))
-				  (memq 'tty options))
-			     (and (memq 'motif options)
-				  (featurep 'motif))
-			     (and (memq 'gtk options)
-				  (featurep 'gtk))
-			     (and (memq 'lucid options)
-				  (featurep 'x-toolkit)
-				  (not (featurep 'motif))
-				  (not (featurep 'gtk)))
-			     (and (memq 'x-toolkit options)
-				  (featurep 'x-toolkit))))
+			     (if (null (window-system frame))
+				 (memq 'tty options)
+			       (or (and (memq 'motif options)
+					(featurep 'motif))
+				   (and (memq 'gtk options)
+					(featurep 'gtk))
+				   (and (memq 'lucid options)
+					(featurep 'x-toolkit)
+					(not (featurep 'motif))
+					(not (featurep 'gtk)))
+				   (and (memq 'x-toolkit options)
+					(featurep 'x-toolkit))))))
 			((eq req 'min-colors)
 			 (>= (display-color-cells frame) (car options)))
 			((eq req 'class)
@@ -1750,8 +1751,7 @@ resulting color name in the echo area."
 		    ((eq flag 'lambda) ; Test completion.
 		     (or (memq string colors)
 			 (color-defined-p string)))))
-		 nil t))
-	 hex-string)
+		 nil t)))
 
     ;; Process named colors.
     (when (member color colors)

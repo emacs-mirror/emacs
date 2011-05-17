@@ -43,7 +43,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 struct buffer *current_buffer;		/* the current buffer */
 
 /* First buffer in chain of all buffers (in reverse order of creation).
-   Threaded through ->next.  */
+   Threaded through ->header.next.buffer.  */
 
 struct buffer *all_buffers;
 
@@ -100,6 +100,8 @@ static char buffer_permanent_local_flags[MAX_PER_BUFFER_VARS];
 
 int last_per_buffer_idx;
 
+static Lisp_Object Fset_buffer_major_mode (Lisp_Object);
+static Lisp_Object Fdelete_overlay (Lisp_Object);
 static void call_overlay_mod_hooks (Lisp_Object list, Lisp_Object overlay,
                                     int after, Lisp_Object arg1,
                                     Lisp_Object arg2, Lisp_Object arg3);
@@ -111,31 +113,33 @@ static void reset_buffer_local_variables (struct buffer *b, int permanent_too);
  to prevent lossage due to user rplac'ing this alist or its elements.  */
 Lisp_Object Vbuffer_alist;
 
-Lisp_Object Qkill_buffer_query_functions;
+static Lisp_Object Qkill_buffer_query_functions;
 
 /* Hook run before changing a major mode.  */
-Lisp_Object Qchange_major_mode_hook;
+static Lisp_Object Qchange_major_mode_hook;
 
 Lisp_Object Qfirst_change_hook;
 Lisp_Object Qbefore_change_functions;
 Lisp_Object Qafter_change_functions;
-Lisp_Object Qucs_set_table_for_input;
+static Lisp_Object Qucs_set_table_for_input;
 
-Lisp_Object Qfundamental_mode, Qmode_class, Qpermanent_local;
-Lisp_Object Qpermanent_local_hook;
+static Lisp_Object Qfundamental_mode, Qmode_class, Qpermanent_local;
+static Lisp_Object Qpermanent_local_hook;
 
-Lisp_Object Qprotected_field;
+static Lisp_Object Qprotected_field;
 
-Lisp_Object QSFundamental;	/* A string "Fundamental" */
+static Lisp_Object QSFundamental;	/* A string "Fundamental" */
 
-Lisp_Object Qkill_buffer_hook;
-Lisp_Object Qbuffer_list_update_hook;
+static Lisp_Object Qkill_buffer_hook;
+static Lisp_Object Qbuffer_list_update_hook;
 
-Lisp_Object Qget_file_buffer;
+static Lisp_Object Qget_file_buffer;
 
-Lisp_Object Qoverlayp;
+static Lisp_Object Qoverlayp;
 
-Lisp_Object Qpriority, Qclone_number, Qevaporate, Qbefore_string, Qafter_string;
+Lisp_Object Qpriority, Qbefore_string, Qafter_string;
+
+static Lisp_Object Qclone_number, Qevaporate;
 
 Lisp_Object Qmodification_hooks;
 Lisp_Object Qinsert_in_front_hooks;
@@ -292,9 +296,6 @@ get_truename_buffer (register Lisp_Object filename)
   return Qnil;
 }
 
-/* Incremented for each buffer created, to assign the buffer number. */
-int buffer_count;
-
 DEFUN ("get-buffer-create", Fget_buffer_create, Sget_buffer_create, 1, 1, 0,
        doc: /* Return the buffer specified by BUFFER-OR-NAME, creating a new one if needed.
 If BUFFER-OR-NAME is a string and a live buffer with that name exists,
@@ -360,7 +361,7 @@ even if it is dead.  The return value is never nil.  */)
   b->prevent_redisplay_optimizations_p = 1;
 
   /* Put this on the chain of all buffers including killed ones.  */
-  b->next = all_buffers;
+  b->header.next.buffer = all_buffers;
   all_buffers = b;
 
   /* An ordinary buffer normally doesn't need markers
@@ -592,7 +593,7 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
   BVAR (b, width_table) = Qnil;
 
   /* Put this on the chain of all buffers including killed ones.  */
-  b->next = all_buffers;
+  b->header.next.buffer = all_buffers;
   all_buffers = b;
 
   name = Fcopy_sequence (name);
@@ -838,8 +839,8 @@ reset_buffer_local_variables (register struct buffer *b, int permanent_too)
    and set-visited-file-name ought to be able to use this to really
    rename the buffer properly.  */
 
-DEFUN ("generate-new-buffer-name", Fgenerate_new_buffer_name, Sgenerate_new_buffer_name,
-       1, 2, 0,
+DEFUN ("generate-new-buffer-name", Fgenerate_new_buffer_name,
+       Sgenerate_new_buffer_name, 1, 2, 0,
        doc: /* Return a string that is the name of no existing buffer based on NAME.
 If there is no live buffer named NAME, then return NAME.
 Otherwise modify name by appending `<NUMBER>', incrementing NUMBER
@@ -1504,7 +1505,7 @@ with SIGHUP.  */)
 
       GCPRO1 (buffer);
 
-      for (other = all_buffers; other; other = other->next)
+      for (other = all_buffers; other; other = other->header.next.buffer)
 	/* all_buffers contains dead buffers too;
 	   don't re-kill them.  */
 	if (other->base_buffer == b && !NILP (BVAR (other, name)))
@@ -2030,7 +2031,7 @@ DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
 
   { /* This is probably harder to make work.  */
     struct buffer *other;
-    for (other = all_buffers; other; other = other->next)
+    for (other = all_buffers; other; other = other->header.next.buffer)
       if (other->base_buffer == other_buffer
 	  || other->base_buffer == current_buffer)
 	error ("One of the buffers to swap has indirect buffers");
@@ -2407,7 +2408,7 @@ current buffer is cleared.  */)
 
   /* Copy this buffer's new multibyte status
      into all of its indirect buffers.  */
-  for (other = all_buffers; other; other = other->next)
+  for (other = all_buffers; other; other = other->header.next.buffer)
     if (other->base_buffer == current_buffer && !NILP (BVAR (other, name)))
       {
 	BVAR (other, enable_multibyte_characters)
@@ -2431,8 +2432,8 @@ current buffer is cleared.  */)
   return flag;
 }
 
-DEFUN ("kill-all-local-variables", Fkill_all_local_variables, Skill_all_local_variables,
-       0, 0, 0,
+DEFUN ("kill-all-local-variables", Fkill_all_local_variables,
+       Skill_all_local_variables, 0, 0, 0,
        doc: /* Switch to Fundamental mode by killing current buffer's local variables.
 Most local variable bindings are eliminated so that the default values
 become effective once more.  Also, the syntax table is set from
@@ -4120,7 +4121,7 @@ static int last_overlay_modification_hooks_used;
 static void
 add_overlay_mod_hooklist (Lisp_Object functionlist, Lisp_Object overlay)
 {
-  int oldsize = XVECTOR (last_overlay_modification_hooks)->size;
+  int oldsize = ASIZE (last_overlay_modification_hooks);
 
   if (last_overlay_modification_hooks_used == oldsize)
     last_overlay_modification_hooks = larger_vector
@@ -4915,9 +4916,9 @@ init_buffer_once (void)
   buffer_local_symbols.text = &buffer_local_symbols.own_text;
   BUF_INTERVALS (&buffer_defaults) = 0;
   BUF_INTERVALS (&buffer_local_symbols) = 0;
-  XSETPVECTYPE (&buffer_defaults, PVEC_BUFFER);
+  XSETPVECTYPESIZE (&buffer_defaults, PVEC_BUFFER, 0);
   XSETBUFFER (Vbuffer_defaults, &buffer_defaults);
-  XSETPVECTYPE (&buffer_local_symbols, PVEC_BUFFER);
+  XSETPVECTYPESIZE (&buffer_local_symbols, PVEC_BUFFER, 0);
   XSETBUFFER (Vbuffer_local_symbols, &buffer_local_symbols);
 
   /* Set up the default values of various buffer slots.  */
@@ -5097,7 +5098,7 @@ init_buffer (void)
       Map new memory.  */
    struct buffer *b;
 
-   for (b = all_buffers; b; b = b->next)
+   for (b = all_buffers; b; b = b->header.next.buffer)
      if (b->text->beg == NULL)
        enlarge_buffer_text (b, 0);
  }
@@ -5495,7 +5496,8 @@ Linefeed indents to this column in Fundamental mode.  */);
 
   DEFVAR_PER_BUFFER ("tab-width", &BVAR (current_buffer, tab_width),
 		     make_number (LISP_INT_TAG),
-		     doc: /* *Distance between tab stops (for display of tab characters), in columns.  */);
+		     doc: /* *Distance between tab stops (for display of tab characters), in columns.
+This should be an integer greater than zero.  */);
 
   DEFVAR_PER_BUFFER ("ctl-arrow", &BVAR (current_buffer, ctl_arrow), Qnil,
 		     doc: /* *Non-nil means display control chars with uparrow.

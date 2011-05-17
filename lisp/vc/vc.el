@@ -653,6 +653,7 @@
 
 (require 'vc-hooks)
 (require 'vc-dispatcher)
+(require 'ediff)
 
 (eval-when-compile
   (require 'cl)
@@ -1617,45 +1618,48 @@ returns t if the buffer had changes, nil otherwise."
                          nil nil initial-input nil default)
       (read-string prompt initial-input nil default))))
 
+(defun vc-diff-build-argument-list-internal ()
+  "Build argument list for calling internal diff functions."
+  (let* ((vc-fileset (vc-deduce-fileset t)) ;FIXME: why t?  --Stef
+         (files (cadr vc-fileset))
+         (backend (car vc-fileset))
+         (first (car files))
+         (rev1-default nil)
+         (rev2-default nil))
+    (cond
+     ;; someday we may be able to do revision completion on non-singleton
+     ;; filesets, but not yet.
+     ((/= (length files) 1)
+      nil)
+     ;; if it's a directory, don't supply any revision default
+     ((file-directory-p first)
+      nil)
+     ;; if the file is not up-to-date, use working revision as older revision
+     ((not (vc-up-to-date-p first))
+      (setq rev1-default (vc-working-revision first)))
+     ;; if the file is not locked, use last and previous revisions as defaults
+     (t
+      (setq rev1-default (vc-call-backend backend 'previous-revision first
+                                          (vc-working-revision first)))
+      (when (string= rev1-default "") (setq rev1-default nil))
+      (setq rev2-default (vc-working-revision first))))
+    ;; construct argument list
+    (let* ((rev1-prompt (if rev1-default
+                            (concat "Older revision (default "
+                                    rev1-default "): ")
+                          "Older revision: "))
+           (rev2-prompt (concat "Newer revision (default "
+                                (or rev2-default "current source") "): "))
+           (rev1 (vc-read-revision rev1-prompt files backend rev1-default))
+           (rev2 (vc-read-revision rev2-prompt files backend rev2-default)))
+      (when (string= rev1 "") (setq rev1 nil))
+      (when (string= rev2 "") (setq rev2 nil))
+      (list files rev1 rev2))))
+
 ;;;###autoload
 (defun vc-version-diff (files rev1 rev2)
   "Report diffs between revisions of the fileset in the repository history."
-  (interactive
-   (let* ((vc-fileset (vc-deduce-fileset t)) ;FIXME: why t?  --Stef
-	  (files (cadr vc-fileset))
-          (backend (car vc-fileset))
-	  (first (car files))
-	  (rev1-default nil)
-	  (rev2-default nil))
-     (cond
-      ;; someday we may be able to do revision completion on non-singleton
-      ;; filesets, but not yet.
-      ((/= (length files) 1)
-       nil)
-      ;; if it's a directory, don't supply any revision default
-      ((file-directory-p first)
-       nil)
-      ;; if the file is not up-to-date, use working revision as older revision
-      ((not (vc-up-to-date-p first))
-       (setq rev1-default (vc-working-revision first)))
-      ;; if the file is not locked, use last and previous revisions as defaults
-      (t
-       (setq rev1-default (vc-call-backend backend 'previous-revision first
-                                           (vc-working-revision first)))
-       (when (string= rev1-default "") (setq rev1-default nil))
-       (setq rev2-default (vc-working-revision first))))
-     ;; construct argument list
-     (let* ((rev1-prompt (if rev1-default
-			     (concat "Older revision (default "
-				     rev1-default "): ")
-			   "Older revision: "))
-	    (rev2-prompt (concat "Newer revision (default "
-				 (or rev2-default "current source") "): "))
-	    (rev1 (vc-read-revision rev1-prompt files backend rev1-default))
-	    (rev2 (vc-read-revision rev2-prompt files backend rev2-default)))
-       (when (string= rev1 "") (setq rev1 nil))
-       (when (string= rev2 "") (setq rev2 nil))
-       (list files rev1 rev2))))
+  (interactive (vc-diff-build-argument-list-internal))
   ;; All that was just so we could do argument completion!
   (when (and (not rev1) rev2)
     (error "Not a valid revision range"))
@@ -1679,6 +1683,48 @@ saving the buffer."
     (when buffer-file-name (vc-buffer-sync not-urgent))
     (vc-diff-internal t (vc-deduce-fileset t) nil nil
 		      (called-interactively-p 'interactive))))
+
+(declare-function ediff-vc-internal (rev1 rev2 &optional startup-hooks))
+
+;;;###autoload
+(defun vc-version-ediff (files rev1 rev2)
+  "Show differences between revisions of the fileset in the
+repository history using ediff."
+  (interactive (vc-diff-build-argument-list-internal))
+  ;; All that was just so we could do argument completion!
+  (when (and (not rev1) rev2)
+    (error "Not a valid revision range"))
+
+  (message "%s" (format "Finding changes in %s..." (vc-delistify files)))
+
+  ;; Functions ediff-(vc|rcs)-internal use "" instead of nil.
+  (when (null rev1) (setq rev1 ""))
+  (when (null rev2) (setq rev2 ""))
+
+  (cond
+   ;; FIXME We only support running ediff on one file for now.
+   ;; We could spin off an ediff session per file in the file set.
+   ((= (length files) 1)
+    (ediff-load-version-control)
+    (find-file (car files))             ;FIXME: find-file from Elisp is bad.
+    (ediff-vc-internal rev1 rev2 nil))
+   (t
+    (error "More than one file is not supported"))))
+
+;;;###autoload
+(defun vc-ediff (historic &optional not-urgent)
+  "Display diffs between file revisions using ediff.
+Normally this compares the currently selected fileset with their
+working revisions.  With a prefix argument HISTORIC, it reads two revision
+designators specifying which revisions to compare.
+
+The optional argument NOT-URGENT non-nil means it is ok to say no to
+saving the buffer."
+  (interactive (list current-prefix-arg t))
+  (if historic
+      (call-interactively 'vc-version-ediff)
+    (when buffer-file-name (vc-buffer-sync not-urgent))
+    (vc-version-ediff (cadr (vc-deduce-fileset t)) nil nil)))
 
 ;;;###autoload
 (defun vc-root-diff (historic &optional not-urgent)

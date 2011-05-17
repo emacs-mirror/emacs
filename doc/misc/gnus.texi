@@ -4953,7 +4953,7 @@ Download mark.
 Desired cursor position (instead of after first colon).
 @item &user-date;
 Age sensitive date format.  Various date format is defined in
-@code{gnus-summary-user-date-format-alist}.
+@code{gnus-user-date-format-alist}.
 @item u
 User defined specifier.  The next character in the format string should
 be a letter.  Gnus will call the function
@@ -7340,7 +7340,9 @@ predicate functions include @code{gnus-thread-sort-by-number},
 
 Each function takes two threads and returns non-@code{nil} if the first
 thread should be sorted before the other.  Note that sorting really is
-normally done by looking only at the roots of each thread.
+normally done by looking only at the roots of each thread.  Exceptions
+to this rule are @code{gnus-thread-sort-by-most-recent-number} and
+@code{gnus-thread-sort-by-most-recent-date}.
 
 If you use more than one function, the primary sort key should be the
 last function in the list.  You should probably always include
@@ -22061,10 +22063,11 @@ mairix.)
 @item
 If you use the Gnus registry: don't use the registry with
 @code{nnmairix} groups (put them in
-@code{gnus-registry-unfollowed-groups}).  Be @emph{extra careful} if
-you use @code{gnus-registry-split-fancy-with-parent}; mails which are
-split into @code{nnmairix} groups are usually gone for good as soon as
-you check the group for new mail (yes, it has happened to me...).
+@code{gnus-registry-unfollowed-groups}; this is the default).  Be
+@emph{extra careful} if you use
+@code{gnus-registry-split-fancy-with-parent}; mails which are split
+into @code{nnmairix} groups are usually gone for good as soon as you
+check the group for new mail (yes, it has happened to me...).
 
 @item
 Therefore: @emph{Never ever} put ``real'' mails into @code{nnmairix}
@@ -23498,7 +23501,7 @@ specifications.
 The @code{gnus-face-properties-alist} variable affects the appearance of
 displayed Face images.  @xref{X-Face}.
 
-Viewing an @code{Face} header requires an Emacs that is able to display
+Viewing a @code{Face} header requires an Emacs that is able to display
 PNG images.
 @c Maybe add this:
 @c (if (featurep 'xemacs)
@@ -25916,8 +25919,7 @@ of all messages matching a particular set of criteria.
 Fortunately, setting up the Gnus registry is pretty easy:
 
 @lisp
-(setq gnus-registry-max-entries 2500
-      gnus-registry-use-long-group-names t)
+(setq gnus-registry-max-entries 2500)
 
 (gnus-registry-initialize)
 @end lisp
@@ -25939,16 +25941,16 @@ what they do before you copy them blindly).
                                 ("spam" t)
                                 ("train" t))
  gnus-registry-max-entries 500000
- gnus-registry-use-long-group-names t
+ ;; this is the default
  gnus-registry-track-extra '(sender subject))
 @end lisp
 
-They say: keep a lot of messages around, use long group names, track
-messages by sender and subject (not just parent Message-ID), and when
-the registry splits incoming mail, use a majority rule to decide where
-messages should go if there's more than one possibility.  In addition,
-the registry should ignore messages in groups that match ``nntp'',
-``nnrss'', ``spam'', or ``train.''
+They say: keep a lot of messages around, track messages by sender and
+subject (not just parent Message-ID), and when the registry splits
+incoming mail, use a majority rule to decide where messages should go
+if there's more than one possibility.  In addition, the registry
+should ignore messages in groups that match ``nntp'', ``nnrss'',
+``spam'', or ``train.''
 
 You are doubtless impressed by all this, but you ask: ``I am a Gnus
 user, I customize to live.  Give me more.''  Here you go, these are
@@ -25958,19 +25960,9 @@ the general settings.
 The groups that will not be followed by
 @code{gnus-registry-split-fancy-with-parent}.  They will still be
 remembered by the registry.  This is a list of regular expressions.
-@end defvar
-
-@defvar gnus-registry-ignored-groups
-The groups that will not be remembered by the registry.  This is a
-list of regular expressions, also available through Group/Topic
-customization (so you can ignore or keep a specific group or a whole
-topic).
-@end defvar
-
-@defvar gnus-registry-use-long-group-names
-Whether the registry will use long group names.  It's recommended to
-set this to @code{t}, although everything works if you don't.  Future
-functionality will require it.
+By default any group name that ends with ``delayed'', ``drafts'',
+``queue'', or ``INBOX'', belongs to the nnmairix backend, or contains
+the word ``archive'' is not followed.
 @end defvar
 
 @defvar gnus-registry-max-entries
@@ -25978,8 +25970,15 @@ The number (an integer or @code{nil} for unlimited) of entries the
 registry will keep.
 @end defvar
 
+@defvar gnus-registry-max-pruned-entries
+The maximum number (an integer or @code{nil} for unlimited) of entries
+the registry will keep after pruning.
+@end defvar
+
 @defvar gnus-registry-cache-file
-The file where the registry will be stored between Gnus sessions.
+The file where the registry will be stored between Gnus sessions.  By
+default the file name is @code{.gnus.registry.eioio} in the same
+directory as your @code{.newsrc.eld}.
 @end defvar
 
 @node Registry Article Refer Method
@@ -26003,8 +26002,7 @@ lines:
 ;; Keep enough entries to have a good hit rate when referring to an
 ;; article using the registry.  Use long group names so that Gnus
 ;; knows where the article is.
-(setq gnus-registry-max-entries 2500
-      gnus-registry-use-long-group-names t)
+(setq gnus-registry-max-entries 2500)
 
 (gnus-registry-initialize)
 
@@ -26050,9 +26048,8 @@ following variables.
 
 @defvar gnus-registry-track-extra
 This is a list of symbols, so it's best to change it from the
-Customize interface.  By default it's @code{nil}, but you may want to
-track @code{subject} and @code{sender} as well when splitting by parent.
-It may work for you.  It can be annoying if your mail flow is large and
+Customize interface.  By default it's @code{(subject sender)}, which
+may work for you.  It can be annoying if your mail flow is large and
 people don't stick to the same groups.
 @end defvar
 
@@ -26060,7 +26057,8 @@ people don't stick to the same groups.
 This is a symbol, so it's best to change it from the Customize
 interface.  By default it's @code{nil}, but you may want to set it to
 @code{majority} or @code{first} to split by sender or subject based on
-the majority of matches or on the first found.
+the majority of matches or on the first found.  I find @code{majority}
+works best.
 @end defvar
 
 @node Store custom flags and keywords
@@ -26095,17 +26093,12 @@ The registry has a simple API that uses a Message-ID as the key to
 store arbitrary data (as long as it can be converted to a list for
 storage).
 
-@defun gnus-registry-store-extra-entry (id key value)
-Store @code{value} in the extra data key @code{key} for message
-@code{id}.
+@defun gnus-registry-set-id-key (id key value)
+Store @code{value} under @code{key} for message @code{id}.
 @end defun
 
-@defun gnus-registry-delete-extra-entry (id key)
-Delete the extra data key @code{key} for message @code{id}.
-@end defun
-
-@defun gnus-registry-fetch-extra (id key)
-Get the extra data key @code{key} for message @code{id}.
+@defun gnus-registry-get-id-key (id key)
+Get the data under @code{key} for message @code{id}.
 @end defun
 
 @defvar gnus-registry-extra-entries-precious

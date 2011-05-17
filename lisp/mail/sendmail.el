@@ -43,12 +43,14 @@
   :version "22.1")
 
 (defcustom sendmail-program
-  (cond
-    ((file-exists-p "/usr/sbin/sendmail") "/usr/sbin/sendmail")
-    ((file-exists-p "/usr/lib/sendmail") "/usr/lib/sendmail")
-    ((file-exists-p "/usr/ucblib/sendmail") "/usr/ucblib/sendmail")
-    (t "fakemail"))			;In ../etc, to interface to /bin/mail.
+  (or (executable-find "sendmail")
+      (cond
+       ((file-exists-p "/usr/sbin/sendmail") "/usr/sbin/sendmail")
+       ((file-exists-p "/usr/lib/sendmail") "/usr/lib/sendmail")
+       ((file-exists-p "/usr/ucblib/sendmail") "/usr/ucblib/sendmail")
+       (t "fakemail")))	       ; in lib-src, to interface to /bin/mail
   "Program used to send messages."
+  :version "24.1"			; added executable-find
   :group 'mail
   :type 'file)
 
@@ -141,14 +143,18 @@ Otherwise, let mailer send back a message to report errors."
 ;; standard value.
 ;;;###autoload
 (put 'send-mail-function 'standard-value
-     '((if (and window-system (memq system-type '(darwin windows-nt)))
+     ;; MS-Windows can access the clipboard even under -nw.
+     '((if (or (and window-system (eq system-type 'darwin))
+	       (eq system-type 'windows-nt))
 	   'mailclient-send-it
 	 'sendmail-send-it)))
 
 ;; Useful to set in site-init.el
 ;;;###autoload
 (defcustom send-mail-function
-  (if (and window-system (memq system-type '(darwin windows-nt)))
+  (if (or (and window-system (eq system-type 'darwin))
+	  ;; MS-Windows can access the clipboard even under -nw.
+	  (eq system-type 'windows-nt))
       'mailclient-send-it
     'sendmail-send-it)
   "Function to call to send the current buffer as mail.
@@ -293,7 +299,7 @@ The default value matches citations like `foo-bar>' plus whitespace."
 (defvar mail-abbrevs-loaded nil)
 (defvar mail-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\M-\t" 'mail-complete)
+    (define-key map "\M-\t" 'completion-at-point)
     (define-key map "\C-c?" 'describe-mode)
     (define-key map "\C-c\C-f\C-t" 'mail-to)
     (define-key map "\C-c\C-f\C-b" 'mail-bcc)
@@ -684,6 +690,8 @@ Turning on Mail mode runs the normal hooks `text-mode-hook' and
   (setq adaptive-fill-first-line-regexp
 	(concat "[ \t]*[-[:alnum:]]*>+[ \t]*\\|"
 		adaptive-fill-first-line-regexp))
+  (add-hook 'completion-at-point-functions #'mail-completion-at-point-function
+            nil 'local)
   ;; `-- ' precedes the signature.  `-----' appears at the start of the
   ;; lines that delimit forwarded messages.
   ;; Lines containing just >= 3 dashes, perhaps after whitespace,
@@ -1027,9 +1035,6 @@ external program defined by `sendmail-program'."
 	delimline
 	fcc-was-found
 	(mailbuf (current-buffer))
-	(program (if (boundp 'sendmail-program)
-		     sendmail-program
-		   "/usr/lib/sendmail"))
 	;; Examine these variables now, so that
 	;; local binding in the mail buffer will take effect.
 	(envelope-from
@@ -1155,7 +1160,7 @@ external program defined by `sendmail-program'."
 		     (coding-system-for-write selected-coding)
 		     (args
 		      (append (list (point-min) (point-max)
-				    program
+				    sendmail-program
 				    nil errbuf nil "-oi")
 			      (and envelope-from
 				   (list "-f" envelope-from))

@@ -114,6 +114,7 @@ get_data_end (void)
   return data_region_end;
 }
 
+#if !defined (USE_LISP_UNION_TYPE) && !defined (USE_LSB_TAG)
 static char *
 allocate_heap (void)
 {
@@ -140,9 +141,31 @@ allocate_heap (void)
 
   return ptr;
 }
+#else  /* USE_LISP_UNION_TYPE || USE_LSB_TAG */
+static char *
+allocate_heap (void)
+{
+  unsigned long size = 0x80000000; /* start by asking for 2GB */
+  void *ptr = NULL;
+
+  while (!ptr && size > 0x00100000)
+    {
+      reserved_heap_size = size;
+      ptr = VirtualAlloc (NULL,
+			  get_reserved_heap_size (),
+			  MEM_RESERVE,
+			  PAGE_NOACCESS);
+      size -= 0x00800000; /* if failed, decrease request by 8MB */
+    }
+
+  return ptr;
+}
+#endif /* USE_LISP_UNION_TYPE || USE_LSB_TAG */
 
 
-/* Emulate Unix sbrk.  */
+/* Emulate Unix sbrk.  Note that ralloc.c expects the return value to
+   be the address of the _start_ (not end) of the new block in case of
+   success, and zero (not -1) in case of failure.  */
 void *
 sbrk (unsigned long increment)
 {

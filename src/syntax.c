@@ -19,7 +19,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
+
 #include <ctype.h>
+#include <sys/types.h>
 #include <setjmp.h>
 #include "lisp.h"
 #include "commands.h"
@@ -95,12 +97,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define ST_COMMENT_STYLE (256 + 1)
 #define ST_STRING_STYLE (256 + 2)
 
-Lisp_Object Qsyntax_table_p, Qsyntax_table, Qscan_error;
+static Lisp_Object Qsyntax_table_p;
+static Lisp_Object Qsyntax_table, Qscan_error;
 
+#ifndef __GNUC__
 /* Used as a temporary in SYNTAX_ENTRY and other macros in syntax.h,
    if not compiled with GCC.  No need to mark it, since it is used
    only very temporarily.  */
 Lisp_Object syntax_temp;
+#endif
 
 /* This is the internal form of the parse state used in parse-partial-sexp.  */
 
@@ -138,6 +143,7 @@ static EMACS_INT find_start_begv;
 static int find_start_modiff;
 
 
+static Lisp_Object Fsyntax_table_p (Lisp_Object);
 static Lisp_Object skip_chars (int, Lisp_Object, Lisp_Object, int);
 static Lisp_Object skip_syntaxes (int, Lisp_Object, Lisp_Object);
 static Lisp_Object scan_lists (EMACS_INT, EMACS_INT, EMACS_INT, int);
@@ -171,7 +177,7 @@ struct gl_state_s gl_state;		/* Global state of syntax parser.  */
    start/end of OBJECT.  */
 
 void
-update_syntax_table (EMACS_INT charpos, int count, int init,
+update_syntax_table (EMACS_INT charpos, EMACS_INT count, int init,
 		     Lisp_Object object)
 {
   Lisp_Object tmp_table;
@@ -975,7 +981,7 @@ text property.  */)
 	break;
       }
 
-  if (val < XVECTOR (Vsyntax_code_object)->size && NILP (match))
+  if (val < ASIZE (Vsyntax_code_object) && NILP (match))
     return XVECTOR (Vsyntax_code_object)->contents[val];
   else
     /* Since we can't use a shared object, let's make a new one.  */
@@ -1366,8 +1372,6 @@ and the function returns nil.  Field boundaries are not noticed if
   return val == orig_val ? Qt : Qnil;
 }
 
-Lisp_Object skip_chars (int, Lisp_Object, Lisp_Object, int);
-
 DEFUN ("skip-chars-forward", Fskip_chars_forward, Sskip_chars_forward, 1, 2, 0,
        doc: /* Move point forward, stopping before a char not in STRING, or at pos LIM.
 STRING is like the inside of a `[...]' in a regular expression
@@ -3368,7 +3372,7 @@ init_syntax_once (void)
 
   /* Create objects which can be shared among syntax tables.  */
   Vsyntax_code_object = Fmake_vector (make_number (Smax), Qnil);
-  for (i = 0; i < XVECTOR (Vsyntax_code_object)->size; i++)
+  for (i = 0; i < ASIZE (Vsyntax_code_object); i++)
     XVECTOR (Vsyntax_code_object)->contents[i]
       = Fcons (make_number (i), Qnil);
 

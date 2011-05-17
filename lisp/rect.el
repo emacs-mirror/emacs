@@ -281,7 +281,7 @@ no text on the right side of the rectangle."
 		 (= (point) (point-at-eol)))
       (indent-to endcol))))
 
-(defun delete-whitespace-rectangle-line (startcol endcol fill)
+(defun delete-whitespace-rectangle-line (startcol _endcol fill)
   (when (= (move-to-column startcol (if fill t 'coerce)) startcol)
     (unless (= (point) (point-at-eol))
       (delete-region (point) (progn (skip-syntax-forward " ") (point))))))
@@ -373,7 +373,7 @@ rectangle which were empty."
 ;; Line numbers for `rectangle-number-line-callback'.
 (defvar rectangle-number-line-counter)
 
-(defun rectangle-number-line-callback (start end format-string)
+(defun rectangle-number-line-callback (start _end format-string)
   (move-to-column start t)
   (insert (format format-string rectangle-number-line-counter))
   (setq rectangle-number-line-counter

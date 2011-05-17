@@ -608,7 +608,9 @@ example,
 
 @example
 (setq c-default-style
-      '((java-mode . "java") (awk-mode . "awk") (other . "gnu")))
+      '((java-mode . "java")
+        (awk-mode . "awk")
+        (other . "gnu")))
 @end example
 
 @noindent

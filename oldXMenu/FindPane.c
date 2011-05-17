@@ -15,6 +15,7 @@
  */
 
 #include "XMenuInt.h"
+#include <string.h>
 
 int
 XMenuFindPane(register XMenu *menu, register char *label)
@@ -60,4 +61,3 @@ XMenuFindPane(register XMenu *menu, register char *label)
     _XMErrorCode = XME_P_NOT_FOUND;
     return (XM_FAILURE);
 }
-

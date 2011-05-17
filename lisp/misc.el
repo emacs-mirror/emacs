@@ -1,4 +1,4 @@
-;;; misc.el --- some nonstandard basic editing commands for Emacs
+;;; misc.el --- some nonstandard editing and utility commands for Emacs
 
 ;; Copyright (C) 1989, 2001-2011  Free Software Foundation, Inc.
 
@@ -24,6 +24,9 @@
 ;;; Commentary:
 
 ;;; Code:
+
+(eval-when-compile
+  (require 'tabulated-list))
 
 (defun copy-from-above-command (&optional arg)
   "Copy characters from previous nonblank line, starting just above point.
@@ -128,6 +131,59 @@ variation of `C-x M-c M-butterfly' from url `http://xkcd.com/378/'."
 	(message "Successfully flipped one bit!"))
     (message "Well, then go to xkcd.com!")
     (browse-url "http://xkcd.com/378/")))
+
+;; A command to list dynamically loaded libraries.  This useful in
+;; environments where dynamic-library-alist is used, i.e., Windows
+
+(defvar list-dynamic-libraries--loaded-only-p)
+(make-variable-buffer-local 'list-dynamic-libraries--loaded-only-p)
+
+(defun list-dynamic-libraries--refresh ()
+  "Recompute the list of dynamic libraries.
+Internal use only."
+  (setq tabulated-list-format  ; recomputed because column widths can change
+        (let ((max-id-len 0) (max-name-len 0))
+          (dolist (lib dynamic-library-alist)
+            (let ((id-len (length (symbol-name (car lib))))
+                  (name-len (apply 'max (mapcar 'length (cdr lib)))))
+              (when (> id-len max-id-len) (setq max-id-len id-len))
+              (when (> name-len max-name-len) (setq max-name-len name-len))))
+          (vector (list "Library" (1+ max-id-len) t)
+                  (list "Loaded from" (1+ max-name-len) t)
+                  (list "Candidate names" 0 t))))
+  (setq tabulated-list-entries nil)
+  (dolist (lib dynamic-library-alist)
+    (let* ((id (car lib))
+           (from (get id :loaded-from)))
+      (when (or from
+                (not list-dynamic-libraries--loaded-only-p))
+        (push (list id (vector (symbol-name id)
+                               (or from "")
+                               (mapconcat 'identity (cdr lib) ", ")))
+              tabulated-list-entries)))))
+
+;;;###autoload
+(defun list-dynamic-libraries (&optional loaded-only-p buffer)
+  "Display a list of all dynamic libraries known to Emacs.
+\(These are the libraries listed in `dynamic-library-alist'.)
+If optional argument LOADED-ONLY-P (interactively, prefix arg)
+is non-nil, only libraries already loaded are listed.
+Optional argument BUFFER specifies a buffer to use, instead of
+\"*Dynamic Libraries*\".
+The return value is always nil."
+  (interactive "P")
+  (unless (bufferp buffer)
+    (setq buffer (get-buffer-create "*Dynamic Libraries*")))
+  (with-current-buffer buffer
+    (tabulated-list-mode)
+    (setq tabulated-list-sort-key (cons "Library" nil))
+    (add-hook 'tabulated-list-revert-hook 'list-dynamic-libraries--refresh nil t)
+    (tabulated-list-init-header)
+    (setq list-dynamic-libraries--loaded-only-p loaded-only-p)
+    (list-dynamic-libraries--refresh)
+    (tabulated-list-print))
+  (display-buffer buffer)
+  nil)
 
 (provide 'misc)
 

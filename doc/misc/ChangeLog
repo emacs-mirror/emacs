@@ -1,3 +1,36 @@
+2011-05-17  Glenn Morris  <rgm@gnu.org>
+
+	* gnus.texi (Face): Fix typo.
+
+2011-05-14  Glenn Morris  <rgm@gnu.org>
+
+	* dired-x.texi (Omitting Examples): Minor addition.
+
+2011-05-10  Jim Meyering  <meyering@redhat.com>
+
+	* ede.texi: Fix typo "or or -> or".
+
+2011-05-03  Peter Münster  <pmlists@free.fr>  (tiny change)
+
+	* gnus.texi (Summary Buffer Lines):
+	gnus-summary-user-date-format-alist does not exist.
+	(Sorting the Summary Buffer): More about sorting threads.
+
+2011-04-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* trampver.texi: Update release number.
+
+2011-04-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Frequently Asked Questions): New item for disabling
+	Tramp in other packages.
+
+2011-04-14  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus.texi (nnmairix caveats, Setup, Registry Article Refer Method)
+	(Fancy splitting to parent, Store arbitrary data): Updated
+	gnus-registry docs.
+
 2011-04-13  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ede.texi: Fix typos.

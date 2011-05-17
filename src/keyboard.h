@@ -190,9 +190,6 @@ extern KBOARD *current_kboard;
 
 /* A list of all kboard objects, linked through next_kboard.  */
 extern KBOARD *all_kboards;
-
-/* Nonzero in the single-kboard state, 0 in the any-kboard state.  */
-extern int single_kboard;
 
 /* Total number of times read_char has returned, modulo SIZE_MAX + 1.  */
 extern size_t num_input_events;
@@ -408,15 +405,10 @@ typedef struct _widget_value
 extern Lisp_Object Qswitch_frame;
 
 /* Properties on event heads.  */
-extern Lisp_Object Qevent_kind, Qevent_symbol_elements;
-
-/* Getting an unmodified version of an event head.  */
-#define EVENT_HEAD_UNMODIFIED(event_head) \
-  (Fcar (Fget ((event_head), Qevent_symbol_elements)))
+extern Lisp_Object Qevent_kind;
 
 /* The values of Qevent_kind properties.  */
-extern Lisp_Object Qfunction_key, Qmouse_click, Qmouse_movement;
-extern Lisp_Object Qscroll_bar_movement;
+extern Lisp_Object Qmouse_click;
 
 extern Lisp_Object Qhelp_echo;
 
@@ -434,7 +426,9 @@ extern int waiting_for_input;
    happens.  */
 extern EMACS_TIME *input_available_clear_time;
 
+#if defined HAVE_WINDOW_SYSTEM && !defined USE_GTK && !defined HAVE_NS
 extern int ignore_mouse_drag_p;
+#endif
 
 /* The primary selection.  */
 extern Lisp_Object QPRIMARY;
@@ -454,9 +448,7 @@ extern Lisp_Object real_this_command;
 
 /* Non-nil disable property on a command means
    do not execute it; call disabled-command-function's value instead.  */
-extern Lisp_Object QCbutton, QCtoggle, QCradio, QClabel;
-
-extern Lisp_Object Qinput_method_function;
+extern Lisp_Object QCtoggle, QCradio;
 
 /* An event header symbol HEAD may have a property named
    Qevent_symbol_element_mask, which is of the form (BASE MODIFIERS);
@@ -476,7 +468,6 @@ extern int timers_run;
 extern int menu_separator_name_p (const char *);
 extern int parse_menu_item (Lisp_Object, int);
 
-extern void echo_now (void);
 extern void init_kboard (KBOARD *);
 extern void delete_kboard (KBOARD *);
 extern void not_single_kboard_state (KBOARD *);
@@ -498,8 +489,6 @@ extern int make_ctrl_char (int);
 extern void stuff_buffered_input (Lisp_Object);
 extern void clear_waiting_for_input (void);
 extern void swallow_events (int);
-extern int help_char_p (Lisp_Object);
-extern void quit_throw_to_read_char (void) NO_RETURN;
 extern int lucid_event_type_list_p (Lisp_Object);
 extern void kbd_buffer_store_event (struct input_event *);
 extern void kbd_buffer_store_event_hold (struct input_event *,

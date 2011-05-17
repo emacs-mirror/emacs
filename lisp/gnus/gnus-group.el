@@ -4407,7 +4407,7 @@ and the second element is the address."
 ;; file.  Use with caution, if at all.
 (defun gnus-import-other-newsrc-file (file)
   (with-temp-buffer
-    (insert-file file)
+    (insert-file-contents file)
     (let (form)
       (while (ignore-errors
 	       (setq form (read (current-buffer))))
