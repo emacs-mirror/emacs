@@ -1,3 +1,13 @@
+2011-05-17  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/appt.el (appt-message-warning-time, appt-display-mode-line)
+	(appt-display-diary, appt-display-interval, appt-prev-comp-time)
+	(appt-check): Doc fixes.
+	(appt-disp-window-function, appt-delete-window-function):
+	Remove needless special case in custom :type.
+	(appt-display-count): Default to 0, not nil.
+	(appt-check): Reset appt-display-count to 0, not nil.
+
 2011-05-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/python.el (python-font-lock-keywords):
