@@ -1,6 +1,6 @@
 ;;; md4.el --- MD4 Message Digest Algorithm.
 
-;; Copyright (C) 2001, 2004, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2004, 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Taro Kawagishi <tarok@transpulse.org>
 ;; Keywords: MD4
@@ -225,5 +225,4 @@ integers (cons high low)."
 
 (provide 'md4)
 
-;; arch-tag: 99d706fe-089b-42ea-9507-67ae41091e6e
 ;;; md4.el ends here

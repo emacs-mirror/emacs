@@ -1,6 +1,5 @@
 /* Heap management routines (including unexec) for GNU Emacs on Windows NT.
-   Copyright (C) 1994, 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1994, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -41,8 +40,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 #define get_w32_major_version()  	w32_major_version
 #define get_w32_minor_version()  	w32_minor_version
 
-extern unsigned char *get_data_start();
-extern unsigned char *get_data_end();
+extern unsigned char *get_data_start (void);
+extern unsigned char *get_data_end (void);
 extern unsigned long  reserved_heap_size;
 extern SYSTEM_INFO    sysinfo_cache;
 extern OSVERSIONINFO  osinfo_cache;
@@ -62,7 +61,7 @@ extern int os_subtype;
 extern void *sbrk (unsigned long size);
 
 /* Initialize heap structures for sbrk on startup.  */
-extern void init_heap ();
+extern void init_heap (void);
 
 /* Round the heap to this size.  */
 extern void round_heap (unsigned long size);
@@ -94,5 +93,3 @@ IMAGE_SECTION_HEADER * rva_to_section (DWORD rva, IMAGE_NT_HEADERS * nt_header);
 
 #endif /* NTHEAP_H_ */
 
-/* arch-tag: 3ba4cbe1-8a09-4a41-8f37-fd31f7426b3c
-   (do not change this comment) */

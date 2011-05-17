@@ -2,16 +2,14 @@
 
 #include "copyright.h"
 
-
-#include <X11/Xlib.h>
-#include "X10.h"
+#include "XMenuInt.h"
 
 /*
  * XDestroyAssocTable - Destroy (free the memory associated with)
  * an XAssocTable.
  */
-XDestroyAssocTable(table)
-	register XAssocTable *table;
+void
+XDestroyAssocTable(register XAssocTable *table)
 {
 	register int i;
 	register XAssoc *bucket;
@@ -36,6 +34,3 @@ XDestroyAssocTable(table)
 	/* Free the table. */
 	free((char *)table);
 }
-
-/* arch-tag: a536bf02-8d63-45f2-8c1a-c7f9fd4da2cf
-   (do not change this comment) */

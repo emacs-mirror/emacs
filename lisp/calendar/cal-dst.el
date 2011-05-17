@@ -1,13 +1,13 @@
 ;;; cal-dst.el --- calendar functions for daylight saving rules
 
-;; Copyright (C) 1993, 1994, 1995, 1996, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1996, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Paul Eggert <eggert@twinsun.com>
 ;;         Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
 ;; Keywords: calendar
 ;; Human-Keywords: daylight saving time, calendar, diary, holidays
+;; Package: calendar
 
 ;; This file is part of GNU Emacs.
 
@@ -445,15 +445,11 @@ Fractional part of DATE is local standard time of day."
            (or (<= dst-starts date) (< date dst-ends))))))
 
 ;; used by calc, lunar, solar.
-(defun dst-adjust-time (date time &optional style)
+(defun dst-adjust-time (date time)
   "Adjust, to account for dst on DATE, decimal fraction standard TIME.
 Returns a list (date adj-time zone) where `date' and `adj-time' are the values
 adjusted for `zone'; here `date' is a list (month day year), `adj-time' is a
 decimal fraction time, and `zone' is a string.
-
-Optional parameter STYLE forces the result time to be standard time when its
-value is 'standard and daylight saving time (if available) when its value is
-'daylight.
 
 Conversion to daylight saving time is done according to
 `calendar-daylight-savings-starts', `calendar-daylight-savings-ends',
@@ -473,5 +469,4 @@ Conversion to daylight saving time is done according to
 
 (provide 'cal-dst)
 
-;; arch-tag: a141d204-213c-4ca5-bdc6-f9df3aa92aad
 ;;; cal-dst.el ends here

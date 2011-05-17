@@ -1,7 +1,6 @@
 ;;; url-ftp.el --- FTP wrapper
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2011 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -41,5 +40,4 @@
 
 (provide 'url-ftp)
 
-;; arch-tag: 9c3e70c4-350f-4d4a-bb51-a1e9b459e7dc
 ;;; url-ftp.el ends here

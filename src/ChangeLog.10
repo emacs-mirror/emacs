@@ -3252,7 +3252,7 @@
 2006-07-02  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (display_tool_bar_line): Skip glyphs which are too big
-	to ever fit the tool-bar,
+	to ever fit the tool-bar.
 	(MAX_FRAME_TOOL_BAR_HEIGHT): New macro.
 	(tool_bar_lines_needed): Use unused mode-line row as temp_row.
 	(redisplay_tool_bar): Only clear desired matrix if we actually
@@ -4644,10 +4644,6 @@
 
 	* image.c: Include "charset.h" and "coding.h".
 	(x_find_image_file): Return an encoded file name.
-
-2006-04-01  Eli Zaretskii  <eliz@gnu.org>
-
-	* configure: Regenerated.
 
 2006-03-31  Kenichi Handa  <handa@m17n.org>
 
@@ -6918,7 +6914,7 @@
 
 	* search.c (search_buffer): Give up BM search on case-fold-search
 	if one of a target character has a case-equivalence of different
-	charset even if that target charcter is an ASCII.
+	charset even if that target character is an ASCII.
 
 	* casefiddle.c (casify_object): Fix for the case that case
 	conversion change the byte length.
@@ -7873,7 +7869,7 @@
 
 2005-07-19  Juanma Barranquero  <lekktu@gmail.com>
 
-	* eval.c (Fprog2, Fcalled_interactively_p),
+	* eval.c (Fprog2, Fcalled_interactively_p)
 	(syms_of_eval) <debug-on-quit>: Doc fixes.
 	(syms_of_eval) <max-specpdl-size>:
 	(Finteractive_p): Fix typos in docstrings.
@@ -11254,7 +11250,7 @@
 2004-12-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (endif, x_font_name_to_mac_font_name):
-	Use maccentraleurroman instead of maccentraleuropean
+	Use maccentraleurroman instead of maccentraleuropean.
 	(mac_c_string_match, mac_do_list_fonts): Speed up font search by
 	quickly finding a specific font without needing regexps.
 
@@ -12481,7 +12477,7 @@
 
 	* gtkutil.h (xg_frame_cleared): Remove.
 
-	* xterm.c (x_clear_frame): Remove call to xg_frame_cleared
+	* xterm.c (x_clear_frame): Remove call to xg_frame_cleared.
 	(x_scroll_bar_create, XTset_vertical_scroll_bar):
 	Remove arguments left and width to xg_update_scrollbar_pos.
 	(XTset_vertical_scroll_bar): Do x_clear_area for USE_GTK also.
@@ -13021,9 +13017,9 @@
 
 	* macmenu.c (ENCODE_MENU_STRING): Added to handle multibyte
 	strings in menu items.
-	(single_submenu): Use ENCODE_MENU_STRING
+	(single_submenu): Use ENCODE_MENU_STRING.
 	(mac_menu_show): Use ENCODE_MENU_STRING.  Reset grabbed because
-	button release isn't passed to event loop
+	button release isn't passed to event loop.
 	(add_menu_item): Use SetMenuItemWithCFString.
 
 2004-08-26  Steven Tamm  <steventamm@mac.com>
@@ -15411,7 +15407,7 @@
 	(Fxw_display_color_p): Use dpyinfo->color_p.
 	(Fx_display_grayscale_p, Fx_display_planes): Don't use
 	dpyinfo->n_cbits.
-	(Fx_display_color_cells): Use dpyinfo->n_planes;
+	(Fx_display_color_cells): Use dpyinfo->n_planes.
 	(QCmatrix, QCcolor_adjustment, QCmask, Qemboss, Qedge_detection)
 	(Qheuristic, cross_disabled_images, emboss_matrix)
 	(laplace_matrix): New variables (from xfns.c).
@@ -16418,7 +16414,7 @@
 	(append_glyph, append_composite_glyph, produce_image_glyph)
 	(append_stretch_glyph): Set glyph's ascent and descent.
 	(on_hot_spot_p): New function to check if position is inside an
-	rectangular, circular, or polygon-shaped image hot-spot,
+	rectangular, circular, or polygon-shaped image hot-spot.
 	(find_hot_spot): New function to search for image hot-spot.
 	(Flookup_image_map): New defun to search for image hot-spot.
 	(define_frame_cursor1): New aux function to determine frame
@@ -18574,7 +18570,7 @@
 	change/simplify relevant callers.
 	(x_y_to_hpos_vpos): Adapt to per-window fringes and scroll bars,
 	and new fringe vs. display margin position.
-	Use window_box_left_offset and window_box_right_offset
+	Use window_box_left_offset and window_box_right_offset.
 	(get_glyph_string_clip_rect): Adapt to per-window fringes and
 	scroll bars, and new fringe vs. display margin position.
 	Use WINDOW_LEFT_EDGE_X and WINDOW_TOTAL_WIDTH.
@@ -20006,7 +20002,7 @@
 
 	* w32reg.c (w32_get_rdb_resource): New function.
 	(x_get_string_resource): Use it, so resources passed with -xrm
-	supercede the ones in the registry.
+	supersede the ones in the registry.
 
 2003-03-04  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -21093,7 +21089,7 @@
 
 	* w32.c (g_b_init_is_windows_9x, g_b_init_open_process_token)
 	(g_b_init_get_token_information, g_b_init_lookup_account_sid)
-	(g_b_init_get_sid_identifier_authority ): Add several static
+	(g_b_init_get_sid_identifier_authority): Add several static
 	global variables.
 
 	* w32.c (globals_of_w32): New function.  Used to initialize those
@@ -25478,7 +25474,7 @@
 	recursive call unless that arg is non-nil.
 	(where_is_internal): New argument no_remap.  Callers changed.
 	Call recursively to find original key bindings for a remapped
-	comand unless that arg is non-nil.
+	command unless that arg is non-nil.
 	(Fwhere_is_internal): New optional argument NO-REMAP.
 	Doc updated.  Callers changed.  Pass arg to where_is_internal.
 
@@ -27916,8 +27912,7 @@ See ChangeLog.9 for earlier changes.
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-	2008, 2009, 2010 Free Software Foundation, Inc.
+    Copyright (C) 2001-2011 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -27934,4 +27929,3 @@ See ChangeLog.9 for earlier changes.
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-;;; arch-tag: 5dcc435f-4038-4141-b3bf-5be51cd76bd4

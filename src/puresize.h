@@ -1,6 +1,5 @@
 /* How much read-only Lisp storage a dumped Emacs needs.
-   Copyright (C) 1993, 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1993, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -72,7 +71,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   { if (PURE_P (obj))	  \
       pure_write_error (); }
 
-extern void pure_write_error P_ ((void)) NO_RETURN;
+extern void pure_write_error (void) NO_RETURN;
 
 /* Define PURE_P.  */
 
@@ -87,7 +86,6 @@ extern EMACS_INT pure[];
   && (PNTR_COMPARISON_TYPE) XPNTR (obj) >= (PNTR_COMPARISON_TYPE) pure)
 
 #else /* not VIRT_ADDR_VARIES */
-#ifdef PNTR_COMPARISON_TYPE
 /* When PNTR_COMPARISON_TYPE is not the default (unsigned int).  */
 
 extern char my_edata[];
@@ -95,15 +93,5 @@ extern char my_edata[];
 #define PURE_P(obj) \
   ((PNTR_COMPARISON_TYPE) XPNTR (obj) < (PNTR_COMPARISON_TYPE) my_edata)
 
-#else /* not VIRT_ADDRESS_VARIES, not PNTR_COMPARISON_TYPE */
-
-extern char my_edata[];
-
-#define PURE_P(obj) \
-  (XPNTR (obj) < (unsigned int) my_edata)
-
-#endif /* PNTR_COMPARISON_TYPE */
 #endif /* VIRT_ADDRESS_VARIES */
 
-/* arch-tag: fd9b0a91-a70e-4729-a75a-6bb4ca1ce14f
-   (do not change this comment) */

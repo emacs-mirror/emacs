@@ -1,6 +1,6 @@
 ;;; rng-valid.el --- real-time validation of XML using RELAX NG
 
-;; Copyright (C) 2003, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML, RelaxNG
@@ -110,12 +110,12 @@
   :group 'relax-ng)
 
 (defcustom rng-state-cache-distance 2000
-  "*Distance in characters between each parsing and validation state cache."
+  "Distance in characters between each parsing and validation state cache."
   :type 'integer
   :group 'relax-ng)
 
 (defcustom rng-validate-chunk-size 8000
-  "*Number of characters in a RELAX NG validation chunk.
+  "Number of characters in a RELAX NG validation chunk.
 A validation chunk will be the smallest chunk that is at least this
 size and ends with a tag.  After validating a chunk, validation will
 continue only if Emacs is still idle."
@@ -123,14 +123,14 @@ continue only if Emacs is still idle."
   :group 'relax-ng)
 
 (defcustom rng-validate-delay 1.5
-  "*Time in seconds that Emacs must be idle before starting a full validation.
+  "Time in seconds that Emacs must be idle before starting a full validation.
 A full validation continues until either validation is up to date
 or Emacs is no longer idle."
   :type 'number
   :group 'relax-ng)
 
 (defcustom rng-validate-quick-delay 0.3
-  "*Time in seconds that Emacs must be idle before starting a quick validation.
+  "Time in seconds that Emacs must be idle before starting a quick validation.
 A quick validation validates at most one chunk."
   :type 'number
   :group 'relax-ng)
@@ -518,6 +518,9 @@ Return t if there is work to do, nil otherwise."
 			     (goto-char pos))
 			    (t (rng-set-initial-state))))))))))
 
+(defun rng-dtd-trivial-p (dtd)
+  "Check whether the current dtd is different from the trivial default."
+  (or (null dtd) (eq dtd xmltok-predefined-entity-alist)))
 
 (defun rng-do-some-validation-1 (&optional continue-p-function)
   (let ((limit (+ rng-validate-up-to-date-end
@@ -1461,5 +1464,4 @@ string between START and END."
 
 (provide 'rng-valid)
 
-;; arch-tag: 7dd846d3-519d-4a6d-8107-4ff0024a60ef
 ;;; rng-valid.el ends here

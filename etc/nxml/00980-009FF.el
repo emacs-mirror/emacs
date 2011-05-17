@@ -90,4 +90,3 @@
     ("BENGALI ISSHAR" #x09FA)
     ))
 
-;; arch-tag: 66599f15-c2b7-436a-9737-577d4f041abd

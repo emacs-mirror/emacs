@@ -1,6 +1,6 @@
 ;;; erc-pcomplete.el --- Provides programmable completion for ERC
 
-;; Copyright (C) 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2011 Free Software Foundation, Inc.
 
 ;; Author: Sacha Chua <sacha@free.net.ph>
 ;; Keywords: comm, convenience
@@ -48,7 +48,7 @@
   "Programmable completion for ERC"
   :group 'erc)
 
-(defcustom erc-pcomplete-nick-postfix ": "
+(defcustom erc-pcomplete-nick-postfix ":"
   "*When `pcomplete' is used in the first word after the prompt,
 add this string to nicks completed."
   :group 'erc-pcomplete
@@ -64,10 +64,16 @@ the most recent speakers are listed first."
 (define-erc-module pcomplete Completion
   "In ERC Completion mode, the TAB key does completion whenever possible."
   ((add-hook 'erc-mode-hook 'pcomplete-erc-setup)
-   (add-hook 'erc-complete-functions 'erc-pcomplete)
+   (add-hook 'erc-complete-functions 'erc-pcompletions-at-point)
    (erc-buffer-list #'pcomplete-erc-setup))
   ((remove-hook 'erc-mode-hook 'pcomplete-erc-setup)
-   (remove-hook 'erc-complete-functions 'erc-pcomplete)))
+   (remove-hook 'erc-complete-functions 'erc-pcompletions-at-point)))
+
+(defun erc-pcompletions-at-point ()
+  "ERC completion data from pcomplete.
+for use on `completion-at-point-function'."
+  (when (> (point) (erc-beg-of-input-line))
+    (pcomplete-completions-at-point)))
 
 (defun erc-pcomplete ()
   "Complete the nick before point."
@@ -87,8 +93,6 @@ the most recent speakers are listed first."
        t)
   (set (make-local-variable 'pcomplete-use-paring)
        nil)
-  (set (make-local-variable 'pcomplete-suffix-list)
-       '(?  ?:))
   (set (make-local-variable 'pcomplete-parse-arguments-function)
        'pcomplete-parse-erc-arguments)
   (set (make-local-variable 'pcomplete-command-completion-function)
@@ -279,4 +283,3 @@ up to where point is right now."
 ;; indent-tabs-mode: nil
 ;; End:
 
-;; arch-tag: 32a7703b-be87-45a4-82f3-9eed5a628911

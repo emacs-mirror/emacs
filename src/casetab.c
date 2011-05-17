@@ -1,6 +1,5 @@
 /* GNU Emacs routines to deal with case tables.
-   Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-                 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1993-1994, 2001-2011  Free Software Foundation, Inc.
 
 Author: Howard Gayle
 
@@ -25,24 +24,20 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include "character.h"
 
-Lisp_Object Qcase_table_p, Qcase_table;
-Lisp_Object Vascii_downcase_table, Vascii_upcase_table;
-Lisp_Object Vascii_canon_table, Vascii_eqv_table;
+static Lisp_Object Qcase_table_p, Qcase_table;
+Lisp_Object Vascii_downcase_table;
+static Lisp_Object Vascii_upcase_table;
+Lisp_Object Vascii_canon_table;
+static Lisp_Object Vascii_eqv_table;
 
-/* Used as a temporary in DOWNCASE and other macros in lisp.h.  No
-   need to mark it, since it is used only very temporarily.  */
-int case_temp1;
-Lisp_Object case_temp2;
-
-static void set_canon ();
-static void set_identity ();
-static void shuffle ();
+static void set_canon (Lisp_Object case_table, Lisp_Object range, Lisp_Object elt);
+static void set_identity (Lisp_Object table, Lisp_Object c, Lisp_Object elt);
+static void shuffle (Lisp_Object table, Lisp_Object c, Lisp_Object elt);
 
 DEFUN ("case-table-p", Fcase_table_p, Scase_table_p, 1, 1, 0,
        doc: /* Return t if OBJECT is a case table.
 See `set-case-table' for more information on these data structures.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   Lisp_Object up, canon, eqv;
 
@@ -63,8 +58,7 @@ See `set-case-table' for more information on these data structures.  */)
 }
 
 static Lisp_Object
-check_case_table (obj)
-     Lisp_Object obj;
+check_case_table (Lisp_Object obj)
 {
   CHECK_TYPE (!NILP (Fcase_table_p (obj)), Qcase_table_p, obj);
   return (obj);
@@ -72,20 +66,20 @@ check_case_table (obj)
 
 DEFUN ("current-case-table", Fcurrent_case_table, Scurrent_case_table, 0, 0, 0,
        doc: /* Return the case table of the current buffer.  */)
-     ()
+  (void)
 {
-  return current_buffer->downcase_table;
+  return BVAR (current_buffer, downcase_table);
 }
 
 DEFUN ("standard-case-table", Fstandard_case_table, Sstandard_case_table, 0, 0, 0,
        doc: /* Return the standard case table.
 This is the one used for new buffers.  */)
-     ()
+  (void)
 {
   return Vascii_downcase_table;
 }
 
-static Lisp_Object set_case_table ();
+static Lisp_Object set_case_table (Lisp_Object table, int standard);
 
 DEFUN ("set-case-table", Fset_case_table, Sset_case_table, 1, 1, 0,
        doc: /* Select a new case table for the current buffer.
@@ -104,25 +98,22 @@ CANONICALIZE maps each character to a canonical equivalent;
 EQUIVALENCES is a map that cyclicly permutes each equivalence class
  (of characters with the same canonical equivalent); it may be nil,
  in which case it is deduced from CANONICALIZE.  */)
-     (table)
-     Lisp_Object table;
+  (Lisp_Object table)
 {
   return set_case_table (table, 0);
 }
 
-DEFUN ("set-standard-case-table", Fset_standard_case_table, Sset_standard_case_table, 1, 1, 0,
+DEFUN ("set-standard-case-table", Fset_standard_case_table,
+       Sset_standard_case_table, 1, 1, 0,
        doc: /* Select a new standard case table for new buffers.
 See `set-case-table' for more info on case tables.  */)
-     (table)
-     Lisp_Object table;
+  (Lisp_Object table)
 {
   return set_case_table (table, 1);
 }
 
 static Lisp_Object
-set_case_table (table, standard)
-     Lisp_Object table;
-     int standard;
+set_case_table (Lisp_Object table, int standard)
 {
   Lisp_Object up, canon, eqv;
 
@@ -167,10 +158,10 @@ set_case_table (table, standard)
     }
   else
     {
-      current_buffer->downcase_table = table;
-      current_buffer->upcase_table = up;
-      current_buffer->case_canon_table = canon;
-      current_buffer->case_eqv_table = eqv;
+      BVAR (current_buffer, downcase_table) = table;
+      BVAR (current_buffer, upcase_table) = up;
+      BVAR (current_buffer, case_canon_table) = canon;
+      BVAR (current_buffer, case_eqv_table) = eqv;
     }
 
   return table;
@@ -184,8 +175,7 @@ set_case_table (table, standard)
    CASE_TABLE.  */
 
 static void
-set_canon (case_table, range, elt)
-     Lisp_Object case_table, range, elt;
+set_canon (Lisp_Object case_table, Lisp_Object range, Lisp_Object elt)
 {
   Lisp_Object up = XCHAR_TABLE (case_table)->extras[0];
   Lisp_Object canon = XCHAR_TABLE (case_table)->extras[1];
@@ -200,12 +190,12 @@ set_canon (case_table, range, elt)
    character.  This is called in map_char_table.  */
 
 static void
-set_identity (table, c, elt)
-     Lisp_Object table, c, elt;
+set_identity (Lisp_Object table, Lisp_Object c, Lisp_Object elt)
 {
   if (NATNUMP (elt))
     {
-      int from, to;
+      int from;
+      unsigned to;
 
       if (CONSP (c))
 	{
@@ -214,7 +204,7 @@ set_identity (table, c, elt)
 	}
       else
 	from = to = XINT (c);
-      for (; from <= to; from++)
+      for (to++; from < to; from++)
 	CHAR_TABLE_SET (table, from, make_number (from));
     }
 }
@@ -225,12 +215,12 @@ set_identity (table, c, elt)
    operated.  */
 
 static void
-shuffle (table, c, elt)
-     Lisp_Object table, c, elt;
+shuffle (Lisp_Object table, Lisp_Object c, Lisp_Object elt)
 {
   if (NATNUMP (elt))
     {
-      int from, to;
+      int from;
+      unsigned to;
 
       if (CONSP (c))
 	{
@@ -240,7 +230,7 @@ shuffle (table, c, elt)
       else
 	from = to = XINT (c);
 
-      for (; from <= to; from++)
+      for (to++; from < to; from++)
 	{
 	  Lisp_Object tem = Faref (table, elt);
 	  Faset (table, elt, make_number (from));
@@ -250,7 +240,7 @@ shuffle (table, c, elt)
 }
 
 void
-init_casetab_once ()
+init_casetab_once (void)
 {
   register int i;
   Lisp_Object down, up;
@@ -296,7 +286,7 @@ init_casetab_once ()
 }
 
 void
-syms_of_casetab ()
+syms_of_casetab (void)
 {
   Qcase_table_p = intern_c_string ("case-table-p");
   staticpro (&Qcase_table_p);
@@ -312,6 +302,3 @@ syms_of_casetab ()
   defsubr (&Sset_case_table);
   defsubr (&Sset_standard_case_table);
 }
-
-/* arch-tag: e06388ad-99fe-40ec-ba67-9d010fcc4916
-   (do not change this comment) */

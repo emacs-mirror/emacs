@@ -1,7 +1,6 @@
 ;;; semantic/analyze.el --- Analyze semantic tags against local context
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2000-2005, 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -101,7 +100,7 @@ Usually bound to the dimension of a single symbol or command.")
 	   :type list
 	   :documentation "List of tags defining local text.
 This can be nil, or a list where the last element can be a string
-representing text that may be incomplete.  Preceeding elements
+representing text that may be incomplete.  Preceding elements
 must be semantic tags representing variables or functions
 called in a dereference sequence.")
    (prefixclass :initarg :prefixclass
@@ -253,7 +252,7 @@ Optional argument THROWSYM specifies a symbol the throw on non-recoverable error
 	(tag nil)			; tag return list
 	(tagtype nil)			; tag types return list
 	(fname nil)
-	(miniscope (clone scope))
+	(miniscope (when scope (clone scope)))
 	)
     ;; First order check.  Is this wholely contained in the typecache?
     (setq tmp (semanticdb-typecache-find sequence))
@@ -297,11 +296,12 @@ Optional argument THROWSYM specifies a symbol the throw on non-recoverable error
 	      ;; and we can use it directly.
 	      (cond ((semantic-tag-of-class-p tmp 'type)
 		     ;; update the miniscope when we need to analyze types directly.
-		     (let ((rawscope
-			    (apply 'append
-				   (mapcar 'semantic-tag-type-members
-					   tagtype))))
-		       (oset miniscope fullscope rawscope))
+		     (when miniscope
+		       (let ((rawscope
+			      (apply 'append
+				     (mapcar 'semantic-tag-type-members
+					     tagtype))))
+			 (oset miniscope fullscope rawscope)))
 		     ;; Now analayze the type to remove metatypes.
 		     (or (semantic-analyze-type tmp miniscope)
 			 tmp))
@@ -351,7 +351,7 @@ Optional argument SCOPE specifies a scope object which has
 additional tags which are in SCOPE and do not need prefixing to
 find.
 
-This is a wrapper on top of semanticdb, semanticdb-typecache,
+This is a wrapper on top of semanticdb, semanticdb typecache,
 semantic-scope, and semantic search functions.  Almost all
 searches use the same arguments."
   (let ((namelst (if (consp name) name ;; test if pre-split.
@@ -794,5 +794,4 @@ CONTEXT's content is described in `semantic-analyze-current-context'."
 ;; generated-autoload-load-name: "semantic/analyze"
 ;; End:
 
-;; arch-tag: 1102143a-1c05-4631-83e8-45aafc6b4a59
 ;;; semantic/analyze.el ends here

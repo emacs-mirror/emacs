@@ -1,7 +1,6 @@
 ;;; eshell.el --- the Emacs command shell
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Version: 2.4.2
@@ -281,24 +280,11 @@ shells such as bash, zsh, rc, 4dos."
   :type 'string
   :group 'eshell)
 
-(eshell-deftest mode same-window-buffer-names
-  "`eshell-buffer-name' is a member of `same-window-buffer-names'"
-  (member eshell-buffer-name same-window-buffer-names))
-
-(defcustom eshell-directory-name (convert-standard-filename "~/.eshell/")
+(defcustom eshell-directory-name
+  (locate-user-emacs-file "eshell/" ".eshell/")
   "The directory where Eshell control files should be kept."
   :type 'directory
   :group 'eshell)
-
-(eshell-deftest mode eshell-directory-exists
-  "`eshell-directory-name' exists and is writable"
-  (file-writable-p eshell-directory-name))
-
-(eshell-deftest mode eshell-directory-modes
-  "`eshell-directory-name' has correct access protections"
-  (or (eshell-under-windows-p)
-      (= (file-modes eshell-directory-name)
-	 eshell-private-directory-modes)))
 
 ;;;_* Running Eshell
 ;;
@@ -404,7 +390,7 @@ With prefix ARG, insert output into the current buffer at point."
 	  (assert (not (eshell-interactive-process)))
 	  (goto-char (point-max))
 	  (while (and (bolp) (not (bobp)))
-	    (delete-backward-char 1)))
+	    (delete-char -1)))
 	(assert (and buf (buffer-live-p buf)))
 	(unless arg
 	  (let ((len (if (not intr) 2
@@ -450,10 +436,6 @@ corresponding to a successful execution."
 	      (set status-var eshell-last-command-status))
 	  (cadr result))))))
 
-(eshell-deftest mode simple-command-result
-  "`eshell-command-result' works with a simple command."
-  (= (eshell-command-result "+ 1 2") 3))
-
 ;;;_* Reporting bugs
 ;;
 ;; If you do encounter a bug, on any system, please report
@@ -474,7 +456,7 @@ Emacs."
   ;; if the user set `eshell-prefer-to-shell' to t, but never loaded
   ;; Eshell, then `eshell-subgroups' will be unbound
   (when (fboundp 'eshell-subgroups)
-    (eshell-for module (eshell-subgroups 'eshell)
+    (dolist (module (eshell-subgroups 'eshell))
       ;; this really only unloads as many modules as possible,
       ;; since other `require' references (such as by customizing
       ;; `eshell-prefer-to-shell' to a non-nil value) might make it
@@ -490,5 +472,4 @@ Emacs."
 
 (provide 'eshell)
 
-;; arch-tag: 9d4d5214-0e4e-4e02-b349-39add640d63f
 ;;; eshell.el ends here

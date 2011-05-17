@@ -1,11 +1,12 @@
 ;;; eieio-base.el --- Base classes for EIEIO.
 
-;;; Copyright (C) 2000, 2001, 2002, 2004, 2005, 2007, 2008, 2009, 2010
+;;; Copyright (C) 2000-2002, 2004-2005, 2007-2011
 ;;; Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam  <zappo@gnu.org>
 ;; Version: 0.2
 ;; Keywords: OO, lisp
+;; Package: eieio
 
 ;; This file is part of GNU Emacs.
 
@@ -328,5 +329,4 @@ a set type."
 
 (provide 'eieio-base)
 
-;; arch-tag: 6260571e-9e8a-41a0-880f-a937b0c2ea8b
 ;;; eieio-base.el ends here

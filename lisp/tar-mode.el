@@ -1,8 +1,6 @@
-;;; tar-mode.el --- simple editing of tar files from GNU emacs
+;;; tar-mode.el --- simple editing of tar files from GNU Emacs
 
-;; Copyright (C) 1990, 1991, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1990-1991, 1993-2011  Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;; Maintainer: FSF
@@ -222,7 +220,7 @@ Preserve the modified states of the buffers and set `buffer-swapped-with'."
 (defun tar-roundup-512 (s)
   "Round S up to the next multiple of 512."
   (ash (ash (+ s 511) -9) 9))
- 
+
 (defun tar-header-block-tokenize (pos coding)
   "Return a `tar-header' structure.
 This is a list of name, mode, uid, gid, size,
@@ -285,7 +283,8 @@ write-date, checksum, link-type, and link-name."
             (let* ((size (tar-parse-octal-integer
                           string tar-size-offset tar-time-offset))
                    ;; -1 so as to strip the terminating 0 byte.
-                   (name (buffer-substring pos (+ pos size -1)))
+		   (name (decode-coding-string
+			  (buffer-substring pos (+ pos size -1)) coding))
                    (descriptor (tar-header-block-tokenize
                                 (+ pos (tar-roundup-512 size))
 				coding)))
@@ -299,7 +298,7 @@ write-date, checksum, link-type, and link-name."
               (setf (tar-header-header-start descriptor)
                     (copy-marker (- pos 512) t))
               descriptor)
-        
+
           (make-tar-header
            (copy-marker pos nil)
            name
@@ -502,7 +501,7 @@ MODE should be an integer which is a file mode value."
         ;;(tar-header-block-check-checksum
         ;;  hblock (tar-header-block-checksum hblock)
         ;;  (tar-header-name descriptor))
-        
+
         (push descriptor result)
         (setq pos (tar-header-data-end descriptor))
         (progress-reporter-update progress-reporter pos)))
@@ -533,13 +532,11 @@ MODE should be an integer which is a file mode value."
     (define-key map "\C-m" 'tar-extract)
     (define-key map [mouse-2] 'tar-mouse-extract)
     (define-key map "g" 'revert-buffer)
-    (define-key map "h" 'describe-mode)
     (define-key map "n" 'tar-next-line)
     (define-key map "\^N" 'tar-next-line)
     (define-key map [down] 'tar-next-line)
     (define-key map "o" 'tar-extract-other-window)
     (define-key map "p" 'tar-previous-line)
-    (define-key map "q" 'quit-window)
     (define-key map "\^P" 'tar-previous-line)
     (define-key map [up] 'tar-previous-line)
     (define-key map "R" 'tar-rename-entry)
@@ -615,7 +612,7 @@ MODE should be an integer which is a file mode value."
   (if (buffer-live-p tar-data-buffer) (kill-buffer tar-data-buffer)))
 
 ;;;###autoload
-(define-derived-mode tar-mode nil "Tar"
+(define-derived-mode tar-mode special-mode "Tar"
   "Major mode for viewing a tar file as a dired-like listing of its contents.
 You can move around using the usual cursor motion commands.
 Letters no longer insert themselves.
@@ -1155,7 +1152,6 @@ to make your changes permanent."
         subfile-size)
     (with-current-buffer tar-superior-buffer
       (let* ((start (tar-header-data-start descriptor))
-             (name (tar-header-name descriptor))
              (size (tar-header-size descriptor))
              (head (memq descriptor tar-parse-info)))
         (if (not head)
@@ -1235,7 +1231,7 @@ Leaves the region wide."
 
 
 ;; Used in write-region-annotate-functions to write tar-files out correctly.
-(defun tar-write-region-annotate (start end)
+(defun tar-write-region-annotate (start _end)
   ;; When called from write-file (and auto-save), `start' is nil.
   ;; When called from M-x write-region, we assume the user wants to save
   ;; (part of) the summary, not the tar data.
@@ -1246,5 +1242,4 @@ Leaves the region wide."
 
 (provide 'tar-mode)
 
-;; arch-tag: 8a585a4a-340e-42c2-89e7-d3b1013a4b78
 ;;; tar-mode.el ends here

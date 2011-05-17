@@ -1,8 +1,6 @@
 ;;; mh-funcs.el --- MH-E functions not everyone will use right away
 
-;; Copyright (C) 1993, 1995,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -288,7 +286,7 @@ to \"Directory\", and then enter the name of the directory for
 storing the content of these messages."
   (interactive (list (let ((udir (or mh-store-default-directory
                                      default-directory)))
-                       (read-file-name "Store message in directory: "
+                       (read-directory-name "Store message in directory: "
                                        udir udir nil))))
   (let ((msg-file-to-store (mh-msg-filename (mh-get-msg-num t))))
     (with-current-buffer (get-buffer-create mh-temp-buffer)
@@ -302,7 +300,7 @@ storing the content of these messages."
 See `mh-store-msg' for a description of DIRECTORY."
   (interactive (list (let ((udir (or mh-store-default-directory
                                      default-directory)))
-                       (read-file-name "Store buffer in directory: "
+                       (read-directory-name "Store buffer in directory: "
                                        udir udir nil))))
   (let ((store-directory (expand-file-name directory))
         (sh-start (save-excursion
@@ -351,8 +349,9 @@ See `mh-store-msg' for a description of DIRECTORY."
         (error "Error occurred during execution of %s" command)))))
 
 ;;;###mh-autoload
-(defun mh-undo-folder ()
-  "Undo all refiles and deletes in the current folder."
+(defun mh-undo-folder (&rest _ignored)
+  "Undo all refiles and deletes in the current folder.
+Arguments are IGNORED (for `revert-buffer')."
   (interactive)
   (cond ((or mh-do-not-confirm-flag
              (yes-or-no-p "Undo all commands in folder? "))
@@ -372,5 +371,4 @@ See `mh-store-msg' for a description of DIRECTORY."
 ;; sentence-end-double-space: nil
 ;; End:
 
-;; arch-tag: 1936c4f1-4843-438e-bc4b-a63bb75a7762
 ;;; mh-funcs.el ends here

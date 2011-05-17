@@ -1,7 +1,6 @@
 ;;; texnfo-upd.el --- utilities for updating nodes and menus in Texinfo files
 
-;; Copyright (C) 1989, 1990, 1991, 1992, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1989-1992, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Robert J. Chassell
 ;; Maintainer: bug-texinfo@gnu.org
@@ -349,9 +348,7 @@ section titles are often too short to explain a node well."
 	(when (search-forward texinfo-master-menu-header nil t)
 	  ;; Check if @detailmenu kludge is used;
 	  ;; if so, leave point before @detailmenu.
-	  (search-backward "\n@detailmenu"
-			   (save-excursion (forward-line -3) (point))
-			   t)
+	  (search-backward "\n@detailmenu" (line-beginning-position -2) t)
 	  ;; Remove detailed master menu listing
 	  (setq master-menu-p t)
 	  (goto-char (match-beginning 0))
@@ -627,9 +624,7 @@ Single argument, END-OF-MENU, is position limiting search."
        (point)
        (save-excursion
 	 (re-search-forward "\\(^\\* \\|^@ignore\\|^@end menu\\)" end-of-menu t)
-	 (forward-line -1)
-	 (end-of-line)                  ; go to end of last description line
-	 (point)))
+	 (line-end-position 0)))	; end of last description line
     ""))
 
 (defun texinfo-menu-end ()
@@ -719,34 +714,32 @@ complements the node name rather than repeats it as a title does."
   (let (beginning end node-name title)
     (save-excursion
       (beginning-of-line)
-      (if (search-forward "* " (save-excursion (end-of-line) (point)) t)
+      (if (search-forward "* " (line-end-position) t)
 	  (progn (skip-chars-forward " \t")
 		 (setq beginning (point)))
 	(error "This is not a line in a menu"))
 
       (cond
        ;; "Double colon" entry line; menu entry and node name are the same,
-       ((search-forward "::" (save-excursion (end-of-line) (point)) t)
+       ((search-forward "::" (line-end-position) t)
 	(if (looking-at "[ \t]*[^ \t\n]+")
 	    (error "Descriptive text already exists"))
 	(skip-chars-backward ": \t")
 	(setq node-name (buffer-substring beginning (point))))
 
        ;; "Single colon" entry line; menu entry and node name are different.
-       ((search-forward ":" (save-excursion (end-of-line) (point)) t)
+       ((search-forward ":" (line-end-position) t)
 	(skip-chars-forward " \t")
 	(setq beginning (point))
 	;; Menu entry line ends in a period, comma, or tab.
-	(if (re-search-forward "[.,\t]"
-			       (save-excursion (forward-line 1) (point)) t)
+	(if (re-search-forward "[.,\t]" (line-beginning-position 2) t)
 	    (progn
 	      (if (looking-at "[ \t]*[^ \t\n]+")
 		  (error "Descriptive text already exists"))
 	      (skip-chars-backward "., \t")
 	      (setq node-name (buffer-substring beginning (point))))
 	  ;; Menu entry line ends in a return.
-	  (re-search-forward ".*\n"
-			     (save-excursion (forward-line 1) (point)) t)
+	  (re-search-forward ".*\n" (line-beginning-position 2) t)
 	  (skip-chars-backward " \t\n")
 	  (setq node-name (buffer-substring beginning (point)))
 	  (if (= 0 (length node-name))
@@ -904,9 +897,7 @@ section titles are often too short to explain a node well."
 	  (progn
 	    ;; Check if @detailmenu kludge is used;
 	    ;; if so, leave point before @detailmenu.
-	    (search-backward "\n@detailmenu"
-			     (save-excursion (forward-line -3) (point))
-			     t)
+	    (search-backward "\n@detailmenu" (line-beginning-position -2) t)
 	    ;; Remove detailed master menu listing
 	    (goto-char (match-beginning 0))
 	    (let ((end-of-detailed-menu-descriptions
@@ -941,9 +932,7 @@ section titles are often too short to explain a node well."
 	    (goto-char (match-beginning 0))
 	    ;; Check if @detailmenu kludge is used;
 	    ;; if so, leave point before @detailmenu.
-	    (search-backward "\n@detailmenu"
-			     (save-excursion (forward-line -3) (point))
-			     t)
+	    (search-backward "\n@detailmenu" (line-beginning-position -2) t)
 	    (insert "\n")
 	    (delete-blank-lines)
 	    (goto-char (point-min))))
@@ -1154,8 +1143,7 @@ Only argument is a string of the general type of section."
       (save-excursion
 	(goto-char (point-min))
 	(re-search-forward "^@node [ \t]*top[ \t]*\\(,\\|$\\)" nil t)
-	(beginning-of-line)
-	(point)))
+	(line-beginning-position)))
      (t
       (save-excursion
 	(re-search-backward
@@ -1206,13 +1194,11 @@ The menu will be located just before this position.
 First argument is the position of the beginning of the section in
 which the menu will be located; second argument is the position of the
 end of that region; it limits the search."
-
   (save-excursion
     (goto-char beginning)
     (forward-line 1)
     (re-search-forward "^@node" end t)
-    (beginning-of-line)
-    (point)))
+    (line-beginning-position)))
 
 
 ;;; Updating a node
@@ -1331,7 +1317,7 @@ Point must be at beginning of node line.  Does not move point."
 Starts from the current position of the cursor, and searches forward
 on the line for a comma and if one is found, deletes the rest of the
 line, including the comma.  Leaves point at beginning of line."
-  (let ((eol-point (save-excursion (end-of-line) (point))))
+  (let ((eol-point (line-end-position)))
     (if (search-forward "," eol-point t)
 	(delete-region (1- (point)) eol-point)))
   (beginning-of-line))
@@ -1437,8 +1423,7 @@ will be at some level higher in the Texinfo file.  The fourth argument
 		 "\\)")
 		(save-excursion
 		  (goto-char beginning)
-		  (beginning-of-line)
-		  (point))
+		  (line-beginning-position))
 		t)
 	       'normal
 	     'no-pointer))
@@ -1453,7 +1438,7 @@ The argument is the kind of section, either `normal' or `no-pointer'."
 	   (end-of-line)                ; this handles prev node top case
 	   (re-search-backward          ; when point is already
 	    "^@node"                    ; at the beginning of @node line
-	    (save-excursion (forward-line -3))
+	    (line-beginning-position -2)
 	    t)
 	   (setq name (texinfo-copy-node-name)))
 	  ((eq kind 'no-pointer)
@@ -1483,7 +1468,7 @@ towards which the pointer is directed, one of `next', `previous', or `up'."
   "Remove extra commas, if any, at end of node line."
   (end-of-line)
   (skip-chars-backward ", ")
-  (delete-region (point) (save-excursion (end-of-line) (point))))
+  (delete-region (point) (line-end-position)))
 
 
 ;;; Updating nodes sequentially
@@ -1647,13 +1632,14 @@ node names in pre-existing `@node' lines that lack names."
 	    (skip-chars-forward " \t")
 	    (setq title (buffer-substring
 			 (point)
-			 (save-excursion (end-of-line) (point))))))
+			 (line-end-position)))))
       ;; Insert node line if necessary.
       (if (re-search-backward
 	   "^@node"
 	   ;; Avoid finding previous node line if node lines are close.
 	   (or last-section-position
-	       (save-excursion (forward-line -2) (point))) t)
+	       (line-beginning-position -1))
+	   t)
 	  ;;  @node is present, and point at beginning of that line
 	  (forward-word 1)          ; Leave point just after @node.
 	;; Else @node missing; insert one.
@@ -1675,7 +1661,7 @@ node names in pre-existing `@node' lines that lack names."
 		  (message "Inserted title %s ... " title)))))
       ;; Go forward beyond current section title.
       (re-search-forward texinfo-section-types-regexp
-			 (save-excursion (forward-line 3) (point)) t)
+			 (line-beginning-position 4) t)
       (setq last-section-position (point))
       (forward-line 1))
 
@@ -1993,9 +1979,7 @@ chapter."
 	 (point-min)
 	 (save-excursion
 	   (re-search-forward "^@include")
-	   (beginning-of-line)
-	   (point)))
-
+	   (line-beginning-position)))
 	;; If found, leave point after word `menu' on the `@menu' line.
 	(progn
 	  (texinfo-incorporate-descriptions main-menu-list)
@@ -2021,9 +2005,7 @@ chapter."
 		(goto-char (match-beginning 0))
 		;; Check if @detailmenu kludge is used;
 		;; if so, leave point before @detailmenu.
-		(search-backward "\n@detailmenu"
-				 (save-excursion (forward-line -3) (point))
-				 t)
+		(search-backward "\n@detailmenu" (line-beginning-position -2) t)
 		;; Remove detailed master menu listing
 		(let ((end-of-detailed-menu-descriptions
 		       (save-excursion	; beginning of end menu line
@@ -2057,5 +2039,4 @@ chapter."
 ;; Place `provide' at end of file.
 (provide 'texnfo-upd)
 
-;; arch-tag: d21613a5-c32f-43f4-8af4-bfb1e7455842
 ;;; texnfo-upd.el ends here

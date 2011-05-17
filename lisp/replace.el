@@ -1,10 +1,10 @@
 ;;; replace.el --- replace commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1996, 1997, 2000, 2001,
-;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1985-1987, 1992, 1994, 1996-1997, 2000-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -97,6 +97,10 @@ is highlighted lazily using isearch lazy highlighting (see
   "Face for highlighting query replacement matches."
   :group 'matching
   :version "22.1")
+
+(defvar replace-count 0
+  "Number of replacements done so far.
+See `replace-regexp' and `query-replace-regexp-eval'.")
 
 (defun query-replace-descr (string)
   (mapconcat 'isearch-text-char-description string ""))
@@ -531,6 +535,9 @@ which will run faster and will not set the mark or print anything."
 Maximum length of the history list is determined by the value
 of `history-length', which see.")
 
+(defvar occur-collect-regexp-history '("\\1")
+  "History of regexp for occur's collect operation")
+
 (defun read-regexp (prompt &optional default-value)
   "Read regexp as a string using the regexp history and some useful defaults.
 Prompt for a regular expression with PROMPT (without a colon and
@@ -766,32 +773,32 @@ a previously found match."
     (define-key map "\M-p" 'occur-prev)
     (define-key map "r" 'occur-rename-buffer)
     (define-key map "c" 'clone-buffer)
-    (define-key map "g" 'revert-buffer)
-    (define-key map "q" 'quit-window)
-    (define-key map "z" 'kill-this-buffer)
     (define-key map "\C-c\C-f" 'next-error-follow-minor-mode)
     (define-key map [menu-bar] (make-sparse-keymap))
     (define-key map [menu-bar occur]
-      `(cons ,(purecopy "Occur") map))
+      (cons (purecopy "Occur") map))
     (define-key map [next-error-follow-minor-mode]
-      (menu-bar-make-mm-toggle next-error-follow-minor-mode
-			       "Auto Occurrence Display"
-			       "Display another occurrence when moving the cursor"))
+      `(menu-item ,(purecopy "Auto Occurrence Display")
+		  next-error-follow-minor-mode
+		  :help ,(purecopy
+			  "Display another occurrence when moving the cursor")
+		  :button (:toggle . (and (boundp 'next-error-follow-minor-mode)
+					  next-error-follow-minor-mode))))
     (define-key map [separator-1] menu-bar-separator)
     (define-key map [kill-this-buffer]
-      `(menu-item ,(purecopy "Kill occur buffer") kill-this-buffer
+      `(menu-item ,(purecopy "Kill Occur Buffer") kill-this-buffer
 		  :help ,(purecopy "Kill the current *Occur* buffer")))
     (define-key map [quit-window]
-      `(menu-item ,(purecopy "Quit occur window") quit-window
+      `(menu-item ,(purecopy "Quit Occur Window") quit-window
 		  :help ,(purecopy "Quit the current *Occur* buffer.  Bury it, and maybe delete the selected frame")))
     (define-key map [revert-buffer]
-      `(menu-item ,(purecopy "Revert occur buffer") revert-buffer
+      `(menu-item ,(purecopy "Revert Occur Buffer") revert-buffer
 		  :help ,(purecopy "Replace the text in the *Occur* buffer with the results of rerunning occur")))
     (define-key map [clone-buffer]
-      `(menu-item ,(purecopy "Clone occur buffer") clone-buffer
+      `(menu-item ,(purecopy "Clone Occur Buffer") clone-buffer
 		  :help ,(purecopy "Create and return a twin copy of the current *Occur* buffer")))
     (define-key map [occur-rename-buffer]
-      `(menu-item ,(purecopy "Rename occur buffer") occur-rename-buffer
+      `(menu-item ,(purecopy "Rename Occur Buffer") occur-rename-buffer
 		  :help ,(purecopy "Rename the current *Occur* buffer to *Occur: original-buffer-name*.")))
     (define-key map [separator-2] menu-bar-separator)
     (define-key map [occur-mode-goto-occurrence-other-window]
@@ -804,10 +811,10 @@ a previously found match."
       `(menu-item ,(purecopy "Display Occurrence") occur-mode-display-occurrence
 		  :help ,(purecopy "Display in another window the occurrence the current line describes")))
     (define-key map [occur-next]
-      `(menu-item ,(purecopy "Move to next match") occur-next
+      `(menu-item ,(purecopy "Move to Next Match") occur-next
 		  :help ,(purecopy "Move to the Nth (default 1) next match in an Occur mode buffer")))
     (define-key map [occur-prev]
-      `(menu-item ,(purecopy "Move to previous match") occur-prev
+      `(menu-item ,(purecopy "Move to Previous Match") occur-prev
 		  :help ,(purecopy "Move to the Nth (default 1) previous match in an Occur mode buffer")))
     map)
   "Keymap for `occur-mode'.")
@@ -834,25 +841,19 @@ for this is to reveal context in an outline-mode when the occurrence is hidden."
   :group 'matching)
 
 (put 'occur-mode 'mode-class 'special)
-(defun occur-mode ()
+(define-derived-mode occur-mode special-mode "Occur"
   "Major mode for output from \\[occur].
 \\<occur-mode-map>Move point to one of the items in this buffer, then use
 \\[occur-mode-goto-occurrence] to go to the occurrence that the item refers to.
 Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
 
 \\{occur-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map occur-mode-map)
-  (setq major-mode 'occur-mode)
-  (setq mode-name "Occur")
   (set (make-local-variable 'revert-buffer-function) 'occur-revert-function)
   (make-local-variable 'occur-revert-arguments)
   (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
-  (setq next-error-function 'occur-next-error)
-  (run-mode-hooks 'occur-mode-hook))
+  (setq next-error-function 'occur-next-error))
 
-(defun occur-revert-function (ignore1 ignore2)
+(defun occur-revert-function (_ignore1 _ignore2)
   "Handle `revert-buffer' for Occur mode buffers."
   (apply 'occur-1 (append occur-revert-arguments (list (buffer-name)))))
 
@@ -1006,10 +1007,25 @@ which means to discard all text properties."
   :version "22.1")
 
 (defun occur-read-primary-args ()
-  (list (read-regexp "List lines matching regexp"
-		     (car regexp-history))
-	(when current-prefix-arg
-	  (prefix-numeric-value current-prefix-arg))))
+  (let* ((perform-collect (consp current-prefix-arg))
+         (regexp (read-regexp (if perform-collect
+                                  "Collect strings matching regexp"
+                                "List lines matching regexp")
+                              (car regexp-history))))
+    (list regexp
+	  (if perform-collect
+	      ;; Perform collect operation
+	      (if (zerop (regexp-opt-depth regexp))
+		  ;; No subexpression so collect the entire match.
+		  "\\&"
+		;; Get the regexp for collection pattern.
+		(let ((default (car occur-collect-regexp-history)))
+		  (read-string
+		   (format "Regexp to collect (default %s): " default)
+		   nil 'occur-collect-regexp-history default)))
+	    ;; Otherwise normal occur takes numerical prefix argument.
+	    (when current-prefix-arg
+	      (prefix-numeric-value current-prefix-arg))))))
 
 (defun occur-rename-buffer (&optional unique-p interactive-p)
   "Rename the current *Occur* buffer to *Occur: original-buffer-name*.
@@ -1042,9 +1058,22 @@ It serves as a menu to find any of the occurrences in this buffer.
 \\<occur-mode-map>\\[describe-mode] in that buffer will explain how.
 
 If REGEXP contains upper case characters (excluding those preceded by `\\')
-and `search-upper-case' is non-nil, the matching is case-sensitive."
+and `search-upper-case' is non-nil, the matching is case-sensitive.
+
+When NLINES is a string or when the function is called
+interactively with prefix argument without a number (`C-u' alone
+as prefix) the matching strings are collected into the `*Occur*'
+buffer by using NLINES as a replacement regexp.  NLINES may
+contain \\& and \\N which convention follows `replace-match'.
+For example, providing \"defun\\s +\\(\\S +\\)\" for REGEXP and
+\"\\1\" for NLINES collects all the function names in a lisp
+program.  When there is no parenthesized subexpressions in REGEXP
+the entire match is collected.  In any case the searched buffers
+are not modified."
   (interactive (occur-read-primary-args))
   (occur-1 regexp nlines (list (current-buffer))))
+
+(defvar ido-ignore-item-temp-list)
 
 (defun multi-occur (bufs regexp &optional nlines)
   "Show all lines in buffers BUFS containing a match for REGEXP.
@@ -1124,20 +1153,43 @@ See also `multi-occur'."
     (setq occur-buf (get-buffer-create buf-name))
 
     (with-current-buffer occur-buf
-      (occur-mode)
+      (if (stringp nlines)
+	  (fundamental-mode) ;; This is for collect opeartion.
+	(occur-mode))
       (let ((inhibit-read-only t)
 	    ;; Don't generate undo entries for creation of the initial contents.
 	    (buffer-undo-list t))
 	(erase-buffer)
-	(let ((count (occur-engine
-		      regexp active-bufs occur-buf
-		      (or nlines list-matching-lines-default-context-lines)
-		      (if (and case-fold-search search-upper-case)
-			  (isearch-no-upper-case-p regexp t)
-			case-fold-search)
-		      list-matching-lines-buffer-name-face
-		      nil list-matching-lines-face
-		      (not (eq occur-excluded-properties t)))))
+	(let ((count
+	       (if (stringp nlines)
+                   ;; Treat nlines as a regexp to collect.
+		   (let ((bufs active-bufs)
+			 (count 0))
+		     (while bufs
+		       (with-current-buffer (car bufs)
+			 (save-excursion
+			   (goto-char (point-min))
+			   (while (re-search-forward regexp nil t)
+                             ;; Insert the replacement regexp.
+			     (let ((str (match-substitute-replacement nlines)))
+			       (if str
+				   (with-current-buffer occur-buf
+				     (insert str)
+				     (setq count (1+ count))
+				     (or (zerop (current-column))
+					 (insert "\n"))))))))
+                       (setq bufs (cdr bufs)))
+                     count)
+		 ;; Perform normal occur.
+		 (occur-engine
+		  regexp active-bufs occur-buf
+		  (or nlines list-matching-lines-default-context-lines)
+		  (if (and case-fold-search search-upper-case)
+		      (isearch-no-upper-case-p regexp t)
+		    case-fold-search)
+		  list-matching-lines-buffer-name-face
+		  nil list-matching-lines-face
+		  (not (eq occur-excluded-properties t))))))
 	  (let* ((bufcount (length active-bufs))
 		 (diff (- (length bufs) bufcount)))
 	    (message "Searched %d buffer%s%s; %s match%s%s"
@@ -1158,11 +1210,12 @@ See also `multi-occur'."
             (set-buffer-modified-p nil)
             (run-hooks 'occur-hook)))))))
 
-(defun occur-engine (regexp buffers out-buf nlines case-fold-search
+(defun occur-engine (regexp buffers out-buf nlines case-fold
 			    title-face prefix-face match-face keep-props)
   (with-current-buffer out-buf
     (let ((globalcount 0)
-	  (coding nil))
+	  (coding nil)
+	  (case-fold-search case-fold))
       ;; Map over all the buffers
       (dolist (buf buffers)
 	(when (buffer-live-p buf)
@@ -1262,8 +1315,7 @@ See also `multi-occur'."
 			      (nth 0 ret))))
 		      ;; Actually insert the match display data
 		      (with-current-buffer out-buf
-			(let ((beg (point))
-			      (end (progn (insert data) (point)))))))
+			(insert data)))
 		    (goto-char endpt))
 		  (if endpt
 		      (progn
@@ -1488,7 +1540,7 @@ N     (match-string N)           (where N is a string of digits)
 #&    (string-to-number (match-string 0))
 #     replace-count
 
-Note that these symbols must be preceeded by a backslash in order to
+Note that these symbols must be preceded by a backslash in order to
 type them using Lisp syntax."
   (while (consp n)
     (cond
@@ -1511,8 +1563,9 @@ type them using Lisp syntax."
 	  (setcar n 'replace-count))))))
     (setq n (cdr n))))
 
-(defun replace-eval-replacement (expression replace-count)
-  (let ((replacement (eval expression)))
+(defun replace-eval-replacement (expression count)
+  (let* ((replace-count count)
+         (replacement (eval expression)))
     (if (stringp replacement)
         replacement
       (prin1-to-string replacement t))))
@@ -1532,15 +1585,15 @@ with the `noescape' argument set.
 				(prin1-to-string replacement t))
 			      t t)))
 
-(defun replace-loop-through-replacements (data replace-count)
+(defun replace-loop-through-replacements (data count)
   ;; DATA is a vector contaning the following values:
   ;;   0 next-rotate-count
   ;;   1 repeat-count
   ;;   2 next-replacement
   ;;   3 replacements
-  (if (= (aref data 0) replace-count)
+  (if (= (aref data 0) count)
       (progn
-        (aset data 0 (+ replace-count (aref data 1)))
+        (aset data 0 (+ count (aref data 1)))
         (let ((next (cdr (aref data 2))))
           (aset data 2 (if (consp next) next (aref data 3))))))
   (car (aref data 2)))
@@ -1965,6 +2018,11 @@ make, or the user didn't cancel the call."
 		 (if (= replace-count 1) "" "s")))
     (or (and keep-going stack) multi-buffer)))
 
+(defvar isearch-error)
+(defvar isearch-forward)
+(defvar isearch-case-fold-search)
+(defvar isearch-string)
+
 (defvar replace-overlay nil)
 
 (defun replace-highlight (match-beg match-end range-beg range-end
@@ -1979,7 +2037,12 @@ make, or the user didn't cancel the call."
       (let ((isearch-string string)
 	    (isearch-regexp regexp)
 	    (search-whitespace-regexp nil)
-	    (isearch-case-fold-search case-fold))
+	    (isearch-case-fold-search case-fold)
+	    (isearch-forward t)
+	    (isearch-error nil))
+	;; Set isearch-word to nil because word-replace is regexp-based,
+	;; so `isearch-search-fun' should not use `word-search-forward'.
+	(if (and isearch-word isearch-regexp) (setq isearch-word nil))
 	(isearch-lazy-highlight-new-loop range-beg range-end))))
 
 (defun replace-dehighlight ()
@@ -1989,5 +2052,4 @@ make, or the user didn't cancel the call."
     (lazy-highlight-cleanup lazy-highlight-cleanup)
     (setq isearch-lazy-highlight-last-string nil)))
 
-;; arch-tag: 16b4cd61-fd40-497b-b86f-b667c4cf88e4
 ;;; replace.el ends here

@@ -1,10 +1,10 @@
-;;; abbrev.el --- abbrev mode commands for Emacs
+;;; abbrev.el --- abbrev mode commands for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 1986, 1987, 1992, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1992, 2001-2011  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: abbrev convenience
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -56,24 +56,17 @@ define global abbrevs instead."
   "Toggle Abbrev mode in the current buffer.
 With optional argument ARG, turn abbrev mode on if ARG is
 positive, otherwise turn it off.  In Abbrev mode, inserting an
-abbreviation causes it to expand and be replaced by its expansion.")
+abbreviation causes it to expand and be replaced by its expansion."
+  ;; It's defined in C, this stops the d-m-m macro defining it again.
+  :variable abbrev-mode)
 
-(defcustom abbrev-mode nil
-  "Enable or disable Abbrev mode.
-Non-nil means automatically expand abbrevs as they are inserted.
-
-Setting this variable with `setq' changes it for the current buffer.
-Changing it with \\[customize] sets the default value.
-Interactively, use the command `abbrev-mode'
-to enable or disable Abbrev mode in the current buffer."
-  :type 'boolean
-  :group 'abbrev-mode)
 (put 'abbrev-mode 'safe-local-variable 'booleanp)
 
 
 (defvar edit-abbrevs-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\C-x\C-s" 'edit-abbrevs-redefine)
+    (define-key map "\C-x\C-s" 'abbrev-edit-save-buffer)
+    (define-key map "\C-x\C-w" 'abbrev-edit-save-to-file)
     (define-key map "\C-c\C-c" 'edit-abbrevs-redefine)
     map)
   "Keymap used in `edit-abbrevs'.")
@@ -125,17 +118,23 @@ Otherwise display all abbrevs."
     found))
 
 (defun prepare-abbrev-list-buffer (&optional local)
-  (with-current-buffer (get-buffer-create "*Abbrevs*")
-    (erase-buffer)
-    (if local
-        (insert-abbrev-table-description
-         (abbrev-table-name local-abbrev-table) t)
-      (dolist (table abbrev-table-name-list)
-        (insert-abbrev-table-description table t)))
-    (goto-char (point-min))
-    (set-buffer-modified-p nil)
-    (edit-abbrevs-mode)
-    (current-buffer)))
+  (let ((local-table local-abbrev-table))
+    (with-current-buffer (get-buffer-create "*Abbrevs*")
+      (erase-buffer)
+      (if local
+          (insert-abbrev-table-description
+           (abbrev-table-name local-table) t)
+        (let (empty-tables)
+	  (dolist (table abbrev-table-name-list)
+	    (if (abbrev-table-empty-p (symbol-value table))
+		(push table empty-tables)
+	      (insert-abbrev-table-description table t)))
+	  (dolist (table (nreverse empty-tables))
+	    (insert-abbrev-table-description table t))))
+      (goto-char (point-min))
+      (set-buffer-modified-p nil)
+      (edit-abbrevs-mode)
+      (current-buffer))))
 
 (defun edit-abbrevs-mode ()
   "Major mode for editing the list of abbrev definitions.
@@ -218,13 +217,15 @@ Does not display any message."
 					;(interactive "fRead abbrev file: ")
   (read-abbrev-file file t))
 
-(defun write-abbrev-file (&optional file)
+(defun write-abbrev-file (&optional file verbose)
   "Write all user-level abbrev definitions to a file of Lisp code.
 This does not include system abbrevs; it includes only the abbrev tables
 listed in listed in `abbrev-table-name-list'.
 The file written can be loaded in another session to define the same abbrevs.
 The argument FILE is the file name to write.  If omitted or nil, the file
-specified in `abbrev-file-name' is used."
+specified in `abbrev-file-name' is used.
+If VERBOSE is non-nil, display a message indicating where abbrevs
+have been saved."
   (interactive
    (list
     (read-file-name "Write abbrev file: "
@@ -232,21 +233,47 @@ specified in `abbrev-file-name' is used."
 		    abbrev-file-name)))
   (or (and file (> (length file) 0))
       (setq file abbrev-file-name))
-  (let ((coding-system-for-write 'emacs-mule))
-    (with-temp-file file
-      (insert ";;-*-coding: emacs-mule;-*-\n")
+  (let ((coding-system-for-write 'utf-8))
+    (with-temp-buffer
       (dolist (table
-               ;; We sort the table in order to ease the automatic
-               ;; merging of different versions of the user's abbrevs
-               ;; file.  This is useful, for example, for when the
-               ;; user keeps their home directory in a revision
-               ;; control system, and is therefore keeping multiple
-               ;; slightly-differing copies loosely synchronized.
-               (sort (copy-sequence abbrev-table-name-list)
-                     (lambda (s1 s2)
-                       (string< (symbol-name s1)
-                                (symbol-name s2)))))
-	(insert-abbrev-table-description table nil)))))
+	       ;; We sort the table in order to ease the automatic
+	       ;; merging of different versions of the user's abbrevs
+	       ;; file.  This is useful, for example, for when the
+	       ;; user keeps their home directory in a revision
+	       ;; control system, and is therefore keeping multiple
+	       ;; slightly-differing copies loosely synchronized.
+	       (sort (copy-sequence abbrev-table-name-list)
+		     (lambda (s1 s2)
+		       (string< (symbol-name s1)
+				(symbol-name s2)))))
+	(insert-abbrev-table-description table nil))
+      (when (unencodable-char-position (point-min) (point-max) 'utf-8)
+	(setq coding-system-for-write
+	      (if (> emacs-major-version 24)
+		  'utf-8-emacs
+		;; For compatibility with Emacs 22 (See Bug#8308)
+		'emacs-mule)))
+      (goto-char (point-min))
+      (insert (format ";;-*-coding: %s;-*-\n" coding-system-for-write))
+      (write-region nil nil file nil (and (not verbose) 0)))))
+
+(defun abbrev-edit-save-to-file (file)
+  "Save all user-level abbrev definitions in current buffer to FILE."
+  (interactive
+   (list (read-file-name "Save abbrevs to file: "
+			 (file-name-directory
+			  (expand-file-name abbrev-file-name))
+			 abbrev-file-name)))
+  (edit-abbrevs-redefine)
+  (write-abbrev-file file t))
+
+(defun abbrev-edit-save-buffer ()
+  "Save all user-level abbrev definitions in current buffer.
+The saved abbrevs are written to the file specified by
+`abbrev-file-name'."
+  (interactive)
+  (abbrev-edit-save-to-file abbrev-file-name))
+
 
 (defun add-mode-abbrev (arg)
   "Define mode-specific abbrev for last word(s) before point.
@@ -338,7 +365,7 @@ Expands the abbreviation after defining it."
 Abbrev to be expanded starts here rather than at beginning of word.
 This way, you can expand an abbrev with a prefix: insert the prefix,
 use this command, then insert the abbrev.  This command inserts a
-temporary hyphen after the prefix \(until the intended abbrev
+temporary hyphen after the prefix (until the intended abbrev
 expansion occurs).
 If the prefix is itself an abbrev, this command expands it, unless
 ARG is non-nil.  Interactively, ARG is the prefix argument."
@@ -419,6 +446,19 @@ PROPS is a list of properties."
   (and (vectorp object)
        (numberp (abbrev-table-get object :abbrev-table-modiff))))
 
+(defun abbrev-table-empty-p (object &optional ignore-system)
+  "Return nil if there are no abbrev symbols in OBJECT.
+If IGNORE-SYSTEM is non-nil, system definitions are ignored."
+  (unless (abbrev-table-p object)
+    (error "Non abbrev table object"))
+  (not (catch 'some
+	 (mapatoms (lambda (abbrev)
+		     (unless (or (zerop (length (symbol-name abbrev)))
+				 (and ignore-system
+				      (abbrev-get abbrev :system)))
+		       (throw 'some t)))
+		   object))))
+
 (defvar global-abbrev-table (make-abbrev-table)
   "The abbrev table whose abbrevs affect all buffers.
 Each buffer may also have a local abbrev table.
@@ -460,7 +500,7 @@ Trying to expand an abbrev in any other buffer clears `abbrev-start-location'.")
 
 (defvar last-abbrev-text nil
   "The exact text of the last abbrev expanded.
-nil if the abbrev has already been unexpanded.")
+It is nil if the abbrev has already been unexpanded.")
 
 (defvar last-abbrev-location 0
   "The location of the start of the last abbrev expanded.")
@@ -774,20 +814,19 @@ Returns the abbrev symbol, if expansion took place."
     (destructuring-bind (&optional sym name wordstart wordend)
         (abbrev--before-point)
       (when sym
-        (let ((value sym))
-          (unless (or ;; executing-kbd-macro
-                   noninteractive
-                   (window-minibuffer-p (selected-window)))
-            ;; Add an undo boundary, in case we are doing this for
-            ;; a self-inserting command which has avoided making one so far.
-            (undo-boundary))
-          ;; Now sym is the abbrev symbol.
-          (setq last-abbrev-text name)
-          (setq last-abbrev sym)
-          (setq last-abbrev-location wordstart)
-          ;; If this abbrev has an expansion, delete the abbrev
-          ;; and insert the expansion.
-          (abbrev-insert sym name wordstart wordend))))))
+        (unless (or ;; executing-kbd-macro
+                 noninteractive
+                 (window-minibuffer-p (selected-window)))
+          ;; Add an undo boundary, in case we are doing this for
+          ;; a self-inserting command which has avoided making one so far.
+          (undo-boundary))
+        ;; Now sym is the abbrev symbol.
+        (setq last-abbrev-text name)
+        (setq last-abbrev sym)
+        (setq last-abbrev-location wordstart)
+        ;; If this abbrev has an expansion, delete the abbrev
+        ;; and insert the expansion.
+        (abbrev-insert sym name wordstart wordend)))))
 
 (defun unexpand-abbrev ()
   "Undo the expansion of the last abbrev that expanded.
@@ -926,5 +965,4 @@ SORTFUN is passed to `sort' to change the default ordering."
 
 (provide 'abbrev)
 
-;; arch-tag: dbd6f3ae-dfe3-40ba-b00f-f9e3ff960df5
 ;;; abbrev.el ends here

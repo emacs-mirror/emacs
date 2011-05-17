@@ -1,10 +1,10 @@
 ;;; page.el --- page motion commands for Emacs
 
-;; Copyright (C) 1985, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2001-2011 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: wp convenience
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -156,12 +156,11 @@ thus showing a page other than the one point was originally in."
           (if (= (match-beginning 0) (match-end 0))
               (forward-char 1))
 	  (setq count (1+ count)))
-	(message "Page %d, line %d"
-		 count
-		 (1+ (count-lines (point) opoint)))))))
+	(message "Page %d, line %d" count (line-number-at-pos opoint))))))
+
+
 
 ;;; Place `provide' at end of file.
 (provide 'page)
 
-;; arch-tag: e8d7a0bd-8655-4b6e-b852-f2ee25316a1d
 ;;; page.el ends here

@@ -1,7 +1,7 @@
 ;;; lpr.el --- print Emacs buffer on line printer
 
-;; Copyright (C) 1985, 1988, 1992, 1994, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1988, 1992, 1994, 2001-2011
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: unix
@@ -28,6 +28,8 @@
 ;; variables include `printer-name', `lpr-switches' and `lpr-command'.
 
 ;;; Code:
+
+(eval-when-compile (require 'cl))
 
 ;;;###autoload
 (defvar lpr-windows-system
@@ -152,7 +154,9 @@ The variable `lpr-page-header-program' specifies the program to use."
   "Print buffer contents without pagination or page headers.
 See the variables `lpr-switches' and `lpr-command'
 for customization of the printer command."
-  (interactive)
+  (interactive
+   (unless (y-or-n-p "Send current buffer to default printer? ")
+     (error "Cancelled")))
   (print-region-1 (point-min) (point-max) lpr-switches nil))
 
 ;;;###autoload
@@ -169,7 +173,9 @@ in the print command itself; we expect them to request pagination.
 
 See the variables `lpr-switches' and `lpr-command'
 for further customization of the printer command."
-  (interactive)
+  (interactive
+   (unless (y-or-n-p "Send current buffer to default printer? ")
+     (error "Cancelled")))
   (print-region-1 (point-min) (point-max) lpr-switches t))
 
 ;;;###autoload
@@ -177,7 +183,10 @@ for further customization of the printer command."
   "Print region contents without pagination or page headers.
 See the variables `lpr-switches' and `lpr-command'
 for customization of the printer command."
-  (interactive "r")
+  (interactive
+   (if (y-or-n-p "Send selected text to default printer? ")
+       (list (region-beginning) (region-end))
+     (error "Cancelled")))
   (print-region-1 start end lpr-switches nil))
 
 ;;;###autoload
@@ -194,7 +203,10 @@ in the print command itself; we expect them to request pagination.
 
 See the variables `lpr-switches' and `lpr-command'
 for further customization of the printer command."
-  (interactive "r")
+  (interactive
+   (if (y-or-n-p "Send selected text to default printer? ")
+       (list (region-beginning) (region-end))
+     (error "Cancelled")))
   (print-region-1 start end lpr-switches t))
 
 (defun print-region-1 (start end switches page-headers)
@@ -248,21 +260,30 @@ for further customization of the printer command."
 			     lpr-page-header-switches)))
 	    (setq start (point-min)
 		  end   (point-max))))
-      (apply (or print-region-function 'call-process-region)
-	     (nconc (list start end lpr-command
-			  nil nil nil)
-		    (and lpr-add-switches
-			 (list "-J" name))
-		    ;; These belong in pr if we are using that.
-		    (and lpr-add-switches lpr-headers-switches
-			 (list "-T" title))
-		    (and (stringp printer-name)
-			 (list (concat lpr-printer-switch
-				       printer-name)))
-		    nswitches))
-      (if (markerp end)
-	  (set-marker end nil))
-      (message "Spooling%s...done" switch-string))))
+      (let ((buf (current-buffer)))
+        (with-temp-buffer
+          (let ((tempbuf (current-buffer)))
+            (with-current-buffer buf
+              (apply (or print-region-function 'call-process-region)
+                     (nconc (list start end lpr-command
+                                  nil tempbuf nil)
+                            (and lpr-add-switches
+                                 (list "-J" name))
+                            ;; These belong in pr if we are using that.
+                            (and lpr-add-switches lpr-headers-switches
+                                 (list "-T" title))
+                            (and (stringp printer-name)
+                                 (list (concat lpr-printer-switch
+                                               printer-name)))
+                            nswitches))))
+          (if (markerp end)
+              (set-marker end nil))
+          (message "Spooling%s...done%s%s" switch-string
+                   (case (count-lines (point-min) (point-max))
+                     (0 "")
+                     (1 ": ")
+                     (t ":\n"))
+                   (buffer-string)))))))
 
 ;; This function copies the text between start and end
 ;; into a new buffer, makes that buffer current.
@@ -291,7 +312,7 @@ The characters tab, linefeed, space, return and formfeed are not affected."
       (let (c)
 	(while (re-search-forward "[\^@-\^h\^k\^n-\^_\177-\377]" nil t)
 	  (setq c (preceding-char))
-	  (delete-backward-char 1)
+	  (delete-char -1)
 	  (insert (if (< c ?\s)
 		      (format "\\^%c" (+ c ?@))
 		    (format "\\%02x" c))))))))
@@ -327,5 +348,4 @@ The characters tab, linefeed, space, return and formfeed are not affected."
 
 (provide 'lpr)
 
-;; arch-tag: 21c3f821-ebec-4ca9-ac67-a81e4b75c62a
 ;;; lpr.el ends here

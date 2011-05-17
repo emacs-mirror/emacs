@@ -1,6 +1,6 @@
 ;;; ede/emacs.el --- Special project for Emacs
 
-;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -133,6 +133,18 @@ ROOTPROJ is nil, since there is only one project."
       )
   )
 
+;;;###autoload
+(add-to-list 'ede-project-class-files
+	     (ede-project-autoload "emacs"
+	      :name "EMACS ROOT"
+	      :file 'ede/emacs
+	      :proj-file "src/emacs.c"
+	      :proj-root 'ede-emacs-project-root
+	      :load-type 'ede-emacs-load
+	      :class-sym 'ede-emacs-project
+	      :new-p nil)
+	     t)
+
 (defclass ede-emacs-target-c (ede-target)
   ()
   "EDE Emacs Project target for C code.
@@ -150,7 +162,7 @@ All directories need at least one target.")
 
 (defmethod initialize-instance ((this ede-emacs-project)
 				&rest fields)
-  "Make sure the :file is fully expanded."
+  "Make sure the targets slot is bound."
   (call-next-method)
   (unless (slot-boundp this 'targets)
     (oset this :targets nil)))
@@ -287,5 +299,4 @@ Knows about how the Emacs source tree is organized."
 ;; generated-autoload-load-name: "ede/emacs"
 ;; End:
 
-;; arch-tag: 7cd0be95-663d-4101-8799-2f8216fd8233
 ;;; ede/emacs.el ends here

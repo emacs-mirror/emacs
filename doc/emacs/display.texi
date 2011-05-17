@@ -1,6 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
 @c   Free Software Foundation, Inc.
 
 @c See file emacs.texi for copying conditions.
@@ -13,11 +12,11 @@ commands and variables allow you to specify which part of the text you
 want to see, and how to display it.
 
 @menu
-* Scrolling::	           Commands to move text up and down in a window.
+* Scrolling::              Commands to move text up and down in a window.
 * Auto Scrolling::         Redisplay scrolls text automatically when needed.
 * Horizontal Scrolling::   Moving text left and right in a window.
 * Follow Mode::            Follow mode lets two windows scroll as one.
-* Faces::	           How to change the display style using faces.
+* Faces::                  How to change the display style using faces.
 * Standard Faces::         Emacs' predefined faces.
 * Temporary Face Changes:: Commands to temporarily modify the default text face
 * Font Lock::              Minor mode for syntactic highlighting using faces.
@@ -184,7 +183,20 @@ visible portion of the text.
 if you set @code{scroll-conservatively} to a small number @var{n},
 then if you move point just a little off the screen (less than @var{n}
 lines), Emacs scrolls the text just far enough to bring point back on
-screen.  By default, @code{scroll-conservatively} is@tie{}0.
+screen.  By default, @code{scroll-conservatively} is@tie{}0.  If you
+set @code{scroll-conservatively} to a large number (larger than 100),
+Emacs will never center point as result of scrolling, even if point
+moves far away from the text previously displayed in the window.  With
+such a large value, Emacs will always scroll text just enough for
+bringing point into view, so point will end up at the top or bottom of
+the window, depending on the scroll direction.
+
+@vindex scroll-step
+  The variable @code{scroll-step} determines how many lines to scroll
+the window when point moves off the screen.  If moving by that number
+of lines fails to bring point back into view, point is centered
+instead.  The default value is zero, which causes point to always be
+centered after scrolling.
 
 @cindex aggressive scrolling
 @vindex scroll-up-aggressively
@@ -194,16 +206,21 @@ how aggressively it scrolls by setting the variables
 @code{scroll-up-aggressively} and @code{scroll-down-aggressively}.
 The value of @code{scroll-up-aggressively} should be either
 @code{nil}, or a fraction @var{f} between 0 and 1.  A fraction
-specifies where on the screen to put point when scrolling upward: when
-a window scrolls up because point is above the window start, the new
+specifies where on the screen to put point when scrolling upward,
+i.e.@: when point moves forward in the buffer, and therefore text
+scrolls up in the window.  When point goes off the window end, the new
 start position is chosen to put point @var{f} parts of the window
-height from the top.  Thus, larger @var{f} means more aggressive
-scrolling.  The default value, @code{nil}, is equivalent to 0.5.
+height from the bottom.  Thus, larger @var{f} means more aggressive
+scrolling: more new text is brought into view.  The default value,
+@code{nil}, is equivalent to 0.5.
 
   Likewise, @code{scroll-down-aggressively} is used for scrolling
-down.  The value specifies how far point should be placed from the
-bottom of the window; thus, as with @code{scroll-up-aggressively}, a
-larger value is more aggressive.
+down, i.e.@: moving point back in the buffer.  The value specifies how
+far point should be placed from the top of the window; thus, as with
+@code{scroll-up-aggressively}, a larger value is more aggressive.
+
+  These two variables are ignored if either @code{scroll-step} or
+@code{scroll-conservatively} are set to a non-zero value.
 
 @vindex scroll-margin
   The variable @code{scroll-margin} restricts how close point can come
@@ -645,17 +662,17 @@ that follows an open-parenthesis or open-brace in the leftmost column
 that is inside a string or comment.
 
 @cindex slow display during scrolling
-  The variable @code{font-lock-beginning-of-syntax-function} (always
-buffer-local) specifies how Font Lock mode can find a position
-guaranteed to be outside any comment or string.  In modes which use the
-leftmost column parenthesis convention, the default value of the variable
-is @code{beginning-of-defun}---that tells Font Lock mode to use the
-convention.  If you set this variable to @code{nil}, Font Lock no longer
-relies on the convention.  This avoids incorrect results, but the price
-is that, in some cases, fontification for a changed text must rescan
-buffer text from the beginning of the buffer.  This can considerably
-slow down redisplay while scrolling, particularly if you are close to
-the end of a large buffer.
+  The variable @code{font-lock-beginning-of-syntax-function}, which is
+always buffer-local, specifies how Font Lock mode can find a position
+guaranteed to be outside any comment or string.  In modes which use
+the leftmost column parenthesis convention, the default value of the
+variable is @code{beginning-of-defun}---that tells Font Lock mode to
+use the convention.  If you set this variable to @code{nil}, Font Lock
+no longer relies on the convention.  This avoids incorrect results,
+but the price is that, in some cases, fontification for a changed text
+must rescan buffer text from the beginning of the buffer.  This can
+considerably slow down redisplay while scrolling, particularly if you
+are close to the end of a large buffer.
 
 @findex font-lock-add-keywords
   Font Lock highlighting patterns already exist for many modes, but you
@@ -668,7 +685,8 @@ comments, use this:
 (add-hook 'c-mode-hook
           (lambda ()
            (font-lock-add-keywords nil
-            '(("\\<\\(FIXME\\):" 1 font-lock-warning-face t)))))
+            '(("\\<\\(FIXME\\):" 1
+               font-lock-warning-face t)))))
 @end example
 
 @findex font-lock-remove-keywords
@@ -804,7 +822,10 @@ line, when one line of text is split into multiple lines on the
 screen.  The left fringe shows a curving arrow for each screen line
 except the first, indicating that ``this is not the real beginning.''
 The right fringe shows a curving arrow for each screen line except the
-last, indicating that ``this is not the real end.''
+last, indicating that ``this is not the real end.''  If the line's
+direction is right-to-left (@pxref{Bidirectional Editing}), the
+meaning of the curving arrows in the left and right fringes are
+swapped.
 
   The fringes indicate line truncation with short horizontal arrows
 meaning ``there's more text on this line which is scrolled
@@ -872,9 +893,9 @@ the location of point is enough to show you that the spaces are
 present.
 
 @findex delete-trailing-whitespace
-  To delete all trailing whitespace within the buffer's accessible
-portion (@pxref{Narrowing}), type @kbd{M-x delete-trailing-whitespace
-@key{RET}}.  This command does not remove newline characters.
+  Type @kbd{M-x delete-trailing-whitespace @key{RET}} to delete all
+trailing whitespace within the buffer's accessible portion
+(@pxref{Narrowing}).  This command does not remove newline characters.
 
 @vindex indicate-empty-lines
 @cindex unused lines
@@ -997,8 +1018,7 @@ value is 200 characters.
   Emacs can optionally display the time and system load in all mode
 lines.  To enable this feature, type @kbd{M-x display-time} or customize
 the option @code{display-time-mode}.  The information added to the mode
-line usually appears after the buffer name, before the mode names and
-their parentheses.  It looks like this:
+line looks like this:
 
 @example
 @var{hh}:@var{mm}pm @var{l.ll}
@@ -1007,11 +1027,12 @@ their parentheses.  It looks like this:
 @noindent
 @vindex display-time-24hr-format
 Here @var{hh} and @var{mm} are the hour and minute, followed always by
-@samp{am} or @samp{pm}.  @var{l.ll} is the average number of running
-processes in the whole system recently.  (Some fields may be missing if
-your operating system cannot support them.)  If you prefer time display
-in 24-hour format, set the variable @code{display-time-24hr-format}
-to @code{t}.
+@samp{am} or @samp{pm}.  @var{l.ll} is the average number, collected
+for the last few minutes, of processes in the whole system that were
+either running or ready to run (i.e.@: were waiting for an available
+processor).  (Some fields may be missing if your operating system
+cannot support them.)  If you prefer time display in 24-hour format,
+set the variable @code{display-time-24hr-format} to @code{t}.
 
 @cindex mail (on mode line)
 @vindex display-time-use-mail-icon
@@ -1133,6 +1154,48 @@ prefix these characters with an escape character.
 by means of a display table.  @xref{Display Tables,, Display Tables,
 elisp, The Emacs Lisp Reference Manual}.
 
+@cindex glyphless characters
+@cindex characters with no font glyphs
+  On graphics displays, some characters could have no glyphs in any of
+the fonts available to Emacs.  On text terminals, some characters
+could be impossible to encode with the terminal coding system
+(@pxref{Terminal Coding}).  Emacs can display such @dfn{glyphless}
+characters using one of the following methods:
+
+@table @code
+@item zero-width
+Don't display the character.
+
+@item thin-space
+Display a thin space, 1-pixel wide on graphics displays or 1-character
+wide on text terminals.
+
+@item empty-box
+Display an empty box.
+
+@item acronym
+Display the acronym of the character's name (such as @sc{zwnj} or
+@sc{rlm}) in a box.
+
+@item hex-code
+Display the Unicode codepoint of the character in hexadecimal
+notation, in a box.
+@end table
+
+@noindent
+@cindex @code{glyphless-char} face
+With the exception of @code{zero-width}, all other methods draw these
+characters in a special face @code{glyphless-char}, which you can
+customize.
+
+@vindex glyphless-char-display-control
+@vindex char-acronym-table
+To control what glyphless characters are displayed using which method,
+customize the variable @code{glyphless-char-display-control}; see its
+doc string for the details.  For even finer control, set the elements
+of 2 char-tables: @code{glyphless-char-display} and
+@code{char-acronym-table}.
+
 @node Cursor Display
 @section Displaying the Cursor
 
@@ -1191,8 +1254,8 @@ can display long lines by @dfn{truncation}.  This means that all the
 characters that do not fit in the width of the screen or window do not
 appear at all.  On graphical displays, a small straight arrow in the
 fringe indicates truncation at either end of the line.  On text-only
-terminals, @samp{$} appears in the first column when there is text
-truncated to the left, and in the last column when there is text
+terminals, @samp{$} appears in the leftmost column when there is text
+truncated to the left, and in the rightmost column when there is text
 truncated to the right.
 
 @vindex truncate-lines
@@ -1355,7 +1418,3 @@ page for other output.  On such terminals, you might want to set the variable
 @code{no-redraw-on-reenter} non-@code{nil}; this tells Emacs to
 assume, when resumed, that the screen page it is using still contains
 what Emacs last wrote there.
-
-@ignore
-   arch-tag: 2219f910-2ff0-4521-b059-1bd231a536c4
-@end ignore

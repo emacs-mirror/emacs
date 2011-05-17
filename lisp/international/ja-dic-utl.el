@@ -1,7 +1,7 @@
 ;;; ja-dic-utl.el --- utilities for handling Japanese dictionary (SKK-JISYO.L)
 
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
@@ -222,5 +222,4 @@ LEIM is available from the same ftp directory as Emacs."))
 ;; coding: iso-2022-7bit
 ;; End:
 
-;; arch-tag: df2218fa-469c-40f6-bace-7f89a053f9c0
 ;;; ja-dic-utl.el ends here

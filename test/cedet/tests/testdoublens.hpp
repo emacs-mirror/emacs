@@ -1,6 +1,6 @@
 // testdoublens.hpp --- Header file used in one of the Semantic tests
 
-// Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+// Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 // Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -68,4 +68,3 @@ namespace a {
   } // namespace b
 } // namespace a
 
-// arch-tag: 22e0ca95-6a61-4627-8816-68c67a896a8d

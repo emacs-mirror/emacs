@@ -1,6 +1,6 @@
 ;;; warnings.el --- log and display warnings
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2011 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -64,8 +64,8 @@ Level :debug is ignored by default (see `warning-minimum-level').")
     (critical . :emergency)
     (alarm . :emergency))
   "Alist of aliases for severity levels for `display-warning'.
-Each element looks like (ALIAS . LEVEL) and defines
-ALIAS as equivalent to LEVEL.  LEVEL must be defined in `warning-levels';
+Each element looks like (ALIAS . LEVEL) and defines ALIAS as
+equivalent to LEVEL.  LEVEL must be defined in `warning-levels';
 it may not itself be an alias.")
 
 (defcustom warning-minimum-level :warning
@@ -119,9 +119,9 @@ See also `warning-suppress-log-types'."
   :type '(repeat (repeat symbol))
   :version "22.1")
 
-;;; The autoload cookie is so that programs can bind this variable
-;;; safely, testing the existing value, before they call one of the
-;;; warnings functions.
+;; The autoload cookie is so that programs can bind this variable
+;; safely, testing the existing value, before they call one of the
+;; warnings functions.
 ;;;###autoload
 (defvar warning-prefix-function nil
   "Function to generate warning prefixes.
@@ -132,30 +132,30 @@ The warnings buffer is current when this function is called
 and the function can insert text in it.  This text becomes
 the beginning of the warning.")
 
-;;; The autoload cookie is so that programs can bind this variable
-;;; safely, testing the existing value, before they call one of the
-;;; warnings functions.
+;; The autoload cookie is so that programs can bind this variable
+;; safely, testing the existing value, before they call one of the
+;; warnings functions.
 ;;;###autoload
 (defvar warning-series nil
   "Non-nil means treat multiple `display-warning' calls as a series.
 A marker indicates a position in the warnings buffer
 which is the start of the current series; it means that
 additional warnings in the same buffer should not move point.
-t means the next warning begins a series (and stores a marker here).
+If t, the next warning begins a series (and stores a marker here).
 A symbol with a function definition is like t, except
 also call that function before the next warning.")
 (put 'warning-series 'risky-local-variable t)
 
-;;; The autoload cookie is so that programs can bind this variable
-;;; safely, testing the existing value, before they call one of the
-;;; warnings functions.
+;; The autoload cookie is so that programs can bind this variable
+;; safely, testing the existing value, before they call one of the
+;; warnings functions.
 ;;;###autoload
 (defvar warning-fill-prefix nil
   "Non-nil means fill each warning text using this string as `fill-prefix'.")
 
-;;; The autoload cookie is so that programs can bind this variable
-;;; safely, testing the existing value, before they call one of the
-;;; warnings functions.
+;; The autoload cookie is so that programs can bind this variable
+;; safely, testing the existing value, before they call one of the
+;; warnings functions.
 ;;;###autoload
 (defvar warning-type-format (purecopy " (%s)")
   "Format for displaying the warning type in the warning message.
@@ -235,12 +235,14 @@ See also `warning-series', `warning-prefix-function' and
       (warning-suppress-p type warning-suppress-log-types)
       (let* ((typename (if (consp type) (car type) type))
              (old (get-buffer buffer-name))
-	     (buffer (get-buffer-create buffer-name))
+	     (buffer (or old (get-buffer-create buffer-name)))
 	     (level-info (assq level warning-levels))
 	     start end)
 	(with-current-buffer buffer
           ;; If we created the buffer, disable undo.
           (unless old
+            (special-mode)
+            (setq buffer-read-only t)
             (setq buffer-undo-list t))
 	  (goto-char (point-max))
 	  (when (and warning-series (symbolp warning-series))
@@ -248,60 +250,61 @@ See also `warning-series', `warning-prefix-function' and
 		  (prog1 (point-marker)
 		    (unless (eq warning-series t)
 		      (funcall warning-series)))))
-	  (unless (bolp)
-	    (newline))
-	  (setq start (point))
-	  (if warning-prefix-function
-	      (setq level-info (funcall warning-prefix-function
-					level level-info)))
-	  (insert (format (nth 1 level-info)
-                          (format warning-type-format typename))
-		  message)
-	  (newline)
-	  (when (and warning-fill-prefix (not (string-match "\n" message)))
-	    (let ((fill-prefix warning-fill-prefix)
-		  (fill-column 78))
-	      (fill-region start (point))))
-	  (setq end (point))
+          (let ((inhibit-read-only t))
+	    (unless (bolp)
+	      (newline))
+	    (setq start (point))
+	    (if warning-prefix-function
+		(setq level-info (funcall warning-prefix-function
+					  level level-info)))
+	    (insert (format (nth 1 level-info)
+			    (format warning-type-format typename))
+		    message)
+	    (newline)
+	    (when (and warning-fill-prefix (not (string-match "\n" message)))
+	      (let ((fill-prefix warning-fill-prefix)
+		    (fill-column 78))
+		(fill-region start (point))))
+	    (setq end (point)))
 	  (when (and (markerp warning-series)
 		     (eq (marker-buffer warning-series) buffer))
 	    (goto-char warning-series)))
 	(if (nth 2 level-info)
 	    (funcall (nth 2 level-info)))
-     (cond (noninteractive
-	    ;; Noninteractively, take the text we inserted
-	    ;; in the warnings buffer and print it.
-	    ;; Do this unconditionally, since there is no way
-	    ;; to view logged messages unless we output them.
-	    (with-current-buffer buffer
-	      (save-excursion
-		;; Don't include the final newline in the arg
-		;; to `message', because it adds a newline.
-		(goto-char end)
-		(if (bolp)
-		    (forward-char -1))
-		(message "%s" (buffer-substring start (point))))))
-	   ((and (daemonp) (null after-init-time))
-	    ;; Warnings assigned during daemon initialization go into
-	    ;; the messages buffer.
-	    (message "%s"
-		     (with-current-buffer buffer
-		       (save-excursion
-			 (goto-char end)
-			 (if (bolp)
-			     (forward-char -1))
-			 (buffer-substring start (point))))))
-	   (t
-	    ;; Interactively, decide whether the warning merits
-	    ;; immediate display.
-	    (or (< (warning-numeric-level level)
-		   (warning-numeric-level warning-minimum-level))
-		(warning-suppress-p type warning-suppress-types)
-		(let ((window (display-buffer buffer)))
-		  (when (and (markerp warning-series)
-			     (eq (marker-buffer warning-series) buffer))
-		    (set-window-start window warning-series))
-		  (sit-for 0))))))))
+	(cond (noninteractive
+	       ;; Noninteractively, take the text we inserted
+	       ;; in the warnings buffer and print it.
+	       ;; Do this unconditionally, since there is no way
+	       ;; to view logged messages unless we output them.
+	       (with-current-buffer buffer
+		 (save-excursion
+		   ;; Don't include the final newline in the arg
+		   ;; to `message', because it adds a newline.
+		   (goto-char end)
+		   (if (bolp)
+		       (forward-char -1))
+		   (message "%s" (buffer-substring start (point))))))
+	      ((and (daemonp) (null after-init-time))
+	       ;; Warnings assigned during daemon initialization go into
+	       ;; the messages buffer.
+	       (message "%s"
+			(with-current-buffer buffer
+			  (save-excursion
+			    (goto-char end)
+			    (if (bolp)
+				(forward-char -1))
+			    (buffer-substring start (point))))))
+	      (t
+	       ;; Interactively, decide whether the warning merits
+	       ;; immediate display.
+	       (or (< (warning-numeric-level level)
+		      (warning-numeric-level warning-minimum-level))
+		   (warning-suppress-p type warning-suppress-types)
+		   (let ((window (display-buffer buffer)))
+		     (when (and (markerp warning-series)
+				(eq (marker-buffer warning-series) buffer))
+		       (set-window-start window warning-series))
+		     (sit-for 0))))))))
 
 ;;;###autoload
 (defun lwarn (type level message &rest args)
@@ -334,5 +337,4 @@ this is equivalent to `display-warning', using
 
 (provide 'warnings)
 
-;; arch-tag: faaad1c8-7b2a-4161-af38-5ab4afde0496
 ;;; warnings.el ends here

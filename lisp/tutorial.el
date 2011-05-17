@@ -1,9 +1,10 @@
 ;;; tutorial.el --- tutorial for Emacs
 
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2011 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help, internal
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -252,7 +253,7 @@ LEFT and RIGHT are the elements to compare."
              ;; * INSERTING AND DELETING
              ;; C-u 8 * to insert ********.
              (delete-backward-char "\d")
-             (delete-char [?\C-d])
+             (delete-forward-char [?\C-d])
              (backward-kill-word [?\M-\d])
              (kill-word [?\M-d])
              (kill-line [?\C-k])
@@ -829,6 +830,8 @@ Run the Viper tutorial? "))
         (if old-tut-file
             (progn
               (insert-file-contents (tutorial--saved-file))
+	      (let ((enable-local-variables :safe))
+		(hack-local-variables))
               (goto-char (point-min))
               (setq old-tut-point
                     (string-to-number
@@ -844,6 +847,8 @@ Run the Viper tutorial? "))
               (goto-char tutorial--point-before-chkeys)
               (setq tutorial--point-before-chkeys (point-marker)))
           (insert-file-contents (expand-file-name filename tutorial-directory))
+	  (let ((enable-local-variables :safe))
+	    (hack-local-variables))
           (forward-line)
           (setq tutorial--point-before-chkeys (point-marker)))
 
@@ -958,5 +963,4 @@ Currently this feature is only used in `help-with-tutorial'."
 
 (provide 'tutorial)
 
-;; arch-tag: c8e80aef-c3bb-4ffb-8af6-22171bf0c100
 ;;; tutorial.el ends here

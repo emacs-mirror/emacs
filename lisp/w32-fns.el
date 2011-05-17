@@ -1,10 +1,10 @@
-;;; w32-fns.el --- Lisp routines for Windows NT
+;;; w32-fns.el --- Lisp routines for 32-bit Windows
 
-;; Copyright (C) 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Geoff Voelker <voelker@cs.washington.edu>
 ;; Keywords: internal
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -31,34 +31,6 @@
 
 ;;;; Function keys
 
-(defvar x-alternatives-map
-  (let ((map (make-sparse-keymap)))
-    ;; Map certain keypad keys into ASCII characters that people usually expect.
-    (define-key map [M-backspace] [?\M-\d])
-    (define-key map [M-delete] [?\M-\d])
-    (define-key map [M-tab] [?\M-\t])
-    (define-key map [M-linefeed] [?\M-\n])
-    (define-key map [M-clear] [?\M-\C-l])
-    (define-key map [M-return] [?\M-\C-m])
-    (define-key map [M-escape] [?\M-\e])
-    (define-key map [iso-lefttab] [backtab])
-    (define-key map [S-iso-lefttab] [backtab])
-    (define-key map [S-tab] [backtab])
-    map)
-  "Keymap of possible alternative meanings for some keys.")
-
-(defun x-setup-function-keys (frame)
-  "Set up `function-key-map' on the graphical frame FRAME."
-  ;; Don't do this twice on the same display, or it would break
-  ;; normal-erase-is-backspace-mode.
-  (unless (terminal-parameter frame 'x-setup-function-keys)
-    ;; Map certain keypad keys into ASCII characters that people usually expect.
-    (with-selected-frame frame
-      (let ((map (copy-keymap x-alternatives-map)))
-        (set-keymap-parent map (keymap-parent local-function-key-map))
-        (set-keymap-parent local-function-key-map map)))
-    (set-terminal-parameter frame 'x-setup-function-keys t)))
-
 (declare-function set-message-beep "w32console.c")
 (declare-function w32-get-clipboard-data "w32select.c")
 (declare-function w32-get-locale-info "w32proc.c")
@@ -84,7 +56,7 @@ That includes all Windows systems except for 9X/Me."
 
 (defun w32-shell-name ()
   "Return the name of the shell being used."
-  (or (bound-and-true-p explicit-shell-file-name)
+  (or (bound-and-true-p shell-file-name)
       (getenv "ESHELL")
       (getenv "SHELL")
       (and (w32-using-nt) "cmd.exe")
@@ -253,15 +225,16 @@ You should set this to t when using a non-system shell.\n\n"))))
 ;;	    (setq source-directory (file-name-as-directory
 ;;				     (expand-file-name ".." exec-directory)))))
 
-(defun convert-standard-filename (filename)
-  "Convert a standard file's name to something suitable for the current OS.
+(defun w32-convert-standard-filename (filename)
+  "Convert a standard file's name to something suitable for MS-Windows.
 This means to guarantee valid names and perhaps to canonicalize
 certain patterns.
 
-On Windows and DOS, replace invalid characters.  On DOS, make
-sure to obey the 8.3 limitations.  On Windows, turn Cygwin names
-into native names, and also turn slashes into backslashes if the
-shell requires it (see `w32-shell-dos-semantics')."
+This function is called by `convert-standard-filename'.
+
+Replace invalid characters and turn Cygwin names into native
+names, and also turn slashes into backslashes if the shell
+requires it (see `w32-shell-dos-semantics')."
   (save-match-data
     (let ((name
 	   (if (string-match "\\`/cygdrive/\\([a-zA-Z]\\)/" filename)
@@ -312,7 +285,7 @@ Note that on MS-Windows, primary and secondary selections set by Emacs
 are not available to other programs."
   (put 'x-selections (or type 'PRIMARY) data))
 
-(defun x-get-selection (&optional type data-type)
+(defun x-get-selection (&optional type _data-type)
   "Return the value of an X Windows selection.
 The argument TYPE (default `PRIMARY') says which selection,
 and the argument DATA-TYPE (default `STRING') says
@@ -423,40 +396,16 @@ bit output with no translation."
                         'w32-charset-info-alist "21.1")
 
 
-;;;; Selections and cut buffers
+;;;; Selections
 
 ;; We keep track of the last text selected here, so we can check the
 ;; current selection against it, and avoid passing back our own text
-;; from x-cut-buffer-or-selection-value.
+;; from x-selection-value.
 (defvar x-last-selected-text nil)
-
-;; It is said that overlarge strings are slow to put into the cut buffer.
-;; Note this value is overridden below.
-(defvar x-cut-buffer-max 20000
-  "Max number of characters to put in the cut buffer.")
-
-(defun x-select-text (text &optional push)
-  "Select TEXT, a string, according to the window system.
-
-On X, put TEXT in the primary X selection.  For backward
-compatibility with older X applications, set the value of X cut
-buffer 0 as well, and if the optional argument PUSH is non-nil,
-rotate the cut buffers.  If `x-select-enable-clipboard' is
-non-nil, copy the text to the X clipboard as well.
-
-On Windows, make TEXT the current selection.  If
-`x-select-enable-clipboard' is non-nil, copy the text to the
-clipboard as well.  The argument PUSH is ignored.
-
-On Nextstep, put TEXT in the pasteboard; PUSH is ignored."
-  (if x-select-enable-clipboard
-      (w32-set-clipboard-data text))
-  (setq x-last-selected-text text))
 
 (defun x-get-selection-value ()
   "Return the value of the current selection.
-Consult the selection, then the cut buffer.  Treat empty strings as if
-they were unset."
+Consult the selection.  Treat empty strings as if they were unset."
   (if x-select-enable-clipboard
       (let (text)
 	;; Don't die if x-get-selection signals an error.
@@ -474,7 +423,7 @@ they were unset."
 	 (t
 	  (setq x-last-selected-text text))))))
 
-(defalias 'x-cut-buffer-or-selection-value 'x-get-selection-value)
+(defalias 'x-selection-value 'x-get-selection-value)
 
 ;; Arrange for the kill and yank functions to set and check the clipboard.
 (setq interprogram-cut-function 'x-select-text)
@@ -482,6 +431,11 @@ they were unset."
 
 
 ;;;; Support for build process
+
+;; From autoload.el
+(defvar autoload-make-program)
+(defvar generated-autoload-file)
+
 (defun w32-batch-update-autoloads ()
   "Like `batch-update-autoloads', but takes the name of the autoloads file
 from the command line.
@@ -509,5 +463,4 @@ to include Sed, which is used by leim/Makefile.in to do the job."
   (delete-matching-lines "^$\\|^;")
   (save-buffers-kill-emacs t))
 
-;; arch-tag: c49b48cc-0f4f-454f-a274-c2dc34815e14
 ;;; w32-fns.el ends here

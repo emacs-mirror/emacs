@@ -1,7 +1,6 @@
 ;;; life.el --- John Horton Conway's `Life' game for GNU Emacs
 
-;; Copyright (C) 1988, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Kyle Jones <kyleuunet.uu.net>
 ;; Maintainer: FSF
@@ -163,7 +162,7 @@ generations (this defaults to 1)."
       (replace-match (life-life-string) t t))
     ;; center the pattern horizontally
     (goto-char (point-min))
-    (setq n (/ (- fill-column (save-excursion (end-of-line) (point))) 2))
+    (setq n (/ (- fill-column (line-end-position)) 2))
     (while (not (eobp))
       (indent-to n)
       (forward-line))
@@ -302,5 +301,4 @@ generations (this defaults to 1)."
 
 (provide 'life)
 
-;; arch-tag: e9373544-755e-42f5-a9a1-4d4c422bb97a
 ;;; life.el ends here

@@ -1,7 +1,6 @@
 ;;; time-date.el --- Date and time handling functions
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	Masanobu Umeda <umerin@mse.kyutech.ac.jp>
@@ -38,9 +37,6 @@
 ;; them.
 
 ;;; Code:
-
-;; Only necessary for `declare' when compiling Gnus with Emacs 21.
-(eval-when-compile (require 'cl))
 
 (defmacro with-decoded-time-value (varlist &rest body)
   "Decode a time value and bind it according to VARLIST, then eval BODY.
@@ -97,45 +93,42 @@ and type 2 is the list (HIGH LOW MICRO)."
 (autoload 'timezone-make-date-arpa-standard "timezone")
 
 ;;;###autoload
+;; `parse-time-string' isn't sufficiently general or robust.  It fails
+;; to grok some of the formats that timezone does (e.g. dodgy
+;; post-2000 stuff from some Elms) and either fails or returns bogus
+;; values.  timezone-make-date-arpa-standard should help.
 (defun date-to-time (date)
   "Parse a string DATE that represents a date-time and return a time value.
 If DATE lacks timezone information, GMT is assumed."
   (condition-case ()
-      (apply 'encode-time
-	     (parse-time-string
-	      ;; `parse-time-string' isn't sufficiently general or
-	      ;; robust.  It fails to grok some of the formats that
-	      ;; timezone does (e.g. dodgy post-2000 stuff from some
-	      ;; Elms) and either fails or returns bogus values.  Lars
-	      ;; reverted this change, but that loses non-trivially
-	      ;; often for me.  -- fx
-	      (timezone-make-date-arpa-standard date)))
-    (error (error "Invalid date: %s" date))))
+      (apply 'encode-time (parse-time-string date))
+    (error (condition-case ()
+	       (apply 'encode-time
+		      (parse-time-string
+		       (timezone-make-date-arpa-standard date)))
+	     (error (error "Invalid date: %s" date))))))
 
 ;; Bit of a mess.  Emacs has float-time since at least 21.1.
 ;; This file is synced to Gnus, and XEmacs packages may have been written
 ;; using time-to-seconds from the Gnus library.
-;;;###autoload(if (and (fboundp 'float-time)
-;;;###autoload         (subrp (symbol-function 'float-time)))
+;;;###autoload(if (or (featurep 'emacs)
+;;;###autoload        (and (fboundp 'float-time)
+;;;###autoload             (subrp (symbol-function 'float-time))))
 ;;;###autoload    (progn
 ;;;###autoload      (defalias 'time-to-seconds 'float-time)
 ;;;###autoload      (make-obsolete 'time-to-seconds 'float-time "21.1"))
 ;;;###autoload  (autoload 'time-to-seconds "time-date"))
 
-(eval-and-compile
-  (unless (and (fboundp 'float-time)
-	       (subrp (symbol-function 'float-time)))
-    (defun time-to-seconds (time)
-      "Convert time value TIME to a floating point number."
-      (with-decoded-time-value ((high low micro time))
-	(+ (* 1.0 high 65536)
-	   low
-	   (/ micro 1000000.0))))))
-
 (eval-when-compile
-  (unless (fboundp 'with-no-warnings)
-    (defmacro with-no-warnings (&rest body)
-      `(progn ,@body))))
+  (or (featurep 'emacs)
+      (and (fboundp 'float-time)
+           (subrp (symbol-function 'float-time)))
+      (defun time-to-seconds (time)
+        "Convert time value TIME to a floating point number."
+        (with-decoded-time-value ((high low micro time))
+          (+ (* 1.0 high 65536)
+             low
+             (/ micro 1000000.0))))))
 
 ;;;###autoload
 (defun seconds-to-time (seconds)
@@ -146,7 +139,7 @@ If DATE lacks timezone information, GMT is assumed."
 
 ;;;###autoload
 (defun time-less-p (t1 t2)
-  "Say whether time value T1 is less than time value T2."
+  "Return non-nil if time value T1 is earlier than time value T2."
   (with-decoded-time-value ((high1 low1 micro1 t1)
 			    (high2 low2 micro2 t2))
     (or (< high1 high2)
@@ -250,8 +243,6 @@ DATE1 and DATE2 should be date-time strings."
 TIME should be a time value.
 The Gregorian date Sunday, December 31, 1bce is imaginary."
   (let* ((tim (decode-time time))
-	 (month (nth 4 tim))
-	 (day (nth 3 tim))
 	 (year (nth 5 tim)))
     (+ (time-to-day-in-year time)	; 	Days this year
        (* 365 (1- year))		;	+ Days in prior years
@@ -259,17 +250,15 @@ The Gregorian date Sunday, December 31, 1bce is imaginary."
        (- (/ (1- year) 100))		;	- century years
        (/ (1- year) 400))))		;	+ Gregorian leap years
 
-(eval-and-compile
-  (if (and (fboundp 'float-time)
-	   (subrp (symbol-function 'float-time)))
-      (defun time-to-number-of-days (time)
-	"Return the number of days represented by TIME.
-The number of days will be returned as a floating point number."
-	(/ (float-time time) (* 60 60 24)))
-    (defun time-to-number-of-days (time)
-      "Return the number of days represented by TIME.
-The number of days will be returned as a floating point number."
-      (/ (with-no-warnings (time-to-seconds time)) (* 60 60 24)))))
+(defun time-to-number-of-days (time)
+  "Return the number of days represented by TIME.
+Returns a floating point number."
+  (/ (funcall (eval-when-compile
+                (if (or (featurep 'emacs)
+                        (and (fboundp 'float-time)
+                             (subrp (symbol-function 'float-time))))
+                    'float-time
+                  'time-to-seconds)) time) (* 60 60 24)))
 
 ;;;###autoload
 (defun safe-date-to-time (date)
@@ -317,13 +306,9 @@ This function does not work for SECONDS greater than `most-positive-fixnum'."
       (setq start (match-end 0)
             spec (match-string 1 string))
       (unless (string-equal spec "%")
-	;; `assoc-string' is not available in Emacs 21.  So when compiling
-	;; Gnus (`time-date.el' is part of Gnus) with Emacs 21, we get a
-	;; warning here.  But `format-seconds' is not used anywhere in Gnus so
-	;; it's not a real problem. --rsteib
-        (or (setq match (assoc-string spec units t))
+        (or (setq match (assoc (downcase spec) units))
             (error "Bad format specifier: `%s'" spec))
-        (if (assoc-string spec usedunits t)
+        (if (assoc (downcase spec) usedunits)
             (error "Multiple instances of specifier: `%s'" spec))
         (if (string-equal (car match) "z")
             (setq zeroflag t)
@@ -364,5 +349,4 @@ This function does not work for SECONDS greater than `most-positive-fixnum'."
 
 (provide 'time-date)
 
-;; arch-tag: addcf07b-b20a-465b-af72-550b8ac5190f
 ;;; time-date.el ends here

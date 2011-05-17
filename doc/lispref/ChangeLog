@@ -1,3 +1,656 @@
+2011-05-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* nonascii.texi (Character Properties): Fix inconsistencies with
+	implementation.
+
+	* text.texi (Special Properties): Move @defvar's out of the
+	@table.  (Bug#8652)
+
+2011-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (Image Descriptors): Fix typo.  (Bug#8495)
+
+2011-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* modes.texi (Region to Refontify): Rename from "Region to Fontify".
+	(Multiline Font Lock):
+	* vol2.texi (Top):
+	* vol1.texi (Top):
+	* elisp.texi (Top): Update menu accordingly.
+
+2011-05-12  Drew Adams  <drew.adams@oracle.com>
+
+	* modes.texi (Region to Fontify): Fix typo.
+
+2011-05-10  Jim Meyering  <meyering@redhat.com>
+
+	* minibuf.texi: Fix typo "in in -> in".
+
+2011-05-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* numbers.texi (Integer Basics): Large integers are treated as floats.
+
+2011-04-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* processes.texi (Synchronous Processes): Document the (:file
+	"/file-name") syntax for `call-process'.
+
+2011-04-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* windows.texi (Choosing Window): Fix typo.
+
+2011-04-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frames.texi (Layout Parameters): Note the difference between
+	querying and setting parameters for left-fringe and right-fringe
+	(Bug#6930).
+
+2011-03-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuf.texi (Basic Completion): Be a bit more precise about the
+	valid kinds of completion tables.
+	(Programmed Completion): Remove obsolete text about lambda expressions
+	not being valid completion tables.
+
+2011-03-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* positions.texi (Excursions): Explain the "save-excursion
+	defeated by set-buffer" warning.
+
+	* buffers.texi (Current Buffer): Copyedits.  Don't recommend using
+	save-excursion.  Suggested by Uday S Reddy.
+
+2011-04-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* variables.texi (Defining Variables): Mention the new meaning of `defvar'.
+	(Lexical Binding): New sub-section.
+
+	* eval.texi (Eval): Discourage the use of `eval'.
+	Document its new `lexical' argument.
+
+2011-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* commands.texi (Command Overview): `post-command-hook' is not reset to
+	nil any more.
+
+2011-03-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* strings.texi (String Conversion): Don't mention
+	string-make-(uni|multi)byte (bug#8262).
+	* nonascii.texi (Converting Representations): Fix up range.
+	* keymaps.texi (Key Binding Commands): Update code point, avoid
+	"unibyte character" and remove mention of unibyte bindings.
+
+2011-03-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* modes.texi (Operator Precedence Grammars): Don't use characters
+	outside ISO-8859-1.
+
+2011-03-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* intro.texi (Acknowledgements): Convert to ISO-8859-1 encoding.
+
+	* makefile.w32-in (MAKEINFO_OPTS): Add --enable-encoding.
+
+2011-03-08  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (MAKEINFO_OPTS): Add --enable-encoding.
+	* intro.texi (Acknowledgements): Names to UTF-8.
+	* elisp.texi: Set documentencoding.
+
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
+2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* package.texi: Update index keywords.
+	(Package Archives): New node contents.  Document package-x.el.
+
+2011-03-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (srcs): Add package.texi.
+
+2011-03-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* package.texi (Packaging, Packaging Basics, Simple Packages)
+	(Multi-file Packages): Expand and clarify.
+	(Package Archives): Temporary placeholder node.
+
+	* elisp.texi (Top): Update node listing.
+
+	* Makefile.in (srcs): Add package.texi.
+
+2011-03-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* processes.texi (Synchronous Processes): Minor clarification
+	(Bug#8149).
+
+2011-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* files.texi (Truenames): Minor clarification.  (Bug#2341)
+
+2011-03-01  Glenn Morris  <rgm@gnu.org>
+
+	* variables.texi (Directory Local Variables):
+	Mention `(subdirs . nil)' alist element.
+
+2011-02-28  Glenn Morris  <rgm@gnu.org>
+
+	* variables.texi (Directory Local Variables): Mention the optional
+	mtime argument of dir-locals-set-directory-class.  (Bug#3577)
+
+2011-02-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuf.texi (Minibuffer History): Clarify discussion of
+	minibuffer history lists (Bug#8085).
+
+2011-02-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* elisp.texi: Sync @dircategory with ../../info/dir.
+
+	* files.texi (Visiting Functions): Document find-file-literally,
+	both the command and the variable.
+
+	* variables.texi (Creating Buffer-Local): Explain the meaning of
+	permanent local variables.
+
+	* files.texi (Visiting Functions): Document find-file-literally,
+	both the command and the variable.
+
+	* variables.texi (Creating Buffer-Local): Explain the meaning of
+	permanent local variables.
+
+2011-02-19  Glenn Morris  <rgm@gnu.org>
+
+	* keymaps.texi (Remapping Commands): Mention how to undo it.
+
+2011-02-09  Reuben Thomas  <rrt@sc3d.org>
+
+	* loading.texi (Hooks for Loading): Remove unnecessary advice
+	about eval-after-load (Bug#7986).
+
+2011-02-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* commands.texi (Accessing Mouse): Note that a header line is not
+	included in the row of posn-col-row.
+
+2011-02-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* modes.texi (Major Mode Conventions): Add face guidelines.
+	(Faces for Font Lock): List faces in order of prominence.
+
+2011-02-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	format-time-string now supports subsecond time stamp resolution
+	* os.texi (Time Parsing): Document %N.
+
+2011-01-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vol1.texi (Top):
+	* vol2.texi (Top):
+	* elisp.texi (Top):
+	* display.texi (Display Property): Shorten the menu description of
+	the "Other Display Specs" node (Bug#7816).
+
+	* keymaps.texi (Defining Menus): Add "menu item" and "extended
+	menu item" concept index entries (Bug#7805).
+
+2011-01-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (texinfodir): New variable.
+	(usermanualdir): Remove as redundant with $(emacsdir).
+	(MAKEINFO): Remove options, leave only program name.
+	(MAKEINFO_OPTS): New variable.
+	(texinputdir, $(infodir)/elisp): Use $(MAKEINFO_OPTS).
+
+2011-01-25  Chong Yidong  <cyd@stupidchicken.com>
+            Richard Kim  <emacs18@gmail.com>
+
+	* loading.texi (Library Search): Document list-load-path-shadows
+	(Bug#7757).
+
+2011-01-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* searching.texi (Regexp Special): Remove outdated discussion of
+	character sets (Bug#7780).
+
+	* frames.texi (Pop-Up Menus): Document where menu title comes
+	from (Bug#7684).
+
+2011-01-25  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (Making Buttons): Mention limitation of text buttons.
+
+2011-01-23  Werner Lemberg  <wl@gnu.org>
+
+	* Makefile.in (MAKEINFO): Now controlled by `configure'.
+	(MAKEINFO_OPTS): New variable.  Use it where appropriate.
+	(ENVADD): New variable to control texi2dvi and texi2pdf.
+
+2011-01-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.texi (Directory Names): Move directory-abbrev-alist doc to
+	Emacs manual.
+
+2011-01-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.texi (Directory Names): Explain why FROM in
+	directory-abbrev-alist should begin with \`.  (Bug#7777)
+
+2011-01-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* loading.texi (Hooks for Loading): Adjust doc of eval-after-load.
+
+2011-01-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* modes.texi (Emulating Mode Line): Fix last change.
+
+2011-01-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* modes.texi (Emulating Mode Line): Update documentation of
+	format-mode-line according to changes that fixed bug #7587.
+
+2010-12-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* modes.texi (Derived Modes): Mention prog-mode.
+
+	* keymaps.texi (Simple Menu Items, Extended Menu Items): Remove mention
+	of the key-binding-data cache since we don't use it any more.
+
+2010-12-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* processes.texi (Shell Arguments):
+	* strings.texi (Creating Strings): Don't mention "shell commands";
+	make it explicit that `split-string-and-unquote' and
+	`combine-and-quote-strings' are mainly for working with arguments
+	to call-process and start-process.
+
+	* processes.texi (Shell Arguments): Fix documentation of
+	`split-string-and-unquote'.  Add indexing.  (Bug#7563)
+
+2010-12-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* modes.texi (Auto-Indentation): New section to document SMIE.
+	(Major Mode Conventions):
+	* text.texi (Mode-Specific Indent): Refer to it.
+
+2010-12-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Other Display Specs): Document left-fringe and
+	right-fringe display specs.
+
+2010-12-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* backups.texi (Making Backups):
+	* modes.texi (Example Major Modes): Use recommended coding style.
+	(Major Mode Basics, Derived Modes): Encourge more strongly use of
+	define-derived-mode.  Mention completion-at-point-functions.
+
+2010-12-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nonascii.texi (Converting Representations):
+	Document byte-to-string.
+
+2010-12-08  Glenn Morris  <rgm@gnu.org>
+
+	* buffers.texi (Modification Time):
+	verify-visited-file-modtime now defaults to the current buffer.
+
+2010-11-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nonascii.texi (Converting Representations): Document byte-to-string.
+
+	* strings.texi (Creating Strings): Don't mention semi-obsolete
+	function char-to-string.
+	(String Conversion): Shorten discussion of semi-obsolete function
+	string-to-char.  Link to Converting Representations.
+
+	* objects.texi (Symbol Type):
+	* text.texi (Near Point):
+	* help.texi (Help Functions):
+	* functions.texi (Mapping Functions): Use string instead of
+	char-to-string in examples.
+
+2010-11-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* text.texi (Kill Functions, Kill Functions)
+	(Low-Level Kill Ring, Low-Level Kill Ring): Remove obsolete
+	YANK-HANDLER args.
+
+	* symbols.texi (Creating Symbols): Using unintern without an
+	obarray arg is now obsolete.
+
+	* numbers.texi (Float Basics): Document float-e and float-pi.
+
+	* variables.texi (Defining Variables): Change "pi" example to
+	"float-pi".
+
+2010-11-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* commands.texi (Click Events): Document the values of X, Y and
+	COL, ROW in the event's position, when the click is on the header
+	or mode line, on the fringes, or in the margins.
+
+2010-11-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* customize.texi (Composite Types): Lower-case index entry.
+
+	* loading.texi (How Programs Do Loading):
+	Document load-file-name.  (Bug#7346)
+
+2010-11-17  Glenn Morris  <rgm@gnu.org>
+
+	* text.texi (Kill Functions, Low-Level Kill Ring): Small fixes.
+
+2010-11-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Usual Display): Characters with no fonts are not
+	necessarily displayed as empty boxes.
+
+2010-10-31  Glenn Morris  <rgm@gnu.org>
+
+	* maps.texi (Standard Keymaps): Update File menu description.
+
+2010-10-28  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (elisp.dvi, elisp.pdf): Also include $emacsdir.
+
+2010-10-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Window Systems): Deprecate use of window-system as
+	a predicate.
+
+2010-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* help.texi (Documentation Basics): Remove mentions of digest-doc and
+	sorted-doc.
+
+2010-10-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* os.texi (Dynamic Libraries): New node, with slightly modified
+	text deleted from "Image Formats".
+	(System Interface): Add @menu entry for "Dynamic Libraries".
+
+	* display.texi (Image Formats): Remove description of
+	image-library-alist.  (Renamed in revno 101949.)
+
+2010-10-12  Glenn Morris  <rgm@gnu.org>
+
+	* book-spine.texinfo: Rename to book-spine.texi.
+
+2010-10-11  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (MAKEINFO): Add explicit -I$srcdir.
+
+	* Makefile.in (DVIPS): New variable.
+	(.PHONY): Add html, ps.
+	(html, elisp.html, ps, elisp.ps): New targets.
+	(clean): Delete html, ps files.
+	($(infodir)/elisp): Remove unnecessary includes.
+
+2010-10-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (emacsdir): New variable.
+	(srcs): Add emacsver.texi.
+	($(infodir)/elisp, elisp.dvi): Add -I$(emacsdir).
+
+2010-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (VPATH): Remove.
+	(infodir): Make it absolute.
+	(mkinfodir, $(infodir)/elisp, infoclean): No need to cd $srcdir.
+
+	* Makefile.in (dist): Anchor regexps.
+
+	* Makefile.in (srcs): Put elisp.texi first.
+	($(infodir)/elisp, elisp.dvi, elisp.pdf): Use $<.
+
+	* Makefile.in (infoclean): Remove harmless, long-standing error.
+
+	* Makefile.in ($(infodir)): Delete rule.
+	(mkinfodir): New.
+	($(infodir)/elisp): Use $mkinfodir instead of infodir.
+
+	* Makefile.in (dist): Remove reference to emacsver.texi.in.
+	Also copy emacsver.texi, and edit $emacsdir.
+
+2010-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (emacsdir): New variable.
+	(MAKEINFO): Add -I $emacsdir.
+	(dist): Copy emacsver.texi.
+	(srcs): Add emacsver.texi.
+
+	* book-spine.texinfo, elisp.texi, vol2.texi, vol1.texi:
+	Set EMACSVER by including emacsver.texi.
+
+	* Makefile.in (.PHONY): Declare info, dvi, pdf, dist.
+
+2010-10-07  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (version): New, set by configure.
+	(clean): Delete dist tar file.
+	(dist): Use version in tar name.
+
+2010-10-06  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in: Rearrange to more closely resemble doc/emacs/Makefile.
+	(INSTALL_INFO): Remove unused variable.
+	(mostlyclean, infoclean, dist): New rules.
+	(clean): Delete dvi and pdf files.
+	(maintainer-clean): Remove elisp.oaux, use infoclean.
+	($(infodir)): Add parallel build workaround.
+
+2010-10-04  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (dvi, pdf, $(infodir)): New targets.
+	($(infodir)/elisp): Ensure target directory exists.  Use $@.
+	Fix -I typo.
+	(clean): No 'make.out' or 'core' files.
+	(.PHONY): Declare clean rules.
+	(maintainer-clean): Delete pdf file.  Guard against cd failures.
+
+2010-10-03  Glenn Morris  <rgm@gnu.org>
+
+	* files.texi (File Name Components): Remove ignored section about
+	deleted variable directory-sep-char.
+
+2010-10-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.texi (Magic File Names): New defopt
+	remote-file-name-inhibit-cache.
+
+2010-10-02  Glenn Morris  <rgm@gnu.org>
+
+	* os.texi (Killing Emacs): Hook now runs in batch mode.
+
+2010-09-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* text.texi (Special Properties): Clarify when modification-hooks run.
+
+2010-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* syntax.texi (Syntax Flags): Document new `c' flag.
+
+2010-09-09  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (ImageMagick Images): General cleanup.
+
+2010-09-06  Alexander Klimov  <alserkli@inbox.ru>  (tiny change)
+
+	* files.texi (Directory Names): Use \` rather than ^.
+
+2010-09-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* text.texi (Low-Level Kill Ring):
+	* frames.texi (Window System Selections): Remove cut buffer
+	documentation.
+
+2010-08-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Fringe Size/Pos): Add a cross-reference to "Layout
+	Parameters", where the default fringe width is described.
+
+	* frames.texi (Window Frame Parameters, Basic Parameters)
+	(Position Parameters, Layout Parameters, Management Parameters)
+	(Cursor Parameters, Font and Color Parameters): Add indexing for
+	frame parameters.  (Bug#6929)
+
+2010-08-25  Tom Tromey  <tromey@redhat.com>
+
+	* vol2.texi (Top): Update.
+	* vol1.texi (Top): Update.
+	* tips.texi (Library Headers): Mention Package-Version and
+	Package-Requires.
+	* package.texi: New file.
+	* os.texi (System Interface): Update pointers.
+	* elisp.texi (Top): Link to new nodes.  Include package.texi.
+	* anti.texi (Antinews): Update pointers.
+
+2010-08-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* processes.texi (Filter Functions): Fix last change.
+
+2010-08-24  Markus Triska  <triska@gmx.at>
+
+	* processes.texi (Filter Functions): Use `buffer-live-p' instead
+	of `buffer-name' in the main text as well as in the example
+	(Bug#3098).
+
+2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nonascii.texi (Text Representations):
+	* loading.texi (Loading Non-ASCII):
+	* compile.texi (Byte Compilation): Don't mention obsolete
+	--unibyte command-line argument.
+
+2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* modes.texi (Defining Minor Modes): Doc fix (Bug#6880).
+
+2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* objects.texi (Bool-Vector Type): Minor definition tweak (Bug#6878).
+
+2010-08-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* commands.texi (Misc Events): Add cross-references to where
+	POSITION of a mouse event is described in detail.
+
+2010-08-08  Christoph  <cschol2112@googlemail.com>
+
+	* control.texi (Handling Errors) <error-message-string>: Fix arg name.
+
+2010-08-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* modes.texi (Defining Minor Modes): Use C-backspace, not C-delete.
+	Suggested by Štěpán Němec <stepnem@gmail.com>.
+
+2010-08-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuf.texi (High-Level Completion): Document args of
+	`read-buffer-function' (bug#5625).
+
+2010-07-29  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* frames.texi (Layout Parameters): Add doc for tool-bar-position.
+
+2010-07-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* processes.texi (Process Information): Explain process property
+	`remote-tty'.
+
+2010-07-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* modes.texi (Defining Minor Modes): Use C-delete in examples,
+	instead of "\C-\^?" (bug#6334).
+
+	* text.texi (Special Properties): Fix typo.
+
+2010-07-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* internals.texi (Writing Emacs Primitives): Adapt to ANSI C
+	calling sequences, which are now the standard.
+
+2010-06-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* text.texi (Undo): Clarify command loop behavior (Bug#2433).
+
+	* commands.texi (Command Overview): Mention undo-boundary call.
+
+2010-06-23  Glenn Morris  <rgm@gnu.org>
+
+	* abbrevs.texi, commands.texi, compile.texi, debugging.texi:
+	* display.texi, edebug.texi, elisp.texi, eval.texi, files.texi:
+	* frames.texi, functions.texi, internals.texi, keymaps.texi:
+	* loading.texi, minibuf.texi, numbers.texi, os.texi, processes.texi:
+	* searching.texi, sequences.texi, strings.texi, syntax.texi:
+	* text.texi, tips.texi, vol1.texi, vol2.texi, windows.texi:
+	Untabify Texinfo files.
+
+2010-06-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* modes.texi (Minor Mode Conventions): Fix typo (Bug#6477).
+
+2010-06-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* errors.texi (Standard Errors): Remove unnecessary markup (Bug#6461).
+
+2010-06-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* searching.texi (Regexp Special): Remove obsolete information
+	about matching non-ASCII characters, and suggest using char
+	classes (Bug#6283).
+
+2010-05-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuf.texi (Basic Completion): Add missing "@end defun".
+
+2010-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuf.texi (Basic Completion): Document completion-boundaries.
+	(Programmed Completion): Document the new fourth method for boundaries.
+
+2010-05-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Image Cache): Update documentation about image caching.
+
+2010-05-08  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
+
+	* windows.texi (Textual Scrolling):
+	* tips.texi (Coding Conventions):
+	* minibuf.texi (Minibuffer History):
+	* maps.texi (Standard Keymaps):
+	* loading.texi (Where Defined):
+	* edebug.texi (Instrumenting): Fix typos.
+
+2010-05-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keymaps.texi (Menu Bar): Document :advertised-binding property.
+
+	* functions.texi (Obsolete Functions):
+	Document set-advertised-calling-convention.
+
+	* minibuf.texi (Basic Completion): Document completion-in-region.
+	(Programmed Completion): Document completion-annotate-function.
+
+	* commands.texi (Reading One Event): Document read-key.
+	(Distinguish Interactive): Document KIND arg to
+	called-interactively-p.  Delete obsolete interactive-p.
+
+	* elisp.texi (Top): Update node description.
+
+2010-05-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* nonascii.texi (Character Properties):
+	Document unicode-category-table.  Add an index entry for Unicode
+	general category.
+
+2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.2 released.
+
 2010-04-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* locals.texi (Standard Buffer-Local Variables):
@@ -125,8 +778,8 @@
 	* minibuf.texi (Basic Completion): 4th arg to all-completions is
 	obsolete.
 
-	* processes.texi (Process Buffers): Document
-	process-kill-buffer-query-function.
+	* processes.texi (Process Buffers):
+	Document process-kill-buffer-query-function.
 
 2009-12-05  Glenn Morris  <rgm@gnu.org>
 
@@ -573,8 +1226,8 @@
 	(Suspending Emacs): Mark suspend-emacs as a command.
 	(Processor Run Time): Mark emacs-uptime and emacs-init-time as
 	commands.
-	(Terminal Output): Remove obsolete function baud-rate.  Document
-	TERMINAL arg for send-string-to-terminal.
+	(Terminal Output): Remove obsolete function baud-rate.
+	Document TERMINAL arg for send-string-to-terminal.
 
 	* nonascii.texi (Terminal I/O Encoding): Document TERMINAL arg for
 	terminal-coding-system and set-terminal-coding-system.
@@ -678,8 +1331,8 @@
 2009-05-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* nonascii.texi (Default Coding Systems): Document
-	find-auto-coding, set-auto-coding, and auto-coding-alist.  Add
-	indexing.
+	find-auto-coding, set-auto-coding, and auto-coding-alist.
+	Add indexing.
 	(Lisp and Coding Systems): Add index entries.
 
 2009-05-09  Martin Rudalics  <rudalics@gmx.at>
@@ -721,8 +1374,8 @@
 
 2009-04-22  Chong Yidong  <cyd@stupidchicken.com>
 
-	* os.texi (Command-Line Arguments): Document
-	command-line-args-left.
+	* os.texi (Command-Line Arguments):
+	Document command-line-args-left.
 	(Suspending Emacs): Adapt text to multi-tty case.  Document use of
 	terminal objects for tty arguments.
 	(Startup Summary): Add xref to Session Management.
@@ -798,13 +1451,13 @@
 2009-04-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* text.texi (Yank Commands): Note that yank uses push-mark.
-	(Filling): Clarify REGION argument of fill-paragraph.  Document
-	fill-forward-paragraph-function.
+	(Filling): Clarify REGION argument of fill-paragraph.
+	Document fill-forward-paragraph-function.
 	(Special Properties): Remove "new in Emacs 22" declaration.
 	(Clickable Text): Merge with Links and Mouse-1 node.
 
-	* display.texi (Button Properties, Button Buffer Commands): Change
-	xref to Clickable Text.
+	* display.texi (Button Properties, Button Buffer Commands):
+	Change xref to Clickable Text.
 
 	* tips.texi (Key Binding Conventions): Change xref to Clickable
 	Text.
@@ -866,8 +1519,8 @@
 
 2009-03-29  Chong Yidong  <cyd@stupidchicken.com>
 
-	* help.texi (Accessing Documentation, Help Functions): Remove
-	information about long-obsolete Emacs versions.
+	* help.texi (Accessing Documentation, Help Functions):
+	Remove information about long-obsolete Emacs versions.
 
 	* modes.texi (Mode Line Variables): The default values of the mode
 	line variables are now more complicated.
@@ -910,8 +1563,8 @@
 2009-03-23  Chong Yidong  <cyd@stupidchicken.com>
 
 	* minibuf.texi (Intro to Minibuffers): Remove long-obsolete info
-	about minibuffers in old Emacs versions.  Copyedits.  Emphasize
-	that enable-recursive-minibuffers defaults to nil.
+	about minibuffers in old Emacs versions.  Copyedits.
+	Emphasize that enable-recursive-minibuffers defaults to nil.
 	(Text from Minibuffer): Simplify introduction.
 
 2009-03-22  Alan Mackenzie  <acm@muc.de>
@@ -965,8 +1618,8 @@
 	* customize.texi (Common Keywords): It's not necessary to use :tag
 	to remove hyphens, as custom-unlispify-tag-name does it
 	automatically.
-	(Variable Definitions): Link to File Local Variables.  Document
-	customized-value symbol property.
+	(Variable Definitions): Link to File Local Variables.
+	Document customized-value symbol property.
 	(Customization Types): Move menu to end of node.
 
 2009-03-10  Chong Yidong  <cyd@stupidchicken.com>
@@ -1077,8 +1730,8 @@
 	* text.texi (Commands for Insertion):
 	* commands.texi (Event Mod):
 	* keymaps.texi (Searching Keymaps):
-	* nonascii.texi (Translation of Characters): Reinstate
-	documentation of translation-table-for-input.
+	* nonascii.texi (Translation of Characters):
+	Reinstate documentation of translation-table-for-input.
 	(Explicit Encoding): Document the `charset' text property produced
 	by decode-coding-region and decode-coding-string.
 
@@ -1107,8 +1760,8 @@
 2009-01-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.texi (Format Conversion Piecemeal): Clarify behavior of
-	write-region-annotate-functions.  Document
-	write-region-post-annotation-function.
+	write-region-annotate-functions.
+	Document write-region-post-annotation-function.
 
 2009-01-19  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -1175,8 +1828,8 @@
 
 	* processes.texi (Serial Ports): Improve wording, suggested by RMS.
 
-	* nonascii.texi (Lisp and Coding Systems): Document
-	inhibit-null-byte-detection and inhibit-iso-escape-detection.
+	* nonascii.texi (Lisp and Coding Systems):
+	Document inhibit-null-byte-detection and inhibit-iso-escape-detection.
 	(Character Properties): Improve wording.
 
 2009-01-09  Chong Yidong  <cyd@stupidchicken.com>
@@ -1184,8 +1837,8 @@
 	* display.texi (Font Lookup): Remove obsolete function
 	x-font-family-list.  x-list-fonts accepts Fontconfig/GTK syntax.
 	(Low-Level Font): Rename from Fonts, move to end of Faces section.
-	(Font Selection): Reorder order of variable descriptions.  Minor
-	clarifications.
+	(Font Selection): Reorder order of variable descriptions.
+	Minor clarifications.
 
 	* elisp.texi (Top): Update node listing.
 
@@ -1206,8 +1859,8 @@
 	* elisp.texi: Update node listing.
 
 	* display.texi (Faces): Put Font Selection node after Auto Faces.
-	(Face Attributes): Don't link to Font Lookup.  Document
-	font-family-list.
+	(Face Attributes): Don't link to Font Lookup.
+	Document font-family-list.
 	(Fonts): New node.
 
 2009-01-08  Jason Rumney  <jasonr@gnu.org>
@@ -1435,8 +2088,8 @@
 	* windows.texi (Window Hooks): Remove *-end-trigger-functions
 	vars, which are obsolete.  Mention jit-lock-register.
 
-	* modes.texi (Other Font Lock Variables): Document
-	jit-lock-register and jit-lock-unregister.
+	* modes.texi (Other Font Lock Variables):
+	Document jit-lock-register and jit-lock-unregister.
 
 	* frames.texi (Color Parameters): Document alpha parameter.
 
@@ -1508,8 +2161,8 @@
 2008-11-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* nonascii.texi (Text Representations): Rewrite to make consistent
-	with Emacs 23 internal representation of characters.  Document
-	`unibyte-string'.
+	with Emacs 23 internal representation of characters.
+	Document `unibyte-string'.
 
 2008-10-28  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -1622,8 +2275,8 @@
 
 	* processes.texi (Synchronous Processes): Document `process-lines'.
 
-	* customize.texi (Variable Definitions): Document
-	`custom-reevaluate-setting'.
+	* customize.texi (Variable Definitions):
+	Document `custom-reevaluate-setting'.
 
 2008-10-18  Martin Rudalics  <rudalics@gmx.at>
 
@@ -1639,13 +2292,13 @@
 	* maps.texi (Standard Keymaps): Document `multi-query-replace-map'
 	and `search-map'.
 
-	* searching.texi (Search and Replace): Document
-	`replace-search-function' and `replace-re-search-function'.
+	* searching.texi (Search and Replace):
+	Document `replace-search-function' and `replace-re-search-function'.
 	Document `multi-query-replace-map'.
 
 	* minibuf.texi (Text from Minibuffer): Document `read-regexp'.
-	(Completion Commands, Reading File Names): Rename
-	`minibuffer-local-must-match-filename-map' to
+	(Completion Commands, Reading File Names):
+	Rename `minibuffer-local-must-match-filename-map' to
 	`minibuffer-local-filename-must-match-map'.
 	(Minibuffer Completion): The `require-match' argument to
 	`completing-read' can now have the value `confirm-only'.
@@ -1990,7 +2643,7 @@
 
 2007-12-30  Richard Stallman  <rms@gnu.org>
 
-	* commands.texi (Accessing Mouse): Renamed from Accessing Events.
+	* commands.texi (Accessing Mouse): Rename from Accessing Events.
 	(Accessing Scroll): New node broken out of Accessing Mouse.
 
 2007-12-28  Richard Stallman  <rms@gnu.org>
@@ -2034,8 +2687,8 @@
 
 2007-11-29  Glenn Morris  <rgm@gnu.org>
 
-	* functions.texi (Declaring Functions): Add findex.  Mention
-	`external' files.
+	* functions.texi (Declaring Functions): Add findex.
+	Mention `external' files.
 
 2007-11-26  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -2162,8 +2815,8 @@
 	* display.texi (Display Property): Explain some display specs
 	don't let you move point in.
 
-	* frames.texi (Cursor Parameters): Describe
-	cursor-in-non-selected-windows here.  Explain more values.
+	* frames.texi (Cursor Parameters):
+	Describe cursor-in-non-selected-windows here.  Explain more values.
 
 	* windows.texi (Basic Windows): Don't describe
 	cursor-in-non-selected-windows here.
@@ -2234,10 +2887,16 @@
 
 	* display.texi (Images): Delete redundant @findex.
 
+2007-08-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* text.texi (Change Hooks): (after|before)-change-functions are no
+	longer bound to nil while running; rather inhibit-modification-hooks
+	is t.
+
 2007-08-16  Richard Stallman  <rms@gnu.org>
 
-	* processes.texi (Asynchronous Processes): Clarify
-	doc of start-file-process.
+	* processes.texi (Asynchronous Processes):
+	Clarify doc of start-file-process.
 
 2007-08-08  Martin Rudalics  <rudalics@gmx.at>
 
@@ -2304,8 +2963,8 @@
 
 2007-06-27  Richard Stallman  <rms@gnu.org>
 
-	* files.texi (Format Conversion Piecemeal): Clarify
-	`after-insert-file-functions' calling convention.
+	* files.texi (Format Conversion Piecemeal):
+	Clarify `after-insert-file-functions' calling convention.
 
 2007-06-27  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -2360,8 +3019,8 @@
 
 2007-05-30  Nick Roberts  <nickrob@snap.net.nz>
 
-	* commands.texi (Click Events): Layout more logically.  Describe
-	width and height.
+	* commands.texi (Click Events): Layout more logically.
+	Describe width and height.
 	(Drag Events, Motion Events): Update to new format for position.
 
 2007-06-02  Richard Stallman  <rms@gnu.org>
@@ -2767,8 +3426,8 @@
 
 2007-03-05  Richard Stallman  <rms@gnu.org>
 
-	* variables.texi (File Local Variables): Update
-	enable-local-variables values.
+	* variables.texi (File Local Variables):
+	Update enable-local-variables values.
 
 2007-03-04  Richard Stallman  <rms@gnu.org>
 
@@ -2839,8 +3498,8 @@
 2007-02-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* elisp.texi (Top): Make the detailed menu headers compliant with
-	Texinfo guidelines and with what texnfo-upd.el expects.  Add
-	comments to prevent people from inadvertently modifying the key
+	Texinfo guidelines and with what texnfo-upd.el expects.
+	Add comments to prevent people from inadvertently modifying the key
 	parts needed by `texinfo-multiple-files-update'.
 
 2007-02-02  Eli Zaretskii  <eliz@gnu.org>
@@ -2927,8 +3586,8 @@
 
 2006-12-24  Richard Stallman  <rms@gnu.org>
 
-	* customize.texi (Variable Definitions): Document
-	new name custom-add-frequent-value.
+	* customize.texi (Variable Definitions):
+	Document new name custom-add-frequent-value.
 
 2006-12-19  Kim F. Storm  <storm@cua.dk>
 
@@ -3227,8 +3886,8 @@
 
 2006-09-01  Chong Yidong  <cyd@stupidchicken.com>
 
-	* buffers.texi (Buffer Modification): Document
-	buffer-chars-modified-tick.
+	* buffers.texi (Buffer Modification):
+	Document buffer-chars-modified-tick.
 
 2006-08-31  Richard Stallman  <rms@gnu.org>
 
@@ -3290,7 +3949,7 @@
 2006-08-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* text.texi (Near Point): Say "cursor" not "terminal cursor".
-	(Commands for Insertion): Removed split-line since it's not
+	(Commands for Insertion): Remove split-line since it's not
 	relevant for Lisp programming.
 	(Yank Commands): Rewrite introduction.
 	(Undo): Clarify.
@@ -3321,7 +3980,7 @@
 	(Major Mode Basics): Mention define-derived-mode explicitly.
 	(Major Mode Conventions): Rebinding RET is OK for some modes.
 	Mention change-major-mode-hook and after-change-major-mode-hook.
-	(Example Major Modes): Moved to end of Modes section.
+	(Example Major Modes): Move to end of Modes section.
 	(Mode Line Basics): Clarify.
 	(Mode Line Data): Mention help-echo and local-map in strings.
 	Explain reason for treatment of non-risky variables.
@@ -3820,7 +4479,7 @@
 
 2006-05-25  Chong Yidong  <cyd@stupidchicken.com>
 
-	* keymaps.texi (Key Sequences): Renamed from Keymap Terminology.
+	* keymaps.texi (Key Sequences): Rename from Keymap Terminology.
 	Explain string and vector representations of key sequences.
 
 	* keymaps.texi (Changing Key Bindings):
@@ -3869,8 +4528,8 @@
 
 2006-05-15  Oliver Scholz  <epameinondas@gmx.de>  (tiny change)
 
-	* nonascii.texi (Explicit Encoding): Fix
-	typo (encoding<->decoding).
+	* nonascii.texi (Explicit Encoding):
+	Fix typo (encoding<->decoding).
 
 2006-05-14  Richard Stallman  <rms@gnu.org>
 
@@ -3920,8 +4579,8 @@
 
 2006-05-09  Richard Stallman  <rms@gnu.org>
 
-	* variables.texi (File Local Variables): Document
-	safe-local-eval-forms and safe-local-eval-function.
+	* variables.texi (File Local Variables):
+	Document safe-local-eval-forms and safe-local-eval-function.
 
 2006-05-07  Kim F. Storm  <storm@cua.dk>
 
@@ -4405,8 +5064,8 @@
 
 2005-12-03  Eli Zaretskii  <eliz@gnu.org>
 
-	* hooks.texi (Standard Hooks): Add index entries.  Mention
-	`compilation-finish-functions'.
+	* hooks.texi (Standard Hooks): Add index entries.
+	Mention `compilation-finish-functions'.
 
 2005-11-27  Richard M. Stallman  <rms@gnu.org>
 
@@ -4629,8 +5288,8 @@
 	buffer-local.
 	(Undo): Note that buffer-undo-list is buffer-local.
 
-	* windows.texi (Buffers and Windows): Document
-	buffer-display-count.
+	* windows.texi (Buffers and Windows):
+	Document buffer-display-count.
 
 2005-09-06  Richard M. Stallman  <rms@gnu.org>
 
@@ -4871,7 +5530,7 @@
 
 	* display.texi (Displaying Messages): New node, with most
 	of what was in The Echo Area.
-	(Progress): Moved under The Echo Area.
+	(Progress): Move under The Echo Area.
 	(Logging Messages): New node with new text.
 	(Echo Area Customization): New node, the rest of what was
 	in The Echo Area.  Document message-truncate-lines with @defvar.
@@ -5932,7 +6591,7 @@
 2005-02-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* frames.texi (Color Names): Add pointer to the X docs about RGB
-	color specifications.  Improve indexing
+	color specifications.  Improve indexing.
 	(Text Terminal Colors): Replace the description of RGB values by
 	an xref to "Color Names".
 
@@ -6186,8 +6845,8 @@
 	(Scroll Bars): Add scroll-bar-mode and scroll-bar-width.
 	(Usual Display): Move tab-width up.
 
-	* customize.texi (Variable Definitions): Replace
-	show-paren-mode example with tooltip-mode.
+	* customize.texi (Variable Definitions):
+	Replace show-paren-mode example with tooltip-mode.
 	(Simple Types, Composite Types, Defining New Types):
 	Minor cleanups.
 
@@ -6423,8 +7082,8 @@
 	(Display Fringe Bitmaps): New node.
 	(Images): Add 'Image Slices' to menu.
 	(Image Descriptors): Add `:pointer' and `:map' properties.
-	(Showing Images): Add slice arg to `insert-image'.  Add
-	'insert-sliced-image'.
+	(Showing Images): Add slice arg to `insert-image'.
+	Add 'insert-sliced-image'.
 
 2004-09-20  Richard M. Stallman  <rms@gnu.org>
 
@@ -6437,8 +7096,8 @@
 
 2004-09-07  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* locals.texi (Standard Buffer-Local Variables): Add
-	`buffer-auto-save-file-format'.
+	* locals.texi (Standard Buffer-Local Variables):
+	Add `buffer-auto-save-file-format'.
 	* internals.texi (Buffer Internals): Describe new
 	auto_save_file_format field of the buffer structure.
 	* files.texi (Format Conversion): `auto-save-file-format' has been
@@ -6826,8 +7485,8 @@
 
 2004-04-05  Jesper Harder  <harder@ifa.au.dk>
 
-	* variables.texi (Variable Aliases): Mention
-	cyclic-variable-indirection.
+	* variables.texi (Variable Aliases):
+	Mention cyclic-variable-indirection.
 
 	* errors.texi (Standard Errors): Ditto.
 
@@ -7006,7 +7665,7 @@
 
 2004-02-07  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* positions.texi (Text Lines): Added missing end defun.
+	* positions.texi (Text Lines): Add missing end defun.
 
 2004-02-07  Kim F. Storm  <storm@cua.dk>
 
@@ -7029,12 +7688,12 @@
 	read-minibuffer.
 	(Minibuffer History): Clarify description of cons values for
 	HISTORY arguments.
-	(Basic Completion): Various corrections and clarifications.  Add
-	completion-regexp-list.
+	(Basic Completion): Various corrections and clarifications.
+	Add completion-regexp-list.
 	(Minibuffer Completion): Correct and clarify description of
 	completing-read.
-	(Completion Commands): Mention Partial Completion mode.  Various
-	other minor changes.
+	(Completion Commands): Mention Partial Completion mode.
+	Various other minor changes.
 	(High-Level Completion): Various corrections and clarifications.
 	(Reading File Names): Ditto.
 	(Minibuffer Misc): Ditto.
@@ -7109,8 +7768,8 @@
 
 	* functions.texi: Various small changes in addition to the
 	following.
-	(What Is a Function): `functionp' returns nil for macros.  Clarify
-	behavior of this and following functions for symbol arguments.
+	(What Is a Function): `functionp' returns nil for macros.
+	Clarify behavior of this and following functions for symbol arguments.
 	(Function Documentation): Add `\' in front of (fn @var{arglist})
 	and explain why.
 	(Defining Functions): Mention DOCSTRING argument to `defalias'.
@@ -7695,7 +8354,7 @@
 	* minibuf.texi (Reading File Names): read-file-name has new
 	arg PREDICATE.  New function read-directory-name.
 
-	* macros.texi (Defining Macros): Give definition of `declare'
+	* macros.texi (Defining Macros): Give definition of `declare'.
 	(Indenting Macros): New node.
 
 	* frames.texi (Parameter Access): Add modify-all-frames-parameters.
@@ -7799,7 +8458,7 @@
 	* numbers.texi (Integer Basics): Add most-positive-fixnum,
 	most-negative-fixnum.
 
-	* compile.texi (Byte Compilation): Explain no-byte-compile
+	* compile.texi (Byte Compilation): Explain no-byte-compile.
 	(Compiler Errors): New node.
 
 	* os.texi (User Identification): user-uid, user-real-uid
@@ -7906,7 +8565,7 @@
 
 2003-01-31  Joe Buehler  <jhpb@draco.hekimian.com>
 
-	* os.texi (System Environment): Added cygwin system-type.
+	* os.texi (System Environment): Add cygwin system-type.
 
 2003-01-25  Richard M. Stallman  <rms@gnu.org>
 
@@ -7939,7 +8598,7 @@
 
 	* README: Target for Info file is `make info'.
 
-	* files.texi (File Name Components): Fixed typos in
+	* files.texi (File Name Components): Fix typos in
 	`file-name-sans-extension'.
 	(Magic File Names): Complete list of operations for magic file
 	name handlers.
@@ -7955,7 +8614,7 @@
 
 2002-08-05  Per Abrahamsen  <abraham@dina.kvl.dk>
 
-	* customize.texi (Splicing into Lists): Fixed example.
+	* customize.texi (Splicing into Lists): Fix example.
 	Reported by Fabrice Bauzac <fabrice.bauzac@wanadoo.fr>.
 
 2002-06-17  Juanma Barranquero  <lektu@terra.es>
@@ -7995,8 +8654,8 @@
 
 2001-11-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* permute-index: Don't depend on csh-specific features.  Replace
-	the interpreter name with /bin/sh.
+	* permute-index: Don't depend on csh-specific features.
+	Replace the interpreter name with /bin/sh.
 
 	* two-volume-cross-refs.txt: New file.
 	* two.el: New file.
@@ -8134,8 +8793,8 @@
 	* numbers.texi (Integer Basics): Document CL style read syntax for
 	integers in bases other than 10.
 
-	* positions.texi (List Motion): Document
-	open-paren-in-column-0-is-defun-start.
+	* positions.texi (List Motion):
+	Document open-paren-in-column-0-is-defun-start.
 
 	* lists.texi (Sets And Lists): Document member-ignore-case.
 
@@ -8330,7 +8989,7 @@
 1995-06-19  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
 	* Makefile (VERSION): Update version number.
-	(maintainer-clean): Renamed from realclean.
+	(maintainer-clean): Rename from realclean.
 
 1995-06-07  Karl Heuer  <kwzh@nutrimat.gnu.ai.mit.edu>
 
@@ -8402,11 +9061,11 @@
 
 1991-11-26  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
-	* Makefile (srcs): Added index.perm.
+	* Makefile (srcs): Add index.perm.
 	(elisp.dvi): Remove erroneous shell comment.
 	Expect output of permute-index in permuted.fns.
 	Save old elisp.aux in elisp.oaux.
-	(clean): Added index.texi to be deleted.
+	(clean): Add index.texi to be deleted.
 
 1990-08-11  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
@@ -8466,11 +9125,9 @@
 
 ;; Local Variables:
 ;; coding: utf-8
-;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-      2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+  Copyright (C) 1998-2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -8486,5 +9143,3 @@
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
-;;; arch-tag: 985ae0ce-df29-475b-b3f8-4bbcbf6f7fda

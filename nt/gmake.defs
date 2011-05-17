@@ -1,6 +1,5 @@
 #  -*- Makefile -*- definition file for building GNU Emacs on Windows NT.
-#  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-#    2008, 2009, 2010 Free Software Foundation, Inc.
+# Copyright (C) 2000-2011 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -96,6 +95,7 @@ THISDIR		= .
 ifdef USING_SH
 sh_output := $(shell echo [Please ignore a syntax error on the next line - it is intentional] 1>&2)
 sh_output := $(shell echo foo")
+# This single quote " is to fix fintification due to previous line
 ifeq "$(sh_output)" ""
 NEW_CYGWIN = 1
 endif
@@ -149,7 +149,7 @@ ARCH		= alpha
     ifeq "$(PROCESSOR_ARCHITECTURE)" "PPC"
 ARCH		= ppc
     else
-error Unknown architecture type "$(PROCESSOR_ARCHITECTURE)"
+     $(error Unknown architecture type "$(PROCESSOR_ARCHITECTURE)")
     endif
    endif
   endif
@@ -198,7 +198,15 @@ DEBUG_CFLAGS	= -DEMACSDEBUG
 else
 DEBUG_CFLAGS	=
 endif
-CFLAGS          = -I. $(ARCH_CFLAGS) $(DEBUG_CFLAGS) $(PROFILE_CFLAGS) $(USER_CFLAGS) $(LOCAL_FLAGS)
+
+ifdef ENABLECHECKS
+CHECKING_CFLAGS	= -DENABLE_CHECKING -DXASSERTS -fno-crossjumping
+else
+CHECKING_CFLAGS	=
+endif
+
+CFLAGS          = -I. $(ARCH_CFLAGS) $(DEBUG_CFLAGS) $(CHECKING_CFLAGS) $(PROFILE_CFLAGS) $(USER_CFLAGS) $(LOCAL_FLAGS)
+ESC_CFLAGS      = -I. $(ARCH_CFLAGS) $(DEBUG_CFLAGS) $(CHECKING_CFLAGS) $(PROFILE_CFLAGS) $(ESC_USER_CFLAGS) $(LOCAL_FLAGS)
 EMACS_EXTRA_C_FLAGS = -DUSE_CRT_DLL=1
 
 ifdef PROFILE
@@ -272,6 +280,10 @@ ifdef NOCYGWIN
 NOCYGWIN = -mno-cygwin
 endif
 
+ifdef USER_LIBS
+USER_LIBS := $(patsubst %,-l%,$(USER_LIBS))
+endif
+
 ifeq "$(ARCH)" "i386"
 ifdef NOOPT
 ARCH_CFLAGS     = -c $(DEBUG_FLAG) $(NOCYGWIN)
@@ -295,4 +307,3 @@ export XMFLAGS
 $(BLD)/%.o: %.c
 		$(CC) $(CFLAGS) $(CC_OUT)$@ $<
 
-# arch-tag: 35eb9662-8534-4bcf-b891-0730a09d657f

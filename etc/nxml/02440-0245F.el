@@ -12,4 +12,3 @@
     ("OCR DOUBLE BACKSLASH" #x244A)
     ))
 
-;; arch-tag: e532db31-38fd-4eee-8e47-974316fb6dd5

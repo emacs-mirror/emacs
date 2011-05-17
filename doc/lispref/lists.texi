@@ -1,7 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2011  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/lists
 @node Lists, Sequences Arrays Vectors, Strings and Characters, Top
@@ -1888,7 +1887,3 @@ use the ring as a first-in-first-out queue.  For example:
         (ring-remove fifo)))
      @result{} (0 t one t "two")
 @end lisp
-
-@ignore
-   arch-tag: 31fb8a4e-4aa8-4a74-a206-aa00451394d4
-@end ignore

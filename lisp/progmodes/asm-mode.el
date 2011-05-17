@@ -1,7 +1,6 @@
 ;;; asm-mode.el --- mode for editing assembler code
 
-;; Copyright (C) 1991, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;; Free Software Foundation, Inc.
+;; Copyright (C) 1991, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: FSF
@@ -77,22 +76,21 @@
     (define-key map "\C-c;"	'comment-region)
     (define-key map "\C-j"	'newline-and-indent)
     (define-key map "\C-m"	'newline-and-indent)
-    (define-key map [menu-bar] (make-sparse-keymap))
-    (define-key map [menu-bar asm-mode] (cons "Asm" map))
-    (define-key map [comment-region]
+    (define-key map [menu-bar asm-mode] (cons "Asm" (make-sparse-keymap)))
+    (define-key map [menu-bar asm-mode comment-region]
       '(menu-item "Comment Region" comment-region
 		  :help "Comment or uncomment each line in the region"))
-    (define-key map [newline-and-indent]
+    (define-key map [menu-bar asm-mode newline-and-indent]
       '(menu-item "Insert Newline and Indent" newline-and-indent
 		  :help "Insert a newline, then indent according to major mode"))
-    (define-key map [asm-colon]
+    (define-key map [menu-bar asm-mode asm-colon]
       '(menu-item "Insert Colon" asm-colon
 		  :help "Insert a colon; if it follows a label, delete the label's indentation"))
     map)
   "Keymap for Asm mode.")
 
 (defconst asm-font-lock-keywords
-  (append 
+  (append
    '(("^\\(\\(\\sw\\|\\s_\\)+\\)\\>:?[ \t]*\\(\\sw+\\(\\.\\sw+\\)*\\)?"
       (1 font-lock-function-name-face) (3 font-lock-keyword-face nil t))
      ;; label started from ".".
@@ -109,7 +107,7 @@
   "Additional expressions to highlight in Assembler mode.")
 
 ;;;###autoload
-(defun asm-mode ()
+(define-derived-mode asm-mode prog-mode "Assembler"
   "Major mode for editing typical assembler code.
 Features a private abbrev table and the following bindings:
 
@@ -128,13 +126,8 @@ Turning on Asm mode runs the hook `asm-mode-hook' at the end of initialization.
 
 Special commands:
 \\{asm-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (setq mode-name "Assembler")
-  (setq major-mode 'asm-mode)
   (setq local-abbrev-table asm-mode-abbrev-table)
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(asm-font-lock-keywords))
+  (set (make-local-variable 'font-lock-defaults) '(asm-font-lock-keywords))
   (set (make-local-variable 'indent-line-function) 'asm-indent-line)
   ;; Stay closer to the old TAB behavior (was tab-to-tab-stop).
   (set (make-local-variable 'tab-always-indent) nil)
@@ -147,18 +140,13 @@ Special commands:
   (set-syntax-table (make-syntax-table asm-mode-syntax-table))
   (modify-syntax-entry	asm-comment-char "< b")
 
-  (make-local-variable 'comment-start)
-  (setq comment-start (string asm-comment-char))
-  (make-local-variable 'comment-add)
-  (setq comment-add 1)
-  (make-local-variable 'comment-start-skip)
-  (setq comment-start-skip "\\(?:\\s<+\\|/[/*]+\\)[ \t]*")
-  (make-local-variable 'comment-end-skip)
-  (setq comment-end-skip "[ \t]*\\(\\s>\\|\\*+/\\)")
-  (make-local-variable 'comment-end)
-  (setq comment-end "")
-  (setq fill-prefix "\t")
-  (run-mode-hooks 'asm-mode-hook))
+  (set (make-local-variable 'comment-start) (string asm-comment-char))
+  (set (make-local-variable 'comment-add) 1)
+  (set (make-local-variable 'comment-start-skip)
+       "\\(?:\\s<+\\|/[/*]+\\)[ \t]*")
+  (set (make-local-variable 'comment-end-skip) "[ \t]*\\(\\s>\\|\\*+/\\)")
+  (set (make-local-variable 'comment-end) "")
+  (setq fill-prefix "\t"))
 
 (defun asm-indent-line ()
   "Auto-indent the current line."
@@ -254,5 +242,4 @@ repeatedly until you are satisfied with the kind of comment."
 
 (provide 'asm-mode)
 
-;; arch-tag: 210e695f-f338-4376-8913-a4c5c72ac848
 ;;; asm-mode.el ends here

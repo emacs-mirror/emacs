@@ -1,7 +1,6 @@
 ;;; mm-view.el --- functions for viewing MIME objects
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -22,6 +21,8 @@
 ;;; Commentary:
 
 ;;; Code:
+
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (eval-when-compile (require 'cl))
@@ -30,7 +31,10 @@
 (require 'mm-bodies)
 (require 'mm-decode)
 (require 'smime)
+(require 'mml-smime)
 
+(autoload 'gnus-completing-read "gnus-util")
+(autoload 'gnus-window-inside-pixel-edges "gnus-ems")
 (autoload 'gnus-article-prepare-display "gnus-art")
 (autoload 'vcard-parse-string "vcard")
 (autoload 'vcard-format-string "vcard")
@@ -46,33 +50,30 @@
 (defvar w3m-minor-mode-map)
 
 (defvar mm-text-html-renderer-alist
-  '((w3  . mm-inline-text-html-render-with-w3)
+  '((shr . mm-shr)
+    (w3 . mm-inline-text-html-render-with-w3)
     (w3m . mm-inline-text-html-render-with-w3m)
     (w3m-standalone . mm-inline-text-html-render-with-w3m-standalone)
+    (gnus-w3m . gnus-article-html)
     (links mm-inline-render-with-file
 	   mm-links-remove-leading-blank
 	   "links" "-dump" file)
-    (lynx  mm-inline-render-with-stdin nil
-	   "lynx" "-dump" "-force_html" "-stdin" "-nolist")
-    (html2text  mm-inline-render-with-function html2text))
+    (lynx mm-inline-render-with-stdin nil
+	  "lynx" "-dump" "-force_html" "-stdin" "-nolist")
+    (html2text mm-inline-render-with-function html2text))
   "The attributes of renderer types for text/html.")
-
-(defvar mm-text-html-washer-alist
-  '((w3  . gnus-article-wash-html-with-w3)
-    (w3m . gnus-article-wash-html-with-w3m)
-    (w3m-standalone . gnus-article-wash-html-with-w3m-standalone)
-    (links mm-inline-wash-with-file
-	   mm-links-remove-leading-blank
-	   "links" "-dump" file)
-    (lynx  mm-inline-wash-with-stdin nil
-	   "lynx" "-dump" "-force_html" "-stdin" "-nolist")
-    (html2text  html2text))
-  "The attributes of washer types for text/html.")
 
 (defcustom mm-fill-flowed t
   "If non-nil a format=flowed article will be displayed flowed."
   :type 'boolean
   :version "22.1"
+  :group 'mime-display)
+
+(defcustom mm-inline-large-images-proportion 0.9
+  "Maximum proportion of large image resized when
+`mm-inline-large-images' is set to resize."
+  :type 'float
+  :version "24.1"
   :group 'mime-display)
 
 ;;; Internal variables.
@@ -81,10 +82,23 @@
 ;;; Functions for displaying various formats inline
 ;;;
 
+(autoload 'gnus-rescale-image "gnus-util")
+
 (defun mm-inline-image-emacs (handle)
   (let ((b (point-marker))
 	(inhibit-read-only t))
-    (put-image (mm-get-image handle) b)
+    (put-image
+     (let ((image (mm-get-image handle)))
+       (if (eq mm-inline-large-images 'resize)
+           (gnus-rescale-image image
+                               (let ((edges (gnus-window-inside-pixel-edges
+                                             (get-buffer-window (current-buffer)))))
+                                 (cons (truncate (* mm-inline-large-images-proportion
+                                                    (- (nth 2 edges) (nth 0 edges))))
+                                       (truncate (* mm-inline-large-images-proportion
+                                                    (- (nth 3 edges) (nth 1 edges)))))))
+         image))
+     b)
     (insert "\n\n")
     (mm-handle-set-undisplayer
      handle
@@ -404,7 +418,7 @@
        (buffer-string)))))
 
 (defun mm-inline-text-html (handle)
-  (let* ((func (or mm-inline-text-html-renderer mm-text-html-renderer))
+  (let* ((func mm-text-html-renderer)
 	 (entry (assq func mm-text-html-renderer-alist))
 	 (inhibit-read-only t))
     (if entry
@@ -441,7 +455,7 @@
 	  (narrow-to-region (point) (point))
 	  (mm-insert-part handle)
 	  (goto-char (point-max)))
-      (insert (mm-decode-string (mm-get-part handle) charset)))
+      (mm-display-inline-fontify handle))
     (when (and mm-fill-flowed
 	       (equal type "plain")
 	       (equal (cdr (assoc 'format (mm-handle-type handle)))
@@ -551,15 +565,16 @@
 		     (face-property 'default prop) (current-buffer))))
 	      (delete-region ,(point-min-marker) ,(point-max-marker)))))))))
 
-(defun mm-display-inline-fontify (handle mode)
+(defun mm-display-inline-fontify (handle &optional mode)
+  "Insert HANDLE inline fontifying with MODE.
+If MODE is not set, try to find mode automatically."
   (let ((charset (mail-content-type-get (mm-handle-type handle) 'charset))
 	text coding-system)
     (unless (eq charset 'gnus-decoded)
       (mm-with-unibyte-buffer
 	(mm-insert-part handle)
 	(mm-decompress-buffer
-	 (or (mail-content-type-get (mm-handle-disposition handle) 'name)
-	     (mail-content-type-get (mm-handle-disposition handle) 'filename))
+         (mm-handle-filename handle)
 	 t t)
 	(unless charset
 	  (setq coding-system (mm-find-buffer-file-coding-system)))
@@ -587,9 +602,15 @@
 	    (font-lock-support-mode nil)
 	    ;; I find font-lock a bit too verbose.
 	    (font-lock-verbose nil))
-	(funcall mode)
+        (setq buffer-file-name (mm-handle-filename handle))
+        (set (make-local-variable 'enable-local-variables) nil)
+        (if mode
+            (funcall mode)
+          (set-auto-mode))
 	;; The mode function might have already turned on font-lock.
-	(unless (symbol-value 'font-lock-mode)
+        ;; Do not fontify if the guess mode is fundamental.
+	(unless (or (symbol-value 'font-lock-mode)
+                    (eq major-mode 'fundamental-mode))
 	  (font-lock-fontify-buffer)))
       ;; By default, XEmacs font-lock uses non-duplicable text
       ;; properties.  This code forces all the text properties
@@ -600,6 +621,9 @@
 		       nil)
 		     nil nil nil nil nil 'text-prop))
       (setq text (buffer-string))
+      ;; Set buffer unmodified to avoid confirmation when killing the
+      ;; buffer.
+      (set-buffer-modified-p nil)
       (kill-buffer (current-buffer)))
     (mm-insert-inline handle text)))
 
@@ -616,6 +640,18 @@
 
 (defun mm-display-dns-inline (handle)
   (mm-display-inline-fontify handle 'dns-mode))
+
+(defun mm-display-org-inline (handle)
+  "Show an Org mode text from HANDLE inline."
+  (mm-display-inline-fontify handle 'org-mode))
+
+(defun mm-display-shell-script-inline (handle)
+  "Show a shell script from HANDLE inline."
+  (mm-display-inline-fontify handle 'shell-script-mode))
+
+(defun mm-display-javascript-inline (handle)
+  "Show JavsScript code from HANDLE inline."
+  (mm-display-inline-fontify handle 'javascript-mode))
 
 ;;      id-signedData OBJECT IDENTIFIER ::= { iso(1) member-body(2)
 ;;          us(840) rsadsi(113549) pkcs(1) pkcs7(7) 2 }
@@ -639,9 +675,9 @@
 	  (t
 	   (error "Could not identify PKCS#7 type")))))
 
-(defun mm-view-pkcs7 (handle)
+(defun mm-view-pkcs7 (handle &optional from)
   (case (mm-view-pkcs7-get-type handle)
-    (enveloped (mm-view-pkcs7-decrypt handle))
+    (enveloped (mm-view-pkcs7-decrypt handle from))
     (signed (mm-view-pkcs7-verify handle))
     (otherwise (error "Unknown or unimplemented PKCS#7 type"))))
 
@@ -666,21 +702,26 @@
     (replace-match "\n"))
   t)
 
-(defun mm-view-pkcs7-decrypt (handle)
+(defun mm-view-pkcs7-decrypt (handle &optional from)
   (insert-buffer-substring (mm-handle-buffer handle))
   (goto-char (point-min))
-  (insert "MIME-Version: 1.0\n")
-  (mm-insert-headers "application/pkcs7-mime" "base64" "smime.p7m")
-  (smime-decrypt-region
-   (point-min) (point-max)
-   (if (= (length smime-keys) 1)
-       (cadar smime-keys)
-     (smime-get-key-by-email
-      (completing-read
-       (concat "Decipher using key"
-	       (if smime-keys (concat "(default " (caar smime-keys) "): ")
-		 ": "))
-       smime-keys nil nil nil nil (car-safe (car-safe smime-keys))))))
+  (if (eq mml-smime-use 'epg)
+      ;; Use EPG/gpgsm
+      (let ((part (base64-decode-string (buffer-string))))
+	(erase-buffer)
+	(insert (epg-decrypt-string (epg-make-context 'CMS) part)))
+    ;; Use openssl
+    (insert "MIME-Version: 1.0\n")
+    (mm-insert-headers "application/pkcs7-mime" "base64" "smime.p7m")
+    (smime-decrypt-region
+     (point-min) (point-max)
+     (if (= (length smime-keys) 1)
+	 (cadar smime-keys)
+       (smime-get-key-by-email
+	(gnus-completing-read
+	 "Decipher using key"
+	 smime-keys nil nil nil (car-safe (car-safe smime-keys)))))
+     from))
   (goto-char (point-min))
   (while (search-forward "\r\n" nil t)
     (replace-match "\n"))
@@ -688,5 +729,4 @@
 
 (provide 'mm-view)
 
-;; arch-tag: b60e749a-d05c-47f2-bccd-bdaa59327cb2
 ;;; mm-view.el ends here

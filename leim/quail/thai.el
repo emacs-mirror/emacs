@@ -1,7 +1,7 @@
 ;;; thai.el --- Quail package for inputting Thai characters -*-coding: iso-2022-7bit;-*-
 
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
@@ -109,5 +109,4 @@ The difference from the ordinal Thai keyboard:
   ",T;(B" ",Th(B" ",T:(B" ",TO(B" ",Tm(B" ",TF(B" ",T%(B" 0		; x .. DEL
   ])
 
-;; arch-tag: fed6c468-0616-44b0-88bf-47347bf64825
 ;;; thai.el ends here

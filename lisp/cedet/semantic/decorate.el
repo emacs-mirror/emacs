@@ -1,6 +1,6 @@
 ;;; semantic/decorate.el --- Utilities for decorating/highlighting tokens.
 
-;;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2005, 2006, 2007, 2009, 2010
+;;; Copyright (C) 1999-2003, 2005-2007, 2009-2011
 ;;; Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -45,7 +45,7 @@ Optional FACE specifies the face to use."
     ))
 
 (defun semantic-unhighlight-tag (tag)
-  "Unhighlight TAG, restoring it's previous face."
+  "Unhighlight TAG, restoring its previous face."
   (let ((o (semantic-tag-overlay tag)))
     (semantic-overlay-put o 'face (car (semantic-overlay-get o 'old-face)))
     (semantic-overlay-put o 'old-face (cdr (semantic-overlay-get o 'old-face)))
@@ -296,5 +296,4 @@ OVERLAY is passed in by isearch."
 
 (provide 'semantic/decorate)
 
-;; arch-tag: 30e5b6cb-dba0-41cd-920a-bc1dce267ad8
 ;;; semantic/decorate.el ends here

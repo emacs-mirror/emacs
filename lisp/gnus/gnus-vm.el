@@ -1,7 +1,6 @@
 ;;; gnus-vm.el --- vm interface for Gnus
 
-;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2011 Free Software Foundation, Inc.
 
 ;; Author: Per Persson <pp@gnu.ai.mit.edu>
 ;; Keywords: news, mail
@@ -103,5 +102,4 @@ save those articles instead."
 
 (provide 'gnus-vm)
 
-;; arch-tag: 42ca7f88-a12f-461d-be3e-cac7efb44866
 ;;; gnus-vm.el ends here

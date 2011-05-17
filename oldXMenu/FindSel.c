@@ -3,8 +3,7 @@
 #include "copyright.h"
 
 /*
-Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-  2009, 2010  Free Software Foundation, Inc.
+Copyright (C) 2001-2011  Free Software Foundation, Inc.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -32,12 +31,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "XMenuInt.h"
+#include <string.h>
 
 int
-XMenuFindSelection(menu, p_num, label)
-    register XMenu *menu;
-    int p_num;
-    register char *label;
+XMenuFindSelection(register XMenu *menu, int p_num, register char *label)
 {
     register XMPane *p_ptr;
     register XMSelect *s_ptr;
@@ -87,6 +84,3 @@ XMenuFindSelection(menu, p_num, label)
     _XMErrorCode = XME_S_NOT_FOUND;
     return (XM_FAILURE);
 }
-
-/* arch-tag: 564a4a95-9ab0-4580-b05f-6970c4b25dd4
-   (do not change this comment) */

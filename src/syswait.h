@@ -1,6 +1,5 @@
 /* Define wait system call interface for Emacs.
-   Copyright (C) 1993, 1994, 1995, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1993-1995, 2000-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -58,5 +57,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #endif /* EMACS_SYSWAIT_H */
 
-/* arch-tag: 7e5d9719-ec66-4b6f-89bb-563eea16a899
-   (do not change this comment) */

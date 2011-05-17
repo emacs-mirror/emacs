@@ -1,7 +1,6 @@
 ;;; rfc2104.el --- RFC2104 Hashed Message Authentication Codes
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <jas@pdc.kth.se>
 ;; Keywords: mail
@@ -122,5 +121,4 @@ In XEmacs return just STRING."
 
 (provide 'rfc2104)
 
-;; arch-tag: cf671d5c-a45f-4a09-815e-704e59e43950
 ;;; rfc2104.el ends here

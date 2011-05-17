@@ -1,11 +1,11 @@
 ;;; tpu-extras.el --- scroll margins and free cursor mode for TPU-edt
 
-;; Copyright (C) 1993, 1994, 1995, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 2000-2011 Free Software Foundation, Inc.
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
 ;; Maintainer: Rob Riepel <riepel@networking.stanford.edu>
 ;; Keywords: emulations
+;; Package: tpu-edt
 
 ;; This file is part of GNU Emacs.
 
@@ -275,36 +275,41 @@ Prefix argument serves as repeat count."
 
 ;;;  Movement by paragraph
 
+;; Cf edt-with-position.
+(defmacro tpu-with-position (&rest body)
+  "Execute BODY with some position-related variables bound."
+  `(let* ((left nil)
+          (beg (tpu-current-line))
+          (height (window-height))
+          (top-percent
+           (if (zerop tpu-top-scroll-margin) 10 tpu-top-scroll-margin))
+          (bottom-percent
+           (if (zerop tpu-bottom-scroll-margin) 15 tpu-bottom-scroll-margin))
+          (top-margin (/ (* height top-percent) 100))
+          (bottom-up-margin (1+ (/ (* height bottom-percent) 100)))
+          (bottom-margin (max beg (- height bottom-up-margin 1)))
+          (top (save-excursion (move-to-window-line top-margin) (point)))
+          (bottom (save-excursion (move-to-window-line bottom-margin) (point)))
+          (far (save-excursion
+                 (goto-char bottom)
+                 (point-at-bol (1- height)))))
+     ,@body))
+
 (defun tpu-paragraph (num)
   "Move to the next paragraph in the current direction.
 A repeat count means move that many paragraphs."
   (interactive "p")
-  (let* ((left nil)
-	 (beg (tpu-current-line))
-	 (height (window-height))
-	 (top-percent
-	  (if (= 0 tpu-top-scroll-margin) 10 tpu-top-scroll-margin))
-	 (bottom-percent
-	  (if (= 0 tpu-bottom-scroll-margin) 15 tpu-bottom-scroll-margin))
-	 (top-margin (/ (* height top-percent) 100))
-	 (bottom-up-margin (+ 1 (/ (* height bottom-percent) 100)))
-	 (bottom-margin (max beg (- height bottom-up-margin 1)))
-	 (top (save-excursion (move-to-window-line top-margin) (point)))
-	 (bottom (save-excursion (move-to-window-line bottom-margin) (point)))
-	 (far (save-excursion
-		(goto-char bottom) (forward-line (- height 2)) (point))))
-    (cond (tpu-advance
-	   (tpu-next-paragraph num)
-	   (cond((> (point) far)
-		 (setq left (save-excursion (forward-line height)))
-		 (if (= 0 left) (recenter top-margin)
-		   (recenter (- left bottom-up-margin))))
-		(t
-		 (and (> (point) bottom) (recenter bottom-margin)))))
-	  (t
-	   (tpu-previous-paragraph num)
-	   (and (< (point) top) (recenter (min beg top-margin)))))))
-
+  (tpu-with-position
+   (if tpu-advance
+       (progn
+         (tpu-next-paragraph num)
+         (if (> (point) far)
+             (if (zerop (setq left (save-excursion (forward-line height))))
+                 (recenter top-margin)
+               (recenter (- left bottom-up-margin)))
+           (and (> (point) bottom) (recenter bottom-margin))))
+     (tpu-previous-paragraph num)
+     (and (< (point) top) (recenter (min beg top-margin))))))
 
 ;;;  Movement by page
 
@@ -312,32 +317,17 @@ A repeat count means move that many paragraphs."
   "Move to the next page in the current direction.
 A repeat count means move that many pages."
   (interactive "p")
-  (let* ((left nil)
-	 (beg (tpu-current-line))
-	 (height (window-height))
-	 (top-percent
-	  (if (= 0 tpu-top-scroll-margin) 10 tpu-top-scroll-margin))
-	 (bottom-percent
-	  (if (= 0 tpu-bottom-scroll-margin) 15 tpu-bottom-scroll-margin))
-	 (top-margin (/ (* height top-percent) 100))
-	 (bottom-up-margin (+ 1 (/ (* height bottom-percent) 100)))
-	 (bottom-margin (max beg (- height bottom-up-margin 1)))
-	 (top (save-excursion (move-to-window-line top-margin) (point)))
-	 (bottom (save-excursion (move-to-window-line bottom-margin) (point)))
-	 (far (save-excursion
-		(goto-char bottom) (forward-line (- height 2)) (point))))
-    (cond (tpu-advance
-	   (forward-page num)
-	   (cond((> (point) far)
-		 (setq left (save-excursion (forward-line height)))
-		 (if (= 0 left) (recenter top-margin)
-		   (recenter (- left bottom-up-margin))))
-		(t
-		 (and (> (point) bottom) (recenter bottom-margin)))))
-	  (t
-	   (backward-page num)
-	   (and (< (point) top) (recenter (min beg top-margin)))))))
-
+  (tpu-with-position
+   (if tpu-advance
+       (progn
+         (forward-page num)
+         (if (> (point) far)
+               (if (zerop (setq left (save-excursion (forward-line height))))
+                   (recenter top-margin)
+                 (recenter (- left bottom-up-margin)))
+           (and (> (point) bottom) (recenter bottom-margin))))
+     (backward-page num)
+     (and (< (point) top) (recenter (min beg top-margin))))))
 
 ;;;  Scrolling
 
@@ -366,31 +356,16 @@ A repeat count means scroll that many sections."
 
 (defun tpu-search-internal (pat &optional quiet)
   "Search for a string or regular expression."
-  (let* ((left nil)
-	 (beg (tpu-current-line))
-	 (height (window-height))
-	 (top-percent
-	  (if (= 0 tpu-top-scroll-margin) 10 tpu-top-scroll-margin))
-	 (bottom-percent
-	  (if (= 0 tpu-bottom-scroll-margin) 15 tpu-bottom-scroll-margin))
-	 (top-margin (/ (* height top-percent) 100))
-	 (bottom-up-margin (+ 1 (/ (* height bottom-percent) 100)))
-	 (bottom-margin (max beg (- height bottom-up-margin 1)))
-	 (top (save-excursion (move-to-window-line top-margin) (point)))
-	 (bottom (save-excursion (move-to-window-line bottom-margin) (point)))
-	 (far (save-excursion
-		(goto-char bottom) (forward-line (- height 2)) (point))))
-    (tpu-search-internal-core pat quiet)
-    (if tpu-searching-forward
-	(cond((> (point) far)
-	      (setq left (save-excursion (forward-line height)))
-	      (if (= 0 left) (recenter top-margin)
-		(recenter (- left bottom-up-margin))))
-	     (t
-	      (and (> (point) bottom) (recenter bottom-margin))))
-      (and (< (point) top) (recenter (min beg top-margin))))))
-
-
+  (tpu-with-position
+   (tpu-search-internal-core pat quiet)
+   (if tpu-searching-forward
+       (progn
+         (if (> (point) far)
+             (if (zerop (setq left (save-excursion (forward-line height))))
+                 (recenter top-margin)
+               (recenter (- left bottom-up-margin)))
+           (and (> (point) bottom) (recenter bottom-margin))))
+     (and (< (point) top) (recenter (min beg top-margin))))))
 
 ;; Advise the newline, newline-and-indent, and do-auto-fill functions.
 (defadvice newline (around tpu-respect-bottom-scroll-margin activate disable)
@@ -462,5 +437,4 @@ A repeat count means scroll that many sections."
 ;; generated-autoload-file: "tpu-edt.el"
 ;; End:
 
-;; arch-tag: 89676fa4-33ec-48cb-9135-6f3bf230ab1a
 ;;; tpu-extras.el ends here

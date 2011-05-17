@@ -1,7 +1,6 @@
 ;;; blackbox.el --- blackbox game in Emacs Lisp
 
-;; Copyright (C) 1985, 1986, 1987, 1992, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1992, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: F. Thomas May <uw-nsr!uw-warp!tom@beaver.cs.washington.edu>
 ;; Adapted-By: ESR
@@ -434,5 +433,4 @@ a reflection."
 
 (provide 'blackbox)
 
-;; arch-tag: 6c474c62-5617-4b10-9b44-ac430168c0e2
 ;;; blackbox.el ends here

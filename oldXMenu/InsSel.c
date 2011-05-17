@@ -17,18 +17,18 @@
 #include "XMenuInt.h"
 
 int
-XMenuInsertSelection(menu, p_num, s_num, data, label, active)
-    register XMenu *menu;	/* Menu object to be modified. */
-    register int p_num;		/* Pane number to be modified. */
-    register int s_num;		/* Selection number of new selection. */
-    char *data;			/* Data value. */
-    char *label;		/* Selection label. */
-    int active;			/* Make selection active? */
+XMenuInsertSelection(register XMenu *menu, register int p_num, register int s_num, char *data, char *label, int active)
+                         	/* Menu object to be modified. */
+                       		/* Pane number to be modified. */
+                       		/* Selection number of new selection. */
+               			/* Data value. */
+                		/* Selection label. */
+               			/* Make selection active? */
 {
     register XMPane *p_ptr;	/* XMPane pointer. */
     register XMSelect *s_ptr;	/* XMSelect pointer. */
 
-    XMSelect *select;		/* Newly created selection. */
+    XMSelect *sel;		/* Newly created selection. */
 
     int label_length;		/* Label length in characters. */
     int label_width;		/* Label width in pixels. */
@@ -57,8 +57,8 @@ XMenuInsertSelection(menu, p_num, s_num, data, label, active)
     /*
      * Calloc the XMSelect structure.
      */
-    select = (XMSelect *)calloc(1, sizeof(XMSelect));
-    if (select == NULL) {
+    sel = (XMSelect *)calloc(1, sizeof(XMSelect));
+    if (sel == NULL) {
 	_XMErrorCode = XME_CALLOC;
 	return(XM_FAILURE);
     }
@@ -75,28 +75,28 @@ XMenuInsertSelection(menu, p_num, s_num, data, label, active)
      */
     if (!strcmp (label, "--") || !strcmp (label, "---"))
       {
-	select->type = SEPARATOR;
-	select->active = 0;
+	sel->type = SEPARATOR;
+	sel->active = 0;
       }
     else
       {
-	select->type = SELECTION;
-	select->active = active;
+	sel->type = SELECTION;
+	sel->active = active;
       }
 
-    select->active = active;
-    select->serial = -1;
-    select->label = label;
-    select->label_width = label_width;
-    select->label_length = label_length;
-    select->data = data;
-    select->parent_p = p_ptr;
+    sel->active = active;
+    sel->serial = -1;
+    sel->label = label;
+    sel->label_width = label_width;
+    sel->label_length = label_length;
+    sel->data = data;
+    sel->parent_p = p_ptr;
 
     /*
      * Insert the selection after the selection with the selection
      * number one less than the desired number for the new selection.
      */
-    emacs_insque(select, s_ptr);
+    emacs_insque(sel, s_ptr);
 
     /*
      * Update the selection count.
@@ -114,6 +114,3 @@ XMenuInsertSelection(menu, p_num, s_num, data, label, active)
     _XMErrorCode = XME_NO_ERROR;
     return(s_num);
 }
-
-/* arch-tag: 8398626f-81cb-4e13-8ebc-aac1b9237663
-   (do not change this comment) */

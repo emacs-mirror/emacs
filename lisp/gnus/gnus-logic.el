@@ -1,7 +1,6 @@
 ;;; gnus-logic.el --- advanced scoring code for Gnus
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -179,8 +178,7 @@
 (defun gnus-advanced-body (header match type)
   (when (string= header "all")
     (setq header "article"))
-  (save-excursion
-    (set-buffer nntp-server-buffer)
+  (with-current-buffer nntp-server-buffer
     (let* ((request-func (cond ((string= "head" header)
 				'gnus-request-head)
 			       ((string= "body" header)
@@ -225,5 +223,4 @@
 
 (provide 'gnus-logic)
 
-;; arch-tag: 9651a100-4a59-4b69-a55b-e511e67c0f8d
 ;;; gnus-logic.el ends here

@@ -1,7 +1,6 @@
 ;;; novice.el --- handling of disabled commands ("novice mode") for Emacs
 
-;; Copyright (C) 1985, 1986, 1987, 1994, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1994, 2001-2011  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal, help
@@ -110,9 +109,9 @@ SPC to try the command just this once, but leave it disabled.
 		 (not (string= "" user-init-file))
 		 (y-or-n-p "Enable command for future editing sessions also? "))
 	  (enable-command cmd)
-	(put cmd 'disabled nil)))
-     (?n nil)
-     (t (call-interactively cmd)))))
+	(put cmd 'disabled nil))))
+    (or (char-equal char ?n)
+        (call-interactively cmd))))
 
 (defun en/disable-command (command disable)
   (unless (commandp command)
@@ -169,5 +168,4 @@ to future sessions."
 
 (provide 'novice)
 
-;; arch-tag: f83c0f96-497e-4db6-a430-8703716c6dd9
 ;;; novice.el ends here

@@ -1,6 +1,6 @@
-;;; css-mode.el --- Major mode to edit CSS files
+;;; css-mode.el --- Major mode to edit CSS files -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2006-2011  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: hypermedia
@@ -212,6 +212,8 @@
 (defconst css-nmchar-re (concat "\\(?:[-[:alnum:]]\\|" css-escapes-re "\\)"))
 (defconst css-nmstart-re (concat "\\(?:[[:alpha:]]\\|" css-escapes-re "\\)"))
 (defconst css-ident-re (concat css-nmstart-re css-nmchar-re "*"))
+(defconst css-proprietary-nmstart-re ;; Vendor-specific properties.
+  "[-_]\\(?:ms\\|moz\\|o\\|webkit\\|khtml\\)-")
 (defconst css-name-re (concat css-nmchar-re "+"))
 
 (defface css-selector '((t :inherit font-lock-function-name-face))
@@ -220,6 +222,8 @@
 (defface css-property '((t :inherit font-lock-variable-name-face))
   "Face to use for properties."
   :group 'css)
+(defface css-proprietary-property '((t :inherit (css-property italic)))
+  "Face to use for vendor-specific properties.")
 
 (defvar css-font-lock-keywords
   `(("!\\s-*important" . font-lock-builtin-face)
@@ -251,13 +255,15 @@
                      ;; No face.
                      nil)))
     ;; Properties.  Again, we don't limit ourselves to css-property-ids.
-    (,(concat "\\(?:[{;]\\|^\\)[ \t]*\\(" css-ident-re "\\)\\s-*:")
-     (1 'css-property))))
+    (,(concat "\\(?:[{;]\\|^\\)[ \t]*\\("
+              "\\(?:\\(" css-proprietary-nmstart-re "\\)\\|"
+              css-nmstart-re "\\)" css-nmchar-re "*"
+              "\\)\\s-*:")
+     (1 (if (match-end 2) 'css-proprietary-property 'css-property)))))
 
 (defvar css-font-lock-defaults
   '(css-font-lock-keywords nil t))
 
-;;;###autoload (add-to-list 'auto-mode-alist (cons (purecopy "\\.css\\'") 'css-mode))
 ;;;###autoload
 (define-derived-mode css-mode fundamental-mode "CSS"
   "Major mode to edit Cascading Style Sheets."
@@ -477,5 +483,4 @@
         (indent-line-to indent)))))
 
 (provide 'css-mode)
-;; arch-tag: b4d8b8e2-b130-4e74-b3aa-cd8f1ab659d0
 ;;; css-mode.el ends here

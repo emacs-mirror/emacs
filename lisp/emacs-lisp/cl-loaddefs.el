@@ -10,7 +10,7 @@
 ;;;;;;  ceiling* floor* isqrt lcm gcd cl-progv-before cl-set-frame-visible-p
 ;;;;;;  cl-map-overlays cl-map-intervals cl-map-keymap-recursively
 ;;;;;;  notevery notany every some mapcon mapcan mapl maplist map
-;;;;;;  cl-mapcar-many equalp coerce) "cl-extra" "cl-extra.el" "d93072a26c59f663a92b10df8bc28187")
+;;;;;;  cl-mapcar-many equalp coerce) "cl-extra" "cl-extra.el" "26339d9571f9485bf34fa6d2ae38fc84")
 ;;; Generated autoloads from cl-extra.el
 
 (autoload 'coerce "cl-extra" "\
@@ -282,7 +282,7 @@ Not documented
 ;;;;;;  flet progv psetq do-all-symbols do-symbols dotimes dolist
 ;;;;;;  do* do loop return-from return block etypecase typecase ecase
 ;;;;;;  case load-time-value eval-when destructuring-bind function*
-;;;;;;  defmacro* defun* gentemp gensym) "cl-macs" "cl-macs.el" "0faa39d8f21ae59f2cc1baa835e28a5f")
+;;;;;;  defmacro* defun* gentemp gensym) "cl-macs" "cl-macs.el" "fe8a5acbe14e32846a77578b2165fab5")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'gensym "cl-macs" "\
@@ -319,7 +319,7 @@ its argument list allows full Common Lisp conventions.
 \(fn FUNC)" nil (quote macro))
 
 (autoload 'destructuring-bind "cl-macs" "\
-Not documented
+
 
 \(fn ARGS EXPR &rest BODY)" nil (quote macro))
 
@@ -389,7 +389,7 @@ This is equivalent to `(return-from nil RESULT)'.
 
 (autoload 'return-from "cl-macs" "\
 Return from the block named NAME.
-This jump out to the innermost enclosing `(block NAME ...)' form,
+This jumps out to the innermost enclosing `(block NAME ...)' form,
 returning RESULT from that form (or nil if RESULT is omitted).
 This is compatible with Common Lisp, but note that `defun' and
 `defmacro' do not create implicit blocks as they do in Common Lisp.
@@ -445,7 +445,7 @@ from OBARRAY.
 \(fn (VAR [OBARRAY [RESULT]]) BODY...)" nil (quote macro))
 
 (autoload 'do-all-symbols "cl-macs" "\
-Not documented
+
 
 \(fn SPEC &rest BODY)" nil (quote macro))
 
@@ -500,7 +500,7 @@ Like `let', but lexically scoped.
 The main visible difference is that lambdas inside BODY will create
 lexical closures as in Common Lisp.
 
-\(fn VARLIST BODY)" nil (quote macro))
+\(fn BINDINGS BODY)" nil (quote macro))
 
 (autoload 'lexical-let* "cl-macs" "\
 Like `let*', but lexically scoped.
@@ -509,7 +509,7 @@ successive bindings within BINDINGS, will create lexical closures
 as in Common Lisp.  This is similar to the behavior of `let*' in
 Common Lisp.
 
-\(fn VARLIST BODY)" nil (quote macro))
+\(fn BINDINGS BODY)" nil (quote macro))
 
 (autoload 'multiple-value-bind "cl-macs" "\
 Collect multiple return values.
@@ -531,17 +531,17 @@ values.  For compatibility, (values A B C) is a synonym for (list A B C).
 \(fn (SYM...) FORM)" nil (quote macro))
 
 (autoload 'locally "cl-macs" "\
-Not documented
+
 
 \(fn &rest BODY)" nil (quote macro))
 
 (autoload 'the "cl-macs" "\
-Not documented
+
 
 \(fn TYPE FORM)" nil (quote macro))
 
 (autoload 'declare "cl-macs" "\
-Not documented
+
 
 \(fn &rest SPECS)" nil (quote macro))
 
@@ -601,7 +601,7 @@ before assigning any PLACEs to the corresponding values.
 \(fn PLACE VAL PLACE VAL ...)" nil (quote macro))
 
 (autoload 'cl-do-pop "cl-macs" "\
-Not documented
+
 
 \(fn PLACE)" nil nil)
 
@@ -689,7 +689,7 @@ value, that slot cannot be set via `setf'.
 \(fn NAME SLOTS...)" nil (quote macro))
 
 (autoload 'cl-struct-setf-expander "cl-macs" "\
-Not documented
+
 
 \(fn X NAME ACCESSOR PRED-FORM POS)" nil nil)
 
@@ -735,7 +735,7 @@ and then returning foo.
 \(fn FUNC ARGS &rest BODY)" nil (quote macro))
 
 (autoload 'compiler-macroexpand "cl-macs" "\
-Not documented
+
 
 \(fn FORM)" nil nil)
 
@@ -759,7 +759,7 @@ surrounded by (block NAME ...).
 ;;;;;;  find nsubstitute-if-not nsubstitute-if nsubstitute substitute-if-not
 ;;;;;;  substitute-if substitute delete-duplicates remove-duplicates
 ;;;;;;  delete-if-not delete-if delete* remove-if-not remove-if remove*
-;;;;;;  replace fill reduce) "cl-seq" "cl-seq.el" "ec3ea1c77742734db8496272fe5721be")
+;;;;;;  replace fill reduce) "cl-seq" "cl-seq.el" "df375ddc313f0c1c262cacab5cffd3e4")
 ;;; Generated autoloads from cl-seq.el
 
 (autoload 'reduce "cl-seq" "\
@@ -1085,7 +1085,7 @@ Keywords supported:  :key
 
 (autoload 'union "cl-seq" "\
 Combine LIST1 and LIST2 using a set-union operation.
-The result list contains all items that appear in either LIST1 or LIST2.
+The resulting list contains all items that appear in either LIST1 or LIST2.
 This is a non-destructive function; it makes a copy of the data if necessary
 to avoid corrupting the original LIST1 and LIST2.
 
@@ -1095,7 +1095,7 @@ Keywords supported:  :test :test-not :key
 
 (autoload 'nunion "cl-seq" "\
 Combine LIST1 and LIST2 using a set-union operation.
-The result list contains all items that appear in either LIST1 or LIST2.
+The resulting list contains all items that appear in either LIST1 or LIST2.
 This is a destructive function; it reuses the storage of LIST1 and LIST2
 whenever possible.
 
@@ -1105,7 +1105,7 @@ Keywords supported:  :test :test-not :key
 
 (autoload 'intersection "cl-seq" "\
 Combine LIST1 and LIST2 using a set-intersection operation.
-The result list contains all items that appear in both LIST1 and LIST2.
+The resulting list contains all items that appear in both LIST1 and LIST2.
 This is a non-destructive function; it makes a copy of the data if necessary
 to avoid corrupting the original LIST1 and LIST2.
 
@@ -1115,7 +1115,7 @@ Keywords supported:  :test :test-not :key
 
 (autoload 'nintersection "cl-seq" "\
 Combine LIST1 and LIST2 using a set-intersection operation.
-The result list contains all items that appear in both LIST1 and LIST2.
+The resulting list contains all items that appear in both LIST1 and LIST2.
 This is a destructive function; it reuses the storage of LIST1 and LIST2
 whenever possible.
 
@@ -1125,7 +1125,7 @@ Keywords supported:  :test :test-not :key
 
 (autoload 'set-difference "cl-seq" "\
 Combine LIST1 and LIST2 using a set-difference operation.
-The result list contains all items that appear in LIST1 but not LIST2.
+The resulting list contains all items that appear in LIST1 but not LIST2.
 This is a non-destructive function; it makes a copy of the data if necessary
 to avoid corrupting the original LIST1 and LIST2.
 
@@ -1135,7 +1135,7 @@ Keywords supported:  :test :test-not :key
 
 (autoload 'nset-difference "cl-seq" "\
 Combine LIST1 and LIST2 using a set-difference operation.
-The result list contains all items that appear in LIST1 but not LIST2.
+The resulting list contains all items that appear in LIST1 but not LIST2.
 This is a destructive function; it reuses the storage of LIST1 and LIST2
 whenever possible.
 
@@ -1145,7 +1145,7 @@ Keywords supported:  :test :test-not :key
 
 (autoload 'set-exclusive-or "cl-seq" "\
 Combine LIST1 and LIST2 using a set-exclusive-or operation.
-The result list contains all items that appear in exactly one of LIST1, LIST2.
+The resulting list contains all items appearing in exactly one of LIST1, LIST2.
 This is a non-destructive function; it makes a copy of the data if necessary
 to avoid corrupting the original LIST1 and LIST2.
 
@@ -1155,7 +1155,7 @@ Keywords supported:  :test :test-not :key
 
 (autoload 'nset-exclusive-or "cl-seq" "\
 Combine LIST1 and LIST2 using a set-exclusive-or operation.
-The result list contains all items that appear in exactly one of LIST1, LIST2.
+The resulting list contains all items appearing in exactly one of LIST1, LIST2.
 This is a destructive function; it reuses the storage of LIST1 and LIST2
 whenever possible.
 

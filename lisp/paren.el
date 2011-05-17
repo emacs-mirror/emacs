@@ -1,7 +1,6 @@
 ;;; paren.el --- highlight matching paren
 
-;; Copyright (C) 1993, 1996, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1996, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: rms@gnu.org
 ;; Maintainer: FSF
@@ -52,8 +51,7 @@ otherwise)."
   :type '(choice (const parenthesis) (const expression) (const mixed))
   :group 'paren-showing)
 
-(defcustom show-paren-delay
-  (if (featurep 'lisp-float-type) (/ (float 1) (float 8)) 1)
+(defcustom show-paren-delay 0.125
   "Time in seconds to delay before showing a matching paren."
   :type '(number :tag "seconds")
   :group 'paren-showing)
@@ -253,5 +251,4 @@ in `show-paren-style' after `show-paren-delay' seconds of Emacs idle time."
 
 (provide 'paren)
 
-;; arch-tag: d0969b88-7ac0-4bd0-bd53-e73b892b86a9
 ;;; paren.el ends here

@@ -1,6 +1,7 @@
 /* Functions for the NeXT/Open/GNUstep and MacOSX window system.
-   Copyright (C) 1989, 1992, 1993, 1994, 2005, 2006, 2008, 2009, 2010
-     Free Software Foundation, Inc.
+
+Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2011
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -27,7 +28,7 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 
 /* This should be the first include, as it may set up #defines affecting
    interpretation of even the system includes. */
-#include "config.h"
+#include <config.h>
 
 #include <signal.h>
 #include <math.h>
@@ -81,20 +82,13 @@ extern Lisp_Object Qunderline, Qundefined;
 extern Lisp_Object Qheight, Qminibuffer, Qname, Qonly, Qwidth;
 extern Lisp_Object Qunsplittable, Qmenu_bar_lines, Qbuffer_predicate, Qtitle;
 extern Lisp_Object Qnone;
-extern Lisp_Object Vframe_title_format;
+
 
 Lisp_Object Qbuffered;
 Lisp_Object Qfontsize;
 
 /* hack for OS X file panels */
 char panelOK = 0;
-
-/* Alist of elements (REGEXP . IMAGE) for images of icons associated
-   to frames.*/
-static Lisp_Object Vns_icon_type_alist;
-
-/* Toolkit version support. */
-static Lisp_Object Vns_version_string;
 
 EmacsTooltip *ns_tooltip;
 
@@ -121,7 +115,7 @@ check_ns (void)
 
 /* Nonzero if we can use mouse menus. */
 int
-have_menus_p ()
+have_menus_p (void)
 {
   return NSApp != nil;
 }
@@ -224,7 +218,8 @@ ns_get_screen (Lisp_Object screen)
   else
     {
       struct ns_display_info *dpyinfo = terminal->display_info.ns;
-      f = (dpyinfo->x_focus_frame || dpyinfo->x_highlight_frame);
+      f = dpyinfo->x_focus_frame
+        ? dpyinfo->x_focus_frame : dpyinfo->x_highlight_frame;
     }
 
   return ((f && FRAME_NS_P (f)) ? [[FRAME_NS_VIEW (f) window] screen]
@@ -235,8 +230,7 @@ ns_get_screen (Lisp_Object screen)
 /* Return the X display structure for the display named NAME.
    Open a new connection if necessary.  */
 struct ns_display_info *
-ns_display_info_for_name (name)
-     Lisp_Object name;
+ns_display_info_for_name (Lisp_Object name)
 {
   Lisp_Object names;
   struct ns_display_info *dpyinfo;
@@ -468,54 +462,36 @@ x_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
         [NSString stringWithUTF8String: SDATA (arg)]];
 }
 
-
 static void
-ns_set_name_iconic (struct frame *f, Lisp_Object name, int explicit)
+ns_set_name_internal (FRAME_PTR f, Lisp_Object name)
 {
+  struct gcpro gcpro1;
+  Lisp_Object encoded_name, encoded_icon_name;
+  NSString *str;
   NSView *view = FRAME_NS_VIEW (f);
-  NSTRACE (ns_set_name_iconic);
 
-  if (ns_in_resize)
-    return;
+  GCPRO1 (name);
+  encoded_name = ENCODE_UTF_8 (name);
+  UNGCPRO;
 
-  /* Make sure that requests from lisp code override requests from
-     Emacs redisplay code.  */
-  if (explicit)
-    {
-      /* If we're switching from explicit to implicit, we had better
-         update the mode lines and thereby update the title.  */
-      if (f->explicit_name && NILP (name))
-        update_mode_lines = 1;
-
-      f->explicit_name = ! NILP (name);
-    }
-  else if (f->explicit_name)
-    name = f->name;
-
-  /* title overrides explicit name */
-  if (! NILP (f->title))
-    name = f->title;
-
-  /* icon_name overrides title and explicit name */
-  if (! NILP (f->icon_name))
-    name = f->icon_name;
-
-  if (NILP (name))
-    name = build_string([ns_app_name UTF8String]);
-  else
-    CHECK_STRING (name);
+  str = [NSString stringWithUTF8String: SDATA (encoded_name)];
 
   /* Don't change the name if it's already NAME.  */
+  if (! [[[view window] title] isEqualToString: str])
+    [[view window] setTitle: str];
+
+  if (!STRINGP (f->icon_name))
+    encoded_icon_name = encoded_name;
+  else
+    encoded_icon_name = ENCODE_UTF_8 (f->icon_name);
+
+  str = [NSString stringWithUTF8String: SDATA (encoded_icon_name)];
+
   if ([[view window] miniwindowTitle] &&
-      ([[[view window] miniwindowTitle]
-             isEqualToString: [NSString stringWithUTF8String:
-                                           SDATA (name)]]))
-    return;
+      ! [[[view window] miniwindowTitle] isEqualToString: str])
+    [[view window] setMiniwindowTitle: str];
 
-  [[view window] setMiniwindowTitle:
-        [NSString stringWithUTF8String: SDATA (name)]];
 }
-
 
 static void
 ns_set_name (struct frame *f, Lisp_Object name, int explicit)
@@ -542,6 +518,12 @@ ns_set_name (struct frame *f, Lisp_Object name, int explicit)
 
   if (NILP (name))
     name = build_string([ns_app_name UTF8String]);
+  else
+    CHECK_STRING (name);
+
+  /* Don't change the name if it's already NAME.  */
+  if (! NILP (Fstring_equal (name, f->name)))
+    return;
 
   f->name = name;
 
@@ -549,17 +531,7 @@ ns_set_name (struct frame *f, Lisp_Object name, int explicit)
   if (! NILP (f->title))
     name = f->title;
 
-  CHECK_STRING (name);
-
-  view = FRAME_NS_VIEW (f);
-
-  /* Don't change the name if it's already NAME.  */
-  if ([[[view window] title]
-            isEqualToString: [NSString stringWithUTF8String:
-                                          SDATA (name)]])
-    return;
-  [[view window] setTitle: [NSString stringWithUTF8String:
-                                        SDATA (name)]];
+  ns_set_name_internal (f, name);
 }
 
 
@@ -570,7 +542,6 @@ static void
 x_explicitly_set_name (FRAME_PTR f, Lisp_Object arg, Lisp_Object oldval)
 {
   NSTRACE (x_explicitly_set_name);
-  ns_set_name_iconic (f, arg, 1);
   ns_set_name (f, arg, 1);
 }
 
@@ -582,9 +553,10 @@ void
 x_implicitly_set_name (FRAME_PTR f, Lisp_Object arg, Lisp_Object oldval)
 {
   NSTRACE (x_implicitly_set_name);
-  if (FRAME_ICONIFIED_P (f))
-    ns_set_name_iconic (f, arg, 0);
-  else if (FRAME_NS_P (f) && EQ (Vframe_title_format, Qt))
+
+  /* Deal with NS specific format t.  */
+  if (FRAME_NS_P (f) && ((FRAME_ICONIFIED_P (f) && EQ (Vicon_title_format, Qt))
+                         || EQ (Vframe_title_format, Qt)))
     ns_set_name_as_filename (f);
   else
     ns_set_name (f, arg, 0);
@@ -592,15 +564,8 @@ x_implicitly_set_name (FRAME_PTR f, Lisp_Object arg, Lisp_Object oldval)
 
 
 /* Change the title of frame F to NAME.
-   If NAME is nil, use the frame name as the title.
+   If NAME is nil, use the frame name as the title.  */
 
-   If EXPLICIT is non-zero, that indicates that lisp code is setting the
-   name; if NAME is a string, set F's name to NAME and set
-   F->explicit_name; if NAME is Qnil, then clear F->explicit_name.
-
-   If EXPLICIT is zero, that indicates that Emacs redisplay code is
-   suggesting a new name, which lisp code should override; if
-   F->explicit_name is set, ignore the new name; otherwise, set it.  */
 static void
 x_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name)
 {
@@ -612,6 +577,13 @@ x_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name)
   update_mode_lines = 1;
 
   f->title = name;
+
+  if (NILP (name))
+    name = f->name;
+  else
+    CHECK_STRING (name);
+
+  ns_set_name_internal (f, name);
 }
 
 
@@ -619,10 +591,13 @@ void
 ns_set_name_as_filename (struct frame *f)
 {
   NSView *view;
-  Lisp_Object name;
+  Lisp_Object name, filename;
   Lisp_Object buf = XWINDOW (f->selected_window)->buffer;
   const char *title;
   NSAutoreleasePool *pool;
+  struct gcpro gcpro1;
+  Lisp_Object encoded_name, encoded_filename;
+  NSString *str;
   NSTRACE (ns_set_name_as_filename);
 
   if (f->explicit_name || ! NILP (f->title) || ns_in_resize)
@@ -630,56 +605,66 @@ ns_set_name_as_filename (struct frame *f)
 
   BLOCK_INPUT;
   pool = [[NSAutoreleasePool alloc] init];
-  name = XBUFFER (buf)->filename;
-  if (NILP (name) || FRAME_ICONIFIED_P (f)) name =XBUFFER (buf)->name;
-
-  if (FRAME_ICONIFIED_P (f) && !NILP (f->icon_name))
-    name = f->icon_name;
+  filename = BVAR (XBUFFER (buf), filename);
+  name = BVAR (XBUFFER (buf), name);
 
   if (NILP (name))
-    name = build_string ([ns_app_name UTF8String]);
-  else
-    CHECK_STRING (name);
+    {
+      if (! NILP (filename))
+        name = Ffile_name_nondirectory (filename);
+      else
+        name = build_string ([ns_app_name UTF8String]);
+    }
+
+  GCPRO1 (name);
+  encoded_name = ENCODE_UTF_8 (name);
+  UNGCPRO;
 
   view = FRAME_NS_VIEW (f);
 
   title = FRAME_ICONIFIED_P (f) ? [[[view window] miniwindowTitle] UTF8String]
                                 : [[[view window] title] UTF8String];
 
-  if (title && (! strcmp (title, SDATA (name))))
+  if (title && (! strcmp (title, SDATA (encoded_name))))
     {
       [pool release];
       UNBLOCK_INPUT;
       return;
     }
 
-  if (! FRAME_ICONIFIED_P (f))
-    {
-#ifdef NS_IMPL_COCOA
-      /* work around a bug observed on 10.3 where
-         setTitleWithRepresentedFilename does not clear out previous state
-         if given filename does not exist */
-      NSString *str = [NSString stringWithUTF8String: SDATA (name)];
-      if (![[NSFileManager defaultManager] fileExistsAtPath: str])
-        {
-          [[view window] setTitleWithRepresentedFilename: @""];
-          [[view window] setTitle: str];
-        }
-      else
-        {
-          [[view window] setTitleWithRepresentedFilename: str];
-        }
-#else
-      [[view window] setTitleWithRepresentedFilename:
-                         [NSString stringWithUTF8String: SDATA (name)]];
-#endif
-      f->name = name;
-    }
+  str = [NSString stringWithUTF8String: SDATA (encoded_name)];
+  if (str == nil) str = @"Bad coding";
+
+  if (FRAME_ICONIFIED_P (f))
+    [[view window] setMiniwindowTitle: str];
   else
     {
-      [[view window] setMiniwindowTitle:
-            [NSString stringWithUTF8String: SDATA (name)]];
+      NSString *fstr;
+
+      if (! NILP (filename))
+        {
+          GCPRO1 (filename);
+          encoded_filename = ENCODE_UTF_8 (filename);
+          UNGCPRO;
+
+          fstr = [NSString stringWithUTF8String: SDATA (encoded_filename)];
+          if (fstr == nil) fstr = @"";
+#ifdef NS_IMPL_COCOA
+          /* work around a bug observed on 10.3 and later where
+             setTitleWithRepresentedFilename does not clear out previous state
+             if given filename does not exist */
+          if (! [[NSFileManager defaultManager] fileExistsAtPath: fstr])
+            [[view window] setRepresentedFilename: @""];
+#endif
+        }
+      else
+        fstr = @"";
+
+      [[view window] setRepresentedFilename: fstr];
+      [[view window] setTitle: str];
+      f->name = name;
     }
+
   [pool release];
   UNBLOCK_INPUT;
 }
@@ -920,9 +905,7 @@ ns_cursor_type_to_lisp (int arg)
 
 /* This is the same as the xfns.c definition.  */
 void
-x_set_cursor_type (f, arg, oldval)
-     FRAME_PTR f;
-     Lisp_Object arg, oldval;
+x_set_cursor_type (FRAME_PTR f, Lisp_Object arg, Lisp_Object oldval)
 {
   set_frame_cursor_types (f, arg);
 
@@ -944,7 +927,7 @@ x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 #define Xstr(x) Str(x)
 
 static Lisp_Object
-ns_appkit_version_str ()
+ns_appkit_version_str (void)
 {
   char tmp[80];
 
@@ -963,7 +946,7 @@ ns_appkit_version_str ()
    have into a single int.  For a better picture of the implementation
    running, use ns_appkit_version_str.*/
 static int
-ns_appkit_version_int ()
+ns_appkit_version_int (void)
 {
 #ifdef NS_IMPL_GNUSTEP
   return GNUSTEP_GUI_MAJOR_VERSION * 100 + GNUSTEP_GUI_MINOR_VERSION;
@@ -1038,7 +1021,8 @@ frame_parm_handler ns_frame_parm_handlers[] =
   0,  /* x_set_fullscreen will ignore */
   x_set_font_backend, /* generic OK */
   x_set_alpha,
-  0, /* x_set_sticky */  
+  0, /* x_set_sticky */
+  0, /* x_set_tool_bar_position */
 };
 
 
@@ -1058,8 +1042,7 @@ If the parameters specify that the frame should not have a minibuffer,
 and do not specify a specific minibuffer window to use,
 then `default-minibuffer-frame' must be a frame whose minibuffer can
 be shared by the new frame.  */)
-     (parms)
-     Lisp_Object parms;
+     (Lisp_Object parms)
 {
   static int desc_ctr = 1;
   struct frame *f;
@@ -1154,7 +1137,7 @@ be shared by the new frame.  */)
 
   f->output_method = output_ns;
   f->output_data.ns = (struct ns_output *)xmalloc (sizeof *(f->output_data.ns));
-  bzero (f->output_data.ns, sizeof (*(f->output_data.ns)));
+  memset (f->output_data.ns, 0, sizeof (*(f->output_data.ns)));
 
   FRAME_FONTSET (f) = -1;
 
@@ -1221,8 +1204,6 @@ be shared by the new frame.  */)
                       "foreground", "Foreground", RES_TYPE_STRING);
   x_default_parameter (f, parms, Qbackground_color, build_string ("White"),
                       "background", "Background", RES_TYPE_STRING);
-  x_default_parameter (f, parms, Qcursor_color, build_string ("grey"),
-                      "cursorColor", "CursorColor", RES_TYPE_STRING);
   /* FIXME: not suppported yet in Nextstep */
   x_default_parameter (f, parms, Qline_spacing, Qnil,
 		       "lineSpacing", "LineSpacing", RES_TYPE_NUMBER);
@@ -1234,10 +1215,18 @@ be shared by the new frame.  */)
 
   init_frame_faces (f);
 
-  x_default_parameter (f, parms, Qmenu_bar_lines, make_number (0), "menuBar",
-                      "menuBar", RES_TYPE_NUMBER);
-  x_default_parameter (f, parms, Qtool_bar_lines, make_number (0), "toolBar",
-                      "toolBar", RES_TYPE_NUMBER);
+  /* The X resources controlling the menu-bar and tool-bar are
+     processed specially at startup, and reflected in the mode
+     variables; ignore them here.  */
+  x_default_parameter (f, parms, Qmenu_bar_lines,
+		       NILP (Vmenu_bar_mode)
+		       ? make_number (0) : make_number (1),
+		       NULL, NULL, RES_TYPE_NUMBER);
+  x_default_parameter (f, parms, Qtool_bar_lines,
+		       NILP (Vtool_bar_mode)
+		       ? make_number (0) : make_number (1),
+		       NULL, NULL, RES_TYPE_NUMBER);
+
   x_default_parameter (f, parms, Qbuffer_predicate, Qnil, "bufferPredicate",
                        "BufferPredicate", RES_TYPE_SYMBOL);
   x_default_parameter (f, parms, Qtitle, Qnil, "title", "Title",
@@ -1340,9 +1329,9 @@ be shared by the new frame.  */)
     }
 
   if (FRAME_HAS_MINIBUF_P (f)
-      && (!FRAMEP (kb->Vdefault_minibuffer_frame)
-          || !FRAME_LIVE_P (XFRAME (kb->Vdefault_minibuffer_frame))))
-    kb->Vdefault_minibuffer_frame = frame;
+      && (!FRAMEP (KVAR (kb, Vdefault_minibuffer_frame))
+          || !FRAME_LIVE_P (XFRAME (KVAR (kb, Vdefault_minibuffer_frame)))))
+    KVAR (kb, Vdefault_minibuffer_frame) = frame;
 
   /* All remaining specified parameters, which have not been "used"
      by x_get_arg and friends, now go in the misc. alist of the frame.  */
@@ -1360,8 +1349,7 @@ be shared by the new frame.  */)
 DEFUN ("x-focus-frame", Fx_focus_frame, Sx_focus_frame, 1, 1, 0,
        doc: /* Set the input focus to FRAME.
 FRAME nil means use the selected frame.  */)
-     (frame)
-     Lisp_Object frame;
+     (Lisp_Object frame)
 {
   struct frame *f = check_ns_frame (frame);
   struct ns_display_info *dpyinfo = FRAME_NS_DISPLAY_INFO (f);
@@ -1382,8 +1370,7 @@ FRAME nil means use the selected frame.  */)
 DEFUN ("ns-popup-font-panel", Fns_popup_font_panel, Sns_popup_font_panel,
        0, 1, "",
        doc: /* Pop up the font panel. */)
-     (frame)
-     Lisp_Object frame;
+     (Lisp_Object frame)
 {
   id fm;
   struct frame *f;
@@ -1408,8 +1395,7 @@ DEFUN ("ns-popup-font-panel", Fns_popup_font_panel, Sns_popup_font_panel,
 DEFUN ("ns-popup-color-panel", Fns_popup_color_panel, Sns_popup_color_panel,
        0, 1, "",
        doc: /* Pop up the color panel.  */)
-     (frame)
-     Lisp_Object frame;
+     (Lisp_Object frame)
 {
   struct frame *f;
 
@@ -1430,10 +1416,10 @@ DEFUN ("ns-popup-color-panel", Fns_popup_color_panel, Sns_popup_color_panel,
 DEFUN ("ns-read-file-name", Fns_read_file_name, Sns_read_file_name, 1, 4, 0,
        doc: /* Use a graphical panel to read a file name, using prompt PROMPT.
 Optional arg DIR, if non-nil, supplies a default directory.
-Optional arg ISLOAD, if non-nil, means read a file name for saving.
+Optional arg MUSTMATCH, if non-nil, means the returned file or
+directory must exist.
 Optional arg INIT, if non-nil, provides a default file name to use.  */)
-     (prompt, dir, isLoad, init)
-     Lisp_Object prompt, dir, isLoad, init;
+     (Lisp_Object prompt, Lisp_Object dir, Lisp_Object mustmatch, Lisp_Object init)
 {
   static id fileDelegate = nil;
   int ret;
@@ -1443,7 +1429,7 @@ Optional arg INIT, if non-nil, provides a default file name to use.  */)
   NSString *promptS = NILP (prompt) || !STRINGP (prompt) ? nil :
     [NSString stringWithUTF8String: SDATA (prompt)];
   NSString *dirS = NILP (dir) || !STRINGP (dir) ?
-    [NSString stringWithUTF8String: SDATA (current_buffer->directory)] :
+    [NSString stringWithUTF8String: SDATA (BVAR (current_buffer, directory))] :
     [NSString stringWithUTF8String: SDATA (dir)];
   NSString *initS = NILP (init) || !STRINGP (init) ? nil :
     [NSString stringWithUTF8String: SDATA (init)];
@@ -1458,7 +1444,7 @@ Optional arg INIT, if non-nil, provides a default file name to use.  */)
   if ([dirS characterAtIndex: 0] == '~')
     dirS = [dirS stringByExpandingTildeInPath];
 
-  panel = NILP (isLoad) ?
+  panel = NILP (mustmatch) ?
     (id)[EmacsSavePanel savePanel] : (id)[EmacsOpenPanel openPanel];
 
   [panel setTitle: promptS];
@@ -1472,7 +1458,7 @@ Optional arg INIT, if non-nil, provides a default file name to use.  */)
 
   panelOK = 0;
   BLOCK_INPUT;
-  if (NILP (isLoad))
+  if (NILP (mustmatch))
     {
       ret = [panel runModalForDirectory: dirS file: initS];
     }
@@ -1497,8 +1483,7 @@ Optional arg INIT, if non-nil, provides a default file name to use.  */)
 DEFUN ("ns-get-resource", Fns_get_resource, Sns_get_resource, 2, 2, 0,
        doc: /* Return the value of the property NAME of OWNER from the defaults database.
 If OWNER is nil, Emacs is assumed.  */)
-     (owner, name)
-     Lisp_Object owner, name;
+     (Lisp_Object owner, Lisp_Object name)
 {
   const char *value;
 
@@ -1522,8 +1507,7 @@ DEFUN ("ns-set-resource", Fns_set_resource, Sns_set_resource, 3, 3, 0,
        doc: /* Set property NAME of OWNER to VALUE, from the defaults database.
 If OWNER is nil, Emacs is assumed.
 If VALUE is nil, the default is removed.  */)
-     (owner, name, value)
-     Lisp_Object owner, name, value;
+     (Lisp_Object owner, Lisp_Object name, Lisp_Object value)
 {
   check_ns ();
   if (NILP (owner))
@@ -1551,8 +1535,7 @@ DEFUN ("x-server-max-request-size", Fx_server_max_request_size,
        Sx_server_max_request_size,
        0, 1, 0,
        doc: /* This function is a no-op.  It is only present for completeness.  */)
-     (display)
-     Lisp_Object display;
+     (Lisp_Object display)
 {
   check_ns ();
   /* This function has no real equivalent under NeXTstep.  Return nil to
@@ -1565,8 +1548,7 @@ DEFUN ("x-server-vendor", Fx_server_vendor, Sx_server_vendor, 0, 1, 0,
        doc: /* Return the vendor ID string of Nextstep display server DISPLAY.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, the selected frame's display is used.  */)
-     (display)
-     Lisp_Object display;
+     (Lisp_Object display)
 {
 #ifdef NS_IMPL_GNUSTEP
   return build_string ("GNU");
@@ -1585,8 +1567,7 @@ release number.  See also the function `x-server-vendor'.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-     (display)
-     Lisp_Object display;
+     (Lisp_Object display)
 {
   /*NOTE: it is unclear what would best correspond with "protocol";
           we return 10.3, meaning Panther, since this is roughly the
@@ -1604,8 +1585,7 @@ DEFUN ("x-display-screens", Fx_display_screens, Sx_display_screens, 0, 1, 0,
        doc: /* Return the number of screens on Nextstep display server DISPLAY.
 DISPLAY should be a frame, the display name as a string, or a terminal ID.
 If omitted or nil, the selected frame's display is used.  */)
-     (display)
-     Lisp_Object display;
+     (Lisp_Object display)
 {
   int num;
 
@@ -1621,8 +1601,7 @@ DEFUN ("x-display-mm-height", Fx_display_mm_height, Sx_display_mm_height,
        doc: /* Return the height of Nextstep display server DISPLAY, in millimeters.
 DISPLAY should be a frame, the display name as a string, or a terminal ID.
 If omitted or nil, the selected frame's display is used.  */)
-     (display)
-     Lisp_Object display;
+     (Lisp_Object display)
 {
   check_ns ();
   return make_number ((int)
@@ -1635,8 +1614,7 @@ DEFUN ("x-display-mm-width", Fx_display_mm_width, Sx_display_mm_width,
        doc: /* Return the width of Nextstep display server DISPLAY, in millimeters.
 DISPLAY should be a frame, the display name as a string, or a terminal ID.
 If omitted or nil, the selected frame's display is used.  */)
-     (display)
-     Lisp_Object display;
+     (Lisp_Object display)
 {
   check_ns ();
   return make_number ((int)
@@ -1650,8 +1628,7 @@ DEFUN ("x-display-backing-store", Fx_display_backing_store,
 The value may be `buffered', `retained', or `non-retained'.
 DISPLAY should be a frame, the display name as a string, or a terminal ID.
 If omitted or nil, the selected frame's display is used.  */)
-     (display)
-     Lisp_Object display;
+     (Lisp_Object display)
 {
   check_ns ();
   switch ([ns_get_window (display) backingType])
@@ -1676,8 +1653,7 @@ The value is one of the symbols `static-gray', `gray-scale',
 `static-color', `pseudo-color', `true-color', or `direct-color'.
 DISPLAY should be a frame, the display name as a string, or a terminal ID.
 If omitted or nil, the selected frame's display is used.  */)
-     (display)
-     Lisp_Object display;
+     (Lisp_Object display)
 {
   NSWindowDepth depth;
   check_ns ();
@@ -1701,12 +1677,11 @@ If omitted or nil, the selected frame's display is used.  */)
 
 DEFUN ("x-display-save-under", Fx_display_save_under,
        Sx_display_save_under, 0, 1, 0,
-       doc: /* Non-nil if the Nextstep display server supports the save-under feature.
+       doc: /* Return t if DISPLAY supports the save-under feature.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be a frame, the display name as a string, or a terminal ID.
 If omitted or nil, the selected frame's display is used.  */)
-     (display)
-     Lisp_Object display;
+     (Lisp_Object display)
 {
   check_ns ();
   switch ([ns_get_window (display) backingType])
@@ -1727,11 +1702,13 @@ If omitted or nil, the selected frame's display is used.  */)
 
 DEFUN ("x-open-connection", Fx_open_connection, Sx_open_connection,
        1, 3, 0,
-       doc: /* Open a connection to a Nextstep display server.
+       doc: /* Open a connection to a display server.
 DISPLAY is the name of the display to connect to.
-Optional arguments XRM-STRING and MUST-SUCCEED are currently ignored.  */)
-     (display, resource_string, must_succeed)
-     Lisp_Object display, resource_string, must_succeed;
+Optional second arg XRM-STRING is a string of resources in xrdb format.
+If the optional third arg MUST-SUCCEED is non-nil,
+terminate Emacs if we can't open the connection.
+\(In the Nextstep version, the last two arguments are currently ignored.)  */)
+     (Lisp_Object display, Lisp_Object resource_string, Lisp_Object must_succeed)
 {
   struct ns_display_info *dpyinfo;
 
@@ -1769,8 +1746,7 @@ DEFUN ("x-close-connection", Fx_close_connection, Sx_close_connection,
        1, 1, 0,
        doc: /* Close the connection to the current Nextstep display server.
 The argument DISPLAY is currently ignored.  */)
-     (display)
-     Lisp_Object display;
+     (Lisp_Object display)
 {
   check_ns ();
   /*ns_delete_terminal (dpyinfo->terminal); */
@@ -1781,7 +1757,7 @@ The argument DISPLAY is currently ignored.  */)
 
 DEFUN ("x-display-list", Fx_display_list, Sx_display_list, 0, 0, 0,
        doc: /* Return the list of display names that Emacs has connections to.  */)
-     ()
+     (void)
 {
   Lisp_Object tail, result;
 
@@ -1796,7 +1772,7 @@ DEFUN ("x-display-list", Fx_display_list, Sx_display_list, 0, 0, 0,
 DEFUN ("ns-hide-others", Fns_hide_others, Sns_hide_others,
        0, 0, 0,
        doc: /* Hides all applications other than Emacs.  */)
-     ()
+     (void)
 {
   check_ns ();
   [NSApp hideOtherApplications: NSApp];
@@ -1809,8 +1785,7 @@ DEFUN ("ns-hide-emacs", Fns_hide_emacs, Sns_hide_emacs,
 Otherwise if Emacs is hidden, it is unhidden.
 If ON is equal to `activate', Emacs is unhidden and becomes
 the active application.  */)
-     (on)
-     Lisp_Object on;
+     (Lisp_Object on)
 {
   check_ns ();
   if (EQ (on, intern ("activate")))
@@ -1829,7 +1804,7 @@ the active application.  */)
 DEFUN ("ns-emacs-info-panel", Fns_emacs_info_panel, Sns_emacs_info_panel,
        0, 0, 0,
        doc: /* Shows the 'Info' or 'About' panel for Emacs.  */)
-     ()
+     (void)
 {
   check_ns ();
   [NSApp orderFrontStandardAboutPanel: nil];
@@ -1842,8 +1817,7 @@ DEFUN ("ns-font-name", Fns_font_name, Sns_font_name, 1, 1, 0,
 NAME should be a string containing either the font name or an XLFD
 font descriptor.  If string contains `fontset' and not
 `fontset-startup', it is left alone. */)
-     (name)
-     Lisp_Object name;
+     (Lisp_Object name)
 {
   char *nm;
   CHECK_STRING (name);
@@ -1861,8 +1835,7 @@ font descriptor.  If string contains `fontset' and not
 DEFUN ("ns-list-colors", Fns_list_colors, Sns_list_colors, 0, 1, 0,
        doc: /* Return a list of all available colors.
 The optional argument FRAME is currently ignored.  */)
-     (frame)
-     Lisp_Object frame;
+     (Lisp_Object frame)
 {
   Lisp_Object list = Qnil;
   NSEnumerator *colorlists;
@@ -1901,7 +1874,7 @@ The optional argument FRAME is currently ignored.  */)
 
 DEFUN ("ns-list-services", Fns_list_services, Sns_list_services, 0, 0, 0,
        doc: /* List available Nextstep services by querying NSApp.  */)
-     ()
+     (void)
 {
   Lisp_Object ret = Qnil;
   NSMenu *svcs;
@@ -1955,8 +1928,7 @@ DEFUN ("ns-perform-service", Fns_perform_service, Sns_perform_service,
 SEND should be either a string or nil.
 The return value is the result of the service, as string, or nil if
 there was no result.  */)
-     (service, send)
-     Lisp_Object service, send;
+     (Lisp_Object service, Lisp_Object send)
 {
   id pb;
   NSString *svcName;
@@ -1984,8 +1956,7 @@ there was no result.  */)
 DEFUN ("ns-convert-utf8-nfd-to-nfc", Fns_convert_utf8_nfd_to_nfc,
        Sns_convert_utf8_nfd_to_nfc, 1, 1, 0,
        doc: /* Return an NFC string that matches the UTF-8 NFD string STR.  */)
-    (str)
-    Lisp_Object str;
+     (Lisp_Object str)
 {
 /* TODO: If GNUstep ever implements precomposedStringWithCanonicalMapping,
          remove this. */
@@ -2014,8 +1985,7 @@ DEFUN ("ns-convert-utf8-nfd-to-nfc", Fns_convert_utf8_nfd_to_nfc,
    string or a number containing the resulting script value.  Otherwise,
    1 is returned. */
 static int
-ns_do_applescript (script, result)
-     Lisp_Object script, *result;
+ns_do_applescript (Lisp_Object script, Lisp_Object *result)
 {
   NSAppleEventDescriptor *desc;
   NSDictionary* errorDict;
@@ -2072,11 +2042,10 @@ DEFUN ("ns-do-applescript", Fns_do_applescript, Sns_do_applescript, 1, 1, 0,
 If compilation and execution are successful, the resulting script value
 is returned as a string, a number or, in the case of other constructs, t.
 In case the execution fails, an error is signaled. */)
-    (script)
-    Lisp_Object script;
+     (Lisp_Object script)
 {
   Lisp_Object result;
-  long status;
+  int status;
 
   CHECK_STRING (script);
   check_ns ();
@@ -2119,8 +2088,7 @@ check_x_display_info (Lisp_Object frame)
 
 
 void
-x_set_scroll_bar_default_width (f)
-     struct frame *f;
+x_set_scroll_bar_default_width (struct frame *f)
 {
   int wid = FRAME_COLUMN_WIDTH (f);
   FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = NS_SCROLL_BAR_WIDTH_DEFAULT;
@@ -2200,7 +2168,7 @@ x_screen_planes (struct frame *f)
 
 
 void
-x_sync (Lisp_Object frame)
+x_sync (struct frame *f)
 {
   /* XXX Not implemented XXX */
   return;
@@ -2216,10 +2184,9 @@ x_sync (Lisp_Object frame)
 
 
 DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
-       doc: /* Return t if the current Nextstep display supports the color COLOR.
-The optional argument FRAME is currently ignored.  */)
-     (color, frame)
-     Lisp_Object color, frame;
+       doc: /* Internal function called by `color-defined-p', which see.
+\(Note that the Nextstep version of this function ignores FRAME.)  */)
+     (Lisp_Object color, Lisp_Object frame)
 {
   NSColor * col;
   check_ns ();
@@ -2229,8 +2196,7 @@ The optional argument FRAME is currently ignored.  */)
 
 DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
        doc: /* Internal function called by `color-values', which see.  */)
-     (color, frame)
-     Lisp_Object color, frame;
+     (Lisp_Object color, Lisp_Object frame)
 {
   NSColor * col;
   CGFloat red, green, blue, alpha;
@@ -2250,12 +2216,8 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
 
 
 DEFUN ("xw-display-color-p", Fxw_display_color_p, Sxw_display_color_p, 0, 1, 0,
-       doc: /* Return t if the Nextstep display supports color.
-The optional argument DISPLAY specifies which display to ask about.
-DISPLAY should be either a frame, a display name (a string), or terminal ID.
-If omitted or nil, that stands for the selected frame's display.  */)
-     (display)
-     Lisp_Object display;
+       doc: /* Internal function called by `display-color-p', which see.  */)
+     (Lisp_Object display)
 {
   NSWindowDepth depth;
   NSString *colorSpace;
@@ -2276,8 +2238,7 @@ Note that color displays do support shades of gray.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame, a display name (a string), or terminal ID.
 If omitted or nil, that stands for the selected frame's display. */)
-     (display)
-     Lisp_Object display;
+     (Lisp_Object display)
 {
   NSWindowDepth depth;
   check_ns ();
@@ -2293,8 +2254,7 @@ DEFUN ("x-display-pixel-width", Fx_display_pixel_width, Sx_display_pixel_width,
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame, a display name (a string), or terminal ID.
 If omitted or nil, that stands for the selected frame's display.  */)
-     (display)
-     Lisp_Object display;
+     (Lisp_Object display)
 {
   check_ns ();
   return make_number ((int) [ns_get_screen (display) frame].size.width);
@@ -2307,8 +2267,7 @@ DEFUN ("x-display-pixel-height", Fx_display_pixel_height,
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame, a display name (a string), or terminal ID.
 If omitted or nil, that stands for the selected frame's display.  */)
-     (display)
-     Lisp_Object display;
+     (Lisp_Object display)
 {
   check_ns ();
   return make_number ((int) [ns_get_screen (display) frame].size.height);
@@ -2325,8 +2284,7 @@ reserved for the Mac menu, dock, and so forth.
 The screen queried corresponds to DISPLAY, which should be either a
 frame, a display name (a string), or terminal ID.  If omitted or nil,
 that stands for the selected frame's display. */)
-     (display)
-     Lisp_Object display;
+     (Lisp_Object display)
 {
   int top;
   NSScreen *screen;
@@ -2355,8 +2313,7 @@ DEFUN ("x-display-planes", Fx_display_planes, Sx_display_planes,
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame, a display name (a string), or terminal ID.
 If omitted or nil, that stands for the selected frame's display.  */)
-     (display)
-     Lisp_Object display;
+     (Lisp_Object display)
 {
   check_ns ();
   return make_number
@@ -2370,12 +2327,12 @@ DEFUN ("x-display-color-cells", Fx_display_color_cells,
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame, a display name (a string), or terminal ID.
 If omitted or nil, that stands for the selected frame's display.  */)
-     (display)
-     Lisp_Object display;
+     (Lisp_Object display)
 {
+  struct ns_display_info *dpyinfo;
   check_ns ();
-  struct ns_display_info *dpyinfo = check_ns_display_info (display);
 
+  dpyinfo = check_ns_display_info (display);
   /* We force 24+ bit depths to 24-bit to prevent an overflow.  */
   return make_number (1 << min (dpyinfo->n_planes, 24));
 }
@@ -2386,11 +2343,14 @@ Lisp_Object tip_frame;
 
 /* TODO: move to xdisp or similar */
 static void
-compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
-     struct frame *f;
-     Lisp_Object parms, dx, dy;
-     int width, height;
-     int *root_x, *root_y;
+compute_tip_xy (struct frame *f,
+                Lisp_Object parms,
+                Lisp_Object dx,
+                Lisp_Object dy,
+                int width,
+                int height,
+                int *root_x,
+                int *root_y)
 {
   Lisp_Object left, top;
   EmacsView *view = FRAME_NS_VIEW (f);
@@ -2398,22 +2358,27 @@ compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
 
   /* Start with user-specified or mouse position.  */
   left = Fcdr (Fassq (Qleft, parms));
-  if (INTEGERP (left))
-    pt.x = XINT (left);
-  else
-    pt.x = last_mouse_motion_position.x;
   top = Fcdr (Fassq (Qtop, parms));
-  if (INTEGERP (top))
-    pt.y = XINT (top);
-  else
-    pt.y = last_mouse_motion_position.y;
 
-  /* Convert to screen coordinates */
-  pt = [view convertPoint: pt toView: nil];
-  pt = [[view window] convertBaseToScreen: pt];
+  if (!INTEGERP (left) || !INTEGERP (top))
+    {
+      pt = last_mouse_motion_position;
+      /* Convert to screen coordinates */
+      pt = [view convertPoint: pt toView: nil];
+      pt = [[view window] convertBaseToScreen: pt];
+    }
+  else
+    {
+      /* Absolute coordinates.  */
+      pt.x = XINT (left);
+      pt.y = x_display_pixel_height (FRAME_NS_DISPLAY_INFO (f)) - XINT (top)
+        - height;
+    }
 
   /* Ensure in bounds.  (Note, screen origin = lower left.) */
-  if (pt.x + XINT (dx) <= 0)
+  if (INTEGERP (left))
+    *root_x = pt.x;
+  else if (pt.x + XINT (dx) <= 0)
     *root_x = 0; /* Can happen for negative dx */
   else if (pt.x + XINT (dx) + width
 	   <= x_display_pixel_width (FRAME_NS_DISPLAY_INFO (f)))
@@ -2426,7 +2391,9 @@ compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
     /* Put it left justified on the screen -- it ought to fit that way.  */
     *root_x = 0;
 
-  if (pt.y - XINT (dy) - height >= 0)
+  if (INTEGERP (top))
+    *root_y = pt.y;
+  else if (pt.y - XINT (dy) - height >= 0)
     /* It fits below the pointer.  */
     *root_y = pt.y - height - XINT (dy);
   else if (pt.y + XINT (dy) + height
@@ -2442,6 +2409,8 @@ compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
 DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
        doc: /* Show STRING in a \"tooltip\" window on frame FRAME.
 A tooltip window is a small window displaying a string.
+
+This is an internal function; Lisp code should call `tooltip-show'.
 
 FRAME nil or omitted means use the selected frame.
 
@@ -2461,8 +2430,7 @@ DY added (default is -10).
 
 A tooltip's maximum size is specified by `x-max-tooltip-size'.
 Text larger than the specified size is clipped.  */)
-     (string, frame, parms, timeout, dx, dy)
-     Lisp_Object string, frame, parms, timeout, dx, dy;
+     (Lisp_Object string, Lisp_Object frame, Lisp_Object parms, Lisp_Object timeout, Lisp_Object dx, Lisp_Object dy)
 {
   int root_x, root_y;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
@@ -2518,7 +2486,7 @@ Text larger than the specified size is clipped.  */)
 DEFUN ("x-hide-tip", Fx_hide_tip, Sx_hide_tip, 0, 0, 0,
        doc: /* Hide the current tooltip window, if there is any.
 Value is t if tooltip was open, nil otherwise.  */)
-     ()
+     (void)
 {
   if (ns_tooltip == nil || ![ns_tooltip isActive])
     return Qnil;
@@ -2608,14 +2576,14 @@ Value is t if tooltip was open, nil otherwise.  */)
 
 
 void
-syms_of_nsfns ()
+syms_of_nsfns (void)
 {
   int i;
 
-  Qfontsize = intern ("fontsize");
+  Qfontsize = intern_c_string ("fontsize");
   staticpro (&Qfontsize);
 
-  DEFVAR_LISP ("ns-icon-type-alist", &Vns_icon_type_alist,
+  DEFVAR_LISP ("ns-icon-type-alist", Vns_icon_type_alist,
                doc: /* Alist of elements (REGEXP . IMAGE) for images of icons associated to frames.
 If the title of a frame matches REGEXP, then IMAGE.tiff is
 selected as the image of the icon representing the frame when it's
@@ -2636,7 +2604,7 @@ When you miniaturize a Group, Summary or Article frame, Gnus.tiff will
 be used as the image of the icon representing the frame.  */);
   Vns_icon_type_alist = Fcons (Qt, Qnil);
 
-  DEFVAR_LISP ("ns-version-string", &Vns_version_string,
+  DEFVAR_LISP ("ns-version-string", Vns_version_string,
                doc: /* Toolkit version for NS Windowing.  */);
   Vns_version_string = ns_appkit_version_str ();
 
@@ -2688,5 +2656,3 @@ be used as the image of the icon representing the frame.  */);
   check_window_system_func = check_ns;
 
 }
-
-// arch-tag: dc2a3f74-1123-4daa-8eed-fb78db6a5642

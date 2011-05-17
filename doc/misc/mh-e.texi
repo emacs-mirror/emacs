@@ -24,8 +24,7 @@
 This is version @value{VERSION}@value{EDITION} of @cite{The MH-E
 Manual}, last updated @value{UPDATED}.
 
-Copyright @copyright{} 1995, 2001, 2002, 2003, 2005, 2006, 2007, 2008, 2009, 2010
-Free Software Foundation, Inc.
+Copyright @copyright{} 1995, 2001-2003, 2005-2011  Free Software Foundation, Inc.
 
 @c This dual license has been agreed upon by the FSF.
 
@@ -56,9 +55,9 @@ Public License.''
 @end copying
 
 @c Info Directory Entry
-@dircategory Emacs
+@dircategory Emacs network features
 @direntry
-* MH-E: (mh-e).		Emacs interface to the MH mail system.
+* MH-E: (mh-e).                 Emacs interface to the MH mail system.
 @end direntry
 
 @c Title Page
@@ -212,9 +211,9 @@ However, MH-E was the tip of the iceberg, and I discovered more and
 more niceties about GNU Emacs and MH@. Now I'm fully hooked on both of
 them.
 
-The MH-E package is distributed with GNU Emacs@footnote{Version
-@value{VERSION} of MH-E will appear in GNU Emacs 23.1. It is supported
-in GNU Emacs 21 and 22, as well as XEmacs 21 (except for versions
+The MH-E package is distributed with Emacs@footnote{Version
+@value{VERSION} of MH-E appeared in Emacs 23.1. It is supported
+in Emacs 21 and 22, as well as XEmacs 21 (except for versions
 21.5.9-21.5.16). It is compatible with MH versions 6.8.4 and higher,
 all versions of nmh, and GNU mailutils 1.0 and higher.}, so you
 shouldn't have to do anything special to use it. Gnus is also
@@ -7767,7 +7766,7 @@ will need to run @samp{sa-learn --rebuild} periodically. This can be
 done by adding the following to your @file{crontab}:
 
 @smallexample
-0 * * * *	sa-learn --rebuild > /dev/null 2>&1
+0 * * * *       sa-learn --rebuild > /dev/null 2>&1
 @end smallexample
 
 @subheading Bogofilter
@@ -8951,8 +8950,8 @@ files that were already part of Emacs) and the software was completely
 reorganized to push back two decades of entropy. Version 8 appeared in
 Emacs 22.1 in 2006.
 
-Development was then quiet for a couple of years. Emacs 23.1, which is
-due out in 2009, will contain version 8.1. This version includes a few
+Development was then quiet for a couple of years. Emacs 23.1, released
+in June 2009, contains version 8.2.  This version includes a few
 new features and several bug fixes.
 
 Bill Wohler, August 2008
@@ -9061,6 +9060,4 @@ Bill Wohler, August 2008
 @c sentence-end-double-space: nil
 @c End:
 
-@ignore
-   arch-tag: b778477d-1a10-4a99-84de-f877a2ea6bef
-@end ignore
+

@@ -7,6 +7,8 @@
 @setchapternewpage odd
 @comment %**end of header (This is for running Texinfo on a region.)
 
+@include emacsver.texi
+
 @c The following macros are used for conditional output for single lines.
 @c @texline foo
 @c    `foo' will appear only in TeX output
@@ -76,7 +78,6 @@
 @newcount@calcpageno
 @newtoks@calcoldeverypar @calcoldeverypar=@everypar
 @everypar={@calceverypar@the@calcoldeverypar}
-@ifx@turnoffactive@undefinedzzz@def@turnoffactive{}@fi
 @ifx@ninett@undefinedzzz@font@ninett=cmtt9@fi
 @catcode`@\=0 \catcode`\@=11
 \r@ggedbottomtrue
@@ -89,11 +90,11 @@
 This file documents Calc, the GNU Emacs calculator.
 @end ifinfo
 @ifnotinfo
-This file documents Calc, the GNU Emacs calculator, included with GNU Emacs 23.1.
+This file documents Calc, the GNU Emacs calculator, included with 
+GNU Emacs @value{EMACSVER}.
 @end ifnotinfo
 
-Copyright @copyright{} 1990, 1991, 2001, 2002, 2003, 2004,
-2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+Copyright @copyright{} 1990-1991, 2001-2011 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -110,9 +111,9 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs misc features
 @direntry
-* Calc: (calc).         Advanced desk calculator and mathematical tool.
+* Calc: (calc).                 Advanced desk calculator and mathematical tool.
 @end direntry
 
 @titlepage
@@ -1804,7 +1805,6 @@ or, in large mathematical notation,
 @end example
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplay
 $$ 2 + { 3 \times 4 \times 5 \over 6 \times 7^8 } - 9 $$
 \afterdisplay
@@ -3358,7 +3358,6 @@ Suppose we had the following set of equations:
 @end group
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplayh
 $$ \openup1\jot \tabskip=0pt plus1fil
 \halign to\displaywidth{\tabskip=0pt
@@ -3385,7 +3384,6 @@ This can be cast into the matrix equation,
 @end group
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplay
 $$ \pmatrix{ 1 & 2 & 3 \cr 4 & 5 & 6 \cr 7 & 6 & 0 }
    \times
@@ -3457,7 +3455,6 @@ in terms of @expr{a} and @expr{b}.
 @end group
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplay
 $$ \eqalign{ x &+ a y = 6 \cr
              x &+ b y = 10}
@@ -3483,7 +3480,6 @@ on the left by the transpose of @expr{A}:
 @samp{trn(A)*A*X = trn(A)*B}.
 @end ifnottex
 @tex
-\turnoffactive
 $A^T A \, X = A^T B$, where $A^T$ is the transpose \samp{trn(A)}.
 @end tex
 Now 
@@ -3506,7 +3502,6 @@ system:
 @end group
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplayh
 $$ \openup1\jot \tabskip=0pt plus1fil
 \halign to\displaywidth{\tabskip=0pt
@@ -3778,7 +3773,6 @@ m = (N sum(x y) - sum(x) sum(y)) / (N sum(x^2) - sum(x)^2)
 @end example
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplay
 $$ m = {N \sum x y - \sum x \sum y  \over
         N \sum x^2 - \left( \sum x \right)^2} $$
@@ -3820,7 +3814,6 @@ respectively.  (We could have used @kbd{*} to compute @samp{sum(x^2)} and
 @samp{sum(x y)}.)
 @end ifnottex
 @tex
-\turnoffactive
 These are $\sum x$, $\sum x^2$, $\sum y$, and $\sum x y$,
 respectively.  (We could have used \kbd{*} to compute $\sum x^2$ and
 $\sum x y$.)
@@ -3874,7 +3867,6 @@ b = (sum(y) - m sum(x)) / N
 @end example
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplay
 $$ b = {\sum y - m \sum x \over N} $$
 \afterdisplay
@@ -5223,7 +5215,6 @@ down to the formula,
 @end example
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplay
 $$ \displaylines{
       \qquad {h \over 3} (f(a) + 4 f(a+h) + 2 f(a+2h) + 4 f(a+3h) + \cdots
@@ -5245,7 +5236,6 @@ h * (f(a) + f(a+h) + f(a+2h) + f(a+3h) + ...
 @end example
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplay
 $$ h (f(a) + f(a+h) + f(a+2h) + f(a+3h) + \cdots
            + f(a+(n-2)h) + f(a+(n-1)h)) $$
@@ -5686,7 +5676,6 @@ cos(x) = 1 - x^2 / 2! + x^4 / 4! - x^6 / 6! + ...
 @end example
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplay
 $$ \cos x = 1 - {x^2 \over 2!} + {x^4 \over 4!} - {x^6 \over 6!} + \cdots $$
 \afterdisplay
@@ -5704,7 +5693,6 @@ cos(x) = 1 - x^2 / 2! + O(x^3)
 @end example
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplay
 $$ \cos x = 1 - {x^2 \over 2!} + O(x^3) $$
 \afterdisplay
@@ -6336,7 +6324,6 @@ s(n+1,m) = s(n,m-1) - n s(n,m)   for n >= m >= 1.
 @end example
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplay
 $$ \eqalign{ s(n,n)   &= 1 \qquad \hbox{for } n \ge 0,  \cr
              s(n,0)   &= 0 \qquad \hbox{for } n > 0, \cr
@@ -6875,7 +6862,6 @@ get the row sum.  Similarly, use @kbd{[1 1] r 4 *} to get the column sum.
 @end example
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplay
 $$ \eqalign{ x &+ a y = 6 \cr
              x &+ b y = 10}
@@ -6939,7 +6925,6 @@ which we can solve using Calc's @samp{/} command.
 @end example
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplayh
 $$ \openup1\jot \tabskip=0pt plus1fil
 \halign to\displaywidth{\tabskip=0pt
@@ -7074,7 +7059,6 @@ the first job is to form the matrix that describes the problem.
 @end example
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplay
 $$ m \times x + b \times 1 = y $$
 \afterdisplay
@@ -7865,7 +7849,6 @@ So the result when we take the modulo after every step is,
 @end example
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplay
 $$ 3 (3 a + b - 511 m) + c - 511 n $$
 \afterdisplay
@@ -7881,7 +7864,6 @@ the distributive law yields
 @end example
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplay
 $$ 9 a + 3 b + c - 511\times3 m - 511 n $$
 \afterdisplay
@@ -7899,7 +7881,6 @@ term.  So we can take it out to get an equivalent formula with
 @end example
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplay
 $$ 9 a + 3 b + c - 511 n^{\prime} $$
 \afterdisplay
@@ -14140,6 +14121,10 @@ but
 @texline @math{\sin(2 + x)}.
 @infoline @expr{sin(2 + x)}.
 
+The @TeX{} specific unit names (@pxref{Predefined Units}) will not use
+the @samp{tex} prefix;  the unit name for a @TeX{} point will be
+@samp{pt} instead of @samp{texpt}, for example.
+
 Function and variable names not treated specially by @TeX{} and La@TeX{}
 are simply written out as-is, which will cause them to come out in
 italic letters in the printed document.  If you invoke @kbd{d T} or
@@ -14408,7 +14393,6 @@ $$ \sin\left( a^2 \over b_i \right) $$
 @end group
 @end example
 @tex
-\turnoffactive
 $$ [3 + 4i, {3 \over 4}, 3 \pm 4, [ 3 \ldots \infty)] $$
 @end tex
 @sp 1
@@ -14434,7 +14418,6 @@ $$ [|a|, \left| a \over b \right|,
 @end group
 @end example
 @tex
-\turnoffactive
 $$ [\sin{a}, \sin{2 a}, \sin(2 + a), \sin\left( {a \over b} \right)] $$
 @end tex
 @sp 2
@@ -14467,7 +14450,6 @@ First with @samp{\def\evalto@{@}}, then with @samp{\def\evalto#1\to@{@}}:
 @end group
 @end example
 @tex
-\turnoffactive
 $$ 2 + 3 \to 5 $$
 $$ 5 $$
 @end tex
@@ -14482,7 +14464,6 @@ First with standard @code{\to}, then with @samp{\let\to\Rightarrow}:
 @end group
 @end example
 @tex
-\turnoffactive
 $$ [{2 + 3 \to 5}, {{a \over 2} \to {b + c \over 2}}] $$
 {\let\to\Rightarrow
 $$ [{2 + 3 \to 5}, {{a \over 2} \to {b + c \over 2}}] $$}
@@ -14499,7 +14480,6 @@ Matrices normally, then changing @code{\matrix} to @code{\pmatrix}:
 @end group
 @end example
 @tex
-\turnoffactive
 $$ \matrix{ {a \over b} & 0 \cr 0 & 2^{(x + 1)} } $$
 $$ \pmatrix{ {a \over b} & 0 \cr 0 & 2^{(x + 1)} } $$
 @end tex
@@ -17935,7 +17915,6 @@ ddb(cost, salv, life, per) = --------,  book = cost - depreciation so far
 @end example
 @end ifnottex
 @tex
-\turnoffactive
 $$ \code{fv}(r, n, p) = p { (1 + r)^n - 1 \over r } $$
 $$ \code{fvb}(r, n, p) = p { ((1 + r)^n - 1) (1 + r) \over r } $$
 $$ \code{fvl}(r, n, p) = p (1 + r)^n $$
@@ -18591,7 +18570,6 @@ letter gamma).  You can obtain these using the @kbd{H f G} [@code{gammag}]
 and @kbd{H I f G} [@code{gammaG}] commands.
 @end ifnottex
 @tex
-\turnoffactive
 The functions corresponding to the integrals that define $P(a,x)$
 and $Q(a,x)$ but without the normalizing $1/\Gamma(a)$
 factor are called $\gamma(a,x)$ and $\Gamma(a,x)$, respectively.
@@ -20058,6 +20036,20 @@ range are ignored.  (You can tell if elements have been ignored by noting
 that the counts in the result vector don't add up to the length of the
 input vector.)
 
+If no prefix is given, then you will be prompted for a vector which
+will be used to determine the bins. (If a positive integer is given at
+this prompt, it will be still treated as if it were given as a
+prefix.)  Each bin will consist of the interval of numbers closest to
+the corresponding number of this new vector; if the vector 
+@expr{[a, b, c, ...]} is entered at the prompt, the bins will be 
+@expr{(-inf, (a+b)/2]}, @expr{((a+b)/2, (b+c)/2]}, etc.  The result of 
+this command will be a vector counting how many elements of the
+original vector are in each bin.
+
+The result will then be a vector with the same length as this new vector;
+each element of the new vector will be replaced by the number of
+elements of the original vector which are closest to it.
+
 @kindex H v H
 @kindex H V H
 With the Hyperbolic flag, @kbd{H V H} pulls two vectors from the stack.
@@ -20559,7 +20551,6 @@ this is the weighted mean of the @expr{x} values with weights
 @texline @math{1 /\sigma^2}.
 @infoline @expr{1 / s^2}.
 @tex
-\turnoffactive
 $$ \mu = { \displaystyle \sum { x_i \over \sigma_i^2 } \over
            \displaystyle \sum { 1 \over \sigma_i^2 } } $$
 @end tex
@@ -20593,7 +20584,6 @@ root of the reciprocal of the sum of the reciprocals of the squares
 of the input errors.  (I.e., the variance is the reciprocal of the
 sum of the reciprocals of the variances.)
 @tex
-\turnoffactive
 $$ \sigma_\mu^2 = {1 \over \displaystyle \sum {1 \over \sigma_i^2}} $$
 @end tex
 If the inputs are plain
@@ -20603,7 +20593,6 @@ out to be equivalent to calculating the standard deviation and
 then assuming each value's error is equal to this standard
 deviation.)
 @tex
-\turnoffactive
 $$ \sigma_\mu^2 = {\sigma^2 \over N} $$
 @end tex
 
@@ -20636,7 +20625,6 @@ command computes the harmonic mean of the data values.  This is
 defined as the reciprocal of the arithmetic mean of the reciprocals
 of the values.
 @tex
-\turnoffactive
 $$ { N \over \displaystyle \sum {1 \over x_i} } $$
 @end tex
 
@@ -20650,7 +20638,6 @@ is the @var{n}th root of the product of the values.  This is also
 equal to the @code{exp} of the arithmetic mean of the logarithms
 of the data values.
 @tex
-\turnoffactive
 $$ \exp \left ( \sum { \ln x_i } \right ) =
    \left ( \prod { x_i } \right)^{1 / N} $$
 @end tex
@@ -20662,7 +20649,6 @@ mean'' of two numbers taken from the stack.  This is computed by
 replacing the two numbers with their arithmetic mean and geometric
 mean, then repeating until the two values converge.
 @tex
-\turnoffactive
 $$ a_{i+1} = { a_i + b_i \over 2 } , \qquad b_{i+1} = \sqrt{a_i b_i} $$
 @end tex
 
@@ -20685,7 +20671,6 @@ deviation, whose value is the square root of the sum of the squares of
 the differences between the values and the mean of the @expr{N} values,
 divided by @expr{N-1}.
 @tex
-\turnoffactive
 $$ \sigma^2 = {1 \over N - 1} \sum (x_i - \mu)^2 $$
 @end tex
 
@@ -20712,7 +20697,6 @@ is used when the input represents a sample of the set of all
 data values, so that the mean computed from the input is itself
 only an estimate of the true mean.
 @tex
-\turnoffactive
 $$ \sigma^2 = {1 \over N} \sum (x_i - \mu)^2 $$
 @end tex
 
@@ -20777,7 +20761,6 @@ are composed of error forms, the error for a given data point
 is taken as the square root of the sum of the squares of the two
 input errors.
 @tex
-\turnoffactive
 $$ \sigma_{x\!y}^2 = {1 \over N-1} \sum (x_i - \mu_x) (y_i - \mu_y) $$
 $$ \sigma_{x\!y}^2 =
     {\displaystyle {1 \over N-1}
@@ -20805,7 +20788,6 @@ This is defined by the covariance of the vectors divided by the
 product of their standard deviations.  (There is no difference
 between sample or population statistics here.)
 @tex
-\turnoffactive
 $$ r_{x\!y} = { \sigma_{x\!y}^2 \over \sigma_x^2 \sigma_y^2 } $$
 @end tex
 
@@ -21537,7 +21519,11 @@ to
 
 @noindent
 Every character not part of the sub-formula @samp{b} has been changed
-to a dot.  The @samp{*} next to the line number is to remind you that
+to a dot. (If the customizable variable
+@code{calc-highlight-selections-with-faces} is non-nil, then the characters
+not part of the sub-formula are de-emphasized by using a less
+noticeable face instead of using dots. @pxref{Displaying Selections}.)
+The @samp{*} next to the line number is to remind you that
 the formula has a portion of it selected.  (In this case, it's very
 obvious, but it might not always be.  If Embedded mode is enabled,
 the word @samp{Sel} also appears in the mode line because the stack
@@ -21750,6 +21736,9 @@ of the hierarchy simply by pointing to it with the cursor.
 @noindent
 @kindex j d
 @pindex calc-show-selections
+@vindex calc-highlight-selections-with-faces
+@vindex calc-selected-face
+@vindex calc-nonselected-face
 The @kbd{j d} (@code{calc-show-selections}) command controls how
 selected sub-formulas are displayed.  One of the alternatives is
 illustrated in the above examples; if we press @kbd{j d} we switch
@@ -21764,6 +21753,13 @@ by @samp{#} signs:
         . . . .                   2 x + 1
 @end group
 @end smallexample
+If the customizable variable
+@code{calc-highlight-selections-with-faces} is non-nil, then the
+non-selected portion of the formula will be de-emphasized by using a
+less noticeable face (@code{calc-nonselected-face}) instead of dots
+and the selected sub-formula will be highlighted by using a more
+noticeable face (@code{calc-selected-face}) instead of @samp{#}
+signs. (@pxref{Customizing Calc}.)
 
 @node Operating on Selections, Rearranging with Selections, Displaying Selections, Selecting Subformulas
 @subsection Operating on Selections
@@ -24361,8 +24357,6 @@ For example, suppose the data matrix
 @end example
 @end ifnottex
 @tex
-\turnoffactive
-\turnoffactive
 \beforedisplay
 $$ \pmatrix{ 1 & 2 & 3 & 4  & 5  \cr
              5 & 7 & 9 & 11 & 13 }
@@ -24422,7 +24416,6 @@ chi^2 = sum((y_i - (a + b x_i))^2, i, 1, N)
 @end example
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplay
 $$ \chi^2 = \sum_{i=1}^N (y_i - (a + b x_i))^2 $$
 \afterdisplay
@@ -24613,7 +24606,6 @@ chi^2 = sum(((y_i - (a + b x_i)) / sigma_i)^2, i, 1, N)
 @end example
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplay
 $$ \chi^2 = \sum_{i=1}^N \left(y_i - (a + b x_i) \over \sigma_i\right)^2 $$
 \afterdisplay
@@ -25388,7 +25380,6 @@ any later ones are answered by reading additional elements from
 the stack.  Thus, @kbd{' k^2 @key{RET} ' k @key{RET} 1 @key{RET} 5 @key{RET} a + @key{RET}}
 produces the result 55.
 @tex
-\turnoffactive
 $$ \sum_{k=1}^5 k^2 = 55 $$
 @end tex
 
@@ -27684,6 +27675,8 @@ begin with the @kbd{u} prefix key.
 * The Units Table::
 * Predefined Units::
 * User-Defined Units::
+* Logarithmic Units::
+* Musical Notes::
 @end menu
 
 @node Basic Operations on Units, The Units Table, Units, Units
@@ -28002,6 +27995,14 @@ than the point used by @TeX{}), @code{texdd} (a Didot point),
 @code{texcc} (a Cicero) and @code{texsp} (a scaled @TeX{} point, 
 all dimensions representable in @TeX{} are multiples of this value).
 
+When Calc is using the @TeX{} or La@TeX{} language mode (@pxref{TeX
+and LaTeX Language Modes}), the @TeX{} specific unit names will not
+use the @samp{tex} prefix; the unit name for a @TeX{} point will be
+@samp{pt} instead of @samp{texpt}, for example.  To avoid conflicts,
+the unit names for pint and parsec will simply be @samp{pint} and
+@samp{parsec} instead of @samp{pt} and @samp{pc}.
+
+
 The unit @code{e} stands for the elementary (electron) unit of charge;
 because algebra command could mistake this for the special constant
 @expr{e}, Calc provides the alternate unit name @code{ech} which is
@@ -28037,7 +28038,7 @@ really is unitless.)
 
 @c Describe angular units, luminosity vs. steradians problem.
 
-@node User-Defined Units,  , Predefined Units, Units
+@node User-Defined Units, Logarithmic Units, Predefined Units, Units
 @section User-Defined Units
 
 @noindent
@@ -28120,6 +28121,315 @@ units will still be available in subsequent Emacs sessions.  If there
 was already a set of user-defined units in your Calc init file, it
 is replaced by the new set.  (@xref{General Mode Commands}, for a way to
 tell Calc to use a different file for the Calc init file.)
+
+@node Logarithmic Units, Musical Notes, User-Defined Units, Units
+@section Logarithmic Units
+
+The units @code{dB} (decibels) and @code{Np} (nepers) are logarithmic
+units which are manipulated differently than standard units.  Calc
+provides commands to work with these logarithmic units.
+
+Decibels and nepers are used to measure power quantities as well as 
+field quantities (quantities whose squares are proportional to power);
+these two types of quantities are handled slightly different from each
+other.  By default the Calc commands work as if power quantities are
+being used; with the @kbd{H} prefix the Calc commands work as if field
+quantities are being used.
+
+The decibel level of a power 
+@infoline @math{P1},
+@texline @math{P_1},
+relative to a reference power 
+@infoline @math{P0},
+@texline @math{P_0},
+is defined to be
+@infoline @math{10 log10(P1/P0) dB}.
+@texline @math{10 \log_{10}(P_{1}/P_{0}) {\rm dB}}.
+(The factor of 10 is because a decibel, as its name implies, is
+one-tenth of a bel. The bel, named after Alexander Graham Bell, was
+considered to be too large of a unit and was effectively replaced by
+the decibel.)  If @math{F} is a field quantity with power
+@math{P=k F^2}, then a reference quantity of 
+@infoline @math{F0}
+@texline @math{F_0}
+would correspond to a power of 
+@infoline @math{P0=k F0^2}.
+@texline @math{P_{0}=kF_{0}^2}.
+If
+@infoline @math{P1=k F1^2},
+@texline @math{P_{1}=kF_{1}^2},
+then
+
+@ifnottex
+@example 
+10 log10(P1/P0) = 10 log10(F1^2/F0^2) = 20 log10(F1/F0).
+@end example
+@end ifnottex
+@tex
+$$ 10 \log_{10}(P_1/P_0) = 10 \log_{10}(F_1^2/F_0^2) = 20
+\log_{10}(F_1/F_0)$$
+@end tex
+
+@noindent
+In order to get the same decibel level regardless of whether a field
+quantity or the corresponding power quantity is used,  the decibel
+level of a field quantity 
+@infoline @math{F1},
+@texline @math{F_1}, 
+relative to a reference 
+@infoline @math{F0},
+@texline @math{F_0}, 
+is defined as
+@infoline @math{20 log10(F1/F0) dB}.
+@texline @math{20 \log_{10}(F_{1}/F_{0}) {\rm dB}}.
+For example, the decibel value of a sound pressure level of 
+@infoline @math{60 uPa}
+@texline @math{60 \mu{\rm Pa}}
+relative to 
+@infoline @math{20 uPa}
+@texline @math{20 \mu{\rm Pa}}
+(the threshhold of human hearing) is 
+@infoline @math{20 log10(60 uPa/ 20 uPa) dB = 20 log10(3) dB},
+@texline  @math{20 \log_{10}(60 \mu{\rm Pa}/20 \mu{\rm Pa}) {\rm dB} = 20 \log_{10}(3) {\rm dB}},
+which is about 
+@infoline @math{9.54 dB}.
+@texline @math{9.54 {\rm dB}}.
+Note that in taking the ratio, the original units cancel and so these
+logarithmic units are dimensionless. 
+
+Nepers (named after John Napier, who is credited with inventing the
+logarithm) are similar to bels except they use natural logarithms instead
+of common logarithms.  The neper level of a power 
+@infoline @math{P1},
+@texline @math{P_1},
+relative to a reference power 
+@infoline @math{P0},
+@texline @math{P_0},
+is
+@infoline @math{(1/2) ln(P1/P0) Np}.
+@texline @math{(1/2) \ln(P_1/P_0) {\rm Np}}.
+The neper level of a field 
+@infoline @math{F1},
+@texline @math{F_1},
+relative to a reference field
+@infoline @math{F0},
+@texline @math{F_0},
+is
+@infoline @math{ln(F1/F0) Np}.
+@texline @math{\ln(F_1/F_0) {\rm Np}}.
+
+@vindex calc-lu-power-reference
+@vindex calc-lu-field-reference
+For power quantities, Calc uses
+@infoline @math{1 mW} 
+@texline @math{1 {\rm mW}}
+as the default reference quantity; this default can be changed by changing 
+the value of the customizable variable
+@code{calc-lu-power-reference} (@pxref{Customizing Calc}).
+For field quantities, Calc uses 
+@infoline @math{20 uPa} 
+@texline @math{20 \mu{\rm Pa}}
+as the default reference quantity; this is the value used in acoustics
+which is where decibels are commonly encountered.  This default can be
+changed by changing the value of the customizable variable
+@code{calc-lu-field-reference} (@pxref{Customizing Calc}).  A
+non-default reference quantity will be read from the stack if the
+capital @kbd{O} prefix is used.
+
+@kindex l q
+@pindex calc-lu-quant
+@tindex lupquant
+@tindex lufquant
+The @kbd{l q} (@code{calc-lu-quant}) [@code{lupquant}]
+command computes the power quantity corresponding to a given number of
+logarithmic units. With the capital @kbd{O} prefix, @kbd{O l q}, the
+reference level will be read from the top of the stack. (In an
+algebraic formula, @code{lupquant} can be given an optional second
+argument which will be used for the reference level.) For example, 
+@code{20 dB @key{RET} l q} will return @code{100 mW}; 
+@code{20 dB @key{RET} 4 W @key{RET} O l q} will return @code{400 W}.   
+The @kbd{H l q} [@code{lufquant}] command behaves like @kbd{l q} but
+computes field quantities instead of power quantities.
+
+@kindex l d
+@pindex calc-db
+@tindex dbpower
+@tindex dbfield
+@kindex l n
+@pindex calc-np
+@tindex nppower
+@tindex npfield
+The @kbd{l d} (@code{calc-db}) [@code{dbpower}] command will compute
+the decibel level of a power quantity using the default reference
+level; @kbd{H l d} [@code{dbfield}] will compute the decibel level of
+a field quantity.  The commands @kbd{l n} (@code{calc-np})
+[@code{nppower}] and @kbd{H l n} [@code{npfield}] will similarly
+compute neper levels.  With the capital @kbd{O} prefix these commands
+will read a reference level from the stack; in an algebraic formula
+the reference level can be given as an optional second argument.
+
+@kindex l +
+@pindex calc-lu-plus
+@tindex lupadd
+@tindex lufadd
+@kindex l -
+@pindex calc-lu-minus
+@tindex lupsub
+@tindex lufsub
+@kindex l *
+@pindex calc-lu-times
+@tindex lupmul
+@tindex lufmul
+@kindex l /
+@pindex calc-lu-divide
+@tindex lupdiv
+@tindex lufdiv
+The sum of two power or field quantities doesn't correspond to the sum
+of the corresponding decibel or neper levels.  If the powers
+corresponding to decibel levels 
+@infoline @math{D1} 
+@texline @math{D_1} 
+and 
+@infoline @math{D2} 
+@texline @math{D_2} 
+are added, the corresponding decibel level ``sum'' will be 
+
+@ifnottex
+@example
+  10 log10(10^(D1/10) + 10^(D2/10)) dB.
+@end example
+@end ifnottex
+@tex
+$$ 10 \log_{10}(10^{D_1/10} + 10^{D_2/10}) {\rm dB}.$$
+@end tex
+
+@noindent
+When field quantities are combined, it often means the corresponding
+powers are added and so the above formula might be used.  In
+acoustics, for example, the sound pressure level is a field quantity
+and so the decibels are often defined using the field formula, but the
+sound pressure levels are combined as the sound power levels, and so
+the above formula should be used.  If two field quantities themselves
+are added, the new decibel level will be
+
+@ifnottex
+@example
+  20 log10(10^(D1/20) + 10^(D2/20)) dB.
+@end example
+@end ifnottex
+@tex
+$$ 20 \log_{10}(10^{D_1/20} + 10^{D_2/20}) {\rm dB}.$$
+@end tex
+
+@noindent
+If the power corresponding to @math{D} dB is multiplied by a number @math{N},
+then the corresponding decibel level will be
+
+@ifnottex
+@example
+  D + 10 log10(N) dB,
+@end example
+@end ifnottex
+@tex
+$$ D + 10 \log_{10}(N) {\rm dB},$$
+@end tex
+
+@noindent
+if a field quantity is multiplied by @math{N} the corresponding decibel level
+will be 
+
+@ifnottex
+@example
+  D + 20 log10(N) dB.
+@end example
+@end ifnottex
+@tex
+$$ D + 20 \log_{10}(N) {\rm dB}.$$
+@end tex
+
+@noindent
+There are similar formulas for combining nepers.  The @kbd{l +}
+(@code{calc-lu-plus}) [@code{lupadd}] command will ``add'' two
+logarithmic unit power levels this way; with the @kbd{H} prefix,
+@kbd{H l +} [@code{lufadd}] will add logarithmic unit field levels.
+Similarly, logarithmic units can be ``subtracted'' with @kbd{l -}
+(@code{calc-lu-minus}) [@code{lupsub}] or @kbd{H l -} [@code{lufsub}].
+The @kbd{l *} (@code{calc-lu-times}) [@code{lupmul}] and @kbd{H l *}
+[@code{lufmul}] commands will ``multiply'' a logarithmic unit by a
+number; the @kbd{l /} (@code{calc-lu-divide}) [@code{lupdiv}] and
+@kbd{H l /} [@code{lufdiv}] commands will ``divide'' a logarithmic
+unit by a number. Note that the reference quantities don't play a role
+in this arithmetic.
+
+@node Musical Notes, , Logarithmic Units, Units
+@section Musical Notes
+
+Calc can convert between musical notes and their associated
+frequencies.  Notes can be given using either scientific pitch
+notation or midi numbers.  Since these note systems are basically
+logarithmic scales, Calc uses the @kbd{l} prefix for functions
+operating on notes.
+
+Scientific pitch notation refers to a note by giving a letter
+A through G, possibly followed by a flat or sharp) with a subscript
+indicating an octave number.  Each octave starts with C and ends with
+B and 
+@c increasing each note by a semitone will result
+@c in the sequence @expr{C}, @expr{C} sharp, @expr{D}, @expr{E} flat, @expr{E},
+@c @expr{F}, @expr{F} sharp, @expr{G}, @expr{A} flat, @expr{A}, @expr{B}
+@c flat and @expr{B}.  
+the octave numbered 0 was chosen to correspond to the lowest
+audible frequency.  Using this system, middle C (about 261.625 Hz)
+corresponds to the note @expr{C} in octave 4 and is denoted
+@expr{C_4}.  Any frequency can be described by giving a note plus an
+offset in cents (where a cent is a ratio of frequencies so that a
+semitone consists of 100 cents). 
+
+The midi note number system assigns numbers to notes so that
+@expr{C_(-1)} corresponds to the midi note number 0 and @expr{G_9}
+corresponds to the midi note number 127.   A midi controller can have
+up to 128 keys and each midi note number from  0 to 127 corresponds to
+a possible key. 
+
+@kindex l s
+@pindex calc-spn
+@tindex spn
+The @kbd{l s} (@code{calc-spn}) [@code{spn}] command converts either
+a frequency or a midi number to scientific pitch notation.  For
+example, @code{500 Hz} gets converted to 
+@code{B_4 + 21.3094853649 cents} and @code{84} to @code{C_6}. 
+
+
+@kindex l m
+@pindex calc-midi
+@tindex midi
+The @kbd{l m} (@code{calc-midi}) [@code{midi}] command converts either
+a frequency or a note given in scientific pitch notation to the
+corresponding midi number. For example, @code{C_6} gets converted to 84
+and @code{440 Hz} to 69.
+
+@kindex l f
+@pindex calc-freq
+@tindex freq
+The @kbd{l f} (@code{calc-freq}) [@code{freq}] command converts either
+either a midi number or a note given in scientific pitch notation to
+the corresponding frequency. For example, @code{Asharp_2 + 30 cents}
+gets converted to @code{118.578040134 Hz} and @code{55} to
+@code{195.99771799 Hz}.
+
+Since the frequencies of notes are not usually given exactly (and are
+typically irrational), the customizable variable
+@code{calc-note-threshold} determines how close (in cents) a frequency
+needs to be to a note to be recognized as that note
+(@pxref{Customizing Calc}).  This variable has a default value of
+@code{1}.  For example, middle @var{C} is approximately
+@expr{261.625565302 Hz}; this frequency is often shortened to
+@expr{261.625 Hz}.  Without @code{calc-note-threshold} (or a value of
+@expr{0}), Calc would convert @code{261.625 Hz} to scientific pitch
+notation @code{B_3 + 99.9962592773 cents}; with the default value of
+@code{1}, Calc converts @code{261.625 Hz} to @code{C_4}.
+
+
 
 @node Store and Recall, Graphics, Units, Top
 @chapter Storing and Recalling
@@ -34940,7 +35250,7 @@ character of the prefix can simply be typed twice.
 
 Calc is controlled by many variables, most of which can be reset
 from within Calc.  Some variables are less involved with actual
-calculation, and can be set outside of Calc using Emacs's
+calculation and can be set outside of Calc using Emacs's
 customization facilities.  These variables are listed below.
 Typing @kbd{M-x customize-variable RET @var{variable-name} RET}
 will bring up a buffer in which the variable's value can be redefined.
@@ -35224,6 +35534,45 @@ It consists of a list of lists of the form
 Any major modes added to @code{calc-embedded-open-close-mode-alist}
 should also be added to @code{calc-embedded-announce-formula-alist}
 and @code{calc-embedded-open-close-plain-alist}.
+@end defvar
+
+@defvar  calc-lu-power-reference
+@defvarx calc-lu-field-reference
+See @ref{Logarithmic Units}.@*
+The variables @code{calc-lu-power-reference} and
+@code{calc-lu-field-reference} are unit expressions (written as
+strings) which Calc will use as reference quantities for logarithmic
+units.
+
+The default value of @code{calc-lu-power-reference} is @code{"mW"}
+and the default value of @code{calc-lu-field-reference} is
+@code{"20 uPa"}.  
+@end defvar
+
+@defvar calc-note-threshold
+See @ref{Musical Notes}.@*
+The variable @code{calc-note-threshold} is a number (written as a
+string) which determines how close (in cents) a frequency needs to be
+to a note to be recognized as that note.
+
+The default value of @code{calc-note-threshold} is 1.
+@end defvar
+
+@defvar calc-highlight-selections-with-faces
+@defvarx calc-selected-face
+@defvarx calc-nonselected-face
+See @ref{Displaying Selections}.@*
+The variable @code{calc-highlight-selections-with-faces} 
+determines how selected sub-formulas are distinguished.
+If @code{calc-highlight-selections-with-faces} is nil, then 
+a selected sub-formula is distinguished either by changing every
+character not part of the sub-formula with a dot or by changing every
+character in the sub-formula with a @samp{#} sign.  
+If @code{calc-highlight-selections-with-faces} is t,
+then a selected sub-formula is distinguished either by displaying the
+non-selected portion of the formula with @code{calc-nonselected-face} 
+or by displaying the selected sub-formula with
+@code{calc-nonselected-face}.
 @end defvar
 
 @defvar calc-multiplication-has-precedence
@@ -35855,6 +36204,31 @@ keystrokes are not listed in this summary.
 @r{    m x@:    I k P   @:             @:        @:ltpp@:(x,m)}
 @r{    v x@:      k T   @:             @:        @:utpt@:(x,v)}
 @r{    v x@:    I k T   @:             @:        @:ltpt@:(x,v)}
+
+@c
+@r{    a b@:      l +   @:             @:        @:lupadd@:(a,b)}
+@r{    a b@:    H l +   @:             @:        @:lufadd@:(a,b)}
+@r{    a b@:      l -   @:             @:        @:lupsub@:(a,b)}
+@r{    a b@:    H l -   @:             @:        @:lufsub@:(a,b)}
+@r{    a b@:      l *   @:             @:        @:lupmul@:(a,b)}
+@r{    a b@:    H l *   @:             @:        @:lufmul@:(a,b)}
+@r{    a b@:      l /   @:             @:        @:lupdiv@:(a,b)}
+@r{    a b@:    H l /   @:             @:        @:lufdiv@:(a,b)}
+@r{      a@:      l d   @:             @:        @:dbpower@:(a)}
+@r{    a b@:    O l d   @:             @:        @:dbpower@:(a,b)}
+@r{      a@:    H l d   @:             @:        @:dbfield@:(a)}
+@r{    a b@:  O H l d   @:             @:        @:dbfield@:(a,b)}
+@r{      a@:      l n   @:             @:        @:nppower@:(a)}
+@r{    a b@:    O l n   @:             @:        @:nppower@:(a,b)}
+@r{      a@:    H l n   @:             @:        @:npfield@:(a)}
+@r{    a b@:  O H l n   @:             @:        @:npfield@:(a,b)}
+@r{      a@:      l q   @:             @:        @:lupquant@:(a)}
+@r{    a b@:    O l q   @:             @:        @:lupquant@:(a,b)}
+@r{      a@:    H l q   @:             @:        @:lufquant@:(a)}
+@r{    a b@:  O H l q   @:             @:        @:lufquant@:(a,b)}
+@r{      a@:      l s   @:             @:        @:spn@:(a)}
+@r{      a@:      l m   @:             @:        @:midi@:(a)}
+@r{      a@:      l f   @:             @:        @:freq@:(a)}
 
 @c
 @r{       @:      m a   @:             @: 12,13  @:calc-algebraic-mode@:}
@@ -36579,8 +36953,3 @@ the corresponding full Lisp name is derived by adding a prefix of
 @printindex fn
 
 @bye
-
-
-@ignore
-   arch-tag: 77a71809-fa4d-40be-b2cc-da3e8fb137c0
-@end ignore

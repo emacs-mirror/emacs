@@ -1,12 +1,12 @@
 ;;; ebnf-abn.el --- parser for ABNF (Augmented BNF)
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, ebnf, PostScript
 ;; Version: 1.2
+;; Package: ebnf2ps
 
 ;; This file is part of GNU Emacs.
 
@@ -663,5 +663,4 @@ See documentation for variable `ebnf-abn-lex'."
 
 (provide 'ebnf-abn)
 
-;; arch-tag: 8d1b3c4d-4226-4393-b9ae-b7ccf07cf779
 ;;; ebnf-abn.el ends here

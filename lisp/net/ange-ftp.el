@@ -1,8 +1,6 @@
 ;;; ange-ftp.el --- transparent FTP support for GNU Emacs
 
-;; Copyright (C) 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1998,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1989-1996, 1998, 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Andy Norman (ange@hplb.hpl.hp.com)
 ;; Maintainer: FSF
@@ -722,6 +720,7 @@ parenthesized expressions in REGEXP for the components (in that order)."
 	  "^Data connection \\|"
 	  "^local:\\|^Trying\\|^125 \\|^550-\\|^221 .*oodbye\\|"
           "^500 .*AUTH\\|^KERBEROS\\|"
+          "^504 Unknown security mechanism\\|"
 	  "^530 Please login with USER and PASS\\|" ; non kerberised vsFTPd
 	  "^534 Kerberos Authentication not enabled\\|"
 	  "^22[789] .*[Pp]assive\\|^200 EPRT\\|^500 .*EPRT")
@@ -857,15 +856,11 @@ If nil, prompt the user for a password."
   :type '(choice (const :tag "Default" nil)
 		 string))
 
-(defcustom ange-ftp-binary-file-name-regexp
-  (concat "TAGS\\'\\|\\.\\(?:"
-          (eval-when-compile
-            (regexp-opt '("z" "Z" "lzh" "arc" "zip" "zoo" "tar" "dvi"
-                          "ps" "elc" "gif" "gz" "taz" "tgz")))
-	  "\\|EXE\\(;[0-9]+\\)?\\|[zZ]-part-..\\)\\'")
+(defcustom ange-ftp-binary-file-name-regexp ""
   "If a file matches this regexp then it is transferred in binary mode."
   :group 'ange-ftp
-  :type 'regexp)
+  :type 'regexp
+  :version "24.1")
 
 (defcustom ange-ftp-gateway-host nil
   "Name of host to use as gateway machine when local FTP isn't possible."
@@ -1736,7 +1731,7 @@ good, skip, fatal, or unknown."
 
 (defun ange-ftp-del-tmp-name (filename)
   "Force to delete temporary file."
-  (delete-file filename 'force))
+  (delete-file filename))
 
 
 ;;;; ------------------------------------------------------------
@@ -3215,11 +3210,7 @@ system TYPE.")
 	       ;; What we REALLY need here is a way to determine if the mode
 	       ;; of the transfer is irrelevant, i.e. we can use binary mode
 	       ;; regardless. Maybe a system-type to host-type lookup?
-	       (binary (or (ange-ftp-binary-file filename)
-			   (and (not (memq system-type
-					   '(ms-dos windows-nt)))
-				(memq (ange-ftp-host-type host user)
-				      '(unix dumb-unix)))))
+	       (binary (ange-ftp-binary-file filename))
 	       (cmd (if append 'append 'put))
 	       (abbr (ange-ftp-abbreviate-filename filename))
 	       ;; we need to reset `last-coding-system-used' to its
@@ -3291,9 +3282,7 @@ system TYPE.")
 		     (user (nth 1 parsed))
 		     (name (ange-ftp-quote-string (nth 2 parsed)))
 		     (temp (ange-ftp-make-tmp-name host))
-		     (binary (or (ange-ftp-binary-file filename)
-				 (memq (ange-ftp-host-type host user)
-				       '(unix dumb-unix))))
+		     (binary (ange-ftp-binary-file filename))
 		     (abbr (ange-ftp-abbreviate-filename filename))
 		     (coding-system-used last-coding-system-used)
 		     size)
@@ -3507,8 +3496,9 @@ system TYPE.")
 	(file-exists-p file)
       (ange-ftp-real-file-executable-p file))))
 
-(defun ange-ftp-delete-file (file &optional force)
-  (interactive "fDelete file: ")
+(defun ange-ftp-delete-file (file &optional trash)
+  (interactive (list (read-file-name "Delete file: " nil default-directory)
+		     (null current-prefix-arg)))
   (setq file (expand-file-name file))
   (let ((parsed (ange-ftp-ftp-name file)))
     (if parsed
@@ -3526,7 +3516,7 @@ system TYPE.")
 		       (format "FTP Error: \"%s\"" (cdr result))
 		       file)))
 	  (ange-ftp-delete-file-entry file))
-      (ange-ftp-real-delete-file file force))))
+      (ange-ftp-real-delete-file file trash))))
 
 (defun ange-ftp-file-modtime (file)
   "Return the modification time of remote file FILE.
@@ -3674,11 +3664,7 @@ so return the size on the remote host exactly. See RFC 3659."
 	     (t-name (and t-parsed (ange-ftp-quote-string (nth 2 t-parsed))))
 	     (t-abbr (ange-ftp-abbreviate-filename newname filename))
 	     (binary (or (ange-ftp-binary-file filename)
-			 (ange-ftp-binary-file newname)
-			 (and (memq (ange-ftp-host-type f-host f-user)
-				    '(unix dumb-unix))
-			      (memq (ange-ftp-host-type t-host t-user)
-				    '(unix dumb-unix)))))
+			 (ange-ftp-binary-file newname)))
 	     temp1
 	     temp2)
 
@@ -3897,7 +3883,7 @@ E.g.,
 	  (ange-ftp-add-file-entry newname)
 	  (ange-ftp-delete-file-entry filename))
       (ange-ftp-copy-file-internal filename newname t nil)
-      (delete-file filename 'force))))
+      (delete-file filename))))
 
 (defun ange-ftp-rename-local-to-remote (filename newname)
   "Rename local file FILENAME to remote file NEWNAME."
@@ -3906,7 +3892,7 @@ E.g.,
 	 (msg (format "Renaming %s to %s" fabbr nabbr)))
     (ange-ftp-copy-file-internal filename newname t nil msg)
     (let (ange-ftp-process-verbose)
-      (delete-file filename 'force))))
+      (delete-file filename))))
 
 (defun ange-ftp-rename-remote-to-local (filename newname)
   "Rename remote file FILENAME to local file NEWNAME."
@@ -3915,7 +3901,7 @@ E.g.,
 	 (msg (format "Renaming %s to %s" fabbr nabbr)))
     (ange-ftp-copy-file-internal filename newname t nil msg)
     (let (ange-ftp-process-verbose)
-      (delete-file filename 'force))))
+      (delete-file filename))))
 
 (defun ange-ftp-rename-file (filename newname &optional ok-if-already-exists)
   (interactive "fRename file: \nFRename %s to file: \np")
@@ -4071,7 +4057,7 @@ directory, so that Emacs will know its current contents."
 	(ange-ftp-get-files dir t))))
 
 (defun ange-ftp-make-directory (dir &optional parents)
-  (interactive (list (expand-file-name (read-file-name "Make directory: "))))
+  (interactive (list (expand-file-name (read-directory-name "Make directory: "))))
   (if parents
       (let ((parent (file-name-directory (directory-file-name dir))))
 	(or (file-exists-p parent)
@@ -4196,7 +4182,7 @@ directory, so that Emacs will know its current contents."
 	(if copy
 	    (unwind-protect
 		(funcall 'load copy noerror nomessage nosuffix)
-	      (delete-file copy 'force))
+	      (delete-file copy))
 	  (or noerror
 	      (signal 'file-error (list "Cannot open load file" file)))
 	  nil))
@@ -4267,7 +4253,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 	  (if (zerop (buffer-size))
 	      (progn
 		(let (ange-ftp-process-verbose)
-		  (delete-file file 'force))
+		  (delete-file file))
 		(ange-ftp-copy-file-internal tmp2 nfile t nil msg2))))
       (ange-ftp-del-tmp-name tmp1)
       (ange-ftp-del-tmp-name tmp2))))
@@ -4303,7 +4289,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 	  (if (zerop (buffer-size))
 	      (progn
 		(let (ange-ftp-process-verbose)
-		  (delete-file file 'force))
+		  (delete-file file))
 		(ange-ftp-copy-file-internal tmp2 nfile t nil msg2))))
       (ange-ftp-del-tmp-name tmp1)
       (ange-ftp-del-tmp-name tmp2))))
@@ -4899,7 +4885,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 ;;  ;; This is the Unix dl version.
 ;;  (let ((opoint (point))
 ;;	case-fold-search hidden)
-;;    (or eol (setq eol (save-excursion (end-of-line) (point))))
+;;    (or eol (setq eol (line-end-position)))
 ;;    (setq hidden (and selective-display
 ;;		       (save-excursion
 ;;			 (search-forward "\r" eol t))))
@@ -5298,7 +5284,7 @@ Other orders of $ and _ seem to all work just fine.")
 ;;  ;; This is the VMS version.
 ;;  (let (opoint hidden case-fold-search)
 ;;    (setq opoint (point))
-;;    (or eol (setq eol (save-excursion (end-of-line) (point))))
+;;    (or eol (setq eol (line-end-position)))
 ;;    (setq hidden (and selective-display
 ;;		      (save-excursion (search-forward "\r" eol t))))
 ;;    (if hidden
@@ -5656,7 +5642,7 @@ Other orders of $ and _ seem to all work just fine.")
 ;;  ;; This is the MTS version.
 ;;  (let (opoint hidden case-fold-search)
 ;;    (setq opoint (point)
-;;	  eol (save-excursion (end-of-line) (point))
+;;	  eol (line-end-position)
 ;;	  hidden (and selective-display
 ;;		      (save-excursion (search-forward "\r" eol t))))
 ;;    (if hidden
@@ -5877,7 +5863,7 @@ Other orders of $ and _ seem to all work just fine.")
 ;;  ;; This is the CMS version.
 ;;  (let ((opoint (point))
 ;;	case-fold-search hidden)
-;;    (or eol (setq eol (save-excursion (end-of-line) (point))))
+;;    (or eol (setq eol (line-end-position)))
 ;;    (setq hidden (and selective-display
 ;;		      (save-excursion
 ;;			(search-forward "\r" eol t))))
@@ -6151,5 +6137,4 @@ be recognized automatically (they are all valid BS2000 hosts too)."
 
 (provide 'ange-ftp)
 
-;; arch-tag: 2987ef88-cb56-4ec1-87a9-79132572e316
 ;;; ange-ftp.el ends here

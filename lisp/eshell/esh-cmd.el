@@ -1,7 +1,6 @@
 ;;; esh-cmd.el --- command invocation
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -122,28 +121,28 @@ however."
   :group 'eshell)
 
 (defcustom eshell-prefer-lisp-functions nil
-  "*If non-nil, prefer Lisp functions to external commands."
+  "If non-nil, prefer Lisp functions to external commands."
   :type 'boolean
   :group 'eshell-cmd)
 
 (defcustom eshell-lisp-regexp "\\([(`]\\|#'\\)"
-  "*A regexp which, if matched at beginning of an argument, means Lisp.
+  "A regexp which, if matched at beginning of an argument, means Lisp.
 Such arguments will be passed to `read', and then evaluated."
   :type 'regexp
   :group 'eshell-cmd)
 
 (defcustom eshell-pre-command-hook nil
-  "*A hook run before each interactive command is invoked."
+  "A hook run before each interactive command is invoked."
   :type 'hook
   :group 'eshell-cmd)
 
 (defcustom eshell-post-command-hook nil
-  "*A hook run after each interactive command is invoked."
+  "A hook run after each interactive command is invoked."
   :type 'hook
   :group 'eshell-cmd)
 
 (defcustom eshell-prepare-command-hook nil
-  "*A set of functions called to prepare a named command.
+  "A set of functions called to prepare a named command.
 The command name and its argument are in `eshell-last-command-name'
 and `eshell-last-arguments'.  The functions on this hook can change
 the value of these symbols if necessary.
@@ -154,7 +153,7 @@ To prevent a command from executing at all, set
   :group 'eshell-cmd)
 
 (defcustom eshell-named-command-hook nil
-  "*A set of functions called before a named command is invoked.
+  "A set of functions called before a named command is invoked.
 Each function will be passed the command name and arguments that were
 passed to `eshell-named-command'.
 
@@ -180,7 +179,7 @@ call to `cd' using the arguments that were passed to the function."
 (defcustom eshell-pre-rewrite-command-hook
   '(eshell-no-command-conversion
     eshell-subcommand-arg-values)
-  "*A hook run before command rewriting begins.
+  "A hook run before command rewriting begins.
 The terms of the command to be rewritten is passed as arguments, and
 may be modified in place.  Any return value is ignored."
   :type 'hook
@@ -193,7 +192,7 @@ may be modified in place.  Any return value is ignored."
     eshell-rewrite-sexp-command
     eshell-rewrite-initial-subcommand
     eshell-rewrite-named-command)
-  "*A set of functions used to rewrite the command argument.
+  "A set of functions used to rewrite the command argument.
 Once parsing of a command line is completed, the next step is to
 rewrite the initial argument into something runnable.
 
@@ -207,14 +206,14 @@ forms or strings)."
   :group 'eshell-cmd)
 
 (defcustom eshell-post-rewrite-command-hook nil
-  "*A hook run after command rewriting is finished.
+  "A hook run after command rewriting is finished.
 Each function is passed the symbol containing the rewritten command,
 which may be modified directly.  Any return value is ignored."
   :type 'hook
   :group 'eshell-cmd)
 
 (defcustom eshell-complex-commands '("ls")
-  "*A list of commands names or functions, that determine complexity.
+  "A list of commands names or functions, that determine complexity.
 That is, if a command is defined by a function named eshell/NAME,
 and NAME is part of this list, it is invoked as a complex command.
 Complex commands are always correct, but run much slower.  If a
@@ -230,13 +229,14 @@ return non-nil if the command is complex."
 
 ;;; User Variables:
 
-(defcustom eshell-cmd-load-hook '(eshell-cmd-initialize)
-  "*A hook that gets run when `eshell-cmd' is loaded."
+(defcustom eshell-cmd-load-hook nil
+  "A hook that gets run when `eshell-cmd' is loaded."
+  :version "24.1"		       ; removed eshell-cmd-initialize
   :type 'hook
   :group 'eshell-cmd)
 
 (defcustom eshell-debug-command nil
-  "*If non-nil, enable debugging code.  SSLLOOWW.
+  "If non-nil, enable debugging code.  SSLLOOWW.
 This option is only useful for reporting bugs.  If you enable it, you
 will have to visit the file 'eshell-cmd.el' and run the command
 \\[eval-buffer]."
@@ -247,7 +247,7 @@ will have to visit the file 'eshell-cmd.el' and run the command
   '(eshell-named-command
     eshell-lisp-command
     eshell-process-identity)
-  "*A list of functions which might return an ansychronous process.
+  "A list of functions which might return an ansychronous process.
 If they return a process object, execution of the calling Eshell
 command will wait for completion (in the background) before finishing
 the command."
@@ -258,7 +258,7 @@ the command."
   '((eshell-in-subcommand-p t)
     (default-directory default-directory)
     (process-environment (eshell-copy-environment)))
-  "*A list of `let' bindings for subcommand environments."
+  "A list of `let' bindings for subcommand environments."
   :type 'sexp
   :group 'eshell-cmd)
 
@@ -320,18 +320,6 @@ otherwise t.")
     (add-hook 'pcomplete-try-first-hook
 	      'eshell-complete-lisp-symbols nil t)))
 
-(eshell-deftest var last-result-var
-  "\"last result\" variable"
-  (eshell-command-result-p "+ 1 2; + $$ 2" "3\n5\n"))
-
-(eshell-deftest var last-result-var2
-  "\"last result\" variable"
-  (eshell-command-result-p "+ 1 2; + $$ $$" "3\n6\n"))
-
-(eshell-deftest var last-arg-var
-  "\"last arg\" variable"
-  (eshell-command-result-p "+ 1 2; + $_ 4" "3\n6\n"))
-
 (defun eshell-complete-lisp-symbols ()
   "If there is a user reference, complete it."
   (let ((arg (pcomplete-actual-arg)))
@@ -355,12 +343,14 @@ hooks should be run before and after the command."
 	   (if (consp command)
 	       (eshell-parse-arguments (car command) (cdr command))
 	     (let ((here (point))
-		   (inhibit-point-motion-hooks t)
-		   after-change-functions)
-	       (insert command)
-	       (prog1
-		   (eshell-parse-arguments here (point))
-		 (delete-region here (point)))))
+		   (inhibit-point-motion-hooks t))
+               (with-silent-modifications
+                 ;; FIXME: Why not use a temporary buffer and avoid this
+                 ;; "insert&delete" business?  --Stef
+                 (insert command)
+                 (prog1
+                     (eshell-parse-arguments here (point))
+                   (delete-region here (point))))))
 	   args))
 	 (commands
 	  (mapcar
@@ -439,31 +429,11 @@ hooks should be run before and after the command."
 	   (eq (caar terms) 'eshell-command-to-value))
       (car (cdar terms))))
 
-(eshell-deftest cmd lisp-command
-  "Evaluate Lisp command"
-  (eshell-command-result-p "(+ 1 2)" "3"))
-
-(eshell-deftest cmd lisp-command-args
-  "Evaluate Lisp command (ignore args)"
-  (eshell-command-result-p "(+ 1 2) 3" "3"))
-
 (defun eshell-rewrite-initial-subcommand (terms)
   "Rewrite a subcommand in initial position, such as '{+ 1 2}'."
   (if (and (listp (car terms))
 	   (eq (caar terms) 'eshell-as-subcommand))
       (car terms)))
-
-(eshell-deftest cmd subcommand
-  "Run subcommand"
-  (eshell-command-result-p "{+ 1 2}" "3\n"))
-
-(eshell-deftest cmd subcommand-args
-  "Run subcommand (ignore args)"
-  (eshell-command-result-p "{+ 1 2} 3" "3\n"))
-
-(eshell-deftest cmd subcommand-lisp
-  "Run subcommand + Lisp form"
-  (eshell-command-result-p "{(+ 1 2)}" "3\n"))
 
 (defun eshell-rewrite-named-command (terms)
   "If no other rewriting rule transforms TERMS, assume a named command."
@@ -475,10 +445,6 @@ hooks should be run before and after the command."
     (if args
 	(list sym cmd (append (list 'list) (cdr terms)))
       (list sym cmd))))
-
-(eshell-deftest cmd named-command
-  "Execute named command"
-  (eshell-command-result-p "+ 1 2" "3\n"))
 
 (defvar eshell-command-body)
 (defvar eshell-test-body)
@@ -986,7 +952,7 @@ at the moment are:
 	 (not (member name eshell-complex-commands))
 	 (catch 'simple
 	   (progn
-	    (eshell-for pred eshell-complex-commands
+	    (dolist (pred eshell-complex-commands)
 	      (if (and (functionp pred)
 		       (funcall pred name))
 		  (throw 'simple nil)))
@@ -1164,7 +1130,7 @@ be finished later after the completion of an asynchronous subprocess."
 	(if (and (eq (car form) 'let)
 		 (not (eq (car (cadr args)) 'eshell-do-eval)))
 	    (eshell-manipulate "evaluating let args"
-	      (eshell-for letarg (car args)
+	      (dolist (letarg (car args))
 		(if (and (listp letarg)
 			 (not (eq (cadr letarg) 'quote)))
 		    (setcdr letarg
@@ -1240,7 +1206,7 @@ be finished later after the completion of an asynchronous subprocess."
 
 (defun eshell/which (command &rest names)
   "Identify the COMMAND, and where it is located."
-  (eshell-for name (cons command names)
+  (dolist (name (cons command names))
     (let (program alias direct)
       (if (eq (aref name 0) eshell-explicit-command-char)
 	  (setq name (substring name 1)
@@ -1432,5 +1398,4 @@ messages, and errors."
 
 (provide 'esh-cmd)
 
-;; arch-tag: 8e4f3867-a0c5-441f-96ba-ddd142d94366
 ;;; esh-cmd.el ends here

@@ -1,7 +1,7 @@
 ;;; pc-win.el --- setup support for `PC windows' (whatever that is)
 
-;; Copyright (C) 1994, 1996, 1997, 1999, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1996-1997, 1999, 2001-2011
+;;   Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
 ;; Maintainer: FSF
@@ -192,44 +192,43 @@ the operating system.")
 
 ;; From lisp/term/w32-win.el
 ;
-;;;; Selections and cut buffers
+;;;; Selections
 ;
 ;;; We keep track of the last text selected here, so we can check the
 ;;; current selection against it, and avoid passing back our own text
-;;; from x-cut-buffer-or-selection-value.
+;;; from x-selection-value.
 (defvar x-last-selected-text nil)
 
 (defcustom x-select-enable-clipboard t
   "Non-nil means cutting and pasting uses the clipboard.
 This is in addition to, but in preference to, the primary selection.
 
-On MS-Windows, this is non-nil by default, since Windows does not
-support other types of selections.  \(The primary selection that is
-set by Emacs is not accessible to other programs on Windows.\)"
+Note that MS-Windows does not support selection types other than the
+clipboard.  (The primary selection that is set by Emacs is not
+accessible to other programs on MS-Windows.)
+
+This variable is not used by the Nextstep port."
   :type 'boolean
   :group 'killing)
 
-(defun x-select-text (text &optional push)
+(defun x-select-text (text)
   "Select TEXT, a string, according to the window system.
 
-On X, put TEXT in the primary X selection.  For backward
-compatibility with older X applications, set the value of X cut
-buffer 0 as well, and if the optional argument PUSH is non-nil,
-rotate the cut buffers.  If `x-select-enable-clipboard' is
-non-nil, copy the text to the X clipboard as well.
+On X, if `x-select-enable-clipboard' is non-nil, copy TEXT to the
+clipboard.  If `x-select-enable-primary' is non-nil, put TEXT in
+the primary selection.
 
 On Windows, make TEXT the current selection.  If
 `x-select-enable-clipboard' is non-nil, copy the text to the
-clipboard as well.  The argument PUSH is ignored.
+clipboard as well.
 
-On Nextstep, put TEXT in the pasteboard; PUSH is ignored."
+On Nextstep, put TEXT in the pasteboard."
   (if x-select-enable-clipboard
       (w16-set-clipboard-data text))
   (setq x-last-selected-text text))
 
 ;;; Return the value of the current selection.
-;;; Consult the selection, then the cut buffer.  Treat empty strings
-;;; as if they were unset.
+;;; Consult the selection.  Treat empty strings as if they were unset.
 (defun x-get-selection-value ()
   (if x-select-enable-clipboard
       (let (text)
@@ -289,14 +288,15 @@ Disowning it means there is no such selection."
   (if (x-selection-owner-p selection)
       t))
 
-;; From lisp/faces.el: we only have one font, so always return
-;; it, no matter which variety they've asked for.
-(defun x-frob-font-slant (font which)
-  font)
-(make-obsolete 'x-frob-font-slant 'make-face-... "21.1")
-(defun x-frob-font-weight (font which)
-  font)
-(make-obsolete 'x-frob-font-weight 'make-face-... "21.1")
+;; x-get-selection-internal is used in select.el
+(defun x-get-selection-internal (selection type &optional time_stamp)
+  "Return text selected from some X window.
+SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
+\(Those are literal upper-case symbol names, since that's what X expects.)
+TYPE is the type of data desired, typically `STRING'.
+TIME_STAMP is the time to use in the XConvertSelection call for foreign
+selections.  If omitted, defaults to the time for the last event."
+  (x-get-selection-value))
 
 ;; From src/fontset.c:
 (fset 'query-fontset 'ignore)
@@ -420,5 +420,4 @@ Errors out because it is not supposed to be called, ever."
 
 (provide 'pc-win)
 
-;; arch-tag: 5cbdb455-b495-427b-95d0-e417d77d00b4
 ;;; pc-win.el ends here

@@ -1,7 +1,6 @@
 ;;; goto-addr.el --- click to browse URL or to send to e-mail address
 
-;; Copyright (C) 1995, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2000-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric Ding <ericding@alum.mit.edu>
 ;; Maintainer: FSF
@@ -302,5 +301,4 @@ Also fontifies the buffer appropriately (see `goto-address-fontify-p' and
 
 (provide 'goto-addr)
 
-;; arch-tag: ca47c505-5661-425d-a471-62bc6e75cf0a
 ;;; goto-addr.el ends here

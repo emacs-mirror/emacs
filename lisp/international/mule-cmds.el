@@ -1,9 +1,8 @@
 ;;; mule-cmds.el --- commands for multilingual environment -*-coding: iso-2022-7bit -*-
 
-;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1997-2011  Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 ;; Copyright (C) 2003
@@ -140,7 +139,7 @@
 
     (define-key-after map [describe-language-environment]
       `(menu-item ,(purecopy "Describe Language Environment")
-            describe-language-environment-map
+            ,describe-language-environment-map
             :help ,(purecopy "Show multilingual settings for a specific language")))
     (define-key-after map [describe-input-method]
       `(menu-item ,(purecopy "Describe Input Method...") describe-input-method
@@ -287,7 +286,7 @@ wrong, use this command again to toggle back to the right mode."
   (interactive)
   ;; We have to decode the file in any environment.
   (letf ((coding-system-for-read 'iso-2022-7bit))
-	(view-file (expand-file-name "HELLO" data-directory))))
+    (view-file (expand-file-name "HELLO" data-directory))))
 
 (defun universal-coding-system-argument (coding-system)
   "Execute an I/O command using the specified coding system."
@@ -367,7 +366,9 @@ This also sets the following values:
 		 (coding-system-get coding-system 'ascii-compatible-p)))
 	(setq default-file-name-coding-system coding-system)))
   (setq default-terminal-coding-system coding-system)
-  (setq default-keyboard-coding-system coding-system)
+  ;; Prevent default-terminal-coding-system from converting ^M to ^J.
+  (setq default-keyboard-coding-system
+	(coding-system-change-eol-conversion coding-system 'unix))
   ;; Preserve eol-type from existing default-process-coding-systems.
   ;; On non-unix-like systems in particular, these may have been set
   ;; carefully by the user, or by the startup code, to deal with the
@@ -1952,7 +1953,7 @@ See `set-language-info-alist' for use in programs."
 		     (> (aref (number-to-string (nth 2 (x-server-version))) 0)
 			?3))
 	  ;; Make non-line-break space display as a plain space.
-	  (aset standard-display-table 160 [32]))
+	  (aset standard-display-table (unibyte-char-to-multibyte 160) [32]))
 	;; Most Windows programs send out apostrophes as \222.  Most X fonts
 	;; don't contain a character at that position.  Map it to the ASCII
 	;; apostrophe.  [This is actually RIGHT SINGLE QUOTATION MARK,
@@ -1960,7 +1961,7 @@ See `set-language-info-alist' for use in programs."
 	;; fonts probably have the appropriate glyph at this position,
 	;; so they could use standard-display-8bit.  It's better to use a
 	;; proper windows-1252 coding system.  --fx]
-	(aset standard-display-table 146 [39]))))
+	(aset standard-display-table (unibyte-char-to-multibyte 146) [39]))))
 
 (defun set-language-environment-coding-systems (language-name)
   "Do various coding system setups for language environment LANGUAGE-NAME."
@@ -2033,10 +2034,11 @@ See `set-language-info-alist' for use in programs."
   "Do various unibyte-mode setups for language environment LANGUAGE-NAME."
   (set-display-table-and-terminal-coding-system language-name))
 
-(defsubst princ-list (&rest args)
+(defun princ-list (&rest args)
   "Print all arguments with `princ', then print \"\\n\"."
-  (while args (princ (car args)) (setq args (cdr args)))
+  (mapc #'princ args)
   (princ "\n"))
+(make-obsolete 'princ-list "use mapc and princ instead" "23.3")
 
 (put 'describe-specified-language-support 'apropos-inhibit t)
 
@@ -2179,7 +2181,7 @@ See `set-language-info-alist' for use in programs."
     ("af" . "Latin-1") ; Afrikaans
     ("am" "Ethiopic" utf-8) ; Amharic
     ("an" . "Latin-9") ; Aragonese
-    ; ar Arabic glibc uses 8859-6
+    ("ar" . "Arabic")
     ; as Assamese
     ; ay Aymara
     ("az" . "UTF-8") ; Azerbaijani
@@ -2882,8 +2884,10 @@ on encoding."
   :group 'mule
   :global t)
 
-(defvar nonascii-insert-offset 0 "This variable is obsolete.")
-(defvar nonascii-translation-table nil "This variable is obsolete.")
+(defvar nonascii-insert-offset 0)
+(make-obsolete-variable 'nonascii-insert-offset "do not use it." "23.1")
+(defvar nonascii-translation-table nil)
+(make-obsolete-variable 'nonascii-translation-table "do not use it." "23.1")
 
 (defvar ucs-names nil
   "Alist of cached (CHAR-NAME . CHAR-CODE) pairs.")
@@ -2893,17 +2897,21 @@ on encoding."
   (or ucs-names
       (let ((bmp-ranges
 	     '((#x0000 . #x33FF)
-	       ;; (#x3400 . #x4DBF) CJK Ideograph Extension A
+	       ;; (#x3400 . #x4DBF) CJK Ideographs Extension A
 	       (#x4DC0 . #x4DFF)
-	       ;; (#x4E00 . #x9FFF) CJK Ideograph
-	       (#xA000 . #x0D7FF)
+	       ;; (#x4E00 . #x9FFF) CJK Unified Ideographs
+	       (#xA000 . #xD7FF)
 	       ;; (#xD800 . #xFAFF) Surrogate/Private
 	       (#xFB00 . #xFFFD)))
 	    (upper-ranges
 	     '((#x10000 . #x134FF)
-	       ;; (#x13500 . #x1CFFF) unsed
+	       ;; (#x13500 . #x167FF) unused
+	       (#x16800 . #x16A3F)
+	       ;; (#x16A40 . #x1AFFF) unused
+	       (#x1B000 . #x1B0FF)
+	       ;; (#x1B100 . #x1CFFF) unused
 	       (#x1D000 . #x1FFFF)
-	       ;; (#x20000 . #xDFFFF) CJK Ideograph Extension A, B, etc, unsed
+	       ;; (#x20000 . #xDFFFF) CJK Ideograph Extension A, B, etc, unused
 	       (#xE0000 . #xE01FF)))
 	    (gc-cons-threshold 10000000)
 	    c end name names)
@@ -2932,11 +2940,19 @@ on encoding."
 (defun read-char-by-name (prompt)
   "Read a character by its Unicode name or hex number string.
 Display PROMPT and read a string that represents a character by its
-Unicode property `name' or `old-name'.  You can type a few of first
-letters of the Unicode name and use completion.  This function also
-accepts a hexadecimal number of Unicode code point or a number in
-hash notation, e.g. #o21430 for octal, #x2318 for hex, or #10r8984
-for decimal.  Returns a character as a number."
+Unicode property `name' or `old-name'.
+
+This function returns the character as a number.
+
+You can type a few of the first letters of the Unicode name and
+use completion.  If you type a substring of the Unicode name
+preceded by an asterisk `*' and use completion, it will show all
+the characters whose names include that substring, not necessarily
+at the beginning of the name.
+
+This function also accepts a hexadecimal number of Unicode code
+point or a number in hash notation, e.g. #o21430 for octal,
+#x2318 for hex, or #10r8984 for decimal."
   (let* ((completion-ignore-case t)
 	 (input (completing-read prompt ucs-completions)))
     (cond
@@ -2951,6 +2967,13 @@ for decimal.  Returns a character as a number."
   "Insert COUNT copies of CHARACTER of the given Unicode code point.
 Interactively, prompts for a Unicode character name or a hex number
 using `read-char-by-name'.
+
+You can type a few of the first letters of the Unicode name and
+use completion.  If you type a substring of the Unicode name
+preceded by an asterisk `*' and use completion, it will show all
+the characters whose names include that substring, not necessarily
+at the beginning of the name.
+
 The optional third arg INHERIT (non-nil when called interactively),
 says to inherit text properties from adjoining text, if those
 properties are sticky."
@@ -2972,5 +2995,4 @@ properties are sticky."
 
 (define-key ctl-x-map "8\r" 'ucs-insert)
 
-;; arch-tag: b382c432-4b36-460e-bf4c-05efd0bb18dc
 ;;; mule-cmds.el ends here

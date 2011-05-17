@@ -1,6 +1,6 @@
 ;;; rng-nxml.el --- make nxml-mode take advantage of rng-validate-mode
 
-;; Copyright (C) 2003, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML, RelaxNG
@@ -35,7 +35,7 @@
 (require 'rng-loc)
 
 (defcustom rng-nxml-auto-validate-flag t
-  "*Non-nil means automatically turn on validation with nxml-mode."
+  "Non-nil means automatically turn on validation with nxml-mode."
   :type 'boolean
   :group 'relax-ng)
 
@@ -47,7 +47,7 @@
     ("http://www.w3.org/2001/XMLSchema-instance" . "xsi")
     ("http://purl.org/dc/elements/1.1/" . "dc")
     ("http://purl.org/dc/terms/" . "dcterms"))
-  "*Alist of namespaces vs preferred prefixes."
+  "Alist of namespaces vs preferred prefixes."
   :type '(repeat (cons :tag "With"
 		       (string :tag "this namespace URI")
 		       (string :tag "use this prefix")))
@@ -591,5 +591,4 @@ set `xmltok-dtd'.  Returns the position of the end of the token."
 
 (provide 'rng-nxml)
 
-;; arch-tag: bec0d6ed-6be1-4540-9c2c-6f56e8e55d8b
 ;;; rng-nxml.el ends here

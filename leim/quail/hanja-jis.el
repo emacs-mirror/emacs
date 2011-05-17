@@ -1,7 +1,7 @@
 ;;; hanja-jis.el --- Quail package for inputting Korean Hanja (JISX0208)  -*-coding: iso-2022-7bit;-*-
 
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010
+;;   2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
@@ -524,5 +524,4 @@
  ("glf"	"詰纈襭頡黠")
  ("unknown"	"苅宍栂栃凪弐塀俣杢刔夘咒哘唸囎圀圷圸垳垪埔埖埣塰堽墹墸壗壥嬶屓乢妛岫岻岶岼峅峇峺嵶彁怺恷恊抂挧掵擶暃杤桙梹椥椨椪椚椣椡槝樮櫁樌橲樶橸樢檸欟歛汢渕淕溂潸澑犲畉畆畩蘯眤瞶硴碚碵礇禝穃邃笶筅箟篏簓簗籏粐粭粫糘綛縺繧纃緕纐罎膤艝茣莇菷萢蒄蓙蘰蚫蛯蟐袞袰褄諚戝轌辷迚逧逎鍄錻閇閖陦隲靹鞆鞐饂馼駲鮖鮴鯒鯱鰄鰡鱚鵈鵤鵐"))
 
-;; arch-tag: 06336a2c-696e-45f1-9990-aff251e7493a
 ;;; hanja-jis.el ends here

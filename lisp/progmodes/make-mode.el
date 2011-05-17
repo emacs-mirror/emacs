@@ -1,7 +1,6 @@
 ;;; make-mode.el --- makefile editing commands for Emacs
 
-;; Copyright (C) 1992, 1994, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: Thomas Neumann <tom@smart.bo.open.de>
 ;;	Eric S. Raymond <esr@snark.thyrsus.com>
@@ -344,7 +343,7 @@ not be enclosed in { } or ( )."
 
 (defun makefile-make-font-lock-keywords (var keywords space
 					     &optional negation
-					     &rest font-lock-keywords)
+					     &rest fl-keywords)
   `(;; Do macro assignments.  These get the "variable-name" face.
     (,makefile-macroassign-regex
      (1 font-lock-variable-name-face)
@@ -394,7 +393,7 @@ not be enclosed in { } or ( )."
 	    ;; They can make a tab fail to be effective.
 	    ("^\\( +\\)\t" 1 makefile-space)))
 
-    ,@font-lock-keywords
+    ,@fl-keywords
 
     ;; Do dependencies.
     (makefile-match-dependency
@@ -492,7 +491,7 @@ not be enclosed in { } or ( )."
    '("^[ \t]*\\.for[ \t].+[ \t]\\(in\\)\\>" 1 font-lock-keyword-face)))
 
 (defconst makefile-imake-font-lock-keywords
-  (append 
+  (append
    (makefile-make-font-lock-keywords
     makefile-var-use-regex
     makefile-statements
@@ -505,15 +504,16 @@ not be enclosed in { } or ( )."
    cpp-font-lock-keywords))
 
 
-(defconst makefile-font-lock-syntactic-keywords
-  ;; From sh-script.el.
-  ;; A `#' begins a comment in sh when it is unquoted and at the beginning
-  ;; of a word.  In the shell, words are separated by metacharacters.
-  ;; The list of special chars is taken from the single-unix spec of the
-  ;; shell command language (under `quoting') but with `$' removed.
-  '(("[^|&;<>()`\\\"' \t\n]\\(#+\\)" 1 "_")
-    ;; Change the syntax of a quoted newline so that it does not end a comment.
-    ("\\\\\n" 0 ".")))
+(defconst makefile-syntax-propertize-function
+  (syntax-propertize-rules
+   ;; From sh-script.el.
+   ;; A `#' begins a comment in sh when it is unquoted and at the beginning
+   ;; of a word.  In the shell, words are separated by metacharacters.
+   ;; The list of special chars is taken from the single-unix spec of the
+   ;; shell command language (under `quoting') but with `$' removed.
+   ("[^|&;<>()`\\\"' \t\n]\\(#+\\)" (1 "_"))
+   ;; Change the syntax of a quoted newline so that it does not end a comment.
+   ("\\\\\n" (0 "."))))
 
 (defvar makefile-imenu-generic-expression
   `(("Dependencies" makefile-previous-dependency 1)
@@ -768,7 +768,7 @@ The function must satisfy this calling convention:
 ;;; ------------------------------------------------------------
 
 ;;;###autoload
-(define-derived-mode makefile-mode nil "Makefile"
+(define-derived-mode makefile-mode prog-mode "Makefile"
   "Major mode for editing standard Makefiles.
 
 If you are editing a file for a different make, try one of the
@@ -872,9 +872,9 @@ Makefile mode can be configured by modifying the following variables:
        '(makefile-font-lock-keywords
          nil nil
          ((?$ . "."))
-         backward-paragraph
-         (font-lock-syntactic-keywords
-          . makefile-font-lock-syntactic-keywords)))
+         backward-paragraph))
+  (set (make-local-variable 'syntax-propertize-function)
+       makefile-syntax-propertize-function)
 
   ;; Add-log.
   (set (make-local-variable 'add-log-current-defun-function)
@@ -943,15 +943,9 @@ Makefile mode can be configured by modifying the following variables:
 (define-derived-mode makefile-imake-mode makefile-mode "Imakefile"
   "An adapted `makefile-mode' that knows about imake."
   :syntax-table makefile-imake-mode-syntax-table
-  (let ((base `(makefile-imake-font-lock-keywords ,@(cdr font-lock-defaults)))
-	new)
-    ;; Remove `font-lock-syntactic-keywords' entry from font-lock-defaults.
-    (mapc (lambda (elt)
-	    (unless (and (consp elt)
-			 (eq (car elt) 'font-lock-syntactic-keywords))
-	      (setq new (cons elt new))))
-	  base)
-    (setq font-lock-defaults (nreverse new))))
+  (set (make-local-variable 'syntax-propertize-function) nil)
+  (setq font-lock-defaults
+        `(makefile-imake-font-lock-keywords ,@(cdr font-lock-defaults))))
 
 
 
@@ -1161,7 +1155,6 @@ The context determines which are considered."
   (let* ((beg (save-excursion
 		(skip-chars-backward "^$(){}:#= \t\n")
 		(point)))
-	 (try (buffer-substring beg (point)))
 	 (paren nil)
 	 (do-macros
           (save-excursion
@@ -1268,7 +1261,7 @@ definition and conveniently use this command."
 
 ;; Filling
 
-(defun makefile-fill-paragraph (arg)
+(defun makefile-fill-paragraph (_arg)
   ;; Fill comments, backslashed lines, and variable definitions
   ;; specially.
   (save-excursion
@@ -1300,7 +1293,9 @@ definition and conveniently use this command."
 	(save-restriction
 	  (narrow-to-region beginning end)
 	  (makefile-backslash-region (point-min) (point-max) t)
-	  (let ((fill-paragraph-function nil))
+	  (let ((fill-paragraph-function nil)
+                ;; Adjust fill-column to allow space for the backslash.
+                (fill-column (- fill-column 1)))
 	    (fill-paragraph nil))
 	  (makefile-backslash-region (point-min) (point-max) nil)
 	  (goto-char (point-max))
@@ -1314,7 +1309,9 @@ definition and conveniently use this command."
       ;; resulting region.
       (save-restriction
 	(narrow-to-region (point) (line-beginning-position 2))
-	(let ((fill-paragraph-function nil))
+	(let ((fill-paragraph-function nil)
+              ;; Adjust fill-column to allow space for the backslash.
+              (fill-column (- fill-column 1)))
 	  (fill-paragraph nil))
 	(makefile-backslash-region (point-min) (point-max) nil))
       ;; Return non-nil to indicate it's been filled.
@@ -1682,7 +1679,7 @@ Then prompts for all required parameters."
 ;;; Utility functions
 ;;; ------------------------------------------------------------
 
-(defun makefile-match-function-end (end)
+(defun makefile-match-function-end (_end)
   "To be called as an anchored matcher by font-lock.
 The anchor must have matched the opening parens in the first group."
   (let ((s (match-string-no-properties 1)))
@@ -1840,5 +1837,4 @@ If it isn't in one, return nil."
 
 (provide 'make-mode)
 
-;; arch-tag: bd23545a-de91-44fb-b1b2-feafbb2635a0
 ;;; make-mode.el ends here

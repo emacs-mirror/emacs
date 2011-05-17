@@ -66,4 +66,3 @@
     ("LAO HO MO" #x0EDD)
     ))
 
-;; arch-tag: 36f98cb4-447d-49e0-bae5-03a026adabac

@@ -1,7 +1,6 @@
 ;;; delphi.el --- major mode for editing Delphi source (Object Pascal) in Emacs
 
-;; Copyright (C) 1998, 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1998-1999, 2001-2011  Free Software Foundation, Inc.
 
 ;; Authors: Ray Blaak <blaak@infomatch.com>,
 ;;          Simon South <ssouth@member.fsf.org>
@@ -27,14 +26,14 @@
 
 ;; To enter Delphi mode when you find a Delphi source file, one must override
 ;; the auto-mode-alist to associate Delphi with .pas (and .dpr and .dpk)
-;; files. Emacs, by default, will otherwise enter Pascal mode. E.g.
+;; files.  Emacs, by default, will otherwise enter Pascal mode. E.g.
 ;;
 ;; (autoload 'delphi-mode "delphi")
 ;; (setq auto-mode-alist
 ;;       (cons '("\\.\\(pas\\|dpr\\|dpk\\)$" . delphi-mode) auto-mode-alist))
 
 ;; To get keyword, comment, and string literal coloring, be sure that font-lock
-;; is running. One can manually do M-x font-lock-mode in a Delphi buffer, or
+;; is running.  One can manually do M-x font-lock-mode in a Delphi buffer, or
 ;; one can put in .emacs:
 ;;
 ;; (add-hook 'delphi-mode-hook 'turn-on-font-lock)
@@ -57,8 +56,8 @@
 ;; When you have entered Delphi mode, you may get more info by pressing
 ;; C-h m.
 
-;; This delphi mode implementation is fairly tolerant of syntax errors, relying
-;; as much as possible on the indentation of the previous statement. This also
+;; This Delphi mode implementation is fairly tolerant of syntax errors, relying
+;; as much as possible on the indentation of the previous statement.  This also
 ;; makes it faster and simpler, since there is less searching for properly
 ;; constructed beginnings.
 
@@ -75,15 +74,16 @@
   "True if in debug mode.")
 
 (defcustom delphi-search-path "."
-  "*Directories to search when finding external units. It is a list of
-directory strings. If only a single directory, it can be a single
-string instead of a list. If a directory ends in \"...\" then that
-directory is recursively searched."
+  "*Directories to search when finding external units.
+It is a list of directory strings.  If only a single directory,
+it can be a single string instead of a list.  If a directory
+ends in \"...\" then that directory is recursively searched."
   :type 'string
   :group 'delphi)
 
 (defcustom delphi-indent-level 3
-  "*Indentation of Delphi statements with respect to containing block. E.g.
+  "*Indentation of Delphi statements with respect to containing block.
+E.g.
 
 begin
    // This is an indent of 3.
@@ -118,7 +118,7 @@ end;                            end;"
   :group 'delphi)
 
 (defcustom delphi-verbose t ; nil
-  "*If true then delphi token processing progress is reported to the user."
+  "*If true then Delphi token processing progress is reported to the user."
   :type 'boolean
   :group 'delphi)
 
@@ -138,17 +138,17 @@ differs from the default."
   :group 'delphi)
 
 (defcustom delphi-comment-face 'font-lock-comment-face
-  "*Face used to color delphi comments."
+  "*Face used to color Delphi comments."
   :type 'face
   :group 'delphi)
 
 (defcustom delphi-string-face 'font-lock-string-face
-  "*Face used to color delphi strings."
+  "*Face used to color Delphi strings."
   :type 'face
   :group 'delphi)
 
 (defcustom delphi-keyword-face 'font-lock-keyword-face
-  "*Face used to color delphi keywords."
+  "*Face used to color Delphi keywords."
   :type 'face
   :group 'delphi)
 
@@ -328,7 +328,7 @@ routine.")
          (after-change-functions nil)
          (modified (buffer-modified-p)))
      ;; Disable any queries about editing obsolete files.
-     (fset 'ask-user-about-supersession-threat (lambda (fn)))
+     (fset 'ask-user-about-supersession-threat (lambda (_fn)))
      (unwind-protect
          (progn ,@forms)
        (set-buffer-modified-p modified)
@@ -443,6 +443,12 @@ routine.")
     (setq next (min (1+ (point)) (point-max)))
     (goto-char curr-point)
     next))
+
+(defvar delphi-ignore-changes t
+  "Internal flag to control if the Delphi mode responds to buffer changes.
+Defaults to t in case the `delphi-after-change' function is called on a
+non-Delphi buffer.  Set to nil in a Delphi buffer.  To override, just do:
+ (let ((delphi-ignore-changes t)) ...)")
 
 (defun delphi-set-text-properties (from to properties)
   ;; Like `set-text-properties', except we do not consider this to be a buffer
@@ -590,7 +596,6 @@ routine.")
   ;; character set.
   (let ((currp (point))
         (end nil)
-        (start nil)
         (token nil))
     (goto-char p)
     (when (> (skip-chars-forward charset) 0)
@@ -628,7 +633,9 @@ routine.")
 (defun delphi-token-at (p)
   ;; Returns the token from parsing text at point p.
   (when (and (<= (point-min) p) (<= p (point-max)))
-     (cond ((delphi-literal-token-at p))
+     (cond ((delphi-char-token-at p ?\n 'newline))
+
+           ((delphi-literal-token-at p))
 
            ((delphi-space-token-at p))
 
@@ -638,7 +645,6 @@ routine.")
            ((delphi-char-token-at p ?\) 'close-group))
            ((delphi-char-token-at p ?\[ 'open-group))
            ((delphi-char-token-at p ?\] 'close-group))
-           ((delphi-char-token-at p ?\n 'newline))
            ((delphi-char-token-at p ?\; 'semicolon))
            ((delphi-char-token-at p ?. 'dot))
            ((delphi-char-token-at p ?, 'comma))
@@ -719,13 +725,7 @@ routine.")
         (delphi-step-progress p "Fontifying" delphi-fontifying-progress-step))
       (delphi-progress-done)))))
 
-(defvar delphi-ignore-changes t
-  "Internal flag to control if the delphi-mode responds to buffer changes.
-Defaults to t in case the delphi-after-change function is called on a
-non-delphi buffer. Set to nil in a delphi buffer.  To override, just do:
- (let ((delphi-ignore-changes t)) ...)")
-
-(defun delphi-after-change (change-start change-end old-length)
+(defun delphi-after-change (change-start change-end _old-length)
   ;; Called when the buffer has changed. Reparses the changed region.
   (unless delphi-ignore-changes
     (let ((delphi-ignore-changes t)) ; Prevent recursive calls.
@@ -888,7 +888,24 @@ non-delphi buffer. Set to nil in a delphi buffer.  To override, just do:
           (setq token (delphi-block-start token)))
 
          ;; Regular block start found.
-         ((delphi-is token-kind delphi-block-statements) (throw 'done token))
+         ((delphi-is token-kind delphi-block-statements)
+          (throw 'done
+                 ;; As a special case, when a "case" block appears
+                 ;; within a record declaration (to denote a variant
+                 ;; part), the record declaration should be considered
+                 ;; the enclosing block.
+                 (if (eq 'case token-kind)
+                     (let ((enclosing-token
+                            (delphi-block-start token
+                                                'stop-on-class)))
+                       (if
+                           (eq 'record
+                               (delphi-token-kind enclosing-token))
+                           (if stop-on-class
+                               enclosing-token
+                             (delphi-previous-token enclosing-token))
+                         token))
+                   token)))
 
          ;; A class/record start also begins a block.
          ((delphi-composite-type-start token last-token)
@@ -904,8 +921,7 @@ non-delphi buffer. Set to nil in a delphi buffer.  To override, just do:
   ;; Returns the token of the if or case statement.
   (let ((token (delphi-previous-token from-else))
         (token-kind nil)
-        (semicolon-count 0)
-        (if-count 0))
+        (semicolon-count 0))
     (catch 'done
       (while token
         (setq token-kind (delphi-token-kind token))
@@ -953,8 +969,7 @@ non-delphi buffer. Set to nil in a delphi buffer.  To override, just do:
       comment
     ;; Scan until we run out of // comments.
     (let ((prev-comment comment)
-          (start-comment comment)
-          (kind nil))
+          (start-comment comment))
       (while (let ((kind (delphi-token-kind prev-comment)))
                (cond ((eq kind 'space))
                      ((eq kind 'comment-single-line)
@@ -971,8 +986,7 @@ non-delphi buffer. Set to nil in a delphi buffer.  To override, just do:
       comment
     ;; Scan until we run out of // comments.
     (let ((next-comment comment)
-          (end-comment comment)
-          (kind nil))
+          (end-comment comment))
       (while (let ((kind (delphi-token-kind next-comment)))
                (cond ((eq kind 'space))
                      ((eq kind 'comment-single-line)
@@ -1058,6 +1072,7 @@ non-delphi buffer. Set to nil in a delphi buffer.  To override, just do:
         (token-kind nil)
         (from-kind (delphi-token-kind from-token))
         (last-colon nil)
+        (last-of nil)
         (last-token nil))
     (catch 'done
       (while token
@@ -1101,9 +1116,17 @@ non-delphi buffer. Set to nil in a delphi buffer.  To override, just do:
          ;; Ignore whitespace.
          ((delphi-is token-kind delphi-whitespace))
 
-         ;; Remember any ':' we encounter, since that affects how we indent to
-         ;; a case statement.
-         ((eq 'colon token-kind) (setq last-colon token))
+         ;; Remember any "of" we encounter, since that affects how we
+         ;; indent to a case statement within a record declaration
+         ;; (i.e. a variant part).
+         ((eq 'of token-kind)
+          (setq last-of token))
+
+         ;; Remember any ':' we encounter (until we reach an "of"),
+         ;; since that affects how we indent to case statements in
+         ;; general.
+         ((eq 'colon token-kind)
+          (unless last-of (setq last-colon token)))
 
          ;; A case statement delimits a previous statement. We indent labels
          ;; specially.
@@ -1495,12 +1518,11 @@ non-delphi buffer. Set to nil in a delphi buffer.  To override, just do:
       indent)))
 
 (defun delphi-indent-line ()
-  "Indent the current line according to the current language construct. If
-before the indent, the point is moved to the indent."
+  "Indent the current line according to the current language construct.
+If before the indent, the point is moved to the indent."
   (interactive)
   (delphi-save-match-data
    (let ((marked-point (point-marker))  ; Maintain our position reliably.
-         (new-point nil)
          (line-start nil)
          (old-indent 0)
          (new-indent 0))
@@ -1521,7 +1543,7 @@ before the indent, the point is moved to the indent."
      (set-marker marked-point nil))))
 
 (defvar delphi-mode-abbrev-table nil
-  "Abbrev table in use in delphi-mode buffers.")
+  "Abbrev table in use in Delphi mode buffers.")
 (define-abbrev-table 'delphi-mode-abbrev-table ())
 
 (defmacro delphi-ensure-buffer (buffer-var buffer-name)
@@ -1542,7 +1564,7 @@ before the indent, the point is moved to the indent."
 ;; Debugging helpers:
 
 (defvar delphi-debug-buffer nil
-  "Buffer to write delphi-mode debug messages to. Created on demand.")
+  "Buffer to write Delphi mode debug messages to.  Created on demand.")
 
 (defun delphi-debug-log (format-string &rest args)
   ;; Writes a message to the log buffer.
@@ -1653,7 +1675,7 @@ before the indent, the point is moved to the indent."
 
 (defun delphi-tab ()
   "Indent the region, when Transient Mark mode is enabled and the region is
-active. Otherwise, indent the current line or insert a TAB, depending on the
+active.  Otherwise, indent the current line or insert a TAB, depending on the
 value of `delphi-tab-always-indents' and the current line position."
   (interactive)
   (cond ((use-region-p)
@@ -1742,8 +1764,8 @@ value of `delphi-tab-always-indents' and the current line position."
     nil))
 
 (defun delphi-find-unit (unit)
-  "Finds the specified delphi source file according to `delphi-search-path'.
-If no extension is specified, .pas is assumed. Creates a buffer for the unit."
+  "Find the specified Delphi source file according to `delphi-search-path'.
+If no extension is specified, .pas is assumed.  Creates a buffer for the unit."
   (interactive "sDelphi unit name: ")
   (let* ((unit-file (if (string-match "^\\(.*\\)\\.[a-z]+$" unit)
                         unit
@@ -1752,7 +1774,7 @@ If no extension is specified, .pas is assumed. Creates a buffer for the unit."
     (if (null file)
         (error "unit not found: %s" unit-file)
       (find-file file)
-      (if (not (eq major-mode 'delphi-mode))
+      (if (not (derived-mode-p 'delphi-mode))
           (delphi-mode)))
     file))
 
@@ -1765,7 +1787,7 @@ If no extension is specified, .pas is assumed. Creates a buffer for the unit."
   "Find the definition of the identifier under the current point, searching
 in external units if necessary (as listed in the current unit's use clause).
 The set of directories to search for a unit is specified by the global variable
-delphi-search-path."
+`delphi-search-path'."
   (interactive)
   (error "delphi-find-current-xdef: not implemented yet"))
 
@@ -1776,7 +1798,7 @@ it is a routine."
   (error "delphi-find-current-body: not implemented yet"))
 
 (defun delphi-fill-comment ()
-  "Fills the text of the current comment, according to `fill-column'.
+  "Fill the text of the current comment, according to `fill-column'.
 An error is raised if not in a comment."
   (interactive)
   (save-excursion
@@ -1862,8 +1884,8 @@ An error is raised if not in a comment."
             (delphi-progress-done)))))))
 
 (defun delphi-new-comment-line ()
-  "If in a // comment, does a newline, indented such that one is still in the
-comment block. If not in a // comment, just does a normal newline."
+  "If in a // comment, do a newline, indented such that one is still in the
+comment block.  If not in a // comment, just does a normal newline."
   (interactive)
   (let ((comment (delphi-current-token)))
     (if (not (eq 'comment-single-line (delphi-token-kind comment)))
@@ -1897,7 +1919,7 @@ comment block. If not in a // comment, just does a normal newline."
     nil ; Syntax begin movement doesn't apply
     (font-lock-fontify-region-function . delphi-fontify-region)
     (font-lock-verbose . delphi-fontifying-progress-step))
-  "Delphi mode font-lock defaults. Syntactic fontification is ignored.")
+  "Delphi mode font-lock defaults.  Syntactic fontification is ignored.")
 
 (defvar delphi-debug-mode-map
   (let ((kmap (make-sparse-keymap)))
@@ -1918,7 +1940,7 @@ comment block. If not in a // comment, just does a normal newline."
 	    ("x" delphi-debug-show-is-stable)
 	    ))
     kmap)
-  "Keystrokes for delphi-mode debug commands.")
+  "Keystrokes for Delphi mode debug commands.")
 
 (defvar delphi-mode-map
   (let ((kmap (make-sparse-keymap)))
@@ -1938,7 +1960,7 @@ comment block. If not in a // comment, just does a normal newline."
   "Keymap used in Delphi mode.")
 
 (defconst delphi-mode-syntax-table (make-syntax-table)
-  "Delphi mode's syntax table. It is just a standard syntax table.
+  "Delphi mode's syntax table.  It is just a standard syntax table.
 This is ok since we do our own keyword/comment/string face coloring.")
 
 ;;;###autoload
@@ -1950,7 +1972,7 @@ This is ok since we do our own keyword/comment/string face coloring.")
 \\[delphi-fill-comment]\t- Fill the current comment.
 \\[delphi-new-comment-line]\t- If in a // comment, do a new comment line.
 
-M-x indent-region also works for indenting a whole region.
+\\[indent-region] also works for indenting a whole region.
 
 Customization:
 
@@ -1970,25 +1992,25 @@ Customization:
  `delphi-search-path'                 (default .)
     Directories to search when finding external units.
  `delphi-verbose'                     (default nil)
-    If true then delphi token processing progress is reported to the user.
+    If true then Delphi token processing progress is reported to the user.
 
 Coloring:
 
  `delphi-comment-face'                (default font-lock-comment-face)
-    Face used to color delphi comments.
+    Face used to color Delphi comments.
  `delphi-string-face'                 (default font-lock-string-face)
-    Face used to color delphi strings.
+    Face used to color Delphi strings.
  `delphi-keyword-face'                (default font-lock-keyword-face)
-    Face used to color delphi keywords.
+    Face used to color Delphi keywords.
  `delphi-other-face'                  (default nil)
     Face used to color everything else.
 
-Turning on Delphi mode calls the value of the variable delphi-mode-hook with
-no args, if that value is non-nil."
+Turning on Delphi mode calls the value of the variable `delphi-mode-hook'
+with no args, if that value is non-nil."
   (interactive)
   (kill-all-local-variables)
   (use-local-map delphi-mode-map)
-  (setq major-mode 'delphi-mode)
+  (setq major-mode 'delphi-mode)        ;FIXME: Use define-derived-mode.
   (setq mode-name "Delphi")
 
   (setq local-abbrev-table delphi-mode-abbrev-table)
@@ -1998,8 +2020,7 @@ no args, if that value is non-nil."
   (mapc #'(lambda (var)
 	    (let ((var-symb (car var))
 		  (var-val (cadr var)))
-	      (make-local-variable var-symb)
-	      (set var-symb var-val)))
+              (set (make-local-variable var-symb) var-val)))
 	(list '(indent-line-function delphi-indent-line)
 	      '(comment-indent-function delphi-indent-line)
 	      '(case-fold-search t)
@@ -2021,5 +2042,4 @@ no args, if that value is non-nil."
 
   (run-mode-hooks 'delphi-mode-hook))
 
-;; arch-tag: 410e192d-e9b5-4397-ad62-12340fc3fa41
 ;;; delphi.el ends here

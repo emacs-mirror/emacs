@@ -1,13 +1,14 @@
 ;;; composite.el --- support character composition
 
 ;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010
+;;   2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
 ;; Author: Kenichi HANDA <handa@etl.go.jp>
 ;; (according to ack.texi)
 ;; Keywords: mule, multilingual, character composition
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -27,6 +28,8 @@
 ;;; Commentary:
 
 ;;; Code:
+
+(eval-when-compile (require 'cl))
 
 (defconst reference-point-alist
   '((tl . 0) (tc . 1) (tr . 2)
@@ -77,7 +80,7 @@ follows (the point `*' corresponds to both reference points):
     +----+-----+ <--- new descent
 
 A composition rule may have the form \(GLOBAL-REF-POINT
-NEW-REF-POINT XOFF YOFF), where XOFF and YOFF specifies how much
+NEW-REF-POINT XOFF YOFF), where XOFF and YOFF specify how much
 to shift NEW-REF-POINT from GLOBAL-REF-POINT.  In this case, XOFF
 and YOFF are integers in the range -100..100 representing the
 shifting percentage against the font size.")
@@ -210,7 +213,7 @@ of the text in the region.
 
 If it is a string, the elements are alternate characters.  In
 this case, TAB element has a special meaning.  If the first
-characer is TAB, the glyphs are displayed with left padding space
+character is TAB, the glyphs are displayed with left padding space
 so that no pixel overlaps with the previous column.  If the last
 character is TAB, the glyphs are displayed with right padding
 space so that no pixel overlaps with the following column.
@@ -286,9 +289,7 @@ A composition rule is a cons of glyph reference points of the form
   (let (str components)
     (if (consp (car (cdr args)))
 	;; Rule-base composition.
-	(let ((len (length args))
-	      (tail (encode-composition-components args 'nocopy)))
-
+	(let ((tail (encode-composition-components args 'nocopy)))
 	  (while tail
 	    (setq str (cons (car tail) str))
 	    (setq tail (nthcdr 2 tail)))
@@ -410,27 +411,6 @@ after a sequence of character events."
 
 ;;; Automatic character composition.
 
-;; Copied from font-lock.el.
-(eval-when-compile
-  ;; Borrowed from lazy-lock.el.
-  ;; We use this to preserve or protect things when modifying text properties.
-  (defmacro save-buffer-state (varlist &rest body)
-    "Bind variables according to VARLIST and eval BODY restoring buffer state."
-    `(let* ,(append varlist
-		    '((modified (buffer-modified-p)) (buffer-undo-list t)
-		      (inhibit-read-only t) (inhibit-point-motion-hooks t)
-		      (inhibit-modification-hooks t)
-		      deactivate-mark buffer-file-name buffer-file-truename))
-       ,@body
-       (unless modified
-	 (restore-buffer-modified-p nil))))
-  ;; Fixme: This makes bootstrapping fail with this error.
-  ;;   Symbol's function definition is void: eval-defun
-  ;;(def-edebug-spec save-buffer-state let)
-  )
-
-(put 'save-buffer-state 'lisp-indent-function 1)
-
 ;; These macros must match with C macros LGSTRING_XXX and LGLYPH_XXX in font.h
 (defsubst lgstring-header (gstring) (aref gstring 0))
 (defsubst lgstring-set-header (gstring header) (aset gstring 0 header))
@@ -466,8 +446,8 @@ after a sequence of character events."
 
 (defun lgstring-insert-glyph (gstring idx glyph)
   (let ((nglyphs (lgstring-glyph-len gstring))
-	(i idx) g)
-    (while (and (< i nglyphs) (setq g (lgstring-glyph gstring i)))
+	(i idx))
+    (while (and (< i nglyphs) (lgstring-glyph gstring i))
       (setq i (1+ i)))
     (if (= i nglyphs)
 	(setq gstring (vconcat gstring (vector glyph)))
@@ -481,8 +461,7 @@ after a sequence of character events."
 
 (defun compose-glyph-string (gstring from to)
   (let ((glyph (lgstring-glyph gstring from))
-	from-pos to-pos
-	ascent descent lbearing rbearing)
+	from-pos to-pos)
     (setq from-pos (lglyph-from glyph)
 	  to-pos (lglyph-to (lgstring-glyph gstring (1- to))))
     (lglyph-set-from-to glyph from-pos to-pos)
@@ -500,7 +479,7 @@ after a sequence of character events."
   (let ((font-object (lgstring-font gstring))
 	(glyph (lgstring-glyph gstring from))
 	from-pos to-pos
-	ascent descent lbearing rbearing)
+	ascent descent)
     (if gap
 	(setq gap (floor (* (font-get font-object :size) gap)))
       (setq gap 0))
@@ -515,7 +494,7 @@ after a sequence of character events."
       (lglyph-set-from-to glyph from-pos to-pos)
       (let ((this-ascent (lglyph-ascent glyph))
 	    (this-descent (lglyph-descent glyph))
-	    xoff yoff wadjust)
+	    xoff yoff)
 	(setq xoff (if (<= (lglyph-rbearing glyph) 0) 0
 		     (- (lglyph-width glyph))))
 	(if (> this-ascent 0)
@@ -532,24 +511,23 @@ after a sequence of character events."
 
 (defun compose-gstring-for-graphic (gstring)
   "Compose glyph-string GSTRING for graphic display.
-Non-spacing characters are composed with the preceding base
+Combining characters are composed with the preceding base
 character.  If the preceding character is not a base character,
-each non-spacing character is composed as a spacing character by
+each combining character is composed as a spacing character by
 a padding space before and/or after the character.
 
-All non-spacing characters has this function in
+All non-spacing characters have this function in
 `composition-function-table' unless overwritten."
-  (let* ((header (lgstring-header gstring))
-	 (nchars (lgstring-char-len gstring))
-	 (nglyphs (lgstring-glyph-len gstring))
-	 (glyph (lgstring-glyph gstring 0)))
+  (let ((nchars (lgstring-char-len gstring))
+        (nglyphs (lgstring-glyph-len gstring))
+        (glyph (lgstring-glyph gstring 0)))
     (cond
      ;; A non-spacing character not following a proper base character.
      ((= nchars 1)
       (let ((lbearing (lglyph-lbearing glyph))
 	    (rbearing (lglyph-rbearing glyph))
 	    (width (lglyph-width glyph))
-	    xoff wadjust)
+	    xoff)
 	(if (< lbearing 0)
 	    (setq xoff (- lbearing))
 	  (setq xoff 0 lbearing 0))
@@ -579,8 +557,7 @@ All non-spacing characters has this function in
 		 (rbearing (lglyph-rbearing glyph))
 		 (lbearing (lglyph-lbearing glyph))
 		 (center (/ (+ lbearing rbearing) 2))
-		 (gap (round (* (font-get (lgstring-font gstring) :size) 0.1)))
-		 xoff yoff)
+		 (gap (round (* (font-get (lgstring-font gstring) :size) 0.1))))
 	    (dotimes (i nchars)
 	      (setq glyph (lgstring-glyph gstring i))
 	      (when (> i 0)
@@ -660,22 +637,20 @@ All non-spacing characters has this function in
 	     [nil 0 compose-gstring-for-graphic])))
   (map-char-table
    #'(lambda (key val)
-       (if (= val 0)
+       (if (memq val '(Mn Mc Me))
 	   (set-char-table-range composition-function-table key elt)))
-   char-width-table))
+   unicode-category-table))
 
 (defun compose-gstring-for-terminal (gstring)
   "Compose glyph string GSTRING for terminal display.
 Non-spacing characters are composed with the preceding base
 character.  If the preceding character is not a base character,
 each non-spacing character is composed as a spacing character by
-a prepending a space before it."
-  (let* ((header (lgstring-header gstring))
-	 (nchars (lgstring-char-len gstring))
-	 (nglyphs (lgstring-glyph-len gstring))
-	 (i 0)
-	 (coding (lgstring-font gstring))
-	 glyph)
+prepending a space before it."
+  (let ((nglyphs (lgstring-glyph-len gstring))
+        (i 0)
+        (coding (lgstring-font gstring))
+        glyph)
     (while (and (< i nglyphs)
 		(setq glyph (lgstring-glyph gstring i)))
       (if (not (char-charset (lglyph-char glyph) coding))
@@ -761,7 +736,11 @@ When Auto Composition is enabled, text characters are automatically composed
 by functions registered in `composition-function-table' (which see).
 
 You can use `global-auto-composition-mode' to turn on
-Auto Composition mode in all buffers (this is the default).")
+Auto Composition mode in all buffers (this is the default)."
+  ;; It's defined in C, this stops the d-m-m macro defining it again.
+  :variable auto-composition-mode)
+;; It's not defined with DEFVAR_PER_BUFFER though.
+(make-variable-buffer-local 'auto-composition-mode)
 
 ;;;###autoload
 (define-minor-mode global-auto-composition-mode
@@ -774,23 +753,5 @@ See `auto-composition-mode' for more information on Auto-Composition mode."
 (defalias 'toggle-auto-composition 'auto-composition-mode)
 
 
-;; The following codes are only for backward compatibility with Emacs
-;; 20.4 and earlier.
 
-(defun decompose-composite-char (char &optional type with-composition-rule)
-  "Convert CHAR to string.
-
-If optional 2nd arg TYPE is non-nil, it is `string', `list', or
-`vector'.  In this case, CHAR is converted to string, list of CHAR, or
-vector of CHAR respectively.
-Optional 3rd arg WITH-COMPOSITION-RULE is ignored."
-  (cond ((or (null type) (eq type 'string)) (char-to-string char))
-	((eq type 'list) (list char))
-	(t (vector char))))
-
-(make-obsolete 'decompose-composite-char 'char-to-string "21.1")
-
-
-
-;; arch-tag: ee703d77-1723-45d4-a31f-e9f0f867aa33
 ;;; composite.el ends here

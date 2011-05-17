@@ -1,7 +1,6 @@
 ;;; ogonek.el --- change the encoding of Polish diacritics
 
-;; Copyright (C) 1997, 1998, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: W{\l}odek Bzyl
 ;;	   Ryszard Kubiak
@@ -273,23 +272,23 @@ The functions come in the following groups.
 		ogonek-name-encoding-alist))
   "List of ogonek encodings.  Used only for customization.")
 (defcustom ogonek-from-encoding "iso8859-2"
-  "*Encoding in the source file of recoding."
+  "Encoding in the source file of recoding."
   :type ogonek-encoding-choices
   :group 'ogonek)
 (defcustom ogonek-to-encoding "ascii"
-  "*Encoding in the target file of recoding."
+  "Encoding in the target file of recoding."
   :type ogonek-encoding-choices
   :group 'ogonek)
 (defcustom ogonek-prefix-char ?/
-  "*Prefix character for prefix encodings."
+  "Prefix character for prefix encodings."
   :type 'character
   :group 'ogonek)
 (defcustom ogonek-prefix-from-encoding "iso8859-2"
-  "*Encoding in the source file subject to prefixifation."
+  "Encoding in the source file subject to prefixifation."
   :type ogonek-encoding-choices
   :group 'ogonek)
 (defcustom ogonek-prefix-to-encoding "iso8859-2"
-  "*Encoding in the target file subject to deprefixifation."
+  "Encoding in the target file subject to deprefixifation."
   :type ogonek-encoding-choices
   :group 'ogonek)
 
@@ -500,5 +499,4 @@ followed by a non-Polish character, that is one not listed in the
 
 (provide 'ogonek)
 
-;; arch-tag: 672d7744-28ac-412b-965e-06a27e50d1d7
 ;;; ogonek.el ends here

@@ -22,8 +22,7 @@ Emacs, and interacting with an IDL shell run as a subprocess.
 This is edition @value{EDITION} of the IDLWAVE User Manual for IDLWAVE
 @value{VERSION}.
 
-Copyright @copyright{} 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+Copyright @copyright{} 1999-2011 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -39,9 +38,9 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs editing modes
 @direntry
-* IDLWAVE: (idlwave).	Major mode and shell for IDL files.
+* IDLWAVE: (idlwave).           Major mode and shell for IDL files.
 @end direntry
 
 @titlepage
@@ -58,6 +57,7 @@ developing GNU and promoting software freedom.''
 
 @ifnottex
 @node Top, Introduction, (dir), (dir)
+@top IDLWAVE
 
 IDLWAVE is a package which supports editing source code written in the
 Interactive Data Language (IDL), and running IDL as an inferior shell.
@@ -3717,7 +3717,7 @@ C-i}.  Here are the different routines (also available in the Menu
 
 @table @asis
 @item @kbd{M-x idlwave-list-buffer-load-path-shadows}
-This commands checks the names of all routines defined in the current
+This command checks the names of all routines defined in the current
 buffer for shadowing conflicts with other routines accessible to
 IDLWAVE.  The command also has a key binding: @kbd{C-c C-b}
 @item @kbd{M-x idlwave-list-shell-load-path-shadows}.
@@ -4275,7 +4275,7 @@ browse-url-browser-function} or similar when attempting to load IDLWAVE
 under XEmacs.}
 
 You don't have the @samp{browse-url} (or other required) XEmacs package.
-Unlike GNU Emacs, XEmacs distributes many packages separately from the
+Unlike Emacs, XEmacs distributes many packages separately from the
 main program.  IDLWAVE is actually among these, but is not always the
 most up to date.  When installing IDLWAVE as an XEmacs package, it
 should prompt you for required additional packages.  When installing it
@@ -4295,7 +4295,3 @@ IDLWAVE is @samp{fsf-compat, xemacs-base, mail-lib}.
 @printindex cp
 
 @bye
-
-@ignore
-   arch-tag: f1d73958-1423-4127-b8aa-f7b953d64492
-@end ignore

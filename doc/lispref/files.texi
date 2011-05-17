@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2011
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/files
 @node Files, Backups and Auto-Saving, Documentation, Top
@@ -38,9 +38,9 @@ to locale @code{system-message-locale}, and decoded using coding system
 * Changing Files::           Renaming files, changing protection, etc.
 * File Names::               Decomposing and expanding file names.
 * Contents of Directories::  Getting a list of the files in a directory.
-* Create/Delete Dirs::	     Creating and Deleting Directories.
-* Magic File Names::	     Defining "magic" special handling
-			       for certain file names.
+* Create/Delete Dirs::       Creating and Deleting Directories.
+* Magic File Names::         Defining "magic" special handling
+                               for certain file names.
 * Format Conversion::        Conversion to and from various file formats.
 @end menu
 
@@ -111,6 +111,26 @@ interactive call, then @code{find-file} expands wildcard characters in
 
 When @code{find-file} is called interactively, it prompts for
 @var{filename} in the minibuffer.
+@end deffn
+
+@deffn Command find-file-literally filename
+This command visits @var{filename}, like @code{find-file} does, but it
+does not perform any format conversions (@pxref{Format Conversion}),
+character code conversions (@pxref{Coding Systems}), or end-of-line
+conversions (@pxref{Coding System Basics, End of line conversion}).
+The buffer visiting the file is made unibyte, and its major mode is
+Fundamental mode, regardless of the file name.  File local variable
+specifications  in the file (@pxref{File Local Variables}) are
+ignored, and automatic decompression and adding a newline at the end
+of the file due to @code{require-final-newline} (@pxref{Saving
+Buffers, require-final-newline}) are also disabled.
+
+Note that if Emacs already has a buffer visiting the same file
+non-literally, it will not visit the same file literally, but instead
+just switch to the existing buffer.  If you want to be sure of
+accessing a file's contents literally, you should create a temporary
+buffer and then read the file contents into it using
+@code{insert-file-contents-literally} (@pxref{Reading from Files}).
 @end deffn
 
 @defun find-file-noselect filename &optional nowarn rawfile wildcards
@@ -222,6 +242,16 @@ already set up.
 
 This is not a normal hook because the values of the functions are
 used, and in many cases only some of the functions are called.
+@end defvar
+
+@defvar find-file-literally
+This buffer-local variable, if set to a non-@code{nil} value, makes
+@code{save-buffer} behave as if the buffer were visiting its file
+literally, i.e. without conversions of any kind.  The command
+@code{find-file-literally} sets this variable's local value, but other
+equivalent functions and commands can do that as well, e.g.@: to avoid
+automatic addition of a newline at the end of the file.  This variable
+is permanent local, so it is unaffected by changes of major modes.
 @end defvar
 
 @node Subroutines of Visiting
@@ -755,7 +785,7 @@ otherwise noted.
 @menu
 * Testing Accessibility::   Is a given file readable?  Writable?
 * Kinds of Files::          Is it a directory?  A symbolic link?
-* Truenames::		    Eliminating symbolic links from a file name.
+* Truenames::               Eliminating symbolic links from a file name.
 * File Attributes::         How large is it?  Any other names?  Etc.
 * Locating Files::          How to find a file in standard places.
 @end menu
@@ -1011,7 +1041,8 @@ because they eliminate symbolic links as a cause of name variation.
 
 @defun file-truename filename
 The function @code{file-truename} returns the truename of the file
-@var{filename}.  The argument must be an absolute file name.
+@var{filename}.  If the argument is not an absolute file name,
+this function first expands it against @code{default-directory}.
 
 This function does not expand environment variables.  Only
 @code{substitute-in-file-name} does that.  @xref{Definition of
@@ -1757,20 +1788,6 @@ Note that the @samp{.~3~} in the two last examples is the backup part,
 not an extension.
 @end defun
 
-@ignore
-Andrew Innes says that this
-
-@c @defvar directory-sep-char
-This variable holds the character that Emacs normally uses to separate
-file name components.  The default value is @code{?/}, but on MS-Windows
-you can set it to @code{?\\}; then the functions that transform file names
-use backslashes in their output.
-
-File names using backslashes work as input to Lisp primitives even on
-MS-DOS and MS-Windows, even if @code{directory-sep-char} has its default
-value of @code{?/}.
-@end defvar
-@end ignore
 
 @node Relative File Names
 @subsection Absolute and Relative File Names
@@ -1919,51 +1936,22 @@ Don't try concatenating a slash by hand, as in
 because this is not portable.  Always use
 @code{file-name-as-directory}.
 
-@cindex directory name abbreviation
-  Directory name abbreviations are useful for directories that are
-normally accessed through symbolic links.  Sometimes the users recognize
-primarily the link's name as ``the name'' of the directory, and find it
-annoying to see the directory's ``real'' name.  If you define the link
-name as an abbreviation for the ``real'' name, Emacs shows users the
-abbreviation instead.
-
-@defopt directory-abbrev-alist
-The variable @code{directory-abbrev-alist} contains an alist of
-abbreviations to use for file directories.  Each element has the form
-@code{(@var{from} . @var{to})}, and says to replace @var{from} with
-@var{to} when it appears in a directory name.  The @var{from} string is
-actually a regular expression; it should always start with @samp{^}.
-The @var{to} string should be an ordinary absolute directory name.  Do
-not use @samp{~} to stand for a home directory in that string.  The
-function @code{abbreviate-file-name} performs these substitutions.
-
-You can set this variable in @file{site-init.el} to describe the
-abbreviations appropriate for your site.
-
-Here's an example, from a system on which file system @file{/home/fsf}
-and so on are normally accessed through symbolic links named @file{/fsf}
-and so on.
-
-@example
-(("^/home/fsf" . "/fsf")
- ("^/home/gp" . "/gp")
- ("^/home/gd" . "/gd"))
-@end example
-@end defopt
-
   To convert a directory name to its abbreviation, use this
 function:
 
 @defun abbreviate-file-name filename
 @anchor{Definition of abbreviate-file-name}
-This function applies abbreviations from @code{directory-abbrev-alist}
-to its argument, and also substitutes @samp{~} for the user's home
-directory if the argument names a file in the home directory or one of
-its subdirectories.  (If the home directory is a root directory, it is
-not replaced with @samp{~}, because this does not make the result
-shorter on many systems.)  You can use it for directory names and for
-file names, because it recognizes abbreviations even as part of the
-name.
+This function returns an abbreviated form of @var{filename}.  It
+applies the abbreviations specified in @code{directory-abbrev-alist}
+(@pxref{File Aliases,,File Aliases, emacs, The GNU Emacs Manual}),
+then substitutes @samp{~} for the user's home directory if the
+argument names a file in the home directory or one of its
+subdirectories.  If the home directory is a root directory, it is not
+replaced with @samp{~}, because this does not make the result shorter
+on many systems.
+
+You can use this function for directory names and for file names,
+because it recognizes abbreviations even as part of the name.
 @end defun
 
 @node File Name Expansion
@@ -2856,6 +2844,34 @@ non-magic directory to serve as its current directory, and this function
 is a good way to come up with one.
 @end defun
 
+@defopt remote-file-name-inhibit-cache
+Whether to use the remote file-name cache for read access.
+
+File attributes of remote files are cached for better performance.  If
+they are changed out of Emacs' control, the cached values become
+invalid, and must be reread.
+
+When set to @code{nil}, cached values are always used.  This shall be
+set with care.  When set to @code{t}, cached values are never used.
+ALthough this is the safest value, it could result in performance
+degradation.
+
+A compromise is to set it to a positive number.  This means that
+cached values are used for that amount of seconds since they were
+cached.
+
+In case a remote file is checked regularly, it might be reasonable to
+let-bind this variable to a value less then the time period between
+two checks.  Example:
+
+@example
+(defun display-time-file-nonempty-p (file)
+  (let ((remote-file-name-inhibit-cache (- display-time-interval 5)))
+    (and (file-exists-p file)
+         (< 0 (nth 7 (file-attributes (file-chase-links file)))))))
+@end example
+@end defopt
+
 @node Format Conversion
 @section File Format Conversion
 
@@ -3172,7 +3188,3 @@ will produce good, general extensions we can install in Emacs.
 names or values---because a program that general is probably difficult
 to write, and slow.  Instead, choose a set of possible data types that
 are reasonably flexible, and not too hard to encode.
-
-@ignore
-   arch-tag: 141f74ce-6ae3-40dc-a6c4-ef83fc4ec35c
-@end ignore

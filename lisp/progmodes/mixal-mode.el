@@ -1,7 +1,6 @@
 ;;; mixal-mode.el --- Major mode for the mix asm language.
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2003-2011  Free Software Foundation, Inc.
 
 ;; Author: Pieter E.J. Pareit <pieter.pareit@gmail.com>
 ;; Maintainer: Pieter E.J. Pareit <pieter.pareit@gmail.com>
@@ -89,7 +88,7 @@
 (defvar mixal-mode-syntax-table
   (let ((st (make-syntax-table)))
     ;; We need to do a bit more to make fontlocking for comments work.
-    ;; See mixal-font-lock-syntactic-keywords.
+    ;; See use of syntax-propertize-function.
     ;; (modify-syntax-entry ?* "<" st)
     (modify-syntax-entry ?\n ">" st)
     st)
@@ -125,7 +124,7 @@ value.")
 (defvar mixal-operation-codes-alist
   ;; FIXME: the codes FADD, FSUB, FMUL, FDIV, JRAD, and FCMP were in
   ;; mixal-operation-codes but not here.  They should probably be added here.
-  ;; 
+  ;;
   ;; We used to define this with a backquote and subexps like ,(+ 8 3) for
   ;; better clarity, but the resulting code was too big and caused the
   ;; byte-compiler to eat up all the stack space.  Even using
@@ -1028,13 +1027,14 @@ EXECUTION-TIME holds info about the time it takes, number or string.")
 
 
 ;;; Font-locking:
-(defvar mixal-font-lock-syntactic-keywords
-  ;; Normal comments start with a * in column 0 and end at end of line.
-  '(("^\\*" (0 '(11)))                  ;(string-to-syntax "<") == '(11)
-    ;; Every line can end with a comment which is placed after the operand.
-    ;; I assume here that mnemonics without operands can not have a comment.
-    ("^[[:alnum:]]*[ \t]+[[:alnum:]]+[ \t]+[^ \n\t]+[ \t]*\\([ \t]\\)[^\n \t]"
-     (1 '(11)))))
+(defconst mixal-syntax-propertize-function
+  (syntax-propertize-rules
+   ;; Normal comments start with a * in column 0 and end at end of line.
+   ("^\\*" (0 "<"))
+   ;; Every line can end with a comment which is placed after the operand.
+   ;; I assume here that mnemonics without operands can not have a comment.
+   ("^[[:alnum:]]*[ \t]+[[:alnum:]]+[ \t]+[^ \n\t]+[ \t]*\\([ \t]\\)[^\n \t]"
+    (1 "<"))))
 
 (defvar mixal-font-lock-keywords
   `(("^\\([A-Z0-9a-z]+\\)"
@@ -1105,27 +1105,18 @@ Assumes that file has been compiled with debugging support."
 
 ;;;###autoload
 (define-derived-mode mixal-mode fundamental-mode "mixal"
-  "Major mode for the mixal asm language.
-\\{mixal-mode-map}"
+  "Major mode for the mixal asm language."
   (set (make-local-variable 'comment-start) "*")
   (set (make-local-variable 'comment-start-skip) "^\\*[ \t]*")
   (set (make-local-variable 'font-lock-defaults)
-       `(mixal-font-lock-keywords nil nil nil nil
-         (font-lock-syntactic-keywords . ,mixal-font-lock-syntactic-keywords)
-         (parse-sexp-lookup-properties . t)))
+       `(mixal-font-lock-keywords))
+  (set (make-local-variable 'syntax-propertize-function)
+       mixal-syntax-propertize-function)
   ;; might add an indent function in the future
   ;;  (set (make-local-variable 'indent-line-function) 'mixal-indent-line)
   (set (make-local-variable 'compile-command) (concat "mixasm "
-						      buffer-file-name))
-  ;; mixasm will do strange when there is no final newline,
-  ;; so let Emacs ensure that it is always there
-  (set (make-local-variable 'require-final-newline)
-       mode-require-final-newline))
-
-;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.mixal\\'" . mixal-mode))
+						      buffer-file-name)))
 
 (provide 'mixal-mode)
 
-;; arch-tag: be7c128a-bf61-4951-a90e-9398267ce3f3
 ;;; mixal-mode.el ends here

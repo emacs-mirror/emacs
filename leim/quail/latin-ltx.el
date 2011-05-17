@@ -1,8 +1,8 @@
 ;;; latin-ltx.el --- Quail package for TeX-style input -*-coding: utf-8;-*-
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+;;   2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
@@ -498,7 +498,7 @@ system, including many technical ones.  Examples:
  ("\\Vert" ?‖)
  ("\\Vvdash" ?⊪)
  ("\\Xi" ?Ξ)
- ("\\aleph" ?א)
+ ("\\aleph" ?ℵ)
  ("\\alpha" ?α)
  ("\\amalg" ?∐)
  ("\\angle" ?∠)
@@ -515,7 +515,7 @@ system, including many technical ones.  Examples:
  ("\\barwedge" ?⊼)
  ("\\because" ?∵)
  ("\\beta" ?β)
- ("\\beth" ?ב)
+ ("\\beth" ?ℶ)
  ("\\between" ?≬)
  ("\\bigcap" ?⋂)
  ("\\bigcirc" ?◯)
@@ -569,7 +569,7 @@ system, including many technical ones.  Examples:
 
  ("\\dag" ?†)
  ("\\dagger" ?†)
- ("\\daleth" ?ד)
+ ("\\daleth" ?ℸ)
  ("\\dashv" ?⊣)
  ("\\ddag" ?‡)
  ("\\ddagger" ?‡)
@@ -626,7 +626,7 @@ system, including many technical ones.  Examples:
  ("\\gets" ?←)
  ("\\gg" ?≫)
  ("\\ggg" ?⋙)
- ("\\gimel" ?ג)
+ ("\\gimel" ?ℷ)
  ("\\gnapprox" ?⋧)
  ("\\gneq" ?≩)
  ("\\gneqq" ?≩)
@@ -653,7 +653,7 @@ system, including many technical ones.  Examples:
  ("\\lambda" ?λ)
  ("\\langle" ?〈)
  ("\\lbrace" ?{)
- ("\\lbrack" ?[)
+ ("\\lbrack" ?\[)
  ("\\lceil" ?⌈)
  ("\\ldots" ?…)
  ("\\le" ?≤)
@@ -788,7 +788,7 @@ system, including many technical ones.  Examples:
  ("\\quad" ? )
  ("\\rangle" ?〉)
  ("\\rbrace" ?})
- ("\\rbrack" ?])
+ ("\\rbrack" ?\])
  ("\\rceil" ?⌉)
  ("\\rfloor" ?⌋)
  ("\\rightarrow" ?→)
@@ -991,5 +991,4 @@ system, including many technical ones.  Examples:
  ("\\textreferencemark" ?※)
  )
 
-;; arch-tag: 3daae613-2c53-446e-a0a1-ee2e1ebed15f
 ;;; latin-ltx.el ends here

@@ -1,7 +1,6 @@
 ;;; ielm.el --- interaction mode for Emacs Lisp
 
-;; Copyright (C) 1994, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: David Smith <maa036@lancaster.ac.uk>
 ;; Maintainer: FSF
@@ -283,7 +282,7 @@ simply inserts a newline."
 
 (defvar ielm-input)
 
-(defun ielm-input-sender (proc input)
+(defun ielm-input-sender (_proc input)
   ;; Just sets the variable ielm-input, which is in the scope of
   ;; `ielm-send-input's call.
   (setq ielm-input input))
@@ -304,8 +303,17 @@ simply inserts a newline."
 
 ;;; Evaluation
 
-(defun ielm-eval-input (ielm-string)
-  "Evaluate the Lisp expression IELM-STRING, and pretty-print the result."
+(defvar ielm-string)
+(defvar ielm-form)
+(defvar ielm-pos)
+(defvar ielm-result)
+(defvar ielm-error-type)
+(defvar ielm-output)
+(defvar ielm-wbuf)
+(defvar ielm-pmark)
+
+(defun ielm-eval-input (input-string)
+  "Evaluate the Lisp expression INPUT-STRING, and pretty-print the result."
   ;; This is the function that actually `sends' the input to the
   ;; `inferior Lisp process'. All comint-send-input does is works out
   ;; what that input is.  What this function does is evaluates that
@@ -318,7 +326,8 @@ simply inserts a newline."
   ;;
   ;; NOTE: all temporary variables in this function will be in scope
   ;; during the eval, and so need to have non-clashing names.
-  (let (ielm-form			; form to evaluate
+  (let ((ielm-string input-string)      ; input expression, as a string
+        ielm-form			; form to evaluate
 	ielm-pos			; End posn of parse in string
 	ielm-result			; Result, or error message
 	ielm-error-type			; string, nil if no error
@@ -372,7 +381,8 @@ simply inserts a newline."
 				   (*** *3))
 			       (kill-buffer (current-buffer))
 			       (set-buffer ielm-wbuf)
-			       (setq ielm-result (eval ielm-form))
+			       (setq ielm-result
+                                     (eval ielm-form lexical-binding))
 			       (setq ielm-wbuf (current-buffer))
 			       (setq
 				ielm-temp-buffer
@@ -395,7 +405,7 @@ simply inserts a newline."
 
       (goto-char ielm-pmark)
       (unless ielm-error-type
-	(condition-case err
+	(condition-case nil
 	    ;; Self-referential objects cause loops in the printer, so
 	    ;; trap quits here. May as well do errors, too
 	    (setq ielm-output (concat ielm-output (pp-to-string ielm-result)))
@@ -560,5 +570,4 @@ Switches to the buffer `*ielm*', or creates it if it does not exist."
 
 (provide 'ielm)
 
-;; arch-tag: ef60e4c0-9c4f-4bdb-8402-271313329790
 ;;; ielm.el ends here

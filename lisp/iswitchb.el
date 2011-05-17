@@ -1,7 +1,6 @@
 ;;; iswitchb.el --- switch between buffers using substrings
 
-;; Copyright (C) 1996, 1997, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Stephen Eglen <stephen@gnu.org>
 ;; Maintainer: Stephen Eglen <stephen@gnu.org>
@@ -659,7 +658,7 @@ the selection process begins.  Used by isearchb.el."
 	     (not (iswitchb-existing-buffer-p)))
 	(let ((virt (car iswitchb-virtual-buffers))
 	      (new-buf))
-	  ;; Keep the name of the buffer returned by find-file-noselect, as 
+	  ;; Keep the name of the buffer returned by find-file-noselect, as
 	  ;; the buffer 'virt' could be a symlink to a file of a different name.
 	  (setq new-buf (buffer-name (find-file-noselect (cdr virt))))
 	  (setq iswitchb-matches (list new-buf)
@@ -1016,7 +1015,7 @@ Return the modified list with the last element prepended to it."
 	    (display-completion-list (or iswitchb-matches iswitchb-buflist)
 				     :help-string "iswitchb "
 				     :activate-callback
-				     (lambda (x y z)
+				     (lambda (_x _y _z)
 				       (message "doesn't work yet, sorry!")))
 	  ;; else running Emacs
 	  (display-completion-list (or iswitchb-matches iswitchb-buflist))))
@@ -1027,13 +1026,15 @@ Return the modified list with the last element prepended to it."
 (defun iswitchb-kill-buffer ()
   "Kill the buffer at the head of `iswitchb-matches'."
   (interactive)
-  (let ( (enable-recursive-minibuffers t)
-	 buf)
+  (let ((enable-recursive-minibuffers t)
+        buf)
 
     (setq buf (car iswitchb-matches))
     ;; check to see if buf is non-nil.
     (if buf
-	(progn
+	(let ((bufobjs (mapcar (lambda (name)
+				 (or (get-buffer name) name))
+			       iswitchb-buflist)))
 	  (kill-buffer buf)
 
 	  ;; Check if buffer exists.  XEmacs gnuserv.el makes alias
@@ -1042,8 +1043,15 @@ Return the modified list with the last element prepended to it."
 	  (if (get-buffer buf)
 	      ;; buffer couldn't be killed.
 	      (setq iswitchb-rescan t)
-	    ;; else buffer was killed so remove name from list.
-	    (setq iswitchb-buflist  (delq buf iswitchb-buflist)))))))
+	    ;; Else `kill-buffer' succeeds so re-make the buffer list
+	    ;; taking into account packages like uniquify may rename
+	    ;; buffers, and try to preserve the ordering of buffers.
+	    (setq iswitchb-buflist
+		  (delq nil (mapcar (lambda (b)
+				      (if (bufferp b)
+					  (buffer-name b)
+					b))
+				    bufobjs))))))))
 
 ;;; VISIT CHOSEN BUFFER
 (defun iswitchb-visit-buffer (buffer)
@@ -1116,19 +1124,6 @@ If BUFFER is visible in the current frame, return nil."
       ;;  maybe in other frame or icon
       (get-buffer-window buffer 0) ; better than 'visible
       )))
-
-(defun iswitchb-default-keybindings ()
-  "Set up default keybindings for `iswitchb-buffer'.
-Call this function to override the normal bindings.  This function also
-adds a hook to the minibuffer."
-  (interactive)
-  (add-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup)
-  (global-set-key "\C-xb" 'iswitchb-buffer)
-  (global-set-key "\C-x4b" 'iswitchb-buffer-other-window)
-  (global-set-key "\C-x4\C-o" 'iswitchb-display-buffer)
-  (global-set-key "\C-x5b" 'iswitchb-buffer-other-frame))
-
-(make-obsolete 'iswitchb-default-keybindings 'iswitchb-mode "21.1")
 
 (defun iswitchb-buffer ()
   "Switch to another buffer.
@@ -1441,5 +1436,4 @@ This mode enables switching between buffers using substrings.  See
 
 (provide 'iswitchb)
 
-;; arch-tag: d74198ae-753f-44f2-b34f-0c515398d90a
 ;;; iswitchb.el ends here

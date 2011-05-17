@@ -1,3 +1,7 @@
+2009-02-07  Dave Love  <fx@gnu.org>
+
+	* net/tls.el (open-tls-stream): Don't query killing process.
+
 2009-06-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Branch for 23.1.
@@ -640,7 +644,7 @@
 
 2009-04-11  Chong Yidong  <cyd@stupidchicken.com>
 
-	* files.el (dir-locals-directory-cache):  Rename from
+	* files.el (dir-locals-directory-cache): Rename from
 	dir-locals-directory-alist.  Change format to include
 	the mtime of the directory-local variables file (Bug#2833).
 	(dir-locals-set-directory-class): New arg mtime.  Store it in
@@ -1029,7 +1033,7 @@
 
 	* paren.el (show-paren-function):
 	* simple.el (kill-forward-chars, kill-backward-chars):
-	 Use (+/- (point) N), instead of `forward-point'.
+	Use (+/- (point) N), instead of `forward-point'.
 
 2009-03-19  Glenn Morris  <rgm@gnu.org>
 
@@ -2144,7 +2148,7 @@
 	* emacs-lisp/find-func.el (find-library-name, find-library):
 	Doc fixes.  (Part of bug#2270)
 
-2009-02-10  Eric Hanchrow  <eric.hanchrow@gmail.com>  (tiny change)
+2009-02-10  Eric Hanchrow  <eric.hanchrow@gmail.com>
 
 	* env.el (getenv): When FRAME is non-nil, pass the frame environment
 	to `getenv-internal', not the frame.  (Bug#2259)
@@ -3012,12 +3016,12 @@
 	Don't activate node nil.  (Bug#1569)
 
 2009-01-22  Paul Reilly  <pmr@pajato.com>
-	    Henrik Enberg  <enberg@printf.se>
-	    Alex Schroeder  <alex@gnu.org>
-	    Chong Yidong  <cyd@stupidchicken.com>
-	    Richard M Stallman  <rms@gnu.org>
-	    Glenn Morris  <rgm@gnu.org>
-	    Juanma Barranquero  <lekktu@gmail.com>
+            Henrik Enberg  <enberg@printf.se>
+            Alex Schroeder  <alex@gnu.org>
+            Chong Yidong  <cyd@stupidchicken.com>
+            Richard M Stallman  <rms@gnu.org>
+            Glenn Morris  <rgm@gnu.org>
+            Juanma Barranquero  <lekktu@gmail.com>
 
 	* mail/rmail.el: Code implementing Rmail-mbox functionality.
 	(rmail-attribute-header, rmail-keyword-header)
@@ -4283,7 +4287,7 @@
 	(proced-descend): New variable.
 	(proced-sort): New arg descend.
 	(proced-sort-interactive): Repeated calls toggle sort order.
-	(proced-format): Accomodate changes of proced-format-alist.
+	(proced-format): Accommodate changes of proced-format-alist.
 	Undefined attributes are displayed as "?".
 	(proced-process-attributes): New optional arg pid-list.
 	Ignore processes with empty attribute list.
@@ -4310,7 +4314,7 @@
 	was orderly adjusted, nil otherwise.
 
 2008-12-12  Juanma Barranquero  <lekktu@gmail.com>
-	    Stefan Monnier  <monnier@iro.umontreal.ca>
+            Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* server.el (server-sentinel): Uncomment code to delete connection file.
 	(server-start): Save the connection file in the server property list.
@@ -4369,7 +4373,7 @@
 	terminal variable assignment.
 
 2008-12-10  Yukihiro Matsumoto  <matz@ruby-lang.org>
-	    Nobuyoshi Nakada  <nobu@ruby-lang.org>
+            Nobuyoshi Nakada  <nobu@ruby-lang.org>
 
 	* progmodes/ruby-mode.el: New file.
 
@@ -5599,7 +5603,7 @@
 	New aliases, to satisfy `define-derived-mode' expectations.
 
 2008-11-15  Glenn Morris  <rgm@gnu.org>
-	    Martin Rudalics  <rudalics@gmx.at>
+            Martin Rudalics  <rudalics@gmx.at>
 
 	* emacs-lisp/find-func.el (find-function-advised-original): New.
 	(find-function-C-source, find-function-noselect):
@@ -6514,7 +6518,7 @@
 	(hl-line-unhighlight, global-hl-line-unhighlight): Use `when'.
 	(hl-line-sticky-flag): Remove spurious * in docstring.
 
-2008-10-14  Eric Hanchrow  <offby1@blarg.net>  (tiny change)
+2008-10-14  Eric Hanchrow  <offby1@blarg.net>
 
 	* vc-git.el (vc-git-show-log-entry): Include the revision in the
 	search string.
@@ -8625,7 +8629,7 @@
 
 2008-07-31  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-mode.el (c-before-hack-hook): New function
+	* progmodes/cc-mode.el (c-before-hack-hook): New function.
 	(Top Level): Install c-before-hack-hook on
 	before-hack-local-variables-hook, rather than
 	c-postprocess-file-styles on hack-local-variables-hook.
@@ -10308,8 +10312,8 @@
 	(newsticker--treeview-propertize-tag): Show item title in tooltip.
 
 2008-06-20  Martin Blais  <blais@furius.ca>
-	    Stefan Merten  <smerten@oekonux.de>
-	    David Goodger  <goodger@python.org>
+            Stefan Merten  <smerten@oekonux.de>
+            David Goodger  <goodger@python.org>
 
 	* textmodes/rst.el: New file.
 
@@ -10627,7 +10631,7 @@
 	* term/linux.el (terminal-init-linux): Load t-mouse.
 
 2008-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
-	    Drew Adams  <drew.adams@oracle.com>
+            Drew Adams  <drew.adams@oracle.com>
 
 	* info.el (Info-breadcrumbs-depth): New var.
 	(Info-insert-breadcrumbs): New function.
@@ -18798,7 +18802,7 @@
 	for useful options.
 
 2008-03-01  Dan Nicolaescu  <dann@ics.uci.edu>
-	    Glenn Morris  <rgm@gnu.org>
+            Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-recompile-directory)
 	(byte-compile-file, batch-byte-compile, batch-byte-compile-file):
@@ -20547,7 +20551,7 @@ See ChangeLog.13 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-    Copyright (C) 2008, 2009, 2010  Free Software Foundation, Inc.
+    Copyright (C) 2008-2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -20564,4 +20568,3 @@ See ChangeLog.13 for earlier changes.
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-;; arch-tag: c241c1f9-d668-48bf-920a-2897ed0340bc

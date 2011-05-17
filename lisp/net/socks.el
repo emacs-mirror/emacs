@@ -1,7 +1,6 @@
 ;;; socks.el --- A Socks v5 Client for Emacs
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2002,
-;;   2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2000, 2002, 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: William M. Perry <wmperry@gnu.org>
 ;;         Dave Love <fx@gnu.org>
@@ -646,5 +645,4 @@ version.")
 
 (provide 'socks)
 
-;; arch-tag: 67aef0d9-f4f7-4056-89c3-b4c9bf93ce7f
 ;;; socks.el ends here

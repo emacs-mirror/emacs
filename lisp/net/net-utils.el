@@ -1,7 +1,6 @@
 ;;; net-utils.el --- network functions
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011  Free Software Foundation, Inc.
 
 ;; Author:  Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Mar 16 1997
@@ -55,8 +54,7 @@
   :group 'comm
   :version "20.3")
 
-(defcustom net-utils-remove-ctl-m
-  (member system-type (list 'windows-nt 'msdos))
+(defcustom net-utils-remove-ctl-m (memq system-type '(windows-nt msdos))
   "If non-nil, remove control-Ms from output."
   :group 'net-utils
   :type  'boolean)
@@ -82,7 +80,7 @@
 ;; On GNU/Linux and Irix, the system's ping program seems to send packets
 ;; indefinitely unless told otherwise
 (defcustom ping-program-options
-  (and (memq system-type (list 'linux 'gnu/linux 'irix))
+  (and (memq system-type '(gnu/linux irix))
        (list "-c" "4"))
   "Options for the ping program.
 These options can be used to limit how many ICMP packets are emitted."
@@ -99,6 +97,9 @@ These options can be used to limit how many ICMP packets are emitted."
   :group 'net-utils
   :type  'string)
 
+(define-obsolete-variable-alias 'ipconfig-program-options
+  'ifconfig-program-options "22.2")
+
 (defcustom ifconfig-program-options
   (list
    (if (eq system-type 'windows-nt)
@@ -112,9 +113,6 @@ These options can be used to limit how many ICMP packets are emitted."
   :group 'net-utils
   :type 'string
   :version "23.1")
-
-(define-obsolete-variable-alias 'ipconfig-program-options
-  'ifconfig-program-options "22.2")
 
 (defcustom iwconfig-program-options nil
  "Options for the iwconfig program."
@@ -492,6 +490,11 @@ If your system's ping continues until interrupted, you can try setting
 
 (autoload 'comint-mode "comint" nil t)
 
+(defvar nslookup-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\t" 'comint-dynamic-complete)
+    map))
+
 ;; Using a derived mode gives us keymaps, hooks, etc.
 (define-derived-mode nslookup-mode comint-mode "Nslookup"
   "Major mode for interacting with the nslookup program."
@@ -500,8 +503,6 @@ If your system's ping continues until interrupted, you can try setting
    '((nslookup-font-lock-keywords)))
   (setq comint-prompt-regexp nslookup-prompt-regexp)
   (setq comint-input-autoexpand t))
-
-(define-key nslookup-mode-map "\t" 'comint-dynamic-complete)
 
 ;;;###autoload
 (defun dns-lookup-host (host)
@@ -558,6 +559,12 @@ If your system's ping continues until interrupted, you can try setting
 		   (list host)))
     (pop-to-buffer buf)))
 
+(defvar ftp-mode-map
+  (let ((map (make-sparse-keymap)))
+    ;; Occasionally useful
+    (define-key map "\t" 'comint-dynamic-complete)
+    map))
+
 (define-derived-mode ftp-mode comint-mode "FTP"
   "Major mode for interacting with the ftp program."
   (setq comint-prompt-regexp ftp-prompt-regexp)
@@ -572,9 +579,6 @@ If your system's ping continues until interrupted, you can try setting
 		(default-value 'comint-output-filter-functions))
     (add-hook 'comint-output-filter-functions 'comint-watch-for-password-prompt
 	      nil t)))
-
-;; Occasionally useful
-(define-key ftp-mode-map "\t" 'comint-dynamic-complete)
 
 (defun smbclient (host service)
   "Connect to SERVICE on HOST via SMB."
@@ -889,5 +893,4 @@ from SEARCH-STRING.  With argument, prompt for whois server."
 
 (provide 'net-utils)
 
-;; arch-tag: 97119e91-9edb-4376-838b-bf7058fa1314
 ;;; net-utils.el ends here

@@ -1,7 +1,6 @@
 /* MS-DOS specific Lisp utilities.  Coded by Manabu Higashida, 1991.
    Major changes May-July 1993 Morten Welinder (only 10% original code left)
-   Copyright (C) 1991, 1993, 1996, 1997, 1998, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1991, 1993, 1996-1998, 2001-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -24,7 +23,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* The entire file is within this conditional */
 
 #include <stdio.h>
-#include <string.h>
 #include <dos.h>
 #include <setjmp.h>
 #include "lisp.h"
@@ -55,18 +53,16 @@ Return the updated REGISTER vector.
 INTERRUPT should be an integer in the range 0 to 255.
 REGISTERS should be a vector produced by `make-register' and
 `set-register-value'.  */)
-     (interrupt, registers)
-     Lisp_Object interrupt, registers;
+  (Lisp_Object interrupt, Lisp_Object registers)
 {
   register int i;
   int no;
   union REGS inregs, outregs;
-  Lisp_Object val;
 
   CHECK_NUMBER (interrupt);
   no = (unsigned long) XINT (interrupt);
   CHECK_VECTOR (registers);
-  if (no < 0 || no > 0xff || XVECTOR (registers)-> size != 8)
+  if (no < 0 || no > 0xff || ASIZE (registers) != 8)
     return Qnil;
   for (i = 0; i < 8; i++)
     CHECK_NUMBER (XVECTOR (registers)->contents[i]);
@@ -97,18 +93,16 @@ REGISTERS should be a vector produced by `make-register' and
 DEFUN ("msdos-memget", Fdos_memget, Sdos_memget, 2, 2, 0,
        doc: /* Read DOS memory at offset ADDRESS into VECTOR.
 Return the updated VECTOR.  */)
-     (address, vector)
-     Lisp_Object address, vector;
+  (Lisp_Object address, Lisp_Object vector)
 {
   register int i;
   int offs, len;
   char *buf;
-  Lisp_Object val;
 
   CHECK_NUMBER (address);
   offs = (unsigned long) XINT (address);
   CHECK_VECTOR (vector);
-  len = XVECTOR (vector)-> size;
+  len = ASIZE (vector);
   if (len < 1 || len > 2048 || offs < 0 || offs > 0xfffff - len)
     return Qnil;
   buf = alloca (len);
@@ -122,18 +116,16 @@ Return the updated VECTOR.  */)
 
 DEFUN ("msdos-memput", Fdos_memput, Sdos_memput, 2, 2, 0,
        doc: /* Write DOS memory at offset ADDRESS from VECTOR.  */)
-     (address, vector)
-     Lisp_Object address, vector;
+  (Lisp_Object address, Lisp_Object vector)
 {
   register int i;
   int offs, len;
   char *buf;
-  Lisp_Object val;
 
   CHECK_NUMBER (address);
   offs = (unsigned long) XINT (address);
   CHECK_VECTOR (vector);
-  len = XVECTOR (vector)-> size;
+  len = ASIZE (vector);
   if (len < 1 || len > 2048 || offs < 0 || offs > 0xfffff - len)
     return Qnil;
   buf = alloca (len);
@@ -153,8 +145,7 @@ DEFUN ("msdos-set-keyboard", Fmsdos_set_keyboard, Smsdos_set_keyboard, 1, 2, 0,
 If the optional argument ALLKEYS is non-nil, the keyboard is mapped for
 all keys; otherwise it is only used when the ALT key is pressed.
 The current keyboard layout is available in dos-keyboard-code.  */)
-     (country_code, allkeys)
-     Lisp_Object country_code, allkeys;
+  (Lisp_Object country_code, Lisp_Object allkeys)
 {
   CHECK_NUMBER (country_code);
   if (!dos_set_keyboard (XINT (country_code), !NILP (allkeys)))
@@ -168,7 +159,7 @@ The current keyboard layout is available in dos-keyboard-code.  */)
 
 DEFUN ("msdos-mouse-p", Fmsdos_mouse_p, Smsdos_mouse_p, 0, 0, 0,
        doc: /* Report whether a mouse is present.  */)
-     ()
+  (void)
 {
   if (have_mouse)
     return Qt;
@@ -179,7 +170,7 @@ DEFUN ("msdos-mouse-p", Fmsdos_mouse_p, Smsdos_mouse_p, 0, 0, 0,
 
 DEFUN ("msdos-mouse-init", Fmsdos_mouse_init, Smsdos_mouse_init, 0, 0, "",
        doc: /* Initialize and enable mouse if available.  */)
-     ()
+  (void)
 {
   if (have_mouse)
     {
@@ -192,7 +183,7 @@ DEFUN ("msdos-mouse-init", Fmsdos_mouse_init, Smsdos_mouse_init, 0, 0, "",
 
 DEFUN ("msdos-mouse-enable", Fmsdos_mouse_enable, Smsdos_mouse_enable, 0, 0, "",
        doc: /* Enable mouse if available.  */)
-     ()
+  (void)
 {
   if (have_mouse)
     {
@@ -204,7 +195,7 @@ DEFUN ("msdos-mouse-enable", Fmsdos_mouse_enable, Smsdos_mouse_enable, 0, 0, "",
 
 DEFUN ("msdos-mouse-disable", Fmsdos_mouse_disable, Smsdos_mouse_disable, 0, 0, "",
        doc: /* Disable mouse if available.  */)
-     ()
+  (void)
 {
   mouse_off ();
   if (have_mouse) have_mouse = -1;
@@ -214,7 +205,7 @@ DEFUN ("msdos-mouse-disable", Fmsdos_mouse_disable, Smsdos_mouse_disable, 0, 0, 
 DEFUN ("insert-startup-screen", Finsert_startup_screen, Sinsert_startup_screen, 0, 0, "",
        doc: /* Insert copy of screen contents prior to starting Emacs.
 Return nil if startup screen is not available.  */)
-     ()
+  (void)
 {
   char *s;
   int rows, cols, i, j;
@@ -235,12 +226,6 @@ Return nil if startup screen is not available.  */)
   return Qt;
 }
 
-/* country info */
-EMACS_INT dos_country_code;
-EMACS_INT dos_codepage;
-EMACS_INT dos_timezone_offset;
-EMACS_INT dos_decimal_point;
-EMACS_INT dos_keyboard_layout;
 unsigned char dos_country_info[DOS_COUNTRY_INFO];
 static unsigned char usa_country_info[DOS_COUNTRY_INFO] = {
   0, 0,				/* date format */
@@ -257,17 +242,8 @@ static unsigned char usa_country_info[DOS_COUNTRY_INFO] = {
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0	/* reserved */
 };
 
-EMACS_INT dos_hyper_key;
-EMACS_INT dos_super_key;
-EMACS_INT dos_keypad_mode;
-
-Lisp_Object Vdos_version;
-Lisp_Object Vdos_display_scancodes;
-
 #ifndef HAVE_X_WINDOWS
 static unsigned dos_windows_version;
-Lisp_Object Vdos_windows_version;
-
 char parent_vm_title[50];	/* Ralf Brown says 30 is enough */
 int w95_set_virtual_machine_title (const char *);
 
@@ -283,13 +259,15 @@ restore_parent_vm_title (void)
 #endif /* !HAVE_X_WINDOWS */
 
 void
-init_dosfns ()
+init_dosfns (void)
 {
   union REGS regs;
   _go32_dpmi_registers dpmiregs;
   unsigned long xbuf = _go32_info_block.linear_address_of_transfer_buffer;
 
 #ifndef SYSTEM_MALLOC
+  extern void get_lim_data (void);
+
   get_lim_data (); /* why the hell isn't this called elsewhere? */
 #endif
 
@@ -481,9 +459,7 @@ w95_set_virtual_machine_title (const char *title_string)
    sets the name in the frame struct, but has no other effects.  */
 
 void
-x_set_title (f, name)
-     struct frame *f;
-     Lisp_Object name;
+x_set_title (struct frame *f, Lisp_Object name)
 {
   /* Don't change the title if it's already NAME.  */
   if (EQ (name, f->title))
@@ -511,8 +487,7 @@ Value is a list of floats (TOTAL FREE AVAIL), where TOTAL is the total
 storage of the file system, FREE is the free storage, and AVAIL is the
 storage available to a non-superuser.  All 3 numbers are in bytes.
 If the underlying system call fails, value is nil.  */)
-     (filename)
-     Lisp_Object filename;
+  (Lisp_Object filename)
 {
   struct statfs stfs;
   Lisp_Object encoded, value;
@@ -536,7 +511,7 @@ If the underlying system call fails, value is nil.  */)
    (There are no other processes on DOS, right?)  */
 
 Lisp_Object
-list_system_processes ()
+list_system_processes (void)
 {
   Lisp_Object proclist = Qnil;
 
@@ -565,6 +540,7 @@ system_process_attributes (Lisp_Object pid)
       int i;
       Lisp_Object cmd_str, decoded_cmd, tem;
       double pmem;
+      EXFUN (Fget_internal_run_time, 0);
 #ifndef SYSTEM_MALLOC
       extern unsigned long ret_lim_data ();
 #endif
@@ -689,7 +665,8 @@ dos_cleanup (void)
 /*
  *	Define everything
  */
-syms_of_dosfns ()
+void
+syms_of_dosfns (void)
 {
   defsubr (&Sint86);
   defsubr (&Sdos_memget);
@@ -704,11 +681,11 @@ syms_of_dosfns ()
   defsubr (&Smsdos_mouse_p);
 #endif
 
-  DEFVAR_INT ("dos-country-code", &dos_country_code,
+  DEFVAR_INT ("dos-country-code", dos_country_code,
 	      doc: /* The country code returned by Dos when Emacs was started.
 Usually this is the international telephone prefix.  */);
 
-  DEFVAR_INT ("dos-codepage", &dos_codepage,
+  DEFVAR_INT ("dos-codepage", dos_codepage,
 	      doc: /* The codepage active when Emacs was started.
 The following are known:
 	437	United States
@@ -720,19 +697,19 @@ The following are known:
 	863	Canada (French)
 	865	Norway/Denmark  */);
 
-  DEFVAR_INT ("dos-timezone-offset", &dos_timezone_offset,
+  DEFVAR_INT ("dos-timezone-offset", dos_timezone_offset,
 	      doc: /* The current timezone offset to UTC in minutes.
 Implicitly modified when the TZ variable is changed.  */);
 
-  DEFVAR_LISP ("dos-version", &Vdos_version,
+  DEFVAR_LISP ("dos-version", Vdos_version,
 	       doc: /* The (MAJOR . MINOR) Dos version (subject to modification with setver).  */);
 
 #ifndef HAVE_X_WINDOWS
-  DEFVAR_LISP ("dos-windows-version", &Vdos_windows_version,
+  DEFVAR_LISP ("dos-windows-version", Vdos_windows_version,
 	       doc: /* The (MAJOR . MINOR) Windows version for DOS session on MS-Windows.  */);
 #endif
 
-  DEFVAR_LISP ("dos-display-scancodes", &Vdos_display_scancodes,
+  DEFVAR_LISP ("dos-display-scancodes", Vdos_display_scancodes,
 	       doc: /* *Controls whether DOS raw keyboard events are displayed as you type.
 When non-nil, the keyboard scan-codes are displayed at the bottom right
 corner of the display (typically at the end of the mode line).
@@ -740,17 +717,17 @@ The output format is: scan code:char code*modifiers.  */);
 
   Vdos_display_scancodes = Qnil;
 
-  DEFVAR_INT ("dos-hyper-key", &dos_hyper_key,
+  DEFVAR_INT ("dos-hyper-key", dos_hyper_key,
 	      doc: /* *If set to 1, use right ALT key as hyper key.
 If set to 2, use right CTRL key as hyper key.  */);
   dos_hyper_key = 0;
 
-  DEFVAR_INT ("dos-super-key", &dos_super_key,
+  DEFVAR_INT ("dos-super-key", dos_super_key,
 	      doc: /* *If set to 1, use right ALT key as super key.
 If set to 2, use right CTRL key as super key.  */);
   dos_super_key = 0;
 
-  DEFVAR_INT ("dos-keypad-mode", &dos_keypad_mode,
+  DEFVAR_INT ("dos-keypad-mode", dos_keypad_mode,
 	      doc: /* *Controls what key code is returned by a key in the numeric keypad.
 The `numlock ON' action is only taken if no modifier keys are pressed.
 The value is an integer constructed by adding the following bits together:
@@ -774,12 +751,12 @@ The value is an integer constructed by adding the following bits together:
   0x200	ALT-0..ALT-9 in top-row produces shifted codes.  */);
   dos_keypad_mode = 0x75;
 
-  DEFVAR_INT ("dos-keyboard-layout", &dos_keyboard_layout,
+  DEFVAR_INT ("dos-keyboard-layout", dos_keyboard_layout,
 	      doc: /* Contains the country code for the current keyboard layout.
 Use msdos-set-keyboard to select another keyboard layout.  */);
   dos_keyboard_layout = 1;	/* US */
 
-  DEFVAR_INT ("dos-decimal-point", &dos_decimal_point,
+  DEFVAR_INT ("dos-decimal-point", dos_decimal_point,
 	      doc: /* The character to produce when kp-decimal key is pressed.
 If non-zero, this variable contains the character to be returned when the
 decimal point key in the numeric keypad is pressed when Num Lock is on.
@@ -788,5 +765,3 @@ If zero, the decimal point key returns the country code specific value.  */);
 }
 #endif /* MSDOS */
 
-/* arch-tag: f5ea8847-a014-42c9-83f5-7738ad640b17
-   (do not change this comment) */

@@ -1,7 +1,6 @@
 ;;; esh-arg.el --- argument processing
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -118,12 +117,13 @@ treated as a literal character."
 
 ;;; User Variables:
 
-(defcustom eshell-arg-load-hook '(eshell-arg-initialize)
+(defcustom eshell-arg-load-hook nil
   "A hook that gets run when `eshell-arg' is loaded."
+  :version "24.1"		       ; removed eshell-arg-initialize
   :type 'hook
   :group 'eshell-arg)
 
-(defcustom eshell-delimiter-argument-list '(?\; ?& ?\| ?\> ?  ?\t ?\n)
+(defcustom eshell-delimiter-argument-list '(?\; ?& ?\| ?\> ?\s ?\t ?\n)
   "List of characters to recognize as argument separators."
   :type '(repeat character)
   :group 'eshell-arg)
@@ -214,25 +214,24 @@ Point is left at the end of the arguments."
       (narrow-to-region beg end)
       (let ((inhibit-point-motion-hooks t)
 	    (args (list t))
-	    after-change-functions
 	    delim)
-	(remove-text-properties (point-min) (point-max)
-				'(arg-begin nil arg-end nil))
-	(if (setq
-	     delim
-	     (catch 'eshell-incomplete
-	       (while (not (eobp))
-		 (let* ((here (point))
-			(arg (eshell-parse-argument)))
-		   (if (= (point) here)
-		       (error "Failed to parse argument '%s'"
-			      (buffer-substring here (point-max))))
-		   (and arg (nconc args (list arg)))))))
-	    (if (listp delim)
-		(throw 'eshell-incomplete delim)
-	      (throw 'eshell-incomplete
-		     (list delim (point) (cdr args)))))
-	(cdr args)))))
+        (with-silent-modifications
+          (remove-text-properties (point-min) (point-max)
+                                  '(arg-begin nil arg-end nil))
+          (if (setq
+               delim
+               (catch 'eshell-incomplete
+                 (while (not (eobp))
+                   (let* ((here (point))
+                          (arg (eshell-parse-argument)))
+                     (if (= (point) here)
+                         (error "Failed to parse argument '%s'"
+                                (buffer-substring here (point-max))))
+                     (and arg (nconc args (list arg)))))))
+              (throw 'eshell-incomplete (if (listp delim)
+                                            delim
+                                          (list delim (point) (cdr args)))))
+          (cdr args))))))
 
 (defun eshell-parse-argument ()
   "Get the next argument.  Leave point after it."
@@ -392,5 +391,4 @@ special character that is not itself a backslash."
 		   (char-to-string (char-after)))))
 	 (goto-char end)))))))
 
-;; arch-tag: 7f593a2b-8fc1-4def-8f84-8f51ed0198d6
 ;;; esh-arg.el ends here

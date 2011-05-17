@@ -1,6 +1,6 @@
 ;;; semantic/db-mode.el --- Semanticdb Minor Mode
 
-;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -217,5 +217,4 @@ Argument NEW-TABLE is the new table of tags."
 ;; generated-autoload-load-name: "semantic/db-mode"
 ;; End:
 
-;; arch-tag: f5da903d-2d34-4adf-8572-e60340e1ad59
 ;;; semantic/db-mode.el ends here

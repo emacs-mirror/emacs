@@ -81,4 +81,3 @@
     ("SINHALA PUNCTUATION KUNDDALIYA" #x0DF4)
     ))
 
-;; arch-tag: 3dfac4e1-97f5-433a-bd47-8cd364b09075

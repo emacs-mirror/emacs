@@ -1,7 +1,6 @@
 ;;; semantic/wisent/wisent.el --- GNU Bison for Emacs - Runtime
 
-;;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2009, 2010
-;;; Free Software Foundation, Inc.
+;;; Copyright (C) 2002-2007, 2009-2011  Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: David Ponce <david@dponce.com>
@@ -476,5 +475,4 @@ automaton has only one entry point."
 
 (provide 'semantic/wisent/wisent)
 
-;; arch-tag: c299c5a4-d96f-4f1c-8307-ef2af3c8bdcb
 ;;; semantic/wisent/wisent.el ends here

@@ -1,7 +1,6 @@
 ;;; gnus-srvr.el --- virtual server support for Gnus
 
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -28,10 +27,13 @@
 (eval-when-compile (require 'cl))
 
 (require 'gnus)
+(require 'gnus-start)
 (require 'gnus-spec)
 (require 'gnus-group)
 (require 'gnus-int)
 (require 'gnus-range)
+
+(autoload 'gnus-group-make-nnir-group "nnir")
 
 (defcustom gnus-server-mode-hook nil
   "Hook run in `gnus-server-mode' buffers."
@@ -112,6 +114,7 @@ If nil, a faster, but more primitive, buffer is used instead."
        ["Kill" gnus-server-kill-server t]
        ["Yank" gnus-server-yank-server t]
        ["Copy" gnus-server-copy-server t]
+       ["Show" gnus-server-show-server t]
        ["Edit" gnus-server-edit-server t]
        ["Regenerate" gnus-server-regenerate-server t]
        ["Compact" gnus-server-compact-server t]
@@ -149,6 +152,7 @@ If nil, a faster, but more primitive, buffer is used instead."
     "c" gnus-server-copy-server
     "a" gnus-server-add-server
     "e" gnus-server-edit-server
+    "S" gnus-server-show-server
     "s" gnus-server-scan-server
 
     "O" gnus-server-open-server
@@ -163,6 +167,8 @@ If nil, a faster, but more primitive, buffer is used instead."
     "p" previous-line
 
     "g" gnus-server-regenerate-server
+
+    "G" gnus-group-make-nnir-group
 
     "z" gnus-server-compact-server
 
@@ -300,9 +306,7 @@ The following commands are available:
   "Initialize the server buffer."
   (unless (get-buffer gnus-server-buffer)
     (with-current-buffer (gnus-get-buffer-create gnus-server-buffer)
-      (gnus-server-mode)
-      (when gnus-carpal
-	(gnus-carpal-setup-buffer 'server)))))
+      (gnus-server-mode))))
 
 (defun gnus-server-prepare ()
   (gnus-set-format 'server-mode)
@@ -547,6 +551,7 @@ The following commands are available:
   (gnus-server-list-servers))
 
 (defun gnus-server-copy-server (from to)
+  "Copy a server definiton to a new name."
   (interactive
    (list
     (or (gnus-server-server-name)
@@ -569,8 +574,9 @@ The following commands are available:
 
 (defun gnus-server-add-server (how where)
   (interactive
-   (list (intern (completing-read "Server method: "
-				  gnus-valid-select-methods nil t))
+   (list (intern (gnus-completing-read "Server method"
+                                       (mapcar 'car gnus-valid-select-methods)
+                                       t))
 	 (read-string "Server name: ")))
   (when (assq where gnus-server-alist)
     (error "Server with that name already defined"))
@@ -580,7 +586,7 @@ The following commands are available:
 (defun gnus-server-goto-server (server)
   "Jump to a server line."
   (interactive
-   (list (completing-read "Goto server: " gnus-server-alist nil t)))
+   (list (gnus-completing-read "Goto server" (mapcar 'car gnus-server-alist) t)))
   (let ((to (text-property-any (point-min) (point-max)
 			       'gnus-server (intern server))))
     (when to
@@ -601,6 +607,18 @@ The following commands are available:
      `(lambda (form)
 	(gnus-server-set-info ,server form)
 	(gnus-server-list-servers)
+	(gnus-server-position-point))
+     'edit-server)))
+
+(defun gnus-server-show-server (server)
+  "Show the definition of the server on the current line."
+  (interactive (list (gnus-server-server-name)))
+  (unless server
+    (error "No server on current line"))
+  (let ((info (gnus-server-to-method server)))
+    (gnus-edit-form
+     info "Showing the server."
+     `(lambda (form)
 	(gnus-server-position-point))
      'edit-server)))
 
@@ -642,6 +660,30 @@ The following commands are available:
 
 (defvar gnus-browse-menu-hook nil
   "*Hook run after the creation of the browse mode menu.")
+
+(defcustom gnus-browse-subscribe-newsgroup-method
+  'gnus-subscribe-alphabetically
+  "Function(s) called when subscribing groups in the Browse Server Buffer
+A few pre-made functions are supplied: `gnus-subscribe-randomly'
+inserts new groups at the beginning of the list of groups;
+`gnus-subscribe-alphabetically' inserts new groups in strict
+alphabetic order; `gnus-subscribe-hierarchically' inserts new groups
+in hierarchical newsgroup order; `gnus-subscribe-interactively' asks
+for your decision; `gnus-subscribe-killed' kills all new groups;
+`gnus-subscribe-zombies' will make all new groups into zombies;
+`gnus-subscribe-topics' will enter groups into the topics that
+claim them."
+  :version "24.1"
+  :group 'gnus-server
+  :type '(radio (function-item gnus-subscribe-randomly)
+		(function-item gnus-subscribe-alphabetically)
+		(function-item gnus-subscribe-hierarchically)
+		(function-item gnus-subscribe-interactively)
+		(function-item gnus-subscribe-killed)
+		(function-item gnus-subscribe-zombies)
+		(function-item gnus-subscribe-topics)
+		function
+		(repeat function)))
 
 (defvar gnus-browse-mode-hook nil)
 (defvar gnus-browse-mode-map nil)
@@ -723,7 +765,8 @@ The following commands are available:
       (with-current-buffer nntp-server-buffer
 	(let ((cur (current-buffer)))
 	  (goto-char (point-min))
-	  (unless (string= gnus-ignored-newsgroups "")
+         (unless (or (null gnus-ignored-newsgroups)
+                     (string= gnus-ignored-newsgroups ""))
 	    (delete-matching-lines gnus-ignored-newsgroups))
 	  ;; We treat NNTP as a special case to avoid problems with
 	  ;; garbage group names like `"foo' that appear in some badly
@@ -779,8 +822,6 @@ The following commands are available:
 	    (funcall gnus-group-prepare-function
 		     gnus-level-killed 'ignore 1 'ignore))
 	(gnus-get-buffer-create gnus-browse-buffer)
-	(when gnus-carpal
-	  (gnus-carpal-setup-buffer 'browse))
 	(gnus-configure-windows 'browse)
 	(buffer-disable-undo)
 	(let ((buffer-read-only nil))
@@ -890,7 +931,9 @@ If NUMBER, fetch this number of articles."
   (gnus-browse-next-group (- n)))
 
 (defun gnus-browse-unsubscribe-current-group (arg)
-  "(Un)subscribe to the next ARG groups."
+  "(Un)subscribe to the next ARG groups.
+The variable `gnus-browse-subscribe-newsgroup-method' determines
+how new groups will be entered into the group buffer."
   (interactive "p")
   (when (eobp)
     (error "No group at current line"))
@@ -939,22 +982,25 @@ If NUMBER, fetch this number of articles."
 	    ;; subscribe to it.
  	    (if (gnus-ephemeral-group-p group)
 		(gnus-kill-ephemeral-group group))
-	    ;; We need to discern between killed/zombie groups and
-	    ;; just unsubscribed ones.
-	    (gnus-group-change-level
-	     (or (gnus-group-entry group)
-		 (list t group gnus-level-default-subscribed
-		       nil nil (if (gnus-server-equal
-				    gnus-browse-current-method "native")
-				   nil
-				 (gnus-method-simplify
-				  gnus-browse-current-method))))
-	     gnus-level-default-subscribed (gnus-group-level group)
-	     (and (car (nth 1 gnus-newsrc-alist))
-		  (gnus-group-entry (car (nth 1 gnus-newsrc-alist))))
-	     (null (gnus-group-entry group)))
+	    (let ((entry (gnus-group-entry group)))
+	      (if entry
+		  ;; Just change the subscription level if it is an
+		  ;; unsubscribed group.
+		  (gnus-group-change-level entry
+					   gnus-level-default-subscribed)
+		;; If it is a killed group or a zombie, feed it to the
+		;; mechanism for new group subscription.
+		(gnus-call-subscribe-functions
+		 gnus-browse-subscribe-newsgroup-method
+		 group)
+		(gnus-request-update-group-status group 'subscribe)))
 	    (delete-char 1)
-	    (insert ? ))
+	    (insert (let ((lvl (gnus-group-level group)))
+		      (cond
+		       ((< lvl gnus-level-unsubscribed) ? )
+		       ((< lvl gnus-level-zombie) ?U)
+		       ((< lvl gnus-level-killed) ?Z)
+		       (t ?K)))))
 	(gnus-group-change-level
 	 group gnus-level-unsubscribed gnus-level-default-subscribed)
 	(delete-char 1)
@@ -976,7 +1022,7 @@ If NUMBER, fetch this number of articles."
 (defun gnus-browse-describe-briefly ()
   "Give a one line description of the group mode commands."
   (interactive)
-  (gnus-message 6
+  (gnus-message 6 "%s"
 		(substitute-command-keys "\\<gnus-browse-mode-map>\\[gnus-group-next-group]:Forward  \\[gnus-group-prev-group]:Backward  \\[gnus-browse-exit]:Exit  \\[gnus-info-find-node]:Run Info  \\[gnus-browse-describe-briefly]:This help")))
 
 (defun gnus-server-regenerate-server ()
@@ -1033,5 +1079,4 @@ Requesting compaction of %s... (this may take a long time)"
 
 (provide 'gnus-srvr)
 
-;; arch-tag: c0117f64-27ca-475d-9406-8da6854c7a25
 ;;; gnus-srvr.el ends here

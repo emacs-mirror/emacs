@@ -1,7 +1,6 @@
 ;; erc.el --- An Emacs Internet Relay Chat client
 
-;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2011 Free Software Foundation, Inc.
 
 ;; Author: Alexander L. Belikoff (alexander@belikoff.net)
 ;; Contributors: Sergey Berezin (sergey.berezin@cs.cmu.edu),
@@ -12,6 +11,7 @@
 ;;               David Edmondson (dme@dme.org)
 ;; Maintainer: Michael Olson (mwolson@gnu.org)
 ;; Keywords: IRC, chat, client, Internet
+;; Version: 5.3
 
 ;; This file is part of GNU Emacs.
 
@@ -1110,7 +1110,7 @@ which the local user typed."
     (define-key map "\C-c\C-u" 'erc-kill-input)
     (define-key map "\C-c\C-x" 'erc-quit-server)
     (define-key map "\M-\t" 'ispell-complete-word)
-    (define-key map "\t" 'erc-complete-word)
+    (define-key map "\t" 'completion-at-point)
 
     ;; Suppress `font-lock-fontify-block' key binding since it
     ;; destroys face properties.
@@ -1438,19 +1438,9 @@ Defaults to the server buffer."
 
 ;; Mode activation routines
 
-(defun erc-mode ()
-  "Major mode for Emacs IRC.
-Special commands:
-
-\\{erc-mode-map}
-
-Turning on `erc-mode' runs the hook `erc-mode-hook'."
-  (kill-all-local-variables)
-  (use-local-map erc-mode-map)
-  (setq mode-name "ERC"
-	major-mode 'erc-mode
-	local-abbrev-table erc-mode-abbrev-table)
-  (set-syntax-table erc-mode-syntax-table)
+(define-derived-mode erc-mode fundamental-mode "ERC"
+  "Major mode for Emacs IRC."
+  (setq local-abbrev-table erc-mode-abbrev-table)
   (when (boundp 'next-line-add-newlines)
     (set (make-local-variable 'next-line-add-newlines) nil))
   (setq line-move-ignore-invisible t)
@@ -1458,8 +1448,7 @@ Turning on `erc-mode' runs the hook `erc-mode-hook'."
        (concat "\C-l\\|\\(^" (regexp-quote (erc-prompt)) "\\)"))
   (set (make-local-variable 'paragraph-start)
        (concat "\\(" (regexp-quote (erc-prompt)) "\\)"))
-  ;; Run the mode hooks
-  (run-hooks 'erc-mode-hook))
+  (add-hook 'completion-at-point-functions 'erc-complete-word-at-point nil t))
 
 ;; activation
 
@@ -2306,14 +2295,14 @@ If ARG is non-nil, show the *erc-protocol* buffer."
 	  (insert (erc-make-notice "This buffer displays all IRC protocol traffic exchanged with each server.\n"))
 	  (insert (erc-make-notice "Kill this buffer to terminate protocol logging.\n\n")))
 	(use-local-map (make-sparse-keymap))
-	(local-set-key (kbd "RET") 'erc-toggle-debug-irc-protocol))
+	(local-set-key (kbd "t") 'erc-toggle-debug-irc-protocol))
       (add-hook 'kill-buffer-hook
 		#'(lambda () (setq erc-debug-irc-protocol nil))
 		nil 'local)
       (goto-char (point-max))
       (let ((inhibit-read-only t))
 	(insert (erc-make-notice
-		 (format "IRC protocol logging %s at %s -- Press ENTER to toggle logging.\n"
+		 (format "IRC protocol logging %s at %s -- Press `t' to toggle logging.\n"
 			 (if erc-debug-irc-protocol "disabled" "enabled")
 			 (current-time-string))))))
     (setq erc-debug-irc-protocol (not erc-debug-irc-protocol))
@@ -3815,13 +3804,10 @@ This places `point' just after the prompt, or at the beginning of the line."
 	(setq erc-input-ring-index nil))
     (kill-line)))
 
-(defun erc-complete-word ()
-  "Complete the word before point.
+(defun erc-complete-word-at-point ()
+  (run-hook-with-args-until-success 'erc-complete-functions))
 
-This function uses `erc-complete-functions'."
-  (interactive)
-  (unless (run-hook-with-args-until-success 'erc-complete-functions)
-    (beep)))
+(define-obsolete-function-alias 'erc-complete-word 'completion-at-point "24.1")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -6365,7 +6351,8 @@ All windows are opened in the current frame."
    (s485   . "You're not the original channel operator")
    (s491   . "No O-lines for your host")
    (s501   . "Unknown MODE flag")
-   (s502   . "You can't change modes for other users")))
+   (s502   . "You can't change modes for other users")
+   (s671   . "%n %a")))
 
 (defun erc-message-english-PART (&rest args)
   "Format a proper PART message.
@@ -6540,4 +6527,3 @@ Otherwise, connect to HOST:PORT as USER and /join CHANNEL."
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: d19587f6-627e-48c1-8d86-58595fa3eca3

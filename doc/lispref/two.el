@@ -1,7 +1,6 @@
 ;; Auxiliary functions for preparing a two volume manual.
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
 
 ;; --rjc 30mar92
 
@@ -76,5 +75,4 @@ This is for the *Elisp Ref Manual*."
 (defun volume-numbers-toc-markup-I () (volume-numbers-toc-markup "I"))
 (defun volume-numbers-toc-markup-II () (volume-numbers-toc-markup "II"))
 
-;; arch-tag: 848955fe-e9cf-45e7-a2f1-570ef156d6a5
 ;;; two.el ends here

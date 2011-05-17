@@ -1,7 +1,6 @@
 ;;; ede/proj.el --- EDE Generic Project file driver
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1998-2003, 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -29,7 +28,6 @@
 ;; rebuild.  The targets provided in ede-proj can be augmented with
 ;; additional target types inherited directly from `ede-proj-target'.
 
-;; (eval-and-compile '(require 'ede))
 (require 'ede/proj-comp)
 (require 'ede/make)
 
@@ -336,7 +334,9 @@ Argument TARGET is the project we are completing customization on."
     (or (string= (file-name-nondirectory (oref this file)) f)
 	(string= (ede-proj-dist-makefile this) f)
 	(string-match "Makefile\\(\\.\\(in\\|am\\)\\)?$" f)
-	(string-match "config\\(ure\\.in\\|\\.stutus\\)?$" f)
+	(string-match "config\\(ure\\.\\(in\\|ac\\)\\|\\.status\\)?$" f)
+	(string-match "config.h\\(\\.in\\)?" f)
+	(member f '("AUTHORS" "NEWS" "COPYING" "INSTALL" "README"))
 	)))
 
 (defmethod ede-buffer-mine ((this ede-proj-target) buffer)
@@ -398,11 +398,11 @@ Argument TARGET is the project we are completing customization on."
 	     :source nil)))
 
 (defmethod project-delete-target ((this ede-proj-target))
-  "Delete the current target THIS from it's parent project."
+  "Delete the current target THIS from its parent project."
   (let ((p (ede-current-project))
 	(ts (oref this source)))
     ;; Loop across all sources.  If it exists in a buffer,
-    ;; clear it's object.
+    ;; clear its object.
     (while ts
       (let* ((default-directory (oref this path))
 	     (b (get-file-buffer (car ts))))
@@ -413,7 +413,7 @@ Argument TARGET is the project we are completing customization on."
 		    (setq ede-object nil)
 		    (ede-apply-object-keymap))))))
       (setq ts (cdr ts)))
-    ;; Remove THIS from it's parent.
+    ;; Remove THIS from its parent.
     ;; The two vectors should be pointer equivalent.
     (oset p targets (delq this (oref p targets)))
     (ede-proj-save (ede-current-project))))
@@ -447,15 +447,13 @@ FILE must be massaged by `ede-convert-path'."
 
 (defmethod project-make-dist ((this ede-proj-project))
   "Build a distribution for the project based on THIS target."
-  ;; I'm a lazy bum, so I'll make a makefile for doing this sort
-  ;; of thing, and rely only on that small section of code.
   (let ((pm (ede-proj-dist-makefile this))
 	(df (project-dist-files this)))
     (if (and (file-exists-p (car df))
 	     (not (y-or-n-p "Dist file already exists.  Rebuild? ")))
 	(error "Try `ede-update-version' before making a distribution"))
     (ede-proj-setup-buildenvironment this)
-    (if (string= (file-name-nondirectory pm) "Makefile.am")
+    (if (ede-proj-automake-p this)
 	(setq pm (expand-file-name "Makefile"
 				   (file-name-directory pm))))
     (compile (concat ede-make-command " -f " pm " dist"))))
@@ -473,7 +471,7 @@ Argument COMMAND is the command to use when compiling."
   (let ((pm (ede-proj-dist-makefile proj))
 	(default-directory (file-name-directory (oref proj file))))
     (ede-proj-setup-buildenvironment proj)
-    (if (string= (file-name-nondirectory pm) "Makefile.am")
+    (if (ede-proj-automake-p proj)
 	(setq pm (expand-file-name "Makefile"
 				   (file-name-directory pm))))
     (compile (concat ede-make-command" -f " pm " all"))))
@@ -539,7 +537,15 @@ Converts all symbols into the objects to be used."
 	    (if (ede-want-any-source-files-p (symbol-value (car st)) sources)
 		(let ((c (ede-proj-find-compiler avail (car st))))
 		  (if c (setq comp (cons c comp)))))
-	    (setq st (cdr st)))))
+	    (setq st (cdr st)))
+	  ;; Provide a good error msg.
+	  (unless comp
+	    (error "Could not find compiler match for source code extension \"%s\".
+You may need to add support for this type of file."
+		   (if sources
+		       (file-name-extension (car sources))
+		     "")))
+	  ))
       ;; Return the disovered compilers
       comp)))
 
@@ -664,19 +670,9 @@ Optional argument FORCE will force items to be regenerated."
   (let ((root (or (ede-project-root this) this))
 	)
     (setq ede-projects (delq root ede-projects))
-    (ede-proj-load (ede-project-root-directory root))
+    (ede-load-project-file (ede-project-root-directory root))
     ))
-
-(defmethod project-rescan ((this ede-proj-target) readstream)
-  "Rescan target THIS from the read list READSTREAM."
-  (setq readstream (cdr (cdr readstream))) ;; constructor/name
-  (while readstream
-    (let ((tag (car readstream))
-	  (val (car (cdr readstream))))
-      (eieio-oset this tag val))
-    (setq readstream (cdr (cdr readstream)))))
 
 (provide 'ede/proj)
 
-;; arch-tag: eb8a40f8-0d2c-41c4-b273-af04101d1cdf
 ;;; ede/proj.el ends here

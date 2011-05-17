@@ -1,7 +1,6 @@
 ;;; calc-vec.el --- vector functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -451,16 +450,18 @@
      (calc-enter-result 1 "grad" (list 'calcFunc-grade (calc-top-n 1))))))
 
 (defun calc-histogram (n)
-  (interactive "NNumber of bins: ")
+  (interactive "P")
+  (unless (natnump n)
+    (setq n (math-read-expr (read-string "Centers of bins: "))))
   (calc-slow-wrapper
    (if calc-hyperbolic-flag
        (calc-enter-result 2 "hist" (list 'calcFunc-histogram
 					 (calc-top-n 2)
 					 (calc-top-n 1)
-					 (prefix-numeric-value n)))
+					 n))
      (calc-enter-result 1 "hist" (list 'calcFunc-histogram
 				       (calc-top-n 1)
-				       (prefix-numeric-value n))))))
+                                       n)))))
 
 (defun calc-transpose (arg)
   (interactive "P")
@@ -758,12 +759,13 @@
 	  (math-reject-arg n "*Index out of range")))))
 
 (defun calcFunc-subscr (mat n &optional m)
-  (setq mat (calcFunc-mrow mat n))
-  (if m
-      (if (math-num-integerp n)
-	  (calcFunc-mrow mat m)
-	(calcFunc-mcol mat m))
-    mat))
+  (if (eq (car-safe mat) 'var) nil
+    (setq mat (calcFunc-mrow mat n))
+    (if m
+        (if (math-num-integerp n)
+            (calcFunc-mrow mat m)
+          (calcFunc-mcol mat m))
+      mat)))
 
 ;;; Get the Nth column of a matrix.
 (defun math-mat-col (mat n)
@@ -1135,22 +1137,53 @@
   (if (Math-vectorp wts)
       (or (= (length vec) (length wts))
 	  (math-dimension-error)))
-  (or (natnump n)
-      (math-reject-arg n 'fixnatnump))
-  (let ((res (make-vector n 0))
-	(vp vec)
-	(wvec (Math-vectorp wts))
-	(wp wts)
-	bin)
-    (while (setq vp (cdr vp))
-      (setq bin (car vp))
-      (or (natnump bin)
-	  (setq bin (math-floor bin)))
-      (and (natnump bin)
-	   (< bin n)
-	   (aset res bin (math-add (aref res bin)
-				   (if wvec (car (setq wp (cdr wp))) wts)))))
-    (cons 'vec (append res nil))))
+  (cond ((natnump n)
+         (let ((res (make-vector n 0))
+               (vp vec)
+               (wvec (Math-vectorp wts))
+               (wp wts)
+               bin)
+           (while (setq vp (cdr vp))
+             (setq bin (car vp))
+             (or (natnump bin)
+                 (setq bin (math-floor bin)))
+            (and (natnump bin)
+                 (< bin n)
+                 (aset res bin 
+                       (math-add (aref res bin)
+                                 (if wvec (car (setq wp (cdr wp))) wts)))))
+           (cons 'vec (append res nil))))
+        ((Math-vectorp n) ;; n is a vector of midpoints
+         (let* ((bds (math-vector-avg n))
+                (res (make-vector (1- (length n)) 0))
+                (vp (cdr vec))
+                (wvec (Math-vectorp wts))
+                (wp wts)
+                num)
+           (while vp
+             (setq num (car vp))
+             (let ((tbds (cdr bds))
+                   (i 0))
+               (while (and tbds (Math-lessp (car tbds) num))
+                 (setq i (1+ i))
+                 (setq tbds (cdr tbds)))
+               (aset res i 
+                     (math-add (aref res i)
+                               (if wvec (car (setq wp (cdr wp))) wts))))
+             (setq vp (cdr vp)))
+           (cons 'vec (append res nil))))
+        (t
+         (math-reject-arg n "*Expecting an integer or vector"))))
+
+;;; Replace a vector [a b c ...] with a vector of averages
+;;; [(a+b)/2 (b+c)/2 ...]
+(defun math-vector-avg (vec)
+  (let ((vp (sort (copy-sequence (cdr vec)) 'math-beforep))
+        (res nil))
+    (while (and vp (cdr vp))
+      (setq res (cons (math-div (math-add (car vp) (cadr vp)) 2) res)
+            vp (cdr vp)))
+    (cons 'vec (reverse res))))
 
 
 ;;; Set operations.
@@ -1642,5 +1675,4 @@ of two matrices is a matrix."
 
 (provide 'calc-vec)
 
-;; arch-tag: 7902a7af-ec69-440a-8635-ebb4db263402
 ;;; calc-vec.el ends here

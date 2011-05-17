@@ -1,7 +1,6 @@
 ;;; mh-compat.el --- make MH-E compatibile with various versions of Emacs
 
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2006-2011  Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -315,5 +314,4 @@ XEmacs."
 ;; sentence-end-double-space: nil
 ;; End:
 
-;; arch-tag: 577b0eab-a5cd-45e1-8d9f-c1a426f4d73c
 ;;; mh-compat.el ends here

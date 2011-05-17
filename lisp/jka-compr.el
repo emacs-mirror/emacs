@@ -1,7 +1,6 @@
 ;;; jka-compr.el --- reading/writing/loading compressed files
 
-;; Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 1997, 1999-2011 Free Software Foundation, Inc.
 
 ;; Author: jka@ece.cmu.edu (Jay K. Adams)
 ;; Maintainer: FSF
@@ -166,8 +165,11 @@ to keep: LEN chars starting BEG chars from the beginning."
 	  (unwind-protect
 	      (or (memq (call-process
 			 jka-compr-shell infile t nil "-c"
+			 ;; Windows shells need the program file name
+			 ;; after the pipe symbol be quoted if they use
+			 ;; forward slashes as directory separators.
 			 (format
-			  "%s %s 2> %s | %s bs=%d skip=%d %s 2> %s"
+			  "%s %s 2> %s | \"%s\" bs=%d skip=%d %s 2> %s"
 			  prog
 			  (mapconcat 'identity args " ")
 			  err-file
@@ -181,7 +183,7 @@ to keep: LEN chars starting BEG chars from the beginning."
 			  null-device))
 			jka-compr-acceptable-retval-list)
 		  (jka-compr-error prog args infile message err-file))
-	    (delete-file err-file t)))
+	    (delete-file err-file)))
 
       ;; Run the uncompression program directly.
       ;; We get the whole file and must delete what we don't want.
@@ -223,7 +225,7 @@ to keep: LEN chars starting BEG chars from the beginning."
 					   "")))
 		   jka-compr-acceptable-retval-list)
 		  (jka-compr-error prog args infile message err-file))
-	    (delete-file err-file t)))
+	    (delete-file err-file)))
       (or (eq 0
 	      (apply 'call-process
 		     prog infile (if (stringp output) temp output)
@@ -245,7 +247,7 @@ There should be no more than seven characters after the final `/'."
   :type 'string
   :group 'jka-compr)
 
-(defun jka-compr-make-temp-name (&optional local-copy)
+(defun jka-compr-make-temp-name (&optional _local-copy)
   "This routine will return the name of a new file."
   (make-temp-file jka-compr-temp-name-template))
 
@@ -335,7 +337,7 @@ There should be no more than seven characters after the final `/'."
 						(and append can-append) 'dont))
 	      (erase-buffer)) )
 
-	  (delete-file temp-file t)
+	  (delete-file temp-file)
 
 	  (and
 	   compress-message
@@ -570,7 +572,7 @@ There should be no more than seven characters after the final `/'."
 
 
 ;; Support for loading compressed files.
-(defun jka-compr-load (file &optional noerror nomessage nosuffix)
+(defun jka-compr-load (file &optional noerror nomessage _nosuffix)
   "Documented as original."
 
   (let* ((local-copy (jka-compr-file-local-copy file))
@@ -701,5 +703,4 @@ by `jka-compr-installed'."
 
 (provide 'jka-compr)
 
-;; arch-tag: 3f15b630-e9a7-46c4-a22a-94afdde86ebc
 ;;; jka-compr.el ends here

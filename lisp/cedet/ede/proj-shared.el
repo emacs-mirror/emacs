@@ -1,6 +1,6 @@
 ;;; ede-proj-shared.el --- EDE Generic Project shared library support
 
-;;; Copyright (C) 1998, 1999, 2000, 2009, 2010 Free Software Foundation, Inc.
+;;; Copyright (C) 1998-2000, 2009-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -34,15 +34,15 @@
 ;;; Code:
 (defclass ede-proj-target-makefile-shared-object
   (ede-proj-target-makefile-program)
-  ((availablecompilers :initform (ede-gcc-libtool-shared-compiler
-				  ;;ede-gcc-shared-compiler
-				  ede-g++-libtool-shared-compiler
-				  ;;ede-g++-shared-compiler
-				  ))
-   (availablelinkers :initform (ede-cc-linker-libtool
-				ede-g++-linker-libtool
-				;; Add more linker thingies here.
-				))
+  ((availablecompilers :initform '(ede-gcc-libtool-shared-compiler
+				   ;;ede-gcc-shared-compiler
+				   ede-g++-libtool-shared-compiler
+				   ;;ede-g++-shared-compiler
+				   ))
+   (availablelinkers :initform '(ede-cc-linker-libtool
+				 ede-g++-linker-libtool
+				 ;; Add more linker thingies here.
+				 ))
    (ldflags :custom (repeat (string :tag "Libtool flag"))
 	    :documentation
 	    "Additional flags to add when linking this shared library.
@@ -124,7 +124,7 @@ Use ldlibs to add addition libraries.")
 	 :rules (list (ede-makefile-rule
 		       "c++-inference-rule-libtool"
 		       :target "%.o"
-		       :dependencies "%.c"
+		       :dependencies "%.cpp"
 		       :rules '("@echo '$(LTCOMPILE) -o $@ $<'; \\"
 				"$(LTCOMPILE) -o $@ $<"
 				)
@@ -207,5 +207,4 @@ We need to override -program which has an LDADD element."
 
 (provide 'ede/proj-shared)
 
-;; arch-tag: 05f22c3e-b269-4411-9425-65e8fe4ab74a
 ;;; ede/proj-shared.el ends here

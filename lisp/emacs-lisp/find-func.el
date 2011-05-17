@@ -1,7 +1,6 @@
 ;;; find-func.el --- find the definition of the Emacs Lisp function near point
 
-;; Copyright (C) 1997, 1999, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Jens Petersen <petersen@kurims.kyoto-u.ac.jp>
 ;; Maintainer: petersen@kurims.kyoto-u.ac.jp
@@ -213,6 +212,8 @@ LIBRARY should be a string (the name of the library)."
   (interactive
    (let* ((dirs (or find-function-source-path load-path))
           (suffixes (find-library-suffixes))
+          (table (apply-partially 'locate-file-completion-table
+                                  dirs suffixes))
 	  (def (if (eq (function-called-at-point) 'require)
 		   ;; `function-called-at-point' may return 'require
 		   ;; with `point' anywhere on this line.  So wrap the
@@ -226,16 +227,12 @@ LIBRARY should be a string (the name of the library)."
 			 (thing-at-point 'symbol))
 		     (error nil))
 		 (thing-at-point 'symbol))))
-     (when def
-       (setq def (and (locate-file-completion-table
-                       dirs suffixes def nil 'lambda)
-                      def)))
+     (when (and def (not (test-completion def table)))
+       (setq def nil))
      (list
       (completing-read (if def (format "Library name (default %s): " def)
 			 "Library name: ")
-		       (apply-partially 'locate-file-completion-table
-                                        dirs suffixes)
-                       nil nil nil nil def))))
+		       table nil nil nil nil def))))
   (let ((buf (find-file-noselect (find-library-name library))))
     (condition-case nil (switch-to-buffer buf) (error (pop-to-buffer buf)))))
 
@@ -565,5 +562,4 @@ Set mark before moving, if the buffer already existed."
 
 (provide 'find-func)
 
-;; arch-tag: 43ecd81c-74dc-4d9a-8f63-a61e55670d64
 ;;; find-func.el ends here

@@ -1,7 +1,7 @@
 ;;; telnet.el --- run a telnet session from within an Emacs buffer
 
-;; Copyright (C) 1985, 1988, 1992, 1994, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1988, 1992, 1994, 2001-2011
+;;   Free Software Foundation, Inc.
 
 ;; Author: William F. Schelter
 ;; Maintainer: FSF
@@ -61,7 +61,15 @@ PROGRAM says which program to run, to talk to that machine.
 LOGIN-NAME, which is optional, says what to log in as on that machine.")
 
 (defvar telnet-new-line "\r")
-(defvar telnet-mode-map nil)
+(defvar telnet-mode-map
+  (let ((map (nconc (make-sparse-keymap) comint-mode-map)))
+    (define-key map "\C-m" 'telnet-send-input)
+    ;; (define-key map "\C-j" 'telnet-send-input)
+    (define-key map "\C-c\C-q" 'send-process-next-char)
+    (define-key map "\C-c\C-c" 'telnet-interrupt-subjob)
+    (define-key map "\C-c\C-z" 'telnet-c-z)
+    map))
+
 (defvar telnet-prompt-pattern "^[^#$%>\n]*[#$%>] *")
 (defvar telnet-replace-c-g nil)
 (make-variable-buffer-local
@@ -103,16 +111,6 @@ rejecting one login and prompting again for a username and password.")
                         (let ((inhibit-quit t))
                           (prog1 (read-char)
                             (setq quit-flag nil))))))
-
-; initialization on first load.
-(if telnet-mode-map
-    nil
-  (setq telnet-mode-map (nconc (make-sparse-keymap) comint-mode-map))
-  (define-key telnet-mode-map "\C-m" 'telnet-send-input)
-;  (define-key telnet-mode-map "\C-j" 'telnet-send-input)
-  (define-key telnet-mode-map "\C-c\C-q" 'send-process-next-char)
-  (define-key telnet-mode-map "\C-c\C-c" 'telnet-interrupt-subjob)
-  (define-key telnet-mode-map "\C-c\C-z" 'telnet-c-z))
 
 ;;maybe should have a flag for when have found type
 (defun telnet-check-software-type-initialize (string)
@@ -265,5 +263,4 @@ Normally input is edited in Emacs and sent a line at a time."
 
 (provide 'telnet)
 
-;; arch-tag: 98218821-d04a-48b6-9058-57d0d4677a56
 ;;; telnet.el ends here

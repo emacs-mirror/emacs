@@ -1,6 +1,6 @@
-;;; mailclient.el --- mail sending via system's mail client.  -*- byte-compile-dynamic: t -*-
+;;; mailclient.el --- mail sending via system's mail client.
 
-;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation
+;; Copyright (C) 2005-2011 Free Software Foundation
 
 ;; Author: David Reitter <david.reitter@gmail.com>
 ;; Keywords: mail
@@ -46,6 +46,7 @@
 
 (require 'sendmail)   ;; for mail-sendmail-undelimit-header
 (require 'mail-utils) ;; for mail-fetch-field
+(require 'browse-url)
 
 (defcustom mailclient-place-body-on-clipboard-flag
   (fboundp 'w32-set-clipboard-data)
@@ -122,7 +123,10 @@ The mail client is taken to be the handler of mailto URLs."
 	  (while (and (re-search-forward "\n\n\n*" delimline t)
 		      (< (point) delimline))
 	    (replace-match "\n"))
-	  (let ((case-fold-search t))
+	  (let ((case-fold-search t)
+		;; Use the external browser function to send the
+		;; message.
+		(browse-url-mailto-function nil))
 	    ;; initialize limiter
 	    (setq mailclient-delim-static "?")
 	    ;; construct and call up mailto URL
@@ -170,5 +174,4 @@ The mail client is taken to be the handler of mailto URLs."
 
 (provide 'mailclient)
 
-;; arch-tag: 35d10fc8-a1bc-4f29-a4e6-c288e53578ef
 ;;; mailclient.el ends here

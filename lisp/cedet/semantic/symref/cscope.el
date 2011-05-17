@@ -1,6 +1,6 @@
 ;;; semantic/symref/cscope.el --- Semantic-symref support via cscope.
 
-;;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;;; Copyright (C) 2009-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -27,7 +27,7 @@
 (require 'semantic/symref)
 
 (defvar ede-minor-mode)
-(declare-function ede-toplevel "ede/files")
+(declare-function ede-toplevel "ede/base")
 (declare-function ede-project-root-directory "ede/files")
 
 ;;; Code:
@@ -91,5 +91,4 @@ Moves cursor to end of the match."
 ;; generated-autoload-load-name: "semantic/symref/cscope"
 ;; End:
 
-;; arch-tag: 7c0a4e02-ade4-407a-9df7-4f948bd61a19
 ;;; semantic/symref/cscope.el ends here

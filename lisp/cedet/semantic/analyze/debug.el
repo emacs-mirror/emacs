@@ -1,6 +1,6 @@
 ;;; semantic/analyze/debug.el --- Debug the analyzer
 
-;;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+;;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -54,6 +54,8 @@
 
     ))
 
+;; @TODO - If this happens, but the last found type is
+;; a datatype, then the below is wrong
 (defun semantic-analyzer-debug-found-prefix (ctxt)
   "Debug the prefix found by the analyzer output CTXT."
   (let* ((pf (oref ctxt prefix))
@@ -97,7 +99,7 @@ Argument COMP are possible completions here."
 	)
     (with-output-to-temp-buffer (help-buffer)
       (with-current-buffer standard-output
-	(princ "Unable to find prefix ")
+	(princ "Unable to find symbol ")
 	(princ prefix)
 	(princ ".\n\n")
 
@@ -217,7 +219,7 @@ Argument COMP are possible completions here."
     (when (not dt) (error "Missing Innertype debugger is confused"))
     (with-output-to-temp-buffer (help-buffer)
       (with-current-buffer standard-output
-	(princ "Cannot find prefix \"")
+	(princ "Cannot find symbol \"")
 	(princ prefixitem)
 	(princ "\" in datatype:
   ")
@@ -550,24 +552,25 @@ PARENT is a possible parent (by nesting) tag."
   (let ((str (semantic-format-tag-prototype tag parent)))
     (if (and (semantic-tag-with-position-p tag)
 	     (semantic-tag-file-name tag))
-	(insert-button str
-		       'mouse-face 'custom-button-pressed-face
-		       'tag tag
-		       'action
-		       `(lambda (button)
-			  (let ((buff nil)
-				(pnt nil))
-			    (save-excursion
-			      (semantic-go-to-tag
-			       (button-get button 'tag))
-			      (setq buff (current-buffer))
-			      (setq pnt (point)))
-			    (if (get-buffer-window buff)
-				(select-window (get-buffer-window buff))
-			      (pop-to-buffer buff t))
-			    (goto-char pnt)
-			    (pulse-line-hook-function)))
-		       )
+	(with-current-buffer standard-output
+	  (insert-button str
+			 'mouse-face 'custom-button-pressed-face
+			 'tag tag
+			 'action
+			 `(lambda (button)
+			    (let ((buff nil)
+				  (pnt nil))
+			      (save-excursion
+				(semantic-go-to-tag
+				 (button-get button 'tag))
+				(setq buff (current-buffer))
+				(setq pnt (point)))
+			      (if (get-buffer-window buff)
+				  (select-window (get-buffer-window buff))
+				(pop-to-buffer buff t))
+			      (goto-char pnt)
+			      (pulse-line-hook-function)))
+			 ))
       (princ "\"")
       (princ str)
       (princ "\""))
@@ -583,34 +586,28 @@ Look for key expressions, and add push-buttons near them."
     (set-marker orig-buffer (point) (current-buffer))
     ;; Get a buffer ready.
     (with-current-buffer "*Help*"
-      (toggle-read-only -1)
-      (goto-char (point-min))
-      (set (make-local-variable 'semantic-analyzer-debug-orig) orig-buffer)
-      ;; First, add do-in buttons to recommendations.
-      (while (re-search-forward "^\\s-*M-x \\(\\(\\w\\|\\s_\\)+\\) " nil t)
-	(let ((fcn (match-string 1)))
-	  (when (not (fboundp (intern-soft fcn)))
-	    (error "Help Err: Can't find %s" fcn))
-	  (end-of-line)
-	  (insert "   ")
-	  (insert-button "[ Do It ]"
-			 'mouse-face 'custom-button-pressed-face
-			 'do-fcn fcn
-			 'action `(lambda (arg)
-				    (let ((M semantic-analyzer-debug-orig))
-				      (set-buffer (marker-buffer M))
-				      (goto-char M))
-				    (call-interactively (quote ,(intern-soft fcn))))
-			 )
-	  ))
+      (let ((inhibit-read-only t))
+	(goto-char (point-min))
+	(set (make-local-variable 'semantic-analyzer-debug-orig) orig-buffer)
+	;; First, add do-in buttons to recommendations.
+	(while (re-search-forward "^\\s-*M-x \\(\\(\\w\\|\\s_\\)+\\) " nil t)
+	  (let ((fcn (match-string 1)))
+	    (when (not (fboundp (intern-soft fcn)))
+	      (error "Help Err: Can't find %s" fcn))
+	    (end-of-line)
+	    (insert "   ")
+	    (insert-button "[ Do It ]"
+			   'mouse-face 'custom-button-pressed-face
+			   'do-fcn fcn
+			   'action `(lambda (arg)
+				      (let ((M semantic-analyzer-debug-orig))
+					(set-buffer (marker-buffer M))
+					(goto-char M))
+				      (call-interactively (quote ,(intern-soft fcn))))))))
       ;; Do something else?
-
       ;; Clean up the mess
-      (toggle-read-only 1)
-      (set-buffer-modified-p nil)
-      )))
+      (set-buffer-modified-p nil))))
 
 (provide 'semantic/analyze/debug)
 
-;; arch-tag: 943db1e5-47e6-4bec-9989-78ebfadf0358
 ;;; semantic/analyze/debug.el ends here

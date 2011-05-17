@@ -1,6 +1,6 @@
 // testtypedefs.cpp --- Sample with some fake bits out of std::string
 
-// Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+// Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 // Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -79,4 +79,3 @@ int main()
   return 0;
 }
 
-// arch-tag: 5a841384-8685-4344-bf45-15d3db19a87b

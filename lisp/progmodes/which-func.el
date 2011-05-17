@@ -1,7 +1,6 @@
 ;;; which-func.el --- print current function in mode line
 
-;; Copyright (C) 1994, 1997, 1998, 2001, 2002, 2003, 2004, 2005, 2006
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1997-1998, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author:   Alex Rezinsky <alexr@msil.sps.mot.com>
 ;;           (doesn't seem to be responsive any more)
@@ -145,14 +144,16 @@ Zero means compute the Imenu menu regardless of size."
 		 local-map ,which-func-keymap
 		 face which-func
 		 ;;mouse-face highlight	; currently not evaluated :-(
-		 help-echo "mouse-1: go to beginning, mouse-2: toggle rest visibility, mouse-3: go to end")
+		 help-echo "mouse-1: go to beginning\n\
+mouse-2: toggle rest visibility\n\
+mouse-3: go to end")
     "]")
   "Format for displaying the function in the mode line."
   :group 'which-func
   :type 'sexp)
 ;;;###autoload (put 'which-func-format 'risky-local-variable t)
 
-(defvar which-func-imenu-joiner-function #'last
+(defvar which-func-imenu-joiner-function (lambda (x) (car (last x)))
   "Function to join together multiple levels of imenu nomenclature.
 Called with a single argument, a list of strings giving the names
 of the menus we had to traverse to get to the item.  Returns a
@@ -196,7 +197,7 @@ It creates the Imenu index for the buffer, if necessary."
 	     (or (eq which-func-modes t)
 		 (member major-mode which-func-modes))))
 
-  (condition-case nil
+  (condition-case err
       (if (and which-func-mode
 	       (not (member major-mode which-func-non-auto-modes))
 	       (or (null which-func-maxout)
@@ -205,6 +206,7 @@ It creates the Imenu index for the buffer, if necessary."
 	  (setq imenu--index-alist
 		(save-excursion (funcall imenu-create-index-function))))
     (error
+     (message "which-func-ff-hook error: %S" err)
      (setq which-func-mode nil))))
 
 (defun which-func-update ()
@@ -223,7 +225,7 @@ It creates the Imenu index for the buffer, if necessary."
 	      (force-mode-line-update)))
 	(error
 	 (setq which-func-mode nil)
-	 (error "Error in which-func-update: %s" info))))))
+	 (error "Error in which-func-update: %S" info))))))
 
 ;;;###autoload
 (defalias 'which-func-mode 'which-function-mode)
@@ -240,6 +242,9 @@ continuously displayed in the mode line, in certain major modes.
 With prefix ARG, turn Which Function mode on if arg is positive,
 and off otherwise."
   :global t :group 'which-func
+  (when (timerp which-func-update-timer)
+    (cancel-timer which-func-update-timer))
+  (setq which-func-update-timer nil)
   (if which-function-mode
       ;;Turn it on
       (progn
@@ -251,9 +256,6 @@ and off otherwise."
                   (or (eq which-func-modes t)
                       (member major-mode which-func-modes))))))
     ;; Turn it off
-    (when (timerp which-func-update-timer)
-      (cancel-timer which-func-update-timer))
-    (setq which-func-update-timer nil)
     (dolist (buf (buffer-list))
       (with-current-buffer buf (setq which-func-mode nil)))))
 
@@ -268,7 +270,7 @@ It calls them sequentially, and if any returns non-nil,
 (defun which-function ()
   "Return current function name based on point.
 Uses `which-func-functions', `imenu--index-alist'
-or `add-log-current-defun-function'.
+or `add-log-current-defun'.
 If no function name is found, return nil."
   (let ((name
 	 ;; Try the `which-func-functions' functions first.
@@ -280,8 +282,7 @@ If no function name is found, return nil."
 	       (null which-function-imenu-failed))
       (imenu--make-index-alist t)
       (unless imenu--index-alist
-	(make-local-variable 'which-function-imenu-failed)
-	(setq which-function-imenu-failed t)))
+        (set (make-local-variable 'which-function-imenu-failed) t)))
     ;; If we have an index alist, use it.
     (when (and (null name)
 	       (boundp 'imenu--index-alist) imenu--index-alist)
@@ -292,34 +293,35 @@ If no function name is found, return nil."
         ;; ("submenu" ("name" . marker) ... ). The list can be
         ;; arbitrarily nested.
         (while (or alist imstack)
-          (if alist
-              (progn
-                (setq pair (car-safe alist)
-                      alist (cdr-safe alist))
+          (if (null alist)
+              (setq alist     (car imstack)
+                    namestack (cdr namestack)
+                    imstack   (cdr imstack))
 
-                (cond ((atom pair))     ; skip anything not a cons
+            (setq pair (car-safe alist)
+                  alist (cdr-safe alist))
 
-                      ((imenu--subalist-p pair)
-                       (setq imstack   (cons alist imstack)
-                             namestack (cons (car pair) namestack)
-                             alist     (cdr pair)))
+            (cond
+             ((atom pair))              ; Skip anything not a cons.
 
-                      ((number-or-marker-p (setq mark (cdr pair)))
-                       (if (>= (setq offset (- (point) mark)) 0)
-                           (if (< offset minoffset) ; find the closest item
-                               (setq minoffset offset
-                                     name (funcall
-                                           which-func-imenu-joiner-function
-					   (reverse (cons (car pair)
-							  namestack)))))))))
-            (setq alist     (car imstack)
-                  namestack (cdr namestack)
-                  imstack   (cdr imstack))))))
+             ((imenu--subalist-p pair)
+              (setq imstack   (cons alist imstack)
+                    namestack (cons (car pair) namestack)
+                    alist     (cdr pair)))
+
+             ((number-or-marker-p (setq mark (cdr pair)))
+              (when (and (>= (setq offset (- (point) mark)) 0)
+                         (< offset minoffset)) ; Find the closest item.
+                (setq minoffset offset
+                      name (if (null which-func-imenu-joiner-function)
+                               (car pair)
+                             (funcall
+                              which-func-imenu-joiner-function
+                              (reverse (cons (car pair) namestack))))))))))))
 
     ;; Try using add-log support.
-    (when (and (null name) (boundp 'add-log-current-defun-function)
-	       add-log-current-defun-function)
-      (setq name (funcall add-log-current-defun-function)))
+    (when (null name)
+      (setq name (add-log-current-defun)))
     ;; Filter the name if requested.
     (when name
       (if which-func-cleanup-function
@@ -328,5 +330,4 @@ If no function name is found, return nil."
 
 (provide 'which-func)
 
-;; arch-tag: fa8a55c7-bfe3-4ffc-95ab-01bf21796827
 ;;; which-func.el ends here

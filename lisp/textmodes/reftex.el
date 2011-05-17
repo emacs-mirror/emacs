@@ -1,6 +1,5 @@
 ;;; reftex.el --- minor mode for doing \label, \ref, \cite, \index in LaTeX
-;; Copyright (C) 1997, 1998, 1999, 2000, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2000, 2003-2011 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -568,7 +567,7 @@ on the menu bar.
   "Save RefTeX's parse file for this buffer if the information has changed."
   ;; Save the parsing information if it was modified.
   ;; This function should be installed in `kill-buffer-hook'.
-  ;; We are careful to make sure nothing goes wring in this function.
+  ;; We are careful to make sure nothing goes wrong in this function.
   (when (and (boundp 'reftex-mode)  reftex-mode
              (boundp 'reftex-save-parse-info)  reftex-save-parse-info
              (boundp 'reftex-docstruct-symbol)  reftex-docstruct-symbol
@@ -599,7 +598,6 @@ on the menu bar.
 (defvar font-lock-mode)
 (defvar font-lock-keywords)
 (defvar font-lock-fontify-region-function)
-(defvar font-lock-syntactic-keywords)
 
 ;;; =========================================================================
 ;;;
@@ -2399,7 +2397,7 @@ IGNORE-WORDS List of words which should be removed from the string."
   (define-key reftex-mode-map
     reftex-extra-bindings-prefix
     reftex-extra-bindings-map))
-    
+
 
 ;;; =========================================================================
 ;;;
@@ -2570,7 +2568,8 @@ With optional NODE, go directly to that node."
 ;;; Install the kill-buffer and kill-emacs hooks ------------------------------
 
 (add-hook 'kill-buffer-hook 'reftex-kill-buffer-hook)
-(add-hook 'kill-emacs-hook  'reftex-kill-emacs-hook)
+(unless noninteractive
+  (add-hook 'kill-emacs-hook  'reftex-kill-emacs-hook))
 
 ;;; Run Hook ------------------------------------------------------------------
 
@@ -2583,5 +2582,4 @@ With optional NODE, go directly to that node."
 
 ;;;============================================================================
 
-;; arch-tag: 49e0da4e-bd5e-4cfc-a717-fb444fccb9e6
 ;;; reftex.el ends here

@@ -5,8 +5,7 @@
 @copying
 This file describes EDE, the Emacs Development Environment.
 
-Copyright @copyright{} 1998, 1999, 2000, 2001, 2004, 2005, 2008, 2009, 2010
-Free Software Foundation, Inc.
+Copyright @copyright{} 1998-2001, 2004-2005, 2008-2011  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -22,9 +21,9 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs misc features
 @direntry
-* ede: (ede).       Project management for Emacs
+* EDE: (ede).                   The Emacs Development Environment.
 @end direntry
 
 @titlepage
@@ -129,27 +128,26 @@ information.
 @node EDE Mode, Creating a project, EDE Project Concepts, top
 @chapter @ede{} Mode
 
-@ede{} is implemented as a minor-mode, which augments other modes such
+@ede{} is implemented as a minor mode, which augments other modes such
 as C mode, and Texinfo mode.  You can enable @ede{} for all buffers by
 running the command @code{global-ede-mode}, or by putting this in your
-@file{~/.emacs} file:
+init file:
 
 @example
 (global-ede-mode t)
 @end example
 
-When @ede{} is active for a given buffer, the menu item
-``Development'' appears.  This menu provides several menu items for
-high-level @ede{} commands.  These menu items, and their corresponding
-keybindings, are independent of the type of project you are actually
-working on.
+Activating @ede{} adds a menu named @samp{Development} to the menu
+bar.  This menu provides several menu items for high-level @ede{}
+commands.  These menu items, and their corresponding keybindings, are
+independent of the type of project you are actually working on.
 
 @node Creating a project, Modifying your project, EDE Mode, top
 @chapter Creating a project
 
 To create a new project, first visit a file that you want to include
-in that project.  If you have a hierarchy of directories, choose a
-file in the topmost directory first.  From this buffer, type @kbd{M-x
+in that project.  If you have a hierarchy of directories, first visit
+a file in the topmost directory.  From this buffer, type @kbd{M-x
 ede-new}, or click on the @samp{Create Project} item in the
 @samp{Development} menu.
 
@@ -220,8 +218,8 @@ detailed information about exactly what these features do.
 @node Add/Remove target, Add/Remove files, Modifying your project, Modifying your project
 @section Add/Remove target
 
-To create a new target, type @kbd{C-c . t} (@code{M-x ede-new-target})
-or use the @samp{Add Target} menu item in the @samp{Project Options}
+To create a new target, type @kbd{C-c . t} (@code{ede-new-target}) or
+use the @samp{Add Target} menu item in the @samp{Project Options}
 submenu.  This prompts for a target name, and adds the current buffer
 to that target.
 
@@ -237,13 +235,13 @@ Options} submenu.
 @section Add/Remove files
 
 To add the current file to an existing target, type @kbd{C-c . a}
-(@code{ede-add-file}), or or use the @samp{Add File} menu item in the
+(@code{ede-add-file}), or use the @samp{Add File} menu item in the
 @samp{Target Options} submenu.
 
 You can add a file to more than one target; this is OK.
 
 To remove the current file from a target, type @kbd{C-c . d}
-(@code{ede-remove-file}), or or use the @samp{Remove File} menu item
+(@code{ede-remove-file}), or use the @samp{Remove File} menu item
 in the @samp{Target Options} submenu.  If the file belongs to multiple
 targets, this command prompts for each target it could be removed
 from.
@@ -405,8 +403,8 @@ lookup for @semantic{}, improving code completion performance.
 @menu
 * ede-cpp-root::        This project marks the root of a C/C++ code project.
 * ede-simple subclassing:: Create your own simple project.
-* ede-emacs::		A project for working with Emacs.
-* ede-linux::		A project for working with Linux kernels.
+* ede-emacs::           A project for working with Emacs.
+* ede-linux::           A project for working with Linux kernels.
 * Custom Locate::       Customizing how to locate files in a simple project
 @end menu
 
@@ -526,14 +524,14 @@ Return nil if there isn't one."
   )
 
 (add-to-list 'ede-project-class-files
-	     (ede-project-autoload "cpp-root"
-	      :name "CPP ROOT"
-	      :file 'ede-cpp-root
-	      :proj-file 'MY-FILE-FOR-DIR
+             (ede-project-autoload "cpp-root"
+              :name "CPP ROOT"
+              :file 'ede-cpp-root
+              :proj-file 'MY-FILE-FOR-DIR
               :proj-root 'MY-ROOT-FCN
-	      :load-type 'MY-LOAD
-	      :class-sym 'ede-cpp-root)
-	     t)
+              :load-type 'MY-LOAD
+              :class-sym 'ede-cpp-root)
+             t)
 @end example
 
 This example only creates an auto-loader, and does not create a new kind
@@ -752,9 +750,9 @@ Here is an example for an instantiation of an Emacs Lisp source code object:
 @example
 (defvar ede-source-emacs
   (ede-sourcecode "ede-emacs-source"
-		  :name "Emacs Lisp"
-		  :sourcepattern "\\.el$"
-		  :garbagepattern '("*.elc"))
+                  :name "Emacs Lisp"
+                  :sourcepattern "\\.el$"
+                  :garbagepattern '("*.elc"))
   "Emacs Lisp source code definition.")
 @end example
 
@@ -2125,7 +2123,7 @@ Results in --add-missing being passed to automake.
 @end deffn
 
 @deffn Method ede-proj-flush-autoconf :AFTER this
-Flush the configure file (current buffer) to accomodate @var{THIS}.
+Flush the configure file (current buffer) to accommodate @var{THIS}.
 By flushing, remove any cruft that may be in the file.  Subsequent
 calls to @dfn{ede-proj-tweak-autoconf} can restore items removed by flush.
 @end deffn
@@ -2176,7 +2174,7 @@ These are removed with make clean.
 @end deffn
 
 @deffn Method ede-proj-tweak-autoconf :AFTER this
-Tweak the configure file (current buffer) to accomodate @var{THIS}.
+Tweak the configure file (current buffer) to accommodate @var{THIS}.
 @end deffn
 
 @deffn Method ede-proj-compilers :AFTER obj
@@ -2686,7 +2684,7 @@ Bonus: Return a cons cell: (COMPILED . UPTODATE).
 @end deffn
 
 @deffn Method ede-proj-flush-autoconf :AFTER this
-Flush the configure file (current buffer) to accomodate @var{THIS}.
+Flush the configure file (current buffer) to accommodate @var{THIS}.
 @end deffn
 
 @deffn Method ede-buffer-mine :AFTER this buffer
@@ -2699,7 +2697,7 @@ Return the variable name for @var{THIS}'s sources.
 @end deffn
 
 @deffn Method ede-proj-tweak-autoconf :AFTER this
-Tweak the configure file (current buffer) to accomodate @var{THIS}.
+Tweak the configure file (current buffer) to accommodate @var{THIS}.
 @end deffn
 
 @deffn Method ede-update-version-in-source :AFTER this version
@@ -2779,7 +2777,7 @@ Create or update the autoload target.
 @end deffn
 
 @deffn Method ede-proj-flush-autoconf :AFTER this
-Flush the configure file (current buffer) to accomodate @var{THIS}.
+Flush the configure file (current buffer) to accommodate @var{THIS}.
 @end deffn
 
 @deffn Method ede-buffer-mine :AFTER this buffer
@@ -2798,7 +2796,7 @@ Argument @var{THIS} is the target which needs to insert an info file.
 @end deffn
 
 @deffn Method ede-proj-tweak-autoconf :AFTER this
-Tweak the configure file (current buffer) to accomodate @var{THIS}.
+Tweak the configure file (current buffer) to accommodate @var{THIS}.
 @end deffn
 
 @deffn Method ede-update-version-in-source :AFTER this version
@@ -3010,7 +3008,7 @@ The preferred interpreter for this code.
 @subsubsection Specialized Methods
 
 @deffn Method ede-proj-tweak-autoconf :AFTER this
-Tweak the configure file (current buffer) to accomodate @var{THIS}.
+Tweak the configure file (current buffer) to accommodate @var{THIS}.
 @end deffn
 
 
@@ -3538,7 +3536,7 @@ For example, C code uses .o on unix, and Emacs Lisp uses .elc.
 @subsubsection Specialized Methods
 
 @deffn Method ede-proj-flush-autoconf :AFTER this
-Flush the configure file (current buffer) to accomodate @var{THIS}.
+Flush the configure file (current buffer) to accommodate @var{THIS}.
 @end deffn
 
 @deffn Method ede-proj-makefile-insert-rules :AFTER this
@@ -3560,7 +3558,7 @@ Retrieves the slot @code{sourcetype} from an object of class @code{ede-compilati
 @end deffn
 
 @deffn Method ede-proj-tweak-autoconf :AFTER this
-Tweak the configure file (current buffer) to accomodate @var{THIS}.
+Tweak the configure file (current buffer) to accommodate @var{THIS}.
 @end deffn
 
 
@@ -3792,7 +3790,3 @@ For example, C code uses .o on unix, and Emacs Lisp uses .elc.
 @end table
 
 @bye
-
-@ignore
-   arch-tag: c9bfdc6e-e6e9-4e87-97f7-d8348342fbf4
-@end ignore

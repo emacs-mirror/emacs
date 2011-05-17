@@ -1,5 +1,5 @@
 # eucjp-ms.awk -- Generate a translation table for eucJP-ms.
-# Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
+# Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #   National Institute of Advanced Industrial Science and Technology (AIST)
 #   Registration Number H13PRO009
 
@@ -106,8 +106,5 @@ END {
   print "	      (setcar x (cdr x)) (setcdr x tmp)))";
   print "	map)";
   print "  (define-translation-table 'eucjp-ms-encode map))";
-  print "";
-  print ";; arch-tag: c4191096-288a-4f13-9b2a-ee7a1f11eb4a";
 }
 
-# arch-tag: d9cc7af7-2d6e-48cd-8eed-a6d25226de7c

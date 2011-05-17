@@ -2,7 +2,8 @@
 rem   ----------------------------------------------------------------------
 rem   Configuration script for MSDOS
 rem   Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002, 2003
-rem   2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+rem   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation,
+rem   Inc.
 
 rem   This file is part of GNU Emacs.
 
@@ -23,7 +24,7 @@ rem   ----------------------------------------------------------------------
 rem   YOU'LL NEED THE FOLLOWING UTILITIES TO MAKE EMACS:
 rem
 rem   + msdos version 3 or better.
-rem   + DJGPP version 1.12maint1 or later (version 2.03 or later recommended).
+rem   + DJGPP version 2.0 or later (version 2.03 or later recommended).
 rem   + make utility that allows breaking of the 128 chars limit on
 rem     command lines.  ndmake (as of version 4.5) won't work due to a
 rem     line length limit.  The make that comes with DJGPP does work (and is
@@ -38,6 +39,7 @@ set X11=
 set nodebug=
 set djgpp_ver=
 set sys_malloc=
+set libxml=
 if "%1" == "" goto usage
 rem   ----------------------------------------------------------------------
 rem   See if their environment is large enough.  We need 28 bytes.
@@ -125,11 +127,10 @@ rm -f junk.c junk junk.exe
 Echo To compile 'Emacs' under MS-DOS you MUST have DJGPP installed!
 Goto End
 :go32Ok
-set djgpp_ver=1
-If ErrorLevel 20 set djgpp_ver=2
+set djgpp_ver=2
+If Not ErrorLevel 20 Echo To build 'Emacs' you need DJGPP v2.0 or later!
+If Not ErrorLevel 20 Goto End
 rm -f junk.c junk junk.exe
-rem The v1.x build does not need djecho
-if "%DJGPP_VER%" == "1" Goto djechoOk
 rem DJECHO is used by the top-level Makefile in the v2.x build
 Echo Checking whether 'djecho' is available...
 redir -o Nul -eo djecho -o junk.$$$ foo
@@ -155,16 +156,11 @@ rm -f epaths.tmp
 
 rem   Create "config.h"
 rm -f config.h2 config.tmp
-sed -e '' config.in > config.tmp
+sed -e '' ../autogen/config.in > config.tmp
 if "%X11%" == "" goto src4
-sed -f ../msdos/sed2x.inp <config.in >config.tmp
+sed -f ../msdos/sed2x.inp < ..\autogen\config.in > config.tmp
 :src4
-if "%DJGPP_VER%" == "2" Goto src41
-sed -f ../msdos/sed2.inp <config.tmp >config.h2
-goto src42
-:src41
 sed -f ../msdos/sed2v2.inp <config.tmp >config.h2
-:src42
 Rem See if DECL_ALIGN can be supported with this GCC
 rm -f junk.c junk.o junk junk.exe
 echo struct { int i; char *p; } __attribute__((__aligned__(8))) foo;  >junk.c
@@ -181,6 +177,24 @@ rem The following line disables DECL_ALIGN which in turn disables USE_LSB_TAG
 rem For details see lisp.h where it defines USE_LSB_TAG
 echo #define NO_DECL_ALIGN >>config.h2
 :alignOk
+Rem See if they have libxml2 later than v2.2.0 installed
+Echo Checking whether libxml2 v2.2.1 or later is installed ...
+rm -f junk.c junk.o junk junk.exe
+rem Use djecho here because we need to quote brackets
+djecho "#include <libxml/xmlversion.h>"             >junk.c
+djecho "int main()"                                 >>junk.c
+djecho "{return (LIBXML_VERSION > 20200 ? 0 : 1);}" >>junk.c
+redir -o Nul -eo gcc -I/dev/env/DJDIR/include/libxml2 -o junk junk.c
+if not exist junk Goto xmlDone
+if not exist junk.exe coff2exe junk
+junk
+If ErrorLevel 1 Goto xmlDone
+Echo Configuring with libxml2 ...
+sed -e "/#undef HAVE_LIBXML2/s/^.*$/#define HAVE_LIBXML2 1/" <config.h2 >config.h3
+mv config.h3 config.h2
+set libxml=1
+:xmlDone
+rm -f junk.c junk junk.exe
 Rem See if they requested a SYSTEM_MALLOC build
 if "%sys_malloc%" == "" Goto cfgDone
 rm -f config.tmp
@@ -196,15 +210,10 @@ rem   On my system dir.h gets in the way.  It's a VMS file so who cares.
 if exist dir.h ren dir.h vmsdir.h
 
 rem   Create "makefile" from "makefile.in".
-rm -f Makefile junk.c
-sed -e "1,/== start of cpp stuff ==/s@^# .*$@@" <Makefile.in >junk.c
-If "%DJGPP_VER%" == "1" Goto mfV1
-gcc -E -traditional junk.c | sed -f ../msdos/sed1v2.inp >Makefile
-goto mfDone
-:mfV1
-gcc -E -traditional junk.c | sed -f ../msdos/sed1.inp >Makefile
-:mfDone
-rm -f junk.c
+rm -f Makefile makefile.tmp
+copy Makefile.in+deps.mk makefile.tmp
+sed -f ../msdos/sed1v2.inp <makefile.tmp >Makefile
+rm -f makefile.tmp
 
 if "%X11%" == "" goto src5
 mv Makefile makefile.tmp
@@ -212,25 +221,34 @@ sed -f ../msdos/sed1x.inp <makefile.tmp >Makefile
 rm -f makefile.tmp
 :src5
 
+if "%sys_malloc%" == "" goto src5a
+sed -e "/^GMALLOC_OBJ *=/s/gmalloc.o//" <Makefile >makefile.tmp
+sed -e "/^VMLIMIT_OBJ *=/s/vm-limit.o//" <makefile.tmp >makefile.tmp2
+sed -e "/^RALLOC_OBJ *=/s/ralloc.o//" <makefile.tmp2 >Makefile
+rm -f makefile.tmp makefile.tmp2
+:src5a
+
 if "%nodebug%" == "" goto src6
 sed -e "/^CFLAGS *=/s/ *-gcoff//" <Makefile >makefile.tmp
 sed -e "/^LDFLAGS *=/s/=/=-s/" <makefile.tmp >Makefile
 rm -f makefile.tmp
 :src6
+
+if "%libxml%" == "" goto src7
+sed -e "/^LIBXML2_LIBS *=/s/=/= -lxml2 -lz -liconv/" <Makefile >makefile.tmp
+sed -e "/^LIBXML2_CFLAGS *=/s|=|= -I/dev/env/DJDIR/include/libxml2|" <makefile.tmp >Makefile
+rm -f makefile.tmp
+:src7
 cd ..
 rem   ----------------------------------------------------------------------
 Echo Configuring the library source directory...
 cd lib-src
-rem   Create "makefile" from "makefile.in".
-sed -e "1,/== start of cpp stuff ==/s@^##*[ 	].*$@@" <Makefile.in >junk.c
-gcc -E -traditional -I. -I../src junk.c | sed -e "s/^ /	/" -e "/^#/d" -e "/^[ 	]*$/d" >makefile.new
-If "%DJGPP_VER%" == "2" goto libsrc-v2
-sed -f ../msdos/sed3.inp <makefile.new >Makefile
-Goto libsrc2
-:libsrc-v2
-sed -f ../msdos/sed3v2.inp <makefile.new >Makefile
-:libsrc2
-rm -f makefile.new junk.c
+sed -f ../msdos/sed3v2.inp <Makefile.in >Makefile
+if "%X11%" == "" goto libsrc2a
+mv Makefile makefile.tmp
+sed -f ../msdos/sed3x.inp <makefile.tmp >Makefile
+rm -f makefile.tmp
+:libsrc2a
 if "%nodebug%" == "" goto libsrc3
 sed -e "/^CFLAGS *=/s/ *-gcoff//" <Makefile >makefile.tmp
 sed -e "/^ALL_CFLAGS *=/s/=/= -s/" <makefile.tmp >Makefile
@@ -256,8 +274,32 @@ Rem supports long file names but DJGPP does not
 for %%d in (emacs lispref lispintro lispintr misc) do sed -f ../msdos/sed6.inp < %%d\Makefile.in > %%d\Makefile
 cd ..
 rem   ----------------------------------------------------------------------
+Echo Configuring the lib directory...
+If Exist c++defs.h update c++defs.h cxxdefs.h
+cd lib
+Rem Rename files like djtar on plain DOS filesystem would.
+If Exist c++defs.h update c++defs.h cxxdefs.h
+If Exist getopt.in.h update getopt.in.h getopt.in-h
+If Exist stdbool.in.h update stdbool.in.h stdbool.in-h
+If Exist stddef.in.h update stddef.in.h  stddef.in-h
+If Exist stdint.in.h update stdint.in.h  stdint.in-h
+If Exist stdio.in.h update stdio.in.h stdio.in-h
+If Exist stdlib.in.h update stdlib.in.h stdlib.in-h
+If Exist sys_stat.in.h update sys_stat.in.h sys_stat.in-h
+If Exist time.in.h update time.in.h time.in-h
+If Exist unistd.in.h update unistd.in.h unistd.in-h
+sed -f ../msdos/sedlibcf.inp < ..\autogen\Makefile.in > makefile.tmp
+sed -f ../msdos/sedlibmk.inp < makefile.tmp > Makefile
+rm -f makefile.tmp
+Rem Create .Po files for new files in lib/
+If Not Exist deps\stamp mkdir deps
+for %%f in (*.c) do @call ..\msdos\depfiles.bat %%f
+echo deps-stamp > deps\stamp
+cd ..
+rem   ----------------------------------------------------------------------
 Echo Configuring the lisp directory...
 cd lisp
+If Exist gnus\.dir-locals.el update gnus/.dir-locals.el gnus/_dir-locals.el
 sed -f ../msdos/sedlisp.inp < Makefile.in > Makefile
 cd ..
 rem   ----------------------------------------------------------------------
@@ -271,7 +313,6 @@ rem   ----------------------------------------------------------------------
 Echo Configuring the main directory...
 If Exist .dir-locals.el update .dir-locals.el _dir-locals.el
 If Exist src\.dbxinit update src/.dbxinit src/_dbxinit
-If "%DJGPP_VER%" == "1" goto mainv1
 Echo Looking for the GDB init file...
 If Exist src\.gdbinit update src/.gdbinit src/_gdbinit
 If Exist src\_gdbinit goto gdbinitOk
@@ -286,8 +327,6 @@ goto End
 :gdbinitOk
 Echo Looking for the GDB init file...found
 copy msdos\mainmake.v2 Makefile >nul
-:mainv1
-If "%DJGPP_VER%" == "1" copy msdos\mainmake Makefile >nul
 rem   ----------------------------------------------------------------------
 goto End
 :SmallEnv
@@ -299,7 +338,5 @@ set X11=
 set nodebug=
 set djgpp_ver=
 set sys_malloc=
+set libxml=
 
-goto skipArchTag
-   arch-tag: 2d2fed23-4dc6-4006-a2e4-49daf0031f33
-:skipArchTag

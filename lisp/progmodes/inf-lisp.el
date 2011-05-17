@@ -1,7 +1,6 @@
 ;;; inf-lisp.el --- an inferior-lisp mode
 
-;; Copyright (C) 1988, 1993, 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;; Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1993-1994, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;; Keywords: processes, lisp
@@ -80,19 +79,17 @@ mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
   :type 'regexp
   :group 'inferior-lisp)
 
-(defvar inferior-lisp-mode-map nil)
-(unless inferior-lisp-mode-map
-  (setq inferior-lisp-mode-map (copy-keymap comint-mode-map))
-  (set-keymap-parent inferior-lisp-mode-map lisp-mode-shared-map)
-  (define-key inferior-lisp-mode-map "\C-x\C-e" 'lisp-eval-last-sexp)
-  (define-key inferior-lisp-mode-map "\C-c\C-l" 'lisp-load-file)
-  (define-key inferior-lisp-mode-map "\C-c\C-k" 'lisp-compile-file)
-  (define-key inferior-lisp-mode-map "\C-c\C-a" 'lisp-show-arglist)
-  (define-key inferior-lisp-mode-map "\C-c\C-d" 'lisp-describe-sym)
-  (define-key inferior-lisp-mode-map "\C-c\C-f"
-    'lisp-show-function-documentation)
-  (define-key inferior-lisp-mode-map "\C-c\C-v"
-    'lisp-show-variable-documentation))
+(defvar inferior-lisp-mode-map
+  (let ((map (copy-keymap comint-mode-map)))
+    (set-keymap-parent map lisp-mode-shared-map)
+    (define-key map "\C-x\C-e" 'lisp-eval-last-sexp)
+    (define-key map "\C-c\C-l" 'lisp-load-file)
+    (define-key map "\C-c\C-k" 'lisp-compile-file)
+    (define-key map "\C-c\C-a" 'lisp-show-arglist)
+    (define-key map "\C-c\C-d" 'lisp-describe-sym)
+    (define-key map "\C-c\C-f" 'lisp-show-function-documentation)
+    (define-key map "\C-c\C-v" 'lisp-show-variable-documentation)
+    map))
 
 ;;; These commands augment Lisp mode, so you can process Lisp code in
 ;;; the source files.
@@ -218,7 +215,7 @@ buffer with \\[set-variable].")
 
 (put 'inferior-lisp-mode 'mode-class 'special)
 
-(defun inferior-lisp-mode ()
+(define-derived-mode inferior-lisp-mode comint-mode "Inferior Lisp"
   "Major mode for interacting with an inferior Lisp process.
 Runs a Lisp interpreter as a subprocess of Emacs, with Lisp I/O through an
 Emacs buffer.  Variable `inferior-lisp-program' controls which Lisp interpreter
@@ -265,18 +262,11 @@ If `comint-use-prompt-regexp' is nil (the default), \\[comint-insert-input] on o
 Paragraphs are separated only by blank lines.  Semicolons start comments.
 If you accidentally suspend your process, use \\[comint-continue-subjob]
 to continue it."
-  (interactive)
-  (delay-mode-hooks
-    (comint-mode))
   (setq comint-prompt-regexp inferior-lisp-prompt)
-  (setq major-mode 'inferior-lisp-mode)
-  (setq mode-name "Inferior Lisp")
   (setq mode-line-process '(":%s"))
   (lisp-mode-variables t)
-  (use-local-map inferior-lisp-mode-map)    ;c-c c-k for "kompile" file
   (setq comint-get-old-input (function lisp-get-old-input))
-  (setq comint-input-filter (function lisp-input-filter))
-  (run-mode-hooks 'inferior-lisp-mode-hook))
+  (setq comint-input-filter (function lisp-input-filter)))
 
 (defun lisp-get-old-input ()
   "Return a string containing the sexp ending at point."
@@ -602,7 +592,7 @@ See variable `lisp-describe-sym-command'."
 ;;  "Returns the current inferior Lisp process.
 ;; See variable `inferior-lisp-buffer'."
 (defun inferior-lisp-proc ()
-  (let ((proc (get-buffer-process (if (eq major-mode 'inferior-lisp-mode)
+  (let ((proc (get-buffer-process (if (derived-mode-p 'inferior-lisp-mode)
 				      (current-buffer)
 				    inferior-lisp-buffer))))
     (or proc
@@ -662,5 +652,4 @@ See variable `lisp-describe-sym-command'."
 
 (provide 'inf-lisp)
 
-;; arch-tag: 5b74abc3-a085-4b91-8ab8-8da6899d3b92
 ;;; inf-lisp.el ends here

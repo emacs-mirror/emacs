@@ -1,7 +1,6 @@
 ;;; 5x5.el --- simple little puzzle game
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: Dave Pearson <davep@davep.org>
 ;; Maintainer: Dave Pearson <davep@davep.org>
@@ -108,12 +107,7 @@
 (defvar 5x5-buffer-name "*5x5*"
   "Name of the 5x5 play buffer.")
 
-(defvar 5x5-mode-map nil
-  "Local keymap for the 5x5 game.")
-
-;; Keymap.
-
-(unless 5x5-mode-map
+(defvar 5x5-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map t)
     (define-key map "?"                       #'describe-mode)
@@ -141,7 +135,8 @@
     (define-key map [(control c) (control x)] #'5x5-crack-xor-mutate)
     (define-key map "n"                       #'5x5-new-game)
     (define-key map "q"                       #'5x5-quit-game)
-    (setq 5x5-mode-map map)))
+    map)
+  "Local keymap for the 5x5 game.")
 
 ;; Menu definition.
 
@@ -373,15 +368,15 @@ should return a grid vector array that is the new solution."
                                       (5x5-copy-grid best-solution)))))
   (setq 5x5-cracking nil))
 
-(defun 5x5-make-random-solution (&rest ignore)
+(defun 5x5-make-random-solution (&rest _ignore)
   "Make a random solution."
   (5x5-make-random-grid))
 
-(defun 5x5-make-mutate-current (current best)
+(defun 5x5-make-mutate-current (current _best)
   "Mutate the current solution."
   (5x5-mutate-solution current))
 
-(defun 5x5-make-mutate-best (current best)
+(defun 5x5-make-mutate-best (_current best)
   "Mutate the best solution."
   (5x5-mutate-solution best))
 
@@ -516,5 +511,4 @@ in progress because it is an animated attempt."
 
 (provide '5x5)
 
-;; arch-tag: ec4dabd5-572d-41ea-b48c-ec5ce0d68fa9
 ;;; 5x5.el ends here

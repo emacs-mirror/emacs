@@ -1,11 +1,11 @@
-;;; help-fns.el --- Complex help functions
+;;; help-fns.el --- Complex help functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help, internal
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -76,15 +76,18 @@ DEF is the function whose usage we're looking for in DOCSTRING."
 		  ;; Replace `fn' with the actual function name.
 		  (if (consp def) "anonymous" def)
 		  (match-string 1 docstring))
-	  (substring docstring 0 (match-beginning 0)))))
+	  (unless (zerop (match-beginning 0))
+            (substring docstring 0 (match-beginning 0))))))
 
+;; FIXME: Move to subr.el?
 (defun help-add-fundoc-usage (docstring arglist)
   "Add the usage info to DOCSTRING.
 If DOCSTRING already has a usage info, then just return it unchanged.
 The usage info is built from ARGLIST.  DOCSTRING can be nil.
 ARGLIST can also be t or a string of the form \"(FUN ARG1 ARG2 ...)\"."
-  (unless (stringp docstring) (setq docstring "Not documented"))
-  (if (or (string-match "\n\n(fn\\(\\( .*\\)?)\\)\\'" docstring) (eq arglist t))
+  (unless (stringp docstring) (setq docstring ""))
+  (if (or (string-match "\n\n(fn\\(\\( .*\\)?)\\)\\'" docstring)
+          (eq arglist t))
       docstring
     (concat docstring
 	    (if (string-match "\n?\n\\'" docstring)
@@ -95,18 +98,61 @@ ARGLIST can also be t or a string of the form \"(FUN ARG1 ARG2 ...)\"."
 		(concat "(fn" (match-string 1 arglist) ")")
 	      (format "%S" (help-make-usage 'fn arglist))))))
 
-(defun help-function-arglist (def)
+;; FIXME: Move to subr.el?
+(defun help-function-arglist (def &optional preserve-names)
+  "Return a formal argument list for the function DEF.
+IF PRESERVE-NAMES is non-nil, return a formal arglist that uses
+the same names as used in the original source code, when possible."
   ;; Handle symbols aliased to other symbols.
   (if (and (symbolp def) (fboundp def)) (setq def (indirect-function def)))
   ;; If definition is a macro, find the function inside it.
   (if (eq (car-safe def) 'macro) (setq def (cdr def)))
   (cond
-   ((byte-code-function-p def) (aref def 0))
+   ((and (byte-code-function-p def) (listp (aref def 0))) (aref def 0))
    ((eq (car-safe def) 'lambda) (nth 1 def))
+   ((eq (car-safe def) 'closure) (nth 2 def))
+   ((or (and (byte-code-function-p def) (integerp (aref def 0)))
+        (subrp def))
+    (or (when preserve-names
+          (let* ((doc (condition-case nil (documentation def) (error nil)))
+                 (docargs (if doc (car (help-split-fundoc doc nil))))
+                 (arglist (if docargs
+                              (cdar (read-from-string (downcase docargs)))))
+                 (valid t))
+            ;; Check validity.
+            (dolist (arg arglist)
+              (unless (and (symbolp arg)
+                           (let ((name (symbol-name arg)))
+                             (if (eq (aref name 0) ?&)
+                                 (memq arg '(&rest &optional))
+                               (not (string-match "\\." name)))))
+                (setq valid nil)))
+            (when valid arglist)))
+        (let* ((args-desc (if (not (subrp def))
+                              (aref def 0)
+                            (let ((a (subr-arity def)))
+                              (logior (car a)
+                                      (if (numberp (cdr a))
+                                          (lsh (cdr a) 8)
+                                        (lsh 1 7))))))
+               (max (lsh args-desc -8))
+               (min (logand args-desc 127))
+               (rest (logand args-desc 128))
+               (arglist ()))
+          (dotimes (i min)
+            (push (intern (concat "arg" (number-to-string (1+ i)))) arglist))
+          (when (> max min)
+            (push '&optional arglist)
+            (dotimes (i (- max min))
+              (push (intern (concat "arg" (number-to-string (+ 1 i min))))
+                    arglist)))
+          (unless (zerop rest) (push '&rest arglist) (push 'rest arglist))
+          (nreverse arglist))))
    ((and (eq (car-safe def) 'autoload) (not (eq (nth 4 def) 'keymap)))
     "[Arg list not available until function definition is loaded.]")
    (t t)))
 
+;; FIXME: Move to subr.el?
 (defun help-make-usage (function arglist)
   (cons (if (symbolp function) function 'anonymous)
 	(mapcar (lambda (arg)
@@ -117,8 +163,11 @@ ARGLIST can also be t or a string of the form \"(FUN ARG1 ARG2 ...)\"."
 				(cdr arg))
 			arg)
 		    (let ((name (symbol-name arg)))
-		      (if (string-match "\\`&" name) arg
-			(intern (upcase name))))))
+		      (cond
+                       ((string-match "\\`&" name) arg)
+                       ((string-match "\\`_" name)
+                        (intern (upcase (substring name 1))))
+                       (t (intern (upcase name)))))))
 		arglist)))
 
 ;; Could be this, if we make symbol-file do the work below.
@@ -190,7 +239,7 @@ if the variable `help-downcase-arguments' is non-nil."
                  doc t t 1)))))
 
 (defun help-highlight-arguments (usage doc &rest args)
-  (when usage
+  (when (and usage (string-match "^(" usage))
     (with-temp-buffer
       (insert usage)
       (goto-char (point-min))
@@ -231,8 +280,8 @@ if the variable `help-downcase-arguments' is non-nil."
   "Guess the file that defined the Lisp object OBJECT, of type TYPE.
 OBJECT should be a symbol associated with a function, variable, or face;
   alternatively, it can be a function definition.
-If TYPE is `variable', search for a variable definition.
-If TYPE is `face', search for a face definition.
+If TYPE is `defvar', search for a variable definition.
+If TYPE is `defface', search for a face definition.
 If TYPE is the value returned by `symbol-function' for a function symbol,
  search for a function definition.
 
@@ -288,13 +337,19 @@ suitable file is found, return nil."
      ((not (stringp file-name))
       ;; If we don't have a file-name string by now, we lost.
       nil)
+     ;; Now, `file-name' should have become an absolute file name.
+     ;; For files loaded from ~/.emacs.elc, try ~/.emacs.
+     ((let (fn)
+	(and (string-equal file-name
+			   (expand-file-name ".emacs.elc" "~"))
+	     (file-readable-p (setq fn (expand-file-name ".emacs" "~")))
+	     fn)))
+     ;; When the Elisp source file can be found in the install
+     ;; directory, return the name of that file.
      ((let ((lib-name
 	     (if (string-match "[.]elc\\'" file-name)
 		 (substring-no-properties file-name 0 -1)
 	       file-name)))
-	;; When the Elisp source file can be found in the install
-	;; directory return the name of that file - `file-name' should
-	;; have become an absolute file name ny now.
 	(or (and (file-readable-p lib-name) lib-name)
 	    ;; The library might be compressed.
 	    (and (file-readable-p (concat lib-name ".gz")) lib-name))))
@@ -347,8 +402,7 @@ suitable file is found, return nil."
          (pt1 (with-current-buffer (help-buffer) (point)))
 	 errtype)
     (setq string
-	  (cond ((or (stringp def)
-		     (vectorp def))
+	  (cond ((or (stringp def) (vectorp def))
 		 "a keyboard macro")
 		((subrp def)
 		 (if (eq 'unevalled (cdr (subr-arity def)))
@@ -367,6 +421,8 @@ suitable file is found, return nil."
 		 (concat beg "Lisp function"))
 		((eq (car-safe def) 'macro)
 		 "a Lisp macro")
+		((eq (car-safe def) 'closure)
+		 (concat beg "Lisp closure"))
 		((eq (car-safe def) 'autoload)
 		 (format "%s autoloaded %s"
 			 (if (commandp def) "an interactive" "an")
@@ -470,7 +526,8 @@ suitable file is found, return nil."
       (let* ((advertised (gethash def advertised-signature-table t))
 	     (arglist (if (listp advertised)
 			  advertised (help-function-arglist def)))
-	     (doc (documentation function))
+	     (doc (condition-case err (documentation function)
+                    (error (format "No Doc! %S" err))))
 	     (usage (help-split-fundoc doc function)))
 	(with-current-buffer standard-output
 	  ;; If definition is a keymap, skip arglist note.
@@ -527,6 +584,7 @@ If ANY-SYMBOL is non-nil, don't insist the symbol be bound."
   (with-syntax-table emacs-lisp-mode-syntax-table
     (or (condition-case ()
 	    (save-excursion
+	      (skip-chars-forward "'")
 	      (or (not (zerop (skip-syntax-backward "_w")))
 		  (eq (char-syntax (following-char)) ?w)
 		  (eq (char-syntax (following-char)) ?_)
@@ -585,9 +643,9 @@ it is displayed along with the global value."
 				     "Describe variable (default %s): " v)
 				  "Describe variable: ")
 				obarray
-				'(lambda (vv)
-				   (or (boundp vv)
-				       (get vv 'variable-documentation)))
+				(lambda (vv)
+                                  (or (get vv 'variable-documentation)
+                                      (and (boundp vv) (not (keywordp vv)))))
 				t nil nil
 				(if (symbolp v) (symbol-name v))))
      (list (if (equal val "")
@@ -632,21 +690,30 @@ it is displayed along with the global value."
 		(if valvoid
 		    (princ " is void as a variable.")
 		  (princ "'s "))))
-	    (if valvoid
-		nil
+	    (unless valvoid
 	      (with-current-buffer standard-output
 		(setq val-start-pos (point))
 		(princ "value is ")
-		(terpri)
 		(let ((from (point)))
+		  (terpri)
 		  (pp val)
-		  ;; Hyperlinks in variable's value are quite frequently
-		  ;; inappropriate e.g C-h v <RET> features <RET>
-		  ;; (help-xref-on-pp from (point))
-		  (if (< (point) (+ from 20))
-		      (delete-region (1- from) from)))))
+		  (if (< (point) (+ 68 (line-beginning-position 0)))
+		      (delete-region from (1+ from))
+		    (delete-region (1- from) from))
+		  (let* ((sv (get variable 'standard-value))
+			 (origval (and (consp sv)
+				       (condition-case nil
+					   (eval (car sv))
+					 (error :help-eval-error)))))
+		    (when (and (consp sv)
+                               (not (equal origval val))
+                               (not (equal origval :help-eval-error)))
+		      (princ "\nOriginal value was \n")
+		      (setq from (point))
+		      (pp origval)
+		      (if (< (point) (+ from 20))
+			  (delete-region (1- from) from)))))))
 	    (terpri)
-
 	    (when locus
 	      (if (bufferp locus)
 		  (princ (format "%socal in buffer %s; "
@@ -732,15 +799,21 @@ it is displayed along with the global value."
 		(setq extra-line t)
 		(if (member (cons variable val) dir-local-variables-alist)
 		    (let ((file (and (buffer-file-name)
-				     (not (file-remote-p (buffer-file-name)))
-				     (dir-locals-find-file (buffer-file-name)))))
+                                      (not (file-remote-p (buffer-file-name)))
+                                      (dir-locals-find-file
+                                       (buffer-file-name))))
+                          (type "file"))
 		      (princ "  This variable is a directory local variable")
 		      (when file
-			(princ (concat "\n  from the file \""
-				       (if (consp file)
-					   (car file)
-					 file)
-				       "\"")))
+                        (if (consp file) ; result from cache
+                            ;; If the cache element has an mtime, we
+                            ;; assume it came from a file.
+                            (if (nth 2 file)
+                                (setq file (expand-file-name
+                                            dir-locals-file (car file)))
+                              ;; Otherwise, assume it was set directly.
+                              (setq type "directory")))
+			(princ (format "\n  from the %s \"%s\"" type file)))
 		      (princ ".\n"))
 		  (princ "  This variable is a file local variable.\n")))
 
@@ -815,7 +888,7 @@ BUFFER defaults to the current buffer."
   (insert (cond
 	   ((null value) "default")
 	   ((char-table-p value) "deeper char-table ...")
-	   (t (condition-case err
+	   (t (condition-case nil
 		  (category-set-mnemonics value)
 		(error "invalid"))))))
 
@@ -873,7 +946,111 @@ BUFFER should be a buffer or a buffer name."
 	  (insert "\nThe parent category table is:")
 	  (describe-vector table 'help-describe-category-set))))))
 
+
+;;; Replacements for old lib-src/ programs.  Don't seem especially useful.
+
+;; Replaces lib-src/digest-doc.c.
+;;;###autoload
+(defun doc-file-to-man (file)
+  "Produce an nroff buffer containing the doc-strings from the DOC file."
+  (interactive (list (read-file-name "Name of DOC file: " doc-directory
+                                     internal-doc-file-name t)))
+  (or (file-readable-p file)
+      (error "Cannot read file `%s'" file))
+  (pop-to-buffer (generate-new-buffer "*man-doc*"))
+  (setq buffer-undo-list t)
+  (insert ".TH \"Command Summary for GNU Emacs\"\n"
+          ".AU Richard M. Stallman\n")
+  (insert-file-contents file)
+  (let (notfirst)
+    (while (search-forward "" nil 'move)
+      (if (looking-at "S")
+          (delete-region (1- (point)) (line-end-position))
+        (delete-char -1)
+        (if notfirst
+            (insert "\n.DE\n")
+          (setq notfirst t))
+        (insert "\n.SH ")
+        (insert (if (looking-at "F") "Function " "Variable "))
+        (delete-char 1)
+        (forward-line 1)
+        (insert ".DS L\n"))))
+  (insert "\n.DE\n")
+  (setq buffer-undo-list nil)
+  (nroff-mode))
+
+;; Replaces lib-src/sorted-doc.c.
+;;;###autoload
+(defun doc-file-to-info (file)
+  "Produce a texinfo buffer with sorted doc-strings from the DOC file."
+  (interactive (list (read-file-name "Name of DOC file: " doc-directory
+                                     internal-doc-file-name t)))
+  (or (file-readable-p file)
+      (error "Cannot read file `%s'" file))
+  (let ((i 0) type name doc alist)
+    (with-temp-buffer
+      (insert-file-contents file)
+      ;; The characters "@{}" need special treatment.
+      (while (re-search-forward "[@{}]" nil t)
+        (backward-char)
+        (insert "@")
+        (forward-char 1))
+      (goto-char (point-min))
+      (while (search-forward "" nil t)
+        (unless (looking-at "S")
+          (setq type (char-after)
+                name (buffer-substring (1+ (point)) (line-end-position))
+                doc (buffer-substring (line-beginning-position 2)
+                                      (if (search-forward  "" nil 'move)
+                                          (1- (point))
+                                        (point)))
+                alist (cons (list name type doc) alist))
+          (backward-char 1))))
+    (pop-to-buffer (generate-new-buffer "*info-doc*"))
+    (setq buffer-undo-list t)
+    ;; Write the output header.
+    (insert "\\input texinfo  @c -*-texinfo-*-\n"
+            "@setfilename emacsdoc.info\n"
+            "@settitle Command Summary for GNU Emacs\n"
+            "@finalout\n"
+            "\n@node Top\n"
+            "@unnumbered Command Summary for GNU Emacs\n\n"
+            "@table @asis\n\n"
+            "@iftex\n"
+            "@global@let@ITEM@item\n"
+            "@def@item{@filbreak@vskip5pt@ITEM}\n"
+            "@font@tensy cmsy10 scaled @magstephalf\n"
+            "@font@teni cmmi10 scaled @magstephalf\n"
+            "@def\\{{@tensy@char110}}\n" ; this backslash goes with cmr10
+            "@def|{{@tensy@char106}}\n"
+            "@def@{{{@tensy@char102}}\n"
+            "@def@}{{@tensy@char103}}\n"
+            "@def<{{@teni@char62}}\n"
+            "@def>{{@teni@char60}}\n"
+            "@chardef@@64\n"
+            "@catcode43=12\n"
+            "@tableindent-0.2in\n"
+            "@end iftex\n")
+    ;; Sort the array by name; within each name, by type (functions first).
+    (setq alist (sort alist (lambda (e1 e2)
+                              (if (string-equal (car e1) (car e2))
+                                  (<= (cadr e1) (cadr e2))
+                                (string-lessp (car e1) (car e2))))))
+    ;; Print each function.
+    (dolist (e alist)
+      (insert "\n@item "
+              (if (char-equal (cadr e) ?\F) "Function" "Variable")
+              " @code{" (car e) "}\n@display\n"
+              (nth 2 e)
+              "\n@end display\n")
+      ;; Try to avoid a save size overflow in the TeX output routine.
+      (if (zerop (setq i (% (1+ i) 100)))
+          (insert "\n@end table\n@table @asis\n")))
+    (insert "@end table\n"
+            "@bye\n")
+    (setq buffer-undo-list nil)
+    (texinfo-mode)))
+
 (provide 'help-fns)
 
-;; arch-tag: 9e10331c-ae81-4d13-965d-c4819aaab0b3
 ;;; help-fns.el ends here

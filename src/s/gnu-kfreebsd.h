@@ -7,5 +7,3 @@
 
 #define NO_TERMIO               /* use only <termios.h> */
 
-/* arch-tag: 8d098200-2586-469e-99ab-6d092c035e03
-   (do not change this comment) */

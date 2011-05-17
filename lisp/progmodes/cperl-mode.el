@@ -1,8 +1,6 @@
 ;;; cperl-mode.el --- Perl code editing commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1987, 1991, 1992, 1993, 1994, 1995, 1996, 1997,
-;; 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;     Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1991-2011  Free Software Foundation, Inc.
 
 ;; Author: Ilya Zakharevich
 ;;	Bob Olson
@@ -1802,13 +1800,12 @@ or as help on variables `cperl-tips', `cperl-problems',
   (set 'vc-rcs-header cperl-vc-rcs-header)
   (make-local-variable 'vc-sccs-header)
   (set 'vc-sccs-header cperl-vc-sccs-header)
-  ;; This one is obsolete...
-  (make-local-variable 'vc-header-alist)
-  (with-no-warnings
-   (set 'vc-header-alist (or cperl-vc-header-alist ; Avoid warning
-			     `((SCCS ,(car cperl-vc-sccs-header))
-			       (RCS ,(car cperl-vc-rcs-header)))))
-   )
+  (when (featurep 'xemacs)
+    ;; This one is obsolete...
+    (make-local-variable 'vc-header-alist)
+    (set 'vc-header-alist (or cperl-vc-header-alist ; Avoid warning
+			      `((SCCS ,(car cperl-vc-sccs-header))
+				(RCS ,(car cperl-vc-rcs-header))))))
   (cond ((boundp 'compilation-error-regexp-alist-alist);; xemacs 20.x
 	 (make-local-variable 'compilation-error-regexp-alist-alist)
 	 (set 'compilation-error-regexp-alist-alist
@@ -1840,7 +1837,13 @@ or as help on variables `cperl-tips', `cperl-problems',
   (make-local-variable 'cperl-syntax-state)
   (setq cperl-syntax-state nil)		; reset syntaxification cache
   (if cperl-use-syntax-table-text-property
-      (progn
+      (if (boundp 'syntax-propertize-function)
+          (progn
+            ;; Reset syntaxification cache.
+            (set (make-local-variable 'cperl-syntax-done-to) nil)
+            (set (make-local-variable 'syntax-propertize-function)
+                 (lambda (start end)
+                   (goto-char start) (cperl-fontify-syntaxically end))))
 	(make-local-variable 'parse-sexp-lookup-properties)
 	;; Do not introduce variable if not needed, we check it!
 	(set 'parse-sexp-lookup-properties t)
@@ -2140,7 +2143,7 @@ char is \"{\", insert extra newline before only if
   "Insert an opening parenthesis or a matching pair of parentheses.
 See `cperl-electric-parens'."
   (interactive "P")
-  (let ((beg (save-excursion (beginning-of-line) (point)))
+  (let ((beg (point-at-bol))
 	(other-end (if (and cperl-electric-parens-mark
 			    (cperl-mark-active)
 			    (> (mark) (point)))
@@ -2177,7 +2180,7 @@ See `cperl-electric-parens'."
 If not, or if we are not at the end of marking range, would self-insert.
 Affected by `cperl-electric-parens'."
   (interactive "P")
-  (let ((beg (save-excursion (beginning-of-line) (point)))
+  (let ((beg (point-at-bol))
 	(other-end (if (and cperl-electric-parens-mark
 			    (cperl-val 'cperl-electric-parens)
 			    (memq last-command-event
@@ -2210,7 +2213,7 @@ Affected by `cperl-electric-parens'."
   "Insert a construction appropriate after a keyword.
 Help message may be switched off by setting `cperl-message-electric-keyword'
 to nil."
-  (let ((beg (save-excursion (beginning-of-line) (point)))
+  (let ((beg (point-at-bol))
 	(dollar (and (eq last-command-event ?$)
 		     (eq this-command 'self-insert-command)))
 	(delete (and (memq last-command-event '(?\s ?\n ?\t ?\f))
@@ -2353,7 +2356,7 @@ to nil."
   "Insert a construction appropriate after a keyword.
 Help message may be switched off by setting `cperl-message-electric-keyword'
 to nil."
-  (let ((beg (save-excursion (beginning-of-line) (point))))
+  (let ((beg (point-at-bol)))
     (and (save-excursion
 	   (backward-sexp 1)
 	   (cperl-after-expr-p nil "{;:"))
@@ -2392,8 +2395,8 @@ to nil."
   "Go to end of line, open a new line and indent appropriately.
 If in POD, insert appropriate lines."
   (interactive)
-  (let ((beg (save-excursion (beginning-of-line) (point)))
-	(end (save-excursion (end-of-line) (point)))
+  (let ((beg (point-at-bol))
+	(end (point-at-eol))
 	(pos (point)) start over cut res)
     (if (and				; Check if we need to split:
 					; i.e., on a boundary and inside "{...}"
@@ -2471,12 +2474,8 @@ If in POD, insert appropriate lines."
 		   (forward-paragraph -1)
 		   (forward-word 1)
 		   (setq pos (point))
-		   (setq cut (buffer-substring (point)
-					       (save-excursion
-						 (end-of-line)
-						 (point))))
-		   (delete-char (- (save-excursion (end-of-line) (point))
-				   (point)))
+		   (setq cut (buffer-substring (point) (point-at-eol)))
+		   (delete-char (- (point-at-eol) (point)))
 		   (setq res (expand-abbrev))
 		   (save-excursion
 		     (goto-char pos)
@@ -2770,7 +2769,7 @@ Will not look before LIM."
 		  (goto-char (cperl-beginning-of-property p look-prop))
 		  (beginning-of-line)
 		  (setq pre-indent-point (point)))))
-	  (goto-char pre-indent-point)	; Orig line skipping preceeding pod/etc
+	  (goto-char pre-indent-point)	; Orig line skipping preceding pod/etc
 	  (let* ((case-fold-search nil)
 		 (s-s (cperl-get-state (car parse-data) (nth 1 parse-data)))
 		 (start (or (nth 2 parse-data) ; last complete sexp terminated
@@ -2797,8 +2796,8 @@ Will not look before LIM."
 			  (cperl-1+ char-after-pos) 'indentable)
 			 p (1+ (cperl-beginning-of-property
 				(point) 'indentable))
-			 is-block	; misused for: preceeding line in REx
-			 (save-excursion ; Find preceeding line
+			 is-block	; misused for: preceding line in REx
+			 (save-excursion ; Find preceding line
 			   (cperl-backward-to-noncomment p)
 			   (beginning-of-line)
 			   (if (<= (point) p)
@@ -2814,10 +2813,10 @@ Will not look before LIM."
 			 prop (parse-partial-sexp p char-after-pos))
 		   (cond ((not delim)	; End the REx, ignore is-block
 			  (vector 'indentable 'terminator p is-block))
-			 (is-block	; Indent w.r.t. preceeding line
+			 (is-block	; Indent w.r.t. preceding line
 			  (vector 'indentable 'cont-line char-after-pos
 				  is-block char-after p))
-			 (t		; No preceeding line...
+			 (t		; No preceding line...
 			  (vector 'indentable 'first-line p))))
 		  ((get-text-property char-after-pos 'REx-part2)
 		   (vector 'REx-part2 (point)))
@@ -2898,7 +2897,7 @@ Will not look before LIM."
 			 (cperl-backward-to-start-of-continued-exp containing-sexp))
 		     (beginning-of-line)
 		     (cperl-backward-to-noncomment containing-sexp))
-		   ;; Now we get non-label preceeding the indent point
+		   ;; Now we get non-label preceding the indent point
 		   (if (not (or (eq (1- (point)) containing-sexp)
 				(memq (preceding-char)
 				      (append (if is-block " ;{" " ,;{") '(nil)))
@@ -2941,8 +2940,7 @@ Will not look before LIM."
 					(point-max)))) ; do not loop if no syntaxification
 				  ;; label:
 				  (t
-				   (save-excursion (end-of-line)
-						   (setq colon-line-end (point)))
+				   (setq colon-line-end (point-at-eol))
 				   (search-forward ":"))))
 			  ;; We are at beginning of code (NOT label or comment)
 			  ;; First, the following code counts
@@ -2984,8 +2982,7 @@ Will not look before LIM."
 				    (looking-at "sub\\>")))
 			     (setq p (nth 1 ; start of innermost containing list
 					  (parse-partial-sexp
-					   (save-excursion (beginning-of-line)
-							   (point))
+					   (point-at-bol)
 					   (point)))))
 			    (progn
 			      (goto-char (1+ p)) ; enclosing block on the same line
@@ -3215,7 +3212,7 @@ the current line is to be regarded as part of a block comment."
 Returns true if comment is found.  In POD will not move the point."
   ;; If the line is inside other syntax groups (qq-style strings, HERE-docs)
   ;; then looks for literal # or end-of-line.
-  (let (state stop-in cpoint (lim (progn (end-of-line) (point))) pr e)
+  (let (state stop-in cpoint (lim (point-at-eol)) pr e)
     (or cperl-font-locking
 	(cperl-update-syntaxification lim lim))
     (beginning-of-line)
@@ -3804,12 +3801,13 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 						  indentable t))
 	    ;; Need to remove face as well...
 	    (goto-char min)
-	    (and (eq system-type 'emx)
+	    ;; 'emx not supported by Emacs since at least 21.1.
+	    (and (featurep 'xemacs) (eq system-type 'emx)
 		 (eq (point) 1)
 		 (let ((case-fold-search t))
 		   (looking-at "extproc[ \t]")) ; Analogue of #!
 		 (cperl-commentify min
-				   (save-excursion (end-of-line) (point))
+				   (point-at-eol)
 				   nil))
 	    (while (and
 		    (< (point) max)
@@ -4048,10 +4046,7 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 			     "")
 		      tb (match-beginning 0))
 		(setq argument nil)
-		(put-text-property (save-excursion
-				     (beginning-of-line)
-				     (point))
-				   b 'first-format-line 't)
+		(put-text-property (point-at-bol) b 'first-format-line 't)
 		(if cperl-pod-here-fontify
 		    (while (and (eq (forward-line) 0)
 				(not (looking-at "^[.;]$")))
@@ -4840,7 +4835,7 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 ;;; Moreover, one takes positive approach (looks for else,grep etc)
 ;;; another negative (looks for bless,tr etc)
 (defun cperl-after-block-p (lim &optional pre-block)
-  "Return true if the preceeding } (if PRE-BLOCK, following {) delimits a block.
+  "Return true if the preceding } (if PRE-BLOCK, following {) delimits a block.
 Would not look before LIM.  Assumes that LIM is a good place to begin a
 statement.  The kind of block we treat here is one after which a new
 statement would start; thus the block in ${func()} does not count."
@@ -4869,7 +4864,7 @@ statement would start; thus the block in ${func()} does not count."
 			       (progn
 				 (forward-sexp -1)
 				 (looking-at "sub[ \t\n\f#]"))))))
-		;; What preceeds is not word...  XXXX Last statement in sub???
+		;; What precedes is not word...  XXXX Last statement in sub???
 		(cperl-after-expr-p lim))))
       (error nil))))
 
@@ -4997,7 +4992,7 @@ If `cperl-indent-region-fix-constructs', will improve spacing on
 conditional/loop constructs."
   (interactive)
   (save-excursion
-    (let ((tmp-end (progn (end-of-line) (point))) top done)
+    (let ((tmp-end (point-at-eol)) top done)
       (save-excursion
 	(beginning-of-line)
 	(while (null done)
@@ -5040,13 +5035,9 @@ conditional/loop constructs."
 			   "\\<\\(else\\|elsif\|continue\\)\\>"))
 		  (progn
 		    (goto-char (match-end 0))
-		    (save-excursion
-		      (end-of-line)
-		      (setq tmp-end (point))))
+		    (setq tmp-end (point-at-eol)))
 		(setq done t))))
-	  (save-excursion
-	    (end-of-line)
-	    (setq tmp-end (point))))
+	  (setq tmp-end (point-at-eol)))
 	(goto-char tmp-end)
 	(setq tmp-end (point-marker)))
       (if cperl-indent-region-fix-constructs
@@ -5059,7 +5050,7 @@ Returns some position at the last line."
   (interactive)
   (or end
       (setq end (point-max)))
-  (let ((ee (save-excursion (end-of-line) (point)))
+  (let ((ee (point-at-eol))
 	(cperl-indent-region-fix-constructs
 	 (or cperl-indent-region-fix-constructs 1))
 	p pp ml have-brace ret)
@@ -5212,7 +5203,7 @@ Returns some position at the last line."
 				(if (cperl-indent-line parse-data)
 				    (setq ret (cperl-fix-line-spacing end parse-data)))))))))))
 	(beginning-of-line)
-	(setq p (point) pp (save-excursion (end-of-line) (point))) ; May be different from ee.
+	(setq p (point) pp (point-at-eol)) ; May be different from ee.
 	;; Now check whether there is a hanging `}'
 	;; Looking at:
 	;; } blah
@@ -7046,7 +7037,7 @@ Use as
   (or topdir
       (setq topdir default-directory))
   (let ((tags-file-name "TAGS")
-	(case-fold-search (eq system-type 'emx))
+	(case-fold-search (and (featurep 'xemacs) (eq system-type 'emx)))
 	xs rel tm)
     (save-excursion
       (cond (inbuffer nil)		; Already there
@@ -7474,7 +7465,7 @@ Currently it is tuned to C and Perl syntax."
   ;; Get to the something meaningful
   (or (eobp) (eolp) (forward-char 1))
   (re-search-backward "[-a-zA-Z0-9_:!&*+,-./<=>?\\\\^|~$%@]"
-		      (save-excursion (beginning-of-line) (point))
+		      (point-at-bol)
 		      'to-beg)
   ;;  (cond
   ;;   ((or (eobp) (looking-at "[][ \t\n{}();,]")) ; Not at a symbol
@@ -8980,7 +8971,18 @@ do extra unwind via `cperl-unwind-to-safe'."
     (substring v (match-beginning 1) (match-end 1)))
   "Version of IZ-supported CPerl package this file is based on.")
 
+(defun cperl-mode-unload-function ()
+  "Unload the Cperl mode library."
+  (let ((new-mode (if (eq (symbol-function 'perl-mode) 'cperl-mode)
+		      'fundamental-mode
+		    'perl-mode)))
+    (dolist (buf (buffer-list))
+      (with-current-buffer buf
+	(when (eq major-mode 'cperl-mode)
+	  (funcall new-mode)))))
+  ;; continue standard unloading
+  nil)
+
 (provide 'cperl-mode)
 
-;; arch-tag: 42e5b19b-e187-4537-929f-1a7408980ce6
 ;;; cperl-mode.el ends here

@@ -1,7 +1,6 @@
 ;;; animate.el --- make text dance
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2011 Free Software Foundation, Inc.
 
 ;; Maintainer: Richard Stallman <rms@gnu.org>
 ;; Keywords: games
@@ -191,5 +190,4 @@ You can specify the one's name by NAME; the default value is \"Sarah\"."
 
 (provide 'animate)
 
-;; arch-tag: 275289a3-6ac4-41da-b527-a1147045392f
 ;;; animate.el ends here

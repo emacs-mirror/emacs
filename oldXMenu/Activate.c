@@ -3,8 +3,7 @@
 #include "copyright.h"
 
 /*
-Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-  Free Software Foundation, Inc.
+Copyright (C) 2001-2011  Free Software Foundation, Inc.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -103,32 +102,27 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* For debug, set this to 0 to not grab the keyboard on menu popup */
 int x_menu_grab_keyboard = 1;
 
-typedef void (*Wait_func)();
-
 static Wait_func wait_func;
 static void* wait_data;
 
 void
-XMenuActivateSetWaitFunction (func, data)
-     Wait_func func;
-     void *data;
+XMenuActivateSetWaitFunction (Wait_func func, void *data)
 {
   wait_func = func;
   wait_data = data;
 }
 
 int
-XMenuActivate(display, menu, p_num, s_num, x_pos, y_pos, event_mask, data,
-	      help_callback)
-    register Display *display;		/* Display to put menu on. */
-    register XMenu *menu;		/* Menu to activate. */
-    int *p_num;				/* Pane number selected. */
-    int *s_num;				/* Selection number selected. */
-    int x_pos;				/* X coordinate of menu position. */
-    int y_pos;				/* Y coordinate of menu position. */
-    unsigned int event_mask;		/* Mouse button event mask. */
-    char **data;			/* Pointer to return data value. */
-    void (* help_callback) ();		/* Help callback.  */
+XMenuActivate(
+    register Display *display,		/* Display to put menu on. */
+    register XMenu *menu,		/* Menu to activate. */
+    int *p_num,				/* Pane number selected. */
+    int *s_num,				/* Selection number selected. */
+    int x_pos,				/* X coordinate of menu position. */
+    int y_pos,				/* Y coordinate of menu position. */
+    unsigned int event_mask,		/* Mouse button event mask. */
+    char **data,			/* Pointer to return data value. */
+    void (*help_callback) (char const *, int, int)) /* Help callback.  */
 {
     int status;				/* X routine call status. */
     int orig_x;				/* Upper left menu origin X coord. */
@@ -612,6 +606,3 @@ XMenuActivate(display, menu, p_num, s_num, x_pos, y_pos, event_mask, data,
     return(ret_val);
 
 }
-
-/* arch-tag: 6b90b578-ecea-4328-b460-a0c96963f872
-   (do not change this comment) */

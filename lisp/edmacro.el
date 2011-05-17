@@ -1,7 +1,6 @@
 ;;; edmacro.el --- keyboard macro editor
 
-;; Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Maintainer: Dave Gillespie <daveg@synaptics.com>
@@ -62,11 +61,6 @@
 ;; With a prefix argument, `edit-kbd-macro' will format the
 ;; macro in a more concise way that omits the comments.
 
-;; This package requires GNU Emacs 19 or later, and daveg's CL
-;; package 2.02 or later.  (CL 2.02 comes standard starting with
-;; Emacs 19.18.)  This package does not work with Emacs 18 or
-;; Lucid Emacs.
-
 ;;; Code:
 
 (eval-when-compile
@@ -76,16 +70,17 @@
 
 ;;; The user-level commands for editing macros.
 
-;;;###autoload
-(defvar edmacro-eight-bits nil
-  "*Non-nil if `edit-kbd-macro' should leave 8-bit characters intact.
-Default nil means to write characters above \\177 in octal notation.")
+(defcustom edmacro-eight-bits nil
+  "Non-nil if `edit-kbd-macro' should leave 8-bit characters intact.
+Default nil means to write characters above \\177 in octal notation."
+  :type 'boolean
+  :group 'kmacro)
 
-(defvar edmacro-mode-map nil)
-(unless edmacro-mode-map
-  (setq edmacro-mode-map (make-sparse-keymap))
-  (define-key edmacro-mode-map "\C-c\C-c" 'edmacro-finish-edit)
-  (define-key edmacro-mode-map "\C-c\C-q" 'edmacro-insert-key))
+(defvar edmacro-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-c\C-c" 'edmacro-finish-edit)
+    (define-key map "\C-c\C-q" 'edmacro-insert-key)
+    map))
 
 (defvar edmacro-store-hook)
 (defvar edmacro-finish-hook)
@@ -230,7 +225,7 @@ or nil, use a compact 80-column format."
      "This command is valid only in buffers created by `edit-kbd-macro'"))
   (run-hooks 'edmacro-finish-hook)
   (let ((cmd nil) (keys nil) (no-keys nil)
-	(mac-counter nil) (mac-format nil) (kmacro nil)
+	(mac-counter nil) (mac-format nil)
 	(top (point-min)))
     (goto-char top)
     (let ((case-fold-search nil))
@@ -245,7 +240,7 @@ or nil, use a compact 80-column format."
 			(setq cmd (and (not (equal str "none"))
 				       (intern str)))
 			(and (fboundp cmd) (not (arrayp (symbol-function cmd)))
-			     (not (setq kmacro (get cmd 'kmacro)))
+			     (not (get cmd 'kmacro))
 			     (not (y-or-n-p
 				   (format "Command %s is already defined; %s"
 					   cmd "proceed? ")))
@@ -785,5 +780,4 @@ This function assumes that the events can be stored in a string."
 
 (provide 'edmacro)
 
-;; arch-tag: 726807b4-3ae6-49de-b0ae-b9590973e0d7
 ;;; edmacro.el ends here

@@ -1,6 +1,7 @@
 /* Header file: Caching facts about regions of the buffer, for optimization.
-   Copyright (C) 1985, 1986, 1993, 1995, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+
+Copyright (C) 1985-1986, 1993, 1995, 2001-2011
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -61,17 +62,17 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 /* Allocate, initialize and return a new, empty region cache.  */
-struct region_cache *new_region_cache P_ ((void));
+struct region_cache *new_region_cache (void);
 
 /* Free a region cache.  */
-void free_region_cache P_ ((struct region_cache *));
+void free_region_cache (struct region_cache *);
 
 /* Assert that the region of BUF between START and END (absolute
    buffer positions) is "known," for the purposes of CACHE (e.g. "has
    no newlines", in the case of the line cache).  */
-extern void know_region_cache P_ ((struct buffer *BUF,
-                                   struct region_cache *CACHE,
-                                   int START, int END));
+extern void know_region_cache (struct buffer *BUF,
+                               struct region_cache *CACHE,
+                               EMACS_INT START, EMACS_INT END);
 
 /* Indicate that a section of BUF has changed, to invalidate CACHE.
    HEAD is the number of chars unchanged at the beginning of the buffer.
@@ -81,9 +82,9 @@ extern void know_region_cache P_ ((struct buffer *BUF,
    (This way of specifying regions makes more sense than absolute
    buffer positions in the presence of insertions and deletions; the
    args to pass are the same before and after such an operation.)  */
-extern void invalidate_region_cache P_ ((struct buffer *BUF,
-					 struct region_cache *CACHE,
-					 int HEAD, int TAIL));
+extern void invalidate_region_cache (struct buffer *BUF,
+                                     struct region_cache *CACHE,
+                                     EMACS_INT HEAD, EMACS_INT TAIL);
 
 /* The scanning functions.
 
@@ -97,18 +98,15 @@ extern void invalidate_region_cache P_ ((struct buffer *BUF,
 /* Return true if the text immediately after POS in BUF is known, for
    the purposes of CACHE.  If NEXT is non-zero, set *NEXT to the nearest
    position after POS where the knownness changes.  */
-extern int region_cache_forward P_ ((struct buffer *BUF,
-                                     struct region_cache *CACHE,
-                                     int POS,
-                                     int *NEXT));
+extern int region_cache_forward (struct buffer *BUF,
+                                 struct region_cache *CACHE,
+                                 EMACS_INT POS,
+                                 EMACS_INT *NEXT);
 
 /* Return true if the text immediately before POS in BUF is known, for
    the purposes of CACHE.  If NEXT is non-zero, set *NEXT to the nearest
    position before POS where the knownness changes.  */
-extern int region_cache_backward P_ ((struct buffer *BUF,
-                                      struct region_cache *CACHE,
-                                      int POS,
-                                      int *NEXT));
-
-/* arch-tag: 70f79125-ef22-4f58-9aec-a48ca2791435
-   (do not change this comment) */
+extern int region_cache_backward (struct buffer *BUF,
+                                  struct region_cache *CACHE,
+                                  EMACS_INT POS,
+                                  EMACS_INT *NEXT);

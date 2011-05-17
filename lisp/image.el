@@ -1,10 +1,10 @@
 ;;; image.el --- image API
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: multimedia
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -30,6 +30,7 @@
   "Image support."
   :group 'multimedia)
 
+(defalias 'image-refresh 'image-flush)
 
 (defconst image-type-header-regexps
   `(("\\`/[\t\n\r ]*\\*.*XPM.\\*/" . xpm)
@@ -59,7 +60,7 @@ IMAGE-TYPE must be a pair (PREDICATE . TYPE).  PREDICATE is called
 with one argument, a string containing the image data.  If PREDICATE returns
 a non-nil value, TYPE is the image's type.")
 
-(defconst image-type-file-name-regexps
+(defvar image-type-file-name-regexps
   '(("\\.png\\'" . png)
     ("\\.gif\\'" . gif)
     ("\\.jpe?g\\'" . jpeg)
@@ -328,14 +329,16 @@ Optional DATA-P non-nil means SOURCE is a string containing image data."
   type)
 
 
-(defvar image-library-alist)
+(define-obsolete-variable-alias
+    'image-library-alist
+    'dynamic-library-alist "24.1")
 
 ;;;###autoload
 (defun image-type-available-p (type)
   "Return non-nil if image type TYPE is available.
 Image types are symbols like `xbm' or `jpeg'."
   (and (fboundp 'init-image-library)
-       (init-image-library type image-library-alist)))
+       (init-image-library type dynamic-library-alist)))
 
 
 ;;;###autoload
@@ -615,7 +618,7 @@ Images should not be larger than specified by `max-image-size'."
     (let* ((animate (memq type image-animated-types))
 	   (image
 	    (append (list 'image :type type (if data-p :data :file) file-or-data)
-		    (if animate '(:index 0 :mask heuristic))
+		    (if animate '(:index 0))
 		    props)))
       (if animate
 	  (image-animate-start image))
@@ -684,13 +687,43 @@ shall be displayed."
     (let* ((metadata (image-metadata image))
 	   (images (plist-get metadata 'count))
 	   (extdata (plist-get metadata 'extension-data))
-	   (anim (plist-get extdata #xF9)))
-      (and (integerp images) (> images 1)
-	   (stringp anim) (>= (length anim) 4)
-	   (cons images (+ (aref anim 1) (* (aref anim 2) 256))))))))
+	   (anim (plist-get extdata #xF9))
+	   (tmo (and (integerp images) (> images 1)
+		     (stringp anim) (>= (length anim) 4)
+		     (+ (aref anim 1) (* (aref anim 2) 256)))))
+      (when tmo
+	(if (eq tmo 0) (setq tmo 10))
+	(cons images tmo))))))
 
 
+(defcustom imagemagick-types-inhibit
+  '(C HTML HTM TXT PDF)
+  ;; FIXME what are the possible options?
+  ;; Are these actually file-name extensions?
+  ;; Why are these upper-case when eg image-types is lower-case?
+  "Types the ImageMagick loader should not try to handle."
+  :type '(choice (const :tag "Let ImageMagick handle all the types it can" nil)
+		 (repeat symbol))
+  :version "24.1"
+  :group 'image)
+
+;;;###autoload
+(defun imagemagick-register-types ()
+  "Register the file types that ImageMagick is able to handle."
+  (if (fboundp 'imagemagick-types)
+      (let ((im-types (imagemagick-types)))
+	(dolist (im-inhibit imagemagick-types-inhibit)
+	  (setq im-types (remove im-inhibit im-types)))
+	(dolist (im-type im-types)
+	  (let ((extension (downcase (symbol-name im-type))))
+	    (push
+	     (cons (concat "\\." extension "\\'") 'image-mode)
+	     auto-mode-alist)
+	    (push
+	     (cons (concat "\\." extension "\\'") 'imagemagick)
+	     image-type-file-name-regexps))))
+    (error "Emacs was not built with ImageMagick support")))
+
 (provide 'image)
 
-;; arch-tag: 8e76a07b-eb48-4f3e-a7a0-1a7ba9f096b3
 ;;; image.el ends here

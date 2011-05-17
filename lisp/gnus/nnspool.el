@@ -1,7 +1,6 @@
 ;;; nnspool.el --- spool access for GNU Emacs
 
-;; Copyright (C) 1988, 1989, 1990, 1993, 1994, 1995, 1996, 1997, 1998,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1988-1990, 1993-1998, 2000-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -109,8 +108,7 @@ there.")
 
 (deffoo nnspool-retrieve-headers (articles &optional group server fetch-old)
   "Retrieve the headers of ARTICLES."
-  (save-excursion
-    (set-buffer nntp-server-buffer)
+  (with-current-buffer nntp-server-buffer
     (erase-buffer)
     (when (nnspool-possibly-change-directory group)
       (let* ((number (length articles))
@@ -209,8 +207,7 @@ there.")
   (nnspool-possibly-change-directory group)
   (let ((res (nnspool-request-article id)))
     (when res
-      (save-excursion
-	(set-buffer nntp-server-buffer)
+      (with-current-buffer nntp-server-buffer
 	(goto-char (point-min))
 	(when (search-forward "\n\n" nil t)
 	  (delete-region (point-min) (point)))
@@ -221,15 +218,14 @@ there.")
   (nnspool-possibly-change-directory group)
   (let ((res (nnspool-request-article id)))
     (when res
-      (save-excursion
-	(set-buffer nntp-server-buffer)
+      (with-current-buffer nntp-server-buffer
 	(goto-char (point-min))
 	(when (search-forward "\n\n" nil t)
 	  (delete-region (1- (point)) (point-max)))
 	(nnheader-fold-continuation-lines)))
     res))
 
-(deffoo nnspool-request-group (group &optional server dont-check)
+(deffoo nnspool-request-group (group &optional server dont-check info)
   "Select news GROUP."
   (let ((pathname (nnspool-article-pathname group))
 	dir)
@@ -343,8 +339,7 @@ there.")
 ;;; Internal functions.
 
 (defun nnspool-inews-sentinel (proc status)
-  (save-excursion
-    (set-buffer (process-buffer proc))
+  (with-current-buffer (process-buffer proc)
     (goto-char (point-min))
     (if (or (zerop (buffer-size))
 	    (search-forward "spooled" nil t))
@@ -367,8 +362,7 @@ there.")
 	  last)
       (if (not (file-exists-p nov))
 	  ()
-	(save-excursion
-	  (set-buffer nntp-server-buffer)
+	(with-current-buffer nntp-server-buffer
 	  (erase-buffer)
 	  (if nnspool-sift-nov-with-sed
 	      (nnspool-sift-nov-with-sed articles nov)
@@ -404,15 +398,16 @@ there.")
   "Read the head of ARTICLE, convert to NOV headers, and insert."
   (save-excursion
     (let ((cur (current-buffer))
-	  buf)
+          buf)
       (setq buf (nnheader-set-temp-buffer " *nnspool head*"))
       (when (nnheader-insert-head
-	     (nnspool-article-pathname nnspool-current-group article))
-	(nnheader-insert-article-line article)
-	(let ((headers (nnheader-parse-head)))
-	  (set-buffer cur)
-	  (goto-char (point-max))
-	  (nnheader-insert-nov headers)))
+             (nnspool-article-pathname nnspool-current-group article))
+        (nnheader-insert-article-line article)
+        (goto-char (point-min))
+        (let ((headers (nnheader-parse-head)))
+          (set-buffer cur)
+          (goto-char (point-max))
+          (nnheader-insert-nov headers)))
       (kill-buffer buf))))
 
 (defun nnspool-sift-nov-with-sed (articles file)
@@ -458,5 +453,4 @@ there.")
 
 (provide 'nnspool)
 
-;; arch-tag: bdac8d27-2934-4eee-bad0-49e6b90c0d05
 ;;; nnspool.el ends here

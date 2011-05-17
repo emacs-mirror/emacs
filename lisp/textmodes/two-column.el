@@ -1,7 +1,6 @@
 ;;; two-column.el --- minor mode for editing of two-column text
 
-;; Copyright (C) 1992, 1993, 1994, 1995, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1995, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Adapted-By: ESR, Daniel Pfeiffer
@@ -209,19 +208,19 @@
 (defcustom 2C-mode-line-format
 	'("-%*- %15b --"  (-3 . "%p")  "--%[("  mode-name
 	  minor-mode-alist  "%n"  mode-line-process  ")%]%-")
-  "*Value of `mode-line-format' for a buffer in two-column minor mode."
+  "Value of `mode-line-format' for a buffer in two-column minor mode."
   :type 'sexp
   :group 'two-column)
 
 
 (defcustom 2C-other-buffer-hook 'text-mode
-  "*Hook run in new buffer when it is associated with current one."
+  "Hook run in new buffer when it is associated with current one."
   :type 'function
   :group 'two-column)
 
 
 (defcustom 2C-separator ""
-  "*A string inserted between the two columns when merging.
+  "A string inserted between the two columns when merging.
 This gets set locally by \\[2C-split]."
   :type 'string
   :group 'two-column)
@@ -230,7 +229,7 @@ This gets set locally by \\[2C-split]."
 
 
 (defcustom 2C-window-width 40
-  "*The width of the first column.  (Must be at least `window-min-width')
+  "The width of the first column.  (Must be at least `window-min-width')
 This value is local for every buffer that sets it."
   :type 'integer
   :group 'two-column)
@@ -240,7 +239,7 @@ This value is local for every buffer that sets it."
 
 
 (defcustom 2C-beyond-fill-column 4
-  "*Base for calculating `fill-column' for a buffer in two-column minor mode.
+  "Base for calculating `fill-column' for a buffer in two-column minor mode.
 The value of `fill-column' becomes `2C-window-width' for this buffer
 minus this value."
   :type 'integer
@@ -632,5 +631,4 @@ on, this also realigns the two buffers."
 
 (provide 'two-column)
 
-;; arch-tag: 2021b5ab-d3a4-4a8c-a21c-1936b0f9e6b1
 ;;; two-column.el ends here

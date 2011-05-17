@@ -1,10 +1,10 @@
 ;;; cua-gmrk.el --- CUA unified global mark support
 
-;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2011 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard emulations convenience cua mark
+;; Package: cua-base
 
 ;; This file is part of GNU Emacs.
 
@@ -137,7 +137,7 @@ With prefix argument, don't jump to global mark when cancelling it."
       (let ((src-buf (current-buffer)))
 	(save-excursion
 	  (if (equal (marker-buffer cua--global-mark-marker) src-buf)
-	      (let ((text (filter-buffer-substring start end nil t)))
+	      (let ((text (cua--filter-buffer-noprops start end)))
 		(goto-char (marker-position cua--global-mark-marker))
 		(insert text))
 	    (set-buffer (marker-buffer cua--global-mark-marker))
@@ -161,7 +161,7 @@ With prefix argument, don't jump to global mark when cancelling it."
 	      (if (and (< start (marker-position cua--global-mark-marker))
 		       (< (marker-position cua--global-mark-marker) end))
 		  (message "Can't move region into itself")
-		(let ((text (filter-buffer-substring start end nil t))
+		(let ((text (cua--filter-buffer-noprops start end))
 		      (p1 (copy-marker start))
 		      (p2 (copy-marker end)))
 		  (goto-char (marker-position cua--global-mark-marker))
@@ -380,5 +380,4 @@ With prefix argument, don't jump to global mark when cancelling it."
 
 (provide 'cua-gmrk)
 
-;; arch-tag: 553d8076-a91d-48ae-825d-6cb962a5f67f
 ;;; cua-gmrk.el ends here

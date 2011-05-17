@@ -1,7 +1,6 @@
 ;;; sha1.el --- SHA1 Secure Hash Algorithm in Emacs-Lisp
 
-;; Copyright (C) 1999, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Shuhei KOBAYASHI <shuhei@aqua.ocn.ne.jp>
 ;; Keywords: SHA1, FIPS 180-1
@@ -95,7 +94,7 @@ If this variable is set to nil, use internal function only."
       (setq prog sha1-program
 	    args nil))
     (with-temp-buffer
-      (set-buffer-multibyte nil)
+      (unless (featurep 'xemacs) (set-buffer-multibyte nil))
       (insert string)
       (apply (function call-process-region)
 	     (point-min) (point-max)
@@ -439,5 +438,4 @@ If BINARY is non-nil, return a string in binary form."
 
 (provide 'sha1)
 
-;; arch-tag: c0f9abd0-ffc1-4557-aac6-ece7f2d4c901
 ;;; sha1.el ends here

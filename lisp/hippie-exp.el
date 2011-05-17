@@ -1,7 +1,6 @@
 ;;; hippie-exp.el --- expand text trying various ways to find its expansion
 
-;; Copyright (C) 1992, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Anders Holst <aho@sans.kth.se>
 ;; Last change: 3 March 1998
@@ -716,8 +715,7 @@ string).  It returns t if a new completion is found, nil otherwise."
 (defun he-line-beg (strip-prompt)
   (save-excursion
     (if (re-search-backward (he-line-search-regexp "" strip-prompt)
-			    (save-excursion (beginning-of-line)
-					    (point)) t)
+			    (line-beginning-position) t)
 	(match-beginning 2)
       (point))))
 
@@ -1184,5 +1182,4 @@ string).  It returns t if a new completion is found, nil otherwise."
 
 (provide 'hippie-exp)
 
-;; arch-tag: 5e6e00bf-b061-4a7a-9b46-de0ae105ab99
 ;;; hippie-exp.el ends here

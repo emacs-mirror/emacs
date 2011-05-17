@@ -1,11 +1,10 @@
 ;;; thai-util.el --- utilities for Thai -*- coding: utf-8; -*-
 
+;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
 
 ;; Keywords: mule, multilingual, Thai, i18n
 
@@ -282,5 +281,4 @@ The commands affected are \\[forward-word], \\[backward-word], \\[kill-word], \\
 ;;
 (provide 'thai-util)
 
-;; arch-tag: 59425d6a-8cf9-4e06-a6ab-8ab7dc7a7a97
 ;;; thai-util.el ends here

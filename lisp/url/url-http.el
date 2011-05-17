@@ -1,7 +1,6 @@
 ;;; url-http.el --- HTTP retrieval routines
 
-;; Copyright (C) 1999, 2001, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001, 2004-2011  Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: comm, data, processes
@@ -339,7 +338,7 @@ request.")
              ;; End request
              "\r\n"
              ;; Any data
-             url-http-data))
+             url-http-data "\r\n"))
            ""))
     (url-http-debug "Request is: \n%s" request)
     request))
@@ -486,7 +485,11 @@ should be shown to the user."
 	(class nil)
 	(success nil)
 	;; other status symbols: jewelry and luxury cars
-	(status-symbol (cadr (assq url-http-response-status url-http-codes))))
+	(status-symbol (cadr (assq url-http-response-status url-http-codes)))
+	;; The filename part of a URL could be in remote file syntax,
+	;; see Bug#6717 for an example.  We disable file name
+	;; handlers, therefore.
+	(file-name-handler-alist nil))
     (setq class (/ url-http-response-status 100))
     (url-http-debug "Parsed HTTP headers: class=%d status=%d" class url-http-response-status)
     (url-http-handle-cookies)
@@ -639,7 +642,8 @@ should be shown to the user."
 		   (set (make-local-variable 'url-redirect-buffer)
 			(url-retrieve-internal
 			 redirect-uri url-callback-function
-			 url-callback-arguments))
+			 url-callback-arguments
+			 (url-silent url-current-object)))
 		   (url-mark-buffer-as-dead buffer))
 	       ;; We hit url-max-redirections, so issue an error and
 	       ;; stop redirecting.
@@ -869,13 +873,14 @@ should be shown to the user."
   (url-http-debug "url-http-end-of-document-sentinel in buffer (%s)"
 		  (process-buffer proc))
   (url-http-idle-sentinel proc why)
-  (with-current-buffer (process-buffer proc)
-    (goto-char (point-min))
-    (if (not (looking-at "HTTP/"))
-	;; HTTP/0.9 just gets passed back no matter what
-	(url-http-activate-callback)
-      (if (url-http-parse-headers)
-	  (url-http-activate-callback)))))
+  (when (buffer-name (process-buffer proc))
+    (with-current-buffer (process-buffer proc)
+      (goto-char (point-min))
+      (if (not (looking-at "HTTP/"))
+	  ;; HTTP/0.9 just gets passed back no matter what
+	  (url-http-activate-callback)
+	(if (url-http-parse-headers)
+	    (url-http-activate-callback))))))
 
 (defun url-http-simple-after-change-function (st nd length)
   ;; Function used when we do NOT know how long the document is going to be
@@ -1029,10 +1034,11 @@ the end of the document."
 		    url-http-response-status))
   (url-http-debug "url-http-wait-for-headers-change-function (%s)"
 		  (buffer-name))
-  (when (not (bobp))
-    (let ((end-of-headers nil)
-	  (old-http nil)
-	  (content-length nil))
+  (let ((end-of-headers nil)
+	(old-http nil)
+	(process-buffer (current-buffer))
+	(content-length nil))
+    (when (not (bobp))
       (goto-char (point-min))
       (if (and (looking-at ".*\n")	; have one line at least
 	       (not (looking-at "^HTTP/[1-9]\\.[0-9]")))
@@ -1071,6 +1077,10 @@ the end of the document."
 		(downcase url-http-transfer-encoding)))
 
 	(cond
+	 ((null url-http-response-status)
+	  ;; We got back a headerless malformed response from the
+	  ;; server.
+	  (url-http-activate-callback))
 	 ((or (= url-http-response-status 204)
 	      (= url-http-response-status 205))
 	  (url-http-debug "%d response must have headers only (%s)."
@@ -1146,8 +1156,9 @@ the end of the document."
 		'url-http-simple-after-change-function)))))
     ;; We are still at the beginning of the buffer... must just be
     ;; waiting for a response.
-    (url-http-debug "Spinning waiting for headers..."))
-  (goto-char (point-max)))
+    (url-http-debug "Spinning waiting for headers...")
+    (when (eq process-buffer (current-buffer))
+      (goto-char (point-max)))))
 
 ;;;###autoload
 (defun url-http (url callback cbargs)
@@ -1240,20 +1251,21 @@ CBARGS as the arguments."
   (declare (special url-callback-arguments))
   ;; We are performing an asynchronous connection, and a status change
   ;; has occurred.
-  (with-current-buffer (process-buffer proc)
-    (cond
-     (url-http-connection-opened
-      (url-http-end-of-document-sentinel proc why))
-     ((string= (substring why 0 4) "open")
-      (setq url-http-connection-opened t)
-      (process-send-string proc (url-http-create-request)))
-     (t
-      (setf (car url-callback-arguments)
-	    (nconc (list :error (list 'error 'connection-failed why
-				      :host (url-host (or url-http-proxy url-current-object))
-				      :service (url-port (or url-http-proxy url-current-object))))
-		   (car url-callback-arguments)))
-      (url-http-activate-callback)))))
+  (when (buffer-name (process-buffer proc))
+    (with-current-buffer (process-buffer proc)
+      (cond
+       (url-http-connection-opened
+	(url-http-end-of-document-sentinel proc why))
+       ((string= (substring why 0 4) "open")
+	(setq url-http-connection-opened t)
+	(process-send-string proc (url-http-create-request)))
+       (t
+	(setf (car url-callback-arguments)
+	      (nconc (list :error (list 'error 'connection-failed why
+					:host (url-host (or url-http-proxy url-current-object))
+					:service (url-port (or url-http-proxy url-current-object))))
+		     (car url-callback-arguments)))
+	(url-http-activate-callback))))))
 
 ;; Since Emacs 19/20 does not allow you to change the
 ;; `after-change-functions' hook in the midst of running them, we fake
@@ -1261,6 +1273,7 @@ CBARGS as the arguments."
 ;; the data ourselves.  This is slightly less efficient, but there
 ;; were tons of weird ways the after-change code was biting us in the
 ;; shorts.
+;; FIXME this can probably be simplified since the above is no longer true.
 (defun url-http-generic-filter (proc data)
   ;; Sometimes we get a zero-length data chunk after the process has
   ;; been changed to 'free', which means it has no buffer associated
@@ -1445,5 +1458,4 @@ p3p
 
 (provide 'url-http)
 
-;; arch-tag: ba7c59ae-c0f4-4a31-9617-d85f221732ee
 ;;; url-http.el ends here

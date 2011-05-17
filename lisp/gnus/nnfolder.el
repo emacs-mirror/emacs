@@ -1,7 +1,6 @@
 ;;; nnfolder.el --- mail folder access for Gnus
 
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2011 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org> (adding MARKS)
 ;;      ShengHuo Zhu <zsh@cs.rochester.edu> (adding NOV)
@@ -29,7 +28,7 @@
 
 ;;; Code:
 
-;; For Emacs < 22.2.
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 
@@ -157,8 +156,7 @@ the group.  Then the marks file will be regenerated properly by Gnus.")
 (nnoo-define-basics nnfolder)
 
 (deffoo nnfolder-retrieve-headers (articles &optional group server fetch-old)
-  (save-excursion
-    (set-buffer nntp-server-buffer)
+  (with-current-buffer nntp-server-buffer
     (erase-buffer)
     (let (article start stop num)
       (nnfolder-possibly-change-group group server)
@@ -261,8 +259,7 @@ the group.  Then the marks file will be regenerated properly by Gnus.")
 
 (deffoo nnfolder-request-article (article &optional group server buffer)
   (nnfolder-possibly-change-group group server)
-  (save-excursion
-    (set-buffer nnfolder-current-buffer)
+  (with-current-buffer nnfolder-current-buffer
     (goto-char (point-min))
     (when (nnfolder-goto-article article)
       (let (start stop)
@@ -291,7 +288,7 @@ the group.  Then the marks file will be regenerated properly by Gnus.")
 				      (point) (point-at-eol)))
 		    -1))))))))
 
-(deffoo nnfolder-request-group (group &optional server dont-check)
+(deffoo nnfolder-request-group (group &optional server dont-check info)
   (nnfolder-possibly-change-group group server t)
   (save-excursion
     (cond ((not (assoc group nnfolder-group-alist))
@@ -324,20 +321,20 @@ the group.  Then the marks file will be regenerated properly by Gnus.")
   (when nnfolder-get-new-mail
     (nnfolder-possibly-change-group group server)
     (nnmail-get-new-mail
-     'nnfolder
-     (lambda ()
-       (let ((bufs nnfolder-buffer-alist))
-	 (save-excursion
-	   (while bufs
-	     (if (not (gnus-buffer-live-p (nth 1 (car bufs))))
-		 (setq nnfolder-buffer-alist
-		       (delq (car bufs) nnfolder-buffer-alist))
-	       (set-buffer (nth 1 (car bufs)))
-	       (nnfolder-save-buffer)
-	       (kill-buffer (current-buffer)))
-	     (setq bufs (cdr bufs))))))
-     nnfolder-directory
-     group)))
+     'nnfolder 'nnfolder-save-all-buffers
+     nnfolder-directory group)))
+
+(defun nnfolder-save-all-buffers ()
+  (let ((bufs nnfolder-buffer-alist))
+    (save-excursion
+      (while bufs
+	(if (not (gnus-buffer-live-p (nth 1 (car bufs))))
+	    (setq nnfolder-buffer-alist
+		  (delq (car bufs) nnfolder-buffer-alist))
+	  (set-buffer (nth 1 (car bufs)))
+	  (nnfolder-save-buffer)
+	  (kill-buffer (current-buffer)))
+	(setq bufs (cdr bufs))))))
 
 ;; Don't close the buffer if we're not shutting down the server.  This way,
 ;; we can keep the buffer in the group buffer cache, and not have to grovel
@@ -360,8 +357,7 @@ the group.  Then the marks file will be regenerated properly by Gnus.")
 	      nnfolder-current-group (car inf))))
     (when (and nnfolder-current-buffer
 	       (buffer-name nnfolder-current-buffer))
-      (save-excursion
-	(set-buffer nnfolder-current-buffer)
+      (with-current-buffer nnfolder-current-buffer
 	;; If the buffer was modified, write the file out now.
 	(nnfolder-save-buffer)
 	;; If we're shutting the server down, we need to kill the
@@ -447,8 +443,7 @@ the group.  Then the marks file will be regenerated properly by Gnus.")
 	target)
     (nnmail-activate 'nnfolder)
 
-    (save-excursion
-      (set-buffer nnfolder-current-buffer)
+    (with-current-buffer nnfolder-current-buffer
       ;; Since messages are sorted in arrival order and expired in the
       ;; same order, we can stop as soon as we find a message that is
       ;; too old.
@@ -492,17 +487,17 @@ the group.  Then the marks file will be regenerated properly by Gnus.")
       (nnfolder-save-buffer)
       (nnfolder-adjust-min-active newsgroup)
       (nnfolder-save-active nnfolder-group-alist nnfolder-active-file)
+      (nnfolder-save-all-buffers)
       (gnus-sorted-difference articles (nreverse deleted-articles)))))
 
-(deffoo nnfolder-request-move-article (article group server accept-form 
+(deffoo nnfolder-request-move-article (article group server accept-form
 					       &optional last move-is-internal)
   (save-excursion
     (let ((buf (get-buffer-create " *nnfolder move*"))
 	  result)
       (and
        (nnfolder-request-article article group server)
-       (save-excursion
-	 (set-buffer buf)
+       (with-current-buffer buf
 	 (erase-buffer)
 	 (insert-buffer-substring nntp-server-buffer)
 	 (goto-char (point-min))
@@ -552,7 +547,7 @@ the group.  Then the marks file will be regenerated properly by Gnus.")
 	(while (re-search-backward (concat "^" nnfolder-article-marker) nil t)
 	  (delete-region (point) (progn (forward-line 1) (point))))
 	(when nnmail-cache-accepted-message-ids
-	  (nnmail-cache-insert (nnmail-fetch-field "message-id") 
+	  (nnmail-cache-insert (nnmail-fetch-field "message-id")
 			       group
 			       (nnmail-fetch-field "subject")
 			       (nnmail-fetch-field "from")))
@@ -578,8 +573,7 @@ the group.  Then the marks file will be regenerated properly by Gnus.")
 
 (deffoo nnfolder-request-replace-article (article group buffer)
   (nnfolder-possibly-change-group group)
-  (save-excursion
-    (set-buffer buffer)
+  (with-current-buffer buffer
     (goto-char (point-min))
     (if (not (looking-at "X-From-Line: "))
 	(insert "From nobody " (current-time-string) "\n")
@@ -596,8 +590,7 @@ the group.  Then the marks file will be regenerated properly by Gnus.")
       (nnfolder-delete-mail)
       (insert-buffer-substring buffer)
       (unless (or gnus-nov-is-evil nnfolder-nov-is-evil)
-	(save-excursion
-	  (set-buffer buffer)
+	(with-current-buffer buffer
 	  (let ((headers (nnfolder-parse-head article
 					      (point-min) (point-max))))
 	    (with-current-buffer (nnfolder-open-nov group)
@@ -630,8 +623,7 @@ the group.  Then the marks file will be regenerated properly by Gnus.")
 
 (deffoo nnfolder-request-rename-group (group new-name &optional server)
   (nnfolder-possibly-change-group group server)
-  (save-excursion
-    (set-buffer nnfolder-current-buffer)
+  (with-current-buffer nnfolder-current-buffer
     (and (file-writable-p buffer-file-name)
 	 (ignore-errors
 	   (let ((new-file (nnfolder-group-pathname new-name)))
@@ -671,8 +663,7 @@ the group.  Then the marks file will be regenerated properly by Gnus.")
 	 (marker (concat "\n" nnfolder-article-marker))
 	 (number "[0-9]+")
 	 (activemin (cdr active)))
-    (save-excursion
-      (set-buffer nnfolder-current-buffer)
+    (with-current-buffer nnfolder-current-buffer
       (goto-char (point-min))
       (while (and (search-forward marker nil t)
 		  (re-search-forward number nil t))
@@ -1092,6 +1083,8 @@ This command does not work if you use short group names."
 	 (or nnfolder-nov-directory nnfolder-directory)))
     (concat (nnfolder-group-pathname group) nnfolder-nov-file-suffix)))
 
+(defvar copyright-update)
+
 (defun nnfolder-save-buffer ()
   "Save the buffer."
   (when (buffer-modified-p)
@@ -1099,8 +1092,8 @@ This command does not work if you use short group names."
     (gnus-make-directory (file-name-directory (buffer-file-name)))
     (let ((coding-system-for-write
 	   (or nnfolder-file-coding-system-for-write
-	       nnfolder-file-coding-system))
-	  (copyright-update nil))
+	       nnfolder-file-coding-system)))
+      (set (make-local-variable 'copyright-update) nil)
       (save-buffer)))
   (unless (or gnus-nov-is-evil nnfolder-nov-is-evil)
     (nnfolder-save-nov)))
@@ -1114,8 +1107,7 @@ This command does not work if you use short group names."
 (defun nnfolder-open-nov (group)
   (or (cdr (assoc group nnfolder-nov-buffer-alist))
       (let ((buffer (get-buffer-create (format " *nnfolder overview %s*" group))))
-	(save-excursion
-	  (set-buffer buffer)
+	(with-current-buffer buffer
 	  (set (make-local-variable 'nnfolder-nov-buffer-file-name)
 	       (nnfolder-group-nov-pathname group))
 	  (erase-buffer)
@@ -1139,8 +1131,7 @@ This command does not work if you use short group names."
       (setq nnfolder-nov-buffer-alist (cdr nnfolder-nov-buffer-alist)))))
 
 (defun nnfolder-nov-delete-article (group article)
-  (save-excursion
-    (set-buffer (nnfolder-open-nov group))
+  (with-current-buffer (nnfolder-open-nov group)
     (when (nnheader-find-nov-line article)
       (delete-region (point) (progn (forward-line 1) (point))))
     t))
@@ -1150,8 +1141,7 @@ This command does not work if you use short group names."
       nil
     (let ((nov (nnfolder-group-nov-pathname nnfolder-current-group)))
       (when (file-exists-p nov)
-	(save-excursion
-	  (set-buffer nntp-server-buffer)
+	(with-current-buffer nntp-server-buffer
 	  (erase-buffer)
 	  (nnheader-insert-file-contents nov)
 	  (if (and fetch-old
@@ -1187,8 +1177,7 @@ This command does not work if you use short group names."
 
 (defun nnfolder-add-nov (group article headers)
   "Add a nov line for the GROUP base."
-  (save-excursion
-    (set-buffer (nnfolder-open-nov group))
+  (with-current-buffer (nnfolder-open-nov group)
     (goto-char (point-max))
     (mail-header-set-number headers article)
     (nnheader-insert-nov headers)))
@@ -1199,23 +1188,11 @@ This command does not work if you use short group names."
     (nnfolder-open-server server))
   (unless nnfolder-marks-is-evil
     (nnfolder-open-marks group server)
-    (dolist (action actions)
-      (let ((range (nth 0 action))
-	    (what  (nth 1 action))
-	    (marks (nth 2 action)))
-	(assert (or (eq what 'add) (eq what 'del)) nil
-		"Unknown request-set-mark action: %s" what)
-	(dolist (mark marks)
-	  (setq nnfolder-marks (gnus-update-alist-soft
-			    mark
-			    (funcall (if (eq what 'add) 'gnus-range-add
-				       'gnus-remove-from-range)
-				     (cdr (assoc mark nnfolder-marks)) range)
-			    nnfolder-marks)))))
+    (setq nnfolder-marks (nnheader-update-marks-actions nnfolder-marks actions))
     (nnfolder-save-marks group server))
   nil)
 
-(deffoo nnfolder-request-update-info (group info &optional server)
+(deffoo nnfolder-request-marks (group info &optional server)
   ;; Change servers.
   (when (and server
 	     (not (nnfolder-server-opened server)))
@@ -1301,5 +1278,4 @@ This command does not work if you use short group names."
 
 (provide 'nnfolder)
 
-;; arch-tag: a040d0f4-4f4e-445f-8972-839575c5f7e6
 ;;; nnfolder.el ends here

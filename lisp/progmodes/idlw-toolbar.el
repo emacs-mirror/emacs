@@ -1,12 +1,12 @@
 ;;; idlw-toolbar.el --- a debugging toolbar for IDLWAVE
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@astro.uva.nl>
 ;; Maintainer: J.D. Smith <jdsmith@as.arizona.edu>
-;; Version: 6.1_em22
+;; Version: 6.1.22
 ;; Keywords: processes
+;; Package: idlwave
 
 ;; This file is part of GNU Emacs.
 
@@ -806,7 +806,7 @@ static char * file[] = {
      "Goto Next Error"]
     [idlwave-toolbar-stop-at-icon
      idlwave-shell-break-here
-     (eq major-mode 'idlwave-mode)
+     (derived-mode-p 'idlwave-mode)
      "Set Breakpoint at selected position"]
     [idlwave-toolbar-clear-at-icon
      idlwave-shell-clear-current-bp
@@ -818,7 +818,7 @@ static char * file[] = {
      "Clear all Breakpoints"]
     [idlwave-toolbar-stop-beginning-icon
      idlwave-shell-break-this-module
-     (eq major-mode 'idlwave-mode)
+     (derived-mode-p 'idlwave-mode)
      "Stop at beginning of enclosing Routine"]
     [idlwave-toolbar-stop-in-icon
      idlwave-shell-break-in
@@ -838,7 +838,7 @@ static char * file[] = {
      "Continue Current Program"]
     [idlwave-toolbar-to-here-icon
      idlwave-shell-to-here
-     (eq major-mode 'idlwave-mode)
+     (derived-mode-p 'idlwave-mode)
      "Continue to Here (cursor position)"]
     [idlwave-toolbar-step-over-icon
      idlwave-shell-stepover
@@ -870,7 +870,7 @@ static char * file[] = {
      "Reset IDL (RETALL & CLOSE,/ALL and more)"]
     [idlwave-toolbar-electric-debug-icon
      idlwave-shell-electric-debug-mode
-     (eq major-mode 'idlwave-mode)
+     (derived-mode-p 'idlwave-mode)
      "Toggle Electric Debug Mode"]
     ))
 
@@ -883,8 +883,7 @@ static char * file[] = {
   "Add the IDLWAVE toolbar if appropriate."
   (if (and (featurep 'xemacs)    ; This is a noop on Emacs
 	   (boundp 'idlwave-toolbar-is-possible)
-	   (or (eq major-mode 'idlwave-mode)
-	       (eq major-mode 'idlwave-shell-mode)))
+	   (derived-mode-p 'idlwave-mode 'idlwave-shell-mode))
       (set-specifier default-toolbar (cons (current-buffer)
 					   idlwave-toolbar))))
 
@@ -892,8 +891,7 @@ static char * file[] = {
   "Add the IDLWAVE toolbar if appropriate."
   (if (and (featurep 'xemacs)    ; This is a noop on Emacs
 	   (boundp 'idlwave-toolbar-is-possible)
-	   (or (eq major-mode 'idlwave-mode)
-	       (eq major-mode 'idlwave-shell-mode)))
+           (derived-mode-p 'idlwave-mode 'idlwave-shell-mode))
       (remove-specifier default-toolbar (current-buffer))))
 
 (defvar idlwave-shell-mode-map)
@@ -970,5 +968,4 @@ static char * file[] = {
 (provide 'idlw-toolbar)
 (provide 'idlwave-toolbar)
 
-;; arch-tag: ec9a3717-c44c-4716-9bda-cdacbe5ddb62
 ;;; idlw-toolbar.el ends here

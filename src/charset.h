@@ -1,8 +1,7 @@
 /* Header for charset handler.
-   Copyright (C) 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2001-2011 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-     2005, 2006, 2007, 2008, 2009, 2010
+     2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H14PRO021
 
@@ -156,10 +155,11 @@ struct charset
      byte code of the (N+1)th dimension, <code_space>[4N+1] is a
      maximum byte code of the (N+1)th dimension, <code_space>[4N+2] is
      (<code_space>[4N+1] - <code_space>[4N] + 1), <code_space>[4N+3]
-     is a number of characters containd in the first to (N+1)th
-     dismesions.  We get `char-index' of a `code-point' from this
+     is the number of characters contained in the first through (N+1)th
+     dimensions, except that there is no <code_space>[15].
+     We get `char-index' of a `code-point' from this
      information.  */
-  int code_space[16];
+  int code_space[15];
 
   /* If B is a byte of Nth dimension of a code-point, the (N-1)th bit
      of code_space_mask[B] is set.  This array is used to quickly
@@ -251,13 +251,10 @@ extern Lisp_Object Vcharset_non_preferred_head;
 /* Incremented everytime we change the priority of charsets.  */
 extern unsigned short charset_ordered_list_tick;
 
-extern Lisp_Object Vcharset_list;
 extern Lisp_Object Viso_2022_charset_list;
 extern Lisp_Object Vemacs_mule_charset_list;
 
-extern struct charset *emacs_mule_charset[256];
-
-extern Lisp_Object Vcurrent_iso639_language;
+extern int emacs_mule_charset[256];
 
 /* Macros to access information about charset.  */
 
@@ -362,9 +359,9 @@ extern Lisp_Object Vcurrent_iso639_language;
 
 #define CHECK_CHARSET_GET_CHARSET(x, charset)	\
   do {						\
-    int id;					\
-    CHECK_CHARSET_GET_ID (x, id);		\
-    charset = CHARSET_FROM_ID (id);		\
+    int csid;					\
+    CHECK_CHARSET_GET_ID (x, csid);		\
+    charset = CHARSET_FROM_ID (csid);		\
   } while (0)
 
 
@@ -517,15 +514,12 @@ extern int iso_charset_table[ISO_MAX_DIMENSION][ISO_MAX_CHARS][ISO_MAX_FINAL];
 #define EMACS_MULE_LEADING_CODE_PRIVATE_21	0x9C /* 2/2 */
 #define EMACS_MULE_LEADING_CODE_PRIVATE_22	0x9D /* 2/2 */
 
-extern struct charset *emacs_mule_charset[256];
-
 
 
 extern Lisp_Object Qcharsetp;
 
-extern Lisp_Object Qascii, Qunicode;
+extern Lisp_Object Qascii;
 extern int charset_ascii, charset_eight_bit;
-extern int charset_iso_8859_1;
 extern int charset_unicode;
 extern int charset_jisx0201_roman;
 extern int charset_jisx0208_1978;
@@ -534,21 +528,16 @@ extern int charset_ksc5601;
 
 extern int charset_unibyte;
 
-extern struct charset *char_charset P_ ((int, Lisp_Object, unsigned *));
-extern Lisp_Object charset_attributes P_ ((int));
+extern struct charset *char_charset (int, Lisp_Object, unsigned *);
+extern Lisp_Object charset_attributes (int);
 
-extern int maybe_unify_char P_ ((int, Lisp_Object));
-extern int decode_char P_ ((struct charset *, unsigned));
-extern unsigned encode_char P_ ((struct charset *, int));
-extern int string_xstring_p P_ ((Lisp_Object));
+extern int maybe_unify_char (int, Lisp_Object);
+extern int decode_char (struct charset *, unsigned);
+extern unsigned encode_char (struct charset *, int);
+extern int string_xstring_p (Lisp_Object);
 
-extern void map_charset_chars P_ ((void (*) (Lisp_Object, Lisp_Object),
-				   Lisp_Object, Lisp_Object,
-				   struct charset *, unsigned, unsigned));
-
-EXFUN (Funify_charset, 3);
+extern void map_charset_chars (void (*) (Lisp_Object, Lisp_Object),
+                               Lisp_Object, Lisp_Object,
+                               struct charset *, unsigned, unsigned);
 
 #endif /* EMACS_CHARSET_H */
-
-/* arch-tag: 3b96db55-4961-481d-ac3e-219f46a2b3aa
-   (do not change this comment) */

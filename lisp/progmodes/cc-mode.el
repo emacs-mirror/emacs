@@ -1,8 +1,6 @@
 ;;; cc-mode.el --- major mode for editing C and similar languages
 
-;; Copyright (C) 1985, 1987, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2011  Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -12,7 +10,7 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: bug-cc-mode@gnu.org
 ;; Created:    a long, long, time ago. adapted from the original c-mode.el
-;; Keywords:   c languages oop
+;; Keywords:   c languages
 
 ;; This file is part of GNU Emacs.
 
@@ -100,7 +98,6 @@
 (cc-bytecomp-defvar adaptive-fill-first-line-regexp) ; Emacs
 (cc-bytecomp-defun set-keymap-parents)	; XEmacs
 (cc-bytecomp-defun run-mode-hooks)	; Emacs 21.1
-(cc-bytecomp-obsolete-fun make-local-hook) ; Marked obsolete in Emacs 21.1.
 
 ;; We set these variables during mode init, yet we don't require
 ;; font-lock.
@@ -488,15 +485,10 @@ that requires a literal mode spec at compile time."
 
   ;; these variables should always be buffer local; they do not affect
   ;; indentation style.
-  (make-local-variable 'parse-sexp-ignore-comments)
-  (make-local-variable 'indent-line-function)
-  (make-local-variable 'indent-region-function)
-  (make-local-variable 'normal-auto-fill-function)
   (make-local-variable 'comment-start)
   (make-local-variable 'comment-end)
   (make-local-variable 'comment-start-skip)
-  (make-local-variable 'comment-multi-line)
-  (make-local-variable 'comment-line-break-function)
+  
   (make-local-variable 'paragraph-start)
   (make-local-variable 'paragraph-separate)
   (make-local-variable 'paragraph-ignore-fill-prefix)
@@ -504,25 +496,25 @@ that requires a literal mode spec at compile time."
   (make-local-variable 'adaptive-fill-regexp)
 
   ;; now set their values
-  (setq parse-sexp-ignore-comments t
-	indent-line-function 'c-indent-line
-	indent-region-function 'c-indent-region
-	normal-auto-fill-function 'c-do-auto-fill
-	comment-multi-line t
-	comment-line-break-function 'c-indent-new-comment-line)
+  (set (make-local-variable 'parse-sexp-ignore-comments) t)
+  (set (make-local-variable 'indent-line-function) 'c-indent-line)
+  (set (make-local-variable 'indent-region-function) 'c-indent-region)
+  (set (make-local-variable 'normal-auto-fill-function) 'c-do-auto-fill)
+  (set (make-local-variable 'comment-multi-line) t)
+  (set (make-local-variable 'comment-line-break-function)
+       'c-indent-new-comment-line)
 
   ;; Install `c-fill-paragraph' on `fill-paragraph-function' so that a
   ;; direct call to `fill-paragraph' behaves better.  This still
   ;; doesn't work with filladapt but it's better than nothing.
-  (make-local-variable 'fill-paragraph-function)
-  (setq fill-paragraph-function 'c-fill-paragraph)
+  (set (make-local-variable 'fill-paragraph-function) 'c-fill-paragraph)
 
   ;; Initialise the cache of brace pairs, and opening braces/brackets/parens.
   (c-state-cache-init)
 
   (when (or c-recognize-<>-arglists
 	    (c-major-mode-is 'awk-mode)
-	    (c-major-mode-is '(c-mode c++-mode objc-mode)))
+	    (c-major-mode-is '(java-mode c-mode c++-mode objc-mode)))
     ;; We'll use the syntax-table text property to change the syntax
     ;; of some chars for this language, so do the necessary setup for
     ;; that.
@@ -533,22 +525,19 @@ that requires a literal mode spec at compile time."
 
     ;; Emacs.
     (when (boundp 'parse-sexp-lookup-properties)
-      (make-local-variable 'parse-sexp-lookup-properties)
-      (setq parse-sexp-lookup-properties t))
+      (set (make-local-variable 'parse-sexp-lookup-properties) t))
 
     ;; Same as above for XEmacs.
     (when (boundp 'lookup-syntax-properties)
-      (make-local-variable 'lookup-syntax-properties)
-      (setq lookup-syntax-properties t)))
+      (set (make-local-variable 'lookup-syntax-properties) t)))
 
   ;; Use this in Emacs 21+ to avoid meddling with the rear-nonsticky
   ;; property on each character.
   (when (boundp 'text-property-default-nonsticky)
-    (make-local-variable 'text-property-default-nonsticky)
     (mapc (lambda (tprop)
 	    (unless (assq tprop text-property-default-nonsticky)
-	      (setq text-property-default-nonsticky
-		    (cons `(,tprop . t) text-property-default-nonsticky))))
+	      (set (make-local-variable 'text-property-default-nonsticky)
+                   (cons `(,tprop . t) text-property-default-nonsticky))))
 	  '(syntax-table category c-type)))
 
   ;; In Emacs 21 and later it's possible to turn off the ad-hoc
@@ -588,8 +577,7 @@ that requires a literal mode spec at compile time."
   (setq c-offsets-alist (copy-alist c-offsets-alist))
 
   ;; setup the comment indent variable in a Emacs version portable way
-  (make-local-variable 'comment-indent-function)
-  (setq comment-indent-function 'c-comment-indent)
+  (set (make-local-variable 'comment-indent-function) 'c-comment-indent)
 
 ;;   ;; Put submode indicators onto minor-mode-alist, but only once.
 ;;   (or (assq 'c-submode-indicators minor-mode-alist)
@@ -600,9 +588,10 @@ that requires a literal mode spec at compile time."
 
   ;; Install the functions that ensure that various internal caches
   ;; don't become invalid due to buffer changes.
-  (make-local-hook 'before-change-functions)
+  (when (featurep 'xemacs)
+    (make-local-hook 'before-change-functions)
+    (make-local-hook 'after-change-functions))
   (add-hook 'before-change-functions 'c-before-change nil t)
-  (make-local-hook 'after-change-functions)
   (add-hook 'after-change-functions 'c-after-change nil t)
   (set (make-local-variable 'font-lock-extend-after-change-region-function)
  	'c-extend-after-change-region))	; Currently (2009-05) used by all
@@ -615,6 +604,15 @@ that requires a literal mode spec at compile time."
     ;; Force font lock mode to reinitialize itself.
     (font-lock-mode 0)
     (font-lock-mode 1)))
+
+;; Buffer local variables defining the region to be fontified by a font lock
+;; after-change function.  They are set in c-after-change to
+;; after-change-function's BEG and END, and may be modified by a
+;; `c-before-font-lock-function'.
+(defvar c-new-BEG 0)
+(make-variable-buffer-local 'c-new-BEG)
+(defvar c-new-END 0)
+(make-variable-buffer-local 'c-new-END)
 
 (defun c-common-init (&optional mode)
   "Common initialization for all CC Mode modes.
@@ -640,6 +638,8 @@ compatible with old code; callers should always specify it."
   ;; Starting a mode is a sort of "change".  So call the change functions...
   (save-restriction
     (widen)
+    (setq c-new-BEG (point-min))
+    (setq c-new-END (point-max))
     (save-excursion
       (if c-get-state-before-change-functions
 	  (mapc (lambda (fn)
@@ -649,17 +649,26 @@ compatible with old code; callers should always specify it."
 	  (funcall c-before-font-lock-function (point-min) (point-max)
 		   (- (point-max) (point-min))))))
 
-  (make-local-variable 'outline-regexp)
-  (make-local-variable 'outline-level)
-  (setq outline-regexp "[^#\n\^M]"
-	outline-level 'c-outline-level)
+  (set (make-local-variable 'outline-regexp) "[^#\n\^M]")
+  (set (make-local-variable 'outline-level) 'c-outline-level)
 
   (let ((rfn (assq mode c-require-final-newline)))
     (when rfn
-      (make-local-variable 'require-final-newline)
       (and (cdr rfn)
-	   (setq require-final-newline mode-require-final-newline)))))
+	   (set (make-local-variable 'require-final-newline)
+                mode-require-final-newline)))))
 
+(defun c-count-cfss (lv-alist)
+  ;; LV-ALIST is an alist like `file-local-variables-alist'.  Count how many
+  ;; elements with the key `c-file-style' there are in it.
+  (let ((elt-ptr lv-alist) elt (cownt 0))
+    (while elt-ptr
+      (setq elt (car elt-ptr)
+	    elt-ptr (cdr elt-ptr))
+      (when (eq (car elt) 'c-file-style)
+	(setq cownt (1+ cownt))))
+    cownt))
+							  
 (defun c-before-hack-hook ()
   "Set the CC Mode style and \"offsets\" when in the buffer's local variables.
 They are set only when, respectively, the pseudo variables
@@ -667,11 +676,24 @@ They are set only when, respectively, the pseudo variables
 
 This function is called from the hook `before-hack-local-variables-hook'."
   (when c-buffer-is-cc-mode
-    (let ((stile (cdr (assq 'c-file-style file-local-variables-alist)))
+    (let ((mode-cons (assq 'mode file-local-variables-alist))
+	  (stile (cdr (assq 'c-file-style file-local-variables-alist)))
 	  (offsets (cdr (assq 'c-file-offsets file-local-variables-alist))))
+      (when mode-cons
+	(hack-one-local-variable (car mode-cons) (cdr mode-cons))
+	(setq file-local-variables-alist
+	      (delq mode-cons file-local-variables-alist)))
       (when stile
 	(or (stringp stile) (error "c-file-style is not a string"))
-	(c-set-style stile))
+	(if (boundp 'dir-local-variables-alist)
+	    ;; Determine whether `c-file-style' was set in the file's local
+	    ;; variables or in a .dir-locals.el (a directory setting).
+	    (let ((cfs-in-file-and-dir-count
+		   (c-count-cfss file-local-variables-alist))
+		  (cfs-in-dir-count (c-count-cfss dir-local-variables-alist)))
+	      (c-set-style stile
+			   (= cfs-in-file-and-dir-count cfs-in-dir-count)))
+	  (c-set-style stile)))
       (when offsets
 	(mapc
 	 (lambda (langentry)
@@ -785,15 +807,6 @@ Note that the style variables are always made local to the buffer."
 
 ;;; Change hooks, linking with Font Lock.
 
-;; Buffer local variables defining the region to be fontified by a font lock
-;; after-change function.  They are set in c-after-change to
-;; after-change-function's BEG and END, and may be modified by a
-;; `c-before-font-lock-function'.
-(defvar c-new-BEG 0)
-(make-variable-buffer-local 'c-new-BEG)
-(defvar c-new-END 0)
-(make-variable-buffer-local 'c-new-END)
-
 ;; Buffer local variables recording Beginning/End-of-Macro position before a
 ;; change, when a macro straddles, respectively, the BEG or END (or both) of
 ;; the change region.  Otherwise these have the values BEG/END.
@@ -886,17 +899,19 @@ Note that the style variables are always made local to the buffer."
     ;; inside a string, comment, or macro.
     (goto-char c-old-BOM)	  ; already set to old start of macro or begg.
     (setq c-new-BEG
-	  (if (setq limits (c-state-literal-at (point)))
-	      (cdr limits)	    ; go forward out of any string or comment.
-	    (point)))
+	  (min c-new-BEG
+	       (if (setq limits (c-state-literal-at (point)))
+		   (cdr limits)	    ; go forward out of any string or comment.
+		 (point))))
 
     (goto-char endd)
     (if (setq limits (c-state-literal-at (point)))
 	(goto-char (car limits)))  ; go backward out of any string or comment.
     (if (c-beginning-of-macro)
 	(c-end-of-macro))
-    (setq c-new-END (max (+ (- c-old-EOM old-len) (- endd begg))
-		   (point)))
+    (setq c-new-END (max c-new-END
+			 (+ (- c-old-EOM old-len) (- endd begg))
+			 (point)))
 
     ;; Clear all old relevant properties.
     (c-clear-char-property-with-value c-new-BEG c-new-END 'syntax-table '(1))
@@ -1001,10 +1016,6 @@ Note that the style variables are always made local to the buffer."
 			    (buffer-substring-no-properties type-pos term-pos)
 			    (buffer-substring-no-properties beg end)))))))
 
-	;; (c-new-BEG c-new-END) will be the region to fontify.  It may become
-	;; larger than (beg end).
-	(setq c-new-BEG beg
-	      c-new-END end)
 	(if c-get-state-before-change-functions
 	    (mapc (lambda (fn)
 		    (funcall fn beg end))
@@ -1058,6 +1069,10 @@ Note that the style variables are always made local to the buffer."
 	(when c-recognize-<>-arglists
 	  (c-after-change-check-<>-operators beg end))
 
+	;; (c-new-BEG c-new-END) will be the region to fontify.  It may become
+	;; larger than (beg end).
+	(setq c-new-BEG beg
+	      c-new-END end)
 	(if c-before-font-lock-function
 	    (save-excursion
 	      (funcall c-before-font-lock-function beg end old-len)))))))
@@ -1072,8 +1087,7 @@ Note that the style variables are always made local to the buffer."
 This does not load the font-lock package.  Use after
 `c-basic-common-init' and after cc-fonts has been loaded."
 
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults
+  (set (make-local-variable 'font-lock-defaults)
 	`(,(if (c-major-mode-is 'awk-mode)
 	       ;; awk-mode currently has only one font lock level.
 	       'awk-font-lock-keywords
@@ -1085,8 +1099,8 @@ This does not load the font-lock package.  Use after
 	  c-beginning-of-syntax
 	  (font-lock-mark-block-function
 	   . c-mark-function)))
-
-  (make-local-hook 'font-lock-mode-hook)
+  (if (featurep 'xemacs)
+      (make-local-hook 'font-lock-mode-hook))
   (add-hook 'font-lock-mode-hook 'c-after-font-lock-init nil t))
 
 (defun c-extend-after-change-region (beg end old-len)
@@ -1178,7 +1192,7 @@ Key bindings:
   (kill-all-local-variables)
   (c-initialize-cc-mode t)
   (set-syntax-table c-mode-syntax-table)
-  (setq major-mode 'c-mode
+  (setq major-mode 'c-mode           ; FIXME: Use define-derived-mode.
 	mode-name "C"
 	local-abbrev-table c-mode-abbrev-table
 	abbrev-mode t)
@@ -1241,7 +1255,7 @@ Key bindings:
   (kill-all-local-variables)
   (c-initialize-cc-mode t)
   (set-syntax-table c++-mode-syntax-table)
-  (setq major-mode 'c++-mode
+  (setq major-mode 'c++-mode         ; FIXME: Use define-derived-mode.
 	mode-name "C++"
 	local-abbrev-table c++-mode-abbrev-table
 	abbrev-mode t)
@@ -1302,7 +1316,7 @@ Key bindings:
   (kill-all-local-variables)
   (c-initialize-cc-mode t)
   (set-syntax-table objc-mode-syntax-table)
-  (setq major-mode 'objc-mode
+  (setq major-mode 'objc-mode        ; FIXME: Use define-derived-mode.
 	mode-name "ObjC"
 	local-abbrev-table objc-mode-abbrev-table
 	abbrev-mode t)
@@ -1372,7 +1386,7 @@ Key bindings:
   (kill-all-local-variables)
   (c-initialize-cc-mode t)
   (set-syntax-table java-mode-syntax-table)
-  (setq major-mode 'java-mode
+  (setq major-mode 'java-mode        ; FIXME: Use define-derived-mode.
  	mode-name "Java"
  	local-abbrev-table java-mode-abbrev-table
 	abbrev-mode t)
@@ -1431,7 +1445,7 @@ Key bindings:
   (kill-all-local-variables)
   (c-initialize-cc-mode t)
   (set-syntax-table idl-mode-syntax-table)
-  (setq major-mode 'idl-mode
+  (setq major-mode 'idl-mode         ; FIXME: Use define-derived-mode.
 	mode-name "IDL"
 	local-abbrev-table idl-mode-abbrev-table)
   (use-local-map idl-mode-map)
@@ -1492,7 +1506,7 @@ Key bindings:
   (kill-all-local-variables)
   (c-initialize-cc-mode t)
   (set-syntax-table pike-mode-syntax-table)
-  (setq major-mode 'pike-mode
+  (setq major-mode 'pike-mode        ; FIXME: Use define-derived-mode.
  	mode-name "Pike"
  	local-abbrev-table pike-mode-abbrev-table
 	abbrev-mode t)
@@ -1566,7 +1580,7 @@ Key bindings:
   (kill-all-local-variables)
   (c-initialize-cc-mode t)
   (set-syntax-table awk-mode-syntax-table)
-  (setq major-mode 'awk-mode
+  (setq major-mode 'awk-mode         ; FIXME: Use define-derived-mode.
 	mode-name "AWK"
 	local-abbrev-table awk-mode-abbrev-table
 	abbrev-mode t)
@@ -1652,7 +1666,7 @@ Key bindings:
 		     adaptive-fill-regexp)
 		   nil)))
 	(mapc (lambda (var) (unless (boundp var)
-			      (setq vars (delq var vars))))
+                         (setq vars (delq var vars))))
 	      '(signal-error-on-buffer-boundary
 		filladapt-mode
 		defun-prompt-regexp
@@ -1669,5 +1683,4 @@ Key bindings:
 
 (cc-provide 'cc-mode)
 
-;; arch-tag: 7825e5c4-fd09-439f-a04d-4c13208ba3d7
 ;;; cc-mode.el ends here

@@ -1,7 +1,6 @@
 ;;; gnus-async.el --- asynchronous support for Gnus
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -68,6 +67,13 @@ from that group."
   "Function called to say whether an article should be prefetched or not.
 The function is called with one parameter -- the article data.
 It should return non-nil if the article is to be prefetched."
+  :group 'gnus-asynchronous
+  :type 'function)
+
+(defcustom gnus-async-post-fetch-function nil
+  "Function called after an article has been prefetched.
+The function will be called narrowed to the region of the article
+that was fetched."
   :group 'gnus-asynchronous
   :type 'function)
 
@@ -138,8 +144,7 @@ It should return non-nil if the article is to be prefetched."
   (when (and (gnus-buffer-live-p summary)
 	     gnus-asynchronous
 	     (gnus-group-asynchronous-p group))
-    (save-excursion
-      (set-buffer gnus-summary-buffer)
+    (with-current-buffer gnus-summary-buffer
       (let ((next (caadr (gnus-data-find-list article))))
 	(when next
 	  (if (not (fboundp 'run-with-idle-timer))
@@ -198,8 +203,7 @@ It should return non-nil if the article is to be prefetched."
 
 	  (when (and do-fetch article)
 	    ;; We want to fetch some more articles.
-	    (save-excursion
-	      (set-buffer summary)
+	    (with-current-buffer summary
 	      (let (mark)
 		(gnus-async-set-buffer)
 		(goto-char (point-max))
@@ -221,12 +225,29 @@ It should return non-nil if the article is to be prefetched."
   `(lambda (arg)
      (gnus-async-article-callback arg ,group ,article ,mark ,summary ,next)))
 
+(eval-when-compile
+  (autoload 'gnus-html-prefetch-images "gnus-html"))
+
 (defun gnus-async-article-callback (arg group article mark summary next)
   "Function called when an async article is done being fetched."
   (save-excursion
     (setq gnus-async-current-prefetch-article nil)
     (when arg
       (gnus-async-set-buffer)
+      (save-excursion
+	(save-restriction
+	  (narrow-to-region mark (point-max))
+	  ;; Put the articles into the agent, if they aren't already.
+	  (when (and gnus-agent
+		     (gnus-agent-group-covered-p group))
+	    (save-restriction
+	      (narrow-to-region mark (point-max))
+	      (gnus-agent-store-article article group)))
+	  ;; Prefetch images for the groups that want that.
+	  (when (fboundp 'gnus-html-prefetch-images)
+	    (gnus-html-prefetch-images summary))
+	  (when gnus-async-post-fetch-function
+	    (funcall gnus-async-post-fetch-function summary))))
       (gnus-async-with-semaphore
 	(setq
 	 gnus-async-article-alist
@@ -300,7 +321,8 @@ It should return non-nil if the article is to be prefetched."
     (set-marker (caddr entry) nil))
   (gnus-async-with-semaphore
     (setq gnus-async-article-alist
-	  (delq entry gnus-async-article-alist))))
+	  (delq entry gnus-async-article-alist))
+    (unintern (car entry) gnus-async-hashtb)))
 
 (defun gnus-async-prefetch-remove-group (group)
   "Remove all articles belonging to GROUP from the prefetch buffer."
@@ -316,8 +338,8 @@ It should return non-nil if the article is to be prefetched."
   "Return the entry for ARTICLE in GROUP if it has been prefetched."
   (let ((entry (save-excursion
 		 (gnus-async-set-buffer)
-		 (assq (intern (format "%s-%d" group article)
-			       gnus-async-hashtb)
+		 (assq (intern-soft (format "%s-%d" group article)
+				    gnus-async-hashtb)
 		       gnus-async-article-alist))))
     ;; Perhaps something has emptied the buffer?
     (if (and entry
@@ -372,5 +394,4 @@ It should return non-nil if the article is to be prefetched."
 
 (provide 'gnus-async)
 
-;; arch-tag: fee61de5-3ea2-4de6-8578-2f90ce89391d
 ;;; gnus-async.el ends here

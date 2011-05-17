@@ -1,7 +1,6 @@
 /*
 Copyright (C) 1992 Lucid, Inc.
-Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-  2010 Free Software Foundation, Inc.
+Copyright (C) 2000-2011 Free Software Foundation, Inc.
 
 This file is part of the Lucid Widget Library.
 
@@ -26,7 +25,7 @@ Boston, MA 02110-1301, USA.  */
 
 #include "lwlib.h"
 
-extern char *safe_strdup __P ((const char *));
+extern char *safe_strdup (const char *);
 
 struct widget_xft_data;
 
@@ -58,8 +57,7 @@ typedef struct _widget_info
   struct _widget_info*		next;
 } widget_info;
 
-typedef Widget
-(*widget_creation_function) ();
+typedef Widget (*widget_creation_function) (widget_instance *instance);
 
 typedef struct _widget_creation_entry
 {
@@ -70,16 +68,14 @@ typedef struct _widget_creation_entry
 /* update all other instances of a widget.  Can be used in a callback when
    a widget has been used by the user */
 void
-lw_internal_update_other_instances __P ((Widget, XtPointer, XtPointer));
+lw_internal_update_other_instances (Widget, XtPointer, XtPointer);
 
 /* get the widget_value for a widget in a given instance */
 widget_value*
-lw_get_widget_value_for_widget __P ((widget_instance *, Widget));
+lw_get_widget_value_for_widget (widget_instance *, Widget);
 
-widget_info *lw_get_widget_info __P ((LWLIB_ID));
-widget_instance * lw_get_widget_instance __P ((Widget));
+widget_info *lw_get_widget_info (LWLIB_ID);
+widget_instance * lw_get_widget_instance (Widget);
 
 #endif /* LWLIB_INTERNAL_H */
 
-/* arch-tag: ae02f67d-ef25-421c-b956-b01a4b0aac76
-   (do not change this comment) */

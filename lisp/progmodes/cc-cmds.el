@@ -1,8 +1,6 @@
 ;;; cc-cmds.el --- user level commands for CC Mode
 
-;; Copyright (C) 1985, 1987, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2011  Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -12,8 +10,8 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: bug-cc-mode@gnu.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
-;; Version:    See cc-mode.el
-;; Keywords:   c languages oop
+;; Keywords:   c languages
+;; Package:    cc-mode
 
 ;; This file is part of GNU Emacs.
 
@@ -266,8 +264,10 @@ With universal argument, inserts the analysis as a comment on that line."
 			  (symbol-value 'subword-mode))
 			 "w"
 		       "")))
+        ;; FIXME: Derived modes might want to use something else
+        ;; than a string for `mode-name'.
 	(bare-mode-name (if (string-match "\\(^[^/]*\\)/" mode-name)
-			    (substring mode-name (match-beginning 1) (match-end 1))
+			    (match-string 1 mode-name)
 			  mode-name)))
 ;;     (setq c-submode-indicators
 ;; 	  (if (> (length fmt) 1)
@@ -1501,6 +1501,11 @@ defun."
   (interactive "p")
   (or arg (setq arg 1))
 
+  (or (not (eq this-command 'c-beginning-of-defun))
+      (eq last-command 'c-beginning-of-defun)
+      (and transient-mark-mode mark-active)
+      (push-mark))
+
   (c-save-buffer-state
       (beginning-of-defun-function end-of-defun-function
        (start (point))
@@ -1603,6 +1608,11 @@ An end of a defun occurs right after the close-parenthesis that matches
 the open-parenthesis that starts a defun; see `beginning-of-defun'."
   (interactive "p")
   (or arg (setq arg 1))
+
+  (or (not (eq this-command 'c-end-of-defun))
+      (eq last-command 'c-end-of-defun)
+      (and transient-mark-mode mark-active)
+      (push-mark))
 
   (c-save-buffer-state
       (beginning-of-defun-function end-of-defun-function
@@ -2430,13 +2440,15 @@ function does not require the declaration to contain a brace block."
 	  (goto-char last)
 	  (throw 'done '(nil . nil)))
 
-	 ;; Stop if we encounter a preprocessor line.
-	 ((and (not macro-end)
+	 ;; Stop if we encounter a preprocessor line.  Continue if we
+	 ;; hit a naked #
+	 ((and c-opt-cpp-prefix
+	       (not macro-end)
 	       (eq (char-after) ?#)
 	       (= (point) (c-point 'boi)))
-	  (goto-char last)
-	  ;(throw 'done (cons (eq (point) here) 'macro-boundary))) ; Changed 2003/3/26
-	  (throw 'done '(t . macro-boundary)))
+	  (if (= (point) here)          ; Not a macro, therefore naked #.
+	      (forward-char)
+	    (throw 'done '(t . macro-boundary))))
 
 	 ;; Stop after a ';', '}', or "};"
 	 ((looking-at ";\\|};?")
@@ -2550,7 +2562,7 @@ be more \"DWIM:ey\"."
 				    (c-backward-syntactic-ws))
 				  (or (bobp) (c-after-statement-terminator-p)))))))
 		;; Are we about to move backwards into or out of a
-		;; preprocessor command?  If so, locate it's beginning.
+		;; preprocessor command?  If so, locate its beginning.
 		(when (eq (cdr res) 'macro-boundary)
 		  (save-excursion
 		    (beginning-of-line)
@@ -2635,14 +2647,19 @@ sentence motion in or near comments and multiline strings."
 		;; Are we about to move forward into or out of a
 		;; preprocessor command?
 		(when (eq (cdr res) 'macro-boundary)
-		  (save-excursion
-		    (end-of-line)
-		    (setq macro-fence
-			  (and (not (eobp))
-			       (progn (c-skip-ws-forward)
-				      (c-beginning-of-macro))
-			       (progn (c-end-of-macro)
-				      (point))))))
+		  (setq macro-fence
+			(save-excursion
+			  (if macro-fence
+			      (progn
+				(end-of-line)
+				(and (not (eobp))
+				     (progn (c-skip-ws-forward)
+					    (c-beginning-of-macro))
+				     (progn (c-end-of-macro)
+					    (point))))
+			    (and (not (eobp))
+				 (c-beginning-of-macro)
+				 (progn (c-end-of-macro) (point)))))))
 		;; Are we about to move forward into a literal?
 		(when (memq (cdr res) '(macro-boundary literal))
 		  (setq range (c-ascertain-following-literal)))
@@ -3964,16 +3981,19 @@ command to conveniently insert and align the necessary backslashes."
 		    ;; "Invalid search bound (wrong side of point)"
 		    ;; error in the subsequent re-search.  Maybe
 		    ;; another fix would be needed (2007-12-08).
-		    (and (> (- (cdr c-lit-limits) 2) (point))
-			 (search-forward-regexp
-			  (concat "\\=[ \t]*\\(" c-current-comment-prefix "\\)")
-			  (- (cdr c-lit-limits) 2) t)
-			 (not (search-forward-regexp
-			       "\\(\\s \\|\\sw\\)"
-			       (- (cdr c-lit-limits) 2) 'limit))
-			     ;; The comment ender IS on its own line.  Exclude
-			     ;; this line from the filling.
-			 (set-marker end (c-point 'bol))))
+;		    (or (<= (- (cdr c-lit-limits) 2) (point))
+; 2010-10-17  Construct removed.
+;		    (or (< (- (cdr c-lit-limits) 2) (point))
+		    (and 
+		     (search-forward-regexp
+		      (concat "\\=[ \t]*\\(" c-current-comment-prefix "\\)")
+		      (- (cdr c-lit-limits) 2) t)
+		     (not (search-forward-regexp
+			   "\\(\\s \\|\\sw\\)"
+			   (- (cdr c-lit-limits) 2) 'limit))
+		     ;; The comment ender IS on its own line.  Exclude this
+		     ;; line from the filling.
+		     (set-marker end (c-point 'bol))));)
 
 		;; The comment ender is hanging.  Replace all space between it
 		;; and the last word either by one or two 'x's (when
@@ -3990,6 +4010,14 @@ command to conveniently insert and align the necessary backslashes."
 				       (goto-char ender-start)
 				       (current-column)))
 		       (point-rel (- ender-start here))
+		       (sentence-ends-comment
+			(save-excursion
+			  (goto-char ender-start)
+			  (and (search-backward-regexp
+				(c-sentence-end) (c-point 'bol) t)
+			       (goto-char (match-end 0))
+			  (looking-at "[ \t]*")
+			  (= (match-end 0) ender-start))))
 		       spaces)
 
 		  (save-excursion
@@ -4032,7 +4060,9 @@ command to conveniently insert and align the necessary backslashes."
 			      (setq spaces
 				    (max
 				     (min spaces
-					  (if sentence-end-double-space 2 1))
+					  (if (and sentence-ends-comment
+						   sentence-end-double-space)
+					      2 1))
 				     1)))
 			  ;; Insert the filler first to keep marks right.
 			  (insert-char ?x spaces t)
@@ -4242,8 +4272,11 @@ Optional prefix ARG means justify paragraph as well."
   (let ((fill-paragraph-function
 	 ;; Avoid infinite recursion.
 	 (if (not (eq fill-paragraph-function 'c-fill-paragraph))
-	     fill-paragraph-function)))
-    (c-mask-paragraph t nil 'fill-paragraph arg))
+	     fill-paragraph-function))
+	(start-point (point-marker)))
+    (c-mask-paragraph
+     t nil (lambda () (fill-region-as-paragraph (point-min) (point-max) arg)))
+    (goto-char start-point))
   ;; Always return t.  This has the effect that if filling isn't done
   ;; above, it isn't done at all, and it's therefore effectively
   ;; disabled in normal code.
@@ -4546,5 +4579,4 @@ normally bound to C-o.  See `c-context-line-break' for the details."
 
 (cc-provide 'cc-cmds)
 
-;; arch-tag: bf0611dc-d1f4-449e-9e45-4ec7c6936677
 ;;; cc-cmds.el ends here

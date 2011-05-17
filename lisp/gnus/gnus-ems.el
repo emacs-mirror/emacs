@@ -1,7 +1,6 @@
 ;;; gnus-ems.el --- functions for making Gnus work under different Emacsen
 
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -162,102 +161,6 @@
 (autoload 'gnus-alive-p "gnus-util")
 (autoload 'mm-disable-multibyte "mm-util")
 
-(defun gnus-x-splash ()
-  "Show a splash screen using a pixmap in the current buffer."
-  (interactive)
-  (unless window-system
-    (error "`gnus-x-splash' requires running on the window system"))
-  (switch-to-buffer (gnus-get-buffer-create (if (or (gnus-alive-p)
-						    (interactive-p))
-						"*gnus-x-splash*"
-					      gnus-group-buffer)))
-  (let ((inhibit-read-only t)
-	(file (nnheader-find-etc-directory "images/gnus/x-splash" t))
-	pixmap fcw fch width height fringes sbars left yoffset top ls)
-    (erase-buffer)
-    (sit-for 0) ;; Necessary for measuring the window size correctly.
-    (when (and file
-	       (ignore-errors
-		(let ((coding-system-for-read 'raw-text))
-		  (with-temp-buffer
-                    (mm-disable-multibyte)
-		    (insert-file-contents file)
-		    (goto-char (point-min))
-		    (setq pixmap (read (current-buffer)))))))
-      (setq fcw (float (frame-char-width))
-	    fch (float (frame-char-height))
-	    width (/ (car pixmap) fcw)
-	    height (/ (cadr pixmap) fch)
-	    fringes (if (fboundp 'window-fringes)
-			(eval '(window-fringes))
-		      '(10 11 nil))
-	    sbars (frame-parameter nil 'vertical-scroll-bars))
-      (cond ((eq sbars 'right)
-	     (setq sbars
-		   (cons 0 (/ (or (frame-parameter nil 'scroll-bar-width) 14)
-			      fcw))))
-	    (sbars
-	     (setq sbars
-		   (cons (/ (or (frame-parameter nil 'scroll-bar-width) 14)
-			    fcw)
-			 0)))
-	    (t
-	     (setq sbars '(0 . 0))))
-      (setq left (- (* (round (/ (1- (/ (+ (window-width)
-					   (car sbars) (cdr sbars)
-					   (/ (+ (or (car fringes) 0)
-						 (or (cadr fringes) 0))
-					      fcw))
-					width))
-				 2))
-		       width)
-		    (car sbars)
-		    (/ (or (car fringes) 0) fcw))
-	    yoffset (cadr (window-edges))
-	    top (max 0 (- (* (max (if (and (boundp 'tool-bar-mode)
-					   tool-bar-mode
-					   (not (featurep 'gtk))
-					   (eq (frame-first-window)
-					       (selected-window)))
-				      1 0)
-				  (round (/ (1- (/ (+ (1- (window-height))
-						      (* 2 yoffset))
-						   height))
-					    2)))
-			     height)
-			  yoffset))
-	    ls (/ (or line-spacing 0) fch)
-	    height (max 0 (- height ls)))
-      (cond ((>= (- top ls) 1)
-	     (insert
-	      (propertize
-	       " "
-	       'display `(space :width 0 :ascent 100))
-	      "\n"
-	      (propertize
-	       " "
-	       'display `(space :width 0 :height ,(- top ls 1) :ascent 100))
-	      "\n"))
-	    ((> (- top ls) 0)
-	     (insert
-	      (propertize
-	       " "
-	       'display `(space :width 0 :height ,(- top ls) :ascent 100))
-	      "\n")))
-      (if (and (> width 0) (> left 0))
-	  (insert (propertize
-		   " "
-		   'display `(space :width ,left :height ,height :ascent 0)))
-	(setq width (+ width left)))
-      (when (> width 0)
-	(insert (propertize
-		 " "
-		 'display `(space :width ,width :height ,height :ascent 0)
-		 'face `(gnus-splash :stipple ,pixmap))))
-      (goto-char (if (<= (- top ls) 0) (1- (point)) (point-min)))
-      (redraw-frame (selected-frame))
-      (sit-for 0))))
-
 ;;; Image functions.
 
 (defun gnus-image-type-available-p (type)
@@ -272,7 +175,8 @@
     (when face
       (setq props (plist-put props :foreground (face-foreground face)))
       (setq props (plist-put props :background (face-background face))))
-    (apply 'create-image file type data-p props)))
+    (ignore-errors
+      (apply 'create-image file type data-p props))))
 
 (defun gnus-put-image (glyph &optional string category)
   (let ((point (point)))
@@ -305,7 +209,53 @@
 	  (setq start end
 		end nil))))))
 
+(eval-and-compile
+  ;; XEmacs does not have window-inside-pixel-edges
+  (defalias 'gnus-window-inside-pixel-edges
+    (if (fboundp 'window-inside-pixel-edges)
+        'window-inside-pixel-edges
+      'window-pixel-edges))
+
+  (if (fboundp 'set-process-plist)
+      (progn
+	(defalias 'gnus-set-process-plist 'set-process-plist)
+	(defalias 'gnus-process-plist 'process-plist)
+	(defalias 'gnus-process-get 'process-get)
+	(defalias 'gnus-process-put 'process-put))
+    (defun gnus-set-process-plist (process plist)
+      "Replace the plist of PROCESS with PLIST.  Returns PLIST."
+      (put 'gnus-process-plist-internal process plist))
+
+    (defun gnus-process-plist (process)
+      "Return the plist of PROCESS."
+      ;; This form works but can't prevent the plist data from
+      ;; growing infinitely.
+      ;;(get 'gnus-process-plist-internal process)
+      (let* ((plist (symbol-plist 'gnus-process-plist-internal))
+	     (tem (memq process plist)))
+	(prog1
+	    (cadr tem)
+	  ;; Remove it from the plist data.
+	  (when tem
+	    (if (eq plist tem)
+		(progn
+		  (setcar plist (caddr plist))
+		  (setcdr plist (or (cdddr plist) '(nil))))
+	      (setcdr (nthcdr (- (length plist) (length tem) 1) plist)
+		      (cddr tem)))))))
+
+    (defun gnus-process-get (process propname)
+      "Return the value of PROCESS' PROPNAME property.
+This is the last value stored with `(gnus-process-put PROCESS PROPNAME VALUE)'."
+      (plist-get (gnus-process-plist process) propname))
+
+    (defun gnus-process-put (process propname value)
+      "Change PROCESS' PROPNAME property to VALUE.
+It can be retrieved with `(gnus-process-get PROCESS PROPNAME)'."
+      (gnus-set-process-plist process
+			      (plist-put (gnus-process-plist process)
+					 propname value)))))
+
 (provide 'gnus-ems)
 
-;; arch-tag: e7360b45-14b5-4171-aa39-69a44aed3cdb
 ;;; gnus-ems.el ends here

@@ -102,5 +102,4 @@ site-init."
 
 (provide 'mailpost)
 
-;; arch-tag: 1f8ca085-60a6-4eac-8efb-69ffec2fa124
 ;;; mailpost.el ends here

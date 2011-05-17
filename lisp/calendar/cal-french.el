@@ -1,13 +1,13 @@
 ;;; cal-french.el --- calendar functions for the French Revolutionary calendar
 
-;; Copyright (C) 1988, 1989, 1992, 1994, 1995, 1997, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1988-1989, 1992, 1994-1995, 1997, 2001-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
 ;; Keywords: calendar
 ;; Human-Keywords: French Revolutionary calendar, calendar, diary
+;; Package: calendar
 
 ;; This file is part of GNU Emacs.
 
@@ -269,5 +269,4 @@ Echo French Revolutionary date unless NOECHO is non-nil."
 ;; coding: utf-8
 ;; End:
 
-;; arch-tag: 7e8045a3-8609-46b5-9cde-cf40ce541cf9
 ;;; cal-french.el ends here

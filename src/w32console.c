@@ -1,6 +1,5 @@
 /* Terminal hooks for GNU Emacs on the Microsoft W32 API.
-   Copyright (C) 1992, 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-                 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1992, 1999, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -25,10 +24,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-#include <stdlib.h>
 #include <stdio.h>
 #include <windows.h>
-#include <string.h>
 #include <setjmp.h>
 
 #include "lisp.h"
@@ -42,13 +39,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "w32inevt.h"
 
 /* from window.c */
-extern Lisp_Object Frecenter ();
-
-/* from keyboard.c */
-extern int detect_input_pending ();
-
-/* from sysdep.c */
-extern int read_input_pending ();
+extern Lisp_Object Frecenter (Lisp_Object);
 
 static void w32con_move_cursor (struct frame *f, int row, int col);
 static void w32con_clear_to_end (struct frame *f);
@@ -68,19 +59,12 @@ static WORD w32_face_attributes (struct frame *f, int face_id);
 static COORD	cursor_coords;
 static HANDLE	prev_screen, cur_screen;
 static WORD	char_attr_normal;
-static DWORD   prev_console_mode;
+static DWORD	prev_console_mode;
 
 #ifndef USE_SEPARATE_SCREEN
 static CONSOLE_CURSOR_INFO prev_console_cursor;
 #endif
 
-extern Lisp_Object Vtty_defined_color_alist;
-
-/* Determine whether to make frame dimensions match the screen buffer,
-   or the current window size.  The former is desirable when running
-   over telnet, while the latter is more useful when working directly at
-   the console with a large scroll-back buffer.  */
-int w32_use_full_screen_buffer;
 HANDLE  keyboard_handle;
 
 
@@ -268,7 +252,8 @@ scroll_line (struct frame *f, int dist, int direction)
 
 /* If start is zero insert blanks instead of a string at start ?. */
 static void
-w32con_insert_glyphs (struct frame *f, register struct glyph *start, register int len)
+w32con_insert_glyphs (struct frame *f, register struct glyph *start,
+		      register int len)
 {
   scroll_line (f, len, RIGHT);
 
@@ -285,9 +270,6 @@ w32con_insert_glyphs (struct frame *f, register struct glyph *start, register in
       w32con_clear_end_of_line (f, cursor_coords.X + len);
     }
 }
-
-extern unsigned char *encode_terminal_code P_ ((struct glyph *, int, 
-						struct coding_system *));
 
 static void
 w32con_write_glyphs (struct frame *f, register struct glyph *string,
@@ -392,8 +374,7 @@ SOUND is 'asterisk, 'exclamation, 'hand, 'question, 'ok, or 'silent
 to use the corresponding system sound for the bell.  The 'silent sound
 prevents Emacs from making any sound at all.
 SOUND is nil to use the normal beep.  */)
-     (sound)
-     Lisp_Object sound;
+  (Lisp_Object sound)
 {
   CHECK_SYMBOL (sound);
 
@@ -438,7 +419,7 @@ w32con_reset_terminal_modes (struct terminal *t)
   FillConsoleOutputCharacter (cur_screen, ' ', n, dest, &r);
   /* Now that the screen is clear, put the cursor at the top.  */
   SetConsoleCursorPosition (cur_screen, dest);
-  
+
 #ifdef USE_SEPARATE_SCREEN
   SetConsoleActiveScreenBuffer (prev_screen);
 #else
@@ -492,7 +473,7 @@ w32con_set_terminal_window (struct frame *f, int size)
  ***********************************************************************/
 
 void
-sys_tputs (char *str, int nlines, int (*outfun)())
+sys_tputs (char *str, int nlines, int (*outfun) (int))
 {
 }
 
@@ -511,13 +492,13 @@ struct tty_display_info *current_tty = NULL;
 int cost = 0;
 
 int
-evalcost (char c)
+evalcost (int c)
 {
   return c;
 }
 
 int
-cmputc (char c)
+cmputc (int c)
 {
   return c;
 }
@@ -551,9 +532,7 @@ Wcm_clear (struct tty_display_info *tty)
 /* Turn appearances of face FACE_ID on tty frame F on.  */
 
 static WORD
-w32_face_attributes (f, face_id)
-     struct frame *f;
-     int face_id;
+w32_face_attributes (struct frame *f, int face_id)
 {
   WORD char_attr;
   struct face *face = FACE_FROM_ID (f, face_id);
@@ -587,30 +566,6 @@ w32_face_attributes (f, face_id)
   return char_attr;
 }
 
-
-
-/* Given a color index, return its standard name.  */
-Lisp_Object
-vga_stdcolor_name (int idx)
-{
-  /* Standard VGA colors, in the order of their standard numbering
-     in the default VGA palette.  */
-  static char *vga_colors[16] = {
-    "black", "blue", "green", "cyan", "red", "magenta", "brown",
-    "lightgray", "darkgray", "lightblue", "lightgreen", "lightcyan",
-    "lightred", "lightmagenta", "yellow", "white"
-  };
-
-  extern Lisp_Object Qunspecified;
-
-  if (idx >= 0 && idx < sizeof (vga_colors) / sizeof (vga_colors[0]))
-    return build_string (vga_colors[idx]);
-  else
-    return Qunspecified;	/* meaning the default */
-}
-
-typedef int (*term_hook) ();
-
 void
 initialize_w32_display (struct terminal *term)
 {
@@ -618,19 +573,19 @@ initialize_w32_display (struct terminal *term)
 
   term->rif = 0; /* No window based redisplay on the console.  */
   term->cursor_to_hook		= w32con_move_cursor;
-  term->raw_cursor_to_hook		= w32con_move_cursor;
-  term->clear_to_end_hook		= w32con_clear_to_end;
-  term->clear_frame_hook		= w32con_clear_frame;
+  term->raw_cursor_to_hook	= w32con_move_cursor;
+  term->clear_to_end_hook	= w32con_clear_to_end;
+  term->clear_frame_hook	= w32con_clear_frame;
   term->clear_end_of_line_hook	= w32con_clear_end_of_line;
-  term->ins_del_lines_hook		= w32con_ins_del_lines;
-  term->insert_glyphs_hook		= w32con_insert_glyphs;
-  term->write_glyphs_hook		= w32con_write_glyphs;
-  term->delete_glyphs_hook		= w32con_delete_glyphs;
+  term->ins_del_lines_hook	= w32con_ins_del_lines;
+  term->insert_glyphs_hook	= w32con_insert_glyphs;
+  term->write_glyphs_hook	= w32con_write_glyphs;
+  term->delete_glyphs_hook	= w32con_delete_glyphs;
   term->ring_bell_hook		= w32_sys_ring_bell;
-  term->reset_terminal_modes_hook	= w32con_reset_terminal_modes;
+  term->reset_terminal_modes_hook = w32con_reset_terminal_modes;
   term->set_terminal_modes_hook	= w32con_set_terminal_modes;
-  term->set_terminal_window_hook	= w32con_set_terminal_window;
-  term->update_begin_hook		= w32con_update_begin;
+  term->set_terminal_window_hook = w32con_set_terminal_window;
+  term->update_begin_hook	= w32con_update_begin;
   term->update_end_hook		= w32con_update_end;
 
   term->read_socket_hook = w32_console_read_socket;
@@ -674,8 +629,8 @@ initialize_w32_display (struct terminal *term)
 
   /* Respect setting of LINES and COLUMNS environment variables.  */
   {
-    char * lines = getenv("LINES");
-    char * columns = getenv("COLUMNS");
+    char * lines = getenv ("LINES");
+    char * columns = getenv ("COLUMNS");
 
     if (lines != NULL && columns != NULL)
       {
@@ -750,10 +705,10 @@ initialize_w32_display (struct terminal *term)
 
 
 DEFUN ("set-screen-color", Fset_screen_color, Sset_screen_color, 2, 2, 0,
-       doc: /* Set screen colors.  */)
-    (foreground, background)
-    Lisp_Object foreground;
-    Lisp_Object background;
+       doc: /* Set screen foreground and background colors.
+
+Arguments should be indices between 0 and 15, see w32console.el.  */)
+  (Lisp_Object foreground, Lisp_Object background)
 {
   char_attr_normal = XFASTINT (foreground) + (XFASTINT (background) << 4);
 
@@ -761,10 +716,21 @@ DEFUN ("set-screen-color", Fset_screen_color, Sset_screen_color, 2, 2, 0,
   return Qt;
 }
 
+DEFUN ("get-screen-color", Fget_screen_color, Sget_screen_color, 0, 0, 0,
+       doc: /* Get color indices of the current screen foreground and background.
+
+The colors are returned as a list of 2 indices (FOREGROUND BACKGROUND).
+See w32console.el and `tty-defined-color-alist' for mapping of indices
+to colors.  */)
+  (void)
+{
+  return Fcons (make_number (char_attr_normal & 0x000f),
+		Fcons (make_number ((char_attr_normal >> 4) & 0x000f), Qnil));
+}
+
 DEFUN ("set-cursor-size", Fset_cursor_size, Sset_cursor_size, 1, 1, 0,
        doc: /* Set cursor size.  */)
-    (size)
-    Lisp_Object size;
+  (Lisp_Object size)
 {
   CONSOLE_CURSOR_INFO cci;
   cci.dwSize = XFASTINT (size);
@@ -775,10 +741,10 @@ DEFUN ("set-cursor-size", Fset_cursor_size, Sset_cursor_size, 1, 1, 0,
 }
 
 void
-syms_of_ntterm ()
+syms_of_ntterm (void)
 {
   DEFVAR_BOOL ("w32-use-full-screen-buffer",
-               &w32_use_full_screen_buffer,
+               w32_use_full_screen_buffer,
 	       doc: /* Non-nil means make terminal frames use the full screen buffer dimensions.
 This is desirable when running Emacs over telnet.
 A value of nil means use the current console window dimensions; this
@@ -787,9 +753,8 @@ scroll-back buffer.  */);
   w32_use_full_screen_buffer = 0;
 
   defsubr (&Sset_screen_color);
+  defsubr (&Sget_screen_color);
   defsubr (&Sset_cursor_size);
   defsubr (&Sset_message_beep);
 }
 
-/* arch-tag: a390a07f-f661-42bc-aeb4-e6d8bf860337
-   (do not change this comment) */

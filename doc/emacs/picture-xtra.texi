@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+@c Copyright (C) 2004-2011 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
 @c This file is included either in emacs-xtra.texi (when producing the
@@ -285,7 +285,3 @@ other modes.  @kbd{C-c C-y} (@code{picture-yank-rectangle}) inserts
 (by overwriting) the rectangle that was most recently killed, while
 @kbd{C-c C-x} (@code{picture-yank-rectangle-from-register}) does
 likewise for the rectangle found in a specified register.
-
-@ignore
-   arch-tag: 10e423ad-d896-42f2-a7e8-7018adeaf8c2
-@end ignore

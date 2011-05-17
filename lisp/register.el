@@ -1,10 +1,10 @@
 ;;; register.el --- register commands for Emacs
 
-;; Copyright (C) 1985, 1993, 1994, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1993-1994, 2001-2011 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -88,7 +88,7 @@ Argument is a character, naming the register."
 		(if arg (list (current-frame-configuration) (point-marker))
 		  (point-marker))))
 
-(defun window-configuration-to-register (register &optional arg)
+(defun window-configuration-to-register (register &optional _arg)
   "Store the window configuration of the selected frame in register REGISTER.
 Use \\[jump-to-register] to restore the configuration.
 Argument is a character, naming the register."
@@ -97,7 +97,7 @@ Argument is a character, naming the register."
   ;; of point in the current buffer, so record that separately.
   (set-register register (list (current-window-configuration) (point-marker))))
 
-(defun frame-configuration-to-register (register &optional arg)
+(defun frame-configuration-to-register (register &optional _arg)
   "Store the window configuration of all frames in register REGISTER.
 Use \\[jump-to-register] to restore the configuration.
 Argument is a character, naming the register."
@@ -352,5 +352,4 @@ START and END are buffer positions giving two corners of rectangle."
 		  (extract-rectangle start end))))
 
 (provide 'register)
-;; arch-tag: ce14dd68-8265-475f-9341-5d4ec5a53035
 ;;; register.el ends here

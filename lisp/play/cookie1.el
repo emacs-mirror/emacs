@@ -1,7 +1,6 @@
 ;;; cookie1.el --- retrieve random phrases from fortune cookie files
 
-;; Copyright (C) 1993, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: FSF
@@ -138,7 +137,7 @@ Optional fifth arg REQUIRE-MATCH non-nil forces a matching cookie."
 				(vec (cookie-snarf phrase-file
 						   startmsg endmsg))
 				(i (length vec)))
-			   (while (> (setq i (1- i)) 0)
+			   (while (>= (setq i (1- i)) 0)
 			     (setq alist (cons (list (aref vec i)) alist)))
 			   (put sym 'completion-alist alist))))
 		   nil require-match nil nil))
@@ -164,5 +163,4 @@ Optional fifth arg REQUIRE-MATCH non-nil forces a matching cookie."
 
 (provide 'cookie1)
 
-;; arch-tag: 4a8a8712-df6a-4f34-b030-108a1b47f9f2
 ;;; cookie1.el ends here

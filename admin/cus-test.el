@@ -1,7 +1,6 @@
 ;;; cus-test.el --- tests for custom types and load problems
 
-;; Copyright (C) 1998, 2000, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000, 2002-2011  Free Software Foundation, Inc.
 
 ;; Author: Markus Rost <markus.rost@mathematik.uni-regensburg.de>
 ;; Maintainer: Markus Rost <rost@math.ohio-state.edu>
@@ -525,5 +524,4 @@ in the Emacs source directory."
 
 (provide 'cus-test)
 
-;;; arch-tag: a4991a31-548d-48fb-8ba1-1ebbe68eb2e7
 ;;; cus-test.el ends here

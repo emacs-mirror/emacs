@@ -1,6 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 1999, 2000,
-@c   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2011
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Programs, Building, Text, Top
@@ -34,7 +33,7 @@ Highlight program syntax (@pxref{Font Lock}).
                           of a program.
 * Program Indent::      Adjusting indentation to show the nesting.
 * Parentheses::         Commands that operate on parentheses.
-* Comments::	        Inserting, killing, and aligning comments.
+* Comments::            Inserting, killing, and aligning comments.
 * Documentation::       Getting documentation of functions you plan to call.
 * Hideshow::            Displaying blocks selectively.
 * Symbol Completion::   Completion on symbol names of your program or language.
@@ -354,11 +353,11 @@ single line, a specified number of lines, or all of the lines inside a
 single parenthetical grouping.
 
 @menu
-* Basic Indent::	Indenting a single line.
+* Basic Indent::        Indenting a single line.
 * Multi-line Indent::   Commands to reindent many lines at once.
-* Lisp Indent::		Specifying how each Lisp function should be indented.
-* C Indent::		Extra features for indenting C and related modes.
-* Custom C Indent::	Controlling indentation style for C and related modes.
+* Lisp Indent::         Specifying how each Lisp function should be indented.
+* C Indent::            Extra features for indenting C and related modes.
+* Custom C Indent::     Controlling indentation style for C and related modes.
 @end menu
 
 @cindex pretty-printer
@@ -609,7 +608,9 @@ example,
 
 @example
 (setq c-default-style
-      '((java-mode . "java") (awk-mode . "awk") (other . "gnu")))
+      '((java-mode . "java")
+        (awk-mode . "awk")
+        (other . "gnu")))
 @end example
 
 @noindent
@@ -652,7 +653,7 @@ parentheses and unbalanced string quotes in the buffer.
 * Expressions::         Expressions with balanced parentheses.
 * Moving by Parens::    Commands for moving up, down and across
                           in the structure of parentheses.
-* Matching::	        Insertion of a close-delimiter flashes matching open.
+* Matching::            Insertion of a close-delimiter flashes matching open.
 @end menu
 
 @node Expressions
@@ -1202,7 +1203,7 @@ completion based on the list of manual pages that are installed on
 your machine; the list of available manual pages is computed
 automatically the first time you invoke @code{woman}.  The word at
 point in the current buffer is used to suggest the default for the
-name the manual page.
+name of the manual page.
 
   With a numeric argument, @kbd{M-x woman} recomputes the list of the
 manual pages used for completion.  This is useful if you add or delete
@@ -1839,7 +1840,3 @@ starts comments in assembler syntax.
 @ifnottex
 @include fortran-xtra.texi
 @end ifnottex
-
-@ignore
-   arch-tag: c7ee7409-40a4-45c7-bfb7-ae7f2c74d0c0
-@end ignore

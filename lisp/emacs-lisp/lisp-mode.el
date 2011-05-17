@@ -1,10 +1,10 @@
 ;;; lisp-mode.el --- Lisp mode, and its idiosyncratic commands
 
-;; Copyright (C) 1985, 1986, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1999-2011 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: lisp, languages
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -85,7 +85,7 @@
   (let ((table (copy-syntax-table emacs-lisp-mode-syntax-table)))
     (modify-syntax-entry ?\[ "_   " table)
     (modify-syntax-entry ?\] "_   " table)
-    (modify-syntax-entry ?# "' 14b" table)
+    (modify-syntax-entry ?# "' 14" table)
     (modify-syntax-entry ?| "\" 23bn" table)
     table)
   "Syntax table used in `lisp-mode'.")
@@ -221,8 +221,6 @@ font-lock keywords will not be case sensitive."
   ;;(set (make-local-variable 'adaptive-fill-mode) nil)
   (make-local-variable 'indent-line-function)
   (setq indent-line-function 'lisp-indent-line)
-  (make-local-variable 'parse-sexp-ignore-comments)
-  (setq parse-sexp-ignore-comments t)
   (make-local-variable 'outline-regexp)
   (setq outline-regexp ";;;\\(;* [^ \t\n]\\|###autoload\\)\\|(")
   (make-local-variable 'outline-level)
@@ -408,10 +406,7 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
   (if (and (buffer-modified-p)
 	   (y-or-n-p (format "Save buffer %s first? " (buffer-name))))
       (save-buffer))
-  (let ((compiled-file-name (byte-compile-dest-file buffer-file-name)))
-    (if (file-newer-than-file-p compiled-file-name buffer-file-name)
-	(load-file compiled-file-name)
-      (byte-compile-file buffer-file-name t))))
+  (byte-recompile-file buffer-file-name nil 0 t))
 
 (defcustom emacs-lisp-mode-hook nil
   "Hook run when entering Emacs Lisp mode."
@@ -431,7 +426,7 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
   :type 'hook
   :group 'lisp)
 
-(define-derived-mode emacs-lisp-mode nil "Emacs-Lisp"
+(define-derived-mode emacs-lisp-mode prog-mode "Emacs-Lisp"
   "Major mode for editing Lisp code to run in Emacs.
 Commands:
 Delete converts tabs to spaces as it moves back.
@@ -466,7 +461,7 @@ if that value is non-nil."
   "Keymap for ordinary Lisp mode.
 All commands in `lisp-mode-shared-map' are inherited by this map.")
 
-(define-derived-mode lisp-mode nil "Lisp"
+(define-derived-mode lisp-mode prog-mode "Lisp"
   "Major mode for editing Lisp code for Lisps other than GNU Emacs Lisp.
 Commands:
 Delete converts tabs to spaces as it moves back.
@@ -704,7 +699,9 @@ If CHAR is not a character, return nil."
   "Evaluate sexp before point; print value in minibuffer.
 With argument, print output into current buffer."
   (let ((standard-output (if eval-last-sexp-arg-internal (current-buffer) t)))
-    (eval-last-sexp-print-value (eval (preceding-sexp)))))
+    ;; Setup the lexical environment if lexical-binding is enabled.
+    (eval-last-sexp-print-value
+     (eval (eval-sexp-add-defvars (preceding-sexp)) lexical-binding))))
 
 
 (defun eval-last-sexp-print-value (value)
@@ -731,6 +728,23 @@ With argument, print output into current buffer."
 
 
 (defvar eval-last-sexp-fake-value (make-symbol "t"))
+
+(defun eval-sexp-add-defvars (exp &optional pos)
+  "Prepend EXP with all the `defvar's that precede it in the buffer.
+POS specifies the starting position where EXP was found and defaults to point."
+  (if (not lexical-binding)
+      exp
+    (save-excursion
+      (unless pos (setq pos (point)))
+      (let ((vars ()))
+        (goto-char (point-min))
+        (while (re-search-forward
+                "^(def\\(?:var\\|const\\|custom\\)[ \t\n]+\\([^; '()\n\t]+\\)"
+                pos t)
+          (let ((var (intern (match-string 1))))
+            (unless (special-variable-p var)
+              (push var vars))))
+        `(progn ,@(mapcar (lambda (v) `(defvar ,v)) vars) ,exp)))))
 
 (defun eval-last-sexp (eval-last-sexp-arg-internal)
   "Evaluate sexp before point; print value in minibuffer.
@@ -768,16 +782,18 @@ Reinitialize the face according to the `defface' specification."
 	;; `defcustom' is now macroexpanded to
 	;; `custom-declare-variable' with a quoted value arg.
 	((and (eq (car form) 'custom-declare-variable)
-	      (default-boundp (eval (nth 1 form))))
+	      (default-boundp (eval (nth 1 form) lexical-binding)))
 	 ;; Force variable to be bound.
-	 (set-default (eval (nth 1 form)) (eval (nth 1 (nth 2 form))))
+	 (set-default (eval (nth 1 form) lexical-binding)
+                      (eval (nth 1 (nth 2 form)) lexical-binding))
 	 form)
 	;; `defface' is macroexpanded to `custom-declare-face'.
 	((eq (car form) 'custom-declare-face)
 	 ;; Reset the face.
 	 (setq face-new-frame-defaults
-	       (assq-delete-all (eval (nth 1 form)) face-new-frame-defaults))
-	 (put (eval (nth 1 form)) 'face-defface-spec nil)
+	       (assq-delete-all (eval (nth 1 form) lexical-binding)
+                                face-new-frame-defaults))
+	 (put (eval (nth 1 form) lexical-binding) 'face-defface-spec nil)
 	 ;; Setting `customized-face' to the new spec after calling
 	 ;; the form, but preserving the old saved spec in `saved-face',
 	 ;; imitates the situation when the new face spec is set
@@ -788,10 +804,11 @@ Reinitialize the face according to the `defface' specification."
 	 ;; `defface' change the spec, regardless of a saved spec.
 	 (prog1 `(prog1 ,form
 		   (put ,(nth 1 form) 'saved-face
-			',(get (eval (nth 1 form)) 'saved-face))
+			',(get (eval (nth 1 form) lexical-binding)
+                               'saved-face))
 		   (put ,(nth 1 form) 'customized-face
 			,(nth 2 form)))
-	   (put (eval (nth 1 form)) 'saved-face nil)))
+	   (put (eval (nth 1 form) lexical-binding) 'saved-face nil)))
 	((eq (car form) 'progn)
 	 (cons 'progn (mapcar 'eval-defun-1 (cdr form))))
 	(t form)))
@@ -827,7 +844,7 @@ Return the result of evaluation."
 	   (end-of-defun)
 	   (beginning-of-defun)
 	   (setq beg (point))
-	   (setq form (read (current-buffer)))
+	   (setq form (eval-sexp-add-defvars (read (current-buffer))))
 	   (setq end (point)))
 	 ;; Alter the form if necessary.
 	 (setq form (eval-defun-1 (macroexpand form)))
@@ -1071,7 +1088,7 @@ is the buffer position of the start of the containing expression."
                        (goto-char calculate-lisp-indent-last-sexp)
                        (or (and (looking-at ":")
                                 (setq indent (current-column)))
-                           (and (< (save-excursion (beginning-of-line) (point))
+                           (and (< (line-beginning-position)
                                    (prog2 (backward-sexp) (point)))
                                 (looking-at ":")
                                 (setq indent (current-column))))
@@ -1210,32 +1227,17 @@ This function also returns nil meaning don't specify the indentation."
 (put 'prog1 'lisp-indent-function 1)
 (put 'prog2 'lisp-indent-function 2)
 (put 'save-excursion 'lisp-indent-function 0)
-(put 'save-window-excursion 'lisp-indent-function 0)
-(put 'save-selected-window 'lisp-indent-function 0)
 (put 'save-restriction 'lisp-indent-function 0)
 (put 'save-match-data 'lisp-indent-function 0)
 (put 'save-current-buffer 'lisp-indent-function 0)
-(put 'with-current-buffer 'lisp-indent-function 1)
-(put 'combine-after-change-calls 'lisp-indent-function 0)
-(put 'with-output-to-string 'lisp-indent-function 0)
-(put 'with-temp-file 'lisp-indent-function 1)
-(put 'with-temp-buffer 'lisp-indent-function 0)
-(put 'with-temp-message 'lisp-indent-function 1)
-(put 'with-syntax-table 'lisp-indent-function 1)
 (put 'let 'lisp-indent-function 1)
 (put 'let* 'lisp-indent-function 1)
 (put 'while 'lisp-indent-function 1)
 (put 'if 'lisp-indent-function 2)
-(put 'read-if 'lisp-indent-function 2)
 (put 'catch 'lisp-indent-function 1)
 (put 'condition-case 'lisp-indent-function 2)
 (put 'unwind-protect 'lisp-indent-function 1)
 (put 'with-output-to-temp-buffer 'lisp-indent-function 1)
-(put 'eval-after-load 'lisp-indent-function 1)
-(put 'dolist 'lisp-indent-function 1)
-(put 'dotimes 'lisp-indent-function 1)
-(put 'when 'lisp-indent-function 1)
-(put 'unless 'lisp-indent-function 1)
 
 (defun indent-sexp (&optional endpos)
   "Indent each line of the list starting just after point.
@@ -1447,5 +1449,4 @@ means don't indent that line."
 
 (provide 'lisp-mode)
 
-;; arch-tag: 414c7f93-c245-4b77-8ed5-ed05ef7ff1bf
 ;;; lisp-mode.el ends here

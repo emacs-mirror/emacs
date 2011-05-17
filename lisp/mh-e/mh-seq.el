@@ -1,8 +1,6 @@
 ;;; mh-seq.el --- MH-E sequences support
 
-;; Copyright (C) 1993, 1995,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -819,7 +817,7 @@ that note messages to be refiled."
   "Return a list of message numbers from point to the end of the line.
 Expands ranges into set of individual numbers."
   (let ((msgs ())
-        (end-of-line (save-excursion (end-of-line) (point)))
+        (end-of-line (point-at-eol))
         num)
     (while (re-search-forward "[0-9]+" end-of-line t)
       (setq num (string-to-number (buffer-substring (match-beginning 0)
@@ -1017,5 +1015,4 @@ removed."
 ;; sentence-end-double-space: nil
 ;; End:
 
-;; arch-tag: 8e952711-01a2-485b-bf21-c9e3ad4de942
 ;;; mh-seq.el ends here

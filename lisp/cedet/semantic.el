@@ -1,10 +1,10 @@
 ;;; semantic.el --- Semantic buffer evaluator.
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
-;; Keywords: syntax
+;; Keywords: syntax tools
+;; Version: 2.0
 
 ;; This file is part of GNU Emacs.
 
@@ -38,7 +38,7 @@
 (require 'semantic/tag)
 (require 'semantic/lex)
 
-(defvar semantic-version "2.0pre7"
+(defvar semantic-version "2.0"
   "Current version of Semantic.")
 
 (declare-function inversion-test "inversion")
@@ -875,6 +875,7 @@ Throw away all the old tags, and recreate the tag database."
     ;; (define-key km "i"    'senator-isearch-toggle-semantic-mode)
     (define-key map "\C-c,j" 'semantic-complete-jump-local)
     (define-key map "\C-c,J" 'semantic-complete-jump)
+    (define-key map "\C-c,m" 'semantic-complete-jump-local-members)
     (define-key map "\C-c,g" 'semantic-symref-symbol)
     (define-key map "\C-c,G" 'semantic-symref)
     (define-key map "\C-c,p" 'senator-previous-tag)
@@ -885,6 +886,7 @@ Throw away all the old tags, and recreate the tag database."
     (define-key map "\C-c,\M-w" 'senator-copy-tag)
     (define-key map "\C-c,\C-y" 'senator-yank-tag)
     (define-key map "\C-c,r" 'senator-copy-tag-to-register)
+    (define-key map "\C-c,," 'semantic-force-refresh)
     (define-key map [?\C-c ?, up] 'senator-transpose-tags-up)
     (define-key map [?\C-c ?, down] 'senator-transpose-tags-down)
     (define-key map "\C-c,l" 'semantic-analyze-possible-completions)
@@ -950,6 +952,9 @@ Throw away all the old tags, and recreate the tag database."
   (define-key navigate-menu [semantic-complete-jump]
     '(menu-item "Find Tag Globally..." semantic-complete-jump
 		:help "Read a tag name and find it in the current project"))
+  (define-key navigate-menu [semantic-complete-jump-local-members]
+    '(menu-item "Find Local Members ..." semantic-complete-jump-local-members
+		:help "Read a tag name and find a local member with that name"))
   (define-key navigate-menu [semantic-complete-jump-local]
     '(menu-item "Find Tag in This Buffer..." semantic-complete-jump-local
 		:help "Read a tag name and find it in this buffer"))
@@ -1147,5 +1152,4 @@ minor mode is enabled." t nil)
 
 ;; (require 'semantic/load)
 
-;; arch-tag: 31583e10-6508-41a9-be40-f83d0ae0a4ed
 ;;; semantic.el ends here

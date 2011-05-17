@@ -1,6 +1,6 @@
 ;;; hmac-md5.el --- Compute HMAC-MD5.
 
-;; Copyright (C) 1999, 2001, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001, 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Shuhei KOBAYASHI <shuhei@aqua.ocn.ne.jp>
 ;; Keywords: HMAC, RFC2104, HMAC-MD5, MD5, KEYED-MD5, CRAM-MD5
@@ -79,5 +79,4 @@
 
 (provide 'hmac-md5)
 
-;; arch-tag: 0ab3f4f6-3d4b-4167-a9fa-635b7fed7f27
 ;;; hmac-md5.el ends here

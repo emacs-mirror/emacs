@@ -1,8 +1,9 @@
-;;; epa-hook.el --- preloaded code to enable epa-file.el
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;; epa-hook.el --- preloaded code to enable epa-file.el -*- lexical-binding: t -*-
+;; Copyright (C) 2006-2011 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -108,5 +109,4 @@ Return the new status of auto encryption (non-nil means on)."
 
 (provide 'epa-hook)
 
-;; arch-tag: f75c8a50-d32e-4eb3-9ec6-9e940c1fc8b5
 ;;; epa-hook.el ends here

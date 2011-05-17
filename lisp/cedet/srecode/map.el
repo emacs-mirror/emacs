@@ -1,6 +1,6 @@
 ;;; srecode/map.el --- Manage a template file map
 
-;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -295,8 +295,14 @@ if that file is NEW, otherwise assume the mode has not changed."
 
     ;; 2) Do we not have a current map?  If so load.
     (when (not srecode-current-map)
-      (setq srecode-current-map
-	    (eieio-persistent-read srecode-map-save-file))
+      (condition-case nil
+	  (setq srecode-current-map
+		(eieio-persistent-read srecode-map-save-file))
+	(error
+	 ;; There was an error loading the old map.  Create a new one.
+	 (setq srecode-current-map
+	       (srecode-map "SRecode Map"
+			    :file srecode-map-save-file))))
       )
 
     )
@@ -409,5 +415,4 @@ Return non-nil if the map changed."
 ;; generated-autoload-load-name: "srecode/map"
 ;; End:
 
-;; arch-tag: dc90c737-1e87-455a-bbd1-6b72cdbfb7fd
 ;;; srecode/map.el ends here

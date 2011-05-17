@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
+@c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Minibuffer, M-x, Basic, Top
 @chapter The Minibuffer
@@ -43,9 +43,9 @@ is in use, keystrokes do not echo.
 @menu
 * Minibuffer File::       Entering file names with the minibuffer.
 * Minibuffer Edit::       How to edit in the minibuffer.
-* Completion::		  An abbreviation facility for minibuffer input.
+* Completion::            An abbreviation facility for minibuffer input.
 * Minibuffer History::    Reusing recent minibuffer arguments.
-* Repetition::		  Re-executing commands that used the minibuffer.
+* Repetition::            Re-executing commands that used the minibuffer.
 * Passwords::             Entering passwords in the echo area.
 @end menu
 
@@ -68,10 +68,10 @@ the default directory.  If you now type @kbd{buffer.c} as input, that
 specifies the file @file{/u2/emacs/src/buffer.c}.  @xref{File Names},
 for information about the default directory.
 
-  You can specify the parent directory by adding @file{..}: for
-example, @file{/u2/emacs/src/../lisp/simple.el} is equivalent to
-@file{/u2/emacs/lisp/simple.el}.  Alternatively, you can use
-@kbd{M-@key{DEL}} to kill directory names backwards (@pxref{Words}).
+  You can specify the parent directory with @file{..}:
+@file{/a/b/../foo.el} is equivalent to @file{/a/foo.el}.
+Alternatively, you can use @kbd{M-@key{DEL}} to kill directory names
+backwards (@pxref{Words}).
 
   To specify a file in a completely different directory, you can kill
 the entire default with @kbd{C-a C-k} (@pxref{Minibuffer Edit}).
@@ -164,7 +164,7 @@ however: for instance, you cannot split it.  @xref{Windows}.
 @vindex resize-mini-windows
   Normally, the minibuffer window occupies a single screen line.
 However, if you add two or more lines' worth of text into the
-minibuffer, it expands automatically to accomodate the text.  The
+minibuffer, it expands automatically to accommodate the text.  The
 variable @code{resize-mini-windows} controls the resizing of the
 minibuffer.  The default value is @code{grow-only}, which means the
 behavior we have just described.  If the value is @code{t}, the
@@ -601,7 +601,7 @@ repetition.  If you type just @key{RET}, that repeats the command
 unchanged.  You can also change the command by editing the Lisp
 expression before you execute it.  The repeated command is added to
 the front of the command history unless it is identical to the most
-recently item.
+recent item.
 
   Once inside the minibuffer for @kbd{C-x @key{ESC} @key{ESC}}, you can
 use the minibuffer history commands (@kbd{M-p}, @kbd{M-n}, @kbd{M-r},
@@ -653,7 +653,3 @@ password (@pxref{Killing}).  You may type either @key{RET} or
 @key{ESC} to submit the password.  Any other self-inserting character
 key inserts the associated character into the password, and all other
 input is ignored.
-
-@ignore
-   arch-tag: ba913cfd-b70e-400f-b663-22b2c309227f
-@end ignore

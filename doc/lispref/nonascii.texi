@@ -1,7 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1998, 1999, 2001, 2002, 2003, 2004,
-@c   2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+@c Copyright (C) 1998-1999, 2001-2011  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/characters
 @node Non-ASCII Characters, Searching and Matching, Text, Top
@@ -102,9 +101,6 @@ it contains unibyte encoded text or binary non-text data.
 
 You cannot set this variable directly; instead, use the function
 @code{set-buffer-multibyte} to change a buffer's representation.
-
-The @samp{--unibyte} command line option does its job by setting the
-default value to @code{nil} early in startup.
 @end defvar
 
 @defun position-bytes position
@@ -171,7 +167,7 @@ acceptable because the buffer's representation is a choice made by the
 user that cannot be overridden automatically.
 
   Converting unibyte text to multibyte text leaves @acronym{ASCII}
-characters unchanged, and converts bytes with codes 128 through 159 to
+characters unchanged, and converts bytes with codes 128 through 255 to
 the multibyte representation of raw eight-bit bytes.
 
   Converting multibyte text to unibyte converts all @acronym{ASCII}
@@ -200,6 +196,13 @@ contains a non-@acronym{ASCII} character.  If @var{string} is a
 unibyte string, it is returned unchanged.  Use this function for
 @var{string} arguments that contain only @acronym{ASCII} and eight-bit
 characters.
+@end defun
+
+@defun byte-to-string byte
+@cindex byte to string
+This function returns a unibyte string containing a single byte of
+character data, @var{character}.  It signals a error if
+@var{character} is not an integer between 0 and 255.
 @end defun
 
 @defun multibyte-char-to-unibyte char
@@ -375,6 +378,7 @@ This property corresponds to the Unicode @code{Name} property.  The
 value is a string consisting of upper-case Latin letters A to Z,
 digits, spaces, and hyphen @samp{-} characters.
 
+@cindex unicode general category
 @item general-category
 This property corresponds to the Unicode @code{General_Category}
 property.  The value is a symbol whose name is a 2-letter abbreviation
@@ -406,7 +410,7 @@ Corresponds to the Unicode @code{Numeric_Value} property for
 characters whose @code{Numeric_Type} is @samp{Digit}.  The value is an
 integer number.
 
-@item digit
+@item digit-value
 Corresponds to the Unicode @code{Numeric_Value} property for
 characters whose @code{Numeric_Type} is @samp{Decimal}.  The value is
 an integer number.  Examples of such characters include compatibility
@@ -467,11 +471,11 @@ This function returns the value of @var{char}'s @var{propname} property.
 @end group
 @group
 (get-char-code-property ?\u2155 'numeric-value) ; one fifth
-     @result{} 1/5
+     @result{} 0.2
 @end group
 @group
 (get-char-code-property ?\u2163 'numeric-value) ; Roman IV
-     @result{} \4
+     @result{} 4
 @end group
 @end example
 @end defun
@@ -501,13 +505,18 @@ This function stores @var{value} as the value of the property
 @var{propname} for the character @var{char}.
 @end defun
 
-@defvar char-script-table
+@defvar unicode-category-table
 The value of this variable is a char-table (@pxref{Char-Tables}) that
-specifies, for each character, a symbol whose name is the script to
-which the character belongs, according to the Unicode Standard
-classification of the Unicode code space into script-specific blocks.
-This char-table has a single extra slot whose value is the list of all
-script symbols.
+specifies, for each character, its Unicode @code{General_Category}
+property as a symbol.
+@end defvar
+
+@defvar char-script-table
+The value of this variable is a char-table that specifies, for each
+character, a symbol whose name is the script to which the character
+belongs, according to the Unicode Standard classification of the
+Unicode code space into script-specific blocks.  This char-table has a
+single extra slot whose value is the list of all script symbols.
 @end defvar
 
 @defvar char-width-table
@@ -1911,7 +1920,3 @@ strings in the return value are decoded using
 @code{locale-coding-system}.  @xref{Locales,,, libc, The GNU Libc Manual},
 for more information about locales and locale items.
 @end defun
-
-@ignore
-   arch-tag: be705bf8-941b-4c35-84fc-ad7d20ddb7cb
-@end ignore

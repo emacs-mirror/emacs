@@ -1,7 +1,6 @@
 # Top-level Makefile for Emacs under MS-DOS/DJGPP v2.0 or higher. -*-makefile-*-
 
-# Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-#   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+# Copyright (C) 1996-2011 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -64,14 +63,11 @@ MAKESHELL=/xyzzy/command
 # Generate a full pathname of the top-level installation directory
 top_srcdir := $(subst \,/,$(shell cd))
 
-# Find out which version of Emacs this is.
-version := ${shell sed -n -e '/(defconst emacs-version/s/^[^"]*\("[^"]*"\).*/\1/p' lisp/version.el}
-
 # Q: Do we need to bootstrap?
-# A: Only if we find admin/admin.el, i.e. we are building out of CVS,
-#    and src/b-emacs.exe does not exist.  This avoids building a
-#    bootstrap-emacs and recompiling Lisp files when building a
-#    pretest/release tarball.
+# A: Only if we find admin/admin.el, i.e. we are building out of 
+#    a VCS-checkout (not a release) and src/b-emacs.exe does not exist.
+#    This avoids building a bootstrap-emacs and recompiling Lisp files
+#    when building a pretest/release tarball.
 boot :=
 ifneq ($(wildcard admin/admin.el),)
 ifeq ($(wildcard src/b-emacs.exe),)
@@ -83,11 +79,16 @@ endif
 # compiled lisp files are part of the distribution.  (If we are
 # bootstrapping, the src target will run Make in `lisp' as well.)
 # leim is not included because it is part of the src target.
-all:	lib-src src emacs misc lispref lispintro
+all:	lib lib-src src emacs misc lispref lispintro
 
-lib-src: FRC
+lib: FRC
+	cd lib
+	$(MAKE) top_srcdir=${top_srcdir} all
+	cd ..
+
+lib-src: lib FRC
 	cd lib-src
-	$(MAKE) top_srcdir=${top_srcdir} version=${version}
+	$(MAKE) top_srcdir=${top_srcdir} all
 	cd ..
 
 # Pass to src/Makefile.in an additional BOOTSTRAPEMACS variable which
@@ -99,9 +100,9 @@ lib-src: FRC
 # file src/foo.c forces dumping a new bootstrap-emacs, then re-byte-compiling
 # all preloaded elisp files, and only then dump the actual src/emacs, which
 # is not wrong, but is overkill in 99.99% of the cases.
-src: FRC
+src: lib lib-src FRC
 	cd src
-	$(MAKE) top_srcdir=${top_srcdir} BOOTSTRAPEMACS="${boot}"
+	$(MAKE) top_srcdir=${top_srcdir} BOOTSTRAPEMACS="${boot}" all
 	djecho -s '/-geometry/s,^.*,set environment HOME $(top_srcdir),' \
 	          '/environment *TERM/s/^.*/set environment TERM internal/' \
 	       >gdb.sed
@@ -129,7 +130,7 @@ emacs misc lispref lispintro:	FRC
 install: all
 	if not exist bin\nul md bin
 	cd lib-src
-	command.com /c >/dev/null for %p in (hexl etags ctags b2m ebrowse) do\
+	command.com /c >/dev/null for %p in (hexl etags ctags ebrowse) do\
 	   if exist %p.exe mv -f %p.exe ../bin
 	if exist fns.el update fns.el ../bin/fns.el
 	cd ..
@@ -147,16 +148,21 @@ FRC:
 
 # We cannot use [a-zA-Z]* like the mainline distribution does, because
 # that causes all file names to be returned in upper-case on DOS...
+# Must use `find' to filter out loaddefs files; ignore errors if `find'
+# is not available or is an MS `find'.
+# The "cd $(CURDIR)" gork is for when `find' fails and leaves us inside
+# `lisp' or one of its subdirectories.
 TAGS tags:	lib-src FRC
 	cd lib-src
 	if exist etags.exe mv -f etags.exe ../bin
 	cd ..
-	cd lisp
-	../bin/etags .../*.el
-	cd ..
+	- find $(CURDIR)/lisp -iname "*.el" -a -! -( -iname "*loaddefs.el" -o -iname "ldefs-boot.el" -) | ./bin/etags -o lisp/TAGS -
+	cd $(CURDIR)
 	cd src
 	../bin/etags --include=../lisp/TAGS \
-	'--regex=/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' *.c *.h s/msdos.h m/intel386.h
+	 --regex='/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' \
+	 $(CURDIR)/src/*.c $(CURDIR)/src/*.h \
+         $(CURDIR)/src/s/msdos.h $(CURDIR)/src/m/intel386.h
 	cd ..
 	./bin/etags --include=src/TAGS
 
@@ -164,6 +170,9 @@ check:
 	@echo "We don't have any tests for GNU Emacs yet."
 
 clean mostlyclean:
+	cd lib
+	$(MAKE) $(MFLAGS) $@
+	cd ..
 	cd lib-src
 	$(MAKE) $(MFLAGS) $@
 	cd ..
@@ -195,6 +204,9 @@ distclean maintainer-clean: FRC
 	$(MAKE) $(MFLAGS) $@
 	if exist bootlisp rm -f bootlisp
 	cd ..
+	cd lib
+	$(MAKE) $(MFLAGS) $@
+	cd ..
 	cd lib-src
 	$(MAKE) $(MFLAGS) $@
 	cd ..
@@ -222,6 +234,9 @@ distclean maintainer-clean: FRC
 
 extraclean:
 	cd src
+	$(MAKE) $(MFLAGS) $@
+	cd ..
+	cd lib
 	$(MAKE) $(MFLAGS) $@
 	cd ..
 	cd lib-src
@@ -253,6 +268,9 @@ extraclean:
 .PHONY: bootstrap
 
 bootstrap-clean: FRC
+	cd lib
+	$(MAKE) $(MFLAGS) $@
+	cd ..
 	cd src
 	$(MAKE) $(MFLAGS) $@
 	cd ..
@@ -282,4 +300,3 @@ bootstrap: bootstrap-clean FRC
 	command.com /e:2048 /c config msdos
 	$(MAKE) $(MFLAGS) info all
 
-# arch-tag: 6fee5130-4c53-46c6-93d3-d0ea852298b9

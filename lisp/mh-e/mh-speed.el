@@ -1,7 +1,6 @@
 ;;; mh-speed.el --- MH-E speedbar support
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2002-2011  Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -581,5 +580,4 @@ The function invalidates the latest ancestor that is present."
 ;; sentence-end-double-space: nil
 ;; End:
 
-;; arch-tag: d38ddcd4-3c00-4e37-99bf-8b89dda7b32c
 ;;; mh-speed.el ends here

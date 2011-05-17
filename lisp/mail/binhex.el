@@ -1,7 +1,6 @@
-;;; binhex.el --- elisp native binhex decode
+;;; binhex.el --- decode BinHex-encoded text
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: binhex news
@@ -22,6 +21,11 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
+;; BinHex is a binary-to-text encoding scheme similar to uuencode.
+;; The command `binhex-decode-region' decodes BinHex-encoded text, via
+;; the external program "hexbin" if that is available, or an Emacs
+;; Lisp implementation if not.
 
 ;;; Code:
 
@@ -221,7 +225,8 @@ If HEADER-ONLY is non-nil only decode header and return filename."
 	  (goto-char start)
 	  (when (re-search-forward binhex-begin-line end t)
             (setq work-buffer (generate-new-buffer " *binhex-work*"))
-            (with-current-buffer work-buffer (set-buffer-multibyte nil))
+	    (unless (featurep 'xemacs)
+	      (with-current-buffer work-buffer (set-buffer-multibyte nil)))
 	    (beginning-of-line)
 	    (setq bits 0 counter 0)
 	    (while tmp
@@ -327,5 +332,4 @@ If HEADER-ONLY is non-nil only decode header and return filename."
 
 (provide 'binhex)
 
-;; arch-tag: 8476badd-1e76-4f1d-a640-f9a38c72eed8
 ;;; binhex.el ends here

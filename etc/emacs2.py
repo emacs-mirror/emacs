@@ -1,6 +1,6 @@
 """Definitions used by commands sent to inferior Python in python.el."""
 
-# Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+# Copyright (C) 2004-2011  Free Software Foundation, Inc.
 # Author: Dave Love <fx@gnu.org>
 
 # This file is part of GNU Emacs.
@@ -234,4 +234,3 @@ Assumes that MODULE.py and MODULE.pyc are in the same directory."""
 
 # print '_emacs_ok'             # ready for input and can call continuation
 
-# arch-tag: d90408f3-90e2-4de4-99c2-6eb9c7b9ca46

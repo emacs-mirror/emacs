@@ -1,7 +1,6 @@
 ;;; nnweb.el --- retrieving articles via web search engines
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -104,8 +103,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 
 (deffoo nnweb-retrieve-headers (articles &optional group server fetch-old)
   (nnweb-possibly-change-server group server)
-  (save-excursion
-    (set-buffer nntp-server-buffer)
+  (with-current-buffer nntp-server-buffer
     (erase-buffer)
     (let (article header)
       (mm-with-unibyte-current-buffer
@@ -125,7 +123,7 @@ Valid types include `google', `dejanews', and `gmane'.")
     (nnweb-write-active)
     (nnweb-write-overview group)))
 
-(deffoo nnweb-request-group (group &optional server dont-check)
+(deffoo nnweb-request-group (group &optional server dont-check info)
   (nnweb-possibly-change-server group server)
   (unless (or nnweb-ephemeral-p
 	      dont-check
@@ -147,16 +145,14 @@ Valid types include `google', `dejanews', and `gmane'.")
 (deffoo nnweb-close-group (group &optional server)
   (nnweb-possibly-change-server group server)
   (when (gnus-buffer-live-p nnweb-buffer)
-    (save-excursion
-      (set-buffer nnweb-buffer)
+    (with-current-buffer nnweb-buffer
       (set-buffer-modified-p nil)
       (kill-buffer nnweb-buffer)))
   t)
 
 (deffoo nnweb-request-article (article &optional group server buffer)
   (nnweb-possibly-change-server group server)
-  (save-excursion
-    (set-buffer (or buffer nntp-server-buffer))
+  (with-current-buffer (or buffer nntp-server-buffer)
     (let* ((header (cadr (assq article nnweb-articles)))
 	   (url (and header (mail-header-xref header))))
       (when (or (and url
@@ -185,21 +181,18 @@ Valid types include `google', `dejanews', and `gmane'.")
 (deffoo nnweb-close-server (&optional server)
   (when (and (nnweb-server-opened server)
 	     (gnus-buffer-live-p nnweb-buffer))
-    (save-excursion
-      (set-buffer nnweb-buffer)
+    (with-current-buffer nnweb-buffer
       (set-buffer-modified-p nil)
       (kill-buffer nnweb-buffer)))
   (nnoo-close-server 'nnweb server))
 
 (deffoo nnweb-request-list (&optional server)
   (nnweb-possibly-change-server nil server)
-  (save-excursion
-    (set-buffer nntp-server-buffer)
+  (with-current-buffer nntp-server-buffer
     (nnmail-generate-active (list (assoc server nnweb-group-alist)))
     t))
 
-(deffoo nnweb-request-update-info (group info &optional server)
-  (nnweb-possibly-change-server group server))
+(deffoo nnweb-request-update-info (group info &optional server))
 
 (deffoo nnweb-asynchronous-p ()
   nil)
@@ -213,7 +206,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 
 (deffoo nnweb-request-delete-group (group &optional force server)
   (nnweb-possibly-change-server group server)
-  (gnus-pull group nnweb-group-alist t)
+  (gnus-alist-pull group nnweb-group-alist t)
   (nnweb-write-active)
   (gnus-delete-file (nnweb-overview-file group))
   t)
@@ -402,8 +395,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 
 (defun nnweb-google-create-mapping ()
   "Perform the search and create a number-to-url alist."
-  (save-excursion
-    (set-buffer nnweb-buffer)
+  (with-current-buffer nnweb-buffer
     (erase-buffer)
     (nnheader-message 7 "Searching google...")
     (when (funcall (nnweb-definition 'search) nnweb-search)
@@ -459,8 +451,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 ;;;
 (defun nnweb-gmane-create-mapping ()
   "Perform the search and create a number-to-url alist."
-  (save-excursion
-    (set-buffer nnweb-buffer)
+  (with-current-buffer nnweb-buffer
     (let ((case-fold-search t)
 	  (active (or (cadr (assoc nnweb-group nnweb-group-alist))
 		      (cons 1 0)))
@@ -525,7 +516,7 @@ Valid types include `google', `dejanews', and `gmane'.")
        ;;("TOPDOC" . "1000")
        ))))
   (setq buffer-file-name nil)
-  (set-buffer-multibyte t)
+  (unless (featurep 'xemacs) (set-buffer-multibyte t))
   (mm-decode-coding-region (point-min) (point-max) 'utf-8)
   t)
 
@@ -612,5 +603,4 @@ Valid types include `google', `dejanews', and `gmane'.")
 
 (provide 'nnweb)
 
-;; arch-tag: f59307eb-c90f-479f-b7d2-dbd8bf51b697
 ;;; nnweb.el ends here

@@ -1,6 +1,7 @@
 /* Hey Emacs, this is -*- C -*- code!  */
-/* Copyright (C) 1993, 1995, 1997, 1999, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+/*
+Copyright (C) 1993, 1995, 1997, 1999, 2001-2011
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -59,5 +60,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Where Emacs should look for the application default file. */
 #define PATH_X_DEFAULTS "/usr/lib/X11/%L/%T/%N%C%S:/usr/lib/X11/%l/%T/%N%C%S:/usr/lib/X11/%T/%N%C%S:/usr/lib/X11/%L/%T/%N%S:/usr/lib/X11/%l/%T/%N%S:/usr/lib/X11/%T/%N%S"
 
-/* arch-tag: d30686c4-629c-4666-9499-beaa69f1641e
-   (do not change this comment) */

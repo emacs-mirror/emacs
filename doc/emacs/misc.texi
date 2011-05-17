@@ -1,6 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
@@ -27,28 +26,39 @@ other editors, and various diversions and amusements.
 @cindex PDF file
 @cindex PS file
 @cindex Postscript file
+@cindex OpenDocument file
+@cindex Microsoft Office file
 @cindex DocView mode
 @cindex mode, DocView
 @cindex document viewer (DocView)
 @findex doc-view-mode
 
 DocView mode (@code{doc-view-mode}) is a viewer for DVI, Postscript
-(PS), and PDF documents.  It provides features such as slicing,
-zooming, and searching inside documents.  It works by converting the
-document to a set of images using the @command{gs} (GhostScript)
-command, and displaying those images.
+(PS), PDF, OpenDocument, and Microsoft Office documents.  It provides
+features such as slicing, zooming, and searching inside documents.  It
+works by converting the document to a set of images using the
+@command{gs} (GhostScript) command and other external tools
+@footnote{@code{gs} is a hard requirement.  For DVI files,
+@code{dvipdf} or @code{dvipdfm} is needed.  For OpenDocument and
+Microsoft Office documents, the @code{unoconv} tool is needed.}, and
+displaying those images.
 
 @findex doc-view-toggle-display
 @findex doc-view-toggle-display
 @cindex doc-view-minor-mode
-  When you visit a PDF or DVI file, Emacs automatically switches to
-DocView mode.  When you visit a Postscript file, Emacs switches to PS
-mode, a major mode for editing Postscript files as text; however, it
-also enables DocView minor mode, so you can type @kbd{C-c C-c} to view
-the document with DocView.  (PDF and DVI files, unlike Postscript
-files, are not usually human-editable.)  In either case, repeating
-@kbd{C-c C-c} (@code{doc-view-toggle-display}) toggles between DocView
-and the file text.
+  When you visit a document file with the exception of Postscript
+files, Emacs automatically switches to DocView mode if possible
+@footnote{The needed external tools for this document type have to be
+available, emacs needs to run in a graphical frame, and PNG image
+support has to be compiled into emacs.  If any of these requirements
+is not fulfilled, DocView falls back to an appropriate mode.}.  When
+you visit a Postscript file, Emacs switches to PS mode, a major mode
+for editing Postscript files as text; however, it also enables DocView
+minor mode, so you can type @kbd{C-c C-c} to view the document with
+DocView.  (PDF and DVI files, unlike Postscript files, are not usually
+human-editable.)  In either case, repeating @kbd{C-c C-c}
+(@code{doc-view-toggle-display}) toggles between DocView and the file
+text.
 
   You can explicitly toggle DocView mode with the command @code{M-x
 doc-view-mode}, and DocView minor mode with the command @code{M-x
@@ -71,10 +81,10 @@ set or customize the variable @code{doc-view-resolution}.
 (@code{quit-window}).
 
 @menu
-* Navigation::	Navigation inside DocView buffers.
-* Searching::	Searching inside documents.
-* Slicing::	Specifying which part of pages should be displayed.
-* Conversion::	Influencing and triggering conversion.
+* Navigation::  Navigation inside DocView buffers.
+* Searching::   Searching inside documents.
+* Slicing::     Specifying which part of pages should be displayed.
+* Conversion::  Influencing and triggering conversion.
 @end menu
 
 @node Navigation
@@ -211,9 +221,9 @@ manual.
 To start Gnus, type @kbd{M-x gnus @key{RET}}.
 
 @menu
-* Buffers of Gnus::	The group, summary, and article buffers.
-* Gnus Startup::	What you should know about starting Gnus.
-* Summary of Gnus::	A short description of the basic Gnus commands.
+* Buffers of Gnus::     The group, summary, and article buffers.
+* Gnus Startup::        What you should know about starting Gnus.
+* Summary of Gnus::     A short description of the basic Gnus commands.
 @end menu
 
 @node Buffers of Gnus
@@ -786,8 +796,7 @@ pending in the shell buffer and not yet sent.
 @findex comint-delete-output
 Delete the last batch of output from a shell command
 (@code{comint-delete-output}).  This is useful if a shell command spews
-out lots of output that just gets in the way.  This command used to be
-called @code{comint-kill-output}.
+out lots of output that just gets in the way.
 
 @item C-c C-s
 @kindex C-c C-s @r{(Shell mode)}
@@ -1486,6 +1495,15 @@ server-name @key{RET} foo @key{RET}} sets the server name to
 @samp{foo}.  The @code{emacsclient} program can specify a server by
 name, using the @samp{-s} option (@pxref{emacsclient Options}).
 
+@findex server-eval-at
+  If you have defined a server by a unique server name, you can
+connect to this server from other Emacs instances and evaluate forms
+on it by using the @code{server-eval-at} function.
+
+@code{(server-eval-at "foo" '(+ 1 2))} gives the result @code{3}, if
+there's a server with that name that is listening.  If not, an error
+will be signaled.
+
 @menu
 * Invoking emacsclient:: Connecting to the Emacs server.
 * emacsclient Options::  Emacs client startup options.
@@ -1528,7 +1546,7 @@ still use Emacs to edit the file.
 @kbd{C-x #} (@code{server-edit}) in its buffer.  This saves the file
 and sends a message back to the @command{emacsclient} program, telling
 it to exit.  Programs that use @env{EDITOR} usually wait for the
-``editor''---in the case @command{emacsclient}---to exit before doing
+``editor''---in this case @command{emacsclient}---to exit before doing
 something else.
 
   You can also call @command{emacsclient} with multiple file name
@@ -1585,16 +1603,8 @@ listed below:
 @item -a @var{command}
 @itemx --alternate-editor=@var{command}
 Specify a command to run if @code{emacsclient} fails to contact Emacs.
-This is useful when running @code{emacsclient} in a script.  For
-example, the following setting for the @env{EDITOR} environment
-variable will always give you an editor, even if no Emacs server is
-running:
+This is useful when running @code{emacsclient} in a script.
 
-@example
-EDITOR="emacsclient --alternate-editor emacs +%d %s"
-@end example
-
-@noindent
 As a special exception, if @var{command} is the empty string, then
 @code{emacsclient} starts Emacs in daemon mode and then tries
 connecting again.
@@ -1663,6 +1673,11 @@ all server buffers are finished.  You can take as long as you like to
 edit the server buffers within Emacs, and they are @emph{not} killed
 when you type @kbd{C-x #} in them.
 
+@item -q
+@itemx --quiet
+Do not let @command{emacsclient} display messages about waiting for
+Emacs or connecting to remote server sockets.
+
 @item -s @var{server-name}
 @itemx --socket-name=@var{server-name}
 Connect to the Emacs server named @var{server-name}.  The server name
@@ -1701,8 +1716,14 @@ process, type @kbd{M-x kill-emacs}.
   Emacs provides commands for printing hard copies of either an entire
 buffer or just part of one, with or without page headers.  You can
 invoke the printing commands directly, as detailed in the following
-section, or using the @samp{File} menu on the menu bar.  See also the
-hardcopy commands of Dired (@pxref{Misc File Ops}) and the diary
+section, or using the @samp{File} menu on the menu bar.
+
+@findex htmlfontify-buffer
+  Aside from the commands described in this section, you can also
+``print'' an Emacs buffer to HTML with @kbd{M-x htmlfontify-buffer}.
+This command converts the current buffer to a HTML file, replacing
+Emacs faces with CSS-based markup.  In addition, see the hardcopy
+commands of Dired (@pxref{Misc File Ops}) and the diary
 (@pxref{Displaying the Diary}).
 
 @table @kbd
@@ -1751,7 +1772,7 @@ whether to supply @samp{-T} and @samp{-J} options (suitable for
 not compatible with @code{lpr}.
 
 @menu
-* PostScript::	         Printing buffers or regions as PostScript.
+* PostScript::           Printing buffers or regions as PostScript.
 * PostScript Variables:: Customizing the PostScript printing commands.
 * Printing Package::     An optional advanced printing interface.
 @end menu
@@ -2343,8 +2364,11 @@ sessions, or add this line in your init file (@pxref{Init File}):
 
 @findex desktop-change-dir
 @findex desktop-revert
+@vindex desktop-path
   If you turn on @code{desktop-save-mode} in your init file, then when
 Emacs starts, it looks for a saved desktop in the current directory.
+(More precisely, it looks in the directories specified by
+@var{desktop-path}, and uses the first desktop it finds.)
 Thus, you can have separate saved desktops in different directories,
 and the starting directory determines which one Emacs reloads.  You
 can save the current desktop and reload one saved in another directory
@@ -2481,9 +2505,8 @@ also use the command @kbd{M-x scroll-all-mode} or set the variable
 @item EDT (DEC VMS editor)
 @findex edt-emulation-on
 @findex edt-emulation-off
-Turn on EDT emulation with the command @kbd{M-x edt-emulation-on},
-while @kbd{M-x edt-emulation-off} restores normal Emacs command
-bindings.
+Turn on EDT emulation @kbd{M-x edt-emulation-on}; use @kbd{M-x
+edt-emulation-off} to restore normal Emacs command bindings.
 
 Most of the EDT emulation commands are keypad keys, and most standard
 Emacs key bindings are still available.  The EDT emulation rebindings
@@ -2778,6 +2801,10 @@ bored, try an argument of 9.  Sit back and watch.
   If you want a little more personal involvement, try @kbd{M-x gomoku},
 which plays the game Go Moku with you.
 
+@findex bubbles
+  @kbd{M-x bubbles} is a game in which the object is to remove as many
+bubbles as you can in the smallest number of moves.
+
 @findex blackbox
 @findex mpuz
 @findex 5x5
@@ -2826,6 +2853,11 @@ bats.
 @kbd{M-x solitaire} plays a game of solitaire in which you jump pegs
 across other pegs.
 
+@findex animate-birthday-present
+@cindex animate
+The @code{animate} package makes text dance.  For an example, try
+@kbd{M-x animate-birthday-present}.
+
 @findex studlify-region
 @cindex StudlyCaps
 @kbd{M-x studlify-region} studlify-cases the region, producing
@@ -2855,7 +2887,3 @@ idle.
 @ifnottex
 @lowersections
 @end ifnottex
-
-@ignore
-   arch-tag: 8f094220-c0d5-4e9e-af7d-3e0da8187474
-@end ignore

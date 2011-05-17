@@ -1,6 +1,6 @@
 ;;; gnus-fun.el --- various frivolous extension functions to Gnus
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -24,7 +24,7 @@
 
 ;;; Code:
 
-;; For Emacs < 22.2.
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 
@@ -290,5 +290,4 @@ colors of the displayed X-Faces."
 
 (provide 'gnus-fun)
 
-;; arch-tag: 9d000a69-15cc-4491-9dc0-4627484f50c1
 ;;; gnus-fun.el ends here

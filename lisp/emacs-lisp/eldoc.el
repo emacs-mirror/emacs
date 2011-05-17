@@ -1,7 +1,6 @@
 ;;; eldoc.el --- show function arglist or variable docstring in echo area
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman <friedman@splode.com>
 ;; Maintainer: friedman@splode.com
@@ -530,15 +529,14 @@ The words \"&rest\", \"&optional\" are returned unchanged."
 
 ;; Prime the command list.
 (eldoc-add-command-completions
- "backward-" "beginning-of-" "move-beginning-of-" "delete-other-windows"
- "delete-window" "handle-select-window"
- "end-of-" "move-end-of-" "exchange-point-and-mark" "forward-"
- "indent-for-tab-command" "goto-" "mark-page" "mark-paragraph"
- "mouse-set-point" "move-" "pop-global-mark" "next-" "other-window"
- "previous-" "recenter" "scroll-" "self-insert-command"
- "split-window-" "up-list" "down-list")
+ "backward-" "beginning-of-" "delete-other-windows" "delete-window"
+ "down-list" "end-of-" "exchange-point-and-mark" "forward-" "goto-"
+ "handle-select-window" "indent-for-tab-command" "left-" "mark-page"
+ "mark-paragraph" "mouse-set-point" "move-" "move-beginning-of-"
+ "move-end-of-" "next-" "other-window" "pop-global-mark" "previous-"
+ "recenter" "right-" "scroll-" "self-insert-command" "split-window-"
+ "up-list")
 
 (provide 'eldoc)
 
-;; arch-tag: c9a58f9d-2055-46c1-9b82-7248b71a8375
 ;;; eldoc.el ends here

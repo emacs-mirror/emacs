@@ -1,3 +1,389 @@
+2011-05-14  Ulf Jasper  <ulf.jasper@web.de>
+
+	* images/newsticker/README: Added.
+
+2011-05-13  Ulf Jasper  <ulf.jasper@web.de>
+
+	* images/newsticker: Added.
+	* images/newsticker/browse-url.xpm: Added.
+	* images/newsticker/get-all.xpm: Added.
+	* images/newsticker/mark-immortal.xpm: Added.
+	* images/newsticker/mark-read.xpm: Added.
+	* images/newsticker/narrow.xpm: Added.
+	* images/newsticker/next-feed.xpm: Added.
+	* images/newsticker/next-item.xpm: Added.
+	* images/newsticker/prev-feed.xpm: Added.
+	* images/newsticker/prev-item.xpm: Added.
+	* images/newsticker/update.xpm: Added.
+
+2011-05-10  Jim Meyering  <meyering@redhat.com>
+
+	* MH-E-NEWS, PROBLEMS: Fix typo "the the -> the".
+
+2011-05-03  Leo Liu  <sdl.web@gmail.com>
+
+	* NEWS: Mention the new command isearch-yank-pop.
+
+2011-05-03  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* NEWS: Mention new library gnutls.el and explain GnuTLS
+	functionality.  Mention new configure.bat options --without-gnutls
+	and --lib for W32.
+
+2011-05-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* NEWS: Mention `url-retrieve-queue', (:file "file") and
+	`server-eval-at'.
+
+2011-04-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Document `delayed-warnings-list' and `delayed-warnings-hook'.
+	Document new "default HOME" warning.
+
+2011-04-26  Daniel Colascione  <dan.colascione@gmail.com>
+
+	* DEBUG: Document debug-on-event default behavior and utility for
+	debugging.
+
+2011-04-22  Noah Friedman  <friedman@splode.com>
+
+	* emacs-buffer.gdb: Add trailing underscores to appropriate member
+	names, per change tromey@redhat.com-20110214153919-bxkckrdmmg4qhyyj
+	of src/lisp.h.
+
+2011-04-08  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* NEWS: Document new function `vc-ediff'.
+
+2011-04-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: New variable `revert-buffer-in-progress-p'.
+
+2011-03-22  Sebastian Hermida  <sebas00@gmail.com>
+
+	* themes/misterioso-theme.el: New file.
+
+2011-03-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Document warning about _emacs.
+
+2011-03-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: `shell' prompts for the shell path name, when the default
+	directory is a remote file name and neither environment variable
+	$ESHELL nor variable `explicit-shell-file-name' is set.
+
+2011-03-08  Kristoffer Grönlund  <krig@koru.se>
+
+	* themes/wombat-theme.el: New file.
+
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
+2011-03-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* srecode/el.srt: Fix typo.
+
+2011-02-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* themes/tango-dark-theme.el: Tweak background on low-color
+	terminals.
+
+2011-02-17  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* etc/images/icons/allout-widgets/dark-bg,
+	* etc/images/icons/allout-widgets/light-bg,
+	* encrypted-locked.{xpm,png}, unlocked-encrypted.{xpm,png}:
+	Reorganize icon directories and files to reconcile against windows
+	short-filename clashes.
+
+2011-02-16  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* etc/images/icons/allout-widgets-dark-bg,
+	* etc/images/icons/allout-widgets-light-bg: Icons for new
+	allout-widgets.el.
+
+	* etc/images/icons/README: Include coypright and GPL 3 license for
+	new icons.
+
+2011-02-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Add soap-client.el and soap-inspect.el.
+
+2011-02-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Tramp methods "imap" and "imaps" are discontinued.
+
+2011-02-12  Drew Adams  <drew.adams@oracle.com>
+
+	* themes/light-blue-theme.el: New file.
+
+2011-02-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	format-time-string now supports subsecond time stamp resolution
+	* NEWS: Document this.
+
+2011-01-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Redo spelling of Makefile variables to conform to POSIX.
+	POSIX does not allow "-" in Makefile variable names.
+	Reported by Bruno Haible in
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-01/msg00990.html>.
+	* refcards/Makefile (DIRED_REFCARDS_PDF): Renamed from
+	DIRED-REFCARDS_PDF.
+	(MISC_REFCARDS_PDF): Renamed from MISC-REFCARDS_PDF.
+	(SURVIVAL_CARDS_PDF): Renamed from SURVIVAL-CARDS_PDF.
+	(VIPER_CARDS_PDF): Renamed from VIPER-CARDS_PDF.
+
+2011-01-18  Glenn Morris  <rgm@gnu.org>
+
+	* PROBLEMS: Add note about svn+ssh.  (Bug#7791)
+
+2011-01-14  Glenn Morris  <rgm@gnu.org>
+
+	* refcards/calccard.tex, refcards/cs-dired-ref.tex:
+	* refcards/cs-refcard.tex, refcards/cs-survival.tex:
+	* refcards/de-refcard.tex, refcards/dired-ref.tex:
+	* refcards/fr-dired-ref.tex, refcards/fr-refcard.tex:
+	* refcards/fr-survival.tex, refcards/orgcard.tex:
+	* refcards/pl-refcard.tex, refcards/pt-br-refcard.tex:
+	* refcards/refcard.tex, refcards/ru-refcard.tex:
+	* refcards/sk-dired-ref.tex, refcards/sk-refcard.tex:
+	* refcards/sk-survival.tex, refcards/survival.tex:
+	* refcards/vipcard.tex, refcards/viperCard.tex:
+	Update short copyright year to 2011.
+
+2011-01-13  Christian Ohler  <ohler@gnu.org>
+
+	* NEWS: Mention ERT.
+
+2011-01-10  Jan Moringen  <jan.moringen@uni-bielefeld.de>
+
+	* NEWS: Add new function dbus-register-service.
+
+2011-01-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* themes/tango-theme.el, themes/tango-dark-theme.el: Let-bind
+	tango palette colors.  Only define faces for color displays.
+	Customize the ansi-color-names-vector variable.  Add Ediff,
+	Flyspell, and Semantic faces as suggested by Jan Moringen.
+
+2011-01-08  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* compilation.txt: Add column to gcc-include sample.
+
+2011-01-08  Glenn Morris  <rgm@gnu.org>
+
+	* PROBLEMS: -batch implies -q.
+
+2011-01-07  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* themes/tsdh-light-theme.el, themes/tsdh-dark-theme.el: Remove
+	dev-prefix from file names, so that the files don't clash on 8x3
+	filesystems.
+
+2011-01-06  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* themes/dev-tsdh-light-theme.el (dev-tsdh-light): New theme.
+	* themes/dev-tsdh-dark-theme.el (dev-tsdh-dark): New theme.
+
+2011-01-04  Jan Moringen  <jan.moringen@uni-bielefeld.de>
+
+	* NEWS: Extended behaviour of dbus-register-{method,property}.
+
+2011-01-02  Kenichi Handa  <handa@m17n.org>
+
+	* NEWS.23: Describe the changes for rmail's MIME handling.
+
+2010-12-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* images/separator.xpm: Tweak colors.
+
+2010-12-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Mention new Tramp method "ksu".
+
+2010-12-13  W. Martin Borgert  <debacle@debian.org>  (tiny change)
+
+	* schema/schemas.xml: Add DocBook (Bug#7491).
+
+2010-12-11  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* refcards/orgcard.tex: Cleanup.
+
+2010-11-27  Ulrich Mueller  <ulm@gentoo.org>
+
+	* HELLO: Add ancient Greek (Bug#7418).
+
+2010-11-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* NEWS: Document display of glyphless characters.
+
+2010-11-11  Eric Schulte  <schulte.eric@gmail.com>
+
+	* refcards/orgcard.tex: Add new Babel key sequences.
+
+2010-10-26  Glenn Morris  <rgm@gnu.org>
+
+	* images/README: Add (un)checked.xpm
+	* images/checked.xpm, images/unchecked.xpm: Add copyright.
+
+2010-10-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* images/checked.xpm:
+	* images/unchecked.xpm: New images.
+
+2010-10-24  Richard Stallman  <rms@gnu.org>
+
+	* DISTRIB: Update donation section.
+
+2010-10-24  Glenn Morris  <rgm@gnu.org>
+
+	* DISTRIB: Small updates.
+
+2010-10-19  Julien Danjou  <julien@danjou.info>
+
+	* tutorials/TUTORIAL: Don't mention mode-line end dashes.
+
+2010-10-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* themes: New directory for custom theme files, moved from lisp/.
+
+2010-10-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* tutorials/TUTORIAL.es: Fix typos.
+
+2010-10-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Mention `dynamic-library-alist'.
+
+2010-10-13  Glenn Morris  <rgm@gnu.org>
+
+	* NEXTSTEP: New file, extracted from ../nextstep/{AUTHORS,README}.
+
+2010-10-12  Glenn Morris  <rgm@gnu.org>
+
+	* TODO: Merge ../nextstep/FOR-RELEASE into this file.
+
+	* BABYL: Remove file.
+
+2010-09-21  Eric Ludlam  <zappo@gnu.org>
+
+	* srecode/java.srt: Make NAME be a prompt.
+
+2010-09-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Some Tramp methods are discontinued.
+
+2010-09-11  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.bash, emacs.csh, ms-kermit: Remove obsolete files (use
+	emacsclient -a instead of the first two).
+
+2010-09-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* NEWS: Mention the new libxml2 functions.
+
+2010-08-25  Kenichi Handa  <handa@m17n.org>
+
+	* HELLO: Change designation sequences for Arabic text.
+
+2010-08-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: dbus.el supports alternative buses.
+
+2010-08-22  Alex Harsanyi  <harsanyi@mac.com>  (tiny change)
+
+	* emacs3.py: Import imp module and use it (Bug#5756).
+
+2010-08-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* tutorials/TUTORIAL.he: Use MAQAF instead of hyphen where appropriate.
+	Fix a few typos.
+
+2010-08-08  Ken Brown  <kbrown@cornell.edu>
+
+	* PROBLEMS: Mention problem with Cygwin 1.5.19.
+
+2010-08-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* NEWS: Mention the Hebrew translation.
+
+	* tutorials/TUTORIAL.he: Don't use acronyms.
+
+2010-08-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* AUTHORS: Rename unexec.o => unexcoff.o.
+	* PROBLEMS: Rename unexec.o => unexcoff.o.
+
+2010-07-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* tutorials/TUTORIAL.he: New file.
+
+	* tutorials/TUTORIAL.translators: Add TUTORIAL.he.
+
+2010-07-24  Christoph Scholtes  <cschol2112@gmail.com>
+
+	* NEWS: Document new --distfiles configure.bat option and
+	`dist' make target on Windows.
+
+2010-07-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* PROBLEMS: Add note about use of backslashes in Windows paths.
+
+2010-07-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Mention --enable-checking is now supported on Windows.
+
+2010-07-19  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* refcards/orgcard.tex: Remove the key for the TODO sparse tree
+	and add the new key.  Document new keys for image and entity
+	display.  Document the Org Babel keys.
+
+2010-06-19  Ken Brown  <kbrown@cornell.edu>
+
+	* PROBLEMS: Update Cygwin GCC information.  (Bug#6458)
+
+2010-06-12  Glenn Morris  <rgm@gnu.org>
+
+	* tutorials/TUTORIAL.bg, tutorials/TUTORIAL.es: Fix typos.
+
+2010-06-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Add notifications.el.
+
+2010-05-28  Glenn Morris  <rgm@gnu.org>
+
+	* MACHINES: Remove some old information no longer of relevance.
+	Switch to outline-mode.
+
+2010-05-27  Glenn Morris  <rgm@gnu.org>
+
+	* PROBLEMS: Remove old information no longer of relevance.
+
+2010-05-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* NEWS: Add sections for Emacs-23.3.
+
+2010-05-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* PROBLEMS: Document gcc-4.5 bug (Bug#6031).
+
+2010-05-08  Kenichi Handa  <handa@m17n.org>
+
+	* HELLO: Adjust Burmese for Unicode 5.2 encoding.
+
+2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.2 released.
+
+2010-05-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* HELLO: Reorder Arabic greetings into logical order (they were
+	mistakenly changed to visual order by the 2010-03-28 change).
+
 2010-04-18  Francesc Rocher  <rocher@member.fsf.org>
 
 	* MORE.STUFF: Add a new entry for QWE.
@@ -26,8 +412,7 @@
 
 2010-03-24  Francesc Rocher  <rocher@member.fsf.org>
 
-	* MORE.STUFF: Remove CEDET entry, now distributed as part of
-	Emacs.
+	* MORE.STUFF: Remove CEDET entry, now distributed as part of Emacs.
 
 2010-03-22  Teodor Zlatanov  <tzz@lifelogs.com>
 
@@ -118,7 +503,7 @@
 	* srecode/doc-default.srt (section-comment, function-comment)
 	(variable-same-line-comment, group-comment-start, group-comment-end):
 	* srecode/doc-java.srt (function-comment, variable-same-line-comment)
-	(group-comment-start, gropu-comment-end):
+	(group-comment-start, group-comment-end):
 	Fix typos in template docstrings.
 
 2010-01-14  Kenichi Handa  <handa@m17n.org>
@@ -1822,7 +2207,7 @@
 2006-11-05  Slawomir Nowaczyk  <slawek@cs.lth.se>
 
 	* emacs.py (eargs): Provide eldoc message for builtin types.
-	  Make sure eargs always outputs sentinel, to avoid Emacs freeze.
+	Make sure eargs always outputs sentinel, to avoid Emacs freeze.
 
 2006-10-22  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -3192,7 +3577,7 @@
 
 	* NEWS: Mention the thumbs.el package.
 
-2004-08-14  Eric Hanchrow  <offby1@blarg.net>  (tiny change)
+2004-08-14  Eric Hanchrow  <offby1@blarg.net>
 
 	* TUTORIAL.es: Replace actual whitespace with the magic string
 	that causes help-with-tutorial to automatically insert the correct
@@ -4629,8 +5014,8 @@
 1990-01-19  David Lawrence  (tale@cocoa-puffs)
 
 	* timer.c, getdate.y (new files) and Makefile:
-	  Sub-process support for run-at-time in timer.el.
-	  Doesn't yet work correctly for USG.
+	Sub-process support for run-at-time in timer.el.
+	Doesn't yet work correctly for USG.
 
 1990-01-10  Jim Kingdon  (kingdon@pogo)
 
@@ -4886,7 +5271,7 @@
 	* etags.c: Changes for VMS.
 	Always define ETAGS on VMS.
 	Define macros GOOD and BAD for success and failure exit codes.
-	(begtk, intk): Allow `$' in identifiers
+	(begtk, intk): Allow `$' in identifiers.
 	(main): Don't support -B, -F or -u on VMS.
 	Alternate loop for scanning filename arguments.
 	(system): Delete definition of this function.
@@ -4945,12 +5330,9 @@
 
 ;; Local Variables:
 ;; coding: utf-8
-;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001
-	2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-	Free Software Foundation, Inc.
+  Copyright (C) 1993-1999, 2001-2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -4966,5 +5348,3 @@
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
-;;; arch-tag: 094f3a51-bd72-44d0-8fac-2ac242c6c5b1

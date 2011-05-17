@@ -1,7 +1,6 @@
 ;;; semantic/db.el --- Semantic tag database manager
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -542,10 +541,25 @@ Optional argument FORCE will force a refresh even if the file in question
 is not in a buffer.  Avoid using FORCE for most uses, as an old cache
 may be sufficient for the general case.  Forced updates can be slow.
 This will call `semantic-fetch-tags' if that file is in memory."
-  (when (or (semanticdb-in-buffer-p obj) force)
+  (cond
+   ;;
+   ;; Already in a buffer, just do it.
+   ((semanticdb-in-buffer-p obj)
+    (semanticdb-set-buffer obj)
+    (semantic-fetch-tags))
+   ;;
+   ;; Not in a buffer.  Forcing a load.
+   (force
+    ;; Patch from Iain Nicol. --
+    ;; @TODO: I wonder if there is a way to recycle
+    ;;        semanticdb-create-table-for-file-not-in-buffer
     (save-excursion
-      (semanticdb-set-buffer obj)
-      (semantic-fetch-tags))))
+      (let ((buff (semantic-find-file-noselect
+		   (semanticdb-full-filename obj))))
+	(set-buffer buff)
+	(semantic-fetch-tags)
+	;; Kill off the buffer if it didn't exist when we were called.
+	(kill-buffer buff))))))
 
 (defmethod semanticdb-needs-refresh-p ((obj semanticdb-table))
   "Return non-nil of OBJ's tag list is out of date.
@@ -808,12 +822,14 @@ Always append `semanticdb-project-system-databases' if
     (setq root (run-hook-with-args-until-success
 		'semanticdb-project-root-functions
 		dir))
-    ;; Find roots based on strings
-    (while (and roots (not root))
-      (let ((r (file-truename (car roots))))
-	(if (string-match (concat "^" (regexp-quote r)) dir)
-	    (setq root r)))
-      (setq roots (cdr roots)))
+    (if root
+	(setq root (file-truename root))
+      ;; Else, Find roots based on strings
+      (while roots
+	(let ((r (file-truename (car roots))))
+	  (if (string-match (concat "^" (regexp-quote r)) dir)
+	      (setq root r)))
+	(setq roots (cdr roots))))
 
     ;; If no roots are found, use this directory.
     (unless root (setq root dir))
@@ -1023,5 +1039,4 @@ If file does not have tags available, then load the file, and create them."
 ;; generated-autoload-load-name: "semantic/db"
 ;; End:
 
-;; arch-tag: d9f75280-737d-494f-9f70-09a649d27433
 ;;; semantic/db.el ends here

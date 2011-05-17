@@ -1,7 +1,6 @@
 ;;; uudecode.el -- elisp native uudecode
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: uudecode news
@@ -216,7 +215,7 @@ If FILE-NAME is non-nil, save the result to FILE-NAME."
 	  (skip-chars-forward non-data-chars end))
 	(if file-name
             (with-temp-file file-name
-              (set-buffer-multibyte nil)
+              (unless (featurep 'xemacs) (set-buffer-multibyte nil))
               (insert (apply 'concat (nreverse result))))
 	  (or (markerp end) (setq end (set-marker (make-marker) end)))
 	  (goto-char start)
@@ -236,5 +235,4 @@ If FILE-NAME is non-nil, save the result to FILE-NAME."
 
 (provide 'uudecode)
 
-;; arch-tag: e1f09ed5-62b4-4677-9f13-4e81c4fe8ce3
 ;;; uudecode.el ends here

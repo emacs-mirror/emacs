@@ -1,7 +1,6 @@
 ;;; hideif.el --- hides selected code within ifdef
 
-;; Copyright (C) 1988, 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1994, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Brian Marick
 ;;	Daniel LaLiberte <liberte@holonexus.org>
@@ -413,13 +412,14 @@ that form should be displayed.")
   "Pop the next token from token-list into the let variable \"hif-token\"."
   (setq hif-token (pop hif-token-list)))
 
-(defun hif-parse-if-exp (hif-token-list)
+(defun hif-parse-if-exp (token-list)
   "Parse the TOKEN-LIST.  Return translated list in prefix form."
-  (hif-nexttoken)
-  (prog1
-      (hif-expr)
-    (if hif-token ; is there still a token?
-	(error "Error: unexpected token: %s" hif-token))))
+  (let ((hif-token-list token-list))
+    (hif-nexttoken)
+    (prog1
+        (hif-expr)
+      (if hif-token ; is there still a token?
+          (error "Error: unexpected token: %s" hif-token)))))
 
 (defun hif-expr ()
   "Parse an expression as found in #if.
@@ -508,7 +508,7 @@ that form should be displayed.")
    ;; Unary plus/minus.
    ((memq hif-token '(hif-minus hif-plus))
     (list (prog1 hif-token (hif-nexttoken)) 0 (hif-factor)))
- 
+
    (t					; identifier
     (let ((ident hif-token))
       (if (memq ident '(or and))
@@ -760,7 +760,7 @@ Point is left unchanged."
       (cond ((hif-looking-at-else)
 	     (setq else (point)))
 	    (t
-	     (setq end (point)))) ; (save-excursion (end-of-line) (point))
+	     (setq end (point)))) ; (line-end-position)
       ;; If found #else, look for #endif.
       (when else
 	(while (progn
@@ -769,7 +769,7 @@ Point is left unchanged."
 	  (hif-ifdef-to-endif))
 	(if (hif-looking-at-else)
 	    (error "Found two elses in a row?  Broken!"))
-	(setq end (point)))	       ; (save-excursion (end-of-line) (point))
+	(setq end (point)))	       ; (line-end-position)
       (hif-make-range start end else))))
 
 
@@ -1025,5 +1025,4 @@ Return as (TOP . BOTTOM) the extent of ifdef block."
 
 (provide 'hideif)
 
-;; arch-tag: c6381d17-a59a-483a-b945-658f22277981
 ;;; hideif.el ends here

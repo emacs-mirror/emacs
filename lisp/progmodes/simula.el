@@ -1,7 +1,6 @@
 ;;; simula.el --- SIMULA 87 code editing commands for Emacs
 
-;; Copyright (C) 1992, 1994, 1996, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1996, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Hans Henrik Eriksen <hhe@ifi.uio.no>
 ;; Maintainer: simula-mode@ifi.uio.no
@@ -163,17 +162,18 @@ for SIMULA mode to function correctly."
 (defvar simula-mode-syntax-table nil
   "Syntax table in SIMULA mode buffers.")
 
-(defconst simula-font-lock-syntactic-keywords
-  `(;; `comment' directive.
-    ("\\<\\(c\\)omment\\>" 1 "<")
-    ;; end comments
-    (,(concat "\\<end\\>\\([^;\n]\\).*?\\(\n\\|\\(.\\)\\(;\\|"
-	      (regexp-opt '("end" "else" "when" "otherwise"))
-	      "\\)\\)")
-     (1 "< b")
-     (3 "> b" nil t))
-    ;; non-quoted single-quote char.
-    ("'\\('\\)'" 1 ".")))
+(defconst simula-syntax-propertize-function
+  (syntax-propertize-rules
+   ;; `comment' directive.
+   ("\\<\\(c\\)omment\\>" (1 "<"))
+   ;; end comments
+   ((concat "\\<end\\>\\([^;\n]\\).*?\\(\n\\|\\(.\\)\\(;\\|"
+            (regexp-opt '("end" "else" "when" "otherwise"))
+            "\\)\\)")
+    (1 "< b")
+    (3 "> b"))
+   ;; non-quoted single-quote char.
+   ("'\\('\\)'" (1 "."))))
 
 ;; Regexps written with help from Alf-Ivar Holm <alfh@ifi.uio.no>.
 (defconst simula-font-lock-keywords-1
@@ -324,13 +324,13 @@ for SIMULA mode to function correctly."
   "Keymap used in `simula-mode'.")
 
 ;; menus for Lucid
-(defun simula-popup-menu (e)
+(defun simula-popup-menu (_e)
   "Pops up the SIMULA menu."
   (interactive "@e")
   (popup-menu (cons (concat mode-name " Mode Commands") simula-mode-menu)))
 
 ;;;###autoload
-(define-derived-mode simula-mode nil "Simula"
+(define-derived-mode simula-mode prog-mode "Simula"
   "Major mode for editing SIMULA code.
 \\{simula-mode-map}
 Variables controlling indentation style:
@@ -370,34 +370,22 @@ Variables controlling indentation style:
 
 Turning on SIMULA mode calls the value of the variable simula-mode-hook
 with no arguments, if that value is non-nil."
-  (make-local-variable 'comment-column)
-  (setq comment-column 40)
-;  (make-local-variable 'end-comment-column)
-;  (setq end-comment-column 75)
-  (make-local-variable 'paragraph-start)
-  (setq paragraph-start "[ \t]*$\\|\\f")
-  (make-local-variable 'paragraph-separate)
-  (setq paragraph-separate paragraph-start)
-  (make-local-variable 'indent-line-function)
-  (setq indent-line-function 'simula-indent-line)
-  (make-local-variable 'require-final-newline)
-  (setq require-final-newline mode-require-final-newline)
-  (make-local-variable 'comment-start)
-  (setq comment-start "! ")
-  (make-local-variable 'comment-end)
-  (setq comment-end " ;")
-  (make-local-variable 'comment-start-skip)
-  (setq comment-start-skip "!+ *")
-  (make-local-variable 'parse-sexp-ignore-comments)
-  (setq parse-sexp-ignore-comments nil)
-  (make-local-variable 'comment-multi-line)
-  (setq comment-multi-line t)
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults
-	'((simula-font-lock-keywords simula-font-lock-keywords-1
-	   simula-font-lock-keywords-2 simula-font-lock-keywords-3)
-	  nil t ((?_ . "w")) nil
-	  (font-lock-syntactic-keywords . simula-font-lock-syntactic-keywords)))
+  (set (make-local-variable 'comment-column) 40)
+  ;; (set (make-local-variable 'end-comment-column) 75)
+  (set (make-local-variable 'paragraph-start) "[ \t]*$\\|\\f")
+  (set (make-local-variable 'paragraph-separate) paragraph-start)
+  (set (make-local-variable 'indent-line-function) 'simula-indent-line)
+  (set (make-local-variable 'comment-start) "! ")
+  (set (make-local-variable 'comment-end) " ;")
+  (set (make-local-variable 'comment-start-skip) "!+ *")
+  (set (make-local-variable 'parse-sexp-ignore-comments) nil)
+  (set (make-local-variable 'comment-multi-line) t)
+  (set (make-local-variable 'font-lock-defaults)
+       '((simula-font-lock-keywords simula-font-lock-keywords-1
+          simula-font-lock-keywords-2 simula-font-lock-keywords-3)
+         nil t ((?_ . "w"))))
+  (set (make-local-variable 'syntax-propertize-function)
+       simula-syntax-propertize-function)
   (abbrev-mode 1))
 
 (defun simula-indent-exp ()
@@ -962,7 +950,7 @@ If COUNT is negative, move backward instead."
 	      (simula-previous-statement 1)
 	      (simula-skip-comment-backward)))
 	(setq start-line
-	      (save-excursion (beginning-of-line) (point))
+	      (line-beginning-position)
 	      ;; - perhaps this is a continued statement
 	      continued
 	      (save-excursion
@@ -1021,7 +1009,7 @@ If COUNT is negative, move backward instead."
 				 (car simula-continued-statement-offset)
 			       simula-continued-statement-offset))))
 		(setq start-line
-		      (save-excursion (beginning-of-line) (point))
+		      (line-beginning-position)
 		      continued nil))
 	    ;; search failed .. point is at beginning of line
 	    ;; determine if we should continue searching
@@ -1062,7 +1050,7 @@ If COUNT is negative, move backward instead."
 			   simula-continued-statement-offset))))
 	    ;; while ends if point is at beginning of line at loop test
 	    (if (not temp)
-		(setq start-line (save-excursion (beginning-of-line) (point)))
+		(setq start-line (line-beginning-position))
 	      (beginning-of-line))))
         ;;
 	;; return indentation
@@ -1214,9 +1202,8 @@ If COUNT is negative, move backward instead."
        ((eq simula-abbrev-keyword 'downcase) (downcase-word -1))
        ((eq simula-abbrev-keyword 'capitalize) (capitalize-word -1)))
       (let ((pos (- (point-max) (point)))
-	    (case-fold-search t)
-	    null)
-	(condition-case null
+	    (case-fold-search t))
+	(condition-case nil
 	    (progn
 	      ;; check if the expanded word is on the beginning of the line.
 	      (if (and (eq (char-syntax (preceding-char)) ?w)
@@ -1256,8 +1243,9 @@ An optional second argument BOUND bounds the search, it is a buffer position.
 The match found must not extend after that position.  Optional third argument
 NOERROR, if t, means if fail just return nil (no error).
 If not nil and not t, move to limit of search and return nil."
-  (let (begin end context (comb-regexp (concat regexp "\\|\\<end\\>"))
-	      match (start-point (point)))
+  (let ((comb-regexp (concat regexp "\\|\\<end\\>"))
+        (start-point (point))
+        context match)
     (catch 'simula-backward
       (while (re-search-backward comb-regexp bound 1)
 	;; We have a match, check SIMULA context at match-beginning
@@ -1318,8 +1306,9 @@ An optional second argument BOUND bounds the search, it is a buffer position.
 The match found must not extend after that position.  Optional third argument
 NOERROR, if t, means if fail just return nil (no error).
 If not nil and not t, move to limit of search and return nil."
-  (let (begin end context (comb-regexp (concat regexp "\\|\\<begin\\>"))
-	      match (start-point (point)))
+  (let ((comb-regexp (concat regexp "\\|\\<begin\\>"))
+        (start-point (point))
+	context match)
     (catch 'simula-forward
       (while (re-search-forward comb-regexp bound 1)
 	;; We have a match, check SIMULA context at match-beginning
@@ -1657,5 +1646,4 @@ If not nil and not t, move to limit of search and return nil."
 
 (provide 'simula)
 
-;; arch-tag: 488c1bb0-eebf-4f06-93df-1df603f06255
 ;;; simula.el ends here

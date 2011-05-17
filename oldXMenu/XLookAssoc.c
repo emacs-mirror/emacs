@@ -18,10 +18,10 @@
  * in the table the routine will return a NULL pointer.  All XId's are relative
  * to the currently active Display.
  */
-caddr_t XLookUpAssoc(dpy, table, x_id)
-        register Display *dpy;
-	register XAssocTable *table;	/* XAssocTable to search in. */
-	register XID x_id;			/* XId to search for. */
+caddr_t XLookUpAssoc(register Display *dpy, register XAssocTable *table, register XID x_id)
+                              
+	                            	/* XAssocTable to search in. */
+	                  			/* XId to search for. */
 {
 	int hash;
 	register XAssoc *bucket;
@@ -56,5 +56,3 @@ caddr_t XLookUpAssoc(dpy, table, x_id)
 	return(NULL);
 }
 
-/* arch-tag: d5075d0c-4b71-467d-b33c-3f5c4c4afcf2
-   (do not change this comment) */

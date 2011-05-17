@@ -1,7 +1,6 @@
 ;;; erc-ibuffer.el --- ibuffer integration with ERC
 
-;; Copyright (C) 2002, 2004, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2004, 2006-2011  Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Keywords: comm
@@ -190,4 +189,3 @@
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: fbad56a5-8595-45e0-a8c8-d8bb91e26944

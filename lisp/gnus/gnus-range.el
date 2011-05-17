@@ -1,7 +1,6 @@
 ;;; gnus-range.el --- range and sequence functions for Gnus
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -59,6 +58,36 @@ If RANGE is a single range, return (RANGE). Otherwise, return RANGE."
       (setq list2 (cdr list2)))
     list1))
 
+(defun gnus-range-nconcat (&rest ranges)
+  "Return a range comprising all the RANGES, which are pre-sorted.
+RANGES will be destructively altered."
+  (setq ranges (delete nil ranges))
+  (let* ((result (gnus-range-normalize (pop ranges)))
+	 (last (last result)))
+    (dolist (range ranges)
+      (setq range (gnus-range-normalize range))
+      ;; Normalize the single-number case, so that we don't need to
+      ;; special-case that so much.
+      (when (numberp (car last))
+	(setcar last (cons (car last) (car last))))
+      (when (numberp (car range))
+	(setcar range (cons (car range) (car range))))
+      (if (= (1+ (cdar last)) (caar range))
+	  (progn
+	    (setcdr (car last) (cdar range))
+	    (setcdr last (cdr range)))
+	(setcdr last range)
+	;; Denormalize back, since we couldn't join the ranges up.
+	(when (= (caar range) (cdar range))
+	  (setcar range (caar range)))
+	(when (= (caar last) (cdar last))
+	  (setcar last (caar last))))
+      (setq last (last last)))
+    (if (and (consp (car result))
+	     (= (length result) 1))
+	(car result)
+      result)))
+
 (defun gnus-range-difference (range1 range2)
   "Return the range of elements in RANGE1 that do not appear in RANGE2.
 Both ranges must be in ascending order."
@@ -87,10 +116,10 @@ Both ranges must be in ascending order."
                ;; All done with range2
                (setq r nil))
               ((< max1 min2)
-               ;; No overlap: range1 preceeds range2
+               ;; No overlap: range1 precedes range2
                (pop r))
               ((< max2 min1)
-               ;; No overlap: range2 preceeds range1
+               ;; No overlap: range2 precedes range1
                (pop range2))
               ((and (<= min2 min1) (<= max1 max2))
                ;; Complete overlap: range1 removed
@@ -187,7 +216,7 @@ LIST1 and LIST2 have to be sorted over <."
 RANGE1 and RANGE2 have to be sorted over <."
   (let* (out
          (min1 (car range1))
-         (max1 (if (numberp min1) 
+         (max1 (if (numberp min1)
                    (if (numberp (cdr range1))
                        (prog1 (cdr range1)
                          (setq range1 nil)) min1)
@@ -196,17 +225,17 @@ RANGE1 and RANGE2 have to be sorted over <."
          (min2 (car range2))
          (max2 (if (numberp min2)
                    (if (numberp (cdr range2))
-                       (prog1 (cdr range2) 
-                         (setq range2 nil)) min2) 
+                       (prog1 (cdr range2)
+                         (setq range2 nil)) min2)
                  (prog1 (cdr min2)
                    (setq min2 (car min2))))))
     (setq range1 (cdr range1)
           range2 (cdr range2))
     (while (and min1 min2)
-      (cond ((< max1 min2)              ; range1 preceeds range2
+      (cond ((< max1 min2)              ; range1 precedes range2
              (setq range1 (cdr range1)
                    min1 nil))
-            ((< max2 min1)              ; range2 preceeds range1
+            ((< max2 min1)              ; range2 precedes range1
              (setq range2 (cdr range2)
                    min2 nil))
             (t                     ; some sort of overlap is occurring
@@ -654,5 +683,4 @@ LIST is a sorted list."
 
 (provide 'gnus-range)
 
-;; arch-tag: 4780bdd8-5a15-4aff-be28-18727895b6ad
 ;;; gnus-range.el ends here

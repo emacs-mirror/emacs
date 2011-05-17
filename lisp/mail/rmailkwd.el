@@ -1,10 +1,10 @@
 ;;; rmailkwd.el --- part of the "RMAIL" mail reader for Emacs
 
-;; Copyright (C) 1985, 1988, 1994, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1988, 1994, 2001-2011  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
+;; Package: rmail
 
 ;; This file is part of GNU Emacs.
 
@@ -193,5 +193,4 @@ With prefix argument N moves forward N messages with these labels."
 ;; generated-autoload-file: "rmail.el"
 ;; End:
 
-;; arch-tag: 1149979c-8e47-4333-9629-cf3dc887a6a7
 ;;; rmailkwd.el ends here

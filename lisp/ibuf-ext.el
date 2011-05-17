@@ -1,12 +1,12 @@
 ;;; ibuf-ext.el --- extensions for ibuffer
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Maintainer: John Paul Wallington <jpw@gnu.org>
 ;; Created: 2 Dec 2001
 ;; Keywords: buffer, convenience
+;; Package: ibuffer
 
 ;; This file is part of GNU Emacs.
 
@@ -771,7 +771,8 @@ The value from `ibuffer-saved-filter-groups' is used."
 (defun ibuffer-filter-disable ()
   "Disable all filters currently in effect in this buffer."
   (interactive)
-  (setq ibuffer-filtering-qualifiers nil)
+  (setq ibuffer-filtering-qualifiers nil
+	ibuffer-filter-groups nil)
   (let ((buf (ibuffer-current-buffer)))
     (ibuffer-update nil t)
     (when buf
@@ -1218,12 +1219,10 @@ mean move backwards, non-negative integers mean move forwards."
     (setq direction 1))
   ;; Skip the title
   (ibuffer-forward-line 0)
-  (let ((opos (point))
-	curmark)
+  (let ((opos (point)))
     (ibuffer-forward-line direction)
     (while (not (or (= (point) opos)
-		    (eq (setq curmark (ibuffer-current-mark))
-			mark)))
+		    (eq (ibuffer-current-mark) mark)))
       (ibuffer-forward-line direction))
     (when (and (= (point) opos)
 	       (not (eq (ibuffer-current-mark) mark)))
@@ -1246,7 +1245,7 @@ to move by.  The default is `ibuffer-marked-char'."
       (message "No buffers marked; use 'm' to mark a buffer")
     (let ((count
 	   (ibuffer-map-marked-lines
-	    #'(lambda (buf mark)
+	    #'(lambda (_buf _mark)
 		'kill))))
       (message "Killed %s lines" count))))
 
@@ -1278,7 +1277,7 @@ a prefix argument reverses the meaning of that variable."
     (let (buf-point)
       ;; Blindly search for our buffer: it is very likely that it is
       ;; not in a hidden filter group.
-      (ibuffer-map-lines #'(lambda (buf marks)
+      (ibuffer-map-lines #'(lambda (buf _marks)
 			     (when (string= (buffer-name buf) name)
 			       (setq buf-point (point))
 			       nil))
@@ -1292,7 +1291,7 @@ a prefix argument reverses the meaning of that variable."
 	  (dolist (group ibuffer-hidden-filter-groups)
 	    (ibuffer-jump-to-filter-group group)
 	    (ibuffer-toggle-filter-group)
-	    (ibuffer-map-lines #'(lambda (buf marks)
+	    (ibuffer-map-lines #'(lambda (buf _marks)
 				   (when (string= (buffer-name buf) name)
 				     (setq buf-point (point))
 				     nil))
@@ -1307,7 +1306,8 @@ a prefix argument reverses the meaning of that variable."
 	  (error "No buffer with name %s" name)
 	(goto-char buf-point)))))
 
-(declare-function diff-sentinel "diff" (code))
+(declare-function diff-sentinel "diff"
+		  (code &optional old-temp-file new-temp-file))
 
 (defun ibuffer-diff-buffer-with-file-1 (buffer)
   (let ((bufferfile (buffer-local-value 'buffer-file-name buffer))
@@ -1334,8 +1334,7 @@ a prefix argument reverses the meaning of that variable."
 					 (format "Buffer %s" (buffer-name buffer)))))
 		       ,(shell-quote-argument (or oldtmp old))
 		       ,(shell-quote-argument (or newtmp new)))
-		     " "))
-		   proc)
+		     " ")))
 	      (let ((inhibit-read-only t))
 		(insert command "\n")
 		(diff-sentinel
@@ -1394,7 +1393,7 @@ You can then feed the file name(s) to other commands with \\[yank]."
 		      (t
 		       'name))))
       (ibuffer-map-marked-lines
-       #'(lambda (buf mark)
+       #'(lambda (buf _mark)
 	   (setq ibuffer-copy-filename-as-kill-result
 		 (concat ibuffer-copy-filename-as-kill-result
 			 (let ((name (buffer-file-name buf)))
@@ -1415,7 +1414,7 @@ You can then feed the file name(s) to other commands with \\[yank]."
 (defun ibuffer-mark-on-buffer (func &optional ibuffer-mark-on-buffer-mark group)
   (let ((count
 	 (ibuffer-map-lines
-	  #'(lambda (buf mark)
+	  #'(lambda (buf _mark)
 	      (when (funcall func buf)
 		(ibuffer-set-mark-1 (or ibuffer-mark-on-buffer-mark
 					ibuffer-marked-char))
@@ -1583,7 +1582,7 @@ defaults to one."
   (let ((ibuffer-do-occur-bufs nil))
     ;; Accumulate a list of marked buffers
     (ibuffer-map-marked-lines
-     #'(lambda (buf mark)
+     #'(lambda (buf _mark)
 	 (push buf ibuffer-do-occur-bufs)))
     (occur-1 regexp nlines ibuffer-do-occur-bufs)))
 
@@ -1593,5 +1592,4 @@ defaults to one."
 ;; generated-autoload-file: "ibuffer.el"
 ;; End:
 
-;; arch-tag: 9af21953-deda-4c30-b76d-f81d9128e76d
 ;;; ibuf-ext.el ends here

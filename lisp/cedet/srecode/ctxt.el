@@ -1,6 +1,6 @@
 ;;; srecode/ctxt.el --- Derive a context from the source buffer.
 
-;; Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -244,5 +244,4 @@ This might add the following:
 
 (provide 'srecode/ctxt)
 
-;; arch-tag: 5a004702-28e5-4e26-9b14-8a78eae49865
 ;;; srecode/ctxt.el ends here

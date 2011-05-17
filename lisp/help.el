@@ -1,10 +1,11 @@
 ;;; help.el --- help commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2011
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help, internal
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -103,6 +104,7 @@
     (define-key map "m" 'describe-mode)
     (define-key map "n" 'view-emacs-news)
     (define-key map "p" 'finder-by-keyword)
+    (define-key map "P" 'describe-package)
     (define-key map "r" 'info-emacs-manual)
     (define-key map "s" 'describe-syntax)
     (define-key map "t" 'help-with-tutorial)
@@ -116,9 +118,6 @@
 (define-key global-map [help] 'help-command)
 (define-key global-map [f1] 'help-command)
 (fset 'help-command help-map)
-
-(autoload 'finder-by-keyword "finder"
-  "Find packages matching a given keyword." t)
 
 ;; insert-button makes the action nil if it is not store somewhere
 (defvar help-button-cache nil)
@@ -416,7 +415,7 @@ With argument, display info only for the selected version."
 	   (beginning-of-line)
 	   (point)))))))
 
-(defun view-emacs-todo (&optional arg)
+(defun view-emacs-todo (&optional _arg)
   "Display the Emacs TODO list."
   (interactive "P")
   (view-help-file "TODO"))
@@ -768,9 +767,10 @@ temporarily enables it to allow getting help on disabled items and buttons."
 
 ----------------- up-event %s----------------
 
-<%S>%s%s runs the command %S, which is "
+%s%s%s runs the command %S, which is "
 			   (if mouse-1-tricky "(short click) " "")
-			   ev-type mouse-msg
+			   (key-description (vector up-event))
+			   mouse-msg
 			   (if mouse-1-remapped
                                " is remapped to <mouse-2>, which" "")
 			   defn-up))
@@ -871,7 +871,17 @@ whose documentation describes the minor mode."
             (let ((start (point)))
               (insert (format-mode-line mode nil nil buffer))
               (add-text-properties start (point) '(face bold)))))
-	(princ " mode:\n")
+	(princ " mode")
+	(let* ((mode major-mode)
+	       (file-name (find-lisp-object-file-name mode nil)))
+	  (when file-name
+	    (princ (concat " defined in `" (file-name-nondirectory file-name) "'"))
+	    ;; Make a hyperlink to the library.
+	    (with-current-buffer standard-output
+	      (save-excursion
+		(re-search-backward "`\\([^`']+\\)'" nil t)
+		(help-xref-button 1 'help-function-def mode file-name)))))
+	(princ ":\n")
 	(princ (documentation major-mode)))))
   ;; For the sake of IELM and maybe others
   nil)
@@ -1246,8 +1256,16 @@ Select help window if the actual value of the user option
        ;; Reset `help-window' to nil to avoid confusing future calls of
        ;; `help-mode-finish' with plain `with-output-to-temp-buffer'.
        (setq help-window nil))))
+
+;; Called from C, on encountering `help-char' when reading a char.
+;; Don't print to *Help*; that would clobber Help history.
+(defun help-form-show ()
+  "Display the output of a non-nil `help-form'."
+  (let ((msg (eval help-form)))
+    (if (stringp msg)
+	(with-output-to-temp-buffer " *Char Help*"
+	  (princ msg)))))
 
 (provide 'help)
 
-;; arch-tag: cf427352-27e9-49b7-9a6f-741ebab02423
 ;;; help.el ends here

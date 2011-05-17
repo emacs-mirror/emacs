@@ -49,35 +49,35 @@ If you set the variable `server-window' to a window or a frame, `C-x
 The programs follow the usual GNU command line syntax, with long
 options starting with two dashes (`-').
 .TP
-.B \-nw, \-t, \-\-tty
-open a new Emacs frame on the current terminal
-.TP
-.B -c, \-\-create-frame
-create a new frame instead of trying to use the current Emacs frame
-.TP
-.B \-e, \-\-eval
-do not visit files but instead evaluate the arguments as Emacs
-Lisp expressions.
-.TP
-.B \-n, \-\-no-wait
-returns
-immediately without waiting for you to "finish" the buffer in Emacs.
-.TP
-.B \-s, \-\-socket-name=FILENAME
-use socket named FILENAME for communication.
-.TP
-.B \-f, \-\-server-file=FILENAME
-use TCP configuration file FILENAME for communication.
-This can also be specified via the `EMACS_SERVER_FILE' environment variable.
-.TP
 .B \-a, \-\-alternate-editor=EDITOR
 if the Emacs server is not running, run the specified editor instead.
 This can also be specified via the `ALTERNATE_EDITOR' environment variable.
 If the value of EDITOR is the empty string, then Emacs is started in
 daemon mode and emacsclient will try to connect to it.
 .TP
+.B -c, \-\-create-frame
+create a new frame instead of trying to use the current Emacs frame
+.TP
 .B \-d, \-\-display=DISPLAY
 tell the server to display the files on the given display.
+.TP
+.B \-e, \-\-eval
+do not visit files but instead evaluate the arguments as Emacs
+Lisp expressions.
+.TP
+.B \-f, \-\-server-file=FILENAME
+use TCP configuration file FILENAME for communication.
+This can also be specified via the `EMACS_SERVER_FILE' environment variable.
+.TP
+.B \-n, \-\-no-wait
+returns
+immediately without waiting for you to "finish" the buffer in Emacs.
+.TP
+.B \-nw, \-t, \-\-tty
+open a new Emacs frame on the current terminal
+.TP
+.B \-s, \-\-socket-name=FILENAME
+use socket named FILENAME for communication.
 .TP
 .B \-V, \-\-version
 print version information and exit
@@ -94,4 +94,3 @@ for the Debian GNU/Linux system (but may be used by others).
 .SH COPYING
 This manual page is in the public domain.
 
-.\" arch-tag: 2b35e723-b197-4073-8752-231bc8b3d3f3

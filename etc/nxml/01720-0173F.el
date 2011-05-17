@@ -24,4 +24,3 @@
     ("PHILIPPINE DOUBLE PUNCTUATION" #x1736)
     ))
 
-;; arch-tag: d577c8e1-70e3-4afc-82f4-b61e4cf0b603

@@ -1,7 +1,6 @@
 ;;; tempo.el --- Flexible template insertion
 
-;; Copyright (C) 1994, 1995, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: David K}gedal <davidk@lysator.liu.se>
 ;; Created: 16 Feb 1994
@@ -763,5 +762,4 @@ space bar, and looks something like this:
 
 (provide 'tempo)
 
-;; arch-tag: b3c0ee36-db3b-47bc-875f-091b4e27a063
 ;;; tempo.el ends here

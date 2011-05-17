@@ -584,9 +584,9 @@
 
 	* debian/maint/conffiles.in 1.1: new file
 
-	* debian/maint/conffiles 1.2: superceded by conffiles.in
+	* debian/maint/conffiles 1.2: superseded by conffiles.in
 
-	* debian/scripts/startup 1.2: superceded by startup.erc
+	* debian/scripts/startup 1.2: superseded by startup.erc
 
 2001-10-25  Mario Lang  <mlang@delysid.org>
 
@@ -609,7 +609,7 @@
 
 	* debian/maint/postinst 1.2, debian/maint/prerm 1.2, debian/scripts/install 1.2, 
 	  debian/scripts/remove 1.2:
-	removed, superceded by it's .in counterpart
+	removed, superseded by its .in counterpart
 
 2001-10-25  Mario Lang  <mlang@delysid.org>
 
@@ -1035,7 +1035,7 @@
 
 	* erc-speak.el 1.1, erc.el 1.1: New file.
 
-    Copyright (C) 2001, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+	Copyright (C) 2001, 2006-2011 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -1056,4 +1056,3 @@
 ;; coding: utf-8
 ;; End:
 
-;; arch-tag: 306c4b58-f9ae-4f3d-9fd9-db2d743f05a6

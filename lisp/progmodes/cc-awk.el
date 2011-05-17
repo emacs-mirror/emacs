@@ -1,11 +1,11 @@
 ;;; cc-awk.el --- AWK specific code within cc-mode.
 
-;; Copyright (C) 1988, 1994, 1996, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1994, 1996, 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Alan Mackenzie <acm@muc.de> (originally based on awk-mode.el)
 ;; Maintainer: FSF
 ;; Keywords: AWK, cc-mode, unix, languages
+;; Package: cc-mode
 
 ;; This file is part of GNU Emacs.
 
@@ -244,7 +244,7 @@
 
 ;; REGEXPS USED FOR FINDING THE POSITION OF A "virtual semicolon"
 (defconst c-awk-_-harmless-nonws-char-re "[^#/\"\\\\\n\r \t]")
-;;;; NEW VERSION!  (which will be restricted to the current line)
+;; NEW VERSION!  (which will be restricted to the current line)
 (defconst c-awk-one-line-non-syn-ws*-re
   (concat "\\([ \t]*"
               "\\(" c-awk-_-harmless-nonws-char-re "\\|"
@@ -503,7 +503,7 @@
         (insert-char ?\n 1) ; ...artificial eol is needed for comment detection.
         (setq extra-nl t))
       (prog1 (c-awk-get-NL-prop-prev-line do-lim)
-        (if extra-nl (delete-backward-char 1))))))
+        (if extra-nl (delete-char -1))))))
 
 (defsubst c-awk-prev-line-incomplete-p (&optional do-lim)
   ;; Is there an incomplete statement at the end of the previous line?
@@ -519,14 +519,14 @@
   ;; This function might do hidden buffer changes.
   (memq (c-awk-get-NL-prop-cur-line do-lim) '(?\\ ?\{)))
 
-;;;; NOTES ON "VIRTUAL SEMICOLONS"
-;;;;
-;;;; A "virtual semicolon" is what terminates a statement when there is no ;
-;;;; or } to do the job.  Like point, it is considered to lie _between_ two
-;;;; characters.  As from mid-March 2004, it is considered to lie just after
-;;;; the last non-syntactic-whitespace character on the line; (previously, it
-;;;; was considered an attribute of the EOL on the line).  A real semicolon
-;;;; never counts as a virtual one.
+;; NOTES ON "VIRTUAL SEMICOLONS"
+;;
+;; A "virtual semicolon" is what terminates a statement when there is no ;
+;; or } to do the job.  Like point, it is considered to lie _between_ two
+;; characters.  As from mid-March 2004, it is considered to lie just after
+;; the last non-syntactic-whitespace character on the line; (previously, it
+;; was considered an attribute of the EOL on the line).  A real semicolon
+;; never counts as a virtual one.
 
 (defun c-awk-at-vsemi-p (&optional pos)
   ;; Is there a virtual semicolon at POS (or POINT)?
@@ -1095,5 +1095,4 @@ comment at the start of cc-engine.el for more info."
 
 (cc-provide 'cc-awk)			; Changed from 'awk-mode, ACM 2002/5/21
 
-;; arch-tag: c4836289-3aa4-4a59-9934-9ccc2bacccf3
 ;;; awk-mode.el ends here

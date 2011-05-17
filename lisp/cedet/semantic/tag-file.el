@@ -1,7 +1,6 @@
 ;;; semantic/tag-file.el --- Routines that find files based on tags.
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2005, 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -32,7 +31,7 @@
 (declare-function semanticdb-table-child-p "semantic/db" t t)
 (declare-function semanticdb-get-buffer "semantic/db")
 (declare-function semantic-dependency-find-file-on-path "semantic/dep")
-(declare-function ede-toplevel "ede/files")
+(declare-function ede-toplevel "ede/base")
 
 ;;; Code:
 
@@ -214,5 +213,4 @@ file prototypes belong in."
 ;; generated-autoload-load-name: "semantic/tag-file"
 ;; End:
 
-;; arch-tag: 71d4cf18-c1ec-414c-bb0a-c2ed914c1361
 ;;; semantic/tag-file.el ends here

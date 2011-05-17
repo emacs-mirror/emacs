@@ -1,6 +1,6 @@
 ;;; srecode/expandproto.el --- Expanding prototypes.
 
-;; Copyright (C) 2007, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2007, 2009-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -129,5 +129,4 @@
 ;; generated-autoload-load-name: "srecode/expandproto"
 ;; End:
 
-;; arch-tag: f0371b5f-9bec-46a1-9b5d-8dff0e897426
 ;;; srecode/expandproto.el ends here

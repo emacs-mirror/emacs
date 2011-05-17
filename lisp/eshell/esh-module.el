@@ -1,7 +1,6 @@
 ;;; esh-module.el --- Eshell modules
 
-;; Copyright (C) 1999, 2000, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2000, 2002-2011  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Keywords: processes
@@ -44,7 +43,7 @@ customizing the variable `eshell-modules-list'."
 
 (defcustom eshell-module-unload-hook
   '(eshell-unload-extension-modules)
-  "*A hook run when `eshell-module' is unloaded."
+  "A hook run when `eshell-module' is unloaded."
   :type 'hook
   :group 'eshell-module)
 
@@ -62,7 +61,7 @@ customizing the variable `eshell-modules-list'."
     eshell-script
     eshell-term
     eshell-unix)
-  "*A list of optional add-on modules to be loaded by Eshell.
+  "A list of optional add-on modules to be loaded by Eshell.
 Changes will only take effect in future Eshell buffers."
   :type (append
 	 (list 'set ':tag "Supported modules")
@@ -93,12 +92,11 @@ customization group.  Example: `eshell-cmpl' for that module."
 
 (defun eshell-unload-extension-modules ()
   "Unload any memory resident extension modules."
-  (eshell-for module (eshell-subgroups 'eshell-module)
+  (dolist (module (eshell-subgroups 'eshell-module))
     (if (featurep module)
 	(ignore-errors
 	  (message "Unloading %s..." (symbol-name module))
 	  (unload-feature module)
 	  (message "Unloading %s...done" (symbol-name module))))))
 
-;; arch-tag: 97a3fa16-9d08-40e6-bc2c-36bd70986507
 ;;; esh-module.el ends here

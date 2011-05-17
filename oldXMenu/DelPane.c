@@ -16,10 +16,10 @@
 #include "XMenuInt.h"
 
 int
-XMenuDeletePane(display, menu, p_num)
-    register Display *display;	/* Previously opened display */
-    register XMenu *menu;	/* Menu object to be modified. */
-    register int p_num;		/* Pane number to be deleted. */
+XMenuDeletePane(register Display *display, register XMenu *menu, register int p_num)
+                              	/* Previously opened display */
+                         	/* Menu object to be modified. */
+                       		/* Pane number to be deleted. */
 {
     register XMPane *p_ptr;	/* Pointer to pane being deleted. */
     register XMSelect *s_ptr;	/* Pointer to selections being deleted. */
@@ -87,5 +87,3 @@ XMenuDeletePane(display, menu, p_num)
     return(p_num);
 }
 
-/* arch-tag: 32a5bfd4-4bac-4090-bb53-844110f4908e
-   (do not change this comment) */

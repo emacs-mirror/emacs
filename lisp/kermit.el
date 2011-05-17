@@ -1,7 +1,6 @@
 ;;; kermit.el --- additions to shell mode for use with kermit
 
-;; Copyright (C) 1988, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Jeff Norden <jeff@colgate.csnet>
 ;; Maintainer: FSF
@@ -64,7 +63,7 @@
 ;; the -c (connect) command line option, which means you also have to specify a
 ;; line and baud on the command line, as in "kermit -l /dev/tty53 -b 9600 -c".
 ;; However, this will cause kermit to exit when the connection is closed.  So
-;; in order to do a file transfer, you have to think ahead and and add -r
+;; in order to do a file transfer, you have to think ahead and add -r
 ;; (receive) to the command line.  This means that you can't use the server
 ;; feature.  The only fix I can see is to muck around with the source code for
 ;; kermit, although this probably wouldn't be too hard.  What is needed is an
@@ -148,5 +147,4 @@ command `kermit | tr -d '\\015''."
 
 (provide 'kermit)
 
-;; arch-tag: 6633215d-6c47-4e66-9f27-16fba02a8dce
 ;;; kermit.el ends here

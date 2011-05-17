@@ -1,11 +1,10 @@
 ;;; cedet.el --- Setup CEDET environment
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2002-2011  Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: Eric M. Ludlam  <zappo@gnu.org>
-;; Version: 0.2
+;; Version: 1.0pre7
 ;; Keywords: OO, lisp
 
 ;; This file is part of GNU Emacs.
@@ -36,19 +35,19 @@
 
 (declare-function inversion-find-version "inversion")
 
-(defconst cedet-version "1.0pre7"
+(defconst cedet-version "1.0"
   "Current version of CEDET.")
 
 (defconst cedet-packages
   `(
     ;;PACKAGE   MIN-VERSION
     (cedet         ,cedet-version)
-    (eieio         "1.2")
-    (semantic      "2.0pre7")
-    (srecode       "1.0pre7")
-    (ede           "1.0pre7")
-    (speedbar      "1.0.3"))
-  "Table of CEDET packages to install.")
+    (eieio         "1.3")
+    (semantic      "2.0")
+    (srecode       "1.0")
+    (ede           "1.0")
+    (speedbar      "1.0"))
+  "Table of CEDET packages installed.")
 
 (defvar cedet-menu-map ;(make-sparse-keymap "CEDET menu")
   (let ((map (make-sparse-keymap "CEDET menu")))
@@ -132,5 +131,4 @@ if the package has not been loaded."
 
 (provide 'cedet)
 
-;; arch-tag: ad4b0b63-d1f9-4a41-b003-9bbb2feb5226
 ;;; cedet.el ends here

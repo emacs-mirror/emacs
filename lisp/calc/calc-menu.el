@@ -1,6 +1,6 @@
 ;;; calc-menu.el --- a menu for Calc
 
-;; Copyright (C) 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011  Free Software Foundation, Inc.
 
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
 
@@ -960,6 +960,111 @@
            (require 'calc-units)
            (call-interactively 'calc-view-units-table))
          :keys "u V"]
+        (list "Logarithmic Units"
+              ["Convert (1:) to dB (power)"
+               (progn
+                 (require 'calc-units)
+                 (call-interactively 'calc-db))
+               :keys "l d"
+               :active (>= (calc-stack-size) 1)]
+              ["Convert (2:) to dB (power) with reference level (1:)"
+               (progn
+                 (require 'calc-units)
+                 (let ((calc-option-flag t))
+                   (call-interactively 'calc-db)))
+               :keys "O l d"
+               :active (>= (calc-stack-size) 2)]
+              ["Convert (1:) to Np (power)"
+               (progn
+                 (require 'calc-units)
+                 (call-interactively 'calc-np))
+               :keys "l n"
+               :active (>= (calc-stack-size) 1)]
+              ["Convert (2:) to Np (power) with reference level (1:)"
+               (progn
+                 (require 'calc-units)
+                 (let ((calc-option-flag t))
+                   (call-interactively 'calc-np)))
+               :keys "O l n"
+               :active (>= (calc-stack-size) 2)]
+              ["Convert (1:) to power quantity"
+               (progn
+                 (require 'calc-units)
+                 (call-interactively 'calc-lu-quant))
+               :keys "l q"
+               :active (>= (calc-stack-size) 1)]
+              ["Convert (2:) to power quantity with reference level (1:)"
+               (progn
+                 (require 'calc-units)
+                 (let ((calc-option-flag t))
+                   (call-interactively 'calc-lu-quant)))
+               :keys "O l q"
+               :active (>= (calc-stack-size) 2)]
+              "----"
+              ["Convert (1:) to dB (field)"
+               (progn
+                 (require 'calc-units)
+                 (let ((calc-hyperbolic-flag t))
+                   (call-interactively 'calc-db)))
+               :keys "H l d"
+               :active (>= (calc-stack-size) 1)]
+              ["Convert (2:) to dB (field) with reference level (1:)"
+               (progn
+                 (require 'calc-units)
+                 (let ((calc-option-flag t)
+                       (calc-hyperbolic-flag t))
+                   (call-interactively 'calc-db)))
+               :keys "O H l d"
+               :active (>= (calc-stack-size) 2)]
+              ["Convert (1:) to Np (field)"
+               (progn
+                 (require 'calc-units)
+                 (let ((calc-hyperbolic-flag t))
+                   (call-interactively 'calc-np)))
+               :keys "H l n"
+               :active (>= (calc-stack-size) 1)]
+              ["Convert (2:) to Np (field) with reference level (1:)"
+               (progn
+                 (require 'calc-units)
+                 (let ((calc-option-flag t)
+                       (calc-hyperbolic-flag t))
+                   (call-interactively 'calc-np)))
+               :keys "O H l d"
+               :active (>= (calc-stack-size) 2)]
+              ["Convert (1:) to field quantity"
+               (progn
+                 (require 'calc-units)
+                 (let ((calc-hyperbolic-flag t))
+                   (call-interactively 'calc-lu-quant)))
+               :keys "H l q"
+               :active (>= (calc-stack-size) 1)]
+              ["Convert (2:) to field quantity with reference level (1:)"
+               (progn
+                 (require 'calc-units)
+                 (let ((calc-option-flag t)
+                       (calc-hyperbolic-flag))
+                   (call-interactively 'calc-lu-quant)))
+               :keys "O H l q"
+               :active (>= (calc-stack-size) 2)])
+        (list "Musical Notes"
+              ["Convert (1:) to scientific pitch notation"
+               (progn
+                 (require 'calc-units)
+                 (call-interactively 'calc-spn))
+               :keys "l s"
+               :active (>= (calc-stack-size) 1)]
+              ["Convert (1:) to midi number"
+               (progn
+                 (require 'calc-units)
+                 (call-interactively 'calc-midi))
+               :keys "l m"
+               :active (>= (calc-stack-size) 1)]
+              ["Convert (1:) to frequency"
+               (progn
+                 (require 'calc-units)
+                 (call-interactively 'calc-freq))
+               :keys "l f"
+               :active (>= (calc-stack-size) 1)])
         "----"
         ["Help on Units"
          (calc-info-goto-node "Units")])
@@ -1461,4 +1566,3 @@
 
 (provide 'calc-menu)
 
-;; arch-tag: 9612c86a-cd4f-4baa-ab0b-40af7344d21f

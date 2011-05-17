@@ -1,11 +1,11 @@
 ;;; mail-extr.el --- extract full name and address from RFC 822 mail header -*- coding: utf-8 -*-
 
-;; Copyright (C) 1991, 1992, 1993, 1994, 1997, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1991-1994, 1997, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Joe Wells <jbw@cs.bu.edu>
 ;; Maintainer: FSF
 ;; Keywords: mail
+;; Package: mail-utils
 
 ;; This file is part of GNU Emacs.
 
@@ -690,8 +690,8 @@ Unless NO-REPLACE is true, at each of the positions in LIST-SYMBOL
 ;;
 
 (defvar disable-initial-guessing-flag)	; dynamic assignment
-(defvar cbeg)				; dynamic assignment
-(defvar cend)				; dynamic assignment
+(defvar mailextr-cbeg)			; dynamic assignment
+(defvar mailextr-cend)			; dynamic assignment
 (defvar mail-extr-all-top-level-domains) ; Defined below.
 
 ;;;###autoload
@@ -761,7 +761,8 @@ consing a string.)"
 	      record-pos-symbol
 	      first-real-pos last-real-pos
 	      phrase-beg phrase-end
-	      cbeg cend			; dynamically set from -voodoo
+	      ;; Dynamically set in mail-extr-voodoo.
+	      mailextr-cbeg mailextr-cend
 	      quote-beg quote-end
 	      atom-beg atom-end
 	      mbox-beg mbox-end
@@ -795,19 +796,19 @@ consing a string.)"
 	     ((eq char ?\()
 	      (set-syntax-table mail-extr-address-comment-syntax-table)
 	      ;; only record the first non-empty comment's position
-	      (if (and (not cbeg)
+	      (if (and (not mailextr-cbeg)
 		       (save-excursion
 			 (forward-char 1)
 			 (mail-extr-skip-whitespace-forward)
 			 (not (eq ?\) (char-after (point))))))
-		  (setq cbeg (point)))
+		  (setq mailextr-cbeg (point)))
 	      ;; TODO: don't record if unbalanced
 	      (or (mail-extr-safe-move-sexp 1)
 		  (forward-char 1))
 	      (set-syntax-table mail-extr-address-syntax-table)
-	      (if (and cbeg
-		       (not cend))
-		  (setq cend (point))))
+	      (if (and mailextr-cbeg
+		       (not mailextr-cend))
+		  (setq mailextr-cend (point))))
 	     ;; quoted text
 	     ((eq char ?\")
 	      ;; only record the first non-empty quote's position
@@ -993,10 +994,10 @@ consing a string.)"
 		 (> last-real-pos (1+ group-\;-pos))
 		 (setq last-real-pos (1+ group-\;-pos)))
 	    ;; *** This may be wrong:
-	    (and cend
-		 (> cend group-\;-pos)
-		 (setq cend nil
-		       cbeg nil))
+	    (and mailextr-cend
+		 (> mailextr-cend group-\;-pos)
+		 (setq mailextr-cend nil
+		       mailextr-cbeg nil))
 	    (and quote-end
 		 (> quote-end group-\;-pos)
 		 (setq quote-end nil
@@ -1227,8 +1228,8 @@ consing a string.)"
 		 (narrow-to-region phrase-beg phrase-end))
 
 		;; Example: fml@foo.bar.dom (First M. Last)
-		(cbeg
-		 (narrow-to-region (1+ cbeg) (1- cend))
+		(mailextr-cbeg
+		 (narrow-to-region (1+ mailextr-cbeg) (1- mailextr-cend))
 		 (mail-extr-undo-backslash-quoting (point-min) (point-max))
 
 		 ;; Deal with spacing problems
@@ -1471,7 +1472,6 @@ place.  It affects how `mail-extract-address-components' works."
 	  (case-fold-search nil)
 	  mixed-case-flag lower-case-flag ;;upper-case-flag
 	  suffix-flag last-name-comma-flag
-	  ;;cbeg cend
 	  initial
 	  begin-again-flag
 	  drop-this-word-if-trailing-flag
@@ -1617,7 +1617,7 @@ place.  It affects how `mail-extract-address-components' works."
 
 	   ;; Delete parenthesized/quoted comment/nickname
 	   ((memq (following-char) '(?\( ?\{ ?\[ ?\" ?\' ?\`))
-	    (setq cbeg (point))
+	    (setq mailextr-cbeg (point))
 	    (set-syntax-table mail-extr-address-text-comment-syntax-table)
 	    (cond ((memq (following-char) '(?\' ?\`))
 		   (or (search-forward "'" nil t
@@ -1627,23 +1627,23 @@ place.  It affects how `mail-extract-address-components' works."
 		   (or (mail-extr-safe-move-sexp 1)
 		       (goto-char (point-max)))))
 	    (set-syntax-table mail-extr-address-text-syntax-table)
-	    (setq cend (point))
+	    (setq mailextr-cend (point))
 	    (cond
 	     ;; Handle case of entire name being quoted
 	     ((and (eq word-count 0)
 		   (looking-at " *\\'")
-		   (>= (- cend cbeg) 2))
-	      (narrow-to-region (1+ cbeg) (1- cend))
+		   (>= (- mailextr-cend mailextr-cbeg) 2))
+	      (narrow-to-region (1+ mailextr-cbeg) (1- mailextr-cend))
 	      (goto-char (point-min)))
 	     (t
 	      ;; Handle case of quoted initial
-	      (if (and (or (= 3 (- cend cbeg))
-			   (and (= 4 (- cend cbeg))
-				(eq ?. (char-after (+ 2 cbeg)))))
+	      (if (and (or (= 3 (- mailextr-cend mailextr-cbeg))
+			   (and (= 4 (- mailextr-cend mailextr-cbeg))
+				(eq ?. (char-after (+ 2 mailextr-cbeg)))))
 		       (not (looking-at " *\\'")))
-		  (setq initial (char-after (1+ cbeg)))
+		  (setq initial (char-after (1+ mailextr-cbeg)))
 		(setq initial nil))
-	      (delete-region cbeg cend)
+	      (delete-region mailextr-cbeg mailextr-cend)
 	      (if initial
 		  (insert initial ". ")))))
 
@@ -2173,5 +2173,4 @@ place.  It affects how `mail-extract-address-components' works."
 
 (provide 'mail-extr)
 
-;; arch-tag: 7785fade-1073-4ed6-b4f6-28db34a7982d
 ;;; mail-extr.el ends here

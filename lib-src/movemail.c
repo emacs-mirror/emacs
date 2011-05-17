@@ -1,7 +1,8 @@
 /* movemail foo bar -- move file foo to file bar,
    locking file foo the way /bin/mail respects.
-   Copyright (C) 1986, 1992, 1993, 1994, 1996, 1999, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+
+Copyright (C) 1986, 1992-1994, 1996, 1999, 2001-2011
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -63,11 +64,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <time.h>
 
 #include <getopt.h>
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
+#endif
+#ifdef HAVE_STRING_H
+#include <string.h>
 #endif
 #include "syswait.h"
 #ifdef MAIL_USE_POP
@@ -77,13 +79,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef MSDOS
 #undef access
 #endif /* MSDOS */
-
-#ifndef DIRECTORY_SEP
-#define DIRECTORY_SEP '/'
-#endif
-#ifndef IS_DIRECTORY_SEP
-#define IS_DIRECTORY_SEP(_c_) ((_c_) == DIRECTORY_SEP)
-#endif
 
 #ifdef WINDOWSNT
 #include "ntlib.h"
@@ -136,47 +131,42 @@ extern int lk_open (), lk_close ();
    files appear in. */
 #ifdef MAILDIR
 #define MAIL_USE_MAILLOCK
-static char *mail_spool_name ();
+static char *mail_spool_name (char *);
 #endif
 #endif
 
-char *strerror ();
-#ifdef HAVE_INDEX
-extern char *index __P ((const char *, int));
-#endif
-#ifdef HAVE_RINDEX
-extern char *rindex __P((const char *, int));
+#ifndef HAVE_STRERROR
+char *strerror (int);
 #endif
 
-void fatal ();
-void error ();
-void pfatal_with_name ();
-void pfatal_and_delete ();
-char *concat ();
-long *xmalloc ();
-int popmail ();
-int pop_retr ();
-int mbx_write ();
-int mbx_delimit_begin ();
-int mbx_delimit_end ();
+static void fatal (const char *s1, const char *s2, const char *s3) NO_RETURN;
+static void error (const char *s1, const char *s2, const char *s3);
+static void pfatal_with_name (char *name) NO_RETURN;
+static void pfatal_and_delete (char *name) NO_RETURN;
+static char *concat (const char *s1, const char *s2, const char *s3);
+static long *xmalloc (unsigned int size);
+#ifdef MAIL_USE_POP
+static int popmail (char *mailbox, char *outfile, int preserve, char *password, int reverse_order);
+static int pop_retr (popserver server, int msgno, FILE *arg);
+static int mbx_write (char *line, int len, FILE *mbf);
+static int mbx_delimit_begin (FILE *mbf);
+static int mbx_delimit_end (FILE *mbf);
+#endif
 
 /* Nonzero means this is name of a lock file to delete on fatal error.  */
-char *delete_lockname;
+static char *delete_lockname;
 
 int
-main (argc, argv)
-     int argc;
-     char **argv;
+main (int argc, char **argv)
 {
   char *inname, *outname;
   int indesc, outdesc;
-  int nread;
-  int status;
+  ssize_t nread;
+  int wait_status;
   int c, preserve_mail = 0;
 
 #ifndef MAIL_USE_SYSTEM_LOCK
   struct stat st;
-  long now;
   int tem;
   char *lockname, *p;
   char *tempname;
@@ -268,9 +258,22 @@ main (argc, argv)
 #ifndef MAIL_USE_SYSTEM_LOCK
 #ifdef MAIL_USE_MAILLOCK
   spool_name = mail_spool_name (inname);
-  if (! spool_name)
+  if (spool_name)
+    {
+#ifdef lint
+      lockname = 0;
+#endif
+    }
+  else
 #endif
     {
+      #ifndef DIRECTORY_SEP
+       #define DIRECTORY_SEP '/'
+      #endif
+      #ifndef IS_DIRECTORY_SEP
+       #define IS_DIRECTORY_SEP(_c_) ((_c_) == DIRECTORY_SEP)
+      #endif
+
       /* Use a lock file named after our first argument with .lock appended:
 	 If it exists, the mail file is locked.  */
       /* Note: this locking mechanism is *required* by the mailer
@@ -338,7 +341,7 @@ main (argc, argv)
 	     by time differences between machines.  */
 	  if (stat (lockname, &st) >= 0)
 	    {
-	      now = time (0);
+	      time_t now = time (0);
 	      if (st.st_ctime < now - 300)
 		unlink (lockname);
 	    }
@@ -354,10 +357,13 @@ main (argc, argv)
       int lockcount = 0;
       int status = 0;
 #if defined (MAIL_USE_MAILLOCK) && defined (HAVE_TOUCHLOCK)
-      time_t touched_lock, now;
+      time_t touched_lock;
+# ifdef lint
+      touched_lock = 0;
+# endif
 #endif
 
-      if (setuid (getuid ()) < 0 || setegid (real_gid) < 0)
+      if (setuid (getuid ()) < 0 || setregid (-1, real_gid) < 0)
 	fatal ("Failed to drop privileges", 0, 0);
 
 #ifndef MAIL_USE_MMDF
@@ -384,7 +390,7 @@ main (argc, argv)
       if (outdesc < 0)
 	pfatal_with_name (outname);
 
-      if (setegid (priv_gid) < 0)
+      if (setregid (-1, priv_gid) < 0)
 	fatal ("Failed to regain privileges", 0, 0);
 
       /* This label exists so we can retry locking
@@ -464,7 +470,7 @@ main (argc, argv)
 #if defined (MAIL_USE_MAILLOCK) && defined (HAVE_TOUCHLOCK)
 	    if (spool_name)
 	      {
-		now = time (0);
+		time_t now = time (0);
 		if (now - touched_lock > 60)
 		  {
 		    touchlock ();
@@ -481,7 +487,7 @@ main (argc, argv)
 #endif
 
       /* Prevent symlink attacks truncating other users' mailboxes */
-      if (setegid (real_gid) < 0)
+      if (setregid (-1, real_gid) < 0)
 	fatal ("Failed to drop privileges", 0, 0);
 
       /* Check to make sure no errors before we zap the inbox.  */
@@ -491,7 +497,8 @@ main (argc, argv)
 #ifdef MAIL_USE_SYSTEM_LOCK
       if (! preserve_mail)
 	{
-	  ftruncate (indesc, 0L);
+	  if (ftruncate (indesc, 0L) != 0)
+	    pfatal_with_name (inname);
 	}
 #endif /* MAIL_USE_SYSTEM_LOCK */
 
@@ -516,7 +523,7 @@ main (argc, argv)
 #endif /* not MAIL_USE_SYSTEM_LOCK */
 
       /* End of mailbox truncation */
-      if (setegid (priv_gid) < 0)
+      if (setregid (-1, priv_gid) < 0)
 	fatal ("Failed to regain privileges", 0, 0);
 
 #ifdef MAIL_USE_MAILLOCK
@@ -528,11 +535,11 @@ main (argc, argv)
       exit (EXIT_SUCCESS);
     }
 
-  wait (&status);
-  if (!WIFEXITED (status))
+  wait (&wait_status);
+  if (!WIFEXITED (wait_status))
     exit (EXIT_FAILURE);
-  else if (WRETCODE (status) != 0)
-    exit (WRETCODE (status));
+  else if (WRETCODE (wait_status) != 0)
+    exit (WRETCODE (wait_status));
 
 #if !defined (MAIL_USE_MMDF) && !defined (MAIL_USE_SYSTEM_LOCK)
 #ifdef MAIL_USE_MAILLOCK
@@ -552,14 +559,13 @@ main (argc, argv)
    string-comparing the two paths, because one or both of them might
    be symbolic links pointing to some other directory. */
 static char *
-mail_spool_name (inname)
-     char *inname;
+mail_spool_name (char *inname)
 {
   struct stat stat1, stat2;
   char *indir, *fname;
   int status;
 
-  if (! (fname = rindex (inname, '/')))
+  if (! (fname = strrchr (inname, '/')))
     return NULL;
 
   fname++;
@@ -589,9 +595,8 @@ mail_spool_name (inname)
 
 /* Print error message and exit.  */
 
-void
-fatal (s1, s2, s3)
-     char *s1, *s2, *s3;
+static void
+fatal (const char *s1, const char *s2, const char *s3)
 {
   if (delete_lockname)
     unlink (delete_lockname);
@@ -602,9 +607,8 @@ fatal (s1, s2, s3)
 /* Print error message.  `s1' is printf control string, `s2' and `s3'
    are args for it or null. */
 
-void
-error (s1, s2, s3)
-     char *s1, *s2, *s3;
+static void
+error (const char *s1, const char *s2, const char *s3)
 {
   fprintf (stderr, "movemail: ");
   if (s3)
@@ -612,20 +616,18 @@ error (s1, s2, s3)
   else if (s2)
     fprintf (stderr, s1, s2);
   else
-    fprintf (stderr, s1);
+    fprintf (stderr, "%s", s1);
   fprintf (stderr, "\n");
 }
 
-void
-pfatal_with_name (name)
-     char *name;
+static void
+pfatal_with_name (char *name)
 {
   fatal ("%s for %s", strerror (errno), name);
 }
 
-void
-pfatal_and_delete (name)
-     char *name;
+static void
+pfatal_and_delete (char *name)
 {
   char *s = strerror (errno);
   unlink (name);
@@ -634,11 +636,10 @@ pfatal_and_delete (name)
 
 /* Return a newly-allocated string whose contents concatenate those of s1, s2, s3.  */
 
-char *
-concat (s1, s2, s3)
-     char *s1, *s2, *s3;
+static char *
+concat (const char *s1, const char *s2, const char *s3)
 {
-  int len1 = strlen (s1), len2 = strlen (s2), len3 = strlen (s3);
+  size_t len1 = strlen (s1), len2 = strlen (s2), len3 = strlen (s3);
   char *result = (char *) xmalloc (len1 + len2 + len3 + 1);
 
   strcpy (result, s1);
@@ -651,9 +652,8 @@ concat (s1, s2, s3)
 
 /* Like malloc but get fatal error if memory is exhausted.  */
 
-long *
-xmalloc (size)
-     unsigned size;
+static long *
+xmalloc (unsigned int size)
 {
   long *result = (long *) malloc (size);
   if (!result)
@@ -678,14 +678,8 @@ xmalloc (size)
 
 #define NOTOK (-1)
 #define OK 0
-#define DONE 1
 
-char *progname;
-FILE *sfi;
-FILE *sfo;
-char ibuffer[BUFSIZ];
-char obuffer[BUFSIZ];
-char Errmsg[200];		/* POP errors, at least, can exceed
+static char Errmsg[200];	/* POP errors, at least, can exceed
 				   the original length of 80.  */
 
 /*
@@ -702,25 +696,20 @@ char Errmsg[200];		/* POP errors, at least, can exceed
  * Return a value suitable for passing to `exit'.
  */
 
-int
-popmail (mailbox, outfile, preserve, password, reverse_order)
-     char *mailbox;
-     char *outfile;
-     int preserve;
-     char *password;
-     int reverse_order;
+static int
+popmail (char *mailbox, char *outfile, int preserve, char *password, int reverse_order)
 {
   int nmsgs, nbytes;
   register int i;
   int mbfi;
   FILE *mbf;
-  char *getenv ();
+  char *getenv (const char *);
   popserver server;
   int start, end, increment;
   char *user, *hostname;
 
   user = mailbox;
-  if ((hostname = index(mailbox, ':')))
+  if ((hostname = strchr (mailbox, ':')))
     *hostname++ = '\0';
 
   server = pop_open (hostname, user, password, POP_NO_GETPASS);
@@ -749,7 +738,18 @@ popmail (mailbox, outfile, preserve, password, reverse_order)
       error ("Error in open: %s, %s", strerror (errno), outfile);
       return EXIT_FAILURE;
     }
-  fchown (mbfi, getuid (), -1);
+
+  if (fchown (mbfi, getuid (), -1) != 0)
+    {
+      int fchown_errno = errno;
+      struct stat st;
+      if (fstat (mbfi, &st) != 0 || st.st_uid != getuid ())
+	{
+	  pop_close (server);
+	  error ("Error in fchown: %s, %s", strerror (fchown_errno), outfile);
+	  return EXIT_FAILURE;
+	}
+    }
 
   if ((mbf = fdopen (mbfi, "wb")) == NULL)
     {
@@ -833,22 +833,18 @@ popmail (mailbox, outfile, preserve, password, reverse_order)
   return EXIT_SUCCESS;
 }
 
-int
-pop_retr (server, msgno, arg)
-     popserver server;
-     int msgno;
-     FILE *arg;
+static int
+pop_retr (popserver server, int msgno, FILE *arg)
 {
-  extern char *strerror ();
   char *line;
   int ret;
 
   if (pop_retrieve_first (server, msgno, &line))
     {
-      char *error = concat ("Error from POP server: ", pop_error, "");
-      strncpy (Errmsg, error, sizeof (Errmsg));
+      char *msg = concat ("Error from POP server: ", pop_error, "");
+      strncpy (Errmsg, msg, sizeof (Errmsg));
       Errmsg[sizeof (Errmsg)-1] = '\0';
-      free(error);
+      free (msg);
       return (NOTOK);
     }
 
@@ -867,30 +863,26 @@ pop_retr (server, msgno, arg)
 
   if (ret)
     {
-      char *error = concat ("Error from POP server: ", pop_error, "");
-      strncpy (Errmsg, error, sizeof (Errmsg));
+      char *msg = concat ("Error from POP server: ", pop_error, "");
+      strncpy (Errmsg, msg, sizeof (Errmsg));
       Errmsg[sizeof (Errmsg)-1] = '\0';
-      free(error);
+      free (msg);
       return (NOTOK);
     }
 
   return (OK);
 }
 
-/* Do this as a macro instead of using strcmp to save on execution time. */
-#define IS_FROM_LINE(a) ((a[0] == 'F') \
-			 && (a[1] == 'r') \
-			 && (a[2] == 'o') \
-			 && (a[3] == 'm') \
-			 && (a[4] == ' '))
-
-int
-mbx_write (line, len, mbf)
-     char *line;
-     int len;
-     FILE *mbf;
+static int
+mbx_write (char *line, int len, FILE *mbf)
 {
 #ifdef MOVEMAIL_QUOTE_POP_FROM_LINES
+  /* Do this as a macro instead of using strcmp to save on execution time. */
+  # define IS_FROM_LINE(a) ((a[0] == 'F')	\
+			    && (a[1] == 'r')	\
+			    && (a[2] == 'o')	\
+			    && (a[3] == 'm')	\
+			    && (a[4] == ' '))
   if (IS_FROM_LINE (line))
     {
       if (fputc ('>', mbf) == EOF)
@@ -911,9 +903,8 @@ mbx_write (line, len, mbf)
   return (OK);
 }
 
-int
-mbx_delimit_begin (mbf)
-     FILE *mbf;
+static int
+mbx_delimit_begin (FILE *mbf)
 {
   time_t now;
   struct tm *ltime;
@@ -929,9 +920,8 @@ mbx_delimit_begin (mbf)
   return (OK);
 }
 
-int
-mbx_delimit_end (mbf)
-     FILE *mbf;
+static int
+mbx_delimit_end (FILE *mbf)
 {
   if (putc ('\n', mbf) == EOF)
     return (NOTOK);
@@ -955,7 +945,5 @@ strerror (errnum)
 
 #endif /* ! HAVE_STRERROR */
 
-/* arch-tag: 1c323112-41fe-4fe5-8de9-494de631f73f
-   (do not change this comment) */
 
 /* movemail.c ends here */

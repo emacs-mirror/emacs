@@ -1,6 +1,5 @@
 /*
-Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 2001, 2002, 2003,
-  2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright (C) 1993-1998, 2001-2011  Free Software Foundation, Inc.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -20,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
    their callers have been renamed to emacs_mumble to allow us to
    include this file in the menu library on all systems.  */
 
+#include "XMenuInt.h"
 
 struct qelem {
   struct    qelem *q_forw;
@@ -30,9 +30,10 @@ struct qelem {
 /* Insert ELEM into a doubly-linked list, after PREV.  */
 
 void
-emacs_insque (elem, prev)
-     struct qelem *elem, *prev;
+emacs_insque (void *velem, void *vprev)
 {
+  struct qelem *elem = velem;
+  struct qelem *prev = vprev;
   struct qelem *next = prev->q_forw;
   prev->q_forw = elem;
   if (next)
@@ -43,9 +44,10 @@ emacs_insque (elem, prev)
 
 /* Unlink ELEM from the doubly-linked list that it is in.  */
 
-emacs_remque (elem)
-     struct qelem *elem;
+void
+emacs_remque (void *velem)
 {
+  struct qelem *elem = velem;
   struct qelem *next = elem->q_forw;
   struct qelem *prev = elem->q_back;
   if (next)
@@ -53,6 +55,3 @@ emacs_remque (elem)
   if (prev)
     prev->q_forw = next;
 }
-
-/* arch-tag: a8719d1a-5c3f-4bce-b36b-173106d36165
-   (do not change this comment) */

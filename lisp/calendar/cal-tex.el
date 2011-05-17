@@ -1,13 +1,13 @@
 ;;; cal-tex.el --- calendar functions for printing calendars with LaTeX
 
-;; Copyright (C) 1995, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Steve Fisk <fisk@bowdoin.edu>
 ;;         Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
 ;; Keywords: calendar
 ;; Human-Keywords: Calendar, LaTeX
+;; Package: calendar
 
 ;; This file is part of GNU Emacs.
 
@@ -253,7 +253,7 @@ This definition is the heart of the calendar!")
                  3)))
          holidays in-range a)
     (calendar-increment-month displayed-month displayed-year 1)
-    (dotimes (idummy number-of-intervals)
+    (dotimes (_idummy number-of-intervals)
       (setq holidays (append holidays (calendar-holiday-list)))
       (calendar-increment-month displayed-month displayed-year 3))
     (dolist (hol holidays)
@@ -507,6 +507,7 @@ indicates a buffer position to use instead of point."
          (year (calendar-extract-year date))
          (end-month month)
          (end-year year)
+         ;; FIXME -landscape sets cal-tex-which-days?
          (d1 (calendar-absolute-from-gregorian (list month 1 year)))
          (d2 (progn
                (calendar-increment-month end-month end-year (1- n))
@@ -515,8 +516,7 @@ indicates a buffer position to use instead of point."
                       (calendar-last-day-of-month end-month end-year)
                       end-year))))
          (diary-list (if cal-tex-diary (cal-tex-list-diary-entries d1 d2)))
-         (holidays (if cal-tex-holidays (cal-tex-list-holidays d1 d2)))
-         other-month other-year)
+         (holidays (if cal-tex-holidays (cal-tex-list-holidays d1 d2))))
     (cal-tex-insert-preamble (cal-tex-number-weeks month year n) nil "12pt")
     (if (> n 1)
         (cal-tex-cmd cal-tex-cal-multi-month)
@@ -525,15 +525,13 @@ indicates a buffer position to use instead of point."
     (cal-tex-insert-day-names)
     (cal-tex-nl ".2cm")
     (cal-tex-insert-blank-days month year cal-tex-day-prefix)
-    (dotimes (idummy n)
-      (setq other-month month
-            other-year year)
+    (dotimes (_idummy n)
       (cal-tex-insert-days month year diary-list holidays cal-tex-day-prefix)
-      (when (= 6 (mod (calendar-absolute-from-gregorian
-                       (list month
-                             (calendar-last-day-of-month month year)
-                             year))
-                      7))           ; last day of month was Saturday
+      (when (= (calendar-week-end-day)
+               (calendar-day-of-week
+                (list month
+                      (calendar-last-day-of-month month year)
+                      year))) ; last day of month was last day of week
         (cal-tex-hfill)
         (cal-tex-nl))
       (calendar-increment-month month year 1))
@@ -570,13 +568,14 @@ are included.  Each day is formatted using format DAY-FORMAT."
 
 (defun cal-tex-insert-day-names ()
   "Insert the names of the days at top of a monthly calendar."
-  (dotimes (i 7)
-    (if (memq i cal-tex-which-days)
-        (insert (format cal-tex-day-name-format
-                        (cal-tex-LaTeXify-string
-                         (aref calendar-day-name-array
-                               (mod (+ calendar-week-start-day i) 7))))))
-    (cal-tex-comment)))
+  (let (j)
+    (dotimes (i 7)
+      (if (memq (setq j (mod (+ calendar-week-start-day i) 7))
+                cal-tex-which-days)
+          (insert (format cal-tex-day-name-format
+                          (cal-tex-LaTeXify-string
+                           (aref calendar-day-name-array j)))))
+      (cal-tex-comment))))
 
 (defun cal-tex-insert-month-header (n month year end-month end-year)
   "Create a title for a calendar.
@@ -603,7 +602,7 @@ blank, no days are inserted."
                  calendar-week-start-day)
               7)))
         (dotimes (i blank-days)
-          (if (memq i cal-tex-which-days)
+          (if (memq (mod (+ calendar-week-start-day i) 7) cal-tex-which-days)
               (insert (format day-format " " " ") "{}{}{}{}%\n"))))))
 
 (defun cal-tex-insert-blank-days-at-end (month year day-format)
@@ -619,38 +618,37 @@ The entry is formatted using DAY-FORMAT."
                7))
              (i blank-days))
         (while (<= (setq i (1+ i)) 6)
-          (if (memq i cal-tex-which-days)
+          (if (memq (mod (+ calendar-week-start-day i) 7) cal-tex-which-days)
               (insert (format day-format "" "") "{}{}{}{}%\n"))))))
 
 (defun cal-tex-first-blank-p (month year)
   "Determine if any days of the first week will be printed.
 Return t if there will there be any days of the first week printed
 in the calendar starting in MONTH YEAR."
-  (let (any-days the-saturday)        ; the day of week of 1st Saturday
-    (dotimes (i 7)
-      (if (= 6 (calendar-day-of-week (list month (1+ i) year)))
-          (setq the-saturday (1+ i))))
-    (dotimes (i the-saturday)
-      (if (memq (calendar-day-of-week (list month (1+ i) year))
-                cal-tex-which-days)
-          (setq any-days t)))
-    any-days))
+  ;; Check days 1-7 of the month, until we find the last day of the week.
+  (catch 'found
+    (let (dow)
+      (dotimes (i 7)
+        (if (memq (setq dow (calendar-day-of-week (list month (1+ i) year)))
+                  cal-tex-which-days)
+            (throw 'found t)
+          (if (= dow (calendar-week-end-day)) (throw 'found nil)))))))
 
 (defun cal-tex-last-blank-p (month year)
   "Determine if any days of the last week will be printed.
 Return t if there will there be any days of the last week printed
 in the calendar starting in MONTH YEAR."
-  (let* ((last-day (calendar-last-day-of-month month year))
-         (i (- last-day 7))
-         any-days the-sunday)          ; the day of week of last Sunday
-    (while (<= (setq i (1+ i)) last-day)
-      (if (zerop (calendar-day-of-week (list month i year)))
-          (setq the-sunday i)))
-    (setq i (1- the-sunday))
-    (while (<= (setq i (1+ i)) last-day)
-      (if (memq (calendar-day-of-week (list month i year)) cal-tex-which-days)
-          (setq any-days t)))
-    any-days))
+  ;; Check backwards from the last day of the month, until we find the
+  ;; start of the last week in the month.
+  (catch 'found
+    (let ((last-day (calendar-last-day-of-month month year))
+          dow)
+      (dotimes (i 7)
+        (if (memq (setq dow (calendar-day-of-week
+                             (list month (- last-day i) year)))
+                  cal-tex-which-days)
+            (throw 'found t)
+          (if (= dow calendar-week-start-day) (throw 'found nil)))))))
 
 (defun cal-tex-number-weeks (month year n)
   "Determine the number of weeks in a range of dates.
@@ -719,7 +717,7 @@ entries are not shown).  The calendar shows the hours 8-12am, 1-5pm."
       (cal-tex-e-center)
       (cal-tex-hspace "-.2in")
       (cal-tex-b-parbox "l" "7in")
-      (dotimes (jdummy 7)
+      (dotimes (_jdummy 7)
         (cal-tex-week-hours date holidays "3.1")
         (setq date (cal-tex-incr-date date)))
       (cal-tex-e-parbox)
@@ -751,7 +749,6 @@ Optional EVENT indicates a buffer position to use instead of point."
                   (calendar-cursor-to-date t event)))))
          (month (calendar-extract-month date))
          (year (calendar-extract-year date))
-         (d date)
          (d1 (calendar-absolute-from-gregorian date))
          (d2 (+ (* 7 n) d1))
          (holidays (if cal-tex-holidays
@@ -775,7 +772,7 @@ Optional EVENT indicates a buffer position to use instead of point."
       (cal-tex-e-center)
       (cal-tex-hspace "-.2in")
       (cal-tex-b-parbox "l" "\\textwidth")
-      (dotimes (jdummy 3)
+      (dotimes (_jdummy 3)
         (cal-tex-week-hours date holidays "5")
         (setq date (cal-tex-incr-date date)))
       (cal-tex-e-parbox)
@@ -803,7 +800,7 @@ Optional EVENT indicates a buffer position to use instead of point."
       (insert "}")
       (cal-tex-nl)
       (cal-tex-b-parbox "l" "\\textwidth")
-      (dotimes (jdummy 4)
+      (dotimes (_jdummy 4)
         (cal-tex-week-hours date holidays "5")
         (setq date (cal-tex-incr-date date)))
       (cal-tex-e-parbox)
@@ -865,7 +862,7 @@ position to use instead of point."
       (cal-tex-nl ".5cm")
       (cal-tex-e-center)
       (cal-tex-b-parbox "l" "\\textwidth")
-      (dotimes (j 7)
+      (dotimes (_j 7)
         (cal-tex-b-parbox "t" "\\textwidth")
         (cal-tex-b-parbox "t" "\\textwidth")
         (cal-tex-rule "0pt" "\\textwidth" ".2mm")
@@ -1114,7 +1111,7 @@ Optional EVENT indicates a buffer position to use instead of point."
                       (cal-tex-month-name (calendar-extract-month d))
                       (calendar-extract-year d))))))
       (insert "%\n")
-      (dotimes (jdummy 7)
+      (dotimes (_jdummy 7)
         (if (zerop (mod i 2))
             (insert "\\rightday")
           (insert "\\leftday"))
@@ -1218,7 +1215,7 @@ Optional EVENT indicates a buffer position to use instead of point."
                      (cal-tex-month-name (calendar-extract-month d))
                      (calendar-extract-year d))))))
       (insert "%\n")
-      (dotimes (jdummy 3)
+      (dotimes (_jdummy 3)
         (insert "\\leftday")
         (cal-tex-arg (cal-tex-LaTeXify-string (calendar-day-name date)))
         (cal-tex-arg (number-to-string (calendar-extract-day date)))
@@ -1249,7 +1246,7 @@ Optional EVENT indicates a buffer position to use instead of point."
                      (cal-tex-month-name (calendar-extract-month d))
                      (calendar-extract-year d))))))
       (insert "%\n")
-      (dotimes (jdummy 2)
+      (dotimes (_jdummy 2)
         (insert "\\rightday")
         (cal-tex-arg (cal-tex-LaTeXify-string (calendar-day-name date)))
         (cal-tex-arg (number-to-string (calendar-extract-day date)))
@@ -1258,7 +1255,7 @@ Optional EVENT indicates a buffer position to use instead of point."
         (cal-tex-arg (eval cal-tex-daily-string))
         (insert "%\n")
         (setq date (cal-tex-incr-date date)))
-      (dotimes (jdummy 2)
+      (dotimes (_jdummy 2)
         (insert "\\weekend")
         (cal-tex-arg (cal-tex-LaTeXify-string (calendar-day-name date)))
         (cal-tex-arg (number-to-string (calendar-extract-day date)))
@@ -1364,7 +1361,7 @@ Optional EVENT indicates a buffer position to use instead of point."
         (cal-tex-newpage)
         (setq date (cal-tex-incr-date date)))
       (insert "%\n")
-      (dotimes (jdummy 2)
+      (dotimes (_jdummy 2)
         (insert "\\lefthead")
         (cal-tex-arg (calendar-date-string date))
         (insert "\\weekend")
@@ -1499,7 +1496,7 @@ Optional string COLSEP gives the column separation (default \"1mm\")."
           (- (calendar-day-of-week (list month 1 year))
              calendar-week-start-day)
           7))
-        (last (calendar-last-day-of-month month year))
+        (last( calendar-last-day-of-month month year))
         (str (concat "\\def\\" name "{\\hbox to" width "{%\n"
                      "\\vbox to" height "{%\n"
                      "\\vfil  \\hbox to" width "{%\n"
@@ -1525,7 +1522,7 @@ Optional string COLSEP gives the column separation (default \"1mm\")."
                     (if (= i 6)
                         "\\\\[0.7mm]\n"
                       " & "))))
-    (dotimes (idummy blank-days)
+    (dotimes (_idummy blank-days)
       (setq str (concat str " & ")))
     (dotimes (i last)
       (setq str (concat str (number-to-string (1+ i)))
@@ -1589,6 +1586,16 @@ FINAL-SEPARATOR is non-nil."
 Insert the trailer to LaTeX document, pop to LaTeX buffer, add
 informative header, and run HOOK."
   (cal-tex-e-document)
+  (or (and cal-tex-preamble-extra
+           (string-match "inputenc" cal-tex-preamble-extra))
+      (not (re-search-backward "[^[:ascii:]]" nil 'move))
+      (progn
+        (goto-char (point-min))
+        (when (search-forward "documentclass" nil t)
+          (forward-line 1)
+          ;; Eg for some Bahai holidays.
+          ;; FIXME latin1 might not always be right.
+          (insert "\\usepackage[latin1]{inputenc}\n"))))
   (latex-mode)
   (pop-to-buffer cal-tex-buffer)
   (goto-char (point-min))
@@ -1833,5 +1840,4 @@ Add trailing COMMENT if present."
 
 (provide 'cal-tex)
 
-;; arch-tag: ca8168a4-5a00-4508-a565-17e3bccce6d0
 ;;; cal-tex.el ends here

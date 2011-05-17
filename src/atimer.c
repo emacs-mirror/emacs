@@ -1,6 +1,5 @@
 /* Asynchronous timers.
-   Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 2000-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -21,15 +20,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <signal.h>
 #include <stdio.h>
 #include <setjmp.h>
-#include <lisp.h>
-#include <syssignal.h>
-#include <systime.h>
-#include <blockinput.h>
-#include <atimer.h>
-
-#ifdef HAVE_UNISTD_H
+#include "lisp.h"
+#include "syssignal.h"
+#include "systime.h"
+#include "blockinput.h"
+#include "atimer.h"
 #include <unistd.h>
-#endif
 
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
@@ -64,11 +60,11 @@ int pending_atimers;
 
 /* Function prototypes.  */
 
-static void set_alarm P_ ((void));
-static void schedule_atimer P_ ((struct atimer *));
-static struct atimer *append_atimer_lists P_ ((struct atimer *,
-					       struct atimer *));
-SIGTYPE alarm_signal_handler ();
+static void set_alarm (void);
+static void schedule_atimer (struct atimer *);
+static struct atimer *append_atimer_lists (struct atimer *,
+                                           struct atimer *);
+static void alarm_signal_handler (int signo);
 
 
 /* Start a new atimer of type TYPE.  TIME specifies when the timer is
@@ -90,21 +86,18 @@ SIGTYPE alarm_signal_handler ();
    to cancel_atimer; don't free it yourself.  */
 
 struct atimer *
-start_atimer (type, time, fn, client_data)
-     enum atimer_type type;
-     EMACS_TIME time;
-     atimer_callback fn;
-     void *client_data;
+start_atimer (enum atimer_type type, EMACS_TIME timestamp, atimer_callback fn,
+	      void *client_data)
 {
   struct atimer *t;
 
   /* Round TIME up to the next full second if we don't have
      itimers.  */
 #ifndef HAVE_SETITIMER
-  if (EMACS_USECS (time) != 0)
+  if (EMACS_USECS (timestamp) != 0)
     {
-      EMACS_SET_USECS (time, 0);
-      EMACS_SET_SECS (time, EMACS_SECS (time) + 1);
+      EMACS_SET_USECS (timestamp, 0);
+      EMACS_SET_SECS (timestamp, EMACS_SECS (timestamp) + 1);
     }
 #endif /* not HAVE_SETITIMER */
 
@@ -119,7 +112,7 @@ start_atimer (type, time, fn, client_data)
     t = (struct atimer *) xmalloc (sizeof *t);
 
   /* Fill the atimer structure.  */
-  bzero (t, sizeof *t);
+  memset (t, 0, sizeof *t);
   t->type = type;
   t->fn = fn;
   t->client_data = client_data;
@@ -130,18 +123,18 @@ start_atimer (type, time, fn, client_data)
   switch (type)
     {
     case ATIMER_ABSOLUTE:
-      t->expiration = time;
+      t->expiration = timestamp;
       break;
 
     case ATIMER_RELATIVE:
       EMACS_GET_TIME (t->expiration);
-      EMACS_ADD_TIME (t->expiration, t->expiration, time);
+      EMACS_ADD_TIME (t->expiration, t->expiration, timestamp);
       break;
 
     case ATIMER_CONTINUOUS:
       EMACS_GET_TIME (t->expiration);
-      EMACS_ADD_TIME (t->expiration, t->expiration, time);
-      t->interval = time;
+      EMACS_ADD_TIME (t->expiration, t->expiration, timestamp);
+      t->interval = timestamp;
       break;
     }
 
@@ -159,8 +152,7 @@ start_atimer (type, time, fn, client_data)
 /* Cancel and free atimer TIMER.  */
 
 void
-cancel_atimer (timer)
-     struct atimer *timer;
+cancel_atimer (struct atimer *timer)
 {
   int i;
 
@@ -175,9 +167,9 @@ cancel_atimer (timer)
       for (t = *list, prev = NULL; t && t != timer; prev = t, t = t->next)
 	;
 
-      /* If it is, take it off the its list, and put in on the
-	 free-list.  We don't bother to arrange for setting a
-	 different alarm time, since a too early one doesn't hurt.  */
+      /* If it is, take it off its list, and put in on the free-list.
+	 We don't bother to arrange for setting a different alarm time,
+	 since a too early one doesn't hurt.  */
       if (t)
 	{
 	  if (prev)
@@ -195,25 +187,24 @@ cancel_atimer (timer)
 }
 
 
-/* Append two lists of atimers LIST1 and LIST2 and return the
+/* Append two lists of atimers LIST_1 and LIST_2 and return the
    result list.  */
 
 static struct atimer *
-append_atimer_lists (list1, list2)
-     struct atimer *list1, *list2;
+append_atimer_lists (struct atimer *list_1, struct atimer *list_2)
 {
-  if (list1 == NULL)
-    return list2;
-  else if (list2 == NULL)
-    return list1;
+  if (list_1 == NULL)
+    return list_2;
+  else if (list_2 == NULL)
+    return list_1;
   else
     {
       struct atimer *p;
 
-      for (p = list1; p->next; p = p->next)
+      for (p = list_1; p->next; p = p->next)
 	;
-      p->next = list2;
-      return list1;
+      p->next = list_2;
+      return list_1;
     }
 }
 
@@ -221,8 +212,7 @@ append_atimer_lists (list1, list2)
 /* Stop all timers except timer T.  T null means stop all timers.  */
 
 void
-stop_other_atimers (t)
-     struct atimer *t;
+stop_other_atimers (struct atimer *t)
 {
   BLOCK_ATIMERS;
 
@@ -256,8 +246,8 @@ stop_other_atimers (t)
 /* Run all timers again, if some have been stopped with a call to
    stop_other_atimers.  */
 
-void
-run_all_atimers ()
+static void
+run_all_atimers (void)
 {
   if (stopped_atimers)
     {
@@ -280,11 +270,10 @@ run_all_atimers ()
 }
 
 
-/* A version of run_all_timers suitable for a record_unwind_protect.  */
+/* A version of run_all_atimers suitable for a record_unwind_protect.  */
 
 Lisp_Object
-unwind_stop_other_atimers (dummy)
-     Lisp_Object dummy;
+unwind_stop_other_atimers (Lisp_Object dummy)
 {
   run_all_atimers ();
   return Qnil;
@@ -294,32 +283,32 @@ unwind_stop_other_atimers (dummy)
 /* Arrange for a SIGALRM to arrive when the next timer is ripe.  */
 
 static void
-set_alarm ()
+set_alarm (void)
 {
   if (atimers)
     {
-      EMACS_TIME now, time;
+      EMACS_TIME now, timestamp;
 #ifdef HAVE_SETITIMER
       struct itimerval it;
 #endif
 
       /* Determine s/us till the next timer is ripe.  */
       EMACS_GET_TIME (now);
-      EMACS_SUB_TIME (time, atimers->expiration, now);
+      EMACS_SUB_TIME (timestamp, atimers->expiration, now);
 
 #ifdef HAVE_SETITIMER
       /* Don't set the interval to 0; this disables the timer.  */
       if (EMACS_TIME_LE (atimers->expiration, now))
 	{
-	  EMACS_SET_SECS (time, 0);
-	  EMACS_SET_USECS (time, 1000);
+	  EMACS_SET_SECS (timestamp, 0);
+	  EMACS_SET_USECS (timestamp, 1000);
 	}
 
-      bzero (&it, sizeof it);
-      it.it_value = time;
+      memset (&it, 0, sizeof it);
+      it.it_value = timestamp;
       setitimer (ITIMER_REAL, &it, 0);
 #else /* not HAVE_SETITIMER */
-      alarm (max (EMACS_SECS (time), 1));
+      alarm (max (EMACS_SECS (timestamp), 1));
 #endif /* not HAVE_SETITIMER */
     }
 }
@@ -330,8 +319,7 @@ set_alarm ()
    already.  */
 
 static void
-schedule_atimer (t)
-     struct atimer *t;
+schedule_atimer (struct atimer *t)
 {
   struct atimer *a = atimers, *prev = NULL;
 
@@ -349,7 +337,7 @@ schedule_atimer (t)
 }
 
 static void
-run_timers ()
+run_timers (void)
 {
   EMACS_TIME now;
 
@@ -400,9 +388,8 @@ run_timers ()
 /* Signal handler for SIGALRM.  SIGNO is the signal number, i.e.
    SIGALRM.  */
 
-SIGTYPE
-alarm_signal_handler (signo)
-     int signo;
+void
+alarm_signal_handler (int signo)
 {
 #ifndef SYNC_INPUT
   SIGNAL_THREAD_CHECK (signo);
@@ -420,7 +407,7 @@ alarm_signal_handler (signo)
 /* Call alarm_signal_handler for pending timers.  */
 
 void
-do_pending_atimers ()
+do_pending_atimers (void)
 {
   if (pending_atimers)
     {
@@ -435,8 +422,7 @@ do_pending_atimers ()
    some systems like HPUX (see process.c).  */
 
 void
-turn_on_atimers (on)
-     int on;
+turn_on_atimers (int on)
 {
   if (on)
     {
@@ -449,13 +435,10 @@ turn_on_atimers (on)
 
 
 void
-init_atimer ()
+init_atimer (void)
 {
   free_atimers = stopped_atimers = atimers = NULL;
   pending_atimers = 0;
   /* pending_signals is initialized in init_keyboard.*/
   signal (SIGALRM, alarm_signal_handler);
 }
-
-/* arch-tag: e6308261-eec6-404b-89fb-6e5909518d70
-   (do not change this comment) */

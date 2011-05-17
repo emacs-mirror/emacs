@@ -1,6 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1997, 1999, 2000, 2001, 2002, 2003, 2004,
-@c   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+@c Copyright (C) 1997, 1999-2011  Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node International, Major Modes, Frames, Top
 @chapter International Character Set Support
@@ -228,17 +227,18 @@ in a buffer whose coding system is @code{utf-8-unix}:
         character: @`A (192, #o300, #xc0)
 preferred charset: unicode (Unicode (ISO10646))
        code point: 0xC0
-           syntax: w 	which means: word
+           syntax: w    which means: word
          category: j:Japanese l:Latin v:Vietnamese
       buffer code: #xC3 #x80
         file code: not encodable by coding system undecided-unix
           display: by this font (glyph code)
-    xft:-unknown-DejaVu Sans Mono-normal-normal-normal-*-13-*-*-*-m-0-iso10646-1 (#x82)
+    xft:-unknown-DejaVu Sans Mono-normal-normal-
+        normal-*-13-*-*-*-m-0-iso10646-1 (#x82)
 
 Character code properties: customize what to show
   name: LATIN CAPITAL LETTER A WITH GRAVE
   general-category: Lu (Letter, Uppercase)
-  decomposition: (65 768) ('A' '̀')
+  decomposition: (65 768) ('A' '`')
   old-name: LATIN CAPITAL LETTER A GRAVE
 
 There are text properties here:
@@ -323,7 +323,7 @@ language environment also specifies a default input method.
 
 @findex set-language-environment
 @vindex current-language-environment
-  To select a language environment, customize the variable
+  To select a language environment, customize
 @code{current-language-environment} or use the command @kbd{M-x
 set-language-environment}.  It makes no difference which buffer is
 current when you use this command, because the effects apply globally
@@ -351,10 +351,11 @@ which prefers Cyrillic characters and files encoded in Windows-1255).
 @cindex Intlfonts package, installation
   To display the script(s) used by your language environment on a
 graphical display, you need to have a suitable font.  If some of the
-characters appear as empty boxes, you should install the GNU Intlfonts
-package, which includes fonts for most supported scripts.@footnote{If
-you run Emacs on X, you need to inform the X server about the location
-of the newly installed fonts with the following commands:
+characters appear as empty boxes or hex codes, you should install the
+GNU Intlfonts package, which includes fonts for most supported
+scripts.@footnote{If you run Emacs on X, you need to inform the X
+server about the location of the newly installed fonts with the
+following commands:
 
 @example
  xset fp+ /usr/local/share/emacs/fonts
@@ -648,9 +649,9 @@ shows that information in addition to the other information about the
 character.
 
 @findex list-input-methods
-  To see a list of all the supported input methods, type @kbd{M-x
-list-input-methods}.  The list gives information about each input
-method, including the string that stands for it in the mode line.
+  @kbd{M-x list-input-methods} displays a list of all the supported
+input methods.  The list gives information about each input method,
+including the string that stands for it in the mode line.
 
 @node Coding Systems
 @section Coding Systems
@@ -1153,15 +1154,6 @@ specified by one of the environment variables @env{LC_ALL},
 specified above, whose value is nonempty is the one that determines
 the text representation.)
 
-@vindex x-select-request-type
-  The variable @code{x-select-request-type} specifies a selection data
-type of selection to request from the X server.  The default value is
-@code{nil}, which means Emacs tries @code{COMPOUND_TEXT} and
-@code{UTF8_STRING}, and uses whichever result seems more appropriate.
-You can explicitly specify the data type by setting the variable to
-one of the symbols @code{COMPOUND_TEXT}, @code{UTF8_STRING},
-@code{STRING} and @code{TEXT}.
-
 @node File Name Coding
 @section Coding Systems for File Names
 
@@ -1314,10 +1306,11 @@ characters the font does not cover.  The standard fontset is only used if
 explicitly requested, despite its name.
 
   A fontset does not necessarily specify a font for every character
-code.  If a fontset specifies no font for a certain character, or if it
-specifies a font that does not exist on your system, then it cannot
-display that character properly.  It will display that character as an
-empty box instead.
+code.  If a fontset specifies no font for a certain character, or if
+it specifies a font that does not exist on your system, then it cannot
+display that character properly.  It will display that character as a
+hex code or thin space or an empty box instead.  (@xref{Text Display, ,
+glyphless characters}, for details.)
 
 @node Defining Fontsets
 @section Defining fontsets
@@ -1476,18 +1469,22 @@ examples are:
 
 @example
 ;; Use Liberation Mono for latin-3 charset.
-(set-fontset-font "fontset-default" 'iso-8859-3 "Liberation Mono")
+(set-fontset-font "fontset-default" 'iso-8859-3
+                  "Liberation Mono")
 
 ;; Prefer a big5 font for han characters
-(set-fontset-font "fontset-default" 'han (font-spec :registry "big5")
+(set-fontset-font "fontset-default"
+                  'han (font-spec :registry "big5")
                   nil 'prepend)
 
-;; Use DejaVu Sans Mono as a fallback in fontset-startup before
-;; resorting to fontset-default.
-(set-fontset-font "fontset-startup" nil "DejaVu Sans Mono" nil 'append)
+;; Use DejaVu Sans Mono as a fallback in fontset-startup
+;; before resorting to fontset-default.
+(set-fontset-font "fontset-startup" nil "DejaVu Sans Mono"
+                  nil 'append)
 
 ;; Use MyPrivateFont for the Unicode private use area.
-(set-fontset-font "fontset-default"  '(#xe000 . #xf8ff) "MyPrivateFont")
+(set-fontset-font "fontset-default"  '(#xe000 . #xf8ff)
+                  "MyPrivateFont")
 
 @end example
 
@@ -1652,9 +1649,9 @@ name, and displays information about that charset, including its
 internal representation within Emacs.
 
 @findex list-character-sets
-  To display a list of all supported charsets, type @kbd{M-x
-list-character-sets}.  The list gives the names of charsets and
-additional information to identity each charset (see
+  @kbd{M-x list-character-sets} displays a list of all supported
+charsets.  The list gives the names of charsets and additional
+information to identity each charset (see
 @url{http://www.itscj.ipsj.or.jp/ISO-IR/} for details).  In this list,
 charsets are divided into two categories: @dfn{normal charsets} are
 listed first, followed by @dfn{supplementary charsets}.  A
@@ -1743,7 +1740,3 @@ highlighted region covering a contiguous range of character positions
 may look discontinuous if the region spans reordered text.  This is
 normal and similar to behavior of other programs that support
 bidirectional text.
-
-@ignore
-   arch-tag: 310ba60d-31ef-4ce7-91f1-f282dd57b6b3
-@end ignore

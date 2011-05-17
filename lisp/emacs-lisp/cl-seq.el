@@ -1,11 +1,11 @@
 ;;; cl-seq.el --- Common Lisp features, part 3
 
-;; Copyright (C) 1993, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Version: 2.02
 ;; Keywords: extensions
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -47,6 +47,7 @@
 ;;; this file independent from cl-macs.
 
 (defmacro cl-parsing-keywords (kwords other-keys &rest body)
+  (declare (indent 2) (debug (sexp sexp &rest form)))
   (cons
    'let*
    (cons (mapcar
@@ -83,13 +84,13 @@
 					  (car cl-keys-temp)))
 			    '(setq cl-keys-temp (cdr (cdr cl-keys-temp)))))))
 	  body))))
-(put 'cl-parsing-keywords 'lisp-indent-function 2)
-(put 'cl-parsing-keywords 'edebug-form-spec '(sexp sexp &rest form))
 
 (defmacro cl-check-key (x)
+  (declare (debug edebug-forms))
   (list 'if 'cl-key (list 'funcall 'cl-key x) x))
 
 (defmacro cl-check-test-nokey (item x)
+  (declare (debug edebug-forms))
   (list 'cond
 	(list 'cl-test
 	      (list 'eq (list 'not (list 'funcall 'cl-test item x))
@@ -100,19 +101,16 @@
 		       (list 'equal item x) (list 'eq item x)))))
 
 (defmacro cl-check-test (item x)
+  (declare (debug edebug-forms))
   (list 'cl-check-test-nokey item (list 'cl-check-key x)))
 
 (defmacro cl-check-match (x y)
+  (declare (debug edebug-forms))
   (setq x (list 'cl-check-key x) y (list 'cl-check-key y))
   (list 'if 'cl-test
 	(list 'eq (list 'not (list 'funcall 'cl-test x y)) 'cl-test-not)
 	(list 'if (list 'numberp x)
 	      (list 'equal x y) (list 'eq x y))))
-
-(put 'cl-check-key 'edebug-form-spec 'edebug-forms)
-(put 'cl-check-test 'edebug-form-spec 'edebug-forms)
-(put 'cl-check-test-nokey 'edebug-form-spec 'edebug-forms)
-(put 'cl-check-match 'edebug-form-spec 'edebug-forms)
 
 (defvar cl-test) (defvar cl-test-not)
 (defvar cl-if) (defvar cl-if-not)
@@ -772,7 +770,7 @@ Return the sublist of LIST whose car matches.
 ;;;###autoload
 (defun union (cl-list1 cl-list2 &rest cl-keys)
   "Combine LIST1 and LIST2 using a set-union operation.
-The result list contains all items that appear in either LIST1 or LIST2.
+The resulting list contains all items that appear in either LIST1 or LIST2.
 This is a non-destructive function; it makes a copy of the data if necessary
 to avoid corrupting the original LIST1 and LIST2.
 \nKeywords supported:  :test :test-not :key
@@ -793,7 +791,7 @@ to avoid corrupting the original LIST1 and LIST2.
 ;;;###autoload
 (defun nunion (cl-list1 cl-list2 &rest cl-keys)
   "Combine LIST1 and LIST2 using a set-union operation.
-The result list contains all items that appear in either LIST1 or LIST2.
+The resulting list contains all items that appear in either LIST1 or LIST2.
 This is a destructive function; it reuses the storage of LIST1 and LIST2
 whenever possible.
 \nKeywords supported:  :test :test-not :key
@@ -804,7 +802,7 @@ whenever possible.
 ;;;###autoload
 (defun intersection (cl-list1 cl-list2 &rest cl-keys)
   "Combine LIST1 and LIST2 using a set-intersection operation.
-The result list contains all items that appear in both LIST1 and LIST2.
+The resulting list contains all items that appear in both LIST1 and LIST2.
 This is a non-destructive function; it makes a copy of the data if necessary
 to avoid corrupting the original LIST1 and LIST2.
 \nKeywords supported:  :test :test-not :key
@@ -827,7 +825,7 @@ to avoid corrupting the original LIST1 and LIST2.
 ;;;###autoload
 (defun nintersection (cl-list1 cl-list2 &rest cl-keys)
   "Combine LIST1 and LIST2 using a set-intersection operation.
-The result list contains all items that appear in both LIST1 and LIST2.
+The resulting list contains all items that appear in both LIST1 and LIST2.
 This is a destructive function; it reuses the storage of LIST1 and LIST2
 whenever possible.
 \nKeywords supported:  :test :test-not :key
@@ -837,7 +835,7 @@ whenever possible.
 ;;;###autoload
 (defun set-difference (cl-list1 cl-list2 &rest cl-keys)
   "Combine LIST1 and LIST2 using a set-difference operation.
-The result list contains all items that appear in LIST1 but not LIST2.
+The resulting list contains all items that appear in LIST1 but not LIST2.
 This is a non-destructive function; it makes a copy of the data if necessary
 to avoid corrupting the original LIST1 and LIST2.
 \nKeywords supported:  :test :test-not :key
@@ -857,7 +855,7 @@ to avoid corrupting the original LIST1 and LIST2.
 ;;;###autoload
 (defun nset-difference (cl-list1 cl-list2 &rest cl-keys)
   "Combine LIST1 and LIST2 using a set-difference operation.
-The result list contains all items that appear in LIST1 but not LIST2.
+The resulting list contains all items that appear in LIST1 but not LIST2.
 This is a destructive function; it reuses the storage of LIST1 and LIST2
 whenever possible.
 \nKeywords supported:  :test :test-not :key
@@ -868,7 +866,7 @@ whenever possible.
 ;;;###autoload
 (defun set-exclusive-or (cl-list1 cl-list2 &rest cl-keys)
   "Combine LIST1 and LIST2 using a set-exclusive-or operation.
-The result list contains all items that appear in exactly one of LIST1, LIST2.
+The resulting list contains all items appearing in exactly one of LIST1, LIST2.
 This is a non-destructive function; it makes a copy of the data if necessary
 to avoid corrupting the original LIST1 and LIST2.
 \nKeywords supported:  :test :test-not :key
@@ -881,7 +879,7 @@ to avoid corrupting the original LIST1 and LIST2.
 ;;;###autoload
 (defun nset-exclusive-or (cl-list1 cl-list2 &rest cl-keys)
   "Combine LIST1 and LIST2 using a set-exclusive-or operation.
-The result list contains all items that appear in exactly one of LIST1, LIST2.
+The resulting list contains all items appearing in exactly one of LIST1, LIST2.
 This is a destructive function; it reuses the storage of LIST1 and LIST2
 whenever possible.
 \nKeywords supported:  :test :test-not :key
@@ -1019,5 +1017,4 @@ Atoms are compared by `eql'; cons cells are compared recursively.
 ;; generated-autoload-file: "cl-loaddefs.el"
 ;; End:
 
-;; arch-tag: ec1cc072-9006-4225-b6ba-d6b07ed1710c
 ;;; cl-seq.el ends here

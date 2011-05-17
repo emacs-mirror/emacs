@@ -1,11 +1,10 @@
 ;;; eieio.el --- Enhanced Implementation of Emacs Interpreted Objects
 ;;;              or maybe Eric's Implementation of Emacs Intrepreted Objects
 
-;; Copyright (C) 1995, 1996, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 1998-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
-;; Version: 0.2
+;; Version: 1.3
 ;; Keywords: OO, lisp
 
 ;; This file is part of GNU Emacs.
@@ -31,6 +30,11 @@
 ;; Emacs running environment.
 ;;
 ;; See eieio.texi for complete documentation on using this package.
+;;
+;; Note: the implementation of the c3 algorithm is based on:
+;;   Kim Barrett et al.: A Monotonic Superclass Linearization for Dylan
+;;   Retrieved from:
+;;   http://192.220.96.201/dylan/linearization-oopsla96.html
 
 ;; There is funny stuff going on with typep and deftype.  This
 ;; is the only way I seem to be able to make this stuff load properly.
@@ -41,10 +45,9 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl)
-  (require 'eieio-comp))
+  (require 'cl))
 
-(defvar eieio-version "1.2"
+(defvar eieio-version "1.3"
   "Current version of EIEIO.")
 
 (defun eieio-version ()
@@ -79,7 +82,7 @@
   "*This hook is executed, then cleared each time `defclass' is called.")
 
 (defvar eieio-error-unsupported-class-tags nil
-  "*Non-nil to throw an error if an encountered tag us unsupported.
+  "Non-nil to throw an error if an encountered tag is unsupported.
 This may prevent classes from CLOS applications from being used with EIEIO
 since EIEIO does not support all CLOS tags.")
 
@@ -93,6 +96,7 @@ default setting for optimization purposes.")
   "Non-nil means to optimize the method dispatch on primary methods.")
 
 ;; State Variables
+;; FIXME: These two constants below should have an `eieio-' prefix added!!
 (defvar this nil
   "Inside a method, this variable is the object in question.
 DO NOT SET THIS YOURSELF unless you are trying to simulate friendly slots.
@@ -119,6 +123,7 @@ execute a `call-next-method'.  DO NOT SET THIS YOURSELF!")
 ;; while it is being built itself.
 (defvar eieio-default-superclass nil)
 
+;; FIXME: The constants below should have an `eieio-' prefix added!!
 (defconst class-symbol 1 "Class's symbol (self-referencing.).")
 (defconst class-parent 2 "Class parent slot.")
 (defconst class-children 3 "Class children class slot.")
@@ -170,10 +175,13 @@ Stored outright without modifications or stripping.")
 (defconst method-generic-after 6 "Index into generic :after tag on a method.")
 (defconst method-num-slots 7 "Number of indexes into a method's vector.")
 
-;; How to specialty compile stuff.
-(autoload 'byte-compile-file-form-defmethod "eieio-comp"
-  "This function is used to byte compile methods in a nice way.")
-(put 'defmethod 'byte-hunk-handler 'byte-compile-file-form-defmethod)
+(defsubst eieio-specialized-key-to-generic-key (key)
+  "Convert a specialized KEY into a generic method key."
+  (cond ((eq key method-static) 0) ;; don't convert
+	((< key method-num-lists) (+ key 3)) ;; The conversion
+	(t key) ;; already generic.. maybe.
+	))
+
 
 ;;; Important macros used in eieio.
 ;;
@@ -243,8 +251,7 @@ Methods with only primary implementations are executed in an optimized way."
        ))
 
 (defmacro class-option-assoc (list option)
-  "Return from LIST the found OPTION.
-Return nil if it doesn't exist."
+  "Return from LIST the found OPTION, or nil if it doesn't exist."
   `(car-safe (cdr (memq ,option ,list))))
 
 (defmacro class-option (class option)
@@ -413,6 +420,7 @@ It creates an autoload function for CNAME's constructor."
     (load-library (car (cdr (symbol-function cname))))))
 
 (defun eieio-defclass (cname superclasses slots options-and-doc)
+  ;; FIXME: Most of this should be moved to the `defclass' macro.
   "Define CNAME as a new subclass of SUPERCLASSES.
 SLOTS are the slots residing in that class definition, and options or
 documentation OPTIONS-AND-DOC is the toplevel documentation for this class.
@@ -518,7 +526,7 @@ See `defclass' for more information."
 
     ;; Make sure the method invocation order  is a valid value.
     (let ((io (class-option-assoc options :method-invocation-order)))
-      (when (and io (not (member io '(:depth-first :breadth-first))))
+      (when (and io (not (member io '(:depth-first :breadth-first :c3))))
 	(error "Method invocation order %s is not allowed" io)
 	))
 
@@ -649,14 +657,14 @@ See `defclass' for more information."
 	;; so that users can `setf' the space returned by this function
 	(if acces
 	    (progn
-	      (eieio-defmethod acces
-		(list (if (eq alloc :class) :static :primary)
-		      (list (list 'this cname))
-		      (format
+	      (eieio--defmethod
+               acces (if (eq alloc :class) :static :primary) cname
+               `(lambda (this)
+                  ,(format
 		       "Retrieves the slot `%s' from an object of class `%s'"
 		       name cname)
-		      (list 'if (list 'slot-boundp 'this (list 'quote name))
-			    (list 'eieio-oref 'this (list 'quote name))
+                  (if (slot-boundp this ',name)
+                      (eieio-oref this ',name)
 			    ;; Else - Some error?  nil?
 			    nil)))
 
@@ -676,22 +684,21 @@ See `defclass' for more information."
 	;; If a writer is defined, then create a generic method of that
 	;; name whose purpose is to set the value of the slot.
 	(if writer
-	    (progn
-	      (eieio-defmethod writer
-		(list (list (list 'this cname) 'value)
-		      (format "Set the slot `%s' of an object of class `%s'"
+            (eieio--defmethod
+             writer nil cname
+             `(lambda (this value)
+                ,(format "Set the slot `%s' of an object of class `%s'"
 			      name cname)
-		      `(setf (slot-value this ',name) value)))
-	      ))
+                (setf (slot-value this ',name) value))))
 	;; If a reader is defined, then create a generic method
 	;; of that name whose purpose is to access this slot value.
 	(if reader
-	    (progn
-	      (eieio-defmethod reader
-		(list (list (list 'this cname))
-		      (format "Access the slot `%s' from object of class `%s'"
+            (eieio--defmethod
+             reader nil cname
+             `(lambda (this)
+                ,(format "Access the slot `%s' from object of class `%s'"
 			      name cname)
-		      `(slot-value this ',name)))))
+                (slot-value this ',name))))
 	)
       (setq slots (cdr slots)))
 
@@ -800,11 +807,11 @@ See `defclass' for more information."
 (defun eieio-perform-slot-validation-for-default (slot spec value skipnil)
   "For SLOT, signal if SPEC does not match VALUE.
 If SKIPNIL is non-nil, then if VALUE is nil return t instead."
-  (let ((val (eieio-default-eval-maybe value)))
-    (if (and (not eieio-skip-typecheck)
-	     (not (and skipnil (null val)))
-	     (not (eieio-perform-slot-validation spec val)))
-	(signal 'invalid-slot-type (list slot spec val)))))
+  (if (and (not (eieio-eval-default-p value))
+	   (not eieio-skip-typecheck)
+	   (not (and skipnil (null value)))
+	   (not (eieio-perform-slot-validation spec value)))
+      (signal 'invalid-slot-type (list slot spec value))))
 
 (defun eieio-add-new-slot (newc a d doc type cust label custg print prot init alloc
 				 &optional defaultoverride skipnil)
@@ -1133,6 +1140,17 @@ a string."
 
 ;;; CLOS methods and generics
 ;;
+
+(put 'eieio--defalias 'byte-hunk-handler
+     #'byte-compile-file-form-defalias) ;;(get 'defalias 'byte-hunk-handler)
+(defun eieio--defalias (name body)
+  "Like `defalias', but with less side-effects.
+More specifically, it has no side-effects at all when the new function
+definition is the same (`eq') as the old one."
+  (unless (and (fboundp name)
+               (eq (symbol-function name) body))
+    (defalias name body)))
+
 (defmacro defgeneric (method args &optional doc-string)
   "Create a generic function METHOD.
 DOC-STRING is the base documentation for this class.  A generic
@@ -1141,7 +1159,21 @@ is appropriate to use.  Uses `defmethod' to create methods, and calls
 `defgeneric' for you.  With this implementation the ARGS are
 currently ignored.  You can use `defgeneric' to apply specialized
 top level documentation to a method."
-  `(eieio-defgeneric (quote ,method) ,doc-string))
+  `(eieio--defalias ',method
+                    (eieio--defgeneric-init-form ',method ,doc-string)))
+
+(defun eieio--defgeneric-init-form (method doc-string)
+  "Form to use for the initial definition of a generic."
+  (cond
+   ((or (not (fboundp method))
+        (eq 'autoload (car-safe (symbol-function method))))
+    ;; Make sure the method tables are installed.
+    (eieiomt-install method)
+    ;; Construct the actual body of this function.
+    (eieio-defgeneric-form method doc-string))
+   ((generic-p method) (symbol-function method))           ;Leave it as-is.
+   (t (error "You cannot create a generic/method over an existing symbol: %s"
+             method))))
 
 (defun eieio-defgeneric-form (method doc-string)
   "The lambda form that would be used as the function defined on METHOD.
@@ -1182,10 +1214,8 @@ IMPL is the symbol holding the method implementation."
   ;; is faster to execute this for not byte-compiled.  ie, install this,
   ;; then measure calls going through here.  I wonder why.
   (require 'bytecomp)
-  (let ((byte-compile-free-references nil)
-	(byte-compile-warnings nil)
-	)
-    (byte-compile-lambda
+  (let ((byte-compile-warnings nil))
+    (byte-compile
      `(lambda (&rest local-args)
 	,doc-string
 	;; This is a cool cheat.  Usually we need to look up in the
@@ -1195,7 +1225,8 @@ IMPL is the symbol holding the method implementation."
 	;; of that one implementation, then clearly, there is no method def.
 	(if (not (eieio-object-p (car local-args)))
 	    ;; Not an object.  Just signal.
-	    (signal 'no-method-definition (list ,(list 'quote method) local-args))
+	    (signal 'no-method-definition
+                    (list ,(list 'quote method) local-args))
 
 	  ;; We do have an object.  Make sure it is the right type.
 	  (if ,(if (eq class eieio-default-superclass)
@@ -1218,9 +1249,7 @@ IMPL is the symbol holding the method implementation."
 		  )
 	      (apply ,(list 'quote impl) local-args)
 	      ;(,impl local-args)
-	      ))))
-     )
-  ))
+	      )))))))
 
 (defsubst eieio-defgeneric-reset-generic-form-primary-only-one (method)
   "Setup METHOD to call the generic form."
@@ -1233,26 +1262,6 @@ IMPL is the symbol holding the method implementation."
 		  (car entry)
 		  (cdr entry)
 		  ))))
-
-(defun eieio-defgeneric (method doc-string)
-  "Engine part to `defgeneric' macro defining METHOD with DOC-STRING."
-  (if (and (fboundp method) (not (generic-p method))
-	   (or (byte-code-function-p (symbol-function method))
-	       (not (eq 'autoload (car (symbol-function method)))))
-	   )
-      (error "You cannot create a generic/method over an existing symbol: %s"
-	     method))
-  ;; Don't do this over and over.
-  (unless (fboundp 'method)
-    ;; This defun tells emacs where the first definition of this
-    ;; method is defined.
-    `(defun ,method nil)
-    ;; Make sure the method tables are installed.
-    (eieiomt-install method)
-    ;; Apply the actual body of this function.
-    (fset method (eieio-defgeneric-form method doc-string))
-    ;; Return the method
-    'method))
 
 (defun eieio-unbind-method-implementations (method)
   "Make the generic method METHOD have no implementations.
@@ -1286,66 +1295,59 @@ Summary:
                      ((typearg class-name) arg2 &optional opt &rest rest)
     \"doc-string\"
      body)"
-  `(eieio-defmethod (quote ,method) (quote ,args)))
+  (let* ((key (if (keywordp (car args)) (pop args)))
+	 (params (car args))
+	 (arg1 (car params))
+         (fargs (if (consp arg1)
+                   (cons (car arg1) (cdr params))
+                 params))
+	 (class (if (consp arg1) (nth 1 arg1)))
+         (code `(lambda ,fargs ,@(cdr args))))
+    `(progn
+       ;; Make sure there is a generic and the byte-compiler sees it.
+       (defgeneric ,method ,args
+         ,(or (documentation code)
+              (format "Generically created method `%s'." method)))
+       (eieio--defmethod ',method ',key ',class #',code))))
 
-(defun eieio-defmethod (method args)
+(defun eieio--defmethod (method kind argclass code)
   "Work part of the `defmethod' macro defining METHOD with ARGS."
-  (let ((key nil) (body nil) (firstarg nil) (argfix nil) (argclass nil) loopa)
+  (let ((key
     ;; find optional keys
-    (setq key
-	  (cond ((or (eq ':BEFORE (car args))
-		     (eq ':before (car args)))
-		 (setq args (cdr args))
+         (cond ((or (eq ':BEFORE kind)
+                    (eq ':before kind))
 		 method-before)
-		((or (eq ':AFTER (car args))
-		     (eq ':after (car args)))
-		 (setq args (cdr args))
+               ((or (eq ':AFTER kind)
+                    (eq ':after kind))
 		 method-after)
-		((or (eq ':PRIMARY (car args))
-		     (eq ':primary (car args)))
-		 (setq args (cdr args))
+               ((or (eq ':PRIMARY kind)
+                    (eq ':primary kind))
 		 method-primary)
-		((or (eq ':STATIC (car args))
-		     (eq ':static (car args)))
-		 (setq args (cdr args))
+               ((or (eq ':STATIC kind)
+                    (eq ':static kind))
 		 method-static)
 		;; Primary key
-		(t method-primary)))
-    ;; get body, and fix contents of args to be the arguments of the fn.
-    (setq body (cdr args)
-	  args (car args))
-    (setq loopa args)
-    ;; Create a fixed version of the arguments
-    (while loopa
-      (setq argfix (cons (if (listp (car loopa)) (car (car loopa)) (car loopa))
-			 argfix))
-      (setq loopa (cdr loopa)))
-    ;; make sure there is a generic
-    (eieio-defgeneric
-     method
-     (if (stringp (car body))
-	 (car body) (format "Generically created method `%s'." method)))
+               (t method-primary))))
+    ;; Make sure there is a generic (when called from defclass).
+    (eieio--defalias
+     method (eieio--defgeneric-init-form
+             method (or (documentation code)
+                        (format "Generically created method `%s'." method))))
     ;; create symbol for property to bind to.  If the first arg is of
     ;; the form (varname vartype) and `vartype' is a class, then
     ;; that class will be the type symbol.  If not, then it will fall
     ;; under the type `primary' which is a non-specific calling of the
     ;; function.
-    (setq firstarg (car args))
-    (if (listp firstarg)
-	(progn
-	  (setq argclass  (nth 1 firstarg))
+    (if argclass
 	  (if (not (class-p argclass))
 	      (error "Unknown class type %s in method parameters"
-		     (nth 1 firstarg))))
+                   argclass))
       (if (= key -1)
 	  (signal 'wrong-type-argument (list :static 'non-class-arg)))
       ;; generics are higher
-      (setq key (+ key 3)))
+      (setq key (eieio-specialized-key-to-generic-key key)))
     ;; Put this lambda into the symbol so we can find it
-    (if (byte-code-function-p (car-safe body))
-	(eieiomt-add method (car-safe body) key argclass)
-      (eieiomt-add method (append (list 'lambda (reverse argfix)) body)
-		   key argclass))
+    (eieiomt-add method code key argclass)
     )
 
   (when eieio-optimize-primary-methods-flag
@@ -1516,13 +1518,21 @@ Fills in OBJ's SLOT with its default value."
 	 (eieio-default-eval-maybe val))
        obj cl 'oref-default))))
 
+(defsubst eieio-eval-default-p (val)
+  "Whether the default value VAL should be evaluated for use."
+  (and (consp val) (symbolp (car val)) (fboundp (car val))))
+
 (defun eieio-default-eval-maybe (val)
   "Check VAL, and return what `oref-default' would provide."
-  ;; check for quoted things, and unquote them
-  (if (and (listp val) (eq (car val) 'quote))
-      (car (cdr val))
-    ;; return it verbatim
-    val))
+  (cond
+   ;; Is it a function call?  If so, evaluate it.
+   ((eieio-eval-default-p val)
+    (eval val))
+   ;;;; check for quoted things, and unquote them
+   ;;((and (consp val) (eq (car val) 'quote))
+   ;; (car (cdr val)))
+   ;; return it verbatim
+   (t val)))
 
 ;;; Object Set macros
 ;;
@@ -1610,6 +1620,7 @@ SPEC-LIST is of a form similar to `let'.  For example:
 Where each VAR is the local variable given to the associated
 SLOT.  A slot specified without a variable name is given a
 variable name of the same name as the slot."
+  (declare (indent 2))
   ;; Transform the spec-list into a symbol-macrolet spec-list.
   (let ((mappings (mapcar (lambda (entry)
 			    (let ((var  (if (listp entry) (car entry) entry))
@@ -1618,8 +1629,6 @@ variable name of the same name as the slot."
 			  spec-list)))
     (append (list 'symbol-macrolet mappings)
 	    body)))
-(put 'with-slots 'lisp-indent-function 2)
-
 
 ;;; Simple generators, and query functions.  None of these would do
 ;;  well embedded into an object.
@@ -1678,6 +1687,116 @@ The CLOS function `class-direct-subclasses' is aliased to this function."
   (if (not (class-p class)) (signal 'wrong-type-argument (list 'class-p class)))
   (class-children-fast class))
 
+(defun eieio-c3-candidate (class remaining-inputs)
+  "Returns CLASS if it can go in the result now, otherwise nil"
+  ;; Ensure CLASS is not in any position but the first in any of the
+  ;; element lists of REMAINING-INPUTS.
+  (and (not (let ((found nil))
+	      (while (and remaining-inputs (not found))
+		(setq found (member class (cdr (car remaining-inputs)))
+		      remaining-inputs (cdr remaining-inputs)))
+	      found))
+       class))
+
+(defun eieio-c3-merge-lists (reversed-partial-result remaining-inputs)
+  "Merge REVERSED-PARTIAL-RESULT REMAINING-INPUTS in a consistent order, if possible.
+If a consistent order does not exist, signal an error."
+  (if (let ((tail remaining-inputs)
+	    (found nil))
+	(while (and tail (not found))
+	  (setq found (car tail) tail (cdr tail)))
+	(not found))
+      ;; If all remaining inputs are empty lists, we are done.
+      (nreverse reversed-partial-result)
+    ;; Otherwise, we try to find the next element of the result. This
+    ;; is achieved by considering the first element of each
+    ;; (non-empty) input list and accepting a candidate if it is
+    ;; consistent with the rests of the input lists.
+    (let* ((found nil)
+	   (tail remaining-inputs)
+	   (next (progn
+		   (while (and tail (not found))
+		     (setq found (and (car tail)
+				      (eieio-c3-candidate (caar tail)
+							  remaining-inputs))
+			   tail (cdr tail)))
+		   found)))
+      (if next
+	  ;; The graph is consistent so far, add NEXT to result and
+	  ;; merge input lists, dropping NEXT from their heads where
+	  ;; applicable.
+	  (eieio-c3-merge-lists
+	   (cons next reversed-partial-result)
+	   (mapcar (lambda (l) (if (eq (first l) next) (rest l) l))
+		   remaining-inputs))
+	;; The graph is inconsistent, give up
+	(signal 'inconsistent-class-hierarchy (list remaining-inputs))))))
+
+(defun eieio-class-precedence-dfs (class)
+  "Return all parents of CLASS in depth-first order."
+  (let* ((parents (class-parents-fast class))
+	 (classes (copy-sequence
+		   (apply #'append
+			  (list class)
+			  (or
+			   (mapcar
+			    (lambda (parent)
+			      (cons parent
+				    (eieio-class-precedence-dfs parent)))
+			    parents)
+			   '((eieio-default-superclass))))))
+	 (tail classes))
+    ;; Remove duplicates.
+    (while tail
+      (setcdr tail (delq (car tail) (cdr tail)))
+      (setq tail (cdr tail)))
+    classes))
+
+(defun eieio-class-precedence-bfs (class)
+  "Return all parents of CLASS in breadth-first order."
+  (let ((result)
+	(queue (or (class-parents-fast class)
+		   '(eieio-default-superclass))))
+    (while queue
+      (let ((head (pop queue)))
+	(unless (member head result)
+	  (push head result)
+	  (unless (eq head 'eieio-default-superclass)
+	    (setq queue (append queue (or (class-parents-fast head)
+					  '(eieio-default-superclass))))))))
+    (cons class (nreverse result)))
+  )
+
+(defun eieio-class-precedence-c3 (class)
+  "Return all parents of CLASS in c3 order."
+  (let ((parents (class-parents-fast class)))
+    (eieio-c3-merge-lists
+     (list class)
+     (append
+      (or
+       (mapcar
+	(lambda (x)
+	  (eieio-class-precedence-c3 x))
+	parents)
+       '((eieio-default-superclass)))
+      (list parents))))
+  )
+
+(defun class-precedence-list (class)
+  "Return (transitively closed) list of parents of CLASS.
+The order, in which the parents are returned depends on the
+method invocation orders of the involved classes."
+  (if (or (null class) (eq class 'eieio-default-superclass))
+      nil
+    (case (class-method-invocation-order class)
+      (:depth-first
+       (eieio-class-precedence-dfs class))
+      (:breadth-first
+       (eieio-class-precedence-bfs class))
+      (:c3
+       (eieio-class-precedence-c3 class))))
+  )
+
 ;; Official CLOS functions.
 (defalias 'class-direct-superclasses 'class-parents)
 (defalias 'class-direct-subclasses 'class-children)
@@ -1715,7 +1834,8 @@ The CLOS function `class-direct-subclasses' is aliased to this function."
 	    p (cdr p)))
     (if child t)))
 
-(defun object-slots (obj) "Return list of slots available in OBJ."
+(defun object-slots (obj)
+  "Return list of slots available in OBJ."
   (if (not (eieio-object-p obj)) (signal 'wrong-type-argument (list 'eieio-object-p obj)))
   (aref (class-v (object-class-fast obj)) class-public-a))
 
@@ -1739,11 +1859,11 @@ OBJECT can be an instance or a class."
   ;; Skip typechecking while retrieving this value.
   (let ((eieio-skip-typecheck t))
     ;; Return nil if the magic symbol is in there.
-    (if (eieio-object-p object)
-	(if (eq (eieio-oref object slot) eieio-unbound) nil t)
-      (if (class-p object)
-	  (if (eq (eieio-oref-default object slot) eieio-unbound) nil t)
-	(signal 'wrong-type-argument (list 'eieio-object-p object))))))
+    (not (eq (cond
+	      ((eieio-object-p object) (eieio-oref object slot))
+	      ((class-p object)        (eieio-oref-default object slot))
+	      (t (signal 'wrong-type-argument (list 'eieio-object-p object))))
+	     eieio-unbound))))
 
 (defun slot-makeunbound (object slot)
   "In OBJECT, make SLOT unbound."
@@ -2009,14 +2129,26 @@ This should only be called from a generic function."
 	    keys (append (make-list (length tlambdas) method-before) keys))
       )
 
-    ;; If there were no methods found, then there could be :static methods.
-    (when (not lambdas)
+    (if mclass
+	;; For the case of a class,
+	;; if there were no methods found, then there could be :static methods.
+	(when (not lambdas)
+	  (setq tlambdas
+		(eieio-generic-form method method-static mclass))
+	  (setq lambdas (cons tlambdas lambdas)
+		keys (cons method-static keys)
+		primarymethodlist  ;; Re-use even with bad name here
+		(eieiomt-method-list method method-static mclass)))
+      ;; For the case of no class (ie - mclass == nil) then there may
+      ;; be a primary method.
       (setq tlambdas
-	    (eieio-generic-form method method-static mclass))
-      (setq lambdas (cons tlambdas lambdas)
-	    keys (cons method-static keys)
-	    primarymethodlist  ;; Re-use even with bad name here
-	    (eieiomt-method-list method method-static mclass)))
+	    (eieio-generic-form method method-primary nil))
+      (when tlambdas
+	(setq lambdas (cons tlambdas lambdas)
+	      keys (cons method-primary keys)
+	      primarymethodlist
+	      (eieiomt-method-list method method-primary nil)))
+      )
 
     (run-hook-with-args 'eieio-pre-method-execution-hooks
 			primarymethodlist)
@@ -2143,37 +2275,23 @@ CLASS is the starting class to search from in the method tree.
 If CLASS is nil, then an empty list of methods should be returned."
   ;; Note: eieiomt - the MT means MethodTree.  See more comments below
   ;; for the rest of the eieiomt methods.
-  (let ((lambdas nil)
-	(mclass (list class)))
-    (while mclass
-      ;; Note: a nil can show up in the class list once we start
-      ;;       searching through the method tree.
-      (when (car mclass)
-	;; lookup the form to use for the PRIMARY object for the next level
-	(let ((tmpl (eieio-generic-form method key (car mclass))))
-	  (when (or (not lambdas)
-		    ;; This prevents duplicates coming out of the
-		    ;; class method optimizer.  Perhaps we should
-		    ;; just not optimize before/afters?
-		    (not (eq (car tmpl) (car (car lambdas)))))
-	    (setq lambdas (cons tmpl lambdas))
-	    (if (null (car lambdas))
-		(setq lambdas (cdr lambdas))))))
-      ;; Add new classes to mclass.  Since our input might not be a class
-      ;; protect against that.
-      (if (car mclass)
-	  ;; If there is a class, append any methods it may provide
-	  ;; to the remainder of the class list.
-	  (let ((io (class-method-invocation-order (car mclass))))
-	    (if (eq io :depth-first)
-		;; Depth first.
-		(setq mclass (append (eieiomt-next (car mclass)) (cdr mclass)))
-	      ;; Breadth first.
-	      (setq mclass (append (cdr mclass) (eieiomt-next (car mclass)))))
-	    )
-	;; Advance to next entry in mclass if it is nil.
-	(setq mclass (cdr mclass)))
-      )
+
+  ;; Collect lambda expressions stored for the class and its parent
+  ;; classes.
+  (let (lambdas)
+    (dolist (ancestor (class-precedence-list class))
+      ;; Lookup the form to use for the PRIMARY object for the next level
+      (let ((tmpl (eieio-generic-form method key ancestor)))
+	(when (and tmpl
+		   (or (not lambdas)
+		       ;; This prevents duplicates coming out of the
+		       ;; class method optimizer.  Perhaps we should
+		       ;; just not optimize before/afters?
+		       (not (member tmpl lambdas))))
+	  (push tmpl lambdas))))
+
+    ;; Return collected lambda. For :after methods, return in current
+    ;; order (most general class last); Otherwise, reverse order.
     (if (eq key method-after)
 	lambdas
       (nreverse lambdas))))
@@ -2207,6 +2325,7 @@ Use `next-method-p' to find out if there is a next method to call."
 	(apply 'no-next-method (car newargs) (cdr newargs))
       (let* ((eieio-generic-call-next-method-list
 	      (cdr eieio-generic-call-next-method-list))
+	     (eieio-generic-call-arglst newargs)
 	     (scoped-class (cdr next))
 	     (fcn (car next))
 	     )
@@ -2299,32 +2418,18 @@ nil for superclasses.  This function performs no type checking!"
 
 (defun eieiomt-sym-optimize (s)
   "Find the next class above S which has a function body for the optimizer."
-  ;; (message "Optimizing %S" s)
-  (let* ((es (intern-soft (symbol-name s))) ;external symbol of class
-	 (io (class-method-invocation-order es))
-	 (ov nil)
-	 (cont t))
-    ;; This converts ES from a single symbol to a list of parent classes.
-    (setq es (eieiomt-next es))
-    ;; Loop over ES, then its children individually.
-    ;; We can have multiple hits only at one level of the parent tree.
-    (while (and es cont)
-      (setq ov (intern-soft (symbol-name (car es)) eieiomt-optimizing-obarray))
-      (if (fboundp ov)
-	  (progn
-	    (set s ov)			;store ov as our next symbol
-	    (setq cont nil))
-	(if (eq io :depth-first)
-	    ;; Pre-pend the subclasses of (car es) so we get
-	    ;; DEPTH FIRST optimization.
-	    (setq es (append (eieiomt-next (car es)) (cdr es)))
-	  ;; Else, we are breadth first.
-	  ;; (message "Class %s is breadth first" es)
-	  (setq es (append (cdr es) (eieiomt-next (car es))))
-	  )))
-    ;; If there is no nearest call, then set our value to nil
-    (if (not es) (set s nil))
-    ))
+  ;; Set the value to nil in case there is no nearest cell.
+  (set s nil)
+  ;; Find the nearest cell that has a function body. If we find one,
+  ;; we replace the nil from above.
+  (let ((external-symbol (intern-soft (symbol-name s))))
+    (catch 'done
+      (dolist (ancestor (rest (class-precedence-list external-symbol)))
+	(let ((ov (intern-soft (symbol-name ancestor)
+			       eieiomt-optimizing-obarray)))
+	  (when (fboundp ov)
+	    (set s ov) ;; store ov as our next symbol
+	    (throw 'done ancestor)))))))
 
 (defun eieio-generic-form (method key class)
  "Return the lambda form belonging to METHOD using KEY based upon CLASS.
@@ -2333,7 +2438,7 @@ no form, but has a parent class, then trace to that parent class.
 The first time a form is requested from a symbol, an optimized path
 is memorized for faster future use."
  (let ((emto (aref (get method 'eieio-method-obarray)
-		   (if class key (+ key 3)))))
+		   (if class key (eieio-specialized-key-to-generic-key key)))))
    (if (class-p class)
        ;; 1) find our symbol
        (let ((cs (intern-soft (symbol-name class) emto)))
@@ -2366,7 +2471,7 @@ is memorized for faster future use."
 	       nil)))
      ;; for a generic call, what is a list, is the function body we want.
      (let ((emtl (aref (get method 'eieio-method-tree)
-		       (if class key (+ key 3)))))
+ 		       (if class key (eieio-specialized-key-to-generic-key key)))))
        (if emtl
 	   ;; The car of EMTL is supposed to be a class, which in this
 	   ;; case is nil, so skip it.
@@ -2430,6 +2535,11 @@ This is usually a symbol that starts with `:'."
 (intern "unbound-slot")
 (put 'unbound-slot 'error-conditions '(unbound-slot error nil))
 (put 'unbound-slot 'error-message "Unbound slot")
+
+(intern "inconsistent-class-hierarchy")
+(put 'inconsistent-class-hierarchy 'error-conditions
+     '(inconsistent-class-hierarchy error nil))
+(put 'inconsistent-class-hierarchy 'error-message "Inconsistent class hierarchy")
 
 ;;; Here are some CLOS items that need the CL package
 ;;
@@ -2526,6 +2636,17 @@ dynamically set from SLOTS."
 	   (slot (aref scoped-class class-public-a))
 	   (defaults (aref scoped-class class-public-d)))
       (while slot
+	;; For each slot, see if we need to evaluate it.
+	;;
+	;; Paul Landes said in an email:
+	;; > CL evaluates it if it can, and otherwise, leaves it as
+	;; > the quoted thing as you already have.  This is by the
+	;; > Sonya E. Keene book and other things I've look at on the
+	;; > web.
+	(let ((dflt (eieio-default-eval-maybe (car defaults))))
+	  (when (not (eq dflt (car defaults)))
+	    (eieio-oset this (car slot) dflt) ))
+	;; Next.
 	(setq slot (cdr slot)
 	      defaults (cdr defaults))))
     ;; Shared initialize will parse our slots for us.
@@ -2814,17 +2935,66 @@ Optional argument NOESCAPE is passed to `prin1-to-string' when appropriate."
 ;;; Autoloading some external symbols, and hooking into the help system
 ;;
 
-(autoload 'eieio-help-mode-augmentation-maybee "eieio-opt" "For buffers thrown into help mode, augment for EIEIO.")
-(autoload 'eieio-browse "eieio-opt" "Create an object browser window." t)
-(autoload 'eieio-describe-class "eieio-opt" "Describe CLASS defined by a string or symbol" t)
-(autoload 'eieio-describe-constructor "eieio-opt" "Describe the constructor function FCN." t)
-(autoload 'describe-class "eieio-opt" "Describe CLASS defined by a string or symbol." t)
-(autoload 'eieio-describe-generic "eieio-opt" "Describe GENERIC defined by a string or symbol." t)
-(autoload 'describe-generic "eieio-opt" "Describe GENERIC defined by a string or symbol." t)
+
+;;; Start of automatically extracted autoloads.
+
+;;;### (autoloads (customize-object) "eieio-custom" "eieio-custom.el"
+;;;;;;  "cf1bd64c76a6e6406545e8c5a5530d43")
+;;; Generated autoloads from eieio-custom.el
 
-(autoload 'customize-object "eieio-custom" "Create a custom buffer editing OBJ.")
+(autoload 'customize-object "eieio-custom" "\
+Customize OBJ in a custom buffer.
+Optional argument GROUP is the sub-group of slots to display.
+
+\(fn OBJ &optional GROUP)" nil nil)
+
+;;;***
+
+;;;### (autoloads (eieio-help-mode-augmentation-maybee eieio-describe-generic
+;;;;;;  eieio-describe-constructor eieio-describe-class eieio-browse)
+;;;;;;  "eieio-opt" "eieio-opt.el" "1bed0a56310f402683419139ebc18d7f")
+;;; Generated autoloads from eieio-opt.el
+
+(autoload 'eieio-browse "eieio-opt" "\
+Create an object browser window to show all objects.
+If optional ROOT-CLASS, then start with that, otherwise start with
+variable `eieio-default-superclass'.
+
+\(fn &optional ROOT-CLASS)" t nil)
+
+(defalias 'describe-class 'eieio-describe-class)
+
+(autoload 'eieio-describe-class "eieio-opt" "\
+Describe a CLASS defined by a string or symbol.
+If CLASS is actually an object, then also display current values of that object.
+Optional HEADERFCN should be called to insert a few bits of info first.
+
+\(fn CLASS &optional HEADERFCN)" t nil)
+
+(autoload 'eieio-describe-constructor "eieio-opt" "\
+Describe the constructor function FCN.
+Uses `eieio-describe-class' to describe the class being constructed.
+
+\(fn FCN)" t nil)
+
+(defalias 'describe-generic 'eieio-describe-generic)
+
+(autoload 'eieio-describe-generic "eieio-opt" "\
+Describe the generic function GENERIC.
+Also extracts information about all methods specific to this generic.
+
+\(fn GENERIC)" t nil)
+
+(autoload 'eieio-help-mode-augmentation-maybee "eieio-opt" "\
+For buffers thrown into help mode, augment for EIEIO.
+Arguments UNUSED are not used.
+
+\(fn &rest UNUSED)" nil nil)
+
+;;;***
+
+;;; End of automatically extracted autoloads.
 
 (provide 'eieio)
 
-;; arch-tag: c1aeab9c-2938-41a3-842b-1a38bd26e9f2
 ;;; eieio ends here

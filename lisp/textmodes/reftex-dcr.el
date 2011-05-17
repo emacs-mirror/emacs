@@ -1,11 +1,11 @@
 ;;; reftex-dcr.el --- viewing cross references and citations with RefTeX
 
-;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2011 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
 ;; Version: 4.31
+;; Package: reftex
 
 ;; This file is part of GNU Emacs.
 
@@ -34,7 +34,7 @@
 
 (defun reftex-view-crossref (&optional arg auto-how fail-quietly)
   "View cross reference of macro at point.  Point must be on the KEY
-argument.  When at at `\\ref' macro, show corresponding `\\label'
+argument.  When at a `\\ref' macro, show corresponding `\\label'
 definition, also in external documents (`xr').  When on a label, show
 a locations where KEY is referenced.  Subsequent calls find additional
 locations.  When on a `\\cite', show the associated `\\bibitem' macro or
@@ -481,5 +481,4 @@ Calling this function several times find successive citation locations."
       (move-marker reftex-global-search-marker nil)
       (error "All files processed"))))
 
-;; arch-tag: d2f52b56-744e-44ad-830d-1fc193b90eda
 ;;; reftex-dcr.el ends here

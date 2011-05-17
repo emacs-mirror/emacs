@@ -1,7 +1,6 @@
 ;;; format-spec.el --- functions for formatting arbitrary formatting strings
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: tools
@@ -76,5 +75,4 @@ starting with a character."
 
 (provide 'format-spec)
 
-;; arch-tag: c22d49cf-d167-445d-b7f1-2504d4173f53
 ;;; format-spec.el ends here

@@ -1,4 +1,7 @@
 \input texinfo                  @c -*-texinfo-*-
+
+@include gnus-overrides.texi
+
 @setfilename ../../info/sieve
 @settitle Emacs Sieve Manual
 @synindex fn cp
@@ -8,8 +11,7 @@
 @copying
 This file documents the Emacs Sieve package, for server-side mail filtering.
 
-Copyright @copyright{} 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-Free Software Foundation, Inc.
+Copyright @copyright{} 2001-2011  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -25,7 +27,7 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs network features
 @direntry
 * Sieve: (sieve).               Managing Sieve scripts in Emacs.
 @end direntry
@@ -35,7 +37,12 @@ developing GNU and promoting software freedom.''
 @setchapternewpage odd
 
 @titlepage
+@ifset WEBHACKDEVEL
+@title Emacs Sieve Manual (DEVELOPMENT VERSION)
+@end ifset
+@ifclear WEBHACKDEVEL
 @title Emacs Sieve Manual
+@end ifclear
 
 @author by Simon Josefsson
 @page
@@ -227,7 +234,7 @@ the @code{fileinto} command.
 require "fileinto";
 
 if address "sender" "owner-w3-beta@@xemacs.org" @{
-	fileinto "INBOX.w3-beta";
+        fileinto "INBOX.w3-beta";
 @}
 @end example
 
@@ -238,7 +245,7 @@ required.
 
 @example
 if header :contains "Delivered-To" "auc-tex@@sunsite.dk" @{
-	fileinto "INBOX.auc-tex";
+        fileinto "INBOX.auc-tex";
 @}
 @end example
 
@@ -249,7 +256,7 @@ has been required.
 
 @example
 if address ["to", "cc"] "kerberos@@mit.edu" @{
-	fileinto "INBOX.kerberos";
+        fileinto "INBOX.kerberos";
 @}
 @end example
 
@@ -263,10 +270,6 @@ A number of user-visible variables exist, which all can be customized
 in the @code{sieve} group (@kbd{M-x customize-group RET sieve RET}):
 
 @table @code
-
-@item sieve-manage-default-user
-@vindex sieve-manage-default-user
-Sets the default username.
 
 @item sieve-manage-default-port
 @vindex sieve-manage-default-port
@@ -356,7 +359,3 @@ A Protocol for Remotely Managing Sieve Scripts
 @bye
 
 @c End:
-
-@ignore
-   arch-tag: 6e3ad0af-2eaf-4f35-a081-d40f4a683ec3
-@end ignore

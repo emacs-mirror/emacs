@@ -1,7 +1,6 @@
 ;;; url-methods.el --- Load URL schemes as needed
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2011 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -154,5 +153,4 @@ it has not already been loaded."
 
 (provide 'url-methods)
 
-;; arch-tag: 336863f8-5a07-4906-9be5-b3c6bcebbe67
 ;;; url-methods.el ends here

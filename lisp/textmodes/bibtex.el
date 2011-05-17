@@ -1,7 +1,6 @@
 ;;; bibtex.el --- BibTeX mode for GNU Emacs
 
-;; Copyright (C) 1992, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994-1999, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Stefan Schoef <schoef@offis.uni-oldenburg.de>
 ;;      Bengt Martensson <bengt@mathematik.uni-Bremen.de>
@@ -9,7 +8,7 @@
 ;;      Mike Newton <newton@gumby.cs.caltech.edu>
 ;;      Aaron Larson <alarson@src.honeywell.com>
 ;;      Dirk Herrmann <D.Herrmann@tu-bs.de>
-;; Maintainer: Roland Winkler <roland.winkler@physik.uni-erlangen.de>
+;; Maintainer: Roland Winkler <winkler@gnu.org>
 ;; Keywords: BibTeX, LaTeX, TeX
 
 ;; This file is part of GNU Emacs.
@@ -2094,7 +2093,7 @@ Formats current entry according to variable `bibtex-entry-format'."
                                 ;; if match not at left subfield boundary...
                                 (if (< (1+ (nth 1 bounds)) (match-beginning 0))
                                     (insert (bibtex-field-right-delimiter) " # ")
-                                  (delete-backward-char 1))))))))
+                                  (delete-char -1))))))))
 
                     ;; use book title of crossref'd entry
                     (if (and (memq 'inherit-booktitle format)
@@ -3027,12 +3026,14 @@ if that value is non-nil.
                 ;; brace-delimited ones
                 )
          nil
-         (font-lock-syntactic-keywords . bibtex-font-lock-syntactic-keywords)
          (font-lock-extra-managed-props . (category))
 	 (font-lock-mark-block-function
 	  . (lambda ()
               (set-mark (bibtex-end-of-entry))
 	      (bibtex-beginning-of-entry)))))
+  (set (make-local-variable 'syntax-propertize-function)
+       (syntax-propertize-via-font-lock
+        bibtex-font-lock-syntactic-keywords))
   (setq imenu-generic-expression
         (list (list nil bibtex-entry-head bibtex-key-in-head))
         imenu-case-fold-search t)
@@ -3833,16 +3834,16 @@ Return t if test was successful, nil otherwise."
           (with-current-buffer (get-buffer-create err-buf)
             (setq default-directory dir)
             (unless (eq major-mode 'compilation-mode) (compilation-mode))
-            (toggle-read-only -1)
-            (delete-region (point-min) (point-max))
-            (insert "BibTeX mode command `bibtex-validate'\n"
-                    (if syntax-error
-                        "Maybe undetected errors due to syntax errors.  Correct and validate again.\n"
-                      "\n"))
-            (dolist (err error-list)
-              (insert (format "%s:%d: %s\n" file (car err) (cdr err))))
-            (set-buffer-modified-p nil)
-            (toggle-read-only 1)
+            (let ((inhibit-read-only t))
+              (delete-region (point-min) (point-max))
+              (insert "BibTeX mode command `bibtex-validate'\n"
+                      (if syntax-error
+                          "Maybe undetected errors due to syntax errors.  \
+Correct and validate again.\n"
+                        "\n"))
+              (dolist (err error-list)
+                (insert (format "%s:%d: %s\n" file (car err) (cdr err))))
+              (set-buffer-modified-p nil))
             (goto-char (point-min))
             (forward-line 2)) ; first error message
           (display-buffer err-buf)
@@ -3894,12 +3895,11 @@ Return t if test was successful, nil otherwise."
         (let ((err-buf "*BibTeX validation errors*"))
           (with-current-buffer (get-buffer-create err-buf)
             (unless (eq major-mode 'compilation-mode) (compilation-mode))
-            (toggle-read-only -1)
-            (delete-region (point-min) (point-max))
-            (insert "BibTeX mode command `bibtex-validate-globally'\n\n")
-            (dolist (err (sort error-list 'string-lessp)) (insert err))
-            (set-buffer-modified-p nil)
-            (toggle-read-only 1)
+            (let ((inhibit-read-only t))
+              (delete-region (point-min) (point-max))
+              (insert "BibTeX mode command `bibtex-validate-globally'\n\n")
+              (dolist (err (sort error-list 'string-lessp)) (insert err))
+              (set-buffer-modified-p nil))
             (goto-char (point-min))
             (forward-line 2)) ; first error message
           (display-buffer err-buf)
@@ -4313,8 +4313,7 @@ If optional arg MOVE is non-nil move point to end of field."
       (goto-char (bibtex-start-of-field bounds))
       (forward-char) ; leading comma
       (bibtex-delete-whitespace)
-      (open-line 1)
-      (forward-char)
+      (insert "\n")
       (indent-to-column (+ bibtex-entry-offset
                            bibtex-field-indentation))
       (re-search-forward "[ \t\n]*=" end-field)
@@ -4352,7 +4351,6 @@ column `bibtex-text-indentation' and continuation lines start here, too.
 If `bibtex-align-at-equal-sign' is non-nil, align equal signs, too."
   (interactive "*")
   (let ((pnt (copy-marker (point)))
-        (end (copy-marker (bibtex-end-of-entry)))
         (beg (bibtex-beginning-of-entry)) ; move point
         bounds)
     (bibtex-delete-whitespace)
@@ -4364,8 +4362,7 @@ If `bibtex-align-at-equal-sign' is non-nil, align equal signs, too."
         (forward-char))
     (skip-chars-backward " \t\n")
     (bibtex-delete-whitespace)
-    (open-line 1)
-    (forward-char)
+    (insert "\n")
     (indent-to-column bibtex-entry-offset)
     (goto-char pnt)))
 
@@ -4776,5 +4773,4 @@ Return the URL or nil if none can be generated."
 
 (provide 'bibtex)
 
-;; arch-tag: ee2be3af-caad-427f-b42a-d20fad630d04
 ;;; bibtex.el ends here

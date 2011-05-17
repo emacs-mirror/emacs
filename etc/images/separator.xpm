@@ -2,11 +2,11 @@
 static char * separator_xpm[] = {
 "2 24 3 1",
 " 	c None",
-".	c #DBD3CB",
-"+	c #FCFBFA",
+".	c #888888",
+"+	c #FFFFFF",
 "  ",
 "  ",
-"  ",
+".+ ",
 ".+",
 ".+",
 ".+",
@@ -25,6 +25,6 @@ static char * separator_xpm[] = {
 ".+",
 ".+",
 ".+",
-"  ",
+".+",
 "  ",
 "  "};

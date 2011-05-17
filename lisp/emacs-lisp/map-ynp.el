@@ -1,7 +1,6 @@
 ;;; map-ynp.el --- general-purpose boolean question-asker
 
-;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1991-1995, 2000-2011 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Maintainer: FSF
@@ -275,5 +274,4 @@ the current %s and exit."
     ;; Return the number of actions that were taken.
     actions))
 
-;; arch-tag: 1d0a3201-a151-4c10-b231-4da47c9e6dc3
 ;;; map-ynp.el ends here

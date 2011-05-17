@@ -1,7 +1,6 @@
 ;;; dcl-mode.el --- major mode for editing DCL command files
 
-;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;; Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Odd Gripenstam <gripenstamol@decus.se>
 ;; Maintainer: Odd Gripenstam <gripenstamol@decus.se>
@@ -296,72 +295,69 @@ See `imenu-generic-expression' for details."
 )
 
 
-(defvar dcl-mode-map ()
+(defvar dcl-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\e\n"	'dcl-split-line)
+    (define-key map "\e\t" 	'tempo-complete-tag)
+    (define-key map "\e^"	'dcl-delete-indentation)
+    (define-key map "\em"	'dcl-back-to-indentation)
+    (define-key map "\ee"        'dcl-forward-command)
+    (define-key map "\ea"        'dcl-backward-command)
+    (define-key map "\e\C-q" 	'dcl-indent-command)
+    (define-key map "\t"         'dcl-tab)
+    (define-key map ":"          'dcl-electric-character)
+    (define-key map "F"          'dcl-electric-character)
+    (define-key map "f"          'dcl-electric-character)
+    (define-key map "E"          'dcl-electric-character)
+    (define-key map "e"          'dcl-electric-character)
+    (define-key map "\C-c\C-o" 	'dcl-set-option)
+    (define-key map "\C-c\C-f" 	'tempo-forward-mark)
+    (define-key map "\C-c\C-b" 	'tempo-backward-mark)
+
+    (define-key map [menu-bar] 	(make-sparse-keymap))
+    (define-key map [menu-bar dcl]
+      (cons "DCL" (make-sparse-keymap "DCL")))
+
+    ;; Define these in bottom-up order
+    (define-key map [menu-bar dcl tempo-backward-mark]
+      '("Previous template mark" . tempo-backward-mark))
+    (define-key map [menu-bar dcl tempo-forward-mark]
+      '("Next template mark" . tempo-forward-mark))
+    (define-key map [menu-bar dcl tempo-complete-tag]
+      '("Complete template tag" . tempo-complete-tag))
+    (define-key map [menu-bar dcl dcl-separator-tempo]
+      '("--"))
+    (define-key map [menu-bar dcl dcl-save-all-options]
+      '("Save all options" . dcl-save-all-options))
+    (define-key map [menu-bar dcl dcl-save-nondefault-options]
+      '("Save changed options" . dcl-save-nondefault-options))
+    (define-key map [menu-bar dcl dcl-set-option]
+      '("Set option" . dcl-set-option))
+    (define-key map [menu-bar dcl dcl-separator-option]
+      '("--"))
+    (define-key map [menu-bar dcl dcl-delete-indentation]
+      '("Delete indentation" . dcl-delete-indentation))
+    (define-key map [menu-bar dcl dcl-split-line]
+      '("Split line" . dcl-split-line))
+    (define-key map [menu-bar dcl dcl-indent-command]
+      '("Indent command" . dcl-indent-command))
+    (define-key map [menu-bar dcl dcl-tab]
+      '("Indent line/insert tab" . dcl-tab))
+    (define-key map [menu-bar dcl dcl-back-to-indentation]
+      '("Back to indentation" . dcl-back-to-indentation))
+    (define-key map [menu-bar dcl dcl-forward-command]
+      '("End of statement" . dcl-forward-command))
+    (define-key map [menu-bar dcl dcl-backward-command]
+      '("Beginning of statement" . dcl-backward-command))
+    ;; imenu is only supported for versions with imenu-generic-expression
+    (if (boundp 'imenu-generic-expression)
+        (progn
+          (define-key map [menu-bar dcl dcl-separator-movement]
+            '("--"))
+          (define-key map [menu-bar dcl imenu]
+            '("Buffer index menu" . imenu))))
+    map)
   "Keymap used in DCL-mode buffers.")
-(if dcl-mode-map
-    ()
-  (setq dcl-mode-map (make-sparse-keymap))
-  (define-key dcl-mode-map "\e\n"	'dcl-split-line)
-  (define-key dcl-mode-map "\e\t" 	'tempo-complete-tag)
-  (define-key dcl-mode-map "\e^"	'dcl-delete-indentation)
-  (define-key dcl-mode-map "\em"	'dcl-back-to-indentation)
-  (define-key dcl-mode-map "\ee"        'dcl-forward-command)
-  (define-key dcl-mode-map "\ea"        'dcl-backward-command)
-  (define-key dcl-mode-map "\e\C-q" 	'dcl-indent-command)
-  (define-key dcl-mode-map "\t"         'dcl-tab)
-  (define-key dcl-mode-map ":"          'dcl-electric-character)
-  (define-key dcl-mode-map "F"          'dcl-electric-character)
-  (define-key dcl-mode-map "f"          'dcl-electric-character)
-  (define-key dcl-mode-map "E"          'dcl-electric-character)
-  (define-key dcl-mode-map "e"          'dcl-electric-character)
-  (define-key dcl-mode-map "\C-c\C-o" 	'dcl-set-option)
-  (define-key dcl-mode-map "\C-c\C-f" 	'tempo-forward-mark)
-  (define-key dcl-mode-map "\C-c\C-b" 	'tempo-backward-mark)
-
-  (define-key dcl-mode-map [menu-bar] 	(make-sparse-keymap))
-  (define-key dcl-mode-map [menu-bar dcl]
-    (cons "DCL" (make-sparse-keymap "DCL")))
-
-  ;; Define these in bottom-up order
-  (define-key dcl-mode-map [menu-bar dcl tempo-backward-mark]
-    '("Previous template mark" . tempo-backward-mark))
-  (define-key dcl-mode-map [menu-bar dcl tempo-forward-mark]
-    '("Next template mark" . tempo-forward-mark))
-  (define-key dcl-mode-map [menu-bar dcl tempo-complete-tag]
-    '("Complete template tag" . tempo-complete-tag))
-  (define-key dcl-mode-map [menu-bar dcl dcl-separator-tempo]
-    '("--"))
-  (define-key dcl-mode-map [menu-bar dcl dcl-save-all-options]
-    '("Save all options" . dcl-save-all-options))
-  (define-key dcl-mode-map [menu-bar dcl dcl-save-nondefault-options]
-    '("Save changed options" . dcl-save-nondefault-options))
-  (define-key dcl-mode-map [menu-bar dcl dcl-set-option]
-    '("Set option" . dcl-set-option))
-  (define-key dcl-mode-map [menu-bar dcl dcl-separator-option]
-    '("--"))
-  (define-key dcl-mode-map [menu-bar dcl dcl-delete-indentation]
-    '("Delete indentation" . dcl-delete-indentation))
-  (define-key dcl-mode-map [menu-bar dcl dcl-split-line]
-    '("Split line" . dcl-split-line))
-  (define-key dcl-mode-map [menu-bar dcl dcl-indent-command]
-    '("Indent command" . dcl-indent-command))
-  (define-key dcl-mode-map [menu-bar dcl dcl-tab]
-    '("Indent line/insert tab" . dcl-tab))
-  (define-key dcl-mode-map [menu-bar dcl dcl-back-to-indentation]
-    '("Back to indentation" . dcl-back-to-indentation))
-  (define-key dcl-mode-map [menu-bar dcl dcl-forward-command]
-    '("End of statement" . dcl-forward-command))
-  (define-key dcl-mode-map [menu-bar dcl dcl-backward-command]
-    '("Beginning of statement" . dcl-backward-command))
-  ;; imenu is only supported for versions with imenu-generic-expression
-  (if (boundp 'imenu-generic-expression)
-      (progn
-	(define-key dcl-mode-map [menu-bar dcl dcl-separator-movement]
-	  '("--"))
-	(define-key dcl-mode-map [menu-bar dcl imenu]
-	  '("Buffer index menu" . imenu))))
-  )
-
 
 (defcustom dcl-ws-r
   "\\([ \t]*-[ \t]*\\(!.*\\)*\n\\)*[ \t]*"
@@ -409,7 +405,7 @@ A list of regexps that will trigger a reindent if the last letter
 is defined as dcl-electric-character.
 
 E.g.: if this list contains `endif', the key `f' is defined as
-dcl-electric-character and the you have just typed the `f' in
+dcl-electric-character and you have just typed the `f' in
 `endif', the line will be reindented."
   :type '(repeat regexp)
   :group 'dcl)
@@ -475,7 +471,7 @@ Preloaded with all known option names from dcl-option-alist")
 
 
 ;;;###autoload
-(defun dcl-mode ()
+(define-derived-mode dcl-mode prog-mode "DCL"
   "Major mode for editing DCL-files.
 
 This mode indents command lines in blocks.  (A block is commands between
@@ -593,29 +589,17 @@ $
 
 There is some minimal font-lock support (see vars
 `dcl-font-lock-defaults' and `dcl-font-lock-keywords')."
-  (interactive)
-  (kill-all-local-variables)
-  (set-syntax-table dcl-mode-syntax-table)
-
-  (make-local-variable 'indent-line-function)
-  (setq indent-line-function 'dcl-indent-line)
-
-  (make-local-variable 'comment-start)
-  (setq comment-start "!")
-
-  (make-local-variable 'comment-end)
-  (setq comment-end "")
-
-  (make-local-variable 'comment-multi-line)
-  (setq comment-multi-line nil)
+  (set (make-local-variable 'indent-line-function) 'dcl-indent-line)
+  (set (make-local-variable 'comment-start) "!")
+  (set (make-local-variable 'comment-end) "")
+  (set (make-local-variable 'comment-multi-line) nil)
 
   ;; This used to be "^\\$[ \t]*![ \t]*" which looks more correct.
   ;; The drawback was that you couldn't make empty comment lines by pressing
   ;; C-M-j repeatedly - only the first line became a comment line.
   ;; This version has the drawback that the "$" can be anywhere in the line,
   ;; and something inappropriate might be interpreted as a comment.
-  (make-local-variable 'comment-start-skip)
-  (setq comment-start-skip "\\$[ \t]*![ \t]*")
+  (set (make-local-variable 'comment-start-skip) "\\$[ \t]*![ \t]*")
 
   (if (boundp 'imenu-generic-expression)
       (progn (setq imenu-generic-expression dcl-imenu-generic-expression)
@@ -636,14 +620,9 @@ There is some minimal font-lock support (see vars
   (make-local-variable 'dcl-electric-reindent-regexps)
 
   ;; font lock
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults dcl-font-lock-defaults)
+  (set (make-local-variable 'font-lock-defaults) dcl-font-lock-defaults)
 
-  (setq major-mode 'dcl-mode)
-  (setq mode-name "DCL")
-  (use-local-map dcl-mode-map)
-  (tempo-use-tag-list 'dcl-tempo-tags)
-  (run-mode-hooks 'dcl-mode-hook))
+  (tempo-use-tag-list 'dcl-tempo-tags))
 
 
 ;;; *** Movement commands ***************************************************
@@ -683,8 +662,7 @@ There is some minimal font-lock support (see vars
 (defun dcl-end-of-command ()
   "Move point to end of current command or next command if not on a command."
   (interactive)
-  (let ((type (dcl-get-line-type))
-	(start (point)))
+  (let ((type (dcl-get-line-type)))
     (if (or (eq type '$)
 	    (eq type '-))
 	(progn
@@ -821,7 +799,7 @@ by the numbers in order 1-2-3-1-... :
   ;;  text
   ;;  1
 
-  (let* ((default-limit (save-excursion (end-of-line) (1+ (point))))
+  (let* ((default-limit (1+ (line-end-position)))
 	 (limit (or limit default-limit))
 	 (last-good-point (point))
 	 (opoint (point)))
@@ -962,7 +940,7 @@ Returns one of the following symbols:
 
 ;;;---------------------------------------------------------------------------
 (defun dcl-calc-command-indent-multiple
-  (indent-type cur-indent extra-indent last-point this-point)
+  (indent-type cur-indent extra-indent _last-point _this-point)
   "Indent lines to a multiple of dcl-basic-offset.
 
 Set dcl-calc-command-indent-function to this function to customize
@@ -1206,7 +1184,7 @@ The indent-type classification could probably be expanded upon.
 
 
 ;;;---------------------------------------------------------------------------
-(defun dcl-calc-cont-indent-relative (cur-indent extra-indent)
+(defun dcl-calc-cont-indent-relative (_cur-indent _extra-indent)
   "Indent continuation lines to align with words on previous line.
 
 Indent continuation lines to a position relative to preceding
@@ -1549,13 +1527,11 @@ Also remove the continuation mark if easily detected."
   (interactive "*P")
   (delete-indentation arg)
   (let ((type (dcl-get-line-type)))
-    (if (and (or (equal type '$)
-		 (equal type '-)
-		 (equal type 'empty-$))
+    (if (and (member type '($ - empty-$))
 	     (not (bobp))
-	     (= (char-after (1- (point))) ?-))
+	     (= (char-before) ?-))
 	(progn
-	  (delete-backward-char 1)
+	  (delete-char -1)
 	  (fixup-whitespace)))))
 
 
@@ -1563,7 +1539,7 @@ Also remove the continuation mark if easily detected."
 
 
 ;;;-------------------------------------------------------------------------
-(defun dcl-option-value-basic (option-assoc)
+(defun dcl-option-value-basic (_option-assoc)
   "Guess a value for basic-offset."
   (save-excursion
     (dcl-beginning-of-command)
@@ -1598,7 +1574,7 @@ Also remove the continuation mark if easily detected."
 
 
 ;;;-------------------------------------------------------------------------
-(defun dcl-option-value-offset (option-assoc)
+(defun dcl-option-value-offset (_option-assoc)
   "Guess a value for an offset.
 Find the column of the first non-blank character on the line.
 Returns the column offset."
@@ -1609,7 +1585,7 @@ Returns the column offset."
 
 
 ;;;-------------------------------------------------------------------------
-(defun dcl-option-value-margin-offset (option-assoc)
+(defun dcl-option-value-margin-offset (_option-assoc)
   "Guess a value for margin offset.
 Find the column of the first non-blank character on the line, not
 counting labels.
@@ -1621,7 +1597,7 @@ Returns a number as a string."
 
 
 ;;;-------------------------------------------------------------------------
-(defun dcl-option-value-comment-line (option-assoc)
+(defun dcl-option-value-comment-line (_option-assoc)
   "Guess a value for `dcl-comment-line-regexp'.
 Must return a string."
   ;; Should we set comment-start and comment-start-skip as well?
@@ -1785,7 +1761,7 @@ Set or update the value of VAR in the current buffers
 	  (skip-chars-forward " \t")
 	  (or (eolp)
 	      (setq suffix-string (buffer-substring (point)
-					     (progn (end-of-line) (point)))))
+                                                    (line-end-position))))
 	  (goto-char (match-beginning 0))
 	  (or (bolp)
 	      (setq prefix-string
@@ -1812,8 +1788,7 @@ Set or update the value of VAR in the current buffers
 	    (if (eolp) (error "Missing colon in local variables entry"))
 	    (skip-chars-backward " \t")
 	    (let* ((str (buffer-substring beg (point)))
-		   (found-var (read str))
-		   val)
+		   (found-var (read str)))
 	      ;; Setting variable named "end" means end of list.
 	      (if (string-equal (downcase str) "end")
 		  (progn
@@ -1918,6 +1893,10 @@ section at the end of the current buffer."
 
 
 ;;;-------------------------------------------------------------------------
+(with-no-warnings
+  ;; Dynamically bound in `dcl-save-mode'.
+  (defvar mode))
+
 (defun dcl-save-mode ()
   "Save the current mode for this buffer.
 Save the current mode in a `Local Variables:'
@@ -1925,7 +1904,7 @@ section at the end of the current buffer."
   (interactive)
   (let ((mode (prin1-to-string major-mode)))
     (if (string-match "-mode$" mode)
-	(let ((mode (intern (substring mode  0 (match-beginning 0)))))
+	(let ((mode (intern (substring mode 0 (match-beginning 0)))))
 	  (dcl-save-option 'mode))
       (message "Strange mode: %s" mode))))
 
@@ -2216,5 +2195,4 @@ otherwise return nil."
 
 (run-hooks 'dcl-mode-load-hook)		; for your customizations
 
-;; arch-tag: e00d421b-f26c-483e-a8bd-af412ea7764a
 ;;; dcl-mode.el ends here

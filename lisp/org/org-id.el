@@ -1,11 +1,11 @@
 ;;; org-id.el --- Global identifiers for Org-mode entries
 ;;
-;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.35i
+;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -37,8 +37,9 @@
 ;; time of the ID, with microsecond accuracy.  This virtually
 ;; guarantees globally unique identifiers, even if several people are
 ;; creating IDs at the same time in files that will eventually be used
-;; together.  As an external method `uuidgen' is supported, if installed
-;; on the system.
+;; together.
+;;
+;; By default Org uses UUIDs as global unique identifiers.
 ;;
 ;; This file defines the following API:
 ;;
@@ -68,6 +69,8 @@
 ;;        Find the location of an entry with specific id.
 ;;
 
+;;; Code:
+
 (require 'org)
 
 (declare-function message-make-fqdn "message" ())
@@ -84,18 +87,9 @@
   :group 'org-id
   :type 'string)
 
-(defcustom org-id-method
-  (condition-case nil
-      (if (string-match "\\`[-0-9a-fA-F]\\{36\\}\\'"
-			(org-trim (shell-command-to-string
-				   org-id-uuid-program)))
-	  'uuidgen
-	'org)
-    (error 'org))
+(defcustom org-id-method 'uuid
   "The method that should be used to create new IDs.
 
-If `uuidgen' is available on the system, it will be used as the default method.
-if not, the method `org' is used.
 An ID will consist of the optional prefix specified in `org-id-prefix',
 and a unique part created by the method this variable specifies.
 
@@ -105,11 +99,13 @@ org        Org's own internal method, using an encoding of the current time to
            microsecond accuracy, and optionally the current domain of the
            computer.  See the variable `org-id-include-domain'.
 
-uuidgen    Call the external command uuidgen."
+uuid       Create random (version 4) UUIDs.  If the program defined in
+           `org-id-uuid-program' is available it is used to create the ID.
+           Otherwise an internal functions is used."
   :group 'org-id
   :type '(choice
 	  (const :tag "Org's internal method" org)
-	  (const :tag "external: uuidgen" uuidgen)))
+	  (const :tag "external: uuidgen" uuid)))
 
 (defcustom org-id-prefix nil
   "The prefix for IDs.
@@ -306,8 +302,10 @@ So a typical ID could look like \"Org:4nd91V40HI\"."
 	 unique)
     (if (equal prefix ":") (setq prefix ""))
     (cond
-     ((eq org-id-method 'uuidgen)
-      (setq unique (org-trim (shell-command-to-string org-id-uuid-program))))
+     ((memq org-id-method '(uuidgen uuid))
+      (setq unique (org-trim (shell-command-to-string org-id-uuid-program)))
+      (unless (org-uuidgen-p unique)
+	(setq unique (org-id-uuid))))
      ((eq org-id-method 'org)
       (let* ((etime (org-id-reverse-string (org-id-time-to-b36)))
 	     (postfix (if org-id-include-domain
@@ -317,6 +315,30 @@ So a typical ID could look like \"Org:4nd91V40HI\"."
 	(setq unique (concat etime postfix))))
      (t (error "Invalid `org-id-method'")))
     (concat prefix unique)))
+
+(defun org-id-uuid ()
+  "Return string with random (version 4) UUID."
+  (let ((rnd (md5 (format "%s%s%s%s%s%s%s"
+			  (random t)
+			  (current-time)
+			  (user-uid)
+			  (emacs-pid)
+			  (user-full-name)
+			  user-mail-address
+			  (recent-keys)))))
+    (format "%s-%s-4%s-%s%s-%s"
+	    (substring rnd 0 8)
+	    (substring rnd 8 12)
+	    (substring rnd 13 16)
+	    (format "%x"
+		    (logior
+		     #b10000000
+		     (logand
+		      #b10111111
+		      (string-to-number
+		       (substring rnd 16 18) 16))))
+	    (substring rnd 18 20)
+	    (substring rnd 20 32))))
 
 (defun org-id-reverse-string (s)
   (mapconcat 'char-to-string (nreverse (string-to-list s)) ""))
@@ -497,7 +519,8 @@ When CHECK is given, prepare detailed information about duplicate IDs."
     (puthash id (abbreviate-file-name file) org-id-locations)
     (add-to-list 'org-id-files (abbreviate-file-name file))))
 
-(add-hook 'kill-emacs-hook 'org-id-locations-save)
+(unless noninteractive
+  (add-hook 'kill-emacs-hook 'org-id-locations-save))
 
 (defun org-id-hash-to-alist (hash)
   "Turn an org-id hash into an alist, so that it can be written to a file."
@@ -574,18 +597,22 @@ optional argument MARKERP, return the position as a new marker."
 ;; Calling the following function is hard-coded into `org-store-link',
 ;; so we do have to add it to `org-store-link-functions'.
 
+;;;###autoload
 (defun org-id-store-link ()
   "Store a link to the current entry, using its ID."
   (interactive)
-  (let* ((link (org-make-link "id:" (org-id-get-create)))
-	 (case-fold-search nil)
-	 (desc (save-excursion
-		 (org-back-to-heading t)
-		 (or (and (looking-at org-complex-heading-regexp)
-			  (if (match-end 4) (match-string 4) (match-string 0)))
-		     link))))
-    (org-store-link-props :link link :description desc :type "id")
-    link))
+  (when (and (buffer-file-name (buffer-base-buffer)) (org-mode-p))
+    (let* ((link (org-make-link "id:" (org-id-get-create)))
+	   (case-fold-search nil)
+	   (desc (save-excursion
+		   (org-back-to-heading t)
+		   (or (and (looking-at org-complex-heading-regexp)
+			    (if (match-end 4)
+				(match-string 4)
+			      (match-string 0)))
+		       link))))
+      (org-store-link-props :link link :description desc :type "id")
+      link)))
 
 (defun org-id-open (id)
   "Go to the entry with id ID."
@@ -616,6 +643,5 @@ optional argument MARKERP, return the position as a new marker."
 
 ;;; org-id.el ends here
 
-;; arch-tag: e5abaca4-e16f-4b25-832a-540cfb63a712
 
 

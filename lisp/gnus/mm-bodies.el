@@ -1,7 +1,6 @@
 ;;; mm-bodies.el --- Functions for decoding MIME things
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -24,7 +23,7 @@
 
 ;;; Code:
 
-;; For Emacs < 22.2.
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 
@@ -302,5 +301,4 @@ decoding.  If it is nil, default to `mail-parse-charset'."
 
 (provide 'mm-bodies)
 
-;; arch-tag: 41104bb6-4443-4ca9-8d5c-ff87ecf27d8d
 ;;; mm-bodies.el ends here

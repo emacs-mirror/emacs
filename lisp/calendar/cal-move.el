@@ -1,12 +1,12 @@
 ;;; cal-move.el --- calendar functions for movement in the calendar
 
-;; Copyright (C) 1995, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
 ;; Keywords: calendar
 ;; Human-Keywords: calendar
+;; Package: calendar
 
 ;; This file is part of GNU Emacs.
 
@@ -203,6 +203,18 @@ EVENT is an event like `last-nonmenu-event'."
 
 (define-obsolete-function-alias 'scroll-calendar-left-three-months
   'calendar-scroll-left-three-months "23.1")
+
+;; cf scroll-bar-toolkit-scroll
+;;;###cal-autoload
+(defun calendar-scroll-toolkit-scroll (event)
+  "Function to scroll the calendar after a toolkit scroll-bar click."
+  (interactive "e")
+  (let ((part (nth 4 (event-end event))))
+    ;; Not bothering with drag events (handle, end-scroll).
+    (cond ((memq part '(above-handle up top))
+           (calendar-scroll-right nil event))
+          ((memq part '(below-handle down bottom))
+           (calendar-scroll-left nil event)))))
 
 ;;;###cal-autoload
 (defun calendar-scroll-right-three-months (arg &optional event)
@@ -405,5 +417,4 @@ Negative DAY counts backward from end of year."
 
 (provide 'cal-move)
 
-;; arch-tag: d0883c46-7e16-4914-8ff8-8f67e699b781
 ;;; cal-move.el ends here

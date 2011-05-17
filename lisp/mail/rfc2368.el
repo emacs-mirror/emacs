@@ -1,7 +1,6 @@
 ;;; rfc2368.el --- support for rfc2368
 
-;; Copyright (C) 1998, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2011 Free Software Foundation, Inc.
 
 ;; Author: Sen Nagata <sen@eccosys.com>
 ;; Keywords: mail
@@ -92,13 +91,11 @@ Note: make sure MAILTO-URL has been 'unhtmlized' (e.g. &amp; -> &), before
 calling this function."
   (let ((case-fold-search t)
 	prequery query headers-alist)
-
+    (setq mailto-url (replace-regexp-in-string "\n" " " mailto-url))
     (if (string-match rfc2368-mailto-regexp mailto-url)
 	(progn
-
 	  (setq prequery
 		(match-string rfc2368-mailto-prequery-index mailto-url))
-
 	  (setq query
 		(match-string rfc2368-mailto-query-index mailto-url))
 
@@ -131,10 +128,8 @@ calling this function."
 
 	  headers-alist)
 
-      (error "Failed to match a mailto: url"))
-    ))
+      (error "Failed to match a mailto: url"))))
 
 (provide 'rfc2368)
 
-;; arch-tag: ea804934-ad96-4f69-957b-857a76e4fd95
 ;;; rfc2368.el ends here

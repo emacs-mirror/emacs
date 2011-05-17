@@ -1,7 +1,6 @@
 ;;; gametree.el --- manage game analysis trees in Emacs
 
-;; Copyright (C) 1997, 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Ian T Zimmerman <itz@rahul.net>
 ;; Created: Wed Dec 10 07:41:46 PST 1997
@@ -201,7 +200,7 @@ should be no leading white space."
     (let ((boundary (concat "[ \t]*\\([1-9][0-9]*\\)\\("
                             gametree-full-ply-regexp "\\|"
                             gametree-half-ply-regexp "\\)"))
-          (limit (save-excursion (beginning-of-line 1) (point))))
+          (limit (line-beginning-position 1)))
       (if (looking-at boundary)
           (+ (* 2 (string-to-number (match-string 1)))
              (if (string-match gametree-half-ply-regexp (match-string 2)) 1 0))
@@ -259,23 +258,20 @@ This value is simply the outline heading level of the current line."
 
 (defun gametree-children-shown-p ()
   (save-excursion
-    (condition-case nil
+    (ignore-errors
         (let ((depth (gametree-current-branch-depth)))
           (outline-next-visible-heading 1)
-          (< depth (gametree-current-branch-depth)))
-      (error nil))))
+          (< depth (gametree-current-branch-depth))))))
 
-(defun gametree-current-layout (depth &optional top-level)
+(defun gametree-current-layout (depth &optional from-top-level)
   (let ((layout nil) (first-time t))
     (while (save-excursion
-             (condition-case nil
-                 (progn
-                   (or (and first-time top-level
-                            (bolp) (looking-at outline-regexp))
-                       (setq first-time nil)
-                       (outline-next-visible-heading 1))
-                   (< depth (gametree-current-branch-depth)))
-               (error nil)))
+             (ignore-errors
+               (or (and first-time from-top-level
+                        (bolp) (looking-at outline-regexp))
+                   (setq first-time nil)
+                   (outline-next-visible-heading 1))
+               (< depth (gametree-current-branch-depth))))
       (if (not first-time)
           (outline-next-visible-heading 1))
       (setq first-time nil)
@@ -298,18 +294,16 @@ This value is simply the outline heading level of the current line."
     (goto-char (point-min))
     (setq gametree-local-layout (gametree-current-layout 0 t))))
 
-(defun gametree-apply-layout (layout depth &optional top-level)
+(defun gametree-apply-layout (layout depth &optional from-top-level)
   (let ((first-time t))
     (while (and layout
                 (save-excursion
-                  (condition-case nil
-                      (progn
-                        (or (and first-time top-level
-                                 (bolp) (looking-at outline-regexp))
-                            (setq first-time nil)
-                            (outline-next-visible-heading 1))
-                        (< depth (gametree-current-branch-depth)))
-                    (error nil))))
+                  (ignore-errors
+                    (or (and first-time from-top-level
+                             (bolp) (looking-at outline-regexp))
+                        (setq first-time nil)
+                        (outline-next-visible-heading 1))
+                    (< depth (gametree-current-branch-depth)))))
       (if (not first-time)
           (outline-next-visible-heading 1))
       (setq first-time nil)
@@ -376,9 +370,7 @@ Subnodes which have been manually scored are honored."
             (while (not done)           ;handle subheadings
               (setq running (funcall minmax running
                                      (gametree-compute-reduced-score)))
-              (setq done (condition-case nil
-                             (outline-forward-same-level 1)
-                           (error nil)))))
+              (setq done (ignore-errors (outline-forward-same-level 1)))))
           running)))))
 
 ;;;; Commands
@@ -566,6 +558,20 @@ buffer, it is replaced by the new value.  See the documentation for
     (gametree-hack-file-layout))
   nil)
 
+;;;; Key bindings
+(defvar gametree-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-c\C-j" 'gametree-break-line-here)
+    (define-key map "\C-c\C-v" 'gametree-insert-new-leaf)
+    (define-key map "\C-c\C-m" 'gametree-merge-line)
+    (define-key map "\C-c\C-r " 'gametree-layout-to-register)
+    (define-key map "\C-c\C-r/" 'gametree-layout-to-register)
+    (define-key map "\C-c\C-rj" 'gametree-apply-register-layout)
+    (define-key map "\C-c\C-y" 'gametree-save-and-hack-layout)
+    (define-key map "\C-c;" 'gametree-insert-score)
+    (define-key map "\C-c^" 'gametree-compute-and-insert-score)
+    map))
+
 (define-derived-mode gametree-mode outline-mode "GameTree"
   "Major mode for managing game analysis trees.
 Useful to postal and email chess (and, it is hoped, also checkers, go,
@@ -575,18 +581,6 @@ shogi, etc.) players, it is a slightly modified version of Outline mode.
   (auto-fill-mode 0)
   (make-local-variable 'write-contents-hooks)
   (add-hook 'write-contents-hooks 'gametree-save-and-hack-layout))
-
-;;;; Key bindings
-
-(define-key gametree-mode-map "\C-c\C-j" 'gametree-break-line-here)
-(define-key gametree-mode-map "\C-c\C-v" 'gametree-insert-new-leaf)
-(define-key gametree-mode-map "\C-c\C-m" 'gametree-merge-line)
-(define-key gametree-mode-map "\C-c\C-r " 'gametree-layout-to-register)
-(define-key gametree-mode-map "\C-c\C-r/" 'gametree-layout-to-register)
-(define-key gametree-mode-map "\C-c\C-rj" 'gametree-apply-register-layout)
-(define-key gametree-mode-map "\C-c\C-y" 'gametree-save-and-hack-layout)
-(define-key gametree-mode-map "\C-c;" 'gametree-insert-score)
-(define-key gametree-mode-map "\C-c^" 'gametree-compute-and-insert-score)
 
 ;;;; Goodies for mousing users
 (and (fboundp 'track-mouse)
@@ -617,5 +611,4 @@ shogi, etc.) players, it is a slightly modified version of Outline mode.
 
 (provide 'gametree)
 
-;; arch-tag: aaa30943-9ae4-4cc1-813d-a46f96b7e4f1
 ;;; gametree.el ends here

@@ -1,9 +1,8 @@
 ;;; quail.el --- provides simple input method for multilingual text
 
-;; Copyright (C) 1997, 1998, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2011  Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
@@ -663,7 +662,7 @@ This layout is almost the same as that of VT100,
                               ")
    '("pc105-uk" . "\
                               \
-`\2541!2\"3\2434$5%6^7&8*9(0)-_=+     \
+`\2541!2\"3\2434$5%6^7&8*9(0)-_=+    \
   qQwWeErRtTyYuUiIoOpP[{]}    \
   aAsSdDfFgGhHjJkKlL;:'@#~    \
 \\|zZxXcCvVbBnNmM,<.>/?        \
@@ -811,7 +810,7 @@ The format of KBD-LAYOUT is the same as `quail-keyboard-layout'."
 		      (setq translation (aref (cdr translation) 0))
 		    (setq translation " ")))
 	      (setq done-list (cons translation done-list)))
-	  (setq translation ch))
+	  (setq translation (aref kbd-layout i)))
 	(aset layout i translation))
       (setq i (1+ i)))
 
@@ -819,7 +818,7 @@ The format of KBD-LAYOUT is the same as `quail-keyboard-layout'."
 	  (bar "|")
 	  lower upper row)
       ;; Make table without horizontal lines.  Each column for a key
-      ;; has the form "| LU |" where L is for lower key and and U is
+      ;; has the form "| LU |" where L is for lower key and U is
       ;; for a upper key.  If width of L (U) is greater than 1,
       ;; preceding (following) space is not inserted.
       (put-text-property 0 1 'face 'bold bar)
@@ -3077,5 +3076,4 @@ call it with one argument STRING."
 ;;
 (provide 'quail)
 
-;; arch-tag: 46d7db54-5467-42c4-a2a9-53ca90a1e886
 ;;; quail.el ends here

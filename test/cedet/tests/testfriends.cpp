@@ -36,4 +36,3 @@ int B::testB() {
 int B::testAB() { // %1% ( ( "testfriends.cpp" ) ( "B" "B::testAB" ) )
 }
 
-// arch-tag: 31ea93db-59f8-4301-8e32-06536358618e

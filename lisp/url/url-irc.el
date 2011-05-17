@@ -1,7 +1,6 @@
 ;;; url-irc.el --- IRC URL interface
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2011  Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -22,7 +21,8 @@
 
 ;;; Commentary:
 
-;; IRC URLs are defined in http://www.w3.org/Addressing/draft-mirashi-url-irc-01.txt
+;; IRC URLs are defined in
+;; http://www.w3.org/Addressing/draft-mirashi-url-irc-01.txt
 
 ;;; Code:
 
@@ -32,7 +32,7 @@
 (defconst url-irc-default-port 6667 "Default port for IRC connections.")
 
 (defcustom url-irc-function 'url-irc-rcirc
-  "*Function to actually open an IRC connection.
+  "Function to actually open an IRC connection.
 The function should take the following arguments:
     HOST - the hostname of the IRC server to contact
     PORT - the port number of the IRC server to contact
@@ -90,5 +90,4 @@ PASSWORD - What password to use"
 
 (provide 'url-irc)
 
-;; arch-tag: 2e5eecf8-9eb3-436b-9fbd-c26f2fb2bf3e
 ;;; url-irc.el ends here

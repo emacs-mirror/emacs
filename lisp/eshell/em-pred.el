@@ -1,7 +1,6 @@
 ;;; em-pred.el --- argument predicates and modifiers (ala zsh)
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -60,8 +59,9 @@ ordinary strings."
 
 ;;; User Variables:
 
-(defcustom eshell-pred-load-hook '(eshell-pred-initialize)
-  "*A list of functions to run when `eshell-pred' is loaded."
+(defcustom eshell-pred-load-hook nil
+  "A list of functions to run when `eshell-pred' is loaded."
+  :version "24.1"			; removed eshell-pred-initialize
   :type 'hook
   :group 'eshell-pred)
 
@@ -101,7 +101,7 @@ ordinary strings."
     (?m . (eshell-pred-file-time ?m "modification" 5))
     (?c . (eshell-pred-file-time ?c "change" 6))
     (?L . (eshell-pred-file-size)))
-  "*A list of predicates than can be applied to a globbing pattern.
+  "A list of predicates than can be applied to a globbing pattern.
 The format of each entry is
 
   (CHAR . PREDICATE-FUNC-SEXP)"
@@ -150,7 +150,7 @@ The format of each entry is
 		(eshell-pred-substitute t)
 	      (error "`g' modifier cannot be used alone"))))
     (?s . (eshell-pred-substitute)))
-  "*A list of modifiers than can be applied to an argument expansion.
+  "A list of modifiers than can be applied to an argument expansion.
 The format of each entry is
 
   (CHAR ENTRYWISE-P MODIFIER-FUNC-SEXP)"
@@ -427,7 +427,7 @@ returning the resultant string."
       (forward-char))
     (if (looking-at "[0-9]+")
 	(progn
-	  (setq when (- (eshell-time-to-seconds (current-time))
+	  (setq when (- (float-time)
 			(* (string-to-number (match-string 0))
 			   quantum)))
 	  (goto-char (match-end 0)))
@@ -444,7 +444,7 @@ returning the resultant string."
 	     (attrs (file-attributes file)))
 	(unless attrs
 	  (error "Cannot stat file `%s'" file))
-	(setq when (eshell-time-to-seconds (nth attr-index attrs))))
+	(setq when (float-time (nth attr-index attrs))))
       (goto-char (1+ end)))
     `(lambda (file)
        (let ((attrs (file-attributes file)))
@@ -453,7 +453,7 @@ returning the resultant string."
 		   '<
 		 (if (eq qual ?+)
 		     '>
-		   '=)) ,when (eshell-time-to-seconds
+		   '=)) ,when (float-time
 			       (nth ,attr-index attrs))))))))
 
 (defun eshell-pred-file-type (type)
@@ -605,5 +605,4 @@ that 'ls -l' will show in the first column of its display. "
 ;; generated-autoload-file: "esh-groups.el"
 ;; End:
 
-;; arch-tag: 8b5ce022-17f3-4c40-93c7-5faafaa63f31
 ;;; em-pred.el ends here

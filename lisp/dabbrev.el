@@ -1,7 +1,6 @@
 ;;; dabbrev.el --- dynamic abbreviation package
 
-;; Copyright (C) 1985, 1986, 1992, 1994, 1996, 1997, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1985-1986, 1992, 1994, 1996-1997, 2000-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Don Morrison
@@ -377,7 +376,7 @@ With a prefix argument ARG, it searches all buffers accepted by the
 function pointed out by `dabbrev-friend-buffer-function' to find the
 completions.
 
-If the prefix argument is 16 (which comes from \\[prefix-argument] \\[prefix-argument]),
+If the prefix argument is 16 (which comes from \\[universal-argument] \\[universal-argument]),
 then it searches *all* buffers."
   (interactive "*P")
   (dabbrev--reset-global-variables)
@@ -392,8 +391,7 @@ then it searches *all* buffers."
 			       dabbrev-case-fold-search)
 			     (or (not dabbrev-upcase-means-case-search)
 				 (string= abbrev (downcase abbrev)))))
-	 (my-obarray dabbrev--last-obarray)
-	 init)
+	 (my-obarray dabbrev--last-obarray))
     (save-excursion
       ;;--------------------------------
       ;; New abbreviation to expand.
@@ -995,5 +993,4 @@ Leaves point at the location of the start of the expansion."
 
 (provide 'dabbrev)
 
-;; arch-tag: 29e58596-f080-4306-a409-70296cf9d46f
 ;;; dabbrev.el ends here

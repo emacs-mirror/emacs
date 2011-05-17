@@ -1,6 +1,6 @@
 ;;; srecode/el.el --- Emacs Lisp specific arguments
 
-;; Copyright (C) 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -109,5 +109,4 @@ Calls `srecode-semantic-apply-tag-to-dict-default' first."
 ;; generated-autoload-load-name: "srecode/el"
 ;; End:
 
-;; arch-tag: c1852a36-d45b-4263-8f3e-03f4f3c795d9
 ;;; srecode/el.el ends here

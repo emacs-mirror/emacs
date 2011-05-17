@@ -1,7 +1,6 @@
 ;;; cmacexp.el --- expand C macros in a region
 
-;; Copyright (C) 1992, 1994, 1996, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1996, 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Francesco Potorti` <pot@gnu.org>
 ;; Adapted-By: ESR
@@ -403,5 +402,4 @@ Optional arg DISPLAY non-nil means show messages in the echo area."
       ;; Cleanup.
       (kill-buffer outbuf))))
 
-;; arch-tag: 4f20253c-71ef-4e6d-a774-19087060910e
 ;;; cmacexp.el ends here

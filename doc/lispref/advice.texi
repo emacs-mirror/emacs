@@ -1,7 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1998, 1999, 2001, 2002, 2003, 2004,
-@c   2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+@c Copyright (C) 1998-1999, 2001-2011  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/advising
 @node Advising Functions, Debugging, Byte Compilation, Top
@@ -777,7 +776,3 @@ pieces of advice is the same.  The only difference is that
 executed even if some previous piece of advice had an error or a
 non-local exit.  If any around-advice is protected, then the whole
 around-advice onion is protected as a result.
-
-@ignore
-   arch-tag: 80c135c2-f1c3-4f8d-aa85-f8d8770d307f
-@end ignore

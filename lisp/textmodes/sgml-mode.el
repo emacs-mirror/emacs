@@ -1,7 +1,7 @@
 ;;; sgml-mode.el --- SGML- and HTML-editing modes -*- coding: utf-8 -*-
 
-;; Copyright (C) 1992, 1995, 1996, 1998, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1995-1996, 1998, 2001-2011
+;;   Free Software Foundation, Inc.
 
 ;; Author: James Clark <jjc@jclark.com>
 ;; Maintainer: FSF
@@ -100,7 +100,13 @@ This takes effect when first loading the `sgml-mode' library.")
     (define-key map "\C-c\C-d" 'sgml-delete-tag)
     (define-key map "\C-c\^?" 'sgml-delete-tag)
     (define-key map "\C-c?" 'sgml-tag-help)
+    (define-key map "\C-c]" 'sgml-close-tag)
     (define-key map "\C-c/" 'sgml-close-tag)
+
+    ;; Redundant keybindings, for consistency with TeX mode.
+    (define-key map "\C-c\C-o" 'sgml-tag)
+    (define-key map "\C-c\C-e" 'sgml-close-tag)
+
     (define-key map "\C-c8" 'sgml-name-8bit-mode)
     (define-key map "\C-c\C-v" 'sgml-validate)
     (when sgml-quick-keys
@@ -288,11 +294,12 @@ Any terminating `>' or `/' is not matched.")
 (defvar sgml-font-lock-keywords sgml-font-lock-keywords-1
   "*Rules for highlighting SGML code.  See also `sgml-tag-face-alist'.")
 
-(defvar sgml-font-lock-syntactic-keywords
+(defconst sgml-syntax-propertize-function
+  (syntax-propertize-rules
   ;; Use the `b' style of comments to avoid interference with the -- ... --
   ;; comments recognized when `sgml-specials' includes ?-.
   ;; FIXME: beware of <!--> blabla <!--> !!
-  '(("\\(<\\)!--" (1 "< b"))
+   ("\\(<\\)!--" (1 "< b"))
     ("--[ \t\n]*\\(>\\)" (1 "> b"))
     ;; Double quotes outside of tags should not introduce strings.
     ;; Be careful to call `syntax-ppss' on a position before the one we're
@@ -377,6 +384,9 @@ a DOCTYPE or an XML declaration."
   (save-excursion
     (goto-char (point-min))
     (or (string= "xml" (file-name-extension (or buffer-file-name "")))
+        ;; Maybe the buffer-size check isn't needed, I don't know.
+        (and (zerop (buffer-size))
+             (string= "xhtml" (file-name-extension (or buffer-file-name ""))))
 	(looking-at "\\s-*<\\?xml")
 	(when (re-search-forward
 	       (eval-when-compile
@@ -417,7 +427,12 @@ a DOCTYPE or an XML declaration."
 		  (format-mode-line mode-name))))))
 
 (defun sgml-fill-nobreak ()
-  ;; Don't break between a tag name and its first argument.
+  "Don't break between a tag name and its first argument.
+This function is designed for use in `fill-nobreak-predicate'.
+
+    <a href=\"some://where\" type=\"text/plain\">
+      ^                   ^
+      | no break here     | but still allowed here"
   (save-excursion
     (skip-chars-backward " \t")
     (and (not (zerop (skip-syntax-backward "w_")))
@@ -472,9 +487,9 @@ Do \\[describe-key] on the following bindings to discover what they do.
        '((sgml-font-lock-keywords
           sgml-font-lock-keywords-1
           sgml-font-lock-keywords-2)
-         nil t nil nil
-         (font-lock-syntactic-keywords
-          . sgml-font-lock-syntactic-keywords)))
+         nil t))
+  (set (make-local-variable 'syntax-propertize-function)
+       sgml-syntax-propertize-function)
   (set (make-local-variable 'facemenu-add-face-function)
        'sgml-mode-facemenu-add-face-function)
   (set (make-local-variable 'sgml-xml-mode) (sgml-xml-guess))
@@ -521,7 +536,7 @@ Behaves electrically if `sgml-quick-keys' is non-nil."
     (insert-char ?/ 1)
     (indent-according-to-mode))
    ((eq sgml-quick-keys 'close)
-    (delete-backward-char 1)
+    (delete-char -1)
     (sgml-close-tag))
    (t
     (sgml-slash-matching arg))))
@@ -578,7 +593,7 @@ encoded keyboard operation."
   (insert ?&)
   (or char
       (setq char (read-quoted-char "Enter char or octal number")))
-  (delete-backward-char 1)
+  (delete-char -1)
   (insert char)
   (undo-boundary)
   (sgml-namify-char))
@@ -596,7 +611,7 @@ Uses `sgml-char-names'."
 	   ((encode-char char 'ucs)))))
     (if (not name)
 	(error "Don't know the name of `%c'" char)
-      (delete-backward-char 1)
+      (delete-char -1)
       (insert (format (if (numberp name) "&#%d;" "&%s;") name)))))
 
 (defun sgml-name-self ()
@@ -702,7 +717,7 @@ If QUIET, do not print a message when there are no attributes for TAG."
 	      (sgml-value (assoc (downcase attribute) alist))
 	      (setq i (1- i))))
 	  (if (eq (preceding-char) ?\s)
-	      (delete-backward-char 1)))
+	      (delete-char -1)))
 	car)))
 
 (defun sgml-auto-attributes (arg)
@@ -1112,7 +1127,7 @@ See `sgml-tag-alist' for info about attribute rules."
 	  (setq alist (skeleton-read '(completing-read "Value: " (cdr alist))))
 	  (if (string< "" alist)
 	      (insert alist ?\")
-	    (delete-backward-char 2)))
+	    (delete-char -2)))
       (insert "=\"")
       (if (cdr alist)
           (insert (skeleton-read '(completing-read "Value: " alist)))
@@ -2146,5 +2161,4 @@ Can be used as a value for `html-mode-hook'."
 
 (provide 'sgml-mode)
 
-;; arch-tag: 9675da94-b7f9-4bda-ad19-73ed7b4fb401
 ;;; sgml-mode.el ends here

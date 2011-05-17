@@ -1,7 +1,6 @@
 ;;; rfc2047.el --- functions for encoding and decoding rfc2047 messages
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -342,17 +341,13 @@ The buffer may be narrowed."
 (defconst rfc2047-syntax-table
   ;; (make-char-table 'syntax-table '(2)) only works in Emacs.
   (let ((table (make-syntax-table)))
-    ;; The following is done to work for setting all elements of the table
-    ;; in Emacs 21-23 and XEmacs; it appears to be the cleanest way.
+    ;; The following is done to work for setting all elements of the table;
+    ;; it appears to be the cleanest way.
     ;; Play safe and don't assume the form of the word syntax entry --
     ;; copy it from ?a.
-    (if (fboundp 'set-char-table-range)	; Emacs
-	(funcall (intern "set-char-table-range")
-		 table t (aref (standard-syntax-table) ?a))
-      (if (fboundp 'put-char-table)
-	  (if (fboundp 'get-char-table)	; warning avoidance
-	      (put-char-table t (get-char-table ?a (standard-syntax-table))
-			      table))))
+    (if (featurep 'xemacs)
+	(put-char-table t (get-char-table ?a (standard-syntax-table)) table)
+      (set-char-table-range table t (aref (standard-syntax-table) ?a)))
     (modify-syntax-entry ?\\ "\\" table)
     (modify-syntax-entry ?\" "\"" table)
     (modify-syntax-entry ?\( "(" table)
@@ -427,7 +422,7 @@ Dynamically bind `rfc2047-encoding-type' to change that."
 		      ;; since encoded words can't occur in quotes.
 		      (progn
 			(goto-char end)
-			(delete-backward-char 1)
+			(delete-char -1)
 			(goto-char start)
 			(delete-char 1)
 			(when last-encoded
@@ -655,6 +650,9 @@ should not change this value.")
 Point moves to the end of the region."
   (let ((mime-charset (or (mm-find-mime-charset-region b e) (list 'us-ascii)))
 	cs encoding tail crest eword)
+    ;; Use utf-8 as a last resort if determining charset of text fails.
+    (if (memq nil mime-charset)
+	(setq mime-charset (list 'utf-8)))
     (cond ((> (length mime-charset) 1)
 	   (error "Can't rfc2047-encode `%s'"
 		  (buffer-substring-no-properties b e)))
@@ -848,18 +846,8 @@ Point moves to the end of the region."
 
 (defun rfc2047-encode-parameter (param value)
   "Return and PARAM=VALUE string encoded in the RFC2047-like style.
-This is a replacement for the `rfc2231-encode-string' function.
-
-When attaching files as MIME parts, we should use the RFC2231 encoding
-to specify the file names containing non-ASCII characters.  However,
-many mail softwares don't support it in practice and recipients won't
-be able to extract files with correct names.  Instead, the RFC2047-like
-encoding is acceptable generally.  This function provides the very
-RFC2047-like encoding, resigning to such a regrettable trend.  To use
-it, put the following line in your ~/.gnus.el file:
-
-\(defalias 'mail-header-encode-parameter 'rfc2047-encode-parameter)
-"
+This is a substitution for the `rfc2231-encode-string' function, that
+is the standard but many mailers don't support it."
   (let ((rfc2047-encoding-type 'mime)
 	(rfc2047-encode-max-chars nil))
     (rfc2045-encode-string param (rfc2047-encode-string value))))
@@ -897,7 +885,7 @@ them.")
 		  (goto-char beg)
 		  (while (search-forward "\\" nil 'move)
 		    (unless (memq (char-after) '(?\"))
-		      (delete-backward-char 1))
+		      (delete-char -1))
 		    (forward-char)))
 		(forward-char))
 	    (error
@@ -1172,5 +1160,4 @@ strings are stripped."
 
 (provide 'rfc2047)
 
-;; arch-tag: a07fe3d4-22b5-4c4a-bd89-b1f82d5d36f6
 ;;; rfc2047.el ends here

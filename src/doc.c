@@ -1,6 +1,5 @@
 /* Record indices of function doc strings stored in a file.
-   Copyright (C) 1985, 1986, 1993, 1994, 1995, 1997, 1998, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 1985-1986, 1993-1995, 1997-2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -25,18 +24,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/file.h>	/* Must be after sys/types.h for USG*/
 #include <ctype.h>
 #include <setjmp.h>
-
-#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
-#endif
-
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
-
-#ifndef O_RDONLY
-#define O_RDONLY 0
-#endif
 
 #include "lisp.h"
 #include "buffer.h"
@@ -45,34 +34,23 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keymap.h"
 #include "buildobj.h"
 
-#ifdef HAVE_INDEX
-extern char *index P_ ((const char *, int));
-#endif
-
-Lisp_Object Vdoc_file_name;
-
 Lisp_Object Qfunction_documentation;
 
-/* A list of files used to build this Emacs binary.  */
-static Lisp_Object Vbuild_files;
-
-extern Lisp_Object Voverriding_local_map;
-
-extern Lisp_Object Qremap;
-
+extern Lisp_Object Qclosure;
 /* Buffer used for reading from documentation file.  */
 static char *get_doc_string_buffer;
 static int get_doc_string_buffer_size;
 
 static unsigned char *read_bytecode_pointer;
-Lisp_Object Fsnarf_documentation P_ ((Lisp_Object));
+static Lisp_Object Fdocumentation_property (Lisp_Object, Lisp_Object,
+					    Lisp_Object);
+static Lisp_Object Fsnarf_documentation (Lisp_Object);
 
 /* readchar in lread.c calls back here to fetch the next byte.
    If UNREADFLAG is 1, we unread a byte.  */
 
 int
-read_bytecode_char (unreadflag)
-     int unreadflag;
+read_bytecode_char (int unreadflag)
 {
   if (unreadflag)
     {
@@ -102,16 +80,14 @@ read_bytecode_char (unreadflag)
    and return a cons cell.  */
 
 Lisp_Object
-get_doc_string (filepos, unibyte, definition)
-     Lisp_Object filepos;
-     int unibyte, definition;
+get_doc_string (Lisp_Object filepos, int unibyte, int definition)
 {
   char *from, *to;
   register int fd;
   register char *name;
   register char *p, *p1;
-  int minsize;
-  int offset, position;
+  EMACS_INT minsize;
+  EMACS_INT offset, position;
   Lisp_Object file, tem;
 
   if (INTEGERP (filepos))
@@ -147,12 +123,12 @@ get_doc_string (filepos, unibyte, definition)
       if (minsize < 8)
 	minsize = 8;
       name = (char *) alloca (minsize + SCHARS (file) + 8);
-      strcpy (name, SDATA (Vdoc_directory));
-      strcat (name, SDATA (file));
+      strcpy (name, SSDATA (Vdoc_directory));
+      strcat (name, SSDATA (file));
     }
   else
     {
-      name = (char *) SDATA (file);
+      name = SSDATA (file);
     }
 
   fd = emacs_open (name, O_RDONLY, 0);
@@ -164,7 +140,7 @@ get_doc_string (filepos, unibyte, definition)
 	  /* Preparing to dump; DOC file is probably not installed.
 	     So check in ../etc. */
 	  strcpy (name, "../etc/");
-	  strcat (name, SDATA (file));
+	  strcat (name, SSDATA (file));
 
 	  fd = emacs_open (name, O_RDONLY, 0);
 	}
@@ -180,7 +156,7 @@ get_doc_string (filepos, unibyte, definition)
   if (0 > lseek (fd, position - offset, 0))
     {
       emacs_close (fd);
-      error ("Position %ld out of range in doc string file \"%s\"",
+      error ("Position %"pI"d out of range in doc string file \"%s\"",
 	     position, name);
     }
 
@@ -190,14 +166,14 @@ get_doc_string (filepos, unibyte, definition)
   p = get_doc_string_buffer;
   while (1)
     {
-      int space_left = (get_doc_string_buffer_size
-			- (p - get_doc_string_buffer));
+      EMACS_INT space_left = (get_doc_string_buffer_size
+			      - (p - get_doc_string_buffer));
       int nread;
 
       /* Allocate or grow the buffer if we need to.  */
       if (space_left == 0)
 	{
-	  int in_buffer = p - get_doc_string_buffer;
+	  EMACS_INT in_buffer = p - get_doc_string_buffer;
 	  get_doc_string_buffer_size += 16 * 1024;
 	  get_doc_string_buffer
 	    = (char *) xrealloc (get_doc_string_buffer,
@@ -221,9 +197,9 @@ get_doc_string (filepos, unibyte, definition)
       if (!nread)
 	break;
       if (p == get_doc_string_buffer)
-	p1 = (char *) index (p + offset, '\037');
+	p1 = strchr (p + offset, '\037');
       else
-	p1 = (char *) index (p, '\037');
+	p1 = strchr (p, '\037');
       if (p1)
 	{
 	  *p1 = 0;
@@ -277,7 +253,9 @@ get_doc_string (filepos, unibyte, definition)
 	  else if (c == '_')
 	    *to++ = 037;
 	  else
-	    error ("Invalid data in documentation file -- ^A followed by code 0%o", c);
+	    error ("\
+Invalid data in documentation file -- %c followed by code %03o",
+		   1, (unsigned)c);
 	}
       else
 	*to++ = *from++;
@@ -287,7 +265,7 @@ get_doc_string (filepos, unibyte, definition)
      the same way we would read bytes from a file.  */
   if (definition)
     {
-      read_bytecode_pointer = get_doc_string_buffer + offset;
+      read_bytecode_pointer = (unsigned char *) get_doc_string_buffer + offset;
       return Fread (Qlambda);
     }
 
@@ -296,10 +274,11 @@ get_doc_string (filepos, unibyte, definition)
 				to - (get_doc_string_buffer + offset));
   else
     {
-      /* Let the data determine whether the string is multibyte,
-	 even if Emacs is running in --unibyte mode.  */
-      int nchars = multibyte_chars_in_text (get_doc_string_buffer + offset,
-					    to - (get_doc_string_buffer + offset));
+      /* The data determines whether the string is multibyte.  */
+      EMACS_INT nchars =
+	multibyte_chars_in_text (((unsigned char *) get_doc_string_buffer
+				  + offset),
+				 to - (get_doc_string_buffer + offset));
       return make_string_from_bytes (get_doc_string_buffer + offset,
 				     nchars,
 				     to - (get_doc_string_buffer + offset));
@@ -311,15 +290,13 @@ get_doc_string (filepos, unibyte, definition)
    of a compiled function from the .elc file.  */
 
 Lisp_Object
-read_doc_string (filepos)
-     Lisp_Object filepos;
+read_doc_string (Lisp_Object filepos)
 {
   return get_doc_string (filepos, 0, 1);
 }
 
 static int
-reread_doc_file (file)
-     Lisp_Object file;
+reread_doc_file (Lisp_Object file)
 {
 #if 0
   Lisp_Object reply, prompt[3];
@@ -346,44 +323,51 @@ DEFUN ("documentation", Fdocumentation, Sdocumentation, 1, 2, 0,
        doc: /* Return the documentation string of FUNCTION.
 Unless a non-nil second argument RAW is given, the
 string is passed through `substitute-command-keys'.  */)
-     (function, raw)
-     Lisp_Object function, raw;
+  (Lisp_Object function, Lisp_Object raw)
 {
   Lisp_Object fun;
   Lisp_Object funcar;
-  Lisp_Object tem, doc;
+  Lisp_Object doc;
   int try_reload = 1;
 
  documentation:
 
   doc = Qnil;
 
-  if (SYMBOLP (function)
-      && (tem = Fget (function, Qfunction_documentation),
-	  !NILP (tem)))
-    return Fdocumentation_property (function, Qfunction_documentation, raw);
+  if (SYMBOLP (function))
+    {
+      Lisp_Object tem = Fget (function, Qfunction_documentation);
+      if (!NILP (tem))
+	return Fdocumentation_property (function, Qfunction_documentation,
+					raw);
+    }
 
   fun = Findirect_function (function, Qnil);
   if (SUBRP (fun))
     {
       if (XSUBR (fun)->doc == 0)
 	return Qnil;
-      else if ((EMACS_INT) XSUBR (fun)->doc >= 0)
+      /* FIXME: This is not portable, as it assumes that string
+	 pointers have the top bit clear.  */
+      else if ((intptr_t) XSUBR (fun)->doc >= 0)
 	doc = build_string (XSUBR (fun)->doc);
       else
-	doc = make_number ((EMACS_INT) XSUBR (fun)->doc);
+	doc = make_number ((intptr_t) XSUBR (fun)->doc);
     }
   else if (COMPILEDP (fun))
     {
       if ((ASIZE (fun) & PSEUDOVECTOR_SIZE_MASK) <= COMPILED_DOC_STRING)
 	return Qnil;
-      tem = AREF (fun, COMPILED_DOC_STRING);
-      if (STRINGP (tem))
-	doc = tem;
-      else if (NATNUMP (tem) || CONSP (tem))
-	doc = tem;
       else
-	return Qnil;
+	{
+	  Lisp_Object tem = AREF (fun, COMPILED_DOC_STRING);
+	  if (STRINGP (tem))
+	    doc = tem;
+	  else if (NATNUMP (tem) || CONSP (tem))
+	    doc = tem;
+	  else
+	    return Qnil;
+	}
     }
   else if (STRINGP (fun) || VECTORP (fun))
     {
@@ -397,11 +381,11 @@ string is passed through `substitute-command-keys'.  */)
       else if (EQ (funcar, Qkeymap))
 	return build_string ("Prefix command (definition is a keymap associating keystrokes with commands).");
       else if (EQ (funcar, Qlambda)
+	       || (EQ (funcar, Qclosure) && (fun = XCDR (fun), 1))
 	       || EQ (funcar, Qautoload))
 	{
-	  Lisp_Object tem1;
-	  tem1 = Fcdr (Fcdr (fun));
-	  tem = Fcar (tem1);
+	  Lisp_Object tem1 = Fcdr (Fcdr (fun));
+	  Lisp_Object tem = Fcar (tem1);
 	  if (STRINGP (tem))
 	    doc = tem;
 	  /* Handle a doc reference--but these never come last
@@ -474,8 +458,7 @@ Third argument RAW omitted or nil means pass the result through
 This differs from `get' in that it can refer to strings stored in the
 `etc/DOC' file; and that it evaluates documentation properties that
 aren't strings.  */)
-  (symbol, prop, raw)
-     Lisp_Object symbol, prop, raw;
+  (Lisp_Object symbol, Lisp_Object prop, Lisp_Object raw)
 {
   int try_reload = 1;
   Lisp_Object tem;
@@ -505,7 +488,7 @@ aren't strings.  */)
     }
   else if (!STRINGP (tem))
     /* Feval protects its argument.  */
-    tem = Feval (tem);
+    tem = Feval (tem, Qnil);
 
   if (NILP (raw) && STRINGP (tem))
     tem = Fsubstitute_command_keys (tem);
@@ -515,10 +498,8 @@ aren't strings.  */)
 /* Scanning the DOC files and placing docstring offsets into functions.  */
 
 static void
-store_function_docstring (fun, offset)
-     Lisp_Object fun;
-     /* Use EMACS_INT because we get this from pointer subtraction.  */
-     EMACS_INT offset;
+store_function_docstring (Lisp_Object fun, EMACS_INT offset)
+/* Use EMACS_INT because we get offset from pointer subtraction.  */
 {
   fun = indirect_function (fun);
 
@@ -526,7 +507,10 @@ store_function_docstring (fun, offset)
 
   /* Lisp_Subrs have a slot for it.  */
   if (SUBRP (fun))
-    XSUBR (fun)->doc = (char *) - offset;
+    {
+      intptr_t negative_offset = - offset;
+      XSUBR (fun)->doc = (char *) negative_offset;
+    }
 
   /* If it's a lisp form, stick it in the form.  */
   else if (CONSP (fun))
@@ -534,7 +518,8 @@ store_function_docstring (fun, offset)
       Lisp_Object tem;
 
       tem = XCAR (fun);
-      if (EQ (tem, Qlambda) || EQ (tem, Qautoload))
+      if (EQ (tem, Qlambda) || EQ (tem, Qautoload)
+	  || (EQ (tem, Qclosure) && (fun = XCDR (fun), 1)))
 	{
 	  tem = Fcdr (Fcdr (fun));
 	  if (CONSP (tem) && INTEGERP (XCAR (tem)))
@@ -565,14 +550,13 @@ The function takes one argument, FILENAME, a string;
 it specifies the file name (without a directory) of the DOC file.
 That file is found in `../etc' now; later, when the dumped Emacs is run,
 the same file name is found in the `doc-directory'.  */)
-     (filename)
-     Lisp_Object filename;
+  (Lisp_Object filename)
 {
   int fd;
   char buf[1024 + 1];
-  register int filled;
-  register int pos;
-  register char *p, *end;
+  register EMACS_INT filled;
+  register EMACS_INT pos;
+  register char *p;
   Lisp_Object sym;
   char *name;
   int skip_file = 0;
@@ -594,9 +578,9 @@ the same file name is found in the `doc-directory'.  */)
       CHECK_STRING (Vdoc_directory);
       name = (char *) alloca (SCHARS (filename)
 			  + SCHARS (Vdoc_directory) + 1);
-      strcpy (name, SDATA (Vdoc_directory));
+      strcpy (name, SSDATA (Vdoc_directory));
     }
-  strcat (name, SDATA (filename)); 	/*** Add this line ***/
+  strcat (name, SSDATA (filename)); 	/*** Add this line ***/
 
   /* Vbuild_files is nil when temacs is run, and non-nil after that.  */
   if (NILP (Vbuild_files))
@@ -605,7 +589,7 @@ the same file name is found in the `doc-directory'.  */)
 
     for (beg = buildobj; *beg; beg = end)
       {
-        int len;
+        EMACS_INT len;
 
         while (*beg && isspace (*beg)) ++beg;
 
@@ -631,6 +615,7 @@ the same file name is found in the `doc-directory'.  */)
   pos = 0;
   while (1)
     {
+      register char *end;
       if (filled < 512)
 	filled += emacs_read (fd, &buf[filled], sizeof buf - 1 - filled);
       if (!filled)
@@ -640,28 +625,33 @@ the same file name is found in the `doc-directory'.  */)
       p = buf;
       end = buf + (filled < 512 ? filled : filled - 128);
       while (p != end && *p != '\037') p++;
-      /* p points to ^_Ffunctionname\n or ^_Vvarname\n.  */
+      /* p points to ^_Ffunctionname\n or ^_Vvarname\n or ^_Sfilename\n.  */
       if (p != end)
 	{
-	  end = (char *) index (p, '\n');
+	  end = strchr (p, '\n');
 
           /* See if this is a file name, and if it is a file in build-files.  */
-          if (p[1] == 'S' && end - p > 4 && end[-2] == '.'
-              && (end[-1] == 'o' || end[-1] == 'c'))
+          if (p[1] == 'S')
             {
-              int len = end - p - 2;
-              char *fromfile = alloca (len + 1);
-              strncpy (fromfile, &p[2], len);
-              fromfile[len] = 0;
-              if (fromfile[len-1] == 'c')
-                fromfile[len-1] = 'o';
+              skip_file = 0;
+              if (end - p > 4 && end[-2] == '.'
+                  && (end[-1] == 'o' || end[-1] == 'c'))
+                {
+                  EMACS_INT len = end - p - 2;
+                  char *fromfile = alloca (len + 1);
+                  strncpy (fromfile, &p[2], len);
+                  fromfile[len] = 0;
+                  if (fromfile[len-1] == 'c')
+                    fromfile[len-1] = 'o';
 
-	      skip_file = NILP (Fmember (build_string (fromfile),
-					 Vbuild_files));
+                  skip_file = NILP (Fmember (build_string (fromfile),
+                                             Vbuild_files));
+                }
             }
 
 	  sym = oblookup (Vobarray, p + 2,
-			  multibyte_chars_in_text (p + 2, end - p - 2),
+			  multibyte_chars_in_text ((unsigned char *) p + 2,
+						   end - p - 2),
 			  end - p - 2);
 	  /* Check skip_file so that when a function is defined several
 	     times in different files (typically, once in xterm, once in
@@ -688,12 +678,12 @@ the same file name is found in the `doc-directory'.  */)
 		; /* Just a source file name boundary marker.  Ignore it.  */
 
 	      else
-		error ("DOC file invalid at position %d", pos);
+		error ("DOC file invalid at position %"pI"d", pos);
 	    }
 	}
       pos += end - buf;
       filled -= end - buf;
-      bcopy (end, buf, filled);
+      memmove (buf, end, filled);
     }
   emacs_close (fd);
   return Qnil;
@@ -714,23 +704,22 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 
 Returns original STRING if no substitutions were made.  Otherwise,
 a new string, without any text properties, is returned.  */)
-     (string)
-     Lisp_Object string;
+  (Lisp_Object string)
 {
-  unsigned char *buf;
+  char *buf;
   int changed = 0;
   register unsigned char *strp;
-  register unsigned char *bufp;
-  int idx;
-  int bsize;
+  register char *bufp;
+  EMACS_INT idx;
+  EMACS_INT bsize;
   Lisp_Object tem;
   Lisp_Object keymap;
   unsigned char *start;
-  int length, length_byte;
+  EMACS_INT length, length_byte;
   Lisp_Object name;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   int multibyte;
-  int nchars;
+  EMACS_INT nchars;
 
   if (NILP (string))
     return Qnil;
@@ -748,12 +737,12 @@ a new string, without any text properties, is returned.  */)
      or a specified local map (which means search just that and the
      global map).  If non-nil, it might come from Voverriding_local_map,
      or from a \\<mapname> construct in STRING itself..  */
-  keymap = current_kboard->Voverriding_terminal_local_map;
+  keymap = KVAR (current_kboard, Voverriding_terminal_local_map);
   if (NILP (keymap))
     keymap = Voverriding_local_map;
 
   bsize = SBYTES (string);
-  bufp = buf = (unsigned char *) xmalloc (bsize);
+  bufp = buf = (char *) xmalloc (bsize);
 
   strp = SDATA (string);
   while (strp < SDATA (string) + SBYTES (string))
@@ -772,7 +761,7 @@ a new string, without any text properties, is returned.  */)
 	      if (len == 1)
 		*bufp = *strp;
 	      else
-		bcopy (strp, bufp, len);
+		memcpy (bufp, strp, len);
 	      strp += len;
 	      bufp += len;
 	      nchars++;
@@ -782,7 +771,7 @@ a new string, without any text properties, is returned.  */)
 	}
       else if (strp[0] == '\\' && strp[1] == '[')
 	{
-	  int start_idx;
+	  EMACS_INT start_idx;
 	  int follow_remap = 1;
 
 	  changed = 1;
@@ -800,12 +789,12 @@ a new string, without any text properties, is returned.  */)
 
 	  /* Save STRP in IDX.  */
 	  idx = strp - SDATA (string);
-	  name = Fintern (make_string (start, length_byte), Qnil);
+	  name = Fintern (make_string ((char *) start, length_byte), Qnil);
 
 	do_remap:
 	  tem = Fwhere_is_internal (name, keymap, Qt, Qnil, Qnil);
 
-	  if (VECTORP (tem) && XVECTOR (tem)->size > 1
+	  if (VECTORP (tem) && ASIZE (tem) > 1
 	      && EQ (AREF (tem, 0), Qremap) && SYMBOLP (AREF (tem, 1))
 	      && follow_remap)
 	    {
@@ -821,10 +810,10 @@ a new string, without any text properties, is returned.  */)
 
 	  if (NILP (tem))	/* but not on any keys */
 	    {
-	      int offset = bufp - buf;
-	      buf = (unsigned char *) xrealloc (buf, bsize += 4);
+	      EMACS_INT offset = bufp - buf;
+	      buf = (char *) xrealloc (buf, bsize += 4);
 	      bufp = buf + offset;
-	      bcopy ("M-x ", bufp, 4);
+	      memcpy (bufp, "M-x ", 4);
 	      bufp += 4;
 	      nchars += 4;
 	      if (multibyte)
@@ -844,7 +833,7 @@ a new string, without any text properties, is returned.  */)
       else if (strp[0] == '\\' && (strp[1] == '{' || strp[1] == '<'))
 	{
 	  struct buffer *oldbuf;
-	  int start_idx;
+	  EMACS_INT start_idx;
 	  /* This is for computing the SHADOWS arg for describe_map_tree.  */
 	  Lisp_Object active_maps = Fcurrent_active_maps (Qnil, Qnil);
 	  Lisp_Object earlier_maps;
@@ -867,7 +856,7 @@ a new string, without any text properties, is returned.  */)
 	  /* Get the value of the keymap in TEM, or nil if undefined.
 	     Do this while still in the user's current buffer
 	     in case it is a local variable.  */
-	  name = Fintern (make_string (start, length_byte), Qnil);
+	  name = Fintern (make_string ((char *) start, length_byte), Qnil);
 	  tem = Fboundp (name);
 	  if (! NILP (tem))
 	    {
@@ -915,14 +904,14 @@ a new string, without any text properties, is returned.  */)
 	  length_byte = SBYTES (tem);
 	subst:
 	  {
-	    int offset = bufp - buf;
-	    buf = (unsigned char *) xrealloc (buf, bsize += length_byte);
+	    EMACS_INT offset = bufp - buf;
+	    buf = (char *) xrealloc (buf, bsize += length_byte);
 	    bufp = buf + offset;
-	    bcopy (start, bufp, length_byte);
+	    memcpy (bufp, start, length_byte);
 	    bufp += length_byte;
 	    nchars += length;
 	    /* Check STRING again in case gc relocated it.  */
-	    strp = (unsigned char *) SDATA (string) + idx;
+	    strp = SDATA (string) + idx;
 	  }
 	}
       else if (! multibyte)		/* just copy other chars */
@@ -935,7 +924,7 @@ a new string, without any text properties, is returned.  */)
 	  if (len == 1)
 	    *bufp = *strp;
 	  else
-	    bcopy (strp, bufp, len);
+	    memcpy (bufp, strp, len);
 	  strp += len;
 	  bufp += len;
 	  nchars++;
@@ -951,16 +940,16 @@ a new string, without any text properties, is returned.  */)
 }
 
 void
-syms_of_doc ()
+syms_of_doc (void)
 {
   Qfunction_documentation = intern_c_string ("function-documentation");
   staticpro (&Qfunction_documentation);
 
-  DEFVAR_LISP ("internal-doc-file-name", &Vdoc_file_name,
+  DEFVAR_LISP ("internal-doc-file-name", Vdoc_file_name,
 	       doc: /* Name of file containing documentation strings of built-in symbols.  */);
   Vdoc_file_name = Qnil;
 
-  DEFVAR_LISP ("build-files", &Vbuild_files,
+  DEFVAR_LISP ("build-files", Vbuild_files,
                doc: /* A list of files used to build this Emacs binary.  */);
   Vbuild_files = Qnil;
 
@@ -969,6 +958,3 @@ syms_of_doc ()
   defsubr (&Ssnarf_documentation);
   defsubr (&Ssubstitute_command_keys);
 }
-
-/* arch-tag: 56281d4d-6949-43e2-be2e-f6517de744ba
-   (do not change this comment) */

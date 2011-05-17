@@ -1,7 +1,6 @@
 ;;; mm-encode.el --- Functions for encoding MIME things
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -42,15 +41,8 @@
 If the encoding is `qp-or-base64', then either quoted-printable
 or base64 will be used, depending on what is more efficient.
 
-`qp-or-base64' has another effect.  It will fold long lines so that
-MIME parts may not be broken by MTA.  So do `quoted-printable' and
-`base64'.
-
-Note: It affects body encoding only when a part is a raw forwarded
-message (which will be made by `gnus-summary-mail-forward' with the
-arg 2 for example) or is neither the text/* type nor the message/*
-type.  Even though in those cases, you can use the `encoding' MML tag
-to specify encoding of non-ASCII MIME parts."
+This list is only consulted when encoding MIME parts in the
+bodies -- not for the regular non-MIME-ish messages."
   :type '(repeat (list (regexp :tag "MIME type")
 		       (choice :tag "encoding"
 			       (const 7bit)
@@ -223,5 +215,4 @@ This is either `base64' or `quoted-printable'."
 
 (provide 'mm-encode)
 
-;; arch-tag: 7d01bba4-d469-4851-952b-dc863f84ed66
 ;;; mm-encode.el ends here

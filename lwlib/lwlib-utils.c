@@ -1,7 +1,7 @@
 /* Defines some widget utility functions.
+
 Copyright (C) 1992 Lucid, Inc.
-Copyright (C) 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-  2010 Free Software Foundation, Inc.
+Copyright (C) 1994, 2001-2011 Free Software Foundation, Inc.
 
 This file is part of the Lucid Widget Library.
 
@@ -24,15 +24,8 @@ Boston, MA 02110-1301, USA.  */
 #include <config.h>
 #endif
 
-/* Definitions of these in config.h can cause
-   declaration conflicts later on between declarations for index
-   and declarations for strchr.  This file doesn't use
-   index and rindex, so cancel them.  */
-#undef index
-#undef rindex
-
 #include <setjmp.h>
-#include "../src/lisp.h"
+#include <lisp.h>
 
 #include <X11/Xatom.h>
 #include <X11/IntrinsicP.h>
@@ -42,8 +35,7 @@ Boston, MA 02110-1301, USA.  */
 
 /* Redisplay the contents of the widget, without first clearing it. */
 void
-XtNoClearRefreshWidget (widget)
-     Widget widget;
+XtNoClearRefreshWidget (Widget widget)
 {
   XEvent event;
 
@@ -67,10 +59,7 @@ XtNoClearRefreshWidget (widget)
  * Apply a function to all the subwidgets of a given widget recursively.
 */
 void
-XtApplyToWidgets (w, proc, arg)
-     Widget w;
-     XtApplyToWidgetsProc proc;
-     XtPointer arg;
+XtApplyToWidgets (Widget w, XtApplyToWidgetsProc proc, XtPointer arg)
 {
   if (XtIsComposite (w))
     {
@@ -79,10 +68,10 @@ XtApplyToWidgets (w, proc, arg)
 	 the procedure might add/delete elements, which would lose badly.
 	 */
       int nkids = cw->composite.num_children;
-      Widget *kids = (Widget *) malloc (sizeof (Widget) * nkids);
+      Widget *kids = (Widget *) xmalloc (sizeof (Widget) * nkids);
       int i;
-      lwlib_bcopy ((char *) cw->composite.children, (char *) kids,
-		   sizeof (Widget) * nkids);
+      memcpy ((char *) kids, (char *) cw->composite.children,
+	      sizeof (Widget) * nkids);
       for (i = 0; i < nkids; i++)
 /* This prevent us from using gadgets, why is it here? */
 /*	if (XtIsWidget (kids [i])) */
@@ -101,10 +90,7 @@ XtApplyToWidgets (w, proc, arg)
  * Stop as soon as the function returns non NULL and returns this as a value.
  */
 void *
-XtApplyUntilToWidgets (w, proc, arg)
-     Widget w;
-     XtApplyUntilToWidgetsProc proc;
-     XtPointer arg;
+XtApplyUntilToWidgets (Widget w, XtApplyUntilToWidgetsProc proc, XtPointer arg)
 {
   void* result;
   if (XtIsComposite (w))
@@ -130,9 +116,7 @@ XtApplyUntilToWidgets (w, proc, arg)
  * Returns a copy of the list of all children of a composite widget
  */
 Widget *
-XtCompositeChildren (widget, number)
-     Widget widget;
-     unsigned int* number;
+XtCompositeChildren (Widget widget, unsigned int *number)
 {
   CompositeWidget cw = (CompositeWidget)widget;
   Widget* result;
@@ -145,7 +129,7 @@ XtCompositeChildren (widget, number)
       return NULL;
     }
   n = cw->composite.num_children;
-  result = (Widget*)XtMalloc (n * sizeof (Widget));
+  result = (Widget*)(void*)XtMalloc (n * sizeof (Widget));
   *number = n;
   for (i = 0; i < n; i++)
     result [i] = cw->composite.children [i];
@@ -153,38 +137,7 @@ XtCompositeChildren (widget, number)
 }
 
 Boolean
-XtWidgetBeingDestroyedP (widget)
-     Widget widget;
+XtWidgetBeingDestroyedP (Widget widget)
 {
   return widget->core.being_destroyed;
 }
-
-void
-XtSafelyDestroyWidget (widget)
-     Widget widget;
-{
-#if 0
-
-  /* this requires IntrinsicI.h (actually, InitialI.h) */
-
-  XtAppContext app = XtWidgetToApplicationContext(widget);
-
-  if (app->dispatch_level == 0)
-    {
-      app->dispatch_level = 1;
-      XtDestroyWidget (widget);
-      /* generates an event so that the event loop will be called */
-      XChangeProperty (XtDisplay (widget), XtWindow (widget),
-		       XA_STRING, XA_STRING, 32, PropModeAppend, NULL, 0);
-      app->dispatch_level = 0;
-    }
-  else
-    XtDestroyWidget (widget);
-
-#else
-  abort ();
-#endif
-}
-
-/* arch-tag: f21f0a1f-2a4e-44e1-8715-7f234fe2d159
-   (do not change this comment) */

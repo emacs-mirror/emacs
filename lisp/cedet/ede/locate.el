@@ -1,6 +1,6 @@
 ;;; ede/locate.el --- Locate support
 
-;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -121,13 +121,17 @@ based on `ede-locate-setup-options'."
   ;; Basic setup.
   (call-next-method)
   ;; Make sure we have a hash table.
-  (oset loc hash (make-hash-table :test 'equal))
+  (ede-locate-flush-hash loc)
   )
 
 (defmethod ede-locate-ok-in-project :static ((loc ede-locate-base)
 					     root)
   "Is it ok to use this project type under ROOT."
   t)
+
+(defmethod ede-locate-flush-hash ((loc ede-locate-base))
+  "For LOC, flush hashtable and start from scratch."
+  (oset loc hash (make-hash-table :test 'equal)))
 
 (defmethod ede-locate-file-in-hash ((loc ede-locate-base)
 				    filestring)
@@ -159,6 +163,13 @@ Searches are done under the current root of the EDE project
 that created this EDE locate object."
   nil
   )
+
+(defmethod ede-locate-create/update-root-database :STATIC
+  ((loc ede-locate-base) root)
+  "Create or update the database for the current project.
+You cannot create projects for the baseclass."
+  (error "Cannot create/update a database of type %S"
+	 (object-name loc)))
 
 ;;; LOCATE
 ;;
@@ -242,6 +253,11 @@ that created this EDE locate object."
   (let ((default-directory (oref loc root)))
     (cedet-gnu-global-expand-filename filesubstring)))
 
+(defmethod ede-locate-create/update-root-database :STATIC
+  ((loc ede-locate-global) root)
+  "Create or update the GNU Global database for the current project."
+  (cedet-gnu-global-create/update-database root))
+
 ;;; IDUTILS
 ;;
 (defclass ede-locate-idutils (ede-locate-base)
@@ -280,6 +296,11 @@ that created this EDE locate object."
   (let ((default-directory (oref loc root)))
     (cedet-idutils-expand-filename filesubstring)))
 
+(defmethod ede-locate-create/update-root-database :STATIC
+  ((loc ede-locate-idutils) root)
+  "Create or update the GNU Global database for the current project."
+  (cedet-idutils-create/update-database root))
+
 ;;; CSCOPE
 ;;
 (defclass ede-locate-cscope (ede-locate-base)
@@ -315,6 +336,11 @@ that created this EDE locate object."
   (let ((default-directory (oref loc root)))
     (cedet-cscope-expand-filename filesubstring)))
 
+(defmethod ede-locate-create/update-root-database :STATIC
+  ((loc ede-locate-cscope) root)
+  "Create or update the GNU Global database for the current project."
+  (cedet-cscope-create/update-database root))
+
 (provide 'ede/locate)
 
 ;; Local variables:
@@ -322,5 +348,4 @@ that created this EDE locate object."
 ;; generated-autoload-load-name: "ede/locate"
 ;; End:
 
-;; arch-tag: a04cb356-d11c-4f69-bd72-5a8a2aff708c
 ;;; ede/locate.el ends here

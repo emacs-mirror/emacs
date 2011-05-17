@@ -1,7 +1,6 @@
 ;;; gnus-delay.el --- Delayed posting of articles
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Kai Groﬂjohann <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 ;; Keywords: mail, news, extensions
@@ -79,7 +78,7 @@ DELAY is a string, giving the length of the time.  Possible values are:
   time, then the deadline is tomorrow, else today."
   (interactive
    (list (read-string
-	  "Target date (YYYY-MM-DD) or length of delay (units in [mhdwMY]): "
+	  "Target date (YYYY-MM-DD), time (hh:mm), or length of delay (units in [mhdwMY]): "
 	  gnus-delay-default-delay)))
   (let (num unit days year month day hour minute deadline)
     (cond ((string-match
@@ -106,7 +105,7 @@ DELAY is a string, giving the length of the time.  Possible values are:
 						  (append deadline nil))))
 	   ;; If this time has passed already, add a day.
 	   (when (< deadline (gnus-float-time))
-	     (setq deadline (+ 3600 deadline))) ;3600 secs/day
+	     (setq deadline (+ 86400 deadline))) ; 86400 secs/day
 	   ;; Convert seconds to date header.
 	   (setq deadline (message-make-date
 			   (seconds-to-time deadline))))
@@ -133,8 +132,7 @@ DELAY is a string, giving the length of the time.  Possible values are:
     (message-add-header (format "%s: %s" gnus-delay-header deadline)))
   (set-buffer-modified-p t)
   ;; If group does not exist, create it.
-  (let ((group (format "nndraft:%s" gnus-delay-group)))
-    (gnus-agent-queue-setup gnus-delay-group))
+  (gnus-agent-queue-setup gnus-delay-group)
   (message-disassociate-draft)
   (nndraft-request-associate-buffer gnus-delay-group)
   (save-buffer 0)
@@ -192,5 +190,4 @@ Checking delayed messages is skipped if optional arg NO-CHECK is non-nil."
 ;; coding: iso-8859-1
 ;; End:
 
-;; arch-tag: fb2ad634-a897-4142-a503-f5991ec2349d
 ;;; gnus-delay.el ends here

@@ -1,10 +1,11 @@
 ;;; fill.el --- fill commands for Emacs		-*- coding: utf-8 -*-
 
-;; Copyright (C) 1985, 1986, 1992, 1994, 1995, 1996, 1997, 1999, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1992, 1994-1997, 1999, 2001-2011
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: wp
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -136,7 +137,7 @@ The fill column to use for a line is the first column at which the column
 number equals or exceeds the local fill-column - right-margin difference."
   (save-excursion
     (if fill-column
-	(let* ((here (progn (beginning-of-line) (point)))
+	(let* ((here (line-beginning-position))
 	       (here-col 0)
 	       (eol (progn (end-of-line) (point)))
 	       margin fill-col change col)
@@ -657,7 +658,7 @@ space does not end a sentence, so don't break a line there."
       (if (and oneleft
 	       (not (and use-hard-newlines
 			 (get-text-property (1- (point)) 'hard))))
-	  (delete-backward-char 1)
+	  (delete-char -1)
 	(backward-char 1)
 	(setq oneleft t)))
     (setq to (copy-marker (point) t))
@@ -1036,7 +1037,7 @@ space does not end a sentence, so don't break a line there."
 	  (fill-forward-paragraph -1))
 	(if (< (point) beg)
 	    (goto-char beg))
-	(if (>= (point) initial)
+	(if (and (>= (point) initial) (< (point) end))
 	    (setq fill-pfx
 		  (fill-region-as-paragraph (point) end justify nosqueeze))
 	  (goto-char end))))
@@ -1289,18 +1290,16 @@ otherwise it is made canonical."
 		     (skip-chars-backward " "))
 		   (setq ncols (- fc endcol))
 		   ;; Ncols is number of additional space chars needed
-		   (if (and (> ncols 0) (> nspaces 0) (not eop))
-		       (progn
-			 (setq curr-fracspace (+ ncols (/ (1+ nspaces) 2))
-			       count nspaces)
-			 (while (> count 0)
-			   (skip-chars-forward " ")
-			   (insert-and-inherit
-			    (make-string (/ curr-fracspace nspaces) ?\s))
-			   (search-forward " " nil t)
-			   (setq count (1- count)
-				 curr-fracspace
-				   (+ (% curr-fracspace nspaces) ncols)))))))
+		   (when (and (> ncols 0) (> nspaces 0) (not eop))
+                     (setq curr-fracspace (+ ncols (/ nspaces 2))
+                           count nspaces)
+                     (while (> count 0)
+                       (skip-chars-forward " ")
+                       (insert-char ?\s (/ curr-fracspace nspaces) t)
+                       (search-forward " " nil t)
+                       (setq count (1- count)
+                             curr-fracspace
+                             (+ (% curr-fracspace nspaces) ncols))))))
 		(t (error "Unknown justification value"))))
 	(goto-char pos)
 	(move-marker pos nil)))
@@ -1518,5 +1517,4 @@ Also, if CITATION-REGEXP is non-nil, don't fill header lines."
 	"")
     string))
 
-;; arch-tag: 727ad455-1161-4fa9-8df5-0f74b179216d
 ;;; fill.el ends here

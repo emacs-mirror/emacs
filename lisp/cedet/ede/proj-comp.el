@@ -1,6 +1,6 @@
 ;;; ede/proj-comp.el --- EDE Generic Project compiler/rule driver
 
-;; Copyright (C) 1999, 2000, 2001, 2004, 2005, 2007, 2009, 2010
+;; Copyright (C) 1999-2001, 2004-2005, 2007, 2009-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -236,7 +236,7 @@ This will prevent rules from creating duplicate variables or rules."
 
 ;;; Methods:
 (defmethod ede-proj-tweak-autoconf ((this ede-compilation-program))
-  "Tweak the configure file (current buffer) to accomodate THIS."
+  "Tweak the configure file (current buffer) to accommodate THIS."
   (mapcar
    (lambda (obj)
      (cond ((stringp obj)
@@ -248,7 +248,7 @@ This will prevent rules from creating duplicate variables or rules."
    (oref this autoconf)))
 
 (defmethod ede-proj-flush-autoconf ((this ede-compilation-program))
-  "Flush the configure file (current buffer) to accomodate THIS."
+  "Flush the configure file (current buffer) to accommodate THIS."
   nil)
 
 (defmacro proj-comp-insert-variable-once (varname &rest body)
@@ -355,5 +355,4 @@ compiler it decides to use after inserting in the rule."
 
 (provide 'ede/proj-comp)
 
-;; arch-tag: ade67766-1a5d-467a-826a-93e95594d717
 ;;; ede/proj-comp.el ends here

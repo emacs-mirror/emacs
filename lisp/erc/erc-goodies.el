@@ -1,7 +1,6 @@
 ;; erc-goodies.el --- Collection of ERC modules
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Jorgen Schaefer <forcer@forcix.cx>
 
@@ -569,5 +568,4 @@ servers.  If called from a program, PROC specifies the server process."
 
 (provide 'erc-goodies)
 
-;; arch-tag: d987ae26-9e28-4c72-9596-e617309fb582
 ;;; erc-goodies.el ends here

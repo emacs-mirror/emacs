@@ -1,6 +1,6 @@
-;;; bubbles.el --- Puzzle game for Emacs.
+;;; bubbles.el --- Puzzle game for Emacs
 
-;; Copyright (C) 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011  Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; URL:         http://ulf.epplejasper.de/
@@ -719,57 +719,57 @@ static char * dot3d_xpm[] = {
 (defsubst bubbles--grid-width ()
   "Return the grid width for the current game theme."
   (car (case bubbles-game-theme
-         ('easy
+         (easy
           bubbles--grid-small)
-         ('medium
+         (medium
           bubbles--grid-medium)
-         ('difficult
+         (difficult
           bubbles--grid-large)
-         ('hard
+         (hard
           bubbles--grid-huge)
-         ('user-defined
+         (user-defined
           bubbles-grid-size))))
 
 (defsubst bubbles--grid-height ()
   "Return the grid height for the current game theme."
   (cdr (case bubbles-game-theme
-         ('easy
+         (easy
           bubbles--grid-small)
-         ('medium
+         (medium
           bubbles--grid-medium)
-         ('difficult
+         (difficult
           bubbles--grid-large)
-         ('hard
+         (hard
           bubbles--grid-huge)
-         ('user-defined
+         (user-defined
           bubbles-grid-size))))
 
 (defsubst bubbles--colors ()
   "Return the color list for the current game theme."
   (case bubbles-game-theme
-    ('easy
+    (easy
      bubbles--colors-2)
-    ('medium
+    (medium
      bubbles--colors-3)
-    ('difficult
+    (difficult
      bubbles--colors-4)
-    ('hard
+    (hard
      bubbles--colors-5)
-    ('user-defined
+    (user-defined
      bubbles-colors)))
 
 (defsubst bubbles--shift-mode ()
   "Return the shift mode for the current game theme."
   (case bubbles-game-theme
-    ('easy
+    (easy
      'default)
-    ('medium
+    (medium
      'default)
-    ('difficult
+    (difficult
      'always)
-    ('hard
+    (hard
      'always)
-    ('user-defined
+    (user-defined
      bubbles-shift-mode)))
 
 (defun bubbles-save-settings ()
@@ -921,7 +921,8 @@ static char * dot3d_xpm[] = {
 (define-derived-mode bubbles-mode nil "Bubbles"
   "Major mode for playing bubbles.
 \\{bubbles-mode-map}"
-  (setq buffer-read-only t)
+  (setq buffer-read-only t
+        show-trailing-whitespace nil)
   (buffer-disable-undo)
   (force-mode-line-update)
   (redisplay)
@@ -1317,8 +1318,7 @@ Use optional parameter POS instead of point if given."
 Return t if new char is non-empty."
   (save-excursion
     (when (bubbles--goto row col)
-      (let ((char-org (char-after (point)))
-            (char-new (bubbles--empty-char))
+      (let ((char-new (bubbles--empty-char))
             (removed nil)
             (trow row)
             (tcol col)
@@ -1346,11 +1346,11 @@ Return t if new char is non-empty."
   (when (and (display-images-p)
              (not (eq bubbles-graphics-theme 'ascii)))
     (let ((template (case bubbles-graphics-theme
-                      ('circles bubbles--image-template-circle)
-                      ('balls bubbles--image-template-ball)
-                      ('squares bubbles--image-template-square)
-                      ('diamonds bubbles--image-template-diamond)
-                      ('emacs bubbles--image-template-emacs))))
+                      (circles bubbles--image-template-circle)
+                      (balls bubbles--image-template-ball)
+                      (squares bubbles--image-template-square)
+                      (diamonds bubbles--image-template-diamond)
+                      (emacs bubbles--image-template-emacs))))
       (setq bubbles--empty-image
             (create-image (replace-regexp-in-string
                            "^\"\\(.*\\)\t.*c .*\",$"
@@ -1377,7 +1377,7 @@ Return t if new char is non-empty."
                                    (g (nth 1 crgb))
                                    (b (nth 2 crgb))
                                    (brightness (/ (+ r g b) 3.0 256 256))
-                                   (val (sin (* brightness (/ pi 2))))
+                                   (val (sin (* brightness (/ float-pi 2))))
                                    (rr (* red val))
                                    (gg (* green val))
                                    (bb (* blue val))
@@ -1416,9 +1416,8 @@ Return t if new char is non-empty."
           (dotimes (i (bubbles--grid-height))
             (dotimes (j (bubbles--grid-width))
               (bubbles--goto i j)
-              (let* ((index (get-text-property (point) 'index))
-                     (face (nth index bubbles--faces))
-                     (fg-col (face-foreground face)))
+              (let ((face (nth (get-text-property (point) 'index)
+                               bubbles--faces)))
                 (when (get-text-property (point) 'active)
                   (set-face-foreground 'bubbles--highlight-face "#ff0000")
                   (setq face 'bubbles--highlight-face))
@@ -1434,8 +1433,7 @@ Return t if new char is non-empty."
       (save-excursion
         (goto-char (point-min))
         (forward-line 1)
-        (let ((inhibit-read-only t)
-              char)
+        (let ((inhibit-read-only t))
           (dotimes (i (bubbles--grid-height))
             (dotimes (j (bubbles--grid-width))
               (forward-char 1)
@@ -1460,5 +1458,4 @@ Return t if new char is non-empty."
 
 (provide 'bubbles)
 
-;; arch-tag: 2cd7237a-b0ad-400d-a7fd-75f676dceb70
 ;;; bubbles.el ends here

@@ -1,7 +1,6 @@
 ;;; nngateway.el --- posting news via mail gateways
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news, mail
@@ -89,5 +88,4 @@ parameter -- the gateway address.")
 
 (provide 'nngateway)
 
-;; arch-tag: f7ecb92e-b10c-43d5-9a9b-1314233341fc
 ;;; nngateway.el ends here

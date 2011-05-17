@@ -1,7 +1,6 @@
 ;;; mm-url.el --- a wrapper of url functions/commands for Gnus
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 
@@ -83,13 +82,6 @@ Likely values are `wget', `w3m', `lynx' and `curl'."
 
 
 ;;; Internal variables
-
-(defvar mm-url-package-name
-  (gnus-replace-in-string
-   (gnus-replace-in-string gnus-version " v.*$" "")
-   " " "-"))
-
-(defvar	mm-url-package-version gnus-version-number)
 
 ;; Stolen from w3.
 (defvar mm-url-html-entities
@@ -299,10 +291,6 @@ If `mm-url-use-external' is non-nil, use `mm-url-program'."
 	   (if (not (and (boundp 'url-version)
 			 (equal url-version "Emacs")))
 	       (list (cons "Connection" "Close"))))
-	  (url-package-name (or mm-url-package-name
-				url-package-name))
-	  (url-package-version (or mm-url-package-version
-				   url-package-version))
 	  result)
       (setq result (url-insert-file-contents url))
       (save-excursion
@@ -365,15 +353,23 @@ If FOLLOW-REFRESH is non-nil, redirect refresh url in META."
 (defun mm-url-decode-entities ()
   "Decode all HTML entities."
   (goto-char (point-min))
-  (while (re-search-forward "&\\(#[0-9]+\\|[a-z]+[0-9]*\\);" nil t)
-    (let ((elem (if (eq (aref (match-string 1) 0) ?\#)
-			(let ((c (mm-ucs-to-char
-				  (string-to-number
-				   (substring (match-string 1) 1)))))
-			  (if (mm-char-or-char-int-p c) c ?#))
-		      (or (cdr (assq (intern (match-string 1))
-				     mm-url-html-entities))
-			  ?#))))
+  (while (re-search-forward "&\\(#[0-9]+\\|#x[0-9a-f]+\\|[a-z]+[0-9]*\\);"
+			    nil t)
+    (let* ((entity (match-string 1))
+	   (elem (if (eq (aref entity 0) ?\#)
+		     (let ((c
+			    ;; Hex number: &#x3212
+			    (if (eq (aref entity 1) ?x)
+				(string-to-number (substring entity 2)
+						  16)
+			      ;; Decimal number: &#23
+			      (string-to-number (substring entity 1)))))
+		       (setq c (or (cdr (assq c mm-extra-numeric-entities))
+				   (mm-ucs-to-char c)))
+		       (if (mm-char-or-char-int-p c) c ?#))
+		   (or (cdr (assq (intern entity)
+				  mm-url-html-entities))
+		       ?#))))
       (unless (stringp elem)
 	(setq elem (char-to-string elem)))
       (replace-match elem t t))))
@@ -404,14 +400,10 @@ spaces.  Die Die Die."
       ((= char ?  ) "+")
       ((memq char mm-url-unreserved-chars) (char-to-string char))
       (t (upcase (format "%%%02x" char)))))
-   ;; Fixme: Should this actually be accepting multibyte?  Is there a
-   ;; better way in XEmacs?
-   (if (featurep 'mule)
-       (encode-coding-string chunk
-			     (if (fboundp 'find-coding-systems-string)
-				 (car (find-coding-systems-string chunk))
-				 buffer-file-coding-system))
-     chunk)
+   (mm-encode-coding-string chunk
+			    (if (fboundp 'find-coding-systems-string)
+				(car (find-coding-systems-string chunk))
+			      buffer-file-coding-system))
    ""))
 
 (defun mm-url-encode-www-form-urlencoded (pairs)
@@ -421,6 +413,50 @@ spaces.  Die Die Die."
      (concat (mm-url-form-encode-xwfu (car data)) "="
 	     (mm-url-form-encode-xwfu (cdr data))))
    pairs "&"))
+
+(autoload 'mml-compute-boundary "mml")
+
+(defun mm-url-encode-multipart-form-data (pairs &optional boundary)
+  "Return PAIRS encoded in multipart/form-data."
+  ;; RFC1867
+
+  ;; Get a good boundary
+  (unless boundary
+    (setq boundary (mml-compute-boundary '())))
+
+  (concat
+
+   ;; Start with the boundary
+   "--" boundary "\r\n"
+
+   ;; Create name value pairs
+   (mapconcat
+    'identity
+    ;; Delete any returned items that are empty
+    (delq nil
+          (mapcar (lambda (data)
+            (when (car data)
+              ;; For each pair
+              (concat
+
+               ;; Encode the name
+               "Content-Disposition: form-data; name=\""
+               (car data) "\"\r\n"
+               "Content-Type: text/plain; charset=utf-8\r\n"
+               "Content-Transfer-Encoding: binary\r\n\r\n"
+
+               (cond ((stringp (cdr data))
+                      (cdr data))
+                     ((integerp (cdr data))
+                      (int-to-string (cdr data))))
+
+               "\r\n")))
+                  pairs))
+    ;; use the boundary as a separator
+    (concat "--" boundary "\r\n"))
+
+   ;; put a boundary at the end.
+   "--" boundary "--\r\n"))
 
 (defun mm-url-fetch-form (url pairs)
   "Fetch a form from URL with PAIRS as the data using the POST method."
@@ -456,5 +492,4 @@ spaces.  Die Die Die."
 
 (provide 'mm-url)
 
-;; arch-tag: 0594f9b3-417c-48b0-adc2-5082e1e7917f
 ;;; mm-url.el ends here

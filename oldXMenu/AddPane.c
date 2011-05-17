@@ -16,14 +16,14 @@
 #include "XMenuInt.h"
 
 int
-XMenuAddPane(display, menu, label, active)
-    Display *display;
-    register XMenu *menu;	/* Menu object to be modified. */
-    register char *label;	/* Selection label. */
-    int active;			/* Make selection active? */
+XMenuAddPane(Display *display, register XMenu *menu, register char const *label, int active)
+
+                         	/* Menu object to be modified. */
+                         	/* Selection label. */
+               			/* Make selection active? */
 {
     register XMPane *pane;	/* Newly created pane. */
-    register XMSelect *select;	/* Initial selection for the new pane. */
+    register XMSelect *sel;	/* Initial selection for the new pane. */
 
     int label_length;		/* Label length in characters. */
     int label_width;		/* Label width in pixels. */
@@ -44,8 +44,8 @@ XMenuAddPane(display, menu, label, active)
 	_XMErrorCode = XME_CALLOC;
 	return(XM_FAILURE);
     }
-    select = (XMSelect *)calloc(1, sizeof(XMSelect));
-    if (select == NULL) {
+    sel = (XMSelect *)calloc(1, sizeof(XMSelect));
+    if (sel == NULL) {
 	_XMErrorCode = XME_CALLOC;
 	return(XM_FAILURE);
     }
@@ -62,11 +62,11 @@ XMenuAddPane(display, menu, label, active)
      * Set up the initial selection.
      * Values not explicitly set are zeroed by calloc.
      */
-    select->next = select;
-    select->prev = select;
-    select->type = SL_HEADER;
-    select->serial = -1;
-    select->parent_p = pane;
+    sel->next = sel;
+    sel->prev = sel;
+    sel->type = SL_HEADER;
+    sel->serial = -1;
+    sel->parent_p = pane;
 
     /*
      * Fill the XMPane structure.
@@ -78,7 +78,7 @@ XMenuAddPane(display, menu, label, active)
     pane->label = label;
     pane->label_width = label_width;
     pane->label_length = label_length;
-    pane->s_list = select;
+    pane->s_list = sel;
 
     /*
      * Insert the pane at the end of the pane list.
@@ -101,6 +101,3 @@ XMenuAddPane(display, menu, label, active)
     _XMErrorCode = XME_NO_ERROR;
     return((menu->p_count - 1));
 }
-
-/* arch-tag: 62a26021-f29d-48ba-96ef-3b6c4ebd6547
-   (do not change this comment) */

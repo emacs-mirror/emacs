@@ -1,7 +1,6 @@
-;;; savehist.el --- Save minibuffer history.
+;;; savehist.el --- Save minibuffer history
 
-;; Copyright (C) 1997, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2005-2011  Free Software Foundation, Inc.
 
 ;; Author: Hrvoje Niksic <hniksic@xemacs.org>
 ;; Maintainer: FSF
@@ -255,6 +254,10 @@ Normally invoked by calling `savehist-mode' to unset the minor mode."
       (cancel-timer savehist-timer))
     (setq savehist-timer nil)))
 
+;; From XEmacs?
+(defvar print-readably)
+(defvar print-string-length)
+
 (defun savehist-save (&optional auto-save)
   "Save the values of minibuffer history variables.
 Unbound symbols referenced in `savehist-additional-variables' are ignored.
@@ -389,6 +392,5 @@ trimming of history lists to `history-length' items."
 
 (provide 'savehist)
 
-;; arch-tag: b3ce47f4-c5ad-4ebc-ad02-73aba705cf9f
 
 ;;; savehist.el ends here

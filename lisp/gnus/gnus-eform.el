@@ -1,7 +1,6 @@
 ;;; gnus-eform.el --- a mode for editing forms for Gnus
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -130,5 +129,4 @@ The optional LAYOUT overrides the `edit-form' window layout."
 
 (provide 'gnus-eform)
 
-;; arch-tag: ef50678c-2c28-49ef-affc-e53b3b2c0bf6
 ;;; gnus-eform.el ends here

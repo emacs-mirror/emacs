@@ -1,7 +1,6 @@
 ;;; url-cid.el --- Content-ID URL loader
 
-;; Copyright (C) 1998, 1999, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1998-1999, 2004-2011  Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -59,5 +58,4 @@
    (t
     (message "Unable to handle CID URL: %s" url))))
 
-;; arch-tag: 23d9ab74-fad4-4dba-b1e7-292871e8bda5
 ;;; url-cid.el ends here

@@ -17,15 +17,13 @@
 
 #include "XMenuInt.h"
 
-XMenuSetFreeze(menu, freeze)
-    register XMenu *menu;	/* Menu object to be modified. */
-    register int freeze;	/* Freeze mode? */
+void
+XMenuSetFreeze(register XMenu *menu, register int freeze)
+                         	/* Menu object to be modified. */
+                        	/* Freeze mode? */
 {
     /*
      * Set the freeze mode switch.
      */
     menu->freeze = freeze;
 }
-
-/* arch-tag: 69c5670b-3a46-4c78-8fdb-305936d79772
-   (do not change this comment) */

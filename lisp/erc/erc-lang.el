@@ -1,6 +1,6 @@
 ;;; erc-lang.el --- provide the LANG command to ERC
 
-;; Copyright (C) 2002, 2004, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2004, 2006-2011  Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Alex Schroeder <alex@gnu.org>
@@ -197,17 +197,14 @@ Normungsinstitut (ON), Postfach 130, A-1021 Vienna, Austria.")
 				      iso-638-languages)))
   (message "%s" (cdr (assoc code iso-638-languages))))
 
-(defvar line)            ; dynamically bound in erc-process-input-line
-
 (defun erc-cmd-LANG (language)
   "Display the language name for the language code given by LANGUAGE."
   (let ((lang (cdr (assoc language iso-638-languages))))
     (erc-display-message
      nil 'notice 'active
-     (or lang (concat line ": No such domain"))))
+     (or lang (concat language ": No such domain"))))
   t)
 
 (provide 'erc-lang)
 
-;; arch-tag: 8ffb1563-cc03-4517-b067-16309d4ff97b
 ;;; erc-lang.el ends here

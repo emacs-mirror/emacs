@@ -245,7 +245,7 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		289FC26B00C69A287F000001 /* NeXTStep */ = {
+		289FC26B00C69A287F000001 /* NeXTstep */ = {
 			isa = PBXGroup;
 			children = (
 				3C4D6D710DE50D5D00B20D4E /* nsfont.m */,
@@ -257,13 +257,13 @@
 				090AF68100C61DCD7F000001 /* nsselect.m */,
 				090AF68300C61DCD7F000001 /* nsterm.m */,
 			);
-			name = NeXTStep;
+			name = NeXTstep;
 			sourceTree = "<group>";
 		};
 		29B97314FDCFA39411CA2CEA /* Emacs */ = {
 			isa = PBXGroup;
 			children = (
-				289FC26B00C69A287F000001 /* NeXTStep */,
+				289FC26B00C69A287F000001 /* NeXTstep */,
 				3C15C23E0902E6B000A8542F /* emacs-hdr */,
 				3CDCED4D0902EA6800B2EF7E /* emacs-src */,
 				29B97317FDCFA39411CA2CEA /* Resources */,

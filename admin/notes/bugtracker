@@ -63,13 +63,16 @@ quiet@debbugs.gnu.org.
 ** How do I reply to an existing bug report?
 Reply to 123@debbugs.gnu.org, replacing 123 with the number
 of the bug you are interested in.  NB this only sends mail to the
-bug-list, it does NOT (?) send a CC to the original bug submitter.
+bug-list, it does NOT send a CC to the original bug submitter.
 So you need to explicitly CC him/her (and anyone else you like).
+(This works the same way as all the Emacs mailing lists.  We generally
+don't assume anyone who posts to a list is subscribed to it, so we
+cc everyone on replies.)
 
 (Many people think the submitter SHOULD be automatically subscribed
 to subsequent discussion, but this does not seem to be implemented.
-See http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=37078)
-See also http://debbugs.gnu.org/5439
+See http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=37078
+See also http://debbugs.gnu.org/5439 )
 
 Do NOT send a separate copy to the bug list address, since this may
 generate a new report.  The only time to send mail to the bug list
@@ -85,9 +88,9 @@ The "owner@debbugs.gnu.org" entry is there because it appears in the
 "Resent-To" header.  For a long time Rmail erroneously included such
 headers in replies.  If you correspond with an Rmail user on a bug,
 these addresses may end up in the Cc.  Mailing to them does nothing
-but create duplicates and errors.  (It is possible you might want to
-have a dialog with the owner address, outside of normal bug
-reporting.)
+but create duplicates and errors.  (It is possible, but unlikely, that
+you might want to have a dialog with the owner address, outside of
+normal bug reporting.)
 
 ** When reporting a bug, to send a Cc to another address
 (e.g. bug-cc-mode@gnu.org), do NOT just use a Cc: header.
@@ -148,6 +151,23 @@ Remember to fix FOO, as discussed on emacs-devel at http://... .
 Discard mails matching:
 
 ^X-GNU-PR-Message: (transcript|closed)
+
+** Not receiving messages in response to your control commands?
+The messages debbugs sends out in response to control-server commands
+always have headers To: your@email, and Cc: tracker@debbugs.gnu.org
+(the latter is an alias for the emacs-bug-tracker mailing list).
+These are also the addresses to which a copy of the response is sent.
+(In general, there need not be any relation between the To: and Cc:
+headers visible in a message and where debbugs actually sends it.)
+If you used an X-Debbugs-No-Ack header, however, a copy is _not_ sent
+to you, but the To: header is unchanged.  If you are subscribed to the
+emacs-bug-tracker mailing list and have duplicate suppression turned
+on, the presence of your address in the To: header will cause Mailman
+to not send you a list copy, because it thinks you have received a
+direct copy.  If you used X-Debbugs-No-Ack, this is not the case, and
+you won't get any copy at all.  If this bothers you, don't use both
+X-Debbugs-No-Ack and Mailman duplicate suppression for the
+emacs-bug-tracker mailing list, just pick one or the other.
 
 ** How to avoid multiple copies of mails.
 If you reply to reports in the normal way, this should work fine.
@@ -367,11 +387,24 @@ fixed 123 23.0.60
 *** To remove a "fixed" mark:
 notfixed 123 23.0.60
 
+*** To make a bug as present in a particular version:
+found 123 23.2
+NB if there is no specified "fixed" version, or if there is one and it
+is earlier than the found version, this reopens a closed bug.
+
+The leading "23.1;" that M-x report-emacs-bug adds to bug subjects
+automatically sets a found version (if none is explicitly specified).
+
 *** To assign or reassign a bug to a package or list of packages:
 reassign 1234 emacs
 
+Note that reassigning clears the list of found versions, even if the
+new packages includes the original one.
+
 ** To remove spam from the tracker, move it to the `spam' pseudo-package:
 reassign 123 spam
+
+(Should not be necessary any more, now that the input is moderated.)
 
 ** To change the title of a bug:
 retitle 123 Some New Title
@@ -449,16 +482,41 @@ http://lists.gnu.org/archive/html/emacs-devel/2009-11/msg00440.html
 
 ** Bazaar stuff
 
-*** You can use `bzr commit --fixes emacs:123' to mark that a commit fixes
-Emacs bug 123.  You will first need to add a line to your bazaar.conf:
+*** You can use `bzr commit --fixes debbugs:123' to mark that a commit fixes
+Emacs bug 123.  You will first need to add a line to one of your
+configuration files, ~/.bazaar/bazaar.conf or ~/.bazaar/locations.conf:
 
-bugtracker_emacs_url = http://debbugs.gnu.org/{id}
+bugtracker_debbugs_url = http://debbugs.gnu.org/{id}
+
+Here "{id}" is a literal string, a placeholder that will be replaced
+by the bug number you specify after `--fixes debbugs:' in the bzr
+command line (123 in the example above).
+
+In the bazaar.conf file, this setting should go into the [DEFAULT]
+section.
+
+In the locations.conf file, it should go into the branch-specific
+configuration section for the branch where you want this to be in
+effect.  For example, if you want this to be in effect for the branch
+located at `/home/projects/emacs/trunk', you need to have this in your
+~/.bazaar/locations.conf file:
+
+[/home/projects/emacs/trunk]
+bugtracker_debbugs_url = http://debbugs.gnu.org/{id}
+
+If you want to use this in all Emacs branches whose common parent is
+`/home/projects/emacs', put the setting in the [/home/projects/emacs]
+section.  See "bzr help configuration" for more information about
+the *.conf files, their location and formats.  See "bzr help bugs" for
+more information about the bugtracker_debbugs_url setting.
+
+See also log-edit-rewrite-fixes in .dir-locals.el.
 
 Note that all this does is add some metadata to the commit, it doesn't
-actually mark the bug as closed in the tracker.  There seems to be no
-way to see this "metadata" with `bzr log', which is rather poor, but
-it will show up as a link in a recent loggerhead installation, or with
-some of the graphical frontends to bzr log.
+actually mark the bug as closed in the tracker.  You can see this
+information with `bzr log', and it will show up as a link in a recent
+loggerhead installation, or with some of the graphical frontends to
+`bzr log'.
 
 ** Gnus-specific voodoo
 
@@ -553,8 +611,12 @@ All discarded messages are stored in /var/lib/mailman/spam.
 If a non-spam message accidentally gets discarded, just do:
 
 cat /var/lib/mailman/spam/not-really-spam.msg | /usr/lib/debbugs/receive
+chown Debian-debbugs:Debian-debbugs /var/lib/debbugs/spool/incoming/*
 ... check it works ...
 mv /var/lib/mailman/spam/not-really-spam.msg /var/lib/mailman/not-spam/
+
+Also check that the sender was not added to the auto-discard/reject list
+in the debbugs-submit Mailman interface.
 
 ** Administrivia
 

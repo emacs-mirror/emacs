@@ -1,10 +1,10 @@
 ;;; cus-face.el --- customization support for faces
 ;;
-;; Copyright (C) 1996, 1997, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 1999-2011 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, faces
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -34,28 +34,30 @@
 (defun custom-declare-face (face spec doc &rest args)
   "Like `defface', but FACE is evaluated as a normal argument."
   (unless (get face 'face-defface-spec)
-    (when (fboundp 'facep)
-      (unless (facep face)
-	;; If the user has already created the face, respect that.
-	(let ((value (or (get face 'saved-face) spec))
-	      (have-window-system (memq initial-window-system '(x w32))))
-	  ;; Create global face.
-	  (make-empty-face face)
-	  ;; Create frame-local faces
-	  (dolist (frame (frame-list))
-	    (face-spec-set-2 face frame value)
-	    (when (memq (window-system frame) '(x w32 ns))
-	      (setq have-window-system t)))
-	  ;; When making a face after frames already exist
-	  (if have-window-system
-	      (make-face-x-resource-internal face)))))
+    (unless (facep face)
+      ;; If the user has already created the face, respect that.
+      (let ((value (or (get face 'saved-face) spec))
+	    (have-window-system (memq initial-window-system '(x w32))))
+	;; Create global face.
+	(make-empty-face face)
+	;; Create frame-local faces
+	(dolist (frame (frame-list))
+	  (face-spec-set-2 face frame value)
+	  (when (memq (window-system frame) '(x w32 ns))
+	    (setq have-window-system t)))
+	;; When making a face after frames already exist
+	(if have-window-system
+	    (make-face-x-resource-internal face))))
     ;; Don't record SPEC until we see it causes no errors.
     (put face 'face-defface-spec (purecopy spec))
     (push (cons 'defface face) current-load-list)
     (when (and doc (null (face-documentation face)))
       (set-face-documentation face (purecopy doc)))
     (custom-handle-all-keywords face args 'custom-face)
-    (run-hooks 'custom-define-hook))
+    (run-hooks 'custom-define-hook)
+    ;; If the face has an existing theme setting, recalculate it.
+    (if (get face 'theme-face)
+	(custom-theme-recalc-face face)))
   face)
 
 ;;; Face attributes.
@@ -318,44 +320,37 @@ SPEC itself is saved in FACE property `saved-face' and it is stored in
 FACE's list property `theme-face' \(using `custom-push-theme')."
   (custom-check-theme theme)
   (let ((immediate (get theme 'theme-immediate)))
-    (while args
-      (let ((entry (car args)))
-	(if (listp entry)
-	    (let ((face (nth 0 entry))
-		  (spec (nth 1 entry))
-		  (now (nth 2 entry))
-		  (comment (nth 3 entry))
-		  oldspec)
-	      ;; If FACE is actually an alias, customize the face it
-	      ;; is aliased to.
-	      (if (get face 'face-alias)
-		  (setq face (get face 'face-alias)))
+    (dolist (entry args)
+      (unless (listp entry)
+	(error "Incompatible Custom theme spec"))
+      (let ((face (car entry))
+	    (spec (nth 1 entry)))
+	;; If FACE is actually an alias, customize the face it
+	;; is aliased to.
+	(if (get face 'face-alias)
+	    (setq face (get face 'face-alias)))
+	(if custom--inhibit-theme-enable
+	    ;; Just update theme settings.
+	    (custom-push-theme 'theme-face face theme 'set spec)
+	  ;; Update theme settings and set the face spec.
+	  (let ((now (nth 2 entry))
+		(comment (nth 3 entry))
+		(oldspec (get face 'theme-face)))
+	    (when (not (and oldspec (eq 'user (caar oldspec))))
+	      (put face 'saved-face spec)
+	      (put face 'saved-face-comment comment))
+	    ;; Do this AFTER checking the `theme-face' property.
+	    (custom-push-theme 'theme-face face theme 'set spec)
+	    (when (or now immediate)
+	      (put face 'force-face (if now 'rogue 'immediate)))
+	    (when (or now immediate (facep face))
+	      (unless (facep face)
+		(make-empty-face face))
+	      (put face 'face-comment comment)
+	      (put face 'face-override-spec nil)
+	      (face-spec-set face spec t))))))))
 
-	      (setq oldspec (get face 'theme-face))
-	      (when (not (and oldspec (eq 'user (caar oldspec))))
-		(put face 'saved-face spec)
-		(put face 'saved-face-comment comment))
-
-	      (custom-push-theme 'theme-face face theme 'set spec)
-	      (when (or now immediate)
-		(put face 'force-face (if now 'rogue 'immediate)))
-	      (when (or now immediate (facep face))
-		(unless (facep face)
-		  (make-empty-face face))
-		(put face 'face-comment comment)
-		(put face 'face-override-spec nil)
-		(face-spec-set face spec t))
-	      (setq args (cdr args)))
-	  ;; Old format, a plist of FACE SPEC pairs.
-	  (let ((face (nth 0 args))
-		(spec (nth 1 args)))
-	    (if (get face 'face-alias)
-		(setq face (get face 'face-alias)))
-	    (put face 'saved-face spec)
-	    (custom-push-theme 'theme-face face theme 'set spec))
-	  (setq args (cdr (cdr args))))))))
-
-;; XEmacs compability function.  In XEmacs, when you reset a Custom
+;; XEmacs compatibility function.  In XEmacs, when you reset a Custom
 ;; Theme, you have to specify the theme to reset it to.  We just apply
 ;; the next theme.
 (defun custom-theme-reset-faces (theme &rest args)
@@ -384,5 +379,4 @@ This means reset FACE to its value in FROM-THEME."
 
 (provide 'cus-face)
 
-;; arch-tag: 9a5c4b63-0d27-4c92-a5af-f2c7ed764c2b
 ;;; cus-face.el ends here

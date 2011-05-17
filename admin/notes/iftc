@@ -24,4 +24,3 @@ it from other casting.  We commit the changes and can now go about modifying
 LOW and HIGH separately.  When HIGH is ready to handle the type change, the
 cast can be removed.
 
-;;; arch-tag: 3309cc41-5d59-421b-b7be-c94b04083bb5

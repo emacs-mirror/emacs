@@ -1,6 +1,6 @@
 ;;; hfy-cmap.el --- Fallback colour name -> rgb mapping for `htmlfontify'
 
-;; Copyright (C) 2002, 2003, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2009-2011  Free Software Foundation, Inc.
 
 ;; Emacs Lisp Archive Entry
 ;; Package: htmlfontify
@@ -13,6 +13,7 @@
 ;; Description: fallback code for colour name -> rgb mapping
 ;; URL: http://rtfm.etla.org/emacs/htmlfontify/
 ;; Last-Updated: Sat 2003-02-15 03:49:32 +0000
+;; Package: htmlfontify
 
 ;; This file is part of GNU Emacs.
 
@@ -849,5 +850,4 @@ Loads the variable `hfy-rgb-txt-colour-map', which is used by
 ;; generated-autoload-file: "htmlfontify.el"
 ;; End:
 
-;; arch-tag: dff7feea-add4-48ba-937c-e79ac40cec9b
 ;;; hfy-cmap.el ends here

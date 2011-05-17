@@ -1,12 +1,12 @@
 ;;; cal-china.el --- calendar functions for the Chinese calendar
 
-;; Copyright (C) 1995, 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
 ;; Keywords: calendar
 ;; Human-Keywords: Chinese calendar, calendar, holidays, diary
+;; Package: calendar
 
 ;; This file is part of GNU Emacs.
 
@@ -575,8 +575,7 @@ Defaults to today's date if DATE is not given."
                             ;; Remainder of (1+(floor month))/12, with
                             ;; 12 instead of 0.
                             (1+ (mod (floor month) 12))
-                            1)))
-         (m-cycle (% (+ (* year 5) (floor month)) 60)))
+                            1))))
     (format "Cycle %s, year %s (%s), %smonth %s%s, day %s (%s)"
             cycle
             year (calendar-chinese-sexagesimal-name year)
@@ -685,5 +684,4 @@ Echo Chinese date unless NOECHO is non-nil."
 
 (provide 'cal-china)
 
-;; arch-tag: 7e5b7e0d-676c-47e3-8696-93e7ea0ab644
 ;;; cal-china.el ends here

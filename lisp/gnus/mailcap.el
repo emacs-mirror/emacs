@@ -1,7 +1,6 @@
 ;;; mailcap.el --- MIME media types configuration
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
 
 ;; Author: William M. Perry <wmperry@aventail.com>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -335,7 +334,7 @@ nil means your home directory."
   :group 'mailcap)
 
 (defvar mailcap-poor-system-types
-  '(ms-dos ms-windows windows-nt win32 w32 mswindows)
+  '(ms-dos windows-nt)
   "Systems that don't have a Unix-like directory hierarchy.")
 
 ;;;
@@ -423,7 +422,7 @@ MAILCAPS if set; otherwise (on Unix) use the path from RFC 1524, plus
 		"/usr/local/etc/mailcap"))))
     (let ((fnames (reverse
 		   (if (stringp path)
-		       (delete "" (split-string path path-separator))
+		       (split-string path path-separator t)
 		     path)))
 	  fname)
       (while fnames
@@ -812,7 +811,10 @@ If NO-DECODE is non-nil, don't decode STRING."
 ;;;
 
 (defvar mailcap-mime-extensions
-  '((""        . "text/plain")
+  '((""       . "text/plain")
+    (".1"     . "text/plain")  ;; Manual pages
+    (".3"     . "text/plain")
+    (".8"     . "text/plain")
     (".abs"   . "audio/x-mpeg")
     (".aif"   . "audio/aiff")
     (".aifc"  . "audio/aiff")
@@ -828,6 +830,7 @@ If NO-DECODE is non-nil, don't decode STRING."
     (".css"   . "text/css")
     (".dvi"   . "application/x-dvi")
     (".diff"  . "text/x-patch")
+    (".dpatch". "test/x-patch")
     (".el"    . "application/emacs-lisp")
     (".eps"   . "application/postscript")
     (".etx"   . "text/x-setext")
@@ -869,6 +872,7 @@ If NO-DECODE is non-nil, don't decode STRING."
     (".pict"  . "image/pict")
     (".png"   . "image/png")
     (".pnm"   . "image/x-portable-anymap")
+    (".pod"   . "text/plain")
     (".ppm"   . "image/portable-pixmap")
     (".ps"    . "application/postscript")
     (".qt"    . "video/quicktime")
@@ -905,7 +909,8 @@ If NO-DECODE is non-nil, don't decode STRING."
     (".zip"   . "application/zip")
     (".ai"    . "application/postscript")
     (".jpe"   . "image/jpeg")
-    (".jpeg"  . "image/jpeg"))
+    (".jpeg"  . "image/jpeg")
+    (".org"   . "text/x-org"))
   "An alist of file extensions and corresponding MIME content-types.
 This exists for you to customize the information in Lisp.  It is
 merged with values from mailcap files by `mailcap-parse-mimetypes'.")
@@ -941,7 +946,7 @@ If FORCE, re-parse even if already parsed."
 		"/usr/local/etc/mime-types"
 		"/usr/local/www/conf/mime-types"))))
     (let ((fnames (reverse (if (stringp path)
-			       (delete "" (split-string path path-separator))
+			       (split-string path path-separator t)
 			     path)))
 	  fname)
       (while fnames
@@ -1069,5 +1074,4 @@ If FORCE, re-parse even if already parsed."
 
 (provide 'mailcap)
 
-;; arch-tag: 1fd4f9c9-c305-4d2e-9747-3a4d45baa0bd
 ;;; mailcap.el ends here

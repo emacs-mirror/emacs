@@ -1,6 +1,5 @@
 /* Definitions and headers for communication on the Microsoft W32 API.
-   Copyright (C) 1995, 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1995, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -59,13 +58,13 @@ typedef HCURSOR Cursor;
 
 /* Dealing with bits of wchar_t as if they were an XChar2b.  */
 #define STORE_XCHAR2B(chp, byte1, byte2) \
-  ((*chp) = ((XChar2b)((((byte1) & 0x00ff) << 8) | ((byte2) & 0x00ff))))
+  ((*(chp)) = ((XChar2b)((((byte1) & 0x00ff) << 8) | ((byte2) & 0x00ff))))
 
 #define XCHAR2B_BYTE1(chp) \
- (((*chp) & 0xff00) >> 8)
+  (((*(chp)) & 0xff00) >> 8)
 
 #define XCHAR2B_BYTE2(chp) \
- ((*chp) & 0x00ff)
+  ((*(chp)) & 0x00ff)
 
 
 /* Windows equivalent of XImage.  */
@@ -118,7 +117,7 @@ extern int nCmdShow;
 #define PBaseSize	(1L << 8) /* program specified base for incrementing */
 #define PWinGravity	(1L << 9) /* program specified window gravity */
 
-extern int XParseGeometry ();
+extern int XParseGeometry (char *, int *, int *, unsigned *, unsigned *);
 
 
 typedef struct {
@@ -149,5 +148,3 @@ typedef struct {
 
 #endif /* EMACS_W32GUI_H */
 
-/* arch-tag: 9172e5fb-45a5-4684-afd9-ca0e81324604
-   (do not change this comment) */

@@ -1,7 +1,6 @@
 ;;; imenu.el --- framework for mode-specific buffer indexes
 
-;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1998, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Ake Stenhoff <etxaksf@aom.ericsson.se>
 ;;         Lars Lindberg <lli@sypro.cap.se>
@@ -162,7 +161,7 @@ element should come before the second.  The arguments are cons cells;
 
 ;; No longer used.  KFS 2004-10-27
 ;; (defcustom imenu-scanning-message "Scanning buffer for index (%3d%%)"
-;;   "*Progress message during the index scanning of the buffer.
+;;   "Progress message during the index scanning of the buffer.
 ;; If non-nil, user gets a message during the scanning of the buffer.
 ;;
 ;; Relevant only if the mode-specific function that creates the buffer
@@ -1066,5 +1065,4 @@ for more information."
 
 (provide 'imenu)
 
-;; arch-tag: 98a2f5f5-4b91-4704-b18c-3aacf77d77a7
 ;;; imenu.el ends here

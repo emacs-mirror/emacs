@@ -1,7 +1,6 @@
 ;;; reposition.el --- center a Lisp function or comment on the screen
 
-;; Copyright (C) 1991, 1994, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1994, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Michael D. Ernst <mernst@theory.lcs.mit.edu>
 ;; Created: Jan 1991
@@ -58,7 +57,7 @@ visible (if point is in code and it could not be made so, or if only
 comments, including the first comment line, are visible), or to make the
 first comment line visible (if point is in a comment)."
   (interactive "P")
-  (let* (;; (here (save-excursion (beginning-of-line) (point)))
+  (let* (;; (here (line-beginning-position))
 	 (here (point))
 	 ;; change this name once I've gotten rid of references to ht.
 	 ;; this is actually the number of the last screen line
@@ -193,5 +192,4 @@ first comment line visible (if point is in a comment)."
 
 (provide 'reposition)
 
-;; arch-tag: 79487039-3bd7-4ab5-a3e8-ecf3b4919010
 ;;; reposition.el ends here

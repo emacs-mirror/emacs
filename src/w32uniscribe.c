@@ -1,5 +1,5 @@
 /* Font backend for the Microsoft W32 Uniscribe API.
-   Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -52,20 +52,15 @@ int uniscribe_available = 0;
 extern Lisp_Object Quniscribe;
 extern Lisp_Object Qopentype;
 
-extern int initialized;
-
-extern struct font_driver uniscribe_font_driver;
-
 /* EnumFontFamiliesEx callback.  */
-static int CALLBACK add_opentype_font_name_to_list P_ ((ENUMLOGFONTEX *,
-                                                        NEWTEXTMETRICEX *,
-                                                        DWORD, LPARAM));
+static int CALLBACK add_opentype_font_name_to_list (ENUMLOGFONTEX *,
+                                                    NEWTEXTMETRICEX *,
+                                                    DWORD, LPARAM);
 /* Used by uniscribe_otf_capability.  */
 static Lisp_Object otf_features (HDC context, char *table);
 
 static int
-memq_no_quit (elt, list)
-     Lisp_Object elt, list;
+memq_no_quit (Lisp_Object elt, Lisp_Object list)
 {
   while (CONSP (list) && ! EQ (XCAR (list), elt))
     list = XCDR (list);
@@ -75,8 +70,7 @@ memq_no_quit (elt, list)
 
 /* Font backend interface implementation.  */
 static Lisp_Object
-uniscribe_list (frame, font_spec)
-     Lisp_Object frame, font_spec;
+uniscribe_list (Lisp_Object frame, Lisp_Object font_spec)
 {
   Lisp_Object fonts = w32font_list_internal (frame, font_spec, 1);
   FONT_ADD_LOG ("uniscribe-list", font_spec, fonts);
@@ -84,8 +78,7 @@ uniscribe_list (frame, font_spec)
 }
 
 static Lisp_Object
-uniscribe_match (frame, font_spec)
-     Lisp_Object frame, font_spec;
+uniscribe_match (Lisp_Object frame, Lisp_Object font_spec)
 {
   Lisp_Object entity = w32font_match_internal (frame, font_spec, 1);
   FONT_ADD_LOG ("uniscribe-match", font_spec, entity);
@@ -93,15 +86,14 @@ uniscribe_match (frame, font_spec)
 }
 
 static Lisp_Object
-uniscribe_list_family (frame)
-     Lisp_Object frame;
+uniscribe_list_family (Lisp_Object frame)
 {
   Lisp_Object list = Qnil;
   LOGFONT font_match_pattern;
   HDC dc;
   FRAME_PTR f = XFRAME (frame);
 
-  bzero (&font_match_pattern, sizeof (font_match_pattern));
+  memset (&font_match_pattern, 0, sizeof (font_match_pattern));
   /* Limit enumerated fonts to outline fonts to save time.  */
   font_match_pattern.lfOutPrecision = OUT_OUTLINE_PRECIS;
 
@@ -116,10 +108,7 @@ uniscribe_list_family (frame)
 }
 
 static Lisp_Object
-uniscribe_open (f, font_entity, pixel_size)
-     FRAME_PTR f;
-     Lisp_Object font_entity;
-     int pixel_size;
+uniscribe_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
 {
   Lisp_Object font_object
     = font_make_object (VECSIZE (struct uniscribe_font_info),
@@ -148,9 +137,7 @@ uniscribe_open (f, font_entity, pixel_size)
 }
 
 static void
-uniscribe_close (f, font)
-     FRAME_PTR f;
-     struct font *font;
+uniscribe_close (FRAME_PTR f, struct font *font)
 {
   struct uniscribe_font_info *uniscribe_font
     = (struct uniscribe_font_info *) font;
@@ -164,8 +151,7 @@ uniscribe_close (f, font)
 /* Return a list describing which scripts/languages FONT supports by
    which GSUB/GPOS features of OpenType tables.  */
 static Lisp_Object
-uniscribe_otf_capability (font)
-     struct font *font;
+uniscribe_otf_capability (struct font *font)
 {
   HDC context;
   HFONT old_font;
@@ -175,7 +161,7 @@ uniscribe_otf_capability (font)
 
   f = XFRAME (selected_frame);
   context = get_frame_dc (f);
-  old_font = SelectObject (context, FONT_HANDLE(font));
+  old_font = SelectObject (context, FONT_HANDLE (font));
 
   features = otf_features (context, "GSUB");
   XSETCAR (capability, features);
@@ -190,20 +176,20 @@ uniscribe_otf_capability (font)
 
 /* Uniscribe implementation of shape for font backend.
 
-   Shape text in LGSTRING.  See the docstring of `font-make-gstring'
-   for the format of LGSTRING.  If the (N+1)th element of LGSTRING
-   is nil, input of shaping is from the 1st to (N)th elements.  In
-   each input glyph, FROM, TO, CHAR, and CODE are already set.
+   Shape text in LGSTRING.  See the docstring of
+   `composition-get-gstring' for the format of LGSTRING.  If the
+   (N+1)th element of LGSTRING is nil, input of shaping is from the
+   1st to (N)th elements.  In each input glyph, FROM, TO, CHAR, and
+   CODE are already set.
 
    This function updates all fields of the input glyphs.  If the
    output glyphs (M) are more than the input glyphs (N), (N+1)th
    through (M)th elements of LGSTRING are updated possibly by making
    a new glyph object and storing it in LGSTRING.  If (M) is greater
-   than the length of LGSTRING, nil should be return.  In that case,
-   this function is called again with the larger LGSTRING.  */
+   than the length of LGSTRING, nil should be returned.  In that case,
+   this function is called again with a larger LGSTRING.  */
 static Lisp_Object
-uniscribe_shape (lgstring)
-     Lisp_Object lgstring;
+uniscribe_shape (Lisp_Object lgstring)
 {
   struct font * font;
   struct uniscribe_font_info * uniscribe_font;
@@ -228,6 +214,9 @@ uniscribe_shape (lgstring)
   max_glyphs = nchars = LGSTRING_GLYPH_LEN (lgstring);
   done_glyphs = 0;
   chars = (wchar_t *) alloca (nchars * sizeof (wchar_t));
+  /* FIXME: This loop assumes that characters in the input LGSTRING
+     are all inside the BMP.  Need to encode characters beyond the BMP
+     as UTF-16.  */
   for (i = 0; i < nchars; i++)
     {
       /* lgstring can be bigger than the number of characters in it, in
@@ -259,9 +248,6 @@ uniscribe_shape (lgstring)
       return Qnil;
     }
 
-  /* TODO: When we get BIDI support, we need to call ScriptLayout here.
-     Requires that we know the surrounding context.  */
-
   glyphs = alloca (max_glyphs * sizeof (WORD));
   clusters = alloca (nchars * sizeof (WORD));
   attributes = alloca (max_glyphs * sizeof (SCRIPT_VISATTR));
@@ -270,8 +256,12 @@ uniscribe_shape (lgstring)
 
   for (i = 0; i < nitems; i++)
     {
-      int nglyphs, nchars_in_run, rtl = items[i].a.fRTL ? -1 : 1;
+      int nglyphs, nchars_in_run;
       nchars_in_run = items[i+1].iCharPos - items[i].iCharPos;
+      /* Force ScriptShape to generate glyphs in the same order as
+	 they are in the input LGSTRING, which is in the logical
+	 order.  */
+      items[i].a.fLogicalOrder = 1;
 
       /* Context may be NULL here, in which case the cache should be
          used without needing to select the font.  */
@@ -287,7 +277,7 @@ uniscribe_shape (lgstring)
 	     passed in.  */
 	  f = XFRAME (selected_frame);
 	  context = get_frame_dc (f);
-	  old_font = SelectObject (context, FONT_HANDLE(font));
+	  old_font = SelectObject (context, FONT_HANDLE (font));
 
 	  result = ScriptShape (context, &(uniscribe_font->cache),
 				chars + items[i].iCharPos, nchars_in_run,
@@ -322,7 +312,7 @@ uniscribe_shape (lgstring)
 	      /* Cache not complete...  */
 	      f = XFRAME (selected_frame);
 	      context = get_frame_dc (f);
-	      old_font = SelectObject (context, FONT_HANDLE(font));
+	      old_font = SelectObject (context, FONT_HANDLE (font));
 
 	      result = ScriptPlace (context, &(uniscribe_font->cache),
 				    glyphs, nglyphs, attributes, &(items[i].a),
@@ -330,9 +320,9 @@ uniscribe_shape (lgstring)
 	    }
           if (SUCCEEDED (result))
 	    {
-	      int j, nclusters, from, to;
+	      int j, from, to;
 
-	      from = rtl > 0 ? 0 : nchars_in_run - 1;
+	      from = 0;
 	      to = from;
 
 	      for (j = 0; j < nglyphs; j++)
@@ -353,22 +343,19 @@ uniscribe_shape (lgstring)
 		  gl = glyphs[j];
 		  LGLYPH_SET_CODE (lglyph, gl);
 
-		  /* Detect clusters, for linking codes back to characters.  */
+		  /* Detect clusters, for linking codes back to
+		     characters.  */
 		  if (attributes[j].fClusterStart)
 		    {
-		      while (from >= 0 && from < nchars_in_run
-			     && clusters[from] < j)
-			from += rtl;
-		      if (from < 0)
-			from = to = 0;
-		      else if (from >= nchars_in_run)
+		      while (from < nchars_in_run && clusters[from] < j)
+			from++;
+		      if (from >= nchars_in_run)
 			from = to = nchars_in_run - 1;
 		      else
 			{
 			  int k;
-			  to = rtl > 0 ? nchars_in_run - 1 : 0;
-			  for (k = from + rtl; k >= 0 && k < nchars_in_run;
-			       k += rtl)
+			  to = nchars_in_run - 1;
+			  for (k = from + 1; k < nchars_in_run; k++)
 			    {
 			      if (clusters[k] > j)
 				{
@@ -397,7 +384,7 @@ uniscribe_shape (lgstring)
 		      /* Cache incomplete... */
 		      f = XFRAME (selected_frame);
 		      context = get_frame_dc (f);
-		      old_font = SelectObject (context, FONT_HANDLE(font));
+		      old_font = SelectObject (context, FONT_HANDLE (font));
 		      result = ScriptGetGlyphABCWidth (context,
 						       &(uniscribe_font->cache),
 						       glyphs[j], &char_metric);
@@ -448,12 +435,10 @@ uniscribe_shape (lgstring)
 }
 
 /* Uniscribe implementation of encode_char for font backend.
-   Return a glyph code of FONT for characer C (Unicode code point).
+   Return a glyph code of FONT for character C (Unicode code point).
    If FONT doesn't have such a glyph, return FONT_INVALID_CODE.  */
 static unsigned
-uniscribe_encode_char (font, c)
-     struct font *font;
-     int c;
+uniscribe_encode_char (struct font *font, int c)
 {
   HDC context = NULL;
   struct frame *f = NULL;
@@ -499,6 +484,10 @@ uniscribe_encode_char (font, c)
           SCRIPT_VISATTR attrs[2];
           int nglyphs;
 
+	  /* Force ScriptShape to generate glyphs in the logical
+	     order.  */
+	  items[0].a.fLogicalOrder = 1;
+
           result = ScriptShape (context, &(uniscribe_font->cache),
                                 ch, len, 2, &(items[0].a),
                                 glyphs, clusters, attrs, &nglyphs);
@@ -509,7 +498,7 @@ uniscribe_encode_char (font, c)
                  the frame.  */
               f = XFRAME (selected_frame);
               context = get_frame_dc (f);
-              old_font = SelectObject (context, FONT_HANDLE(font));
+              old_font = SelectObject (context, FONT_HANDLE (font));
               result = ScriptShape (context, &(uniscribe_font->cache),
                                     ch, len, 2, &(items[0].a),
                                     glyphs, clusters, attrs, &nglyphs);
@@ -574,12 +563,9 @@ uniscribe_encode_char (font, c)
    Adds the name of opentype fonts to a Lisp list (passed in as the
    lParam arg). */
 static int CALLBACK
-add_opentype_font_name_to_list (logical_font, physical_font, font_type,
-                                list_object)
-     ENUMLOGFONTEX *logical_font;
-     NEWTEXTMETRICEX *physical_font;
-     DWORD font_type;
-     LPARAM list_object;
+add_opentype_font_name_to_list (ENUMLOGFONTEX *logical_font,
+				NEWTEXTMETRICEX *physical_font,
+				DWORD font_type, LPARAM list_object)
 {
   Lisp_Object* list = (Lisp_Object *) list_object;
   Lisp_Object family;
@@ -643,16 +629,13 @@ add_opentype_font_name_to_list (logical_font, physical_font, font_type,
     STR[4] = '\0';                                           \
   } while (0)
 
-static char* NOTHING = "    ";
-
 #define SNAME(VAL) SDATA (SYMBOL_NAME (VAL))
 
 /* Check if font supports the otf script/language/features specified.
    OTF_SPEC is in the format
      (script lang [(gsub_feature ...)|nil] [(gpos_feature ...)]?) */
-int uniscribe_check_otf (font, otf_spec)
-     LOGFONT *font;
-     Lisp_Object otf_spec;
+int
+uniscribe_check_otf (LOGFONT *font, Lisp_Object otf_spec)
 {
   Lisp_Object script, lang, rest;
   Lisp_Object features[2];
@@ -661,7 +644,6 @@ int uniscribe_check_otf (font, otf_spec)
   struct frame * f;
   HDC context;
   HFONT check_font, old_font;
-  DWORD table;
   int i, retval = 0;
   struct gcpro gcpro1;
 
@@ -947,17 +929,21 @@ struct font_driver uniscribe_font_driver =
     NULL, /* get_outline */
     NULL, /* free_outline */
     NULL, /* anchor_point */
-    uniscribe_otf_capability, /* Defined so (font-get FONTOBJ :otf) works.  */ 
+    uniscribe_otf_capability, /* Defined so (font-get FONTOBJ :otf) works.  */
     NULL, /* otf_drive - use shape instead.  */
     NULL, /* start_for_frame */
     NULL, /* end_for_frame */
-    uniscribe_shape
+    uniscribe_shape,
+    NULL, /* check */
+    NULL, /* get_variation_glyphs */
+    NULL, /* filter_properties */
+    NULL, /* cached_font_ok */
   };
 
 /* Note that this should be called at every startup, not just when dumping,
    as it needs to test for the existence of the Uniscribe library.  */
 void
-syms_of_w32uniscribe ()
+syms_of_w32uniscribe (void)
 {
   HMODULE uniscribe;
 
@@ -976,5 +962,3 @@ syms_of_w32uniscribe ()
   register_font_driver (&uniscribe_font_driver, NULL);
 }
 
-/* arch-tag: 9530f0e1-7471-47dd-a780-94330af87ea0
-   (do not change this comment) */

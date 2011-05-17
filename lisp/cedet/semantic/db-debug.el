@@ -1,6 +1,6 @@
 ;;; semantic/db-debug.el --- Extra level debugging routines for Semantic
 
-;;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+;;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -107,5 +107,4 @@
 
 (provide 'semantic/db-debug)
 
-;; arch-tag: 9bdc11bd-fb76-4a32-9545-78ed143b7184
 ;;; semantic/db-debug.el ends here

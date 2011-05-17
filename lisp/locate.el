@@ -1,7 +1,6 @@
 ;;; locate.el --- interface to the locate command
 
-;; Copyright (C) 1996, 1998, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1998, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Peter Breton <pbreton@cs.umb.edu>
 ;; Keywords: unix files
@@ -97,7 +96,7 @@
 ;; (defadvice dired-make-relative (before set-no-error activate)
 ;;   "For locate mode and Windows, don't return errors"
 ;;   (if (and (eq   major-mode  'locate-mode)
-;; 	   (memq system-type (list 'windows-nt 'ms-dos)))
+;; 	   (memq system-type '(windows-nt ms-dos)))
 ;;       (ad-set-arg 2 t)
 ;;     ))
 ;;
@@ -143,6 +142,11 @@ documentation of that program for the details about how it determines
 which file names match SEARCH-STRING.  (Those details vary highly with
 the version.)"
   :type 'string
+  :group 'locate)
+
+(defcustom locate-post-command-hook nil
+  "List of hook functions run after `locate' (see `run-hooks')."
+  :type  'hook
   :group 'locate)
 
 (defvar locate-history-list nil
@@ -226,6 +230,11 @@ that is, with a prefix arg, you get the default behavior."
   :group 'locate
   :type 'boolean)
 
+(defcustom locate-mode-hook nil
+  "List of hook functions run by `locate-mode' (see `run-mode-hooks')."
+  :type  'hook
+  :group 'locate)
+
 ;; Functions
 
 (defun locate-default-make-command-line (search-string)
@@ -270,7 +279,7 @@ that is, with a prefix arg, you get the default behavior."
 (defun locate (search-string &optional filter arg)
   "Run the program `locate', putting results in `*Locate*' buffer.
 Pass it SEARCH-STRING as argument.  Interactively, prompt for SEARCH-STRING.
-With prefix arg, prompt for the exact shell command to run instead.
+With prefix arg ARG, prompt for the exact shell command to run instead.
 
 This program searches for those file names in a database that match
 SEARCH-STRING and normally outputs all matching absolute file names,
@@ -286,7 +295,8 @@ the variables `locate-command' or `locate-make-command-line'.
 The main use of FILTER is to implement `locate-with-filter'.  See
 the docstring of that function for its meaning.
 
-ARG is the interactive prefix arg."
+After preparing the results buffer, this runs `dired-mode-hook' and
+then `locate-post-command-hook'."
   (interactive
    (list
     (locate-prompt-for-search-string)
@@ -300,8 +310,7 @@ ARG is the interactive prefix arg."
 	 (locate-cmd-args (cdr locate-cmd-list))
 	 (run-locate-command
 	  (or (and arg (not locate-prompt-for-command))
-	      (and (not arg) locate-prompt-for-command)))
-	 )
+	      (and (not arg) locate-prompt-for-command))))
 
     ;; Find the Locate buffer
     (save-window-excursion
@@ -323,16 +332,13 @@ ARG is the interactive prefix arg."
 	(and filter
 	     (locate-filter-output filter))
 
-	(locate-do-setup search-string)
-	))
+	(locate-do-setup search-string)))
     (and (not (string-equal (buffer-name) locate-buffer-name))
-	(switch-to-buffer-other-window locate-buffer-name))
+	(pop-to-buffer locate-buffer-name))
 
     (run-hooks 'dired-mode-hook)
     (dired-next-line 3)			;move to first matching file.
-    (run-hooks 'locate-post-command-hook)
-    )
-  )
+    (run-hooks 'locate-post-command-hook)))
 
 ;;;###autoload
 (defun locate-with-filter (search-string filter &optional arg)
@@ -447,6 +453,7 @@ file name or is inside a subdirectory."
 \\<locate-mode-map>\
 In that buffer, you can use almost all the usual dired bindings.
 \\[locate-find-directory] visits the directory of the file on the current line.
+This function runs `locate-mode-hook' before returning.
 
 Operating on listed files works, but does not always
 automatically update the buffer as in ordinary Dired.
@@ -473,9 +480,9 @@ do not work in subdirectories.
   (make-local-variable 'directory-listing-before-filename-regexp)
   ;; This should support both Unix and Windoze style names
   (setq directory-listing-before-filename-regexp
-	(concat "^."
+	(concat "^.\\("
 		(make-string (1- locate-filename-indentation) ?\s)
-		"\\(/\\|[A-Za-z]:\\)\\|"
+		 "\\)\\|"
 		(default-value 'directory-listing-before-filename-regexp)))
   (make-local-variable 'dired-actual-switches)
   (setq dired-actual-switches "")
@@ -581,7 +588,7 @@ do not work in subdirectories.
     (message "This command only works inside main listing.")))
 
 ;; From Stephen Eglen <stephen@cns.ed.ac.uk>
-(defun locate-update (ignore1 ignore2)
+(defun locate-update (_ignore1 _ignore2)
   "Revert the *Locate* buffer.
 If `locate-update-when-revert' is non-nil, offer to update the
 locate database using the shell command in `locate-update-command'."
@@ -687,5 +694,4 @@ the database on the command line."
 
 (provide 'locate)
 
-;; arch-tag: 60c4d098-b5d5-4b3c-a3e0-51a2e9f43898
 ;;; locate.el ends here

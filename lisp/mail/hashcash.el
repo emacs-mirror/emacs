@@ -1,7 +1,6 @@
 ;;; hashcash.el --- Add hashcash payments to email
 
-;; Copyright (C) 2003, 2004, 2005, 2007, 2008, 2009, 2010
-;;   Free Software Foundation
+;; Copyright (C) 2003-2005, 2007-2011  Free Software Foundation, Inc.
 
 ;; Written by: Paul Foley <mycroft@actrix.gen.nz> (1997-2002)
 ;; Maintainer: Paul Foley <mycroft@actrix.gen.nz>
@@ -48,6 +47,7 @@
 
 ;;; Code:
 
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 
@@ -276,7 +276,7 @@ BUFFER defaults to the current buffer."
   (unless buffer (setq buffer (current-buffer)))
   (let (entry)
     (while (setq entry (rassq buffer hashcash-process-alist))
-      (accept-process-output (car entry)))))
+      (accept-process-output (car entry) 1))))
 
 (defun hashcash-processes-running-p (buffer)
   "Return non-nil if hashcash processes in BUFFER are still running."
@@ -375,4 +375,4 @@ Prefix arg sets default accept amount temporarily."
 
 (provide 'hashcash)
 
-;; arch-tag: 0e7fe983-a124-4392-9788-0dbcbd2c4d62
+;;; hashcash.el ends here

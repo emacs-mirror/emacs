@@ -1,7 +1,6 @@
 ;;; mm-uu.el --- Return uu stuff as mm handles
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: postscript uudecode binhex shar forward gnatsweb pgp
@@ -159,13 +158,25 @@ This can be either \"inline\" or \"attachment\".")
      mm-uu-diff-extract
      nil
      mm-uu-diff-test)
+    (diff
+     "^=== modified file "
+     nil
+     mm-uu-diff-extract
+     nil
+     mm-uu-diff-test)
+    (git-format-patch
+     "^diff --git "
+     "^-- "
+     mm-uu-diff-extract
+     nil
+     mm-uu-diff-test)
     (message-marks
      ;; Text enclosed with tags similar to `message-mark-insert-begin' and
      ;; `message-mark-insert-end'.  Don't use those variables to avoid
      ;; dependency on `message.el'.
      "^-+[8<>]*-\\{9,\\}[a-z ]+-\\{9,\\}[a-z ]+-\\{9,\\}[8<>]*-+$"
      "^-+[8<>]*-\\{9,\\}[a-z ]+-\\{9,\\}[a-z ]+-\\{9,\\}[8<>]*-+$"
-     (lambda () (mm-uu-verbatim-marks-extract -1 0 1 -1))
+     (lambda () (mm-uu-verbatim-marks-extract 0 0 1 -1))
      nil)
     ;; Omitting [a-z8<] leads to false positives (bogus signature separators
     ;; and mailing list banners).
@@ -186,7 +197,15 @@ This can be either \"inline\" or \"attachment\".")
      "^\\\\end{document}"
      mm-uu-latex-extract
      nil
-     mm-uu-latex-test))
+     mm-uu-latex-test)
+    (org-src-code-block
+     "^[ \t]*#\\+begin_"
+     "^[ \t]*#\\+end_"
+     mm-uu-org-src-code-block-extract)
+    (org-meta-line
+     "^[ \t]*#\\+[[:alpha:]]+: "
+     "$"
+     mm-uu-org-src-code-block-extract))
   "A list of specifications for non-MIME attachments.
 Each element consist of the following entries: label,
 start-regexp, end-regexp, extract-function, test-function.
@@ -383,6 +402,10 @@ apply the face `mm-uu-extract'."
 		  (list mm-dissect-disposition
 			(cons 'filename file-name))))
 
+(defun mm-uu-org-src-code-block-extract ()
+  (mm-make-handle (mm-uu-copy-to-buffer start-point end-point)
+                  '("text/x-org")))
+
 (defvar gnus-newsgroup-name)
 
 (defun mm-uu-emacs-sources-test ()
@@ -441,7 +464,7 @@ apply the face `mm-uu-extract'."
 (defun mm-uu-yenc-extract ()
   ;; This might not be exactly correct, but we sure can't get the
   ;; binary data from the article buffer, since that's already in a
-  ;; non-binary charset.  So get it from the original article buffer. 
+  ;; non-binary charset.  So get it from the original article buffer.
   (mm-make-handle (with-current-buffer gnus-original-article-buffer
 		    (mm-uu-copy-to-buffer start-point end-point))
 		  (list (or (and file-name
@@ -682,6 +705,8 @@ Assume text has been decoded if DECODED is non-nil."
 		    ;; Mutt still uses application/pgp even though
 		    ;; it has already been withdrawn.
 		    (string-match "\\`text/\\|\\`application/pgp\\'" type)
+                    (equal (car (mm-handle-disposition handle))
+                           "inline")
 		    (setq
 		     children
 		     (with-current-buffer buffer
@@ -729,5 +754,4 @@ Assume text has been decoded if DECODED is non-nil."
 
 (provide 'mm-uu)
 
-;; arch-tag: 7db076bf-53db-4320-aa19-ca76a1d2ab2c
 ;;; mm-uu.el ends here

@@ -1,6 +1,6 @@
 ;;; erc-identd.el --- RFC1413 (identd authentication protocol) server
 
-;; Copyright (C) 2003, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2006-2011 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Keywords: comm, processes
@@ -118,4 +118,3 @@ The default port is specified by `erc-identd-port'."
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: e0b5f926-0f35-40b9-8ddb-ca06b62a7544

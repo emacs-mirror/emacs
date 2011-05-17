@@ -1,6 +1,6 @@
 ;;; srecode/srt-wy.el --- Generated parser support file
 
-;; Copyright (C) 2005, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2007-2011 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -274,5 +274,4 @@ It ignores whitespace, newlines and comments."
 
 (provide 'srecode/srt-wy)
 
-;; arch-tag: 1be4c0bc-2a79-4f75-a07a-1ac518f41271
 ;;; srecode/srt-wy.el ends here

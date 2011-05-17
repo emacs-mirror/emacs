@@ -1,7 +1,6 @@
 ;;; elint.el --- Lint Emacs Lisp
 
-;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Peter Liljenberg <petli@lysator.liu.se>
 ;; Created: May 1997
@@ -123,7 +122,6 @@ are as follows, and suppress messages about the indicated features:
   ;; FIXME I don't see why they shouldn't just get doc-strings.
   '(vc-mode local-write-file-hooks activate-menubar-hook buffer-name-history
 	    coding-system-history extended-command-history
-	    kbd-macro-termination-hook read-expression-history
 	    yes-or-no-p-history)
   "Standard variables, excluding `elint-builtin-variables'.
 These are variables that we cannot detect automatically for some reason.")
@@ -394,40 +392,41 @@ Return nil if there are no more forms, t otherwise."
   (parse-partial-sexp (point) (point-max) nil t)
   (not (eobp)))
 
-(defvar env)				; from elint-init-env
+(defvar elint-env)			; from elint-init-env
 
 (defun elint-init-form (form)
-  "Process FORM, adding to ENV if recognized."
+  "Process FORM, adding to ELINT-ENV if recognized."
   (cond
    ;; Eg nnmaildir seems to use [] as a form of comment syntax.
    ((not (listp form))
     (elint-warning "Skipping non-list form `%s'" form))
    ;; Add defined variable
    ((memq (car form) '(defvar defconst defcustom))
-    (setq env (elint-env-add-var env (cadr form))))
+    (setq elint-env (elint-env-add-var elint-env (cadr form))))
    ;; Add function
    ((memq (car form) '(defun defsubst))
-    (setq env (elint-env-add-func env (cadr form) (nth 2 form))))
+    (setq elint-env (elint-env-add-func elint-env (cadr form) (nth 2 form))))
    ;; FIXME needs a handler to say second arg is not a variable when we come
    ;; to scan the form.
    ((eq (car form) 'define-derived-mode)
-    (setq env (elint-env-add-func env (cadr form) ())
-	  env (elint-env-add-var env (cadr form))
-	  env (elint-env-add-var env (intern (format "%s-map" (cadr form))))))
+    (setq elint-env (elint-env-add-func elint-env (cadr form) ())
+	  elint-env (elint-env-add-var elint-env (cadr form))
+	  elint-env (elint-env-add-var elint-env
+				       (intern (format "%s-map" (cadr form))))))
    ((eq (car form) 'define-minor-mode)
-    (setq env (elint-env-add-func env (cadr form) '(&optional arg))
+    (setq elint-env (elint-env-add-func elint-env (cadr form) '(&optional arg))
 	  ;; FIXME mode map?
-	  env (elint-env-add-var env (cadr form))))
+	  elint-env (elint-env-add-var elint-env (cadr form))))
    ((and (eq (car form) 'easy-menu-define)
 	 (cadr form))
-    (setq env (elint-env-add-func env (cadr form) '(event))
-	  env (elint-env-add-var env (cadr form))))
+    (setq elint-env (elint-env-add-func elint-env (cadr form) '(event))
+	  elint-env (elint-env-add-var elint-env (cadr form))))
    ;; FIXME it would be nice to check the autoloads are correct.
    ((eq (car form) 'autoload)
-    (setq env (elint-env-add-func env (cadr (cadr form)) 'unknown)))
+    (setq elint-env (elint-env-add-func elint-env (cadr (cadr form)) 'unknown)))
    ((eq (car form) 'declare-function)
-    (setq env (elint-env-add-func
-	       env (cadr form)
+    (setq elint-env (elint-env-add-func
+	       elint-env (cadr form)
 	       (if (or (< (length form) 4)
 		       (eq (nth 3 form) t)
 		       (unless (stringp (nth 2 form))
@@ -440,14 +439,14 @@ Return nil if there are no more forms, t otherwise."
     ;; If the alias points to something already in the environment,
     ;; add the alias to the environment with the same arguments.
     ;; FIXME symbol-function, eg backquote.el?
-    (let ((def (elint-env-find-func env (cadr (nth 2 form)))))
-      (setq env (elint-env-add-func env (cadr (cadr form))
+    (let ((def (elint-env-find-func elint-env (cadr (nth 2 form)))))
+      (setq elint-env (elint-env-add-func elint-env (cadr (cadr form))
 				    (if def (cadr def) 'unknown)))))
    ;; Add macro, both as a macro and as a function
    ((eq (car form) 'defmacro)
-    (setq env (elint-env-add-macro env (cadr form)
+    (setq elint-env (elint-env-add-macro elint-env (cadr form)
 				   (cons 'lambda (cddr form)))
-	  env (elint-env-add-func env (cadr form) (nth 2 form))))
+	  elint-env (elint-env-add-func elint-env (cadr form) (nth 2 form))))
    ((and (eq (car form) 'put)
 	 (= 4 (length form))
 	 (eq (car-safe (cadr form)) 'quote)
@@ -471,12 +470,12 @@ Return nil if there are no more forms, t otherwise."
 	     (setq name 'cl-macs
 		   file nil
 		   elint-doing-cl t)) ; blech
-	(setq env (elint-add-required-env env name file))))))
-  env)
+	(setq elint-env (elint-add-required-env elint-env name file))))))
+  elint-env)
 
 (defun elint-init-env (forms)
   "Initialize the environment from FORMS."
-  (let ((env (elint-make-env))
+  (let ((elint-env (elint-make-env))
 	form)
     (while forms
       (setq form (elint-top-form-form (car forms))
@@ -489,7 +488,7 @@ Return nil if there are no more forms, t otherwise."
 				   with-no-warnings))
 	  (mapc 'elint-init-form (cdr form))
 	(elint-init-form form)))
-    env))
+    elint-env))
 
 (defun elint-add-required-env (env name file)
   "Augment ENV with the variables defined by feature NAME in FILE."
@@ -1171,5 +1170,4 @@ If no documentation could be found args will be `unknown'."
 
 (provide 'elint)
 
-;; arch-tag: b2f061e2-af84-4ddc-8e39-f5e969ac228f
 ;;; elint.el ends here

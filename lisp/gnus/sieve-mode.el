@@ -1,7 +1,6 @@
 ;;; sieve-mode.el --- Sieve code editing commands for Emacs
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-;;   2010  Free Software Foundation, Inc.
+;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 
@@ -216,5 +215,4 @@ Turning on Sieve mode runs `sieve-mode-hook'."
 
 (provide 'sieve-mode)
 
-;; arch-tag: 3b8ab76d-065d-4c52-b1e8-ab2ec21f2ace
 ;; sieve-mode.el ends here

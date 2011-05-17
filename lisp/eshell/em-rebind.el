@@ -1,7 +1,6 @@
 ;;; em-rebind.el --- rebind keys when point is at current input
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -42,8 +41,9 @@ the behavior of normal shells while the user editing new input text."
 
 ;;; User Variables:
 
-(defcustom eshell-rebind-load-hook '(eshell-rebind-initialize)
-  "*A list of functions to call when loading `eshell-rebind'."
+(defcustom eshell-rebind-load-hook nil
+  "A list of functions to call when loading `eshell-rebind'."
+  :version "24.1"			; removed eshell-rebind-initialize
   :type 'hook
   :group 'eshell-rebind)
 
@@ -55,14 +55,14 @@ the behavior of normal shells while the user editing new input text."
     ([delete]       . eshell-delete-backward-char)
     ([(control ?w)] . backward-kill-word)
     ([(control ?u)] . eshell-kill-input))
-  "*Bind some keys differently if point is in input text."
+  "Bind some keys differently if point is in input text."
   :type '(repeat (cons (vector :tag "Keys to bind"
 			       (repeat :inline t sexp))
 		       (function :tag "Command")))
   :group 'eshell-rebind)
 
 (defcustom eshell-confine-point-to-input t
-  "*If non-nil, do not allow the point to leave the current input.
+  "If non-nil, do not allow the point to leave the current input.
 This is more difficult to do nicely in Emacs than one might think.
 Basically, the `point-left' attribute is added to the input text, and
 a function is placed on that hook to take the point back to
@@ -77,13 +77,13 @@ people will left the point alone in the Eshell buffer.  Sigh."
   :group 'eshell-rebind)
 
 (defcustom eshell-error-if-move-away t
-  "*If non-nil, consider it an error to try to move outside current input.
+  "If non-nil, consider it an error to try to move outside current input.
 This is default behavior of shells like bash."
   :type 'boolean
   :group 'eshell-rebind)
 
 (defcustom eshell-remap-previous-input t
-  "*If non-nil, remap input keybindings on previous prompts as well."
+  "If non-nil, remap input keybindings on previous prompts as well."
   :type 'boolean
   :group 'eshell-rebind)
 
@@ -91,7 +91,6 @@ This is default behavior of shells like bash."
   '(beginning-of-line-text
     beginning-of-line
     move-to-column
-    move-to-column-force
     move-to-left-margin
     move-to-tab-stop
     forward-char
@@ -132,7 +131,7 @@ This is default behavior of shells like bash."
     forward-visible-line
     forward-comment
     forward-thing)
-  "*A list of commands that cannot leave the input area."
+  "A list of commands that cannot leave the input area."
   :type '(repeat function)
   :group 'eshell-rebind)
 
@@ -247,5 +246,4 @@ input."
 ;; generated-autoload-file: "esh-groups.el"
 ;; End:
 
-;; arch-tag: 76d84f12-cc56-4d67-9b7d-c6b44ad20530
 ;;; em-rebind.el ends here

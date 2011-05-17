@@ -1,10 +1,10 @@
 ;;; org-docbook.el --- DocBook exporter for org-mode
 ;;
-;; Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
 ;;
 ;; Emacs Lisp Archive Entry
 ;; Filename: org-docbook.el
-;; Version: 6.35i
+;; Version: 7.4
 ;; Author: Baoqiu Cui <cbaoqiu AT yahoo DOT com>
 ;; Maintainer: Baoqiu Cui <cbaoqiu AT yahoo DOT com>
 ;; Keywords: org, wp, docbook
@@ -26,7 +26,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-;; Commentary:
+;;; Commentary:
 ;;
 ;; This library implements a DocBook exporter for org-mode.  The basic
 ;; idea and design is very similar to what `org-export-as-html' has.
@@ -76,6 +76,7 @@
 (require 'org)
 (require 'org-exp)
 (require 'org-html)
+(require 'format-spec)
 
 ;;; Variables:
 
@@ -141,8 +142,8 @@ people work on the same document."
   :type 'string)
 
 (defcustom org-export-docbook-footnote-id-prefix "fn-"
-  "The prefix of footnote IDs used during exporting.  Like
-`org-export-docbook-section-id-prefix', this variable can help
+  "The prefix of footnote IDs used during exporting.
+Like `org-export-docbook-section-id-prefix', this variable can help
 avoid same set of footnote IDs being used multiple times."
   :group 'org-export-docbook
   :type 'string)
@@ -154,7 +155,7 @@ avoid same set of footnote IDs being used multiple times."
     ("=" "<code>" "</code>")
     ("~" "<literal>" "</literal>")
     ("+" "<emphasis role=\"strikethrough\">" "</emphasis>"))
-  "Alist of DocBook expressions to convert emphasis fontifiers.
+  "A list of DocBook expressions to convert emphasis fontifiers.
 Each element of the list is a list of three elements.
 The first element is the character used as a marker for fontification.
 The second element is a formatting string to wrap fontified text with.
@@ -183,32 +184,39 @@ default, but users can override them using `#+ATTR_DocBook:'."
   :group 'org-export-docbook
   :type 'coding-system)
 
+(defcustom org-export-docbook-xslt-stylesheet nil
+  "File name of the XSLT stylesheet used by DocBook exporter.
+This XSLT stylesheet is used by
+`org-export-docbook-xslt-proc-command' to generate the Formatting
+Object (FO) files.  You can use either `fo/docbook.xsl' that
+comes with DocBook, or any customization layer you may have."
+  :group 'org-export-docbook
+  :type 'string)
+
 (defcustom org-export-docbook-xslt-proc-command nil
-  "XSLT processor command used by DocBook exporter.
-This is the command used to process a DocBook XML file to
-generate the formatting object (FO) file.
+  "Format of XSLT processor command used by DocBook exporter.
+This command is used to process a DocBook XML file to generate
+the Formatting Object (FO) file.
 
 The value of this variable should be a format control string that
-includes two `%s' arguments: the first one is for the output FO
-file name, and the second one is for the input DocBook XML file
-name.
+includes three arguments: `%i', `%o', and `%s'.  During exporting
+time, `%i' is replaced by the input DocBook XML file name, `%o'
+is replaced by the output FO file name, and `%s' is replaced by
+`org-export-docbook-xslt-stylesheet' (or the #+XSLT option if it
+is specified in the Org file).
 
 For example, if you use Saxon as the XSLT processor, you may want
 to set the variable to
 
-  \"java com.icl.saxon.StyleSheet -o %s %s /path/to/docbook.xsl\"
+  \"java com.icl.saxon.StyleSheet -o %o %i %s\"
 
 If you use Xalan, you can set it to
 
-  \"java org.apache.xalan.xslt.Process -out %s -in %s -xsl /path/to/docbook.xsl\"
+  \"java org.apache.xalan.xslt.Process -out %o -in %i -xsl %s\"
 
 For xsltproc, the following string should work:
 
-  \"xsltproc --output %s /path/to/docbook.xsl %s\"
-
-You need to replace \"/path/to/docbook.xsl\" with the actual path
-to the DocBook stylesheet file on your machine.  You can also
-replace it with your own customization layer if you have one.
+  \"xsltproc --output %o %s %i\"
 
 You can include additional stylesheet parameters in this command.
 Just make sure that they meet the syntax requirement of each
@@ -217,18 +225,19 @@ processor."
   :type 'string)
 
 (defcustom org-export-docbook-xsl-fo-proc-command nil
-  "XSL-FO processor command used by DocBook exporter.
-This is the command used to process a formatting object (FO) file
-to generate the PDF file.
+  "Format of XSL-FO processor command used by DocBook exporter.
+This command is used to process a Formatting Object (FO) file to
+generate the PDF file.
 
 The value of this variable should be a format control string that
-includes two `%s' arguments: the first one is for the input FO
-file name, and the second one is for the output PDF file name.
+includes two arguments: `%i' and `%o'.  During exporting time,
+`%i' is replaced by the input FO file name, and `%o' is replaced
+by the output PDF file name.
 
 For example, if you use FOP as the XSL-FO processor, you can set
 the variable to
 
-  \"fop %s %s\""
+  \"fop %i %o\""
   :group 'org-export-docbook
   :type 'string)
 
@@ -333,13 +342,18 @@ in a window.  A non-interactive call will only return the buffer."
   "Export as DocBook XML file, and generate PDF file."
   (interactive "P")
   (if (or (not org-export-docbook-xslt-proc-command)
-	  (not (string-match "%s.+%s" org-export-docbook-xslt-proc-command)))
+	  (not (string-match "%[ios].+%[ios].+%[ios]" org-export-docbook-xslt-proc-command)))
       (error "XSLT processor command is not set correctly"))
   (if (or (not org-export-docbook-xsl-fo-proc-command)
-	  (not (string-match "%s.+%s" org-export-docbook-xsl-fo-proc-command)))
+	  (not (string-match "%[io].+%[io]" org-export-docbook-xsl-fo-proc-command)))
       (error "XSL-FO processor command is not set correctly"))
   (message "Exporting to PDF...")
   (let* ((wconfig (current-window-configuration))
+	 (opt-plist
+	  (org-export-process-option-filters
+	   (org-combine-plists (org-default-export-plist)
+			       ext-plist
+			       (org-infile-export-plist))))
 	 (docbook-buf (org-export-as-docbook hidden ext-plist
 					     to-buffer body-only pub-dir))
 	 (filename (buffer-file-name docbook-buf))
@@ -348,10 +362,17 @@ in a window.  A non-interactive call will only return the buffer."
 	 (pdffile (concat base ".pdf")))
     (and (file-exists-p pdffile) (delete-file pdffile))
     (message "Processing DocBook XML file...")
-    (shell-command (format org-export-docbook-xslt-proc-command
-			   fofile (shell-quote-argument filename)))
-    (shell-command (format org-export-docbook-xsl-fo-proc-command
-			   fofile pdffile))
+    (shell-command (format-spec org-export-docbook-xslt-proc-command
+				(format-spec-make
+				 ?i (shell-quote-argument filename)
+				 ?o (shell-quote-argument fofile)
+				 ?s (shell-quote-argument
+				     (or (plist-get opt-plist :xslt)
+					 org-export-docbook-xslt-stylesheet)))))
+    (shell-command (format-spec org-export-docbook-xsl-fo-proc-command
+				(format-spec-make
+				 ?i (shell-quote-argument fofile)
+				 ?o (shell-quote-argument pdffile))))
     (message "Processing DocBook file...done")
     (if (not (file-exists-p pdffile))
 	(error "PDF file was not produced")
@@ -531,9 +552,9 @@ publishing directory."
 	  (nth 2 (assoc "=" org-export-docbook-emphasis-alist)))
 	 table-open type
 	 table-buffer table-orig-buffer
-	 ind item-type starter didclose
+	 ind item-type starter
 	 rpl path attr caption label desc descp desc1 desc2 link
-	 fnc item-tag
+	 fnc item-tag item-number
 	 footref-seen footnote-list
 	 id-file
 	 )
@@ -650,7 +671,21 @@ publishing directory."
 	      (org-export-docbook-open-para))
 	    (throw 'nextline nil))
 
-	  (org-export-docbook-close-lists-maybe line)
+	  ;; List ender: close every open list.
+	  (when (equal "ORG-LIST-END" line)
+	    (while local-list-type
+	      (let ((listtype (car local-list-type)))
+		(org-export-docbook-close-li listtype)
+		(insert (cond
+			 ((equal listtype "o") "</orderedlist>\n")
+			 ((equal listtype "u") "</itemizedlist>\n")
+			 ((equal listtype "d") "</variablelist>\n"))))
+	      (pop local-list-type))
+	    ;; We did close a list, normal text follows: need <para>
+	    (org-export-docbook-open-para)
+	    (setq local-list-indent nil
+		  in-local-list nil)
+	    (throw 'nextline nil))
 
 	  ;; Protected HTML
 	  (when (get-text-property 0 'org-protected line)
@@ -942,18 +977,6 @@ publishing directory."
 		  txt (match-string 2 line))
 	    (if (string-match quote-re0 txt)
 		(setq txt (replace-match "" t t txt)))
-	    (when in-local-list
-	      ;; Close any local lists before inserting a new header line
-	      (while local-list-type
-		(let ((listtype (car local-list-type)))
-		  (org-export-docbook-close-li listtype)
-		  (insert (cond
-			   ((equal listtype "o") "</orderedlist>\n")
-			   ((equal listtype "u") "</itemizedlist>\n")
-			   ((equal listtype "d") "</variablelist>\n"))))
-		(pop local-list-type))
-	      (setq local-list-indent nil
-		    in-local-list nil))
 	    (org-export-docbook-level-start level txt)
 	    ;; QUOTES
 	    (when (string-match quote-re line)
@@ -982,7 +1005,9 @@ publishing directory."
 		    table-orig-buffer (nreverse table-orig-buffer))
 	      (org-export-docbook-close-para-maybe)
 	      (insert (org-export-docbook-finalize-table
-		       (org-format-table-html table-buffer table-orig-buffer)))))
+		       (org-format-table-html table-buffer table-orig-buffer
+					      'no-css)))))
+
 	   (t
 	    ;; Normal lines
 	    (when (string-match
@@ -998,31 +1023,15 @@ publishing directory."
 		    starter (if (match-beginning 2)
 				(substring (match-string 2 line) 0 -1))
 		    line (substring line (match-beginning 5))
-		    item-tag nil)
+		    item-tag nil
+		    item-number nil)
+	      (if (string-match "\\[@\\(?:start:\\)?\\([0-9]+\\)\\][ \t]?" line)
+		  (setq item-number (match-string 1 line)
+			line (replace-match "" t t line)))
 	      (if (and starter (string-match "\\(.*?\\) ::[ \t]*" line))
 		  (setq item-type "d"
 			item-tag (match-string 1 line)
 			line (substring line (match-end 0))))
-	      (when (and (not (equal item-type "d"))
-			 (not (string-match "[^ \t]" line)))
-		;; Empty line.  Pretend indentation is large.
-		(setq ind (if org-empty-line-terminates-plain-lists
-			      0
-			    (1+ (or (car local-list-indent) 1)))))
-	      (setq didclose nil)
-	      (while (and in-local-list
-			  (or (and (= ind (car local-list-indent))
-				   (not starter))
-			      (< ind (car local-list-indent))))
-		(setq didclose t)
-		(let ((listtype (car local-list-type)))
-		  (org-export-docbook-close-li listtype)
-		  (insert (cond
-			   ((equal listtype "o") "</orderedlist>\n")
-			   ((equal listtype "u") "</itemizedlist>\n")
-			   ((equal listtype "d") "</variablelist>\n"))))
-		(pop local-list-type) (pop local-list-indent)
-		(setq in-local-list local-list-indent))
 	      (cond
 	       ((and starter
 		     (or (not in-local-list)
@@ -1031,6 +1040,15 @@ publishing directory."
 		(org-export-docbook-close-para-maybe)
 		(insert (cond
 			 ((equal item-type "u") "<itemizedlist>\n<listitem>\n")
+			 ((and (equal item-type "o") item-number)
+			  ;; Check for a specific start number.  If it
+			  ;; is specified, we use the ``override''
+			  ;; attribute of element <listitem> to pass the
+			  ;; info to DocBook.  We could also use the
+			  ;; ``startingnumber'' attribute of element
+			  ;; <orderedlist>, but the former works on both
+			  ;; DocBook 5.0 and prior versions.
+			  (format "<orderedlist>\n<listitem override=\"%s\">\n" item-number))
 			 ((equal item-type "o") "<orderedlist>\n<listitem>\n")
 			 ((equal item-type "d")
 			  (format "<variablelist>\n<varlistentry><term>%s</term><listitem>\n" item-tag))))
@@ -1040,11 +1058,27 @@ publishing directory."
 		(push item-type local-list-type)
 		(push ind local-list-indent)
 		(setq in-local-list t))
-	       (starter
 		;; Continue current list
+	       (starter
+		;; terminate any previous sublist but first ensure
+		;; list is not ill-formed
+		(let ((min-ind (apply 'min local-list-indent)))
+		  (when (< ind min-ind) (setq ind min-ind)))
+		(while (< ind (car local-list-indent))
+		  (let ((listtype (car local-list-type)))
+		    (org-export-docbook-close-li listtype)
+		    (insert (cond
+			     ((equal listtype "o") "</orderedlist>\n")
+			     ((equal listtype "u") "</itemizedlist>\n")
+			     ((equal listtype "d") "</variablelist>\n"))))
+		  (pop local-list-type) (pop local-list-indent)
+		  (setq in-local-list local-list-indent))
+		;; insert new item
 		(let ((listtype (car local-list-type)))
 		  (org-export-docbook-close-li listtype)
 		  (insert (cond
+			   ((and (equal listtype "o") item-number)
+			    (format "<listitem override=\"%s\">" item-number))
 			   ((equal listtype "o") "<listitem>")
 			   ((equal listtype "u") "<listitem>")
 			   ((equal listtype "d") (format
@@ -1053,9 +1087,6 @@ publishing directory."
 						      "???"))))))
 		;; For DocBook, we need to open a para right after tag
 		;; <listitem>.
-		(org-export-docbook-open-para))
-	       (didclose
-		;; We did close a list, normal text follows: need <para>
 		(org-export-docbook-open-para)))
 	      ;; Checkboxes.
 	      (if (string-match "^[ \t]*\\(\\[[X -]\\]\\)" line)
@@ -1098,18 +1129,7 @@ publishing directory."
       (when inquote
 	(insert "]]></programlisting>\n")
 	(org-export-docbook-open-para))
-      (when in-local-list
-	;; Close any local lists before inserting a new header line
-	(while local-list-type
-	  (let ((listtype (car local-list-type)))
-	    (org-export-docbook-close-li listtype)
-	    (insert (cond
-		     ((equal listtype "o") "</orderedlist>\n")
-		     ((equal listtype "u") "</itemizedlist>\n")
-		     ((equal listtype "d") "</variablelist>\n"))))
-	  (pop local-list-type))
-	(setq local-list-indent nil
-	      in-local-list nil))
+
       ;; Close all open sections.
       (org-export-docbook-level-start 1 nil)
 
@@ -1176,24 +1196,6 @@ publishing directory."
 (defvar in-local-list)
 (defvar local-list-indent)
 (defvar local-list-type)
-(defun org-export-docbook-close-lists-maybe (line)
-  (let ((ind (or (get-text-property 0 'original-indentation line)))
-;		 (and (string-match "\\S-" line)
-;		      (org-get-indentation line))))
-	didclose)
-    (when ind
-      (while (and in-local-list
-		  (<= ind (car local-list-indent)))
-	(setq didclose t)
-	(let ((listtype (car local-list-type)))
-	  (org-export-docbook-close-li listtype)
-	  (insert (cond
-		   ((equal listtype "o") "</orderedlist>\n")
-		   ((equal listtype "u") "</itemizedlist>\n")
-		   ((equal listtype "d") "</variablelist>\n"))))
-	(pop local-list-type) (pop local-list-indent)
-	(setq in-local-list local-list-indent))
-      (and didclose (org-export-docbook-open-para)))))
 
 (defun org-export-docbook-level-start (level title)
   "Insert a new level in DocBook export.
@@ -1213,7 +1215,7 @@ When TITLE is nil, just close all open levels."
       ;; all levels, so the rest is done only if title is given.
       ;;
       ;; Format tags: put them into a superscript like format.
-      (when (string-match (org-re "\\(:[[:alnum:]_@:]+:\\)[ \t]*$") title)
+      (when (string-match (org-re "\\(:[[:alnum:]_@#%:]+:\\)[ \t]*$") title)
 	(setq title
 	      (replace-match
 	       (if org-export-with-tags
@@ -1228,7 +1230,8 @@ When TITLE is nil, just close all open levels."
       (setq section-number (org-section-number level))
       (insert (format "\n<section xml:id=\"%s%s\">\n<title>%s</title>"
 		      org-export-docbook-section-id-prefix
-		      section-number title))
+		      (replace-regexp-in-string "\\." "_" section-number)
+		      title))
       (org-export-docbook-open-para))))
 
 (defun org-docbook-expand (string)
@@ -1236,7 +1239,7 @@ When TITLE is nil, just close all open levels."
 Applies all active conversions.  If there are links in the
 string, don't modify these."
   (let* ((re (concat org-bracket-link-regexp "\\|"
-		     (org-re "[ \t]+\\(:[[:alnum:]_@:]+:\\)[ \t]*$")))
+		     (org-re "[ \t]+\\(:[[:alnum:]_@#%:]+:\\)[ \t]*$")))
 	 m s l res)
     (while (setq m (string-match re string))
       (setq s (substring string 0 m)
@@ -1437,5 +1440,4 @@ that need to be preserved in later phase of DocBook exporting."
 
 (provide 'org-docbook)
 
-;; arch-tag: a24a127c-d365-4c2a-9e9b-f7dcb0ebfdc3
 ;;; org-docbook.el ends here

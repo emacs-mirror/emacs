@@ -1,7 +1,6 @@
 ;;; semantic/db-find.el --- Searching through semantic databases.
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -202,7 +201,7 @@ This class will cache data derived during various searches.")
   (when (oref idx type-cache)
     (semantic-reset (oref idx type-cache)))
   ;; Clear the scope.  Scope doesn't have the data it needs to track
-  ;; it's own reset.
+  ;; its own reset.
   (semantic-scope-reset-cache)
   )
 
@@ -262,13 +261,13 @@ This class will cache data derived during various searches.")
   "Translate PATH into a list of semantic tables.
 Path translation involves identifying the PATH input argument
 in one of the following ways:
-  nil - Take the current buffer, and use it's include list
+  nil - Take the current buffer, and use its include list
   buffer - Use that buffer's include list.
   filename - Use that file's include list.  If the file is not
       in a buffer, see of there is a semanticdb table for it.  If
       not, read that file into a buffer.
   tag - Get that tag's buffer of file file.  See above.
-  table - Search that table, and it's include list.
+  table - Search that table, and its include list.
   find result - Search the results of a previous find.
 
 In addition, once the base path is found, there is the possibility of
@@ -1006,9 +1005,14 @@ is still made current."
 	  (when norm
 	    ;; The normalized tags can now be found based on that
 	    ;; tags table.
-	    (semanticdb-set-buffer (car norm))
-	    ;; Now reset ans
-	    (setq ans (cdr norm))
+	    (condition-case foo
+		(progn
+		  (semanticdb-set-buffer (car norm))
+		  ;; Now reset ans
+		  (setq ans (cdr norm)))
+	      ;; Don't error for this case, but don't store
+	      ;; the thing either.
+	      (no-method-definition nil))
 	    ))
       )
     ;; Return the tag.
@@ -1019,10 +1023,10 @@ is still made current."
 FCN takes two arguments.  The first is a TAG, and the
 second is a DB from whence TAG originated.
 Returns result."
-  (mapc (lambda (sublst)
-	  (mapc (lambda (tag)
-		  (funcall fcn tag (car sublst)))
-		(cdr sublst)))
+  (mapc (lambda (sublst-icky)
+	  (mapc (lambda (tag-icky)
+		  (funcall fcn tag-icky (car sublst-icky)))
+		(cdr sublst-icky)))
 	result)
   result)
 
@@ -1364,5 +1368,4 @@ Return a table of all matching tags."
 ;; generated-autoload-load-name: "semantic/db-find"
 ;; End:
 
-;; arch-tag: 5d4162f5-5092-46d7-beed-55c78aab4116
 ;;; semantic/db-find.el ends here

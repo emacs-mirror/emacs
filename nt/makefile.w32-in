@@ -1,6 +1,5 @@
 # -*- Makefile -*- for GNU Emacs on the Microsoft W32 API.
-# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-#    2008, 2009, 2010 Free Software Foundation, Inc.
+# Copyright (C) 2000-2011 Free Software Foundation, Inc.
 #
 # Top level makefile for building GNU Emacs on Windows NT
 #
@@ -22,6 +21,10 @@
 
 # FIXME: This file uses DOS EOLs.  Convert to Unix after 22.1 is out
 #        (and remove or replace this comment).
+
+VERSION		= 24.0.50
+
+TMP_DIST_DIR 	= emacs-$(VERSION)
 
 TRES		= $(BLD)/emacs.res
 CLIENTRES	= $(BLD)/emacsclient.res
@@ -89,6 +92,8 @@ $(BLD)/addpm.$(O) $(BLD)/ddeclient.$(O) $(BLD)/runemacs.$(O) $(BLD)/cmdproxy.$(O
 all:	which-sh stamp_BLD $(ALL) $(CLIENTRES) maybe-bootstrap all-other-dirs-$(MAKETYPE)
 
 all-other-dirs-nmake: addsection
+	cd ..\lib
+	$(MAKE) $(MFLAGS) all
 	cd ..\lib-src
 	$(MAKE) $(MFLAGS) all
 	cd ..\src
@@ -100,6 +105,7 @@ all-other-dirs-nmake: addsection
 	cd ..\nt
 
 all-other-dirs-gmake: addsection
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib all
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib-src all
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src all
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lisp all
@@ -154,7 +160,9 @@ bootstrap-nmake: addsection cmdproxy
 	cd ..\src
 	$(MAKE) $(MFLAGS) clean
 	cd ..\lib-src
-	$(MAKE) $(MFLAGS) clean
+	$(MAKE) $(MFLAGS) clean make-docfile
+	cd ..\lib
+	$(MAKE) $(MFLAGS) clean all
 	cd ..\src
 	$(MAKE) $(MFLAGS) bootstrap
 	$(MAKE) $(MFLAGS) bootstrap-clean
@@ -169,7 +177,8 @@ bootstrap-nmake: addsection cmdproxy
 bootstrap-gmake: addsection cmdproxy
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lisp bootstrap-clean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src clean
-	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib-src clean
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib-src clean make-docfile
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib clean all
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src bootstrap
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src bootstrap-clean
 	$(CP) $(BLD)/cmdproxy.exe ../bin
@@ -181,11 +190,14 @@ bootstrap-clean: bootstrap-clean-$(MAKETYPE)
 bootstrap-clean-nmake:
 	cd ..\src
 	$(MAKE) $(MFLAGS) bootstrap-clean
+	cd ..\lib
+	$(MAKE) $(MFLAGS) clean
 	cd ..\lisp
 	$(MAKE) $(MFLAGS) bootstrap-clean
 
 bootstrap-clean-gmake:
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src bootstrap-clean
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib clean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lisp bootstrap-clean
 
 $(INSTALL_DIR):
@@ -197,12 +209,16 @@ $(INSTALL_DIR)/bin: $(INSTALL_DIR)
 #
 # Build and install emacs in INSTALL_DIR
 #
-install: all $(INSTALL_DIR)/bin install-other-dirs-$(MAKETYPE)
+.PHONY: install-bin install-shortcuts
+
+install: install-bin install-shortcuts
+
+install-bin: all $(INSTALL_DIR)/bin install-other-dirs-$(MAKETYPE)
 	- $(CP) $(BLD)/addpm.exe $(INSTALL_DIR)/bin
 	- $(CP) $(BLD)/ddeclient.exe $(INSTALL_DIR)/bin
 	- $(CP) $(BLD)/cmdproxy.exe $(INSTALL_DIR)/bin
 	- $(CP) $(BLD)/runemacs.exe $(INSTALL_DIR)/bin
-	- "$(INSTALL_DIR)/bin/addpm" -q
+	- $(CP) README.W32 $(INSTALL_DIR)
 	- $(DEL) ../same-dir.tst
 	- $(DEL) $(INSTALL_DIR)/same-dir.tst
 	echo SameDirTest > "$(INSTALL_DIR)/same-dir.tst"
@@ -238,6 +254,26 @@ install-other-dirs-gmake:
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lisp install
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../leim install
 
+install-shortcuts:
+	"$(INSTALL_DIR)/bin/addpm" -q
+
+dist: install-bin
+	mkdir $(TMP_DIST_DIR)
+	$(CP) "$(INSTALL_DIR)/BUGS" $(TMP_DIST_DIR)
+	$(CP) "$(INSTALL_DIR)/COPYING" $(TMP_DIST_DIR)
+	$(CP) "$(INSTALL_DIR)/README" $(TMP_DIST_DIR)
+	$(CP) "$(INSTALL_DIR)/README.W32" $(TMP_DIST_DIR)
+	$(CP) "$(INSTALL_DIR)/INSTALL" $(TMP_DIST_DIR)
+	$(CP_DIR) "$(INSTALL_DIR)/bin" $(TMP_DIST_DIR)
+	$(CP_DIR) "$(INSTALL_DIR)/etc" $(TMP_DIST_DIR)
+	$(CP_DIR) "$(INSTALL_DIR)/info" $(TMP_DIST_DIR)
+	$(CP_DIR) "$(INSTALL_DIR)/lisp" $(TMP_DIST_DIR)
+	$(CP_DIR) "$(INSTALL_DIR)/leim" $(TMP_DIST_DIR)
+	$(CP_DIR) "$(INSTALL_DIR)/site-lisp" $(TMP_DIST_DIR)
+	$(CP_DIR) $(DIST_FILES) $(TMP_DIST_DIR)/bin
+	$(COMSPEC)$(ComSpec) /c $(ARGQUOTE)zipdist.bat $(VERSION)$(ARGQUOTE)
+	$(DEL_TREE) $(TMP_DIST_DIR)
+
 force-info:
 # Note that doc/emacs/makefile knows how to
 # put the info files in $(infodir),
@@ -270,6 +306,8 @@ clean:	clean-other-dirs-$(MAKETYPE)
 	- $(DEL) ../etc/DOC ../etc/DOC-X
 
 clean-other-dirs-nmake:
+	cd ..\lib
+	$(MAKE) $(MFLAGS) clean
 	cd ..\lib-src
 	$(MAKE) $(MFLAGS) clean
 	cd ..\src
@@ -287,6 +325,7 @@ clean-other-dirs-nmake:
 	cd ..\nt
 
 clean-other-dirs-gmake:
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib clean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib-src clean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src clean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../leim clean
@@ -296,6 +335,8 @@ clean-other-dirs-gmake:
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../doc/lispref clean
 
 cleanall-other-dirs-nmake:
+	cd ..\lib
+	$(MAKE) $(MFLAGS) cleanall
 	cd ..\lib-src
 	$(MAKE) $(MFLAGS) cleanall
 	cd ..\src
@@ -303,6 +344,7 @@ cleanall-other-dirs-nmake:
 	cd ..\nt
 
 cleanall-other-dirs-gmake:
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib cleanall
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib-src cleanall
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src cleanall
 
@@ -323,10 +365,13 @@ top-distclean:
 	- $(DEL) stamp_BLD
 	- $(DEL) ../etc/DOC ../etc/DOC-X
 	- $(DEL) config.log Makefile
+	- $(DEL) ../README.W32
 
 distclean: distclean-other-dirs-$(MAKETYPE) top-distclean
 
 distclean-other-dirs-nmake:
+	cd ..\lib
+	$(MAKE) $(MFLAGS) distclean
 	cd ..\lib-src
 	$(MAKE) $(MFLAGS) distclean
 	cd ..\src
@@ -346,6 +391,7 @@ distclean-other-dirs-nmake:
 	cd ..\nt
 
 distclean-other-dirs-gmake:
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib distclean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib-src distclean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src distclean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lisp distclean
@@ -358,6 +404,8 @@ distclean-other-dirs-gmake:
 maintainer-clean: maintainer-clean-other-dirs-$(MAKETYPE) top-distclean
 
 maintainer-clean-other-dirs-nmake:
+	cd ..\lib
+	$(MAKE) $(MFLAGS) maintainer-clean
 	cd ..\lib-src
 	$(MAKE) $(MFLAGS) maintainer-clean
 	cd ..\src
@@ -377,6 +425,7 @@ maintainer-clean-other-dirs-nmake:
 	cd ..\nt
 
 maintainer-clean-other-dirs-gmake:
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib maintainer-clean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib-src maintainer-clean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src maintainer-clean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lisp maintainer-clean
@@ -388,3 +437,17 @@ maintainer-clean-other-dirs-gmake:
 
 realclean: cleanall
 	- $(DEL_TREE) ../bin
+
+TAGS: TAGS-$(MAKETYPE)
+
+frc:
+TAGS-gmake: frc
+	../lib-src/$(BLD)/etags $(CURDIR)/*.c
+	$(MAKE) $(MFLAGS) -C ../src TAGS TAGS-LISP
+	$(MAKE) $(MFLAGS) -C ../lib-src TAGS
+	$(MAKE) $(MFLAGS) -C ../lib TAGS
+
+TAGS-nmake:
+	echo This target is not supported with NMake
+
+.PHONY: frc

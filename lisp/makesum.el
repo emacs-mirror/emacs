@@ -1,7 +1,6 @@
 ;;; makesum.el --- generate key binding summary for Emacs
 
-;; Copyright (C) 1985, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2001-2011  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help
@@ -86,8 +85,7 @@ Previous contents of that buffer are killed first."
 
 (defun double-column (start end)
   (interactive "r")
-  (let (half cnt
-        line lines nlines
+  (let (half line lines nlines
 	(from-end (- (point-max) end)))
     (setq nlines (count-lines start end))
     (if (<= nlines 1)
@@ -98,7 +96,7 @@ Previous contents of that buffer are killed first."
        (forward-line half)
        (while (< half nlines)
 	 (setq half (1+ half))
-	 (setq line (buffer-substring (point) (save-excursion (end-of-line) (point))))
+	 (setq line (buffer-substring (point) (line-end-position)))
 	 (setq lines (cons line lines))
 	 (delete-region (point) (progn (forward-line 1) (point)))))
       (setq lines (nreverse lines))
@@ -112,5 +110,4 @@ Previous contents of that buffer are killed first."
 
 (provide 'makesum)
 
-;; arch-tag: c2383336-fc89-46ad-8110-ded42bffaee3
 ;;; makesum.el ends here

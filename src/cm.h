@@ -1,6 +1,5 @@
 /* Cursor motion calculation definitions for GNU Emacs
-   Copyright (C) 1985, 1989, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1985, 1989, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -36,25 +35,25 @@ struct cm
     int cm_curX;			/* Current column */
 
     /* Capabilities from termcap */
-    char *cm_up;		/* up (up) */
-    char *cm_down;		/* down (do) */
-    char *cm_left;		/* left (le) */
-    char *cm_right;		/* right (nd) */
-    char *cm_home;		/* home (ho) */
-    char *cm_cr;		/* carriage return (cr) */
-    char *cm_ll;		/* last line (ll) */
-    char *cm_tab;		/* tab (ta) */
-    char *cm_backtab;		/* backtab (bt) */
+    const char *cm_up;		/* up (up) */
+    const char *cm_down;	/* down (do) */
+    const char *cm_left;	/* left (le) */
+    const char *cm_right;	/* right (nd) */
+    const char *cm_home;	/* home (ho) */
+    const char *cm_cr;		/* carriage return (cr) */
+    const char *cm_ll;		/* last line (ll) */
+    const char *cm_tab;		/* tab (ta) */
+    const char *cm_backtab;	/* backtab (bt) */
     char *cm_abs;		/* absolute (cm) */
-    char *cm_habs;		/* horizontal absolute (ch) */
-    char *cm_vabs;		/* vertical absolute (cv) */
+    const char *cm_habs;	/* horizontal absolute (ch) */
+    const char *cm_vabs;	/* vertical absolute (cv) */
 #if 0
-    char *cm_ds;		/* "don't send" string (ds) */
+    const char *cm_ds;		/* "don't send" string (ds) */
 #endif
-    char *cm_multiup;		/* multiple up (UP) */
-    char *cm_multidown;		/* multiple down (DO) */
-    char *cm_multileft;		/* multiple left (LE) */
-    char *cm_multiright;	/* multiple right (RI) */
+    const char *cm_multiup;	/* multiple up (UP) */
+    const char *cm_multidown;	/* multiple down (DO) */
+    const char *cm_multileft;	/* multiple left (LE) */
+    const char *cm_multiright;	/* multiple right (RI) */
     int cm_cols;		/* number of cols on screen (co) */
     int cm_rows;		/* number of rows on screen (li) */
     int cm_tabwidth;		/* tab width (it) */
@@ -96,8 +95,6 @@ struct cm
     int cc_habs;
     int cc_vabs;
   };
-
-extern char PC;			/* Pad character */
 
 /* Shorthand */
 #ifndef NoCMShortHand
@@ -158,17 +155,14 @@ extern char PC;			/* Pad character */
 #define losecursor(tty)	 (curX(tty) = -1, curY(tty) = -1)
 
 extern int cost;
-extern int evalcost ();
+extern int evalcost (int c);
 
 #define emacs_tputs(tty, str, affcnt, putc) (current_tty = (tty), tputs (str, affcnt, putc))
 
 extern struct tty_display_info *current_tty;
-extern void cmcheckmagic P_ ((struct tty_display_info *));
-extern int cmputc P_ ((int));
-extern void cmcostinit P_ ((struct tty_display_info *));
-extern void cmgoto P_ ((struct tty_display_info *, int, int));
-extern void Wcm_clear P_ ((struct tty_display_info *));
-extern int Wcm_init P_ ((struct tty_display_info *));
-
-/* arch-tag: acc1535a-7136-49d6-b22d-9bc85702251b
-   (do not change this comment) */
+extern void cmcheckmagic (struct tty_display_info *);
+extern int cmputc (int);
+extern void cmcostinit (struct tty_display_info *);
+extern void cmgoto (struct tty_display_info *, int, int);
+extern void Wcm_clear (struct tty_display_info *);
+extern int Wcm_init (struct tty_display_info *);

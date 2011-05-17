@@ -7,8 +7,7 @@
 @setfilename ../../info/viper
 
 @copying
-Copyright @copyright{} 1995, 1996, 1997, 2001, 2002, 2003, 2004,
-2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+Copyright @copyright{} 1995-1997, 2001-2011 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -24,11 +23,11 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs misc features
 @direntry
-* VIPER: (viper).       The newest Emacs VI-emulation mode.
-                          (also, A VI Plan for Emacs Rescue
-                           or the VI PERil.)
+* VIPER: (viper).               The newest Emacs VI-emulation mode.
+                                  (also, A VI Plan for Emacs Rescue
+                                  or the VI PERil.)
 @end direntry
 
 @finalout
@@ -3004,14 +3003,14 @@ reference created by @* @samp{maart@@cs.vu.nl} and others.  It can be
 found on the Vi archives.  This reference has been adapted for Viper.@refill
 
 @menu
-* Groundwork::			Textual Conventions and Viper basics
-* Text Handling::		Moving, Editing, Undoing.
-* Display::			Scrolling.
-* File and Buffer Handling::	Editing, Writing and Quitting.
-* Mapping::			Mapping Keys, Keyboard Macros
-* Shell Commands::		Accessing Shell Commands, Processing Text
-* Options::			Ex options, the @kbd{:set} commands
-* Emacs Related Commands::	Meta Keys, Windows
+* Groundwork::                  Textual Conventions and Viper basics
+* Text Handling::               Moving, Editing, Undoing.
+* Display::                     Scrolling.
+* File and Buffer Handling::    Editing, Writing and Quitting.
+* Mapping::                     Mapping Keys, Keyboard Macros
+* Shell Commands::              Accessing Shell Commands, Processing Text
+* Options::                     Ex options, the @kbd{:set} commands
+* Emacs Related Commands::      Meta Keys, Windows
 * Mouse-bound Commands::        Search and insertion of text
 @end menu
 
@@ -3230,15 +3229,15 @@ inserts them automatically in front of the Ex command.
 @section Text Handling
 
 @menu
-* Move Commands::		Moving, Searching
-* Marking::		        Textmarkers in Viper and the Emacs Mark.
-* Appending Text::		Text insertion, Shifting, Putting
-* Editing in Insert State::	Autoindent, Quoting etc.
-* Deleting Text::		Deleting
-* Changing Text::		Changing, Replacement, Joining
-* Search and Replace::		Searches, Query Replace, Pattern Commands
-* Yanking::			Yanking, Viewing Registers
-* Undoing::			Multiple Undo, Backups
+* Move Commands::               Moving, Searching
+* Marking::                     Textmarkers in Viper and the Emacs Mark.
+* Appending Text::              Text insertion, Shifting, Putting
+* Editing in Insert State::     Autoindent, Quoting etc.
+* Deleting Text::               Deleting
+* Changing Text::               Changing, Replacement, Joining
+* Search and Replace::          Searches, Query Replace, Pattern Commands
+* Yanking::                     Yanking, Viewing Registers
+* Undoing::                     Multiple Undo, Backups
 @end menu
 
 @node Move Commands,Marking,,Text Handling
@@ -4558,7 +4557,3 @@ zapman@@cc.gatech.edu (Jason Zapman II),
 @printindex cp
 
 @bye
-
-@ignore
-   arch-tag: f53e866a-15cf-4b1e-aead-77da9da1e864
-@end ignore

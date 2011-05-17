@@ -1,6 +1,6 @@
 /* Definitions file for GNU Emacs running on the GNU Hurd.
-   Copyright (C) 1994, 1995, 1996, 2001, 2002, 2003, 2004, 2005, 2006,
-                 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+
+Copyright (C) 1994-1996, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -28,29 +28,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define SIGNALS_VIA_CHARACTERS
 
-/* Tell Emacs that we are a terminfo based system; disable the use
-   of local termcap.  (GNU uses ncurses.) */
-#ifdef HAVE_LIBNCURSES
-#define TERMINFO
-#define LIBS_TERMCAP -lncurses
-#endif
-
-/* Use mmap directly for allocating larger buffers.  */
-#ifdef DOUG_LEA_MALLOC
-#undef REL_ALLOC
-#endif
-
-/* GNU needs its own crt0, and libc defines data_start.  */
-#define ORDINARY_LINK
+/* libc defines data_start.  */
 #define DATA_START ({ extern int data_start; (char *) &data_start; })
-
-#define START_FILES
 
 /* Some losing code fails to include this and then assumes
    that because it is braindead that O_RDONLY==0.  */
-#ifndef NOT_C_CODE
 #include <fcntl.h>
-#endif
 
 #ifdef emacs
 #include <stdio.h>  /* Get the definition of _IO_STDIO_H.  */
@@ -61,5 +44,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif /* !_IO_STDIO_H */
 #endif /* emacs */
 
-/* arch-tag: 577983d9-87a6-4922-b8f8-ff2b563714a4
-   (do not change this comment) */

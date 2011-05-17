@@ -29,4 +29,3 @@
     ("MATHEMATICAL RIGHT DOUBLE ANGLE BRACKET" #x27EB)
     ))
 
-;; arch-tag: f66b9857-6560-4ad9-9adb-1f3b5fb079de

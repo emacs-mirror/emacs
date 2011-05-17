@@ -1,7 +1,6 @@
 ;;; dns-mode.el --- a mode for viewing/editing Domain Name System master files
 
-;; Copyright (C) 2000, 2001, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2000-2001, 2004-2011  Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Keywords: DNS master zone file SOA comm
@@ -28,11 +27,6 @@
 ;; C-c C-s  Increment SOA serial.
 ;;          Understands YYYYMMDDNN, Unix time, and serial number formats,
 ;;          and complains if it fail to find SOA serial.
-;;
-;; Put something similar to the following in your ~/.emacs to use this file:
-;;
-;; (load "~/path/to/dns-mode.el")
-;; (setq auto-mode-alist (cons '("\\.soa\\'" . dns-mode) auto-mode-alist))
 
 ;;; References:
 
@@ -222,9 +216,6 @@ This function is run from `before-save-hook'."
 	   ;; We return nil in case this is used in write-contents-functions.
 	   nil)))
 
-;;;###autoload(add-to-list 'auto-mode-alist (purecopy '("\\.soa\\'" . dns-mode)))
-
 (provide 'dns-mode)
 
-;; arch-tag: 6a179f0a-072f-49db-8b01-37b8f23998c0
 ;;; dns-mode.el ends here

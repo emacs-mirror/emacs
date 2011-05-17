@@ -1,12 +1,11 @@
 ;;; ps-mode.el --- PostScript mode for GNU Emacs
 
-;; Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;; Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author:     Peter Kleiweg <p.c.j.kleiweg@rug.nl>
 ;; Maintainer: Peter Kleiweg <p.c.j.kleiweg@rug.nl>
 ;; Created:    20 Aug 1997
-;; Version:    1.1h, 16 Jun 2005
+;; Version:    1.1h
 ;; Keywords:   PostScript, languages
 
 ;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
@@ -39,6 +38,7 @@
 (defconst ps-mode-version "1.1h, 16 Jun 2005")
 (defconst ps-mode-maintainer-address "Peter Kleiweg <p.c.j.kleiweg@rug.nl>")
 
+(require 'comint)
 (require 'easymenu)
 
 ;; Define core `PostScript' group.
@@ -431,12 +431,11 @@ If nil, use `temporary-file-directory'."
 
 (unless ps-run-mode-map
   (setq ps-run-mode-map (make-sparse-keymap))
+  (set-keymap-parent ps-run-mode-map comint-mode-map)
   (define-key ps-run-mode-map "\C-c\C-q" 'ps-run-quit)
   (define-key ps-run-mode-map "\C-c\C-k" 'ps-run-kill)
   (define-key ps-run-mode-map "\C-c\C-e" 'ps-run-goto-error)
-  (define-key ps-run-mode-map [mouse-2] 'ps-run-mouse-goto-error)
-  (define-key ps-run-mode-map "\r" 'ps-run-newline)
-  (define-key ps-run-mode-map [return] 'ps-run-newline))
+  (define-key ps-run-mode-map [mouse-2] 'ps-run-mouse-goto-error))
 
 
 ;; Syntax table.
@@ -541,6 +540,10 @@ Typing \\<ps-run-mode-map>\\[ps-run-goto-error] when the cursor is at the number
   "Show current version of PostScript mode."
   (interactive)
   (message " *** PostScript Mode (ps-mode) Version %s *** " ps-mode-version))
+
+;; From reporter.el
+(defvar reporter-prompt-for-summary-p)
+(defvar reporter-dont-compact-list)
 
 (defun ps-mode-submit-bug-report ()
   "Submit via mail a bug report on PostScript mode."
@@ -681,7 +684,7 @@ defines the beginning of a group. These tokens are:  {  [  <<"
     (if (or (not ps-mode-auto-indent)
 	    (< ps-mode-tab 1)
 	    (not (re-search-backward "^[ \t]+\\=" nil t)))
-	(delete-backward-char 1)
+	(call-interactively 'delete-backward-char)
       (setq target (ps-mode-target-column))
       (while (> column target)
 	(setq target (+ target ps-mode-tab)))
@@ -718,12 +721,9 @@ defines the beginning of a group. These tokens are:  {  [  <<"
   (blink-matching-open))
 
 (defun ps-mode-other-newline ()
-  "Perform newline in `*ps run*' buffer."
+  "Perform newline in `*ps-run*' buffer."
   (interactive)
-  (let ((buf (current-buffer)))
-    (set-buffer "*ps run*")
-    (ps-run-newline)
-    (set-buffer buf)))
+  (ps-run-send-string ""))
 
 
 ;; Print PostScript.
@@ -980,11 +980,9 @@ plus the usually uncoded characters inserted on positions 1 through 28."
 
 ;; Interactive PostScript interpreter.
 
-(define-derived-mode ps-run-mode fundamental-mode "Interactive PS"
+(define-derived-mode ps-run-mode comint-mode "Interactive PS"
   "Major mode in interactive PostScript window.
-This mode is invoked from `ps-mode' and should not be called directly.
-
-\\{ps-run-mode-map}"
+This mode is invoked from `ps-mode' and should not be called directly."
   (set (make-local-variable 'font-lock-defaults)
        '((ps-run-font-lock-keywords
 	  ps-run-font-lock-keywords-1
@@ -994,7 +992,7 @@ This mode is invoked from `ps-mode' and should not be called directly.
 
 (defun ps-run-running ()
   "Error if not in `ps-mode' or not running PostScript."
-  (unless (equal major-mode 'ps-mode)
+  (unless (derived-mode-p 'ps-mode)
     (error "This function can only be called from PostScript mode"))
   (unless (equal (process-status "ps-run") 'run)
     (error "No PostScript process running")))
@@ -1014,20 +1012,23 @@ This mode is invoked from `ps-mode' and should not be called directly.
       (setq init-file (ps-run-make-tmp-filename))
       (write-region (concat ps-run-init "\n") 0 init-file)
       (setq init-file (list init-file)))
-    (pop-to-buffer "*ps run*")
+    (pop-to-buffer "*ps-run*")
     (ps-run-mode)
     (when (process-status "ps-run")
       (delete-process "ps-run"))
     (erase-buffer)
     (setq command (append command init-file))
     (insert (mapconcat 'identity command " ") "\n")
-    (apply 'start-process "ps-run" "*ps run*" command)
+    (apply 'make-comint "ps-run" (car command) nil (cdr command))
+    (with-current-buffer "*ps-run*"
+      (use-local-map ps-run-mode-map)
+      (setq comint-prompt-regexp ps-run-prompt))
     (select-window oldwin)))
 
 (defun ps-run-quit ()
   "Quit interactive PostScript."
   (interactive)
-  (ps-run-send-string "quit" t)
+  (ps-run-send-string "quit")
   (ps-run-cleanup))
 
 (defun ps-run-kill ()
@@ -1039,9 +1040,9 @@ This mode is invoked from `ps-mode' and should not be called directly.
 (defun ps-run-clear ()
   "Clear/reset PostScript graphics."
   (interactive)
-  (ps-run-send-string "showpage" t)
+  (ps-run-send-string "showpage")
   (sit-for 1)
-  (ps-run-send-string "" t))
+  (ps-run-send-string ""))
 
 (defun ps-run-buffer ()
   "Send buffer to PostScript interpreter."
@@ -1056,7 +1057,7 @@ This mode is invoked from `ps-mode' and should not be called directly.
   (let ((f (ps-run-make-tmp-filename)))
     (set-marker ps-run-mark begin)
     (write-region begin end f)
-    (ps-run-send-string (format "(%s) run" f) t)))
+    (ps-run-send-string (format "(%s) run" f))))
 
 (defun ps-run-boundingbox ()
   "View BoundingBox."
@@ -1104,17 +1105,15 @@ grestore
 " x1 y1 x2 y1 x2 y2 x1 y2)
      0
      f)
-    (ps-run-send-string (format "(%s) run" f) t)
+    (ps-run-send-string (format "(%s) run" f))
     (set-buffer buf)))
 
-(defun ps-run-send-string (string &optional echo)
+(defun ps-run-send-string (string)
   (let ((oldwin (selected-window)))
-    (pop-to-buffer "*ps run*")
-    (goto-char (point-max))
-    (when echo
-      (insert string "\n"))
-    (set-marker (process-mark (get-process "ps-run")) (point))
-    (process-send-string "ps-run" (concat string "\n"))
+    (pop-to-buffer "*ps-run*")
+    (comint-goto-process-mark)
+    (insert string)
+    (comint-send-input)
     (select-window oldwin)))
 
 (defun ps-run-make-tmp-filename ()
@@ -1139,18 +1138,6 @@ grestore
   (interactive "e")
   (mouse-set-point event)
   (ps-run-goto-error))
-
-(defun ps-run-newline ()
-  "Process newline in PostScript interpreter window."
-  (interactive)
-  (end-of-line)
-  (insert "\n")
-  (forward-line -1)
-  (when (looking-at ps-run-prompt)
-    (goto-char (match-end 0)))
-  (looking-at ".*")
-  (goto-char (1+ (match-end 0)))
-  (ps-run-send-string (buffer-substring (match-beginning 0) (match-end 0))))
 
 (defun ps-run-goto-error ()
   "Jump to buffer position read as integer at point.
@@ -1183,5 +1170,4 @@ Use line numbers if `ps-run-error-line-numbers' is not nil"
 
 (provide 'ps-mode)
 
-;; arch-tag: dce13d2d-69fb-4ec4-9d5d-6dd29c3f0e6e
 ;;; ps-mode.el ends here

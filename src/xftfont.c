@@ -1,6 +1,6 @@
 /* xftfont.c -- XFT font driver.
-   Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
-   Copyright (C) 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 2006-2011 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
 
@@ -32,6 +32,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "blockinput.h"
 #include "character.h"
 #include "charset.h"
+#include "composite.h"
 #include "fontset.h"
 #include "font.h"
 #include "ftfont.h"
@@ -70,9 +71,9 @@ struct xftface_info
   XftColor xft_bg;		/* color for face->background */
 };
 
-static void xftfont_get_colors P_ ((FRAME_PTR, struct face *, GC gc,
-				    struct xftface_info *,
-				    XftColor *fg, XftColor *bg));
+static void xftfont_get_colors (FRAME_PTR, struct face *, GC gc,
+                                struct xftface_info *,
+                                XftColor *fg, XftColor *bg);
 
 
 /* Setup foreground and background colors of GC into FG and BG.  If
@@ -80,12 +81,7 @@ static void xftfont_get_colors P_ ((FRAME_PTR, struct face *, GC gc,
    may be NULL.  */
 
 static void
-xftfont_get_colors (f, face, gc, xftface_info, fg, bg)
-     FRAME_PTR f;
-     struct face *face;
-     GC gc;
-     struct xftface_info *xftface_info;
-     XftColor *fg, *bg;
+xftfont_get_colors (FRAME_PTR f, struct face *face, GC gc, struct xftface_info *xftface_info, XftColor *fg, XftColor *bg)
 {
   if (xftface_info && face->gc == gc)
     {
@@ -141,25 +137,23 @@ xftfont_get_colors (f, face, gc, xftface_info, fg, bg)
 }
 
 
-static Lisp_Object xftfont_list P_ ((Lisp_Object, Lisp_Object));
-static Lisp_Object xftfont_match P_ ((Lisp_Object, Lisp_Object));
-static Lisp_Object xftfont_open P_ ((FRAME_PTR, Lisp_Object, int));
-static void xftfont_close P_ ((FRAME_PTR, struct font *));
-static int xftfont_prepare_face P_ ((FRAME_PTR, struct face *));
-static void xftfont_done_face P_ ((FRAME_PTR, struct face *));
-static int xftfont_has_char P_ ((Lisp_Object, int));
-static unsigned xftfont_encode_char P_ ((struct font *, int));
-static int xftfont_text_extents P_ ((struct font *, unsigned *, int,
-				     struct font_metrics *));
-static int xftfont_draw P_ ((struct glyph_string *, int, int, int, int, int));
-static int xftfont_end_for_frame P_ ((FRAME_PTR f));
+static Lisp_Object xftfont_list (Lisp_Object, Lisp_Object);
+static Lisp_Object xftfont_match (Lisp_Object, Lisp_Object);
+static Lisp_Object xftfont_open (FRAME_PTR, Lisp_Object, int);
+static void xftfont_close (FRAME_PTR, struct font *);
+static int xftfont_prepare_face (FRAME_PTR, struct face *);
+static void xftfont_done_face (FRAME_PTR, struct face *);
+static int xftfont_has_char (Lisp_Object, int);
+static unsigned xftfont_encode_char (struct font *, int);
+static int xftfont_text_extents (struct font *, unsigned *, int,
+                                 struct font_metrics *);
+static int xftfont_draw (struct glyph_string *, int, int, int, int, int);
+static int xftfont_end_for_frame (FRAME_PTR f);
 
 struct font_driver xftfont_driver;
 
 static Lisp_Object
-xftfont_list (frame, spec)
-     Lisp_Object frame;
-     Lisp_Object spec;
+xftfont_list (Lisp_Object frame, Lisp_Object spec)
 {
   Lisp_Object list = ftfont_driver.list (frame, spec), tail;
 
@@ -169,9 +163,7 @@ xftfont_list (frame, spec)
 }
 
 static Lisp_Object
-xftfont_match (frame, spec)
-     Lisp_Object frame;
-     Lisp_Object spec;
+xftfont_match (Lisp_Object frame, Lisp_Object spec)
 {
   Lisp_Object entity = ftfont_driver.match (frame, spec);
 
@@ -180,15 +172,10 @@ xftfont_match (frame, spec)
   return entity;
 }
 
-extern Lisp_Object ftfont_font_format P_ ((FcPattern *, Lisp_Object));
-extern FcCharSet *ftfont_get_fc_charset P_ ((Lisp_Object));
-extern Lisp_Object QCantialias;
-
 static FcChar8 ascii_printable[95];
 
 static void
-xftfont_fix_match (pat, match)
-     FcPattern *pat, *match;
+xftfont_fix_match (FcPattern *pat, FcPattern *match)
 {
   /*  These values are not used for matching (except antialias), but for
       rendering, so make sure they are carried over to the match.
@@ -200,17 +187,20 @@ xftfont_fix_match (pat, match)
   double dpi;
 
   FcPatternGetBool (pat, FC_ANTIALIAS, 0, &b);
-  if (! b) 
+  if (! b)
     {
       FcPatternDel (match, FC_ANTIALIAS);
       FcPatternAddBool (match, FC_ANTIALIAS, FcFalse);
     }
   FcPatternGetBool (pat, FC_HINTING, 0, &b);
-  if (! b) 
+  if (! b)
     {
       FcPatternDel (match, FC_HINTING);
       FcPatternAddBool (match, FC_HINTING, FcFalse);
     }
+#ifndef FC_HINT_STYLE
+# define FC_HINT_STYLE "hintstyle"
+#endif
   if (FcResultMatch == FcPatternGetInteger (pat, FC_HINT_STYLE, 0, &i))
     {
       FcPatternDel (match, FC_HINT_STYLE);
@@ -238,9 +228,7 @@ xftfont_fix_match (pat, match)
 }
 
 static void
-xftfont_add_rendering_parameters (pat, entity)
-     FcPattern *pat;
-     Lisp_Object entity;
+xftfont_add_rendering_parameters (FcPattern *pat, Lisp_Object entity)
 {
   Lisp_Object tail;
   int ival;
@@ -288,14 +276,11 @@ xftfont_add_rendering_parameters (pat, entity)
 }
 
 static Lisp_Object
-xftfont_open (f, entity, pixel_size)
-     FRAME_PTR f;
-     Lisp_Object entity;
-     int pixel_size;
+xftfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
 {
   FcResult result;
   Display *display = FRAME_X_DISPLAY (f);
-  Lisp_Object val, filename, index, font_object;
+  Lisp_Object val, filename, idx, font_object;
   FcPattern *pat = NULL, *match;
   struct xftfont_info *xftfont_info = NULL;
   struct font *font;
@@ -313,7 +298,7 @@ xftfont_open (f, entity, pixel_size)
     return Qnil;
   val = XCDR (val);
   filename = XCAR (val);
-  index = XCDR (val);
+  idx = XCDR (val);
   size = XINT (AREF (entity, FONT_SIZE_INDEX));
   if (size == 0)
     size = pixel_size;
@@ -350,7 +335,7 @@ xftfont_open (f, entity, pixel_size)
   xftfont_add_rendering_parameters (pat, entity);
 
   FcPatternAddString (pat, FC_FILE, (FcChar8 *) SDATA (filename));
-  FcPatternAddInteger (pat, FC_INDEX, XINT (index));
+  FcPatternAddInteger (pat, FC_INDEX, XINT (idx));
 
 
   BLOCK_INPUT;
@@ -424,12 +409,16 @@ xftfont_open (f, entity, pixel_size)
     spacing = FC_PROPORTIONAL;
   if (! ascii_printable[0])
     {
-      int i;
-      for (i = 0; i < 95; i++)
-	ascii_printable[i] = ' ' + i;
+      int ch;
+      for (ch = 0; ch < 95; ch++)
+	ascii_printable[ch] = ' ' + ch;
     }
   BLOCK_INPUT;
-  if (spacing != FC_PROPORTIONAL)
+  if (spacing != FC_PROPORTIONAL
+#ifdef FC_DUAL
+      && spacing != FC_DUAL
+#endif	/* FC_DUAL */
+      )
     {
       font->min_width = font->average_width = font->space_width
 	= xftfont->max_advance_width;
@@ -510,9 +499,7 @@ xftfont_open (f, entity, pixel_size)
 }
 
 static void
-xftfont_close (f, font)
-     FRAME_PTR f;
-     struct font *font;
+xftfont_close (FRAME_PTR f, struct font *font)
 {
   struct xftfont_info *xftfont_info = (struct xftfont_info *) font;
 
@@ -527,9 +514,7 @@ xftfont_close (f, font)
 }
 
 static int
-xftfont_prepare_face (f, face)
-     FRAME_PTR f;
-     struct face *face;
+xftfont_prepare_face (FRAME_PTR f, struct face *face)
 {
   struct xftface_info *xftface_info;
 
@@ -552,9 +537,7 @@ xftfont_prepare_face (f, face)
 }
 
 static void
-xftfont_done_face (f, face)
-     FRAME_PTR f;
-     struct face *face;
+xftfont_done_face (FRAME_PTR f, struct face *face)
 {
   struct xftface_info *xftface_info;
 
@@ -573,12 +556,8 @@ xftfont_done_face (f, face)
     }
 }
 
-extern Lisp_Object Qja, Qko;
-
 static int
-xftfont_has_char (font, c)
-     Lisp_Object font;
-     int c;
+xftfont_has_char (Lisp_Object font, int c)
 {
   struct xftfont_info *xftfont_info;
   struct charset *cs = NULL;
@@ -600,9 +579,7 @@ xftfont_has_char (font, c)
 }
 
 static unsigned
-xftfont_encode_char (font, c)
-     struct font *font;
-     int c;
+xftfont_encode_char (struct font *font, int c)
 {
   struct xftfont_info *xftfont_info = (struct xftfont_info *) font;
   unsigned code = XftCharIndex (xftfont_info->display, xftfont_info->xftfont,
@@ -612,11 +589,7 @@ xftfont_encode_char (font, c)
 }
 
 static int
-xftfont_text_extents (font, code, nglyphs, metrics)
-     struct font *font;
-     unsigned *code;
-     int nglyphs;
-     struct font_metrics *metrics;
+xftfont_text_extents (struct font *font, unsigned int *code, int nglyphs, struct font_metrics *metrics)
 {
   struct xftfont_info *xftfont_info = (struct xftfont_info *) font;
   XGlyphInfo extents;
@@ -637,8 +610,7 @@ xftfont_text_extents (font, code, nglyphs, metrics)
 }
 
 static XftDraw *
-xftfont_get_xft_draw (f)
-     FRAME_PTR f;
+xftfont_get_xft_draw (FRAME_PTR f)
 {
   XftDraw *xft_draw = font_get_frame_data (f, &xftfont_driver);
 
@@ -658,9 +630,7 @@ xftfont_get_xft_draw (f)
 }
 
 static int
-xftfont_draw (s, from, to, x, y, with_background)
-     struct glyph_string *s;
-     int from, to, x, y, with_background;
+xftfont_draw (struct glyph_string *s, int from, int to, int x, int y, int with_background)
 {
   FRAME_PTR f = s->f;
   struct face *face = s->face;
@@ -702,9 +672,27 @@ xftfont_draw (s, from, to, x, y, with_background)
   return len;
 }
 
+#if defined HAVE_M17N_FLT && defined HAVE_LIBOTF
+static Lisp_Object
+xftfont_shape (Lisp_Object lgstring)
+{
+  struct font *font;
+  struct xftfont_info *xftfont_info;
+  FT_Face ft_face;
+  Lisp_Object val;
+
+  CHECK_FONT_GET_OBJECT (LGSTRING_FONT (lgstring), font);
+  xftfont_info = (struct xftfont_info *) font;
+  ft_face = XftLockFace (xftfont_info->xftfont);
+  xftfont_info->ft_size = ft_face->size;
+  val = ftfont_driver.shape (lgstring);
+  XftUnlockFace (xftfont_info->xftfont);
+  return val;
+}
+#endif
+
 static int
-xftfont_end_for_frame (f)
-     FRAME_PTR f;
+xftfont_end_for_frame (FRAME_PTR f)
 {
   XftDraw *xft_draw;
 
@@ -724,11 +712,7 @@ xftfont_end_for_frame (f)
 }
 
 static int
-xftfont_cached_font_ok (f, font_object, entity)
-     struct frame *f;
-     Lisp_Object font_object;
-     Lisp_Object entity;
-
+xftfont_cached_font_ok (struct frame *f, Lisp_Object font_object, Lisp_Object entity)
 {
   struct xftfont_info *info = (struct xftfont_info *) XFONT_OBJECT (font_object);
   FcPattern *oldpat = info->xftfont->pattern;
@@ -771,7 +755,7 @@ xftfont_cached_font_ok (f, font_object, entity)
 }
 
 void
-syms_of_xftfont ()
+syms_of_xftfont (void)
 {
   DEFSYM (Qxft, "xft");
   DEFSYM (QChinting, ":hinting");
@@ -796,9 +780,9 @@ syms_of_xftfont ()
   xftfont_driver.draw = xftfont_draw;
   xftfont_driver.end_for_frame = xftfont_end_for_frame;
   xftfont_driver.cached_font_ok = xftfont_cached_font_ok;
+#if defined (HAVE_M17N_FLT) && defined (HAVE_LIBOTF)
+  xftfont_driver.shape = xftfont_shape;
+#endif
 
   register_font_driver (&xftfont_driver, NULL);
 }
-
-/* arch-tag: 64ec61bf-7c8e-4fe6-b953-c6a85d5e1605
-   (do not change this comment) */

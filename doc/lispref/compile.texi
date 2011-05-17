@@ -1,7 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 2001, 2002, 2003, 2004,
-@c   2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+@c Copyright (C) 1990-1994, 2001-2011  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/compile
 @node Byte Compilation, Advising Functions, Loading, Top
@@ -22,12 +21,6 @@ hardware (as true compiled code is), byte-code is completely
 transportable from machine to machine without recompilation.  It is not,
 however, as fast as true compiled code.
 
-  Compiling a Lisp file with the Emacs byte compiler always reads the
-file as multibyte text, even if Emacs was started with @samp{--unibyte},
-unless the file specifies otherwise.  This is so that compilation gives
-results compatible with running the same file without compilation.
-@xref{Loading Non-ASCII}.
-
   In general, any version of Emacs can run byte-compiled code produced
 by recent earlier versions of Emacs, but the reverse is not true.
 
@@ -47,9 +40,9 @@ byte compilation.
 * Compilation Functions::       Byte compilation functions.
 * Docs and Compilation::        Dynamic loading of documentation strings.
 * Dynamic Loading::             Dynamic loading of individual functions.
-* Eval During Compile::  	Code to be evaluated when you compile.
+* Eval During Compile::         Code to be evaluated when you compile.
 * Compiler Errors::             Handling compiler error messages.
-* Byte-Code Objects::		The data type used for byte-compiled functions.
+* Byte-Code Objects::           The data type used for byte-compiled functions.
 * Disassembly::                 Disassembling byte-code; how to read byte-code.
 @end menu
 
@@ -796,7 +789,3 @@ The @code{silly-loop} function is somewhat more complex:
 @end group
 @end example
 
-
-@ignore
-   arch-tag: f78e3050-2f0a-4dee-be27-d9979a0a2289
-@end ignore

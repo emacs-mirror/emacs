@@ -1,6 +1,6 @@
-/* Functions for handle font and other changes dynamically.
-   Copyright (C) 2009, 2010
-                 Free Software Foundation, Inc.
+/* Functions for handling font and other changes dynamically.
+
+Copyright (C) 2009-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -17,7 +17,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#include "config.h"
+#include <config.h>
 #include <limits.h>
 #include <setjmp.h>
 #include <fcntl.h>
@@ -44,8 +44,6 @@ static char *current_font;
 static struct x_display_info *first_dpyinfo;
 static Lisp_Object Qmonospace_font_name, Qfont_name, Qfont_render,
   Qtool_bar_style;
-static int use_system_font;
-static Lisp_Object Vxft_settings;
 static Lisp_Object current_tool_bar_style;
 
 #ifdef HAVE_GCONF
@@ -54,9 +52,7 @@ static GConfClient *gconf_client;
 
 
 static void
-store_config_changed_event (arg, display_name)
-     Lisp_Object arg;
-     Lisp_Object display_name;
+store_config_changed_event (Lisp_Object arg, Lisp_Object display_name)
 {
   struct input_event event;
   EVENT_INIT (event);
@@ -79,7 +75,7 @@ enum {
   SEEN_FONT       = 0x40,
   SEEN_TB_STYLE   = 0x80,
 };
-struct xsettings 
+struct xsettings
 {
 #ifdef HAVE_XFT
   FcBool aa, hinting;
@@ -102,19 +98,17 @@ struct xsettings
    that is SYSTEM_MONO_FONT.  */
 
 static void
-something_changedCB (client, cnxn_id, entry, user_data)
-     GConfClient *client;
-     guint cnxn_id;
-     GConfEntry *entry;
-     gpointer user_data;
+something_changedCB (GConfClient *client,
+                     guint cnxn_id,
+                     GConfEntry *entry,
+                     gpointer user_data)
 {
   GConfValue *v = gconf_entry_get_value (entry);
-  
+
   if (!v) return;
   if (v->type == GCONF_VALUE_STRING)
     {
       const char *value = gconf_value_get_string (v);
-      int i;
       if (current_mono_font != NULL && strcmp (value, current_mono_font) == 0)
         return; /* No change. */
 
@@ -156,8 +150,7 @@ something_changedCB (client, cnxn_id, entry, user_data)
 /* Find the window that contains the XSETTINGS property values.  */
 
 static void
-get_prop_window (dpyinfo)
-     struct x_display_info *dpyinfo;
+get_prop_window (struct x_display_info *dpyinfo)
 {
   Display *dpy = dpyinfo->display;
 
@@ -203,7 +196,7 @@ get_prop_window (dpyinfo)
    4      CARD32        last-change-serial
 
    and then the value, For string:
-   
+
    bytes   type          what
    ------------------------------------
    4      CARD32        n = value-length
@@ -229,10 +222,9 @@ get_prop_window (dpyinfo)
 */
 
 static int
-parse_settings (prop, bytes, settings)
-     unsigned char *prop;
-     unsigned long bytes;
-     struct xsettings *settings;
+parse_settings (unsigned char *prop,
+                long unsigned int bytes,
+                struct xsettings *settings)
 {
   Lisp_Object byteorder = Fbyteorder ();
   int my_bo = XFASTINT (byteorder) == 'B' ? MSBFirst : LSBFirst;
@@ -288,7 +280,7 @@ parse_settings (prop, bytes, settings)
         (strcmp (XSETTINGS_FONT_NAME, name) == 0)
         || (strcmp (XSETTINGS_TOOL_BAR_STYLE, name) == 0);
 
-      switch (type) 
+      switch (type)
         {
         case 0: /* Integer */
           if (bytes_parsed+4 > bytes) return BadLength;
@@ -318,14 +310,14 @@ parse_settings (prop, bytes, settings)
         case 2: /* RGB value */
           /* No need to parse this */
           if (bytes_parsed+8 > bytes) return BadLength;
-          bytes_parsed += 8; /* 4 values (r, b, g, alpha), 2 bytes each.  */ 
+          bytes_parsed += 8; /* 4 values (r, b, g, alpha), 2 bytes each.  */
           break;
 
         default: /* Parse Error */
           return BadValue;
         }
 
-      if (want_this) 
+      if (want_this)
         {
           ++settings_seen;
           if (strcmp (name, XSETTINGS_FONT_NAME) == 0)
@@ -349,6 +341,7 @@ parse_settings (prop, bytes, settings)
               settings->seen |= SEEN_HINTING;
               settings->hinting = ival != 0;
             }
+# ifdef FC_HINT_STYLE
           else if (strcmp (name, "Xft/HintStyle") == 0)
             {
               settings->seen |= SEEN_HINTSTYLE;
@@ -363,6 +356,7 @@ parse_settings (prop, bytes, settings)
               else
                 settings->seen &= ~SEEN_HINTSTYLE;
             }
+# endif
           else if (strcmp (name, "Xft/RGBA") == 0)
             {
               settings->seen |= SEEN_RGBA;
@@ -402,11 +396,8 @@ parse_settings (prop, bytes, settings)
 }
 
 static int
-read_settings (dpyinfo, settings)
-     struct x_display_info *dpyinfo;
-     struct xsettings *settings;
+read_settings (struct x_display_info *dpyinfo, struct xsettings *settings)
 {
-  long long_len;
   Atom act_type;
   int act_form;
   unsigned long nitems, bytes_after;
@@ -435,10 +426,9 @@ read_settings (dpyinfo, settings)
 
 
 static void
-apply_xft_settings (dpyinfo, send_event_p, settings)
-     struct x_display_info *dpyinfo;
-     int send_event_p;
-     struct xsettings *settings;
+apply_xft_settings (struct x_display_info *dpyinfo,
+                    int send_event_p,
+                    struct xsettings *settings)
 {
 #ifdef HAVE_XFT
   FcPattern *pat;
@@ -454,7 +444,9 @@ apply_xft_settings (dpyinfo, send_event_p, settings)
                         pat);
   FcPatternGetBool (pat, FC_ANTIALIAS, 0, &oldsettings.aa);
   FcPatternGetBool (pat, FC_HINTING, 0, &oldsettings.hinting);
+# ifdef FC_HINT_STYLE
   FcPatternGetInteger (pat, FC_HINT_STYLE, 0, &oldsettings.hintstyle);
+# endif
   FcPatternGetInteger (pat, FC_LCD_FILTER, 0, &oldsettings.lcdfilter);
   FcPatternGetInteger (pat, FC_RGBA, 0, &oldsettings.rgba);
   FcPatternGetDouble (pat, FC_DPI, 0, &oldsettings.dpi);
@@ -500,6 +492,7 @@ apply_xft_settings (dpyinfo, send_event_p, settings)
   if (strlen (buf) > 0) strcat (buf, ", ");
   sprintf (buf+strlen (buf), "LCDFilter: %d", oldsettings.lcdfilter);
 
+# ifdef FC_HINT_STYLE
   if ((settings->seen & SEEN_HINTSTYLE) != 0
       && oldsettings.hintstyle != settings->hintstyle)
     {
@@ -508,6 +501,7 @@ apply_xft_settings (dpyinfo, send_event_p, settings)
       ++changed;
       oldsettings.hintstyle = settings->hintstyle;
     }
+# endif
   if (strlen (buf) > 0) strcat (buf, ", ");
   sprintf (buf+strlen (buf), "Hintstyle: %d", oldsettings.hintstyle);
 
@@ -520,7 +514,7 @@ apply_xft_settings (dpyinfo, send_event_p, settings)
       FcPatternAddDouble (pat, FC_DPI, settings->dpi);
       ++changed;
       oldsettings.dpi = settings->dpi;
-      
+
       /* Change the DPI on this display and all frames on the display.  */
       dpyinfo->resy = dpyinfo->resx = settings->dpi;
       FOR_EACH_FRAME (tail, frame)
@@ -546,9 +540,7 @@ apply_xft_settings (dpyinfo, send_event_p, settings)
 }
 
 static void
-read_and_apply_settings (dpyinfo, send_event_p)
-     struct x_display_info *dpyinfo;
-     int send_event_p;
+read_and_apply_settings (struct x_display_info *dpyinfo, int send_event_p)
 {
   struct xsettings settings;
   Lisp_Object dpyname = XCAR (dpyinfo->name_list_element);
@@ -574,27 +566,25 @@ read_and_apply_settings (dpyinfo, send_event_p)
           if (send_event_p)
             store_config_changed_event (Qtool_bar_style, dpyname);
         }
-      free (settings.tb_style);
+      xfree (settings.tb_style);
     }
 
   if (settings.seen & SEEN_FONT)
     {
-      if (!current_font || strcmp (current_font, settings.font) != 0) 
+      if (!current_font || strcmp (current_font, settings.font) != 0)
         {
-          free (current_font);
+          xfree (current_font);
           current_font = settings.font;
           if (send_event_p)
             store_config_changed_event (Qfont_name, dpyname);
         }
       else
-        free (settings.font);
+        xfree (settings.font);
     }
 }
 
 void
-xft_settings_event (dpyinfo, event)
-     struct x_display_info *dpyinfo;
-     XEvent *event;
+xft_settings_event (struct x_display_info *dpyinfo, XEvent *event)
 {
   int check_window_p = 0;
   int apply_settings = 0;
@@ -636,13 +626,14 @@ xft_settings_event (dpyinfo, event)
 
 
 static void
-init_gconf ()
+init_gconf (void)
 {
 #if defined (HAVE_GCONF) && defined (HAVE_XFT)
-  int i;
   char *s;
 
+#ifdef HAVE_G_TYPE_INIT
   g_type_init ();
+#endif
   gconf_client = gconf_client_get_default ();
   s = gconf_client_get_string (gconf_client, SYSTEM_MONO_FONT, NULL);
   if (s)
@@ -669,20 +660,11 @@ init_gconf ()
 }
 
 static void
-init_xsettings (dpyinfo)
-     struct x_display_info *dpyinfo;
+init_xsettings (struct x_display_info *dpyinfo)
 {
-  char sel[64];
   Display *dpy = dpyinfo->display;
 
   BLOCK_INPUT;
-
-  sprintf (sel, "_XSETTINGS_S%d", XScreenNumberOfScreen (dpyinfo->screen));
-  dpyinfo->Xatom_xsettings_sel = XInternAtom (dpy, sel, False);
-  dpyinfo->Xatom_xsettings_prop = XInternAtom (dpy,
-                                               "_XSETTINGS_SETTINGS",
-                                               False);
-  dpyinfo->Xatom_xsettings_mgr = XInternAtom (dpy, "MANAGER", False);
 
   /* Select events so we can detect client messages sent when selection
      owner changes.  */
@@ -696,8 +678,7 @@ init_xsettings (dpyinfo)
 }
 
 void
-xsettings_initialize (dpyinfo)
-     struct x_display_info *dpyinfo;
+xsettings_initialize (struct x_display_info *dpyinfo)
 {
   if (first_dpyinfo == NULL) first_dpyinfo = dpyinfo;
   init_gconf ();
@@ -705,49 +686,52 @@ xsettings_initialize (dpyinfo)
 }
 
 const char *
-xsettings_get_system_font ()
+xsettings_get_system_font (void)
 {
   return current_mono_font;
 }
 
+#ifdef USE_LUCID
 const char *
-xsettings_get_system_normal_font ()
+xsettings_get_system_normal_font (void)
 {
   return current_font;
 }
+#endif
 
 DEFUN ("font-get-system-normal-font", Ffont_get_system_normal_font,
        Sfont_get_system_normal_font,
        0, 0, 0,
-       doc: /* Get the system default font. */)
-  ()
+       doc: /* Get the system default application font. */)
+  (void)
 {
-  return current_font && use_system_font
+  return current_font
     ? make_string (current_font, strlen (current_font))
     : Qnil;
 }
 
 DEFUN ("font-get-system-font", Ffont_get_system_font, Sfont_get_system_font,
        0, 0, 0,
-       doc: /* Get the system default monospaced font. */)
-  ()
+       doc: /* Get the system default fixed width font. */)
+  (void)
 {
-  return current_mono_font && use_system_font
+  return current_mono_font
     ? make_string (current_mono_font, strlen (current_mono_font))
     : Qnil;
 }
 
-DEFUN ("tool-bar-get-system-style", Ftool_bar_get_system_style, Stool_bar_get_system_style,
-       0, 0, 0,
+DEFUN ("tool-bar-get-system-style", Ftool_bar_get_system_style,
+       Stool_bar_get_system_style, 0, 0, 0,
        doc: /* Get the system tool bar style.
-If no system tool bar style is known, return `tool-bar-style' is set to a
+If no system tool bar style is known, return `tool-bar-style' if set to a
 known style.  Otherwise return image.  */)
-  ()
+  (void)
 {
   if (EQ (Vtool_bar_style, Qimage)
       || EQ (Vtool_bar_style, Qtext)
       || EQ (Vtool_bar_style, Qboth)
-      || EQ (Vtool_bar_style, Qboth_horiz))
+      || EQ (Vtool_bar_style, Qboth_horiz)
+      || EQ (Vtool_bar_style, Qtext_image_horiz))
     return Vtool_bar_style;
   if (!NILP (current_tool_bar_style))
     return current_tool_bar_style;
@@ -755,7 +739,7 @@ known style.  Otherwise return image.  */)
 }
 
 void
-syms_of_xsettings ()
+syms_of_xsettings (void)
 {
   current_mono_font = NULL;
   current_font = NULL;
@@ -773,11 +757,14 @@ syms_of_xsettings ()
   defsubr (&Sfont_get_system_font);
   defsubr (&Sfont_get_system_normal_font);
 
-  DEFVAR_BOOL ("font-use-system-font", &use_system_font,
-    doc: /* *Non-nil means to use the system defined font.  */);
+  DEFVAR_BOOL ("font-use-system-font", use_system_font,
+    doc: /* *Non-nil means to apply the system defined font dynamically.
+When this is non-nil and the system defined fixed width font changes, we
+update frames dynamically.
+If this variable is nil, Emacs ignores system font changes.  */);
   use_system_font = 0;
 
-  DEFVAR_LISP ("xft-settings", &Vxft_settings,
+  DEFVAR_LISP ("xft-settings", Vxft_settings,
                doc: /* Font settings applied to Xft.  */);
   Vxft_settings = make_string ("", 0);
 
@@ -795,6 +782,3 @@ syms_of_xsettings ()
 
   Fprovide (intern_c_string ("dynamic-setting"), Qnil);
 }
-
-/* arch-tag: 541716ed-2e6b-42e1-8212-3197e01ea61d
-   (do not change this comment) */

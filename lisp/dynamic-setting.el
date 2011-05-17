@@ -1,10 +1,11 @@
 ;;; dynamic-setting.el --- Support dynamic changes
 
-;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011 Free Software Foundation, Inc.
 
 ;; Author: Jan Djärv <jan.h.d@swipnet.se>
 ;; Maintainer: FSF
 ;; Keywords: font, system-font, tool-bar-style
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -65,7 +66,6 @@ current form for the frame (i.e. hinting or somesuch changed)."
 		      frame-font)))
 	      (if font-to-set
 		  (progn
-		    (message "setting %s" font-to-set)
 		    (set-frame-parameter f 'font-parameter font-to-set)
 		    (set-face-attribute 'default f
 					:width 'normal
@@ -97,9 +97,13 @@ Changes can be
 	  ((eq type 'font-render)
 	   (font-setting-change-default-font display-name nil))
 
+	  ;; This is a bit heavy, ideally we would just clear faces
+	  ;; on the affected display, and perhaps only the relevant
+	  ;; faces.  Oh well.
+	  ((eq type 'theme-name) (clear-face-cache))
+
 	  ((eq type 'tool-bar-style) (force-mode-line-update t)))))
 
 (define-key special-event-map [config-changed-event]
   'dynamic-setting-handle-config-changed-event)
 
-;; arch-tag: 3a57e78f-1cd6-48b6-ab75-98f160dcc017

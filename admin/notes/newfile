@@ -17,8 +17,6 @@ not include any files that end up in the release tarball.
 
 ** Make the ChangeLog entry in the name of the author(s), not your own name.
 
-** If appropriate, add an entry to lisp/Makefile.in ELCFILES.
-
 ** If appropriate, check that the file compiles OK and that Emacs
 builds fine with it.  Address any compilation warnings.
 

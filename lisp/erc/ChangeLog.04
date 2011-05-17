@@ -72,7 +72,7 @@
 2004-12-24  Jorgen Schaefer  <forcer@users.sourceforge.net>
 
 	* erc-goodies.el, erc.el: The Small Extraction of Stuff[tm] commit.
-	 Moved some functions from erc.el to erc-goodies.el, and
+	Moved some functions from erc.el to erc-goodies.el, and
 	transformed them to erc modules in the process.
 	- imenu autoload stuff moved.  I don't know why it is here at all.
 	- Moved: scroll-to-bottom, make-read-only, distinguish-noncommands,
@@ -2072,7 +2072,7 @@
 
 See ChangeLog.03 for earlier changes.
 
-    Copyright (C) 2004, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+	Copyright (C) 2004, 2006-2011 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -2093,4 +2093,3 @@ See ChangeLog.03 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-;; arch-tag: cc606d2d-635b-4b36-829b-a50e3c51e2d1

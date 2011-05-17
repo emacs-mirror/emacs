@@ -1,7 +1,6 @@
 ;;; url-file.el --- File retrieval code
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2011  Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -103,12 +102,19 @@ to them."
 		     (format "%s#%d" host port))
 		 host))
 	 (file (url-unhex-string (url-filename url)))
-	 (filename (if (or user (not (url-file-host-is-local-p host)))
-		       (concat "/" (or user "anonymous") "@" site ":" file)
-		     (if (and (memq system-type '(ms-dos windows-nt))
-			      (string-match "^/[a-zA-Z]:/" file))
-			 (substring file 1)
-		       file)))
+	 (filename (cond
+		    ;; ftp: URL.
+		    ((or user (not (url-file-host-is-local-p host)))
+		     (concat "/" (or user "anonymous") "@" site ":" file))
+		    ;; file: URL on Windows.
+		    ((and (string-match "\\`/[a-zA-Z]:/" file)
+			  (memq system-type '(ms-dos windows-nt)))
+		     (substring file 1))
+		    ;; file: URL with a file:/bar:/foo-like spec.
+		    ((string-match "\\`/[^/]+:/" file)
+		     (concat "/:" file))
+		    (t
+		     file)))
 	 pos-index)
 
     (and user pass
@@ -234,5 +240,4 @@ to them."
 
 (provide 'url-file)
 
-;; arch-tag: 010e914a-7313-494b-8a8c-6495a862157d
 ;;; url-file.el ends here

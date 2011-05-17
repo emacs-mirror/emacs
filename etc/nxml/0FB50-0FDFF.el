@@ -595,4 +595,3 @@
     ("RIAL SIGN" #xFDFC)
     ))
 
-;; arch-tag: 1fbfd997-096a-43c8-88a1-9d438ddabb57

@@ -3,7 +3,7 @@
 rem  Hack to run install-info with multiple info files on the command
 rem  line on the Windows platform.
 
-rem  Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+rem Copyright (C) 2003-2011
 rem    Free Software Foundation, Inc.
 
 rem  This file is part of GNU Emacs.
@@ -39,6 +39,3 @@ if .%1% == . goto EndLoop
 goto Loop
 :EndLoop
 
-goto skipArchTag
-   arch-tag: 4f590862-8ead-497a-a71c-fb4b0e5d50db
-:skipArchTag

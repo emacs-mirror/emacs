@@ -1,9 +1,8 @@
 ;;; cyrillic.el --- Quail package for inputting Cyrillic characters
 
-;; Copyright (C) 1997, 1998, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2011  Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010
+;;   2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
@@ -40,7 +39,7 @@
 ;; This was `cyrillic-jcuken'.  Alexander Mikhailian
 ;; <mikhailian@altern.org> says:  "cyrillic-jcuken" is actually
 ;; russian.  It is ok but a bit outdated.  This layout has been used
-;; in typewriters for ages but it has been superceeded on desktops by
+;; in typewriters for ages but it has been superseded on desktops by
 ;; a variation of this layout, implemented in M$ Windows software.
 ;; The Windows layout is greatly preferred because of the comma and
 ;; period being placed more conviniently and, of course, because of
@@ -1405,5 +1404,4 @@ keys as being transformed into ( and ) respectively.  For ( and ), use
 ;; coding: iso-2022-7bit
 ;; End:
 
-;; arch-tag: e6d34b16-8710-4181-a17e-819a1df0334f
 ;;; cyrillic.el ends here

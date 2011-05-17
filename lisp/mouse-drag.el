@@ -1,7 +1,6 @@
 ;;; mouse-drag.el --- use mouse-2 to do a new style of scrolling
 
-;; Copyright (C) 1996, 1997, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: John Heidemann <johnh@ISI.EDU>
 ;; Keywords: mouse
@@ -163,7 +162,7 @@ Basically, we check for existing horizontal scrolling."
        mouse-drag-electric-col-scrolling
        (save-excursion  ;; on a long line?
 	 (let
-	     ((beg (progn (beginning-of-line) (point)))
+	     ((beg (line-beginning-position))
 	      (end (progn (end-of-line) (point))))
 	   (if (> (- end beg) (window-width))
 	       (setq truncate-lines t)
@@ -195,7 +194,7 @@ from the original mouse click to the current mouse location.  Try it;
 you'll like it.  It's easier to observe than to explain.
 
 If the mouse is clicked and released in the same place of time we
-assume that the user didn't want to scdebugroll but wanted to whatever
+assume that the user didn't want to scroll but wanted to whatever
 mouse-2 used to do, so we pass it through.
 
 Throw scrolling was inspired (but is not identical to) the \"hand\"
@@ -215,13 +214,10 @@ To test this function, evaluate:
 	 (start-row (cdr (posn-col-row start-posn)))
 	 (start-col (car (posn-col-row start-posn)))
 	 (old-selected-window (selected-window))
-	 event end row mouse-delta scroll-delta
+	 event end row scroll-delta
 	 have-scrolled
-	 window-last-row
-	 col mouse-col-delta window-last-col
+	 col
 	 (scroll-col-delta 0)
-	 adjusted-mouse-col-delta
-	 adjusted-mouse-delta
 	 ;; be conservative about allowing horizontal scrolling
 	 (col-scrolling-p (mouse-drag-should-do-col-scrolling)))
     (select-window start-window)
@@ -276,10 +272,10 @@ To test this function, evaluate:
 	 (start-row (cdr (posn-col-row start-posn)))
 	 (start-col (car (posn-col-row start-posn)))
 	 (old-selected-window (selected-window))
-	 event end row mouse-delta scroll-delta
+	 event end row scroll-delta
 	 have-scrolled
 	 window-last-row
-	 col mouse-col-delta window-last-col
+	 col window-last-col
 	 (scroll-col-delta 0)
 	 ;; be conservative about allowing horizontal scrolling
 	 (col-scrolling-p (mouse-drag-should-do-col-scrolling)))
@@ -326,5 +322,4 @@ To test this function, evaluate:
 
 (provide 'mouse-drag)
 
-;; arch-tag: e47354ff-82f5-42c4-b3dc-88dd9c04b770
 ;;; mouse-drag.el ends here

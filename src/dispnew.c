@@ -1,7 +1,5 @@
 /* Updating of data structures for redisplay.
-   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995,
-                 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-                 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1985-1988, 1993-1995, 1997-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -23,10 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 #include <ctype.h>
 #include <setjmp.h>
-
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 #include "lisp.h"
 #include "termchar.h"
@@ -47,9 +42,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "blockinput.h"
 #include "process.h"
 
-/* I don't know why DEC Alpha OSF1 fail to compile this file if we
-   include the following file.  */
-/* #include "systty.h" */
 #include "syssignal.h"
 
 #ifdef HAVE_X_WINDOWS
@@ -68,12 +60,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "systime.h"
 #include <errno.h>
-
-/* To get the prototype for `sleep'.  */
-
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 
 /* Get number of chars of output now in the buffer of a stdio stream.
    This ought to be built in in stdio, but it isn't.  Some s- files
@@ -117,81 +103,73 @@ struct dim
 
 /* Function prototypes.  */
 
-static struct glyph_matrix *save_current_matrix P_ ((struct frame *));
-static void restore_current_matrix P_ ((struct frame *, struct glyph_matrix *));
-static int showing_window_margins_p P_ ((struct window *));
-static void fake_current_matrices P_ ((Lisp_Object));
-static void redraw_overlapping_rows P_ ((struct window *, int));
-static void redraw_overlapped_rows P_ ((struct window *, int));
-static int count_blanks P_ ((struct glyph *, int));
-static int count_match P_ ((struct glyph *, struct glyph *,
-			    struct glyph *, struct glyph *));
-static unsigned line_draw_cost P_ ((struct glyph_matrix *, int));
-static void update_frame_line P_ ((struct frame *, int));
+static struct glyph_matrix *save_current_matrix (struct frame *);
+static void restore_current_matrix (struct frame *, struct glyph_matrix *);
+static int showing_window_margins_p (struct window *);
+static void fake_current_matrices (Lisp_Object);
+static void redraw_overlapping_rows (struct window *, int);
+static void redraw_overlapped_rows (struct window *, int);
+static int count_blanks (struct glyph *, int);
+static int count_match (struct glyph *, struct glyph *,
+                        struct glyph *, struct glyph *);
+static unsigned line_draw_cost (struct glyph_matrix *, int);
+static void update_frame_line (struct frame *, int);
 static struct dim allocate_matrices_for_frame_redisplay
-     P_ ((Lisp_Object, int, int, int, int *));
-static void allocate_matrices_for_window_redisplay P_ ((struct window *));
-static int realloc_glyph_pool P_ ((struct glyph_pool *, struct dim));
-static void adjust_frame_glyphs P_ ((struct frame *));
-struct glyph_matrix *new_glyph_matrix P_ ((struct glyph_pool *));
-static void free_glyph_matrix P_ ((struct glyph_matrix *));
-static void adjust_glyph_matrix P_ ((struct window *, struct glyph_matrix *,
-				     int, int, struct dim));
-static void change_frame_size_1 P_ ((struct frame *, int, int, int, int, int));
-static void swap_glyph_pointers P_ ((struct glyph_row *, struct glyph_row *));
+     (Lisp_Object, int, int, int, int *);
+static int required_matrix_height (struct window *);
+static int required_matrix_width (struct window *);
+static void allocate_matrices_for_window_redisplay (struct window *);
+static int realloc_glyph_pool (struct glyph_pool *, struct dim);
+static void adjust_frame_glyphs (struct frame *);
+static struct glyph_matrix *new_glyph_matrix (struct glyph_pool *);
+static void free_glyph_matrix (struct glyph_matrix *);
+static void adjust_glyph_matrix (struct window *, struct glyph_matrix *,
+                                 int, int, struct dim);
+static void change_frame_size_1 (struct frame *, int, int, int, int, int);
+static void increment_row_positions (struct glyph_row *, EMACS_INT, EMACS_INT);
+static void swap_glyph_pointers (struct glyph_row *, struct glyph_row *);
 #if GLYPH_DEBUG
-static int glyph_row_slice_p P_ ((struct glyph_row *, struct glyph_row *));
+static int glyph_row_slice_p (struct glyph_row *, struct glyph_row *);
 #endif
-static void fill_up_frame_row_with_spaces P_ ((struct glyph_row *, int));
-static void build_frame_matrix_from_window_tree P_ ((struct glyph_matrix *,
-						     struct window *));
-static void build_frame_matrix_from_leaf_window P_ ((struct glyph_matrix *,
-						     struct window *));
-static struct glyph_pool *new_glyph_pool P_ ((void));
-static void free_glyph_pool P_ ((struct glyph_pool *));
-static void adjust_frame_glyphs_initially P_ ((void));
-static void adjust_frame_message_buffer P_ ((struct frame *));
-static void adjust_decode_mode_spec_buffer P_ ((struct frame *));
-static void fill_up_glyph_row_with_spaces P_ ((struct glyph_row *));
-static void build_frame_matrix P_ ((struct frame *));
-void clear_current_matrices P_ ((struct frame *));
-void scroll_glyph_matrix_range P_ ((struct glyph_matrix *, int, int,
-				    int, int));
-static void clear_window_matrices P_ ((struct window *, int));
-static void fill_up_glyph_row_area_with_spaces P_ ((struct glyph_row *, int));
-static int scrolling_window P_ ((struct window *, int));
-static int update_window_line P_ ((struct window *, int, int *));
-static void update_marginal_area P_ ((struct window *, int, int));
-static int update_text_area P_ ((struct window *, int));
-static void make_current P_ ((struct glyph_matrix *, struct glyph_matrix *,
-			      int));
-static void mirror_make_current P_ ((struct window *, int));
-void check_window_matrix_pointers P_ ((struct window *));
+static void fill_up_frame_row_with_spaces (struct glyph_row *, int);
+static void build_frame_matrix_from_window_tree (struct glyph_matrix *,
+                                                 struct window *);
+static void build_frame_matrix_from_leaf_window (struct glyph_matrix *,
+                                                 struct window *);
+static struct glyph_pool *new_glyph_pool (void);
+static void free_glyph_pool (struct glyph_pool *);
+static void adjust_frame_glyphs_initially (void);
+static void adjust_frame_message_buffer (struct frame *);
+static void adjust_decode_mode_spec_buffer (struct frame *);
+static void fill_up_glyph_row_with_spaces (struct glyph_row *);
+static void build_frame_matrix (struct frame *);
+void clear_current_matrices (struct frame *);
+void scroll_glyph_matrix_range (struct glyph_matrix *, int, int,
+                                int, int);
+static void clear_window_matrices (struct window *, int);
+static void fill_up_glyph_row_area_with_spaces (struct glyph_row *, int);
+static int scrolling_window (struct window *, int);
+static int update_window_line (struct window *, int, int *);
+static void update_marginal_area (struct window *, int, int);
+static int update_text_area (struct window *, int);
+static void make_current (struct glyph_matrix *, struct glyph_matrix *,
+                          int);
+static void mirror_make_current (struct window *, int);
+void check_window_matrix_pointers (struct window *);
 #if GLYPH_DEBUG
-static void check_matrix_pointers P_ ((struct glyph_matrix *,
-				       struct glyph_matrix *));
+static void check_matrix_pointers (struct glyph_matrix *,
+                                   struct glyph_matrix *);
 #endif
-static void mirror_line_dance P_ ((struct window *, int, int, int *, char *));
-static int update_window_tree P_ ((struct window *, int));
-static int update_window P_ ((struct window *, int));
-static int update_frame_1 P_ ((struct frame *, int, int));
-static void set_window_cursor_after_update P_ ((struct window *));
-static int row_equal_p P_ ((struct window *, struct glyph_row *,
-			    struct glyph_row *, int));
-static void adjust_frame_glyphs_for_window_redisplay P_ ((struct frame *));
-static void adjust_frame_glyphs_for_frame_redisplay P_ ((struct frame *));
-static void reverse_rows P_ ((struct glyph_matrix *, int, int));
-static int margin_glyphs_to_reserve P_ ((struct window *, int, Lisp_Object));
-static void sync_window_with_frame_matrix_rows P_ ((struct window *));
-struct window *frame_row_to_window P_ ((struct window *, int));
+static void mirror_line_dance (struct window *, int, int, int *, char *);
+static int update_window_tree (struct window *, int);
+static int update_window (struct window *, int);
+static int update_frame_1 (struct frame *, int, int);
+static int scrolling (struct frame *);
+static void set_window_cursor_after_update (struct window *);
+static void adjust_frame_glyphs_for_window_redisplay (struct frame *);
+static void adjust_frame_glyphs_for_frame_redisplay (struct frame *);
 
 
-/* Non-zero means don't pause redisplay for pending input.  (This is
-   for debugging and for a future implementation of EDT-like
-   scrolling.  */
-
-int redisplay_dont_pause;
-
 /* Define PERIODIC_PREEMPTION_CHECKING to 1, if micro-second timers
    are supported, so we can check for input during redisplay at
    regular intervals.  */
@@ -202,10 +180,6 @@ int redisplay_dont_pause;
 #endif
 
 #if PERIODIC_PREEMPTION_CHECKING
-
-/* If a number (float), check for user input every N seconds.  */
-
-Lisp_Object Vredisplay_preemption_period;
 
 /* Redisplay preemption timers.  */
 
@@ -222,49 +196,6 @@ int frame_garbaged;
 /* Nonzero means last display completed.  Zero means it was preempted.  */
 
 int display_completed;
-
-/* Lisp variable visible-bell; enables use of screen-flash instead of
-   audible bell.  */
-
-int visible_bell;
-
-/* Invert the color of the whole frame, at a low level.  */
-
-int inverse_video;
-
-/* Line speed of the terminal.  */
-
-EMACS_INT baud_rate;
-
-/* Either nil or a symbol naming the window system under which Emacs
-   creates the first frame.  */
-
-Lisp_Object Vinitial_window_system;
-
-/* Version number of X windows: 10, 11 or nil.  */
-
-Lisp_Object Vwindow_system_version;
-
-/* Vector of glyph definitions.  Indexed by glyph number, the contents
-   are a string which is how to output the glyph.
-
-   If Vglyph_table is nil, a glyph is output by using its low 8 bits
-   as a character code.
-
-   This is an obsolete feature that is no longer used.  The variable
-   is retained for compatibility.  */
-
-Lisp_Object Vglyph_table;
-
-/* Display table to use for vectors that don't specify their own.  */
-
-Lisp_Object Vstandard_display_table;
-
-/* Nonzero means reading single-character input with prompt so put
-   cursor on mini-buffer after the prompt.  Positive means at end of
-   text in echo area; negative means at beginning of line.  */
-
-int cursor_in_echo_area;
 
 Lisp_Object Qdisplay_table, Qredisplay_dont_pause;
 
@@ -283,7 +214,7 @@ struct frame *last_nonminibuf_frame;
 
 /* 1 means SIGWINCH happened when not safe.  */
 
-int delayed_size_change;
+static int delayed_size_change;
 
 /* 1 means glyph initialization has been completed at startup.  */
 
@@ -305,8 +236,8 @@ struct glyph space_glyph;
 /* Counts of allocated structures.  These counts serve to diagnose
    memory leaks and double frees.  */
 
-int glyph_matrix_count;
-int glyph_pool_count;
+static int glyph_matrix_count;
+static int glyph_pool_count;
 
 /* If non-null, the frame whose frame matrices are manipulated.  If
    null, window matrices are worked on.  */
@@ -328,8 +259,8 @@ int fonts_changed_p;
 
 #if GLYPH_DEBUG
 
-static int window_to_frame_vpos P_ ((struct window *, int));
-static int window_to_frame_hpos P_ ((struct window *, int));
+static int window_to_frame_vpos (struct window *, int);
+static int window_to_frame_hpos (struct window *, int);
 #define WINDOW_TO_FRAME_VPOS(W, VPOS) window_to_frame_vpos ((W), (VPOS))
 #define WINDOW_TO_FRAME_HPOS(W, HPOS) window_to_frame_hpos ((W), (HPOS))
 
@@ -358,8 +289,8 @@ static int history_idx;
 
 static unsigned history_tick;
 
-static void add_frame_display_history P_ ((struct frame *, int));
-static void add_window_display_history P_ ((struct window *, char *, int));
+static void add_frame_display_history (struct frame *, int);
+static void add_window_display_history (struct window *, char *, int);
 
 /* Add to the redisplay history how window W has been displayed.
    MSG is a trace containing the information how W's glyph matrix
@@ -367,10 +298,7 @@ static void add_window_display_history P_ ((struct window *, char *, int));
    has been interrupted for pending input.  */
 
 static void
-add_window_display_history (w, msg, paused_p)
-     struct window *w;
-     char *msg;
-     int paused_p;
+add_window_display_history (struct window *w, char *msg, int paused_p)
 {
   char *buf;
 
@@ -384,7 +312,7 @@ add_window_display_history (w, msg, paused_p)
 	   w,
 	   ((BUFFERP (w->buffer)
 	     && STRINGP (XBUFFER (w->buffer)->name))
-	    ? (char *) SDATA (XBUFFER (w->buffer)->name)
+	    ? SSDATA (XBUFFER (w->buffer)->name)
 	    : "???"),
 	   paused_p ? " ***paused***" : "");
   strcat (buf, msg);
@@ -396,9 +324,7 @@ add_window_display_history (w, msg, paused_p)
    pending input.  */
 
 static void
-add_frame_display_history (f, paused_p)
-     struct frame *f;
-     int paused_p;
+add_frame_display_history (struct frame *f, int paused_p)
 {
   char *buf;
 
@@ -416,7 +342,7 @@ add_frame_display_history (f, paused_p)
 DEFUN ("dump-redisplay-history", Fdump_redisplay_history,
        Sdump_redisplay_history, 0, 0, "",
        doc: /* Dump redisplay history to stderr.  */)
-     ()
+  (void)
 {
   int i;
 
@@ -439,65 +365,15 @@ DEFUN ("dump-redisplay-history", Fdump_redisplay_history,
 #endif /* GLYPH_DEBUG == 0 */
 
 
-/* Like bcopy except never gets confused by overlap.  Let this be the
-   first function defined in this file, or change emacs.c where the
-   address of this function is used.  */
+#if defined PROFILING && !HAVE___EXECUTABLE_START
+/* FIXME: only used to find text start for profiling.  */
 
 void
-safe_bcopy (from, to, size)
-     const char *from;
-     char *to;
-     int size;
+safe_bcopy (const char *from, char *to, int size)
 {
-  if (size <= 0 || from == to)
-    return;
-
-  /* If the source and destination don't overlap, then bcopy can
-     handle it.  If they do overlap, but the destination is lower in
-     memory than the source, we'll assume bcopy can handle that.  */
-  if (to < from || from + size <= to)
-    bcopy (from, to, size);
-
-  /* Otherwise, we'll copy from the end.  */
-  else
-    {
-      register const char *endf = from + size;
-      register char *endt = to + size;
-
-      /* If TO - FROM is large, then we should break the copy into
-	 nonoverlapping chunks of TO - FROM bytes each.  However, if
-	 TO - FROM is small, then the bcopy function call overhead
-	 makes this not worth it.  The crossover point could be about
-	 anywhere.  Since I don't think the obvious copy loop is too
-	 bad, I'm trying to err in its favor.  */
-      if (to - from < 64)
-	{
-	  do
-	    *--endt = *--endf;
-	  while (endf != from);
-	}
-      else
-	{
-	  for (;;)
-	    {
-	      endt -= (to - from);
-	      endf -= (to - from);
-
-	      if (endt < to)
-		break;
-
-	      bcopy (endf, endt, to - from);
-	    }
-
-	  /* If SIZE wasn't a multiple of TO - FROM, there will be a
-	     little left over.  The amount left over is (endt + (to -
-	     from)) - to, which is endt - from.  */
-	  bcopy (from, to, endt - from);
-	}
-    }
+  abort ();
 }
-
-
+#endif
 
 /***********************************************************************
 			    Glyph Matrices
@@ -509,15 +385,14 @@ safe_bcopy (from, to, size)
    member `pool' of the glyph matrix structure returned is set to
    POOL, the structure is otherwise zeroed.  */
 
-struct glyph_matrix *
-new_glyph_matrix (pool)
-     struct glyph_pool *pool;
+static struct glyph_matrix *
+new_glyph_matrix (struct glyph_pool *pool)
 {
   struct glyph_matrix *result;
 
   /* Allocate and clear.  */
   result = (struct glyph_matrix *) xmalloc (sizeof *result);
-  bzero (result, sizeof *result);
+  memset (result, 0, sizeof *result);
 
   /* Increment number of allocated matrices.  This count is used
      to detect memory leaks.  */
@@ -541,8 +416,7 @@ new_glyph_matrix (pool)
    matrix also frees the glyph memory in this case.  */
 
 static void
-free_glyph_matrix (matrix)
-     struct glyph_matrix *matrix;
+free_glyph_matrix (struct glyph_matrix *matrix)
 {
   if (matrix)
     {
@@ -572,10 +446,7 @@ free_glyph_matrix (matrix)
    or a float.  */
 
 static int
-margin_glyphs_to_reserve (w, total_glyphs, margin)
-     struct window *w;
-     int total_glyphs;
-     Lisp_Object margin;
+margin_glyphs_to_reserve (struct window *w, int total_glyphs, Lisp_Object margin)
 {
   int n;
 
@@ -616,11 +487,7 @@ margin_glyphs_to_reserve (w, total_glyphs, margin)
    leads to screen flickering.  */
 
 static void
-adjust_glyph_matrix (w, matrix, x, y, dim)
-     struct window *w;
-     struct glyph_matrix *matrix;
-     int x, y;
-     struct dim dim;
+adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y, struct dim dim)
 {
   int i;
   int new_rows;
@@ -670,8 +537,8 @@ adjust_glyph_matrix (w, matrix, x, y, dim)
       int size = dim.height * sizeof (struct glyph_row);
       new_rows = dim.height - matrix->rows_allocated;
       matrix->rows = (struct glyph_row *) xrealloc (matrix->rows, size);
-      bzero (matrix->rows + matrix->rows_allocated,
-	     new_rows * sizeof *matrix->rows);
+      memset (matrix->rows + matrix->rows_allocated, 0,
+	      new_rows * sizeof *matrix->rows);
       matrix->rows_allocated = dim.height;
     }
   else
@@ -863,9 +730,7 @@ adjust_glyph_matrix (w, matrix, x, y, dim)
    below).  */
 
 static void
-reverse_rows (matrix, start, end)
-     struct glyph_matrix *matrix;
-     int start, end;
+reverse_rows (struct glyph_matrix *matrix, int start, int end)
 {
   int i, j;
 
@@ -894,9 +759,7 @@ reverse_rows (matrix, start, end)
    rotating right.  */
 
 void
-rotate_matrix (matrix, first, last, by)
-     struct glyph_matrix *matrix;
-     int first, last, by;
+rotate_matrix (struct glyph_matrix *matrix, int first, int last, int by)
 {
   if (by < 0)
     {
@@ -921,9 +784,8 @@ rotate_matrix (matrix, first, last, by)
    DELTA_BYTES.  */
 
 void
-increment_matrix_positions (matrix, start, end, delta, delta_bytes)
-     struct glyph_matrix *matrix;
-     int start, end, delta, delta_bytes;
+increment_matrix_positions (struct glyph_matrix *matrix, int start, int end,
+			    EMACS_INT delta, EMACS_INT delta_bytes)
 {
   /* Check that START and END are reasonable values.  */
   xassert (start >= 0 && start <= matrix->nrows);
@@ -940,10 +802,7 @@ increment_matrix_positions (matrix, start, end, delta, delta_bytes)
    ENABLED_P is non-zero, enabled_p flags in rows will be set to 1.  */
 
 void
-enable_glyph_matrix_rows (matrix, start, end, enabled_p)
-     struct glyph_matrix *matrix;
-     int start, end;
-     int enabled_p;
+enable_glyph_matrix_rows (struct glyph_matrix *matrix, int start, int end, int enabled_p)
 {
   xassert (start <= end);
   xassert (start >= 0 && start < matrix->nrows);
@@ -965,8 +824,7 @@ enable_glyph_matrix_rows (matrix, start, end, enabled_p)
    currently present is the flag MATRIX->no_scrolling_p.  */
 
 void
-clear_glyph_matrix (matrix)
-     struct glyph_matrix *matrix;
+clear_glyph_matrix (struct glyph_matrix *matrix)
 {
   if (matrix)
     {
@@ -981,10 +839,7 @@ clear_glyph_matrix (matrix)
    and recompute their visible height.  */
 
 void
-shift_glyph_matrix (w, matrix, start, end, dy)
-     struct window *w;
-     struct glyph_matrix *matrix;
-     int start, end, dy;
+shift_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int start, int end, int dy)
 {
   int min_y, max_y;
 
@@ -1015,8 +870,7 @@ shift_glyph_matrix (w, matrix, start, end, dy)
    current matrix.  */
 
 void
-clear_current_matrices (f)
-     register struct frame *f;
+clear_current_matrices (register struct frame *f)
 {
   /* Clear frame current matrix, if we have one.  */
   if (f->current_matrix)
@@ -1041,8 +895,7 @@ clear_current_matrices (f)
 /* Clear out all display lines of F for a coming redisplay.  */
 
 void
-clear_desired_matrices (f)
-     register struct frame *f;
+clear_desired_matrices (register struct frame *f)
 {
   if (f->desired_matrix)
     clear_glyph_matrix (f->desired_matrix);
@@ -1063,9 +916,7 @@ clear_desired_matrices (f)
    non-zero clear desired matrices, otherwise clear current matrices.  */
 
 static void
-clear_window_matrices (w, desired_p)
-     struct window *w;
-     int desired_p;
+clear_window_matrices (struct window *w, int desired_p)
 {
   while (w)
     {
@@ -1109,8 +960,7 @@ clear_window_matrices (w, desired_p)
 static struct glyph_row null_row;
 
 void
-clear_glyph_row (row)
-     struct glyph_row *row;
+clear_glyph_row (struct glyph_row *row)
 {
   struct glyph *p[1 + LAST_AREA];
 
@@ -1136,7 +986,7 @@ clear_glyph_row (row)
 	 returned by xmalloc.  If flickering happens again, activate
 	 the code below.  If the flickering is gone with that, chances
 	 are that the flickering has the same reason as here.  */
-  bzero (p[0], (char *) p[LAST_AREA] - (char *) p[0]);
+  memset (p[0], 0, (char *) p[LAST_AREA] - (char *) p[0]);
 #endif
 }
 
@@ -1145,10 +995,7 @@ clear_glyph_row (row)
    in window W starting at y-position Y.  */
 
 void
-blank_row (w, row, y)
-     struct window *w;
-     struct glyph_row *row;
-     int y;
+blank_row (struct window *w, struct glyph_row *row, int y)
 {
   int min_y, max_y;
 
@@ -1176,10 +1023,9 @@ blank_row (w, row, y)
    the used count of the text area is zero.  Such rows display line
    ends.  */
 
-void
-increment_row_positions (row, delta, delta_bytes)
-     struct glyph_row *row;
-     int delta, delta_bytes;
+static void
+increment_row_positions (struct glyph_row *row,
+			 EMACS_INT delta, EMACS_INT delta_bytes)
 {
   int area, i;
 
@@ -1188,6 +1034,10 @@ increment_row_positions (row, delta, delta_bytes)
   MATRIX_ROW_START_BYTEPOS (row) += delta_bytes;
   MATRIX_ROW_END_CHARPOS (row) += delta;
   MATRIX_ROW_END_BYTEPOS (row) += delta_bytes;
+  CHARPOS (row->start.pos) += delta;
+  BYTEPOS (row->start.pos) += delta_bytes;
+  CHARPOS (row->end.pos) += delta;
+  BYTEPOS (row->end.pos) += delta_bytes;
 
   if (!row->enabled_p)
     return;
@@ -1250,8 +1100,7 @@ swap_glyphs_in_rows (a, b)
 /* Exchange pointers to glyph memory between glyph rows A and B.  */
 
 static INLINE void
-swap_glyph_pointers (a, b)
-     struct glyph_row *a, *b;
+swap_glyph_pointers (struct glyph_row *a, struct glyph_row *b)
 {
   int i;
   for (i = 0; i < LAST_AREA + 1; ++i)
@@ -1266,47 +1115,19 @@ swap_glyph_pointers (a, b)
 /* Copy glyph row structure FROM to glyph row structure TO, except
    that glyph pointers in the structures are left unchanged.  */
 
-INLINE void
-copy_row_except_pointers (to, from)
-     struct glyph_row *to, *from;
+static INLINE void
+copy_row_except_pointers (struct glyph_row *to, struct glyph_row *from)
 {
   struct glyph *pointers[1 + LAST_AREA];
 
   /* Save glyph pointers of TO.  */
-  bcopy (to->glyphs, pointers, sizeof to->glyphs);
+  memcpy (pointers, to->glyphs, sizeof to->glyphs);
 
   /* Do a structure assignment.  */
   *to = *from;
 
   /* Restore original pointers of TO.  */
-  bcopy (pointers, to->glyphs, sizeof to->glyphs);
-}
-
-
-/* Copy contents of glyph row FROM to glyph row TO.  Glyph pointers in
-   TO and FROM are left unchanged.  Glyph contents are copied from the
-   glyph memory of FROM to the glyph memory of TO.  Increment buffer
-   positions in row TO by DELTA/ DELTA_BYTES.  */
-
-void
-copy_glyph_row_contents (to, from, delta, delta_bytes)
-     struct glyph_row *to, *from;
-     int delta, delta_bytes;
-{
-  int area;
-
-  /* This is like a structure assignment TO = FROM, except that
-     glyph pointers in the rows are left unchanged.  */
-  copy_row_except_pointers (to, from);
-
-  /* Copy glyphs from FROM to TO.  */
-  for (area = 0; area < LAST_AREA; ++area)
-    if (from->used[area])
-      bcopy (from->glyphs[area], to->glyphs[area],
-	     from->used[area] * sizeof (struct glyph));
-
-  /* Increment buffer positions in TO by DELTA.  */
-  increment_row_positions (to, delta, delta_bytes);
+  memcpy (to->glyphs, pointers, sizeof to->glyphs);
 }
 
 
@@ -1316,8 +1137,7 @@ copy_glyph_row_contents (to, from, delta, delta_bytes)
    a memory leak.  */
 
 static INLINE void
-assign_row (to, from)
-     struct glyph_row *to, *from;
+assign_row (struct glyph_row *to, struct glyph_row *from)
 {
   swap_glyph_pointers (to, from);
   copy_row_except_pointers (to, from);
@@ -1333,8 +1153,7 @@ assign_row (to, from)
 #if GLYPH_DEBUG
 
 static int
-glyph_row_slice_p (window_row, frame_row)
-     struct glyph_row *window_row, *frame_row;
+glyph_row_slice_p (struct glyph_row *window_row, struct glyph_row *frame_row)
 {
   struct glyph *window_glyph_start = window_row->glyphs[0];
   struct glyph *frame_glyph_start = frame_row->glyphs[0];
@@ -1353,9 +1172,8 @@ glyph_row_slice_p (window_row, frame_row)
    in WINDOW_MATRIX is found satisfying the condition.  */
 
 static struct glyph_row *
-find_glyph_row_slice (window_matrix, frame_matrix, row)
-     struct glyph_matrix *window_matrix, *frame_matrix;
-     int row;
+find_glyph_row_slice (struct glyph_matrix *window_matrix,
+		      struct glyph_matrix *frame_matrix, int row)
 {
   int i;
 
@@ -1377,8 +1195,7 @@ find_glyph_row_slice (window_matrix, frame_matrix, row)
    call to this function really clears it.  */
 
 void
-prepare_desired_row (row)
-     struct glyph_row *row;
+prepare_desired_row (struct glyph_row *row)
 {
   if (!row->enabled_p)
     {
@@ -1393,9 +1210,8 @@ prepare_desired_row (row)
 
 /* Return a hash code for glyph row ROW.  */
 
-int
-line_hash_code (row)
-     struct glyph_row *row;
+static int
+line_hash_code (struct glyph_row *row)
 {
   int hash = 0;
 
@@ -1428,9 +1244,7 @@ line_hash_code (row)
    zero, leading and trailing spaces are ignored.  */
 
 static unsigned int
-line_draw_cost (matrix, vpos)
-     struct glyph_matrix *matrix;
-     int vpos;
+line_draw_cost (struct glyph_matrix *matrix, int vpos)
 {
   struct glyph_row *row = matrix->rows + vpos;
   struct glyph *beg = row->glyphs[TEXT_AREA];
@@ -1485,16 +1299,11 @@ line_draw_cost (matrix, vpos)
 
 
 /* Test two glyph rows A and B for equality.  Value is non-zero if A
-   and B have equal contents.  W is the window to which the glyphs
-   rows A and B belong.  It is needed here to test for partial row
-   visibility.  MOUSE_FACE_P non-zero means compare the mouse_face_p
-   flags of A and B, too.  */
+   and B have equal contents.  MOUSE_FACE_P non-zero means compare the
+   mouse_face_p flags of A and B, too.  */
 
 static INLINE int
-row_equal_p (w, a, b, mouse_face_p)
-     struct window *w;
-     struct glyph_row *a, *b;
-     int mouse_face_p;
+row_equal_p (struct glyph_row *a, struct glyph_row *b, int mouse_face_p)
 {
   if (a == b)
     return 1;
@@ -1564,13 +1373,13 @@ row_equal_p (w, a, b, mouse_face_p)
    incremented for each pool allocated.  */
 
 static struct glyph_pool *
-new_glyph_pool ()
+new_glyph_pool (void)
 {
   struct glyph_pool *result;
 
   /* Allocate a new glyph_pool and clear it.  */
   result = (struct glyph_pool *) xmalloc (sizeof *result);
-  bzero (result, sizeof *result);
+  memset (result, 0, sizeof *result);
 
   /* For memory leak and double deletion checking.  */
   ++glyph_pool_count;
@@ -1587,8 +1396,7 @@ new_glyph_pool ()
    was passed to free_glyph_pool.  */
 
 static void
-free_glyph_pool (pool)
-     struct glyph_pool *pool;
+free_glyph_pool (struct glyph_pool *pool)
 {
   if (pool)
     {
@@ -1612,9 +1420,7 @@ free_glyph_pool (pool)
    re-adjusting window glyph matrices necessary.  */
 
 static int
-realloc_glyph_pool (pool, matrix_dim)
-     struct glyph_pool *pool;
-     struct dim matrix_dim;
+realloc_glyph_pool (struct glyph_pool *pool, struct dim matrix_dim)
 {
   int needed;
   int changed_p;
@@ -1630,11 +1436,15 @@ realloc_glyph_pool (pool, matrix_dim)
       int size = needed * sizeof (struct glyph);
 
       if (pool->glyphs)
-	pool->glyphs = (struct glyph *) xrealloc (pool->glyphs, size);
+	{
+	  pool->glyphs = (struct glyph *) xrealloc (pool->glyphs, size);
+	  memset (pool->glyphs + pool->nglyphs, 0,
+		  size - pool->nglyphs * sizeof (struct glyph));
+	}
       else
 	{
 	  pool->glyphs = (struct glyph *) xmalloc (size);
-	  bzero (pool->glyphs, size);
+	  memset (pool->glyphs, 0, size);
 	}
 
       pool->nglyphs = needed;
@@ -1665,7 +1475,7 @@ realloc_glyph_pool (pool, matrix_dim)
 */
 
 void
-flush_stdout ()
+flush_stdout (void)
 {
   fflush (stdout);
 }
@@ -1677,8 +1487,7 @@ flush_stdout ()
    MATRIX.  */
 
 void
-check_matrix_pointer_lossage (matrix)
-     struct glyph_matrix *matrix;
+check_matrix_pointer_lossage (struct glyph_matrix *matrix)
 {
   int i, j;
 
@@ -1693,9 +1502,7 @@ check_matrix_pointer_lossage (matrix)
 /* Get a pointer to glyph row ROW in MATRIX, with bounds checks.  */
 
 struct glyph_row *
-matrix_row (matrix, row)
-     struct glyph_matrix *matrix;
-     int row;
+matrix_row (struct glyph_matrix *matrix, int row)
 {
   xassert (matrix && matrix->rows);
   xassert (row >= 0 && row < matrix->nrows);
@@ -1719,8 +1526,7 @@ matrix_row (matrix, row)
    window W.  */
 
 static void
-check_matrix_invariants (w)
-     struct window *w;
+check_matrix_invariants (struct window *w)
 {
   struct glyph_matrix *matrix = w->current_matrix;
   int yb = window_text_bottom_y (w);
@@ -1748,13 +1554,19 @@ check_matrix_invariants (w)
       /* Check that character and byte positions are in sync.  */
       xassert (MATRIX_ROW_START_BYTEPOS (row)
 	       == CHAR_TO_BYTE (MATRIX_ROW_START_CHARPOS (row)));
+      xassert (BYTEPOS (row->start.pos)
+	       == CHAR_TO_BYTE (CHARPOS (row->start.pos)));
 
       /* CHAR_TO_BYTE aborts when invoked for a position > Z.  We can
 	 have such a position temporarily in case of a minibuffer
 	 displaying something like `[Sole completion]' at its end.  */
       if (MATRIX_ROW_END_CHARPOS (row) < BUF_ZV (current_buffer))
-	xassert (MATRIX_ROW_END_BYTEPOS (row)
-		 == CHAR_TO_BYTE (MATRIX_ROW_END_CHARPOS (row)));
+	{
+	  xassert (MATRIX_ROW_END_BYTEPOS (row)
+		   == CHAR_TO_BYTE (MATRIX_ROW_END_CHARPOS (row)));
+	  xassert (BYTEPOS (row->end.pos)
+		   == CHAR_TO_BYTE (CHARPOS (row->end.pos)));
+	}
 
       /* Check that end position of `row' is equal to start position
 	 of next row.  */
@@ -1764,6 +1576,8 @@ check_matrix_invariants (w)
 		   == MATRIX_ROW_START_CHARPOS (next));
 	  xassert (MATRIX_ROW_END_BYTEPOS (row)
 		   == MATRIX_ROW_START_BYTEPOS (next));
+	  xassert (CHARPOS (row->end.pos) == CHARPOS (next->start.pos));
+	  xassert (BYTEPOS (row->end.pos) == BYTEPOS (next->start.pos));
 	}
       row = next;
     }
@@ -1864,12 +1678,8 @@ check_matrix_invariants (w)
 #define CHANGED_LEAF_MATRIX	(1 << 1)
 
 static struct dim
-allocate_matrices_for_frame_redisplay (window, x, y, dim_only_p,
-				       window_change_flags)
-     Lisp_Object window;
-     int x, y;
-     int dim_only_p;
-     int *window_change_flags;
+allocate_matrices_for_frame_redisplay (Lisp_Object window, int x, int y,
+				       int dim_only_p, int *window_change_flags)
 {
   struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
   int x0 = x, y0 = y;
@@ -1984,9 +1794,8 @@ allocate_matrices_for_frame_redisplay (window, x, y, dim_only_p,
 
 /* Return the required height of glyph matrices for window W.  */
 
-int
-required_matrix_height (w)
-     struct window *w;
+static int
+required_matrix_height (struct window *w)
 {
 #ifdef HAVE_WINDOW_SYSTEM
   struct frame *f = XFRAME (w->frame);
@@ -2011,9 +1820,8 @@ required_matrix_height (w)
 
 /* Return the required width of glyph matrices for window W.  */
 
-int
-required_matrix_width (w)
-     struct window *w;
+static int
+required_matrix_width (struct window *w)
 {
 #ifdef HAVE_WINDOW_SYSTEM
   struct frame *f = XFRAME (w->frame);
@@ -2041,8 +1849,7 @@ required_matrix_width (w)
    window whose matrices must be allocated/reallocated.  */
 
 static void
-allocate_matrices_for_window_redisplay (w)
-     struct window *w;
+allocate_matrices_for_window_redisplay (struct window *w)
 {
   while (w)
     {
@@ -2079,8 +1886,7 @@ allocate_matrices_for_window_redisplay (w)
    changes, or its window configuration changes.  */
 
 void
-adjust_glyphs (f)
-     struct frame *f;
+adjust_glyphs (struct frame *f)
 {
   /* Block input so that expose events and other events that access
      glyph matrices are not processed while we are changing them.  */
@@ -2112,7 +1918,7 @@ adjust_glyphs (f)
    windows to estimated values.  */
 
 static void
-adjust_frame_glyphs_initially ()
+adjust_frame_glyphs_initially (void)
 {
   struct frame *sf = SELECTED_FRAME ();
   struct window *root = XWINDOW (sf->root_window);
@@ -2139,8 +1945,7 @@ adjust_frame_glyphs_initially ()
 /* Allocate/reallocate glyph matrices of a single frame F.  */
 
 static void
-adjust_frame_glyphs (f)
-     struct frame *f;
+adjust_frame_glyphs (struct frame *f)
 {
   if (FRAME_WINDOW_P (f))
     adjust_frame_glyphs_for_window_redisplay (f);
@@ -2158,8 +1963,7 @@ adjust_frame_glyphs (f)
 /* Return 1 if any window in the tree has nonzero window margins.  See
    the hack at the end of adjust_frame_glyphs_for_frame_redisplay.  */
 static int
-showing_window_margins_p (w)
-     struct window *w;
+showing_window_margins_p (struct window *w)
 {
   while (w)
     {
@@ -2187,8 +1991,7 @@ showing_window_margins_p (w)
    windows from the frame's current matrix.  */
 
 static void
-fake_current_matrices (window)
-     Lisp_Object window;
+fake_current_matrices (Lisp_Object window)
 {
   struct window *w;
 
@@ -2238,18 +2041,17 @@ fake_current_matrices (window)
    a glyph matrix holding the contents of F's current frame matrix.  */
 
 static struct glyph_matrix *
-save_current_matrix (f)
-     struct frame *f;
+save_current_matrix (struct frame *f)
 {
   int i;
   struct glyph_matrix *saved;
 
   saved = (struct glyph_matrix *) xmalloc (sizeof *saved);
-  bzero (saved, sizeof *saved);
+  memset (saved, 0, sizeof *saved);
   saved->nrows = f->current_matrix->nrows;
   saved->rows = (struct glyph_row *) xmalloc (saved->nrows
 					      * sizeof *saved->rows);
-  bzero (saved->rows, saved->nrows * sizeof *saved->rows);
+  memset (saved->rows, 0, saved->nrows * sizeof *saved->rows);
 
   for (i = 0; i < saved->nrows; ++i)
     {
@@ -2257,7 +2059,7 @@ save_current_matrix (f)
       struct glyph_row *to = saved->rows + i;
       size_t nbytes = from->used[TEXT_AREA] * sizeof (struct glyph);
       to->glyphs[TEXT_AREA] = (struct glyph *) xmalloc (nbytes);
-      bcopy (from->glyphs[TEXT_AREA], to->glyphs[TEXT_AREA], nbytes);
+      memcpy (to->glyphs[TEXT_AREA], from->glyphs[TEXT_AREA], nbytes);
       to->used[TEXT_AREA] = from->used[TEXT_AREA];
     }
 
@@ -2269,9 +2071,7 @@ save_current_matrix (f)
    and free memory associated with SAVED.  */
 
 static void
-restore_current_matrix (f, saved)
-     struct frame *f;
-     struct glyph_matrix *saved;
+restore_current_matrix (struct frame *f, struct glyph_matrix *saved)
 {
   int i;
 
@@ -2280,7 +2080,7 @@ restore_current_matrix (f, saved)
       struct glyph_row *from = saved->rows + i;
       struct glyph_row *to = f->current_matrix->rows + i;
       size_t nbytes = from->used[TEXT_AREA] * sizeof (struct glyph);
-      bcopy (from->glyphs[TEXT_AREA], to->glyphs[TEXT_AREA], nbytes);
+      memcpy (to->glyphs[TEXT_AREA], from->glyphs[TEXT_AREA], nbytes);
       to->used[TEXT_AREA] = from->used[TEXT_AREA];
       xfree (from->glyphs[TEXT_AREA]);
     }
@@ -2295,8 +2095,7 @@ restore_current_matrix (f, saved)
    frame-based redisplay.  */
 
 static void
-adjust_frame_glyphs_for_frame_redisplay (f)
-     struct frame *f;
+adjust_frame_glyphs_for_frame_redisplay (struct frame *f)
 {
   struct dim matrix_dim;
   int pool_changed_p;
@@ -2396,11 +2195,8 @@ adjust_frame_glyphs_for_frame_redisplay (f)
    window-based redisplay.  */
 
 static void
-adjust_frame_glyphs_for_window_redisplay (f)
-     struct frame *f;
+adjust_frame_glyphs_for_window_redisplay (struct frame *f)
 {
-  struct window *w;
-
   xassert (FRAME_WINDOW_P (f) && FRAME_LIVE_P (f));
 
   /* Allocate/reallocate window matrices.  */
@@ -2412,6 +2208,7 @@ adjust_frame_glyphs_for_window_redisplay (f)
 #if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
   {
     /* Allocate a dummy window if not already done.  */
+    struct window *w;
     if (NILP (f->menu_bar_window))
       {
 	f->menu_bar_window = make_window ();
@@ -2434,23 +2231,26 @@ adjust_frame_glyphs_for_window_redisplay (f)
 #endif /* HAVE_X_WINDOWS */
 
 #ifndef USE_GTK
-  /* Allocate/ reallocate matrices of the tool bar window.  If we
-     don't have a tool bar window yet, make one.  */
-  if (NILP (f->tool_bar_window))
-    {
-      f->tool_bar_window = make_window ();
+  {
+    /* Allocate/ reallocate matrices of the tool bar window.  If we
+       don't have a tool bar window yet, make one.  */
+    struct window *w;
+    if (NILP (f->tool_bar_window))
+      {
+	f->tool_bar_window = make_window ();
+	w = XWINDOW (f->tool_bar_window);
+	XSETFRAME (w->frame, f);
+	w->pseudo_window_p = 1;
+      }
+    else
       w = XWINDOW (f->tool_bar_window);
-      XSETFRAME (w->frame, f);
-      w->pseudo_window_p = 1;
-    }
-  else
-    w = XWINDOW (f->tool_bar_window);
 
-  XSETFASTINT (w->top_line, FRAME_MENU_BAR_LINES (f));
-  XSETFASTINT (w->left_col, 0);
-  XSETFASTINT (w->total_lines, FRAME_TOOL_BAR_LINES (f));
-  XSETFASTINT (w->total_cols, FRAME_TOTAL_COLS (f));
-  allocate_matrices_for_window_redisplay (w);
+    XSETFASTINT (w->top_line, FRAME_MENU_BAR_LINES (f));
+    XSETFASTINT (w->left_col, 0);
+    XSETFASTINT (w->total_lines, FRAME_TOOL_BAR_LINES (f));
+    XSETFASTINT (w->total_cols, FRAME_TOTAL_COLS (f));
+    allocate_matrices_for_window_redisplay (w);
+  }
 #endif
 }
 
@@ -2465,8 +2265,7 @@ adjust_frame_glyphs_for_window_redisplay (f)
    eventually without causing trouble).  */
 
 static void
-adjust_frame_message_buffer (f)
-     struct frame *f;
+adjust_frame_message_buffer (struct frame *f)
 {
   int size = FRAME_MESSAGE_BUF_SIZE (f) + 1;
 
@@ -2484,8 +2283,7 @@ adjust_frame_message_buffer (f)
 /* Re-allocate buffer for decode_mode_spec on frame F.  */
 
 static void
-adjust_decode_mode_spec_buffer (f)
-     struct frame *f;
+adjust_decode_mode_spec_buffer (struct frame *f)
 {
   f->decode_mode_spec_buffer
     = (char *) xrealloc (f->decode_mode_spec_buffer,
@@ -2504,8 +2302,7 @@ adjust_decode_mode_spec_buffer (f)
    the function is called when F is destroyed.  */
 
 void
-free_glyphs (f)
-     struct frame *f;
+free_glyphs (struct frame *f)
 {
   if (f && f->glyphs_initialized_p)
     {
@@ -2566,8 +2363,7 @@ free_glyphs (f)
    the same tree more than once.  */
 
 void
-free_window_matrices (w)
-     struct window *w;
+free_window_matrices (struct window *w)
 {
   while (w)
     {
@@ -2597,7 +2393,7 @@ free_window_matrices (w)
    explicitly and check that nothing is left allocated.  */
 
 void
-check_glyph_memory ()
+check_glyph_memory (void)
 {
   Lisp_Object tail, frame;
 
@@ -2681,8 +2477,7 @@ check_glyph_memory ()
    sure not to touch them in this function.  */
 
 static void
-build_frame_matrix (f)
-     struct frame *f;
+build_frame_matrix (struct frame *f)
 {
   int i;
 
@@ -2704,9 +2499,7 @@ build_frame_matrix (f)
    matrices.  W is the root of a window tree.  */
 
 static void
-build_frame_matrix_from_window_tree (matrix, w)
-     struct glyph_matrix *matrix;
-     struct window *w;
+build_frame_matrix_from_window_tree (struct glyph_matrix *matrix, struct window *w)
 {
   while (w)
     {
@@ -2734,9 +2527,7 @@ build_frame_matrix_from_window_tree (matrix, w)
    preserve_other_columns in the old redisplay.  */
 
 static void
-build_frame_matrix_from_leaf_window (frame_matrix, w)
-     struct glyph_matrix *frame_matrix;
-     struct window *w;
+build_frame_matrix_from_leaf_window (struct glyph_matrix *frame_matrix, struct window *w)
 {
   struct glyph_matrix *window_matrix;
   int window_y, frame_y;
@@ -2802,9 +2593,9 @@ build_frame_matrix_from_leaf_window (frame_matrix, w)
       if (current_row_p)
 	{
 	  /* Copy window row to frame row.  */
-	  bcopy (window_row->glyphs[0],
-		 frame_row->glyphs[TEXT_AREA] + window_matrix->matrix_x,
-		 window_matrix->matrix_w * sizeof (struct glyph));
+	  memcpy (frame_row->glyphs[TEXT_AREA] + window_matrix->matrix_x,
+		  window_row->glyphs[0],
+		  window_matrix->matrix_w * sizeof (struct glyph));
 	}
       else
 	{
@@ -2853,9 +2644,7 @@ build_frame_matrix_from_leaf_window (frame_matrix, w)
    for instance, vertical separators, truncation markers, etc.  */
 
 void
-spec_glyph_lookup_face (w, glyph)
-     struct window *w;
-     GLYPH *glyph;
+spec_glyph_lookup_face (struct window *w, GLYPH *glyph)
 {
   int lface_id = GLYPH_FACE (*glyph);
   /* Convert the glyph's specified face to a realized (cache) face.  */
@@ -2884,8 +2673,7 @@ spec_glyph_lookup_face (w, glyph)
    To be called for frame-based redisplay, only.  */
 
 static void
-fill_up_glyph_row_with_spaces (row)
-     struct glyph_row *row;
+fill_up_glyph_row_with_spaces (struct glyph_row *row)
 {
   fill_up_glyph_row_area_with_spaces (row, LEFT_MARGIN_AREA);
   fill_up_glyph_row_area_with_spaces (row, TEXT_AREA);
@@ -2897,9 +2685,7 @@ fill_up_glyph_row_with_spaces (row)
    frame-based redisplay only.  */
 
 static void
-fill_up_glyph_row_area_with_spaces (row, area)
-     struct glyph_row *row;
-     int area;
+fill_up_glyph_row_area_with_spaces (struct glyph_row *row, int area)
 {
   if (row->glyphs[area] < row->glyphs[area + 1])
     {
@@ -2917,9 +2703,7 @@ fill_up_glyph_row_area_with_spaces (row, area)
    reached.  In frame matrices only one area, TEXT_AREA, is used.  */
 
 static void
-fill_up_frame_row_with_spaces (row, upto)
-     struct glyph_row *row;
-     int upto;
+fill_up_frame_row_with_spaces (struct glyph_row *row, int upto)
 {
   int i = row->used[TEXT_AREA];
   struct glyph *glyph = row->glyphs[TEXT_AREA];
@@ -2941,8 +2725,7 @@ fill_up_frame_row_with_spaces (row, upto)
    working on frame matrices or not.  */
 
 static INLINE void
-set_frame_matrix_frame (f)
-     struct frame *f;
+set_frame_matrix_frame (struct frame *f)
 {
   frame_matrix_frame = f;
 }
@@ -2957,9 +2740,7 @@ set_frame_matrix_frame (f)
    operations in window matrices of frame_matrix_frame.  */
 
 static INLINE void
-make_current (desired_matrix, current_matrix, row)
-     struct glyph_matrix *desired_matrix, *current_matrix;
-     int row;
+make_current (struct glyph_matrix *desired_matrix, struct glyph_matrix *current_matrix, int row)
 {
   struct glyph_row *current_row = MATRIX_ROW (current_matrix, row);
   struct glyph_row *desired_row = MATRIX_ROW (desired_matrix, row);
@@ -2986,9 +2767,7 @@ make_current (desired_matrix, current_matrix, row)
    matrices of leaf windows in the window tree rooted at W.  */
 
 static void
-mirror_make_current (w, frame_row)
-     struct window *w;
-     int frame_row;
+mirror_make_current (struct window *w, int frame_row)
 {
   while (w)
     {
@@ -3017,6 +2796,14 @@ mirror_make_current (w, frame_row)
 	      else
 		swap_glyph_pointers (desired_row, current_row);
 	      current_row->enabled_p = 1;
+
+	      /* Set the Y coordinate of the mode/header line's row.
+		 It is needed in draw_row_with_mouse_face to find the
+		 screen coordinates.  (Window-based redisplay sets
+		 this in update_window, but no one seems to do that
+		 for frame-based redisplay.)  */
+	      if (current_row->mode_line_p)
+		current_row->y = row;
 	    }
 	}
 
@@ -3036,12 +2823,8 @@ mirror_make_current (w, frame_row)
    This function is called from do_scrolling and do_direct_scrolling.  */
 
 void
-mirrored_line_dance (matrix, unchanged_at_top, nlines, copy_from,
-		     retained_p)
-     struct glyph_matrix *matrix;
-     int unchanged_at_top, nlines;
-     int *copy_from;
-     char *retained_p;
+mirrored_line_dance (struct glyph_matrix *matrix, int unchanged_at_top, int nlines,
+		     int *copy_from, char *retained_p)
 {
   /* A copy of original rows.  */
   struct glyph_row *old_rows;
@@ -3053,7 +2836,7 @@ mirrored_line_dance (matrix, unchanged_at_top, nlines, copy_from,
 
   /* Make a copy of the original rows.  */
   old_rows = (struct glyph_row *) alloca (nlines * sizeof *old_rows);
-  bcopy (new_rows, old_rows, nlines * sizeof *old_rows);
+  memcpy (old_rows, new_rows, nlines * sizeof *old_rows);
 
   /* Assign new rows, maybe clear lines.  */
   for (i = 0; i < nlines; ++i)
@@ -3081,8 +2864,7 @@ mirrored_line_dance (matrix, unchanged_at_top, nlines, copy_from,
    the current frame matrix.  */
 
 static void
-sync_window_with_frame_matrix_rows (w)
-     struct window *w;
+sync_window_with_frame_matrix_rows (struct window *w)
 {
   struct frame *f = XFRAME (w->frame);
   struct glyph_row *window_row, *window_row_end, *frame_row;
@@ -3118,10 +2900,8 @@ sync_window_with_frame_matrix_rows (w)
 /* Return the window in the window tree rooted in W containing frame
    row ROW.  Value is null if none is found.  */
 
-struct window *
-frame_row_to_window (w, row)
-     struct window *w;
-     int row;
+static struct window *
+frame_row_to_window (struct window *w, int row)
 {
   struct window *found = NULL;
 
@@ -3154,11 +2934,7 @@ frame_row_to_window (w, row)
    which is empty.  */
 
 static void
-mirror_line_dance (w, unchanged_at_top, nlines, copy_from, retained_p)
-     struct window *w;
-     int unchanged_at_top, nlines;
-     int *copy_from;
-     char *retained_p;
+mirror_line_dance (struct window *w, int unchanged_at_top, int nlines, int *copy_from, char *retained_p)
 {
   while (w)
     {
@@ -3178,7 +2954,7 @@ mirror_line_dance (w, unchanged_at_top, nlines, copy_from, retained_p)
 
 	  /* Make a copy of the original rows of matrix m.  */
 	  old_rows = (struct glyph_row *) alloca (m->nrows * sizeof *old_rows);
-	  bcopy (m->rows, old_rows, m->nrows * sizeof *old_rows);
+	  memcpy (old_rows, m->rows, m->nrows * sizeof *old_rows);
 
 	  for (i = 0; i < nlines; ++i)
 	    {
@@ -3273,8 +3049,7 @@ mirror_line_dance (w, unchanged_at_top, nlines, copy_from, retained_p)
    glyph pointers.  */
 
 void
-check_window_matrix_pointers (w)
-     struct window *w;
+check_window_matrix_pointers (struct window *w)
 {
   while (w)
     {
@@ -3300,8 +3075,8 @@ check_window_matrix_pointers (w)
    corresponding frame row.  If it isn't, abort.  */
 
 static void
-check_matrix_pointers (window_matrix, frame_matrix)
-     struct glyph_matrix *window_matrix, *frame_matrix;
+check_matrix_pointers (struct glyph_matrix *window_matrix,
+		       struct glyph_matrix *frame_matrix)
 {
   /* Row number in WINDOW_MATRIX.  */
   int i = 0;
@@ -3335,9 +3110,7 @@ check_matrix_pointers (window_matrix, frame_matrix)
    vertical position relative to W's frame.  */
 
 static int
-window_to_frame_vpos (w, vpos)
-     struct window *w;
-     int vpos;
+window_to_frame_vpos (struct window *w, int vpos)
 {
   struct frame *f = XFRAME (w->frame);
 
@@ -3353,9 +3126,7 @@ window_to_frame_vpos (w, vpos)
    a horizontal position relative to W's frame.  */
 
 static int
-window_to_frame_hpos (w, hpos)
-     struct window *w;
-     int hpos;
+window_to_frame_hpos (struct window *w, int hpos)
 {
   xassert (!FRAME_WINDOW_P (XFRAME (w->frame)));
   hpos += WINDOW_LEFT_EDGE_COL (w);
@@ -3372,8 +3143,7 @@ window_to_frame_hpos (w, hpos)
 
 DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
        doc: /* Clear frame FRAME and output again what is supposed to appear on it.  */)
-     (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
   struct frame *f;
 
@@ -3410,8 +3180,7 @@ DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
    function redraw-frame.  */
 
 void
-redraw_frame (f)
-     struct frame *f;
+redraw_frame (struct frame *f)
 {
   Lisp_Object frame;
   XSETFRAME (frame, f);
@@ -3421,7 +3190,7 @@ redraw_frame (f)
 
 DEFUN ("redraw-display", Fredraw_display, Sredraw_display, 0, 0, "",
        doc: /* Clear and redisplay all visible frames.  */)
-     ()
+  (void)
 {
   Lisp_Object tail, frame;
 
@@ -3430,21 +3199,6 @@ DEFUN ("redraw-display", Fredraw_display, Sredraw_display, 0, 0, "",
       Fredraw_frame (frame);
 
   return Qnil;
-}
-
-
-/* This is used when frame_garbaged is set.  Call Fredraw_frame on all
-   visible frames marked as garbaged.  */
-
-void
-redraw_garbaged_frames ()
-{
-  Lisp_Object tail, frame;
-
-  FOR_EACH_FRAME (tail, frame)
-    if (FRAME_VISIBLE_P (XFRAME (frame))
-	&& FRAME_GARBAGED_P (XFRAME (frame)))
-      Fredraw_frame (frame);
 }
 
 
@@ -3462,10 +3216,7 @@ redraw_garbaged_frames ()
    Value is non-zero if redisplay was stopped due to pending input.  */
 
 int
-update_frame (f, force_p, inhibit_hairy_id_p)
-     struct frame *f;
-     int force_p;
-     int inhibit_hairy_id_p;
+update_frame (struct frame *f, int force_p, int inhibit_hairy_id_p)
 {
   /* 1 means display has been paused because of pending input.  */
   int paused_p;
@@ -3579,7 +3330,9 @@ update_frame (f, force_p, inhibit_hairy_id_p)
 #endif
     }
 
+#if PERIODIC_PREEMPTION_CHECKING
  do_pause:
+#endif
   /* Reset flags indicating that a window should be updated.  */
   set_window_update_flags (root_window, 0);
 
@@ -3597,9 +3350,7 @@ update_frame (f, force_p, inhibit_hairy_id_p)
    don't stop updating when input is pending.  */
 
 static int
-update_window_tree (w, force_p)
-     struct window *w;
-     int force_p;
+update_window_tree (struct window *w, int force_p)
 {
   int paused_p = 0;
 
@@ -3623,9 +3374,7 @@ update_window_tree (w, force_p)
    FORCE_P is non-zero, don't stop updating if input is pending.  */
 
 void
-update_single_window (w, force_p)
-     struct window *w;
-     int force_p;
+update_single_window (struct window *w, int force_p)
 {
   if (w->must_be_updated_p)
     {
@@ -3670,9 +3419,7 @@ update_single_window (w, force_p)
    overlapped by other rows.  YB is bottom-most y-position in W.  */
 
 static void
-redraw_overlapped_rows (w, yb)
-     struct window *w;
-     int yb;
+redraw_overlapped_rows (struct window *w, int yb)
 {
   int i;
   struct frame *f = XFRAME (WINDOW_FRAME (w));
@@ -3720,9 +3467,7 @@ redraw_overlapped_rows (w, yb)
    others.  YB is bottom-most y-position in W.  */
 
 static void
-redraw_overlapping_rows (w, yb)
-     struct window *w;
-     int yb;
+redraw_overlapping_rows (struct window *w, int yb)
 {
   int i, bottom_y;
   struct glyph_row *row;
@@ -3778,14 +3523,13 @@ redraw_overlapping_rows (w, yb)
 #endif /* HAVE_WINDOW_SYSTEM */
 
 
-#ifdef GLYPH_DEBUG
+#if defined GLYPH_DEBUG && 0
 
 /* Check that no row in the current matrix of window W is enabled
    which is below what's displayed in the window.  */
 
-void
-check_current_matrix_flags (w)
-     struct window *w;
+static void
+check_current_matrix_flags (struct window *w)
 {
   int last_seen_p = 0;
   int i, yb = window_text_bottom_y (w);
@@ -3807,17 +3551,13 @@ check_current_matrix_flags (w)
    not stop when detecting pending input.  */
 
 static int
-update_window (w, force_p)
-     struct window *w;
-     int force_p;
+update_window (struct window *w, int force_p)
 {
   struct glyph_matrix *desired_matrix = w->desired_matrix;
   int paused_p;
 #if !PERIODIC_PREEMPTION_CHECKING
   int preempt_count = baud_rate / 2400 + 1;
 #endif
-  extern int input_pending;
-  extern Lisp_Object do_mouse_tracking;
   struct redisplay_interface *rif = FRAME_RIF (XFRAME (WINDOW_FRAME (w)));
 #if GLYPH_DEBUG
   /* Check that W's frame doesn't have glyph matrices.  */
@@ -3837,7 +3577,10 @@ update_window (w, force_p)
       struct glyph_row *row, *end;
       struct glyph_row *mode_line_row;
       struct glyph_row *header_line_row;
-      int yb, changed_p = 0, mouse_face_overwritten_p = 0, n_updated;
+      int yb, changed_p = 0, mouse_face_overwritten_p = 0;
+#if ! PERIODIC_PREEMPTION_CHECKING
+      int n_updated = 0;
+#endif
 
       rif->update_window_begin_hook (w);
       yb = window_text_bottom_y (w);
@@ -3890,7 +3633,7 @@ update_window (w, force_p)
 	}
 
       /* Update the rest of the lines.  */
-      for (n_updated = 0; row < end && (force_p || !input_pending); ++row)
+      for (; row < end && (force_p || !input_pending); ++row)
 	if (row->enabled_p)
 	  {
 	    int vpos = MATRIX_ROW_VPOS (row, desired_matrix);
@@ -4001,9 +3744,7 @@ update_window (w, force_p)
    AREA can be either LEFT_MARGIN_AREA or RIGHT_MARGIN_AREA.  */
 
 static void
-update_marginal_area (w, area, vpos)
-     struct window *w;
-     int area, vpos;
+update_marginal_area (struct window *w, int area, int vpos)
 {
   struct glyph_row *desired_row = MATRIX_ROW (w->desired_matrix, vpos);
   struct redisplay_interface *rif = FRAME_RIF (XFRAME (WINDOW_FRAME (w)));
@@ -4026,9 +3767,7 @@ update_marginal_area (w, area, vpos)
    Value is non-zero if display has changed.  */
 
 static int
-update_text_area (w, vpos)
-     struct window *w;
-     int vpos;
+update_text_area (struct window *w, int vpos)
 {
   struct glyph_row *current_row = MATRIX_ROW (w->current_matrix, vpos);
   struct glyph_row *desired_row = MATRIX_ROW (w->desired_matrix, vpos);
@@ -4239,7 +3978,7 @@ update_text_area (w, vpos)
 	{
 	  /* Otherwise clear to the end of the old row.  Everything
 	     after that position should be clear already.  */
-	  int x;
+	  int xlim;
 
 	  if (i >= desired_row->used[TEXT_AREA])
 	    rif->cursor_to (vpos, i, desired_row->y,
@@ -4256,11 +3995,11 @@ update_text_area (w, vpos)
 		  : (w->phys_cursor.hpos >= desired_row->used[TEXT_AREA])))
 	    {
 	      w->phys_cursor_on_p = 0;
-	      x = -1;
+	      xlim = -1;
 	    }
 	  else
-	    x = current_row->pixel_width;
-	  rif->clear_end_of_line (x);
+	    xlim = current_row->pixel_width;
+	  rif->clear_end_of_line (xlim);
 	  changed_p = 1;
 	}
     }
@@ -4273,9 +4012,7 @@ update_text_area (w, vpos)
    changed.  */
 
 static int
-update_window_line (w, vpos, mouse_face_overwritten_p)
-     struct window *w;
-     int vpos, *mouse_face_overwritten_p;
+update_window_line (struct window *w, int vpos, int *mouse_face_overwritten_p)
 {
   struct glyph_row *current_row = MATRIX_ROW (w->current_matrix, vpos);
   struct glyph_row *desired_row = MATRIX_ROW (w->desired_matrix, vpos);
@@ -4344,8 +4081,7 @@ update_window_line (w, vpos, mouse_face_overwritten_p)
    be called from update_window.  */
 
 static void
-set_window_cursor_after_update (w)
-     struct window *w;
+set_window_cursor_after_update (struct window *w)
 {
   struct frame *f = XFRAME (w->frame);
   struct redisplay_interface *rif = FRAME_RIF (f);
@@ -4429,9 +4165,7 @@ set_window_cursor_after_update (w)
    tree rooted at W.  */
 
 void
-set_window_update_flags (w, on_p)
-     struct window *w;
-     int on_p;
+set_window_update_flags (struct window *w, int on_p)
 {
   while (w)
     {
@@ -4505,19 +4239,16 @@ static int runs_size;
 
 static struct run **runs;
 
-/* Add glyph row ROW to the scrolling hash table during the scrolling
-   of window W.  */
+/* Add glyph row ROW to the scrolling hash table.  */
 
 static INLINE struct row_entry *
-add_row_entry (w, row)
-     struct window *w;
-     struct glyph_row *row;
+add_row_entry (struct glyph_row *row)
 {
   struct row_entry *entry;
   int i = row->hash % row_table_size;
 
   entry = row_table[i];
-  while (entry && !row_equal_p (w, entry->row, row, 1))
+  while (entry && !row_equal_p (entry->row, row, 1))
     entry = entry->next;
 
   if (entry == NULL)
@@ -4562,9 +4293,7 @@ add_row_entry (w, row)
    1	if we did scroll.  */
 
 static int
-scrolling_window (w, header_line_p)
-     struct window *w;
-     int header_line_p;
+scrolling_window (struct window *w, int header_line_p)
 {
   struct glyph_matrix *desired_matrix = w->desired_matrix;
   struct glyph_matrix *current_matrix = w->current_matrix;
@@ -4586,7 +4315,7 @@ scrolling_window (w, header_line_p)
 	  && c->y == d->y
 	  && MATRIX_ROW_BOTTOM_Y (c) <= yb
 	  && MATRIX_ROW_BOTTOM_Y (d) <= yb
-	  && row_equal_p (w, c, d, 1))
+	  && row_equal_p (c, d, 1))
 	{
 	  assign_row (c, d);
 	  d->enabled_p = 0;
@@ -4639,8 +4368,7 @@ scrolling_window (w, header_line_p)
 	 && (MATRIX_ROW (current_matrix, i - 1)->y
 	     == MATRIX_ROW (desired_matrix, j - 1)->y)
 	 && !MATRIX_ROW (desired_matrix, j - 1)->redraw_fringe_bitmaps_p
-         && row_equal_p (w,
-			 MATRIX_ROW (desired_matrix, i - 1),
+         && row_equal_p (MATRIX_ROW (desired_matrix, i - 1),
                          MATRIX_ROW (current_matrix, j - 1), 1))
     --i, --j;
   last_new = i;
@@ -4672,7 +4400,7 @@ scrolling_window (w, header_line_p)
       row_table_size = next_almost_prime (3 * n);
       nbytes = row_table_size * sizeof *row_table;
       row_table = (struct row_entry **) xrealloc (row_table, nbytes);
-      bzero (row_table, nbytes);
+      memset (row_table, 0, nbytes);
     }
 
   if (n > row_entry_pool_size)
@@ -4701,7 +4429,7 @@ scrolling_window (w, header_line_p)
     {
       if (MATRIX_ROW (current_matrix, i)->enabled_p)
 	{
-	  entry = add_row_entry (w, MATRIX_ROW (current_matrix, i));
+	  entry = add_row_entry (MATRIX_ROW (current_matrix, i));
 	  old_lines[i] = entry;
 	  ++entry->old_uses;
 	}
@@ -4712,7 +4440,7 @@ scrolling_window (w, header_line_p)
   for (i = first_new; i < last_new; ++i)
     {
       xassert (MATRIX_ROW_ENABLED_P (desired_matrix, i));
-      entry = add_row_entry (w, MATRIX_ROW (desired_matrix, i));
+      entry = add_row_entry (MATRIX_ROW (desired_matrix, i));
       ++entry->new_uses;
       entry->new_line_number = i;
       new_lines[i] = entry;
@@ -4725,7 +4453,7 @@ scrolling_window (w, header_line_p)
 	&& old_lines[i]->old_uses == 1
         && old_lines[i]->new_uses == 1)
       {
-	int j, k;
+	int p, q;
 	int new_line = old_lines[i]->new_line_number;
 	struct run *run = run_pool + run_idx++;
 
@@ -4738,33 +4466,33 @@ scrolling_window (w, header_line_p)
 	run->height = MATRIX_ROW (current_matrix, i)->height;
 
 	/* Extend backward.  */
-	j = i - 1;
-	k = new_line - 1;
-	while (j > first_old
-	       && k > first_new
-	       && old_lines[j] == new_lines[k])
+	p = i - 1;
+	q = new_line - 1;
+	while (p > first_old
+	       && q > first_new
+	       && old_lines[p] == new_lines[q])
 	  {
-	    int h = MATRIX_ROW (current_matrix, j)->height;
+	    int h = MATRIX_ROW (current_matrix, p)->height;
 	    --run->current_vpos;
 	    --run->desired_vpos;
 	    ++run->nrows;
 	    run->height += h;
 	    run->desired_y -= h;
 	    run->current_y -= h;
-	    --j, --k;
+	    --p, --q;
 	  }
 
 	/* Extend forward.  */
-	j = i + 1;
-	k = new_line + 1;
-	while (j < last_old
-	       && k < last_new
-	       && old_lines[j] == new_lines[k])
+	p = i + 1;
+	q = new_line + 1;
+	while (p < last_old
+	       && q < last_new
+	       && old_lines[p] == new_lines[q])
 	  {
-	    int h = MATRIX_ROW (current_matrix, j)->height;
+	    int h = MATRIX_ROW (current_matrix, p)->height;
 	    ++run->nrows;
 	    run->height += h;
-	    ++j, ++k;
+	    ++p, ++q;
 	  }
 
 	/* Insert run into list of all runs.  Order runs by copied
@@ -4772,11 +4500,11 @@ scrolling_window (w, header_line_p)
 	   be copied because they are already in place.  This is done
 	   because we can avoid calling update_window_line in this
 	   case.  */
-	for (j = 0; j < nruns && runs[j]->height > run->height; ++j)
+	for (p = 0; p < nruns && runs[p]->height > run->height; ++p)
 	  ;
-	for (k = nruns; k > j; --k)
-	  runs[k] = runs[k - 1];
-	runs[j] = run;
+	for (q = nruns; q > p; --q)
+	  runs[q] = runs[q - 1];
+	runs[p] = run;
 	++nruns;
 
 	i += run->nrows;
@@ -4848,8 +4576,8 @@ scrolling_window (w, header_line_p)
   for (i = 0; i < row_entry_idx; ++i)
     row_table[row_entry_pool[i].bucket] = NULL;
 
-  /* Value is > 0 to indicate that we scrolled the display.  */
-  return nruns;
+  /* Value is 1 to indicate that we scrolled the display.  */
+  return 0 < nruns;
 }
 
 
@@ -4867,18 +4595,14 @@ scrolling_window (w, header_line_p)
    Value is non-zero if update was stopped due to pending input.  */
 
 static int
-update_frame_1 (f, force_p, inhibit_id_p)
-     struct frame *f;
-     int force_p;
-     int inhibit_id_p;
+update_frame_1 (struct frame *f, int force_p, int inhibit_id_p)
 {
   /* Frame matrices to work on.  */
   struct glyph_matrix *current_matrix = f->current_matrix;
   struct glyph_matrix *desired_matrix = f->desired_matrix;
   int i;
-  int pause;
+  int pause_p;
   int preempt_count = baud_rate / 2400 + 1;
-  extern int input_pending;
 
   xassert (current_matrix && desired_matrix);
 
@@ -4891,7 +4615,7 @@ update_frame_1 (f, force_p, inhibit_id_p)
 #if !PERIODIC_PREEMPTION_CHECKING
   if (!force_p && detect_input_pending_ignore_squeezables ())
     {
-      pause = 1;
+      pause_p = 1;
       goto do_pause;
     }
 #endif
@@ -4971,10 +4695,10 @@ update_frame_1 (f, force_p, inhibit_id_p)
 	}
     }
 
-  pause = (i < FRAME_LINES (f) - 1) ? i : 0;
+  pause_p = (i < FRAME_LINES (f) - 1) ? i : 0;
 
   /* Now just clean up termcap drivers and set cursor, etc.  */
-  if (!pause)
+  if (!pause_p)
     {
       if ((cursor_in_echo_area
 	   /* If we are showing a message instead of the mini-buffer,
@@ -5070,18 +4794,19 @@ update_frame_1 (f, force_p, inhibit_id_p)
 	}
     }
 
+#if !PERIODIC_PREEMPTION_CHECKING
  do_pause:
+#endif
 
   clear_desired_matrices (f);
-  return pause;
+  return pause_p;
 }
 
 
 /* Do line insertions/deletions on frame F for frame-based redisplay.  */
 
-int
-scrolling (frame)
-     struct frame *frame;
+static int
+scrolling (struct frame *frame)
 {
   int unchanged_at_top, unchanged_at_bottom;
   int window_size;
@@ -5175,9 +4900,7 @@ scrolling (frame)
    which is LEN glyphs long.  */
 
 static int
-count_blanks (r, len)
-     struct glyph *r;
-     int len;
+count_blanks (struct glyph *r, int len)
 {
   int i;
 
@@ -5194,8 +4917,7 @@ count_blanks (r, len)
    of STR2.  Value is the number of equal glyphs equal at the start.  */
 
 static int
-count_match (str1, end1, str2, end2)
-     struct glyph *str1, *end1, *str2, *end2;
+count_match (struct glyph *str1, struct glyph *end1, struct glyph *str2, struct glyph *end2)
 {
   struct glyph *p1 = str1;
   struct glyph *p2 = str2;
@@ -5211,16 +4933,13 @@ count_match (str1, end1, str2, end2)
 
 /* Char insertion/deletion cost vector, from term.c */
 
-extern int *char_ins_del_vector;
 #define char_ins_del_cost(f) (&char_ins_del_vector[FRAME_TOTAL_COLS((f))])
 
 
 /* Perform a frame-based update on line VPOS in frame FRAME.  */
 
 static void
-update_frame_line (f, vpos)
-     struct frame *f;
-     int vpos;
+update_frame_line (struct frame *f, int vpos)
 {
   struct glyph *obody, *nbody, *op1, *op2, *np1, *nend;
   int tem;
@@ -5531,18 +5250,18 @@ update_frame_line (f, vpos)
  ***********************************************************************/
 
 /* Determine what's under window-relative pixel position (*X, *Y).
-   Return the object (string or buffer) that's there.
+   Return the OBJECT (string or buffer) that's there.
    Return in *POS the position in that object.
-   Adjust *X and *Y to character positions.  */
+   Adjust *X and *Y to character positions.
+   Return in *DX and *DY the pixel coordinates of the click,
+   relative to the top left corner of OBJECT, or relative to
+   the top left corner of the character glyph at (*X, *Y)
+   if OBJECT is nil.
+   Return WIDTH and HEIGHT of the object at (*X, *Y), or zero
+   if the coordinates point to an empty area of the display.  */
 
 Lisp_Object
-buffer_posn_from_coords (w, x, y, pos, object, dx, dy, width, height)
-     struct window *w;
-     int *x, *y;
-     struct display_pos *pos;
-     Lisp_Object *object;
-     int *dx, *dy;
-     int *width, *height;
+buffer_posn_from_coords (struct window *w, int *x, int *y, struct display_pos *pos, Lisp_Object *object, int *dx, int *dy, int *width, int *height)
 {
   struct it it;
   Lisp_Object old_current_buffer = Fcurrent_buffer ();
@@ -5552,7 +5271,7 @@ buffer_posn_from_coords (w, x, y, pos, object, dx, dy, width, height)
 #ifdef HAVE_WINDOW_SYSTEM
   struct image *img = 0;
 #endif
-  int x0, x1;
+  int x0, x1, to_x;
 
   /* We used to set current_buffer directly here, but that does the
      wrong thing with `face-remapping-alist' (bug#2044).  */
@@ -5562,9 +5281,34 @@ buffer_posn_from_coords (w, x, y, pos, object, dx, dy, width, height)
   BYTEPOS (startp) = min (ZV_BYTE, max (BEGV_BYTE, BYTEPOS (startp)));
   start_display (&it, w, startp);
 
-  x0 = *x - WINDOW_LEFT_MARGIN_WIDTH (w);
-  move_it_to (&it, -1, x0 + it.first_visible_x, *y, -1,
-	      MOVE_TO_X | MOVE_TO_Y);
+  x0 = *x;
+
+  /* First, move to the beginning of the row corresponding to *Y.  We
+     need to be in that row to get the correct value of base paragraph
+     direction for the text at (*X, *Y).  */
+  move_it_to (&it, -1, 0, *y, -1, MOVE_TO_X | MOVE_TO_Y);
+
+  /* TO_X is the pixel position that the iterator will compute for the
+     glyph at *X.  We add it.first_visible_x because iterator
+     positions include the hscroll.  */
+  to_x = x0 + it.first_visible_x;
+  if (it.bidi_it.paragraph_dir == R2L)
+    /* For lines in an R2L paragraph, we need to mirror TO_X wrt the
+       text area.  This is because the iterator, even in R2L
+       paragraphs, delivers glyphs as if they started at the left
+       margin of the window.  (When we actually produce glyphs for
+       display, we reverse their order in PRODUCE_GLYPHS, but the
+       iterator doesn't know about that.)  The following line adjusts
+       the pixel position to the iterator geometry, which is what
+       move_it_* routines use.  (The -1 is because in a window whose
+       text-area width is W, the rightmost pixel position is W-1, and
+       it should be mirrored into zero pixel position.)  */
+    to_x = window_box_width (w, TEXT_AREA) - to_x - 1;
+
+  /* Now move horizontally in the row to the glyph under *X.  Second
+     argument is ZV to prevent move_it_in_display_line from matching
+     based on buffer positions.  */
+  move_it_in_display_line (&it, ZV, to_x, MOVE_TO_X);
 
   Fset_buffer (old_current_buffer);
 
@@ -5575,6 +5319,22 @@ buffer_posn_from_coords (w, x, y, pos, object, dx, dy, width, height)
   if (STRINGP (it.string))
     string = it.string;
   *pos = it.current;
+  if (it.what == IT_COMPOSITION
+      && it.cmp_it.nchars > 1
+      && it.cmp_it.reversed_p)
+    {
+      /* The current display element is a grapheme cluster in a
+	 composition.  In that case, we need the position of the first
+	 character of the cluster.  But, as it.cmp_it.reversed_p is 1,
+	 it.current points to the last character of the cluster, thus
+	 we must move back to the first character of the same
+	 cluster.  */
+      CHARPOS (pos->pos) -= it.cmp_it.nchars - 1;
+      if (STRINGP (it.string))
+	BYTEPOS (pos->pos) = string_char_to_byte (string, CHARPOS (pos->pos));
+      else
+	BYTEPOS (pos->pos) = CHAR_TO_BYTE (CHARPOS (pos->pos));
+    }
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (it.what == IT_IMAGE)
@@ -5596,8 +5356,8 @@ buffer_posn_from_coords (w, x, y, pos, object, dx, dy, width, height)
 	  if (img)
 	    {
 	      *dy -= row->ascent - glyph->ascent;
-	      *dx += glyph->slice.x;
-	      *dy += glyph->slice.y;
+	      *dx += glyph->slice.img.x;
+	      *dy += glyph->slice.img.y;
 	      /* Image slices positions are still relative to the entire image */
 	      *width = img->width;
 	      *height = img->height;
@@ -5637,14 +5397,9 @@ buffer_posn_from_coords (w, x, y, pos, object, dx, dy, width, height)
    *CHARPOS is set to the position in the string returned.  */
 
 Lisp_Object
-mode_line_string (w, part, x, y, charpos, object, dx, dy, width, height)
-     struct window *w;
-     enum window_part part;
-     int *x, *y;
-     int *charpos;
-     Lisp_Object *object;
-     int *dx, *dy;
-     int *width, *height;
+mode_line_string (struct window *w, enum window_part part,
+		  int *x, int *y, EMACS_INT *charpos, Lisp_Object *object,
+		  int *dx, int *dy, int *width, int *height)
 {
   struct glyph_row *row;
   struct glyph *glyph, *end;
@@ -5711,14 +5466,9 @@ mode_line_string (w, part, x, y, charpos, object, dx, dy, width, height)
    the string returned.  */
 
 Lisp_Object
-marginal_area_string (w, part, x, y, charpos, object, dx, dy, width, height)
-     struct window *w;
-     enum window_part part;
-     int *x, *y;
-     int *charpos;
-     Lisp_Object *object;
-     int *dx, *dy;
-     int *width, *height;
+marginal_area_string (struct window *w, enum window_part part,
+		      int *x, int *y, EMACS_INT *charpos, Lisp_Object *object,
+		      int *dx, int *dy, int *width, int *height)
 {
   struct glyph_row *row = w->current_matrix->rows;
   struct glyph *glyph, *end;
@@ -5773,8 +5523,8 @@ marginal_area_string (w, part, x, y, charpos, object, dx, dy, width, height)
 	      if (img != NULL)
 		*object = img->spec;
 	      y0 -= row->ascent - glyph->ascent;
-	      x0 += glyph->slice.x;
-	      y0 += glyph->slice.y;
+	      x0 += glyph->slice.img.x;
+	      y0 += glyph->slice.img.y;
 	    }
 #endif
 	}
@@ -5806,9 +5556,9 @@ marginal_area_string (w, part, x, y, charpos, object, dx, dy, width, height)
 
 #ifdef SIGWINCH
 
-SIGTYPE
-window_change_signal (signalnum) /* If we don't have an argument, */
-     int signalnum;		/* some compilers complain in signal calls.  */
+static void
+window_change_signal (int signalnum) /* If we don't have an argument, */
+                   		/* some compilers complain in signal calls.  */
 {
   int width, height;
   int old_errno = errno;
@@ -5856,8 +5606,7 @@ window_change_signal (signalnum) /* If we don't have an argument, */
    safe to change frame sizes  while a redisplay is in progress.  */
 
 void
-do_pending_window_change (safe)
-     int safe;
+do_pending_window_change (int safe)
 {
   /* If window_change_signal should have run before, run it now.  */
   if (redisplaying_p && !safe)
@@ -5893,9 +5642,7 @@ do_pending_window_change (safe)
    safe to change frame sizes while a redisplay is in progress.  */
 
 void
-change_frame_size (f, newheight, newwidth, pretend, delay, safe)
-     register struct frame *f;
-     int newheight, newwidth, pretend, delay, safe;
+change_frame_size (register struct frame *f, int newheight, int newwidth, int pretend, int delay, int safe)
 {
   Lisp_Object tail, frame;
 
@@ -5914,9 +5661,7 @@ change_frame_size (f, newheight, newwidth, pretend, delay, safe)
 }
 
 static void
-change_frame_size_1 (f, newheight, newwidth, pretend, delay, safe)
-     register struct frame *f;
-     int newheight, newwidth, pretend, delay, safe;
+change_frame_size_1 (register struct frame *f, int newheight, int newwidth, int pretend, int delay, int safe)
 {
   int new_frame_total_cols;
   int count = SPECPDL_INDEX ();
@@ -6045,8 +5790,7 @@ DEFUN ("open-termscript", Fopen_termscript, Sopen_termscript,
        1, 1, "FOpen termscript file: ",
        doc: /* Start writing all terminal output to FILE as well as the terminal.
 FILE = nil means just close any termscript file currently open.  */)
-     (file)
-     Lisp_Object file;
+  (Lisp_Object file)
 {
   struct tty_display_info *tty;
 
@@ -6067,7 +5811,7 @@ FILE = nil means just close any termscript file currently open.  */)
   if (! NILP (file))
     {
       file = Fexpand_file_name (file, Qnil);
-      tty->termscript = fopen (SDATA (file), "w");
+      tty->termscript = fopen (SSDATA (file), "w");
       if (tty->termscript == 0)
 	report_file_error ("Opening termscript", Fcons (file, Qnil));
     }
@@ -6084,9 +5828,7 @@ Optional parameter TERMINAL specifies the tty terminal device to use.
 It may be a terminal object, a frame, or nil for the terminal used by
 the currently selected frame.  In batch mode, STRING is sent to stdout
 when TERMINAL is nil.  */)
-  (string, terminal)
-     Lisp_Object string;
-     Lisp_Object terminal;
+  (Lisp_Object string, Lisp_Object terminal)
 {
   struct terminal *t = get_terminal (terminal, 1);
   FILE *out;
@@ -6127,8 +5869,7 @@ DEFUN ("ding", Fding, Sding, 0, 1, 0,
        doc: /* Beep, or flash the screen.
 Also, unless an argument is given,
 terminate any keyboard macro currently executing.  */)
-     (arg)
-  Lisp_Object arg;
+  (Lisp_Object arg)
 {
   if (!NILP (arg))
     {
@@ -6144,7 +5885,7 @@ terminate any keyboard macro currently executing.  */)
 }
 
 void
-bitch_at_user ()
+bitch_at_user (void)
 {
   if (noninteractive)
     putchar (07);
@@ -6167,8 +5908,7 @@ fraction of a second.  Optional second arg MILLISECONDS specifies an
 additional wait period, in milliseconds; this may be useful if your
 Emacs was built without floating point support.
 \(Not all operating systems support waiting for a fraction of a second.)  */)
-     (seconds, milliseconds)
-     Lisp_Object seconds, milliseconds;
+  (Lisp_Object seconds, Lisp_Object milliseconds)
 {
   int sec, usec;
 
@@ -6221,9 +5961,7 @@ Emacs was built without floating point support.
 */
 
 Lisp_Object
-sit_for (timeout, reading, do_display)
-     Lisp_Object timeout;
-     int reading, do_display;
+sit_for (Lisp_Object timeout, int reading, int do_display)
 {
   int sec, usec;
 
@@ -6274,8 +6012,7 @@ DEFUN ("redisplay", Fredisplay, Sredisplay, 0, 1, 0,
 If optional arg FORCE is non-nil or `redisplay-dont-pause' is non-nil,
 perform a full redisplay even if input is available.
 Return t if redisplay was performed, nil otherwise.  */)
-     (force)
-  Lisp_Object force;
+  (Lisp_Object force)
 {
   int count;
 
@@ -6319,8 +6056,7 @@ the current state.
 
 If VARIABLE is nil, an internal variable is used.  Users should not
 pass nil for VARIABLE.  */)
-     (variable)
-     Lisp_Object variable;
+  (Lisp_Object variable)
 {
   Lisp_Object state, tail, frame, buf;
   Lisp_Object *vecp, *end;
@@ -6337,7 +6073,7 @@ pass nil for VARIABLE.  */)
     state = frame_and_buffer_state;
 
   vecp = XVECTOR (state)->contents;
-  end = vecp + XVECTOR (state)->size;
+  end = vecp + ASIZE (state);
 
   FOR_EACH_FRAME (tail, frame)
     {
@@ -6355,7 +6091,7 @@ pass nil for VARIABLE.  */)
     {
       buf = XCDR (XCAR (tail));
       /* Ignore buffers that aren't included in buffer lists.  */
-      if (SREF (XBUFFER (buf)->name, 0) == ' ')
+      if (SREF (BVAR (XBUFFER (buf), name), 0) == ' ')
 	continue;
       if (vecp == end)
 	goto changed;
@@ -6363,7 +6099,7 @@ pass nil for VARIABLE.  */)
 	goto changed;
       if (vecp == end)
 	goto changed;
-      if (!EQ (*vecp++, XBUFFER (buf)->read_only))
+      if (!EQ (*vecp++, BVAR (XBUFFER (buf), read_only)))
 	goto changed;
       if (vecp == end)
 	goto changed;
@@ -6388,8 +6124,8 @@ pass nil for VARIABLE.  */)
   /* Reallocate the vector if data has grown to need it,
      or if it has shrunk a lot.  */
   if (! VECTORP (state)
-      || n > XVECTOR (state)->size
-      || n + 20 < XVECTOR (state)->size / 2)
+      || n > ASIZE (state)
+      || n + 20 < ASIZE (state) / 2)
     /* Add 20 extra so we grow it less often.  */
     {
       state = Fmake_vector (make_number (n + 20), Qlambda);
@@ -6410,20 +6146,20 @@ pass nil for VARIABLE.  */)
     {
       buf = XCDR (XCAR (tail));
       /* Ignore buffers that aren't included in buffer lists.  */
-      if (SREF (XBUFFER (buf)->name, 0) == ' ')
+      if (SREF (BVAR (XBUFFER (buf), name), 0) == ' ')
 	continue;
       *vecp++ = buf;
-      *vecp++ = XBUFFER (buf)->read_only;
+      *vecp++ = BVAR (XBUFFER (buf), read_only);
       *vecp++ = Fbuffer_modified_p (buf);
     }
   /* Fill up the vector with lambdas (always at least one).  */
   *vecp++ = Qlambda;
   while (vecp - XVECTOR (state)->contents
-	 < XVECTOR (state)->size)
+	 < ASIZE (state))
     *vecp++ = Qlambda;
   /* Make sure we didn't overflow the vector.  */
   if (vecp - XVECTOR (state)->contents
-      > XVECTOR (state)->size)
+      > ASIZE (state))
     abort ();
   return Qt;
 }
@@ -6439,13 +6175,9 @@ pass nil for VARIABLE.  */)
    decoding routine to set up variables in the terminal package.  */
 
 void
-init_display ()
+init_display (void)
 {
   char *terminal_type;
-
-#ifdef HAVE_X_WINDOWS
-  extern int display_arg;
-#endif
 
   /* Construct the space glyph.  */
   space_glyph.type = CHAR_GLYPH;
@@ -6580,6 +6312,12 @@ init_display ()
     f->terminal = t;
 
     t->reference_count++;
+#ifdef MSDOS
+    f->output_data.tty->display_info = &the_only_display_info;
+#else
+    if (f->output_method == output_termcap)
+      create_tty_output (f);
+#endif
     t->display_info.tty->top_frame = selected_frame;
     change_frame_size (XFRAME (selected_frame),
                        FrameRows (t->display_info.tty),
@@ -6646,8 +6384,7 @@ DEFUN ("internal-show-cursor", Finternal_show_cursor,
 WINDOW nil means use the selected window.  SHOW non-nil means
 show a cursor in WINDOW in the next redisplay.  SHOW nil means
 don't show a cursor.  */)
-     (window, show)
-     Lisp_Object window, show;
+  (Lisp_Object window, Lisp_Object show)
 {
   /* Don't change cursor state while redisplaying.  This could confuse
      output routines.  */
@@ -6669,8 +6406,7 @@ DEFUN ("internal-show-cursor-p", Finternal_show_cursor_p,
        Sinternal_show_cursor_p, 0, 1, 0,
        doc: /* Value is non-nil if next redisplay will display a cursor in WINDOW.
 WINDOW nil or omitted means report on the selected window.  */)
-     (window)
-     Lisp_Object window;
+  (Lisp_Object window)
 {
   struct window *w;
 
@@ -6686,7 +6422,7 @@ WINDOW nil or omitted means report on the selected window.  */)
 DEFUN ("last-nonminibuffer-frame", Flast_nonminibuf_frame,
        Slast_nonminibuf_frame, 0, 0, 0,
        doc: /* Value is last nonminibuffer frame. */)
-     ()
+  (void)
 {
   Lisp_Object frame = Qnil;
 
@@ -6701,7 +6437,7 @@ DEFUN ("last-nonminibuffer-frame", Flast_nonminibuf_frame,
  ***********************************************************************/
 
 void
-syms_of_display ()
+syms_of_display (void)
 {
   defsubr (&Sredraw_frame);
   defsubr (&Sredraw_display);
@@ -6727,44 +6463,60 @@ syms_of_display ()
   Qredisplay_dont_pause = intern_c_string ("redisplay-dont-pause");
   staticpro (&Qredisplay_dont_pause);
 
-  DEFVAR_INT ("baud-rate", &baud_rate,
+  DEFVAR_INT ("baud-rate", baud_rate,
 	      doc: /* *The output baud rate of the terminal.
 On most systems, changing this value will affect the amount of padding
 and the other strategic decisions made during redisplay.  */);
 
-  DEFVAR_BOOL ("inverse-video", &inverse_video,
+  DEFVAR_BOOL ("inverse-video", inverse_video,
 	       doc: /* *Non-nil means invert the entire frame display.
 This means everything is in inverse video which otherwise would not be.  */);
 
-  DEFVAR_BOOL ("visible-bell", &visible_bell,
+  DEFVAR_BOOL ("visible-bell", visible_bell,
 	       doc: /* *Non-nil means try to flash the frame to represent a bell.
 
 See also `ring-bell-function'.  */);
 
-  DEFVAR_BOOL ("no-redraw-on-reenter", &no_redraw_on_reenter,
+  DEFVAR_BOOL ("no-redraw-on-reenter", no_redraw_on_reenter,
 	       doc: /* *Non-nil means no need to redraw entire frame after suspending.
 A non-nil value is useful if the terminal can automatically preserve
 Emacs's frame display when you reenter Emacs.
 It is up to you to set this variable if your terminal can do that.  */);
 
-  DEFVAR_LISP ("initial-window-system", &Vinitial_window_system,
+  DEFVAR_LISP ("initial-window-system", Vinitial_window_system,
 	       doc: /* Name of the window system that Emacs uses for the first frame.
-The value is a symbol--for instance, `x' for X windows.
-The value is nil if Emacs is using a text-only terminal.  */);
+The value is a symbol:
+ nil for a termcap frame (a character-only terminal),
+ 'x' for an Emacs frame that is really an X window,
+ 'w32' for an Emacs frame that is a window on MS-Windows display,
+ 'ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
+ 'pc' for a direct-write MS-DOS frame.
+
+Use of this variable as a boolean is deprecated.  Instead,
+use `display-graphic-p' or any of the other `display-*-p'
+predicates which report frame's specific UI-related capabilities.  */);
 
   DEFVAR_KBOARD ("window-system", Vwindow_system,
 		 doc: /* Name of window system through which the selected frame is displayed.
-The value is a symbol--for instance, `x' for X windows.
-The value is nil if the selected frame is on a text-only-terminal.  */);
+The value is a symbol:
+ nil for a termcap frame (a character-only terminal),
+ 'x' for an Emacs frame that is really an X window,
+ 'w32' for an Emacs frame that is a window on MS-Windows display,
+ 'ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
+ 'pc' for a direct-write MS-DOS frame.
 
-  DEFVAR_LISP ("window-system-version", &Vwindow_system_version,
+Use of this variable as a boolean is deprecated.  Instead,
+use `display-graphic-p' or any of the other `display-*-p'
+predicates which report frame's specific UI-related capabilities.  */);
+
+  DEFVAR_LISP ("window-system-version", Vwindow_system_version,
 	       doc: /* The version number of the window system in use.
 For X windows, this is 11.  */);
 
-  DEFVAR_BOOL ("cursor-in-echo-area", &cursor_in_echo_area,
+  DEFVAR_BOOL ("cursor-in-echo-area", cursor_in_echo_area,
 	       doc: /* Non-nil means put cursor in minibuffer, at end of any message there.  */);
 
-  DEFVAR_LISP ("glyph-table", &Vglyph_table,
+  DEFVAR_LISP ("glyph-table", Vglyph_table,
 	       doc: /* Table defining how to output a glyph code to the frame.
 If not nil, this is a vector indexed by glyph code to define the glyph.
 Each element can be:
@@ -6775,17 +6527,17 @@ Each element can be:
     while outputting it.  */);
   Vglyph_table = Qnil;
 
-  DEFVAR_LISP ("standard-display-table", &Vstandard_display_table,
+  DEFVAR_LISP ("standard-display-table", Vstandard_display_table,
 	       doc: /* Display table to use for buffers that specify none.
 See `buffer-display-table' for more information.  */);
   Vstandard_display_table = Qnil;
 
-  DEFVAR_BOOL ("redisplay-dont-pause", &redisplay_dont_pause,
+  DEFVAR_BOOL ("redisplay-dont-pause", redisplay_dont_pause,
 	       doc: /* *Non-nil means update isn't paused when input is detected.  */);
   redisplay_dont_pause = 0;
 
 #if PERIODIC_PREEMPTION_CHECKING
-  DEFVAR_LISP ("redisplay-preemption-period", &Vredisplay_preemption_period,
+  DEFVAR_LISP ("redisplay-preemption-period", Vredisplay_preemption_period,
 	       doc: /* *The period in seconds between checking for input during redisplay.
 If input is detected, redisplay is pre-empted, and the input is processed.
 If nil, never pre-empt redisplay.  */);
@@ -6800,6 +6552,3 @@ If nil, never pre-empt redisplay.  */);
       Vwindow_system_version = Qnil;
     }
 }
-
-/* arch-tag: 8d812b1f-04a2-4195-a9c4-381f8457a413
-   (do not change this comment) */

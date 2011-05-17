@@ -1,6 +1,6 @@
 ;;;; testcover.el -- Visual code-coverage tool
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2011 Free Software Foundation, Inc.
 
 ;; Author: Jonathan Yavner <jyavner@member.fsf.org>
 ;; Maintainer: Jonathan Yavner <jyavner@member.fsf.org>
@@ -534,5 +534,4 @@ coverage tests.  This function creates many overlays."
   (goto-char (next-overlay-change (point)))
   (end-of-line))
 
-;; arch-tag: 72324a4a-4a2e-4142-9249-cc56d6757588
 ;; testcover.el ends here.

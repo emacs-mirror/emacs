@@ -1,7 +1,6 @@
 ;;; cl.el --- Common Lisp extensions for Emacs
 
-;; Copyright (C) 1993, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Version: 2.02
@@ -162,7 +161,14 @@ an element already on the list.
   (if (symbolp place)
       (if (null keys)
  	  `(let ((x ,x))
-	     (if (memql x ,place) ,place (setq ,place (cons x ,place))))
+	     (if (memql x ,place)
+                 ;; This symbol may later on expand to actual code which then
+                 ;; trigger warnings like "value unused" since pushnew's return
+                 ;; value is rarely used.  It should not matter that other
+                 ;; warnings may be silenced, since `place' is used earlier and
+                 ;; should have triggered them already.
+                 (with-no-warnings ,place)
+               (setq ,place (cons x ,place))))
 	(list 'setq place (list* 'adjoin x place keys)))
     (list* 'callf2 'adjoin x place keys)))
 
@@ -272,9 +278,9 @@ definitions to shadow the loaded ones for use in file byte-compilation.
 (defvar cl-compiling-file nil)
 (defun cl-compiling-file ()
   (or cl-compiling-file
-      (and (boundp 'bytecomp-outbuffer)
-           (bufferp (symbol-value 'bytecomp-outbuffer))
-	   (equal (buffer-name (symbol-value 'bytecomp-outbuffer))
+      (and (boundp 'byte-compile--outbuffer)
+           (bufferp (symbol-value 'byte-compile--outbuffer))
+	   (equal (buffer-name (symbol-value 'byte-compile--outbuffer))
 		  " *Compiler Output*"))))
 
 (defvar cl-proclaims-deferred nil)
@@ -645,7 +651,6 @@ If ALIST is non-nil, the new pairs are prepended to it."
 (load "cl-loaddefs" nil 'quiet)
 
 ;; This goes here so that cl-macs can find it if it loads right now.
-(provide 'cl-19)     ; usage: (require 'cl-19 "cl")
 (provide 'cl)
 
 ;; Things to do after byte-compiler is loaded.
@@ -677,5 +682,4 @@ If ALIST is non-nil, the new pairs are prepended to it."
 ;; byte-compile-warnings: (not cl-functions)
 ;; End:
 
-;; arch-tag: 5f07fa74-f153-4524-9303-21f5be125851
 ;;; cl.el ends here

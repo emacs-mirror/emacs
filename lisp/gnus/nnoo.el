@@ -1,7 +1,6 @@
 ;;; nnoo.el --- OO Gnus Backends
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -322,5 +321,4 @@ All functions will return nil and report an error."
 
 (provide 'nnoo)
 
-;; arch-tag: 0196b5ed-6f34-4778-a455-73a971f837e7
 ;;; nnoo.el ends here

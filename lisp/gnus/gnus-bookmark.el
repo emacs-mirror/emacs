@@ -1,6 +1,6 @@
 ;;; gnus-bookmark.el --- Bookmarks in Gnus
 
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2006-2011  Free Software Foundation, Inc.
 
 ;; Author: Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: news
@@ -156,9 +156,6 @@ The default value is \(author subject date group annotation\)."
   "The current version of the format used by bookmark files.
 You should never need to change this.")
 
-(defvar gnus-bookmark-after-jump-hook nil
-  "Hook run after `gnus-bookmark-jump' jumps to a Gnus bookmark.")
-
 (defvar gnus-bookmark-alist ()
   "Association list of Gnus bookmarks and their records.
 The format of the alist is
@@ -292,8 +289,8 @@ So the cdr of each bookmark is an alist too.")
   (interactive)
   (gnus-bookmark-maybe-load-default-file)
   (let* ((bookmark (or bmk-name
-	  (completing-read "Jump to bookmarked article: "
-			   gnus-bookmark-alist)))
+                       (gnus-completing-read "Jump to bookmarked article"
+                                             (mapcar 'car gnus-bookmark-alist))))
 	 (bmk-record (cadr (assoc bookmark gnus-bookmark-alist)))
 	 (group (cdr (assoc 'group bmk-record)))
 	 (message-id (cdr (assoc 'message-id bmk-record))))
@@ -541,7 +538,7 @@ Optional argument SHOW means show them unconditionally."
             (let ((bmrk (gnus-bookmark-bmenu-bookmark)))
               (setq gnus-bookmark-bmenu-hidden-bookmarks
                     (cons bmrk gnus-bookmark-bmenu-hidden-bookmarks))
-	      (let ((start (save-excursion (end-of-line) (point))))
+	      (let ((start (point-at-eol)))
 		(move-to-column gnus-bookmark-bmenu-file-column t)
 		;; Strip off `mouse-face' from the white spaces region.
 		(if (gnus-bookmark-mouse-available-p)
@@ -575,10 +572,9 @@ Optional argument SHOW means show them unconditionally."
   "Kill from point to end of line.
 If optional arg NEWLINE-TOO is non-nil, delete the newline too.
 Does not affect the kill ring."
-  (let ((eol (save-excursion (end-of-line) (point))))
-    (delete-region (point) eol)
-    (if (and newline-too (looking-at "\n"))
-        (delete-char 1))))
+  (delete-region (point) (point-at-eol))
+  (if (and newline-too (looking-at "\n"))
+      (delete-char 1)))
 
 (defun gnus-bookmark-get-details (bmk-name details-list)
   "Get details for a Gnus BMK-NAME depending on DETAILS-LIST."
@@ -828,5 +824,4 @@ probably because we were called from there."
 
 (provide 'gnus-bookmark)
 
-;; arch-tag: 779df694-366f-46e8-84b2-1d0340e6f525
 ;;; gnus-bookmark.el ends here

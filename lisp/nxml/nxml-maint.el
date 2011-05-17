@@ -1,6 +1,6 @@
 ;;; nxml-maint.el --- commands for maintainers of nxml-*.el
 
-;; Copyright (C) 2003, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML
@@ -78,7 +78,7 @@
       (goto-char (point-min))
       (while (re-search-forward "^ *\\([a-FA-F0-9]\\{2\\}\\)[ \t]+" nil t)
 	(let ((row (match-string 1))
-	      (eol (save-excursion (end-of-line) (point))))
+	      (eol (line-end-position)))
 	  (while (re-search-forward "\\([a-FA-F0-9]\\{2\\}\\)-\\([a-FA-F0-9]\\{2\\}\\)\\|\\([a-FA-F0-9]\\{2\\}\\)" eol t)
 	    (setq lst
 		  (cons (if (match-beginning 3)
@@ -102,5 +102,4 @@
 
 (provide 'nxml-maint)
 
-;; arch-tag: 2cff6b55-12af-47db-90da-a91f782f435a
 ;;; nxml-maint.el ends here

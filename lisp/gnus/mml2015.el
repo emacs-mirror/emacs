@@ -1,7 +1,6 @@
 ;;; mml2015.el --- MIME Security with Pretty Good Privacy (PGP)
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2011 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: PGP MIME MML
@@ -28,8 +27,8 @@
 
 ;;; Code:
 
-;; For Emacs < 22.2.
 (eval-and-compile
+  ;; For Emacs <22.2 and XEmacs.
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r)))
 
   (if (locate-library "password-cache")
@@ -56,18 +55,9 @@
 			   'epg)
 		       (error))
 		     (progn
-		       (ignore-errors
-			;; Avoid the "Recursive load suspected" error
-			;; in Emacs 21.1.
-			(let ((recursive-load-depth-limit 100))
-			  (require 'pgg)))
+		       (ignore-errors (require 'pgg))
 		       (and (fboundp 'pgg-sign-region)
 			    'pgg))
-		     (progn
-		       (ignore-errors
-			 (require 'gpg))
-		       (and (fboundp 'gpg-sign-detached)
-			    'gpg))
 		     (progn (ignore-errors
 			      (load "mc-toplev"))
 			    (and (fboundp 'mc-encrypt-generic)
@@ -75,7 +65,7 @@
 				 (fboundp 'mc-cleanup-recipient-headers)
 				 'mailcrypt)))
   "The package used for PGP/MIME.
-Valid packages include `epg', `pgg', `gpg' and `mailcrypt'.")
+Valid packages include `epg', `pgg' and `mailcrypt'.")
 
 ;; Something is not RFC2015.
 (defvar mml2015-function-alist
@@ -85,24 +75,18 @@ Valid packages include `epg', `pgg', `gpg' and `mailcrypt'.")
 	       mml2015-mailcrypt-decrypt
 	       mml2015-mailcrypt-clear-verify
 	       mml2015-mailcrypt-clear-decrypt)
-    (gpg mml2015-gpg-sign
-	 mml2015-gpg-encrypt
-	 mml2015-gpg-verify
-	 mml2015-gpg-decrypt
-	 mml2015-gpg-clear-verify
-	 mml2015-gpg-clear-decrypt)
-  (pgg mml2015-pgg-sign
-       mml2015-pgg-encrypt
-       mml2015-pgg-verify
-       mml2015-pgg-decrypt
-       mml2015-pgg-clear-verify
-       mml2015-pgg-clear-decrypt)
-  (epg mml2015-epg-sign
-       mml2015-epg-encrypt
-       mml2015-epg-verify
-       mml2015-epg-decrypt
-       mml2015-epg-clear-verify
-       mml2015-epg-clear-decrypt))
+    (pgg mml2015-pgg-sign
+	 mml2015-pgg-encrypt
+	 mml2015-pgg-verify
+	 mml2015-pgg-decrypt
+	 mml2015-pgg-clear-verify
+	 mml2015-pgg-clear-decrypt)
+    (epg mml2015-epg-sign
+	 mml2015-epg-encrypt
+	 mml2015-epg-verify
+	 mml2015-epg-decrypt
+	 mml2015-epg-clear-verify
+	 mml2015-epg-clear-decrypt))
   "Alist of PGP/MIME functions.")
 
 (defvar mml2015-result-buffer nil)
@@ -119,11 +103,6 @@ Valid packages include `epg', `pgg', `gpg' and `mailcrypt'.")
   :type '(repeat (cons (regexp :tag "GnuPG output regexp")
 		       (boolean :tag "Trust key"))))
 
-(defcustom mml2015-verbose mml-secure-verbose
-  "If non-nil, ask the user about the current operation more verbosely."
-  :group 'mime-security
-  :type 'boolean)
-
 (defcustom mml2015-cache-passphrase mml-secure-cache-passphrase
   "If t, cache passphrase."
   :group 'mime-security
@@ -137,9 +116,16 @@ Whether the passphrase is cached at all is controlled by
   :type 'integer)
 
 (defcustom mml2015-signers nil
-  "A list of your own key ID which will be used to sign a message."
+  "A list of your own key ID(s) which will be used to sign a message.
+If set, it overrides the setting of `mml2015-sign-with-sender'."
   :group 'mime-security
   :type '(repeat (string :tag "Key ID")))
+
+(defcustom mml2015-sign-with-sender nil
+  "If t, use message sender so find a key to sign with."
+  :group 'mime-security
+  :type 'boolean
+  :version "24.1")
 
 (defcustom mml2015-encrypt-to-self nil
   "If t, add your own key ID to recipient list when encryption."
@@ -153,7 +139,7 @@ Whether the passphrase is cached at all is controlled by
 
 ;; Extract plaintext from cleartext signature.  IMO, this kind of task
 ;; should be done by GnuPG rather than Elisp, but older PGP backends
-;; (such as Mailcrypt, PGG, and gpg.el) discard the output from GnuPG.
+;; (such as Mailcrypt, and PGG) discard the output from GnuPG.
 (defun mml2015-extract-cleartext-signature ()
   ;; Daiki Ueno in
   ;; <54a15d860801080142l70b95d7dkac4bf51a86196011@mail.gmail.com>: ``I still
@@ -192,9 +178,6 @@ Whether the passphrase is cached at all is controlled by
 (autoload 'mc-encrypt-generic "mc-toplev")
 (autoload 'mc-cleanup-recipient-headers "mc-toplev")
 (autoload 'mc-sign-generic "mc-toplev")
-
-(defvar mc-default-scheme)
-(defvar mc-schemes)
 
 (defvar mml2015-decrypt-function 'mailcrypt-decrypt)
 (defvar mml2015-verify-function 'mailcrypt-verify)
@@ -241,6 +224,58 @@ Whether the passphrase is cached at all is controlled by
       (if (listp (car handles))
 	  handles
 	(list handles)))))
+
+(defun mml2015-gpg-pretty-print-fpr (fingerprint)
+  (let* ((result "")
+	 (fpr-length (string-width fingerprint))
+	 (n-slice 0)
+	 slice)
+    (setq fingerprint (string-to-list fingerprint))
+    (while fingerprint
+      (setq fpr-length (- fpr-length 4))
+      (setq slice (butlast fingerprint fpr-length))
+      (setq fingerprint (nthcdr 4 fingerprint))
+      (setq n-slice (1+ n-slice))
+      (setq result
+	    (concat
+	     result
+	     (case n-slice
+	       (1  slice)
+	       (otherwise (concat " " slice))))))
+    result))
+
+(defun mml2015-gpg-extract-signature-details ()
+  (goto-char (point-min))
+  (let* ((expired (re-search-forward
+		   "^\\[GNUPG:\\] SIGEXPIRED$"
+		   nil t))
+	 (signer (and (re-search-forward
+		       "^\\[GNUPG:\\] GOODSIG \\([0-9A-Za-z]*\\) \\(.*\\)$"
+		       nil t)
+		      (cons (match-string 1) (match-string 2))))
+	 (fprint (and (re-search-forward
+		       "^\\[GNUPG:\\] VALIDSIG \\([0-9a-zA-Z]*\\) "
+		       nil t)
+		      (match-string 1)))
+	 (trust  (and (re-search-forward
+		       "^\\[GNUPG:\\] \\(TRUST_.*\\)$"
+		       nil t)
+		      (match-string 1)))
+	 (trust-good-enough-p
+	  (cdr (assoc trust mml2015-unabbrev-trust-alist))))
+    (cond ((and signer fprint)
+	   (concat (cdr signer)
+		   (unless trust-good-enough-p
+		     (concat "\nUntrusted, Fingerprint: "
+			     (mml2015-gpg-pretty-print-fpr fprint)))
+		   (when expired
+		     (format "\nWARNING: Signature from expired key (%s)"
+			     (car signer)))))
+	  ((re-search-forward
+	    "^\\(gpg: \\)?Good signature from \"\\(.*\\)\"$" nil t)
+	   (match-string 2))
+	  (t
+	   "From unknown user"))))
 
 (defun mml2015-mailcrypt-clear-decrypt ()
   (let (result)
@@ -453,279 +488,6 @@ Whether the passphrase is cached at all is controlled by
     (goto-char (point-max))
     (insert (format "--%s--\n" boundary))
     (goto-char (point-max))))
-
-;;; gpg wrapper
-
-(autoload 'gpg-decrypt "gpg")
-(autoload 'gpg-verify "gpg")
-(autoload 'gpg-verify-cleartext "gpg")
-(autoload 'gpg-sign-detached "gpg")
-(autoload 'gpg-sign-encrypt "gpg")
-(autoload 'gpg-encrypt "gpg")
-(autoload 'gpg-passphrase-read "gpg")
-
-(defun mml2015-gpg-passphrase ()
-  (or (message-options-get 'gpg-passphrase)
-      (message-options-set 'gpg-passphrase (gpg-passphrase-read))))
-
-(defun mml2015-gpg-decrypt-1 ()
-  (let ((cipher (current-buffer)) plain result)
-    (if (with-temp-buffer
-	  (prog1
-	      (gpg-decrypt cipher (setq plain (current-buffer))
-			   mml2015-result-buffer nil)
-	    (mm-set-handle-multipart-parameter
-	     mm-security-handle 'gnus-details
-	     (with-current-buffer mml2015-result-buffer
-	       (buffer-string)))
-	    (set-buffer cipher)
-	    (erase-buffer)
-	    (insert-buffer-substring plain)
-	    (goto-char (point-min))
-	    (while (search-forward "\r\n" nil t)
-	      (replace-match "\n" t t))))
-	'(t)
-      ;; Some wrong with the return value, check plain text buffer.
-      (if (> (point-max) (point-min))
-	  '(t)
-	nil))))
-
-(defun mml2015-gpg-decrypt (handle ctl)
-  (let ((mml2015-decrypt-function 'mml2015-gpg-decrypt-1))
-    (mml2015-mailcrypt-decrypt handle ctl)))
-
-(defun mml2015-gpg-clear-decrypt ()
-  (let (result)
-    (setq result (mml2015-gpg-decrypt-1))
-    (if (car result)
-	(mm-set-handle-multipart-parameter
-	 mm-security-handle 'gnus-info "OK")
-      (mm-set-handle-multipart-parameter
-       mm-security-handle 'gnus-info "Failed"))))
-
-(defun mml2015-gpg-pretty-print-fpr (fingerprint)
-  (let* ((result "")
-	 (fpr-length (string-width fingerprint))
-	 (n-slice 0)
-	 slice)
-    (setq fingerprint (string-to-list fingerprint))
-    (while fingerprint
-      (setq fpr-length (- fpr-length 4))
-      (setq slice (butlast fingerprint fpr-length))
-      (setq fingerprint (nthcdr 4 fingerprint))
-      (setq n-slice (1+ n-slice))
-      (setq result
-	    (concat
-	     result
-	     (case n-slice
-	       (1  slice)
-	       (otherwise (concat " " slice))))))
-    result))
-
-(defun mml2015-gpg-extract-signature-details ()
-  (goto-char (point-min))
-  (let* ((expired (re-search-forward
-		   "^\\[GNUPG:\\] SIGEXPIRED$"
-		   nil t))
-	 (signer (and (re-search-forward
-		       "^\\[GNUPG:\\] GOODSIG \\([0-9A-Za-z]*\\) \\(.*\\)$"
-		       nil t)
-		      (cons (match-string 1) (match-string 2))))
-	 (fprint (and (re-search-forward
-		       "^\\[GNUPG:\\] VALIDSIG \\([0-9a-zA-Z]*\\) "
-		       nil t)
-		      (match-string 1)))
-	 (trust  (and (re-search-forward
-		       "^\\[GNUPG:\\] \\(TRUST_.*\\)$"
-		       nil t)
-		      (match-string 1)))
-	 (trust-good-enough-p
-	  (cdr (assoc trust mml2015-unabbrev-trust-alist))))
-    (cond ((and signer fprint)
-	   (concat (cdr signer)
-		   (unless trust-good-enough-p
-		     (concat "\nUntrusted, Fingerprint: "
-			     (mml2015-gpg-pretty-print-fpr fprint)))
-		   (when expired
-		     (format "\nWARNING: Signature from expired key (%s)"
-			     (car signer)))))
-	  ((re-search-forward
-	    "^\\(gpg: \\)?Good signature from \"\\(.*\\)\"$" nil t)
-	   (match-string 2))
-	  (t
-	   "From unknown user"))))
-
-(defun mml2015-gpg-verify (handle ctl)
-  (catch 'error
-    (let (part message signature info-is-set-p)
-      (unless (setq part (mm-find-raw-part-by-type
-			  ctl (or (mm-handle-multipart-ctl-parameter
-				   ctl 'protocol)
-				  "application/pgp-signature")
-			  t))
-	(mm-set-handle-multipart-parameter
-	 mm-security-handle 'gnus-info "Corrupted")
-	(throw 'error handle))
-      (with-temp-buffer
-	(setq message (current-buffer))
-	(insert part)
-	;; Convert <LF> to <CR><LF> in signed text.  If --textmode is
-	;; specified when signing, the conversion is not necessary.
-	(goto-char (point-min))
-	(end-of-line)
-	(while (not (eobp))
-	  (unless (eq (char-before) ?\r)
-	    (insert "\r"))
-	  (forward-line)
-	  (end-of-line))
-	(with-temp-buffer
-	  (setq signature (current-buffer))
-	  (unless (setq part (mm-find-part-by-type
-			      (cdr handle) "application/pgp-signature" nil t))
-	    (mm-set-handle-multipart-parameter
-	     mm-security-handle 'gnus-info "Corrupted")
-	    (throw 'error handle))
-	  (mm-insert-part part)
-	  (unless (condition-case err
-		      (prog1
-			  (gpg-verify message signature mml2015-result-buffer)
-			(mm-set-handle-multipart-parameter
-			 mm-security-handle 'gnus-details
-			 (with-current-buffer mml2015-result-buffer
-			   (buffer-string))))
-		    (error
-		     (mm-set-handle-multipart-parameter
-		      mm-security-handle 'gnus-details (mml2015-format-error err))
-		     (mm-set-handle-multipart-parameter
-		      mm-security-handle 'gnus-info "Error.")
-		     (setq info-is-set-p t)
-		     nil)
-		    (quit
-		     (mm-set-handle-multipart-parameter
-		      mm-security-handle 'gnus-details "Quit.")
-		     (mm-set-handle-multipart-parameter
-		      mm-security-handle 'gnus-info "Quit.")
-		     (setq info-is-set-p t)
-		     nil))
-	    (unless info-is-set-p
-	      (mm-set-handle-multipart-parameter
-	       mm-security-handle 'gnus-info "Failed"))
-	    (throw 'error handle)))
-	(mm-set-handle-multipart-parameter
-	 mm-security-handle 'gnus-info
-	 (with-current-buffer mml2015-result-buffer
-	   (mml2015-gpg-extract-signature-details))))
-      handle)))
-
-(defun mml2015-gpg-clear-verify ()
-  (if (condition-case err
-	  (prog1
-	      (gpg-verify-cleartext (current-buffer) mml2015-result-buffer)
-	    (mm-set-handle-multipart-parameter
-	     mm-security-handle 'gnus-details
-	     (with-current-buffer mml2015-result-buffer
-	       (buffer-string))))
-	(error
-	 (mm-set-handle-multipart-parameter
-	  mm-security-handle 'gnus-details (mml2015-format-error err))
-	 nil)
-	(quit
-	 (mm-set-handle-multipart-parameter
-	  mm-security-handle 'gnus-details "Quit.")
-	 nil))
-      (mm-set-handle-multipart-parameter
-       mm-security-handle 'gnus-info
-       (with-current-buffer mml2015-result-buffer
-	 (mml2015-gpg-extract-signature-details)))
-    (mm-set-handle-multipart-parameter
-     mm-security-handle 'gnus-info "Failed"))
-  (mml2015-extract-cleartext-signature))
-
-(defun mml2015-gpg-sign (cont)
-  (let ((boundary (mml-compute-boundary cont))
-	(text (current-buffer)) signature)
-    (goto-char (point-max))
-    (unless (bolp)
-      (insert "\n"))
-    (with-temp-buffer
-      (unless (gpg-sign-detached text (setq signature (current-buffer))
-				 mml2015-result-buffer
-				 nil
-				 (message-options-get 'message-sender)
-				 t t) ; armor & textmode
-	(unless (> (point-max) (point-min))
-	  (pop-to-buffer mml2015-result-buffer)
-	  (error "Sign error")))
-      (goto-char (point-min))
-      (while (re-search-forward "\r+$" nil t)
-	(replace-match "" t t))
-      (set-buffer text)
-      (goto-char (point-min))
-      (insert (format "Content-Type: multipart/signed; boundary=\"%s\";\n"
-		      boundary))
-      ;;; FIXME: what is the micalg?
-      (insert "\tmicalg=pgp-sha1; protocol=\"application/pgp-signature\"\n")
-      (insert (format "\n--%s\n" boundary))
-      (goto-char (point-max))
-      (insert (format "\n--%s\n" boundary))
-      (insert "Content-Type: application/pgp-signature\n\n")
-      (insert-buffer-substring signature)
-      (goto-char (point-max))
-      (insert (format "--%s--\n" boundary))
-      (goto-char (point-max)))))
-
-(defun mml2015-gpg-encrypt (cont &optional sign)
-  (let ((boundary (mml-compute-boundary cont))
-	(text (current-buffer))
-	cipher)
-    (mm-with-unibyte-current-buffer
-      (with-temp-buffer
-	;; set up a function to call the correct gpg encrypt routine
-	;; with the right arguments. (FIXME: this should be done
-	;; differently.)
-	(flet ((gpg-encrypt-func
-		 (sign plaintext ciphertext result recipients &optional
-		       passphrase sign-with-key armor textmode)
-		 (if sign
-		     (gpg-sign-encrypt
-		      plaintext ciphertext result recipients passphrase
-		      sign-with-key armor textmode)
-		   (gpg-encrypt
-		    plaintext ciphertext result recipients passphrase
-		    armor textmode))))
-	  (unless (gpg-encrypt-func
-		    sign ; passed in when using signencrypt
-		    text (setq cipher (current-buffer))
-		    mml2015-result-buffer
-		    (split-string
-		     (or
-		      (message-options-get 'message-recipients)
-		      (message-options-set 'message-recipients
-					   (read-string "Recipients: ")))
-		     "[ \f\t\n\r\v,]+")
-		    nil
-		    (message-options-get 'message-sender)
-		    t t) ; armor & textmode
-	    (unless (> (point-max) (point-min))
-	      (pop-to-buffer mml2015-result-buffer)
-	      (error "Encrypt error"))))
-	(goto-char (point-min))
-	(while (re-search-forward "\r+$" nil t)
-	  (replace-match "" t t))
-	(set-buffer text)
-	(delete-region (point-min) (point-max))
-	(insert (format "Content-Type: multipart/encrypted; boundary=\"%s\";\n"
-			boundary))
-	(insert "\tprotocol=\"application/pgp-encrypted\"\n\n")
-	(insert (format "--%s\n" boundary))
-	(insert "Content-Type: application/pgp-encrypted\n\n")
-	(insert "Version: 1\n\n")
-	(insert (format "--%s\n" boundary))
-	(insert "Content-Type: application/octet-stream\n\n")
-	(insert-buffer-substring cipher)
-	(goto-char (point-max))
-	(insert (format "--%s--\n" boundary))
-	(goto-char (point-max))))))
 
 ;;; pgg wrapper
 
@@ -986,6 +748,7 @@ Whether the passphrase is cached at all is controlled by
 (autoload 'epg-key-sub-key-list "epg")
 (autoload 'epg-sub-key-capability "epg")
 (autoload 'epg-sub-key-validity "epg")
+(autoload 'epg-sub-key-fingerprint "epg")
 (autoload 'epg-configuration "epg-config")
 (autoload 'epg-expand-group "epg-config")
 (autoload 'epa-select-keys "epa")
@@ -1021,11 +784,30 @@ Whether the passphrase is cached at all is controlled by
       (let ((pointer (epg-key-sub-key-list (car keys))))
 	(while pointer
 	  (if (and (memq usage (epg-sub-key-capability (car pointer)))
+		   (not (memq 'disabled (epg-sub-key-capability (car pointer))))
 		   (not (memq (epg-sub-key-validity (car pointer))
 			      '(revoked expired))))
 	      (throw 'found (car keys)))
 	  (setq pointer (cdr pointer))))
       (setq keys (cdr keys)))))
+
+;; XXX: since gpg --list-secret-keys does not return validity of each
+;; key, `mml2015-epg-find-usable-key' defined above is not enough for
+;; secret keys.  The function `mml2015-epg-find-usable-secret-key'
+;; below looks at appropriate public keys to check usability.
+(defun mml2015-epg-find-usable-secret-key (context name usage)
+  (let ((secret-keys (epg-list-keys context name t))
+	secret-key)
+    (while (and (not secret-key) secret-keys)
+      (if (mml2015-epg-find-usable-key
+	   (epg-list-keys context (epg-sub-key-fingerprint
+				   (car (epg-key-sub-key-list
+					 (car secret-keys)))))
+	   usage)
+	  (setq secret-key (car secret-keys)
+		secret-keys nil)
+	(setq secret-keys (cdr secret-keys))))
+    secret-key))
 
 (defun mml2015-epg-decrypt (handle ctl)
   (catch 'error
@@ -1184,6 +966,10 @@ Whether the passphrase is cached at all is controlled by
   (let* ((inhibit-redisplay t)
 	 (context (epg-make-context))
 	 (boundary (mml-compute-boundary cont))
+	 (sender (message-options-get 'message-sender))
+	 (signer-names (or mml2015-signers
+			   (if (and mml2015-sign-with-sender sender)
+			       (list (concat "<" sender ">")))))
 	 signer-key
 	 (signers
 	  (or (message-options-get 'mml2015-epg-signers)
@@ -1193,14 +979,15 @@ Whether the passphrase is cached at all is controlled by
 		   (epa-select-keys context "\
 Select keys for signing.
 If no one is selected, default secret key is used.  "
-				    mml2015-signers t)
-		 (if mml2015-signers
+				    signer-names
+				    t)
+		 (if (or sender mml2015-signers)
 		     (delq nil
 			   (mapcar
 			    (lambda (signer)
-			      (setq signer-key (mml2015-epg-find-usable-key
-						(epg-list-keys context signer t)
-						'sign))
+			      (setq signer-key
+				    (mml2015-epg-find-usable-secret-key
+				     context signer 'sign))
 			      (unless (or signer-key
 					  (y-or-n-p
 					   (format
@@ -1208,7 +995,7 @@ If no one is selected, default secret key is used.  "
 					    signer)))
 				(error "No secret key for %s" signer))
 			      signer-key)
-			    mml2015-signers)))))))
+			    signer-names)))))))
 	 signature micalg)
     (epg-context-set-armor context t)
     (epg-context-set-textmode context t)
@@ -1248,13 +1035,18 @@ If no one is selected, default secret key is used.  "
     (goto-char (point-max))))
 
 (defun mml2015-epg-encrypt (cont &optional sign)
-  (let ((inhibit-redisplay t)
-	(context (epg-make-context))
-	(config (epg-configuration))
-	(recipients (message-options-get 'mml2015-epg-recipients))
-	cipher signers
-	(boundary (mml-compute-boundary cont))
-	recipient-key signer-key)
+  (let* ((inhibit-redisplay t)
+	 (context (epg-make-context))
+	 (boundary (mml-compute-boundary cont))
+	 (config (epg-configuration))
+	 (recipients (message-options-get 'mml2015-epg-recipients))
+	 cipher
+	 (sender (message-options-get 'message-sender))
+	 (signer-names (or mml2015-signers
+			   (if (and mml2015-sign-with-sender sender)
+			       (list (concat "<" sender ">")))))
+	 signers
+	 recipient-key signer-key)
     (unless recipients
       (setq recipients
 	    (apply #'nconc
@@ -1268,9 +1060,9 @@ If no one is selected, default secret key is used.  "
 					      (read-string "Recipients: ")))
 		     "[ \f\t\n\r\v,]+"))))
       (when mml2015-encrypt-to-self
-	(unless mml2015-signers
-	  (error "mml2015-signers not set"))
-	(setq recipients (nconc recipients mml2015-signers)))
+	(unless signer-names
+	  (error "Neither message sender nor mml2015-signers are set"))
+	(setq recipients (nconc recipients signer-names)))
       (if (eq mm-encrypt-option 'guided)
 	  (setq recipients
 		(epa-select-keys context "\
@@ -1303,14 +1095,15 @@ If no one is selected, symmetric encryption will be performed.  "
 		     (epa-select-keys context "\
 Select keys for signing.
 If no one is selected, default secret key is used.  "
-				      mml2015-signers t)
-		   (if mml2015-signers
+				      signer-names
+				      t)
+		   (if (or sender mml2015-signers)
 		       (delq nil
 			     (mapcar
 			      (lambda (signer)
-				(setq signer-key (mml2015-epg-find-usable-key
-						  (epg-list-keys context signer t)
-						  'sign))
+				(setq signer-key
+				      (mml2015-epg-find-usable-secret-key
+				       context signer 'sign))
 				(unless (or signer-key
 					    (y-or-n-p
 					     (format
@@ -1318,7 +1111,7 @@ If no one is selected, default secret key is used.  "
 					      signer)))
 				  (error "No secret key for %s" signer))
 				signer-key)
-			      mml2015-signers)))))))
+			      signer-names)))))))
       (epg-context-set-signers context signers))
     (epg-context-set-armor context t)
     (epg-context-set-textmode context t)
@@ -1418,5 +1211,4 @@ If no one is selected, default secret key is used.  "
 
 (provide 'mml2015)
 
-;; arch-tag: b04701d5-0b09-44d8-bed8-de901bf435f2
 ;;; mml2015.el ends here

@@ -1,7 +1,7 @@
 /* Header for multibyte character handler.
    Copyright (C) 1995, 1997, 1998 Electrotechnical Laboratory, JAPAN.
      Licensed to the Free Software Foundation.
-   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
 
@@ -69,7 +69,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define CHAR_TO_BYTE8(c)	\
   (CHAR_BYTE8_P (c)		\
    ? (c) - 0x3FFF00		\
-   : multibyte_char_to_unibyte (c, Qnil))
+   : multibyte_char_to_unibyte (c))
 
 /* Return the raw 8-bit byte for character C,
    or -1 if C doesn't correspond to a byte.  */
@@ -127,9 +127,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
     CHECK_CHARACTER (tmp);		\
     XSETCDR ((x), tmp);			\
   } while (0)
-
-/* Nonzero iff C is an ASCII character.  */
-#define ASCII_CHAR_P(c) ((unsigned) (c) < 0x80)
 
 /* Nonzero iff C is a character of code less than 0x100.  */
 #define SINGLE_BYTE_CHAR_P(c) ((unsigned) (c) < 0x100)
@@ -221,10 +218,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 	(ASCII_BYTE_P (byte) || LEADING_CODE_P (byte))  */
 #define CHAR_HEAD_P(byte) (((byte) & 0xC0) != 0x80)
 
-/* Kept for backward compatibility.  This macro will be removed in the
-   future.  */
-#define BASE_LEADING_CODE_P LEADING_CODE_P
-
 /* How many bytes a character that starts with BYTE occupies in a
    multibyte form.  */
 #define BYTES_BY_CHAR_HEAD(byte)	\
@@ -234,23 +227,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    : !((byte) & 0x08) ? 4		\
    : 5)
 
-
-/* Return the length of the multi-byte form at string STR of length
-   LEN while assuming that STR points a valid multi-byte form.  As
-   this macro isn't necessary anymore, all callers will be changed to
-   use BYTES_BY_CHAR_HEAD directly in the future.  */
-
-#define MULTIBYTE_FORM_LENGTH(str, len)		\
-  BYTES_BY_CHAR_HEAD (*(str))
-
-/* Parse multibyte string STR of length LENGTH and set BYTES to the
-   byte length of a character at STR while assuming that STR points a
-   valid multibyte form.  As this macro isn't necessary anymore, all
-   callers will be changed to use BYTES_BY_CHAR_HEAD directly in the
-   future.  */
-
-#define PARSE_MULTIBYTE_SEQ(str, length, bytes)	\
-  (bytes) = BYTES_BY_CHAR_HEAD (*(str))
 
 /* The byte length of multibyte form at unibyte string P ending at
    PEND.  If STR doesn't point to a valid multibyte form, return 0.  */
@@ -285,7 +261,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* If P is before LIMIT, advance P to the next character boundary.
    Assumes that P is already at a character boundary of the same
-   mulitbyte form whose end address is LIMIT.  */
+   multibyte form whose end address is LIMIT.  */
 
 #define NEXT_CHAR_BOUNDARY(p, limit)	\
   do {					\
@@ -302,11 +278,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   do {									\
     if ((p) > (limit))							\
       {									\
-	const unsigned char *p0 = (p);					\
+	const unsigned char *chp = (p);					\
 	do {								\
-	  p0--;								\
-	} while (p0 >= limit && ! CHAR_HEAD_P (*p0));			\
-	(p) = (BYTES_BY_CHAR_HEAD (*p0) == (p) - p0) ? p0 : (p) - 1;	\
+	  chp--;							\
+	} while (chp >= limit && ! CHAR_HEAD_P (*chp));			\
+	(p) = (BYTES_BY_CHAR_HEAD (*chp) == (p) - chp) ? chp : (p) - 1;	\
       }									\
   } while (0)
 
@@ -377,11 +353,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
       CHARIDX++;							\
       if (STRING_MULTIBYTE (STRING))					\
 	{								\
-	  unsigned char *ptr = &SDATA (STRING)[BYTEIDX];		\
-	  int len;							\
+	  unsigned char *chp = &SDATA (STRING)[BYTEIDX];		\
+	  int chlen;							\
 									\
-	  OUTPUT = STRING_CHAR_AND_LENGTH (ptr, len);			\
-	  BYTEIDX += len;						\
+	  OUTPUT = STRING_CHAR_AND_LENGTH (chp, chlen);			\
+	  BYTEIDX += chlen;						\
 	}								\
       else								\
 	{								\
@@ -400,11 +376,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
       CHARIDX++;							      \
       if (STRING_MULTIBYTE (STRING))					      \
 	{								      \
-	  unsigned char *ptr = &SDATA (STRING)[BYTEIDX];		      \
-	  int len;							      \
+	  unsigned char *chp = &SDATA (STRING)[BYTEIDX];		      \
+	  int chlen;							      \
 									      \
-	  OUTPUT = STRING_CHAR_AND_LENGTH (ptr, len);			      \
-	  BYTEIDX += len;						      \
+	  OUTPUT = STRING_CHAR_AND_LENGTH (chp, chlen);			      \
+	  BYTEIDX += chlen;						      \
 	}								      \
       else								      \
 	{								      \
@@ -421,11 +397,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define FETCH_STRING_CHAR_ADVANCE_NO_CHECK(OUTPUT, STRING, CHARIDX, BYTEIDX) \
   do    								     \
     {									     \
-      unsigned char *ptr = &SDATA (STRING)[BYTEIDX];			     \
-      int len;								     \
+      unsigned char *fetch_ptr = &SDATA (STRING)[BYTEIDX];		     \
+      int fetch_len;							     \
 									     \
-      OUTPUT = STRING_CHAR_AND_LENGTH (ptr, len);			     \
-      BYTEIDX += len;							     \
+      OUTPUT = STRING_CHAR_AND_LENGTH (fetch_ptr, fetch_len);		     \
+      BYTEIDX += fetch_len;						     \
       CHARIDX++;							     \
     }									     \
   while (0)
@@ -438,13 +414,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   do    							\
     {								\
       CHARIDX++;						\
-      if (!NILP (current_buffer->enable_multibyte_characters))	\
+      if (!NILP (BVAR (current_buffer, enable_multibyte_characters)))	\
 	{							\
-	  unsigned char *ptr = BYTE_POS_ADDR (BYTEIDX);		\
-	  int len;						\
+	  unsigned char *chp = BYTE_POS_ADDR (BYTEIDX);		\
+	  int chlen;						\
 								\
-	  OUTPUT= STRING_CHAR_AND_LENGTH (ptr, len);		\
-	  BYTEIDX += len;					\
+	  OUTPUT= STRING_CHAR_AND_LENGTH (chp, chlen);		\
+	  BYTEIDX += chlen;					\
 	}							\
       else							\
 	{							\
@@ -460,11 +436,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define FETCH_CHAR_ADVANCE_NO_CHECK(OUTPUT, CHARIDX, BYTEIDX)	\
   do    							\
     {								\
-      unsigned char *ptr = BYTE_POS_ADDR (BYTEIDX);		\
-      int len;							\
+      unsigned char *chp = BYTE_POS_ADDR (BYTEIDX);		\
+      int chlen;							\
 								\
-      OUTPUT = STRING_CHAR_AND_LENGTH (ptr, len);		\
-      BYTEIDX += len;						\
+      OUTPUT = STRING_CHAR_AND_LENGTH (chp, chlen);		\
+      BYTEIDX += chlen;						\
       CHARIDX++;						\
     }								\
   while (0)
@@ -475,8 +451,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define INC_POS(pos_byte)				\
   do {							\
-    unsigned char *p = BYTE_POS_ADDR (pos_byte);	\
-    pos_byte += BYTES_BY_CHAR_HEAD (*p);		\
+    unsigned char *chp = BYTE_POS_ADDR (pos_byte);	\
+    pos_byte += BYTES_BY_CHAR_HEAD (*chp);		\
   } while (0)
 
 
@@ -485,16 +461,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define DEC_POS(pos_byte)			\
   do {						\
-    unsigned char *p;				\
+    unsigned char *chp;				\
     						\
     pos_byte--;					\
     if (pos_byte < GPT_BYTE)			\
-      p = BEG_ADDR + pos_byte - BEG_BYTE;	\
+      chp = BEG_ADDR + pos_byte - BEG_BYTE;	\
     else					\
-      p = BEG_ADDR + GAP_SIZE + pos_byte - BEG_BYTE;\
-    while (!CHAR_HEAD_P (*p))			\
+      chp = BEG_ADDR + GAP_SIZE + pos_byte - BEG_BYTE; \
+    while (!CHAR_HEAD_P (*chp))			\
       {						\
-	p--;					\
+	chp--;					\
 	pos_byte--;				\
       }						\
   } while (0)
@@ -505,7 +481,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   do								\
     {								\
       (charpos)++;						\
-      if (NILP (current_buffer->enable_multibyte_characters))	\
+      if (NILP (BVAR (current_buffer, enable_multibyte_characters)))	\
 	(bytepos)++;						\
       else							\
 	INC_POS ((bytepos));					\
@@ -519,7 +495,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   do								\
     {								\
       (charpos)--;						\
-      if (NILP (current_buffer->enable_multibyte_characters))	\
+      if (NILP (BVAR (current_buffer, enable_multibyte_characters)))	\
 	(bytepos)--;						\
       else							\
 	DEC_POS ((bytepos));					\
@@ -534,8 +510,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define BUF_INC_POS(buf, pos_byte)				\
   do {								\
-    unsigned char *p = BUF_BYTE_ADDRESS (buf, pos_byte);	\
-    pos_byte += BYTES_BY_CHAR_HEAD (*p);			\
+    unsigned char *chp = BUF_BYTE_ADDRESS (buf, pos_byte);	\
+    pos_byte += BYTES_BY_CHAR_HEAD (*chp);			\
   } while (0)
 
 
@@ -544,15 +520,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define BUF_DEC_POS(buf, pos_byte)					\
   do {									\
-    unsigned char *p;							\
+    unsigned char *chp;							\
     pos_byte--;								\
     if (pos_byte < BUF_GPT_BYTE (buf))					\
-      p = BUF_BEG_ADDR (buf) + pos_byte - BEG_BYTE;			\
+      chp = BUF_BEG_ADDR (buf) + pos_byte - BEG_BYTE;			\
     else								\
-      p = BUF_BEG_ADDR (buf) + BUF_GAP_SIZE (buf) + pos_byte - BEG_BYTE;\
-    while (!CHAR_HEAD_P (*p))						\
+      chp = BUF_BEG_ADDR (buf) + BUF_GAP_SIZE (buf) + pos_byte - BEG_BYTE;\
+    while (!CHAR_HEAD_P (*chp))						\
       {									\
-	p--;								\
+	chp--;								\
 	pos_byte--;							\
       }									\
   } while (0)
@@ -582,11 +558,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define ASCII_CHAR_WIDTH(c)						\
   (c < 0x20								\
    ? (c == '\t'								\
-      ? XFASTINT (current_buffer->tab_width)				\
-      : (c == '\n' ? 0 : (NILP (current_buffer->ctl_arrow) ? 4 : 2)))	\
+      ? XFASTINT (BVAR (current_buffer, tab_width))				\
+      : (c == '\n' ? 0 : (NILP (BVAR (current_buffer, ctl_arrow)) ? 4 : 2)))	\
    : (c < 0x7f								\
       ? 1								\
-      : ((NILP (current_buffer->ctl_arrow) ? 4 : 2))))
+      : ((NILP (BVAR (current_buffer, ctl_arrow)) ? 4 : 2))))
 
 /* Return the width of character C.  The width is measured by how many
    columns C will occupy on the screen when displayed in the current
@@ -608,7 +584,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    : 0)
 
 /* If C is a high surrogate, return 1.  If C is a low surrogate,
-   return 0. Otherwise, return 0.  */
+   return 0.  Otherwise, return 0.  */
 
 #define CHAR_SURROGATE_PAIR_P(c)	\
   ((c) < 0xD800 ? 0			\
@@ -617,62 +593,37 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    : 0)
 
 
-extern int char_resolve_modifier_mask P_ ((int));
-extern int char_string P_ ((unsigned, unsigned char *));
-extern int string_char P_ ((const unsigned char *,
-			    const unsigned char **, int *));
+extern int char_resolve_modifier_mask (int);
+extern int char_string (unsigned, unsigned char *);
+extern int string_char (const unsigned char *,
+                        const unsigned char **, int *);
 
-extern int translate_char P_ ((Lisp_Object, int c));
-extern int char_printable_p P_ ((int c));
-extern void parse_str_as_multibyte P_ ((const unsigned char *, int, int *,
-					int *));
-extern int parse_str_to_multibyte P_ ((unsigned char *, int));
-extern int str_as_multibyte P_ ((unsigned char *, int, int, int *));
-extern int str_to_multibyte P_ ((unsigned char *, int, int));
-extern int str_as_unibyte P_ ((unsigned char *, int));
-extern EMACS_INT str_to_unibyte P_ ((const unsigned char *, unsigned char *,
-				     EMACS_INT, int));
-extern int strwidth P_ ((unsigned char *, int));
-extern int c_string_width P_ ((const unsigned char *, int, int, int *, int *));
-extern int lisp_string_width P_ ((Lisp_Object, int, int *, int *));
+extern int translate_char (Lisp_Object, int c);
+extern int char_printable_p (int c);
+extern void parse_str_as_multibyte (const unsigned char *,
+				    EMACS_INT, EMACS_INT *, EMACS_INT *);
+extern EMACS_INT parse_str_to_multibyte (const unsigned char *, EMACS_INT);
+extern EMACS_INT str_as_multibyte (unsigned char *, EMACS_INT, EMACS_INT,
+			     EMACS_INT *);
+extern EMACS_INT str_to_multibyte (unsigned char *, EMACS_INT, EMACS_INT);
+extern EMACS_INT str_as_unibyte (unsigned char *, EMACS_INT);
+extern EMACS_INT str_to_unibyte (const unsigned char *, unsigned char *,
+                                 EMACS_INT, int);
+extern EMACS_INT strwidth (const char *, EMACS_INT);
+extern EMACS_INT c_string_width (const unsigned char *, EMACS_INT, int,
+				 EMACS_INT *, EMACS_INT *);
+extern EMACS_INT lisp_string_width (Lisp_Object, int,
+				    EMACS_INT *, EMACS_INT *);
 
-extern Lisp_Object Vprintable_chars;
-
-extern Lisp_Object Qcharacterp, Qauto_fill_chars;
-extern Lisp_Object Vtranslation_table_vector;
-extern Lisp_Object Vchar_width_table;
-extern Lisp_Object Vchar_direction_table;
+extern Lisp_Object Qcharacterp;
 extern Lisp_Object Vchar_unify_table;
-extern Lisp_Object Vunicode_category_table;
-
-extern Lisp_Object string_escape_byte8 P_ ((Lisp_Object));
+extern Lisp_Object string_escape_byte8 (Lisp_Object);
 
 /* Return a translation table of id number ID.  */
 #define GET_TRANSLATION_TABLE(id) \
   (XCDR(XVECTOR(Vtranslation_table_vector)->contents[(id)]))
 
-/* A char-table for characters which may invoke auto-filling.  */
-extern Lisp_Object Vauto_fill_chars;
-
-extern Lisp_Object Vchar_script_table;
-extern Lisp_Object Vscript_representative_chars;
-
-/* Copy LEN bytes from FROM to TO.  This macro should be used only
-   when a caller knows that LEN is short and the obvious copy loop is
-   faster than calling bcopy which has some overhead.  Copying a
-   multibyte sequence of a character is the typical case.  */
-
-#define BCOPY_SHORT(from, to, len)		\
-  do {						\
-    int i = len;				\
-    unsigned char *from_p = from, *to_p = to;	\
-    while (i--) *to_p++ = *from_p++;		\
-  } while (0)
-
 #define DEFSYM(sym, name)	\
   do { (sym) = intern_c_string ((name)); staticpro (&(sym)); } while (0)
 
 #endif /* EMACS_CHARACTER_H */
-
-/* arch-tag: 4ef86004-2eff-4073-8cea-cfcbcf7188ac
-   (do not change this comment) */

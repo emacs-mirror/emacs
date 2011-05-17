@@ -1,11 +1,11 @@
 ;;; iso-swed.el --- set up char tables for ISO 8859/1 for Swedish/Finnish ttys
 
-;; Copyright (C) 1987, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Howard Gayle
 ;; Maintainer: FSF
 ;; Keywords: i18n
+;; Obsolete-since: 22.1
 
 ;; This file is part of GNU Emacs.
 
@@ -23,8 +23,6 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-
-;; This file has been obsolete since Emacs 22.1.
 
 ;; Written by Howard Gayle.  See case-table.el for details.
 
@@ -149,5 +147,4 @@
 
 (provide 'iso-swed)
 
-;; arch-tag: 6b3dc269-660c-44b6-a25f-680b921eaf2c
 ;;; iso-swed.el ends here

@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2001, 2002,
-@c   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2011
+@c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Rmail, Dired, Sending Mail, Top
 @chapter Reading Mail with Rmail
@@ -21,7 +21,7 @@ Rmail mode, which redefines most letters to run commands for managing mail.
 * Deletion: Rmail Deletion.  Deleting and expunging messages.
 * Inbox: Rmail Inbox.        How mail gets into the Rmail file.
 * Files: Rmail Files.        Using multiple Rmail files.
-* Output: Rmail Output.	     Copying messages out to files.
+* Output: Rmail Output.      Copying messages out to files.
 * Labels: Rmail Labels.      Classifying messages by labeling them.
 * Attrs: Rmail Attributes.   Certain standard labels, called attributes.
 * Reply: Rmail Reply.        Sending replies to messages you are viewing.
@@ -31,7 +31,7 @@ Rmail mode, which redefines most letters to run commands for managing mail.
 * Coding: Rmail Coding.      How Rmail handles decoding character sets.
 * Editing: Rmail Editing.    Editing message text and headers in Rmail.
 * Digest: Rmail Digest.      Extracting the messages from a digest message.
-* Rot13: Rmail Rot13.	     Reading messages encoded in the rot13 code.
+* Rot13: Rmail Rot13.        Reading messages encoded in the rot13 code.
 * Movemail::                 More details of fetching new mail.
 * Remote Mailboxes::         Retrieving mail from remote mailboxes.
 * Other Mailbox Formats::    Retrieving mail from local mailboxes in
@@ -620,13 +620,13 @@ are three ways to use the labels: in moving, in summaries, and in sorting.
 @kindex C-M-p @r{(Rmail)}
 @findex rmail-next-labeled-message
 @findex rmail-previous-labeled-message
-  The command @kbd{C-M-n @var{labels} @key{RET}}
+  @kbd{C-M-n @var{labels} @key{RET}}
 (@code{rmail-next-labeled-message}) moves to the next message that has
-one of the labels @var{labels}.  The argument @var{labels} specifies one
-or more label names, separated by commas.  @kbd{C-M-p}
-(@code{rmail-previous-labeled-message}) is similar, but moves backwards
-to previous messages.  A numeric argument to either command serves as a
-repeat count.
+one of the labels @var{labels}.  The argument @var{labels} specifies
+one or more label names, separated by commas.  @kbd{C-M-p}
+(@code{rmail-previous-labeled-message}) is similar, but moves
+backwards to previous messages.  A numeric argument to either command
+serves as a repeat count.
 
   The command @kbd{C-M-l @var{labels} @key{RET}}
 (@code{rmail-summary-by-labels}) displays a summary containing only the
@@ -834,8 +834,8 @@ Rmail buffer's name.  Normally only one summary buffer is displayed at a
 time.
 
 @menu
-* Rmail Make Summary::	     Making various sorts of summaries.
-* Rmail Summary Edit::	     Manipulating messages from the summary.
+* Rmail Make Summary::       Making various sorts of summaries.
+* Rmail Summary Edit::       Manipulating messages from the summary.
 @end menu
 
 @node Rmail Make Summary
@@ -1100,57 +1100,100 @@ buffer before sorting it.
 @node Rmail Display
 @section Display of Messages
 
-  Rmail reformats the header of each message before displaying it for
-the first time.  Reformatting hides uninteresting header fields to
-reduce clutter.  You can use the @kbd{t} command to show the entire
-header or to repeat the header reformatting operation.
+  This section describes how Rmail displays mail headers,
+@acronym{MIME} sections and attachments, and URLs.
 
 @table @kbd
 @item t
 Toggle display of complete header (@code{rmail-toggle-header}).
 @end table
 
-@vindex rmail-ignored-headers
-@vindex rmail-nonignored-headers
-  Reformatting the header involves deleting most header fields, on the
-grounds that they are not interesting.  The variable
-@code{rmail-ignored-headers} holds a regular expression that specifies
-which header fields to hide in this way---if it matches the beginning
-of a header field, that whole field is hidden.  However, the variable
-@code{rmail-nonignored-headers} provides a further override: a header
-matching that regular expression is shown even if it matches
-@code{rmail-ignored-headers} too.
-
-@vindex rmail-displayed-headers
-  As an alternative to the previous two variables, you can set
-@code{rmail-displayed-headers} instead.  If non-@code{nil}, this should
-be a regular expression specifying which headers to display.
-
 @kindex t @r{(Rmail)}
 @findex rmail-toggle-header
-  To see the complete, original header, use the @kbd{t} command
-(@code{rmail-toggle-header}).  This discards the reformatted headers of
-the current message and displays it with the original header.  Repeating
-@kbd{t} reformats the message again, which shows only the interesting
-headers according to the current values of the above variables.
-Selecting the message again also reformats it if necessary.
+  Before displaying each message for the first time, Rmail reformats
+its header, hiding uninteresting header fields to reduce clutter.  The
+@kbd{t} (@code{rmail-toggle-header}) command toggles this, switching
+between showing the reformatted header fields and showing the
+complete, original header.  With a positive prefix argument, the
+command shows the reformatted header; with a zero or negative prefix
+argument, it shows the full header.  Selecting the message again also
+reformats it if necessary.
 
-  When the @kbd{t} command has a prefix argument, a positive argument
-means to show the reformatted header, and a zero or negative argument
-means to show the full header.
+@vindex rmail-ignored-headers
+@vindex rmail-displayed-headers
+@vindex rmail-nonignored-headers
+  The variable @code{rmail-ignored-headers} holds a regular expression
+specifying the header fields to hide; any matching header line will be
+hidden.  The variable @code{rmail-nonignored-headers} overrides this:
+any header field matching that regular expression is shown even if it
+matches @code{rmail-ignored-headers} too.  The variable
+@code{rmail-displayed-headers} is an alternative to these two
+variables; if non-@code{nil}, this should be a regular expression
+specifying which headers to display (the default is @code{nil}).
 
 @vindex rmail-highlighted-headers
   Rmail highlights certain header fields that are especially
 interesting---by default, the @samp{From} and @samp{Subject} fields.
-The variable @code{rmail-highlighted-headers} holds a regular expression
-that specifies the header fields to highlight; if it matches the
-beginning of a header field, that whole field is highlighted.  To turn
-off this feature, set @code{rmail-highlighted-headers} to @code{nil}.
-Customize the face @code{rmail-highlight} to adjust the style of the
-highlighting.
+This highlighting uses the @code{rmail-highlight} face.  The variable
+@code{rmail-highlighted-headers} holds a regular expression specifying
+the header fields to highlight; if it matches the beginning of a
+header field, that whole field is highlighted.  To disable this
+feature, set @code{rmail-highlighted-headers} to @code{nil}.
 
-  You can highlight and activate URLs in incoming messages using
-Goto Address mode:
+@cindex MIME messages (Rmail)
+@vindex rmail-enable-mime
+  If a message is in @acronym{MIME} (Multipurpose Internet Mail
+Extensions) format and contains multiple parts (@acronym{MIME}
+entities), Rmail displays each part with a @dfn{tagline}.  The tagline
+summarizes the part's index, size, and content type.  Depending on the
+content type, it may also contain one or more buttons; these perform
+actions such as saving the part into a file.
+
+@table @kbd
+@findex rmail-mime-toggle-hidden
+@item @key{RET}
+Hide or show the @acronym{MIME} part at point
+(@code{rmail-mime-toggle-hidden}).
+
+@findex rmail-mime-next-item
+@item @key{TAB}
+Move point to the next @acronym{MIME} tagline button.
+(@code{rmail-mime-next-item}).
+
+@findex rmail-mime-previous-item
+@item @key{BackTab}
+Move point to the previous @acronym{MIME} part
+(@code{rmail-mime-previous-item}).
+
+@findex rmail-mime
+@item v
+@kindex v @r{(Rmail)}
+Toggle between @acronym{MIME} display and raw message
+(@code{rmail-mime}).
+@end table
+
+  Each plain-text @acronym{MIME} part is initially displayed
+immediately after its tagline, as part of the Rmail buffer, while
+@acronym{MIME} parts of other types are represented only by their
+taglines, with their actual contents hidden.  In either case, you can
+toggle a @acronym{MIME} part between its ``displayed'' and ``hidden''
+states by typing @key{RET} anywhere in the part---or anywhere in its
+tagline, apart from a tagline button for some other action.  Type
+@key{RET} (or click with the mouse) to activate a tagline button, and
+@key{TAB} to cycle point between tagline buttons.
+
+  The @kbd{v} (@code{rmail-mime}) command toggles between the default
+@acronym{MIME} display described above, and a ``raw'' display showing
+the undecoded @acronym{MIME} data.  With a prefix argument, this
+command toggles the display of only an entity at point.
+
+  To prevent Rmail from handling MIME decoded messages, change the
+variable @code{rmail-enable-mime} to @code{nil}.  When this is the
+case, the @kbd{v} (@code{rmail-mime}) command instead creates a
+temporary buffer to display the current @acronym{MIME} message.
+
+  You can highlight and activate URLs in the Rmail buffer using Goto
+Address mode:
 
 @c FIXME goto-addr.el commentary says to use goto-address instead.
 @smallexample
@@ -1161,13 +1204,6 @@ Goto Address mode:
 Then you can browse these URLs by clicking on them with @kbd{Mouse-2}
 (or @kbd{Mouse-1} quickly) or by moving to one and typing @kbd{C-c
 @key{RET}}.  @xref{Goto Address mode, Activating URLs, Activating URLs}.
-
-@cindex MIME messages (Rmail)
-@findex rmail-mime
-@kindex v @r{(Rmail)}
-  The @kbd{v} (@code{rmail-mime}) command creates a temporary buffer
-displaying the current MIME message.  By default, it displays plain text
-and multipart messages, and offers buttons to save attachments.
 
 @node Rmail Coding
 @section Rmail and Coding Systems
@@ -1191,7 +1227,8 @@ specification, or because the specification was inaccurate.  For
 example, a misconfigured mailer could send a message with a
 @samp{charset=iso-8859-1} header when the message is actually encoded
 in @code{koi8-r}.  When you see the message text garbled, or some of
-its characters displayed as empty boxes, this may have happened.
+its characters displayed as hex codes or empty boxes, this may have
+happened.
 
 @findex rmail-redecode-body
   You can correct the problem by decoding the message again using the
@@ -1478,7 +1515,3 @@ include the following in the Rmail inbox list:
 @smallexample
 maildir://var/spool/mail/in
 @end smallexample
-
-@ignore
-   arch-tag: 034965f6-38df-47a2-a9f1-b8bc8ab37e23
-@end ignore

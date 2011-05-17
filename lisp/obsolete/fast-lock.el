@@ -1,12 +1,12 @@
 ;;; fast-lock.el --- automagic text properties caching for fast Font Lock mode
 
-;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1998, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Simon Marshall <simon@gnu.org>
 ;; Maintainer: FSF
 ;; Keywords: faces files
 ;; Version: 3.14
+;; Obsolete-since: 22.1
 
 ;; This file is part of GNU Emacs.
 
@@ -24,8 +24,6 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-
-;; This file has been obsolete since Emacs 22.1.
 
 ;; Fast Lock mode is a Font Lock support mode.
 ;; It makes visiting a file in Font Lock mode faster by restoring its face text
@@ -841,7 +839,8 @@ See `fast-lock-get-face-properties'."
 
 (add-hook 'after-save-hook 'fast-lock-save-cache-after-save-file)
 (add-hook 'kill-buffer-hook 'fast-lock-save-cache-before-kill-buffer)
-(add-hook 'kill-emacs-hook 'fast-lock-save-caches-before-kill-emacs)
+(unless noninteractive
+  (add-hook 'kill-emacs-hook 'fast-lock-save-caches-before-kill-emacs))
 
 ;;;###autoload
 (when (fboundp 'add-minor-mode)
@@ -855,5 +854,4 @@ See `fast-lock-get-face-properties'."
 
 (provide 'fast-lock)
 
-;; arch-tag: 638c431e-8cae-4538-80a1-963ff97d233e
 ;;; fast-lock.el ends here

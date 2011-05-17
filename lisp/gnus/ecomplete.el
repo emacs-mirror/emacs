@@ -1,6 +1,6 @@
 ;;; ecomplete.el --- electric completion of addresses and the like
 
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2006-2011  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: mail
@@ -26,11 +26,6 @@
 
 (eval-when-compile
   (require 'cl))
-
-(eval-when-compile
-  (unless (fboundp 'with-no-warnings)
-    (defmacro with-no-warnings (&rest body)
-      `(progn ,@body))))
 
 (defgroup ecomplete nil
   "Electric completion of email addresses and the like."
@@ -61,11 +56,10 @@
 (defun ecomplete-add-item (type key text)
   (let ((elems (assq type ecomplete-database))
 	(now (string-to-number
-	      (format "%.0f" (if (and (fboundp 'float-time)
-				      (subrp (symbol-function 'float-time)))
+	      (format "%.0f" (if (featurep 'emacs)
 				 (float-time)
-			       (with-no-warnings
-				 (time-to-seconds (current-time)))))))
+			       (require 'gnus-util)
+			       (gnus-float-time)))))
 	entry)
     (unless elems
       (push (setq elems (list type)) ecomplete-database))
@@ -95,7 +89,7 @@
   (let* ((elems (cdr (assq type ecomplete-database)))
 	 (match (regexp-quote match))
 	 (candidates
-	  (sort 
+	  (sort
 	   (loop for (key count time text) in elems
 		 when (string-match match text)
 		 collect (list count time text))
@@ -147,7 +141,7 @@
     (save-restriction
       (narrow-to-region (point) (point-at-eol))
       (while (not (eobp))
-	;; Put the 'region face on any charactes on this line that
+	;; Put the 'region face on any characters on this line that
 	;; aren't already highlighted.
 	(unless (get-text-property (point) 'face)
 	  (put-text-property (point) (1+ (point)) 'face 'highlight))
@@ -156,5 +150,4 @@
 
 (provide 'ecomplete)
 
-;; arch-tag: 34622935-bb81-4711-a600-57b89c2ece72
 ;;; ecomplete.el ends here

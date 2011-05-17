@@ -1,8 +1,6 @@
 ;;; mh-search  ---  MH-Search mode
 
-;; Copyright (C) 1993, 1995,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Indexed search by Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -1511,7 +1509,7 @@ construct the base name."
       (delete-char 1))
     (goto-char (point-max))
     (while (and (not (bobp)) (memq (char-before) '(?  ?\t ?\n ?\r ?_)))
-      (delete-backward-char 1))
+      (delete-char -1))
     (subst-char-in-region (point-min) (point-max) ?  ?_ t)
     (subst-char-in-region (point-min) (point-max) ?\t ?_ t)
     (subst-char-in-region (point-min) (point-max) ?\n ?_ t)
@@ -1931,5 +1929,4 @@ folder buffer."
 ;; sentence-end-double-space: nil
 ;; End:
 
-;; arch-tag: 607762ad-0dff-4fe1-a27e-6c0dde0dcc47
 ;;; mh-search ends here

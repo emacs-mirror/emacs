@@ -1,7 +1,6 @@
 ;;; dirtrack.el --- Directory Tracking by watching the prompt
 
-;; Copyright (C) 1996, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Nov 17 1996
@@ -143,15 +142,8 @@ be on a single line."
   :group 'dirtrack
   :type  'string)
 
-(defcustom dirtrackp t
-  "If non-nil, directory tracking via `dirtrack' is enabled."
-  :group 'dirtrack
-  :type  'boolean)
-
-(make-variable-buffer-local 'dirtrackp)
-
 (defcustom dirtrack-directory-function
-  (if (memq system-type (list 'ms-dos 'windows-nt 'cygwin))
+  (if (memq system-type '(ms-dos windows-nt cygwin))
       'dirtrack-windows-directory-function
     'file-name-as-directory)
   "Function to apply to the prompt directory for comparison purposes."
@@ -159,7 +151,7 @@ be on a single line."
   :type  'function)
 
 (defcustom dirtrack-canonicalize-function
-  (if (memq system-type (list 'ms-dos 'windows-nt 'cygwin))
+  (if (memq system-type '(ms-dos windows-nt cygwin))
       'downcase 'identity)
   "Function to apply to the default directory for comparison purposes."
   :group 'dirtrack
@@ -238,9 +230,9 @@ function `dirtrack-debug-mode' to turn on debugging output."
     (let (prompt-path
 	  (current-dir default-directory)
 	  (dirtrack-regexp    (nth 0 dirtrack-list))
-	  (match-num	      (nth 1 dirtrack-list))
+	  (match-num	      (nth 1 dirtrack-list)))
           ;; Currently unimplemented, it seems.  --Stef
-	  (multi-line	      (nth 2 dirtrack-list)))
+	  ;; (multi-line      (nth 2 dirtrack-list)))
       (save-excursion
         ;; No match
         (if (not (string-match dirtrack-regexp input))
@@ -276,5 +268,4 @@ function `dirtrack-debug-mode' to turn on debugging output."
 
 (provide 'dirtrack)
 
-;; arch-tag: 168de071-be88-4937-aff6-2aba9f328d5a
 ;;; dirtrack.el ends here

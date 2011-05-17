@@ -1,13 +1,13 @@
 ;; ada-xref.el --- for lookup and completion in Ada mode
 
-;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2011  Free Software Foundation, Inc.
 
 ;; Author: Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
 ;;      Rolf Ebert <ebert@inf.enst.fr>
 ;;      Emmanuel Briot <briot@gnat.com>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Keywords: languages ada xref
+;; Package: ada-mode
 
 ;; This file is part of GNU Emacs.
 
@@ -108,10 +108,9 @@ the Ada mode project."
   :type 'string :group 'ada)
 
 (defcustom ada-prj-ada-project-path-sep
-  (if (or (equal system-type 'windows-nt)
-	  (equal system-type 'ms-dos))
-      ";"
-    ":")
+  (cond ((boundp 'path-separator) path-separator) ; 20.3+
+	((memq system-type '(windows-nt ms-dos)) ";")
+	(t ":"))
   "Default separator for ada_project_path project variable."
   :type 'string :group 'ada)
 
@@ -166,7 +165,7 @@ This has the same syntax as in the project file (with variable substitution)."
 Otherwise, ask the user for the name of the project file to use."
   :type 'boolean :group 'ada)
 
-(defconst is-windows (memq system-type (quote (windows-nt)))
+(defconst ada-on-ms-windows (memq system-type '(windows-nt))
   "True if we are running on Windows.")
 
 (defcustom ada-tight-gvd-integration nil
@@ -221,7 +220,7 @@ Used to go back to these positions.")
 On Windows systems using `cmdproxy.exe' as the shell,
 we need to use `/d' or the drive is never changed.")
 
-(defvar ada-command-separator (if is-windows " && " "\n")
+(defvar ada-command-separator (if ada-on-ms-windows " && " "\n")
   "Separator to use between multiple commands to `compile' or `start-process'.
 `cmdproxy.exe' doesn't recognize multiple-line commands, so we have to use
 \"&&\" for now.")
@@ -324,7 +323,7 @@ CROSS-PREFIX is the prefix to use for the `gnatls' command."
 		    (add-to-list 'ada-xref-runtime-library-specs-path
 				 (buffer-substring-no-properties
 				  (point)
-				  (save-excursion (end-of-line) (point)))))
+				  (point-at-eol))))
 		  (forward-line 1))
 
 		;;  Object path
@@ -338,7 +337,7 @@ CROSS-PREFIX is the prefix to use for the `gnatls' command."
 		    (add-to-list 'ada-xref-runtime-library-ali-path
 				 (buffer-substring-no-properties
 				  (point)
-				  (save-excursion (end-of-line) (point)))))
+				  (point-at-eol))))
 		  (forward-line 1))
 		)
 	    (kill-buffer nil))))
@@ -381,9 +380,9 @@ Assumes environment variable ADA_PROJECT_PATH is set properly."
 	  (forward-line 1) ; first directory in list
 	  (while (not (looking-at "^$")) ; terminate on blank line
 	    (back-to-indentation) ; skip whitespace
-	    (if (looking-at "<Current_Directory>")
-		(add-to-list 'src-dir  (expand-file-name "."))
-	      (add-to-list 'src-dir
+	    (add-to-list 'src-dir
+                         (if (looking-at "<Current_Directory>")
+                             default-directory
 			   (expand-file-name
 			    (buffer-substring-no-properties
 			     (point) (line-end-position)))))
@@ -395,9 +394,9 @@ Assumes environment variable ADA_PROJECT_PATH is set properly."
 	  (forward-line 1)
 	  (while (not (looking-at "^$"))
 	    (back-to-indentation)
-	    (if (looking-at "<Current_Directory>")
-		(add-to-list 'obj-dir (expand-file-name "."))
-	      (add-to-list 'obj-dir
+	    (add-to-list 'obj-dir
+                         (if (looking-at "<Current_Directory>")
+                             default-directory
 			   (expand-file-name
 			    (buffer-substring-no-properties
 			     (point) (line-end-position)))))
@@ -767,7 +766,7 @@ is non-nil, prompt the user to select one.  If none are found, return
      'comp_opt        ada-prj-default-comp-opt
      'cross_prefix    ""
      'debug_cmd       (concat ada-prj-default-debugger
-			      " ${main}" (if is-windows ".exe")) ;; FIXME: don't need .exe?
+			      " ${main}" (if ada-on-ms-windows ".exe")) ;; FIXME: don't need .exe?
      'debug_post_cmd  (list nil)
      'debug_pre_cmd   (list (concat ada-cd-command " ${build_dir}"))
      'gnatmake_opt    ada-prj-default-gnatmake-opt
@@ -781,7 +780,7 @@ is non-nil, prompt the user to select one.  If none are found, return
      'make_cmd        (list ada-prj-default-make-cmd) ;; FIXME: should not a list
      'obj_dir         (list ".")
      'remote_machine  ""
-     'run_cmd         (list (concat "./${main}" (if is-windows ".exe")))
+     'run_cmd         (list (concat "./${main}" (if ada-on-ms-windows ".exe")))
      ;; FIXME: should not a list
      ;; FIXME: don't need .exe?
      'src_dir         (list ".")
@@ -1015,7 +1014,7 @@ existing buffer `*gnatfind*', if there is one."
   ;;  processed (gnatfind \"+\":...).
   (let* ((quote-entity
 	  (if (= (aref entity 0) ?\")
-	      (if is-windows
+	      (if ada-on-ms-windows
 		  (concat "\\\"" (substring entity 1 -1) "\\\"")
 		(concat "'\"" (substring entity 1 -1) "\"'"))
 	    entity))
@@ -1044,7 +1043,7 @@ existing buffer `*gnatfind*', if there is one."
 	  (setq old-contents (buffer-string))))
 
     (let ((compilation-error "reference"))
-      (compilation-start command 'compilation-mode (lambda (mode) ada-gnatfind-buffer-name)))
+      (compilation-start command 'compilation-mode (lambda (_mode) ada-gnatfind-buffer-name)))
 
     ;;  Hide the "Compilation" menu
     (with-current-buffer ada-gnatfind-buffer-name
@@ -1385,7 +1384,7 @@ project file."
 
       ;;  Do not add -fullname, since we can have a 'rsh' command in front.
       ;;  FIXME: This is evil but luckily a nop under Emacs-21.3.50 !  -stef
-      (fset 'gud-gdb-massage-args (lambda (file args) args))
+      (fset 'gud-gdb-massage-args (lambda (_file args) args))
 
       (set 'pre-cmd  (mapconcat 'identity pre-cmd  ada-command-separator))
       (if (not (equal pre-cmd ""))
@@ -1817,7 +1816,7 @@ Information is extracted from the ali file."
     (beginning-of-line)
     (if declaration-found
 	(let ((current-line (buffer-substring
-			     (point) (save-excursion (end-of-line) (point)))))
+			     (point) (point-at-eol))))
 	  (save-excursion
 	    (forward-line 1)
 	    (beginning-of-line)
@@ -2379,5 +2378,4 @@ For instance, it creates the gnat-specific menus, sets some hooks for
 
 (provide 'ada-xref)
 
-;; arch-tag: 415a39fe-577b-4676-b3b1-6ff6db7ca24e
 ;;; ada-xref.el ends here

@@ -1,7 +1,6 @@
 ;;; mh-gnus.el --- make MH-E compatible with various versions of Gnus
 
-;; Copyright (C) 2003, 2004, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2003-2004, 2006-2011  Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -177,5 +176,4 @@ PROMPT overrides the default one used to ask user for a file name."
 ;; sentence-end-double-space: nil
 ;; End:
 
-;; arch-tag: 1e3638af-cad3-4c69-8427-bc8eb6e5e4fa
 ;;; mh-gnus.el ends here

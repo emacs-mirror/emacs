@@ -1,8 +1,6 @@
 ;;; calendar.el --- calendar functions
 
-;; Copyright (C) 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1997,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1988-1995, 1997, 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -736,14 +734,16 @@ calendar package is already loaded).  Rather, use either
 (defcustom diary-iso-date-forms
   '((month "[-/]" day "[^-/0-9]")
     (year "[-/]" month "[-/]" day "[^0-9]")
-    (monthname "-" day "[^-0-9]")
-    (year "-" monthname "-" day "[^0-9]")
+    ;; Cannot allow [-/] as separators here, since it would also match
+    ;; the first element (bug#7377).
+    (monthname " *" day "[^-0-9]")
+    (year " *" monthname " *" day "[^0-9]")
     (dayname "\\W"))
     "List of pseudo-patterns describing the ISO style of dates.
-The defaults are: MONTH[-/]DAY; YEAR[-/]MONTH[-/]DAY; MONTHNAME-DAY;
-YEAR-MONTHNAME-DAY; DAYNAME.  Normally you should not customize this,
+The defaults are: MONTH[-/]DAY; YEAR[-/]MONTH[-/]DAY; MONTHNAME DAY;
+YEAR MONTHNAME DAY; DAYNAME.  Normally you should not customize this,
 but `diary-date-forms' (which see)."
-    :version "23.1"
+    :version "23.3"                     ; bug#7377
     :type '(repeat (choice (cons :tag "Backup"
                                :value (backup . nil)
                                (const backup)
@@ -1363,7 +1363,6 @@ Optional integers MON and YR are used instead of today's date."
          (year (calendar-extract-year today))
          (today-visible (or (not mon)
                             (<= (abs (calendar-interval mon yr month year)) 1)))
-         (day-in-week (calendar-day-of-week today))
          (in-calendar-window (eq (window-buffer (selected-window))
                                  (get-buffer calendar-buffer))))
     (calendar-generate (or mon month) (or yr year))
@@ -1648,14 +1647,17 @@ line."
     (define-key map [down-mouse-2]
       (easy-menu-binding cal-menu-global-mouse-menu))
 
-    ;; Left-click moves us forward in time, right-click backwards.
     ;; cf scroll-bar.el.
-    (define-key map [vertical-scroll-bar mouse-1] 'calendar-scroll-left)
-    (define-key map [vertical-scroll-bar drag-mouse-1] 'calendar-scroll-left)
-    ;; down-mouse-2 stays as scroll-bar-drag.
-    (define-key map [vertical-scroll-bar mouse-3] 'calendar-scroll-right)
-    (define-key map [vertical-scroll-bar drag-mouse-3] 'calendar-scroll-right)
-
+    (if (and (boundp 'x-toolkit-scroll-bars) x-toolkit-scroll-bars)
+        (define-key map [vertical-scroll-bar mouse-1]
+          'calendar-scroll-toolkit-scroll)
+      ;; Left-click moves us forward in time, right-click backwards.
+      (define-key map [vertical-scroll-bar mouse-1] 'calendar-scroll-left)
+      (define-key map [vertical-scroll-bar drag-mouse-1] 'calendar-scroll-left)
+      ;; down-mouse-2 stays as scroll-bar-drag.
+      (define-key map [vertical-scroll-bar mouse-3] 'calendar-scroll-right)
+      (define-key map [vertical-scroll-bar drag-mouse-3]
+        'calendar-scroll-right))
     map)
   "Keymap for `calendar-mode'.")
 
@@ -2226,6 +2228,10 @@ DATE is a list of the form (month day year).  A negative year is
 interpreted as BC; -1 being 1 BC, and so on."
   (mod (calendar-absolute-from-gregorian date) 7))
 
+(defun calendar-week-end-day ()
+  "Return the index (0 for Sunday, etc.) of the last day of the week."
+  (mod (+ calendar-week-start-day 6) 7))
+
 (defun calendar-unmark ()
   "Delete all diary/holiday marks/highlighting from the calendar."
   (interactive)
@@ -2566,5 +2572,4 @@ If called by a mouse-event, pops up a menu with the result."
 ;; byte-compile-dynamic: t
 ;; End:
 
-;; arch-tag: 19c61596-c8fb-4c69-bcf1-7dd739919cd8
 ;;; calendar.el ends here

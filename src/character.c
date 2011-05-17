@@ -1,11 +1,11 @@
 /* Basic character support.
-   Copyright (C) 1995, 1997, 1998, 2001 Electrotechnical Laboratory, JAPAN.
-     Licensed to the Free Software Foundation.
-   Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-     Free Software Foundation, Inc.
-   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-     National Institute of Advanced Industrial Science and Technology (AIST)
-     Registration Number H13PRO009
+
+Copyright (C) 2001-2011  Free Software Foundation, Inc.
+Copyright (C) 1995, 1997, 1998, 2001 Electrotechnical Laboratory, JAPAN.
+  Licensed to the Free Software Foundation.
+Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+  National Institute of Advanced Industrial Science and Technology (AIST)
+  Registration Number H13PRO009
 
 This file is part of GNU Emacs.
 
@@ -50,51 +50,24 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 Lisp_Object Qcharacterp;
 
-/* Vector of translation table ever defined.
-   ID of a translation table is used to index this vector.  */
-Lisp_Object Vtranslation_table_vector;
-
-/* A char-table for characters which may invoke auto-filling.  */
-Lisp_Object Vauto_fill_chars;
-
-Lisp_Object Qauto_fill_chars;
+static Lisp_Object Qauto_fill_chars;
 
 /* Char-table of information about which character to unify to which
    Unicode character.  Mainly used by the macro MAYBE_UNIFY_CHAR.  */
 Lisp_Object Vchar_unify_table;
 
-/* A char-table.  An element is non-nil iff the corresponding
-   character has a printable glyph.  */
-Lisp_Object Vprintable_chars;
-
-/* A char-table.  An elemnent is a column-width of the corresponding
-   character.  */
-Lisp_Object Vchar_width_table;
-
-/* A char-table.  An element is a symbol indicating the direction
-   property of corresponding character.  */
-Lisp_Object Vchar_direction_table;
-
 /* Variable used locally in the macro FETCH_MULTIBYTE_CHAR.  */
 unsigned char *_fetch_multibyte_char_p;
 
-/* Char table of scripts.  */
-Lisp_Object Vchar_script_table;
-
-/* Alist of scripts vs representative characters.  */
-Lisp_Object Vscript_representative_chars;
-
 static Lisp_Object Qchar_script_table;
 
-Lisp_Object Vunicode_category_table;
 
 
 /* If character code C has modifier masks, reflect them to the
    character code if possible.  Return the resulting code.  */
 
 int
-char_resolve_modifier_mask (c)
-     int c;
+char_resolve_modifier_mask (int c)
 {
   /* A non-ASCII character can't reflect modifier bits to the code.  */
   if (! ASCII_CHAR_P ((c & ~CHAR_MODIFIER_MASK)))
@@ -143,9 +116,7 @@ char_resolve_modifier_mask (c)
    handle them appropriately.  */
 
 int
-char_string (c, p)
-     unsigned c;
-     unsigned char *p;
+char_string (unsigned int c, unsigned char *p)
 {
   int bytes;
 
@@ -185,24 +156,21 @@ char_string (c, p)
       bytes = BYTE8_STRING (c, p);
     }
   else
-    error ("Invalid character: %d", c);
+    error ("Invalid character: %x", c);
 
   return bytes;
 }
 
 
-/* Return a character whose multibyte form is at P.  Set LEN is not
+/* Return a character whose multibyte form is at P.  If LEN is not
    NULL, it must be a pointer to integer.  In that case, set *LEN to
-   the byte length of the multibyte form.  If ADVANCED is not NULL, is
+   the byte length of the multibyte form.  If ADVANCED is not NULL, it
    must be a pointer to unsigned char.  In that case, set *ADVANCED to
-   the ending address (i.e. the starting address of the next
+   the ending address (i.e., the starting address of the next
    character) of the multibyte form.  */
 
 int
-string_char (p, advanced, len)
-     const unsigned char *p;
-     const unsigned char **advanced;
-     int *len;
+string_char (const unsigned char *p, const unsigned char **advanced, int *len)
 {
   int c;
   const unsigned char *saved_p = p;
@@ -238,16 +206,13 @@ string_char (p, advanced, len)
 }
 
 
-/* Translate character C by translation table TABLE.  If C is
-   negative, translate a character specified by CHARSET and CODE.  If
-   no translation is found in TABLE, return the untranslated
-   character.  If TABLE is a list, elements are char tables.  In this
-   case, translace C by all tables.  */
+/* Translate character C by translation table TABLE.  If no translation is
+   found in TABLE, return the untranslated character.  If TABLE is a list,
+   elements are char tables.  In that case, recursively translate C by all the
+   tables in the list.  */
 
 int
-translate_char (table, c)
-     Lisp_Object table;
-     int c;
+translate_char (Lisp_Object table, int c)
 {
   if (CHAR_TABLE_P (table))
     {
@@ -266,15 +231,10 @@ translate_char (table, c)
 }
 
 /* Convert ASCII or 8-bit character C to unibyte.  If C is none of
-   them, return (C & 0xFF).
-
-   The argument REV_TBL is now ignored.  It will be removed in the
-   future.  */
+   them, return (C & 0xFF).  */
 
 int
-multibyte_char_to_unibyte (c, rev_tbl)
-     int c;
-     Lisp_Object rev_tbl;
+multibyte_char_to_unibyte (int c)
 {
   if (c < 0x80)
     return c;
@@ -287,8 +247,7 @@ multibyte_char_to_unibyte (c, rev_tbl)
    by charset_unibyte.  */
 
 int
-multibyte_char_to_unibyte_safe (c)
-     int c;
+multibyte_char_to_unibyte_safe (int c)
 {
   if (c < 0x80)
     return c;
@@ -299,15 +258,14 @@ multibyte_char_to_unibyte_safe (c)
 
 DEFUN ("characterp", Fcharacterp, Scharacterp, 1, 2, 0,
        doc: /* Return non-nil if OBJECT is a character.  */)
-     (object, ignore)
-     Lisp_Object object, ignore;
+  (Lisp_Object object, Lisp_Object ignore)
 {
   return (CHARACTERP (object) ? Qt : Qnil);
 }
 
 DEFUN ("max-char", Fmax_char, Smax_char, 0, 0, 0,
        doc: /* Return the character of the maximum code.  */)
-     ()
+  (void)
 {
   return make_number (MAX_CHAR);
 }
@@ -315,8 +273,7 @@ DEFUN ("max-char", Fmax_char, Smax_char, 0, 0, 0,
 DEFUN ("unibyte-char-to-multibyte", Funibyte_char_to_multibyte,
        Sunibyte_char_to_multibyte, 1, 1, 0,
        doc: /* Convert the byte CH to multibyte character.  */)
-     (ch)
-     Lisp_Object ch;
+  (Lisp_Object ch)
 {
   int c;
 
@@ -332,8 +289,7 @@ DEFUN ("multibyte-char-to-unibyte", Fmultibyte_char_to_unibyte,
        Smultibyte_char_to_unibyte, 1, 1, 0,
        doc: /* Convert the multibyte character CH to a byte.
 If the multibyte character does not represent a byte, return -1.  */)
-     (ch)
-     Lisp_Object ch;
+  (Lisp_Object ch)
 {
   int cm;
 
@@ -350,24 +306,12 @@ If the multibyte character does not represent a byte, return -1.  */)
     }
 }
 
-DEFUN ("char-bytes", Fchar_bytes, Schar_bytes, 1, 1, 0,
-       doc: /* Return 1 regardless of the argument CHAR.
-This is now an obsolete function.  We keep it just for backward compatibility.
-usage: (char-bytes CHAR)  */)
-     (ch)
-     Lisp_Object ch;
-{
-  CHECK_CHARACTER (ch);
-  return make_number (1);
-}
-
 DEFUN ("char-width", Fchar_width, Schar_width, 1, 1, 0,
        doc: /* Return width of CHAR when displayed in the current buffer.
 The width is measured by how many columns it occupies on the screen.
 Tab is taken to occupy `tab-width' columns.
 usage: (char-width CHAR)  */)
-     (ch)
-       Lisp_Object ch;
+  (Lisp_Object ch)
 {
   Lisp_Object disp;
   int c, width;
@@ -394,11 +338,12 @@ usage: (char-width CHAR)  */)
    characters and bytes of the substring in *NCHARS and *NBYTES
    respectively.  */
 
-int
-c_string_width (const unsigned char *str, int len, int precision, int *nchars, int *nbytes)
+EMACS_INT
+c_string_width (const unsigned char *str, EMACS_INT len, int precision,
+		EMACS_INT *nchars, EMACS_INT *nbytes)
 {
-  int i = 0, i_byte = 0;
-  int width = 0;
+  EMACS_INT i = 0, i_byte = 0;
+  EMACS_INT width = 0;
   struct Lisp_Char_Table *dp = buffer_display_table ();
 
   while (i_byte < len)
@@ -411,7 +356,7 @@ c_string_width (const unsigned char *str, int len, int precision, int *nchars, i
 	{
 	  val = DISP_CHAR_VECTOR (dp, c);
 	  if (VECTORP (val))
-	    thiswidth = XVECTOR (val)->size;
+	    thiswidth = ASIZE (val);
 	  else
 	    thiswidth = CHAR_WIDTH (c);
 	}
@@ -445,12 +390,10 @@ c_string_width (const unsigned char *str, int len, int precision, int *nchars, i
    current buffer.  The width is measured by how many columns it
    occupies on the screen.  */
 
-int
-strwidth (str, len)
-     unsigned char *str;
-     int len;
+EMACS_INT
+strwidth (const char *str, EMACS_INT len)
 {
-  return c_string_width (str, len, -1, NULL, NULL);
+  return c_string_width ((const unsigned char *) str, len, -1, NULL, NULL);
 }
 
 /* Return width of Lisp string STRING when displayed in the current
@@ -460,19 +403,18 @@ strwidth (str, len)
    PRECISION, and set number of characters and bytes of the substring
    in *NCHARS and *NBYTES respectively.  */
 
-int
-lisp_string_width (string, precision, nchars, nbytes)
-     Lisp_Object string;
-     int precision, *nchars, *nbytes;
+EMACS_INT
+lisp_string_width (Lisp_Object string, int precision,
+		   EMACS_INT *nchars, EMACS_INT *nbytes)
 {
-  int len = SCHARS (string);
+  EMACS_INT len = SCHARS (string);
   /* This set multibyte to 0 even if STRING is multibyte when it
      contains only ascii and eight-bit-graphic, but that's
      intentional.  */
   int multibyte = len < SBYTES (string);
   unsigned char *str = SDATA (string);
-  int i = 0, i_byte = 0;
-  int width = 0;
+  EMACS_INT i = 0, i_byte = 0;
+  EMACS_INT width = 0;
   struct Lisp_Char_Table *dp = buffer_display_table ();
 
   while (i < len)
@@ -503,7 +445,7 @@ lisp_string_width (string, precision, nchars, nbytes)
 	    {
 	      val = DISP_CHAR_VECTOR (dp, c);
 	      if (VECTORP (val))
-		thiswidth = XVECTOR (val)->size;
+		thiswidth = ASIZE (val);
 	      else
 		thiswidth = CHAR_WIDTH (c);
 	    }
@@ -542,28 +484,13 @@ only the base leading-code is considered; the validity of
 the following bytes is not checked.  Tabs in STRING are always
 taken to occupy `tab-width' columns.
 usage: (string-width STRING)  */)
-     (str)
-     Lisp_Object str;
+  (Lisp_Object str)
 {
   Lisp_Object val;
 
   CHECK_STRING (str);
   XSETFASTINT (val, lisp_string_width (str, -1, NULL, NULL));
   return val;
-}
-
-DEFUN ("char-direction", Fchar_direction, Schar_direction, 1, 1, 0,
-       doc: /* Return the direction of CHAR.
-The returned value is 0 for left-to-right and 1 for right-to-left.
-usage: (char-direction CHAR)  */)
-     (ch)
-     Lisp_Object ch;
-{
-  int c;
-
-  CHECK_CHARACTER (ch);
-  c = XINT (ch);
-  return CHAR_TABLE_REF (Vchar_direction_table, c);
 }
 
 /* Return the number of characters in the NBYTES bytes at PTR.
@@ -573,13 +500,11 @@ usage: (char-direction CHAR)  */)
    nil, we treat each byte as a character.  */
 
 EMACS_INT
-chars_in_text (ptr, nbytes)
-     const unsigned char *ptr;
-     EMACS_INT nbytes;
+chars_in_text (const unsigned char *ptr, EMACS_INT nbytes)
 {
   /* current_buffer is null at early stages of Emacs initialization.  */
   if (current_buffer == 0
-      || NILP (current_buffer->enable_multibyte_characters))
+      || NILP (BVAR (current_buffer, enable_multibyte_characters)))
     return nbytes;
 
   return multibyte_chars_in_text (ptr, nbytes);
@@ -591,16 +516,14 @@ chars_in_text (ptr, nbytes)
    ignores enable-multibyte-characters.  */
 
 EMACS_INT
-multibyte_chars_in_text (ptr, nbytes)
-     const unsigned char *ptr;
-     EMACS_INT nbytes;
+multibyte_chars_in_text (const unsigned char *ptr, EMACS_INT nbytes)
 {
   const unsigned char *endp = ptr + nbytes;
-  int chars = 0;
+  EMACS_INT chars = 0;
 
   while (ptr < endp)
     {
-      int len = MULTIBYTE_LENGTH (ptr, endp);
+      EMACS_INT len = MULTIBYTE_LENGTH (ptr, endp);
 
       if (len == 0)
 	abort ();
@@ -618,12 +541,11 @@ multibyte_chars_in_text (ptr, nbytes)
    represented by 2-byte in a multibyte text.  */
 
 void
-parse_str_as_multibyte (str, len, nchars, nbytes)
-     const unsigned char *str;
-     int len, *nchars, *nbytes;
+parse_str_as_multibyte (const unsigned char *str, EMACS_INT len,
+			EMACS_INT *nchars, EMACS_INT *nbytes)
 {
   const unsigned char *endp = str + len;
-  int n, chars = 0, bytes = 0;
+  EMACS_INT n, chars = 0, bytes = 0;
 
   if (len >= MAX_MULTIBYTE_LENGTH)
     {
@@ -661,14 +583,13 @@ parse_str_as_multibyte (str, len, nchars, nbytes)
    area and that is enough.  Return the number of bytes of the
    resulting text.  */
 
-int
-str_as_multibyte (str, len, nbytes, nchars)
-     unsigned char *str;
-     int len, nbytes, *nchars;
+EMACS_INT
+str_as_multibyte (unsigned char *str, EMACS_INT len, EMACS_INT nbytes,
+		  EMACS_INT *nchars)
 {
   unsigned char *p = str, *endp = str + nbytes;
   unsigned char *to;
-  int chars = 0;
+  EMACS_INT chars = 0;
   int n;
 
   if (nbytes >= MAX_MULTIBYTE_LENGTH)
@@ -691,7 +612,7 @@ str_as_multibyte (str, len, nbytes, nchars)
   to = p;
   nbytes = endp - p;
   endp = str + len;
-  safe_bcopy ((char *) p, (char *) (endp - nbytes), nbytes);
+  memmove (endp - nbytes, p, nbytes);
   p = endp - nbytes;
 
   if (nbytes >= MAX_MULTIBYTE_LENGTH)
@@ -739,13 +660,11 @@ str_as_multibyte (str, len, nbytes, nchars)
    bytes it may ocupy when converted to multibyte string by
    `str_to_multibyte'.  */
 
-int
-parse_str_to_multibyte (str, len)
-     unsigned char *str;
-     int len;
+EMACS_INT
+parse_str_to_multibyte (const unsigned char *str, EMACS_INT len)
 {
-  unsigned char *endp = str + len;
-  int bytes;
+  const unsigned char *endp = str + len;
+  EMACS_INT bytes;
 
   for (bytes = 0; str < endp; str++)
     bytes += (*str < 0x80) ? 1 : 2;
@@ -759,10 +678,8 @@ parse_str_to_multibyte (str, len)
    that we can use LEN bytes at STR as a work area and that is
    enough.  */
 
-int
-str_to_multibyte (str, len, bytes)
-     unsigned char *str;
-     int len, bytes;
+EMACS_INT
+str_to_multibyte (unsigned char *str, EMACS_INT len, EMACS_INT bytes)
 {
   unsigned char *p = str, *endp = str + bytes;
   unsigned char *to;
@@ -773,7 +690,7 @@ str_to_multibyte (str, len, bytes)
   to = p;
   bytes = endp - p;
   endp = str + len;
-  safe_bcopy ((char *) p, (char *) (endp - bytes), bytes);
+  memmove (endp - bytes, p, bytes);
   p = endp - bytes;
   while (p < endp)
     {
@@ -790,10 +707,8 @@ str_to_multibyte (str, len, bytes)
    actually converts characters in the range 0x80..0xFF to
    unibyte.  */
 
-int
-str_as_unibyte (str, bytes)
-     unsigned char *str;
-     int bytes;
+EMACS_INT
+str_as_unibyte (unsigned char *str, EMACS_INT bytes)
 {
   const unsigned char *p = str, *endp = str + bytes;
   unsigned char *to;
@@ -829,17 +744,13 @@ str_as_unibyte (str, bytes)
    corresponding byte and store in DST.  CHARS is the number of
    characters in SRC.  The value is the number of bytes stored in DST.
    Usually, the value is the same as CHARS, but is less than it if SRC
-   contains a non-ASCII, non-eight-bit characater.  If ACCEPT_LATIN_1
+   contains a non-ASCII, non-eight-bit character.  If ACCEPT_LATIN_1
    is nonzero, a Latin-1 character is accepted and converted to a byte
    of that character code.
    Note: Currently the arg ACCEPT_LATIN_1 is not used.  */
 
 EMACS_INT
-str_to_unibyte (src, dst, chars, accept_latin_1)
-     const unsigned char *src;
-     unsigned char *dst;
-     EMACS_INT chars;
-     int accept_latin_1;
+str_to_unibyte (const unsigned char *src, unsigned char *dst, EMACS_INT chars, int accept_latin_1)
 {
   EMACS_INT i;
 
@@ -858,15 +769,14 @@ str_to_unibyte (src, dst, chars, accept_latin_1)
 }
 
 
-int
-string_count_byte8 (string)
-     Lisp_Object string;
+static EMACS_INT
+string_count_byte8 (Lisp_Object string)
 {
   int multibyte = STRING_MULTIBYTE (string);
-  int nbytes = SBYTES (string);
+  EMACS_INT nbytes = SBYTES (string);
   unsigned char *p = SDATA (string);
   unsigned char *pend = p + nbytes;
-  int count = 0;
+  EMACS_INT count = 0;
   int c, len;
 
   if (multibyte)
@@ -890,13 +800,12 @@ string_count_byte8 (string)
 
 
 Lisp_Object
-string_escape_byte8 (string)
-     Lisp_Object string;
+string_escape_byte8 (Lisp_Object string)
 {
-  int nchars = SCHARS (string);
-  int nbytes = SBYTES (string);
+  EMACS_INT nchars = SCHARS (string);
+  EMACS_INT nbytes = SBYTES (string);
   int multibyte = STRING_MULTIBYTE (string);
-  int byte8_count;
+  EMACS_INT byte8_count;
   const unsigned char *src, *src_end;
   unsigned char *dst;
   Lisp_Object val;
@@ -911,12 +820,22 @@ string_escape_byte8 (string)
     return string;
 
   if (multibyte)
-    /* Convert 2-byte sequence of byte8 chars to 4-byte octal.  */
-    val = make_uninit_multibyte_string (nchars + byte8_count * 3,
-					nbytes + byte8_count * 2);
+    {
+      if ((MOST_POSITIVE_FIXNUM - nchars) / 3 < byte8_count
+	  || (MOST_POSITIVE_FIXNUM - nbytes) / 2 < byte8_count)
+	error ("Maximum string size exceeded");
+
+      /* Convert 2-byte sequence of byte8 chars to 4-byte octal.  */
+      val = make_uninit_multibyte_string (nchars + byte8_count * 3,
+					  nbytes + byte8_count * 2);
+    }
   else
-    /* Convert 1-byte sequence of byte8 chars to 4-byte octal.  */
-    val = make_uninit_string (nbytes + byte8_count * 3);
+    {
+      if ((MOST_POSITIVE_FIXNUM - nchars) / 3 < byte8_count)
+	error ("Maximum string size exceeded");
+      /* Convert 1-byte sequence of byte8 chars to 4-byte octal.  */
+      val = make_uninit_string (nbytes + byte8_count * 3);
+    }
 
   src = SDATA (string);
   src_end = src + nbytes;
@@ -957,14 +876,16 @@ DEFUN ("string", Fstring, Sstring, 0, MANY, 0,
        doc: /*
 Concatenate all the argument characters and make the result a string.
 usage: (string &rest CHARACTERS)  */)
-     (n, args)
-     int n;
-     Lisp_Object *args;
+  (size_t n, Lisp_Object *args)
 {
-  int i;
-  unsigned char *buf = (unsigned char *) alloca (MAX_MULTIBYTE_LENGTH * n);
-  unsigned char *p = buf;
+  size_t i;
   int c;
+  unsigned char *buf, *p;
+  Lisp_Object str;
+  USE_SAFE_ALLOCA;
+
+  SAFE_ALLOCA (buf, unsigned char *, MAX_MULTIBYTE_LENGTH * n);
+  p = buf;
 
   for (i = 0; i < n; i++)
     {
@@ -973,20 +894,24 @@ usage: (string &rest CHARACTERS)  */)
       p += CHAR_STRING (c, p);
     }
 
-  return make_string_from_bytes ((char *) buf, n, p - buf);
+  str = make_string_from_bytes ((char *) buf, n, p - buf);
+  SAFE_FREE ();
+  return str;
 }
 
 DEFUN ("unibyte-string", Funibyte_string, Sunibyte_string, 0, MANY, 0,
        doc: /* Concatenate all the argument bytes and make the result a unibyte string.
 usage: (unibyte-string &rest BYTES)  */)
-     (n, args)
-     int n;
-     Lisp_Object *args;
+  (size_t n, Lisp_Object *args)
 {
-  int i;
-  unsigned char *buf = (unsigned char *) alloca (n);
-  unsigned char *p = buf;
-  unsigned c;
+  size_t i;
+  int c;
+  unsigned char *buf, *p;
+  Lisp_Object str;
+  USE_SAFE_ALLOCA;
+
+  SAFE_ALLOCA (buf, unsigned char *, n);
+  p = buf;
 
   for (i = 0; i < n; i++)
     {
@@ -997,7 +922,9 @@ usage: (unibyte-string &rest BYTES)  */)
       *p++ = c;
     }
 
-  return make_string_from_bytes ((char *) buf, n, p - buf);
+  str = make_string_from_bytes ((char *) buf, n, p - buf);
+  SAFE_FREE ();
+  return str;
 }
 
 DEFUN ("char-resolve-modifiers", Fchar_resolve_modifiers,
@@ -1006,8 +933,7 @@ DEFUN ("char-resolve-modifiers", Fchar_resolve_modifiers,
 The value is a character with modifiers resolved into the character
 code.  Unresolved modifiers are kept in the value.
 usage: (char-resolve-modifiers CHAR)  */)
-     (character)
-     Lisp_Object character;
+  (Lisp_Object character)
 {
   int c;
 
@@ -1026,8 +952,7 @@ non-nil, is an index of a target character in the string.
 
 If the current buffer (or STRING) is multibyte, and the target
 character is not ASCII nor 8-bit character, an error is signalled.  */)
-     (position, string)
-     Lisp_Object position, string;
+  (Lisp_Object position, Lisp_Object string)
 {
   int c;
   EMACS_INT pos;
@@ -1047,7 +972,7 @@ character is not ASCII nor 8-bit character, an error is signalled.  */)
 	  pos = XFASTINT (position);
 	  p = CHAR_POS_ADDR (pos);
 	}
-      if (NILP (current_buffer->enable_multibyte_characters))
+      if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
 	return make_number (*p);
     }
   else
@@ -1078,14 +1003,14 @@ character is not ASCII nor 8-bit character, an error is signalled.  */)
 
 
 void
-init_character_once ()
+init_character_once (void)
 {
 }
 
 #ifdef emacs
 
 void
-syms_of_character ()
+syms_of_character (void)
 {
   DEFSYM (Qcharacterp, "characterp");
   DEFSYM (Qauto_fill_chars, "auto-fill-chars");
@@ -1097,23 +1022,21 @@ syms_of_character ()
   defsubr (&Scharacterp);
   defsubr (&Sunibyte_char_to_multibyte);
   defsubr (&Smultibyte_char_to_unibyte);
-  defsubr (&Schar_bytes);
   defsubr (&Schar_width);
   defsubr (&Sstring_width);
-  defsubr (&Schar_direction);
   defsubr (&Sstring);
   defsubr (&Sunibyte_string);
   defsubr (&Schar_resolve_modifiers);
   defsubr (&Sget_byte);
 
-  DEFVAR_LISP ("translation-table-vector",  &Vtranslation_table_vector,
+  DEFVAR_LISP ("translation-table-vector",  Vtranslation_table_vector,
 	       doc: /*
 Vector recording all translation tables ever defined.
 Each element is a pair (SYMBOL . TABLE) relating the table to the
 symbol naming it.  The ID of a translation table is an index into this vector.  */);
   Vtranslation_table_vector = Fmake_vector (make_number (16), Qnil);
 
-  DEFVAR_LISP ("auto-fill-chars", &Vauto_fill_chars,
+  DEFVAR_LISP ("auto-fill-chars", Vauto_fill_chars,
 	       doc: /*
 A char-table for characters which invoke auto-filling.
 Such characters have value t in this table.  */);
@@ -1121,7 +1044,7 @@ Such characters have value t in this table.  */);
   CHAR_TABLE_SET (Vauto_fill_chars, ' ', Qt);
   CHAR_TABLE_SET (Vauto_fill_chars, '\n', Qt);
 
-  DEFVAR_LISP ("char-width-table", &Vchar_width_table,
+  DEFVAR_LISP ("char-width-table", Vchar_width_table,
 	       doc: /*
 A char-table for width (columns) of each character.  */);
   Vchar_width_table = Fmake_char_table (Qnil, make_number (1));
@@ -1129,11 +1052,7 @@ A char-table for width (columns) of each character.  */);
   char_table_set_range (Vchar_width_table, MAX_5_BYTE_CHAR + 1, MAX_CHAR,
 			make_number (4));
 
-  DEFVAR_LISP ("char-direction-table", &Vchar_direction_table,
-	       doc: /* A char-table for direction of each character.  */);
-  Vchar_direction_table = Fmake_char_table (Qnil, make_number (1));
-
-  DEFVAR_LISP ("printable-chars", &Vprintable_chars,
+  DEFVAR_LISP ("printable-chars", Vprintable_chars,
 	       doc: /* A char-table for each printable character.  */);
   Vprintable_chars = Fmake_char_table (Qnil, Qnil);
   Fset_char_table_range (Vprintable_chars,
@@ -1142,7 +1061,7 @@ A char-table for width (columns) of each character.  */);
 			 Fcons (make_number (160),
 				make_number (MAX_5_BYTE_CHAR)), Qt);
 
-  DEFVAR_LISP ("char-script-table", &Vchar_script_table,
+  DEFVAR_LISP ("char-script-table", Vchar_script_table,
 	       doc: /* Char table of script symbols.
 It has one extra slot whose value is a list of script symbols.  */);
 
@@ -1154,7 +1073,7 @@ It has one extra slot whose value is a list of script symbols.  */);
   Fput (Qchar_script_table, Qchar_table_extra_slots, make_number (1));
   Vchar_script_table = Fmake_char_table (Qchar_script_table, Qnil);
 
-  DEFVAR_LISP ("script-representative-chars", &Vscript_representative_chars,
+  DEFVAR_LISP ("script-representative-chars", Vscript_representative_chars,
 	       doc: /* Alist of scripts vs the representative characters.
 Each element is a cons (SCRIPT . CHARS).
 SCRIPT is a symbol representing a script or a subgroup of a script.
@@ -1164,7 +1083,7 @@ If it is a vector, one of the characters in the vector is necessary.
 This variable is used to find a font for a specific script.  */);
   Vscript_representative_chars = Qnil;
 
-  DEFVAR_LISP ("unicode-category-table", &Vunicode_category_table,
+  DEFVAR_LISP ("unicode-category-table", Vunicode_category_table,
 	       doc: /* Char table of Unicode's "General Category".
 All Unicode characters have one of the following values (symbol):
   Lu, Ll, Lt, Lm, Lo, Mn, Mc, Me, Nd, Nl, No, Pc, Pd, Ps, Pe, Pi, Pf, Po,
@@ -1175,6 +1094,3 @@ See The Unicode Standard for the meaning of those values.  */);
 }
 
 #endif /* emacs */
-
-/* arch-tag: b6665960-3c3d-4184-85cd-af4318197999
-   (do not change this comment) */

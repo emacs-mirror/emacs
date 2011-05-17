@@ -16,8 +16,8 @@
 
 #include "XMenuInt.h"
 
-char *
-XMenuError()
+char const *
+XMenuError(void)
 {
     static char message[128];		/* Error message buffer. */
 
@@ -27,6 +27,3 @@ XMenuError()
     sprintf(message, "Unknown _XMErrorCode: %d", _XMErrorCode);
     return(message);
 }
-
-/* arch-tag: 5fff4a23-40ca-40d0-8887-c50fc73dea9d
-   (do not change this comment) */

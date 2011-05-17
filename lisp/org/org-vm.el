@@ -1,12 +1,11 @@
 ;;; org-vm.el --- Support for links to VM messages from within Org-mode
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.35i
+;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -66,9 +65,19 @@
 	     (to (vm-get-header-contents message "To"))
 	     (from (vm-get-header-contents message "From"))
 	     (message-id (vm-su-message-id message))
+	     (date (vm-get-header-contents message "Date"))
+	     (date-ts (and date (format-time-string
+				 (org-time-stamp-format t)
+				 (date-to-time date))))
+	     (date-ts-ia (and date (format-time-string
+				    (org-time-stamp-format t t)
+				    (date-to-time date))))
 	     desc link)
 	(org-store-link-props :type "vm" :from from :to to :subject subject
 			      :message-id message-id)
+	(when date
+	  (org-add-link-props :date date :date-timestamp date-ts
+			      :date-timestamp-inactive date-ts-ia))
 	(setq message-id (org-remove-angle-brackets message-id))
 	(setq folder (abbreviate-file-name folder))
 	(if (and vm-folder-directory
@@ -128,6 +137,5 @@
 
 (provide 'org-vm)
 
-;; arch-tag: cbc3047b-935e-4d2a-96e7-c5b0117aaa6d
 
 ;;; org-vm.el ends here

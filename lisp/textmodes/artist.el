@@ -1,7 +1,6 @@
 ;;; artist.el --- draw ascii graphics with your mouse
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
 
 ;; Author:       Tomas Abrahamsson <tab@lysator.liu.se>
 ;; Maintainer:   Tomas Abrahamsson <tab@lysator.liu.se>
@@ -423,7 +422,7 @@ be in `artist-spray-chars', or spraying will behave strangely.")
 (defvar artist-mode-name " Artist"
   "Name of Artist mode beginning with a space (appears in the mode-line).")
 
-(defvar artist-curr-go 'pen-char
+(defvar artist-curr-go 'pen-line
   "Current selected graphics operation.")
 (make-variable-buffer-local 'artist-curr-go)
 
@@ -503,6 +502,49 @@ This variable is initialized by the `artist-make-prev-next-op-alist' function.")
 (defvar artist-arrow-point-1 nil)
 (defvar artist-arrow-point-2 nil)
 
+(defvar artist-menu-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [spray-chars]
+      '(menu-item "Characters for Spray" artist-select-spray-chars
+		  :help "Choose characters for sprayed by the spray-can"))
+    (define-key map [borders]
+      '(menu-item "Draw Shape Borders" artist-toggle-borderless-shapes
+		  :help "Toggle whether shapes are drawn with borders"
+		  :button (:toggle . (not artist-borderless-shapes))))
+    (define-key map [trimming]
+      '(menu-item "Trim Line Endings" artist-toggle-trim-line-endings
+		  :help "Toggle trimming of line-endings"
+		  :button (:toggle . artist-trim-line-endings)))
+    (define-key map [rubber-band]
+      '(menu-item "Rubber-banding" artist-toggle-rubber-banding
+		  :help "Toggle rubber-banding"
+		  :button (:toggle . artist-rubber-banding)))
+    (define-key map [set-erase]
+      '(menu-item "Character to Erase..." artist-select-erase-char
+		  :help "Choose a specific character to erase"))
+    (define-key map [set-line]
+      '(menu-item "Character for Line..." artist-select-line-char
+		  :help "Choose the character to insert when drawing lines"))
+    (define-key map [set-fill]
+      '(menu-item "Character for Fill..." artist-select-fill-char
+		  :help "Choose the character to insert when filling in shapes"))
+    (define-key map [artist-separator] '(menu-item "--"))
+    (dolist (op '(("Vaporize" artist-select-op-vaporize-lines vaporize-lines)
+		  ("Erase" artist-select-op-erase-rectangle erase-rect)
+		  ("Spray-can" artist-select-op-spray-set-size spray-get-size)
+		  ("Text" artist-select-op-text-overwrite text-ovwrt)
+		  ("Ellipse" artist-select-op-circle circle)
+		  ("Poly-line" artist-select-op-straight-poly-line spolyline)
+		  ("Rectangle" artist-select-op-square square)
+    		  ("Line" artist-select-op-straight-line s-line)
+    		  ("Pen" artist-select-op-pen-line pen-line)))
+      (define-key map (vector (nth 2 op))
+    	`(menu-item ,(nth 0 op)
+    		    ,(nth 1 op)
+    		    :help ,(format "Draw using the %s style" (nth 0 op))
+    		    :button (:radio . (eq artist-curr-go ',(nth 2 op))))))
+    map))
+
 (defvar artist-mode-map
   (let ((map (make-sparse-keymap)))
     (setq artist-mode-map (make-sparse-keymap))
@@ -555,6 +597,7 @@ This variable is initialized by the `artist-make-prev-next-op-alist' function.")
     (define-key map "\C-c\C-a\C-y" 'artist-select-op-paste)
     (define-key map "\C-c\C-af"    'artist-select-op-flood-fill)
     (define-key map "\C-c\C-a\C-b" 'artist-submit-bug-report)
+    (define-key map [menu-bar artist] (cons "Artist" artist-menu-map))
     map)
   "Keymap for `artist-minor-mode'.")
 
@@ -1899,7 +1942,7 @@ Return a list (RETURN-CODE STDOUT STDERR)."
   ;;
   ;;	Example: In the figure below, the `X' is the very last
   ;;		 character in the buffer ("a non-empty line at the
-  ;;             end"). Suppose point is at at P. Then (forward-line 1)
+  ;;             end"). Suppose point is at P. Then (forward-line 1)
   ;;             returns 0 and puts point after the `X'.
   ;;
   ;;			--------top of buffer--------
@@ -1957,24 +2000,11 @@ The replacement is used to convert tabs and new-lines to spaces."
 
 (defun artist-replace-char (new-char)
   "Replace the character at point with NEW-CHAR."
-  ;; Check that the variable exists first. The doc says it was added in 19.23.
-  (if (and (and (boundp 'emacs-major-version) (= emacs-major-version 20))
-	   (and (boundp 'emacs-minor-version) (<= emacs-minor-version 3)))
-      ;; This is a bug workaround for Emacs 20, versions up to 20.3:
-      ;; The self-insert-command doesn't care about the overwrite-mode,
-      ;; so the insertion is done in the same way as in picture mode.
-      ;; This seems to be a little bit slower.
-      (progn
-	(artist-move-to-xy (1+ (artist-current-column))
-			   (artist-current-line))
-	(delete-char -1)
-	(insert (artist-get-replacement-char new-char)))
-    ;; In emacs-19, the self-insert-command works better and faster
-    (let ((overwrite-mode 'overwrite-mode-textual)
-	  (fill-column 32765)		; Large :-)
-	  (blink-matching-paren nil))
-      (setq last-command-event (artist-get-replacement-char new-char))
-      (self-insert-command 1))))
+  (let ((overwrite-mode 'overwrite-mode-textual)
+	(fill-column 32765)		; Large :-)
+	(blink-matching-paren nil))
+    (setq last-command-event (artist-get-replacement-char new-char))
+    (self-insert-command 1)))
 
 (defun artist-replace-chars (new-char count)
   "Replace characters at point with NEW-CHAR.  COUNT chars are replaced."
@@ -2939,7 +2969,7 @@ Blanks in the rendered text overwrite any text in the buffer."
 Returns a list of points.  Each point is on the form (X1 . Y1)."
   (let ((points))
     (while (> n 0)
-      (let* ((angle (* (random 359) (/ pi 180)))
+      (let* ((angle (* (random 359) (/ float-pi 180)))
 	     (dist  (random radius))
 	     (point (cons (round (* dist (cos angle)))
 			  (round (* dist (sin angle))))))
@@ -4000,7 +4030,7 @@ The 2-point shape SHAPE is drawn from X1, Y1 to X2, Y2."
 (defun artist-draw-region-trim-line-endings (min-y max-y)
   "Trim lines in current draw-region from MIN-Y to MAX-Y.
 Trimming here means removing white space at end of a line."
-  ;; Safetyc check: switch min-y and max-y if if max-y is smaller
+  ;; Safety check: switch min-y and max-y if max-y is smaller
   (if (< max-y min-y)
       (let ((tmp min-y))
 	(setq min-y max-y)
@@ -4615,6 +4645,10 @@ If optional argument STATE is positive, turn borders on."
 
 	  (artist-arrow-point-set-state artist-arrow-point-2 new-state)))))
 
+(defun artist-select-op-pen-line ()
+  "Select drawing pen lines."
+  (interactive)
+  (artist-select-operation "Pen Line"))
 
 (defun artist-select-op-line ()
   "Select drawing lines."
@@ -5570,5 +5604,4 @@ The event, EV, is the mouse event."
 ;; Don't hesitate to ask me any questions.
 
 
-;; arch-tag: 3e63b881-aaaa-4b83-a072-220d4661a8a3
 ;;; artist.el ends here

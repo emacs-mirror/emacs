@@ -1,6 +1,5 @@
 /* Interface from Emacs to terminfo.
-   Copyright (C) 1985, 1986, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1985-1986, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -18,6 +17,8 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
+#include "tparam.h"
+
 #include <setjmp.h>
 #include "lisp.h"
 
@@ -34,21 +35,19 @@ char *UP, *BC, PC;
    format is different too.
 */
 
+extern char *tparm (const char *str, ...);
+
+
 char *
-tparam (string, outstring, len, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
-     char *string;
-     char *outstring;
-     int len, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9;
+tparam (const char *string, char *outstring, int len,
+	int arg1, int arg2, int arg3, int arg4)
 {
   char *temp;
-  extern char *tparm();
 
-  temp = tparm (string, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
-  if (outstring == 0)
-    outstring = ((char *) (xmalloc ((strlen (temp)) + 1)));
-  strcpy (outstring, temp);
-  return outstring;
+  /* Emacs always should pass a null OUTSTRING and zero LEN.  */
+  if (outstring || len)
+    abort ();
+
+  temp = tparm (string, arg1, arg2, arg3, arg4);
+  return xstrdup (temp);
 }
-
-/* arch-tag: a6f96a69-e68f-4e9d-a223-f0b0da26ead5
-   (do not change this comment) */

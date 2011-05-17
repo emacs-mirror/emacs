@@ -1,6 +1,5 @@
 /* Definitions for interface to indent.c
-   Copyright (C) 1985, 1986, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1985-1986, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -49,16 +48,16 @@ struct position
     EMACS_INT tab_offset;
   };
 
-struct position *compute_motion P_ ((EMACS_INT from, EMACS_INT fromvpos,
-				     EMACS_INT fromhpos, int did_motion,
-				     EMACS_INT to, EMACS_INT tovpos,
-				     EMACS_INT tohpos,
-				     EMACS_INT width, EMACS_INT hscroll,
-				     EMACS_INT tab_offset, struct window *));
-struct position *vmotion P_ ((EMACS_INT from, EMACS_INT vtarget,
-			      struct window *));
-EMACS_INT skip_invisible P_ ((EMACS_INT pos, EMACS_INT *next_boundary_p,
-			      EMACS_INT to, Lisp_Object window));
+struct position *compute_motion (EMACS_INT from, EMACS_INT fromvpos,
+                                 EMACS_INT fromhpos, int did_motion,
+                                 EMACS_INT to, EMACS_INT tovpos,
+                                 EMACS_INT tohpos,
+                                 EMACS_INT width, EMACS_INT hscroll,
+                                 EMACS_INT tab_offset, struct window *);
+struct position *vmotion (EMACS_INT from, EMACS_INT vtarget,
+                          struct window *);
+EMACS_INT skip_invisible (EMACS_INT pos, EMACS_INT *next_boundary_p,
+                          EMACS_INT to, Lisp_Object window);
 
 /* Value of point when current_column was called */
 extern EMACS_INT last_known_column_point;
@@ -68,13 +67,11 @@ extern EMACS_INT last_known_column_point;
 /* Return true if the display table DISPTAB specifies the same widths
    for characters as WIDTHTAB.  We use this to decide when to
    invalidate the buffer's column_cache.  */
-int disptab_matches_widthtab P_ ((struct Lisp_Char_Table *disptab,
-				  struct Lisp_Vector *widthtab));
+int disptab_matches_widthtab (struct Lisp_Char_Table *disptab,
+                              struct Lisp_Vector *widthtab);
 
 /* Recompute BUF's width table, using the display table DISPTAB.  */
-void recompute_width_table P_ ((struct buffer *buf,
-				struct Lisp_Char_Table *disptab));
+void recompute_width_table (struct buffer *buf,
+                            struct Lisp_Char_Table *disptab);
 
 
-/* arch-tag: f9feb373-5bff-4f4f-9198-94805d00cfd7
-   (do not change this comment) */

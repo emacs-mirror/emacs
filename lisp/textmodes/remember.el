@@ -1,7 +1,6 @@
 ;;; remember --- a mode for quickly jotting down things to remember
 
-;; Copyright (C) 1999, 2000, 2001, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2001, 2003-2011  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Created: 29 Mar 1999
@@ -315,12 +314,6 @@ With a prefix or a visible region, use the region as INITIAL."
   (let ((remember-in-new-frame t))
     (remember initial)))
 
-(defsubst remember-time-to-seconds (time)
-  "Convert TIME to a floating point number."
-  (+ (* (car time) 65536.0)
-     (cadr time)
-     (/ (or (car (cdr (cdr time))) 0) 1000000.0)))
-
 (defsubst remember-mail-date (&optional rfc822-p)
   "Return a simple date.  Nothing fancy."
   (if rfc822-p
@@ -355,8 +348,7 @@ In which case `remember-mailbox' should be the name of the mailbox.
 Each piece of pseudo-mail created will have an `X-Todo-Priority'
 field, for the purpose of appropriate splitting."
   (let ((who (read-string "Who is this item related to? "))
-        (moment
-         (format "%.0f" (remember-time-to-seconds (current-time))))
+        (moment (format "%.0f" (float-time)))
         (desc (remember-buffer-desc))
         (text (buffer-string)))
     (with-temp-buffer
@@ -535,5 +527,4 @@ the data away for latter retrieval, and possible indexing.
 \\{remember-mode-map}"
   (set-keymap-parent remember-mode-map nil))
 
-;; arch-tag: 59312a05-06c7-4da1-b6f7-5ea41c9d5577
 ;;; remember.el ends here

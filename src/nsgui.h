@@ -1,5 +1,5 @@
 /* Definitions and headers for communication on the NeXT/Open/GNUstep API.
-   Copyright (C) 1995, 2005, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1995, 2005, 2008-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -198,5 +198,3 @@ typedef struct _NSRect  { NSPoint origin; NSSize size; } NSRect;
 
 #endif  /* __NSGUI_H__ */
 
-/* arch-tag: b2af3275-62c3-45b4-9335-4c9635c67e55
-   (do not change this comment) */

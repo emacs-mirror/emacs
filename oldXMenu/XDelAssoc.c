@@ -2,25 +2,15 @@
 
 #include "copyright.h"
 
-
-#include <X11/Xlib.h>
-#include "X10.h"
-void emacs_remque();
-struct qelem {
-	struct    qelem *q_forw;
-	struct    qelem *q_back;
-	char q_data[1];
-};
+#include "XMenuInt.h"
 
 /*
  * XDeleteAssoc - Delete an association in an XAssocTable keyed on
  * an XId.  An association may be removed only once.  Redundant
  * deletes are meaningless (but cause no problems).
  */
-XDeleteAssoc(dpy, table, x_id)
-        register Display *dpy;
-	register XAssocTable *table;
-	register XID x_id;
+void
+XDeleteAssoc(register Display *dpy, register XAssocTable *table, register XID x_id)
 {
 	int hash;
 	register XAssoc *bucket;
@@ -58,6 +48,3 @@ XDeleteAssoc(dpy, table, x_id)
 	/* It is apparently not in the table. */
 	return;
 }
-
-/* arch-tag: 90981a7e-601c-487a-b364-cdf55d6c475b
-   (do not change this comment) */

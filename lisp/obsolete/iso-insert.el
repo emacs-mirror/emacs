@@ -1,11 +1,11 @@
 ;;; iso-insert.el --- insert functions for ISO 8859/1  -*- coding: iso-8859-1;-*-
 
-;; Copyright (C) 1987, 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1987, 1994, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Howard Gayle
 ;; Maintainer: FSF
 ;; Keywords: i18n
+;; Obsolete-since: 22.1
 
 ;; This file is part of GNU Emacs.
 
@@ -23,8 +23,6 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-
-;; This file has been obsolete since Emacs 22.1.
 
 ;; Provides keys for inserting ISO Latin-1 characters.  They use the
 ;; prefix key C-x 8.  Type C-x 8 C-h for a list.
@@ -629,5 +627,4 @@
 
 (provide 'iso-insert)
 
-;; arch-tag: eb5f97bd-a034-4851-92ff-ab1f1bf92814
 ;;; iso-insert.el ends here

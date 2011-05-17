@@ -1,7 +1,6 @@
 ;;; gnus-setup.el --- Initialization & Setup for Gnus 5
 
-;; Copyright (C) 1995, 1996, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 2000-2011 Free Software Foundation, Inc.
 
 ;; Author: Steven L. Baur <steve@miranova.com>
 ;; Keywords: news
@@ -189,5 +188,4 @@ score the alt hierarchy, you'd say \"!alt.all\"." t nil))
 
 (run-hooks 'gnus-setup-load-hook)
 
-;; arch-tag: 08e4af93-8565-46bf-905c-36229400609d
 ;;; gnus-setup.el ends here

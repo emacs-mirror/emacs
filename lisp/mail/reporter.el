@@ -1,7 +1,6 @@
 ;;; reporter.el --- customizable bug reporting of lisp programs
 
-;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1998, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author:          1993-1998 Barry A. Warsaw
 ;; Maintainer:      FSF
@@ -407,5 +406,4 @@ mail-sending package is used for editing and sending the message."
 
 (provide 'reporter)
 
-;; arch-tag: 33612ff4-fbbc-4be2-b183-560ce9e0199b
 ;;; reporter.el ends here

@@ -1,7 +1,7 @@
 ;;; ede/speedbar.el --- Speedbar viewing of EDE projects
 
-;;; Copyright (C) 1998, 1999, 2000, 2001, 2003, 2005, 2007, 2008, 2009, 2010
-;;; Free Software Foundation, Inc.
+;; Copyright (C) 1998-2001, 2003, 2005, 2007-2011
+;;   Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make, tags
@@ -108,7 +108,7 @@ Argument DIR is the directory from which to derive the list of objects."
 ;;; Some special commands useful in EDE
 ;;
 (defun ede-speedbar-remove-file-from-target ()
-  "Remove the file at point from it's target."
+  "Remove the file at point from its target."
   (interactive)
   (if (stringp (speedbar-line-token))
       (progn
@@ -176,10 +176,7 @@ Argument DIR is the directory from which to derive the list of objects."
     (beginning-of-line)
     (looking-at "^\\([0-9]+\\):")
     (let ((depth (string-to-number (match-string 1))))
-      (while (not (re-search-forward "[]] [^ ]"
-				     (save-excursion (end-of-line)
-						     (point))
-				     t))
+      (while (not (re-search-forward "[]] [^ ]" (point-at-eol) t))
 	(re-search-backward (format "^%d:" (1- depth)))
 	(setq depth (1- depth)))
       (speedbar-line-token))))
@@ -358,5 +355,4 @@ INDENT is the current indentation level."
 ;; generated-autoload-load-name: "ede/speedbar"
 ;; End:
 
-;; arch-tag: 56721fc9-8eb5-4115-8511-18cf8397ec87
 ;;; ede/speedbar.el ends here

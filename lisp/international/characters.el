@@ -1,9 +1,8 @@
 ;;; characters.el --- set syntax and category for multibyte characters
 
-;; Copyright (C) 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000-2011  Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 ;; Copyright (C) 2003
@@ -187,6 +186,9 @@ Combining diacritic or mark (Unicode General Category M)")
 			       japanese-jisx0213-1 japanese-jisx0213-2
 			       cp932-2-byte))
   (map-charset-chars #'modify-category-entry l ?j))
+
+;; Fullwidth characters
+(modify-category-entry '(#xff01 . #xff60) ?\|)
 
 ;; Unicode equivalents of JISX0201-kana
 (let ((range '(#xff61 . #xff9f)))
@@ -1231,6 +1233,170 @@ Setup char-width-table appropriate for non-CJK language environment."
 (optimize-char-table (standard-category-table))
 
 
+;; Display of glyphless characters.
+
+(defvar char-acronym-table
+  (make-char-table 'char-acronym-table nil)
+  "Char table of acronyms for non-graphic characters.")
+
+(let ((c0-acronyms '("NUL" "SOH" "STX" "ETX" "EOT" "ENQ" "ACK" "BEL"
+		     "BS"   nil   nil  "VT"  "FF"  "CR"  "SO"  "SI"
+		     "DLE" "DC1" "DC2" "DC3" "DC4" "NAK" "SYN" "ETB"
+		     "CAN" "EM"  "SUB" "ESC" "FC"  "GS"  "RS"  "US")))
+  (dotimes (i 32)
+    (aset char-acronym-table i (car c0-acronyms))
+    (setq c0-acronyms (cdr c0-acronyms))))
+
+(let ((c1-acronyms '("XXX" "XXX" "BPH" "NBH" "IND" "NEL" "SSA" "ESA"
+		     "HTS" "HTJ" "VTS" "PLD" "PLU" "R1"  "SS2" "SS1"
+		     "DCS" "PU1" "PU2" "STS" "CCH" "MW"  "SPA" "EPA"
+		     "SOS" "XXX" "SC1" "CSI" "ST"  "OSC" "PM"  "APC")))
+  (dotimes (i 32)
+    (aset char-acronym-table (+ #x0080 i) (car c1-acronyms))
+    (setq c1-acronyms (cdr c1-acronyms))))
+
+(aset char-acronym-table #x17B4 "KIVAQ")   ; KHMER VOWEL INHERENT AQ
+(aset char-acronym-table #x17B5 "KIVAA")   ; KHMER VOWEL INHERENT AA
+(aset char-acronym-table #x200B "ZWSP")    ; ZERO WIDTH SPACE
+(aset char-acronym-table #x200C "ZWNJ")    ; ZERO WIDTH NON-JOINER
+(aset char-acronym-table #x200D "ZWJ")	   ; ZERO WIDTH JOINER
+(aset char-acronym-table #x200E "LRM")	   ; LEFT-TO-RIGHT MARK
+(aset char-acronym-table #x200F "RLM")	   ; RIGHT-TO-LEFT MARK
+(aset char-acronym-table #x202A "LRE")	   ; LEFT-TO-RIGHT EMBEDDING
+(aset char-acronym-table #x202B "RLE")	   ; RIGHT-TO-LEFT EMBEDDING
+(aset char-acronym-table #x202C "PDF")	   ; POP DIRECTIONAL FORMATTING
+(aset char-acronym-table #x202D "LRO")	   ; LEFT-TO-RIGHT OVERRIDE
+(aset char-acronym-table #x202E "RLO")	   ; RIGHT-TO-LEFT OVERRIDE
+(aset char-acronym-table #x2060 "WJ")	   ; WORD JOINER
+(aset char-acronym-table #x206A "ISS")	   ; INHIBIT SYMMETRIC SWAPPING
+(aset char-acronym-table #x206B "ASS")	   ; ACTIVATE SYMMETRIC SWAPPING
+(aset char-acronym-table #x206C "IAFS")    ; INHIBIT ARABIC FORM SHAPING
+(aset char-acronym-table #x206D "AAFS")    ; ACTIVATE ARABIC FORM SHAPING
+(aset char-acronym-table #x206E "NADS")    ; NATIONAL DIGIT SHAPES
+(aset char-acronym-table #x206F "NODS")    ; NOMINAL DIGIT SHAPES
+(aset char-acronym-table #xFEFF "ZWNBSP")  ; ZERO WIDTH NO-BREAK SPACE
+(aset char-acronym-table #xFFF9 "IAA")	   ; INTERLINEAR ANNOTATION ANCHOR
+(aset char-acronym-table #xFFFA "IAS")     ; INTERLINEAR ANNOTATION SEPARATOR
+(aset char-acronym-table #xFFFB "IAT")     ; INTERLINEAR ANNOTATION TERMINATOR
+(aset char-acronym-table #x1D173 "BEGBM")  ; MUSICAL SYMBOL BEGIN BEAM
+(aset char-acronym-table #x1D174 "ENDBM")  ; MUSICAL SYMBOL END BEAM
+(aset char-acronym-table #x1D175 "BEGTIE") ; MUSICAL SYMBOL BEGIN TIE
+(aset char-acronym-table #x1D176 "END")	   ; MUSICAL SYMBOL END TIE
+(aset char-acronym-table #x1D177 "BEGSLR") ; MUSICAL SYMBOL BEGIN SLUR
+(aset char-acronym-table #x1D178 "ENDSLR") ; MUSICAL SYMBOL END SLUR
+(aset char-acronym-table #x1D179 "BEGPHR") ; MUSICAL SYMBOL BEGIN PHRASE
+(aset char-acronym-table #x1D17A "ENDPHR") ; MUSICAL SYMBOL END PHRASE
+(aset char-acronym-table #xE0001 "|->TAG") ; LANGUAGE TAG
+(aset char-acronym-table #xE0020 "SP TAG") ; TAG SPACE
+(dotimes (i 94)
+  (aset char-acronym-table (+ #xE0021 i) (format " %c TAG" (+ 33 i))))
+(aset char-acronym-table #xE007F "->|TAG") ; CANCEL TAG
+
+(defun update-glyphless-char-display (&optional variable value)
+  "Make the setting of `glyphless-char-display-control' take effect.
+This function updates the char-table `glyphless-char-display'."
+  (when value
+    (set-default variable value))
+  (dolist (elt value)
+    (let ((target (car elt))
+	  (method (cdr elt)))
+      (or (memq method '(zero-width thin-space empty-box acronym hex-code))
+	  (error "Invalid glyphless character display method: %s" method))
+      (cond ((eq target 'c0-control)
+	     (set-char-table-range glyphless-char-display '(#x00 . #x1F)
+				   method)
+	     ;; Users will not expect their newlines and TABs be
+	     ;; displayed as anything but themselves, so exempt those
+	     ;; two characters from c0-control.
+	     (set-char-table-range glyphless-char-display #x9 nil)
+	     (set-char-table-range glyphless-char-display #xa nil))
+	    ((eq target 'c1-control)
+	     (set-char-table-range glyphless-char-display '(#x80 . #x9F)
+				   method))
+	    ((eq target 'format-control)
+	     (map-char-table
+	      #'(lambda (char category)
+		  (if (eq category 'Cf)
+		      (let ((this-method method)
+			    from to)
+			(if (consp char)
+			    (setq from (car char) to (cdr char))
+			  (setq from char to char))
+			(while (<= from to)
+			  (when (/= from #xAD)
+			    (if (eq method 'acronym)
+				(setq this-method
+				      (aref char-acronym-table from)))
+			    (set-char-table-range glyphless-char-display
+						  from this-method))
+			  (setq from (1+ from))))))
+	      unicode-category-table))
+	    ((eq target 'no-font)
+	     (set-char-table-extra-slot glyphless-char-display 0 method))
+	    (t
+	     (error "Invalid glyphless character group: %s" target))))))
+
+;;; Control of displaying glyphless characters.
+(defcustom glyphless-char-display-control
+  '((format-control . thin-space)
+    (no-font . hex-code))
+  "List of directives to control display of glyphless characters.
+
+Each element has the form (GROUP . METHOD), where GROUP is a
+symbol specifying the character group, and METHOD is a symbol
+specifying the method of displaying characters belonging to that
+group.
+
+GROUP must be one of these symbols:
+  `c0-control':     U+0000..U+001F, but excluding newline and TAB.
+  `c1-control':     U+0080..U+009F.
+  `format-control': Characters of Unicode General Category `Cf',
+                    such as U+200C (ZWNJ), U+200E (LRM), but
+                    excluding characters that have graphic images,
+                    such as U+00AD (SHY).
+  `no-font':        characters for which no suitable font is found.
+                    For character terminals, characters that cannot
+                    be encoded by `terminal-coding-system'.
+
+METHOD must be one of these symbols:
+  `zero-width': don't display.
+  `thin-space': display a thin (1-pixel width) space.  On character
+                terminals, display as 1-character space.
+  `empty-box':  display an empty box.
+  `acronym':    display an acronym of the character in a box.  The
+                acronym is taken from `char-acronym-table', which see.
+  `hex-code':   display the hexadecimal character code in a box."
+
+  :type '(alist :key-type (symbol :tag "Character Group")
+		:value-type (symbol :tag "Display Method"))
+  :options '((c0-control
+	      (choice (const :tag "Don't display" zero-width)
+		      (const :tag "Display as thin space" thin-space)
+		      (const :tag "Display as empty box" empty-box)
+		      (const :tag "Display acronym" acronym)
+		      (const :tag "Display hex code in a box" hex-code)))
+	     (c1-control
+	      (choice (const :tag "Don't display" zero-width)
+		      (const :tag "Display as thin space" thin-space)
+		      (const :tag "Display as empty box" empty-box)
+		      (const :tag "Display acronym" acronym)
+		      (const :tag "Display hex code in a box" hex-code)))
+	     (format-control
+	      (choice (const :tag "Don't display" zero-width)
+		      (const :tag "Display as thin space" thin-space)
+		      (const :tag "Display as empty box" empty-box)
+		      (const :tag "Display acronym" acronym)
+		      (const :tag "Display hex code in a box" hex-code)))
+	     (no-font
+	      (choice (const :tag "Don't display" zero-width)
+		      (const :tag "Display as thin space" thin-space)
+		      (const :tag "Display as empty box" empty-box)
+		      (const :tag "Display acronym" acronym)
+		      (const :tag "Display hex code in a box" hex-code))))
+  :set 'update-glyphless-char-display
+  :group 'display)
+
+
 ;;; Setting word boundary.
 
 (setq word-combining-categories
@@ -1247,5 +1413,4 @@ Setup char-width-table appropriate for non-CJK language environment."
 ;; coding: utf-8
 ;; End:
 
-;; arch-tag: 85889c35-9f4d-4912-9bf5-82de31b0d42d
 ;;; characters.el ends here

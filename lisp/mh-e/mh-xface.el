@@ -1,7 +1,6 @@
 ;;; mh-xface.el --- MH-E X-Face and Face header field display
 
-;; Copyright (C) 2002, 2003, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2005-2011  Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -471,5 +470,4 @@ The argument CHANGE is ignored."
 ;; sentence-end-double-space: nil
 ;; End:
 
-;; arch-tag: a79dd33f-d0e5-4b19-a53a-be690f90229a
 ;;; mh-xface.el ends here

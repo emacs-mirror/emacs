@@ -1,7 +1,6 @@
 /* test-distrib.c --- testing distribution of nonprinting chars
 
-Copyright (C) 1987, 1993, 1994, 1995, 1999, 2001, 2002, 2003, 2004, 2005,
-              2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright (C) 1987, 1993-1995, 1999, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -19,45 +18,28 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
-
 #include <stdio.h>
-
-#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
-#endif
-
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
-
-#ifndef O_RDONLY
-#define O_RDONLY 0
-#endif
 
 /* Break string in two parts to avoid buggy C compilers that ignore characters
    after nulls in strings.  */
 
-char string1[] = "Testing distribution of nonprinting chars:\n\
+static char string1[] = "Testing distribution of nonprinting chars:\n\
 Should be 0177: \177 Should be 0377: \377 Should be 0212: \212.\n\
 Should be 0000: ";
 
-char string2[] = ".\n\
+static char string2[] = ".\n\
 This file is read by the `test-distribution' program.\n\
 If you change it, you will make that program fail.\n";
 
-char buf[300];
-
 /* Like `read' but keeps trying until it gets SIZE bytes or reaches eof.  */
-int
-cool_read (fd, buf, size)
-     int fd;
-     char *buf;
-     int size;
+static int
+cool_read (int fd, char *buf, size_t size)
 {
-  int num, sofar = 0;
+  ssize_t num;
+  ssize_t sofar = 0;
 
   while (1)
     {
@@ -70,11 +52,10 @@ cool_read (fd, buf, size)
 }
 
 int
-main (argc, argv)
-     int argc;
-     char **argv;
+main (int argc, char **argv)
 {
   int fd;
+  char buf[300];
 
   if (argc != 2)
     {
@@ -102,7 +83,5 @@ have been corrupted in the files of Emacs, and it will not work.\n",
   return EXIT_SUCCESS;
 }
 
-/* arch-tag: 3a89005d-df98-4c32-aa9f-33570e16a26a
-   (do not change this comment) */
 
 /* test-distrib.c ends here */

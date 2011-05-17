@@ -1,8 +1,7 @@
 #! /usr/bin/perl
 # Build Emacs in several different configurations.
 
-# Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-#   Free Software Foundation, Inc.
+# Copyright (C) 2001-2011  Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -97,4 +96,3 @@ foreach $config (@configs)
 # mode: cperl
 # End:
 
-# arch-tag: 20a4452d-610a-4e54-9abc-ffe79f5c0d30

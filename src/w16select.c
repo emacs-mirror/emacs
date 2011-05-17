@@ -1,6 +1,6 @@
 /* 16-bit Windows Selection processing for emacs on MS-Windows
-   Copyright (C) 1996, 1997, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+
+Copyright (C) 1996-1997, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -28,7 +28,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef MSDOS
 
 #include <config.h>
-#include <string.h>
 #include <dpmi.h>
 #include <go32.h>
 #include <sys/farptr.h>
@@ -69,13 +68,6 @@ unsigned clipboard_compact (unsigned);
 
 Lisp_Object QCLIPBOARD, QPRIMARY;
 
-/* Coding system for communicating with other Windows programs via the
-   clipboard.  */
-static Lisp_Object Vselection_coding_system;
-
-/* Coding system for the next communicating with other Windows programs.  */
-static Lisp_Object Vnext_selection_coding_system;
-
 /* The segment address and the size of the buffer in low
    memory used to move data between us and WinOldAp module.  */
 static struct {
@@ -109,7 +101,7 @@ static size_t clipboard_storage_size;
 
 /* Return the WinOldAp support version, or 0x1700 if not supported.  */
 unsigned
-identify_winoldap_version ()
+identify_winoldap_version (void)
 {
   __dpmi_regs regs;
 
@@ -124,7 +116,7 @@ identify_winoldap_version ()
 
 /* Open the clipboard, return non-zero if successfull.  */
 unsigned
-open_clipboard ()
+open_clipboard (void)
 {
   __dpmi_regs regs;
 
@@ -147,7 +139,7 @@ open_clipboard ()
 
 /* Empty clipboard, return non-zero if successfull.  */
 unsigned
-empty_clipboard ()
+empty_clipboard (void)
 {
   __dpmi_regs regs;
 
@@ -162,8 +154,7 @@ empty_clipboard ()
 /* Ensure we have a buffer in low memory with enough memory for data
    of size WANT_SIZE.  Return the linear address of the buffer.  */
 static unsigned long
-alloc_xfer_buf (want_size)
-     unsigned want_size;
+alloc_xfer_buf (unsigned want_size)
 {
   __dpmi_regs regs;
 
@@ -200,7 +191,7 @@ alloc_xfer_buf (want_size)
    The clipboard buffer tends to be large in size, because for small
    clipboard data sizes we use the DJGPP transfer buffer.  */
 static void
-free_xfer_buf ()
+free_xfer_buf (void)
 {
   /* If the size is 0, we used DJGPP transfer buffer, so don't free.  */
   if (clipboard_xfer_buf_info.size)
@@ -218,11 +209,7 @@ free_xfer_buf ()
 
 /* Copy data into the clipboard, return zero if successfull.  */
 unsigned
-set_clipboard_data (Format, Data, Size, Raw)
-     unsigned Format;
-     void *Data;
-     unsigned Size;
-     int Raw;
+set_clipboard_data (unsigned Format, void *Data, unsigned Size, int Raw)
 {
   __dpmi_regs regs;
   unsigned truelen;
@@ -321,8 +308,7 @@ set_clipboard_data (Format, Data, Size, Raw)
 
 /* Return the size of the clipboard data of format FORMAT.  */
 unsigned
-get_clipboard_data_size (Format)
-     unsigned Format;
+get_clipboard_data_size (unsigned Format)
 {
   __dpmi_regs regs;
 
@@ -342,11 +328,7 @@ get_clipboard_data_size (Format)
    Warning: this doesn't check whether DATA has enough space to hold
    SIZE bytes.  */
 unsigned
-get_clipboard_data (Format, Data, Size, Raw)
-     unsigned Format;
-     void *Data;
-     unsigned Size;
-     int Raw;
+get_clipboard_data (unsigned Format, void *Data, unsigned Size, int Raw)
 {
   __dpmi_regs regs;
   unsigned long xbuf_addr;
@@ -425,7 +407,7 @@ get_clipboard_data (Format, Data, Size, Raw)
 
 /* Close clipboard, return non-zero if successfull.  */
 unsigned
-close_clipboard ()
+close_clipboard (void)
 {
   __dpmi_regs regs;
 
@@ -439,8 +421,7 @@ close_clipboard ()
 
 /* Compact clipboard data so that at least SIZE bytes is available.  */
 unsigned
-clipboard_compact (Size)
-     unsigned Size;
+clipboard_compact (unsigned Size)
 {
   __dpmi_regs regs;
 
@@ -464,11 +445,10 @@ static char system_error_msg[] =
 
 DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_data, 1, 2, 0,
        doc: /* This sets the clipboard data to the given text.  */)
-     (string, frame)
-     Lisp_Object string, frame;
+  (Lisp_Object string, Lisp_Object frame)
 {
   unsigned ok = 1, put_status = 0;
-  int nbytes, charset_info, no_crlf_conversion;
+  int nbytes, no_crlf_conversion;
   unsigned char *src, *dst = NULL;
 
   CHECK_STRING (string);
@@ -506,9 +486,7 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
     {
       /* We must encode contents of STRING according to what
 	 clipboard-coding-system specifies.  */
-      int bufsize;
       struct coding_system coding;
-      unsigned char *htext2;
       Lisp_Object coding_system =
 	NILP (Vnext_selection_coding_system) ?
 	Vselection_coding_system : Vnext_selection_coding_system;
@@ -574,13 +552,12 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
 
 DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_data, 0, 1, 0,
        doc: /* This gets the clipboard data in text format.  */)
-     (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
   unsigned data_size, truelen;
   unsigned char *htext = NULL;
   Lisp_Object ret = Qnil;
-  int no_crlf_conversion, require_decoding = 0;
+  int require_decoding = 0;
 
   if (NILP (frame))
     frame = Fselected_frame ();
@@ -621,8 +598,6 @@ DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_dat
   }
   if (require_decoding)
     {
-      int bufsize;
-      unsigned char *buf;
       struct coding_system coding;
       Lisp_Object coding_system = Vnext_selection_coding_system;
 
@@ -669,8 +644,7 @@ the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
 \(Those are literal upper-case symbol names, since that's what X expects.)
 For convenience, the symbol nil is the same as `PRIMARY',
 and t is the same as `SECONDARY'.  */)
-     (selection)
-     Lisp_Object selection;
+  (Lisp_Object selection)
 {
   CHECK_SYMBOL (selection);
 
@@ -685,8 +659,8 @@ and t is the same as `SECONDARY'.  */)
      into the clipboard if we run under Windows, so we cannot check
      the clipboard alone.)  */
   if ((EQ (selection, Qnil) || EQ (selection, QPRIMARY))
-      && ! NILP (SYMBOL_VALUE (Fintern_soft (build_string ("kill-ring"),
-					     Qnil))))
+      && ! NILP (Fsymbol_value (Fintern_soft (build_string ("kill-ring"),
+					      Qnil))))
     return Qt;
 
   if (EQ (selection, QCLIPBOARD))
@@ -705,25 +679,50 @@ and t is the same as `SECONDARY'.  */)
 }
 
 void
-syms_of_win16select ()
+syms_of_win16select (void)
 {
   defsubr (&Sw16_set_clipboard_data);
   defsubr (&Sw16_get_clipboard_data);
   defsubr (&Sx_selection_exists_p);
 
-  DEFVAR_LISP ("selection-coding-system", &Vselection_coding_system,
-	       doc: /* Coding system for communicating with other X clients.
-When sending or receiving text via cut_buffer, selection, and clipboard,
-the text is encoded or decoded by this coding system.
-The default value is `iso-latin-1-dos'.  */);
+  DEFVAR_LISP ("selection-coding-system", Vselection_coding_system,
+	       doc: /* Coding system for communicating with other programs.
+
+For MS-Windows and MS-DOS:
+When sending or receiving text via selection and clipboard, the text
+is encoded or decoded by this coding system.  The default value is
+the current system default encoding on 9x/Me, `utf-16le-dos'
+\(Unicode) on NT/W2K/XP, and `iso-latin-1-dos' on MS-DOS.
+
+For X Windows:
+When sending text via selection and clipboard, if the target
+data-type matches with the type of this coding system, it is used
+for encoding the text.  Otherwise (including the case that this
+variable is nil), a proper coding system is used as below:
+
+data-type	coding system
+---------	-------------
+UTF8_STRING	utf-8
+COMPOUND_TEXT	compound-text-with-extensions
+STRING		iso-latin-1
+C_STRING	no-conversion
+
+When receiving text, if this coding system is non-nil, it is used
+for decoding regardless of the data-type.  If this is nil, a
+proper coding system is used according to the data-type as above.
+
+See also the documentation of the variable `x-select-request-type' how
+to control which data-type to request for receiving text.
+
+The default value is nil.  */);
   Vselection_coding_system = intern ("iso-latin-1-dos");
 
-  DEFVAR_LISP ("next-selection-coding-system", &Vnext_selection_coding_system,
-	       doc: /* Coding system for the next communication with other X clients.
+  DEFVAR_LISP ("next-selection-coding-system", Vnext_selection_coding_system,
+	       doc: /* Coding system for the next communication with other programs.
 Usually, `selection-coding-system' is used for communicating with
-other X clients.  But, if this variable is set, it is used for the
-next communication only.  After the communication, this variable is
-set to nil.  */);
+other programs (X Windows clients or MS Windows programs).  But, if this
+variable is set, it is used for the next communication only.
+After the communication, this variable is set to nil.  */);
   Vnext_selection_coding_system = Qnil;
 
   QPRIMARY   = intern ("PRIMARY");	staticpro (&QPRIMARY);
@@ -732,5 +731,3 @@ set to nil.  */);
 
 #endif /* MSDOS */
 
-/* arch-tag: 085a22c8-7324-436e-a6da-102464ce95d8
-   (do not change this comment) */

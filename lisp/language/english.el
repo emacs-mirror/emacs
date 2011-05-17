@@ -1,9 +1,8 @@
 ;;; english.el --- support for English -*- no-byte-compile: t -*-
 
-;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2011  Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010
+;;   2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 ;; Copyright (C) 2003
@@ -67,5 +66,4 @@ Nothing special is needed to handle English.")
 (set-language-info-alist
  "ASCII" (cdr (assoc "English" language-info-alist)))
 
-;; arch-tag: e440bdb0-91b0-4fb4-ae38-425780f8f745
 ;;; english.el ends here

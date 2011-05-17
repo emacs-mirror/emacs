@@ -1,7 +1,6 @@
 ;;; ansi-color.el --- translate ANSI escape sequences into faces
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Alex Schroeder <alex@gnu.org>
@@ -133,14 +132,28 @@ Parameter  Color
   37  47   white
 
 This vector is used by `ansi-color-make-color-map' to create a color
-map.  This color map is stored in the variable `ansi-color-map'."
-  :type '(vector string string string string string string string string)
+map.  This color map is stored in the variable `ansi-color-map'.
+
+Each element may also be a cons cell where the car and cdr specify the
+foreground and background colors, respectively."
+  :type '(vector (choice color (cons color color))
+                 (choice color (cons color color))
+                 (choice color (cons color color))
+                 (choice color (cons color color))
+                 (choice color (cons color color))
+                 (choice color (cons color color))
+                 (choice color (cons color color))
+                 (choice color (cons color color)))
   :set 'ansi-color-map-update
   :initialize 'custom-initialize-default
   :group 'ansi-colors)
 
 (defconst ansi-color-regexp "\033\\[\\([0-9;]*m\\)"
   "Regexp that matches SGR control sequences.")
+
+(defconst ansi-color-drop-regexp
+  "\033\\[\\([ABCDsuK]\\|2J\\|=[0-9]+[hI]\\|[0-9;]*[Hf]\\)"
+  "Regexp that matches ANSI control sequences to silently drop.")
 
 (defconst ansi-color-parameter-regexp "\\([0-9]*\\)[m;]"
   "Regexp that matches SGR control sequence parameters.")
@@ -154,7 +167,7 @@ map.  This color map is stored in the variable `ansi-color-map'."
 If nil, do nothing.
 If the symbol `filter', then filter all SGR control sequences.
 If anything else (such as t), then translate SGR control sequences
-into text-properties.
+into text properties.
 
 In order for this to have any effect, `ansi-color-process-output' must
 be in `comint-output-filter-functions'.
@@ -188,12 +201,12 @@ in shell buffers.  You set this variable by calling one of:
 
 ;;;###autoload
 (defun ansi-color-process-output (ignored)
-  "Maybe translate SGR control sequences of comint output into text-properties.
+  "Maybe translate SGR control sequences of comint output into text properties.
 
 Depending on variable `ansi-color-for-comint-mode' the comint output is
 either not processed, SGR control sequences are filtered using
 `ansi-color-filter-region', or SGR control sequences are translated into
-text-properties using `ansi-color-apply-on-region'.
+text properties using `ansi-color-apply-on-region'.
 
 The comint output is assumed to lie between the marker
 `comint-last-output-start' and the process-mark.
@@ -211,48 +224,10 @@ This is a good function to put in `comint-output-filter-functions'."
 (add-hook 'comint-output-filter-functions
 	  'ansi-color-process-output)
 
-
-;; Alternative font-lock-unfontify-region-function for Emacs only
-
-(defun ansi-color-unfontify-region (beg end &rest xemacs-stuff)
-  "Replacement function for `font-lock-default-unfontify-region'.
-
-As text-properties are implemented using extents in XEmacs, this
-function is probably not needed.  In Emacs, however, things are a bit
-different: When font-lock is active in a buffer, you cannot simply add
-face text-properties to the buffer.  Font-lock will remove the face
-text-property using `font-lock-unfontify-region-function'.  If you want
-to insert the strings returned by `ansi-color-apply' into such buffers,
-you must set `font-lock-unfontify-region-function' to
-`ansi-color-unfontify-region'.  This function will not remove all face
-text-properties unconditionally.  It will keep the face text-properties
-if the property `ansi-color' is set.
-
-The region from BEG to END is unfontified.  XEMACS-STUFF is ignored.
-
-A possible way to install this would be:
-
-\(add-hook 'font-lock-mode-hook
-	  \(function (lambda ()
-		      \(setq font-lock-unfontify-region-function
-			    'ansi-color-unfontify-region))))"
-  ;; Simplified now that font-lock-unfontify-region uses save-buffer-state.
-  (when (boundp 'font-lock-syntactic-keywords)
-    (remove-text-properties beg end '(syntax-table nil)))
-  ;; instead of just using (remove-text-properties beg end '(face
-  ;; nil)), we find regions with a non-nil face test-property, skip
-  ;; positions with the ansi-color property set, and remove the
-  ;; remaining face test-properties.
-  (while (setq beg (text-property-not-all beg end 'face nil))
-    (setq beg (or (text-property-not-all beg end 'ansi-color t) end))
-    (when (get-text-property beg 'face)
-      (let ((end-face (or (text-property-any beg end 'face nil)
-			  end)))
-	(remove-text-properties beg end-face '(face nil))
-	(setq beg end-face)))))
+(defalias 'ansi-color-unfontify-region 'font-lock-default-unfontify-region)
+(make-obsolete 'ansi-color-unfontify-region "not needed any more" "24.1")
 
 ;; Working with strings
-
 (defvar ansi-color-context nil
   "Context saved between two calls to `ansi-color-apply'.
 This is a list of the form (FACES FRAGMENT) or nil.  FACES is a list of
@@ -262,7 +237,7 @@ escape sequence.")
 (make-variable-buffer-local 'ansi-color-context)
 
 (defun ansi-color-filter-apply (string)
-  "Filter out all SGR control sequences from STRING.
+  "Filter out all ANSI control sequences from STRING.
 
 Every call to this function will set and use the buffer-local variable
 `ansi-color-context' to save partial escape sequences.  This information
@@ -286,16 +261,15 @@ This function can be added to `comint-preoutput-filter-functions'."
 	    (setq fragment (substring string pos)
 		  result (concat result (substring string start pos))))
 	(setq result (concat result (substring string start))))
-      (if fragment
-	  (setq ansi-color-context (list nil fragment))
-	(setq ansi-color-context nil)))
+      (setq ansi-color-context (if fragment (list nil fragment))))
     result))
 
 (defun ansi-color-apply (string)
-  "Translates SGR control sequences into text-properties.
+  "Translates SGR control sequences into text properties.
+Delete all other control sequences without processing them.
 
 Applies SGR control sequences setting foreground and background colors
-to STRING using text-properties and returns the result.  The colors used
+to STRING using text properties and returns the result.  The colors used
 are given in `ansi-color-faces-vector' and `ansi-color-names-vector'.
 See function `ansi-color-apply-sequence' for details.
 
@@ -304,44 +278,41 @@ Every call to this function will set and use the buffer-local variable
 This information will be used for the next call to `ansi-color-apply'.
 Set `ansi-color-context' to nil if you don't want this.
 
-This function can be added to `comint-preoutput-filter-functions'.
-
-You cannot insert the strings returned into buffers using font-lock.
-See `ansi-color-unfontify-region' for a way around this."
+This function can be added to `comint-preoutput-filter-functions'."
   (let ((face (car ansi-color-context))
-	(start 0) end escape-sequence result)
-    ;; if context was saved and is a string, prepend it
+	(start 0) end escape-sequence result
+	colorized-substring)
+    ;; If context was saved and is a string, prepend it.
     (if (cadr ansi-color-context)
         (setq string (concat (cadr ansi-color-context) string)
               ansi-color-context nil))
-    ;; find the next escape sequence
+    ;; Find the next escape sequence.
     (while (setq end (string-match ansi-color-regexp string start))
-      ;; store escape sequence
       (setq escape-sequence (match-string 1 string))
-      ;; colorize the old block from start to end using old face
+      ;; Colorize the old block from start to end using old face.
       (when face
-	(put-text-property start end 'ansi-color t string)
-	(put-text-property start end 'face face string))
-      (setq result (concat result (substring string start end))
+	(put-text-property start end 'font-lock-face face string))
+      (setq colorized-substring (substring string start end)
 	    start (match-end 0))
-      ;; create new face by applying all the parameters in the escape
-      ;; sequence
+      ;; Eliminate unrecognized ANSI sequences.
+      (while (string-match ansi-color-drop-regexp colorized-substring)
+	(setq colorized-substring
+	      (replace-match "" nil nil colorized-substring)))
+      (push colorized-substring result)
+      ;; Create new face, by applying escape sequence parameters.
       (setq face (ansi-color-apply-sequence escape-sequence face)))
     ;; if the rest of the string should have a face, put it there
     (when face
-      (put-text-property start (length string) 'ansi-color t string)
-      (put-text-property start (length string) 'face face string))
+      (put-text-property start (length string) 'font-lock-face face string))
     ;; save context, add the remainder of the string to the result
     (let (fragment)
       (if (string-match "\033" string start)
 	  (let ((pos (match-beginning 0)))
-	    (setq fragment (substring string pos)
-		  result (concat result (substring string start pos))))
-	(setq result (concat result (substring string start))))
-      (if (or face fragment)
-	  (setq ansi-color-context (list face fragment))
-	(setq ansi-color-context nil)))
-    result))
+	    (setq fragment (substring string pos))
+	    (push (substring string start pos) result))
+	(push (substring string start) result))
+      (setq ansi-color-context (if (or face fragment) (list face fragment))))
+    (apply 'concat (nreverse result))))
 
 ;; Working with regions
 
@@ -354,7 +325,7 @@ position processed.")
 (make-variable-buffer-local 'ansi-color-context-region)
 
 (defun ansi-color-filter-region (begin end)
-  "Filter out all SGR control sequences from region BEGIN to END.
+  "Filter out all ANSI control sequences from region BEGIN to END.
 
 Every call to this function will set and use the buffer-local variable
 `ansi-color-context-region' to save position.  This information will be
@@ -365,23 +336,27 @@ it will override BEGIN, the start of the region.  Set
 	(start (or (cadr ansi-color-context-region) begin)))
     (save-excursion
       (goto-char start)
-      ;; find the next escape sequence
-      (while (re-search-forward ansi-color-regexp end-marker t)
-	;; delete the escape sequence
+      ;; Delete unrecognized escape sequences.
+      (while (re-search-forward ansi-color-drop-regexp end-marker t)
         (replace-match ""))
-    ;; save context, add the remainder of the string to the result
-    (if (re-search-forward "\033" end-marker t)
-	(setq ansi-color-context-region (list nil (match-beginning 0)))
-      (setq ansi-color-context-region nil)))))
+      (goto-char start)
+      ;; Delete SGR escape sequences.
+      (while (re-search-forward ansi-color-regexp end-marker t)
+        (replace-match ""))
+      ;; save context, add the remainder of the string to the result
+      (if (re-search-forward "\033" end-marker t)
+	  (setq ansi-color-context-region (list nil (match-beginning 0)))
+	(setq ansi-color-context-region nil)))))
 
 (defun ansi-color-apply-on-region (begin end)
   "Translates SGR control sequences into overlays or extents.
+Delete all other control sequences without processing them.
 
-Applies SGR control sequences setting foreground and background colors
-to text in region between BEGIN and END using extents or overlays.
-Emacs will use overlays, XEmacs will use extents.  The colors used are
-given in `ansi-color-faces-vector' and `ansi-color-names-vector'.  See
-function `ansi-color-apply-sequence' for details.
+SGR control sequences are applied by setting foreground and
+background colors to the text between BEGIN and END using
+overlays.  The colors used are given in `ansi-color-faces-vector'
+and `ansi-color-names-vector'.  See `ansi-color-apply-sequence'
+for details.
 
 Every call to this function will set and use the buffer-local variable
 `ansi-color-context-region' to save position and current face.  This
@@ -394,11 +369,16 @@ start of the region and set the face with which to start.  Set
 			  (copy-marker begin)))
 	(end-marker (copy-marker end))
 	escape-sequence)
+    ;; First, eliminate unrecognized ANSI control sequences.
     (save-excursion
       (goto-char start-marker)
-      ;; find the next escape sequence
+      (while (re-search-forward ansi-color-drop-regexp end-marker t)
+	(replace-match "")))
+    (save-excursion
+      (goto-char start-marker)
+      ;; Find the next SGR sequence.
       (while (re-search-forward ansi-color-regexp end-marker t)
-	;; colorize the old block from start to end using old face
+	;; Colorize the old block from start to end using old face.
 	(when face
 	  (ansi-color-set-extent-face
 	   (ansi-color-make-extent start-marker (match-beginning 0))
@@ -558,7 +538,8 @@ The face definitions are based upon the variables
     (mapc
      (function (lambda (e)
                  (aset ansi-color-map index
-		       (ansi-color-make-face 'foreground e))
+		       (ansi-color-make-face 'foreground
+                                             (if (consp e) (car e) e)))
                  (setq index (1+ index)) ))
      ansi-color-names-vector)
     ;; background attributes
@@ -566,7 +547,8 @@ The face definitions are based upon the variables
     (mapc
      (function (lambda (e)
                  (aset ansi-color-map index
-		       (ansi-color-make-face 'background e))
+		       (ansi-color-make-face 'background
+                                             (if (consp e) (cdr e) e)))
                  (setq index (1+ index)) ))
      ansi-color-names-vector)
     ansi-color-map))
@@ -623,5 +605,4 @@ ESCAPE-SEQ is a SGR control sequences such as \\033[34m.  The parameter
 
 (provide 'ansi-color)
 
-;; arch-tag: 00726118-9432-44fd-b72d-d2af7591c99c
 ;;; ansi-color.el ends here

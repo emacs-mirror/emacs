@@ -1,7 +1,6 @@
 ;;; deuglify.el --- deuglify broken Outlook (Express) articles
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Raymond Scholz <rscholz@zonix.de>
 ;;         Thomas Steffen
@@ -476,5 +475,4 @@ NODISPLAY is non-nil, don't redisplay the article buffer."
 ;; coding: iso-8859-1
 ;; End:
 
-;; arch-tag: 5f895cc9-51a9-487c-b42e-28844d79eb73
 ;;; deuglify.el ends here

@@ -1,8 +1,6 @@
 ;;; ps-print.el --- print text from the buffer as PostScript
 
-;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1993-2011  Free Software Foundation, Inc.
 
 ;; Author: Jim Thompson (was <thompson@wg2.waii.com>)
 ;;	Jacques Duthen (was <duthen@cegelec-red.fr>)
@@ -1466,12 +1464,9 @@ Please send all bug fixes and enhancements to
 (require 'lpr)
 
 
-(or (featurep 'lisp-float-type)
-    (error "`ps-print' requires floating point support"))
-
-
 (if (featurep 'xemacs)
-    ()
+    (or (featurep 'lisp-float-type)
+	(error "`ps-print' requires floating point support"))
   (unless (and (boundp 'emacs-major-version)
 	       (>= emacs-major-version 23))
     (error "`ps-print' only supports Emacs 23 and higher")))
@@ -1484,7 +1479,7 @@ Please send all bug fixes and enhancements to
 
 
 ;; Load XEmacs/Emacs definitions
-(eval-and-compile (require 'ps-def))
+(require 'ps-def)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -4331,14 +4326,17 @@ Try: pr -t file | awk '{printf \"%3d %s\n\", length($0), $0}' | sort -r | head"
 	 (ps-header-font-size-internal
 	  (or ps-header-font-size-internal
 	      (ps-get-font-size 'ps-header-font-size)))
+	 (ps-footer-font-size-internal
+	  (or ps-footer-font-size-internal
+	      (ps-get-font-size 'ps-footer-font-size)))
 	 (ps-header-title-font-size-internal
 	  (or ps-header-title-font-size-internal
 	      (ps-get-font-size 'ps-header-title-font-size)))
 	 (buf (get-buffer-create "*Line-lengths*"))
 	 (ifs ps-font-size-internal)	; initial font size
-	 (icw (ps-avg-char-width 'ps-font-for-text)) ; initial character width
 	 (print-width (progn (ps-get-page-dimensions)
 			     ps-print-width))
+	 (icw (ps-avg-char-width 'ps-font-for-text)) ; initial character width
 	 (ps-setup (ps-setup))		; setup for the current buffer
 	 (fs-min 5)			; minimum font size
 	 cw-min				; minimum character width
@@ -4378,6 +4376,9 @@ and on the current ps-print setup."
 	 (ps-header-font-size-internal
 	  (or ps-header-font-size-internal
 	      (ps-get-font-size 'ps-header-font-size)))
+	 (ps-footer-font-size-internal
+	  (or ps-footer-font-size-internal
+	      (ps-get-font-size 'ps-footer-font-size)))
 	 (ps-header-title-font-size-internal
 	  (or ps-header-title-font-size-internal
 	      (ps-get-font-size 'ps-header-title-font-size)))
@@ -4387,9 +4388,9 @@ and on the current ps-print setup."
 	 (buf (get-buffer-create "*Nb-Pages*"))
 	 (ils ps-line-spacing-internal) ; initial line spacing
 	 (ifs ps-font-size-internal)	; initial font size
-	 (ilh (ps-line-height 'ps-font-for-text)) ; initial line height
 	 (page-height (progn (ps-get-page-dimensions)
 			     ps-print-height))
+	 (ilh (ps-line-height 'ps-font-for-text)) ; initial line height
 	 (ps-setup (ps-setup))		; setup for the current buffer
 	 (fs-min 4)			; minimum font size
 	 lh-min				; minimum line height
@@ -4591,16 +4592,16 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 		     ps-print-height))))))
 
 
-(defun ps-print-preprint-region (prefix-arg)
+(defun ps-print-preprint-region (prefix)
   (or (ps-mark-active-p)
       (error "The mark is not set now"))
-  (list (point) (mark) (ps-print-preprint prefix-arg)))
+  (list (point) (mark) (ps-print-preprint prefix)))
 
 
-(defun ps-print-preprint (prefix-arg)
-  (and prefix-arg
-       (or (numberp prefix-arg)
-	   (listp prefix-arg))
+(defun ps-print-preprint (prefix)
+  (and prefix
+       (or (numberp prefix)
+	   (listp prefix))
        (let* ((name   (concat (file-name-nondirectory (or (buffer-file-name)
 							  (buffer-name)))
 			      ".ps"))
@@ -6019,7 +6020,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
     (ps-output " S\n")
     wrappoint))
 
-(defun ps-basic-plot-string (from to &optional bg-color)
+(defun ps-basic-plot-string (from to &optional _bg-color)
   (let* ((wrappoint (ps-find-wrappoint from to
 				       (ps-avg-char-width 'ps-font-for-text)))
 	 (to (car wrappoint))
@@ -6028,7 +6029,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
     (ps-output " S\n")
     wrappoint))
 
-(defun ps-basic-plot-whitespace (from to &optional bg-color)
+(defun ps-basic-plot-whitespace (from to &optional _bg-color)
   (let* ((wrappoint (ps-find-wrappoint from to
 				       (ps-space-width 'ps-font-for-text)))
 	 (to (car wrappoint)))
@@ -6644,7 +6645,8 @@ If FACE is not a valid face name, use default face."
 	 (error "Unprinted PostScript"))))
 
 (cond ((fboundp 'add-hook)
-       (funcall 'add-hook 'kill-emacs-hook 'ps-kill-emacs-check))
+       (unless noninteractive
+         (funcall 'add-hook 'kill-emacs-hook 'ps-kill-emacs-check)))
       (kill-emacs-hook
        (message "Won't override existing `kill-emacs-hook'"))
       (t
@@ -6656,7 +6658,7 @@ If FACE is not a valid face name, use default face."
 ;; But autoload them here to make the separation invisible.
 
 ;;;### (autoloads (ps-mule-end-job ps-mule-begin-job ps-mule-initialize
-;;;;;;  ps-multibyte-buffer) "ps-mule" "ps-mule.el" "9187df3473401876e0df4937c311fbaf")
+;;;;;;  ps-multibyte-buffer) "ps-mule" "ps-mule.el" "179b43ee432338186dde9e8c4fe761af")
 ;;; Generated autoloads from ps-mule.el
 
 (defvar ps-multibyte-buffer nil "\
@@ -6726,5 +6728,4 @@ Finish printing job for multi-byte chars.
 
 (provide 'ps-print)
 
-;; arch-tag: fb06a585-1112-4206-885d-a57d95d50579
 ;;; ps-print.el ends here

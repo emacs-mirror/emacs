@@ -1,8 +1,6 @@
 ;;; mh-scan.el --- MH-E scan line constants and utilities
 
-;; Copyright (C) 1993, 1995, 1997,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 1997, 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -310,7 +308,7 @@ This column will have one of \" \", \"%\", \"-\", \"t\", \"c\", \"b\", or \"n\"
 in it.
 
   \" \" blank space is the default character.
-  \"%\" indicates that the message in in a named MH sequence.
+  \"%\" indicates that the message in a named MH sequence.
   \"-\" indicates that the message has been annotated with a replied field.
   \"t\" indicates that the message contains mymbox in the To: field.
   \"c\" indicates that the message contains mymbox in the Cc: field.
@@ -485,5 +483,4 @@ comes after that."
 ;; sentence-end-double-space: nil
 ;; End:
 
-;; arch-tag: 5ab35d46-101e-443b-a2b6-5a908cf97528
 ;;; mh-scan.el ends here

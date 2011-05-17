@@ -1,11 +1,11 @@
 ;;; ada-prj.el --- GUI editing of project files for the ada-mode
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
 
 ;; Author: Emmanuel Briot <briot@gnat.com>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Keywords: languages, ada, project file
+;; Package: ada-mode
 
 ;; This file is part of GNU Emacs.
 
@@ -92,7 +92,7 @@ If there is none, opens a new project file."
       (ada-customize)
     (ada-prj-new)))
 
-(defun ada-prj-initialize-values (symbol ada-buffer filename)
+(defun ada-prj-initialize-values (symbol _ada-buffer filename)
   "Set SYMBOL to the property list of the project file FILENAME.
 If FILENAME is null, read the file associated with ADA-BUFFER.
 If no project file is found, return the default values."
@@ -195,21 +195,17 @@ One item per line should be found in the file."
       (widen)
       (goto-char (point-min))
       (while (not (eobp))
-	(set 'line (buffer-substring-no-properties
-		    (point) (save-excursion (end-of-line) (point))))
+	(set 'line (buffer-substring-no-properties (point) (point-at-eol)))
 	(add-to-list 'list line)
-	(forward-line 1)
-	)
+	(forward-line 1))
       (kill-buffer nil)
       (set-buffer buffer)
       (set 'ada-prj-current-values
 	   (plist-put ada-prj-current-values
 		      symbol
 		      (append (plist-get ada-prj-current-values symbol)
-			      (reverse list))))
-      )
-    (ada-prj-display-page 2)
-  ))
+			      (reverse list)))))
+    (ada-prj-display-page 2)))
 
 (defun ada-prj-subdirs-of (dir)
   "Return a list of all the subdirectories of DIR, recursively."
@@ -231,7 +227,7 @@ If FILE-NAME is nil, ask the user for the name."
   ;;  the user to select a directory
   (let ((use-dialog-box nil))
     (unless file-name
-      (set 'file-name (read-file-name "Root directory: " nil nil t))))
+      (set 'file-name (read-directory-name "Root directory: " nil nil t))))
 
   (set 'ada-prj-current-values
        (plist-put ada-prj-current-values
@@ -261,19 +257,19 @@ The current buffer must be the project editing buffer."
   (widget-insert "\n               Project configuration.\n
   ___________    ____________    ____________    ____________    ____________\n / ")
   (widget-create 'push-button :notify
-		 (lambda (&rest dummy) (ada-prj-display-page 1)) "General")
+		 (lambda (&rest _dummy) (ada-prj-display-page 1)) "General")
   (widget-insert " \\  /   ")
   (widget-create 'push-button :notify
-		 (lambda (&rest dummy) (ada-prj-display-page 2)) "Paths")
+		 (lambda (&rest _dummy) (ada-prj-display-page 2)) "Paths")
   (widget-insert "  \\  / ")
   (widget-create 'push-button :notify
-		 (lambda (&rest dummy) (ada-prj-display-page 3)) "Switches")
+		 (lambda (&rest _dummy) (ada-prj-display-page 3)) "Switches")
   (widget-insert " \\  / ")
   (widget-create 'push-button :notify
-		 (lambda (&rest dummy) (ada-prj-display-page 4)) "Ada Menu")
+		 (lambda (&rest _dummy) (ada-prj-display-page 4)) "Ada Menu")
   (widget-insert " \\  / ")
   (widget-create 'push-button :notify
-		 (lambda (&rest dummy) (ada-prj-display-page 5)) "Debugger")
+		 (lambda (&rest _dummy) (ada-prj-display-page 5)) "Debugger")
   (widget-insert " \\\n")
 
   ;;  Display the currently selected page
@@ -462,15 +458,15 @@ connect to the target when working with cross-environments" t)
 
   (widget-insert "______________________________________________________________________\n\n       ")
   (widget-create 'push-button
-		 :notify (lambda (&rest ignore)
+		 :notify (lambda (&rest _ignore)
 			   (setq ada-prj-current-values (ada-default-prj-properties))
 			   (ada-prj-display-page 1))
 		 "Reset to Default Values")
   (widget-insert "         ")
-  (widget-create 'push-button :notify (lambda (&rest ignore) (kill-buffer nil))
+  (widget-create 'push-button :notify (lambda (&rest _ignore) (kill-buffer nil))
 		 "Cancel")
   (widget-insert "         ")
-  (widget-create 'push-button :notify (lambda (&rest ignore) (ada-prj-save))
+  (widget-create 'push-button :notify (lambda (&rest _ignore) (ada-prj-save))
 		 "Save")
   (widget-insert "\n\n")
 
@@ -517,11 +513,18 @@ If FILENAME is given, edit that file."
 
       (set (make-local-variable 'ada-prj-ada-buffer) ada-buffer)
 
-      (use-local-map (copy-keymap custom-mode-map))
-      (local-set-key "\C-x\C-s" 'ada-prj-save)
+      (use-local-map
+       (let ((map (make-sparse-keymap)))
+         (set-keymap-parent map custom-mode-map)
+         (define-key map "\C-x\C-s" 'ada-prj-save)
+         map))
 
-      (make-local-variable 'widget-keymap)
-      (define-key widget-keymap "\C-x\C-s" 'ada-prj-save)
+      ;; FIXME: Not sure if this works!!
+      (set (make-local-variable 'widget-keymap)
+           (let ((map (make-sparse-keymap)))
+             (set-keymap-parent map widget-keymap)
+             (define-key map "\C-x\C-s" 'ada-prj-save)
+             map))
 
       (set (make-local-variable 'ada-old-cross-prefix)
 	   (ada-xref-get-project-field 'cross-prefix))
@@ -543,7 +546,7 @@ converted to a directory name."
 	     ada-list "\n"))
 
 
-(defun ada-prj-field-modified (widget &rest dummy)
+(defun ada-prj-field-modified (widget &rest _dummy)
   "Callback for modification of WIDGET.
 Remaining args DUMMY are ignored.
 Save the change in `ada-prj-current-values' so that selecting
@@ -553,7 +556,7 @@ another page and coming back keeps the new value."
 		  (widget-get widget ':prj-field)
 		  (widget-value widget))))
 
-(defun ada-prj-display-help (widget widget-modified event)
+(defun ada-prj-display-help (widget _widget-modified event)
   "Callback for help button in WIDGET.
 Parameters WIDGET-MODIFIED, EVENT match :notify for the widget."
   (let ((text (widget-get widget 'prj-help)))
@@ -567,10 +570,9 @@ Parameters WIDGET-MODIFIED, EVENT match :notify for the widget."
       ;;  variables
       (momentary-string-display
        (concat "*****Help*****\n" text "\n**************\n")
-       (save-excursion (forward-line) (beginning-of-line) (point)))
-      )))
+       (point-at-bol 2)))))
 
-(defun ada-prj-show-value (widget widget-modified event)
+(defun ada-prj-show-value (widget _widget-modified event)
   "Show the current field value in WIDGET.
 Parameters WIDGET-MODIFIED, EVENT match :notify for the widget."
   (let* ((field (widget-get widget ':prj-field))
@@ -680,5 +682,4 @@ AFTER-TEXT is inserted just after the widget."
 
 (provide 'ada-prj)
 
-;; arch-tag: 65978c77-816e-49c6-896e-6905605d1b4c
 ;;; ada-prj.el ends here

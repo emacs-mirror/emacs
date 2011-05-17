@@ -1,7 +1,6 @@
 ;;; spam-stat.el --- detecting spam based on statistics
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-;;   2010  Free Software Foundation, Inc.
+;; Copyright (C) 2002-2011  Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Keywords: network
@@ -674,5 +673,4 @@ COUNT defaults to 5"
 
 (provide 'spam-stat)
 
-;; arch-tag: ff1d2200-8ddb-42fb-bb7b-1b5e20448554
 ;;; spam-stat.el ends here

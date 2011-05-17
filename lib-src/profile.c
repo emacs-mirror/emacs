@@ -1,6 +1,5 @@
 /* profile.c --- generate periodic events for profiling of Emacs Lisp code.
-   Copyright (C) 1992, 1994, 1999, 2001, 2002, 2003, 2004, 2005, 2006,
-                 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1992, 1994, 1999, 2001-2011  Free Software Foundation, Inc.
 
 Author: Boaz Ben-Zvi <boaz@lcs.mit.edu>
 
@@ -39,8 +38,8 @@ static char time_string[30];
 
 /* Reset the stopwatch to zero.  */
 
-void
-reset_watch ()
+static void
+reset_watch (void)
 {
   EMACS_GET_TIME (TV1);
   watch_not_started = 0;
@@ -50,8 +49,8 @@ reset_watch ()
    is returned as a string with the format  <seconds>.<micro-seconds>
    If reset_watch was not called yet, exit.  */
 
-char *
-get_time ()
+static char *
+get_time (void)
 {
   if (watch_not_started)
     exit (EXIT_FAILURE);  /* call reset_watch first ! */
@@ -79,7 +78,7 @@ gettimeofday (tp, tzp)
 #endif
 
 int
-main ()
+main (void)
 {
   int c;
   while ((c = getchar ()) != EOF)
@@ -102,7 +101,5 @@ main ()
   exit (EXIT_FAILURE);
 }
 
-/* arch-tag: 8db68f7e-2322-4944-a315-dba349bdbf39
-   (do not change this comment) */
 
 /* profile.c ends here */

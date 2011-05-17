@@ -1,7 +1,6 @@
 ;;; flyspell.el --- on-the-fly spell checker
 
-;; Copyright (C) 1998, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Manuel Serrano <Manuel.Serrano@sophia.inria.fr>
 ;; Maintainer: FSF
@@ -72,13 +71,23 @@ Detection of repeated words is not implemented in
   :type 'boolean)
 
 (defcustom flyspell-mark-duplications-exceptions
-  '(("francais" . ("nous" "vous")))
+  '((nil . ("that" "had")) ; Common defaults for English.
+    ("\\`francais" . ("nous" "vous")))
   "A list of exceptions for duplicated words.
-It should be a list of (LANGUAGE . EXCEPTION-LIST).  LANGUAGE is matched
-against the current dictionary and EXCEPTION-LIST is a list of strings.
-The duplicated word is downcased before it is compared with the exceptions."
+It should be a list of (LANGUAGE . EXCEPTION-LIST).
+
+LANGUAGE is nil, which means the exceptions apply regardless of
+the current dictionary, or a regular expression matching the
+dictionary name (`ispell-local-dictionary' or
+`ispell-dictionary') for which the exceptions should apply.
+
+EXCEPTION-LIST is a list of strings.  The checked word is
+downcased before comparing with these exceptions."
   :group 'flyspell
-  :type '(alist :key-type string :value-type (repeat string)))
+  :type '(alist :key-type (choice (const :tag "All dictionaries" nil)
+				  string)
+		:value-type (repeat string))
+  :version "24.1")
 
 (defcustom flyspell-sort-corrections nil
   "Non-nil means, sort the corrections alphabetically before popping them."
@@ -199,9 +208,9 @@ Ispell's ultimate default dictionary."
 
 (defcustom flyspell-check-tex-math-command nil
   "Non-nil means check even inside TeX math environment.
-TeX math environments are discovered by the TEXMATHP that implemented
-inside the texmathp.el Emacs package.  That package may be found at:
-http://strw.leidenuniv.nl/~dominik/Tools"
+TeX math environments are discovered by `texmathp', implemented
+inside AUCTeX package.  That package may be found at
+URL `http://www.gnu.org/software/auctex/'"
   :group 'flyspell
   :type 'boolean)
 
@@ -380,7 +389,8 @@ like <img alt=\"Some thing.\">."
 
 (defun flyspell-generic-progmode-verify ()
   "Used for `flyspell-generic-check-word-predicate' in programming modes."
-  (let ((f (get-text-property (point) 'face)))
+  ;; (point) is next char after the word. Must check one char before.
+  (let ((f (get-text-property (- (point) 1) 'face)))
     (memq f flyspell-prog-text-faces)))
 
 ;;;###autoload
@@ -494,9 +504,9 @@ in your .emacs file.
   :keymap flyspell-mode-map
   :group 'flyspell
   (if flyspell-mode
-      (condition-case ()
+      (condition-case err
 	  (flyspell-mode-on)
-	(error (message "Enabling Flyspell mode gave an error")
+	(error (message "Error enabling Flyspell mode:\n%s" (cdr err))
 	       (flyspell-mode -1)))
     (flyspell-mode-off)))
 
@@ -1013,11 +1023,13 @@ Mostly we check word delimiters."
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-word ...                                                */
 ;;*---------------------------------------------------------------------*/
-(defun flyspell-word (&optional following)
+(defun flyspell-word (&optional following known-misspelling)
   "Spell check a word.
 If the optional argument FOLLOWING, or, when called interactively
 `ispell-following-word', is non-nil, checks the following (rather
-than preceding) word when the cursor is not over a word."
+than preceding) word when the cursor is not over a word.  If
+optional argument KNOWN-MISSPELLING is non nil considers word a
+misspelling and skips redundant spell-checking step."
   (interactive (list ispell-following-word))
   (ispell-set-spellchecker-params)    ; Initialize variables and dicts alists
   (save-excursion
@@ -1042,12 +1054,14 @@ than preceding) word when the cursor is not over a word."
 			  (not (memq (char-after (1- start)) '(?\} ?\\)))))
 		 flyspell-mark-duplications-flag
 		 (not (catch 'exception
-			(dolist (except flyspell-mark-duplications-exceptions)
-			  (and (string= (or ispell-local-dictionary
-					    ispell-dictionary)
-					(car except))
-			       (member (downcase word) (cdr except))
-			       (throw 'exception t)))))
+			(let ((dict (or ispell-local-dictionary
+					ispell-dictionary)))
+			  (dolist (except flyspell-mark-duplications-exceptions)
+			    (and (or (null (car except))
+				     (and (stringp dict)
+					  (string-match (car except) dict)))
+				 (member (downcase word) (cdr except))
+				 (throw 'exception t))))))
 		 (save-excursion
 		   (goto-char start)
 		   (let* ((bound
@@ -1078,29 +1092,35 @@ than preceding) word when the cursor is not over a word."
 	    (setq flyspell-word-cache-end end)
 	    (setq flyspell-word-cache-word word)
 	    ;; now check spelling of word.
-	    (ispell-send-string "%\n")
-	    ;; put in verbose mode
-	    (ispell-send-string (concat "^" word "\n"))
-	    ;; we mark the ispell process so it can be killed
-	    ;; when emacs is exited without query
-	    (set-process-query-on-exit-flag ispell-process nil)
-	    ;; Wait until ispell has processed word.  Since this code is often
-            ;; executed from post-command-hook but the ispell process may not
-            ;; be responsive, it's important to make sure we re-enable C-g.
-	    (with-local-quit
-	      (while (progn
-		       (accept-process-output ispell-process)
-		       (not (string= "" (car ispell-filter))))))
-	    ;; (ispell-send-string "!\n")
-	    ;; back to terse mode.
-	    ;; Remove leading empty element
-	    (setq ispell-filter (cdr ispell-filter))
-	    ;; ispell process should return something after word is sent.
-	    ;; Tag word as valid (i.e., skip) otherwise
-	    (or ispell-filter
-		(setq ispell-filter '(*)))
-	    (if (consp ispell-filter)
-		(setq poss (ispell-parse-output (car ispell-filter))))
+            (if (not known-misspelling)
+                (progn
+                  (ispell-send-string "%\n")
+                  ;; put in verbose mode
+                  (ispell-send-string (concat "^" word "\n"))
+                  ;; we mark the ispell process so it can be killed
+                  ;; when emacs is exited without query
+                  (set-process-query-on-exit-flag ispell-process nil)
+                  ;; Wait until ispell has processed word.  Since this
+                  ;; code is often executed from post-command-hook but
+                  ;; the ispell process may not be responsive, it's
+                  ;; important to make sure we re-enable C-g.
+                  (with-local-quit
+                    (while (progn
+                             (accept-process-output ispell-process)
+                             (not (string= "" (car ispell-filter))))))
+                  ;; (ispell-send-string "!\n")
+                  ;; back to terse mode.
+                  ;; Remove leading empty element
+                  (setq ispell-filter (cdr ispell-filter))
+                  ;; ispell process should return something after word is sent.
+                  ;; Tag word as valid (i.e., skip) otherwise
+                  (or ispell-filter
+                      (setq ispell-filter '(*)))
+                  (if (consp ispell-filter)
+                      (setq poss (ispell-parse-output (car ispell-filter)))))
+              ;; Else, this was a known misspelling to begin with, and
+              ;; we should forge an ispell return value.
+              (setq poss (list word 0 '() '())))
 	    (let ((res (cond ((eq poss t)
 			      ;; correct
 			      (setq flyspell-word-cache-result t)
@@ -1433,7 +1453,7 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 					t
 				      nil))))
 			(setq keep nil)
-			(flyspell-word)
+			(flyspell-word nil t)
 			;; Search for next misspelled word will begin from
 			;; end of last validated match.
 			(setq buffer-scan-pos (point))))
@@ -1465,7 +1485,7 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
       (goto-char (point-min))
       ;; Localwords parsing copied from ispell.el.
       (while (search-forward ispell-words-keyword nil t)
-	(let ((end (save-excursion (end-of-line) (point)))
+	(let ((end (point-at-eol))
 	      string)
 	  ;; buffer-local words separated by a space, and can contain
 	  ;; any character other than a space.  Not rigorous enough.
@@ -1817,7 +1837,9 @@ misspelled words backwards."
 			(throw 'exit t)))))))
 	(save-excursion
 	  (goto-char pos)
-	  (ispell-word))
+	  (ispell-word)
+	  (setq flyspell-word-cache-word nil) ;; Force flyspell-word re-check
+	  (flyspell-word))
       (error "No word to correct before point"))))
 
 ;;*---------------------------------------------------------------------*/
@@ -2352,5 +2374,4 @@ This function is meant to be added to `flyspell-incorrect-hook'."
 
 (provide 'flyspell)
 
-;; arch-tag: 05d915b9-e9cf-44fb-9137-fc28f5eaab2a
 ;;; flyspell.el ends here

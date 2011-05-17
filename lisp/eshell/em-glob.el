@@ -1,7 +1,6 @@
 ;;; em-glob.el --- extended file name globbing
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -62,40 +61,41 @@ by zsh for filename generation."
 
 ;;; User Variables:
 
-(defcustom eshell-glob-load-hook '(eshell-glob-initialize)
-  "*A list of functions to run when `eshell-glob' is loaded."
+(defcustom eshell-glob-load-hook nil
+  "A list of functions to run when `eshell-glob' is loaded."
+  :version "24.1"			; removed eshell-glob-initialize
   :type 'hook
   :group 'eshell-glob)
 
 (defcustom eshell-glob-include-dot-files nil
-  "*If non-nil, glob patterns will match files beginning with a dot."
+  "If non-nil, glob patterns will match files beginning with a dot."
   :type 'boolean
   :group 'eshell-glob)
 
 (defcustom eshell-glob-include-dot-dot t
-  "*If non-nil, glob patterns that match dots will match . and .."
+  "If non-nil, glob patterns that match dots will match . and .."
   :type 'boolean
   :group 'eshell-glob)
 
 (defcustom eshell-glob-case-insensitive (eshell-under-windows-p)
-  "*If non-nil, glob pattern matching will ignore case."
+  "If non-nil, glob pattern matching will ignore case."
   :type 'boolean
   :group 'eshell-glob)
 
 (defcustom eshell-glob-show-progress nil
-  "*If non-nil, display progress messages during a recursive glob.
+  "If non-nil, display progress messages during a recursive glob.
 This option slows down recursive glob processing by quite a bit."
   :type 'boolean
   :group 'eshell-glob)
 
 (defcustom eshell-error-if-no-glob nil
-  "*If non-nil, it is an error for a glob pattern not to match.
+  "If non-nil, it is an error for a glob pattern not to match.
  This mimcs the behavior of zsh if non-nil, but bash if nil."
   :type 'boolean
   :group 'eshell-glob)
 
 (defcustom eshell-glob-chars-list '(?\] ?\[ ?* ?? ?~ ?\( ?\) ?| ?# ?^)
-  "*List of additional characters used in extended globbing."
+  "List of additional characters used in extended globbing."
   :type '(repeat character)
   :group 'eshell-glob)
 
@@ -117,7 +117,7 @@ This option slows down recursive glob processing by quite a bit."
 			 (if (eq (aref str (1+ pos)) ?*)
 			     "*" "+")) (+ pos 2))
 	       (cons "*" (1+ pos))))))
-  "*An alist for translation of extended globbing characters."
+  "An alist for translation of extended globbing characters."
   :type '(repeat (cons character (choice regexp function)))
   :group 'eshell-glob)
 
@@ -246,7 +246,7 @@ the form:
 
    (INCLUDE-REGEXP EXCLUDE-REGEXP (PRED-FUNC-LIST) (MOD-FUNC-LIST))"
   (let ((paths (eshell-split-path glob))
-	matches message-shown ange-cache)
+	eshell-glob-matches message-shown ange-cache)
     (unwind-protect
 	(if (and (cdr paths)
 		 (file-name-absolute-p (car paths)))
@@ -255,15 +255,15 @@ the form:
 	  (eshell-glob-entries (file-name-as-directory ".") paths))
       (if message-shown
 	  (message nil)))
-    (or (and matches (sort matches #'string<))
+    (or (and eshell-glob-matches (sort eshell-glob-matches #'string<))
 	(if eshell-error-if-no-glob
 	    (error "No matches found: %s" glob)
 	  glob))))
 
-(defvar matches)
+(defvar eshell-glob-matches)
 (defvar message-shown)
 
-;; FIXME does this really need to abuse matches, message-shown?
+;; FIXME does this really need to abuse eshell-glob-matches, message-shown?
 (defun eshell-glob-entries (path globs &optional recurse-p)
   "Glob the entries in PATHS, possibly recursing if RECURSE-P is non-nil."
   (let* ((entries (ignore-errors
@@ -319,7 +319,7 @@ the form:
 		   "\\`\\.")))
     (when (and recurse-p eshell-glob-show-progress)
       (message "Building file list...%d so far: %s"
-	       (length matches) path)
+	       (length eshell-glob-matches) path)
       (setq message-shown t))
     (if (equal path "./") (setq path ""))
     (while entries
@@ -332,7 +332,8 @@ the form:
 	  (if (cdr globs)
 	      (if isdir
 		  (setq dirs (cons (concat path name) dirs)))
-	    (setq matches (cons (concat path name) matches))))
+	    (setq eshell-glob-matches
+		  (cons (concat path name) eshell-glob-matches))))
       (if (and recurse-p isdir
 	       (or (> len 3)
 		   (not (or (and (= len 2) (equal name "./"))
@@ -358,5 +359,4 @@ the form:
 ;; generated-autoload-file: "esh-groups.el"
 ;; End:
 
-;; arch-tag: d0548f54-fb7c-4978-a88e-f7c26f7f68ca
 ;;; em-glob.el ends here

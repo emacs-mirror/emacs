@@ -1,7 +1,6 @@
 ;;; gnus-mlspl.el --- a group params-based mail splitting mechanism
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
 
 ;; Author: Alexandre Oliva <oliva@lsd.ic.unicamp.br>
 ;; Keywords: news, mail
@@ -227,5 +226,4 @@ Calling (gnus-group-split-fancy nil nil \"mail.others\") returns:
 
 (provide 'gnus-mlspl)
 
-;; arch-tag: 62b3381f-1e45-4b61-be1a-29fb27703322
 ;;; gnus-mlspl.el ends here

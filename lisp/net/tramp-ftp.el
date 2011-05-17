@@ -1,10 +1,10 @@
 ;;; tramp-ftp.el --- Tramp convenience functions for Ange-FTP
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2011 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
+;; Package: tramp
 
 ;; This file is part of GNU Emacs.
 
@@ -29,7 +29,6 @@
 ;;; Code:
 
 (require 'tramp)
-(autoload 'tramp-set-connection-property "tramp-cache")
 
 (eval-when-compile
 
@@ -98,19 +97,20 @@ present for backward compatibility."
 (add-hook 'tramp-ftp-unload-hook 'tramp-ftp-enable-ange-ftp)
 
 ;; Define FTP method ...
-(defcustom tramp-ftp-method "ftp"
-  "*When this method name is used, forward all calls to Ange-FTP."
-  :group 'tramp
-  :type 'string)
+;;;###tramp-autoload
+(defconst tramp-ftp-method "ftp"
+  "*When this method name is used, forward all calls to Ange-FTP.")
 
 ;; ... and add it to the method list.
-(add-to-list 'tramp-methods (cons tramp-ftp-method nil))
+;;;###tramp-autoload
+(unless (featurep 'xemacs)
+  (add-to-list 'tramp-methods (cons tramp-ftp-method nil))
 
-;; Add some defaults for `tramp-default-method-alist'
-(add-to-list 'tramp-default-method-alist
-	     (list "\\`ftp\\." "" tramp-ftp-method))
-(add-to-list 'tramp-default-method-alist
-	     (list "" "\\`\\(anonymous\\|ftp\\)\\'" tramp-ftp-method))
+  ;; Add some defaults for `tramp-default-method-alist'.
+  (add-to-list 'tramp-default-method-alist
+	       (list "\\`ftp\\." nil tramp-ftp-method))
+  (add-to-list 'tramp-default-method-alist
+	       (list nil "\\`\\(anonymous\\|ftp\\)\\'" tramp-ftp-method)))
 
 ;; Add completion function for FTP method.
 (tramp-set-completion-function
@@ -128,6 +128,7 @@ present for backward compatibility."
 				       (symbol-plist
 					'substitute-in-file-name))))))
 
+;;;###tramp-autoload
 (defun tramp-ftp-file-name-handler (operation &rest args)
   "Invoke the Ange-FTP handler for OPERATION.
 First arg specifies the OPERATION, second arg is a list of arguments to
@@ -182,7 +183,7 @@ pass to the OPERATION."
 	  (unwind-protect
 	      (rename-file tmpfile newname (car args))
 	    ;; Cleanup.
-	    (ignore-errors (tramp-compat-delete-file tmpfile 'force)))))
+	    (ignore-errors (delete-file tmpfile)))))
 
        ;; Normally, the handlers must be discarded.
        ;; `inhibit-file-name-handlers' isn't sufficient, because the
@@ -198,23 +199,25 @@ pass to the OPERATION."
 		 (inhibit-file-name-operation operation))
 	    (apply 'ange-ftp-hook-function operation args)))))))
 
-(defun tramp-ftp-file-name-p (filename)
+;;;###tramp-autoload
+(defsubst tramp-ftp-file-name-p (filename)
   "Check if it's a filename that should be forwarded to Ange-FTP."
   (let ((v (tramp-dissect-file-name filename)))
     (string= (tramp-file-name-method v) tramp-ftp-method)))
 
-(add-to-list 'tramp-foreign-file-name-handler-alist
-	     (cons 'tramp-ftp-file-name-p 'tramp-ftp-file-name-handler))
+;;;###tramp-autoload
+(unless (featurep 'xemacs)
+  (add-to-list 'tramp-foreign-file-name-handler-alist
+	       (cons 'tramp-ftp-file-name-p 'tramp-ftp-file-name-handler)))
+
+(add-hook 'tramp-unload-hook
+	  (lambda ()
+	    (unload-feature 'tramp-ftp 'force)))
 
 (provide 'tramp-ftp)
 
 ;;; TODO:
 
-;; * In case of "/ftp:host:file" this works only for functions which
-;;   are defined in `tramp-file-name-handler-alist'.  Call has to be
-;;   pretended in `tramp-file-name-handler' otherwise.
-;;   Furthermore, there are no backup files on FTP hosts.
-;;   Worth further investigations.
+;; * There are no backup files on FTP hosts.
 
-;; arch-tag: 759fb338-5c63-4b99-bd36-b4d59db91cff
 ;;; tramp-ftp.el ends here

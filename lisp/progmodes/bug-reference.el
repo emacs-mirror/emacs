@@ -1,6 +1,6 @@
 ;; bug-reference.el --- buttonize bug references
 
-;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;; Created: 21 Mar 2007
@@ -109,7 +109,7 @@ so that it is considered safe, see `enable-local-variables'.")
                              (funcall bug-reference-url-format))))))))))
 
 ;; Taken from button.el.
-(defun bug-reference-push-button (&optional pos use-mouse-action)
+(defun bug-reference-push-button (&optional pos _use-mouse-action)
   "Open URL corresponding to the bug reference at POS."
   (interactive
    (list (if (integerp last-command-event) (point) last-command-event)))
@@ -151,5 +151,4 @@ so that it is considered safe, see `enable-local-variables'.")
       (widen)
       (bug-reference-unfontify (point-min) (point-max)))))
 
-;; arch-tag: b138abce-e5c3-475e-bd58-7afba40387ea
 ;;; bug-reference.el ends here

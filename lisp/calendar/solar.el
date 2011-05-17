@@ -1,13 +1,14 @@
 ;;; solar.el --- calendar functions for solar events
 
-;; Copyright (C) 1992, 1993, 1995, 1997, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1992-1993, 1995, 1997, 2001-2011
+;;   Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;;         Denis B. Roegel <Denis.Roegel@loria.fr>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
 ;; Keywords: calendar
 ;; Human-Keywords: sunrise, sunset, equinox, solstice, calendar, diary, holidays
+;; Package: calendar
 
 ;; This file is part of GNU Emacs.
 
@@ -452,7 +453,7 @@ height (between -180 and 180) are both in degrees."
          (st (+ solar-sidereal-time-greenwich-midnight
                 (* ut 1.00273790935)))
          ;; Hour angle (in degrees).
-         (ah (- (* st 15) (* 15 (car ec)) (* -1 (calendar-longitude))))
+         (ah (- (* st 15) (* 15 (car ec)) (* -1 longitude)))
          (de (cadr ec))
          (azimuth (solar-atn2 (- (* (solar-cosine-degrees ah)
                                     (solar-sin-degrees latitude))
@@ -752,12 +753,12 @@ The values of `calendar-daylight-savings-starts',
                                     (sin (mod
                                           (+ (cadr x)
                                              (* (nth 2 x) U))
-                                          (* 2 pi)))))
+                                          (* 2 float-pi)))))
                                solar-data-list)))))
          (aberration
           (* 0.0000001 (- (* 17 (cos (+ 3.10 (* 62830.14 U)))) 973)))
-         (A1 (mod (+ 2.18 (* U (+ -3375.70 (* 0.36 U)))) (* 2 pi)))
-         (A2 (mod (+ 3.51 (* U (+ 125666.39 (* 0.10 U)))) (* 2 pi)))
+         (A1 (mod (+ 2.18 (* U (+ -3375.70 (* 0.36 U)))) (* 2 float-pi)))
+         (A2 (mod (+ 3.51 (* U (+ 125666.39 (* 0.10 U)))) (* 2 float-pi)))
          (nutation (* -0.0000001 (+ (* 834 (sin A1)) (* 64 (sin A2))))))
     (mod (radians-to-degrees (+ longitude aberration nutation)) 360.0)))
 
@@ -770,26 +771,22 @@ day numbers.  The values of `calendar-daylight-savings-starts',
 `calendar-daylight-savings-starts-time', `calendar-daylight-savings-ends',
 `calendar-daylight-savings-ends-time', `calendar-daylight-time-offset',
 and `calendar-time-zone' are used to interpret local time."
-  (let* ((long)
-         (start d)
-         (start-long (solar-longitude d))
-         (next (mod (* l (1+ (floor (/ start-long l)))) 360))
-         (end (+ d (* (/ l 360.0) 400)))
-         (end-long (solar-longitude end)))
-    (while                       ; bisection search for nearest minute
-        (< 0.00001 (- end start))
-      ;; start   <= d    < end
+  (let ((start d)
+        (next (mod (* l (1+ (floor (/ (solar-longitude d) l)))) 360))
+        (end (+ d (* (/ l 360.0) 400)))
+        long)
+    ;; Bisection search for nearest minute.
+    (while (< 0.00001 (- end start))
+      ;; start <= d < end
       ;; start-long <= next < end-long when next != 0
-      ;; when next = 0, we look for the discontinuity (start-long is near 360
-      ;;                and end-long is small (less than l).
+      ;; when next = 0, look for the discontinuity (start-long is near 360
+      ;; and end-long is small (less than l)).
       (setq d (/ (+ start end) 2.0)
             long (solar-longitude d))
       (if (or (and (not (zerop next)) (< long next))
               (and (zerop next) (< l long)))
-          (setq start d
-                start-long long)
-        (setq end d
-              end-long long)))
+          (setq start d)
+        (setq end d)))
     (/ (+ start end) 2.0)))
 
 ;; FIXME but there already is solar-sunrise-sunset.
@@ -1064,5 +1061,4 @@ Requires floating point."
 
 (provide 'solar)
 
-;; arch-tag: bc0ff693-df58-4666-bde4-2a7837ccb8fe
 ;;; solar.el ends here

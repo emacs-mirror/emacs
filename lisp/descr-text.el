@@ -1,7 +1,6 @@
 ;;; descr-text.el --- describe text mode
 
-;; Copyright (C) 1994, 1995, 1996, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Maintainer: FSF
@@ -301,7 +300,7 @@ This function is semi-obsolete.  Use `get-char-code-property'."
 				   (lambda (arg)
 				     (string (string-to-number arg 16)))
 				   parts " "))
-		      (concat info parts))))
+		      (concat info (if info " ") parts))))
 	       (list "Decimal digit value"
 		     (nth 5 fields))
 	       (list "Digit value"
@@ -365,13 +364,13 @@ This function is semi-obsolete.  Use `get-char-code-property'."
   (let ((mnemonics (category-set-mnemonics category-set)))
     (unless (eq mnemonics "")
       (list (mapconcat
-	     #'(lambda (x)
-		 (let* ((c (category-docstring x))
-			(doc (if (string-match "\\`\\(.*?\\)\n\\(.*\\)\\'" c)
-				 (propertize (match-string 1 c)
-					     'help-echo (match-string 2 c))
-			       c)))
-		   (format "%c:%s" x doc)))
+	     (lambda (x)
+	       (let* ((c (category-docstring x))
+		      (doc (if (string-match "\\`\\(.*?\\)\n\\(.*\\)\\'" c)
+			       (propertize (match-string 1 c)
+					   'help-echo (match-string 2 c))
+			     c)))
+		 (format "%c:%s" x doc)))
 	     mnemonics ", ")))))
 
 ;;;###autoload
@@ -400,7 +399,7 @@ as well as widgets, buttons, overlays, and text properties."
                               standard-display-table))
            (disp-vector (and display-table (aref display-table char)))
            (multibyte-p enable-multibyte-characters)
-           (overlays (mapcar #'(lambda (o) (overlay-properties o))
+           (overlays (mapcar (lambda (o) (overlay-properties o))
                              (overlays-at pos)))
            (char-description (if (not multibyte-p)
                                  (single-key-description char)
@@ -426,7 +425,7 @@ as well as widgets, buttons, overlays, and text properties."
         ;; When the composition is trivial (i.e. composed only with the
         ;; current character itself without any alternate characters),
         ;; we don't show the composition information.  Otherwise, store
-        ;; two descriptive strings in the first two elments of
+        ;; two descriptive strings in the first two elements of
         ;; COMPOSITION.
         (or (catch 'tag
               (let ((from (car composition))
@@ -583,8 +582,8 @@ as well as widgets, buttons, overlays, and text properties."
                                  pos (glyph-char (aref disp-vector i))))))
                   (format "by display table entry [%s] (see below)"
                           (mapconcat
-                           #'(lambda (x)
-                               (format "?%c" (glyph-char (car x))))
+                           (lambda (x)
+                             (format "?%c" (glyph-char (car x))))
                            disp-vector " ")))
                  (composition
                   (cadr composition))
@@ -618,7 +617,7 @@ as well as widgets, buttons, overlays, and text properties."
               ,@(if (not eight-bit-p)
                     (let ((unicodedata (describe-char-unicode-data char)))
                       (if unicodedata
-                          (cons (list "Unicode data" " ") unicodedata))))))
+                          (cons (list "Unicode data" "") unicodedata))))))
       (setq max-width (apply 'max (mapcar (lambda (x)
                                             (if (cadr x) (length (car x)) 0))
                                           item-list)))
@@ -642,7 +641,8 @@ as well as widgets, buttons, overlays, and text properties."
                               (window-width))
                       (insert "\n")
                       (indent-to (1+ max-width)))
-                    (insert " " clm)))
+                    (unless (zerop (length clm))
+                      (insert " " clm))))
                 (insert "\n"))))
 
           (when overlays
@@ -650,11 +650,11 @@ as well as widgets, buttons, overlays, and text properties."
               (goto-char (point-min))
               (re-search-forward "character:[ \t\n]+")
               (let ((end (+ (point) (length char-description))))
-                (mapc #'(lambda (props)
-                          (let ((o (make-overlay (point) end)))
-                            (while props
-                              (overlay-put o (car props) (nth 1 props))
-                              (setq props (cddr props)))))
+                (mapc (lambda (props)
+                        (let ((o (make-overlay (point) end)))
+                          (while props
+                            (overlay-put o (car props) (nth 1 props))
+                            (setq props (cddr props)))))
                       overlays))))
 
           (when disp-vector
@@ -745,7 +745,7 @@ as well as widgets, buttons, overlays, and text properties."
                       "\nCharacter code properties: "))
             (insert-text-button
              "customize what to show"
-             'action (lambda (&rest ignore)
+             'action (lambda (&rest _ignore)
                        (customize-variable
                         'describe-char-unidata-list))
              'follow-link t)
@@ -768,5 +768,4 @@ as well as widgets, buttons, overlays, and text properties."
 
 (provide 'descr-text)
 
-;; arch-tag: fc55a498-f3e9-4312-b5bd-98cc02480af1
 ;;; descr-text.el ends here

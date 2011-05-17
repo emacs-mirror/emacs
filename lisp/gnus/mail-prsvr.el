@@ -1,7 +1,6 @@
 ;;; mail-prsvr.el --- Interface variables for parsing mail
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -41,5 +40,4 @@ what the desired charsets is to be ignored.")
 
 (provide 'mail-prsvr)
 
-;; arch-tag: 9ba878cc-8b43-4f7a-85b1-69b1a9a5d9f5
 ;;; mail-prsvr.el ends here

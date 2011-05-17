@@ -1,6 +1,6 @@
 ;;; rng-util.el --- utility functions for RELAX NG library
 
-;; Copyright (C) 2003, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML, RelaxNG
@@ -167,5 +167,4 @@ HIST, if non-nil, specifies a history list as with `completing-read'."
 
 (provide 'rng-util)
 
-;; arch-tag: 2dc233e0-5e7a-488f-bfc4-5909512dbaf0
 ;;; rng-util.el ends here

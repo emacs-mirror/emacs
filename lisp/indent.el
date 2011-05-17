@@ -1,9 +1,9 @@
 ;;; indent.el --- indentation commands for Emacs
 
-;; Copyright (C) 1985, 1995, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1995, 2001-2011  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -67,6 +67,7 @@ The buffer-local variable `indent-line-function' determines how to do this,
 but the functions `indent-relative' and `indent-relative-maybe' are
 special; we don't actually use them here."
   (interactive)
+  (syntax-propertize (line-end-position))
   (if (memq indent-line-function
 	    '(indent-relative indent-relative-maybe))
       ;; These functions are used for tabbing, but can't be used for
@@ -417,7 +418,7 @@ column to indent to; if it is nil, use one of the three methods above."
 	    (goto-char start)
 	    (while (< (point) end)
 	      (or (and (bolp) (eolp))
-		  (funcall indent-line-function))
+		  (indent-according-to-mode))
 	      (forward-line 1))
 	    (move-marker end nil))))
     (setq column (prefix-numeric-value column))
@@ -431,7 +432,11 @@ column to indent to; if it is nil, use one of the three methods above."
 	(or (eolp)
 	    (indent-to column 0))
 	(forward-line 1))
-      (move-marker end nil))))
+      (move-marker end nil)))
+  ;; In most cases, reindenting modifies the buffer, but it may also
+  ;; leave it unmodified, in which case we have to deactivate the mark
+  ;; by hand.
+  (deactivate-mark))
 
 (defun indent-relative-maybe ()
   "Indent a new line like previous nonblank line.
@@ -556,8 +561,8 @@ Use \\[edit-tab-stops] to edit them interactively."
     (while (and tabs (>= (current-column) (car tabs)))
       (setq tabs (cdr tabs)))
     (if tabs
-	(let ((opoint (point)))
-	  (delete-horizontal-space t)
+        (progn
+          (delete-horizontal-space t)
 	  (indent-to (car tabs)))
       (insert ?\s))))
 
@@ -589,5 +594,4 @@ Use \\[edit-tab-stops] to edit them interactively."
 (define-key ctl-x-map "\t" 'indent-rigidly)
 (define-key esc-map "i" 'tab-to-tab-stop)
 
-;; arch-tag: f402b2a7-e44f-492f-b5b8-38996020b7c3
 ;;; indent.el ends here

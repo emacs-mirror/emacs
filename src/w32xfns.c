@@ -1,6 +1,5 @@
 /* Functions taken directly from X sources for use with the Microsoft W32 API.
-   Copyright (C) 1989, 1992, 1993, 1994, 1995, 1999, 2001, 2002, 2003,
-                 2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1989, 1992-1995, 1999, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -39,7 +38,7 @@ HANDLE input_available = NULL;
 HANDLE interrupt_handle = NULL;
 
 void
-init_crit ()
+init_crit (void)
 {
   InitializeCriticalSection (&critsect);
 
@@ -57,7 +56,7 @@ init_crit ()
 }
 
 void
-delete_crit ()
+delete_crit (void)
 {
   DeleteCriticalSection (&critsect);
 
@@ -74,7 +73,7 @@ delete_crit ()
 }
 
 void
-signal_quit ()
+signal_quit (void)
 {
   /* Make sure this event never remains signaled; if the main thread
      isn't in a blocking call, then this should do nothing.  */
@@ -98,7 +97,7 @@ select_palette (FRAME_PTR f, HDC hdc)
   else
     f->output_data.w32->old_palette = NULL;
 
-  if (RealizePalette (hdc))
+  if (RealizePalette (hdc) != GDI_ERROR)
   {
     Lisp_Object frame, framelist;
     FOR_EACH_FRAME (framelist, frame)
@@ -161,9 +160,7 @@ int_msg *lpTail = NULL;
 int nQueue = 0;
 
 BOOL
-get_next_msg (lpmsg, bWait)
-     W32Msg * lpmsg;
-     BOOL bWait;
+get_next_msg (W32Msg * lpmsg, BOOL bWait)
 {
   BOOL bRet = FALSE;
 
@@ -180,7 +177,7 @@ get_next_msg (lpmsg, bWait)
 
   if (nQueue)
     {
-      bcopy (&(lpHead->w32msg), lpmsg, sizeof (W32Msg));
+      memcpy (lpmsg, &lpHead->w32msg, sizeof (W32Msg));
 
       {
 	int_msg * lpCur = lpHead;
@@ -216,7 +213,7 @@ get_next_msg (lpmsg, bWait)
                   if (!UnionRect (&(lpmsg->rect), &(lpmsg->rect),
                                   &(lpCur->w32msg.rect)))
                     {
-                      SetRectEmpty(&(lpmsg->rect));
+                      SetRectEmpty (&(lpmsg->rect));
                     }
 
                   myfree (lpCur);
@@ -245,15 +242,14 @@ get_next_msg (lpmsg, bWait)
 }
 
 BOOL
-post_msg (lpmsg)
-     W32Msg * lpmsg;
+post_msg (W32Msg * lpmsg)
 {
   int_msg * lpNew = (int_msg *) myalloc (sizeof (int_msg));
 
   if (!lpNew)
     return (FALSE);
 
-  bcopy (lpmsg, &(lpNew->w32msg), sizeof (W32Msg));
+  memcpy (&lpNew->w32msg, lpmsg, sizeof (W32Msg));
   lpNew->lpNext = NULL;
 
   enter_crit ();
@@ -283,7 +279,7 @@ prepend_msg (W32Msg *lpmsg)
   if (!lpNew)
     return (FALSE);
 
-  bcopy (lpmsg, &(lpNew->w32msg), sizeof (W32Msg));
+  memcpy (&lpNew->w32msg, lpmsg, sizeof (W32Msg));
 
   enter_crit ();
 
@@ -298,7 +294,7 @@ prepend_msg (W32Msg *lpmsg)
 
 /* Process all messages in the current thread's queue.  */
 void
-drain_message_queue ()
+drain_message_queue (void)
 {
   MSG msg;
   while (PeekMessage (&msg, NULL, 0, 0, PM_REMOVE))
@@ -322,9 +318,7 @@ drain_message_queue ()
  */
 
 static int
-read_integer (string, NextString)
-     register char *string;
-     char **NextString;
+read_integer (register char *string, char **NextString)
 {
   register int Result = 0;
   int Sign = 1;
@@ -348,10 +342,9 @@ read_integer (string, NextString)
 }
 
 int
-XParseGeometry (string, x, y, width, height)
-     char *string;
-     int *x, *y;
-     unsigned int *width, *height;    /* RETURN */
+XParseGeometry (char *string,
+		int *x, int *y,
+		unsigned int *width, unsigned int *height)
 {
   int mask = NoValue;
   register char *strind;
@@ -414,7 +407,6 @@ XParseGeometry (string, x, y, width, height)
 		return (0);
 	      strind = nextCharacter;
 	      mask |= YNegative;
-
 	    }
 	  else
 	    {
@@ -428,7 +420,7 @@ XParseGeometry (string, x, y, width, height)
 	}
     }
 
-  /* If strind isn't at the end of the string the it's an invalid
+  /* If strind isn't at the end of the string then it's an invalid
      geometry specification. */
 
   if (*strind != '\0') return (0);
@@ -446,10 +438,7 @@ XParseGeometry (string, x, y, width, height)
 
 /* x_sync is a no-op on W32.  */
 void
-x_sync (f)
-     void *f;
+x_sync (void *f)
 {
 }
 
-/* arch-tag: 4fab3695-4ad3-4cc6-a2b1-fd2c67dc46be
-   (do not change this comment) */

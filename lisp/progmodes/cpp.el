@@ -1,7 +1,6 @@
 ;;; cpp.el --- highlight or hide text according to cpp conditionals
 
-;; Copyright (C) 1994, 1995, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;; Free Software Foundation
+;; Copyright (C) 1994-1995, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: c, faces, tools
@@ -309,7 +308,6 @@ A prefix arg suppresses display of that buffer."
   ;; Pop top of cpp-state-stack and create overlay.
   (let ((entry (assoc (nth 1 (car cpp-state-stack)) cpp-edit-list))
 	(branch (nth 0 (car cpp-state-stack)))
-	(begin (nth 2 (car cpp-state-stack)))
 	(end (nth 3 (car cpp-state-stack))))
     (setq cpp-state-stack (cdr cpp-state-stack))
     (if entry
@@ -399,7 +397,7 @@ A prefix arg suppresses display of that buffer."
   (overlay-put overlay 'insert-in-front-hooks '(cpp-grow-overlay))
   (overlay-put overlay 'insert-behind-hooks '(cpp-grow-overlay)))
 
-(defun cpp-signal-read-only (overlay after start end &optional len)
+(defun cpp-signal-read-only (overlay after start end &optional _len)
   ;; Only allow deleting the whole overlay.
   ;; Trying to change a read-only overlay.
   (if (and (not after)
@@ -407,7 +405,7 @@ A prefix arg suppresses display of that buffer."
 	       (> (overlay-end overlay) end)))
       (error "This text is read only")))
 
-(defun cpp-grow-overlay (overlay after start end &optional len)
+(defun cpp-grow-overlay (overlay after start end &optional _len)
   ;; Make OVERLAY grow to contain range START to END.
   (if after
       (move-overlay overlay
@@ -416,63 +414,59 @@ A prefix arg suppresses display of that buffer."
 
 ;;; Edit Buffer:
 
-(defvar cpp-edit-map nil)
-;; Keymap for `cpp-edit-mode'.
+(defvar cpp-edit-mode-map
+  (let ((map (make-keymap)))
+    (suppress-keymap map)
+    (define-key map [ down-mouse-2 ] 'cpp-push-button)
+    (define-key map [ mouse-2 ] 'ignore)
+    (define-key map " " 'scroll-up)
+    (define-key map "\C-?" 'scroll-down)
+    (define-key map [ delete ] 'scroll-down)
+    (define-key map "\C-c\C-c" 'cpp-edit-apply)
+    (define-key map "a" 'cpp-edit-apply)
+    (define-key map "A" 'cpp-edit-apply)
+    (define-key map "r" 'cpp-edit-reset)
+    (define-key map "R" 'cpp-edit-reset)
+    (define-key map "s" 'cpp-edit-save)
+    (define-key map "S" 'cpp-edit-save)
+    (define-key map "l" 'cpp-edit-load)
+    (define-key map "L" 'cpp-edit-load)
+    (define-key map "h" 'cpp-edit-home)
+    (define-key map "H" 'cpp-edit-home)
+    (define-key map "b" 'cpp-edit-background)
+    (define-key map "B" 'cpp-edit-background)
+    (define-key map "k" 'cpp-edit-known)
+    (define-key map "K" 'cpp-edit-known)
+    (define-key map "u" 'cpp-edit-unknown)
+    (define-key map "u" 'cpp-edit-unknown)
+    (define-key map "t" 'cpp-edit-true)
+    (define-key map "T" 'cpp-edit-true)
+    (define-key map "f" 'cpp-edit-false)
+    (define-key map "F" 'cpp-edit-false)
+    (define-key map "w" 'cpp-edit-write)
+    (define-key map "W" 'cpp-edit-write)
+    (define-key map "X" 'cpp-edit-toggle-known)
+    (define-key map "x" 'cpp-edit-toggle-known)
+    (define-key map "Y" 'cpp-edit-toggle-unknown)
+    (define-key map "y" 'cpp-edit-toggle-unknown)
+    (define-key map "q" 'bury-buffer)
+    (define-key map "Q" 'bury-buffer)
+    map)
+  "Keymap for `cpp-edit-mode'.")
 
-(if cpp-edit-map
-    ()
-  (setq cpp-edit-map (make-keymap))
-  (suppress-keymap cpp-edit-map)
-  (define-key cpp-edit-map [ down-mouse-2 ] 'cpp-push-button)
-  (define-key cpp-edit-map [ mouse-2 ] 'ignore)
-  (define-key cpp-edit-map " " 'scroll-up)
-  (define-key cpp-edit-map "\C-?" 'scroll-down)
-  (define-key cpp-edit-map [ delete ] 'scroll-down)
-  (define-key cpp-edit-map "\C-c\C-c" 'cpp-edit-apply)
-  (define-key cpp-edit-map "a" 'cpp-edit-apply)
-  (define-key cpp-edit-map "A" 'cpp-edit-apply)
-  (define-key cpp-edit-map "r" 'cpp-edit-reset)
-  (define-key cpp-edit-map "R" 'cpp-edit-reset)
-  (define-key cpp-edit-map "s" 'cpp-edit-save)
-  (define-key cpp-edit-map "S" 'cpp-edit-save)
-  (define-key cpp-edit-map "l" 'cpp-edit-load)
-  (define-key cpp-edit-map "L" 'cpp-edit-load)
-  (define-key cpp-edit-map "h" 'cpp-edit-home)
-  (define-key cpp-edit-map "H" 'cpp-edit-home)
-  (define-key cpp-edit-map "b" 'cpp-edit-background)
-  (define-key cpp-edit-map "B" 'cpp-edit-background)
-  (define-key cpp-edit-map "k" 'cpp-edit-known)
-  (define-key cpp-edit-map "K" 'cpp-edit-known)
-  (define-key cpp-edit-map "u" 'cpp-edit-unknown)
-  (define-key cpp-edit-map "u" 'cpp-edit-unknown)
-  (define-key cpp-edit-map "t" 'cpp-edit-true)
-  (define-key cpp-edit-map "T" 'cpp-edit-true)
-  (define-key cpp-edit-map "f" 'cpp-edit-false)
-  (define-key cpp-edit-map "F" 'cpp-edit-false)
-  (define-key cpp-edit-map "w" 'cpp-edit-write)
-  (define-key cpp-edit-map "W" 'cpp-edit-write)
-  (define-key cpp-edit-map "X" 'cpp-edit-toggle-known)
-  (define-key cpp-edit-map "x" 'cpp-edit-toggle-known)
-  (define-key cpp-edit-map "Y" 'cpp-edit-toggle-unknown)
-  (define-key cpp-edit-map "y" 'cpp-edit-toggle-unknown)
-  (define-key cpp-edit-map "q" 'bury-buffer)
-  (define-key cpp-edit-map "Q" 'bury-buffer))
+
 
 (defvar cpp-edit-symbols nil)
 ;; Symbols defined in the edit buffer.
 (make-variable-buffer-local 'cpp-edit-symbols)
 
-(defun cpp-edit-mode ()
+(define-derived-mode cpp-edit-mode fundamental-mode "CPP Edit"
   "Major mode for editing the criteria for highlighting cpp conditionals.
 Click on objects to change them.
 You can also use the keyboard accelerators indicated like this: [K]ey."
-  (kill-all-local-variables)
   (buffer-disable-undo)
   (auto-save-mode -1)
-  (setq buffer-read-only t)
-  (setq major-mode 'cpp-edit-mode)
-  (setq mode-name "CPP Edit")
-  (use-local-map cpp-edit-map))
+  (setq buffer-read-only t))
 
 (defun cpp-edit-apply ()
   "Apply edited display information to original buffer."
@@ -568,7 +562,7 @@ You can also use the keyboard accelerators indicated like this: [K]ey."
 	 (load-file cpp-config-file))
 	((file-readable-p (concat "~/" cpp-config-file))
 	 (load-file cpp-config-file)))
-  (if (eq major-mode 'cpp-edit-mode)
+  (if (derived-mode-p 'cpp-edit-mode)
       (cpp-edit-reset)))
 
 (defun cpp-edit-save ()
@@ -830,5 +824,4 @@ BRANCH should be either nil (false branch), t (true branch) or 'both."
 
 (provide 'cpp)
 
-;; arch-tag: fb7d433d-745d-495a-96f0-86908ab63f74
 ;;; cpp.el ends here

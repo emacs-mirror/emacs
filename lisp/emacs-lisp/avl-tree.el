@@ -1,6 +1,6 @@
 ;;; avl-tree.el --- balanced binary trees, AVL-trees
 
-;; Copyright (C) 1995, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Per Cederqvist <ceder@lysator.liu.se>
 ;;	Inge Wallin <inge@lysator.liu.se>
@@ -466,5 +466,4 @@ If there is no such element in the tree, the value is nil."
 
 (provide 'avl-tree)
 
-;; arch-tag: 47e26701-43c9-4222-bd79-739eac6357a9
 ;;; avl-tree.el ends here

@@ -1,7 +1,6 @@
 ;;; url-gw.el --- Gateway munging for URL loading
 
-;; Copyright (C) 1997, 1998, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2004-2011  Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: comm, data, processes
@@ -29,58 +28,56 @@
 ;; Fixme: support SSH explicitly or via a url-gateway-rlogin-program?
 
 (autoload 'socks-open-network-stream "socks")
-(autoload 'open-ssl-stream "ssl")
-(autoload 'open-tls-stream "tls")
 
 (defgroup url-gateway nil
   "URL gateway variables."
   :group 'url)
 
 (defcustom url-gateway-local-host-regexp nil
-  "*A regular expression specifying local hostnames/machines."
+  "A regular expression specifying local hostnames/machines."
   :type '(choice (const nil) regexp)
   :group 'url-gateway)
 
 (defcustom url-gateway-prompt-pattern
   "^[^#$%>;]*[#$%>;] *" ;; "bash\\|\$ *\r?$\\|> *\r?"
-  "*A regular expression matching a shell prompt."
+  "A regular expression matching a shell prompt."
   :type 'regexp
   :group 'url-gateway)
 
 (defcustom url-gateway-rlogin-host nil
-  "*What hostname to actually rlog into before doing a telnet."
+  "What hostname to actually rlog into before doing a telnet."
   :type '(choice (const nil) string)
   :group 'url-gateway)
 
 (defcustom url-gateway-rlogin-user-name nil
-  "*Username to log into the remote machine with when using rlogin."
+  "Username to log into the remote machine with when using rlogin."
   :type '(choice (const nil) string)
   :group 'url-gateway)
 
 (defcustom url-gateway-rlogin-parameters '("telnet" "-8")
-  "*Parameters to `url-open-rlogin'.
+  "Parameters to `url-open-rlogin'.
 This list will be used as the parameter list given to rsh."
   :type '(repeat string)
   :group 'url-gateway)
 
 (defcustom url-gateway-telnet-host nil
-  "*What hostname to actually login to before doing a telnet."
+  "What hostname to actually login to before doing a telnet."
   :type '(choice (const nil) string)
   :group 'url-gateway)
 
 (defcustom url-gateway-telnet-parameters '("exec" "telnet" "-8")
-  "*Parameters to `url-open-telnet'.
+  "Parameters to `url-open-telnet'.
 This list will be executed as a command after logging in via telnet."
   :type '(repeat string)
   :group 'url-gateway)
 
 (defcustom url-gateway-telnet-login-prompt "^\r*.?login:"
-  "*Prompt that tells us we should send our username when loggin in w/telnet."
+  "Prompt that tells us we should send our username when loggin in w/telnet."
   :type 'regexp
   :group 'url-gateway)
 
 (defcustom url-gateway-telnet-password-prompt "^\r*.?password:"
-  "*Prompt that tells us we should send our password when loggin in w/telnet."
+  "Prompt that tells us we should send our password when loggin in w/telnet."
   :type 'regexp
   :group 'url-gateway)
 
@@ -95,7 +92,7 @@ This list will be executed as a command after logging in via telnet."
   :group 'url-gateway)
 
 (defcustom url-gateway-broken-resolution nil
-  "*Whether to use nslookup to resolve hostnames.
+  "Whether to use nslookup to resolve hostnames.
 This should be used when your version of Emacs cannot correctly use DNS,
 but your machine can.  This usually happens if you are running a statically
 linked Emacs under SunOS 4.x."
@@ -103,7 +100,7 @@ linked Emacs under SunOS 4.x."
   :group 'url-gateway)
 
 (defcustom url-gateway-nslookup-program "nslookup"
-  "*If non-nil then a string naming nslookup program."
+  "If non-nil then a string naming nslookup program."
   :type '(choice (const :tag "None" :value nil) string)
   :group 'url-gateway)
 
@@ -220,13 +217,6 @@ Might do a non-blocking connection; use `process-status' to check."
 			       host))
 			 'native
 		       url-gateway-method))
-;;; 	;; This hack is for OS/2 Emacs so that it will not do bogus CRLF
-;;; 	;; conversions while trying to be 'helpful'
-;;; 	(tcp-binary-process-output-services (if (stringp service)
-;;; 						(list service)
-;;; 					      (list service
-;;; 						    (int-to-string service))))
-
 	  ;; An attempt to deal with denied connections, and attempt
 	  ;; to reconnect
 	  (cur-retries 0)
@@ -244,16 +234,15 @@ Might do a non-blocking connection; use `process-status' to check."
 	  (let ((coding-system-for-read 'binary)
 		(coding-system-for-write 'binary))
 	    (setq conn (case gw-method
-			 (tls
-			  (open-tls-stream name buffer host service))
-			 (ssl
-			  (open-ssl-stream name buffer host service))
-			 ((native)
-			  ;; Use non-blocking socket if we can.
-			  (make-network-process :name name :buffer buffer
-						:host host :service service
-						:nowait
-						(featurep 'make-network-process '(:nowait t))))
+			 ((tls ssl native)
+			  (if (eq gw-method 'native)
+			      (setq gw-method 'plain))
+			  (open-network-stream
+			   name buffer host service
+			   :type gw-method
+			   ;; Use non-blocking socket if we can.
+			   :nowait (featurep 'make-network-process
+					     '(:nowait t))))
 			 (socks
 			  (socks-open-network-stream name buffer host service))
 			 (telnet
@@ -262,16 +251,9 @@ Might do a non-blocking connection; use `process-status' to check."
 			  (url-open-rlogin name buffer host service))
 			 (otherwise
 			  (error "Bad setting of url-gateway-method: %s"
-				 url-gateway-method)))))
-        ;; Ignoring errors here seems wrong.  E.g. it'll throw away the
-        ;; error signaled two lines above.  It was also found inconvenient
-        ;; during debugging.
-	;; (error
-	;;  (setq conn nil))
-	)
+				 url-gateway-method))))))
       conn)))
 
 (provide 'url-gw)
 
-;; arch-tag: 1c4c0317-6d03-45b8-b3f3-838bd8f9d838
 ;;; url-gw.el ends here

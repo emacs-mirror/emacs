@@ -1,7 +1,6 @@
 /* update-game-score.c --- Update a score file
 
-Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-  Free Software Foundation, Inc.
+Copyright (C) 2002-2011  Free Software Foundation, Inc.
 
 Author: Colin Walters <walters@debian.org>
 
@@ -34,9 +33,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 #include <errno.h>
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -60,25 +57,19 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 extern char *optarg;
 extern int optind, opterr;
 
+static int usage (int err) NO_RETURN;
+
 #define MAX_ATTEMPTS 5
 #define MAX_SCORES 200
 #define MAX_DATA_LEN 1024
-
-/* Declare the prototype for a general external function.  */
-#if defined (PROTOTYPES) || defined (WINDOWSNT)
-#define P_(proto) proto
-#else
-#define P_(proto) ()
-#endif
 
 #ifndef HAVE_DIFFTIME
 /* OK on POSIX (time_t is arithmetic type) modulo overflow in subtraction.  */
 #define difftime(t1, t0) (double)((t1) - (t0))
 #endif
 
-int
-usage (err)
-     int err;
+static int
+usage (int err)
 {
   fprintf (stdout, "Usage: update-game-score [-m MAX ] [ -r ] game/scorefile SCORE DATA\n");
   fprintf (stdout, "       update-game-score -h\n");
@@ -89,8 +80,8 @@ usage (err)
   exit (err);
 }
 
-int lock_file P_ ((const char *filename, void **state));
-int unlock_file P_ ((const char *filename, void *state));
+static int lock_file (const char *filename, void **state);
+static int unlock_file (const char *filename, void *state);
 
 struct score_entry
 {
@@ -99,25 +90,24 @@ struct score_entry
   char *data;
 };
 
-int read_scores P_ ((const char *filename, struct score_entry **scores,
-		     int *count));
-int push_score P_ ((struct score_entry **scores, int *count,
-		    int newscore, char *username, char *newdata));
-void sort_scores P_ ((struct score_entry *scores, int count, int reverse));
-int write_scores P_ ((const char *filename, const struct score_entry *scores,
-		      int count));
+static int read_scores (const char *filename, struct score_entry **scores,
+			int *count);
+static int push_score (struct score_entry **scores, int *count,
+		       int newscore, char *username, char *newdata);
+static void sort_scores (struct score_entry *scores, int count, int reverse);
+static int write_scores (const char *filename,
+			 const struct score_entry *scores, int count);
 
-void lose P_ ((const char *msg)) NO_RETURN;
+static void lose (const char *msg) NO_RETURN;
 
-void
-lose (msg)
-     const char *msg;
+static void
+lose (const char *msg)
 {
   fprintf (stderr, "%s\n", msg);
   exit (EXIT_FAILURE);
 }
 
-void lose_syserr P_ ((const char *msg)) NO_RETURN;
+static void lose_syserr (const char *msg) NO_RETURN;
 
 /* Taken from sysdep.c.  */
 #ifndef HAVE_STRERROR
@@ -136,16 +126,15 @@ strerror (errnum)
 #endif /* not WINDOWSNT */
 #endif /* ! HAVE_STRERROR */
 
-void
-lose_syserr (msg)
-     const char *msg;
+static void
+lose_syserr (const char *msg)
 {
   fprintf (stderr, "%s: %s\n", msg, strerror (errno));
   exit (EXIT_FAILURE);
 }
 
-char *
-get_user_id P_ ((void))
+static char *
+get_user_id (void)
 {
   char *name;
   struct passwd *buf = getpwuid (getuid ());
@@ -165,10 +154,8 @@ get_user_id P_ ((void))
   return buf->pw_name;
 }
 
-char *
-get_prefix (running_suid, user_prefix)
-     int running_suid;
-     char *user_prefix;
+static const char *
+get_prefix (int running_suid, const char *user_prefix)
 {
   if (!running_suid && user_prefix == NULL)
     lose ("Not using a shared game directory, and no prefix given.");
@@ -184,13 +171,12 @@ get_prefix (running_suid, user_prefix)
 }
 
 int
-main (argc, argv)
-     int argc;
-     char **argv;
+main (int argc, char **argv)
 {
   int c, running_suid;
   void *lockstate;
-  char *user_id, *scorefile, *prefix, *user_prefix = NULL;
+  char *user_id, *scorefile;
+  const char *prefix, *user_prefix = NULL;
   struct stat buf;
   struct score_entry *scores;
   int newscore, scorecount, reverse = 0, max = MAX_SCORES;
@@ -256,13 +242,15 @@ main (argc, argv)
   push_score (&scores, &scorecount, newscore, user_id, newdata);
   sort_scores (scores, scorecount, reverse);
   /* Limit the number of scores.  If we're using reverse sorting, then
-     we should increment the beginning of the array, to skip over the
-     *smallest* scores.  Otherwise, we just decrement the number of
-     scores, since the smallest will be at the end. */
+     also increment the beginning of the array, to skip over the
+     *smallest* scores.  Otherwise, just decrementing the number of
+     scores suffices, since the smallest is at the end. */
   if (scorecount > MAX_SCORES)
-    scorecount -= (scorecount - MAX_SCORES);
-  if (reverse)
-    scores += (scorecount - MAX_SCORES);
+    {
+      if (reverse)
+	scores += (scorecount - MAX_SCORES);
+      scorecount = MAX_SCORES;
+    }
   if (write_scores (scorefile, scores, scorecount) < 0)
     {
       unlock_file (scorefile, lockstate);
@@ -272,10 +260,8 @@ main (argc, argv)
   exit (EXIT_SUCCESS);
 }
 
-int
-read_score (f, score)
-     FILE *f;
-     struct score_entry *score;
+static int
+read_score (FILE *f, struct score_entry *score)
 {
   int c;
   if (feof (f))
@@ -358,11 +344,8 @@ read_score (f, score)
   return 0;
 }
 
-int
-read_scores (filename, scores, count)
-     const char *filename;
-     struct score_entry **scores;
-     int *count;
+static int
+read_scores (const char *filename, struct score_entry **scores, int *count)
 {
   int readval, scorecount, cursize;
   struct score_entry *ret;
@@ -394,20 +377,16 @@ read_scores (filename, scores, count)
   return 0;
 }
 
-int
-score_compare (a, b)
-     const void *a;
-     const void *b;
+static int
+score_compare (const void *a, const void *b)
 {
   const struct score_entry *sa = (const struct score_entry *) a;
   const struct score_entry *sb = (const struct score_entry *) b;
   return (sb->score > sa->score) - (sb->score < sa->score);
 }
 
-int
-score_compare_reverse (a, b)
-     const void *a;
-     const void *b;
+static int
+score_compare_reverse (const void *a, const void *b)
 {
   const struct score_entry *sa = (const struct score_entry *) a;
   const struct score_entry *sb = (const struct score_entry *) b;
@@ -415,11 +394,7 @@ score_compare_reverse (a, b)
 }
 
 int
-push_score (scores, count, newscore, username, newdata)
-     struct score_entry **scores;
-     int *count; int newscore;
-     char *username;
-     char *newdata;
+push_score (struct score_entry **scores, int *count, int newscore, char *username, char *newdata)
 {
  struct score_entry *newscores
    = (struct score_entry *) realloc (*scores,
@@ -434,21 +409,15 @@ push_score (scores, count, newscore, username, newdata)
   return 0;
 }
 
-void
-sort_scores (scores, count, reverse)
-     struct score_entry *scores;
-     int count;
-     int reverse;
+static void
+sort_scores (struct score_entry *scores, int count, int reverse)
 {
   qsort (scores, count, sizeof (struct score_entry),
 	reverse ? score_compare_reverse : score_compare);
 }
 
-int
-write_scores (filename, scores, count)
-     const char *filename;
-     const struct score_entry * scores;
-     int count;
+static int
+write_scores (const char *filename, const struct score_entry *scores, int count)
 {
   FILE *f;
   int i;
@@ -476,15 +445,13 @@ write_scores (filename, scores, count)
   return 0;
 }
 
-int
-lock_file (filename, state)
-  const char *filename;
-  void **state;
+static int
+lock_file (const char *filename, void **state)
 {
   int fd;
   struct stat buf;
   int attempts = 0;
-  char *lockext = ".lockfile";
+  const char *lockext = ".lockfile";
   char *lockpath = malloc (strlen (filename) + strlen (lockext) + 60);
   if (!lockpath)
     return -1;
@@ -519,10 +486,8 @@ lock_file (filename, state)
   return 0;
 }
 
-int
-unlock_file (filename, state)
-  const char *filename;
- void *state;
+static int
+unlock_file (const char *filename, void *state)
 {
   char *lockpath = (char *) state;
   int ret = unlink (lockpath);
@@ -532,7 +497,5 @@ unlock_file (filename, state)
   return ret;
 }
 
-/* arch-tag: 2bf5c52e-4beb-463a-954e-c58b9c64736b
-   (do not change this comment) */
 
 /* update-game-score.c ends here */

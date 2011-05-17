@@ -17,4 +17,3 @@
     ("IDEOGRAPHIC ANNOTATION MAN MARK" #x319F)
     ))
 
-;; arch-tag: e25f7331-0993-4daf-a193-0fe56332f9fa

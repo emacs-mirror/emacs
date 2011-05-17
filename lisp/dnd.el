@@ -1,10 +1,11 @@
-;;; dnd.el --- drag and drop support.
+;;; dnd.el --- drag and drop support.  -*- coding: utf-8 -*-
 
-;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2011  Free Software Foundation, Inc.
 
-;; Author: Jan Dj,Ad(Brv <jan.h.d@swipnet.se>
+;; Author: Jan Djärv <jan.h.d@swipnet.se>
 ;; Maintainer: FSF
 ;; Keywords: window, drag, drop
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -133,6 +134,16 @@ Return nil if URI is not a local file."
 		 (string-equal system-name-no-dot hostname)))
 	(concat "file://" (substring uri (+ 7 (length hostname)))))))
 
+(defsubst dnd-unescape-uri (uri)
+  (replace-regexp-in-string
+   "%[A-Fa-f0-9][A-Fa-f0-9]"
+   (lambda (arg)
+     (let ((str (make-string 1 0)))
+       (aset str 0 (string-to-number (substring arg 1) 16))
+       str))
+   uri t t))
+
+;; http://lists.gnu.org/archive/html/emacs-devel/2006-05/msg01060.html
 (defun dnd-get-local-file-name (uri &optional must-exist)
   "Return file name converted from file:/// or file: syntax.
 URI is the uri for the file.  If MUST-EXIST is given and non-nil,
@@ -142,23 +153,14 @@ Return nil if URI is not a local file."
 		  (substring uri (1- (match-end 0))))
 		 ((string-match "^file:" uri)		; Old KDE, Motif, Sun
 		  (substring uri (match-end 0))))))
-    (when (and f must-exist)
-      (setq f (replace-regexp-in-string
-	       "%[A-Fa-f0-9][A-Fa-f0-9]"
-	       (lambda (arg)
-		 (let ((str (make-string 1 0)))
-		   (aset str 0 (string-to-number (substring arg 1) 16))
-		   str))
-	       f t t))
-      (let* ((decoded-f (decode-coding-string
-			 f
-			 (or file-name-coding-system
-			     default-file-name-coding-system)))
-	     (try-f (if (file-readable-p decoded-f) decoded-f f)))
-	(when (file-readable-p try-f) try-f)))))
+    (and f (setq f (decode-coding-string (dnd-unescape-uri f)
+                                         (or file-name-coding-system
+                                             default-file-name-coding-system))))
+    (when (and f must-exist (not (file-readable-p f)))
+      (setq f nil))
+    f))
 
-
-(defun dnd-open-local-file (uri action)
+(defun dnd-open-local-file (uri _action)
   "Open a local file.
 The file is opened in the current window, or a new window if
 `dnd-open-file-other-window' is set.  URI is the url for the file,
@@ -178,7 +180,7 @@ An alternative for systems that do not support unc file names is
 	  'private)
       (error "Can not read %s" uri))))
 
-(defun dnd-open-remote-url (uri action)
+(defun dnd-open-remote-url (uri _action)
   "Open a remote file with `find-file' and `url-handler-mode'.
 Turns `url-handler-mode' on if not on before.  The file is opened in the
 current window, or a new window if `dnd-open-file-other-window' is set.
@@ -224,5 +226,4 @@ TEXT is the text as a string, WINDOW is the window where the drop happened."
 
 (provide 'dnd)
 
-;; arch-tag: 0472f6a5-2e8f-4304-9e44-1a0877c771b7
 ;;; dnd.el ends here

@@ -631,4 +631,3 @@
     ("CANADIAN SYLLABICS NNGAA" #x1676)
     ))
 
-;; arch-tag: 7b4079a4-dea1-44b9-9699-8826b5919ad7

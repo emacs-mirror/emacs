@@ -1,6 +1,6 @@
 ;;; iimage.el --- Inline image minor mode.
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
 
 ;; Author: KOSEKI Yoshinori <kose@meadowy.org>
 ;; Maintainer: KOSEKI Yoshinori <kose@meadowy.org>
@@ -27,20 +27,16 @@
 ;; exists in the buffer.
 ;; http://www.netlaputa.ne.jp/~kose/Emacs/iimage.html
 ;;
-;; Add to your `~/.emacs':
-;; (autoload 'iimage-mode "iimage" "Support Inline image minor mode." t)
-;; (autoload 'turn-on-iimage-mode "iimage" "Turn on Inline image minor mode." t)
-;;
 ;; ** Display images in *Info* buffer.
 ;;
-;; (add-hook 'info-mode-hook 'turn-on-iimage-mode)
+;; (add-hook 'info-mode-hook 'iimage-mode)
 ;;
 ;; .texinfo:   @file{file://foo.png}
 ;; .info:      `file://foo.png'
 ;;
 ;; ** Display images in Wiki buffer.
 ;;
-;; (add-hook 'wiki-mode-hook 'turn-on-iimage-mode)
+;; (add-hook 'wiki-mode-hook 'iimage-mode)
 ;;
 ;; wiki-file:   [[foo.png]]
 
@@ -54,21 +50,10 @@
   :version "22.1"
   :group 'image)
 
-(defconst iimage-version "1.1")
-(defvar iimage-mode nil)
-(defvar iimage-mode-map nil)
-
-;; Set up key map.
-(unless iimage-mode-map
-  (setq iimage-mode-map (make-sparse-keymap))
-  (define-key iimage-mode-map "\C-l" 'iimage-recenter))
-
-(defun iimage-recenter (&optional arg)
-"Re-draw images and recenter."
-  (interactive "P")
-  (iimage-mode-buffer 0)
-  (iimage-mode-buffer 1)
-  (recenter arg))
+(defcustom iimage-mode-image-search-path nil
+  "List of directories to search for image files for iimage-mode."
+  :type '(choice (const nil) (repeat directory))
+  :group 'iimage)
 
 (defvar iimage-mode-image-filename-regex
   (concat "[-+./_0-9a-zA-Z]+\\."
@@ -77,70 +62,86 @@
 			     image-file-name-extensions)
 		      t)))
 
-(defvar iimage-mode-image-regex-alist
+(defcustom iimage-mode-image-regex-alist
   `((,(concat "\\(`?file://\\|\\[\\[\\|<\\|`\\)?"
 	      "\\(" iimage-mode-image-filename-regex "\\)"
 	      "\\(\\]\\]\\|>\\|'\\)?") . 2))
-"*Alist of filename REGEXP vs NUM.
+  "Alist of filename REGEXP vs NUM.
 Each element looks like (REGEXP . NUM).
 NUM specifies which parenthesized expression in the regexp.
 
-Examples of image filename regexps:
+Examples of image filename patterns to match:
     file://foo.png
     `file://foo.png'
     \\[\\[foo.gif]]
     <foo.png>
      foo.JPG
-")
+"
+  :type '(alist :key-type regexp :value-type integer)
+  :group 'iimage)
 
-(defvar iimage-mode-image-search-path nil
-"*List of directories to search for image files for iimage-mode.")
+(defvar iimage-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-l" 'iimage-recenter)
+    map)
+  "Keymap used in `iimage-mode'.")
+
+(defun iimage-recenter (&optional arg)
+  "Re-draw images and recenter."
+  (interactive "P")
+  (iimage-mode-buffer nil)
+  (iimage-mode-buffer t)
+  (recenter arg))
 
 ;;;###autoload
-(defun turn-on-iimage-mode ()
-"Unconditionally turn on iimage mode."
-  (interactive)
-  (iimage-mode 1))
+(define-obsolete-function-alias 'turn-on-iimage-mode 'iimage-mode "24.1")
 
 (defun turn-off-iimage-mode ()
-"Unconditionally turn off iimage mode."
+  "Unconditionally turn off iimage mode."
   (interactive)
   (iimage-mode 0))
 
-(defalias 'iimage-locate-file 'locate-file)
+(defun iimage-modification-hook (beg end)
+  "Remove display property if a display region is modified."
+  ;;(debug-print "ii1 begin %d, end %d\n" beg end)
+  (let ((inhibit-modification-hooks t)
+        (beg (previous-single-property-change end 'display
+                                              nil (line-beginning-position)))
+        (end (next-single-property-change     beg 'display
+                                              nil (line-end-position))))
+    (when (and beg end (plist-get (text-properties-at beg) 'display))
+      ;;(debug-print "ii2 begin %d, end %d\n" beg end)
+      (remove-text-properties beg end
+                              '(display nil modification-hooks nil)))))
 
 (defun iimage-mode-buffer (arg)
-"Display/undisplay images.
-With numeric ARG, display the images if and only if ARG is positive."
-  (interactive)
-  (let ((ing (if (numberp arg)
-		 (> arg 0)
-	       iimage-mode))
-	(modp (buffer-modified-p (current-buffer)))
-	file buffer-read-only)
-    (save-excursion
-      (goto-char (point-min))
-      (dolist (pair iimage-mode-image-regex-alist)
-	(while (re-search-forward (car pair) nil t)
-	  (if (and (setq file (match-string (cdr pair)))
-		   (setq file (iimage-locate-file file
-				   (cons default-directory
-					 iimage-mode-image-search-path))))
-	      (if ing
-		  (add-text-properties (match-beginning 0) (match-end 0)
-				       (list 'display (create-image file)))
-		(remove-text-properties (match-beginning 0) (match-end 0)
-					'(display)))))))
-    (set-buffer-modified-p modp)))
+  "Display images if ARG is non-nil, undisplay them otherwise."
+  (let ((image-path (cons default-directory iimage-mode-image-search-path))
+	file)
+    (with-silent-modifications
+      (save-excursion
+        (goto-char (point-min))
+        (dolist (pair iimage-mode-image-regex-alist)
+          (while (re-search-forward (car pair) nil t)
+            (when (and (setq file (match-string (cdr pair)))
+                       (setq file (locate-file file image-path)))
+              ;; FIXME: we don't mark our images, so we can't reliably
+              ;; remove them either (we may leave some of ours, and we
+              ;; may remove other packages's display properties).
+              (if arg
+                  (add-text-properties (match-beginning 0) (match-end 0)
+                                       `(display ,(create-image file)
+                                         modification-hooks
+                                         (iimage-modification-hook)))
+                (remove-text-properties (match-beginning 0) (match-end 0)
+                                        '(display modification-hooks))))))))))
 
 ;;;###autoload
 (define-minor-mode iimage-mode
   "Toggle inline image minor mode."
   :group 'iimage :lighter " iImg" :keymap iimage-mode-map
-  (run-hooks 'iimage-mode-hook)
   (iimage-mode-buffer iimage-mode))
 
 (provide 'iimage)
 
-;; arch-tag: f6f8e29a-08f6-4a12-9496-51e67441ce65
 ;;; iimage.el ends here

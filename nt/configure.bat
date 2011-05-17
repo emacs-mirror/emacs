@@ -1,8 +1,7 @@
 @echo off
 rem   ----------------------------------------------------------------------
-rem   Configuration script for MS Windows 95/98/Me and NT/2000/XP
-rem   Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-rem      2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+rem   Configuration script for MS Windows operating systems
+rem   Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 rem   This file is part of GNU Emacs.
 
@@ -22,7 +21,7 @@ rem   along with GNU Emacs.  If not, see http://www.gnu.org/licenses/.
 rem   ----------------------------------------------------------------------
 rem   YOU'LL NEED THE FOLLOWING UTILITIES TO MAKE EMACS:
 rem
-rem   + MS Windows 95/98/Me or NT/2000/XP
+rem   + MS Windows 95, NT or later
 rem   + either MSVC 2.x or later, or gcc-2.95 or later (with GNU make 3.75
 rem     or later) and the Mingw32 and W32 API headers and libraries.
 rem   + Visual Studio 2005 is not supported at this time.
@@ -76,19 +75,40 @@ goto end
 
 :start
 rem ----------------------------------------------------------------------
+rem   Attempt to enable command extensions.  Set use_extensions to 1 if
+rem   they are available and 0 if they are not available.
+set use_extensions=1
+setlocal ENABLEEXTENSIONS
+if "%CMDEXTVERSION%" == "" set use_extensions=0
+if "%use_extensions%" == "1" goto afterext
+
+echo. Command extensions are not available.  Using parameters that include the =
+echo. character by enclosing them in quotes will not be supported.
+
+:afterext
+
+rem ----------------------------------------------------------------------
 rem   Default settings.
 set prefix=
 set nodebug=N
 set noopt=N
+set enablechecking=N
 set profile=N
 set nocygwin=N
 set COMPILER=
 set usercflags=
+set escusercflags=
 set docflags=
 set userldflags=
+set escuserldflags=
+set extrauserlibs=
 set doldflags=
+set doextralibs=
 set sep1=
 set sep2=
+set sep3=
+set sep4=
+set distfiles=
 
 rem ----------------------------------------------------------------------
 rem   Handle arguments.
@@ -100,17 +120,22 @@ if "%1" == "--with-gcc" goto withgcc
 if "%1" == "--with-msvc" goto withmsvc
 if "%1" == "--no-debug" goto nodebug
 if "%1" == "--no-opt" goto noopt
+if "%1" == "--enable-checking" goto enablechecking
 if "%1" == "--profile" goto profile
 if "%1" == "--no-cygwin" goto nocygwin
 if "%1" == "--cflags" goto usercflags
 if "%1" == "--ldflags" goto userldflags
+if "%1" == "--lib" goto extrauserlibs
 if "%1" == "--without-png" goto withoutpng
 if "%1" == "--without-jpeg" goto withoutjpeg
 if "%1" == "--without-gif" goto withoutgif
 if "%1" == "--without-tiff" goto withouttiff
+if "%1" == "--without-gnutls" goto withoutgnutls
 if "%1" == "--without-xpm" goto withoutxpm
 if "%1" == "--with-svg" goto withsvg
+if "%1" == "--distfiles" goto distfiles
 if "%1" == "" goto checkutils
+
 :usage
 echo Usage: configure [options]
 echo Options:
@@ -119,67 +144,145 @@ echo.   --with-gcc              use GCC to compile Emacs
 echo.   --with-msvc             use MSVC to compile Emacs
 echo.   --no-debug              exclude debug info from executables
 echo.   --no-opt                disable optimization
+echo.   --enable-checking       enable checks and assertions
 echo.   --profile               enable profiling
 echo.   --no-cygwin             use -mno-cygwin option with GCC
 echo.   --cflags FLAG           pass FLAG to compiler
 echo.   --ldflags FLAG          pass FLAG to compiler when linking
+echo.   --lib LIB               link to extra library LIB
 echo.   --without-png           do not use PNG library even if it is installed
 echo.   --without-jpeg          do not use JPEG library even if it is installed
 echo.   --without-gif           do not use GIF library even if it is installed
 echo.   --without-tiff          do not use TIFF library even if it is installed
 echo.   --without-xpm           do not use XPM library even if it is installed
+echo.   --without-gnutls        do not use GNUTLS library even if it is installed
 echo.   --with-svg              use the RSVG library (experimental)
+echo.   --distfiles             path to files for make dist, e.g. libXpm.dll
+if "%use_extensions%" == "0" goto end
+echo.
+echo. The cflags and ldflags arguments support parameters that include the =
+echo. character.  However, since the = character is normally treated as a
+echo. separator character you will need to enclose any parameter that includes
+echo. the = character in quotes.  For example, to include
+echo. -DSITELOAD_PURESIZE_EXTRA=100000 as one of the cflags you would run
+echo. configure.bat as follows:
+echo. configure.bat --cflags "-DSITELOAD_PURESIZE_EXTRA=100000"
+echo.
+echo. Note that this capability of processing parameters that include the =
+echo. character depends on command extensions.  This batch file attempts to
+echo. enable command extensions.  If command extensions cannot be enabled, a
+echo. warning message will be displayed.
 goto end
+
 rem ----------------------------------------------------------------------
+
 :setprefix
 shift
 set prefix=%1
 shift
 goto again
+
 rem ----------------------------------------------------------------------
+
 :withgcc
 set COMPILER=gcc
 shift
 goto again
+
 rem ----------------------------------------------------------------------
+
 :withmsvc
 set COMPILER=cl
 shift
 goto again
+
 rem ----------------------------------------------------------------------
+
 :nodebug
 set nodebug=Y
 shift
 goto again
+
 rem ----------------------------------------------------------------------
+
 :noopt
 set noopt=Y
 shift
 goto again
+
 rem ----------------------------------------------------------------------
+
+:enablechecking
+set enablechecking=Y
+shift
+goto again
+
+rem ----------------------------------------------------------------------
+
 :profile
 set profile=Y
 shift
 goto again
+
 rem ----------------------------------------------------------------------
+
 :nocygwin
 set nocygwin=Y
 shift
 goto again
+
 rem ----------------------------------------------------------------------
+
 :usercflags
+if "%use_extensions%" == "1" goto ucflagex
+goto ucflagne
+
+:ucflagex
 shift
-set usercflags=%usercflags%%sep1%%1
+set usercflags=%usercflags%%sep1%%~1
+set escusercflags=%usercflags:"=\"%
 set sep1= %nothing%
 shift
 goto again
-rem ----------------------------------------------------------------------
-:userldflags
+
+:ucflagne
 shift
-set userldflags=%userldflags%%sep2%%1
+set usercflags=%usercflags%%sep1%%1
+set escusercflags=%usercflags%
+set sep1= %nothing%
+shift
+goto again
+
+:extrauserlibs
+shift
+echo. extrauserlibs: %extrauserlibs%
+set extrauserlibs=%extrauserlibs%%sep4%%1
+set sep4= %nothing%
+shift
+goto again
+
+rem ----------------------------------------------------------------------
+
+:userldflags
+if "%use_extensions%" == "1" goto ulflagex
+goto ulflagne
+
+:ulflagex
+shift
+set userldflags=%userldflags%%sep2%%~1
+set escuserldflags=%userldflags:"=\"%
 set sep2= %nothing%
 shift
 goto again
+
+:ulflagne
+shift
+set userldflags=%userldflags%%sep2%%1
+set escuserldflags=%userldflags%
+set sep2= %nothing%
+shift
+goto again
+
 rem ----------------------------------------------------------------------
 
 :withoutpng
@@ -206,6 +309,14 @@ goto again
 
 rem ----------------------------------------------------------------------
 
+:withoutgnutls
+set tlssupport=N
+set HAVE_GNUTLS=
+shift
+goto again
+
+rem ----------------------------------------------------------------------
+
 :withouttiff
 set tiffsupport=N
 set HAVE_TIFF=
@@ -226,7 +337,18 @@ set svgsupport=Y
 goto again
 
 rem ----------------------------------------------------------------------
+
+:distfiles
+set HAVE_DISTFILES=1
+shift
+set distfiles=%distfiles%%sep3%%1
+set sep3= %nothing%
+shift
+goto again
+
+rem ----------------------------------------------------------------------
 rem    Check that necessary utilities (cp and rm) are present.
+
 :checkutils
 echo Checking for 'cp'...
 cp configure.bat junk.bat
@@ -235,9 +357,11 @@ echo Checking for 'rm'...
 rm junk.bat
 if exist junk.bat goto needrm
 goto checkcompiler
+
 :needcp
 echo You need 'cp' (the Unix file copy program) to build Emacs.
 goto end
+
 :needrm
 del junk.bat
 echo You need 'rm' (the Unix file delete program) to build Emacs.
@@ -245,6 +369,7 @@ goto end
 
 rem ----------------------------------------------------------------------
 rem   Auto-detect compiler if not specified, and validate GCC if chosen.
+
 :checkcompiler
 if (%COMPILER%)==(cl) goto compilercheckdone
 if (%COMPILER%)==(gcc) goto checkgcc
@@ -279,6 +404,7 @@ if exist junk.o set nocygwin=Y
 :chkapi
 echo The failed program was: >>config.log
 type junk.c >>config.log
+
 :chkapiN
 rm -f junk.c junk.o
 rem ----------------------------------------------------------------------
@@ -298,8 +424,10 @@ echo {PIMAGE_SECTION_HEADER pSection = IMAGE_FIRST_SECTION(pHeader);} >>junk.c
 if (%nocygwin%) == (Y) goto chkapi1
 set cf=%usercflags%
 goto chkapi2
+
 :chkapi1
 set cf=%usercflags% -mno-cygwin
+
 :chkapi2
 echo on
 gcc %cf% -c junk.c
@@ -307,9 +435,25 @@ gcc %cf% -c junk.c
 @echo gcc %cf% -c junk.c >>config.log
 gcc %cf% -c junk.c >>config.log 2>&1
 set cf=
-if exist junk.o goto gccOk
+if exist junk.o goto chkuser
 echo The failed program was: >>config.log
 type junk.c >>config.log
+goto nocompiler
+
+:chkuser
+rm -f junk.o
+echo int main (int argc, char *argv[]) {>junk.c
+echo char *usercflags = "%escusercflags%";>>junk.c
+echo }>>junk.c
+echo gcc -Werror -c junk.c >>config.log
+gcc -Werror -c junk.c >>config.log 2>&1
+if exist junk.o goto gccOk
+echo.
+echo Error in --cflags argument: %usercflags%
+echo Backslashes and quotes cannot be used with --cflags.  Please use forward
+echo slashes for filenames and paths (e.g. when passing directories to -I).
+rm -f junk.c
+goto end
 
 :nocompiler
 echo.
@@ -335,10 +479,12 @@ type junk.c >>config.log
 set mf=-mcpu=i686
 rm -f junk.c junk.o
 goto gccdebug
+
 :gccMtuneOk
 echo GCC supports -mtune=pentium4 >>config.log
 set mf=-mtune=pentium4
 rm -f junk.c junk.o
+
 :gccdebug
 rem Check for DWARF-2 debug info support, else default to stabs
 echo main(){} >junk.c
@@ -350,6 +496,7 @@ type junk.c >>config.log
 set dbginfo=-gstabs+
 rm -f junk.c junk.o
 goto compilercheckdone
+
 :gccdwarf
 echo GCC supports DWARF-2 >>config.log
 set dbginfo=-gdwarf-2 -g3
@@ -396,6 +543,30 @@ echo ...PNG header available, building with PNG support.
 set HAVE_PNG=1
 
 :pngDone
+rm -f junk.c junk.obj
+
+if (%tlssupport%) == (N) goto tlsDone
+
+rem this is a copy of the PNG detection
+echo Checking for libgnutls...
+echo #include "gnutls/gnutls.h" >junk.c
+echo main (){} >>junk.c
+rem   -o option is ignored with cl, but allows result to be consistent.
+echo %COMPILER% %usercflags% %mingwflag% -c junk.c -o junk.obj >>config.log
+%COMPILER% %usercflags% %mingwflag% -c junk.c -o junk.obj >junk.out 2>>config.log
+if exist junk.obj goto haveTls
+
+echo ...gnutls.h not found, building without TLS support.
+echo The failed program was: >>config.log
+type junk.c >>config.log
+set HAVE_GNUTLS=
+goto :tlsDone
+
+:haveTls
+echo ...GNUTLS header available, building with GNUTLS support.
+set HAVE_GNUTLS=1
+
+:tlsDone
 rm -f junk.c junk.obj
 
 if (%jpegsupport%) == (N) goto jpegDone
@@ -513,7 +684,37 @@ set HAVE_RSVG=1
 :svgDone
 rm -f junk.c junk.obj junk.err junk.out
 
+rem Any distfiles provided for building distribution? If no, we're done.
+if "(%HAVE_DISTFILES%)"=="()" goto :distFilesDone
+
+rem Any arguments to --distfiles specified? If no, we're done.
+if not "%distfiles%"=="" goto :checkDistFiles
+set distFilesOk=0
+echo No arguments specified for option --distfiles!
+goto distfilesDone
+
+:checkDistFiles
+echo Checking for distfiles...
+rem Check if all specified distfiles exist
+set fileNotFound=
+for %%d in (%distfiles%) do if not exist %%d set fileNotFound=%%d
+if not "%fileNotFound%"=="" goto distFilesNotFound
+
+set distFilesOK=1
+echo ...all distfiles found.
+goto :distFilesDone
+
+:distFilesNotFound
+set distFilesOk=0
+echo ...%fileNotFound% not found.
+set distfiles=
+goto :distfilesDone
+
+:distFilesDone
+set fileNotFound=
+
 rem ----------------------------------------------------------------------
+
 :genmakefiles
 echo Generating makefiles
 if %COMPILER% == gcc set MAKECMD=gmake
@@ -529,25 +730,33 @@ if not "(%mf%)" == "()" echo MCPU_FLAG=%mf%>>config.settings
 if not "(%dbginfo%)" == "()" echo DEBUG_INFO=%dbginfo%>>config.settings
 if (%nodebug%) == (Y) echo NODEBUG=1 >>config.settings
 if (%noopt%) == (Y) echo NOOPT=1 >>config.settings
+if (%enablechecking%) == (Y) echo ENABLECHECKS=1 >>config.settings
 if (%profile%) == (Y) echo PROFILE=1 >>config.settings
 if (%nocygwin%) == (Y) echo NOCYGWIN=1 >>config.settings
 if not "(%prefix%)" == "()" echo INSTALL_DIR=%prefix%>>config.settings
+if not "(%distfiles%)" == "()" echo DIST_FILES=%distfiles%>>config.settings
 rem We go thru docflags because usercflags could be "-DFOO=bar" -something
 rem and the if command cannot cope with this
 for %%v in (%usercflags%) do if not (%%v)==() set docflags=Y
 if (%docflags%)==(Y) echo USER_CFLAGS=%usercflags%>>config.settings
+if (%docflags%)==(Y) echo ESC_USER_CFLAGS=%escusercflags%>>config.settings
 for %%v in (%userldflags%) do if not (%%v)==() set doldflags=Y
 if (%doldflags%)==(Y) echo USER_LDFLAGS=%userldflags%>>config.settings
+for %%v in (%extrauserlibs%) do if not (%%v)==() set doextralibs=Y
+if (%doextralibs%)==(Y) echo USER_LIBS=%extrauserlibs%>>config.settings
 echo # End of settings from configure.bat>>config.settings
 echo. >>config.settings
 
 copy config.nt config.tmp
 echo. >>config.tmp
 echo /* Start of settings from configure.bat.  */ >>config.tmp
-if (%docflags%) == (Y) echo #define USER_CFLAGS " %usercflags%">>config.tmp
-if (%doldflags%) == (Y) echo #define USER_LDFLAGS " %userldflags%">>config.tmp
+rem   We write USER_CFLAGS and USER_LDFLAGS starting with a space to simplify
+rem   processing of compiler options in w32.c:get_emacs_configuration_options
+if (%docflags%) == (Y) echo #define USER_CFLAGS " %escusercflags%">>config.tmp
+if (%doldflags%) == (Y) echo #define USER_LDFLAGS " %escuserldflags%">>config.tmp
 if (%profile%) == (Y) echo #define PROFILING 1 >>config.tmp
 if not "(%HAVE_PNG%)" == "()" echo #define HAVE_PNG 1 >>config.tmp
+if not "(%HAVE_GNUTLS%)" == "()" echo #define HAVE_GNUTLS 1 >>config.tmp
 if not "(%HAVE_JPEG%)" == "()" echo #define HAVE_JPEG 1 >>config.tmp
 if not "(%HAVE_GIF%)" == "()" echo #define HAVE_GIF 1 >>config.tmp
 if not "(%HAVE_TIFF%)" == "()" echo #define HAVE_TIFF 1 >>config.tmp
@@ -565,7 +774,8 @@ if not errorlevel 2 goto doCopy
 fc /b config.tmp ..\src\config.h >nul 2>&1
 if errorlevel 1 goto doCopy
 fc /b paths.h ..\src\epaths.h >nul 2>&1
-if errorlevel 0 goto dontCopy
+if not errorlevel 1 goto dontCopy
+
 :doCopy
 copy config.tmp ..\src\config.h
 copy paths.h ..\src\epaths.h
@@ -575,6 +785,7 @@ if exist config.tmp del config.tmp
 copy /b config.settings+%MAKECMD%.defs+..\nt\makefile.w32-in ..\nt\makefile
 if exist ..\admin\unidata copy /b config.settings+%MAKECMD%.defs+..\admin\unidata\makefile.w32-in ..\admin\unidata\makefile
 copy /b config.settings+%MAKECMD%.defs+..\lib-src\makefile.w32-in ..\lib-src\makefile
+copy /b config.settings+%MAKECMD%.defs+..\lib\makefile.w32-in ..\lib\makefile
 copy /b config.settings+%MAKECMD%.defs+..\src\makefile.w32-in ..\src\makefile
 copy /b config.settings+%MAKECMD%.defs+..\doc\emacs\makefile.w32-in ..\doc\emacs\makefile
 copy /b config.settings+%MAKECMD%.defs+..\doc\misc\makefile.w32-in ..\doc\misc\makefile
@@ -595,6 +806,7 @@ fc /b foo.bar foo.bar >nul 2>&1
 if not errorlevel 2 goto doUpdateSubdirs
 fc /b subdirs.el ..\site-lisp\subdirs.el >nul 2>&1
 if not errorlevel 1 goto dontUpdateSubdirs
+
 :doUpdateSubdirs
 if exist ..\site-lisp\subdirs.el del ..\site-lisp\subdirs.el
 copy subdirs.el ..\site-lisp\subdirs.el
@@ -633,11 +845,18 @@ if (%tiffsupport%) == (N) goto checkgif
  echo   Install libtiff development files or use --without-tiff
 
 :checkgif
-if not "(%HAVE_GIF%)" == "()" goto donelibchecks
-if (%gifsupport%) == (N) goto donelibchecks
+if not "(%HAVE_GIF%)" == "()" goto checkdistfiles
+if (%gifsupport%) == (N) goto checkdistfiles
  set libsOK=0
  echo GIF support is missing.
  echo   Install giflib or libungif development files or use --without-gif
+
+:checkdistfiles
+if "(%HAVE_DISTFILES%)" == "()" goto donelibchecks
+if (%distFilesOk%) == (1) goto donelibchecks
+echo.
+echo Files specified with option --distfiles could not be found.
+echo   Fix these issues before running make dist
 
 :donelibchecks
 if (%libsOK%) == (1) goto success
@@ -656,10 +875,12 @@ goto end
 echo Your environment size is too small.  Please enlarge it and rerun configure.
 echo For example, type "command.com /e:2048" to have 2048 bytes available.
 set $foo$=
+
 :end
 set prefix=
 set nodebug=
 set noopt=
+set enablechecking=
 set profile=
 set nocygwin=
 set COMPILER=
@@ -670,7 +891,21 @@ set userldflags=
 set doldflags=
 set mingwflag=
 set mf=
+set distfiles=
+set HAVE_DISTFILES=
+set distFilesOk=
+set pngsupport=
+set tlssupport=
+set jpegsupport=
+set gifsupport=
+set tiffsupport=
+set xpmsupport=
+set svgsupport=
+set libsOK=
+set HAVE_GIF=
+set HAVE_JPEG=
+set HAVE_PNG=
+set HAVE_TIFF=
+set HAVE_XPM=
+set dbginfo=
 
-goto skipArchTag
-   arch-tag: 300d20a4-1675-4e75-b615-7ce1a8c5376c
-:skipArchTag

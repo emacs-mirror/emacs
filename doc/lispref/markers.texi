@@ -1,7 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2011  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/markers
 @node Markers, Text, Positions, Top
@@ -674,7 +673,3 @@ mark is active, and there's a valid region in the buffer.  Commands
 that operate on the region (instead of on text near point) when
 there's an active mark should use this to test whether to do that.
 @end defun
-
-@ignore
-   arch-tag: b1ba2e7a-a0f3-4c5e-875c-7d8e22d73299
-@end ignore

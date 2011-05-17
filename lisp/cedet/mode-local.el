@@ -1,6 +1,6 @@
 ;;; mode-local.el --- Support for mode local facilities
 ;;
-;; Copyright (C) 2004, 2005, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2005, 2007-2011  Free Software Foundation, Inc.
 ;;
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: David Ponce <david@dponce.com>
@@ -610,19 +610,16 @@ PROMPT, INITIAL, HIST, and DEFAULT are the same as for `completing-read'."
 SYMBOL is a function that can be overridden."
   (with-current-buffer "*Help*"
     (pop-to-buffer (current-buffer))
-    (unwind-protect
-	(progn
-	  (toggle-read-only -1)
-          (goto-char (point-min))
-          (unless (re-search-forward "^$" nil t)
-            (goto-char (point-max))
-            (beginning-of-line)
-            (forward-line -1))
-          (insert (overload-docstring-extension symbol) "\n")
-	  ;; NOTE TO SELF:
-	  ;; LIST ALL LOADED OVERRIDES FOR SYMBOL HERE
-	  )
-      (toggle-read-only 1))))
+    (goto-char (point-min))
+    (unless (re-search-forward "^$" nil t)
+      (goto-char (point-max))
+      (beginning-of-line)
+      (forward-line -1))
+    (let ((inhibit-read-only t))
+      (insert (overload-docstring-extension symbol) "\n")
+      ;; NOTE TO SELF:
+      ;; LIST ALL LOADED OVERRIDES FOR SYMBOL HERE
+      )))
 
 ;; Help for mode-local bindings.
 (defun mode-local-print-binding (symbol)
@@ -782,5 +779,4 @@ invoked interactively."
 
 (provide 'mode-local)
 
-;; arch-tag: 14b77823-f93c-4b3d-9116-495f69a6ec07
 ;;; mode-local.el ends here

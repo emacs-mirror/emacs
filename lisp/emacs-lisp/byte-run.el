@@ -1,12 +1,12 @@
 ;;; byte-run.el --- byte-compiler support for inlining
 
-;; Copyright (C) 1992, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
 ;; Maintainer: FSF
 ;; Keywords: internal
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -65,7 +65,6 @@ The return value of this function is not used."
 ;; Redefined in byte-optimize.el.
 ;; This is not documented--it's not clear that we should promote it.
 (fset 'inline 'progn)
-(put 'inline 'lisp-indent-function 0)
 
 ;;; Interface to inline functions.
 
@@ -108,10 +107,11 @@ The return value of this function is not used."
 
 (defvar advertised-signature-table (make-hash-table :test 'eq :weakness 'key))
 
-(defun set-advertised-calling-convention (function signature)
+(defun set-advertised-calling-convention (function signature when)
   "Set the advertised SIGNATURE of FUNCTION.
 This will allow the byte-compiler to warn the programmer when she uses
-an obsolete calling convention."
+an obsolete calling convention.  WHEN specifies since when the calling
+convention was modified."
   (puthash (indirect-function function) signature
            advertised-signature-table))
 
@@ -123,16 +123,14 @@ If CURRENT-NAME is a string, that is the `use instead' message
 If provided, WHEN should be a string indicating when the function
 was first made obsolete, for example a date or a release number."
   (interactive "aMake function obsolete: \nxObsoletion replacement: ")
-  (let ((handler (get obsolete-name 'byte-compile)))
-    (if (eq 'byte-compile-obsolete handler)
-	(setq handler (nth 1 (get obsolete-name 'byte-obsolete-info)))
-      (put obsolete-name 'byte-compile 'byte-compile-obsolete))
-    (put obsolete-name 'byte-obsolete-info
-	 (list (purecopy current-name) handler (purecopy when))))
+  (put obsolete-name 'byte-obsolete-info
+       ;; The second entry used to hold the `byte-compile' handler, but
+       ;; is not used any more nowadays.
+       (list (purecopy current-name) nil (purecopy when)))
   obsolete-name)
 (set-advertised-calling-convention
  ;; New code should always provide the `when' argument.
- 'make-obsolete '(obsolete-name current-name when))
+ 'make-obsolete '(obsolete-name current-name when) "23.1")
 
 (defmacro define-obsolete-function-alias (obsolete-name current-name
 						   &optional when docstring)
@@ -153,7 +151,7 @@ See the docstrings of `defalias' and `make-obsolete' for more details."
 (set-advertised-calling-convention
  ;; New code should always provide the `when' argument.
  'define-obsolete-function-alias
- '(obsolete-name current-name when &optional docstring))
+ '(obsolete-name current-name when &optional docstring) "23.1")
 
 (defun make-obsolete-variable (obsolete-name current-name &optional when)
   "Make the byte-compiler warn that OBSOLETE-NAME is obsolete.
@@ -175,7 +173,7 @@ was first made obsolete, for example a date or a release number."
   obsolete-name)
 (set-advertised-calling-convention
  ;; New code should always provide the `when' argument.
- 'make-obsolete-variable '(obsolete-name current-name when))
+ 'make-obsolete-variable '(obsolete-name current-name when) "23.1")
 
 (defmacro define-obsolete-variable-alias (obsolete-name current-name
 						 &optional when docstring)
@@ -210,7 +208,7 @@ CURRENT-NAME, if it does not already have them:
 (set-advertised-calling-convention
  ;; New code should always provide the `when' argument.
  'define-obsolete-variable-alias
- '(obsolete-name current-name when &optional docstring))
+ '(obsolete-name current-name when &optional docstring) "23.1")
 
 ;; FIXME This is only defined in this file because the variable- and
 ;; function- versions are too.  Unlike those two, this one is not used
@@ -291,5 +289,4 @@ In interpreted code, this is entirely equivalent to `progn'."
 ;;       (file-format emacs19))"
 ;;   nil)
 
-;; arch-tag: 76f8328a-1f66-4df2-9b6d-5c3666dc05e9
 ;;; byte-run.el ends here

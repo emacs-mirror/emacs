@@ -1,7 +1,6 @@
 ;;; smime.el --- S/MIME support library
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Keywords: SMIME X.509 PEM OpenSSL
@@ -119,7 +118,7 @@
 
 ;;; Code:
 
-;; For Emacs < 22.2.
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (require 'dig)
@@ -371,12 +370,9 @@ KEYFILE should contain a PEM encoded key and certificate."
 	     (if keyfile
 		 keyfile
 	       (smime-get-key-with-certs-by-email
-		(completing-read
-		 (concat "Sign using key"
-			 (if smime-keys
-			     (concat " (default " (caar smime-keys) "): ")
-			   ": "))
-		 smime-keys nil nil (car-safe (car-safe smime-keys))))))
+		(gnus-completing-read
+		 "Sign using key"
+		 smime-keys nil (car-safe (car-safe smime-keys))))))
       (error "Signing failed"))))
 
 (defun smime-encrypt-buffer (&optional certfiles buffer)
@@ -429,10 +425,9 @@ Any details (stdout and stderr) are left in the buffer specified by
     (insert-buffer-substring smime-details-buffer)
     nil))
 
-(defvar from)
-
-(defun smime-decrypt-region (b e keyfile)
+(defun smime-decrypt-region (b e keyfile &optional from)
   "Decrypt S/MIME message in region between B and E with key in KEYFILE.
+Optional FROM specifies sender's mail address.
 On success, replaces region with decrypted data and return non-nil.
 Any details (stderr on success, stdout and stderr on error) are left
 in the buffer specified by `smime-details-buffer'."
@@ -455,8 +450,7 @@ in the buffer specified by `smime-details-buffer'."
 	    (delete-file tmpfile)))
 	(progn
 	  (delete-region b e)
-	  (when (boundp 'from)
-	    ;; `from' is dynamically bound in mm-dissect.
+	  (when from
 	    (insert "From: " from "\n"))
 	  (insert-buffer-substring buffer)
 	  (kill-buffer buffer)
@@ -502,11 +496,9 @@ in the buffer specified by `smime-details-buffer'."
      (expand-file-name
       (or keyfile
 	  (smime-get-key-by-email
-	   (completing-read
-	    (concat "Decipher using key"
-		    (if smime-keys (concat " (default " (caar smime-keys) "): ")
-		      ": "))
-	    smime-keys nil nil (car-safe (car-safe smime-keys)))))))))
+	   (gnus-completing-read
+	    "Decipher using key"
+	    smime-keys nil (car-safe (car-safe smime-keys)))))))))
 
 ;; Various operations
 
@@ -592,17 +584,20 @@ A string or a list of strings is returned."
       (kill-buffer digbuf)
       retbuf))
 
+(declare-function ldap-search "ldap"
+		  (filter &optional host attributes attrsonly withdn))
+
 (defun smime-cert-by-ldap-1 (mail host)
   "Get cetificate for MAIL from the ldap server at HOST."
   (let ((ldapresult
 	 (funcall
-	  (if (or (featurep 'xemacs)
-		  ;; For Emacs >= 22 we don't need smime-ldap.el
-		  (< emacs-major-version 22))
+	  (if (featurep 'xemacs)
 	      (progn
 		(require 'smime-ldap)
 		'smime-ldap-search)
-	    'ldap-search)
+	    (progn
+	      (require 'ldap)
+	      'ldap-search))
 	  (concat "mail=" mail)
 	  host '("userCertificate") nil))
 	(retbuf (generate-new-buffer (format "*certificate for %s*" mail)))
@@ -649,19 +644,18 @@ A string or a list of strings is returned."
 
 (defvar smime-buffer "*SMIME*")
 
-(defvar smime-mode-map nil)
+(defvar smime-mode-map
+  (let ((map (make-sparse-keymap)))
+    (suppress-keymap map)
+    (define-key map "q" 'smime-exit)
+    (define-key map "f" 'smime-certificate-info)
+    map))
+
+(autoload 'gnus-completing-read "gnus-util")
+
 (put 'smime-mode 'mode-class 'special)
-
-(unless smime-mode-map
-  (setq smime-mode-map (make-sparse-keymap))
-  (suppress-keymap smime-mode-map)
-
-  (define-key smime-mode-map "q" 'smime-exit)
-  (define-key smime-mode-map "f" 'smime-certificate-info))
-
-(autoload 'gnus-run-mode-hooks "gnus-util")
-
-(defun smime-mode ()
+(define-derived-mode smime-mode fundamental-mode ;special-mode
+  "SMIME"
   "Major mode for browsing, viewing and fetching certificates.
 
 All normal editing commands are switched off.
@@ -670,16 +664,10 @@ All normal editing commands are switched off.
 The following commands are available:
 
 \\{smime-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'smime-mode)
-  (setq mode-name "SMIME")
   (setq mode-line-process nil)
-  (use-local-map smime-mode-map)
   (buffer-disable-undo)
   (setq truncate-lines t)
-  (setq buffer-read-only t)
-  (gnus-run-mode-hooks 'smime-mode-hook))
+  (setq buffer-read-only t))
 
 (defun smime-certificate-info (certfile)
   (interactive "fCertificate file: ")
@@ -708,8 +696,7 @@ The following commands are available:
   "Go to the SMIME buffer."
   (interactive)
   (unless (get-buffer smime-buffer)
-    (save-excursion
-      (set-buffer (get-buffer-create smime-buffer))
+    (with-current-buffer (get-buffer-create smime-buffer)
       (smime-mode)))
   (smime-draw-buffer)
   (switch-to-buffer smime-buffer))
@@ -729,5 +716,4 @@ The following commands are available:
 
 (provide 'smime)
 
-;; arch-tag: e3f9b938-5085-4510-8a11-6625269c9a9e
 ;;; smime.el ends here

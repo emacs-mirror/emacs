@@ -1,7 +1,6 @@
 ;;; mm-partial.el --- showing message/partial
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2011 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: message partial
@@ -70,8 +69,7 @@ If NO-DISPLAY is nil, display it. Otherwise, do nothing after replacing."
 	    (sort (cons handle
 			(mm-partial-find-parts
 			 id
-			 (save-excursion
-			   (set-buffer gnus-summary-buffer)
+			 (with-current-buffer gnus-summary-buffer
 			   (gnus-summary-article-number))))
 		  #'(lambda (a b)
 		      (let ((anumber (string-to-number
@@ -83,8 +81,7 @@ If NO-DISPLAY is nil, display it. Otherwise, do nothing after replacing."
 			(< anumber bnumber)))))
       (setq gnus-article-mime-handles
 	    (mm-merge-handles gnus-article-mime-handles phandles))
-      (save-excursion
-	(set-buffer (generate-new-buffer " *mm*"))
+      (with-current-buffer (generate-new-buffer " *mm*")
 	(while (setq phandle (pop phandles))
 	  (setq nn (string-to-number
 		    (cdr (assq 'number
@@ -150,5 +147,4 @@ If NO-DISPLAY is nil, display it. Otherwise, do nothing after replacing."
 
 (provide 'mm-partial)
 
-;; arch-tag: 460e7424-05f2-4a1d-a0f2-70ec081eff7d
 ;;; mm-partial.el ends here

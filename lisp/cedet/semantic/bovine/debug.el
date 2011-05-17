@@ -1,6 +1,6 @@
 ;;; semantic/bovine/debug.el --- Debugger support for bovinator
 
-;; Copyright (C) 2003, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2009-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -144,5 +144,4 @@ Argument CONDITION is the thrown error condition."
 
 (provide 'semantic/bovine/debug)
 
-;; arch-tag: d1bf98b3-faeb-4dc3-ac34-cac6264fd94e
 ;;; semantic/bovine/debug.el ends here

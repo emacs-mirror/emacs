@@ -1,8 +1,7 @@
 /* Header for coding system handler.
-   Copyright (C) 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 2001-2011  Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-     2005, 2006, 2007, 2008, 2009, 2010
+     2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H14PRO021
    Copyright (C) 2003
@@ -450,7 +449,7 @@ struct coding_system
      -1 in setup_coding_system, and updated by detect_coding.  So,
      when this is equal to the byte length of the text being
      converted, we can skip the actual conversion process.  */
-  int head_ascii;
+  EMACS_INT head_ascii;
 
   /* The following members are set by encoding/decoding routine.  */
   EMACS_INT produced, produced_char, consumed, consumed_char;
@@ -499,10 +498,10 @@ struct coding_system
 
   int default_char;
 
-  int (*detector) P_ ((struct coding_system *,
-		       struct coding_detection_info *));
-  void (*decoder) P_ ((struct coding_system *));
-  int (*encoder) P_ ((struct coding_system *));
+  int (*detector) (struct coding_system *,
+                   struct coding_detection_info *);
+  void (*decoder) (struct coding_system *);
+  int (*encoder) (struct coding_system *);
 };
 
 /* Meanings of bits in the member `common_flags' of the structure
@@ -686,38 +685,32 @@ struct coding_system
    ? code_convert_string_norecord (str, Vlocale_coding_system, 0)	   \
    : str)
 
-/* Used by the gtk menu code.  Note that this encodes utf-8, not
-   utf-8-emacs, so it's not a no-op.  */
+/* Note that this encodes utf-8, not utf-8-emacs, so it's not a no-op.  */
 #define ENCODE_UTF_8(str) code_convert_string_norecord (str, Qutf_8, 1)
 
 /* Extern declarations.  */
-extern Lisp_Object code_conversion_save P_ ((int, int));
-extern int decoding_buffer_size P_ ((struct coding_system *, int));
-extern int encoding_buffer_size P_ ((struct coding_system *, int));
-extern void setup_coding_system P_ ((Lisp_Object, struct coding_system *));
-extern Lisp_Object coding_charset_list P_ ((struct coding_system *));
-extern Lisp_Object coding_system_charset_list P_ ((Lisp_Object));
-extern void detect_coding P_ ((struct coding_system *));
-extern Lisp_Object code_convert_region P_ ((Lisp_Object, Lisp_Object,
-					    Lisp_Object, Lisp_Object,
-					    int, int));
-extern Lisp_Object code_convert_string P_ ((Lisp_Object, Lisp_Object,
-					    Lisp_Object, int, int, int));
-extern Lisp_Object code_convert_string_norecord P_ ((Lisp_Object, Lisp_Object,
-						     int));
-extern Lisp_Object raw_text_coding_system P_ ((Lisp_Object));
-extern Lisp_Object coding_inherit_eol_type P_ ((Lisp_Object, Lisp_Object));
+extern Lisp_Object code_conversion_save (int, int);
+extern int decoding_buffer_size (struct coding_system *, int);
+extern int encoding_buffer_size (struct coding_system *, int);
+extern void setup_coding_system (Lisp_Object, struct coding_system *);
+extern Lisp_Object coding_charset_list (struct coding_system *);
+extern Lisp_Object coding_system_charset_list (Lisp_Object);
+extern Lisp_Object code_convert_string (Lisp_Object, Lisp_Object,
+                                        Lisp_Object, int, int, int);
+extern Lisp_Object code_convert_string_norecord (Lisp_Object, Lisp_Object,
+                                                 int);
+extern Lisp_Object raw_text_coding_system (Lisp_Object);
+extern Lisp_Object coding_inherit_eol_type (Lisp_Object, Lisp_Object);
+extern Lisp_Object complement_process_encoding_system (Lisp_Object);
 
-extern int decode_coding_gap P_ ((struct coding_system *,
-				  EMACS_INT, EMACS_INT));
-extern int encode_coding_gap P_ ((struct coding_system *,
-				  EMACS_INT, EMACS_INT));
-extern void decode_coding_object P_ ((struct coding_system *,
-				      Lisp_Object, EMACS_INT, EMACS_INT,
-				      EMACS_INT, EMACS_INT, Lisp_Object));
-extern void encode_coding_object P_ ((struct coding_system *,
-				      Lisp_Object, EMACS_INT, EMACS_INT,
-				      EMACS_INT, EMACS_INT, Lisp_Object));
+extern int decode_coding_gap (struct coding_system *,
+                              EMACS_INT, EMACS_INT);
+extern void decode_coding_object (struct coding_system *,
+                                  Lisp_Object, EMACS_INT, EMACS_INT,
+                                  EMACS_INT, EMACS_INT, Lisp_Object);
+extern void encode_coding_object (struct coding_system *,
+                                  Lisp_Object, EMACS_INT, EMACS_INT,
+                                  EMACS_INT, EMACS_INT, Lisp_Object);
 
 /* Macros for backward compatibility.  */
 
@@ -753,15 +746,14 @@ extern void encode_coding_object P_ ((struct coding_system *,
   } while (0)
 
 
-extern Lisp_Object preferred_coding_system P_ (());
+extern Lisp_Object preferred_coding_system (void);
 
 
 extern Lisp_Object Qutf_8, Qutf_8_emacs;
 
-extern Lisp_Object Qcoding_system, Qeol_type, Qcoding_category_index;
+extern Lisp_Object Qcoding_category_index;
 extern Lisp_Object Qcoding_system_p;
 extern Lisp_Object Qraw_text, Qemacs_mule, Qno_conversion, Qundecided;
-extern Lisp_Object Qiso_2022;
 extern Lisp_Object Qbuffer_file_coding_system;
 
 extern Lisp_Object Qunix, Qdos, Qmac;
@@ -769,53 +761,17 @@ extern Lisp_Object Qunix, Qdos, Qmac;
 extern Lisp_Object Qtranslation_table;
 extern Lisp_Object Qtranslation_table_id;
 
-/* Mnemonic strings to indicate each type of end-of-line.  */
-extern Lisp_Object eol_mnemonic_unix, eol_mnemonic_dos, eol_mnemonic_mac;
-/* Mnemonic string to indicate type of end-of-line is not yet decided.  */
-extern Lisp_Object eol_mnemonic_undecided;
-
 #ifdef emacs
 extern Lisp_Object Qfile_coding_system;
 extern Lisp_Object Qcall_process, Qcall_process_region;
 extern Lisp_Object Qstart_process, Qopen_network_stream;
 extern Lisp_Object Qwrite_region;
 
-extern char *emacs_strerror P_ ((int));
-
-/* Coding-system for reading files and receiving data from process.  */
-extern Lisp_Object Vcoding_system_for_read;
-/* Coding-system for writing files and sending data to process.  */
-extern Lisp_Object Vcoding_system_for_write;
-/* Coding-system actually used in the latest I/O.  */
-extern Lisp_Object Vlast_coding_system_used;
-/* Coding-system to use with system messages (e.g. strerror).  */
-extern Lisp_Object Vlocale_coding_system;
-
-/* If non-zero, process buffer inherits the coding system used to decode
-   the subprocess output.  */
-extern int inherit_process_coding_system;
+extern char *emacs_strerror (int);
 
 /* Coding system to be used to encode text for terminal display when
    terminal coding system is nil.  */
 extern struct coding_system safe_terminal_coding;
-
-/* Default coding systems used for process I/O.  */
-extern Lisp_Object Vdefault_process_coding_system;
-
-/* Function to call to force a user to force select a propert coding
-   system.  */
-extern Lisp_Object Vselect_safe_coding_system_function;
-
-/* If nonzero, on writing a file, Vselect_safe_coding_system_function
-   is called even if Vcoding_system_for_write is non-nil.  */
-extern int coding_system_require_warning;
-
-/* Coding system for file names, or nil if none.  */
-extern Lisp_Object Vfile_name_coding_system;
-
-/* Coding system for file names used only when
-   Vfile_name_coding_system is nil.  */
-extern Lisp_Object Vdefault_file_name_coding_system;
 
 #endif
 
@@ -823,9 +779,6 @@ extern Lisp_Object Vdefault_file_name_coding_system;
 extern Lisp_Object Qcoding_system_error;
 
 extern char emacs_mule_bytes[256];
-extern int emacs_mule_string_char P_ ((unsigned char *));
+extern int emacs_mule_string_char (unsigned char *);
 
 #endif /* EMACS_CODING_H */
-
-/* arch-tag: 2bc3b4fa-6870-4f64-8135-b962b2d290e4
-   (do not change this comment) */

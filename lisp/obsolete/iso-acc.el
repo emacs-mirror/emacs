@@ -1,11 +1,11 @@
 ;;; iso-acc.el --- minor mode providing electric accent keys
 
-;; Copyright (C) 1993, 1994, 1996, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 1996, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Johan Vromans
 ;; Maintainer: FSF
 ;; Keywords: i18n
+;; Obsolete-since: 22.1
 
 ;; This file is part of GNU Emacs.
 
@@ -23,8 +23,6 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-
-;; This file has been obsolete since Emacs 22.1.
 
 ;; Function `iso-accents-mode' activates a minor mode in which
 ;; typewriter "dead keys" are emulated.  The purpose of this emulation
@@ -487,5 +485,4 @@ Noninteractively, this operates on text from START to END."
 
 (add-hook 'minibuffer-setup-hook 'iso-acc-minibuf-setup)
 
-;; arch-tag: 149ff409-7c3e-4574-9b5d-ac038939c0a6
 ;;; iso-acc.el ends here

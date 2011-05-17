@@ -1,9 +1,10 @@
 ;;; epg-config.el --- configuration of the EasyPG Library
 
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2011 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
+;; Package: epg
 
 ;; This file is part of GNU Emacs.
 
@@ -36,7 +37,9 @@
   :version "23.1"
   :group 'data)
 
-(defcustom epg-gpg-program "gpg"
+(defcustom epg-gpg-program (or (executable-find "gpg")
+			       (executable-find "gpg2")
+			       "gpg")
   "The `gpg' executable."
   :group 'epg
   :type 'string)
@@ -144,5 +147,4 @@ Note that the buffer name starts with a space."
 
 (provide 'epg-config)
 
-;; arch-tag: 9aca7cb8-5f63-4bcb-84ee-46fd2db0763f
 ;;; epg-config.el ends here

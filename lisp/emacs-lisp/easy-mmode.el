@@ -1,10 +1,10 @@
 ;;; easy-mmode.el --- easy definition for major and minor modes
 
-;; Copyright (C) 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Georges Brun-Cottan <Georges.Brun-Cottan@inria.fr>
 ;; Maintainer: Stefan Monnier <monnier@gnu.org>
+;; Package: emacs
 
 ;; Keywords: extensions lisp
 
@@ -86,25 +86,24 @@ replacing its case-insensitive matches with the literal string in LIGHTER."
 ;;;###autoload
 (defmacro define-minor-mode (mode doc &optional init-value lighter keymap &rest body)
   "Define a new minor mode MODE.
-This function defines the associated control variable MODE, keymap MODE-map,
-and toggle command MODE.
-
+This defines the control variable MODE and the toggle command MODE.
 DOC is the documentation for the mode toggle command.
+
 Optional INIT-VALUE is the initial value of the mode's variable.
 Optional LIGHTER is displayed in the modeline when the mode is on.
-Optional KEYMAP is the default (defvar) keymap bound to the mode keymap.
-  If it is a list, it is passed to `easy-mmode-define-keymap'
-  in order to build a valid keymap.  It's generally better to use
-  a separate MODE-map variable than to use this argument.
-The above three arguments can be skipped if keyword arguments are
-used (see below).
+Optional KEYMAP is the default keymap bound to the mode keymap.
+  If non-nil, it should be a variable name (whose value is a keymap),
+  or an expression that returns either a keymap or a list of
+  arguments for `easy-mmode-define-keymap'.  If KEYMAP is not a symbol,
+  this also defines the variable MODE-map.
 
-BODY contains code to execute each time the mode is activated or deactivated.
-  It is executed after toggling the mode,
-  and before running the hook variable `MODE-hook'.
-  Before the actual body code, you can write keyword arguments (alternating
-  keywords and values).  These following keyword arguments are supported (other
-  keywords will be passed to `defcustom' if the minor mode is global):
+BODY contains code to execute each time the mode is enabled or disabled.
+  It is executed after toggling the mode, and before running MODE-hook.
+  Before the actual body code, you can write keyword arguments, i.e.
+  alternating keywords and values.  These following special keywords
+  are supported (other keywords are passed to `defcustom' if the minor
+  mode is global):
+
 :group GROUP	Custom group name to use in all generated `defcustom' forms.
 		Defaults to MODE without the possible trailing \"-mode\".
 		Don't use this default group name unless you have written a
@@ -120,7 +119,8 @@ BODY contains code to execute each time the mode is activated or deactivated.
 		of the variable MODE to store the state of the mode.  PLACE
 		can also be of the form (GET . SET) where GET is an expression
 		that returns the current state and SET is a function that takes
-		a new state and sets it.
+		a new state and sets it.  If you specify a :variable, this
+		function assumes it is defined elsewhere.
 
 For example, you could write
   (define-minor-mode foo-mode \"If enabled, foo on you!\"
@@ -197,6 +197,7 @@ For example, you could write
 	    `(:group ',(intern (replace-regexp-in-string
 				"-mode\\'" "" mode-name)))))
 
+    ;; TODO? Mark booleans as safe if booleanp?  Eg abbrev-mode.
     (unless type (setq type '(:type 'boolean)))
 
     `(progn
@@ -273,7 +274,7 @@ With zero or negative ARG turn mode off.
 	     (let ((m ,keymap))
 	       (cond ((keymapp m) m)
 		     ((listp m) (easy-mmode-define-keymap m))
-		     (t (error "Invalid keymap %S" ,keymap))))
+		     (t (error "Invalid keymap %S" m))))
 	     ,(format "Keymap for `%s'." mode-name)))
 
        ,(if (not (symbolp mode))
@@ -584,5 +585,4 @@ BODY is executed after moving to the destination location."
 
 (provide 'easy-mmode)
 
-;; arch-tag: d48a5250-6961-4528-9cb0-3c9ea042a66a
 ;;; easy-mmode.el ends here

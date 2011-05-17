@@ -1,5 +1,5 @@
 ;; mule-charsets.el -- Generate Mule-orignal charset maps.
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
 
@@ -54,4 +54,3 @@
     (map-charset-chars 'func (cdr elt))
     (write-file (car elt))))
 
-;;; arch-tag: 515989d7-2e2d-41cc-9163-05ad472fede4

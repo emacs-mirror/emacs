@@ -1,13 +1,13 @@
 ;;; newst-backend.el --- Retrieval backend for newsticker.
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2003-2011  Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-backend.el
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Keywords:    News, RSS, Atom
-;; Time-stamp:  "6. Dezember 2009, 19:15:32 (ulf)"
+;; Time-stamp:  "13. Mai 2011, 20:47:05 (ulf)"
+;; Package:     newsticker
 
 ;; ======================================================================
 
@@ -2264,23 +2264,30 @@ for an entry that matches FEED and ITEM."
   "Actually compare ITEM against the pattern-LIST.
 LIST must be an element of `newsticker-auto-mark-filter-list'."
   (mapc (lambda (pattern)
-          (let ((age    (nth 0 pattern))
-                (place  (nth 1 pattern))
+          (let ((place  (nth 1 pattern))
                 (regexp (nth 2 pattern))
                 (title (newsticker--title item))
                 (desc  (newsticker--desc item)))
             (when (or (eq place 'title) (eq place 'all))
               (when (and title (string-match regexp title))
-                (newsticker--debug-msg "Auto-marking as %s: `%s'"
-                                       age (newsticker--title item))
-                (setcar (nthcdr 4 item) age)))
+                (newsticker--process-auto-mark-filter-match item pattern)))
             (when (or (eq place 'description) (eq place 'all))
               (when (and desc (string-match regexp desc))
-                (newsticker--debug-msg "Auto-marking as %s: `%s'"
-                                       age (newsticker--title item))
-                (setcar (nthcdr 4 item) age)))))
+                (newsticker--process-auto-mark-filter-match item pattern)))))
         list))
 
+(defun newsticker--process-auto-mark-filter-match (item pattern)
+  "Process ITEM that matches an auto-mark-filter PATTERN."
+  (let ((age (nth 0 pattern))
+        (place  (nth 1 pattern))
+        (regexp (nth 2 pattern)))
+    (newsticker--debug-msg "Auto-mark-filter %s matches `%s'"
+                           pattern (newsticker--title item))
+    (setcar (nthcdr 4 item) age)
+    (nconc (newsticker--extra item)
+           (list (list 'newsticker-auto-mark nil
+                       (format "age=%s, title/desc=%s, regexp=%s"
+                               age place regexp))))))
 
 ;; ======================================================================
 ;;; Hook samples
@@ -2352,5 +2359,4 @@ This function is suited for adding it to `newsticker-new-item-functions'."
 
 (provide 'newst-backend)
 
-;; arch-tag: 0e37b658-56e9-49ab-90f9-f2df57e1a659
 ;;; newst-backend.el ends here

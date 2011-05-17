@@ -1,8 +1,6 @@
 ;;; edebug.el --- a source-level debugger for Emacs Lisp
 
-;; Copyright (C) 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1997, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1988-1995, 1997, 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@holonexus.org>
 ;; Maintainer: FSF
@@ -521,7 +519,8 @@ the minibuffer."
 	  ((and (eq (car form) 'defcustom)
 		(default-boundp (nth 1 form)))
 	   ;; Force variable to be bound.
-	   (set-default (nth 1 form) (eval (nth 2 form))))
+           ;; FIXME: Shouldn't this use the :setter or :initializer?
+	   (set-default (nth 1 form) (eval (nth 2 form) lexical-binding)))
           ((eq (car form) 'defface)
            ;; Reset the face.
            (setq face-new-frame-defaults
@@ -534,7 +533,7 @@ the minibuffer."
 				(put ',(nth 1 form) 'customized-face
 				     ,(nth 2 form)))
 			(put (nth 1 form) 'saved-face nil)))))
-    (setq edebug-result (eval form))
+    (setq edebug-result (eval (eval-sexp-add-defvars form) lexical-binding))
     (if (not edebugging)
 	(princ edebug-result)
       edebug-result)))
@@ -567,7 +566,8 @@ already is one.)"
    ;; but this causes problems while edebugging edebug.
    (let ((edebug-all-forms t)
 	 (edebug-all-defs t))
-     (edebug-read-top-level-form))))
+     (eval-sexp-add-defvars
+      (edebug-read-top-level-form)))))
 
 
 (defun edebug-read-top-level-form ()
@@ -885,17 +885,12 @@ already is one.)"
    (edebug-storing-offsets (1- (point)) 'quote)
    (edebug-read-storing-offsets stream)))
 
-(defvar edebug-read-backquote-level 0
-  "If non-zero, we're in a new-style backquote.
-It should never be negative.  This controls how we read comma constructs.")
-
 (defun edebug-read-backquote (stream)
   ;; Turn `thing into (\` thing)
   (forward-char 1)
   (list
    (edebug-storing-offsets (1- (point)) '\`)
-   (let ((edebug-read-backquote-level (1+ edebug-read-backquote-level)))
-     (edebug-read-storing-offsets stream))))
+   (edebug-read-storing-offsets stream)))
 
 (defun edebug-read-comma (stream)
   ;; Turn ,thing into (\, thing).  Handle ,@ and ,. also.
@@ -910,12 +905,9 @@ It should never be negative.  This controls how we read comma constructs.")
 	     (forward-char 1)))
       ;; Generate the same structure of offsets we would have
       ;; if the resulting list appeared verbatim in the input text.
-      (if (zerop edebug-read-backquote-level)
-	  (edebug-storing-offsets opoint symbol)
-	(list
-	 (edebug-storing-offsets opoint symbol)
-	 (let ((edebug-read-backquote-level (1- edebug-read-backquote-level)))
-	   (edebug-read-storing-offsets stream)))))))
+      (list
+       (edebug-storing-offsets opoint symbol)
+       (edebug-read-storing-offsets stream)))))
 
 (defun edebug-read-function (stream)
   ;; Turn #'thing into (function thing)
@@ -937,17 +929,7 @@ It should never be negative.  This controls how we read comma constructs.")
   (prog1
       (let ((elements))
 	(while (not (memq (edebug-next-token-class) '(rparen dot)))
-	  (if (and (eq (edebug-next-token-class) 'backquote)
-		   (null elements)
-		   (zerop edebug-read-backquote-level))
-	      (progn
-		;; Old style backquote.
-		(forward-char 1)	; Skip backquote.
-		;; Call edebug-storing-offsets here so that we
-		;; produce the same offsets we would have had
-		;; if the backquote were an ordinary symbol.
-		(push (edebug-storing-offsets (1- (point)) '\`) elements))
-	    (push (edebug-read-storing-offsets stream) elements)))
+          (push (edebug-read-storing-offsets stream) elements))
 	(setq elements (nreverse elements))
 	(if (eq 'dot (edebug-next-token-class))
 	    (let (dotted-form)
@@ -2149,8 +2131,6 @@ expressions; a `progn' form will be returned enclosing these forms."
 
 (def-edebug-spec with-custom-print body)
 
-(def-edebug-spec sregexq (&rest sexp))
-(def-edebug-spec rx (&rest sexp))
 
 ;;; The debugger itself
 
@@ -2484,6 +2464,7 @@ MSG is printed after `::::} '."
 	    (if edebug-global-break-condition
 		(condition-case nil
 		    (setq edebug-global-break-result
+                          ;; FIXME: lexbind.
 			  (eval edebug-global-break-condition))
 		  (error nil))))
 	   (edebug-break))
@@ -2495,6 +2476,7 @@ MSG is printed after `::::} '."
 		(and edebug-break-data
 		     (or (not edebug-break-condition)
 			 (setq edebug-break-result
+                               ;; FIXME: lexbind.
 			       (eval edebug-break-condition))))))
       (if (and edebug-break
 	       (nth 2 edebug-break-data)) ; is it temporary?
@@ -3009,7 +2991,7 @@ MSG is printed after `::::} '."
   ;; Set up the overlay arrow at beginning-of-line in current buffer.
   ;; The arrow string is derived from edebug-arrow-alist and
   ;; edebug-execution-mode.
-  (let ((pos (save-excursion (beginning-of-line) (point))))
+  (let ((pos (line-beginning-position)))
     (setq overlay-arrow-string
 	  (cdr (assq edebug-execution-mode edebug-arrow-alist)))
     (setq overlay-arrow-position (make-marker))
@@ -3416,7 +3398,7 @@ go to the end of the last sexp, or if that is the same point, then step."
   ;; Return the function symbol, or nil if not instrumented.
   (let ((func-marker (get func 'edebug)))
     (cond
-     ((markerp func-marker)
+     ((and (markerp func-marker) (marker-buffer func-marker))
       ;; It is uninstrumented, so instrument it.
       (with-current-buffer (marker-buffer func-marker)
 	(goto-char func-marker)
@@ -3655,9 +3637,10 @@ Return the result of the last expression."
 
 (defun edebug-eval (edebug-expr)
   ;; Are there cl lexical variables active?
-  (if (bound-and-true-p cl-debug-env)
-      (eval (cl-macroexpand-all edebug-expr cl-debug-env))
-    (eval edebug-expr)))
+  (eval (if (bound-and-true-p cl-debug-env)
+            (cl-macroexpand-all edebug-expr cl-debug-env)
+          edebug-expr)
+        lexical-binding))
 
 (defun edebug-safe-eval (edebug-expr)
   ;; Evaluate EXPR safely.
@@ -4029,18 +4012,16 @@ May only be called from within `edebug-recursive-edit'."
 
 
 
-(defvar edebug-eval-mode-map nil
-  "Keymap for Edebug Eval mode.  Superset of Lisp Interaction mode.")
-
-(unless edebug-eval-mode-map
-  (setq edebug-eval-mode-map (make-sparse-keymap))
-  (set-keymap-parent edebug-eval-mode-map lisp-interaction-mode-map)
-
-  (define-key edebug-eval-mode-map "\C-c\C-w" 'edebug-where)
-  (define-key edebug-eval-mode-map "\C-c\C-d" 'edebug-delete-eval-item)
-  (define-key edebug-eval-mode-map "\C-c\C-u" 'edebug-update-eval-list)
-  (define-key edebug-eval-mode-map "\C-x\C-e" 'edebug-eval-last-sexp)
-  (define-key edebug-eval-mode-map "\C-j" 'edebug-eval-print-last-sexp))
+(defvar edebug-eval-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map lisp-interaction-mode-map)
+    (define-key map "\C-c\C-w" 'edebug-where)
+    (define-key map "\C-c\C-d" 'edebug-delete-eval-item)
+    (define-key map "\C-c\C-u" 'edebug-update-eval-list)
+    (define-key map "\C-x\C-e" 'edebug-eval-last-sexp)
+    (define-key map "\C-j" 'edebug-eval-print-last-sexp)
+  map)
+"Keymap for Edebug Eval mode.  Superset of Lisp Interaction mode.")
 
 (put 'edebug-eval-mode 'mode-class 'special)
 
@@ -4261,8 +4242,8 @@ It is removed when you hit any char."
 ;;; Menus
 
 (defun edebug-toggle (variable)
-  (set variable (not (eval variable)))
-  (message "%s: %s" variable (eval variable)))
+  (set variable (not (symbol-value variable)))
+  (message "%s: %s" variable (symbol-value variable)))
 
 ;; We have to require easymenu (even for Emacs 18) just so
 ;; the easy-menu-define macro call is compiled correctly.
@@ -4455,7 +4436,7 @@ With prefix argument, make it a temporary breakpoint."
   (add-hook 'cl-load-hook
 	    (function (lambda () (require 'cl-specs)))))
 
-;;; edebug-cl-read and cl-read are available from liberte@cs.uiuc.edu
+;; edebug-cl-read and cl-read are available from liberte@cs.uiuc.edu
 (if (featurep 'cl-read)
     (add-hook 'edebug-setup-hook
 	      (function (lambda () (require 'edebug-cl-read))))
@@ -4466,13 +4447,12 @@ With prefix argument, make it a temporary breakpoint."
 
 ;;; Finalize Loading
 
-;;; Finally, hook edebug into the rest of Emacs.
-;;; There are probably some other things that could go here.
+;; Finally, hook edebug into the rest of Emacs.
+;; There are probably some other things that could go here.
 
 ;; Install edebug read and eval functions.
 (edebug-install-read-eval-functions)
 
 (provide 'edebug)
 
-;; arch-tag: 19c8d05c-4554-426e-ac72-e0fa1fcb0808
 ;;; edebug.el ends here

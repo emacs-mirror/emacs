@@ -55,5 +55,3 @@ sigaction(int _sig, const struct sigaction *_act, struct sigaction *_oact)
 
 
 
-/* arch-tag: 39526405-3d3a-44fe-af28-82a515e0c8e8
-   (do not change this comment) */

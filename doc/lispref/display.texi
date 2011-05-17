@@ -1,8 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-2011  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/display
 @node Display, System Interface, Processes, Top
@@ -1181,7 +1179,7 @@ inside the overlay or outside, and likewise for the end of the overlay.
 @menu
 * Managing Overlays::   Creating and moving overlays.
 * Overlay Properties::  How to read and set properties.
-			What properties do to the screen display.
+                          What properties do to the screen display.
 * Finding Overlays::    Searching for overlays.
 @end menu
 
@@ -3214,7 +3212,9 @@ width from the window's frame.
   The values of these variables take effect when you display the
 buffer in a window.  If you change them while the buffer is visible,
 you can call @code{set-window-buffer} to display it once again in the
-same window, to make the changes take effect.
+same window, to make the changes take effect.  A buffer that does not
+specify values for these variables will use the default values
+specified for the frame; see @ref{Layout Parameters}.
 
 @defun set-window-fringes window left &optional right outside-margins
 This function sets the fringe widths of window @var{window}.
@@ -3657,9 +3657,8 @@ display specifications and what they mean.
 * Replacing Specs::      Display specs that replace the text.
 * Specified Space::      Displaying one space with a specified width.
 * Pixel Specification::  Specifying space width or height in pixels.
-* Other Display Specs::  Displaying an image; magnifying text; moving it
-                          up or down on the page; adjusting the width
-                          of spaces within text.
+* Other Display Specs::     Displaying an image; adjusting the height,
+                              spacing, and other properties of text.
 * Display Margins::     Displaying text or images to the side of the main text.
 @end menu
 
@@ -3890,6 +3889,13 @@ position as that text.  It is equivalent to using just @var{string},
 but it is done as a special case of marginal display (@pxref{Display
 Margins}).
 
+@item (left-fringe @var{bitmap} @r{[}@var{face}@r{]})
+@itemx (right-fringe @var{bitmap} @r{[}@var{face}@r{]})
+This display specification on any character of a line of text causes
+the specified @var{bitmap} be displayed in the left or right fringes
+for that line.  The optional @var{face} specifies the colors to be
+used for the bitmap.  @xref{Fringe Bitmaps}, for the details.
+
 @item (space-width @var{factor})
 This display specification affects all the space characters within the
 text that has the specification.  It displays all of these spaces
@@ -4039,6 +4045,7 @@ displayed (@pxref{Display Feature Testing}).
 * GIF Images::          Special features for GIF format.
 * TIFF Images::         Special features for TIFF format.
 * PostScript Images::   Special features for PostScript format.
+* ImageMagick Images::  Special features available through ImageMagick.
 * Other Image Types::   Various other formats are supported.
 * Defining Images::     Convenient ways to define an image for later use.
 * Showing Images::      Convenient ways to display an image once it is defined.
@@ -4052,10 +4059,12 @@ displayed (@pxref{Display Feature Testing}).
 
   Emacs can display a number of different image formats; some of them
 are supported only if particular support libraries are installed on
-your machine.  In some environments, Emacs can load image
-libraries on demand; if so, the variable @code{image-library-alist}
-can be used to modify the set of known names for these dynamic
-libraries (though it is not possible to add new image formats).
+your machine.  In some environments, Emacs can load support libraries
+on demand; if so, the variable @code{dynamic-library-alist}
+(@pxref{Dynamic Libraries}) can be used to modify the set of known
+names for these dynamic libraries (though it is not possible to add
+new image formats).  Note that image types @code{pbm} and @code{xbm}
+do not depend on external libraries and are always available in Emacs.
 
   The supported image formats include XBM, XPM (this requires the
 libraries @code{libXpm} version 3.4k and @code{libz}), GIF (requiring
@@ -4077,24 +4086,6 @@ unavailable dynamic libraries, for example).
 
 To know which image types are really available, use
 @code{image-type-available-p}.
-@end defvar
-
-@defvar image-library-alist
-This in an alist of image types vs external libraries needed to
-display them.
-
-Each element is a list @code{(@var{image-type} @var{library}...)},
-where the car is a supported image format from @code{image-types}, and
-the rest are strings giving alternate filenames for the corresponding
-external libraries to load.
-
-Emacs tries to load the libraries in the order they appear on the
-list; if none is loaded, the running session of Emacs won't support
-the image type.  @code{pbm} and @code{xbm} don't need to be listed;
-they're always supported.
-
-This variable is ignored if the image libraries are statically linked
-into Emacs.
 @end defvar
 
 @defun image-type-available-p type
@@ -4222,14 +4213,14 @@ Laplace edge-detection currently uses a matrix of
 @tex
 $$\pmatrix{1 & 0 & 0 \cr
    0&  0 &  0 \cr
-   9 & 9 & -1 \cr}$$
+   0 & 0 & -1 \cr}$$
 @end tex
 @end iftex
 @ifnottex
 @display
   (1  0  0
    0  0  0
-   9  9 -1)
+   0  0 -1)
 @end display
 @end ifnottex
 
@@ -4462,6 +4453,60 @@ specifying the bounding box of the PostScript image, analogous to the
 %%BoundingBox: 22 171 567 738
 @end example
 @end table
+
+@node ImageMagick Images
+@subsection ImageMagick Images
+@cindex ImageMagick images
+@cindex images, support for more formats
+
+  If you build Emacs with ImageMagick (@url{http://www.imagemagick.org})
+support, you can use the ImageMagick library to load many image formats.
+
+@findex imagemagick-types
+The function @code{imagemagick-types} returns a list of image file
+extensions that your installation of ImageMagick supports.  To enable
+support, you must call the function @code{imagemagick-register-types}.
+
+@vindex imagemagick-types-inhibit
+The variable @code{imagemagick-types-inhibit} specifies a list of
+image types that you do @emph{not} want ImageMagick to handle.  There
+may be overlap between image loaders in your Emacs installation, and
+you may prefer to use a different one for a given image type (which
+@c FIXME how is this priority determined?
+loader will be used in practice depends on the priority of the loaders).
+@c FIXME why are these uppercase when image-types is lower-case?
+@c FIXME what are the possibe options?  Are these actually file extensions?
+For example, if you never want to use the ImageMagick loader to use
+JPEG files, add @code{JPG} to this list.
+
+@vindex imagemagick-render-type
+You can set the variable @code{imagemagick-render-type} to choose
+between screen render methods for the ImageMagick loader.  The options
+are: @code{0}, a conservative method which works with older
+@c FIXME details of this "newer method"?
+@c Presumably it is faster but may be less "robust"?
+ImageMagick versions (it is a bit slow, but robust); and @code{1},
+a newer ImageMagick method.
+
+Images loaded with ImageMagick support a few new display specifications:
+
+@table @code
+@item :width, :height
+The @code{:width} and @code{:height} keywords are used for scaling the
+image.  If only one of them is specified, the other one will be
+calculated so as to preserve the aspect ratio.  If both are specified,
+aspect ratio may not be preserved.
+
+@item :rotation
+Specifies a rotation angle in degrees.
+
+@item :index
+Specifies which image to view inside an image bundle file format, such
+as TIFF or DJVM.  You can use the @code{image-metadata} function to
+retrieve the total number of images in an image bundle (this is
+similar to how GIF files work).
+@end table
+
 
 @node Other Image Types
 @subsection Other Image Types
@@ -4730,28 +4775,34 @@ cache, it can always be displayed, even if the value of
 efficiently.  When Emacs displays an image, it searches the image
 cache for an existing image specification @code{equal} to the desired
 specification.  If a match is found, the image is displayed from the
-cache; otherwise, Emacs loads the image normally.
+cache.  Otherwise, Emacs loads the image normally.
 
-  Occasionally, you may need to tell Emacs to refresh the images
-associated with a given image specification.  For example, suppose you
-display an image using a specification that contains a @code{:file}
-property.  The image is automatically cached, and subsequent displays
-of that image, with the same image specification, will use the image
-cache.  If the image file changes in the meantime, Emacs would be
-displaying the old version of the image.  In such a situation, you can
-``refresh'' the image by calling @code{image-refresh}.
+@defun image-flush spec &optional frame
+This function removes the image with specification @var{spec} from the
+image cache of frame @var{frame}.  Image specifications are compared
+using @code{equal}.  If @var{frame} is @code{nil}, it defaults to the
+selected frame.  If @var{frame} is @code{t}, the image is flushed on
+all existing frames.
 
-  In Emacs' current implementation, each graphical terminal possesses
-an image cache, which is shared by all the frames on that terminal
+In Emacs' current implementation, each graphical terminal possesses an
+image cache, which is shared by all the frames on that terminal
 (@pxref{Multiple Terminals}).  Thus, refreshing an image in one frame
 also refreshes it in all other frames on the same terminal.
-
-@defun image-refresh spec &optional frame
-This function refreshes any images with image specifications
-@code{equal} to @var{spec} on frame @var{frame}.  If @var{frame} is
-@code{nil}, it defaults to the selected frame.  If @var{frame} is
-@code{t}, the refresh is applied to all existing frames.
 @end defun
+
+  One use for @code{image-flush} is to tell Emacs about a change in an
+image file.  If an image specification contains a @code{:file}
+property, the image is cached based on the file's contents when the
+image is first displayed.  Even if the file subsequently changes,
+Emacs continues displaying the old version of the image.  Calling
+@code{image-flush} flushes the image from the cache, forcing Emacs to
+re-read the file the next time it needs to display that image.
+
+  Another use for @code{image-flush} is for memory conservation.  If
+your Lisp program creates a large number of temporary images over a
+period much shorter than @code{image-cache-eviction-delay} (see
+below), you can opt to flush unused images yourself, instead of
+waiting for Emacs to do it automatically.
 
 @defun clear-image-cache &optional filter
 This function clears an image cache, removing all the images stored in
@@ -4768,9 +4819,12 @@ period of time, Emacs removes it from the cache and frees the
 associated memory.
 
 @defvar image-cache-eviction-delay
-This variable specifies the number of seconds an image can remain in the
-cache without being displayed.  When an image is not displayed for this
-length of time, Emacs removes it from the image cache.
+This variable specifies the number of seconds an image can remain in
+the cache without being displayed.  When an image is not displayed for
+this length of time, Emacs removes it from the image cache.
+
+Under some circumstances, if the number of images in the cache grows
+too large, the actual eviction delay may be shorter than this.
 
 If the value is @code{nil}, Emacs does not remove images from the cache
 except when you explicitly clear it.  This mode can be useful for
@@ -4955,8 +5009,9 @@ and returns it.
 button actually part of the text instead of being a property of the
 buffer.  Buttons using text properties do not create markers into the
 buffer, which is important for speed when you use extremely large
-numbers of buttons.  Both functions return the position of the start
-of the new button:
+numbers of buttons.  (However, if there is an existing face text
+property at the site of the button, the button face may not be visible.)
+Both functions return the position of the start of the new button:
 
 @defun make-text-button beg end &rest properties
 This makes a button from @var{beg} to @var{end} in the current buffer, using
@@ -5529,9 +5584,9 @@ digit characters representing the character code in octal.  (A display
 table can specify a glyph to use instead of @samp{\}.)
 
 @item
-Multibyte character codes above 256 are displayed as themselves, or as a
-question mark or empty box if the terminal cannot display that
-character.
+Multibyte character codes above 256 are displayed as themselves, or as
+a question mark or a hex code or an empty box if the terminal cannot
+display that character.
 @end itemize
 
   The usual display conventions apply even when there is a display
@@ -5878,6 +5933,14 @@ selected frame).  The list of possible symbols it returns is the same
 one documented for the variable @code{window-system} above.
 @end defun
 
+  Do @emph{not} use @code{window-system} and
+@code{initial-window-system} as predicates or boolean flag variables,
+if you want to write code that works differently on text terminals and
+graphic displays.  That is because @code{window-system} is not a good
+indicator of Emacs capabilities on a given display type.  Instead, use
+@code{display-graphic-p} or any of the other @code{display-*-p}
+predicates described in @ref{Display Feature Testing}.
+
 @defvar window-setup-hook
 This variable is a normal hook which Emacs runs after handling the
 initialization files.  Emacs runs this hook after it has completed
@@ -5889,7 +5952,3 @@ This hook is used for internal purposes: setting up communication with
 the window system, and creating the initial window.  Users should not
 interfere with it.
 @end defvar
-
-@ignore
-   arch-tag: ffdf5714-7ecf-415b-9023-fbc6b409c2c6
-@end ignore

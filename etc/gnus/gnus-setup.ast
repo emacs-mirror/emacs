@@ -48,8 +48,3 @@ Run M-x assistant and use the news-server.ast file as input.
 @c Local variables:
 @c mode: texinfo
 @c End:
-
-@ignore
-   arch-tag: 6b7b200b-9169-4b44-8b32-b73773fa71af
-@end ignore
-

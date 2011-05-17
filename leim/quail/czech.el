@@ -1,7 +1,6 @@
 ;;; czech.el --- Quail package for inputting Czech -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 1998, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Milan Zamazal <pdm@zamazal.org>
 ;; Maintainer: Pavel Jan,Bm(Bk <Pavel@Janik.cz>
@@ -566,5 +565,4 @@ All other keys are the same as on standard US keyboard."
  ([kp-0] ?0)
  ([kp-add] ?+))
 
-;; arch-tag: 0a27dffc-a5e1-479f-9da2-a9eb91b34d8a
 ;;; czech.el ends here

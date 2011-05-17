@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1995, 1998, 1999, 2001, 2002,
-@c   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+@c Copyright (C) 1990-1993, 1995, 1998-1999, 2001-2011
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/tips
 @node Tips, GNU Emacs Internals, GPL, Top
@@ -28,7 +28,7 @@ all.
 * Compilation Tips::          Making compiled code run fast.
 * Warning Tips::              Turning off compiler warnings.
 * Documentation Tips::        Writing readable documentation strings.
-* Comment Tips::	      Conventions for writing comments.
+* Comment Tips::              Conventions for writing comments.
 * Library Headers::           Standard headers for library packages.
 @end menu
 
@@ -90,7 +90,7 @@ Put a call to @code{provide} at the end of each separate Lisp file.
 If a file requires certain other Lisp programs to be loaded
 beforehand, then the comments at the beginning of the file should say
 so.  Also, use @code{require} to make sure they are loaded.
-x@xref{Named Features}.
+@xref{Named Features}.
 
 @item
 If a file @var{foo} uses a macro defined in another file @var{bar},
@@ -1051,6 +1051,31 @@ Please use that command to see a list of the meaningful keywords.
 This field is important; it's how people will find your package when
 they're looking for things by topic area.  To separate the keywords, you
 can use spaces, commas, or both.
+
+@item Package-Version
+If @samp{Version} is not suitable for use by the package manager, then
+a package can define @samp{Package-Version}; it will be used instead.
+This is handy if @samp{Version} is an RCS id or something else that
+cannot be parsed by @code{version-to-list}.  @xref{Packaging Basics}.
+
+@item Package-Requires
+If this exists, it names packages on which the current package depends
+for proper operation.  @xref{Packaging Basics}.  This is used by the
+package manager both at download time (to ensure that a complete set
+of packages is downloaded) and at activation time (to ensure that a
+package is activated if and only if all its dependencies have been).
+
+Its format is a list of lists.  The @code{car} of each sub-list is the
+name of a package, as a symbol.  The @code{cadr} of each sub-list is
+the minimum acceptable version number, as a string.  For instance:
+
+@smallexample
+;; Package-Requires: ((gnus "1.0") (bubbles "2.7.2"))
+@end smallexample
+
+The package code automatically defines a package named @samp{emacs}
+with the version number of the currently running Emacs.  This can be
+used to require a minimal version of Emacs for a package.
 @end table
 
   Just about every Lisp library ought to have the @samp{Author} and
@@ -1089,7 +1114,3 @@ This is the @dfn{footer line}; it appears at the very end of the file.
 Its purpose is to enable people to detect truncated versions of the file
 from the lack of a footer line.
 @end table
-
-@ignore
-   arch-tag: 9ea911c2-6b1d-47dd-88b7-0a94e8b27c2e
-@end ignore

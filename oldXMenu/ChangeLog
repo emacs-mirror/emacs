@@ -1,15 +1,114 @@
+2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Static checks with GCC 4.6.0 and non-default toolkits.
+
+	Modernize to C89, for better static checking.
+	* Activate.c (XMenuActivate): Callback's first arg is readonly.
+	* AddPane.c (XMenuAddPane): Label is readonly.  Rename local
+	to avoid shadowing.
+	* AddSel.c (XMenuAddSelection): Help arg is readonly.  Rename local.
+	* Create.c (atoi, atof): Remove decls; include <stdlib.h>.
+	(MAX_INACT_PNUM, TILE_BUF_SIZE): Remove; unused.
+	(x_get_resource_string): Args are readonly.
+	(XAllocDisplayColor): colorName is readonly.
+	(XMenuCreate): def_env is readonly.  Remove unused locals.  Avoid
+	"else;".
+	* Destroy.c (XMenuDestroy): Return void.
+	* Error.c (XMenuError): Remove const pointer.
+	* EvHand.c (XMenuEventHandler): Return void.
+	* FindPane.c, FindSel.c: Include <string.h>.
+	* InsPane.c (XMenuInsertPane): Rename local to avoid shadowing.
+	* InsSel.c (XMenuInsertSelection): Likewise.
+	* Internal.c (toggle_color, BUFFER_SIZE): Remove; unused.
+	(_XMErrorList): Now const.
+	(_XMWinQueInit, _XMRecomputeGlobals, _XMTransToOrigin, _XMRefreshPane):
+	(_XMRefreshSelection): Return void.
+	(_XMWinQueFlush, _XMRefreshSelection): Rename locals to avoid
+	shadowing.
+	(_XMWinQueFlush): Use stack, not heap.  Don't use uninitialized var.
+	* SetAEQ.c (XMenuSetAEQ): Now returns void.
+	* SetFrz.c (XMenuSetFreeze): Likewise.
+	* X10.h (XAssoc): Use void * for generic pointer.
+	* XDelAssoc.c: Include XMenuInt.h rather than duplicating part of it.
+	* XDestAssoc.c, XMakeAssoc.c: Likewise.
+	* XDestAssoc.c (XDestroyAssocTable): Return void.
+	* XMakeAssoc.c (XMakeAssoc): Use void * for generic pointer.
+	* XMenu.h, XMenuInt.h: Adjust to signature changes.  Use const
+	for pointers to readonly storage.
+	* insque.c: Include XMenuInt.h, to check our own signature.
+	(emacs_insque, emacs_remque): Use void * for generic pointers.
+
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
+2010-11-09  Elias Pipping  <pipping.elias@googlemail.com>  (tiny change)
+
+	Make Emacs compile with clang (bug#7309).
+	* XMakeAssoc.c (XMakeAssoc):
+	* XDelAssoc.c (XDeleteAssoc): Declare the return type.
+
+2010-07-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* XMenu.h: Include <stdlib.h>.
+
+2010-07-12  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in (C_WARNINGS_SWITCH, PROFILING_CFLAGS): Set from
+	substitution.
+	(ALL_CFLAGS): Add ${C_WARNINGS_SWITCH} and ${PROFILING_CFLAGS}.
+
+2010-07-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Activate.c: Convert function definitions to standard C.
+	* AddPane.c:
+	* AddSel.c:
+	* ChgPane.c:
+	* ChgSel.c:
+	* Create.c:
+	* DelPane.c:
+	* DelSel.c:
+	* Destroy.c:
+	* Error.c:
+	* EvHand.c:
+	* FindPane.c:
+	* FindSel.c:
+	* InsPane.c:
+	* InsSel.c:
+	* Internal.c:
+	* Locate.c:
+	* Post.c:
+	* Recomp.c:
+	* SetAEQ.c:
+	* SetFrz.c:
+	* SetPane.c:
+	* SetSel.c:
+	* X10.h:
+	* XCrAssoc.c:
+	* XDelAssoc.c:
+	* XDestAssoc.c:
+	* XLookAssoc.c:
+	* XMakeAssoc.c:
+	* XMenu.h:
+	* XMenuInt.h:
+	* insque.c: Likewise.
+
+2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.2 released.
+
 2010-05-06  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (RANLIB): Let configure set it.
-	(libXMenu11.a): configure sets RANLIB = : on systems without it.
+	(libXMenu11.a): Configure sets RANLIB = : on systems without it.
 
 	* Makefile.in (CPP, LN_S, AS, LD, MV, LS, LINTOPTS, LINTLIBFLAG, MAKE)
 	(STD_DEFINES, CDEBUGFLAGS, RM_CMD): Remove unused variables.
 
 2010-05-04  Glenn Morris  <rgm@gnu.org>
 
-	* Makefile.in (C_SWITCH_SYSTEM, C_SWITCH_MACHINE): Use
-	@C_SWITCH_SYSTEM@, @C_SWITCH_MACHINE@ rather than
+	* Makefile.in (C_SWITCH_SYSTEM, C_SWITCH_MACHINE):
+	Use @C_SWITCH_SYSTEM@, @C_SWITCH_MACHINE@ rather than
 	@c_switch_system@, @c_switch_machine@.
 
 2010-04-27  Dan Nicolaescu  <dann@ics.uci.edu>
@@ -88,8 +187,8 @@
 	* Activate.c: Add calls to GrabKeyboard to remove strange
 	interactions with window managers that steal keypresses.
 	Call ungrab_all instead of XtUngrabPointer.
-	(XMenuActivate): Add call to XGrabKeyboard
-	(XMenuActivate): Add call to XUngrabKeyboard
+	(XMenuActivate): Add call to XGrabKeyboard.
+	(XMenuActivate): Add call to XUngrabKeyboard.
 
 2001-10-20  Gerd Moellmann  <gerd@gnu.org>
 
@@ -514,12 +613,9 @@
 
 ;; Local Variables:
 ;; coding: utf-8
-;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001,
-	2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-	Free Software Foundation, Inc.
+  Copyright (C) 1993-1999, 2001-2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -535,5 +631,3 @@
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
-;;; arch-tag: 8b17c869-6677-40ce-be86-e62cf34061cf

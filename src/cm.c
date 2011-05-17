@@ -1,6 +1,5 @@
 /* Cursor motion subroutines for GNU Emacs.
-   Copyright (C) 1985, 1995, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1985, 1995, 2001-2011  Free Software Foundation, Inc.
     based primarily on public domain code written by Chris Torek
 
 This file is part of GNU Emacs.
@@ -28,25 +27,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "cm.h"
 #include "termhooks.h"
 #include "termchar.h"
-
-
-/* For now, don't try to include termcap.h.  On some systems,
-   configure finds a non-standard termcap.h that the main build
-   won't find.  */
-extern void tputs P_ ((const char *, int, int (*)(int)));
-extern char *tgoto P_ ((const char *, int, int));
+#include "tparam.h"
 
 #define	BIG	9999		/* 9999 good on VAXen.  For 16 bit machines
 				   use about 2000.... */
-
-extern char *BC, *UP;
 
 int cost;		/* sums up costs */
 
 /* ARGSUSED */
 int
-evalcost (c)
-     char c;
+evalcost (int c)
 {
   cost++;
   return c;
@@ -56,8 +46,7 @@ evalcost (c)
 struct tty_display_info *current_tty;
 
 int
-cmputc (c)
-     char c;
+cmputc (int c)
 {
   if (current_tty->termscript)
     putc (c & 0177, current_tty->termscript);
@@ -202,7 +191,7 @@ calccost (struct tty_display_info *tty,
             tabx,
             tab2x,
             tabcost;
-    register char  *p;
+    register const char *p;
 
     /* If have just wrapped on a terminal with xn,
        don't believe the cursor position: give up here
@@ -225,8 +214,9 @@ calccost (struct tty_display_info *tty,
     }
     totalcost = c * deltay;
     if (doit)
-	while (--deltay >= 0)
+      do
           emacs_tputs (tty, p, 1, cmputc);
+      while (0 < --deltay);
 x:
     if ((deltax = dstx - srcx) == 0)
 	goto done;
@@ -307,8 +297,9 @@ fail:
     }
     totalcost += c * deltax;
     if (doit)
-	while (--deltax >= 0)
+      do
           emacs_tputs (tty, p, 1, cmputc);
+      while (0 < --deltax);
 done:
     return totalcost;
 }
@@ -326,18 +317,16 @@ losecursor ()
 #define	USECR	3
 
 void
-cmgoto (tty, row, col)
-     struct tty_display_info *tty;
-     int row, col;
+cmgoto (struct tty_display_info *tty, int row, int col)
 {
     int     homecost,
             crcost,
             llcost,
             relcost,
             directcost;
-    int     use;
-    char   *p,
-           *dcm;
+    int     use IF_LINT (= 0);
+    char *p;
+    const char *dcm;
 
   /* First the degenerate case */
     if (row == curY (tty) && col == curX (tty)) /* already there */
@@ -434,7 +423,7 @@ cmgoto (tty, row, col)
 void
 Wcm_clear (struct tty_display_info *tty)
 {
-  bzero (tty->Wcm, sizeof (struct cm));
+  memset (tty->Wcm, 0, sizeof (struct cm));
   UP = 0;
   BC = 0;
 }
@@ -465,6 +454,3 @@ Wcm_init (struct tty_display_info *tty)
     return - 2;
   return 0;
 }
-
-/* arch-tag: bcf64c02-00f6-44ef-94b6-c56eab5b3dc4
-   (do not change this comment) */

@@ -1,6 +1,5 @@
 /* Heap management routines for GNU Emacs on the Microsoft W32 API.
-   Copyright (C) 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-                 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1994, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -21,11 +20,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    Geoff Voelker (voelker@cs.washington.edu)			     7-29-94
 */
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
-
-#include <stdlib.h>
 #include <stdio.h>
 #include <setjmp.h>
 
@@ -119,6 +114,7 @@ get_data_end (void)
   return data_region_end;
 }
 
+#if !defined (USE_LISP_UNION_TYPE) && !defined (USE_LSB_TAG)
 static char *
 allocate_heap (void)
 {
@@ -145,9 +141,31 @@ allocate_heap (void)
 
   return ptr;
 }
+#else  /* USE_LISP_UNION_TYPE || USE_LSB_TAG */
+static char *
+allocate_heap (void)
+{
+  unsigned long size = 0x80000000; /* start by asking for 2GB */
+  void *ptr = NULL;
+
+  while (!ptr && size > 0x00100000)
+    {
+      reserved_heap_size = size;
+      ptr = VirtualAlloc (NULL,
+			  get_reserved_heap_size (),
+			  MEM_RESERVE,
+			  PAGE_NOACCESS);
+      size -= 0x00800000; /* if failed, decrease request by 8MB */
+    }
+
+  return ptr;
+}
+#endif /* USE_LISP_UNION_TYPE || USE_LSB_TAG */
 
 
-/* Emulate Unix sbrk.  */
+/* Emulate Unix sbrk.  Note that ralloc.c expects the return value to
+   be the address of the _start_ (not end) of the new block in case of
+   success, and zero (not -1) in case of failure.  */
 void *
 sbrk (unsigned long increment)
 {
@@ -222,7 +240,7 @@ sbrk (unsigned long increment)
    was allocated by something else; GNU malloc detects when there is a
    jump in the sbrk values, and starts a new heap block.  */
 void
-init_heap ()
+init_heap (void)
 {
   PIMAGE_DOS_HEADER dos_header;
   PIMAGE_NT_HEADERS nt_header;
@@ -279,7 +297,7 @@ round_heap (unsigned long align)
     sbrk (need_to_alloc);
 }
 
-#if (_MSC_VER >= 1000 && _MSC_VER < 1300 && !defined(USE_CRT_DLL))
+#if (_MSC_VER >= 1000 && _MSC_VER < 1300 && !defined (USE_CRT_DLL))
 
 /* MSVC 4.2 invokes these functions from mainCRTStartup to initialize
    a heap via HeapCreate.  They are normally defined by the runtime,
@@ -302,5 +320,3 @@ _heap_term (void)
 
 #endif
 
-/* arch-tag: 9a6a9860-040d-422d-8905-450dd535cd9c
-   (do not change this comment) */

@@ -1,7 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-@c   2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+@c Copyright (C) 1997-2011  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/customize
 @node Customization, Loading, Macros, Top
@@ -733,7 +732,7 @@ The value must be a valid color name, and you can do completion with
 
 @node Composite Types
 @subsection Composite Types
-@cindex Composite Types (customization)
+@cindex composite types (customization)
 
   When none of the simple types is appropriate, you can use composite
 types, which build new types from other types or from specified data.
@@ -1282,7 +1281,3 @@ the inferior widgets will convert @emph{their} inferior widgets.  If
 the data structure is itself recursive, this conversion is an infinite
 recursion.  The @code{lazy} widget prevents the recursion: it convert
 its @code{:type} argument only when needed.
-
-@ignore
-   arch-tag: d1b8fad3-f48c-4ce4-a402-f73b5ef19bd2
-@end ignore

@@ -28,4 +28,3 @@
     ("GOTHIC LETTER NINE HUNDRED" #x1034A)
     ))
 
-;; arch-tag: 29caddb6-76f0-44bc-83f9-6cef55c20600

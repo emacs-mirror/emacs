@@ -1,9 +1,8 @@
 ;;; greek.el --- Quail package for inputting Greek -*-coding: iso-2022-7bit-*-
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010
+;;   2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
@@ -1279,7 +1278,9 @@ e.g.
  (";:i" ?,F@)
  (":;i" ?,F@)
  (";:y" ?,F`)
- (":;y" ?,F`))
+ (":;y" ?,F`)
+ (";<" ?«)
+ (";>" ?»))
 
 (quail-define-package
  "greek-postfix" "GreekPost" ",FX" nil
@@ -1419,8 +1420,12 @@ e.g.
  ("i:;" ?,F@)
  ("i;:" ?,F@)
  ("y:;" ?,F`)
- ("y;:" ?,F`))
+ ("y;:" ?,F`)
+ ;; These two are asymmetric with ";<" and ";>" in "greek" input
+ ;; method.  But, as the other Latin postfix methods adopt "<<" and
+ ;; ">>", it may be better to follow them.
+ ("<<" ?«)
+ (">>" ?»))
 
 
-;; arch-tag: 2a37e042-db1b-4ecf-b755-117775a3c150
 ;;; greek.el ends here

@@ -1,8 +1,9 @@
-;;; epa-mail.el --- the EasyPG Assistant, minor-mode for mail composer
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;; epa-mail.el --- the EasyPG Assistant, minor-mode for mail composer -*- lexical-binding: t -*-
+;; Copyright (C) 2006-2011 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG, mail, message
+;; Package: epa
 
 ;; This file is part of GNU Emacs.
 
@@ -32,6 +33,12 @@
     (define-key keymap "\C-c\C-ee" 'epa-mail-encrypt)
     (define-key keymap "\C-c\C-ei" 'epa-mail-import-keys)
     (define-key keymap "\C-c\C-eo" 'epa-insert-keys)
+    (define-key keymap "\C-c\C-e\C-d" 'epa-mail-decrypt)
+    (define-key keymap "\C-c\C-e\C-v" 'epa-mail-verify)
+    (define-key keymap "\C-c\C-e\C-s" 'epa-mail-sign)
+    (define-key keymap "\C-c\C-e\C-e" 'epa-mail-encrypt)
+    (define-key keymap "\C-c\C-e\C-i" 'epa-mail-import-keys)
+    (define-key keymap "\C-c\C-e\C-o" 'epa-insert-keys)
     keymap))
 
 (defvar epa-mail-mode-hook nil)
@@ -110,23 +117,29 @@ Don't use this command in Lisp programs!"
    (save-excursion
      (let ((verbose current-prefix-arg)
 	   (context (epg-make-context epa-protocol))
-	   recipients recipient-key)
+	   recipients-string recipients recipient-key sign)
        (goto-char (point-min))
        (save-restriction
 	 (narrow-to-region (point)
 			   (if (search-forward mail-header-separator nil 0)
 			       (match-beginning 0)
 			     (point)))
+	 (setq recipients-string
+	       (mapconcat #'identity
+			  (nconc (mail-fetch-field "to" nil nil t)
+				 (mail-fetch-field "cc" nil nil t)
+				 (mail-fetch-field "bcc" nil nil t))
+			  ","))
 	 (setq recipients
 	       (mail-strip-quoted-names
-		(mapconcat #'identity
-			   (nconc (mail-fetch-field "to" nil nil t)
-				  (mail-fetch-field "cc" nil nil t)
-				  (mail-fetch-field "bcc" nil nil t))
-			   ","))))
+		(with-temp-buffer
+		  (insert "to: " recipients-string "\n")
+		  (expand-mail-aliases (point-min) (point-max))
+		  (car (mail-fetch-field "to" nil nil t))))))
        (if recipients
 	   (setq recipients (delete ""
-				    (split-string recipients "[ \t\n]+"))))
+				    (split-string recipients
+						  "[ \t\n]*,[ \t\n]*"))))
        (goto-char (point-min))
        (if (search-forward mail-header-separator nil t)
 	   (forward-line))
@@ -147,7 +160,9 @@ If no one is selected, symmetric encryption will be performed.  "
 			    (epa-mail--find-usable-key
 			     (epg-list-keys
 			      (epg-make-context epa-protocol)
-			      (concat "<" recipient ">"))
+			      (if (string-match "@" recipient)
+				  (concat "<" recipient ">")
+				recipient))
 			     'encrypt))
 		      (unless (or recipient-key
 				  (y-or-n-p
@@ -182,5 +197,4 @@ Don't use this command in Lisp programs!"
 
 (provide 'epa-mail)
 
-;; arch-tag: a6f82b3f-d177-4a11-af95-040da55927d2
 ;;; epa-mail.el ends here

@@ -1,10 +1,11 @@
 ;;; macros.el --- non-primitive commands for keyboard macros
 
-;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1995, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1992, 1994-1995, 2001-2011
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: abbrev
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -126,7 +127,7 @@ use this command, and then save the file."
 		     (delete-region (point) (1+ (point)))
 		     (insert "\\M-\\C-?"))))))
       (if (vectorp definition)
-	  (let ((len (length definition)) (i 0) char mods)
+	  (let ((len (length definition)) (i 0) char)
 	    (while (< i len)
 	      (insert (if (zerop i) ?\[ ?\s))
 	      (setq char (aref definition i)
@@ -282,5 +283,4 @@ and then select the region of un-tablified names and use
 
 (provide 'macros)
 
-;; arch-tag: 346ed1a5-1220-4bc8-b533-961ee704361f
 ;;; macros.el ends here

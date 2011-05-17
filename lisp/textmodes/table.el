@@ -1,12 +1,10 @@
 ;;; table.el --- create and edit WYSIWYG text based embedded tables
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
 
 ;; Keywords: wp, convenience
 ;; Author: Takaaki Ota <Takaaki.Ota@am.sony.com>
 ;; Created: Sat Jul 08 2000 13:28:45 (PST)
-;; Revised: Fri Aug 21 2009 00:16:58 (PDT)
 
 ;; This file is part of GNU Emacs.
 
@@ -651,7 +649,7 @@
   :group 'table)
 
 (defcustom table-time-before-update 0.2
-  "*Time in seconds before updating the cell contents after typing.
+  "Time in seconds before updating the cell contents after typing.
 Updating the cell contents on the screen takes place only after this
 specified amount of time has passed after the last modification to the
 cell contents.  When the contents of a table cell changes repetitively
@@ -665,7 +663,7 @@ annoying delay before the typed result start appearing on the screen."
   :group 'table)
 
 (defcustom table-time-before-reformat 0.2
-  "*Time in seconds before reformatting the table.
+  "Time in seconds before reformatting the table.
 This many seconds must pass in addition to `table-time-before-update'
 before the table is updated with newly widened width or heightened
 height."
@@ -674,7 +672,7 @@ height."
   :group 'table)
 
 (defcustom table-command-prefix [(control c) (control c)]
-  "*Key sequence to be used as prefix for table command key bindings."
+  "Key sequence to be used as prefix for table command key bindings."
   :type '(vector (repeat :inline t sexp))
   :tag "Table Command Prefix"
   :group 'table)
@@ -685,30 +683,30 @@ height."
     (((class color))
      (:foreground "gray90" :background "blue"))
     (t (:bold t)))
-  "*Face used for table cell contents."
+  "Face used for table cell contents."
   :tag "Cell Face"
   :group 'table)
 
 (defcustom table-cell-horizontal-chars "-="
-  "*Characters that may be used for table cell's horizontal border line."
+  "Characters that may be used for table cell's horizontal border line."
   :tag "Cell Horizontal Boundary Characters"
   :type 'string
   :group 'table)
 
 (defcustom table-cell-vertical-char ?\|
-  "*Character that forms table cell's vertical border line."
+  "Character that forms table cell's vertical border line."
   :tag "Cell Vertical Boundary Character"
   :type 'character
   :group 'table)
 
 (defcustom table-cell-intersection-char ?\+
-  "*Character that forms table cell's corner."
+  "Character that forms table cell's corner."
   :tag "Cell Intersection Character"
   :type 'character
   :group 'table)
 
 (defcustom table-word-continuation-char ?\\
-  "*Character that indicates word continuation into the next line.
+  "Character that indicates word continuation into the next line.
 This character has a special meaning only in the fixed width mode,
 that is when `table-fixed-width-mode' is non-nil .  In the fixed width
 mode this character indicates that the location is continuing into the
@@ -727,7 +725,7 @@ select a character that is unlikely to appear in your document."
   (set variable value))
 
 (defcustom table-fixed-width-mode nil
-  "*Cell width is fixed when this is non-nil.
+  "Cell width is fixed when this is non-nil.
 Normally it should be nil for allowing automatic cell width expansion
 that widens a cell when it is necessary.  When non-nil, typing in a
 cell does not automatically expand the cell width.  A word that is too
@@ -742,7 +740,7 @@ run-time."
   :group 'table)
 
 (defcustom table-detect-cell-alignment t
-  "*Detect cell contents alignment automatically.
+  "Detect cell contents alignment automatically.
 When non-nil cell alignment is automatically determined by the
 appearance of the current cell contents when recognizing tables as a
 whole.  This applies to `table-recognize', `table-recognize-region'
@@ -752,38 +750,38 @@ and `table-recognize-table' but not to `table-recognize-cell'."
   :group 'table)
 
 (defcustom table-dest-buffer-name "table"
-  "*Default buffer name (without a suffix) for source generation."
+  "Default buffer name (without a suffix) for source generation."
   :tag "Source Buffer Name"
   :type 'string
   :group 'table)
 
 (defcustom table-html-delegate-spacing-to-user-agent nil
-  "*Non-nil delegates cell contents spacing entirely to user agent.
+  "Non-nil delegates cell contents spacing entirely to user agent.
 Otherwise, when nil, it preserves the original spacing and line breaks."
   :tag "HTML delegate spacing"
   :type 'boolean
   :group 'table)
 
 (defcustom table-html-th-rows 0
-  "*Number of top rows to become header cells automatically in HTML generation."
+  "Number of top rows to become header cells automatically in HTML generation."
   :tag "HTML Header Rows"
   :type 'integer
   :group 'table)
 
 (defcustom table-html-th-columns 0
-  "*Number of left columns to become header cells automatically in HTML generation."
+  "Number of left columns to become header cells automatically in HTML generation."
   :tag "HTML Header Columns"
   :type 'integer
   :group 'table)
 
 (defcustom table-html-table-attribute "border=\"1\""
-  "*Table attribute that applies to the table in HTML generation."
+  "Table attribute that applies to the table in HTML generation."
   :tag "HTML table attribute"
   :type 'string
   :group 'table)
 
 (defcustom table-html-cell-attribute ""
-  "*Cell attribute that applies to all cells in HTML generation.
+  "Cell attribute that applies to all cells in HTML generation.
 Do not specify \"align\" and \"valign\" because they are determined by
 the cell contents dynamically."
   :tag "HTML cell attribute"
@@ -791,28 +789,28 @@ the cell contents dynamically."
   :group 'table)
 
 (defcustom table-cals-thead-rows 1
-  "*Number of top rows to become header rows in CALS table."
+  "Number of top rows to become header rows in CALS table."
   :tag "CALS Header Rows"
   :type 'integer
   :group 'table)
 
 ;;;###autoload
 (defcustom table-cell-map-hook nil
-  "*Normal hooks run when finishing construction of `table-cell-map'.
+  "Normal hooks run when finishing construction of `table-cell-map'.
 User can modify `table-cell-map' by adding custom functions here."
   :tag "Cell Keymap Hooks"
   :type 'hook
   :group 'table-hooks)
 
 (defcustom table-disable-incompatibility-warning nil
-  "*Disable compatibility warning notice.
+  "Disable compatibility warning notice.
 When nil user is reminded of known incompatible issues."
   :tag "Disable Incompatibility Warning"
   :type 'boolean
   :group 'table)
 
 (defcustom table-abort-recognition-when-input-pending t
-  "*Abort current recognition process when input pending.
+  "Abort current recognition process when input pending.
 Abort current recognition process when we are not sure that no input
 is available.  When non-nil lengthy recognition process is aborted
 simply by any key input."
@@ -822,19 +820,19 @@ simply by any key input."
 
 ;;;###autoload
 (defcustom table-load-hook nil
-  "*List of functions to be called after the table is first loaded."
+  "List of functions to be called after the table is first loaded."
   :type 'hook
   :group 'table-hooks)
 
 ;;;###autoload
 (defcustom table-point-entered-cell-hook nil
-  "*List of functions to be called after point entered a table cell."
+  "List of functions to be called after point entered a table cell."
   :type 'hook
   :group 'table-hooks)
 
 ;;;###autoload
 (defcustom table-point-left-cell-hook nil
-  "*List of functions to be called after point left a table cell."
+  "List of functions to be called after point left a table cell."
   :type 'hook
   :group 'table-hooks)
 
@@ -860,7 +858,7 @@ time.")
 ;;; No need of user configuration
 
 (defconst table-paragraph-start "[ \t\n\f]"
-  "*Regexp for beginning of a line that starts OR separates paragraphs.")
+  "Regexp for beginning of a line that starts OR separates paragraphs.")
 (defconst table-cache-buffer-name " *table cell cache*"
   "Cell cache buffer name.")
 (defvar table-cell-info-lu-coordinate nil
@@ -919,12 +917,12 @@ This is always set to nil at the entry to `table-with-cache-buffer' before execu
 (defvar table-source-info-plist nil
   "General storage for temporary information used while generating source.")
 
-;;; The following history containers not only keep the history of user
-;;; entries but also serve as the default value providers.  When an
-;;; interactive command is invoked it offers a user the latest entry
-;;; of the history as a default selection.  Therefore the values below
-;;; are the first default value when a command is invoked for the very
-;;; first time when there is no real history existing yet.
+;; The following history containers not only keep the history of user
+;; entries but also serve as the default value providers.  When an
+;; interactive command is invoked it offers a user the latest entry
+;; of the history as a default selection.  Therefore the values below
+;; are the first default value when a command is invoked for the very
+;; first time when there is no real history existing yet.
 (defvar table-cell-span-direction-history '("right"))
 (defvar table-cell-split-orientation-history '("horizontally"))
 (defvar table-cell-split-contents-to-history '("split"))
@@ -948,19 +946,19 @@ This is always set to nil at the entry to `table-with-cache-buffer' before execu
 (defvar table-capture-columns-history '(""))
 (defvar table-target-history '("cell"))
 
-;;; Some entries in `table-cell-bindings' are duplicated in
-;;; `table-command-remap-alist'.  There is a good reason for
-;;; this.  Common key like return key may be taken by some other
-;;; function than normal `newline' function.  Thus binding return key
-;;; directly for `*table--cell-newline' ensures that the correct enter
-;;; operation in a table cell.  However
-;;; `table-command-remap-alist' has an additional role than
-;;; replacing commands.  It is also used to construct a table command
-;;; list.  This list is very important because it is used to check if
-;;; the previous command was one of them in this list or not.  If the
-;;; previous command is found in the list the current command will not
-;;; refill the table cache.  If the command were not listed fast
-;;; typing can cause unwanted cache refill.
+;; Some entries in `table-cell-bindings' are duplicated in
+;; `table-command-remap-alist'.  There is a good reason for
+;; this.  Common key like return key may be taken by some other
+;; function than normal `newline' function.  Thus binding return key
+;; directly for `*table--cell-newline' ensures that the correct enter
+;; operation in a table cell.  However
+;; `table-command-remap-alist' has an additional role than
+;; replacing commands.  It is also used to construct a table command
+;; list.  This list is very important because it is used to check if
+;; the previous command was one of them in this list or not.  If the
+;; previous command is found in the list the current command will not
+;; refill the table cache.  If the command were not listed fast
+;; typing can cause unwanted cache refill.
 (defconst table-cell-bindings
   '(([(control i)]	. table-forward-cell)
     ([(control I)]	. table-backward-cell)
@@ -5058,7 +5056,7 @@ Focus only on the corner pattern.  Further cell validity check is required."
 	  (intersection-str (regexp-quote (char-to-string table-cell-intersection-char)))
 	  (v-border (format "[%c%c]" table-cell-vertical-char table-cell-intersection-char))
 	  (h-border (format "[%s%c]" table-cell-horizontal-chars table-cell-intersection-char))
-	  (limit (save-excursion (beginning-of-line) (point))))
+	  (limit (line-beginning-position)))
       (catch 'end
 	(while t
 	  (catch 'retry-horizontal
@@ -5096,7 +5094,7 @@ Focus only on the corner pattern.  Further cell validity check is required."
 	  (intersection-str (regexp-quote (char-to-string table-cell-intersection-char)))
 	  (v-border (format "[%c%c]" table-cell-vertical-char table-cell-intersection-char))
 	  (h-border (format "[%s%c]" table-cell-horizontal-chars table-cell-intersection-char))
-	  (limit (save-excursion (end-of-line) (point))))
+	  (limit (line-end-position)))
       (catch 'end
 	(while t
 	  (catch 'retry-horizontal
@@ -5590,14 +5588,4 @@ It returns COLUMN unless STR contains some wide characters."
 
 (provide 'table)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Local Variables: ***
-;; time-stamp-line-limit: 16 ***
-;; time-stamp-start: ";; Revised:[ \t]+" ***
-;; time-stamp-end: "$" ***
-;; time-stamp-format: "%3a %3b %02d %:y %02H:%02M:%02S (%Z)" ***
-;; End: ***
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; arch-tag: 0d69b03e-aa5f-4e72-8806-5727217617e0
 ;;; table.el ends here

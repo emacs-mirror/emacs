@@ -247,4 +247,3 @@
     ("CYRILLIC SMALL LETTER YERU WITH DIAERESIS" #x04F9)
     ))
 
-;; arch-tag: 9cd8c4dd-3386-4c0a-b1dd-984efa12d958

@@ -1,7 +1,6 @@
 ;;; imap.el --- imap library
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Keywords: mail
@@ -139,6 +138,7 @@
 
 (eval-when-compile (require 'cl))
 (eval-and-compile
+  ;; For Emacs <22.2 and XEmacs.
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r)))
   (autoload 'starttls-open-stream "starttls")
   (autoload 'starttls-negotiate "starttls")
@@ -211,7 +211,7 @@ until a successful connection is made."
   :type '(repeat string))
 
 (defcustom imap-process-connection-type nil
-  "*Value for `process-connection-type' to use for Kerberos4, GSSAPI and SSL.
+  "*Value for `process-connection-type' to use for Kerberos4, GSSAPI, shell, and SSL.
 The `process-connection-type' variable controls the type of device
 used to communicate with subprocesses.  Values are nil to use a
 pipe, or t or `pty' to use a pty.  The value has no effect if the
@@ -267,7 +267,7 @@ See also `imap-log'."
   :type 'string)
 
 (defcustom imap-read-timeout (if (string-match
-				  "windows-nt\\|os/2\\|emx\\|cygwin"
+				  "windows-nt\\|os/2\\|cygwin"
 				  (symbol-name system-type))
 				 1.0
 			       0.1)
@@ -475,10 +475,10 @@ sure of changing the value of `foo'."
       (setcdr alist (imap-remassoc key (cdr alist)))
       alist)))
 
-(defsubst imap-disable-multibyte ()
+(defmacro imap-disable-multibyte ()
   "Enable multibyte in the current buffer."
-  (when (fboundp 'set-buffer-multibyte)
-    (set-buffer-multibyte nil)))
+  (unless (featurep 'xemacs)
+    '(set-buffer-multibyte nil)))
 
 (defsubst imap-utf7-encode (string)
   (if imap-use-utf7
@@ -514,6 +514,16 @@ sure of changing the value of `foo'."
 
 
 ;; Server functions; stream stuff:
+
+(defun imap-log (string-or-buffer)
+  (when imap-log
+    (with-current-buffer (get-buffer-create imap-log-buffer)
+      (imap-disable-multibyte)
+      (buffer-disable-undo)
+      (goto-char (point-max))
+      (if (bufferp string-or-buffer)
+	  (insert-buffer-substring string-or-buffer)
+	(insert string-or-buffer)))))
 
 (defun imap-kerberos4-stream-p (buffer)
   (imap-capability 'AUTH=KERBEROS_V4 buffer))
@@ -569,12 +579,6 @@ sure of changing the value of `foo'."
 				  (setq response (match-string 1)))))
 	      (accept-process-output process 1)
 	      (sit-for 1))
-	    (and imap-log
-		 (with-current-buffer (get-buffer-create imap-log-buffer)
-		   (imap-disable-multibyte)
-		   (buffer-disable-undo)
-		   (goto-char (point-max))
-		   (insert-buffer-substring buffer)))
 	    (erase-buffer)
 	    (message "Opening Kerberos 4 IMAP connection with `%s'...%s" cmd
 		     (if response (concat "done, " response) "failed"))
@@ -645,12 +649,7 @@ sure of changing the value of `foo'."
 				  (setq response (match-string 1)))))
 	      (accept-process-output process 1)
 	      (sit-for 1))
-	    (and imap-log
-		 (with-current-buffer (get-buffer-create imap-log-buffer)
-		   (imap-disable-multibyte)
-		   (buffer-disable-undo)
-		   (goto-char (point-max))
-		   (insert-buffer-substring buffer)))
+	    (imap-log buffer)
 	    (erase-buffer)
 	    (message "GSSAPI IMAP connection: %s" (or response "failed"))
 	    (if (and response (let ((case-fold-search nil))
@@ -701,12 +700,7 @@ sure of changing the value of `foo'."
 			(not (imap-parse-greeting)))
 	      (accept-process-output process 1)
 	      (sit-for 1))
-	    (and imap-log
-		 (with-current-buffer (get-buffer-create imap-log-buffer)
-		   (imap-disable-multibyte)
-		   (buffer-disable-undo)
-		   (goto-char (point-max))
-		   (insert-buffer-substring buffer)))
+	    (imap-log buffer)
 	    (erase-buffer)
 	    (when (memq (process-status process) '(open run))
 	      (setq done process))))))
@@ -740,12 +734,7 @@ sure of changing the value of `foo'."
 		  (not (imap-parse-greeting)))
 	(accept-process-output process 1)
 	(sit-for 1))
-      (and imap-log
-	   (with-current-buffer (get-buffer-create imap-log-buffer)
-	     (imap-disable-multibyte)
-	     (buffer-disable-undo)
-	     (goto-char (point-max))
-	     (insert-buffer-substring buffer)))
+      (imap-log buffer)
       (when (memq (process-status process) '(open run))
 	process))))
 
@@ -764,12 +753,7 @@ sure of changing the value of `foo'."
 		  (not (imap-parse-greeting)))
 	(accept-process-output process 1)
 	(sit-for 1))
-      (and imap-log
-	   (with-current-buffer (get-buffer-create imap-log-buffer)
-	     (imap-disable-multibyte)
-	     (buffer-disable-undo)
-	     (goto-char (point-max))
-	     (insert-buffer-substring buffer)))
+      (imap-log buffer)
       (when (memq (process-status process) '(open run))
 	process))))
 
@@ -786,6 +770,7 @@ sure of changing the value of `foo'."
       (let* ((port (or port imap-default-port))
 	     (coding-system-for-read imap-coding-system-for-read)
 	     (coding-system-for-write imap-coding-system-for-write)
+             (process-connection-type imap-process-connection-type)
 	     (process (start-process
 		       name buffer shell-file-name shell-command-switch
 		       (format-spec
@@ -803,12 +788,7 @@ sure of changing the value of `foo'."
 		      (not (imap-parse-greeting)))
 	    (accept-process-output process 1)
 	    (sit-for 1))
-	  (and imap-log
-	       (with-current-buffer (get-buffer-create imap-log-buffer)
-		 (imap-disable-multibyte)
-		 (buffer-disable-undo)
-		 (goto-char (point-max))
-		 (insert-buffer-substring buffer)))
+	  (imap-log buffer)
 	  (erase-buffer)
 	  (when (memq (process-status process) '(open run))
 	    (setq done process)))))
@@ -845,11 +825,7 @@ sure of changing the value of `foo'."
 		  (not (re-search-forward "[0-9]+ OK.*\r?\n" nil t)))
 	(accept-process-output process 1)
 	(sit-for 1))
-      (and imap-log
-	   (with-current-buffer (get-buffer-create imap-log-buffer)
-	     (buffer-disable-undo)
-	     (goto-char (point-max))
-	     (insert-buffer-substring buffer)))
+      (imap-log buffer)
       (when (and (setq tls-info (starttls-negotiate process))
 		 (memq (process-status process) '(open run)))
 	(setq done process)))
@@ -1227,7 +1203,7 @@ password is remembered in the buffer."
       (when user (setq imap-username user))
       (when passwd (setq imap-password passwd))
       (if imap-auth
-	  (and (setq imap-last-authenticator 
+	  (and (setq imap-last-authenticator
 		     (assq imap-auth imap-authenticator-alist))
 	       (funcall (nth 2 imap-last-authenticator) (current-buffer))
 	       (setq imap-state 'auth))
@@ -1959,12 +1935,7 @@ on failure."
 
 (defun imap-send-command-1 (cmdstr)
   (setq cmdstr (concat cmdstr imap-client-eol))
-  (and imap-log
-       (with-current-buffer (get-buffer-create imap-log-buffer)
-	 (imap-disable-multibyte)
-	 (buffer-disable-undo)
-	 (goto-char (point-max))
-	 (insert cmdstr)))
+  (imap-log cmdstr)
   (process-send-string imap-process cmdstr))
 
 (defun imap-send-command (command &optional buffer)
@@ -2002,13 +1973,7 @@ on failure."
 			     (stream imap-stream)
 			     (eol imap-client-eol))
 			 (with-current-buffer cmd
-			   (and imap-log
-				(with-current-buffer (get-buffer-create
-						      imap-log-buffer)
-				  (imap-disable-multibyte)
-				  (buffer-disable-undo)
-				  (goto-char (point-max))
-				  (insert-buffer-substring cmd)))
+			   (imap-log cmd)
 			   (process-send-region process (point-min)
 						(point-max)))
 			 (process-send-string process imap-client-eol))))
@@ -2084,18 +2049,13 @@ Return nil if no complete line has arrived."
     (with-current-buffer (process-buffer proc)
       (goto-char (point-max))
       (insert string)
-      (and imap-log
-	   (with-current-buffer (get-buffer-create imap-log-buffer)
-	     (imap-disable-multibyte)
-	     (buffer-disable-undo)
-	     (goto-char (point-max))
-	     (insert string)))
+      (imap-log string)
       (let (end)
 	(goto-char (point-min))
 	(while (setq end (imap-find-next-line))
 	  (save-restriction
 	    (narrow-to-region (point-min) end)
-	    (delete-backward-char (length imap-server-eol))
+	    (delete-char (- (length imap-server-eol)))
 	    (goto-char (point-min))
 	    (unwind-protect
 		(cond ((eq imap-state 'initial)
@@ -3093,5 +3053,4 @@ Return nil if no complete line has arrived."
 
 (provide 'imap)
 
-;; arch-tag: 27369ed6-33e4-482f-96f1-8bb906ba70f7
 ;;; imap.el ends here

@@ -1,7 +1,6 @@
 ;;; tcl.el --- Tcl code editing commands for Emacs
 
-;; Copyright (C) 1994, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1998-2011  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Author: Tom Tromey <tromey@redhat.com>
@@ -411,9 +410,10 @@ This variable is generally set from `tcl-proc-regexp',
 `tcl-typeword-list', and `tcl-keyword-list' by the function
 `tcl-set-font-lock-keywords'.")
 
-(defvar tcl-font-lock-syntactic-keywords
-  ;; Mark the few `#' that are not comment-markers.
-  '(("[^;[{ \t\n][ \t]*\\(#\\)" (1 ".")))
+(defconst tcl-syntax-propertize-function
+  (syntax-propertize-rules
+   ;; Mark the few `#' that are not comment-markers.
+   ("[^;[{ \t\n][ \t]*\\(#\\)" (1 ".")))
   "Syntactic keywords for `tcl-mode'.")
 
 ;; FIXME need some way to recognize variables because array refs look
@@ -545,7 +545,7 @@ Uses variables `tcl-proc-regexp' and `tcl-keyword-list'."
 ;;
 
 ;;;###autoload
-(define-derived-mode tcl-mode nil "Tcl"
+(define-derived-mode tcl-mode prog-mode "Tcl"
   "Major mode for editing Tcl code.
 Expression and list commands understand all Tcl brackets.
 Tab indents for Tcl code.
@@ -571,10 +571,7 @@ documentation for details):
 
 Turning on Tcl mode runs `tcl-mode-hook'.  Read the documentation for
 `tcl-mode-hook' to see what kinds of interesting hook functions
-already exist.
-
-Commands:
-\\{tcl-mode-map}"
+already exist."
   (unless (and (boundp 'filladapt-mode) filladapt-mode)
     (set (make-local-variable 'paragraph-ignore-fill-prefix) t))
 
@@ -593,9 +590,9 @@ Commands:
   (set (make-local-variable 'outline-level) 'tcl-outline-level)
 
   (set (make-local-variable 'font-lock-defaults)
-       '(tcl-font-lock-keywords nil nil nil beginning-of-defun
- 	 (font-lock-syntactic-keywords . tcl-font-lock-syntactic-keywords)
- 	 (parse-sexp-lookup-properties . t)))
+       '(tcl-font-lock-keywords nil nil nil beginning-of-defun))
+  (set (make-local-variable 'syntax-propertize-function)
+       tcl-syntax-propertize-function)
 
   (set (make-local-variable 'imenu-generic-expression)
        tcl-imenu-generic-expression)
@@ -606,15 +603,11 @@ Commands:
   (set (make-local-variable 'dabbrev-abbrev-skip-leading-regexp) "[$!]")
   (set (make-local-variable 'dabbrev-abbrev-char-regexp) "\\sw\\|\\s_")
 
-  ;; This can only be set to t in Emacs 19 and XEmacs.
-  ;; Emacs 18 and Epoch lose.
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
   ;; XEmacs has defun-prompt-regexp, but I don't believe
   ;; that it works for end-of-defun -- only for
   ;; beginning-of-defun.
   (set (make-local-variable 'defun-prompt-regexp) tcl-omit-ws-regexp)
-  ;; The following doesn't work in Lucid Emacs 19.6, but maybe
-  ;; it will appear in later versions.
   (set (make-local-variable 'add-log-current-defun-function)
        'tcl-add-log-defun)
 
@@ -667,7 +660,7 @@ Commands:
 
 
 
-(defun tcl-indent-command (&optional arg)
+(defun tcl-indent-command (&optional _arg)
   "Indent current line as Tcl code, or in some cases insert a tab character.
 If `tcl-tab-always-indent' is t (the default), always indent current line.
 If `tcl-tab-always-indent' is nil and point is not in the indentation
@@ -1067,7 +1060,7 @@ With argument, positions cursor at end of buffer."
 (defun inferior-tcl-proc ()
   "Return current inferior Tcl process.
 See variable `inferior-tcl-buffer'."
-  (let ((proc (get-buffer-process (if (eq major-mode 'inferior-tcl-mode)
+  (let ((proc (get-buffer-process (if (derived-mode-p 'inferior-tcl-mode)
 				      (current-buffer)
 				    inferior-tcl-buffer))))
     (or proc
@@ -1200,15 +1193,10 @@ semicolon, opening brace, or opening bracket on the same line."
   "Determine if point is in a comment.
 Returns a list of the form `(FLAG . STATE)'.  STATE can be used
 as input to future invocations.  FLAG is nil if not in comment,
-t otherwise.  If in comment, leaves point at beginning of comment.
-
-This function does not work in Emacs 18.
-See also `tcl-simple-scan-for-comment', a
-simpler version that is often right, and works in Emacs 18."
+t otherwise.  If in comment, leaves point at beginning of comment."
   (let ((bol (save-excursion
 	       (goto-char end)
-	       (beginning-of-line)
-	       (point)))
+	       (line-beginning-position)))
 	real-comment
 	last-cstart)
     (while (and (not last-cstart) (< (point) end))
@@ -1295,7 +1283,7 @@ to update the alist.")
 If FLAG is nil, just uses `current-word'.
 Otherwise scans backward for most likely Tcl command word."
   (if (and flag
-	   (memq major-mode '(tcl-mode inferior-tcl-mode)))
+	   (derived-mode-p 'tcl-mode 'inferior-tcl-mode))
       (condition-case nil
 	  (save-excursion
 	    ;; Look backward for first word actually in alist.
@@ -1371,7 +1359,7 @@ Prefix argument means switch to the Tcl buffer afterwards."
     ;; filename.
     (car (comint-get-source "Load Tcl file: "
 			    (or (and
-				 (eq major-mode 'tcl-mode)
+				 (derived-mode-p 'tcl-mode)
 				 (buffer-file-name))
 				tcl-previous-dir/file)
 			    '(tcl-mode) t))
@@ -1391,12 +1379,12 @@ Prefix argument means switch to the Tcl buffer afterwards."
    (list
     (car (comint-get-source "Restart with Tcl file: "
 			    (or (and
-				 (eq major-mode 'tcl-mode)
+				 (derived-mode-p 'tcl-mode)
 				 (buffer-file-name))
 				tcl-previous-dir/file)
 			    '(tcl-mode) t))
     current-prefix-arg))
-  (let* ((buf (if (eq major-mode 'inferior-tcl-mode)
+  (let* ((buf (if (derived-mode-p 'inferior-tcl-mode)
 		  (current-buffer)
 		inferior-tcl-buffer))
 	 (proc (and buf (get-process buf))))
@@ -1518,7 +1506,7 @@ The first line is assumed to look like \"#!.../program ...\"."
 ;; loading the XEmacs menu emulation code.
 ;;
 
-(defun tcl-popup-menu (e)
+(defun tcl-popup-menu (_e)
   (interactive "@e")
   (popup-menu tcl-mode-menu))
 
@@ -1556,5 +1544,4 @@ The first line is assumed to look like \"#!.../program ...\"."
 
 (provide 'tcl)
 
-;; arch-tag: 8a032554-c3ef-422e-b84c-acec0522179d
 ;;; tcl.el ends here

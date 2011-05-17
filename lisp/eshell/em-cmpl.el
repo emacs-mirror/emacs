@@ -1,7 +1,6 @@
 ;;; em-cmpl.el --- completion using the TAB key
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -85,27 +84,28 @@ variable names, arguments, etc."
 
 ;;; User Variables:
 
-(defcustom eshell-cmpl-load-hook '(eshell-cmpl-initialize)
-  "*A list of functions to run when `eshell-cmpl' is loaded."
+(defcustom eshell-cmpl-load-hook nil
+  "A list of functions to run when `eshell-cmpl' is loaded."
+  :version "24.1"			; removed eshell-cmpl-initialize
   :type 'hook
   :group 'eshell-cmpl)
 
 (defcustom eshell-show-lisp-completions nil
-  "*If non-nil, include Lisp functions in the command completion list.
+  "If non-nil, include Lisp functions in the command completion list.
 If this variable is nil, Lisp completion can still be done in command
 position by using M-TAB instead of TAB."
   :type 'boolean
   :group 'eshell-cmpl)
 
 (defcustom eshell-show-lisp-alternatives t
-  "*If non-nil, and no other completions found, show Lisp functions.
+  "If non-nil, and no other completions found, show Lisp functions.
 Setting this variable means nothing if `eshell-show-lisp-completions'
 is non-nil."
   :type 'boolean
   :group 'eshell-cmpl)
 
 (defcustom eshell-no-completion-during-jobs t
-  "*If non-nil, don't allow completion while a process is running."
+  "If non-nil, don't allow completion while a process is running."
   :type 'boolean
   :group 'eshell-cmpl)
 
@@ -126,7 +126,7 @@ is non-nil."
     ("dbx"      . "\\`\\([^.]*\\|a\\.out\\)\\'")
     ("sdb"      . "\\`\\([^.]*\\|a\\.out\\)\\'")
     ("adb"      . "\\`\\([^.]*\\|a\\.out\\)\\'"))
-  "*An alist that defines simple argument type correlations.
+  "An alist that defines simple argument type correlations.
 This is provided for common commands, as a simplistic alternative
 to writing a completion function."
   :type '(repeat (cons string regexp))
@@ -455,5 +455,4 @@ to writing a completion function."
 ;; generated-autoload-file: "esh-groups.el"
 ;; End:
 
-;; arch-tag: 0e914699-673a-45f8-8cbf-82e1dbc571bc
 ;;; em-cmpl.el ends here

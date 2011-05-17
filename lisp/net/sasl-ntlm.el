@@ -1,11 +1,12 @@
 ;;; sasl-ntlm.el --- NTLM (NT Lan Manager) module for the SASL client framework
 
-;; Copyright (C) 2000, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Taro Kawagishi <tarok@transpulse.org>
 ;; Keywords: SASL, NTLM
 ;; Version: 1.00
 ;; Created: February 2001
+;; Package: sasl
 
 ;; This file is part of GNU Emacs.
 
@@ -62,5 +63,4 @@ challenge stored in the 2nd element of STEP.  Called from `sasl-next-step'."
 
 (provide 'sasl-ntlm)
 
-;; arch-tag: 1d9164c1-1df0-418f-b7ab-360157fd05dc
 ;;; sasl-ntlm.el ends here

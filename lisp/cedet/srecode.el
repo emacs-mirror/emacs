@@ -1,9 +1,10 @@
 ;;; srecode.el --- Semantic buffer evaluator.
 
-;;; Copyright (C) 2005, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;; Copyright (C) 2005, 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: codegeneration
+;; Version: 1.0pre7
 
 ;; This file is part of GNU Emacs.
 
@@ -40,7 +41,7 @@
 (require 'mode-local)
 (load "srecode/loaddefs" nil 'nomessage)
 
-(defvar srecode-version "1.0pre7"
+(defvar srecode-version "1.0"
   "Current version of the Semantic Recoder.")
 
 ;;; Code:
@@ -51,5 +52,4 @@
 
 (provide 'srecode)
 
-;; arch-tag: 6c671a1c-40e5-4ed3-ab05-84249c3afdaf
 ;;; srecode.el ends here

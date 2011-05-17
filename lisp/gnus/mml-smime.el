@@ -1,7 +1,6 @@
 ;;; mml-smime.el --- S/MIME support for MML
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2011 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Keywords: Gnus, MIME, S/MIME, MML
@@ -25,7 +24,7 @@
 
 ;;; Code:
 
-;; For Emacs < 22.2.
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 
@@ -37,7 +36,12 @@
 (autoload 'message-narrow-to-headers "message")
 (autoload 'message-fetch-field "message")
 
-(defvar mml-smime-use 'openssl)
+(defcustom mml-smime-use (if (featurep 'epg) 'epg 'openssl)
+  "Whether to use OpenSSL or EPG to decrypt S/MIME messages.
+Defaults to EPG if it's loaded."
+  :group 'mime-security
+  :type '(choice (const :tag "EPG" epg)
+                 (const :tag "OpenSSL" openssl)))
 
 (defvar mml-smime-function-alist
   '((openssl mml-smime-openssl-sign
@@ -52,11 +56,6 @@
 	 nil
 	 mml-smime-epg-verify
 	 mml-smime-epg-verify-test)))
-
-(defcustom mml-smime-verbose mml-secure-verbose
-  "If non-nil, ask the user about the current operation more verbosely."
-  :group 'mime-security
-  :type 'boolean)
 
 (defcustom mml-smime-cache-passphrase mml-secure-cache-passphrase
   "If t, cache passphrase."
@@ -166,10 +165,10 @@ Whether the passphrase is cached at all is controlled by
 					     "")))))
 		(and from (smime-get-key-by-email from)))
 	      (smime-get-key-by-email
-	       (completing-read "Sign this part with what signature? "
-				smime-keys nil nil
-				(and (listp (car-safe smime-keys))
-				     (caar smime-keys))))))))
+	       (gnus-completing-read "Sign this part with what signature"
+                                     (mapcar 'car smime-keys) nil nil nil
+                                     (and (listp (car-safe smime-keys))
+                                          (caar smime-keys))))))))
 
 (defun mml-smime-get-file-cert ()
   (ignore-errors
@@ -218,15 +217,16 @@ Whether the passphrase is cached at all is controlled by
       (quit))
     result))
 
-(autoload 'gnus-completing-read-with-default "gnus-util")
+(autoload 'gnus-completing-read "gnus-util")
 
 (defun mml-smime-openssl-encrypt-query ()
   ;; todo: try dns/ldap automatically first, before prompting user
   (let (certs done)
     (while (not done)
-      (ecase (read (gnus-completing-read-with-default
-		    "ldap" "Fetch certificate from"
-		    '(("dns") ("ldap") ("file")) nil t))
+      (ecase (read (gnus-completing-read
+		    "Fetch certificate from"
+		    '("dns" "ldap" "file") t nil nil
+                    "ldap"))
 	(dns (setq certs (append certs
 				 (mml-smime-get-dns-cert))))
 	(ldap (setq certs (append certs
@@ -520,10 +520,14 @@ Content-Disposition: attachment; filename=smime.p7m
 					   ctl 'protocol)
 					  "application/pkcs7-signature")
 				  t)))
-		(null (setq signature (mm-find-part-by-type
-				       (cdr handle)
-				       "application/pkcs7-signature"
-				       nil t))))
+		(null (setq signature (or (mm-find-part-by-type
+					   (cdr handle)
+					   "application/pkcs7-signature"
+					   nil t)
+					  (mm-find-part-by-type
+					   (cdr handle)
+					   "application/x-pkcs7-signature"
+					   nil t)))))
 	(mm-set-handle-multipart-parameter
 	 mm-security-handle 'gnus-info "Corrupted")
 	(throw 'error handle))
@@ -550,5 +554,4 @@ Content-Disposition: attachment; filename=smime.p7m
 
 (provide 'mml-smime)
 
-;; arch-tag: f1bf94d4-f2cd-4c6f-b059-ad69492817e2
 ;;; mml-smime.el ends here

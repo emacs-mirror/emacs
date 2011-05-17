@@ -1,7 +1,6 @@
 ;;; hilit-chg.el --- minor mode displaying buffer changes with special face
 
-;; Copyright (C) 1998, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Richard Sharman <rsharman@pobox.com>
 ;; Keywords: faces
@@ -386,7 +385,7 @@ This command does not itself set highlight-changes mode."
   )
 
 
-(defun hilit-chg-cust-fix-changes-face-list (w wc &optional event)
+(defun hilit-chg-cust-fix-changes-face-list (w _wc &optional event)
   ;; When customization function `highlight-changes-face-list' inserts a new
   ;; face it uses the default face.  We don't want the user to modify this
   ;; face, so we rename the faces in the list on an insert.  The rename is
@@ -558,9 +557,9 @@ This allows you to manually remove highlighting from uninteresting changes."
   ;; otherwise an undone change shows up as changed.  While the properties
   ;; are automatically restored by undo, we must fix up the overlay.
   (save-match-data
-    (let ((beg-decr 1) (end-incr 1)
-	  (type 'hilit-chg)
-	  old)
+    (let (;;(beg-decr 1)
+          (end-incr 1)
+	  (type 'hilit-chg))
       (if undo-in-progress
 	  (if (and highlight-changes-mode
 		   highlight-changes-visible-mode)
@@ -633,7 +632,7 @@ This removes all saved change information."
     (highlight-save-buffer-state
       (hilit-chg-hide-changes)
       (hilit-chg-map-changes
-       (lambda (prop start stop)
+       (lambda (_prop start stop)
          (remove-text-properties start stop '(hilit-chg nil)))))
     (setq highlight-changes-mode nil)
     (force-mode-line-update)))
@@ -912,8 +911,7 @@ changes are made, so \\[highlight-changes-next-change] and
 	 (file-a (buffer-file-name))
 	 (existing-buf (get-file-buffer file-b))
 	 (buf-b (or existing-buf
-		    (find-file-noselect file-b)))
-	 (buf-b-read-only (with-current-buffer buf-b buffer-read-only)))
+		    (find-file-noselect file-b))))
     (highlight-markup-buffers buf-a file-a buf-b file-b (not existing-buf))
     (unless existing-buf
       (kill-buffer buf-b))
@@ -921,24 +919,26 @@ changes are made, so \\[highlight-changes-next-change] and
 
 
 (defun hilit-chg-get-diff-info (buf-a file-a buf-b file-b)
-  (let ((e nil) x y)   ;; e is set by function hilit-chg-get-diff-list-hk
+   ;; hilit-e,x,y are set by function hilit-chg-get-diff-list-hk.
+  (let (hilit-e hilit-x hilit-y)
     (ediff-setup buf-a file-a buf-b file-b
 	       nil nil   ; buf-c file-C
 	       'hilit-chg-get-diff-list-hk
 	       (list (cons 'ediff-job-name 'something))
 	       )
-    (ediff-with-current-buffer e (ediff-really-quit nil))
-    (list x y)))
+    (ediff-with-current-buffer hilit-e (ediff-really-quit nil))
+    (list hilit-x hilit-y)))
 
 
 (defun hilit-chg-get-diff-list-hk ()
-  ;; x and y are dynamically bound by hilit-chg-get-diff-info
-  ;; which calls this function as a hook
-  (defvar x)  ;; placate the byte-compiler
-  (defvar y)
-  (setq e (current-buffer))
+  ;; hilit-e/x/y are dynamically bound by hilit-chg-get-diff-info
+  ;; which calls this function as a hook.
+  (defvar hilit-x)                      ; placate the byte-compiler
+  (defvar hilit-y)
+  (defvar hilit-e)
+  (setq hilit-e (current-buffer))
   (let ((n 0) extent p va vb a b)
-    (setq x nil y nil)    ;; x and y are bound by hilit-chg-get-diff-info
+    (setq hilit-x nil hilit-y nil)
     (while (< n ediff-number-of-differences)
       (ediff-make-fine-diffs n)
       (setq va (ediff-get-fine-diff-vector n 'A))
@@ -954,7 +954,7 @@ changes are made, so \\[highlight-changes-next-change] and
 	(setq extent (list (overlay-start (car p))
 			   (overlay-end (car p))))
 	(setq p (cdr p))
-	(setq x (append x (list extent) )));; while p
+	(setq hilit-x (append hilit-x (list extent) )));; while p
       ;;
       (setq vb (ediff-get-fine-diff-vector n 'B))
       ;; vb is a vector
@@ -969,7 +969,7 @@ changes are made, so \\[highlight-changes-next-change] and
 	(setq extent (list (overlay-start (car p))
 			   (overlay-end (car p))))
 	(setq p (cdr p))
-	(setq y (append y (list extent) )))
+	(setq hilit-y (append hilit-y (list extent) )))
       (setq n (1+ n)));; while
     ;; ediff-quit doesn't work here.
     ;; No point in returning a value, since this is a hook function.
@@ -1035,5 +1035,4 @@ This is called when `global-highlight-changes-mode' is turned on."
 
 (provide 'hilit-chg)
 
-;; arch-tag: de00301d-5bad-44da-aa82-e0e010b0c463
 ;;; hilit-chg.el ends here

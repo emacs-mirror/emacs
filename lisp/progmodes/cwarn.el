@@ -1,12 +1,11 @@
 ;;; cwarn.el --- highlight suspicious C and C++ constructions
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;; Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: Anders Lindgren <andersl@andersl.com>
 ;; Keywords: c, languages, faces
 ;; X-Url: http://www.andersl.com/emacs
-;; Version: 1.3.1  1999-12-13
+;; Version: 1.3.1
 
 ;; This file is part of GNU Emacs.
 
@@ -381,5 +380,4 @@ The mode is turned if some feature is enabled for the current
 
 ;;}}}
 
-;; arch-tag: 225fb5e2-0838-4eb1-88ce-3811c5e4d738
 ;;; cwarn.el ends here

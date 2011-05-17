@@ -1,6 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 2004-2011  Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
 @c This file is included either in emacs-xtra.texi (when producing the
@@ -613,7 +612,23 @@ each day's diary entries by their time of day.  Here's how:
 @noindent
 For each day, this sorts diary entries that begin with a recognizable
 time of day according to their times.  Diary entries without times come
-first within each day.
+first within each day.  Note how the sort command is placed at the end
+of the hook list, in case earlier members of the list change the order
+of the diary entries, or add items.
+
+@vindex diary-comment-start
+  You can write @samp{comments} in diary entries, by setting the
+variables @code{diary-comment-start} and @code{diary-comment-end} to
+strings that delimit comments.  The fancy display does not print
+comments.  You might want to put meta-data for the use of other packages
+(e.g. the appointment package,
+@iftex
+@pxref{Appointments,,,emacs, the Emacs Manual})
+@end iftex
+@ifnottex
+@pxref{Appointments})
+@end ifnottex
+inside comments.
 
 @vindex diary-include-string
   Your main diary file can include other files.  This permits a group of
@@ -875,6 +890,7 @@ diary entries:
 @findex diary-hebrew-omer
 @cindex yahrzeits
 @findex diary-hebrew-yahrzeit
+@findex diary-hebrew-birthday
 @table @code
 @item %%(diary-hebrew-rosh-hodesh)
 Make a diary entry that tells the occurrence and ritual announcement of each
@@ -892,13 +908,11 @@ is the @emph{Gregorian} (civil) date of death.  The diary entry appears
 on the proper Hebrew calendar anniversary and on the day before.  (The
 order of the parameters changes according to the calendar date style;
 for example in the European style to @var{day}, @var{month}, @var{year}.)
+@item %%(diary-hebrew-birthday @var{month} @var{day} @var{year})
+Make a diary entry for a birthday on the Hebrew calendar.
 @end table
 
   All the functions documented above take an optional argument
 @var{mark} which specifies how to mark the date in the calendar display.
 If one of these functions decides that it applies to a certain date,
 it returns a value that contains @var{mark}, as described above.
-
-@ignore
-   arch-tag: 52cb299f-fd1f-4616-bfe6-91b988669431
-@end ignore

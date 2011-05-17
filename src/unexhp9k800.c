@@ -49,16 +49,13 @@
   sigsetreturn (_sigreturn);
 */
 
-#ifdef emacs
 #include <config.h>
-#endif
+#include "unexec.h"
 
 #include <stdio.h>
 #include <fcntl.h>
 #include <errno.h>
-
 #include <a.out.h>
-
 #include <dl.h>
 
 /* brk value to restore, stored as a global.
@@ -79,12 +76,9 @@ run_time_remap (ignored)
 
 
 /* Create a new a.out file, same as old but with current data space */
-
-unexec (new_name, old_name, new_end_of_text, dummy1, dummy2)
-     char new_name[];		/* name of the new a.out file to be created */
-     char old_name[];		/* name of the old a.out file */
-     char *new_end_of_text;	/* ptr to new edata/etext; NOT USED YET */
-     int dummy1, dummy2;	/* not used by emacs */
+void
+unexec (const char *new_name,      /* name of the new a.out file to be created */
+	const char *old_name)       /* name of the old a.out file */
 {
   int old, new;
   int old_size, new_size;
@@ -139,7 +133,6 @@ unexec (new_name, old_name, new_end_of_text, dummy1, dummy2)
   /* Close the binary file */
   close (old);
   close (new);
-  return 0;
 }
 
 /* Save current data space in the file, update header.  */
@@ -327,6 +320,3 @@ display_header (hdr, auxhdr)
 	  hdr->unloadable_sp_location, hdr->unloadable_sp_size);
 }
 #endif /* DEBUG */
-
-/* arch-tag: d55a09ac-9427-4ec4-8496-cb9d7710774f
-   (do not change this comment) */

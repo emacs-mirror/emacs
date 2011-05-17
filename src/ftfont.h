@@ -1,5 +1,5 @@
 /* ftfont.h -- Interface definition for Freetype font backend.
-   Copyright (C) 2007, 2008, 2009, 2010
+   Copyright (C) 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
 
@@ -36,7 +36,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif	/* HAVE_M17N_FLT */
 #endif	/* HAVE_LIBOTF */
 
+extern Lisp_Object ftfont_font_format (FcPattern *, Lisp_Object);
+extern FcCharSet *ftfont_get_fc_charset (Lisp_Object);
+
 #endif	/* EMACS_FTFONT_H */
 
-/* arch-tag: cec13d1c-7156-4997-9ebd-e989040c3d78
-   (do not change this comment) */

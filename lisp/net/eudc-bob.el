@@ -1,11 +1,11 @@
 ;;; eudc-bob.el --- Binary Objects Support for EUDC
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;; Maintainer: Pavel Janík <Pavel@Janik.cz>
 ;; Keywords: comm
+;; Package: eudc
 
 ;; This file is part of GNU Emacs.
 
@@ -365,5 +365,4 @@ display a button."
   "Display a button for the JPEG DATA."
   (eudc-bob-display-jpeg data nil))
 
-;; arch-tag: 8f1853df-c9b6-4c5a-bdb1-d94dbd651fb3
 ;;; eudc-bob.el ends here

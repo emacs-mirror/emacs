@@ -1,7 +1,6 @@
 ;; erc-button.el --- A way of buttonizing certain things in ERC buffers
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2004, 2006-2011 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Keywords: irc, button, url, regexp
@@ -54,11 +53,11 @@
   "This mode buttonizes all messages according to `erc-button-alist'."
   ((add-hook 'erc-insert-modify-hook 'erc-button-add-buttons 'append)
    (add-hook 'erc-send-modify-hook 'erc-button-add-buttons 'append)
-   (add-hook 'erc-complete-functions 'erc-button-next)
+   (add-hook 'erc-complete-functions 'erc-button-next-function)
    (add-hook 'erc-mode-hook 'erc-button-setup))
   ((remove-hook 'erc-insert-modify-hook 'erc-button-add-buttons)
    (remove-hook 'erc-send-modify-hook 'erc-button-add-buttons)
-   (remove-hook 'erc-complete-functions 'erc-button-next)
+   (remove-hook 'erc-complete-functions 'erc-button-next-function)
    (remove-hook 'erc-mode-hook 'erc-button-setup)
    (when (featurep 'xemacs)
      (dolist (buffer (erc-buffer-list))
@@ -428,21 +427,28 @@ call it with the value of the `erc-data' text property."
       (error "Function %S is not bound" fun))
     (apply fun data)))
 
+(defun erc-button-next-function ()
+  "Pseudo completion function that actually jumps to the next button.
+For use on `completion-at-point-functions'."
+  (let ((here (point)))
+    (when (< here (erc-beg-of-input-line))
+      (lambda ()
+        (while (and (get-text-property here 'erc-callback)
+                    (not (= here (point-max))))
+          (setq here (1+ here)))
+        (while (and (not (get-text-property here 'erc-callback))
+                    (not (= here (point-max))))
+          (setq here (1+ here)))
+        (if (< here (point-max))
+            (goto-char here)
+          (error "No next button"))
+        t))))
+
 (defun erc-button-next ()
   "Go to the next button in this buffer."
   (interactive)
-  (let ((here (point)))
-    (when (< here (erc-beg-of-input-line))
-      (while (and (get-text-property here 'erc-callback)
-                  (not (= here (point-max))))
-        (setq here (1+ here)))
-      (while (and (not (get-text-property here 'erc-callback))
-                  (not (= here (point-max))))
-        (setq here (1+ here)))
-      (if (< here (point-max))
-          (goto-char here)
-        (error "No next button"))
-      t)))
+  (let ((f (erc-button-next-function)))
+    (if f (funcall f))))
 
 (defun erc-button-previous ()
   "Go to the previous button in this buffer."
@@ -534,4 +540,3 @@ and `apropos' for other symbols."
 ;; indent-tabs-mode: nil
 ;; End:
 
-;; arch-tag: 7d23bed4-2f30-4273-a03f-d7a274c605c4

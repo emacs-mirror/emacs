@@ -1,7 +1,6 @@
 ;;; nnbabyl.el --- rmail mbox access for Gnus
 
-;; Copyright (C) 1995, 1996, 1997, 1998, 1099, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2011  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -75,8 +74,7 @@
 (nnoo-define-basics nnbabyl)
 
 (deffoo nnbabyl-retrieve-headers (articles &optional group server fetch-old)
-  (save-excursion
-    (set-buffer nntp-server-buffer)
+  (with-current-buffer nntp-server-buffer
     (erase-buffer)
     (let ((number (length articles))
 	  (count 0)
@@ -136,8 +134,7 @@
   ;; Restore buffer mode.
   (when (and (nnbabyl-server-opened)
 	     nnbabyl-previous-buffer-mode)
-    (save-excursion
-      (set-buffer nnbabyl-mbox-buffer)
+    (with-current-buffer nnbabyl-mbox-buffer
       (narrow-to-region
        (caar nnbabyl-previous-buffer-mode)
        (cdar nnbabyl-previous-buffer-mode))
@@ -155,8 +152,7 @@
 
 (deffoo nnbabyl-request-article (article &optional newsgroup server buffer)
   (nnbabyl-possibly-change-newsgroup newsgroup server)
-  (save-excursion
-    (set-buffer nnbabyl-mbox-buffer)
+  (with-current-buffer nnbabyl-mbox-buffer
     (goto-char (point-min))
     (when (search-forward (nnbabyl-article-string article) nil t)
       (let (start stop summary-line)
@@ -194,7 +190,7 @@
 	      (cons nnbabyl-current-group article)
 	    (nnbabyl-article-group-number)))))))
 
-(deffoo nnbabyl-request-group (group &optional server dont-check)
+(deffoo nnbabyl-request-group (group &optional server dont-check info)
   (let ((active (cadr (assoc group nnbabyl-group-alist))))
     (save-excursion
       (cond
@@ -216,8 +212,7 @@
   (nnmail-get-new-mail
    'nnbabyl
    (lambda ()
-     (save-excursion
-       (set-buffer nnbabyl-mbox-buffer)
+     (with-current-buffer nnbabyl-mbox-buffer
        (save-buffer)))
    (file-name-directory nnbabyl-mbox-file)
    group
@@ -264,8 +259,7 @@
 	 rest)
     (nnmail-activate 'nnbabyl)
 
-    (save-excursion
-      (set-buffer nnbabyl-mbox-buffer)
+    (with-current-buffer nnbabyl-mbox-buffer
       (set-text-properties (point-min) (point-max) nil)
       (while (and articles is-old)
 	(goto-char (point-min))
@@ -308,15 +302,13 @@
 	result)
     (and
      (nnbabyl-request-article article group server)
-     (save-excursion
-       (set-buffer buf)
+     (with-current-buffer buf
        (insert-buffer-substring nntp-server-buffer)
        (goto-char (point-min))
        (while (re-search-forward
 	       "^X-Gnus-Newsgroup:"
 	       (save-excursion (search-forward "\n\n" nil t) (point)) t)
-	 (delete-region (progn (beginning-of-line) (point))
-			(progn (forward-line 1) (point))))
+	 (delete-region (point-at-bol) (progn (forward-line 1) (point))))
        (setq result (eval accept-form))
        (kill-buffer (current-buffer))
        result)
@@ -344,7 +336,7 @@
 	 (while (re-search-backward "^X-Gnus-Newsgroup: " beg t)
 	   (delete-region (point) (progn (forward-line 1) (point)))))
        (when nnmail-cache-accepted-message-ids
-	 (nnmail-cache-insert (nnmail-fetch-field "message-id") 
+	 (nnmail-cache-insert (nnmail-fetch-field "message-id")
 			      group
 			      (nnmail-fetch-field "subject")
 			      (nnmail-fetch-field "from")))
@@ -363,7 +355,7 @@
        (insert-buffer-substring buf)
        (when last
 	 (when nnmail-cache-accepted-message-ids
-	   (nnmail-cache-insert (nnmail-fetch-field "message-id") 
+	   (nnmail-cache-insert (nnmail-fetch-field "message-id")
 				group
 				(nnmail-fetch-field "subject")
 				(nnmail-fetch-field "from")))
@@ -373,8 +365,7 @@
 
 (deffoo nnbabyl-request-replace-article (article group buffer)
   (nnbabyl-possibly-change-newsgroup group)
-  (save-excursion
-    (set-buffer nnbabyl-mbox-buffer)
+  (with-current-buffer nnbabyl-mbox-buffer
     (goto-char (point-min))
     (if (not (search-forward (nnbabyl-article-string article) nil t))
 	nil
@@ -388,8 +379,7 @@
   ;; Delete all articles in GROUP.
   (if (not force)
       ()				; Don't delete the articles.
-    (save-excursion
-      (set-buffer nnbabyl-mbox-buffer)
+    (with-current-buffer nnbabyl-mbox-buffer
       (goto-char (point-min))
       ;; Delete all articles in this group.
       (let ((ident (concat "\nX-Gnus-Newsgroup: " nnbabyl-current-group ":"))
@@ -409,8 +399,7 @@
 
 (deffoo nnbabyl-request-rename-group (group new-name &optional server)
   (nnbabyl-possibly-change-newsgroup group server)
-  (save-excursion
-    (set-buffer nnbabyl-mbox-buffer)
+  (with-current-buffer nnbabyl-mbox-buffer
     (goto-char (point-min))
     (let ((ident (concat "\nX-Gnus-Newsgroup: " nnbabyl-current-group ":"))
 	  (new-ident (concat "\nX-Gnus-Newsgroup: " new-name ":"))
@@ -436,9 +425,7 @@
 (defun nnbabyl-delete-mail (&optional force leave-delim)
   ;; Delete the current X-Gnus-Newsgroup line.
   (unless force
-    (delete-region
-     (progn (beginning-of-line) (point))
-     (progn (forward-line 1) (point))))
+    (delete-region (point-at-bol) (progn (forward-line 1) (point))))
   ;; Beginning of the article.
   (save-excursion
     (save-restriction
@@ -558,9 +545,8 @@
 (defun nnbabyl-create-mbox ()
   (unless (file-exists-p nnbabyl-mbox-file)
     ;; Create a new, empty RMAIL mbox file.
-    (save-excursion
-      (set-buffer (setq nnbabyl-mbox-buffer
-			(create-file-buffer nnbabyl-mbox-file)))
+    (with-current-buffer (setq nnbabyl-mbox-buffer
+			       (create-file-buffer nnbabyl-mbox-file))
       (setq buffer-file-name nnbabyl-mbox-file)
       (insert "BABYL OPTIONS:\n\n\^_")
       (nnmail-write-region
@@ -572,8 +558,7 @@
 
   (unless (and nnbabyl-mbox-buffer
 	       (buffer-name nnbabyl-mbox-buffer)
-	       (save-excursion
-		 (set-buffer nnbabyl-mbox-buffer)
+	       (with-current-buffer nnbabyl-mbox-buffer
 		 (= (buffer-size) (nnheader-file-size nnbabyl-mbox-file))))
     ;; This buffer has changed since we read it last.  Possibly.
     (save-excursion
@@ -650,8 +635,7 @@
       (while (re-search-forward "^X-Gnus-Newsgroup: \\([^ ]+\\) "  nil t)
 	(if (intern-soft (setq id (match-string 1)) idents)
 	    (progn
-	      (delete-region (progn (beginning-of-line) (point))
-			     (progn (forward-line 1) (point)))
+	      (delete-region (point-at-bol) (progn (forward-line 1) (point)))
 	      (nnheader-message 7 "Moving %s..." id)
 	      (nnbabyl-save-mail
 	       (nnmail-article-group 'nnbabyl-active-number)))
@@ -663,5 +647,4 @@
 
 (provide 'nnbabyl)
 
-;; arch-tag: aa7ddedb-8c07-4c0e-beb0-58e795c2b81b
 ;;; nnbabyl.el ends here

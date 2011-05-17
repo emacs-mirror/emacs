@@ -1,7 +1,6 @@
 ;;; esh-io.el --- I/O management
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -72,13 +71,14 @@ though they were files."
 
 ;;; User Variables:
 
-(defcustom eshell-io-load-hook '(eshell-io-initialize)
-  "*A hook that gets run when `eshell-io' is loaded."
+(defcustom eshell-io-load-hook nil
+  "A hook that gets run when `eshell-io' is loaded."
+  :version "24.1"			; removed eshell-io-initialize
   :type 'hook
   :group 'eshell-io)
 
 (defcustom eshell-number-of-handles 3
-  "*The number of file handles that eshell supports.
+  "The number of file handles that eshell supports.
 Currently this is standard input, output and error.  But even all of
 these Emacs does not currently support with asynchronous processes
 \(which is what eshell uses so that you can continue doing work in
@@ -87,17 +87,17 @@ other buffers) ."
   :group 'eshell-io)
 
 (defcustom eshell-output-handle 1
-  "*The index of the standard output handle."
+  "The index of the standard output handle."
   :type 'integer
   :group 'eshell-io)
 
 (defcustom eshell-error-handle 2
-  "*The index of the standard error handle."
+  "The index of the standard error handle."
   :type 'integer
   :group 'eshell-io)
 
 (defcustom eshell-buffer-shorthand nil
-  "*If non-nil, a symbol name can be used for a buffer in redirection.
+  "If non-nil, a symbol name can be used for a buffer in redirection.
 If nil, redirecting to a buffer requires buffer name syntax.  If this
 variable is set, redirection directly to Lisp symbols will be
 impossible.
@@ -110,7 +110,7 @@ Example:
   :group 'eshell-io)
 
 (defcustom eshell-print-queue-size 5
-  "*The size of the print queue, for doing buffered printing.
+  "The size of the print queue, for doing buffered printing.
 This is basically a speed enhancement, to avoid blocking the Lisp code
 from executing while Emacs is redisplaying."
   :type 'integer
@@ -127,7 +127,7 @@ from executing while Emacs is redisplaying."
 		       (let ((x-select-enable-clipboard t))
 			 (kill-new "")))
 		   'eshell-clipboard-append) t))
-  "*Map virtual devices name to Emacs Lisp functions.
+  "Map virtual devices name to Emacs Lisp functions.
 If the user specifies any of the filenames above as a redirection
 target, the function in the second element will be called.
 
@@ -343,8 +343,9 @@ it defaults to `insert'."
 	(let* ((exists (get-file-buffer target))
 	       (buf (find-file-noselect target t)))
 	  (with-current-buffer buf
-	    (if buffer-read-only
+	    (if buffer-file-read-only
 		(error "Cannot write to read-only file `%s'" target))
+	    (setq buffer-read-only nil)
 	    (set (make-local-variable 'eshell-output-file-buffer)
 		 (if (eq exists buf) 0 t))
 	    (cond ((eq mode 'overwrite)
@@ -515,5 +516,4 @@ Returns what was actually sent, or nil if nothing was sent."
 	(eshell-output-object-to-target object (car target))
 	(setq target (cdr target))))))
 
-;; arch-tag: 9ca2080f-d5e0-4b26-aa0b-d59194a905a2
 ;;; esh-io.el ends here

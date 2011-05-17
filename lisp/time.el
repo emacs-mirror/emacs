@@ -1,7 +1,7 @@
 ;;; time.el --- display time, load and mail indicator in mode line of Emacs -*-coding: utf-8 -*-
 
-;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1996, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1993-1994, 1996, 2000-2011
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -87,7 +87,7 @@ The value can be one of:
 
 ;;;###autoload
 (defcustom display-time-day-and-date nil "\
-*Non-nil means \\[display-time] should display day and date as well as time."
+Non-nil means \\[display-time] should display day and date as well as time."
   :type 'boolean
   :group 'display-time)
 
@@ -157,7 +157,7 @@ LABEL is a string to display as the label of that TIMEZONE's time."
   ;; Determine if zoneinfo style timezones are supported by testing that
   ;; America/New York and Europe/London return different timezones.
   (let (gmt nyt)
-    (set-time-zone-rule "America/New York")
+    (set-time-zone-rule "America/New_York")
     (setq nyt (format-time-string "%z"))
     (set-time-zone-rule "Europe/London")
     (setq gmt (format-time-string "%z"))
@@ -182,7 +182,7 @@ LABEL is a string to display as the label of that TIMEZONE's time."
   :version "23.1")
 
 (defcustom display-time-world-buffer-name "*wclock*"
-  "Name of the wclock buffer."
+  "Name of the world clock buffer."
   :group 'display-time
   :type 'string
   :version "23.1")
@@ -203,7 +203,7 @@ LABEL is a string to display as the label of that TIMEZONE's time."
   (let ((map (make-sparse-keymap)))
     (define-key map "q" 'kill-this-buffer)
     map)
-  "Keymap of Display Time World mode")
+  "Keymap of Display Time World mode.")
 
 ;;;###autoload
 (defun display-time ()
@@ -365,6 +365,25 @@ would give mode line times like `94/12/30 21:07:48 (UTC)'."
 	size
       nil)))
 
+(with-no-warnings
+  ;; Warnings are suppresed to avoid "global/dynamic var `X' lacks a prefix".
+  (defvar now)
+  (defvar time)
+  (defvar load)
+  (defvar mail)
+  (defvar 24-hours)
+  (defvar hour)
+  (defvar 12-hours)
+  (defvar am-pm)
+  (defvar minutes)
+  (defvar seconds)
+  (defvar time-zone)
+  (defvar day)
+  (defvar year)
+  (defvar monthname)
+  (defvar month)
+  (defvar dayname))
+
 (defun display-time-update ()
   "Update the display-time info for the mode line.
 However, don't redisplay right now.
@@ -454,15 +473,18 @@ update which can wait for the next redisplay."
   (force-mode-line-update))
 
 (defun display-time-file-nonempty-p (file)
-  (and (file-exists-p file)
-       (< 0 (nth 7 (file-attributes (file-chase-links file))))))
+  (let ((remote-file-name-inhibit-cache (- display-time-interval 5)))
+    (and (file-exists-p file)
+	 (< 0 (nth 7 (file-attributes (file-chase-links file)))))))
 
 ;;;###autoload
 (define-minor-mode display-time-mode
   "Toggle display of time, load level, and mail flag in mode lines.
 With a numeric arg, enable this display if arg is positive.
 
-When this display is enabled, it updates automatically every minute.
+When this display is enabled, it updates automatically every minute
+\(you can control the number of seconds between updates by
+customizing `display-time-interval').
 If `display-time-day-and-date' is non-nil, the current day and date
 are displayed as well.
 This runs the normal hook `display-time-hook' after each update."
@@ -490,15 +512,10 @@ This runs the normal hook `display-time-hook' after each update."
 		 'display-time-event-handler)))
 
 
-(defun display-time-world-mode ()
+(define-derived-mode display-time-world-mode nil "World clock"
   "Major mode for buffer that displays times in various time zones.
 See `display-time-world'."
-  (interactive)
-  (kill-all-local-variables)
-  (setq
-   major-mode 'display-time-world-mode
-   mode-name "World clock")
-  (use-local-map display-time-world-mode-map))
+  (setq show-trailing-whitespace nil))
 
 (defun display-time-world-display (alist)
   "Replace current buffer text with times in various zones, based on ALIST."
@@ -506,25 +523,23 @@ See `display-time-world'."
 	(buffer-undo-list t))
     (erase-buffer)
     (let ((max-width 0)
-	  (result ()))
+	  (result ())
+	  fmt)
       (unwind-protect
 	  (dolist (zone alist)
 	    (let* ((label (cadr zone))
 		   (width (string-width label)))
 	      (set-time-zone-rule (car zone))
-	      (setq result
-		    (append result
-			    (list
-			     label width
-			     (format-time-string display-time-world-time-format))))
+	      (push (cons label
+			  (format-time-string display-time-world-time-format))
+		    result)
 	      (when (> width max-width)
 		(setq max-width width))))
 	(set-time-zone-rule nil))
-      (while result
-	(insert (pop result)
-		(make-string (1+ (- max-width (pop result))) ?\s)
-		(pop result) "\n")))
-    (delete-backward-char 1)))
+      (setq fmt (concat "%-" (int-to-string max-width) "s %s\n"))
+      (dolist (timedata (nreverse result))
+	(insert (format fmt (car timedata) (cdr timedata)))))
+    (delete-char -1)))
 
 ;;;###autoload
 (defun display-time-world ()
@@ -580,5 +595,4 @@ For example, the Unix uptime command format is \"%D, %z%2h:%.2m\"."
 
 (provide 'time)
 
-;; arch-tag: b9c1623f-b5cb-48e4-b650-482a4d23c5a6
 ;;; time.el ends here

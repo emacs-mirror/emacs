@@ -1,6 +1,5 @@
 /* Input event support for Emacs on the Microsoft W32 API.
-   Copyright (C) 1992, 1993, 1995, 2001, 2002, 2003, 2004, 2005, 2006,
-                 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1992-1993, 1995, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -23,11 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 */
 
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
-
-#include <stdlib.h>
 #include <stdio.h>
 #include <windows.h>
 #include <setjmp.h>
@@ -45,35 +40,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "w32heap.h"
 #include "w32term.h"
 
-/* stdin, from ntterm */
+/* stdin, from w32console.c */
 extern HANDLE keyboard_handle;
 
 /* Info for last mouse motion */
 static COORD movement_pos;
 static DWORD movement_time;
 
-/* from keyboard.c */
-extern void reinvoke_input_signal (void);
-
-/* from w32console.c */
-extern int w32_use_full_screen_buffer;
-
 /* from w32fns.c */
-extern Lisp_Object Vw32_alt_is_meta;
 extern unsigned int map_keypad_keys (unsigned int, unsigned int);
-
-/* from w32term */
-extern Lisp_Object Vw32_capslock_is_shiftlock;
-extern Lisp_Object Vw32_enable_caps_lock;
-extern Lisp_Object Vw32_enable_num_lock;
-extern Lisp_Object Vw32_recognize_altgr;
-extern Lisp_Object Vw32_pass_lwindow_to_system;
-extern Lisp_Object Vw32_pass_rwindow_to_system;
-extern Lisp_Object Vw32_phantom_key_code;
-extern Lisp_Object Vw32_lwindow_modifier;
-extern Lisp_Object Vw32_rwindow_modifier;
-extern Lisp_Object Vw32_apps_modifier;
-extern Lisp_Object Vw32_scroll_lock_modifier;
 extern unsigned int w32_key_to_modifier (int key);
 
 /* Event queue */
@@ -283,13 +258,11 @@ w32_kbd_patch_key (KEY_EVENT_RECORD *event)
 }
 
 
-extern char *lispy_function_keys[];
-
 static int faked_key = 0;
 
 /* return code -1 means that event_queue_ptr won't be incremented.
    In other word, this event makes two key codes.   (by himi)       */
-int
+static int
 key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
 {
   static int mod_key_state = 0;
@@ -582,8 +555,8 @@ w32_console_mouse_position (FRAME_PTR *f,
   *part = 0;
   SELECTED_FRAME ()->mouse_moved = 0;
 
-  XSETINT(*x, movement_pos.X);
-  XSETINT(*y, movement_pos.Y);
+  XSETINT (*x, movement_pos.X);
+  XSETINT (*y, movement_pos.Y);
   *time = movement_time;
 
   UNBLOCK_INPUT;
@@ -684,7 +657,7 @@ resize_event (WINDOW_BUFFER_SIZE_RECORD *event)
 }
 
 static void
-maybe_generate_resize_event ()
+maybe_generate_resize_event (void)
 {
   CONSOLE_SCREEN_BUFFER_INFO info;
   FRAME_PTR f = get_frame ();
@@ -704,7 +677,6 @@ w32_console_read_socket (struct terminal *terminal,
                          int expected,
                          struct input_event *hold_quit)
 {
-  BOOL no_events = TRUE;
   int nev, ret = 0, add;
   int isdead;
 
@@ -785,5 +757,3 @@ w32_console_read_socket (struct terminal *terminal,
   return ret;
 }
 
-/* arch-tag: 0bcb39b7-d085-4b85-9070-6750e8c03047
-   (do not change this comment) */

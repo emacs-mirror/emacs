@@ -1,7 +1,6 @@
 ;;; esh-util.el --- general utilities
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -32,7 +31,7 @@
 ;;; User Variables:
 
 (defcustom eshell-stringify-t t
-  "*If non-nil, the string representation of t is 't'.
+  "If non-nil, the string representation of t is 't'.
 If nil, t will be represented only in the exit code of the function,
 and not printed as a string.  This causes Lisp functions to behave
 similarly to external commands, as far as successful result output."
@@ -40,44 +39,45 @@ similarly to external commands, as far as successful result output."
   :group 'eshell-util)
 
 (defcustom eshell-group-file "/etc/group"
-  "*If non-nil, the name of the group file on your system."
+  "If non-nil, the name of the group file on your system."
   :type '(choice (const :tag "No group file" nil) file)
   :group 'eshell-util)
 
 (defcustom eshell-passwd-file "/etc/passwd"
-  "*If non-nil, the name of the passwd file on your system."
+  "If non-nil, the name of the passwd file on your system."
   :type '(choice (const :tag "No passwd file" nil) file)
   :group 'eshell-util)
 
 (defcustom eshell-hosts-file "/etc/hosts"
-  "*The name of the /etc/hosts file."
+  "The name of the /etc/hosts file."
   :type '(choice (const :tag "No hosts file" nil) file)
   :group 'eshell-util)
 
 (defcustom eshell-handle-errors t
-  "*If non-nil, Eshell will handle errors itself.
+  "If non-nil, Eshell will handle errors itself.
 Setting this to nil is offered as an aid to debugging only."
   :type 'boolean
   :group 'eshell-util)
 
 (defcustom eshell-private-file-modes 384 ; umask 177
-  "*The file-modes value to use for creating \"private\" files."
+  "The file-modes value to use for creating \"private\" files."
   :type 'integer
   :group 'eshell-util)
 
 (defcustom eshell-private-directory-modes 448 ; umask 077
-  "*The file-modes value to use for creating \"private\" directories."
+  "The file-modes value to use for creating \"private\" directories."
   :type 'integer
   :group 'eshell-util)
 
 (defcustom eshell-tar-regexp
-  "\\.t\\(ar\\(\\.\\(gz\\|bz2\\|Z\\)\\)?\\|gz\\|a[zZ]\\|z2\\)\\'"
-  "*Regular expression used to match tar file names."
+  "\\.t\\(ar\\(\\.\\(gz\\|bz2\\|xz\\|Z\\)\\)?\\|gz\\|a[zZ]\\|z2\\)\\'"
+  "Regular expression used to match tar file names."
+  :version "24.1"			; added xz
   :type 'regexp
   :group 'eshell-util)
 
 (defcustom eshell-convert-numeric-arguments t
-  "*If non-nil, converting arguments of numeric form to Lisp numbers.
+  "If non-nil, converting arguments of numeric form to Lisp numbers.
 Numeric form is tested using the regular expression
 `eshell-number-regexp'.
 
@@ -95,7 +95,7 @@ argument matches `eshell-number-regexp'."
   :group 'eshell-util)
 
 (defcustom eshell-number-regexp "-?\\([0-9]*\\.\\)?[0-9]+\\(e[-0-9.]+\\)?"
-  "*Regular expression used to match numeric arguments.
+  "Regular expression used to match numeric arguments.
 If `eshell-convert-numeric-arguments' is non-nil, and an argument
 matches this regexp, it will be converted to a Lisp number, using the
 function `string-to-number'."
@@ -103,7 +103,7 @@ function `string-to-number'."
   :group 'eshell-util)
 
 (defcustom eshell-ange-ls-uids nil
-  "*List of user/host/id strings, used to determine remote ownership."
+  "List of user/host/id strings, used to determine remote ownership."
   :type '(repeat (cons :tag "Host for User/UID map"
 		       (string :tag "Hostname")
 		       (repeat (cons :tag "User/UID List"
@@ -138,7 +138,8 @@ function `string-to-number'."
   (memq system-type '(ms-dos windows-nt)))
 
 (defmacro eshell-condition-case (tag form &rest handlers)
-  "Like `condition-case', but only if `eshell-pass-through-errors' is nil."
+  "If `eshell-handle-errors' is non-nil, this is `condition-case'.
+Otherwise, evaluates FORM with no error handling."
   (if eshell-handle-errors
       `(condition-case ,tag
 	   ,form
@@ -146,18 +147,6 @@ function `string-to-number'."
     form))
 
 (put 'eshell-condition-case 'lisp-indent-function 2)
-
-(defmacro eshell-deftest (module name label &rest forms)
-  (if (and (fboundp 'cl-compiling-file) (cl-compiling-file))
-      nil
-    (let ((fsym (intern (concat "eshell-test--" (symbol-name name)))))
-      `(eval-when-compile
-	 (ignore
-	  (defun ,fsym () ,label
-	    (eshell-run-test (quote ,module) (quote ,fsym) ,label
-			     (quote (progn ,@forms)))))))))
-
-(put 'eshell-deftest 'lisp-indent-function 2)
 
 (defun eshell-find-delimiter
   (open close &optional bound reverse-p backslash-p)
@@ -285,7 +274,6 @@ Prepend remote identification of `default-directory', if any."
       (setq text (replace-match " " t t text)))
     text))
 
-;; FIXME this is just dolist.
 (defmacro eshell-for (for-var for-list &rest forms)
   "Iterate through a list"
   `(let ((list-iter ,for-list))
@@ -296,10 +284,12 @@ Prepend remote identification of `default-directory', if any."
 
 (put 'eshell-for 'lisp-indent-function 2)
 
+(make-obsolete 'eshell-for 'dolist "24.1")
+
 (defun eshell-flatten-list (args)
   "Flatten any lists within ARGS, so that there are no sublists."
   (let ((new-list (list t)))
-    (eshell-for a args
+    (dolist (a args)
       (if (and (listp a)
 	       (listp (cdr a)))
 	  (nconc new-list (eshell-flatten-list a))
@@ -339,20 +329,6 @@ Prepend remote identification of `default-directory', if any."
 (defsubst eshell-flatten-and-stringify (&rest args)
   "Flatten and stringify all of the ARGS into a single string."
   (mapconcat 'eshell-stringify (eshell-flatten-list args) " "))
-
-;; the next two are from GNUS, and really should be made part of Emacs
-;; some day
-(defsubst eshell-time-less-p (t1 t2)
-  "Say whether time T1 is less than time T2."
-  (or (< (car t1) (car t2))
-      (and (= (car t1) (car t2))
-	   (< (nth 1 t1) (nth 1 t2)))))
-
-(defsubst eshell-time-to-seconds (time)
-  "Convert TIME to a floating point number."
-  (+ (* (car time) 65536.0)
-     (cadr time)
-     (/ (or (car (cdr (cdr time))) 0) 1000000.0)))
 
 (defsubst eshell-directory-files (regexp &optional directory)
   "Return a list of files in the given DIRECTORY matching REGEXP."
@@ -419,7 +395,7 @@ list."
     (unless (listp entries)
       (setq entries (list entries)
 	    listified t))
-    (eshell-for entry entries
+    (dolist (entry entries)
       (unless (and exclude (string-match exclude entry))
 	(setq p predicates valid (null p))
 	(while p
@@ -467,7 +443,7 @@ list."
   "Read the contents of /etc/passwd for user names."
   (if (or (not (symbol-value result-var))
 	  (not (symbol-value timestamp-var))
-	  (eshell-time-less-p
+	  (time-less-p
 	   (symbol-value timestamp-var)
 	   (nth 5 (file-attributes file))))
       (progn
@@ -521,7 +497,7 @@ list."
   "Read the contents of /etc/passwd for user names."
   (if (or (not (symbol-value result-var))
 	  (not (symbol-value timestamp-var))
-	  (eshell-time-less-p
+	  (time-less-p
 	   (symbol-value timestamp-var)
 	   (nth 5 (file-attributes file))))
       (progn
@@ -535,25 +511,18 @@ list."
       (eshell-read-hosts eshell-hosts-file 'eshell-host-names
 			 'eshell-host-timestamp)))
 
-(unless (fboundp 'line-end-position)
-  (defsubst line-end-position (&optional N)
-    (save-excursion (end-of-line N) (point))))
-
-(unless (fboundp 'line-beginning-position)
-  (defsubst line-beginning-position (&optional N)
-    (save-excursion (beginning-of-line N) (point))))
-
-(unless (fboundp 'subst-char-in-string)
-  (defun subst-char-in-string (fromchar tochar string &optional inplace)
-    "Replace FROMCHAR with TOCHAR in STRING each time it occurs.
+(and (featurep 'xemacs)
+     (not (fboundp 'subst-char-in-string))
+     (defun subst-char-in-string (fromchar tochar string &optional inplace)
+       "Replace FROMCHAR with TOCHAR in STRING each time it occurs.
 Unless optional argument INPLACE is non-nil, return a new string."
-    (let ((i (length string))
-	  (newstr (if inplace string (copy-sequence string))))
-      (while (> i 0)
-	(setq i (1- i))
-	(if (eq (aref newstr i) fromchar)
-	    (aset newstr i tochar)))
-      newstr)))
+       (let ((i (length string))
+	     (newstr (if inplace string (copy-sequence string))))
+	 (while (> i 0)
+	   (setq i (1- i))
+	   (if (eq (aref newstr i) fromchar)
+	       (aset newstr i tochar)))
+	 newstr)))
 
 (defsubst eshell-copy-environment ()
   "Return an unrelated copy of `process-environment'."
@@ -593,8 +562,9 @@ Unless optional argument INPLACE is non-nil, return a new string."
 	  (substring string 0 sublen)
 	string)))
 
-(unless (fboundp 'directory-files-and-attributes)
-  (defun directory-files-and-attributes (directory &optional full match nosort id-format)
+(and (featurep 'xemacs)
+     (not (fboundp 'directory-files-and-attributes))
+     (defun directory-files-and-attributes (directory &optional full match nosort id-format)
     "Return a list of names of files and their attributes in DIRECTORY.
 There are three optional arguments:
 If FULL is non-nil, return absolute file names.  Otherwise return names
@@ -606,7 +576,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
       (mapcar
        (function
 	(lambda (file)
-         (cons file (eshell-file-attributes (expand-file-name file directory)))))
+	  (cons file (eshell-file-attributes (expand-file-name file directory)))))
        (directory-files directory full match nosort)))))
 
 (defvar ange-cache)
@@ -801,5 +771,4 @@ gid format.  Valid values are 'string and 'integer, defaulting to
 
 (provide 'esh-util)
 
-;; arch-tag: 70159778-5c7a-480a-bae4-3ad332fca19d
 ;;; esh-util.el ends here

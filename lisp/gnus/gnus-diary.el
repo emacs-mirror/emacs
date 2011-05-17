@@ -1,7 +1,6 @@
 ;;; gnus-diary.el --- Wrapper around the NNDiary Gnus back end
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author:        Didier Verna <didier@xemacs.org>
 ;; Maintainer:    Didier Verna <didier@xemacs.org>
@@ -368,11 +367,11 @@ If ARG (or prefix) is non-nil, force prompting for all fields."
 				 header ": ")))
 	     (setq value
 		   (if (listp (nth 1 head))
-		       (completing-read prompt (cons '("*" nil) (nth 1 head))
-					nil t value
-					gnus-diary-header-value-history)
+		       (gnus-completing-read prompt (cons "*" (mapcar 'car (nth 1 head)))
+                                             t value
+                                             'gnus-diary-header-value-history)
 		     (read-string prompt value
-				  gnus-diary-header-value-history))))
+				  'gnus-diary-header-value-history))))
 	   (setq ask nil)
 	   (setq invalid nil)
 	   (condition-case ()
@@ -401,5 +400,4 @@ If ARG (or prefix) is non-nil, force prompting for all fields."
 
 (provide 'gnus-diary)
 
-;; arch-tag: 98467e70-337e-4ddc-b92d-45d403ff1b4b
 ;;; gnus-diary.el ends here

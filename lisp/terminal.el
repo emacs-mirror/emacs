@@ -1,7 +1,7 @@
 ;;; terminal.el --- terminal emulator for GNU Emacs
 
-;; Copyright (C) 1986, 1987, 1988, 1989, 1993, 1994, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1986-1989, 1993-1994, 2001-2011
+;;   Free Software Foundation, Inc.
 
 ;; Author: Richard Mlynarik <mly@eddie.mit.edu>
 ;; Maintainer: FSF
@@ -1005,7 +1005,7 @@ move to start of new line, clear to end of line."
 	(unwind-protect
 	    (progn
 	      (set-process-filter te-process
-				  (function (lambda (p s)
+				  (function (lambda (_p s)
                                     (or (eq (length s) 1)
                                         (setq te-pending-output (list 1 s)))
                                     (throw 'char (aref s 0)))))
@@ -1327,7 +1327,7 @@ in the directory specified by `te-terminfo-directory'."
 	  "im=:ei=:dm=:ed=:mi:do=^p^j:nl=^p^j:bs:")
 )
 
-(defun te-tic-sentinel (proc state-change)
+(defun te-tic-sentinel (_proc state-change)
   "If tic has finished, delete the .tif file"
   (if (equal state-change "finished
 ")
@@ -1335,5 +1335,4 @@ in the directory specified by `te-terminfo-directory'."
 
 (provide 'terminal)
 
-;; arch-tag: 0ae1d7d7-90ef-4566-a531-6e7ff8c79b2f
 ;;; terminal.el ends here

@@ -1,7 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2011  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/symbols
 @node Symbols, Evaluation, Hash Tables, Top
@@ -383,7 +382,7 @@ See @code{documentation} in @ref{Accessing Documentation}, for another
 example using @code{mapatoms}.
 @end defun
 
-@defun unintern symbol &optional obarray
+@defun unintern symbol obarray
 This function deletes @var{symbol} from the obarray @var{obarray}.  If
 @code{symbol} is not actually in the obarray, @code{unintern} does
 nothing.  If @var{obarray} is @code{nil}, the current obarray is used.
@@ -590,7 +589,3 @@ between a missing property and a property with the value @code{nil}.
 The value is actually the tail of @var{plist} whose @code{car} is
 @var{property}.
 @end defun
-
-@ignore
-   arch-tag: 8750b7d2-de4c-4923-809a-d35fc39fd8ce
-@end ignore

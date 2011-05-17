@@ -1,7 +1,6 @@
 ;;; lisp-mnt.el --- utility functions for Emacs Lisp maintainers
 
-;; Copyright (C) 1992, 1994, 1997, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1997, 2000-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: FSF
@@ -298,6 +297,7 @@ The returned value is a list of strings, one per line."
 (defmacro lm-with-file (file &rest body)
   "Execute BODY in a buffer containing the contents of FILE.
 If FILE is nil, execute BODY in the current buffer."
+  (declare (indent 1) (debug t))
   (let ((filesym (make-symbol "file")))
     `(let ((,filesym ,file))
        (if ,filesym
@@ -310,9 +310,6 @@ If FILE is nil, execute BODY in the current buffer."
 	   ;; temporarily to the Emacs Lisp mode syntax table.
 	   (with-syntax-table emacs-lisp-mode-syntax-table
 	     ,@body))))))
-
-(put 'lm-with-file 'lisp-indent-function 1)
-(put 'lm-with-file 'edebug-form-spec t)
 
 ;; Fixme: Probably this should be amalgamated with copyright.el; also
 ;; we need a check for ranges in copyright years.
@@ -618,5 +615,4 @@ Prompts for bug subject TOPIC.  Leaves you in a mail buffer."
 
 (provide 'lisp-mnt)
 
-;; arch-tag: fa3c5ab4-a37b-4e46-b7cf-b6d78b90e69e
 ;;; lisp-mnt.el ends here

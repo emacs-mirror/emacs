@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2001, 2002,
-@c   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2011
+@c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node M-x, Help, Minibuffer, Top
 @chapter Running Commands by Name
@@ -69,7 +69,3 @@ the command is followed by arguments.
   @kbd{M-x} works by running the command
 @code{execute-extended-command}, which is responsible for reading the
 name of another command and invoking it.
-
-@ignore
-   arch-tag: b67bff53-9628-4666-b94e-eda972a7ba56
-@end ignore

@@ -1,10 +1,10 @@
 ;;; cua-rect.el --- CUA unified rectangle support
 
-;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2011 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard emulations convenience CUA
+;; Package: cua-base
 
 ;; This file is part of GNU Emacs.
 
@@ -231,7 +231,7 @@
     (move-to-column mc)
     (set-mark (point))
     (goto-char pp)
-    ;; Move cursor inside rectangle, except if char at rigth edge is a tab.
+    ;; Move cursor inside rectangle, except if char at right edge is a tab.
     (if (and (if (cua--rectangle-right-side)
 		 (and (= (move-to-column pc) (- pc tab-width))
 		      (not (eolp)))
@@ -625,7 +625,7 @@ If command is repeated at same position, delete the rectangle."
     (if (not (cua--rectangle-virtual-edges))
 	(cua--rectangle-operation nil nil nil nil nil ; do not tabify
 	  '(lambda (s e l r)
-	     (setq rect (cons (filter-buffer-substring s e nil t) rect))))
+	     (setq rect (cons (cua--filter-buffer-noprops s e) rect))))
       (cua--rectangle-operation nil 1 nil nil nil ; do not tabify
 	'(lambda (s e l r v)
 	   (let ((copy t) (bs 0) (as 0) row)
@@ -643,7 +643,7 @@ If command is repeated at same position, delete the rectangle."
 	       (setq as (- r (max (current-column) l))
 		     e (point)))
        	     (setq row (if (and copy (> e s))
-			   (filter-buffer-substring s e nil t)
+			   (cua--filter-buffer-noprops s e)
 			 ""))
     	     (when (> bs 0)
     	       (setq row (concat (make-string bs ?\s) row)))
@@ -1124,12 +1124,12 @@ The length of STRING need not be the same as the rectangle width."
      '(lambda (s e l r)
         (cond
          ((re-search-forward "0x\\([0-9a-fA-F]+\\)" e t)
-          (let* ((txt (filter-buffer-substring (match-beginning 1) (match-end 1) nil t))
+          (let* ((txt (cua--filter-buffer-noprops (match-beginning 1) (match-end 1)))
                  (n (string-to-number txt 16))
                  (fmt (format "0x%%0%dx" (length txt))))
             (replace-match (format fmt (+ n increment)))))
          ((re-search-forward "\\( *-?[0-9]+\\)" e t)
-          (let* ((txt (filter-buffer-substring (match-beginning 1) (match-end 1) nil t))
+          (let* ((txt (cua--filter-buffer-noprops (match-beginning 1) (match-end 1)))
                  (prefix (if (= (aref txt 0) ?0) "0" ""))
                  (n (string-to-number txt 10))
                  (fmt (format "%%%s%dd" prefix (length txt))))
@@ -1344,7 +1344,7 @@ With prefix arg, indent to that column."
          pad)
         (if (bolp)
             nil
-          (delete-backward-char 1)
+          (delete-char -1)
           (if (cua--rectangle-right-side t)
               (cua--rectangle-insert-col (current-column))
             (setq indent (- l (current-column))))))
@@ -1491,5 +1491,4 @@ With prefix arg, indent to that column."
 
 (provide 'cua-rect)
 
-;; arch-tag: b730df53-17b9-4a89-bd63-4a71ec196731
 ;;; cua-rect.el ends here

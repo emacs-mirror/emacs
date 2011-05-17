@@ -1,7 +1,6 @@
 ;;; dns.el --- Domain Name Service lookups
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2002-2011  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: network comm
@@ -101,7 +100,7 @@ If nil, /etc/resolv.conf and nslookup will be consulted.")
 
 (defun dns-read-string-name (string buffer)
   (with-temp-buffer
-    (set-buffer-multibyte nil)
+    (unless (featurep 'xemacs) (set-buffer-multibyte nil))
     (insert string)
     (goto-char (point-min))
     (dns-read-name buffer)))
@@ -135,7 +134,7 @@ If nil, /etc/resolv.conf and nslookup will be consulted.")
   "Write a DNS packet according to SPEC.
 If TCP-P, the first two bytes of the package with be the length field."
   (with-temp-buffer
-    (set-buffer-multibyte nil)
+    (unless (featurep 'xemacs) (set-buffer-multibyte nil))
     (dns-write-bytes (dns-get 'id spec) 2)
     (dns-write-bytes
      (logior
@@ -151,7 +150,7 @@ If TCP-P, the first two bytes of the package with be the length field."
       (lsh (if (dns-get 'truncated-p spec) 1 0) -1)
       (lsh (if (dns-get 'recursion-desired-p spec) 1 0) 0)))
     (dns-write-bytes
-     (cond 
+     (cond
       ((eq (dns-get 'response-code spec) 'no-error) 0)
       ((eq (dns-get 'response-code spec) 'format-error) 1)
       ((eq (dns-get 'response-code spec) 'server-failure) 2)
@@ -186,7 +185,7 @@ If TCP-P, the first two bytes of the package with be the length field."
 
 (defun dns-read (packet)
   (with-temp-buffer
-    (set-buffer-multibyte nil)
+    (unless (featurep 'xemacs) (set-buffer-multibyte nil))
     (let ((spec nil)
           queries answers authorities additionals)
       (insert packet)
@@ -253,8 +252,8 @@ If TCP-P, the first two bytes of the package with be the length field."
       (nreverse spec))))
 
 (defun dns-read-int32 ()
-  ;; Full 32 bit Integers can't be handled by Emacs.  If we use
-  ;; floats, it works.
+  ;; Full 32 bit Integers can't be handled by 32-bit Emacsen.  If we
+  ;; use floats, it works.
   (format "%.0f" (+ (* (dns-read-bytes 1) 16777216.0)
 		    (dns-read-bytes 3))))
 
@@ -263,7 +262,7 @@ If TCP-P, the first two bytes of the package with be the length field."
 	(point (point)))
     (prog1
         (with-temp-buffer
-          (set-buffer-multibyte nil)
+	  (unless (featurep 'xemacs) (set-buffer-multibyte nil))
           (insert string)
           (goto-char (point-min))
           (cond
@@ -391,7 +390,7 @@ If REVERSEP, look up an IP address."
   (if (not dns-servers)
       (message "No DNS server configuration found")
     (with-temp-buffer
-      (set-buffer-multibyte nil)
+      (unless (featurep 'xemacs) (set-buffer-multibyte nil))
       (let ((process (condition-case ()
                          (dns-make-network-process (car dns-servers))
                        (error
@@ -438,5 +437,4 @@ If REVERSEP, look up an IP address."
 
 (provide 'dns)
 
-;; arch-tag: d0edd0c4-4cce-4538-ae92-06c3356ee80a
 ;;; dns.el ends here

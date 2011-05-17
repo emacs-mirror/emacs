@@ -1,6 +1,6 @@
 /* Declarations having to do with Emacs category tables.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-     2005, 2006, 2007, 2008, 2009, 2010
+     2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H14PRO021
    Copyright (C) 2003
@@ -67,11 +67,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Return a new empty category set.  */
 #define MAKE_CATEGORY_SET (Fmake_bool_vector (make_number (128), Qnil))
 
-/* Make CATEGORY_SET includes (if VAL is t) or excludes (if VAL is
-   nil) CATEGORY.  */
-#define SET_CATEGORY_SET(category_set, category, val) \
-  (set_category_set (category_set, category, val))
-
 #define CHECK_CATEGORY_SET(x) \
   CHECK_TYPE (CATEGORY_SET_P (x), Qcategorysetp, x)
 
@@ -91,7 +86,7 @@ extern Lisp_Object _temp_category_set;
 
 /* The standard category table is stored where it will automatically
    be used in all new buffers.  */
-#define Vstandard_category_table buffer_defaults.category_table
+#define Vstandard_category_table BVAR (&buffer_defaults, category_table)
 
 /* Return the category set of character C in the current category table.  */
 #define CATEGORY_SET(c) char_category_set (c)
@@ -113,8 +108,4 @@ extern Lisp_Object _temp_category_set;
   (!(SINGLE_BYTE_CHAR_P (c1) && SINGLE_BYTE_CHAR_P (c2))	\
    && word_boundary_p (c1, c2))
 
-extern int word_boundary_p P_ ((int, int));
-extern void set_category_set P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
-
-/* arch-tag: 309dfe83-c3e2-4d22-8e81-faae5aece0ff
-   (do not change this comment) */
+extern int word_boundary_p (int, int);

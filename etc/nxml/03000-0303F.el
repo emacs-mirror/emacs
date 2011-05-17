@@ -65,4 +65,3 @@
     ("IDEOGRAPHIC HALF FILL SPACE" #x303F)
     ))
 
-;; arch-tag: 05689acc-1d48-4a36-9b60-75d5abf8a065

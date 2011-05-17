@@ -1,11 +1,11 @@
 ;;; version.el --- record version number of Emacs -*- no-byte-compile: t -*-
 
-;; Copyright (C) 1985, 1992, 1994, 1995, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1985, 1992, 1994-1995, 1999-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -28,12 +28,6 @@
 ;; Doc-strings should adhere to the conventions of make-docfile.
 
 ;;; Code:
-
-(defconst emacs-copyright "Copyright (C) 2010 Free Software Foundation, Inc." "\
-Short copyright string for this version of Emacs.")
-
-(defconst emacs-version "24.0.50" "\
-Version numbers of this version of Emacs.")
 
 (defconst emacs-major-version (progn (string-match "^[0-9]+" emacs-version) (string-to-number (match-string 0 emacs-version))) "\
 Major version number of this version of Emacs.
@@ -93,5 +87,4 @@ to the system configuration; look at `system-configuration' instead."
 ;;version-control: never
 ;;End:
 
-;; arch-tag: e60dc445-6218-4a4c-a7df-f15a818642a0
 ;;; version.el ends here

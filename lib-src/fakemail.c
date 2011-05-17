@@ -1,6 +1,5 @@
 /* sendmail-like interface to /bin/mail for system V,
-   Copyright (C) 1985, 1994, 1999, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1985, 1994, 1999, 2001-2011  Free Software Foundation, Inc.
 
 Author: Bill Rozas <jinx@martigny.ai.mit.edu>
 (according to ack.texi)
@@ -30,7 +29,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #if defined (BSD_SYSTEM) && !defined (USE_FAKEMAIL)
 /* This program isnot used in BSD, so just avoid loader complaints.  */
 int
-main ()
+main (void)
 {
   return 0;
 }
@@ -59,11 +58,10 @@ main ()
 #include <ctype.h>
 #include <time.h>
 #include <pwd.h>
+#include <stdlib.h>
 
 /* This is to declare cuserid.  */
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 /* Type definitions */
 
@@ -100,7 +98,7 @@ typedef struct header_record *header;
 struct stream_record
 {
   FILE *handle;
-  int (*action)();
+  int (*action)(FILE *);
   struct stream_record *rest_streams;
 };
 typedef struct stream_record *stream_list;
@@ -140,19 +138,16 @@ struct linebuffer lb;
 #define MAIL_PROGRAM_NAME "/bin/mail"
 #endif
 
-static char *my_name;
+static const char *my_name;
 static char *the_date;
 static char *the_user;
 static line_list file_preface;
 static stream_list the_streams;
 static boolean no_problems = true;
 
-extern FILE *popen ();
-extern int fclose (), pclose ();
+static void fatal (const char *s1) NO_RETURN;
 
 #ifdef CURRENT_USER
-extern struct passwd *getpwuid ();
-extern unsigned short geteuid ();
 static struct passwd *my_entry;
 #define cuserid(s)				\
 (my_entry = getpwuid (((int) geteuid ())),	\
@@ -164,8 +159,7 @@ static struct passwd *my_entry;
 /* Print error message.  `s1' is printf control string, `s2' is arg for it. */
 
 static void
-error (s1, s2)
-     char *s1, *s2;
+error (const char *s1, const char *s2)
 {
   printf ("%s: ", my_name);
   printf (s1, s2);
@@ -176,8 +170,7 @@ error (s1, s2)
 /* Print error message and exit.  */
 
 static void
-fatal (s1)
-     char *s1;
+fatal (const char *s1)
 {
   error ("%s", s1);
   exit (EXIT_FAILURE);
@@ -185,32 +178,28 @@ fatal (s1)
 
 /* Like malloc but get fatal error if memory is exhausted.  */
 
-static long *
-xmalloc (size)
-     int size;
+static void *
+xmalloc (size_t size)
 {
-  long *result = (long *) malloc (((unsigned) size));
-  if (result == ((long *) NULL))
+  void *result = malloc (size);
+  if (! result)
     fatal ("virtual memory exhausted");
   return result;
 }
 
-static long *
-xrealloc (ptr, size)
-     long *ptr;
-     int size;
+static void *
+xrealloc (void *ptr, size_t size)
 {
-  long *result = (long *) realloc (ptr, ((unsigned) size));
-  if (result == ((long *) NULL))
+  void *result = realloc (ptr, size);
+  if (! result)
     fatal ("virtual memory exhausted");
   return result;
 }
 
 /* Initialize a linebuffer for use */
 
-void
-init_linebuffer (linebuffer)
-     struct linebuffer *linebuffer;
+static void
+init_linebuffer (struct linebuffer *linebuffer)
 {
   linebuffer->size = INITIAL_LINE_SIZE;
   linebuffer->buffer = ((char *) xmalloc (INITIAL_LINE_SIZE));
@@ -219,10 +208,8 @@ init_linebuffer (linebuffer)
 /* Read a line of text from `stream' into `linebuffer'.
    Return the length of the line.  */
 
-long
-readline (linebuffer, stream)
-     struct linebuffer *linebuffer;
-     FILE *stream;
+static long
+readline (struct linebuffer *linebuffer, FILE *stream)
 {
   char *buffer = linebuffer->buffer;
   char *p = linebuffer->buffer;
@@ -234,7 +221,7 @@ readline (linebuffer, stream)
       if (p == end)
 	{
 	  linebuffer->size *= 2;
-	  buffer = ((char *) xrealloc ((long *)buffer, linebuffer->size));
+	  buffer = (char *) xrealloc (buffer, linebuffer->size);
 	  p = buffer + (p - linebuffer->buffer);
 	  end = buffer + linebuffer->size;
 	  linebuffer->buffer = buffer;
@@ -256,10 +243,8 @@ readline (linebuffer, stream)
 
    If there is no keyword, return NULL and don't alter *REST.  */
 
-char *
-get_keyword (field, rest)
-     register char *field;
-     char **rest;
+static char *
+get_keyword (register char *field, char **rest)
 {
   static char keyword[KEYWORD_SIZE];
   register char *ptr;
@@ -283,9 +268,8 @@ get_keyword (field, rest)
 
 /* Nonzero if the string FIELD starts with a colon-terminated keyword.  */
 
-boolean
-has_keyword (field)
-     char *field;
+static boolean
+has_keyword (char *field)
 {
   char *ignored;
   return (get_keyword (field, &ignored) != ((char *) NULL));
@@ -301,10 +285,8 @@ has_keyword (field)
    We don't pay attention to overflowing WHERE;
    the caller has to make it big enough.  */
 
-char *
-add_field (the_list, field, where)
-     line_list the_list;
-     register char *field, *where;
+static char *
+add_field (line_list the_list, register char *field, register char *where)
 {
   register char c;
   while (true)
@@ -359,8 +341,8 @@ add_field (the_list, field, where)
   return where;
 }
 
-line_list
-make_file_preface ()
+static line_list
+make_file_preface (void)
 {
   char *the_string, *temp;
   long idiotic_interface;
@@ -403,10 +385,8 @@ make_file_preface ()
   return result;
 }
 
-void
-write_line_list (the_list, the_stream)
-     register line_list the_list;
-     FILE *the_stream;
+static void
+write_line_list (register line_list the_list, FILE *the_stream)
 {
   for ( ;
       the_list != ((line_list) NULL) ;
@@ -418,23 +398,21 @@ write_line_list (the_list, the_stream)
   return;
 }
 
-int
-close_the_streams ()
+static int
+close_the_streams (void)
 {
   register stream_list rem;
   for (rem = the_streams;
        rem != ((stream_list) NULL);
        rem = rem->rest_streams)
-    no_problems = (no_problems &&
-		   ((*rem->action) (rem->handle) == 0));
+    if (no_problems && (*rem->action) (rem->handle) != 0)
+      error ("output error", NULL);
   the_streams = ((stream_list) NULL);
   return (no_problems ? EXIT_SUCCESS : EXIT_FAILURE);
 }
 
-void
-add_a_stream (the_stream, closing_action)
-     FILE *the_stream;
-     int (*closing_action)();
+static void
+add_a_stream (FILE *the_stream, int (*closing_action) (FILE *))
 {
   stream_list old = the_streams;
   the_streams = new_stream ();
@@ -444,18 +422,18 @@ add_a_stream (the_stream, closing_action)
   return;
 }
 
-int
-my_fclose (the_file)
-     FILE *the_file;
+static int
+my_fclose (FILE *the_file)
 {
   putc ('\n', the_file);
   fflush (the_file);
+  if (ferror (the_file))
+    return EOF;
   return fclose (the_file);
 }
 
-boolean
-open_a_file (name)
-     char *name;
+static boolean
+open_a_file (char *name)
 {
   FILE *the_stream = fopen (name, "a");
   if (the_stream != ((FILE *) NULL))
@@ -469,9 +447,8 @@ open_a_file (name)
   return false;
 }
 
-void
-put_string (s)
-     char *s;
+static void
+put_string (char *s)
 {
   register stream_list rem;
   for (rem = the_streams;
@@ -481,22 +458,21 @@ put_string (s)
   return;
 }
 
-void
-put_line (string)
-     char *string;
+static void
+put_line (const char *string)
 {
   register stream_list rem;
   for (rem = the_streams;
        rem != ((stream_list) NULL);
        rem = rem->rest_streams)
     {
-      char *s = string;
+      const char *s = string;
       int column = 0;
 
       /* Divide STRING into lines.  */
       while (*s != 0)
 	{
-	  char *breakpos;
+	  const char *breakpos;
 
 	  /* Find the last char that fits.  */
 	  for (breakpos = s; *breakpos && column < 78; ++breakpos)
@@ -542,10 +518,8 @@ put_line (string)
    the header name), and THE_LIST holds the continuation lines if any.
    Call open_a_file for each file.  */
 
-void
-setup_files (the_list, field)
-     register line_list the_list;
-     register char *field;
+static void
+setup_files (register line_list the_list, register char *field)
 {
   register char *start;
   register char c;
@@ -580,9 +554,8 @@ setup_files (the_list, field)
 /* Compute the total size of all recipient names stored in THE_HEADER.
    The result says how big to make the buffer to pass to parse_header.  */
 
-int
-args_size (the_header)
-     header the_header;
+static int
+args_size (header the_header)
 {
   register header old = the_header;
   register line_list rem;
@@ -612,10 +585,8 @@ args_size (the_header)
 
    Also, if the header has any FCC fields, call setup_files for each one.  */
 
-void
-parse_header (the_header, where)
-     header the_header;
-     register char *where;
+static void
+parse_header (header the_header, register char *where)
 {
   register header old = the_header;
   do
@@ -646,8 +617,8 @@ parse_header (the_header, where)
    one for each line in that field.
    Continuation lines are grouped in the headers they continue.  */
 
-header
-read_header ()
+static header
+read_header (void)
 {
   register header the_header = ((header) NULL);
   register line_list *next_line = ((line_list *) NULL);
@@ -700,9 +671,8 @@ read_header ()
   return the_header->next;
 }
 
-void
-write_header (the_header)
-     header the_header;
+static void
+write_header (header the_header)
 {
   register header old = the_header;
   do
@@ -719,19 +689,15 @@ write_header (the_header)
 }
 
 int
-main (argc, argv)
-     int argc;
-     char **argv;
+main (int argc, char **argv)
 {
   char *command_line;
   header the_header;
   long name_length;
-  char *mail_program_name;
+  const char *mail_program_name;
   char buf[BUFLEN + 1];
   register int size;
   FILE *the_pipe;
-
-  extern char *getenv ();
 
   mail_program_name = getenv ("FAKEMAILER");
   if (!(mail_program_name && *mail_program_name))
@@ -765,13 +731,14 @@ main (argc, argv)
       put_string (buf);
     }
 
+  if (no_problems && (ferror (stdin) || fclose (stdin) != 0))
+    error ("input error", NULL);
+
   exit (close_the_streams ());
 }
 
 #endif /* not MSDOS */
 #endif /* not BSD 4.2 (or newer) */
 
-/* arch-tag: acb0afa6-315a-4c5b-b9e3-def5725c8783
-   (do not change this comment) */
 
 /* fakemail.c ends here */

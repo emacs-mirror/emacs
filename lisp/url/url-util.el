@@ -1,7 +1,6 @@
 ;;; url-util.el --- Miscellaneous helper routines for URL library
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2001, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2001, 2004-2011  Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: comm, data, processes
@@ -43,7 +42,7 @@
 
 ;;;###autoload
 (defcustom url-debug nil
-  "*What types of debug messages from the URL library to show.
+  "What types of debug messages from the URL library to show.
 Debug messages are logged to the *URL-DEBUG* buffer.
 
 If t, all messages will be logged.
@@ -177,7 +176,9 @@ Strips out default port numbers, etc."
 (defun url-lazy-message (&rest args)
   "Just like `message', but is a no-op if called more than once a second.
 Will not do anything if `url-show-status' is nil."
-  (if (or (null url-show-status)
+  (if (or (and url-current-object
+	       (url-silent url-current-object))
+	  (null url-show-status)
 	  (active-minibuffer-window)
 	  (= url-lazy-message-time
 	     (setq url-lazy-message-time (nth 1 (current-time)))))
@@ -222,7 +223,9 @@ Will not do anything if `url-show-status' is nil."
 
 ;;;###autoload
 (defun url-display-percentage (fmt perc &rest args)
-  (when url-show-status
+  (when (and url-show-status
+	     (or (null url-current-object)
+		 (not (url-silent url-current-object))))
     (if (null fmt)
 	(if (fboundp 'clear-progress-display)
 	    (clear-progress-display))
@@ -244,7 +247,7 @@ Will not do anything if `url-show-status' is nil."
   "Return the directory part of FILE, for a URL."
   (cond
    ((null file) "")
-   ((string-match (eval-when-compile (regexp-quote "?")) file)
+   ((string-match "\\?" file)
     (file-name-directory (substring file 0 (match-beginning 0))))
    (t (file-name-directory file))))
 
@@ -253,7 +256,7 @@ Will not do anything if `url-show-status' is nil."
   "Return the nondirectory part of FILE, for a URL."
   (cond
    ((null file) "")
-   ((string-match (eval-when-compile (regexp-quote "?")) file)
+   ((string-match "\\?" file)
     (file-name-nondirectory (substring file 0 (match-beginning 0))))
    (t (file-name-nondirectory file))))
 
@@ -322,10 +325,10 @@ forbidden in URL encoding."
 		   tmp (substring str 0 start)
 		   (cond
 		    (allow-newlines
-		     (char-to-string code))
+		     (byte-to-string code))
 		    ((or (= code ?\n) (= code ?\r))
 		     " ")
-		    (t (char-to-string code))))
+		    (t (byte-to-string code))))
 	      str (substring str (match-end 0)))))
     (setq tmp (concat tmp str))
     tmp))
@@ -432,10 +435,8 @@ This uses `url-current-object', set locally to the buffer."
 	(url-recreate-url url-current-object)
       (message "%s" (url-recreate-url url-current-object)))))
 
-(eval-and-compile
-  (defvar url-get-url-filename-chars "-%.?@a-zA-Z0-9()_/:~=&"
-    "Valid characters in a URL.")
-  )
+(defvar url-get-url-filename-chars "-%.?@a-zA-Z0-9()_/:~=&"
+  "Valid characters in a URL.")
 
 (defun url-get-url-at-point (&optional pt)
   "Get the URL closest to point, but don't change position.
@@ -453,8 +454,7 @@ Has a preference for looking backward when not directly on a symbol."
 		  (if (not (bobp))
 		      (backward-char 1)))))
 	(if (and (char-after (point))
-		 (string-match (eval-when-compile
-				 (concat "[" url-get-url-filename-chars "]"))
+		 (string-match (concat "[" url-get-url-filename-chars "]")
 			       (char-to-string (char-after (point)))))
 	    (progn
 	      (skip-chars-backward url-get-url-filename-chars)
@@ -531,5 +531,4 @@ Creates FILE and its parent directories if they do not exist."
 
 (provide 'url-util)
 
-;; arch-tag: 24352abc-5a5a-412e-90cd-313b26bed5c9
 ;;; url-util.el ends here

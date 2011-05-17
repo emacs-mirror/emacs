@@ -1,7 +1,6 @@
 ;;; mh-folder.el --- MH-Folder mode
 
-;; Copyright (C) 2002, 2003, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2005-2011  Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -1974,5 +1973,4 @@ If MSG is nil then act on the message at point"
 ;; sentence-end-double-space: nil
 ;; End:
 
-;; arch-tag: aa97b758-d4f6-4c86-bc5a-1950921da1e7
 ;;; mh-folder.el ends here

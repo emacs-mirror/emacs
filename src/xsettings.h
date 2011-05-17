@@ -1,6 +1,6 @@
 /* Functions for handle font changes dynamically.
-   Copyright (C) 2009, 2010
-                 Free Software Foundation, Inc.
+
+Copyright (C) 2009-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -20,18 +20,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef XSETTINGS_H
 #define XSETTINGS_H
 
-EXFUN (Ffont_get_system_font, 0);
-EXFUN (Ffont_get_system_normal_font, 0);
 EXFUN (Ftool_bar_get_system_style, 0);
 
-extern void xsettings_initialize P_ ((struct x_display_info *dpyinfo));
-extern void xft_settings_event P_ ((struct x_display_info *dpyinfo,
-                                    XEvent *));
-extern const char *xsettings_get_system_font P_ ((void));
-extern const char *xsettings_get_system_normal_font P_ ((void));
+extern void xsettings_initialize (struct x_display_info *dpyinfo);
+extern void xft_settings_event (struct x_display_info *dpyinfo,
+                                XEvent *);
+extern const char *xsettings_get_system_font (void);
+#ifdef USE_LUCID
+extern const char *xsettings_get_system_normal_font (void);
+#endif
 
 
 #endif /* XSETTINGS_H */
-
-/* arch-tag: 2c0f5c49-e925-4452-b778-4c082da6dd72
-   (do not change this comment) */

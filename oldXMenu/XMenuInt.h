@@ -37,7 +37,7 @@
 /*
  * XMenu internal event handler variable.
  */
-extern int (*_XMEventHandler)();
+extern int (*_XMEventHandler)(XEvent*);
 
 #ifndef Pixel
 #define Pixel unsigned long
@@ -46,22 +46,24 @@ extern int (*_XMEventHandler)();
 /*
  * Internal routine declarations.
  */
-int _XMWinQueInit();		/* No value actually returned. */
-int _XMWinQueAddPane();
-int _XMWinQueAddSelection();
-int _XMWinQueFlush();
-XMPane *_XMGetPanePtr();
-XMSelect *_XMGetSelectionPtr();
-int _XMRecomputeGlobals();	/* No value actually returned. */
-int _XMRecomputePane();
-int _XMRecomputeSelection();
-int _XMTransToOrigin();		/* No value actually returned. */
-int _XMRefreshPane();		/* No value actually returned. */
-int _XMRefreshSelections();	/* No value actually returned. */
-int _XMHighlightSelection();	/* No value actually returned. */
+void _XMWinQueInit(void);
+int _XMWinQueAddPane(Display *display, XMenu *menu, XMPane *p_ptr);
+int _XMWinQueAddSelection(Display *display, XMenu *menu, XMSelect *s_ptr);
+int _XMWinQueFlush(Display *display, XMenu *menu, XMPane *pane, XMSelect *select);
+XMPane *_XMGetPanePtr(XMenu *menu, int p_num);
+XMSelect *_XMGetSelectionPtr(XMPane *p_ptr, int s_num);
+void _XMRecomputeGlobals(Display *display, XMenu *menu);
+int _XMRecomputePane(Display *display, XMenu *menu, XMPane *p_ptr, int p_num);
+int _XMRecomputeSelection(Display *display, XMenu *menu, XMSelect *s_ptr, int s_num);
+void _XMTransToOrigin(Display *display, XMenu *menu, XMPane *p_ptr, XMSelect *s_ptr, int x_pos, int y_pos, int *orig_x, int *orig_y);
+void _XMRefreshPane(Display *display, XMenu *menu, XMPane *pane);
+void _XMRefreshSelection(Display *display, XMenu *menu, XMSelect *select);
+void emacs_insque (void *elem, void *prev);
+void emacs_remque (void *elem);
+void XDeleteAssoc(Display *dpy, XAssocTable *table, XID x_id);
+void XDestroyAssocTable(XAssocTable *table);
+void XMakeAssoc(Display *dpy, XAssocTable *table, XID x_id, void *data);
+void XDeleteAssoc(Display *dpy, XAssocTable *table, XID x_id);
 
 #endif
 /* Don't add stuff after this #endif */
-
-/* arch-tag: 00640af1-9386-48b5-a4be-35620b8cd3aa
-   (do not change this comment) */

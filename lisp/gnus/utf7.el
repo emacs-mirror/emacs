@@ -1,7 +1,6 @@
 ;;; utf7.el --- UTF-7 encoding/decoding for Emacs   -*-coding: iso-8859-1;-*-
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: Jon K Hellan <hellan@acm.org>
 ;; Maintainer: bugs@gnus.org
@@ -78,7 +77,7 @@
 (defconst utf7-utf-16-coding-system
   (cond ((mm-coding-system-p 'utf-16-be-no-signature) ; Mule-UCS
 	 'utf-16-be-no-signature)
-	((and (mm-coding-system-p 'utf-16-be) ; Emacs 21.3, Emacs 22
+	((and (mm-coding-system-p 'utf-16-be) ; Emacs
 	      ;; Avoid versions with BOM.
 	      (= 2 (length (encode-coding-string "a" 'utf-16-be))))
 	 'utf-16-be)
@@ -112,7 +111,7 @@ Use IMAP modification if FOR-IMAP is non-nil."
 		 (skip-chars-forward not-direct-encoding-chars)))
 	    (if (and (= fc esc-char)
 		     (= run-length 1))	; Lone esc-char?
-		(delete-backward-char 1) ; Now there's one too many
+		(delete-char -1)        ; Now there's one too many
 	      (utf7-fragment-encode p (point) for-imap))
 	    (insert "-")))))))
 
@@ -153,7 +152,7 @@ Use IMAP modification if FOR-IMAP is non-nil."
 	      (save-excursion
 		(utf7-fragment-decode p (point) for-imap)
 		(goto-char p)
-		(delete-backward-char 1)))))))))
+		(delete-char -1)))))))))
 
 (defun utf7-fragment-decode (start end &optional for-imap)
   "Decode base64 encoded fragment from START to END of UTF-7 text in buffer.
@@ -205,6 +204,7 @@ Characters are in raw byte pairs in narrowed buffer."
   (mm-decode-coding-region (point-min) (point-max) 'iso-8859-1)
   (mm-enable-multibyte))
 
+;;;###autoload
 (defun utf7-encode (string &optional for-imap)
   "Encode UTF-7 STRING.  Use IMAP modification if FOR-IMAP is non-nil."
   (if (and (coding-system-p 'utf-7) (coding-system-p 'utf-7-imap))
@@ -228,5 +228,4 @@ Characters are in raw byte pairs in narrowed buffer."
 
 (provide 'utf7)
 
-;; arch-tag: 96078b55-85c7-4161-aed2-932c24b282c7
 ;;; utf7.el ends here

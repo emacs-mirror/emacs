@@ -1,6 +1,5 @@
 /* unexec for GNU Emacs on Windows NT.
-   Copyright (C) 1994, 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1994, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -22,6 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 */
 
 #include <config.h>
+#include "unexec.h"
 
 #include <stdio.h>
 #include <fcntl.h>
@@ -341,7 +341,6 @@ get_section_info (file_data *p_infile)
 {
   PIMAGE_DOS_HEADER dos_header;
   PIMAGE_NT_HEADERS nt_header;
-  PIMAGE_SECTION_HEADER section;
   int overlap;
 
   dos_header = (PIMAGE_DOS_HEADER) p_infile->file_base;
@@ -725,8 +724,7 @@ copy_executable_and_dump_data (file_data *p_infile,
 
 /* Dump out .data and .bss sections into a new executable.  */
 void
-unexec (char *new_name, char *old_name, void *start_data, void *start_bss,
-	void *entry_address)
+unexec (const char *new_name, const char *old_name)
 {
   file_data in_file, out_file;
   char out_filename[MAX_PATH], in_filename[MAX_PATH];
@@ -824,6 +822,3 @@ unexec (char *new_name, char *old_name, void *start_data, void *start_bss,
 }
 
 /* eof */
-
-/* arch-tag: fe1d3d1c-ef88-4917-ab22-f12ab16b3254
-   (do not change this comment) */

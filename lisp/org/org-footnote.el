@@ -1,11 +1,11 @@
 ;;; org-footnote.el --- Footnote support in Org and elsewhere
 ;;
-;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.35i
+;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -49,6 +49,7 @@
 (declare-function org-in-verbatim-emphasis "org" ())
 (declare-function org-inside-latex-macro-p "org" ())
 (defvar org-odd-levels-only) ;; defined in org.el
+(defvar message-signature-separator) ;; defined in message.el
 
 (defconst org-footnote-re
   (concat "[^][\n]"   ; to make sure it is not at the beginning of a line
@@ -65,6 +66,11 @@
   (org-re "^\\(\\[\\([0-9]+\\|fn:[-_[:word:]]+\\)\\]\\)")
   "Regular expression matching the definition of a footnote.")
 
+(defgroup org-footnote nil
+  "Footnotes in Org-mode."
+  :tag "Org Footnote"
+  :group 'org)
+
 (defcustom org-footnote-section "Footnotes"
   "Outline heading containing footnote definitions before export.
 This can be nil, to place footnotes locally at the end of the current
@@ -75,7 +81,7 @@ automatically, i.e. when creating the footnote, and when sorting the notes.
 However, by hand you may place definitions *anywhere*.
 If this is a string, during export, all subtrees starting with this
 heading will be removed after extracting footnote definitions."
-  :group 'org-footnotes
+  :group 'org-footnote
   :type '(choice
 	  (string :tag "Collect footnotes under heading")
 	  (const :tag "Define footnotes locally" nil)))
@@ -87,7 +93,7 @@ as in Org-mode.  Outside Org-mode, new footnotes are always placed at
 the end of the file.  When you normalize the notes, any line containing
 only this tag will be removed, a new one will be inserted at the end
 of the file, followed by the collected and normalized footnotes."
-  :group 'org-footnotes
+  :group 'org-footnote
   :type 'string)
 
 (defcustom org-footnote-define-inline nil
@@ -182,25 +188,25 @@ with start and label of the footnote if there is a definition at point."
       (org-show-context 'link-search)
       (message "Edit definition and go back with `C-c &' or, if unique, with `C-c C-c'."))))
 
-(defun org-footnote-goto-next-reference (label)
-  "Find the next reference of the footnote with label LABEL."
+(defun org-footnote-goto-previous-reference (label)
+  "Find the first closest (to point) reference of footnote with label LABEL."
   (interactive "sLabel: ")
   (org-mark-ring-push)
   (setq label (org-footnote-normalize-label label))
   (let ((re (format ".\\[%s[]:]" label))
 	(p0 (point)) pos)
     (save-excursion
-      (setq pos (or (re-search-forward re nil t)
-		    (and (goto-char (point-min))
-			 (re-search-forward re nil t))
+      (setq pos (or (re-search-backward re nil t)
+		    (and (goto-char (point-max))
+			 (re-search-backward re nil t))
 		    (and (progn (widen) t)
 			 (goto-char p0)
-			 (re-search-forward re nil t))
-		    (and (goto-char (point-min))
+			 (re-search-backward re nil t))
+		    (and (goto-char (point-max))
 			 (re-search-forward re nil t)))))
     (if pos
 	(progn
-	  (goto-char pos)
+	  (goto-char (match-end 0))
 	  (org-show-context 'link-search))
       (error "Cannot find reference of footnote %s" label))))
 
@@ -297,15 +303,19 @@ or new, let the user edit the definition of the footnote."
      (t
       (setq re (concat "^" org-footnote-tag-for-non-org-mode-files "[ \t]*$"))
       (unless (re-search-forward re nil t)
-	(goto-char (point-max))
-	(skip-chars-backward " \t\r\n")
-	(insert "\n\n")
-	(delete-region (point) (point-max))
-	(insert org-footnote-tag-for-non-org-mode-files "\n"))
-      (goto-char (point-max))
-      (skip-chars-backward " \t\r\n")))
-    (insert "\n\n")
-    (insert "[" label "] ")
+	(let ((max (if (and (derived-mode-p 'message-mode)
+			    (re-search-forward message-signature-separator nil t))
+		       (progn (beginning-of-line) (point))
+		     (goto-char (point-max)))))
+	  (skip-chars-backward " \t\r\n")
+	  (delete-region (point) max)
+	  (insert "\n\n")
+	  (insert org-footnote-tag-for-non-org-mode-files "\n")))))
+    ;; Skip existing footnotes
+    (while (re-search-forward "^[[:space:]]*\\[[^]]+\\] " nil t)
+      (forward-line))
+    (insert "[" label "] \n")
+    (goto-char (1- (point)))
     (message "Edit definition and go back with `C-c &' or, if unique, with `C-c C-c'.")))
 
 ;;;###autoload
@@ -339,7 +349,7 @@ With prefix arg SPECIAL, offer additional commands in a menu."
 	  (org-footnote-goto-definition (nth 1 tmp))
 	(goto-char (match-beginning 4))))
      ((setq tmp (org-footnote-at-definition-p))
-      (org-footnote-goto-next-reference (nth 1 tmp)))
+      (org-footnote-goto-previous-reference (nth 1 tmp)))
      (t (org-footnote-new)))))
 
 ;;;###autoload
@@ -501,7 +511,8 @@ ENTRY is (fn-label num-mark definition)."
     (beginning-of-line 0))
   (if (looking-at "[ \t]*#\\+TBLFM:") (beginning-of-line 2))
   (end-of-line 1)
-  (skip-chars-backward "\n\r\t "))
+  (skip-chars-backward "\n\r\t ")
+  (forward-line))
 
 (defun org-footnote-delete (&optional label)
   "Delete the footnote at point.
@@ -574,6 +585,5 @@ and all references of a footnote label."
 
 (provide 'org-footnote)
 
-;; arch-tag: 1b5954df-fb5d-4da5-8709-78d944dbfc37
 
 ;;; org-footnote.el ends here

@@ -1,3 +1,353 @@
+2011-05-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt [_MSC_VER] (va_copy): Replacement for the MS compiler.
+
+2011-05-07  Ben Key  <bkey76@gmail.com>
+
+	* configure.bat: Renamed the fusercflags variable to escusercflags
+	so that the variable name better matches its purpose, to be
+	identical to usercflags with the exception that all quotes are
+	escaped by the \ character.
+
+	Renamed the fuserldflags variable to escuserldflags so that the
+	variable name better matches its purpose, to be identical to
+	userldflags with the exception that all quotes are escaped by
+	the \ character.
+
+	A new ESC_USER_CFLAGS variable is written to config.settings.
+	This variable has the same value as the escusercflags variable.
+
+	* gmake.defs, nmake.defs: Added the variable ESC_CFLAGS.  This
+	variable is identical to the CFLAGS variable except that it
+	includes the new ESC_USER_CFLAGS variable instead of USER_CFLAGS.
+
+	These changes, along with some changes to src/makefile.w32-in,
+	are required to extend my earlier fix to add support for
+	--cflags and --ldflags options that include quotes so that it
+	works whether make uses cmd or sh as the shell.
+
+2011-05-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/inttypes.h [!__MINGW32__]: Include stdint.h.  Move the
+	definition of uintmax_t from here...
+	* inc/stdint.h (uintmax_t): ...to here.
+	(intptr_t) [!__GNUC__]: New typedef.
+
+2011-05-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* config.nt: Prepare to configure 64-bit integers for older compilers.
+	However, temporarily disable this change unless the temporary
+	symbol WIDE_EMACS_INT is defined.
+	(EMACS_INT, BITS_PER_EMACS_INT, pI): Define these if __int64 and
+	"%I64d" work but long long and "%lld" do not.
+
+2011-05-05  Ben Key  <bkey76@gmail.com>
+
+	* configure.bat: Added support for --cflags and --ldflags
+	options that include quotes as long as command extensions are
+	enabled.  Specifically when -I, -L, and similar flags are used
+	to specify supplementary include and library directories a
+	directory name that includes spaces may now be used if it is
+	enclosed in quotes.
+
+	* INSTALL: Documented the change to configure.bat.
+
+2011-05-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* INSTALL: Clarify GnuTLS support.
+
+2011-04-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (HAVE_LONG_LONG_INT, HAVE_UNSIGNED_LONG_LONG_INT):
+	Define to 1 for MinGW of MSVC versions >= 1400.
+
+2011-04-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* gmake.defs (ARCH): Fix error message in case of unknown
+	architecture.
+
+2011-04-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/inttypes.h: New file.
+
+	* config.nt (HAVE_DECL_STRTOULL, HAVE_DECL_STRTOUMAX)
+	(HAVE_STRTOULL, HAVE_STRTOUMAX): New macros.
+
+2011-04-27  Daniel Colascione  <dan.colascione@gmail.com>
+
+	* cmdproxy.c (try_dequote_cmdline): Notice variable substitutions
+	inside quotation marks and bail out.
+
+2011-04-26  Daniel Colascione  <dan.colascione@gmail.com>
+
+	* cmdproxy.c (try_dequote_cmdline): New function.
+	(main): Use it.
+
+2011-04-24  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* configure.bat: New options --without-gnutls and --lib, new build
+	variable USER_LIBS, automatically detect GnuTLS.  Copies the PNG
+	library setup with trivial modifications.
+	* INSTALL: Add instructions for GnuTLS support.
+	* gmake.defs: Prefix USER_LIBS with -l.
+
+2011-04-15  Ben Key  <bkey76@gmail.com>
+
+	* configure.bat: Modified the code that parses the --cflags and
+	--ldflags options to support parameters that include the =
+	character as long as they are enclosed in quotes.  This
+	functionality depends on command extensions.  Configure.bat now
+	attempts to enable command extensions and displays a warning
+	message if they could not be enabled.  If configure.bat could
+	not enable command extensions the old parsing code is used that
+	does not support parameters that include the = character.
+
+	* INSTALL: Updated the file to describe the new functionality
+	using text provided by Eli Zaretskii.
+
+2011-04-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (NO_INLINE, ATTRIBUTE_FORMAT)
+	(ATTRIBUTE_FORMAT_PRINTF): Define, as followup to revision 103841
+	on the trunk on 2011-04-06.
+
+2011-03-27  Glenn Morris  <rgm@gnu.org>
+
+	* config.nt: Remove RETSIGTYPE, SIGTYPE (identical to void).
+
+2011-03-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* addpm.c (main): Remove unused variable `retval'.
+
+	* preprep.c (main): Remove unused variable `ptr'.
+
+2011-03-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cmdproxy.c: Include <ctype.h>.
+	(make_absolute): Remove unused variable `i'.
+
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
+2011-02-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/unistd.h (readlink, symlink): Declare prototypes.
+
+2011-02-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (nlink_t): Define.
+
+2011-02-21  Christoph Scholtes  <cschol2112@gmail.com>
+
+	* inc/stdint.h: New file, to support compilation with tool chains
+	that do not have stdint.h (e.g. MSVC).
+
+2011-02-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/stat.h (S_ISUID, S_ISGID, S_ISVTX, S_IRGRP, S_IROTH)
+	(S_IWGRP, S_IWOTH, S_IXGRP, S_IXOTH, S_ISSOCK, S_ISLNK, S_ISCTG)
+	(S_ISDOOR, S_ISMPB, S_ISMPC, S_ISNWK, S_ISPORT, S_ISWHT)
+	(S_TYPEISMQ, S_TYPEISSEM, S_TYPEISSHM, S_TYPEISTMO): Define.
+	(lstat): Define to stat.
+
+2011-02-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (bootstrap-nmake, bootstrap-gmake): Make the
+	"make-docfile" target in lib-src, before bootstrapping the src
+	directory.  Needed since building in src needs to run make-docfile
+	to produce globals.h.
+
+2011-02-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (inline) [__GNUC__]: Define (for gnulib).
+
+2011-01-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (VERSION): Uncomment definition.
+	(restrict): Define.
+
+	* inc/stdbool.h: New file.
+
+2011-01-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (all-other-dirs-nmake, all-other-dirs-gmake)
+	(bootstrap-nmake, bootstrap-gmake, bootstrap-clean-nmake)
+	(bootstrap-clean-gmake, clean-other-dirs-nmake)
+	(clean-other-dirs-gmake, cleanall-other-dirs-nmake)
+	(cleanall-other-dirs-gmake, distclean-other-dirs-nmake)
+	(distclean-other-dirs-gmake, maintainer-clean-other-dirs-nmake)
+	(maintainer-clean-other-dirs-gmake): Recurse into ../lib as well.
+	(bootstrap-nmake, bootstrap-gmake): Fix the bootstrap.
+
+	* configure.bat: Create lib/makefile.
+
+	* config.nt (HAVE_MKTIME, BROKEN_MKTIME): Remove.
+	(HAVE_ATTRIBUTE_ALIGNED, HAVE_C99_STRTOLD, HAVE_DECL_GETENV)
+	(HAVE_DECL_LOCALTIME_R, HAVE_WCHAR_T, PACKAGE, VERSION, inline)
+	(_GL_UNUSED, _UNUSED_PARAMETER_): Add definitions, for gnulib.
+
+2011-01-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (HAVE___BUILTIN_UNWIND_INIT) [GCC >= 2.8]: Define.
+
+2011-01-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat (end): Unset environment variables used by this
+	batch file.
+
+	* INSTALL: Update the information about PNG support libraries.
+	(Bug#7716)
+
+	* README.W32: Update the information about PNG support libraries.
+
+2010-11-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (EXTERNALLY_VISIBLE): Define.
+
+2010-10-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* INSTALL: Refer to `dynamic-library-alist'.
+
+2010-10-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* INSTALL: Add note about problematic characters passed to configure.
+
+2010-10-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (frc, TAGS, TAGS-gmake, TAGS-nmake): New targets.
+	emacs-src.tags: New file.
+
+	* gmake.defs: Add a comment with a single quote to fix
+	fontification.  (Bug#7102)
+
+2010-09-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat: Fix the condition for copying paths.h into
+	../src/epaths.h.
+
+2010-09-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* addpm.c (entry, add_registry, main):
+	* addsection.c (file_data, open_input_file, open_output_file)
+	(find_section, PTR_TO_OFFSET, copy_executable_and_add_section)
+	(COPY_CHUNK):
+	* cmdproxy.c (vfprintf, fprintf, printf, fail, warn, skip_space)
+	(skip_nonspace, get_next_token, search_dir, make_absolute)
+	(spawn, main):
+	* preprep.c (file_data, open_input_file, open_output_file)
+	(open_inout_file, find_section, PTR_TO_OFFSET, COPY_CHUNK, main):
+	Use const char*.
+
+	* cmdproxy.c (stdin): Don't define, not used.
+	(main): Don't assign remlen after last use.
+
+2010-09-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* configure.bat: Err out when the argument of --cflags contains
+	invalid characters (check implemented only for GCC).  (Bug#6820)
+
+2010-08-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* addpm.c (add_registry): Create App Paths of type REG_EXPAND_SZ.
+
+2010-08-12  Jason Rumney  <jasonr@gnu.org>
+
+	* addpm.c (add_registry): Set path for runemacs.exe to use.
+
+2010-08-08  Óscar Fuentes  <ofv@wanadoo.es>
+
+	* cmdproxy.c (main): Use _snprintf instead of wsprintf,
+	which has a 1024 char limit on Windows (bug#6647).
+
+2010-08-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt (TIME_WITH_SYS_TIME): Remove #undef, unused (bug#6754).
+	Suggested by Dan Nicolaescu <dann@ics.uci.edu>.
+
+2010-07-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* config.nt: Remove code referring to NO_REMAP, unused.
+
+2010-07-25  Christoph Scholtes  <cschol2112@gmail.com>
+
+	Build binary distros on Windows using emacs-VERSION as root dir name.
+
+	* makefile.w32-in: Copy README.W32 to installation directory
+	during `make install'.  Remove README.W32 with `distclean' (in
+	case Emacs was installed in place).  Use temporary directory to
+	create distribution zip files in `dist' target.
+	* zipdist.bat: Simplify code using temporary directory.
+
+2010-07-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* runemacs.c (set_user_model_id): Fix prototype.
+
+2010-07-24  Christoph Scholtes  <cschol2112@gmail.com>
+
+	New make target for Windows platform: make dist (bug#6602)
+
+	* INSTALL: Document new dist target and add section about
+	creating binary distributions.
+	* README.W32: Relocate from admin/nt/ directory.
+	* configure.bat: New parameter `--distfiles'.
+	* makefile.w32-in: Add version number, new target `dist'.
+	Add new target `install-shortcuts'.
+	* zipdist.bat: New file; create zipped binary distribution,
+	replaces admin/nt/makedist.bat.
+
+2010-07-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* INSTALL: Add note about backslashes in Windows paths.
+	Fix typos.  Simplify references to Windows versions.
+
+2010-07-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* addpm.c (add_registry, main):
+	* cmdproxy.c (get_env_size):
+	* ddeclient.c (main):
+	* runemacs.c (set_user_model_id):
+	Convert definitions to standard C.
+
+2010-07-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gmake.defs (CHECKING_CFLAGS) [ENABLECHECKS]: Add -fno-crossjumping.
+
+2010-07-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* configure.bat: New option --enable-checking.
+	* gmake.defs, nmake.defs (CHECKING_CFLAGS): New define.
+	(CFLAGS): Include it.
+
+2010-07-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* config.nt (volatile): Remove definition.
+
+2010-07-07  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* config.nt (HAVE_BCOPY, HAVE_BCMP): Remove undefs.
+	(HAVE_MEMCPY, HAVE_MEMMOVE, HAVE_MEMSET, HAVE_MEMCMP): Add undefs.
+
+2010-07-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt (__P): Remove.
+
+2010-06-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* config.nt: Remove code depending on BSTRING.
+
+2010-06-03  Glenn Morris  <rgm@gnu.org>
+
+	* config.nt: Remove NOT_C_CODE tests, it is always true now.
+
+2010-05-13  Glenn Morris  <rgm@gnu.org>
+
+	* config.nt (LD_SWITCH_X_SITE, C_SWITCH_X_SITE): Remove undefs.
+
+2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.2 released.
+
 2010-05-04  Glenn Morris  <rgm@gnu.org>
 
 	* config.nt (LD_SWITCH_X_SITE_AUX): Remove.
@@ -55,8 +405,8 @@
 
 2009-01-26  Jason Rumney  <jasonr@gnu.org>
 
-	* emacsclient.rc, emacs.rc: Swap name and description.  Remove
-	Windows versions.
+	* emacsclient.rc, emacs.rc: Swap name and description.
+	Remove Windows versions.
 
 2009-01-15  Jason Rumney  <jasonr@gnu.org>
 
@@ -108,7 +458,7 @@
 	* config.nt (HAVE_FACES): Remove, unused.
 
 2008-06-26  Juanma Barranquero  <lekktu@gmail.com>
-	    Eli Zaretskii  <eliz@gnu.org>
+            Eli Zaretskii  <eliz@gnu.org>
 
 	* nmake.defs (FONT_CFLAGS):
 	* gmake.defs (FONT_CFLAGS): Remove.
@@ -124,7 +474,7 @@
 	* config.nt: Remove reference to UNEXEC_SRC.
 
 2008-06-23  Juanma Barranquero  <lekktu@gmail.com>
-	    Eli Zaretskii  <eliz@gnu.org>
+            Eli Zaretskii  <eliz@gnu.org>
 
 	* gmake.defs (DEBUG_FLAG, DEBUG_LINK) [!NODEBUG]:
 	Don't hardcode -gstabs+, use DEBUG_INFO.
@@ -1759,8 +2109,7 @@
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2001, 2002, 2003, 2004,
-       2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+  Copyright (C) 1995-1999, 2001-2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -1776,5 +2125,3 @@
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
-;;; arch-tag: b3d2c29c-04a0-45d0-b52d-57354711c414

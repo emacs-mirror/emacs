@@ -1,6 +1,6 @@
 ;;; longlines.el --- automatically wrap long lines   -*- coding:utf-8 -*-
 
-;; Copyright (C) 2000, 2001, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2001, 2004-2011 Free Software Foundation, Inc.
 
 ;; Authors:    Kai Grossjohann <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 ;;             Alex Schroeder <alex@gnu.org>
@@ -370,7 +370,7 @@ If BEG and END are nil, the point and mark are used."
   "Turn all newlines in the buffer into hard newlines."
   (longlines-decode-region (point-min) (point-max)))
 
-(defun longlines-encode-region (beg end &optional buffer)
+(defun longlines-encode-region (beg end &optional _buffer)
   "Replace each soft newline between BEG and END with exactly one space.
 Hard newlines are left intact.  The optional argument BUFFER exists for
 compatibility with `format-alist', and is ignored."
@@ -413,7 +413,7 @@ If automatic line wrapping is turned on, wrap the entire buffer."
     (setq longlines-auto-wrap nil)
     (message "Auto wrap disabled.")))
 
-(defun longlines-after-change-function (beg end len)
+(defun longlines-after-change-function (beg end _len)
   "Update `longlines-wrap-beg' and `longlines-wrap-end'.
 This is called by `after-change-functions' to keep track of the region
 that has changed."
@@ -503,5 +503,4 @@ This is called by `window-configuration-change-hook'."
 
 (provide 'longlines)
 
-;; arch-tag: 3489d225-5506-47b9-8659-d8807b77c624
 ;;; longlines.el ends here

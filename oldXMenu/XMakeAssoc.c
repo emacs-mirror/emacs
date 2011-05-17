@@ -4,34 +4,22 @@
 
 
 #include <config.h>
-#include <X11/Xlib.h>
+#include "XMenuInt.h"
 #include <X11/Xresource.h>
-#include "X10.h"
 #include <errno.h>
 
 #ifndef NULL
 #define NULL 0
 #endif
 
-extern int errno;
-
-void emacs_insque();
-struct qelem {
-	struct    qelem *q_forw;
-	struct    qelem *q_back;
-	char q_data[1];
-};
 /*
  * XMakeAssoc - Insert data into an XAssocTable keyed on an XId.
  * Data is inserted into the table only once.  Redundant inserts are
  * meaningless (but cause no problems).  The queue in each association
  * bucket is sorted (lowest XId to highest XId).
  */
-XMakeAssoc(dpy, table, x_id, data)
-	register Display *dpy;
-	register XAssocTable *table;
-	register XID x_id;
-	register caddr_t data;
+void
+XMakeAssoc(register Display *dpy, register XAssocTable *table, register XID x_id, register void *data)
 {
 	int hash;
 	register XAssoc *bucket;
@@ -89,6 +77,3 @@ XMakeAssoc(dpy, table, x_id, data)
 	/* Insert the new entry. */
 	emacs_insque((struct qelem *)new_entry, (struct qelem *)Entry->prev);
 }
-
-/* arch-tag: d7e3fb8a-f3b3-4c5d-a307-75ca67ec1b49
-   (do not change this comment) */

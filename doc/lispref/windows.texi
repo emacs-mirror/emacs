@@ -1,7 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2011
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/windows
@@ -22,8 +21,8 @@ windows.
 * Buffers and Windows::     Each window displays the contents of a buffer.
 * Displaying Buffers::      Higher-level functions for displaying a buffer
                               and choosing a window for it.
-* Choosing Window::	    How to choose a window for displaying a buffer.
-* Dedicated Windows::	    How to avoid displaying another buffer in
+* Choosing Window::         How to choose a window for displaying a buffer.
+* Dedicated Windows::       How to avoid displaying another buffer in
                               a specific window.
 * Window Point::            Each window has its own location of point.
 * Window Start and End::    Buffer positions indicating which text is
@@ -1015,7 +1014,7 @@ a window only if the space taken up by that window can accommodate two
 windows one above the other that are both at least
 @code{window-min-height} lines tall.  Moreover, if the window that shall
 be split has a mode line, @code{split-window-sensibly} does not split
-the window unless the new window can accomodate a mode line too.
+the window unless the new window can accommodate a mode line too.
 @end defopt
 
 @defopt split-width-threshold
@@ -1661,8 +1660,8 @@ point should be placed from the bottom of the window; thus, as with
 @end defopt
 
 @defopt scroll-step
-This variable is an older variant of @code{scroll-conservatively}.  The
-difference is that it if its value is @var{n}, that permits scrolling
+This variable is an older variant of @code{scroll-conservatively}.
+The difference is that if its value is @var{n}, that permits scrolling
 only by precisely @var{n} lines, not a smaller number.  This feature
 does not work with @code{scroll-margin}.  The default value is zero.
 @end defopt
@@ -2607,7 +2606,3 @@ frame selected.
 Lock fontification function, which will be called whenever parts of a
 buffer are (re)fontified because a window was scrolled or its size
 changed.  @xref{Other Font Lock Variables}.
-
-@ignore
-   arch-tag: 3f6c36e8-df49-4986-b757-417feed88be3
-@end ignore

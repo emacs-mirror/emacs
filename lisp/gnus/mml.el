@@ -1,7 +1,6 @@
 ;;; mml.el --- A package for parsing and validating MML documents
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -23,7 +22,7 @@
 
 ;;; Code:
 
-;; For Emacs < 22.2.
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 
@@ -40,6 +39,7 @@
 (autoload 'message-make-message-id "message")
 (declare-function gnus-setup-posting-charset "gnus-msg" (group))
 (autoload 'gnus-make-local-hook "gnus-util")
+(autoload 'gnus-completing-read "gnus-util")
 (autoload 'message-fetch-field "message")
 (autoload 'message-mark-active-p "message")
 (autoload 'message-info "message")
@@ -120,10 +120,18 @@ match found will be used."
 			  ,dispositions))))
   :group 'message)
 
-(defcustom mml-insert-mime-headers-always nil
+(defcustom mml-insert-mime-headers-always t
   "If non-nil, always put Content-Type: text/plain at top of empty parts.
 It is necessary to work against a bug in certain clients."
-  :version "22.1"
+  :version "24.1"
+  :type 'boolean
+  :group 'message)
+
+(defcustom mml-enable-flowed t
+  "If non-nil, enable format=flowed usage when encoding a message.
+This is only performed when filling on text/plain with hard
+newlines in the text."
+  :version "24.1"
   :type 'boolean
   :group 'message)
 
@@ -228,7 +236,10 @@ part.  This is for the internal use, you should never modify the value.")
 	(let* (secure-mode
 	       (taginfo (mml-read-tag))
 	       (keyfile (cdr (assq 'keyfile taginfo)))
-	       (certfile (cdr (assq 'certfile taginfo)))
+	       (certfiles (delq nil (mapcar (lambda (tag)
+					      (if (eq (car-safe tag) 'certfile)
+						  (cdr tag)))
+					    taginfo)))
 	       (recipients (cdr (assq 'recipients taginfo)))
 	       (sender (cdr (assq 'sender taginfo)))
 	       (location (cdr (assq 'tag-location taginfo)))
@@ -254,8 +265,10 @@ part.  This is for the internal use, you should never modify the value.")
 				 ,@tags
 				 ,(if keyfile "keyfile")
 				 ,keyfile
-				 ,(if certfile "certfile")
-				 ,certfile
+				 ,@(apply #'append
+					  (mapcar (lambda (certfile)
+						    (list "certfile" certfile))
+						  certfiles))
 				 ,(if recipients "recipients")
 				 ,recipients
 				 ,(if sender "sender")
@@ -540,7 +553,8 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 		    ;; in the mml tag or it says "flowed" and there
 		    ;; actually are hard newlines in the text.
 		    (let (use-hard-newlines)
-		      (when (and (string= type "text/plain")
+		      (when (and mml-enable-flowed
+                                 (string= type "text/plain")
 				 (not (string= (cdr (assq 'sign cont)) "pgp"))
 				 (or (null (assq 'format cont))
 				     (string= (cdr (assq 'format cont))
@@ -1183,9 +1197,10 @@ If not set, `default-directory' will be used."
 		      ;; looks like, and offer text/plain if it looks
 		      ;; like text/plain.
 		      "application/octet-stream"))
-	 (string (completing-read
-		  (format "Content type (default %s): " default)
-		  (mapcar 'list (mailcap-mime-types)))))
+	 (string (gnus-completing-read
+		  "Content type"
+		  (mailcap-mime-types)
+                  nil nil nil default)))
     (if (not (equal string ""))
 	string
       default)))
@@ -1199,10 +1214,10 @@ If not set, `default-directory' will be used."
 (defun mml-minibuffer-read-disposition (type &optional default filename)
   (unless default
     (setq default (mml-content-disposition type filename)))
-  (let ((disposition (completing-read
-		      (format "Disposition (default %s): " default)
-		      '(("attachment") ("inline") (""))
-		      nil t nil nil default)))
+  (let ((disposition (gnus-completing-read
+		      "Disposition"
+		      '("attachment" "inline")
+		      t nil nil default)))
     (if (not (equal disposition ""))
 	disposition
       default)))
@@ -1390,11 +1405,11 @@ TYPE is the MIME type to use."
 
 (defun mml-insert-multipart (&optional type)
   (interactive (if (message-in-body-p)
-		   (list (completing-read "Multipart type (default mixed): "
-					  '(("mixed") ("alternative")
-					    ("digest") ("parallel")
-					    ("signed") ("encrypted"))
-					  nil nil "mixed"))
+		   (list (gnus-completing-read "Multipart type"
+                                               '("mixed" "alternative"
+                                                 "digest" "parallel"
+                                                 "signed" "encrypted")
+                                               nil "mixed"))
 		 (error "Use this command in the message body")))
   (or type
       (setq type "mixed"))
@@ -1450,6 +1465,7 @@ or the `pop-to-buffer' function."
   (require 'gnus-msg)		      ; for gnus-setup-posting-charset
   (save-excursion
     (let* ((buf (current-buffer))
+	   (article-editing (eq major-mode 'gnus-article-edit-mode))
 	   (message-options message-options)
 	   (message-this-is-mail (message-mail-p))
 	   (message-this-is-news (message-news-p))
@@ -1469,15 +1485,19 @@ or the `pop-to-buffer' function."
       (mml-preview-insert-mail-followup-to)
       (let ((message-deletable-headers (if (message-news-p)
 					   nil
-					 message-deletable-headers)))
+					 message-deletable-headers))
+	    (mail-header-separator (if article-editing
+				       ""
+				     mail-header-separator)))
 	(message-generate-headers
 	 (copy-sequence (if (message-news-p)
 			    message-required-news-headers
-			  message-required-mail-headers))))
-      (if (re-search-forward
-	   (concat "^" (regexp-quote mail-header-separator) "\n") nil t)
-	  (replace-match "\n"))
-      (let ((mail-header-separator ""));; mail-header-separator is removed.
+			  message-required-mail-headers)))
+	(unless article-editing
+	  (if (re-search-forward
+	       (concat "^" (regexp-quote mail-header-separator) "\n") nil t)
+	      (replace-match "\n"))
+	  (setq mail-header-separator ""))
 	(message-sort-headers)
 	(mml-to-mime))
       (if raw
@@ -1488,7 +1508,8 @@ or the `pop-to-buffer' function."
 	      (mm-disable-multibyte)
 	      (insert s)))
 	(let ((gnus-newsgroup-charset (car message-posting-charset))
-	      gnus-article-prepare-hook gnus-original-article-buffer)
+	      gnus-article-prepare-hook gnus-original-article-buffer
+	      gnus-displaying-mime)
 	  (run-hooks 'gnus-article-decode-hook)
 	  (let ((gnus-newsgroup-name "dummy")
 		(gnus-newsrc-hashtb (or gnus-newsrc-hashtb
@@ -1565,5 +1586,4 @@ or the `pop-to-buffer' function."
 
 (provide 'mml)
 
-;; arch-tag: 583c96cf-1ffe-451b-a5e5-4733ae9ddd12
 ;;; mml.el ends here

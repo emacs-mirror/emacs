@@ -1,9 +1,9 @@
 ;;; tai-viet.el --- support for Tai Viet -*- coding: utf-8; no-byte-compile: t -*-
 
-;; Copyright (C) 2007, 2008, 2009, 2010
+;; Copyright (C) 2007-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
-;; Copyright (C) 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Keywords: multilingual, Tai Viet, i18n
 
@@ -37,7 +37,7 @@
 	      (coding-system utf-8)
 	      (coding-priority utf-8)
 	      (input-method . "tai-sonla")
-	      (sample-text . "TaiViet (ꪁꪫꪱꪣ ꪽꪕ)\t\tꪅꪰꪙ꫃ ꪨꪮ꫃ ꪁꪫꪱ / ꪅꪾ ꪨ� ꪁꪫꪱ")
+	      (sample-text . "TaiViet (ꪁꪫꪱꪣ ꪼꪕ)\t\tꪅꪰꪙꫂ ꪨꪮꫂ ꪁꪫꪱ / ꪅꪽ ꪨꪷ ꪁꪫꪱ")
 	      (documentation . "\
 TaiViet refers to the Tai language used by Tai people in
 Vietnam, and also refers to the script used for this language.
@@ -45,15 +45,15 @@ Both the script and language have the same origin as that of Thai
 language/script used in Thailand, but now they differ from each
 other in a significant way (especially the scripts are).
 
-The language name is spelled as \"ꪁꪫꪱꪣ ꪽꪕ\", and the script name is
-spelled as \"ꪎ� ꪽꪕ\" in the modern form, \"ꪎꪴ ꪽꪕ\" in the traditional
-from.
+The language name is spelled as \"ꪁꪫꪱꪣ ꪼꪕ\", and the script name is
+spelled as \"ꪎ ꪼꪕ\" in the modern form, \"ꪎꪳ ꪼꪕ\" in the traditional
+form.
 
 As the proposal for TaiViet script to the Unicode is still on
 the progress, we use the Private Use Area for TaiViet
 characters (U+F000..U+F07E).  A TaiViet font encoded accordingly
 is available at this web page:
-    http://www.m17n.org/TaiViet/
+    http://www.m17n.org/viettai/
 ")))
 
 (provide 'tai-viet)
@@ -61,5 +61,3 @@ is available at this web page:
 ;; Local Variables:
 ;; coding: utf-8
 ;; End:
-
-;; arch-tag: db4e3377-2ba7-47a0-b173-e44420d540c3

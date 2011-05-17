@@ -1,4 +1,4 @@
-# Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+# Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #   National Institute of Advanced Industrial Science and Technology (AIST)
 #   Registration Number H13PRO009
 
@@ -70,4 +70,3 @@ function decode_big5(big5) {
 }
 
 
-# arch-tag: 36f08d21-0d24-4b67-852d-a9a51299586d

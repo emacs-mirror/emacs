@@ -1,9 +1,9 @@
 ;;; rmail-spam-filter.el --- spam filter for Rmail, the Emacs mail reader
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2002-2011  Free Software Foundation, Inc.
 ;; Keywords: email, spam, filter, rmail
 ;; Author: Eli Tziperman <eli AT deas.harvard.edu>
+;; Package: rmail
 
 ;; This file is part of GNU Emacs.
 
@@ -414,7 +414,7 @@ message%s"
     ;; to make sure message-subject is actually evaluated and its value
     ;; substituted.
     (add-to-list 'rsf-definitions-alist
-		 ;; Note that an empty elment is treated the same as
+		 ;; Note that an empty element is treated the same as
 		 ;; an absent one, so why does it bother to add them?
 		 (list '(from . "")
 		       '(to . "")
@@ -554,5 +554,4 @@ checks to see if the old format is used, and updates it if necessary."
 
 (provide 'rmail-spam-filter)
 
-;; arch-tag: 03e1d45d-b72f-4dd7-8f04-e7fd78249746
 ;;; rmail-spam-fitler ends here

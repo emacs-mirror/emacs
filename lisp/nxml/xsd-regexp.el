@@ -1,6 +1,6 @@
 ;;; xsd-regexp.el --- translate W3C XML Schema regexps to Emacs regexps
 
-;; Copyright (C) 2003, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML, regexp
@@ -2117,5 +2117,4 @@ Code is inserted into the current buffer."
 
 (provide 'xsd-regexp)
 
-;; arch-tag: bf990d61-a26c-4fd3-b578-56a5640729da
 ;;; xsd-regexp.el ends here

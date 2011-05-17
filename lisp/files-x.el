@@ -1,10 +1,11 @@
 ;;; files-x.el --- extended file handling commands
 
-;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011 Free Software Foundation, Inc.
 
 ;; Author: Juri Linkov <juri@jurta.org>
 ;; Maintainer: FSF
 ;; Keywords: files
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -298,11 +299,11 @@ from the -*- line ignoring the input argument VALUE."
 	      (or (looking-at "[ \t]*\\([^ \t\n:]+\\)[ \t]*:[ \t]*")
 		  (throw 'exit (message "Malformed -*- line")))
 	      (goto-char (match-end 0))
-	      (let ((key (intern (match-string 1)))
-		    (val (save-restriction
-			   (narrow-to-region (point) end)
-			   (let ((read-circle nil))
-			     (read (current-buffer))))))
+	      (let ((key (intern (match-string 1))))
+                (save-restriction
+                  (narrow-to-region (point) end)
+                  (let ((read-circle nil))
+                    (read (current-buffer))))
 		(skip-chars-forward " \t;")
 		(when (eq key variable)
 		  (delete-region (match-beginning 0) (point))
@@ -343,6 +344,8 @@ then this function adds it."
    (list (read-file-local-variable "Delete -*- file-local variable")))
   (modify-file-local-variable-prop-line variable nil 'delete))
 
+(defvar auto-insert) ; from autoinsert.el
+
 (defun modify-dir-local-variable (mode variable value op)
   "Modify directory-local VARIABLE in .dir-locals.el depending on operation OP.
 
@@ -359,18 +362,28 @@ from the MODE alist ignoring the input argument VALUE."
   (catch 'exit
     (unless enable-local-variables
       (throw 'exit (message "Directory-local variables are disabled")))
-
     (let ((variables-file (or (and (buffer-file-name)
 				   (not (file-remote-p (buffer-file-name)))
 				   (dir-locals-find-file (buffer-file-name)))
 			      dir-locals-file))
 	  variables)
-
+      (if (consp variables-file)	; result from cache
+	  ;; If cache element has an mtime, assume it came from a file.
+	  ;; Otherwise, assume it was set directly.
+	  (setq variables-file (if (nth 2 variables-file)
+				   (expand-file-name dir-locals-file
+						     (car variables-file))
+				 (cadr variables-file))))
+      ;; I can't be bothered to handle this case right now.
+      ;; Dir locals were set directly from a class.  You need to
+      ;; directly modify the class in dir-locals-class-alist.
+      (and variables-file (not (stringp variables-file))
+	   (throw 'exit (message "Directory locals were not set from a file")))
       ;; Don't create ".dir-locals.el" for the deletion operation.
-      (when (and (eq op 'delete)
-		 (not (file-exists-p variables-file)))
-	(throw 'exit (message "File .dir-locals.el not found")))
-
+      (and (eq op 'delete)
+	   (or (not variables-file)
+	       (not (file-exists-p variables-file)))
+	   (throw 'exit (message "No .dir-locals.el file was found")))
       (let ((auto-insert nil))
 	(find-file variables-file))
       (widen)
@@ -460,5 +473,4 @@ from the MODE alist ignoring the input argument VALUE."
 
 (provide 'files-x)
 
-;; arch-tag: 949d263c-30a8-4b49-af26-cda97c7c5477
 ;;; files-x.el ends here

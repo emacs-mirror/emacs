@@ -1,7 +1,6 @@
 ;;; gnus-dired.el --- utility functions where gnus and dired meet
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2001-2011  Free Software Foundation, Inc.
 
 ;; Authors: Benjamin Rutt <brutt@bloomington.in.us>,
 ;;          Shenghuo Zhu <zsh@cs.rochester.edu>
@@ -87,6 +86,12 @@ See `mail-user-agent' for more information."
 			       gnus-user-agent)
 		(function :tag "Other")))
 
+(eval-when-compile
+  (when (featurep 'xemacs)
+    (defvar gnus-dired-mode-hook)
+    (defvar gnus-dired-mode-on-hook)
+    (defvar gnus-dired-mode-off-hook)))
+
 (define-minor-mode gnus-dired-mode
   "Minor mode for intersections of gnus and dired.
 
@@ -116,6 +121,8 @@ See `mail-user-agent' for more information."
 	    (push (buffer-name buffer) buffers))))
       (nreverse buffers))))
 
+(autoload 'gnus-completing-read "gnus-util")
+
 ;; Method to attach files to a mail composition.
 (defun gnus-dired-attach (files-to-attach)
   "Attach dired's marked files to a gnus message composition.
@@ -127,7 +134,9 @@ filenames."
 	  (mapcar
 	   ;; don't attach directories
 	   (lambda (f) (if (file-directory-p f) nil f))
-	   (nreverse (dired-map-over-marks (dired-get-filename) nil))))))
+	   (nreverse
+	    (let ((arg nil)) ;; Silence XEmacs 21.5 when compiling.
+	      (dired-map-over-marks (dired-get-filename) arg)))))))
   (let ((destination nil)
 	(files-str nil)
 	(bufs nil))
@@ -146,12 +155,8 @@ filenames."
 	  (setq destination
 		(if (= (length bufs) 1)
 		    (get-buffer (car bufs))
-		  (completing-read "Attach to which mail composition buffer: "
-				   (mapcar
-				    (lambda (b)
-				      (cons b (get-buffer b)))
-				    bufs)
-				   nil t)))
+		  (gnus-completing-read "Attach to which mail composition buffer"
+                                         bufs t)))
 	;; setup a new mail composition buffer
 	(let ((mail-user-agent gnus-dired-mail-mode)
 	      ;; A workaround to prevent Gnus from displaying the Gnus
@@ -198,7 +203,7 @@ If ARG is non-nil, open it in a new buffer."
 		  (setq method
 			(cdr (assoc 'viewer
 				    (car (mailcap-mime-info mime-type
-							    'all 
+							    'all
 							    'no-decode)))))))
 	    (let ((view-command (mm-mailcap-command method file-name nil)))
 	      (message "viewing via %s" view-command)
@@ -255,5 +260,4 @@ file to save in."
 
 (provide 'gnus-dired)
 
-;; arch-tag: 44737731-e445-4638-a31e-713c7590ec76
 ;;; gnus-dired.el ends here

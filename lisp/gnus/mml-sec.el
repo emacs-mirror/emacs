@@ -1,7 +1,6 @@
 ;;; mml-sec.el --- A package with security functions for MML documents
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2011 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 
@@ -380,5 +379,4 @@ If called with a prefix argument, only encrypt (do NOT sign)."
 
 (provide 'mml-sec)
 
-;; arch-tag: 111c56e7-df5e-4287-87d7-93ed2911ec6c
 ;;; mml-sec.el ends here

@@ -1,7 +1,6 @@
 ;;; eudc.el --- Emacs Unified Directory Client
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011  Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;; Maintainer: Pavel Janík <Pavel@Janik.cz>
@@ -830,10 +829,7 @@ see `eudc-inline-expansion-servers'"
   (let* ((end (point))
 	 (beg (save-excursion
 		(if (re-search-backward "\\([:,]\\|^\\)[ \t]*"
-					(save-excursion
-					  (beginning-of-line)
-					  (point))
-					'move)
+					(point-at-bol) 'move)
 		    (goto-char (match-end 0)))
 		(point)))
 	 (query-words (split-string (buffer-substring beg end) "[ \t]+"))
@@ -1295,5 +1291,4 @@ This does nothing except loading eudc by autoload side-effect."
 
 (provide 'eudc)
 
-;; arch-tag: e18872b6-db83-400b-869d-be54e9a4160c
 ;;; eudc.el ends here

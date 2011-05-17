@@ -1,13 +1,12 @@
 ;; idlwave.el --- IDL editing mode for GNU Emacs
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Authors: J.D. Smith <jdsmith@as.arizona.edu>
 ;;          Carsten Dominik <dominik@science.uva.nl>
 ;;          Chris Chase <chase@att.com>
 ;; Maintainer: J.D. Smith <jdsmith@as.arizona.edu>
-;; Version: 6.1_em22
+;; Version: 6.1.22
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.
@@ -429,7 +428,7 @@ path \(the value of !PATH).  However, under Windows and MacOS
 variable can be set to specify the paths where IDLWAVE can find PRO
 files.  The shell will only be asked for a list of paths when this
 variable is nil.  The value is a list of directories.  A directory
-preceeded by a `+' will be searched recursively.  If you set this
+preceded by a `+' will be searched recursively.  If you set this
 variable on a UNIX system, the shell will not be queried.  See also
 `idlwave-system-directory'."
   :group 'idlwave-routine-info
@@ -1198,7 +1197,7 @@ As a user, you should not set this to t.")
 	  (2 font-lock-function-name-face)))
 
        ;; Keyword parameters, like /xlog or ,xrange=[]
-       ;; This is anchored to the comma preceeding the keyword.
+       ;; This is anchored to the comma preceding the keyword.
        ;; Treats continuation lines, works only during whole buffer
        ;; fontification.  Slow, use it only in fancy fontification.
        (keyword-parameters
@@ -1602,7 +1601,7 @@ Capitalize system variables - action only
         `(lambda ()
            (interactive)
            (self-insert-command 1)
-           ,@(if (listp cmd) cmd (list cmd))))))
+           ,(if (listp cmd) cmd (list cmd))))))
 
 ;; Set action and key bindings.
 ;; See description of the function `idlwave-action-and-binding'.
@@ -1776,7 +1775,7 @@ If NOPREFIX is non-nil, don't prepend prefix character.  Installs into
 (defvar idlwave-mode-debug-menu)
 
 ;;;###autoload
-(defun idlwave-mode ()
+(define-derived-mode idlwave-mode prog-mode "IDLWAVE"
   "Major mode for editing IDL source files (version 6.1_em22).
 
 The main features of this mode are
@@ -1895,21 +1894,15 @@ The main features of this mode are
    followed by the key sequence to see what the key sequence does.
 
 \\{idlwave-mode-map}"
-
-  (interactive)
-  (kill-all-local-variables)
-
+  :abbrev-table idlwave-mode-abbrev-table
   (if idlwave-startup-message
       (message "Emacs IDLWAVE mode version %s." idlwave-mode-version))
   (setq idlwave-startup-message nil)
 
-  (setq local-abbrev-table idlwave-mode-abbrev-table)
-  (set-syntax-table idlwave-mode-syntax-table)
-
   (set (make-local-variable 'indent-line-function) 'idlwave-indent-and-action)
 
-  (make-local-variable idlwave-comment-indent-function)
-  (set idlwave-comment-indent-function 'idlwave-comment-hook)
+  (set (make-local-variable idlwave-comment-indent-function)
+       #'idlwave-comment-hook)
 
   (set (make-local-variable 'comment-start-skip) ";+[ \t]*")
   (set (make-local-variable 'comment-start) ";")
@@ -1919,14 +1912,10 @@ The main features of this mode are
   (set (make-local-variable 'indent-tabs-mode) nil)
   (set (make-local-variable 'completion-ignore-case) t)
 
-  (use-local-map idlwave-mode-map)
-
   (when (featurep 'easymenu)
     (easy-menu-add idlwave-mode-menu idlwave-mode-map)
     (easy-menu-add idlwave-mode-debug-menu idlwave-mode-map))
 
-  (setq mode-name "IDLWAVE")
-  (setq major-mode 'idlwave-mode)
   (setq abbrev-mode t)
 
   (set (make-local-variable idlwave-fill-function) 'idlwave-auto-fill)
@@ -1991,10 +1980,7 @@ The main features of this mode are
   (idlwave-new-buffer-update)
 
   ;; Check help location
-  (idlwave-help-check-locations)
-
-  ;; Run the mode hook
-  (run-mode-hooks 'idlwave-mode-hook))
+  (idlwave-help-check-locations))
 
 (defvar idlwave-setup-done nil)
 (defun idlwave-setup ()
@@ -2097,7 +2083,7 @@ Returns non-nil if abbrev is left expanded."
 Moves to end of line if there is no comment delimiter.
 Ignores comment delimiters in strings.
 Returns point if comment found and nil otherwise."
-  (let ((eos (progn (end-of-line) (point)))
+  (let ((eos (point-at-eol))
         (data (match-data))
         found)
     ;; Look for first comment delimiter not in a string
@@ -2152,7 +2138,7 @@ Also checks if the correct END statement has been used."
   ;;(backward-char 1)
   (let* ((pos (point-marker))
 	 (last-abbrev-marker (copy-marker last-abbrev-location))
-	 (eol-pos (save-excursion (end-of-line) (point)))
+	 (eol-pos (point-at-eol))
 	 begin-pos end-pos end end1 )
     (if idlwave-reindent-end  (idlwave-indent-line))
     (setq last-abbrev-location (marker-position last-abbrev-marker))
@@ -2543,7 +2529,7 @@ Point is placed at the beginning of the line whether or not this is an
 actual statement."
   (interactive)
   (cond
-   ((eq major-mode 'idlwave-shell-mode)
+   ((derived-mode-p 'idlwave-shell-mode)
     (if (re-search-backward idlwave-shell-prompt-pattern nil t)
 	(goto-char (match-end 0))))
    (t
@@ -3301,10 +3287,8 @@ ignored."
         (setq here (point))
         (beginning-of-line)
         (setq bcl (point))
-        (re-search-forward
-         (concat "^[ \t]*" comment-start "+")
-         (save-excursion (end-of-line) (point))
-         t)
+        (re-search-forward (concat "^[ \t]*" comment-start "+")
+			   (point-at-eol) t)
         ;; Get the comment leader on the line and its length
         (setq pre (current-column))
         ;; the comment leader is the indentation plus exactly the
@@ -3312,10 +3296,7 @@ ignored."
         (setq fill-prefix-reg
               (concat
                (setq fill-prefix
-                     (regexp-quote
-                      (buffer-substring (save-excursion
-                                          (beginning-of-line) (point))
-                                        (point))))
+                     (regexp-quote (buffer-substring (point-at-bol) (point))))
                "[^;]"))
 
         ;; Mark the beginning and end of the paragraph
@@ -3369,9 +3350,7 @@ ignored."
               (setq indent hang)
               (beginning-of-line)
               (while (> (point) start)
-                (re-search-forward comment-start-skip
-                                   (save-excursion (end-of-line) (point))
-                                   t)
+                (re-search-forward comment-start-skip (point-at-eol) t)
                 (if (> (setq diff (- indent (current-column))) 0)
                     (progn
                       (if (>= here (point))
@@ -3393,13 +3372,9 @@ ignored."
             (setq indent
                   (min indent
                        (progn
-                         (re-search-forward
-                          comment-start-skip
-                          (save-excursion (end-of-line) (point))
-                          t)
+                         (re-search-forward comment-start-skip (point-at-eol) t)
                          (current-column))))
-            (forward-line -1))
-          )
+            (forward-line -1)))
         (setq fill-prefix (concat fill-prefix
                                   (make-string (- indent pre)
                                                ?\ )))
@@ -3407,10 +3382,7 @@ ignored."
         (setq first-indent
               (max
                (progn
-                 (re-search-forward
-                  comment-start-skip
-                  (save-excursion (end-of-line) (point))
-                  t)
+                 (re-search-forward comment-start-skip (point-at-eol) t)
                  (current-column))
                indent))
 
@@ -3448,17 +3420,11 @@ If not found returns nil."
   (if idlwave-use-last-hang-indent
       (save-excursion
         (end-of-line)
-        (if (re-search-backward
-             idlwave-hang-indent-regexp
-             (save-excursion (beginning-of-line) (point))
-             t)
+        (if (re-search-backward idlwave-hang-indent-regexp (point-at-bol) t)
             (+ (current-column) (length idlwave-hang-indent-regexp))))
     (save-excursion
       (beginning-of-line)
-      (if (re-search-forward
-           idlwave-hang-indent-regexp
-           (save-excursion (end-of-line) (point))
-           t)
+      (if (re-search-forward idlwave-hang-indent-regexp (point-at-eol) t)
           (current-column)))))
 
 (defun idlwave-auto-fill ()
@@ -3502,18 +3468,14 @@ if `idlwave-auto-fill-split-string' is non-nil."
 			 (save-excursion
 			   (forward-line -1)
 			   (idlwave-calc-hanging-indent))))
-		    (if indent
-			(progn
-			  ;; Remove whitespace between comment delimiter and
-			  ;; text, insert spaces for appropriate indentation.
-			  (beginning-of-line)
-			  (re-search-forward
-			   comment-start-skip
-			   (save-excursion (end-of-line) (point)) t)
-			  (delete-horizontal-space)
-			  (idlwave-indent-to indent)
-			  (goto-char (- (point-max) here)))
-		      )))
+		    (when indent
+		      ;; Remove whitespace between comment delimiter and
+		      ;; text, insert spaces for appropriate indentation.
+		      (beginning-of-line)
+		      (re-search-forward comment-start-skip (point-at-eol) t)
+		      (delete-horizontal-space)
+		      (idlwave-indent-to indent)
+		      (goto-char (- (point-max) here)))))
 	    ;; Split code or comment?
 	    (if (save-excursion
 		  (end-of-line 0)
@@ -3689,7 +3651,7 @@ constants - a double quote followed by an octal digit."
     ;; Because single and double quotes can quote each other we must
     ;; search for the string start from the beginning of line.
     (let* ((start (point))
-           (eol (progn (end-of-line) (point)))
+           (eol (point-at-eol))
            (bq (progn (beginning-of-line) (point)))
            (endq (point))
            (data (match-data))
@@ -3756,7 +3718,7 @@ expression to enter.
 
 The lines containing S1 and S2 are reindented using `indent-region'
 unless the optional second argument NOINDENT is non-nil."
-  (if (eq major-mode 'idlwave-shell-mode)
+  (if (derived-mode-p 'idlwave-shell-mode)
       ;; This is a gross hack to avoit template abbrev expansion
       ;; in the shell.  FIXME: This is a dirty hack.
       (if (and (eq this-command 'self-insert-command)
@@ -3767,7 +3729,7 @@ unless the optional second argument NOINDENT is non-nil."
 	   (setq s1 (downcase s1) s2 (downcase s2)))
 	  (idlwave-abbrev-change-case
 	   (setq s1 (upcase s1) s2 (upcase s2))))
-    (let ((beg (save-excursion (beginning-of-line) (point)))
+    (let ((beg (point-at-bol))
 	  end)
       (if (not (looking-at "\\s-*\n"))
 	  (open-line 1))
@@ -5112,7 +5074,7 @@ Cache to disk for quick recovery."
       (setq res nil))
      (t
       ;; Just scan this buffer
-      (if (eq major-mode 'idlwave-mode)
+      (if (derived-mode-p 'idlwave-mode)
 	  (progn
 	    (message "Scanning current buffer...")
 	    (setq res (idlwave-get-routine-info-from-buffers
@@ -5166,7 +5128,7 @@ Cache to disk for quick recovery."
 (defun idlwave-update-current-buffer-info (why)
   "Update `idlwave-routines' for current buffer.
 Can run from `after-save-hook'."
-  (when (and (eq major-mode 'idlwave-mode)
+  (when (and (derived-mode-p 'idlwave-mode)
 	     (or (eq t idlwave-auto-routine-info-updates)
 		 (memq why idlwave-auto-routine-info-updates))
 	     idlwave-scan-all-buffers-for-routine-info
@@ -5212,7 +5174,7 @@ Can run from `after-save-hook'."
     (save-excursion
       (while (setq buf (pop buffers))
 	(set-buffer buf)
-	(if (and (eq major-mode 'idlwave-mode)
+	(if (and (derived-mode-p 'idlwave-mode)
 		 buffer-file-name)
 	    ;; yes, this buffer has the right mode.
 	    (progn (setq res (condition-case nil
@@ -6911,9 +6873,10 @@ accumulate information on matching completions."
 ;;----------------------------------------------------------------------
 ;;----------------------------------------------------------------------
 ;;----------------------------------------------------------------------
-(defvar rtn)
-(defun idlwave-pset (item)
-  (set 'rtn item))
+(when (featurep 'xemacs)
+  (defvar rtn)
+  (defun idlwave-pset (item)
+    (set 'rtn item)))
 
 (defun idlwave-popup-select (ev list title &optional sort)
   "Select an item in LIST with a popup menu.
@@ -7053,7 +7016,7 @@ sort the list before displaying."
   "Call FUNCTION as a completion chooser and pass ARGS to it."
   (let ((completion-ignore-case t))	    ; install correct value
     (apply function args))
-  (if (and (eq major-mode 'idlwave-shell-mode)
+  (if (and (derived-mode-p 'idlwave-shell-mode)
 	   (boundp 'font-lock-mode)
 	   (not font-lock-mode))
       ;; For the shell, remove the fontification of the word before point
@@ -7105,10 +7068,9 @@ If these don't exist, a letter in the string is automatically selected."
         ;; No quick reply: Show help
         (save-window-excursion
           (with-output-to-temp-buffer "*Completions*"
-            (mapcar (lambda(x)
-                      (princ (nth 1 x))
-                      (princ "\n"))
-                    keys-alist))
+	    (dolist (x keys-alist)
+	      (princ (nth 1 x))
+	      (princ "\n")))
           (setq char (read-char)))
       (setq char (read-char)))
     (message nil)
@@ -7454,7 +7416,7 @@ class/struct definition."
 	  ;; Read the file in temporarily
 	  (set-buffer (get-buffer-create " *IDLWAVE-tmp*"))
 	  (erase-buffer)
-	  (unless (eq major-mode 'idlwave-mode)
+	  (unless (derived-mode-p 'idlwave-mode)
 	    (idlwave-mode))
 	  (insert-file-contents file))
 	(save-excursion
@@ -7682,8 +7644,7 @@ property indicating the link is added."
 	     t)) ; return t to skip other completions
 	  (t nil))))
 
-(defvar link) ;dynamic variables set by help callback
-(defvar props)
+(defvar idlw-help-link) ;dynamic variables set by help callback
 (defun idlwave-complete-sysvar-help (mode word)
   (let ((word (or (nth 1 idlwave-completion-help-info) word))
 	(entry (assoc word idlwave-system-variables-alist)))
@@ -7691,7 +7652,8 @@ property indicating the link is added."
      ((eq mode 'test)
       (and (stringp word) entry (nth 1 (assq 'link entry))))
      ((eq mode 'set)
-      (if entry (setq link (nth 1 (assq 'link entry))))) ;; setting dynamic!!!
+      ;; Setting dynamic!!!
+      (if entry (setq idlw-help-link (nth 1 (assq 'link entry)))))
      (t (error "This should not happen")))))
 
 (defun idlwave-complete-sysvar-tag-help (mode word)
@@ -7705,10 +7667,10 @@ property indicating the link is added."
       (and (stringp word) entry main))
      ((eq mode 'set)
       (if entry
-	  (setq link
+	  (setq idlw-help-link
 		(if (setq target (cdr (assoc-string word tags t)))
-		  (idlwave-substitute-link-target main target)
-		main)))) ;; setting dynamic!!!
+		    (idlwave-substitute-link-target main target)
+		  main)))) ;; setting dynamic!!!
      (t (error "This should not happen")))))
 
 (defun idlwave-split-link-target (link)
@@ -7728,9 +7690,10 @@ property indicating the link is added."
       link)))
 
 ;; Fake help in the source buffer for class structure tags.
-;; KWD AND NAME ARE GLOBAL-VARIABLES HERE.
-(defvar name)
-(defvar kwd)
+;; IDLW-HELP-LINK AND IDLW-HELP-NAME ARE GLOBAL-VARIABLES HERE.
+;; (from idlwave-do-mouse-completion-help)
+(defvar idlw-help-name)
+(defvar idlw-help-link)
 (defvar idlwave-help-do-class-struct-tag nil)
 (defun idlwave-complete-class-structure-tag-help (mode word)
   (cond
@@ -7746,9 +7709,9 @@ property indicating the link is added."
 		  idlwave-system-class-info)
 	    (error "No help available for system class tags"))
 	(if (setq found-in (idlwave-class-found-in class-with))
-	    (setq name (cons (concat found-in "__define") class-with))
-	  (setq name (concat class-with "__define")))))
-    (setq kwd word
+	    (setq idlw-help-name (cons (concat found-in "__define") class-with))
+	  (setq idlw-help-name (concat class-with "__define")))))
+    (setq idlw-help-link word
 	  idlwave-help-do-class-struct-tag t))
    (t (error "This should not happen"))))
 
@@ -8205,8 +8168,7 @@ demand _EXTRA in the keyword list."
     ;; If this is the OBJ_NEW function, try to figure out the class and use
     ;; the keywords from the corresponding INIT method.
     (if (and (equal (upcase name) "OBJ_NEW")
-	     (or (eq major-mode 'idlwave-mode)
-		 (eq major-mode 'idlwave-shell-mode)))
+	     (derived-mode-p 'idlwave-mode 'idlwave-shell-mode))
 	(let* ((bos (save-excursion (idlwave-beginning-of-statement) (point)))
 	       (string (buffer-substring bos (point)))
 	       (case-fold-search t)
@@ -8302,20 +8264,26 @@ If we do not know about MODULE, just return KEYWORD literally."
 	   ;; keyword - return it as it is.
 	   keyword))))
 
-(defvar idlwave-rinfo-mouse-map (make-sparse-keymap))
-(defvar idlwave-rinfo-map (make-sparse-keymap))
-(define-key idlwave-rinfo-mouse-map
-  (if (featurep 'xemacs) [button2] [mouse-2])
-  'idlwave-mouse-active-rinfo)
-(define-key idlwave-rinfo-mouse-map
-  (if (featurep 'xemacs) [(shift button2)] [(shift mouse-2)])
-  'idlwave-mouse-active-rinfo-shift)
-(define-key idlwave-rinfo-mouse-map
-  (if (featurep 'xemacs) [button3] [mouse-3])
-  'idlwave-mouse-active-rinfo-right)
-(define-key idlwave-rinfo-mouse-map " " 'idlwave-active-rinfo-space)
-(define-key idlwave-rinfo-map "q" 'idlwave-quit-help)
-(define-key idlwave-rinfo-mouse-map "q" 'idlwave-quit-help)
+(defvar idlwave-rinfo-mouse-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map
+      (if (featurep 'xemacs) [button2] [mouse-2])
+      'idlwave-mouse-active-rinfo)
+    (define-key map
+      (if (featurep 'xemacs) [(shift button2)] [(shift mouse-2)])
+      'idlwave-mouse-active-rinfo-shift)
+    (define-key map
+      (if (featurep 'xemacs) [button3] [mouse-3])
+      'idlwave-mouse-active-rinfo-right)
+    (define-key map " " 'idlwave-active-rinfo-space)
+    (define-key map "q" 'idlwave-quit-help)
+    map))
+
+(defvar idlwave-rinfo-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "q" 'idlwave-quit-help)
+    map))
+
 (defvar idlwave-popup-source nil)
 (defvar idlwave-rinfo-marker (make-marker))
 
@@ -8656,7 +8624,7 @@ was pressed."
   "List the load path shadows of all routines defined in current buffer."
   (interactive "P")
   (idlwave-routines)
-  (if (eq major-mode 'idlwave-mode)
+  (if (derived-mode-p 'idlwave-mode)
       (idlwave-list-load-path-shadows
        nil (idlwave-update-current-buffer-info 'save-buffer)
        "in current buffer")
@@ -8826,9 +8794,9 @@ the `idlwave-system-routines' list, we omit the latter as
 non-dangerous because many IDL routines are implemented as library
 routines, and may have been scanned."
   (let* ((entry (car entries))
-	 (name (car entry))      ;
+	 (idlwave-twin-name (car entry))      ;
 	 (type (nth 1 entry))    ; Must be bound for
-	 (class (nth 2 entry))   ;  idlwave-routine-twin-compare
+	 (idlwave-twin-class (nth 2 entry)) ;  idlwave-routine-twin-compare
 	 (cnt 0)
 	 source type type-cons file alist syslibp key)
     (while (setq entry (pop entries))
@@ -8870,7 +8838,6 @@ routines, and may have been scanned."
 
 ;; FIXME: Dynamically scoped vars need to use the `idlwave-' prefix.
 ;; (defvar type)
-;; (defvar class)
 (defmacro idlwave-xor (a b)
   `(and (or ,a ,b)
 	(not (and ,a ,b))))
@@ -8903,7 +8870,9 @@ names and path locations."
 (defun idlwave-routine-entry-compare-twins (a b)
   "Compare two routine entries, under the assumption that they are twins.
 This basically calls `idlwave-routine-twin-compare' with the correct args."
-  (let* ((name (car a)) (type (nth 1 a)) (class (nth 2 a)) ; needed outside
+  (let* ((idlwave-twin-name (car a))
+	 (type (nth 1 a))
+	 (idlwave-twin-class (nth 2 a)) ; used in idlwave-routine-twin-compare
 	 (asrc (nth 3 a))
 	 (atype (car asrc))
 	 (bsrc (nth 3 b))
@@ -8916,18 +8885,17 @@ This basically calls `idlwave-routine-twin-compare' with the correct args."
        (list atype afile (list atype)))
      (if (stringp bfile)
 	 (list (file-truename bfile) bfile (list btype))
-       (list btype bfile (list btype))))
-    ))
+       (list btype bfile (list btype))))))
 
 ;; Bound in idlwave-study-twins,idlwave-routine-entry-compare-twins.
-;; FIXME: Dynamically scoped vars need to use the `idlwave-' prefix.
-(defvar class)
+(defvar idlwave-twin-class)
+(defvar idlwave-twin-name)
 
 (defun idlwave-routine-twin-compare (a b)
   "Compare two routine twin entries for sorting.
 In here, A and B are not normal routine info entries, but special
 lists (KEY FILENAME (TYPES...)).
-This expects NAME TYPE CLASS to be bound to the right values."
+This expects NAME TYPE IDLWAVE-TWIN-CLASS to be bound to the right values."
   (let* (;; Dis-assemble entries
 	 (akey (car a))	     (bkey (car b))
 	 (afile (nth 1 a))   (bfile (nth 1 b))
@@ -8959,16 +8927,19 @@ This expects NAME TYPE CLASS to be bound to the right values."
 	 ;; Look at file names
 	 (aname (if (stringp afile) (downcase (file-name-nondirectory afile)) ""))
 	 (bname (if (stringp bfile) (downcase (file-name-nondirectory bfile)) ""))
-	 (fname-re (if class (format "\\`%s__\\(%s\\|define\\)\\.pro\\'"
-				     (regexp-quote (downcase class))
-				     (regexp-quote (downcase name)))
-		     (format "\\`%s\\.pro" (regexp-quote (downcase name)))))
+	 (fname-re (if idlwave-twin-class
+		       (format "\\`%s__\\(%s\\|define\\)\\.pro\\'"
+			       (regexp-quote (downcase idlwave-twin-class))
+			       (regexp-quote (downcase idlwave-twin-name)))
+		     (format "\\`%s\\.pro" (regexp-quote (downcase idlwave-twin-name)))))
 	 ;; Is file name derived from the routine name?
 	 ;; Method file or class definition file?
 	 (anamep (string-match fname-re aname))
-	 (adefp (and class anamep (string= "define" (match-string 1 aname))))
+	 (adefp (and idlwave-twin-class anamep
+		     (string= "define" (match-string 1 aname))))
 	 (bnamep (string-match fname-re bname))
-	 (bdefp (and class bnamep (string= "define" (match-string 1 bname)))))
+	 (bdefp (and idlwave-twin-class bnamep
+		     (string= "define" (match-string 1 bname)))))
 
     ;; Now: follow JD's ideas about sorting.  Looks really simple now,
     ;; doesn't it?  The difficult stuff is hidden above...
@@ -8980,7 +8951,7 @@ This expects NAME TYPE CLASS to be bound to the right values."
      ((idlwave-xor acompp bcompp)      acompp)	; Compiled entries
      ((idlwave-xor apathp bpathp)      apathp)	; Library before non-library
      ((idlwave-xor anamep bnamep)      anamep)	; Correct file names first
-     ((and class anamep bnamep                  ; both file names match ->
+     ((and idlwave-twin-class anamep bnamep     ; both file names match ->
 	   (idlwave-xor adefp bdefp))  bdefp)	; __define after __method
      ((> anpath bnpath)                t)	; Who is first on path?
      (t                                nil))))	; Default
@@ -9341,13 +9312,11 @@ This function was written since `list-abbrevs' looks terrible for IDLWAVE mode."
 	(princ "================================================\n\n")
 	(princ (format fmt "KEY" "ACTION" ""))
 	(princ (format fmt "---" "------" "")))
-      (mapcar
-       (lambda (list)
-	 (setq str (car list)
-	       rpl (nth 1 list)
-	       func (nth 2 list))
-	 (princ (format fmt str rpl func)))
-       abbrevs)))
+      (dolist (list abbrevs)
+	(setq str (car list)
+	      rpl (nth 1 list)
+	      func (nth 2 list))
+	(princ (format fmt str rpl func)))))
   ;; Make sure each abbreviation uses only one display line
   (with-current-buffer "*Help*"
     (setq truncate-lines t)))
@@ -9364,5 +9333,4 @@ This function was written since `list-abbrevs' looks terrible for IDLWAVE mode."
 
 (provide 'idlwave)
 
-;; arch-tag: f77f3b0c-c37c-424f-a328-0886fd42b6fb
 ;;; idlwave.el ends here

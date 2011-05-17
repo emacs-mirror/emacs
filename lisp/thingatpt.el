@@ -1,8 +1,6 @@
 ;;; thingatpt.el --- get the `thing' at point
 
-;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 2000,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1991-1998, 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Mike Williams <mikew@gopher.dosli.govt.nz>
 ;; Maintainer: FSF
@@ -91,18 +89,19 @@ of the textual entity that was found."
              (or (get thing 'beginning-op)
                  (lambda () (forward-thing thing -1))))
 	    (let ((beg (point)))
-	      (if (not (and beg (> beg orig)))
+	      (if (<= beg orig)
 		  ;; If that brings us all the way back to ORIG,
 		  ;; it worked.  But END may not be the real end.
 		  ;; So find the real end that corresponds to BEG.
+                  ;; FIXME: in which cases can `real-end' differ from `end'?
 		  (let ((real-end
 			 (progn
 			   (funcall
 			    (or (get thing 'end-op)
                                 (lambda () (forward-thing thing 1))))
 			   (point))))
-		    (if (and beg real-end (<= beg orig) (<= orig real-end))
-			(cons beg real-end)))
+		    (when (and (<= orig real-end) (< beg real-end))
+                      (cons beg real-end)))
 		(goto-char orig)
 		;; Try a second time, moving backward first and then forward,
 		;; so that we can find a thing that ends at ORIG.
@@ -119,7 +118,7 @@ of the textual entity that was found."
 			  (or (get thing 'beginning-op)
                               (lambda () (forward-thing thing -1))))
 			 (point))))
-		  (if (and real-beg end (<= real-beg orig) (<= orig end))
+		  (if (and (<= real-beg orig) (<= orig end) (< real-beg end))
 		      (cons real-beg end))))))
 	(error nil)))))
 
@@ -208,6 +207,12 @@ a symbol as a valid THING."
 	      (if (>= opoint (point))
 		  (cons opoint end))))
 	(error nil)))))
+
+;; Defuns
+
+(put 'defun 'beginning-op 'beginning-of-defun)
+(put 'defun 'end-op       'end-of-defun)
+(put 'defun 'forward-op   'end-of-defun)
 
 ;;  Filenames and URLs  www.com/foo%32bar
 
@@ -472,5 +477,4 @@ Signal an error if the entire string was not used."
   "Return the Lisp list at point, or nil if none is found."
   (form-at-point 'list 'listp))
 
-;; arch-tag: bb65a163-dae2-4055-aedc-fe11f497f698
 ;;; thingatpt.el ends here

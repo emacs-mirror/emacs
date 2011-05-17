@@ -1,7 +1,6 @@
 ;;; gnus-cite.el --- parse citations in articles for Gnus
 
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2011 Free Software Foundation, Inc.
 
 ;; Author: Per Abhiddenware
 
@@ -407,9 +406,7 @@ lines matches `message-cite-prefix-regexp' with the same prefix.
 Lines matching `gnus-cite-attribution-suffix' and perhaps
 `gnus-cite-attribution-prefix' are considered attribution lines."
   (interactive (list 'force))
-  (save-excursion
-    (unless same-buffer
-      (set-buffer gnus-article-buffer))
+  (with-current-buffer (if same-buffer (current-buffer) gnus-article-buffer)
     (gnus-cite-parse-maybe force)
     (let ((buffer-read-only nil)
 	  (alist gnus-cite-prefix-alist)
@@ -462,8 +459,7 @@ Lines matching `gnus-cite-attribution-suffix' and perhaps
 
 (defun gnus-dissect-cited-text ()
   "Dissect the article buffer looking for cited text."
-  (save-excursion
-    (set-buffer gnus-article-buffer)
+  (with-current-buffer gnus-article-buffer
     (gnus-cite-parse-maybe nil t)
     (let ((alist gnus-cite-prefix-alist)
 	  prefix numbers number marks m)
@@ -519,12 +515,16 @@ Lines matching `gnus-cite-attribution-suffix' and perhaps
 	    (setq m (cdr m))))
 	marks))))
 
-(defun gnus-article-fill-cited-article (&optional force width)
+(defun gnus-article-fill-cited-long-lines ()
+  (gnus-article-fill-cited-article nil t))
+
+(defun gnus-article-fill-cited-article (&optional width long-lines)
   "Do word wrapping in the current article.
-If WIDTH (the numerical prefix), use that text width when filling."
-  (interactive (list t current-prefix-arg))
-  (save-excursion
-    (set-buffer gnus-article-buffer)
+If WIDTH (the numerical prefix), use that text width when
+filling.  If LONG-LINES, only fill sections that have lines
+longer than the frame width."
+  (interactive "P")
+  (with-current-buffer gnus-article-buffer
     (let ((buffer-read-only nil)
 	  (inhibit-point-motion-hooks t)
 	  (marks (gnus-dissect-cited-text))
@@ -539,8 +539,24 @@ If WIDTH (the numerical prefix), use that text width when filling."
 		(fill-prefix
 		 (if (string= (cdar marks) "") ""
 		   (concat (cdar marks) " ")))
+		(do-fill (not long-lines))
 		use-hard-newlines)
-	    (fill-region (point-min) (point-max)))
+	    (unless do-fill
+	      (setq do-fill (gnus-article-foldable-buffer (cdar marks))))
+	    ;; Note: the XEmacs version of `fill-region' inserts a newline
+	    ;; unless the region ends with a newline.
+	    (when do-fill
+	      (if (not long-lines)
+		  (fill-region (point-min) (point-max))
+		(goto-char (point-min))
+		(while (not (eobp))
+		  (end-of-line)
+		  (when (prog1
+			    (> (current-column) (window-width))
+			  (forward-line 1))
+		    (save-restriction
+		      (narrow-to-region (line-beginning-position 0) (point))
+		      (fill-region (point-min) (point-max))))))))
 	  (set-marker (caar marks) nil)
 	  (setq marks (cdr marks)))
 	(when marks
@@ -552,6 +568,29 @@ If WIDTH (the numerical prefix), use that text width when filling."
 	      gnus-cite-loose-attribution-alist nil
 	      gnus-cite-article nil)))))
 
+(defun gnus-article-foldable-buffer (prefix)
+  (let ((do-fill nil)
+	columns)
+    (goto-char (point-min))
+    (while (not (eobp))
+      (unless (> (length prefix) (- (point-max) (point)))
+	(forward-char (length prefix)))
+      (skip-chars-forward " \t")
+      (unless (eolp)
+	(let ((elem (assq (current-column) columns)))
+	  (unless elem
+	    (setq elem (cons (current-column) 0))
+	    (push elem columns))
+	  (setcdr elem (1+ (cdr elem)))))
+      (end-of-line)
+      (when (> (current-column) (window-width))
+	(setq do-fill t))
+      (forward-line 1))
+    (and do-fill
+	 ;; We know know that there are long lines here, but does this look
+	 ;; like code?  Check for ragged edges on the left.
+	 (< (length columns) 3))))
+
 (defun gnus-article-hide-citation (&optional arg force)
   "Toggle hiding of all cited text except attribution lines.
 See the documentation for `gnus-article-highlight-citation'.
@@ -560,67 +599,66 @@ always hide."
   (interactive (append (gnus-article-hidden-arg) (list 'force)))
   (gnus-set-format 'cited-opened-text-button t)
   (gnus-set-format 'cited-closed-text-button t)
-  (save-excursion
-    (set-buffer gnus-article-buffer)
-      (let ((buffer-read-only nil)
-	    marks
-	    (inhibit-point-motion-hooks t)
-	    (props (nconc (list 'article-type 'cite)
-			  gnus-hidden-properties))
-	    (point (point-min))
-	    found beg end start)
-	(while (setq point
-		     (text-property-any point (point-max)
-					'gnus-callback
-					'gnus-article-toggle-cited-text))
-	  (setq found t)
-	  (goto-char point)
-	  (gnus-article-toggle-cited-text
-	   (get-text-property point 'gnus-data) arg)
-	  (forward-line 1)
-	  (setq point (point)))
-	(unless found
-	  (setq marks (gnus-dissect-cited-text))
-	  (while marks
-	    (setq beg nil
-		  end nil)
-	    (while (and marks (string= (cdar marks) ""))
-	      (setq marks (cdr marks)))
-	    (when marks
-	      (setq beg (caar marks)))
-	    (while (and marks (not (string= (cdar marks) "")))
-	      (setq marks (cdr marks)))
-	    (when marks
+  (with-current-buffer gnus-article-buffer
+    (let ((buffer-read-only nil)
+          marks
+          (inhibit-point-motion-hooks t)
+          (props (nconc (list 'article-type 'cite)
+                        gnus-hidden-properties))
+          (point (point-min))
+          found beg end start)
+      (while (setq point
+                   (text-property-any point (point-max)
+                                      'gnus-callback
+                                      'gnus-article-toggle-cited-text))
+        (setq found t)
+        (goto-char point)
+        (gnus-article-toggle-cited-text
+         (get-text-property point 'gnus-data) arg)
+        (forward-line 1)
+        (setq point (point)))
+      (unless found
+        (setq marks (gnus-dissect-cited-text))
+        (while marks
+          (setq beg nil
+                end nil)
+          (while (and marks (string= (cdar marks) ""))
+            (setq marks (cdr marks)))
+          (when marks
+            (setq beg (caar marks)))
+          (while (and marks (not (string= (cdar marks) "")))
+            (setq marks (cdr marks)))
+          (when marks
 	    (setq end (caar marks)))
-	    ;; Skip past lines we want to leave visible.
-	    (when (and beg end gnus-cited-lines-visible)
-	      (goto-char beg)
-	      (forward-line (if (consp gnus-cited-lines-visible)
-				(car gnus-cited-lines-visible)
-			      gnus-cited-lines-visible))
-	      (if (>= (point) end)
-		  (setq beg nil)
-		(setq beg (point-marker))
-		(when (consp gnus-cited-lines-visible)
-		  (goto-char end)
-		  (forward-line (- (cdr gnus-cited-lines-visible)))
-		  (if (<= (point) beg)
-		      (setq beg nil)
+          ;; Skip past lines we want to leave visible.
+          (when (and beg end gnus-cited-lines-visible)
+            (goto-char beg)
+            (forward-line (if (consp gnus-cited-lines-visible)
+                              (car gnus-cited-lines-visible)
+                            gnus-cited-lines-visible))
+            (if (>= (point) end)
+                (setq beg nil)
+              (setq beg (point-marker))
+              (when (consp gnus-cited-lines-visible)
+                (goto-char end)
+                (forward-line (- (cdr gnus-cited-lines-visible)))
+                (if (<= (point) beg)
+                    (setq beg nil)
 		  (setq end (point-marker))))))
-	    (when (and beg end)
-	      (gnus-add-wash-type 'cite)
-	      ;; We use markers for the end-points to facilitate later
-	      ;; wrapping and mangling of text.
-	      (setq beg (set-marker (make-marker) beg)
-		    end (set-marker (make-marker) end))
-	      (gnus-add-text-properties-when 'article-type nil beg end props)
-	      (goto-char beg)
-	      (when (and gnus-cite-blank-line-after-header
-			 (not (save-excursion (search-backward "\n\n" nil t))))
-		(insert "\n"))
-	      (put-text-property
-	       (setq start (point-marker))
-	       (progn
+          (when (and beg end)
+            (gnus-add-wash-type 'cite)
+            ;; We use markers for the end-points to facilitate later
+            ;; wrapping and mangling of text.
+            (setq beg (set-marker (make-marker) beg)
+                  end (set-marker (make-marker) end))
+            (gnus-add-text-properties-when 'article-type nil beg end props)
+            (goto-char beg)
+            (when (and gnus-cite-blank-line-after-header
+                       (not (save-excursion (search-backward "\n\n" nil t))))
+              (insert "\n"))
+            (put-text-property
+             (setq start (point-marker))
+             (progn
 	       (gnus-article-add-button
 		(point)
 		(progn (eval gnus-cited-closed-text-button-line-format-spec)
@@ -628,8 +666,8 @@ always hide."
 		`gnus-article-toggle-cited-text
 		(list (cons beg end) start))
 	       (point))
-	       'article-type 'annotation)
-	      (set-marker beg (point))))))))
+             'article-type 'annotation)
+            (set-marker beg (point))))))))
 
 (defun gnus-article-toggle-cited-text (args &optional arg)
   "Toggle hiding the text in REGION.
@@ -732,11 +770,9 @@ See also the documentation for `gnus-article-highlight-citation'."
 (defun gnus-article-hide-citation-in-followups ()
   "Hide cited text in non-root articles."
   (interactive)
-  (save-excursion
-    (set-buffer gnus-article-buffer)
+  (with-current-buffer gnus-article-buffer
     (let ((article (cdr gnus-article-current)))
-      (unless (save-excursion
-		(set-buffer gnus-summary-buffer)
+      (unless (with-current-buffer gnus-summary-buffer
 		(gnus-article-displayed-root-p article))
 	(gnus-article-hide-citation)))))
 
@@ -1079,8 +1115,7 @@ See also the documentation for `gnus-article-highlight-citation'."
 	  (gnus-overlay-put overlay 'face face))))))
 
 (defun gnus-cite-toggle (prefix)
-  (save-excursion
-    (set-buffer gnus-article-buffer)
+  (with-current-buffer gnus-article-buffer
     (gnus-cite-parse-maybe nil t)
     (let ((buffer-read-only nil)
 	  (numbers (cdr (assoc prefix gnus-cite-prefix-alist)))
@@ -1248,5 +1283,4 @@ is turned on."
 ;; coding: iso-8859-1
 ;; End:
 
-;; arch-tag: 1997b044-6067-471e-8c8f-dc903093098a
 ;;; gnus-cite.el ends here

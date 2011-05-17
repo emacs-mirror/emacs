@@ -1,11 +1,11 @@
 ;;; reftex-auc.el --- RefTeX's interface to AUCTeX
 
-;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2011 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
 ;; Version: 4.31
+;; Package: reftex
 
 ;; This file is part of GNU Emacs.
 
@@ -58,7 +58,7 @@ What is being used depends upon `reftex-plug-into-AUCTeX'."
       ;; Create a new label, with a temporary brace for `reftex-what-macro'
       (unwind-protect
           (progn (insert "{") (setq label (or (reftex-label nil t) "")))
-        (delete-backward-char 1)))
+        (delete-char -1)))
      ((and (not definition) (reftex-plug-flag 2))
       ;; Reference a label with RefTeX
       (setq label (reftex-reference nil t)))
@@ -223,5 +223,4 @@ of ENTRY-LIST is a list of cons cells (\"MACRONAME\" . LEVEL).  See
 (defun reftex-notice-new-section ()
   (reftex-notice-new 1 'force))
 
-;; arch-tag: 4a798e68-3405-421c-a09b-0269aac64ab4
 ;;; reftex-auc.el ends here

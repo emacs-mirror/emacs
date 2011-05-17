@@ -1,7 +1,6 @@
 ;;; semantic/lex.el --- Lexical Analyzer builder
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -1427,10 +1426,7 @@ Return either a paren token or a semantic list token depending on
 	;; to work properly.  Lets try and move over
 	;; whatever white space we matched to begin
 	;; with.
-	(skip-syntax-forward "-.'"
-			     (save-excursion
-			       (end-of-line)
-			       (point)))
+	(skip-syntax-forward "-.'" (point-at-eol))
       ;; We may need to back up so newlines or whitespace is generated.
       (if (bolp)
 	  (backward-char 1)))
@@ -1810,8 +1806,8 @@ what syntax class CHAR has.")
 
 (defvar semantic-ignore-comments t
   "Default comment handling.
-t means to strip comments when flexing.  Nil means to keep comments
-as part of the token stream.")
+The value t means to strip comments when flexing; nil means
+to keep comments as part of the token stream.")
 (make-variable-buffer-local 'semantic-ignore-comments)
 
 (defvar semantic-flex-enable-newlines nil
@@ -1997,10 +1993,7 @@ return LENGTH tokens."
                     ;; to work properly.  Lets try and move over
                     ;; whatever white space we matched to begin
                     ;; with.
-                    (skip-syntax-forward "-.'"
-                                         (save-excursion
-                                           (end-of-line)
-                                           (point)))
+                    (skip-syntax-forward "-.'" (point-at-eol))
                   ;;(forward-comment 1)
                   ;; Generate newline token if enabled
                   (if (and semantic-flex-enable-newlines
@@ -2049,5 +2042,4 @@ return LENGTH tokens."
 ;; generated-autoload-load-name: "semantic/lex"
 ;; End:
 
-;; arch-tag: a47664fc-48d9-4b36-921f-cab0ea8cdf92
 ;;; semantic/lex.el ends here

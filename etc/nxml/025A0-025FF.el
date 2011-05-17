@@ -97,4 +97,3 @@
     ("LOWER RIGHT TRIANGLE" #x25FF)
     ))
 
-;; arch-tag: ac97acd5-57a6-4521-bee4-8c2d0a9bd06a

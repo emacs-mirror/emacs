@@ -97,4 +97,3 @@
     ("LATIN SMALL LETTER Y WITH DIAERESIS" #x00FF)
     ))
 
-;; arch-tag: f7ca0f06-9eb7-4b7a-b014-795af10f23ac

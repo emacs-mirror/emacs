@@ -1,6 +1,5 @@
 /*
-Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-  2010  Free Software Foundation, Inc.
+Copyright (C) 1999, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -17,100 +16,33 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-/*
- *	Define symbols to identify the version of Unix this is.
- *	Define all the symbols that apply correctly.
- */
-
+/* Define symbols to identify the version of Unix this is.
+   Define all the symbols that apply correctly.  */
 #define USG				/* System III, System V, etc */
 #define USG5
 
-/*      This symbol should be defined on AIX Version 3  ??????? */
+/* This symbol should be defined on AIX Version 3  ??????? */
 #ifndef _AIX
 #define _AIX
 #endif
 
 /* SYSTEM_TYPE should indicate the kind of system you are using.
  It sets the Lisp variable system-type.  */
-
 #define SYSTEM_TYPE "aix"
 
 /* In AIX, you allocate a pty by opening /dev/ptc to get the master side.
    To get the name of the slave side, you just ttyname() the master side.  */
-
-#define PTY_ITERATION for (c = 0; !c ; c++)
+#define PTY_ITERATION int c; for (c = 0; !c ; c++)
 #define PTY_NAME_SPRINTF strcpy (pty_name, "/dev/ptc");
 #define PTY_TTY_NAME_SPRINTF strcpy (pty_name, ttyname (fd));
 
-/*
- *	Define HAVE_TERMIO if the system provides sysV-style ioctls
- *	for terminal control.
- */
-
-#define HAVE_TERMIOS
-
-/*
- *	Define HAVE_PTYS if the system supports pty devices.
- */
-
+/* Define HAVE_PTYS if the system supports pty devices.  */
 #define HAVE_PTYS
 
 /* Define HAVE_SOCKETS if system supports 4.2-compatible sockets.  */
-
 #define HAVE_SOCKETS
-
-
-/*
- * 	Define SYSV_SYSTEM_DIR to use the V.3 getdents/readir
- *	library functions.  Almost, but not quite the same as
- *	the 4.2 functions
- */
-
-#define SYSV_SYSTEM_DIR
-
-/* Define this symbol if your system has the functions bcopy, etc. */
-
-#define BSTRING
-
-/* The file containing the kernel's symbol table is called /unix.  */
-
-#define KERNEL_FILE "/unix"
-
-/* The symbol in the kernel where the load average is found
-   is named avenrun.  */
-
-#define LDAV_SYMBOL "avenrun"
 
-/* Special itemss needed to make Emacs run on this system.  */
-
-#ifndef __GNUC__
-#define LINKER cc
-#endif
-
-/* No need to specify -lc when linking.  */
-
-#define LIB_STANDARD
-
-/* -lpthreads seems to be necessary for Xlib in X11R6, and should be harmless
-   on older versions of X where it happens to exist.  */
-#ifdef HAVE_LIBPTHREADS
-#define LIBS_SYSTEM -lrts -lIM -liconv -lpthreads
-#else
-/* IBM's X11R5 use -lIM and -liconv in AIX 3.2.2.  */
-#define LIBS_SYSTEM -lrts -lIM -liconv
-#endif
-
-
-/* Use terminfo instead of termcap.  */
-
-#define TERMINFO
-
-/* The following definition seems to be needed in AIX version 3.1.6.8.
-   It may not have been needed in certain earlier versions.  */
-#define HAVE_TCATTR
-
-/* Include unistd.h, even though we don't define POSIX.  */
-#define NEED_UNISTD_H
+/* Special items needed to make Emacs run on this system.  */
 
 /* AIX doesn't define this.  */
 #define unix 1
@@ -122,7 +54,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Perry Smith <pedz@ddivt1.austin.ibm.com> says these are correct.  */
 #define SIGNALS_VIA_CHARACTERS
-#define MAIL_USE_LOCKF
 #define CLASH_DETECTION
 
 /* Perry Smith <pedz@ddivt1.austin.ibm.com> says these are correct.  */
@@ -138,8 +69,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    memory use the libc malloc implementation. Calling xfree or
    xrealloc on the results of such functions results in a crash.
 
-   One solution for this could be to define SYSTEM_MALLOC here, but
-   that does not currently work on this system.
+   One solution for this could be to define SYSTEM_MALLOC in configure,
+   but that does not currently work on this system.
 
    It is possible to completely override the malloc implementation on
    AIX, but that involves putting the malloc functions in a shared
@@ -147,13 +78,5 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    that shared library.
 
    Emacs currently calls xrealloc on the results of get_current_dir name,
-   to avoid a crash just use the Emacs implementation for that function.
-*/
+   to avoid a crash just use the Emacs implementation for that function.  */
 #define BROKEN_GET_CURRENT_DIR_NAME 1
-
-#define UNEXEC unexaix.o
-
-#define ORDINARY_LINK
-
-/* arch-tag: 38fe75ea-6aef-42bd-8449-bc34d921a562
-   (do not change this comment) */

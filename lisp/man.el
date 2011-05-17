@@ -1,7 +1,7 @@
 ;;; man.el --- browse UNIX manual pages -*- coding: iso-8859-1 -*-
 
-;; Copyright (C) 1993, 1994, 1996, 1997, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 1996-1997, 2001-2011
+;;   Free Software Foundation, Inc.
 
 ;; Author: Barry A. Warsaw <bwarsaw@cen.com>
 ;; Maintainer: FSF
@@ -254,8 +254,7 @@ Used in `bookmark-set' to get the default bookmark name."
   "Regular expression describing a manpage section within parentheses.")
 
 (defvar Man-page-header-regexp
-  (if (and (string-match "-solaris2\\." system-configuration)
-	   (not (string-match "-solaris2\\.[123435]$" system-configuration)))
+  (if (string-match "-solaris2\\." system-configuration)
       (concat "^[-A-Za-z0-9_].*[ \t]\\(" Man-name-regexp
 	      "(\\(" Man-section-regexp "\\))\\)$")
     (concat "^[ \t]*\\(" Man-name-regexp
@@ -314,7 +313,7 @@ This regexp should not start with a `^' character.")
   "Regular expression describing references to normal files.")
 
 ;; This includes the section as an optional part to catch hyphenated
-;; refernces to manpages.
+;; references to manpages.
 (defvar Man-hyphenated-reference-regexp
   (concat "\\(" Man-name-regexp "\\)\\((\\(" Man-section-regexp "\\))\\)?")
   "Regular expression describing a reference in the SEE ALSO section.")
@@ -623,36 +622,32 @@ and the `Man-section-translations-alist' variables)."
       (concat Man-specified-section-option section " " name))))
 
 (defun Man-support-local-filenames ()
-  "Check the availability of `-l' option of the man command.
-This option allows `man' to interpret command line arguments
-as local filenames.
-Return the value of the variable `Man-support-local-filenames'
-if it was set to nil or t before the call of this function.
-If t, the man command supports `-l' option.  If nil, it doesn't.
-Otherwise, if the value of `Man-support-local-filenames'
-is neither t nor nil, then determine a new value, set it
-to the variable `Man-support-local-filenames' and return
-a new value."
-  (if (or (not Man-support-local-filenames)
-          (eq Man-support-local-filenames t))
-      Man-support-local-filenames
-    (setq Man-support-local-filenames
-          (with-temp-buffer
-            (and (equal (condition-case nil
-			    (let ((default-directory
-				    ;; Assure that `default-directory' exists
-				    ;; and is readable.
- 				    (if (and (file-directory-p default-directory)
- 					     (file-readable-p default-directory))
- 					default-directory
- 				      (expand-file-name "~/"))))
- 			      (call-process manual-program nil t nil "--help"))
-                          (error nil))
-                        0)
-                 (progn
-                   (goto-char (point-min))
-                   (search-forward "--local-file" nil t))
-                 t)))))
+  "Return non-nil if the man command supports local filenames.
+Different man programs support this feature in different ways.
+The default Debian man program (\"man-db\") has a `--local-file'
+\(or `-l') option for this purpose.  The default Red Hat man
+program has no such option, but interprets any name containing
+a \"/\" as a local filename.  The function returns either `man-db'
+`man', or nil."
+  (if (eq Man-support-local-filenames 'auto-detect)
+      (setq Man-support-local-filenames
+            (with-temp-buffer
+              (let ((default-directory
+                      ;; Ensure that `default-directory' exists and is readable.
+                      (if (and (file-directory-p default-directory)
+                               (file-readable-p default-directory))
+                        default-directory
+                        (expand-file-name "~/"))))
+                (ignore-errors
+                  (call-process manual-program nil t nil "--help")))
+              (cond ((search-backward "--local-file" nil 'move)
+                     'man-db)
+                    ;; This feature seems to be present in at least ver 1.4f,
+                    ;; which is about 20 years old.
+                    ;; I don't know if this version has an official name?
+                    ((looking-at "^man, versione? [1-9]")
+                     'man))))
+    Man-support-local-filenames))
 
 
 ;; ======================================================================
@@ -759,6 +754,9 @@ POS defaults to `point'."
   (cond
    ((eq action 'lambda)
     (not (string-match "([^)]*\\'" string)))
+   ((equal string "-k")
+    ;; Let SPC (minibuffer-complete-word) insert the space.
+    (complete-with-action action '("-k ") string pred))
    (t
     (let ((table (cdr Man-completion-cache))
           (section nil)
@@ -1151,7 +1149,9 @@ default type, `Man-xref-man-page' is used for the buttons."
 		 (goto-char (point-min))
 		 nil)))
       (while (re-search-forward regexp end t)
-	(make-text-button
+	;; An overlay button is preferable because the underlying text
+	;; may have text property highlights (Bug#7881).
+	(make-button
 	 (match-beginning button-pos)
 	 (match-end button-pos)
 	 'type type
@@ -1671,7 +1671,8 @@ Specify which REFERENCE to use; default is based on word at point."
     complete-path))
 
 ;;; Bookmark Man Support
-(declare-function bookmark-make-record-default "bookmark" (&optional pos-only))
+(declare-function bookmark-make-record-default
+                  "bookmark" (&optional no-file no-context posn))
 (declare-function bookmark-prop-get "bookmark" (bookmark prop))
 (declare-function bookmark-default-handler "bookmark" (bmk))
 (declare-function bookmark-get-bookmark-record "bookmark" (bmk))
@@ -1688,7 +1689,7 @@ Uses `Man-name-local-regexp'."
 (defun Man-bookmark-make-record ()
   "Make a bookmark entry for a Man buffer."
   `(,(Man-default-bookmark-title)
-    ,@(bookmark-make-record-default 'point-only)
+    ,@(bookmark-make-record-default 'no-file)
     (location . ,(concat "man " Man-arguments))
     (man-args . ,Man-arguments)
     (handler . Man-bookmark-jump)))
@@ -1717,5 +1718,4 @@ Uses `Man-name-local-regexp'."
 
 (provide 'man)
 
-;; arch-tag: 587cda76-8e23-4594-b1f3-89b6b09a0d47
 ;;; man.el ends here

@@ -1,6 +1,7 @@
-/* Calculate what line insertion or deletion to do, and do it,
-   Copyright (C) 1985, 1986, 1990, 1993, 1994, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+/* Calculate what line insertion or deletion to do, and do it
+
+Copyright (C) 1985-1986, 1990, 1993-1994, 2001-2011
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -20,7 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
-#include <string.h>
 #include <setjmp.h>
 #include "lisp.h"
 #include "termchar.h"
@@ -58,14 +58,14 @@ struct matrix_elt
     unsigned char writecount;
   };
 
-static void do_direct_scrolling P_ ((struct frame *,
-                                     struct glyph_matrix *,
-				     struct matrix_elt *,
-				     int, int));
-static void do_scrolling P_ ((struct frame *,
-                              struct glyph_matrix *,
-			      struct matrix_elt *,
-			      int, int));
+static void do_direct_scrolling (struct frame *,
+                                 struct glyph_matrix *,
+                                 struct matrix_elt *,
+                                 int, int);
+static void do_scrolling (struct frame *,
+                          struct glyph_matrix *,
+                          struct matrix_elt *,
+                          int, int);
 
 
 /* Determine, in matrix[i,j], the cost of updating the first j old
@@ -86,20 +86,15 @@ static void do_scrolling P_ ((struct frame *,
    new contents appears.  */
 
 static void
-calculate_scrolling (frame, matrix, window_size, lines_below,
-		     draw_cost, old_hash, new_hash,
-		     free_at_end)
-     FRAME_PTR frame;
-     /* matrix is of size window_size + 1 on each side.  */
-     struct matrix_elt *matrix;
-     int window_size, lines_below;
-     int *draw_cost;
-     int *old_hash;
-     int *new_hash;
-     int free_at_end;
+calculate_scrolling (FRAME_PTR frame,
+		     /* matrix is of size window_size + 1 on each side.  */
+		     struct matrix_elt *matrix,
+		     int window_size, int lines_below,
+		     int *draw_cost, int *old_hash, int *new_hash,
+		     int free_at_end)
 {
   register int i, j;
-  int frame_lines = FRAME_LINES (frame);
+  EMACS_INT frame_lines = FRAME_LINES (frame);
   register struct matrix_elt *p, *p1;
   register int cost, cost1;
 
@@ -120,7 +115,7 @@ calculate_scrolling (frame, matrix, window_size, lines_below,
   /* Discourage long scrolls on fast lines.
      Don't scroll nearly a full frame height unless it saves
      at least 1/4 second.  */
-  int extra_cost = baud_rate / (10 * 4 * FRAME_LINES (frame));
+  int extra_cost = (int) (baud_rate / (10 * 4 * FRAME_LINES (frame)));
 
   if (baud_rate <= 0)
     extra_cost = 1;
@@ -244,19 +239,16 @@ calculate_scrolling (frame, matrix, window_size, lines_below,
    of lines.  */
 
 static void
-do_scrolling (frame, current_matrix, matrix, window_size, unchanged_at_top)
-     struct frame *frame;
-     struct glyph_matrix *current_matrix;
-     struct matrix_elt *matrix;
-     int window_size;
-     int unchanged_at_top;
+do_scrolling (struct frame *frame, struct glyph_matrix *current_matrix,
+              struct matrix_elt *matrix, int window_size,
+              int unchanged_at_top)
 {
   struct matrix_elt *p;
   int i, j, k;
 
   /* Set to 1 if we have set a terminal window with
-     set_terminal_window.  */
-  int terminal_window_p = 0;
+     set_terminal_window.  It's unsigned to work around GCC bug 48228.  */
+  unsigned int terminal_window_p = 0;
 
   /* A queue for line insertions to be done.  */
   struct queue { int count, pos; };
@@ -268,11 +260,12 @@ do_scrolling (frame, current_matrix, matrix, window_size, unchanged_at_top)
   int *copy_from = (int *) alloca (window_size * sizeof (int));
 
   /* Zero means line is empty.  */
-  bzero (retained_p, window_size * sizeof (char));
+  memset (retained_p, 0, window_size * sizeof (char));
   for (k = 0; k < window_size; ++k)
     copy_from[k] = -1;
 
-#define CHECK_BOUNDS							\
+#if GLYPH_DEBUG
+# define CHECK_BOUNDS							\
   do									\
     {									\
       int k;								\
@@ -281,6 +274,7 @@ do_scrolling (frame, current_matrix, matrix, window_size, unchanged_at_top)
 		 || (copy_from[k] >= 0 && copy_from[k] < window_size));	\
     }									\
   while (0);
+#endif
 
   /* When j is advanced, this corresponds to deleted lines.
      When i is advanced, this corresponds to inserted lines.  */
@@ -429,21 +423,16 @@ do_scrolling (frame, current_matrix, matrix, window_size, unchanged_at_top)
    is the equivalent of draw_cost for the old line contents */
 
 static void
-calculate_direct_scrolling (frame, matrix, window_size, lines_below,
-			    draw_cost, old_draw_cost, old_hash, new_hash,
-			    free_at_end)
-     FRAME_PTR frame;
-     /* matrix is of size window_size + 1 on each side.  */
-     struct matrix_elt *matrix;
-     int window_size, lines_below;
-     int *draw_cost;
-     int *old_draw_cost;
-     int *old_hash;
-     int *new_hash;
-     int free_at_end;
+calculate_direct_scrolling (FRAME_PTR frame,
+			    /* matrix is of size window_size + 1 on each side.  */
+			    struct matrix_elt *matrix,
+			    int window_size, int lines_below,
+			    int *draw_cost, int *old_draw_cost,
+			    int *old_hash, int *new_hash,
+			    int free_at_end)
 {
   register int i, j;
-  int frame_lines = FRAME_LINES (frame);
+  EMACS_INT frame_lines = FRAME_LINES (frame);
   register struct matrix_elt *p, *p1;
   register int cost, cost1, delta;
 
@@ -463,7 +452,7 @@ calculate_direct_scrolling (frame, matrix, window_size, lines_below,
   /* Discourage long scrolls on fast lines.
      Don't scroll nearly a full frame height unless it saves
      at least 1/4 second.  */
-  int extra_cost = baud_rate / (10 * 4 * FRAME_LINES (frame));
+  int extra_cost = (int) (baud_rate / (10 * 4 * FRAME_LINES (frame)));
 
   if (baud_rate <= 0)
     extra_cost = 1;
@@ -655,13 +644,9 @@ calculate_direct_scrolling (frame, matrix, window_size, lines_below,
    the cost matrix for this approach is constructed. */
 
 static void
-do_direct_scrolling (frame, current_matrix, cost_matrix,
-                     window_size, unchanged_at_top)
-     struct frame *frame;
-     struct glyph_matrix *current_matrix;
-     struct matrix_elt *cost_matrix;
-     int window_size;
-     int unchanged_at_top;
+do_direct_scrolling (struct frame *frame, struct glyph_matrix *current_matrix,
+		     struct matrix_elt *cost_matrix, int window_size,
+		     int unchanged_at_top)
 {
   struct matrix_elt *p;
   int i, j;
@@ -692,7 +677,7 @@ do_direct_scrolling (frame, current_matrix, cost_matrix,
      old matrix.  Lines not retained are empty.  */
   char *retained_p = (char *) alloca (window_size * sizeof (char));
 
-  bzero (retained_p, window_size * sizeof (char));
+  memset (retained_p, 0, window_size * sizeof (char));
 
   /* Perform some sanity checks when GLYPH_DEBUG is on.  */
   CHECK_MATRIX (current_matrix);
@@ -811,15 +796,9 @@ do_direct_scrolling (frame, current_matrix, cost_matrix,
 
 
 void
-scrolling_1 (frame, window_size, unchanged_at_top, unchanged_at_bottom,
-	     draw_cost, old_draw_cost, old_hash, new_hash, free_at_end)
-     FRAME_PTR frame;
-     int window_size, unchanged_at_top, unchanged_at_bottom;
-     int *draw_cost;
-     int *old_draw_cost;
-     int *old_hash;
-     int *new_hash;
-     int free_at_end;
+scrolling_1 (FRAME_PTR frame, int window_size, int unchanged_at_top,
+	     int unchanged_at_bottom, int *draw_cost, int *old_draw_cost,
+	     int *old_hash, int *new_hash, int free_at_end)
 {
   struct matrix_elt *matrix;
   matrix = ((struct matrix_elt *)
@@ -854,9 +833,9 @@ scrolling_1 (frame, window_size, unchanged_at_top, unchanged_at_bottom,
    such a line will have little weight.  */
 
 int
-scrolling_max_lines_saved (start, end, oldhash, newhash, cost)
-     int start, end;
-     int *oldhash, *newhash, *cost;
+scrolling_max_lines_saved (int start, int end,
+                           int *oldhash, int *newhash,
+                           int *cost)
 {
   struct { int hash; int count; } lines[01000];
   register int i, h;
@@ -872,7 +851,7 @@ scrolling_max_lines_saved (start, end, oldhash, newhash, cost)
   avg_length /= end - start;
   threshold = avg_length / 4;
 
-  bzero (lines, sizeof lines);
+  memset (lines, 0, sizeof lines);
 
   /* Put new lines' hash codes in hash table.  Ignore lines shorter
      than the threshold.  Thus, if the lines that are in common are
@@ -903,59 +882,15 @@ scrolling_max_lines_saved (start, end, oldhash, newhash, cost)
   return matchcount;
 }
 
-/* Return a measure of the cost of moving the lines starting with vpos
-   FROM, up to but not including vpos TO, down by AMOUNT lines (AMOUNT
-   may be negative).  These are the same arguments that might be given
-   to scroll_frame_lines to perform this scrolling.  */
-
-int
-scroll_cost (frame, from, to, amount)
-     FRAME_PTR frame;
-     int from, to, amount;
-{
-  /* Compute how many lines, at bottom of frame,
-     will not be involved in actual motion.  */
-  int limit = to;
-  int offset;
-  int height = FRAME_LINES (frame);
-
-  if (amount == 0)
-    return 0;
-
-  if (! FRAME_SCROLL_REGION_OK (frame))
-    limit = height;
-  else if (amount > 0)
-    limit += amount;
-
-  if (amount < 0)
-    {
-      int temp = to;
-      to = from + amount;
-      from = temp + amount;
-      amount = - amount;
-    }
-
-  offset = height - limit;
-
-  return
-    (FRAME_INSERT_COST (frame)[offset + from]
-     + (amount - 1) * FRAME_INSERTN_COST (frame)[offset + from]
-     + FRAME_DELETE_COST (frame)[offset + to]
-     + (amount - 1) * FRAME_DELETEN_COST (frame)[offset + to]);
-}
-
 /* Calculate the line insertion/deletion
    overhead and multiply factor values */
 
 static void
-line_ins_del (frame, ov1, pf1, ovn, pfn, ov, mf)
-     FRAME_PTR frame;
-     int ov1, ovn;
-     int pf1, pfn;
-     register int *ov, *mf;
+line_ins_del (FRAME_PTR frame, int ov1, int pf1, int ovn, int pfn,
+              register int *ov, register int *mf)
 {
-  register int i;
-  register int frame_lines = FRAME_LINES (frame);
+  register EMACS_INT i;
+  register EMACS_INT frame_lines = FRAME_LINES (frame);
   register int insert_overhead = ov1 * 10;
   register int next_insert_cost = ovn * 10;
 
@@ -969,15 +904,11 @@ line_ins_del (frame, ov1, pf1, ovn, pfn, ov, mf)
 }
 
 static void
-ins_del_costs (frame,
-	       one_line_string, multi_string,
-	       setup_string, cleanup_string,
-	       costvec, ncostvec, coefficient)
-     FRAME_PTR frame;
-     char *one_line_string, *multi_string;
-     char *setup_string, *cleanup_string;
-     int *costvec, *ncostvec;
-     int coefficient;
+ins_del_costs (FRAME_PTR frame,
+	       const char *one_line_string, const char *multi_string,
+	       const char *setup_string, const char *cleanup_string,
+	       int *costvec, int *ncostvec,
+	       int coefficient)
 {
   if (multi_string)
     line_ins_del (frame,
@@ -1029,15 +960,14 @@ ins_del_costs (frame,
  */
 
 void
-do_line_insertion_deletion_costs (frame,
-				  ins_line_string, multi_ins_string,
-				  del_line_string, multi_del_string,
-				  setup_string, cleanup_string, coefficient)
-     FRAME_PTR frame;
-     char *ins_line_string, *multi_ins_string;
-     char *del_line_string, *multi_del_string;
-     char *setup_string, *cleanup_string;
-     int coefficient;
+do_line_insertion_deletion_costs (FRAME_PTR frame,
+				  const char *ins_line_string,
+				  const char *multi_ins_string,
+				  const char *del_line_string,
+				  const char *multi_del_string,
+				  const char *setup_string,
+				  const char *cleanup_string,
+				  int coefficient)
 {
   if (FRAME_INSERT_COST (frame) != 0)
     {
@@ -1077,6 +1007,3 @@ do_line_insertion_deletion_costs (frame,
 		 FRAME_DELETE_COST (frame), FRAME_DELETEN_COST (frame),
 		 coefficient);
 }
-
-/* arch-tag: cdb7149c-48e7-4793-a948-2786c8e45485
-   (do not change this comment) */

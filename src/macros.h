@@ -1,6 +1,5 @@
 /* Definitions for keyboard macro interpretation in GNU Emacs.
-   Copyright (C) 1985, 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1985, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -18,14 +17,6 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
-/* Kbd macro currently being executed (a string or vector).  */
-
-extern Lisp_Object Vexecuting_kbd_macro;
-
-/* Index of next character to fetch from that macro.  */
-
-extern EMACS_INT executing_kbd_macro_index;
-
 /* Number of successful iterations so far
    for innermost keyboard macro.
    This is not bound at each level,
@@ -41,16 +32,14 @@ extern Lisp_Object executing_kbd_macro;
 
 /* Finish defining the current keyboard macro.  */
 
-extern void end_kbd_macro P_ ((void));
+extern void end_kbd_macro (void);
 
 /* Declare that all chars stored so far in the kbd macro being defined
  really belong to it.  This is done in between editor commands.  */
 
-extern void finalize_kbd_macro_chars P_ ((void));
+extern void finalize_kbd_macro_chars (void);
 
 /* Store a character into kbd macro being defined */
 
-extern void store_kbd_macro_char P_ ((Lisp_Object));
+extern void store_kbd_macro_char (Lisp_Object);
 
-/* arch-tag: 8edb7088-682f-4d1f-a4d9-0fbb7284234e
-   (do not change this comment) */

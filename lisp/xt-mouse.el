@@ -1,7 +1,6 @@
 ;;; xt-mouse.el --- support the mouse when emacs run in an xterm
 
-;; Copyright (C) 1994, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2000-2011 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: mouse, terminals
@@ -51,7 +50,7 @@
 			      M-down-mouse-1 M-down-mouse-2 M-down-mouse-3))
   (put event-type 'event-kind 'mouse-click))
 
-(defun xterm-mouse-translate (event)
+(defun xterm-mouse-translate (_event)
   "Read a click and release event from XTerm."
   (save-excursion
     (save-window-excursion
@@ -122,8 +121,8 @@
 ;; read xterm sequences above ascii 127 (#x7f)
 (defun xterm-mouse-event-read ()
   (let ((c (read-char)))
-    (if (< c 0)
-        (+ c #x8000000 128)
+    (if (> c #x3FFF80)
+        (+ 128 (- c #x3FFF80))
       c)))
 
 (defun xterm-mouse-truncate-wrap (f)
@@ -229,7 +228,7 @@ down the SHIFT key while pressing the mouse button."
   (dolist (terminal (terminal-list))
     (turn-on-xterm-mouse-tracking-on-terminal terminal)))
 
-(defun turn-off-xterm-mouse-tracking (&optional force)
+(defun turn-off-xterm-mouse-tracking (&optional _force)
   "Disable Emacs mouse tracking in xterm."
   (dolist (terminal (terminal-list))
     (turn-off-xterm-mouse-tracking-on-terminal terminal)))
@@ -265,5 +264,4 @@ down the SHIFT key while pressing the mouse button."
 
 (provide 'xt-mouse)
 
-;; arch-tag: 84962d4e-fae9-4c13-a9d7-ef4925a4ac03
 ;;; xt-mouse.el ends here

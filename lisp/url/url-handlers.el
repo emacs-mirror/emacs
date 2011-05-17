@@ -1,7 +1,6 @@
 ;;; url-handlers.el --- file-name-handler stuff for URL loading
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2011  Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -325,5 +324,4 @@ They count bytes from the beginning of the body."
 
 (provide 'url-handlers)
 
-;; arch-tag: 7300b99c-cc83-42ff-9147-79b2723c62ac
 ;;; url-handlers.el ends here

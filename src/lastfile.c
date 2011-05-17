@@ -1,6 +1,5 @@
 /* Mark end of data space to dump as pure, for GNU Emacs.
-   Copyright (C) 1985, 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1985, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -49,5 +48,3 @@ char my_endbss[1];
 static char _my_endbss[1];
 char * my_endbss_static = _my_endbss;
 
-/* arch-tag: 67e81ab4-e14f-44b2-8875-c0c12252223e
-   (do not change this comment) */

@@ -1,6 +1,6 @@
 ;;; ede/linux.el --- Special project for Linux
 
-;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -112,6 +112,18 @@ ROOTPROJ is nil, since there is only one project."
       )
   )
 
+;;;###autoload
+(add-to-list 'ede-project-class-files
+	     (ede-project-autoload "linux"
+	      :name "LINUX ROOT"
+	      :file 'ede/linux
+	      :proj-file "scripts/ver_linux"
+	      :proj-root 'ede-linux-project-root
+	      :load-type 'ede-linux-load
+	      :class-sym 'ede-linux-project
+	      :new-p nil)
+	     t)
+
 (defclass ede-linux-target-c (ede-target)
   ()
   "EDE Linux Project target for C code.
@@ -124,7 +136,7 @@ All directories need at least one target.")
 
 (defmethod initialize-instance ((this ede-linux-project)
 				&rest fields)
-  "Make sure the :file is fully expanded."
+  "Make sure the targets slot is bound."
   (call-next-method)
   (unless (slot-boundp this 'targets)
     (oset this :targets nil)))
@@ -233,5 +245,4 @@ Knows about how the Linux source tree is organized."
 ;; generated-autoload-load-name: "ede/linux"
 ;; End:
 
-;; arch-tag: 41f310c8-b169-4259-8a2d-0ff4bd0a736d
 ;;; ede/linux.el ends here

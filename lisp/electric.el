@@ -1,7 +1,6 @@
 ;;; electric.el --- window maker and Command loop for `electric' modes
 
-;; Copyright (C) 1985, 1986, 1995, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1995, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
@@ -24,9 +23,22 @@
 
 ;;; Commentary:
 
-; zaaaaaaap
+;; "Electric" has been used in Emacs to refer to different things.
+;; Among them:
+;;
+;; - electric modes and buffers: modes that typically pop-up in a modal kind of
+;;   way a transient buffer that automatically disappears as soon as the user
+;;   is done with it.
+;;
+;; - electric keys: self inserting keys which additionally perform some side
+;;   operation which happens to be often convenient at that time.  Examples of
+;;   such side operations are: reindenting code, inserting a newline,
+;;   ... auto-fill-mode and abbrev-mode can be considered as built-in forms of
+;;   electric key behavior.
 
 ;;; Code:
+
+(eval-when-compile (require 'cl))
 
 ;; This loop is the guts for non-standard modes which retain control
 ;; until some event occurs.  It is a `do-forever', the only way out is
@@ -51,19 +63,18 @@
 ;; conditions for any error that occurred or nil if none.
 
 (defun Electric-command-loop (return-tag
-			      &optional prompt inhibit-quit
+			      &optional prompt inhibit-quitting
 					loop-function loop-state)
 
   (let (cmd
         (err nil)
+        (inhibit-quit inhibit-quitting)
         (prompt-string prompt))
     (while t
-      (if (not (or (stringp prompt) (eq prompt nil) (eq prompt 'noprompt)))
+      (if (functionp prompt)
           (setq prompt-string (funcall prompt)))
       (if (not (stringp prompt-string))
-          (if (eq prompt-string 'noprompt)
-              (setq prompt-string nil)
-            (setq prompt-string "->")))
+          (setq prompt-string (unless (eq prompt-string 'noprompt) "->")))
       (setq cmd (read-key-sequence prompt-string))
       (setq last-command-event (aref cmd (1- (length cmd)))
 	    this-command (key-binding cmd t)
@@ -159,7 +170,219 @@
 	(fit-window-to-buffer win max-height))
       win)))
 
+;;; Electric keys.
+
+(defgroup electricity ()
+  "Electric behavior for self inserting keys."
+  :group 'editing)
+
+(defun electric--after-char-pos ()
+  "Return the position after the char we just inserted.
+Returns nil when we can't find this char."
+  (let ((pos (point)))
+    (when (or (eq (char-before) last-command-event) ;; Sanity check.
+              (save-excursion
+                (or (progn (skip-chars-backward " \t")
+                           (setq pos (point))
+                           (eq (char-before) last-command-event))
+                    (progn (skip-chars-backward " \n\t")
+                           (setq pos (point))
+                           (eq (char-before) last-command-event)))))
+      pos)))
+
+;; Electric indentation.
+
+;; Autoloading variables is generally undesirable, but major modes
+;; should usually set this variable by adding elements to the default
+;; value, which only works well if the variable is preloaded.
+;;;###autoload
+(defvar electric-indent-chars '(?\n)
+  "Characters that should cause automatic reindentation.")
+
+(defun electric-indent-post-self-insert-function ()
+  ;; FIXME: This reindents the current line, but what we really want instead is
+  ;; to reindent the whole affected text.  That's the current line for simple
+  ;; cases, but not all cases.  We do take care of the newline case in an
+  ;; ad-hoc fashion, but there are still missing cases such as the case of
+  ;; electric-pair-mode wrapping a region with a pair of parens.
+  ;; There might be a way to get it working by analyzing buffer-undo-list, but
+  ;; it looks challenging.
+  (let (pos)
+    (when (and (memq last-command-event electric-indent-chars)
+               ;; Don't reindent while inserting spaces at beginning of line.
+               (or (not (memq last-command-event '(?\s ?\t)))
+                   (save-excursion (skip-chars-backward " \t") (not (bolp))))
+               (setq pos (electric--after-char-pos))
+               ;; Not in a string or comment.
+               (not (nth 8 (save-excursion (syntax-ppss pos)))))
+      ;; For newline, we want to reindent both lines and basically behave like
+      ;; reindent-then-newline-and-indent (whose code we hence copied).
+      (when (< (1- pos) (line-beginning-position))
+        (let ((before (copy-marker (1- pos) t)))
+          (save-excursion
+            (unless (memq indent-line-function
+                          '(indent-relative indent-to-left-margin
+                            indent-relative-maybe))
+              ;; Don't reindent the previous line if the indentation function
+              ;; is not a real one.
+              (goto-char before)
+              (indent-according-to-mode))
+            ;; We are at EOL before the call to indent-according-to-mode, and
+            ;; after it we usually are as well, but not always.  We tried to
+            ;; address it with `save-excursion' but that uses a normal marker
+            ;; whereas we need `move after insertion', so we do the
+            ;; save/restore by hand.
+            (goto-char before)
+            ;; Remove the trailing whitespace after indentation because
+            ;; indentation may (re)introduce the whitespace.
+            (delete-horizontal-space t))))
+      (unless (memq indent-line-function '(indent-to-left-margin))
+        (indent-according-to-mode)))))
+
+;;;###autoload
+(define-minor-mode electric-indent-mode
+  "Automatically reindent lines of code when inserting particular chars.
+`electric-indent-chars' specifies the set of chars that should cause reindentation."
+  :global t
+  :group 'electricity
+  (if electric-indent-mode
+      (add-hook 'post-self-insert-hook
+                #'electric-indent-post-self-insert-function)
+    (remove-hook 'post-self-insert-hook
+                 #'electric-indent-post-self-insert-function))
+  ;; FIXME: electric-indent-mode and electric-layout-mode interact
+  ;; in non-trivial ways.  It turns out that electric-indent-mode works
+  ;; better if it is run *after* electric-layout-mode's hook.
+  (when (memq #'electric-layout-post-self-insert-function
+              (memq #'electric-indent-post-self-insert-function
+                    (default-value 'post-self-insert-hook)))
+    (remove-hook 'post-self-insert-hook
+                 #'electric-layout-post-self-insert-function)
+    (add-hook 'post-self-insert-hook
+              #'electric-layout-post-self-insert-function)))
+
+;; Electric pairing.
+
+(defcustom electric-pair-pairs
+  '((?\" . ?\"))
+  "Alist of pairs that should be used regardless of major mode."
+  :type '(repeat (cons character character)))
+
+(defcustom electric-pair-skip-self t
+  "If non-nil, skip char instead of inserting a second closing paren.
+When inserting a closing paren character right before the same character,
+just skip that character instead, so that hitting ( followed by ) results
+in \"()\" rather than \"())\".
+This can be convenient for people who find it easier to hit ) than C-f."
+  :type 'boolean)
+
+(defun electric-pair-post-self-insert-function ()
+  (let* ((syntax (and (eq (char-before) last-command-event) ; Sanity check.
+                      (let ((x (assq last-command-event electric-pair-pairs)))
+                        (cond
+                         (x (if (eq (car x) (cdr x)) ?\" ?\())
+                         ((rassq last-command-event electric-pair-pairs) ?\))
+                         (t (char-syntax last-command-event))))))
+         ;; FIXME: when inserting the closer, we should maybe use
+         ;; self-insert-command, although it may prove tricky running
+         ;; post-self-insert-hook recursively, and we wouldn't want to trigger
+         ;; blink-matching-open.
+         (closer (if (eq syntax ?\()
+                     (cdr (or (assq last-command-event electric-pair-pairs)
+                              (aref (syntax-table) last-command-event)))
+                   last-command-event)))
+    (cond
+     ;; Wrap a pair around the active region.
+     ((and (memq syntax '(?\( ?\" ?\$)) (use-region-p))
+      (if (> (mark) (point))
+          (goto-char (mark))
+        ;; We already inserted the open-paren but at the end of the region,
+        ;; so we have to remove it and start over.
+        (delete-char -1)
+        (save-excursion
+          (goto-char (mark))
+          (insert last-command-event)))
+      (insert closer))
+     ;; Backslash-escaped: no pairing, no skipping.
+     ((save-excursion
+        (goto-char (1- (point)))
+        (not (zerop (% (skip-syntax-backward "\\") 2))))
+      nil)
+     ;; Skip self.
+     ((and (memq syntax '(?\) ?\" ?\$))
+           electric-pair-skip-self
+           (eq (char-after) last-command-event))
+      ;; This is too late: rather than insert&delete we'd want to only skip (or
+      ;; insert in overwrite mode).  The difference is in what goes in the
+      ;; undo-log and in the intermediate state which might be visible to other
+      ;; post-self-insert-hook.  We'll just have to live with it for now.
+      (delete-char 1))
+     ;; Insert matching pair.
+     ((not (or (not (memq syntax `(?\( ?\" ?\$)))
+               overwrite-mode
+               ;; I find it more often preferable not to pair when the
+               ;; same char is next.
+               (eq last-command-event (char-after))
+               (eq last-command-event (char-before (1- (point))))
+               ;; I also find it often preferable not to pair next to a word.
+               (eq (char-syntax (following-char)) ?w)))
+      (save-excursion (insert closer))))))
+
+;;;###autoload
+(define-minor-mode electric-pair-mode
+  "Automatically pair-up parens when inserting an open paren."
+  :global t
+  :group 'electricity
+  (if electric-pair-mode
+      (add-hook 'post-self-insert-hook
+                #'electric-pair-post-self-insert-function)
+    (remove-hook 'post-self-insert-hook
+                 #'electric-pair-post-self-insert-function)))
+
+;; Automatically add newlines after/before/around some chars.
+
+(defvar electric-layout-rules '()
+  "List of rules saying where to automatically insert newlines.
+Each rule has the form (CHAR . WHERE) where CHAR is the char
+that was just inserted and WHERE specifies where to insert newlines
+and can be: nil, `before', `after', `around', or a function that returns
+one of those symbols.")
+
+(defun electric-layout-post-self-insert-function ()
+  (let* ((rule (cdr (assq last-command-event electric-layout-rules)))
+         pos)
+    (when (and rule
+               (setq pos (electric--after-char-pos))
+               ;; Not in a string or comment.
+               (not (nth 8 (save-excursion (syntax-ppss pos)))))
+      (let ((end (copy-marker (point) t)))
+        (goto-char pos)
+        (case (if (functionp rule) (funcall rule) rule)
+          ;; FIXME: we used `newline' down here which called
+          ;; self-insert-command and ran post-self-insert-hook recursively.
+          ;; It happened to make electric-indent-mode work automatically with
+          ;; electric-layout-mode (at the cost of re-indenting lines
+          ;; multiple times), but I'm not sure it's what we want.
+          (before (goto-char (1- pos)) (skip-chars-backward " \t")
+                  (unless (bolp) (insert "\n")))
+          (after  (insert "\n"))       ; FIXME: check eolp before inserting \n?
+          (around (save-excursion
+                    (goto-char (1- pos)) (skip-chars-backward " \t")
+                    (unless (bolp) (insert "\n")))
+                  (insert "\n")))      ; FIXME: check eolp before inserting \n?
+        (goto-char end)))))
+
+;;;###autoload
+(define-minor-mode electric-layout-mode
+  "Automatically insert newlines around some chars."
+  :global t
+  :group 'electricity
+  (if electric-layout-mode
+      (add-hook 'post-self-insert-hook
+                #'electric-layout-post-self-insert-function)
+    (remove-hook 'post-self-insert-hook
+                 #'electric-layout-post-self-insert-function)))
+
 (provide 'electric)
 
-;; arch-tag: dae045eb-dc2d-4fb7-9f27-9cc2ce277be8
 ;;; electric.el ends here

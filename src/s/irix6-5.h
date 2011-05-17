@@ -1,7 +1,6 @@
 /* Definitions file for GNU Emacs running on Silicon Graphics Irix system 6.5.
 
-Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-  2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -20,16 +19,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #define IRIX6_5			/* used in m/iris4d */
-#include "usg5-4.h"
+#include "usg5-4-common.h"
 
 #undef _longjmp /* use system versions, not conservative aliases */
 #undef _setjmp
 
 #define SETPGRP_RELEASES_CTTY
-
-#ifdef LIB_STANDARD
-#undef LIB_STANDARD
-#endif
 
 #ifdef SYSTEM_TYPE
 #undef SYSTEM_TYPE
@@ -44,13 +39,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Make process_send_signal work by "typing" a signal character on the pty.  */
 #define SIGNALS_VIA_CHARACTERS
 
-/* Use terminfo instead of termcap.  */
-
-#define TERMINFO
-
 /* Letter to use in finding device name of first pty,
-  if system supports pty's.  'a' means it is /dev/ptya0  */
-
+   if system supports pty's.  'a' means it is /dev/ptya0  */
 #undef FIRST_PTY_LETTER
 #define FIRST_PTY_LETTER 'q'
 
@@ -70,6 +60,7 @@ char *_getpty();
 #define PTY_OPEN					    \
 {							    \
   struct sigaction ocstat, cstat;			    \
+  struct stat stb;					    \
   char * name;						    \
   sigemptyset(&cstat.sa_mask);				    \
   cstat.sa_handler = SIG_DFL;				    \
@@ -92,22 +83,7 @@ char *_getpty();
 /* Tell process_send_signal to use VSUSP instead of VSWTCH.  */
 #define PREFER_VSUSP
 
-#define UNEXEC unexelf.o
-
-/* define MAIL_USE_FLOCK if the mailer uses flock
-   to interlock access to /usr/spool/mail/$USER.
-   The alternative is that a lock file named
-   /usr/spool/mail/$USER.lock.  */
-
-#define MAIL_USE_FLOCK
-
 #define NARROWPROTO 1
-
-#define USE_MMAP_FOR_BUFFERS 1
-
-/* arch-tag: ad0660e0-acf8-46ae-b866-4f3df5b1101b
-   (do not change this comment) */
-
 
 #if _MIPS_SZLONG == 64		/* -mabi=64 (gcc) or -64 (MIPSpro) */
 #define _LP64			/* lisp.h takes care of the rest */
@@ -115,11 +91,8 @@ char *_getpty();
 
 #undef SA_RESTART
 
-#undef TIOCSIGSEND		/* defined in usg5-4.h */
+#undef TIOCSIGSEND		/* defined in usg5-4-common.h */
 
 /* Tested on Irix 6.5.  SCM worked on earlier versions.  */
 #define GC_SETJMP_WORKS 1
 #define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
-
-/* arch-tag: d7ad9ec2-54ad-4b2f-adf2-0070c5c63e83
-   (do not change this comment) */

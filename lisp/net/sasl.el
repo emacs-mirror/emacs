@@ -1,6 +1,6 @@
 ;;; sasl.el --- SASL client framework
 
-;; Copyright (C) 2000, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: SASL
@@ -267,5 +267,4 @@ It contain at least 64 bits of entropy."
 
 (provide 'sasl)
 
-;; arch-tag: 8b3326fa-4978-4fda-93e2-cb2c6255f887
 ;;; sasl.el ends here

@@ -1,7 +1,6 @@
 ;;; semantic/senator.el --- SEmantic NAvigaTOR
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: FSF
@@ -861,5 +860,4 @@ Use a senator search function when semantic isearch mode is enabled."
 ;; generated-autoload-load-name: "semantic/senator"
 ;; End:
 
-;; arch-tag: 397100d0-e2db-467e-8c19-d8d4d99d51f1
 ;;; semantic/senator.el ends here

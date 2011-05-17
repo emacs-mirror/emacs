@@ -1,7 +1,6 @@
 ;;; sh-script.el --- shell-script editing commands for Emacs
 
-;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 1999, 2001, 2002, 2003,
-;;  2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1997, 1999, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Version: 2.0f
@@ -361,8 +360,6 @@ the car and cdr are the same symbol.")
   "The shell being programmed.  This is set by \\[sh-set-shell].")
 ;;;###autoload(put 'sh-shell 'safe-local-variable 'symbolp)
 
-(defvar sh-mode-abbrev-table nil)
-
 (define-abbrev-table 'sh-mode-abbrev-table ())
 
 
@@ -411,11 +408,7 @@ the car and cdr are the same symbol.")
     (modify-syntax-entry (pop list) (pop list) table))
   table)
 
-(defvar sh-mode-syntax-table nil
-  "The syntax table to use for Shell-Script mode.
-This is buffer-local in every such buffer.")
-
-(defvar sh-mode-default-syntax-table
+(defvar sh-mode-syntax-table
   (sh-mode-syntax-table ()
 	?\# "<"
 	?\n ">#"
@@ -436,7 +429,8 @@ This is buffer-local in every such buffer.")
 	?= "."
 	?< "."
 	?> ".")
-  "Default syntax table for shell mode.")
+  "The syntax table to use for Shell-Script mode.
+This is buffer-local in every such buffer.")
 
 (defvar sh-mode-syntax-table-input
   '((sh . nil))
@@ -568,19 +562,6 @@ This is buffer-local in every such buffer.")
   :type '(repeat function)
   :group 'sh-script)
 
-
-(defcustom sh-require-final-newline
-  '((csh . t)
-    (pdksh . t))
-  "Value of `require-final-newline' in Shell-Script mode buffers.
-\(SHELL . t) means use the value of `mode-require-final-newline' for SHELL.
-See `sh-feature'."
-  :type '(repeat (cons (symbol :tag "Shell")
-		       (choice (const :tag "require" t)
-			       (sexp :format "Evaluate: %v"))))
-  :group 'sh-script)
-
-
 (defcustom sh-assignment-regexp
   '((csh . "\\<\\([[:alnum:]_]+\\)\\(\\[.+\\]\\)?[ \t]*[-+*/%^]?=")
     ;; actually spaces are only supported in let/(( ... ))
@@ -611,7 +592,7 @@ sign.  See `sh-feature'."
 (defvar sh-header-marker nil
   "When non-nil is the end of header for prepending by \\[sh-execute-region].
 That command is also used for setting this variable.")
-
+(make-variable-buffer-local 'sh-header-marker)
 
 (defcustom sh-beginning-of-command
   "\\([;({`|&]\\|\\`\\|[^\\]\n\\)[ \t]*\\([/~[:alnum:]:]\\)"
@@ -779,7 +760,7 @@ flow of control or syntax.  See `sh-feature'."
     (shell "break" "case" "continue" "exec" "exit")
 
     (zsh sh-append bash
-	 "select"))
+	 "select" "foreach"))
   "List of keywords not in `sh-leading-keywords'.
 See `sh-feature'."
   :type '(repeat (cons (symbol :tag "Shell")
@@ -942,68 +923,20 @@ See `sh-feature'.")
 ;; These are used for the syntax table stuff (derived from cperl-mode).
 ;; Note: parse-sexp-lookup-properties must be set to t for it to work.
 (defconst sh-st-punc (string-to-syntax "."))
-(defconst sh-st-symbol (string-to-syntax "_"))
 (defconst sh-here-doc-syntax (string-to-syntax "|")) ;; generic string
 
-(defconst sh-escaped-line-re
-  ;; Should match until the real end-of-continued-line, but if that is not
-  ;; possible (because we bump into EOB or the search bound), then we should
-  ;; match until the search bound.
-  "\\(?:\\(?:.*[^\\\n]\\)?\\(?:\\\\\\\\\\)*\\\\\n\\)*.*")
+(eval-and-compile
+  (defconst sh-escaped-line-re
+    ;; Should match until the real end-of-continued-line, but if that is not
+    ;; possible (because we bump into EOB or the search bound), then we should
+    ;; match until the search bound.
+    "\\(?:\\(?:.*[^\\\n]\\)?\\(?:\\\\\\\\\\)*\\\\\n\\)*.*")
 
-(defconst sh-here-doc-open-re
-  (concat "<<-?\\s-*\\\\?\\(\\(?:['\"][^'\"]+['\"]\\|\\sw\\)+\\)"
-          sh-escaped-line-re "\\(\n\\)"))
+  (defconst sh-here-doc-open-re
+    (concat "<<-?\\s-*\\\\?\\(\\(?:['\"][^'\"]+['\"]\\|\\sw\\|[-/~._]\\)+\\)"
+            sh-escaped-line-re "\\(\n\\)")))
 
-(defvar sh-here-doc-markers nil)
-(make-variable-buffer-local 'sh-here-doc-markers)
-(defvar sh-here-doc-re sh-here-doc-open-re)
-(make-variable-buffer-local 'sh-here-doc-re)
-
-(defun sh-font-lock-close-heredoc (bol eof indented)
-  "Determine the syntax of the \\n after an EOF.
-If non-nil INDENTED indicates that the EOF was indented."
-  (let* ((eof-re (if eof (regexp-quote eof) ""))
-         ;; A rough regexp that should find the opening <<EOF back.
-	 (sre (concat "<<\\(-?\\)\\s-*['\"\\]?"
-		      ;; Use \s| to cheaply check it's an open-heredoc.
-		      eof-re "['\"]?\\([ \t|;&)<>]"
-                      sh-escaped-line-re
-                      "\\)?\\s|"))
-	 ;; A regexp that will find other EOFs.
-	 (ere (concat "^" (if indented "[ \t]*") eof-re "\n"))
-	 (start (save-excursion
-		  (goto-char bol)
-		  (re-search-backward (concat sre "\\|" ere) nil t))))
-    ;; If subgroup 1 matched, we found an open-heredoc, otherwise we first
-    ;; found a close-heredoc which makes the current close-heredoc inoperant.
-    (cond
-     ((when (and start (match-end 1)
-		 (not (and indented (= (match-beginning 1) (match-end 1))))
-		 (not (sh-in-comment-or-string (match-beginning 0))))
-	;; Make sure our `<<' is not the EOF1 of a `cat <<EOF1 <<EOF2'.
-	(save-excursion
-	  (goto-char start)
-	  (setq start (line-beginning-position 2))
-	  (while
-	      (progn
-		(re-search-forward "<<") ; Skip ourselves.
-		(and (re-search-forward sh-here-doc-open-re start 'move)
-		     (goto-char (match-beginning 0))
-		     (sh-in-comment-or-string (point)))))
-	  ;; No <<EOF2 found after our <<.
-	  (= (point) start)))
-      sh-here-doc-syntax)
-     ((not (or start (save-excursion (re-search-forward sre nil t))))
-      ;; There's no <<EOF either before or after us,
-      ;; so we should remove ourselves from font-lock's keywords.
-      (setq sh-here-doc-markers (delete eof sh-here-doc-markers))
-      (setq sh-here-doc-re
-	    (concat sh-here-doc-open-re "\\|^\\([ \t]*\\)"
-		    (regexp-opt sh-here-doc-markers t) "\\(\n\\)"))
-      nil))))
-
-(defun sh-font-lock-open-heredoc (start string)
+(defun sh-font-lock-open-heredoc (start string eol)
   "Determine the syntax of the \\n after a <<EOF.
 START is the position of <<.
 STRING is the actual word used as delimiter (e.g. \"EOF\").
@@ -1014,32 +947,36 @@ Point is at the beginning of the next line."
 	      (sh-in-comment-or-string start))
     ;; We're looking at <<STRING, so we add "^STRING$" to the syntactic
     ;; font-lock keywords to detect the end of this here document.
-    (let ((str (replace-regexp-in-string "['\"]" "" string)))
-      (unless (member str sh-here-doc-markers)
-	(push str sh-here-doc-markers)
-	(setq sh-here-doc-re
-	      (concat sh-here-doc-open-re "\\|^\\([ \t]*\\)"
-		      (regexp-opt sh-here-doc-markers t) "\\(\n\\)"))))
-    (let ((ppss (save-excursion (syntax-ppss (1- (point))))))
+    (let ((str (replace-regexp-in-string "['\"]" "" string))
+          (ppss (save-excursion (syntax-ppss eol))))
       (if (nth 4 ppss)
           ;; The \n not only starts the heredoc but also closes a comment.
           ;; Let's close the comment just before the \n.
-          (put-text-property (1- (point)) (point) 'syntax-table '(12))) ;">"
-      (if (or (nth 5 ppss) (> (count-lines start (point)) 1))
-          ;; If the sh-escaped-line-re part of sh-here-doc-re has matched
+          (put-text-property (1- eol) eol 'syntax-table '(12))) ;">"
+      (if (or (nth 5 ppss) (> (count-lines start eol) 1))
+          ;; If the sh-escaped-line-re part of sh-here-doc-open-re has matched
           ;; several lines, make sure we refontify them together.
           ;; Furthermore, if (nth 5 ppss) is non-nil (i.e. the \n is
           ;; escaped), it means the right \n is actually further down.
           ;; Don't bother fixing it now, but place a multiline property so
           ;; that when jit-lock-context-* refontifies the rest of the
           ;; buffer, it also refontifies the current line with it.
-          (put-text-property start (point) 'font-lock-multiline t)))
-    sh-here-doc-syntax))
+          (put-text-property start (1+ eol) 'syntax-multiline t))
+      (put-text-property eol (1+ eol) 'sh-here-doc-marker str)
+      (prog1 sh-here-doc-syntax
+        (goto-char (+ 2 start))))))
 
-(defun sh-font-lock-here-doc (limit)
-  "Search for a heredoc marker."
-  ;; This looks silly, but it's because `sh-here-doc-re' keeps changing.
-  (re-search-forward sh-here-doc-re limit t))
+(defun sh-syntax-propertize-here-doc (end)
+  (let ((ppss (syntax-ppss)))
+    (when (eq t (nth 3 ppss))
+      (let ((key (get-text-property (nth 8 ppss) 'sh-here-doc-marker))
+            (case-fold-search nil))
+        (when (re-search-forward
+               (concat "^\\([ \t]*\\)" (regexp-quote key) "\\(\n\\)")
+               end 'move)
+          (let ((eol (match-beginning 2)))
+            (put-text-property eol (1+ eol)
+                               'syntax-table sh-here-doc-syntax)))))))
 
 (defun sh-font-lock-quoted-subshell (limit)
   "Search for a subshell embedded in a string.
@@ -1048,12 +985,9 @@ subshells can nest."
   ;; FIXME: This can (and often does) match multiple lines, yet it makes no
   ;; effort to handle multiline cases correctly, so it ends up being
   ;; rather flakey.
-  (when (and (re-search-forward "\"\\(?:\\(?:.\\|\n\\)*?[^\\]\\(?:\\\\\\\\\\)*\\)??\\(\\$(\\|`\\)" limit t)
-             ;; Make sure the " we matched is an opening quote.
-	     (eq ?\" (nth 3 (syntax-ppss))))
+  (when (eq ?\" (nth 3 (syntax-ppss))) ; Check we matched an opening quote.
     ;; bingo we have a $( or a ` inside a ""
-    (let ((char (char-after (point)))
-          ;; `state' can be: double-quote, backquote, code.
+    (let (;; `state' can be: double-quote, backquote, code.
           (state (if (eq (char-before) ?`) 'backquote 'code))
           ;; Stacked states in the context.
           (states '(double-quote)))
@@ -1085,8 +1019,7 @@ subshells can nest."
                  (double-quote nil)
                  (t (setq state (pop states)))))
           (t (error "Internal error in sh-font-lock-quoted-subshell")))
-        (forward-char 1)))
-    t))
+        (forward-char 1)))))
 
 
 (defun sh-is-quoted-p (pos)
@@ -1094,19 +1027,25 @@ subshells can nest."
        (not (sh-is-quoted-p (1- pos)))))
 
 (defun sh-font-lock-paren (start)
+  (unless (nth 8 (syntax-ppss))
   (save-excursion
     (goto-char start)
     ;; Skip through all patterns
     (while
 	(progn
+            (while
+                (progn
 	  (forward-comment (- (point-max)))
+                  (when (and (eolp) (sh-is-quoted-p (point)))
+                    (forward-char -1)
+                    t)))
 	  ;; Skip through one pattern
 	  (while
 	      (or (/= 0 (skip-syntax-backward "w_"))
-		  (/= 0 (skip-chars-backward "?[]*@/\\"))
+                    (/= 0 (skip-chars-backward "-$=?[]*@/\\\\"))
 		  (and (sh-is-quoted-p (1- (point)))
 		       (goto-char (- (point) 2)))
-		  (when (memq (char-before) '(?\" ?\'))
+                    (when (memq (char-before) '(?\" ?\' ?\}))
 		    (condition-case nil (progn (backward-sexp 1) t)
 		      (error nil)))))
 	  ;; Patterns can be preceded by an open-paren (Bug#1320).
@@ -1119,19 +1058,21 @@ subshells can nest."
             (backward-char 1))
 	  (when (eq (char-before) ?|)
 	    (backward-char 1) t)))
-    ;; FIXME: ";; esac )" is a case that looks like a case-pattern but it's
-    ;; really just a close paren after a case statement.  I.e. if we skipped
-    ;; over `esac' just now, we're not looking at a case-pattern.
     (when (progn (backward-char 2)
                  (if (> start (line-end-position))
                      (put-text-property (point) (1+ start)
-                                        'font-lock-multiline t))
+                                        'syntax-multiline t))
                  ;; FIXME: The `in' may just be a random argument to
                  ;; a normal command rather than the real `in' keyword.
                  ;; I.e. we should look back to try and find the
                  ;; corresponding `case'.
-                 (looking-at ";;\\|in"))
-      sh-st-punc)))
+                   (and (looking-at ";[;&]\\|in")
+                        ;; ";; esac )" is a case that looks like a case-pattern
+                        ;; but it's really just a close paren after a case
+                        ;; statement.  I.e. if we skipped over `esac' just now,
+                        ;; we're not looking at a case-pattern.
+                        (not (looking-at "..[ \t\n]+esac[^[:word:]_]"))))
+        sh-st-punc))))
 
 (defun sh-font-lock-backslash-quote ()
   (if (eq (save-excursion (nth 3 (syntax-ppss (match-beginning 0)))) ?\')
@@ -1139,40 +1080,38 @@ subshells can nest."
       sh-st-punc
     nil))
 
-(defun sh-font-lock-flush-syntax-ppss-cache (limit)
-  ;; This should probably be a standard function provided by font-lock.el
-  ;; (or syntax.el).
-  (syntax-ppss-flush-cache (point))
-  (goto-char limit)
-  nil)
-
-(defconst sh-font-lock-syntactic-keywords
-  ;; A `#' begins a comment when it is unquoted and at the beginning of a
-  ;; word.  In the shell, words are separated by metacharacters.
-  ;; The list of special chars is taken from the single-unix spec
-  ;; of the shell command language (under `quoting') but with `$' removed.
-  `(("[^|&;<>()`\\\"' \t\n]\\(#+\\)" 1 ,sh-st-symbol)
+(defun sh-syntax-propertize-function (start end)
+  (goto-char start)
+  (sh-syntax-propertize-here-doc end)
+  (funcall
+   (syntax-propertize-rules
+    (sh-here-doc-open-re
+     (2 (sh-font-lock-open-heredoc
+         (match-beginning 0) (match-string 1) (match-beginning 2))))
+    ("\\s|" (0 (prog1 nil (sh-syntax-propertize-here-doc end))))
+    ;; A `#' begins a comment when it is unquoted and at the
+    ;; beginning of a word.  In the shell, words are separated by
+    ;; metacharacters.  The list of special chars is taken from
+    ;; the single-unix spec of the shell command language (under
+    ;; `quoting') but with `$' removed.
+    ("[^|&;<>()`\\\"' \t\n]\\(#+\\)" (1 "_"))
     ;; In a '...' the backslash is not escaping.
     ("\\(\\\\\\)'" (1 (sh-font-lock-backslash-quote)))
-    ;; The previous rule uses syntax-ppss, but the subsequent rules may
-    ;; change the syntax, so we have to tell syntax-ppss that the states it
-    ;; has just computed will need to be recomputed.
-    (sh-font-lock-flush-syntax-ppss-cache)
     ;; Make sure $@ and $? are correctly recognized as sexps.
-    ("\\$\\([?@]\\)" 1 ,sh-st-symbol)
-    ;; Find HEREDOC starters and add a corresponding rule for the ender.
-    (sh-font-lock-here-doc
-     (2 (sh-font-lock-open-heredoc
-	 (match-beginning 0) (match-string 1)) nil t)
-     (5 (sh-font-lock-close-heredoc
-	 (match-beginning 0) (match-string 4)
-         (and (match-beginning 3) (/= (match-beginning 3) (match-end 3))))
-      nil t))
+    ("\\$\\([?@]\\)" (1 "_"))
     ;; Distinguish the special close-paren in `case'.
-    (")" 0 (sh-font-lock-paren (match-beginning 0)))
-    ;; highlight (possibly nested) subshells inside "" quoted regions correctly.
-    ;; This should be at the very end because it uses syntax-ppss.
-    (sh-font-lock-quoted-subshell)))
+    (")" (0 (sh-font-lock-paren (match-beginning 0))))
+    ;; Highlight (possibly nested) subshells inside "" quoted
+    ;; regions correctly.
+    ("\"\\(?:\\(?:[^\\\"]\\|\\)*?[^\\]\\(?:\\\\\\\\\\)*\\)??\\(\\$(\\|`\\)"
+     (1 (ignore
+         ;; Save excursion because we want to also apply other
+         ;; syntax-propertize rules within the affected region.
+         (if (nth 8 (syntax-ppss))
+             (goto-char (1+ (match-beginning 0)))
+           (save-excursion
+             (sh-font-lock-quoted-subshell end)))))))
+   (point) end))
 
 (defun sh-font-lock-syntactic-face-function (state)
   (let ((q (nth 3 state)))
@@ -1272,7 +1211,7 @@ a number means align to that column, e.g. 0 means first column."
 ;;   "For debugging:  display message ARGS if variable SH-DEBUG is non-nil."
 ;;   (if sh-debug
 ;;       (apply 'message args)))
-(defmacro sh-debug (&rest args))
+(defmacro sh-debug (&rest _args))
 
 (defconst sh-symbol-list
   '((const :tag "+ "  :value +
@@ -1480,7 +1419,7 @@ frequently editing existing scripts with different styles.")
 ;; mode-command and utility functions
 
 ;;;###autoload
-(defun sh-mode ()
+(define-derived-mode sh-mode prog-mode "Shell-script"
   "Major mode for editing shell scripts.
 This mode works for many shells, since they all have roughly the same syntax,
 as far as commands, arguments, variables, pipes, comments etc. are concerned.
@@ -1533,62 +1472,44 @@ indicate what shell it is use `sh-alias-alist' to translate.
 
 If your shell gives error messages with line numbers, you can use \\[executable-interpret]
 with your script for an edit-interpret-debug cycle."
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'sh-mode
-	mode-name "Shell-script")
-  (use-local-map sh-mode-map)
-  (make-local-variable 'skeleton-end-hook)
-  (make-local-variable 'paragraph-start)
-  (make-local-variable 'paragraph-separate)
-  (make-local-variable 'comment-start)
-  (make-local-variable 'comment-start-skip)
-  (make-local-variable 'require-final-newline)
-  (make-local-variable 'sh-header-marker)
   (make-local-variable 'sh-shell-file)
   (make-local-variable 'sh-shell)
-  (make-local-variable 'skeleton-pair-alist)
-  (make-local-variable 'skeleton-pair-filter-function)
-  (make-local-variable 'comint-dynamic-complete-functions)
-  (make-local-variable 'comint-prompt-regexp)
-  (make-local-variable 'font-lock-defaults)
-  (make-local-variable 'skeleton-filter-function)
-  (make-local-variable 'skeleton-newline-indent-rigidly)
-  (make-local-variable 'sh-shell-variables)
-  (make-local-variable 'sh-shell-variables-initialized)
-  (make-local-variable 'imenu-generic-expression)
-  (make-local-variable 'sh-indent-supported-here)
-  (make-local-variable 'skeleton-pair-default-alist)
-  (setq skeleton-pair-default-alist sh-skeleton-pair-default-alist)
-  (setq skeleton-end-hook (lambda ()
-			    (or (eolp) (newline) (indent-relative)))
-	paragraph-start (concat page-delimiter "\\|$")
-	paragraph-separate paragraph-start
-	comment-start "# "
-	comment-start-skip "#+[\t ]*"
-	local-abbrev-table sh-mode-abbrev-table
-	comint-dynamic-complete-functions sh-dynamic-complete-functions
-	;; we can't look if previous line ended with `\'
-	comint-prompt-regexp "^[ \t]*"
-	imenu-case-fold-search nil
-	font-lock-defaults
-	`((sh-font-lock-keywords
-	   sh-font-lock-keywords-1 sh-font-lock-keywords-2)
-	  nil nil
-	  ((?/ . "w") (?~ . "w") (?. . "w") (?- . "w") (?_ . "w")) nil
-	  (font-lock-syntactic-keywords . sh-font-lock-syntactic-keywords)
-	  (font-lock-syntactic-face-function
-	   . sh-font-lock-syntactic-face-function))
-	skeleton-pair-alist '((?` _ ?`))
-	skeleton-pair-filter-function 'sh-quoted-p
-	skeleton-further-elements '((< '(- (min sh-indentation
-						(current-column)))))
-	skeleton-filter-function 'sh-feature
-	skeleton-newline-indent-rigidly t
-	sh-indent-supported-here nil)
+
+  (set (make-local-variable 'skeleton-pair-default-alist)
+       sh-skeleton-pair-default-alist)
+  (set (make-local-variable 'skeleton-end-hook)
+       (lambda () (or (eolp) (newline) (indent-relative))))
+
+  (set (make-local-variable 'paragraph-start) (concat page-delimiter "\\|$"))
+  (set (make-local-variable 'paragraph-separate) paragraph-start)
+  (set (make-local-variable 'comment-start) "# ")
+  (set (make-local-variable 'comment-start-skip) "#+[\t ]*")
+  (set (make-local-variable 'local-abbrev-table) sh-mode-abbrev-table)
+  (set (make-local-variable 'comint-dynamic-complete-functions)
+       sh-dynamic-complete-functions)
+  ;; we can't look if previous line ended with `\'
+  (set (make-local-variable 'comint-prompt-regexp) "^[ \t]*")
+  (set (make-local-variable 'imenu-case-fold-search) nil)
+  (set (make-local-variable 'font-lock-defaults)
+       `((sh-font-lock-keywords
+          sh-font-lock-keywords-1 sh-font-lock-keywords-2)
+         nil nil
+         ((?/ . "w") (?~ . "w") (?. . "w") (?- . "w") (?_ . "w")) nil
+         (font-lock-syntactic-face-function
+          . sh-font-lock-syntactic-face-function)))
+  (set (make-local-variable 'syntax-propertize-function)
+       #'sh-syntax-propertize-function)
+  (add-hook 'syntax-propertize-extend-region-functions
+            #'syntax-propertize-multiline 'append 'local)
+  (set (make-local-variable 'skeleton-pair-alist) '((?` _ ?`)))
+  (set (make-local-variable 'skeleton-pair-filter-function) 'sh-quoted-p)
+  (set (make-local-variable 'skeleton-further-elements)
+       '((< '(- (min sh-indentation (current-column))))))
+  (set (make-local-variable 'skeleton-filter-function) 'sh-feature)
+  (set (make-local-variable 'skeleton-newline-indent-rigidly) t)
+  (set (make-local-variable 'sh-indent-supported-here) nil)
   (set (make-local-variable 'defun-prompt-regexp)
        (concat "^\\(function[ \t]\\|[[:alnum:]]+[ \t]+()[ \t]+\\)"))
-  (set (make-local-variable 'parse-sexp-ignore-comments) t)
   ;; Parse or insert magic number for exec, and set all variables depending
   ;; on the shell thus determined.
   (sh-set-shell
@@ -1613,8 +1534,7 @@ with your script for an edit-interpret-debug cycle."
           "sh")
          (t
           sh-shell-file))
-   nil nil)
-  (run-mode-hooks 'sh-mode-hook))
+   nil nil))
 
 ;;;###autoload
 (defalias 'shell-script-mode 'sh-mode)
@@ -1700,6 +1620,8 @@ This adds rules for comments and assignments."
      ("esac" sh-handle-this-esac sh-handle-prev-esac)
      (case-label nil sh-handle-after-case-label) ;; ???
      (";;" nil sh-handle-prev-case-alt-end) ;; ???
+     (";;&" nil sh-handle-prev-case-alt-end) ;Like ";;" with diff semantics.
+     (";&" nil sh-handle-prev-case-alt-end) ;Like ";;" with diff semantics.
      ("done" sh-handle-this-done sh-handle-prev-done)
      ("do" sh-handle-this-do sh-handle-prev-do))
 
@@ -1741,23 +1663,18 @@ Calls the value of `sh-set-shell-hook' if set."
       (setq sh-shell-file
 	    (executable-set-magic shell (sh-feature sh-shell-arg)
 				  no-query-flag insert-flag)))
-  (let ((tem (sh-feature sh-require-final-newline)))
-    (if (eq tem t)
-	(setq require-final-newline mode-require-final-newline)))
-  (setq
-	mode-line-process (format "[%s]" sh-shell)
-	sh-shell-variables nil
-	sh-shell-variables-initialized nil
-	imenu-generic-expression (sh-feature sh-imenu-generic-expression))
-  (make-local-variable 'sh-mode-syntax-table)
+  (setq mode-line-process (format "[%s]" sh-shell))
+  (set (make-local-variable 'sh-shell-variables) nil)
+  (set (make-local-variable 'sh-shell-variables-initialized) nil)
+  (set (make-local-variable 'imenu-generic-expression)
+       (sh-feature sh-imenu-generic-expression))
   (let ((tem (sh-feature sh-mode-syntax-table-input)))
-    (setq sh-mode-syntax-table
-	  (if tem (apply 'sh-mode-syntax-table tem)
-	    sh-mode-default-syntax-table)))
-  (set-syntax-table sh-mode-syntax-table)
+    (when tem
+      (set (make-local-variable 'sh-mode-syntax-table)
+           (apply 'sh-mode-syntax-table tem))
+      (set-syntax-table sh-mode-syntax-table)))
   (dolist (var (sh-feature sh-variables))
     (sh-remember-variable var))
-  (make-local-variable 'indent-line-function)
   (if (setq sh-indent-supported-here (sh-feature sh-indent-supported))
       (progn
 	(message "Setting up indent for shell type %s" sh-shell)
@@ -1770,7 +1687,7 @@ Calls the value of `sh-set-shell-hook' if set."
 	(message "setting up indent stuff")
 	;; sh-mode has already made indent-line-function local
 	;; but do it in case this is called before that.
-	(setq indent-line-function 'sh-indent-line)
+	(set (make-local-variable 'indent-line-function) 'sh-indent-line)
 	(if sh-make-vars-local
 	    (sh-make-vars-local))
 	(message "Indentation setup for shell type %s" sh-shell))
@@ -2162,11 +2079,7 @@ Return new point if successful, nil if an error occurred."
 (defun sh-handle-prev-do ()
   (cond
    ((save-restriction
-      (narrow-to-region
-       (point)
-       (save-excursion
-	 (beginning-of-line)
-	 (point)))
+      (narrow-to-region (point) (line-beginning-position))
       (sh-goto-match-for-done))
     (sh-debug "match for done found on THIS line")
     (list '(+ sh-indent-after-loop-construct)))
@@ -2224,7 +2137,6 @@ STRING	     This is ignored for the purposes of calculating
   (save-excursion
     (let ((have-result nil)
 	  this-kw
-	  start
 	  val
 	  (result nil)
 	  (align-point nil)
@@ -2233,10 +2145,9 @@ STRING	     This is ignored for the purposes of calculating
       ;; Note: setting result to t means we are done and will return nil.
       ;;(This function never returns just t.)
       (cond
-       ((or (and (boundp 'font-lock-string-face) (not (bobp))
-		 (eq (get-text-property (1- (point)) 'face)
-		     font-lock-string-face))
+       ((or (nth 3 (syntax-ppss (point)))
 	    (eq (get-text-property (point) 'face) sh-heredoc-face))
+	;; String continuation -- don't indent
 	(setq result t)
 	(setq have-result t))
        ((looking-at "\\s-*#")		; was (equal this-kw "#")
@@ -2296,7 +2207,6 @@ STRING	     This is ignored for the purposes of calculating
 	    ;; We start off at beginning of this line.
 	    ;; Scan previous statements while this is <=
 	    ;; start of previous line.
-	    (setq start (point)) ;; for debug only
 	    (goto-char prev-line-end)
 	    (setq x t)
 	    (while (and x (setq x  (sh-prev-thing)))
@@ -2547,7 +2457,7 @@ we go to the end of the previous line and do not check for continuations."
                          (sh-prev-line nil)
                        (line-beginning-position))))
       (skip-chars-backward " \t;" min-point)
-      (if (looking-at "\\s-*;;")
+      (if (looking-at "\\s-*;[;&]")
           ;; (message "Found ;; !")
           ";;"
         (skip-chars-backward "^)}];\"'`({[" min-point)
@@ -2701,7 +2611,7 @@ can be represented by a symbol then do so."
 If INFO is supplied it is used, else it is calculated from current line."
   (let ((ofs 0)
 	(base-value 0)
-	elt a b var val)
+	elt a b val)
     (or info
 	(setq info (sh-get-indent-info)))
     (when info
@@ -3469,20 +3379,15 @@ CODE can be nil, t or `lambda'.
 nil means to return the best completion of STRING, or nil if there is none.
 t means to return a list of all possible completions of STRING.
 `lambda' means to return t if STRING is a valid completion as it stands."
-  (let ((sh-shell-variables
+  (let ((vars
 	 (with-current-buffer sh-add-buffer
 	   (or sh-shell-variables-initialized
 	       (sh-shell-initialize-variables))
 	   (nconc (mapcar (lambda (var)
-			    (let ((name
-				   (substring var 0 (string-match "=" var))))
-			      (cons name name)))
+                            (substring var 0 (string-match "=" var)))
 			  process-environment)
 		  sh-shell-variables))))
-    (case code
-      ((nil) (try-completion string sh-shell-variables predicate))
-      (lambda (test-completion string sh-shell-variables predicate))
-      (t (all-completions string sh-shell-variables predicate)))))
+    (complete-with-action code vars string predicate)))
 
 (defun sh-add (var delta)
   "Insert an addition of VAR and prefix DELTA for Bourne (type) shell."
@@ -3872,5 +3777,4 @@ shell command and conveniently use this command."
 
 (provide 'sh-script)
 
-;; arch-tag: eccd8b72-f337-4fc2-ae86-18155a69d937
 ;;; sh-script.el ends here

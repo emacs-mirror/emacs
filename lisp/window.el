@@ -1,11 +1,11 @@
 ;;; window.el --- GNU Emacs window commands aside from those written in C
 
-;; Copyright (C) 1985, 1989, 1992, 1993, 1994, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1985, 1989, 1992-1994, 2000-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -54,6 +54,7 @@ This macro saves and restores the current buffer, since otherwise
 its normal operation could make a different buffer current.  The
 order of recently selected windows and the buffer list ordering
 are not altered by this macro (unless they are altered in BODY)."
+  (declare (indent 0) (debug t))
   `(let ((save-selected-window-window (selected-window))
 	 ;; It is necessary to save all of these, because calling
 	 ;; select-window changes frame-selected-window for whatever
@@ -105,11 +106,12 @@ even if it is active.  Otherwise, the minibuffer is counted
 when it is active.
 
 The optional arg ALL-FRAMES t means count windows on all frames.
-If it is `visible', count windows on all visible frames.
-ALL-FRAMES nil or omitted means count only the selected frame,
-plus the minibuffer it uses (which may be on another frame).
-ALL-FRAMES 0 means count all windows in all visible or iconified frames.
-If ALL-FRAMES is anything else, count only the selected frame."
+If it is `visible', count windows on all visible frames on the
+current terminal.  ALL-FRAMES nil or omitted means count only the
+selected frame, plus the minibuffer it uses (which may be on
+another frame).  ALL-FRAMES 0 means count all windows in all
+visible or iconified frames on the current terminal.  If
+ALL-FRAMES is anything else, count only the selected frame."
   (let ((base-window (selected-window)))
     (if (and nomini (eq base-window (minibuffer-window)))
 	(setq base-window (next-window base-window)))
@@ -160,21 +162,21 @@ counts, `walk-windows' includes the windows in the frame from
 which you entered the minibuffer, as well as the minibuffer
 window.
 
-ALL-FRAMES nil or omitted means cycle through all windows on
- WINDOW's frame, plus the minibuffer window if specified by the
+ALL-FRAMES nil or omitted means cycle through all windows on the
+ selected frame, plus the minibuffer window if specified by the
  MINIBUF argument, see above.  If the minibuffer counts, cycle
  through all windows on all frames that share that minibuffer
  too.
 ALL-FRAMES t means cycle through all windows on all existing
  frames.
 ALL-FRAMES `visible' means cycle through all windows on all
- visible frames.
+ visible frames on the current terminal.
 ALL-FRAMES 0 means cycle through all windows on all visible and
- iconified frames.
+ iconified frames on the current terminal.
 ALL-FRAMES a frame means cycle through all windows on that frame
  only.
-Anything else means cycle through all windows on WINDOW's frame
- and no others.
+Anything else means cycle through all windows on the selected
+ frame and no others.
 
 This function changes neither the order of recently selected
 windows nor the buffer list."
@@ -249,7 +251,7 @@ The optional argument MINIBUF specifies whether the minibuffer
 window shall be counted.  See `walk-windows' for the precise
 meaning of this argument."
    (let ((count 0))
-     (walk-windows (lambda (w) (setq count (+ count 1)))
+     (walk-windows (lambda (_w) (setq count (+ count 1)))
 		   minibuf)
      count))
 
@@ -421,7 +423,7 @@ subtree is balanced."
 Arguments WINDOW, DELTA and HORIZONTAL are passed on to that function."
   ;; `adjust-window-trailing-edge' may fail if delta is too large.
   (while (>= (abs delta) 1)
-    (condition-case err
+    (condition-case nil
         (progn
           (adjust-window-trailing-edge window delta horizontal)
           (setq delta 0))
@@ -1066,9 +1068,11 @@ when the specified buffer is already displayed.  If the buffer is
 already displayed in some window on one of these frames simply
 return that window.  Possible values of FRAME are:
 
-`visible' - consider windows on all visible frames.
+`visible' - consider windows on all visible frames on the current
+terminal.
 
-0 - consider windows on all visible or iconified frames.
+0 - consider windows on all visible or iconified frames on the
+current terminal.
 
 t - consider windows on all frames.
 
@@ -1078,7 +1082,7 @@ nil - consider windows on the selected frame \(actually the
 last non-minibuffer frame\) only.  If, however, either
 `display-buffer-reuse-frames' or `pop-up-frames' is non-nil
 \(non-nil and not graphic-only on a text-only terminal),
-consider all visible or iconified frames."
+consider all visible or iconified frames on the current terminal."
   (interactive "BDisplay buffer:\nP")
   (let* ((can-use-selected-window
 	  ;; The selected window is usable unless either NOT-THIS-WINDOW
@@ -1220,19 +1224,16 @@ at the front of the list of recently selected ones."
                (let ((buf (get-buffer-create buffer-or-name)))
                  (set-buffer-major-mode buf)
                  buf))))
-	(old-window (selected-window))
 	(old-frame (selected-frame))
 	new-window new-frame)
     (set-buffer buffer)
     (setq new-window (display-buffer buffer other-window))
-    (unless (eq new-window old-window)
-      ;; `display-buffer' has chosen another window, select it.
-      (select-window new-window norecord)
-      (setq new-frame (window-frame new-window))
-      (unless (eq new-frame old-frame)
-	;; `display-buffer' has chosen another frame, make sure it gets
-	;; input focus and is risen.
-	(select-frame-set-input-focus new-frame)))
+    (select-window new-window norecord)
+    (setq new-frame (window-frame new-window))
+    (unless (eq new-frame old-frame)
+      ;; `display-buffer' has chosen another frame, make sure it gets
+      ;; input focus and is risen.
+      (select-frame-set-input-focus new-frame))
     buffer))
 
 ;; I think this should be the default; I think people will prefer it--rms.
@@ -2040,5 +2041,4 @@ Otherwise, consult the value of `truncate-partial-width-windows'
 (define-key ctl-x-map "+" 'balance-windows)
 (define-key ctl-x-4-map "0" 'kill-buffer-and-window)
 
-;; arch-tag: b508dfcc-c353-4c37-89fa-e773fe10cea9
 ;;; window.el ends here

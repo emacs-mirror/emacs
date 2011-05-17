@@ -1,6 +1,6 @@
 ;;; misearch.el --- isearch extensions for multi-buffer search
 
-;; Copyright (C) 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Juri Linkov <juri@jurta.org>
 ;; Keywords: matching
@@ -201,7 +201,7 @@ search status stack."
   `(lambda (cmd)
      (multi-isearch-pop-state cmd ,(current-buffer))))
 
-(defun multi-isearch-pop-state (cmd buffer)
+(defun multi-isearch-pop-state (_cmd buffer)
   "Restore the multiple buffers search state.
 Switch to the buffer restored from the search status stack."
   (unless (equal buffer (current-buffer))
@@ -223,6 +223,8 @@ set in `multi-isearch-buffers' or `multi-isearch-buffers-regexp'."
     (if wrap
 	(car buffers)
       (cadr (member buffer buffers)))))
+
+(defvar ido-ignore-item-temp-list)  ; from ido.el
 
 (defun multi-isearch-read-buffers ()
   "Return a list of buffers specified interactively, one by one."
@@ -378,5 +380,4 @@ whose file names match the specified wildcard."
 
 (provide 'multi-isearch)
 
-;; arch-tag: a6d38ffa-4d14-4e39-8ac6-46af9d6a6773
 ;;; misearch.el ends here

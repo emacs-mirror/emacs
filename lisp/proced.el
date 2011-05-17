@@ -1,8 +1,8 @@
 ;;; proced.el --- operate on system processes like dired
 
-;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
-;; Author: Roland Winkler <Roland.Winkler@physik.uni-erlangen.de>
+;; Author: Roland Winkler <winkler@gnu.org>
 ;; Keywords: Processes, Unix
 
 ;; This file is part of GNU Emacs.
@@ -1676,7 +1676,7 @@ After updating a displayed Proced buffer run the normal hook
         (message (if revert "Updating process information...done."
                    "Updating process display...done.")))))
 
-(defun proced-revert (&rest args)
+(defun proced-revert (&rest _args)
   "Reevaluate the process listing based on the currently running processes.
 Preserves point and marks."
   (proced-update t))
@@ -1770,7 +1770,7 @@ After sending the signal, this command runs the normal hook
                                       (number-to-string signal) signal))))
           (dolist (process process-alist)
             (with-temp-buffer
-              (condition-case err
+              (condition-case nil
                   (if (zerop (call-process
                               proced-signal-function nil t nil
                               signal (number-to-string (car process))))
@@ -1880,5 +1880,4 @@ Killed processes cannot be recovered by Emacs."))
 
 (provide 'proced)
 
-;; arch-tag: a6e312ad-9032-45aa-972d-31a8cfc545af
 ;;; proced.el ends here

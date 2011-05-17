@@ -1,7 +1,6 @@
 ;;; gnus-mh.el --- mh-e interface for Gnus
 
-;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2011 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -109,5 +108,4 @@ Otherwise, it is like +news/group."
 
 (provide 'gnus-mh)
 
-;; arch-tag: 2d5696d3-b363-48e5-8749-c256be56acca
 ;;; gnus-mh.el ends here

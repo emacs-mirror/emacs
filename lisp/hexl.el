@@ -1,7 +1,6 @@
-;;; hexl.el --- edit a file in a hex dump format using the hexl filter
+;;; hexl.el --- edit a file in a hex dump format using the hexl filter -*- lexical-binding: t -*-
 
-;; Copyright (C) 1989, 1994, 1998, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1994, 1998, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Keith Gabryelski <ag@wheaties.ai.mit.edu>
 ;; Maintainer: FSF
@@ -97,7 +96,99 @@ Quoting cannot be used, so the arguments cannot themselves contain spaces."
 (defvar hexl-max-address 0
   "Maximum offset into hexl buffer.")
 
-(defvar hexl-mode-map nil)
+(defvar hexl-mode-map
+  (let ((map (make-keymap)))
+    ;; Make all self-inserting keys go through hexl-self-insert-command,
+    ;; because we need to convert them to unibyte characters before
+    ;; inserting them into the buffer.
+    (define-key map [remap self-insert-command] 'hexl-self-insert-command)
+
+    (define-key map "\C-m" 'hexl-self-insert-command)
+    (define-key map [left] 'hexl-backward-char)
+    (define-key map [right] 'hexl-forward-char)
+    (define-key map [up] 'hexl-previous-line)
+    (define-key map [down] 'hexl-next-line)
+    (define-key map [M-left] 'hexl-backward-short)
+    (define-key map [?\e left] 'hexl-backward-short)
+    (define-key map [M-right] 'hexl-forward-short)
+    (define-key map [?\e right] 'hexl-forward-short)
+    (define-key map [next] 'hexl-scroll-up)
+    (define-key map [prior] 'hexl-scroll-down)
+    (define-key map [home] 'hexl-beginning-of-line)
+    (define-key map [end] 'hexl-end-of-line)
+    (define-key map [C-home] 'hexl-beginning-of-buffer)
+    (define-key map [C-end] 'hexl-end-of-buffer)
+    (define-key map [deletechar] 'undefined)
+    (define-key map [deleteline] 'undefined)
+    (define-key map [insertline] 'undefined)
+    (define-key map [S-delete] 'undefined)
+    (define-key map "\177" 'undefined)
+
+    (define-key map "\C-a" 'hexl-beginning-of-line)
+    (define-key map "\C-b" 'hexl-backward-char)
+    (define-key map "\C-d" 'undefined)
+    (define-key map "\C-e" 'hexl-end-of-line)
+    (define-key map "\C-f" 'hexl-forward-char)
+
+    (if (not (memq (key-binding (char-to-string help-char))
+		   '(help-command ehelp-command)))
+	(define-key map (char-to-string help-char) 'undefined))
+
+    (define-key map "\C-k" 'undefined)
+    (define-key map "\C-n" 'hexl-next-line)
+    (define-key map "\C-o" 'undefined)
+    (define-key map "\C-p" 'hexl-previous-line)
+    (define-key map "\C-q" 'hexl-quoted-insert)
+    (define-key map "\C-t" 'undefined)
+    (define-key map "\C-v" 'hexl-scroll-up)
+    (define-key map "\C-w" 'undefined)
+    (define-key map "\C-y" 'undefined)
+
+    (fset 'hexl-ESC-prefix (copy-keymap 'ESC-prefix))
+    (define-key map "\e" 'hexl-ESC-prefix)
+    (define-key map "\e\C-a" 'hexl-beginning-of-512b-page)
+    (define-key map "\e\C-b" 'hexl-backward-short)
+    (define-key map "\e\C-d" 'hexl-insert-decimal-char)
+    (define-key map "\e\C-e" 'hexl-end-of-512b-page)
+    (define-key map "\e\C-f" 'hexl-forward-short)
+    (define-key map "\e\C-i" 'undefined)
+    (define-key map "\e\C-j" 'undefined)
+    (define-key map "\e\C-k" 'undefined)
+    (define-key map "\e\C-o" 'hexl-insert-octal-char)
+    (define-key map "\e\C-q" 'undefined)
+    (define-key map "\e\C-t" 'undefined)
+    (define-key map "\e\C-x" 'hexl-insert-hex-char)
+    (define-key map "\eb" 'hexl-backward-word)
+    (define-key map "\ec" 'undefined)
+    (define-key map "\ed" 'undefined)
+    (define-key map "\ef" 'hexl-forward-word)
+    (define-key map "\eg" 'hexl-goto-hex-address)
+    (define-key map "\ei" 'undefined)
+    (define-key map "\ej" 'hexl-goto-address)
+    (define-key map "\ek" 'undefined)
+    (define-key map "\el" 'undefined)
+    (define-key map "\eq" 'undefined)
+    (define-key map "\es" 'undefined)
+    (define-key map "\et" 'undefined)
+    (define-key map "\eu" 'undefined)
+    (define-key map "\ev" 'hexl-scroll-down)
+    (define-key map "\ey" 'undefined)
+    (define-key map "\ez" 'undefined)
+    (define-key map "\e<" 'hexl-beginning-of-buffer)
+    (define-key map "\e>" 'hexl-end-of-buffer)
+
+    (fset 'hexl-C-c-prefix (copy-keymap mode-specific-map))
+    (define-key map "\C-c" 'hexl-C-c-prefix)
+    (define-key map "\C-c\C-c" 'hexl-mode-exit)
+
+    (fset 'hexl-C-x-prefix (copy-keymap 'Control-X-prefix))
+    (define-key map "\C-x" 'hexl-C-x-prefix)
+    (define-key map "\C-x[" 'hexl-beginning-of-1k-page)
+    (define-key map "\C-x]" 'hexl-end-of-1k-page)
+    (define-key map "\C-x\C-p" 'undefined)
+    (define-key map "\C-x\C-s" 'hexl-save-buffer)
+    (define-key map "\C-x\C-t" 'undefined)
+    map))
 
 ;; Variable declarations for suppressing warnings from the byte-compiler.
 (defvar ruler-mode)
@@ -107,19 +198,8 @@ Quoting cannot be used, so the arguments cannot themselves contain spaces."
 (defvar hl-line-face)
 
 ;; Variables where the original values are stored to.
-(defvar hexl-mode-old-hl-line-mode)
-(defvar hexl-mode-old-hl-line-range-function)
-(defvar hexl-mode-old-hl-line-face)
-(defvar hexl-mode-old-local-map)
-(defvar hexl-mode-old-mode-name)
-(defvar hexl-mode-old-major-mode)
-(defvar hexl-mode-old-ruler-mode)
-(defvar hexl-mode-old-ruler-function)
-(defvar hexl-mode-old-isearch-search-fun-function)
-(defvar hexl-mode-old-require-final-newline)
-(defvar hexl-mode-old-syntax-table)
-(defvar hexl-mode-old-font-lock-keywords)
-(defvar hexl-mode-old-eldoc-documentation-function)
+(defvar hexl-mode--old-var-vals ())
+(make-variable-buffer-local 'hexl-mode--old-var-vals)
 
 (defvar hexl-ascii-overlay nil
   "Overlay used to highlight ASCII element corresponding to current point.")
@@ -135,6 +215,25 @@ Quoting cannot be used, so the arguments cannot themselves contain spaces."
 ;; routines
 
 (put 'hexl-mode 'mode-class 'special)
+
+
+(defun hexl-mode--minor-mode-p (var)
+  (memq var '(ruler-mode hl-line-mode)))
+
+(defun hexl-mode--setq-local (var val)
+  ;; `var' can be either a symbol or a pair, in which case the `car'
+  ;; is the getter function and the `cdr' is the corresponding setter.
+  (unless (or (member var hexl-mode--old-var-vals)
+              (assoc var hexl-mode--old-var-vals))
+    (push (if (or (consp var) (boundp var))
+              (cons var
+                    (if (consp var) (funcall (car var)) (symbol-value var)))
+            var)
+          hexl-mode--old-var-vals))
+  (cond
+   ((consp var) (funcall (cdr var) val))
+   ((hexl-mode--minor-mode-p var) (funcall var (if val 1 -1)))
+   (t (set (make-local-variable var) val))))
 
 ;;;###autoload
 (defun hexl-mode (&optional arg)
@@ -241,59 +340,31 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
 
     ;; We do not turn off the old major mode; instead we just
     ;; override most of it.  That way, we can restore it perfectly.
-    (make-local-variable 'hexl-mode-old-local-map)
-    (setq hexl-mode-old-local-map (current-local-map))
-    (use-local-map hexl-mode-map)
 
-    (make-local-variable 'hexl-mode-old-mode-name)
-    (setq hexl-mode-old-mode-name mode-name)
-    (setq mode-name "Hexl")
+    (hexl-mode--setq-local '(current-local-map . use-local-map) hexl-mode-map)
 
-    (set (make-local-variable 'hexl-mode-old-isearch-search-fun-function)
-	 isearch-search-fun-function)
-    (set (make-local-variable 'isearch-search-fun-function)
-	 'hexl-isearch-search-function)
+    (hexl-mode--setq-local 'mode-name "Hexl")
+    (hexl-mode--setq-local 'isearch-search-fun-function
+                           'hexl-isearch-search-function)
+    (hexl-mode--setq-local 'major-mode 'hexl-mode)
 
-    (make-local-variable 'hexl-mode-old-major-mode)
-    (setq hexl-mode-old-major-mode major-mode)
-    (setq major-mode 'hexl-mode)
-
-    (make-local-variable 'hexl-mode-old-ruler-mode)
-    (setq hexl-mode-old-ruler-mode
-	  (and (boundp 'ruler-mode) ruler-mode))
-
-    (make-local-variable 'hexl-mode-old-hl-line-mode)
-    (setq hexl-mode-old-hl-line-mode
-	  (and (boundp 'hl-line-mode) hl-line-mode))
-
-    (make-local-variable 'hexl-mode-old-syntax-table)
-    (setq hexl-mode-old-syntax-table (syntax-table))
-    (set-syntax-table (standard-syntax-table))
+    (hexl-mode--setq-local '(syntax-table . set-syntax-table)
+                           (standard-syntax-table))
 
     (add-hook 'write-contents-functions 'hexl-save-buffer nil t)
 
-    (make-local-variable 'hexl-mode-old-require-final-newline)
-    (setq hexl-mode-old-require-final-newline require-final-newline)
-    (make-local-variable 'require-final-newline)
-    (setq require-final-newline nil)
+    (hexl-mode--setq-local 'require-final-newline nil)
 
-    (make-local-variable 'hexl-mode-old-font-lock-keywords)
-    (setq hexl-mode-old-font-lock-keywords font-lock-defaults)
-    (setq font-lock-defaults '(hexl-font-lock-keywords t))
 
-    ;; Add hooks to rehexlify or dehexlify on various events.
-    (add-hook 'before-revert-hook 'hexl-before-revert-hook nil t)
-    (add-hook 'after-revert-hook 'hexl-after-revert-hook nil t)
+    (hexl-mode--setq-local 'font-lock-defaults '(hexl-font-lock-keywords t))
 
+    (hexl-mode--setq-local 'revert-buffer-function
+                           #'hexl-revert-buffer-function)
     (add-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer nil t)
 
     ;; Set a callback function for eldoc.
-    (make-local-variable 'hexl-mode-old-eldoc-documentation-function)
-    (setq hexl-mode-old-eldoc-documentation-function
-	  (bound-and-true-p eldoc-documentation-function))
-
-    (set (make-local-variable 'eldoc-documentation-function)
-	 'hexl-print-current-point-info)
+    (hexl-mode--setq-local 'eldoc-documentation-function
+                           #'hexl-print-current-point-info)
     (eldoc-add-command-completions "hexl-")
     (eldoc-remove-command "hexl-save-buffer"
 			  "hexl-current-address")
@@ -320,12 +391,6 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
 	 bound noerror count))
     (let ((isearch-search-fun-function nil))
       (isearch-search-fun))))
-
-(defun hexl-before-revert-hook ()
-  (remove-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer t))
-
-(defun hexl-after-revert-hook ()
-  (hexl-mode))
 
 (defvar hexl-in-save-buffer nil)
 
@@ -372,6 +437,23 @@ and edit the file in `hexl-mode'."
   (if (not (eq major-mode 'hexl-mode))
       (hexl-mode)))
 
+(defun hexl-revert-buffer-function (_ignore-auto _noconfirm)
+  (let ((coding-system-for-read 'no-conversion)
+	revert-buffer-function)
+    ;; Call the original `revert-buffer' without code conversion; also
+    ;; prevent it from changing the major mode to normal-mode, which
+    ;; calls `set-auto-mode'.
+    (revert-buffer nil nil t)
+    ;; A couple of hacks are necessary here:
+    ;; 1. change the major-mode to one other than hexl-mode since the
+    ;; function `hexl-mode' does nothing if the current major-mode is
+    ;; already hexl-mode.
+    ;; 2. reset change-major-mode-hook in case that `hexl-mode'
+    ;; previously added hexl-maybe-dehexlify-buffer to it.
+    (remove-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer t)
+    (setq major-mode 'fundamental-mode)
+    (hexl-mode)))
+
 (defun hexl-mode-exit (&optional arg)
   "Exit Hexl mode, returning to previous mode.
 With arg, don't unhexlify buffer."
@@ -391,35 +473,26 @@ With arg, don't unhexlify buffer."
 	  (or (bobp) (setq original-point (1+ original-point))))
 	(goto-char original-point)))
 
-  (remove-hook 'before-revert-hook 'hexl-before-revert-hook t)
-  (remove-hook 'after-revert-hook 'hexl-after-revert-hook t)
   (remove-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer t)
   (remove-hook 'post-command-hook 'hexl-follow-ascii-find t)
   (setq hexl-ascii-overlay nil)
 
-  (if (and (boundp 'ruler-mode) ruler-mode (not hexl-mode-old-ruler-mode))
-      (ruler-mode 0))
-  (when (boundp 'hexl-mode-old-ruler-function)
-    (setq ruler-mode-ruler-function hexl-mode-old-ruler-function))
+  (let ((mms ()))
+    (dolist (varval hexl-mode--old-var-vals)
+      (let* ((bound (consp varval))
+             (var (if bound (car varval) varval))
+             (val (cdr-safe varval)))
+        (cond
+         ((consp var) (funcall (cdr var) val))
+         ((hexl-mode--minor-mode-p var) (push (cons var val) mms))
+         (bound (set (make-local-variable var) val))
+         (t (kill-local-variable var)))))
+    (kill-local-variable 'hexl-mode--old-var-vals)
+    ;; Enable/disable minor modes.  Do it after having reset the other vars,
+    ;; since some of them may affect the minor modes.
+    (dolist (mm mms)
+      (funcall (car mm) (if (cdr mm) 1 -1))))
 
-  (if (and (boundp 'hl-line-mode) hl-line-mode (not hexl-mode-old-hl-line-mode))
-      (hl-line-mode 0))
-  (when (boundp 'hexl-mode-old-hl-line-range-function)
-    (setq hl-line-range-function hexl-mode-old-hl-line-range-function))
-  (when (boundp 'hexl-mode-old-hl-line-face)
-    (setq hl-line-face hexl-mode-old-hl-line-face))
-
-  (when (boundp 'hexl-mode-old-eldoc-documentation-function)
-    (setq eldoc-documentation-function
-	  hexl-mode-old-eldoc-documentation-function))
-
-  (setq require-final-newline hexl-mode-old-require-final-newline)
-  (setq mode-name hexl-mode-old-mode-name)
-  (setq isearch-search-fun-function hexl-mode-old-isearch-search-fun-function)
-  (use-local-map hexl-mode-old-local-map)
-  (set-syntax-table hexl-mode-old-syntax-table)
-  (setq font-lock-defaults hexl-mode-old-font-lock-keywords)
-  (setq major-mode hexl-mode-old-major-mode)
   (force-mode-line-update))
 
 (defun hexl-maybe-dehexlify-buffer ()
@@ -518,23 +591,21 @@ Signal error if HEX-ADDRESS is out of range."
 			   (progn
 			     (setq arg (- arg))
 			     (while (> arg 0)
-			       (if (not (equal address (logior address 3)))
-				   (if (> address hexl-max-address)
-				       (progn
-					 (message "End of buffer.")
-					 (setq address hexl-max-address))
-				     (setq address (logior address 3)))
-				 (if (> address hexl-max-address)
-				     (progn
-				       (message "End of buffer.")
-				       (setq address hexl-max-address))
-				   (setq address (+ address 4))))
+                               (setq address
+                                     (if (> address hexl-max-address)
+                                         (progn
+                                           (message "End of buffer.")
+                                           hexl-max-address)
+                                       (if (equal address (logior address 3))
+                                           (+ address 4)
+                                         (logior address 3))))
 			       (setq arg (1- arg)))
-			     (if (> address hexl-max-address)
-				 (progn
-				   (message "End of buffer.")
-				   (setq address hexl-max-address))
-			       (setq address (logior address 3))))
+                             (setq address
+                                   (if (> address hexl-max-address)
+                                       (progn
+                                         (message "End of buffer.")
+                                         hexl-max-address)
+                                     (logior address 3))))
 			 (while (> arg 0)
 			   (if (not (equal address (logand address -4)))
 			       (setq address (logand address -4))
@@ -557,23 +628,21 @@ Signal error if HEX-ADDRESS is out of range."
 			   (progn
 			     (setq arg (- arg))
 			     (while (> arg 0)
-			       (if (not (equal address (logior address 7)))
-				   (if (> address hexl-max-address)
-				       (progn
-					 (message "End of buffer.")
-					 (setq address hexl-max-address))
-				     (setq address (logior address 7)))
-				 (if (> address hexl-max-address)
-				     (progn
-				       (message "End of buffer.")
-				       (setq address hexl-max-address))
-				   (setq address (+ address 8))))
+                               (setq address
+                                     (if (> address hexl-max-address)
+                                         (progn
+                                           (message "End of buffer.")
+                                           hexl-max-address)
+                                       (if (equal address (logior address 7))
+                                           (+ address 8)
+                                         (logior address 7))))
 			       (setq arg (1- arg)))
-			     (if (> address hexl-max-address)
-				 (progn
-				   (message "End of buffer.")
-				   (setq address hexl-max-address))
-			       (setq address (logior address 7))))
+                             (setq address
+                                   (if (> address hexl-max-address)
+                                       (progn
+                                         (message "End of buffer.")
+                                         hexl-max-address)
+                                     (logior address 7))))
 			 (while (> arg 0)
 			   (if (not (equal address (logand address -8)))
 			       (setq address (logand address -8))
@@ -644,18 +713,18 @@ With prefix arg N, puts point N bytes of the way from the true beginning."
 (defun hexl-scroll-down (arg)
   "Scroll hexl buffer window upward ARG lines; or near full window if no ARG."
   (interactive "P")
-  (if (null arg)
-      (setq arg (1- (window-height)))
-    (setq arg (prefix-numeric-value arg)))
+  (setq arg (if (null arg)
+                (1- (window-height))
+              (prefix-numeric-value arg)))
   (hexl-scroll-up (- arg)))
 
 (defun hexl-scroll-up (arg)
   "Scroll hexl buffer window upward ARG lines; or near full window if no ARG.
 If there's no byte at the target address, move to the first or last line."
   (interactive "P")
-  (if (null arg)
-      (setq arg (1- (window-height)))
-    (setq arg (prefix-numeric-value arg)))
+  (setq arg (if (null arg)
+                (1- (window-height))
+              (prefix-numeric-value arg)))
   (let* ((movement (* arg 16))
 	 (address (hexl-current-address))
 	 (dest (+ address movement)))
@@ -683,10 +752,8 @@ If there's no byte at the target address, move to the first or last line."
 (defun hexl-end-of-1k-page ()
   "Go to end of 1KB boundary."
   (interactive)
-  (hexl-goto-address (let ((address (logior (hexl-current-address) 1023)))
-		       (if (> address hexl-max-address)
-			   (setq address hexl-max-address))
-		       address)))
+  (hexl-goto-address
+   (max hexl-max-address (logior (hexl-current-address) 1023))))
 
 (defun hexl-beginning-of-512b-page ()
   "Go to beginning of 512 byte boundary."
@@ -696,10 +763,8 @@ If there's no byte at the target address, move to the first or last line."
 (defun hexl-end-of-512b-page ()
   "Go to end of 512 byte boundary."
   (interactive)
-  (hexl-goto-address (let ((address (logior (hexl-current-address) 511)))
-		       (if (> address hexl-max-address)
-			   (setq address hexl-max-address))
-		       address)))
+  (hexl-goto-address
+   (max hexl-max-address (logior (hexl-current-address) 511))))
 
 (defun hexl-quoted-insert (arg)
   "Read next input character and insert it.
@@ -954,27 +1019,17 @@ Customize the variable `hexl-follow-ascii' to disable this feature."
 (defun hexl-activate-ruler ()
   "Activate `ruler-mode'."
   (require 'ruler-mode)
-  (unless (boundp 'hexl-mode-old-ruler-function)
-    (set (make-local-variable 'hexl-mode-old-ruler-function)
-	 ruler-mode-ruler-function))
-  (set (make-local-variable 'ruler-mode-ruler-function)
-       'hexl-mode-ruler)
-  (ruler-mode 1))
+  (hexl-mode--setq-local 'ruler-mode-ruler-function
+                         #'hexl-mode-ruler)
+  (hexl-mode--setq-local 'ruler-mode t))
 
 (defun hexl-follow-line ()
   "Activate `hl-line-mode'."
   (require 'hl-line)
-  (unless (boundp 'hexl-mode-old-hl-line-range-function)
-    (set (make-local-variable 'hexl-mode-old-hl-line-range-function)
-	 hl-line-range-function))
-  (unless (boundp 'hexl-mode-old-hl-line-face)
-    (set (make-local-variable 'hexl-mode-old-hl-line-face)
-	 hl-line-face))
-  (set (make-local-variable 'hl-line-range-function)
-       'hexl-highlight-line-range)
-  (set (make-local-variable 'hl-line-face)
-       'highlight)
-  (hl-line-mode 1))
+  (hexl-mode--setq-local 'hl-line-range-function
+                         #'hexl-highlight-line-range)
+  (hexl-mode--setq-local 'hl-line-face 'highlight)
+  (hexl-mode--setq-local 'hl-line-mode t))
 
 (defun hexl-highlight-line-range ()
   "Return the range of address region for the point.
@@ -1017,100 +1072,6 @@ This function is assumed to be used as callback function for `hl-line-mode'."
 
 ;; startup stuff.
 
-(if hexl-mode-map
-    nil
-  (setq hexl-mode-map (make-keymap))
-  ;; Make all self-inserting keys go through hexl-self-insert-command,
-  ;; because we need to convert them to unibyte characters before
-  ;; inserting them into the buffer.
-  (define-key hexl-mode-map [remap self-insert-command] 'hexl-self-insert-command)
-
-  (define-key hexl-mode-map "\C-m" 'hexl-self-insert-command)
-  (define-key hexl-mode-map [left] 'hexl-backward-char)
-  (define-key hexl-mode-map [right] 'hexl-forward-char)
-  (define-key hexl-mode-map [up] 'hexl-previous-line)
-  (define-key hexl-mode-map [down] 'hexl-next-line)
-  (define-key hexl-mode-map [M-left] 'hexl-backward-short)
-  (define-key hexl-mode-map [?\e left] 'hexl-backward-short)
-  (define-key hexl-mode-map [M-right] 'hexl-forward-short)
-  (define-key hexl-mode-map [?\e right] 'hexl-forward-short)
-  (define-key hexl-mode-map [next] 'hexl-scroll-up)
-  (define-key hexl-mode-map [prior] 'hexl-scroll-down)
-  (define-key hexl-mode-map [home] 'hexl-beginning-of-line)
-  (define-key hexl-mode-map [end] 'hexl-end-of-line)
-  (define-key hexl-mode-map [C-home] 'hexl-beginning-of-buffer)
-  (define-key hexl-mode-map [C-end] 'hexl-end-of-buffer)
-  (define-key hexl-mode-map [deletechar] 'undefined)
-  (define-key hexl-mode-map [deleteline] 'undefined)
-  (define-key hexl-mode-map [insertline] 'undefined)
-  (define-key hexl-mode-map [S-delete] 'undefined)
-  (define-key hexl-mode-map "\177" 'undefined)
-
-  (define-key hexl-mode-map "\C-a" 'hexl-beginning-of-line)
-  (define-key hexl-mode-map "\C-b" 'hexl-backward-char)
-  (define-key hexl-mode-map "\C-d" 'undefined)
-  (define-key hexl-mode-map "\C-e" 'hexl-end-of-line)
-  (define-key hexl-mode-map "\C-f" 'hexl-forward-char)
-
-  (if (not (memq (key-binding (char-to-string help-char))
-                 '(help-command ehelp-command)))
-      (define-key hexl-mode-map (char-to-string help-char) 'undefined))
-
-  (define-key hexl-mode-map "\C-k" 'undefined)
-  (define-key hexl-mode-map "\C-n" 'hexl-next-line)
-  (define-key hexl-mode-map "\C-o" 'undefined)
-  (define-key hexl-mode-map "\C-p" 'hexl-previous-line)
-  (define-key hexl-mode-map "\C-q" 'hexl-quoted-insert)
-  (define-key hexl-mode-map "\C-t" 'undefined)
-  (define-key hexl-mode-map "\C-v" 'hexl-scroll-up)
-  (define-key hexl-mode-map "\C-w" 'undefined)
-  (define-key hexl-mode-map "\C-y" 'undefined)
-
-  (fset 'hexl-ESC-prefix (copy-keymap 'ESC-prefix))
-  (define-key hexl-mode-map "\e" 'hexl-ESC-prefix)
-  (define-key hexl-mode-map "\e\C-a" 'hexl-beginning-of-512b-page)
-  (define-key hexl-mode-map "\e\C-b" 'hexl-backward-short)
-  (define-key hexl-mode-map "\e\C-d" 'hexl-insert-decimal-char)
-  (define-key hexl-mode-map "\e\C-e" 'hexl-end-of-512b-page)
-  (define-key hexl-mode-map "\e\C-f" 'hexl-forward-short)
-  (define-key hexl-mode-map "\e\C-i" 'undefined)
-  (define-key hexl-mode-map "\e\C-j" 'undefined)
-  (define-key hexl-mode-map "\e\C-k" 'undefined)
-  (define-key hexl-mode-map "\e\C-o" 'hexl-insert-octal-char)
-  (define-key hexl-mode-map "\e\C-q" 'undefined)
-  (define-key hexl-mode-map "\e\C-t" 'undefined)
-  (define-key hexl-mode-map "\e\C-x" 'hexl-insert-hex-char)
-  (define-key hexl-mode-map "\eb" 'hexl-backward-word)
-  (define-key hexl-mode-map "\ec" 'undefined)
-  (define-key hexl-mode-map "\ed" 'undefined)
-  (define-key hexl-mode-map "\ef" 'hexl-forward-word)
-  (define-key hexl-mode-map "\eg" 'hexl-goto-hex-address)
-  (define-key hexl-mode-map "\ei" 'undefined)
-  (define-key hexl-mode-map "\ej" 'hexl-goto-address)
-  (define-key hexl-mode-map "\ek" 'undefined)
-  (define-key hexl-mode-map "\el" 'undefined)
-  (define-key hexl-mode-map "\eq" 'undefined)
-  (define-key hexl-mode-map "\es" 'undefined)
-  (define-key hexl-mode-map "\et" 'undefined)
-  (define-key hexl-mode-map "\eu" 'undefined)
-  (define-key hexl-mode-map "\ev" 'hexl-scroll-down)
-  (define-key hexl-mode-map "\ey" 'undefined)
-  (define-key hexl-mode-map "\ez" 'undefined)
-  (define-key hexl-mode-map "\e<" 'hexl-beginning-of-buffer)
-  (define-key hexl-mode-map "\e>" 'hexl-end-of-buffer)
-
-  (fset 'hexl-C-c-prefix (copy-keymap mode-specific-map))
-  (define-key hexl-mode-map "\C-c" 'hexl-C-c-prefix)
-  (define-key hexl-mode-map "\C-c\C-c" 'hexl-mode-exit)
-
-  (fset 'hexl-C-x-prefix (copy-keymap 'Control-X-prefix))
-  (define-key hexl-mode-map "\C-x" 'hexl-C-x-prefix)
-  (define-key hexl-mode-map "\C-x[" 'hexl-beginning-of-1k-page)
-  (define-key hexl-mode-map "\C-x]" 'hexl-end-of-1k-page)
-  (define-key hexl-mode-map "\C-x\C-p" 'undefined)
-  (define-key hexl-mode-map "\C-x\C-s" 'hexl-save-buffer)
-  (define-key hexl-mode-map "\C-x\C-t" 'undefined))
-
 (easy-menu-define hexl-menu hexl-mode-map "Hexl Mode menu"
   `("Hexl"
     :help "Hexl-specific Features"
@@ -1150,5 +1111,4 @@ This function is assumed to be used as callback function for `hl-line-mode'."
 
 (provide 'hexl)
 
-;; arch-tag: d5a7aa8a-9bce-480b-bcff-6c4c7ca5ea4a
 ;;; hexl.el ends here

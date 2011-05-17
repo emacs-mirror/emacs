@@ -1,10 +1,11 @@
 ;;; buff-menu.el --- buffer menu main function and support functions -*- coding:utf-8 -*-
 
-;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1993-1995, 2000-2011
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: convenience
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -111,8 +112,14 @@ A nil value means sort by visited order (the default).")
 This variable determines whether reverting the buffer lists only
 file buffers.  It affects both manual reverting and reverting by
 Auto Revert Mode.")
-
 (make-variable-buffer-local 'Buffer-menu-files-only)
+
+(defvar Buffer-menu--buffers nil
+  "If non-nil, list of buffers shown in the current buffer-menu.
+This variable determines whether reverting the buffer lists only
+these buffers.  It affects both manual reverting and reverting by
+Auto Revert Mode.")
+(make-variable-buffer-local 'Buffer-menu--buffers)
 
 (defvar Info-current-file) ;; from info.el
 (defvar Info-current-node) ;; from info.el
@@ -257,14 +264,14 @@ Letters do not insert themselves; instead, they are commands.
   (set (make-local-variable 'revert-buffer-function)
        'Buffer-menu-revert-function)
   (set (make-local-variable 'buffer-stale-function)
-       #'(lambda (&optional noconfirm) 'fast))
+       (lambda (&optional _noconfirm) 'fast))
   (setq truncate-lines t)
   (setq buffer-read-only t))
 
 (define-obsolete-variable-alias 'buffer-menu-mode-hook
   'Buffer-menu-mode-hook "23.1")
 
-(defun Buffer-menu-revert-function (ignore1 ignore2)
+(defun Buffer-menu-revert-function (_ignore1 _ignore2)
   (or (eq buffer-undo-list t)
       (setq buffer-undo-list nil))
   ;; We can not use save-excursion here.  The buffer gets erased.
@@ -281,7 +288,7 @@ Letters do not insert themselves; instead, they are commands.
     ;; interactively current buffer is correctly identified with a `.'
     ;; by `list-buffers-noselect'.
     (with-current-buffer (window-buffer)
-      (list-buffers-noselect Buffer-menu-files-only))
+      (list-buffers-noselect Buffer-menu-files-only Buffer-menu--buffers))
     (if oline
 	(while (setq prop (next-single-property-change prop 'buffer))
 	  (when (eq (get-text-property prop 'buffer) oline)
@@ -302,9 +309,7 @@ negative ARG, display other buffers as well."
 
 (defun Buffer-menu-buffer (error-if-non-existent-p)
   "Return buffer described by this line of buffer menu."
-  (let* ((where (save-excursion
-		  (beginning-of-line)
-		  (+ (point) Buffer-menu-buffer-column)))
+  (let* ((where (+ (line-beginning-position) Buffer-menu-buffer-column))
 	 (name (and (not (eobp)) (get-text-property where 'buffer-name)))
 	 (buf (and (not (eobp)) (get-text-property where 'buffer))))
     (if name
@@ -920,8 +925,8 @@ For more information, see the function `buffer-menu'."
       (and desired-point
 	   (goto-char desired-point))
       (setq Buffer-menu-files-only files-only)
+      (setq Buffer-menu--buffers buffer-list)
       (set-buffer-modified-p nil)
       (current-buffer))))
 
-;; arch-tag: e7dfcfc9-6cb2-46e4-bf55-8ef1936d83c6
 ;;; buff-menu.el ends here

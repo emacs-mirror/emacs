@@ -1,7 +1,7 @@
 /* XPM */
 /* Emacs icon
 
-Copyright (C) 2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright (C) 2008-2011  Free Software Foundation, Inc.
 
 Author:  Kentaro Ohkouchi <nanasess@fsm.ne.jp>
 
@@ -23,7 +23,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Note that the GTK port uses gdk to display the icon, so Emacs need
    not have XPM support compiled in.  */
 #if (defined (HAVE_XPM) && defined (HAVE_X_WINDOWS)) || defined (USE_GTK)
-static char * gnu_xpm_bits[] = {
+static const char * gnu_xpm_bits[] = {
 /* width height ncolors chars_per_pixel */
 "32 32 255 2",
 /* colors */
@@ -351,5 +351,3 @@ static unsigned char gnu_xbm_bits[] = {
    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
    0x00, 0x00};
 
-/* arch-tag: b57020c7-c937-4d77-8ca6-3875178d9828
-   (do not change this comment) */

@@ -16,9 +16,9 @@
 #include "XMenuInt.h"
 
 int
-XMenuRecompute(display, menu)
-    Display *display;
-    register XMenu *menu;	/* Menu object to be recomputed. */
+XMenuRecompute(Display *display, register XMenu *menu)
+                     
+                         	/* Menu object to be recomputed. */
 {
     register XMPane *p_ptr;	/* Pane pointer. */
     register XMSelect *s_ptr;	/* Selection pointer. */
@@ -103,5 +103,3 @@ XMenuRecompute(display, menu)
     return(XM_SUCCESS);
 }
 
-/* arch-tag: 1fe99b82-3873-4aab-b2b3-f277c93e00d9
-   (do not change this comment) */

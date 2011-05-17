@@ -1,7 +1,6 @@
 ;;; gnus-ml.el --- Mailing list minor mode for Gnus
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2011 Free Software Foundation, Inc.
 
 ;; Author: Julien Gilles  <jgilles@free.fr>
 ;; Keywords: news, mail
@@ -84,6 +83,12 @@ If FORCE is non-nil, replace the old ones."
 				    (cons 'to-list list-post))
 	  (gnus-mailing-list-mode 1))
       (gnus-message 1 "no list-post in this message."))))
+
+(eval-when-compile
+  (when (featurep 'xemacs)
+    (defvar gnus-mailing-list-mode-hook)
+    (defvar gnus-mailing-list-mode-on-hook)
+    (defvar gnus-mailing-list-mode-off-hook)))
 
 ;;;###autoload
 (define-minor-mode gnus-mailing-list-mode
@@ -174,5 +179,4 @@ ADDRESS is specified by a \"mailto:\" URL."
 
 (provide 'gnus-ml)
 
-;; arch-tag: 936c0fe6-acce-4c16-87d0-eded88078896
 ;;; gnus-ml.el ends here

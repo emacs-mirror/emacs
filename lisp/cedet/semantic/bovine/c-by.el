@@ -1,7 +1,6 @@
 ;;; semantic/bovine/c-by.el --- Generated parser support file
 
-;;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;; 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -1240,7 +1239,9 @@
 	 (nth 7 vals))
 	(nth 0 vals)
 	(nth 10 vals)
-	(nth 4 vals))
+	(list
+	 (nth 4 vals))
+	(nth 9 vals))
       )
      (opt-stars
       opt-class
@@ -1262,7 +1263,9 @@
 	 (nth 6 vals))
 	(nth 0 vals)
 	(nth 9 vals)
-	(nth 4 vals))
+	(list
+	 (nth 4 vals))
+	(nth 8 vals))
       )
      ) ;; end func-decl
 
@@ -1433,13 +1436,11 @@
       namespace-symbol
       opt-bits
       opt-array
-      opt-assign
       ,(semantic-lambda
 	(nth 2 vals)
 	(nth 0 vals)
 	(nth 3 vals)
-	(nth 4 vals)
-	(nth 5 vals))
+	(nth 4 vals))
       )
      ) ;; end varname
 
@@ -1484,19 +1485,28 @@
       )
      ) ;; end variablearg-opt-name
 
+    (varname-opt-initializer
+     (semantic-list)
+     (opt-assign)
+     ( ;;EMPTY
+      )
+     ) ;; end varname-opt-initializer
+
     (varnamelist
      (opt-ref
       varname
+      varname-opt-initializer
       punctuation
       "\\`[,]\\'"
       varnamelist
       ,(semantic-lambda
 	(cons
 	 (nth 1 vals)
-	 (nth 3 vals)))
+	 (nth 4 vals)))
       )
      (opt-ref
       varname
+      varname-opt-initializer
       ,(semantic-lambda
 	(list
 	 (nth 1 vals)))
@@ -2108,74 +2118,64 @@
       "\\`[&]\\'")
      ) ;; end expr-start
 
+    (expr-binop
+     (punctuation
+      "\\`[-]\\'")
+     (punctuation
+      "\\`[+]\\'")
+     (punctuation
+      "\\`[*]\\'")
+     (punctuation
+      "\\`[/]\\'")
+     (punctuation
+      "\\`[&]\\'"
+      punctuation
+      "\\`[&]\\'")
+     (punctuation
+      "\\`[&]\\'")
+     (punctuation
+      "\\`[|]\\'"
+      punctuation
+      "\\`[|]\\'")
+     (punctuation
+      "\\`[|]\\'")
+     ) ;; end expr-binop
+
     (expression
-     (number
+     (unaryexpression
+      expr-binop
+      unaryexpression
       ,(semantic-lambda
 	(list
 	 (identity start)
 	 (identity end)))
       )
-     (multi-stage-dereference
-      ,(semantic-lambda
-	(list
-	 (identity start)
-	 (identity end)))
-      )
-     (NEW
-      multi-stage-dereference
-      ,(semantic-lambda
-	(list
-	 (identity start)
-	 (identity end)))
-      )
-     (NEW
-      builtintype-types
-      semantic-list
-      ,(semantic-lambda
-	(list
-	 (identity start)
-	 (identity end)))
-      )
-     (namespace-symbol
-      ,(semantic-lambda
-	(list
-	 (identity start)
-	 (identity end)))
-      )
-     (string-seq
-      ,(semantic-lambda
-	(list
-	 (identity start)
-	 (identity end)))
-      )
-     (type-cast
-      expression
-      ,(semantic-lambda
-	(list
-	 (identity start)
-	 (identity end)))
-      )
-     (semantic-list
-      expression
-      ,(semantic-lambda
-	(list
-	 (identity start)
-	 (identity end)))
-      )
-     (semantic-list
-      ,(semantic-lambda
-	(list
-	 (identity start)
-	 (identity end)))
-      )
-     (expr-start
-      expression
+     (unaryexpression
       ,(semantic-lambda
 	(list
 	 (identity start)
 	 (identity end)))
       )
      ) ;; end expression
+
+    (unaryexpression
+     (number)
+     (multi-stage-dereference)
+     (NEW
+      multi-stage-dereference)
+     (NEW
+      builtintype-types
+      semantic-list)
+     (namespace-symbol)
+     (string-seq)
+     (type-cast
+      expression)
+     (semantic-list
+      expression)
+     (semantic-list)
+     (expr-start
+      expression)
+     ) ;; end unaryexpression
     )
   "Parser table.")
 
@@ -2193,5 +2193,4 @@
 
 (provide 'semantic/bovine/c-by)
 
-;; arch-tag: 27da9f71-d2ef-473f-92a7-b0006b1a8491
 ;;; semantic/bovine/c-by.el ends here

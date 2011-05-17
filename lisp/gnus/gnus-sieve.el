@@ -1,6 +1,6 @@
 ;;; gnus-sieve.el --- Utilities to manage sieve scripts for Gnus
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: NAGY Andras <nagya@inf.elte.hu>,
 ;;	Simon Josefsson <simon@josefsson.org>
@@ -235,5 +235,4 @@ This is returned as a string."
 
 (provide 'gnus-sieve)
 
-;; arch-tag: 3b906527-c7f3-4c86-9e82-62e2697998a3
 ;;; gnus-sieve.el ends here

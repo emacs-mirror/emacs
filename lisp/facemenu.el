@@ -1,10 +1,10 @@
 ;;; facemenu.el --- create a face menu for interactively adding fonts to text
 
-;; Copyright (C) 1994, 1995, 1996, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: faces
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -357,7 +357,7 @@ inserted.  Moving point or switching buffers before
 typing a character to insert cancels the specification."
   (interactive (list (progn
 		       (barf-if-buffer-read-only)
-		       (facemenu-read-color "Foreground color: "))
+		       (read-color "Foreground color: "))
 		     (if (and mark-active (not current-prefix-arg))
 			 (region-beginning))
 		     (if (and mark-active (not current-prefix-arg))
@@ -379,7 +379,7 @@ inserted.  Moving point or switching buffers before
 typing a character to insert cancels the specification."
   (interactive (list (progn
 		       (barf-if-buffer-read-only)
-		       (facemenu-read-color "Background color: "))
+		       (read-color "Background color: "))
 		     (if (and mark-active (not current-prefix-arg))
 			 (region-beginning))
 		     (if (and mark-active (not current-prefix-arg))
@@ -461,24 +461,57 @@ These special properties include `invisible', `intangible' and `read-only'."
     (remove-text-properties
      start end '(invisible nil intangible nil read-only nil))))
 
-(defun facemenu-read-color (&optional prompt)
-  "Read a color using the minibuffer."
-  (let* ((completion-ignore-case t)
-	 (color-list (or facemenu-color-alist (defined-colors)))
-	 (completer
-	  (lambda (string pred all-completions)
-	    (if all-completions
-		(or (all-completions string color-list pred)
-		    (if (color-defined-p string)
-			(list string)))
-	      (or (try-completion string color-list pred)
-		  (if (color-defined-p string)
-		      string)))))
-	 (col (completing-read (or prompt "Color: ") completer nil t)))
-    (if (equal "" col)
-	nil
-      col)))
+(defalias 'facemenu-read-color 'read-color)
 
+(defcustom list-colors-sort nil
+  "Color sort order for `list-colors-display'.
+`nil' means default implementation-dependent order (defined in `x-colors').
+`name' sorts by color name.
+`rgb' sorts by red, green, blue components.
+`(rgb-dist . COLOR)' sorts by the RGB distance to the specified color.
+`hsv' sorts by hue, saturation, value.
+`(hsv-dist . COLOR)' sorts by the HSV distance to the specified color
+and excludes grayscale colors."
+  :type '(choice (const :tag "Unsorted" nil)
+		 (const :tag "Color Name" name)
+		 (const :tag "Red-Green-Blue" rgb)
+		 (cons :tag "Distance on RGB cube"
+		       (const :tag "Distance from Color" rgb-dist)
+		       (color :tag "Source Color Name"))
+		 (const :tag "Hue-Saturation-Value" hsv)
+		 (cons :tag "Distance on HSV cylinder"
+		       (const :tag "Distance from Color" hsv-dist)
+		       (color :tag "Source Color Name")))
+  :group 'facemenu
+  :version "24.1")
+
+(defun list-colors-sort-key (color)
+  "Return a list of keys for sorting colors depending on `list-colors-sort'.
+COLOR is the name of the color.  When return value is nil,
+filter out the color from the output."
+  (require 'color)
+  (cond
+   ((null list-colors-sort) color)
+   ((eq list-colors-sort 'name)
+    (downcase color))
+   ((eq list-colors-sort 'rgb)
+    (color-values color))
+   ((eq (car-safe list-colors-sort) 'rgb-dist)
+    (color-distance color (cdr list-colors-sort)))
+   ((eq list-colors-sort 'hsv)
+    (apply 'color-rgb-to-hsv (color-name-to-rgb color)))
+   ((eq (car-safe list-colors-sort) 'hsv-dist)
+    (let* ((c-rgb (color-name-to-rgb color))
+	   (c-hsv (apply 'color-rgb-to-hsv c-rgb))
+	   (o-hsv (apply 'color-rgb-to-hsv
+			 (color-name-to-rgb (cdr list-colors-sort)))))
+      (unless (and (eq (nth 0 c-rgb) (nth 1 c-rgb)) ; exclude grayscale
+		   (eq (nth 1 c-rgb) (nth 2 c-rgb)))
+	;; 3D Euclidean distance (sqrt is not needed for sorting)
+	(+ (expt (- 180 (abs (- 180 (abs (- (nth 0 c-hsv) ; wrap hue
+					    (nth 0 o-hsv)))))) 2)
+	   (expt (- (nth 1 c-hsv) (nth 1 o-hsv)) 2)
+	   (expt (- (nth 2 c-hsv) (nth 2 o-hsv)) 2)))))))
 
 (defun list-colors-display (&optional list buffer-name callback)
   "Display names of defined colors, and show what they look like.
@@ -492,24 +525,54 @@ If the optional argument BUFFER-NAME is nil, it defaults to
 If the optional argument CALLBACK is non-nil, it should be a
 function to call each time the user types RET or clicks on a
 color.  The function should accept a single argument, the color
-name."
+name.
+
+You can change the color sort order by customizing `list-colors-sort'."
   (interactive)
   (when (and (null list) (> (display-color-cells) 0))
     (setq list (list-colors-duplicates (defined-colors)))
+    (when list-colors-sort
+      ;; Schwartzian transform with `(color key1 key2 key3 ...)'.
+      (setq list (mapcar
+		  'car
+		  (sort (delq nil (mapcar
+				   (lambda (c)
+				     (let ((key (list-colors-sort-key
+						 (car c))))
+				       (when key
+					 (cons c (if (consp key) key
+						   (list key))))))
+				   list))
+			(lambda (a b)
+			  (let* ((a-keys (cdr a))
+				 (b-keys (cdr b))
+				 (a-key (car a-keys))
+				 (b-key (car b-keys)))
+			    ;; Skip common keys at the beginning of key lists.
+			    (while (and a-key b-key (equal a-key b-key))
+			      (setq a-keys (cdr a-keys) a-key (car a-keys)
+				    b-keys (cdr b-keys) b-key (car b-keys)))
+			    (cond
+			     ((and (numberp a-key) (numberp b-key))
+			      (< a-key b-key))
+			     ((and (stringp a-key) (stringp b-key))
+			      (string< a-key b-key)))))))))
     (when (memq (display-visual-class) '(gray-scale pseudo-color direct-color))
       ;; Don't show more than what the display can handle.
       (let ((lc (nthcdr (1- (display-color-cells)) list)))
 	(if lc
 	    (setcdr lc nil)))))
-  (let ((buf (get-buffer-create "*Colors*")))
-    (with-current-buffer buf
+  (unless buffer-name
+    (setq buffer-name "*Colors*"))
+  (with-help-window buffer-name
+    (with-current-buffer standard-output
       (erase-buffer)
-      (setq truncate-lines t)
       (list-colors-print list callback)
-      (set-buffer-modified-p nil))
-    (pop-to-buffer buf))
-  (if callback
-      (message "Click on a color to select it.")))
+      (set-buffer-modified-p nil)
+      (setq truncate-lines t)))
+  (when callback
+    (pop-to-buffer buffer-name)
+    (message "Click on a color to select it.")))
 
 (defun list-colors-print (list &optional callback)
   (let ((callback-fn
@@ -532,15 +595,23 @@ name."
 	(put-text-property opoint (point) 'face `(:background ,(car color)))
 	(put-text-property
 	 (prog1 (point)
-	   (insert " " (if (cdr color)
-			   (mapconcat 'identity (cdr color) ", ")
-			 (car color))))
+	   (insert " ")
+	   ;; Insert all color names.
+	   (insert (mapconcat 'identity color ",")))
 	 (point)
 	 'face (list :foreground (car color)))
-	(indent-to (max (- (window-width) 8) 44))
-	(insert (apply 'format "#%02x%02x%02x"
-		       (mapcar (lambda (c) (lsh c -8))
-			       color-values)))
+	(insert (propertize " " 'display '(space :align-to (- right 9))))
+	(insert " ")
+	(insert (propertize
+		 (apply 'format "#%02x%02x%02x"
+			(mapcar (lambda (c) (lsh c -8))
+				color-values))
+		 'mouse-face 'highlight
+		 'help-echo
+		 (let ((hsv (apply 'color-rgb-to-hsv
+				   (color-name-to-rgb (car color)))))
+		   (format "H:%d S:%d V:%d"
+			   (nth 0 hsv) (nth 1 hsv) (nth 2 hsv)))))
 	(when callback
 	  (make-text-button
 	   opoint (point)
@@ -583,6 +654,22 @@ determine the correct answer."
   (cond ((equal a b) t)
 	((equal (color-values a) (color-values b)))))
 
+
+(defvar facemenu-self-insert-data nil)
+
+(defun facemenu-post-self-insert-function ()
+  (when (and (car facemenu-self-insert-data)
+             (eq last-command (cdr facemenu-self-insert-data)))
+    (put-text-property (1- (point)) (point)
+                       'face (car facemenu-self-insert-data))
+    (setq facemenu-self-insert-data nil))
+  (remove-hook 'post-self-insert-hook 'facemenu-post-self-insert-function))
+
+(defun facemenu-set-self-insert-face (face)
+  "Arrange for the next self-inserted char to have face `face'."
+  (setq facemenu-self-insert-data (cons face this-command))
+  (add-hook 'post-self-insert-hook 'facemenu-post-self-insert-function))
+
 (defun facemenu-add-face (face &optional start end)
   "Add FACE to text between START and END.
 If START is nil or START to END is empty, add FACE to next typed character
@@ -596,51 +683,52 @@ As a special case, if FACE is `default', then the region is left with NO face
 text property.  Otherwise, selecting the default face would not have any
 effect.  See `facemenu-remove-face-function'."
   (interactive "*xFace: \nr")
-  (if (and (eq face 'default)
-	   (not (eq facemenu-remove-face-function t)))
-      (if facemenu-remove-face-function
-	  (funcall facemenu-remove-face-function start end)
-	(if (and start (< start end))
-	    (remove-text-properties start end '(face default))
-	  (setq self-insert-face 'default
-		self-insert-face-command this-command)))
-    (if facemenu-add-face-function
-	(save-excursion
-	  (if end (goto-char end))
-	  (save-excursion
-	    (if start (goto-char start))
-	    (insert-before-markers
-	     (funcall facemenu-add-face-function face end)))
-	  (if facemenu-end-add-face
-	      (insert (if (stringp facemenu-end-add-face)
-			  facemenu-end-add-face
-			(funcall facemenu-end-add-face face)))))
+  (cond
+   ((and (eq face 'default)
+         (not (eq facemenu-remove-face-function t)))
+    (if facemenu-remove-face-function
+        (funcall facemenu-remove-face-function start end)
       (if (and start (< start end))
-	  (let ((part-start start) part-end)
-	    (while (not (= part-start end))
-	      (setq part-end (next-single-property-change part-start 'face
-							  nil end))
-	      (let ((prev (get-text-property part-start 'face)))
-		(put-text-property part-start part-end 'face
-				   (if (null prev)
-				       face
-				     (facemenu-active-faces
-				      (cons face
-					    (if (listp prev)
-						prev
-					      (list prev)))
-				      ;; Specify the selected frame
-				      ;; because nil would mean to use
-				      ;; the new-frame default settings,
-				      ;; and those are usually nil.
-				      (selected-frame)))))
-	      (setq part-start part-end)))
-	(setq self-insert-face (if (eq last-command self-insert-face-command)
-				   (cons face (if (listp self-insert-face)
-						  self-insert-face
-						(list self-insert-face)))
-				 face)
-	      self-insert-face-command this-command))))
+          (remove-text-properties start end '(face default))
+        (facemenu-set-self-insert-face 'default))))
+   (facemenu-add-face-function
+    (save-excursion
+      (if end (goto-char end))
+      (save-excursion
+        (if start (goto-char start))
+        (insert-before-markers
+         (funcall facemenu-add-face-function face end)))
+      (if facemenu-end-add-face
+          (insert (if (stringp facemenu-end-add-face)
+                      facemenu-end-add-face
+                    (funcall facemenu-end-add-face face))))))
+   ((and start (< start end))
+    (let ((part-start start) part-end)
+      (while (not (= part-start end))
+        (setq part-end (next-single-property-change part-start 'face
+                                                    nil end))
+        (let ((prev (get-text-property part-start 'face)))
+          (put-text-property part-start part-end 'face
+                             (if (null prev)
+                                 face
+                               (facemenu-active-faces
+                                (cons face
+                                      (if (listp prev)
+                                          prev
+                                        (list prev)))
+                                ;; Specify the selected frame
+                                ;; because nil would mean to use
+                                ;; the new-frame default settings,
+                                ;; and those are usually nil.
+                                (selected-frame)))))
+        (setq part-start part-end))))
+   (t
+    (facemenu-set-self-insert-face
+     (if (eq last-command (cdr facemenu-self-insert-data))
+         (cons face (if (listp (car facemenu-self-insert-data))
+                        (car facemenu-self-insert-data)
+                      (list (car facemenu-self-insert-data))))
+       face))))
   (unless (facemenu-enable-faces-p)
     (message "Font-lock mode will override any faces you set in this buffer")))
 
@@ -737,19 +825,13 @@ MENU should be `facemenu-foreground-menu' or `facemenu-background-menu'.
 Return the event type (a symbol) of the added menu entry.
 
 This is called whenever you use a new color."
-  (let (symbol docstring)
+  (let (symbol)
     (unless (color-defined-p color)
       (error "Color `%s' undefined" color))
     (cond ((eq menu 'facemenu-foreground-menu)
-	   (setq docstring
-		 (format "Select foreground color %s for subsequent insertion."
-			 color)
-		 symbol (intern (concat "fg:" color))))
+	   (setq symbol (intern (concat "fg:" color))))
 	  ((eq menu 'facemenu-background-menu)
-	   (setq docstring
-		 (format "Select background color %s for subsequent insertion."
-			 color)
-		 symbol (intern (concat "bg:" color))))
+	   (setq symbol (intern (concat "bg:" color))))
 	  (t (error "MENU should be `facemenu-foreground-menu' or `facemenu-background-menu'")))
     (unless (facemenu-iterate ; Check if color is already in the menu.
 	     (lambda (m) (and (listp m)
@@ -792,5 +874,4 @@ Returns the non-nil value it found, or nil if all were nil."
 
 (provide 'facemenu)
 
-;; arch-tag: 85f6d02b-9085-420e-b651-0678f0e9c7eb
 ;;; facemenu.el ends here

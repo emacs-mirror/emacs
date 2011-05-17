@@ -1,7 +1,6 @@
 ;;; printing.el --- printing utilities
 
-;; Copyright (C) 2000, 2001, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2000-2001, 2003-2011  Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
@@ -1387,20 +1386,6 @@ Used by `pr-menu-bind' and `pr-update-menus'.")
     (require 'easymenu))		; to avoid compilation gripes
 
   (eval-and-compile
-    (cond
-     ;; GNU Emacs 20
-     ((< emacs-major-version 21)
-      (defun pr-global-menubar (pr-menu-spec)
-	(require 'easymenu)
-	(easy-menu-change '("tools") "Printing" pr-menu-spec pr-menu-print-item)
-	(when pr-menu-print-item
-	  (easy-menu-remove-item nil '("tools") pr-menu-print-item)
-	  (setq pr-menu-print-item nil
-		pr-menu-bar (vector 'menu-bar 'tools
-				    (pr-get-symbol "Printing")))))
-      )
-     ;; GNU Emacs 21 & 22
-     (t
       (defun pr-global-menubar (pr-menu-spec)
 	(require 'easymenu)
 	(let ((menu-file (if (= emacs-major-version 21)
@@ -1422,8 +1407,7 @@ Used by `pr-menu-bind' and `pr-update-menus'.")
 	   (t
 	    (easy-menu-add-item global-map menu-file
 				(easy-menu-create-menu "Print" pr-menu-spec)))
-	   )))
-      )))
+	   ))))
 
   (eval-and-compile
     (cond
@@ -3453,12 +3437,7 @@ See `pr-ps-printer-alist'.")
 
 (defun pr-menu-bind ()
   "Install `printing' menu in the menubar.
-
-On Emacs 20, it replaces the Tools/Print menu by Tools/Printing menu.
-
-On Emacs 21 and 22, it replaces the File/Print* menu entries by File/Print
-menu.
-
+This replaces the File/Print* menu entries with a File/Print sub-menu.
 Calls `pr-update-menus' to adjust menus."
   (interactive)
   (pr-global-menubar pr-menu-spec)
@@ -5728,8 +5707,8 @@ If menu binding was not done, calls `pr-menu-bind'."
   (let* ((dir-name   (file-name-directory (or (buffer-file-name)
 					      default-directory)))
 	 (fmt-prompt (concat "%s[" mess "] Directory to print: "))
-	 (dir        (read-file-name (format fmt-prompt "")
-				     "" dir-name nil dir-name))
+	 (dir        (read-directory-name (format fmt-prompt "")
+					  "" dir-name nil dir-name))
 	 prompt)
     (while (cond ((not (file-directory-p dir))
 		  (ding)
@@ -5739,8 +5718,8 @@ If menu binding was not done, calls `pr-menu-bind'."
 		  (setq prompt "Directory is unreadable! "))
 		 (t nil))
       (setq dir-name (file-name-directory dir)
-	    dir      (read-file-name (format fmt-prompt prompt)
-				     "" dir-name nil dir-name)))
+	    dir      (read-directory-name (format fmt-prompt prompt)
+					  "" dir-name nil dir-name)))
     (file-name-as-directory dir)))
 
 
@@ -6685,5 +6664,4 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 (provide 'printing)
 
 
-;; arch-tag: 9ce9ac3f-0f60-4370-900b-1943215d9d18
 ;;; printing.el ends here

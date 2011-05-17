@@ -1,7 +1,6 @@
 ;;; nneething.el --- arbitrary file access for Gnus
 
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -81,8 +80,7 @@ included.")
 (deffoo nneething-retrieve-headers (articles &optional group server fetch-old)
   (nneething-possibly-change-directory group)
 
-  (save-excursion
-    (set-buffer nntp-server-buffer)
+  (with-current-buffer nntp-server-buffer
     (erase-buffer)
     (let* ((number (length articles))
 	   (count 0)
@@ -145,7 +143,7 @@ included.")
 	     (insert "\n"))
 	   t))))
 
-(deffoo nneething-request-group (group &optional server dont-check)
+(deffoo nneething-request-group (group &optional server dont-check info)
   (nneething-possibly-change-directory group server)
   (unless dont-check
     (nneething-create-mapping)
@@ -323,8 +321,7 @@ included.")
      (if (equal '(0 0) (nth 5 atts)) ""
        (concat "Date: " (current-time-string (nth 5 atts)) "\n"))
      (or (when buffer
-	   (save-excursion
-	     (set-buffer buffer)
+	   (with-current-buffer buffer
 	     (when (re-search-forward "<[a-zA-Z0-9_]@[-a-zA-Z0-9_]>" 1000 t)
 	       (concat "From: " (match-string 0) "\n"))))
 	 (nneething-from-line (nth 2 atts) file))
@@ -332,8 +329,7 @@ included.")
 	 (concat "Chars: " (int-to-string (nth 7 atts)) "\n")
        "")
      (if buffer
-	 (save-excursion
-	   (set-buffer buffer)
+	 (with-current-buffer buffer
 	   (concat "Lines: " (int-to-string
 			      (count-lines (point-min) (point-max)))
 		   "\n"))
@@ -382,8 +378,7 @@ included.")
 
 (defun nneething-get-head (file)
   "Either find the head in FILE or make a head for FILE."
-  (save-excursion
-    (set-buffer (get-buffer-create nneething-work-buffer))
+  (with-current-buffer (get-buffer-create nneething-work-buffer)
     (setq case-fold-search nil)
     (buffer-disable-undo)
     (erase-buffer)
@@ -427,5 +422,4 @@ included.")
 
 (provide 'nneething)
 
-;; arch-tag: 1277f386-88f2-4459-bb24-f3f45962a6c5
 ;;; nneething.el ends here

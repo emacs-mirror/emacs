@@ -1,7 +1,6 @@
-;;; vera-mode.el --- major mode for editing Vera files.
+;;; vera-mode.el --- major mode for editing Vera files
 
-;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2011 Free Software Foundation, Inc.
 
 ;; Author:      Reto Zimmermann <reto@gnu.org>
 ;; Maintainer:  Reto Zimmermann <reto@gnu.org>
@@ -253,7 +252,7 @@ If nil, TAB always indents current line."
 ;;;###autoload (add-to-list 'auto-mode-alist (cons (purecopy "\\.vr[hi]?\\'")  'vera-mode))
 
 ;;;###autoload
-(defun vera-mode ()
+(define-derived-mode vera-mode prog-mode "Vera"
   "Major mode for editing Vera code.
 
 Usage:
@@ -301,13 +300,6 @@ Key bindings:
 -------------
 
 \\{vera-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'vera-mode)
-  (setq mode-name "Vera")
-  ;; set maps and tables
-  (use-local-map vera-mode-map)
-  (set-syntax-table vera-mode-syntax-table)
   ;; set local variables
   (require 'cc-cmds)
   (set (make-local-variable 'comment-start) "//")
@@ -328,9 +320,7 @@ Key bindings:
   ;; add menu (XEmacs)
   (easy-menu-add vera-mode-menu)
   ;; miscellaneous
-  (message "Vera Mode %s.  Type C-c C-h for documentation." vera-version)
-  ;; run hooks
-  (run-hooks 'vera-mode-hook))
+  (message "Vera Mode %s.  Type C-c C-h for documentation." vera-version))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -770,7 +760,7 @@ the offset is simply returned."
 	      relpos 0)
       (setq offset (vera-evaluate-offset offset langelem symbol)))
     (+ (if (and relpos
-		(< relpos (save-excursion (beginning-of-line) (point))))
+		(< relpos (line-beginning-position)))
 	   (save-excursion
 	     (goto-char relpos)
 	     (current-column))
@@ -1087,7 +1077,7 @@ try to increase performance by using this macro."
   (save-excursion
     (beginning-of-line)
     (let ((indent-point (point))
-	  syntax state placeholder pos)
+	  syntax state placeholder)
       ;; determine syntax state
       (setq state (parse-partial-sexp (point-min) (point)))
       (cond
@@ -1250,7 +1240,7 @@ Calls `indent-region' for whole buffer."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; electrifications
 
-(defun vera-electric-tab (&optional prefix-arg)
+(defun vera-electric-tab (&optional prefix)
   "Do what I mean (indent, expand, tab, change indent, etc..).
 If preceding character is part of a word or a paren then `hippie-expand',
 else if right of non whitespace on line then `tab-to-tab-stop',
@@ -1270,7 +1260,7 @@ If `vera-intelligent-tab' is nil, always indent line."
 		      (or (and (boundp 'hippie-expand-only-buffers)
 			       hippie-expand-only-buffers)
 			  '(vera-mode))))
-		 (vera-expand-abbrev prefix-arg)))
+		 (vera-expand-abbrev prefix)))
 	      ((> (current-column) (current-indentation))
 	       (tab-to-tab-stop))
 	      ((and (or (eq last-command 'vera-electric-tab)
@@ -1412,7 +1402,7 @@ If `vera-intelligent-tab' is nil, always indent line."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Comments
 
-(defun vera-comment-uncomment-region (beg end &optional arg)
+(defun vera-comment-uncomment-region (beg end &optional _arg)
   "Comment region if not commented, uncomment region if already commented."
   (interactive "r\nP")
   (goto-char beg)
@@ -1482,5 +1472,4 @@ If `vera-intelligent-tab' is nil, always indent line."
 
 (provide 'vera-mode)
 
-;; arch-tag: 22eae722-7ac5-47ac-a713-c4db1cf623a9
 ;;; vera-mode.el ends here

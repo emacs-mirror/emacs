@@ -1,7 +1,6 @@
 ;;; semantic/db-file.el --- Save a semanticdb to a cache file.
 
-;;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2007, 2008, 2009, 2010
-;;; Free Software Foundation, Inc.
+;;; Copyright (C) 2000-2005, 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -245,7 +244,7 @@ If DB is not specified, then use the current database."
 	   ;; @todo - It should ask if we are not called from a hook.
 	   ;;         How?
 	   (if (or supress-questions
-		   (y-or-n-p (format "Skip Error: %S ?" (car (cdr foo)))))
+		   (y-or-n-p (format "Skip Error: %s ?" (car (cdr foo)))))
 	       (message "Save Error: %S: %s" (car (cdr foo))
 			objname)
 	     (error "%S" (car (cdr foo))))))))
@@ -277,7 +276,7 @@ to prevent overload.")
 
 (defmethod object-write ((obj semanticdb-table))
   "When writing a table, we have to make sure we deoverlay it first.
-Restore the overlays after writting.
+Restore the overlays after writing.
 Argument OBJ is the object to write."
   (when (semanticdb-live-p obj)
     (when (semanticdb-in-buffer-p obj)
@@ -452,5 +451,4 @@ Optional NOERROR prevents errors from being displayed."
 ;; generated-autoload-load-name: "semantic/db-file"
 ;; End:
 
-;; arch-tag: f4a0d9de-6c25-4bf3-aff3-a10c58fd575d
 ;;; semantic/db-file.el ends here

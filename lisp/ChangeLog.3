@@ -172,7 +172,7 @@
 	Choose string< or < as predicate.
 	Reorder messages by exchanging them, with inhibit-quit bound.
 	(rmail-fetch-field): Start by widening.
-	(rmail-sortable-date-strng): Deleted.
+	(rmail-sortable-date-string): Deleted.
 	(rmail-make-date-sortable): New function, used instead.
 
 	* paths.el (gnus-local-organization): Renamed from ...-your-...
@@ -2619,7 +2619,7 @@
 
 	* frame.el (frame-initialize): Fix error syntax.
 	(toggle-horizontal-scroll-bar): Likewise.
-	(toggle-horizontal-scroll-bar): Renamed from set-horizontal-bar
+	(toggle-horizontal-scroll-bar): Renamed from set-horizontal-bar.
 	(toggle-vertical-scroll-bar): Likewise.
 	(toggle-auto-lower, toggle-auto-raise): Likewise.
 	(set-foreground-color, set-background-color):
@@ -4906,7 +4906,7 @@
 	* two-column.el: Doc fixes.
 
 	* loaddefs.el (function-keymap): Definition deleted; this has been
-	superceded by function-key-map.
+	superseded by function-key-map.
 
 	* gomoku.el (gomoku-mode-map): Use function key symbols, instead
 	of the keypad.el facilities.
@@ -6056,7 +6056,7 @@
 	and `fill-column'.  Code now actually sets `left-margin' and
 	`fill-column', as advertised.
 	* text-mode.el (change-log-mode): Function deleted, since it's
-	been superceded by the one in add-log.el.
+	been superseded by the one in add-log.el.
 
 1992-06-14  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -6070,7 +6070,7 @@
 
 1992-06-12  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
-	* isearch-mode.el: New package, which will probably supercede
+	* isearch-mode.el: New package, which will probably supersede
 	isearch.el.
 	(isearch-mode-map, isearch-mode-meta-map): When initializing
 	these, remember that vectors are no longer keymaps.
@@ -10009,7 +10009,7 @@
 	display-time-string.
 	(rmail-pop-up): Default display-time-hook to automatically retrieve
 	new mail if the variable rmail-pop-up is non-nil.
-	(add-clock-handler): Removed; superceded by timer.el.
+	(add-clock-handler): Removed; superseded by timer.el.
 
 	* loaddefs.el: Removed add-clock-handler.
 
@@ -10032,7 +10032,7 @@
 
 	* loaddefs.el: Autoload for diff.
 
-	* files.el (diff): Superceded by diff.el.
+	* files.el (diff): Superseded by diff.el.
 	(diff-switches-function): Still needs to be merged into diff.el.
 
 	* diff.el: New file.
@@ -10344,7 +10344,7 @@
 	(list-diary-entries, mark-diary-entries)
 	(include-other-diary-files, mark-included-diary-files):
 	Added the possibility of `shared diary files' with a recursive
-	include mechanism like the C preprocessor
+	include mechanism like the C preprocessor.
 	(list-calendar-holidays): Eliminated the 'special class of holidays,
 	rewriting the entire mechanism to make it more general.
 	(calendar-holiday-function-float): Changed the 'float class of
@@ -12091,7 +12091,7 @@
 
 1988-12-12  Richard Stallman  (rms@mole.ai.mit.edu)
 
-	* telnet.el (telnet-send-input): Save input in telnet-previous-input
+	* telnet.el (telnet-send-input): Save input in telnet-previous-input.
 	(telnet-mode): Make that var buffer-local.
 	(telnet-copy-last-input): New fn to yank that var; now on C-c C-y.
 
@@ -12438,8 +12438,7 @@ See ChangeLog.2 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-    Copyright (C) 1989, 1993, 2001, 2002, 2003, 2004, 2005, 2006,
-    2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+    Copyright (C) 1989, 1993, 2001-2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -12456,4 +12455,3 @@ See ChangeLog.2 for earlier changes.
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-;;; arch-tag: f07a3446-5672-464a-8fdc-2ca92e8e7b2a

@@ -7,11 +7,11 @@
 	"Adrian Robert (GNUstep)",
 	"Christophe de Dinechin (MacOS X)",
 	"Scott Bender (OpenStep)",
-	"Christian Limpach (NeXTStep)",
-	"Carl Edman (NeXTStep)",
-	"..see http://emacs-app.sf.net/authorship.html"
+	"Christian Limpach (NeXTstep)",
+	"Carl Edman (NeXTstep)",
+	"..see etc/NEXTSTEP"
     );
-    Copyright = "Copyright (C) 2010 Free Software Foundation, Inc.";
+    Copyright = "Copyright (C) 2011 Free Software Foundation, Inc.";
     CopyrightDescription = "Released under the GNU General Public License Version 3 or later";
     FullVersionID = "Emacs 24.0.50, NS Windowing";
     NSExecutable = Emacs;

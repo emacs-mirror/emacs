@@ -1,11 +1,11 @@
 ;;; authors.el --- utility for maintaining Emacs' AUTHORS file -*-coding: utf-8;-*-
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Maintainer: Kim F. Storm <storm@cua.dk>
 ;; Keywords: maint
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -266,7 +266,8 @@ listed.")
     "3B-MAXMEM" "AIX.DUMP" "SUN-SUPPORT" "XENIX"
     "CODINGS" "CHARSETS"
     "calc/INSTALL" "calc/Makefile"
-    "vms-pp.trans" "_emacs" "batcomp.com"
+    "vms-pp.trans" "_emacs" "batcomp.com" "notes/cpp" ; admin/
+    "emacsver.texi.in"
     ;; MH-E stuff not in Emacs:
     "import-emacs" "release-utils"
     ;; Erc stuff not in Emacs:
@@ -354,7 +355,7 @@ Changes to files in this list are not listed.")
     ;; No longer distributed.
 ;;;    ("Viktor Dukhovni" :wrote "unexsunos4.c")
     ("Paul Eggert" :wrote "rcs2log" "vcdiff")
-    ("Fred Fish" :changed "unexec.c")
+    ("Fred Fish" :changed "unexcoff.c")
     ;; No longer distributed.
 ;;;    ("Tim Fleehart" :wrote "makefile.nt")
     ("Keith Gabryelski" :wrote "hexl.c")
@@ -377,13 +378,13 @@ Changes to files in this list are not listed.")
      "indent.c" "search.c" "xdisp.c" "region-cache.c" "region-cache.h")
     ;; ibmrt.h, ibmrt-aix.h no longer distributed.
     ("International Business Machines" :changed "emacs.c" "fileio.c"
-     "process.c" "sysdep.c" "unexec.c")
+     "process.c" "sysdep.c" "unexcoff.c")
     ;; No longer distributed.
 ;;;    ("Ishikawa Chiaki" :changed "aviion.h" "dgux.h")
     ;; ymakefile no longer distributed.
     ("Michael K. Johnson" :changed "configure.in" "emacs.c" "intel386.h"
      "mem-limits.h" "process.c" "template.h" "sysdep.c" "syssignal.h"
-     "systty.h" "unexec.c" "linux.h")
+     "systty.h" "unexcoff.c" "linux.h")
     ;; No longer distributed.
 ;;;    ("Kyle Jones" :wrote "mldrag.el")
     ("Henry Kautz" :wrote "bib-mode.el")
@@ -408,7 +409,7 @@ Changes to files in this list are not listed.")
      "rmail.el" "rmailedit.el" "rmailkwd.el"
      "rmailmsc.el" "rmailout.el" "rmailsum.el" "scribe.el"
      ;; It was :wrote for xmenu.c, but it has been rewritten since.
-     "server.el" "lisp.h" "sysdep.c" "unexec.c" "xmenu.c")
+     "server.el" "lisp.h" "sysdep.c" "unexcoff.c" "xmenu.c")
     ("Niall Mansfield" :changed "etags.c")
     ("Brian Marick" :cowrote "hideif.el")
     ("Marko Kohtala" :changed "info.el")
@@ -463,9 +464,9 @@ Changes to files in this list are not listed.")
     ("Kayvan Sylvan" :changed "supercite.el")
     ;; No longer distributed: emacsserver.c, tcp.c.
     ("Spencer Thomas" :changed "emacsclient.c" "server.el"
-     "dabbrev.el" "unexec.c" "gnus.texi")
+     "dabbrev.el" "unexcoff.c" "gnus.texi")
     ("Jonathan Vail" :changed "vc.el")
-    ("James Van Artsdalen" :changed "usg5-4.h" "unexec.c")
+    ("James Van Artsdalen" :changed "usg5-4.h" "unexcoff.c")
     ;; No longer distributed: src/makefile.nt, lisp/makefile.nt
     ;; winnt.el renamed to w32-fns.el; nt.[ch] to w32.[ch];
     ;; ntheap.[ch] to w32heap.[ch]; ntinevt.c to w32inevt.c;
@@ -505,9 +506,12 @@ Changes to files in this list are not listed.")
     "getdate.y"
     "ymakefile"
     "permute-index" "index.perm"
+    "ibmrs6000.inp"
+    "b2m.c" "b2m.1" "b2m.pl"
+    "emacs.bash" "emacs.csh" "ms-kermit"
     "emacs.ico"
     "emacs21.ico"
-    "LPF" "LEDIT" "OTHER.EMACSES"
+    "BABYL" "LPF" "LEDIT" "OTHER.EMACSES"
     "emacs16_mac.png" "emacs24_mac.png"
     "emacs256_mac.png" "emacs32_mac.png"
     "emacs48_mac.png" "emacs512_mac.png"
@@ -582,12 +586,15 @@ in the repository.")
     ("schema/docbook-soextbl.rnc" . "schema/docbk-soextbl.rn" )
     ("texi/url.txi" . "url.texi")
     ("edt-user.doc" . "edt.texi")
+    ("DEV-NOTES" . "nextstep")
     ;; Moved to different directories.
     ("ctags.1" . "ctags.1")
     ("etags.1" . "etags.1")
     ("emacs.1" . "emacs.1")
     ("emacsclient.1" . "emacsclient.1")
     ("icons/emacs21.ico" . "emacs21.ico")
+    ;; Moved from admin/nt/ to nt/.
+    ("nt/README.W32" . "README.W32")
     )
   "Alist of files which have been renamed during their lifetime.
 Elements are (OLDNAME . NEWNAME).")
@@ -1025,5 +1032,4 @@ the Emacs source tree, from which to build the file."
 
 (provide 'authors)
 
-;; arch-tag: 659d5900-5ff2-43b0-954c-a315cc1e4dc1
 ;;; authors.el ends here

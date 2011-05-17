@@ -1,7 +1,6 @@
 ;;; ede/pconf.el --- configure.ac maintenance for EDE
 
-;;; Copyright (C) 1998, 1999, 2000, 2005, 2008, 2009, 2010
-;;; Free Software Foundation, Inc.
+;;; Copyright (C) 1998-2000, 2005, 2008-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project
@@ -126,7 +125,11 @@ don't do it.  A value of nil means to just do it.")
 
 	  (while compilation-in-progress
 	    (accept-process-output)
-	    (sit-for 1))
+	    ;; If sit for indicates that input is waiting, then
+	    ;; read and discard whatever it is that is going on.
+	    (when (not (sit-for 1))
+	      (read-event nil nil .1)
+	      ))
 
 	  (with-current-buffer "*compilation*"
 	    (goto-char (point-max))
@@ -156,7 +159,7 @@ don't do it.  A value of nil means to just do it.")
   (ede-proj-configure-synchronize this))
 
 (defmethod ede-proj-tweak-autoconf ((this ede-proj-target))
-  "Tweak the configure file (current buffer) to accomodate THIS."
+  "Tweak the configure file (current buffer) to accommodate THIS."
   ;; Check the compilers belonging to THIS, and call the autoconf
   ;; setup for those compilers.
   (mapc 'ede-proj-tweak-autoconf (ede-proj-compilers this))
@@ -164,7 +167,7 @@ don't do it.  A value of nil means to just do it.")
   )
 
 (defmethod ede-proj-flush-autoconf ((this ede-proj-target))
-  "Flush the configure file (current buffer) to accomodate THIS.
+  "Flush the configure file (current buffer) to accommodate THIS.
 By flushing, remove any cruft that may be in the file.  Subsequent
 calls to `ede-proj-tweak-autoconf' can restore items removed by flush."
   nil)
@@ -180,5 +183,4 @@ Results in --add-missing being passed to automake."
 
 (provide 'ede/pconf)
 
-;; arch-tag: 8d514f68-2abe-4b35-8b4e-bea4fd0c3eab
 ;;; ede/pconf.el ends here

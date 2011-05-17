@@ -1,5 +1,6 @@
-/* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-     Free Software Foundation, Inc.
+/* runemacs --- Simple program to start Emacs with its console window hidden.
+
+Copyright (C) 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -43,7 +44,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <string.h>
 #include <malloc.h>
 
-static void set_user_model_id ();
+static void set_user_model_id (void);
 
 int WINAPI
 WinMain (HINSTANCE hSelf, HINSTANCE hPrev, LPSTR cmdline, int nShow)
@@ -174,7 +175,8 @@ error:
   return 1;
 }
 
-void set_user_model_id ()
+void
+set_user_model_id (void)
 {
   HMODULE shell;
   HRESULT (WINAPI * set_user_model) (wchar_t * id);
@@ -201,5 +203,3 @@ void set_user_model_id ()
     }
 }
 
-/* arch-tag: 7e02df73-4df7-4aa0-baea-99c6d047a384
-   (do not change this comment) */

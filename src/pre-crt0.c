@@ -8,5 +8,3 @@
 
 int data_start = 0;
 
-/* arch-tag: 2e260272-0790-495f-9362-55abd56b5c5a
-   (do not change this comment) */

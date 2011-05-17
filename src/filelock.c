@@ -1,6 +1,5 @@
 /* Lock files for editing.
-   Copyright (C) 1985, 1986, 1987, 1993, 1994, 1996, 1998, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 1985-1987, 1993-1994, 1996, 1998-2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -31,16 +30,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #include <sys/file.h>
-#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
-#endif
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
-
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 #ifdef __FreeBSD__
 #include <sys/sysctl.h>
@@ -54,18 +45,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "coding.h"
 #include "systime.h"
 
-/* The directory for writing temporary files.  */
-
-Lisp_Object Vtemporary_file_directory;
-
 #ifdef CLASH_DETECTION
 
 #ifdef HAVE_UTMP_H
 #include <utmp.h>
-#endif
-
-#if !defined (S_ISLNK) && defined (S_IFLNK)
-#define S_ISLNK(m) (((m) & S_IFMT) == S_IFLNK)
 #endif
 
 /* A file whose last-modified time is just after the most recent boot.
@@ -119,14 +102,12 @@ Lisp_Object Vtemporary_file_directory;
 static time_t boot_time;
 static int boot_time_initialized;
 
-extern Lisp_Object Vshell_file_name;
-
 #ifdef BOOT_TIME
-static void get_boot_time_1 P_ ((char *, int));
+static void get_boot_time_1 (const char *, int);
 #endif
 
 static time_t
-get_boot_time ()
+get_boot_time (void)
 {
 #if defined (BOOT_TIME)
   int counter;
@@ -229,9 +210,9 @@ get_boot_time ()
 
       if (! NILP (filename))
 	{
-	  get_boot_time_1 (SDATA (filename), 1);
+	  get_boot_time_1 (SSDATA (filename), 1);
 	  if (delete_flag)
-	    unlink (SDATA (filename));
+	    unlink (SSDATA (filename));
 	}
     }
 
@@ -253,9 +234,7 @@ get_boot_time ()
    Success is indicated by setting BOOT_TIME to a larger value.  */
 
 void
-get_boot_time_1 (filename, newest)
-     char *filename;
-     int newest;
+get_boot_time_1 (const char *filename, int newest)
 {
   struct utmp ut, *utp;
   int desc;
@@ -326,15 +305,13 @@ typedef struct
    fill_in_lock_file_name (lock, (file)))
 
 static void
-fill_in_lock_file_name (lockfile, fn)
-     register char *lockfile;
-     register Lisp_Object fn;
+fill_in_lock_file_name (register char *lockfile, register Lisp_Object fn)
 {
   register char *p;
   struct stat st;
   int count = 0;
 
-  strcpy (lockfile, SDATA (fn));
+  strcpy (lockfile, SSDATA (fn));
 
   /* Shift the nondirectory part of the file name (including the null)
      right two characters.  Here is one of the places where we'd have to
@@ -364,33 +341,31 @@ fill_in_lock_file_name (lockfile, fn)
    Return 1 if successful, 0 if not.  */
 
 static int
-lock_file_1 (lfname, force)
-     char *lfname;
-     int force;
+lock_file_1 (char *lfname, int force)
 {
   register int err;
-  time_t boot_time;
-  char *user_name;
-  char *host_name;
+  time_t boot;
+  const char *user_name;
+  const char *host_name;
   char *lock_info_str;
 
   /* Call this first because it can GC.  */
-  boot_time = get_boot_time ();
+  boot = get_boot_time ();
 
   if (STRINGP (Fuser_login_name (Qnil)))
-    user_name = (char *)SDATA (Fuser_login_name (Qnil));
+    user_name = SSDATA (Fuser_login_name (Qnil));
   else
     user_name = "";
   if (STRINGP (Fsystem_name ()))
-    host_name = (char *)SDATA (Fsystem_name ());
+    host_name = SSDATA (Fsystem_name ());
   else
     host_name = "";
   lock_info_str = (char *)alloca (strlen (user_name) + strlen (host_name)
 				  + LOCK_PID_MAX + 30);
 
-  if (boot_time)
+  if (boot)
     sprintf (lock_info_str, "%s@%s.%lu:%lu", user_name, host_name,
-	     (unsigned long) getpid (), (unsigned long) boot_time);
+	     (unsigned long) getpid (), (unsigned long) boot);
   else
     sprintf (lock_info_str, "%s@%s.%lu", user_name, host_name,
 	     (unsigned long) getpid ());
@@ -407,9 +382,8 @@ lock_file_1 (lfname, force)
 
 /* Return 1 if times A and B are no more than one second apart.  */
 
-int
-within_one_second (a, b)
-     time_t a, b;
+static int
+within_one_second (time_t a, time_t b)
 {
   return (a - b >= -1 && a - b <= 1);
 }
@@ -420,43 +394,18 @@ within_one_second (a, b)
    or -1 if something is wrong with the locking mechanism.  */
 
 static int
-current_lock_owner (owner, lfname)
-     lock_info_type *owner;
-     char *lfname;
+current_lock_owner (lock_info_type *owner, char *lfname)
 {
-#ifndef index
-  extern char *rindex (), *index ();
-#endif
-  int len, ret;
+  int ret;
+  size_t len;
   int local_owner = 0;
   char *at, *dot, *colon;
-  char *lfinfo = 0;
-  int bufsize = 50;
-  /* Read arbitrarily-long contents of symlink.  Similar code in
-     file-symlink-p in fileio.c.  */
-  do
-    {
-      bufsize *= 2;
-      lfinfo = (char *) xrealloc (lfinfo, bufsize);
-      errno = 0;
-      len = readlink (lfname, lfinfo, bufsize);
-#ifdef ERANGE
-      /* HP-UX reports ERANGE if the buffer is too small.  */
-      if (len == -1 && errno == ERANGE)
-	len = bufsize;
-#endif
-    }
-  while (len >= bufsize);
+  char readlink_buf[READLINK_BUFSIZE];
+  char *lfinfo = emacs_readlink (lfname, readlink_buf);
 
   /* If nonexistent lock file, all is well; otherwise, got strange error. */
-  if (len == -1)
-    {
-      xfree (lfinfo);
-      return errno == ENOENT ? 0 : -1;
-    }
-
-  /* Link info exists, so `len' is its length.  Null terminate.  */
-  lfinfo[len] = 0;
+  if (!lfinfo)
+    return errno == ENOENT ? 0 : -1;
 
   /* Even if the caller doesn't want the owner info, we still have to
      read it to determine return value, so allocate it.  */
@@ -468,11 +417,12 @@ current_lock_owner (owner, lfname)
 
   /* Parse USER@HOST.PID:BOOT_TIME.  If can't parse, return -1.  */
   /* The USER is everything before the last @.  */
-  at = rindex (lfinfo, '@');
-  dot = rindex (lfinfo, '.');
+  at = strrchr (lfinfo, '@');
+  dot = strrchr (lfinfo, '.');
   if (!at || !dot)
     {
-      xfree (lfinfo);
+      if (lfinfo != readlink_buf)
+	xfree (lfinfo);
       return -1;
     }
   len = at - lfinfo;
@@ -498,11 +448,12 @@ current_lock_owner (owner, lfname)
   owner->host[len] = 0;
 
   /* We're done looking at the link info.  */
-  xfree (lfinfo);
+  if (lfinfo != readlink_buf)
+    xfree (lfinfo);
 
   /* On current host?  */
   if (STRINGP (Fsystem_name ())
-      && strcmp (owner->host, SDATA (Fsystem_name ())) == 0)
+      && strcmp (owner->host, SSDATA (Fsystem_name ())) == 0)
     {
       if (owner->pid == getpid ())
         ret = 2; /* We own it.  */
@@ -540,9 +491,7 @@ current_lock_owner (owner, lfname)
    Return -1 if cannot lock for any other reason.  */
 
 static int
-lock_if_free (clasher, lfname)
-     lock_info_type *clasher;
-     register char *lfname;
+lock_if_free (lock_info_type *clasher, register char *lfname)
 {
   while (lock_file_1 (lfname, 0) == 0)
     {
@@ -585,8 +534,7 @@ lock_if_free (clasher, lfname)
    take away the lock, or return nil meaning ignore the lock.  */
 
 void
-lock_file (fn)
-     Lisp_Object fn;
+lock_file (Lisp_Object fn)
 {
   register Lisp_Object attack, orig_fn, encoded_fn;
   register char *lfname, *locker;
@@ -645,8 +593,7 @@ lock_file (fn)
 }
 
 void
-unlock_file (fn)
-     register Lisp_Object fn;
+unlock_file (register Lisp_Object fn)
 {
   register char *lfname;
 
@@ -660,7 +607,7 @@ unlock_file (fn)
 }
 
 void
-unlock_all_files ()
+unlock_all_files (void)
 {
   register Lisp_Object tail;
   register struct buffer *b;
@@ -668,9 +615,9 @@ unlock_all_files ()
   for (tail = Vbuffer_alist; CONSP (tail); tail = XCDR (tail))
     {
       b = XBUFFER (XCDR (XCAR (tail)));
-      if (STRINGP (b->file_truename) && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b))
+      if (STRINGP (BVAR (b, file_truename)) && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b))
 	{
-	  unlock_file(b->file_truename);
+	  unlock_file(BVAR (b, file_truename));
 	}
     }
 }
@@ -680,11 +627,10 @@ DEFUN ("lock-buffer", Flock_buffer, Slock_buffer,
        doc: /* Lock FILE, if current buffer is modified.
 FILE defaults to current buffer's visited file,
 or else nothing is done if current buffer isn't visiting a file.  */)
-     (file)
-     Lisp_Object file;
+  (Lisp_Object file)
 {
   if (NILP (file))
-    file = current_buffer->file_truename;
+    file = BVAR (current_buffer, file_truename);
   else
     CHECK_STRING (file);
   if (SAVE_MODIFF < MODIFF
@@ -698,31 +644,29 @@ DEFUN ("unlock-buffer", Funlock_buffer, Sunlock_buffer,
        doc: /* Unlock the file visited in the current buffer.
 If the buffer is not modified, this does nothing because the file
 should not be locked in that case.  */)
-     ()
+  (void)
 {
   if (SAVE_MODIFF < MODIFF
-      && STRINGP (current_buffer->file_truename))
-    unlock_file (current_buffer->file_truename);
+      && STRINGP (BVAR (current_buffer, file_truename)))
+    unlock_file (BVAR (current_buffer, file_truename));
   return Qnil;
 }
 
 /* Unlock the file visited in buffer BUFFER.  */
 
 void
-unlock_buffer (buffer)
-     struct buffer *buffer;
+unlock_buffer (struct buffer *buffer)
 {
   if (BUF_SAVE_MODIFF (buffer) < BUF_MODIFF (buffer)
-      && STRINGP (buffer->file_truename))
-    unlock_file (buffer->file_truename);
+      && STRINGP (BVAR (buffer, file_truename)))
+    unlock_file (BVAR (buffer, file_truename));
 }
 
 DEFUN ("file-locked-p", Ffile_locked_p, Sfile_locked_p, 1, 1, 0,
        doc: /* Return a value indicating whether FILENAME is locked.
 The value is nil if the FILENAME is not locked,
 t if it is locked by you, else a string saying which user has locked it.  */)
-     (filename)
-     Lisp_Object filename;
+  (Lisp_Object filename)
 {
   Lisp_Object ret;
   register char *lfname;
@@ -750,25 +694,24 @@ t if it is locked by you, else a string saying which user has locked it.  */)
 /* Initialization functions.  */
 
 void
-init_filelock ()
+init_filelock (void)
 {
   boot_time = 0;
   boot_time_initialized = 0;
 }
 
+#endif /* CLASH_DETECTION */
+
 void
-syms_of_filelock ()
+syms_of_filelock (void)
 {
-  DEFVAR_LISP ("temporary-file-directory", &Vtemporary_file_directory,
+  DEFVAR_LISP ("temporary-file-directory", Vtemporary_file_directory,
 	       doc: /* The directory for writing temporary files.  */);
   Vtemporary_file_directory = Qnil;
 
+#ifdef CLASH_DETECTION
   defsubr (&Sunlock_buffer);
   defsubr (&Slock_buffer);
   defsubr (&Sfile_locked_p);
+#endif
 }
-
-#endif /* CLASH_DETECTION */
-
-/* arch-tag: e062676d-50b2-4be0-ab96-197c81b181a1
-   (do not change this comment) */

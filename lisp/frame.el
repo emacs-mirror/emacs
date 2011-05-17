@@ -1,10 +1,11 @@
 ;;; frame.el --- multi-frame management independent of window systems
 
-;; Copyright (C) 1993, 1994, 1996, 1997, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 1996-1997, 2000-2011
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -30,7 +31,7 @@
   (list (cons nil
 	      (if (fboundp 'tty-create-frame-with-faces)
 		  'tty-create-frame-with-faces
-                (lambda (parameters)
+                (lambda (_parameters)
                   (error "Can't create multiple frames without a window system")))))
   "Alist of window-system dependent functions to call to create a new frame.
 The window system startup file should add its frame creation
@@ -39,13 +40,6 @@ as its argument.")
 
 (defvar window-system-default-frame-alist nil
   "Alist of window-system dependent default frame parameters.
-You can set this in your init file; for example,
-
- ;; Disable menubar and toolbar on the console, but enable them under X.
- (setq window-system-default-frame-alist
-       '((x (menu-bar-lines . 1) (tool-bar-lines . 1))
-         (nil (menu-bar-lines . 0) (tool-bar-lines . 0))))
-
 Parameters specified here supersede the values given in
 `default-frame-alist'.")
 
@@ -287,36 +281,6 @@ and (cdr ARGS) as second."
 React to settings of `initial-frame-alist',
 `window-system-default-frame-alist' and `default-frame-alist'
 there (in decreasing order of priority)."
-  ;; Make menu-bar-mode and default-frame-alist consistent.
-  (when (boundp 'menu-bar-mode)
-    (let ((default (assq 'menu-bar-lines default-frame-alist)))
-      (if default
-	  (setq menu-bar-mode (not (eq (cdr default) 0)))
-	(setq default-frame-alist
-	      (cons (cons 'menu-bar-lines (if menu-bar-mode 1 0))
-		    default-frame-alist)))))
-
-  ;; Make tool-bar-mode and default-frame-alist consistent.  Don't do
-  ;; it in batch mode since that would leave a tool-bar-lines
-  ;; parameter in default-frame-alist in a dumped Emacs, which is not
-  ;; what we want.
-  (when (and (boundp 'tool-bar-mode)
- 	     (not noninteractive))
-    (let ((default (assq 'tool-bar-lines default-frame-alist)))
-      (if default
- 	  (setq tool-bar-mode (not (eq (cdr default) 0)))
-	;; If Emacs was started on a tty, changing default-frame-alist
-	;; would disable the toolbar on X frames created later.  We
-	;; want to keep the default of showing a toolbar under X even
-	;; in this case.
-	;;
-	;; If the user explicitly called `tool-bar-mode' in .emacs,
-	;; then default-frame-alist is already changed anyway.
-	(when initial-window-system
-	  (setq default-frame-alist
-		(cons (cons 'tool-bar-lines (if tool-bar-mode 1 0))
-		      default-frame-alist))))))
-
   ;; Creating and deleting frames may shift the selected frame around,
   ;; and thus the current buffer.  Protect against that.  We don't
   ;; want to use save-excursion here, because that may also try to set
@@ -331,22 +295,19 @@ there (in decreasing order of priority)."
 	       (null frame-initial-frame))
       ;; This case happens when we don't have a window system, and
       ;; also for MS-DOS frames.
-      (let ((parms (frame-parameters frame-initial-frame)))
+      (let ((parms (frame-parameters)))
 	;; Don't change the frame names.
 	(setq parms (delq (assq 'name parms) parms))
 	;; Can't modify the minibuffer parameter, so don't try.
 	(setq parms (delq (assq 'minibuffer parms) parms))
-	(modify-frame-parameters nil
-				 (if (null initial-window-system)
-				     (append initial-frame-alist
-					     window-system-frame-alist
-					     default-frame-alist
-					     parms
-					     nil)
-				   ;; initial-frame-alist and
-				   ;; default-frame-alist were already
-				   ;; applied in pc-win.el.
-				   parms))
+	(modify-frame-parameters
+	 nil
+	 (if initial-window-system
+	     parms
+	   ;; initial-frame-alist and default-frame-alist were already
+	   ;; applied in pc-win.el.
+	   (append initial-frame-alist window-system-frame-alist
+		   default-frame-alist parms nil)))
 	(if (null initial-window-system) ;; MS-DOS does this differently in pc-win.el
 	    (let ((newparms (frame-parameters))
 		  (frame (selected-frame)))
@@ -547,25 +508,28 @@ there (in decreasing order of priority)."
 	  ;; it is undesirable to specify the parm again
           ;; once the user has seen the frame and been able to alter it
 	  ;; manually.
-	  (while tail
-	    (let (newval oldval)
-	      (setq oldval (assq (car (car tail))
-				 frame-initial-frame-alist))
-	      (setq newval (cdr (assq (car (car tail)) allparms)))
+	  (let (newval oldval)
+	    (dolist (entry tail)
+	      (setq oldval (assq (car entry) frame-initial-frame-alist))
+	      (setq newval (cdr (assq (car entry) allparms)))
 	      (or (and oldval (eq (cdr oldval) newval))
 		  (setq newparms
-			(cons (cons (car (car tail)) newval) newparms))))
-	    (setq tail (cdr tail)))
+			(cons (cons (car entry) newval) newparms)))))
 	  (setq newparms (nreverse newparms))
-	  (modify-frame-parameters frame-initial-frame
-				   newparms)
-	  ;; If we changed the background color,
-	  ;; we need to update the background-mode parameter
-	  ;; and maybe some faces too.
-	  (when (assq 'background-color newparms)
-	    (unless (assq 'background-mode newparms)
-	      (frame-set-background-mode frame-initial-frame))
-	    (face-set-after-frame-default frame-initial-frame)))))
+
+	  (let ((new-bg (assq 'background-color newparms)))
+	    ;; If the `background-color' parameter is changed, apply
+	    ;; it first, then make sure that the `background-mode'
+	    ;; parameter and other faces are updated, before applying
+	    ;; the other parameters.
+	    (when new-bg
+	      (modify-frame-parameters frame-initial-frame
+				       (list new-bg))
+	      (unless (assq 'background-mode newparms)
+		(frame-set-background-mode frame-initial-frame))
+	      (face-set-after-frame-default frame-initial-frame)
+	      (setq newparms (delq new-bg newparms)))
+	    (modify-frame-parameters frame-initial-frame newparms)))))
 
     ;; Restore the original buffer.
     (set-buffer old-buffer)
@@ -720,15 +684,17 @@ The functions are run with one arg, the newly created frame.")
 
 (defun make-frame (&optional parameters)
   "Return a newly created frame displaying the current buffer.
-Optional argument PARAMETERS is an alist of parameters for the new frame.
-Each element of PARAMETERS should have the form (NAME . VALUE), for example:
+Optional argument PARAMETERS is an alist of frame parameters for
+the new frame.  Each element of PARAMETERS should have the
+form (NAME . VALUE), for example:
 
  (name . STRING)	The frame should be named STRING.
 
  (width . NUMBER)	The frame should be NUMBER characters in width.
  (height . NUMBER)	The frame should be NUMBER text lines high.
 
-You cannot specify either `width' or `height', you must use neither or both.
+You cannot specify either `width' or `height', you must specify
+neither or both.
 
  (minibuffer . t)	The frame should have a minibuffer.
  (minibuffer . nil)	The frame should have no minibuffer.
@@ -740,15 +706,17 @@ You cannot specify either `width' or `height', you must use neither or both.
 
  (terminal . TERMINAL)  The frame should use the terminal object TERMINAL.
 
-Before the frame is created (via `frame-creation-function-alist'), functions on the
-hook `before-make-frame-hook' are run.  After the frame is created, functions
-on `after-make-frame-functions' are run with one arg, the newly created frame.
+In addition, any parameter specified in `default-frame-alist',
+but not present in PARAMETERS, is applied.
 
-This function itself does not make the new frame the selected frame.
-The previously selected frame remains selected.  However, the
-window system may select the new frame for its own reasons, for
-instance if the frame appears under the mouse pointer and your
-setup is for focus to follow the pointer."
+Before creating the frame (via `frame-creation-function-alist'),
+this function runs the hook `before-make-frame-hook'.  After
+creating the frame, it runs the hook `after-make-frame-functions'
+with one arg, the newly created frame.
+
+On graphical displays, this function does not itself make the new
+frame the selected frame.  However, the window system may select
+the new frame according to its own rules."
   (interactive)
   (let* ((w (cond
 	     ((assq 'terminal parameters)
@@ -763,14 +731,21 @@ setup is for focus to follow the pointer."
 	     (t window-system)))
 	 (frame-creation-function (cdr (assq w frame-creation-function-alist)))
 	 (oldframe (selected-frame))
+	 (params parameters)
 	 frame)
     (unless frame-creation-function
       (error "Don't know how to create a frame on window system %s" w))
+    ;; Add parameters from `window-system-default-frame-alist'.
+    (dolist (p (cdr (assq w window-system-default-frame-alist)))
+      (unless (assq (car p) params)
+	(push p params)))
+    ;; Add parameters from `default-frame-alist'.
+    (dolist (p default-frame-alist)
+      (unless (assq (car p) params)
+	(push p params)))
+    ;; Now make the frame.
     (run-hooks 'before-make-frame-hook)
-    (setq frame
-          (funcall frame-creation-function
-                   (append parameters
-                           (cdr (assq w window-system-default-frame-alist)))))
+    (setq frame (funcall frame-creation-function params))
     (normal-erase-is-backspace-setup-frame frame)
     ;; Inherit the original frame's parameters.
     (dolist (param frame-inherited-parameters)
@@ -932,15 +907,16 @@ Calls `suspend-emacs' if invoked from the controlling tty device,
      (t (suspend-emacs)))))
 
 (defun make-frame-names-alist ()
+  ;; Only consider the frames on the same display.
   (let* ((current-frame (selected-frame))
 	 (falist
 	  (cons
 	   (cons (frame-parameter current-frame 'name) current-frame) nil))
-	 (frame (next-frame nil t)))
+	 (frame (next-frame nil 0)))
     (while (not (eq frame current-frame))
       (progn
-	(setq falist (cons (cons (frame-parameter frame 'name) frame) falist))
-	(setq frame (next-frame frame t))))
+	(push (cons (frame-parameter frame 'name) frame) falist)
+	(setq frame (next-frame frame 0))))
     falist))
 
 (defvar frame-name-history nil)
@@ -1090,7 +1066,7 @@ See `modify-frame-parameters'."
   "Set the background color of the selected frame to COLOR-NAME.
 When called interactively, prompt for the name of the color to use.
 To get the frame's current background color, use `frame-parameters'."
-  (interactive (list (facemenu-read-color "Background color: ")))
+  (interactive (list (read-color "Background color: ")))
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'background-color color-name)))
   (or window-system
@@ -1100,7 +1076,7 @@ To get the frame's current background color, use `frame-parameters'."
   "Set the foreground color of the selected frame to COLOR-NAME.
 When called interactively, prompt for the name of the color to use.
 To get the frame's current foreground color, use `frame-parameters'."
-  (interactive (list (facemenu-read-color "Foreground color: ")))
+  (interactive (list (read-color "Foreground color: ")))
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'foreground-color color-name)))
   (or window-system
@@ -1110,7 +1086,7 @@ To get the frame's current foreground color, use `frame-parameters'."
   "Set the text cursor color of the selected frame to COLOR-NAME.
 When called interactively, prompt for the name of the color to use.
 To get the frame's current cursor color, use `frame-parameters'."
-  (interactive (list (facemenu-read-color "Cursor color: ")))
+  (interactive (list (read-color "Cursor color: ")))
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'cursor-color color-name))))
 
@@ -1118,7 +1094,7 @@ To get the frame's current cursor color, use `frame-parameters'."
   "Set the color of the mouse pointer of the selected frame to COLOR-NAME.
 When called interactively, prompt for the name of the color to use.
 To get the frame's current mouse color, use `frame-parameters'."
-  (interactive (list (facemenu-read-color "Mouse color: ")))
+  (interactive (list (read-color "Mouse color: ")))
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'mouse-color
 				       (or color-name
@@ -1129,7 +1105,7 @@ To get the frame's current mouse color, use `frame-parameters'."
   "Set the color of the border of the selected frame to COLOR-NAME.
 When called interactively, prompt for the name of the color to use.
 To get the frame's current border color, use `frame-parameters'."
-  (interactive (list (facemenu-read-color "Border color: ")))
+  (interactive (list (read-color "Border color: ")))
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'border-color color-name))))
 
@@ -1235,8 +1211,7 @@ frame's display)."
 (defun display-selections-p (&optional display)
   "Return non-nil if DISPLAY supports selections.
 A selection is a way to transfer text or other data between programs
-via special system buffers called `selection' or `cut buffer' or
-`clipboard'.
+via special system buffers called `selection' or `clipboard'.
 DISPLAY can be a display name, a frame, or nil (meaning the selected
 frame's display)."
   (let ((frame-type (framep-on-display display)))
@@ -1455,25 +1430,8 @@ Examples (measures in pixels) -
 
 In the 3rd, 4th, and 6th examples, the returned value is relative to
 the opposite frame edge from the edge indicated in the input spec."
-  (cons (car spec) (frame-geom-value-cons (car spec) (cdr spec))))
+  (cons (car spec) (frame-geom-value-cons (car spec) (cdr spec) frame)))
 
-;;;; Aliases for backward compatibility with Emacs 18.
-(define-obsolete-function-alias 'screen-height 'frame-height "19.7")
-(define-obsolete-function-alias 'screen-width 'frame-width "19.7")
-
-(defun set-screen-width (cols &optional pretend)
-  "Change the size of the screen to COLS columns.
-Optional second arg non-nil means that redisplay should use COLS columns
-but that the idea of the actual width of the frame should not be changed.
-This function is provided only for compatibility with Emacs 18."
-  (set-frame-width (selected-frame) cols pretend))
-
-(defun set-screen-height (lines &optional pretend)
-  "Change the height of the screen to LINES lines.
-Optional second arg non-nil means that redisplay should use LINES lines
-but that the idea of the actual height of the screen should not be changed.
-This function is provided only for compatibility with Emacs 18."
-  (set-frame-height (selected-frame) lines pretend))
 
 (defun delete-other-frames (&optional frame)
   "Delete all frames except FRAME.
@@ -1499,9 +1457,6 @@ left untouched.  FRAME nil or omitted means use the selected frame."
       (when (eq (frame-parameter frame 'minibuffer) 'only)
 	(delete-frame frame)))))
 
-(make-obsolete 'set-screen-width 'set-frame-width "19.7")
-(make-obsolete 'set-screen-height 'set-frame-height "19.7")
-
 ;; miscellaneous obsolescence declarations
 (define-obsolete-variable-alias 'delete-frame-hook
     'delete-frame-functions "22.1")
@@ -1511,14 +1466,6 @@ left untouched.  FRAME nil or omitted means use the selected frame."
 
 (make-variable-buffer-local 'show-trailing-whitespace)
 
-(defcustom show-trailing-whitespace nil
-  "Non-nil means highlight trailing whitespace.
-This is done in the face `trailing-whitespace'."
-  :type 'boolean
-  :safe 'booleanp
-  :group 'whitespace-faces)
-
-
 
 ;; Scrolling
 
@@ -1527,13 +1474,6 @@ This is done in the face `trailing-whitespace'."
   :version "21.1"
   :group 'frames)
 
-(defcustom auto-hscroll-mode t
-  "Allow or disallow automatic scrolling windows horizontally.
-If non-nil, windows are automatically scrolled horizontally to make
-point visible."
-  :version "21.1"
-  :type 'boolean
-  :group 'scrolling)
 (defvaralias 'automatic-hscrolling 'auto-hscroll-mode)
 
 
@@ -1604,7 +1544,7 @@ cursor display.  On a text-only terminal, this is not implemented."
   :init-value (not (or noninteractive
 		       no-blinking-cursor
 		       (eq system-type 'ms-dos)
-		       (not (memq window-system '(x w32)))))
+		       (not (memq window-system '(x w32 ns)))))
   :initialize 'custom-initialize-delay
   :group 'cursor
   :global t
@@ -1620,35 +1560,6 @@ cursor display.  On a text-only terminal, this is not implemented."
                                'blink-cursor-start))))
 
 (define-obsolete-variable-alias 'blink-cursor 'blink-cursor-mode "22.1")
-
-;; Hourglass pointer
-
-(defcustom display-hourglass t
-  "Non-nil means show an hourglass pointer, when Emacs is busy.
-This feature only works when on a window system that can change
-cursor shapes."
-  :type 'boolean
-  :group 'cursor)
-
-(defcustom hourglass-delay 1
-  "Seconds to wait before displaying an hourglass pointer when Emacs is busy."
-  :type 'number
-  :group 'cursor)
-
-
-(defcustom cursor-in-non-selected-windows t
-  "Non-nil means show a hollow box cursor in non-selected windows.
-If nil, don't show a cursor except in the selected window.
-If t, display a cursor related to the usual cursor type
- \(a solid box becomes hollow, a bar becomes a narrower bar).
-You can also specify the cursor type as in the `cursor-type' variable.
-Use Custom to set this variable to get the display updated."
-  :tag "Cursor In Non-selected Windows"
-  :type 'boolean
-  :group 'cursor
-  :set #'(lambda (symbol value)
-	   (set-default symbol value)
-	   (force-mode-line-update t)))
 
 
 ;;;; Key bindings
@@ -1660,5 +1571,4 @@ Use Custom to set this variable to get the display updated."
 
 (provide 'frame)
 
-;; arch-tag: 82979c70-b8f2-4306-b2ad-ddbd6b328b56
 ;;; frame.el ends here

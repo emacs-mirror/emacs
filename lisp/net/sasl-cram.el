@@ -1,10 +1,11 @@
 ;;; sasl-cram.el --- CRAM-MD5 module for the SASL client framework
 
-;; Copyright (C) 2000, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;;	Kenichi OKADA <okada@opaopa.org>
 ;; Keywords: SASL, CRAM-MD5
+;; Package: sasl
 
 ;; This file is part of GNU Emacs.
 
@@ -46,5 +47,4 @@
 
 (provide 'sasl-cram)
 
-;; arch-tag: 46cb281b-975a-4fe0-a39f-3018691b1b05
 ;;; sasl-cram.el ends here

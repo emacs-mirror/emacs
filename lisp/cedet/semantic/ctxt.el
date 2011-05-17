@@ -1,7 +1,6 @@
 ;;; semantic/ctxt.el --- Context calculations for Semantic tools.
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -599,12 +598,18 @@ that may or may not have a name.)")
   "Return a list of scoped types by name for the current context at POINT.
 This is very different for various languages, and does nothing unless
 overridden."
-  (if point (goto-char point))
-  (let ((case-fold-search semantic-case-fold))
-    ;; We need to look at TYPES within the bounds of locally parse arguments.
-    ;; C needs to find using statements and the like too.  Bleh.
-    nil
-    ))
+  nil)
+
+(define-overloadable-function semantic-ctxt-imported-packages (&optional point)
+  "Return a list of package tags or names which are being imported at POINT.
+The return value is a list of strings which are package names
+that are implied in code.  Thus a C++ symbol:
+  foo::bar();
+where there is a statement such as:
+  using baz;
+means that the first symbol might be:
+  baz::foo::bar();"
+  nil)
 
 (provide 'semantic/ctxt)
 
@@ -613,5 +618,4 @@ overridden."
 ;; generated-autoload-load-name: "semantic/ctxt"
 ;; End:
 
-;; arch-tag: 04f3ae3c-78bb-40ca-b112-ba77f5e4ea88
 ;;; semantic/ctxt.el ends here

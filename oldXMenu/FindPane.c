@@ -15,11 +15,10 @@
  */
 
 #include "XMenuInt.h"
+#include <string.h>
 
 int
-XMenuFindPane(menu, label)
-    register XMenu *menu;
-    register char *label;
+XMenuFindPane(register XMenu *menu, register char *label)
 {
     register XMPane *p_ptr;
     register int i = 0;
@@ -62,6 +61,3 @@ XMenuFindPane(menu, label)
     _XMErrorCode = XME_P_NOT_FOUND;
     return (XM_FAILURE);
 }
-
-/* arch-tag: b6c94285-0d1d-4569-a071-b34b63c67a54
-   (do not change this comment) */

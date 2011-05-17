@@ -1,7 +1,6 @@
 ;;; calc-units.el --- unit conversion functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -36,13 +35,13 @@
 
 ;;; Units table last updated 9-Jan-91 by Ulrich Mueller (ulm@vsnhd1.cern.ch)
 ;;; with some additions by Przemek Klosowski (przemek@rrdstrad.nist.gov)
-;;; Updated April 2002 by Jochen K�pper
+;;; Updated April 2002 by Jochen Küpper
 
 ;;; Updated August 2007, using
 ;;;     CODATA (http://physics.nist.gov/cuu/Constants/index.html)
 ;;;     NIST   (http://physics.nist.gov/Pubs/SP811/appenB9.html)
 ;;;     ESUWM  (Encyclopaedia of Scientific Units, Weights and
-;;;             Measures, by Fran�ois Cardarelli)
+;;;             Measures, by François Cardarelli)
 ;;; All conversions are exact unless otherwise noted.
 
 (defvar math-standard-units
@@ -57,23 +56,23 @@
               "149597870691 m (*)")
               ;; (approx) NASA JPL (http://neo.jpl.nasa.gov/glossary/au.html)
     ( lyr     "c yr"                 "Light Year" )
-    ( pc      "3.0856775854*10^16 m" "Parsec" nil
+    ( pc      "3.0856775854*10^16 m" "Parsec  (**)" nil
               "3.0856775854 10^16 m (*)") ;; (approx) ESUWM
     ( nmi     "1852 m"               "Nautical Mile" )
     ( fath    "6 ft"                 "Fathom" )
     ( fur     "660 ft"               "Furlong")
     ( mu      "1 um"                 "Micron" )
     ( mil     "(1/1000) in"          "Mil" )
-    ( point   "(1/72) in"            "Point (1/72 inch)" )
+    ( point   "(1/72) in"            "Point  (PostScript convention)" )
     ( Ang     "10^(-10) m"           "Angstrom" )
     ( mfi     "mi+ft+in"             "Miles + feet + inches" )
     ;; TeX lengths
-    ( texpt   "(100/7227) in"        "Point (TeX conventions)" )
-    ( texpc   "12 texpt"             "Pica" )
-    ( texbp   "point"                "Big point (TeX conventions)" )
-    ( texdd   "(1238/1157) texpt"    "Didot point" )
-    ( texcc   "12 texdd"             "Cicero" )
-    ( texsp   "(1/65536) texpt"      "Scaled TeX point" )
+    ( texpt   "(100/7227) in"        "Point  (TeX convention) (**)" )
+    ( texpc   "12 texpt"             "Pica  (TeX convention) (**)" )
+    ( texbp   "point"                "Big point  (TeX convention) (**)" )
+    ( texdd   "(1238/1157) texpt"    "Didot point  (TeX convention) (**)" )
+    ( texcc   "12 texdd"             "Cicero  (TeX convention) (**)" )
+    ( texsp   "(1/65536) texpt"      "Scaled TeX point (TeX convention) (**)" )
 
     ;; Area
     ( hect    "10000 m^2"            "*Hectare" )
@@ -86,7 +85,7 @@
     ( l       "L"                    "Liter" )
     ( gal     "4 qt"                 "US Gallon" )
     ( qt      "2 pt"                 "Quart" )
-    ( pt      "2 cup"                "Pint" )
+    ( pt      "2 cup"                "Pint (**)" )
     ( cup     "8 ozfl"               "Cup" )
     ( ozfl    "2 tbsp"               "Fluid Ounce" )
     ( floz    "2 tbsp"               "Fluid Ounce" )
@@ -210,6 +209,7 @@
               "1.602176487 10^-19 C (*)") ;;(approx) CODATA
     ( V       "W/A"                   "Volt" )
     ( ohm     "V/A"                   "Ohm" )
+    ( Ω       "ohm"                   "Ohm" )
     ( mho     "A/V"                   "Mho" )
     ( S       "A/V"                   "Siemens" )
     ( F       "C/V"                   "Farad" )
@@ -259,7 +259,9 @@
               "6.62606896 10^-34 J s (*)")
     ( hbar    "h / (2 pi)"                  "Planck's constant" ) ;; Exact
     ( mu0     "4 pi 10^(-7) H/m"            "Permeability of vacuum") ;; Exact
+    ( μ0      "mu0"                         "Permeability of vacuum") ;; Exact
     ( eps0    "1 / (mu0 c^2)"               "Permittivity of vacuum" )
+    ( ε0      "eps0"                        "Permittivity of vacuum" )
     ( G       "6.67428*10^(-11) m^3/(kg s^2)"    "Gravitational constant" nil
               "6.67428 10^-11 m^3/(kg s^2) (*)")
     ( Nav     "6.02214179*10^(23) / mol"    "Avogadro's constant" nil
@@ -272,11 +274,15 @@
               "1.674927211 10^-27 kg (*)")
     ( mmu     "1.88353130*10^(-28) kg"      "Muon rest mass" nil
               "1.88353130 10^-28 kg (*)")
+    ( mμ      "mmu"                         "Muon rest mass" nil
+              "1.88353130 10^-28 kg (*)")
     ( Ryd     "10973731.568527 /m"          "Rydberg's constant" nil
               "10973731.568527 /m (*)")
     ( k       "1.3806504*10^(-23) J/K"      "Boltzmann's constant" nil
               "1.3806504 10^-23 J/K (*)")
     ( alpha   "7.2973525376*10^(-3)"        "Fine structure constant" nil
+              "7.2973525376 10^-3 (*)")
+    ( α       "alpha"                        "Fine structure constant" nil
               "7.2973525376 10^-3 (*)")
     ( muB     "927.400915*10^(-26) J/T"     "Bohr magneton" nil
               "927.400915 10^-26 J/T (*)")
@@ -289,7 +295,10 @@
     ( R0      "8.314472 J/(mol K)"          "Molar gas constant" nil
               "8.314472 J/(mol K) (*)")
     ( V0      "22.710981*10^(-3) m^3/mol"   "Standard volume of ideal gas" nil
-              "22.710981 10^-3 m^3/mol (*)")))
+              "22.710981 10^-3 m^3/mol (*)")
+    ;; Logarithmic units
+    ( Np      nil    "*Neper")
+    ( dB      "(ln(10)/20) Np" "decibel")))
 
 
 (defvar math-additional-units nil
@@ -316,6 +325,7 @@ that the combined units table will be rebuilt.")
      ( ?c  (^ 10 -2)  "Centi"  )
      ( ?m  (^ 10 -3)  "Milli"  )
      ( ?u  (^ 10 -6)  "Micro"  )
+     ( ?μ  (^ 10 -6)  "Micro"  )
      ( ?n  (^ 10 -9)  "Nano"   )
      ( ?p  (^ 10 -12) "Pico"   )
      ( ?f  (^ 10 -15) "Femto"  )
@@ -581,8 +591,8 @@ If EXPR is nil, return nil."
 	(let ((name (or (nth 2 u) (symbol-name (car u)))))
 	  (if (eq (aref name 0) ?\*)
 	      (setq name (substring name 1)))
-	  (if (string-match "[^a-zA-Z0-9']" name)
-	      (if (string-match "^[a-zA-Z0-9' ()]*$" name)
+	  (if (string-match "[^a-zA-Zα-ωΑ-Ω0-9']" name)
+	      (if (string-match "^[a-zA-Zα-ωΑ-Ω0-9' ()]*$" name)
 		  (while (setq pos (string-match "[ ()]" name))
 		    (setq name (concat (substring name 0 pos)
 				       (if (eq (aref name pos) 32) "-" "")
@@ -592,7 +602,7 @@ If EXPR is nil, return nil."
 	      (setq name (concat (nth 2 (assq (aref (symbol-name
 						     (nth 1 expr)) 0)
 					      math-unit-prefixes))
-				 (if (and (string-match "[^a-zA-Z0-9']" name)
+				 (if (and (string-match "[^a-zA-Zα-ωΑ-Ω0-9']" name)
 					  (not (memq (car u) '(mHg gf))))
 				     (concat "-" name)
 				   (downcase name)))))
@@ -863,6 +873,7 @@ If EXPR is nil, return nil."
 	   (or (eq (nth 1 expr) 'pi)
 	       (error "Unknown name %s in defining expression for unit %s"
 		      (nth 1 expr) (car math-fbu-entry))))
+          ((equal expr '(calcFunc-ln 10)))
 	  (t (error "Malformed defining expression for unit %s" (car math-fbu-entry))))))
 
 
@@ -949,7 +960,10 @@ If EXPR is nil, return nil."
 	  (if (eq base 'pi)
 	      (math-pi)
 	    expr)))
-    (if (Math-primp expr)
+    (if (or
+         (Math-primp expr)
+         (and (eq (car-safe expr) 'calcFunc-subscr)
+              (eq (car-safe (nth 1 expr)) 'var)))
 	expr
       (cons (car expr)
 	    (mapcar 'math-to-standard-rec (cdr expr))))))
@@ -1523,7 +1537,12 @@ If EXPR is nil, return nil."
               (indent-to 15)
               (insert "   " (nth 2 u) "\n")
               (while (eq (car (car (setq uptr (cdr uptr)))) 0)))
-            (insert "\n"))
+            (insert "\n\n")
+            (insert "(**) When in TeX or LaTeX display mode, the TeX specific unit\n"
+                     "names will not use the `tex' prefix; the unit name for a\n"
+                     "TeX point will be `pt' instead of `texpt', for example.\n"
+                     "To avoid conflicts, the unit names for pint and parsec will\n"
+                     "be `pint' and `parsec' instead of `pt' and `pc'."))
 	  (view-mode)
 	  (message "Formatting units table...done"))
 	(setq math-units-table-buffer-valid t)
@@ -1538,11 +1557,528 @@ If EXPR is nil, return nil."
 	(pop-to-buffer (get-buffer "*Units Table*"))
       (display-buffer (get-buffer "*Units Table*")))))
 
+;;; Logarithmic units functions
+
+(defvar math-logunits '((var dB var-dB)
+                        (var Np var-Np)))
+
+(defun math-conditional-apply (fn &rest args)
+  "Evaluate f(args) unless in symbolic mode.
+In symbolic mode, return the list (fn args)."
+  (if calc-symbolic-mode
+      (cons fn args)
+    (apply fn args)))
+
+(defun math-conditional-pow (a b)
+  "Evaluate a^b unless in symbolic mode.
+In symbolic mode, return the list (^ a b)."
+  (if calc-symbolic-mode
+      (list '^ a b)
+    (math-pow a b)))
+
+(defun math-extract-logunits (expr)
+  (if (memq (car-safe expr) '(* /))
+      (cons (car expr)
+	    (mapcar 'math-extract-logunits (cdr expr)))
+    (if (memq (car-safe expr) '(^))
+        (list '^ (math-extract-logunits (nth 1 expr)) (nth 2 expr))
+      (if (member expr math-logunits) expr 1))))
+
+(defun math-logunits-add (a b neg power)
+  (let ((aunit (math-simplify (math-extract-logunits a))))
+    (if (not (eq (car-safe aunit) 'var))
+        (calc-record-why "*Improper logarithmic unit" aunit)
+      (let* ((units (math-extract-units a))
+            (acoeff (math-simplify (math-remove-units a)))
+            (bcoeff (math-simplify (math-to-standard-units
+                                    (list '/ b units) nil))))
+        (if (math-units-in-expr-p bcoeff nil)
+            (calc-record-why "*Inconsistent units" nil)
+          (if (and neg
+                   (or (math-lessp acoeff bcoeff)
+                       (math-equal acoeff bcoeff)))
+              (calc-record-why "*Improper coefficients" nil)
+            (math-mul 
+             (if (equal aunit '(var dB var-dB))
+                 (let ((coef (if power 10 20)))
+                   (math-mul coef
+                             (math-conditional-apply 'calcFunc-log10
+                              (if neg
+                                  (math-sub
+                                   (math-conditional-pow 10 (math-div acoeff coef))
+                                   (math-conditional-pow 10 (math-div bcoeff coef)))
+                                (math-add
+                                 (math-conditional-pow 10 (math-div acoeff coef))
+                                 (math-conditional-pow 10 (math-div bcoeff coef)))))))
+               (let ((coef (if power 2 1)))
+                 (math-div
+                  (math-conditional-apply 'calcFunc-ln
+                   (if neg
+                       (math-sub
+                        (math-conditional-apply 'calcFunc-exp (math-mul coef acoeff))
+                        (math-conditional-apply 'calcFunc-exp (math-mul coef bcoeff)))
+                     (math-add
+                      (math-conditional-apply 'calcFunc-exp (math-mul coef acoeff))
+                      (math-conditional-apply 'calcFunc-exp (math-mul coef bcoeff)))))
+                  coef)))
+             units)))))))
+
+(defun calcFunc-lufadd (a b)
+  (math-logunits-add a b nil nil))
+
+(defun calcFunc-lupadd (a b)
+  (math-logunits-add a b nil t))
+
+(defun calcFunc-lufsub (a b)
+  (math-logunits-add a b t nil))
+
+(defun calcFunc-lupsub (a b)
+  (math-logunits-add a b t t))
+
+(defun calc-lu-plus (arg)
+  (interactive "P")
+  (calc-slow-wrapper
+   (if (calc-is-inverse)
+       (if (calc-is-hyperbolic)
+           (calc-binary-op "lu-" 'calcFunc-lufsub arg)
+         (calc-binary-op "lu-" 'calcFunc-lupsub arg))
+     (if (calc-is-hyperbolic)
+         (calc-binary-op "lu+" 'calcFunc-lufadd arg)
+       (calc-binary-op "lu+" 'calcFunc-lupadd arg)))))
+
+(defun calc-lu-minus (arg)
+  (interactive "P")
+  (calc-slow-wrapper
+   (if (calc-is-inverse)
+       (if (calc-is-hyperbolic)
+           (calc-binary-op "lu+" 'calcFunc-lufadd arg)
+         (calc-binary-op "lu+" 'calcFunc-lupadd arg))
+     (if (calc-is-hyperbolic)
+         (calc-binary-op "lu-" 'calcFunc-lufsub arg)
+       (calc-binary-op "lu-" 'calcFunc-lupsub arg)))))
+
+(defun math-logunits-mul (a b power)
+  (let (logunit coef units number)
+    (cond
+     ((and
+       (setq logunit (math-simplify (math-extract-logunits a)))
+       (eq (car-safe logunit) 'var)
+       (eq (math-simplify (math-extract-units b)) 1))
+      (setq coef (math-simplify (math-remove-units a))
+            units (math-extract-units a)
+            number b))
+     ((and
+       (setq logunit (math-simplify (math-extract-logunits b)))
+       (eq (car-safe logunit) 'var)
+       (eq (math-simplify (math-extract-units a)) 1))
+      (setq coef (math-simplify (math-remove-units b))
+            units (math-extract-units b)
+            number a))
+     (t (setq logunit nil)))
+    (if logunit
+        (cond
+         ((equal logunit '(var dB var-dB))
+          (math-simplify
+           (math-mul
+            (math-add
+             coef 
+             (math-mul (if power 10 20)
+                       (math-conditional-apply 'calcFunc-log10 number)))
+            units)))
+         (t
+          (math-simplify
+           (math-mul
+            (math-add
+             coef 
+             (math-div (math-conditional-apply 'calcFunc-ln number) (if power 2 1)))
+            units))))
+      (calc-record-why "*Improper units" nil))))
+
+(defun math-logunits-divide (a b power)
+  (let ((logunit (math-simplify (math-extract-logunits a))))
+    (if (not (eq (car-safe logunit) 'var))
+        (calc-record-why "*Improper logarithmic unit" logunit)
+      (if (math-units-in-expr-p b nil)
+          (calc-record-why "*Improper units quantity" b)
+        (let* ((units (math-extract-units a))
+               (coef (math-simplify (math-remove-units a))))
+          (cond
+           ((equal logunit '(var dB var-dB))
+            (math-simplify
+             (math-mul
+              (math-sub
+               coef 
+               (math-mul (if power 10 20)
+                         (math-conditional-apply 'calcFunc-log10 b)))
+              units)))
+         (t
+          (math-simplify
+           (math-mul
+            (math-sub
+             coef 
+             (math-div (math-conditional-apply 'calcFunc-ln b) (if power 2 1)))
+            units)))))))))
+
+(defun calcFunc-lufmul (a b)
+  (math-logunits-mul a b nil))
+
+(defun calcFunc-lupmul (a b)
+  (math-logunits-mul a b t))
+
+(defun calc-lu-times (arg)
+  (interactive "P")
+  (calc-slow-wrapper
+   (if (calc-is-inverse)
+       (if (calc-is-hyperbolic)
+           (calc-binary-op "lu/" 'calcFunc-lufdiv arg)
+         (calc-binary-op "lu/" 'calcFunc-lupdiv arg))
+     (if (calc-is-hyperbolic)
+         (calc-binary-op "lu*" 'calcFunc-lufmul arg)
+       (calc-binary-op "lu*" 'calcFunc-lupmul arg)))))
+
+(defun calcFunc-lufdiv (a b)
+  (math-logunits-divide a b nil))
+
+(defun calcFunc-lupdiv (a b)
+  (math-logunits-divide a b t))
+
+(defun calc-lu-divide (arg)
+  (interactive "P")
+  (calc-slow-wrapper
+   (if (calc-is-inverse)
+       (if (calc-is-hyperbolic)
+           (calc-binary-op "lu*" 'calcFunc-lufmul arg)
+         (calc-binary-op "lu*" 'calcFunc-lupmul arg))
+     (if (calc-is-hyperbolic)
+         (calc-binary-op "lu/" 'calcFunc-lufdiv arg)
+       (calc-binary-op "lu/" 'calcFunc-lupdiv arg)))))
+
+(defun math-logunits-quant (val ref power)
+  (let* ((units (math-simplify (math-extract-units val)))
+         (lunit (math-simplify (math-extract-logunits units))))
+    (if (not (eq (car-safe lunit) 'var))
+        (calc-record-why "*Improper logarithmic unit" lunit)
+      (let ((runits (math-simplify (math-div units lunit)))
+            (coeff (math-simplify (math-div val units))))
+        (math-mul
+         (if (equal lunit '(var dB var-dB))
+             (math-mul 
+              ref
+              (math-conditional-pow 
+               10
+               (math-div
+                coeff
+                (if power 10 20))))
+           (math-mul 
+            ref
+            (math-conditional-apply 'calcFunc-exp
+             (if power 
+                 (math-mul 2 coeff)
+               coeff))))
+         runits)))))
+
+(defvar calc-lu-field-reference)
+(defvar calc-lu-power-reference)
+
+(defun calcFunc-lufquant (val &optional ref)
+  (unless ref
+    (setq ref (math-read-expr calc-lu-field-reference)))
+  (math-logunits-quant val ref nil))
+
+(defun calcFunc-lupquant (val &optional ref)
+  (unless ref
+    (setq ref (math-read-expr calc-lu-power-reference)))
+  (math-logunits-quant val ref t))
+
+(defun calc-lu-quant (arg)
+  (interactive "P")
+  (calc-slow-wrapper
+   (if (calc-is-hyperbolic)
+       (if (calc-is-option)
+           (calc-binary-op "lupq" 'calcFunc-lufquant arg)
+         (calc-unary-op "lupq" 'calcFunc-lufquant arg))
+     (if (calc-is-option)
+         (calc-binary-op "lufq" 'calcFunc-lupquant arg)
+       (calc-unary-op "lufq" 'calcFunc-lupquant arg)))))
+
+(defun math-logunits-level (val ref db power)
+  "Compute the value of VAL in decibels or nepers."
+      (let* ((ratio (math-simplify-units (math-div val ref)))
+             (ratiou (math-simplify-units (math-remove-units ratio)))
+             (units (math-simplify (math-extract-units ratio))))
+        (math-mul
+         (if db
+             (math-mul
+              (math-mul (if power 10 20)
+                        (math-conditional-apply 'calcFunc-log10 ratiou))
+              '(var dB var-dB))
+           (math-mul
+            (math-div (math-conditional-apply 'calcFunc-ln ratiou) (if power 2 1))
+            '(var Np var-Np)))
+         units)))
+
+(defun calcFunc-dbfield (val &optional ref)
+  (unless ref
+    (setq ref (math-read-expr calc-lu-field-reference)))
+  (math-logunits-level val ref t nil))
+
+(defun calcFunc-dbpower (val &optional ref)
+  (unless ref
+    (setq ref (math-read-expr calc-lu-power-reference)))
+  (math-logunits-level val ref t t))
+
+(defun calcFunc-npfield (val &optional ref)
+  (unless ref
+    (setq ref (math-read-expr calc-lu-field-reference)))
+  (math-logunits-level val ref nil nil))
+
+(defun calcFunc-nppower (val &optional ref)
+  (unless ref
+    (setq ref (math-read-expr calc-lu-power-reference)))
+  (math-logunits-level val ref nil t))
+
+(defun calc-db (arg)
+  (interactive "P")
+  (calc-slow-wrapper
+   (if (calc-is-hyperbolic)
+       (if (calc-is-option)
+           (calc-binary-op "ludb" 'calcFunc-dbfield arg)
+         (calc-unary-op "ludb" 'calcFunc-dbfield arg))
+     (if (calc-is-option)
+         (calc-binary-op "ludb" 'calcFunc-dbpower arg)
+       (calc-unary-op "ludb" 'calcFunc-dbpower arg)))))
+
+(defun calc-np (arg)
+  (interactive "P")
+  (calc-slow-wrapper
+   (if (calc-is-hyperbolic)
+       (if (calc-is-option)
+           (calc-binary-op "lunp" 'calcFunc-npfield arg)
+         (calc-unary-op "lunp" 'calcFunc-npfield arg))
+     (if (calc-is-option)
+         (calc-binary-op "lunp" 'calcFunc-nppower arg)
+       (calc-unary-op "lunp" 'calcFunc-nppower arg)))))
+
+;;; Musical notes
+
+
+(defvar calc-note-threshold)
+
+(defun math-midi-round (num)
+  "Round NUM to an integer N if NUM is within calc-note-threshold cents of N."
+  (let* ((n (math-round num))
+         (diff (math-abs
+                (math-sub num n))))
+    (if (< (math-compare diff 
+                         (math-div (math-read-expr calc-note-threshold) 100)) 0)
+        n
+      num)))
+
+(defconst math-notes
+  '(((var C var-C) . 0)
+    ((var Csharp var-Csharp) . 1)
+;    ((var C♯ var-C♯) . 1)
+    ((var Dflat var-Dflat) . 1)
+;    ((var D♭ var-D♭) . 1)
+    ((var D var-D) . 2)
+    ((var Dsharp var-Dsharp) . 3)
+;    ((var D♯ var-D♯) . 3)
+    ((var E var-E) . 4)
+    ((var F var-F) . 5)
+    ((var Fsharp var-Fsharp) . 6)
+;    ((var F♯ var-F♯) . 6)
+    ((var Gflat var-Gflat) . 6)
+;    ((var G♭ var-G♭) . 6)
+    ((var G var-G) . 7)
+    ((var Gsharp var-Gsharp) . 8)
+;    ((var G♯ var-G♯) . 8)
+    ((var A var-A) . 9)
+    ((var Asharp var-Asharp) . 10)
+;    ((var A♯ var-A♯) . 10)
+    ((var Bflat var-Bflat) . 10)
+;    ((var B♭ var-B♭) . 10)
+    ((var B var-B) . 11))
+  "An alist of notes with their number of semitones above C.")
+
+(defun math-freqp (freq)
+  "Non-nil if FREQ is a positive number times the unit Hz.
+If non-nil, return the coefficient of Hz."
+  (let ((freqcoef (math-simplify-units
+                   (math-div freq '(var Hz var-Hz)))))
+    (if (Math-posp freqcoef) freqcoef)))
+
+(defun math-midip (num)
+  "Non-nil if NUM is a possible MIDI note number.
+If non-nil, return NUM."
+  (if (Math-numberp num) num))
+
+(defun math-spnp (spn)
+  "Non-nil if NUM is a scientific pitch note (note + cents).
+If non-nil, return a list consisting of the note and the cents coefficient."
+  (let (note cents rnote rcents)
+    (if (eq (car-safe spn) '+)
+        (setq note (nth 1 spn)
+              cents (nth 2 spn))
+      (setq note spn
+            cents nil))
+    (cond
+     ((and  ;; NOTE is a note, CENTS is nil or cents.
+       (eq (car-safe note) 'calcFunc-subscr)
+       (assoc (nth 1 note) math-notes)
+       (integerp (nth 2 note))
+       (setq rnote note)
+       (or 
+        (not cents)
+        (Math-numberp (setq rcents
+                            (math-simplify 
+                             (math-div cents '(var cents var-cents)))))))
+      (list rnote rcents))
+     ((and  ;; CENTS is a note, NOTE is cents.
+       (eq (car-safe cents) 'calcFunc-subscr)
+       (assoc (nth 1 cents) math-notes)
+       (integerp (nth 2 cents))
+       (setq rnote cents)
+       (or 
+        (not note)
+        (Math-numberp (setq rcents
+                            (math-simplify 
+                             (math-div note '(var cents var-cents)))))))
+      (list rnote rcents)))))
+
+(defun math-freq-to-midi (freq)
+  "Return the midi note number corresponding to FREQ Hz."
+  (let ((midi (math-add
+               69
+               (math-mul
+                12
+                (calcFunc-log
+                 (math-div freq 440)
+                 2)))))
+    (math-midi-round midi)))
+
+(defun math-spn-to-midi (spn)
+  "Return the MIDI number corresponding to SPN."
+  (let* ((note (cdr (assoc (nth 1 (car spn)) math-notes)))
+         (octave (math-add (nth 2 (car spn)) 1))
+         (cents (nth 1 spn))
+         (midi  (math-add
+                 (math-mul 12 octave)
+                 note)))
+    (if cents
+        (math-add midi (math-div cents 100))
+      midi)))
+
+(defun math-midi-to-spn (midi)
+  "Return the scientific pitch notation corresponding to midi number MIDI."
+  (let (midin cents)
+    (if (math-integerp midi)
+        (setq midin midi 
+              cents nil)
+      (setq midin (math-floor midi)
+            cents (math-mul 100 (math-sub midi midin))))
+    (let* ((nr ;; This should be (math-idivmod midin 12), but with
+               ;; better behavior for negative midin.
+            (if (Math-negp midin)
+                (let ((dm (math-idivmod (math-neg midin) 12)))
+                  (if (= (cdr dm) 0)
+                      (cons (math-neg (car dm)) 0)
+                    (cons
+                     (math-sub (math-neg (car dm)) 1)
+                     (math-sub 12 (cdr dm)))))
+              (math-idivmod midin 12)))
+           (n (math-sub (car nr) 1))
+           (note (car (rassoc (cdr nr) math-notes))))
+      (if cents
+          (list '+ (list 'calcFunc-subscr note n) 
+                   (list '* cents '(var cents var-cents)))
+        (list 'calcFunc-subscr note n)))))
+
+(defun math-freq-to-spn (freq)
+  "Return the scientific pitch notation corresponding to FREQ Hz."
+  (math-with-extra-prec 3
+    (math-midi-to-spn (math-freq-to-midi freq))))
+
+(defun math-midi-to-freq (midi)
+  "Return the frequency of the note with midi number MIDI."
+  (list '*
+        (math-mul
+         440
+         (math-pow
+          2
+          (math-div 
+           (math-sub
+            midi
+            69)
+           12)))
+        '(var Hz var-Hz)))
+
+(defun math-spn-to-freq (spn)
+  "Return the frequency of the note with scientific pitch notation SPN."
+  (math-midi-to-freq (math-spn-to-midi spn)))
+
+(defun calcFunc-spn (expr)
+  "Return EXPR written as scientific pitch notation + cents."
+  ;; Get the coeffecient of Hz
+  (let (note)
+    (cond
+     ((setq note (math-freqp expr))
+      (math-freq-to-spn note))
+     ((setq note (math-midip expr))
+      (math-midi-to-spn note))
+     ((math-spnp expr)
+      expr)
+     (t
+      (math-reject-arg expr "*Improper expression")))))
+
+(defun calcFunc-midi (expr)
+  "Return EXPR written as a MIDI number."
+  (let (note)
+    (cond
+     ((setq note (math-freqp expr))
+      (math-freq-to-midi note))
+     ((setq note (math-spnp expr))
+      (math-spn-to-midi note))
+     ((math-midip expr)
+      expr)
+     (t
+      (math-reject-arg expr "*Improper expression")))))
+
+(defun calcFunc-freq (expr)
+  "Return the frequency corresponding to EXPR."
+  (let (note)
+    (cond
+     ((setq note (math-midip expr))
+      (math-midi-to-freq note))
+     ((setq note (math-spnp expr))
+      (math-spn-to-freq note))
+     ((math-freqp expr)
+      expr)
+     (t
+      (math-reject-arg expr "*Improper expression")))))
+
+(defun calc-freq (arg)
+  "Return the frequency corresponding to the expression on the stack."
+  (interactive "P")
+  (calc-slow-wrapper
+   (calc-unary-op "freq" 'calcFunc-freq arg)))
+
+(defun calc-midi (arg)
+  "Return the MIDI number corresponding to the expression on the stack."
+  (interactive "P")
+  (calc-slow-wrapper
+   (calc-unary-op "midi" 'calcFunc-midi arg)))
+
+(defun calc-spn (arg)
+  "Return the scientific pitch notation corresponding to the expression on the stack."
+  (interactive "P")
+  (calc-slow-wrapper
+   (calc-unary-op "spn" 'calcFunc-spn arg)))
+
+
 (provide 'calc-units)
 
-;; Local Variables:
-;; coding: iso-latin-1
+;; Local variables:
+;; coding: utf-8
 ;; End:
 
-;; arch-tag: e993314f-3adc-4191-be61-4ef8874881c4
 ;;; calc-units.el ends here

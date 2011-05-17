@@ -17,15 +17,15 @@
 #include "XMenuInt.h"
 
 int
-XMenuChangeSelection(display, menu, p_num, s_num, data, data_sw, label, label_sw)
-    Display *display;		/* previously opened display. */
-    register XMenu *menu;	/* Menu object to be modified. */
-    register int p_num;		/* Pane number to be modified. */
-    register int s_num;		/* Selection number to modified. */
-    char *data;			/* Data value. */
-    int data_sw;		/* Change to new data value? */
-    char *label;		/* Selection label. */
-    int label_sw;		/* Change to new label? */
+XMenuChangeSelection(Display *display, register XMenu *menu, register int p_num, register int s_num, char *data, int data_sw, char *label, int label_sw)
+                     		/* previously opened display. */
+                         	/* Menu object to be modified. */
+                       		/* Pane number to be modified. */
+                       		/* Selection number to modified. */
+               			/* Data value. */
+                		/* Change to new data value? */
+                		/* Selection label. */
+                 		/* Change to new label? */
 {
     register XMPane *p_ptr;	/* XMPane pointer. */
     register XMSelect *s_ptr;	/* XMSelect pointer. */
@@ -88,5 +88,3 @@ XMenuChangeSelection(display, menu, p_num, s_num, data, data_sw, label, label_sw
     return(s_num);
 }
 
-/* arch-tag: 229732a6-46bf-4a3a-ad90-3d8ed65c0841
-   (do not change this comment) */

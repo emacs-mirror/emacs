@@ -1,6 +1,6 @@
 ;;; semantic/decorate/include.el --- Decoration modes for include statements
 
-;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -118,7 +118,7 @@ Used by the decoration style: `semantic-decoration-on-includes'."
   '((((class color) (background dark))
      (:background "#900000"))
     (((class color) (background light))
-     (:background "#ff5050")))
+     (:background "#fff0f0")))
   "*Face used to show includes that cannot be found.
 Used by the decoration style: `semantic-decoration-on-unknown-includes'."
   :group 'semantic-faces)
@@ -302,16 +302,19 @@ This mode provides a nice context menu on the include statements."
 	)
       ))
 
-    (let ((ol (semantic-decorate-tag tag
-				     (semantic-tag-start tag)
-				     (semantic-tag-end tag)
-				     face))
-	  )
-      (semantic-overlay-put ol 'mouse-face 'highlight)
-      (semantic-overlay-put ol 'keymap map)
-      (semantic-overlay-put ol 'help-echo
-			    "Header File : mouse-3 - Context menu")
-      )))
+    ;; @TODO - if not a tag w/ a position, we need to get one.  How?
+
+    (when (semantic-tag-with-position-p tag)
+      (let ((ol (semantic-decorate-tag tag
+				       (semantic-tag-start tag)
+				       (semantic-tag-end tag)
+				       face))
+	    )
+	(semantic-overlay-put ol 'mouse-face 'highlight)
+	(semantic-overlay-put ol 'keymap map)
+	(semantic-overlay-put ol 'help-echo
+			      "Header File : mouse-3 - Context menu")
+	))))
 
 ;;; Regular Include Functions
 ;;
@@ -770,5 +773,4 @@ If TABLE is not in a buffer, do nothing."
 ;; generated-autoload-load-name: "semantic/decorate/include"
 ;; End:
 
-;; arch-tag: c3277137-be3f-43e2-af89-3b14b9bd7479
 ;;; semantic/decorate/include.el ends here

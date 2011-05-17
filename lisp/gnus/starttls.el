@@ -1,7 +1,6 @@
 ;;; starttls.el --- STARTTLS functions
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Author: Simon Josefsson <simon@josefsson.org>
@@ -254,8 +253,7 @@ handshake, or nil on failure."
     (starttls-set-process-query-on-exit-flag process nil)
     (while (and (processp process)
 		(eq (process-status process) 'run)
-		(save-excursion
-		  (set-buffer buffer)
+		(with-current-buffer buffer
 		  (goto-char old-max)
 		  (not (setq done (re-search-forward
 				   starttls-connect nil t)))))
@@ -270,6 +268,7 @@ handshake, or nil on failure."
 	     host port (if done "done" "failed"))
     process))
 
+;;;###autoload
 (defun starttls-open-stream (name buffer host port)
   "Open a TLS connection for a port to a host.
 Returns a subprocess object to represent the connection.
@@ -311,5 +310,4 @@ GNUTLS requires a port number."
 
 (provide 'starttls)
 
-;; arch-tag: 648b3bd8-63bd-47f5-904c-7c819aea2297
 ;;; starttls.el ends here

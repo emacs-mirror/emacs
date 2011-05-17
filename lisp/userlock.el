@@ -1,7 +1,6 @@
 ;;; userlock.el --- handle file access contention between multiple users
 
-;; Copyright (C) 1985, 1986, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 2001-2011 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -157,5 +156,4 @@ to get the latest version of the file, then make the change again.")
     (with-current-buffer standard-output
       (help-mode))))
 
-;; arch-tag: a61c5b60-e1c8-44fd-894a-c617f4dfc639
 ;;; userlock.el ends here

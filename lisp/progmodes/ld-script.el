@@ -1,7 +1,6 @@
 ;;; ld-script.el --- GNU linker script editing mode for Emacs
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;; Free Software Foundation, Inc.
+;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Masatake YAMATO<jet@gyve.org>
 ;; Keywords: languages, faces
@@ -76,22 +75,25 @@
 (defvar ld-script-keywords
   '(
     ;; 3.4.1 Setting the Entry Point
-    "ENTRY" 
+    "ENTRY"
     ;; 3.4.2 Commands Dealing with Files
     "INCLUDE" "INPUT" "GROUP" "AS_NEEDED" "OUTPUT" "SEARCH_DIR" "STARTUP"
     ;; 3.4.3 Commands Dealing with Object File Formats
     "OUTPUT_FORMAT" "TARGET"
-    ;; 3.4.3 Other Linker Script Commands
-    "ASSERT" "EXTERN" "FORCE_COMMON_ALLOCATION" 
-    "INHIBIT_COMMON_ALLOCATION" "NOCROSSREFS" "OUTPUT_ARCH"
+    ;; 3.4.4 Assign alias names to memory regions
+    "REGION_ALIAS"
+    ;; 3.4.5 Other Linker Script Commands
+    "ASSERT" "EXTERN" "FORCE_COMMON_ALLOCATION"
+    "INHIBIT_COMMON_ALLOCATION" "INSERT" "AFTER" "BEFORE"
+    "NOCROSSREFS" "OUTPUT_ARCH" "LD_FEATURE"
     ;; 3.5.2 PROVIDE
     "PROVIDE"
     ;; 3.5.3 PROVIDE_HIDDEN
     "PROVIDE_HIDDEN"
     ;; 3.6 SECTIONS Command
-    "SECTIONS" 
+    "SECTIONS"
     ;; 3.6.4.2 Input Section Wildcard Patterns
-    "SORT" "SORT_BY_NAME" "SORT_BY_ALIGNMENT"
+    "SORT" "SORT_BY_NAME" "SORT_BY_ALIGNMENT" "SORT_BY_INIT_PRIORITY"
     ;; 3.6.4.3 Input Section for Common Symbols
     "COMMON"
     ;; 3.6.4.4 Input Section and Garbage Collection
@@ -109,22 +111,30 @@
     "AT"
     ;; 3.6.8.4 Forced Input Alignment
     "SUBALIGN"
-    ;; 3.6.8.6 Output Section Phdr
+    ;; 3.6.8.5 Output Section Constraint
+    "ONLY_IF_RO" "ONLY_IF_RW"
+    ;; 3.6.8.7 Output Section Phdr
     ":PHDR"
     ;; 3.7 MEMORY Command
     "MEMORY"
     ;; 3.8 PHDRS Command
     "PHDRS" "FILEHDR" "FLAGS"
-    "PT_NULL" "PT_LOAD" "PT_DYNAMIC" "PT_INTERP" "PT_NONE" "PT_SHLIB" "PT_PHDR"
+    "PT_NULL" "PT_LOAD" "PT_DYNAMIC" "PT_INTERP" "PT_NOTE" "PT_SHLIB" "PT_PHDR"
     ;; 3.9 VERSION Command
     "VERSION")
   "Keywords used of GNU ld script.")
 
-;; 3.10.8 Builtin Functions
+
+;; 3.10.2 Symbolic Constants
+;; 3.10.9 Builtin Functions
 (defvar ld-script-builtins
-  '("ABSOLUTE"
+  '("CONSTANT"
+    "MAXPAGESIZE"
+    "COMMONPAGESIZE"
+    "ABSOLUTE"
     "ADDR"
     "ALIGN"
+    "ALIGNOF"
     "BLOCK"
     "DATA_SEGMENT_ALIGN"
     "DATA_SEGMENT_END"
@@ -150,24 +160,12 @@
       1 font-lock-builtin-face)
      ;; 3.6.7 Output Section Discarding
      ;; 3.6.4.1 Input Section Basics
-     ;; 3.6.8.6 Output Section Phdr
+     ;; 3.6.8.7 Output Section Phdr
      ("/DISCARD/\\|EXCLUDE_FILE\\|:NONE" . font-lock-warning-face)
      ("\\W\\(\\.\\)\\W" 1 ld-script-location-counter-face)
      )
    cpp-font-lock-keywords)
   "Default font-lock-keywords for `ld-script-mode'.")
-
-;; Linux-2.6.9 uses some different suffix for linker scripts:
-;; "ld", "lds", "lds.S", "lds.in", "ld.script", and "ld.script.balo".
-;; eCos uses "ld" and "ldi".
-;; Netbsd uses "ldscript.*".
-;;;###autoload
-(add-to-list 'auto-mode-alist (purecopy '("\\.ld[si]?\\>" . ld-script-mode)))
-;;;###autoload
-(add-to-list 'auto-mode-alist (purecopy '("ld\\.?script\\>" . ld-script-mode)))
-
-;;;###autoload
-(add-to-list 'auto-mode-alist (purecopy '("\\.x[bdsru]?[cn]?\\'" . ld-script-mode)))
 
 ;;;###autoload
 (define-derived-mode ld-script-mode nil "LD-Script"
@@ -179,5 +177,4 @@
 
 (provide 'ld-script)
 
-;; arch-tag: 83280b6b-e6fc-4d00-a630-922d7aec5593
 ;;; ld-script.el ends here

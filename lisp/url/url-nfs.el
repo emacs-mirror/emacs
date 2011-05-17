@@ -1,7 +1,6 @@
 ;;; url-nfs.el --- NFS URL interface
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2011 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -89,5 +88,4 @@ Each can be used any number of times.")
 
 (provide 'url-nfs)
 
-;; arch-tag: cdf9c9ba-b7d2-4c29-8b48-7ae9bbc0d437
 ;;; url-nfs.el ends here

@@ -18,15 +18,13 @@
 
 #include "XMenuInt.h"
 
-XMenuSetAEQ(menu, aeq)
-    register XMenu *menu;	/* Menu object to be modified. */
-    register int aeq;		/* AEQ mode? */
+void
+XMenuSetAEQ(register XMenu *menu, register int aeq)
+                         	/* Menu object to be modified. */
+                     		/* AEQ mode? */
 {
     /*
      * Set the AEQ mode switch.
      */
     menu->aeq = aeq;
 }
-
-/* arch-tag: 48fc22b4-0722-4852-a044-788444e4a9dc
-   (do not change this comment) */

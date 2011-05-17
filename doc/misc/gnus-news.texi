@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 
-@c Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+@c Copyright (C) 2004-2011 Free Software Foundation, Inc.
 
 @c    Permission is granted to anyone to make or distribute verbatim copies
 @c    of this document as received, in any medium, provided that the
@@ -17,6 +17,17 @@
 @c this file (see `gnus-news.el').
 
 @itemize @bullet
+
+@item Supported Emacs versions
+The following Emacs versions are supported by No Gnus:
+@itemize @bullet
+
+@item Emacs 22 and up
+@item XEmacs 21.4
+@item XEmacs 21.5
+@item SXEmacs
+
+@end itemize
 
 @item Installation changes
 
@@ -55,6 +66,13 @@ remove-installed-shadows}.
 
 @itemize @bullet
 
+@item New version of @code{nnimap}
+
+@code{nnimap} has been reimplemented in a mostly-compatible way.  See
+the Gnus manual for a description of the new interface.  In
+particular, @code{nnimap-inbox} and the client side split method has
+changed.
+
 @item Gnus includes the Emacs Lisp @acronym{SASL} library.
 
 This provides a clean @acronym{API} to @acronym{SASL} mechanisms from
@@ -87,6 +105,12 @@ EasyPG is included in Emacs 23 and available separately as well.
 @c ************************
 
 @itemize @bullet
+
+@item
+Symbols like @code{gcc-self} now has the same presedence rules in
+@code{gnus-parameters} as other ``real'' variables: The last match
+wins instead of the first match.
+
 @item
 Old intermediate incoming mail files (@file{Incoming*}) are deleted
 after a couple of days, not immediately.  @xref{Mail Source
@@ -99,6 +123,9 @@ Customization}.
 @item Changes in summary and article mode
 
 @itemize @bullet
+
+@item There's now only one variable that determines how @acronym{HTML}
+is rendered: @code{mm-text-html-renderer}.
 
 @item Gnus now supports sticky article buffers.  Those are article buffers
 that are not reused when you select another article.  @xref{Sticky
@@ -197,6 +224,9 @@ that are accessible from the article buffer.
 @item Changes in Message mode
 
 @itemize @bullet
+@item Gnus now defaults to saving all outgoing messages in per-month
+nnfolder archives.
+
 @item Gnus now supports the ``hashcash'' client puzzle anti-spam mechanism.
 Use @code{(setq message-generate-hashcash t)} to enable.
 @xref{Hashcash}.
@@ -229,6 +259,16 @@ of the "Whomever writes:" line.  You need to set
 @code{message-citation-line-function} to
 @code{message-insert-formatted-citation-line} as well.
 @end itemize
+
+@item Changes in Browse Server mode
+
+@itemize @bullet
+@item Gnus' sophisticated subscription methods are now available in
+Browse Server buffers as well using the variable
+@code{gnus-browse-subscribe-newsgroup-method}.
+
+@end itemize
+
 
 @item Changes in back ends
 
@@ -320,12 +360,12 @@ be unchanged except that the marks will be removed when copying or
 moving articles to a group that has not turned auto-expire on.
 @xref{Expiring Mail}.
 
+@item NoCeM support has been removed.
+
+@item Carpal mode has been removed.
+
 @end itemize
 
 @end itemize
 
 @c gnus-news.texi ends here.
-
-@ignore
-   arch-tag: 872c7569-4340-4d73-9d1d-7826d9f94a51
-@end ignore

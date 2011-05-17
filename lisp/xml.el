@@ -1,7 +1,6 @@
 ;;; xml.el --- XML parser
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2011 Free Software Foundation, Inc.
 
 ;; Author: Emmanuel Briot  <briot@gnat.com>
 ;; Maintainer: Mark A. Hershberger <mah@everybody.org>
@@ -189,7 +188,7 @@ If PARSE-NS is non-nil, then QNAMES are expanded."
        (name-chars  (concat "-[:digit:]." start-chars))
        ;;[3]   	S	   ::=   	(#x20 | #x9 | #xD | #xA)+
        (whitespace  "[ \t\n\r]"))
-  ;;[4] NameStartChar ::= ":" | [A-Z] | "_" | [a-z] | [#xC0-#xD6] 
+  ;;[4] NameStartChar ::= ":" | [A-Z] | "_" | [a-z] | [#xC0-#xD6]
   ;;                      | [#xD8-#xF6] | [#xF8-#x2FF] | [#x370-#x37D] | [#x37F-#x1FFF]
   ;;                      | [#x200C-#x200D] | [#x2070-#x218F] | [#x2C00-#x2FEF] | [#x3001-#xD7FF]
   ;;                      | [#xF900-#xFDCF] | [#xFDF0-#xFFFD] | [#x10000-#xEFFFF]
@@ -227,7 +226,7 @@ If PARSE-NS is non-nil, then QNAMES are expanded."
   (defvar xml-notation-type-re (concat "\\(?:NOTATION" whitespace "(" whitespace "*" xml-name-re
 				       "\\(?:" whitespace "*|" whitespace "*" xml-name-re "\\)*" whitespace "*)\\)"))
   ;;[59]   	Enumeration	   ::=   	'(' S? Nmtoken (S? '|' S? Nmtoken)* S? ')'	[VC: Enumeration] [VC: No Duplicate Tokens]
-  (defvar xml-enumeration-re (concat "\\(?:(" whitespace "*" xml-nmtoken-re 
+  (defvar xml-enumeration-re (concat "\\(?:(" whitespace "*" xml-nmtoken-re
 				     "\\(?:" whitespace "*|" whitespace "*" xml-nmtoken-re "\\)*"
 				     whitespace ")\\)"))
   ;;[57]   	EnumeratedType	   ::=   	NotationType | Enumeration
@@ -248,7 +247,7 @@ If PARSE-NS is non-nil, then QNAMES are expanded."
 					 xml-pe-reference-re "\\|" xml-reference-re "\\)*'\\)")))
 ;;[75] ExternalID ::= 'SYSTEM' S SystemLiteral
 ;;                 | 'PUBLIC' S PubidLiteral S SystemLiteral
-;;[76] NDataDecl ::=   	S 'NDATA' S 
+;;[76] NDataDecl ::=   	S 'NDATA' S
 ;;[73] EntityDef  ::= EntityValue| (ExternalID NDataDecl?)
 ;;[71] GEDecl     ::= '<!ENTITY' S Name S EntityDef S? '>'
 ;;[74] PEDef      ::= EntityValue | ExternalID
@@ -321,18 +320,20 @@ If PARSE-NS is non-nil, then QNAMES are expanded."
 		(progn
 		  (forward-char -1)
 		  (setq result (xml-parse-tag parse-dtd parse-ns))
-		  (if (and xml result (not xml-sub-parser))
-		      ;;  translation of rule [1] of XML specifications
-		      (error "XML: (Not Well-Formed) Only one root tag allowed")
-		    (cond
-		     ((null result))
-		     ((and (listp (car result))
-			   parse-dtd)
-		      (setq dtd (car result))
-		      (if (cdr result)	; possible leading comment
-			  (add-to-list 'xml (cdr result))))
-		     (t
-		      (add-to-list 'xml result)))))
+		  (cond
+		   ((null result)
+		    ;; Not looking at an xml start tag.
+		    (forward-char 1))
+		   ((and xml (not xml-sub-parser))
+		    ;; Translation of rule [1] of XML specifications
+		    (error "XML: (Not Well-Formed) Only one root tag allowed"))
+		   ((and (listp (car result))
+			 parse-dtd)
+		    (setq dtd (car result))
+		    (if (cdr result)	; possible leading comment
+			(add-to-list 'xml (cdr result))))
+		   (t
+		    (add-to-list 'xml result))))
 	      (goto-char (point-max))))
 	  (if parse-dtd
 	      (cons dtd (nreverse xml))
@@ -432,7 +433,7 @@ Returns one of:
       (let* ((node-name (match-string-no-properties 1))
 	     ;; Parse the attribute list.
 	     (attrs (xml-parse-attlist xml-ns))
-	     children pos)
+	     children)
 
 	;; add the xmlns:* attrs to our cache
 	(when (consp xml-ns)
@@ -535,8 +536,7 @@ Leave point at the first non-blank character after the tag."
 
       ;; Multiple whitespace characters should be replaced with a single one
       ;; in the attributes
-      (let ((string (match-string-no-properties 1))
-	    (pos 0))
+      (let ((string (match-string-no-properties 1)))
 	(replace-regexp-in-string "\\s-\\{2,\\}" " " string)
 	(let ((expansion (xml-substitute-special string)))
 	  (unless (stringp expansion)
@@ -633,7 +633,7 @@ This follows the rule [28] in the XML specifications."
 	     ((string-match "^%[^;]+;[ \t\n\r]*$" type)	;; substitution
 	      nil)
 	     (t
-	      (if xml-validating-parser 
+	      (if xml-validating-parser
 		  (error "XML: (Validity) Invalid element type in the DTD"))))
 
 	    ;;  rule [45]: the element declaration must be unique
@@ -665,7 +665,7 @@ This follows the rule [28] in the XML specifications."
 	      (goto-char (match-end 0))
 	      (setq xml-entity-alist
 		    (append xml-entity-alist
-			    (list (cons name 
+			    (list (cons name
 					(with-temp-buffer
 					  (insert value)
 					  (goto-char (point-min))
@@ -768,7 +768,7 @@ This follows the rule [28] in the XML specifications."
       (let* ((this-part (match-string-no-properties 1 string))
 	     (prev-part (substring string point (match-beginning 0)))
 	     (entity (assoc this-part xml-entity-alist))
-	     (expansion 
+	     (expansion
 	      (cond ((string-match "#\\([0-9]+\\)" this-part)
 		     (let ((c (decode-char
 			       'ucs
@@ -909,5 +909,4 @@ The first line is indented with INDENT-STRING."
 
 (provide 'xml)
 
-;; arch-tag: 5864b283-5a68-4b59-a20d-36a72b353b9b
 ;;; xml.el ends here

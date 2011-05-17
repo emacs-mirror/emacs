@@ -1,8 +1,6 @@
 ;;; mh-mime.el --- MH-E MIME support
 
-;; Copyright (C) 1993, 1995,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -392,11 +390,11 @@ do the work."
                     (equal nil mh-mime-save-parts-default-directory)
                     (equal t mh-mime-save-parts-default-directory))
                 (not mh-mime-save-parts-directory))
-           (read-file-name "Store in directory: " nil nil t nil))
+           (read-directory-name "Store in directory: " nil nil t))
           ((and (or prompt
                     (equal t mh-mime-save-parts-default-directory))
                 mh-mime-save-parts-directory)
-           (read-file-name (format
+           (read-directory-name (format
                             "Store in directory (default %s): "
                             mh-mime-save-parts-directory)
                            "" mh-mime-save-parts-directory t ""))
@@ -506,6 +504,15 @@ decoding the same message multiple times."
   (when mh-decode-mime-flag
     (let ((buffer-read-only nil))
       (rfc2047-decode-region (point-min) (mh-mail-header-end)))))
+
+;;;###mh-autoload
+(defun mh-decode-message-subject ()
+  "Decode RFC2047 encoded message header fields."
+  (when mh-decode-mime-flag
+    (save-excursion
+      (let ((buffer-read-only nil))
+        (rfc2047-decode-region (progn (mh-goto-header-field "subject:") (point))
+                               (progn (mh-header-field-end) (point)))))))
 
 ;;;###mh-autoload
 (defun mh-mime-display (&optional pre-dissected-handles)
@@ -828,9 +835,10 @@ being used to highlight the signature in a MIME part."
 ;;; Button Display
 
 ;; Shush compiler.
-(defvar dots)                           ; XEmacs
-(defvar type)                           ; XEmacs
-(defvar ov)                             ; XEmacs
+(when (featurep 'xemacs)
+  (defvar dots)
+  (defvar type)
+  (defvar ov))
 
 (defun mh-insert-mime-button (handle index displayed)
   "Insert MIME button for HANDLE.
@@ -1825,5 +1833,4 @@ initialized. Always use the command `mh-have-file-command'.")
 ;; sentence-end-double-space: nil
 ;; End:
 
-;; arch-tag: 0dd36518-1b64-4a84-8f4e-59f422d3f002
 ;;; mh-mime.el ends here

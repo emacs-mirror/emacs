@@ -1,6 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Calendar/Diary, Document View, Dired, Top
@@ -42,7 +41,7 @@ about more specialized features.
 * Lunar Phases::        Displaying phases of the moon.
 * Other Calendars::     Converting dates to other calendar systems.
 * Diary::               Displaying events from your diary.
-* Appointments::	Reminders when it's time to do something.
+* Appointments::        Reminders when it's time to do something.
 * Importing Diary::     Converting diary events to/from other formats.
 * Daylight Saving::     How to specify when daylight saving time is active.
 * Time Intervals::      Keeping track of time intervals.
@@ -674,11 +673,11 @@ Gregorian calendar did not exist.
 and from several other calendars.
 
 @menu
-* Calendar Systems::	   The calendars Emacs understands
-			     (aside from Gregorian).
-* To Other Calendar::	   Converting the selected date to various calendars.
-* From Other Calendar::	   Moving to a date specified in another calendar.
-* Mayan Calendar::	   Moving to a date specified in a Mayan calendar.
+* Calendar Systems::       The calendars Emacs understands
+                             (aside from Gregorian).
+* To Other Calendar::      Converting the selected date to various calendars.
+* From Other Calendar::    Moving to a date specified in another calendar.
+* Mayan Calendar::         Moving to a date specified in a Mayan calendar.
 @end menu
 
 @node Calendar Systems
@@ -1040,8 +1039,8 @@ entries.
 @menu
 * Displaying the Diary::   Viewing diary entries and associated calendar dates.
 * Format of Diary File::   Entering events in your diary.
-* Date Formats::	   Various ways you can specify dates.
-* Adding to Diary::	   Commands to create diary entries.
+* Date Formats::           Various ways you can specify dates.
+* Adding to Diary::        Commands to create diary entries.
 * Special Diary Entries::  Anniversaries, blocks of dates, cyclic entries, etc.
 @end menu
 
@@ -1082,7 +1081,7 @@ of the new window shows the date of the diary entries.  Holidays are
 shown either in the buffer or in the mode line, depending on the display
 method you choose
 @iftex
-(@pxref{Diary Display,, emacs-xtra}).
+(@pxref{Diary Display,,, emacs-xtra, Specialized Emacs Features}).
 @end iftex
 @ifnottex
 (@pxref{Diary Display}).
@@ -1186,7 +1185,7 @@ punctuation).  For example:
 This entry will have a different appearance if you use the simple diary
 display
 @iftex
-(@pxref{Diary Display,, emacs-xtra}).
+(@pxref{Diary Display,,, emacs-xtra, Specialized Emacs Features}).
 @end iftex
 @ifnottex
 (@pxref{Diary Display}).
@@ -1474,12 +1473,12 @@ give the names of functions used to create and destroy the window,
 respectively.
 
 @findex appt-activate
-  To enable appointment notification, use the command @kbd{M-x
-appt-activate}.  With a positive argument, it enables notification;
-with a negative argument, it disables notification; with no argument,
-it toggles.  Enabling notification also sets up an appointment list
-for today from the diary file, giving all diary entries found with
-recognizable times of day, and reminds you just before each of them.
+  To enable appointment notification, type @kbd{M-x appt-activate}.
+With a positive argument, it enables notification; with a negative
+argument, it disables notification; with no argument, it toggles.
+Enabling notification also sets up an appointment list for today from
+the diary file, giving all diary entries found with recognizable times
+of day, and reminds you just before each of them.
 
   For example, suppose the diary file contains these lines:
 
@@ -1490,11 +1489,15 @@ Monday
 @end example
 
 @vindex appt-message-warning-time
+@vindex appt-warning-time-regexp
 @noindent
 Then on Mondays, you will be reminded at around 9:20am about your
 coffee break and at around 11:50am about lunch.  The variable
 @code{appt-message-warning-time} specifies how many minutes (default 12)
-in advance to warn you.
+in advance to warn you.  This is a default warning time.  Each
+appointment can specify a different warning time by adding a piece
+matching @code{appt-warning-time-regexp} (see that variable's
+documentation for details).
 
   You can write times in am/pm style (with @samp{12:00am} standing
 for midnight and @samp{12:00pm} standing for noon), or 24-hour
@@ -1508,7 +1511,14 @@ automatically just after midnight.  You can force an update at any
 time by re-enabling appointment notification.  Both these actions also
 display the day's diary buffer, unless you set
 @code{appt-display-diary} to @code{nil}.  The appointments list is
-also updated whenever the diary file is saved.
+also updated whenever the diary file (or a file it includes; see
+@iftex
+@inforef{Fancy Diary Display,, emacs-xtra})
+@end iftex
+@ifnottex
+@ref{Fancy Diary Display})
+@end ifnottex
+is saved.
 
 @findex appt-add
 @findex appt-delete
@@ -1702,7 +1712,3 @@ data in Emacs from the file.
 @ifnottex
 @include cal-xtra.texi
 @end ifnottex
-
-@ignore
-   arch-tag: 4531ef09-9df3-449d-9c52-2b5a4a337f92
-@end ignore

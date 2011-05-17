@@ -1,11 +1,11 @@
 ;;; trampver.el --- Transparent Remote Access, Multiple Protocol
 ;;; lisp/trampver.el.  Generated from trampver.el.in by configure.
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-;;   2010 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2011 Free Software Foundation, Inc.
 
 ;; Author: Kai Großjohann <kai.grossjohann@gmx.net>
 ;; Keywords: comm, processes
+;; Package: tramp
 
 ;; This file is part of GNU Emacs.
 
@@ -30,19 +30,31 @@
 ;; version check is defined in macro AC_EMACS_INFO of aclocal.m4;
 ;; should be changed only there.
 
-(defconst tramp-version "2.1.19-pre"
+;;;###tramp-autoload
+(defconst tramp-version "2.2.2-pre"
   "This version of Tramp.")
 
+;;;###tramp-autoload
 (defconst tramp-bug-report-address "tramp-devel@gnu.org"
   "Email address to send bug reports to.")
 
 ;; Check for (X)Emacs version.
-(let ((x (if (or (>= emacs-major-version 22)	(and (featurep 'xemacs)	     (= emacs-major-version 21)	     (>= emacs-minor-version 4)))    "ok"    (format "Tramp 2.1.19-pre is not fit for %s"	    (when (string-match "^.*$" (emacs-version))	      (match-string 0 (emacs-version)))))))
+(let ((x (if (or (>= emacs-major-version 22)
+		 (and (featurep 'xemacs)
+		      (= emacs-major-version 21)
+		      (>= emacs-minor-version 4)))
+	     "ok"
+	   (format "Tramp 2.2.2-pre is not fit for %s"
+		   (when (string-match "^.*$" (emacs-version))
+		     (match-string 0 (emacs-version)))))))
   (unless (string-match "\\`ok\\'" x) (error "%s" x)))
+
+(add-hook 'tramp-unload-hook
+	  (lambda ()
+	    (unload-feature 'trampver 'force)))
 
 (provide 'trampver)
 
-;; arch-tag: 443576ca-f8f1-4bb1-addc-5c70861e93b1
 ;;; trampver.el ends here
 
 ;; Local Variables:

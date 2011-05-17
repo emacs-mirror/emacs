@@ -1,7 +1,6 @@
 ;;; picture.el --- "Picture mode" -- editing using quarter-plane screen model
 
-;; Copyright (C) 1985, 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1994, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
@@ -37,27 +36,27 @@
   :group 'wp)
 
 (defcustom picture-rectangle-ctl ?+
-  "*Character `picture-draw-rectangle' uses for top left corners."
+  "Character `picture-draw-rectangle' uses for top left corners."
   :type 'character
   :group 'picture)
 (defcustom picture-rectangle-ctr ?+
-  "*Character `picture-draw-rectangle' uses for top right corners."
+  "Character `picture-draw-rectangle' uses for top right corners."
   :type 'character
   :group 'picture)
 (defcustom picture-rectangle-cbr ?+
-  "*Character `picture-draw-rectangle' uses for bottom right corners."
+  "Character `picture-draw-rectangle' uses for bottom right corners."
   :type 'character
   :group 'picture)
 (defcustom picture-rectangle-cbl ?+
-  "*Character `picture-draw-rectangle' uses for bottom left corners."
+  "Character `picture-draw-rectangle' uses for bottom left corners."
   :type 'character
   :group 'picture)
 (defcustom picture-rectangle-v   ?|
-  "*Character `picture-draw-rectangle' uses for vertical lines."
+  "Character `picture-draw-rectangle' uses for vertical lines."
   :type 'character
   :group 'picture)
 (defcustom picture-rectangle-h   ?-
-  "*Character `picture-draw-rectangle' uses for horizontal lines."
+  "Character `picture-draw-rectangle' uses for horizontal lines."
   :type 'character
   :group 'picture)
 
@@ -226,16 +225,30 @@ Do \\[command-apropos]  picture-movement  to see commands which control motion."
   (picture-motion (- arg)))
 
 (defun picture-mouse-set-point (event)
-  "Move point to the position clicked on, making whitespace if necessary."
+  "Move point to the position of EVENT, making whitespace if necessary."
   (interactive "e")
-  (let* ((pos (posn-col-row (event-start event)))
-	 (x (car pos))
-	 (y (cdr pos))
-	 (current-row (count-lines (window-start) (line-beginning-position))))
-    (unless (equal x (current-column))
-      (picture-forward-column (- x (current-column))))
-    (unless (equal y current-row)
-      (picture-move-down (- y current-row)))))
+  (let ((position (event-start event)))
+    (unless (posn-area position) ; Ignore EVENT unless in text area
+      (let* ((window (posn-window position))
+	     (frame  (if (framep window) window (window-frame window)))
+	     (pair   (posn-x-y position))
+	     (start-pos (window-start window))
+	     (start-pair (posn-x-y (posn-at-point start-pos)))
+	     (dx (- (car pair) (car start-pair)))
+	     (dy (- (cdr pair) (cdr start-pair)))
+	     (char-ht (frame-char-height frame))
+	     (spacing (when (display-graphic-p frame)
+			(or (with-current-buffer (window-buffer window)
+			      line-spacing)
+			    (frame-parameter frame 'line-spacing))))
+	     rows cols)
+	(cond ((floatp spacing)
+	       (setq spacing (truncate (* spacing char-ht))))
+	      ((null spacing)
+	       (setq spacing 0)))
+	(goto-char start-pos)
+	(picture-move-down      (/ dy (+ char-ht spacing)))
+	(picture-forward-column (/ dx (frame-char-width frame)))))))
 
 
 ;; Picture insertion and deletion.
@@ -363,7 +376,7 @@ With positive argument insert that many lines."
 ;; Picture Tabs
 
 (defcustom picture-tab-chars "!-~"
-  "*A character set which controls behavior of commands.
+  "A character set which controls behavior of commands.
 \\[picture-set-tab-stops] and \\[picture-tab-search].  It is NOT a
 regular expression, any regexp special characters will be quoted.
 It defines a set of \"interesting characters\" to look for when setting
@@ -438,7 +451,7 @@ If no such character is found, move to beginning of line."
 	  (move-to-column target))
       (if (re-search-forward
 	   (concat "[ \t]+[" (regexp-quote picture-tab-chars) "]")
-	   (save-excursion (end-of-line) (point))
+	   (line-end-position)
 	   'move)
 	  (setq target (1- (current-column)))
 	(setq target nil)))
@@ -775,5 +788,4 @@ Runs `picture-mode-exit-hook' at the end."
 
 (provide 'picture)
 
-;; arch-tag: e452d08d-a470-4fbf-896e-ea276698d1ca
 ;;; picture.el ends here

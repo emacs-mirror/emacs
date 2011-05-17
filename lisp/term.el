@@ -1,7 +1,7 @@
 ;;; term.el --- general command interpreter in a window stuff
 
-;; Copyright (C) 1988, 1990, 1992, 1994, 1995, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1990, 1992, 1994-1995, 2001-2011
+;;   Free Software Foundation, Inc.
 
 ;; Author: Per Bothner <per@bothner.com>
 ;; Maintainer: Dan Nicolaescu <dann@ics.uci.edu>, Per Bothner <per@bothner.com>
@@ -502,8 +502,8 @@ This is a good thing to set in mode hooks.")
 (defvar term-delimiter-argument-list ()
   "List of characters to recognize as separate arguments in input.
 Strings comprising a character in this list will separate the arguments
-surrounding them, and also be regarded as arguments in their own right (unlike
-whitespace).  See `term-arguments'.
+surrounding them, and also be regarded as arguments in their own right
+\(unlike whitespace).  See `term-arguments'.
 Defaults to the empty list.
 
 For shells, a good value is (?\\| ?& ?< ?> ?\\( ?\\) ?\\;).
@@ -762,11 +762,13 @@ Buffer local variable.")
    "magenta3" "cyan3" "white"])
 
 ;; Inspiration came from comint.el -mm
-(defvar term-buffer-maximum-size 2048
-  "*The maximum size in lines for term buffers.
+(defcustom term-buffer-maximum-size 2048
+  "The maximum size in lines for term buffers.
 Term buffers are truncated from the top to be no greater than this number.
 Notice that a setting of 0 means \"don't truncate anything\".  This variable
-is buffer-local.")
+is buffer-local."
+  :group 'term
+  :type 'integer)
 
 (when (featurep 'xemacs)
   (defvar term-terminal-menu
@@ -1170,7 +1172,7 @@ Entry to this mode runs the hooks on `term-mode-hook'."
 	    (let* ((str (car cur)) (len (length str)) (start (- (point) len)))
 	      (if (and (>= start (point-min))
 		       (string= str (buffer-substring start (point))))
-		  (progn (delete-backward-char len)
+		  (progn (delete-char (- len))
 			 (setq term-kill-echo-list (cdr cur))
 			 (setq term-current-column nil)
 			 (setq term-current-row nil)
@@ -1231,8 +1233,7 @@ without any interpretation."
   (if (featurep 'xemacs)
       (term-send-raw-string
        (or (condition-case () (x-get-selection) (error ()))
-	   (x-get-cutbuffer)
-	   (error "No selection or cut buffer available")))
+	   (error "No selection available")))
     ;; Give temporary modes such as isearch a chance to turn off.
     (run-hooks 'mouse-leave-buffer-hook)
     (setq this-command 'yank)
@@ -1516,7 +1517,7 @@ if [ $1 = .. ]; then shift; fi; exec \"$@\""
 ;; term-replace-by-expanded-history-before-point Workhorse function.
 
 (defun term-read-input-ring (&optional silent)
-  "Sets the buffer's `term-input-ring' from a history file.
+  "Set the buffer's `term-input-ring' from a history file.
 The name of the file is given by the variable `term-input-ring-file-name'.
 The history ring is of size `term-input-ring-size', regardless of file size.
 If `term-input-ring-file-name' is nil this function does nothing.
@@ -1537,34 +1538,29 @@ See also `term-input-ignoredups' and `term-write-input-ring'."
 	     (message "Cannot read history file %s"
 		      term-input-ring-file-name)))
 	(t
-	 (let ((history-buf (get-buffer-create " *temp*"))
-	       (file term-input-ring-file-name)
+	 (let ((file term-input-ring-file-name)
 	       (count 0)
 	       (ring (make-ring term-input-ring-size)))
-	   (unwind-protect
-	       (with-current-buffer history-buf
-		 (widen)
-		 (erase-buffer)
-		 (insert-file-contents file)
-		 ;; Save restriction in case file is already visited...
-		 ;; Watch for those date stamps in history files!
-		 (goto-char (point-max))
-		 (while (and (< count term-input-ring-size)
-			     (re-search-backward "^[ \t]*\\([^#\n].*\\)[ \t]*$"
-						 nil t))
-		   (let ((history (buffer-substring (match-beginning 1)
-						    (match-end 1))))
-		     (when (or (null term-input-ignoredups)
-			       (ring-empty-p ring)
-			       (not (string-equal (ring-ref ring 0) history)))
-			 (ring-insert-at-beginning ring history)))
-		   (setq count (1+ count))))
-	     (kill-buffer history-buf))
+           (with-temp-buffer
+             (insert-file-contents file)
+             ;; Save restriction in case file is already visited...
+             ;; Watch for those date stamps in history files!
+             (goto-char (point-max))
+             (while (and (< count term-input-ring-size)
+                         (re-search-backward "^[ \t]*\\([^#\n].*\\)[ \t]*$"
+                                             nil t))
+               (let ((history (buffer-substring (match-beginning 1)
+                                                (match-end 1))))
+                 (when (or (null term-input-ignoredups)
+                           (ring-empty-p ring)
+                           (not (string-equal (ring-ref ring 0) history)))
+                   (ring-insert-at-beginning ring history)))
+               (setq count (1+ count))))
 	   (setq term-input-ring ring
 		 term-input-ring-index nil)))))
 
 (defun term-write-input-ring ()
-  "Writes the buffer's `term-input-ring' to a history file.
+  "Write the buffer's `term-input-ring' to a history file.
 The name of the file is given by the variable `term-input-ring-file-name'.
 The original contents of the file are lost if `term-input-ring' is not empty.
 If `term-input-ring-file-name' is nil this function does nothing.
@@ -1799,15 +1795,11 @@ Returns t if successful."
   "Expand directory stack reference before point.
 See `term-replace-by-expanded-history'.  Returns t if successful."
   (save-excursion
-    (let ((toend (- (save-excursion (end-of-line nil) (point)) (point)))
+    (let ((toend (- (line-end-position) (point)))
 	  (start (progn (term-bol nil) (point))))
       (while (progn
-	       (skip-chars-forward "^!^"
-				   (save-excursion
-				     (end-of-line nil) (- (point) toend)))
-	       (< (point)
-		  (save-excursion
-		    (end-of-line nil) (- (point) toend))))
+	       (skip-chars-forward "^!^" (- (line-end-position) toend))
+	       (< (point) (- (line-end-position) toend)))
 	;; This seems a bit complex.  We look for references such as !!, !-num,
 	;; !foo, !?foo, !{bar}, !?{bar}, ^oh, ^my^, ^god^it, ^never^ends^.
 	;; If that wasn't enough, the plings can be suffixed with argument
@@ -1996,12 +1988,12 @@ Argument 0 is the command name."
   "Send input to process.
 After the process output mark, sends all text from the process mark to
 point as input to the process.  Before the process output mark, calls value
-of variable term-get-old-input to retrieve old input, copies it to the
+of variable `term-get-old-input' to retrieve old input, copies it to the
 process mark, and sends it.  A terminal newline is also inserted into the
 buffer and sent to the process.  The list of function names contained in the
 value of `term-input-filter-functions' is called on the input before sending
 it.  The input is entered into the input history ring, if the value of variable
-term-input-filter returns non-nil when called on the input.
+`term-input-filter' returns non-nil when called on the input.
 
 Any history reference may be expanded depending on the value of the variable
 `term-input-autoexpand'.  The list of function names contained in the value
@@ -2113,7 +2105,7 @@ Calls `term-get-old-input' to get old input."
 (defun term-skip-prompt ()
   "Skip past the text matching regexp `term-prompt-regexp'.
 If this takes us past the end of the current line, don't skip at all."
-  (let ((eol (save-excursion (end-of-line) (point))))
+  (let ((eol (line-end-position)))
     (when (and (looking-at term-prompt-regexp)
 	       (<= (match-end 0) eol))
       (goto-char (match-end 0)))))
@@ -2137,7 +2129,7 @@ set the hook `term-input-sender'."
   (term-send-string proc "\n"))
 
 (defun term-bol (arg)
-  "Goes to the beginning of line, then skips past the prompt, if any.
+  "Go to the beginning of line, then skip past the prompt, if any.
 If a prefix argument is given (\\[universal-argument]), then no prompt skip
 -- go straight to column 0.
 
@@ -2219,9 +2211,11 @@ Security bug: your string can still be temporarily recovered with
 
 ;;; Low-level process communication
 
-(defvar term-input-chunk-size 512
-  "*Long inputs send to term processes are broken up into chunks of this size.
-If your process is choking on big inputs, try lowering the value.")
+(defcustom term-input-chunk-size 512
+  "Long inputs send to term processes are broken up into chunks of this size.
+If your process is choking on big inputs, try lowering the value."
+  :group 'term
+  :type 'integer)
 
 (defun term-send-string (proc str)
   "Send to PROC the contents of STR as input.
@@ -2472,11 +2466,10 @@ See `term-prompt-regexp'."
   "Return string around `point' that starts the current line or nil."
   (save-excursion
     (let* ((point (point))
-	   (bol (progn (beginning-of-line) (point)))
-	   (eol (progn (end-of-line) (point)))
-	   (start (progn (goto-char point)
-			 (and (search-backward "\"" bol t)
-			      (1+ (point)))))
+	   (bol (line-beginning-position))
+	   (eol (line-end-position))
+	   (start (and (search-backward "\"" bol t)
+                       (1+ (point))))
 	   (end (progn (goto-char point)
 		       (and (search-forward "\"" eol t)
 			    (1- (point))))))
@@ -2616,10 +2609,7 @@ See `term-prompt-regexp'."
 
 (defun term-move-columns (delta)
   (setq term-current-column (max 0 (+ (term-current-column) delta)))
-  (let (point-at-eol)
-    (save-excursion
-      (end-of-line)
-      (setq point-at-eol (point)))
+  (let ((point-at-eol (line-end-position)))
     (move-to-column term-current-column t)
     ;; If move-to-column extends the current line it will use the face
     ;; from the last character on the line, set the face for the chars
@@ -3760,7 +3750,7 @@ all pending output has been dealt with."))
       (goto-char saved-point))))
 
 (defun term-erase-in-display (kind)
-  "Erases (that is blanks out) part of the window.
+  "Erase (that is blank out) part of the window.
 If KIND is 0, erase from (point) to (point-max);
 if KIND is 1, erase from home to point; else erase from home to point-max."
   (term-handle-deferred-scroll)
@@ -3797,10 +3787,8 @@ if KIND is 1, erase from home to point; else erase from home to point-max."
     (term-vertical-motion 1)
     (when (bolp)
       (backward-char))
-    (setq save-eol (point))
-    (save-excursion
-      (end-of-line)
-      (setq pnt-at-eol (point)))
+    (setq save-eol (point)
+          pnt-at-eol (line-end-position))
     (move-to-column (+ (term-start-line-column) (- term-width count)) t)
     ;; If move-to-column extends the current line it will use the face
     ;; from the last character on the line, set the face for the chars
@@ -3925,27 +3913,38 @@ This is a good place to put keybindings.")
 ;; Commands like this are fine things to put in load hooks if you
 ;; want them present in specific modes.
 
-(defvar term-completion-autolist nil
-  "*If non-nil, automatically list possibilities on partial completion.
-This mirrors the optional behavior of tcsh.")
+(defcustom term-completion-autolist nil
+  "If non-nil, automatically list possibilities on partial completion.
+This mirrors the optional behavior of tcsh."
+  :group 'term
+  :type 'boolean)
 
-(defvar term-completion-addsuffix t
-  "*If non-nil, add a `/' to completed directories, ` ' to file names.
+(defcustom term-completion-addsuffix t
+  "If non-nil, add a `/' to completed directories, ` ' to file names.
 If a cons pair, it should be of the form (DIRSUFFIX . FILESUFFIX) where
 DIRSUFFIX and FILESUFFIX are strings added on unambiguous or exact
-completion.  This mirrors the optional behavior of tcsh.")
+completion.  This mirrors the optional behavior of tcsh."
+  :group 'term
+  :type '(choice (const :tag "No suffix" nil)
+                 (cons (string :tag "dirsuffix") (string :tag "filesuffix"))
+                 (other :tag "Suffix" t)))
 
-(defvar term-completion-recexact nil
-  "*If non-nil, use shortest completion if characters cannot be added.
+(defcustom term-completion-recexact nil
+  "If non-nil, use shortest completion if characters cannot be added.
 This mirrors the optional behavior of tcsh.
 
-A non-nil value is useful if `term-completion-autolist' is non-nil too.")
+A non-nil value is useful if `term-completion-autolist' is non-nil too."
+  :group 'term
+  :type 'boolean)
 
-(defvar term-completion-fignore nil
-  "*List of suffixes to be disregarded during file completion.
+(defcustom term-completion-fignore nil
+  "List of suffixes to be disregarded during file completion.
 This mirrors the optional behavior of bash and tcsh.
 
-Note that this applies to `term-dynamic-complete-filename' only.")
+Note that this applies to `term-dynamic-complete-filename' only."
+  :group 'term
+  :type '(choice (const nil)
+                 (repeat :tag "List of suffixes" string)))
 
 (defvar term-file-name-prefix ""
   "Prefix prepended to absolute file names taken from process input.
@@ -4166,7 +4165,7 @@ Typing SPC flushes the help buffer."
 
 ;; I need a make-term that doesn't surround with *s -mm
 (defun term-ansi-make-term (name program &optional startfile &rest switches)
-"Make a term process NAME in a buffer, running PROGRAM.
+  "Make a term process NAME in a buffer, running PROGRAM.
 The name of the buffer is NAME.
 If there is already a running process in that buffer, it is not restarted.
 Optional third arg STARTFILE is the name of a file to send the contents of to
@@ -4233,7 +4232,7 @@ Return t if this is a Unix-based system, where serial ports are
 files, such as /dev/ttyS0.
 Return nil if this is Windows or DOS, where serial ports have
 special identifiers such as COM1."
-  (not (member system-type (list 'windows-nt 'cygwin 'ms-dos))))
+  (not (memq system-type '(windows-nt cygwin ms-dos))))
 
 (defvar serial-name-history
   (if (serial-port-is-file-p)
@@ -4267,7 +4266,7 @@ returns nil, which is recognized by `serial-process-configure'
 for special serial ports that cannot be configured.")
 
 (defun serial-supported-or-barf ()
-  "Signal an error if serial processes are not supported"
+  "Signal an error if serial processes are not supported."
   (unless (fboundp 'make-serial-process)
     (error "Serial processes are not supported on this system")))
 
@@ -4535,5 +4534,4 @@ The return value may be nil for a special serial port."
 
 (provide 'term)
 
-;; arch-tag: eee16bc8-2cd7-4147-9534-a5694752f716
 ;;; term.el ends here

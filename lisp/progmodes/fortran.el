@@ -1,8 +1,6 @@
 ;;; fortran.el --- Fortran mode for GNU Emacs
 
-;; Copyright (C) 1986, 1993, 1994, 1995, 1997, 1998, 1999, 2000, 2001,
-;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1993-1995, 1997-2011  Free Software Foundation, Inc.
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -293,7 +291,7 @@ buffer).  This corresponds to the g77 compiler option
   :type 'integer
   :safe 'integerp
   :initialize 'custom-initialize-default
-  :set (lambda (symbol value)
+  :set (lambda (_symbol value)
          ;; Do all fortran buffers, and the default.
          (fortran-line-length value t))
   :version "23.1"
@@ -488,13 +486,22 @@ Consists of level 3 plus all other intrinsics not already highlighted.")
 ;; (We can do so for F90-style).  Therefore an unmatched quote in a
 ;; standard comment will throw fontification off on the wrong track.
 ;; So we do syntactic fontification with regexps.
-(defun fortran-font-lock-syntactic-keywords ()
-  "Return a value for `font-lock-syntactic-keywords' in Fortran mode.
-This varies according to the value of `fortran-line-length'.
+(defun fortran-make-syntax-propertize-function (line-length)
+  "Return a value for `syntax-propertize-function' in Fortran mode.
+This varies according to the value of LINE-LENGTH.
 This is used to fontify fixed-format Fortran comments."
-  `(("^[cd\\*]" 0 (11))
-    (,(format "^[^cd\\*\t\n].\\{%d\\}\\([^\n]+\\)" (1- fortran-line-length))
-     1 (11))))
+  ;; This results in a non-byte-compiled function.  We could pass it through
+  ;; `byte-compile', but simple benchmarks indicate that it's probably not
+  ;; worth the trouble (about 0.5% of slow down).
+  (eval                         ;I hate `eval', but it's hard to avoid it here.
+   `(syntax-propertize-rules
+     ("^[cd\\*]" (0 "<"))
+     ;; We mark all chars after line-length as "comment-start", rather than
+     ;; just the first one.  This is so that a closing ' that's past the
+     ;; line-length will indeed be ignored (and will result in a string that
+     ;; leaks into subsequent lines).
+     ((format "^[^cd\\*\t\n].\\{%d\\}\\(.+\\)" (1- line-length))
+      (1 "<")))))
 
 (defvar fortran-font-lock-keywords fortran-font-lock-keywords-1
   "Default expressions to highlight in Fortran mode.")
@@ -778,7 +785,7 @@ Used in the Fortran entry in `hs-special-modes-alist'.")
 
 
 ;;;###autoload
-(defun fortran-mode ()
+(define-derived-mode fortran-mode prog-mode "Fortran"
   "Major mode for editing Fortran code in fixed format.
 For free format code, use `f90-mode'.
 
@@ -848,13 +855,9 @@ Variables controlling indentation style and extra features:
 
 Turning on Fortran mode calls the value of the variable `fortran-mode-hook'
 with no args, if that value is non-nil."
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'fortran-mode
-        mode-name "Fortran"
-        local-abbrev-table fortran-mode-abbrev-table)
-  (set-syntax-table fortran-mode-syntax-table)
-  (use-local-map fortran-mode-map)
+  :group 'fortran
+  :syntax-table fortran-mode-syntax-table
+  :abbrev-table fortran-mode-abbrev-table
   (set (make-local-variable 'indent-line-function) 'fortran-indent-line)
   (set (make-local-variable 'indent-region-function)
        (lambda (start end)
@@ -891,9 +894,9 @@ with no args, if that value is non-nil."
           fortran-font-lock-keywords-3
           fortran-font-lock-keywords-4)
          nil t ((?/ . "$/") ("_$" . "w"))
-         fortran-beginning-of-subprogram
-         (font-lock-syntactic-keywords
-          . fortran-font-lock-syntactic-keywords)))
+         fortran-beginning-of-subprogram))
+  (set (make-local-variable 'syntax-propertize-function)
+       (fortran-make-syntax-propertize-function fortran-line-length))
   (set (make-local-variable 'imenu-case-fold-search) t)
   (set (make-local-variable 'imenu-generic-expression)
        fortran-imenu-generic-expression)
@@ -906,33 +909,37 @@ with no args, if that value is non-nil."
        #'fortran-current-defun)
   (set (make-local-variable 'dabbrev-case-fold-search) 'case-fold-search)
   (set (make-local-variable 'gud-find-expr-function) 'fortran-gud-find-expr)
-  (add-hook 'hack-local-variables-hook 'fortran-hack-local-variables nil t)
-  (run-mode-hooks 'fortran-mode-hook))
+  (add-hook 'hack-local-variables-hook 'fortran-hack-local-variables nil t))
 
 
 (defun fortran-line-length (nchars &optional global)
   "Set the length of fixed-form Fortran lines to NCHARS.
 This normally only affects the current buffer, which must be in
 Fortran mode.  If the optional argument GLOBAL is non-nil, it
-affects all Fortran buffers, and also the default."
-  (interactive "p")
-  (let (new)
-    (mapc (lambda (buff)
-            (with-current-buffer buff
-              (when (eq major-mode 'fortran-mode)
-                (setq fortran-line-length nchars
-                      fill-column fortran-line-length
-                      new (fortran-font-lock-syntactic-keywords))
-                ;; Refontify only if necessary.
-                (unless (equal new font-lock-syntactic-keywords)
-                  (setq font-lock-syntactic-keywords
-                        (fortran-font-lock-syntactic-keywords))
-                  (if font-lock-mode (font-lock-mode 1))))))
+affects all Fortran buffers, and also the default.
+If a numeric prefix argument is specified, it will be used as NCHARS,
+otherwise is a non-numeric prefix arg is specified, the length will be
+provided via the minibuffer, and otherwise the current column is used."
+  (interactive
+   (list (cond
+          ((numberp current-prefix-arg) current-prefix-arg)
+          (current-prefix-arg
+           (read-number "Line length: " (default-value 'fortran-line-length)))
+          (t (current-column)))))
+  (dolist (buff (if global
+                    (buffer-list)
+                  (list (current-buffer))))
+    (with-current-buffer buff
+      (when (derived-mode-p 'fortran-mode)
+        (unless (eq fortran-line-length nchars)
+          (setq fortran-line-length nchars
+                fill-column fortran-line-length
+                syntax-propertize-function
+                (fortran-make-syntax-propertize-function nchars))
+          (syntax-ppss-flush-cache (point-min))
+          (if font-lock-mode (font-lock-mode 1))))))
           (if global
-              (buffer-list)
-            (list (current-buffer))))
-    (if global
-        (setq-default fortran-line-length nchars))))
+      (setq-default fortran-line-length nchars)))
 
 (defun fortran-hack-local-variables ()
   "Fortran mode adds this to `hack-local-variables-hook'."
@@ -1306,8 +1313,7 @@ Directive lines are treated as comments."
     (if i
         (save-excursion
           (goto-char i)
-          (beginning-of-line)
-          (= (point) p)))))
+          (= (line-beginning-position) p)))))
 
 ;; Used in hs-special-modes-alist.
 (defun fortran-end-of-block (&optional num)
@@ -2198,5 +2204,4 @@ arg DO-SPACE prevents stripping the whitespace."
 
 (provide 'fortran)
 
-;; arch-tag: 74935096-21c4-4cab-8ee5-6ef16090dc04
 ;;; fortran.el ends here

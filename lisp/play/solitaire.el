@@ -1,7 +1,6 @@
 ;;; solitaire.el --- game of solitaire in Emacs Lisp
 
-;; Copyright (C) 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Jan Schormann <Jan.Schormann@rechen-gilde.de>
 ;; Created: Fri afternoon, Jun  3,  1994
@@ -44,7 +43,7 @@
 
 (defvar solitaire-mode-map
   (let ((map (make-sparse-keymap)))
-    (suppress-keymap map t)
+    (set-keymap-parent map special-mode-map)
 
     (define-key map "\C-f" 'solitaire-right)
     (define-key map "\C-b" 'solitaire-left)
@@ -53,7 +52,6 @@
     (define-key map "\r" 'solitaire-move)
     (define-key map [remap undo] 'solitaire-undo)
     (define-key map " " 'solitaire-do-check)
-    (define-key map "q" 'quit-window)
 
     (define-key map [right] 'solitaire-right)
     (define-key map [left] 'solitaire-left)
@@ -89,7 +87,7 @@
 ;; Solitaire mode is suitable only for specially formatted data.
 (put 'solitaire-mode 'mode-class 'special)
 
-(define-derived-mode solitaire-mode nil "Solitaire"
+(define-derived-mode solitaire-mode special-mode "Solitaire"
   "Major mode for playing Solitaire.
 To learn how to play Solitaire, see the documentation for function
 `solitaire'.
@@ -128,7 +126,7 @@ the game is over, or off, if you are working on a slow machine."
   '(solitaire-left solitaire-right solitaire-up solitaire-down))
 
 ;;;###autoload
-(defun solitaire (arg)
+(defun solitaire (_arg)
   "Play Solitaire.
 
 To play Solitaire, type \\[solitaire].
@@ -198,15 +196,15 @@ Pick your favourite shortcuts:
 
   (interactive "P")
   (switch-to-buffer "*Solitaire*")
-  (solitaire-mode)
-  (setq buffer-read-only t)
-  (setq solitaire-stones 32)
-  (solitaire-insert-board)
-  (solitaire-build-modeline)
-  (goto-char (point-max))
-  (setq solitaire-center (search-backward "."))
-  (setq buffer-undo-list (list (point)))
-  (set-buffer-modified-p nil))
+  (let ((inhibit-read-only t))
+    (solitaire-mode)
+    (setq buffer-read-only t)
+    (setq solitaire-stones 32)
+    (solitaire-insert-board)
+    (solitaire-build-modeline)
+    (goto-char (point-max))
+    (setq solitaire-center (search-backward "."))
+    (setq buffer-undo-list (list (point)))))
 
 (defun solitaire-build-modeline ()
   (setq mode-line-format
@@ -395,7 +393,7 @@ which a stone will be taken away) and target."
 		solitaire-valid-directions)))
 	count))))
 
-(defun solitaire-do-check (&optional arg)
+(defun solitaire-do-check (&optional _arg)
   "Check for any possible moves in Solitaire."
   (interactive "P")
   (let ((moves (solitaire-check)))
@@ -447,5 +445,4 @@ Seen in info on text lines."
 
 (provide 'solitaire)
 
-;; arch-tag: 1b18ee1c-1e79-4a5b-8658-9560b82e63dd
 ;;; solitaire.el ends here

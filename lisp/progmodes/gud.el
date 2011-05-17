@@ -1,7 +1,6 @@
 ;;; gud.el --- Grand Unified Debugger mode for running GDB and other debuggers
 
-;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 2000, 2001, 2002, 2003,
-;;  2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1996, 1998, 2000-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: FSF
@@ -145,7 +144,7 @@ Used to grey out relevant toolbar icons.")
            (gud-call "suspend"))
           ((eq gud-minor-mode 'gdbmi)
            (gud-call (gdb-gud-context-command "-exec-interrupt")))
-          (t 
+          (t
            (comint-interrupt-subjob)))))
 
 (easy-mmode-defmap gud-menu-map
@@ -380,13 +379,13 @@ step (if we're in the GUD buffer).
 source file) or the source line number at the last break or step (if
 we're in the GUD buffer)."
   `(progn
-     (defun ,func (arg)
+     (defalias ',func (lambda (arg)
        ,@(if doc (list doc))
        (interactive "p")
        (if (not gud-running)
 	 ,(if (stringp cmd)
 	      `(gud-call ,cmd arg)
-	    cmd)))
+	    cmd))))
      ,(if key `(local-set-key ,(concat "\C-c" key) ',func))
      ,(if key `(global-set-key (vconcat gud-key-prefix ,key) ',func))))
 
@@ -492,7 +491,7 @@ The value t means that there is no stack, and we are in display-file mode.")
     (gud-install-speedbar-variables)
   (add-hook 'speedbar-load-hook 'gud-install-speedbar-variables))
 
-(defun gud-expansion-speedbar-buttons (directory zero)
+(defun gud-expansion-speedbar-buttons (_directory _zero)
   "Wrapper for call to `speedbar-add-expansion-list'.
 DIRECTORY and ZERO are not used, but are required by the caller."
   (gud-speedbar-buttons gud-comint-buffer))
@@ -658,17 +657,15 @@ The option \"--fullname\" must be included in this value."
        gud-marker-acc (substring gud-marker-acc (match-end 0))))
 
     (while (string-match "\n\032\032\\(.*\\)\n" gud-marker-acc)
-      (let ((match (match-string 1 gud-marker-acc)))
+      (setq
+       ;; Append any text before the marker to the output we're going
+       ;; to return - we don't include the marker in this text.
+       output (concat output
+		      (substring gud-marker-acc 0 (match-beginning 0)))
 
-	(setq
-	 ;; Append any text before the marker to the output we're going
-	 ;; to return - we don't include the marker in this text.
-	 output (concat output
-			(substring gud-marker-acc 0 (match-beginning 0)))
+       ;; Set the accumulator to the remaining text.
 
-	 ;; Set the accumulator to the remaining text.
-
-	 gud-marker-acc (substring gud-marker-acc (match-end 0)))))
+       gud-marker-acc (substring gud-marker-acc (match-end 0))))
 
     ;; Does the remaining text look like it might end with the
     ;; beginning of another marker?  If it does, then keep it in
@@ -768,7 +765,9 @@ directory and source-file directory for your debugger."
   (gud-def gud-until  "until %l" "\C-u" "Continue to current line.")
   (gud-def gud-run    "run"	 nil    "Run the program.")
 
-  (local-set-key "\C-i" 'gud-gdb-complete-command)
+  (add-hook 'completion-at-point-functions #'gud-gdb-completion-at-point
+            nil 'local)
+  (local-set-key "\C-i" 'completion-at-point)
   (setq comint-prompt-regexp "^(.*gdb[+]?) *")
   (setq paragraph-start comint-prompt-regexp)
   (setq gdb-first-prompt t)
@@ -792,26 +791,28 @@ directory and source-file directory for your debugger."
 ;; The completion list is constructed by the process filter.
 (defvar gud-gdb-fetched-lines)
 
-(defun gud-gdb-complete-command (&optional command a b)
-  "Perform completion on the GDB command preceding point.
-This is implemented using the GDB `complete' command which isn't
-available with older versions of GDB."
-  (interactive)
-  (if command
-      ;; Used by gud-watch in mini-buffer.
-      (setq command (concat "p " command))
-    ;; Used in GUD buffer.
-    (let ((end (point)))
-      (setq command (buffer-substring (comint-line-beginning-position) end))))
-  (let* ((command-word
-	  ;; Find the word break.  This match will always succeed.
-	  (and (string-match "\\(\\`\\| \\)\\([^ ]*\\)\\'" command)
-	       (substring command (match-beginning 2))))
-	 (complete-list
-	  (gud-gdb-run-command-fetch-lines (concat "complete " command)
+(defun gud-gdb-completions (context command)
+  "Completion table for GDB commands.
+COMMAND is the prefix for which we seek completion.
+CONTEXT is the text before COMMAND on the line."
+  (let* ((start (- (point) (field-beginning)))
+         (complete-list
+	  (gud-gdb-run-command-fetch-lines (concat "complete " context command)
 					   (current-buffer)
 					   ;; From string-match above.
-					   (match-beginning 2))))
+					   (length context))))
+    ;; `gud-gdb-run-command-fetch-lines' has some nasty side-effects on the
+    ;; buffer (via `gud-delete-prompt-marker'): it removes the prompt and then
+    ;; re-adds it later, thus messing up markers and overlays along the way.
+    ;; This is a problem for completion-in-region which uses an overlay to
+    ;; create a field.
+    ;; So we restore completion-in-region's field if needed.
+    ;; FIXME: change gud-gdb-run-command-fetch-lines so it doesn't modify the
+    ;; buffer at all.
+    (when (/= start (- (point) (field-beginning)))
+      (dolist (ol (overlays-at (1- (point))))
+        (when (eq (overlay-get ol 'field) 'completion)
+          (move-overlay ol (- (point) start) (overlay-end ol)))))
     ;; Protect against old versions of GDB.
     (and complete-list
 	 (string-match "^Undefined command: \"complete\"" (car complete-list))
@@ -837,8 +838,27 @@ available with older versions of GDB."
 		   pos (match-end 0)))
 	   (and (= (mod count 2) 1)
 		(setq complete-list (list (concat str "'"))))))
-    ;; Let comint handle the rest.
-    (comint-dynamic-simple-complete command-word complete-list)))
+    complete-list))
+
+(defun gud-gdb-completion-at-point ()
+  "Return the data to complete the GDB command before point."
+  (let ((end (point))
+        (start
+         (save-excursion
+           (skip-chars-backward "^ " (comint-line-beginning-position))
+           (point))))
+    (list start end
+          (completion-table-dynamic
+           (apply-partially #'gud-gdb-completions
+                            (buffer-substring (comint-line-beginning-position)
+                                              start))))))
+
+;; (defun gud-gdb-complete-command ()
+;;   "Perform completion on the GDB command preceding point.
+;; This is implemented using the GDB `complete' command which isn't
+;; available with older versions of GDB."
+;;   (interactive)
+;;   (apply #'completion-in-region (gud-gdb-completion-at-point)))
 
 ;; The completion process filter is installed temporarily to slurp the
 ;; output of GDB up to the next prompt and build the completion list.
@@ -862,7 +882,7 @@ It is passed through FILTER before we look at it."
 
 ;; gdb speedbar functions
 
-(defun gud-gdb-goto-stackframe (text token indent)
+(defun gud-gdb-goto-stackframe (_text token _indent)
   "Goto the stackframe described by TEXT, TOKEN, and INDENT."
   (speedbar-with-attached-buffer
    (gud-basic-call (concat "server frame " (nth 1 token)))
@@ -1052,7 +1072,7 @@ containing the executable being debugged."
 			 directory))
   :group 'gud)
 
-(defun gud-dbx-massage-args (file args)
+(defun gud-dbx-massage-args (_file args)
   (nconc (let ((directories gud-dbx-directories)
 	       (result nil))
 	   (while directories
@@ -1364,7 +1384,7 @@ containing the executable being debugged."
 			 directory))
   :group 'gud)
 
-(defun gud-xdb-massage-args (file args)
+(defun gud-xdb-massage-args (_file args)
   (nconc (let ((directories gud-xdb-directories)
 	       (result nil))
 	   (while directories
@@ -1428,7 +1448,7 @@ directories if your program contains sources from more than one directory."
 ;; History of argument lists passed to perldb.
 (defvar gud-perldb-history nil)
 
-(defun gud-perldb-massage-args (file args)
+(defun gud-perldb-massage-args (_file args)
   "Convert a command line as would be typed normally to run perldb
 into one that invokes an Emacs-enabled debugging session.
 \"-emacs\" is inserted where it will be $ARGV[0] (see perl5db.pl)."
@@ -2050,7 +2070,7 @@ extension EXTN.  Normally EXTN is given as the regular expression
 
 ;; Change what was given in the minibuffer to something that can be used to
 ;; invoke the debugger.
-(defun gud-jdb-massage-args (file args)
+(defun gud-jdb-massage-args (_file args)
   ;; The jdb executable must have whitespace between "-classpath" and
   ;; its value while gud-common-init expects all switch values to
   ;; follow the switch keyword without intervening whitespace.  We
@@ -2129,7 +2149,7 @@ relative to a classpath directory."
       (setq cplist (cdr cplist)))
     (if found-file (concat (car cplist) "/" filename)))))
 
-(defun gud-jdb-find-source (string)
+(defun gud-jdb-find-source (_string)
   "Alias for function used to locate source files.
 Set to `gud-jdb-find-source-using-classpath' or `gud-jdb-find-source-file'
 during jdb initialization depending on the value of
@@ -2513,7 +2533,7 @@ comint mode, which see."
 	(setq w (cdr w)))
       (if w
  	  (setcar w
- 		  (if (file-remote-p default-directory)
+ 		  (if (file-remote-p file)
 		      ;; Tramp has already been loaded if we are here.
 		      (setq file (tramp-file-name-localname
 				  (tramp-dissect-file-name file)))
@@ -2533,7 +2553,7 @@ comint mode, which see."
   (gud-set-buffer))
 
 (defun gud-set-buffer ()
-  (when (eq major-mode 'gud-mode)
+  (when (derived-mode-p 'gud-mode)
     (setq gud-comint-buffer (current-buffer))))
 
 (defvar gud-filter-defer-flag nil
@@ -3022,10 +3042,8 @@ Link exprs of the form:
 
 (declare-function c-langelem-sym "cc-defs" (langelem))
 (declare-function c-langelem-pos "cc-defs" (langelem))
-(declare-function syntax-symbol  "gud"     (x))
-(declare-function syntax-point   "gud"     (x))
 
-(defun gud-find-class (f line)
+(defun gud-find-class (f _line)
   "Find fully qualified class in file F at line LINE.
 This function uses the `gud-jdb-classpath' (and optional
 `gud-jdb-sourcepath') list(s) to derive a file
@@ -3041,13 +3059,13 @@ class of the file (using s to separate nested class ids)."
       (save-match-data
         (let ((cplist (append gud-jdb-sourcepath gud-jdb-classpath))
               (fbuffer (get-file-buffer f))
-              syntax-symbol syntax-point class-found)
+              class-found
+              ;; Syntax-symbol returns the symbol of the *first* element
+              ;; in the syntactical analysis result list, syntax-point
+              ;; returns the buffer position of same
+              (syntax-symbol (lambda (x) (c-langelem-sym (car x))))
+              (syntax-point (lambda (x) (c-langelem-pos (car x)))))
           (setq f (file-name-sans-extension (file-truename f)))
-          ;; Syntax-symbol returns the symbol of the *first* element
-          ;; in the syntactical analysis result list, syntax-point
-          ;; returns the buffer position of same
-          (fset 'syntax-symbol (lambda (x) (c-langelem-sym (car x))))
-          (fset 'syntax-point (lambda (x) (c-langelem-pos (car x))))
           ;; Search through classpath list for an entry that is
           ;; contained in f
           (while (and cplist (not class-found))
@@ -3062,6 +3080,7 @@ class of the file (using s to separate nested class ids)."
           ;; syntactic information chain and collect any 'inclass
           ;; symbols until 'topmost-intro is reached to find out if
           ;; point is within a nested class
+	  ;; FIXME: Yuck!!!  cc-mode should provide a function instead.
           (if (and fbuffer (equal (symbol-file 'java-mode) "cc-mode"))
               (with-current-buffer fbuffer
                 (let ((nclass) (syntax))
@@ -3069,17 +3088,17 @@ class of the file (using s to separate nested class ids)."
                   ;; with the 'topmost-intro symbol, there may be
                   ;; nested classes...
                   (while (not (eq 'topmost-intro
-                                  (syntax-symbol (c-guess-basic-syntax))))
+                                  (funcall syntax-symbol (c-guess-basic-syntax))))
                     ;; Check if the current position c-syntactic
                     ;; analysis has 'inclass
                     (setq syntax (c-guess-basic-syntax))
                     (while
-                        (and (not (eq 'inclass (syntax-symbol syntax)))
+                        (and (not (eq 'inclass (funcall syntax-symbol syntax)))
                              (cdr syntax))
                       (setq syntax (cdr syntax)))
-                    (if (eq 'inclass (syntax-symbol syntax))
+                    (if (eq 'inclass (funcall syntax-symbol syntax))
                         (progn
-                          (goto-char (syntax-point syntax))
+                          (goto-char (funcall syntax-point syntax))
                           ;; Now we're at the beginning of a class
                           ;; definition.  Find class name
                           (looking-at
@@ -3088,9 +3107,9 @@ class of the file (using s to separate nested class ids)."
                                 (append (list (match-string-no-properties 1))
                                         nclass)))
                       (setq syntax (c-guess-basic-syntax))
-                      (while (and (not (syntax-point syntax)) (cdr syntax))
+                      (while (and (not (funcall syntax-point syntax)) (cdr syntax))
                         (setq syntax (cdr syntax)))
-                      (goto-char (syntax-point syntax))
+                      (goto-char (funcall syntax-point syntax))
                       ))
                   (string-match (concat (car nclass) "$") class-found)
                   (setq class-found
@@ -3123,10 +3142,14 @@ class of the file (using s to separate nested class ids)."
     ("\\$\\(\\w+\\)" (1 font-lock-variable-name-face))
     ("^\\s-*\\(\\w\\(\\w\\|\\s_\\)*\\)" (1 font-lock-keyword-face))))
 
-(defvar gdb-script-font-lock-syntactic-keywords
-  '(("^document\\s-.*\\(\n\\)" (1 "< b"))
-    ("^end\\>"
-     (0 (unless (eq (match-beginning 0) (point-min))
+(defconst gdb-script-syntax-propertize-function
+  (syntax-propertize-rules
+   ("^document\\s-.*\\(\n\\)" (1 "< b"))
+   ("^end\\(\\>\\)"
+    (1 (ignore
+        (when (and (> (match-beginning 0) (point-min))
+                   (eq 1 (nth 7 (save-excursion
+                                  (syntax-ppss (1- (match-beginning 0)))))))
           ;; We change the \n in front, which is more difficult, but results
           ;; in better highlighting.  If the doc is empty, the single \n is
           ;; both the beginning and the end of the docstring, which can't be
@@ -3138,10 +3161,9 @@ class of the file (using s to separate nested class ids)."
                              'syntax-table (eval-when-compile
                                              (string-to-syntax "> b")))
           ;; Make sure that rehighlighting the previous line won't erase our
-          ;; syntax-table property.
+          ;; syntax-table property and that modifying `end' will.
           (put-text-property (1- (match-beginning 0)) (match-end 0)
-                             'font-lock-multiline t)
-          nil)))))
+                             'syntax-multiline t)))))))
 
 (defun gdb-script-font-lock-syntactic-face (state)
   (cond
@@ -3217,15 +3239,8 @@ Treats actions as defuns."
     (goto-char (point-max)))
   t)
 
-;; Besides .gdbinit, gdb documents other names to be usable for init
-;; files, cross-debuggers can use something like
-;; .PROCESSORNAME-gdbinit so that the host and target gdbinit files
-;; don't interfere with each other.
 ;;;###autoload
-(add-to-list 'auto-mode-alist (cons (purecopy "/\\.[a-z0-9-]*gdbinit") 'gdb-script-mode))
-
-;;;###autoload
-(define-derived-mode gdb-script-mode nil "GDB-Script"
+(define-derived-mode gdb-script-mode prog-mode "GDB-Script"
   "Major mode for editing GDB scripts."
   (set (make-local-variable 'comment-start) "#")
   (set (make-local-variable 'comment-start-skip) "#+\\s-*")
@@ -3239,10 +3254,13 @@ Treats actions as defuns."
        #'gdb-script-end-of-defun)
   (set (make-local-variable 'font-lock-defaults)
        '(gdb-script-font-lock-keywords nil nil ((?_ . "w")) nil
-	 (font-lock-syntactic-keywords
-	  . gdb-script-font-lock-syntactic-keywords)
 	 (font-lock-syntactic-face-function
-	  . gdb-script-font-lock-syntactic-face))))
+	  . gdb-script-font-lock-syntactic-face)))
+  ;; Recognize docstrings.
+  (set (make-local-variable 'syntax-propertize-function)
+       gdb-script-syntax-propertize-function)
+  (add-hook 'syntax-propertize-extend-region-functions
+            #'syntax-propertize-multiline 'append 'local))
 
 
 ;;; tooltips for GUD
@@ -3347,10 +3365,8 @@ only tooltips in the buffer containing the overlay arrow."
 ACTIVATEP non-nil means activate mouse motion events."
   (if activatep
       (progn
-	(make-local-variable 'gud-tooltip-mouse-motions-active)
-	(setq gud-tooltip-mouse-motions-active t)
-	(make-local-variable 'track-mouse)
-	(setq track-mouse t))
+        (set (make-local-variable 'gud-tooltip-mouse-motions-active) t)
+        (set (make-local-variable 'track-mouse) t))
     (when gud-tooltip-mouse-motions-active
       (kill-local-variable 'gud-tooltip-mouse-motions-active)
       (kill-local-variable 'track-mouse))))
@@ -3461,14 +3477,14 @@ This function must return nil if it doesn't handle EVENT."
 so they have been disabled."))
 	      (unless (null cmd) ; CMD can be nil if unknown debugger
 		(if (eq gud-minor-mode 'gdbmi)
-		      (if gdb-macro-info
-			  (gdb-input
-			   (list (concat
-				  "server macro expand " expr "\n")
-				 `(lambda () (gdb-tooltip-print-1 ,expr))))
-			(gdb-input
-			 (list  (concat cmd "\n")
- 				 `(lambda () (gdb-tooltip-print ,expr)))))
+                    (if gdb-macro-info
+                        (gdb-input
+                         (list (concat
+                                "server macro expand " expr "\n")
+                               `(lambda () (gdb-tooltip-print-1 ,expr))))
+                      (gdb-input
+                       (list  (concat cmd "\n")
+                              `(lambda () (gdb-tooltip-print ,expr)))))
 		  (setq gud-tooltip-original-filter (process-filter process))
 		  (set-process-filter process 'gud-tooltip-process-output)
 		  (gud-basic-call cmd))
@@ -3476,5 +3492,4 @@ so they have been disabled."))
 
 (provide 'gud)
 
-;; arch-tag: 6d990948-df65-461a-be39-1c7fb83ac4c4
 ;;; gud.el ends here

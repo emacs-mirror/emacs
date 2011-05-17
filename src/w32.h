@@ -2,8 +2,7 @@
 #define EMACS_W32_H
 
 /* Support routines for the NT version of Emacs.
-   Copyright (C) 1994, 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1994, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -144,7 +143,20 @@ extern void syms_of_fontset (void);
 extern int _sys_read_ahead (int fd);
 extern int _sys_wait_accept (int fd);
 
+extern Lisp_Object Vlibrary_cache, QCloaded_from;
+extern HMODULE w32_delayed_load (Lisp_Object, Lisp_Object);
+
+#ifdef HAVE_GNUTLS
+#include <gnutls/gnutls.h>
+
+/* GnuTLS pull (read from remote) interface.  */
+extern ssize_t emacs_gnutls_pull (gnutls_transport_ptr_t p,
+                                  void* buf, size_t sz);
+
+/* GnuTLS push (write to remote) interface.  */
+extern ssize_t emacs_gnutls_push (gnutls_transport_ptr_t p,
+                                  const void* buf, size_t sz);
+#endif /* HAVE_GNUTLS */
+
 #endif /* EMACS_W32_H */
 
-/* arch-tag: 02c36b00-312b-4c4d-a1d9-f905c5e968f0
-   (do not change this comment) */

@@ -27,8 +27,7 @@ citations and indices for LaTeX documents with Emacs.
 This is edition @value{EDITION} of the @b{Ref@TeX{}} User Manual for
 @b{Ref@TeX{}} @value{VERSION}
 
-Copyright @copyright{} 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright @copyright{} 1997-2011  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -44,9 +43,10 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs misc features
 @direntry
-* RefTeX: (reftex).	Emacs support for LaTeX cross-references and citations.
+* RefTeX: (reftex).             Emacs support for LaTeX cross-references
+                                  and citations.
 @end direntry
 
 @finalout
@@ -79,6 +79,7 @@ developing GNU and promoting software freedom.''
 
 @ifnottex
 @node Top,,,(dir)
+@top RefTeX
 
 @b{Ref@TeX{}} is a package for managing Labels, References,
 Citations and index entries with GNU Emacs.
@@ -3281,7 +3282,7 @@ the style @file{multind.el} contains
 (TeX-add-style-hook "multind"
   (lambda ()
     (and (fboundp 'reftex-add-index-macros)
-	 (reftex-add-index-macros '(multind)))))
+         (reftex-add-index-macros '(multind)))))
 @end lisp
 
 If you have your own package @file{myindex} which defines the
@@ -5889,7 +5890,3 @@ released on 7 Jan 1997.
 @printindex cp
 
 @bye
-
-@ignore
-   arch-tag: 1e055774-0576-4b1b-b47f-550d0961fd43
-@end ignore

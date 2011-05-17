@@ -1,6 +1,6 @@
 ;;; ede/cpp-root.el --- A simple way to wrap a C++ project with a single root
 
-;; Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -131,7 +131,7 @@
 ;; (add-to-list 'ede-project-class-files
 ;; 	     (ede-project-autoload "cpp-root"
 ;; 	      :name "CPP ROOT"
-;; 	      :file 'ede-cpp-root
+;; 	      :file 'ede/cpp-root
 ;; 	      :proj-file 'MY-FILE-FOR-DIR
 ;;            :proj-root 'MY-ROOT-FCN
 ;; 	      :load-type 'MY-LOAD
@@ -236,6 +236,18 @@ Argument DIR is the directory it is created for.
 ROOTPROJ is nil, since there is only one project."
   ;; Snoop through our master list.
   (ede-cpp-root-file-existing dir))
+
+;;;###autoload
+(add-to-list 'ede-project-class-files
+	     (ede-project-autoload "cpp-root"
+	      :name "CPP ROOT"
+	      :file 'ede/cpp-root
+	      :proj-file 'ede-cpp-root-project-file-for-dir
+	      :proj-root 'ede-cpp-root-project-root
+	      :load-type 'ede-cpp-root-load
+	      :class-sym 'ede-cpp-root
+	      :new-p nil)
+	     t)
 
 ;;; CLASSES
 ;;
@@ -467,7 +479,7 @@ This is for project include paths and spp source files."
   "Set variables local to PROJECT in BUFFER.
 Also set up the lexical preprocessor map."
   (call-next-method)
-  (when (and (featurep 'semantic/c) (featurep 'semantic/lex-spp))
+  (when (and (featurep 'semantic/bovine/c) (featurep 'semantic/lex-spp))
     (setq semantic-lex-spp-project-macro-symbol-obarray
 	  (semantic-lex-make-spp-table (oref project spp-table)))
     ))
@@ -504,6 +516,21 @@ Also set up the lexical preprocessor map."
   "Get the pre-processor map for project THIS."
   (ede-preprocessor-map  (ede-target-parent this)))
 
+;;; Quick Hack
+(defun ede-create-lots-of-projects-under-dir (dir projfile &rest attributes)
+  "Create a bunch of projects under directory DIR.
+PROJFILE is a file name sans directory that indicates a subdirectory
+is a project directory.
+Generic ATTRIBUTES, such as :include-path can be added.
+Note: This needs some work."
+  (let ((files (directory-files dir t)))
+    (dolist (F files)
+      (if (file-exists-p (expand-file-name projfile F))
+	  `(ede-cpp-root-project (file-name-nondirectory F)
+				 :name (file-name-nondirectory F)
+				 :file (expand-file-name projfile F)
+				 attributes)))))
+
 (provide 'ede/cpp-root)
 
 ;; Local variables:
@@ -511,5 +538,4 @@ Also set up the lexical preprocessor map."
 ;; generated-autoload-load-name: "ede/cpp-root"
 ;; End:
 
-;; arch-tag: c3ac8160-cba6-447e-8b9c-accb7e2d942e
 ;;; ede/cpp-root.el ends here

@@ -1,12 +1,12 @@
 ;;; emacsbug.el --- command to report Emacs bugs to appropriate mailing list
 
-;; Copyright (C) 1985, 1994, 1997, 1998, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1985, 1994, 1997-1998, 2000-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
 ;; Keywords: maint mail
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -31,6 +31,8 @@
 ;; Emacs then paste it into your normal mail client.
 
 ;;; Code:
+
+(require 'url-util)
 
 (defgroup emacsbug nil
   "Sending Emacs bug reports."
@@ -57,6 +59,9 @@
 
 ;; User options end here.
 
+(defvar report-emacs-bug-tracker-url "http://debbugs.gnu.org/cgi/"
+  "Base URL of the GNU bugtracker.
+Used for querying duplicates and linking to existing bugs.")
 
 (defvar report-emacs-bug-orig-text nil
   "The automatically-created initial text of the bug report.")
@@ -73,6 +78,62 @@
 (declare-function x-server-version "xfns.c" (&optional terminal))
 (declare-function message-sort-headers "message" ())
 (defvar message-strip-special-text-properties)
+
+(defun report-emacs-bug-can-use-osx-open ()
+  "Check if OSX open can be used to insert bug report into mailer"
+  (and (featurep 'ns)
+       (equal (executable-find "open") "/usr/bin/open")
+       (memq system-type '(darwin))))
+
+(defun report-emacs-bug-can-use-xdg-email ()
+  "Check if xdg-email can be used, i.e. we are on Gnome, KDE or xfce4."
+  (and (getenv "DISPLAY")
+       (executable-find "xdg-email")
+       (or (getenv "GNOME_DESKTOP_SESSION_ID")
+	   ;; GNOME_DESKTOP_SESSION_ID is deprecated, check on Dbus also.
+	   (condition-case nil
+	       (eq 0 (call-process
+		      "dbus-send" nil nil nil
+				  "--dest=org.gnome.SessionManager"
+				  "--print-reply"
+				  "/org/gnome/SessionManager"
+				  "org.gnome.SessionManager.CanShutdown"))
+	     (error nil))
+	   (equal (getenv "KDE_FULL_SESSION") "true")
+	   (condition-case nil
+	       (eq 0 (call-process
+		      "/bin/sh" nil nil nil
+		      "-c"
+		      "xprop -root _DT_SAVE_MODE|grep xfce4"))
+	     (error nil)))))
+
+(defun report-emacs-bug-insert-to-mailer ()
+  (interactive)
+  (save-excursion
+    (let* ((to (progn
+		 (goto-char (point-min))
+		 (forward-line)
+		 (and (looking-at "^To: \\(.*\\)")
+		      (match-string-no-properties 1))))
+	   (subject (progn
+		      (forward-line)
+		      (and (looking-at "^Subject: \\(.*\\)")
+			   (match-string-no-properties 1))))
+	   (body (progn
+		   (forward-line 2)
+		   (if (> (point-max) (point))
+		       (buffer-substring-no-properties (point) (point-max))))))
+      (if (and to subject body)
+	  (if (report-emacs-bug-can-use-osx-open)
+	      (start-process "/usr/bin/open" nil "open"
+			     (concat "mailto:" to 
+				     "?subject=" (url-hexify-string subject)
+				     "&body=" (url-hexify-string body)))
+	    (start-process "xdg-email" nil "xdg-email"
+			   "--subject" subject
+			   "--body" body
+			   (concat "mailto:" to)))
+	(error "Subject, To or body not found")))))
 
 ;;;###autoload
 (defun report-emacs-bug (topic &optional recent-keys)
@@ -93,6 +154,8 @@ Prompts for bug subject.  Leaves you in a mail buffer."
         (prompt-properties '(field emacsbug-prompt
                                    intangible but-helpful
                                    rear-nonsticky t))
+	(can-insert-mail (or (report-emacs-bug-can-use-xdg-email)
+			     (report-emacs-bug-can-use-osx-open)))
         user-point message-end-point)
     (setq message-end-point
 	  (with-current-buffer (get-buffer-create "*Messages*")
@@ -125,9 +188,9 @@ Prompts for bug subject.  Leaves you in a mail buffer."
         (overlay-put (make-overlay pos (point)) 'face 'highlight))
       (insert " if possible, because the Emacs maintainers
 usually do not have translators to read other languages for them.\n\n")
-      (insert (format "Your bug report will be posted to the %s mailing list"
+      (insert (format "Your report will be posted to the %s mailing list"
 		      report-emacs-bug-address))
-	(insert ",\nand to the gnu.emacs.bug news group.\n\n"))
+      (insert "\nand the gnu.emacs.bug news group, and at http://debbugs.gnu.org.\n\n"))
 
     (insert "Please describe exactly what actions triggered the bug\n"
 	    "and the precise symptoms of the bug.  If you can, give\n"
@@ -226,16 +289,14 @@ usually do not have translators to read other languages for them.\n\n")
     ;; This is so the user has to type something in order to send easily.
     (use-local-map (nconc (make-sparse-keymap) (current-local-map)))
     (define-key (current-local-map) "\C-c\C-i" 'report-emacs-bug-info)
-    ;; Could test major-mode instead.
-    (cond ((memq mail-user-agent '(message-user-agent gnus-user-agent))
-           (setq report-emacs-bug-send-command "message-send-and-exit"
-                 report-emacs-bug-send-hook 'message-send-hook))
-          ((eq mail-user-agent 'sendmail-user-agent)
-           (setq report-emacs-bug-send-command "mail-send-and-exit"
-                 report-emacs-bug-send-hook 'mail-send-hook))
-          ((eq mail-user-agent 'mh-e-user-agent)
-           (setq report-emacs-bug-send-command "mh-send-letter"
-                 report-emacs-bug-send-hook 'mh-before-send-letter-hook)))
+    (if can-insert-mail
+	(define-key (current-local-map) "\C-cm"
+	  'report-emacs-bug-insert-to-mailer))
+    (setq report-emacs-bug-send-command (get mail-user-agent 'sendfunc)
+	  report-emacs-bug-send-hook (get mail-user-agent 'hookvar))
+    (if report-emacs-bug-send-command
+	(setq report-emacs-bug-send-command
+	      (symbol-name report-emacs-bug-send-command)))
     (unless report-emacs-bug-no-explanations
       (with-output-to-temp-buffer "*Bug Help*"
 	(princ "While in the mail buffer:\n\n")
@@ -245,6 +306,9 @@ usually do not have translators to read other languages for them.\n\n")
                             report-emacs-bug-send-command))))
 	(princ (substitute-command-keys
 		"  Type \\[kill-buffer] RET to cancel (don't send it).\n"))
+	(if can-insert-mail
+	    (princ (substitute-command-keys
+		    "  Type \\[report-emacs-bug-insert-to-mailer] to insert text to you preferred mail program.\n")))
 	(terpri)
 	(princ (substitute-command-keys
 		"  Type \\[report-emacs-bug-info] to visit in Info the Emacs Manual section
@@ -276,18 +340,6 @@ usually do not have translators to read other languages for them.\n\n")
          (string-equal (buffer-substring-no-properties (point-min) (point))
                        report-emacs-bug-orig-text)
          (error "No text entered in bug report"))
-    ;; Check the buffer contents and reject non-English letters.
-    ;; FIXME message-mode probably does this anyway.
-    (goto-char (point-min))
-    (skip-chars-forward "\0-\177")
-    (unless (eobp)
-      (if (or report-emacs-bug-no-confirmation
-              (y-or-n-p "Convert non-ASCII letters to hexadecimal? "))
-          (while (progn (skip-chars-forward "\0-\177")
-                        (not (eobp)))
-            (let ((ch (following-char)))
-              (delete-char 1)
-              (insert (format "=%02x" ch))))))
 
     ;; The last warning for novice users.
     (unless (or report-emacs-bug-no-confirmation
@@ -321,7 +373,90 @@ and send the mail again%s."
                                           'field 'emacsbug-prompt))
         (delete-region pos (field-end (1+ pos)))))))
 
+
+;; Querying the bug database
+
+(defvar report-emacs-bug-bug-alist nil)
+(make-variable-buffer-local 'report-emacs-bug-bug-alist)
+(defvar report-emacs-bug-choice-widget nil)
+(make-variable-buffer-local 'report-emacs-bug-choice-widget)
+
+(defun report-emacs-bug-create-existing-bugs-buffer (bugs keywords)
+  (switch-to-buffer (get-buffer-create "*Existing Emacs Bugs*"))
+  (setq buffer-read-only t)
+  (let ((inhibit-read-only t))
+    (erase-buffer)
+    (setq report-emacs-bug-bug-alist bugs)
+    (widget-insert (propertize (concat "Already known bugs ("
+				       keywords "):\n\n")
+			       'face 'bold))
+    (if bugs
+	(setq report-emacs-bug-choice-widget
+	      (apply 'widget-create 'radio-button-choice
+		     :value (caar bugs)
+		     (let (items)
+		       (dolist (bug bugs)
+			 (push (list
+				'url-link
+				:format (concat "Bug#" (number-to-string (nth 2 bug))
+						": " (cadr bug) "\n    %[%v%]\n")
+				;; FIXME: Why is only the link of the
+				;; active item clickable?
+				(car bug))
+			       items))
+		       (nreverse items))))
+      (widget-insert "No bugs maching your keywords found.\n"))
+    (widget-insert "\n")
+    (widget-create 'push-button
+		   :notify (lambda (&rest ignore)
+			     ;; TODO: Do something!
+			     (message "Reporting new bug!"))
+		   "Report new bug")
+    (when bugs
+      (widget-insert " ")
+      (widget-create 'push-button
+		     :notify (lambda (&rest ignore)
+			       (let ((val (widget-value report-emacs-bug-choice-widget)))
+				 ;; TODO: Do something!
+				 (message "Appending to bug %s!"
+					  (nth 2 (assoc val report-emacs-bug-bug-alist)))))
+		     "Append to chosen bug"))
+    (widget-insert " ")
+    (widget-create 'push-button
+		   :notify (lambda (&rest ignore)
+			     (kill-buffer))
+		   "Quit reporting bug")
+    (widget-insert "\n"))
+  (use-local-map widget-keymap)
+  (widget-setup)
+  (goto-char (point-min)))
+
+(defun report-emacs-bug-parse-query-results (status keywords)
+  (goto-char (point-min))
+  (let (buglist)
+    (while (re-search-forward "<a href=\"bugreport\\.cgi\\?bug=\\([[:digit:]]+\\)\">\\([^<]+\\)</a>" nil t)
+      (let ((number (match-string 1))
+	    (subject (match-string 2)))
+	(when (not (string-match "^#" subject))
+	  (push (list
+		 ;; first the bug URL
+		 (concat report-emacs-bug-tracker-url
+			 "bugreport.cgi?bug=" number)
+		 ;; then the subject and number
+		 subject (string-to-number number))
+		buglist))))
+    (report-emacs-bug-create-existing-bugs-buffer (nreverse buglist) keywords)))
+
+(defun report-emacs-bug-query-existing-bugs (keywords)
+  "Query for KEYWORDS at `report-emacs-bug-tracker-url', and return the result.
+The result is an alist with items of the form (URL SUBJECT NO)."
+  (interactive "sBug keywords (comma separated): ")
+  (url-retrieve (concat report-emacs-bug-tracker-url
+			"pkgreport.cgi?include=subject%3A"
+			(replace-regexp-in-string "[[:space:]]+" "+" keywords)
+			";package=emacs")
+		'report-emacs-bug-parse-query-results (list keywords)))
+
 (provide 'emacsbug)
 
-;; arch-tag: 248b6523-c3b5-4fec-9a3f-0411fafa7d49
 ;;; emacsbug.el ends here

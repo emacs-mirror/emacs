@@ -1,9 +1,8 @@
 ;;; japan-util.el --- utilities for Japanese -*- coding: iso-2022-7bit; -*-
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
@@ -325,5 +324,4 @@ If non-nil, second arg INITIAL-INPUT is a string to insert before reading."
 ;;
 (provide 'japan-util)
 
-;; arch-tag: b579595c-c9ad-4b57-9314-98cd8b214f89
 ;;; japan-util.el ends here

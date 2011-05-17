@@ -1,6 +1,6 @@
 ;;; semantic-utest.el --- Tests for semantic's parsing system.
 
-;;; Copyright (C) 2003, 2004, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;; Copyright (C) 2003-2004, 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -864,5 +864,4 @@ SKIPNAMES is a list of names to remove from NAME-CONTENTS"
 
 
 
-;; arch-tag: 082cbe6f-2290-476e-9760-a19a6bdd16b8
 ;;; semantic-utest.el ends here

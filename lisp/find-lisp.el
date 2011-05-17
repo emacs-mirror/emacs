@@ -4,8 +4,7 @@
 ;; Created: Fri Mar 26 1999
 ;; Keywords: unix
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -193,7 +192,6 @@ It is a function which takes two arguments, the directory and its parent."
 					  directory-predicate buffer-name)
   "Run find (Lisp version) and go into Dired mode on a buffer of the output."
   (let ((dired-buffers dired-buffers)
-	buf
 	(regexp find-lisp-regexp))
     ;; Expand DIR ("" means default-directory), and make sure it has a
     ;; trailing slash.
@@ -204,7 +202,7 @@ It is a function which takes two arguments, the directory and its parent."
     (or
      (and (buffer-name)
 	  (string= buffer-name (buffer-name)))
-	(switch-to-buffer (setq buf (get-buffer-create buffer-name))))
+	(switch-to-buffer (get-buffer-create buffer-name)))
     (widen)
     (kill-all-local-variables)
     (setq buffer-read-only nil)
@@ -224,7 +222,7 @@ It is a function which takes two arguments, the directory and its parent."
     (make-local-variable 'revert-buffer-function)
     (setq revert-buffer-function
 	  (function
-	   (lambda(ignore1 ignore2)
+	   (lambda (_ignore1 _ignore2)
 	     (find-lisp-insert-directory
 	      default-directory
 	      find-lisp-file-predicate
@@ -247,10 +245,10 @@ It is a function which takes two arguments, the directory and its parent."
     (goto-char (point-min))
     (dired-goto-next-file)))
 
-(defun find-lisp-insert-directory  (dir
-				    file-predicate
-				    directory-predicate
-				    sort-function)
+(defun find-lisp-insert-directory (dir
+                                   file-predicate
+                                   directory-predicate
+				   _sort-function)
   "Insert the results of `find-lisp-find-files' in the current buffer."
   (let ((buffer-read-only nil)
 	(files (find-lisp-find-files-internal
@@ -270,7 +268,7 @@ It is a function which takes two arguments, the directory and its parent."
     ;; Run the find function
     (mapc
      (function
-      (lambda(file)
+      (lambda (file)
 	(find-lisp-find-dired-insert-file
 	 (substring file len)
 	 (current-buffer))))
@@ -356,5 +354,4 @@ It is a function which takes two arguments, the directory and its parent."
 
 (provide 'find-lisp)
 
-;; arch-tag: a711374c-f12a-46f6-aa18-ba7d77b9602a
 ;;; find-lisp.el ends here

@@ -1,6 +1,6 @@
 ;;; semantic/ede-grammar.el --- EDE support for Semantic Grammar Files
 
-;;;  Copyright (C) 2003, 2004, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2004, 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -133,11 +133,8 @@ Lays claim to all -by.el, and -wy.el files."
 	      (save-excursion
 		(semantic-grammar-create-package))
 	      (save-buffer)
-	      (let ((cf (concat (semantic-grammar-package) ".el")))
-		(if (or (not (file-exists-p cf))
-			(file-newer-than-file-p src cf))
-		    (byte-compile-file cf)))))
-	    (oref obj source)))
+              (byte-recompile-file (concat (semantic-grammar-package) ".el") nil 0)))
+	  (oref obj source)))
   (message "All Semantic Grammar sources are up to date in %s" (object-name obj)))
 
 ;;; Makefile generation functions
@@ -197,5 +194,4 @@ Argument THIS is the target that should insert stuff."
 
 (provide 'semantic/ede-grammar)
 
-;; arch-tag: 37a06a8d-957a-4fa2-a931-38482d28c24a
 ;;; semantic/ede-grammar.el ends here

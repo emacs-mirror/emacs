@@ -1,7 +1,6 @@
 ;;; regi.el --- REGular expression Interpreting engine
 
-;; Copyright (C) 1993, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: 1993 Barry A. Warsaw, Century Computing, Inc. <bwarsaw@cen.com>
 ;; Maintainer:    bwarsaw@cen.com
@@ -254,5 +253,4 @@ useful information:
 
 (provide 'regi)
 
-;; arch-tag: 804b4e45-4109-4f76-9a88-21887b881747
 ;;; regi.el ends here

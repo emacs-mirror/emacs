@@ -1,12 +1,12 @@
 ;;; ebnf-iso.el --- parser for ISO EBNF
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, ebnf, PostScript
 ;; Version: 1.9
+;; Package: ebnf2ps
 
 ;; This file is part of GNU Emacs.
 
@@ -611,5 +611,4 @@ See documentation for variable `ebnf-iso-lex'."
 (provide 'ebnf-iso)
 
 
-;; arch-tag: 03315eef-8f64-404a-bf9d-256d42442ee3
 ;;; ebnf-iso.el ends here

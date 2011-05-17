@@ -1,7 +1,6 @@
 ;;; kmacro.el --- enhanced keyboard macros
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2002-2011  Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard convenience
@@ -480,7 +479,7 @@ without repeating the prefix."
     (kmacro-display (car (car kmacro-ring)) "2nd macro")))
 
 
-(defun kmacro-cycle-ring-next (&optional arg)
+(defun kmacro-cycle-ring-next (&optional _arg)
   "Move to next keyboard macro in keyboard macro ring.
 Displays the selected macro in the echo area."
   (interactive)
@@ -499,7 +498,7 @@ Displays the selected macro in the echo area."
 (put 'kmacro-cycle-ring-next 'kmacro-repeat 'ring)
 
 
-(defun kmacro-cycle-ring-previous (&optional arg)
+(defun kmacro-cycle-ring-previous (&optional _arg)
   "Move to previous keyboard macro in keyboard macro ring.
 Displays the selected macro in the echo area."
   (interactive)
@@ -527,7 +526,7 @@ Displays the selected macro in the echo area."
     (kmacro-display last-kbd-macro t)))
 
 
-(defun kmacro-delete-ring-head (&optional arg)
+(defun kmacro-delete-ring-head (&optional _arg)
   "Delete current macro from keyboard macro ring."
   (interactive)
   (unless (kmacro-ring-empty-p t)
@@ -642,11 +641,13 @@ others, use \\[kmacro-name-last-macro]."
 		       kmacro-call-repeat-key)))
       (setq repeat-key-str (format-kbd-macro (vector repeat-key) nil))
       (while repeat-key
-	(message "(Type %s to repeat macro%s)"
-		 repeat-key-str
-		 (if (and kmacro-call-repeat-with-arg
-			  arg (> arg 1))
-		     (format " %d times" arg) ""))
+	;; Issue a hint to the user, if the echo area isn't in use.
+	(unless (current-message)
+	  (message "(Type %s to repeat macro%s)"
+		   repeat-key-str
+		   (if (and kmacro-call-repeat-with-arg
+			    arg (> arg 1))
+		       (format " %d times" arg) "")))
 	(if (equal repeat-key (read-event))
 	    (progn
 	      (clear-this-command-keys t)
@@ -776,7 +777,7 @@ If kbd macro currently being defined end it before activating it."
        mac))
 
 
-(defun kmacro-bind-to-key (arg)
+(defun kmacro-bind-to-key (_arg)
   "When not defining or executing a macro, offer to bind last macro to a key.
 The key sequences [C-x C-k 0] through [C-x C-k 9] and [C-x C-k A]
 through [C-x C-k Z] are reserved for user bindings, and to bind to
@@ -836,7 +837,7 @@ Such a \"function\" cannot be called from Lisp, but it is a valid editor command
   (put symbol 'kmacro t))
 
 
-(defun kmacro-view-macro (&optional arg)
+(defun kmacro-view-macro (&optional _arg)
   "Display the last keyboard macro.
 If repeated, it shows previous elements in the macro ring."
   (interactive)
@@ -915,33 +916,34 @@ without repeating the prefix."
 (defvar kmacro-step-edit-help)     	 ;; kmacro step edit help enabled
 (defvar kmacro-step-edit-num-input-keys) ;; to ignore duplicate pre-command hook
 
-(defvar kmacro-step-edit-map (make-sparse-keymap)
+(defvar kmacro-step-edit-map
+  (let ((map (make-sparse-keymap)))
+    ;; query-replace-map answers include: `act', `skip', `act-and-show',
+    ;; `exit', `act-and-exit', `edit', `delete-and-edit', `recenter',
+    ;; `automatic', `backup', `exit-prefix', and `help'.")
+    ;; Also: `quit', `edit-replacement'
+
+    (set-keymap-parent map query-replace-map)
+
+    (define-key map "\t" 'act-repeat)
+    (define-key map [tab] 'act-repeat)
+    (define-key map "\C-k" 'skip-rest)
+    (define-key map "c" 'automatic)
+    (define-key map "f" 'skip-keep)
+    (define-key map "q" 'quit)
+    (define-key map "d" 'skip)
+    (define-key map "\C-d" 'skip)
+    (define-key map "i" 'insert)
+    (define-key map "I" 'insert-1)
+    (define-key map "r" 'replace)
+    (define-key map "R" 'replace-1)
+    (define-key map "a" 'append)
+    (define-key map "A" 'append-end)
+    map)
   "Keymap that defines the responses to questions in `kmacro-step-edit-macro'.
 This keymap is an extension to the `query-replace-map', allowing the
 following additional answers: `insert', `insert-1', `replace', `replace-1',
 `append', `append-end', `act-repeat', `skip-end', `skip-keep'.")
-
-;; query-replace-map answers include: `act', `skip', `act-and-show',
-;; `exit', `act-and-exit', `edit', `delete-and-edit', `recenter',
-;; `automatic', `backup', `exit-prefix', and `help'.")
-;; Also: `quit', `edit-replacement'
-
-(set-keymap-parent kmacro-step-edit-map query-replace-map)
-
-(define-key kmacro-step-edit-map "\t" 'act-repeat)
-(define-key kmacro-step-edit-map [tab] 'act-repeat)
-(define-key kmacro-step-edit-map "\C-k" 'skip-rest)
-(define-key kmacro-step-edit-map "c" 'automatic)
-(define-key kmacro-step-edit-map "f" 'skip-keep)
-(define-key kmacro-step-edit-map "q" 'quit)
-(define-key kmacro-step-edit-map "d" 'skip)
-(define-key kmacro-step-edit-map "\C-d" 'skip)
-(define-key kmacro-step-edit-map "i" 'insert)
-(define-key kmacro-step-edit-map "I" 'insert-1)
-(define-key kmacro-step-edit-map "r" 'replace)
-(define-key kmacro-step-edit-map "R" 'replace-1)
-(define-key kmacro-step-edit-map "a" 'append)
-(define-key kmacro-step-edit-map "A" 'append-end)
 
 (defvar kmacro-step-edit-prefix-commands
   '(universal-argument universal-argument-more universal-argument-minus
@@ -1268,5 +1270,4 @@ To customize possible responses, change the \"bindings\" in `kmacro-step-edit-ma
 
 (provide 'kmacro)
 
-;; arch-tag: d3fe0b24-ae41-47de-a4d6-41a77d5559f0
 ;;; kmacro.el ends here

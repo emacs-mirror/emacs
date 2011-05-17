@@ -1,7 +1,6 @@
 ;;; flymake.el -- a universal on-the-fly syntax checker
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2003-2011  Free Software Foundation, Inc.
 
 ;; Author:  Pavel Kobyakov <pk_at_work@yahoo.com>
 ;; Maintainer: Pavel Kobyakov <pk_at_work@yahoo.com>
@@ -105,16 +104,6 @@ Zero-length substrings at the beginning and end of the list are omitted."
   (if (fboundp 'temp-directory)
       'temp-directory
     (lambda () temporary-file-directory)))
-
-(defalias 'flymake-line-beginning-position
-  (if (fboundp 'line-beginning-position)
-      'line-beginning-position
-    (lambda (&optional arg) (save-excursion (beginning-of-line arg) (point)))))
-
-(defalias 'flymake-line-end-position
-  (if (fboundp 'line-end-position)
-      'line-end-position
-    (lambda (&optional arg) (save-excursion (end-of-line arg) (point)))))
 
 (defun flymake-posn-at-point-as-event (&optional position window dx dy)
   "Return pixel position of top left corner of glyph at POSITION,
@@ -423,9 +412,11 @@ to the beginning of the list (File.h -> File.cpp moved to top)."
        (not (equal file-one file-two))))
 
 (defcustom flymake-check-file-limit 8192
-  "Max number of chars to look at when checking possible master file."
+  "Maximum number of chars to look at when checking possible master file.
+Nil means search the entire file."
   :group 'flymake
-  :type 'integer)
+  :type '(choice (const :tag "No limit" nil)
+                 (integer :tag "Characters")))
 
 (defun flymake-check-patch-master-file-buffer
        (master-file-temp-buffer
@@ -441,16 +432,26 @@ For example, foo.cpp is a master file if it includes foo.h.
 Whether a buffer for MATER-FILE-NAME exists, use it as a source
 instead of reading master file from disk."
   (let* ((source-file-nondir (file-name-nondirectory source-file-name))
+         (source-file-extension (file-name-extension source-file-nondir))
+         (source-file-nonext (file-name-sans-extension source-file-nondir))
          (found                     nil)
 	 (inc-name                  nil)
 	 (search-limit              flymake-check-file-limit))
     (setq regexp
           (format regexp	; "[ \t]*#[ \t]*include[ \t]*\"\\(.*%s\\)\""
-                  (regexp-quote source-file-nondir)))
+                  ;; Hack for tex files, where \include often excludes .tex.
+                  ;; Maybe this is safe generally.
+                  (if (and (> (length source-file-extension) 1)
+                           (string-equal source-file-extension "tex"))
+                      (format "%s\\(?:\\.%s\\)?"
+                              (regexp-quote source-file-nonext)
+                              (regexp-quote source-file-extension))
+                    (regexp-quote source-file-nondir))))
     (unwind-protect
         (with-current-buffer master-file-temp-buffer
-          (when (> search-limit (point-max))
-            (setq search-limit (point-max)))
+          (if (or (not search-limit)
+                  (> search-limit (point-max)))
+              (setq search-limit (point-max)))
           (flymake-log 3 "checking %s against regexp %s"
                        master-file-name regexp)
           (goto-char (point-min))
@@ -461,6 +462,11 @@ instead of reading master file from disk."
 
               (flymake-log 3 "found possible match for %s" source-file-nondir)
               (setq inc-name (match-string 1))
+              (and (> (length source-file-extension) 1)
+                   (string-equal source-file-extension "tex")
+                   (not (string-match (format "\\.%s\\'" source-file-extension)
+                                      inc-name))
+                   (setq inc-name (concat inc-name "." source-file-extension)))
               (when (eq t (compare-strings
                            source-file-nondir nil nil
                            inc-name (- (length inc-name)
@@ -590,7 +596,7 @@ It's flymake process filter."
       (with-current-buffer source-buffer
         (flymake-parse-output-and-residual output)))))
 
-(defun flymake-process-sentinel (process event)
+(defun flymake-process-sentinel (process _event)
   "Sentinel for syntax check buffers."
   (when (memq (process-status process) '(signal exit))
     (let* ((exit-status       (process-exit-status process))
@@ -808,8 +814,8 @@ Return t if it has at least one flymake overlay, nil if no overlay."
 Perhaps use text from LINE-ERR-INFO-LIST to enhance highlighting."
   (goto-char (point-min))
   (forward-line (1- line-no))
-  (let* ((line-beg (flymake-line-beginning-position))
-	 (line-end (flymake-line-end-position))
+  (let* ((line-beg (point-at-bol))
+	 (line-end (point-at-eol))
 	 (beg      line-beg)
 	 (end      line-end)
 	 (tooltip-text (flymake-ler-text (nth 0 line-err-info-list)))
@@ -1104,7 +1110,7 @@ For the format of LINE-ERR-INFO, see `flymake-ler-make-ler'."
     (flymake-log 1 "deleted file %s" file-name)))
 
 (defun flymake-safe-delete-directory (dir-name)
-  (condition-case err
+  (condition-case nil
       (progn
 	(delete-directory dir-name)
 	(flymake-log 1 "deleted dir %s" dir-name))
@@ -1146,34 +1152,34 @@ For the format of LINE-ERR-INFO, see `flymake-ler-make-ler'."
 
 (defun flymake-start-syntax-check-process (cmd args dir)
   "Start syntax check process."
-  (let* ((process nil))
-    (condition-case err
-	(progn
-	  (when dir
-	    (let ((default-directory dir))
-	      (flymake-log 3 "starting process on dir %s" default-directory)))
-	  (setq process (apply 'start-process "flymake-proc" (current-buffer) cmd args))
-	  (set-process-sentinel process 'flymake-process-sentinel)
-	  (set-process-filter process 'flymake-process-filter)
-          (push process flymake-processes)
+  (condition-case err
+      (let* ((process
+              (let ((default-directory (or dir default-directory)))
+                (when dir
+                  (flymake-log 3 "starting process on dir %s" dir))
+                (apply 'start-file-process
+                       "flymake-proc" (current-buffer) cmd args))))
+        (set-process-sentinel process 'flymake-process-sentinel)
+        (set-process-filter process 'flymake-process-filter)
+        (push process flymake-processes)
 
-          (setq flymake-is-running t)
-          (setq flymake-last-change-time nil)
-          (setq flymake-check-start-time (flymake-float-time))
+        (setq flymake-is-running t)
+        (setq flymake-last-change-time nil)
+        (setq flymake-check-start-time (flymake-float-time))
 
-	  (flymake-report-status nil "*")
-	  (flymake-log 2 "started process %d, command=%s, dir=%s"
-		       (process-id process) (process-command process)
-                       default-directory)
-	  process)
-      (error
-       (let* ((err-str (format "Failed to launch syntax check process '%s' with args %s: %s"
-			       cmd args (error-message-string err)))
-	      (source-file-name buffer-file-name)
-	      (cleanup-f        (flymake-get-cleanup-function source-file-name)))
-	 (flymake-log 0 err-str)
-	 (funcall cleanup-f)
-	 (flymake-report-fatal-status "PROCERR" err-str))))))
+        (flymake-report-status nil "*")
+        (flymake-log 2 "started process %d, command=%s, dir=%s"
+                     (process-id process) (process-command process)
+                     default-directory)
+        process)
+    (error
+     (let* ((err-str (format "Failed to launch syntax check process '%s' with args %s: %s"
+                             cmd args (error-message-string err)))
+            (source-file-name buffer-file-name)
+            (cleanup-f        (flymake-get-cleanup-function source-file-name)))
+       (flymake-log 0 err-str)
+       (funcall cleanup-f)
+       (flymake-report-fatal-status "PROCERR" err-str)))))
 
 (defun flymake-kill-process (proc)
   "Kill process PROC."
@@ -1380,7 +1386,7 @@ With arg, turn Flymake mode on if and only if arg is positive."
   :group 'flymake
   :type 'boolean)
 
-(defun flymake-after-change-function (start stop len)
+(defun flymake-after-change-function (start stop _len)
   "Start syntax check for current buffer if it isn't already running."
   ;;+(flymake-log 0 "setting change time to %s" (flymake-float-time))
   (let((new-text (buffer-substring start stop)))
@@ -1490,7 +1496,7 @@ With arg, turn Flymake mode on if and only if arg is positive."
     (flymake-log 3 "create-temp-inplace: file=%s temp=%s" file-name temp-name)
     temp-name))
 
-(defun flymake-create-temp-with-folder-structure (file-name prefix)
+(defun flymake-create-temp-with-folder-structure (file-name _prefix)
   (unless (stringp file-name)
     (error "Invalid file-name"))
 
@@ -1746,15 +1752,18 @@ Use CREATE-TEMP-F for creating temp copy."
 (defun flymake-simple-tex-init ()
   (flymake-get-tex-args (flymake-init-create-temp-buffer-copy 'flymake-create-temp-inplace)))
 
+;; Perhaps there should be a buffer-local variable flymake-master-file
+;; that people can set to override this stuff.  Could inherit from
+;; the similar AUCTeX variable.
 (defun flymake-master-tex-init ()
   (let* ((temp-master-file-name (flymake-init-create-temp-source-and-master-buffer-copy
                                  'flymake-get-include-dirs-dot 'flymake-create-temp-inplace
 				 '("\\.tex\\'")
-				 "[ \t]*\\input[ \t]*{\\(.*%s\\)}")))
+				 "[ \t]*\\in\\(?:put\\|clude\\)[ \t]*{\\(.*%s\\)}")))
     (when temp-master-file-name
       (flymake-get-tex-args temp-master-file-name))))
 
-(defun flymake-get-include-dirs-dot (base-dir)
+(defun flymake-get-include-dirs-dot (_base-dir)
   '("."))
 
 ;;;; xml-specific init-cleanup routines
@@ -1763,5 +1772,4 @@ Use CREATE-TEMP-F for creating temp copy."
 
 (provide 'flymake)
 
-;; arch-tag: 8f0d6090-061d-4cac-8862-7c151c4a02dd
 ;;; flymake.el ends here

@@ -1,8 +1,6 @@
 ;;; ebrowse.el --- Emacs C++ class browser & tags facility
 
-;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;; Free Software Foundation Inc.
+;; Copyright (C) 1992-2011  Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Maintainer: FSF
@@ -738,7 +736,7 @@ MARKED-ONLY non-nil means include marked classes only."
   "Return a list containing all files mentioned in a tree.
 MARKED-ONLY non-nil means include marked classes only."
   (let (list)
-    (maphash #'(lambda (file dummy) (setq list (cons file list)))
+    (maphash (lambda (file _dummy) (setq list (cons file list)))
 	     (ebrowse-files-table marked-only))
     list))
 
@@ -786,9 +784,9 @@ The class tree is found in the buffer-local variable `ebrowse--tree-obarray'."
 (defun ebrowse-sort-tree-list (list)
   "Sort a LIST of `ebrowse-ts' structures by qualified class names."
   (sort list
-	#'(lambda (a b)
-	    (string< (ebrowse-qualified-class-name (ebrowse-ts-class a))
-		     (ebrowse-qualified-class-name (ebrowse-ts-class b))))))
+	(lambda (a b)
+	  (string< (ebrowse-qualified-class-name (ebrowse-ts-class a))
+		   (ebrowse-qualified-class-name (ebrowse-ts-class b))))))
 
 
 (defun ebrowse-class-in-tree (class tree)
@@ -925,7 +923,7 @@ and TREE is a list of `ebrowse-ts' structures forming the class tree."
     (list header tree)))
 
 
-(defun ebrowse-revert-tree-buffer-from-file (ignore-auto-save noconfirm)
+(defun ebrowse-revert-tree-buffer-from-file (_ignore-auto-save noconfirm)
   "Function installed as `revert-buffer-function' in tree buffers.
 See that variable's documentation for the meaning of IGNORE-AUTO-SAVE and
 NOCONFIRM."
@@ -939,11 +937,11 @@ NOCONFIRM."
     (current-buffer)))
 
 
-(defun ebrowse-create-tree-buffer (tree tags-file header obarray pop)
+(defun ebrowse-create-tree-buffer (tree tags-file header classes pop)
   "Create a new tree buffer for tree TREE.
 The tree was loaded from file TAGS-FILE.
 HEADER is the header structure of the file.
-OBARRAY is an obarray with a symbol for each class in the tree.
+CLASSES is an obarray with a symbol for each class in the tree.
 POP non-nil means popup the buffer up at the end.
 Return the buffer created."
   (let ((name ebrowse-tree-buffer-name))
@@ -951,7 +949,7 @@ Return the buffer created."
     (ebrowse-tree-mode)
     (setq ebrowse--tree tree
 	  ebrowse--tags-file-name tags-file
-	  ebrowse--tree-obarray obarray
+	  ebrowse--tree-obarray classes
 	  ebrowse--header header
 	  ebrowse--frozen-flag nil)
     (ebrowse-redraw-tree)
@@ -1116,7 +1114,7 @@ if for some reason a circle is in the inheritance graph."
 ;;; Tree-mode - mode for tree buffers
 
 ;;;###autoload
-(defun ebrowse-tree-mode ()
+(define-derived-mode ebrowse-tree-mode special-mode "Ebrowse-Tree"
   "Major mode for Ebrowse class tree buffers.
 Each line corresponds to a class in a class tree.
 Letters do not insert themselves, they are commands.
@@ -1125,12 +1123,10 @@ E.g.\\[save-buffer] writes the tree to the file it was loaded from.
 
 Tree mode key bindings:
 \\{ebrowse-tree-mode-map}"
-  (interactive)
   (let* ((ident (propertized-buffer-identification "C++ Tree"))
-	 header tree buffer-read-only)
+	 (inhibit-read-only t)
+         header tree)
 
-    (kill-all-local-variables)
-    (use-local-map ebrowse-tree-mode-map)
     (buffer-disable-undo)
 
     (unless (zerop (buffer-size))
@@ -1141,38 +1137,27 @@ Tree mode key bindings:
       (erase-buffer)
       (message nil))
 
-    (mapc 'make-local-variable
-	  '(ebrowse--tags-file-name
-	    ebrowse--indentation
-	    ebrowse--tree
-	    ebrowse--header
-	    ebrowse--show-file-names-flag
-	    ebrowse--frozen-flag
-	    ebrowse--tree-obarray
-	    revert-buffer-function))
+    (set (make-local-variable 'ebrowse--show-file-names-flag) nil)
+    (set (make-local-variable 'ebrowse--tree-obarray) (make-vector 127 0))
+    (set (make-local-variable 'ebrowse--frozen-flag) nil)
+    (setq mode-line-buffer-identification ident)
+    (setq buffer-read-only t)
+    (setq selective-display t)
+    (setq selective-display-ellipses t)
+    (set (make-local-variable 'revert-buffer-function)
+         #'ebrowse-revert-tree-buffer-from-file)
+    (set (make-local-variable 'ebrowse--header) header)
+    (set (make-local-variable 'ebrowse--tree) tree)
+    (set (make-local-variable 'ebrowse--tags-file-name) buffer-file-name)
+    (set (make-local-variable 'ebrowse--tree-obarray)
+         (and tree (ebrowse-build-tree-obarray tree)))
+    (set (make-local-variable 'ebrowse--frozen-flag) nil)
 
-    (setf ebrowse--show-file-names-flag nil
-	  ebrowse--tree-obarray (make-vector 127 0)
-	  ebrowse--frozen-flag nil
-	  major-mode 'ebrowse-tree-mode
-	  mode-name "Ebrowse-Tree"
-	  mode-line-buffer-identification ident
-	  buffer-read-only t
-	  selective-display t
-	  selective-display-ellipses t
-	  revert-buffer-function 'ebrowse-revert-tree-buffer-from-file
-	  ebrowse--header header
-	  ebrowse--tree tree
-	  ebrowse--tags-file-name (buffer-file-name)
-	  ebrowse--tree-obarray (and tree (ebrowse-build-tree-obarray tree))
-	  ebrowse--frozen-flag nil)
-
-    (add-hook 'local-write-file-hooks 'ebrowse-write-file-hook-fn)
+    (add-hook 'local-write-file-hooks 'ebrowse-write-file-hook-fn nil t)
     (modify-syntax-entry ?_ (char-to-string (char-syntax ?a)))
     (when tree
       (ebrowse-redraw-tree)
-      (set-buffer-modified-p nil))
-    (run-mode-hooks 'ebrowse-tree-mode-hook)))
+      (set-buffer-modified-p nil))))
 
 
 
@@ -1230,17 +1215,16 @@ Do not ask for confirmation if FORCED is non-nil."
   "Toggle mark for class cursor is on.
 If given a numeric N-TIMES argument, mark that many classes."
   (interactive "p")
-  (let (to-change pnt)
+  (let (to-change)
     ;; Get the classes whose mark must be toggled. Note that
     ;; ebrowse-tree-at-point might issue an error.
-    (condition-case error
-	(loop repeat (or n-times 1)
-	      as tree = (ebrowse-tree-at-point)
-	      do (progn
-		   (setf (ebrowse-ts-mark tree) (not (ebrowse-ts-mark tree)))
-		   (forward-line 1)
-		   (push tree to-change)))
-      (error nil))
+    (ignore-errors
+      (loop repeat (or n-times 1)
+	    as tree = (ebrowse-tree-at-point)
+	    do (progn
+		 (setf (ebrowse-ts-mark tree) (not (ebrowse-ts-mark tree)))
+		 (forward-line 1)
+		 (push tree to-change))))
     (save-excursion
       ;; For all these classes, reverse the mark char in the display
       ;; by a regexp replace over the whole buffer. The reason for this
@@ -1313,7 +1297,7 @@ With PREFIX, insert that many filenames."
 	  (skip-chars-forward " \t*a-zA-Z0-9_")
 	  (setq start (point)
 		file-name-existing (looking-at "("))
-	  (delete-region start (save-excursion (end-of-line) (point)))
+	  (delete-region start (line-end-position))
 	  (unless file-name-existing
 	    (indent-to ebrowse-source-file-column)
 	    (insert "(" (or (ebrowse-cs-file
@@ -1340,6 +1324,7 @@ With PREFIX, insert that many filenames."
 
 (defun ebrowse-member-buffer-p (buffer)
   "Value is non-nil if BUFFER is a member buffer."
+  ;; FIXME: Why not (buffer-local-value 'major-mode buffer)?
   (eq (cdr (assoc 'major-mode (buffer-local-variables buffer)))
       'ebrowse-member-mode))
 
@@ -1390,9 +1375,9 @@ one buffer.  Prefer tree buffers over member buffers."
 (defun ebrowse-same-tree-member-buffer-list ()
   "Return a list of members buffers with same tree as current buffer."
   (ebrowse-delete-if-not
-   #'(lambda (buffer)
-       (eq (ebrowse-value-in-buffer 'ebrowse--tree buffer)
-	   ebrowse--tree))
+   (lambda (buffer)
+     (eq (ebrowse-value-in-buffer 'ebrowse--tree buffer)
+	 ebrowse--tree))
    (ebrowse-member-buffer-list)))
 
 
@@ -1431,9 +1416,9 @@ If no member buffer exists, make one."
 	when (eq class tree) do (kill-buffer buffer)))
 
 
-(defun ebrowse-frozen-tree-buffer-name (tags-file-name)
-  "Return the buffer name of a tree which is associated TAGS-FILE-NAME."
-  (concat ebrowse-tree-buffer-name " (" tags-file-name ")"))
+(defun ebrowse-frozen-tree-buffer-name (tags-file)
+  "Return the buffer name of a tree which is associated TAGS-FILE."
+  (concat ebrowse-tree-buffer-name " (" tags-file ")"))
 
 
 (defun ebrowse-pop-to-browser-buffer (arg)
@@ -1459,12 +1444,13 @@ Pop to member buffer if no prefix ARG, to tree buffer otherwise."
 (defun ebrowse-set-tree-indentation ()
   "Set the indentation width of the tree display."
   (interactive)
-  (let ((width (string-to-number (read-from-minibuffer
-                                  (concat "Indentation ("
+  (let ((width (string-to-number (read-string
+                                  (concat "Indentation (default "
                                           (int-to-string ebrowse--indentation)
-                                          "): ")))))
+                                          "): ")
+                                  nil nil ebrowse--indentation))))
     (when (plusp width)
-      (setf ebrowse--indentation width)
+      (set (make-local-variable 'ebrowse--indentation) width)
       (ebrowse-redraw-tree))))
 
 
@@ -1558,41 +1544,41 @@ VIEW non-nil means view it.  WHERE is additional position info."
      where)))
 
 
-(defun ebrowse-find-class-declaration (prefix-arg)
+(defun ebrowse-find-class-declaration (prefix)
   "Find a class declaration and position cursor on it.
-PREFIX-ARG 4 means find it in another window.
-PREFIX-ARG 5 means find it in another frame."
+PREFIX 4 means find it in another window.
+PREFIX 5 means find it in another frame."
   (interactive "p")
   (ebrowse-view/find-class-declaration
    :view nil
-   :where (cond ((= prefix-arg 4) 'other-window)
-		((= prefix-arg 5) 'other-frame)
-		(t                'this-window))))
+   :where (cond ((= prefix 4) 'other-window)
+		((= prefix 5) 'other-frame)
+		(t            'this-window))))
 
 
-(defun ebrowse-view-class-declaration (prefix-arg)
+(defun ebrowse-view-class-declaration (prefix)
   "View class declaration and position cursor on it.
-PREFIX-ARG 4 means view it in another window.
-PREFIX-ARG 5 means view it in another frame."
+PREFIX 4 means view it in another window.
+PREFIX 5 means view it in another frame."
   (interactive "p")
   (ebrowse-view/find-class-declaration
    :view 'view
-   :where (cond ((= prefix-arg 4) 'other-window)
-		((= prefix-arg 5) 'other-frame)
-		(t                'this-window))))
+   :where (cond ((= prefix 4) 'other-window)
+		((= prefix 5) 'other-frame)
+		(t            'this-window))))
 
 
 
 ;;; The FIND engine
 
-(defun ebrowse-find-source-file (file tags-file-name)
+(defun ebrowse-find-source-file (file tags-file)
   "Find source file FILE.
-Source files are searched for (a) relative to TAGS-FILE-NAME
+Source files are searched for (a) relative to TAGS-FILE
 which is the path of the BROWSE file from which the class tree was loaded,
 and (b) in the directories named in `ebrowse-search-path'."
   (let (file-name
 	(try-file (expand-file-name file
-				    (file-name-directory tags-file-name))))
+				    (file-name-directory tags-file))))
     (if (file-readable-p try-file)
 	(setq file-name try-file)
       (let ((search-in ebrowse-search-path))
@@ -1632,18 +1618,17 @@ The new frame is deleted when you quit viewing the file in that frame."
 	(had-a-buf (get-file-buffer file))
 	(buf-to-view (find-file-noselect file)))
     (switch-to-buffer-other-frame buf-to-view)
-    (make-local-variable 'ebrowse--frame-configuration)
-    (setq ebrowse--frame-configuration old-frame-configuration)
-    (make-local-variable 'ebrowse--view-exit-action)
-    (setq ebrowse--view-exit-action
-	  (and (not had-a-buf)
-	       (not (buffer-modified-p buf-to-view))
-	       'kill-buffer))
+    (set (make-local-variable 'ebrowse--frame-configuration)
+         old-frame-configuration)
+    (set (make-local-variable 'ebrowse--view-exit-action)
+         (and (not had-a-buf)
+              (not (buffer-modified-p buf-to-view))
+              'kill-buffer))
     (view-mode-enter (cons (selected-window) (cons (selected-window) t))
 		     'ebrowse-view-exit-fn)))
 
 (defun ebrowse-view/find-file-and-search-pattern
-  (struc info file tags-file-name &optional view where)
+  (struc info file tags-file &optional view where)
   "Find or view a member or class.
 STRUC is an `ebrowse-bs' structure (or a structure including that)
 describing what to search.
@@ -1655,7 +1640,7 @@ if MEMBER-OR-CLASS is an `ebrowse-ms'.
 FILE is the file to search the member in.
 FILE is not taken out of STRUC here because the filename in STRUC
 may be nil in which case the filename of the class description is used.
-TAGS-FILE-NAME is the name of the BROWSE file from which the
+TAGS-FILE is the name of the BROWSE file from which the
 tree was loaded.
 If VIEW is non-nil, view file else find the file.
 WHERE is either `other-window', `other-frame' or `this-window' and
@@ -1664,7 +1649,7 @@ specifies where to find/view the result."
     (error "Sorry, no file information available for %s"
 	   (ebrowse-bs-name struc)))
   ;; Get the source file to view or find.
-  (setf file (ebrowse-find-source-file file tags-file-name))
+  (setf file (ebrowse-find-source-file file tags-file))
   ;; If current window is dedicated, use another frame.
   (when (window-dedicated-p (selected-window))
     (setf where 'other-window))
@@ -2006,21 +1991,16 @@ COLLAPSE non-nil means collapse the branch."
 (put 'ebrowse-electric-list-undefined 'suppress-keymap t)
 
 
-(defun ebrowse-electric-list-mode ()
+(define-derived-mode ebrowse-electric-list-mode
+  fundamental-mode "Electric Position Menu"
   "Mode for electric tree list mode."
-  (kill-all-local-variables)
-  (use-local-map ebrowse-electric-list-mode-map)
-  (setq mode-name "Electric Position Menu"
-	mode-line-buffer-identification "Electric Tree Menu")
+  (setq mode-line-buffer-identification "Electric Tree Menu")
   (when (memq 'mode-name mode-line-format)
     (setq mode-line-format (copy-sequence mode-line-format))
     (setcar (memq 'mode-name mode-line-format) "Tree Buffers"))
-  (make-local-variable 'Helper-return-blurb)
-  (setq Helper-return-blurb "return to buffer editing"
-	truncate-lines t
-	buffer-read-only t
-	major-mode 'ebrowse-electric-list-mode)
-  (run-mode-hooks 'ebrowse-electric-list-mode-hook))
+  (set (make-local-variable 'Helper-return-blurb) "return to buffer editing")
+  (setq truncate-lines t
+	buffer-read-only t))
 
 
 (defun ebrowse-list-tree-buffers ()
@@ -2226,13 +2206,8 @@ See 'Electric-command-loop' for a description of STATE and CONDITION."
 ;;; Member mode
 
 ;;;###autoload
-(defun ebrowse-member-mode ()
-  "Major mode for Ebrowse member buffers.
-
-\\{ebrowse-member-mode-map}"
-  (kill-all-local-variables)
-  (use-local-map ebrowse-member-mode-map)
-  (setq major-mode 'ebrowse-member-mode)
+(define-derived-mode ebrowse-member-mode special-mode "Ebrowse-Members"
+  "Major mode for Ebrowse member buffers."
   (mapc 'make-local-variable
 	'(ebrowse--decl-column	        ;display column
 	  ebrowse--n-columns		;number of short columns
@@ -2255,8 +2230,7 @@ See 'Electric-command-loop' for a description of STATE and CONDITION."
 	  ebrowse--const-display-flag
 	  ebrowse--pure-display-flag
 	  ebrowse--frozen-flag))	;buffer not automagically reused
-  (setq mode-name "Ebrowse-Members"
-	mode-line-buffer-identification
+  (setq mode-line-buffer-identification
 	(propertized-buffer-identification "C++ Members")
 	buffer-read-only t
 	ebrowse--long-display-flag nil
@@ -2270,8 +2244,7 @@ See 'Electric-command-loop' for a description of STATE and CONDITION."
 	ebrowse--inline-display-flag nil
 	ebrowse--const-display-flag nil
 	ebrowse--pure-display-flag nil)
-  (modify-syntax-entry ?_ (char-to-string (char-syntax ?a)))
-  (run-mode-hooks 'ebrowse-member-mode-hook))
+  (modify-syntax-entry ?_ (char-to-string (char-syntax ?a))))
 
 
 
@@ -2564,7 +2537,7 @@ find file in another frame."
 
 
 (defun* ebrowse-view/find-member-declaration/definition
-    (prefix view &optional definition info header tags-file-name)
+    (prefix view &optional definition info header tags-file)
   "Find or view a member declaration or definition.
 With PREFIX 4. find file in another window, with prefix 5
 find file in another frame.
@@ -2572,11 +2545,11 @@ DEFINITION non-nil means find the definition, otherwise find the
 declaration.
 INFO is a list (TREE ACCESSOR MEMBER) describing the member to
 search.
-TAGS-FILE-NAME is the file name of the BROWSE file."
+TAGS-FILE is the file name of the BROWSE file."
   (unless header
     (setq header ebrowse--header))
-  (unless tags-file-name
-    (setq tags-file-name ebrowse--tags-file-name))
+  (unless tags-file
+    (setq tags-file ebrowse--tags-file-name))
   (let (tree member accessor file on-class
 	     (where (if (= prefix 4) 'other-window
 		      (if (= prefix 5) 'other-frame 'this-window))))
@@ -2596,7 +2569,7 @@ TAGS-FILE-NAME is the file name of the BROWSE file."
 	 (ebrowse-ts-class tree)
 	 (list ebrowse--header (ebrowse-ts-class tree) nil)
 	 (ebrowse-cs-file (ebrowse-ts-class tree))
-	 tags-file-name view where)))
+	 tags-file view where)))
     ;; For some member lists, it doesn't make sense to search for
     ;; a definition. If this is requested, silently search for the
     ;; declaration.
@@ -2633,7 +2606,7 @@ TAGS-FILE-NAME is the file name of the BROWSE file."
 	      (message nil)
 	      ;; Recurse with new info.
 	      (ebrowse-view/find-member-declaration/definition
-	       prefix view (not definition) info header tags-file-name))
+	       prefix view (not definition) info header tags-file))
 	  (error "Search canceled"))
       ;; Find that thing.
       (ebrowse-view/find-file-and-search-pattern
@@ -2644,7 +2617,7 @@ TAGS-FILE-NAME is the file name of the BROWSE file."
 			:point (ebrowse-ms-point member))
        (list header member accessor)
        file
-       tags-file-name
+       tags-file
        view
        where))))
 
@@ -2703,7 +2676,7 @@ LIST is the member list to display.  STAND-ALONE non-nil
 means the member buffer is standalone.  CLASS is its class."
   (let* ((classes ebrowse--tree-obarray)
 	 (tree ebrowse--tree)
-	 (tags-file-name ebrowse--tags-file-name)
+	 (tags-file ebrowse--tags-file-name)
 	 (header ebrowse--header)
 	 temp-buffer-setup-hook
 	 (temp-buffer (get-buffer ebrowse-member-buffer-name)))
@@ -2723,7 +2696,7 @@ means the member buffer is standalone.  CLASS is its class."
 	    ebrowse--accessor list
 	    ebrowse--tree-obarray classes
 	    ebrowse--frozen-flag stand-alone
-	    ebrowse--tags-file-name tags-file-name
+	    ebrowse--tags-file-name tags-file
 	    ebrowse--header header
 	    ebrowse--tree tree
 	    buffer-read-only t)
@@ -2875,7 +2848,7 @@ is nil."
 
 ;;; Switching member buffer to display a selected member
 
-(defun ebrowse-goto-visible-member/all-member-lists (prefix)
+(defun ebrowse-goto-visible-member/all-member-lists (_prefix)
   "Position cursor on a member read from the minibuffer.
 With PREFIX, search all members in the tree.  Otherwise consider
 only members visible in the buffer."
@@ -3305,7 +3278,7 @@ HEADER is the `ebrowse-hs' structure of the class tree.
 Prompt with PROMPT.  Insert into the minibuffer a C++ identifier read
 from point as default.  Value is a list (CLASS-NAME MEMBER-NAME)."
   (save-excursion
-    (let* (start member-info (members (ebrowse-member-table header)))
+    (let ((members (ebrowse-member-table header)))
       (multiple-value-bind (class-name member-name)
 	  (values-list (ebrowse-tags-read-member+class-name))
 	(unless member-name
@@ -3316,7 +3289,7 @@ from point as default.  Value is a list (CLASS-NAME MEMBER-NAME)."
 		   (completion-result (try-completion name members)))
 	      ;; Cannot rely on `try-completion' returning t for exact
 	      ;; matches!  It returns the name as a string.
-	      (unless (setq member-info (gethash name members))
+	      (unless (gethash name members)
 		(if (y-or-n-p "No exact match found.  Try substrings? ")
 		    (setq name
 			  (or (first (ebrowse-list-of-matching-members
@@ -3342,7 +3315,7 @@ MEMBER-NAME is the name of the member found."
       (list class name))))
 
 
-(defun ebrowse-tags-choose-class (tree header name initial-class-name)
+(defun ebrowse-tags-choose-class (_tree header name initial-class-name)
   "Read a class name for a member from the minibuffer.
 TREE is the class tree we operate on.
 HEADER is its header structure.
@@ -3380,7 +3353,7 @@ definition."
 	   info)
       (unless name
 	(multiple-value-setq (class-name name)
-	  (values-list 
+	  (values-list
 	   (ebrowse-tags-read-name
 	    header
 	    (concat (if view "View" "Find") " member "
@@ -3507,7 +3480,7 @@ Otherwise read a member name from point."
     (let* ((marker (point-marker)) class-name (name fix-name) info)
       (unless name
 	(multiple-value-setq (class-name name)
-	  (values-list 
+	  (values-list
 	   (ebrowse-tags-read-name header
 				   (concat "Find member list of: ")))))
       (setq info (ebrowse-tags-choose-class tree header name class-name))
@@ -3521,10 +3494,10 @@ Both NAME and REGEXP may be nil in which case exact or regexp matches
 are not performed."
   (let (list)
     (when (or name regexp)
-      (maphash #'(lambda (member-name info)
-		   (when (or (and name (string= name member-name))
-			     (and regexp (string-match regexp member-name)))
-		     (setq list (cons member-name list))))
+      (maphash (lambda (member-name _info)
+		 (when (or (and name (string= name member-name))
+			   (and regexp (string-match regexp member-name)))
+		   (setq list (cons member-name list))))
 	       members))
     list))
 
@@ -3561,18 +3534,18 @@ The file name is read from the minibuffer."
     (with-output-to-temp-buffer (concat "*Members in file " file "*")
       (set-buffer standard-output)
       (maphash
-       #'(lambda (member-name list)
-	   (loop for info in list
-		 as member = (third info)
-		 as class = (ebrowse-ts-class (first info))
-		 when (or (and (null (ebrowse-ms-file member))
-			       (string= (ebrowse-cs-file class) file))
-			  (string= file (ebrowse-ms-file member)))
-		 do (ebrowse-draw-file-member-info info "decl.")
-		 when (or (and (null (ebrowse-ms-definition-file member))
-			       (string= (ebrowse-cs-source-file class) file))
-			  (string= file (ebrowse-ms-definition-file member)))
-		 do (ebrowse-draw-file-member-info info "defn.")))
+       (lambda (_member-name list)
+	 (loop for info in list
+	       as member = (third info)
+	       as class = (ebrowse-ts-class (first info))
+		when (or (and (null (ebrowse-ms-file member))
+			      (string= (ebrowse-cs-file class) file))
+			 (string= file (ebrowse-ms-file member)))
+	      do (ebrowse-draw-file-member-info info "decl.")
+	      when (or (and (null (ebrowse-ms-definition-file member))
+			    (string= (ebrowse-cs-source-file class) file))
+		       (string= file (ebrowse-ms-definition-file member)))
+	      do (ebrowse-draw-file-member-info info "defn.")))
        members))))
 
 
@@ -3592,12 +3565,12 @@ KIND is an additional string printed in the buffer."
     (insert kind)
     (indent-to 50)
     (insert (case (second info)
-	      ('ebrowse-ts-member-functions "member function")
-	      ('ebrowse-ts-member-variables "member variable")
-	      ('ebrowse-ts-static-functions "static function")
-	      ('ebrowse-ts-static-variables "static variable")
-	      ('ebrowse-ts-friends (if globals-p "define" "friend"))
-	      ('ebrowse-ts-types "type")
+	      (ebrowse-ts-member-functions "member function")
+	      (ebrowse-ts-member-variables "member variable")
+	      (ebrowse-ts-static-functions "static function")
+	      (ebrowse-ts-static-variables "static variable")
+	      (ebrowse-ts-friends (if globals-p "define" "friend"))
+	      (ebrowse-ts-types "type")
 	      (t "unknown"))
 	    "\n")))
 
@@ -3967,22 +3940,17 @@ Prefix arg ARG says how much."
 (put 'ebrowse-electric-position-undefined 'suppress-keymap t)
 
 
-(defun ebrowse-electric-position-mode ()
+(define-derived-mode ebrowse-electric-position-mode
+  fundamental-mode "Electric Position Menu"
   "Mode for electric position buffers.
 Runs the hook `ebrowse-electric-position-mode-hook'."
-  (kill-all-local-variables)
-  (use-local-map ebrowse-electric-position-mode-map)
-  (setq mode-name "Electric Position Menu"
-	mode-line-buffer-identification "Electric Position Menu")
+  (setq mode-line-buffer-identification "Electric Position Menu")
   (when (memq 'mode-name mode-line-format)
     (setq mode-line-format (copy-sequence mode-line-format))
     (setcar (memq 'mode-name mode-line-format) "Positions"))
-  (make-local-variable 'Helper-return-blurb)
-  (setq Helper-return-blurb "return to buffer editing"
-	truncate-lines t
-	buffer-read-only t
-	major-mode 'ebrowse-electric-position-mode)
-  (run-mode-hooks 'ebrowse-electric-position-mode-hook))
+  (set (make-local-variable 'Helper-return-blurb) "return to buffer editing")
+  (setq truncate-lines t
+	buffer-read-only t))
 
 
 (defun ebrowse-draw-position-buffer ()
@@ -4491,5 +4459,4 @@ EVENT is the mouse event."
 ;; eval:(put 'ebrowse-for-all-trees 'lisp-indent-hook 1)
 ;; End:
 
-;; arch-tag: 4fa3c8bf-1771-479b-bcd7-b029c7c9677b
 ;;; ebrowse.el ends here

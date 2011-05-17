@@ -1,7 +1,6 @@
 ;;; arc-mode.el --- simple editing of archives
 
-;; Copyright (C) 1995, 1997, 1998, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997-1998, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@gnu.org>
 ;; Keywords: files archives msdog editing major-mode
@@ -340,7 +339,7 @@ be added."
 (defvar archive-local-name nil "Name of local copy of remote archive.")
 (defvar archive-mode-map
   (let ((map (make-keymap)))
-    (suppress-keymap map)
+    (set-keymap-parent map special-mode-map)
     (define-key map " " 'archive-next-line)
     (define-key map "a" 'archive-alternate-display)
     ;;(define-key map "c" 'archive-copy)
@@ -349,15 +348,12 @@ be added."
     (define-key map "e" 'archive-extract)
     (define-key map "f" 'archive-extract)
     (define-key map "\C-m" 'archive-extract)
-    (define-key map "g" 'revert-buffer)
-    (define-key map "h" 'describe-mode)
     (define-key map "m" 'archive-mark)
     (define-key map "n" 'archive-next-line)
     (define-key map "\C-n" 'archive-next-line)
     (define-key map [down] 'archive-next-line)
     (define-key map "o" 'archive-extract-other-window)
     (define-key map "p" 'archive-previous-line)
-    (define-key map "q" 'quit-window)
     (define-key map "\C-p" 'archive-previous-line)
     (define-key map [up] 'archive-previous-line)
     (define-key map "r" 'archive-rename-entry)
@@ -616,7 +612,7 @@ the mode is invalid.  If ERROR is nil then nil will be returned."
 (defun archive-get-lineno ()
   (if (>= (point) archive-file-list-start)
       (count-lines archive-file-list-start
-		   (save-excursion (beginning-of-line) (point)))
+		   (line-beginning-position))
     0))
 
 (defun archive-get-descr (&optional noerror)
@@ -1390,7 +1386,7 @@ as a relative change like \"g+rw\" as for chmod(2)."
       (error "Renaming is not supported for this archive type"))))
 
 ;; Revert the buffer and recompute the dired-like listing.
-(defun archive-mode-revert (&optional no-auto-save no-confirm)
+(defun archive-mode-revert (&optional _no-auto-save _no-confirm)
   (let ((no (archive-get-lineno)))
     (setq archive-files nil)
     (let ((revert-buffer-function nil)
@@ -1811,10 +1807,15 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
    (t
     (archive-extract-by-stdout
      archive
-     ;; unzip expands wildcards in NAME, so we need to quote it.
+     ;; unzip expands wildcards in NAME, so we need to quote it.  But
+     ;; not on DOS/Windows, since that fails extraction on those
+     ;; systems (unless w32-quote-process-args is nil), and file names
+     ;; with wildcards in zip archives don't work there anyway.
      ;; FIXME: Does pkunzip need similar treatment?
-     ;; (7z doesn't need to quote wildcards)
-     (if (equal (car archive-zip-extract) "unzip")
+     (if (and (or (not (memq system-type '(windows-nt ms-dos)))
+		  (and (boundp 'w32-quote-process-args)
+		       (null w32-quote-process-args)))
+	      (equal (car archive-zip-extract) "unzip"))
 	 (shell-quote-argument name)
        name)
      archive-zip-extract))))
@@ -2210,5 +2211,4 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 
 (provide 'arc-mode)
 
-;; arch-tag: e5966a01-35ec-4f27-8095-a043a79b457b
 ;;; arc-mode.el ends here

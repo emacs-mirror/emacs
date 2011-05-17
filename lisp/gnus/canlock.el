@@ -1,7 +1,6 @@
 ;;; canlock.el --- functions for Cancel-Lock feature
 
-;; Copyright (C) 1998, 1999, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998-1999, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Katsumi Yamaoka <yamaoka@jpl.org>
 ;; Keywords: news, cancel-lock, hmac, sha1, rfc2104
@@ -247,5 +246,4 @@ it fails."
 
 (provide 'canlock)
 
-;; arch-tag: 033c4f09-b9f1-459d-bd0d-254430283f78
 ;;; canlock.el ends here

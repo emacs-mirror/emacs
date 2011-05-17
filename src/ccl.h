@@ -1,6 +1,6 @@
 /* Header for CCL (Code Conversion Language) interpreter.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-     2005, 2006, 2007, 2008, 2009, 2010
+     2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H14PRO021
    Copyright (C) 2003
@@ -92,25 +92,12 @@ struct ccl_spec {
 
 #define CODING_SPEC_CCL_PROGRAM(coding) ((coding)->spec.ccl.ccl)
 
-/* Alist of fontname patterns vs corresponding CCL program.  */
-extern Lisp_Object Vfont_ccl_encoder_alist;
-
 /* Setup fields of the structure pointed by CCL appropriately for the
    execution of ccl program CCL_PROG (symbol or vector).  */
-extern int setup_ccl_program P_ ((struct ccl_program *, Lisp_Object));
+extern int setup_ccl_program (struct ccl_program *, Lisp_Object);
 
-/* Check if CCL is updated or not.  If not, re-setup members of CCL.  */
-extern int check_ccl_update P_ ((struct ccl_program *));
-
-extern void ccl_driver P_ ((struct ccl_program *, int *, int *, int, int,
-			    Lisp_Object));
-
-/* Vector of CCL program names vs corresponding program data.  */
-extern Lisp_Object Vccl_program_table;
-
-/* Symbols of ccl program have this property, a value of the property
-   is an index for Vccl_protram_table. */
-extern Lisp_Object Qccl_program_idx;
+extern void ccl_driver (struct ccl_program *, int *, int *, int, int,
+                        Lisp_Object);
 
 extern Lisp_Object Qccl, Qcclp;
 
@@ -123,6 +110,3 @@ EXFUN (Fccl_program_p, 1);
   } while (0);
 
 #endif /* EMACS_CCL_H */
-
-/* arch-tag: 14681df7-876d-43de-bc71-6b78e23a4e3c
-   (do not change this comment) */

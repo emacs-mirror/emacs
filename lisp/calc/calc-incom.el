@@ -1,7 +1,6 @@
 ;;; calc-incom.el --- complex data type input functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -176,9 +175,9 @@
 (defun calc-digit-dots ()
   (if (eq calc-prev-char ?.)
       (progn
-	(delete-backward-char 1)
+	(delete-char -1)
 	(if (calc-minibuffer-contains ".*\\.\\'")
-	    (delete-backward-char 1))
+	    (delete-char -1))
 	(setq calc-prev-char 'dots
 	      last-command-event 32)
 	(if calc-prev-prev-char
@@ -188,7 +187,7 @@
             (erase-buffer))
 	  (exit-minibuffer)))
     ;; just ignore extra decimal point, anticipating ".."
-    (delete-backward-char 1)))
+    (delete-char -1)))
 
 (defun calc-dots ()
   (interactive)
@@ -230,5 +229,4 @@
 
 (provide 'calc-incom)
 
-;; arch-tag: b8001270-4dc7-481b-a3e3-a952e19b390d
 ;;; calc-incom.el ends here

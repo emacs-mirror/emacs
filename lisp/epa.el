@@ -1,5 +1,6 @@
-;;; epa.el --- the EasyPG Assistant
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;; epa.el --- the EasyPG Assistant -*- lexical-binding: t -*-
+
+;; Copyright (C) 2006-2011  Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
@@ -268,7 +269,7 @@ You should bind this variable with `let', but do not set it globally.")
   :action 'epa--key-widget-action
   :help-echo 'epa--key-widget-help-echo)
 
-(defun epa--key-widget-action (widget &optional event)
+(defun epa--key-widget-action (widget &optional _event)
   (save-selected-window
     (epa--show-key (widget-get widget :value))))
 
@@ -459,7 +460,7 @@ If ARG is non-nil, mark the key."
      (list nil)))
   (epa--list-keys name t))
 
-(defun epa--key-list-revert-buffer (&optional ignore-auto noconfirm)
+(defun epa--key-list-revert-buffer (&optional _ignore-auto _noconfirm)
   (apply #'epa--list-keys epa-list-keys-arguments))
 
 (defun epa--marked-keys ()
@@ -471,11 +472,9 @@ If ARG is non-nil, mark the key."
 					     'epa-key))
 		(setq keys (cons key keys))))
 	  (nreverse keys)))
-      (save-excursion
-	(beginning-of-line)
-	(let ((key (get-text-property (point) 'epa-key)))
-	  (if key
-	      (list key))))))
+      (let ((key (get-text-property (point-at-bol) 'epa-key)))
+	(if key
+	    (list key)))))
 
 (defun epa--select-keys (prompt keys)
   (unless (and epa-keys-buffer
@@ -491,13 +490,13 @@ If ARG is non-nil, mark the key."
 - `\\[epa-mark-key]' to mark a key on the line
 - `\\[epa-unmark-key]' to unmark a key on the line\n"))
       (widget-create 'link
-		     :notify (lambda (&rest ignore) (abort-recursive-edit))
+		     :notify (lambda (&rest _ignore) (abort-recursive-edit))
 		     :help-echo
 		     (substitute-command-keys
 		      "Click here or \\[abort-recursive-edit] to cancel")
 		     "Cancel")
       (widget-create 'link
-		     :notify (lambda (&rest ignore) (exit-recursive-edit))
+		     :notify (lambda (&rest _ignore) (exit-recursive-edit))
 		     :help-echo
 		     (substitute-command-keys
 		      "Click here or \\[exit-recursive-edit] to finish")
@@ -508,13 +507,12 @@ If ARG is non-nil, mark the key."
       (set-keymap-parent (current-local-map) widget-keymap)
       (setq epa-exit-buffer-function #'abort-recursive-edit)
       (goto-char (point-min))
-      (pop-to-buffer (current-buffer)))
+      (let ((display-buffer-mark-dedicated 'soft))
+        (pop-to-buffer (current-buffer))))
     (unwind-protect
 	(progn
 	  (recursive-edit)
 	  (epa--marked-keys))
-      (if (get-buffer-window epa-keys-buffer)
-	  (delete-window (get-buffer-window epa-keys-buffer)))
       (kill-buffer epa-keys-buffer))))
 
 ;;;###autoload
@@ -636,8 +634,13 @@ If SECRET is non-nil, list secret keys instead of public keys."
 
 (defun epa-passphrase-callback-function (context key-id handback)
   (if (eq key-id 'SYM)
-      (read-passwd "Passphrase for symmetric encryption: "
-		   (eq (epg-context-operation context) 'encrypt))
+      (read-passwd
+       (format "Passphrase for symmetric encryption%s: "
+	       ;; Add the file name to the prompt, if any.
+	       (if (stringp handback)
+		   (format " for %s" handback)
+		 ""))
+       (eq (epg-context-operation context) 'encrypt))
     (read-passwd
      (if (eq key-id 'PIN)
 	"Passphrase for PIN: "
@@ -646,7 +649,7 @@ If SECRET is non-nil, list secret keys instead of public keys."
 	     (format "Passphrase for %s %s: " key-id (cdr entry))
 	   (format "Passphrase for %s: " key-id)))))))
 
-(defun epa-progress-callback-function (context what char current total
+(defun epa-progress-callback-function (_context what _char current total
 					       handback)
   (message "%s%d%% (%d/%d)" (or handback
 				(concat what ": "))
@@ -961,7 +964,7 @@ See the reason described in the `epa-verify-region' documentation."
 (eval-and-compile
   (if (fboundp 'select-safe-coding-system)
       (defalias 'epa--select-safe-coding-system 'select-safe-coding-system)
-    (defun epa--select-safe-coding-system (from to)
+    (defun epa--select-safe-coding-system (_from _to)
       buffer-file-coding-system)))
 
 ;;;###autoload
@@ -1247,5 +1250,4 @@ between START and END."
 
 (provide 'epa)
 
-;; arch-tag: 38d20ced-20d5-4137-b17a-f206335423d7
 ;;; epa.el ends here

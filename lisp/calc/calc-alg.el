@@ -1,7 +1,6 @@
 ;;; calc-alg.el --- algebraic functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger  <jay.p.belanger@gmail.com>
@@ -1659,11 +1658,11 @@
 ;; math-is-poly-rec.
 (defvar math-is-poly-degree)
 (defvar math-is-poly-loose)
-(defvar var)
+(defvar math-var)
 
-(defun math-is-polynomial (expr var &optional math-is-poly-degree math-is-poly-loose)
+(defun math-is-polynomial (expr math-var &optional math-is-poly-degree math-is-poly-loose)
   (let* ((math-poly-base-variable (if math-is-poly-loose
-				      (if (eq math-is-poly-loose 'gen) var '(var XXX XXX))
+				      (if (eq math-is-poly-loose 'gen) math-var '(var XXX XXX))
 				    math-poly-base-variable))
 	 (poly (math-is-poly-rec expr math-poly-neg-powers)))
     (and (or (null math-is-poly-degree)
@@ -1672,11 +1671,11 @@
 
 (defun math-is-poly-rec (expr negpow)
   (math-poly-simplify
-   (or (cond ((or (equal expr var)
+   (or (cond ((or (equal expr math-var)
 		  (eq (car-safe expr) '^))
 	      (let ((pow 1)
 		    (expr expr))
-		(or (equal expr var)
+		(or (equal expr math-var)
 		    (setq pow (nth 2 expr)
 			  expr (nth 1 expr)))
 		(or (eq math-poly-mult-powers 1)
@@ -1690,7 +1689,7 @@
 					 (equal math-poly-mult-powers
 						(nth 1 m))
 				       (setq math-poly-mult-powers (nth 1 m)))
-				     (or (equal expr var)
+				     (or (equal expr math-var)
 					 (eq math-poly-mult-powers 1))
 				     (car m)))))
 		(if (consp pow)
@@ -1698,7 +1697,7 @@
 		      (setq pow (math-to-simple-fraction pow))
 		      (and (eq (car-safe pow) 'frac)
 			   math-poly-frac-powers
-			   (equal expr var)
+			   (equal expr math-var)
 			   (setq math-poly-frac-powers
 				 (calcFunc-lcm math-poly-frac-powers
 					       (nth 2 pow))))))
@@ -1706,10 +1705,10 @@
 		    (setq pow (math-mul pow math-poly-frac-powers)))
 		(if (integerp pow)
 		    (if (and (= pow 1)
-			     (equal expr var))
+			     (equal expr math-var))
 			(list 0 1)
 		      (if (natnump pow)
-			  (let ((p1 (if (equal expr var)
+			  (let ((p1 (if (equal expr math-var)
 					(list 0 1)
 				      (math-is-poly-rec expr nil)))
 				(n pow)
@@ -1749,7 +1748,7 @@
                                     math-is-poly-degree))
 			    (math-poly-mul p1 p2))))))
 	     ((eq (car expr) '/)
-	      (and (or (not (math-poly-depends (nth 2 expr) var))
+	      (and (or (not (math-poly-depends (nth 2 expr) math-var))
 		       (and negpow
 			    (math-is-poly-rec (nth 2 expr) nil)
 			    (setq math-poly-neg-powers
@@ -1759,13 +1758,13 @@
 		     (mapcar (function (lambda (x) (math-div x (nth 2 expr))))
 			     p1))))
 	     ((and (eq (car expr) 'calcFunc-exp)
-		   (equal var '(var e var-e)))
-	      (math-is-poly-rec (list '^ var (nth 1 expr)) negpow))
+		   (equal math-var '(var e var-e)))
+	      (math-is-poly-rec (list '^ math-var (nth 1 expr)) negpow))
 	     ((and (eq (car expr) 'calcFunc-sqrt)
 		   math-poly-frac-powers)
 	      (math-is-poly-rec (list '^ (nth 1 expr) '(frac 1 2)) negpow))
 	     (t nil))
-       (and (or (not (math-poly-depends expr var))
+       (and (or (not (math-poly-depends expr math-var))
 		math-is-poly-loose)
 	    (not (eq (car expr) 'vec))
 	    (list expr)))))
@@ -1914,5 +1913,4 @@
 
 (provide 'calc-alg)
 
-;; arch-tag: 52e7dcdf-9688-464d-a02b-4bbe789348d0
 ;;; calc-alg.el ends here

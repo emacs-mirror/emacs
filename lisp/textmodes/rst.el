@@ -1,7 +1,6 @@
 ;;; rst.el --- Mode for viewing and editing reStructuredText-documents.
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2003-2011  Free Software Foundation, Inc.
 
 ;; Authors: Martin Blais <blais@furius.ca>,
 ;;          Stefan Merten <smerten@oekonux.de>,
@@ -698,11 +697,9 @@ existing decoration, they are removed before adding the
 requested decoration."
 
   (interactive)
-  (let (marker
-        len)
-
       (end-of-line)
-      (setq marker (point-marker))
+  (let ((marker (point-marker))
+        len)
 
       ;; Fixup whitespace at the beginning and end of the line
       (if (or (null indent) (eq style 'simple))
@@ -789,7 +786,7 @@ This function does not detect the hierarchy of decorations, it
 just finds all of them in a file.  You can then invoke another
 function to remove redundancies and inconsistencies."
 
-  (let (positions
+  (let ((positions ())
         (curline 1))
     ;; Iterate over all the section titles/decorations in the file.
     (save-excursion
@@ -870,7 +867,7 @@ A decoration can be said to exist if the style is not nil.
 A point can be specified to go to the given location before
 extracting the decoration."
 
-  (let (char style indent)
+  (let (char style)
     (save-excursion
       (if point (goto-char point))
       (beginning-of-line)
@@ -879,10 +876,10 @@ extracting the decoration."
                          (forward-line -1)
                          (rst-line-homogeneous-nodent-p)))
 
-                (under (save-excursion
-                         (forward-line +1)
-                         (rst-line-homogeneous-nodent-p)))
-                )
+                 (under (save-excursion
+                          (forward-line +1)
+                          (rst-line-homogeneous-nodent-p)))
+                 )
 
             ;; Check that the line above the overline is not part of a title
             ;; above it.
@@ -910,15 +907,11 @@ extracting the decoration."
              ;; Both overline and underline.
              (t
               (setq char under
-                    style 'over-and-under))
-             )
-            )
-        )
-      ;; Find indentation.
-      (setq indent (save-excursion (back-to-indentation) (current-column)))
-      )
-    ;; Return values.
-    (list char style indent)))
+                    style 'over-and-under)))))
+      ;; Return values.
+      (list char style
+            ;; Find indentation.
+            (save-excursion (back-to-indentation) (current-column))))))
 
 
 (defun rst-get-decorations-around (&optional alldecos)
@@ -1041,7 +1034,7 @@ b. a negative numerical argument, which generally inverts the
   (interactive)
 
   (let* (;; Save our original position on the current line.
-	 (origpt (set-marker (make-marker) (point)))
+	 (origpt (point-marker))
 
 	 ;; Parse the positive and negative prefix arguments.
          (reverse-direction
@@ -1395,32 +1388,28 @@ hierarchy is similar to that used by `rst-adjust-decoration'."
     ;; Create a list of markers for all the decorations which are found within
     ;; the region.
     (save-excursion
-      (let (m line)
+      (let (line)
         (while (and cur (< (setq line (caar cur)) region-end-line))
-          (setq m (make-marker))
           (goto-char (point-min))
           (forward-line (1- line))
-          (push (list (set-marker m (point)) (cdar cur)) marker-list)
+          (push (list (point-marker) (cdar cur)) marker-list)
           (setq cur (cdr cur)) ))
 
       ;; Apply modifications.
-      (let (nextdeco)
-        (dolist (p marker-list)
-          ;; Go to the decoration to promote.
-          (goto-char (car p))
+      (dolist (p marker-list)
+        ;; Go to the decoration to promote.
+        (goto-char (car p))
 
-          ;; Rotate the next decoration.
-          (setq nextdeco (rst-get-next-decoration
-                          (cadr p) hier suggestion demote))
+        ;; Update the decoration.
+        (apply 'rst-update-section
+               ;; Rotate the next decoration.
+               (rst-get-next-decoration
+                (cadr p) hier suggestion demote))
 
-          ;; Update the decoration.
-          (apply 'rst-update-section nextdeco)
-
-          ;; Clear marker to avoid slowing down the editing after we're done.
-          (set-marker (car p) nil)
-          ))
+        ;; Clear marker to avoid slowing down the editing after we're done.
+        (set-marker (car p) nil))
       (setq deactivate-mark nil)
-    )))
+      )))
 
 
 
@@ -1463,11 +1452,10 @@ in order to adapt it to our preferred style."
 	   (levels-and-markers (mapcar
 				(lambda (deco)
 				  (cons (rst-position (cdr deco) hier)
-					(let ((m (make-marker)))
+					(progn
 					  (goto-char (point-min))
 					  (forward-line (1- (car deco)))
-					  (set-marker m (point))
-					  m)))
+                                          (point-marker))))
 				alldecos))
 	   )
       (dolist (lm levels-and-markers)
@@ -1511,7 +1499,7 @@ section levels."
   "Find all the positions of prefixes in region between BEG and END.
 This is used to find bullets and enumerated list items.  PFX-RE
 is a regular expression for matching the lines with items."
-  (let (pfx)
+  (let ((pfx ()))
     (save-excursion
       (goto-char beg)
       (while (< (point) end)
@@ -1635,10 +1623,9 @@ child.  This has advantages later in processing the graph."
                       (forward-line (1- (car deco)))
                       (list (gethash (cons (cadr deco) (caddr deco)) levels)
                             (rst-get-stripped-line)
-                            (let ((m (make-marker)))
+                            (progn
                               (beginning-of-line 1)
-                              (set-marker m (point)))
-                            ))
+                              (point-marker))))
                     alldecos)))
 
     (let ((lcontnr (cons nil lines)))
@@ -1787,7 +1774,7 @@ The TOC is inserted indented at the current column."
       (delete-region init-point (+ init-point (length initial-indent)))
 
       ;; Delete the last newline added.
-      (delete-backward-char 1)
+      (delete-char -1)
     )))
 
 (defun rst-toc-insert-node (node level indent pfx)
@@ -2057,11 +2044,11 @@ brings the cursor in that section."
   "In `rst-toc' mode, go to the occurrence whose line you click on.
 EVENT is the input event."
   (interactive "e")
-  (let (pos)
+  (let ((pos
     (with-current-buffer (window-buffer (posn-window (event-end event)))
       (save-excursion
         (goto-char (posn-point (event-end event)))
-        (setq pos (rst-toc-mode-find-section))))
+             (rst-toc-mode-find-section)))))
     (pop-to-buffer (marker-buffer pos))
     (goto-char pos)
     (recenter 5)))
@@ -2306,8 +2293,8 @@ of (COLUMN-NUMBER . LINE) pairs."
 
 (defun rst-shift-region-guts (find-next-fun offset-fun)
   "(See `rst-shift-region-right' for a description)."
-  (let* ((mbeg (set-marker (make-marker) (region-beginning)))
-	 (mend (set-marker (make-marker) (region-end)))
+  (let* ((mbeg (copy-marker (region-beginning)))
+	 (mend (copy-marker (region-end)))
 	 (tabs (rst-compute-bullet-tabs mbeg))
 	 (leftmostcol (rst-find-leftmost-column (region-beginning) (region-end)))
 	 )
@@ -2386,8 +2373,8 @@ Also, if invoked with a negative prefix arg, the entire
 indentation is removed, up to the leftmost character in the
 region, and automatic filling is disabled."
   (interactive "P")
-  (let ((mbeg (set-marker (make-marker) (region-beginning)))
-	(mend (set-marker (make-marker) (region-end)))
+  (let ((mbeg (copy-marker (region-beginning)))
+	(mend (copy-marker (region-end)))
 	(leftmostcol (rst-find-leftmost-column
 		      (region-beginning) (region-end)))
 	(rst-shift-fill-region
@@ -2421,8 +2408,7 @@ Set FIRST-ONLY to true if you want to callback on the first line
 of each paragraph only."
   `(save-excursion
     (let ((leftcol (rst-find-leftmost-column ,beg ,end))
-	  (endm (set-marker (make-marker) ,end))
-	  )
+	  (endm (copy-marker ,end)))
 
       (do* (;; Iterate lines
 	    (l (progn (goto-char ,beg) (back-to-indentation))
@@ -2460,8 +2446,7 @@ first of a paragraph."
 
   `(save-excursion
      (let ((,leftmost (rst-find-leftmost-column ,beg ,end))
-	   (endm (set-marker (make-marker) ,end))
-	   )
+	   (endm (copy-marker ,end)))
 
       (do* (;; Iterate lines
 	    (l (progn (goto-char ,beg) (back-to-indentation))
@@ -2538,9 +2523,7 @@ region to enumerated lists, renumbering as necessary."
   (let* (;; Find items and convert the positions to markers.
 	 (items (mapcar
 		 (lambda (x)
-		   (cons (let ((m (make-marker)))
-			   (set-marker m (car x))
-			   m)
+		   (cons (copy-marker (car x))
 			 (cdr x)))
 		 (rst-find-pfx-in-region beg end rst-re-items)))
 	 (count 1)
@@ -2859,10 +2842,7 @@ details check the Rst Faces Defaults group."
 
 	 ;; There seems to be a bug leading to error "Stack overflow in regexp
 	 ;; matcher" when "|" or "\\*" are the characters searched for
-	 (re-imendbeg
-	  (if (< emacs-major-version 21)
-	      "]"
-	    "\\]\\|\\\\."))
+	 (re-imendbeg "\\]\\|\\\\.")
 	 ;; inline markup content end
 	 (re-imend (concat re-imendbeg "\\)*[^\t \\\\]\\)"))
 	 ;; inline markup content without asterisk
@@ -3253,16 +3233,37 @@ document with \\[rst-compile]."
   :group 'rst
   :version "21.1")
 
-(defvar rst-compile-toolsets
-  '((html . ("rst2html.py" ".html" nil))
-    (latex . ("rst2latex.py" ".tex" nil))
-    (newlatex . ("rst2newlatex.py" ".tex" nil))
-    (pseudoxml . ("rst2pseudoxml.py" ".xml" nil))
-    (xml . ("rst2xml.py" ".xml" nil)))
+(defcustom rst-compile-toolsets
+  `((html ,(if (executable-find "rst2html.py") "rst2html.py" "rst2html")
+          ".html" nil)
+    (latex ,(if (executable-find "rst2latex.py") "rst2latex.py" "rst2latex")
+           ".tex" nil)
+    (newlatex ,(if (executable-find "rst2newlatex.py") "rst2newlatex.py"
+                 "rst2newlatex")
+              ".tex" nil)
+    (pseudoxml ,(if (executable-find "rst2pseudoxml.py") "rst2pseudoxml.py"
+                  "rst2pseudoxml")
+               ".xml" nil)
+    (xml ,(if (executable-find "rst2xml.py") "rst2xml.py" "rst2xml")
+         ".xml" nil)
+    (pdf ,(if (executable-find "rst2pdf.py") "rst2pdf.py" "rst2pdf")
+         ".pdf" nil)
+    (s5 ,(if (executable-find "rst2s5.py") "rst2s5.py" "rst2s5")
+        ".html" nil))
   "Table describing the command to use for each toolset.
 An association list of the toolset to a list of the (command to use,
 extension of produced filename, options to the tool (nil or a
-string)) to be used for converting the document.")
+string)) to be used for converting the document."
+  :type '(alist :options (html latex newlatex pseudoxml xml pdf s5)
+                :key-type symbol
+                :value-type (list :tag "Specification"
+                             (file :tag "Command")
+                             (string :tag "File extension")
+                             (choice :tag "Command options"
+                                     (const :tag "No options" nil)
+                                     (string :tag "Options"))))
+  :group 'rst
+  :version "24.1")
 
 ;; Note for Python programmers not familiar with association lists: you can set
 ;; values in an alists like this, e.g. :
@@ -3350,7 +3351,7 @@ or of the entire buffer, if the region is not selected."
     (shell-command-on-region
      (if mark-active (region-beginning) (point-min))
      (if mark-active (region-end) (point-max))
-     "rst2pseudoxml.py"
+     (cadr (assq 'pseudoxml rst-compile-toolsets))
      standard-output)))
 
 (defvar rst-pdf-program "xpdf"
@@ -3359,8 +3360,9 @@ or of the entire buffer, if the region is not selected."
 (defun rst-compile-pdf-preview ()
   "Convert the document to a PDF file and launch a preview program."
   (interactive)
-  (let* ((tmp-filename "/tmp/out.pdf")
-	 (command (format "rst2pdf.py %s %s && %s %s"
+  (let* ((tmp-filename (make-temp-file "rst-out" nil ".pdf"))
+	 (command (format "%s %s %s && %s %s"
+			  (cadr (assq 'pdf rst-compile-toolsets))
 			  buffer-file-name tmp-filename
 			  rst-pdf-program tmp-filename)))
     (start-process-shell-command "rst-pdf-preview" nil command)
@@ -3374,8 +3376,9 @@ or of the entire buffer, if the region is not selected."
 (defun rst-compile-slides-preview ()
   "Convert the document to an S5 slide presentation and launch a preview program."
   (interactive)
-  (let* ((tmp-filename "/tmp/slides.html")
-	 (command (format "rst2s5.py %s %s && %s %s"
+  (let* ((tmp-filename (make-temp-file "rst-slides" nil ".html"))
+	 (command (format "%s %s %s && %s %s"
+			  (cadr (assq 's5 rst-compile-toolsets))
 			  buffer-file-name tmp-filename
 			  rst-slides-program tmp-filename)))
     (start-process-shell-command "rst-slides-preview" nil command)
@@ -3473,11 +3476,10 @@ column is used (fill-column vs. end of previous/next line)."
   "A portable function that returns non-nil if the mark is active."
   (cond
    ((fboundp 'region-active-p) (region-active-p))
-   ((boundp 'transient-mark-mode) transient-mark-mode mark-active)))
-
+   ((boundp 'transient-mark-mode) (and transient-mark-mode mark-active))
+   (t mark-active)))
 
 
 (provide 'rst)
 
-;; arch-tag: 255ac0a3-a689-44cb-8643-04ca55ae490d
 ;;; rst.el ends here

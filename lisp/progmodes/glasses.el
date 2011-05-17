@@ -1,7 +1,6 @@
 ;;; glasses.el --- make cantReadThis readable
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: Milan Zamazal <pdm@zamazal.org>
 ;; Maintainer: Milan Zamazal <pdm@zamazal.org>
@@ -117,6 +116,15 @@ parenthesis expression starts."
   :group 'glasses
   :type '(repeat regexp))
 
+(defcustom glasses-separate-capital-groups t
+  "If non-nil, try to separate groups of capital letters.
+When the value is non-nil, HTMLSomething and IPv6 are displayed
+as HTML_Something and I_Pv6 respectively.  Set the value to nil
+if you prefer to display them unchanged."
+  :group 'glasses
+  :type 'boolean
+  :version "24.1")
+
 (defcustom glasses-uncapitalize-p nil
   "If non-nil, downcase embedded capital letters in identifiers.
 Only identifiers starting with lower case letters are affected, letters inside
@@ -213,8 +221,11 @@ CATEGORY is the overlay category.  If it is nil, use the `glasses' category."
 				'glasses-init))
 	;; Face + separator
 	(goto-char beg)
-	(while (re-search-forward "[a-z]\\([A-Z]\\)\\|[A-Z]\\([A-Z]\\)[a-z]"
-				  end t)
+	(while (re-search-forward
+                (if glasses-separate-capital-groups
+                    "[a-z]\\([A-Z]\\)\\|[A-Z]\\([A-Z]\\)[a-z]"
+                  "[a-z]\\([A-Z]\\)")
+                end t)
 	  (let* ((n (if (match-string 1) 1 2))
 		 (o (glasses-make-overlay (match-beginning n) (match-end n))))
 	    (goto-char (match-beginning n))
@@ -291,7 +302,7 @@ recognized according to the current value of the variable `glasses-separator'."
   nil)
 
 
-(defun glasses-change (beg end &optional old-len)
+(defun glasses-change (beg end &optional _old-len)
   "After-change function updating glass overlays."
   (let ((beg-line (save-excursion (goto-char beg) (line-beginning-position)))
 	(end-line (save-excursion (goto-char end) (line-end-position))))
@@ -329,5 +340,4 @@ at places they belong to."
 (provide 'glasses)
 
 
-;; arch-tag: a3515167-c89e-484f-90a1-d85143e52b12
 ;;; glasses.el ends here

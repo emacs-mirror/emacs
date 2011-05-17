@@ -1,7 +1,6 @@
 ;;; crisp.el --- CRiSP/Brief Emacs emulator
 
-;; Copyright (C) 1997, 1998, 1999, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1999, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Gary D. Foster <Gary.Foster@Corp.Sun.COM>
 ;; Keywords: emulations brief crisp
@@ -175,7 +174,7 @@ All the bindings are done here instead of globally to try and be
 nice to the world.")
 
 (defcustom crisp-mode-modeline-string " *CRiSP*"
-  "*String to display in the modeline when CRiSP emulation mode is enabled."
+  "String to display in the modeline when CRiSP emulation mode is enabled."
   :type 'string
   :group 'crisp)
 
@@ -195,7 +194,7 @@ use either M-x customize or the function `crisp-mode'."
   :group 'crisp)
 
 (defcustom crisp-override-meta-x t
-  "*Controls overriding the normal Emacs M-x key binding in the CRiSP emulator.
+  "Controls overriding the normal Emacs M-x key binding in the CRiSP emulator.
 Normally the CRiSP emulator rebinds M-x to `save-buffers-exit-emacs', and
 provides the usual M-x functionality on the F10 key.  If this variable
 is non-nil, M-x will exit Emacs."
@@ -381,5 +380,4 @@ With ARG, turn CRiSP mode on if ARG is positive, off otherwise."
 (run-hooks 'crisp-load-hook)
 (provide 'crisp)
 
-;; arch-tag: e5369375-fafb-4240-b7ae-4cb460ef05ee
 ;;; crisp.el ends here

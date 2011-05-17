@@ -59,7 +59,7 @@
    )
 ]
 
-;; For Emacs < 22.2.
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 
@@ -208,20 +208,16 @@ by nnmaildir-request-article.")
   (eval param))
 
 (defmacro nnmaildir--with-nntp-buffer (&rest body)
-  `(save-excursion
-     (set-buffer nntp-server-buffer)
+  `(with-current-buffer nntp-server-buffer
      ,@body))
 (defmacro nnmaildir--with-work-buffer (&rest body)
-  `(save-excursion
-     (set-buffer (get-buffer-create " *nnmaildir work*"))
+  `(with-current-buffer (get-buffer-create " *nnmaildir work*")
      ,@body))
 (defmacro nnmaildir--with-nov-buffer (&rest body)
-  `(save-excursion
-     (set-buffer (get-buffer-create " *nnmaildir nov*"))
+  `(with-current-buffer (get-buffer-create " *nnmaildir nov*")
      ,@body))
 (defmacro nnmaildir--with-move-buffer (&rest body)
-  `(save-excursion
-     (set-buffer (get-buffer-create " *nnmaildir move*"))
+  `(with-current-buffer (get-buffer-create " *nnmaildir move*")
      ,@body))
 
 (defmacro nnmaildir--subdir (dir subdir)
@@ -920,7 +916,7 @@ by nnmaildir-request-article.")
 		  "\n")))))
   'group)
 
-(defun nnmaildir-request-update-info (gname info &optional server)
+(defun nnmaildir-request-marks (gname info &optional server)
   (let ((group (nnmaildir--prepare server gname))
 	pgname flist always-marks never-marks old-marks dotfile num dir
 	markdirs marks mark ranges markdir article read end new-marks ls
@@ -987,7 +983,7 @@ by nnmaildir-request-article.")
       (setf (nnmaildir--grp-mmth group) new-mmth)
       info)))
 
-(defun nnmaildir-request-group (gname &optional server fast)
+(defun nnmaildir-request-group (gname &optional server fast info)
   (let ((group (nnmaildir--prepare server gname))
 	deactivate-mark)
     (catch 'return
@@ -1249,8 +1245,7 @@ by nnmaildir-request-article.")
 	(setf (nnmaildir--srv-error nnmaildir--cur-server)
 	      "Article has expired")
 	(throw 'return nil))
-      (save-excursion
-	(set-buffer (or to-buffer nntp-server-buffer))
+      (with-current-buffer (or to-buffer nntp-server-buffer)
 	(erase-buffer)
 	(nnheader-insert-file-contents nnmaildir-article-file-name))
       (cons gname num-msgid))))
@@ -1289,8 +1284,7 @@ by nnmaildir-request-article.")
 	(setf (nnmaildir--srv-error nnmaildir--cur-server)
 	      (concat "File exists: " tmpfile))
 	(throw 'return nil))
-      (save-excursion
-	(set-buffer buffer)
+      (with-current-buffer buffer
 	(gmm-write-region (point-min) (point-max) tmpfile nil 'no-message nil
 			  'excl))
       (unix-sync) ;; no fsync :(
@@ -1565,7 +1559,7 @@ by nnmaildir-request-article.")
 		  (t (signal (car err) (cdr err))))))
 	     todo-marks))
 	  set-action (lambda (article)
-		       (funcall add-action)
+		       (funcall add-action article)
 		       (mapcar (lambda (mark)
 				 (unless (memq mark todo-marks)
 				   (funcall del-mark mark)))
@@ -1596,7 +1590,7 @@ by nnmaildir-request-article.")
 	(nnmaildir--nlist-iterate nlist ranges
 				  (cond ((eq 'del (cadr action)) del-action)
 					((eq 'add (cadr action)) add-action)
-					(t set-action))))
+					((eq 'set (cadr action)) set-action))))
       nil)))
 
 (defun nnmaildir-close-group (gname &optional server)
@@ -1667,5 +1661,4 @@ by nnmaildir-request-article.")
 ;; fill-column: 77
 ;; End:
 
-;; arch-tag: 0c4e44cd-dfde-4040-888e-5597ec771849
 ;;; nnmaildir.el ends here

@@ -1,7 +1,6 @@
 ;;; parse-time.el --- parsing time strings
 
-;; Copyright (C) 1996, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Erik Naggum <erik@naggum.no>
 ;; Keywords: util
@@ -220,5 +219,4 @@ unknown are returned as nil."
 
 (provide 'parse-time)
 
-;; arch-tag: 07066094-45a8-4c68-b307-86195e2c1103
 ;;; parse-time.el ends here

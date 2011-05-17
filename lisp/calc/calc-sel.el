@@ -1,7 +1,6 @@
 ;;; calc-sel.el --- data selection functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -309,6 +308,8 @@
        (setq n (1+ n))))
    (calc-clear-command-flag 'position-point)))
 
+(defvar calc-highlight-selections-with-faces)
+
 (defun calc-show-selections (arg)
   (interactive "P")
   (calc-wrapper
@@ -330,8 +331,12 @@
 		(setcar (nthcdr 2 calc-selection-cache-entry) nil)
 		(calc-change-current-selection sel)))))
    (message (if calc-show-selections
-		"Displaying only selected part of formulas"
-	      "Displaying all but selected part of formulas"))))
+                (if calc-highlight-selections-with-faces
+                    "De-emphasizing all but selected part of formulas"
+                  "Displaying only selected part of formulas")
+              (if calc-highlight-selections-with-faces
+                  "Emphasizing selected part of formulas"
+                "Displaying all but selected part of formulas")))))
 
 ;; The variables calc-final-point-line and calc-final-point-column
 ;; are declared in calc.el, and are used throughout.
@@ -870,5 +875,4 @@
 
 (provide 'calc-sel)
 
-;; arch-tag: e5169792-777d-428f-bff5-acca66813fa2
 ;;; calc-sel.el ends here

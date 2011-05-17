@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2011
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/processes
 @node Processes, Display, Abbrevs, Top
@@ -51,13 +51,13 @@ Processes}.
 * Sentinels::                Sentinels run when process run-status changes.
 * Query Before Exit::        Whether to query if exiting will kill a process.
 * System Processes::         Accessing other processes running on your system.
-* Transaction Queues::	     Transaction-based communication with subprocesses.
+* Transaction Queues::       Transaction-based communication with subprocesses.
 * Network::                  Opening network connections.
 * Network Servers::          Network servers let Emacs accept net connections.
 * Datagrams::                UDP network connections.
 * Low-Level Network::        Lower-level but more general function
                                to create connections and servers.
-* Misc Network::             Additional relevant functions for network connections.
+* Misc Network::             Additional relevant functions for net connections.
 * Serial Ports::             Communicating with serial ports.
 * Byte Packing::             Using bindat to pack and unpack binary data.
 @end menu
@@ -194,10 +194,18 @@ a shell command:
 @end example
 @end defun
 
-@cindex quoting and unquoting shell command line
-  The following two functions are useful for creating shell commands
-from individual argument strings, and taking shell command lines apart
-into individual arguments.
+@cindex quoting and unquoting command-line arguments
+@cindex minibuffer input, and command-line arguments
+@cindex @code{call-process}, command-line arguments from minibuffer
+@cindex @code{start-process}, command-line arguments from minibuffer
+  The following two functions are useful for combining a list of
+individual command-line argument strings into a single string, and
+taking a string apart into a list of individual command-line
+arguments.  These functions are mainly intended to be used for
+converting user input in the minibuffer, a Lisp string, into a list of
+string arguments to be passed to @code{call-process} or
+@code{start-process}, or for the converting such lists of arguments in
+a single Lisp string to be presented in the minibuffer or echo area.
 
 @defun split-string-and-unquote string &optional separators
 This function splits @var{string} into substrings at matches for the
@@ -209,7 +217,7 @@ If @var{separators} is omitted or @code{nil}, it defaults to
 @code{"\\s-+"}, which is a regular expression that matches one or more
 characters with whitespace syntax (@pxref{Syntax Class Table}).
 
-This function performs two types of quoting: enclosing a whole string
+This function supports two types of quoting: enclosing a whole string
 in double quotes @code{"@dots{}"}, and quoting individual characters
 with a backslash escape @samp{\}.  The latter is also used in Lisp
 strings, so this function can handle those as well.
@@ -225,9 +233,8 @@ resulting string.
 The strings in @var{list-of-strings} that need quoting are those that
 include @var{separator} as their substring.  Quoting a string encloses
 it in double quotes @code{"@dots{}"}.  In the simplest case, if you
-are consing a shell command from the individual command-line
-arguments, every argument that includes embedded blanks will be
-quoted.
+are consing a command from the individual command-line arguments,
+every argument that includes embedded blanks will be quoted.
 @end defun
 
 @node Synchronous Processes
@@ -259,10 +266,9 @@ subprocess by @code{call-process-region} is encoded using a coding
 system, much like text written into a file.  @xref{Coding Systems}.
 
 @defun call-process program &optional infile destination display &rest args
-This function calls @var{program} in a separate process and waits for
-it to finish.
+This function calls @var{program} and waits for it to finish.
 
-The standard input for the process comes from file @var{infile} if
+The standard input for the new process comes from file @var{infile} if
 @var{infile} is not @code{nil}, and from the null device otherwise.
 The argument @var{destination} says where to put the process output.
 Here are the possibilities:
@@ -292,6 +298,9 @@ function returns.
 
 MS-DOS doesn't support asynchronous subprocesses, so this option doesn't
 work there.
+
+@item @code{(:file @var{file-name})}
+Send the output to the file name specified.
 
 @item @code{(@var{real-destination} @var{error-destination})}
 Keep the standard output stream separate from the standard error stream;
@@ -481,10 +490,10 @@ inputinput@point{}
 @end defun
 
 @defun call-process-shell-command command &optional infile destination display &rest args
-This function executes the shell command @var{command} synchronously
-in a separate process.  The final arguments @var{args} are additional
-arguments to add at the end of @var{command}.  The other arguments
-are handled as in @code{call-process}.
+This function executes the shell command @var{command} synchronously.
+The final arguments @var{args} are additional arguments to add at the
+end of @var{command}.  The other arguments are handled as in
+@code{call-process}.
 @end defun
 
 @defun process-file-shell-command command &optional infile destination display &rest args
@@ -499,12 +508,12 @@ then returns the command's output as a string.
 @end defun
 
 @defun process-lines program &rest args
-This function runs @var{program} in a separate process, waits for it
-to finish, and returns its output as a list of strings.  Each string
-in the list holds a single line of text output by the program; the
-end-of-line characters are stripped from each line.  The arguments
-beyond @var{program}, @var{args}, are strings that specify
-command-line arguments with which to run the program.
+This function runs @var{program}, waits for it to finish, and returns
+its output as a list of strings.  Each string in the list holds a
+single line of text output by the program; the end-of-line characters
+are stripped from each line.  The arguments beyond @var{program},
+@var{args}, are strings that specify command-line arguments with which
+to run the program.
 
 If @var{program} exits with a non-zero exit status, this function
 signals an error.
@@ -867,7 +876,9 @@ terminated, the value is 0.
 This function returns the terminal name that @var{process} is using for
 its communication with Emacs---or @code{nil} if it is using pipes
 instead of a terminal (see @code{process-connection-type} in
-@ref{Asynchronous Processes}).
+@ref{Asynchronous Processes}).  If @var{process} represents a program
+running on a remote host, the terminal name used by that program on
+the remote host is provided as process property @code{remote-tty}.
 @end defun
 
 @defun process-coding-system process
@@ -1270,22 +1281,24 @@ process's buffer, mimicking the actions of Emacs when there is no
 filter.  Such filter functions need to use @code{set-buffer} in order to
 be sure to insert in that buffer.  To avoid setting the current buffer
 semipermanently, these filter functions must save and restore the
-current buffer.  They should also update the process marker, and in some
-cases update the value of point.  Here is how to do these things:
+current buffer.  They should also check whether the buffer is still
+alive, update the process marker, and in some cases update the value
+of point.  Here is how to do these things:
 
 @smallexample
 @group
 (defun ordinary-insertion-filter (proc string)
-  (with-current-buffer (process-buffer proc)
-    (let ((moving (= (point) (process-mark proc))))
+  (when (buffer-live-p (process-buffer proc))
+    (with-current-buffer (process-buffer proc)
+      (let ((moving (= (point) (process-mark proc))))
 @end group
 @group
-      (save-excursion
-        ;; @r{Insert the text, advancing the process marker.}
-        (goto-char (process-mark proc))
-        (insert string)
-        (set-marker (process-mark proc) (point)))
-      (if moving (goto-char (process-mark proc))))))
+        (save-excursion
+          ;;  @r{Insert the text, advancing the process marker.}
+          (goto-char (process-mark proc))
+          (insert string)
+          (set-marker (process-mark proc) (point)))
+        (if moving (goto-char (process-mark proc)))))))
 @end group
 @end smallexample
 
@@ -1311,12 +1324,6 @@ previously, eliminate the variable @code{moving} and call
 expression searching or matching had to explicitly save and restore the
 match data.  Now Emacs does this automatically for filter functions;
 they never need to do it explicitly.  @xref{Match Data}.
-
-  A filter function that writes the output into the buffer of the
-process should check whether the buffer is still alive.  If it tries to
-insert into a dead buffer, it will get an error.  The expression
-@code{(buffer-name (process-buffer @var{process}))} returns @code{nil}
-if the buffer is dead.
 
   The output to the function may come in chunks of any size.  A program
 that produces the same output twice in a row may send it as one batch of
@@ -3012,7 +3019,3 @@ Fetching data from this structure:
 (bindat-get-field decoded 'item 1 'id)
      @result{} "BCDEFG"
 @end lisp
-
-@ignore
-   arch-tag: ba9da253-e65f-4e7f-b727-08fba0a1df7a
-@end ignore

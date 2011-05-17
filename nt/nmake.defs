@@ -1,6 +1,5 @@
 #  -*- Makefile -*- definition file for building GNU Emacs on Windows NT.
-#  Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-#    2008, 2009, 2010 Free Software Foundation, Inc.
+# Copyright (C) 2000-2011 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -136,8 +135,17 @@ DEBUG_CFLAGS	= -DEMACSDEBUG
 !else
 DEBUG_CFLAGS	=
 !endif
+
+!ifdef ENABLECHECKS
+CHECKING_CFLAGS	= -DENABLE_CHECKING -DXASSERTS
+!else
+CHECKING_CFLAGS	=
+!endif
+
 CFLAGS          = -I. $(ARCH_CFLAGS) \
-		  $(DEBUG_CFLAGS) $(USER_CFLAGS) $(LOCAL_FLAGS)
+		  $(DEBUG_CFLAGS) $(CHECKING_CFLAGS) $(USER_CFLAGS) $(LOCAL_FLAGS)
+ESC_CFLAGS      = -I. $(ARCH_CFLAGS) \
+		  $(DEBUG_CFLAGS) $(CHECKING_CFLAGS) $(ESC_USER_CFLAGS) $(LOCAL_FLAGS)
 EMACS_EXTRA_C_FLAGS =
 
 SYS_LDFLAGS	= -nologo -release -incremental:no -version:3.10 -swaprun:cd -swaprun:net setargv.obj
@@ -239,4 +247,3 @@ EXTRA_LINK      = -profile
 		$(CC) $(CFLAGS) -Fo$(BLD)\ $<
 !ENDIF
 
-# arch-tag: fefa49b0-c23c-46c7-9094-cab2a405058e

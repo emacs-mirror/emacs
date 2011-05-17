@@ -1,7 +1,7 @@
 ;;; sort.el --- commands to sort text in an Emacs buffer
 
-;; Copyright (C) 1986, 1987, 1994, 1995, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1986-1987, 1994-1995, 2001-2011
+;;   Free Software Foundation, Inc.
 
 ;; Author: Howie Kaye
 ;; Maintainer: FSF
@@ -361,8 +361,8 @@ the sort order."
 	(if (eolp)
 	    (error "Line has too few fields: %s"
 		   (buffer-substring
-		    (save-excursion (beginning-of-line) (point))
-		    (save-excursion (end-of-line) (point))))))
+		    (line-beginning-position)
+		    (line-end-position)))))
     (end-of-line)
     ;; Skip back across - N - 1 fields.
     (let ((i (1- (- n))))
@@ -374,8 +374,8 @@ the sort order."
     (if (bolp)
 	(error "Line has too few fields: %s"
 	       (buffer-substring
-		(save-excursion (beginning-of-line) (point))
-		(save-excursion (end-of-line) (point)))))
+		(line-beginning-position)
+		(line-end-position))))
     ;; Position at the front of the field
     ;; even if moving backwards.
     (skip-chars-backward "^ \t\n")))
@@ -559,5 +559,4 @@ From a program takes two point or marker arguments, BEG and END."
 
 (provide 'sort)
 
-;; arch-tag: fbac12be-2a7b-4c8a-9665-264d61f70bd9
 ;;; sort.el ends here

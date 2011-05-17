@@ -1,6 +1,6 @@
 ;;; ede-system.el --- EDE working with the system (VC, FTP, ETC)
 
-;; Copyright (C) 2001, 2002, 2003, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2001-2003, 2009-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make, vc
@@ -143,5 +143,4 @@ Download tramp, and use /r:machine: for names on remote sites w/out FTP access."
 ;; generated-autoload-load-name: "ede/system"
 ;; End:
 
-;; arch-tag: a974ea44-151e-488b-b5d4-df2c05be6fe6
 ;;; ede/system.el ends here

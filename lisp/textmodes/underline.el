@@ -1,7 +1,6 @@
 ;;; underline.el --- insert/remove underlining (done by overstriking) in Emacs
 
-;; Copyright (C) 1985, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2001-2011 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: wp
@@ -61,5 +60,4 @@ which specify the range to operate on."
 
 (provide 'underline)
 
-;; arch-tag: e7b48582-c3ea-4386-987a-87415f3c372a
 ;;; underline.el ends here

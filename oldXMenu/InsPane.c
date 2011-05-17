@@ -18,15 +18,15 @@
 #include "XMenuInt.h"
 
 int
-XMenuInsertPane(menu, p_num, label, active)
-    register XMenu *menu;	/* Menu object to be modified. */
-    register int p_num;		/* Pane number of new pane. */
-    char *label;		/* Selection label. */
-    int active;			/* Make selection active? */
+XMenuInsertPane(register XMenu *menu, register int p_num, char *label, int active)
+                         	/* Menu object to be modified. */
+                       		/* Pane number of new pane. */
+                		/* Selection label. */
+               			/* Make selection active? */
 {
     register XMPane *p_ptr;	/* XMPane pointer. */
     register XMPane *pane;	/* Newly created pane. */
-    register XMSelect *select;	/* Initial selection for the new pane. */
+    register XMSelect *sel;	/* Initial selection for the new pane. */
 
     int label_length;		/* Label length in characters. */
     int label_width;		/* Label width in pixels. */
@@ -54,8 +54,8 @@ XMenuInsertPane(menu, p_num, label, active)
 	_XMErrorCode = XME_CALLOC;
 	return(XM_FAILURE);
     }
-    select = (XMSelect *)calloc(1, sizeof(XMSelect));
-    if (select == NULL) {
+    sel = (XMSelect *)calloc(1, sizeof(XMSelect));
+    if (sel == NULL) {
 	_XMErrorCode = XME_CALLOC;
 	return(XM_FAILURE);
     }
@@ -70,11 +70,11 @@ XMenuInsertPane(menu, p_num, label, active)
      * Set up the initial selection.
      * Values not explicitly set are zeroed by calloc.
      */
-    select->next = select;
-    select->prev = select;
-    select->type = SL_HEADER;
-    select->serial = -1;
-    select->parent_p = pane;
+    sel->next = sel;
+    sel->prev = sel;
+    sel->type = SL_HEADER;
+    sel->serial = -1;
+    sel->parent_p = pane;
 
     /*
      * Fill the XMPane structure.
@@ -85,7 +85,7 @@ XMenuInsertPane(menu, p_num, label, active)
     pane->label = label;
     pane->label_width = label_width;
     pane->label_length = label_length;
-    pane->s_list = select;
+    pane->s_list = sel;
 
     /*
      * Insert the pane after the pane with the pane
@@ -110,6 +110,3 @@ XMenuInsertPane(menu, p_num, label, active)
     _XMErrorCode = XME_NO_ERROR;
     return(p_num);
 }
-
-/* arch-tag: ab94d53d-f05b-4273-82d3-f1b01eb9dc9e
-   (do not change this comment) */
