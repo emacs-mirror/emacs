@@ -80,20 +80,20 @@ be any window."
   (or (window-vchild window) (window-hchild window)))
 
 (defun window-child-count (window)
-  "Return number of WINDOW's children."
+  "Return number of WINDOW's child windows."
   (let ((count 0))
     (when (and (windowp window) (setq window (window-child window)))
       (while window
 	(setq count (1+ count))
 	(setq window (window-next window))))
-
     count))
 
-(defsubst window-internal-p (object)
-  "Return t if OBJECT is an internal window and nil otherwise.
-An internal window is a window that has either a vertical or a
-horizontal child window."
-  (and (windowp object) (window-child object) t))
+(defun window-last-child (window)
+  "Return last child window of WINDOW."
+  (when (and (windowp window) (setq window (window-child window)))
+    (while (window-next window)
+      (setq window (window-next window))))
+  window)
 
 (defsubst window-any-p (object)
   "Return t if OBJECT denotes a live or internal window."
@@ -101,6 +101,7 @@ horizontal child window."
        (or (window-buffer object) (window-child object))
        t))
 
+;; The following four functions should probably go to subr.el.
 (defsubst normalize-live-buffer (buffer-or-name)
   "Return buffer specified by BUFFER-OR-NAME.
 BUFFER-OR-NAME must be either a buffer or a string naming a live
@@ -116,9 +117,9 @@ buffer and defaults to the current buffer."
    (t
     (error "No such buffer %s" buffer-or-name))))
 
-;; This should probably go to frame.el.
 (defsubst normalize-live-frame (frame)
-  "Return normalized FRAME argument for live frames."
+  "Return frame specified by FRAME.
+FRAME must be a live frame and defaults to the selected frame."
   (if frame
       (if (frame-live-p frame)
 	  frame
@@ -126,8 +127,9 @@ buffer and defaults to the current buffer."
     (selected-frame)))
 
 (defsubst normalize-any-window (window)
-  "Return normalized WINDOW argument for any window.
-WINDOW defaults to the selected window."
+  "Return window specified by WINDOW.
+WINDOW must be a window that has not been deleted and defaults to
+the selected window."
   (if window
       (if (window-any-p window)
 	  window
@@ -135,8 +137,8 @@ WINDOW defaults to the selected window."
     (selected-window)))
 
 (defsubst normalize-live-window (window)
-  "Return normalized WINDOW argument for live windows.
-WINDOW defaults to the selected window."
+  "Return live window specified by WINDOW.
+WINDOW must be a live window and defaults to the selected one."
   (if window
       (if (and (windowp window) (window-buffer window))
 	  window
@@ -350,7 +352,7 @@ Return nil if WINDOW is not part of a atomic window."
 (defun make-window-atom (window)
   "Make WINDOW an atomic window.
 WINDOW must be an internal window.  Return WINDOW."
-  (if (not (window-internal-p window))
+  (if (not (window-child window))
       (error "Window %s is not an internal window" window)
     (walk-window-subtree
      (lambda (window)
@@ -856,7 +858,7 @@ WINDOW can be resized in the desired direction.  The functions
   (window-size-fixed-1
    (normalize-any-window window) horizontal))
 
-(defun window-min-delta (&optional window horizontal ignore side noup nodown)
+(defun window-min-delta (&optional window horizontal ignore trail noup nodown)
   "Return number of lines by which WINDOW can be shrunk.
 WINDOW can be an arbitrary window and defaults to the selected
 window.  Return zero if WINDOW cannot be shrunk.
@@ -871,10 +873,10 @@ restrictions for that window only.  IGNORE equal `safe' means
 live windows may get as small as `window-safe-min-height' lines
 and `window-safe-min-width' columns.
 
-Optional argument SIDE `left' means assume only windows to the
-left of or above WINDOW can be enlarged.  Optional argument SIDE
-`right' means assumes only windows to the right of or below
-WINDOW can be enlarged.
+Optional argument TRAIL `before' means only windows to the left
+of or above WINDOW can be enlarged.  Optional argument TRAIL
+`after' means only windows to the right of or below WINDOW can be
+enlarged.
 
 Optional argument NOUP non-nil means don't go up in the window
 tree but try to enlarge windows within WINDOW's combination only.
@@ -889,9 +891,9 @@ and its subwindows can be shrunk."
 	0
       (window-min-delta-1
        ;; Think positive.
-       window (- size minimum) horizontal ignore side noup))))
+       window (- size minimum) horizontal ignore trail noup))))
 
-(defun window-min-delta-1 (window delta &optional horizontal ignore side noup)
+(defun window-min-delta-1 (window delta &optional horizontal ignore trail noup)
   "Internal function for `window-min-delta'."
   (if (not (window-parent window))
       0 ; delta
@@ -905,11 +907,11 @@ and its subwindows can be shrunk."
 	    ;; In an iso-combination throw DELTA if we find at least one
 	    ;; subwindow and that subwindow is either non-fixed-size or
 	    ;; we can ignore fixed-sizeness.
-	    (let ((skip (eq side 'right)))
+	    (let ((skip (eq trail 'after)))
 	      (while sub
 		(cond
 		 ((eq sub window)
-		  (setq skip (eq side 'left)))
+		  (setq skip (eq trail 'before)))
 		 (skip)
 		 ((and (not (window-size-ignore window ignore))
 		       (window-size-fixed-p sub horizontal)))
@@ -928,9 +930,9 @@ and its subwindows can be shrunk."
 	    (setq sub (window-right sub))))
 	(if noup
 	    delta
-	  (window-min-delta-1 parent delta horizontal ignore side))))))
+	  (window-min-delta-1 parent delta horizontal ignore trail))))))
 
-(defun window-max-delta (&optional window horizontal ignore side noup nodown)
+(defun window-max-delta (&optional window horizontal ignore trail noup nodown)
   "Return maximum number of lines WINDOW by which WINDOW can be enlarged.
 WINDOW can be an arbitrary window and defaults to the selected
 window.  The return value is zero if WINDOW cannot be enlarged.
@@ -945,10 +947,10 @@ restrictions for that window only.  IGNORE equal `safe' means
 live windows may get as small as `window-safe-min-height' lines
 and `window-safe-min-width' columns.
 
-Optional argument SIDE `left' means assume only windows to the
-left of or below WINDOW can be shrunk.  Optional argument SIDE
-`right' means assumes only windows to the right of or above
-WINDOW can be shrunk.
+Optional argument TRAIL `before' means only windows to the left
+of or below WINDOW can be shrunk.  Optional argument TRAIL
+`after' means only windows to the right of or above WINDOW can be
+shrunk.
 
 Optional argument NOUP non-nil means don't go up in the window
 tree but try to obtain the entire space from windows within
@@ -960,9 +962,9 @@ WINDOW and its subwindows can be enlarged."
   (if (and (not (window-size-ignore window ignore))
 	   (not nodown) (window-size-fixed-p window horizontal))
       0
-    (window-max-delta-1 window 0 horizontal ignore side noup)))
+    (window-max-delta-1 window 0 horizontal ignore trail noup)))
 
-(defun window-max-delta-1 (window delta &optional horizontal ignore side noup)
+(defun window-max-delta-1 (window delta &optional horizontal ignore trail noup)
   "Internal function of `window-max-delta'."
   (if (not (window-parent window))
       ;; Can't go up.  Return DELTA.
@@ -973,11 +975,11 @@ WINDOW and its subwindows can be enlarged."
 	(if (window-iso-combined-p sub horizontal)
 	    ;; For an iso-combination calculate how much we can get from
 	    ;; other subwindows.
-	    (let ((skip (eq side 'right)))
+	    (let ((skip (eq trail 'after)))
 	      (while sub
 		(cond
 		 ((eq sub window)
-		  (setq skip (eq side 'left)))
+		  (setq skip (eq trail 'before)))
 		 (skip)
 		 (t
 		  (setq delta
@@ -996,10 +998,10 @@ WINDOW and its subwindows can be enlarged."
 	(if noup
 	    delta
 	  ;; Try to go up.
-	  (window-max-delta-1 parent delta horizontal ignore side))))))
+	  (window-max-delta-1 parent delta horizontal ignore trail))))))
 
 ;; Make NOUP also inhibit the min-size check.
-(defun window-resizable (window delta &optional horizontal ignore side noup nodown)
+(defun window-resizable (window delta &optional horizontal ignore trail noup nodown)
   "Return DELTA if WINDOW can be resized vertically by DELTA lines.
 Optional argument HORIZONTAL non-nil means return DELTA if WINDOW
 can be resized horizontally by DELTA columns.  A return value of
@@ -1022,6 +1024,11 @@ restrictions for that window only.  IGNORE equal `safe' means
 live windows may get as small as `window-safe-min-height' lines
 and `window-safe-min-width' columns.
 
+Optional argument TRAIL `before' means only windows to the left
+of or below WINDOW can be shrunk.  Optional argument TRAIL
+`after' means only windows to the right of or above WINDOW can be
+shrunk.
+
 Optional argument NOUP non-nil means don't go up in the window
 tree but try to distribute the space among the other windows
 within WINDOW's combination.
@@ -1031,22 +1038,22 @@ and its subwindows can be resized."
   (setq window (normalize-any-window window))
   (cond
    ((< delta 0)
-    (max (- (window-min-delta window horizontal ignore side noup nodown))
+    (max (- (window-min-delta window horizontal ignore trail noup nodown))
 	 delta))
    ((> delta 0)
-    (min (window-max-delta window horizontal ignore side noup nodown)
+    (min (window-max-delta window horizontal ignore trail noup nodown)
 	 delta))
    (t 0)))
 
-(defun window-resizable-p (window delta &optional horizontal ignore side noup nodown)
+(defun window-resizable-p (window delta &optional horizontal ignore trail noup nodown)
   "Return t if WINDOW can be resized vertically by DELTA lines.
 For the meaning of the arguments of this function see the
 doc-string of `window-resizable'."
   (setq window (normalize-any-window window))
   (if (> delta 0)
-      (>= (window-resizable window delta horizontal ignore side noup nodown)
+      (>= (window-resizable window delta horizontal ignore trail noup nodown)
 	  delta)
-    (<= (window-resizable window delta horizontal ignore side noup nodown)
+    (<= (window-resizable window delta horizontal ignore trail noup nodown)
 	delta)))
 
 (defsubst window-total-height (&optional window)
@@ -1526,15 +1533,15 @@ windows."
 (defun resize-window-reset-1 (window horizontal)
   "Internal function of `resize-window-reset'."
   ;; Register old size in the new total size.
-  (resize-window-total window (window-total-size window horizontal))
+  (set-window-new-total window (window-total-size window horizontal))
   ;; Reset new normal size.
-  (resize-window-normal window)
+  (set-window-new-normal window)
   (when (window-child window)
     (resize-window-reset-1 (window-child window) horizontal))
   (when (window-right window)
     (resize-window-reset-1 (window-right window) horizontal)))
 
-;; The following routine is needed to manually resize the minibuffer
+;; The following routine is used to manually resize the minibuffer
 ;; window and is currently used, for example, by ispell.el.
 (defun resize-mini-window (window delta)
   "Resize minibuffer window WINDOW by DELTA lines.
@@ -1553,16 +1560,17 @@ as small) as possible but don't signal an error."
 	(setq delta (- (- height 1))))
        ((> delta min-delta)
 	(setq delta min-delta)))
+
       ;; Resize now.
       (resize-window-reset frame)
+      ;; Ideally we should be able to resize just the last subwindow of
+      ;; root here.  See the comment in `resize-root-window-vertically'
+      ;; for why we do not do that.
       (resize-this-window root (- delta) nil nil t)
-      (resize-window-total window (+ height delta))
+      (set-window-new-total window (+ height delta))
       ;; The following routine catches the case where we want to resize
       ;; a minibuffer-only frame.
       (resize-mini-window-internal window))))
-
-(defvar resize-window-safe-window nil
-  "Internal variable bound by `resize-window'.")
 
 (defun resize-window (window delta &optional horizontal ignore)
   "Resize WINDOW vertically by DELTA lines.
@@ -1595,7 +1603,7 @@ instead."
 	 sibling)
     (cond
      ((eq window (frame-root-window frame))
-      (error "Cannot resize root window of frame"))
+      (error "Cannot resize the root window of a frame"))
      ((window-minibuffer-p window)
       (resize-mini-window window delta))
      ((window-resizable-p window delta horizontal ignore)
@@ -1605,16 +1613,20 @@ instead."
 	       (window-iso-combined-p window horizontal)
 	       (setq sibling (or (window-right window) (window-left window)))
 	       (window-sizable-p sibling (- delta) horizontal ignore))
-	  ;; Resize WINDOW's neighbor, preferably the one on the right,
-	  ;; since up to Emacs 23 it was handled this way.
-	  (let ((parent-size
-		 (window-total-size (window-parent window) horizontal)))
+	  ;; If window-splits returns nil for WINDOW, WINDOW is part of
+	  ;; an iso-combination, and WINDOW's neighboring right or left
+	  ;; sibling can be resized as requested, resize that sibling.
+	  (let ((normal-delta
+		 (/ (float delta)
+		    (window-total-size (window-parent window) horizontal))))
 	    (resize-this-window sibling (- delta) horizontal nil t)
-	    (resize-window-normal
-	     window (/ (float (window-new-total-size window)) parent-size))
-	    (resize-window-normal
-	     sibling (/ (float (window-new-total-size sibling)) parent-size)))
-	;; Resize all other windows in the same combination.
+	    (set-window-new-normal
+	     window (+ (window-normal-size window horizontal)
+		       normal-delta))
+	    (set-window-new-normal
+	     sibling (- (window-normal-size sibling horizontal)
+			normal-delta)))
+	;; Otherwise, resize all other windows in the same combination.
 	(resize-other-windows window delta horizontal ignore))
       (resize-window-apply frame horizontal))
      (t
@@ -1622,68 +1634,115 @@ instead."
 
 (defsubst resize-subwindows-skip-p (window)
   "Return non-nil if WINDOW shall be skipped by resizing routines."
-  (memq (window-new-normal-size window) '(ignore stuck skip)))
+  (memq (window-new-normal window) '(ignore stuck skip)))
 
-(defun resize-subwindows-normal (parent horizontal window delta side)
-  "Set new normal height of all subwindows of window PARENT.
-HORIZONTAL non-nil means set normal width of these windows.
-WINDOW has to specify a subwindow of PARENT that has been resized
-by DELTA lines \(columns).  SIDE non-nil means set values for
-windows on the specified side of WINDOW only."
-  (let* ((parent-new-total (window-new-total-size parent))
-	 (window-new-total
-	  (+ (window-total-size window horizontal) delta))
-	 (window-new-normal
-	  (/ (float window-new-total) parent-new-total))
-	 (others-old-normal
-	  (- 1 (window-normal-size window horizontal)))
-	 (others-new-normal (- 1 window-new-normal))
+(defun resize-subwindows-normal (parent horizontal window this-delta &optional trail other-delta)
+  "Set the new normal height of subwindows of window PARENT.
+HORIZONTAL non-nil means set the new normal width of these
+windows.  WINDOW specifies a subwindow of PARENT that has been
+resized by THIS-DELTA lines \(columns).
+
+Optional argument TRAIL either 'before or 'after means set values
+for windows before or after WINDOW only.  Optional argument
+OTHER-DELTA a number specifies that this many lines \(columns)
+have been obtained from \(or returned to) an ancestor window of
+PARENT in order to resize WINDOW."
+  (let* ((delta-normal
+	  (if (and (not other-delta)
+		   (= (- this-delta) (window-total-size window horizontal)))
+	      ;; When WINDOW gest deleted and we can return its entire
+	      ;; space to its siblings, use WINDOW's normal size as the
+	      ;; normal delta.
+	      (- (window-normal-size window horizontal))
+	    ;; In any other case calculate the normal delta from the
+	    ;; relation of THIS-DELTA to the total size of PARENT.
+	    (/ (float this-delta) (window-total-size parent horizontal))))
 	 (sub (window-child parent))
-	 (skip (eq side 'right)))
+	 (parent-normal 0.0)
+	 (skip (eq trail 'after)))
 
-    (when (memq side '(left right))
-      (while sub
-	(cond
-	 ((eq sub window)
-	  (setq skip (eq side 'left)))
-	 (skip
-	  (setq others-old-normal
-		(- others-old-normal
-		   (window-normal-size sub horizontal)))
-	  (setq others-new-normal
-		(- others-new-normal
-		   (window-normal-size sub horizontal)))))
-	(setq sub (window-right sub)))
-      (setq sub (window-child parent))
-      (setq skip (eq side 'right)))
-
-    (setq sub (window-child parent))
+    ;; Set parent-normal to the sum of the normal sizes of all
+    ;; subwindows of PARENT that shall be resized, excluding only WINDOW
+    ;; and any windows specified by the optional TRAIL argument.
     (while sub
       (cond
        ((eq sub window)
-	(resize-window-normal sub window-new-normal)
-	(setq skip (eq side 'left)))
+	(setq skip (eq trail 'before)))
        (skip)
        (t
-	(resize-window-normal
-	 sub (if (zerop others-old-normal)
-		 0
-	       (/ (* (window-normal-size sub horizontal)
-		     others-new-normal)
-		  others-old-normal)))))
-      (setq sub (window-right sub)))))
+	(setq parent-normal
+	      (+ parent-normal (window-normal-size sub horizontal)))))
+      (setq sub (window-right sub)))
 
-;; Calling the following has
-;;  1. SIDE non-nil => WINDOW nil.
-;;  2. WINDOW non-nil => resize PARENT and WINDOW by DELTA.
-;;  3. WINDOW nil => resize PARENT by DELTA.
-(defun resize-subwindows (parent delta &optional horizontal ignore side)
+    ;; Set the new normal size of all subwindows of PARENT from what
+    ;; they should have contributed for recovering THIS-DELTA lines
+    ;; (columns).
+    (setq sub (window-child parent))
+    (setq skip (eq trail 'after))
+    (while sub
+      (cond
+       ((eq sub window)
+	(setq skip (eq trail 'before)))
+       (skip)
+       (t
+	(let ((old-normal (window-normal-size sub horizontal)))
+	  (set-window-new-normal
+	   sub (min 1.0 ; Don't get larger than 1.
+		    (max (- old-normal
+			    (* (/ old-normal parent-normal)
+			       delta-normal))
+			 ;; Don't drop below 0.
+			 0.0))))))
+      (setq sub (window-right sub)))
+
+    (when (numberp other-delta)
+      ;; Set the new normal size of windows from what they should have
+      ;; contributed for recovering OTHER-DELTA lines (columns).
+      (setq delta-normal (/ (float (window-total-size parent horizontal))
+			    (+ (window-total-size parent horizontal)
+			       other-delta)))
+      (setq sub (window-child parent))
+      (setq skip (eq trail 'after))
+      (while sub
+	(cond
+	 ((eq sub window)
+	  (setq skip (eq trail 'before)))
+	 (skip)
+	 (t
+	  (set-window-new-normal
+	   sub (min 1.0 ; Don't get larger than 1.
+		    (max (* (window-new-normal sub) delta-normal)
+			 ;; Don't drop below 0.
+			 0.0)))))
+	(setq sub (window-right sub))))
+
+    ;; Set the new normal size of WINDOW to what is left by the sum of
+    ;; the normal sizes of its siblings.
+    (set-window-new-normal
+     window
+     (let ((sum 0))
+       (setq sub (window-child parent))
+       (while sub
+	 (cond
+	  ((eq sub window))
+	  ((not (numberp (window-new-normal sub)))
+	   (setq sum (+ sum (window-normal-size sub horizontal))))
+	  (t
+	   (setq sum (+ sum (window-new-normal sub)))))
+	 (setq sub (window-right sub)))
+       ;; Don't get larger than 1 or smaller than 0.
+       (min 1.0 (max (- 1.0 sum) 0.0))))))
+
+(defun resize-subwindows (parent delta &optional horizontal window ignore trail edge)
   "Resize subwindows of window PARENT vertically by DELTA lines.
 PARENT must be a vertically combined internal window.
 
 Optional argument HORIZONTAL non-nil means resize subwindows of
 PARENT horizontally by DELTA columns.  In this case PARENT must
 be a horizontally combined internal window.
+
+WINDOW, if specified, must denote a child window of PARENT that
+is resized by DELTA lines.
 
 Optional argument IGNORE non-nil means ignore any restrictions
 imposed by fixed size windows, `window-min-height' or
@@ -1692,218 +1751,163 @@ windows may get as small as `window-safe-min-height' lines and
 `window-safe-min-width' columns.  IGNORE any window means ignore
 restrictions for that window only.
 
-Optional argument SIDE `left' means try to resize only the last
-subwindow of PARENT provided DELTA is greater zero.  SIDE `right'
-means try to only resize the first subwindow of PARENT provided
-DELTA is greater zero.  Any other value of SIDE is ignored."
+Optional arguments TRAIL and EDGE, when non-nil, restrict the set
+of windows that shall be resized.  If TRAIL equals `before',
+resize only windows on the left or above EDGE.  If TRAIL equals
+`after', resize only windows on the right or below EDGE.  Also,
+preferably only resize windows adjacent to EDGE.
+
+Return the symbol `normalized' if new normal sizes have been
+already set by this routine."
   (let* ((first (window-child parent))
 	 (sub first)
-	 (normal-sum 0.0)
-	 (total-sum delta)
-	 (failed t)
-	 (amount 0)
-	 found sub-total sub-normal sub-int sub-float sub-delta sub-amount
-	 sub-rest best best-rest)
-    ;; `normal-sum' is the sum of the normal sizes of all resizable
-    ;; subwindows of PARENT.  `total-sum' is the sum of the total
-    ;; sizes of all resizable subwindows of PARENT plus DELTA.
-    (catch 'done
+	 (parent-total (+ (window-total-size parent horizontal) delta))
+	 best-window best-value)
+
+    (if (and edge (memq trail '(before after))
+	     (progn
+	       (setq sub first)
+	       (while (and (window-right sub)
+			   (or (and (eq trail 'before)
+				    (not (resize-subwindows-skip-p
+					  (window-right sub))))
+			       (and (eq trail 'after)
+				    (resize-subwindows-skip-p sub))))
+		 (setq sub (window-right sub)))
+	       sub)
+	     (if horizontal
+		 (if (eq trail 'before)
+		     (= (+ (window-left-column sub)
+			   (window-total-size sub t))
+			edge)
+		   (= (window-left-column sub) edge))
+	       (if (eq trail 'before)
+		   (= (+ (window-top-line sub)
+			 (window-total-size sub))
+		      edge)
+		 (= (window-top-line sub) edge)))
+	     (window-sizable-p sub delta horizontal ignore))
+	;; Resize only windows adjacent to EDGE.
+	(progn
+	  (resize-this-window sub delta horizontal ignore t trail edge)
+	  (if (and window (eq (window-parent sub) parent))
+	      (progn
+		;; Assign new normal sizes.
+		(set-window-new-normal
+		 sub (/ (float (window-new-total sub)) parent-total))
+		(set-window-new-normal
+		 window (- (window-normal-size window horizontal)
+			   (- (window-new-normal sub)
+			      (window-normal-size sub horizontal)))))
+	    (resize-subwindows-normal parent horizontal sub 0 trail delta))
+	  ;; Return 'normalized to notify `resize-other-windows' that
+	  ;; normal sizes have been already set.
+	  'normalized)
+      ;; Resize all windows proportionally.
+      (setq sub first)
       (while sub
-	(unless (or (resize-subwindows-skip-p sub)
-		    (and (not ignore)
-			 ;; Ignore fixed-size subwindows.
-			 (window-size-fixed-p sub horizontal)
-			 (resize-window-normal sub 'ignore)))
-	  (setq normal-sum (+ normal-sum
-			      (window-normal-size sub horizontal)))
-	  (setq total-sum (+ total-sum
-			     (window-total-size sub horizontal)))
-	  ;; `found' non-nil tells that there is at least one subwindow
-	  ;; left that can be resized (should stay `t' now ;-().
-	  (setq found t))
+	(cond
+	 ((or (resize-subwindows-skip-p sub)
+	      ;; Ignore windows to skip and fixed-size subwindows - in
+	      ;; the latter case make it a window to skip.
+	      (and (not ignore)
+		   (window-size-fixed-p sub horizontal)
+		   (set-window-new-normal sub 'ignore))))
+	 ((< delta 0)
+	  ;; When shrinking store the number of lines/cols we can get
+	  ;; from this window here together with the total/normal size
+	  ;; factor.
+	  (set-window-new-normal
+	   sub
+	   (cons
+	    (window-min-delta sub horizontal ignore trail t t)
+	    (- (/ (float (window-total-size sub horizontal))
+		  parent-total)
+	       (window-normal-size sub horizontal)))))
+	 ((> delta 0)
+	  ;; When enlarging store the total/normal size factor only
+	  (set-window-new-normal
+	   sub
+	   (- (/ (float (window-total-size sub horizontal))
+		 parent-total)
+	      (window-normal-size sub horizontal)))))
+
 	(setq sub (window-right sub)))
 
-      ;; When SIDE is non-nil and DELTA is greater zero try to resize
-      ;; the first subwindow (when SIDE is `right') or the last
-      ;; subwindow (when SIDE is `left') first.  This is the behavior
-      ;; needed by `adjust-window-trailing-edge' when the edge-adjacent
-      ;; subwindow the user wants to enlarge is nested in a combination.
-      (when (and (> delta 0)
-		 ;; Skip a fixed-size window: This is inherently not
-		 ;; TRT because a fixed-size internal window might
-		 ;; still have a resizable subwindow which we could
-		 ;; enlarge.  But DTRT here is quite non-trivial :-(
-		 (or (and (eq side 'left)
-			  (progn
-			    (setq sub first)
-			    (while (window-right sub)
-			      (setq sub (window-right sub)))
-			    sub))
-		     (and (eq side 'right) (setq sub first)))
-		 (not (resize-subwindows-skip-p sub)))
-	;; DELTA > 0 guarantees that resizing SUB always succeeds.
-	(resize-this-window sub delta horizontal ignore t side)
-	;; Assign new normal sizes.
-	(resize-subwindows-normal parent horizontal sub delta side)
-	(throw 'done 0))
+      (cond
+       ((< delta 0)
+	;; Shrink windows by delta.
+	(setq best-window t)
+	(while (and best-window (not (zerop delta)))
+	  (setq sub first)
+	  (setq best-window nil)
+	  (setq best-value most-negative-fixnum)
+	  (while sub
+	    (when (and (consp (window-new-normal sub))
+		       (not (zerop (car (window-new-normal sub))))
+		       (> (cdr (window-new-normal sub)) best-value))
+	      (setq best-window sub)
+	      (setq best-value (cdr (window-new-normal sub))))
 
-      ;; We resize subwindows in "rounds".  We assume that usually a
-      ;; resize request succeeds in the first round.  If it fails -
-      ;; which means at least one subwindow cannot be resized as desired
-      ;; - we need another round.  Failures are recorded in the variable
-      ;; `failed' and, for the failed subwindow, by setting that
-      ;; window's new normal size to a negative value.
+	    (setq sub (window-right sub)))
 
-      ;; Note that in each round we record (via `resize-window-total')
-      ;; only the amount by which the window shall be resized.  Only
-      ;; when we know how each inidvidual subwindow shall be resized
-      ;; (that is after the final round) we add the current size of the
-      ;; window to the amount recorded previously.
-      (while (and failed found)
-	;; We try to resize each resizable subwindow `sub' by a value
-	;; `sub-delta' individually calculated for `sub'.  `sub-amount'
-	;; specifies the actual amount `sub' can be resized to in the
-	;; present round.  `amount' represents the sum of the
-	;; `sub-amount' for all subwindows we are able to resize in the
-	;; present round.  `delta' is de-/increased by the sum of
-	;; `sub-amount' for all subwindows we we're not able to resize
-	;; completely in the present round.  So `amount' and `delta'
-	;; grow/shrink towards each other and we are done when they have
-	;; the same value.  `sub-rest' is the remainder when calculating
-	;; `sub-delta' and is used when calculating the new normal
-	;; sizes.
-	(setq amount 0)
-	(setq found nil)
-	(setq failed nil)
+	  (when best-window
+	    (setq delta (1+ delta)))
+	  (set-window-new-total best-window -1 t)
+	  (set-window-new-normal
+	   best-window
+	   (if (= (car (window-new-normal best-window)) 1)
+	       'skip ; We can't shrink best-window any further.
+	     (cons (1- (car (window-new-normal best-window)))
+		   (- (/ (float (window-new-total best-window))
+			 parent-total)
+		      (window-normal-size best-window horizontal)))))))
+       ((> delta 0)
+	;; Enlarge windows by delta.
+	(setq best-window t)
+	(while (and best-window (not (zerop delta)))
+	  (setq sub first)
+	  (setq best-window nil)
+	  (setq best-value most-positive-fixnum)
+	  (while sub
+	    (when (and (numberp (window-new-normal sub))
+		       (< (window-new-normal sub) best-value))
+	      (setq best-window sub)
+	      (setq best-value (window-new-normal sub)))
+
+	    (setq sub (window-right sub)))
+
+	  (when best-window
+	    (setq delta (1- delta)))
+	  (set-window-new-total best-window 1 t)
+	  (set-window-new-normal
+	   best-window
+	   (- (/ (float (window-new-total best-window))
+		 parent-total)
+	      (window-normal-size best-window horizontal))))))
+
+      (when best-window
 	(setq sub first)
-	;; The following loop represents one round.
-	(while (and sub (not failed))
-	  ;; Ignore subwindows that should be ignored or are stuck.
-	  (unless (resize-subwindows-skip-p sub)
-	    ;; Set `found' to t to make sure that if this round fails we
-	    ;; make another round.
-	    (setq found t)
-	    ;; `sub-total' records the total size of this subwindow.
-	    (setq sub-total (window-total-size sub horizontal))
-	    ;; `sub-normal' records the normal of this subwindow.
-	    (setq sub-normal (window-normal-size sub horizontal))
-	    ;; `sub-delta' records the number of lines or columns by
-	    ;; which this subwindow should grow or shrink.  `sub-float'
-	    ;; and `sub-int' record the new ideal total size as a float
-	    ;; and integer value.
-	    (setq sub-float (/ (* sub-normal total-sum) normal-sum))
-	    (setq sub-int (floor sub-float))
-	    (setq sub-delta (- sub-int sub-total))
-	    ;; `sub-rest' is the remainder.
-	    (setq sub-rest (abs (- sub-float sub-int)))
-	    (if (and side (< delta 0) (>= sub-delta 0))
-		;; With `adjust-window-trailing-edge' some window can
-		;; get penalized such that its normal size exceeds its
-		;; fractional total size considerably.  In that case
-		;; dragging a divider in the opposite direction in order
-		;; to enlarge some other window may cause this window
-		;; get _enlarged_ which looks silly.  We try to avoid
-		;; such behavior here.
-		(resize-window-total sub sub-total)
-	      ;; `sub-amount' records the number of lines or columns by
-	      ;; which this subwindow can grow or shrink.
-	      (setq sub-amount
-		    (window-sizable sub sub-delta horizontal ignore))
-	      ;; Register the new total size for this subwindow.
-	      (resize-window-total sub (+ sub-total sub-amount))
-	      (if (= sub-amount sub-delta)
-		  ;; We succeeded to get this subwindow's share.
-		  (progn
-		    (if (and (< delta 0) (zerop sub-amount))
-			;; When shrinking avoid that a window that has
-			;; not shrunk gets a remainder before a window
-			;; that has shrunk.
-			(resize-window-normal sub 'rest)
-		      ;; Record remainder.
-		      (resize-window-normal sub sub-rest))
-		    (setq amount (+ amount sub-amount)))
-		;; We failed and need a new round.
-		(setq failed t)
-		;; Don't consider this subwindow again when calculating
-		;; desired sizes.
-		(setq normal-sum (- normal-sum sub-normal))
-		(setq total-sum (- total-sum sub-total sub-amount))
-		(setq delta (- delta sub-amount))
-		(resize-window-normal sub 'stuck))))
-	  (setq sub (window-right sub))))
+	(while sub
+	  (when (or (consp (window-new-normal sub))
+		    (numberp (window-new-normal sub)))
+	    ;; Reset new normal size fields so `resize-window-apply'
+	    ;; won't use them to apply new sizes.
+	    (set-window-new-normal sub))
 
-      ;; Fix rounding by trying to enlarge non-stuck, non-rest windows
-      ;; by one line (column) until `amount' equals `delta'.
-      (when found
-	(catch 'found
-	  (while (< amount delta)
-	    (setq sub first)
-	    (setq best nil)
-	    (setq best-rest 0)
-	    (while sub
-	      (setq sub-normal (window-new-normal-size sub))
-	      (when (and (numberp sub-normal) (>= sub-normal best-rest))
-		(setq best sub)
-		(setq best-rest sub-normal)
-		(setq found t))
-	      (setq sub (window-right sub)))
-	    (if (not best)
-		(throw 'found nil)
-	      (resize-window-total best 1 'add)
-	      (resize-window-normal best (max 0 (1- best-rest)))
-	      (setq amount (1+ amount))))))
+	  (unless (eq (window-new-normal sub) 'ignore)
+	    ;; Resize this subwindow's subwindows (back-engineering
+	    ;; delta from sub's old and new total sizes).
+	    (let ((delta (- (window-new-total sub)
+			    (window-total-size sub horizontal))))
+	      (unless (and (zerop delta) (not trail))
+		;; For the TRAIL non-nil case we have to resize SUB
+		;; recursively even if it's size does not change.
+		(resize-this-window
+		 sub delta horizontal ignore nil trail edge))))
+	  (setq sub (window-right sub)))))))
 
-      ;; Fix rounding by trying to enlarge "rest" windows by one line
-      ;; (column) until `amount' equals `delta'.
-      (catch 'found
-	(while (< amount delta)
-	  (setq sub first)
-	  (setq best nil)
-	  (when (eq (window-new-normal-size sub) 'rest)
-	    (setq best t)
-	    (resize-window-total sub 1 'add)
-	    (setq amount (1+ amount))
-	    (setq sub (window-right sub)))
-	  (unless best
-	    (throw 'found nil))))
-
-      ;; Fix rounding by trying to enlarge stuck windows by one line
-      ;; (column) until `amount' equals `delta'.
-      (catch 'found
-	(while (< amount delta)
-	  (setq sub first)
-	  (setq best nil)
-	  (when (eq (window-new-normal-size sub) 'stuck)
-	    (setq best t)
-	    (resize-window-total sub 1 'add)
-	    (setq amount (1+ amount))
-	    (setq sub (window-right sub)))
-	  (unless best
-	    (throw 'found nil))))
-
-      ;; Reset new normal size fields so `resize-window-apply' won't use
-      ;; them to apply new sizes.
-      (setq sub first)
-      (while sub
-	(when (numberp (window-new-normal-size sub))
-	  (resize-window-normal sub))
-	(setq sub (window-right sub)))
-
-      ;; Now recursively resize each resized subwindow's subwindows.
-      (setq sub first)
-      (while sub
-	(unless (eq (window-new-normal-size sub) 'ignore)
-	  ;; Resize this subwindow's subwindows.  Note that above we
-	  ;; recorded (via `resize-window-total') only the amount by
-	  ;; which this subwindow had to be resized.  Now we add the old
-	  ;; total size.
-	  (let ((delta (- (window-new-total-size sub)
-			  (window-total-size sub horizontal))))
-	    (unless (and (zerop delta) (not side))
-	      (resize-this-window sub delta horizontal ignore nil side))))
-	(setq sub (window-right sub))))))
-
-(defun resize-other-windows (window delta &optional horizontal ignore side)
+(defun resize-other-windows (window delta &optional horizontal ignore trail edge)
   "Resize other windows when WINDOW is resized vertically by DELTA lines.
 Optional argument HORIZONTAL non-nil means resize other windows
 when WINDOW is resized horizontally by DELTA columns.  WINDOW
@@ -1916,59 +1920,84 @@ windows may get as small as `window-safe-min-height' lines and
 `window-safe-min-width' columns.  IGNORE any window means ignore
 restrictions for that window only.
 
-Optional argument SIDE `left' means resize other windows above
-\(on left of) WINDOW only.  SIDE `right' means resize other
-windows below \(on right of) WINDOW only.  Any other value of
-SIDE is ignored."
+Optional arguments TRAIL and EDGE, when non-nil, refine the set
+of windows that shall be resized.  If TRAIL equals `before',
+resize only windows on the left or above EDGE.  If TRAIL equals
+`after', resize only windows on the right or below EDGE.  Also,
+preferably only resize windows adjacent to EDGE."
   (when (window-parent window)
     (let* ((parent (window-parent window))
-	   (sub (window-child parent))
-	   non-fixed)
+	   (sub (window-child parent)))
       (if (window-iso-combined-p sub horizontal)
-	  ;; In an iso-combination resize WINDOW's siblings.
+	  ;; In an iso-combination try to extract DELTA from WINDOW's
+	  ;; siblings.
 	  (let ((first sub)
-		(skip (eq side 'right))
-		this-delta)
+		(skip (eq trail 'after))
+		this-delta other-delta)
 	    ;; Decide which windows shall be left alone.
 	    (while sub
 	      (cond
 	       ((eq sub window)
 		;; Make sure WINDOW is left alone when
 		;; resizing its siblings.
-		(resize-window-normal sub 'ignore)
-		(setq skip (eq side 'left)))
+		(set-window-new-normal sub 'ignore)
+		(setq skip (eq trail 'before)))
 	       (skip
 		;; Make sure this sibling is left alone when
 		;; resizing its siblings.
-		(resize-window-normal sub 'ignore))
+		(set-window-new-normal sub 'ignore))
 	       ((or (window-size-ignore sub ignore)
 		    (not (window-size-fixed-p sub horizontal)))
-		(setq non-fixed t)))
+		;; Set this-delta to t to signal that we found a sibling
+		;; of WINDOW whose size is not fixed.
+		(setq this-delta t)))
+
 	      (setq sub (window-right sub)))
+
+	    ;; Set this-delta to what we can get from WINDOW's siblings.
 	    (if (= (- delta) (window-total-size window horizontal))
-		;; A deletion, presumably.
-		(if non-fixed
-		    ;; There's at least on resizable sibling.
+		;; A deletion, presumably.  We must handle this case
+		;; specially since `window-resizable' can't be used.
+		(if this-delta
+		    ;; There's at least one resizable sibling we can
+		    ;; give WINDOW's size to.
 		    (setq this-delta delta)
-		  ;; No resizable sibling present.
+		  ;; No resizable sibling exists.
 		  (setq this-delta 0))
+	      ;; Any other form of resizing.
 	      (setq this-delta
-		    (window-resizable
-		     window delta horizontal ignore side t)))
-	    (unless (= delta this-delta)
-	      (resize-window-total parent (- delta this-delta) 'add))
-	    (unless (zerop this-delta)
-	      (resize-window-normal window 'ignore)
-	      (resize-subwindows
-	       parent (- this-delta) horizontal ignore side)
-	      ;; Now set the normal sizes.
-	      (resize-subwindows-normal
-	       parent horizontal window this-delta side)
-	      (setq delta (- delta this-delta))))
+		    (window-resizable window delta horizontal ignore trail t)))
+
+	    ;; Set other-delta to what we still have to get from
+	    ;; ancestor windows of parent.
+	    (setq other-delta (- delta this-delta))
+	    (unless (zerop other-delta)
+	      ;; Unless we got everything from WINDOW's siblings, PARENT
+	      ;; must be resized by other-delta lines or columns.
+	      (set-window-new-total parent other-delta 'add))
+
+	    (if (zerop this-delta)
+		;; We haven't got anything from WINDOW's siblings but we
+		;; must update the normal sizes to respect other-delta.
+		(resize-subwindows-normal
+		 parent horizontal window this-delta trail other-delta)
+	      ;; We did get something from WINDOW's siblings which means
+	      ;; we have to resize their subwindows.
+	      (unless (eq (resize-subwindows parent (- this-delta) horizontal
+					     window ignore trail edge)
+			  ;; `resize-subwindows' returning 'normalized,
+			  ;; means it has set the normal sizes already.
+			  'normalized)
+		;; Set the normal sizes.
+		(resize-subwindows-normal
+		 parent horizontal window this-delta trail other-delta))
+	      ;; Set DELTA to what we still have to get from ancestor
+	      ;; windows.
+	      (setq delta other-delta)))
 
 	;; In an ortho-combination all siblings of WINDOW must be
-	;; resized by DELTA.  Store the new total size of parent first.
-	(resize-window-total parent delta 'add)
+	;; resized by DELTA.
+	(set-window-new-total parent delta 'add)
 	(while sub
 	  (unless (eq sub window)
 	    (resize-this-window sub delta horizontal ignore t))
@@ -1976,9 +2005,9 @@ SIDE is ignored."
 
       (unless (zerop delta)
 	;; "Go up."
-	(resize-other-windows parent delta horizontal ignore side)))))
+	(resize-other-windows parent delta horizontal ignore trail edge)))))
 
-(defun resize-this-window (window delta &optional horizontal ignore add-total side)
+(defun resize-this-window (window delta &optional horizontal ignore add trail edge)
   "Resize WINDOW vertically by DELTA lines.
 Optional argument HORIZONTAL non-nil means resize WINDOW
 horizontally by DELTA columns.
@@ -1990,13 +2019,14 @@ windows may get as small as `window-safe-min-height' lines and
 `window-safe-min-width' columns.  IGNORE any window means ignore
 restrictions for that window only.
 
-Optional argument ADD-TOTAL non-nil means add DELTA to the new
-total size of WINDOW.
+Optional argument ADD non-nil means add DELTA to the new total
+size of WINDOW.
 
-Optional argument SIDE `left' means resize other windows above
-\(on left of) WINDOW only.  SIDE `right' means resize other
-windows below \(on right of) WINDOW only.  Any other value of
-SIDE is ignored.
+Optional arguments TRAIL and EDGE, when non-nil, refine the set
+of windows that shall be resized.  If TRAIL equals `before',
+resize only windows on the left or above EDGE.  If TRAIL equals
+`after', resize only windows on the right or below EDGE.  Also,
+preferably only resize windows adjacent to EDGE.
 
 This function recursively resizes WINDOW's subwindows to fit the
 new size.  Make sure that WINDOW is `window-resizable' before
@@ -2004,21 +2034,21 @@ calling this function.  Note that this function does not resize
 siblings of WINDOW or WINDOW's parent window.  You have to
 eventually call `resize-window-apply' in order to make resizing
 actually take effect."
-  (when add-total
+  (when add
     ;; Add DELTA to the new total size of WINDOW.
-    (resize-window-total window delta t))
+    (set-window-new-total window delta t))
 
   (let ((sub (window-child window)))
     (cond
      ((not sub))
      ((window-iso-combined-p sub horizontal)
       ;; In an iso-combination resize subwindows according to their
-      ;; fractions.
-      (resize-subwindows window delta horizontal ignore side))
+      ;; normal sizes.
+      (resize-subwindows window delta horizontal nil ignore trail edge))
      ;; In an ortho-combination resize each subwindow by DELTA.
      (t
       (while sub
-	(resize-this-window sub delta horizontal ignore t side)
+	(resize-this-window sub delta horizontal ignore t trail edge)
 	(setq sub (window-right sub)))))))
 
 (defun resize-root-window (window delta horizontal ignore)
@@ -2029,7 +2059,7 @@ by DELTA columns.
 IGNORE non-nil means ignore any restrictions imposed by fixed
 size windows, `window-min-height' or `window-min-width' settings.
 
-This function is called by Emacs' frame resizing routines.  It
+This function is only called by the frame resizing routines.  It
 resizes windows proportionally and never deletes any windows."
   (when (and (windowp window) (numberp delta)
 	     (window-sizable-p window delta horizontal ignore))
@@ -2045,8 +2075,9 @@ recover the necessary lines.
 
 Return the number of lines that were recovered.
 
-This function is called by Emacs' minibuffer resizing routines.
-It resizes windows proportionally and never deletes any windows."
+This function is only called by the minibuffer window resizing
+routines.  It resizes windows proportionally and never deletes
+any windows."
   (when (numberp delta)
     (let (ignore)
       (cond
@@ -2055,7 +2086,17 @@ It resizes windows proportionally and never deletes any windows."
        ((> delta 0)
 	(unless (window-sizable window delta)
 	  (setq ignore t))))
+
       (resize-window-reset (window-frame window))
+      ;; Ideally, we would resize just the last window in a combination
+      ;; but that's not feasible for the following reason: If we grow
+      ;; the minibuffer window and the last window cannot be shrunk any
+      ;; more, we shrink another window instead.  But if we then shrink
+      ;; the minibuffer window again, the last window might get enlarged
+      ;; and the state after shrinking is not the state before growing.
+      ;; So, in practice, we'd need a history variable to record how to
+      ;; proceed.  But I'm not sure how such a variable could work with
+      ;; repeated minibuffer window growing steps.
       (resize-this-window window delta nil ignore t)
       delta)))
 
@@ -2074,107 +2115,97 @@ possible in the desired direction."
     (while (and (or (not (window-iso-combined-p right horizontal))
 		    (not (window-right right)))
 		(setq right (window-parent right))))
-    (unless (and (setq left right) (setq right (window-right right)))
-      (error "No window following this one"))
-
-    ;; Set LEFT to the first resizable window on the left.  This step is
-    ;; needed to handle fixed-size windows.
-    (while (and left (window-size-fixed-p left horizontal))
-      (setq left
-	    (or (window-left left)
-		(progn
-		  (while (and (setq left (window-parent left))
-			      (not (window-iso-combined-p left horizontal))))
-		  (window-left left)))))
-    (unless left
-      (error "No resizable window preceding this one"))
-
-    ;; Set RIGHT to the first resizable window on the right.  This step
-    ;; is needed to handle fixed-size windows.
-    (while (and right (window-size-fixed-p right horizontal))
-      (setq right
-	    (or (window-right right)
-		(progn
-		  (while (and (setq right (window-parent right))
-			      (not (window-iso-combined-p right horizontal))))
-		  (window-right right)))))
-    (unless right
-      (error "No resizable window following this one"))
-
-    ;; LEFT and RIGHT (which might be both internal windows) are now the
-    ;; two windows we want to resize.
     (cond
-     ((> delta 0)
-      (setq max-delta (window-max-delta-1 left 0 horizontal nil 'right))
-      (setq min-delta (window-min-delta-1 right (- delta) horizontal nil 'left))
-      (when (or (< max-delta delta) (> min-delta (- delta)))
-	;; We can't get the whole DELTA - move as far as possible.
-	(setq delta (min max-delta (- min-delta))))
-      (unless (zerop delta)
-	;; Start resizing.
-	(resize-window-reset frame horizontal)
-	(if (and (not (window-splits left))
-		 (window-sizable-p left delta horizontal)
-		 (window-sizable-p right (- delta) horizontal))
-	    ;; For the window-splits nil case proceed conventionally.
-	    (let ((parent-size
-		   (window-total-size (window-parent left) horizontal)))
-	      (resize-this-window left delta horizontal nil t)
-	      (resize-this-window right (- delta) horizontal nil t)
-	      (resize-window-normal
-	       left (/ (float (window-new-total-size left)) parent-size))
-	      (resize-window-normal
-	       right (/ (float (window-new-total-size right)) parent-size)))
+     ((and (not right) (not horizontal) (not resize-mini-windows)
+	   (eq (window-frame (minibuffer-window frame)) frame))
+      (resize-mini-window (minibuffer-window frame) (- delta)))
+     ((or (not (setq left right)) (not (setq right (window-right right))))
+      (if horizontal
+	  (error "No window on the right of this one")
+	(error "No window below this one")))
+     (t
+      ;; Set LEFT to the first resizable window on the left.  This step is
+      ;; needed to handle fixed-size windows.
+      (while (and left (window-size-fixed-p left horizontal))
+	(setq left
+	      (or (window-left left)
+		  (progn
+		    (while (and (setq left (window-parent left))
+				(not (window-iso-combined-p left horizontal))))
+		    (window-left left)))))
+      (unless left
+	(if horizontal
+	    (error "No resizable window on the left of this one")
+	  (error "No resizable window above this one")))
+
+      ;; Set RIGHT to the first resizable window on the right.  This step
+      ;; is needed to handle fixed-size windows.
+      (while (and right (window-size-fixed-p right horizontal))
+	(setq right
+	      (or (window-right right)
+		  (progn
+		    (while (and (setq right (window-parent right))
+				(not (window-iso-combined-p right horizontal))))
+		    (window-right right)))))
+      (unless right
+	(if horizontal
+	    (error "No resizable window on the right of this one")
+	  (error "No resizable window below this one")))
+
+      ;; LEFT and RIGHT (which might be both internal windows) are now the
+      ;; two windows we want to resize.
+      (cond
+       ((> delta 0)
+	(setq max-delta (window-max-delta-1 left 0 horizontal nil 'after))
+	(setq min-delta (window-min-delta-1 right (- delta) horizontal nil 'before))
+	(when (or (< max-delta delta) (> min-delta (- delta)))
+	  ;; We can't get the whole DELTA - move as far as possible.
+	  (setq delta (min max-delta (- min-delta))))
+	(unless (zerop delta)
+	  ;; Start resizing.
+	  (resize-window-reset frame horizontal)
 	  ;; Try to enlarge LEFT first.
 	  (setq this-delta (window-resizable left delta horizontal))
 	  (unless (zerop this-delta)
-	    (resize-this-window left this-delta horizontal nil t 'left))
-	  (unless (= this-delta delta)
-	    ;; We didn't get it all from LEFT, enlarge windows on left of
-	    ;; LEFT (for this purpose make `resize-other-windows' believe
-	    ;; that we shrink LEFT).
-	    (resize-other-windows
-	     left (- this-delta delta) horizontal nil 'left))
+	    (resize-this-window
+	     left this-delta horizontal nil t 'before
+	     (if horizontal
+		 (+ (window-left-column left) (window-total-size left t))
+	       (+ (window-top-line left) (window-total-size left)))))
 	  ;; Shrink windows on right of LEFT.
-	  (resize-other-windows left delta horizontal nil 'right))))
-     ((< delta 0)
-      (setq max-delta (window-max-delta-1 right 0 horizontal nil 'left))
-      (setq min-delta (window-min-delta-1 left delta horizontal nil 'right))
-      (when (or (< max-delta (- delta)) (> min-delta delta))
-	;; We can't get the whole DELTA - move as far as possible.
-	(setq delta (max (- max-delta) min-delta)))
-      (unless (zerop delta)
-	;; Start resizing.
-	(resize-window-reset frame horizontal)
-	(if (and (not (window-splits right))
-		 (window-sizable-p left delta horizontal)
-		 (window-sizable-p right (- delta) horizontal))
-	    ;; For the window-splits nil case proceed conventionally.
-	    (let ((parent-size
-		   (window-total-size (window-parent left) horizontal)))
-	      (resize-this-window left delta horizontal nil t)
-	      (resize-this-window right (- delta) horizontal nil t)
-	      (resize-window-normal
-	       left (/ (float (window-new-total-size left)) parent-size))
-	      (resize-window-normal
-	       right (/ (float (window-new-total-size right)) parent-size)))
+	  (resize-other-windows
+	   left delta horizontal nil 'after
+	   (if horizontal
+	       (window-left-column right)
+	     (window-top-line right)))))
+       ((< delta 0)
+	(setq max-delta (window-max-delta-1 right 0 horizontal nil 'before))
+	(setq min-delta (window-min-delta-1 left delta horizontal nil 'after))
+	(when (or (< max-delta (- delta)) (> min-delta delta))
+	  ;; We can't get the whole DELTA - move as far as possible.
+	  (setq delta (max (- max-delta) min-delta)))
+	(unless (zerop delta)
+	  ;; Start resizing.
+	  (resize-window-reset frame horizontal)
 	  ;; Try to enlarge RIGHT.
 	  (setq this-delta (window-resizable right (- delta) horizontal))
 	  (unless (zerop this-delta)
-	    (resize-this-window right this-delta horizontal nil t 'right))
-	  (unless (= (- this-delta) delta)
-	    ;; We didn't get it all from RIGHT, enlarge windows on right of
-	    ;; RIGHT (for this purpose make `resize-other-windows' believe
-	    ;; that we grow RIGHT).
-	    (resize-other-windows
-	     right (- this-delta delta) horizontal nil 'right))
+	    (resize-this-window
+	     right this-delta horizontal nil t 'after
+	     (if horizontal
+		 (window-left-column right)
+	       (window-top-line right))))
 	  ;; Shrink windows on left of RIGHT.
-	  (resize-other-windows right (- delta) horizontal nil 'left)))))
-    (unless (zerop delta)
-      ;; Don't report an error in the standard case.
-      (unless (resize-window-apply frame horizontal)
-	;; But do report an error it applying the changes fails.
-	(error "Failed adjusting window %s" window)))))
+	  (resize-other-windows
+	   right (- delta) horizontal nil 'before
+	   (if horizontal
+	       (+ (window-left-column left) (window-total-size left t))
+	     (+ (window-top-line left) (window-total-size left)))))))
+      (unless (zerop delta)
+	;; Don't report an error in the standard case.
+	(unless (resize-window-apply frame horizontal)
+	  ;; But do report an error if applying the changes fails.
+	  (error "Failed adjusting window %s" window)))))))
 
 (defun enlarge-window (delta &optional horizontal)
   "Make selected window DELTA lines taller.
@@ -2407,13 +2438,13 @@ instead."
 WINDOW can be an arbitrary window and defaults to the selected
 one.  Return nil.
 
-If `ignore-window-parameters' is non-nil any parameters of WINDOW
-are ignored.  Otherwise, if the `delete-window-function'
-parameter of WINDOW equals t, delete WINDOW ignoring any other
-window parameters.  If the `delete-window-function' parameter
-specifies a function, call that function with WINDOW as its sole
-argument.  It's the responsibility of that function to adjust the
-parameters of all remaining windows.
+If `ignore-window-parameters' is non-nil, ignore any parameters
+of WINDOW.  Otherwise, if the `delete-window-function' parameter
+of WINDOW equals t, delete WINDOW ignoring any other window
+parameters.  If the `delete-window-function' parameter specifies
+a function, call that function with WINDOW as its sole argument.
+It's the responsibility of that function to adjust the parameters
+of all remaining windows.
 
 Otherwise, if WINDOW is part of an atomic window, call
 `delete-window' with the root of the atomic window as its
@@ -2461,7 +2492,7 @@ non-side window, signal an error."
 	       sibling (window-sizable-p sibling size))
 	  ;; Resize WINDOW's sibling.
 	  (resize-this-window sibling size horizontal nil t)
-	  (resize-window-normal
+	  (set-window-new-normal
 	   sibling (+ (window-normal-size sibling horizontal)
 		      (window-normal-size window horizontal))))
 	 ((window-resizable-p window (- size) horizontal nil nil nil t)
@@ -3058,7 +3089,7 @@ Optional argument HORFLAG non-nil means return minimum width."
       (max window-min-width window-safe-min-width)
     (max window-min-height window-safe-min-height)))
 
-(defun split-window (&optional window size horizontal)
+(defun split-window (&optional window size side)
   "Create a new window adjacent to WINDOW.
 WINDOW can be any window and defaults to the selected one.  If
 WINDOW was selected before invoking this function, it remains
@@ -3071,27 +3102,27 @@ absolute value can be less than `window-min-height' or
 `window-min-width'; so this command can make a new window as
 small as one line or two columns.  SIZE defaults to half of
 WINDOW's size.  The variable `window-splits' determines whether
-the size of other windows is affected by this function.
-Interactively, SIZE is the prefix argument.
+the size of any other windows is affected.  Interactively, SIZE
+is the prefix argument.
 
-Optional third argument HORIZONTAL nil (or `below') specifies
-that the new window shall be located below WINDOW.  HORIZONTAL
-`above' means the new window shall be located above WINDOW.  In
-both cases SIZE specifies the new number of lines for WINDOW \(or
-the new window if SIZE is negative) including space reserved for
-the mode and/or header line.
+Optional third argument SIDE nil (or `below') specifies that the
+new window shall be located below WINDOW.  SIDE `above' means the
+new window shall be located above WINDOW.  In both cases SIZE
+specifies the new number of lines for WINDOW \(or the new window
+if SIZE is negative) including space reserved for the mode and/or
+header line.
 
-HORIZONTAL t (or `right') specifies that the new window shall be
-located on the right side of WINDOW.  HORIZONTAL `left' means the
-new window shall be located on the left of WINDOW.  In both cases
+SIDE t (or `right') specifies that the new window shall be
+located on the right side of WINDOW.  SIDE `left' means the new
+window shall be located on the left of WINDOW.  In both cases
 SIZE specifies the new number of columns for WINDOW \(or the new
 window provided SIZE is negative) including space reserved for
 fringes and the scrollbar or a divider column.  Any other non-nil
-value for HORIZONTAL is currently handled like t (or `right').
+value for SIDE is currently handled like t (or `right').
 
 If WINDOW is part of an atomic window, \"split\" the root of the
 atomic window instead.  The new window does not become a member
-of the atomic window.  If WINDOW is a die window, signal an
+of the atomic window.  If WINDOW is a side window, signal an
 error.
 
 If you split a live window, properties of the new window like
@@ -3101,7 +3132,7 @@ displayed in the new window are inherited from the window
 selected on WINDOW's frame."
   (interactive "i")
   (setq window (normalize-any-window window))
-  (let* ((horflag (and horizontal (not (memq horizontal '(below above)))))
+  (let* ((horflag (and side (not (memq side '(below above)))))
 	 (frame (window-frame window))
 	 (function (window-parameter window 'split-window-function))
 	 ;; Rebind this locally since in some cases we do have to nest.
@@ -3116,12 +3147,12 @@ selected on WINDOW's frame."
        ((functionp function)
 	;; The `split-window-function' parameter specifies the function
 	;; to call instead.  If this is `ignore', WINDOW won't be split.
-	(throw 'done (funcall function window size horizontal)))
+	(throw 'done (funcall function window size side)))
        ;; For an atomic window split the entire atomic window instead.
        ((and (window-parameter window 'window-atom)
 	     (setq atom-root (window-atom-root window))
 	     (not (eq atom-root window)))
-	(throw 'done (split-window atom-root size horizontal))))
+	(throw 'done (split-window atom-root size side))))
 
       (let* ((parent (window-parent window))
 	     ;; Size calculations.
@@ -3145,10 +3176,9 @@ selected on WINDOW's frame."
 	       ((not size)
 		(max (window-split-min-size horflag)
 		     (if resize
-			 ;; For a "resize" split try to give the new
-			 ;; window a fitting size (which must be at
-			 ;; least as large as what we can get in the
-			 ;; first place).
+			 ;; For a resizing split try to give the new
+			 ;; window the average size of a window in this
+			 ;; combination.
 			 (min (- parent-size
 				 (window-min-size parent horflag))
 			      (/ parent-size
@@ -3163,13 +3193,20 @@ selected on WINDOW's frame."
 		;; always done to have a workaround for making the new
 		;; window appear above or on the left of the new window
 		;; (the ispell window is a typical example of that).  In
-		;; all these cases the HORIZONTAL argument should be set
-		;; to 'above or 'left in order to support the 'resize
-		;; option.
+		;; all these cases the SIDE argument should be set to
+		;; 'above or 'left in order to support the 'resize
+		;; option.  Here we will nest the windows instead.
 		(- old-size size))
 	       (t
 		;; SIZE negative specifies the size of the new window.
 		(- size))))
+	     (new-normal
+	      ;; The normal size of the new window.
+	      (cond
+	       (size (/ (float new-size)
+			(or parent-size (window-total-size window horflag))))
+	       (resize (/ 1.0 (1+ (window-iso-combinations parent horflag))))
+	       (t (/ (window-normal-size window horflag) 2))))
 	     (root (window-parameter window 'root))
 	     (window-side (window-parameter window 'window-side)))
 	;; Check window types and handle `window-nest' with sides.
@@ -3188,11 +3225,11 @@ selected on WINDOW's frame."
 	   (resize
 	    ;; Size unspecified, resizing.
 	    (when (and (not (window-sizable-p parent (- new-size) horflag))
-		      ;; Try agin with minimum acceptable size.
-		      (setq new-size
-			    (max new-size
-				 (window-split-min-size horflag)))
-		      (not (window-sizable-p parent (- new-size) horflag)))
+		       ;; Try agin with minimum acceptable size.
+		       (setq new-size
+			     (max new-size
+				  (window-split-min-size horflag)))
+		       (not (window-sizable-p parent (- new-size) horflag)))
 	      (error "Cannot resize %s" parent)))
 	   ((> (+ new-size (window-min-size window horflag)) old-size)
 	    ;; Size unspecified, no resizing.
@@ -3221,36 +3258,32 @@ selected on WINDOW's frame."
 	(cond
 	 (resize
 	  ;; Try to get space from OLD's siblings.  We could go "up" and
-	  ;; try getting additional space from surrounding windows but we
-	  ;; won't be able to return space to those windows when we delete
-	  ;; the one we create here.  Hence we do not go up.
+	  ;; try getting additional space from surrounding windows but
+	  ;; we won't be able to return space to those windows when we
+	  ;; delete the one we create here.  Hence we do not go up.
 	  (resize-subwindows parent (- new-size) horflag)
-	  (let* ((parent-size (window-total-size parent horflag))
+	  (let* ((normal (- 1 new-normal))
 		 (sub (window-child parent)))
-	    ;; Assign new normal sizes.
 	    (while sub
-	      (resize-window-normal
-	       sub (/ (* (float (window-normal-size sub horflag))
-			 (- parent-size new-size))
-		      parent-size))
+	      (set-window-new-normal
+	       sub (* (window-normal-size sub horflag) normal))
 	      (setq sub (window-right sub)))))
 	 (window-nest
 	  ;; Get entire space from WINDOW making sure that a new parent
 	  ;; windows gets created.
-	  (resize-window-total window (- old-size new-size))
+	  (set-window-new-total window (- old-size new-size))
 	  (resize-this-window window (- new-size) horflag)
-	  (resize-window-normal
-	   window (/ (float (window-new-total-size window)) old-size)))
+	  (set-window-new-normal
+	   window (- (window-normal-size window horflag) new-normal)))
 	 (t
 	  ;; Get entire space from WINDOW making a new parent window only
 	  ;; if we need one.
-	  (resize-window-total window (- old-size new-size))
+	  (set-window-new-total window (- old-size new-size))
 	  (resize-this-window window (- new-size) horflag)
-	  (resize-window-normal
-	   window (/ (float (window-new-total-size window))
-		     (window-total-size (window-parent window) horflag)))))
+	  (set-window-new-normal
+	   window (- (window-normal-size window horflag) new-normal))))
 
-	(let* ((new (split-window-internal window new-size horizontal))
+	(let* ((new (split-window-internal window new-size side new-normal))
 	       (new-parent (window-parent new)))
 	  (when window-side
 	    ;; Inherit window-side parameters, if necessary.
@@ -3264,19 +3297,19 @@ selected on WINDOW's frame."
 
 ;; I think this should be the default; I think people will prefer it--rms.
 (defcustom split-window-keep-point t
-  "If non-nil, \\[split-window-vertically] keeps the original point \
+  "If non-nil, \\[split-window-above-each-other] keeps the original point \
 in both children.
 This is often more convenient for editing.
 If nil, adjust point in each of the two windows to minimize redisplay.
 This is convenient on slow terminals, but point can move strangely.
 
-This option applies only to `split-window-vertically' and
+This option applies only to `split-window-above-each-other' and
 functions that call it.  `split-window' always keeps the original
 point in both children."
   :type 'boolean
   :group 'windows)
 
-(defun split-window-vertically (&optional size)
+(defun split-window-above-each-other (&optional size)
   "Split selected window into two windows, one above the other.
 The upper window gets SIZE lines and the lower one gets the rest.
 SIZE negative means the lower window gets -SIZE lines and the
@@ -3330,7 +3363,9 @@ window."
 	(set-window-parameter new-window 'quit-restore quit-restore)))
     new-window))
 
-(defun split-window-horizontally (&optional size)
+(defalias 'split-window-vertically 'split-window-above-each-other)
+
+(defun split-window-side-by-side (&optional size)
   "Split selected window into two windows side by side.
 The selected window becomes the left one and gets SIZE columns.
 SIZE negative means the right window gets -SIZE lines.
@@ -3354,6 +3389,8 @@ The selected window remains selected.  Return the new window."
       (when quit-restore
 	(set-window-parameter new-window 'quit-restore quit-restore)))
     new-window))
+
+(defalias 'split-window-horizontally 'split-window-side-by-side)
 
 ;;; Balancing windows.
 (defun balance-windows (&optional window-or-frame)
@@ -3390,19 +3427,26 @@ window."
       (let ((sub (window-child window)))
 	(if (window-iso-combined-p sub horizontal)
 	    (balance-windows-2 window horizontal)
-	  (let ((size (window-new-total-size window)))
+	  (let ((size (window-new-total window)))
 	    (while sub
-	      (resize-window-total sub size) 
+	      (set-window-new-total sub size) 
 	      (balance-windows-1 sub horizontal)
 	      (setq sub (window-right sub))))))))
 
+;; The following routine uses the recycled code from the old version of
+;; `resize-subwindows'.  It's not very pretty, but coding it the way the
+;; new `resize-subwindows' code does would hardly make it any shorter or
+;; more readable (FWIW we'd need three loops - one to calculate the
+;; minimum sizes per window, one to enlarge or shrink windows until the
+;; new parent-size matches, and one where we shrink the largest/enlarge
+;; the smallest window).
 (defun balance-windows-2 (window horizontal)
   "Subroutine of `balance-windows-1'.
 WINDOW must be an iso-combination."
   (let* ((first (window-child window))
 	 (sub first)
 	 (number-of-children 0)
-	 (parent-size (window-new-total-size window))
+	 (parent-size (window-new-total window))
 	 (total-sum parent-size)
 	 found failed size sub-total sub-delta sub-amount rest)
     (while sub
@@ -3410,7 +3454,7 @@ WINDOW must be an iso-combination."
       (when (window-size-fixed-p sub horizontal)
 	(setq total-sum
 	      (- total-sum (window-total-size sub horizontal)))
-	(resize-window-normal sub 'ignore))
+	(set-window-new-normal sub 'ignore))
       (setq sub (window-right sub)))
 
     (setq failed t)
@@ -3427,13 +3471,13 @@ WINDOW must be an iso-combination."
 	  (setq sub-amount
 		(window-sizable sub sub-delta horizontal))
 	  ;; Register the new total size for this subwindow.
-	  (resize-window-total sub (+ sub-total sub-amount))
+	  (set-window-new-total sub (+ sub-total sub-amount))
 	  (unless (= sub-amount sub-delta)
 	    (setq total-sum (- total-sum sub-total sub-amount))
 	    (setq number-of-children (1- number-of-children))
 	    ;; We failed and need a new round.
 	    (setq failed t)
-	    (resize-window-normal sub 'skip)))
+	    (set-window-new-normal sub 'skip)))
 	(setq sub (window-right sub))))
 
     (setq rest (% total-sum number-of-children))
@@ -3442,7 +3486,7 @@ WINDOW must be an iso-combination."
     (setq sub first)
     (while (and sub (> rest 0))
       (unless (resize-subwindows-skip-p window)
-	(resize-window-total sub 1 t)
+	(set-window-new-total sub 1 t)
 	(setq rest (1- rest)))
       (setq sub (window-right sub)))
 
@@ -3450,18 +3494,18 @@ WINDOW must be an iso-combination."
     ;; (column) until `rest' equals zero.
     (setq sub first)
     (while (and sub (> rest 0))
-      (unless (eq (window-new-normal-size sub) 'ignore)
-	(resize-window-total sub 1 t)
+      (unless (eq (window-new-normal sub) 'ignore)
+	(set-window-new-total sub 1 t)
 	(setq rest (1- rest)))
       (setq sub (window-right sub)))
 
     (setq sub first)
     (while sub
       ;; Record new normal sizes.
-      (resize-window-normal
-       sub (/ (if (eq (window-new-normal-size sub) 'ignore)
+      (set-window-new-normal
+       sub (/ (if (eq (window-new-normal sub) 'ignore)
 		  (window-total-size sub horizontal)
-		(window-new-total-size sub))
+		(window-new-total sub))
 	      (float parent-size)))
       ;; Recursively balance each subwindow's subwindows.
       (balance-windows-1 sub horizontal)
@@ -4108,9 +4152,10 @@ The following specifiers are useful if the method specifier is
     one argument - the new window.  The function is supposed to
     adjust the width of the window; its return value is ignored.
 
-  Observe that specifying `pop-up-window-height' or
-  `pop-up-window-height' may override restrictions given by the
-  `pop-up-min-height' or `pop-up-min-width' specifiers.
+  Observe that specifying `pop-up-window-set-height' or
+  `pop-up-window-set-width' may override restrictions given by
+  the `pop-up-window-min-height' and `pop-up-window-min-width'
+  specifiers.
 
 - A cons cell whose car is `pop-up-window-split-unsplittable' and
   whose cdr is non-nil allows to make a new window on an
@@ -7163,8 +7208,8 @@ Otherwise, consult the value of `truncate-partial-width-windows'
 
 (define-key ctl-x-map "0" 'delete-window)
 (define-key ctl-x-map "1" 'delete-other-windows)
-(define-key ctl-x-map "2" 'split-window-vertically)
-(define-key ctl-x-map "3" 'split-window-horizontally)
+(define-key ctl-x-map "2" 'split-window-above-each-other)
+(define-key ctl-x-map "3" 'split-window-side-by-side)
 (define-key ctl-x-map "9" 'maximize-window)
 (define-key ctl-x-map "o" 'other-window)
 (define-key ctl-x-map "^" 'enlarge-window)

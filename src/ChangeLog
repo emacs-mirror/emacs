@@ -1,3 +1,24 @@
+2011-05-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.c (make_frame): Use other_buffer_safely.
+	(store_frame_param): Just store val in the buffer_list and
+	buried_buffer_list slots.
+
+	* window.c: Remove constant Qset.
+	(Fwindow_new_total_size): Rename to Fwindow_new_total_size.
+	(Fwindow_new_normal_size): Rename to Fwindow_new_normal.
+	(replace_window, make_window): Use floats for normal_lines and
+	normal_cols.
+	(run_window_configuration_change_hook): Record current buffer
+	first and selected frame afterwards to assure that the current
+	buffer is correctly reestablished.  Rename count1 to count.
+	(Fresize_window_total): Rename to Fset_window_new_total.
+	(Fresize_window_normal): Rename to Fset_window_new_normal.
+	(resize_window_apply): Remove the Qset related branches
+	(Fsplit_window_internal): Rename horizontal argument to side.
+	New optional argument normal_size.  Simplify assignment of normal
+	sizes which is mostly done in split-window itself now.
+
 2011-04-14  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* fileio.c (Finsert_file_contents): Fix typo in 2005-05-13

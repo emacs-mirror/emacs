@@ -1,3 +1,52 @@
+2011-05-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* mouse.el (mouse-drag-mode-line-1): Don't use window
+	configurations any more.
+
+	* window.el (window-child-count, normalize-live-frame)
+	(normalize-any-window, normalize-live-window): Fix doc-strings.
+	(window-internal-p): Remove.
+	(window-last-child): New function.
+	(make-window-atom): Call window-child instead of
+	window-internal-p.
+	(window-min-delta, window-min-delta-1, window-max-delta)
+	(window-max-delta-1, window-resizable, window-resizable-p): Rename
+	argument SIDE to TRAIL.
+	(resize-window-reset-1, resize-mini-window): Call set-window-new-total.
+	(resize-window-safe-window): Remove.
+	(resize-window): Reword error message.  Use
+	set-window-new-normal and rewrite associated code.
+	(resize-subwindows-skip-p): Call window-new-normal.
+	(resize-subwindows-normal): Major rewrite.  Rename arguments SIDE
+	and DELTA to TRAIL and THIS-DELTA.  New argument OTHER-DELTA.
+	(resize-subwindows): Major rewrite.  New arguments WIDNOW and
+	EDGE.  Rename argument SIDE to TRAIL.
+	(resize-other-windows): Major rewrite. Rename argument SIDE to
+	TRAIL.  New argument EDGE.
+	(resize-this-window): Minor rewrite.  Rename arguments ADD-TOTAL
+	and SIDE to ADD and TRAIL.  New argument EDGE.
+	(resize-root-window, resize-root-window-vertically): Clarify
+	doc-strings.
+	(adjust-window-trailing-edge): Major rewrite.
+	(delete-window): Fix doc-string.  Call set-window-new-normal.
+	(split-window): Rename argument HORIZONTAL to SIDE.  Handle normal
+	sizes more intuitively.  Call split-window-internal with new
+	normal-size argument.
+	(split-window-keep-point): Replace split-window-vertically by
+	split-window-above-each-other.
+	(split-window-vertically): Rename to
+	split-window-above-each-other, provide alias for old name.
+	(split-window-horizontally): Rename to
+	split-window-side-by-side.  Provide alias for old name.
+	(balance-windows-1): Call window-new-total and
+	set-window-new-total.
+	(balance-windows-2): Call window-new-total, set-window-new-normal
+	and set-window-new-total.
+	(display-buffer-alist): Fix doc-string.
+	(ctl-x-map): Bind split-window-above-each-other and
+	split-window-side-by-side instead of split-window-vertically and
+	split-window-horizontally.
+
 2011-04-14  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (adjust-window-trailing-edge): Assign normal sizes

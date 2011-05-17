@@ -424,13 +424,12 @@ MODE-LINE-P non-nil means dragging a mode line; nil means a header line."
 	 (start (event-start start-event))
 	 (start-event-window (posn-window start))
 	 (start-event-frame (window-frame start-event-window))
-	 (start-nwindows (count-windows t))
          (on-link (and mouse-1-click-follows-link
 		       (or mouse-1-click-in-non-selected-windows
 			   (eq (posn-window start) (selected-window)))
                        (mouse-on-link-p start)))
 	 (minibuffer (frame-parameter nil 'minibuffer))
-	 should-enlarge-minibuffer event mouse y top bot edges wconfig growth)
+	 should-enlarge-minibuffer event mouse y top bot edges growth)
     (track-mouse
       (progn
 	;; if this is the bottommost ordinary window, then to
@@ -493,7 +492,6 @@ MODE-LINE-P non-nil means dragging a mode line; nil means a header line."
 			  (setq y (- bot window-min-height)))
 			;; The window's top includes the header line!
 			(setq growth (- top y))))
-		 (setq wconfig (current-window-configuration))
 
 		 ;; Check for an error case.
 		 (when (and (/= growth 0)
@@ -514,27 +512,7 @@ MODE-LINE-P non-nil means dragging a mode line; nil means a header line."
 		   ;(message "growth = %d" growth)
 		   (if mode-line-p
 		       (mouse-drag-move-window-bottom start-event-window growth)
-		     (mouse-drag-move-window-top start-event-window growth)))
-
-		 ;; if this window's growth caused another
-		 ;; window to be deleted because it was too
-		 ;; short, rescind the change.
-		 ;;
-		 ;; if size change caused space to be stolen
-		 ;; from a window above this one, rescind the
-		 ;; change, but only if we didn't grow/shrink
-		 ;; the minibuffer.  minibuffer size changes
-		 ;; can cause all windows to shrink... no way
-		 ;; around it.
-		 (when (or (/= start-nwindows (count-windows t))
-			   (and (not should-enlarge-minibuffer)
-				(> growth 0)
-				mode-line-p
-				(/= top
-				    (nth 1 (window-edges
-					    ;; Choose right window.
-					    start-event-window)))))
-		   (set-window-configuration wconfig)))))
+		     (mouse-drag-move-window-top start-event-window growth))))))
 
         ;; Presumably if this was just a click, the last event should
         ;; be `mouse-1', whereas if this did move the mouse, it should be

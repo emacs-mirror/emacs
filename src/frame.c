@@ -365,7 +365,7 @@ make_frame (int mini_p)
     /* If buf is a 'hidden' buffer (i.e. one whose name starts with
        a space), try to find another one.  */
     if (SREF (Fbuffer_name (buf), 0) == ' ')
-      buf = Fother_buffer (buf, Qnil, Qnil);
+      buf = other_buffer_safely (buf);
 
     /* Use set_window_buffer, not Fset_window_buffer, and don't let
        hooks be run by it.  The reason is that the whole frame/window
@@ -2109,23 +2109,15 @@ store_frame_param (struct frame *f, Lisp_Object prop, Lisp_Object val)
   register Lisp_Object old_alist_elt;
 
   /* The buffer-list parameters are stored in a special place and not
-     in the alist.  All buffers must be live.  */
+     in the alist.  */
   if (EQ (prop, Qbuffer_list))
     {
-      Lisp_Object list = Qnil;
-      for (; CONSP (val); val = XCDR (val))
-	if (!NILP (Fbuffer_live_p (XCAR (val))))
-	  list = Fcons (XCAR (val), list);
-      f->buffer_list = Fnreverse (list);
+      f->buffer_list = val;
       return;
     }
   if (EQ (prop, Qburied_buffer_list))
     {
-      Lisp_Object list = Qnil;
-      for (; CONSP (val); val = XCDR (val))
-	if (!NILP (Fbuffer_live_p (XCAR (val))))
-	  list = Fcons (XCAR (val), list);
-      f->buried_buffer_list = Fnreverse (list);
+      f->buried_buffer_list = val;
       return;
     }
 

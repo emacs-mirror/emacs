@@ -56,7 +56,7 @@ Lisp_Object Qreplace_buffer_in_windows, Qget_mru_window;
 Lisp_Object Qrecord_window_buffer;
 Lisp_Object Qresize_root_window, Qresize_root_window_vertically;
 Lisp_Object Qscroll_up, Qscroll_down, Qscroll_command;
-Lisp_Object Qset, Qsafe, Qabove, Qbelow;
+Lisp_Object Qsafe, Qabove, Qbelow;
 Lisp_Object Qauto_buffer_name;
 
 static int displayed_window_lines (struct window *);
@@ -569,7 +569,7 @@ first child otherwise.  */)
     return decode_any_window (window)->total_cols;
 }
 
-DEFUN ("window-new-total-size", Fwindow_new_total_size, Swindow_new_total_size, 0, 1, 0,
+DEFUN ("window-new-total", Fwindow_new_total, Swindow_new_total, 0, 1, 0,
        doc: /* Return new total size of WINDOW.
 WINDOW defaults to the selected window.   */)
   (Lisp_Object window)
@@ -589,7 +589,7 @@ argument HORIZONTAL non-nil means return normal width of WINDOW.  */)
     return decode_any_window (window)->normal_cols;
 }
 
-DEFUN ("window-new-normal-size", Fwindow_new_normal_size, Swindow_new_normal_size, 0, 1, 0,
+DEFUN ("window-new-normal", Fwindow_new_normal, Swindow_new_normal, 0, 1, 0,
        doc: /* Return new normal size of WINDOW.
 WINDOW can be any window and defaults to the selected one.   */)
   (Lisp_Object window)
@@ -1867,9 +1867,9 @@ replace_window (Lisp_Object old, Lisp_Object new, int setflag)
       n->total_cols = o->total_cols;
       n->total_lines = o->total_lines;
       n->normal_cols = o->normal_cols;
-      XSETFASTINT (o->normal_cols, 1);  /* !!!  */
+      o->normal_cols = make_float (1.0);
       n->normal_lines = o->normal_lines;
-      XSETFASTINT (o->normal_lines, 1);  /* !!!  */
+      o->normal_lines = make_float (1.0);
       n->desired_matrix = n->current_matrix = 0;
       n->vscroll = 0;
       memset (&n->cursor, 0, sizeof (n->cursor));
@@ -2934,17 +2934,17 @@ run_window_configuration_change_hook (struct frame *f)
   if (NILP (Vrun_hooks))
     return;
 
-  if (SELECTED_FRAME () != f)
-    {
-      record_unwind_protect (select_frame_norecord, Fselected_frame ());
-      select_frame_norecord (frame);
-    }
-
   /* Use the right buffer.  Matters when running the local hooks.  */
   if (current_buffer != XBUFFER (Fwindow_buffer (Qnil)))
     {
       record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
       Fset_buffer (Fwindow_buffer (Qnil));
+    }
+
+  if (SELECTED_FRAME () != f)
+    {
+      record_unwind_protect (select_frame_norecord, Fselected_frame ());
+      select_frame_norecord (frame);
     }
 
   /* Look for buffer-local values.  */
@@ -2957,12 +2957,12 @@ run_window_configuration_change_hook (struct frame *f)
 	if (!NILP (Flocal_variable_p (Qwindow_configuration_change_hook,
 				      buffer)))
 	  {
-	    int count1 = SPECPDL_INDEX ();
+	    int count = SPECPDL_INDEX ();
 	    record_unwind_protect (select_window_norecord, Fselected_window ());
 	    select_window_norecord (window);
 	    run_funs (Fbuffer_local_value (Qwindow_configuration_change_hook,
 					   buffer));
-	    unbind_to (count1, Qnil);
+	    unbind_to (count, Qnil);
 	  }
       }
   }
@@ -3319,8 +3319,8 @@ make_window (void)
   XSETFASTINT (w->top_line, 0);
   XSETFASTINT (w->total_lines, 0);
   XSETFASTINT (w->total_cols, 0);
-  XSETFASTINT (w->normal_lines, 1);
-  XSETFASTINT (w->normal_cols, 1);
+  w->normal_lines = make_float (1.0);
+  w->normal_cols = make_float (1.0);
   XSETFASTINT (w->new_total, 0);
   XSETFASTINT (w->new_normal, 0);
   w->buffer = Qnil;
@@ -3370,7 +3370,7 @@ make_window (void)
   return window;
 }
 
-DEFUN ("resize-window-total", Fresize_window_total, Sresize_window_total, 2, 3, 0,
+DEFUN ("set-window-new-total", Fset_window_new_total, Sset_window_new_total, 2, 3, 0,
        doc: /* Set new total size of WINDOW to SIZE.
 Return SIZE.
 
@@ -3391,7 +3391,7 @@ Note: This function does not operate on any subwindows of WINDOW.  */)
   return w->new_total;
 }
 
-DEFUN ("resize-window-normal", Fresize_window_normal, Sresize_window_normal, 1, 2, 0,
+DEFUN ("set-window-new-normal", Fset_window_new_normal, Sset_window_new_normal, 1, 2, 0,
        doc: /* Set new normal size of WINDOW to SIZE.
 Return SIZE.
 
@@ -3503,16 +3503,7 @@ resize_window_apply (struct window *w, int horflag)
   if (horflag)
     {
       w->total_cols = w->new_total;
-      if (EQ (w->new_normal, Qset))
-	{
-	  if (NILP (w->parent))
-	    XSETFASTINT (w->normal_cols, 1);
-	  else
-	    w->normal_cols
-	      = make_float (XFLOATINT (w->total_cols)
-			    / XFLOATINT (XWINDOW (w->parent)->total_cols));
-	}
-      else if (NUMBERP (w->new_normal))
+      if (NUMBERP (w->new_normal))
 	w->normal_cols = w->new_normal;
 
       pos = XINT (w->left_col);
@@ -3520,16 +3511,7 @@ resize_window_apply (struct window *w, int horflag)
   else
     {
       w->total_lines = w->new_total;
-      if (EQ (w->new_normal, Qset))
-	{
-	  if (NILP (w->parent))
-	    XSETFASTINT (w->normal_lines, 1);
-	  else
-	    w->normal_lines
-	      = make_float (XFLOATINT (w->total_lines)
-			    / XFLOATINT (XWINDOW (w->parent)->total_lines));
-	}
-      else if (NUMBERP (w->new_normal))
+      if (NUMBERP (w->new_normal))
 	w->normal_lines = w->new_normal;
 
       pos = XINT (w->top_line);
@@ -3702,24 +3684,27 @@ resize_frame_windows (struct frame *f, int size, int horflag)
 }
 
 
-DEFUN ("split-window-internal", Fsplit_window_internal, Ssplit_window_internal, 2, 3, 0,
+DEFUN ("split-window-internal", Fsplit_window_internal, Ssplit_window_internal, 2, 4, 0,
        doc: /* Split window OLD vertically giving the new window SIZE lines.
-Optional argument HORIZONTAL non-nil means split OLD giving the new
+Optional argument SIDE non-nil means split OLD giving the new
 window SIZE columns.  In any case SIZE must be a positive integer.
 
-Optional third argument HORIZONTAL nil (or `below') specifies that the
-new window shall be located below WINDOW.  HORIZONTAL `above' means the
+Optional third argument SIDE nil (or `below') specifies that the
+new window shall be located below WINDOW.  SIDE `above' means the
 new window shall be located above WINDOW.  In these cases SIZE specifies
 the new number of lines for WINDOW (or the new window provided SIZE is
 negative) including space reserved for the mode and/or header line.
 
-HORIZONTAL t (or `right') specifies that the new window shall be located
-on the right side of WINDOW.  HORIZONTAL `left' means the new window
+SIDE t (or `right') specifies that the new window shall be located
+on the right side of WINDOW.  SIDE `left' means the new window
 shall be located on the left of WINDOW.  In these cases SIZE specifies
 the new number of columns for WINDOW (or the new window provided SIZE is
 negative) including space reserved for fringes and the scrollbar or a
-divder column.  */)
-     (Lisp_Object old, Lisp_Object size, Lisp_Object horizontal)
+divder column.
+
+Optional fourth argument NORMAL-SIZE specifies the normal size of the
+new window.  */)
+  (Lisp_Object old, Lisp_Object size, Lisp_Object side, Lisp_Object normal_size)
 {
   /* OLD (*o) is the window we have to split.  (*p) is either OLD's
      parent window or an internal window we have to install as OLD's new
@@ -3731,8 +3716,8 @@ divder column.  */)
   register struct window *o, *p, *n, *r;
   struct frame *f;
   int horflag
-    /* HORFLAG is 1 when we split horizontally, 0 otherwise.  */
-    = EQ (horizontal, Qt) || EQ (horizontal, Qleft) || EQ (horizontal, Qright);
+    /* HORFLAG is 1 when we split side-by-side, 0 otherwise.  */
+    = EQ (side, Qt) || EQ (side, Qleft) || EQ (side, Qright);
   int do_resize = 0;
   int do_nest = 0;
 
@@ -3801,7 +3786,7 @@ divder column.  */)
        - OLD doesn't have a parent window, or
 
        - OLD is in a vertical (horizontal) combination and shall be
-         split horizontally (vertically), or
+         split side-by-side (above-each-other), or
 
        - we want to nest the new parent window.
 
@@ -3835,7 +3820,7 @@ divder column.  */)
   n->parent = o->parent;
   n->vchild = n->hchild = Qnil;
 
-  if (EQ (horizontal, Qabove) || EQ (horizontal, Qleft))
+  if (EQ (side, Qabove) || EQ (side, Qleft))
     {
       n->prev = o->prev;
       if (NILP (n->prev))
@@ -3886,29 +3871,20 @@ divder column.  */)
   BLOCK_INPUT;
   resize_window_apply (p, horflag);
 
-  /* Store splits in new.  */
+  /* Store actual value of `window-splits' for NEW.  */
   n->splits = Vwindow_splits;
 
-  if (!do_resize)
-    {
-      /* Assign normal sizes for OLD.  */
-      if (horflag)
-	o->normal_cols
-	  = make_float (XFLOATINT (o->total_cols) / XFLOATINT (p->total_cols));
-      else
-	o->normal_lines
-	  = make_float (XFLOATINT (o->total_lines) / XFLOATINT (p->total_lines));
-    }
-
-  n->normal_lines
-    = make_float (XFLOATINT (n->total_lines) / XFLOATINT (p->total_lines));
-  n->normal_cols
-    = make_float (XFLOATINT (n->total_cols) / XFLOATINT (p->total_cols));
+  /* Assign normal size of NEW.  */
+  if (horflag)
+    n->normal_cols = normal_size;
+  else
+    n->normal_lines = normal_size;
 
   adjust_glyphs (f);
   UNBLOCK_INPUT;
 
-  /* Use buffer of reference window.  */
+  /* Set buffer of new window to buffer of reference window.  Don't run
+     any hooks.  */
   set_window_buffer (new, r->buffer, 0, 1);
   /* Maybe we should run the scroll functions in Elisp (which already
      runs the configuration change hook).  */
@@ -6528,9 +6504,6 @@ syms_of_window (void)
   Qresize_root_window_vertically = intern_c_string ("resize-root-window-vertically");
   staticpro (&Qresize_root_window_vertically);
 
-  Qset = intern_c_string ("set");
-  staticpro (&Qset);
-
   Qsafe = intern_c_string ("safe");
   staticpro (&Qsafe);
 
@@ -6703,10 +6676,10 @@ function `window-nest' and altered by the function `set-window-nest'.  */);
   defsubr (&Swindow_left_column);
   defsubr (&Swindow_total_size);
   defsubr (&Swindow_normal_size);
-  defsubr (&Swindow_new_total_size);
-  defsubr (&Swindow_new_normal_size);
-  defsubr (&Sresize_window_total);
-  defsubr (&Sresize_window_normal);
+  defsubr (&Swindow_new_total);
+  defsubr (&Swindow_new_normal);
+  defsubr (&Sset_window_new_total);
+  defsubr (&Sset_window_new_normal);
   defsubr (&Sresize_window_apply);
   defsubr (&Swindow_body_size);
   defsubr (&Swindow_hscroll);

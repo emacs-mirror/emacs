@@ -109,12 +109,6 @@ This function returns @code{t} if @var{object} is a live window and
 @code{nil} otherwise.  A live window is a window that displays a buffer.
 @end defun
 
-@defun window-internal-p object
-This function returns @code{t} if @var{object} denotes an internal
-window and @code{nil} otherwise.  An internal window is a window that
-has at least two child windows, see @ref{Windows and Frames}.
-@end defun
-
 @defun window-any-p object
 This function returns @code{t} if @var{object} denotes a live or an
 internal window and @code{nil} otherwise.  In particular, this function
@@ -917,7 +911,7 @@ new window.  They do not accept a buffer as an argument.  Rather, they
 ``split'' an existing window into two halves, both displaying the buffer
 previously visible in the window that was split.
 
-@deffn Command split-window &optional window size horizontal
+@deffn Command split-window &optional window size side
 This function creates a new window adjacent to @var{window}.  It returns
 the new window which is always a live window.  The argument @var{window}
 can denote any window and defaults to the selected one.  This function
@@ -937,14 +931,14 @@ is non-@code{nil} and valid, a new window of the requested size is
 created.  (A size value would be invalid if it assigned less than one
 line or less than two columns to the new window.)
 
-Optional third argument @var{horizontal} @code{nil} (or @code{below})
+Optional third argument @var{side} @code{nil} (or @code{below})
 specifies that the new window shall be located below @var{window}.  The
 value @code{above} means the new window will be located above
 @var{window}.  In both cases @var{size} specifies the new number of
 lines for @var{window} (or the new window if @var{size} is negative)
 including space reserved for the mode and/or header line.
 
-If @var{horizontal} is @code{t} or @code{right} the new window will be
+If @var{side} is @code{t} or @code{right} the new window will be
 positioned on the right side of @var{window}.  The value @code{left}
 means the new window will be located on the left side of @var{window}.
 In both cases @var{size} specifies the new number of columns for
@@ -952,8 +946,8 @@ In both cases @var{size} specifies the new number of columns for
 including space reserved for margins, fringes and the scroll bar or a
 divider column.
 
-Any other non-@code{nil} value for @var{horizontal} is currently handled
-like @code{t} (or @code{right}).  Since this might change in the future,
+Any other non-@code{nil} value for @var{side} is currently handled like
+@code{t} (or @code{right}).  Since this might change in the future,
 application programs should refrain from using other values.
 
 If @var{window} is live, properties of the new window like margins and
@@ -968,8 +962,8 @@ the @code{split-window-function} parameter of @var{window} is @code{t},
 it splits the window disregarding any other window parameters.  If the
 @code{split-window-function} parameter specifies a function, that
 function is called with the arguments @var{window}, @var{size}, and
-@var{horizontal} to split @var{window}.  If that function is
-@code{ignore}, nothing is done.
+@var{side} to split @var{window}.  If that function is @code{ignore},
+nothing is done.
 
 Otherwise, if @var{window} is a subwindow of an atomic window
 (@pxref{Atomic Windows}) this function splits the root of the atomic
@@ -1015,7 +1009,7 @@ The screen looks like this:
 @end group
 @end smallexample
 
-Next, split the top window horizontally:
+Next, split the top window into two side-by-side windows:
 
 @smallexample
 @group
@@ -1367,7 +1361,7 @@ to the selected one.  Note that setting the nest status is meaningful
 for internal windows only.  The return value is @var{status}.
 @end defun
 
-@deffn Command split-window-vertically &optional size
+@deffn Command split-window-above-each-other &optional size
 This function splits the selected window into two windows, one above the
 other, leaving the upper of the two windows selected, with @var{size}
 lines.  (If @var{size} is negative, then the lower of the two windows
@@ -1383,18 +1377,16 @@ is the new, lower window.
 
 @defopt split-window-keep-point
 If this variable is non-@code{nil} (the default), then
-@code{split-window-vertically} behaves as described above.
+@code{split-window-above-each-other} behaves as described above.
 
-   If it is @code{nil}, then @code{split-window-vertically} adjusts
-point in each of the two windows to avoid scrolling.  (This is useful on
-slow terminals.)  It selects whichever window contains the screen line
-that point was previously on.
-
-   This variable affects the behavior of @code{split-window-vertically}
-only.  It has no effect on the other functions described here.
+   If it is @code{nil}, then @code{split-window-above-each-other}
+adjusts point in each of the two windows to avoid scrolling.  (This is
+useful on slow terminals.)  It selects whichever window contains the
+screen line that point was previously on.  Other functions are not
+affected by this variable.
 @end defopt
 
-@deffn Command split-window-horizontally &optional size
+@deffn Command split-window-side-by-side &optional size
 This function splits the selected window into two windows
 side-by-side, leaving the selected window on the left with @var{size}
 columns.  If @var{size} is negative, the rightmost window gets
@@ -2286,8 +2278,8 @@ to call here are @code{shrink-window-if-larger-than-buffer} and
 @end itemize
 
 @item
-A cons cell whose @sc{car} equals @code{pop-up-window-set-width}
-with the following interpretations for the cdr:
+A cons cell whose @sc{car} equals @code{pop-up-window-set-width} with
+the following interpretations for the @sc{cdr}:
 
 @itemize @minus
 @item

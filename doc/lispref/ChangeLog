@@ -1,3 +1,10 @@
+2011-05-17  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Basic Windows): Remove description of
+	window-internal-p.
+	(Splitting Windows): New nomenclature for window splitting
+	commands.
+
 2011-04-09  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Splitting Windows): Explain window-splits and
