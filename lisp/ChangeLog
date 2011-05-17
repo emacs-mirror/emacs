@@ -1,3 +1,8 @@
+2011-05-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/grep.el (grep-mode): Disable default
+	compilation-directory-matcher setting (bug#8684).
+
 2011-05-17  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-handle-insert-file-contents): Use "dd"
