@@ -1,5 +1,8 @@
 2011-05-17  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/idlw-shell.el (idlwave-shell-complete-filename):
+	Replace obsolete function.
+
 	* shell.el (pcomplete-parse-arguments-function): Declare.
 
 	* calendar/appt.el (appt-message-warning-time, appt-display-mode-line)
