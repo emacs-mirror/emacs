@@ -84,30 +84,29 @@ Emacs will start in the current directory of the Windows shell.
 @cindex invoking Emacs from Windows Explorer
 @pindex emacsclient.exe
 @pindex emacsclientw.exe
-Via the Emacs client program, @file{emacsclient.exe} or
-@file{emacsclientw.exe}.  This allows to invoke Emacs from other
-programs, and to reuse a running Emacs process for serving editing
-jobs required by other programs.  @xref{Emacs Server}.  The difference
-between @file{emacsclient.exe} and @file{emacsclientw.exe} is that the
-former is a console program, while the latter is a Windows GUI
-program.  Both programs wait for Emacs to signal that the editing job
-is finished, before they exit and return control to the program that
-invoked them.  Which one of them to use in each case depends on the
-expectations of the program that needs editing services.  If that
-program is itself a console (text-mode) program, you should use
-@file{emacsclient.exe}, so that any of its messages and prompts appear
-in the same command window as those of the invoking program.  By
-contrast, if the invoking program is a GUI program, you will be better
-off using @file{emacsclientw.exe}, because @file{emacsclient.exe} will
-pop up a command window if it is invoked from a GUI program.  A
-notable situation where you would want @file{emacsclientw.exe} is when
-you right-click on a file in the Windows Explorer and select ``Open
-With'' from the pop-up menu.  Use the @samp{--alternate-editor=} or
-@samp{-a} options if Emacs might not be running (or not running as a
-server) when @command{emacsclient} is invoked---that will always give
-you an editor.  When invoked via @command{emacsclient}, Emacs will
-start in the current directory of the program that invoked
-@command{emacsclient}.
+Via @file{emacsclient.exe} or @file{emacsclientw.exe}, which allow you
+to invoke Emacs from other programs, and to reuse a running Emacs
+process for serving editing jobs required by other programs.
+@xref{Emacs Server}.  The difference between @file{emacsclient.exe}
+and @file{emacsclientw.exe} is that the former is a console program,
+while the latter is a Windows GUI program.  Both programs wait for
+Emacs to signal that the editing job is finished, before they exit and
+return control to the program that invoked them.  Which one of them to
+use in each case depends on the expectations of the program that needs
+editing services.  If that program is itself a console (text-mode)
+program, you should use @file{emacsclient.exe}, so that any of its
+messages and prompts appear in the same command window as those of the
+invoking program.  By contrast, if the invoking program is a GUI
+program, you will be better off using @file{emacsclientw.exe}, because
+@file{emacsclient.exe} will pop up a command window if it is invoked
+from a GUI program.  A notable situation where you would want
+@file{emacsclientw.exe} is when you right-click on a file in the
+Windows Explorer and select ``Open With'' from the pop-up menu.  Use
+the @samp{--alternate-editor=} or @samp{-a} options if Emacs might not
+be running (or not running as a server) when @command{emacsclient} is
+invoked---that will always give you an editor.  When invoked via
+@command{emacsclient}, Emacs will start in the current directory of
+the program that invoked @command{emacsclient}.
 @end enumerate
 
 @node Text and Binary
@@ -402,11 +401,11 @@ names, which might cause misalignment of columns in Dired display.
 
   The Windows equivalent of the @code{HOME} directory is the
 @dfn{user-specific application data directory}.  The actual location
-depends on your Windows version and system configuration; typical values
-are @file{C:\Documents and Settings\@var{username}\Application Data} on
-Windows 2K/XP/2K3, @file{C:\Users\@var{username}\AppData\Roaming} on
-Windows Vista/7/2K8, and either @file{C:\WINDOWS\Application Data}
-or @file{C:\WINDOWS\Profiles\@var{username}\Application Data} on the
+depends on the Windows version; typical values are @file{C:\Documents
+and Settings\@var{username}\Application Data} on Windows 2K/XP/2K3,
+@file{C:\Users\@var{username}\AppData\Roaming} on Windows Vista/7/2K8,
+and either @file{C:\WINDOWS\Application Data} or
+@file{C:\WINDOWS\Profiles\@var{username}\Application Data} on the
 older Windows 9X/ME systems.  If this directory does not exist or
 cannot be accessed, Emacs falls back to @file{C:\} as the default
 value of @code{HOME}.
@@ -955,11 +954,12 @@ The following scripts are recognized on Windows: @code{latin}, @code{greek},
 
 @cindex font antialiasing (MS Windows)
 @item antialias
-Specifies the antialiasing to use for the font.  The value @code{none}
-means no antialiasing, @code{standard} means use standard antialiasing,
-@code{subpixel} means use subpixel antialiasing (known as Cleartype on Windows),
-and @code{natural} means use subpixel antialiasing with adjusted spacing between
-letters.  If unspecified, the font will use the system default antialiasing.
+Specifies the antialiasing method.  The value @code{none} means no
+antialiasing, @code{standard} means use standard antialiasing,
+@code{subpixel} means use subpixel antialiasing (known as Cleartype on
+Windows), and @code{natural} means use subpixel antialiasing with
+adjusted spacing between letters.  If unspecified, the font will use
+the system default antialiasing.
 @end table
 
 @node Windows Misc

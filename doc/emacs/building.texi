@@ -438,8 +438,8 @@ syntax checking tool used depends on the language; for example, for
 C/C++ files this is usually the C compiler.  Flymake can also use
 build tools such as @code{make} for checking complicated projects.
 
-  To activate Flymake mode, type @kbd{M-x flymake-mode}.  You can move
-to the errors spotted by Flymake mode with @kbd{M-x
+  To enable Flymake mode, type @kbd{M-x flymake-mode}.  You can go to
+the errors found by Flymake mode with @kbd{M-x
 flymake-goto-next-error} and @kbd{M-x flymake-goto-prev-error}.  To
 display any error messages associated with the current line, use
 @kbd{M-x flymake-display-err-menu-for-current-line}.
@@ -992,7 +992,7 @@ breakpoint}, the breakpoint which point is on.
 @item @key{SPC}
 @kindex SPC @r{(GDB breakpoints buffer)}
 @findex gdb-toggle-breakpoint
-Enable/disable the current breakpoint (@code{gdb-toggle-breakpoint}).
+Enable/disable current breakpoint (@code{gdb-toggle-breakpoint}).
 On a graphical display, this changes the color of a bullet in the
 margin of a source buffer at the relevant line.  This is red when
 the breakpoint is enabled and grey when it is disabled.  Text-only

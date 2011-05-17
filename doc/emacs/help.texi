@@ -629,7 +629,7 @@ C-@var{char}}; that is, @kbd{C-h} followed by a control character.
 Display the Emacs copying conditions (@code{describe-copying}).
 These are the rules under which you can copy and redistribute Emacs.
 @item C-h C-d
-Display how to debug Emacs problems (@code{view-emacs-debugging}).
+Display help for debugging Emacs (@code{view-emacs-debugging}).
 @item C-h C-f
 Display the Emacs frequently-answered-questions list (@code{view-emacs-FAQ}).
 @item C-h g

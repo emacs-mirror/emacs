@@ -39,7 +39,7 @@ developing GNU and promoting software freedom.''
 @c in general, keep the following line commented out, unless doing a
 @c copy of this manual that will be published.  The manual should go
 @c onto the distribution in the full, 8.5 x 11" size.
-@c set smallbook
+@c @smallbook
 
 @ifset smallbook
 @smallbook

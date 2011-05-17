@@ -1,3 +1,8 @@
+2011-05-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/python.el (python-font-lock-keywords):
+	Add the Python 3.X keyword "nonlocal" (bug#8639).
+
 2011-05-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/eieio.el (defmethod): Fix quoting of code (bug#8677).

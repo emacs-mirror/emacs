@@ -451,13 +451,6 @@ fonts.  For more information about fontsets see the man page for
 @code{font} and @code{fontSet} resources are specified, the
 @code{fontSet} resource is used.
 
-  Thus, to specify @samp{-*-helvetica-medium-r-*--*-120-*-*-*-*-*-*,*}
-for both the popup and menu bar menus, write this:
-
-@example
-Emacs*menu*fontSet:  -*-helvetica-medium-r-*--*-120-*-*-*-*-*-*,*
-@end example
-
 @noindent
 Resources for @emph{non-menubar} toolkit pop-up menus have
 @samp{menu*} instead of @samp{pane.menubar}.  For example, to specify
@@ -473,15 +466,6 @@ For dialog boxes, use @samp{dialog*}:
 @example
 Emacs.dialog*.font: Sans-12
 @end example
-
-@noindent
-The @samp{*menu*} as a wildcard matches @samp{pane.menubar} and
-@samp{menu@dots{}}.
-
-Experience shows that on some systems you may need to add
-@samp{shell.}@: before the @samp{pane.menubar} or @samp{menu*}.  On
-some other systems, you must not add @samp{shell.}.  The generic wildcard
-approach should work on both kinds of systems.
 
   Here is a list of the specific resources for menu bars and pop-up menus:
 
@@ -677,10 +661,10 @@ to courier with size 12:
 gtk-font-name = "courier 12"
 @end smallexample
 
-  The thing to note is that the font name is not an X font name, like
--*-helvetica-medium-r-*--*-120-*-*-*-*-*-*, but a Pango font name.  A Pango
-font name is basically of the format "family style size", where the style
-is optional as in the case above.  A name with a style could be for example:
+  The thing to note is that the font name is not an X font name, but a
+Pango font name.  A Pango font name is basically of the format "family
+style size", where the style is optional as in the case above.  A name
+with a style could be for example:
 
 @smallexample
 gtk-font-name = "helvetica bold 10"

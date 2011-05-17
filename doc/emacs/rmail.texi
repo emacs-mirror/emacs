@@ -620,13 +620,13 @@ are three ways to use the labels: in moving, in summaries, and in sorting.
 @kindex C-M-p @r{(Rmail)}
 @findex rmail-next-labeled-message
 @findex rmail-previous-labeled-message
-  The command @kbd{C-M-n @var{labels} @key{RET}}
+  @kbd{C-M-n @var{labels} @key{RET}}
 (@code{rmail-next-labeled-message}) moves to the next message that has
-one of the labels @var{labels}.  The argument @var{labels} specifies one
-or more label names, separated by commas.  @kbd{C-M-p}
-(@code{rmail-previous-labeled-message}) is similar, but moves backwards
-to previous messages.  A numeric argument to either command serves as a
-repeat count.
+one of the labels @var{labels}.  The argument @var{labels} specifies
+one or more label names, separated by commas.  @kbd{C-M-p}
+(@code{rmail-previous-labeled-message}) is similar, but moves
+backwards to previous messages.  A numeric argument to either command
+serves as a repeat count.
 
   The command @kbd{C-M-l @var{labels} @key{RET}}
 (@code{rmail-summary-by-labels}) displays a summary containing only the

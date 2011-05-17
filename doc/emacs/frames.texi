@@ -576,7 +576,8 @@ the default foreground color and font:
 
 @example
 (add-to-list 'default-frame-alist '(font . "10x20"))
-(add-to-list 'default-frame-alist '(foreground-color . "blue"))
+(add-to-list 'default-frame-alist
+             '(foreground-color . "blue"))
 @end example
 
 @noindent
@@ -743,12 +744,9 @@ DejaVu Sans Mono:bold:italic
 Monospace-12:weight=bold:slant=italic
 @end smallexample
 
-See the Fontconfig manual for a more detailed description of
-Fontconfig patterns.  This manual is located in the file
-@file{fontconfig-user.html}, distributed with Fontconfig.  It is also
-available online at @url{http://fontconfig.org/fontconfig-user.html}.
-In particular, that manual describes additional font properties that
-influence how the font is hinted, antialiased, or scaled.
+For a more detailed description of Fontconfig patterns, see the
+Fontconfig manual, which is distributed with Fontconfig and available
+online at @url{http://fontconfig.org/fontconfig-user.html}.
 
   The second way to specify a font is to use a @dfn{GTK font
 description}.  These have the syntax
@@ -821,9 +819,9 @@ The font slant---normally @samp{r} (roman), @samp{i} (italic),
 @samp{o} (oblique), @samp{ri} (reverse italic), or @samp{ot} (other).
 Some font names support other values.
 @item widthtype
-The font width---normally @samp{condensed}, @samp{extended},
-@samp{semicondensed} or @samp{normal} (some font names support other
-values).
+The font width---normally @samp{normal}, @samp{condensed},
+@samp{extended}, or @samp{semicondensed} (some font names support
+other values).
 @item style
 An optional additional style name.  Usually it is empty---most long
 font names have two hyphens in a row at this point.

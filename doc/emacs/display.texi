@@ -662,17 +662,17 @@ that follows an open-parenthesis or open-brace in the leftmost column
 that is inside a string or comment.
 
 @cindex slow display during scrolling
-  The variable @code{font-lock-beginning-of-syntax-function} (always
-buffer-local) specifies how Font Lock mode can find a position
-guaranteed to be outside any comment or string.  In modes which use the
-leftmost column parenthesis convention, the default value of the variable
-is @code{beginning-of-defun}---that tells Font Lock mode to use the
-convention.  If you set this variable to @code{nil}, Font Lock no longer
-relies on the convention.  This avoids incorrect results, but the price
-is that, in some cases, fontification for a changed text must rescan
-buffer text from the beginning of the buffer.  This can considerably
-slow down redisplay while scrolling, particularly if you are close to
-the end of a large buffer.
+  The variable @code{font-lock-beginning-of-syntax-function}, which is
+always buffer-local, specifies how Font Lock mode can find a position
+guaranteed to be outside any comment or string.  In modes which use
+the leftmost column parenthesis convention, the default value of the
+variable is @code{beginning-of-defun}---that tells Font Lock mode to
+use the convention.  If you set this variable to @code{nil}, Font Lock
+no longer relies on the convention.  This avoids incorrect results,
+but the price is that, in some cases, fontification for a changed text
+must rescan buffer text from the beginning of the buffer.  This can
+considerably slow down redisplay while scrolling, particularly if you
+are close to the end of a large buffer.
 
 @findex font-lock-add-keywords
   Font Lock highlighting patterns already exist for many modes, but you
@@ -685,7 +685,8 @@ comments, use this:
 (add-hook 'c-mode-hook
           (lambda ()
            (font-lock-add-keywords nil
-            '(("\\<\\(FIXME\\):" 1 font-lock-warning-face t)))))
+            '(("\\<\\(FIXME\\):" 1
+               font-lock-warning-face t)))))
 @end example
 
 @findex font-lock-remove-keywords
@@ -892,9 +893,9 @@ the location of point is enough to show you that the spaces are
 present.
 
 @findex delete-trailing-whitespace
-  To delete all trailing whitespace within the buffer's accessible
-portion (@pxref{Narrowing}), type @kbd{M-x delete-trailing-whitespace
-@key{RET}}.  This command does not remove newline characters.
+  Type @kbd{M-x delete-trailing-whitespace @key{RET}} to delete all
+trailing whitespace within the buffer's accessible portion
+(@pxref{Narrowing}).  This command does not remove newline characters.
 
 @vindex indicate-empty-lines
 @cindex unused lines
