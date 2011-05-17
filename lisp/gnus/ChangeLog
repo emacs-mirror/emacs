@@ -1,3 +1,8 @@
+2011-05-17  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-group.el (gnus-import-other-newsrc-file):
+	Use insert-file-contents.
+
 2011-05-16  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus-sum.el (gnus-summary-hide-all-threads): Add update message every
