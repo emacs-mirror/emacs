@@ -119,7 +119,7 @@ See also `appt-audible' and `appt-display-mode-line'."
 (defcustom appt-display-mode-line t
   "Non-nil means display minutes to appointment and time on the mode line.
 This is in addition to any other display of appointment messages.
-The mode line updates every minute, indepedent of the value of
+The mode line updates every minute, independent of the value of
 `appt-display-interval'."
   :type 'boolean
   :group 'appt)
