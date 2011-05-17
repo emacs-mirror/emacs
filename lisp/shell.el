@@ -380,6 +380,8 @@ to `dirtrack-mode'."
   :group 'shell
   :type '(choice (const nil) regexp))
 
+(defvar pcomplete-parse-arguments-function)
+
 (defun shell-completion-vars ()
   "Setup completion vars for `shell-mode' and `read-shell-command'."
   (set (make-local-variable 'comint-completion-fignore)
