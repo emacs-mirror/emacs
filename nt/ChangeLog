@@ -1,3 +1,7 @@
+2011-05-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* README.W32: Add information about GnuTLS libraries.
+
 2011-05-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.nt [_MSC_VER] (va_copy): Replacement for the MS compiler.
