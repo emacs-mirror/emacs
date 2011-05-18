@@ -1,5 +1,6 @@
 2011-05-18  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/authors.el (authors-fixed-entries): Remove fakemail.c
 	* mail/sendmail.el (sendmail-program): Fall back to just "sendmail".
 
 	Rationalize calendar handling of day and month abbrev-arrays.
