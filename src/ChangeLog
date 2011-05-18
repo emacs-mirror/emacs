@@ -1,5 +1,7 @@
 2011-05-18  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Fix some integer overflow issues, such as string length overflow.
+
 	* insdel.c (count_size_as_multibyte): Check for string overflow.
 
 	* character.c (lisp_string_width): Check for string overflow.
