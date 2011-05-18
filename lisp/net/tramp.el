@@ -2838,16 +2838,16 @@ User is always nil."
 		 v
 		 (cond
 		  ((and beg end)
-		   (format "tail -c +%d %s | head -c +%d >%s"
-			   (1+ beg) (tramp-shell-quote-argument localname)
+		   (format "dd bs=1 skip=%d if=%s count=%d of=%s"
+			   beg (tramp-shell-quote-argument localname)
 			   (- end beg) remote-copy))
 		  (beg
-		   (format "tail -c +%d %s >%s"
-			   (1+ beg) (tramp-shell-quote-argument localname)
+		   (format "dd bs=1 skip=%d if=%s of=%s"
+			   beg (tramp-shell-quote-argument localname)
 			   remote-copy))
 		  (end
-		   (format "head -c +%d %s >%s"
-			   (1+ end) (tramp-shell-quote-argument localname)
+		   (format "dd bs=1 count=%d if=%s of=%s"
+			   end (tramp-shell-quote-argument localname)
 			   remote-copy)))))
 
 	      ;; `insert-file-contents-literally' takes care to avoid

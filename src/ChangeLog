@@ -1,4 +1,4 @@
-2011-05-16  Paul Eggert  <eggert@cs.ucla.edu>
+2011-05-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* insdel.c (count_size_as_multibyte): Check for string overflow.
 
@@ -16,8 +16,6 @@
 	a few bytes and will simplify future changes.
 	* character.c (string_escape_byte8): Likewise.
 	* lisp.h (string_overflow): New decl.
-
-2011-05-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fixups, following up to the user-interface timestamp change.
 	* nsterm.m (last_mouse_movement_time, ns_mouse_position): Use Time
@@ -93,6 +91,10 @@
 
 	* window.c (size_window): Avoid needless test at loop start.
 
+2011-05-18  Courtney Bane  <emacs-bugs-7626@cbane.org>  (tiny change)
+
+	* term.c (Fresume_tty): Restore hooks before reinitializing (bug#8687).
+
 2011-05-12  Drew Adams  <drew.adams@oracle.com>
 
 	* textprop.c (Fprevious_single_char_property_change): Doc fix (bug#8655).
@@ -103,8 +105,8 @@
 	`width' to `bar_area_x' and `bar_area_width', respectively.
 	(x_scroll_run): Take account of fringe background extension.
 
-	* xterm.c (x_draw_fringe_bitmap) [USE_TOOLKIT_SCROLL_BARS]: Rename
-	local vars `left' and `width' to `bar_area_x' and
+	* xterm.c (x_draw_fringe_bitmap) [USE_TOOLKIT_SCROLL_BARS]:
+	Rename local vars `left' and `width' to `bar_area_x' and
 	`bar_area_width', respectively.
 	(x_scroll_run) [USE_TOOLKIT_SCROLL_BARS]: Take account of fringe
 	background extension.
@@ -221,8 +223,8 @@
 	* dbusbind.c: Do not use XPNTR on a value that may be an integer.
 	Reported by Stefan Monnier in
 	<http://lists.gnu.org/archive/html/emacs-devel/2011-04/msg00919.html>.
-	(xd_remove_watch, Fdbus_init_bus, xd_read_queued_messages): Use
-	SYMBOLP-guarded XSYMBOL, not XPNTR.
+	(xd_remove_watch, Fdbus_init_bus, xd_read_queued_messages):
+	Use SYMBOLP-guarded XSYMBOL, not XPNTR.
 
 	* lisp.h (EMACS_INTPTR): Remove.  All uses changed to intptr_t.
 	(EMACS_UINTPTR): Likewise, with uintptr_t.
@@ -408,8 +410,8 @@
 	* callproc.c: Indentation fixup.
 
 	* sysdep.c (wait_for_termination_1): Make static.
-	(wait_for_termination, interruptible_wait_for_termination): Move
-	after wait_for_termination_1.
+	(wait_for_termination, interruptible_wait_for_termination):
+	Move after wait_for_termination_1.
 
 2011-05-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -525,8 +527,8 @@
 	(emacs_gnutls_write): Don't use uninitialized rtnval if nbyte <= 0.
 
 	* lisp.h: Fix a problem with aliasing and vector headers.  (Bug#8546)
-	GCC 4.6.0 optimizes based on type-based alias analysis.  For
-	example, if b is of type struct buffer * and v of type struct
+	GCC 4.6.0 optimizes based on type-based alias analysis.
+	For example, if b is of type struct buffer * and v of type struct
 	Lisp_Vector *, then gcc -O2 was incorrectly assuming that &b->size
 	!= &v->size, and therefore "v->size = 1; b->size = 2; return
 	v->size;" must therefore return 1.  This assumption is incorrect
@@ -546,8 +548,8 @@
 	(XSETPSEUDOVECTOR): Rewrite in terms of XSETTYPED_PSEUDOVECTOR.
 	(XSETSUBR): Rewrite in terms of XSETTYPED_PSEUDOVECTOR and XSIZE,
 	since Lisp_Subr is a special case (no "next" field).
-	(ASIZE): Now uses header.size rather than size.  All
-	previous uses of XVECTOR (foo)->size replaced to use this macro,
+	(ASIZE): Now uses header.size rather than size.
+	All previous uses of XVECTOR (foo)->size replaced to use this macro,
 	to avoid the hassle of writing XVECTOR (foo)->header.size.
 	(struct vectorlike_header): New type.
 	(TYPED_PSEUDOVECTORP): New macro, also specifying the C type of the
@@ -596,7 +598,7 @@
 	Break out the floating-point parsing into a new
 	function string_to_number, so that Fstring_to_number parses
 	floating point numbers consistently with the Lisp reader.
-	(digit_to_number): Moved here from data.c.  Make it static inline.
+	(digit_to_number): Move here from data.c.  Make it static inline.
 	(E_CHAR, EXP_INT): Remove, replacing with ...
 	(E_EXP): New macro, to solve the "1.0e+" problem mentioned below.
 	(string_to_number): New function, replacing isfloat_string.
@@ -833,8 +835,8 @@
 	Fix doprnt so it could be used again safely in `verror'.  (Bug#8435)
 	* doprnt.c: Include limits.h.
 	(SIZE_MAX): New macro.
-	(doprnt): Return a size_t value.  2nd arg is now size_t.  Many
-	local variables are now size_t instead of int or unsigned.
+	(doprnt): Return a size_t value.  2nd arg is now size_t.
+	Many local variables are now size_t instead of int or unsigned.
 	Improve overflow protection.  Support `l' modifier for integer
 	conversions.  Support %l conversion.  Don't assume an EMACS_INT
 	argument for integer conversions and for %c.
@@ -1035,8 +1037,8 @@
 
 	* syntax.c (update_syntax_table): Declare 2nd argument EMACS_INT.
 
-	* textprop.c (verify_interval_modification, interval_of): Declare
-	arguments EMACS_INT.
+	* textprop.c (verify_interval_modification, interval_of):
+	Declare arguments EMACS_INT.
 
 	* intervals.c (adjust_intervals_for_insertion): Declare arguments
 	EMACS_INT.
@@ -1287,8 +1289,8 @@
 	(free_realized_fontset) #if-0 the body, which does nothing.
 	(face_suitable_for_char_p): #if-0, as it's never called.
 	* fontset.h (face_suitable_for_char_p): Remove decl.
-	* xfaces.c (face_at_string_position): Use
-	FACE_SUITABLE_FOR_ASCII_CHAR_P, not FACE_SUITABLE_FOR_CHAR_P,
+	* xfaces.c (face_at_string_position):
+	Use FACE_SUITABLE_FOR_ASCII_CHAR_P, not FACE_SUITABLE_FOR_CHAR_P,
 	since 0 is always ASCII.
 
 	* fns.c (weak_hash_tables): Now static.
@@ -1397,8 +1399,8 @@
 	(last_point_position_window): Remove decls.
 	* keyboard.c: Make these variables static.
 
-	* coding.h (coding, code_convert_region, encode_coding_gap): Remove
-	decls.
+	* coding.h (coding, code_convert_region, encode_coding_gap):
+	Remove decls.
 	* coding.c (Vsjis_coding_system, Vbig5_coding_system):
 	(iso_code_class, detect_coding, code_convert_region): Now static.
 	(encode_coding_gap): Remove; unused.
@@ -1429,7 +1431,7 @@
 	exported only to the debugger.
 
 	* atimer.c (alarm_signal_handler, run_all_atimers): Now static.
-	* atimer.h (run_all_atimers): Removed; not exported.
+	* atimer.h (run_all_atimers): Remove; not exported.
 
 	font.c: Make copy_font_spec and merge_font_spec ordinary C functions.
 	* font.c (copy_font_spec): Rename from Fcopy_font_spec, since it
@@ -1684,8 +1686,8 @@
 
 2011-04-09  Chong Yidong  <cyd@stupidchicken.com>
 
-	* ftfont.c (get_adstyle_property, ftfont_pattern_entity): Use
-	unsigned char, to match FcChar8 type definition.
+	* ftfont.c (get_adstyle_property, ftfont_pattern_entity):
+	Use unsigned char, to match FcChar8 type definition.
 
 	* xterm.c (handle_one_xevent):
 	* xmenu.c (create_and_show_popup_menu):
@@ -1758,8 +1760,8 @@
 
 2011-04-06  Chong Yidong  <cyd@stupidchicken.com>
 
-	* process.c (Flist_processes): Removed to Lisp.
-	(list_processes_1): Deleted.
+	* process.c (Flist_processes): Remove to Lisp.
+	(list_processes_1): Delete.
 
 2011-04-06  Eli Zaretskii  <eliz@gnu.org>
 
@@ -2017,8 +2019,8 @@
 	* callint.c (Fcall_interactively): Preserve lexical-binding mode for
 	interactive spec.
 
-	* bytecode.c (Bstack_ref, Bstack_set, Bstack_set2, BdiscardN): New
-	byte-codes.
+	* bytecode.c (Bstack_ref, Bstack_set, Bstack_set2, BdiscardN):
+	New byte-codes.
 	(exec_byte_code): New function extracted from Fbyte_code to handle new
 	calling convention for byte-code-functions.  Add new byte-codes.
 
@@ -2033,8 +2035,8 @@
 2011-03-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (SCROLL_LIMIT): New macro.
-	(try_scrolling): Use it when setting scroll_limit.  Limit
-	scrolling to 100 screen lines.
+	(try_scrolling): Use it when setting scroll_limit.
+	Limit scrolling to 100 screen lines.
 	(redisplay_window): Even when falling back on "recentering",
 	position point in the window according to scroll-conservatively,
 	scroll-margin, and scroll-*-aggressively variables.  (Bug#6671)

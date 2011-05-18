@@ -62,15 +62,10 @@
 ;; `appt-check' reads.
 ;;
 ;; You can change the way the appointment window is created/deleted by
-;; setting the variables
-;;
-;;           appt-disp-window-function
-;; and
-;;           appt-delete-window-function
-;;
-;; For instance, these variables could be set to functions that display
-;; appointments in pop-up frames, which are lowered or iconified after
-;; `appt-display-interval' minutes.
+;; setting the variables `appt-disp-window-function' and
+;; `appt-delete-window-function'.  For instance, you could be set them
+;; to functions that display appointments in pop-up frames, which are
+;; lowered or iconified after `appt-display-interval' minutes.
 ;;
 
 ;;; Code:
@@ -84,7 +79,8 @@
   :group 'calendar)
 
 (defcustom appt-message-warning-time 12
-  "Default time in minutes before an appointment that the warning begins."
+  "Default time in minutes before an appointment that the warning begins.
+You probably want to make `appt-display-interval' a factor of this."
   :type 'integer
   :group 'appt)
 
@@ -122,7 +118,9 @@ See also `appt-audible' and `appt-display-mode-line'."
 
 (defcustom appt-display-mode-line t
   "Non-nil means display minutes to appointment and time on the mode line.
-This is in addition to any other display of appointment messages."
+This is in addition to any other display of appointment messages.
+The mode line updates every minute, independent of the value of
+`appt-display-interval'."
   :type 'boolean
   :group 'appt)
 
@@ -134,12 +132,21 @@ Only relevant if reminders are to be displayed in their own window."
 
 (defcustom appt-display-diary t
   "Non-nil displays the diary when the appointment list is first initialized.
-This will occur at midnight when the appointment list is updated."
+This occurs when this package is first activated, and then at
+midnight when the appointment list updates."
   :type 'boolean
   :group 'appt)
 
 (defcustom appt-display-interval 3
-  "Number of minutes to wait between checking the appointment list."
+  "Interval in minutes at which to display appointment reminders.
+Once an appointment becomes due, Emacs displays reminders every
+`appt-display-interval' minutes.  You probably want to make
+`appt-message-warning-time' be a multiple of this, so that you get
+a final message displayed precisely when the appointment is due.
+
+Note that this variable controls the interval at which
+`appt-display-message' is called.  The mode line display (if active)
+always updates every minute."
   :type 'integer
   :group 'appt)
 
@@ -148,15 +155,13 @@ This will occur at midnight when the appointment list is updated."
 Only relevant if reminders are being displayed in a window.
 It should take three string arguments: the number of minutes till
 the appointment, the current time, and the text of the appointment."
-  :type '(choice (const appt-disp-window)
-                 function)
+  :type 'function
   :group 'appt)
 
 (defcustom appt-delete-window-function 'appt-delete-window
   "Function called to remove appointment window and buffer.
 Only relevant if reminders are being displayed in a window."
-  :type '(choice (const appt-delete-window)
-                 function)
+  :type 'function
   :group 'appt)
 
 
@@ -194,10 +199,9 @@ Only used if `appt-display-mode-line' is non-nil.")
 (put 'appt-mode-string 'risky-local-variable t) ; for 'face property
 
 (defvar appt-prev-comp-time nil
-  "Time of day (mins since midnight) at which we last checked appointments.
-A nil value forces the diary file to be (re-)checked for appointments.")
+  "Time of day (mins since midnight) at which we last checked appointments.")
 
-(defvar appt-display-count nil
+(defvar appt-display-count 0
   "Internal variable used to count number of consecutive reminders.")
 
 (defvar appt-timer nil
@@ -249,29 +253,28 @@ The following variables control appointment notification:
         Controls the format in which reminders are displayed.
 
 `appt-audible'
-        Variable used to determine if reminder is audible.
-        Default is t.
+        Non-nil means there is an audible component to reminders.
 
 `appt-message-warning-time'
-        Variable used to determine when appointment message
-        should first be displayed.
+        The default number of minutes in advance at which reminders
+        should start.
 
 `appt-display-mode-line'
-        If non-nil, a generic message giving the time remaining
-        is shown in the mode-line when an appointment is due.
+        Non-nil means show in the mode line a countdown to the
+        time of each appointment, once reminders start.
 
 `appt-display-interval'
-        Interval in minutes at which to check for pending appointments.
+        Interval in minutes at which to display appointment messages.
 
 `appt-display-diary'
-        Display the diary buffer when the appointment list is
-        initialized for the first time in a day.
+        Non-nil means display the diary whenever the appointment list is
+        initialized (e.g. the first time we check for appointments each day).
 
 The following variables are only relevant if reminders are being
 displayed in a window:
 
 `appt-display-duration'
-        The number of seconds an appointment message is displayed.
+        Number of seconds for which an appointment message is displayed.
 
 `appt-disp-window-function'
         Function called to display appointment window.
@@ -281,7 +284,7 @@ displayed in a window:
   (interactive "P")                     ; so people can force updates
   (let* ((min-to-app -1)
          (prev-appt-mode-string appt-mode-string)
-         (prev-appt-display-count (or appt-display-count 0))
+         (prev-appt-display-count appt-display-count)
          now now-mins appt-mins appt-warn-time)
     (save-excursion                   ; FIXME ?
       ;; Convert current time to minutes after midnight (12.01am = 1).
@@ -301,9 +304,12 @@ displayed in a window:
                 ;; diary-number-of-entries.  Since appt.el only
                 ;; works on a daily basis, no need for more entries.
                 (diary-list-entries (calendar-current-date) 1 t)))))
+      ;; Reset everything now in case we somehow missed a minute,
+      ;; or (more likely) an appt was deleted.  (This is the only
+      ;; reason we need prev-appt-display-count.)
       (setq appt-prev-comp-time now-mins
             appt-mode-string nil
-            appt-display-count nil)
+            appt-display-count 0)
       ;; Remove any entries that are in the past.
       ;; FIXME how can there be any such entries, given that this
       ;; function removes entries when they hit zero minutes,
@@ -354,7 +360,7 @@ displayed in a window:
           ;; appointment on the next cycle.
           (if (zerop min-to-app)
               (setq appt-time-msg-list (cdr appt-time-msg-list)
-                    appt-display-count nil)
+                    appt-display-count 0)
             (setq appt-display-count (1+ prev-appt-display-count)))))
       ;; If we have changed the mode line string, redisplay all mode lines.
       (and appt-display-mode-line

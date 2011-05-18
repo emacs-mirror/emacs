@@ -232,7 +232,8 @@ preferred charset: unicode (Unicode (ISO10646))
       buffer code: #xC3 #x80
         file code: not encodable by coding system undecided-unix
           display: by this font (glyph code)
-    xft:-unknown-DejaVu Sans Mono-normal-normal-normal-*-13-*-*-*-m-0-iso10646-1 (#x82)
+    xft:-unknown-DejaVu Sans Mono-normal-normal-
+        normal-*-13-*-*-*-m-0-iso10646-1 (#x82)
 
 Character code properties: customize what to show
   name: LATIN CAPITAL LETTER A WITH GRAVE
@@ -322,7 +323,7 @@ language environment also specifies a default input method.
 
 @findex set-language-environment
 @vindex current-language-environment
-  To select a language environment, customize the variable
+  To select a language environment, customize
 @code{current-language-environment} or use the command @kbd{M-x
 set-language-environment}.  It makes no difference which buffer is
 current when you use this command, because the effects apply globally
@@ -648,9 +649,9 @@ shows that information in addition to the other information about the
 character.
 
 @findex list-input-methods
-  To see a list of all the supported input methods, type @kbd{M-x
-list-input-methods}.  The list gives information about each input
-method, including the string that stands for it in the mode line.
+  @kbd{M-x list-input-methods} displays a list of all the supported
+input methods.  The list gives information about each input method,
+including the string that stands for it in the mode line.
 
 @node Coding Systems
 @section Coding Systems
@@ -1468,18 +1469,22 @@ examples are:
 
 @example
 ;; Use Liberation Mono for latin-3 charset.
-(set-fontset-font "fontset-default" 'iso-8859-3 "Liberation Mono")
+(set-fontset-font "fontset-default" 'iso-8859-3
+                  "Liberation Mono")
 
 ;; Prefer a big5 font for han characters
-(set-fontset-font "fontset-default" 'han (font-spec :registry "big5")
+(set-fontset-font "fontset-default"
+                  'han (font-spec :registry "big5")
                   nil 'prepend)
 
-;; Use DejaVu Sans Mono as a fallback in fontset-startup before
-;; resorting to fontset-default.
-(set-fontset-font "fontset-startup" nil "DejaVu Sans Mono" nil 'append)
+;; Use DejaVu Sans Mono as a fallback in fontset-startup
+;; before resorting to fontset-default.
+(set-fontset-font "fontset-startup" nil "DejaVu Sans Mono"
+                  nil 'append)
 
 ;; Use MyPrivateFont for the Unicode private use area.
-(set-fontset-font "fontset-default"  '(#xe000 . #xf8ff) "MyPrivateFont")
+(set-fontset-font "fontset-default"  '(#xe000 . #xf8ff)
+                  "MyPrivateFont")
 
 @end example
 
@@ -1644,9 +1649,9 @@ name, and displays information about that charset, including its
 internal representation within Emacs.
 
 @findex list-character-sets
-  To display a list of all supported charsets, type @kbd{M-x
-list-character-sets}.  The list gives the names of charsets and
-additional information to identity each charset (see
+  @kbd{M-x list-character-sets} displays a list of all supported
+charsets.  The list gives the names of charsets and additional
+information to identity each charset (see
 @url{http://www.itscj.ipsj.or.jp/ISO-IR/} for details).  In this list,
 charsets are divided into two categories: @dfn{normal charsets} are
 listed first, followed by @dfn{supplementary charsets}.  A

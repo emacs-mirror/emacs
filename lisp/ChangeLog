@@ -1,6 +1,50 @@
-2011-05-16  Paul Eggert  <eggert@cs.ucla.edu>
+2011-05-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* vc/diff-mode.el (diff-fixup-modifs): Remove stray ')' (Bug#8672).
+	* progmodes/grep.el (grep-mode): Disable default
+	compilation-directory-matcher setting (bug#8684).
+
+2011-05-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-insert-file-contents): Use "dd"
+	instead of "head" and "tail".  There were problems with SunOS 5.9,
+	and it performs better.
+
+2011-05-17  Glenn Morris  <rgm@gnu.org>
+
+	* mail/mail-utils.el (mail-dont-reply-to): Silence compiler.
+
+	* progmodes/idlw-shell.el (idlwave-shell-complete-filename):
+	Replace obsolete function.
+
+	* shell.el (pcomplete-parse-arguments-function): Declare.
+
+	* calendar/appt.el (appt-message-warning-time, appt-display-mode-line)
+	(appt-display-diary, appt-display-interval, appt-prev-comp-time)
+	(appt-check): Doc fixes.
+	(appt-disp-window-function, appt-delete-window-function):
+	Remove needless special case in custom :type.
+	(appt-display-count): Default to 0, not nil.
+	(appt-check): Reset appt-display-count to 0, not nil.
+
+2011-05-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/python.el (python-font-lock-keywords):
+	Add the Python 3.X keyword "nonlocal" (bug#8639).
+
+2011-05-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/eieio.el (defmethod): Fix quoting of code (bug#8677).
+
+2011-05-16  Kevin Ryde  <user42@zip.com.au>
+
+	* info-look.el (makefile-automake-mode): New setups, looking in
+	automake manual, then makefile-mode.
+	(makefile-mode): Remove automake manual, have it just in
+	makefile-automake-mode since there's various things different or
+	not relevant to plain make.
+	(makefile-mode): Remove "other-modes" non-existent automake-mode,
+	believe a hypothetical automake-mode would go to makefile-mode,
+	not the other way around.
 
 2011-05-15  Chong Yidong  <cyd@stupidchicken.com>
 

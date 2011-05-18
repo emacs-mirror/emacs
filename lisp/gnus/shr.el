@@ -780,6 +780,9 @@ ones, in case fg and bg are nil."
 (defun shr-tag-s (cont)
   (shr-fontize-cont cont 'shr-strike-through))
 
+(defun shr-tag-del (cont)
+  (shr-fontize-cont cont 'shr-strike-through))
+
 (defun shr-tag-b (cont)
   (shr-fontize-cont cont 'bold))
 

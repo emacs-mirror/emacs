@@ -161,10 +161,6 @@ This event occurs when another application requests that Emacs open a
 temporary file.  By default, this is handled by just generating a
 @code{ns-open-file} event, the results of which are described above.
 
-You can bind @key{ns-pop-up-frames} and @key{ns-open-temp-file} to
-other Lisp functions.  When the event is registered, the name of the
-file to open is stored in the variable @code{ns-input-file}.
-
 @item ns-open-file-line
 Some applications, such as ProjectBuilder and gdb, request not only a
 particular file, but also a particular line or sequence of lines in

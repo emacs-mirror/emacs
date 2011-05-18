@@ -369,7 +369,7 @@ to it is returned.  This function does not modify the point or the mark."
 (put 'c-safe 'lisp-indent-function 0)
 
 (defmacro c-int-to-char (integer)
-  ;; In GNU Emacs, a character is an integer.  In XEmacs, a character is a
+  ;; In Emacs, a character is an integer.  In XEmacs, a character is a
   ;; type distinct from an integer.  Sometimes we need to convert integers to
   ;; characters.  `c-int-to-char' makes this conversion, if necessary.
   (if (fboundp 'int-to-char)

@@ -1362,7 +1362,8 @@ password contained in '~/.nntp-authinfo'."
       (nntp-kill-buffer pbuffer))
     (when (and (buffer-name pbuffer)
 	       process)
-      (when (and (fboundp 'set-network-process-option)
+      (when (and (fboundp 'set-network-process-option) ;; Unavailable in XEmacs.
+		 (fboundp 'process-type) ;; Emacs 22 doesn't provide it.
                  (eq (process-type process) 'network))
         ;; Use TCP-keepalive so that connections that pass through a NAT router
         ;; don't hang when left idle.
