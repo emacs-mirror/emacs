@@ -167,7 +167,8 @@ endif
 
 ## begin gnulib module ignore-value
 
-libgnu_a_SOURCES += ignore-value.h
+
+EXTRA_DIST += ignore-value.h
 
 ## end   gnulib module ignore-value
 
@@ -779,6 +780,7 @@ unistd.h: unistd.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H
 	      -e 's|@''GNULIB_GETLOGIN_R''@|$(GNULIB_GETLOGIN_R)|g' \
 	      -e 's|@''GNULIB_GETPAGESIZE''@|$(GNULIB_GETPAGESIZE)|g' \
 	      -e 's|@''GNULIB_GETUSERSHELL''@|$(GNULIB_GETUSERSHELL)|g' \
+	      -e 's|@''GNULIB_GROUP_MEMBER''@|$(GNULIB_GROUP_MEMBER)|g' \
 	      -e 's|@''GNULIB_LCHOWN''@|$(GNULIB_LCHOWN)|g' \
 	      -e 's|@''GNULIB_LINK''@|$(GNULIB_LINK)|g' \
 	      -e 's|@''GNULIB_LINKAT''@|$(GNULIB_LINKAT)|g' \
@@ -817,6 +819,7 @@ unistd.h: unistd.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H
 	      -e 's|@''HAVE_GETHOSTNAME''@|$(HAVE_GETHOSTNAME)|g' \
 	      -e 's|@''HAVE_GETLOGIN''@|$(HAVE_GETLOGIN)|g' \
 	      -e 's|@''HAVE_GETPAGESIZE''@|$(HAVE_GETPAGESIZE)|g' \
+	      -e 's|@''HAVE_GROUP_MEMBER''@|$(HAVE_GROUP_MEMBER)|g' \
 	      -e 's|@''HAVE_LCHOWN''@|$(HAVE_LCHOWN)|g' \
 	      -e 's|@''HAVE_LINK''@|$(HAVE_LINK)|g' \
 	      -e 's|@''HAVE_LINKAT''@|$(HAVE_LINKAT)|g' \
@@ -883,9 +886,10 @@ EXTRA_DIST += unistd.in.h
 ## begin gnulib module verify
 
 if gl_GNULIB_ENABLED_verify
-libgnu_a_SOURCES += verify.h
 
 endif
+EXTRA_DIST += verify.h
+
 ## end   gnulib module verify
 
 ## begin gnulib module warn-on-use

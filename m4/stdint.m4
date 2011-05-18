@@ -1,4 +1,4 @@
-# stdint.m4 serial 40
+# stdint.m4 serial 41
 dnl Copyright (C) 2001-2011 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -7,7 +7,7 @@ dnl with or without modifications, as long as this notice is preserved.
 dnl From Paul Eggert and Bruno Haible.
 dnl Test whether <stdint.h> is supported or must be substituted.
 
-AC_DEFUN([gl_STDINT_H],
+AC_DEFUN_ONCE([gl_STDINT_H],
 [
   AC_PREREQ([2.59])dnl
 
