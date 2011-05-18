@@ -1,3 +1,8 @@
+2011-05-18  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* nntp.el (nntp-send-authinfo): Use the "force" token for NNTP
+	authentication with auth-source.
+
 2011-05-17  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-group.el (gnus-import-other-newsrc-file):
