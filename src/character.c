@@ -35,6 +35,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <sys/types.h>
 #include <setjmp.h>
+#include <intprops.h>
 #include "lisp.h"
 #include "character.h"
 #include "buffer.h"
@@ -404,7 +405,7 @@ strwidth (const char *str, EMACS_INT len)
    in *NCHARS and *NBYTES respectively.  */
 
 EMACS_INT
-lisp_string_width (Lisp_Object string, int precision,
+lisp_string_width (Lisp_Object string, EMACS_INT precision,
 		   EMACS_INT *nchars, EMACS_INT *nbytes)
 {
   EMACS_INT len = SCHARS (string);
@@ -419,7 +420,7 @@ lisp_string_width (Lisp_Object string, int precision,
 
   while (i < len)
     {
-      int chars, bytes, thiswidth;
+      EMACS_INT chars, bytes, thiswidth;
       Lisp_Object val;
       int cmp_id;
       EMACS_INT ignore, end;
@@ -437,7 +438,11 @@ lisp_string_width (Lisp_Object string, int precision,
 	  int c;
 
 	  if (multibyte)
-	    c = STRING_CHAR_AND_LENGTH (str + i_byte, bytes);
+	    {
+	      int cbytes;
+	      c = STRING_CHAR_AND_LENGTH (str + i_byte, cbytes);
+	      bytes = cbytes;
+	    }
 	  else
 	    c = str[i_byte], bytes = 1;
 	  chars = 1;
@@ -455,8 +460,14 @@ lisp_string_width (Lisp_Object string, int precision,
 	    }
 	}
 
-      if (precision > 0
-	  && (width + thiswidth > precision))
+      if (precision <= 0)
+	{
+#ifdef emacs
+	  if (INT_ADD_OVERFLOW (width, thiswidth))
+	    string_overflow ();
+#endif
+	}
+      else if (precision - width < thiswidth)
 	{
 	  *nchars = i;
 	  *nbytes = i_byte;
@@ -465,7 +476,7 @@ lisp_string_width (Lisp_Object string, int precision,
       i += chars;
       i_byte += bytes;
       width += thiswidth;
-  }
+    }
 
   if (precision > 0)
     {
@@ -672,7 +683,7 @@ parse_str_to_multibyte (const unsigned char *str, EMACS_INT len)
 }
 
 
-/* Convert unibyte text at STR of NBYTES bytes to a multibyte text
+/* Convert unibyte text at STR of BYTES bytes to a multibyte text
    that contains the same single-byte characters.  It actually
    converts all 8-bit characters to multibyte forms.  It is assured
    that we can use LEN bytes at STR as a work area and that is
@@ -823,7 +834,7 @@ string_escape_byte8 (Lisp_Object string)
     {
       if ((MOST_POSITIVE_FIXNUM - nchars) / 3 < byte8_count
 	  || (MOST_POSITIVE_FIXNUM - nbytes) / 2 < byte8_count)
-	error ("Maximum string size exceeded");
+	string_overflow ();
 
       /* Convert 2-byte sequence of byte8 chars to 4-byte octal.  */
       val = make_uninit_multibyte_string (nchars + byte8_count * 3,
@@ -832,7 +843,8 @@ string_escape_byte8 (Lisp_Object string)
   else
     {
       if ((MOST_POSITIVE_FIXNUM - nchars) / 3 < byte8_count)
-	error ("Maximum string size exceeded");
+	string_overflow ();
+
       /* Convert 1-byte sequence of byte8 chars to 4-byte octal.  */
       val = make_uninit_string (nbytes + byte8_count * 3);
     }

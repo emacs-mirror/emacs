@@ -19,6 +19,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef MENU_H
 #define MENU_H
 
+#include "systime.h" /* for Time */
+
 extern void x_set_menu_bar_lines (struct frame *f,
                                   Lisp_Object value,
                                   Lisp_Object oldval);
@@ -48,6 +50,5 @@ extern Lisp_Object w32_menu_show (FRAME_PTR, int, int, int, int,
 extern Lisp_Object ns_menu_show (FRAME_PTR, int, int, int, int,
 				 Lisp_Object, const char **);
 extern Lisp_Object xmenu_show (FRAME_PTR, int, int, int, int,
-			       Lisp_Object, const char **, EMACS_UINT);
+			       Lisp_Object, const char **, Time);
 #endif /* MENU_H */
-

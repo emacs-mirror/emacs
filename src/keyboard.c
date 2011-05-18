@@ -238,7 +238,7 @@ Lisp_Object internal_last_event_frame;
 
 /* The timestamp of the last input event we received from the X server.
    X Windows wants this for selection ownership.  */
-unsigned long last_event_timestamp;
+Time last_event_timestamp;
 
 static Lisp_Object Qx_set_selection, Qhandle_switch_frame;
 Lisp_Object QPRIMARY;
@@ -4085,7 +4085,7 @@ kbd_buffer_get_event (KBOARD **kbp,
       Lisp_Object bar_window;
       enum scroll_bar_part part;
       Lisp_Object x, y;
-      unsigned long t;
+      Time t;
 
       *kbp = current_kboard;
       /* Note that this uses F to determine which terminal to look at.
@@ -5088,7 +5088,7 @@ static Lisp_Object button_down_location;
 static int last_mouse_button;
 static int last_mouse_x;
 static int last_mouse_y;
-static unsigned long button_down_time;
+static Time button_down_time;
 
 /* The number of clicks in this multiple-click. */
 
@@ -5099,7 +5099,7 @@ static int double_click_count;
 
 static Lisp_Object
 make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
-		     unsigned long t)
+		     Time t)
 {
   enum window_part part;
   Lisp_Object posn = Qnil;
@@ -5556,9 +5556,9 @@ make_lispy_event (struct input_event *event)
 		       && (eabs (XINT (event->y) - last_mouse_y) <= fuzz)
 		       && button_down_time != 0
 		       && (EQ (Vdouble_click_time, Qt)
-			   || (INTEGERP (Vdouble_click_time)
-			       && ((int)(event->timestamp - button_down_time)
-				   < XINT (Vdouble_click_time)))));
+			   || (NATNUMP (Vdouble_click_time)
+			       && (event->timestamp - button_down_time
+				   < XFASTINT (Vdouble_click_time)))));
 	}
 
 	last_mouse_button = button;
@@ -5742,9 +5742,9 @@ make_lispy_event (struct input_event *event)
 		       && (eabs (XINT (event->y) - last_mouse_y) <= fuzz)
 		       && button_down_time != 0
 		       && (EQ (Vdouble_click_time, Qt)
-			   || (INTEGERP (Vdouble_click_time)
-			       && ((int)(event->timestamp - button_down_time)
-				   < XINT (Vdouble_click_time)))));
+			   || (NATNUMP (Vdouble_click_time)
+			       && (event->timestamp - button_down_time
+				   < XFASTINT (Vdouble_click_time)))));
 	  if (is_double)
 	    {
 	      double_click_count++;
@@ -5987,7 +5987,7 @@ make_lispy_event (struct input_event *event)
 
 static Lisp_Object
 make_lispy_movement (FRAME_PTR frame, Lisp_Object bar_window, enum scroll_bar_part part,
-		     Lisp_Object x, Lisp_Object y, unsigned long t)
+		     Lisp_Object x, Lisp_Object y, Time t)
 {
   /* Is it a scroll bar movement?  */
   if (frame && ! NILP (bar_window))

@@ -2174,6 +2174,11 @@ compact_small_strings (void)
   current_sblock = tb;
 }
 
+void
+string_overflow (void)
+{
+  error ("Maximum string size exceeded");
+}
 
 DEFUN ("make-string", Fmake_string, Smake_string, 2, 2, 0,
        doc: /* Return a newly created string of length LENGTH, with INIT in each element.
@@ -2206,7 +2211,7 @@ INIT must be an integer that represents a character.  */)
       EMACS_INT string_len = XINT (length);
 
       if (string_len > MOST_POSITIVE_FIXNUM / len)
-	error ("Maximum string size exceeded");
+	string_overflow ();
       nbytes = len * string_len;
       val = make_uninit_multibyte_string (string_len, nbytes);
       p = SDATA (val);

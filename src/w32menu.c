@@ -146,7 +146,7 @@ otherwise it is "Question". */)
       FRAME_PTR new_f = SELECTED_FRAME ();
       Lisp_Object bar_window;
       enum scroll_bar_part part;
-      unsigned long time;
+      Time time;
       Lisp_Object x, y;
 
       (*mouse_position_hook) (&new_f, 1, &bar_window, &part, &x, &y, &time);

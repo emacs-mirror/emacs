@@ -20,6 +20,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <setjmp.h>
+
+#include <intprops.h>
+
 #include "lisp.h"
 #include "intervals.h"
 #include "buffer.h"
@@ -581,14 +584,19 @@ count_size_as_multibyte (const unsigned char *ptr, EMACS_INT nbytes)
   for (i = 0; i < nbytes; i++)
     {
       unsigned int c = *ptr++;
+      int n;
 
       if (ASCII_CHAR_P (c))
-	outgoing_nbytes++;
+	n = 1;
       else
 	{
 	  c = BYTE8_TO_CHAR (c);
-	  outgoing_nbytes += CHAR_BYTES (c);
+	  n = CHAR_BYTES (c);
 	}
+
+      if (INT_ADD_OVERFLOW (outgoing_nbytes, n))
+	string_overflow ();
+      outgoing_nbytes += n;
     }
 
   return outgoing_nbytes;
