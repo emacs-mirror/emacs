@@ -1,3 +1,9 @@
+2011-05-18  Kenichi Handa  <handa@m17n.org>
+
+	* composite.c (CHAR_COMPOSABLE_P): Add more check for efficiency.
+	(BACKWARD_CHAR): Wrap the arg STOP by parenthesis.
+	(find_automatic_composition): Mostly rewrite for efficiency.
+
 2011-05-12  Drew Adams  <drew.adams@oracle.com>
 
 	* textprop.c (Fprevious_single_char_property_change): Doc fix (bug#8655).
