@@ -1,3 +1,8 @@
+2011-05-18  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* menu.c: Include limits.h (fixes the MS-Windows build broken by
+	revision 104625).
+
 2011-05-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix some integer overflow issues, such as string length overflow.
